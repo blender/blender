@@ -113,7 +113,7 @@ static void calc_faces(const Depsgraph &depsgraph,
   calc_brush_texture_colors(ss, brush, position_data.eval, verts, translations);
   scale_translations(translations, factors);
   for (const int i : verts.index_range()) {
-    SCULPT_calc_vertex_displacement(ss, brush, translations[i]);
+    calc_vertex_displacement(ss, brush, translations[i]);
   }
 
   clip_and_lock_translations(sd, ss, position_data.eval, verts, translations);
@@ -156,7 +156,7 @@ static void calc_grids(const Depsgraph &depsgraph,
   calc_brush_texture_colors(ss, brush, positions, translations);
   scale_translations(translations, factors);
   for (const int i : positions.index_range()) {
-    SCULPT_calc_vertex_displacement(ss, brush, translations[i]);
+    calc_vertex_displacement(ss, brush, translations[i]);
   }
 
   clip_and_lock_translations(sd, ss, positions, translations);
@@ -198,7 +198,7 @@ static void calc_bmesh(const Depsgraph &depsgraph,
   calc_brush_texture_colors(ss, brush, positions, translations);
   scale_translations(translations, factors);
   for (const int i : positions.index_range()) {
-    SCULPT_calc_vertex_displacement(ss, brush, translations[i]);
+    calc_vertex_displacement(ss, brush, translations[i]);
   }
 
   clip_and_lock_translations(sd, ss, positions, translations);

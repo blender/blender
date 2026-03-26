@@ -350,7 +350,7 @@ static BitVector<> enabled_state_to_bitmap(const Depsgraph &depsgraph,
                                            const Cache &expand_cache)
 {
   const SculptSession &ss = *object.runtime->sculpt_session;
-  const int totvert = SCULPT_vertex_count_get(object);
+  const int totvert = vertex_count_get(object);
   BitVector<> enabled_verts(totvert);
   if (expand_cache.all_enabled) {
     if (!expand_cache.invert) {
@@ -566,7 +566,7 @@ Vector<int> find_symm_verts_mesh(const Depsgraph &depsgraph,
                                  const int original_vert,
                                  const float max_distance)
 {
-  const ePaintSymmetryFlags symm = SCULPT_mesh_symmetry_xyz_get(object);
+  const ePaintSymmetryFlags symm = mesh_symmetry_xyz_get(object);
   const bke::pbvh::Tree &pbvh = *bke::object::pbvh_get(object);
   const bool use_original = false;
 
@@ -600,7 +600,7 @@ Vector<int> find_symm_verts_grids(const Object &object,
                                   const int original_vert,
                                   const float max_distance)
 {
-  const ePaintSymmetryFlags symm = SCULPT_mesh_symmetry_xyz_get(object);
+  const ePaintSymmetryFlags symm = mesh_symmetry_xyz_get(object);
   const bke::pbvh::Tree &pbvh = *bke::object::pbvh_get(object);
   const bool use_original = false;
 
@@ -633,7 +633,7 @@ Vector<int> find_symm_verts_bmesh(const Object &object,
                                   const int original_vert,
                                   const float max_distance)
 {
-  const ePaintSymmetryFlags symm = SCULPT_mesh_symmetry_xyz_get(object);
+  const ePaintSymmetryFlags symm = mesh_symmetry_xyz_get(object);
   const bke::pbvh::Tree &pbvh = *bke::object::pbvh_get(object);
   const bool use_original = false;
 
@@ -865,7 +865,7 @@ static void calc_topology_falloff_from_verts(Object &ob,
   const Mesh &mesh = *id_cast<const Mesh *>(ob.data);
   const GroupedSpan<int> vert_to_face_map = mesh.vert_to_face_map();
   const bke::pbvh::Tree &pbvh = *bke::object::pbvh_get(ob);
-  const int totvert = SCULPT_vertex_count_get(ob);
+  const int totvert = vertex_count_get(ob);
 
   switch (pbvh.type()) {
     case bke::pbvh::Type::Mesh: {
@@ -927,7 +927,7 @@ static Array<float> topology_falloff_create(const Depsgraph &depsgraph,
   IndexMaskMemory memory;
   const IndexMask mask = IndexMask::from_indices(symm_verts.as_span(), memory);
 
-  Array<float> dists(SCULPT_vertex_count_get(ob), 0.0f);
+  Array<float> dists(vertex_count_get(ob), 0.0f);
   calc_topology_falloff_from_verts(ob, mask, dists);
   return dists;
 }
@@ -945,7 +945,7 @@ static Array<float> normals_falloff_create(const Depsgraph &depsgraph,
 {
   SculptSession &ss = *ob.runtime->sculpt_session;
   const bke::pbvh::Tree &pbvh = *bke::object::pbvh_get(ob);
-  const int totvert = SCULPT_vertex_count_get(ob);
+  const int totvert = vertex_count_get(ob);
   Array<float> dists(totvert, 0.0f);
   Array<float> edge_factors(totvert, 1.0f);
 
@@ -1040,7 +1040,7 @@ static Array<float> spherical_falloff_create(const Depsgraph &depsgraph,
 {
   SculptSession &ss = *object.runtime->sculpt_session;
   const bke::pbvh::Tree &pbvh = *bke::object::pbvh_get(object);
-  Array<float> dists(SCULPT_vertex_count_get(object));
+  Array<float> dists(vertex_count_get(object));
 
   const Vector<int> symm_verts = find_symm_verts(depsgraph, object, vert);
 
@@ -1118,7 +1118,7 @@ static Array<float> boundary_topology_falloff_create(const Depsgraph &depsgraph,
 {
   const Vector<int> symm_verts = find_symm_verts(depsgraph, ob, initial_vert);
 
-  BitVector<> boundary_verts(SCULPT_vertex_count_get(ob));
+  BitVector<> boundary_verts(vertex_count_get(ob));
   for (const int vert : symm_verts) {
     if (std::unique_ptr<boundary::SculptBoundary> boundary = boundary::data_init(
             depsgraph, ob, nullptr, vert, FLT_MAX))
@@ -1132,7 +1132,7 @@ static Array<float> boundary_topology_falloff_create(const Depsgraph &depsgraph,
   IndexMaskMemory memory;
   const IndexMask boundary_mask = IndexMask::from_bits(boundary_verts, memory);
 
-  Array<float> dists(SCULPT_vertex_count_get(ob), 0.0f);
+  Array<float> dists(vertex_count_get(ob), 0.0f);
   calc_topology_falloff_from_verts(ob, boundary_mask, dists);
   return dists;
 }
@@ -1151,7 +1151,7 @@ static Array<float> diagonals_falloff_create(const Depsgraph &depsgraph,
   const OffsetIndices<int> faces = mesh.faces();
   const Span<int> corner_verts = mesh.corner_verts();
   const GroupedSpan<int> vert_to_face_map = mesh.vert_to_face_map();
-  const int totvert = SCULPT_vertex_count_get(ob);
+  const int totvert = vertex_count_get(ob);
   Array<float> dists(totvert, 0.0f);
 
   /* This algorithm uses mesh data (faces and loops), so this falloff type can't be initialized for
@@ -1203,7 +1203,7 @@ static void update_max_vert_falloff_value(const Object &object, Cache &expand_ca
 {
   SculptSession &ss = *object.runtime->sculpt_session;
   expand_cache.max_vert_falloff = threading::parallel_reduce(
-      IndexRange(SCULPT_vertex_count_get(object)),
+      IndexRange(vertex_count_get(object)),
       4096,
       std::numeric_limits<float>::lowest(),
       [&](const IndexRange range, float max) {
@@ -1343,7 +1343,7 @@ static void topology_from_state_boundary(Object &ob,
 {
   expand_cache.face_falloff = {};
 
-  expand_cache.vert_falloff.reinitialize(SCULPT_vertex_count_get(ob));
+  expand_cache.vert_falloff.reinitialize(vertex_count_get(ob));
   expand_cache.vert_falloff.fill(0);
 
   IndexMaskMemory memory;
@@ -1402,7 +1402,7 @@ static void init_from_face_set_boundary(const Depsgraph &depsgraph,
                                         const bool internal_falloff)
 {
   const bke::pbvh::Tree &pbvh = *bke::object::pbvh_get(ob);
-  const int totvert = SCULPT_vertex_count_get(ob);
+  const int totvert = vertex_count_get(ob);
 
   Array<bool> vert_has_face_set(totvert);
   Array<bool> vert_has_unique_face_set(totvert);
@@ -1709,13 +1709,13 @@ static void restore_original_state(bContext *C, Object &ob, Cache &expand_cache)
       write_mask_data(ob, expand_cache.original_mask);
       flush_update_step(C, UpdateType::Mask);
       flush_update_done(C, ob, UpdateType::Mask);
-      SCULPT_tag_update_overlays(C);
+      tag_update_overlays(C);
       break;
     case TargetType::FaceSets:
       restore_face_set_data(ob, expand_cache);
       flush_update_step(C, UpdateType::FaceSet);
       flush_update_done(C, ob, UpdateType::FaceSet);
-      SCULPT_tag_update_overlays(C);
+      tag_update_overlays(C);
       break;
     case TargetType::Colors:
       restore_color_data(ob, expand_cache);
@@ -1981,7 +1981,7 @@ static bool colors_update_task(const Depsgraph &depsgraph,
 static void original_state_store(Object &ob, Cache &expand_cache)
 {
   Mesh &mesh = *id_cast<Mesh *>(ob.data);
-  const int totvert = SCULPT_vertex_count_get(ob);
+  const int totvert = vertex_count_get(ob);
 
   face_set::create_face_sets_mesh(ob);
 
@@ -2171,7 +2171,7 @@ static std::optional<int> target_vert_update_and_get(bContext *C, Object &ob, co
 static void reposition_pivot(bContext *C, Object &ob, Cache &expand_cache)
 {
   SculptSession &ss = *ob.runtime->sculpt_session;
-  const char symm = SCULPT_mesh_symmetry_xyz_get(ob);
+  const char symm = mesh_symmetry_xyz_get(ob);
   const Depsgraph &depsgraph = *CTX_data_depsgraph_pointer(C);
 
   const bool initial_invert_state = expand_cache.invert;
@@ -2202,7 +2202,7 @@ static void reposition_pivot(bContext *C, Object &ob, Cache &expand_cache)
           return;
         }
         const float3 &position = positions[vert];
-        if (!SCULPT_check_vertex_pivot_symmetry(position, expand_init_co, symm)) {
+        if (!check_vertex_pivot_symmetry(position, expand_init_co, symm)) {
           return;
         }
         average += double3(position);
@@ -2219,7 +2219,7 @@ static void reposition_pivot(bContext *C, Object &ob, Cache &expand_cache)
           return;
         }
         const float3 position = positions[vert];
-        if (!SCULPT_check_vertex_pivot_symmetry(position, expand_init_co, symm)) {
+        if (!check_vertex_pivot_symmetry(position, expand_init_co, symm)) {
           return;
         }
         average += double3(position);
@@ -2235,7 +2235,7 @@ static void reposition_pivot(bContext *C, Object &ob, Cache &expand_cache)
           return;
         }
         const float3 position = BM_vert_at_index(&bm, vert)->co;
-        if (!SCULPT_check_vertex_pivot_symmetry(position, expand_init_co, symm)) {
+        if (!check_vertex_pivot_symmetry(position, expand_init_co, symm)) {
           return;
         }
         average += double3(position);
@@ -2288,7 +2288,7 @@ static void find_active_connected_components_from_vert(const Depsgraph &depsgrap
     expand_cache.active_connected_islands[i] = EXPAND_ACTIVE_COMPONENT_NONE;
   }
 
-  const ePaintSymmetryFlags symm = SCULPT_mesh_symmetry_xyz_get(ob);
+  const ePaintSymmetryFlags symm = mesh_symmetry_xyz_get(ob);
 
   const Vector<int> symm_verts = find_symm_verts(depsgraph, ob, initial_vertex);
 
@@ -2559,7 +2559,7 @@ static wmOperatorStatus sculpt_expand_modal(bContext *C, wmOperator *op, const w
         copy_v2_v2(expand_cache.initial_mouse_move, mval_fl);
         copy_v2_v2(expand_cache.original_mouse_move, expand_cache.initial_mouse);
         if (expand_cache.falloff_type == FalloffType::Geodesic &&
-            SCULPT_vertex_count_get(ob) > expand_cache.max_geodesic_move_preview)
+            vertex_count_get(ob) > expand_cache.max_geodesic_move_preview)
         {
           /* Set to spherical falloff for preview in high poly meshes as it is the fastest one.
            * In most cases it should match closely the preview from geodesic. */
@@ -2883,7 +2883,7 @@ static wmOperatorStatus sculpt_expand_invoke(bContext *C, wmOperator *op, const 
 
     if (RNA_boolean_get(op->ptr, "use_auto_mask")) {
       if (any_nonzero_mask(ob)) {
-        write_mask_data(ob, Array<float>(SCULPT_vertex_count_get(ob), 1.0f));
+        write_mask_data(ob, Array<float>(vertex_count_get(ob), 1.0f));
       }
     }
   }
@@ -2898,7 +2898,7 @@ static wmOperatorStatus sculpt_expand_invoke(bContext *C, wmOperator *op, const 
   }
 
   /* Do nothing when the mesh has 0 vertices. */
-  const int totvert = SCULPT_vertex_count_get(ob);
+  const int totvert = vertex_count_get(ob);
   if (totvert == 0) {
     expand_cache_free(ss);
     return OPERATOR_CANCELLED;
@@ -3082,7 +3082,7 @@ void SCULPT_OT_expand(wmOperatorType *ot)
   ot->invoke = sculpt_expand_invoke;
   ot->modal = sculpt_expand_modal;
   ot->cancel = sculpt_expand_cancel;
-  ot->poll = SCULPT_mode_poll;
+  ot->poll = sculpt_mode_poll;
 
   ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO | OPTYPE_DEPENDS_ON_CURSOR;
 

@@ -1090,7 +1090,7 @@ void ED_keymap_paint(wmKeyConfig *keyconf)
 
   /* Sculpt mode */
   keymap = WM_keymap_ensure(keyconf, "Sculpt", SPACE_EMPTY, RGN_TYPE_WINDOW);
-  keymap->poll = SCULPT_mode_poll;
+  keymap->poll = sculpt_mode_poll;
 
   /* Vertex Paint mode */
   keymap = WM_keymap_ensure(keyconf, "Vertex Paint", SPACE_EMPTY, RGN_TYPE_WINDOW);

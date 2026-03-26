@@ -1085,7 +1085,7 @@ static void do_vpaint_brush_blur_loops(const Depsgraph &depsgraph,
                             0;
   const bool use_face_sel = (mesh.editflag & ME_EDIT_PAINT_FACE_SEL) != 0;
 
-  const float *sculpt_normal_frontface = SCULPT_brush_frontface_normal_from_falloff_shape(
+  const float *sculpt_normal_frontface = brush_frontface_normal_from_falloff_shape(
       ss, brush.falloff_shape);
 
   GMutableSpan g_previous_color = vpd.prev_colors;
@@ -1246,7 +1246,7 @@ static void do_vpaint_brush_blur_verts(const Depsgraph &depsgraph,
                             0;
   const bool use_face_sel = (mesh.editflag & ME_EDIT_PAINT_FACE_SEL) != 0;
 
-  const float *sculpt_normal_frontface = SCULPT_brush_frontface_normal_from_falloff_shape(
+  const float *sculpt_normal_frontface = brush_frontface_normal_from_falloff_shape(
       ss, brush.falloff_shape);
 
   GMutableSpan g_previous_color = vpd.prev_colors;
@@ -1408,7 +1408,7 @@ static void do_vpaint_brush_smear(const Depsgraph &depsgraph,
     return;
   }
 
-  const float *sculpt_normal_frontface = SCULPT_brush_frontface_normal_from_falloff_shape(
+  const float *sculpt_normal_frontface = brush_frontface_normal_from_falloff_shape(
       ss, brush.falloff_shape);
 
   const Span<float3> vert_positions = bke::pbvh::vert_positions_eval(depsgraph, ob);
@@ -1742,7 +1742,7 @@ static void vpaint_do_draw(const Depsgraph &depsgraph,
                             0;
   const bool use_face_sel = (mesh.editflag & ME_EDIT_PAINT_FACE_SEL) != 0;
 
-  const float *sculpt_normal_frontface = SCULPT_brush_frontface_normal_from_falloff_shape(
+  const float *sculpt_normal_frontface = brush_frontface_normal_from_falloff_shape(
       ss, brush.falloff_shape);
 
   GMutableSpan g_previous_color = vpd.prev_colors;
@@ -1936,7 +1936,7 @@ static void vpaint_do_paint(const Depsgraph &depsgraph,
 {
   SculptSession &ss = *ob.runtime->sculpt_session;
   ss.cache->radial_symmetry_pass = i;
-  SCULPT_cache_calc_brushdata_symm(*ss.cache, symm, axis, angle);
+  cache_calc_brushdata_symm(*ss.cache, symm, axis, angle);
 
   IndexMaskMemory memory;
   const IndexMask node_mask = vwpaint::pbvh_gather_generic(depsgraph, ob, vp, brush, memory);
@@ -1984,7 +1984,7 @@ static void vpaint_do_symmetrical_brush_actions(const Depsgraph &depsgraph,
   Mesh &mesh = *id_cast<Mesh *>(ob.data);
   SculptSession &ss = *ob.runtime->sculpt_session;
   StrokeCache &cache = *ss.cache;
-  const char symm = SCULPT_mesh_symmetry_xyz_get(ob);
+  const char symm = mesh_symmetry_xyz_get(ob);
   int i = 0;
 
   /* initial stroke */
@@ -2000,7 +2000,7 @@ static void vpaint_do_symmetrical_brush_actions(const Depsgraph &depsgraph,
       const ePaintSymmetryFlags symm_pass = ePaintSymmetryFlags(i);
       cache.mirror_symmetry_pass = symm_pass;
       cache.radial_symmetry_pass = 0;
-      SCULPT_cache_calc_brushdata_symm(cache, symm_pass, 0, 0);
+      cache_calc_brushdata_symm(cache, symm_pass, 0, 0);
 
       if (i & (1 << 0)) {
         vpaint_do_paint(depsgraph, vp, vpd, ob, mesh, brush, symm_pass, 'X', 0, 0);

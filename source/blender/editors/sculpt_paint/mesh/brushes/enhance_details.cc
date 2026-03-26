@@ -207,7 +207,7 @@ void do_enhance_details_brush(const Depsgraph &depsgraph,
   bke::pbvh::Tree &pbvh = *bke::object::pbvh_get(object);
 
   if (ss.cache->detail_directions.is_empty()) {
-    ss.cache->detail_directions.reinitialize(SCULPT_vertex_count_get(object));
+    ss.cache->detail_directions.reinitialize(vertex_count_get(object));
     IndexMaskMemory memory;
     const IndexMask effective_nodes = bke::pbvh::search_nodes(
         pbvh, memory, [&](const bke::pbvh::Node &node) {

@@ -184,7 +184,7 @@ void do_pinch_brush(const Depsgraph &depsgraph,
   calc_brush_plane(depsgraph, brush, object, node_mask, area_no, area_co);
 
   /* delay the first daub because grab delta is not setup */
-  if (SCULPT_stroke_is_first_brush_step_of_symmetry_pass(*ss.cache)) {
+  if (stroke_is_first_brush_step_of_symmetry_pass(*ss.cache)) {
     return;
   }
 

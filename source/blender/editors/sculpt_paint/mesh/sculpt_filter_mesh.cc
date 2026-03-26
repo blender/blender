@@ -2029,7 +2029,7 @@ static void mesh_filter_surface_smooth_init(Object &object,
                                             const float current_vertex_displacement)
 {
   SculptSession &ss = *object.runtime->sculpt_session;
-  const int totvert = SCULPT_vertex_count_get(object);
+  const int totvert = vertex_count_get(object);
   filter::Cache *filter_cache = ss.filter_cache;
 
   filter_cache->surface_smooth_laplacian_disp.reinitialize(totvert);
@@ -2062,7 +2062,7 @@ static void mesh_filter_sharpen_init(const Depsgraph &depsgraph,
   const SculptSession &ss = *object.runtime->sculpt_session;
   const bke::pbvh::Tree &pbvh = *bke::object::pbvh_get(object);
   const IndexMask &node_mask = filter_cache.node_mask;
-  const int totvert = SCULPT_vertex_count_get(object);
+  const int totvert = vertex_count_get(object);
 
   filter_cache.sharpen_smooth_ratio = smooth_ratio;
   filter_cache.sharpen_intensify_detail_strength = intensify_detail_strength;
@@ -2468,13 +2468,13 @@ static void sculpt_filter_specific_init(const Depsgraph &depsgraph,
       break;
     }
     case MeshFilterType::EnhanceDetails: {
-      ss.filter_cache->detail_directions.reinitialize(SCULPT_vertex_count_get(object));
+      ss.filter_cache->detail_directions.reinitialize(vertex_count_get(object));
       calc_smooth_translations(
           depsgraph, object, ss.filter_cache->node_mask, ss.filter_cache->detail_directions);
       break;
     }
     case MeshFilterType::EraseDisplacement: {
-      ss.filter_cache->limit_surface_co.reinitialize(SCULPT_vertex_count_get(object));
+      ss.filter_cache->limit_surface_co.reinitialize(vertex_count_get(object));
       calc_limit_surface_positions(object, ss.filter_cache->limit_surface_co);
       break;
     }
@@ -2652,7 +2652,7 @@ void SCULPT_OT_mesh_filter(wmOperatorType *ot)
 
   ot->invoke = sculpt_mesh_filter_invoke;
   ot->modal = sculpt_mesh_filter_modal;
-  ot->poll = SCULPT_mode_poll;
+  ot->poll = sculpt_mode_poll;
   ot->exec = sculpt_mesh_filter_exec;
   ot->ui = sculpt_mesh_ui_exec;
 

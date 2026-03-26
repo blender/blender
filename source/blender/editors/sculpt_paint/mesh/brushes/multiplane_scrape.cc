@@ -570,7 +570,7 @@ void do_multiplane_scrape_brush(const Depsgraph &depsgraph,
   }
 
   /* Delay the first daub because grab delta is not setup. */
-  if (SCULPT_stroke_is_first_brush_step_of_symmetry_pass(*ss.cache)) {
+  if (stroke_is_first_brush_step_of_symmetry_pass(*ss.cache)) {
     ss.cache->multiplane_scrape_angle = 0.0f;
     return;
   }

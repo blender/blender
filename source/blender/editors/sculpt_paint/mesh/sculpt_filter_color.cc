@@ -669,7 +669,7 @@ void SCULPT_OT_color_filter(wmOperatorType *ot)
   ot->invoke = sculpt_color_filter_invoke;
   ot->exec = sculpt_color_filter_exec;
   ot->modal = sculpt_color_filter_modal;
-  ot->poll = SCULPT_mode_poll;
+  ot->poll = sculpt_mode_poll;
   ot->ui = sculpt_color_filter_ui;
   ot->get_name = sculpt_color_filter_get_name;
 

@@ -161,14 +161,14 @@ void do_clay_thumb_brush(const Depsgraph &depsgraph,
   }
 
   /* Delay the first daub because grab delta is not setup. */
-  if (SCULPT_stroke_is_first_brush_step_of_symmetry_pass(*ss.cache)) {
+  if (stroke_is_first_brush_step_of_symmetry_pass(*ss.cache)) {
     ss.cache->clay_thumb_brush.front_angle = 0.0f;
     return;
   }
 
   /* Simulate the clay accumulation by increasing the plane angle as more samples are added to the
    * stroke. */
-  if (SCULPT_stroke_is_main_symmetry_pass(*ss.cache)) {
+  if (stroke_is_main_symmetry_pass(*ss.cache)) {
     ss.cache->clay_thumb_brush.front_angle += 0.8f;
     ss.cache->clay_thumb_brush.front_angle = std::clamp(
         ss.cache->clay_thumb_brush.front_angle, 0.0f, 60.0f);

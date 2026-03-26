@@ -152,9 +152,8 @@ void vert_random_access_ensure(Object &object)
     BM_mesh_elem_table_ensure(ss.bm, BM_VERT);
   }
 }
-}  // namespace ed::sculpt_paint
 
-int SCULPT_vertex_count_get(const Object &object)
+int vertex_count_get(const Object &object)
 {
   const SculptSession &ss = *object.runtime->sculpt_session;
   switch (bke::object::pbvh_get(object)->type()) {
@@ -170,8 +169,6 @@ int SCULPT_vertex_count_get(const Object &object)
   return 0;
 }
 
-namespace ed::sculpt_paint {
-
 Span<float3> vert_positions_for_grab_active_get(const Depsgraph &depsgraph, const Object &object)
 {
   const SculptSession &ss = *object.runtime->sculpt_session;
@@ -185,17 +182,13 @@ Span<float3> vert_positions_for_grab_active_get(const Depsgraph &depsgraph, cons
   return mesh.vert_positions();
 }
 
-}  // namespace ed::sculpt_paint
-
-ePaintSymmetryFlags SCULPT_mesh_symmetry_xyz_get(const Object &object)
+ePaintSymmetryFlags mesh_symmetry_xyz_get(const Object &object)
 {
   const Mesh *mesh = id_cast<const Mesh *>(object.data);
   return ePaintSymmetryFlags(mesh->symmetry);
 }
 
 /* Sculpt Face Sets and Visibility. */
-
-namespace ed::sculpt_paint {
 
 namespace face_set {
 
@@ -228,10 +221,6 @@ int active_face_set_get(const Object &object)
   }
   return face_set_none_id;
 }
-
-}  // namespace face_set
-
-namespace face_set {
 
 int vert_face_set_get(const GroupedSpan<int> vert_to_face_map,
                       const Span<int> face_sets,
@@ -552,28 +541,26 @@ bool vert_is_boundary(BMVert *vert)
 
 }  // namespace boundary
 
-}  // namespace ed::sculpt_paint
-
 /* Utilities */
 
-bool SCULPT_stroke_is_main_symmetry_pass(const ed::sculpt_paint::StrokeCache &cache)
+bool stroke_is_main_symmetry_pass(const StrokeCache &cache)
 {
   return cache.mirror_symmetry_pass == 0 && cache.radial_symmetry_pass == 0 &&
          cache.tile_pass == 0;
 }
 
-bool SCULPT_stroke_is_first_brush_step(const ed::sculpt_paint::StrokeCache &cache)
+bool stroke_is_first_brush_step(const StrokeCache &cache)
 {
   return cache.first_time && cache.mirror_symmetry_pass == 0 && cache.radial_symmetry_pass == 0 &&
          cache.tile_pass == 0;
 }
 
-bool SCULPT_stroke_is_first_brush_step_of_symmetry_pass(const ed::sculpt_paint::StrokeCache &cache)
+bool stroke_is_first_brush_step_of_symmetry_pass(const StrokeCache &cache)
 {
   return cache.first_time;
 }
 
-bool SCULPT_check_vertex_pivot_symmetry(const float vco[3], const float pco[3], const char symm)
+bool check_vertex_pivot_symmetry(const float vco[3], const float pco[3], const char symm)
 {
   bool is_in_symmetry_area = true;
   for (int i = 0; i < 3; i++) {
@@ -591,8 +578,6 @@ bool SCULPT_check_vertex_pivot_symmetry(const float vco[3], const float pco[3], 
   }
   return is_in_symmetry_area;
 }
-
-namespace ed::sculpt_paint {
 
 /**
  * Align the grab delta to the brush normal.
@@ -632,10 +617,6 @@ float3 grab_delta_get(const Brush &brush, const StrokeCache &cache)
 
   return grab_delta;
 }
-
-}  // namespace ed::sculpt_paint
-
-namespace ed::sculpt_paint {
 
 std::optional<int> nearest_vert_calc_mesh(const bke::pbvh::Tree &pbvh,
                                           const Span<float3> vert_positions,
@@ -785,18 +766,16 @@ std::optional<BMVert *> nearest_vert_calc_bmesh(const bke::pbvh::Tree &pbvh,
   return nearest.vert;
 }
 
-}  // namespace ed::sculpt_paint
-
-bool SCULPT_is_vertex_inside_brush_radius_symm(const float vertex[3],
-                                               const float br_co[3],
-                                               float radius,
-                                               char symm)
+bool is_vertex_inside_brush_radius_symm(const float vertex[3],
+                                        const float br_co[3],
+                                        float radius,
+                                        char symm)
 {
   for (char i = 0; i <= symm; ++i) {
-    if (!ed::sculpt_paint::is_symmetry_iteration_valid(i, symm)) {
+    if (!is_symmetry_iteration_valid(i, symm)) {
       continue;
     }
-    float3 location = ed::sculpt_paint::symmetry_flip(br_co, ePaintSymmetryFlags(i));
+    float3 location = symmetry_flip(br_co, ePaintSymmetryFlags(i));
     if (len_squared_v3v3(location, vertex) < radius * radius) {
       return true;
     }
@@ -804,7 +783,7 @@ bool SCULPT_is_vertex_inside_brush_radius_symm(const float vertex[3],
   return false;
 }
 
-void SCULPT_tag_update_overlays(bContext *C)
+void tag_update_overlays(bContext *C)
 {
   ARegion *region = CTX_wm_region(C);
   ED_region_tag_redraw(region);
@@ -821,8 +800,6 @@ void SCULPT_tag_update_overlays(bContext *C)
 }
 
 /** \} */
-
-namespace ed::sculpt_paint {
 
 /* -------------------------------------------------------------------- */
 /** \name Brush Capabilities
@@ -856,7 +833,6 @@ static bool brush_uses_topology_rake(const SculptSession &ss, const Brush &brush
  */
 static int sculpt_brush_needs_normal(const SculptSession &ss, const Brush &brush)
 {
-  using namespace blender::ed::sculpt_paint;
   const MTex *mask_tex = BKE_brush_mask_texture_get(&brush, OB_MODE_SCULPT);
   return ((bke::brush::supports_normal_weight(brush) &&
            (bke::brush::normal_weight_get(brush, ss.cache->toggle_settings.invert) > 0.0f)) ||
@@ -1253,10 +1229,7 @@ static void restore_from_undo_step(const Depsgraph &depsgraph, const Sculpt &sd,
 
 }  // namespace undo
 
-}  // namespace ed::sculpt_paint
-
-const float *SCULPT_brush_frontface_normal_from_falloff_shape(const SculptSession &ss,
-                                                              char falloff_shape)
+const float *brush_frontface_normal_from_falloff_shape(const SculptSession &ss, char falloff_shape)
 {
   if (falloff_shape == PAINT_FALLOFF_SHAPE_SPHERE) {
     return ss.cache->sculpt_normal_symm;
@@ -1268,12 +1241,12 @@ const float *SCULPT_brush_frontface_normal_from_falloff_shape(const SculptSessio
 /* ===== Sculpting =====
  */
 
-static float calc_overlap(const ed::sculpt_paint::StrokeCache &cache,
+static float calc_overlap(const StrokeCache &cache,
                           const ePaintSymmetryFlags symm,
                           const char axis,
                           const float angle)
 {
-  float3 mirror = ed::sculpt_paint::symmetry_flip(cache.location, symm);
+  float3 mirror = symmetry_flip(cache.location, symm);
 
   if (axis != 0) {
     float mat[3][3];
@@ -1290,7 +1263,7 @@ static float calc_overlap(const ed::sculpt_paint::StrokeCache &cache,
 }
 
 static float calc_radial_symmetry_feather(const Mesh &mesh,
-                                          const ed::sculpt_paint::StrokeCache &cache,
+                                          const StrokeCache &cache,
                                           const ePaintSymmetryFlags symm,
                                           const char axis)
 {
@@ -1307,7 +1280,7 @@ static float calc_radial_symmetry_feather(const Mesh &mesh,
 static float calc_symmetry_feather(const Sculpt &sd,
                                    const ePaintSymmetryFlags symm,
                                    const Mesh &mesh,
-                                   const ed::sculpt_paint::StrokeCache &cache)
+                                   const StrokeCache &cache)
 {
   if (!(sd.paint.symmetry_flags & PAINT_SYMMETRY_FEATHER)) {
     return 1.0f;
@@ -1316,7 +1289,7 @@ static float calc_symmetry_feather(const Sculpt &sd,
 
   overlap = 0.0f;
   for (int i = 0; i <= symm; i++) {
-    if (!ed::sculpt_paint::is_symmetry_iteration_valid(i, symm)) {
+    if (!is_symmetry_iteration_valid(i, symm)) {
       continue;
     }
 
@@ -1344,8 +1317,6 @@ static float calc_symmetry_feather(const Sculpt &sd,
  *
  * \note These are all _very_ similar, when changing one, check others.
  * \{ */
-
-namespace ed::sculpt_paint {
 
 struct AreaNormalCenterData {
   /* 0 = towards view, 1 = flipped */
@@ -2224,8 +2195,6 @@ void calc_area_normal_and_center(const Depsgraph &depsgraph,
   }
 }
 
-}  // namespace ed::sculpt_paint
-
 /** \} */
 
 /* -------------------------------------------------------------------- */
@@ -2236,7 +2205,7 @@ void calc_area_normal_and_center(const Depsgraph &depsgraph,
  * Calculates the sign of the direction of the brush stroke, typically indicates whether the stroke
  * will deform a surface inwards or outwards along the brush normal.
  */
-static float brush_flip(const Brush &brush, const ed::sculpt_paint::StrokeCache &cache)
+static float brush_flip(const Brush &brush, const StrokeCache &cache)
 {
   const float dir = (brush.flag & BRUSH_DIR_IN) ? -1.0f : 1.0f;
   const float invert = cache.toggle_settings.invert ? -1.0f : 1.0f;
@@ -2250,7 +2219,7 @@ static float brush_flip(const Brush &brush, const ed::sculpt_paint::StrokeCache 
  * special multiplier found experimentally to scale the strength factor.
  */
 static float brush_strength(const Sculpt &sd,
-                            const ed::sculpt_paint::StrokeCache &cache,
+                            const StrokeCache &cache,
                             const float feather,
                             const PaintModeSettings & /*paint_mode_settings*/)
 {
@@ -2406,7 +2375,7 @@ void sculpt_apply_texture(const SculptSession &ss,
                           float *r_value,
                           float4 &r_rgba)
 {
-  const ed::sculpt_paint::StrokeCache &cache = *ss.cache;
+  const StrokeCache &cache = *ss.cache;
   const MTex *mtex = BKE_brush_mask_texture_get(&brush, OB_MODE_SCULPT);
 
   if (!mtex->tex) {
@@ -2430,7 +2399,7 @@ void sculpt_apply_texture(const SculptSession &ss,
     if (cache.radial_symmetry_pass) {
       mul_m4_v3(cache.symm_rot_mat_inv.ptr(), point);
     }
-    float3 symm_point = ed::sculpt_paint::symmetry_flip(point, cache.mirror_symmetry_pass);
+    float3 symm_point = symmetry_flip(point, cache.mirror_symmetry_pass);
 
     /* Still no symmetry supported for other paint modes.
      * Sculpt does it DIY. */
@@ -2464,9 +2433,7 @@ void sculpt_apply_texture(const SculptSession &ss,
   }
 }
 
-void SCULPT_calc_vertex_displacement(const SculptSession &ss,
-                                     const Brush &brush,
-                                     float translation[3])
+void calc_vertex_displacement(const SculptSession &ss, const Brush &brush, float translation[3])
 {
   mul_v3_fl(translation, ss.cache->bstrength);
   /* Handle brush inversion */
@@ -2487,11 +2454,8 @@ void SCULPT_calc_vertex_displacement(const SculptSession &ss,
   if (ss.cache->radial_symmetry_pass) {
     mul_m4_v3(ss.cache->symm_rot_mat.ptr(), translation);
   }
-  copy_v3_v3(translation,
-             ed::sculpt_paint::symmetry_flip(translation, ss.cache->mirror_symmetry_pass));
+  copy_v3_v3(translation, symmetry_flip(translation, ss.cache->mirror_symmetry_pass));
 }
-
-namespace ed::sculpt_paint {
 
 bool node_fully_masked_or_hidden(const bke::pbvh::Node &node)
 {
@@ -2662,7 +2626,7 @@ static void update_sculpt_normal(const Depsgraph &depsgraph,
                                    0.0f);
 
   if (cache.mirror_symmetry_pass == 0 && cache.radial_symmetry_pass == 0 &&
-      (SCULPT_stroke_is_first_brush_step_of_symmetry_pass(cache) || update_normal))
+      (stroke_is_first_brush_step_of_symmetry_pass(cache) || update_normal))
   {
     if (cursor_sample_result.plane_normal) {
       cache.sculpt_normal = *cursor_sample_result.plane_normal;
@@ -2799,11 +2763,8 @@ float3 tilt_effective_normal_get(const SculptSession &ss, const Brush &brush)
   return tilt_apply_to_normal(ss.cache->sculpt_normal_symm, *ss.cache, brush.tilt_strength_factor);
 }
 
-}  // namespace ed::sculpt_paint
-
 static void update_brush_local_mat(const Sculpt &sd, Object &ob)
 {
-  using namespace blender::ed::sculpt_paint;
   StrokeCache *cache = ob.runtime->sculpt_session->cache;
 
   if (cache->mirror_symmetry_pass == 0 && cache->radial_symmetry_pass == 0) {
@@ -2835,7 +2796,7 @@ static void sculpt_pbvh_update_pixels(const Depsgraph &depsgraph, Object &ob)
 {
   BLI_assert(ob.type == OB_MESH);
 
-  ed::sculpt_paint::StrokeCache &cache = *ob.runtime->sculpt_session->cache;
+  StrokeCache &cache = *ob.runtime->sculpt_session->cache;
   if (!cache.image_data) {
     return;
   }
@@ -2848,8 +2809,6 @@ static void sculpt_pbvh_update_pixels(const Depsgraph &depsgraph, Object &ob)
 /* -------------------------------------------------------------------- */
 /** \name Generic Brush Plane & Symmetry Utilities
  * \{ */
-namespace ed::sculpt_paint {
-
 struct RaycastData {
   Object *object;
   float3 ray_start;
@@ -2891,9 +2850,8 @@ struct FindNearestToRayData {
 
   const SubdivCCG *subdiv_ccg;
 };
-}  // namespace ed::sculpt_paint
 
-ePaintSymmetryAreas SCULPT_get_vertex_symm_area(const float co[3])
+ePaintSymmetryAreas get_vertex_symm_area(const float co[3])
 {
   ePaintSymmetryAreas symm_area = ePaintSymmetryAreas(PAINT_SYMM_AREA_DEFAULT);
   if (co[0] < 0.0f) {
@@ -2936,10 +2894,10 @@ static void flip_qt(float quat[4], const ePaintSymmetryFlags symm)
   flip_qt_qt(quat, quat, symm);
 }
 
-float3 SCULPT_flip_v3_by_symm_area(const float3 &vector,
-                                   const ePaintSymmetryFlags symm,
-                                   const ePaintSymmetryAreas symmarea,
-                                   const float3 &pivot)
+float3 flip_v3_by_symm_area(const float3 &vector,
+                            const ePaintSymmetryFlags symm,
+                            const ePaintSymmetryAreas symmarea,
+                            const float3 &pivot)
 {
   float3 result = vector;
   for (int i = 0; i < 3; i++) {
@@ -2948,19 +2906,19 @@ float3 SCULPT_flip_v3_by_symm_area(const float3 &vector,
       continue;
     }
     if (symmarea & ePaintSymmetryAreas(symm_it)) {
-      result = ed::sculpt_paint::symmetry_flip(result, symm_it);
+      result = symmetry_flip(result, symm_it);
     }
     if (pivot[i] < 0.0f) {
-      result = ed::sculpt_paint::symmetry_flip(result, symm_it);
+      result = symmetry_flip(result, symm_it);
     }
   }
   return result;
 }
 
-void SCULPT_flip_quat_by_symm_area(float quat[4],
-                                   const ePaintSymmetryFlags symm,
-                                   const ePaintSymmetryAreas symmarea,
-                                   const float pivot[3])
+void flip_quat_by_symm_area(float quat[4],
+                            const ePaintSymmetryFlags symm,
+                            const ePaintSymmetryAreas symmarea,
+                            const float pivot[3])
 {
   for (int i = 0; i < 3; i++) {
     ePaintSymmetryFlags symm_it = ePaintSymmetryFlags(1 << i);
@@ -2975,8 +2933,6 @@ void SCULPT_flip_quat_by_symm_area(float quat[4],
     }
   }
 }
-
-namespace ed::sculpt_paint {
 
 void calc_brush_plane(const Depsgraph &depsgraph,
                       const Brush &brush,
@@ -2995,10 +2951,10 @@ void calc_brush_plane(const Depsgraph &depsgraph,
   const bool use_original_normal = (brush.flag & BRUSH_ORIGINAL_NORMAL) &&
                                    brush.sculpt_brush_type != SCULPT_BRUSH_TYPE_PLANE;
 
-  const bool needs_recalculation = SCULPT_stroke_is_first_brush_step_of_symmetry_pass(*ss.cache) ||
+  const bool needs_recalculation = stroke_is_first_brush_step_of_symmetry_pass(*ss.cache) ||
                                    !use_original_plane || !use_original_normal;
 
-  if (SCULPT_stroke_is_main_symmetry_pass(*ss.cache) && needs_recalculation) {
+  if (stroke_is_main_symmetry_pass(*ss.cache) && needs_recalculation) {
     switch (brush.sculpt_plane) {
       case SCULPT_DISP_DIR_VIEW:
         r_area_no = ss.cache->view_normal;
@@ -3031,14 +2987,14 @@ void calc_brush_plane(const Depsgraph &depsgraph,
       calc_area_center(depsgraph, brush, ob, node_mask, r_area_co);
     }
 
-    if (!SCULPT_stroke_is_first_brush_step_of_symmetry_pass(*ss.cache) && use_original_normal) {
+    if (!stroke_is_first_brush_step_of_symmetry_pass(*ss.cache) && use_original_normal) {
       r_area_no = ss.cache->sculpt_normal;
     }
     else {
       ss.cache->sculpt_normal = r_area_no;
     }
 
-    if (!SCULPT_stroke_is_first_brush_step_of_symmetry_pass(*ss.cache) && use_original_plane) {
+    if (!stroke_is_first_brush_step_of_symmetry_pass(*ss.cache) && use_original_plane) {
       r_area_co = ss.cache->last_center;
     }
     else {
@@ -3067,15 +3023,11 @@ float brush_plane_offset_get(const Brush &brush, const SculptSession &ss)
                                               brush.plane_offset;
 }
 
-}  // namespace ed::sculpt_paint
-
 /** \} */
 
 /* -------------------------------------------------------------------- */
 /** \name Sculpt Brush Utilities
  * \{ */
-
-namespace ed::sculpt_paint {
 
 static void dynamic_topology_update(const Depsgraph &depsgraph,
                                     const Scene & /*scene*/,
@@ -3516,7 +3468,7 @@ static void do_brush_action(const Depsgraph &depsgraph,
   }
 
   if (brush.deform_target == BRUSH_DEFORM_TARGET_CLOTH_SIM) {
-    if (SCULPT_stroke_is_main_symmetry_pass(*ss.cache)) {
+    if (stroke_is_main_symmetry_pass(*ss.cache)) {
       cloth::sim_activate_nodes(ob, *ss.cache->cloth_sim, node_mask);
       cloth::do_simulation_step(depsgraph, sd, ob, *ss.cache->cloth_sim, node_mask);
     }
@@ -3532,21 +3484,19 @@ static void do_brush_action(const Depsgraph &depsgraph,
   paint_runtime.last_stroke_valid = true;
 }
 
-}  // namespace ed::sculpt_paint
-
-void SCULPT_cache_calc_brushdata_symm(ed::sculpt_paint::StrokeCache &cache,
-                                      const ePaintSymmetryFlags symm,
-                                      const char axis,
-                                      const float angle)
+void cache_calc_brushdata_symm(StrokeCache &cache,
+                               const ePaintSymmetryFlags symm,
+                               const char axis,
+                               const float angle)
 {
-  cache.location_symm = ed::sculpt_paint::symmetry_flip(cache.location, symm);
-  cache.last_location_symm = ed::sculpt_paint::symmetry_flip(cache.last_location, symm);
-  cache.grab_delta_symm = ed::sculpt_paint::symmetry_flip(cache.grab_delta, symm);
-  cache.view_normal_symm = ed::sculpt_paint::symmetry_flip(cache.view_normal, symm);
-  cache.view_origin_symm = ed::sculpt_paint::symmetry_flip(cache.view_origin, symm);
+  cache.location_symm = symmetry_flip(cache.location, symm);
+  cache.last_location_symm = symmetry_flip(cache.last_location, symm);
+  cache.grab_delta_symm = symmetry_flip(cache.grab_delta, symm);
+  cache.view_normal_symm = symmetry_flip(cache.view_normal, symm);
+  cache.view_origin_symm = symmetry_flip(cache.view_origin, symm);
 
-  cache.initial_location_symm = ed::sculpt_paint::symmetry_flip(cache.initial_location, symm);
-  cache.initial_normal_symm = ed::sculpt_paint::symmetry_flip(cache.initial_normal, symm);
+  cache.initial_location_symm = symmetry_flip(cache.initial_location, symm);
+  cache.initial_normal_symm = symmetry_flip(cache.initial_normal, symm);
 
   /* XXX This reduces the length of the grab delta if it approaches the line of symmetry
    * XXX However, a different approach appears to be needed. */
@@ -3577,7 +3527,7 @@ void SCULPT_cache_calc_brushdata_symm(ed::sculpt_paint::StrokeCache &cache,
   mul_m4_v3(cache.symm_rot_mat.ptr(), cache.grab_delta_symm);
 
   if (cache.supports_gravity) {
-    cache.gravity_direction_symm = ed::sculpt_paint::symmetry_flip(cache.gravity_direction, symm);
+    cache.gravity_direction_symm = symmetry_flip(cache.gravity_direction, symm);
     mul_m4_v3(cache.symm_rot_mat.ptr(), cache.gravity_direction_symm);
   }
 
@@ -3591,8 +3541,6 @@ void SCULPT_cache_calc_brushdata_symm(ed::sculpt_paint::StrokeCache &cache,
     cache.rake_rotation_symm = math::Quaternion(new_quat);
   }
 }
-
-namespace ed::sculpt_paint {
 
 using BrushActionFunc = void (*)(const Depsgraph &depsgraph,
                                  const Scene &scene,
@@ -3684,7 +3632,7 @@ static void do_radial_symmetry(const Depsgraph &depsgraph,
   for (int i = 1; i < mesh.radial_symmetry[axis - 'X']; i++) {
     const float angle = 2.0f * M_PI * i / mesh.radial_symmetry[axis - 'X'];
     ss.cache->radial_symmetry_pass = i;
-    SCULPT_cache_calc_brushdata_symm(*ss.cache, symm, axis, angle);
+    cache_calc_brushdata_symm(*ss.cache, symm, axis, angle);
     do_tiled(depsgraph, scene, sd, ob, brush, paint_mode_settings, action);
   }
 }
@@ -3715,7 +3663,7 @@ static void do_symmetrical_brush_actions(const Depsgraph &depsgraph,
   const Mesh &mesh = *id_cast<Mesh *>(ob.data);
   SculptSession &ss = *ob.runtime->sculpt_session;
   StrokeCache &cache = *ss.cache;
-  const ePaintSymmetryFlags symm = SCULPT_mesh_symmetry_xyz_get(ob);
+  const ePaintSymmetryFlags symm = mesh_symmetry_xyz_get(ob);
 
   float feather = calc_symmetry_feather(sd, symm, mesh, *ss.cache);
 
@@ -3731,7 +3679,7 @@ static void do_symmetrical_brush_actions(const Depsgraph &depsgraph,
     cache.mirror_symmetry_pass = symm;
     cache.radial_symmetry_pass = 0;
 
-    SCULPT_cache_calc_brushdata_symm(cache, symm, 0, 0);
+    cache_calc_brushdata_symm(cache, symm, 0, 0);
     do_tiled(depsgraph, scene, sd, ob, brush, paint_mode_settings, action);
 
     do_radial_symmetry(
@@ -3743,24 +3691,20 @@ static void do_symmetrical_brush_actions(const Depsgraph &depsgraph,
   }
 }
 
-}  // namespace ed::sculpt_paint
-
-bool SCULPT_mode_poll(bContext *C)
+bool sculpt_mode_poll(bContext *C)
 {
   Object *ob = CTX_data_active_object(C);
   return ob && ob->mode & OB_MODE_SCULPT;
 }
 
-bool SCULPT_mode_poll_view3d(bContext *C)
+bool sculpt_mode_poll_view3d(bContext *C)
 {
-  using namespace blender::ed::sculpt_paint;
-  return (SCULPT_mode_poll(C) && CTX_wm_region_view3d(C));
+  return (sculpt_mode_poll(C) && CTX_wm_region_view3d(C));
 }
 
-bool SCULPT_poll(bContext *C)
+bool sculpt_mode_and_brush_poll(bContext *C)
 {
-  using namespace blender::ed::sculpt_paint;
-  return SCULPT_mode_poll(C) && ed::sculpt_paint::paint_brush_tool_poll(C);
+  return sculpt_mode_poll(C) && paint_brush_tool_poll(C);
 }
 
 /**
@@ -3802,10 +3746,9 @@ static bool is_brush_related_tool(bContext *C)
   return false;
 }
 
-bool SCULPT_brush_cursor_poll(bContext *C)
+bool brush_cursor_poll(bContext *C)
 {
-  using namespace blender::ed::sculpt_paint;
-  return SCULPT_mode_poll(C) && (paint_brush_cursor_poll(C) || is_brush_related_tool(C));
+  return sculpt_mode_poll(C) && (paint_brush_cursor_poll(C) || is_brush_related_tool(C));
 }
 
 static const char *sculpt_brush_type_name(const Brush &brush)
@@ -3879,8 +3822,6 @@ static const char *sculpt_brush_type_name(const Brush &brush)
 
   return "Sculpting";
 }
-
-namespace ed::sculpt_paint {
 
 StrokeCache::StrokeCache() = default;
 
@@ -4192,7 +4133,7 @@ static void brush_delta_update(const Depsgraph &depsgraph,
   }
   float grab_location[3], imat[4][4], delta[3], loc[3];
 
-  if (SCULPT_stroke_is_first_brush_step_of_symmetry_pass(*ss.cache)) {
+  if (stroke_is_first_brush_step_of_symmetry_pass(*ss.cache)) {
     if (brush_type == SCULPT_BRUSH_TYPE_GRAB && brush.flag & BRUSH_GRAB_ACTIVE_VERTEX &&
         !std::holds_alternative<std::monostate>(ss.active_vert()))
     {
@@ -4220,7 +4161,7 @@ static void brush_delta_update(const Depsgraph &depsgraph,
   ED_view3d_win_to_3d(cache->vc->v3d, cache->vc->region, loc, mval, grab_location);
 
   /* Compute delta to move verts by. */
-  if (!SCULPT_stroke_is_first_brush_step_of_symmetry_pass(*ss.cache)) {
+  if (!stroke_is_first_brush_step_of_symmetry_pass(*ss.cache)) {
     if (need_delta_from_anchored_origin(brush)) {
       sub_v3_v3v3(delta, grab_location, cache->old_grab_location);
       invert_m4_m4(imat, ob.object_to_world().ptr());
@@ -4269,7 +4210,7 @@ static void brush_delta_update(const Depsgraph &depsgraph,
   invert_m4_m4(imat, ob.object_to_world().ptr());
   mul_mat3_m4_v3(imat, grab_location);
 
-  if (SCULPT_stroke_is_first_brush_step_of_symmetry_pass(*ss.cache)) {
+  if (stroke_is_first_brush_step_of_symmetry_pass(*ss.cache)) {
     copy_v3_v3(cache->rake_data.follow_co, grab_location);
   }
 
@@ -4378,12 +4319,9 @@ static bool sculpt_needs_connectivity_info(const Sculpt &sd,
           (brush.sculpt_brush_type == SCULPT_BRUSH_TYPE_PAINT));
 }
 
-}  // namespace ed::sculpt_paint
-
-void SCULPT_stroke_modifiers_check(
+void stroke_modifiers_check(
     Depsgraph &depsgraph, RegionView3D *rv3d, const Sculpt &sd, Object &ob, const Brush *brush)
 {
-  using namespace blender::ed::sculpt_paint;
   SculptSession &ss = *ob.runtime->sculpt_session;
 
   bool need_pmap = brush && sculpt_needs_connectivity_info(sd, *brush, ob);
@@ -4396,16 +4334,15 @@ void SCULPT_stroke_modifiers_check(
   }
 }
 
-void SCULPT_stroke_modifiers_check(const bContext *C, Object &ob, const Brush *brush)
+void stroke_modifiers_check(const bContext *C, Object &ob, const Brush *brush)
 {
   Depsgraph *depsgraph = CTX_data_depsgraph_pointer(C);
   RegionView3D *rv3d = CTX_wm_region_view3d(C);
   const Sculpt &sd = *CTX_data_tool_settings(C)->sculpt;
 
-  SCULPT_stroke_modifiers_check(*depsgraph, rv3d, sd, ob, brush);
+  stroke_modifiers_check(*depsgraph, rv3d, sd, ob, brush);
 }
 
-namespace ed::sculpt_paint {
 static void sculpt_raycast_cb(bke::pbvh::Node &node, RaycastData &rd, float *tmin)
 {
   if (BKE_pbvh_node_get_tmin(&node) >= *tmin) {
@@ -4721,7 +4658,7 @@ bool cursor_geometry_info_update(Depsgraph &depsgraph,
   float3 ray_normal;
   float depth = raycast_init(&vc, mval, ray_start, ray_end, ray_normal, original);
   if (sd) {
-    SCULPT_stroke_modifiers_check(depsgraph, vc.rv3d, *sd, ob, &brush);
+    stroke_modifiers_check(depsgraph, vc.rv3d, *sd, ob, &brush);
   }
 
   RaycastData srd{};
@@ -4853,7 +4790,7 @@ static bool stroke_get_location_bvh_ex(Depsgraph &depsgraph,
     /* TODO: This code is shared by Sculpt, Vertex, and Weight paint. Ideally, we wouldn't need
      * to pass in `Sculpt` and `Paint` separately, but until we have further C++ DNA types, this
      * is fine */
-    SCULPT_stroke_modifiers_check(depsgraph, vc.rv3d, *sd, ob, brush);
+    stroke_modifiers_check(depsgraph, vc.rv3d, *sd, ob, brush);
   }
 
   float3 ray_start;
@@ -5039,8 +4976,6 @@ bool SculptPaintStroke::get_location(float out[3], const float mouse[2], bool fo
       *this->depsgraph, this->vc, *sculpt_, this->brush, out, mouse, force_original);
 }
 
-}  // namespace ed::sculpt_paint
-
 static void brush_init_tex(const Sculpt &sd, SculptSession &ss)
 {
   const Brush *brush = BKE_paint_brush_for_read(&sd.paint);
@@ -5056,8 +4991,6 @@ static void brush_init_tex(const Sculpt &sd, SculptSession &ss)
     ss.tex_pool = BKE_image_pool_new();
   }
 }
-
-namespace ed::sculpt_paint {
 
 /** Creates stroke-level toggle settings, modifies the current active brush if needed */
 static StrokeToggleSettings create_toggle_settings(const wmOperator &op, Main &bmain, Paint &paint)
@@ -5116,13 +5049,11 @@ static void brush_stroke_init(bContext *C, const wmOperator *op)
 
   ED_paint_brush_type_update_sticky_shading_color(C, &ob);
 }
-}  // namespace ed::sculpt_paint
 
 static void restore_from_undo_step_if_necessary(const Depsgraph &depsgraph,
                                                 const Sculpt &sd,
                                                 Object &ob)
 {
-  using namespace blender::ed::sculpt_paint;
   SculptSession &ss = *ob.runtime->sculpt_session;
   const Brush *brush = BKE_paint_brush_for_read(&sd.paint);
 
@@ -5164,8 +5095,6 @@ static void restore_from_undo_step_if_necessary(const Depsgraph &depsgraph,
     }
   }
 }
-
-namespace ed::sculpt_paint {
 
 static void tag_mesh_positions_changed(Object &object, const bool use_pbvh_draw)
 {
@@ -5325,7 +5254,7 @@ void flush_update_done(ViewContext &vc,
     bke::pbvh::store_bounds_orig(pbvh);
 
     /* Coordinates were modified, so fake neighbors are not longer valid. */
-    SCULPT_fake_neighbors_free(ob);
+    fake_neighbors_free(ob);
   }
 
   if (update_type == UpdateType::Position) {
@@ -5543,8 +5472,6 @@ void store_mesh_from_eval(const wmOperator &op,
   }
 }
 
-}  // namespace ed::sculpt_paint
-
 /* Returns whether the mouse/stylus is over the mesh (1)
  * or over the background (0). */
 static bool over_mesh(bContext *C, wmOperator * /*op*/, const float mval[2])
@@ -5557,7 +5484,7 @@ static bool over_mesh(bContext *C, wmOperator * /*op*/, const float mval[2])
   const bool check_closest = brush->falloff_shape == PAINT_FALLOFF_SHAPE_TUBE;
 
   float3 co_dummy;
-  return ed::sculpt_paint::stroke_get_location_bvh_ex(
+  return stroke_get_location_bvh_ex(
       *depsgraph, vc, sd.paint, &sd, co_dummy, mval, false, check_closest, true);
 }
 
@@ -5571,7 +5498,7 @@ static bool over_mesh(Depsgraph &depsgraph,
   const bool check_closest = brush->falloff_shape == PAINT_FALLOFF_SHAPE_TUBE;
 
   float3 co_dummy;
-  return ed::sculpt_paint::stroke_get_location_bvh_ex(
+  return stroke_get_location_bvh_ex(
       depsgraph, vc, sd.paint, &sd, co_dummy, mval, false, check_closest, true);
 }
 
@@ -5581,7 +5508,6 @@ static void stroke_undo_begin(const Scene &scene,
                               Object &object,
                               wmOperator *op)
 {
-  using namespace blender::ed::sculpt_paint;
   /* Setup the correct undo system. Image painting and sculpting are mutual exclusive.
    * Color attributes are part of the sculpting undo system. */
   if (brush && brush->sculpt_brush_type == SCULPT_BRUSH_TYPE_PAINT &&
@@ -5596,8 +5522,6 @@ static void stroke_undo_begin(const Scene &scene,
 
 static void stroke_undo_end(PaintModeSettings &paint_mode_settings, Object &object, Brush *brush)
 {
-  using namespace blender::ed::sculpt_paint;
-
   if (brush && brush->sculpt_brush_type == SCULPT_BRUSH_TYPE_PAINT &&
       SCULPT_use_image_paint_brush(paint_mode_settings, object))
   {
@@ -5607,8 +5531,6 @@ static void stroke_undo_end(PaintModeSettings &paint_mode_settings, Object &obje
     undo::push_end(object);
   }
 }
-
-namespace ed::sculpt_paint {
 
 bool color_supported_check(const Scene &scene, Object &object, ReportList *reports)
 {
@@ -5798,7 +5720,7 @@ void SculptPaintStroke::stroke_cache_update(PointerRNA *ptr)
   StrokeCache &cache = *ss.cache;
   Brush &brush = *BKE_paint_brush(&paint);
 
-  if (SCULPT_stroke_is_first_brush_step_of_symmetry_pass(cache) ||
+  if (stroke_is_first_brush_step_of_symmetry_pass(cache) ||
       !((brush.stroke_method == BRUSH_STROKE_ANCHORED) ||
         (brush.sculpt_brush_type == SCULPT_BRUSH_TYPE_SNAKE_HOOK) ||
         (brush.sculpt_brush_type == SCULPT_BRUSH_TYPE_ROTATE) ||
@@ -5826,7 +5748,7 @@ void SculptPaintStroke::stroke_cache_update(PointerRNA *ptr)
   cache.tilt = {RNA_float_get(ptr, "x_tilt"), RNA_float_get(ptr, "y_tilt")};
 
   /* Truly temporary data that isn't stored in properties. */
-  if (SCULPT_stroke_is_first_brush_step_of_symmetry_pass(*ss.cache)) {
+  if (stroke_is_first_brush_step_of_symmetry_pass(*ss.cache)) {
     cache.initial_radius = object_space_radius_get(*cache.vc, paint, brush, cache.location);
 
     if (!BKE_brush_use_locked_size(&paint, &brush)) {
@@ -5836,7 +5758,7 @@ void SculptPaintStroke::stroke_cache_update(PointerRNA *ptr)
 
   /* Clay stabilized pressure. */
   if (brush.sculpt_brush_type == SCULPT_BRUSH_TYPE_CLAY_THUMB) {
-    if (SCULPT_stroke_is_first_brush_step_of_symmetry_pass(*ss.cache)) {
+    if (stroke_is_first_brush_step_of_symmetry_pass(*ss.cache)) {
       ss.cache->clay_thumb_brush.pressure_stabilizer.fill(0.0f);
       ss.cache->clay_thumb_brush.stabilizer_index = 0;
     }
@@ -5904,7 +5826,7 @@ void SculptPaintStroke::update_step(wmOperator * /*op*/, PointerRNA *itemptr)
   StrokeCache *cache = ss.cache;
   cache->stroke_distance = this->stroke_distance();
 
-  SCULPT_stroke_modifiers_check(depsgraph, this->vc.rv3d, sd, ob, &brush);
+  stroke_modifiers_check(depsgraph, this->vc.rv3d, sd, ob, &brush);
   stroke_cache_update(itemptr);
   restore_from_undo_step_if_necessary(depsgraph, sd, ob);
 
@@ -5965,7 +5887,7 @@ void SculptPaintStroke::done(bool is_cancel)
   BLI_assert(brush == ss.cache->brush); /* const, so we shouldn't change. */
   paint_runtime->draw_inverted = false;
 
-  SCULPT_stroke_modifiers_check(*this->depsgraph, this->vc.rv3d, sd, ob, brush);
+  stroke_modifiers_check(*this->depsgraph, this->vc.rv3d, sd, ob, brush);
 
   /* Alt-Smooth. */
   if (ss.cache->toggle_settings.alt_smooth) {
@@ -6072,10 +5994,10 @@ static wmOperatorStatus sculpt_brush_stroke_invoke(bContext *C,
     MultiresModifierData *mmd = BKE_sculpt_multires_active(&scene, &ob);
     BKE_sculpt_mask_layers_ensure(CTX_data_depsgraph_pointer(C), CTX_data_main(C), &ob, mmd);
 
-    ed::sculpt_paint::mask_overlay_check(*C, *op);
+    mask_overlay_check(*C, *op);
   }
   if (brush.sculpt_brush_type == SCULPT_BRUSH_TYPE_DRAW_FACE_SETS) {
-    ed::sculpt_paint::face_set_overlay_check(*C, *op);
+    face_set_overlay_check(*C, *op);
   }
 
   op->customdata = stroke;
@@ -6124,7 +6046,6 @@ static wmOperatorStatus sculpt_brush_stroke_exec(bContext *C, wmOperator *op)
 
 static void sculpt_brush_stroke_cancel(bContext *C, wmOperator *op)
 {
-  using namespace blender::ed::sculpt_paint;
   const Depsgraph &depsgraph = *CTX_data_depsgraph_pointer(C);
   Object &ob = *CTX_data_active_object(C);
   Sculpt &sd = *CTX_data_tool_settings(C)->sculpt;
@@ -6165,7 +6086,7 @@ void SCULPT_OT_brush_stroke(wmOperatorType *ot)
   ot->invoke = sculpt_brush_stroke_invoke;
   ot->modal = brush_stroke_modal;
   ot->exec = sculpt_brush_stroke_exec;
-  ot->poll = SCULPT_poll;
+  ot->poll = sculpt_mode_and_brush_poll;
   ot->cancel = sculpt_brush_stroke_cancel;
   ot->ui = redo_empty_ui;
 
@@ -6197,7 +6118,7 @@ void SCULPT_OT_brush_stroke(wmOperatorType *ot)
 static void fake_neighbor_init(Object &object, const float max_dist)
 {
   SculptSession &ss = *object.runtime->sculpt_session;
-  const int totvert = SCULPT_vertex_count_get(object);
+  const int totvert = vertex_count_get(object);
   ss.fake_neighbors.fake_neighbor_index = Array<int>(totvert, FAKE_NEIGHBOR_NONE);
   ss.fake_neighbors.current_max_distance = max_dist;
 }
@@ -6456,13 +6377,8 @@ static void fake_neighbor_search(const Depsgraph &depsgraph,
   }
 }
 
-}  // namespace ed::sculpt_paint
-
-Span<int> SCULPT_fake_neighbors_ensure(const Depsgraph &depsgraph,
-                                       Object &ob,
-                                       const float max_dist)
+Span<int> fake_neighbors_ensure(const Depsgraph &depsgraph, Object &ob, const float max_dist)
 {
-  using namespace blender::ed::sculpt_paint;
   SculptSession &ss = *ob.runtime->sculpt_session;
 
   /* Fake neighbors were already initialized with the same distance, so no need to be
@@ -6480,14 +6396,12 @@ Span<int> SCULPT_fake_neighbors_ensure(const Depsgraph &depsgraph,
   return ss.fake_neighbors.fake_neighbor_index;
 }
 
-void SCULPT_fake_neighbors_free(Object &ob)
+void fake_neighbors_free(Object &ob)
 {
-  using namespace blender::ed::sculpt_paint;
   SculptSession &ss = *ob.runtime->sculpt_session;
   pose_fake_neighbors_free(ss);
 }
 
-namespace ed::sculpt_paint {
 bool vertex_is_occluded(const Depsgraph &depsgraph,
                         const Object &object,
                         const float3 &position,
@@ -6540,9 +6454,8 @@ bool vertex_is_occluded(const Depsgraph &depsgraph,
 
   return srd.hit;
 }
-}  // namespace ed::sculpt_paint
 
-namespace ed::sculpt_paint::islands {
+namespace islands {
 
 int vert_id_get(const SculptSession &ss, const int vert)
 {
@@ -6690,14 +6603,10 @@ void ensure_cache(Object &object)
   ss.topology_island_cache = std::make_unique<SculptTopologyIslandCache>(calculate_cache(object));
 }
 
-}  // namespace ed::sculpt_paint::islands
+}  // namespace islands
 
-void SCULPT_cube_tip_init(const Sculpt & /*sd*/,
-                          const Object &ob,
-                          const Brush &brush,
-                          float mat[4][4])
+void cube_tip_init(const Sculpt & /*sd*/, const Object &ob, const Brush &brush, float mat[4][4])
 {
-  using namespace blender::ed::sculpt_paint;
   SculptSession &ss = *ob.runtime->sculpt_session;
   float scale[4][4];
   float tmat[4][4];
@@ -6719,8 +6628,6 @@ void SCULPT_cube_tip_init(const Sculpt & /*sd*/,
   invert_m4_m4(mat, tmat);
 }
 /** \} */
-
-namespace ed::sculpt_paint {
 
 MeshAttributeData::MeshAttributeData(const Mesh &mesh)
 {
@@ -8207,7 +8114,7 @@ void filter_verts_outside_symmetry_area(const Span<float3> positions,
   BLI_assert(positions.size() == factors.size());
 
   for (const int i : positions.index_range()) {
-    if (!SCULPT_check_vertex_pivot_symmetry(positions[i], pivot, symm)) {
+    if (!check_vertex_pivot_symmetry(positions[i], pivot, symm)) {
       factors[i] = 0.0f;
     }
   }

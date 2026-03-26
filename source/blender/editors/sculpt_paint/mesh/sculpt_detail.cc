@@ -84,7 +84,7 @@ static bool sculpt_and_constant_or_manual_detail_poll(bContext *C)
   Object *ob = CTX_data_active_object(C);
   Sculpt *sd = CTX_data_tool_settings(C)->sculpt;
 
-  return SCULPT_mode_poll(C) && ob->runtime->sculpt_session->bm &&
+  return sculpt_mode_poll(C) && ob->runtime->sculpt_session->bm &&
          (sd->flags & (SCULPT_DYNTOPO_DETAIL_CONSTANT | SCULPT_DYNTOPO_DETAIL_MANUAL));
 }
 
@@ -92,7 +92,7 @@ static bool sculpt_and_dynamic_topology_poll(bContext *C)
 {
   Object *ob = CTX_data_active_object(C);
 
-  return SCULPT_mode_poll(C) && ob->runtime->sculpt_session->bm;
+  return sculpt_mode_poll(C) && ob->runtime->sculpt_session->bm;
 }
 
 /** \} */
@@ -259,7 +259,7 @@ static void sample_detail_dyntopo(bContext *C, ViewContext *vc, const int mval[2
   Object &ob = *vc->obact;
   const Brush &brush = *BKE_paint_brush_for_read(&sd.paint);
 
-  SCULPT_stroke_modifiers_check(C, ob, &brush);
+  stroke_modifiers_check(C, ob, &brush);
 
   const float2 mval_fl = {float(mval[0]), float(mval[1])};
   float3 ray_start;
@@ -424,7 +424,7 @@ void SCULPT_OT_sample_detail_size(wmOperatorType *ot)
   ot->invoke = sculpt_sample_detail_size_invoke;
   ot->exec = sculpt_sample_detail_size_exec;
   ot->modal = sculpt_sample_detail_size_modal;
-  ot->poll = SCULPT_mode_poll;
+  ot->poll = sculpt_mode_poll;
 
   ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
 

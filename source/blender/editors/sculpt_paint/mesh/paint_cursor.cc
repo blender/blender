@@ -261,7 +261,7 @@ void mesh_cursor_active_draw(PaintCursorContext &pcontext)
 
   /* Most of the brushes initialize the necessary data for the custom cursor drawing after the
    * first brush step. */
-  if (SCULPT_stroke_is_first_brush_step_of_symmetry_pass(*ss.cache)) {
+  if (stroke_is_first_brush_step_of_symmetry_pass(*ss.cache)) {
     return;
   }
 
@@ -399,7 +399,7 @@ static void point_with_symmetry_draw(const PaintMode paint_mode,
                                      const float radius)
 {
   const Mesh *mesh = id_cast<const Mesh *>(ob.data);
-  const char symm = SCULPT_mesh_symmetry_xyz_get(ob);
+  const char symm = mesh_symmetry_xyz_get(ob);
   float3 location;
   float symm_rot_mat[4][4];
 

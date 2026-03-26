@@ -279,7 +279,7 @@ static wmOperatorStatus sculpt_mask_init_exec(bContext *C, wmOperator *op)
 
   undo::push_end(ob);
 
-  SCULPT_tag_update_overlays(C);
+  tag_update_overlays(C);
   return OPERATOR_FINISHED;
 }
 
@@ -290,7 +290,7 @@ void SCULPT_OT_mask_init(wmOperatorType *ot)
   ot->idname = "SCULPT_OT_mask_init";
 
   ot->exec = sculpt_mask_init_exec;
-  ot->poll = SCULPT_mode_poll;
+  ot->poll = sculpt_mode_poll;
 
   ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
 

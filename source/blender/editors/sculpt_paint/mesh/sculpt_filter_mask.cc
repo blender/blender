@@ -769,7 +769,7 @@ static wmOperatorStatus sculpt_mask_filter_exec(bContext *C, wmOperator *op)
    * One iteration per 50000 vertices in the mesh should be fine in most cases.
    * Maybe we want this to be configurable. */
   if (RNA_boolean_get(op->ptr, "auto_iteration_count")) {
-    iterations = int(SCULPT_vertex_count_get(ob) / 50000.0f) + 1;
+    iterations = int(vertex_count_get(ob) / 50000.0f) + 1;
   }
 
   threading::EnumerableThreadSpecific<FilterLocalData> all_tls;
@@ -1079,7 +1079,7 @@ static wmOperatorStatus sculpt_mask_filter_exec(bContext *C, wmOperator *op)
   flush_update_step(C, UpdateType::Mask);
   flush_update_done(C, ob, UpdateType::Mask);
 
-  SCULPT_tag_update_overlays(C);
+  tag_update_overlays(C);
 
   return OPERATOR_FINISHED;
 }
@@ -1091,7 +1091,7 @@ void SCULPT_OT_mask_filter(wmOperatorType *ot)
   ot->description = "Applies a filter to modify the current mask";
 
   ot->exec = sculpt_mask_filter_exec;
-  ot->poll = SCULPT_mode_poll;
+  ot->poll = sculpt_mode_poll;
 
   ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
 

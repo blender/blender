@@ -577,7 +577,7 @@ void do_paint_brush(const Depsgraph &depsgraph,
     ss.cache->paint_brush.density_seed = BLI_hash_int_01(ss.cache->location_symm[0] * 1000);
   }
 
-  if (SCULPT_stroke_is_first_brush_step_of_symmetry_pass(*ss.cache)) {
+  if (stroke_is_first_brush_step_of_symmetry_pass(*ss.cache)) {
     return;
   }
 
@@ -586,7 +586,7 @@ void do_paint_brush(const Depsgraph &depsgraph,
   /* If the brush is round the tip does not need to be aligned to the surface, so this saves a
    * whole iteration over the affected nodes. */
   if (brush.tip_roundness < 1.0f) {
-    SCULPT_cube_tip_init(sd, ob, brush, mat.ptr());
+    cube_tip_init(sd, ob, brush, mat.ptr());
 
     if (is_zero_m4(mat.ptr())) {
       return;
@@ -938,7 +938,7 @@ void do_blur_brush(const Depsgraph &depsgraph,
     ss.cache->paint_brush.density_seed = BLI_hash_int_01(ss.cache->location_symm[0] * 1000);
   }
 
-  if (SCULPT_stroke_is_first_brush_step_of_symmetry_pass(*ss.cache)) {
+  if (stroke_is_first_brush_step_of_symmetry_pass(*ss.cache)) {
     return;
   }
 
