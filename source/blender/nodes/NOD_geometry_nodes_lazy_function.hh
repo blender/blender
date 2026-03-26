@@ -254,6 +254,12 @@ struct GeoNodesCallData {
   GeoNodesOperatorData *operator_data = nullptr;
 
   /**
+   * Stack limit at which Geometry Nodes should stop the evaluation. This is a preventative measure
+   * to avoid crashes caused by running out of stack space.
+   */
+  int call_depth_limit = 100;
+
+  /**
    * Self object has slightly different semantics depending on how geometry nodes is called.
    * Therefor, it is not stored directly in the global data.
    */
@@ -283,6 +289,11 @@ struct GeoNodesUserData : public fn::UserData {
   bool verbose_log = true;
 
   destruct_ptr<fn::LocalUserData> get_local(LinearAllocator<> &allocator) override;
+
+  bool is_stack_limit_reached() const
+  {
+    return this->compute_context->parents_num() >= this->call_data->call_depth_limit;
+  }
 };
 
 struct GeoNodesLocalUserData : public fn::LocalUserData {

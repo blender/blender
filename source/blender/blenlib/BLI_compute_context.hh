@@ -105,8 +105,17 @@ class ComputeContext {
  private:
   mutable CacheMutex hash_mutex_;
 
+  /**
+   * Number of parent contexts. This can be used to limit the maximum depth to prevent
+   * stack-overflows.
+   */
+  int parents_num_ = 0;
+
  public:
-  ComputeContext(const ComputeContext *parent) : parent_(parent) {}
+  ComputeContext(const ComputeContext *parent)
+      : parent_(parent), parents_num_(parent ? parent->parents_num_ + 1 : 0)
+  {
+  }
   virtual ~ComputeContext() = default;
 
   const ComputeContextHash &hash() const
@@ -118,6 +127,11 @@ class ComputeContext {
   const ComputeContext *parent() const
   {
     return parent_;
+  }
+
+  int parents_num() const
+  {
+    return parents_num_;
   }
 
   /**

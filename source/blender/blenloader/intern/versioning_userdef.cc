@@ -1767,6 +1767,10 @@ void blo_do_versions_userdef(UserDef *userdef)
     userdef->uiflag2 |= USER_UIFLAG2_SHOW_ONLINE_ASSETS;
   }
 
+  if (!USER_VERSION_ATLEAST(502, 13)) {
+    userdef->geometry_nodes_stack_limit = 100;
+  }
+
   /**
    * Always bump subversion in BKE_blender_version.h when adding versioning
    * code here, and wrap it inside a USER_VERSION_ATLEAST check.

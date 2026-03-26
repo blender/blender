@@ -1095,7 +1095,7 @@ bool should_log_verbose_in_context(const GeoNodesUserData &user_data,
 class LazyFunctionForGroupNode : public LazyFunction {
  private:
   const bNode &group_node_;
-  const LazyFunction &group_lazy_function_;
+  const GeometryNodesGroupFunction &group_lazy_function_;
   bool has_many_nodes_ = false;
 
   struct Storage {
@@ -1106,7 +1106,7 @@ class LazyFunctionForGroupNode : public LazyFunction {
   LazyFunctionForGroupNode(const bNode &group_node,
                            const GeometryNodesLazyFunctionGraphInfo &group_lf_graph_info,
                            GeometryNodesLazyFunctionGraphInfo &own_lf_graph_info)
-      : group_node_(group_node), group_lazy_function_(*group_lf_graph_info.function.function)
+      : group_node_(group_node), group_lazy_function_(group_lf_graph_info.function)
   {
     debug_name_ = group_node.name;
     allow_missing_requested_inputs_ = true;
@@ -1144,7 +1144,26 @@ class LazyFunctionForGroupNode : public LazyFunction {
     const ScopedNodeTimer node_timer{context, group_node_};
     GeoNodesUserData *user_data = dynamic_cast<GeoNodesUserData *>(context.user_data);
     BLI_assert(user_data != nullptr);
+    auto &local_user_data = *static_cast<GeoNodesLocalUserData *>(context.local_user_data);
 
+    if (user_data->is_stack_limit_reached()) {
+      if (geo_eval_log::GeoTreeLogger *tree_logger = local_user_data.try_get_tree_logger(
+              *user_data))
+      {
+        tree_logger->node_warnings.append(
+            *tree_logger->allocator,
+            {group_node_.identifier,
+             {NodeWarningType::Error, TIP_("Stack limit reached. Group node is ignored.")}});
+      }
+      for (const int i : group_lazy_function_.outputs.main.index_range()) {
+        const bNodeSocket &socket = group_node_.output_socket(i);
+        set_default_value_for_output_socket(params, group_lazy_function_.outputs.main[i], socket);
+      }
+      for (const int lf_output_i : group_lazy_function_.outputs.input_usages) {
+        params.set_output(lf_output_i, false);
+      }
+      return;
+    }
     if (has_many_nodes_) {
       /* If the called node group has many nodes, it's likely that executing it takes a while even
        * if every individual node is very small. */
@@ -1166,20 +1185,20 @@ class LazyFunctionForGroupNode : public LazyFunction {
     lf::Context group_context{storage->group_storage, &group_user_data, &group_local_user_data};
 
     ScopedComputeContextTimer timer(group_context);
-    group_lazy_function_.execute(params, group_context);
+    group_lazy_function_.function->execute(params, group_context);
   }
 
   void *init_storage(LinearAllocator<> &allocator) const override
   {
     Storage *s = allocator.construct<Storage>().release();
-    s->group_storage = group_lazy_function_.init_storage(allocator);
+    s->group_storage = group_lazy_function_.function->init_storage(allocator);
     return s;
   }
 
   void destruct_storage(void *storage) const override
   {
     Storage *s = static_cast<Storage *>(storage);
-    group_lazy_function_.destruct_storage(s->group_storage);
+    group_lazy_function_.function->destruct_storage(s->group_storage);
     std::destroy_at(s);
   }
 
@@ -1191,12 +1210,12 @@ class LazyFunctionForGroupNode : public LazyFunction {
 
   std::string input_name(const int i) const override
   {
-    return group_lazy_function_.input_name(i);
+    return group_lazy_function_.function->input_name(i);
   }
 
   std::string output_name(const int i) const override
   {
-    return group_lazy_function_.output_name(i);
+    return group_lazy_function_.function->output_name(i);
   }
 };
 
