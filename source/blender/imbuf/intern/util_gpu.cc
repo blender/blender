@@ -327,13 +327,15 @@ void IMB_update_gpu_texture_sub(gpu::Texture *tex,
   }
 }
 
-gpu::Texture *IMB_create_gpu_texture(const char *name,
-                                     ImBuf *ibuf,
-                                     bool use_high_bitdepth,
-                                     bool use_premult)
+gpu::Texture *IMB_create_gpu_texture(
+    const char *name, ImBuf *ibuf, bool use_high_bitdepth, bool use_premult, const bool limit_size)
 {
   gpu::Texture *tex = nullptr;
-  int size[2] = {GPU_texture_size_with_limit(ibuf->x), GPU_texture_size_with_limit(ibuf->y)};
+  int size[2] = {ibuf->x, ibuf->y};
+  if (limit_size) {
+    size[0] = GPU_texture_size_with_limit(ibuf->x);
+    size[1] = GPU_texture_size_with_limit(ibuf->y);
+  }
   bool do_rescale = (ibuf->x != size[0]) || (ibuf->y != size[1]);
 
   /* Correct the smaller size to maintain the original aspect ratio of the image. */

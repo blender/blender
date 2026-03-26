@@ -487,7 +487,7 @@ static ImageGPUTextures image_get_gpu_texture(Image *ima,
     const bool store_premultiplied = BKE_image_has_gpu_texture_premultiplied_alpha(ima, ibuf);
 
     *result.texture = IMB_create_gpu_texture(
-        ima->id.name + 2, ibuf, use_high_bitdepth, store_premultiplied);
+        ima->id.name + 2, ibuf, use_high_bitdepth, store_premultiplied, true);
 
     if (*result.texture) {
       GPU_texture_extend_mode(*result.texture, GPU_SAMPLER_EXTEND_MODE_REPEAT);
