@@ -1380,7 +1380,7 @@ void gpu::MTLTexture::clear(const double4 data)
       MTLContext *ctx = MTLContext::get();
       BLI_assert(ctx);
 
-      /* Begin compute encoder. */
+      /* Begin blit encoder. */
       id<MTLBlitCommandEncoder> blit_encoder =
           ctx->main_command_buffer.ensure_begin_blit_encoder();
       [blit_encoder fillBuffer:backing_buffer_->get_metal_buffer()
@@ -1392,6 +1392,19 @@ void gpu::MTLTexture::clear(const double4 data)
                      "Non-repeating-byte-pattern clear for buffer-backed textures not supported!");
     }
     return;
+  }
+  /* For texture views, the actual Metal handle used for rendering is mip_swizzle_view_,
+   * not texture_ (which holds the parent's Metal handle). Metal strips
+   * MTLTextureUsageRenderTarget from cross-format views, so delegate the clear
+   * to the parent texture which retains full usage flags. */
+  else if (resource_mode_ == MTL_TEXTURE_MODE_TEXTURE_VIEW && source_texture_) {
+    id<MTLTexture> clear_texture = (mip_swizzle_view_ != nil) ? mip_swizzle_view_ : texture_;
+    if (!(clear_texture.usage & MTLTextureUsageRenderTarget)) {
+      gpu::MTLTexture *source_texture = const_cast<gpu::MTLTexture *>(
+          static_cast<const gpu::MTLTexture *>(source_texture_));
+      source_texture->clear(data);
+      return;
+    }
   }
 
   /* Create clear frame-buffer for fast clear. */

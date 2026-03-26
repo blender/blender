@@ -182,6 +182,7 @@ class MTLTexture : public Texture {
   friend class MTLStateManager;
   friend class MTLFrameBuffer;
   friend class MTLStorageBuf;
+  friend class MTLTexturePool;
 
   /* Special case: The XR blitting function needs access to the Metal blit encoder and handles
    * for directly blitting from an UNORM to an SRGB texture without color space conversion. */
@@ -692,6 +693,16 @@ inline eGPUTextureUsage gpu_usage_from_mtl(MTLTextureUsage mtl_usage)
     usage = usage | GPU_TEXTURE_USAGE_FORMAT_VIEW;
   }
   return usage;
+}
+
+BLI_INLINE MTLTexture *unwrap(Texture *tex)
+{
+  return static_cast<MTLTexture *>(tex);
+}
+
+BLI_INLINE Texture *wrap(MTLTexture *texture)
+{
+  return static_cast<Texture *>(texture);
 }
 
 }  // namespace gpu
