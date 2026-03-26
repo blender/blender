@@ -4018,8 +4018,12 @@ static void init_scene_project_brush_targets(const Depsgraph &depsgraph,
       continue;
     }
 
-    const Mesh &mesh = *id_cast<const Mesh *>(object->data);
-    bke::BVHTreeFromMesh tree_data = mesh.bvh_corner_tris();
+    const Mesh *mesh_eval = BKE_object_get_evaluated_mesh(object);
+    if (!mesh_eval) {
+      continue;
+    }
+
+    bke::BVHTreeFromMesh tree_data = mesh_eval->bvh_corner_tris();
 
     if (tree_data.tree == nullptr) {
       continue;
