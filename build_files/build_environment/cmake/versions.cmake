@@ -471,6 +471,7 @@ set(AUTOPEP8_VERSION 2.3.1)
 set(PYCODESTYLE_VERSION 2.13)
 # Build system for other packages (not used by Blender at run-time).
 set(MESON_VERSION 0.63.0)
+set(SETUPTOOLS_SCM_VERSION 9.2.2)
 
 # When this numpy version is bumped, please also change the limit value set for variable `install_requires`
 # in build_files/utils/make_bpy_wheel.py
