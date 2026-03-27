@@ -72,7 +72,10 @@ bool asset_edit_id_delete(Main &global_main, ID &id, ReportList &reports);
 
 /** Find a local copy of the asset. */
 ID *asset_edit_id_find_local(Main &global_main, ID &id);
-/** Ensure a local copy of the asset exists. */
+/**
+ * Ensure a local copy of the asset and its direct and indirect dependencies exists. Dependencies
+ * where #ID_TYPE_SUPPORTS_ASSET_EDITABLE() fails will not be made local and will be cleared.
+ */
 ID *asset_edit_id_ensure_local(Main &global_main, ID &id);
 
 }  // namespace bke
