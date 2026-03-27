@@ -90,6 +90,12 @@ std::string GraphExecutor::output_name(const int index) const
   return socket.name();
 }
 
+GraphExecutorLogger::LoggingEnabledState GraphExecutorLogger::get_logging_enabled_state(
+    const Context & /*context*/) const
+{
+  return LoggingEnabledState{true};
+}
+
 void GraphExecutorLogger::log_socket_value(const Socket &socket,
                                            const GPointer value,
                                            const Context &context) const

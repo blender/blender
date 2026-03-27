@@ -315,6 +315,8 @@ class GenericGraphExecutor {
   std::thread::id current_main_thread_;
 #endif
 
+  GraphExecutorLogger::LoggingEnabledState logging_enabled_state_{false};
+
   struct ThreadLocalStorage {
     /**
      * A separate linear allocator for every thread. We could potentially reuse some memory, but
@@ -389,6 +391,10 @@ class GenericGraphExecutor {
 
     CurrentTask current_task;
     if (is_first_execution_) {
+      if (self_.logger_) {
+        logging_enabled_state_ = self_.logger_->get_logging_enabled_state(context);
+      }
+
       /* Allocate a single large buffer instead of making many smaller allocations below. */
       char *buffer = static_cast<char *>(
           local_data.allocator->allocate(self_.preprocess_data_.total_size, alignof(void *)));
@@ -547,7 +553,7 @@ class GenericGraphExecutor {
       const void *default_value = socket.default_value();
       BLI_assert(default_value != nullptr);
 
-      if (self_.logger_ != nullptr) {
+      if (logging_enabled_state_.socket_values) {
         const Context context{context_->storage, context_->user_data, local_data.local_user_data};
         self_.logger_->log_socket_value(socket, {type, default_value}, context);
       }
@@ -938,7 +944,7 @@ class GenericGraphExecutor {
           const CPPType &type = input_socket.type();
           const void *default_value = input_socket.default_value();
           BLI_assert(default_value != nullptr);
-          if (self_.logger_ != nullptr) {
+          if (logging_enabled_state_.socket_values) {
             self_.logger_->log_socket_value(input_socket, {type, default_value}, local_context);
           }
           BLI_assert(input_state.value == nullptr);
@@ -1148,7 +1154,7 @@ class GenericGraphExecutor {
     const Context local_context{
         context_->storage, context_->user_data, local_data.local_user_data};
 
-    if (self_.logger_ != nullptr) {
+    if (logging_enabled_state_.socket_values) {
       self_.logger_->log_socket_value(from_socket, value_to_forward, local_context);
     }
 
@@ -1171,7 +1177,7 @@ class GenericGraphExecutor {
       BLI_assert(target_socket->type() == type);
       BLI_assert(target_socket->origin() == &from_socket);
 
-      if (self_.logger_ != nullptr) {
+      if (logging_enabled_state_.socket_values) {
         self_.logger_->log_socket_value(*target_socket, value_to_forward, local_context);
       }
       if (target_node.is_interface()) {
@@ -1462,7 +1468,7 @@ inline void GenericGraphExecutor::execute_node(const FunctionNode &node,
 
   Context fn_context(node_state.storage, context_->user_data, local_data.local_user_data);
 
-  if (self_.logger_ != nullptr) {
+  if (logging_enabled_state_.before_node_execute) {
     self_.logger_->log_before_node_execute(node, node_params, fn_context);
   }
 
@@ -1487,7 +1493,7 @@ inline void GenericGraphExecutor::execute_node(const FunctionNode &node,
     fn.execute(node_params, fn_context);
   }
 
-  if (self_.logger_ != nullptr) {
+  if (logging_enabled_state_.after_node_execute) {
     self_.logger_->log_after_node_execute(node, node_params, fn_context);
   }
 }

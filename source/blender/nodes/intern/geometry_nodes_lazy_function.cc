@@ -1781,6 +1781,12 @@ class GeometryNodesLazyFunctionLogger : public lf::GraphExecutor::Logger {
   {
   }
 
+  LoggingEnabledState get_logging_enabled_state(const lf::Context &context) const override
+  {
+    auto &user_data = *static_cast<GeoNodesUserData *>(context.user_data);
+    return LoggingEnabledState{user_data.verbose_log};
+  }
+
   void log_socket_value(const lf::Socket &lf_socket,
                         const GPointer value,
                         const lf::Context &context) const override

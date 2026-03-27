@@ -26,6 +26,19 @@ class GraphExecutorLogger {
  public:
   virtual ~GraphExecutorLogger() = default;
 
+  struct LoggingEnabledState {
+    bool socket_values = true;
+    bool before_node_execute = true;
+    bool after_node_execute = true;
+
+    explicit LoggingEnabledState(const bool enabled)
+        : socket_values(enabled), before_node_execute(enabled), after_node_execute(enabled)
+    {
+    }
+  };
+
+  virtual LoggingEnabledState get_logging_enabled_state(const Context &context) const;
+
   virtual void log_socket_value(const Socket &socket,
                                 GPointer value,
                                 const Context &context) const;
