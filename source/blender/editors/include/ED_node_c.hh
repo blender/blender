@@ -81,6 +81,8 @@ void ED_node_post_apply_transform(bContext *C, bNodeTree *ntree);
 void ED_node_set_active(
     Main *bmain, SpaceNode *snode, bNodeTree *ntree, bNode *node, bool *r_active_texture_changed);
 
+/* `node_compositor_job.cc` */
+
 /**
  * Launch a compositor job for the scene of the given context.
  */

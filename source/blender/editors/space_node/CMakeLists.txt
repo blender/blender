@@ -28,6 +28,7 @@ set(SRC
   drawnode.cc
   link_drag_search.cc
   node_add.cc
+  node_compositor_job.cc
   node_context_path.cc
   node_copy_util.cc
   node_draw.cc
