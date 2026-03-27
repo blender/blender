@@ -52,14 +52,12 @@ ImBuf *prepare_effect_imbufs(const RenderData *context,
   }
 
   if (out->float_buffer.data) {
-    if (ibuf1 && !ibuf1->float_buffer.data) {
-      seq_imbuf_to_sequencer_space(scene, ibuf1, true);
+    if (ibuf1) {
+      ensure_ibuf_is_sequencer_space(scene, ibuf1, true);
     }
-
-    if (ibuf2 && !ibuf2->float_buffer.data) {
-      seq_imbuf_to_sequencer_space(scene, ibuf2, true);
+    if (ibuf2) {
+      ensure_ibuf_is_sequencer_space(scene, ibuf2, true);
     }
-
     IMB_colormanagement_assign_float_colorspace(out, scene->sequencer_colorspace_settings.name);
   }
   else {

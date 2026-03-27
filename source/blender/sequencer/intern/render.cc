@@ -114,24 +114,23 @@ void seq_imbuf_assign_spaces(const Scene *scene, ImBuf *ibuf)
   }
 }
 
-void seq_imbuf_to_sequencer_space(const Scene *scene, ImBuf *ibuf, bool make_float)
+static void ensure_ibuf_is_color_space(ImBuf *ibuf, bool make_float, const char *to_colorspace)
 {
-  /* Early output check: if both buffers are nullptr we have nothing to convert. */
+  BLI_assert(ibuf != nullptr);
+  /* No pixels: nothing to do. */
   if (ibuf->float_buffer.data == nullptr && ibuf->byte_buffer.data == nullptr) {
     return;
   }
-  /* Get common conversion settings. */
-  const char *to_colorspace = scene->sequencer_colorspace_settings.name;
-  /* Perform actual conversion logic. */
+
   if (ibuf->float_buffer.data == nullptr) {
-    /* We are not requested to give float buffer and byte buffer is already
-     * in thee required colorspace. Can skip doing anything here.
-     */
+    /* Input image contains byte pixels. */
+    /* Not requested to become float and already in the needed colorspace: nothing to do. */
     const char *from_colorspace = IMB_colormanagement_get_byte_colorspace(ibuf);
     if (!make_float && STREQ(from_colorspace, to_colorspace)) {
       return;
     }
 
+    /* Turn into a float and convert colorspace. */
     IMB_alloc_float_pixels(ibuf, 4, false);
     IMB_colormanagement_transform_byte_to_float(ibuf->float_buffer.data,
                                                 ibuf->byte_buffer.data,
@@ -140,43 +139,21 @@ void seq_imbuf_to_sequencer_space(const Scene *scene, ImBuf *ibuf, bool make_flo
                                                 ibuf->channels,
                                                 from_colorspace,
                                                 to_colorspace);
-    /* We don't need byte buffer anymore. */
+    IMB_colormanagement_assign_float_colorspace(ibuf, to_colorspace);
     IMB_free_byte_pixels(ibuf);
   }
   else {
+    /* Input image contains float pixels. */
     const char *from_colorspace = IMB_colormanagement_get_float_colorspace(ibuf);
     /* Unknown input color space, can't perform conversion. */
     if (from_colorspace == nullptr || from_colorspace[0] == '\0') {
       return;
     }
-    /* We don't want both byte and float buffers around: they'll either run
-     * out of sync or conversion of byte buffer will lose precision in there.
-     */
+
+    /* Discard byte pixels if there are any. */
     if (ibuf->byte_buffer.data != nullptr) {
       IMB_free_byte_pixels(ibuf);
     }
-    IMB_colormanagement_transform_float(ibuf->float_buffer.data,
-                                        ibuf->x,
-                                        ibuf->y,
-                                        ibuf->channels,
-                                        from_colorspace,
-                                        to_colorspace,
-                                        true);
-  }
-  seq_imbuf_assign_spaces(scene, ibuf);
-}
-
-void render_imbuf_from_sequencer_space(const Scene *scene, ImBuf *ibuf)
-{
-  const char *from_colorspace = scene->sequencer_colorspace_settings.name;
-  const char *to_colorspace = IMB_colormanagement_role_colorspace_name_get(
-      COLOR_ROLE_SCENE_LINEAR);
-
-  if (!ibuf->float_buffer.data) {
-    return;
-  }
-
-  if (to_colorspace && to_colorspace[0] != '\0') {
     IMB_colormanagement_transform_float(ibuf->float_buffer.data,
                                         ibuf->x,
                                         ibuf->y,
@@ -188,19 +165,22 @@ void render_imbuf_from_sequencer_space(const Scene *scene, ImBuf *ibuf)
   }
 }
 
-void render_pixel_from_sequencer_space_v4(const Scene *scene, float pixel[4])
+void ensure_ibuf_is_sequencer_space(const Scene *scene, ImBuf *ibuf, bool make_float)
 {
-  const char *from_colorspace = scene->sequencer_colorspace_settings.name;
+  const char *to_colorspace = scene->sequencer_colorspace_settings.name;
+  ensure_ibuf_is_color_space(ibuf, make_float, to_colorspace);
+}
+
+void ensure_ibuf_is_linear_space(ImBuf *ibuf, bool make_float)
+{
+  /* Not requested to make float, and only have byte pixels: do nothing. */
+  if (!make_float && !ibuf->float_buffer.data) {
+    return;
+  }
+
   const char *to_colorspace = IMB_colormanagement_role_colorspace_name_get(
       COLOR_ROLE_SCENE_LINEAR);
-
-  if (to_colorspace && to_colorspace[0] != '\0') {
-    IMB_colormanagement_transform_v4(pixel, from_colorspace, to_colorspace);
-  }
-  else {
-    /* if no color management enables fallback to legacy conversion */
-    srgb_to_linearrgb_v4(pixel, pixel);
-  }
+  ensure_ibuf_is_color_space(ibuf, make_float, to_colorspace);
 }
 
 /** \} */
@@ -612,17 +592,19 @@ static ImBuf *input_preprocess(const RenderData *context,
     IMB_filtery(ibuf);
   }
 
+  const bool make_float = strip->flag & SEQ_MAKE_FLOAT;
+
   if (strip->sat != 1.0f) {
     ibuf = IMB_makeSingleUser(ibuf);
+    ensure_ibuf_is_sequencer_space(scene, ibuf, make_float);
     IMB_saturation(ibuf, strip->sat);
   }
 
-  if (strip->flag & SEQ_MAKE_FLOAT) {
+  if (make_float) {
     if (!ibuf->float_buffer.data) {
       ibuf = IMB_makeSingleUser(ibuf);
-      seq_imbuf_to_sequencer_space(scene, ibuf, true);
+      ensure_ibuf_is_sequencer_space(scene, ibuf, true);
     }
-
     if (ibuf->byte_buffer.data) {
       IMB_free_byte_pixels(ibuf);
     }
@@ -635,6 +617,7 @@ static ImBuf *input_preprocess(const RenderData *context,
 
   if (mul != 1.0f) {
     ibuf = IMB_makeSingleUser(ibuf);
+    ensure_ibuf_is_sequencer_space(scene, ibuf, make_float);
     const bool multiply_alpha = (strip->flag & SEQ_MULTIPLY_ALPHA);
     multiply_ibuf(ibuf, mul, multiply_alpha);
   }
@@ -685,8 +668,8 @@ static ImBuf *input_preprocess(const RenderData *context,
                                         matrix,
                                         !do_scale_to_render_size,
                                         preview_scale_factor);
-
-    seq_imbuf_assign_spaces(scene, transformed_ibuf);
+    transformed_ibuf->byte_buffer.colorspace = ibuf->byte_buffer.colorspace;
+    transformed_ibuf->float_buffer.colorspace = ibuf->float_buffer.colorspace;
     IMB_metadata_copy(transformed_ibuf, ibuf);
     IMB_freeImBuf(ibuf);
     ibuf = transformed_ibuf;
@@ -884,9 +867,6 @@ static ImBuf *seq_render_image_strip_view(const RenderData *context,
   if (ibuf->float_buffer.data != nullptr && ibuf->byte_buffer.data != nullptr) {
     IMB_free_byte_pixels(ibuf);
   }
-
-  /* All sequencer color is done in SRGB space, linear gives odd cross-fades. */
-  seq_imbuf_to_sequencer_space(context->scene, ibuf, false);
 
   return ibuf;
 }
@@ -1086,8 +1066,6 @@ static ImBuf *seq_render_movie_strip_view(const RenderData *context,
   if (ibuf == nullptr) {
     return nullptr;
   }
-
-  seq_imbuf_to_sequencer_space(context->scene, ibuf, false);
 
   /* We don't need both (speed reasons)! */
   if (ibuf->float_buffer.data != nullptr && ibuf->byte_buffer.data != nullptr) {
@@ -1550,16 +1528,15 @@ static ImBuf *seq_render_scene_strip_ex(const RenderData *context,
       /* TODO: Share the pixel data with the original image buffer from the render result using
        * implicit sharing. */
       if (rres.ibuf && rres.ibuf->float_buffer.data) {
-        ibufs_arr[view_id] = IMB_allocImBuf(rres.rectx, rres.recty, 32, IB_float_data);
+        ibufs_arr[view_id] = IMB_allocImBuf(
+            rres.rectx, rres.recty, 32, IB_float_data | IB_uninitialized_pixels);
         memcpy(ibufs_arr[view_id]->float_buffer.data,
                rres.ibuf->float_buffer.data,
                sizeof(float[4]) * rres.rectx * rres.recty);
-
-        /* float buffers in the sequencer are not linear */
-        seq_imbuf_to_sequencer_space(context->scene, ibufs_arr[view_id], false);
       }
       else if (rres.ibuf && rres.ibuf->byte_buffer.data) {
-        ibufs_arr[view_id] = IMB_allocImBuf(rres.rectx, rres.recty, 32, IB_byte_data);
+        ibufs_arr[view_id] = IMB_allocImBuf(
+            rres.rectx, rres.recty, 32, IB_byte_data | IB_uninitialized_pixels);
         memcpy(ibufs_arr[view_id]->byte_buffer.data,
                rres.ibuf->byte_buffer.data,
                4 * rres.rectx * rres.recty);
@@ -1734,19 +1711,11 @@ static ImBuf *do_render_strip_uncached(const RenderData *context,
       ImBuf *i = IMB_dupImBuf(ibuf);
       IMB_freeImBuf(ibuf);
       ibuf = i;
-
-      if (ibuf->float_buffer.data) {
-        seq_imbuf_to_sequencer_space(context->scene, ibuf, false);
-      }
     }
   }
   else if (strip->type == STRIP_TYPE_MASK) {
     /* ibuf is always new */
     ibuf = seq_render_mask_strip(context, strip, frame_index);
-  }
-
-  if (ibuf) {
-    seq_imbuf_assign_spaces(context->scene, ibuf);
   }
 
   return ibuf;
@@ -1783,7 +1752,6 @@ ImBuf *seq_render_strip(const RenderData *context,
 
   if (ibuf == nullptr) {
     ibuf = IMB_allocImBuf(context->rectx, context->recty, 32, IB_byte_data);
-    seq_imbuf_assign_spaces(context->scene, ibuf);
   }
 
   return ibuf;
@@ -1933,7 +1901,6 @@ static ImBuf *seq_render_strip_stack(const RenderData *context,
       case StripEarlyOut::UseInput1:
         if (i == 0) {
           out = IMB_allocImBuf(context->rectx, context->recty, 32, IB_byte_data);
-          seq_imbuf_assign_spaces(context->scene, out);
         }
         break;
       case StripEarlyOut::DoEffect:

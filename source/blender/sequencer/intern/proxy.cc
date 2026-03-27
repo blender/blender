@@ -543,7 +543,7 @@ static ImBuf *render_image_strip_frame(const ProxyBuildContext &context,
   if (ibuf->float_buffer.data != nullptr && ibuf->byte_buffer.data != nullptr) {
     IMB_free_byte_pixels(ibuf); /* If both float & byte exist, free byte buffer. */
   }
-  seq_imbuf_to_sequencer_space(context.scene, ibuf, false);
+  ensure_ibuf_is_sequencer_space(context.scene, ibuf, false);
   return ibuf;
 }
 

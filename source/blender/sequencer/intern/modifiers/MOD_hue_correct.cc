@@ -16,11 +16,13 @@
 #include "DNA_sequence_types.h"
 
 #include "SEQ_modifier.hh"
+#include "SEQ_render.hh"
 
 #include "UI_interface.hh"
 #include "UI_interface_layout.hh"
 
 #include "modifier.hh"
+#include "render.hh"
 
 namespace blender::seq {
 
@@ -106,6 +108,8 @@ struct HueCorrectApplyOp {
 
 static void hue_correct_apply(ModifierApplyContext &context, StripModifierData *smd, ImBuf *mask)
 {
+  ensure_ibuf_is_sequencer_space(context.render_data.scene, context.image, false);
+
   HueCorrectModifierData *hcmd = reinterpret_cast<HueCorrectModifierData *>(smd);
 
   BKE_curvemapping_init(&hcmd->curve_mapping);

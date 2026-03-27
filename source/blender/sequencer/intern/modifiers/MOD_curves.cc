@@ -14,12 +14,14 @@
 #include "DNA_sequence_types.h"
 
 #include "SEQ_modifier.hh"
+#include "SEQ_render.hh"
 
 #include "UI_interface.hh"
 #include "UI_interface_c.hh"
 #include "UI_interface_layout.hh"
 
 #include "modifier.hh"
+#include "render.hh"
 
 namespace blender::seq {
 
@@ -71,6 +73,8 @@ struct CurvesApplyOp {
 
 static void curves_apply(ModifierApplyContext &context, StripModifierData *smd, ImBuf *mask)
 {
+  ensure_ibuf_is_sequencer_space(context.render_data.scene, context.image, false);
+
   CurvesModifierData *cmd = reinterpret_cast<CurvesModifierData *>(smd);
 
   const float black[3] = {0.0f, 0.0f, 0.0f};

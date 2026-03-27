@@ -74,6 +74,4 @@ class CompositorContext : public compositor::Context {
                            compositor::NodeGroupOperation &node_group_operation);
 };
 
-bool is_linear_float_buffer(const ImBuf *image_buffer);
-
 }  // namespace blender::seq

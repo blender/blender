@@ -220,8 +220,7 @@ static ImBuf *make_thumb_for_image(const Scene *scene, const ThumbnailCache::Req
     IMB_free_byte_pixels(ibuf);
   }
 
-  seq_imbuf_to_sequencer_space(scene, ibuf, false);
-  seq_imbuf_assign_spaces(scene, ibuf);
+  ensure_ibuf_is_sequencer_space(scene, ibuf, false);
   return ibuf;
 }
 

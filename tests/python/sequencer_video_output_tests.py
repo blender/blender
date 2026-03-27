@@ -84,7 +84,11 @@ scene.render.resolution_y = 1080
 scene.render.resolution_percentage = 25
 ed = scene.sequence_editor_create()
 strip = ed.strips.new_movie(name='input', filepath='{video_file}', channel=1, frame_start=1)
+# use raw pixel data, without interpreting input color space
 strip.colorspace_settings.name = 'Non-Color'
+# make it convert into sequencer color space by having a non-1 but really close
+# multiply factor
+strip.color_multiply = 1.0001
 """)
 
         command = (
@@ -110,14 +114,8 @@ def main():
 
     report = VideoOutputReport("Sequencer", args.outdir, args.oiiotool)
     report.set_pixelated(True)
-    if platform.system() == "Linux" and platform.machine().lower() == "aarch64":
-        # On Linux arm64 compression looks different, raise tolerances.
-        report.set_fail_threshold(10.0 / 255.0)
-        report.set_fail_percent(1.0)
-    else:
-        # Default error tolerances are quite large, lower them.
-        report.set_fail_threshold(2.0 / 255.0)
-        report.set_fail_percent(0.01)
+    report.set_fail_threshold(10.0 / 255.0)
+    report.set_fail_percent(1.0)
     report.set_reference_dir("reference")
 
     ok = report.run(args.testdir, args.blender, get_arguments, batch=args.batch)

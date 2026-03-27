@@ -338,9 +338,9 @@ static void sequencer_sample_apply(bContext *C, wmOperator *op, const wmEvent *e
       info->colf[3] = fp[3];
       info->colfp = info->colf;
 
-      /* sequencer's image buffers are in non-linear space, need to make them linear */
       copy_v4_v4(info->linearcol, info->colf);
-      seq::render_pixel_from_sequencer_space_v4(scene, info->linearcol);
+      IMB_colormanagement_colorspace_to_scene_linear_v4(
+          info->linearcol, true, ibuf->float_buffer.colorspace);
 
       info->color_manage = true;
     }

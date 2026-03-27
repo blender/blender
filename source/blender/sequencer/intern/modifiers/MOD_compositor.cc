@@ -21,8 +21,6 @@
 
 #include "DEG_depsgraph_query.hh"
 
-#include "IMB_colormanagement.hh"
-
 #include "SEQ_modifier.hh"
 #include "SEQ_modifiertypes.hh"
 #include "SEQ_select.hh"
@@ -37,7 +35,6 @@
 #include "cache/compositor_cache.hh"
 #include "compositor.hh"
 #include "modifier.hh"
-#include "render.hh"
 
 namespace blender::seq {
 
@@ -150,36 +147,6 @@ static void compositor_modifier_init_data(StripModifierData *strip_modifier_data
   modifier_data->node_group = nullptr;
 }
 
-static bool ensure_linear_float_buffer(ImBuf *ibuf)
-{
-  if (!ibuf) {
-    return false;
-  }
-
-  /* Already have scene linear float pixels, nothing to do. */
-  if (is_linear_float_buffer(ibuf)) {
-    return true;
-  }
-
-  if (ibuf->float_buffer.data == nullptr) {
-    IMB_float_from_byte(ibuf);
-  }
-  else {
-    const char *from_colorspace = IMB_colormanagement_get_float_colorspace(ibuf);
-    const char *to_colorspace = IMB_colormanagement_role_colorspace_name_get(
-        COLOR_ROLE_SCENE_LINEAR);
-    IMB_colormanagement_transform_float(ibuf->float_buffer.data,
-                                        ibuf->x,
-                                        ibuf->y,
-                                        ibuf->channels,
-                                        from_colorspace,
-                                        to_colorspace,
-                                        true);
-    IMB_colormanagement_assign_float_colorspace(ibuf, to_colorspace);
-  }
-  return false;
-}
-
 static void compositor_modifier_apply(ModifierApplyContext &context,
                                       StripModifierData *strip_modifier_data,
                                       ImBuf *mask)
@@ -190,21 +157,18 @@ static void compositor_modifier_apply(ModifierApplyContext &context,
     return;
   }
 
-  ImBuf *linear_mask = mask;
-  if (mask && !is_linear_float_buffer(mask)) {
-    linear_mask = IMB_dupImBuf(mask);
-    ensure_linear_float_buffer(linear_mask);
+  /* Note: compositor always operates in linear space, float pixels. */
+  ensure_ibuf_is_linear_space(context.image, true);
+  if (mask) {
+    ensure_ibuf_is_linear_space(mask, true);
   }
-
-  const bool was_float_linear = ensure_linear_float_buffer(context.image);
-  const bool was_byte = context.image->float_buffer.data == nullptr;
 
   CompositorCache &com_cache = context.render_data.scene->ed->runtime->ensure_compositor_cache();
   CompositorModifierContext com_mod_context(com_cache.get_cache_manager(),
                                             context.render_data,
                                             modifier_data,
                                             context.image,
-                                            linear_mask,
+                                            mask,
                                             context.strip);
 
   const bool use_gpu = com_mod_context.use_gpu();
@@ -221,22 +185,6 @@ static void compositor_modifier_apply(ModifierApplyContext &context,
   }
 
   context.result_translation += com_mod_context.get_result_translation();
-
-  if (mask != linear_mask) {
-    IMB_freeImBuf(linear_mask);
-  }
-
-  if (was_float_linear) {
-    return;
-  }
-
-  if (was_byte) {
-    IMB_byte_from_float(context.image);
-    IMB_free_float_pixels(context.image);
-  }
-  else {
-    seq_imbuf_to_sequencer_space(context.render_data.scene, context.image, true);
-  }
 }
 
 static void compositor_modifier_panel_draw(const bContext *C, Panel *panel)

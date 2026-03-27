@@ -49,7 +49,6 @@ ImBuf *seq_render_give_ibuf_seqbase(const RenderData *context,
                                     int chan_shown,
                                     ListBaseT<SeqTimelineChannel> *channels,
                                     ListBaseT<Strip> *seqbasep);
-void seq_imbuf_to_sequencer_space(const Scene *scene, ImBuf *ibuf, bool make_float);
 ImBuf *seq_render_strip(const RenderData *context,
                         SeqRenderState *state,
                         Strip *strip,
@@ -63,6 +62,10 @@ ImBuf *seq_render_mask(Depsgraph *depsgraph,
                        const Mask *mask,
                        float frame_index,
                        bool make_float);
+
+/* Converts image to sequencer color space, if needed. */
+void ensure_ibuf_is_sequencer_space(const Scene *scene, ImBuf *ibuf, bool make_float);
+
 void seq_imbuf_assign_spaces(const Scene *scene, ImBuf *ibuf);
 
 StripScreenQuad get_strip_screen_quad(const RenderData *context, const Strip *strip);

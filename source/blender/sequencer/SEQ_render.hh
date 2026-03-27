@@ -76,8 +76,10 @@ void render_new_render_data(Main *bmain,
                             RenderData *r_context);
 StripElem *render_give_stripelem(const Scene *scene, const Strip *strip, int timeline_frame);
 
-void render_imbuf_from_sequencer_space(const Scene *scene, ImBuf *ibuf);
-void render_pixel_from_sequencer_space_v4(const Scene *scene, float pixel[4]);
+/* Converts image into scene linear, if needed.
+ * Note: if make_float is false and input image contains byte pixels, it is *NOT* modified. */
+void ensure_ibuf_is_linear_space(ImBuf *ibuf, bool make_float);
+
 /**
  * Check if `strip` is muted for rendering.
  * This function also checks `SeqTimelineChannel` flag.
