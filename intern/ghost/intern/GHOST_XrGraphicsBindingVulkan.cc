@@ -156,7 +156,7 @@ bool GHOST_XrGraphicsBindingVulkan::checkVersionRequirements(GHOST_Context &ghos
     if (vk_version > xr_graphics_requirements.maxApiVersionSupported) {
       CLOG_INFO(&LOG,
                 "OpenXR platform vulkan version requirements do not match with Blender. "
-                "This is known to happen when using Occulus/Meta Quest. A workaround for this is "
+                "This is known to happen when using Oculus/Meta Quest. A workaround for this is "
                 "already enabled by enabling extensions that are known to be in core vulkan. "
                 "(minimum vulkan version=%d.%d, maximum vulkan version=%d.%d).",
                 XR_VERSION_MAJOR(xr_graphics_requirements.minApiVersionSupported),
@@ -187,7 +187,7 @@ bool GHOST_XrGraphicsBindingVulkan::checkVersionRequirements(GHOST_Context &ghos
     if (vk_version > xr_graphics_requirements2.maxApiVersionSupported) {
       CLOG_INFO(&LOG,
                 "OpenXR platform vulkan version requirements do not match with Blender. "
-                "This is known to happen when using Occulus/Meta Quest. A workaround for this is "
+                "This is known to happen when using Oculus/Meta Quest. A workaround for this is "
                 "already enabled by enabling extensions that are known to be in core vulkan. "
                 "(minimum vulkan version=%d.%d, maximum vulkan version=%d.%d).",
                 XR_VERSION_MAJOR(xr_graphics_requirements2.minApiVersionSupported),
