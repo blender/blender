@@ -198,6 +198,33 @@ static bool is_collection_element(TreeElement *te)
   return outliner_is_collection_tree_element(te);
 }
 
+/* Check if a collection is being dragged inside its own hierarchy. */
+static bool outliner_is_collection_dragged_into_itself(TreeElement *drop_target_te, ID *dragged_id)
+{
+  if (!(drop_target_te && dragged_id && GS(dragged_id->name) == ID_GR)) {
+    return false;
+  }
+
+  /* The drop_target_te could be anything. So, traverse up to get the
+   * parent tree_element that represents a collection. */
+  TreeElement *coll_te = outliner_data_from_tree_element_and_parents(is_collection_element,
+                                                                     drop_target_te);
+
+  while (coll_te && coll_te->parent != nullptr) {
+    /* Get the actual collection type. */
+    Collection *te_parent_coll = outliner_collection_from_tree_element(coll_te->parent);
+
+    if (&te_parent_coll->id == dragged_id) {
+      /* The destination te is inside the dragged collection's hierarchy. */
+      return true;
+    }
+
+    /* Keep going up the hierarchy */
+    coll_te = coll_te->parent;
+  }
+  return false;
+}
+
 static bool is_object_element(TreeElement *te)
 {
   TreeStoreElem *tselem = TREESTORE(te);
@@ -1159,6 +1186,10 @@ static bool collection_drop_init(bContext *C, wmDrag *drag, const int xy[2], Col
 
   ID *id = drag_id->id;
   if (!(id && ELEM(GS(id->name), ID_GR, ID_OB))) {
+    return false;
+  }
+
+  if (outliner_is_collection_dragged_into_itself(te, id)) {
     return false;
   }
 
