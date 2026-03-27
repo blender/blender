@@ -421,7 +421,10 @@ void AbstractTreeView::scroll_active_into_view()
     foreach_item(
         [&, this](AbstractTreeViewItem &item) {
           if (item.is_active_) {
-            *scroll_value_ = std::max(0, index - *visible_row_count + 1);
+            /* Don't scroll the list when active item is already in view. */
+            if ((index < *scroll_value_) || (index >= *scroll_value_ + *visible_row_count)) {
+              *scroll_value_ = std::max(0, index - *visible_row_count + 1);
+            }
             return;
           }
           index++;
@@ -878,29 +881,24 @@ void TreeViewLayoutBuilder::build_from_tree(AbstractTreeView &tree_view)
         *tree_view.scroll_value_, 0, tot_items - *visible_row_count);
   }
 
+  if (tree_view.scroll_active_into_view_on_draw_) {
+    tree_view.scroll_active_into_view();
+  }
+
   const int first_visible_index = tree_view.scroll_value_ ? *tree_view.scroll_value_ : 0;
   const int max_visible_index = visible_row_count ? first_visible_index + *visible_row_count - 1 :
                                                     std::numeric_limits<int>::max();
   int index = 0;
-  bool is_active_visible = false;
   tree_view.foreach_item(
       [&, this](AbstractTreeViewItem &item) {
         if ((index >= first_visible_index) && (index <= max_visible_index)) {
           if (item.is_filtered_visible()) {
             this->build_row(item);
-            is_active_visible |= item.is_active_;
           }
         }
         index++;
       },
       AbstractTreeView::IterOptions::SkipCollapsed | AbstractTreeView::IterOptions::SkipFiltered);
-
-  if (tree_view.scroll_active_into_view_on_draw_) {
-    if (!is_active_visible) {
-      /* Don't scroll the list when active item is already in view. */
-      tree_view.scroll_active_into_view();
-    }
-  }
 
   if (tree_view.custom_height_) {
 
