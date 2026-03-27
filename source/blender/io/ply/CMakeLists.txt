@@ -8,6 +8,7 @@ set(INC
   importer
   intern
   ../common
+  ../../editors/include
   ../../makesrna
 )
 

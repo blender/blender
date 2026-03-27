@@ -13,6 +13,8 @@
 
 #include "DEG_depsgraph_query.hh"
 
+#include "ED_util.hh"
+
 #include "IO_ply.hh"
 
 #include "ply_data.hh"
@@ -35,11 +37,14 @@ void exporter_main(bContext *C, const PLYExportParams &export_params)
 {
   std::unique_ptr<io::ply::PlyData> plyData = std::make_unique<PlyData>();
 
-  Depsgraph *depsgraph = nullptr;
-  bool needs_free = false;
-
   Main *bmain = CTX_data_main(C);
   Scene *scene = CTX_data_scene(C);
+  ViewLayer *view_layer = CTX_data_view_layer(C);
+
+  ED_editors_flush_edits(bmain);
+
+  Depsgraph *depsgraph = DEG_graph_new(bmain, scene, view_layer, DAG_EVAL_RENDER);
+
   if (export_params.collection[0]) {
     Collection *collection = reinterpret_cast<Collection *>(
         BKE_libblock_find_name(bmain, ID_GR, export_params.collection));
@@ -48,25 +53,21 @@ void exporter_main(bContext *C, const PLYExportParams &export_params)
                   RPT_ERROR,
                   "PLY Export: Unable to find collection '%s'",
                   export_params.collection);
+
+      DEG_graph_free(depsgraph);
       return;
     }
 
-    ViewLayer *view_layer = CTX_data_view_layer(C);
-
-    depsgraph = DEG_graph_new(bmain, scene, view_layer, DAG_EVAL_RENDER);
-    needs_free = true;
     DEG_graph_build_from_collection(depsgraph, collection);
-    BKE_scene_graph_evaluated_ensure(depsgraph, bmain);
   }
   else {
-    depsgraph = CTX_data_ensure_evaluated_depsgraph(C);
+    DEG_graph_build_from_view_layer(depsgraph);
   }
+  BKE_scene_graph_update_tagged(depsgraph, bmain);
 
   load_plydata(*plyData, depsgraph, export_params);
 
-  if (needs_free) {
-    DEG_graph_free(depsgraph);
-  }
+  DEG_graph_free(depsgraph);
 
   std::unique_ptr<FileBuffer> buffer;
 

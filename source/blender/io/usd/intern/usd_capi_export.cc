@@ -54,6 +54,8 @@
 #include "BLI_string.h"
 #include "BLI_timeit.hh"
 
+#include "ED_util.hh"
+
 #include <IMB_imbuf.hh>
 #include <IMB_imbuf_types.hh>
 
@@ -813,6 +815,8 @@ bool USD_export(const bContext *C,
   job->scene = scene;
   job->export_ok = false;
   set_job_filepath(job, filepath);
+
+  ED_editors_flush_edits(job->bmain);
 
   job->depsgraph = DEG_graph_new(job->bmain, scene, view_layer, params->evaluation_mode);
   job->params = *params;
