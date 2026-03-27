@@ -13,6 +13,8 @@
 #include "util/log.h"
 
 #include "BKE_action.hh"
+#include "BKE_camera.h"
+#include "BKE_scene.hh"
 #include "DEG_depsgraph_query.hh"
 #include "DNA_camera_types.h"
 #include "DNA_light_types.h"
@@ -167,8 +169,52 @@ static PanoramaType blender_panorama_type_to_cycles(const int type)
   return PANORAMA_FISHEYE_EQUISOLID;
 }
 
+/* Cycles equivalent of view3d_stereo3d_active(). */
+static bool is_viewport_stereo3d_active(const blender::RenderData &b_render,
+                                        const blender::View3D *b_v3d,
+                                        const blender::RegionView3D *b_rv3d)
+{
+  if ((b_render.scemode & blender::R_MULTIVIEW) == 0) {
+    return false;
+  }
+
+  if (!b_v3d || !b_rv3d) {
+    return false;
+  }
+
+  if ((b_v3d->camera == nullptr) || (b_v3d->camera->type != blender::OB_CAMERA) ||
+      b_rv3d->persp != blender::RV3D_CAMOB)
+  {
+    return false;
+  }
+
+  switch (b_v3d->stereo3d_camera) {
+    case blender::STEREO_MONO_ID:
+      return false;
+
+    case blender::STEREO_3D_ID:
+      /* Cycles does not have access to window to check WM_stereo3d_enabled(), so assume it is
+       * enabled. */
+      if (((b_render.views_format & blender::SCE_VIEWS_FORMAT_MULTIVIEW) != 0) &&
+          !BKE_scene_multiview_is_stereo3d(&b_render))
+      {
+        return false;
+      }
+      return true;
+
+    case blender::STEREO_LEFT_ID:
+    case blender::STEREO_RIGHT_ID:
+      return true;
+  }
+
+  return false;
+}
+
 static void blender_camera_from_object(BlenderCamera *bcam,
                                        blender::RenderEngine &b_engine,
+                                       const blender::RenderData &b_render,
+                                       blender::View3D *b_v3d,
+                                       blender::RegionView3D *b_rv3d,
                                        blender::Object &b_ob,
                                        blender::Main &b_data,
                                        bool skip_panorama = false)
@@ -265,7 +311,20 @@ static void blender_camera_from_object(BlenderCamera *bcam,
       bcam->aperture_ratio = 1.0f;
     }
 
-    bcam->shift.x = RE_engine_get_camera_shift_x(&b_engine, &b_ob, bcam->use_spherical_stereo);
+    if (is_viewport_stereo3d_active(b_render, b_v3d, b_rv3d)) {
+      /* Cycles equivalent of view3d_stereo3d_setup(). */
+      using eStereoViews = blender::eStereoViews;
+      const eStereoViews multiview_eye = b_v3d->stereo3d_camera != blender::STEREO_3D_ID ?
+                                             eStereoViews(b_v3d->stereo3d_camera) :
+                                             eStereoViews(b_v3d->multiview_eye);
+
+      const bool is_left = multiview_eye == blender::STEREO_LEFT_ID;
+      const char *viewname = is_left ? STEREO_LEFT_NAME : STEREO_RIGHT_NAME;
+      bcam->shift.x = BKE_camera_multiview_shift_x(&b_render, &b_ob, viewname);
+    }
+    else {
+      bcam->shift.x = RE_engine_get_camera_shift_x(&b_engine, &b_ob, bcam->use_spherical_stereo);
+    }
     bcam->shift.y = b_camera.shifty;
 
     bcam->sensor_width = b_camera.sensor_x;
@@ -706,7 +765,7 @@ void BlenderSync::sync_camera(const blender::RenderData &b_render,
 
   if (b_ob) {
     blender::float4x4 b_ob_matrix;
-    blender_camera_from_object(&bcam, *b_engine, *b_ob, *b_data);
+    blender_camera_from_object(&bcam, *b_engine, b_render, nullptr, nullptr, *b_ob, *b_data);
     RE_engine_get_camera_model_matrix(
         b_engine, b_ob, bcam.use_spherical_stereo, b_ob_matrix.base_ptr());
     bcam.matrix = get_transform(b_ob_matrix);
@@ -725,7 +784,7 @@ void BlenderSync::sync_camera(const blender::RenderData &b_render,
   b_ob = RNA_pointer_get(&cscene, "dicing_camera").data_as<blender::Object>();
   if (b_ob) {
     blender::float4x4 b_ob_matrix;
-    blender_camera_from_object(&bcam, *b_engine, *b_ob, *b_data);
+    blender_camera_from_object(&bcam, *b_engine, b_render, nullptr, nullptr, *b_ob, *b_data);
     RE_engine_get_camera_model_matrix(
         b_engine, b_ob, bcam.use_spherical_stereo, b_ob_matrix.base_ptr());
     bcam.matrix = get_transform(b_ob_matrix);
@@ -815,7 +874,7 @@ void BlenderSync::sync_camera_motion(const blender::RenderData &b_render,
     bcam.pixelaspect.x = b_render.xasp;
     bcam.pixelaspect.y = b_render.yasp;
 
-    blender_camera_from_object(&bcam, *b_engine, *b_ob, *b_data);
+    blender_camera_from_object(&bcam, *b_engine, b_render, nullptr, nullptr, *b_ob, *b_data);
 
     BoundBox2D viewplane;
     float aspectratio;
@@ -857,6 +916,7 @@ static void blender_camera_view_subset(blender::RenderEngine &b_engine,
 
 static void blender_camera_from_view(BlenderCamera *bcam,
                                      blender::RenderEngine &b_engine,
+                                     const blender::RenderData &b_render,
                                      blender::Scene &b_scene,
                                      blender::Main &b_data,
                                      blender::View3D *&b_v3d,
@@ -879,7 +939,8 @@ static void blender_camera_from_view(BlenderCamera *bcam,
     blender::Object *b_ob = (b_v3d->scenelock) ? b_v3d->camera : b_scene.camera;
 
     if (b_ob) {
-      blender_camera_from_object(bcam, b_engine, *b_ob, b_data, skip_panorama);
+      blender_camera_from_object(
+          bcam, b_engine, b_render, b_v3d, b_rv3d, *b_ob, b_data, skip_panorama);
 
       if (!skip_panorama && (bcam->type == CAMERA_PANORAMA || bcam->type == CAMERA_CUSTOM)) {
         /* in panorama or custom camera view, we map viewplane to camera border */
@@ -963,13 +1024,13 @@ static void blender_camera_view_subset(blender::RenderEngine &b_engine,
   /* Get viewport viewplane. */
   BlenderCamera view_bcam(b_render);
   blender_camera_from_view(
-      &view_bcam, b_engine, b_scene, b_data, b_v3d, b_rv3d, width, height, true);
+      &view_bcam, b_engine, b_render, b_scene, b_data, b_v3d, b_rv3d, width, height, true);
 
   blender_camera_viewplane(&view_bcam, width, height, view, view_aspect, sensor_size);
 
   /* Get camera viewplane. */
   BlenderCamera cam_bcam(b_render);
-  blender_camera_from_object(&cam_bcam, b_engine, b_ob, b_data, true);
+  blender_camera_from_object(&cam_bcam, b_engine, b_render, b_v3d, b_rv3d, b_ob, b_data, true);
 
   /* Camera border is affect by aspect, viewport is not. */
   cam_bcam.pixelaspect.x = b_render.xasp;
@@ -1101,7 +1162,8 @@ void BlenderSync::sync_view(blender::View3D *b_v3d,
 {
   const blender::RenderData &b_render_settings = b_scene->r;
   BlenderCamera bcam(b_render_settings);
-  blender_camera_from_view(&bcam, *b_engine, *b_scene, *b_data, b_v3d, b_rv3d, width, height);
+  blender_camera_from_view(
+      &bcam, *b_engine, b_render_settings, *b_scene, *b_data, b_v3d, b_rv3d, width, height);
   blender_camera_border(
       &bcam, *b_engine, b_render_settings, *b_scene, *b_data, b_v3d, b_rv3d, width, height);
   blender::PointerRNA scene_rna_ptr = RNA_id_pointer_create(&b_scene->id);
@@ -1112,7 +1174,8 @@ void BlenderSync::sync_view(blender::View3D *b_v3d,
   blender::Object *b_ob = RNA_pointer_get(&cscene, "dicing_camera").data_as<blender::Object>();
   if (b_ob) {
     blender::float4x4 b_ob_matrix;
-    blender_camera_from_object(&bcam, *b_engine, *b_ob, *b_data);
+    blender_camera_from_object(
+        &bcam, *b_engine, b_render_settings, nullptr, nullptr, *b_ob, *b_data);
     RE_engine_get_camera_model_matrix(
         b_engine, b_ob, bcam.use_spherical_stereo, b_ob_matrix.base_ptr());
     bcam.matrix = get_transform(b_ob_matrix);
