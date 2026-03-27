@@ -142,7 +142,8 @@ static IndexRange extend_curves_geometry(bke::CurvesGeometry &curves, const NSVG
     /* Extra points can be at the end of the path, so loop through until they are gone. */
     const float2 pos_first = svg_path_data.first();
     float2 pos_last = svg_path_data[(point_num - 1) * 3];
-    while (math::almost_equal_relative(pos_first, pos_last, 1e-6f)) {
+
+    while (math::almost_equal_relative(pos_first, pos_last, 1e-6f) && point_num > 1) {
       point_num--;
       pos_last = svg_path_data[(point_num - 1) * 3];
     }
