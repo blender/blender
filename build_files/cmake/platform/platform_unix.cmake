@@ -10,23 +10,24 @@ if(NOT WITH_LIBS_PRECOMPILED)
   unset(LIBDIR)
 else()
   if(NOT DEFINED LIBDIR)
-    # Path to a locally compiled libraries.
-    set(LIBDIR_NAME ${CMAKE_SYSTEM_NAME}_${CMAKE_SYSTEM_PROCESSOR})
-    string(TOLOWER ${LIBDIR_NAME} LIBDIR_NAME)
-    set(LIBDIR_NATIVE_ABI ${CMAKE_SOURCE_DIR}/../lib/${LIBDIR_NAME})
-
-    # Path to precompiled libraries with known glibc 2.28 ABI.
+    # Path to libraries with known glibc 2.28 ABI.
     if(${CMAKE_SYSTEM_PROCESSOR} STREQUAL "aarch64")
       set(LIBDIR_GLIBC228_ABI ${CMAKE_SOURCE_DIR}/lib/linux_arm64)
-    else()
+    elseif(${CMAKE_SYSTEM_PROCESSOR} STREQUAL "x86_64")
       set(LIBDIR_GLIBC228_ABI ${CMAKE_SOURCE_DIR}/lib/linux_x64)
+    else()
+      set(LIBDIR_GLIBC228_ABI ${CMAKE_SOURCE_DIR}/lib/linux_${CMAKE_SYSTEM_PROCESSOR})
+      message(WARNING
+        "Architecture \"${CMAKE_SYSTEM_PROCESSOR}\" not supported by default."
+        "Using library directory \"${LIBDIR_GLIBC228_ABI}\"."
+      )
     endif()
 
-    # Choose the best suitable libraries.
-    if(EXISTS ${LIBDIR_NATIVE_ABI})
-      set(LIBDIR ${LIBDIR_NATIVE_ABI})
-      set(WITH_LIBC_MALLOC_HOOK_WORKAROUND TRUE)
-    elseif(EXISTS "${LIBDIR_GLIBC228_ABI}/.git")
+    # Check if library directory is empty
+    file(GLOB LIBDIR_RESULT ${LIBDIR_GLIBC228_ABI}/*)
+    list(LENGTH LIBDIR_RESULT LIBDIR_LEN)
+
+    if(NOT LIBDIR_LEN EQUAL 0)
       set(LIBDIR ${LIBDIR_GLIBC228_ABI})
       if(WITH_TBB_MALLOC_PROXY)
         # TBB MALLOC proxy provides malloc hooks.
@@ -34,10 +35,13 @@ else()
       else()
         set(WITH_LIBC_MALLOC_HOOK_WORKAROUND TRUE)
       endif()
+    else()
+      message(STATUS
+        "Library directory \"${LIBDIR_GLIBC228_ABI}\" is empty or does not exist."
+      )
     endif()
 
     # Avoid namespace pollution.
-    unset(LIBDIR_NATIVE_ABI)
     unset(LIBDIR_GLIBC228_ABI)
   endif()
 
