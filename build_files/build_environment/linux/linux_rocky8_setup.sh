@@ -13,6 +13,9 @@ if [ `id -u` -ne 0 ]; then
   exit 1
 fi
 
+# Current architecture
+ARCH=$(uname -i)
+
 # Required by: config manager command below to enable powertools.
 dnf -y install 'dnf-command(config-manager)'
 
@@ -23,32 +26,23 @@ dnf config-manager --set-enabled powertools
 # Required by: epel-release has the patchelf and rubygem-asciidoctor packages
 dnf -y install epel-release
 
-# `yum-config-manager` does not come in the default minimal install,
-# so make sure it is installed and available.
-yum -y update
-yum -y install yum-utils
-
 # Install all the packages needed for a new tool-chain.
 #
 # NOTE: Keep this separate from the packages install, since otherwise
 # older tool-chain will be installed.
-yum -y update
-yum -y install scl-utils
-yum -y install scl-utils-build
+dnf -y install scl-utils
+dnf -y install scl-utils-build
 
 # Currently this is defined by the VFX platform (CY2023), see: https://vfxplatform.com
-yum -y install gcc-toolset-14
-
-# Repository for CUDA (`nvcc`).
-CUDA_ARCH=$(uname -i)
+dnf -y install gcc-toolset-14
 
 # For RHEL8 there is no aarch64 repo, instead use sbsa which works for device binaries.
 # For RHEL9 there is an aarch64 repo, and this fallback will no longer be needed.
-if [ "$CUDA_ARCH" = "aarch64" ]; then
+if [ "$ARCH" = "aarch64" ]; then
     CUDA_ARCH="sbsa"
 fi
-
-dnf config-manager --add-repo http://developer.download.nvidia.com/compute/cuda/repos/rhel8/$CUDA_ARCH/cuda-rhel8.repo
+# Repository for CUDA (`nvcc`).
+dnf config-manager --add-repo http://developer.download.nvidia.com/compute/cuda/repos/rhel8/${CUDA_ARCH-x86_64}/cuda-rhel8.repo
 
 # Install packages needed for Blender's dependencies.
 PACKAGES_FOR_LIBS=(
@@ -104,8 +98,8 @@ PACKAGES_FOR_LIBS=(
     # Commands from:
     # https://docs.nvidia.com/cuda/cuda-installation-guide-linux/index.html#environment-setup
     # Can be added to `~/.bash_profile`.
-    # `export LD_LIBRARY_PATH=/usr/local/cuda-12.5/lib64${LD_LIBRARY_PATH:+:${LD_LIBRARY_PATH}}`
-    # `export PATH=/usr/local/cuda-12.5/bin${PATH:+:${PATH}}`
+    # `export LD_LIBRARY_PATH=/usr/local/cuda-12-8/lib64${LD_LIBRARY_PATH:+:${LD_LIBRARY_PATH}}`
+    # `export PATH=/usr/local/cuda-12-8/bin${PATH:+:${PATH}}`
     # Required by `external_openimagedenoise` (`nvcc` command)
     cuda-toolkit-12-8
 
@@ -160,7 +154,6 @@ PACKAGES_FOR_LIBS=(
     libffi-devel
     libinput-devel
     libevdev-devel
-    mesa-libEGL-devel
     mesa-libgbm-devel
     systemd-devel # for `libudev` (not so obvious!).
     # Required by: `weston --headless` (run-time requirement for off screen rendering).
@@ -184,33 +177,33 @@ PACKAGES_FOR_BLENDER=(
     libXxf86vm-devel
 )
 
-yum -y install -y ${PACKAGES_FOR_LIBS[@]} ${PACKAGES_FOR_BLENDER[@]}
+dnf -y install ${PACKAGES_FOR_LIBS[@]} ${PACKAGES_FOR_BLENDER[@]}
 
 # Dependencies for pip (needed for `buildbot-worker`), uses Python3.6.
-yum -y install python3 python3-pip python3-devel
+dnf -y install python3 python3-pip python3-devel
 
 # Dependencies for asound.
-yum -y install -y  \
-    alsa-lib-devel pulseaudio-libs-devel
+dnf -y install alsa-lib-devel pulseaudio-libs-devel
 
 # Required by Blender build option: `WITH_JACK`.
-yum -y install jack-audio-connection-kit-devel
+dnf -y install jack-audio-connection-kit-devel
 
-# Ensure that sudo is installed (e.g., when using docker)
-yum -y install sudo
+# For ROCm there is no aarch64 repo
+if [ "$ARCH" != "aarch64" ]; then
+    # AMD's ROCM
+    # Based on instructions from:
+    # https://rocm.docs.amd.com/projects/install-on-linux/en/latest/how-to/native-install/rhel.html
+    # NOTE: the following steps have intentionally been skipped as they aren't needed:
+    # - "Register kernel-mode driver".
+    # - "Install kernel driver".
 
-# AMD's ROCM
-# Based on instructions from:
-# https://rocm.docs.amd.com/projects/install-on-linux/en/latest/how-to/native-install/rhel.html
-# NOTE: the following steps have intentionally been skipped as they aren't needed:
-# - "Register kernel-mode driver".
-# - "Install kernel driver".
+    # Register ROCm packages
+    rpm --import https://repo.radeon.com/rocm/rocm.gpg.key
 
-# Register ROCm packages
-sudo rpm --import https://repo.radeon.com/rocm/rocm.gpg.key
-rm -f /etc/yum.repos.d/amdgpu-6.4.3.repo
-rm -f /etc/yum.repos.d/rocm-6.4.3.repo
-tee --append /etc/yum.repos.d/amdgpu-6.4.3.repo <<EOF
+    rm -f /etc/yum.repos.d/amdgpu-6.4.3.repo
+    rm -f /etc/yum.repos.d/rocm-6.4.3.repo
+
+    tee /etc/yum.repos.d/amdgpu-6.4.3.repo > /dev/null <<EOF
 [amdgpu-6.4.3]
 name=amdgpu-6.4.3
 baseurl=https://repo.radeon.com/amdgpu/6.4.3/el/8.10/main/x86_64/
@@ -219,7 +212,8 @@ priority=50
 gpgcheck=1
 gpgkey=https://repo.radeon.com/rocm/rocm.gpg.key
 EOF
-tee --append /etc/yum.repos.d/rocm-6.4.3.repo <<EOF
+
+    tee /etc/yum.repos.d/rocm-6.4.3.repo > /dev/null <<EOF
 [ROCm-6.4.3]
 name=ROCm-6.4.3
 baseurl=https://repo.radeon.com/rocm/el8/6.4.3/main
@@ -228,6 +222,8 @@ gpgcheck=1
 exclude=rock-dkms
 gpgkey=https://repo.radeon.com/rocm/rocm.gpg.key
 EOF
-yum -y update
-sudo yum install -y hipcc6.4.3 hip-devel6.4.3 rocm-llvm6.4.3 rocm-core6.4.3 rocm-device-libs6.4.3
-sudo update-alternatives --set rocm /opt/rocm-6.4.3
+
+    dnf -y update
+    dnf -y install hipcc6.4.3 hip-devel6.4.3 rocm-llvm6.4.3 rocm-core6.4.3 rocm-device-libs6.4.3
+    update-alternatives --set rocm /opt/rocm-6.4.3
+fi
