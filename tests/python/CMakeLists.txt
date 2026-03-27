@@ -816,7 +816,6 @@ if((WITH_CYCLES OR WITH_GPU_RENDER_TESTS) AND TEST_SRC_DIR_EXISTS)
     image_colorspace
     image_data_types
     image_mapping
-    image_mipmap
     image_texture_limit
     integrator
     light
@@ -898,7 +897,7 @@ if((WITH_CYCLES OR WITH_GPU_RENDER_TESTS) AND TEST_SRC_DIR_EXISTS)
             "Supported devices are: ${_cycles_all_test_devices}")
       endif()
       string(TOLOWER "${_cycles_device}" _cycles_device_lower)
-      set(_cycles_render_tests bake;${render_tests};osl)
+      set(_cycles_render_tests bake;${render_tests};osl;image_mipmap)
 
       set(_cycles_osl_test_type none)
       if(WITH_CYCLES_OSL)
