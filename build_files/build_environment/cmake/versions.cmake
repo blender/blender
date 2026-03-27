@@ -474,6 +474,7 @@ set(PYCODESTYLE_VERSION 2.13)
 set(MESON_VERSION 1.9.0)
 # Build time requirements for numpy and cython
 set(SETUPTOOLS_VERSION 80.9.0)
+set(SETUPTOOLS_SCM_VERSION 9.2.2)
 set(MESON_PYTHON_VERSION 0.18.0)
 set(PACKAGING_VERSION 25.0) # meson-python dep
 set(PYPROJECT_METADATA_VERSION  0.9.1) # meson-python dep
