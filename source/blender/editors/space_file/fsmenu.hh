@@ -15,6 +15,8 @@ namespace blender {
 /* XXX could become UserPref */
 #define FSMENU_RECENT_MAX 10
 
+#define FSMENU_CURRENT_FILE_ICON ICON_CURRENT_FILE
+
 /**
  * Inserts a new fsmenu entry with the given \a path.
  * Duplicate entries are not added.

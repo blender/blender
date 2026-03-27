@@ -1154,7 +1154,7 @@ void ED_file_read_bookmarks()
                         FS_CATEGORY_SYSTEM_BOOKMARKS,
                         dir,
                         IFACE_("Current File"),
-                        ICON_CURRENT_FILE,
+                        FSMENU_CURRENT_FILE_ICON,
                         FS_INSERT_FIRST);
   }
 
