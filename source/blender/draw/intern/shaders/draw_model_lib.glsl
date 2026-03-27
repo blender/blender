@@ -31,7 +31,7 @@ uint drw_resource_id_raw()
   return id;
 
 #elif (defined(GPU_FRAGMENT_SHADER) || defined(GPU_LIBRARY_SHADER)) && defined(RESOURCE_ID_VARYING)
-  return drw_ResourceID_iface.resource_index;
+  return drw_ResourceID_iface.resource_id;
 #endif
   return 0;
 }

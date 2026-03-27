@@ -181,7 +181,7 @@ static void test_draw_pass_simple_draw()
   pass.draw_procedural(GPU_PRIM_TRIS, 1, 10, 1, {1});
   pass.draw_procedural(GPU_PRIM_POINTS, 4, 20, 2, {2});
   pass.draw_procedural(GPU_PRIM_TRIS, 2, 30, 3, {3});
-  pass.draw_procedural(GPU_PRIM_POINTS, 5, 40, 4, ResourceIndex(4, true));
+  pass.draw_procedural(GPU_PRIM_POINTS, 5, 40, 4, ResourceID(4, true));
   pass.draw_procedural(GPU_PRIM_LINES, 1, 50, 5, {5});
   pass.draw_procedural(GPU_PRIM_POINTS, 6, 60, 6, {5});
   pass.draw_procedural(GPU_PRIM_TRIS, 3, 70, 7, {6});
@@ -216,7 +216,7 @@ static void test_draw_pass_multi_draw()
   pass.draw_procedural(GPU_PRIM_TRIS, 1, -1, -1, {1});
   pass.draw_procedural(GPU_PRIM_POINTS, 4, -1, -1, {2});
   pass.draw_procedural(GPU_PRIM_TRIS, 2, -1, -1, {3});
-  pass.draw_procedural(GPU_PRIM_POINTS, 5, -1, -1, ResourceIndex(4, true));
+  pass.draw_procedural(GPU_PRIM_POINTS, 5, -1, -1, ResourceID(4, true));
   pass.draw_procedural(GPU_PRIM_LINES, 1, -1, -1, {5});
   pass.draw_procedural(GPU_PRIM_POINTS, 6, -1, -1, {5});
   pass.draw_procedural(GPU_PRIM_TRIS, 3, -1, -1, {6});

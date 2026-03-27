@@ -59,7 +59,7 @@ void Cryptomatte::sync_object(Object *ob, ResourceHandleRange res_handle)
     return;
   }
 
-  uint32_t resource_id = res_handle.resource_index();
+  uint32_t resource_id = res_handle.index();
   float2 object_hashes(0.0f, 0.0f);
 
   if (enabled_passes & EEVEE_RENDER_PASS_CRYPTOMATTE_OBJECT) {

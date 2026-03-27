@@ -148,7 +148,7 @@ bool VelocityModule::step_object_sync(ObjectKey &object_key,
    * We live with that until we have a correct way of identifying new objects. */
   VelocityObjectData &vel = velocity_map.lookup_or_add_default(object_key);
   vel.obj.ofs[step_] = object_steps_usage[step_]++;
-  vel.obj.resource_id = resource_handle.resource_index();
+  vel.obj.resource_id = resource_handle.index();
   /* While VelocityObjectData is unique for each object/instance, multiple VelocityObjectDatas can
    * point to the same offset in VelocityGeometryData, since geometry is stored local space. */
   vel.id = particle_sys ? uint64_t(particle_sys) : uint64_t(ob->data);

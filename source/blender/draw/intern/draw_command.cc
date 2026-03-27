@@ -173,11 +173,11 @@ void SpecializeConstant::execute(command::RecordingState &state) const
 
 void Draw::execute(RecordingState &state) const
 {
-  state.front_facing_set(res_index.has_inverted_handedness());
+  state.front_facing_set(res_id.has_inverted_handedness());
 
   /* Use same logic as in `finalize_commands`. */
   uint instance_first = 0;
-  if (res_index.raw > 0) {
+  if (res_id.raw > 0) {
     instance_first = state.instance_offset;
     state.instance_offset += instance_len;
   }
@@ -255,7 +255,7 @@ void DrawMulti::execute(RecordingState &state) const
 
 void DrawIndirect::execute(RecordingState &state) const
 {
-  state.front_facing_set(res_index.has_inverted_handedness());
+  state.front_facing_set(res_id.has_inverted_handedness());
 
   GPU_batch_draw_indirect(batch, *indirect_buf, 0);
 }
@@ -557,8 +557,7 @@ std::string Draw::serialize() const
   std::string vert_first = (vertex_first == uint(-1)) ? "from_batch" :
                                                         std::to_string(vertex_first);
   return std::string(".draw(inst_len=") + inst_len + ", vert_len=" + vert_len +
-         ", vert_first=" + vert_first + ", res_id=" + std::to_string(res_index.resource_index()) +
-         ")";
+         ", vert_first=" + vert_first + ", res_id=" + std::to_string(res_id.index()) + ")";
 }
 
 std::string DrawMulti::serialize(const std::string &line_prefix) const
@@ -570,7 +569,7 @@ std::string DrawMulti::serialize(const std::string &line_prefix) const
 
   /* This emulates the GPU sorting but without the unstable draw order. */
   std::ranges::sort(prototypes, [](const DrawPrototype &a, const DrawPrototype &b) {
-    return (a.group_id < b.group_id) || (a.group_id == b.group_id && a.res_index > b.res_index);
+    return (a.group_id < b.group_id) || (a.group_id == b.group_id && a.res_id > b.res_id);
   });
 
   /* Compute prefix sum to have correct offsets. */
@@ -594,11 +593,11 @@ std::string DrawMulti::serialize(const std::string &line_prefix) const
     if (grp.back_facing_counter > 0) {
       for (DrawPrototype &proto : prototypes.slice_safe({offset, grp.back_facing_counter})) {
         BLI_assert(proto.group_id == group_index);
-        ResourceIndex res_index(proto.res_index);
-        BLI_assert(res_index.has_inverted_handedness());
+        ResourceID res_id(proto.res_id);
+        BLI_assert(res_id.has_inverted_handedness());
         ss << std::endl
            << line_prefix << "    .proto(instance_len=" << std::to_string(proto.instance_len)
-           << ", resource_id=" << std::to_string(res_index.resource_index()) << ", back_face)";
+           << ", resource_id=" << std::to_string(res_id.index()) << ", back_face)";
       }
       offset += grp.back_facing_counter;
     }
@@ -606,11 +605,11 @@ std::string DrawMulti::serialize(const std::string &line_prefix) const
     if (grp.front_facing_counter > 0) {
       for (DrawPrototype &proto : prototypes.slice_safe({offset, grp.front_facing_counter})) {
         BLI_assert(proto.group_id == group_index);
-        ResourceIndex res_index(proto.res_index);
-        BLI_assert(!res_index.has_inverted_handedness());
+        ResourceID res_id(proto.res_id);
+        BLI_assert(!res_id.has_inverted_handedness());
         ss << std::endl
            << line_prefix << "    .proto(instance_len=" << std::to_string(proto.instance_len)
-           << ", resource_id=" << std::to_string(res_index.resource_index()) << ", front_face)";
+           << ", resource_id=" << std::to_string(res_id.index()) << ", front_face)";
       }
     }
 
@@ -733,7 +732,7 @@ void DrawCommandBuf::finalize_commands(Vector<Header, 0> &headers,
      * instanced draw-calls with lots of instances with no overhead. */
     /* TODO(fclem): Think about either fixing this feature or removing support for instancing all
      * together. */
-    if (cmd.res_index.raw > 0) {
+    if (cmd.res_id.raw > 0) {
       /* Save correct offset to start of resource_id buffer region for this draw. */
       uint instance_first = resource_id_count;
       resource_id_count += cmd.instance_len;
@@ -741,7 +740,7 @@ void DrawCommandBuf::finalize_commands(Vector<Header, 0> &headers,
       resource_id_buf.get_or_resize(resource_id_count - 1);
 
       /* Copy the resource id for all instances. */
-      uint index = cmd.res_index.resource_index();
+      uint index = cmd.res_id.index();
       for (int i = instance_first; i < (instance_first + cmd.instance_len); i++) {
         resource_id_buf[i] = index;
       }

@@ -30,10 +30,10 @@
 
 /**
  * Used if the resource index needs to be passed to the fragment shader.
- * IMPORTANT: Vertex shader need to write `drw_ResourceID_iface.resource_index` in main().
+ * IMPORTANT: Vertex shader need to write `drw_ResourceID_iface.resource_id` in main().
  */
 GPU_SHADER_NAMED_INTERFACE_INFO(draw_resource_id_iface, drw_ResourceID_iface)
-FLAT(uint, resource_index)
+FLAT(uint, resource_id)
 GPU_SHADER_NAMED_INTERFACE_END(drw_ResourceID_iface)
 
 GPU_SHADER_CREATE_INFO(draw_resource_id_varying)

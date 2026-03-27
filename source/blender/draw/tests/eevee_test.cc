@@ -214,7 +214,7 @@ static void test_eevee_shadow_tag_update()
       ResourceHandle hdl = manager.resource_handle(obmat, float3(0.5f, 0.5f, -1.0f), half_extent);
       manager.resource_handle(obmat2);
       manager.end_sync();
-      past_casters_updated.append(hdl.resource_index());
+      past_casters_updated.append(hdl.index());
       past_casters_updated.push_update();
     }
     {
@@ -222,7 +222,7 @@ static void test_eevee_shadow_tag_update()
       manager.resource_handle(obmat2);
       ResourceHandle hdl = manager.resource_handle(obmat, float3(-1.0f, 0.5f, -1.0f), half_extent);
       manager.end_sync();
-      curr_casters_updated.append(hdl.resource_index());
+      curr_casters_updated.append(hdl.index());
       curr_casters_updated.push_update();
     }
   }

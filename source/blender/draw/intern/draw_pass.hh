@@ -35,7 +35,7 @@
  * \note A pass can be recorded once and resubmitted any number of time. This can be a good
  * optimization for passes that are always the same for each frame. The only thing to be aware of
  * is the life time of external resources. If a pass contains draw-calls with non default
- * #ResourceIndex (not 0) or a reference to any non static resources
+ * #ResourceID (not 0) or a reference to any non static resources
  * (#gpu::Batch, #PushConstant ref, #ResourceBind ref) it will have to be re-recorded
  * if any of these reference becomes invalid.
  */
@@ -260,14 +260,14 @@ class PassBase {
             uint instance_len = -1,
             uint vertex_len = -1,
             uint vertex_first = -1,
-            ResourceIndexRange res_index = {},
+            ResourceIDRange res_id = {},
             uint custom_id = 0);
 
   /**
    * Shorter version for the common case.
    * \note Implemented in derived class. Not a virtual function to avoid indirection.
    */
-  void draw(gpu::Batch *batch, ResourceIndexRange res_index, uint custom_id = 0);
+  void draw(gpu::Batch *batch, ResourceIDRange res_id, uint custom_id = 0);
 
   /**
    * Record a procedural draw call. Geometry is **NOT** source from a gpu::Batch.
@@ -277,7 +277,7 @@ class PassBase {
                        uint instance_len,
                        uint vertex_len,
                        uint vertex_first = -1,
-                       ResourceIndexRange res_index = {},
+                       ResourceIDRange res_id = {},
                        uint custom_id = 0);
 
   /**
@@ -299,7 +299,7 @@ class PassBase {
                    uint instance_len,
                    uint vertex_len,
                    uint vertex_first,
-                   ResourceIndexRange res_index = {},
+                   ResourceIDRange res_id = {},
                    uint custom_id = 0);
 
   /**
@@ -310,7 +310,7 @@ class PassBase {
                    GPUPrimType primitive_type,
                    uint primitive_len,
                    uint instance_len,
-                   ResourceIndexRange res_index = {},
+                   ResourceIDRange res_id = {},
                    uint custom_id = 0);
 
   /**
@@ -319,10 +319,10 @@ class PassBase {
    */
   void draw_indirect(gpu::Batch *batch,
                      StorageBuffer<DrawCommand, true> &indirect_buffer,
-                     ResourceIndex res_index = {0});
+                     ResourceID res_id = {0});
   void draw_procedural_indirect(GPUPrimType primitive,
                                 StorageBuffer<DrawCommand, true> &indirect_buffer,
-                                ResourceIndex res_index = {0});
+                                ResourceID res_id = {0});
 
   /**
    * Record a compute dispatch call.
@@ -895,7 +895,7 @@ inline void PassBase<T>::draw(gpu::Batch *batch,
                               uint instance_len,
                               uint vertex_len,
                               uint vertex_first,
-                              ResourceIndexRange res_index,
+                              ResourceIDRange res_id,
                               uint custom_id)
 {
   if (instance_len == 0 || vertex_len == 0) {
@@ -909,7 +909,7 @@ inline void PassBase<T>::draw(gpu::Batch *batch,
                                  instance_len,
                                  vertex_len,
                                  vertex_first,
-                                 res_index,
+                                 res_id,
                                  custom_id,
                                  GPU_PRIM_NONE,
                                  0);
@@ -917,9 +917,9 @@ inline void PassBase<T>::draw(gpu::Batch *batch,
 }
 
 template<class T>
-inline void PassBase<T>::draw(gpu::Batch *batch, ResourceIndexRange res_index, uint custom_id)
+inline void PassBase<T>::draw(gpu::Batch *batch, ResourceIDRange res_id, uint custom_id)
 {
-  this->draw(batch, -1, -1, -1, res_index, custom_id);
+  this->draw(batch, -1, -1, -1, res_id, custom_id);
 }
 
 template<class T>
@@ -929,7 +929,7 @@ inline void PassBase<T>::draw_expand(gpu::Batch *batch,
                                      uint instance_len,
                                      uint vertex_len,
                                      uint vertex_first,
-                                     ResourceIndexRange res_index,
+                                     ResourceIDRange res_id,
                                      uint custom_id)
 {
   if (instance_len == 0 || vertex_len == 0 || primitive_len == 0) {
@@ -942,7 +942,7 @@ inline void PassBase<T>::draw_expand(gpu::Batch *batch,
                                  instance_len,
                                  vertex_len,
                                  vertex_first,
-                                 res_index,
+                                 res_id,
                                  custom_id,
                                  primitive_type,
                                  primitive_len);
@@ -954,11 +954,10 @@ inline void PassBase<T>::draw_expand(gpu::Batch *batch,
                                      GPUPrimType primitive_type,
                                      uint primitive_len,
                                      uint instance_len,
-                                     ResourceIndexRange res_index,
+                                     ResourceIDRange res_id,
                                      uint custom_id)
 {
-  this->draw_expand(
-      batch, primitive_type, primitive_len, instance_len, -1, -1, res_index, custom_id);
+  this->draw_expand(batch, primitive_type, primitive_len, instance_len, -1, -1, res_id, custom_id);
 }
 
 template<class T>
@@ -966,15 +965,11 @@ inline void PassBase<T>::draw_procedural(GPUPrimType primitive,
                                          uint instance_len,
                                          uint vertex_len,
                                          uint vertex_first,
-                                         ResourceIndexRange res_index,
+                                         ResourceIDRange res_id,
                                          uint custom_id)
 {
-  this->draw(procedural_batch_get(primitive),
-             instance_len,
-             vertex_len,
-             vertex_first,
-             res_index,
-             custom_id);
+  this->draw(
+      procedural_batch_get(primitive), instance_len, vertex_len, vertex_first, res_id, custom_id);
 }
 
 /** \} */
@@ -986,19 +981,17 @@ inline void PassBase<T>::draw_procedural(GPUPrimType primitive,
 template<class T>
 inline void PassBase<T>::draw_indirect(gpu::Batch *batch,
                                        StorageBuffer<DrawCommand, true> &indirect_buffer,
-                                       ResourceIndex res_index)
+                                       ResourceID res_id)
 {
   BLI_assert(shader_);
-  create_command(Type::DrawIndirect).draw_indirect = {batch, &indirect_buffer, res_index};
+  create_command(Type::DrawIndirect).draw_indirect = {batch, &indirect_buffer, res_id};
 }
 
 template<class T>
 inline void PassBase<T>::draw_procedural_indirect(
-    GPUPrimType primitive,
-    StorageBuffer<DrawCommand, true> &indirect_buffer,
-    ResourceIndex res_index)
+    GPUPrimType primitive, StorageBuffer<DrawCommand, true> &indirect_buffer, ResourceID res_id)
 {
-  this->draw_indirect(procedural_batch_get(primitive), indirect_buffer, res_index);
+  this->draw_indirect(procedural_batch_get(primitive), indirect_buffer, res_id);
 }
 
 /** \} */

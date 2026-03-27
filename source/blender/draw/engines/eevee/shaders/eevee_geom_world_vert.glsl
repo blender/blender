@@ -19,7 +19,7 @@ VERTEX_SHADER_CREATE_INFO(eevee_geom_world)
 void main()
 {
   /* (W)Intel drivers require all varying iface to be written to inside the Vertex shader. */
-  drw_ResourceID_iface.resource_index = 0u;
+  drw_ResourceID_iface.resource_id = 0u;
 
   /* Full-screen triangle. */
   int v = gl_VertexID % 3;

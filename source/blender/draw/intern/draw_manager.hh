@@ -430,14 +430,14 @@ inline void Manager::update_handle_bounds(ResourceHandle handle,
                                           const ObjectRef &ref,
                                           float inflate_bounds)
 {
-  bounds_buf.current()[handle.resource_index()].sync(*ref.object, inflate_bounds);
+  bounds_buf.current()[handle.index()].sync(*ref.object, inflate_bounds);
 }
 
 inline void Manager::extract_object_attributes(ResourceHandle handle,
                                                const ObjectRef &ref,
                                                const GPUMaterial *material)
 {
-  ObjectInfos &infos = infos_buf.current().get_or_resize(handle.resource_index());
+  ObjectInfos &infos = infos_buf.current().get_or_resize(handle.index());
   infos.object_attrs_offset = attribute_len_;
 
   const GPUUniformAttrList *attr_list = GPU_material_uniform_attributes(material);
@@ -457,7 +457,7 @@ inline void Manager::extract_object_attributes(ResourceHandle handle,
                                                const ObjectRef &ref,
                                                Span<GPUMaterial *> materials)
 {
-  ObjectInfos &infos = infos_buf.current().get_or_resize(handle.resource_index());
+  ObjectInfos &infos = infos_buf.current().get_or_resize(handle.index());
   infos.object_attrs_offset = attribute_len_;
 
   /* Simple cache solution to avoid duplicates. */
