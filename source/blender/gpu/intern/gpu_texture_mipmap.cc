@@ -113,6 +113,7 @@ static void update_mipmaps(Texture &texture, Shader &shader)
   Context &context = *Context::get();
   Shader *prev_shader = context.shader;
 
+  GPU_shader_bind(&shader);
   for (int layer : IndexRange(texture.layer_count())) {
     update_mipmaps(texture, shader, layer);
   }
@@ -147,9 +148,13 @@ void GPU_texture_update_mipmap_chain(Texture *tex)
     return;
   }
 
-  /* Currently only enabled for Vulkan. OpenGL and Metal have render issues that needs to be
-   * inspected. */
-  if (GPU_type_matches_ex(GPU_DEVICE_ANY, GPU_OS_ANY, GPU_DRIVER_ANY, GPU_BACKEND_VULKAN)) {
+  /* Currently enabled for Vulkan and OpenGL. Metal has render issues that needs to be inspected.
+   */
+  if (GPU_type_matches_ex(GPU_DEVICE_ANY,
+                          GPU_OS_ANY,
+                          GPU_DRIVER_ANY,
+                          GPUBackendType(GPU_BACKEND_VULKAN | GPU_BACKEND_OPENGL)))
+  {
     const TextureFormat texture_format = tex->format_get();
     Shader *shader = get_update_mipmap_shader(texture_format);
     if (shader) {
