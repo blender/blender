@@ -248,14 +248,14 @@ class ShortestEdgePathsCostFieldInput final : public bke::MeshFieldInput {
 
 static void node_geo_exec(GeoNodeExecParams params)
 {
-  Field<bool> end_selection = params.extract_input<Field<bool>>("End Vertex");
-  Field<float> cost = params.extract_input<Field<float>>("Edge Cost");
+  Field<bool> end_selection = params.extract_input<Field<bool>>("End Vertex"_ustr);
+  Field<float> cost = params.extract_input<Field<float>>("Edge Cost"_ustr);
 
   Field<int> next_vert_field{
       std::make_shared<ShortestEdgePathsNextVertFieldInput>(end_selection, cost)};
   Field<float> cost_field{std::make_shared<ShortestEdgePathsCostFieldInput>(end_selection, cost)};
-  params.set_output("Next Vertex Index", std::move(next_vert_field));
-  params.set_output("Total Cost", std::move(cost_field));
+  params.set_output("Next Vertex Index"_ustr, std::move(next_vert_field));
+  params.set_output("Total Cost"_ustr, std::move(cost_field));
 }
 
 static void node_register()

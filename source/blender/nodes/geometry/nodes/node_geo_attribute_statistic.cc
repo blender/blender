@@ -134,17 +134,17 @@ static float median_of_sorted_span(const Span<float> data)
 
 static void node_geo_exec(GeoNodeExecParams params)
 {
-  GeometrySet geometry_set = params.extract_input<GeometrySet>("Geometry");
+  GeometrySet geometry_set = params.extract_input<GeometrySet>("Geometry"_ustr);
   const bNode &node = params.node();
   const eCustomDataType data_type = eCustomDataType(node.custom1);
   const AttrDomain domain = AttrDomain(node.custom2);
   Vector<const GeometryComponent *> components = geometry_set.get_components();
 
-  const Field<bool> selection_field = params.extract_input<Field<bool>>("Selection");
+  const Field<bool> selection_field = params.extract_input<Field<bool>>("Selection"_ustr);
 
   switch (data_type) {
     case CD_PROP_FLOAT: {
-      const Field<float> input_field = params.extract_input<Field<float>>("Attribute");
+      const Field<float> input_field = params.extract_input<Field<float>>("Attribute"_ustr);
       Vector<float> data;
       for (const GeometryComponent *component : components) {
         const int domain_size = component->attribute_domain_size(domain);
@@ -174,14 +174,14 @@ static void node_geo_exec(GeoNodeExecParams params)
       float range = 0.0f;
       float standard_deviation = 0.0f;
       float variance = 0.0f;
-      const bool sort_required = params.output_is_required("Min") ||
-                                 params.output_is_required("Max") ||
-                                 params.output_is_required("Range") ||
-                                 params.output_is_required("Median");
-      const bool sum_required = params.output_is_required("Sum") ||
-                                params.output_is_required("Mean");
-      const bool variance_required = params.output_is_required("Standard Deviation") ||
-                                     params.output_is_required("Variance");
+      const bool sort_required = params.output_is_required("Min"_ustr) ||
+                                 params.output_is_required("Max"_ustr) ||
+                                 params.output_is_required("Range"_ustr) ||
+                                 params.output_is_required("Median"_ustr);
+      const bool sum_required = params.output_is_required("Sum"_ustr) ||
+                                params.output_is_required("Mean"_ustr);
+      const bool variance_required = params.output_is_required("Standard Deviation"_ustr) ||
+                                     params.output_is_required("Variance"_ustr);
 
       if (data.size() != 0) {
         if (sort_required) {
@@ -204,23 +204,23 @@ static void node_geo_exec(GeoNodeExecParams params)
       }
 
       if (sum_required) {
-        params.set_output("Sum", sum);
-        params.set_output("Mean", mean);
+        params.set_output("Sum"_ustr, sum);
+        params.set_output("Mean"_ustr, mean);
       }
       if (sort_required) {
-        params.set_output("Min", min);
-        params.set_output("Max", max);
-        params.set_output("Range", range);
-        params.set_output("Median", median);
+        params.set_output("Min"_ustr, min);
+        params.set_output("Max"_ustr, max);
+        params.set_output("Range"_ustr, range);
+        params.set_output("Median"_ustr, median);
       }
       if (variance_required) {
-        params.set_output("Standard Deviation", standard_deviation);
-        params.set_output("Variance", variance);
+        params.set_output("Standard Deviation"_ustr, standard_deviation);
+        params.set_output("Variance"_ustr, variance);
       }
       break;
     }
     case CD_PROP_FLOAT3: {
-      const Field<float3> input_field = params.extract_input<Field<float3>>("Attribute");
+      const Field<float3> input_field = params.extract_input<Field<float3>>("Attribute"_ustr);
       Vector<float3> data;
       for (const GeometryComponent *component : components) {
         const std::optional<AttributeAccessor> attributes = component->attributes();
@@ -252,14 +252,14 @@ static void node_geo_exec(GeoNodeExecParams params)
       float3 mean{0};
       float3 variance{0};
       float3 standard_deviation{0};
-      const bool sort_required = params.output_is_required("Min") ||
-                                 params.output_is_required("Max") ||
-                                 params.output_is_required("Range") ||
-                                 params.output_is_required("Median");
-      const bool sum_required = params.output_is_required("Sum") ||
-                                params.output_is_required("Mean");
-      const bool variance_required = params.output_is_required("Standard Deviation") ||
-                                     params.output_is_required("Variance");
+      const bool sort_required = params.output_is_required("Min"_ustr) ||
+                                 params.output_is_required("Max"_ustr) ||
+                                 params.output_is_required("Range"_ustr) ||
+                                 params.output_is_required("Median"_ustr);
+      const bool sum_required = params.output_is_required("Sum"_ustr) ||
+                                params.output_is_required("Mean"_ustr);
+      const bool variance_required = params.output_is_required("Standard Deviation"_ustr) ||
+                                     params.output_is_required("Variance"_ustr);
 
       Array<float> data_x;
       Array<float> data_y;
@@ -306,18 +306,18 @@ static void node_geo_exec(GeoNodeExecParams params)
       }
 
       if (sum_required) {
-        params.set_output("Sum", sum);
-        params.set_output("Mean", mean);
+        params.set_output("Sum"_ustr, sum);
+        params.set_output("Mean"_ustr, mean);
       }
       if (sort_required) {
-        params.set_output("Min", min);
-        params.set_output("Max", max);
-        params.set_output("Range", range);
-        params.set_output("Median", median);
+        params.set_output("Min"_ustr, min);
+        params.set_output("Max"_ustr, max);
+        params.set_output("Range"_ustr, range);
+        params.set_output("Median"_ustr, median);
       }
       if (variance_required) {
-        params.set_output("Standard Deviation", standard_deviation);
-        params.set_output("Variance", variance);
+        params.set_output("Standard Deviation"_ustr, standard_deviation);
+        params.set_output("Variance"_ustr, variance);
       }
       break;
     }

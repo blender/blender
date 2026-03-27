@@ -91,15 +91,15 @@ static void geometry_set_points_to_vertices(GeometrySet &geometry_set,
 
 static void node_geo_exec(GeoNodeExecParams params)
 {
-  GeometrySet geometry_set = params.extract_input<GeometrySet>("Points");
-  Field<bool> selection_field = params.extract_input<Field<bool>>("Selection");
+  GeometrySet geometry_set = params.extract_input<GeometrySet>("Points"_ustr);
+  Field<bool> selection_field = params.extract_input<Field<bool>>("Selection"_ustr);
 
   geometry::foreach_real_geometry(geometry_set, [&](GeometrySet &geometry_set) {
     geometry_set_points_to_vertices(
-        geometry_set, selection_field, params.get_attribute_filter("Mesh"));
+        geometry_set, selection_field, params.get_attribute_filter("Mesh"_ustr));
   });
 
-  params.set_output("Mesh", std::move(geometry_set));
+  params.set_output("Mesh"_ustr, std::move(geometry_set));
 }
 
 static void node_register()

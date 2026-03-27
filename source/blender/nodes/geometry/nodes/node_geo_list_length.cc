@@ -63,12 +63,12 @@ static void node_gather_link_searches(GatherLinkSearchOpParams &params)
 
 static void node_geo_exec(GeoNodeExecParams params)
 {
-  ListPtr list = params.extract_input<ListPtr>("List");
+  ListPtr list = params.extract_input<ListPtr>("List"_ustr);
   if (!list) {
     params.set_default_remaining_outputs();
     return;
   }
-  params.set_output("Length", int(list->size()));
+  params.set_output("Length"_ustr, int(list->size()));
 }
 
 static void node_rna(StructRNA *srna)

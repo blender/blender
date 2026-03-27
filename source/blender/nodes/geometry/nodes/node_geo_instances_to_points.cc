@@ -106,16 +106,16 @@ static void convert_instances_to_points(GeometrySet &geometry_set,
 
 static void node_geo_exec(GeoNodeExecParams params)
 {
-  GeometrySet geometry_set = params.extract_input<GeometrySet>("Instances");
+  GeometrySet geometry_set = params.extract_input<GeometrySet>("Instances"_ustr);
 
   if (geometry_set.has_instances()) {
     convert_instances_to_points(geometry_set,
-                                params.extract_input<Field<float3>>("Position"),
-                                params.extract_input<Field<float>>("Radius"),
-                                params.extract_input<Field<bool>>("Selection"),
-                                params.get_attribute_filter("Points"));
+                                params.extract_input<Field<float3>>("Position"_ustr),
+                                params.extract_input<Field<float>>("Radius"_ustr),
+                                params.extract_input<Field<bool>>("Selection"_ustr),
+                                params.get_attribute_filter("Points"_ustr));
     geometry_set.keep_only({GeometryComponent::Type::PointCloud, GeometryComponent::Type::Edit});
-    params.set_output("Points", std::move(geometry_set));
+    params.set_output("Points"_ustr, std::move(geometry_set));
   }
   else {
     params.set_default_remaining_outputs();

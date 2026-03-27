@@ -45,7 +45,7 @@ class ResolutionFieldInput final : public bke::CurvesFieldInput {
 
 static void node_geo_exec(GeoNodeExecParams params)
 {
-  params.set_output("Resolution", Field<int>(std::make_shared<ResolutionFieldInput>()));
+  params.set_output("Resolution"_ustr, Field<int>(std::make_shared<ResolutionFieldInput>()));
 }
 
 static void node_register()

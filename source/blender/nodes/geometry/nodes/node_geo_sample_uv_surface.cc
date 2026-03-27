@@ -149,7 +149,7 @@ class ReverseUVSampleFunction : public mf::MultiFunction {
 
 static void node_geo_exec(GeoNodeExecParams params)
 {
-  GeometrySet geometry = params.extract_input<GeometrySet>("Mesh");
+  GeometrySet geometry = params.extract_input<GeometrySet>("Mesh"_ustr);
   const Mesh *mesh = geometry.get_mesh();
   if (mesh == nullptr) {
     params.set_default_remaining_outputs();
@@ -165,9 +165,9 @@ static void node_geo_exec(GeoNodeExecParams params)
   const bke::DataTypeConversions &conversions = bke::get_implicit_type_conversions();
   const CPPType &float2_type = CPPType::get<float2>();
   Field<float2> source_uv_map = conversions.try_convert(
-      params.extract_input<Field<float3>>("Source UV Map"), float2_type);
+      params.extract_input<Field<float3>>("Source UV Map"_ustr), float2_type);
 
-  auto sample_uv_value = params.extract_input<bke::SocketValueVariant>("Sample UV");
+  auto sample_uv_value = params.extract_input<bke::SocketValueVariant>("Sample UV"_ustr);
   if (sample_uv_value.is_list()) {
     params.error_message_add(NodeWarningType::Error,
                              "Lists are not supported for \"Sample UV\" input");
@@ -182,16 +182,16 @@ static void node_geo_exec(GeoNodeExecParams params)
   auto uv_op = FieldOperation::from(
       std::make_shared<ReverseUVSampleFunction>(geometry, std::move(source_uv_map)),
       {std::move(sample_uvs)});
-  params.set_output("Is Valid", Field<bool>(uv_op, 0));
+  params.set_output("Is Valid"_ustr, Field<bool>(uv_op, 0));
 
   /* Use the output of the UV sampling to interpolate the mesh attribute. */
-  GField field = params.extract_input<GField>("Value");
+  GField field = params.extract_input<GField>("Value"_ustr);
 
   auto sample_op = FieldOperation::from(
       std::make_shared<bke::mesh_surface_sample::BaryWeightSampleFn>(std::move(geometry),
                                                                      std::move(field)),
       {Field<int>(uv_op, 1), Field<float3>(uv_op, 2)});
-  params.set_output("Value", GField(sample_op, 0));
+  params.set_output("Value"_ustr, GField(sample_op, 0));
 }
 
 static void node_rna(StructRNA *srna)

@@ -23,9 +23,9 @@ static void node_declare(NodeDeclarationBuilder &b)
 
 static void node_geo_exec(GeoNodeExecParams params)
 {
-  GeometrySet geometry_set = params.extract_input<GeometrySet>("Instances");
-  Field<bool> selection_field = params.extract_input<Field<bool>>("Selection");
-  Field<float4x4> transform_field = params.extract_input<Field<float4x4>>("Transform");
+  GeometrySet geometry_set = params.extract_input<GeometrySet>("Instances"_ustr);
+  Field<bool> selection_field = params.extract_input<Field<bool>>("Selection"_ustr);
+  Field<float4x4> transform_field = params.extract_input<Field<float4x4>>("Transform"_ustr);
 
   if (geometry_set.has_instances()) {
     InstancesComponent &instances = geometry_set.get_component_for_write<InstancesComponent>();
@@ -33,7 +33,7 @@ static void node_geo_exec(GeoNodeExecParams params)
         instances, "instance_transform", AttrDomain::Instance, selection_field, transform_field);
   }
 
-  params.set_output("Instances", std::move(geometry_set));
+  params.set_output("Instances"_ustr, std::move(geometry_set));
 }
 
 static void node_register()

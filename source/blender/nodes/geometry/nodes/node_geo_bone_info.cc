@@ -97,7 +97,7 @@ static void node_node_init(bNodeTree * /*tree*/, bNode *node)
 
 static void node_geo_exec(GeoNodeExecParams params)
 {
-  Object *object = params.extract_input<Object *>("Armature");
+  Object *object = params.extract_input<Object *>("Armature"_ustr);
   if (!object) {
     params.set_default_remaining_outputs();
     return;
@@ -107,7 +107,7 @@ static void node_geo_exec(GeoNodeExecParams params)
     params.error_message_add(NodeWarningType::Error, TIP_("Object is not an armature"));
     return;
   }
-  const std::string bone_name = params.extract_input<std::string>("Bone Name");
+  const std::string bone_name = params.extract_input<std::string>("Bone Name"_ustr);
   if (bone_name.empty()) {
     params.set_default_remaining_outputs();
     return;
@@ -156,11 +156,11 @@ static void node_geo_exec(GeoNodeExecParams params)
   float4x4 transform_pose;
   BKE_pchan_to_mat4(pchan, transform_pose.ptr());
 
-  params.set_output("Pose", pose);
-  params.set_output("Local Pose", local_pose);
-  params.set_output("Transform Pose", transform_pose);
-  params.set_output("Rest Pose", rest_pose);
-  params.set_output("Rest Length", bone->length);
+  params.set_output("Pose"_ustr, pose);
+  params.set_output("Local Pose"_ustr, local_pose);
+  params.set_output("Transform Pose"_ustr, transform_pose);
+  params.set_output("Rest Pose"_ustr, rest_pose);
+  params.set_output("Rest Length"_ustr, bone->length);
 }
 
 static void node_rna(StructRNA *srna)

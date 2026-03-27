@@ -119,11 +119,11 @@ class PathToEdgeSelectionFieldInput final : public bke::MeshFieldInput {
 
 static void node_geo_exec(GeoNodeExecParams params)
 {
-  Field<bool> start_verts = params.extract_input<Field<bool>>("Start Vertices");
-  Field<int> next_vertex = params.extract_input<Field<int>>("Next Vertex Index");
+  Field<bool> start_verts = params.extract_input<Field<bool>>("Start Vertices"_ustr);
+  Field<int> next_vertex = params.extract_input<Field<int>>("Next Vertex Index"_ustr);
   Field<bool> selection_field{
       std::make_shared<PathToEdgeSelectionFieldInput>(start_verts, next_vertex)};
-  params.set_output("Selection", std::move(selection_field));
+  params.set_output("Selection"_ustr, std::move(selection_field));
 }
 
 static void node_register()

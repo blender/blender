@@ -54,8 +54,8 @@ static void reverse_grease_pencil(GreasePencil &grease_pencil, const Field<bool>
 
 static void node_geo_exec(GeoNodeExecParams params)
 {
-  GeometrySet geometry_set = params.extract_input<GeometrySet>("Curve");
-  Field<bool> selection_field = params.extract_input<Field<bool>>("Selection");
+  GeometrySet geometry_set = params.extract_input<GeometrySet>("Curve"_ustr);
+  Field<bool> selection_field = params.extract_input<Field<bool>>("Selection"_ustr);
 
   GeometryComponentEditData::remember_deformed_positions_if_necessary(geometry_set);
 
@@ -70,7 +70,7 @@ static void node_geo_exec(GeoNodeExecParams params)
     }
   });
 
-  params.set_output("Curve", std::move(geometry_set));
+  params.set_output("Curve"_ustr, std::move(geometry_set));
 }
 
 static void node_register()

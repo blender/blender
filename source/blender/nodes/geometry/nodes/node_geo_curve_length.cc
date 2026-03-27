@@ -31,7 +31,7 @@ static float curves_total_length(const bke::CurvesGeometry &curves)
 
 static void node_geo_exec(GeoNodeExecParams params)
 {
-  GeometrySet geometry_set = params.extract_input<GeometrySet>("Curve");
+  GeometrySet geometry_set = params.extract_input<GeometrySet>("Curve"_ustr);
   float length = 0.0f;
   if (geometry_set.has_curves()) {
     const Curves &curves_id = *geometry_set.get_curves();
@@ -55,7 +55,7 @@ static void node_geo_exec(GeoNodeExecParams params)
     return;
   }
 
-  params.set_output("Length", length);
+  params.set_output("Length"_ustr, length);
 }
 
 static void node_register()

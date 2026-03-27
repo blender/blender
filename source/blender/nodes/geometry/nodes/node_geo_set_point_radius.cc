@@ -28,9 +28,9 @@ static void node_declare(NodeDeclarationBuilder &b)
 
 static void node_geo_exec(GeoNodeExecParams params)
 {
-  GeometrySet geometry_set = params.extract_input<GeometrySet>("Points");
-  const Field<bool> selection = params.extract_input<Field<bool>>("Selection");
-  const Field<float> radius = params.extract_input<Field<float>>("Radius");
+  GeometrySet geometry_set = params.extract_input<GeometrySet>("Points"_ustr);
+  const Field<bool> selection = params.extract_input<Field<bool>>("Selection"_ustr);
+  const Field<float> radius = params.extract_input<Field<float>>("Radius"_ustr);
 
   geometry::foreach_real_geometry(geometry_set, [&](GeometrySet &geometry_set) {
     if (PointCloud *pointcloud = geometry_set.get_pointcloud_for_write()) {
@@ -43,7 +43,7 @@ static void node_geo_exec(GeoNodeExecParams params)
     }
   });
 
-  params.set_output("Points", std::move(geometry_set));
+  params.set_output("Points"_ustr, std::move(geometry_set));
 }
 
 static void node_register()

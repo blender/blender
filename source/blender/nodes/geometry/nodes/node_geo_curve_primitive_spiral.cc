@@ -71,19 +71,19 @@ static Curves *create_spiral_curve(const float rotations,
 
 static void node_geo_exec(GeoNodeExecParams params)
 {
-  const float rotations = std::max(params.extract_input<float>("Rotations"), 0.0f);
+  const float rotations = std::max(params.extract_input<float>("Rotations"_ustr), 0.0f);
   if (rotations == 0.0f) {
     params.set_default_remaining_outputs();
     return;
   }
 
   Curves *curves = create_spiral_curve(rotations,
-                                       std::max(params.extract_input<int>("Resolution"), 1),
-                                       params.extract_input<float>("Start Radius"),
-                                       params.extract_input<float>("End Radius"),
-                                       params.extract_input<float>("Height"),
-                                       params.extract_input<bool>("Reverse"));
-  params.set_output("Curve", GeometrySet::from_curves(curves));
+                                       std::max(params.extract_input<int>("Resolution"_ustr), 1),
+                                       params.extract_input<float>("Start Radius"_ustr),
+                                       params.extract_input<float>("End Radius"_ustr),
+                                       params.extract_input<float>("Height"_ustr),
+                                       params.extract_input<bool>("Reverse"_ustr));
+  params.set_output("Curve"_ustr, GeometrySet::from_curves(curves));
 }
 
 static void node_register()

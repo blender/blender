@@ -193,8 +193,8 @@ static void node_geo_exec(GeoNodeExecParams params)
   const NodeGeometryMeshCircle &storage = node_storage(params.node());
   const GeometryNodeMeshCircleFillType fill = GeometryNodeMeshCircleFillType(storage.fill_type);
 
-  const float radius = params.extract_input<float>("Radius");
-  const int verts_num = params.extract_input<int>("Vertices");
+  const float radius = params.extract_input<float>("Radius"_ustr);
+  const int verts_num = params.extract_input<int>("Vertices"_ustr);
   if (verts_num < 3) {
     params.error_message_add(NodeWarningType::Info, TIP_("Vertices must be at least 3"));
     params.set_default_remaining_outputs();
@@ -203,7 +203,7 @@ static void node_geo_exec(GeoNodeExecParams params)
 
   Mesh *mesh = create_circle_mesh(radius, verts_num, fill);
 
-  params.set_output("Mesh", GeometrySet::from_mesh(mesh));
+  params.set_output("Mesh"_ustr, GeometrySet::from_mesh(mesh));
 }
 
 static void node_rna(StructRNA *srna)

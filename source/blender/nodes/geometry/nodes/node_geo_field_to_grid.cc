@@ -279,7 +279,7 @@ static void node_geo_exec(GeoNodeExecParams params)
 #ifdef WITH_OPENVDB
   const GeometryNodeFieldToGrid &storage = node_storage(params.node());
   const Span<GeometryNodeFieldToGridItem> items(storage.items, storage.items_num);
-  bke::GVolumeGrid topology_grid = params.extract_input<bke::GVolumeGrid>("Topology");
+  bke::GVolumeGrid topology_grid = params.extract_input<bke::GVolumeGrid>("Topology"_ustr);
   if (!topology_grid) {
     params.error_message_add(NodeWarningType::Error, "The topology grid input is required");
     params.set_default_remaining_outputs();
@@ -292,7 +292,9 @@ static void node_geo_exec(GeoNodeExecParams params)
 
   Vector<int> required_items;
   for (const int i : items.index_range()) {
-    if (params.output_is_required(ItemsAccessor::output_socket_identifier_for_item(items[i]))) {
+    if (params.output_is_required(
+            UString(ItemsAccessor::output_socket_identifier_for_item(items[i]))))
+    {
       required_items.append(i);
     }
   }
@@ -301,7 +303,7 @@ static void node_geo_exec(GeoNodeExecParams params)
   for (const int i : required_items.index_range()) {
     const int item_i = required_items[i];
     const std::string identifier = ItemsAccessor::input_socket_identifier_for_item(items[item_i]);
-    fields[i] = params.extract_input<fn::GField>(identifier);
+    fields[i] = params.extract_input<fn::GField>(UString(identifier));
   }
 
   openvdb::MaskTree mask_tree;
@@ -336,7 +338,7 @@ static void node_geo_exec(GeoNodeExecParams params)
   for (const int i : required_items.index_range()) {
     const int item_i = required_items[i];
     const std::string identifier = ItemsAccessor::output_socket_identifier_for_item(items[item_i]);
-    params.set_output(identifier, bke::GVolumeGrid(std::move(output_grids[i])));
+    params.set_output(UString(identifier), bke::GVolumeGrid(std::move(output_grids[i])));
   }
 
 #else

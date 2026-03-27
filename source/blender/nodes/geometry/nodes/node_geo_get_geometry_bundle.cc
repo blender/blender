@@ -29,8 +29,8 @@ static void node_geo_exec(GeoNodeExecParams params)
     params.set_default_remaining_outputs();
     return;
   }
-  GeometrySet geometry_set = params.extract_input<GeometrySet>("Geometry");
-  const bool remove = params.extract_input<bool>("Remove");
+  GeometrySet geometry_set = params.extract_input<GeometrySet>("Geometry"_ustr);
+  const bool remove = params.extract_input<bool>("Remove"_ustr);
   BundlePtr bundle;
   if (remove) {
     bundle = std::move(geometry_set.bundle_ptr());
@@ -38,8 +38,8 @@ static void node_geo_exec(GeoNodeExecParams params)
   else {
     bundle = geometry_set.bundle_ptr();
   }
-  params.set_output("Geometry", std::move(geometry_set));
-  params.set_output("Bundle", std::move(bundle));
+  params.set_output("Geometry"_ustr, std::move(geometry_set));
+  params.set_output("Bundle"_ustr, std::move(bundle));
 }
 
 static void node_gather_link_searches(GatherLinkSearchOpParams &params)

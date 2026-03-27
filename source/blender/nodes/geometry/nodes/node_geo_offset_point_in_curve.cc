@@ -155,16 +155,16 @@ class OffsetValidFieldInput final : public bke::GeometryFieldInput {
 
 static void node_geo_exec(GeoNodeExecParams params)
 {
-  Field<int> index = params.extract_input<Field<int>>("Point Index");
-  Field<int> offset = params.extract_input<Field<int>>("Offset");
+  Field<int> index = params.extract_input<Field<int>>("Point Index"_ustr);
+  Field<int> offset = params.extract_input<Field<int>>("Offset"_ustr);
 
-  if (params.output_is_required("Point Index")) {
+  if (params.output_is_required("Point Index"_ustr)) {
     Field<int> curve_point_field{std::make_shared<ControlPointNeighborFieldInput>(index, offset)};
-    params.set_output("Point Index", std::move(curve_point_field));
+    params.set_output("Point Index"_ustr, std::move(curve_point_field));
   }
-  if (params.output_is_required("Is Valid Offset")) {
+  if (params.output_is_required("Is Valid Offset"_ustr)) {
     Field<bool> valid_field{std::make_shared<OffsetValidFieldInput>(index, offset)};
-    params.set_output("Is Valid Offset", std::move(valid_field));
+    params.set_output("Is Valid Offset"_ustr, std::move(valid_field));
   }
 }
 

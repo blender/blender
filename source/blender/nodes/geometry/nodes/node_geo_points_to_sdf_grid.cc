@@ -90,11 +90,11 @@ static bke::VolumeGrid<float> points_to_grid(const GeometrySet &geometry_set,
 static void node_geo_exec(GeoNodeExecParams params)
 {
 #ifdef WITH_OPENVDB
-  bke::VolumeGrid<float> grid = points_to_grid(params.extract_input<GeometrySet>("Points"),
-                                               params.extract_input<Field<float>>("Radius"),
-                                               params.extract_input<float>("Voxel Size"));
+  bke::VolumeGrid<float> grid = points_to_grid(params.extract_input<GeometrySet>("Points"_ustr),
+                                               params.extract_input<Field<float>>("Radius"_ustr),
+                                               params.extract_input<float>("Voxel Size"_ustr));
   if (grid) {
-    params.set_output("SDF Grid", std::move(grid));
+    params.set_output("SDF Grid"_ustr, std::move(grid));
   }
 
   params.set_default_remaining_outputs();

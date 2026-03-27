@@ -77,13 +77,13 @@ static void node_gather_link_searches(GatherLinkSearchOpParams &params)
 
 static void node_geo_exec(GeoNodeExecParams params)
 {
-  GeometrySet geometry = params.extract_input<GeometrySet>("Geometry");
+  GeometrySet geometry = params.extract_input<GeometrySet>("Geometry"_ustr);
   const NodeGeometrySampleIndex &storage = node_storage(params.node());
   const AttrDomain domain = AttrDomain(storage.domain);
   const bool use_clamp = bool(storage.clamp);
 
-  GField value_field = params.extract_input<GField>("Value");
-  SocketValueVariant index_value_variant = params.extract_input<SocketValueVariant>("Index");
+  GField value_field = params.extract_input<GField>("Value"_ustr);
+  SocketValueVariant index_value_variant = params.extract_input<SocketValueVariant>("Index"_ustr);
   const CPPType &cpp_type = value_field.cpp_type();
 
   const GeometryComponent *component = bke::SampleIndexFunction::find_source_component(geometry,
@@ -115,7 +115,7 @@ static void node_geo_exec(GeoNodeExecParams params)
     else {
       cpp_type.copy_construct(cpp_type.default_value(), buffer);
     }
-    params.set_output("Value", std::move(output_value));
+    params.set_output("Value"_ustr, std::move(output_value));
     return;
   }
 
@@ -157,7 +157,7 @@ static void node_geo_exec(GeoNodeExecParams params)
     return;
   }
 
-  params.set_output("Value", std::move(output_value));
+  params.set_output("Value"_ustr, std::move(output_value));
 }
 
 static void node_register()

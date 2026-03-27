@@ -71,7 +71,7 @@ static Curves *edge_paths_to_curves_convert(const Mesh &mesh,
 
 static void node_geo_exec(GeoNodeExecParams params)
 {
-  GeometrySet geometry_set = params.extract_input<GeometrySet>("Mesh");
+  GeometrySet geometry_set = params.extract_input<GeometrySet>("Mesh"_ustr);
 
   geometry::foreach_real_geometry(geometry_set, [&](GeometrySet &geometry_set) {
     const Mesh *mesh = geometry_set.get_mesh();
@@ -82,8 +82,8 @@ static void node_geo_exec(GeoNodeExecParams params)
 
     const bke::MeshFieldContext context{*mesh, AttrDomain::Point};
     fn::FieldEvaluator evaluator{context, mesh->verts_num};
-    evaluator.add(params.get_input<Field<int>>("Next Vertex Index"));
-    evaluator.add(params.get_input<Field<bool>>("Start Vertices"));
+    evaluator.add(params.get_input<Field<int>>("Next Vertex Index"_ustr));
+    evaluator.add(params.get_input<Field<bool>>("Start Vertices"_ustr));
     evaluator.evaluate();
     const VArraySpan<int> next_vert = evaluator.get_evaluated<int>(0);
     IndexMask start_verts = evaluator.get_evaluated_as_mask(1);
@@ -94,11 +94,11 @@ static void node_geo_exec(GeoNodeExecParams params)
     }
 
     geometry_set.replace_curves(edge_paths_to_curves_convert(
-        *mesh, start_verts, next_vert, params.get_attribute_filter("Curves")));
+        *mesh, start_verts, next_vert, params.get_attribute_filter("Curves"_ustr)));
     geometry_set.keep_only({GeometryComponent::Type::Curve, GeometryComponent::Type::Edit});
   });
 
-  params.set_output("Curves", std::move(geometry_set));
+  params.set_output("Curves"_ustr, std::move(geometry_set));
 }
 
 static void node_register()

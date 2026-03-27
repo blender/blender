@@ -177,8 +177,8 @@ static void node_geo_exec(GeoNodeExecParams params)
     return;
   }
   const eObjectMode mode = params.user_data()->call_data->operator_data->mode;
-  params.set_output("Selection", get_selection_field(mode, bke::AttrType::Bool));
-  params.set_output("Float", get_selection_field(mode, bke::AttrType::Float));
+  params.set_output("Selection"_ustr, get_selection_field(mode, bke::AttrType::Bool));
+  params.set_output("Float"_ustr, get_selection_field(mode, bke::AttrType::Float));
 }
 
 static void node_register()

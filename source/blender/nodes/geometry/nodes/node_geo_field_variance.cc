@@ -273,17 +273,17 @@ static void node_geo_exec(GeoNodeExecParams params)
 {
   const AttrDomain source_domain = AttrDomain(params.node().custom2);
 
-  const Field<int> group_index_field = params.extract_input<Field<int>>("Group Index");
-  const GField input_field = params.extract_input<GField>("Value");
-  if (params.output_is_required("Standard Deviation")) {
+  const Field<int> group_index_field = params.extract_input<Field<int>>("Group Index"_ustr);
+  const GField input_field = params.extract_input<GField>("Value"_ustr);
+  if (params.output_is_required("Standard Deviation"_ustr)) {
     params.set_output<GField>(
-        "Standard Deviation",
+        "Standard Deviation"_ustr,
         GField{std::make_shared<FieldVarianceInput>(
             source_domain, input_field, group_index_field, Operation::StdDev)});
   }
-  if (params.output_is_required("Variance")) {
+  if (params.output_is_required("Variance"_ustr)) {
     params.set_output<GField>(
-        "Variance",
+        "Variance"_ustr,
         GField{std::make_shared<FieldVarianceInput>(
             source_domain, input_field, group_index_field, Operation::Variance)});
   }

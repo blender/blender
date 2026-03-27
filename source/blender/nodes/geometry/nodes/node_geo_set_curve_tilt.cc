@@ -56,9 +56,9 @@ static void set_grease_pencil_tilt(GreasePencil &grease_pencil,
 
 static void node_geo_exec(GeoNodeExecParams params)
 {
-  GeometrySet geometry_set = params.extract_input<GeometrySet>("Curve");
-  const Field<bool> selection = params.extract_input<Field<bool>>("Selection");
-  const Field<float> tilt = params.extract_input<Field<float>>("Tilt");
+  GeometrySet geometry_set = params.extract_input<GeometrySet>("Curve"_ustr);
+  const Field<bool> selection = params.extract_input<Field<bool>>("Selection"_ustr);
+  const Field<float> tilt = params.extract_input<Field<float>>("Tilt"_ustr);
 
   geometry::foreach_real_geometry(geometry_set, [&](GeometrySet &geometry_set) {
     if (Curves *curves_id = geometry_set.get_curves_for_write()) {
@@ -71,7 +71,7 @@ static void node_geo_exec(GeoNodeExecParams params)
     }
   });
 
-  params.set_output("Curve", std::move(geometry_set));
+  params.set_output("Curve"_ustr, std::move(geometry_set));
 }
 
 static void node_register()

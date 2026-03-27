@@ -102,16 +102,16 @@ static void node_gather_link_search_ops(GatherLinkSearchOpParams &params)
 static void node_geo_exec(GeoNodeExecParams params)
 {
 #ifdef WITH_OPENVDB
-  bke::GVolumeGrid grid = params.extract_input<bke::GVolumeGrid>("Grid");
+  bke::GVolumeGrid grid = params.extract_input<bke::GVolumeGrid>("Grid"_ustr);
   if (!grid) {
     params.set_default_remaining_outputs();
     return;
   }
 
-  const int width = params.extract_input<int>("Width");
-  const int iterations = params.extract_input<int>("Iterations");
+  const int width = params.extract_input<int>("Width"_ustr);
+  const int iterations = params.extract_input<int>("Iterations"_ustr);
   if (width <= 0 || iterations <= 0) {
-    params.set_output("Grid", std::move(grid));
+    params.set_output("Grid"_ustr, std::move(grid));
     return;
   }
 
@@ -123,7 +123,7 @@ static void node_geo_exec(GeoNodeExecParams params)
     filter.median(width, iterations);
   });
 
-  params.set_output("Grid", std::move(grid));
+  params.set_output("Grid"_ustr, std::move(grid));
 #else
   node_geo_exec_with_missing_openvdb(params);
 #endif

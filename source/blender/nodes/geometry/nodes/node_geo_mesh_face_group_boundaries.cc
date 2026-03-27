@@ -117,9 +117,9 @@ class BoundaryFieldInput final : public bke::MeshFieldInput {
 
 static void node_geo_exec(GeoNodeExecParams params)
 {
-  const Field<int> face_set_field = params.extract_input<Field<int>>("Face Set");
+  const Field<int> face_set_field = params.extract_input<Field<int>>("Face Set"_ustr);
   Field<bool> face_set_boundaries{std::make_shared<BoundaryFieldInput>(face_set_field)};
-  params.set_output("Boundary Edges", std::move(face_set_boundaries));
+  params.set_output("Boundary Edges"_ustr, std::move(face_set_boundaries));
 }
 
 static void node_register()

@@ -42,31 +42,31 @@ static void node_declare(NodeDeclarationBuilder &b)
 static void node_geo_exec(GeoNodeExecParams params)
 {
 #ifdef WITH_OPENVDB
-  if (params.output_is_required("X")) {
-    params.set_output("X",
+  if (params.output_is_required("X"_ustr)) {
+    params.set_output("X"_ustr,
                       fn::GField(std::make_shared<bke::VoxelCoordinateFieldInput>(math::Axis::X)));
   }
-  if (params.output_is_required("Y")) {
-    params.set_output("Y",
+  if (params.output_is_required("Y"_ustr)) {
+    params.set_output("Y"_ustr,
                       fn::GField(std::make_shared<bke::VoxelCoordinateFieldInput>(math::Axis::Y)));
   }
-  if (params.output_is_required("Z")) {
-    params.set_output("Z",
+  if (params.output_is_required("Z"_ustr)) {
+    params.set_output("Z"_ustr,
                       fn::GField(std::make_shared<bke::VoxelCoordinateFieldInput>(math::Axis::Z)));
   }
-  if (params.output_is_required("Is Tile")) {
-    params.set_output("Is Tile", fn::GField(std::make_shared<bke::IsTileFieldInput>()));
+  if (params.output_is_required("Is Tile"_ustr)) {
+    params.set_output("Is Tile"_ustr, fn::GField(std::make_shared<bke::IsTileFieldInput>()));
   }
-  if (params.output_is_required("Extent X")) {
-    params.set_output("Extent X",
+  if (params.output_is_required("Extent X"_ustr)) {
+    params.set_output("Extent X"_ustr,
                       fn::GField(std::make_shared<bke::VoxelExtentFieldInput>(math::Axis::X)));
   }
-  if (params.output_is_required("Extent Y")) {
-    params.set_output("Extent Y",
+  if (params.output_is_required("Extent Y"_ustr)) {
+    params.set_output("Extent Y"_ustr,
                       fn::GField(std::make_shared<bke::VoxelExtentFieldInput>(math::Axis::Y)));
   }
-  if (params.output_is_required("Extent Z")) {
-    params.set_output("Extent Z",
+  if (params.output_is_required("Extent Z"_ustr)) {
+    params.set_output("Extent Z"_ustr,
                       fn::GField(std::make_shared<bke::VoxelExtentFieldInput>(math::Axis::Z)));
   }
 #else

@@ -56,9 +56,9 @@ static void set_grease_pencil_cyclic(GreasePencil &grease_pencil,
 
 static void node_geo_exec(GeoNodeExecParams params)
 {
-  GeometrySet geometry_set = params.extract_input<GeometrySet>("Geometry");
-  const Field<bool> selection = params.extract_input<Field<bool>>("Selection");
-  const Field<bool> cyclic = params.extract_input<Field<bool>>("Cyclic");
+  GeometrySet geometry_set = params.extract_input<GeometrySet>("Geometry"_ustr);
+  const Field<bool> selection = params.extract_input<Field<bool>>("Selection"_ustr);
+  const Field<bool> cyclic = params.extract_input<Field<bool>>("Cyclic"_ustr);
 
   geometry::foreach_real_geometry(geometry_set, [&](GeometrySet &geometry_set) {
     if (Curves *curves_id = geometry_set.get_curves_for_write()) {
@@ -71,7 +71,7 @@ static void node_geo_exec(GeoNodeExecParams params)
     }
   });
 
-  params.set_output("Geometry", std::move(geometry_set));
+  params.set_output("Geometry"_ustr, std::move(geometry_set));
 }
 
 static void node_register()

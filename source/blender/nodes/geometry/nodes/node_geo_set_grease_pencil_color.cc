@@ -56,10 +56,11 @@ static void node_geo_exec(GeoNodeExecParams params)
   const AttrDomain domain = Mode(node.custom1) == Mode::Stroke ? AttrDomain::Point :
                                                                  AttrDomain::Curve;
 
-  GeometrySet geometry_set = params.extract_input<GeometrySet>("Grease Pencil");
-  const Field<bool> selection = params.extract_input<Field<bool>>("Selection");
-  const Field<ColorGeometry4f> color_field = params.extract_input<Field<ColorGeometry4f>>("Color");
-  const Field<float> opacity_field = params.extract_input<Field<float>>("Opacity");
+  GeometrySet geometry_set = params.extract_input<GeometrySet>("Grease Pencil"_ustr);
+  const Field<bool> selection = params.extract_input<Field<bool>>("Selection"_ustr);
+  const Field<ColorGeometry4f> color_field = params.extract_input<Field<ColorGeometry4f>>(
+      "Color"_ustr);
+  const Field<float> opacity_field = params.extract_input<Field<float>>("Opacity"_ustr);
 
   const StringRef color_attr_name = domain == AttrDomain::Point ? "vertex_color" : "fill_color";
   const StringRef opacity_attr_name = domain == AttrDomain::Point ? "opacity" : "fill_opacity";
@@ -94,7 +95,7 @@ static void node_geo_exec(GeoNodeExecParams params)
     }
   });
 
-  params.set_output("Grease Pencil", std::move(geometry_set));
+  params.set_output("Grease Pencil"_ustr, std::move(geometry_set));
 }
 
 static void node_rna(StructRNA *srna)

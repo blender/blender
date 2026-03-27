@@ -173,20 +173,20 @@ static void point_scatter_density_grid(const openvdb::FloatGrid &grid,
 static void node_geo_exec(GeoNodeExecParams params)
 {
 #ifdef WITH_OPENVDB
-  GeometrySet geometry_set = params.extract_input<GeometrySet>("Volume");
-  const auto mode = params.extract_input<GeometryNodeDistributePointsInVolumeMode>("Mode");
+  GeometrySet geometry_set = params.extract_input<GeometrySet>("Volume"_ustr);
+  const auto mode = params.extract_input<GeometryNodeDistributePointsInVolumeMode>("Mode"_ustr);
 
   float density;
   int seed;
   float3 spacing{0, 0, 0};
   float threshold;
   if (mode == GEO_NODE_DISTRIBUTE_POINTS_IN_VOLUME_DENSITY_RANDOM) {
-    density = params.extract_input<float>("Density");
-    seed = params.extract_input<int>("Seed");
+    density = params.extract_input<float>("Density"_ustr);
+    seed = params.extract_input<int>("Seed"_ustr);
   }
   else if (mode == GEO_NODE_DISTRIBUTE_POINTS_IN_VOLUME_DENSITY_GRID) {
-    spacing = params.extract_input<float3>("Spacing");
-    threshold = params.extract_input<float>("Threshold");
+    spacing = params.extract_input<float3>("Spacing"_ustr);
+    threshold = params.extract_input<float>("Threshold"_ustr);
   }
 
   geometry::foreach_real_geometry(geometry_set, [&](GeometrySet &geometry_set) {
@@ -234,7 +234,7 @@ static void node_geo_exec(GeoNodeExecParams params)
     geometry_set.keep_only({GeometryComponent::Type::PointCloud, GeometryComponent::Type::Edit});
   });
 
-  params.set_output("Points", std::move(geometry_set));
+  params.set_output("Points"_ustr, std::move(geometry_set));
 
 #else
   node_geo_exec_with_missing_openvdb(params);

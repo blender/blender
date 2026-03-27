@@ -22,7 +22,7 @@ static void node_declare(NodeDeclarationBuilder &b)
 static void node_geo_exec(GeoNodeExecParams params)
 {
   Object *object = reinterpret_cast<Object *>(params.node().id);
-  params.set_output("Object", object);
+  params.set_output("Object"_ustr, object);
 }
 
 using namespace blender::compositor;

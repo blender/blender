@@ -33,7 +33,7 @@ static void node_declare(NodeDeclarationBuilder &b)
 static void node_geo_exec(GeoNodeExecParams params)
 {
 #ifdef WITH_OPENVDB
-  const GeometrySet geometry_set = params.extract_input<GeometrySet>("Mesh");
+  const GeometrySet geometry_set = params.extract_input<GeometrySet>("Mesh"_ustr);
   const Mesh *mesh = geometry_set.get_mesh();
   if (!mesh || mesh->faces_num == 0) {
     params.set_default_remaining_outputs();
@@ -43,13 +43,13 @@ static void node_geo_exec(GeoNodeExecParams params)
       mesh->vert_positions(),
       mesh->corner_verts(),
       mesh->corner_tris(),
-      params.extract_input<float>("Voxel Size"),
-      std::max(1, params.extract_input<int>("Band Width")));
+      params.extract_input<float>("Voxel Size"_ustr),
+      std::max(1, params.extract_input<int>("Band Width"_ustr)));
   if (!grid) {
     params.set_default_remaining_outputs();
     return;
   }
-  params.set_output("SDF Grid", std::move(grid));
+  params.set_output("SDF Grid"_ustr, std::move(grid));
 #else
   node_geo_exec_with_missing_openvdb(params);
 #endif

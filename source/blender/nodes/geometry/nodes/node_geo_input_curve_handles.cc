@@ -107,12 +107,12 @@ class HandlePositionFieldInput final : public bke::GeometryFieldInput {
 
 static void node_geo_exec(GeoNodeExecParams params)
 {
-  Field<bool> relative = params.extract_input<Field<bool>>("Relative");
+  Field<bool> relative = params.extract_input<Field<bool>>("Relative"_ustr);
   Field<float3> left_field{std::make_shared<HandlePositionFieldInput>(relative, true)};
   Field<float3> right_field{std::make_shared<HandlePositionFieldInput>(relative, false)};
 
-  params.set_output("Left", std::move(left_field));
-  params.set_output("Right", std::move(right_field));
+  params.set_output("Left"_ustr, std::move(left_field));
+  params.set_output("Right"_ustr, std::move(right_field));
 }
 
 static void node_register()

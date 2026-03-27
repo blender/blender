@@ -136,21 +136,21 @@ static void node_geo_exec(GeoNodeExecParams params)
       storage.count_mode);
 
   Mesh *mesh = nullptr;
-  const float3 start = params.extract_input<float3>("Start Location");
+  const float3 start = params.extract_input<float3>("Start Location"_ustr);
   if (mode == GEO_NODE_MESH_LINE_MODE_END_POINTS) {
     /* The label switches to "End Location", but the same socket is used. */
-    const float3 end = params.extract_input<float3>("Offset");
+    const float3 end = params.extract_input<float3>("Offset"_ustr);
     const float3 total_delta = end - start;
 
     if (count_mode == GEO_NODE_MESH_LINE_COUNT_RESOLUTION) {
       /* Don't allow asymptotic count increase for low resolution values. */
-      const float resolution = std::max(params.extract_input<float>("Resolution"), 0.0001f);
+      const float resolution = std::max(params.extract_input<float>("Resolution"_ustr), 0.0001f);
       const int count = math::length(total_delta) / resolution + 1;
       const float3 delta = math::normalize(total_delta) * resolution;
       mesh = geometry::create_line_mesh(start, delta, count);
     }
     else if (count_mode == GEO_NODE_MESH_LINE_COUNT_TOTAL) {
-      const int count = params.extract_input<int>("Count");
+      const int count = params.extract_input<int>("Count"_ustr);
       if (count == 1) {
         mesh = geometry::create_line_mesh(start, float3(0), count);
       }
@@ -161,8 +161,8 @@ static void node_geo_exec(GeoNodeExecParams params)
     }
   }
   else if (mode == GEO_NODE_MESH_LINE_MODE_OFFSET) {
-    const float3 delta = params.extract_input<float3>("Offset");
-    const int count = params.extract_input<int>("Count");
+    const float3 delta = params.extract_input<float3>("Offset"_ustr);
+    const int count = params.extract_input<int>("Count"_ustr);
     mesh = geometry::create_line_mesh(start, delta, count);
   }
 
@@ -170,7 +170,7 @@ static void node_geo_exec(GeoNodeExecParams params)
     BKE_id_material_eval_ensure_default_slot(reinterpret_cast<ID *>(mesh));
   }
 
-  params.set_output("Mesh", GeometrySet::from_mesh(mesh));
+  params.set_output("Mesh"_ustr, GeometrySet::from_mesh(mesh));
 }
 
 static void node_rna(StructRNA *srna)

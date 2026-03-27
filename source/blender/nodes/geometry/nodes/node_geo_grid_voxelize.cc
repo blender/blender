@@ -70,7 +70,7 @@ static void node_gather_link_search_ops(GatherLinkSearchOpParams &params)
 static void node_geo_exec(GeoNodeExecParams params)
 {
 #ifdef WITH_OPENVDB
-  bke::GVolumeGrid grid = params.extract_input<bke::GVolumeGrid>("Grid");
+  bke::GVolumeGrid grid = params.extract_input<bke::GVolumeGrid>("Grid"_ustr);
   if (!grid) {
     params.set_default_remaining_outputs();
     return;
@@ -79,7 +79,7 @@ static void node_geo_exec(GeoNodeExecParams params)
   openvdb::GridBase &vdb_grid = grid.get_for_write().grid_for_write(tree_token);
   bke::volume_grid::to_typed_grid(vdb_grid,
                                   [&](auto &grid) { grid.tree().voxelizeActiveTiles(); });
-  params.set_output("Grid", std::move(grid));
+  params.set_output("Grid"_ustr, std::move(grid));
 #else
   node_geo_exec_with_missing_openvdb(params);
 #endif

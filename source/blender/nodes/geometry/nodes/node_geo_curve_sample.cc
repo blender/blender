@@ -462,7 +462,7 @@ static Array<float> curve_accumulated_lengths(const bke::CurvesGeometry &curves)
 
 static void node_geo_exec(GeoNodeExecParams params)
 {
-  GeometrySet geometry_set = params.extract_input<GeometrySet>("Curves");
+  GeometrySet geometry_set = params.extract_input<GeometrySet>("Curves"_ustr);
   if (!geometry_set.has_curves()) {
     params.set_default_remaining_outputs();
     return;
@@ -480,10 +480,11 @@ static void node_geo_exec(GeoNodeExecParams params)
   const NodeGeometryCurveSample &storage = node_storage(params.node());
   const GeometryNodeCurveSampleMode mode = GeometryNodeCurveSampleMode(storage.mode);
 
-  const StringRef length_input_name = mode == GEO_NODE_CURVE_SAMPLE_FACTOR ? "Factor" : "Length";
+  const UString length_input_name = mode == GEO_NODE_CURVE_SAMPLE_FACTOR ? "Factor"_ustr :
+                                                                           "Length"_ustr;
   auto sample_length = params.extract_input<bke::SocketValueVariant>(length_input_name);
 
-  GField src_values_field = params.extract_input<GField>("Value");
+  GField src_values_field = params.extract_input<GField>("Value"_ustr);
 
   std::string error_message;
 
@@ -537,7 +538,7 @@ static void node_geo_exec(GeoNodeExecParams params)
       }
     }
     else {
-      auto curve_index = params.extract_input<bke::SocketValueVariant>("Curve Index");
+      auto curve_index = params.extract_input<bke::SocketValueVariant>("Curve Index"_ustr);
       if (!execute_multi_function_on_value_variant(
               std::make_shared<SampleCurveFunction>(
                   std::move(geometry_set), mode, std::move(src_values_field)),
@@ -553,10 +554,10 @@ static void node_geo_exec(GeoNodeExecParams params)
     }
   }
 
-  params.set_output("Position", std::move(position));
-  params.set_output("Tangent", std::move(tangent));
-  params.set_output("Normal", std::move(normal));
-  params.set_output("Value", std::move(value));
+  params.set_output("Position"_ustr, std::move(position));
+  params.set_output("Tangent"_ustr, std::move(tangent));
+  params.set_output("Normal"_ustr, std::move(normal));
+  params.set_output("Value"_ustr, std::move(value));
 }
 
 static void node_register()

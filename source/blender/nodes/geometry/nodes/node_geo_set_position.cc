@@ -121,12 +121,12 @@ static void set_instances_position(bke::Instances &instances,
 
 static void node_geo_exec(GeoNodeExecParams params)
 {
-  GeometrySet geometry = params.extract_input<GeometrySet>("Geometry");
-  const Field<bool> selection_field = params.extract_input<Field<bool>>("Selection");
+  GeometrySet geometry = params.extract_input<GeometrySet>("Geometry"_ustr);
+  const Field<bool> selection_field = params.extract_input<Field<bool>>("Selection"_ustr);
   const fn::Field<float3> position_field(
       fn::FieldOperation::from(get_add_fn(),
-                               {params.extract_input<Field<float3>>("Position"),
-                                params.extract_input<Field<float3>>("Offset")}));
+                               {params.extract_input<Field<float3>>("Position"_ustr),
+                                params.extract_input<Field<float3>>("Offset"_ustr)}));
 
   if (Mesh *mesh = geometry.get_mesh_for_write()) {
     set_points_position(mesh->attributes_for_write(),
@@ -154,7 +154,7 @@ static void node_geo_exec(GeoNodeExecParams params)
     set_instances_position(*instances, selection_field, position_field);
   }
 
-  params.set_output("Geometry", std::move(geometry));
+  params.set_output("Geometry"_ustr, std::move(geometry));
 }
 
 static void node_register()

@@ -35,7 +35,7 @@ static void node_init(bNodeTree * /*ntree*/, bNode *node)
 static void node_geo_exec(GeoNodeExecParams params)
 {
   VFont *font = id_cast<VFont *>(params.node().id);
-  params.set_output("Font", font);
+  params.set_output("Font"_ustr, font);
 }
 
 static void node_register()

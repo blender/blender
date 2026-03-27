@@ -285,9 +285,9 @@ static void node_geo_exec(GeoNodeExecParams params)
   Field<float> parameter_field{std::make_shared<CurveParameterFieldInput>()};
   Field<float> length_field{std::make_shared<CurveLengthParameterFieldInput>()};
   Field<int> index_on_spline_field{std::make_shared<IndexOnSplineFieldInput>()};
-  params.set_output("Factor", std::move(parameter_field));
-  params.set_output("Length", std::move(length_field));
-  params.set_output("Index", std::move(index_on_spline_field));
+  params.set_output("Factor"_ustr, std::move(parameter_field));
+  params.set_output("Length"_ustr, std::move(length_field));
+  params.set_output("Index"_ustr, std::move(index_on_spline_field));
 }
 
 static void node_register()

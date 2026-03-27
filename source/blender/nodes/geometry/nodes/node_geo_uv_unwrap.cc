@@ -216,19 +216,19 @@ class UnwrapFieldInput final : public bke::MeshFieldInput {
 
 static void node_geo_exec(GeoNodeExecParams params)
 {
-  const auto method = params.get_input<GeometryNodeUVUnwrapMethod>("Method");
-  const Field<bool> selection_field = params.extract_input<Field<bool>>("Selection");
-  const Field<bool> seam_field = params.extract_input<Field<bool>>("Seam");
-  const bool fill_holes = params.extract_input<bool>("Fill Holes");
-  const float margin = params.extract_input<float>("Margin");
+  const auto method = params.get_input<GeometryNodeUVUnwrapMethod>("Method"_ustr);
+  const Field<bool> selection_field = params.extract_input<Field<bool>>("Selection"_ustr);
+  const Field<bool> seam_field = params.extract_input<Field<bool>>("Seam"_ustr);
+  const bool fill_holes = params.extract_input<bool>("Fill Holes"_ustr);
+  const float margin = params.extract_input<float>("Margin"_ustr);
   int iterations = 0;
   bool no_flip = false;
   if ((GeometryNodeUVUnwrapMethod)method == GEO_NODE_UV_UNWRAP_METHOD_MINIMUM_STRETCH) {
-    iterations = params.extract_input<int>("Iterations");
-    no_flip = params.extract_input<bool>("No Flip");
+    iterations = params.extract_input<int>("Iterations"_ustr);
+    no_flip = params.extract_input<bool>("No Flip"_ustr);
   }
   params.set_output(
-      "UV",
+      "UV"_ustr,
       Field<float3>(std::make_shared<UnwrapFieldInput>(
           selection_field, seam_field, fill_holes, margin, method, iterations, no_flip)));
 }

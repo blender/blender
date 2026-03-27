@@ -34,11 +34,11 @@ static void node_geo_exec(GeoNodeExecParams params)
   if (!check_tool_context_and_error(params)) {
     return;
   }
-  const Field<bool> selection = params.extract_input<Field<bool>>("Selection");
-  const Field<int> face_set = params.extract_input<Field<int>>("Face Set");
+  const Field<bool> selection = params.extract_input<Field<bool>>("Selection"_ustr);
+  const Field<int> face_set = params.extract_input<Field<int>>("Face Set"_ustr);
   const bool is_zero = is_constant_zero(face_set);
 
-  GeometrySet geometry = params.extract_input<GeometrySet>("Mesh");
+  GeometrySet geometry = params.extract_input<GeometrySet>("Mesh"_ustr);
   geometry::foreach_real_geometry(geometry, [&](GeometrySet &geometry) {
     if (Mesh *mesh = geometry.get_mesh_for_write()) {
       if (is_zero) {
@@ -53,7 +53,7 @@ static void node_geo_exec(GeoNodeExecParams params)
       }
     }
   });
-  params.set_output("Mesh", std::move(geometry));
+  params.set_output("Mesh"_ustr, std::move(geometry));
 }
 
 static void node_register()

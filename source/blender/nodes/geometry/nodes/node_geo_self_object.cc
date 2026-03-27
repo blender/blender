@@ -13,7 +13,7 @@ static void node_declare(NodeDeclarationBuilder &b)
 
 static void node_geo_exec(GeoNodeExecParams params)
 {
-  params.set_output("Self Object", const_cast<Object *>(params.self_object()));
+  params.set_output("Self Object"_ustr, const_cast<Object *>(params.self_object()));
 }
 
 static void node_register()

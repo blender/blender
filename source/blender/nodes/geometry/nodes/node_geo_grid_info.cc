@@ -105,7 +105,7 @@ static void node_geo_exec(GeoNodeExecParams params)
 #ifdef WITH_OPENVDB
   const eNodeSocketDatatype data_type = eNodeSocketDatatype(params.node().custom1);
 
-  const auto grid = params.extract_input<bke::GVolumeGrid>("Grid");
+  const auto grid = params.extract_input<bke::GVolumeGrid>("Grid"_ustr);
   if (!grid) {
     params.set_default_remaining_outputs();
     return;
@@ -113,7 +113,7 @@ static void node_geo_exec(GeoNodeExecParams params)
 
   bke::VolumeTreeAccessToken tree_token;
   const std::shared_ptr<const openvdb::GridBase> vdb_grid = grid->grid_ptr(tree_token);
-  params.set_output("Transform", BKE_volume_transform_to_blender(vdb_grid->transform()));
+  params.set_output("Transform"_ustr, BKE_volume_transform_to_blender(vdb_grid->transform()));
 
   bke::attribute_math::to_static_type(
       *bke::socket_type_to_geo_nodes_base_cpp_type(data_type), [&]<typename ValueT>() {
@@ -124,7 +124,7 @@ static void node_geo_exec(GeoNodeExecParams params)
         if constexpr (!std::is_same_v<typename type_traits::BlenderType, void>) {
           const std::shared_ptr<const GridType> vdb_typed_grid = openvdb::GridBase::grid<GridType>(
               vdb_grid);
-          params.set_output("Background Value",
+          params.set_output("Background Value"_ustr,
                             type_traits::to_blender(vdb_typed_grid->background()));
         }
       });

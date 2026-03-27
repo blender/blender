@@ -54,11 +54,11 @@ static Curves *create_quadratic_bezier_curve(const float3 p1,
 static void node_geo_exec(GeoNodeExecParams params)
 {
   Curves *curves = create_quadratic_bezier_curve(
-      params.extract_input<float3>("Start"),
-      params.extract_input<float3>("Middle"),
-      params.extract_input<float3>("End"),
-      std::max(params.extract_input<int>("Resolution"), 3));
-  params.set_output("Curve", GeometrySet::from_curves(curves));
+      params.extract_input<float3>("Start"_ustr),
+      params.extract_input<float3>("Middle"_ustr),
+      params.extract_input<float3>("End"_ustr),
+      std::max(params.extract_input<int>("Resolution"_ustr), 3));
+  params.set_output("Curve"_ustr, GeometrySet::from_curves(curves));
 }
 
 static void node_register()

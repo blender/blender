@@ -54,7 +54,7 @@ static void node_geo_exec(GeoNodeExecParams params)
   const bool transform_space_relative = (storage.transform_space ==
                                          GEO_NODE_TRANSFORM_SPACE_RELATIVE);
 
-  Object *object = params.extract_input<Object *>("Object");
+  Object *object = params.extract_input<Object *>("Object"_ustr);
 
   const Object *self_object = params.self_object();
   if (object == nullptr) {
@@ -94,12 +94,12 @@ static void node_geo_exec(GeoNodeExecParams params)
   math::Quaternion rotation;
   math::to_loc_rot_scale_safe<true>(output_transform, location, rotation, scale);
 
-  params.set_output("Location", location);
-  params.set_output("Rotation", rotation);
-  params.set_output("Scale", scale);
-  params.set_output("Transform", output_transform);
+  params.set_output("Location"_ustr, location);
+  params.set_output("Rotation"_ustr, rotation);
+  params.set_output("Scale"_ustr, scale);
+  params.set_output("Transform"_ustr, output_transform);
 
-  if (!params.output_is_required("Geometry")) {
+  if (!params.output_is_required("Geometry"_ustr)) {
     return;
   }
   /* Compare by `orig_id` because objects may be copied into separate depsgraphs. */
@@ -137,7 +137,7 @@ static void node_geo_exec(GeoNodeExecParams params)
   }
 
   GeometrySet geometry_set;
-  if (params.extract_input<bool>("As Instance")) {
+  if (params.extract_input<bool>("As Instance"_ustr)) {
     auto instances = std::make_unique<bke::Instances>(1);
     instances->reference_handles_for_write().first() = instances->add_reference(*object);
     if (transform_space_relative) {
@@ -156,7 +156,7 @@ static void node_geo_exec(GeoNodeExecParams params)
   }
 
   geometry_set.name = object->id.name + 2;
-  params.set_output("Geometry", geometry_set);
+  params.set_output("Geometry"_ustr, geometry_set);
 }
 
 static void node_node_init(bNodeTree * /*tree*/, bNode *node)

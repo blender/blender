@@ -32,10 +32,10 @@ static void rotate_instances(GeoNodeExecParams &params, bke::Instances &instance
 
   const bke::InstancesFieldContext context{instances};
   fn::FieldEvaluator evaluator{context, instances.instances_num()};
-  evaluator.set_selection(params.extract_input<Field<bool>>("Selection"));
-  evaluator.add(params.extract_input<Field<math::Quaternion>>("Rotation"));
-  evaluator.add(params.extract_input<Field<float3>>("Pivot Point"));
-  evaluator.add(params.extract_input<Field<bool>>("Local Space"));
+  evaluator.set_selection(params.extract_input<Field<bool>>("Selection"_ustr));
+  evaluator.add(params.extract_input<Field<math::Quaternion>>("Rotation"_ustr));
+  evaluator.add(params.extract_input<Field<float3>>("Pivot Point"_ustr));
+  evaluator.add(params.extract_input<Field<bool>>("Local Space"_ustr));
   evaluator.evaluate();
 
   const IndexMask selection = evaluator.get_evaluated_selection_as_mask();
@@ -89,11 +89,11 @@ static void rotate_instances(GeoNodeExecParams &params, bke::Instances &instance
 
 static void node_geo_exec(GeoNodeExecParams params)
 {
-  GeometrySet geometry_set = params.extract_input<GeometrySet>("Instances");
+  GeometrySet geometry_set = params.extract_input<GeometrySet>("Instances"_ustr);
   if (bke::Instances *instances = geometry_set.get_instances_for_write()) {
     rotate_instances(params, *instances);
   }
-  params.set_output("Instances", std::move(geometry_set));
+  params.set_output("Instances"_ustr, std::move(geometry_set));
 }
 
 static void node_register()

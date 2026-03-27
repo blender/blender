@@ -200,20 +200,20 @@ class CurvePointCountInput final : public bke::CurvesFieldInput {
 
 static void node_geo_exec(GeoNodeExecParams params)
 {
-  const Field<int> curve_index = params.extract_input<Field<int>>("Curve Index");
-  if (params.output_is_required("Total")) {
-    params.set_output("Total",
+  const Field<int> curve_index = params.extract_input<Field<int>>("Curve Index"_ustr);
+  if (params.output_is_required("Total"_ustr)) {
+    params.set_output("Total"_ustr,
                       Field<int>(std::make_shared<bke::EvaluateAtIndexInput>(
                           curve_index,
                           Field<int>(std::make_shared<CurvePointCountInput>()),
                           AttrDomain::Curve)));
   }
-  if (params.output_is_required("Point Index")) {
-    params.set_output("Point Index",
+  if (params.output_is_required("Point Index"_ustr)) {
+    params.set_output("Point Index"_ustr,
                       Field<int>(std::make_shared<PointsOfCurveInput>(
                           curve_index,
-                          params.extract_input<Field<int>>("Sort Index"),
-                          params.extract_input<Field<float>>("Weights"))));
+                          params.extract_input<Field<int>>("Sort Index"_ustr),
+                          params.extract_input<Field<float>>("Weights"_ustr))));
   }
 }
 

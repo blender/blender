@@ -105,13 +105,13 @@ static void node_geo_exec(GeoNodeExecParams params)
       GeometryNodeCurvePrimitiveBezierSegmentMode(storage.mode);
 
   Curves *curves = create_bezier_segment_curve(
-      params.extract_input<float3>("Start"),
-      params.extract_input<float3>("Start Handle"),
-      params.extract_input<float3>("End"),
-      params.extract_input<float3>("End Handle"),
-      std::max(params.extract_input<int>("Resolution"), 1),
+      params.extract_input<float3>("Start"_ustr),
+      params.extract_input<float3>("Start Handle"_ustr),
+      params.extract_input<float3>("End"_ustr),
+      params.extract_input<float3>("End Handle"_ustr),
+      std::max(params.extract_input<int>("Resolution"_ustr), 1),
       mode);
-  params.set_output("Curve", GeometrySet::from_curves(curves));
+  params.set_output("Curve"_ustr, GeometrySet::from_curves(curves));
 }
 
 static void node_rna(StructRNA *srna)

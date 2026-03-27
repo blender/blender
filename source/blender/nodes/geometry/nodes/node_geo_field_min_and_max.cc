@@ -258,15 +258,15 @@ static void node_geo_exec(GeoNodeExecParams params)
 {
   const AttrDomain source_domain = AttrDomain(params.node().custom2);
 
-  const Field<int> group_index_field = params.extract_input<Field<int>>("Group Index");
-  const GField input_field = params.extract_input<GField>("Value");
-  if (params.output_is_required("Min")) {
-    params.set_output<GField>("Min",
+  const Field<int> group_index_field = params.extract_input<Field<int>>("Group Index"_ustr);
+  const GField input_field = params.extract_input<GField>("Value"_ustr);
+  if (params.output_is_required("Min"_ustr)) {
+    params.set_output<GField>("Min"_ustr,
                               GField{std::make_shared<FieldMinMaxInput>(
                                   source_domain, input_field, group_index_field, Operation::Min)});
   }
-  if (params.output_is_required("Max")) {
-    params.set_output<GField>("Max",
+  if (params.output_is_required("Max"_ustr)) {
+    params.set_output<GField>("Max"_ustr,
                               GField{std::make_shared<FieldMinMaxInput>(
                                   source_domain, input_field, group_index_field, Operation::Max)});
   }

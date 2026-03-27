@@ -125,7 +125,7 @@ static void node_operators()
 
 static void node_geo_exec(GeoNodeExecParams params)
 {
-  nodes::BundlePtr bundle = params.extract_input<nodes::BundlePtr>("Bundle");
+  nodes::BundlePtr bundle = params.extract_input<nodes::BundlePtr>("Bundle"_ustr);
   if (!bundle) {
     params.set_default_remaining_outputs();
     return;

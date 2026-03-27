@@ -53,7 +53,7 @@ static void node_geo_exec(GeoNodeExecParams params)
     return;
   }
 
-  const Object *camera_obj = params.extract_input<Object *>("Camera");
+  const Object *camera_obj = params.extract_input<Object *>("Camera"_ustr);
 
   if (!camera_obj || camera_obj->type != OB_CAMERA) {
     params.set_default_remaining_outputs();
@@ -70,15 +70,15 @@ static void node_geo_exec(GeoNodeExecParams params)
   const float4x4 projection_matrix(camera_params.winmat);
   float focus_distance = BKE_camera_object_dof_distance(camera_obj);
 
-  params.set_output("Projection Matrix", projection_matrix);
-  params.set_output("Focal Length", camera_params.lens);
-  params.set_output("Sensor", float3{camera_params.sensor_x, camera_params.sensor_y, 0.0f});
-  params.set_output("Shift", float3{camera_params.shiftx, camera_params.shifty, 0.0f});
-  params.set_output("Clip Start", camera_params.clip_start);
-  params.set_output("Clip End", camera_params.clip_end);
-  params.set_output("Focus Distance", focus_distance);
-  params.set_output("Is Orthographic", camera_params.is_ortho);
-  params.set_output("Orthographic Scale", camera_params.ortho_scale);
+  params.set_output("Projection Matrix"_ustr, projection_matrix);
+  params.set_output("Focal Length"_ustr, camera_params.lens);
+  params.set_output("Sensor"_ustr, float3{camera_params.sensor_x, camera_params.sensor_y, 0.0f});
+  params.set_output("Shift"_ustr, float3{camera_params.shiftx, camera_params.shifty, 0.0f});
+  params.set_output("Clip Start"_ustr, camera_params.clip_start);
+  params.set_output("Clip End"_ustr, camera_params.clip_end);
+  params.set_output("Focus Distance"_ustr, focus_distance);
+  params.set_output("Is Orthographic"_ustr, camera_params.is_ortho);
+  params.set_output("Orthographic Scale"_ustr, camera_params.ortho_scale);
 }
 
 using namespace blender::compositor;

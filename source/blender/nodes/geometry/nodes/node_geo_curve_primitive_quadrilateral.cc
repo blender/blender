@@ -234,42 +234,42 @@ static void node_geo_exec(GeoNodeExecParams params)
   switch (mode) {
     case GEO_NODE_CURVE_PRIMITIVE_QUAD_MODE_RECTANGLE:
       create_rectangle_curve(positions,
-                             std::max(params.extract_input<float>("Height"), 0.0f),
-                             std::max(params.extract_input<float>("Width"), 0.0f));
+                             std::max(params.extract_input<float>("Height"_ustr), 0.0f),
+                             std::max(params.extract_input<float>("Width"_ustr), 0.0f));
       break;
 
     case GEO_NODE_CURVE_PRIMITIVE_QUAD_MODE_PARALLELOGRAM:
       create_parallelogram_curve(positions,
-                                 std::max(params.extract_input<float>("Height"), 0.0f),
-                                 std::max(params.extract_input<float>("Width"), 0.0f),
-                                 params.extract_input<float>("Offset"));
+                                 std::max(params.extract_input<float>("Height"_ustr), 0.0f),
+                                 std::max(params.extract_input<float>("Width"_ustr), 0.0f),
+                                 params.extract_input<float>("Offset"_ustr));
       break;
     case GEO_NODE_CURVE_PRIMITIVE_QUAD_MODE_TRAPEZOID:
       create_trapezoid_curve(positions,
-                             std::max(params.extract_input<float>("Bottom Width"), 0.0f),
-                             std::max(params.extract_input<float>("Top Width"), 0.0f),
-                             params.extract_input<float>("Offset"),
-                             std::max(params.extract_input<float>("Height"), 0.0f));
+                             std::max(params.extract_input<float>("Bottom Width"_ustr), 0.0f),
+                             std::max(params.extract_input<float>("Top Width"_ustr), 0.0f),
+                             params.extract_input<float>("Offset"_ustr),
+                             std::max(params.extract_input<float>("Height"_ustr), 0.0f));
       break;
     case GEO_NODE_CURVE_PRIMITIVE_QUAD_MODE_KITE:
       create_kite_curve(positions,
-                        std::max(params.extract_input<float>("Width"), 0.0f),
-                        std::max(params.extract_input<float>("Bottom Height"), 0.0f),
-                        params.extract_input<float>("Top Height"));
+                        std::max(params.extract_input<float>("Width"_ustr), 0.0f),
+                        std::max(params.extract_input<float>("Bottom Height"_ustr), 0.0f),
+                        params.extract_input<float>("Top Height"_ustr));
       break;
     case GEO_NODE_CURVE_PRIMITIVE_QUAD_MODE_POINTS:
       create_points_curve(positions,
-                          params.extract_input<float3>("Point 1"),
-                          params.extract_input<float3>("Point 2"),
-                          params.extract_input<float3>("Point 3"),
-                          params.extract_input<float3>("Point 4"));
+                          params.extract_input<float3>("Point 1"_ustr),
+                          params.extract_input<float3>("Point 2"_ustr),
+                          params.extract_input<float3>("Point 3"_ustr),
+                          params.extract_input<float3>("Point 4"_ustr));
       break;
     default:
       params.set_default_remaining_outputs();
       return;
   }
 
-  params.set_output("Curve", GeometrySet::from_curves(curves_id));
+  params.set_output("Curve"_ustr, GeometrySet::from_curves(curves_id));
 }
 
 static void node_rna(StructRNA *srna)

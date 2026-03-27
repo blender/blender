@@ -76,20 +76,20 @@ static void node_init(bNodeTree * /*tree*/, bNode *node)
 
 static Volume *create_volume_from_mesh(const Mesh &mesh, GeoNodeExecParams &params)
 {
-  const float density = params.get_input<float>("Density");
-  const float interior_band_width = params.get_input<float>("Interior Band Width");
-  const auto mode = params.get_input<MeshToVolumeModifierResolutionMode>("Resolution Mode");
+  const float density = params.get_input<float>("Density"_ustr);
+  const float interior_band_width = params.get_input<float>("Interior Band Width"_ustr);
+  const auto mode = params.get_input<MeshToVolumeModifierResolutionMode>("Resolution Mode"_ustr);
 
   geometry::MeshToVolumeResolution resolution;
   resolution.mode = mode;
   if (resolution.mode == MESH_TO_VOLUME_RESOLUTION_MODE_VOXEL_AMOUNT) {
-    resolution.settings.voxel_amount = params.get_input<float>("Voxel Amount");
+    resolution.settings.voxel_amount = params.get_input<float>("Voxel Amount"_ustr);
     if (resolution.settings.voxel_amount <= 0.0f) {
       return nullptr;
     }
   }
   else if (resolution.mode == MESH_TO_VOLUME_RESOLUTION_MODE_VOXEL_SIZE) {
-    resolution.settings.voxel_size = params.get_input<float>("Voxel Size");
+    resolution.settings.voxel_size = params.get_input<float>("Voxel Size"_ustr);
     if (resolution.settings.voxel_size <= 0.0f) {
       return nullptr;
     }
@@ -129,7 +129,7 @@ static Volume *create_volume_from_mesh(const Mesh &mesh, GeoNodeExecParams &para
 static void node_geo_exec(GeoNodeExecParams params)
 {
 #ifdef WITH_OPENVDB
-  GeometrySet geometry_set(params.extract_input<GeometrySet>("Mesh"));
+  GeometrySet geometry_set(params.extract_input<GeometrySet>("Mesh"_ustr));
   geometry::foreach_real_geometry(geometry_set, [&](GeometrySet &geometry_set) {
     if (geometry_set.has_mesh()) {
       Volume *volume = create_volume_from_mesh(*geometry_set.get_mesh(), params);
@@ -137,7 +137,7 @@ static void node_geo_exec(GeoNodeExecParams params)
       geometry_set.keep_only({GeometryComponent::Type::Volume, GeometryComponent::Type::Edit});
     }
   });
-  params.set_output("Volume", std::move(geometry_set));
+  params.set_output("Volume"_ustr, std::move(geometry_set));
 #else
   node_geo_exec_with_missing_openvdb(params);
   return;

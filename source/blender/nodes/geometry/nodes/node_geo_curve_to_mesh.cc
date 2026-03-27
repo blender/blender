@@ -120,13 +120,13 @@ static void grease_pencil_to_mesh(GeometrySet &geometry_set,
 
 static void node_geo_exec(GeoNodeExecParams params)
 {
-  GeometrySet curve_set = params.extract_input<GeometrySet>("Curve");
-  GeometrySet profile_set = params.extract_input<GeometrySet>("Profile Curve");
-  const Field<float> scale_field = params.extract_input<Field<float>>("Scale");
-  const bool fill_caps = params.extract_input<bool>("Fill Caps");
+  GeometrySet curve_set = params.extract_input<GeometrySet>("Curve"_ustr);
+  GeometrySet profile_set = params.extract_input<GeometrySet>("Profile Curve"_ustr);
+  const Field<float> scale_field = params.extract_input<Field<float>>("Scale"_ustr);
+  const bool fill_caps = params.extract_input<bool>("Fill Caps"_ustr);
 
   bke::GeometryComponentEditData::remember_deformed_positions_if_necessary(curve_set);
-  const AttributeFilter &attribute_filter = params.get_attribute_filter("Mesh");
+  const AttributeFilter &attribute_filter = params.get_attribute_filter("Mesh"_ustr);
 
   geometry::foreach_real_geometry(curve_set, [&](GeometrySet &geometry_set) {
     if (geometry_set.has_curves()) {
@@ -149,7 +149,7 @@ static void node_geo_exec(GeoNodeExecParams params)
                             GeometryComponent::Type::Edit});
   });
 
-  params.set_output("Mesh", std::move(curve_set));
+  params.set_output("Mesh"_ustr, std::move(curve_set));
 }
 
 static void node_register()

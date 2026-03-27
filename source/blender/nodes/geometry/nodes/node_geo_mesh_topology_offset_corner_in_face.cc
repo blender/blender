@@ -101,10 +101,10 @@ class OffsetCornerInFaceFieldInput final : public bke::MeshFieldInput {
 
 static void node_geo_exec(GeoNodeExecParams params)
 {
-  params.set_output("Corner Index",
+  params.set_output("Corner Index"_ustr,
                     Field<int>(std::make_shared<OffsetCornerInFaceFieldInput>(
-                        params.extract_input<Field<int>>("Corner Index"),
-                        params.extract_input<Field<int>>("Offset"))));
+                        params.extract_input<Field<int>>("Corner Index"_ustr),
+                        params.extract_input<Field<int>>("Offset"_ustr))));
 }
 
 static void node_register()

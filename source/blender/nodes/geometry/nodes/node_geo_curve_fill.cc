@@ -360,16 +360,17 @@ static void curve_fill_calculate(GeometrySet &geometry_set,
 
 static void node_geo_exec(GeoNodeExecParams params)
 {
-  GeometrySet geometry_set = params.extract_input<GeometrySet>("Curve");
-  Field<int> group_index = params.extract_input<Field<int>>("Group ID");
-  const GeometryNodeCurveFillMode mode = params.extract_input<GeometryNodeCurveFillMode>("Mode");
-  const auto fill_rule = params.extract_input<GeometryNodeCurveFillRule>("Fill Rule");
+  GeometrySet geometry_set = params.extract_input<GeometrySet>("Curve"_ustr);
+  Field<int> group_index = params.extract_input<Field<int>>("Group ID"_ustr);
+  const GeometryNodeCurveFillMode mode = params.extract_input<GeometryNodeCurveFillMode>(
+      "Mode"_ustr);
+  const auto fill_rule = params.extract_input<GeometryNodeCurveFillRule>("Fill Rule"_ustr);
 
   geometry::foreach_real_geometry(geometry_set, [&](GeometrySet &geometry) {
     curve_fill_calculate(geometry, mode, fill_rule, group_index);
   });
 
-  params.set_output("Mesh", std::move(geometry_set));
+  params.set_output("Mesh"_ustr, std::move(geometry_set));
 }
 
 static void node_register()

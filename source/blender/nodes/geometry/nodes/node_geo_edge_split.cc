@@ -24,9 +24,9 @@ static void node_declare(NodeDeclarationBuilder &b)
 
 static void node_geo_exec(GeoNodeExecParams params)
 {
-  GeometrySet geometry_set = params.extract_input<GeometrySet>("Mesh");
+  GeometrySet geometry_set = params.extract_input<GeometrySet>("Mesh"_ustr);
 
-  const Field<bool> selection_field = params.extract_input<Field<bool>>("Selection");
+  const Field<bool> selection_field = params.extract_input<Field<bool>>("Selection"_ustr);
 
   geometry::foreach_real_geometry(geometry_set, [&](GeometrySet &geometry_set) {
     if (const Mesh *mesh = geometry_set.get_mesh()) {
@@ -40,11 +40,11 @@ static void node_geo_exec(GeoNodeExecParams params)
       }
 
       geometry::split_edges(
-          *geometry_set.get_mesh_for_write(), mask, params.get_attribute_filter("Mesh"));
+          *geometry_set.get_mesh_for_write(), mask, params.get_attribute_filter("Mesh"_ustr));
     }
   });
 
-  params.set_output("Mesh", std::move(geometry_set));
+  params.set_output("Mesh"_ustr, std::move(geometry_set));
 }
 
 static void node_register()

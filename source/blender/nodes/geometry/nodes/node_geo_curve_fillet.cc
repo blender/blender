@@ -130,19 +130,19 @@ static void fillet_grease_pencil(GreasePencil &grease_pencil,
 
 static void node_geo_exec(GeoNodeExecParams params)
 {
-  GeometrySet geometry_set = params.extract_input<GeometrySet>("Curve");
+  GeometrySet geometry_set = params.extract_input<GeometrySet>("Curve"_ustr);
   const GeometryNodeCurveFilletMode mode = params.extract_input<GeometryNodeCurveFilletMode>(
-      "Mode");
+      "Mode"_ustr);
 
-  Field<float> radius_field = params.extract_input<Field<float>>("Radius");
-  const bool limit_radius = params.extract_input<bool>("Limit Radius");
+  Field<float> radius_field = params.extract_input<Field<float>>("Radius"_ustr);
+  const bool limit_radius = params.extract_input<bool>("Limit Radius"_ustr);
 
   std::optional<Field<int>> count_field;
   if (mode == GEO_NODE_CURVE_FILLET_POLY) {
-    count_field.emplace(params.extract_input<Field<int>>("Count"));
+    count_field.emplace(params.extract_input<Field<int>>("Count"_ustr));
   }
 
-  const NodeAttributeFilter &attribute_filter = params.get_attribute_filter("Curve");
+  const NodeAttributeFilter &attribute_filter = params.get_attribute_filter("Curve"_ustr);
 
   geometry::foreach_real_geometry(geometry_set, [&](GeometrySet &geometry_set) {
     if (geometry_set.has_curves()) {
@@ -167,7 +167,7 @@ static void node_geo_exec(GeoNodeExecParams params)
     }
   });
 
-  params.set_output("Curve", std::move(geometry_set));
+  params.set_output("Curve"_ustr, std::move(geometry_set));
 }
 
 static void node_register()

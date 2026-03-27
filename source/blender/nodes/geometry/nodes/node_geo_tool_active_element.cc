@@ -54,20 +54,20 @@ static void node_exec(GeoNodeExecParams params)
 
   switch (domain) {
     case AttrDomain::Point:
-      params.set_output("Exists", operator_data->active_point_index >= 0);
-      params.set_output("Index", std::max(0, operator_data->active_point_index));
+      params.set_output("Exists"_ustr, operator_data->active_point_index >= 0);
+      params.set_output("Index"_ustr, std::max(0, operator_data->active_point_index));
       break;
     case AttrDomain::Edge:
-      params.set_output("Exists", operator_data->active_edge_index >= 0);
-      params.set_output("Index", std::max(0, operator_data->active_edge_index));
+      params.set_output("Exists"_ustr, operator_data->active_edge_index >= 0);
+      params.set_output("Index"_ustr, std::max(0, operator_data->active_edge_index));
       break;
     case AttrDomain::Face:
-      params.set_output("Exists", operator_data->active_face_index >= 0);
-      params.set_output("Index", std::max(0, operator_data->active_face_index));
+      params.set_output("Exists"_ustr, operator_data->active_face_index >= 0);
+      params.set_output("Index"_ustr, std::max(0, operator_data->active_face_index));
       break;
     case AttrDomain::Layer:
-      params.set_output("Exists", operator_data->active_layer_index >= 0);
-      params.set_output("Index", std::max(0, operator_data->active_layer_index));
+      params.set_output("Exists"_ustr, operator_data->active_layer_index >= 0);
+      params.set_output("Index"_ustr, std::max(0, operator_data->active_layer_index));
       break;
     default:
       params.set_default_remaining_outputs();

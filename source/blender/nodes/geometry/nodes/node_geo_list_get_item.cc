@@ -214,8 +214,8 @@ static bke::SocketValueVariant get_socket_value_item(ListPtr &list, const int64_
 
 static void node_geo_exec(GeoNodeExecParams params)
 {
-  bke::SocketValueVariant index = params.extract_input<bke::SocketValueVariant>("Index");
-  ListPtr list = params.extract_input<ListPtr>("List");
+  bke::SocketValueVariant index = params.extract_input<bke::SocketValueVariant>("Index"_ustr);
+  ListPtr list = params.extract_input<ListPtr>("List"_ustr);
   if (!list) {
     params.set_default_remaining_outputs();
     return;
@@ -238,10 +238,10 @@ static void node_geo_exec(GeoNodeExecParams params)
       return;
     }
     if (list->cpp_type().is<bke::SocketValueVariant>()) {
-      params.set_output("Value", get_socket_value_item(list, index_int));
+      params.set_output("Value"_ustr, get_socket_value_item(list, index_int));
     }
     else {
-      params.set_output("Value", get_single_item(list, *socket_type, index_int));
+      params.set_output("Value"_ustr, get_single_item(list, *socket_type, index_int));
     }
     return;
   }
@@ -260,7 +260,7 @@ static void node_geo_exec(GeoNodeExecParams params)
     return;
   }
 
-  params.set_output("Value", std::move(output_value));
+  params.set_output("Value"_ustr, std::move(output_value));
 }
 
 static void node_register()

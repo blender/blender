@@ -94,10 +94,10 @@ static Mesh *create_cube_mesh(const float3 size,
 
 static void node_geo_exec(GeoNodeExecParams params)
 {
-  const float3 size = params.extract_input<float3>("Size");
-  const int verts_x = params.extract_input<int>("Vertices X");
-  const int verts_y = params.extract_input<int>("Vertices Y");
-  const int verts_z = params.extract_input<int>("Vertices Z");
+  const float3 size = params.extract_input<float3>("Size"_ustr);
+  const int verts_x = params.extract_input<int>("Vertices X"_ustr);
+  const int verts_y = params.extract_input<int>("Vertices Y"_ustr);
+  const int verts_z = params.extract_input<int>("Vertices Z"_ustr);
   if (verts_x < 1 || verts_y < 1 || verts_z < 1) {
     params.error_message_add(NodeWarningType::Info, TIP_("Vertices must be at least 1"));
     params.set_default_remaining_outputs();
@@ -105,12 +105,12 @@ static void node_geo_exec(GeoNodeExecParams params)
   }
 
   std::optional<std::string> uv_map_id = params.get_output_anonymous_attribute_id_if_needed(
-      "UV Map");
+      "UV Map"_ustr);
 
   Mesh *mesh = create_cube_mesh(size, verts_x, verts_y, verts_z, uv_map_id);
   BKE_id_material_eval_ensure_default_slot(&mesh->id);
 
-  params.set_output("Mesh", GeometrySet::from_mesh(mesh));
+  params.set_output("Mesh"_ustr, GeometrySet::from_mesh(mesh));
 }
 
 static void node_register()

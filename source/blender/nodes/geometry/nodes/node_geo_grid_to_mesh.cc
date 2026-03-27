@@ -27,18 +27,18 @@ static void node_declare(NodeDeclarationBuilder &b)
 static void node_geo_exec(GeoNodeExecParams params)
 {
 #ifdef WITH_OPENVDB
-  const bke::VolumeGrid<float> grid = params.extract_input<bke::VolumeGrid<float>>("Grid");
+  const bke::VolumeGrid<float> grid = params.extract_input<bke::VolumeGrid<float>>("Grid"_ustr);
   if (!grid) {
     params.set_default_remaining_outputs();
     return;
   }
   bke::VolumeTreeAccessToken tree_token;
   Mesh *mesh = bke::volume_grid_to_mesh(grid.get().grid(tree_token),
-                                        params.extract_input<float>("Threshold"),
-                                        params.extract_input<float>("Adaptivity"));
+                                        params.extract_input<float>("Threshold"_ustr),
+                                        params.extract_input<float>("Adaptivity"_ustr));
   BKE_id_material_eval_ensure_default_slot(&mesh->id);
   geometry::debug_randomize_mesh_order(mesh);
-  params.set_output("Mesh", GeometrySet::from_mesh(mesh));
+  params.set_output("Mesh"_ustr, GeometrySet::from_mesh(mesh));
 #else
   node_geo_exec_with_missing_openvdb(params);
 #endif

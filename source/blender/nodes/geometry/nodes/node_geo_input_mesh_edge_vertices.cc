@@ -144,10 +144,10 @@ static void node_geo_exec(GeoNodeExecParams params)
   Field<float3> position_field_1{std::make_shared<EdgePositionFieldInput>(VertNumber::V1)};
   Field<float3> position_field_2{std::make_shared<EdgePositionFieldInput>(VertNumber::V2)};
 
-  params.set_output("Vertex Index 1", std::move(vertex_field_1));
-  params.set_output("Vertex Index 2", std::move(vertex_field_2));
-  params.set_output("Position 1", std::move(position_field_1));
-  params.set_output("Position 2", std::move(position_field_2));
+  params.set_output("Vertex Index 1"_ustr, std::move(vertex_field_1));
+  params.set_output("Vertex Index 2"_ustr, std::move(vertex_field_2));
+  params.set_output("Position 1"_ustr, std::move(position_field_1));
+  params.set_output("Position 2"_ustr, std::move(position_field_2));
 }
 
 static void node_register()

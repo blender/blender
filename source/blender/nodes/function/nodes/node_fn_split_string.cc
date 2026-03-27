@@ -39,11 +39,11 @@ static Vector<std::string> split_string(const StringRef original_str, const Stri
 
 static void node_geo_exec(GeoNodeExecParams params)
 {
-  const std::string str = params.extract_input<std::string>("String");
-  const std::string separator = params.extract_input<std::string>("Separator");
+  const std::string str = params.extract_input<std::string>("String"_ustr);
+  const std::string separator = params.extract_input<std::string>("Separator"_ustr);
 
   Vector<std::string> list = split_string(str, separator);
-  params.set_output("List", List::from_container(std::move(list)));
+  params.set_output("List"_ustr, List::from_container(std::move(list)));
 }
 
 static void node_register()

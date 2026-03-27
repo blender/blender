@@ -172,10 +172,10 @@ static void node_geo_exec(GeoNodeExecParams params)
   const NodeGeometrySetCurveHandlePositions &storage = node_storage(params.node());
   const GeometryNodeCurveHandleMode mode = GeometryNodeCurveHandleMode(storage.mode);
 
-  GeometrySet geometry_set = params.extract_input<GeometrySet>("Curve");
-  Field<bool> selection_field = params.extract_input<Field<bool>>("Selection");
-  Field<float3> position_field = params.extract_input<Field<float3>>("Position");
-  Field<float3> offset_field = params.extract_input<Field<float3>>("Offset");
+  GeometrySet geometry_set = params.extract_input<GeometrySet>("Curve"_ustr);
+  Field<bool> selection_field = params.extract_input<Field<bool>>("Selection"_ustr);
+  Field<float3> position_field = params.extract_input<Field<float3>>("Position"_ustr);
+  Field<float3> offset_field = params.extract_input<Field<float3>>("Offset"_ustr);
 
   std::atomic<bool> has_curves = false;
   std::atomic<bool> has_bezier = false;
@@ -198,7 +198,7 @@ static void node_geo_exec(GeoNodeExecParams params)
     params.error_message_add(NodeWarningType::Info, TIP_("Input curves do not have Bézier type"));
   }
 
-  params.set_output("Curve", std::move(geometry_set));
+  params.set_output("Curve"_ustr, std::move(geometry_set));
 }
 
 static void node_rna(StructRNA *srna)

@@ -71,8 +71,8 @@ static void node_geo_exec(GeoNodeExecParams params)
   Field<float> spline_length_field{std::make_shared<bke::CurveLengthFieldInput>()};
   Field<int> spline_count_field{std::make_shared<SplineCountFieldInput>()};
 
-  params.set_output("Length", std::move(spline_length_field));
-  params.set_output("Point Count", std::move(spline_count_field));
+  params.set_output("Length"_ustr, std::move(spline_length_field));
+  params.set_output("Point Count"_ustr, std::move(spline_count_field));
 }
 
 static void node_register()

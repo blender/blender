@@ -93,10 +93,10 @@ class FaceSetFromBoundariesInput final : public bke::MeshFieldInput {
 
 static void geo_node_exec(GeoNodeExecParams params)
 {
-  Field<bool> boundary_edges = params.extract_input<Field<bool>>("Boundary Edges");
+  Field<bool> boundary_edges = params.extract_input<Field<bool>>("Boundary Edges"_ustr);
   Field<bool> non_boundary_edges = fn::invert_boolean_field(std::move(boundary_edges));
   params.set_output(
-      "Face Group ID",
+      "Face Group ID"_ustr,
       Field<int>(std::make_shared<FaceSetFromBoundariesInput>(std::move(non_boundary_edges))));
 }
 

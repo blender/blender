@@ -191,13 +191,13 @@ static std::optional<Array<int>> sorted_indices(const fn::FieldContext &field_co
 
 static void node_geo_exec(GeoNodeExecParams params)
 {
-  GeometrySet geometry_set = params.extract_input<GeometrySet>("Geometry");
-  const Field<bool> selection_field = params.extract_input<Field<bool>>("Selection");
-  const Field<int> group_id_field = params.extract_input<Field<int>>("Group ID");
-  const Field<float> weight_field = params.extract_input<Field<float>>("Sort Weight");
+  GeometrySet geometry_set = params.extract_input<GeometrySet>("Geometry"_ustr);
+  const Field<bool> selection_field = params.extract_input<Field<bool>>("Selection"_ustr);
+  const Field<int> group_id_field = params.extract_input<Field<int>>("Group ID"_ustr);
+  const Field<float> weight_field = params.extract_input<Field<float>>("Sort Weight"_ustr);
   const bke::AttrDomain domain = bke::AttrDomain(params.node().custom1);
 
-  const NodeAttributeFilter attribute_filter = params.get_attribute_filter("Geometry");
+  const NodeAttributeFilter attribute_filter = params.get_attribute_filter("Geometry"_ustr);
 
   GeometryComponentEditData::remember_deformed_positions_if_necessary(geometry_set);
 
@@ -253,7 +253,7 @@ static void node_geo_exec(GeoNodeExecParams params)
                              TIP_("Domain and geometry type combination is unsupported"));
   }
 
-  params.set_output("Geometry", std::move(geometry_set));
+  params.set_output("Geometry"_ustr, std::move(geometry_set));
 }
 
 template<typename T>

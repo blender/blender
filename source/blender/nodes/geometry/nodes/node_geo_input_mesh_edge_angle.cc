@@ -204,13 +204,13 @@ class SignedAngleFieldInput final : public bke::MeshFieldInput {
 
 static void node_geo_exec(GeoNodeExecParams params)
 {
-  if (params.output_is_required("Unsigned Angle")) {
+  if (params.output_is_required("Unsigned Angle"_ustr)) {
     Field<float> angle_field{std::make_shared<AngleFieldInput>()};
-    params.set_output("Unsigned Angle", std::move(angle_field));
+    params.set_output("Unsigned Angle"_ustr, std::move(angle_field));
   }
-  if (params.output_is_required("Signed Angle")) {
+  if (params.output_is_required("Signed Angle"_ustr)) {
     Field<float> angle_field{std::make_shared<SignedAngleFieldInput>()};
-    params.set_output("Signed Angle", std::move(angle_field));
+    params.set_output("Signed Angle"_ustr, std::move(angle_field));
   }
 }
 

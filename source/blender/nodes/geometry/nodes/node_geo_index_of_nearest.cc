@@ -226,18 +226,18 @@ class HasNeighborFieldInput final : public bke::GeometryFieldInput {
 
 static void node_geo_exec(GeoNodeExecParams params)
 {
-  Field<float3> position_field = params.extract_input<Field<float3>>("Position");
-  Field<int> group_field = params.extract_input<Field<int>>("Group ID");
+  Field<float3> position_field = params.extract_input<Field<float3>>("Position"_ustr);
+  Field<int> group_field = params.extract_input<Field<int>>("Group ID"_ustr);
 
-  if (params.output_is_required("Index")) {
-    params.set_output("Index",
+  if (params.output_is_required("Index"_ustr)) {
+    params.set_output("Index"_ustr,
                       Field<int>(std::make_shared<IndexOfNearestFieldInput>(
                           std::move(position_field), group_field)));
   }
 
-  if (params.output_is_required("Has Neighbor")) {
+  if (params.output_is_required("Has Neighbor"_ustr)) {
     params.set_output(
-        "Has Neighbor",
+        "Has Neighbor"_ustr,
         Field<bool>(std::make_shared<HasNeighborFieldInput>(std::move(group_field))));
   }
 }

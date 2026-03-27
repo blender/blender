@@ -21,9 +21,9 @@ static void node_declare(NodeDeclarationBuilder &b)
 static void node_geo_exec(GeoNodeExecParams params)
 {
   GeoNodesMultiInput<GeometrySet> geometries =
-      params.extract_input<GeoNodesMultiInput<GeometrySet>>("Geometry");
+      params.extract_input<GeoNodesMultiInput<GeometrySet>>("Geometry"_ustr);
 
-  const NodeAttributeFilter &attribute_filter = params.get_attribute_filter("Geometry");
+  const NodeAttributeFilter &attribute_filter = params.get_attribute_filter("Geometry"_ustr);
 
   for (GeometrySet &geometry : geometries.values) {
     GeometryComponentEditData::remember_deformed_positions_if_necessary(geometry);
@@ -31,7 +31,7 @@ static void node_geo_exec(GeoNodeExecParams params)
 
   GeometrySet geometry_set_result = geometry::join_geometries(geometries.values, attribute_filter);
 
-  params.set_output("Geometry", std::move(geometry_set_result));
+  params.set_output("Geometry"_ustr, std::move(geometry_set_result));
 }
 
 static void node_register()

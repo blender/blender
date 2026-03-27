@@ -1477,10 +1477,10 @@ static void extrude_individual_mesh_faces(Mesh &mesh,
 
 static void node_geo_exec(GeoNodeExecParams params)
 {
-  GeometrySet geometry_set = params.extract_input<GeometrySet>("Mesh");
-  Field<bool> selection = params.extract_input<Field<bool>>("Selection");
-  Field<float3> offset_field = params.extract_input<Field<float3>>("Offset");
-  Field<float> scale_field = params.extract_input<Field<float>>("Offset Scale");
+  GeometrySet geometry_set = params.extract_input<GeometrySet>("Mesh"_ustr);
+  Field<bool> selection = params.extract_input<Field<bool>>("Selection"_ustr);
+  Field<float3> offset_field = params.extract_input<Field<float3>>("Offset"_ustr);
+  Field<float> scale_field = params.extract_input<Field<float>>("Offset Scale"_ustr);
   const NodeGeometryExtrudeMesh &storage = node_storage(params.node());
   GeometryNodeExtrudeMeshMode mode = GeometryNodeExtrudeMeshMode(storage.mode);
 
@@ -1491,13 +1491,13 @@ static void node_geo_exec(GeoNodeExecParams params)
                            {std::move(offset_field), std::move(scale_field)})};
 
   AttributeOutputs attribute_outputs;
-  attribute_outputs.top_id = params.get_output_anonymous_attribute_id_if_needed("Top");
-  attribute_outputs.side_id = params.get_output_anonymous_attribute_id_if_needed("Side");
+  attribute_outputs.top_id = params.get_output_anonymous_attribute_id_if_needed("Top"_ustr);
+  attribute_outputs.side_id = params.get_output_anonymous_attribute_id_if_needed("Side"_ustr);
 
   const bool extrude_individual = mode == GEO_NODE_EXTRUDE_MESH_FACES &&
-                                  params.extract_input<bool>("Individual");
+                                  params.extract_input<bool>("Individual"_ustr);
 
-  const NodeAttributeFilter &attribute_filter = params.get_attribute_filter("Mesh");
+  const NodeAttributeFilter &attribute_filter = params.get_attribute_filter("Mesh"_ustr);
 
   geometry::foreach_real_geometry(geometry_set, [&](GeometrySet &geometry_set) {
     if (Mesh *mesh = geometry_set.get_mesh_for_write()) {
@@ -1527,7 +1527,7 @@ static void node_geo_exec(GeoNodeExecParams params)
     }
   });
 
-  params.set_output("Mesh", std::move(geometry_set));
+  params.set_output("Mesh"_ustr, std::move(geometry_set));
 }
 
 static void node_rna(StructRNA *srna)

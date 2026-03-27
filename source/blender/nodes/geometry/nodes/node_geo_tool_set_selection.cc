@@ -101,16 +101,16 @@ static void node_geo_exec(GeoNodeExecParams params)
   if (!check_tool_context_and_error(params)) {
     return;
   }
-  GeometrySet geometry = params.extract_input<GeometrySet>("Geometry");
+  GeometrySet geometry = params.extract_input<GeometrySet>("Geometry"_ustr);
   const eObjectMode mode = params.user_data()->call_data->operator_data->mode;
   if (ELEM(mode, OB_MODE_OBJECT, OB_MODE_PAINT_GREASE_PENCIL)) {
     params.error_message_add(NodeWarningType::Error,
                              "Selection control is not supported in this mode");
-    params.set_output("Geometry", std::move(geometry));
+    params.set_output("Geometry"_ustr, std::move(geometry));
     return;
   }
 
-  const GField selection = params.extract_input<GField>("Selection");
+  const GField selection = params.extract_input<GField>("Selection"_ustr);
   const AttrDomain domain = AttrDomain(params.node().custom1);
   const bke::DataTypeConversions &conversions = bke::get_implicit_type_conversions();
   geometry::foreach_real_geometry(geometry, [&](GeometrySet &geometry) {
@@ -193,7 +193,7 @@ static void node_geo_exec(GeoNodeExecParams params)
       }
     }
   });
-  params.set_output("Geometry", std::move(geometry));
+  params.set_output("Geometry"_ustr, std::move(geometry));
 }
 
 static void node_rna(StructRNA *srna)

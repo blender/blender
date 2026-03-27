@@ -85,12 +85,12 @@ static void set_grease_pencil_normal(GreasePencil &grease_pencil,
 
 static void node_geo_exec(GeoNodeExecParams params)
 {
-  GeometrySet geometry_set = params.extract_input<GeometrySet>("Curve");
-  Field<bool> selection_field = params.extract_input<Field<bool>>("Selection");
-  const NormalMode mode = params.get_input<NormalMode>("Mode");
+  GeometrySet geometry_set = params.extract_input<GeometrySet>("Curve"_ustr);
+  Field<bool> selection_field = params.extract_input<Field<bool>>("Selection"_ustr);
+  const NormalMode mode = params.get_input<NormalMode>("Mode"_ustr);
   Field<float3> custom_normal;
   if (mode == NORMAL_MODE_FREE) {
-    custom_normal = params.extract_input<Field<float3>>("Normal");
+    custom_normal = params.extract_input<Field<float3>>("Normal"_ustr);
   }
 
   geometry::foreach_real_geometry(geometry_set, [&](GeometrySet &geometry_set) {
@@ -108,7 +108,7 @@ static void node_geo_exec(GeoNodeExecParams params)
     }
   });
 
-  params.set_output("Curve", std::move(geometry_set));
+  params.set_output("Curve"_ustr, std::move(geometry_set));
 }
 
 static void node_register()

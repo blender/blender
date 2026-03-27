@@ -934,17 +934,17 @@ static Mesh *calc_dual_mesh(const Mesh &src_mesh,
 
 static void node_geo_exec(GeoNodeExecParams params)
 {
-  GeometrySet geometry_set = params.extract_input<GeometrySet>("Mesh");
-  const bool keep_boundaries = params.extract_input<bool>("Keep Boundaries");
+  GeometrySet geometry_set = params.extract_input<GeometrySet>("Mesh"_ustr);
+  const bool keep_boundaries = params.extract_input<bool>("Keep Boundaries"_ustr);
   geometry::foreach_real_geometry(geometry_set, [&](GeometrySet &geometry_set) {
     if (const Mesh *mesh = geometry_set.get_mesh()) {
       Mesh *new_mesh = calc_dual_mesh(
-          *mesh, keep_boundaries, params.get_attribute_filter("Dual Mesh"));
+          *mesh, keep_boundaries, params.get_attribute_filter("Dual Mesh"_ustr));
       geometry::debug_randomize_mesh_order(new_mesh);
       geometry_set.replace_mesh(new_mesh);
     }
   });
-  params.set_output("Dual Mesh", std::move(geometry_set));
+  params.set_output("Dual Mesh"_ustr, std::move(geometry_set));
 }
 
 static void node_register()

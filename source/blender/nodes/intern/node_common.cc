@@ -919,8 +919,8 @@ static bool node_implicit_conversion_poll_instance(const bNode *node,
 
 static void node_implicit_conversion_geo_exec(nodes::GeoNodeExecParams params)
 {
-  auto input_value = params.extract_input<bke::SocketValueVariant>("Value");
-  params.set_output("Value", std::move(input_value));
+  auto input_value = params.extract_input<bke::SocketValueVariant>("Value"_ustr);
+  params.set_output("Value"_ustr, std::move(input_value));
 }
 
 class ImplicitConversionOperation : public compositor::NodeOperation {

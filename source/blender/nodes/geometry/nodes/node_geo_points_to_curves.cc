@@ -166,11 +166,11 @@ static Curves *curves_from_points(const PointCloud &points,
 
 static void node_geo_exec(GeoNodeExecParams params)
 {
-  GeometrySet geometry_set = params.extract_input<GeometrySet>("Points");
-  const Field<int> group_id_field = params.extract_input<Field<int>>("Curve Group ID");
-  const Field<float> weight_field = params.extract_input<Field<float>>("Weight");
+  GeometrySet geometry_set = params.extract_input<GeometrySet>("Points"_ustr);
+  const Field<int> group_id_field = params.extract_input<Field<int>>("Curve Group ID"_ustr);
+  const Field<float> weight_field = params.extract_input<Field<float>>("Weight"_ustr);
 
-  const NodeAttributeFilter attribute_filter = params.get_attribute_filter("Curves");
+  const NodeAttributeFilter attribute_filter = params.get_attribute_filter("Curves"_ustr);
   geometry::foreach_real_geometry(geometry_set, [&](GeometrySet &geometry_set) {
     geometry_set.replace_curves(nullptr);
     if (const PointCloud *points = geometry_set.get_pointcloud()) {
@@ -181,7 +181,7 @@ static void node_geo_exec(GeoNodeExecParams params)
     geometry_set.keep_only({GeometryComponent::Type::Curve, GeometryComponent::Type::Edit});
   });
 
-  params.set_output("Curves", std::move(geometry_set));
+  params.set_output("Curves"_ustr, std::move(geometry_set));
 }
 
 static void node_register()

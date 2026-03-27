@@ -156,34 +156,24 @@ void GeoNodeExecParams::check_output_geometry_set(const GeometrySet &geometry_se
 #endif
 }
 
-const bNodeSocket *GeoNodeExecParams::find_available_socket(const StringRef name) const
-{
-  for (const bNodeSocket *socket : node_.input_sockets()) {
-    if (socket->is_available() && socket->name == name) {
-      return socket;
-    }
-  }
-
-  return nullptr;
-}
-
 void GeoNodeExecParams::set_default_remaining_outputs()
 {
   set_default_remaining_node_outputs(params_, node_);
 }
 
-void GeoNodeExecParams::check_input_access(StringRef identifier) const
+void GeoNodeExecParams::check_input_access(const UString identifier) const
 {
   const bNodeSocket *found_socket = nullptr;
   for (const bNodeSocket *socket : node_.input_sockets()) {
-    if (socket->identifier == identifier) {
+    if (socket->identifier_ustr() == identifier) {
       found_socket = socket;
       break;
     }
   }
 
   if (found_socket == nullptr) {
-    std::cout << "Did not find an input socket with the identifier '" << identifier << "'.\n";
+    std::cout << "Did not find an input socket with the identifier '" << identifier.ref()
+              << "'.\n";
     std::cout << "Possible identifiers are: ";
     for (const bNodeSocket *socket : node_.input_sockets()) {
       if (socket->is_available()) {
@@ -194,13 +184,13 @@ void GeoNodeExecParams::check_input_access(StringRef identifier) const
     BLI_assert_unreachable();
   }
   else if (found_socket->flag & SOCK_UNAVAIL) {
-    std::cout << "The socket corresponding to the identifier '" << identifier
+    std::cout << "The socket corresponding to the identifier '" << identifier.ref()
               << "' is disabled.\n";
     BLI_assert_unreachable();
   }
 }
 
-void GeoNodeExecParams::check_output_access(StringRef identifier) const
+void GeoNodeExecParams::check_output_access(const UString identifier) const
 {
   const bNodeSocket *found_socket = nullptr;
   for (const bNodeSocket *socket : node_.output_sockets()) {
@@ -211,7 +201,8 @@ void GeoNodeExecParams::check_output_access(StringRef identifier) const
   }
 
   if (found_socket == nullptr) {
-    std::cout << "Did not find an output socket with the identifier '" << identifier << "'.\n";
+    std::cout << "Did not find an output socket with the identifier '" << identifier.ref()
+              << "'.\n";
     std::cout << "Possible identifiers are: ";
     for (const bNodeSocket *socket : node_.output_sockets()) {
       if (socket->is_available()) {
@@ -222,12 +213,12 @@ void GeoNodeExecParams::check_output_access(StringRef identifier) const
     BLI_assert_unreachable();
   }
   else if (found_socket->flag & SOCK_UNAVAIL) {
-    std::cout << "The socket corresponding to the identifier '" << identifier
+    std::cout << "The socket corresponding to the identifier '" << identifier.ref()
               << "' is disabled.\n";
     BLI_assert_unreachable();
   }
   else if (params_.output_was_set(this->get_output_index(identifier))) {
-    std::cout << "The identifier '" << identifier << "' has been set already.\n";
+    std::cout << "The identifier '" << identifier.ref() << "' has been set already.\n";
     BLI_assert_unreachable();
   }
 }

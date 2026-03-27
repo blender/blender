@@ -28,10 +28,10 @@ static void node_geo_exec(GeoNodeExecParams params)
   const float4x4 &world_to_object = params.self_object()->world_to_object();
 
   const float3 location_global = data.cursor_position;
-  params.set_output("Location", math::transform_point(world_to_object, location_global));
+  params.set_output("Location"_ustr, math::transform_point(world_to_object, location_global));
 
   math::Quaternion rotation_global = data.cursor_rotation;
-  params.set_output("Rotation", math::to_quaternion(world_to_object) * rotation_global);
+  params.set_output("Rotation"_ustr, math::to_quaternion(world_to_object) * rotation_global);
 }
 
 static void node_register()

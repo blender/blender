@@ -793,8 +793,8 @@ static GeometrySet generate_interpolated_curves(
 
 static void node_geo_exec(GeoNodeExecParams params)
 {
-  GeometrySet guide_curves_geometry = params.extract_input<GeometrySet>("Guide Curves");
-  const GeometrySet points_geometry = params.extract_input<GeometrySet>("Points");
+  GeometrySet guide_curves_geometry = params.extract_input<GeometrySet>("Guide Curves"_ustr);
+  const GeometrySet points_geometry = params.extract_input<GeometrySet>("Points"_ustr);
 
   if (!guide_curves_geometry.has_curves() ||
       guide_curves_geometry.get_curves()->geometry.curve_num == 0)
@@ -811,19 +811,19 @@ static void node_geo_exec(GeoNodeExecParams params)
     return;
   }
 
-  const int max_neighbors = std::max<int>(1, params.extract_input<int>("Max Neighbors"));
+  const int max_neighbors = std::max<int>(1, params.extract_input<int>("Max Neighbors"_ustr));
 
   static const mf::MultiFunction &normalize_fn = fn::multi_function::registry::lookup(
       "normalize(float3)"_ustr);
 
   /* Normalize up fields so that is done as part of field evaluation. */
   Field<float3> guides_up_field(
-      FieldOperation::from(normalize_fn, {params.extract_input<Field<float3>>("Guide Up")}));
+      FieldOperation::from(normalize_fn, {params.extract_input<Field<float3>>("Guide Up"_ustr)}));
   Field<float3> points_up_field(
-      FieldOperation::from(normalize_fn, {params.extract_input<Field<float3>>("Point Up")}));
+      FieldOperation::from(normalize_fn, {params.extract_input<Field<float3>>("Point Up"_ustr)}));
 
-  Field<int> guide_group_field = params.extract_input<Field<int>>("Guide Group ID");
-  Field<int> point_group_field = params.extract_input<Field<int>>("Point Group ID");
+  Field<int> guide_group_field = params.extract_input<Field<int>>("Guide Group ID"_ustr);
+  Field<int> point_group_field = params.extract_input<Field<int>>("Point Group ID"_ustr);
 
   const Curves &guide_curves_id = *guide_curves_geometry.get_curves();
 
@@ -844,12 +844,12 @@ static void node_geo_exec(GeoNodeExecParams params)
   const VArray<float3> points_up = points_evaluator.get_evaluated<float3>(0);
   const VArray<int> point_group_ids = points_evaluator.get_evaluated<int>(1);
 
-  const NodeAttributeFilter &attribute_filter = params.get_attribute_filter("Curves");
+  const NodeAttributeFilter &attribute_filter = params.get_attribute_filter("Curves"_ustr);
 
   std::optional<std::string> index_attribute_id =
-      params.get_output_anonymous_attribute_id_if_needed("Closest Index");
+      params.get_output_anonymous_attribute_id_if_needed("Closest Index"_ustr);
   std::optional<std::string> weight_attribute_id =
-      params.get_output_anonymous_attribute_id_if_needed("Closest Weight");
+      params.get_output_anonymous_attribute_id_if_needed("Closest Weight"_ustr);
 
   GeometrySet new_curves = generate_interpolated_curves(guide_curves_id,
                                                         *points_component->attributes(),
@@ -871,7 +871,7 @@ static void node_geo_exec(GeoNodeExecParams params)
   new_curves.name = guide_curves_geometry.name;
   new_curves.copy_bundle_from(guide_curves_geometry);
 
-  params.set_output("Curves", std::move(new_curves));
+  params.set_output("Curves"_ustr, std::move(new_curves));
 }
 
 static void node_register()

@@ -148,8 +148,8 @@ static void node_geo_exec(GeoNodeExecParams params)
 {
   Field<int> vertex_count_field{std::make_shared<FaceVertexCountFieldInput>()};
   Field<int> neighbor_count_field{std::make_shared<FaceNeighborCountFieldInput>()};
-  params.set_output("Vertex Count", std::move(vertex_count_field));
-  params.set_output("Face Count", std::move(neighbor_count_field));
+  params.set_output("Vertex Count"_ustr, std::move(vertex_count_field));
+  params.set_output("Face Count"_ustr, std::move(neighbor_count_field));
 }
 
 static void node_register()

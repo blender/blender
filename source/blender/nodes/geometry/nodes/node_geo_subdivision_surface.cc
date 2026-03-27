@@ -185,18 +185,18 @@ static Mesh *mesh_subsurf_calc(const Mesh *mesh,
 
 static void node_geo_exec(GeoNodeExecParams params)
 {
-  GeometrySet geometry_set = params.extract_input<GeometrySet>("Mesh");
+  GeometrySet geometry_set = params.extract_input<GeometrySet>("Mesh"_ustr);
 #ifdef WITH_OPENSUBDIV
-  const Field<float> vert_crease = params.extract_input<Field<float>>("Vertex Crease");
-  const Field<float> edge_crease = params.extract_input<Field<float>>("Edge Crease");
+  const Field<float> vert_crease = params.extract_input<Field<float>>("Vertex Crease"_ustr);
+  const Field<float> edge_crease = params.extract_input<Field<float>>("Edge Crease"_ustr);
 
-  const int uv_smooth = params.get_input<eSubsurfUVSmooth>("UV Smooth");
-  const int boundary_smooth = params.get_input<eSubsurfBoundarySmooth>("Boundary Smooth");
-  const int level = std::max(params.extract_input<int>("Level"), 0);
-  const int quality = std::clamp(params.extract_input<int>("Quality"), 1, 10);
-  const bool use_limit_surface = params.extract_input<bool>("Limit Surface");
+  const int uv_smooth = params.get_input<eSubsurfUVSmooth>("UV Smooth"_ustr);
+  const int boundary_smooth = params.get_input<eSubsurfBoundarySmooth>("Boundary Smooth"_ustr);
+  const int level = std::max(params.extract_input<int>("Level"_ustr), 0);
+  const int quality = std::clamp(params.extract_input<int>("Quality"_ustr), 1, 10);
+  const bool use_limit_surface = params.extract_input<bool>("Limit Surface"_ustr);
   if (level == 0) {
-    params.set_output("Mesh", std::move(geometry_set));
+    params.set_output("Mesh"_ustr, std::move(geometry_set));
     return;
   }
   /* At this limit, a subdivided single triangle would be too large to be stored in #Mesh. */
@@ -242,7 +242,7 @@ static void node_geo_exec(GeoNodeExecParams params)
                            TIP_("Disabled, Blender was compiled without OpenSubdiv"));
 
 #endif
-  params.set_output("Mesh", std::move(geometry_set));
+  params.set_output("Mesh"_ustr, std::move(geometry_set));
 }
 
 static void node_register()

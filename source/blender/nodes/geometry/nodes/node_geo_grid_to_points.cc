@@ -323,7 +323,7 @@ static void process_tree(const TreeT &tree,
 static void node_geo_exec(GeoNodeExecParams params)
 {
 #ifdef WITH_OPENVDB
-  const bke::GVolumeGrid grid = params.extract_input<bke::GVolumeGrid>("Grid");
+  const bke::GVolumeGrid grid = params.extract_input<bke::GVolumeGrid>("Grid"_ustr);
   if (!grid) {
     params.set_default_remaining_outputs();
     return;
@@ -341,15 +341,18 @@ static void node_geo_exec(GeoNodeExecParams params)
 
   const float4x4 grid_transform = BKE_volume_transform_to_blender(grid_base.transform());
 
-  std::optional<std::string> coord_x_id = params.get_output_anonymous_attribute_id_if_needed("X");
-  std::optional<std::string> coord_y_id = params.get_output_anonymous_attribute_id_if_needed("Y");
-  std::optional<std::string> coord_z_id = params.get_output_anonymous_attribute_id_if_needed("Z");
+  std::optional<std::string> coord_x_id = params.get_output_anonymous_attribute_id_if_needed(
+      "X"_ustr);
+  std::optional<std::string> coord_y_id = params.get_output_anonymous_attribute_id_if_needed(
+      "Y"_ustr);
+  std::optional<std::string> coord_z_id = params.get_output_anonymous_attribute_id_if_needed(
+      "Z"_ustr);
   std::optional<std::string> is_tile_id = params.get_output_anonymous_attribute_id_if_needed(
-      "Is Tile");
+      "Is Tile"_ustr);
   std::optional<std::string> extent_id = params.get_output_anonymous_attribute_id_if_needed(
-      "Extent");
+      "Extent"_ustr);
   std::optional<std::string> value_id = params.get_output_anonymous_attribute_id_if_needed(
-      "Value");
+      "Value"_ustr);
 
   Array<float3> position_array;
   std::optional<Array<bool>> is_tile_array;
@@ -460,7 +463,7 @@ static void node_geo_exec(GeoNodeExecParams params)
   }
 
   geometry::debug_randomize_point_order(pointcloud);
-  params.set_output("Points", GeometrySet::from_pointcloud(pointcloud));
+  params.set_output("Points"_ustr, GeometrySet::from_pointcloud(pointcloud));
 
 #else
   node_geo_exec_with_missing_openvdb(params);

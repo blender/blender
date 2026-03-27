@@ -122,14 +122,14 @@ static Mesh *create_ico_sphere_mesh(const int subdivisions,
 
 static void node_geo_exec(GeoNodeExecParams params)
 {
-  const int subdivisions = std::min(params.extract_input<int>("Subdivisions"), 10);
-  const float radius = params.extract_input<float>("Radius");
+  const int subdivisions = std::min(params.extract_input<int>("Subdivisions"_ustr), 10);
+  const float radius = params.extract_input<float>("Radius"_ustr);
 
   std::optional<std::string> uv_map_id = params.get_output_anonymous_attribute_id_if_needed(
-      "UV Map");
+      "UV Map"_ustr);
 
   Mesh *mesh = create_ico_sphere_mesh(subdivisions, radius, uv_map_id);
-  params.set_output("Mesh", GeometrySet::from_mesh(mesh));
+  params.set_output("Mesh"_ustr, GeometrySet::from_mesh(mesh));
 }
 
 static void node_register()

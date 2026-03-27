@@ -82,18 +82,18 @@ static void node_init(bNodeTree * /*tree*/, bNode *node)
 
 static void node_geo_exec(GeoNodeExecParams params)
 {
-  GeometrySet geometry_set = params.extract_input<GeometrySet>("Curve");
-  const auto mode = params.extract_input<GeometryNodeCurveResampleMode>("Mode");
+  GeometrySet geometry_set = params.extract_input<GeometrySet>("Curve"_ustr);
+  const auto mode = params.extract_input<GeometryNodeCurveResampleMode>("Mode"_ustr);
 
   const NodeGeometryCurveResample &storage = node_storage(params.node());
 
-  const Field<bool> selection = params.extract_input<Field<bool>>("Selection");
+  const Field<bool> selection = params.extract_input<Field<bool>>("Selection"_ustr);
 
   GeometryComponentEditData::remember_deformed_positions_if_necessary(geometry_set);
 
   switch (mode) {
     case GEO_NODE_CURVE_RESAMPLE_COUNT: {
-      Field<int> count = params.extract_input<Field<int>>("Count");
+      Field<int> count = params.extract_input<Field<int>>("Count"_ustr);
       geometry::foreach_real_geometry(geometry_set, [&](GeometrySet &geometry) {
         if (const Curves *src_curves_id = geometry.get_curves()) {
           const bke::CurvesGeometry &src_curves = src_curves_id->geometry.wrap();
@@ -125,7 +125,7 @@ static void node_geo_exec(GeoNodeExecParams params)
       break;
     }
     case GEO_NODE_CURVE_RESAMPLE_LENGTH: {
-      Field<float> length = params.extract_input<Field<float>>("Length");
+      Field<float> length = params.extract_input<Field<float>>("Length"_ustr);
       geometry::foreach_real_geometry(geometry_set, [&](GeometrySet &geometry) {
         if (const Curves *src_curves_id = geometry.get_curves()) {
           const bke::CurvesGeometry &src_curves = src_curves_id->geometry.wrap();
@@ -186,7 +186,7 @@ static void node_geo_exec(GeoNodeExecParams params)
       break;
   }
 
-  params.set_output("Curve", std::move(geometry_set));
+  params.set_output("Curve"_ustr, std::move(geometry_set));
 }
 
 static void node_rna(StructRNA *srna)

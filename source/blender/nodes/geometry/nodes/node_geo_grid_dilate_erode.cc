@@ -200,17 +200,17 @@ static openvdb::tools::TilePolicy tile_policy_to_openvdb(const TilePolicy policy
 static void node_geo_exec(GeoNodeExecParams params)
 {
 #ifdef WITH_OPENVDB
-  bke::GVolumeGrid grid = params.extract_input<bke::GVolumeGrid>("Grid");
+  bke::GVolumeGrid grid = params.extract_input<bke::GVolumeGrid>("Grid"_ustr);
   if (!grid) {
     params.set_default_remaining_outputs();
     return;
   }
 
-  const Connectivity connectivity = params.extract_input<Connectivity>("Connectivity");
-  const TilePolicy tile_policy = params.extract_input<TilePolicy>("Tiles");
-  const int steps = params.extract_input<int>("Steps");
+  const Connectivity connectivity = params.extract_input<Connectivity>("Connectivity"_ustr);
+  const TilePolicy tile_policy = params.extract_input<TilePolicy>("Tiles"_ustr);
+  const int steps = params.extract_input<int>("Steps"_ustr);
   if (steps == 0) {
-    params.set_output("Grid", std::move(grid));
+    params.set_output("Grid"_ustr, std::move(grid));
     return;
   }
 
@@ -228,7 +228,7 @@ static void node_geo_exec(GeoNodeExecParams params)
     }
   });
 
-  params.set_output("Grid", std::move(grid));
+  params.set_output("Grid"_ustr, std::move(grid));
 #else
   node_geo_exec_with_missing_openvdb(params);
 #endif

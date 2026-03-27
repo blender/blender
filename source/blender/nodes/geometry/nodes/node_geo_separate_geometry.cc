@@ -48,9 +48,9 @@ static void node_init(bNodeTree * /*tree*/, bNode *node)
 
 static void node_geo_exec(GeoNodeExecParams params)
 {
-  GeometrySet geometry_set = params.extract_input<GeometrySet>("Geometry");
+  GeometrySet geometry_set = params.extract_input<GeometrySet>("Geometry"_ustr);
 
-  const Field<bool> selection_field = params.extract_input<Field<bool>>("Selection");
+  const Field<bool> selection_field = params.extract_input<Field<bool>>("Selection"_ustr);
 
   const NodeGeometrySeparateGeometry &storage = node_storage(params.node());
   const AttrDomain domain = AttrDomain(storage.domain);
@@ -81,16 +81,16 @@ static void node_geo_exec(GeoNodeExecParams params)
   };
 
   GeometrySet second_set(geometry_set);
-  if (params.output_is_required("Selection")) {
+  if (params.output_is_required("Selection"_ustr)) {
     separate_geometry_maybe_recursively(
-        geometry_set, selection_field, params.get_attribute_filter("Selection"));
-    params.set_output("Selection", std::move(geometry_set));
+        geometry_set, selection_field, params.get_attribute_filter("Selection"_ustr));
+    params.set_output("Selection"_ustr, std::move(geometry_set));
   }
-  if (params.output_is_required("Inverted")) {
+  if (params.output_is_required("Inverted"_ustr)) {
     separate_geometry_maybe_recursively(second_set,
                                         fn::invert_boolean_field(selection_field),
-                                        params.get_attribute_filter("Inverted"));
-    params.set_output("Inverted", std::move(second_set));
+                                        params.get_attribute_filter("Inverted"_ustr));
+    params.set_output("Inverted"_ustr, std::move(second_set));
   }
 }
 

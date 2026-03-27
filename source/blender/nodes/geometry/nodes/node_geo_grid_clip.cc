@@ -102,18 +102,18 @@ static void node_gather_link_search_ops(GatherLinkSearchOpParams &params)
 static void node_geo_exec(GeoNodeExecParams params)
 {
 #ifdef WITH_OPENVDB
-  bke::GVolumeGrid grid = params.extract_input<bke::GVolumeGrid>("Grid");
+  bke::GVolumeGrid grid = params.extract_input<bke::GVolumeGrid>("Grid"_ustr);
   if (!grid) {
     params.set_default_remaining_outputs();
     return;
   }
 
-  const int3 min_index = int3(params.extract_input<int>("Min X"),
-                              params.extract_input<int>("Min Y"),
-                              params.extract_input<int>("Min Z"));
-  const int3 max_index = int3(params.extract_input<int>("Max X"),
-                              params.extract_input<int>("Max Y"),
-                              params.extract_input<int>("Max Z"));
+  const int3 min_index = int3(params.extract_input<int>("Min X"_ustr),
+                              params.extract_input<int>("Min Y"_ustr),
+                              params.extract_input<int>("Min Z"_ustr));
+  const int3 max_index = int3(params.extract_input<int>("Max X"_ustr),
+                              params.extract_input<int>("Max Y"_ustr),
+                              params.extract_input<int>("Max Z"_ustr));
 
   bke::VolumeTreeAccessToken tree_token;
   openvdb::GridBase &grid_base = grid.get_for_write().grid_for_write(tree_token);
@@ -130,7 +130,7 @@ static void node_geo_exec(GeoNodeExecParams params)
     typed_grid.clip(active_bbox);
   });
 
-  params.set_output("Grid", std::move(grid));
+  params.set_output("Grid"_ustr, std::move(grid));
 #else
   node_geo_exec_with_missing_openvdb(params);
 #endif

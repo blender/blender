@@ -22,7 +22,7 @@ static void node_declare(NodeDeclarationBuilder &b)
 
 static void node_geo_exec(GeoNodeExecParams params)
 {
-  GeometrySet geometry_set = params.extract_input<GeometrySet>("Geometry");
+  GeometrySet geometry_set = params.extract_input<GeometrySet>("Geometry"_ustr);
 
   GeometrySet meshes;
   GeometrySet curves;
@@ -65,12 +65,12 @@ static void node_geo_exec(GeoNodeExecParams params)
     instances.add(*geometry_set.get_component<InstancesComponent>());
   }
 
-  params.set_output("Mesh", meshes);
-  params.set_output("Curve", curves);
-  params.set_output("Grease Pencil", grease_pencil);
-  params.set_output("Point Cloud", pointclouds);
-  params.set_output("Volume", volumes);
-  params.set_output("Instances", instances);
+  params.set_output("Mesh"_ustr, meshes);
+  params.set_output("Curve"_ustr, curves);
+  params.set_output("Grease Pencil"_ustr, grease_pencil);
+  params.set_output("Point Cloud"_ustr, pointclouds);
+  params.set_output("Volume"_ustr, volumes);
+  params.set_output("Instances"_ustr, instances);
 }
 
 static void node_register()

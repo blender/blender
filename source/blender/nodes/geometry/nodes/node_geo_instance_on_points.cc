@@ -58,15 +58,15 @@ static std::unique_ptr<bke::Instances> add_instances_from_component(
   VArray<math::Quaternion> rotations;
   VArray<float3> scales;
 
-  const Field<bool> selection_field = params.get_input<Field<bool>>("Selection");
+  const Field<bool> selection_field = params.get_input<Field<bool>>("Selection"_ustr);
   fn::FieldEvaluator evaluator{field_context, domain_num};
   evaluator.set_selection(selection_field);
   /* The evaluator could use the component's stable IDs as a destination directly, but only the
    * selected indices should be copied. */
-  evaluator.add(params.get_input<Field<bool>>("Pick Instance"), &pick_instance);
-  evaluator.add(params.get_input<Field<int>>("Instance Index"), &indices);
-  evaluator.add(params.get_input<Field<math::Quaternion>>("Rotation"), &rotations);
-  evaluator.add(params.get_input<Field<float3>>("Scale"), &scales);
+  evaluator.add(params.get_input<Field<bool>>("Pick Instance"_ustr), &pick_instance);
+  evaluator.add(params.get_input<Field<int>>("Instance Index"_ustr), &indices);
+  evaluator.add(params.get_input<Field<math::Quaternion>>("Rotation"_ustr), &rotations);
+  evaluator.add(params.get_input<Field<float3>>("Scale"_ustr), &scales);
   evaluator.evaluate();
 
   const IndexMask selection = evaluator.get_evaluated_selection_as_mask();
@@ -190,10 +190,10 @@ static std::unique_ptr<bke::Instances> add_instances_from_component(
 
 static void node_geo_exec(GeoNodeExecParams params)
 {
-  GeometrySet geometry_set = params.extract_input<GeometrySet>("Points");
-  GeometrySet instance = params.get_input<GeometrySet>("Instance");
+  GeometrySet geometry_set = params.extract_input<GeometrySet>("Points"_ustr);
+  GeometrySet instance = params.get_input<GeometrySet>("Instance"_ustr);
   instance.ensure_owns_direct_data();
-  const NodeAttributeFilter &attribute_filter = params.get_attribute_filter("Instances");
+  const NodeAttributeFilter &attribute_filter = params.get_attribute_filter("Instances"_ustr);
 
   geometry::foreach_real_geometry(geometry_set, [&](GeometrySet &geometry_set) {
     Vector<bke::GeometrySet> component_instances;
@@ -274,7 +274,7 @@ static void node_geo_exec(GeoNodeExecParams params)
     instances->remove_unused_references();
   }
 
-  params.set_output("Instances", std::move(geometry_set));
+  params.set_output("Instances"_ustr, std::move(geometry_set));
 }
 
 static void node_register()

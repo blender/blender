@@ -86,22 +86,22 @@ static void node_gather_link_searches(GatherLinkSearchOpParams &params)
 
 static void node_geo_exec(GeoNodeExecParams params)
 {
-  GeometrySet geometry_set = params.extract_input<GeometrySet>("Geometry");
-  const std::string name = params.extract_input<std::string>("Name");
+  GeometrySet geometry_set = params.extract_input<GeometrySet>("Geometry"_ustr);
+  const std::string name = params.extract_input<std::string>("Name"_ustr);
 
   if (name.empty()) {
-    params.set_output("Geometry", std::move(geometry_set));
+    params.set_output("Geometry"_ustr, std::move(geometry_set));
     return;
   }
   if (!bke::allow_procedural_attribute_access(name)) {
     params.error_message_add(NodeWarningType::Info, TIP_(bke::no_procedural_access_message));
-    params.set_output("Geometry", std::move(geometry_set));
+    params.set_output("Geometry"_ustr, std::move(geometry_set));
     return;
   }
   if (bke::attribute_name_is_anonymous(name)) {
     params.error_message_add(NodeWarningType::Info,
                              TIP_("Anonymous attributes cannot be created here"));
-    params.set_output("Geometry", std::move(geometry_set));
+    params.set_output("Geometry"_ustr, std::move(geometry_set));
     return;
   }
 
@@ -112,9 +112,9 @@ static void node_geo_exec(GeoNodeExecParams params)
   const bke::AttrType data_type = *bke::custom_data_type_to_attr_type(cd_type);
   const AttrDomain domain = AttrDomain(storage.domain);
 
-  const Field<bool> selection = params.extract_input<Field<bool>>("Selection");
+  const Field<bool> selection = params.extract_input<Field<bool>>("Selection"_ustr);
 
-  GField field = params.extract_input<GField>("Value");
+  GField field = params.extract_input<GField>("Value"_ustr);
   if (ELEM(data_type,
            bke::AttrType::Float2,
            bke::AttrType::Float4,
@@ -189,7 +189,7 @@ static void node_geo_exec(GeoNodeExecParams params)
     params.error_message_add(NodeWarningType::Warning, message);
   }
 
-  params.set_output("Geometry", std::move(geometry_set));
+  params.set_output("Geometry"_ustr, std::move(geometry_set));
 }
 
 static void node_rna(StructRNA *srna)

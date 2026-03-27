@@ -211,30 +211,30 @@ static void node_geo_exec(GeoNodeExecParams params)
   const NodeGeometryCurveTrim &storage = node_storage(params.node());
   const GeometryNodeCurveSampleMode mode = GeometryNodeCurveSampleMode(storage.mode);
 
-  GeometrySet geometry_set = params.extract_input<GeometrySet>("Curve");
+  GeometrySet geometry_set = params.extract_input<GeometrySet>("Curve"_ustr);
   GeometryComponentEditData::remember_deformed_positions_if_necessary(geometry_set);
 
-  const NodeAttributeFilter &attribute_filter = params.get_attribute_filter("Curve");
+  const NodeAttributeFilter &attribute_filter = params.get_attribute_filter("Curve"_ustr);
 
-  Field<bool> selection_field = params.extract_input<Field<bool>>("Selection");
+  Field<bool> selection_field = params.extract_input<Field<bool>>("Selection"_ustr);
   if (mode == GEO_NODE_CURVE_SAMPLE_FACTOR) {
-    Field<float> start_field = params.extract_input<Field<float>>("Start");
-    Field<float> end_field = params.extract_input<Field<float>>("End");
+    Field<float> start_field = params.extract_input<Field<float>>("Start"_ustr);
+    Field<float> end_field = params.extract_input<Field<float>>("End"_ustr);
     geometry::foreach_real_geometry(geometry_set, [&](GeometrySet &geometry_set) {
       geometry_set_curve_trim(
           geometry_set, mode, selection_field, start_field, end_field, attribute_filter);
     });
   }
   else if (mode == GEO_NODE_CURVE_SAMPLE_LENGTH) {
-    Field<float> start_field = params.extract_input<Field<float>>("Start_001");
-    Field<float> end_field = params.extract_input<Field<float>>("End_001");
+    Field<float> start_field = params.extract_input<Field<float>>("Start_001"_ustr);
+    Field<float> end_field = params.extract_input<Field<float>>("End_001"_ustr);
     geometry::foreach_real_geometry(geometry_set, [&](GeometrySet &geometry_set) {
       geometry_set_curve_trim(
           geometry_set, mode, selection_field, start_field, end_field, attribute_filter);
     });
   }
 
-  params.set_output("Curve", std::move(geometry_set));
+  params.set_output("Curve"_ustr, std::move(geometry_set));
 }
 
 static void node_rna(StructRNA *srna)

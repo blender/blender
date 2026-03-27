@@ -25,7 +25,7 @@ static void node_declare(NodeDeclarationBuilder &b)
 static void node_geo_exec(GeoNodeExecParams params)
 {
   GeoNodesMultiInput<BundlePtr> bundles = params.extract_input<GeoNodesMultiInput<BundlePtr>>(
-      "Bundle");
+      "Bundle"_ustr);
 
   if (bundles.values.is_empty()) {
     params.set_default_remaining_outputs();
@@ -66,7 +66,7 @@ static void node_geo_exec(GeoNodeExecParams params)
     params.error_message_add(NodeWarningType::Info, std::move(message));
   }
 
-  params.set_output("Bundle", output_bundle);
+  params.set_output("Bundle"_ustr, output_bundle);
 }
 
 static void node_register()

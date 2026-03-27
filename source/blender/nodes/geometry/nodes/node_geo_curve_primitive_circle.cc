@@ -183,20 +183,20 @@ static void node_geo_exec(GeoNodeExecParams params)
   Curves *curves = nullptr;
   if (mode == GEO_NODE_CURVE_PRIMITIVE_CIRCLE_TYPE_POINTS) {
     float3 center_point;
-    curves = create_point_circle_curve(params.extract_input<float3>("Point 1"),
-                                       params.extract_input<float3>("Point 2"),
-                                       params.extract_input<float3>("Point 3"),
-                                       std::max(params.extract_input<int>("Resolution"), 3),
+    curves = create_point_circle_curve(params.extract_input<float3>("Point 1"_ustr),
+                                       params.extract_input<float3>("Point 2"_ustr),
+                                       params.extract_input<float3>("Point 3"_ustr),
+                                       std::max(params.extract_input<int>("Resolution"_ustr), 3),
                                        center_point);
-    params.set_output("Center", center_point);
+    params.set_output("Center"_ustr, center_point);
   }
   else if (mode == GEO_NODE_CURVE_PRIMITIVE_CIRCLE_TYPE_RADIUS) {
-    curves = create_radius_circle_curve(std::max(params.extract_input<int>("Resolution"), 3),
-                                        params.extract_input<float>("Radius"));
+    curves = create_radius_circle_curve(std::max(params.extract_input<int>("Resolution"_ustr), 3),
+                                        params.extract_input<float>("Radius"_ustr));
   }
 
   if (curves) {
-    params.set_output("Curve", GeometrySet::from_curves(curves));
+    params.set_output("Curve"_ustr, GeometrySet::from_curves(curves));
   }
   else {
     params.set_default_remaining_outputs();

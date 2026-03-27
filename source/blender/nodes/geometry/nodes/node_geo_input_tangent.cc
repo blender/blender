@@ -124,7 +124,7 @@ class TangentFieldInput final : public bke::CurvesFieldInput {
 static void node_geo_exec(GeoNodeExecParams params)
 {
   Field<float3> tangent_field{std::make_shared<TangentFieldInput>()};
-  params.set_output("Tangent", std::move(tangent_field));
+  params.set_output("Tangent"_ustr, std::move(tangent_field));
 }
 
 static void node_register()

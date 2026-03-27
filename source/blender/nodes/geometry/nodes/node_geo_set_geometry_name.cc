@@ -17,10 +17,10 @@ static void node_declare(NodeDeclarationBuilder &b)
 
 static void node_geo_exec(GeoNodeExecParams params)
 {
-  GeometrySet geometry_set = params.extract_input<GeometrySet>("Geometry");
-  std::string name = params.extract_input<std::string>("Name");
+  GeometrySet geometry_set = params.extract_input<GeometrySet>("Geometry"_ustr);
+  std::string name = params.extract_input<std::string>("Name"_ustr);
   geometry_set.name = std::move(name);
-  params.set_output("Geometry", std::move(geometry_set));
+  params.set_output("Geometry"_ustr, std::move(geometry_set));
 }
 
 static void node_register()

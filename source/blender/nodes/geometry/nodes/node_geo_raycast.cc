@@ -231,8 +231,8 @@ class RaycastFunction : public mf::MultiFunction {
 
 static void node_geo_exec(GeoNodeExecParams params)
 {
-  GeometrySet target = params.extract_input<GeometrySet>("Target Geometry");
-  const auto mapping = params.get_input<GeometryNodeRaycastMapMode>("Interpolation");
+  GeometrySet target = params.extract_input<GeometrySet>("Target Geometry"_ustr);
+  const auto mapping = params.get_input<GeometryNodeRaycastMapMode>("Interpolation"_ustr);
 
   if (target.is_empty()) {
     params.set_default_remaining_outputs();
@@ -254,7 +254,7 @@ static void node_geo_exec(GeoNodeExecParams params)
 
   bke::SocketValueVariant normalized_direction;
   {
-    auto ray_direction = params.extract_input<bke::SocketValueVariant>("Ray Direction");
+    auto ray_direction = params.extract_input<bke::SocketValueVariant>("Ray Direction"_ustr);
 
     static const mf::MultiFunction &normalize_fn = fn::multi_function::registry::lookup(
         "normalize(float3)"_ustr);
@@ -270,8 +270,8 @@ static void node_geo_exec(GeoNodeExecParams params)
     }
   }
 
-  auto position = params.extract_input<bke::SocketValueVariant>("Source Position");
-  auto ray_length = params.extract_input<bke::SocketValueVariant>("Ray Length");
+  auto position = params.extract_input<bke::SocketValueVariant>("Source Position"_ustr);
+  auto ray_length = params.extract_input<bke::SocketValueVariant>("Ray Length"_ustr);
 
   bke::SocketValueVariant is_hit;
   bke::SocketValueVariant hit_position;
@@ -290,16 +290,16 @@ static void node_geo_exec(GeoNodeExecParams params)
     return;
   }
 
-  params.set_output("Is Hit", std::move(is_hit));
-  params.set_output("Hit Position", hit_position);
-  params.set_output("Hit Normal", std::move(hit_normal));
-  params.set_output("Hit Distance", std::move(hit_distance));
+  params.set_output("Is Hit"_ustr, std::move(is_hit));
+  params.set_output("Hit Position"_ustr, hit_position);
+  params.set_output("Hit Normal"_ustr, std::move(hit_normal));
+  params.set_output("Hit Distance"_ustr, std::move(hit_distance));
 
-  if (!params.output_is_required("Attribute")) {
+  if (!params.output_is_required("Attribute"_ustr)) {
     return;
   }
 
-  GField field = params.extract_input<GField>("Attribute");
+  GField field = params.extract_input<GField>("Attribute"_ustr);
   bke::SocketValueVariant triangle_index_copy = triangle_index;
   switch (mapping) {
     case GEO_NODE_RAYCAST_INTERPOLATED: {
@@ -328,7 +328,7 @@ static void node_geo_exec(GeoNodeExecParams params)
         params.error_message_add(NodeWarningType::Error, std::move(error_message));
         return;
       }
-      params.set_output("Attribute", std::move(sampled_atribute));
+      params.set_output("Attribute"_ustr, std::move(sampled_atribute));
       break;
     }
     case GEO_NODE_RAYCAST_NEAREST: {
@@ -357,7 +357,7 @@ static void node_geo_exec(GeoNodeExecParams params)
         params.error_message_add(NodeWarningType::Error, std::move(error_message));
         return;
       }
-      params.set_output("Attribute", std::move(sampled_atribute));
+      params.set_output("Attribute"_ustr, std::move(sampled_atribute));
       break;
     }
   }

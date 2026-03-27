@@ -86,10 +86,10 @@ static void assign_material_to_id_geometry(ID *id,
 
 static void node_geo_exec(GeoNodeExecParams params)
 {
-  Material *material = params.extract_input<Material *>("Material");
-  const Field<bool> selection_field = params.extract_input<Field<bool>>("Selection");
+  Material *material = params.extract_input<Material *>("Material"_ustr);
+  const Field<bool> selection_field = params.extract_input<Field<bool>>("Selection"_ustr);
 
-  GeometrySet geometry_set = params.extract_input<GeometrySet>("Geometry");
+  GeometrySet geometry_set = params.extract_input<GeometrySet>("Geometry"_ustr);
 
   /* Only add the warnings once, even if there are many unique instances. */
   bool no_faces_warning = false;
@@ -180,7 +180,7 @@ static void node_geo_exec(GeoNodeExecParams params)
         TIP_("Curves only support a single material; selection input cannot be a field"));
   }
 
-  params.set_output("Geometry", std::move(geometry_set));
+  params.set_output("Geometry"_ustr, std::move(geometry_set));
 }
 
 static void node_register()

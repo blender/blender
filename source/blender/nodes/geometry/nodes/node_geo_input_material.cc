@@ -20,7 +20,7 @@ static void node_declare(NodeDeclarationBuilder &b)
 static void node_geo_exec(GeoNodeExecParams params)
 {
   Material *material = reinterpret_cast<Material *>(params.node().id);
-  params.set_output("Material", material);
+  params.set_output("Material"_ustr, material);
 }
 
 static void node_register()

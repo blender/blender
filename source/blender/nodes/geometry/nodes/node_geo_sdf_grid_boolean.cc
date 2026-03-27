@@ -86,7 +86,7 @@ static void node_geo_exec(GeoNodeExecParams params)
 #ifdef WITH_OPENVDB
   const Operation operation = Operation(params.node().custom1);
 
-  auto grids = params.extract_input<GeoNodesMultiInput<bke::VolumeGrid<float>>>("Grid 2");
+  auto grids = params.extract_input<GeoNodesMultiInput<bke::VolumeGrid<float>>>("Grid 2"_ustr);
   Vector<bke::VolumeGrid<float>> operands;
   switch (operation) {
     case Operation::Intersect:
@@ -94,7 +94,7 @@ static void node_geo_exec(GeoNodeExecParams params)
       operands.extend(grids.values);
       break;
     case Operation::Difference:
-      if (auto grid = params.extract_input<bke::VolumeGrid<float>>("Grid 1")) {
+      if (auto grid = params.extract_input<bke::VolumeGrid<float>>("Grid 1"_ustr)) {
         operands.append(std::move(grid));
       }
       operands.extend(grids.values);
@@ -137,7 +137,7 @@ static void node_geo_exec(GeoNodeExecParams params)
   }
   operands.first()->tag_tree_modified();
 
-  params.set_output("Grid", std::move(operands.first()));
+  params.set_output("Grid"_ustr, std::move(operands.first()));
 #else
   node_geo_exec_with_missing_openvdb(params);
 #endif

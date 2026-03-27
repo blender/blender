@@ -81,7 +81,7 @@ static void node_geo_exec(GeoNodeExecParams params)
   const NodeGeometryInputNamedAttribute &storage = node_storage(params.node());
   const eCustomDataType data_type = eCustomDataType(storage.data_type);
 
-  std::string name = params.extract_input<std::string>("Name");
+  std::string name = params.extract_input<std::string>("Name"_ustr);
 
   if (name.empty()) {
     params.set_default_remaining_outputs();
@@ -103,8 +103,8 @@ static void node_geo_exec(GeoNodeExecParams params)
 
   const CPPType &type = *bke::custom_data_type_to_cpp_type(data_type);
 
-  params.set_output<GField>("Attribute", AttributeFieldInput::from(name, type));
-  params.set_output("Exists", bke::AttributeExistsFieldInput::from(std::move(name)));
+  params.set_output<GField>("Attribute"_ustr, AttributeFieldInput::from(name, type));
+  params.set_output("Exists"_ustr, bke::AttributeExistsFieldInput::from(std::move(name)));
 }
 
 static void node_rna(StructRNA *srna)

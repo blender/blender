@@ -187,7 +187,7 @@ class SampleNearestSurfaceFunction : public mf::MultiFunction {
 
 static void node_geo_exec(GeoNodeExecParams params)
 {
-  GeometrySet geometry = params.extract_input<GeometrySet>("Mesh");
+  GeometrySet geometry = params.extract_input<GeometrySet>("Mesh"_ustr);
   const Mesh *mesh = geometry.get_mesh();
   if (mesh == nullptr) {
     params.set_default_remaining_outputs();
@@ -203,10 +203,10 @@ static void node_geo_exec(GeoNodeExecParams params)
     return;
   }
 
-  GField value = params.extract_input<GField>("Value");
-  Field<int> group_id_field = params.extract_input<Field<int>>("Group ID");
-  auto sample_position = params.extract_input<bke::SocketValueVariant>("Sample Position");
-  auto sample_group_id = params.extract_input<bke::SocketValueVariant>("Sample Group ID");
+  GField value = params.extract_input<GField>("Value"_ustr);
+  Field<int> group_id_field = params.extract_input<Field<int>>("Group ID"_ustr);
+  auto sample_position = params.extract_input<bke::SocketValueVariant>("Sample Position"_ustr);
+  auto sample_group_id = params.extract_input<bke::SocketValueVariant>("Sample Group ID"_ustr);
 
   std::string error_message;
 
@@ -253,8 +253,8 @@ static void node_geo_exec(GeoNodeExecParams params)
     return;
   }
 
-  params.set_output("Value", std::move(sample_value));
-  params.set_output("Is Valid", std::move(is_valid));
+  params.set_output("Value"_ustr, std::move(sample_value));
+  params.set_output("Is Valid"_ustr, std::move(is_valid));
 }
 
 static void node_rna(StructRNA *srna)

@@ -127,7 +127,7 @@ static void node_geo_exec(GeoNodeExecParams params)
   const GeometryNodeCurveHandleMode mode = (GeometryNodeCurveHandleMode)storage.mode;
 
   Field<bool> selection_field{std::make_shared<HandleTypeFieldInput>(handle_type, mode)};
-  params.set_output("Selection", std::move(selection_field));
+  params.set_output("Selection"_ustr, std::move(selection_field));
 }
 
 static void node_register()

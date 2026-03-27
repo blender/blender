@@ -60,7 +60,7 @@ struct InstanceListEntry {
 
 static void node_geo_exec(GeoNodeExecParams params)
 {
-  Collection *collection = params.extract_input<Collection *>("Collection");
+  Collection *collection = params.extract_input<Collection *>("Collection"_ustr);
 
   if (collection == nullptr) {
     params.set_default_remaining_outputs();
@@ -89,9 +89,9 @@ static void node_geo_exec(GeoNodeExecParams params)
 
   std::unique_ptr<bke::Instances> instances = std::make_unique<bke::Instances>();
 
-  const bool separate_children = params.extract_input<bool>("Separate Children");
+  const bool separate_children = params.extract_input<bool>("Separate Children"_ustr);
   if (separate_children) {
-    const bool reset_children = params.extract_input<bool>("Reset Children");
+    const bool reset_children = params.extract_input<bool>("Reset Children"_ustr);
     Vector<Collection *> children_collections;
     for (CollectionChild &collection_child : collection->children) {
       children_collections.append(collection_child.collection);
@@ -159,7 +159,7 @@ static void node_geo_exec(GeoNodeExecParams params)
   GeometrySet geometry = GeometrySet::from_instances(std::move(instances));
   geometry.name = collection->id.name + 2;
 
-  params.set_output("Instances", std::move(geometry));
+  params.set_output("Instances"_ustr, std::move(geometry));
 }
 
 static void node_rna(StructRNA *srna)

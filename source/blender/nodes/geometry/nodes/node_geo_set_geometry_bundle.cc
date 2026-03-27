@@ -26,10 +26,10 @@ static void node_geo_exec(GeoNodeExecParams params)
     params.set_default_remaining_outputs();
     return;
   }
-  GeometrySet geometry_set = params.extract_input<GeometrySet>("Geometry");
-  BundlePtr bundle = params.extract_input<BundlePtr>("Bundle");
+  GeometrySet geometry_set = params.extract_input<GeometrySet>("Geometry"_ustr);
+  BundlePtr bundle = params.extract_input<BundlePtr>("Bundle"_ustr);
   geometry_set.bundle_ptr() = bundle;
-  params.set_output("Geometry", std::move(geometry_set));
+  params.set_output("Geometry"_ustr, std::move(geometry_set));
 }
 
 static void node_gather_link_searches(GatherLinkSearchOpParams &params)

@@ -74,7 +74,7 @@ static void initialize_volume_component_from_points(GeoNodeExecParams &params,
 {
   Vector<float3> positions;
   Vector<float> radii;
-  Field<float> radius_field = params.get_input<Field<float>>("Radius");
+  Field<float> radius_field = params.get_input<Field<float>>("Radius"_ustr);
 
   for (const GeometryComponent::Type type : {GeometryComponent::Type::Mesh,
                                              GeometryComponent::Type::PointCloud,
@@ -91,14 +91,14 @@ static void initialize_volume_component_from_points(GeoNodeExecParams &params,
   }
 
   const auto resolution_mode = params.get_input<GeometryNodePointsToVolumeResolutionMode>(
-      "Resolution Mode");
+      "Resolution Mode"_ustr);
 
   float voxel_size = 0.0f;
   if (resolution_mode == GEO_NODE_POINTS_TO_VOLUME_RESOLUTION_MODE_SIZE) {
-    voxel_size = params.get_input<float>("Voxel Size");
+    voxel_size = params.get_input<float>("Voxel Size"_ustr);
   }
   else if (resolution_mode == GEO_NODE_POINTS_TO_VOLUME_RESOLUTION_MODE_AMOUNT) {
-    const float voxel_amount = params.get_input<float>("Voxel Amount");
+    const float voxel_amount = params.get_input<float>("Voxel Amount"_ustr);
     const float max_radius = *std::max_element(radii.begin(), radii.end());
     voxel_size = compute_voxel_size_from_amount(voxel_amount, positions, max_radius);
   }
@@ -112,7 +112,7 @@ static void initialize_volume_component_from_points(GeoNodeExecParams &params,
 
   Volume *volume = BKE_id_new_nomain<Volume>(nullptr);
 
-  const float density = params.get_input<float>("Density");
+  const float density = params.get_input<float>("Density"_ustr);
   geometry::fog_volume_grid_add_from_points(
       volume, "density", positions, radii, voxel_size, density);
 
@@ -175,11 +175,11 @@ static void node_init(bNodeTree * /*tree*/, bNode *node)
 static void node_geo_exec(GeoNodeExecParams params)
 {
 #ifdef WITH_OPENVDB
-  GeometrySet geometry_set = params.extract_input<GeometrySet>("Points");
+  GeometrySet geometry_set = params.extract_input<GeometrySet>("Points"_ustr);
   geometry::foreach_real_geometry(geometry_set, [&](GeometrySet &geometry_set) {
     initialize_volume_component_from_points(params, geometry_set);
   });
-  params.set_output("Volume", std::move(geometry_set));
+  params.set_output("Volume"_ustr, std::move(geometry_set));
 #else
   node_geo_exec_with_missing_openvdb(params);
 #endif

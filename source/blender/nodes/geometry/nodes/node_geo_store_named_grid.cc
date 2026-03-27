@@ -80,9 +80,9 @@ static void node_init(bNodeTree * /*tree*/, bNode *node)
 
 static void try_store_grid(GeoNodeExecParams params, Volume &volume)
 {
-  const std::string grid_name = params.extract_input<std::string>("Name");
+  const std::string grid_name = params.extract_input<std::string>("Name"_ustr);
 
-  bke::GVolumeGrid grid = params.extract_input<bke::GVolumeGrid>("Grid");
+  bke::GVolumeGrid grid = params.extract_input<bke::GVolumeGrid>("Grid"_ustr);
   if (!grid) {
     return;
   }
@@ -97,7 +97,7 @@ static void try_store_grid(GeoNodeExecParams params, Volume &volume)
 
 static void node_geo_exec(GeoNodeExecParams params)
 {
-  GeometrySet geometry_set = params.extract_input<GeometrySet>("Volume");
+  GeometrySet geometry_set = params.extract_input<GeometrySet>("Volume"_ustr);
   Volume *volume = geometry_set.get_volume_for_write();
   if (!volume) {
     volume = BKE_id_new_nomain<Volume>("Store Named Grid Output");
@@ -106,7 +106,7 @@ static void node_geo_exec(GeoNodeExecParams params)
 
   try_store_grid(params, *volume);
 
-  params.set_output("Volume", geometry_set);
+  params.set_output("Volume"_ustr, geometry_set);
 }
 
 #else /* WITH_OPENVDB */

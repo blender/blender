@@ -97,15 +97,15 @@ class PointIndexInCurveInput final : public bke::CurvesFieldInput {
 
 static void node_geo_exec(GeoNodeExecParams params)
 {
-  const Field<int> point_index = params.extract_input<Field<int>>("Point Index");
-  if (params.output_is_required("Curve Index")) {
+  const Field<int> point_index = params.extract_input<Field<int>>("Point Index"_ustr);
+  if (params.output_is_required("Curve Index"_ustr)) {
     params.set_output(
-        "Curve Index",
+        "Curve Index"_ustr,
         Field<int>(std::make_shared<bke::EvaluateAtIndexInput>(
             point_index, Field<int>(std::make_shared<CurveOfPointInput>()), AttrDomain::Point)));
   }
-  if (params.output_is_required("Index in Curve")) {
-    params.set_output("Index in Curve",
+  if (params.output_is_required("Index in Curve"_ustr)) {
+    params.set_output("Index in Curve"_ustr,
                       Field<int>(std::make_shared<bke::EvaluateAtIndexInput>(
                           point_index,
                           Field<int>(std::make_shared<PointIndexInCurveInput>()),

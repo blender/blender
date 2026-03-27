@@ -23,10 +23,10 @@ static void node_geo_exec(GeoNodeExecParams params)
   }
   const int2 mouse = params.user_data()->call_data->operator_data->mouse_position;
   const int2 size = params.user_data()->call_data->operator_data->region_size;
-  params.set_output("Mouse X", mouse.x);
-  params.set_output("Mouse Y", mouse.y);
-  params.set_output("Region Width", size.x);
-  params.set_output("Region Height", size.y);
+  params.set_output("Mouse X"_ustr, mouse.x);
+  params.set_output("Mouse Y"_ustr, mouse.y);
+  params.set_output("Region Width"_ustr, size.x);
+  params.set_output("Region Height"_ustr, size.y);
 }
 
 static void node_register()

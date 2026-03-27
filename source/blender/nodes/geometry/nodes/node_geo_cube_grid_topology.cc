@@ -60,15 +60,15 @@ static void node_geo_exec(GeoNodeExecParams params)
 
   auto openvdb_grid = GridType::create(false /* background */);
 
-  const int3 grid_min_inclusive = int3(params.extract_input<int>("Min X"),
-                                       params.extract_input<int>("Min Y"),
-                                       params.extract_input<int>("Min Z"));
-  const int3 resolution = int3(params.extract_input<int>("Resolution X"),
-                               params.extract_input<int>("Resolution Y"),
-                               params.extract_input<int>("Resolution Z"));
+  const int3 grid_min_inclusive = int3(params.extract_input<int>("Min X"_ustr),
+                                       params.extract_input<int>("Min Y"_ustr),
+                                       params.extract_input<int>("Min Z"_ustr));
+  const int3 resolution = int3(params.extract_input<int>("Resolution X"_ustr),
+                               params.extract_input<int>("Resolution Y"_ustr),
+                               params.extract_input<int>("Resolution Z"_ustr));
 
-  const float3 bounds_min = params.extract_input<float3>("Bounds Min");
-  const float3 bounds_max = params.extract_input<float3>("Bounds Max");
+  const float3 bounds_min = params.extract_input<float3>("Bounds Min"_ustr);
+  const float3 bounds_max = params.extract_input<float3>("Bounds Max"_ustr);
 
   if (resolution.x <= 0 || resolution.y <= 0 || resolution.z <= 0) {
     params.error_message_add(NodeWarningType::Warning, TIP_("Resolution must be positive"));
@@ -104,7 +104,7 @@ static void node_geo_exec(GeoNodeExecParams params)
       openvdb::math::Vec3d(translation.x, translation.y, translation.z));
 
   bke::VolumeGrid<bool> topology_grid(std::move(openvdb_grid));
-  params.set_output("Topology", bke::GVolumeGrid(std::move(topology_grid)));
+  params.set_output("Topology"_ustr, bke::GVolumeGrid(std::move(topology_grid)));
 #else
   node_geo_exec_with_missing_openvdb(params);
 #endif

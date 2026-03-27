@@ -176,7 +176,8 @@ static void point_scatter_density_grid(const openvdb::FloatGrid &grid,
 static void node_geo_exec(GeoNodeExecParams params)
 {
 #ifdef WITH_OPENVDB
-  const bke::VolumeGrid<float> volume_grid = params.extract_input<bke::VolumeGrid<float>>("Grid");
+  const bke::VolumeGrid<float> volume_grid = params.extract_input<bke::VolumeGrid<float>>(
+      "Grid"_ustr);
   if (!volume_grid) {
     params.set_default_remaining_outputs();
     return;
@@ -197,12 +198,12 @@ static void node_geo_exec(GeoNodeExecParams params)
   float3 spacing{0, 0, 0};
   float threshold;
   if (mode == DistributeMode::Random) {
-    density = params.extract_input<float>("Density");
-    seed = params.extract_input<int>("Seed");
+    density = params.extract_input<float>("Density"_ustr);
+    seed = params.extract_input<int>("Seed"_ustr);
   }
   else if (mode == DistributeMode::Grid) {
-    spacing = params.extract_input<float3>("Spacing");
-    threshold = params.extract_input<float>("Threshold");
+    spacing = params.extract_input<float3>("Spacing"_ustr);
+    threshold = params.extract_input<float>("Threshold"_ustr);
   }
 
   Vector<float3> positions;
@@ -220,7 +221,7 @@ static void node_geo_exec(GeoNodeExecParams params)
 
   geometry::debug_randomize_point_order(pointcloud);
 
-  params.set_output("Points", GeometrySet::from_pointcloud(pointcloud));
+  params.set_output("Points"_ustr, GeometrySet::from_pointcloud(pointcloud));
 #else
   node_geo_exec_with_missing_openvdb(params);
 #endif

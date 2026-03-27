@@ -380,23 +380,23 @@ static void node_geo_exec(GeoNodeExecParams params)
   const NodeAccumulateField &storage = node_storage(params.node());
   const AttrDomain source_domain = AttrDomain(storage.domain);
 
-  const Field<int> group_index_field = params.extract_input<Field<int>>("Group Index");
-  const GField input_field = params.extract_input<GField>("Value");
-  if (params.output_is_required("Leading")) {
+  const Field<int> group_index_field = params.extract_input<Field<int>>("Group Index"_ustr);
+  const GField input_field = params.extract_input<GField>("Value"_ustr);
+  if (params.output_is_required("Leading"_ustr)) {
     params.set_output<GField>(
-        "Leading",
+        "Leading"_ustr,
         GField{std::make_shared<AccumulateFieldInput>(
             source_domain, input_field, group_index_field, AccumulationMode::Leading)});
   }
-  if (params.output_is_required("Trailing")) {
+  if (params.output_is_required("Trailing"_ustr)) {
     params.set_output<GField>(
-        "Trailing",
+        "Trailing"_ustr,
         GField{std::make_shared<AccumulateFieldInput>(
             source_domain, input_field, group_index_field, AccumulationMode::Trailing)});
   }
-  if (params.output_is_required("Total")) {
+  if (params.output_is_required("Total"_ustr)) {
     params.set_output<GField>(
-        "Total",
+        "Total"_ustr,
         GField{std::make_shared<TotalFieldInput>(source_domain, input_field, group_index_field)});
   }
 }

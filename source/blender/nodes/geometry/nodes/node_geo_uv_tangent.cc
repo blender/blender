@@ -224,9 +224,9 @@ class TangentFieldInput final : public bke::MeshFieldInput {
 
 static void node_geo_exec(GeoNodeExecParams params)
 {
-  const Method method = params.extract_input<Method>("Method");
-  Field<float3> uv_field = params.extract_input<Field<float3>>("UV");
-  params.set_output("Tangent",
+  const Method method = params.extract_input<Method>("Method"_ustr);
+  Field<float3> uv_field = params.extract_input<Field<float3>>("UV"_ustr);
+  params.set_output("Tangent"_ustr,
                     Field<float3>(std::make_shared<TangentFieldInput>(method, uv_field)));
 }
 

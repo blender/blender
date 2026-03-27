@@ -27,7 +27,7 @@ static void node_declare(NodeDeclarationBuilder &b)
 
 static void node_geo_exec(GeoNodeExecParams params)
 {
-  params.set_output("Image", reinterpret_cast<Image *>(params.node().id));
+  params.set_output("Image"_ustr, reinterpret_cast<Image *>(params.node().id));
 }
 
 static void node_register()

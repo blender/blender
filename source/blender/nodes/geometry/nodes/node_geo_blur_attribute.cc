@@ -455,13 +455,13 @@ class BlurAttributeFieldInput final : public bke::GeometryFieldInput {
 
 static void node_geo_exec(GeoNodeExecParams params)
 {
-  const int iterations = params.extract_input<int>("Iterations");
-  Field<float> weight_field = params.extract_input<Field<float>>("Weight");
+  const int iterations = params.extract_input<int>("Iterations"_ustr);
+  Field<float> weight_field = params.extract_input<Field<float>>("Weight"_ustr);
 
-  GField value_field = params.extract_input<GField>("Value");
+  GField value_field = params.extract_input<GField>("Value"_ustr);
   GField output_field{std::make_shared<BlurAttributeFieldInput>(
       std::move(weight_field), std::move(value_field), iterations)};
-  params.set_output<GField>("Value", std::move(output_field));
+  params.set_output<GField>("Value"_ustr, std::move(output_field));
 }
 
 static void node_rna(StructRNA *srna)

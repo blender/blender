@@ -102,7 +102,7 @@ static void node_gather_link_search_ops(GatherLinkSearchOpParams &params)
 
 static void node_geo_exec(GeoNodeExecParams params)
 {
-  const int count = params.extract_input<int>("Count");
+  const int count = params.extract_input<int>("Count"_ustr);
   if (count < 0) {
     params.error_message_add(NodeWarningType::Error, "Count must not be negative");
     params.set_default_remaining_outputs();
@@ -113,7 +113,9 @@ static void node_geo_exec(GeoNodeExecParams params)
 
   Vector<int> required_items;
   for (const int i : items.index_range()) {
-    if (params.output_is_required(ItemsAccessor::output_socket_identifier_for_item(items[i]))) {
+    if (params.output_is_required(
+            UString(ItemsAccessor::output_socket_identifier_for_item(items[i]))))
+    {
       required_items.append(i);
     }
   }
@@ -122,7 +124,7 @@ static void node_geo_exec(GeoNodeExecParams params)
   for (const int i : required_items.index_range()) {
     const int item_i = required_items[i];
     const std::string identifier = ItemsAccessor::input_socket_identifier_for_item(items[item_i]);
-    fields[i] = params.extract_input<fn::GField>(identifier);
+    fields[i] = params.extract_input<fn::GField>(UString(identifier));
   }
 
   Vector<ListPtr> lists(required_items.size());
@@ -154,7 +156,7 @@ static void node_geo_exec(GeoNodeExecParams params)
   for (const int i : required_items.index_range()) {
     const int item_i = required_items[i];
     const std::string identifier = ItemsAccessor::output_socket_identifier_for_item(items[item_i]);
-    params.set_output(identifier, std::move(lists[i]));
+    params.set_output(UString(identifier), std::move(lists[i]));
   }
 }
 

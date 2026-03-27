@@ -311,32 +311,32 @@ static void node_geo_exec(GeoNodeExecParams params)
       float3 center, normal;
       float radius;
       Curves *curves = create_arc_curve_from_points(
-          std::max(params.extract_input<int>("Resolution"), 2),
-          params.extract_input<float3>("Start"),
-          params.extract_input<float3>("Middle"),
-          params.extract_input<float3>("End"),
-          params.extract_input<float>("Offset Angle"),
-          params.extract_input<bool>("Connect Center"),
-          params.extract_input<bool>("Invert Arc"),
+          std::max(params.extract_input<int>("Resolution"_ustr), 2),
+          params.extract_input<float3>("Start"_ustr),
+          params.extract_input<float3>("Middle"_ustr),
+          params.extract_input<float3>("End"_ustr),
+          params.extract_input<float>("Offset Angle"_ustr),
+          params.extract_input<bool>("Connect Center"_ustr),
+          params.extract_input<bool>("Invert Arc"_ustr),
           center,
           normal,
           radius);
-      params.set_output("Curve", GeometrySet::from_curves(curves));
-      params.set_output("Center", center);
-      params.set_output("Normal", normal);
-      params.set_output("Radius", radius);
+      params.set_output("Curve"_ustr, GeometrySet::from_curves(curves));
+      params.set_output("Center"_ustr, center);
+      params.set_output("Normal"_ustr, normal);
+      params.set_output("Radius"_ustr, radius);
       break;
     }
     case GEO_NODE_CURVE_PRIMITIVE_ARC_TYPE_RADIUS: {
       Curves *curves = create_arc_curve_from_radius(
-          std::max(params.extract_input<int>("Resolution"), 2),
-          params.extract_input<float>("Radius"),
-          params.extract_input<float>("Start Angle"),
-          params.extract_input<float>("Sweep Angle"),
-          params.extract_input<bool>("Connect Center"),
-          params.extract_input<bool>("Invert Arc"));
+          std::max(params.extract_input<int>("Resolution"_ustr), 2),
+          params.extract_input<float>("Radius"_ustr),
+          params.extract_input<float>("Start Angle"_ustr),
+          params.extract_input<float>("Sweep Angle"_ustr),
+          params.extract_input<bool>("Connect Center"_ustr),
+          params.extract_input<bool>("Invert Arc"_ustr));
 
-      params.set_output("Curve", GeometrySet::from_curves(curves));
+      params.set_output("Curve"_ustr, GeometrySet::from_curves(curves));
       break;
     }
   }

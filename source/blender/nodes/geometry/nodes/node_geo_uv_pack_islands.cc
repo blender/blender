@@ -210,16 +210,16 @@ class PackIslandsFieldInput final : public bke::MeshFieldInput {
 
 static void node_geo_exec(GeoNodeExecParams params)
 {
-  const ShapeMethod local_shape_method = params.get_input<ShapeMethod>("Method");
+  const ShapeMethod local_shape_method = params.get_input<ShapeMethod>("Method"_ustr);
   const eUVPackIsland_ShapeMethod shape_method = convert_shape_method(local_shape_method);
 
-  const Field<bool> selection_field = params.extract_input<Field<bool>>("Selection");
-  const Field<float3> uv_field = params.extract_input<Field<float3>>("UV");
-  const bool rotate = params.extract_input<bool>("Rotate");
-  const float margin = params.extract_input<float>("Margin");
-  const float3 bottom = params.extract_input<float3>("Bottom Left");
-  const float3 top = params.extract_input<float3>("Top Right");
-  params.set_output("UV",
+  const Field<bool> selection_field = params.extract_input<Field<bool>>("Selection"_ustr);
+  const Field<float3> uv_field = params.extract_input<Field<float3>>("UV"_ustr);
+  const bool rotate = params.extract_input<bool>("Rotate"_ustr);
+  const float margin = params.extract_input<float>("Margin"_ustr);
+  const float3 bottom = params.extract_input<float3>("Bottom Left"_ustr);
+  const float3 top = params.extract_input<float3>("Top Right"_ustr);
+  params.set_output("UV"_ustr,
                     Field<float3>(std::make_shared<PackIslandsFieldInput>(
                         selection_field, uv_field, rotate, margin, shape_method, bottom, top)));
 }

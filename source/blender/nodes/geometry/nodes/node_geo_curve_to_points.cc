@@ -200,26 +200,26 @@ static void node_geo_exec(GeoNodeExecParams params)
 {
   const NodeGeometryCurveToPoints &storage = node_storage(params.node());
   const GeometryNodeCurveResampleMode mode = GeometryNodeCurveResampleMode(storage.mode);
-  GeometrySet geometry_set = params.extract_input<GeometrySet>("Curve");
+  GeometrySet geometry_set = params.extract_input<GeometrySet>("Curve"_ustr);
 
   GeometryComponentEditData::remember_deformed_positions_if_necessary(geometry_set);
 
   std::optional<std::string> rotation_anonymous_id =
-      params.get_output_anonymous_attribute_id_if_needed("Rotation");
+      params.get_output_anonymous_attribute_id_if_needed("Rotation"_ustr);
   const bool need_tangent_and_normal = bool(rotation_anonymous_id);
   std::optional<std::string> tangent_anonymous_id =
-      params.get_output_anonymous_attribute_id_if_needed("Tangent", need_tangent_and_normal);
+      params.get_output_anonymous_attribute_id_if_needed("Tangent"_ustr, need_tangent_and_normal);
   std::optional<std::string> normal_anonymous_id =
-      params.get_output_anonymous_attribute_id_if_needed("Normal", need_tangent_and_normal);
+      params.get_output_anonymous_attribute_id_if_needed("Normal"_ustr, need_tangent_and_normal);
 
   geometry::ResampleCurvesOutputAttributeIDs resample_attributes;
   resample_attributes.tangent_id = tangent_anonymous_id;
   resample_attributes.normal_id = normal_anonymous_id;
-  const NodeAttributeFilter &attribute_filter = params.get_attribute_filter("Points");
+  const NodeAttributeFilter &attribute_filter = params.get_attribute_filter("Points"_ustr);
 
   switch (mode) {
     case GEO_NODE_CURVE_RESAMPLE_COUNT: {
-      const Field<int> count = params.extract_input<Field<int>>("Count");
+      const Field<int> count = params.extract_input<Field<int>>("Count"_ustr);
       geometry::foreach_real_geometry(geometry_set, [&](GeometrySet &geometry) {
         if (const Curves *src_curves_id = geometry.get_curves()) {
           bke::CurvesGeometry dst_curves = geometry::resample_to_count(
@@ -258,7 +258,7 @@ static void node_geo_exec(GeoNodeExecParams params)
       break;
     }
     case GEO_NODE_CURVE_RESAMPLE_LENGTH: {
-      const Field<float> length = params.extract_input<Field<float>>("Length");
+      const Field<float> length = params.extract_input<Field<float>>("Length"_ustr);
       geometry::foreach_real_geometry(geometry_set, [&](GeometrySet &geometry) {
         if (const Curves *src_curves_id = geometry.get_curves()) {
           bke::CurvesGeometry dst_curves = geometry::resample_to_length(
@@ -335,7 +335,7 @@ static void node_geo_exec(GeoNodeExecParams params)
     }
   }
 
-  params.set_output("Points", std::move(geometry_set));
+  params.set_output("Points"_ustr, std::move(geometry_set));
 }
 
 static void node_rna(StructRNA *srna)

@@ -261,7 +261,7 @@ class ProximityFunction : public mf::MultiFunction {
 
 static void node_geo_exec(GeoNodeExecParams params)
 {
-  GeometrySet target = params.extract_input<GeometrySet>("Target");
+  GeometrySet target = params.extract_input<GeometrySet>("Target"_ustr);
   target.ensure_owns_direct_data();
 
   if (!target.has_mesh() && !target.has_pointcloud()) {
@@ -272,9 +272,9 @@ static void node_geo_exec(GeoNodeExecParams params)
   const NodeGeometryProximity &storage = node_storage(params.node());
   const auto target_type = GeometryNodeProximityTargetType(storage.target_element);
 
-  Field<int> group_id_field = params.extract_input<Field<int>>("Group ID");
-  auto sample_position = params.extract_input<bke::SocketValueVariant>("Source Position");
-  auto sample_group_id = params.extract_input<bke::SocketValueVariant>("Sample Group ID");
+  Field<int> group_id_field = params.extract_input<Field<int>>("Group ID"_ustr);
+  auto sample_position = params.extract_input<bke::SocketValueVariant>("Source Position"_ustr);
+  auto sample_group_id = params.extract_input<bke::SocketValueVariant>("Sample Group ID"_ustr);
 
   std::string error_message;
   bke::SocketValueVariant position;
@@ -293,9 +293,9 @@ static void node_geo_exec(GeoNodeExecParams params)
     return;
   }
 
-  params.set_output("Position", std::move(position));
-  params.set_output("Distance", std::move(distance));
-  params.set_output("Is Valid", std::move(is_valid));
+  params.set_output("Position"_ustr, std::move(position));
+  params.set_output("Distance"_ustr, std::move(distance));
+  params.set_output("Is Valid"_ustr, std::move(is_valid));
 }
 
 static void node_rna(StructRNA *srna)

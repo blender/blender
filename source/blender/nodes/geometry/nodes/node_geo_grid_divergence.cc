@@ -21,7 +21,7 @@ static void node_declare(NodeDeclarationBuilder &b)
 static void node_geo_exec(GeoNodeExecParams params)
 {
 #ifdef WITH_OPENVDB
-  const bke::VolumeGrid<float3> grid = params.extract_input<bke::VolumeGrid<float3>>("Grid");
+  const bke::VolumeGrid<float3> grid = params.extract_input<bke::VolumeGrid<float3>>("Grid"_ustr);
   if (!grid) {
     params.set_default_remaining_outputs();
     return;
@@ -29,7 +29,7 @@ static void node_geo_exec(GeoNodeExecParams params)
   bke::VolumeTreeAccessToken tree_token;
   const openvdb::Vec3SGrid &vdb_grid = grid.grid(tree_token);
   openvdb::FloatGrid::Ptr divergence_vdb_grid = openvdb::tools::divergence(vdb_grid);
-  params.set_output("Divergence", bke::VolumeGrid<float>(std::move(divergence_vdb_grid)));
+  params.set_output("Divergence"_ustr, bke::VolumeGrid<float>(std::move(divergence_vdb_grid)));
 #else
   node_geo_exec_with_missing_openvdb(params);
 #endif

@@ -86,17 +86,17 @@ static void node_geo_exec(GeoNodeExecParams params)
 {
 #ifdef WITH_OPENVDB
   const bNode &node = params.node();
-  GeometrySet geometry_set = params.extract_input<GeometrySet>("Volume");
-  const std::string grid_name = params.extract_input<std::string>("Name");
-  const bool remove_grid = params.extract_input<bool>("Remove");
+  GeometrySet geometry_set = params.extract_input<GeometrySet>("Volume"_ustr);
+  const std::string grid_name = params.extract_input<std::string>("Name"_ustr);
+  const bool remove_grid = params.extract_input<bool>("Remove"_ustr);
   const eNodeSocketDatatype socket_type = eNodeSocketDatatype(node.custom1);
 
   if (Volume *volume = geometry_set.get_volume_for_write()) {
     if (std::optional<SocketValueVariant> value_variant = try_get_named_grid(
             params, *volume, grid_name, remove_grid, socket_type))
     {
-      params.set_output("Grid", std::move(*value_variant));
-      params.set_output("Volume", std::move(geometry_set));
+      params.set_output("Grid"_ustr, std::move(*value_variant));
+      params.set_output("Volume"_ustr, std::move(geometry_set));
       return;
     }
   }
@@ -105,11 +105,11 @@ static void node_geo_exec(GeoNodeExecParams params)
                              "No supported grid found with the given name");
   }
   if (std::optional<VolumeGridType> grid_type = bke::socket_type_to_grid_type(socket_type)) {
-    params.set_output("Grid", bke::GVolumeGrid(*grid_type));
-    params.set_output("Volume", std::move(geometry_set));
+    params.set_output("Grid"_ustr, bke::GVolumeGrid(*grid_type));
+    params.set_output("Volume"_ustr, std::move(geometry_set));
     return;
   }
-  params.set_output("Volume", std::move(geometry_set));
+  params.set_output("Volume"_ustr, std::move(geometry_set));
   params.set_default_remaining_outputs();
 
 #else

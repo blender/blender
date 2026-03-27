@@ -90,16 +90,16 @@ class CornerIndexInFaceInput final : public bke::MeshFieldInput {
 
 static void node_geo_exec(GeoNodeExecParams params)
 {
-  const Field<int> corner_index = params.extract_input<Field<int>>("Corner Index");
-  if (params.output_is_required("Face Index")) {
-    params.set_output("Face Index",
+  const Field<int> corner_index = params.extract_input<Field<int>>("Corner Index"_ustr);
+  if (params.output_is_required("Face Index"_ustr)) {
+    params.set_output("Face Index"_ustr,
                       Field<int>(std::make_shared<bke::EvaluateAtIndexInput>(
                           corner_index,
                           Field<int>(std::make_shared<CornerFaceIndexInput>()),
                           AttrDomain::Corner)));
   }
-  if (params.output_is_required("Index in Face")) {
-    params.set_output("Index in Face",
+  if (params.output_is_required("Index in Face"_ustr)) {
+    params.set_output("Index in Face"_ustr,
                       Field<int>(std::make_shared<bke::EvaluateAtIndexInput>(
                           corner_index,
                           Field<int>(std::make_shared<CornerIndexInFaceInput>()),

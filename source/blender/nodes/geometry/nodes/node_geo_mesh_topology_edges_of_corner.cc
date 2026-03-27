@@ -98,16 +98,16 @@ class CornerPreviousEdgeFieldInput final : public bke::MeshFieldInput {
 
 static void node_geo_exec(GeoNodeExecParams params)
 {
-  const Field<int> corner_index = params.extract_input<Field<int>>("Corner Index");
-  if (params.output_is_required("Next Edge Index")) {
-    params.set_output("Next Edge Index",
+  const Field<int> corner_index = params.extract_input<Field<int>>("Corner Index"_ustr);
+  if (params.output_is_required("Next Edge Index"_ustr)) {
+    params.set_output("Next Edge Index"_ustr,
                       Field<int>(std::make_shared<bke::EvaluateAtIndexInput>(
                           corner_index,
                           Field<int>(std::make_shared<CornerNextEdgeFieldInput>()),
                           AttrDomain::Corner)));
   }
-  if (params.output_is_required("Previous Edge Index")) {
-    params.set_output("Previous Edge Index",
+  if (params.output_is_required("Previous Edge Index"_ustr)) {
+    params.set_output("Previous Edge Index"_ustr,
                       Field<int>(std::make_shared<bke::EvaluateAtIndexInput>(
                           corner_index,
                           Field<int>(std::make_shared<CornerPreviousEdgeFieldInput>()),

@@ -69,15 +69,15 @@ static void node_geo_exec(GeoNodeExecParams params)
 {
   const bNode &node = params.node();
   const Mode mode = static_cast<Mode>(node.custom1);
-  GeometrySet geometry_set = params.extract_input<GeometrySet>("Mesh");
+  GeometrySet geometry_set = params.extract_input<GeometrySet>("Mesh"_ustr);
 
   bool add_sharpness_and_corner_fan_info = false;
 
   switch (mode) {
     case Mode::Sharpness: {
-      const bool remove_custom = params.extract_input<bool>("Remove Custom");
-      const fn::Field sharp_edge = params.extract_input<fn::Field<bool>>("Edge Sharpness");
-      const fn::Field sharp_face = params.extract_input<fn::Field<bool>>("Face Sharpness");
+      const bool remove_custom = params.extract_input<bool>("Remove Custom"_ustr);
+      const fn::Field sharp_edge = params.extract_input<fn::Field<bool>>("Edge Sharpness"_ustr);
+      const fn::Field sharp_face = params.extract_input<fn::Field<bool>>("Face Sharpness"_ustr);
       geometry::foreach_real_geometry(geometry_set, [&](GeometrySet &geometry_set) {
         if (Mesh *mesh = geometry_set.get_mesh_for_write()) {
           /* Evaluate both fields before storing the result to avoid one attribute change
@@ -140,7 +140,8 @@ static void node_geo_exec(GeoNodeExecParams params)
       break;
     }
     case Mode::Free: {
-      const fn::Field custom_normal = params.extract_input<fn::Field<float3>>("Custom Normal");
+      const fn::Field custom_normal = params.extract_input<fn::Field<float3>>(
+          "Custom Normal"_ustr);
       geometry::foreach_real_geometry(geometry_set, [&](GeometrySet &geometry_set) {
         if (Mesh *mesh = geometry_set.get_mesh_for_write()) {
           const bke::AttrDomain domain = bke::AttrDomain(node.custom2);
@@ -155,7 +156,8 @@ static void node_geo_exec(GeoNodeExecParams params)
       break;
     }
     case Mode::CornerFanSpace: {
-      const fn::Field custom_normal = params.extract_input<fn::Field<float3>>("Custom Normal");
+      const fn::Field custom_normal = params.extract_input<fn::Field<float3>>(
+          "Custom Normal"_ustr);
       geometry::foreach_real_geometry(geometry_set, [&](GeometrySet &geometry_set) {
         if (Mesh *mesh = geometry_set.get_mesh_for_write()) {
           const bke::MeshFieldContext context(*mesh, bke::AttrDomain::Corner);
@@ -177,7 +179,7 @@ static void node_geo_exec(GeoNodeExecParams params)
                              "may lead to unexpected results");
   }
 
-  params.set_output("Mesh", std::move(geometry_set));
+  params.set_output("Mesh"_ustr, std::move(geometry_set));
 }
 
 static void node_rna(StructRNA *srna)

@@ -58,12 +58,12 @@ static Mesh *simple_subdivide_mesh(const Mesh &mesh, const int level)
 
 static void node_geo_exec(GeoNodeExecParams params)
 {
-  GeometrySet geometry_set = params.extract_input<GeometrySet>("Mesh");
+  GeometrySet geometry_set = params.extract_input<GeometrySet>("Mesh"_ustr);
 #ifdef WITH_OPENSUBDIV
   /* See CCGSUBSURF_LEVEL_MAX for max limit. */
-  const int level = std::max(params.extract_input<int>("Level"), 0);
+  const int level = std::max(params.extract_input<int>("Level"_ustr), 0);
   if (level == 0) {
-    params.set_output("Mesh", std::move(geometry_set));
+    params.set_output("Mesh"_ustr, std::move(geometry_set));
     return;
   }
   /* At this limit, a subdivided single triangle would be too large to be stored in #Mesh. */
@@ -82,7 +82,7 @@ static void node_geo_exec(GeoNodeExecParams params)
   params.error_message_add(NodeWarningType::Error,
                            TIP_("Disabled, Blender was compiled without OpenSubdiv"));
 #endif
-  params.set_output("Mesh", std::move(geometry_set));
+  params.set_output("Mesh"_ustr, std::move(geometry_set));
 }
 
 static void node_register()

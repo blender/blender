@@ -256,7 +256,7 @@ static void convex_hull_grease_pencil(GeometrySet &geometry_set)
 
 static void node_geo_exec(GeoNodeExecParams params)
 {
-  GeometrySet geometry_set = params.extract_input<GeometrySet>("Geometry");
+  GeometrySet geometry_set = params.extract_input<GeometrySet>("Geometry"_ustr);
 
 #ifdef WITH_BULLET
 
@@ -274,7 +274,7 @@ static void node_geo_exec(GeoNodeExecParams params)
                             GeometryComponent::Type::Edit});
   });
 
-  params.set_output("Convex Hull", std::move(geometry_set));
+  params.set_output("Convex Hull"_ustr, std::move(geometry_set));
 #else
   params.error_message_add(NodeWarningType::Error,
                            TIP_("Disabled, Blender was compiled without Bullet"));

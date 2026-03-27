@@ -272,17 +272,17 @@ static void node_geo_exec(GeoNodeExecParams params)
 {
   const AttrDomain source_domain = AttrDomain(params.node().custom2);
 
-  const Field<int> group_index_field = params.extract_input<Field<int>>("Group Index");
-  const GField input_field = params.extract_input<GField>("Value");
-  if (params.output_is_required("Mean")) {
+  const Field<int> group_index_field = params.extract_input<Field<int>>("Group Index"_ustr);
+  const GField input_field = params.extract_input<GField>("Value"_ustr);
+  if (params.output_is_required("Mean"_ustr)) {
     params.set_output<GField>(
-        "Mean",
+        "Mean"_ustr,
         GField{std::make_shared<FieldAverageInput>(
             source_domain, input_field, group_index_field, Operation::Mean)});
   }
-  if (params.output_is_required("Median")) {
+  if (params.output_is_required("Median"_ustr)) {
     params.set_output<GField>(
-        "Median",
+        "Median"_ustr,
         GField{std::make_shared<FieldAverageInput>(
             source_domain, input_field, group_index_field, Operation::Median)});
   }

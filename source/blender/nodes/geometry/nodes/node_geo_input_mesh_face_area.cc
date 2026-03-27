@@ -63,7 +63,7 @@ class FaceAreaFieldInput final : public bke::MeshFieldInput {
 
 static void node_geo_exec(GeoNodeExecParams params)
 {
-  params.set_output("Area", Field<float>(std::make_shared<FaceAreaFieldInput>()));
+  params.set_output("Area"_ustr, Field<float>(std::make_shared<FaceAreaFieldInput>()));
 }
 
 static void node_register()

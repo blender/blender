@@ -20,7 +20,7 @@ static void node_declare(NodeDeclarationBuilder &b)
 static void node_geo_exec(GeoNodeExecParams params)
 {
   Collection *collection = reinterpret_cast<Collection *>(params.node().id);
-  params.set_output("Collection", collection);
+  params.set_output("Collection"_ustr, collection);
 }
 
 static void node_register()

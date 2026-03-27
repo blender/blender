@@ -134,9 +134,9 @@ static void clean_unused_attributes(const AttributeFilter &attribute_filter,
 
 static void node_geo_exec(GeoNodeExecParams params)
 {
-  GeometrySet geometry_set = params.extract_input<GeometrySet>("Geometry");
+  GeometrySet geometry_set = params.extract_input<GeometrySet>("Geometry"_ustr);
 
-  if (!params.output_is_required("Geometry")) {
+  if (!params.output_is_required("Geometry"_ustr)) {
     params.error_message_add(
         NodeWarningType::Info,
         TIP_("The attribute output cannot be used without the geometry output"));
@@ -159,18 +159,18 @@ static void node_geo_exec(GeoNodeExecParams params)
     const std::string output_identifier =
         CaptureAttributeItemsAccessor::output_socket_identifier_for_item(item);
     std::optional<std::string> attribute_id = params.get_output_anonymous_attribute_id_if_needed(
-        output_identifier);
+        UString(output_identifier));
     if (!attribute_id) {
       continue;
     }
     used_attribute_ids_set.add(*attribute_id);
-    fields.append(params.extract_input<GField>(input_identifier));
+    fields.append(params.extract_input<GField>(UString(input_identifier)));
     attribute_id_ptrs.append(std::move(*attribute_id));
     used_items.append(&item);
   }
 
   if (fields.is_empty()) {
-    params.set_output("Geometry", geometry_set);
+    params.set_output("Geometry"_ustr, geometry_set);
     params.set_default_remaining_outputs();
     return;
   }
@@ -185,7 +185,7 @@ static void node_geo_exec(GeoNodeExecParams params)
     /* Changing of the anonymous attributes may require removing attributes that are no longer
      * needed. */
     clean_unused_attributes(
-        params.get_attribute_filter("Geometry"), used_attribute_ids_set, component);
+        params.get_attribute_filter("Geometry"_ustr), used_attribute_ids_set, component);
   };
 
   /* Run on the instances component separately to only affect the top level of instances. */
@@ -209,7 +209,7 @@ static void node_geo_exec(GeoNodeExecParams params)
     });
   }
 
-  params.set_output("Geometry", geometry_set);
+  params.set_output("Geometry"_ustr, geometry_set);
 }
 
 static bool node_insert_link(bke::NodeInsertLinkParams &params)

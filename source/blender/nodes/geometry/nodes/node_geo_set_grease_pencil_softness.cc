@@ -26,9 +26,9 @@ static void node_declare(NodeDeclarationBuilder &b)
 
 static void node_geo_exec(GeoNodeExecParams params)
 {
-  GeometrySet geometry_set = params.extract_input<GeometrySet>("Grease Pencil");
-  const Field<bool> selection = params.extract_input<Field<bool>>("Selection");
-  const Field<float> softness = params.extract_input<Field<float>>("Softness");
+  GeometrySet geometry_set = params.extract_input<GeometrySet>("Grease Pencil"_ustr);
+  const Field<bool> selection = params.extract_input<Field<bool>>("Selection"_ustr);
+  const Field<float> softness = params.extract_input<Field<float>>("Softness"_ustr);
 
   geometry::foreach_real_geometry(geometry_set, [&](GeometrySet &geometry) {
     if (GreasePencil *grease_pencil = geometry.get_grease_pencil_for_write()) {
@@ -53,7 +53,7 @@ static void node_geo_exec(GeoNodeExecParams params)
     }
   });
 
-  params.set_output("Grease Pencil", std::move(geometry_set));
+  params.set_output("Grease Pencil"_ustr, std::move(geometry_set));
 }
 
 static void node_register()

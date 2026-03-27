@@ -46,16 +46,16 @@ static void node_layout_ex(ui::Layout &layout, bContext * /*C*/, PointerRNA *ptr
 
 static void node_geo_exec(GeoNodeExecParams params)
 {
-  GeometrySet geometry_set = params.extract_input<GeometrySet>("Geometry");
+  GeometrySet geometry_set = params.extract_input<GeometrySet>("Geometry"_ustr);
   if (!geometry_set.has_instances()) {
-    params.set_output("Geometry", std::move(geometry_set));
+    params.set_output("Geometry"_ustr, std::move(geometry_set));
     return;
   }
 
   GeometryComponentEditData::remember_deformed_positions_if_necessary(geometry_set);
 
-  Field<bool> realize_all_field = params.extract_input<Field<bool>>("Realize All");
-  Field<int> depth_field = params.extract_input<Field<int>>("Depth");
+  Field<bool> realize_all_field = params.extract_input<Field<bool>>("Realize All"_ustr);
+  Field<int> depth_field = params.extract_input<Field<int>>("Depth"_ustr);
   const bNode &node = params.node();
   const bool realize_to_point_domain = node.custom1 & GEO_NODE_REALIZE_TO_POINT_DOMAIN;
 
@@ -67,7 +67,7 @@ static void node_geo_exec(GeoNodeExecParams params)
   Field<int> depth_field_overridden(FieldOperation::from(
       depth_override, {std::move(depth_field), std::move(realize_all_field)}));
 
-  Field<bool> selection_field = params.extract_input<Field<bool>>("Selection");
+  Field<bool> selection_field = params.extract_input<Field<bool>>("Selection"_ustr);
 
   static auto selection_override = mf::build::SI2_SO<int, bool, bool>(
       "selection_override",
@@ -92,7 +92,7 @@ static void node_geo_exec(GeoNodeExecParams params)
   options.keep_original_ids = false;
   options.realize_instance_attributes = true;
   options.realize_to_point_domain = realize_to_point_domain;
-  const NodeAttributeFilter attribute_filter = params.get_attribute_filter("Geometry");
+  const NodeAttributeFilter attribute_filter = params.get_attribute_filter("Geometry"_ustr);
   options.attribute_filter = attribute_filter;
   geometry::RealizeInstancesResult realize_result = geometry::realize_instances(
       geometry_set, options, varied_depth_option);
@@ -100,7 +100,7 @@ static void node_geo_exec(GeoNodeExecParams params)
     params.error_message_add(NodeWarningType::Error, error);
   }
   realize_result.geometry.name = geometry_set.name;
-  params.set_output("Geometry", std::move(realize_result.geometry));
+  params.set_output("Geometry"_ustr, std::move(realize_result.geometry));
 }
 
 static void node_rna(StructRNA *srna)

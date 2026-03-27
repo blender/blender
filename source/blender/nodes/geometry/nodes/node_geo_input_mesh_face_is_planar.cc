@@ -100,9 +100,9 @@ class PlanarFieldInput final : public bke::MeshFieldInput {
 
 static void geo_node_exec(GeoNodeExecParams params)
 {
-  Field<float> threshold = params.extract_input<Field<float>>("Threshold");
+  Field<float> threshold = params.extract_input<Field<float>>("Threshold"_ustr);
   Field<bool> planar_field{std::make_shared<PlanarFieldInput>(threshold)};
-  params.set_output("Planar", std::move(planar_field));
+  params.set_output("Planar"_ustr, std::move(planar_field));
 }
 
 static void node_register()

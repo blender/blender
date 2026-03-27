@@ -38,7 +38,7 @@ static void node_layout(ui::Layout &layout, bContext * /*C*/, PointerRNA *ptr)
 static void node_geo_exec(GeoNodeExecParams params)
 {
   const Mode mode = Mode(params.node().custom1);
-  GeometrySet geometry_set = params.extract_input<GeometrySet>("Mesh");
+  GeometrySet geometry_set = params.extract_input<GeometrySet>("Mesh"_ustr);
 
   geometry::foreach_real_geometry(geometry_set, [&](GeometrySet &geometry_set) {
     const Mesh *mesh = geometry_set.get_mesh();
@@ -51,7 +51,7 @@ static void node_geo_exec(GeoNodeExecParams params)
       case Mode::Edges: {
         const bke::MeshFieldContext context{*mesh, AttrDomain::Edge};
         fn::FieldEvaluator evaluator{context, mesh->edges_num};
-        evaluator.add(params.get_input<Field<bool>>("Selection"));
+        evaluator.add(params.get_input<Field<bool>>("Selection"_ustr));
         evaluator.evaluate();
         const IndexMask selection = evaluator.get_evaluated_as_mask(0);
         if (selection.is_empty()) {
@@ -60,14 +60,14 @@ static void node_geo_exec(GeoNodeExecParams params)
         }
 
         bke::CurvesGeometry curves = geometry::mesh_edges_to_curves_convert(
-            *mesh, selection, params.get_attribute_filter("Curve"));
+            *mesh, selection, params.get_attribute_filter("Curve"_ustr));
         geometry_set.replace_curves(bke::curves_new_nomain(std::move(curves)));
         break;
       }
       case Mode::Faces: {
         const bke::MeshFieldContext context{*mesh, AttrDomain::Face};
         fn::FieldEvaluator evaluator{context, mesh->faces_num};
-        evaluator.add(params.get_input<Field<bool>>("Selection"));
+        evaluator.add(params.get_input<Field<bool>>("Selection"_ustr));
         evaluator.evaluate();
         const IndexMask selection = evaluator.get_evaluated_as_mask(0);
         if (selection.is_empty()) {
@@ -76,7 +76,7 @@ static void node_geo_exec(GeoNodeExecParams params)
         }
 
         bke::CurvesGeometry curves = geometry::mesh_faces_to_curves_convert(
-            *mesh, selection, params.get_attribute_filter("Curve"));
+            *mesh, selection, params.get_attribute_filter("Curve"_ustr));
         geometry_set.replace_curves(bke::curves_new_nomain(std::move(curves)));
         break;
       }
@@ -84,7 +84,7 @@ static void node_geo_exec(GeoNodeExecParams params)
     geometry_set.keep_only({GeometryComponent::Type::Curve, GeometryComponent::Type::Edit});
   });
 
-  params.set_output("Curve", std::move(geometry_set));
+  params.set_output("Curve"_ustr, std::move(geometry_set));
 }
 
 static void node_rna(StructRNA *srna)

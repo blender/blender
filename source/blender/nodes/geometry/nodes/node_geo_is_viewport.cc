@@ -19,7 +19,7 @@ static void node_geo_exec(GeoNodeExecParams params)
   const eEvaluationMode mode = DEG_get_mode(depsgraph);
   const bool is_viewport = mode == DAG_EVAL_VIEWPORT;
 
-  params.set_output("Is Viewport", is_viewport);
+  params.set_output("Is Viewport"_ustr, is_viewport);
 }
 
 static void node_register()

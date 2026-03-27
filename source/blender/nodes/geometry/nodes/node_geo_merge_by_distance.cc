@@ -99,15 +99,15 @@ static std::optional<Mesh *> mesh_merge_by_distance_all(const Mesh &mesh,
 
 static void node_geo_exec(GeoNodeExecParams params)
 {
-  GeometrySet geometry_set = params.extract_input<GeometrySet>("Geometry");
-  const auto mode = params.get_input<GeometryNodeMergeByDistanceMode>("Mode");
-  const Field<bool> selection = params.extract_input<Field<bool>>("Selection");
-  const float merge_distance = params.extract_input<float>("Distance");
+  GeometrySet geometry_set = params.extract_input<GeometrySet>("Geometry"_ustr);
+  const auto mode = params.get_input<GeometryNodeMergeByDistanceMode>("Mode"_ustr);
+  const Field<bool> selection = params.extract_input<Field<bool>>("Selection"_ustr);
+  const float merge_distance = params.extract_input<float>("Distance"_ustr);
 
   geometry::foreach_real_geometry(geometry_set, [&](GeometrySet &geometry_set) {
     if (const PointCloud *pointcloud = geometry_set.get_pointcloud()) {
       PointCloud *result = pointcloud_merge_by_distance(
-          *pointcloud, merge_distance, selection, params.get_attribute_filter("Geometry"));
+          *pointcloud, merge_distance, selection, params.get_attribute_filter("Geometry"_ustr));
       if (result) {
         geometry_set.replace_pointcloud(result);
       }
@@ -130,7 +130,7 @@ static void node_geo_exec(GeoNodeExecParams params)
     }
   });
 
-  params.set_output("Geometry", std::move(geometry_set));
+  params.set_output("Geometry"_ustr, std::move(geometry_set));
 }
 
 static void node_register()

@@ -115,26 +115,26 @@ static void node_gather_link_search_ops(GatherLinkSearchOpParams &params)
 static void node_geo_exec(GeoNodeExecParams params)
 {
 #ifdef WITH_OPENVDB
-  bke::GVolumeGrid grid = params.extract_input<bke::GVolumeGrid>("Grid");
+  bke::GVolumeGrid grid = params.extract_input<bke::GVolumeGrid>("Grid"_ustr);
   if (!grid) {
     params.set_default_remaining_outputs();
     return;
   }
 
-  const float4x4 transform = params.extract_input<float4x4>("Transform");
+  const float4x4 transform = params.extract_input<float4x4>("Transform"_ustr);
 
   try {
     bke::VolumeGridData &grid_data = grid.get_for_write();
     bke::volume_grid::set_transform_matrix(grid_data, transform);
-    params.set_output("Is Valid", true);
+    params.set_output("Is Valid"_ustr, true);
   }
   catch (const openvdb::ArithmeticError & /*error*/) {
     params.error_message_add(NodeWarningType::Error,
                              TIP_("Failed to set the new grid transform."));
-    params.set_output("Is Valid", false);
+    params.set_output("Is Valid"_ustr, false);
   }
 
-  params.set_output("Grid", std::move(grid));
+  params.set_output("Grid"_ustr, std::move(grid));
 #else
   node_geo_exec_with_missing_openvdb(params);
 #endif

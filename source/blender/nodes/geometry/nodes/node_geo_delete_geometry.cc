@@ -56,19 +56,19 @@ static void node_init(bNodeTree * /*tree*/, bNode *node)
 
 static void node_geo_exec(GeoNodeExecParams params)
 {
-  GeometrySet geometry_set = params.extract_input<GeometrySet>("Geometry");
+  GeometrySet geometry_set = params.extract_input<GeometrySet>("Geometry"_ustr);
 
   /* The node's input is a selection of elements that should be deleted, but the code is
    * implemented as a separation operation that copies the selected elements to a new geometry.
    * Invert the selection to avoid the need to keep track of both cases in the code. */
   const Field<bool> selection = fn::invert_boolean_field(
-      params.extract_input<Field<bool>>("Selection"));
+      params.extract_input<Field<bool>>("Selection"_ustr));
 
   const NodeGeometryDeleteGeometry &storage = node_storage(params.node());
   const AttrDomain domain = AttrDomain(storage.domain);
   const GeometryNodeDeleteGeometryMode mode = GeometryNodeDeleteGeometryMode(storage.mode);
 
-  const NodeAttributeFilter &attribute_filter = params.get_attribute_filter("Geometry");
+  const NodeAttributeFilter &attribute_filter = params.get_attribute_filter("Geometry"_ustr);
 
   if (domain == AttrDomain::Instance) {
     bool is_error;
@@ -83,7 +83,7 @@ static void node_geo_exec(GeoNodeExecParams params)
     });
   }
 
-  params.set_output("Geometry", std::move(geometry_set));
+  params.set_output("Geometry"_ustr, std::move(geometry_set));
 }
 
 static void node_rna(StructRNA *srna)

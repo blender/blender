@@ -74,19 +74,19 @@ static void report_errors(GeoNodeExecParams &params,
 
 static void node_geo_exec(GeoNodeExecParams params)
 {
-  const auto mode = params.get_input<NodeGeometryTransformMode>("Mode");
-  GeometrySet geometry_set = params.extract_input<GeometrySet>("Geometry");
+  const auto mode = params.get_input<NodeGeometryTransformMode>("Mode"_ustr);
+  GeometrySet geometry_set = params.extract_input<GeometrySet>("Geometry"_ustr);
 
   if (mode == GEO_NODE_TRANSFORM_MODE_MATRIX) {
-    const float4x4 transform = params.extract_input<float4x4>("Transform");
+    const float4x4 transform = params.extract_input<float4x4>("Transform"_ustr);
     if (auto errors = geometry::transform_geometry(geometry_set, transform)) {
       report_errors(params, *errors);
     }
   }
   else {
-    const float3 translation = params.extract_input<float3>("Translation");
-    const math::Quaternion rotation = params.extract_input<math::Quaternion>("Rotation");
-    const float3 scale = params.extract_input<float3>("Scale");
+    const float3 translation = params.extract_input<float3>("Translation"_ustr);
+    const math::Quaternion rotation = params.extract_input<math::Quaternion>("Rotation"_ustr);
+    const float3 scale = params.extract_input<float3>("Scale"_ustr);
 
     /* Use only translation if rotation and scale don't apply. */
     if (use_translate(rotation, scale)) {
@@ -101,7 +101,7 @@ static void node_geo_exec(GeoNodeExecParams params)
     }
   }
 
-  params.set_output("Geometry", std::move(geometry_set));
+  params.set_output("Geometry"_ustr, std::move(geometry_set));
 }
 
 static void register_node()

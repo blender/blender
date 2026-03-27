@@ -62,9 +62,9 @@ static void node_geo_exec(GeoNodeExecParams params)
   const bNode &node = params.node();
   const AttrDomain domain = AttrDomain(node.custom1);
 
-  GField src_field = params.extract_input<GField>("Value");
+  GField src_field = params.extract_input<GField>("Value"_ustr);
   GField dst_field{std::make_shared<bke::EvaluateOnDomainInput>(std::move(src_field), domain)};
-  params.set_output<GField>("Value", std::move(dst_field));
+  params.set_output<GField>("Value"_ustr, std::move(dst_field));
 }
 
 static void node_rna(StructRNA *srna)

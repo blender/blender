@@ -28,7 +28,7 @@ static void node_geo_exec(GeoNodeExecParams params)
 {
 #ifdef WITH_OPENVDB
   const std::optional<std::string> path = params.ensure_absolute_path(
-      params.extract_input<std::string>("Path"));
+      params.extract_input<std::string>("Path"_ustr));
   if (!path) {
     params.set_default_remaining_outputs();
     return;
@@ -49,7 +49,7 @@ static void node_geo_exec(GeoNodeExecParams params)
     BKE_volume_grid_add(volume, grid.get());
   }
 
-  params.set_output("Volume", GeometrySet::from_volume(volume));
+  params.set_output("Volume"_ustr, GeometrySet::from_volume(volume));
 #else
   node_geo_exec_with_missing_openvdb(params);
 #endif

@@ -231,22 +231,23 @@ static typename GridType::Ptr advect_grid(const GridType &grid,
 static void node_geo_exec(GeoNodeExecParams params)
 {
 #ifdef WITH_OPENVDB
-  bke::GVolumeGrid grid = params.extract_input<bke::GVolumeGrid>("Grid");
+  bke::GVolumeGrid grid = params.extract_input<bke::GVolumeGrid>("Grid"_ustr);
   if (!grid) {
     params.set_default_remaining_outputs();
     return;
   }
 
   const bke::VolumeGrid<float3> velocity_grid = params.extract_input<bke::VolumeGrid<float3>>(
-      "Velocity");
+      "Velocity"_ustr);
   if (!velocity_grid) {
-    params.set_output("Grid", std::move(grid));
+    params.set_output("Grid"_ustr, std::move(grid));
     return;
   }
 
-  const float time_step = params.extract_input<float>("Time Step");
-  const IntegrationScheme scheme = params.extract_input<IntegrationScheme>("Integration Scheme");
-  const LimiterType limiter = params.extract_input<LimiterType>("Limiter");
+  const float time_step = params.extract_input<float>("Time Step"_ustr);
+  const IntegrationScheme scheme = params.extract_input<IntegrationScheme>(
+      "Integration Scheme"_ustr);
+  const LimiterType limiter = params.extract_input<LimiterType>("Limiter"_ustr);
 
   bke::VolumeTreeAccessToken tree_token;
   bke::VolumeTreeAccessToken velocity_token;
@@ -259,7 +260,7 @@ static void node_geo_exec(GeoNodeExecParams params)
     params.error_message_add(
         NodeWarningType::Error,
         TIP_("The input grid must have a uniform voxel scale to be advected."));
-    params.set_output("Grid", std::move(grid));
+    params.set_output("Grid"_ustr, std::move(grid));
     return;
   }
 
@@ -277,7 +278,7 @@ static void node_geo_exec(GeoNodeExecParams params)
               time_step,
               scheme,
               limiter);
-          params.set_output("Grid", bke::GVolumeGrid(std::move(result)));
+          params.set_output("Grid"_ustr, bke::GVolumeGrid(std::move(result)));
         }
         else {
           params.error_message_add(NodeWarningType::Error, "Unsupported grid type for advection");

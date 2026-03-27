@@ -60,14 +60,14 @@ class PointsFieldContext : public FieldContext {
 
 static void node_geo_exec(GeoNodeExecParams params)
 {
-  const int count = params.extract_input<int>("Count");
+  const int count = params.extract_input<int>("Count"_ustr);
   if (count <= 0) {
     params.set_default_remaining_outputs();
     return;
   }
 
-  Field<float3> position_field = params.extract_input<Field<float3>>("Position");
-  Field<float> radius_field = params.extract_input<Field<float>>("Radius");
+  Field<float3> position_field = params.extract_input<Field<float3>>("Position"_ustr);
+  Field<float> radius_field = params.extract_input<Field<float>>("Radius"_ustr);
 
   PointCloud *points = BKE_pointcloud_new_nomain(count);
   MutableAttributeAccessor attributes = points->attributes_for_write();
@@ -88,7 +88,7 @@ static void node_geo_exec(GeoNodeExecParams params)
     attributes.add<float>("radius", AttrDomain::Point, bke::AttributeInitValue(radius));
   }
 
-  params.set_output("Geometry", GeometrySet::from_pointcloud(points));
+  params.set_output("Geometry"_ustr, GeometrySet::from_pointcloud(points));
 }
 
 static void node_register()

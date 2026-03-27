@@ -173,20 +173,20 @@ class CornersOfFaceCountInput final : public bke::MeshFieldInput {
 
 static void node_geo_exec(GeoNodeExecParams params)
 {
-  const Field<int> face_index = params.extract_input<Field<int>>("Face Index");
-  if (params.output_is_required("Total")) {
-    params.set_output("Total",
+  const Field<int> face_index = params.extract_input<Field<int>>("Face Index"_ustr);
+  if (params.output_is_required("Total"_ustr)) {
+    params.set_output("Total"_ustr,
                       Field<int>(std::make_shared<bke::EvaluateAtIndexInput>(
                           face_index,
                           Field<int>(std::make_shared<CornersOfFaceCountInput>()),
                           AttrDomain::Face)));
   }
-  if (params.output_is_required("Corner Index")) {
-    params.set_output("Corner Index",
+  if (params.output_is_required("Corner Index"_ustr)) {
+    params.set_output("Corner Index"_ustr,
                       Field<int>(std::make_shared<CornersOfFaceInput>(
                           face_index,
-                          params.extract_input<Field<int>>("Sort Index"),
-                          params.extract_input<Field<float>>("Weights"))));
+                          params.extract_input<Field<int>>("Sort Index"_ustr),
+                          params.extract_input<Field<float>>("Weights"_ustr))));
   }
 }
 

@@ -88,14 +88,14 @@ static void node_geo_exec(GeoNodeExecParams params)
   const NodeGeometryMeshCone &storage = node_storage(params.node());
   const GeometryNodeMeshCircleFillType fill = GeometryNodeMeshCircleFillType(storage.fill_type);
 
-  const int circle_segments = params.extract_input<int>("Vertices");
+  const int circle_segments = params.extract_input<int>("Vertices"_ustr);
   if (circle_segments < 3) {
     params.error_message_add(NodeWarningType::Info, TIP_("Vertices must be at least 3"));
     params.set_default_remaining_outputs();
     return;
   }
 
-  const int side_segments = params.extract_input<int>("Side Segments");
+  const int side_segments = params.extract_input<int>("Side Segments"_ustr);
   if (side_segments < 1) {
     params.error_message_add(NodeWarningType::Info, TIP_("Side Segments must be at least 1"));
     params.set_default_remaining_outputs();
@@ -103,22 +103,22 @@ static void node_geo_exec(GeoNodeExecParams params)
   }
 
   const bool no_fill = fill == GEO_NODE_MESH_CIRCLE_FILL_NONE;
-  const int fill_segments = no_fill ? 1 : params.extract_input<int>("Fill Segments");
+  const int fill_segments = no_fill ? 1 : params.extract_input<int>("Fill Segments"_ustr);
   if (fill_segments < 1) {
     params.error_message_add(NodeWarningType::Info, TIP_("Fill Segments must be at least 1"));
     params.set_default_remaining_outputs();
     return;
   }
 
-  const float radius_top = params.extract_input<float>("Radius Top");
-  const float radius_bottom = params.extract_input<float>("Radius Bottom");
-  const float depth = params.extract_input<float>("Depth");
+  const float radius_top = params.extract_input<float>("Radius Top"_ustr);
+  const float radius_bottom = params.extract_input<float>("Radius Bottom"_ustr);
+  const float depth = params.extract_input<float>("Depth"_ustr);
 
   geometry::ConeAttributeOutputs attribute_outputs;
-  attribute_outputs.top_id = params.get_output_anonymous_attribute_id_if_needed("Top");
-  attribute_outputs.bottom_id = params.get_output_anonymous_attribute_id_if_needed("Bottom");
-  attribute_outputs.side_id = params.get_output_anonymous_attribute_id_if_needed("Side");
-  attribute_outputs.uv_map_id = params.get_output_anonymous_attribute_id_if_needed("UV Map");
+  attribute_outputs.top_id = params.get_output_anonymous_attribute_id_if_needed("Top"_ustr);
+  attribute_outputs.bottom_id = params.get_output_anonymous_attribute_id_if_needed("Bottom"_ustr);
+  attribute_outputs.side_id = params.get_output_anonymous_attribute_id_if_needed("Side"_ustr);
+  attribute_outputs.uv_map_id = params.get_output_anonymous_attribute_id_if_needed("UV Map"_ustr);
 
   Mesh *mesh = geometry::create_cylinder_or_cone_mesh(radius_top,
                                                       radius_bottom,
@@ -133,7 +133,7 @@ static void node_geo_exec(GeoNodeExecParams params)
   /* Transform the mesh so that the base of the cone is at the origin. */
   bke::mesh_translate(*mesh, float3(0.0f, 0.0f, depth * 0.5f), false);
 
-  params.set_output("Mesh", GeometrySet::from_mesh(mesh));
+  params.set_output("Mesh"_ustr, GeometrySet::from_mesh(mesh));
 }
 
 static void node_rna(StructRNA *srna)

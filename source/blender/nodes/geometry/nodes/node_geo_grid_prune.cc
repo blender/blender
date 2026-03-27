@@ -130,14 +130,14 @@ static void node_gather_link_search_ops(GatherLinkSearchOpParams &params)
 static void node_geo_exec(GeoNodeExecParams params)
 {
 #ifdef WITH_OPENVDB
-  bke::GVolumeGrid grid = params.extract_input<bke::GVolumeGrid>("Grid");
+  bke::GVolumeGrid grid = params.extract_input<bke::GVolumeGrid>("Grid"_ustr);
   if (!grid) {
     params.set_default_remaining_outputs();
     return;
   }
   bke::VolumeTreeAccessToken tree_token;
   openvdb::GridBase &grid_base = grid.get_for_write().grid_for_write(tree_token);
-  switch (params.extract_input<Mode>("Mode")) {
+  switch (params.extract_input<Mode>("Mode"_ustr)) {
     case Mode::Inactive: {
       bke::volume_grid::prune_inactive(grid_base);
       break;
@@ -157,19 +157,19 @@ static void node_geo_exec(GeoNodeExecParams params)
         }
         case VOLUME_GRID_FLOAT: {
           auto &grid = static_cast<openvdb::FloatGrid &>(grid_base);
-          const float threshold = params.extract_input<float>("Threshold");
+          const float threshold = params.extract_input<float>("Threshold"_ustr);
           openvdb::tools::prune(grid.tree(), threshold);
           break;
         }
         case VOLUME_GRID_INT: {
           auto &grid = static_cast<openvdb::Int32Grid &>(grid_base);
-          const int threshold = params.extract_input<int>("Threshold");
+          const int threshold = params.extract_input<int>("Threshold"_ustr);
           openvdb::tools::prune(grid.tree(), threshold);
           break;
         }
         case VOLUME_GRID_VECTOR_FLOAT: {
           auto &grid = static_cast<openvdb::Vec3fGrid &>(grid_base);
-          const float3 threshold = params.extract_input<float3>("Threshold");
+          const float3 threshold = params.extract_input<float3>("Threshold"_ustr);
           openvdb::tools::prune(grid.tree(),
                                 openvdb::Vec3s(threshold.x, threshold.y, threshold.z));
           break;
@@ -203,7 +203,7 @@ static void node_geo_exec(GeoNodeExecParams params)
       break;
     }
   }
-  params.set_output("Grid", std::move(grid));
+  params.set_output("Grid"_ustr, std::move(grid));
 #else
   node_geo_exec_with_missing_openvdb(params);
 #endif

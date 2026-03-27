@@ -56,9 +56,9 @@ static void set_grease_pencil_order(GreasePencil &grease_pencil,
 
 static void node_geo_exec(GeoNodeExecParams params)
 {
-  GeometrySet geometry_set = params.extract_input<GeometrySet>("Curves");
-  const Field<bool> selection = params.extract_input<Field<bool>>("Selection");
-  const Field<int> order = params.extract_input<Field<int>>("Order");
+  GeometrySet geometry_set = params.extract_input<GeometrySet>("Curves"_ustr);
+  const Field<bool> selection = params.extract_input<Field<bool>>("Selection"_ustr);
+  const Field<int> order = params.extract_input<Field<int>>("Order"_ustr);
 
   const bke::DataTypeConversions &conversions = bke::get_implicit_type_conversions();
   const Field<int8_t> order_int8 = conversions.try_convert(order, CPPType::get<int8_t>());
@@ -88,7 +88,7 @@ static void node_geo_exec(GeoNodeExecParams params)
     params.error_message_add(NodeWarningType::Info, TIP_("Input curves do not have NURBS type"));
   }
 
-  params.set_output("Curves", std::move(geometry_set));
+  params.set_output("Curves"_ustr, std::move(geometry_set));
 }
 
 static void node_register()

@@ -80,12 +80,13 @@ static void node_declare(NodeDeclarationBuilder &b)
 
 static void node_geo_exec(GeoNodeExecParams params)
 {
-  GeometrySet geometry_set = params.extract_input<GeometrySet>("Mesh");
-  Field<bool> selection_field = params.extract_input<Field<bool>>("Selection");
-  const AttributeFilter &attribute_filter = params.get_attribute_filter("Mesh");
+  GeometrySet geometry_set = params.extract_input<GeometrySet>("Mesh"_ustr);
+  Field<bool> selection_field = params.extract_input<Field<bool>>("Selection"_ustr);
+  const AttributeFilter &attribute_filter = params.get_attribute_filter("Mesh"_ustr);
 
-  const auto ngon_method = params.extract_input<geometry::TriangulateNGonMode>("N-gon Method");
-  const auto quad_method = params.extract_input<geometry::TriangulateQuadMode>("Quad Method");
+  const auto ngon_method = params.extract_input<geometry::TriangulateNGonMode>(
+      "N-gon Method"_ustr);
+  const auto quad_method = params.extract_input<geometry::TriangulateQuadMode>("Quad Method"_ustr);
 
   geometry::foreach_real_geometry(geometry_set, [&](GeometrySet &geometry_set) {
     const Mesh *src_mesh = geometry_set.get_mesh();
@@ -123,7 +124,7 @@ static void node_geo_exec(GeoNodeExecParams params)
     geometry_set.replace_mesh(*mesh);
   });
 
-  params.set_output("Mesh", std::move(geometry_set));
+  params.set_output("Mesh"_ustr, std::move(geometry_set));
 }
 
 static void node_register()

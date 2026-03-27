@@ -17,8 +17,8 @@ static void node_declare(NodeDeclarationBuilder &b)
 
 static void node_geo_exec(GeoNodeExecParams params)
 {
-  auto strings = params.extract_input<GeoNodesMultiInput<std::string>>("Strings");
-  const std::string delim = params.extract_input<std::string>("Delimiter");
+  auto strings = params.extract_input<GeoNodesMultiInput<std::string>>("Strings"_ustr);
+  const std::string delim = params.extract_input<std::string>("Delimiter"_ustr);
 
   std::string output;
   for (const int i : strings.values.index_range()) {
@@ -27,7 +27,7 @@ static void node_geo_exec(GeoNodeExecParams params)
       output += delim;
     }
   }
-  params.set_output("String", std::move(output));
+  params.set_output("String"_ustr, std::move(output));
 }
 
 static void node_register()

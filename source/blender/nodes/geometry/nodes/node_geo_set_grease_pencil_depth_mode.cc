@@ -40,7 +40,7 @@ static void node_init(bNodeTree * /*tree*/, bNode *node)
 
 static void node_geo_exec(GeoNodeExecParams params)
 {
-  GeometrySet geometry_set = params.extract_input<GeometrySet>("Grease Pencil");
+  GeometrySet geometry_set = params.extract_input<GeometrySet>("Grease Pencil"_ustr);
 
   geometry::foreach_real_geometry(geometry_set, [&](GeometrySet &geometry) {
     if (GreasePencil *grease_pencil = geometry.get_grease_pencil_for_write()) {
@@ -50,7 +50,7 @@ static void node_geo_exec(GeoNodeExecParams params)
     }
   });
 
-  params.set_output("Grease Pencil", std::move(geometry_set));
+  params.set_output("Grease Pencil"_ustr, std::move(geometry_set));
 }
 
 static void node_rna(StructRNA *srna)

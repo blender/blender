@@ -110,13 +110,13 @@ class IslandCountFieldInput final : public bke::MeshFieldInput {
 
 static void node_geo_exec(GeoNodeExecParams params)
 {
-  if (params.output_is_required("Island Index")) {
+  if (params.output_is_required("Island Index"_ustr)) {
     Field<int> field{std::make_shared<IslandFieldInput>()};
-    params.set_output("Island Index", std::move(field));
+    params.set_output("Island Index"_ustr, std::move(field));
   }
-  if (params.output_is_required("Island Count")) {
+  if (params.output_is_required("Island Count"_ustr)) {
     Field<int> field{std::make_shared<IslandCountFieldInput>()};
-    params.set_output("Island Count", std::move(field));
+    params.set_output("Island Count"_ustr, std::move(field));
   }
 }
 

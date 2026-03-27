@@ -86,10 +86,10 @@ static void set_sharp(Mesh &mesh,
 
 static void node_geo_exec(GeoNodeExecParams params)
 {
-  GeometrySet geometry_set = params.extract_input<GeometrySet>("Geometry");
+  GeometrySet geometry_set = params.extract_input<GeometrySet>("Geometry"_ustr);
   const AttrDomain domain = AttrDomain(params.node().custom1);
-  const Field<bool> selection = params.extract_input<Field<bool>>("Selection");
-  const Field<bool> smooth_field = params.extract_input<Field<bool>>("Shade Smooth");
+  const Field<bool> selection = params.extract_input<Field<bool>>("Selection"_ustr);
+  const Field<bool> smooth_field = params.extract_input<Field<bool>>("Shade Smooth"_ustr);
 
   geometry::foreach_real_geometry(geometry_set, [&](GeometrySet &geometry_set) {
     if (Mesh *mesh = geometry_set.get_mesh_for_write()) {
@@ -100,7 +100,7 @@ static void node_geo_exec(GeoNodeExecParams params)
                 fn::invert_boolean_field(smooth_field));
     }
   });
-  params.set_output("Geometry", std::move(geometry_set));
+  params.set_output("Geometry"_ustr, std::move(geometry_set));
 }
 
 static void node_rna(StructRNA *srna)
