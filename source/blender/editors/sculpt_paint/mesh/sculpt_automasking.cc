@@ -794,10 +794,13 @@ void calc_face_factors(const Depsgraph &depsgraph,
         }
       }
 
+      /* The filter tools do not take symmetry into consideration, use the "generic" (i.e. 0)
+       * symmetry pass instead */
+      const int current_symmetry_pass = ss.cache ? ss.cache->mirror_symmetry_pass : 0;
       if (!automasking.settings.topology_use_brush_limit &&
           automasking.settings.flags & BRUSH_AUTOMASKING_TOPOLOGY &&
           islands::vert_id_get(ss, vert) !=
-              automasking.settings.initial_island_nr[ss.cache->mirror_symmetry_pass])
+              automasking.settings.initial_island_nr[current_symmetry_pass])
       {
         factor = 0.0f;
         continue;
@@ -923,10 +926,13 @@ void calc_grids_factors(const Depsgraph &depsgraph,
         }
       }
 
+      /* The filter tools do not take symmetry into consideration, use the "generic" (i.e. 0)
+       * symmetry pass instead */
+      const int current_symmetry_pass = ss.cache ? ss.cache->mirror_symmetry_pass : 0;
       if (!automasking.settings.topology_use_brush_limit &&
           automasking.settings.flags & BRUSH_AUTOMASKING_TOPOLOGY &&
           islands::vert_id_get(ss, vert) !=
-              automasking.settings.initial_island_nr[ss.cache->mirror_symmetry_pass])
+              automasking.settings.initial_island_nr[current_symmetry_pass])
       {
         factors[node_vert] = 0.0f;
         continue;
@@ -1046,10 +1052,13 @@ void calc_vert_factors(const Depsgraph &depsgraph,
       }
     }
 
+    /* The filter tools do not take symmetry into consideration, use the "generic" (i.e. 0)
+     * symmetry pass instead */
+    const int current_symmetry_pass = ss.cache ? ss.cache->mirror_symmetry_pass : 0;
     if (!automasking.settings.topology_use_brush_limit &&
         automasking.settings.flags & BRUSH_AUTOMASKING_TOPOLOGY &&
         islands::vert_id_get(ss, vert_i) !=
-            automasking.settings.initial_island_nr[ss.cache->mirror_symmetry_pass])
+            automasking.settings.initial_island_nr[current_symmetry_pass])
     {
       factors[i] = 0.0f;
       continue;
