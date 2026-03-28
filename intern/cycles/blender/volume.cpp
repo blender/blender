@@ -75,8 +75,13 @@ class BlenderSmokeLoader : public VDBImageLoader {
 
     /* Create a matrix to transform from object space to mesh texture space.
      * This does not work with deformations but that can probably only be done
-     * well with a volume grid mapping of coordinates. */
-    Transform transform_3d = transform_translate(-texspace_loc) * transform_scale(texspace_size);
+     * well with a volume grid mapping of coordinates.
+     *
+     * Mantaflow stores values at cell centers, while OpenVDB convention is
+     * at corners. Offset by half a voxel to compensate for that. */
+    const float3 half_voxel = make_float3(0.5f / width, 0.5f / height, 0.5f / depth);
+    Transform transform_3d = transform_translate(-texspace_loc - half_voxel) *
+                             transform_scale(texspace_size);
 
     vector<float> voxels;
     if (!get_voxels(width, height, depth, channels, voxels)) {
