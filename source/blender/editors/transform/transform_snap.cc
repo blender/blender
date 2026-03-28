@@ -1039,7 +1039,7 @@ void initSnapping(TransInfo *t, wmOperator *op)
   }
   else if (t->spacetype == SPACE_SEQ) {
     if (t->tsnap.seq_context == nullptr) {
-      t->tsnap.seq_context = snap_sequencer_data_alloc(t);
+      t->tsnap.seq_context = snap_sequencer_data_build(t);
     }
   }
 

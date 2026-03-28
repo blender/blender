@@ -61,7 +61,7 @@ float transform_snap_distance_len_squared_fn(TransInfo *t, const float p1[3], co
 
 /* `transform_snap_sequencer.cc` */
 
-TransSeqSnapData *snap_sequencer_data_alloc(const TransInfo *t);
+TransSeqSnapData *snap_sequencer_data_build(const TransInfo *t);
 void snap_sequencer_data_free(TransSeqSnapData *data);
 bool snap_sequencer_calc(TransInfo *t);
 void snap_sequencer_apply_seqslide(TransInfo *t, float *vec);
