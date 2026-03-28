@@ -1080,7 +1080,7 @@ static void rna_def_sculpt(BlenderRNA *brna)
                            "of Blender unit - higher value means smaller edge length)");
   RNA_def_property_update(prop, NC_SCENE | ND_TOOLSETTINGS, nullptr);
 
-  const EnumPropertyItem *entry = rna_enum_brush_automasking_flag_items;
+  const EnumPropertyItem *entry = rna_enum_shared_automasking_flag_items;
   do {
     prop = RNA_def_property(srna, entry->identifier, PROP_BOOLEAN, PROP_NONE);
     RNA_def_property_boolean_sdna(prop, nullptr, "automasking_flags", entry->value);
@@ -1135,30 +1135,6 @@ static void rna_def_sculpt(BlenderRNA *brna)
   RNA_def_property_struct_type(prop, "CurveMapping");
   RNA_def_property_ui_text(prop, "Cavity Curve", "Curve used for the sensitivity");
   RNA_def_property_clear_flag(prop, PROP_ANIMATABLE);
-  RNA_def_property_update(prop, NC_SCENE | ND_TOOLSETTINGS, nullptr);
-
-  prop = RNA_def_property(srna, "use_automasking_start_normal", PROP_BOOLEAN, PROP_NONE);
-  RNA_def_property_boolean_sdna(
-      prop, nullptr, "automasking_flags", BRUSH_AUTOMASKING_BRUSH_NORMAL);
-  RNA_def_property_ui_text(
-      prop,
-      "Area Normal",
-      "Affect only vertices with a similar normal to where the stroke starts");
-  RNA_def_property_update(prop, NC_SCENE | ND_TOOLSETTINGS, nullptr);
-
-  prop = RNA_def_property(srna, "use_automasking_view_normal", PROP_BOOLEAN, PROP_NONE);
-  RNA_def_property_boolean_sdna(prop, nullptr, "automasking_flags", BRUSH_AUTOMASKING_VIEW_NORMAL);
-  RNA_def_property_ui_text(
-      prop, "View Normal", "Affect only vertices with a normal that faces the viewer");
-  RNA_def_property_update(prop, NC_SCENE | ND_TOOLSETTINGS, nullptr);
-
-  prop = RNA_def_property(srna, "use_automasking_view_occlusion", PROP_BOOLEAN, PROP_NONE);
-  RNA_def_property_boolean_sdna(
-      prop, nullptr, "automasking_flags", BRUSH_AUTOMASKING_VIEW_OCCLUSION);
-  RNA_def_property_ui_text(
-      prop,
-      "Occlusion",
-      "Only affect vertices that are not occluded by other faces (slower performance)");
   RNA_def_property_update(prop, NC_SCENE | ND_TOOLSETTINGS, nullptr);
 
   prop = RNA_def_property(srna, "automasking_start_normal_limit", PROP_FLOAT, PROP_ANGLE);

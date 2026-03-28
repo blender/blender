@@ -111,7 +111,7 @@ DEF_ENUM(rna_enum_operator_type_flag_items)
 DEF_ENUM(rna_enum_operator_return_items)
 DEF_ENUM(rna_enum_operator_property_tag_items)
 
-DEF_ENUM(rna_enum_brush_automasking_flag_items)
+DEF_ENUM(rna_enum_shared_automasking_flag_items)
 DEF_ENUM(rna_enum_brush_sculpt_brush_type_items)
 DEF_ENUM(rna_enum_brush_vertex_brush_type_items)
 DEF_ENUM(rna_enum_brush_weight_brush_type_items)

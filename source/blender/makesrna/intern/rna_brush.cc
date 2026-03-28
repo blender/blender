@@ -92,7 +92,7 @@ const EnumPropertyItem rna_enum_brush_curve_preset_items[] = {
 
 /* NOTE: we don't actually turn these into a single enum bit-mask property,
  * instead we construct individual boolean properties. */
-const EnumPropertyItem rna_enum_brush_automasking_flag_items[] = {
+const EnumPropertyItem rna_enum_shared_automasking_flag_items[] = {
     {BRUSH_AUTOMASKING_TOPOLOGY,
      "use_automasking_topology",
      0,
@@ -128,6 +128,21 @@ const EnumPropertyItem rna_enum_brush_automasking_flag_items[] = {
      0,
      "Custom Cavity Curve",
      "Use custom curve"},
+    {BRUSH_AUTOMASKING_BRUSH_NORMAL,
+     "use_automasking_start_normal",
+     0,
+     "Area Normal",
+     "Affect only vertices with a similar normal to where the stroke starts"},
+    {BRUSH_AUTOMASKING_VIEW_NORMAL,
+     "use_automasking_view_normal",
+     0,
+     "View Normal",
+     "Affect only vertices with a normal that faces the viewer"},
+    {BRUSH_AUTOMASKING_VIEW_OCCLUSION,
+     "use_automasking_view_occlusion",
+     0,
+     "Occlusion",
+     "Only affect vertices that are not occluded by other faces (slower performance)"},
     {0, nullptr, 0, nullptr, nullptr}};
 
 const EnumPropertyItem rna_enum_brush_sculpt_brush_type_items[] = {
@@ -3572,7 +3587,7 @@ static void rna_def_brush(BlenderRNA *brna)
       "When locked keep using the plane origin of surface where stroke was initiated");
   RNA_def_property_update(prop, 0, "rna_Brush_update");
 
-  const EnumPropertyItem *entry = rna_enum_brush_automasking_flag_items;
+  const EnumPropertyItem *entry = rna_enum_shared_automasking_flag_items;
   do {
     prop = RNA_def_property(srna, entry->identifier, PROP_BOOLEAN, PROP_NONE);
     RNA_def_property_boolean_sdna(prop, nullptr, "automasking_flags", entry->value);
@@ -3613,15 +3628,6 @@ static void rna_def_brush(BlenderRNA *brna)
   RNA_def_property_override_flag(prop, PROPOVERRIDE_OVERRIDABLE_LIBRARY);
   RNA_def_property_update(prop, 0, "rna_Brush_update");
 
-  prop = RNA_def_property(srna, "use_automasking_start_normal", PROP_BOOLEAN, PROP_NONE);
-  RNA_def_property_boolean_sdna(
-      prop, nullptr, "automasking_flags", BRUSH_AUTOMASKING_BRUSH_NORMAL);
-  RNA_def_property_ui_text(
-      prop,
-      "Area Normal",
-      "Affect only vertices with a similar normal to where the stroke starts");
-  RNA_def_property_update(prop, 0, "rna_Brush_update");
-
   prop = RNA_def_property(srna, "automasking_start_normal_limit", PROP_FLOAT, PROP_ANGLE);
   RNA_def_property_float_sdna(prop, nullptr, "automasking_start_normal_limit");
   RNA_def_property_range(prop, 0.0001f, M_PI);
@@ -3633,21 +3639,6 @@ static void rna_def_brush(BlenderRNA *brna)
   RNA_def_property_range(prop, 0.0001f, 1.0f);
   RNA_def_property_ui_text(
       prop, "Area Normal Falloff", "Extend the angular range with a falloff gradient");
-  RNA_def_property_update(prop, 0, "rna_Brush_update");
-
-  prop = RNA_def_property(srna, "use_automasking_view_normal", PROP_BOOLEAN, PROP_NONE);
-  RNA_def_property_boolean_sdna(prop, nullptr, "automasking_flags", BRUSH_AUTOMASKING_VIEW_NORMAL);
-  RNA_def_property_ui_text(
-      prop, "View Normal", "Affect only vertices with a normal that faces the viewer");
-  RNA_def_property_update(prop, 0, "rna_Brush_update");
-
-  prop = RNA_def_property(srna, "use_automasking_view_occlusion", PROP_BOOLEAN, PROP_NONE);
-  RNA_def_property_boolean_sdna(
-      prop, nullptr, "automasking_flags", BRUSH_AUTOMASKING_VIEW_OCCLUSION);
-  RNA_def_property_ui_text(
-      prop,
-      "Occlusion",
-      "Only affect vertices that are not occluded by other faces (slower performance)");
   RNA_def_property_update(prop, 0, "rna_Brush_update");
 
   prop = RNA_def_property(srna, "automasking_view_normal_limit", PROP_FLOAT, PROP_ANGLE);
