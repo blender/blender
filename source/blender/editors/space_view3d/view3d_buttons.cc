@@ -2578,8 +2578,8 @@ static void handle_curves_start_cap(bContext *C, void *, void *)
 constexpr std::array<EnumPropertyItem, 5> enum_curve_knot_mode_items{{
     {NURBS_KNOT_MODE_NORMAL, "NORMAL", ICON_NONE, "Normal", ""},
     {NURBS_KNOT_MODE_ENDPOINT, "ENDPOINT", ICON_NONE, "Endpoint", ""},
-    {NURBS_KNOT_MODE_BEZIER, "BEZIER", ICON_NONE, "Bezier", ""},
-    {NURBS_KNOT_MODE_ENDPOINT_BEZIER, "ENDPOINT_BEZIER", ICON_NONE, "Endpoint Bezier", ""},
+    {NURBS_KNOT_MODE_BEZIER, "BEZIER", ICON_NONE, "Bézier", ""},
+    {NURBS_KNOT_MODE_ENDPOINT_BEZIER, "ENDPOINT_BEZIER", ICON_NONE, "Endpoint Bézier", ""},
     {NURBS_KNOT_MODE_CUSTOM, "CUSTOM", ICON_NONE, "Custom", ""},
 }};
 

@@ -64,7 +64,7 @@ def playback_controls(layout, context):
         )
 
     if is_sequencer:
-        layout.prop(context.workspace, "use_scene_time_sync", text="Sync Scene Time")
+        layout.prop(context.workspace, "use_scene_time_sync")
 
     layout.separator_spacer()
 

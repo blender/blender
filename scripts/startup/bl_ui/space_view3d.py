@@ -3880,7 +3880,7 @@ class VIEW3D_MT_add_object(Menu):
         props.name = "builtin.primitive_uv_sphere_add"
         props.space_type = 'VIEW_3D'
 
-        props = layout.operator("wm.tool_set_by_id", text="Add Ico Cube")
+        props = layout.operator("wm.tool_set_by_id", text="Add Ico Sphere")
         props.name = "builtin.primitive_ico_sphere_add"
         props.space_type = 'VIEW_3D'
 

@@ -3833,7 +3833,7 @@ static void rna_def_brush(BlenderRNA *brna)
   RNA_def_property_boolean_sdna(prop, nullptr, "flag2", BRUSH_PROJECT_USE_BIDIRECTIONAL);
   RNA_def_property_ui_text(prop,
                            "Bidirectional",
-                           "Project vertices both along along the projection direction and its "
+                           "Project vertices both along the projection direction and its "
                            "inverse, choosing the closest intersection.");
   RNA_def_property_update(prop, 0, "rna_Brush_update");
 

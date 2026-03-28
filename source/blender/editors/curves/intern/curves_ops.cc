@@ -1824,7 +1824,7 @@ static void CURVES_OT_handle_type_set(wmOperatorType *ot)
 {
   ot->name = "Set Handle Type";
   ot->idname = __func__;
-  ot->description = "Set the handle type for bezier curves";
+  ot->description = "Set the handle type for Bézier curves";
 
   ot->invoke = WM_menu_invoke;
   ot->exec = set_handle_type::exec;
