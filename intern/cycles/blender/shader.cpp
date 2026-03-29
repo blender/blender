@@ -1049,9 +1049,6 @@ static ShaderNode *add_node(Scene *scene,
         break;
       case blender::NODE_IES_INTERNAL:
         ustring ies_content = ustring(get_text_datablock_content(b_node.id));
-        if (ies_content.empty()) {
-          ies_content = "\n";
-        }
         ies->set_ies(ies_content);
         break;
     }

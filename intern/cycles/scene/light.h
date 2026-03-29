@@ -207,7 +207,7 @@ class LightManager {
   LightManager();
 
   /* IES texture management */
-  int add_ies(const string &content);
+  int add_ies(const string &content, const bool log_parsing_error);
   int add_ies_from_file(const string &filename);
   void remove_ies(const int slot);
 

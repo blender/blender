@@ -1524,16 +1524,22 @@ bool LightManager::need_update() const
 int LightManager::add_ies_from_file(const string &filename)
 {
   string content;
+  bool log_parsing_error = true;
 
-  /* If the file can't be opened, call with an empty line */
-  if (filename.empty() || !path_read_text(filename, content)) {
-    content = "\n";
+  if (!filename.empty()) {
+    if (!path_read_text(filename, content)) {
+      LOG_ERROR << "Could not read IES file from " << filename;
+      log_parsing_error = false;
+    }
+  }
+  else {
+    log_parsing_error = false;
   }
 
-  return add_ies(content);
+  return add_ies(content, log_parsing_error);
 }
 
-int LightManager::add_ies(const string &content)
+int LightManager::add_ies(const string &content, const bool log_parsing_error)
 {
   const uint hash = hash_string(content.c_str());
 
@@ -1560,7 +1566,11 @@ int LightManager::add_ies(const string &content)
     ies_slots.push_back(make_unique<IESSlot>());
   }
 
-  ies_slots[slot]->ies.load(content);
+  const bool valid_ies = ies_slots[slot]->ies.load(content);
+  if (!valid_ies && log_parsing_error) {
+    LOG_ERROR << "Could not parse IES file, invalid content";
+  }
+
   ies_slots[slot]->users = 1;
   ies_slots[slot]->hash = hash;
 
