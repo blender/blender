@@ -46,6 +46,7 @@
 #include "BKE_fcurve.hh"
 #include "BKE_global.hh"
 #include "BKE_idprop.hh"
+#include "BKE_idtype.hh"
 #include "BKE_lib_id.hh"
 #include "BKE_lib_query.hh"
 #include "BKE_main.hh"
@@ -4336,7 +4337,12 @@ void BKE_animsys_eval_driver(Depsgraph *depsgraph, ID *id, int driver_index, FCu
 
       /* set error-flag if evaluation failed */
       if (ok == 0) {
-        CLOG_WARN(&LOG_ANIM_DRIVER, "Invalid driver - %s[%d]", fcu->rna_path, fcu->array_index);
+        CLOG_WARN(&LOG_ANIM_DRIVER,
+                  "Invalid driver on %s '%s' - %s[%d]",
+                  BKE_idtype_idcode_to_name(GS(id->name)),
+                  id->name + 2,
+                  fcu->rna_path,
+                  fcu->array_index);
         driver_orig->flag |= DRIVER_FLAG_INVALID;
       }
     }
