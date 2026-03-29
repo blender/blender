@@ -91,6 +91,9 @@ enum eWM_GizmoFlag {
   WM_GIZMO_NO_TOOLTIP = (1 << 12),
   /** Push an undo step after each use of the gizmo. */
   WM_GIZMO_NEEDS_UNDO = (1 << 13),
+
+  /** This gizmo should be visually distinct and not shown grouped with other gizmos. */
+  WM_GIZMO_NO_GROUPING = (1 << 14),
 };
 ENUM_OPERATORS(eWM_GizmoFlag);
 
@@ -431,6 +434,10 @@ struct wmGizmoGroupType {
   /** Optional, see: #wmOwnerID. */
   char owner_id[128];
 
+  /** Optional, used when drawing a group background with `draw_background`. */
+  float4 background_color;
+  float4 outline_color;
+
   /** Poll if gizmo-map should be visible. */
   wmGizmoGroupFnPoll poll;
   /** Initially create gizmos and set permanent data - stuff you only need to do once. */
@@ -439,6 +446,8 @@ struct wmGizmoGroupType {
   wmGizmoGroupFnRefresh refresh;
   /** Refresh data for drawing, called before each redraw. */
   wmGizmoGroupFnDrawPrepare draw_prepare;
+  /** Optionally draw the background of the group itself. */
+  wmGizmoGroupFnDrawBackground draw_background;
   /** Initialize data for before invoke. */
   wmGizmoGroupFnInvokePrepare invoke_prepare;
 
