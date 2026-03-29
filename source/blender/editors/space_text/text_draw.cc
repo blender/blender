@@ -643,7 +643,7 @@ static void space_text_update_drawcache(SpaceText *st, const ARegion *region)
   /* Word-wrapping option was toggled. */
   full_update |= drawcache->cwidth_px != st->runtime->cwidth_px;
   /* Text datablock was changed. */
-  full_update |= !STREQLEN(drawcache->text_id, txt->id.name, MAX_ID_NAME - 2);
+  full_update |= !STREQLEN(drawcache->text_id, txt->id.name + 2, MAX_ID_NAME - 2);
 
   if (st->wordwrap) {
     /* Update line heights. */
