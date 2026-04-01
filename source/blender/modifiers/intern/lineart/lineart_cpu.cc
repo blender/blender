@@ -1811,10 +1811,12 @@ struct TriData {
   Span<int3> corner_tris;
   Span<int> tri_faces;
   Span<int> material_indices;
+  Span<bool> face_marks;
   LineartVert *vert_arr;
   LineartTriangle *tri_arr;
   int lineart_triangle_size;
   LineartTriangleAdjacent *tri_adj;
+  bool invert_face_marks;
 };
 
 static void lineart_load_tri_task(void *__restrict userdata,
@@ -1877,6 +1879,14 @@ static void lineart_load_tri_task(void *__restrict userdata,
   }
   else if (ELEM(ob_info->usage, OBJECT_LRT_NO_INTERSECTION, OBJECT_LRT_OCCLUSION_ONLY)) {
     tri->flags |= LRT_TRIANGLE_NO_INTERSECTION;
+  }
+
+  if (!tri_task_data->face_marks.is_empty()) {
+    const bool has_mark = tri_task_data->face_marks[face_i];
+    const bool filtered = tri_task_data->invert_face_marks ? has_mark : (!has_mark);
+    if (filtered) {
+      tri->flags |= LRT_TRIANGLE_NO_INTERSECTION;
+    }
   }
 
   /* Re-use this field to refer to adjacent info, will be cleared after culling stage. */
@@ -1981,6 +1991,7 @@ static void lineart_geometry_object_load(LineartObjectInfo *ob_info,
   const Span<int3> corner_tris = mesh->corner_tris();
   const AttributeAccessor attributes = mesh->attributes();
   const VArraySpan material_indices = *attributes.lookup<int>("material_index", AttrDomain::Face);
+  const VArraySpan face_marks = *attributes.lookup<bool>("freestyle_face", AttrDomain::Face);
 
   /* If we allow duplicated edges, one edge should get added multiple times if is has been
    * classified as more than one edge type. This is so we can create multiple different line type
@@ -2078,6 +2089,10 @@ static void lineart_geometry_object_load(LineartObjectInfo *ob_info,
   tri_data.tri_arr = la_tri_arr;
   tri_data.lineart_triangle_size = la_data->sizeof_triangle;
   tri_data.tri_adj = tri_adj;
+  if (la_data->conf.filter_face_mark) {
+    tri_data.face_marks = face_marks;
+    tri_data.invert_face_marks = la_data->conf.filter_face_mark_invert;
+  }
 
   uint32_t total_edges = corner_tris.size() * 3;
 
