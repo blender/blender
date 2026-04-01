@@ -2744,7 +2744,8 @@ template<typename T> void detect_holes_with_fillrule_nonzero(CDT_state<T> *cdt_s
     }
     fstack.append(f_init);
     cur_region++;
-    bool found_outer_edge = false;
+    bool found_constrained_outer = false;
+    bool found_any_outer = false;
     int outer_winding = 0;
 
     while (!fstack.is_empty()) {
@@ -2767,17 +2768,18 @@ template<typename T> void detect_holes_with_fillrule_nonzero(CDT_state<T> *cdt_s
         /* NOTE: Loose edges (input edges not part of any face) are not supported.
          * To support them, they would need winding values assigned here. */
         if (is_constrained_edge(se->edge)) {
-          if (neighbor == cdt->outer_face && !found_outer_edge) {
-            /* This region touches outer. Compute initial winding by determining the
-             * winding contribution from crossing into this region from outside.
+          if (neighbor == cdt->outer_face && !found_constrained_outer) {
+            /* Constrained edge to outer face: a polygon boundary on the convex hull.
+             * Compute initial winding from crossing into this region from outside.
              *
-             * We only use the first outer edge found. For simply-connected regions
-             * (all CDT regions), a ray from inside to infinity crosses the outer boundary
-             * once, so this matches ray-casting behavior. If multiple outer edges exist
-             * with different windings (ambiguous overlapping input), the result depends
-             * on which edge is encountered first - same as ray-casting depends on ray
-             * direction. */
-            found_outer_edge = true;
+             * We only use the first constrained outer edge found. For simply-connected
+             * regions (all CDT regions), a ray from inside to infinity crosses the outer
+             * boundary once, so this matches ray-casting behavior. If multiple outer
+             * edges exist with different windings (ambiguous overlapping input), the
+             * result depends on which edge is encountered first - same as ray-casting
+             * depends on ray direction. */
+            found_constrained_outer = true;
+            found_any_outer = true;
             const int winding = cdt_state->edge_winding_map->lookup_default(se->edge, 0);
             /* If our face is `symedges[0].face`, outer is `symedges[1].face`.
              * Crossing INTO our region from `outer = side1` -> `side0 = +winding`. */
@@ -2789,13 +2791,20 @@ template<typename T> void detect_holes_with_fillrule_nonzero(CDT_state<T> *cdt_s
             }
           }
         }
+        else if (neighbor == cdt->outer_face) {
+          /* Unconstrained edge to outer face: a convex hull edge that isn't a polygon
+           * boundary. This region is outside all input polygons so its winding is 0
+           * (the initialized value of `outer_winding`). A constrained outer edge takes
+           * priority since it carries the actual winding from crossing a polygon boundary. */
+          found_any_outer = true;
+        }
         else if (!neighbor->deleted && neighbor->visit_index == -1) {
           fstack.append(neighbor);
         }
       } while ((se = se->next) != se_start);
     }
 
-    if (found_outer_edge) {
+    if (found_any_outer) {
       boundary_regions.append({cur_region, outer_winding});
     }
   }

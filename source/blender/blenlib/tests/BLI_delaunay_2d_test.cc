@@ -2123,6 +2123,38 @@ template<typename T> void nonzero_winding_exact_shared_edge_test()
   EXPECT_LT(out_evenodd.face.size(), out_nonzero.face.size());
 }
 
+/**
+ * Concave polygon where no polygon edge lies on the convex hull.
+ * Three corners form a triangle, three midpoints are slightly inside each edge.
+ * The convex hull uses only the corners, so the CDT has no constrained edges
+ * adjacent to the outer face.
+ *
+ * Regression test: non-zero winding hole detection must treat unconstrained
+ * edges to the outer face as boundary regions with winding 0.
+ * This simple polygon should triangulate to exactly 4 faces under both rules;
+ * the broken path produced 0 faces for the non-zero case.
+ */
+template<typename T> void nonzero_winding_concave_outer_test()
+{
+  const char *spec = R"(6 0 1
+  0 0
+  5 1
+  10 0
+  7 4
+  5 9
+  3 4
+  0 1 2 3 4 5
+  )";
+
+  CDT_input<T> in = fill_input_from_string<T>(spec);
+
+  CDT_result<T> out_evenodd = delaunay_2d_calc(in, CDT_INSIDE_WITH_HOLES);
+  CDT_result<T> out_nonzero = delaunay_2d_calc(in, CDT_INSIDE_WITH_HOLES_NONZERO);
+
+  EXPECT_EQ(out_evenodd.face.size(), 4);
+  EXPECT_EQ(out_nonzero.face.size(), 4);
+}
+
 template<typename T> void crosssegs_test()
 {
   const char *spec = R"(4 2 0
@@ -2973,6 +3005,11 @@ TEST(delaunay_d, NonZeroWindingExactSharedEdge)
   nonzero_winding_exact_shared_edge_test<double>();
 }
 
+TEST(delaunay_d, NonZeroWindingConcaveOuter)
+{
+  nonzero_winding_concave_outer_test<double>();
+}
+
 TEST(delaunay_d, CrossSegs)
 {
   crosssegs_test<double>();
@@ -3206,6 +3243,11 @@ TEST(delaunay_m, NonZeroWindingTJunction)
 TEST(delaunay_m, NonZeroWindingExactSharedEdge)
 {
   nonzero_winding_exact_shared_edge_test<mpq_class>();
+}
+
+TEST(delaunay_m, NonZeroWindingConcaveOuter)
+{
+  nonzero_winding_concave_outer_test<mpq_class>();
 }
 
 TEST(delaunay_m, CrossSegs)
