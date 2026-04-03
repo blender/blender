@@ -2318,7 +2318,9 @@ static uchar lineart_intersection_mask_check(Collection *c, Object *ob)
     }
   }
 
-  if (BKE_collection_has_object(c, id_cast<Object *>(ob->id.orig_id))) {
+  /* We already did "depth-priority search" above, so if no child collection is overriding the
+   * value, we use the parent's value. */
+  if (BKE_collection_has_object_recursive_instanced(c, id_cast<Object *>(ob->id.orig_id))) {
     if (c->lineart_flags & COLLECTION_LRT_USE_INTERSECTION_MASK) {
       return c->lineart_intersection_mask;
     }
@@ -2339,7 +2341,10 @@ static uchar lineart_intersection_priority_check(Collection *c, Object *ob)
       return result;
     }
   }
-  if (BKE_collection_has_object(c, id_cast<Object *>(ob->id.orig_id))) {
+
+  /* We already did "depth-priority search" above, so if no child collection is overriding the
+   * value, we use the parent's value. */
+  if (BKE_collection_has_object_recursive_instanced(c, id_cast<Object *>(ob->id.orig_id))) {
     if (c->lineart_flags & COLLECTION_LRT_USE_INTERSECTION_PRIORITY) {
       return c->lineart_intersection_priority;
     }
@@ -4711,17 +4716,13 @@ static void lineart_create_edges_from_isec_data(LineartIsecData *d)
                                                         &ld->geom.line_buffer_pointers, obi2);
       Object *ob1 = eln1 ? static_cast<Object *>(eln1->object_ref) : nullptr;
       Object *ob2 = eln2 ? static_cast<Object *>(eln2->object_ref) : nullptr;
-      if (e->t1->intersection_priority > e->t2->intersection_priority) {
+      if (e->t1->intersection_priority >= e->t2->intersection_priority) {
+        /* `object_ref` should be ambiguous if intersection lines comes from different objects with
+         * the same priority. */
         e->object_ref = ob1;
       }
       else if (e->t1->intersection_priority < e->t2->intersection_priority) {
         e->object_ref = ob2;
-      }
-      else { /* equal priority */
-        if (ob1 == ob2) {
-          /* object_ref should be ambiguous if intersection lines comes from different objects. */
-          e->object_ref = ob1;
-        }
       }
 
       lineart_add_edge_to_array(&ld->pending_edges, e);
