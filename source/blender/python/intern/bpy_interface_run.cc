@@ -366,7 +366,6 @@ static bool bpy_run_string_exec_with_locals_assume_gil(
   }
 
   /* Clean up references. */
-  Py_DECREF(py_globals);
   Py_DECREF(py_locals);
 
   return ok;
