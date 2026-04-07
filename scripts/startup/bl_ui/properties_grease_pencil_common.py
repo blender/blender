@@ -212,7 +212,12 @@ def draw_node(node: GreasePencilTreeNode, layout: UILayout, grease_pencil: Greas
 
 def draw_node_for_search(node: GreasePencilTreeNode, layout: UILayout, grease_pencil: GreasePencil):
     if isinstance(node, GreasePencilLayerGroup):
-        op = layout.operator("grease_pencil.move_to_layer", text=f"Add New Layer to {node.name}", icon='ADD')
+        op = layout.operator(
+            "grease_pencil.move_to_layer",
+            text=iface_("Add New Layer to {:s}").format(node.name),
+            icon='ADD',
+            translate=False
+        )
         op.add_new_layer = True
         op.target_group_name = node.name
 
