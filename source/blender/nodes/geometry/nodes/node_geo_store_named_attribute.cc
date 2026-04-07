@@ -185,10 +185,10 @@ static void node_geo_exec(GeoNodeExecParams params)
     RNA_enum_name_from_value(rna_enum_attribute_type_items, cd_type, &type_name);
     const std::string message = fmt::format(
         fmt::runtime(
-            TIP_("Failed to write to attribute \"{}\" with domain \"{}\" and type \"{}\"")),
+            RPT_("Failed to write to attribute \"{}\" with domain \"{}\" and type \"{}\"")),
         name,
-        TIP_(domain_name),
-        TIP_(type_name));
+        RPT_(domain_name),
+        RPT_(type_name));
     params.error_message_add(NodeWarningType::Warning, message);
   }
 
