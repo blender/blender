@@ -461,7 +461,7 @@ class QuickSmoke(ObjectModeOperator, Operator):
             return {'CANCELLED'}
 
         for obj in mesh_objects:
-            fluid = obj.modifiers.new(name=data_("FLUID"), type='FLUID')
+            fluid = obj.modifiers.new(name=data_("Fluid"), type='FLUID')
             fluid.fluid_type = 'FLOW'
 
             # set type
@@ -489,7 +489,7 @@ class QuickSmoke(ObjectModeOperator, Operator):
         obj.scale = 0.5 * (max_co - min_co) + Vector((1.0, 1.0, 2.0))
 
         # setup smoke domain
-        fluid = obj.modifiers.new(name=data_("FLUID"), type='FLUID')
+        fluid = obj.modifiers.new(name=data_("Fluid"), type='FLUID')
         fluid.fluid_type = 'DOMAIN'
         # The default value leads to unstable simulations (see #126924).
         fluid.domain_settings.cfl_condition = 4.0
@@ -570,7 +570,7 @@ class QuickLiquid(Operator):
                         space.shading.type = 'WIREFRAME'
 
         for obj in mesh_objects:
-            fluid = obj.modifiers.new(name=data_("FLUID"), type='FLUID')
+            fluid = obj.modifiers.new(name=data_("Fluid"), type='FLUID')
             fluid.fluid_type = 'FLOW'
 
             # set type
@@ -598,7 +598,7 @@ class QuickLiquid(Operator):
         obj.scale = 0.5 * (max_co - min_co) + Vector((1.0, 1.0, 2.0))
 
         # setup liquid domain
-        fluid = obj.modifiers.new(name=data_("FLUID"), type='FLUID')
+        fluid = obj.modifiers.new(name=data_("Fluid"), type='FLUID')
         fluid.fluid_type = 'DOMAIN'
         # set all domain borders to obstacle
         fluid.domain_settings.use_collision_border_front = True
