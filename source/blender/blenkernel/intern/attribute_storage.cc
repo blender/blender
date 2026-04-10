@@ -440,7 +440,7 @@ static std::optional<Attribute::DataVariant> read_attr_data(BlendDataReader &rea
       }
       Attribute::ArrayData array_data{
           data.data, data.size, ImplicitSharingPtr<>(data.sharing_info)};
-      if (data.is_single) {
+      if (data.is_single && data.size) {
         const CPPType &cpp_type = attribute_type_to_cpp_type(AttrType(dna_attr_type));
         return Attribute::SingleData::from_value(GPointer(cpp_type, data.data));
       }
