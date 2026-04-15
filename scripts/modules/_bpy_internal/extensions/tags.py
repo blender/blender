@@ -43,6 +43,17 @@ addons = {
     "UV",
 }
 
+# NOTE(@ideasman42): these are just some proposed/dummy values.
+asset_libraries = {
+    "Wildlife",
+    "Architecture",
+    "Characters",
+    "Furniture",
+    "Nature",
+    "Science",
+    "Transport",
+}
+
 themes = {
     "Accessibility",
     "Colorful",

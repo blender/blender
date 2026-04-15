@@ -7,7 +7,7 @@ version = "1.0.0"
 name = "My Example Extension"
 tagline = "This is another extension"
 maintainer = "Developer name <email@address.com>"
-# Supported types: "add-on", "theme"
+# Supported types: "add-on", "asset-library", "theme"
 type = "add-on"
 
 # # Optional: link to documentation, support, source files, etc

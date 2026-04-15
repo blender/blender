@@ -927,6 +927,7 @@ def register():
             ('ALL', "All", "Show all extension types"),
             None,
             ('ADDON', "Add-ons", "Only show add-ons"),
+            ('ASSET_LIBRARY', "Asset Libraries", "Only show asset libraries"),
             ('THEME', "Themes", "Only show themes"),
         ),
         name="Filter by Type",

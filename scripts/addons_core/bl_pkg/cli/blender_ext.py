@@ -73,7 +73,7 @@ URL_KNOWN_PREFIX = ("http://", "https://", "file://")
 
 # Extension types supported by this version of Blender.
 # Unknown types are skipped, allowing repositories to contain future extension types.
-PKG_MANIFEST_TYPE_SUPPORTED = {"add-on", "theme"}
+PKG_MANIFEST_TYPE_SUPPORTED = {"add-on", "asset-library", "theme"}
 
 
 def pkg_manifest_skip_for_future_compat(item: dict[str, Any]) -> bool:
@@ -398,6 +398,8 @@ class PkgManifest(NamedTuple):
     tags: list[str] | None = None
     platforms: list[str] | None = None
     wheels: list[str] | None = None
+    # Sub-table required when `type == "asset-library"`.
+    asset_library: dict[str, Any] | None = None
 
 
 class PkgManifest_Archive(NamedTuple):
@@ -1558,7 +1560,11 @@ def pkg_manifest_tags_load_valid_map_from_python(
         return "Python evaluation error ({:s})".format(str(ex))
 
     result = {}
-    for key, key_extension_type in (("addons", "add-on"), ("themes", "theme")):
+    for key, key_extension_type in (
+            ("addons", "add-on"),
+            ("asset_libraries", "asset-library"),
+            ("themes", "theme"),
+    ):
         if (value := data.get(key)) is None:
             return "missing key \"{:s}\"".format(key)
         if not isinstance(value, set):
@@ -1585,7 +1591,7 @@ def pkg_manifest_tags_load_valid_map_from_json(
         return "JSON must contain a dict not a {:s}".format(str(type(data)))
 
     result = {}
-    for key in ("add-on", "theme"):
+    for key in ("add-on", "asset-library", "theme"):
         if (value := data.get(key)) is None:
             return "missing key \"{:s}\"".format(key)
         if not isinstance(value, list):
@@ -1770,6 +1776,28 @@ def pkg_manifest_validate_field_tagline(value: str, strict: bool) -> str | None:
         if (error := pkg_manifest_validate_field_any_non_empty_string(value, strict)) is not None:
             return error
 
+    return None
+
+
+def pkg_manifest_validate_field_remote_url(value: Any, strict: bool) -> str | None:
+    if not isinstance(value, str):
+        return "must be a string, not a {:s}".format(type(value).__name__)
+    if not value:
+        return "must be a non-empty string"
+    if not value.startswith(("http://", "https://")):
+        return "expected URL to start with \"http://\" or \"https://\", found {!r}".format(value)
+    _ = strict
+    return None
+
+
+def pkg_manifest_validate_field_asset_library(value: dict[str, Any], strict: bool) -> str | None:
+    # The `[asset_library]` sub-table. Schema presence (required-for-type) is enforced by
+    # `subcmd_author.build`; here we validate shape whenever the field is set.
+    remote_url = value.get("remote_url")
+    if remote_url is None:
+        return "missing \"remote_url\""
+    if (err := pkg_manifest_validate_field_remote_url(remote_url, strict)) is not None:
+        return "\"remote_url\": {:s}".format(err)
     return None
 
 
@@ -1989,6 +2017,7 @@ pkg_manifest_known_keys_and_types: tuple[
     ("tags", list, pkg_manifest_validate_field_any_non_empty_list_of_non_empty_strings),
     ("platforms", list, pkg_manifest_validate_field_any_non_empty_list_of_non_empty_strings),
     ("wheels", list, pkg_manifest_validate_field_wheels),
+    ("asset_library", dict, pkg_manifest_validate_field_asset_library),
 )
 
 # Keep in sync with `PkgManifest_Archive`.
@@ -3215,7 +3244,7 @@ def generic_arg_package_valid_tags(subparse: argparse.ArgumentParser) -> None:
             "The contents must be a dictionary of lists where the ``key`` matches the extension type.\n"
             "\n"
             "For example:\n"
-            "   ``{\"add-ons\": [\"Example\", \"Another\"], \"theme\": [\"Other\", \"Tags\"]}``\n"
+            "   ``{\"add-on\": [\"Example\", \"Another\"], \"asset-library\": [\"Wildlife\"], \"theme\": [\"Other\", \"Tags\"]}``\n"
             "\n"
             "To disable validating tags, pass in an empty path ``--valid-tags=\"\"``."
         ),
@@ -3828,6 +3857,9 @@ class subcmd_server:
 
             # Don't include these in the server listing.
             wheels: list[str] = manifest_dict.pop("wheels", [])
+            # `[asset_library]` is intentionally never exposed in `index.json`: the
+            # full manifest table is only available after the archive is downloaded.
+            manifest_dict.pop("asset_library", None)
 
             # Extract the `python_versions` from wheels.
             python_versions_final: list[tuple[int] | tuple[int, int]] = []
@@ -4615,6 +4647,24 @@ class subcmd_author:
                     "Error in TOML \"{:s}\" contains reserved value: [build.generated]".format(pkg_manifest_filepath),
                 )
                 return False
+
+        # Cross-field invariant: `[asset_library]` shape is validated by the framework, but
+        # the bidirectional requirement (present iff type == "asset-library") is enforced here.
+        if manifest.type == "asset-library":
+            if manifest.asset_library is None:
+                msglog.fatal_error(
+                    "Error in TOML \"{:s}\" [asset_library] table is required for type = \"asset-library\"".format(
+                        pkg_manifest_filepath,
+                    ),
+                )
+                return False
+        elif manifest.asset_library is not None:
+            msglog.fatal_error(
+                "Error in TOML \"{:s}\" [asset_library] requires type = \"asset-library\" (found {!r})".format(
+                    pkg_manifest_filepath, manifest.type,
+                ),
+            )
+            return False
 
         # Always include wheels & manifest.
         build_paths_extra = (

@@ -1216,6 +1216,11 @@ class PkgBlock_Normalized(NamedTuple):
         )
 
 
+# Sub-table of `PkgManifest_Normalized` when `type == "asset-library"`.
+class PkgAssetLibrary_Normalized(NamedTuple):
+    remote_url: str
+
+
 # See similar named tuple: `bl_pkg.cli.blender_ext.PkgManifest`.
 # This type is loaded from an external source and had its values parsed into a known "normalized" state.
 # Some transformation is performed to the purpose of displaying in the UI although this type isn't specifically for UI.
@@ -1245,6 +1250,9 @@ class PkgManifest_Normalized(NamedTuple):
     # Taken from the `blocklist`.
     block: PkgBlock_Normalized | None
 
+    # Populated when `type == "asset-library"`, otherwise None.
+    asset_library: PkgAssetLibrary_Normalized | None
+
     @staticmethod
     def from_dict_with_error_fn(
         manifest_dict: dict[str, Any],
@@ -1252,6 +1260,7 @@ class PkgManifest_Normalized(NamedTuple):
         # Only for useful error messages.
         pkg_idname: str,
         pkg_block: PkgBlock_Normalized | None,
+        from_repo: bool,
         error_fn: Callable[[Exception], None],
     ) -> "PkgManifest_Normalized | None":
         # NOTE: it is expected there are no errors here for typical usage.
@@ -1281,6 +1290,14 @@ class PkgManifest_Normalized(NamedTuple):
             # Remote only (not found in TOML files).
             field_archive_size = manifest_dict.get("archive_size", 0)
             field_archive_url = manifest_dict.get("archive_url", "")
+
+            # Sub-table, only valid for `type == "asset-library"` in local (TOML) manifests.
+            # Never carried in `index.json`; ignore for remote entries and for any local
+            # entry whose type doesn't match, defending against malformed manifests.
+            if from_repo or field_type != "asset-library":
+                field_asset_library = None
+            else:
+                field_asset_library = manifest_dict.get("asset_library")
 
         except KeyError as ex:
             error_fn(KeyError("{:s}: missing key {:s}".format(pkg_idname, str(ex))))
@@ -1344,9 +1361,28 @@ class PkgManifest_Normalized(NamedTuple):
             if not isinstance(field_archive_url, str):
                 raise TypeError("{:s}: \"archive_url\" must be a string".format(pkg_idname))
 
+            # Only validated when present; detailed schema enforcement happens at build time.
+            if field_asset_library is not None:
+                if not isinstance(field_asset_library, dict):
+                    raise TypeError("{:s}: \"asset_library\" must be a table".format(pkg_idname))
+                field_asset_library_remote_url = field_asset_library.get("remote_url", "")
+                if not (
+                        isinstance(field_asset_library_remote_url, str) and
+                        field_asset_library_remote_url
+                ):
+                    raise TypeError(
+                        "{:s}: \"asset_library.remote_url\" must be a non-empty string".format(pkg_idname))
+
         except TypeError as ex:
             error_fn(ex)
             return None
+
+        if field_asset_library is not None:
+            asset_library = PkgAssetLibrary_Normalized(
+                remote_url=field_asset_library_remote_url,
+            )
+        else:
+            asset_library = None
 
         import re
         return PkgManifest_Normalized(
@@ -1369,6 +1405,8 @@ class PkgManifest_Normalized(NamedTuple):
             archive_url=field_archive_url,
 
             block=pkg_block,
+
+            asset_library=asset_library,
         )
 
 
@@ -1522,6 +1560,7 @@ def repository_parse_data_filtered(
                 item,
                 pkg_idname=pkg_idname,
                 pkg_block=pkg_block_map.get(pkg_idname),
+                from_repo=True,
                 error_fn=error_fn,
         )) is None:
             continue
@@ -1804,6 +1843,7 @@ class _RepoDataSource_TOML_FILES(_RepoDataSource_ABC):
                     item_local,
                     pkg_idname=pkg_idname,
                     pkg_block=None,
+                    from_repo=False,
                     error_fn=error_fn,
             )) is None:
                 continue
@@ -2020,6 +2060,7 @@ class _RepoCacheEntry:
                         item_local,
                         pkg_idname=pkg_idname,
                         pkg_block=None,
+                        from_repo=False,
                         error_fn=error_fn,
                 )) is not None:
                     pkg_manifest_local[pkg_idname] = value
