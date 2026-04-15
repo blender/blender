@@ -88,6 +88,7 @@ const EnumPropertyItem rna_enum_asset_import_method_items[] = {
 
 #  include "BKE_asset.hh"
 #  include "BKE_context.hh"
+#  include "BKE_preferences.h"
 #  include "BKE_report.hh"
 
 #  include "BLI_listbase.hh"
@@ -455,6 +456,19 @@ static bool rna_AssetLibrary_is_editable_get(PointerRNA *ptr)
 {
   asset_system::AssetLibrary *asset_library = static_cast<asset_system::AssetLibrary *>(ptr->data);
   return !asset_library->is_read_only();
+}
+
+static PointerRNA rna_AssetLibrary_user_library_get(PointerRNA *ptr)
+{
+  const asset_system::AssetLibrary *asset_library = static_cast<asset_system::AssetLibrary *>(
+      ptr->data);
+  const std::optional<AssetLibraryReference> library_ref = asset_library->library_reference();
+  if (!library_ref || (library_ref->type != ASSET_LIBRARY_CUSTOM)) {
+    return {};
+  }
+  bUserAssetLibrary *user_library = BKE_preferences_asset_library_find_index(
+      &U, library_ref->custom_library_index);
+  return RNA_pointer_create_discrete(nullptr, RNA_UserAssetLibrary, user_library);
 }
 
 static const char *rna_AssetLibrary_online_assets_url()
@@ -849,6 +863,14 @@ static void rna_def_asset_library(BlenderRNA *brna)
       prop,
       "Is Editable",
       "Assets and catalogs in this library can be edited from the current Blender instance");
+
+  prop = RNA_def_property(srna, "user_library", PROP_POINTER, PROP_NONE);
+  RNA_def_property_struct_type(prop, "UserAssetLibrary");
+  RNA_def_property_clear_flag(prop, PROP_EDITABLE);
+  RNA_def_property_pointer_funcs(
+      prop, "rna_AssetLibrary_user_library_get", nullptr, nullptr, nullptr);
+  RNA_def_property_ui_text(
+      prop, "User Library", "The preferences entry defining this library, if there is one");
 
   FunctionRNA *func;
   PropertyRNA *parm;

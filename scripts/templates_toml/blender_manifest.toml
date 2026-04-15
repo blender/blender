@@ -7,7 +7,7 @@ version = "1.0.0"
 name = "My Example Extension"
 tagline = "This is another extension"
 maintainer = "Developer name <email@address.com>"
-# Supported types: "add-on", "theme"
+# Supported types: "add-on", "asset-library", "theme"
 type = "add-on"
 
 # # Optional: link to documentation, support (bug tracker), source files, etc.
@@ -45,12 +45,28 @@ license = [
 #   "./wheels/jsmin-3.0.1-py3-none-any.whl",
 # ]
 
+# # Required when `type = "asset-library"`, otherwise it must be omitted.
+# # Asset library extensions need `blender_version_min = "5.3.0"` or newer.
+# # The URL is the base address of the remote asset library server.
+# [asset_library]
+# remote_url = "https://example.com/my-assets/"
+#
+# # Optional: declare that the asset library supports authentication.
+# # When this table is omitted, authentication is not supported.
+# # Set `required = true` when the library cannot be used without a token.
+# [asset_library.auth]
+# required = false
+# auth_method = "TOKEN"
+
 # # Optional: add-ons can list which resources they will require:
 # # * files (for access of any filesystem operations)
 # # * network (for internet access)
 # # * clipboard (to read and/or write the system clipboard)
 # # * camera (to capture photos and videos)
 # # * microphone (to capture audio)
+# #
+# # Asset libraries only support "scripts" (for assets which run scripts, drivers for example).
+# # Themes don't support any permissions.
 # #
 # # If using network, remember to also check `bpy.app.online_access`
 # # https://docs.blender.org/manual/en/dev/advanced/extensions/addons.html#internet-access

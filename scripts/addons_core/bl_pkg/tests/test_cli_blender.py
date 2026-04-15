@@ -288,6 +288,46 @@ def create_package_theme(
         contents_to_filesystem(file_contents, pkg_src_dir)
 
 
+def create_package_asset_library(
+        pkg_src_dir: str,
+        *,
+        pkg_idname: str,
+
+        # Optional.
+        blender_version_min: str | None = None,
+        blender_version_max: str | None = None,
+        file_contents: dict[str, bytes] | None = None,
+        remote_url: str | None = None,
+        # Raw TOML values keyed by field name, written as the `[asset_library.auth]` sub-table.
+        # Raw values so malformed types can be tested.
+        asset_library_auth: dict[str, str] | None = None,
+) -> None:
+    pkg_name = pkg_idname.replace("_", " ").title()
+
+    with open(os.path.join(pkg_src_dir, PKG_MANIFEST_FILENAME_TOML), "w", encoding="utf-8") as fh:
+        fh.write('''schema_version = "1.0.0"\n''')
+        fh.write('''id = "{:s}"\n'''.format(pkg_idname))
+        fh.write('''name = "{:s}"\n'''.format(pkg_name))
+        fh.write('''type = "asset-library"\n''')
+        fh.write('''maintainer = "Maintainer Name <username@addr.com>"\n''')
+        fh.write('''license = ["SPDX:GPL-2.0-or-later"]\n''')
+        fh.write('''version = "1.0.0"\n''')
+        fh.write('''tagline = "This is a tagline"\n''')
+        fh.write('''blender_version_min = "{:s}"\n'''.format(blender_version_min or "0.0.0"))
+        if blender_version_max is not None:
+            fh.write('''blender_version_max = "{:s}"\n'''.format(blender_version_max))
+        if remote_url is not None:
+            fh.write('''\n[asset_library]\n''')
+            fh.write('''remote_url = "{:s}"\n'''.format(remote_url))
+        if asset_library_auth is not None:
+            fh.write('''\n[asset_library.auth]\n''')
+            for key, value in asset_library_auth.items():
+                fh.write('''{:s} = {:s}\n'''.format(key, value))
+
+    if file_contents is not None:
+        contents_to_filesystem(file_contents, pkg_src_dir)
+
+
 def run_blender(
         args: Sequence[str],
         force_script_and_pause: bool = False,
@@ -313,6 +353,12 @@ def run_blender(
     env_overlay = {
         "TMPDIR": TEMP_DIR_TMPDIR,
         "BLENDER_USER_RESOURCES": TEMP_DIR_BLENDER_USER,
+        # Keep this test out of the users home directory, remote asset libraries
+        # cache their contents there (under "remote-assets").
+        # NOTE: WIN32 & macOS look the cache directory up through OS API's,
+        # which these don't redirect.
+        "HOME": TEMP_DIR_HOME,
+        "XDG_CACHE_HOME": TEMP_DIR_HOME_CACHE,
         "ASAN_OPTIONS": "log_path={:s}:{:s}".format(
             # Needed so the `stdout` & `stderr` aren't mixed in with ASAN messages.
             os.path.join(TEMP_DIR_TMPDIR, "blender_asan.txt"),
@@ -412,6 +458,10 @@ TEMP_DIR_BLENDER_USER = ""
 TEMP_DIR_REMOTE = ""
 TEMP_DIR_REMOTE_AS_URL = ""
 TEMP_DIR_LOCAL = ""
+# Stands in for the users home directory & the cache directory within it (`XDG_CACHE_HOME`),
+# otherwise remote asset libraries write into the real home directory.
+TEMP_DIR_HOME = ""
+TEMP_DIR_HOME_CACHE = ""
 # Don't leave temporary files in TMP: `/tmp` (since it's only cleared on restart).
 # Instead, have a test-local temporary directly which is removed when the test finishes.
 TEMP_DIR_TMPDIR = ""
@@ -488,6 +538,8 @@ class TestWithTempBlenderUser_MixIn(unittest.TestCase):
             blender_version_max: str | None = None,
             python_script: str | None = None,
             file_contents: dict[str, bytes] | None = None,
+            remote_url: str | None = None,
+            asset_library_auth: dict[str, str] | None = None,
     ) -> str:
         if pkg_filename is None:
             pkg_filename = pkg_idname
@@ -518,6 +570,21 @@ class TestWithTempBlenderUser_MixIn(unittest.TestCase):
                     blender_version_min=blender_version_min,
                     blender_version_max=blender_version_max,
                     file_contents=file_contents,
+                )
+            elif pkg_type == "asset-library":
+                assert not wheel_params, "wheels are not supported for asset-library packages"
+                assert platforms is None, "platforms are not supported for asset-library packages"
+                assert python_script is None, "python_script is not supported for asset-library packages"
+                create_package_asset_library(
+                    package_build_dir,
+                    pkg_idname=pkg_idname,
+
+                    # Optional.
+                    blender_version_min=blender_version_min,
+                    blender_version_max=blender_version_max,
+                    file_contents=file_contents,
+                    remote_url=remote_url,
+                    asset_library_auth=asset_library_auth,
                 )
             else:
                 raise AssertionError("No create_package_* helper for pkg_type={!r}".format(pkg_type))
@@ -1404,8 +1471,20 @@ class TestUnknownType(TestWithTempBlenderUser_MixIn, unittest.TestCase):
         self.assertNotIn("keymap", stdout)
         self.assertNotIn("brush-set", stdout)
 
+        # Repository information skips the unknown types too.
+        stdout = run_blender_extensions_no_errors(("repo-info", repo_id))
+        self.assertEqual(
+            stdout, (
+                "version: v1\n"
+                "blocklist: 0\n"
+                "packages: 2\n"
+                "  add-on: 2\n"
+                "assetlib_auth_method: PER_LIBRARY\n"
+            )
+        )
 
-class TestTheme(TestWithTempBlenderUser_MixIn, unittest.TestCase):
+
+class TestVariousTypes(TestWithTempBlenderUser_MixIn, unittest.TestCase):
 
     def test_build_theme_package(self) -> None:
         """
@@ -1419,9 +1498,379 @@ class TestTheme(TestWithTempBlenderUser_MixIn, unittest.TestCase):
             file_contents={pkg_idname + ".xml": b'''<?xml version="1.0" encoding="UTF-8"?>\n<bpy/>\n'''},
         )
 
+    def test_server_listing_various_types(self) -> None:
+        """
+        Generate a server listing from a directory holding a mix of
+        add-on, theme and asset-library packages, and verify all types appear in the listing.
+        """
+        import json
+
+        # Create a package contents, a mix of add-on, theme and asset-library packages.
+        self.build_package(pkg_idname="my_addon")
+        self.build_package(
+            pkg_idname="my_theme",
+            pkg_type="theme",
+            file_contents={"my_theme.xml": b'''<?xml version="1.0" encoding="UTF-8"?>\n<bpy/>\n'''},
+        )
+        self.build_package(
+            pkg_idname="my_asset_library",
+            pkg_type="asset-library",
+            remote_url="https://example.org/various-types-listing",
+        )
+
+        # Generate the repository.
+        stdout = run_blender_extensions_no_errors((
+            "server-generate",
+            "--repo-dir", TEMP_DIR_REMOTE,
+        ))
+        self.assertEqual(stdout, "found 3 packages.\n")
+
+        with open(os.path.join(TEMP_DIR_REMOTE, "index.json"), "r", encoding="utf-8") as fh:
+            index_data = json.load(fh)
+        self.assertEqual(
+            sorted((item["id"], item["type"]) for item in index_data["data"]),
+            [
+                ("my_addon", "add-on"),
+                ("my_asset_library", "asset-library"),
+                ("my_theme", "theme"),
+            ],
+        )
+
+    def test_repo_info_various_types(self) -> None:
+        """
+        Show high level information for a repository holding a mix of
+        add-on, theme and asset-library packages, using the listing from ``sync``.
+        """
+        repo_id = "test_repo_info_various_types"
+        repo_name = "MyTestRepoInfoVariousTypes"
+
+        self.repo_add(repo_id=repo_id, repo_name=repo_name)
+
+        # Create a package contents, a mix of add-on, theme and asset-library packages.
+        self.build_package(pkg_idname="my_addon")
+        self.build_package(
+            pkg_idname="my_theme",
+            pkg_type="theme",
+            file_contents={"my_theme.xml": b'''<?xml version="1.0" encoding="UTF-8"?>\n<bpy/>\n'''},
+        )
+        self.build_package(
+            pkg_idname="my_asset_library",
+            pkg_type="asset-library",
+            remote_url="https://example.org/various-types-info",
+        )
+
+        stdout = run_blender_extensions_no_errors((
+            "server-generate",
+            "--repo-dir", TEMP_DIR_REMOTE,
+            "--assetlib-auth-method", "FROM_REPOSITORY",
+        ))
+        self.assertEqual(stdout, "found 3 packages.\n")
+
+        run_blender_extensions_no_errors(("sync",))
+
+        expected_info = (
+            "version: v1\n"
+            "blocklist: 0\n"
+            "packages: 3\n"
+            "  add-on: 1\n"
+            "  asset-library: 1\n"
+            "  theme: 1\n"
+            "assetlib_auth_method: FROM_REPOSITORY\n"
+        )
+
+        stdout = run_blender_extensions_no_errors(("repo-info", repo_id))
+        self.assertEqual(stdout, expected_info)
+
+        # With `--sync` the download runs first, its output precedes the information.
+        stdout = run_blender_extensions_no_errors(("repo-info", "--sync", repo_id))
+        self.assertTrue(
+            stdout.endswith(expected_info),
+            "Expected output to end with {!r}, got {!r}".format(expected_info, stdout),
+        )
+
+    @staticmethod
+    def _blender_remote_asset_library_urls() -> set[str]:
+        # Return `{remote_url}` for each registered remote asset library.
+        returncode, stdout, stderr = run_blender((
+            "--background",
+            "--python-expr",
+            "import bpy, sys\n"
+            "for lib in bpy.context.preferences.filepaths.asset_libraries:\n"
+            "    if lib.use_remote_url:\n"
+            "        sys.stdout.write('BL_REMOTE_LIB_URL:{:s}\\n'.format(lib.remote_url))\n",
+        ))
+        if returncode != 0:
+            raise Exception(
+                "Failed to read asset libraries from Blender, rc={:d}\nSTDOUT:\n{:s}\nSTDERR:\n{:s}".format(
+                    returncode, stdout, stderr,
+                ))
+        # Blender stores remote URLs with a trailing slash, strip it to compare with the manifest URL.
+        prefix = "BL_REMOTE_LIB_URL:"
+        return {line[len(prefix):].rstrip("/") for line in stdout.splitlines() if line.startswith(prefix)}
+
+    def test_install_various_types(self) -> None:
+        """
+        Generate packages of add-on, theme and asset-library types and install each into Blender.
+        Asset-library packages (always remote) are auto-registered in the user preferences on
+        install (and unregistered on uninstall).
+        """
+        repo_id = "test_repo_install_various_types"
+        repo_name = "MyTestRepoInstallVariousTypes"
+        url = "https://example.org/various-types-install"
+
+        self.repo_add(repo_id=repo_id, repo_name=repo_name)
+
+        # Create a package contents, a mix of add-on, theme and asset-library packages.
+        self.build_package(pkg_idname="my_addon")
+        self.build_package(
+            pkg_idname="my_theme",
+            pkg_type="theme",
+            file_contents={"my_theme.xml": b'''<?xml version="1.0" encoding="UTF-8"?>\n<bpy/>\n'''},
+        )
+        self.build_package(
+            pkg_idname="my_asset_library",
+            pkg_type="asset-library",
+            remote_url=url,
+        )
+
+        # Generate the repository.
+        stdout = run_blender_extensions_no_errors((
+            "server-generate",
+            "--repo-dir", TEMP_DIR_REMOTE,
+        ))
+        self.assertEqual(stdout, "found 3 packages.\n")
+
+        stdout = run_blender_extensions_no_errors(("sync",))
+        self.assertEqual(
+            stdout.rstrip("\n").split("\n")[-1],
+            "STATUS Extensions list for \"{:s}\" updated".format(repo_name),
+        )
+
+        # Install each package with `--enable` so type-specific activation runs.
+        for pkg_idname in ("my_addon", "my_theme", "my_asset_library"):
+            stdout = run_blender_extensions_no_errors(("install", pkg_idname, "--enable"))
+            self.assertEqual(
+                [line for line in stdout.split("\n") if line.startswith("STATUS Installed")],
+                ["STATUS Installed \"{:s}\"".format(pkg_idname)],
+            )
+
+        # The asset-library extension should now be registered as a remote library with its URL.
+        remote_urls = self._blender_remote_asset_library_urls()
+        self.assertIn(url, remote_urls)
+
+        # Uninstall the asset library: the preferences entry should be removed.
+        stdout = run_blender_extensions_no_errors(("remove", "my_asset_library"))
+        self.assertEqual(
+            [line for line in stdout.split("\n") if line.startswith("STATUS Removed")],
+            ["STATUS Removed \"my_asset_library\""],
+        )
+        self.assertNotIn(url, self._blender_remote_asset_library_urls())
+
+
+class TestAssetLibrary(TestWithTempBlenderUser_MixIn, unittest.TestCase):
+
+    def test_build_asset_library_package_rejects_missing_remote_url(self) -> None:
+        """
+        Asset-library extensions must declare `[asset_library].remote_url`.
+        Build fails when the table or field is missing.
+        """
+        with tempfile.TemporaryDirectory() as package_build_dir:
+            create_package_asset_library(
+                package_build_dir,
+                pkg_idname="my_asset_library_no_url",
+                # `remote_url` omitted.
+            )
+            returncode, stdout, _stderr = run_blender_extensions((
+                "build",
+                "--source-dir", package_build_dir,
+                "--output-filepath", os.path.join(TEMP_DIR_REMOTE, "my_asset_library_no_url.zip"),
+            ))
+            self.assertNotEqual(returncode, 0)
+            self.assertIn("[asset_library]", stdout)
+
+    def test_build_asset_library_package_with_remote_url(self) -> None:
+        """
+        Build an extension of type ``asset-library`` that includes an ``[asset_library]``
+        subtable with a ``remote_url`` field.
+        """
+        self.build_package(
+            pkg_idname="my_remote_asset_library",
+            pkg_type="asset-library",
+            remote_url="https://example.org/assets",
+        )
+
+    def test_build_asset_library_package_rejects_bad_remote_url(self) -> None:
+        """Build fails when ``remote_url`` is not an http(s):// URL."""
+        with tempfile.TemporaryDirectory() as package_build_dir:
+            create_package_asset_library(
+                package_build_dir,
+                pkg_idname="my_bad_remote",
+                remote_url="ftp://not-allowed.example",
+            )
+            returncode, stdout, _stderr = run_blender_extensions((
+                "build",
+                "--source-dir", package_build_dir,
+                "--output-filepath", os.path.join(TEMP_DIR_REMOTE, "my_bad_remote.zip"),
+            ))
+            self.assertNotEqual(returncode, 0)
+            self.assertIn("expected URL to start with", stdout)
+
+    def test_build_asset_library_package_with_auth(self) -> None:
+        """
+        Build an extension with an ``[asset_library.auth]`` sub-table.
+        The sub-table is optional, when absent authentication is unsupported.
+        """
+        self.build_package(
+            pkg_idname="my_asset_library_auth",
+            pkg_type="asset-library",
+            remote_url="https://example.org/assets",
+            asset_library_auth={"required": "false", "auth_method": '"TOKEN"'},
+        )
+
+    def test_validate_asset_library_auth_invalid(self) -> None:
+        """A single ``[asset_library.auth]`` with a bad value in every field reports each of them."""
+        create_package_asset_library(
+            TEMP_DIR_LOCAL,
+            pkg_idname="my_asset_library_auth_invalid",
+            remote_url="https://example.org/assets",
+            asset_library_auth={"required": '"yes"', "auth_method": '"OAUTH2"'},
+        )
+        returncode, stdout, _stderr = run_blender_extensions(("validate", TEMP_DIR_LOCAL))
+        self.assertNotEqual(returncode, 0)
+        self.assertEqual(stdout, (
+            "Error parsing TOML \"{:s}\"\n"
+            "key \"asset_library\" invalid: \"auth\": "
+            "\"required\" must be a boolean, not a str, "
+            "\"auth_method\" must be one of (TOKEN), found 'OAUTH2'\n"
+        ).format(os.path.join(TEMP_DIR_LOCAL, PKG_MANIFEST_FILENAME_TOML)))
+
+
+class TestRemoteAssetLibrary(TestWithTempBlenderUser_MixIn, unittest.TestCase):
+    """
+    Install an asset-library extension whose manifest carries ``[asset_library].remote_url``.
+    Verify the registered `asset_libraries` entry is a remote one with the expected URL.
+
+    Does not exercise any actual network sync (gated by the experimental flag and
+    `bpy.app.background`); the test runs in background mode so `remote_asset_library_sync`
+    early-returns.
+    """
+
+    @staticmethod
+    def _blender_remote_asset_library_info() -> list[tuple[str, str, bool]]:
+        # Return `[(name, remote_url, enabled)]` for each registered *remote* asset library.
+        returncode, stdout, stderr = run_blender((
+            "--background",
+            "--python-expr",
+            "import bpy, sys\n"
+            "for lib in bpy.context.preferences.filepaths.asset_libraries:\n"
+            "    if lib.use_remote_url:\n"
+            "        sys.stdout.write('BL_REMOTE_LIB:{:d}\\t{:s}\\t{:s}\\n'.format(\n"
+            "            lib.enabled, lib.remote_url, lib.name))\n",
+        ))
+        if returncode != 0:
+            raise Exception(
+                "Failed to read asset libraries from Blender, rc={:d}\nSTDOUT:\n{:s}\nSTDERR:\n{:s}".format(
+                    returncode, stdout, stderr,
+                ))
+        prefix = "BL_REMOTE_LIB:"
+        result: list[tuple[str, str, bool]] = []
+        for line in stdout.splitlines():
+            if not line.startswith(prefix):
+                continue
+            enabled_str, remote_url, name = line[len(prefix):].split("\t", 2)
+            # Blender stores remote URLs with a trailing slash, strip it to compare with the manifest URL.
+            result.append((name, remote_url.rstrip("/"), bool(int(enabled_str))))
+        return result
+
+    def test_install_remote_asset_library(self) -> None:
+        repo_id = "test_repo_install_remote_asset_library"
+        repo_name = "MyTestRepoRemoteAssetLibrary"
+        url = "https://example.org/poc-remote-asset-library"
+
+        self.repo_add(repo_id=repo_id, repo_name=repo_name)
+
+        self.build_package(
+            pkg_idname="my_remote_asset_library",
+            pkg_type="asset-library",
+            remote_url=url,
+        )
+
+        stdout = run_blender_extensions_no_errors((
+            "server-generate",
+            "--repo-dir", TEMP_DIR_REMOTE,
+        ))
+        self.assertEqual(stdout, "found 1 packages.\n")
+
+        run_blender_extensions_no_errors(("sync",))
+        run_blender_extensions_no_errors(("install", "my_remote_asset_library", "--enable"))
+
+        remote_info = self._blender_remote_asset_library_info()
+        matching = [(n, u, e) for (n, u, e) in remote_info if u == url]
+        self.assertEqual(
+            len(matching), 1,
+            "Expected exactly one remote asset library with URL {!r}, got {!r}".format(url, remote_info),
+        )
+        name, remote_url, enabled = matching[0]
+        self.assertEqual(remote_url, url)
+        self.assertTrue(enabled)
+
+        # Uninstall: the remote entry should be removed.
+        run_blender_extensions_no_errors(("remove", "my_remote_asset_library"))
+        remote_info_after = self._blender_remote_asset_library_info()
+        self.assertFalse(
+            any(u == url for (_n, u, _e) in remote_info_after),
+            "Expected remote library with URL {!r} to be gone, got {!r}".format(url, remote_info_after),
+        )
+
+    def test_install_two_remote_asset_libraries_sharing_one_url(self) -> None:
+        """
+        Two distinct asset-library extensions with the same `remote_url` each register
+        their own library. Uninstalling one must not remove the other's entry.
+        """
+        repo_id = "test_repo_install_shared_url"
+        repo_name = "MyTestRepoSharedURL"
+        url = "https://example.org/shared-remote-asset-library"
+
+        self.repo_add(repo_id=repo_id, repo_name=repo_name)
+
+        self.build_package(
+            pkg_idname="ext_alpha",
+            pkg_type="asset-library",
+            remote_url=url,
+        )
+        self.build_package(
+            pkg_idname="ext_beta",
+            pkg_type="asset-library",
+            remote_url=url,
+        )
+
+        run_blender_extensions_no_errors(("server-generate", "--repo-dir", TEMP_DIR_REMOTE))
+        run_blender_extensions_no_errors(("sync",))
+        run_blender_extensions_no_errors(("install", "ext_alpha", "--enable"))
+        run_blender_extensions_no_errors(("install", "ext_beta", "--enable"))
+
+        # One library entry per extension, both with the shared URL.
+        remote_info = self._blender_remote_asset_library_info()
+        matching = sorted(n for (n, u, _e) in remote_info if u == url)
+        self.assertEqual(matching, ["Ext Alpha", "Ext Beta"], repr(remote_info))
+
+        # Uninstall alpha: beta's entry must remain.
+        run_blender_extensions_no_errors(("remove", "ext_alpha"))
+        remote_info_mid = self._blender_remote_asset_library_info()
+        matching = sorted(n for (n, u, _e) in remote_info_mid if u == url)
+        self.assertEqual(matching, ["Ext Beta"], repr(remote_info_mid))
+
+        # Uninstall beta: no entries remain.
+        run_blender_extensions_no_errors(("remove", "ext_beta"))
+        remote_info_end = self._blender_remote_asset_library_info()
+        self.assertFalse(
+            any(u == url for (_n, u, _e) in remote_info_end),
+            "Expected libraries with URL {!r} to be gone after both uninstalls, got {!r}".format(url, remote_info_end),
+        )
+
 
 def blender_python_version_query() -> tuple[int, int]:
-    # Return the ``(major, minor)`` version of Blender's embedded Python.
+    # Return the `(major, minor)` version of Blender's embedded Python.
     returncode, bl_stdout, bl_stderr = run_blender((
         "--background",
         "--factory-startup",
@@ -1439,6 +1888,8 @@ def main() -> None:
     # pylint: disable-next=global-statement
     global TEMP_DIR_BLENDER_USER, TEMP_DIR_REMOTE, TEMP_DIR_LOCAL, TEMP_DIR_TMPDIR, TEMP_DIR_REMOTE_AS_URL
     # pylint: disable-next=global-statement
+    global TEMP_DIR_HOME, TEMP_DIR_HOME_CACHE
+    # pylint: disable-next=global-statement
     global BLENDER_PYTHON_VERSION
 
     with tempfile.TemporaryDirectory() as temp_prefix:
@@ -1446,12 +1897,16 @@ def main() -> None:
         TEMP_DIR_REMOTE = os.path.join(temp_prefix, "bl_ext_remote")
         TEMP_DIR_LOCAL = os.path.join(temp_prefix, "bl_ext_local")
         TEMP_DIR_TMPDIR = os.path.join(temp_prefix, "tmp")
+        TEMP_DIR_HOME = os.path.join(temp_prefix, "home")
+        TEMP_DIR_HOME_CACHE = os.path.join(TEMP_DIR_HOME, ".cache")
 
         for directory in (
                 TEMP_DIR_BLENDER_USER,
                 TEMP_DIR_REMOTE,
                 TEMP_DIR_LOCAL,
                 TEMP_DIR_TMPDIR,
+                TEMP_DIR_HOME,
+                TEMP_DIR_HOME_CACHE,
         ):
             os.makedirs(directory, exist_ok=True)
 

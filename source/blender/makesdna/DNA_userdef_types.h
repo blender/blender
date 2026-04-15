@@ -698,17 +698,15 @@ struct bUserAssetLibrary {
    * UUIDs to files. (If it is invalid it is up to the end user to fix it.
    */
   char *invalid_uuid = nullptr;
+  /**
+   * The `{repo_module}.{pkg_id}` of the extension defining this library
+   * (see #bUserExtensionRepo::module), empty for libraries the user defined.
+   */
+  char extension_id[128] = "";
 
   short import_method = ASSET_IMPORT_PACK;  /* eAssetImportMethod */
   short flag = ASSET_LIBRARY_RELATIVE_PATH; /* eAssetLibrary_Flag */
   char _pad0[4] = {};
-
-#ifdef __cplusplus
-  bool is_enabled() const
-  {
-    return (this->flag & ASSET_LIBRARY_DISABLED) == 0;
-  }
-#endif
 };
 
 enum eUserExtensionRepo_Flag : uint8_t {
@@ -719,6 +717,16 @@ enum eUserExtensionRepo_Flag : uint8_t {
   USER_EXTENSION_REPO_FLAG_USE_REMOTE_URL = 1 << 3,
   USER_EXTENSION_REPO_FLAG_SYNC_ON_STARTUP = 1 << 4,
   USER_EXTENSION_REPO_FLAG_USE_ACCESS_TOKEN = 1 << 5,
+  /** Collapse the repository's asset libraries in the preferences list. */
+  USER_EXTENSION_REPO_FLAG_ASSET_LIBRARIES_COLLAPSED = 1 << 6,
+  /**
+   * The access token is used by asset libraries from this repository.
+   *
+   * \note This is a cache of `assetlib_auth_method` from the repository listing (`index.json`)
+   * which the extension system updates when syncing, kept for convenience so the UI can
+   * show it without reading the listing.
+   */
+  USER_EXTENSION_REPO_FLAG_USE_ACCESS_TOKEN_ASSET_LIBRARIES = 1 << 7,
 };
 ENUM_OPERATORS(eUserExtensionRepo_Flag)
 

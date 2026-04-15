@@ -63,6 +63,23 @@ struct bUserAssetLibrary *BKE_preferences_remote_asset_library_add(struct UserDe
                                                                    const char *auth_token)
     ATTR_NONNULL(1, 3);
 
+/** Who defines the library. */
+enum class bUserAssetLibraryOwner {
+  User = 0,
+  Project = 1,
+  Extension = 2,
+};
+
+bUserAssetLibraryOwner BKE_preferences_asset_library_owner_get(
+    const struct bUserAssetLibrary *library) ATTR_NONNULL();
+
+/**
+ * The repository an extension defined asset library was installed from,
+ * null when the library isn't extension defined or the repository no longer exists.
+ */
+struct bUserExtensionRepo *BKE_preferences_extension_asset_library_repo_get(
+    const struct UserDef *userdef, const struct bUserAssetLibrary *library) ATTR_NONNULL();
+
 /**
  * \brief Update the remote URL and the cache directory derived from the URL.
  *
@@ -127,6 +144,17 @@ struct bUserAssetLibrary *BKE_preferences_asset_library_containing_path(
 
 int BKE_preferences_asset_library_get_index(const struct UserDef *userdef,
                                             const struct bUserAssetLibrary *library)
+    ATTR_NONNULL() ATTR_WARN_UNUSED_RESULT;
+
+/**
+ * Check if \a library can be used, this matches the "enabled" setting except libraries defined
+ * by extensions also require their repository to be enabled.
+ *
+ * \note #ASSET_LIBRARY_DISABLED is only the setting the user controls, disabling a repository
+ * never changes it so the setting is kept for when the repository is enabled again.
+ */
+bool BKE_preferences_asset_library_is_available(const struct UserDef *userdef,
+                                                const struct bUserAssetLibrary *library)
     ATTR_NONNULL() ATTR_WARN_UNUSED_RESULT;
 
 /**

@@ -9,6 +9,8 @@
 #include "BLI_assert.hh"
 #include "BLI_listbase.hh"
 
+#include "BKE_preferences.h"
+
 #include "DNA_userdef_types.h"
 
 #include "common.hh"
@@ -72,7 +74,7 @@ bool PreferencesOnDiskAssetLibrary::is_enabled() const
     return false;
   }
 
-  return (library_definition->flag & ASSET_LIBRARY_DISABLED) == 0;
+  return BKE_preferences_asset_library_is_available(&U, library_definition);
 }
 
 }  // namespace blender::asset_system
