@@ -979,7 +979,7 @@ BLI_INLINE const GridCoord *reshape_subdiv_refine_vert_grid_coord(const Vertex *
   }
   /* NOTE: All grid coordinates will point to the same object position, so can be simple and use
    * first grid coordinate. */
-  return &vert->grid_coords[0];
+  return vert->grid_coords.data();
 }
 
 /* Version of reshape_subdiv_refine() which uses coarse position from original grids. */

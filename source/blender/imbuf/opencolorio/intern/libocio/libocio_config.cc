@@ -450,7 +450,7 @@ const Display *LibOCIOConfig::get_default_display() const
   }
   /* Matches the behavior of OpenColorIO, but avoids using API which potentially throws exception
    * and requires string lookups. */
-  return &displays_[0];
+  return &displays_[0];  // NOLINT(readability-container-data-pointer)
 }
 
 const Display *LibOCIOConfig::get_display_by_name(const StringRefNull name) const

@@ -75,7 +75,7 @@ TEST_F(ShapekeyTest, mesh_key_creation)
       {1, 1, 0},
       {0, 1, 0},
   };
-  EXPECT_EQ_ARRAY(&expected[0], data, 4);
+  EXPECT_EQ_ARRAY(expected.data(), data, 4);
 }
 
 TEST_F(ShapekeyTest, mesh_key_evaluation_relative)
@@ -102,7 +102,7 @@ TEST_F(ShapekeyTest, mesh_key_evaluation_relative)
       {1, 1, 0},
       {0, 1, 0},
   };
-  EXPECT_EQ_ARRAY(&expected[0], ob_eval, 4);
+  EXPECT_EQ_ARRAY(expected.data(), ob_eval, 4);
   MEM_delete(ob_eval);
 
   KeyBlock *key2 = BKE_keyblock_add(key, "two");
@@ -119,7 +119,7 @@ TEST_F(ShapekeyTest, mesh_key_evaluation_relative)
       {1, 1, 0},
       {0, 1, 0},
   };
-  EXPECT_EQ_ARRAY(&expected[0], ob_eval, 4);
+  EXPECT_EQ_ARRAY(expected.data(), ob_eval, 4);
   MEM_delete(ob_eval);
 
   /* Blend in halfway. */
@@ -131,7 +131,7 @@ TEST_F(ShapekeyTest, mesh_key_evaluation_relative)
       {1, 1, 0},
       {0, 1, 0},
   };
-  EXPECT_EQ_ARRAY(&expected[0], ob_eval, 4);
+  EXPECT_EQ_ARRAY(expected.data(), ob_eval, 4);
   MEM_delete(ob_eval);
 
   /* Blend in double. */
@@ -143,7 +143,7 @@ TEST_F(ShapekeyTest, mesh_key_evaluation_relative)
       {1, 1, 0},
       {0, 1, 0},
   };
-  EXPECT_EQ_ARRAY(&expected[0], ob_eval, 4);
+  EXPECT_EQ_ARRAY(expected.data(), ob_eval, 4);
   MEM_delete(ob_eval);
 }
 
@@ -178,7 +178,7 @@ TEST_F(ShapekeyTest, mesh_key_evaluation_absolute)
       {1, 1, 0},
       {0, 1, 0},
   };
-  EXPECT_EQ_ARRAY(&expected[0], ob_eval, 4);
+  EXPECT_EQ_ARRAY(expected.data(), ob_eval, 4);
   MEM_delete(ob_eval);
 
   /* At 1 this should be at key1. */
@@ -190,7 +190,7 @@ TEST_F(ShapekeyTest, mesh_key_evaluation_absolute)
       {1, 1, 0},
       {0, 1, 0},
   };
-  EXPECT_EQ_ARRAY(&expected[0], ob_eval, 4);
+  EXPECT_EQ_ARRAY(expected.data(), ob_eval, 4);
   MEM_delete(ob_eval);
 
   /* At 2 this should be at key2. */
@@ -202,7 +202,7 @@ TEST_F(ShapekeyTest, mesh_key_evaluation_absolute)
       {5, 5, 5},
       {0, 1, 0},
   };
-  EXPECT_EQ_ARRAY(&expected[0], ob_eval, 4);
+  EXPECT_EQ_ARRAY(expected.data(), ob_eval, 4);
   MEM_delete(ob_eval);
 
   /* This should be a linear blend between key1 and key2; */
@@ -214,7 +214,7 @@ TEST_F(ShapekeyTest, mesh_key_evaluation_absolute)
       {3, 3, 2.5},
       {0, 1, 0},
   };
-  EXPECT_EQ_ARRAY(&expected[0], ob_eval, 4);
+  EXPECT_EQ_ARRAY(expected.data(), ob_eval, 4);
   EXPECT_NEAR(3.0, 0.5 * key1_data[2][0] + 0.5 * key2_data[2][0], 0.001);
   MEM_delete(ob_eval);
 }
@@ -253,7 +253,7 @@ TEST_F(ShapekeyTest, mesh_key_evaluation_relative_uneqal_element_count)
       {1, 1, 0},
       {0, 1, 0},
   };
-  EXPECT_EQ_ARRAY(&expected[0], ob_eval, 4);
+  EXPECT_EQ_ARRAY(expected.data(), ob_eval, 4);
   MEM_delete(ob_eval);
 }
 
@@ -292,7 +292,7 @@ TEST_F(ShapekeyTest, mesh_key_evaluation_absolute_uneqal_element_count)
       {2, 0, 0},
       {2, 0, 0},
   };
-  EXPECT_NEAR_ARRAY_ND(&expected[0], ob_eval, 4, 3, 0.001);
+  EXPECT_NEAR_ARRAY_ND(expected.data(), ob_eval, 4, 3, 0.001);
   MEM_delete(ob_eval);
 
   /* Causing blending with the base key. */
@@ -307,7 +307,7 @@ TEST_F(ShapekeyTest, mesh_key_evaluation_absolute_uneqal_element_count)
       {1.95, 0.05, 0},
       {1.9, 0.05, 0},
   };
-  EXPECT_NEAR_ARRAY_ND(&expected[0], ob_eval, 4, 3, 0.001);
+  EXPECT_NEAR_ARRAY_ND(expected.data(), ob_eval, 4, 3, 0.001);
   MEM_delete(ob_eval);
 
   MEM_delete(key1_data);
@@ -337,7 +337,7 @@ TEST_F(ShapekeyTest, mesh_key_evaluation_absolute_uneqal_element_count)
       {5, 0, 0},
       {7, 0, 0},
   };
-  EXPECT_NEAR_ARRAY_ND(&expected[0], ob_eval, 4, 3, 0.001);
+  EXPECT_NEAR_ARRAY_ND(expected.data(), ob_eval, 4, 3, 0.001);
   MEM_delete(ob_eval);
 
   /* Causing blending with the base key. */
@@ -352,7 +352,7 @@ TEST_F(ShapekeyTest, mesh_key_evaluation_absolute_uneqal_element_count)
       {4.8, 0.05, 0},
       {6.65, 0.05, 0},
   };
-  EXPECT_NEAR_ARRAY_ND(&expected[0], ob_eval, 4, 3, 0.001);
+  EXPECT_NEAR_ARRAY_ND(expected.data(), ob_eval, 4, 3, 0.001);
   /* The values should be a linear interpolation between base and key1 at 95%. */
   EXPECT_NEAR(6.65, 0.95 * key1_data[6][0] + 0.05 * base_data[3][0], 0.001);
   MEM_delete(ob_eval);

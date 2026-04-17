@@ -145,7 +145,7 @@ TEST(array, MoveAssignment)
 TEST(array, TrivialTypeSizeConstructor)
 {
   Array<char, 1> *array = new Array<char, 1>(1);
-  char *ptr = &(*array)[0];
+  char *ptr = array->data();
   array->~Array();
 
   const char magic = 42;

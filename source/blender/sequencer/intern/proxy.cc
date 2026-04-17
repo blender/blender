@@ -592,7 +592,10 @@ static void image_proxy_builder_process(ProxyBuildContext &context,
 
       if (ibufs_arr[0] != nullptr) {
         if (strip.views_format == R_IMF_VIEWS_STEREO_3D) {
-          IMB_ImBufFromStereo3d(strip.stereo3d_format, ibufs_arr[0], &ibufs_arr[0], &ibufs_arr[1]);
+          IMB_ImBufFromStereo3d(strip.stereo3d_format,
+                                ibufs_arr[0],
+                                &ibufs_arr[0],  // NOLINT(readability-container-data-pointer)
+                                &ibufs_arr[1]);
         }
 
         /* Return the requested image; release the others. */

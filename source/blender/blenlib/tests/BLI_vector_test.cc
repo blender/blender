@@ -30,7 +30,7 @@ TEST(vector, SizeConstructor)
 TEST(vector, TrivialTypeSizeConstructor)
 {
   Vector<char, 1> *vec = new Vector<char, 1>(1);
-  char *ptr = &(*vec)[0];
+  char *ptr = vec->data();
   vec->~Vector();
 
   const char magic = 42;

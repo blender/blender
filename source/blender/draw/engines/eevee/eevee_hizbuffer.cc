@@ -47,7 +47,7 @@ void HiZBuffer::sync()
     pass.bind_ssbo("finished_tile_counter", atomic_tile_counter_);
     /* TODO(fclem): Should be a parameter to avoid confusion. */
     pass.bind_texture("depth_tx", &src_tx_);
-    pass.bind_image("out_mip_0", &hiz_mip_ref_[0]);
+    pass.bind_image("out_mip_0", &hiz_mip_ref_[0]);  // NOLINT(readability-container-data-pointer)
     pass.bind_image("out_mip_1", &hiz_mip_ref_[1]);
     pass.bind_image("out_mip_2", &hiz_mip_ref_[2]);
     pass.bind_image("out_mip_3", &hiz_mip_ref_[3]);
@@ -66,7 +66,7 @@ void HiZBuffer::sync()
     pass.bind_ssbo("finished_tile_counter", atomic_tile_counter_);
     /* TODO(fclem): Should be a parameter to avoid confusion. */
     pass.bind_texture("depth_layered_tx", &src_tx_);
-    pass.bind_image("out_mip_0", &hiz_mip_ref_[0]);
+    pass.bind_image("out_mip_0", &hiz_mip_ref_[0]);  // NOLINT(readability-container-data-pointer)
     pass.bind_image("out_mip_1", &hiz_mip_ref_[1]);
     pass.bind_image("out_mip_2", &hiz_mip_ref_[2]);
     pass.bind_image("out_mip_3", &hiz_mip_ref_[3]);

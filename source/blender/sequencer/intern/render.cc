@@ -972,7 +972,10 @@ static ImBuf *seq_render_image_strip(const RenderData *context,
     }
 
     if (strip->views_format == R_IMF_VIEWS_STEREO_3D) {
-      IMB_ImBufFromStereo3d(strip->stereo3d_format, ibufs_arr[0], &ibufs_arr[0], &ibufs_arr[1]);
+      IMB_ImBufFromStereo3d(strip->stereo3d_format,
+                            ibufs_arr[0],
+                            &ibufs_arr[0],  // NOLINT(readability-container-data-pointer)
+                            &ibufs_arr[1]);
     }
 
     /* Return the requested image; release the others. */
@@ -1104,7 +1107,10 @@ static ImBuf *seq_render_movie_strip(const RenderData *context,
         return nullptr;
       }
 
-      IMB_ImBufFromStereo3d(strip->stereo3d_format, ibuf_arr[0], &ibuf_arr[0], &ibuf_arr[1]);
+      IMB_ImBufFromStereo3d(strip->stereo3d_format,
+                            ibuf_arr[0],
+                            &ibuf_arr[0],  // NOLINT(readability-container-data-pointer)
+                            &ibuf_arr[1]);
     }
 
     /* Return the requested image; release the others. */
