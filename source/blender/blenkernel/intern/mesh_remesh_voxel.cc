@@ -201,7 +201,7 @@ static Mesh *remesh_voxel_volume_to_mesh(const openvdb::FloatGrid::Ptr level_set
   openvdb::tools::volumeToMesh<openvdb::FloatGrid>(
       *level_set_grid, vertices, tris, quads, isovalue, adaptivity, relax_disoriented_triangles);
 
-  if (vertices.size() == 0 || quads.size() + tris.size() == 0) {
+  if (vertices.empty() || quads.size() + tris.size() == 0) {
     return nullptr;
   }
 

@@ -203,7 +203,7 @@ bool GPU_shader_create_info_check_error(const GPUShaderCreateInfo *_info, char r
   using namespace blender::gpu::shader;
   const ShaderCreateInfo &info = *reinterpret_cast<const ShaderCreateInfo *>(_info);
   std::string error = info.check_error();
-  if (error.length() == 0) {
+  if (error.empty()) {
     return true;
   }
 

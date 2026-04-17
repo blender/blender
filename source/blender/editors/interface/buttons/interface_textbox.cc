@@ -48,7 +48,7 @@ void textbox_scroll_to_cursor(ButtonTextBox *textbox)
 #ifdef WITH_INPUT_IME
   /* Include the ime composition string when scrolling to the cursor. */
   const wmIMEData *ime_data = button_ime_data_get(textbox);
-  if (ime_data && ime_data->composite.size() && ime_data->cursor_pos != -1) {
+  if (ime_data && !ime_data->composite.empty() && ime_data->cursor_pos != -1) {
     but_pos += ime_data->cursor_pos;
   }
 #endif
@@ -208,7 +208,7 @@ Vector<StringRef> textbox_wrap_lines(ButtonTextBox *textbox)
   StringRef text = textbox->drawstr;
 #ifdef WITH_INPUT_IME
   const wmIMEData *ime_data = button_ime_data_get(textbox);
-  if (ime_data && ime_data->composite.size() > 0) {
+  if (ime_data && !ime_data->composite.empty()) {
     StringRef edit_str = textbox->editstr;
     StringRef l = edit_str.is_empty() ? StringRef("") : edit_str.substr(0, textbox->pos);
     StringRef r = edit_str.is_empty() ? StringRef("") : edit_str.substr(textbox->pos);
