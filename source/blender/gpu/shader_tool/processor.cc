@@ -1120,7 +1120,7 @@ void SourceProcessor::lower_host_shared_structures(Parser &parser)
       size_t align = type_info.alignment - (offset % type_info.alignment);
       if (align != type_info.alignment) {
         string err = "Misaligned member, missing " + to_string(align) + " padding bytes";
-        report_error(type, err.c_str());
+        report_error(type, err);
       }
 
       size_t array_size = 1;
@@ -1144,7 +1144,7 @@ void SourceProcessor::lower_host_shared_structures(Parser &parser)
     }
     else if (offset % 16 != 0) {
       string err = "Alignment issue, missing " + to_string(16 - (offset % 16)) + " padding bytes";
-      report_error(struct_name, err.c_str());
+      report_error(struct_name, err);
     }
     /* Insert an alias to the type that will get referenced for shaders that enforce usage of
      * linted types. */
@@ -1196,7 +1196,7 @@ void SourceProcessor::lint_reserved_tokens(Parser &parser)
   parser().foreach_token(Word, [&](Token tok) {
     if (reserved_symbols.contains(string(tok.str()))) {
       string err = string(tok.str()) + " is a reserved token";
-      report_error(tok, err.c_str());
+      report_error(tok, err);
     }
   });
 }
