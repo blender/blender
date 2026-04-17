@@ -1015,7 +1015,8 @@ int BLI_str_rstrip_digits(char *str)
 {
   int totstrip = 0;
   int str_len = int(strlen(str));
-  while (str_len > 0 && isdigit(str[--str_len])) {
+  while (str_len > 0 && isdigit(str[str_len - 1])) {
+    --str_len;
     str[str_len] = '\0';
     totstrip++;
   }
