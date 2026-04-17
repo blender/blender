@@ -372,7 +372,7 @@ static void wm_event_add_notifier_intern(wmWindowManager *wm,
   BLI_assert(!wm_notifier_is_clear(&note_test));
 
   wm->runtime->notifier_queue_set.lookup_key_or_add_cb(&note_test, [&]() {
-    wmNotifier *note = MEM_new<wmNotifier>(__func__);
+    wmNotifier *note = MEM_new<wmNotifier>("wm_event_add_notifier_intern");
     *note = note_test;
     BLI_addtail(&wm->runtime->notifier_queue, note);
     return note;

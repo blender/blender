@@ -26,7 +26,10 @@ namespace blender {
 #  if defined __GNUC__
 #    define ERRMSG(format, args...) \
       { \
-        fprintf(stderr, "%s: " format ", " AT "\n", __func__, ##args); \
+        fprintf(stderr, \
+                "%s: " format ", " AT "\n", \
+                __func__, /* NOLINT(bugprone-lambda-function-name) */ \
+                ##args); \
         errtot++; \
       } \
       (void)0

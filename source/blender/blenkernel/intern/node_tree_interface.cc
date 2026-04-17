@@ -262,7 +262,7 @@ static void *make_socket_data(const StringRef socket_type)
 {
   void *socket_data = nullptr;
   socket_data_to_static_type(socket_type, [&socket_data]<typename SocketDataType>() {
-    SocketDataType *new_socket_data = MEM_new<SocketDataType>(__func__);
+    SocketDataType *new_socket_data = MEM_new<SocketDataType>("make_socket_data");
     socket_data_init_impl(*new_socket_data);
     socket_data = new_socket_data;
   });

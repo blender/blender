@@ -96,7 +96,7 @@ using IsectMap = Map<ScanFillEdge *, ListBaseT<LinkData> *>;
 static ListBaseT<LinkData> *edge_isect_ls_ensure(IsectMap *isect_hash, ScanFillEdge *eed)
 {
   return isect_hash->lookup_or_add_cb(
-      eed, []() { return MEM_new_zeroed<ListBaseT<LinkData>>(__func__); });
+      eed, []() { return MEM_new_zeroed<ListBaseT<LinkData>>("edge_isect_ls_ensure"); });
 }
 
 static ListBaseT<LinkData> *edge_isect_ls_add(IsectMap *isect_hash,

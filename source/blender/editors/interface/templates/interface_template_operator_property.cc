@@ -484,7 +484,7 @@ void template_collection_exporters(Layout *layout, bContext *C)
 
   /* Register the exporter list type on first use. */
   static const uiListType *exporter_item_list = []() {
-    uiListType *lt = MEM_new_zeroed<uiListType>(__func__);
+    uiListType *lt = MEM_new_zeroed<uiListType>("template_collection_exporters");
     STRNCPY_UTF8(lt->idname, "COLLECTION_UL_exporter_list");
     lt->draw_item = draw_exporter_item;
     WM_uilisttype_add(lt);

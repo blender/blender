@@ -310,7 +310,7 @@ static void calc_corner_tris(const Span<float3> positions,
 
         if (ngon_mode == TriangulateNGonMode::Beauty) {
           if (!data.arena) {
-            data.arena = BLI_memarena_new(BLI_POLYFILL_ARENA_SIZE, __func__);
+            data.arena = BLI_memarena_new(BLI_POLYFILL_ARENA_SIZE, "calc_corner_tris data.arena");
           }
           if (!data.heap) {
             data.heap = BLI_heap_new_ex(BLI_POLYFILL_ALLOC_NGON_RESERVE);

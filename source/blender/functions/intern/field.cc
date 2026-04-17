@@ -171,7 +171,7 @@ UniqueHash FieldHashDeep::ensure(const GFieldRef &field)
 const FieldInputsPtr &FieldInput::field_inputs() const
 {
   field_inputs_mutex_.ensure([&]() {
-    FieldInputs *inputs = MEM_new<FieldInputs>(__func__);
+    FieldInputs *inputs = MEM_new<FieldInputs>("field_inputs");
     inputs->inputs.add(*this);
     field_inputs_ = FieldInputsPtr(inputs);
   });
@@ -320,7 +320,7 @@ GField::GField(const GField &other) : variant_(other.variant_)
       [&]<typename T>(T &v) {
         if constexpr (std::is_same_v<T, OwnedConstant>) {
           void *new_value = MEM_new_uninitialized_aligned(
-              v.type->size, v.type->alignment, __func__);
+              v.type->size, v.type->alignment, "GField::GField()");
           v.type->copy_construct(v.value, new_value);
           v.value = new_value;
         }

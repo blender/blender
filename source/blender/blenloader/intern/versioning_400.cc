@@ -1181,7 +1181,8 @@ static void enable_geometry_nodes_is_modifier(Main &bmain)
         return true;
       }
       if (!group.geometry_node_asset_traits) {
-        group.geometry_node_asset_traits = MEM_new<GeometryNodeAssetTraits>(__func__);
+        group.geometry_node_asset_traits = MEM_new<GeometryNodeAssetTraits>(
+            "enable_geometry_nodes_is_modifier geometry_node_asset_traits");
       }
       group.geometry_node_asset_traits->flag |= GEO_NODE_ASSET_MODIFIER;
       return false;
