@@ -1334,7 +1334,6 @@ class CurvesPenToolOperation : public PenToolOperation {
   void single_point_attributes(bke::CurvesGeometry & /*curves*/,
                                const int /*curves_index*/) const override
   {
-    return;
   }
 
   bool can_create_new_curve(wmOperator *op) const override
