@@ -14,9 +14,7 @@ float edge_step(float dist)
   if (do_smooth_wire) {
     return smoothstep(LINE_SMOOTH_START, LINE_SMOOTH_END, dist);
   }
-  else {
-    return step(0.5f, dist);
-  }
+  return step(0.5f, dist);
 }
 
 void main()

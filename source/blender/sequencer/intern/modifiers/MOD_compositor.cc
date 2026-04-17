@@ -228,7 +228,7 @@ static std::optional<int> get_socket_dimension(const bNodeTreeInterfaceSocket *s
   if (socket_type == SOCK_VECTOR) {
     return static_cast<bNodeSocketValueVector *>(socket->socket_data)->dimensions;
   }
-  else if (socket_type == SOCK_INT_VECTOR) {
+  if (socket_type == SOCK_INT_VECTOR) {
     return static_cast<bNodeSocketValueIntVector *>(socket->socket_data)->dimensions;
   }
   return {};

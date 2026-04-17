@@ -82,7 +82,7 @@ static eRedrawFlag shrinkfatten_handleEvent(TransInfo *t, const wmEvent *event)
     custom_data->mode = use_even_thickness ? EVEN_THICKNESS_ON : EVEN_THICKNESS_OFF;
     return TREDRAW_HARD;
   }
-  else if (kmi && event->type == kmi->type && event->val == kmi->val) {
+  if (kmi && event->type == kmi->type && event->val == kmi->val) {
     /* Allows the "Even Thickness" effect to be enabled as a toggle. */
     custom_data->mode = custom_data->mode == EVEN_THICKNESS_ON ? EVEN_THICKNESS_OFF :
                                                                  EVEN_THICKNESS_ON;

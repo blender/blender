@@ -433,9 +433,7 @@ AUD_Sound pitchmodifier_recreator(Strip * /*strip*/,
     if (smd->runtime->last_sound_in == sound_in) {
       return smd->runtime->last_sound_out;
     }
-    else {
-      return sound_in;
-    }
+    return sound_in;
   }
 
   AUD_Sound sound_out = AUD_Sound(

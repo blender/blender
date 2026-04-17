@@ -17,14 +17,10 @@ float4 color_from_id(float color_id)
   if (is_transform) {
     return theme.colors.transform;
   }
-  else if (color_id == 1.0f) {
+  if (color_id == 1.0f) {
     return theme.colors.active_object;
   }
-  else /* 2.0f */ {
-    return theme.colors.object_select;
-  }
-
-  return theme.colors.transform;
+  return theme.colors.object_select;
 }
 
 void main()

@@ -893,7 +893,7 @@ static bool uv_rip_object(
     BKE_report(reports, RPT_ERROR, "Edge must have connected edges");
     return false;
   }
-  else if (vert_selected && !changed) {
+  if (vert_selected && !changed) {
     BKE_report(reports, RPT_ERROR, "Vertex must have connected vertices");
     return false;
   }

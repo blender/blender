@@ -20,14 +20,10 @@ uint outline_colorid_get()
   if (is_transform) {
     return 0u; /* theme.colors.transform */
   }
-  else if (is_active) {
+  if (is_active) {
     return 3u; /* theme.colors.active */
   }
-  else {
-    return 1u; /* theme.colors.object_select */
-  }
-
-  return 0u;
+  return 1u; /* theme.colors.object_select */
 }
 
 void main()

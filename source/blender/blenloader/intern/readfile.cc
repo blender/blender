@@ -1522,9 +1522,7 @@ static FileData *change_ID_link_filedata_get(Main *bmain, FileData *basefd)
   if (bmain->curlib) {
     return bmain->curlib->runtime->filedata;
   }
-  else {
-    return basefd;
-  }
+  return basefd;
 }
 
 static void change_link_placeholder_to_real_ID_pointer(FileData *basefd, void *old, void *newp)

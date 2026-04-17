@@ -597,13 +597,10 @@ static void generate_corner(const float3 &pt_a,
       r_src_indices.append_n_times(src_point_index, 2);
       return;
     }
-    else {
-      const float3 miter_point = pt_b + miter * radius / miter_invscale;
-
-      r_perimeter.append(miter_point);
-      r_src_indices.append(src_point_index);
-      return;
-    }
+    const float3 miter_point = pt_b + miter * radius / miter_invscale;
+    r_perimeter.append(miter_point);
+    r_src_indices.append(src_point_index);
+    return;
   }
 
   /* Avoid division by tiny values for steep angles. */

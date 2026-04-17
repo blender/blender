@@ -113,11 +113,11 @@ std::optional<eRotationModes> get_rotation_mode_from_path(const StringRefNull rn
   if (rna_path.endswith("quaternion")) {
     return ROT_MODE_QUAT;
   }
-  else if (rna_path.endswith("euler")) {
+  if (rna_path.endswith("euler")) {
     /* Cannot determine the rotation order from the path alone. */
     return ROT_MODE_EUL;
   }
-  else if (rna_path.endswith("axis_angle")) {
+  if (rna_path.endswith("axis_angle")) {
     return ROT_MODE_AXISANGLE;
   }
   return std::nullopt;

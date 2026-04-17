@@ -3338,9 +3338,7 @@ bool GreasePencil::remove_frames(bke::greasepencil::Layer &layer, Span<int> fram
     return true;
   }
 #ifndef NDEBUG
-  else {
-    this->validate_drawing_user_counts();
-  }
+  this->validate_drawing_user_counts();
 #endif
   return false;
 }
