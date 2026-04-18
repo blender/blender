@@ -5790,10 +5790,10 @@ void SculptPaintStroke::stroke_cache_init(const float mval[2])
   }
 }
 
-bool SculptPaintStroke::test_start(wmOperator *op, const float mval[2])
+bool SculptPaintStroke::test_start(wmOperator *op, const float mouse[2])
 {
-  /* Don't start the stroke until `mval` goes over the mesh. */
-  if (over_mesh(*this->depsgraph, this->vc, *sculpt_, this->brush, op, mval)) {
+  /* Don't start the stroke until `mouse` goes over the mesh. */
+  if (over_mesh(*this->depsgraph, this->vc, *sculpt_, this->brush, op, mouse)) {
     Object &ob = *this->object;
     Brush *brush = this->brush;
 
@@ -5810,14 +5810,14 @@ bool SculptPaintStroke::test_start(wmOperator *op, const float mval[2])
 
     ED_view3d_init_mats_rv3d(&ob, this->vc.rv3d);
 
-    stroke_cache_init(mval);
+    stroke_cache_init(mouse);
     if (brush && brush_type_is_paint(brush->sculpt_brush_type)) {
       BKE_curvemapping_init(brush->curve_rand_hue);
       BKE_curvemapping_init(brush->curve_rand_saturation);
       BKE_curvemapping_init(brush->curve_rand_value);
     }
 
-    cursor_geometry_info_update(*this->depsgraph, *paint, sculpt_, this->vc, base_, mval, false);
+    cursor_geometry_info_update(*this->depsgraph, *paint, sculpt_, this->vc, base_, mouse, false);
 
     stroke_undo_begin(*this->scene, this->brush, *this->paint_mode_settings_, *this->object, op);
 

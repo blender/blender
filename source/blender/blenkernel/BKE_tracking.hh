@@ -779,7 +779,7 @@ void BKE_tracking_get_rna_path_prefix_for_track(const MovieTracking *tracking,
 void BKE_tracking_get_rna_path_for_plane_track(const MovieTracking *tracking,
                                                const MovieTrackingPlaneTrack *plane_track,
                                                char *rna_path,
-                                               size_t rna_path_len);
+                                               size_t rna_path_maxncpy);
 void BKE_tracking_get_rna_path_prefix_for_plane_track(const MovieTracking *tracking,
                                                       const MovieTrackingPlaneTrack *plane_track,
                                                       char *rna_path,

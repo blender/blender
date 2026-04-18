@@ -136,12 +136,12 @@ void GPU_context_main_unlock();
  *
  * The assert can not be enabled by default as there are cases where new pipelines are expected.
  * This function is used inside unit tests to check if pipeline creation is done when not expected.
- * \param context: Context where to activate the pipeline creation debug.
+ * \param ctx: Context where to activate the pipeline creation debug.
  * \param enable:  #true enables the feature, #false disables the feature.
  *
  * \note Currently only supported by Vulkan.
  */
-void GPU_context_debug_pipeline_creation(GPUContext *context, bool enable);
+void GPU_context_debug_pipeline_creation(GPUContext *ctx, bool enable);
 
 /** GPU Begin/end work blocks */
 void GPU_render_begin();

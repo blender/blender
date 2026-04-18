@@ -88,19 +88,19 @@ struct GreasePencilPaintStroke final : public PaintStroke {
 
   bool get_location(float location[3], const float mouse[2], bool force_original) override;
   bool test_start(wmOperator *op, const float mouse[2]) override;
-  void update_step(wmOperator *op, PointerRNA *itemptr) override;
+  void update_step(wmOperator *op, PointerRNA *stroke_element) override;
   void redraw(bool final) override;
   bool test_cancel() override;
   void done(bool is_cancel, bool stroke_started) override;
 };
 
-bool GreasePencilPaintStroke::get_location(float out[3],
+bool GreasePencilPaintStroke::get_location(float location[3],
                                            const float mouse[2],
                                            bool /*force_original*/)
 {
-  out[0] = mouse[0];
-  out[1] = mouse[1];
-  out[2] = 0;
+  location[0] = mouse[0];
+  location[1] = mouse[1];
+  location[2] = 0;
   return true;
 }
 

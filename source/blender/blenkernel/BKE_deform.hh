@@ -298,7 +298,7 @@ void BKE_defvert_normalize_lock_map(MDeformVert &dvert,
  * number of vertex groups in the source data (e.g. the mesh).
  */
 void BKE_defvert_normalize_ex(MDeformVert &dvert,
-                              Span<bool> vgroup_subset,
+                              Span<bool> subset_flags,
                               Span<bool> lock_flags,
                               Span<bool> soft_lock_flags);
 

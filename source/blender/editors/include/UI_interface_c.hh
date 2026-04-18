@@ -748,7 +748,7 @@ float text_clip_middle_ex(const uiFontStyle *fstyle,
 Vector<StringRef> text_clip_multiline_middle(const uiFontStyle *fstyle,
                                              const char *str,
                                              char *clipped_str_buf,
-                                             const size_t max_len_clipped_str_buf,
+                                             const size_t clipped_str_buf_maxncpy,
                                              const float max_line_width,
                                              const int max_lines);
 

@@ -5280,9 +5280,9 @@ bool Layout::use_property_decorate() const
   return flag_is_set(flag_, ItemInternalFlag::PropDecorate);
 }
 
-void Layout::use_property_decorate_set(bool is_sep)
+void Layout::use_property_decorate_set(bool is_decorate)
 {
-  SET_FLAG_FROM_TEST(flag_, is_sep, ItemInternalFlag::PropDecorate);
+  SET_FLAG_FROM_TEST(flag_, is_decorate, ItemInternalFlag::PropDecorate);
 }
 
 Panel *Layout::root_panel() const

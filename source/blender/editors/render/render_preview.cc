@@ -366,11 +366,11 @@ static World *preview_get_localized_world(ShaderPreview *sp, World *world)
   return sp->worldcopy;
 }
 
-World *ED_preview_prepare_world_simple(Main *pr_main)
+World *ED_preview_prepare_world_simple(Main *bmain)
 {
   using namespace blender::bke;
 
-  World *world = BKE_world_add(pr_main, "SimpleWorld");
+  World *world = BKE_world_add(bmain, "SimpleWorld");
   bNodeTree *ntree = world->nodetree;
 
   bNode *background = node_add_node(nullptr, *ntree, "ShaderNodeBackground"_ustr);
@@ -1725,7 +1725,7 @@ class PreviewLoadJob {
   std::mutex todo_queue_mutex_;
 
   /** Push the RequestedPreview to the 'todo' queue, ensuring it is only queued once. */
-  void todo_queue_push(RequestedPreview *preview);
+  void todo_queue_push(RequestedPreview *request);
   /** Pop an item off the 'todo' queue, waiting at most wait_time_msec for an item to appear. */
   RequestedPreview *todo_queue_pop(int wait_time_msec);
 

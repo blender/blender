@@ -1088,26 +1088,26 @@ CurveProfilePoint *BKE_curveprofile_active_get(CurveProfile *profile)
   return active_pt;
 }
 
-float *BKE_curveprofile_active_location_get(CurveProfilePoint *pt)
+float *BKE_curveprofile_active_location_get(CurveProfilePoint *point)
 {
-  if (pt->flag & PROF_ACTIVE) {
-    return &pt->x;
+  if (point->flag & PROF_ACTIVE) {
+    return &point->x;
   }
-  if (pt->flag & PROF_H1_ACTIVE) {
-    return &pt->h1_loc[0];
+  if (point->flag & PROF_H1_ACTIVE) {
+    return &point->h1_loc[0];
   }
-  if (pt->flag & PROF_H2_ACTIVE) {
-    return &pt->h2_loc[0];
+  if (point->flag & PROF_H2_ACTIVE) {
+    return &point->h2_loc[0];
   }
   /* If no active point or handles, return the selected location. */
-  if (pt->flag & PROF_SELECT) {
-    return &pt->x;
+  if (point->flag & PROF_SELECT) {
+    return &point->x;
   }
-  if (pt->flag & PROF_H1_SELECT) {
-    return &pt->h1_loc[0];
+  if (point->flag & PROF_H1_SELECT) {
+    return &point->h1_loc[0];
   }
-  if (pt->flag & PROF_H2_SELECT) {
-    return &pt->h2_loc[0];
+  if (point->flag & PROF_H2_SELECT) {
+    return &point->h2_loc[0];
   }
 
   /* Either the input point itself or its handle should be labeled as active. */

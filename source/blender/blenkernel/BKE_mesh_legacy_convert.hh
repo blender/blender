@@ -106,7 +106,7 @@ void BKE_mesh_tessface_ensure(Mesh *mesh);
  * Rotates the vertices of a face in case v[2] or v[3] (vertex index) is = 0.
  * this is necessary to make the `if #MFace.v4` check for quads work.
  */
-int BKE_mesh_mface_index_validate(MFace *mface, CustomData *mfdata, int mfindex, int nr);
+int BKE_mesh_mface_index_validate(MFace *mface, CustomData *fdata_legacy, int mfindex, int nr);
 
 void BKE_mesh_convert_mfaces_to_mpolys(Mesh *mesh);
 
