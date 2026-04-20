@@ -89,6 +89,11 @@ ClosureType closure_type_get(ClosureSubsurface /*cl*/)
   return CLOSURE_BSSRDF_BURLEY_ID;
 }
 
+ClosureType closure_type_get(ClosureThinRefraction /*cl*/)
+{
+  return CLOSURE_BSDF_THIN_GLASS_TRANSMISSION_ID;
+}
+
 /**
  * Returns true if the closure is to be selected based on the input weight.
  */

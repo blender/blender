@@ -75,9 +75,7 @@ void forward_lighting_eval(Thickness thickness,
 
   if (srt.light_closure_eval_count_transmit > 0) [[static_branch]] {
     ClosureUndetermined cl_transmit = g_closure_get(0);
-    if (cl_transmit.type == CLOSURE_BSDF_TRANSLUCENT_ID ||
-        cl_transmit.type == CLOSURE_BSDF_MICROFACET_GGX_REFRACTION_ID ||
-        cl_transmit.type == CLOSURE_BSSRDF_BURLEY_ID)
+    if (closure_has_transmission(cl_transmit.type) || cl_transmit.type == CLOSURE_BSSRDF_BURLEY_ID)
     {
       light::EvalCtx<true> ctx_tr = light::init_from_reflect_ctx(ctx);
       ctx_tr.stack.cl[0] = closure_light_new(cl_transmit, V, thickness);

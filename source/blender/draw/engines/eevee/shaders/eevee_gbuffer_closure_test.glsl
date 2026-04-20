@@ -48,6 +48,31 @@ void main()
   float3 N = Ng;
   Thickness thickness = Thickness::from(0.2f, ThicknessMode::Slab);
 
+  TEST(eevee_gbuffer, ClosureThinRefraction)
+  {
+    gbuffer::InputClosures data_in = gbuffer_new();
+    data_in.closure[0].type = CLOSURE_BSDF_THIN_GLASS_TRANSMISSION_ID;
+    data_in.closure[0].weight = 1.0f;
+    data_in.closure[0].color = float3(0.1f, 0.2f, 0.3f);
+    data_in.closure[0].N = normalize(float3(0.2f, 0.1f, 0.3f));
+
+    const gbuffer::Packed data_out = gbuffer::pack(data_in, Ng, N, thickness, false);
+    const gbuffer::Header header = gbuffer::Header::from_data(data_out.header);
+
+    EXPECT_EQ(uint(data_out.used_layers), uint(ADDITIONAL_DATA));
+    EXPECT_EQ(uint3(header.empty_bins()), uint3(0, 1, 1));
+    EXPECT_EQ(header.closure_len(), 1);
+
+    ClosureUndetermined out_refraction;
+    out_refraction.type = gbuffer::mode_to_closure_type(header.bin_type(0));
+    out_refraction.color = gbuffer::closure_color_unpack(data_out.closure[0]);
+    out_refraction.N = gbuffer::normal_unpack(data_out.normal[0]);
+
+    EXPECT_EQ(out_refraction.type, CLOSURE_BSDF_THIN_GLASS_TRANSMISSION_ID);
+    EXPECT_NEAR(out_refraction.color, data_in.closure[0].color, 1e-5f);
+    EXPECT_NEAR(out_refraction.N, data_in.closure[0].N, 1e-5f);
+  }
+
   TEST(eevee_gbuffer, ClosureDiffuse)
   {
     gbuffer::InputClosures data_in = gbuffer_new();

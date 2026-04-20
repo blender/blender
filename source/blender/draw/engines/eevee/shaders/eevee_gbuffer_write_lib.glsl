@@ -87,6 +87,17 @@ ClosurePacking pack_closure(ClosureUndetermined cl)
     case GBUF_REFRACTION_COLORLESS:
       gbuffer::RefractionColorless::pack_additional(cl_packed, cl);
       break;
+    case GBUF_THIN_REFRACTION:
+#  ifdef MAT_REFRACTION_COLORLESS
+      /* Material is colored, but the flag is set to colorless. */
+      assert(false);
+#  else
+      gbuffer::ThinRefraction::pack_additional(cl_packed, cl);
+#  endif
+      break;
+    case GBUF_THIN_REFRACTION_COLORLESS:
+      gbuffer::ThinRefractionColorless::pack_additional(cl_packed, cl);
+      break;
 #endif
 #ifdef GBUFFER_HAS_SUBSURFACE
     case GBUF_SUBSURFACE:

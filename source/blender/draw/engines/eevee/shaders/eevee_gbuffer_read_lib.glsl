@@ -94,6 +94,12 @@ ClosureUndetermined unpack_closure(gbuffer::ClosurePacking cl_in)
     case GBUF_REFRACTION_COLORLESS:
       gbuffer::RefractionColorless::unpack_additional(cl, cl_in.data0);
       break;
+    case GBUF_THIN_REFRACTION:
+      gbuffer::ThinRefraction::unpack_additional(cl, cl_in.data1);
+      break;
+    case GBUF_THIN_REFRACTION_COLORLESS:
+      gbuffer::ThinRefractionColorless::unpack_additional(cl, cl_in.data0);
+      break;
 #endif
 #ifdef GBUFFER_HAS_SUBSURFACE
     case GBUF_SUBSURFACE:

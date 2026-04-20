@@ -2642,6 +2642,8 @@ NODE_DEFINE(PrincipledBsdfNode)
   SOCKET_IN_FLOAT(roughness, "Roughness", 0.5f);
   SOCKET_IN_FLOAT(ior, "IOR", 1.5f);
   SOCKET_IN_FLOAT(alpha, "Alpha", 1.0f);
+  /* FIXME: `SOCKET_IN_BOOLEAN()` doesn't pass the value correctly, need investigation. */
+  SOCKET_IN_INT(thin_wall, "Thin Wall", int(false));
   SOCKET_IN_NORMAL(normal, "Normal", zero_float3(), SocketType::LINK_NORMAL);
 
   SOCKET_IN_FLOAT(diffuse_roughness, "Diffuse Roughness", 0.0f);
@@ -2697,7 +2699,12 @@ void PrincipledBsdfNode::simplify_settings(Scene * /* scene */)
     disconnect_unused_input("Emission Strength");
   }
 
-  if (!has_surface_bssrdf()) {
+  if (is_thin_wall()) {
+    disconnect_unused_input("Subsurface Radius");
+    disconnect_unused_input("Subsurface Scale");
+    disconnect_unused_input("Subsurface IOR");
+  }
+  else if (!has_surface_bssrdf()) {
     disconnect_unused_input("Subsurface Weight");
     disconnect_unused_input("Subsurface Radius");
     disconnect_unused_input("Subsurface Scale");
@@ -2735,6 +2742,11 @@ bool PrincipledBsdfNode::has_surface_transparent()
   return (input("Alpha")->link != nullptr || alpha < (1.0f - CLOSURE_WEIGHT_CUTOFF));
 }
 
+bool PrincipledBsdfNode::is_thin_wall()
+{
+  return (input("Thin Wall")->link == nullptr) && thin_wall;
+}
+
 bool PrincipledBsdfNode::has_surface_emission()
 {
   return (input("Emission Color")->link != nullptr ||
@@ -2743,11 +2755,22 @@ bool PrincipledBsdfNode::has_surface_emission()
           emission_strength > CLOSURE_WEIGHT_CUTOFF);
 }
 
-bool PrincipledBsdfNode::has_surface_bssrdf()
+bool PrincipledBsdfNode::subsurface_has_positive_weight()
 {
   return (input("Subsurface Weight")->link != nullptr ||
           subsurface_weight > CLOSURE_WEIGHT_CUTOFF) &&
          (input("Subsurface Scale")->link != nullptr || subsurface_scale != 0.0f);
+}
+
+bool PrincipledBsdfNode::has_surface_bssrdf()
+{
+  if (is_thin_wall()) {
+    /* Subsurface in thin-walled mode is approximated via diffuse lobes, it doesn't contain real
+     * subsurface. */
+    return false;
+  }
+
+  return subsurface_has_positive_weight();
 }
 
 bool PrincipledBsdfNode::has_nonzero_weight(const char *name)
@@ -2832,6 +2855,8 @@ void PrincipledBsdfNode::compile(SVMCompiler &compiler)
       /* Thin film. */
       .thin_film_thickness = compiler.input_float("Thin Film Thickness"),
       .thin_film_ior = compiler.input_float("Thin Film IOR"),
+      /* Thin wall. */
+      .thin_wall = compiler.input_int("Thin Wall"),
   });
 }
 

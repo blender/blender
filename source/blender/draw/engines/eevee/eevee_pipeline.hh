@@ -308,8 +308,7 @@ struct DeferredLayerBase {
      * For now, allocate a custom normal layer for each Closure. */
     int count = to_gbuffer_bin_count(closure_bits_);
     /* Count the additional information layer needed by some closures. */
-    count += count_bits_i(closure_bits_ &
-                          (CLOSURE_SSS | CLOSURE_TRANSLUCENT | CLOSURE_REFRACTION));
+    count += count_bits_i(closure_bits_ & CLOSURE_TRANSMISSION);
     return count;
   }
 

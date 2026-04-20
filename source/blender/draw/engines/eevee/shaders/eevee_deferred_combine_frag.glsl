@@ -94,6 +94,7 @@ void main()
         break;
       case CLOSURE_BSDF_MICROFACET_GGX_REFLECTION_ID:
       case CLOSURE_BSDF_MICROFACET_GGX_REFRACTION_ID:
+      case CLOSURE_BSDF_THIN_GLASS_TRANSMISSION_ID:
         specular_color += cl.color;
         specular_direct += closure_direct_light;
         specular_indirect += closure_indirect_light;

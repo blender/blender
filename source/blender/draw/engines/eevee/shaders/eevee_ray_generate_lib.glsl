@@ -36,6 +36,7 @@ BsdfSample ray_generate_direction(float2 noise,
       bxdf_ggx_context_amend_transmission(cl, V, thickness);
       break;
     case CLOSURE_BSDF_MICROFACET_GGX_REFLECTION_ID:
+    case CLOSURE_BSDF_THIN_GLASS_TRANSMISSION_ID:
     case CLOSURE_BSDF_TRANSLUCENT_ID:
     case CLOSURE_BSSRDF_BURLEY_ID:
     case CLOSURE_BSDF_DIFFUSE_ID:
@@ -72,6 +73,14 @@ BsdfSample ray_generate_direction(float2 noise,
                                         to_closure_refraction(cl).ior,
                                         thickness,
                                         true);
+      break;
+    }
+    case CLOSURE_BSDF_THIN_GLASS_TRANSMISSION_ID: {
+      samp = bxdf_ggx_sample_reflection(random_point_on_cylinder,
+                                        V * tangent_to_world,
+                                        square(to_closure_thin_refraction(cl).roughness),
+                                        true);
+      samp.direction.z = -samp.direction.z;
       break;
     }
     case CLOSURE_NONE_ID:

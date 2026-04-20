@@ -42,6 +42,7 @@ void main()
         eval_cost += 1.0f;
         break;
       case CLOSURE_BSSRDF_BURLEY_ID:
+      case CLOSURE_BSDF_THIN_GLASS_TRANSMISSION_ID:
         eval_cost += 2.0f;
         break;
       case CLOSURE_NONE_ID:

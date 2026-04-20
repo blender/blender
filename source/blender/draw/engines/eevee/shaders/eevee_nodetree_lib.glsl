@@ -130,6 +130,16 @@ Closure closure_eval(ClosureRefraction refraction)
   return Closure(0);
 }
 
+Closure closure_eval(ClosureThinRefraction refraction)
+{
+  ClosureUndetermined cl;
+  closure_base_copy(cl, refraction);
+  cl.data.r = refraction.roughness;
+  /* Transmission Closures are always in first bin. */
+  closure_select(g_closure_bins[0], g_closure_rand[0], cl);
+  return Closure(0);
+}
+
 Closure closure_eval(ClosureEmission emission)
 {
   g_emission += emission.emission * emission.weight;

@@ -491,6 +491,79 @@ ccl_device void osl_closure_generalized_schlick_bsdf_setup(
   }
 }
 
+ccl_device void osl_closure_thin_glass_setup(KernelGlobals kg,
+                                             ccl_private ShaderData *sd,
+                                             const uint32_t path_flag,
+                                             const float3 weight,
+                                             const ccl_private ThinGlassClosure *closure,
+                                             float3 *layer_albedo)
+{
+  osl_zero_albedo(layer_albedo);
+
+  const bool has_reflection = !is_zero(closure->reflection_tint);
+  const bool has_transmission = !is_zero(closure->transmission_tint);
+
+  int label = roughness_is_almost_specular(closure->roughness, closure->roughness) ?
+                  LABEL_SINGULAR :
+                  LABEL_GLOSSY;
+  if (has_transmission) {
+    label |= LABEL_TRANSMIT;
+  }
+  if (has_reflection) {
+    label |= LABEL_REFLECT;
+  }
+
+  if (osl_closure_skip(kg, path_flag, label)) {
+    return;
+  }
+
+  const bool reflective_caustics = (kernel_data.integrator.caustics_reflective ||
+                                    (path_flag & PATH_RAY_DIFFUSE) == 0);
+  const bool refractive_caustics = (kernel_data.integrator.caustics_refractive ||
+                                    (path_flag & PATH_RAY_DIFFUSE) == 0);
+
+  const float3 valid_reflection_N = maybe_ensure_valid_specular_reflection(
+      sd, safe_normalize_fallback(closure->N, sd->N));
+  const FresnelThinFilm thinfilm = {closure->thinfilm_thickness, closure->thinfilm_ior};
+
+  Spectrum reflectance, transmittance;
+  bsdf_thin_glass_setup(kg,
+                        sd,
+                        reflective_caustics,
+                        refractive_caustics,
+                        closure->reflection_tint,
+                        closure->transmission_tint,
+                        rgb_to_spectrum(weight),
+                        valid_reflection_N,
+                        closure->roughness,
+                        closure->ior,
+                        thinfilm,
+                        &reflectance,
+                        &transmittance);
+
+  if (layer_albedo != nullptr) {
+    *layer_albedo = transmittance * !!has_transmission + reflectance * !!has_reflection;
+  }
+}
+
+ccl_device void osl_closure_thin_subsurface_setup(KernelGlobals kg,
+                                                  ccl_private ShaderData *sd,
+                                                  const uint32_t path_flag,
+                                                  const float3 weight,
+                                                  const ccl_private ThinSubsurfaceClosure *closure,
+                                                  float3 *layer_albedo)
+{
+  osl_zero_albedo(layer_albedo);
+
+  if (osl_closure_skip(kg, path_flag, LABEL_DIFFUSE)) {
+    return;
+  }
+
+  const float3 N = safe_normalize_fallback(closure->N, sd->N);
+  bsdf_thin_subsurface_setup(
+      sd, N, rgb_to_spectrum(weight), closure->anisotropy, closure->roughness, closure->color);
+}
+
 /* Standard microfacet closures */
 
 ccl_device void osl_closure_microfacet_setup(KernelGlobals kg,

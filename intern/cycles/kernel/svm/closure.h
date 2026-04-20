@@ -148,6 +148,8 @@ ccl_device
       const float3 valid_reflection_N = maybe_ensure_valid_specular_reflection(sd, N);
       const float anisotropic = saturatef(stack_load(stack, data.anisotropic));
 
+      const bool thin_wall = stack_load(stack, data.thin_wall);
+
       /* We're ignoring closure_weight here since it's always 1 for the Principled BSDF, so there's
        * no point in setting it. */
       Spectrum weight = make_spectrum(mix_weight);
@@ -329,37 +331,55 @@ ccl_device
         const float transmission_weight = saturatef(stack_load(stack, data.transmission_weight));
         if (transmission_weight > CLOSURE_WEIGHT_CUTOFF) {
           if (reflective_caustics || refractive_caustics) {
-            ccl_private MicrofacetBsdf *bsdf = (ccl_private MicrofacetBsdf *)bsdf_alloc(
-                sd, sizeof(MicrofacetBsdf), transmission_weight * weight);
-            ccl_private FresnelGeneralizedSchlick *fresnel =
-                (bsdf != nullptr) ? (ccl_private FresnelGeneralizedSchlick *)closure_alloc_extra(
-                                        sd, sizeof(FresnelGeneralizedSchlick)) :
-                                    nullptr;
+            const bool backfacing = !thin_wall && (sd->flag & SD_BACKFACING);
+            const FresnelThinFilm thinfilm = {thinfilm_thickness,
+                                              backfacing ? thinfilm_ior / ior : thinfilm_ior};
 
-            if (bsdf && fresnel) {
-              const bool backfacing = sd->flag & SD_BACKFACING;
+            if (thin_wall) {
+              Spectrum reflectance, transmittance;
+              bsdf_thin_glass_setup(kg,
+                                    sd,
+                                    reflective_caustics,
+                                    refractive_caustics,
+                                    specular_tint,
+                                    clamped_base_color,
+                                    transmission_weight * weight,
+                                    valid_reflection_N,
+                                    sqr(roughness),
+                                    ior,
+                                    thinfilm,
+                                    &reflectance,
+                                    &transmittance);
+            }
+            else {
+              ccl_private MicrofacetBsdf *bsdf = (ccl_private MicrofacetBsdf *)bsdf_alloc(
+                  sd, sizeof(MicrofacetBsdf), transmission_weight * weight);
+              ccl_private FresnelGeneralizedSchlick *fresnel =
+                  (bsdf != nullptr) ? (ccl_private FresnelGeneralizedSchlick *)closure_alloc_extra(
+                                          sd, sizeof(FresnelGeneralizedSchlick)) :
+                                      nullptr;
 
-              bsdf->N = valid_reflection_N;
-              bsdf->T = zero_float3();
+              if (bsdf && fresnel) {
+                bsdf->N = valid_reflection_N;
+                bsdf->T = zero_float3();
 
-              bsdf->alpha_x = bsdf->alpha_y = sqr(roughness);
-              bsdf->ior = backfacing ? 1.0f / ior : ior;
+                bsdf->alpha_x = bsdf->alpha_y = sqr(roughness);
+                bsdf->ior = backfacing ? 1.0f / ior : ior;
 
-              const FresnelThinFilm thinfilm = {thinfilm_thickness,
-                                                backfacing ? thinfilm_ior / ior : thinfilm_ior};
-              *fresnel = generalized_schlick_setup(ior,
-                                                   reflective_caustics,
-                                                   refractive_caustics,
-                                                   specular_tint,
-                                                   sqrt(clamped_base_color),
-                                                   thinfilm);
+                *fresnel = generalized_schlick_setup(ior,
+                                                     reflective_caustics,
+                                                     refractive_caustics,
+                                                     specular_tint,
+                                                     sqrt(clamped_base_color),
+                                                     thinfilm);
 
-              /* setup bsdf */
-              sd->flag |= bsdf_microfacet_ggx_glass_setup(bsdf);
-              const bool is_multiggx = (distribution ==
-                                        CLOSURE_BSDF_MICROFACET_MULTI_GGX_GLASS_ID);
-              bsdf_microfacet_setup_fresnel_generalized_schlick(
-                  kg, bsdf, sd->wi, fresnel, is_multiggx);
+                /* setup bsdf */
+                sd->flag |= bsdf_microfacet_ggx_glass_setup(bsdf);
+                const bool is_multiggx = (distribution ==
+                                          CLOSURE_BSDF_MICROFACET_MULTI_GGX_GLASS_ID);
+                bsdf_microfacet_setup_fresnel_generalized_schlick(
+                    kg, bsdf, sd->wi, fresnel, is_multiggx);
+              }
             }
           }
           /* Attenuate other components */
@@ -419,28 +439,36 @@ ccl_device
 #ifdef __SUBSURFACE__
         const float subsurface_weight = saturatef(stack_load(stack, data.subsurface_weight));
         if (subsurface_weight > CLOSURE_WEIGHT_CUTOFF) {
+          const float anisotropy = stack_load(stack, data.subsurface_anisotropy);
           const Spectrum closure_weight = clamped_base_color * subsurface_weight * weight;
-          const ClosureType subsurface_method = data.subsurface_method;
-          ccl_private Bssrdf *bssrdf = bssrdf_alloc(sd, closure_weight);
-          if (bssrdf) {
-            const float3 subsurface_radius = stack_load(stack, data.subsurface_radius);
-            const float subsurface_scale = stack_load(stack, data.subsurface_scale);
+          if (thin_wall) {
+            const float diffuse_roughness = saturatef(stack_load(stack, data.diffuse_roughness));
+            bsdf_thin_subsurface_setup(
+                sd, N, closure_weight, anisotropy, diffuse_roughness, clamped_base_color);
+          }
+          else {
+            const ClosureType subsurface_method = data.subsurface_method;
+            ccl_private Bssrdf *bssrdf = bssrdf_alloc(sd, closure_weight);
+            if (bssrdf) {
+              const float3 subsurface_radius = stack_load(stack, data.subsurface_radius);
+              const float subsurface_scale = stack_load(stack, data.subsurface_scale);
 
-            bssrdf->radius = rgb_to_spectrum(
-                max(subsurface_radius * subsurface_scale, zero_float3()));
-            bssrdf->albedo = clamped_base_color;
-            bssrdf->N = maybe_ensure_valid_specular_reflection(sd, N);
-            bssrdf->alpha = sqr(roughness);
-            /* IOR is clamped to [1.01..3.8] inside bssrdf_setup */
-            bssrdf->ior = eta;
-            /* Anisotropy is clamped to a valid range inside bssrdf_setup. */
-            bssrdf->anisotropy = stack_load(stack, data.subsurface_anisotropy);
-            if (subsurface_method == CLOSURE_BSSRDF_RANDOM_WALK_SKIN_ID) {
-              bssrdf->ior = stack_load(stack, data.subsurface_ior);
+              bssrdf->radius = rgb_to_spectrum(
+                  max(subsurface_radius * subsurface_scale, zero_float3()));
+              bssrdf->albedo = clamped_base_color;
+              bssrdf->N = maybe_ensure_valid_specular_reflection(sd, N);
+              bssrdf->alpha = sqr(roughness);
+              /* IOR is clamped to [1.01..3.8] inside bssrdf_setup */
+              bssrdf->ior = eta;
+              /* Anisotropy is clamped to a valid range inside bssrdf_setup. */
+              bssrdf->anisotropy = anisotropy;
+              if (subsurface_method == CLOSURE_BSSRDF_RANDOM_WALK_SKIN_ID) {
+                bssrdf->ior = stack_load(stack, data.subsurface_ior);
+              }
+
+              /* setup bsdf */
+              sd->flag |= bssrdf_setup(sd, bssrdf, path_flag, subsurface_method);
             }
-
-            /* setup bsdf */
-            sd->flag |= bssrdf_setup(sd, bssrdf, path_flag, subsurface_method);
           }
         }
 #else

@@ -29,6 +29,12 @@ float ior_from_F0(float F0)
   return (-f - 1.0f) / (f - 1.0f);
 }
 
+float thin_glass_transmission_roughness(float roughness, float ior)
+{
+  return saturate(roughness *
+                  sqrt(sqrt(3.4f * (ior - 1.0f) * square(ior - 0.5f) / (square(ior) * ior))));
+}
+
 /* Given the transmittance through a slab at normal incidence, compute the transmittance at a
  * certain incident angle, based on Beer-Lambert law. */
 float3 slab_transmittance_at_angle(float3 color, float cos_theta_i, float ior)
@@ -43,6 +49,7 @@ void node_bsdf_principled(float4 base_color,
                           float roughness,
                           float ior,
                           float alpha,
+                          float thin_wall,
                           float3 N,
                           float weight,
                           float diffuse_roughness,
@@ -190,25 +197,46 @@ void node_bsdf_principled(float4 base_color,
     float3 F0 = float3(F0_from_ior(ior)) * reflection_tint;
     float3 F90 = float3(1.0f);
     float3 reflectance, transmittance;
-    bsdf_lut(F0,
-             F90,
-             sqrt(clamped_base_color.rgb),
-             NV,
-             roughness,
-             ior,
-             do_multiscatter != 0.0f,
-             reflectance,
-             transmittance);
+    if (thin_wall != 0.0f) {
+      bsdf_lut(F0, F90, float3(1.0f), NV, roughness, ior, true, reflectance, transmittance);
+
+      /* Adjust transmission tint based on relative path length. */
+      const float3 c = slab_transmittance_at_angle(clamped_base_color.rgb, NV, ior);
+
+      /* Account for internal reflections, t' = ctt + ct(rc)^2t + ct(rc)^4t + ... */
+      transmittance = safe_divide(c * square(transmittance), (1.0f - square(reflectance * c)));
+      /* r' = r + ctrct + ct(rc)^3t + ... */
+      reflectance *= (1.0f + transmittance * c);
+
+      /* Transmission. */
+      ClosureThinRefraction refraction_data;
+      refraction_data.color = transmittance * coat_tint.rgb;
+      refraction_data.weight = weight * transmission_weight;
+      refraction_data.N = N;
+      refraction_data.roughness = thin_glass_transmission_roughness(roughness, ior);
+      closure_eval(refraction_data);
+    }
+    else {
+      bsdf_lut(F0,
+               F90,
+               sqrt(clamped_base_color.rgb),
+               NV,
+               roughness,
+               ior,
+               do_multiscatter != 0.0f,
+               reflectance,
+               transmittance);
+
+      ClosureRefraction refraction_data;
+      refraction_data.N = N;
+      refraction_data.roughness = roughness;
+      refraction_data.ior = ior;
+      refraction_data.weight = weight * transmission_weight;
+      refraction_data.color = transmittance * coat_tint.rgb;
+      closure_eval(refraction_data);
+    }
 
     reflection_color += weight * transmission_weight * reflectance;
-
-    ClosureRefraction refraction_data;
-    refraction_data.N = N;
-    refraction_data.roughness = roughness;
-    refraction_data.ior = ior;
-    refraction_data.weight = weight * transmission_weight;
-    refraction_data.color = transmittance * coat_tint.rgb;
-    closure_eval(refraction_data);
 
     /* Attenuate lower layers */
     weight *= max((1.0f - transmission_weight), 0.0f);
@@ -246,32 +274,49 @@ void node_bsdf_principled(float4 base_color,
     weight *= max((1.0f - math_reduce_max(reflectance)), 0.0f);
   }
 
-#ifdef MAT_SUBSURFACE
+  float diffuse_weight = 0.0f;
+
   /* Subsurface component */
   if (subsurface_weight > 0.0f) {
-    ClosureSubsurface sss_data;
-    sss_data.N = N;
-    sss_data.sss_radius = max(subsurface_radius * subsurface_scale, float3(0.0f));
-    /* Subsurface Scattering materials behave unpredictably with values greater than 1.0 in
-     * Cycles. So it's clamped there and we clamp here for consistency with Cycles. */
-    sss_data.color = (subsurface_weight * weight) * clamped_base_color.rgb * coat_tint.rgb;
-    /* Add energy of the sheen layer until we have proper sheen BSDF. */
-    sss_data.color += sheen_data_color;
-    /* `weight` is already applied in `color`. */
-    sss_data.weight = 1.0f;
-    closure_eval(sss_data);
+    if (thin_wall != 0.0f) {
+      /* Backward scattering is approximated by diffuse. */
+      diffuse_weight = subsurface_weight * weight *
+                       saturate(0.5f * (1.0f - subsurface_anisotropy));
+
+      /* Forward scattering is approximated by translucent. */
+      ClosureTranslucent translucent_data;
+      translucent_data.weight = subsurface_weight * weight *
+                                saturate(0.5f * (1.0f + subsurface_anisotropy));
+      translucent_data.color = base_color.rgb * coat_tint.rgb;
+      translucent_data.N = N;
+      closure_eval(translucent_data);
+    }
+#ifdef MAT_SUBSURFACE
+    else {
+      ClosureSubsurface sss_data;
+      sss_data.N = N;
+      sss_data.sss_radius = max(subsurface_radius * subsurface_scale, float3(0.0f));
+      /* Subsurface Scattering materials behave unpredictably with values greater than 1.0 in
+       * Cycles. So it's clamped there and we clamp here for consistency with Cycles. */
+      sss_data.color = (subsurface_weight * weight) * clamped_base_color.rgb * coat_tint.rgb;
+      /* Add energy of the sheen layer until we have proper sheen BSDF. */
+      sss_data.color += sheen_data_color;
+      /* `weight` is already applied in `color`. */
+      sss_data.weight = 1.0f;
+      closure_eval(sss_data);
+    }
+#endif
 
     /* Attenuate lower layers */
     weight *= max((1.0f - subsurface_weight), 0.0f);
   }
-#endif
 
 #ifdef MAT_DIFFUSE
   /* Diffuse component */
   if (true) {
     ClosureDiffuse diffuse_data;
     diffuse_data.N = N;
-    diffuse_data.color = weight * base_color.rgb * coat_tint.rgb;
+    diffuse_data.color = (diffuse_weight + weight) * base_color.rgb * coat_tint.rgb;
     /* Add energy of the sheen layer until we have proper sheen BSDF. */
     diffuse_data.color += sheen_data_color;
     /* `weight` is already applied in `color`. */

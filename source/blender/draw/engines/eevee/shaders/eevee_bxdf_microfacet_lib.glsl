@@ -383,6 +383,15 @@ LightProbeRay bxdf_ggx_lightprobe_transmission(ClosureRefraction cl, float3 V, T
   return probe;
 }
 
+LightProbeRay bxdf_ggx_lightprobe_thin_glass_transmission(ClosureThinRefraction cl, float3 V)
+{
+  LightProbeRay probe;
+  probe.perceptual_roughness = cl.roughness;
+  probe.dominant_direction = bxdf_ggx_dominant_direction_reflection(
+      -cl.N, reflect(V, cl.N), probe.perceptual_roughness);
+  return probe;
+}
+
 void bxdf_ggx_context_amend_transmission(ClosureUndetermined &cl, float3 &V, Thickness thickness)
 {
   if (thickness.value() != 0.0f) {
@@ -438,6 +447,17 @@ ClosureLight bxdf_ggx_light_transmission(ClosureRefraction cl, float3 V, Thickne
 
   ClosureLight light;
   light.ltc_mat = eevee::lut::ltc::sample_utility_tx(util_tx, cos_theta, perceptual_roughness);
+  light.N = -cl.N;
+  light.type = LIGHT_TRANSMISSION;
+  return light;
+}
+
+ClosureLight bxdf_ggx_light_thin_glass_transmission(ClosureThinRefraction cl, float3 V)
+{
+  float cos_theta = dot(cl.N, V);
+  ClosureLight light;
+  auto &util_tx = sampler_get(eevee_utility_texture, utility_tx);
+  light.ltc_mat = eevee::lut::ltc::sample_utility_tx(util_tx, cos_theta, cl.roughness);
   light.N = -cl.N;
   light.type = LIGHT_TRANSMISSION;
   return light;

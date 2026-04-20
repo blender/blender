@@ -125,6 +125,7 @@ void transmission_thickness_amend_closure(ClosureUndetermined &cl, float3 &V, Th
     case CLOSURE_BSDF_TRANSLUCENT_ID:
     case CLOSURE_BSDF_MICROFACET_GGX_REFLECTION_ID:
     case CLOSURE_BSSRDF_BURLEY_ID:
+    case CLOSURE_BSDF_THIN_GLASS_TRANSMISSION_ID:
       break;
   }
 }
