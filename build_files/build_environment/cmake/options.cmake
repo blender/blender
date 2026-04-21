@@ -252,6 +252,16 @@ else()
       set(PLATFORM_CFLAGS "${PLATFORM_CFLAGS} -march=armv8.2-a+dotprod+fp16+lse")
       set(PLATFORM_CXXFLAGS "${PLATFORM_CXXFLAGS} -fPIC -march=armv8.2-a+dotprod+fp16+lse")
     endif()
+
+    if(ANDROID)
+      # Forward Android toolchain file and settings.
+      set(PLATFORM_CMAKE_FLAGS
+        -DCMAKE_TOOLCHAIN_FILE=${CMAKE_TOOLCHAIN_FILE}
+        -DANDROID_ABI=${ANDROID_ABI}
+        -DANDROID_PLATFORM=${ANDROID_PLATFORM}
+        -DANDROID_STL=${ANDROID_STL}
+      )
+    endif()
   endif()
 
   if(WITH_OPTIMIZED_DEBUG)
@@ -298,6 +308,12 @@ set(DEFAULT_CMAKE_FLAGS
   -DCMAKE_CXX_STANDARD=20
   ${PLATFORM_CMAKE_FLAGS}
 )
+
+if(CMAKE_CROSSCOMPILING)
+  message(STATUS "Cross compiling for: `${CMAKE_SYSTEM_NAME}` on host: `${CMAKE_HOST_SYSTEM_NAME}`")
+  message(STATUS "Default CMake flags: ${DEFAULT_CMAKE_FLAGS}")
+  message(STATUS "Compilers: ${CMAKE_C_COMPILER}, ${CMAKE_CXX_COMPILER}")
+endif()
 
 if(WIN32)
   if(BUILD_MODE STREQUAL Debug)
