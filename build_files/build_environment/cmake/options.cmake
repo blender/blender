@@ -254,7 +254,7 @@ else()
     endif()
 
     if(ANDROID)
-      # Forward Android toolchain file and settings.
+      # Forward Android CMake toolchain file and settings.
       set(PLATFORM_CMAKE_FLAGS
         -DCMAKE_TOOLCHAIN_FILE=${CMAKE_TOOLCHAIN_FILE}
         -DANDROID_ABI=${ANDROID_ABI}
