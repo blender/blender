@@ -1630,7 +1630,7 @@ SoundInfo bke::sound_info_get(AUD_Sound sound)
 
   try {
     std::shared_ptr<aud::IReader> reader = sound->createReader();
-    if (reader.get()) {
+    if (reader) {
       aud::Specs specs = reader->getSpecs();
       res.specs.channels = eSoundChannels(specs.channels);
       res.specs.samplerate = specs.rate;
@@ -1788,7 +1788,7 @@ float *bke::sound_read_file_buffer(const char *filename,
 
     reader = sound->createReader();
 
-    if (!reader.get()) {
+    if (!reader) {
       return nullptr;
     }
 

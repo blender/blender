@@ -96,13 +96,13 @@ void TreeViewItemContainer::sort_alpha()
   std::ranges::sort(children_,
                     [](const std::unique_ptr<AbstractTreeViewItem> &a,
                        const std::unique_ptr<AbstractTreeViewItem> &b) {
-                      StringRefNull a_name = a.get()->label();
-                      StringRefNull b_name = b.get()->label();
+                      StringRefNull a_name = a->label();
+                      StringRefNull b_name = b->label();
                       return BLI_strcasecmp_natural(a_name.c_str(), b_name.c_str()) < 0;
                     });
 
   for (std::unique_ptr<AbstractTreeViewItem> &item : children_) {
-    item.get()->sort_alpha();
+    item->sort_alpha();
   }
 }
 
