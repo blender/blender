@@ -21,7 +21,12 @@ if(BUILD_MODE STREQUAL Release)
     )
   endif()
 
-  if(UNIX AND NOT APPLE)
+  if(ANDROID)
+    set(OPENAL_EXTRA_ARGS
+      ${OPENAL_EXTRA_ARGS}
+      -DALSOFT_REQUIRE_OPENSL=ON
+    )
+  elseif(UNIX AND NOT APPLE)
     # Ensure we have backends for playback.
     set(OPENAL_EXTRA_ARGS
       ${OPENAL_EXTRA_ARGS}
