@@ -198,8 +198,10 @@ ifneq "$(findstring android, $(MAKECMDGOALS))" ""
  	endif
 
  	ifndef ANDROID_MINSDKVERSION
- 		# Currently set to 23, equivalent to Android 6.0 Marshmallow. See https://apilevels.com.
- 		ANDROID_MINSDKVERSION = 23
+ 		# Set to API level 28, minimum set to Android 9.0 Pie. See https://apilevels.com.
+ 		# Used to be 23 (min Android 6.0), bumped to 28 to support C11 aligned_alloc required by OpenJPH.
+ 		# It might be possible to lower it back down by patching OpenJPH.
+ 		ANDROID_MINSDKVERSION = 28
  	endif
 
 	TARGET_OS:=Android
