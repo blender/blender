@@ -248,7 +248,7 @@ else()
     set(PLATFORM_CMAKE_FLAGS -DCMAKE_INSTALL_LIBDIR=lib)
 
     # Target ARMv8.2-A with dot product and half float.
-    if(BLENDER_PLATFORM_ARM)
+    if(BLENDER_PLATFORM_ARM AND NOT ANDROID)  # NOTE: Could enable on Android, needs support investigation.
       set(PLATFORM_CFLAGS "${PLATFORM_CFLAGS} -march=armv8.2-a+dotprod+fp16+lse")
       set(PLATFORM_CXXFLAGS "${PLATFORM_CXXFLAGS} -fPIC -march=armv8.2-a+dotprod+fp16+lse")
     endif()
