@@ -4,6 +4,19 @@
 
 set(SSL_CONFIGURE_COMMAND ./Configure)
 
+set(SSL_CONFIGURE_ENV ${CONFIGURE_ENV})
+if(ANDROID)
+  if (CMAKE_HOST_SYSTEM_NAME STREQUAL "Darwin")
+    set(SSL_TOOLCHAIN_HOST "darwin-x86_64")
+  else()
+    set(SSL_TOOLCHAIN_HOST "linux-x86_x64")
+  endif()
+  set(SSL_CONFIGURE_ENV ${SSL_CONFIGURE_ENV} &&
+    export ANDROID_NDK_ROOT=${CMAKE_ANDROID_NDK} &&
+    export PATH=${CMAKE_ANDROID_NDK}/toolchains/llvm/prebuilt/${SSL_TOOLCHAIN_HOST}/bin:$ENV{PATH}
+  )
+endif()
+
 if(WIN32)
   # Python will build this with its preferred build options and patches.
   # We only need to unpack openssl.
@@ -20,6 +33,8 @@ if(WIN32)
 else()
   if(APPLE)
     set(SSL_OS_COMPILER "blender-darwin-${CMAKE_OSX_ARCHITECTURES}")
+  elseif (ANDROID)
+    set(SSL_OS_COMPILER "blender-android-arm64")
   else()
     if(BLENDER_PLATFORM_ARM)
       set(SSL_OS_COMPILER "blender-linux-aarch64")
@@ -37,7 +52,7 @@ else()
     URL_HASH ${SSL_HASH_TYPE}=${SSL_HASH}
     PREFIX ${BUILD_DIR}/ssl
 
-    CONFIGURE_COMMAND ${CONFIGURE_ENV} &&
+    CONFIGURE_COMMAND ${SSL_CONFIGURE_ENV} &&
       cd ${BUILD_DIR}/ssl/src/external_ssl/ &&
       ${SSL_CONFIGURE_COMMAND}
         --prefix=${LIBDIR}/ssl
@@ -53,13 +68,14 @@ else()
         no-shared
         no-idea no-mdc2 no-rc5 no-zlib no-ssl3 enable-unit-test no-ssl3-method enable-rfc3779 enable-cms
         --config=${CMAKE_CURRENT_SOURCE_DIR}/cmake/ssl.conf
+        -D__ANDROID_API__=${ANDROID_PLATFORM_LEVEL}
         ${SSL_OS_COMPILER}
 
-    BUILD_COMMAND ${CONFIGURE_ENV} &&
+    BUILD_COMMAND ${SSL_CONFIGURE_ENV} &&
       cd ${BUILD_DIR}/ssl/src/external_ssl/ &&
       make -j${MAKE_THREADS}
 
-    INSTALL_COMMAND ${CONFIGURE_ENV} &&
+    INSTALL_COMMAND ${SSL_CONFIGURE_ENV} &&
       cd ${BUILD_DIR}/ssl/src/external_ssl/ &&
       make install
 
