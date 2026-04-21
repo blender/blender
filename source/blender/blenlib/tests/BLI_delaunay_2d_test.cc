@@ -80,7 +80,7 @@ template<typename T> CDT_input<T> fill_input_from_string(const char *spec)
   ans.edge = edges;
   ans.face = faces;
 #ifdef WITH_GMP
-  if (std::is_same<mpq_class, T>::value) {
+  if (std::is_same_v<mpq_class, T>) {
     ans.epsilon = T(0);
   }
   else {
