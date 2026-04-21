@@ -177,21 +177,52 @@ $(error On Windows, use "cmd //c make.bat" instead of "make")
 endif
 
 # System Vars
-OS:=$(shell uname -s)
-OS_NCASE:=$(shell uname -s | tr '[A-Z]' '[a-z]')
-CPU:=$(shell uname -m)
+HOST_OS:=$(shell uname -s)
+HOST_OS_NCASE:=$(shell uname -s | tr '[A-Z]' '[a-z]')
+HOST_CPU:=$(shell uname -m)
+
+TARGET_OS:=$(HOST_OS)
+TARGET_OS_NCASE:=$(HOST_OS_NCASE)
+TARGET_CPU:=$(HOST_CPU)
+
+# Android cross-compilation
+ifneq "$(findstring android, $(MAKECMDGOALS))" ""
+	ifndef ANDROID_NDK_ROOT
+#$(error The ANDROID_NDK_ROOT environment variable is required for Android builds)
+		ANDROID_NDK_ROOT:=$(lastword $(sort $(wildcard $(HOME)/Library/Android/sdk/ndk/*)))
+	endif
+
+ 	ifndef ANDROID_ABI
+ 		# The only ABI we directly support (64-bit ARM CPUs).
+ 		ANDROID_ABI:=arm64-v8a
+ 	endif
+
+ 	ifndef ANDROID_MINSDKVERSION
+ 		# Currently set to 23, equivalent to Android 6.0 Marshmallow. See https://apilevels.com.
+ 		ANDROID_MINSDKVERSION = 23
+ 	endif
+
+	TARGET_OS:=Android
+	TARGET_OS_NCASE:=android
+	TARGET_CPU:=arm64
+
+	CMAKE_CROSSCOMPILE_CONFIG_ARGS:=-DCMAKE_TOOLCHAIN_FILE=$(ANDROID_NDK_ROOT)/build/cmake/android.toolchain.cmake \
+									-DANDROID_ABI=$(ANDROID_ABI) \
+									-DANDROID_PLATFORM=android-${ANDROID_MINSDKVERSION} \
+									-DANDROID_STL=c++_shared
+endif
 
 # Use our OS and CPU architecture naming conventions.
-ifeq ($(CPU),x86_64)
-	CPU:=x64
+ifeq ($(TARGET_CPU),x86_64)
+	TARGET_CPU:=x64
 endif
-ifeq ($(CPU),aarch64)
-	CPU:=arm64
+ifeq ($(TARGET_CPU),aarch64)
+	TARGET_CPU:=arm64
 endif
-ifeq ($(OS_NCASE),darwin)
+ifeq ($(TARGET_OS_NCASE),darwin)
 	OS_LIBDIR:=macos
 else
-	OS_LIBDIR:=$(OS_NCASE)
+	OS_LIBDIR:=$(TARGET_OS_NCASE)
 endif
 
 
@@ -204,22 +235,22 @@ BLENDER_IS_PYTHON_MODULE:=
 CMAKE_CONFIG_ARGS := $(BUILD_CMAKE_ARGS)
 
 ifndef BUILD_DIR
-	BUILD_DIR:=$(shell dirname "$(BLENDER_DIR)")/build_$(OS_NCASE)
+	BUILD_DIR:=$(shell dirname "$(BLENDER_DIR)")/build_$(TARGET_OS_NCASE)
 endif
 
 # Dependencies DIR's
 DEPS_SOURCE_DIR:=$(BLENDER_DIR)/build_files/build_environment
 
 ifndef DEPS_BUILD_DIR
-	DEPS_BUILD_DIR:=$(BUILD_DIR)/deps_$(CPU)
+	DEPS_BUILD_DIR:=$(BUILD_DIR)/deps_$(TARGET_CPU)
 endif
 
 ifndef DEPS_INSTALL_DIR
-	DEPS_INSTALL_DIR:=$(BLENDER_DIR)/lib/$(OS_LIBDIR)_$(CPU)
+	DEPS_INSTALL_DIR:=$(BLENDER_DIR)/lib/$(OS_LIBDIR)_$(TARGET_CPU)
 endif
 
 # Set the LIBDIR, an empty string when not found.
-LIBDIR:=$(wildcard $(BLENDER_DIR)/lib/${OS_LIBDIR}_${CPU})
+LIBDIR:=$(wildcard $(BLENDER_DIR)/lib/${OS_LIBDIR}_${TARGET_CPU})
 ifeq (, $(LIBDIR))
 	LIBDIR:=$(wildcard $(BLENDER_DIR)/lib/${OS_LIBDIR})
 endif
@@ -343,7 +374,7 @@ endif
 
 # Allow passing in own BLENDER_BIN so developers who don't
 # use the default build path can still use utility helpers.
-ifeq ($(OS), Darwin)
+ifeq ($(TARGET_OS), Darwin)
 	BLENDER_BIN?="$(BUILD_DIR)/bin/Blender.app/Contents/MacOS/Blender"
 	BLENDER_BIN_DIR?="$(BUILD_DIR)/bin/Blender.app/Contents/MacOS/Blender"
 else
@@ -356,13 +387,13 @@ endif
 # Get the number of cores for threaded build
 ifndef NPROCS
 	NPROCS:=1
-	ifeq ($(OS), Linux)
+	ifeq ($(HOST_OS), Linux)
 		NPROCS:=$(shell nproc)
 	endif
-	ifeq ($(OS), NetBSD)
+	ifeq ($(HOST_OS), NetBSD)
 		NPROCS:=$(shell getconf NPROCESSORS_ONLN)
 	endif
-	ifneq (,$(filter $(OS),Darwin FreeBSD))
+	ifneq (,$(filter $(HOST_OS),Darwin FreeBSD))
 		NPROCS:=$(shell sysctl -n hw.ncpu)
 	endif
 endif
@@ -372,6 +403,7 @@ endif
 # Macro for configuring cmake
 
 CMAKE_CONFIG = cmake $(CMAKE_CONFIG_ARGS) \
+					 $(CMAKE_CROSSCOMPILE_CONFIG_ARGS) \
                      -H"$(BLENDER_DIR)" \
                      -B"$(BUILD_DIR)" \
                      -DCMAKE_BUILD_TYPE_INIT:STRING=$(BUILD_TYPE)
@@ -413,6 +445,9 @@ all: .FORCE
 	fi
 	@echo
 
+android: .FORCE
+	@echo "Cross-compiling for Android"
+
 debug: all
 full: all
 lite: all
@@ -437,7 +472,8 @@ deps: .FORCE
 	@echo
 	@echo Configuring dependencies in \"$(DEPS_BUILD_DIR)\", install to \"$(DEPS_INSTALL_DIR)\"
 
-	@cmake -H"$(DEPS_SOURCE_DIR)" \
+	@cmake $(CMAKE_CROSSCOMPILE_CONFIG_ARGS) \
+	       -H"$(DEPS_SOURCE_DIR)" \
 	       -B"$(DEPS_BUILD_DIR)" \
 	       -DHARVEST_TARGET=$(DEPS_INSTALL_DIR)
 
