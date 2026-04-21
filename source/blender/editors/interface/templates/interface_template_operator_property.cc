@@ -338,7 +338,10 @@ static wmOperator *minimal_operator_create(wmOperatorType *ot, PointerRNA *prope
   return op;
 }
 
-static void draw_import_controls(bContext *, Layout &layout, const std::string &label, bool valid)
+static void draw_import_controls(bContext * /*C*/,
+                                 Layout &layout,
+                                 const std::string &label,
+                                 bool valid)
 {
   layout.label(label, ICON_NONE);
   if (valid) {

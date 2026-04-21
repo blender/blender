@@ -2323,7 +2323,7 @@ static void apply_to_active_object(
   WM_event_add_notifier(C, NC_GEOM | ND_DATA, ob->data);
 }
 
-static void handle_curves_cyclic(bContext *C, void *, void *)
+static void handle_curves_cyclic(bContext *C, void * /*arg1*/, void * /*arg2*/)
 {
   apply_to_active_object(C,
                          [](const CurvesDataPanelState &modified_state,
@@ -2371,7 +2371,7 @@ static void update_custom_knots(const OffsetIndices<int> &src_custom_knots_by_cu
   }
 }
 
-static void handle_curves_knot_mode(bContext *C, void *, void *)
+static void handle_curves_knot_mode(bContext *C, void * /*arg1*/, void * /*arg2*/)
 {
   apply_to_active_object(
       C,
@@ -2412,7 +2412,7 @@ static void handle_curves_knot_mode(bContext *C, void *, void *)
       });
 }
 
-static void handle_curves_order(bContext *C, void *, void *)
+static void handle_curves_order(bContext *C, void * /*arg1*/, void * /*arg2*/)
 {
   apply_to_active_object(
       C,
@@ -2459,7 +2459,7 @@ static void handle_curves_order(bContext *C, void *, void *)
       });
 }
 
-static void handle_curves_resolution(bContext *C, void *, void *)
+static void handle_curves_resolution(bContext *C, void * /*arg1*/, void * /*arg2*/)
 {
   apply_to_active_object(C,
                          [](const CurvesDataPanelState &modified_state,
@@ -2471,7 +2471,7 @@ static void handle_curves_resolution(bContext *C, void *, void *)
                          });
 }
 
-static void handle_curves_aspect_ratio(bContext *C, void *, void *)
+static void handle_curves_aspect_ratio(bContext *C, void * /*arg1*/, void * /*arg2*/)
 {
   using namespace blender;
 
@@ -2491,7 +2491,7 @@ static void handle_curves_aspect_ratio(bContext *C, void *, void *)
       });
 }
 
-static void handle_curves_softness(bContext *C, void *, void *)
+static void handle_curves_softness(bContext *C, void * /*arg1*/, void * /*arg2*/)
 {
   using namespace blender;
 
@@ -2508,7 +2508,7 @@ static void handle_curves_softness(bContext *C, void *, void *)
       });
 }
 
-static void handle_curves_u_scale(bContext *C, void *, void *)
+static void handle_curves_u_scale(bContext *C, void * /*arg1*/, void * /*arg2*/)
 {
   using namespace blender;
 
@@ -2527,7 +2527,7 @@ static void handle_curves_u_scale(bContext *C, void *, void *)
       });
 }
 
-static void handle_curves_fill_opacity(bContext *C, void *, void *)
+static void handle_curves_fill_opacity(bContext *C, void * /*arg1*/, void * /*arg2*/)
 {
   using namespace blender;
 
@@ -2547,7 +2547,7 @@ static void handle_curves_fill_opacity(bContext *C, void *, void *)
       });
 }
 
-static void handle_curves_end_cap(bContext *C, void *, void *)
+static void handle_curves_end_cap(bContext *C, void * /*arg1*/, void * /*arg2*/)
 {
   using namespace blender;
 
@@ -2569,7 +2569,7 @@ static void handle_curves_end_cap(bContext *C, void *, void *)
       });
 }
 
-static void handle_curves_start_cap(bContext *C, void *, void *)
+static void handle_curves_start_cap(bContext *C, void * /*arg1*/, void * /*arg2*/)
 {
   using namespace blender;
 
