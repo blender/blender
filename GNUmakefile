@@ -185,6 +185,11 @@ TARGET_OS:=$(HOST_OS)
 TARGET_OS_NCASE:=$(HOST_OS_NCASE)
 TARGET_CPU:=$(HOST_CPU)
 
+# Source and Build DIR's
+BLENDER_DIR:=$(shell pwd -P)
+BUILD_TYPE:=Release
+BLENDER_IS_PYTHON_MODULE:=
+
 # Android cross-compilation
 ifneq "$(findstring android, $(MAKECMDGOALS))" ""
 	ifndef ANDROID_NDK_ROOT
@@ -204,6 +209,9 @@ ifneq "$(findstring android, $(MAKECMDGOALS))" ""
  		ANDROID_MINSDKVERSION = 28
  	endif
 
+ 	# Path to host deps build directory, needed to execute native tools during cross-compilation.
+	HOST_DEPS_BUILD_DIR:=$(shell dirname "$(BLENDER_DIR)")/build_$(HOST_OS_NCASE)/deps_$(HOST_CPU)
+
 	TARGET_OS:=Android
 	TARGET_OS_NCASE:=android
 	TARGET_CPU:=arm64
@@ -211,7 +219,8 @@ ifneq "$(findstring android, $(MAKECMDGOALS))" ""
 	CMAKE_CROSSCOMPILE_CONFIG_ARGS:=-DCMAKE_TOOLCHAIN_FILE=$(ANDROID_NDK_ROOT)/build/cmake/android.toolchain.cmake \
 									-DANDROID_ABI=$(ANDROID_ABI) \
 									-DANDROID_PLATFORM=android-${ANDROID_MINSDKVERSION} \
-									-DANDROID_STL=c++_shared
+									-DANDROID_STL=c++_shared \
+									-DHOST_DEPS_BUILD_DIR=$(HOST_DEPS_BUILD_DIR)
 endif
 
 # Use our OS and CPU architecture naming conventions.
@@ -227,11 +236,6 @@ else
 	OS_LIBDIR:=$(TARGET_OS_NCASE)
 endif
 
-
-# Source and Build DIR's
-BLENDER_DIR:=$(shell pwd -P)
-BUILD_TYPE:=Release
-BLENDER_IS_PYTHON_MODULE:=
 
 # CMake arguments, assigned to local variable to make it mutable.
 CMAKE_CONFIG_ARGS := $(BUILD_CMAKE_ARGS)

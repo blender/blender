@@ -26,11 +26,20 @@ if(NOT BUILD_MODE)
 endif()
 message(STATUS "BuildMode = ${BUILD_MODE}")
 
+# HOST_LIBDIR is used to execute host tools while cross-compiling. Equivalent to LIBDIR for normal builds.
+set(HOST_LIBDIR ${LIBDIR})
 if(BUILD_MODE STREQUAL "Debug")
   set(LIBDIR ${CMAKE_CURRENT_BINARY_DIR}/Debug)
+  if (CMAKE_CROSSCOMPILING)
+    set(HOST_LIBDIR ${HOST_DEPS_BUILD_DIR}/Debug)
+  else()
+  endif()
   set(MESON_BUILD_TYPE -Dbuildtype=debug)
 else()
   set(LIBDIR ${CMAKE_CURRENT_BINARY_DIR}/Release)
+  if (CMAKE_CROSSCOMPILING)
+    set(HOST_LIBDIR ${HOST_DEPS_BUILD_DIR}/Release)
+  endif()
   set(MESON_BUILD_TYPE -Dbuildtype=release)
 endif()
 
@@ -45,6 +54,7 @@ set(PATCH_DIR ${CMAKE_CURRENT_SOURCE_DIR}/patches)
 set(BUILD_DIR ${CMAKE_CURRENT_BINARY_DIR}/build)
 
 message(STATUS "LIBDIR = ${LIBDIR}")
+message(STATUS "HOST_LIBDIR = ${HOST_LIBDIR}")
 message(STATUS "DOWNLOAD_DIR = ${DOWNLOAD_DIR}")
 message(STATUS "PACKAGE_DIR = ${PACKAGE_DIR}")
 message(STATUS "PATCH_DIR = ${PATCH_DIR}")
@@ -59,7 +69,7 @@ if(WIN32)
   set(LIBEXT ".lib")
   set(SHAREDLIBEXT ".lib")
   set(LIBPREFIX "")
-  set(MESON ${LIBDIR}/python/Scripts/meson)
+  set(MESON ${HOST_LIBDIR}/python/Scripts/meson)
   # For OIIO and OSL
   set(COMMON_DEFINES /DPSAPI_VERSION=2 /DTINYFORMAT_ALLOW_WCHAR_STRINGS)
 
@@ -210,7 +220,7 @@ else()
   set(PATCH_CMD patch)
   set(LIBEXT ".a")
   set(LIBPREFIX "lib")
-  set(MESON ${LIBDIR}/python/bin/meson)
+  set(MESON ${HOST_LIBDIR}/python/bin/meson)
   if(APPLE)
     set(SHAREDLIBEXT ".dylib")
 
@@ -338,12 +348,6 @@ set(DEFAULT_CMAKE_FLAGS
   -DCMAKE_CXX_STANDARD=20
   ${PLATFORM_CMAKE_FLAGS}
 )
-
-if(CMAKE_CROSSCOMPILING)
-  message(STATUS "Cross compiling for: `${CMAKE_SYSTEM_NAME}` on host: `${CMAKE_HOST_SYSTEM_NAME}`")
-  message(STATUS "Default CMake flags: ${DEFAULT_CMAKE_FLAGS}")
-  message(STATUS "Compilers: ${CMAKE_C_COMPILER}, ${CMAKE_CXX_COMPILER}")
-endif()
 
 if(WIN32)
   if(BUILD_MODE STREQUAL Debug)
