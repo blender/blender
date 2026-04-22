@@ -3,6 +3,16 @@
 # SPDX-License-Identifier: GPL-2.0-or-later
 
 set(LZMA_PATCH_CMD echo .)
+set(LZMA_CONFIGURATION_ARGS
+  --disable-shared
+)
+
+if(ANDROID)
+  set(LZMA_CONFIGURATION_ARGS
+    ${LZMA_CONFIGURATION_ARGS}
+    --host=arm
+  )
+endif()
 
 ExternalProject_Add(external_lzma
   URL file://${PACKAGE_DIR}/${LZMA_FILE}
@@ -13,7 +23,7 @@ ExternalProject_Add(external_lzma
 
   CONFIGURE_COMMAND ${CONFIGURE_ENV} &&
     cd ${BUILD_DIR}/lzma/src/external_lzma/ &&
-    ${CONFIGURE_COMMAND} --prefix=${LIBDIR}/lzma --disable-shared
+    ${CONFIGURE_COMMAND} --prefix=${LIBDIR}/lzma ${LZMA_CONFIGURATION_ARGS}
 
   BUILD_COMMAND ${CONFIGURE_ENV} &&
     cd ${BUILD_DIR}/lzma/src/external_lzma/ &&
