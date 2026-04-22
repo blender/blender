@@ -256,11 +256,13 @@ else()
     if(ANDROID)
       # Forward Android CMake toolchain file and settings.
       set(PLATFORM_CMAKE_FLAGS
+        ${PLATFORM_CMAKE_FLAGS}
         -DCMAKE_TOOLCHAIN_FILE=${CMAKE_TOOLCHAIN_FILE}
         -DANDROID_ABI=${ANDROID_ABI}
         -DANDROID_PLATFORM=${ANDROID_PLATFORM}
         -DANDROID_STL=${ANDROID_STL}
       )
+      set(PLATFORM_BUILD_TARGET --build=${ANDROID_LLVM_TRIPLE})
     endif()
   endif()
 
@@ -284,12 +286,39 @@ else()
   set(BLENDER_CMAKE_CXX_FLAGS_RELWITHDEBINFO "-O2 -g -DNDEBUG ${PLATFORM_CXXFLAGS}")
 
   set(CONFIGURE_ENV
-    export MACOSX_DEPLOYMENT_TARGET=${CMAKE_OSX_DEPLOYMENT_TARGET} &&
-    export MACOSX_SDK_VERSION=${CMAKE_OSX_DEPLOYMENT_TARGET} &&
     export CFLAGS=${PLATFORM_CFLAGS} &&
     export CXXFLAGS=${PLATFORM_CXXFLAGS} &&
     export LDFLAGS=${PLATFORM_LDFLAGS}
   )
+
+  if(APPLE)
+    set(CONFIGURE_ENV
+      ${CONFIGURE_ENV}
+      export MACOSX_DEPLOYMENT_TARGET=${CMAKE_OSX_DEPLOYMENT_TARGET} &&
+      export MACOSX_SDK_VERSION=${CMAKE_OSX_DEPLOYMENT_TARGET}
+    )
+  endif()
+
+  if(ANDROID)
+    # Certain autoconf projects ./configure don't support passing a compiler + a `--target` argument as CC/CXX, work
+    # around this by using the clang target-prefixed entry-point scripts shipped with the Android NDK.
+    string(REPLACE "-none-" "-" _android_triple ${ANDROID_LLVM_TRIPLE})
+    set(ANDROID_CC ${ANDROID_TOOLCHAIN_ROOT}/bin/${_android_triple}-clang)
+    set(ANDROID_CXX ${ANDROID_TOOLCHAIN_ROOT}/bin/${_android_triple}-clang++)
+
+    # Override toolchain env from CMake variables set by the Android CMake toolchain file.
+    set(CONFIGURE_ENV
+      ${CONFIGURE_ENV}
+      export CC=${ANDROID_CC} &&
+      export CXX=${ANDROID_CXX} &&
+      export AS=${CMAKE_ASM_COMPILER} &&
+      export AR=${CMAKE_AR} &&
+      export LD=${CMAKE_C_COMPILER_LINKER} &&
+      export RANLIB=${CMAKE_RANLIB} &&
+      export STRIP=${CMAKE_STRIP}
+    )
+  endif()
+
   set(CONFIGURE_ENV_NO_PERL ${CONFIGURE_ENV})
   set(CONFIGURE_COMMAND ./configure ${PLATFORM_BUILD_TARGET})
   set(CONFIGURE_COMMAND_NO_TARGET ./configure)
