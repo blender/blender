@@ -10,7 +10,7 @@ set(LZMA_CONFIGURATION_ARGS
 if(ANDROID)
   set(LZMA_CONFIGURATION_ARGS
     ${LZMA_CONFIGURATION_ARGS}
-    --host=arm
+    --host=aarch64
   )
 endif()
 
