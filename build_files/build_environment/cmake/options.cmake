@@ -265,12 +265,15 @@ else()
 
     if(ANDROID)
       # Forward Android CMake toolchain file and settings.
+      # Set CMAKE_FIND_ROOT_PATH to the LIBDIR as the Android CMake toolchain file sets it to the NDK root and
+      # the ROOT_PATH_MODE_PACKAGE to ONLY. This then re-allows dependencies that use find_package() to find each others.
       set(PLATFORM_CMAKE_FLAGS
         ${PLATFORM_CMAKE_FLAGS}
         -DCMAKE_TOOLCHAIN_FILE=${CMAKE_TOOLCHAIN_FILE}
         -DANDROID_ABI=${ANDROID_ABI}
         -DANDROID_PLATFORM=${ANDROID_PLATFORM}
         -DANDROID_STL=${ANDROID_STL}
+        -DCMAKE_FIND_ROOT_PATH=${LIBDIR}
       )
       # Ideally, --host=${ANDROID_LLVM_TRIPLE} could also be defined here, but some project require a generic --host=arm/aarch64 instead.
       set(PLATFORM_BUILD_TARGET --build=${ANDROID_LLVM_TRIPLE})
