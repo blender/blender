@@ -262,6 +262,7 @@ else()
         -DANDROID_PLATFORM=${ANDROID_PLATFORM}
         -DANDROID_STL=${ANDROID_STL}
       )
+      # Ideally, --host=${ANDROID_LLVM_TRIPLE} could also be defined here, but some project require a generic --host=arm/aarch64 instead.
       set(PLATFORM_BUILD_TARGET --build=${ANDROID_LLVM_TRIPLE})
     endif()
   endif()
