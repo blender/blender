@@ -59,13 +59,6 @@ if(UNIX)
     --disable-shared
   )
 
-  if(ANDROID)
-    set(SQLITE_CONFIGURATION_ARGS
-      ${SQLITE_CONFIGURATION_ARGS}
-      --host=${ANDROID_LLVM_TRIPLE}
-    )
-  endif()
-
   ExternalProject_Add(external_sqlite
     URL file://${PACKAGE_DIR}/${SQLITE_FILE}
     DOWNLOAD_DIR ${DOWNLOAD_DIR}
