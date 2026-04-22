@@ -26,10 +26,10 @@ list(APPEND CMAKE_MODULE_PATH "${CMAKE_SOURCE_DIR}/../cmake/Modules")
 if(CMAKE_CROSSCOMPILING)
   message(STATUS "Cross compiling for target: `${CMAKE_SYSTEM_NAME}` on host: `${CMAKE_HOST_SYSTEM_NAME}`")
 
-  if (NOT DEFINED HOST_DEPS_BUILD_DIR)
+  if(NOT DEFINED HOST_DEPS_BUILD_DIR)
     message(FATAL_ERROR "HOST_DEPS_BUILD_DIR is required for cross-compilation.")
   endif()
-  if (NOT EXISTS ${HOST_DEPS_BUILD_DIR})
+  if(NOT EXISTS ${HOST_DEPS_BUILD_DIR})
     message(FATAL_ERROR "Host deps build directory not found at: ${HOST_DEPS_BUILD_DIR}, "
                         "required to execute tools during cross-compilation. Build host dependencies first.")
   endif()
