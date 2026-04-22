@@ -11,6 +11,14 @@ set(TBB_EXTRA_ARGS
   # Don't pick up hwloc shared library from system package manager.
   -DTBB_DISABLE_HWLOC_AUTOMATIC_SEARCH=ON
 )
+if(ANDROID)
+  # The Android linker enforces `--no-undefined-version`, which breaks TBB, counter this by setting `--undefined-version`.
+  # This could also be needed on Linux as reported to generally affect LLVM ld 17+.
+  set(TBB_EXTRA_ARGS
+    ${TBB_EXTRA_ARGS}
+    -DCMAKE_SHARED_LINKER_FLAGS=-Wl,--undefined-version
+  )
+endif()
 # TBB does not use soversion by default unlike other libs, but it's needed
 # to avoid conflicts with incompatible TBB system libs in LD_LIBRARY_PATH
 # or the Steam environment.
