@@ -42,6 +42,11 @@ else()
       --enable-static=yes
       --with-pic
   )
+  if(ANDROID)
+    set(FFI_EXTRA_ARGS
+      --host=aarch64
+    )
+  endif()
 endif()
 
 ExternalProject_Add(external_ffi
