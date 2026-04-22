@@ -6,14 +6,9 @@ set(SSL_CONFIGURE_COMMAND ./Configure)
 
 set(SSL_CONFIGURE_ENV ${CONFIGURE_ENV})
 if(ANDROID)
-  if(CMAKE_HOST_SYSTEM_NAME STREQUAL "Darwin")
-    set(SSL_TOOLCHAIN_HOST "darwin-x86_64")
-  else()
-    set(SSL_TOOLCHAIN_HOST "linux-x86_x64")
-  endif()
   set(SSL_CONFIGURE_ENV ${SSL_CONFIGURE_ENV} &&
     export ANDROID_NDK_ROOT=${CMAKE_ANDROID_NDK} &&
-    export PATH=${CMAKE_ANDROID_NDK}/toolchains/llvm/prebuilt/${SSL_TOOLCHAIN_HOST}/bin:$ENV{PATH}
+    export PATH=${ANDROID_TOOLCHAIN_ROOT}/bin:$ENV{PATH}
   )
 endif()
 
