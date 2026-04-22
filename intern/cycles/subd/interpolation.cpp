@@ -58,6 +58,21 @@ struct SubdNormal {
   }
 };
 
+struct SubdPackedFloat3 {
+  using Type = packed_float3;
+  using AccumType = float3;
+
+  static AccumType read(const Type &value)
+  {
+    return float3(value);
+  }
+
+  static Type output(const AccumType &value)
+  {
+    return packed_float3(value);
+  }
+};
+
 #ifdef WITH_OPENSUBDIV
 SubdAttributeInterpolation::SubdAttributeInterpolation(Mesh &mesh,
                                                        OsdMesh &osd_mesh,
@@ -145,7 +160,7 @@ void SubdAttributeInterpolation::setup_attribute(const Attribute &subd_attr, Att
     setup_attribute_type<SubdFloat<float2>>(subd_attr, mesh_attr);
   }
   else if (Attribute::same_storage(subd_attr.type, TypeVector)) {
-    setup_attribute_type<SubdFloat<float3>>(subd_attr, mesh_attr);
+    setup_attribute_type<SubdPackedFloat3>(subd_attr, mesh_attr);
   }
   else if (Attribute::same_storage(subd_attr.type, TypeFloat4) ||
            Attribute::same_storage(subd_attr.type, TypeRGBA))
@@ -165,7 +180,7 @@ void SubdAttributeInterpolation::setup_attribute_vertex_linear(const Attribute &
                                           subd_attr.data()) +
                                       motion_step * mesh.get_num_subd_base_verts();
   typename T::Type *mesh_data = reinterpret_cast<typename T::Type *>(mesh_attr.data_for_write()) +
-                                motion_step * mesh.get_verts().size();
+                                motion_step * mesh.num_verts();
 
   assert(mesh_data != nullptr);
 
@@ -279,17 +294,16 @@ void SubdAttributeInterpolation::setup_attribute_vertex_smooth(const Attribute &
 
   /* Evaluate patches at limit. */
   typename T::Type *mesh_data = reinterpret_cast<typename T::Type *>(mesh_attr.data_for_write()) +
-                                mesh.get_verts().size() * motion_step;
+                                mesh.num_verts() * motion_step;
 
   assert(mesh_data != nullptr);
 
   /* Compute motion normals alongside positions. */
   packed_normal *mesh_normal_data = nullptr;
-  if constexpr (std::is_same_v<typename T::Type, float3>) {
+  if constexpr (std::is_same_v<typename T::AccumType, float3>) {
     if (mesh_attr.std == ATTR_STD_MOTION_VERTEX_POSITION) {
       Attribute *attr_normal = mesh.attributes.add(ATTR_STD_MOTION_VERTEX_NORMAL);
-      mesh_normal_data = attr_normal->data_normal_for_write() +
-                         mesh.get_verts().size() * motion_step;
+      mesh_normal_data = attr_normal->data_normal_for_write() + mesh.num_verts() * motion_step;
     }
   }
 
@@ -319,7 +333,7 @@ void SubdAttributeInterpolation::setup_attribute_vertex_smooth(const Attribute &
 
       /* Optionally compute normal. */
       if (mesh_normal_data) {
-        if constexpr (std::is_same_v<typename T::Type, float3>) {
+        if constexpr (std::is_same_v<typename T::AccumType, float3>) {
           float3 du = zero_float3();
           float3 dv = zero_float3();
           for (int k = 0; k < cv.size(); k++) {

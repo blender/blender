@@ -368,7 +368,7 @@ static ShaderNode *add_node(Scene *scene,
   if (b_node.is_type("ShaderNodeRGBCurve"_ustr)) {
     const auto &mapping = *static_cast<blender::CurveMapping *>(b_node.storage);
     RGBCurvesNode *curves = graph->create_node<RGBCurvesNode>();
-    array<float3> curve_mapping_curves;
+    array<packed_float3> curve_mapping_curves;
     float min_x;
     float max_x;
     curvemapping_color_to_array(mapping, curve_mapping_curves, RAMP_TABLE_SIZE, true);
@@ -382,7 +382,7 @@ static ShaderNode *add_node(Scene *scene,
   if (b_node.is_type("ShaderNodeVectorCurve"_ustr)) {
     const auto &mapping = *static_cast<blender::CurveMapping *>(b_node.storage);
     VectorCurvesNode *curves = graph->create_node<VectorCurvesNode>();
-    array<float3> curve_mapping_curves;
+    array<packed_float3> curve_mapping_curves;
     float min_x;
     float max_x;
     curvemapping_color_to_array(mapping, curve_mapping_curves, RAMP_TABLE_SIZE, false);
@@ -410,7 +410,7 @@ static ShaderNode *add_node(Scene *scene,
   else if (b_node.is_type("ShaderNodeValToRGB"_ustr)) {
     RGBRampNode *ramp = graph->create_node<RGBRampNode>();
     const auto &b_color_ramp = *static_cast<blender::ColorBand *>(b_node.storage);
-    array<float3> ramp_values;
+    array<packed_float3> ramp_values;
     array<float> ramp_alpha;
     colorramp_to_array(b_color_ramp, ramp_values, ramp_alpha, RAMP_TABLE_SIZE);
     ramp->set_ramp(ramp_values);

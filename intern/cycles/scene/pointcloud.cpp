@@ -11,19 +11,19 @@ CCL_NAMESPACE_BEGIN
 
 /* PointCloud Point */
 
-void PointCloud::Point::bounds_grow(const float3 *points,
+void PointCloud::Point::bounds_grow(const packed_float3 *points,
                                     const float *radius,
                                     BoundBox &bounds) const
 {
   bounds.grow(points[index], radius[index]);
 }
 
-void PointCloud::Point::bounds_grow(const float3 *points,
+void PointCloud::Point::bounds_grow(const packed_float3 *points,
                                     const float *radius,
                                     const Transform &aligned_space,
                                     BoundBox &bounds) const
 {
-  const float3 P = transform_point(&aligned_space, points[index]);
+  const float3 P = transform_point(&aligned_space, float3(points[index]));
   bounds.grow(P, radius[index]);
 }
 
@@ -32,7 +32,7 @@ void PointCloud::Point::bounds_grow(const float4 &point, BoundBox &bounds) const
   bounds.grow(make_float3(point), point.w);
 }
 
-float4 PointCloud::Point::motion_key(const float3 *points,
+float4 PointCloud::Point::motion_key(const packed_float3 *points,
                                      const float *radius,
                                      const float4 *point_steps,
                                      const size_t num_points,
@@ -54,7 +54,7 @@ float4 PointCloud::Point::motion_key(const float3 *points,
   return (1.0f - t) * curr_key + t * next_key;
 }
 
-float4 PointCloud::Point::point_for_step(const float3 *points,
+float4 PointCloud::Point::point_for_step(const packed_float3 *points,
                                          const float *radius,
                                          const float4 *point_steps,
                                          const size_t num_points,
@@ -65,7 +65,7 @@ float4 PointCloud::Point::point_for_step(const float3 *points,
   const size_t center_step = ((num_steps - 1) / 2);
   if (step == center_step) {
     /* Center step: regular key location. */
-    return make_float4(points[p], radius[p]);
+    return make_float4(float3(points[p]), radius[p]);
   }
   /* Center step is not stored in this array. */
   if (step > center_step) {
@@ -82,8 +82,7 @@ NODE_DEFINE(PointCloud)
   NodeType *type = NodeType::add(
       "pointcloud", create, NodeType::NONE, Geometry::get_node_base_type());
 
-  SOCKET_POINT_ARRAY(points, "Points", array<float3>());
-  SOCKET_FLOAT_ARRAY(radius, "Radius", array<float>());
+  SOCKET_POINT_ARRAY(points, "Points", array<packed_float3>());
   SOCKET_INT_ARRAY(shader, "Shader", array<int>());
 
   return type;
@@ -128,13 +127,13 @@ void PointCloud::copy_center_to_motion_step(const int motion_step)
 {
   Attribute *attr_mP = attributes.find(ATTR_STD_MOTION_VERTEX_POSITION);
   if (attr_mP) {
-    float3 *points_data = points.data();
+    packed_float3 *points_data = points.data();
     const size_t numpoints = points.size();
     float *radius_data = radius.data();
 
     float4 *attrib_P = attr_mP->data_float4_for_write() + motion_step * numpoints;
     for (int i = 0; i < numpoints; i++) {
-      const float3 P = points_data[i];
+      const float3 P = float3(points_data[i]);
       const float r = radius_data[i];
       attrib_P[i] = make_float4(P, r);
     }
@@ -247,12 +246,12 @@ void PointCloud::apply_transform(const Transform &tfm, const bool apply_to_motio
 void PointCloud::pack(Scene *scene, float4 *packed_points, uint *packed_shader)
 {
   const size_t numpoints = points.size();
-  float3 *points_data = points.data();
+  packed_float3 *points_data = points.data();
   float *radius_data = radius.data();
   int *shader_data = shader.data();
 
   for (size_t i = 0; i < numpoints; i++) {
-    packed_points[i] = make_float4(points_data[i], radius_data[i]);
+    packed_points[i] = make_float4(float3(points_data[i]), radius_data[i]);
   }
 
   uint shader_id = 0;

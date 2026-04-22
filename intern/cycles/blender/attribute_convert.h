@@ -46,12 +46,12 @@ template<> struct AttributeConverter<blender::float2> {
   }
 };
 template<> struct AttributeConverter<blender::float3> {
-  using CyclesT = float3;
+  using CyclesT = packed_float3;
   static constexpr auto type_desc = TypeVector;
-  static constexpr bool layout_compatible = false;
+  static constexpr bool layout_compatible = true;
   static CyclesT convert(const blender::float3 &value)
   {
-    return make_float3(value[0], value[1], value[2]);
+    return packed_float3(make_float3(value[0], value[1], value[2]));
   }
 };
 template<> struct AttributeConverter<blender::float4> {

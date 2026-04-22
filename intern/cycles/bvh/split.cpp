@@ -350,14 +350,14 @@ void BVHSpatialSplit::split_triangle_primitive(const Mesh *mesh,
                                                BoundBox &right_bounds)
 {
   const Mesh::Triangle t = mesh->get_triangle(prim_index);
-  const float3 *verts = mesh->verts.data();
-  float3 v1 = tfm ? transform_point(tfm, verts[t.v[2]]) : verts[t.v[2]];
+  const packed_float3 *verts = mesh->get_position();
+  float3 v1 = tfm ? transform_point(tfm, verts[t.v[2]]) : float3(verts[t.v[2]]);
   v1 = get_unaligned_point(v1);
 
   for (int i = 0; i < 3; i++) {
     float3 v0 = v1;
     const int vindex = t.v[i];
-    v1 = tfm ? transform_point(tfm, verts[vindex]) : verts[vindex];
+    v1 = tfm ? transform_point(tfm, verts[vindex]) : float3(verts[vindex]);
     v1 = get_unaligned_point(v1);
     const float v0p = v0[dim];
     const float v1p = v1[dim];
@@ -393,8 +393,9 @@ void BVHSpatialSplit::split_curve_primitive(const Hair *hair,
   const Hair::Curve curve = hair->get_curve(prim_index);
   const int k0 = curve.first_key + segment_index;
   const int k1 = k0 + 1;
-  float3 v0 = hair->get_curve_keys()[k0];
-  float3 v1 = hair->get_curve_keys()[k1];
+  const packed_float3 *curve_keys = hair->get_position();
+  float3 v0 = curve_keys[k0];
+  float3 v1 = curve_keys[k1];
 
   if (tfm != nullptr) {
     v0 = transform_point(tfm, v0);
@@ -441,7 +442,7 @@ void BVHSpatialSplit::split_point_primitive(const PointCloud *pointcloud,
 {
   /* No real splitting support for points, assume they are small enough for it
    * not to matter. */
-  float3 point = pointcloud->get_points()[prim_index];
+  float3 point = float3(pointcloud->get_position()[prim_index]);
   const float radius = pointcloud->get_radius()[prim_index];
 
   if (tfm != nullptr) {

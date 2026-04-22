@@ -410,11 +410,11 @@ hiprtGeometryBuildInput HIPRTDevice::prepare_triangle_blas(BVHHIPRT *bvh, Mesh *
   if (use_motion_blur && mesh->has_motion_blur()) {
 
     const Attribute *attr_mP = mesh->attributes.find(ATTR_STD_MOTION_VERTEX_POSITION);
-    const float3 *vert_steps = attr_mP->data_float3();
-    const size_t num_verts = mesh->get_verts().size();
+    const packed_float3 *vert_steps = attr_mP->data_float3();
+    const size_t num_verts = mesh->num_verts();
     const size_t num_steps = mesh->get_motion_steps();
     const size_t num_triangles = mesh->num_triangles();
-    const float3 *verts = mesh->get_verts().data();
+    const packed_float3 *verts = mesh->get_position();
     int num_bounds = 0;
     float sum_area = 0.0f;
 
@@ -500,22 +500,21 @@ hiprtGeometryBuildInput HIPRTDevice::prepare_triangle_blas(BVHHIPRT *bvh, Mesh *
     size_t triangle_size = mesh->get_triangles().size();
     int *triangle_data = mesh->get_triangles().data();
 
-    size_t vertex_size = mesh->get_verts().size();
-    float *vertex_data = reinterpret_cast<float *>(mesh->get_verts().data());
+    size_t vertex_size = mesh->num_verts();
+    const packed_float3 *vertex_data = mesh->get_position();
 
     bvh->triangle_mesh.triangleCount = mesh->num_triangles();
     bvh->triangle_mesh.triangleStride = 3 * sizeof(int);
     bvh->triangle_mesh.vertexCount = vertex_size;
-    bvh->triangle_mesh.vertexStride = sizeof(float3);
+    bvh->triangle_mesh.vertexStride = sizeof(packed_float3);
 
     /* TODO: reduce memory usage by avoiding copy. */
     int *triangle_index_data = bvh->triangle_index.resize(triangle_size);
-    float *vertex_data_data = bvh->vertex_data.resize(vertex_size * 4);
+    float *vertex_data_data = bvh->vertex_data.resize(vertex_size * 3);
 
     if (triangle_index_data && vertex_data_data) {
       std::copy_n(triangle_data, triangle_size, triangle_index_data);
-      std::copy_n(vertex_data, vertex_size * 4, vertex_data_data);
-      static_assert(sizeof(float3) == sizeof(float) * 4);
+      std::copy_n(verts, vertex_size, reinterpret_cast<packed_float3 *>(vertex_data_data));
 
       bvh->triangle_index.copy_to_device();
       bvh->vertex_data.copy_to_device();
@@ -561,11 +560,11 @@ hiprtGeometryBuildInput HIPRTDevice::prepare_curve_blas(BVHHIPRT *bvh, Hair *hai
 
   int num_bounds = 0;
   float sum_area = 0.0f;
-  float3 *curve_keys = hair->get_curve_keys().data();
+  const packed_float3 *curve_keys = hair->get_position();
 
   for (uint j = 0; j < num_curves; j++) {
     const Hair::Curve curve = hair->get_curve(j);
-    const float *curve_radius = hair->get_curve_radius().data();
+    const float *curve_radius = hair->get_radius();
     int first_key = curve.first_key;
     for (int k = 0; k < curve.num_keys - 1; k++) {
       if (curve_attr_mP == nullptr) {
@@ -585,7 +584,7 @@ hiprtGeometryBuildInput HIPRTDevice::prepare_curve_blas(BVHHIPRT *bvh, Hair *hai
         }
 
         BoundBox bounds = BoundBox::empty;
-        curve.bounds_grow(k, hair->get_curve_keys().data(), curve_radius, bounds);
+        curve.bounds_grow(k, hair->get_position(), curve_radius, bounds);
         if (bounds.valid()) {
           int type = PRIMITIVE_PACK_SEGMENT(primitive_type, k);
           bvh->custom_prim_info[num_bounds].x = j;
@@ -598,11 +597,11 @@ hiprtGeometryBuildInput HIPRTDevice::prepare_curve_blas(BVHHIPRT *bvh, Hair *hai
       else {
         const size_t num_steps = hair->get_motion_steps();
         const float4 *key_steps = curve_attr_mP->data_float4();
-        const size_t num_keys = hair->get_curve_keys().size();
+        const size_t num_keys = hair->num_keys();
 
         if (bvh->params.num_motion_curve_steps == 0 || bvh->params.use_spatial_split) {
           BoundBox bounds = BoundBox::empty;
-          curve.bounds_grow(k, hair->get_curve_keys().data(), curve_radius, bounds);
+          curve.bounds_grow(k, hair->get_position(), curve_radius, bounds);
           for (size_t step = 0; step < num_steps - 1; step++) {
             curve.bounds_grow(k, key_steps + step * num_keys, bounds);
           }
@@ -698,8 +697,8 @@ hiprtGeometryBuildInput HIPRTDevice::prepare_point_blas(BVHHIPRT *bvh, PointClou
     point_attr_mP = pointcloud->attributes.find(ATTR_STD_MOTION_VERTEX_POSITION);
   }
 
-  const float3 *points_data = pointcloud->get_points().data();
-  const float *radius_data = pointcloud->get_radius().data();
+  const packed_float3 *points_data = pointcloud->get_position();
+  const float *radius_data = pointcloud->get_radius();
   const size_t num_points = pointcloud->num_points();
   const float4 *motion_data = (point_attr_mP) ? point_attr_mP->data_float4() : nullptr;
   const size_t num_steps = pointcloud->get_motion_steps();

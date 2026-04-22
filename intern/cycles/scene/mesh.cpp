@@ -31,9 +31,10 @@ struct MikkMeshWrapper {
                   const packed_normal *vertex_normal,
                   const packed_normal *corner_normal,
                   const float2 *uv,
-                  float3 *tangent,
+                  packed_float3 *tangent,
                   float *tangent_sign)
       : mesh(mesh),
+        position(mesh->get_position()),
         vertex_normal(vertex_normal),
         corner_normal(corner_normal),
         uv(uv),
@@ -65,7 +66,7 @@ struct MikkMeshWrapper {
 
   mikk::float3 GetPosition(const int face_num, const int vert_num)
   {
-    const float3 vP = mesh->get_verts()[VertexIndex(face_num, vert_num)];
+    const float3 vP = float3(position[VertexIndex(face_num, vert_num)]);
     return mikk::float3(vP.x, vP.y, vP.z);
   }
 
@@ -79,7 +80,7 @@ struct MikkMeshWrapper {
       return mikk::float3(tfuv.x, tfuv.y, 1.0f);
     }
     /* revert to vertex position */
-    const float3 vP = mesh->get_verts()[VertexIndex(face_num, vert_num)];
+    const float3 vP = float3(position[VertexIndex(face_num, vert_num)]);
     const float2 uv = map_to_sphere(vP);
     return mikk::float3(uv.x, uv.y, 1.0f);
   }
@@ -94,7 +95,7 @@ struct MikkMeshWrapper {
     }
     else {
       const Mesh::Triangle tri = mesh->get_triangle(face_num);
-      vN = tri.compute_normal(mesh->get_verts().data());
+      vN = tri.compute_normal(position);
     }
     return mikk::float3(vN.x, vN.y, vN.z);
   }
@@ -102,7 +103,7 @@ struct MikkMeshWrapper {
   void SetTangentSpace(const int face_num, const int vert_num, mikk::float3 T, bool orientation)
   {
     const int corner_index = CornerIndex(face_num, vert_num);
-    tangent[corner_index] = make_float3(T.x, T.y, T.z);
+    tangent[corner_index] = packed_float3(make_float3(T.x, T.y, T.z));
     if (tangent_sign != nullptr) {
       tangent_sign[corner_index] = orientation ? 1.0f : -1.0f;
     }
@@ -114,12 +115,13 @@ struct MikkMeshWrapper {
   }
 
   const Mesh *mesh;
+  const packed_float3 *position;
 
   const packed_normal *vertex_normal;
   const packed_normal *corner_normal;
   const float2 *uv;
 
-  float3 *tangent;
+  packed_float3 *tangent;
   float *tangent_sign;
 };
 
@@ -154,7 +156,7 @@ static void mikk_compute_tangents(Attribute *attr_uv,
   else {
     attr = attributes.add(name, TypeVector, ATTR_ELEMENT_CORNER);
   }
-  float3 *tangent = attr->data_float3_for_write();
+  packed_float3 *tangent = attr->data_float3_for_write();
   /* Create bitangent sign attribute. */
   float *tangent_sign = nullptr;
   if (need_sign) {
@@ -177,15 +179,15 @@ static void mikk_compute_tangents(Attribute *attr_uv,
 
 /* Triangle */
 
-void Mesh::Triangle::bounds_grow(const float3 *verts, BoundBox &bounds) const
+void Mesh::Triangle::bounds_grow(const packed_float3 *verts, BoundBox &bounds) const
 {
   bounds.grow(verts[v[0]]);
   bounds.grow(verts[v[1]]);
   bounds.grow(verts[v[2]]);
 }
 
-void Mesh::Triangle::motion_verts(const float3 *verts,
-                                  const float3 *vert_steps,
+void Mesh::Triangle::motion_verts(const packed_float3 *verts,
+                                  const packed_float3 *vert_steps,
                                   const size_t num_verts,
                                   const size_t num_steps,
                                   const float time,
@@ -206,8 +208,8 @@ void Mesh::Triangle::motion_verts(const float3 *verts,
   r_verts[2] = (1.0f - t) * curr_verts[2] + t * next_verts[2];
 }
 
-void Mesh::Triangle::verts_for_step(const float3 *verts,
-                                    const float3 *vert_steps,
+void Mesh::Triangle::verts_for_step(const packed_float3 *verts,
+                                    const packed_float3 *vert_steps,
                                     const size_t num_verts,
                                     const size_t num_steps,
                                     size_t step,
@@ -232,11 +234,11 @@ void Mesh::Triangle::verts_for_step(const float3 *verts,
   }
 }
 
-float3 Mesh::Triangle::compute_normal(const float3 *verts) const
+float3 Mesh::Triangle::compute_normal(const packed_float3 *verts) const
 {
-  const float3 &v0 = verts[v[0]];
-  const float3 &v1 = verts[v[1]];
-  const float3 &v2 = verts[v[2]];
+  const float3 v0 = verts[v[0]];
+  const float3 v1 = verts[v[1]];
+  const float3 v2 = verts[v[2]];
   const float3 norm = cross(v1 - v0, v2 - v0);
   const float normlen = len(norm);
   if (normlen == 0.0f) {
@@ -245,9 +247,10 @@ float3 Mesh::Triangle::compute_normal(const float3 *verts) const
   return norm / normlen;
 }
 
-bool Mesh::Triangle::valid(const float3 *verts) const
+bool Mesh::Triangle::valid(const packed_float3 *verts) const
 {
-  return isfinite_safe(verts[v[0]]) && isfinite_safe(verts[v[1]]) && isfinite_safe(verts[v[2]]);
+  return isfinite_safe(float3(verts[v[0]])) && isfinite_safe(float3(verts[v[1]])) &&
+         isfinite_safe(float3(verts[v[2]]));
 }
 
 /* SubdFace */
@@ -268,7 +271,7 @@ NODE_DEFINE(Mesh)
   NodeType *type = NodeType::add("mesh", create, NodeType::NONE, Geometry::get_node_base_type());
 
   SOCKET_INT_ARRAY(triangles, "Triangles", array<int>());
-  SOCKET_POINT_ARRAY(verts, "Vertices", array<float3>());
+  SOCKET_POINT_ARRAY(verts, "Vertices", array<packed_float3>());
   SOCKET_INT_ARRAY(shader, "Shader", array<int>());
   SOCKET_BOOLEAN_ARRAY(smooth, "Smooth", array<bool>());
 
@@ -462,7 +465,7 @@ void Mesh::copy_center_to_motion_step(const int motion_step)
   if (attr_mP) {
     Attribute *attr_mN = attributes.find(ATTR_STD_MOTION_VERTEX_NORMAL);
     Attribute *attr_N = attributes.find(ATTR_STD_VERTEX_NORMAL);
-    const float3 *P = verts.data();
+    const packed_float3 *P = verts.data();
     const size_t numverts = verts.size();
 
     std::copy_n(P, numverts, attr_mP->data_float3_for_write() + motion_step * numverts);
@@ -516,7 +519,7 @@ void Mesh::compute_bounds()
     Attribute *attr = attributes.find(ATTR_STD_MOTION_VERTEX_POSITION);
     if (use_motion_blur && attr) {
       const size_t steps_size = verts.size() * (motion_steps - 1);
-      const float3 *vert_steps = attr->data_float3();
+      const packed_float3 *vert_steps = attr->data_float3();
 
       for (size_t i = 0; i < steps_size; i++) {
         bnds.grow(vert_steps[i]);
@@ -533,7 +536,7 @@ void Mesh::compute_bounds()
 
       if (use_motion_blur && attr) {
         const size_t steps_size = verts.size() * (motion_steps - 1);
-        const float3 *vert_steps = attr->data_float3();
+        const packed_float3 *vert_steps = attr->data_float3();
 
         for (size_t i = 0; i < steps_size; i++) {
           bnds.grow_safe(vert_steps[i]);
@@ -600,7 +603,7 @@ void Mesh::apply_transform(const Transform &tfm, const bool apply_to_motion)
 
     if (attr) {
       const size_t steps_size = verts.size() * (motion_steps - 1);
-      float3 *vert_steps = attr->data_float3_for_write();
+      packed_float3 *vert_steps = attr->data_float3_for_write();
 
       for (size_t i = 0; i < steps_size; i++) {
         vert_steps[i] = transform_point(&tfm, vert_steps[i]);
@@ -658,7 +661,7 @@ void Mesh::add_vertex_normals()
     /* get attributes */
     Attribute *attr_vN = attributes.add(ATTR_STD_VERTEX_NORMAL);
 
-    float3 *verts_ptr = verts.data();
+    packed_float3 *verts_ptr = verts.data();
     packed_normal *vN = attr_vN->data_normal_for_write();
 
     /* compute vertex normals */
@@ -692,7 +695,7 @@ void Mesh::add_vertex_normals()
     attr_mN = attributes.add(ATTR_STD_MOTION_VERTEX_NORMAL);
 
     for (int step = 0; step < motion_steps - 1; step++) {
-      const float3 *mP = attr_mP->data_float3() + step * verts.size();
+      const packed_float3 *mP = attr_mP->data_float3() + step * verts.size();
       packed_normal *mN = attr_mN->data_normal_for_write() + step * verts.size();
 
       /* compute */
@@ -759,7 +762,7 @@ void Mesh::add_undisplaced(Scene *scene)
     /* Copy position to attribute. */
     Attribute *attr = attributes.add(ATTR_STD_POSITION_UNDISPLACED);
 
-    size_t size = attr->buffer_size(this, ATTR_PRIM_GEOMETRY) / sizeof(float3);
+    size_t size = attr->buffer_size(this, ATTR_PRIM_GEOMETRY) / sizeof(packed_float3);
     std::copy_n(verts.data(), size, attr->data_float3_for_write());
   }
 
@@ -797,7 +800,7 @@ void Mesh::update_generated(Scene *scene)
   if (need_attribute(scene, ATTR_STD_GENERATED) && !attrs.find(ATTR_STD_GENERATED)) {
     const size_t verts_size = verts.size();
     Attribute *attr_generated = attrs.add(ATTR_STD_GENERATED);
-    float3 *generated = attr_generated->data_float3_for_write();
+    packed_float3 *generated = attr_generated->data_float3_for_write();
     for (size_t i = 0; i < verts_size; ++i) {
       generated[i] = verts[i];
     }

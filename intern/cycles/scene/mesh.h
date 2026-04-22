@@ -47,25 +47,25 @@ class Mesh : public Geometry {
   struct Triangle {
     int v[3];
 
-    void bounds_grow(const float3 *verts, BoundBox &bounds) const;
+    void bounds_grow(const packed_float3 *verts, BoundBox &bounds) const;
 
-    void motion_verts(const float3 *verts,
-                      const float3 *vert_steps,
+    void motion_verts(const packed_float3 *verts,
+                      const packed_float3 *vert_steps,
                       const size_t num_verts,
                       const size_t num_steps,
                       const float time,
                       float3 r_verts[3]) const;
 
-    void verts_for_step(const float3 *verts,
-                        const float3 *vert_steps,
+    void verts_for_step(const packed_float3 *verts,
+                        const packed_float3 *vert_steps,
                         const size_t num_verts,
                         const size_t num_steps,
                         const size_t step,
                         float3 r_verts[3]) const;
 
-    float3 compute_normal(const float3 *verts) const;
+    float3 compute_normal(const packed_float3 *verts) const;
 
-    bool valid(const float3 *verts) const;
+    bool valid(const packed_float3 *verts) const;
   };
 
   Triangle get_triangle(const size_t i) const
@@ -74,10 +74,6 @@ class Mesh : public Geometry {
     return tri;
   }
 
-  size_t num_verts() const
-  {
-    return verts.size();
-  }
   size_t num_triangles() const
   {
     return triangles.size() / 3;
@@ -150,7 +146,7 @@ class Mesh : public Geometry {
 
   /* Mesh Data */
   NODE_SOCKET_API_ARRAY(array<int>, triangles)
-  NODE_SOCKET_API_ARRAY(array<float3>, verts)
+  NODE_SOCKET_API_ARRAY(array<packed_float3>, verts)
   NODE_SOCKET_API_ARRAY(array<int>, shader)
   NODE_SOCKET_API_ARRAY(array<bool>, smooth)
 
@@ -239,7 +235,21 @@ class Mesh : public Geometry {
   }
   size_t get_num_subd_base_verts() const
   {
-    return verts.size() - num_subd_added_verts;
+    return num_verts() - num_subd_added_verts;
+  }
+
+  const packed_float3 *get_position() const
+  {
+    return get_verts().data();
+  }
+  packed_float3 *get_position_for_write()
+  {
+    tag_verts_modified();
+    return get_verts().data();
+  }
+  size_t num_verts() const
+  {
+    return get_verts().size();
   }
 
  protected:

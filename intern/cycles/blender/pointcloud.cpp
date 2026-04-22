@@ -23,14 +23,14 @@ static void attr_create_motion_from_velocity(PointCloud *pointcloud,
                                              const blender::Span<blender::float3> b_attribute,
                                              const float motion_scale)
 {
-  const int num_points = pointcloud->get_points().size();
+  const int num_points = pointcloud->num_points();
 
   /* Override motion steps to fixed number. */
   pointcloud->set_motion_steps(3);
 
   /* Find or add attribute */
-  float3 *P = pointcloud->get_points().data();
-  float *radius = pointcloud->get_radius().data();
+  const packed_float3 *P = pointcloud->get_position();
+  const float *radius = pointcloud->get_radius();
   Attribute *attr_mP = pointcloud->attributes.find(ATTR_STD_MOTION_VERTEX_POSITION);
 
   if (!attr_mP) {
@@ -44,7 +44,7 @@ static void attr_create_motion_from_velocity(PointCloud *pointcloud,
     float4 *mP = attr_mP->data_float4_for_write() + step * num_points;
 
     for (int i = 0; i < num_points; i++) {
-      const float3 Pi = P[i] +
+      const float3 Pi = float3(P[i]) +
                         make_float3(b_attribute[i][0], b_attribute[i][1], b_attribute[i][2]) *
                             relative_time;
       mP[i] = make_float4(Pi, radius[i]);
@@ -128,13 +128,13 @@ static void export_pointcloud(Scene *scene,
 
   pointcloud->resize(b_positions.size());
 
-  float3 *points = pointcloud->get_points().data();
+  packed_float3 *points = pointcloud->get_position_for_write();
 
   for (const int i : b_positions.index_range()) {
     points[i] = make_float3(b_positions[i][0], b_positions[i][1], b_positions[i][2]);
   }
 
-  float *radius = pointcloud->get_radius().data();
+  float *radius = pointcloud->get_radius_for_write();
   if (!b_radius.is_empty()) {
     std::copy(b_radius.data(), b_radius.data() + b_positions.size(), radius);
   }
@@ -175,7 +175,7 @@ static void export_pointcloud_motion(PointCloud *pointcloud,
    * is packed now. */
   float4 *mP = attr_mP->data_float4_for_write() + motion_step * num_points;
   bool have_motion = false;
-  const array<float3> &pointcloud_points = pointcloud->get_points();
+  const packed_float3 *pointcloud_positions = pointcloud->get_position();
 
   const blender::Span<blender::float3> b_positions = b_pointcloud.positions();
   const blender::VArraySpan b_radius = *b_pointcloud.attributes().lookup<float>(
@@ -185,7 +185,7 @@ static void export_pointcloud_motion(PointCloud *pointcloud,
     const float3 P = make_float3(b_positions[i][0], b_positions[i][1], b_positions[i][2]);
     const float radius = b_radius.is_empty() ? 0.01f : b_radius[i];
     mP[i] = make_float4(P, radius);
-    have_motion = have_motion || (P != pointcloud_points[i]);
+    have_motion = have_motion || (P != pointcloud_positions[i]);
   }
 
   /* In case of new attribute, we verify if there really was any motion. */
@@ -251,6 +251,9 @@ void BlenderSync::sync_pointcloud(PointCloud *pointcloud, BObjectInfo &b_ob_info
     }
     pointcloud->set_value(socket, new_pointcloud, socket);
   }
+
+  /* Radius is not a node socket, copy it explicitly so it stays in sync with the points size. */
+  pointcloud->radius = std::move(new_pointcloud.radius);
 
   pointcloud->attributes.update(std::move(new_pointcloud.attributes));
 

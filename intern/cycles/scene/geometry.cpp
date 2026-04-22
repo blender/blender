@@ -49,6 +49,8 @@ NODE_ABSTRACT_DEFINE(Geometry)
 Geometry::Geometry(const NodeType *node_type, const Type type)
     : Node(node_type), geometry_type(type), attributes(this, ATTR_PRIM_GEOMETRY)
 {
+  position_modified = true;
+  radius_modified = true;
   need_update_rebuild = false;
   need_update_bvh_for_offset = false;
 
@@ -79,6 +81,28 @@ void Geometry::clear(bool preserve_shaders)
   transform_negative_scaled = false;
   transform_normal = transform_identity();
   tag_modified();
+}
+
+void Geometry::tag_position_modified()
+{
+  position_modified = true;
+  tag_modified();
+}
+
+bool Geometry::position_is_modified() const
+{
+  return position_modified;
+}
+
+void Geometry::tag_radius_modified()
+{
+  radius_modified = true;
+  tag_modified();
+}
+
+bool Geometry::radius_is_modified() const
+{
+  return radius_modified;
 }
 
 float Geometry::motion_time(const int step) const
@@ -341,7 +365,7 @@ void GeometryManager::geom_calc_offset(Scene *scene, BVHLayout bvh_layout)
       mesh->face_offset = face_size;
       mesh->corner_offset = corner_size;
 
-      vert_size += mesh->verts.size();
+      vert_size += mesh->num_verts();
       tri_size += mesh->num_triangles();
 
       face_size += mesh->get_num_subd_faces();
@@ -356,7 +380,7 @@ void GeometryManager::geom_calc_offset(Scene *scene, BVHLayout bvh_layout)
       hair->prim_offset = curve_size;
 
       curve_size += hair->num_curves();
-      curve_key_size += hair->get_curve_keys().size();
+      curve_key_size += hair->num_keys();
       curve_segment_size += hair->num_segments();
     }
     else if (geom->is_pointcloud()) {

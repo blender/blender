@@ -69,7 +69,7 @@ void HdCyclesPoints::PopulatePoints(HdSceneDelegate *sceneDelegate)
 
   const auto &points = value.UncheckedGet<VtVec3fArray>();
 
-  array<float3> pointsDataCycles;
+  array<packed_float3> pointsDataCycles;
   pointsDataCycles.reserve(points.size());
 
   for (const GfVec3f &point : points) {
@@ -113,7 +113,7 @@ void HdCyclesPoints::PopulateWidths(HdSceneDelegate *sceneDelegate)
     }
   }
 
-  _geom->set_radius(radiusDataCycles);
+  _geom->radius = radiusDataCycles;
 }
 
 void HdCyclesPoints::PopulatePrimvars(HdSceneDelegate *sceneDelegate)

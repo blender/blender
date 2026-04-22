@@ -22,7 +22,7 @@ EdgeDice::EdgeDice(const SubdParams &params_,
 {
   Mesh *mesh = params.mesh;
 
-  mesh->num_subd_added_verts = num_verts - mesh->get_verts().size();
+  mesh->num_subd_added_verts = num_verts - mesh->num_verts();
   mesh->resize_mesh(num_verts, num_triangles);
 
   Attribute *attr_vN = mesh->attributes.add(ATTR_STD_VERTEX_NORMAL);
@@ -30,7 +30,7 @@ EdgeDice::EdgeDice(const SubdParams &params_,
   mesh_triangles = mesh->triangles.data();
   mesh_shader = mesh->shader.data();
   mesh_smooth = mesh->smooth.data();
-  mesh_P = mesh->verts.data();
+  mesh_P = mesh->get_position_for_write();
   mesh_N = attr_vN->data_normal_for_write();
 
   if (params.ptex) {
@@ -95,7 +95,7 @@ float EdgeDice::scale_factor(const SubPatch &sub, const int Mu, const int Mv)
 
 void EdgeDice::set_vertex(const SubPatch &sub, const int index, const float2 uv)
 {
-  assert(index < params.mesh->verts.size());
+  assert(index < params.mesh->num_verts());
 
   float3 P;
   float3 N;

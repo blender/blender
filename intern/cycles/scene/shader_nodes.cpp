@@ -7335,7 +7335,7 @@ NODE_DEFINE(RGBCurvesNode)
 {
   NodeType *type = NodeType::add("rgb_curves", create, NodeType::SHADER);
 
-  SOCKET_COLOR_ARRAY(curves, "Curves", array<float3>());
+  SOCKET_COLOR_ARRAY(curves, "Curves", array<packed_float3>());
   SOCKET_FLOAT(min_x, "Min X", 0.0f);
   SOCKET_FLOAT(max_x, "Max X", 1.0f);
   SOCKET_BOOLEAN(extrapolate, "Extrapolate", true);
@@ -7371,7 +7371,7 @@ NODE_DEFINE(VectorCurvesNode)
 {
   NodeType *type = NodeType::add("vector_curves", create, NodeType::SHADER);
 
-  SOCKET_VECTOR_ARRAY(curves, "Curves", array<float3>());
+  SOCKET_VECTOR_ARRAY(curves, "Curves", array<packed_float3>());
   SOCKET_FLOAT(min_x, "Min X", 0.0f);
   SOCKET_FLOAT(max_x, "Max X", 1.0f);
   SOCKET_BOOLEAN(extrapolate, "Extrapolate", true);
@@ -7484,7 +7484,7 @@ NODE_DEFINE(RGBRampNode)
 {
   NodeType *type = NodeType::add("rgb_ramp", create, NodeType::SHADER);
 
-  SOCKET_COLOR_ARRAY(ramp, "Ramp", array<float3>());
+  SOCKET_COLOR_ARRAY(ramp, "Ramp", array<packed_float3>());
   SOCKET_FLOAT_ARRAY(ramp_alpha, "Ramp Alpha", array<float>());
   SOCKET_BOOLEAN(interpolate, "Interpolate", true);
 

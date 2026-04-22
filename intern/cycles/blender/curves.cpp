@@ -318,7 +318,7 @@ static void ExportCurveSegments(Scene *scene, Hair *hair, ParticleCurveData *CDa
     }
   }
 
-  hair->resize_curves(hair->num_curves() + num_curves, hair->get_curve_keys().size() + num_keys);
+  hair->resize_curves(hair->num_curves() + num_curves, hair->num_keys() + num_keys);
 
   packed_normal *attr_normal = nullptr;
   float *attr_intercept = nullptr;
@@ -341,8 +341,8 @@ static void ExportCurveSegments(Scene *scene, Hair *hair, ParticleCurveData *CDa
   int *curve_first_key = hair->get_curve_first_key().data();
   int *curve_shader = hair->get_curve_shader().data();
 
-  float3 *curve_keys = hair->get_curve_keys().data();
-  float *curve_radius = hair->get_curve_radius().data();
+  packed_float3 *curve_keys = hair->get_position_for_write();
+  float *curve_radius = hair->get_radius_for_write();
 
   num_keys = 0;
   num_curves = 0;
@@ -399,13 +399,13 @@ static void ExportCurveSegments(Scene *scene, Hair *hair, ParticleCurveData *CDa
     }
   }
 
-  hair->tag_curve_keys_modified();
-  hair->tag_curve_radius_modified();
+  hair->tag_position_modified();
+  hair->tag_radius_modified();
   hair->tag_curve_first_key_modified();
   hair->tag_curve_shader_modified();
 
   /* check allocation */
-  if ((hair->get_curve_keys().size() != num_keys) || (hair->num_curves() != num_curves)) {
+  if ((hair->num_keys() != num_keys) || (hair->num_curves() != num_curves)) {
     LOG_ERROR << "Hair memory allocation failed, clearing data.";
     hair->clear(true);
   }
@@ -465,7 +465,7 @@ static void export_hair_motion_validate_attribute(Hair *hair,
                                                   bool have_motion)
 {
   Attribute *attr_mP = hair->attributes.find(ATTR_STD_MOTION_VERTEX_POSITION);
-  const int num_keys = hair->get_curve_keys().size();
+  const int num_keys = hair->num_keys();
 
   if (num_motion_keys != num_keys || !have_motion) {
     /* No motion or hair "topology" changed, remove attributes again. */
@@ -481,8 +481,8 @@ static void export_hair_motion_validate_attribute(Hair *hair,
       float4 *mP = attr_mP->data_float4_for_write() + step * num_keys;
 
       for (int key = 0; key < num_keys; key++) {
-        mP[key] = make_float4(hair->get_curve_keys()[key]);
-        mP[key].w = hair->get_curve_radius()[key];
+        mP[key] = make_float4(hair->get_position()[key]);
+        mP[key].w = hair->get_radius()[key];
       }
     }
   }
@@ -501,7 +501,7 @@ static void ExportCurveSegmentsMotion(Hair *hair, ParticleCurveData *CData, cons
   }
 
   /* export motion vectors for curve keys */
-  const size_t numkeys = hair->get_curve_keys().size();
+  const size_t numkeys = hair->num_keys();
   float4 *mP = attr_mP->data_float4_for_write() + motion_step * numkeys;
   bool have_motion = false;
   int i = 0;
@@ -515,7 +515,7 @@ static void ExportCurveSegmentsMotion(Hair *hair, ParticleCurveData *CData, cons
       /* Curve lengths may not match! Curves can be clipped. */
       const int curve_key_end = (num_curves + 1 < (int)hair->get_curve_first_key().size() ?
                                      hair->get_curve_first_key()[num_curves + 1] :
-                                     (int)hair->get_curve_keys().size());
+                                     (int)hair->num_keys());
       const int num_center_curve_keys = curve_key_end - hair->get_curve_first_key()[num_curves];
       const int is_num_keys_different = CData->curve_keynum[curve] - num_center_curve_keys;
 
@@ -524,14 +524,14 @@ static void ExportCurveSegmentsMotion(Hair *hair, ParticleCurveData *CData, cons
              curvekey < CData->curve_firstkey[curve] + CData->curve_keynum[curve];
              curvekey++)
         {
-          if (i < hair->get_curve_keys().size()) {
+          if (i < hair->num_keys()) {
             mP[i] = CurveSegmentMotionCV(CData, sys, curve, curvekey);
             if (!have_motion) {
               /* unlike mesh coordinates, these tend to be slightly different
                * between frames due to particle transforms into/out of object
                * space, so we use an epsilon to detect actual changes */
-              float4 curve_key = make_float4(hair->get_curve_keys()[i]);
-              curve_key.w = hair->get_curve_radius()[i];
+              float4 curve_key = make_float4(hair->get_position()[i]);
+              curve_key.w = hair->get_radius()[i];
               if (len_squared(mP[i] - curve_key) > 1e-5f * 1e-5f) {
                 have_motion = true;
               }
@@ -625,10 +625,10 @@ void BlenderSync::sync_particle_hair(Hair *hair,
       mesh_texture_space(b_mesh, loc, size);
 
       Attribute *attr_generated = hair->attributes.add(ATTR_STD_GENERATED);
-      float3 *generated = attr_generated->data_float3_for_write();
+      packed_float3 *generated = attr_generated->data_float3_for_write();
 
       for (size_t i = 0; i < hair->num_curves(); i++) {
-        const float3 co = hair->get_curve_keys()[hair->get_curve(i).first_key];
+        const float3 co = hair->get_position()[hair->get_curve(i).first_key];
         generated[i] = co * size - loc;
       }
     }
@@ -712,13 +712,13 @@ static void attr_create_motion_from_velocity(Hair *hair,
                                              const blender::Span<blender::float3> src,
                                              const float motion_scale)
 {
-  const int num_curve_keys = hair->get_curve_keys().size();
+  const int num_curve_keys = hair->num_keys();
 
   /* Override motion steps to fixed number. */
   hair->set_motion_steps(3);
 
   /* Find or add attribute */
-  float3 *P = hair->get_curve_keys().data();
+  const packed_float3 *P = hair->get_position();
   Attribute *attr_mP = hair->attributes.find(ATTR_STD_MOTION_VERTEX_POSITION);
 
   if (!attr_mP) {
@@ -729,10 +729,10 @@ static void attr_create_motion_from_velocity(Hair *hair,
   const float motion_times[2] = {-1.0f, 1.0f};
   for (int step = 0; step < 2; step++) {
     const float relative_time = motion_times[step] * 0.5f * motion_scale;
-    float3 *mP = attr_mP->data_float3_for_write() + step * num_curve_keys;
+    packed_float3 *mP = attr_mP->data_float3_for_write() + step * num_curve_keys;
 
     for (int i = 0; i < num_curve_keys; i++) {
-      mP[i] = P[i] + make_float3(src[i][0], src[i][1], src[i][2]) * relative_time;
+      mP[i] = float3(P[i]) + make_float3(src[i][0], src[i][1], src[i][2]) * relative_time;
     }
   }
 }
@@ -878,8 +878,8 @@ static void export_hair_curves(Scene *scene,
 
   hair->resize_curves(points_by_curve.size(), positions.size());
 
-  float3 *curve_keys = hair->get_curve_keys().data();
-  float *curve_radius = hair->get_curve_radius().data();
+  packed_float3 *curve_keys = hair->get_position_for_write();
+  float *curve_radius = hair->get_radius_for_write();
   int *curve_first_key = hair->get_curve_first_key().data();
   int *curve_shader = hair->get_curve_shader().data();
 
@@ -1015,8 +1015,8 @@ static void export_hair_curves_motion(Hair *hair,
           if (!have_motion) {
             /* TODO: use epsilon for comparison? Was needed for particles due to
              * transform, but ideally should not happen anymore. */
-            float4 curve_key = make_float4(hair->get_curve_keys()[i]);
-            curve_key.w = hair->get_curve_radius()[i];
+            float4 curve_key = make_float4(hair->get_position()[i]);
+            curve_key.w = hair->get_radius()[i];
             have_motion = !(mP[i] == curve_key);
           }
         }
@@ -1129,7 +1129,7 @@ void BlenderSync::sync_hair(BObjectInfo &b_ob_info, Hair *hair)
 
   /* Compares curve_keys rather than strands in order to handle quick hair
    * adjustments in dynamic BVH - other methods could probably do this better. */
-  const bool rebuild = (hair->curve_keys_is_modified() || hair->curve_radius_is_modified());
+  const bool rebuild = (hair->position_is_modified() || hair->radius_is_modified());
 
   hair->tag_update(scene, rebuild);
 }

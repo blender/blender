@@ -54,7 +54,7 @@ void HdCyclesCurves::Populate(HdSceneDelegate *sceneDelegate, HdDirtyBits dirtyB
     PopulatePrimvars(sceneDelegate);
   }
 
-  rebuild = (_geom->curve_keys_is_modified()) || (_geom->curve_radius_is_modified());
+  rebuild = (_geom->position_is_modified()) || (_geom->radius_is_modified());
 }
 
 void HdCyclesCurves::PopulatePoints(HdSceneDelegate *sceneDelegate)
@@ -70,7 +70,7 @@ void HdCyclesCurves::PopulatePoints(HdSceneDelegate *sceneDelegate)
 
   const auto &points = value.UncheckedGet<VtVec3fArray>();
 
-  array<float3> pointsDataCycles;
+  array<packed_float3> pointsDataCycles;
   pointsDataCycles.reserve(points.size());
 
   for (const GfVec3f &point : points) {

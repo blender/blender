@@ -1286,16 +1286,8 @@ void OSLCompiler::parameter(ShaderNode *node, const char *name)
           break;
       }
 
-      // convert to tightly packed array since float3 has padding
-      const array<float3> &value = node->get_float3_array(socket);
-      array<float> fvalue(value.size() * 3);
-      for (size_t i = 0, j = 0; i < value.size(); i++) {
-        fvalue[j++] = value[i].x;
-        fvalue[j++] = value[i].y;
-        fvalue[j++] = value[i].z;
-      }
-
-      ss->Parameter(*current_group, uname, array_typedesc(typedesc, value.size()), fvalue.data());
+      const array<packed_float3> &value = node->get_float3_array(socket);
+      ss->Parameter(*current_group, uname, array_typedesc(typedesc, value.size()), value.data());
       break;
     }
     case SocketType::POINT2_ARRAY: {
@@ -1390,20 +1382,11 @@ void OSLCompiler::parameter_array(const char *name, const float f[], int arrayle
   ss->Parameter(*current_group, name, type, f);
 }
 
-void OSLCompiler::parameter_color_array(const char *name, const array<float3> &f)
+void OSLCompiler::parameter_color_array(const char *name, const array<packed_float3> &f)
 {
-  /* NOTE: cycles float3 type is actually 4 floats! need to use an explicit array. */
-  array<float[3]> table(f.size());
-
-  for (int i = 0; i < f.size(); ++i) {
-    table[i][0] = f[i].x;
-    table[i][1] = f[i].y;
-    table[i][2] = f[i].z;
-  }
-
   TypeDesc type = TypeColor;
-  type.arraylen = table.size();
-  ss->Parameter(*current_group, name, type, table.data());
+  type.arraylen = f.size();
+  ss->Parameter(*current_group, name, type, f.data());
 }
 
 void OSLCompiler::parameter_string_array(const char *name, const array<ustring> &a)
@@ -1655,7 +1638,9 @@ void OSLCompiler::parameter(const char * /*name*/, const Transform & /*tfm*/) {}
 
 void OSLCompiler::parameter_array(const char * /*name*/, const float /*f*/[], int /*arraylen*/) {}
 
-void OSLCompiler::parameter_color_array(const char * /*name*/, const array<float3> & /*f*/) {}
+void OSLCompiler::parameter_color_array(const char * /*name*/, const array<packed_float3> & /*f*/)
+{
+}
 
 void OSLCompiler::parameter_string_array(const char * /*name*/, const array<ustring> & /*a*/) {}
 

@@ -183,7 +183,7 @@ class OSLCompiler {
   void parameter(const char *name, const Transform &tfm);
 
   void parameter_array(const char *name, const float f[], int arraylen);
-  void parameter_color_array(const char *name, const array<float3> &f);
+  void parameter_color_array(const char *name, const array<packed_float3> &f);
   void parameter_string_array(const char *name, const array<ustring> &a);
 
   void parameter_attribute(const char *name, ustring s);

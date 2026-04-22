@@ -188,9 +188,9 @@ bool BVHMetal::build_BLAS_mesh(Progress &progress,
 
     const bool use_fast_trace_bvh = (params.bvh_type == BVH_TYPE_STATIC) || !support_refit_blas();
 
-    const array<float3> &verts = mesh->get_verts();
+    const packed_float3 *verts = mesh->get_position();
     const array<int> &tris = mesh->get_triangles();
-    const size_t num_verts = verts.size();
+    const size_t num_verts = mesh->num_verts();
     const size_t num_indices = tris.size();
 
     size_t num_motion_steps = 1;
@@ -206,18 +206,17 @@ bool BVHMetal::build_BLAS_mesh(Progress &progress,
                                                     options:MTLResourceStorageModeShared];
 
     if (num_motion_steps == 1) {
-      posBuf = [mtl_device newBufferWithBytes:verts.data()
-                                       length:num_verts * sizeof(verts.data()[0])
+      posBuf = [mtl_device newBufferWithBytes:verts
+                                       length:num_verts * sizeof(verts[0])
                                       options:MTLResourceStorageModeShared];
     }
     else {
-      posBuf = [mtl_device
-          newBufferWithLength:num_verts * num_motion_steps * sizeof(verts.data()[0])
-                      options:MTLResourceStorageModeShared];
-      float3 *dest_data = (float3 *)[posBuf contents];
+      posBuf = [mtl_device newBufferWithLength:num_verts * num_motion_steps * sizeof(verts[0])
+                                       options:MTLResourceStorageModeShared];
+      packed_float3 *dest_data = (packed_float3 *)[posBuf contents];
       size_t center_step = (num_motion_steps - 1) / 2;
       for (size_t step = 0; step < num_motion_steps; ++step) {
-        const float3 *verts = mesh->get_verts().data();
+        const packed_float3 *verts = mesh->get_position();
 
         /* The center step for motion vertices is not stored in the attribute. */
         if (step != center_step) {
@@ -235,7 +234,7 @@ bool BVHMetal::build_BLAS_mesh(Progress &progress,
       for (size_t step = 0; step < num_motion_steps; ++step) {
         MTLMotionKeyframeData *k = [MTLMotionKeyframeData data];
         k.buffer = posBuf;
-        k.offset = num_verts * step * sizeof(float3);
+        k.offset = num_verts * step * sizeof(packed_float3);
         vertex_ptrs.push_back(k);
       }
 
@@ -243,7 +242,7 @@ bool BVHMetal::build_BLAS_mesh(Progress &progress,
           [MTLAccelerationStructureMotionTriangleGeometryDescriptor descriptor];
       geomDescMotion.vertexBuffers = [NSArray arrayWithObjects:vertex_ptrs.data()
                                                          count:vertex_ptrs.size()];
-      geomDescMotion.vertexStride = sizeof(verts.data()[0]);
+      geomDescMotion.vertexStride = sizeof(verts[0]);
       geomDescMotion.indexBuffer = indexBuf;
       geomDescMotion.indexBufferOffset = 0;
       geomDescMotion.indexType = MTLIndexTypeUInt32;
@@ -263,7 +262,7 @@ bool BVHMetal::build_BLAS_mesh(Progress &progress,
           [MTLAccelerationStructureTriangleGeometryDescriptor descriptor];
       geomDescNoMotion.vertexBuffer = posBuf;
       geomDescNoMotion.vertexBufferOffset = 0;
-      geomDescNoMotion.vertexStride = sizeof(verts.data()[0]);
+      geomDescNoMotion.vertexStride = sizeof(verts[0]);
       geomDescNoMotion.indexBuffer = indexBuf;
       geomDescNoMotion.indexBufferOffset = 0;
       geomDescNoMotion.indexType = MTLIndexTypeUInt32;
@@ -423,7 +422,7 @@ bool BVHMetal::build_BLAS_hair(Progress &progress,
 
       uint64_t numKeys = hair->num_keys();
       uint64_t numCurves = hair->num_curves();
-      const array<float> &radiuses = hair->get_curve_radius();
+      const float *radiuses = hair->get_radius();
 
       /* Gather the curve geometry. */
       std::vector<float3> cpData;
@@ -436,11 +435,10 @@ bool BVHMetal::build_BLAS_hair(Progress &progress,
       for (size_t step = 0; step < num_motion_steps; ++step) {
 
         /* The center step for motion vertices is not stored in the attribute. */
-        const float3 *keys = hair->get_curve_keys().data();
+        const packed_float3 *keys = hair->get_position();
         size_t center_step = (num_motion_steps - 1) / 2;
         if (step != center_step) {
           size_t attr_offset = (step > center_step) ? step - 1 : step;
-          /* Technically this is a float4 array, but sizeof(float3) == sizeof(float4). */
           keys = motion_keys->data_float3() + attr_offset * numKeys;
         }
 
@@ -541,15 +539,15 @@ bool BVHMetal::build_BLAS_hair(Progress &progress,
 
       uint64_t numKeys = hair->num_keys();
       uint64_t numCurves = hair->num_curves();
-      const array<float> &radiuses = hair->get_curve_radius();
+      const float *radiuses = hair->get_radius();
 
       /* Gather the curve geometry. */
-      std::vector<float3> cpData;
+      std::vector<packed_float3> cpData;
       std::vector<int> idxData;
       std::vector<float> radiusData;
       cpData.reserve(numKeys);
       radiusData.reserve(numKeys);
-      auto keys = hair->get_curve_keys();
+      const packed_float3 *keys = hair->get_position();
       for (int c = 0; c < numCurves; ++c) {
         const Hair::Curve curve = hair->get_curve(c);
         int segCount = curve.num_segments();
@@ -578,7 +576,7 @@ bool BVHMetal::build_BLAS_hair(Progress &progress,
                                          options:MTLResourceStorageModeShared];
 
       cpBuffer = [mtl_device newBufferWithBytes:cpData.data()
-                                         length:cpData.size() * sizeof(float3)
+                                         length:cpData.size() * sizeof(packed_float3)
                                         options:MTLResourceStorageModeShared];
 
       radiusBuffer = [mtl_device newBufferWithBytes:radiusData.data()
@@ -588,7 +586,7 @@ bool BVHMetal::build_BLAS_hair(Progress &progress,
       geomDescCrv.controlPointBuffer = cpBuffer;
       geomDescCrv.radiusBuffer = radiusBuffer;
       geomDescCrv.controlPointCount = cpData.size();
-      geomDescCrv.controlPointStride = sizeof(float3);
+      geomDescCrv.controlPointStride = sizeof(packed_float3);
       geomDescCrv.controlPointFormat = MTLAttributeFormatFloat3;
       geomDescCrv.controlPointBufferOffset = 0;
       geomDescCrv.segmentCount = idxData.size();
@@ -755,9 +753,9 @@ bool BVHMetal::build_BLAS_pointcloud(Progress &progress,
       return false;
     }
 
-    const size_t num_points = pointcloud->get_points().size();
-    const float3 *points = pointcloud->get_points().data();
-    const float *radius = pointcloud->get_radius().data();
+    const size_t num_points = pointcloud->num_points();
+    const packed_float3 *points = pointcloud->get_position();
+    const float *radius = pointcloud->get_radius();
 
     const bool use_fast_trace_bvh = (params.bvh_type == BVH_TYPE_STATIC) || !support_refit_blas();
 
@@ -1029,7 +1027,7 @@ bool BVHMetal::build_TLAS(Progress &progress,
     /* Defined inside available check, for return type to be available. */
     auto make_null_BLAS = [this](id<MTLDevice> mtl_device,
                                  id<MTLCommandQueue> queue) -> id<MTLAccelerationStructure> {
-      id<MTLBuffer> nullBuf = [mtl_device newBufferWithLength:sizeof(float3)
+      id<MTLBuffer> nullBuf = [mtl_device newBufferWithLength:sizeof(packed_float3)
                                                       options:MTLResourceStorageModeShared];
 
       /* Create an acceleration structure. */
@@ -1037,7 +1035,7 @@ bool BVHMetal::build_TLAS(Progress &progress,
           [MTLAccelerationStructureTriangleGeometryDescriptor descriptor];
       geomDesc.vertexBuffer = nullBuf;
       geomDesc.vertexBufferOffset = 0;
-      geomDesc.vertexStride = sizeof(float3);
+      geomDesc.vertexStride = sizeof(packed_float3);
       geomDesc.indexBuffer = nullBuf;
       geomDesc.indexBufferOffset = 0;
       geomDesc.indexType = MTLIndexTypeUInt32;

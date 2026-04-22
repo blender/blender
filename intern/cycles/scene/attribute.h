@@ -99,10 +99,10 @@ class Attribute {
     assert(data_sizeof() == sizeof(float2));
     return reinterpret_cast<float2 *>(this->data_for_write());
   }
-  float3 *data_float3_for_write()
+  packed_float3 *data_float3_for_write()
   {
-    assert(data_sizeof() == sizeof(float3));
-    return reinterpret_cast<float3 *>(this->data_for_write());
+    assert(data_sizeof() == sizeof(packed_float3));
+    return reinterpret_cast<packed_float3 *>(this->data_for_write());
   }
   float4 *data_float4_for_write()
   {
@@ -145,10 +145,10 @@ class Attribute {
     assert(data_sizeof() == sizeof(float2));
     return reinterpret_cast<const float2 *>(this->data());
   }
-  const float3 *data_float3() const
+  const packed_float3 *data_float3() const
   {
-    assert(data_sizeof() == sizeof(float3));
-    return reinterpret_cast<const float3 *>(this->data());
+    assert(data_sizeof() == sizeof(packed_float3));
+    return reinterpret_cast<const packed_float3 *>(this->data());
   }
   const float4 *data_float4() const
   {

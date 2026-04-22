@@ -42,13 +42,13 @@ void GeometryManager::device_update_mesh(Device * /*unused*/,
     if (geom->is_mesh() || geom->is_volume()) {
       Mesh *mesh = static_cast<Mesh *>(geom);
 
-      vert_size += mesh->verts.size();
+      vert_size += mesh->num_verts();
       tri_size += mesh->num_triangles();
     }
     else if (geom->is_hair()) {
       Hair *hair = static_cast<Hair *>(geom);
 
-      curve_key_size += hair->get_curve_keys().size();
+      curve_key_size += hair->num_keys();
       curve_size += hair->num_curves();
       curve_segment_size += hair->num_segments();
     }
@@ -113,8 +113,8 @@ void GeometryManager::device_update_mesh(Device * /*unused*/,
       if (geom->is_hair()) {
         Hair *hair = static_cast<Hair *>(geom);
 
-        const bool curve_keys_co_modified = hair->curve_radius_is_modified() ||
-                                            hair->curve_keys_is_modified();
+        const bool curve_keys_co_modified = hair->radius_is_modified() ||
+                                            hair->position_is_modified();
         const bool curve_data_modified = hair->curve_shader_is_modified() ||
                                          hair->curve_first_key_is_modified();
 

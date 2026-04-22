@@ -701,7 +701,7 @@ void GeometryManager::create_volume_mesh(const Scene *scene, Volume *volume, Pro
   volume->used_shaders.clear();
   volume->used_shaders.push_back_slow(volume_shader);
 
-  std::ranges::copy(vertices, volume->get_verts().data());
+  std::ranges::copy(vertices, volume->get_position_for_write());
   std::ranges::copy(indices, volume->triangles.data());
   std::ranges::fill(volume->get_shader(), 0);
   std::ranges::fill(volume->get_smooth(), false);
@@ -904,10 +904,10 @@ openvdb::BoolGrid::ConstPtr VolumeManager::mesh_to_sdf_grid(const Mesh *mesh,
                                                             const Shader *shader,
                                                             const float half_width)
 {
-  const int num_verts = mesh->get_verts().size();
+  const int num_verts = mesh->num_verts();
   std::vector<openvdb::Vec3f> points(num_verts);
   parallel_for(0, num_verts, [&](int i) {
-    const float3 &vert = mesh->get_verts()[i];
+    const float3 &vert = mesh->get_position()[i];
     points[i] = openvdb::Vec3f(vert.x, vert.y, vert.z);
   });
 

@@ -25,31 +25,40 @@ class Hair : public Geometry {
     }
 
     void bounds_grow(const int k,
-                     const float3 *curve_keys,
+                     const float3 *positions,
+                     const float *curve_radius,
+                     BoundBox &bounds) const;
+    void bounds_grow(const int k,
+                     const packed_float3 *positions,
                      const float *curve_radius,
                      BoundBox &bounds) const;
     void bounds_grow(const int k, const float4 *keys, BoundBox &bounds) const;
     void bounds_grow(const float4 keys[4], BoundBox &bounds) const;
     void bounds_grow(const float3 keys[4], BoundBox &bounds) const;
     void bounds_grow(const int k,
-                     const float3 *curve_keys,
+                     const float3 *positions,
+                     const float *curve_radius,
+                     const Transform &aligned_space,
+                     BoundBox &bounds) const;
+    void bounds_grow(const int k,
+                     const packed_float3 *positions,
                      const float *curve_radius,
                      const Transform &aligned_space,
                      BoundBox &bounds) const;
 
-    void motion_keys(const float3 *curve_keys,
+    void motion_keys(const packed_float3 *positions,
                      const float *curve_radius,
                      const float4 *key_steps,
-                     const size_t num_curve_keys,
+                     const size_t num_positions,
                      const size_t num_steps,
                      const float time,
                      size_t k0,
                      size_t k1,
                      float4 r_keys[2]) const;
-    void cardinal_motion_keys(const float3 *curve_keys,
+    void cardinal_motion_keys(const packed_float3 *positions,
                               const float *curve_radius,
                               const float4 *key_steps,
-                              const size_t num_curve_keys,
+                              const size_t num_positions,
                               const size_t num_steps,
                               const float time,
                               size_t k0,
@@ -58,19 +67,19 @@ class Hair : public Geometry {
                               size_t k3,
                               float4 r_keys[4]) const;
 
-    void keys_for_step(const float3 *curve_keys,
+    void keys_for_step(const packed_float3 *positions,
                        const float *curve_radius,
                        const float4 *key_steps,
-                       const size_t num_curve_keys,
+                       const size_t num_positions,
                        const size_t num_steps,
                        const size_t step,
                        size_t k0,
                        size_t k1,
                        float4 r_keys[2]) const;
-    void cardinal_keys_for_step(const float3 *curve_keys,
+    void cardinal_keys_for_step(const packed_float3 *positions,
                                 const float *curve_radius,
                                 const float4 *key_steps,
-                                const size_t num_curve_keys,
+                                const size_t num_positions,
                                 const size_t num_steps,
                                 const size_t step,
                                 size_t k0,
@@ -80,10 +89,15 @@ class Hair : public Geometry {
                                 float4 r_keys[4]) const;
   };
 
-  NODE_SOCKET_API_ARRAY(array<float3>, curve_keys)
+  NODE_SOCKET_API_ARRAY(array<packed_float3>, curve_keys)
   NODE_SOCKET_API_ARRAY(array<float>, curve_radius)
   NODE_SOCKET_API_ARRAY(array<int>, curve_first_key)
   NODE_SOCKET_API_ARRAY(array<int>, curve_shader)
+
+  const packed_float3 *get_position() const;
+  packed_float3 *get_position_for_write();
+  const float *get_radius() const;
+  float *get_radius_for_write();
 
   /* BVH */
   size_t curve_key_offset;
@@ -127,7 +141,7 @@ class Hair : public Geometry {
 
   size_t num_segments() const
   {
-    return curve_keys.size() - curve_first_key.size();
+    return num_keys() - curve_first_key.size();
   }
 
   bool is_traceable() const

@@ -376,20 +376,19 @@ void BVH2::refit_primitives(const int start, const int end, BoundBox &bbox, uint
         const Hair::Curve curve = hair->get_curve(pidx - prim_offset);
         const int k = PRIMITIVE_UNPACK_SEGMENT(pack.prim_type[prim]);
 
-        curve.bounds_grow(k, hair->get_curve_keys().data(), hair->get_curve_radius().data(), bbox);
+        curve.bounds_grow(k, hair->get_position(), hair->get_radius(), bbox);
 
         /* Motion curves. */
         if (hair->get_use_motion_blur()) {
           Attribute *attr = hair->attributes.find(ATTR_STD_MOTION_VERTEX_POSITION);
 
           if (attr) {
-            const size_t hair_size = hair->get_curve_keys().size();
+            const size_t hair_size = hair->num_keys();
             const size_t steps = hair->get_motion_steps() - 1;
-            const float3 *key_steps = attr->data_float3();
+            const packed_float3 *key_steps = attr->data_float3();
 
             for (size_t i = 0; i < steps; i++) {
-              curve.bounds_grow(
-                  k, key_steps + i * hair_size, hair->get_curve_radius().data(), bbox);
+              curve.bounds_grow(k, key_steps + i * hair_size, hair->get_radius(), bbox);
             }
           }
         }
@@ -398,8 +397,8 @@ void BVH2::refit_primitives(const int start, const int end, BoundBox &bbox, uint
         /* Points. */
         const PointCloud *pointcloud = static_cast<const PointCloud *>(ob->get_geometry());
         const int prim_offset = (params.top_level) ? pointcloud->prim_offset : 0;
-        const float3 *points = pointcloud->points.data();
-        const float *radius = pointcloud->radius.data();
+        const packed_float3 *points = pointcloud->get_position();
+        const float *radius = pointcloud->get_radius();
         const PointCloud::Point point = pointcloud->get_point(pidx - prim_offset);
 
         point.bounds_grow(points, radius, bbox);
@@ -409,12 +408,15 @@ void BVH2::refit_primitives(const int start, const int end, BoundBox &bbox, uint
           Attribute *attr = pointcloud->attributes.find(ATTR_STD_MOTION_VERTEX_POSITION);
 
           if (attr) {
-            const size_t pointcloud_size = pointcloud->points.size();
+            const size_t pointcloud_size = pointcloud->num_points();
             const size_t steps = pointcloud->get_motion_steps() - 1;
-            const float3 *point_steps = attr->data_float3();
+            const float4 *point_steps = attr->data_float4();
 
             for (size_t i = 0; i < steps; i++) {
-              point.bounds_grow(point_steps + i * pointcloud_size, radius, bbox);
+              const size_t idx = i * pointcloud_size + point.index;
+              const float3 P = make_float3(point_steps[idx]);
+              const float r = point_steps[idx].w;
+              bbox.grow(P, r);
             }
           }
         }
@@ -424,7 +426,7 @@ void BVH2::refit_primitives(const int start, const int end, BoundBox &bbox, uint
         const Mesh *mesh = static_cast<const Mesh *>(ob->get_geometry());
         const int prim_offset = (params.top_level) ? mesh->prim_offset : 0;
         const Mesh::Triangle triangle = mesh->get_triangle(pidx - prim_offset);
-        const float3 *vpos = mesh->verts.data();
+        const packed_float3 *vpos = mesh->get_position();
 
         triangle.bounds_grow(vpos, bbox);
 
@@ -433,9 +435,9 @@ void BVH2::refit_primitives(const int start, const int end, BoundBox &bbox, uint
           Attribute *attr = mesh->attributes.find(ATTR_STD_MOTION_VERTEX_POSITION);
 
           if (attr) {
-            const size_t mesh_size = mesh->verts.size();
+            const size_t mesh_size = mesh->num_verts();
             const size_t steps = mesh->motion_steps - 1;
-            const float3 *vert_steps = attr->data_float3();
+            const packed_float3 *vert_steps = attr->data_float3();
 
             for (size_t i = 0; i < steps; i++) {
               triangle.bounds_grow(vert_steps + i * mesh_size, bbox);

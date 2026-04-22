@@ -132,7 +132,7 @@ static inline void free_object_to_mesh(BObjectInfo &b_ob_info, blender::Mesh &me
 }
 
 static inline void colorramp_to_array(const blender::ColorBand &ramp,
-                                      array<float3> &ramp_color,
+                                      array<packed_float3> &ramp_color,
                                       array<float> &ramp_alpha,
                                       const int size)
 {
@@ -216,7 +216,7 @@ static inline void curvemapping_float_to_array(const blender::CurveMapping &cuma
 }
 
 static inline void curvemapping_color_to_array(const blender::CurveMapping &cumap,
-                                               array<float3> &data,
+                                               array<packed_float3> &data,
                                                const int size,
                                                bool rgb_curve)
 {

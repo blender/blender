@@ -198,7 +198,7 @@ size_t Attribute::data_sizeof() const
   if (type == TypeRGBA) {
     return sizeof(float4);
   }
-  return sizeof(float3);
+  return sizeof(packed_float3);
 }
 
 size_t Attribute::element_size(Geometry *geom,
@@ -221,7 +221,7 @@ size_t Attribute::element_size(Geometry *geom,
           size = mesh->get_num_subd_base_verts();
         }
         else {
-          size = mesh->get_verts().size();
+          size = mesh->num_verts();
         }
       }
       else if (geom->is_pointcloud()) {
@@ -238,7 +238,7 @@ size_t Attribute::element_size(Geometry *geom,
           size = mesh->get_num_subd_base_verts() * (mesh->get_motion_steps() - 1);
         }
         else {
-          size = mesh->get_verts().size() * (mesh->get_motion_steps() - 1);
+          size = mesh->num_verts() * (mesh->get_motion_steps() - 1);
         }
       }
       else if (geom->is_pointcloud()) {
@@ -284,7 +284,7 @@ size_t Attribute::element_size(Geometry *geom,
     case ATTR_ELEMENT_CURVE_KEY_NORMAL:
       if (geom->is_hair()) {
         Hair *hair = static_cast<Hair *>(geom);
-        size = hair->get_curve_keys().size();
+        size = hair->num_keys();
       }
       break;
     case ATTR_ELEMENT_CURVE_KEY_MOTION:
@@ -292,7 +292,7 @@ size_t Attribute::element_size(Geometry *geom,
       if (geom->is_hair()) {
         Hair *hair = static_cast<Hair *>(geom);
         DCHECK_GT(hair->get_motion_steps(), 0);
-        size = hair->get_curve_keys().size() * (hair->get_motion_steps() - 1);
+        size = hair->num_keys() * (hair->get_motion_steps() - 1);
       }
       break;
     default:
@@ -574,6 +574,8 @@ static TypeDesc find_type_from_geometry_std(Geometry *geometry, AttributeStandar
 {
   if (geometry->is_mesh()) {
     switch (std) {
+      case ATTR_STD_POSITION:
+        return TypePoint;
       case ATTR_STD_VERTEX_NORMAL:
         return TypeNormal;
       case ATTR_STD_NORMAL_UNDISPLACED:
@@ -617,6 +619,8 @@ static TypeDesc find_type_from_geometry_std(Geometry *geometry, AttributeStandar
   }
   else if (geometry->is_pointcloud()) {
     switch (std) {
+      case ATTR_STD_POSITION:
+        return TypePoint;
       case ATTR_STD_UV:
         return TypeFloat2;
       case ATTR_STD_GENERATED:
@@ -634,6 +638,8 @@ static TypeDesc find_type_from_geometry_std(Geometry *geometry, AttributeStandar
   }
   else if (geometry->is_volume()) {
     switch (std) {
+      case ATTR_STD_POSITION:
+        return TypePoint;
       case ATTR_STD_VERTEX_NORMAL:
         return TypeNormal;
       case ATTR_STD_CORNER_NORMAL:
@@ -659,6 +665,8 @@ static TypeDesc find_type_from_geometry_std(Geometry *geometry, AttributeStandar
   }
   else if (geometry->is_hair()) {
     switch (std) {
+      case ATTR_STD_POSITION:
+        return TypePoint;
       case ATTR_STD_VERTEX_NORMAL:
         return TypeNormal;
       case ATTR_STD_MOTION_VERTEX_NORMAL:
@@ -696,6 +704,8 @@ static AttributeElement find_element_from_geometry_std(Geometry *geometry, Attri
 {
   if (geometry->is_mesh()) {
     switch (std) {
+      case ATTR_STD_POSITION:
+        return ATTR_ELEMENT_VERTEX;
       case ATTR_STD_VERTEX_NORMAL:
         return ATTR_ELEMENT_VERTEX_NORMAL;
       case ATTR_STD_NORMAL_UNDISPLACED:
@@ -739,6 +749,8 @@ static AttributeElement find_element_from_geometry_std(Geometry *geometry, Attri
   }
   else if (geometry->is_pointcloud()) {
     switch (std) {
+      case ATTR_STD_POSITION:
+        return ATTR_ELEMENT_VERTEX;
       case ATTR_STD_UV:
         return ATTR_ELEMENT_VERTEX;
       case ATTR_STD_GENERATED:
@@ -756,6 +768,8 @@ static AttributeElement find_element_from_geometry_std(Geometry *geometry, Attri
   }
   else if (geometry->is_volume()) {
     switch (std) {
+      case ATTR_STD_POSITION:
+        return ATTR_ELEMENT_VERTEX;
       case ATTR_STD_VERTEX_NORMAL:
         return ATTR_ELEMENT_VERTEX_NORMAL;
       case ATTR_STD_CORNER_NORMAL:
@@ -781,6 +795,8 @@ static AttributeElement find_element_from_geometry_std(Geometry *geometry, Attri
   }
   else if (geometry->is_hair()) {
     switch (std) {
+      case ATTR_STD_POSITION:
+        return ATTR_ELEMENT_CURVE_KEY;
       case ATTR_STD_VERTEX_NORMAL:
         return ATTR_ELEMENT_CURVE_KEY_NORMAL;
       case ATTR_STD_MOTION_VERTEX_NORMAL:

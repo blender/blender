@@ -645,6 +645,7 @@ void LightManager::device_update_distribution(Device * /*unused*/,
     const int visibility_flag = light_object_visibility_flags(object);
 
     const size_t mesh_num_triangles = mesh->num_triangles();
+    const packed_float3 *mesh_positions = mesh->get_position();
     for (size_t i = 0; i < mesh_num_triangles; i++) {
       const int shader_index = mesh->get_shader()[i];
       Shader *shader = (shader_index < mesh->get_used_shaders().size()) ?
@@ -659,12 +660,12 @@ void LightManager::device_update_distribution(Device * /*unused*/,
         offset++;
 
         const Mesh::Triangle t = mesh->get_triangle(i);
-        if (!t.valid(mesh->get_verts().data())) {
+        if (!t.valid(mesh_positions)) {
           continue;
         }
-        float3 p1 = mesh->get_verts()[t.v[0]];
-        float3 p2 = mesh->get_verts()[t.v[1]];
-        float3 p3 = mesh->get_verts()[t.v[2]];
+        float3 p1 = mesh_positions[t.v[0]];
+        float3 p2 = mesh_positions[t.v[1]];
+        float3 p3 = mesh_positions[t.v[2]];
 
         if (!transform_applied) {
           p1 = transform_point(&tfm, p1);

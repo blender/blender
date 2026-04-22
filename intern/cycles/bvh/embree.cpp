@@ -394,12 +394,12 @@ void BVHEmbree::set_tri_vertex_buffer(RTCGeometry geom_id, const Mesh *mesh, con
       }
     }
   }
-  const size_t num_verts = mesh->get_verts().size();
+  const size_t num_verts = mesh->num_verts();
 
   for (int t = 0; t < num_motion_steps; ++t) {
-    const float3 *verts;
+    const packed_float3 *verts;
     if (t == t_mid) {
-      verts = mesh->get_verts().data();
+      verts = mesh->get_position();
     }
     else {
       const int t_ = (t > t_mid) ? (t - 1) : t;
@@ -411,16 +411,13 @@ void BVHEmbree::set_tri_vertex_buffer(RTCGeometry geom_id, const Mesh *mesh, con
     }
     else {
       if (!rtc_device_is_sycl) {
-        static_assert(sizeof(float3) == 16,
-                      "Embree requires that each buffer element be readable with 16-byte SSE load "
-                      "instructions");
         rtcSetSharedGeometryBuffer(geom_id,
                                    RTC_BUFFER_TYPE_VERTEX,
                                    t,
                                    RTC_FORMAT_FLOAT3,
                                    verts,
                                    0,
-                                   sizeof(float3),
+                                   sizeof(packed_float3),
                                    num_verts);
       }
       else {
@@ -525,7 +522,7 @@ void BVHEmbree::set_curve_vertex_buffer(RTCGeometry geom_id, const Hair *hair, c
 
   /* Copy the CV data to Embree */
   const int t_mid = (num_motion_steps - 1) / 2;
-  const float *curve_radius = hair->get_curve_radius().data();
+  const float *curve_radius = hair->get_radius();
   for (int t = 0; t < num_motion_steps; ++t) {
     // As float4 and float3 are no longer interchangeable the 2 types need to be
     // handled separately. Attributes are float4s where the radius is stored in w and
@@ -559,8 +556,8 @@ void BVHEmbree::set_curve_vertex_buffer(RTCGeometry geom_id, const Hair *hair, c
     if (rtc_verts) {
       const size_t num_curves = hair->num_curves();
       if (t == t_mid || attr_mP == nullptr) {
-        const float3 *verts = hair->get_curve_keys().data();
-        pack_motion_verts<float3>(
+        const packed_float3 *verts = hair->get_position();
+        pack_motion_verts<packed_float3>(
             num_curves, hair, verts, curve_radius, rtc_verts, hair->curve_shape);
       }
       else {
@@ -594,7 +591,7 @@ void BVHEmbree::set_point_vertex_buffer(RTCGeometry geom_id,
 
   /* Copy the point data to Embree */
   const int t_mid = (num_motion_steps - 1) / 2;
-  const float *radius = pointcloud->get_radius().data();
+  const float *radius = pointcloud->get_radius();
   for (int t = 0; t < num_motion_steps; ++t) {
     // As float4 and float3 are no longer interchangeable the 2 types need to be
     // handled separately. Attributes are float4s where the radius is stored in w and
@@ -629,12 +626,9 @@ void BVHEmbree::set_point_vertex_buffer(RTCGeometry geom_id,
     if (rtc_verts) {
       if (t == t_mid || attr_mP == nullptr) {
         /* Pack the motion points into a float4 as [x y z radius]. */
-        const float3 *verts = pointcloud->get_points().data();
+        const packed_float3 *verts = pointcloud->get_position();
         for (size_t j = 0; j < num_points; ++j) {
-          rtc_verts[j].x = verts[j].x;
-          rtc_verts[j].y = verts[j].y;
-          rtc_verts[j].z = verts[j].z;
-          rtc_verts[j].w = radius[j];
+          rtc_verts[j] = make_float4(float3(verts[j]), radius[j]);
         }
       }
       else {

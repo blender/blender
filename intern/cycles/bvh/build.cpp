@@ -67,7 +67,7 @@ void BVHBuild::add_reference_triangles(BoundBox &root,
   const size_t num_triangles = mesh->num_triangles();
   for (uint j = 0; j < num_triangles; j++) {
     const Mesh::Triangle t = mesh->get_triangle(j);
-    const float3 *verts = mesh->verts.data();
+    const packed_float3 *verts = mesh->get_position();
     if (attr_mP == nullptr) {
       BoundBox bounds = BoundBox::empty;
       t.bounds_grow(verts, bounds);
@@ -85,7 +85,7 @@ void BVHBuild::add_reference_triangles(BoundBox &root,
       /* TODO(sergey): Support motion steps for spatially split BVH. */
       const size_t num_verts = mesh->verts.size();
       const size_t num_steps = mesh->motion_steps;
-      const float3 *vert_steps = attr_mP->data_float3();
+      const packed_float3 *vert_steps = attr_mP->data_float3();
       BoundBox bounds = BoundBox::empty;
       t.bounds_grow(verts, bounds);
       for (size_t step = 0; step < num_steps - 1; step++) {
@@ -106,7 +106,7 @@ void BVHBuild::add_reference_triangles(BoundBox &root,
       const float num_bvh_steps_inv_1 = 1.0f / (num_bvh_steps - 1);
       const size_t num_verts = mesh->verts.size();
       const size_t num_steps = mesh->motion_steps;
-      const float3 *vert_steps = attr_mP->data_float3();
+      const packed_float3 *vert_steps = attr_mP->data_float3();
       /* Calculate bounding box of the previous time step.
        * Will be reused later to avoid duplicated work on
        * calculating BVH time step boundbox.
@@ -159,12 +159,12 @@ void BVHBuild::add_reference_curves(BoundBox &root,
   const size_t num_curves = hair->num_curves();
   for (uint j = 0; j < num_curves; j++) {
     const Hair::Curve curve = hair->get_curve(j);
-    const float *curve_radius = hair->get_curve_radius().data();
+    const float *curve_radius = hair->get_radius();
     for (int k = 0; k < curve.num_keys - 1; k++) {
       if (curve_attr_mP == nullptr) {
         /* Really simple logic for static hair. */
         BoundBox bounds = BoundBox::empty;
-        curve.bounds_grow(k, hair->get_curve_keys().data(), curve_radius, bounds);
+        curve.bounds_grow(k, hair->get_position(), curve_radius, bounds);
         if (bounds.valid()) {
           const int packed_type = PRIMITIVE_PACK_SEGMENT(primitive_type, k);
           references.push_back(BVHReference(bounds, j, object_index, packed_type));
@@ -179,8 +179,8 @@ void BVHBuild::add_reference_curves(BoundBox &root,
          */
         /* TODO(sergey): Support motion steps for spatially split BVH. */
         BoundBox bounds = BoundBox::empty;
-        curve.bounds_grow(k, hair->get_curve_keys().data(), curve_radius, bounds);
-        const size_t num_keys = hair->get_curve_keys().size();
+        curve.bounds_grow(k, hair->get_position(), curve_radius, bounds);
+        const size_t num_keys = hair->num_keys();
         const size_t num_steps = hair->get_motion_steps();
         const float4 *key_steps = curve_attr_mP->data_float4();
         for (size_t step = 0; step < num_steps - 1; step++) {
@@ -201,9 +201,9 @@ void BVHBuild::add_reference_curves(BoundBox &root,
         const int num_bvh_steps = params.num_motion_curve_steps * 2 + 1;
         const float num_bvh_steps_inv_1 = 1.0f / (num_bvh_steps - 1);
         const size_t num_steps = hair->get_motion_steps();
-        const float3 *curve_keys = hair->get_curve_keys().data();
+        const packed_float3 *curve_keys = hair->get_position();
         const float4 *key_steps = curve_attr_mP->data_float4();
-        const size_t num_keys = hair->get_curve_keys().size();
+        const size_t num_keys = hair->num_keys();
         /* Calculate bounding box of the previous time step.
          * Will be reused later to avoid duplicated work on
          * calculating BVH time step boundbox.
@@ -269,8 +269,8 @@ void BVHBuild::add_reference_points(BoundBox &root,
     point_attr_mP = pointcloud->attributes.find(ATTR_STD_MOTION_VERTEX_POSITION);
   }
 
-  const float3 *points_data = pointcloud->points.data();
-  const float *radius_data = pointcloud->radius.data();
+  const packed_float3 *points_data = pointcloud->get_position();
+  const float *radius_data = pointcloud->get_radius();
   const size_t num_points = pointcloud->num_points();
   const float4 *motion_data = (point_attr_mP) ? point_attr_mP->data_float4() : nullptr;
   const size_t num_steps = pointcloud->get_motion_steps();
@@ -315,11 +315,11 @@ void BVHBuild::add_reference_points(BoundBox &root,
      */
     const int num_bvh_steps = params.num_motion_point_steps * 2 + 1;
     const float num_bvh_steps_inv_1 = 1.0f / (num_bvh_steps - 1);
+    const size_t num_steps = pointcloud->get_motion_steps();
+    const float4 *point_steps = point_attr_mP->data_float4();
 
     for (uint j = 0; j < num_points; j++) {
       const PointCloud::Point point = pointcloud->get_point(j);
-      const size_t num_steps = pointcloud->get_motion_steps();
-      const float4 *point_steps = point_attr_mP->data_float4();
 
       /* Calculate bounding box of the previous time step.
        * Will be reused later to avoid duplicated work on

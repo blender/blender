@@ -43,7 +43,7 @@ static void attr_create_motion_from_velocity(Mesh *mesh,
                                              const blender::Span<blender::float3> b_attr,
                                              const float motion_scale)
 {
-  const int numverts = mesh->get_verts().size();
+  const int numverts = mesh->num_verts();
 
   /* Override motion steps to fixed number. */
   mesh->set_motion_steps(3);
@@ -53,7 +53,7 @@ static void attr_create_motion_from_velocity(Mesh *mesh,
                                  mesh->subd_attributes;
 
   /* Find or add attribute */
-  float3 *P = mesh->get_verts().data();
+  const packed_float3 *P = mesh->get_position();
   Attribute *attr_mP = attributes.find(ATTR_STD_MOTION_VERTEX_POSITION);
 
   if (!attr_mP) {
@@ -64,10 +64,10 @@ static void attr_create_motion_from_velocity(Mesh *mesh,
   const float motion_times[2] = {-1.0f, 1.0f};
   for (int step = 0; step < 2; step++) {
     const float relative_time = motion_times[step] * 0.5f * motion_scale;
-    float3 *mP = attr_mP->data_float3_for_write() + step * numverts;
+    packed_float3 *mP = attr_mP->data_float3_for_write() + step * numverts;
 
     for (int i = 0; i < numverts; i++) {
-      mP[i] = P[i] + make_float3(b_attr[i][0], b_attr[i][1], b_attr[i][2]) * relative_time;
+      mP[i] = float3(P[i]) + make_float3(b_attr[i][0], b_attr[i][1], b_attr[i][2]) * relative_time;
     }
   }
 }
@@ -394,12 +394,12 @@ static void attr_create_subd_uv_map(Scene *scene,
 /* Compare vertices by sum of their coordinates. */
 class VertexAverageComparator {
  public:
-  VertexAverageComparator(const array<float3> &verts) : verts_(verts) {}
+  VertexAverageComparator(const packed_float3 *verts, size_t /*num_verts*/) : verts_(verts) {}
 
   bool operator()(const int &vert_idx_a, const int &vert_idx_b)
   {
-    const float3 &vert_a = verts_[vert_idx_a];
-    const float3 &vert_b = verts_[vert_idx_b];
+    const float3 vert_a = verts_[vert_idx_a];
+    const float3 vert_b = verts_[vert_idx_b];
     if (vert_a == vert_b) {
       /* Special case for doubles, so we ensure ordering. */
       return vert_idx_a > vert_idx_b;
@@ -410,7 +410,7 @@ class VertexAverageComparator {
   }
 
  protected:
-  const array<float3> &verts_;
+  const packed_float3 *verts_;
 };
 
 static void attr_create_pointiness(Mesh *mesh,
@@ -431,7 +431,7 @@ static void attr_create_pointiness(Mesh *mesh,
   for (int vert_index = 0; vert_index < num_verts; ++vert_index) {
     sorted_vert_indeices[vert_index] = vert_index;
   }
-  const VertexAverageComparator compare(mesh->get_verts());
+  const VertexAverageComparator compare(mesh->get_position(), mesh->num_verts());
   sort(sorted_vert_indeices.begin(), sorted_vert_indeices.end(), compare);
   /* This array stores index of the original vertex for the given vertex
    * index.
@@ -439,13 +439,13 @@ static void attr_create_pointiness(Mesh *mesh,
   vector<int> vert_orig_index(num_verts);
   for (int sorted_vert_index = 0; sorted_vert_index < num_verts; ++sorted_vert_index) {
     const int vert_index = sorted_vert_indeices[sorted_vert_index];
-    const float3 &vert_co = mesh->get_verts()[vert_index];
+    const float3 &vert_co = mesh->get_position()[vert_index];
     bool found = false;
     for (int other_sorted_vert_index = sorted_vert_index + 1; other_sorted_vert_index < num_verts;
          ++other_sorted_vert_index)
     {
       const int other_vert_index = sorted_vert_indeices[other_sorted_vert_index];
-      const float3 &other_vert_co = mesh->get_verts()[other_vert_index];
+      const float3 &other_vert_co = mesh->get_position()[other_vert_index];
       /* We are too far away now, we wouldn't have duplicate. */
       if ((other_vert_co.x + other_vert_co.y + other_vert_co.z) -
               (vert_co.x + vert_co.y + vert_co.z) >
@@ -655,7 +655,7 @@ static void create_mesh(Scene *scene,
   }
   mesh->resize_mesh(positions.size(), numtris);
 
-  float3 *verts = mesh->get_verts().data();
+  packed_float3 *verts = mesh->get_position_for_write();
   for (const int i : positions.index_range()) {
     verts[i] = make_float3(positions[i][0], positions[i][1], positions[i][2]);
   }
@@ -693,7 +693,7 @@ static void create_mesh(Scene *scene,
         texspace_location,
         texspace_size);
 
-    float3 *generated = attr->data_float3_for_write();
+    packed_float3 *generated = attr->data_float3_for_write();
 
     for (const int i : positions.index_range()) {
       blender::float3 value;
@@ -1016,7 +1016,7 @@ void BlenderSync::sync_mesh(BObjectInfo &b_ob_info, Mesh *mesh)
 void BlenderSync::sync_mesh_motion(BObjectInfo &b_ob_info, Mesh *mesh, const int motion_step)
 {
   /* Skip if no vertices were exported. */
-  const size_t numverts = mesh->get_verts().size();
+  const size_t numverts = mesh->num_verts();
   const size_t numtris = mesh->num_triangles();
   if (numverts == 0) {
     return;
@@ -1066,7 +1066,7 @@ void BlenderSync::sync_mesh_motion(BObjectInfo &b_ob_info, Mesh *mesh, const int
       new_attribute = true;
     }
     /* Load vertex data from mesh. */
-    float3 *mP = attr_mP->data_float3_for_write() + motion_step * numverts;
+    packed_float3 *mP = attr_mP->data_float3_for_write() + motion_step * numverts;
     packed_normal *mN = (attr_mN) ? attr_mN->data_normal_for_write() + motion_step * numverts :
                                     nullptr;
     packed_normal *mcN = (attr_mcN) ?
@@ -1106,7 +1106,8 @@ void BlenderSync::sync_mesh_motion(BObjectInfo &b_ob_info, Mesh *mesh, const int
     }
     if (new_attribute) {
       /* In case of new attribute, we verify if there really was any motion. */
-      if (topology_changed || memcmp(mP, mesh->get_verts().data(), sizeof(float3) * numverts) == 0)
+      if (topology_changed ||
+          memcmp(mP, mesh->get_position(), sizeof(packed_float3) * numverts) == 0)
       {
         /* no motion, remove attributes again */
         if (topology_changed) {
@@ -1127,7 +1128,7 @@ void BlenderSync::sync_mesh_motion(BObjectInfo &b_ob_info, Mesh *mesh, const int
         LOG_TRACE << "Filling deformation motion for object " << ob_name;
         /* motion, fill up previous steps that we might have skipped because
          * they had no motion, but we need them anyway now */
-        const float3 *P = mesh->get_verts().data();
+        const packed_float3 *P = mesh->get_position();
         const packed_normal *N = (attr_N) ? attr_N->data_normal() : nullptr;
         const packed_normal *cN = (attr_cN) ? attr_cN->data_normal() : nullptr;
         for (int step = 0; step < motion_step; step++) {
@@ -1145,7 +1146,7 @@ void BlenderSync::sync_mesh_motion(BObjectInfo &b_ob_info, Mesh *mesh, const int
       if (topology_changed) {
         LOG_WARNING << "Topology differs, discarding motion blur for object " << ob_name
                     << " at time " << motion_step;
-        const float3 *P = mesh->get_verts().data();
+        const packed_float3 *P = mesh->get_position();
         const packed_normal *N = (attr_N) ? attr_N->data_normal() : nullptr;
         const packed_normal *cN = (attr_cN) ? attr_cN->data_normal() : nullptr;
         std::copy_n(P, numverts, mP);

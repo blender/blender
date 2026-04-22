@@ -553,10 +553,10 @@ static float object_volume_density(const Transform &tfm, Geometry *geom)
 
 static int object_num_motion_verts(Geometry *geom)
 {
-  return (geom->is_mesh() || geom->is_volume()) ? static_cast<Mesh *>(geom)->get_verts().size() :
-         geom->is_hair()       ? static_cast<Hair *>(geom)->get_curve_keys().size() :
-         geom->is_pointcloud() ? static_cast<PointCloud *>(geom)->num_points() :
-                                 0;
+  return (geom->is_mesh() || geom->is_volume()) ? static_cast<Mesh *>(geom)->num_verts() :
+         geom->is_hair()                        ? static_cast<Hair *>(geom)->num_keys() :
+         geom->is_pointcloud()                  ? static_cast<PointCloud *>(geom)->num_points() :
+                                                  0;
 }
 
 void ObjectManager::device_update_object_transform(UpdateObjectTransformState *state,
