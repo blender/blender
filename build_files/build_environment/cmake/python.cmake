@@ -124,7 +124,7 @@ else()
   else()
     set(PYTHON_CONFIGURE_ENV ${CONFIGURE_ENV})
   endif()
-  set(PYTHON_BINARY ${LIBDIR}/python/bin/python${PYTHON_SHORT_VERSION})
+  set(PYTHON_BINARY ${HOST_LIBDIR}/python/bin/python${PYTHON_SHORT_VERSION})
 
   set(PYTHON_CFLAGS "${PLATFORM_CFLAGS} ")
   # We need to add the zlib static lib path here as even if python itself links the static zlib correctly,
@@ -138,6 +138,14 @@ else()
     # Don't build or ship the python test suite
     --disable-test-modules
   )
+
+  if(ANDROID)
+    set(PYTHON_CONFIGURE_EXTRA_ARGS
+      ${PYTHON_CONFIGURE_EXTRA_ARGS}
+      --host=aarch64-linux-android
+      --with-build-python=${PYTHON_BINARY}
+    )
+  endif()
 
   set(PYTHON_CONFIGURE_PKG_CONFIG_PATH "\
 ${LIBDIR}/ffi/lib/pkgconfig:${LIBDIR}/sqlite/lib/pkgconfig:${LIBDIR}/ssl/lib/pkgconfig:\
