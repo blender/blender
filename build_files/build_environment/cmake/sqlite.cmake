@@ -58,6 +58,32 @@ if(UNIX)
     --enable-fts5
     --disable-shared
   )
+
+  if(ANDROID)
+    # Sqlite's configure doesn't support passing a compiler + a `--target` argument as CC/CXX, work around this by
+    # using the clang target-prefixed entry-point scripts shipped with the Android NDK.
+    string(REPLACE "-none-" "-" _android_triple ${ANDROID_LLVM_TRIPLE})
+    set(ANDROID_CC ${ANDROID_TOOLCHAIN_ROOT}/bin/${_android_triple}-clang)
+    set(ANDROID_CXX ${ANDROID_TOOLCHAIN_ROOT}/bin/${_android_triple}-clang++)
+
+    # Override toolchain from CMake env set by the Android CMake toolchain file.
+    set(SQLITE_CONFIGURE_ENV
+      ${SQLITE_CONFIGURE_ENV} &&
+      export CC=${ANDROID_CC} &&
+      export CXX=${ANDROID_CXX} &&
+      export AS=${CMAKE_ASM_COMPILER} &&
+      export AR=${CMAKE_AR} &&
+      export LD=${CMAKE_C_COMPILER_LINKER} &&
+      export RANLIB=${CMAKE_RANLIB} &&
+      export STRIP=${CMAKE_STRIP}
+    )
+
+    set(SQLITE_CONFIGURATION_ARGS
+      ${SQLITE_CONFIGURATION_ARGS}
+      --host=${ANDROID_LLVM_TRIPLE}
+    )
+  endif()
+
   ExternalProject_Add(external_sqlite
     URL file://${PACKAGE_DIR}/${SQLITE_FILE}
     DOWNLOAD_DIR ${DOWNLOAD_DIR}
