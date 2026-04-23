@@ -6,6 +6,13 @@ set(PYBIND11_EXTRA_ARGS
   -DPYBIND11_TEST=OFF
   -DPYTHON_EXECUTABLE=${PYTHON_BINARY}
 )
+if(CMAKE_CROSSCOMPILING)
+  # When cross-compiling, FindPython needs the target Python root (from LIBDIR) *and* the
+  # host interpreter PYTHON_BINARY (from HOST_LIBDIR) for running scripts
+  list(APPEND PYBIND11_EXTRA_ARGS
+    -DPython_ROOT_DIR=${LIBDIR}/python
+  )
+endif()
 
 ExternalProject_Add(external_pybind11
   URL file://${PACKAGE_DIR}/${PYBIND11_FILE}
