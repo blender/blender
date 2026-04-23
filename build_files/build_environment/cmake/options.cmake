@@ -275,8 +275,17 @@ else()
         -DANDROID_STL=${ANDROID_STL}
         -DCMAKE_FIND_ROOT_PATH=${LIBDIR}
       )
-      # Ideally, --host=${ANDROID_LLVM_TRIPLE} could also be defined here, but some project require a generic --host=arm/aarch64 instead.
+      # Do not define --host=${ANDROID_LLVM_TRIPLE} as a lot of autoconf projects that do not directly support android
+      # target triplets require a generic --target=aarch64 instead. Projects that do recognize it (like SQLite) can
+      # implicitely infer it from the --build value.
       set(PLATFORM_BUILD_TARGET --build=${ANDROID_LLVM_TRIPLE})
+
+      # The Android CMake toolchain unconditionally enables debugging symbols by adding -g to the base CMAKE_C/CXX_FLAGS,
+      # presumably to ensure builds always get correct stacktrace for development, as APK bundling later strips them.
+      # Counter this behavior by appending -g0 to the platform flags, which flows to the build type specific flags,
+      # last flag wins in this case. Without this projects like LLVM can grow to a 50GB+ build.
+      set(PLATFORM_CFLAGS "${PLATFORM_CFLAGS} -g0")
+      set(PLATFORM_CXXFLAGS "${PLATFORM_CXXFLAGS} -g0")
     endif()
   endif()
 
