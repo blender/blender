@@ -37,6 +37,16 @@ set(OPENCOLORIO_EXTRA_ARGS
   -Dpybind11_ROOT=${LIBDIR}/pybind11
 )
 
+if(ANDROID)
+  # The OpenColorIO Python binding doesn't currently link on Android due to undefined Python symbols errors.
+  # While this can be hacked away by statically linking Python this seems to be tied to larger Android dyn linker
+  # limitation see notes in: https://github.com/python/cpython/blob/main/Platforms/Android/android-env.sh
+  # TODO: Disabled for now, might be able to re-enable later. Also check usage within Blender.
+  list(APPEND OPENCOLORIO_EXTRA_ARGS
+    -DOCIO_BUILD_PYTHON=OFF
+  )
+endif()
+
 if(APPLE)
   set(OPENCOLORIO_EXTRA_ARGS
     ${OPENCOLORIO_EXTRA_ARGS}
@@ -148,10 +158,12 @@ else()
 
   harvest(external_opencolorio opencolorio/include opencolorio/include "*.h")
   harvest_rpath_lib(external_opencolorio opencolorio/lib opencolorio/lib "*${SHAREDLIBEXT}*")
-  harvest_rpath_python(
-    external_opencolorio
-    opencolorio/lib/python${PYTHON_SHORT_VERSION}
-    python/lib/python${PYTHON_SHORT_VERSION}
-    "*"
-  )
+  if(NOT ANDROID)
+    harvest_rpath_python(
+      external_opencolorio
+      opencolorio/lib/python${PYTHON_SHORT_VERSION}
+      python/lib/python${PYTHON_SHORT_VERSION}
+      "*"
+    )
+  endif()
 endif()
