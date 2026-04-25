@@ -123,10 +123,11 @@ ccl_device_forceinline void integrate_surface_emission(KernelGlobals kg,
                                                        ccl_global float *ccl_restrict
                                                            render_buffer)
 {
+  const PathRayVisibility path_visibility = INTEGRATOR_STATE(state, path, visibility);
   const uint32_t path_flag = INTEGRATOR_STATE(state, path, flag);
 
 #ifdef __LIGHT_LINKING__
-  if (!(path_flag & PATH_RAY_VISIBILITY_CAMERA) &&
+  if (!(path_visibility & PATH_RAY_VISIBILITY_CAMERA) &&
       !light_link_object_match(kg, light_link_receiver_forward(kg, state), sd->object))
   {
     return;
@@ -137,7 +138,7 @@ ccl_device_forceinline void integrate_surface_emission(KernelGlobals kg,
   /* Indirect emission of shadow-linked emissive surfaces is done via shadow rays to dedicated
    * light sources. */
   if (kernel_data.kernel_features & KERNEL_FEATURE_SHADOW_LINKING) {
-    if (!(path_flag & PATH_RAY_VISIBILITY_CAMERA) &&
+    if (!(path_visibility & PATH_RAY_VISIBILITY_CAMERA) &&
         kernel_data_fetch(objects, sd->object).shadow_set_membership != LIGHT_LINK_MASK_ALL)
     {
       return;
@@ -148,7 +149,8 @@ ccl_device_forceinline void integrate_surface_emission(KernelGlobals kg,
   /* Evaluate emissive closure. */
   const Spectrum L = surface_shader_emission(sd);
 
-  const float mis_weight = light_sample_mis_weight_forward_surface(kg, state, path_flag, sd);
+  const float mis_weight = light_sample_mis_weight_forward_surface(
+      kg, state, path_visibility, path_flag, sd);
 
   guiding_record_surface_emission(kg, state, L, mis_weight);
   film_write_surface_emission(
@@ -465,6 +467,8 @@ ccl_device
     INTEGRATOR_STATE_WRITE(shadow_state, shadow_path, pass_glossy_weight) = pass_glossy_weight;
   }
 
+  INTEGRATOR_STATE_WRITE(shadow_state, shadow_path, visibility) = INTEGRATOR_STATE(
+      state, path, visibility);
   INTEGRATOR_STATE_WRITE(shadow_state, shadow_path, flag) = shadow_flag;
 
   return SHADER_EVAL_OK;
@@ -648,10 +652,11 @@ ccl_device_forceinline void integrate_surface_ao(KernelGlobals kg,
                                                  const ccl_private RNGState *ccl_restrict
                                                      rng_state)
 {
+  const PathRayVisibility path_visibility = INTEGRATOR_STATE(state, path, visibility);
   const uint32_t path_flag = INTEGRATOR_STATE(state, path, flag);
 
   if (!(kernel_data.kernel_features & KERNEL_FEATURE_AO_ADDITIVE) &&
-      !(path_flag & PATH_RAY_VISIBILITY_CAMERA))
+      !(path_visibility & PATH_RAY_VISIBILITY_CAMERA))
   {
     return;
   }
@@ -716,6 +721,8 @@ ccl_device_forceinline void integrate_surface_ao(KernelGlobals kg,
       state, path, rng_pixel);
   INTEGRATOR_STATE_WRITE(shadow_state, shadow_path, sample) = INTEGRATOR_STATE(
       state, path, sample);
+  INTEGRATOR_STATE_WRITE(shadow_state, shadow_path, visibility) = INTEGRATOR_STATE(
+      state, path, visibility);
   INTEGRATOR_STATE_WRITE(shadow_state, shadow_path, flag) = shadow_flag;
   INTEGRATOR_STATE_WRITE(shadow_state, shadow_path, bounce) = bounce;
   INTEGRATOR_STATE_WRITE(shadow_state, shadow_path, transparent_bounce) = transparent_bounce;
@@ -744,6 +751,7 @@ ccl_device int integrate_surface(KernelGlobals kg,
 
   int continue_path_label = 0;
 
+  const PathRayVisibility path_visibility = INTEGRATOR_STATE(state, path, visibility);
   const uint32_t path_flag = INTEGRATOR_STATE(state, path, flag);
 
   /* Skip most work for volume bounding surface. */
@@ -757,7 +765,8 @@ ccl_device int integrate_surface(KernelGlobals kg,
     {
       /* Evaluate shader. */
       PROFILING_EVENT(PROFILING_SHADE_SURFACE_EVAL);
-      surface_shader_eval<node_feature_mask>(kg, state, &sd, render_buffer, path_flag);
+      surface_shader_eval<node_feature_mask>(
+          kg, state, &sd, render_buffer, path_visibility, path_flag);
     }
 
     if (sd.flag & SD_CACHE_MISS) {
@@ -778,7 +787,7 @@ ccl_device int integrate_surface(KernelGlobals kg,
 #endif
     {
       /* Filter closures. */
-      surface_shader_prepare_closures(kg, state, &sd, path_flag);
+      surface_shader_prepare_closures(kg, state, &sd, path_visibility);
 
       /* Evaluate holdout. */
       if (!integrate_surface_holdout(kg, state, &sd, render_buffer)) {

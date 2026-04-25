@@ -236,6 +236,7 @@ ccl_device_forceinline int lights_intersect_impl(KernelGlobals kg,
                                                  const int last_prim,
                                                  const int last_object,
                                                  const int last_type,
+                                                 const PathRayVisibility path_visibility,
                                                  const uint32_t path_flag,
                                                  const uint8_t path_mnee,
                                                  const int receiver_forward,
@@ -243,14 +244,14 @@ ccl_device_forceinline int lights_intersect_impl(KernelGlobals kg,
                                                  int num_hits)
 {
 #ifdef __SHADOW_LINKING__
-  const bool is_indirect_ray = !(path_flag & PATH_RAY_VISIBILITY_CAMERA);
+  const bool is_indirect_ray = !(path_visibility & PATH_RAY_VISIBILITY_CAMERA);
 #endif
 
   for (int lamp = 0; lamp < kernel_data.integrator.num_lights; lamp++) {
     const ccl_global KernelLight *klight = &kernel_data_fetch(lights, lamp);
     const int object = klight->object_id;
 
-    if (path_flag & PATH_RAY_VISIBILITY_CAMERA) {
+    if (path_visibility & PATH_RAY_VISIBILITY_CAMERA) {
       if (klight->shader_id & SHADER_EXCLUDE_CAMERA) {
         continue;
       }
@@ -296,7 +297,7 @@ ccl_device_forceinline int lights_intersect_impl(KernelGlobals kg,
 
 #ifdef __LIGHT_LINKING__
     /* Light linking. */
-    if (!(path_flag & PATH_RAY_VISIBILITY_CAMERA) &&
+    if (!(path_visibility & PATH_RAY_VISIBILITY_CAMERA) &&
         !light_link_object_match(kg, receiver_forward, object))
     {
       continue;
@@ -377,6 +378,7 @@ ccl_device bool lights_intersect(KernelGlobals kg,
                                  const int last_prim,
                                  const int last_object,
                                  const int last_type,
+                                 const PathRayVisibility path_visibility,
                                  const uint32_t path_flag)
 {
   const uint8_t path_mnee = INTEGRATOR_STATE(state, path, mnee);
@@ -388,6 +390,7 @@ ccl_device bool lights_intersect(KernelGlobals kg,
                               last_prim,
                               last_object,
                               last_type,
+                              path_visibility,
                               path_flag,
                               path_mnee,
                               receiver_forward,
@@ -408,6 +411,7 @@ ccl_device int lights_intersect_shadow_linked(KernelGlobals kg,
                                               const int last_prim,
                                               const int last_object,
                                               const int last_type,
+                                              const PathRayVisibility path_visibility,
                                               const uint32_t path_flag,
                                               const int receiver_forward,
                                               ccl_private uint *lcg_state,
@@ -419,6 +423,7 @@ ccl_device int lights_intersect_shadow_linked(KernelGlobals kg,
                                       last_prim,
                                       last_object,
                                       last_type,
+                                      path_visibility,
                                       path_flag,
                                       PATH_MNEE_NONE,
                                       receiver_forward,

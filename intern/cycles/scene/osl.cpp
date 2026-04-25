@@ -365,44 +365,44 @@ void OSLManager::shading_system_init(const string &colorspace_interop_id)
 
       /* our own ray types */
       static const char *raytypes[] = {
-          "camera",         /* PATH_RAY_VISIBILITY_CAMERA */
-          "refraction",     /* PATH_RAY_VISIBILITY_TRANSMIT */
-          "diffuse",        /* PATH_RAY_VISIBILITY_DIFFUSE */
-          "glossy",         /* PATH_RAY_VISIBILITY_GLOSSY */
-          "volume_scatter", /* PATH_RAY_VISIBILITY_VOLUME_SCATTER */
+          /* Bits from the PathRayVisibilityFlag.
+           * Low word of 16 bits of the packed raytype. */
+          "camera",         /* Bit 0: PATH_RAY_VISIBILITY_CAMERA */
+          "refraction",     /* Bit 1: PATH_RAY_VISIBILITY_TRANSMIT */
+          "diffuse",        /* Bit 2: PATH_RAY_VISIBILITY_DIFFUSE */
+          "glossy",         /* Bit 3: PATH_RAY_VISIBILITY_GLOSSY */
+          "volume_scatter", /* Bit 4: PATH_RAY_VISIBILITY_VOLUME_SCATTER */
+          "shadow",         /* Bit 5: PATH_RAY_VISIBILITY_SHADOW_OPAQUE */
+          "shadow",         /* Bit 6: PATH_RAY_VISIBILITY_SHADOW_TRANSPARENT */
+          "__unused__",     /* Bit 7 */
+          "__unused__",     /* Bit 8 */
+          "__unused__",     /* Bit 9 */
+          "__unused__",     /* Bit 10 */
+          "__unused__",     /* Bit 11 */
+          "__unused__",     /* Bit 12 */
+          "__unused__",     /* Bit 13 */
+          "__unused__",     /* Bit 14 */
+          "__unused__",     /* Bit 15 */
 
-          "shadow", /* PATH_RAY_VISIBILITY_SHADOW_OPAQUE */
-          "shadow", /* PATH_RAY_VISIBILITY_SHADOW_TRANSPARENT */
+          /* Bits from the PathRayFlag.
+           * High word of 16 bits of the packed raytype. */
 
-          "reflection",      /* PATH_RAY_REFLECT */
-          "singular",        /* PATH_RAY_SINGULAR */
-          "transparent",     /* PATH_RAY_TRANSPARENT */
-          "importance_bake", /* PATH_RAY_IMPORTANCE_BAKE */
-
-          "__unused__", /* PATH_RAY_VISIBILITY_NODE_UNALIGNED */
-          "__unused__", /* PATH_RAY_MIS_SKIP */
-
-          "diffuse_ancestor", /* PATH_RAY_DIFFUSE_ANCESTOR */
-
-          /* Remaining irrelevant bits up to 32. */
-          "__unused__",
-          "__unused__",
-          "__unused__",
-          "__unused__",
-          "__unused__",
-          "__unused__",
-          "__unused__",
-          "__unused__",
-          "__unused__",
-          "__unused__",
-          "__unused__",
-          "__unused__",
-          "__unused__",
-          "__unused__",
-          "__unused__",
-          "__unused__",
-          "__unused__",
-          "__unused__",
+          "reflection",       /* Bit 0: PATH_RAY_REFLECT */
+          "singular",         /* Bit 1: PATH_RAY_SINGULAR */
+          "transparent",      /* Bit 2: PATH_RAY_TRANSPARENT */
+          "importance_bake",  /* Bit 3: PATH_RAY_IMPORTANCE_BAKE */
+          "diffuse_ancestor", /* Bit 4: PATH_RAY_DIFFUSE_ANCESTOR */
+          "__unused__",       /* Bit 5 */
+          "__unused__",       /* Bit 6 */
+          "__unused__",       /* Bit 7 */
+          "__unused__",       /* Bit 8 */
+          "__unused__",       /* Bit 9 */
+          "__unused__",       /* Bit 10 */
+          "__unused__",       /* Bit 11 */
+          "__unused__",       /* Bit 12 */
+          "__unused__",       /* Bit 13 */
+          "__unused__",       /* Bit 14 */
+          "__unused__",       /* Bit 15 */
       };
 
       const int nraytypes = sizeof(raytypes) / sizeof(raytypes[0]);
