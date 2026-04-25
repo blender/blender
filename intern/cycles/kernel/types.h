@@ -141,6 +141,9 @@ enum SamplingPattern {
  * The underlying storage matches PathRayVisibility, to avoid possible narrowing when applying bit
  * shifts when calculating ray visibility from a path.
  *
+ * NOTE: State (both main and shadow) stores a limited subset of this enum, limited to bits in
+ * the PATH_RAY_VISIBILITY_ALL (but it is not checked at compile time).
+ *
  * NOTE: Both PathRayVisibilityFlag and PathRayFlag flags are packed into ShaderGlobals::raytype.
  * Keep in sync with the raytype mapping in the osl.cpp OSLManager::shading_system_init().
  *
