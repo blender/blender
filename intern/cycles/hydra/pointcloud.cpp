@@ -68,15 +68,13 @@ void HdCyclesPoints::PopulatePoints(HdSceneDelegate *sceneDelegate)
   }
 
   const auto &points = value.UncheckedGet<VtVec3fArray>();
+  static_assert(sizeof(GfVec3f) == sizeof(packed_float3));
 
-  array<packed_float3> pointsDataCycles;
-  pointsDataCycles.reserve(points.size());
+  _geom->resize(int(points.size()));
 
-  for (const GfVec3f &point : points) {
-    pointsDataCycles.push_back_reserved(make_float3(point[0], point[1], point[2]));
-  }
-
-  _geom->set_points(pointsDataCycles);
+  std::copy_n(reinterpret_cast<const packed_float3 *>(points.data()),
+              points.size(),
+              _geom->get_position_for_write());
 }
 
 void HdCyclesPoints::PopulateWidths(HdSceneDelegate *sceneDelegate)
@@ -92,9 +90,7 @@ void HdCyclesPoints::PopulateWidths(HdSceneDelegate *sceneDelegate)
   }
 
   const auto &widths = value.UncheckedGet<VtFloatArray>();
-
-  array<float> radiusDataCycles;
-  radiusDataCycles.reserve(_geom->num_points());
+  float *radius = _geom->get_radius_for_write();
 
   if (interpolation == HdInterpolationConstant) {
     TF_VERIFY(widths.size() == 1);
@@ -102,18 +98,16 @@ void HdCyclesPoints::PopulateWidths(HdSceneDelegate *sceneDelegate)
     const float constantRadius = widths[0] * 0.5f;
 
     for (size_t i = 0; i < _geom->num_points(); ++i) {
-      radiusDataCycles.push_back_reserved(constantRadius);
+      radius[i] = constantRadius;
     }
   }
   else if (interpolation == HdInterpolationVertex) {
     TF_VERIFY(widths.size() == _geom->num_points());
 
     for (size_t i = 0; i < _geom->num_points(); ++i) {
-      radiusDataCycles.push_back_reserved(widths[i] * 0.5f);
+      radius[i] = widths[i] * 0.5f;
     }
   }
-
-  _geom->radius = radiusDataCycles;
 }
 
 void HdCyclesPoints::PopulatePrimvars(HdSceneDelegate *sceneDelegate)

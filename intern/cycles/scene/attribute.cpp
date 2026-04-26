@@ -757,6 +757,8 @@ static TypeDesc find_type_from_geometry_std(Geometry *geometry, AttributeStandar
     switch (std) {
       case ATTR_STD_POSITION:
         return TypePoint;
+      case ATTR_STD_RADIUS:
+        return TypeFloat;
       case ATTR_STD_UV:
         return TypeFloat2;
       case ATTR_STD_GENERATED:
@@ -888,6 +890,8 @@ static AttributeElement find_element_from_geometry_std(Geometry *geometry, Attri
   else if (geometry->is_pointcloud()) {
     switch (std) {
       case ATTR_STD_POSITION:
+        return ATTR_ELEMENT_VERTEX;
+      case ATTR_STD_RADIUS:
         return ATTR_ELEMENT_VERTEX;
       case ATTR_STD_UV:
         return ATTR_ELEMENT_VERTEX;

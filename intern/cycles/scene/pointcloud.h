@@ -39,8 +39,6 @@ class PointCloud : public Geometry {
                           size_t p) const;
   };
 
-  NODE_SOCKET_API_ARRAY(array<packed_float3>, points)
-  array<float> radius;
   NODE_SOCKET_API_ARRAY(array<int>, shader)
 
   /* Constructor/Destructor */
@@ -65,32 +63,7 @@ class PointCloud : public Geometry {
     return point;
   }
 
-  size_t num_points() const
-  {
-    return points.size();
-  }
-
-  const packed_float3 *get_position() const
-  {
-    return get_points().data();
-  }
-
-  packed_float3 *get_position_for_write()
-  {
-    tag_points_modified();
-    return get_points().data();
-  }
-
-  const float *get_radius() const
-  {
-    return radius.data();
-  }
-
-  float *get_radius_for_write()
-  {
-    tag_radius_modified();
-    return radius.data();
-  }
+  size_t num_points() const;
 
   size_t num_attributes() const
   {
@@ -106,6 +79,8 @@ class PointCloud : public Geometry {
   void pack(Scene *scene, float4 *packed_points, uint *packed_shader);
 
  private:
+  void add_builtin_attributes();
+
   friend class BVH2;
   friend class BVHBuild;
   friend class BVHSpatialSplit;

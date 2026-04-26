@@ -82,24 +82,38 @@ NODE_DEFINE(PointCloud)
   NodeType *type = NodeType::add(
       "pointcloud", create, NodeType::NONE, Geometry::get_node_base_type());
 
-  SOCKET_POINT_ARRAY(points, "Points", array<packed_float3>());
   SOCKET_INT_ARRAY(shader, "Shader", array<int>());
 
   return type;
 }
 
-PointCloud::PointCloud() : Geometry(get_node_type(), Geometry::POINTCLOUD) {}
+PointCloud::PointCloud() : Geometry(get_node_type(), Geometry::POINTCLOUD)
+{
+  add_builtin_attributes();
+}
 
 PointCloud::~PointCloud() = default;
 
+size_t PointCloud::num_points() const
+{
+  const Attribute *attr = attributes.find(ATTR_STD_POSITION);
+  return attr ? attr->size : 0;
+}
+
+void PointCloud::add_builtin_attributes()
+{
+  attributes.add(ATTR_STD_POSITION);
+  attributes.add(ATTR_STD_RADIUS);
+}
+
 void PointCloud::resize(const int numpoints)
 {
-  points.resize(numpoints);
-  radius.resize(numpoints);
+  attributes.add(ATTR_STD_POSITION)->resize(numpoints);
+  attributes.add(ATTR_STD_RADIUS)->resize(numpoints);
   shader.resize(numpoints);
   attributes.resize();
 
-  tag_points_modified();
+  tag_position_modified();
   tag_radius_modified();
   tag_shader_modified();
 }
@@ -113,12 +127,11 @@ void PointCloud::clear(const bool preserve_shaders)
 {
   Geometry::clear(preserve_shaders);
 
-  points.clear();
-  radius.clear();
   shader.clear();
   attributes.clear();
+  add_builtin_attributes();
 
-  tag_points_modified();
+  tag_position_modified();
   tag_radius_modified();
   tag_shader_modified();
 }
@@ -127,12 +140,12 @@ void PointCloud::copy_center_to_motion_step(const int motion_step)
 {
   Attribute *attr_mP = attributes.find(ATTR_STD_MOTION_VERTEX_POSITION);
   if (attr_mP) {
-    packed_float3 *points_data = points.data();
-    const size_t numpoints = points.size();
-    float *radius_data = radius.data();
+    const packed_float3 *points_data = get_position();
+    const size_t numpoints = num_points();
+    const float *radius_data = get_radius();
 
     float4 *attrib_P = attr_mP->data_for_write<float4>() + motion_step * numpoints;
-    for (int i = 0; i < numpoints; i++) {
+    for (size_t i = 0; i < numpoints; i++) {
       const float3 P = float3(points_data[i]);
       const float r = radius_data[i];
       attrib_P[i] = make_float4(P, r);
@@ -159,7 +172,9 @@ void PointCloud::get_uv_tiles(ustring map, unordered_set<int> &tiles)
 void PointCloud::compute_bounds()
 {
   BoundBox bnds = BoundBox::empty;
-  const size_t numpoints = points.size();
+  const size_t numpoints = num_points();
+  const packed_float3 *points = get_position();
+  const float *radius = get_radius();
 
   if (numpoints > 0) {
     for (size_t i = 0; i < numpoints; i++) {
@@ -168,7 +183,7 @@ void PointCloud::compute_bounds()
 
     Attribute *attr = attributes.find(ATTR_STD_MOTION_VERTEX_POSITION);
     if (use_motion_blur && attr) {
-      const size_t steps_size = points.size() * (motion_steps - 1);
+      const size_t steps_size = numpoints * (motion_steps - 1);
       const float4 *point_steps = attr->data<float4>();
 
       for (size_t i = 0; i < steps_size; i++) {
@@ -185,7 +200,7 @@ void PointCloud::compute_bounds()
       }
 
       if (use_motion_blur && attr) {
-        const size_t steps_size = points.size() * (motion_steps - 1);
+        const size_t steps_size = numpoints * (motion_steps - 1);
         const float4 *point_steps = attr->data<float4>();
 
         for (size_t i = 0; i < steps_size; i++) {
@@ -212,7 +227,10 @@ void PointCloud::apply_transform(const Transform &tfm, const bool apply_to_motio
   const float scalar = powf(fabsf(dot(cross(c0, c1), c2)), 1.0f / 3.0f);
 
   /* apply transform to curve keys */
-  for (size_t i = 0; i < points.size(); i++) {
+  const size_t numpoints = num_points();
+  packed_float3 *points = get_position_for_write();
+  float *radius = get_radius_for_write();
+  for (size_t i = 0; i < numpoints; i++) {
     const float3 co = transform_point(&tfm, points[i]);
     const float r = radius[i] * scalar;
 
@@ -227,7 +245,7 @@ void PointCloud::apply_transform(const Transform &tfm, const bool apply_to_motio
 
     if (attr) {
       /* apply transform to motion curve keys */
-      const size_t steps_size = points.size() * (motion_steps - 1);
+      const size_t steps_size = numpoints * (motion_steps - 1);
       float4 *point_steps = attr->data_for_write<float4>();
 
       for (size_t i = 0; i < steps_size; i++) {
@@ -245,9 +263,9 @@ void PointCloud::apply_transform(const Transform &tfm, const bool apply_to_motio
 
 void PointCloud::pack(Scene *scene, float4 *packed_points, uint *packed_shader)
 {
-  const size_t numpoints = points.size();
-  packed_float3 *points_data = points.data();
-  float *radius_data = radius.data();
+  const size_t numpoints = num_points();
+  const packed_float3 *points_data = get_position();
+  const float *radius_data = get_radius();
   int *shader_data = shader.data();
 
   for (size_t i = 0; i < numpoints; i++) {
