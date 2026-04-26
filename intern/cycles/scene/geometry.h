@@ -121,6 +121,8 @@ class Geometry : public Node {
   bool position_is_modified() const;
 
   /* Radius attribute. */
+  const float *get_radius() const;
+  float *get_radius_for_write();
   void tag_radius_modified();
   bool radius_is_modified() const;
 

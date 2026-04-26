@@ -89,15 +89,8 @@ class Hair : public Geometry {
                                 float4 r_keys[4]) const;
   };
 
-  NODE_SOCKET_API_ARRAY(array<packed_float3>, curve_keys)
-  NODE_SOCKET_API_ARRAY(array<float>, curve_radius)
   NODE_SOCKET_API_ARRAY(array<int>, curve_first_key)
   NODE_SOCKET_API_ARRAY(array<int>, curve_shader)
-
-  const packed_float3 *get_position() const;
-  packed_float3 *get_position_for_write();
-  const float *get_radius() const;
-  float *get_radius_for_write();
 
   /* BVH */
   size_t curve_key_offset;
@@ -123,16 +116,13 @@ class Hair : public Geometry {
   {
     const int first = curve_first_key[i];
     const int next_first = (i + 1 < curve_first_key.size()) ? curve_first_key[i + 1] :
-                                                              curve_keys.size();
+                                                              int(num_keys());
 
     Curve curve = {first, next_first - first};
     return curve;
   }
 
-  size_t num_keys() const
-  {
-    return curve_keys.size();
-  }
+  size_t num_keys() const;
 
   size_t num_curves() const
   {
@@ -164,6 +154,9 @@ class Hair : public Geometry {
   bool need_shadow_transparency() const;
   bool need_update_shadow_transparency() const;
   bool update_shadow_transparency(Device *device, Scene *scene, Progress &progress);
+
+ private:
+  void add_builtin_attributes();
 };
 
 CCL_NAMESPACE_END

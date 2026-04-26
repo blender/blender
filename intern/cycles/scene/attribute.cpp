@@ -463,6 +463,8 @@ const char *Attribute::standard_name(AttributeStandard std)
   switch (std) {
     case ATTR_STD_POSITION:
       return "P";
+    case ATTR_STD_RADIUS:
+      return "radius";
     case ATTR_STD_VERTEX_NORMAL:
     case ATTR_STD_CORNER_NORMAL:
       return "N";
@@ -801,6 +803,8 @@ static TypeDesc find_type_from_geometry_std(Geometry *geometry, AttributeStandar
     switch (std) {
       case ATTR_STD_POSITION:
         return TypePoint;
+      case ATTR_STD_RADIUS:
+        return TypeFloat;
       case ATTR_STD_VERTEX_NORMAL:
         return TypeNormal;
       case ATTR_STD_MOTION_VERTEX_NORMAL:
@@ -930,6 +934,8 @@ static AttributeElement find_element_from_geometry_std(Geometry *geometry, Attri
   else if (geometry->is_hair()) {
     switch (std) {
       case ATTR_STD_POSITION:
+        return ATTR_ELEMENT_CURVE_KEY;
+      case ATTR_STD_RADIUS:
         return ATTR_ELEMENT_CURVE_KEY;
       case ATTR_STD_VERTEX_NORMAL:
         return ATTR_ELEMENT_CURVE_KEY_NORMAL;

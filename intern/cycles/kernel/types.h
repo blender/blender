@@ -768,6 +768,7 @@ enum AttributeElement {
 enum AttributeStandard : int {
   ATTR_STD_NONE = 0,
   ATTR_STD_POSITION,
+  ATTR_STD_RADIUS,
   ATTR_STD_VERTEX_NORMAL,
   ATTR_STD_CORNER_NORMAL,
   ATTR_STD_UV,

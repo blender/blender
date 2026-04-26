@@ -107,6 +107,19 @@ bool Geometry::position_is_modified() const
   return position_modified;
 }
 
+const float *Geometry::get_radius() const
+{
+  const Attribute *attr = attributes.find(ATTR_STD_RADIUS);
+  return attr ? attr->data<float>() : nullptr;
+}
+
+float *Geometry::get_radius_for_write()
+{
+  Attribute *attr = attributes.add(ATTR_STD_RADIUS);
+  tag_radius_modified();
+  return attr->data_for_write<float>();
+}
+
 void Geometry::tag_radius_modified()
 {
   radius_modified = true;

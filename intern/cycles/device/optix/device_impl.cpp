@@ -1380,7 +1380,7 @@ void OptiXDevice::build_bvh(BVH *bvh, Progress &progress, bool refit)
                ++curve_index)
           {
             const Hair::Curve curve = hair->get_curve(curve_index);
-            const array<float> &curve_radius = hair->get_curve_radius();
+            const float *curve_radius = hair->get_radius();
 
             if (hair->curve_shape == CURVE_THICK_LINEAR) {
               const int first_key_index = curve.first_key;

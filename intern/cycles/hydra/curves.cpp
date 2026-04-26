@@ -7,6 +7,7 @@
 #include "hydra/geometry.inl"
 #include "hydra/util.h"
 #include "scene/hair.h"
+#include "util/types_float3.h"
 
 #include <pxr/imaging/hd/basisCurvesSchema.h>
 #include <pxr/imaging/hd/basisCurvesTopologySchema.h>
@@ -70,14 +71,13 @@ void HdCyclesCurves::PopulatePoints(HdSceneDelegate *sceneDelegate)
 
   const auto &points = value.UncheckedGet<VtVec3fArray>();
 
-  array<packed_float3> pointsDataCycles;
-  pointsDataCycles.reserve(points.size());
+  TF_VERIFY(points.size() >= _geom->num_keys());
 
-  for (const GfVec3f &point : points) {
-    pointsDataCycles.push_back_reserved(make_float3(point[0], point[1], point[2]));
-  }
+  static_assert(sizeof(GfVec3f) == sizeof(packed_float3));
 
-  _geom->set_curve_keys(pointsDataCycles);
+  std::copy_n(reinterpret_cast<const packed_float3 *>(points.data()),
+              std::min(points.size(), _geom->num_keys()),
+              _geom->get_position_for_write());
 }
 
 void HdCyclesCurves::PopulateWidths(HdSceneDelegate *sceneDelegate)
@@ -93,9 +93,7 @@ void HdCyclesCurves::PopulateWidths(HdSceneDelegate *sceneDelegate)
   }
 
   const auto &widths = value.UncheckedGet<VtFloatArray>();
-
-  array<float> radiusDataCycles;
-  radiusDataCycles.reserve(widths.size());
+  float *radius = _geom->get_radius_for_write();
 
   if (interpolation == HdInterpolationConstant) {
     TF_VERIFY(widths.size() == 1);
@@ -103,18 +101,16 @@ void HdCyclesCurves::PopulateWidths(HdSceneDelegate *sceneDelegate)
     const float constantRadius = widths[0] * 0.5f;
 
     for (size_t i = 0; i < _geom->num_keys(); ++i) {
-      radiusDataCycles.push_back_reserved(constantRadius);
+      radius[i] = constantRadius;
     }
   }
   else if (interpolation == HdInterpolationVertex) {
     TF_VERIFY(widths.size() == _geom->num_keys());
 
     for (size_t i = 0; i < _geom->num_keys(); ++i) {
-      radiusDataCycles.push_back_reserved(widths[i] * 0.5f);
+      radius[i] = widths[i] * 0.5f;
     }
   }
-
-  _geom->set_curve_radius(radiusDataCycles);
 }
 
 void HdCyclesCurves::PopulatePrimvars(HdSceneDelegate *sceneDelegate)
