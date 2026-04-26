@@ -31,9 +31,8 @@ Attribute::Attribute(ustring name,
   if (element & ATTR_ELEMENT_VOXEL) {
     auto *data = GuardedAllocator<ImageHandle>().allocate(1);
     new (data) ImageHandle();
-    buffer = data;
+    center.data = data;
     size = Attribute::element_size(geom, element, prim);
-    sharing_info = nullptr;
   }
   else {
     resize(geom, prim);
@@ -55,12 +54,35 @@ Attribute::Attribute(ustring name,
       modified(true)
 {
   assert((element & ATTR_ELEMENT_VOXEL) == 0);
-  buffer = data;
+  center.data = data;
   /* Implicit sharing function pointers should be set if shared attributes are created. */
   assert(g_implicit_sharing_user_add_fn);
   assert(g_implicit_sharing_user_remove_fn);
   g_implicit_sharing_user_add_fn(sharing_info);
-  this->sharing_info = sharing_info;
+  center.sharing_info = sharing_info;
+}
+
+static void free_step_buffer(Attribute::Buffer &buf,
+                             const AttributeElement element,
+                             const size_t data_sizeof,
+                             const size_t size)
+{
+  if (element & ATTR_ELEMENT_VOXEL) {
+    if (buf.data) {
+      auto *image = static_cast<ImageHandle *>(const_cast<void *>(buf.data));
+      image->~ImageHandle();
+      GuardedAllocator<ImageHandle>().deallocate(image, 1);
+    }
+  }
+  else if (buf.sharing_info) {
+    g_implicit_sharing_user_remove_fn(buf.sharing_info);
+  }
+  else if (buf.data) {
+    GuardedAllocator<char>().deallocate(static_cast<char *>(const_cast<void *>(buf.data)),
+                                        data_sizeof * size);
+  }
+  buf.data = nullptr;
+  buf.sharing_info = nullptr;
 }
 
 Attribute::Attribute(Attribute &&other)
@@ -75,19 +97,14 @@ Attribute::Attribute(Attribute &&other)
 
 void Attribute::free_data()
 {
-  /* For voxel data, we need to free the image handle. */
-  if (element & ATTR_ELEMENT_VOXEL) {
-    auto *image = static_cast<ImageHandle *>(const_cast<void *>(buffer));
-    image->~ImageHandle();
-    GuardedAllocator<ImageHandle>().deallocate(image, 1);
+  const size_t sz = data_sizeof();
+  free_step_buffer(center, element, sz, size);
+  /* Motion steps are never voxels, strip that flag for the helper. */
+  const AttributeElement motion_element = AttributeElement(element & ~ATTR_ELEMENT_VOXEL);
+  for (Buffer &buf : motion) {
+    free_step_buffer(buf, motion_element, sz, size);
   }
-  else if (sharing_info) {
-    g_implicit_sharing_user_remove_fn(sharing_info);
-  }
-  else {
-    GuardedAllocator<char>().deallocate(static_cast<char *>(const_cast<void *>(buffer)),
-                                        data_sizeof() * size);
-  }
+  motion.clear();
 }
 
 Attribute::~Attribute()
@@ -104,40 +121,124 @@ void Attribute::resize(Geometry *geom, AttributePrimitive prim)
 
 void Attribute::resize(const size_t num_elements)
 {
-  if (!(element & ATTR_ELEMENT_VOXEL)) {
-    const size_t new_size = num_elements;
-    if (new_size == size) {
-      return;
-    }
-    auto *new_data = GuardedAllocator<char>().allocate(new_size * data_sizeof());
-    if (buffer) {
-      assert(size > 0);
-      memcpy(new_data, buffer, std::min(num_elements, size_t(size)) * data_sizeof());
-    }
-    free_data();
-    buffer = new_data;
-    size = new_size;
-    sharing_info = nullptr;
+  if (element & ATTR_ELEMENT_VOXEL) {
+    return;
   }
+  if (num_elements == size_t(size)) {
+    return;
+  }
+  const size_t sz = data_sizeof();
+  const size_t copy_elems = std::min(num_elements, size_t(size));
+
+  /* Allocate and copy center step. */
+  Buffer new_center;
+  new_center.data = GuardedAllocator<char>().allocate(num_elements * sz);
+  if (center.data) {
+    memcpy(const_cast<void *>(new_center.data), center.data, copy_elems * sz);
+  }
+
+  /* Allocate and copy motion steps. */
+  vector<Buffer> new_motion(motion.size());
+  for (size_t i = 0; i < motion.size(); i++) {
+    new_motion[i].data = GuardedAllocator<char>().allocate(num_elements * sz);
+    if (motion[i].data) {
+      memcpy(const_cast<void *>(new_motion[i].data), motion[i].data, copy_elems * sz);
+    }
+  }
+
+  free_data();
+  center = new_center;
+  motion = std::move(new_motion);
+  size = num_elements;
 }
 
-char *Attribute::data_for_write()
+void Attribute::add_motion(const Geometry *geom)
 {
-  if (!buffer) {
-    assert(size == 0);
+  const int new_motion_count = int(geom->get_motion_steps()) - 1;
+  assert(new_motion_count >= 0);
+  if (new_motion_count == int(motion.size())) {
+    return;
+  }
+  const size_t sz = data_sizeof();
+  const AttributeElement motion_element = AttributeElement(element & ~ATTR_ELEMENT_VOXEL);
+
+  if (new_motion_count < int(motion.size())) {
+    /* Shrink: free and drop extra steps. */
+    for (size_t i = new_motion_count; i < motion.size(); i++) {
+      free_step_buffer(motion[i], motion_element, sz, size);
+    }
+    motion.resize(new_motion_count);
+  }
+  else {
+    /* Grow: allocate fresh zero-initialized arrays for the new steps. */
+    motion.reserve(new_motion_count);
+    while (int(motion.size()) < new_motion_count) {
+      Buffer buf;
+      if (size > 0) {
+        const size_t alloc_bytes = sz * size;
+        buf.data = GuardedAllocator<char>().allocate(alloc_bytes);
+        memset(const_cast<void *>(buf.data), 0, alloc_bytes);
+      }
+      motion.push_back(buf);
+    }
+  }
+
+  modified = true;
+}
+
+void Attribute::remove_motion()
+{
+  if (!has_motion()) {
+    return;
+  }
+  const size_t sz = data_sizeof();
+  const AttributeElement motion_element = AttributeElement(element & ~ATTR_ELEMENT_VOXEL);
+  for (Buffer &buf : motion) {
+    free_step_buffer(buf, motion_element, sz, size);
+  }
+  motion.clear();
+  modified = true;
+}
+
+void Attribute::take_motion_from(Attribute &other)
+{
+  assert(other.type == type && other.element == element && other.size == size);
+  remove_motion();
+  motion = std::move(other.motion);
+  other.motion.clear();
+  other.modified = true;
+  modified = true;
+}
+
+static char *buffer_for_write(Attribute::Buffer &buf, const size_t data_sizeof, const size_t size)
+{
+  if (!buf.data) {
     return nullptr;
   }
-  if (sharing_info) {
+  if (buf.sharing_info) {
     /* Here we assume that the sharing info is not mutable. With the addition of another sharing
      * info callback function pointer we could check the user count to avoid unnecessary copies.
      * For now that isn't expected to happen in practice though. */
-    auto *new_data = GuardedAllocator<char>().allocate(data_sizeof() * size);
-    memcpy(new_data, buffer, data_sizeof() * size);
-    g_implicit_sharing_user_remove_fn(sharing_info);
-    sharing_info = nullptr;
-    buffer = new_data;
+    auto *new_data = GuardedAllocator<char>().allocate(data_sizeof * size);
+    memcpy(new_data, buf.data, data_sizeof * size);
+    g_implicit_sharing_user_remove_fn(buf.sharing_info);
+    buf.sharing_info = nullptr;
+    buf.data = new_data;
   }
-  return const_cast<char *>(reinterpret_cast<const char *>(buffer));
+  return const_cast<char *>(reinterpret_cast<const char *>(buf.data));
+}
+
+char *Attribute::data_for_write_buffer(const int step)
+{
+  if (step == 0) {
+    if (!center.data) {
+      assert(size == 0);
+      return nullptr;
+    }
+    return buffer_for_write(center, data_sizeof(), size);
+  }
+  assert(step >= 1 && step <= int(motion.size()));
+  return buffer_for_write(motion[step - 1], data_sizeof(), size);
 }
 
 void Attribute::set_data_from(Attribute &&other)
@@ -148,25 +249,56 @@ void Attribute::set_data_from(Attribute &&other)
 
   flags = other.flags;
 
-  const auto take_data = [&]() {
+  const size_t sz = data_sizeof();
+  const AttributeElement motion_element = AttributeElement(element & ~ATTR_ELEMENT_VOXEL);
+
+  const auto take_all = [&]() {
     free_data();
-    buffer = other.buffer;
-    sharing_info = other.sharing_info;
+    center = other.center;
+    motion = std::move(other.motion);
     size = other.size;
-    other.buffer = nullptr;
-    other.sharing_info = nullptr;
+    other.center = Buffer();
     other.size = 0;
     modified = true;
   };
 
-  if (size != other.size) {
-    take_data();
+  /* If topology or step count differ, take the whole thing. */
+  if (size != other.size || motion.size() != other.motion.size()) {
+    take_all();
+    return;
   }
-  else if (sharing_info != other.sharing_info) {
-    take_data();
+
+  /* Same shape: compare each step independently, taking only those that differ
+   * so that unchanged, implicitly-shared steps keep their sharing. */
+  const auto take_step = [&](Buffer &dst, Buffer &src, const AttributeElement step_element) {
+    free_step_buffer(dst, step_element, sz, size);
+    dst = src;
+    src = Buffer();
+    modified = true;
+  };
+
+  const auto step_differs = [&](const Buffer &a, const Buffer &b) {
+    if (a.data == b.data) {
+      /* Same buffer, e.g. shared through implicit sharing. */
+      return false;
+    }
+    if (a.sharing_info != b.sharing_info) {
+      return true;
+    }
+    if (size == 0) {
+      return false;
+    }
+    return memcmp(a.data, b.data, sz * size) != 0;
+  };
+
+  if (step_differs(center, other.center)) {
+    take_step(center, other.center, element);
   }
-  else if (size > 0 && memcmp(buffer, other.buffer, data_sizeof() * size) != 0) {
-    take_data();
+  for (size_t i = 0; i < motion.size(); i++) {
+    /* Motion steps are never voxels, strip that flag for the helper. */
+    if (step_differs(motion[i], other.motion[i])) {
+      take_step(motion[i], other.motion[i], motion_element);
+    }
   }
 }
 
@@ -453,7 +585,7 @@ void Attribute::get_uv_tiles(Geometry *geom,
   }
 
   const int num = Attribute::element_size(geom, element, prim);
-  const float2 *uv = data_float2();
+  const float2 *uv = data<float2>();
   for (int i = 0; i < num; i++, uv++) {
     const float u = uv->x;
     const float v = uv->y;

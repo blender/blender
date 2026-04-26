@@ -303,7 +303,8 @@ void SubdAttributeInterpolation::setup_attribute_vertex_smooth(const Attribute &
   if constexpr (std::is_same_v<typename T::AccumType, float3>) {
     if (mesh_attr.std == ATTR_STD_MOTION_VERTEX_POSITION) {
       Attribute *attr_normal = mesh.attributes.add(ATTR_STD_MOTION_VERTEX_NORMAL);
-      mesh_normal_data = attr_normal->data_normal_for_write() + mesh.num_verts() * motion_step;
+      mesh_normal_data = attr_normal->data_for_write<packed_normal>() +
+                         mesh.num_verts() * motion_step;
     }
   }
 

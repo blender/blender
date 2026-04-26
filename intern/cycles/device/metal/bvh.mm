@@ -220,7 +220,8 @@ bool BVHMetal::build_BLAS_mesh(Progress &progress,
 
         /* The center step for motion vertices is not stored in the attribute. */
         if (step != center_step) {
-          verts = motion_keys->data_float3() + (step > center_step ? step - 1 : step) * num_verts;
+          verts = motion_keys->data<packed_float3>() +
+                  (step > center_step ? step - 1 : step) * num_verts;
         }
         std::copy_n(verts, num_verts, dest_data + num_verts * step);
       }
@@ -439,7 +440,7 @@ bool BVHMetal::build_BLAS_hair(Progress &progress,
         size_t center_step = (num_motion_steps - 1) / 2;
         if (step != center_step) {
           size_t attr_offset = (step > center_step) ? step - 1 : step;
-          keys = motion_keys->data_float3() + attr_offset * numKeys;
+          keys = motion_keys->data<packed_float3>() + attr_offset * numKeys;
         }
 
         step_offsets.push_back(cpData.size());
@@ -790,7 +791,7 @@ bool BVHMetal::build_BLAS_pointcloud(Progress &progress,
       }
       else {
         size_t attr_offset = (step > center_step) ? step - 1 : step;
-        const float4 *motion_points = motion_keys->data_float4() + attr_offset * num_points;
+        const float4 *motion_points = motion_keys->data<float4>() + attr_offset * num_points;
 
         for (size_t j = 0; j < num_points; ++j) {
           const PointCloud::Point point = pointcloud->get_point(j);

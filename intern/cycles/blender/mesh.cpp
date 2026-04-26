@@ -64,7 +64,7 @@ static void attr_create_motion_from_velocity(Mesh *mesh,
   const float motion_times[2] = {-1.0f, 1.0f};
   for (int step = 0; step < 2; step++) {
     const float relative_time = motion_times[step] * 0.5f * motion_scale;
-    packed_float3 *mP = attr_mP->data_float3_for_write() + step * numverts;
+    packed_float3 *mP = attr_mP->data_for_write<packed_float3>() + step * numverts;
 
     for (int i = 0; i < numverts; i++) {
       mP[i] = float3(P[i]) + make_float3(b_attr[i][0], b_attr[i][1], b_attr[i][2]) * relative_time;
@@ -147,7 +147,7 @@ static void attr_create_generic(Scene *scene,
         attr->std = ATTR_STD_VERTEX_COLOR;
       }
 
-      uchar4 *data = attr->data_uchar4_for_write();
+      uchar4 *data = attr->data_for_write<uchar4>();
       const blender::VArraySpan src = b_attr.varray.typed<blender::ColorGeometry4b>();
       if (subdivision) {
         for (const int i : src.index_range()) {
@@ -309,7 +309,7 @@ static void attr_create_uv_map(Scene *scene,
 
       const blender::VArraySpan b_uv_map = *b_attributes.lookup<blender::float2>(
           uv_name.c_str(), blender::bke::AttrDomain::Corner);
-      float2 *fdata = uv_attr->data_float2_for_write();
+      float2 *fdata = uv_attr->data_for_write<float2>();
       for (const int i : corner_tris.index_range()) {
         const blender::int3 &tri = corner_tris[i];
         fdata[i * 3 + 0] = make_float2(b_uv_map[tri[0]][0], b_uv_map[tri[0]][1]);
@@ -375,7 +375,7 @@ static void attr_create_subd_uv_map(Scene *scene,
 
       const blender::VArraySpan b_uv_map = *b_attributes.lookup<blender::float2>(
           uv_name.c_str(), blender::bke::AttrDomain::Corner);
-      float2 *fdata = uv_attr->data_float2_for_write();
+      float2 *fdata = uv_attr->data_for_write<float2>();
 
       for (const int i : faces.index_range()) {
         const blender::IndexRange face = faces[i];
@@ -531,7 +531,7 @@ static void attr_create_pointiness(Mesh *mesh,
   /* STEP 3: Blur vertices to approximate 2 ring neighborhood. */
   AttributeSet &attributes = (subdivision) ? mesh->subd_attributes : mesh->attributes;
   Attribute *attr = attributes.add(ATTR_STD_POINTINESS);
-  float *data = attr->data_float_for_write();
+  float *data = attr->data_for_write<float>();
   memcpy(data, raw_data.data(), sizeof(float) * raw_data.size());
   memset(counter.data(), 0, sizeof(int) * counter.size());
   visited_edges.clear();
@@ -592,7 +592,7 @@ static void attr_create_random_per_island(Scene *scene,
 
   AttributeSet &attributes = (subdivision) ? mesh->subd_attributes : mesh->attributes;
   Attribute *attribute = attributes.add(ATTR_STD_RANDOM_PER_ISLAND);
-  float *data = attribute->data_float_for_write();
+  float *data = attribute->data_for_write<float>();
 
   if (!subdivision) {
     const blender::Span<blender::int3> corner_tris = b_mesh.corner_tris();
@@ -664,7 +664,7 @@ static void create_mesh(Scene *scene,
 
   if (subdivision || !use_corner_normals) {
     Attribute *attr_N = attributes.add(ATTR_STD_VERTEX_NORMAL);
-    packed_normal *N = attr_N->data_normal_for_write();
+    packed_normal *N = attr_N->data_for_write<packed_normal>();
     const blender::Span<blender::float3> vert_normals = b_mesh.vert_normals();
     for (const int i : vert_normals.index_range()) {
       N[i] = packed_normal(
@@ -693,7 +693,7 @@ static void create_mesh(Scene *scene,
         texspace_location,
         texspace_size);
 
-    packed_float3 *generated = attr->data_float3_for_write();
+    packed_float3 *generated = attr->data_for_write<packed_float3>();
 
     for (const int i : positions.index_range()) {
       blender::float3 value;
@@ -753,7 +753,7 @@ static void create_mesh(Scene *scene,
     if (use_corner_normals) {
       const blender::Span<blender::float3> b_corner_normals = b_mesh.corner_normals();
       Attribute *attr_N = attributes.add(ATTR_STD_CORNER_NORMAL);
-      packed_normal *N = attr_N->data_normal_for_write();
+      packed_normal *N = attr_N->data_for_write<packed_normal>();
 
       for (const int i : b_corner_tris.index_range()) {
         const blender::int3 &tri = b_corner_tris[i];
@@ -838,7 +838,7 @@ static void create_mesh(Scene *scene,
    * probably only be done well with a volume grid mapping of coordinates. */
   if (mesh->need_attribute(scene, ATTR_STD_GENERATED_TRANSFORM)) {
     Attribute *attr = mesh->attributes.add(ATTR_STD_GENERATED_TRANSFORM);
-    Transform *tfm = attr->data_transform_for_write();
+    Transform *tfm = attr->data_for_write<Transform>();
 
     float3 loc;
     float3 size;
@@ -1066,12 +1066,13 @@ void BlenderSync::sync_mesh_motion(BObjectInfo &b_ob_info, Mesh *mesh, const int
       new_attribute = true;
     }
     /* Load vertex data from mesh. */
-    packed_float3 *mP = attr_mP->data_float3_for_write() + motion_step * numverts;
-    packed_normal *mN = (attr_mN) ? attr_mN->data_normal_for_write() + motion_step * numverts :
-                                    nullptr;
-    packed_normal *mcN = (attr_mcN) ?
-                             attr_mcN->data_normal_for_write() + motion_step * numtris * 3 :
-                             nullptr;
+    packed_float3 *mP = attr_mP->data_for_write<packed_float3>() + motion_step * numverts;
+    packed_normal *mN = (attr_mN) ?
+                            attr_mN->data_for_write<packed_normal>() + motion_step * numverts :
+                            nullptr;
+    packed_normal *mcN = (attr_mcN) ? attr_mcN->data_for_write<packed_normal>() +
+                                          motion_step * numtris * 3 :
+                                      nullptr;
 
     bool topology_changed = b_verts_num != numverts;
 
@@ -1129,15 +1130,16 @@ void BlenderSync::sync_mesh_motion(BObjectInfo &b_ob_info, Mesh *mesh, const int
         /* motion, fill up previous steps that we might have skipped because
          * they had no motion, but we need them anyway now */
         const packed_float3 *P = mesh->get_position();
-        const packed_normal *N = (attr_N) ? attr_N->data_normal() : nullptr;
-        const packed_normal *cN = (attr_cN) ? attr_cN->data_normal() : nullptr;
+        const packed_normal *N = (attr_N) ? attr_N->data<packed_normal>() : nullptr;
+        const packed_normal *cN = (attr_cN) ? attr_cN->data<packed_normal>() : nullptr;
         for (int step = 0; step < motion_step; step++) {
-          std::copy_n(P, numverts, attr_mP->data_float3_for_write() + step * numverts);
+          std::copy_n(P, numverts, attr_mP->data_for_write<packed_float3>() + step * numverts);
           if (attr_mN) {
-            std::copy_n(N, numverts, attr_mN->data_normal_for_write() + step * numverts);
+            std::copy_n(N, numverts, attr_mN->data_for_write<packed_normal>() + step * numverts);
           }
           if (attr_mcN) {
-            std::copy_n(cN, numtris * 3, attr_mcN->data_normal_for_write() + step * (numtris * 3));
+            std::copy_n(
+                cN, numtris * 3, attr_mcN->data_for_write<packed_normal>() + step * (numtris * 3));
           }
         }
       }
@@ -1147,8 +1149,8 @@ void BlenderSync::sync_mesh_motion(BObjectInfo &b_ob_info, Mesh *mesh, const int
         LOG_WARNING << "Topology differs, discarding motion blur for object " << ob_name
                     << " at time " << motion_step;
         const packed_float3 *P = mesh->get_position();
-        const packed_normal *N = (attr_N) ? attr_N->data_normal() : nullptr;
-        const packed_normal *cN = (attr_cN) ? attr_cN->data_normal() : nullptr;
+        const packed_normal *N = (attr_N) ? attr_N->data<packed_normal>() : nullptr;
+        const packed_normal *cN = (attr_cN) ? attr_cN->data<packed_normal>() : nullptr;
         std::copy_n(P, numverts, mP);
         if (mN != nullptr) {
           std::copy_n(N, numverts, mN);

@@ -131,7 +131,7 @@ void PointCloud::copy_center_to_motion_step(const int motion_step)
     const size_t numpoints = points.size();
     float *radius_data = radius.data();
 
-    float4 *attrib_P = attr_mP->data_float4_for_write() + motion_step * numpoints;
+    float4 *attrib_P = attr_mP->data_for_write<float4>() + motion_step * numpoints;
     for (int i = 0; i < numpoints; i++) {
       const float3 P = float3(points_data[i]);
       const float r = radius_data[i];
@@ -169,7 +169,7 @@ void PointCloud::compute_bounds()
     Attribute *attr = attributes.find(ATTR_STD_MOTION_VERTEX_POSITION);
     if (use_motion_blur && attr) {
       const size_t steps_size = points.size() * (motion_steps - 1);
-      const float4 *point_steps = attr->data_float4();
+      const float4 *point_steps = attr->data<float4>();
 
       for (size_t i = 0; i < steps_size; i++) {
         bnds.grow(make_float3(point_steps[i]), point_steps[i].w);
@@ -186,7 +186,7 @@ void PointCloud::compute_bounds()
 
       if (use_motion_blur && attr) {
         const size_t steps_size = points.size() * (motion_steps - 1);
-        const float4 *point_steps = attr->data_float4();
+        const float4 *point_steps = attr->data<float4>();
 
         for (size_t i = 0; i < steps_size; i++) {
           bnds.grow_safe(make_float3(point_steps[i]), point_steps[i].w);
@@ -228,7 +228,7 @@ void PointCloud::apply_transform(const Transform &tfm, const bool apply_to_motio
     if (attr) {
       /* apply transform to motion curve keys */
       const size_t steps_size = points.size() * (motion_steps - 1);
-      float4 *point_steps = attr->data_float4_for_write();
+      float4 *point_steps = attr->data_for_write<float4>();
 
       for (size_t i = 0; i < steps_size; i++) {
         const float3 co = transform_point(&tfm, make_float3(point_steps[i]));

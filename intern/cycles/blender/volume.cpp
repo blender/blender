@@ -252,7 +252,7 @@ static void sync_smoke_volume(blender::Scene &b_scene,
     mesh_texture_space(b_mesh, loc, size);
 
     Attribute *attr = volume->attributes.add(ATTR_STD_GENERATED_TRANSFORM);
-    Transform *tfm = attr->data_transform_for_write();
+    Transform *tfm = attr->data_for_write<Transform>();
     *tfm = transform_translate(-loc) * transform_scale(size);
   }
 }
@@ -408,7 +408,7 @@ static void sync_volume_object(blender::Main &b_data,
     const float3 inv_size = safe_divide(one_float3(), make_float3(size[0], size[1], size[2]));
 
     Attribute *attr = volume->attributes.add(ATTR_STD_GENERATED_TRANSFORM);
-    Transform *tfm = attr->data_transform_for_write();
+    Transform *tfm = attr->data_for_write<Transform>();
     *tfm = transform_scale(inv_size) * transform_translate(-loc);
   }
 }

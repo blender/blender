@@ -403,7 +403,7 @@ void BVHEmbree::set_tri_vertex_buffer(RTCGeometry geom_id, const Mesh *mesh, con
     }
     else {
       const int t_ = (t > t_mid) ? (t - 1) : t;
-      verts = &attr_mP->data_float3()[t_ * num_verts];
+      verts = &attr_mP->data<packed_float3>()[t_ * num_verts];
     }
 
     if (update) {
@@ -562,7 +562,7 @@ void BVHEmbree::set_curve_vertex_buffer(RTCGeometry geom_id, const Hair *hair, c
       }
       else {
         const int t_ = (t > t_mid) ? (t - 1) : t;
-        const float4 *verts = &attr_mP->data_float4()[t_ * num_keys];
+        const float4 *verts = &attr_mP->data<float4>()[t_ * num_keys];
         pack_motion_verts<float4>(
             num_curves, hair, verts, curve_radius, rtc_verts, hair->curve_shape);
       }
@@ -634,7 +634,7 @@ void BVHEmbree::set_point_vertex_buffer(RTCGeometry geom_id,
       else {
         /* Motion blur is already packed as [x y z radius]. */
         const int t_ = (t > t_mid) ? (t - 1) : t;
-        const float4 *verts = &attr_mP->data_float4()[t_ * num_points];
+        const float4 *verts = &attr_mP->data<float4>()[t_ * num_points];
         std::copy_n(verts, num_points, rtc_verts);
       }
     }

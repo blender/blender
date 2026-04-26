@@ -410,7 +410,7 @@ hiprtGeometryBuildInput HIPRTDevice::prepare_triangle_blas(BVHHIPRT *bvh, Mesh *
   if (use_motion_blur && mesh->has_motion_blur()) {
 
     const Attribute *attr_mP = mesh->attributes.find(ATTR_STD_MOTION_VERTEX_POSITION);
-    const packed_float3 *vert_steps = attr_mP->data_float3();
+    const packed_float3 *vert_steps = attr_mP->data<packed_float3>();
     const size_t num_verts = mesh->num_verts();
     const size_t num_steps = mesh->get_motion_steps();
     const size_t num_triangles = mesh->num_triangles();
@@ -596,7 +596,7 @@ hiprtGeometryBuildInput HIPRTDevice::prepare_curve_blas(BVHHIPRT *bvh, Hair *hai
       }
       else {
         const size_t num_steps = hair->get_motion_steps();
-        const float4 *key_steps = curve_attr_mP->data_float4();
+        const float4 *key_steps = curve_attr_mP->data<float4>();
         const size_t num_keys = hair->num_keys();
 
         if (bvh->params.num_motion_curve_steps == 0 || bvh->params.use_spatial_split) {
@@ -700,7 +700,7 @@ hiprtGeometryBuildInput HIPRTDevice::prepare_point_blas(BVHHIPRT *bvh, PointClou
   const packed_float3 *points_data = pointcloud->get_position();
   const float *radius_data = pointcloud->get_radius();
   const size_t num_points = pointcloud->num_points();
-  const float4 *motion_data = (point_attr_mP) ? point_attr_mP->data_float4() : nullptr;
+  const float4 *motion_data = (point_attr_mP) ? point_attr_mP->data<float4>() : nullptr;
   const size_t num_steps = pointcloud->get_motion_steps();
 
   int num_bounds = 0;
@@ -753,7 +753,7 @@ hiprtGeometryBuildInput HIPRTDevice::prepare_point_blas(BVHHIPRT *bvh, PointClou
     for (uint j = 0; j < num_points; j++) {
       const PointCloud::Point point = pointcloud->get_point(j);
       const size_t num_steps = pointcloud->get_motion_steps();
-      const float4 *point_steps = point_attr_mP->data_float4();
+      const float4 *point_steps = point_attr_mP->data<float4>();
 
       float4 prev_key = point.motion_key(
           points_data, radius_data, point_steps, num_points, num_steps, 0.0f, j);

@@ -212,7 +212,7 @@ void HdCyclesMesh::PopulateNormals(HdSceneDelegate *sceneDelegate)
     const GfVec3f constantNormal = normals[0];
 
     packed_normal *const N =
-        _geom->attributes.add(ATTR_STD_VERTEX_NORMAL)->data_normal_for_write();
+        _geom->attributes.add(ATTR_STD_VERTEX_NORMAL)->data_for_write<packed_normal>();
     for (size_t i = 0; i < _geom->num_verts(); ++i) {
       N[i] = packed_normal(make_float3(constantNormal[0], constantNormal[1], constantNormal[2]));
     }
@@ -226,7 +226,7 @@ void HdCyclesMesh::PopulateNormals(HdSceneDelegate *sceneDelegate)
               static_cast<size_t>(_topology.GetNumPoints()) == _geom->num_verts());
 
     packed_normal *const N =
-        _geom->attributes.add(ATTR_STD_VERTEX_NORMAL)->data_normal_for_write();
+        _geom->attributes.add(ATTR_STD_VERTEX_NORMAL)->data_for_write<packed_normal>();
     for (size_t i = 0; i < _geom->num_verts(); ++i) {
       N[i] = packed_normal(make_float3(normals[i][0], normals[i][1], normals[i][2]));
     }

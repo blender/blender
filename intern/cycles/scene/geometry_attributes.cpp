@@ -343,25 +343,25 @@ class AttributeTableBuilder {
       offset = handle.kernel_id();
     }
     else if (mattr->element & ATTR_ELEMENT_IS_BYTE) {
-      offset = attr_uchar4.add(mattr->data_uchar4(), size, mattr->modified);
+      offset = attr_uchar4.add(mattr->data<uchar4>(), size, mattr->modified);
     }
     else if (mattr->element & ATTR_ELEMENT_IS_NORMAL) {
-      offset = attr_normal.add(mattr->data_normal(), size, mattr->modified);
+      offset = attr_normal.add(mattr->data<packed_normal>(), size, mattr->modified);
     }
     else if (mattr->type == TypeFloat) {
-      offset = attr_float.add(mattr->data_float(), size, mattr->modified);
+      offset = attr_float.add(mattr->data<float>(), size, mattr->modified);
     }
     else if (mattr->type == TypeFloat2) {
-      offset = attr_float2.add(mattr->data_float2(), size, mattr->modified);
+      offset = attr_float2.add(mattr->data<float2>(), size, mattr->modified);
     }
     else if (mattr->type == TypeMatrix) {
-      offset = attr_float4.add((float4 *)mattr->data_transform(), size * 3, mattr->modified);
+      offset = attr_float4.add((float4 *)mattr->data<Transform>(), size * 3, mattr->modified);
     }
     else if (mattr->type == TypeFloat4 || mattr->type == TypeRGBA) {
-      offset = attr_float4.add(mattr->data_float4(), size, mattr->modified);
+      offset = attr_float4.add(mattr->data<float4>(), size, mattr->modified);
     }
     else {
-      offset = attr_float3.add(mattr->data_float3(), size, mattr->modified);
+      offset = attr_float3.add(mattr->data<packed_float3>(), size, mattr->modified);
     }
 
     /* mesh vertex/curve index is global, not per object, so we sneak

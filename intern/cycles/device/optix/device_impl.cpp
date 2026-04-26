@@ -1369,7 +1369,7 @@ void OptiXDevice::build_bvh(BVH *bvh, Progress &progress, bool refit)
         }
         else {
           const size_t attr_offset = (step > center_step) ? step - 1 : step;
-          keys_motion = motion_keys->data_float3() + attr_offset * hair->num_keys();
+          keys_motion = motion_keys->data<packed_float3>() + attr_offset * hair->num_keys();
         }
         const packed_float3 *keys = keys_center ? keys_center : keys_motion;
         const auto get_key = [keys](size_t idx) -> float3 { return float3(keys[idx]); };
@@ -1533,7 +1533,8 @@ void OptiXDevice::build_bvh(BVH *bvh, Progress &progress, bool refit)
           verts = mesh->get_position();
         }
         else {
-          verts = motion_keys->data_float3() + (step > center_step ? step - 1 : step) * num_verts;
+          verts = motion_keys->data<packed_float3>() +
+                  (step > center_step ? step - 1 : step) * num_verts;
         }
 
         std::copy_n(verts, num_verts, vertex_data.data() + num_verts * step);
@@ -1615,7 +1616,7 @@ void OptiXDevice::build_bvh(BVH *bvh, Progress &progress, bool refit)
         }
         else {
           size_t attr_offset = (step > center_step) ? step - 1 : step;
-          const float4 *points = motion_points->data_float4() + attr_offset * num_points;
+          const float4 *points = motion_points->data<float4>() + attr_offset * num_points;
 
           for (size_t i = 0; i < num_points; ++i) {
             const PointCloud::Point point = pointcloud->get_point(i);
