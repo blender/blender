@@ -146,7 +146,6 @@ class Mesh : public Geometry {
 
   /* Mesh Data */
   NODE_SOCKET_API_ARRAY(array<int>, triangles)
-  NODE_SOCKET_API_ARRAY(array<packed_float3>, verts)
   NODE_SOCKET_API_ARRAY(array<int>, shader)
   NODE_SOCKET_API_ARRAY(array<bool>, smooth)
 
@@ -238,22 +237,12 @@ class Mesh : public Geometry {
     return num_verts() - num_subd_added_verts;
   }
 
-  const packed_float3 *get_position() const
-  {
-    return get_verts().data();
-  }
-  packed_float3 *get_position_for_write()
-  {
-    tag_verts_modified();
-    return get_verts().data();
-  }
-  size_t num_verts() const
-  {
-    return get_verts().size();
-  }
+  size_t num_verts() const;
 
  protected:
   void clear(bool preserve_shaders, bool preserve_voxel_data);
+
+  void add_builtin_attributes();
 };
 
 CCL_NAMESPACE_END

@@ -461,6 +461,8 @@ void Attribute::zero_data(void *dst)
 const char *Attribute::standard_name(AttributeStandard std)
 {
   switch (std) {
+    case ATTR_STD_POSITION:
+      return "P";
     case ATTR_STD_VERTEX_NORMAL:
     case ATTR_STD_CORNER_NORMAL:
       return "N";

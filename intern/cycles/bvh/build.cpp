@@ -83,7 +83,7 @@ void BVHBuild::add_reference_triangles(BoundBox &root,
        * least optimal ray-tracing.
        */
       /* TODO(sergey): Support motion steps for spatially split BVH. */
-      const size_t num_verts = mesh->verts.size();
+      const size_t num_verts = mesh->num_verts();
       const size_t num_steps = mesh->motion_steps;
       const packed_float3 *vert_steps = attr_mP->data<packed_float3>();
       BoundBox bounds = BoundBox::empty;
@@ -104,7 +104,7 @@ void BVHBuild::add_reference_triangles(BoundBox &root,
        */
       const int num_bvh_steps = params.num_motion_triangle_steps * 2 + 1;
       const float num_bvh_steps_inv_1 = 1.0f / (num_bvh_steps - 1);
-      const size_t num_verts = mesh->verts.size();
+      const size_t num_verts = mesh->num_verts();
       const size_t num_steps = mesh->motion_steps;
       const packed_float3 *vert_steps = attr_mP->data<packed_float3>();
       /* Calculate bounding box of the previous time step.

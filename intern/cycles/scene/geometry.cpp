@@ -83,6 +83,19 @@ void Geometry::clear(bool preserve_shaders)
   tag_modified();
 }
 
+const packed_float3 *Geometry::get_position() const
+{
+  const Attribute *attr = attributes.find(ATTR_STD_POSITION);
+  return attr ? attr->data<packed_float3>() : nullptr;
+}
+
+packed_float3 *Geometry::get_position_for_write()
+{
+  Attribute *attr = attributes.add(ATTR_STD_POSITION);
+  tag_position_modified();
+  return attr->data_for_write<packed_float3>();
+}
+
 void Geometry::tag_position_modified()
 {
   position_modified = true;
@@ -466,7 +479,7 @@ void GeometryManager::device_update_preprocess(Device *device, Scene *scene, Pro
         /* tag displacement related sockets as modified */
         if (geom->is_mesh()) {
           Mesh *mesh = static_cast<Mesh *>(geom);
-          mesh->tag_verts_modified();
+          mesh->tag_position_modified();
           mesh->tag_subd_dicing_rate_modified();
           mesh->tag_subd_max_level_modified();
           mesh->tag_subd_objecttoworld_modified();

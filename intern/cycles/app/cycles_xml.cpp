@@ -425,19 +425,15 @@ static void xml_read_mesh(const XMLReadState &state, const xml_node node)
     mesh->set_subdivision_type(Mesh::SUBDIVISION_LINEAR);
   }
 
-  array<packed_float3> P_array;
-  P_array = P;
-
   if (mesh->get_subdivision_type() == Mesh::SUBDIVISION_NONE) {
     /* create vertices */
-
-    mesh->set_verts(P_array);
 
     size_t num_triangles = 0;
     for (size_t i = 0; i < nverts.size(); i++) {
       num_triangles += nverts[i] - 2;
     }
-    mesh->resize_mesh(mesh->num_verts(), num_triangles);
+    mesh->resize_mesh(P.size(), num_triangles);
+    std::copy_n(P.data(), P.size(), mesh->get_position_for_write());
 
     int *triangles = mesh->get_triangles().data();
 
@@ -565,7 +561,8 @@ static void xml_read_mesh(const XMLReadState &state, const xml_node node)
   }
   else {
     /* create vertices */
-    mesh->set_verts(P_array);
+    mesh->resize_mesh(P.size(), 0);
+    std::copy_n(P.data(), P.size(), mesh->get_position_for_write());
 
     size_t num_corners = 0;
     for (size_t i = 0; i < nverts.size(); i++) {

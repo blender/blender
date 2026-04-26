@@ -173,13 +173,11 @@ void HdCyclesMesh::PopulatePoints(HdSceneDelegate *sceneDelegate)
 
   TF_VERIFY(points.size() >= static_cast<size_t>(_topology.GetNumPoints()));
 
-  array<packed_float3> pointsDataCycles;
-  pointsDataCycles.reserve(points.size());
-  for (const GfVec3f &point : points) {
-    pointsDataCycles.push_back_reserved(make_float3(point[0], point[1], point[2]));
-  }
+  static_assert(sizeof(GfVec3f) == sizeof(packed_float3));
 
-  _geom->set_verts(pointsDataCycles);
+  std::copy_n(reinterpret_cast<const packed_float3 *>(points.data()),
+              _geom->num_verts(),
+              _geom->get_position_for_write());
 }
 
 void HdCyclesMesh::PopulateNormals(HdSceneDelegate *sceneDelegate)

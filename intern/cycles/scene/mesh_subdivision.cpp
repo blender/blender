@@ -96,6 +96,7 @@ void Mesh::tessellate(SubdParams &params)
   {
     vector<LinearQuadPatch> linear_patches(num_patches);
     LinearQuadPatch *patch = linear_patches.data();
+    const packed_float3 *verts = get_position();
 
     for (int f = 0; f < num_faces; f++) {
       SubdFace face = get_subd_face(f);

@@ -115,6 +115,8 @@ class Geometry : public Node {
   bool has_surface_bssrdf; /* Set in the device_update_flags(). */
 
   /* Position attribute. */
+  const packed_float3 *get_position() const;
+  packed_float3 *get_position_for_write();
   void tag_position_modified();
   bool position_is_modified() const;
 

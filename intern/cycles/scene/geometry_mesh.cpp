@@ -80,7 +80,7 @@ void GeometryManager::device_update_mesh(Device * /*unused*/,
           mesh->pack_shaders(scene, &tri_shader[mesh->prim_offset]);
         }
 
-        if (mesh->verts_is_modified() || mesh->triangles_is_modified() || copy_all_data) {
+        if (mesh->position_is_modified() || mesh->triangles_is_modified() || copy_all_data) {
           mesh->pack_verts(&tri_verts[mesh->vert_offset], &tri_vindex[mesh->prim_offset]);
         }
 
