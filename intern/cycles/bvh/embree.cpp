@@ -309,11 +309,11 @@ void BVHEmbree::add_triangles(const Object *ob, const Mesh *mesh, const int i)
 {
   const size_t prim_offset = mesh->prim_offset;
 
-  const Attribute *attr_mP = nullptr;
+  const Attribute *attr_P = nullptr;
   size_t num_motion_steps = 1;
   if (mesh->has_motion_blur()) {
-    attr_mP = mesh->attributes.find(ATTR_STD_MOTION_VERTEX_POSITION);
-    if (attr_mP) {
+    attr_P = mesh->attributes.find(ATTR_STD_POSITION);
+    if (attr_P->has_motion()) {
       num_motion_steps = mesh->get_motion_steps();
     }
   }
@@ -380,31 +380,19 @@ void BVHEmbree::add_triangles(const Object *ob, const Mesh *mesh, const int i)
 
 void BVHEmbree::set_tri_vertex_buffer(RTCGeometry geom_id, const Mesh *mesh, const bool update)
 {
-  const Attribute *attr_mP = nullptr;
+  const Attribute *attr_P = mesh->attributes.find(ATTR_STD_POSITION);
   size_t num_motion_steps = 1;
-  int t_mid = 0;
-  if (mesh->has_motion_blur()) {
-    attr_mP = mesh->attributes.find(ATTR_STD_MOTION_VERTEX_POSITION);
-    if (attr_mP) {
-      num_motion_steps = mesh->get_motion_steps();
-      t_mid = (num_motion_steps - 1) / 2;
-      if (num_motion_steps > RTC_MAX_TIME_STEP_COUNT) {
-        assert(0);
-        num_motion_steps = RTC_MAX_TIME_STEP_COUNT;
-      }
+  if (mesh->has_motion_blur() && attr_P->has_motion()) {
+    num_motion_steps = mesh->get_motion_steps();
+    if (num_motion_steps > RTC_MAX_TIME_STEP_COUNT) {
+      assert(0);
+      num_motion_steps = RTC_MAX_TIME_STEP_COUNT;
     }
   }
   const size_t num_verts = mesh->num_verts();
 
   for (int t = 0; t < num_motion_steps; ++t) {
-    const packed_float3 *verts;
-    if (t == t_mid) {
-      verts = mesh->get_position();
-    }
-    else {
-      const int t_ = (t > t_mid) ? (t - 1) : t;
-      verts = &attr_mP->data<packed_float3>()[t_ * num_verts];
-    }
+    const packed_float3 *verts = attr_P->data_at_time_step<packed_float3>(t, num_motion_steps);
 
     if (update) {
       rtcUpdateGeometryBuffer(geom_id, RTC_BUFFER_TYPE_VERTEX, t);

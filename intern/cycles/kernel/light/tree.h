@@ -276,7 +276,7 @@ ccl_device bool compute_emitter_centroid_and_dir(KernelGlobals kg,
     kernel_assert(is_triangle(kemitter));
     const int object = kemitter->object_id;
     float3 vertices[3];
-    triangle_vertices(kg, kemitter->triangle.id, vertices);
+    triangle_vertices(kg, object, kemitter->triangle.id, vertices);
     centroid = (vertices[0] + vertices[1] + vertices[2]) / 3.0f;
 
     const bool is_front_only = (kemitter->triangle.emission_sampling == EMISSION_SAMPLING_FRONT);

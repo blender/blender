@@ -205,7 +205,7 @@ ccl_device_inline void shader_setup_from_sample(KernelGlobals kg,
 
       /* dPdu/dPdv */
 #ifdef __DPDU__
-      triangle_dPdudv(kg, sd->prim, &sd->dPdu, &sd->dPdv);
+      triangle_dPdudv(kg, sd->object, sd->prim, &sd->dPdu, &sd->dPdv);
 
       if (!(sd->object_flag & SD_OBJECT_TRANSFORM_APPLIED)) {
         object_dir_transform(kg, sd, &sd->dPdu);

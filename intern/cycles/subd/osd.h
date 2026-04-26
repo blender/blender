@@ -18,6 +18,7 @@
 
 #  include "subd/patch.h"
 
+#  include "util/types.h"
 #  include "util/unique_ptr.h"
 #  include "util/vector.h"
 

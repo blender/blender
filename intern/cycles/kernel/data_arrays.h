@@ -34,7 +34,6 @@ KERNEL_DATA_ARRAY(DecomposedTransform, camera_motion)
 /* triangles */
 KERNEL_DATA_ARRAY(uint, tri_shader)
 KERNEL_DATA_ARRAY(packed_uint3, tri_vindex)
-KERNEL_DATA_ARRAY(packed_float3, tri_verts)
 
 /* curves */
 KERNEL_DATA_ARRAY(KernelCurve, curves)

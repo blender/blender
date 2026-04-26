@@ -29,7 +29,6 @@ void GeometryManager::device_update_mesh(Device * /*unused*/,
                                          Progress &progress)
 {
   /* Count. */
-  size_t vert_size = 0;
   size_t tri_size = 0;
 
   size_t curve_key_size = 0;
@@ -42,7 +41,6 @@ void GeometryManager::device_update_mesh(Device * /*unused*/,
     if (geom->is_mesh() || geom->is_volume()) {
       Mesh *mesh = static_cast<Mesh *>(geom);
 
-      vert_size += mesh->num_verts();
       tri_size += mesh->num_triangles();
     }
     else if (geom->is_hair()) {
@@ -60,10 +58,8 @@ void GeometryManager::device_update_mesh(Device * /*unused*/,
 
   /* Fill in all the arrays. */
   if (tri_size != 0) {
-    /* normals */
     progress.set_status("Updating Mesh", "Computing normals");
 
-    packed_float3 *tri_verts = dscene->tri_verts.alloc(vert_size);
     uint *tri_shader = dscene->tri_shader.alloc(tri_size);
     packed_uint3 *tri_vindex = dscene->tri_vindex.alloc(tri_size);
 
@@ -80,8 +76,8 @@ void GeometryManager::device_update_mesh(Device * /*unused*/,
           mesh->pack_shaders(scene, &tri_shader[mesh->prim_offset]);
         }
 
-        if (mesh->position_is_modified() || mesh->triangles_is_modified() || copy_all_data) {
-          mesh->pack_verts(&tri_verts[mesh->vert_offset], &tri_vindex[mesh->prim_offset]);
+        if (mesh->triangles_is_modified() || copy_all_data) {
+          mesh->pack_triangles(&tri_vindex[mesh->prim_offset]);
         }
 
         if (progress.get_cancel()) {
@@ -93,7 +89,6 @@ void GeometryManager::device_update_mesh(Device * /*unused*/,
     /* vertex coordinates */
     progress.set_status("Updating Mesh", "Copying Mesh to device");
 
-    dscene->tri_verts.copy_to_device_if_modified();
     dscene->tri_shader.copy_to_device_if_modified();
     dscene->tri_vindex.copy_to_device_if_modified();
   }

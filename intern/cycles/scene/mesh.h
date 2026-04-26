@@ -43,25 +43,21 @@ class Mesh : public Geometry {
  public:
   NODE_DECLARE
 
+  /* Vertices. */
+  size_t num_verts() const;
+
   /* Mesh Triangle */
   struct Triangle {
     int v[3];
 
     void bounds_grow(const packed_float3 *verts, BoundBox &bounds) const;
 
-    void motion_verts(const packed_float3 *verts,
-                      const packed_float3 *vert_steps,
-                      const size_t num_verts,
+    void motion_verts(const Attribute *attr_P,
                       const size_t num_steps,
                       const float time,
                       float3 r_verts[3]) const;
 
-    void verts_for_step(const packed_float3 *verts,
-                        const packed_float3 *vert_steps,
-                        const size_t num_verts,
-                        const size_t num_steps,
-                        const size_t step,
-                        float3 r_verts[3]) const;
+    void verts_for_step(const Attribute *attr_P, const size_t step, float3 r_verts[3]) const;
 
     float3 compute_normal(const packed_float3 *verts) const;
 
@@ -173,8 +169,6 @@ class Mesh : public Geometry {
   AttributeSet subd_attributes;
 
   /* BVH */
-  size_t vert_offset;
-
   size_t face_offset;
   size_t corner_offset;
 
@@ -216,7 +210,7 @@ class Mesh : public Geometry {
   void get_uv_tiles(ustring map, unordered_set<int> &tiles) override;
 
   void pack_shaders(Scene *scene, uint *shader);
-  void pack_verts(packed_float3 *tri_verts, packed_uint3 *tri_vindex);
+  void pack_triangles(packed_uint3 *tri_vindex);
 
   bool has_motion_blur() const override;
   PrimitiveType primitive_type() const override;
@@ -236,8 +230,6 @@ class Mesh : public Geometry {
   {
     return num_verts() - num_subd_added_verts;
   }
-
-  size_t num_verts() const;
 
  protected:
   void clear(bool preserve_shaders, bool preserve_voxel_data);

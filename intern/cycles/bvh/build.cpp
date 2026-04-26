@@ -60,15 +60,13 @@ void BVHBuild::add_reference_triangles(BoundBox &root,
                                        const int object_index)
 {
   const PrimitiveType primitive_type = mesh->primitive_type();
-  const Attribute *attr_mP = nullptr;
-  if (mesh->has_motion_blur()) {
-    attr_mP = mesh->attributes.find(ATTR_STD_MOTION_VERTEX_POSITION);
-  }
+  const Attribute *attr_P = mesh->attributes.find(ATTR_STD_POSITION);
+  const bool has_motion = mesh->has_motion_blur() && attr_P->has_motion();
   const size_t num_triangles = mesh->num_triangles();
   for (uint j = 0; j < num_triangles; j++) {
     const Mesh::Triangle t = mesh->get_triangle(j);
     const packed_float3 *verts = mesh->get_position();
-    if (attr_mP == nullptr) {
+    if (!has_motion) {
       BoundBox bounds = BoundBox::empty;
       t.bounds_grow(verts, bounds);
       if (bounds.valid() && t.valid(verts)) {
@@ -83,13 +81,9 @@ void BVHBuild::add_reference_triangles(BoundBox &root,
        * least optimal ray-tracing.
        */
       /* TODO(sergey): Support motion steps for spatially split BVH. */
-      const size_t num_verts = mesh->num_verts();
-      const size_t num_steps = mesh->motion_steps;
-      const packed_float3 *vert_steps = attr_mP->data<packed_float3>();
       BoundBox bounds = BoundBox::empty;
-      t.bounds_grow(verts, bounds);
-      for (size_t step = 0; step < num_steps - 1; step++) {
-        t.bounds_grow(vert_steps + step * num_verts, bounds);
+      for (int attr_step = 0; attr_step < attr_P->num_motion_steps(); attr_step++) {
+        t.bounds_grow(attr_P->data<packed_float3>(attr_step), bounds);
       }
       if (bounds.valid()) {
         references.push_back(BVHReference(bounds, j, object_index, primitive_type));
@@ -104,15 +98,13 @@ void BVHBuild::add_reference_triangles(BoundBox &root,
        */
       const int num_bvh_steps = params.num_motion_triangle_steps * 2 + 1;
       const float num_bvh_steps_inv_1 = 1.0f / (num_bvh_steps - 1);
-      const size_t num_verts = mesh->num_verts();
-      const size_t num_steps = mesh->motion_steps;
-      const packed_float3 *vert_steps = attr_mP->data<packed_float3>();
+      const size_t num_steps = mesh->get_motion_steps();
       /* Calculate bounding box of the previous time step.
        * Will be reused later to avoid duplicated work on
        * calculating BVH time step boundbox.
        */
       float3 prev_verts[3];
-      t.motion_verts(verts, vert_steps, num_verts, num_steps, 0.0f, prev_verts);
+      t.motion_verts(attr_P, num_steps, 0.0f, prev_verts);
       BoundBox prev_bounds = BoundBox::empty;
       prev_bounds.grow(prev_verts[0]);
       prev_bounds.grow(prev_verts[1]);
@@ -121,7 +113,7 @@ void BVHBuild::add_reference_triangles(BoundBox &root,
       for (int bvh_step = 1; bvh_step < num_bvh_steps; ++bvh_step) {
         const float curr_time = (float)(bvh_step)*num_bvh_steps_inv_1;
         float3 curr_verts[3];
-        t.motion_verts(verts, vert_steps, num_verts, num_steps, curr_time, curr_verts);
+        t.motion_verts(attr_P, num_steps, curr_time, curr_verts);
         BoundBox curr_bounds = BoundBox::empty;
         curr_bounds.grow(curr_verts[0]);
         curr_bounds.grow(curr_verts[1]);

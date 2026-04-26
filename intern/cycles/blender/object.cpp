@@ -651,7 +651,8 @@ void BlenderSync::sync_objects_and_motion(blender::RenderData &b_render,
   /* Check which geometry already has motion blur so it can be skipped. */
   geometry_motion_attribute_synced.clear();
   for (Geometry *geom : scene->geometry) {
-    if (geom->attributes.find(ATTR_STD_MOTION_VERTEX_POSITION)) {
+    const Attribute *attr_P = geom->attributes.find(ATTR_STD_POSITION);
+    if (attr_P && attr_P->has_motion()) {
       geometry_motion_attribute_synced.insert(geom);
     }
   }

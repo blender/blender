@@ -592,7 +592,8 @@ void ObjectManager::device_update_object_transform(UpdateObjectTransformState *s
   kobject.random_number = random_number;
   kobject.particle_index = particle_index;
   kobject.motion_offset = 0;
-  kobject.normal_attr_offset = ATTR_STD_NOT_FOUND;
+  kobject.position_offset = ATTR_STD_NOT_FOUND;
+  kobject.normal_offset = ATTR_STD_NOT_FOUND;
   kobject.ao_distance = ob->ao_distance;
   kobject.receiver_light_set = ob->receiver_light_set >= LIGHT_LINK_SET_MAX ?
                                    0 :
@@ -611,22 +612,16 @@ void ObjectManager::device_update_object_transform(UpdateObjectTransformState *s
     flag |= SD_OBJECT_NEGATIVE_SCALE;
   }
 
-  /* TODO: why not check hair? */
-  if (geom->is_pointcloud()) {
-    if (geom->attributes.find(ATTR_STD_MOTION_VERTEX_POSITION)) {
+  if (geom->is_hair()) {
+    const Attribute *attr_P = geom->attributes.find(ATTR_STD_POSITION);
+    if (attr_P->has_motion()) {
       flag |= SD_OBJECT_HAS_VERTEX_MOTION;
     }
   }
-  else if (geom->is_mesh()) {
-    Mesh *mesh = static_cast<Mesh *>(geom);
-    if (mesh->attributes.find(ATTR_STD_MOTION_VERTEX_POSITION) ||
-        (mesh->get_subdivision_type() != Mesh::SUBDIVISION_NONE &&
-         mesh->subd_attributes.find(ATTR_STD_MOTION_VERTEX_POSITION)))
-    {
+  else if (geom->is_pointcloud()) {
+    const Attribute *attr_P = geom->attributes.find(ATTR_STD_POSITION);
+    if (attr_P->has_motion()) {
       flag |= SD_OBJECT_HAS_VERTEX_MOTION;
-    }
-    else if (mesh->attributes.find(ATTR_STD_CORNER_NORMAL)) {
-      flag |= SD_OBJECT_HAS_CORNER_NORMALS;
     }
   }
   else if (geom->is_volume()) {
@@ -635,6 +630,19 @@ void ObjectManager::device_update_object_transform(UpdateObjectTransformState *s
     {
       flag |= SD_OBJECT_HAS_VOLUME_MOTION;
       kobject.velocity_scale = volume->get_velocity_scale();
+    }
+  }
+  else if (geom->is_mesh()) {
+    Mesh *mesh = static_cast<Mesh *>(geom);
+    const Attribute *attr_P = mesh->attributes.find(ATTR_STD_POSITION);
+    const Attribute *subd_attr_P = (mesh->get_subdivision_type() != Mesh::SUBDIVISION_NONE) ?
+                                       mesh->subd_attributes.find(ATTR_STD_POSITION) :
+                                       nullptr;
+    if (attr_P->has_motion() || (subd_attr_P && subd_attr_P->has_motion())) {
+      flag |= SD_OBJECT_HAS_VERTEX_MOTION;
+    }
+    else if (mesh->attributes.find(ATTR_STD_CORNER_NORMAL)) {
+      flag |= SD_OBJECT_HAS_CORNER_NORMALS;
     }
   }
 
@@ -1087,26 +1095,39 @@ void ObjectManager::device_update_geom_offsets(Device * /*unused*/,
       update = true;
     }
 
-    /* Cached normal offset for quick lookup. */
-    int normal_attr_offset = ATTR_STD_NOT_FOUND;
-    if (geom->is_mesh()) {
-      normal_attr_offset = find_attribute(dscene->attributes_map.data(),
-                                          attr_map_offset,
-                                          PRIMITIVE_TRIANGLE,
-                                          ATTR_STD_CORNER_NORMAL)
-                               .offset;
-      if (normal_attr_offset == ATTR_STD_NOT_FOUND) {
-        normal_attr_offset = find_attribute(dscene->attributes_map.data(),
-                                            attr_map_offset,
-                                            PRIMITIVE_TRIANGLE,
-                                            ATTR_STD_VERTEX_NORMAL)
-                                 .offset;
+    /* Cached attribute offsets for quick lookup. */
+    int position_offset = ATTR_STD_NOT_FOUND;
+    int normal_offset = ATTR_STD_NOT_FOUND;
+    if (geom->is_mesh() || geom->is_volume()) {
+      position_offset = find_attribute(dscene->attributes_map.data(),
+                                       attr_map_offset,
+                                       PRIMITIVE_TRIANGLE,
+                                       ATTR_STD_POSITION)
+                            .offset;
+
+      normal_offset = find_attribute(dscene->attributes_map.data(),
+                                     attr_map_offset,
+                                     PRIMITIVE_TRIANGLE,
+                                     ATTR_STD_CORNER_NORMAL)
+                          .offset;
+      if (normal_offset == ATTR_STD_NOT_FOUND) {
+        normal_offset = find_attribute(dscene->attributes_map.data(),
+                                       attr_map_offset,
+                                       PRIMITIVE_TRIANGLE,
+                                       ATTR_STD_VERTEX_NORMAL)
+                            .offset;
       }
-      assert(normal_attr_offset != ATTR_STD_NOT_FOUND ||
+      assert(position_offset != ATTR_STD_NOT_FOUND ||
+             static_cast<Mesh *>(geom)->num_triangles() == 0);
+      assert(normal_offset != ATTR_STD_NOT_FOUND ||
              static_cast<Mesh *>(geom)->num_triangles() == 0);
     }
-    if (kobject.normal_attr_offset != normal_attr_offset) {
-      kobject.normal_attr_offset = normal_attr_offset;
+    if (kobject.position_offset != position_offset) {
+      kobject.position_offset = position_offset;
+      update = true;
+    }
+    if (kobject.normal_offset != normal_offset) {
+      kobject.normal_offset = normal_offset;
       update = true;
     }
 

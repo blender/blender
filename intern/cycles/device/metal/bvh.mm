@@ -194,8 +194,8 @@ bool BVHMetal::build_BLAS_mesh(Progress &progress,
     const size_t num_indices = tris.size();
 
     size_t num_motion_steps = 1;
-    Attribute *motion_keys = mesh->attributes.find(ATTR_STD_MOTION_VERTEX_POSITION);
-    if (motion_blur && mesh->get_use_motion_blur() && motion_keys) {
+    const Attribute *attr_P = mesh->attributes.find(ATTR_STD_POSITION);
+    if (motion_blur && mesh->get_use_motion_blur() && attr_P->has_motion()) {
       num_motion_steps = mesh->get_motion_steps();
     }
 
@@ -214,15 +214,9 @@ bool BVHMetal::build_BLAS_mesh(Progress &progress,
       posBuf = [mtl_device newBufferWithLength:num_verts * num_motion_steps * sizeof(verts[0])
                                        options:MTLResourceStorageModeShared];
       packed_float3 *dest_data = (packed_float3 *)[posBuf contents];
-      size_t center_step = (num_motion_steps - 1) / 2;
       for (size_t step = 0; step < num_motion_steps; ++step) {
-        const packed_float3 *verts = mesh->get_position();
-
-        /* The center step for motion vertices is not stored in the attribute. */
-        if (step != center_step) {
-          verts = motion_keys->data<packed_float3>() +
-                  (step > center_step ? step - 1 : step) * num_verts;
-        }
+        const packed_float3 *verts = attr_P->data_at_time_step<packed_float3>(step,
+                                                                              num_motion_steps);
         std::copy_n(verts, num_verts, dest_data + num_verts * step);
       }
     }

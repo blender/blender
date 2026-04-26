@@ -347,9 +347,15 @@ class AttributeTableBuilder {
     }
     else if (mattr->element & ATTR_ELEMENT_IS_NORMAL) {
       offset = attr_normal.add(mattr->data<packed_normal>(), size, mattr->modified);
+      for (int step = 0; step < int(mattr->motion.size()); step++) {
+        attr_normal.add(mattr->data<packed_normal>(step + 1), size, mattr->modified);
+      }
     }
     else if (mattr->type == TypeFloat) {
       offset = attr_float.add(mattr->data<float>(), size, mattr->modified);
+      for (int step = 0; step < int(mattr->motion.size()); step++) {
+        attr_float.add(mattr->data<float>(step + 1), size, mattr->modified);
+      }
     }
     else if (mattr->type == TypeFloat2) {
       offset = attr_float2.add(mattr->data<float2>(), size, mattr->modified);
@@ -359,19 +365,22 @@ class AttributeTableBuilder {
     }
     else if (mattr->type == TypeFloat4 || mattr->type == TypeRGBA) {
       offset = attr_float4.add(mattr->data<float4>(), size, mattr->modified);
+      for (int step = 0; step < int(mattr->motion.size()); step++) {
+        attr_float4.add(mattr->data<float4>(step + 1), size, mattr->modified);
+      }
     }
     else {
       offset = attr_float3.add(mattr->data<packed_float3>(), size, mattr->modified);
+      for (int step = 0; step < int(mattr->motion.size()); step++) {
+        attr_float3.add(mattr->data<packed_float3>(step + 1), size, mattr->modified);
+      }
     }
 
     /* mesh vertex/curve index is global, not per object, so we sneak
      * a correction for that in here */
     if (geom->is_mesh()) {
       Mesh *mesh = static_cast<Mesh *>(geom);
-      if (element & ATTR_ELEMENT_VERTEX) {
-        offset -= mesh->vert_offset;
-      }
-      else if (element & ATTR_ELEMENT_FACE) {
+      if (element & ATTR_ELEMENT_FACE) {
         offset -= mesh->prim_offset;
       }
       else if (element & ATTR_ELEMENT_CORNER) {
@@ -400,7 +409,9 @@ class AttributeTableBuilder {
       return;
     }
 
-    const size_t size = Attribute::element_size(geom, mattr->element, prim);
+    const size_t base_size = Attribute::element_size(geom, mattr->element, prim);
+    /* Inline motion: reserve space for center step plus each motion sub-step. */
+    const size_t size = base_size * (1 + mattr->motion.size());
 
     if (mattr->element & ATTR_ELEMENT_VOXEL) {
       /* pass */
@@ -476,10 +487,9 @@ void GeometryManager::device_update_attributes(Device *device,
 
     for (const Attribute &attr : geom->attributes.attributes) {
       switch (attr.std) {
+        case ATTR_STD_POSITION:
         case ATTR_STD_VERTEX_NORMAL:
-        case ATTR_STD_MOTION_VERTEX_NORMAL:
         case ATTR_STD_CORNER_NORMAL:
-        case ATTR_STD_MOTION_CORNER_NORMAL:
         case ATTR_STD_SHADOW_TRANSPARENCY:
           geom_attributes[i].add(attr.std);
           break;

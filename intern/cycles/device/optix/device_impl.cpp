@@ -1512,8 +1512,8 @@ void OptiXDevice::build_bvh(BVH *bvh, Progress &progress, bool refit)
       const size_t num_verts = mesh->num_verts();
 
       size_t num_motion_steps = 1;
-      Attribute *motion_keys = mesh->attributes.find(ATTR_STD_MOTION_VERTEX_POSITION);
-      if (pipeline_options.usesMotionBlur && mesh->get_use_motion_blur() && motion_keys) {
+      const Attribute *attr_P = mesh->attributes.find(ATTR_STD_POSITION);
+      if (pipeline_options.usesMotionBlur && mesh->get_use_motion_blur() && attr_P->has_motion()) {
         num_motion_steps = mesh->get_motion_steps();
       }
 
@@ -1526,17 +1526,8 @@ void OptiXDevice::build_bvh(BVH *bvh, Progress &progress, bool refit)
       vertex_data.alloc(num_verts * num_motion_steps);
 
       for (size_t step = 0; step < num_motion_steps; ++step) {
-        const size_t center_step = (num_motion_steps - 1) / 2;
-        /* The center step for motion vertices is not stored in the attribute. */
-        const packed_float3 *verts;
-        if (step == center_step) {
-          verts = mesh->get_position();
-        }
-        else {
-          verts = motion_keys->data<packed_float3>() +
-                  (step > center_step ? step - 1 : step) * num_verts;
-        }
-
+        const packed_float3 *verts = attr_P->data_at_time_step<packed_float3>(step,
+                                                                              num_motion_steps);
         std::copy_n(verts, num_verts, vertex_data.data() + num_verts * step);
       }
 
@@ -1558,7 +1549,7 @@ void OptiXDevice::build_bvh(BVH *bvh, Progress &progress, bool refit)
       build_input.triangleArray.vertexBuffers = (CUdeviceptr *)vertex_ptrs.data();
       build_input.triangleArray.numVertices = num_verts;
       build_input.triangleArray.vertexFormat = OPTIX_VERTEX_FORMAT_FLOAT3;
-      build_input.triangleArray.vertexStrideInBytes = sizeof(float4);
+      build_input.triangleArray.vertexStrideInBytes = sizeof(packed_float3);
       build_input.triangleArray.indexBuffer = index_data.device_pointer;
       build_input.triangleArray.numIndexTriplets = mesh->num_triangles();
       build_input.triangleArray.indexFormat = OPTIX_INDICES_FORMAT_UNSIGNED_INT3;

@@ -409,12 +409,9 @@ hiprtGeometryBuildInput HIPRTDevice::prepare_triangle_blas(BVHHIPRT *bvh, Mesh *
 
   if (use_motion_blur && mesh->has_motion_blur()) {
 
-    const Attribute *attr_mP = mesh->attributes.find(ATTR_STD_MOTION_VERTEX_POSITION);
-    const packed_float3 *vert_steps = attr_mP->data<packed_float3>();
-    const size_t num_verts = mesh->num_verts();
+    const Attribute *attr_P = mesh->attributes.find(ATTR_STD_POSITION);
     const size_t num_steps = mesh->get_motion_steps();
     const size_t num_triangles = mesh->num_triangles();
-    const packed_float3 *verts = mesh->get_position();
     int num_bounds = 0;
     float sum_area = 0.0f;
 
@@ -424,9 +421,8 @@ hiprtGeometryBuildInput HIPRTDevice::prepare_triangle_blas(BVHHIPRT *bvh, Mesh *
       for (uint j = 0; j < num_triangles; j++) {
         Mesh::Triangle t = mesh->get_triangle(j);
         BoundBox bounds = BoundBox::empty;
-        t.bounds_grow(verts, bounds);
-        for (size_t step = 0; step < num_steps - 1; step++) {
-          t.bounds_grow(vert_steps + step * num_verts, bounds);
+        for (int attr_step = 0; attr_step < attr_P->num_motion_steps(); attr_step++) {
+          t.bounds_grow(attr_P->data<packed_float3>(attr_step), bounds);
         }
 
         if (bounds.valid()) {
@@ -449,7 +445,7 @@ hiprtGeometryBuildInput HIPRTDevice::prepare_triangle_blas(BVHHIPRT *bvh, Mesh *
       for (uint j = 0; j < num_triangles; j++) {
         Mesh::Triangle t = mesh->get_triangle(j);
         float3 prev_verts[3];
-        t.motion_verts(verts, vert_steps, num_verts, num_steps, 0.0f, prev_verts);
+        t.motion_verts(attr_P, num_steps, 0.0f, prev_verts);
         BoundBox prev_bounds = BoundBox::empty;
         prev_bounds.grow(prev_verts[0]);
         prev_bounds.grow(prev_verts[1]);
@@ -458,7 +454,7 @@ hiprtGeometryBuildInput HIPRTDevice::prepare_triangle_blas(BVHHIPRT *bvh, Mesh *
         for (int bvh_step = 1; bvh_step < num_bvh_steps; ++bvh_step) {
           const float curr_time = (float)(bvh_step)*num_bvh_steps_inv_1;
           float3 curr_verts[3];
-          t.motion_verts(verts, vert_steps, num_verts, num_steps, curr_time, curr_verts);
+          t.motion_verts(attr_P, num_steps, curr_time, curr_verts);
           BoundBox curr_bounds = BoundBox::empty;
           curr_bounds.grow(curr_verts[0]);
           curr_bounds.grow(curr_verts[1]);
@@ -501,7 +497,7 @@ hiprtGeometryBuildInput HIPRTDevice::prepare_triangle_blas(BVHHIPRT *bvh, Mesh *
     int *triangle_data = mesh->get_triangles().data();
 
     size_t vertex_size = mesh->num_verts();
-    const packed_float3 *vertex_data = mesh->get_position();
+    const packed_float3 *verts = mesh->get_position();
 
     bvh->triangle_mesh.triangleCount = mesh->num_triangles();
     bvh->triangle_mesh.triangleStride = 3 * sizeof(int);

@@ -432,15 +432,11 @@ void BVH2::refit_primitives(const int start, const int end, BoundBox &bbox, uint
 
         /* Motion triangles. */
         if (mesh->use_motion_blur) {
-          Attribute *attr = mesh->attributes.find(ATTR_STD_MOTION_VERTEX_POSITION);
+          const Attribute *attr_P = mesh->attributes.find(ATTR_STD_POSITION);
 
-          if (attr) {
-            const size_t mesh_size = mesh->num_verts();
-            const size_t steps = mesh->motion_steps - 1;
-            const packed_float3 *vert_steps = attr->data<packed_float3>();
-
-            for (size_t i = 0; i < steps; i++) {
-              triangle.bounds_grow(vert_steps + i * mesh_size, bbox);
+          if (attr_P->has_motion()) {
+            for (int attr_step = 1; attr_step < attr_P->num_motion_steps(); attr_step++) {
+              triangle.bounds_grow(attr_P->data<packed_float3>(attr_step), bbox);
             }
           }
         }

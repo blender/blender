@@ -186,9 +186,7 @@ void Mesh::Triangle::bounds_grow(const packed_float3 *verts, BoundBox &bounds) c
   bounds.grow(verts[v[2]]);
 }
 
-void Mesh::Triangle::motion_verts(const packed_float3 *verts,
-                                  const packed_float3 *vert_steps,
-                                  const size_t num_verts,
+void Mesh::Triangle::motion_verts(const Attribute *attr_P,
                                   const size_t num_steps,
                                   const float time,
                                   float3 r_verts[3]) const
@@ -200,38 +198,23 @@ void Mesh::Triangle::motion_verts(const packed_float3 *verts,
   /* Fetch vertex coordinates. */
   float3 curr_verts[3];
   float3 next_verts[3];
-  verts_for_step(verts, vert_steps, num_verts, num_steps, step, curr_verts);
-  verts_for_step(verts, vert_steps, num_verts, num_steps, step + 1, next_verts);
+  verts_for_step(attr_P, step, curr_verts);
+  verts_for_step(attr_P, step + 1, next_verts);
   /* Interpolate between steps. */
   r_verts[0] = (1.0f - t) * curr_verts[0] + t * next_verts[0];
   r_verts[1] = (1.0f - t) * curr_verts[1] + t * next_verts[1];
   r_verts[2] = (1.0f - t) * curr_verts[2] + t * next_verts[2];
 }
 
-void Mesh::Triangle::verts_for_step(const packed_float3 *verts,
-                                    const packed_float3 *vert_steps,
-                                    const size_t num_verts,
-                                    const size_t num_steps,
-                                    size_t step,
+void Mesh::Triangle::verts_for_step(const Attribute *attr_P,
+                                    const size_t step,
                                     float3 r_verts[3]) const
 {
-  const size_t center_step = ((num_steps - 1) / 2);
-  if (step == center_step) {
-    /* Center step: regular vertex location. */
-    r_verts[0] = verts[v[0]];
-    r_verts[1] = verts[v[1]];
-    r_verts[2] = verts[v[2]];
-  }
-  else {
-    /* Center step not stored in the attribute array. */
-    if (step > center_step) {
-      step--;
-    }
-    const size_t offset = step * num_verts;
-    r_verts[0] = vert_steps[offset + v[0]];
-    r_verts[1] = vert_steps[offset + v[1]];
-    r_verts[2] = vert_steps[offset + v[2]];
-  }
+  const packed_float3 *vert_step = attr_P->data_at_time_step<packed_float3>(
+      step, attr_P->num_motion_steps());
+  r_verts[0] = vert_step[v[0]];
+  r_verts[1] = vert_step[v[1]];
+  r_verts[2] = vert_step[v[2]];
 }
 
 float3 Mesh::Triangle::compute_normal(const packed_float3 *verts) const
@@ -253,12 +236,6 @@ bool Mesh::Triangle::valid(const packed_float3 *verts) const
          isfinite_safe(float3(verts[v[2]]));
 }
 
-size_t Mesh::num_verts() const
-{
-  const Attribute *attr = attributes.find(ATTR_STD_POSITION);
-  return attr ? attr->size : 0;
-}
-
 /* SubdFace */
 
 float3 Mesh::SubdFace::normal(const Mesh *mesh) const
@@ -270,6 +247,12 @@ float3 Mesh::SubdFace::normal(const Mesh *mesh) const
   const float3 v2 = verts[mesh->subd_face_corners[start_corner + 2]];
 
   return safe_normalize(cross(v1 - v0, v2 - v0));
+}
+
+size_t Mesh::num_verts() const
+{
+  const Attribute *attr = attributes.find(ATTR_STD_POSITION);
+  return attr ? attr->size : 0;
 }
 
 /* Mesh */
@@ -351,8 +334,6 @@ bool Mesh::need_tesselation()
 Mesh::Mesh(const NodeType *node_type, Type geom_type_)
     : Geometry(node_type, geom_type_), subd_attributes(this, ATTR_PRIM_SUBD)
 {
-  vert_offset = 0;
-
   face_offset = 0;
   corner_offset = 0;
 
@@ -373,7 +354,8 @@ void Mesh::add_builtin_attributes()
 
 void Mesh::resize_mesh(const int numverts, const int numtris)
 {
-  attributes.add(ATTR_STD_POSITION)->resize(numverts);
+  Attribute *attr_P = attributes.add(ATTR_STD_POSITION);
+  attr_P->resize(numverts);
   triangles.resize(numtris * 3);
   shader.resize(numtris);
   smooth.resize(numtris);
@@ -474,28 +456,26 @@ void Mesh::add_vertex_crease(const int v, const float weight)
 
 void Mesh::copy_center_to_motion_step(const int motion_step)
 {
-  Attribute *attr_mP = attributes.find(ATTR_STD_MOTION_VERTEX_POSITION);
+  const int attr_step = motion_step + 1;
+  for (AttributeSet *attr_set : {&attributes, &subd_attributes}) {
+    Attribute *attr_P = attr_set->find(ATTR_STD_POSITION);
+    if (attr_P && attr_P->has_motion()) {
+      const packed_float3 *P = attr_P->data<packed_float3>();
+      std::copy_n(P, attr_P->size, attr_P->data_for_write<packed_float3>(attr_step));
+    }
 
-  if (attr_mP) {
-    Attribute *attr_mN = attributes.find(ATTR_STD_MOTION_VERTEX_NORMAL);
-    Attribute *attr_N = attributes.find(ATTR_STD_VERTEX_NORMAL);
-    const packed_float3 *P = get_position();
-    const size_t numverts = num_verts();
-
-    std::copy_n(P, numverts, attr_mP->data_for_write<packed_float3>() + motion_step * numverts);
-    if (attr_mN && attr_N) {
+    Attribute *attr_N = attr_set->find(ATTR_STD_VERTEX_NORMAL);
+    if (attr_N && attr_N->has_motion()) {
       const packed_normal *N = attr_N->data<packed_normal>();
-      std::copy_n(N, numverts, attr_mN->data_for_write<packed_normal>() + motion_step * numverts);
+      std::copy_n(N, attr_N->size, attr_N->data_for_write<packed_normal>(attr_step));
     }
+  }
 
-    Attribute *attr_mcN = attributes.find(ATTR_STD_MOTION_CORNER_NORMAL);
-    Attribute *attr_cN = attributes.find(ATTR_STD_CORNER_NORMAL);
-    if (attr_mcN && attr_cN) {
-      const size_t numcorners = triangles.size();
-      const packed_normal *N = attr_cN->data<packed_normal>();
-      std::copy_n(
-          N, numcorners, attr_mcN->data_for_write<packed_normal>() + motion_step * numcorners);
-    }
+  Attribute *attr_cN = attributes.find(ATTR_STD_CORNER_NORMAL);
+  if (attr_cN && attr_cN->has_motion()) {
+    const size_t numcorners = triangles.size();
+    const packed_normal *N = attr_cN->data<packed_normal>();
+    std::copy_n(N, numcorners, attr_cN->data_for_write<packed_normal>(attr_step));
   }
 }
 
@@ -532,13 +512,13 @@ void Mesh::compute_bounds()
       bnds.grow(verts[i]);
     }
 
-    Attribute *attr = attributes.find(ATTR_STD_MOTION_VERTEX_POSITION);
-    if (use_motion_blur && attr) {
-      const size_t steps_size = verts_size * (motion_steps - 1);
-      const packed_float3 *vert_steps = attr->data<packed_float3>();
-
-      for (size_t i = 0; i < steps_size; i++) {
-        bnds.grow(vert_steps[i]);
+    Attribute *attr_P = attributes.find(ATTR_STD_POSITION);
+    if (use_motion_blur && attr_P->has_motion()) {
+      for (int attr_step = 1; attr_step < attr_P->num_motion_steps(); attr_step++) {
+        const packed_float3 *vert_step = attr_P->data<packed_float3>(attr_step);
+        for (size_t i = 0; i < verts_size; i++) {
+          bnds.grow(vert_step[i]);
+        }
       }
     }
 
@@ -550,12 +530,12 @@ void Mesh::compute_bounds()
         bnds.grow_safe(verts[i]);
       }
 
-      if (use_motion_blur && attr) {
-        const size_t steps_size = verts_size * (motion_steps - 1);
-        const packed_float3 *vert_steps = attr->data<packed_float3>();
-
-        for (size_t i = 0; i < steps_size; i++) {
-          bnds.grow_safe(vert_steps[i]);
+      if (use_motion_blur && attr_P->has_motion()) {
+        for (int attr_step = 1; attr_step < attr_P->num_motion_steps(); attr_step++) {
+          const packed_float3 *vert_step = attr_P->data<packed_float3>(attr_step);
+          for (size_t i = 0; i < verts_size; i++) {
+            bnds.grow_safe(vert_step[i]);
+          }
         }
       }
     }
@@ -580,9 +560,12 @@ void Mesh::apply_transform(const Transform &tfm, const bool apply_to_motion)
     verts[i] = transform_point(&tfm, verts[i]);
   }
 
+  tag_position_modified();
+
   Attribute *attr_vN = attributes.find(ATTR_STD_VERTEX_NORMAL);
   if (attr_vN) {
     const Transform ntfm = transform_normal;
+    const size_t num_verts = this->num_verts();
     packed_normal *vN = attr_vN->data_for_write<packed_normal>();
 
     for (size_t i = 0; i < num_verts; i++) {
@@ -613,40 +596,43 @@ void Mesh::apply_transform(const Transform &tfm, const bool apply_to_motion)
   }
 
   if (apply_to_motion) {
-    Attribute *attr = attributes.find(ATTR_STD_MOTION_VERTEX_POSITION);
+    Attribute *attr_P = attributes.find(ATTR_STD_POSITION);
 
-    if (attr) {
-      const size_t steps_size = num_verts * (motion_steps - 1);
-      packed_float3 *vert_steps = attr->data_for_write<packed_float3>();
-
-      for (size_t i = 0; i < steps_size; i++) {
-        vert_steps[i] = transform_point(&tfm, vert_steps[i]);
+    if (attr_P->has_motion()) {
+      const size_t num_verts = this->num_verts();
+      for (int step = 1; step <= int(attr_P->motion.size()); step++) {
+        packed_float3 *vert_step = attr_P->data_for_write<packed_float3>(step);
+        for (size_t i = 0; i < num_verts; i++) {
+          vert_step[i] = transform_point(&tfm, vert_step[i]);
+        }
       }
     }
 
-    Attribute *attr_N = attributes.find(ATTR_STD_MOTION_VERTEX_NORMAL);
+    Attribute *attr_mN = attributes.find(ATTR_STD_VERTEX_NORMAL);
 
-    if (attr_N) {
+    if (attr_mN && attr_mN->has_motion()) {
       const Transform ntfm = transform_normal;
-      const size_t steps_size = num_verts * (motion_steps - 1);
-      packed_normal *normal_steps = attr_N->data_for_write<packed_normal>();
-
-      for (size_t i = 0; i < steps_size; i++) {
-        normal_steps[i] = packed_normal(
-            normalize(transform_direction(&ntfm, normal_steps[i].decode())));
+      const size_t num_verts = this->num_verts();
+      for (int step = 1; step <= int(attr_mN->motion.size()); step++) {
+        packed_normal *normal_step = attr_mN->data_for_write<packed_normal>(step);
+        for (size_t i = 0; i < num_verts; i++) {
+          normal_step[i] = packed_normal(
+              normalize(transform_direction(&ntfm, normal_step[i].decode())));
+        }
       }
     }
 
-    Attribute *attr_mcN = attributes.find(ATTR_STD_MOTION_CORNER_NORMAL);
+    Attribute *attr_mcN = attributes.find(ATTR_STD_CORNER_NORMAL);
 
-    if (attr_mcN) {
+    if (attr_mcN && attr_mcN->has_motion()) {
       const Transform ntfm = transform_normal;
-      const size_t steps_size = triangles.size() * (motion_steps - 1);
-      packed_normal *normal_steps = attr_mcN->data_for_write<packed_normal>();
-
-      for (size_t i = 0; i < steps_size; i++) {
-        normal_steps[i] = packed_normal(
-            normalize(transform_direction(&ntfm, normal_steps[i].decode())));
+      const size_t nc = triangles.size();
+      for (int step = 1; step <= int(attr_mcN->motion.size()); step++) {
+        packed_normal *normal_step = attr_mcN->data_for_write<packed_normal>(step);
+        for (size_t i = 0; i < nc; i++) {
+          normal_step[i] = packed_normal(
+              normalize(transform_direction(&ntfm, normal_step[i].decode())));
+        }
       }
     }
   }
@@ -654,11 +640,12 @@ void Mesh::apply_transform(const Transform &tfm, const bool apply_to_motion)
 
 void Mesh::add_vertex_normals()
 {
-  if (attributes.find(ATTR_STD_CORNER_NORMAL)) {
+  Attribute *attr_cN = attributes.find(ATTR_STD_CORNER_NORMAL);
+  if (attr_cN) {
     /* Not needed if we already have corner normals overriding these.
      * If there is motion blur without motion corner normals we can't
      * render correctly, discard corner normals. */
-    if (has_motion_blur() && !attributes.find(ATTR_STD_MOTION_CORNER_NORMAL)) {
+    if (has_motion_blur() && !attr_cN->has_motion()) {
       attributes.remove(ATTR_STD_CORNER_NORMAL);
     }
     else {
@@ -701,16 +688,20 @@ void Mesh::add_vertex_normals()
   }
 
   /* motion vertex normals */
-  Attribute *attr_mP = attributes.find(ATTR_STD_MOTION_VERTEX_POSITION);
-  Attribute *attr_mN = attributes.find(ATTR_STD_MOTION_VERTEX_NORMAL);
+  Attribute *attr_P = attributes.find(ATTR_STD_POSITION);
+  Attribute *attr_N = attributes.find(ATTR_STD_VERTEX_NORMAL);
 
-  if (has_motion_blur() && attr_mP && !attr_mN && triangles_size) {
-    /* create attribute */
-    attr_mN = attributes.add(ATTR_STD_MOTION_VERTEX_NORMAL);
+  if (has_motion_blur() && attr_P->has_motion() && !(attr_N && attr_N->has_motion()) &&
+      triangles_size)
+  {
+    if (!attr_N) {
+      attr_N = attributes.add(ATTR_STD_VERTEX_NORMAL);
+    }
+    attr_N->add_motion(this);
 
-    for (int step = 0; step < motion_steps - 1; step++) {
-      const packed_float3 *mP = attr_mP->data<packed_float3>() + step * verts_size;
-      packed_normal *mN = attr_mN->data_for_write<packed_normal>() + step * verts_size;
+    for (int attr_step = 1; attr_step < attr_P->num_motion_steps(); attr_step++) {
+      const packed_float3 *mP = attr_P->data<packed_float3>(attr_step);
+      packed_normal *mN = attr_N->data_for_write<packed_normal>(attr_step);
 
       /* compute */
       vector<float3> mN_float(verts_size, zero_float3());
@@ -908,29 +899,24 @@ void Mesh::pack_shaders(Scene *scene, uint *tri_shader)
   }
 }
 
-void Mesh::pack_verts(packed_float3 *tri_verts, packed_uint3 *tri_vindex)
+void Mesh::pack_triangles(packed_uint3 *tri_vindex)
 {
-  const size_t verts_size = num_verts();
-  const packed_float3 *verts = get_position();
   const size_t triangles_size = num_triangles();
   const int *p_tris = triangles.data();
   int off = 0;
-  for (size_t i = 0; i < verts_size; i++) {
-    tri_verts[i] = verts[i];
-  }
   for (size_t i = 0; i < triangles_size; i++) {
-    tri_vindex[i] = make_packed_uint3(p_tris[off + 0] + vert_offset,
-                                      p_tris[off + 1] + vert_offset,
-                                      p_tris[off + 2] + vert_offset);
+    tri_vindex[i] = make_packed_uint3(p_tris[off + 0], p_tris[off + 1], p_tris[off + 2]);
     off += 3;
   }
 }
 
 bool Mesh::has_motion_blur() const
 {
-  return use_motion_blur && (attributes.find(ATTR_STD_MOTION_VERTEX_POSITION) ||
-                             (get_subdivision_type() != Mesh::SUBDIVISION_NONE &&
-                              subd_attributes.find(ATTR_STD_MOTION_VERTEX_POSITION)));
+  Attribute *attr_P = attributes.find(ATTR_STD_POSITION);
+  Attribute *subd_attr_P = subd_attributes.find(ATTR_STD_POSITION);
+  return use_motion_blur &&
+         (attr_P->has_motion() || (get_subdivision_type() != Mesh::SUBDIVISION_NONE &&
+                                   subd_attr_P && subd_attr_P->has_motion()));
 }
 
 PrimitiveType Mesh::primitive_type() const

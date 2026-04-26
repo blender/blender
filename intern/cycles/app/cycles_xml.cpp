@@ -562,13 +562,16 @@ static void xml_read_mesh(const XMLReadState &state, const xml_node node)
   else {
     /* create vertices */
     mesh->resize_mesh(P.size(), 0);
-    std::copy_n(P.data(), P.size(), mesh->get_position_for_write());
 
     size_t num_corners = 0;
     for (size_t i = 0; i < nverts.size(); i++) {
       num_corners += nverts[i];
     }
     mesh->resize_subd_faces(nverts.size(), num_corners);
+
+    Attribute *subd_attr_P = mesh->subd_attributes.add(ATTR_STD_POSITION);
+    subd_attr_P->resize(P.size());
+    std::copy_n(P.data(), P.size(), subd_attr_P->data_for_write<packed_float3>());
 
     int *subd_start_corner = mesh->get_subd_start_corner().data();
     int *subd_num_corners = mesh->get_subd_num_corners().data();

@@ -9,8 +9,8 @@
  * or normals at a given ray time is a matter of interpolation of the two steps
  * between which the ray time lies.
  *
- * The extra positions and normals are stored as ATTR_STD_MOTION_VERTEX_POSITION
- * and ATTR_STD_MOTION_VERTEX_NORMAL mesh attributes.
+ * The extra positions are stored as additional motion steps in ATTR_STD_POSITION,
+ * normals in ATTR_STD_VERTEX_NORMAL or ATTR_STD_CORNER_NORMAL.
  */
 
 #pragma once
@@ -34,23 +34,19 @@ ccl_device_inline void motion_triangle_verts_for_step(KernelGlobals kg,
 {
   const int center_step = (numsteps - 1) / 2;
   if (step == center_step) {
-    /* center step: regular vertex location */
-    verts[0] = kernel_data_fetch(tri_verts, tri_vindex.x);
-    verts[1] = kernel_data_fetch(tri_verts, tri_vindex.y);
-    verts[2] = kernel_data_fetch(tri_verts, tri_vindex.z);
+    /* Center step: first in the array. */
   }
   else {
-    /* center step not stored in this array */
-    if (step > center_step) {
-      step--;
+    /* Non-center step, stored after center with center index skipped. */
+    if (step < center_step) {
+      step++;
     }
-
     offset += step * numverts;
-
-    verts[0] = kernel_data_fetch(attributes_float3, offset + tri_vindex.x);
-    verts[1] = kernel_data_fetch(attributes_float3, offset + tri_vindex.y);
-    verts[2] = kernel_data_fetch(attributes_float3, offset + tri_vindex.z);
   }
+
+  verts[0] = kernel_data_fetch(attributes_float3, offset + tri_vindex.x);
+  verts[1] = kernel_data_fetch(attributes_float3, offset + tri_vindex.y);
+  verts[2] = kernel_data_fetch(attributes_float3, offset + tri_vindex.z);
 }
 
 ccl_device_inline void motion_triangle_normals_for_step(KernelGlobals kg,
@@ -64,34 +60,31 @@ ccl_device_inline void motion_triangle_normals_for_step(KernelGlobals kg,
                                                         float3 normals[3])
 {
   const int center_step = (numsteps - 1) / 2;
-  const bool is_center_step = step == center_step;
-  if (is_center_step) {
-    /* Center step in the regular attribute. */
-    offset = kernel_data_fetch(objects, object).normal_attr_offset;
+  if (step == center_step) {
+    /* Center step: first in the array. */
   }
   else {
-    /* Other steps in the motion attribute, compensate for missing center step. */
-    if (step > center_step) {
-      step--;
+    /* Non-center step: stored after center with center index skipped. */
+    int stride;
+    if (object_flag & SD_OBJECT_HAS_CORNER_NORMALS) {
+      stride = kernel_data_fetch(objects, object).numprims * 3;
     }
+    else {
+      stride = kernel_data_fetch(objects, object).numverts;
+    }
+    if (step < center_step) {
+      step++;
+    }
+    offset += step * stride;
   }
 
   int i0, i1, i2;
-
   if (object_flag & SD_OBJECT_HAS_CORNER_NORMALS) {
-    if (!is_center_step) {
-      offset += step * kernel_data_fetch(objects, object).numprims * 3;
-    }
-
     i0 = prim * 3 + 0;
     i1 = prim * 3 + 1;
     i2 = prim * 3 + 2;
   }
   else {
-    if (!is_center_step) {
-      offset += step * kernel_data_fetch(objects, object).numverts;
-    }
-
     i0 = tri_vindex.x;
     i1 = tri_vindex.y;
     i2 = tri_vindex.z;
@@ -130,11 +123,8 @@ ccl_device_inline void motion_triangle_vertices(KernelGlobals kg,
                                                 const float t,
                                                 float3 verts[3])
 {
-  /* Find attribute. */
-  const int offset = intersection_find_attribute(kg, object, ATTR_STD_MOTION_VERTEX_POSITION);
-  kernel_assert(offset != ATTR_STD_NOT_FOUND);
-
   /* Fetch vertex coordinates. */
+  const int offset = kernel_data_fetch(objects, object).position_offset;
   float3 next_verts[3];
   motion_triangle_verts_for_step(kg, tri_vindex, offset, numverts, numsteps, step, verts);
   motion_triangle_verts_for_step(kg, tri_vindex, offset, numverts, numsteps, step + 1, next_verts);
@@ -167,16 +157,9 @@ ccl_device_inline void motion_triangle_normals(KernelGlobals kg,
                                                const float t,
                                                float3 normals[3])
 {
-  /* Find attribute. */
-  const int object_flag = kernel_data_fetch(object_flag, object);
-  const int offset = intersection_find_attribute(kg,
-                                                 object,
-                                                 (object_flag & SD_OBJECT_HAS_CORNER_NORMALS) ?
-                                                     ATTR_STD_MOTION_CORNER_NORMAL :
-                                                     ATTR_STD_MOTION_VERTEX_NORMAL);
-  kernel_assert(offset != ATTR_STD_NOT_FOUND);
-
   /* Fetch normals. */
+  const int object_flag = kernel_data_fetch(object_flag, object);
+  const int offset = kernel_data_fetch(objects, object).normal_offset;
   float3 next_normals[3];
   motion_triangle_normals_for_step(
       kg, object, object_flag, prim, tri_vindex, offset, numsteps, step, normals);

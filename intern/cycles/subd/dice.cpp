@@ -25,8 +25,13 @@ EdgeDice::EdgeDice(const SubdParams &params_,
   mesh->num_subd_added_verts = num_verts - mesh->num_verts();
   mesh->resize_mesh(num_verts, num_triangles);
 
-  Attribute *attr_vN = mesh->attributes.add(ATTR_STD_VERTEX_NORMAL);
+  mesh->attributes.add(ATTR_STD_VERTEX_NORMAL);
 
+  interpolation.setup();
+
+  /* Get pointers after interpolation.setup() since it may reallocate
+   * attribute buffers when setting motion steps. */
+  Attribute *attr_vN = mesh->attributes.find(ATTR_STD_VERTEX_NORMAL);
   mesh_triangles = mesh->triangles.data();
   mesh_shader = mesh->shader.data();
   mesh_smooth = mesh->smooth.data();
@@ -40,8 +45,6 @@ EdgeDice::EdgeDice(const SubdParams &params_,
     mesh_ptex_face_id = attr_ptex_face_id->data_for_write<float>();
     mesh_ptex_uv = attr_ptex_uv->data_for_write<float2>();
   }
-
-  interpolation.setup();
 }
 
 float3 EdgeDice::eval_projected(const SubPatch &sub, const float2 uv)

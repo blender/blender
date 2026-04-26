@@ -191,7 +191,11 @@ bool Geometry::has_true_displacement() const
 
 bool Geometry::has_motion_blur() const
 {
-  return (use_motion_blur && attributes.find(ATTR_STD_MOTION_VERTEX_POSITION));
+  if (!use_motion_blur) {
+    return false;
+  }
+  const Attribute *attr_P = attributes.find(ATTR_STD_POSITION);
+  return attr_P && attr_P->has_motion();
 }
 
 void Geometry::tag_update(Scene *scene, bool rebuild)
@@ -355,7 +359,6 @@ static void update_attribute_realloc_flags(uint32_t &device_update_flags,
 
 void GeometryManager::geom_calc_offset(Scene *scene, BVHLayout bvh_layout)
 {
-  size_t vert_size = 0;
   size_t tri_size = 0;
 
   size_t curve_size = 0;
@@ -375,13 +378,11 @@ void GeometryManager::geom_calc_offset(Scene *scene, BVHLayout bvh_layout)
 
       prim_offset_changed = (mesh->prim_offset != tri_size);
 
-      mesh->vert_offset = vert_size;
       mesh->prim_offset = tri_size;
 
       mesh->face_offset = face_size;
       mesh->corner_offset = corner_size;
 
-      vert_size += mesh->num_verts();
       tri_size += mesh->num_triangles();
 
       face_size += mesh->get_num_subd_faces();
@@ -615,7 +616,6 @@ void GeometryManager::device_update_preprocess(Device *device, Scene *scene, Pro
     dscene->prim_time.tag_realloc();
 
     if (device_update_flags & DEVICE_MESH_DATA_NEEDS_REALLOC) {
-      dscene->tri_verts.tag_realloc();
       dscene->tri_vindex.tag_realloc();
       dscene->tri_shader.tag_realloc();
     }
@@ -687,7 +687,6 @@ void GeometryManager::device_update_preprocess(Device *device, Scene *scene, Pro
   if (device_update_flags & DEVICE_MESH_DATA_MODIFIED) {
     /* if anything else than vertices or shaders are modified, we would need to reallocate, so
      * these are the only arrays that can be updated */
-    dscene->tri_verts.tag_modified();
     dscene->tri_shader.tag_modified();
   }
 
@@ -1171,6 +1170,8 @@ void GeometryManager::device_update(Device *device,
   /* unset flags */
 
   for (Geometry *geom : scene->geometry) {
+    geom->position_modified = false;
+    geom->radius_modified = false;
     geom->clear_modified();
     geom->attributes.clear_modified();
 
@@ -1190,7 +1191,6 @@ void GeometryManager::device_update(Device *device,
   dscene->prim_index.clear_modified();
   dscene->prim_object.clear_modified();
   dscene->prim_time.clear_modified();
-  dscene->tri_verts.clear_modified();
   dscene->tri_shader.clear_modified();
   dscene->tri_vindex.clear_modified();
   dscene->curves.clear_modified();
@@ -1217,7 +1217,6 @@ void GeometryManager::device_free(Device *device, DeviceScene *dscene, bool forc
   dscene->prim_index.free_if_need_realloc(force_free);
   dscene->prim_object.free_if_need_realloc(force_free);
   dscene->prim_time.free_if_need_realloc(force_free);
-  dscene->tri_verts.free_if_need_realloc(force_free);
   dscene->tri_shader.free_if_need_realloc(force_free);
   dscene->tri_vindex.free_if_need_realloc(force_free);
   dscene->curves.free_if_need_realloc(force_free);

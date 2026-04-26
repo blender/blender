@@ -363,17 +363,7 @@ size_t Attribute::element_size(Geometry *geom,
       break;
     case ATTR_ELEMENT_VERTEX_MOTION:
     case ATTR_ELEMENT_VERTEX_NORMAL_MOTION:
-      if (geom->is_mesh()) {
-        Mesh *mesh = static_cast<Mesh *>(geom);
-        DCHECK_GT(mesh->get_motion_steps(), 0);
-        if (prim == ATTR_PRIM_SUBD) {
-          size = mesh->get_num_subd_base_verts() * (mesh->get_motion_steps() - 1);
-        }
-        else {
-          size = mesh->num_verts() * (mesh->get_motion_steps() - 1);
-        }
-      }
-      else if (geom->is_pointcloud()) {
+      if (geom->is_pointcloud()) {
         PointCloud *pointcloud = static_cast<PointCloud *>(geom);
         size = pointcloud->num_points() * (pointcloud->get_motion_steps() - 1);
       }
@@ -392,7 +382,6 @@ size_t Attribute::element_size(Geometry *geom,
     case ATTR_ELEMENT_CORNER:
     case ATTR_ELEMENT_CORNER_BYTE:
     case ATTR_ELEMENT_CORNER_NORMAL:
-    case ATTR_ELEMENT_CORNER_NORMAL_MOTION:
       if (geom->is_mesh()) {
         Mesh *mesh = static_cast<Mesh *>(geom);
         if (prim == ATTR_PRIM_SUBD) {
@@ -400,9 +389,6 @@ size_t Attribute::element_size(Geometry *geom,
         }
         else {
           size = mesh->num_triangles() * 3;
-        }
-        if (element & ATTR_ELEMENT_IS_MOTION) {
-          size *= (mesh->get_motion_steps() - 1);
         }
       }
       break;
@@ -436,6 +422,7 @@ size_t Attribute::element_size(Geometry *geom,
 
 size_t Attribute::buffer_size(Geometry *geom, AttributePrimitive prim) const
 {
+  /* Size of a single step buffer, as returned by data() for one step. */
   return Attribute::element_size(geom, element, prim) * data_sizeof();
 }
 

@@ -98,7 +98,10 @@ static void read_shader_output(const Scene *scene,
   const float *d_output_data = d_output.data();
   int d_output_index = 0;
 
-  Attribute *attr_mP = mesh->attributes.find(ATTR_STD_MOTION_VERTEX_POSITION);
+  Attribute *attr_P = mesh->attributes.find(ATTR_STD_POSITION);
+  if (!attr_P->has_motion()) {
+    attr_P = nullptr;
+  }
   const int num_triangles = mesh->num_triangles();
   for (int i = 0; i < num_triangles; i++) {
     const Mesh::Triangle t = mesh->get_triangle(i);
@@ -122,9 +125,9 @@ static void read_shader_output(const Scene *scene,
         /* Avoid illegal vertex coordinates. */
         off = ensure_finite(off);
         mesh_verts[t.v[j]] = float3(mesh_verts[t.v[j]]) + off;
-        if (attr_mP != nullptr) {
-          for (int step = 0; step < num_motion_steps - 1; step++) {
-            packed_float3 *mP = attr_mP->data_for_write<packed_float3>() + step * num_verts;
+        if (attr_P != nullptr) {
+          for (int step = 1; step < num_motion_steps; step++) {
+            packed_float3 *mP = attr_P->data_for_write<packed_float3>(step);
             mP[t.v[j]] = float3(mP[t.v[j]]) + off;
           }
         }
@@ -263,14 +266,14 @@ static void save_pre_displacement_normals(const Mesh *mesh,
 
   pre_displace_vN = compute_normals(mesh->get_position());
 
-  const Attribute *attr_mP = mesh->attributes.find(ATTR_STD_MOTION_VERTEX_POSITION);
-  const Attribute *attr_mcN = mesh->attributes.find(ATTR_STD_MOTION_CORNER_NORMAL);
-  if (mesh->has_motion_blur() && attr_mP && attr_mcN) {
+  const Attribute *attr_P = mesh->attributes.find(ATTR_STD_POSITION);
+  const Attribute *attr_cN = mesh->attributes.find(ATTR_STD_CORNER_NORMAL);
+  if (mesh->has_motion_blur() && attr_P->has_motion() && attr_cN && attr_cN->has_motion()) {
     const int num_steps = mesh->get_motion_steps() - 1;
     pre_displace_motion_vN.resize(num_steps);
-    for (int step = 0; step < num_steps; step++) {
-      const packed_float3 *mP = attr_mP->data<packed_float3>() + step * num_verts;
-      pre_displace_motion_vN[step] = compute_normals(mP);
+    for (int attr_step = 1; attr_step <= num_steps; attr_step++) {
+      const packed_float3 *mP = attr_P->data<packed_float3>(attr_step);
+      pre_displace_motion_vN[attr_step - 1] = compute_normals(mP);
     }
   }
 }
@@ -294,22 +297,25 @@ static void recompute_displaced_corner_normals(Mesh *mesh,
                             attr_cN->data_for_write<packed_normal>());
 
   /* Motion corner normals. */
-  Attribute *attr_mP = mesh->attributes.find(ATTR_STD_MOTION_VERTEX_POSITION);
-  Attribute *attr_mcN = mesh->attributes.find(ATTR_STD_MOTION_CORNER_NORMAL);
+  Attribute *attr_P = mesh->attributes.find(ATTR_STD_POSITION);
 
-  if (mesh->has_motion_blur() && attr_mP && attr_mcN) {
+  if (mesh->has_motion_blur() && attr_P->has_motion() && attr_cN && attr_cN->has_motion()) {
     const size_t num_verts = mesh->num_verts();
-    const size_t num_corners = mesh->num_triangles() * 3;
 
-    for (int step = 0; step < mesh->get_motion_steps() - 1; step++) {
-      const packed_float3 *mP = attr_mP->data<packed_float3>() + step * num_verts;
-      packed_normal *mcN = attr_mcN->data_for_write<packed_normal>() + step * num_corners;
+    for (int attr_step = 1; attr_step < mesh->get_motion_steps(); attr_step++) {
+      const packed_float3 *mP = attr_P->data<packed_float3>(attr_step);
+      packed_normal *mcN = attr_cN->data_for_write<packed_normal>(attr_step);
 
       vector<float3> mN_float(num_verts, zero_float3());
       compute_vertex_normals(mesh, mP, tri_recompute, mN_float);
 
-      apply_corner_normal_delta(
-          mesh, mP, mN_float, pre_displace_motion_vN[step].data(), tri_recompute, flip, mcN);
+      apply_corner_normal_delta(mesh,
+                                mP,
+                                mN_float,
+                                pre_displace_motion_vN[attr_step - 1].data(),
+                                tri_recompute,
+                                flip,
+                                mcN);
     }
   }
 }
@@ -328,13 +334,12 @@ static void recompute_displaced_vertex_normals(Mesh *mesh,
       mesh, vN_float, tri_recompute, flip, attr_vN->data_for_write<packed_normal>());
 
   /* Motion vertex normals. */
-  Attribute *attr_mP = mesh->attributes.find(ATTR_STD_MOTION_VERTEX_POSITION);
-  Attribute *attr_mN = mesh->attributes.find(ATTR_STD_MOTION_VERTEX_NORMAL);
+  Attribute *attr_P = mesh->attributes.find(ATTR_STD_POSITION);
 
-  if (mesh->has_motion_blur() && attr_mP && attr_mN) {
-    for (int step = 0; step < mesh->get_motion_steps() - 1; step++) {
-      const packed_float3 *mP = attr_mP->data<packed_float3>() + step * num_verts;
-      packed_normal *mN = attr_mN->data_for_write<packed_normal>() + step * num_verts;
+  if (mesh->has_motion_blur() && attr_P->has_motion() && attr_vN && attr_vN->has_motion()) {
+    for (int attr_step = 1; attr_step < mesh->get_motion_steps(); attr_step++) {
+      const packed_float3 *mP = attr_P->data<packed_float3>(attr_step);
+      packed_normal *mN = attr_vN->data_for_write<packed_normal>(attr_step);
 
       vector<float3> mN_float(num_verts, zero_float3());
       compute_vertex_normals(mesh, mP, tri_recompute, mN_float);

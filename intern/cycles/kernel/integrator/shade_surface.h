@@ -70,7 +70,7 @@ ccl_device_forceinline float3 integrate_surface_ray_offset(KernelGlobals kg,
 
   float3 verts[3];
   if (sd->type == PRIMITIVE_TRIANGLE) {
-    triangle_vertices(kg, sd->prim, verts);
+    triangle_vertices(kg, sd->object, sd->prim, verts);
   }
   else {
     kernel_assert(sd->type == PRIMITIVE_MOTION_TRIANGLE);

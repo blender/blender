@@ -30,10 +30,11 @@ triangle_interpolate(const float u, const float v, const T f0, const T f1, const
 ccl_device_inline float3 triangle_normal(KernelGlobals kg, ccl_private ShaderData *sd)
 {
   /* load triangle vertices */
+  const int position_offset = kernel_data_fetch(objects, sd->object).position_offset;
   const uint3 tri_vindex = kernel_data_fetch(tri_vindex, sd->prim);
-  const float3 v0 = kernel_data_fetch(tri_verts, tri_vindex.x);
-  const float3 v1 = kernel_data_fetch(tri_verts, tri_vindex.y);
-  const float3 v2 = kernel_data_fetch(tri_verts, tri_vindex.z);
+  const float3 v0 = kernel_data_fetch(attributes_float3, position_offset + tri_vindex.x);
+  const float3 v1 = kernel_data_fetch(attributes_float3, position_offset + tri_vindex.y);
+  const float3 v2 = kernel_data_fetch(attributes_float3, position_offset + tri_vindex.z);
 
   /* return normal */
   if (object_negative_scale_applied(sd->object_flag)) {
@@ -72,10 +73,11 @@ ccl_device_inline void triangle_point_normal(KernelGlobals kg,
                                              ccl_private int *shader)
 {
   /* load triangle vertices */
+  const int position_offset = kernel_data_fetch(objects, object).position_offset;
   const uint3 tri_vindex = kernel_data_fetch(tri_vindex, prim);
-  const float3 v0 = kernel_data_fetch(tri_verts, tri_vindex.x);
-  const float3 v1 = kernel_data_fetch(tri_verts, tri_vindex.y);
-  const float3 v2 = kernel_data_fetch(tri_verts, tri_vindex.z);
+  const float3 v0 = kernel_data_fetch(attributes_float3, position_offset + tri_vindex.x);
+  const float3 v1 = kernel_data_fetch(attributes_float3, position_offset + tri_vindex.y);
+  const float3 v2 = kernel_data_fetch(attributes_float3, position_offset + tri_vindex.z);
 
   /* compute point */
   const float w = 1.0f - u - v;
@@ -95,12 +97,16 @@ ccl_device_inline void triangle_point_normal(KernelGlobals kg,
 
 /* Triangle vertex locations */
 
-ccl_device_inline void triangle_vertices(KernelGlobals kg, const int prim, float3 P[3])
+ccl_device_inline void triangle_vertices(KernelGlobals kg,
+                                         const int object,
+                                         const int prim,
+                                         float3 P[3])
 {
+  const int position_offset = kernel_data_fetch(objects, object).position_offset;
   const uint3 tri_vindex = kernel_data_fetch(tri_vindex, prim);
-  P[0] = kernel_data_fetch(tri_verts, tri_vindex.x);
-  P[1] = kernel_data_fetch(tri_verts, tri_vindex.y);
-  P[2] = kernel_data_fetch(tri_verts, tri_vindex.z);
+  P[0] = kernel_data_fetch(attributes_float3, position_offset + tri_vindex.x);
+  P[1] = kernel_data_fetch(attributes_float3, position_offset + tri_vindex.y);
+  P[2] = kernel_data_fetch(attributes_float3, position_offset + tri_vindex.z);
 }
 
 /* Triangle vertex locations and vertex normals */
@@ -110,12 +116,13 @@ ccl_device_inline void triangle_vertices_and_normals(KernelGlobals kg,
                                                      float3 P[3],
                                                      float3 N[3])
 {
+  const int position_offset = kernel_data_fetch(objects, sd->object).position_offset;
   const uint3 tri_vindex = kernel_data_fetch(tri_vindex, sd->prim);
-  P[0] = kernel_data_fetch(tri_verts, tri_vindex.x);
-  P[1] = kernel_data_fetch(tri_verts, tri_vindex.y);
-  P[2] = kernel_data_fetch(tri_verts, tri_vindex.z);
+  P[0] = kernel_data_fetch(attributes_float3, position_offset + tri_vindex.x);
+  P[1] = kernel_data_fetch(attributes_float3, position_offset + tri_vindex.y);
+  P[2] = kernel_data_fetch(attributes_float3, position_offset + tri_vindex.z);
 
-  const int normal_offset = kernel_data_fetch(objects, sd->object).normal_attr_offset;
+  const int normal_offset = kernel_data_fetch(objects, sd->object).normal_offset;
   int i0, i1, i2;
 
   if (sd->object_flag & SD_OBJECT_HAS_CORNER_NORMALS) {
@@ -137,7 +144,7 @@ ccl_device_inline void triangle_vertices_and_normals(KernelGlobals kg,
 ccl_device_inline float3 triangle_smooth_normal(
     KernelGlobals kg, float3 Ng, int object, int object_flag, int prim, float u, float v)
 {
-  const int normal_offset = kernel_data_fetch(objects, object).normal_attr_offset;
+  const int normal_offset = kernel_data_fetch(objects, object).normal_offset;
   int i0, i1, i2;
 
   if (object_flag & SD_OBJECT_HAS_CORNER_NORMALS) {
@@ -171,7 +178,7 @@ ccl_device_inline float3 triangle_smooth_normal(KernelGlobals kg,
                                                 ccl_private float3 &N_x,
                                                 ccl_private float3 &N_y)
 {
-  const int normal_offset = kernel_data_fetch(objects, object).normal_attr_offset;
+  const int normal_offset = kernel_data_fetch(objects, object).normal_offset;
   int i0, i1, i2;
 
   if (object_flag & SD_OBJECT_HAS_CORNER_NORMALS) {
@@ -204,7 +211,7 @@ ccl_device_inline float3 triangle_smooth_normal(KernelGlobals kg,
 ccl_device_inline float3 triangle_smooth_normal_unnormalized_object_space(
     KernelGlobals kg, ccl_private const ShaderData *sd)
 {
-  const int normal_offset = kernel_data_fetch(objects, sd->object).normal_attr_offset;
+  const int normal_offset = kernel_data_fetch(objects, sd->object).normal_offset;
   int i0, i1, i2;
 
   if (sd->object_flag & SD_OBJECT_HAS_CORNER_NORMALS) {
@@ -235,15 +242,17 @@ ccl_device_inline float3 triangle_smooth_normal_unnormalized_object_space(
 /* Ray differentials on triangle */
 
 ccl_device_inline void triangle_dPdudv(KernelGlobals kg,
+                                       const int object,
                                        const int prim,
                                        ccl_private float3 *dPdu,
                                        ccl_private float3 *dPdv)
 {
   /* fetch triangle vertex coordinates */
+  const int position_offset = kernel_data_fetch(objects, object).position_offset;
   const uint3 tri_vindex = kernel_data_fetch(tri_vindex, prim);
-  const float3 p0 = kernel_data_fetch(tri_verts, tri_vindex.x);
-  const float3 p1 = kernel_data_fetch(tri_verts, tri_vindex.y);
-  const float3 p2 = kernel_data_fetch(tri_verts, tri_vindex.z);
+  const float3 p0 = kernel_data_fetch(attributes_float3, position_offset + tri_vindex.x);
+  const float3 p1 = kernel_data_fetch(attributes_float3, position_offset + tri_vindex.y);
+  const float3 p2 = kernel_data_fetch(attributes_float3, position_offset + tri_vindex.z);
 
   /* compute derivatives of P w.r.t. uv */
   *dPdu = (p1 - p0);

@@ -17,7 +17,6 @@ DeviceScene::DeviceScene(Device *device)
       prim_index(device, "prim_index", MEM_GLOBAL),
       prim_object(device, "prim_object", MEM_GLOBAL),
       prim_time(device, "prim_time", MEM_GLOBAL),
-      tri_verts(device, "tri_verts", MEM_GLOBAL),
       tri_shader(device, "tri_shader", MEM_GLOBAL),
       tri_vindex(device, "tri_vindex", MEM_GLOBAL),
       curves(device, "curves", MEM_GLOBAL),

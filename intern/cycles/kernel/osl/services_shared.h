@@ -1135,7 +1135,7 @@ ccl_device_inline bool osl_shared_get_object_standard_attribute(KernelGlobals kg
       motion_triangle_vertices(kg, sd->object, sd->prim, sd->time, P);
     }
     else {
-      triangle_vertices(kg, sd->prim, P);
+      triangle_vertices(kg, sd->object, sd->prim, P);
     }
 
     if (!(sd->object_flag & SD_OBJECT_TRANSFORM_APPLIED)) {

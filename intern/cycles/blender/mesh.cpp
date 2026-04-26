@@ -53,18 +53,15 @@ static void attr_create_motion_from_velocity(Mesh *mesh,
                                  mesh->subd_attributes;
 
   /* Find or add attribute */
+  Attribute *attr_P = attributes.find(ATTR_STD_POSITION);
+  attr_P->add_motion(mesh);
   const packed_float3 *P = mesh->get_position();
-  Attribute *attr_mP = attributes.find(ATTR_STD_MOTION_VERTEX_POSITION);
-
-  if (!attr_mP) {
-    attr_mP = attributes.add(ATTR_STD_MOTION_VERTEX_POSITION);
-  }
 
   /* Only export previous and next frame, we don't have any in between data. */
   const float motion_times[2] = {-1.0f, 1.0f};
-  for (int step = 0; step < 2; step++) {
-    const float relative_time = motion_times[step] * 0.5f * motion_scale;
-    packed_float3 *mP = attr_mP->data_for_write<packed_float3>() + step * numverts;
+  for (int step = 1; step <= 2; step++) {
+    const float relative_time = motion_times[step - 1] * 0.5f * motion_scale;
+    packed_float3 *mP = attr_P->data_for_write<packed_float3>(step);
 
     for (int i = 0; i < numverts; i++) {
       mP[i] = float3(P[i]) + make_float3(b_attr[i][0], b_attr[i][1], b_attr[i][2]) * relative_time;
@@ -655,12 +652,17 @@ static void create_mesh(Scene *scene,
   }
   mesh->resize_mesh(positions.size(), numtris);
 
-  packed_float3 *verts = mesh->get_position_for_write();
+  AttributeSet &attributes = (subdivision) ? mesh->subd_attributes : mesh->attributes;
+
+  // TODO: Implicit sharing is currently not used, because Blender float3 buffers don't have
+  // ATTRIBUTE_BUFFER_PADDING. Maybe add padding for Blender attributes?
+  Attribute *attr_P = attributes.add(ATTR_STD_POSITION);
+  attr_P->resize(positions.size());
+  packed_float3 *verts = attr_P->data_for_write<packed_float3>();
   for (const int i : positions.index_range()) {
     verts[i] = make_float3(positions[i][0], positions[i][1], positions[i][2]);
   }
-
-  AttributeSet &attributes = (subdivision) ? mesh->subd_attributes : mesh->attributes;
+  mesh->tag_position_modified();
 
   if (subdivision || !use_corner_normals) {
     Attribute *attr_N = attributes.add(ATTR_STD_VERTEX_NORMAL);
@@ -975,12 +977,14 @@ void BlenderSync::sync_mesh(BObjectInfo &b_ob_info, Mesh *mesh)
     {
       new_mesh.set_motion_steps(2);
 
-      Attribute *attr_mP = mesh->attributes.find(ATTR_STD_MOTION_VERTEX_POSITION);
-      Attribute *new_attr_mP = new_mesh.attributes.add(ATTR_STD_MOTION_VERTEX_POSITION);
-      if (attr_mP) {
-        new_attr_mP->set_data_from(std::move(*attr_mP));
+      Attribute *attr_P = mesh->attributes.find(ATTR_STD_POSITION);
+      Attribute *new_attr_P = new_mesh.attributes.find(ATTR_STD_POSITION);
+      if (attr_P->has_motion()) {
+        /* Carry the previous frame's positions forward as the motion step. */
+        new_attr_P->take_motion_from(*attr_P);
       }
       else {
+        new_attr_P->add_motion(&new_mesh);
         new_mesh.copy_center_to_motion_step(0);
       }
     }
@@ -1047,44 +1051,40 @@ void BlenderSync::sync_mesh_motion(BObjectInfo &b_ob_info, Mesh *mesh, const int
 
     /* Export deformed coordinates. */
     /* Find attributes. */
-    Attribute *attr_mP = attributes.find(ATTR_STD_MOTION_VERTEX_POSITION);
-    Attribute *attr_mN = attributes.find(ATTR_STD_MOTION_VERTEX_NORMAL);
-    Attribute *attr_mcN = mesh->attributes.find(ATTR_STD_MOTION_CORNER_NORMAL);
+    Attribute *attr_P = attributes.find(ATTR_STD_POSITION);
     Attribute *attr_N = attributes.find(ATTR_STD_VERTEX_NORMAL);
     Attribute *attr_cN = mesh->attributes.find(ATTR_STD_CORNER_NORMAL);
     bool new_attribute = false;
-    /* Add new attributes if they don't exist already. */
-    if (!attr_mP) {
-      attr_mP = attributes.add(ATTR_STD_MOTION_VERTEX_POSITION);
+    /* Set motion steps on attributes if not already done. */
+    if (!attr_P->has_motion()) {
+      attr_P->add_motion(mesh);
       if (attr_N) {
-        attr_mN = attributes.add(ATTR_STD_MOTION_VERTEX_NORMAL);
+        attr_N->add_motion(mesh);
       }
       if (attr_cN) {
-        attr_mcN = mesh->attributes.add(ATTR_STD_MOTION_CORNER_NORMAL);
+        attr_cN->add_motion(mesh);
       }
 
       new_attribute = true;
     }
     /* Load vertex data from mesh. */
-    packed_float3 *mP = attr_mP->data_for_write<packed_float3>() + motion_step * numverts;
-    packed_normal *mN = (attr_mN) ?
-                            attr_mN->data_for_write<packed_normal>() + motion_step * numverts :
-                            nullptr;
-    packed_normal *mcN = (attr_mcN) ? attr_mcN->data_for_write<packed_normal>() +
-                                          motion_step * numtris * 3 :
-                                      nullptr;
+    const size_t attr_numverts = attr_P->size;
+    const int attr_step = motion_step + 1;
+    packed_float3 *mP = attr_P->data_for_write<packed_float3>(attr_step);
+    packed_normal *mN = attr_N ? attr_N->data_for_write<packed_normal>(attr_step) : nullptr;
+    packed_normal *mcN = attr_cN ? attr_cN->data_for_write<packed_normal>(attr_step) : nullptr;
 
-    bool topology_changed = b_verts_num != numverts;
+    bool topology_changed = b_verts_num != attr_numverts;
 
     /* NOTE: We don't copy more that existing amount of vertices to prevent
      * possible memory corruption.
      */
-    for (int i = 0; i < std::min<size_t>(b_verts_num, numverts); i++) {
+    for (int i = 0; i < std::min<size_t>(b_verts_num, attr_numverts); i++) {
       mP[i] = make_float3(positions[i][0], positions[i][1], positions[i][2]);
     }
     if (mN) {
       const blender::Span<blender::float3> b_vert_normals = b_mesh->vert_normals();
-      for (int i = 0; i < std::min<size_t>(b_verts_num, numverts); i++) {
+      for (int i = 0; i < std::min<size_t>(b_verts_num, attr_numverts); i++) {
         mN[i] = packed_normal(
             make_float3(b_vert_normals[i][0], b_vert_normals[i][1], b_vert_normals[i][2]));
       }
@@ -1108,7 +1108,7 @@ void BlenderSync::sync_mesh_motion(BObjectInfo &b_ob_info, Mesh *mesh, const int
     if (new_attribute) {
       /* In case of new attribute, we verify if there really was any motion. */
       if (topology_changed ||
-          memcmp(mP, mesh->get_position(), sizeof(packed_float3) * numverts) == 0)
+          memcmp(mP, attr_P->data<packed_float3>(), sizeof(packed_float3) * attr_numverts) == 0)
       {
         /* no motion, remove attributes again */
         if (topology_changed) {
@@ -1117,30 +1117,20 @@ void BlenderSync::sync_mesh_motion(BObjectInfo &b_ob_info, Mesh *mesh, const int
         else {
           LOG_TRACE << "No actual deformation motion for object " << ob_name;
         }
-        attributes.remove(ATTR_STD_MOTION_VERTEX_POSITION);
-        if (attr_mN) {
-          attributes.remove(ATTR_STD_MOTION_VERTEX_NORMAL);
+        attr_P->remove_motion();
+        if (attr_N) {
+          attr_N->remove_motion();
         }
-        if (attr_mcN) {
-          attributes.remove(ATTR_STD_MOTION_CORNER_NORMAL);
+        if (attr_cN) {
+          attr_cN->remove_motion();
         }
       }
       else if (motion_step > 0) {
         LOG_TRACE << "Filling deformation motion for object " << ob_name;
         /* motion, fill up previous steps that we might have skipped because
          * they had no motion, but we need them anyway now */
-        const packed_float3 *P = mesh->get_position();
-        const packed_normal *N = (attr_N) ? attr_N->data<packed_normal>() : nullptr;
-        const packed_normal *cN = (attr_cN) ? attr_cN->data<packed_normal>() : nullptr;
         for (int step = 0; step < motion_step; step++) {
-          std::copy_n(P, numverts, attr_mP->data_for_write<packed_float3>() + step * numverts);
-          if (attr_mN) {
-            std::copy_n(N, numverts, attr_mN->data_for_write<packed_normal>() + step * numverts);
-          }
-          if (attr_mcN) {
-            std::copy_n(
-                cN, numtris * 3, attr_mcN->data_for_write<packed_normal>() + step * (numtris * 3));
-          }
+          mesh->copy_center_to_motion_step(step);
         }
       }
     }
@@ -1148,16 +1138,7 @@ void BlenderSync::sync_mesh_motion(BObjectInfo &b_ob_info, Mesh *mesh, const int
       if (topology_changed) {
         LOG_WARNING << "Topology differs, discarding motion blur for object " << ob_name
                     << " at time " << motion_step;
-        const packed_float3 *P = mesh->get_position();
-        const packed_normal *N = (attr_N) ? attr_N->data<packed_normal>() : nullptr;
-        const packed_normal *cN = (attr_cN) ? attr_cN->data<packed_normal>() : nullptr;
-        std::copy_n(P, numverts, mP);
-        if (mN != nullptr) {
-          std::copy_n(N, numverts, mN);
-        }
-        if (mcN != nullptr) {
-          std::copy_n(cN, numtris * 3, mcN);
-        }
+        mesh->copy_center_to_motion_step(motion_step);
       }
     }
 
