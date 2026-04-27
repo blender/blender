@@ -23,18 +23,15 @@ class PointCloud : public Geometry {
                      BoundBox &bounds) const;
     void bounds_grow(const float4 &point, BoundBox &bounds) const;
 
-    float4 motion_key(const packed_float3 *points,
-                      const float *radius,
-                      const float4 *point_steps,
-                      const size_t num_points,
+    float4 motion_key(const float *radius,
+                      const Attribute *attr_P,
+                      const Attribute *attr_R,
                       const size_t num_steps,
                       const float time,
                       size_t p) const;
-    float4 point_for_step(const packed_float3 *points,
-                          const float *radius,
-                          const float4 *point_steps,
-                          const size_t num_points,
-                          const size_t num_steps,
+    float4 point_for_step(const float *radius,
+                          const Attribute *attr_P,
+                          const Attribute *attr_R,
                           const size_t step,
                           size_t p) const;
   };
@@ -63,7 +60,11 @@ class PointCloud : public Geometry {
     return point;
   }
 
-  size_t num_points() const;
+  size_t num_points() const
+  {
+    const Attribute *attr = attributes.find(ATTR_STD_POSITION);
+    return attr ? attr->size : 0;
+  }
 
   size_t num_attributes() const
   {
@@ -76,7 +77,7 @@ class PointCloud : public Geometry {
   PrimitiveType primitive_type() const override;
 
   /* BVH */
-  void pack(Scene *scene, float4 *packed_points, uint *packed_shader);
+  void pack(Scene *scene, uint *packed_shader);
 
  private:
   void add_builtin_attributes();

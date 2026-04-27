@@ -401,8 +401,9 @@ bool BVHMetal::build_BLAS_hair(Progress &progress,
     const bool use_fast_trace_bvh = (params.bvh_type == BVH_TYPE_STATIC) || !support_refit_blas();
 
     size_t num_motion_steps = 1;
-    Attribute *motion_keys = hair->attributes.find(ATTR_STD_MOTION_VERTEX_POSITION);
-    if (motion_blur && hair->get_use_motion_blur() && motion_keys) {
+    const Attribute *attr_P = hair->attributes.find(ATTR_STD_POSITION);
+    const Attribute *attr_R = hair->attributes.find(ATTR_STD_RADIUS);
+    if (motion_blur && hair->get_use_motion_blur() && attr_P->has_motion()) {
       num_motion_steps = hair->get_motion_steps();
     }
 
@@ -417,10 +418,9 @@ bool BVHMetal::build_BLAS_hair(Progress &progress,
 
       uint64_t numKeys = hair->num_keys();
       uint64_t numCurves = hair->num_curves();
-      const float *radiuses = hair->get_radius();
 
       /* Gather the curve geometry. */
-      std::vector<float3> cpData;
+      std::vector<packed_float3> cpData;
       std::vector<int> idxData;
       std::vector<float> radiusData;
       cpData.reserve(numKeys);
@@ -428,14 +428,9 @@ bool BVHMetal::build_BLAS_hair(Progress &progress,
 
       std::vector<int> step_offsets;
       for (size_t step = 0; step < num_motion_steps; ++step) {
-
-        /* The center step for motion vertices is not stored in the attribute. */
-        const packed_float3 *keys = hair->get_position();
-        size_t center_step = (num_motion_steps - 1) / 2;
-        if (step != center_step) {
-          size_t attr_offset = (step > center_step) ? step - 1 : step;
-          keys = motion_keys->data<packed_float3>() + attr_offset * numKeys;
-        }
+        const packed_float3 *keys = attr_P->data_at_time_step<packed_float3>(step,
+                                                                             num_motion_steps);
+        const float *radii = attr_R->data_at_time_step<float>(step, num_motion_steps);
 
         step_offsets.push_back(cpData.size());
 
@@ -446,20 +441,20 @@ bool BVHMetal::build_BLAS_hair(Progress &progress,
           uint64_t idxBase = cpData.size();
           if (hair->curve_shape != CURVE_THICK_LINEAR) {
             cpData.push_back(keys[firstKey]);
-            radiusData.push_back(radiuses[firstKey]);
+            radiusData.push_back(radii[firstKey]);
           }
           for (int s = 0; s < segCount; ++s) {
             if (step == 0) {
               idxData.push_back(idxBase + s);
             }
             cpData.push_back(keys[firstKey + s]);
-            radiusData.push_back(radiuses[firstKey + s]);
+            radiusData.push_back(radii[firstKey + s]);
           }
           cpData.push_back(keys[firstKey + curve.num_keys - 1]);
-          radiusData.push_back(radiuses[firstKey + curve.num_keys - 1]);
+          radiusData.push_back(radii[firstKey + curve.num_keys - 1]);
           if (hair->curve_shape != CURVE_THICK_LINEAR) {
             cpData.push_back(keys[firstKey + curve.num_keys - 1]);
-            radiusData.push_back(radiuses[firstKey + curve.num_keys - 1]);
+            radiusData.push_back(radii[firstKey + curve.num_keys - 1]);
           }
         }
       }
@@ -470,7 +465,7 @@ bool BVHMetal::build_BLAS_hair(Progress &progress,
                                          options:MTLResourceStorageModeShared];
 
       cpBuffer = [mtl_device newBufferWithBytes:cpData.data()
-                                         length:cpData.size() * sizeof(float3)
+                                         length:cpData.size() * sizeof(packed_float3)
                                         options:MTLResourceStorageModeShared];
 
       radiusBuffer = [mtl_device newBufferWithBytes:radiusData.data()
@@ -485,7 +480,7 @@ bool BVHMetal::build_BLAS_hair(Progress &progress,
       for (size_t step = 0; step < num_motion_steps; ++step) {
         MTLMotionKeyframeData *k = [MTLMotionKeyframeData data];
         k.buffer = cpBuffer;
-        k.offset = step_offsets[step] * sizeof(float3);
+        k.offset = step_offsets[step] * sizeof(packed_float3);
         cp_ptrs.push_back(k);
 
         k = [MTLMotionKeyframeData data];
@@ -501,7 +496,7 @@ bool BVHMetal::build_BLAS_hair(Progress &progress,
 
       /* controlPointCount should specify the *per-step* control point count. */
       geomDescCrv.controlPointCount = cpData.size() / num_motion_steps;
-      geomDescCrv.controlPointStride = sizeof(float3);
+      geomDescCrv.controlPointStride = sizeof(packed_float3);
       geomDescCrv.controlPointFormat = MTLAttributeFormatFloat3;
       geomDescCrv.radiusStride = sizeof(float);
       geomDescCrv.radiusFormat = MTLAttributeFormatFloat;
@@ -749,14 +744,13 @@ bool BVHMetal::build_BLAS_pointcloud(Progress &progress,
     }
 
     const size_t num_points = pointcloud->num_points();
-    const packed_float3 *points = pointcloud->get_position();
-    const float *radius = pointcloud->get_radius();
 
     const bool use_fast_trace_bvh = (params.bvh_type == BVH_TYPE_STATIC) || !support_refit_blas();
 
     size_t num_motion_steps = 1;
-    Attribute *motion_keys = pointcloud->attributes.find(ATTR_STD_MOTION_VERTEX_POSITION);
-    if (motion_blur && pointcloud->get_use_motion_blur() && motion_keys) {
+    Attribute *attr_P = pointcloud->attributes.find(ATTR_STD_POSITION);
+    Attribute *attr_R = pointcloud->attributes.find(ATTR_STD_RADIUS);
+    if (motion_blur && pointcloud->get_use_motion_blur() && attr_P->has_motion()) {
       num_motion_steps = pointcloud->get_motion_steps();
     }
 
@@ -769,33 +763,19 @@ bool BVHMetal::build_BLAS_pointcloud(Progress &progress,
     MTLAxisAlignedBoundingBox *aabb_data = (MTLAxisAlignedBoundingBox *)[aabbBuf contents];
 
     /* Get AABBs for each motion step */
-    size_t center_step = (num_motion_steps - 1) / 2;
     for (size_t step = 0; step < num_motion_steps; ++step) {
-      if (step == center_step) {
-        /* The center step for motion vertices is not stored in the attribute */
-        for (size_t j = 0; j < num_points; ++j) {
-          const PointCloud::Point point = pointcloud->get_point(j);
-          BoundBox bounds = BoundBox::empty;
-          point.bounds_grow(points, radius, bounds);
+      const packed_float3 *step_points = attr_P->data_at_time_step<packed_float3>(
+          step, num_motion_steps);
+      const float *step_radius = attr_R->data_at_time_step<float>(step, num_motion_steps);
 
-          const size_t index = step * num_points + j;
-          aabb_data[index].min = (MTLPackedFloat3 &)bounds.min;
-          aabb_data[index].max = (MTLPackedFloat3 &)bounds.max;
-        }
-      }
-      else {
-        size_t attr_offset = (step > center_step) ? step - 1 : step;
-        const float4 *motion_points = motion_keys->data<float4>() + attr_offset * num_points;
+      for (size_t j = 0; j < num_points; ++j) {
+        const PointCloud::Point point = pointcloud->get_point(j);
+        BoundBox bounds = BoundBox::empty;
+        point.bounds_grow(step_points, step_radius, bounds);
 
-        for (size_t j = 0; j < num_points; ++j) {
-          const PointCloud::Point point = pointcloud->get_point(j);
-          BoundBox bounds = BoundBox::empty;
-          point.bounds_grow(motion_points[j], bounds);
-
-          const size_t index = step * num_points + j;
-          aabb_data[index].min = (MTLPackedFloat3 &)bounds.min;
-          aabb_data[index].max = (MTLPackedFloat3 &)bounds.max;
-        }
+        const size_t index = step * num_points + j;
+        aabb_data[index].min = (MTLPackedFloat3 &)bounds.min;
+        aabb_data[index].max = (MTLPackedFloat3 &)bounds.max;
       }
     }
 

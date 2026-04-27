@@ -1122,6 +1122,23 @@ void ObjectManager::device_update_geom_offsets(Device * /*unused*/,
       assert(normal_offset != ATTR_STD_NOT_FOUND ||
              static_cast<Mesh *>(geom)->num_triangles() == 0);
     }
+    else if (geom->is_hair()) {
+      position_offset = find_attribute(dscene->attributes_map.data(),
+                                       attr_map_offset,
+                                       PRIMITIVE_CURVE_THICK,
+                                       ATTR_STD_POSITION)
+                            .offset;
+      assert(position_offset != ATTR_STD_NOT_FOUND || static_cast<Hair *>(geom)->num_keys() == 0);
+    }
+    else if (geom->is_pointcloud()) {
+      position_offset = find_attribute(dscene->attributes_map.data(),
+                                       attr_map_offset,
+                                       PRIMITIVE_POINT,
+                                       ATTR_STD_POSITION)
+                            .offset;
+      assert(position_offset != ATTR_STD_NOT_FOUND ||
+             static_cast<PointCloud *>(geom)->num_points() == 0);
+    }
     if (kobject.position_offset != position_offset) {
       kobject.position_offset = position_offset;
       update = true;

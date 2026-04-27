@@ -25,40 +25,26 @@ class Hair : public Geometry {
     }
 
     void bounds_grow(const int k,
-                     const float3 *positions,
-                     const float *curve_radius,
-                     BoundBox &bounds) const;
-    void bounds_grow(const int k,
-                     const packed_float3 *positions,
+                     const packed_float3 *curve_keys,
                      const float *curve_radius,
                      BoundBox &bounds) const;
     void bounds_grow(const int k, const float4 *keys, BoundBox &bounds) const;
     void bounds_grow(const float4 keys[4], BoundBox &bounds) const;
-    void bounds_grow(const float3 keys[4], BoundBox &bounds) const;
     void bounds_grow(const int k,
-                     const float3 *positions,
-                     const float *curve_radius,
-                     const Transform &aligned_space,
-                     BoundBox &bounds) const;
-    void bounds_grow(const int k,
-                     const packed_float3 *positions,
+                     const packed_float3 *curve_keys,
                      const float *curve_radius,
                      const Transform &aligned_space,
                      BoundBox &bounds) const;
 
-    void motion_keys(const packed_float3 *positions,
-                     const float *curve_radius,
-                     const float4 *key_steps,
-                     const size_t num_positions,
+    void motion_keys(const Attribute *attr_P,
+                     const Attribute *attr_R,
                      const size_t num_steps,
                      const float time,
                      size_t k0,
                      size_t k1,
                      float4 r_keys[2]) const;
-    void cardinal_motion_keys(const packed_float3 *positions,
-                              const float *curve_radius,
-                              const float4 *key_steps,
-                              const size_t num_positions,
+    void cardinal_motion_keys(const Attribute *attr_P,
+                              const Attribute *attr_R,
                               const size_t num_steps,
                               const float time,
                               size_t k0,
@@ -67,20 +53,14 @@ class Hair : public Geometry {
                               size_t k3,
                               float4 r_keys[4]) const;
 
-    void keys_for_step(const packed_float3 *positions,
-                       const float *curve_radius,
-                       const float4 *key_steps,
-                       const size_t num_positions,
-                       const size_t num_steps,
+    void keys_for_step(const Attribute *attr_P,
+                       const Attribute *attr_R,
                        const size_t step,
                        size_t k0,
                        size_t k1,
                        float4 r_keys[2]) const;
-    void cardinal_keys_for_step(const packed_float3 *positions,
-                                const float *curve_radius,
-                                const float4 *key_steps,
-                                const size_t num_positions,
-                                const size_t num_steps,
+    void cardinal_keys_for_step(const Attribute *attr_P,
+                                const Attribute *attr_R,
                                 const size_t step,
                                 size_t k0,
                                 size_t k1,
@@ -93,7 +73,6 @@ class Hair : public Geometry {
   NODE_SOCKET_API_ARRAY(array<int>, curve_shader)
 
   /* BVH */
-  size_t curve_key_offset;
   size_t curve_segment_offset;
   CurveShapeType curve_shape;
 
@@ -115,14 +94,17 @@ class Hair : public Geometry {
   Curve get_curve(const size_t i) const
   {
     const int first = curve_first_key[i];
-    const int next_first = (i + 1 < curve_first_key.size()) ? curve_first_key[i + 1] :
-                                                              int(num_keys());
+    const int next_first = (i + 1 < curve_first_key.size()) ? curve_first_key[i + 1] : num_keys();
 
     Curve curve = {first, next_first - first};
     return curve;
   }
 
-  size_t num_keys() const;
+  size_t num_keys() const
+  {
+    const Attribute *attr = attributes.find(ATTR_STD_POSITION);
+    return attr ? attr->size : 0;
+  }
 
   size_t num_curves() const
   {
@@ -143,10 +125,7 @@ class Hair : public Geometry {
   void get_uv_tiles(ustring map, unordered_set<int> &tiles) override;
 
   /* BVH */
-  void pack_curves(Scene *scene,
-                   float4 *curve_key_co,
-                   KernelCurve *curve,
-                   KernelCurveSegment *curve_segments);
+  void pack_curves(Scene *scene, KernelCurve *curve, KernelCurveSegment *curve_segments);
 
   PrimitiveType primitive_type() const override;
 

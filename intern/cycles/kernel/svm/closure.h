@@ -1009,8 +1009,10 @@ ccl_device
             const KernelCurve kcurve = kernel_data_fetch(curves, sd->prim);
             const int k0 = kcurve.first_key + PRIMITIVE_UNPACK_SEGMENT(sd->type);
             const int k1 = k0 + 1;
-            const float radius = mix(
-                kernel_data_fetch(curve_keys, k0).w, kernel_data_fetch(curve_keys, k1).w, sd->u);
+            const int position_offset = kernel_data_fetch(objects, sd->object).position_offset;
+            const float radius = mix(kernel_data_fetch(attributes_float4, position_offset + k0).w,
+                                     kernel_data_fetch(attributes_float4, position_offset + k1).w,
+                                     sd->u);
 
             bsdf->extra->pixel_coverage = 0.5f * sd->dP / radius;
           }

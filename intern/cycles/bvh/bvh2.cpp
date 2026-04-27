@@ -380,15 +380,13 @@ void BVH2::refit_primitives(const int start, const int end, BoundBox &bbox, uint
 
         /* Motion curves. */
         if (hair->get_use_motion_blur()) {
-          Attribute *attr = hair->attributes.find(ATTR_STD_MOTION_VERTEX_POSITION);
+          const Attribute *attr_P = hair->attributes.find(ATTR_STD_POSITION);
+          const Attribute *attr_R = hair->attributes.find(ATTR_STD_RADIUS);
 
-          if (attr) {
-            const size_t hair_size = hair->num_keys();
-            const size_t steps = hair->get_motion_steps() - 1;
-            const packed_float3 *key_steps = attr->data<packed_float3>();
-
-            for (size_t i = 0; i < steps; i++) {
-              curve.bounds_grow(k, key_steps + i * hair_size, hair->get_radius(), bbox);
+          if (attr_P->has_motion()) {
+            for (int attr_step = 1; attr_step < attr_P->num_motion_steps(); attr_step++) {
+              curve.bounds_grow(
+                  k, attr_P->data<packed_float3>(attr_step), attr_R->data<float>(attr_step), bbox);
             }
           }
         }
@@ -405,17 +403,13 @@ void BVH2::refit_primitives(const int start, const int end, BoundBox &bbox, uint
 
         /* Motion points. */
         if (pointcloud->get_use_motion_blur()) {
-          Attribute *attr = pointcloud->attributes.find(ATTR_STD_MOTION_VERTEX_POSITION);
+          const Attribute *attr_P = pointcloud->attributes.find(ATTR_STD_POSITION);
 
-          if (attr) {
-            const size_t pointcloud_size = pointcloud->num_points();
-            const size_t steps = pointcloud->get_motion_steps() - 1;
-            const float4 *point_steps = attr->data<float4>();
-
-            for (size_t i = 0; i < steps; i++) {
-              const size_t idx = i * pointcloud_size + point.index;
-              const float3 P = make_float3(point_steps[idx]);
-              const float r = point_steps[idx].w;
+          if (attr_P->has_motion()) {
+            const Attribute *attr_R = pointcloud->attributes.find(ATTR_STD_RADIUS);
+            for (int attr_step = 1; attr_step < attr_P->num_motion_steps(); attr_step++) {
+              const float3 P = attr_P->data<packed_float3>(attr_step)[point.index];
+              const float r = attr_R->data<float>(attr_step)[point.index];
               bbox.grow(P, r);
             }
           }

@@ -16,7 +16,7 @@ CCL_NAMESPACE_BEGIN
  * other than the frame center. Computing the point at a given ray time is
  * a matter of interpolation of the two steps between which the ray time lies.
  *
- * The extra points are stored as ATTR_STD_MOTION_VERTEX_POSITION.
+ * The extra points are stored as additional motion steps in ATTR_STD_POSITION.
  */
 
 #ifdef __POINTCLOUD__
@@ -26,15 +26,15 @@ ccl_device_inline float4 motion_point_for_step(
 {
   const int center_step = (numsteps - 1) / 2;
   if (step == center_step) {
-    /* center step: regular key location */
-    return kernel_data_fetch(points, prim);
+    /* Center step: first in the array. */
   }
-  /* center step is not stored in this array */
-  if (step > center_step) {
-    step--;
+  else {
+    /* Non-center step, stored after center  with center index skipped. */
+    if (step < center_step) {
+      step++;
+    }
+    offset += step * numverts;
   }
-
-  offset += step * numverts;
 
   return kernel_data_fetch(attributes_float4, offset + prim);
 }
@@ -54,11 +54,8 @@ ccl_device_inline float4 motion_point(KernelGlobals kg,
   const int step = min((int)(time * maxstep), maxstep - 1);
   const float t = time * maxstep - step;
 
-  /* find attribute */
-  const int offset = intersection_find_attribute(kg, object, ATTR_STD_MOTION_VERTEX_POSITION);
-  kernel_assert(offset != ATTR_STD_NOT_FOUND);
-
   /* fetch key coordinates */
+  const int offset = kernel_data_fetch(objects, object).position_offset;
   const float4 point = motion_point_for_step(kg, offset, numverts, numsteps, step, prim);
   const float4 next_point = motion_point_for_step(kg, offset, numverts, numsteps, step + 1, prim);
 

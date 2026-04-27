@@ -37,11 +37,9 @@ KERNEL_DATA_ARRAY(packed_uint3, tri_vindex)
 
 /* curves */
 KERNEL_DATA_ARRAY(KernelCurve, curves)
-KERNEL_DATA_ARRAY(float4, curve_keys)
 KERNEL_DATA_ARRAY(KernelCurveSegment, curve_segments)
 
 /* pointclouds */
-KERNEL_DATA_ARRAY(float4, points)
 KERNEL_DATA_ARRAY(uint, points_shader)
 
 /* attributes */

@@ -488,13 +488,11 @@ void pack_motion_verts(const size_t num_curves,
 
 void BVHEmbree::set_curve_vertex_buffer(RTCGeometry geom_id, const Hair *hair, const bool update)
 {
-  const Attribute *attr_mP = nullptr;
+  const Attribute *attr_P = hair->attributes.find(ATTR_STD_POSITION);
+  const Attribute *attr_R = hair->attributes.find(ATTR_STD_RADIUS);
   size_t num_motion_steps = 1;
-  if (hair->has_motion_blur()) {
-    attr_mP = hair->attributes.find(ATTR_STD_MOTION_VERTEX_POSITION);
-    if (attr_mP) {
-      num_motion_steps = hair->get_motion_steps();
-    }
+  if (hair->has_motion_blur() && attr_P->has_motion()) {
+    num_motion_steps = hair->get_motion_steps();
   }
 
   const size_t num_curves = hair->num_curves();
@@ -509,13 +507,7 @@ void BVHEmbree::set_curve_vertex_buffer(RTCGeometry geom_id, const Hair *hair, c
   num_keys_embree += num_curves * 2;
 
   /* Copy the CV data to Embree */
-  const int t_mid = (num_motion_steps - 1) / 2;
-  const float *curve_radius = hair->get_radius();
   for (int t = 0; t < num_motion_steps; ++t) {
-    // As float4 and float3 are no longer interchangeable the 2 types need to be
-    // handled separately. Attributes are float4s where the radius is stored in w and
-    // the middle motion vector is from the mesh points which are stored float3s with
-    // the radius stored in another array.
     float4 *rtc_verts = nullptr;
     if (update) {
       rtc_verts = (float4 *)rtcGetGeometryBufferData(geom_id, RTC_BUFFER_TYPE_VERTEX, t);
@@ -543,17 +535,13 @@ void BVHEmbree::set_curve_vertex_buffer(RTCGeometry geom_id, const Hair *hair, c
     assert(rtc_verts);
     if (rtc_verts) {
       const size_t num_curves = hair->num_curves();
-      if (t == t_mid || attr_mP == nullptr) {
-        const packed_float3 *verts = hair->get_position();
-        pack_motion_verts<packed_float3>(
-            num_curves, hair, verts, curve_radius, rtc_verts, hair->curve_shape);
-      }
-      else {
-        const int t_ = (t > t_mid) ? (t - 1) : t;
-        const float4 *verts = &attr_mP->data<float4>()[t_ * num_keys];
-        pack_motion_verts<float4>(
-            num_curves, hair, verts, curve_radius, rtc_verts, hair->curve_shape);
-      }
+      pack_motion_verts<packed_float3>(
+          num_curves,
+          hair,
+          attr_P->data_at_time_step<packed_float3>(t, num_motion_steps),
+          attr_R->data_at_time_step<float>(t, num_motion_steps),
+          rtc_verts,
+          hair->curve_shape);
     }
 
     if (update) {
@@ -566,25 +554,17 @@ void BVHEmbree::set_point_vertex_buffer(RTCGeometry geom_id,
                                         const PointCloud *pointcloud,
                                         const bool update)
 {
-  const Attribute *attr_mP = nullptr;
+  const Attribute *attr_P = pointcloud->attributes.find(ATTR_STD_POSITION);
+  const Attribute *attr_R = pointcloud->attributes.find(ATTR_STD_RADIUS);
   size_t num_motion_steps = 1;
-  if (pointcloud->has_motion_blur()) {
-    attr_mP = pointcloud->attributes.find(ATTR_STD_MOTION_VERTEX_POSITION);
-    if (attr_mP) {
-      num_motion_steps = pointcloud->get_motion_steps();
-    }
+  if (pointcloud->has_motion_blur() && attr_P->has_motion()) {
+    num_motion_steps = pointcloud->get_motion_steps();
   }
 
   const size_t num_points = pointcloud->num_points();
 
-  /* Copy the point data to Embree */
-  const int t_mid = (num_motion_steps - 1) / 2;
-  const float *radius = pointcloud->get_radius();
+  /* Copy the point data to Embree. */
   for (int t = 0; t < num_motion_steps; ++t) {
-    // As float4 and float3 are no longer interchangeable the 2 types need to be
-    // handled separately. Attributes are float4s where the radius is stored in w and
-    // the middle motion vector is from the mesh points which are stored float3s with
-    // the radius stored in another array.
 
     float4 *rtc_verts = nullptr;
     if (update) {
@@ -612,18 +592,10 @@ void BVHEmbree::set_point_vertex_buffer(RTCGeometry geom_id,
 
     assert(rtc_verts);
     if (rtc_verts) {
-      if (t == t_mid || attr_mP == nullptr) {
-        /* Pack the motion points into a float4 as [x y z radius]. */
-        const packed_float3 *verts = pointcloud->get_position();
-        for (size_t j = 0; j < num_points; ++j) {
-          rtc_verts[j] = make_float4(float3(verts[j]), radius[j]);
-        }
-      }
-      else {
-        /* Motion blur is already packed as [x y z radius]. */
-        const int t_ = (t > t_mid) ? (t - 1) : t;
-        const float4 *verts = &attr_mP->data<float4>()[t_ * num_points];
-        std::copy_n(verts, num_points, rtc_verts);
+      const packed_float3 *verts = attr_P->data_at_time_step<packed_float3>(t, num_motion_steps);
+      const float *radius = attr_R->data_at_time_step<float>(t, num_motion_steps);
+      for (size_t j = 0; j < num_points; ++j) {
+        rtc_verts[j] = make_float4(float3(verts[j]), radius[j]);
       }
     }
 
@@ -637,11 +609,10 @@ void BVHEmbree::add_points(const Object *ob, const PointCloud *pointcloud, const
 {
   const size_t prim_offset = pointcloud->prim_offset;
 
-  const Attribute *attr_mP = nullptr;
   size_t num_motion_steps = 1;
   if (pointcloud->has_motion_blur()) {
-    attr_mP = pointcloud->attributes.find(ATTR_STD_MOTION_VERTEX_POSITION);
-    if (attr_mP) {
+    const Attribute *attr_P = pointcloud->attributes.find(ATTR_STD_POSITION);
+    if (attr_P->has_motion()) {
       num_motion_steps = pointcloud->get_motion_steps();
     }
   }
@@ -668,13 +639,10 @@ void BVHEmbree::add_curves(const Object *ob, const Hair *hair, const int i)
 {
   const size_t prim_offset = hair->curve_segment_offset;
 
-  const Attribute *attr_mP = nullptr;
+  const Attribute *attr_P = hair->attributes.find(ATTR_STD_POSITION);
   size_t num_motion_steps = 1;
-  if (hair->has_motion_blur()) {
-    attr_mP = hair->attributes.find(ATTR_STD_MOTION_VERTEX_POSITION);
-    if (attr_mP) {
-      num_motion_steps = hair->get_motion_steps();
-    }
+  if (hair->has_motion_blur() && attr_P->has_motion()) {
+    num_motion_steps = hair->get_motion_steps();
   }
 
   assert(num_motion_steps <= RTC_MAX_TIME_STEP_COUNT);

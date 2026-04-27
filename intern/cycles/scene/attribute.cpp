@@ -62,6 +62,14 @@ Attribute::Attribute(ustring name,
   center.sharing_info = sharing_info;
 }
 
+static size_t attribute_alloc_bytes(const size_t element_size, const size_t size)
+{
+  /* rtcSetSharedGeometryBuffer is documented as requiring 4 bytes past the
+   * end of a float3 for 16-byte SSE loads, so we add that for all attributes. */
+  static constexpr size_t ATTRIBUTE_BUFFER_PADDING = 4;
+  return element_size * size + ATTRIBUTE_BUFFER_PADDING;
+}
+
 static void free_step_buffer(Attribute::Buffer &buf,
                              const AttributeElement element,
                              const size_t data_sizeof,
@@ -79,7 +87,7 @@ static void free_step_buffer(Attribute::Buffer &buf,
   }
   else if (buf.data) {
     GuardedAllocator<char>().deallocate(static_cast<char *>(const_cast<void *>(buf.data)),
-                                        data_sizeof * size);
+                                        attribute_alloc_bytes(data_sizeof, size));
   }
   buf.data = nullptr;
   buf.sharing_info = nullptr;
@@ -97,12 +105,10 @@ Attribute::Attribute(Attribute &&other)
 
 void Attribute::free_data()
 {
-  const size_t sz = data_sizeof();
-  free_step_buffer(center, element, sz, size);
-  /* Motion steps are never voxels, strip that flag for the helper. */
-  const AttributeElement motion_element = AttributeElement(element & ~ATTR_ELEMENT_VOXEL);
+  const size_t element_size = data_sizeof();
+  free_step_buffer(center, element, element_size, size);
   for (Buffer &buf : motion) {
-    free_step_buffer(buf, motion_element, sz, size);
+    free_step_buffer(buf, element, element_size, size);
   }
   motion.clear();
 }
@@ -127,22 +133,23 @@ void Attribute::resize(const size_t num_elements)
   if (num_elements == size_t(size)) {
     return;
   }
-  const size_t sz = data_sizeof();
+  const size_t element_size = data_sizeof();
   const size_t copy_elems = std::min(num_elements, size_t(size));
+  const size_t alloc_bytes = attribute_alloc_bytes(element_size, num_elements);
 
   /* Allocate and copy center step. */
   Buffer new_center;
-  new_center.data = GuardedAllocator<char>().allocate(num_elements * sz);
+  new_center.data = GuardedAllocator<char>().allocate(alloc_bytes);
   if (center.data) {
-    memcpy(const_cast<void *>(new_center.data), center.data, copy_elems * sz);
+    memcpy(const_cast<void *>(new_center.data), center.data, copy_elems * element_size);
   }
 
   /* Allocate and copy motion steps. */
   vector<Buffer> new_motion(motion.size());
   for (size_t i = 0; i < motion.size(); i++) {
-    new_motion[i].data = GuardedAllocator<char>().allocate(num_elements * sz);
+    new_motion[i].data = GuardedAllocator<char>().allocate(alloc_bytes);
     if (motion[i].data) {
-      memcpy(const_cast<void *>(new_motion[i].data), motion[i].data, copy_elems * sz);
+      memcpy(const_cast<void *>(new_motion[i].data), motion[i].data, copy_elems * element_size);
     }
   }
 
@@ -154,30 +161,30 @@ void Attribute::resize(const size_t num_elements)
 
 void Attribute::add_motion(const Geometry *geom)
 {
-  const int new_motion_count = int(geom->get_motion_steps()) - 1;
-  assert(new_motion_count >= 0);
-  if (new_motion_count == int(motion.size())) {
+  const int motion_steps = geom->get_motion_steps();
+  if (motion_steps <= 0) {
     return;
   }
-  const size_t sz = data_sizeof();
-  const AttributeElement motion_element = AttributeElement(element & ~ATTR_ELEMENT_VOXEL);
 
-  if (new_motion_count < int(motion.size())) {
-    /* Shrink: free and drop extra steps. */
-    for (size_t i = new_motion_count; i < motion.size(); i++) {
-      free_step_buffer(motion[i], motion_element, sz, size);
+  const int motion_size = geom->get_motion_steps() - 1;
+  if (motion_size == motion.size()) {
+    return;
+  }
+  const size_t element_size = data_sizeof();
+
+  if (motion_size < motion.size()) {
+    for (size_t i = motion_size; i < motion.size(); i++) {
+      free_step_buffer(motion[i], element, element_size, size);
     }
-    motion.resize(new_motion_count);
+    motion.resize(motion_size);
   }
   else {
-    /* Grow: allocate fresh zero-initialized arrays for the new steps. */
-    motion.reserve(new_motion_count);
-    while (int(motion.size()) < new_motion_count) {
+    motion.reserve(motion_size);
+    while (motion.size() < motion_size) {
       Buffer buf;
       if (size > 0) {
-        const size_t alloc_bytes = sz * size;
-        buf.data = GuardedAllocator<char>().allocate(alloc_bytes);
-        memset(const_cast<void *>(buf.data), 0, alloc_bytes);
+        /* Left uninitialized, callers fill in the motion data for every step. */
+        buf.data = GuardedAllocator<char>().allocate(attribute_alloc_bytes(element_size, size));
       }
       motion.push_back(buf);
     }
@@ -191,10 +198,9 @@ void Attribute::remove_motion()
   if (!has_motion()) {
     return;
   }
-  const size_t sz = data_sizeof();
-  const AttributeElement motion_element = AttributeElement(element & ~ATTR_ELEMENT_VOXEL);
+  const size_t element_size = data_sizeof();
   for (Buffer &buf : motion) {
-    free_step_buffer(buf, motion_element, sz, size);
+    free_step_buffer(buf, element, element_size, size);
   }
   motion.clear();
   modified = true;
@@ -210,7 +216,7 @@ void Attribute::take_motion_from(Attribute &other)
   modified = true;
 }
 
-static char *buffer_for_write(Attribute::Buffer &buf, const size_t data_sizeof, const size_t size)
+static char *buffer_for_write(Attribute::Buffer &buf, const size_t element_size, const size_t size)
 {
   if (!buf.data) {
     return nullptr;
@@ -219,8 +225,8 @@ static char *buffer_for_write(Attribute::Buffer &buf, const size_t data_sizeof, 
     /* Here we assume that the sharing info is not mutable. With the addition of another sharing
      * info callback function pointer we could check the user count to avoid unnecessary copies.
      * For now that isn't expected to happen in practice though. */
-    auto *new_data = GuardedAllocator<char>().allocate(data_sizeof * size);
-    memcpy(new_data, buf.data, data_sizeof * size);
+    auto *new_data = GuardedAllocator<char>().allocate(attribute_alloc_bytes(element_size, size));
+    memcpy(new_data, buf.data, element_size * size);
     g_implicit_sharing_user_remove_fn(buf.sharing_info);
     buf.sharing_info = nullptr;
     buf.data = new_data;
@@ -249,10 +255,10 @@ void Attribute::set_data_from(Attribute &&other)
 
   flags = other.flags;
 
-  const size_t sz = data_sizeof();
-  const AttributeElement motion_element = AttributeElement(element & ~ATTR_ELEMENT_VOXEL);
+  const size_t element_size = data_sizeof();
 
-  const auto take_all = [&]() {
+  /* If topology or motion steps differ, take all data. */
+  if (size != other.size || motion.size() != other.motion.size()) {
     free_data();
     center = other.center;
     motion = std::move(other.motion);
@@ -260,44 +266,37 @@ void Attribute::set_data_from(Attribute &&other)
     other.center = Buffer();
     other.size = 0;
     modified = true;
-  };
-
-  /* If topology or step count differ, take the whole thing. */
-  if (size != other.size || motion.size() != other.motion.size()) {
-    take_all();
     return;
   }
 
-  /* Same shape: compare each step independently, taking only those that differ
-   * so that unchanged, implicitly-shared steps keep their sharing. */
+  /* Compare each step independently. */
   const auto take_step = [&](Buffer &dst, Buffer &src, const AttributeElement step_element) {
-    free_step_buffer(dst, step_element, sz, size);
+    free_step_buffer(dst, step_element, element_size, size);
     dst = src;
     src = Buffer();
     modified = true;
   };
 
-  const auto step_differs = [&](const Buffer &a, const Buffer &b) {
+  const auto step_equals = [&](const Buffer &a, const Buffer &b) {
     if (a.data == b.data) {
       /* Same buffer, e.g. shared through implicit sharing. */
-      return false;
-    }
-    if (a.sharing_info != b.sharing_info) {
       return true;
     }
-    if (size == 0) {
+    if (a.sharing_info != b.sharing_info) {
       return false;
     }
-    return memcmp(a.data, b.data, sz * size) != 0;
+    if (size == 0) {
+      return true;
+    }
+    return memcmp(a.data, b.data, element_size * size) == 0;
   };
 
-  if (step_differs(center, other.center)) {
+  if (!step_equals(center, other.center)) {
     take_step(center, other.center, element);
   }
   for (size_t i = 0; i < motion.size(); i++) {
-    /* Motion steps are never voxels, strip that flag for the helper. */
-    if (step_differs(motion[i], other.motion[i])) {
-      take_step(motion[i], other.motion[i], motion_element);
+    if (!step_equals(motion[i], other.motion[i])) {
+      take_step(motion[i], other.motion[i], element);
     }
   }
 }
@@ -361,13 +360,7 @@ size_t Attribute::element_size(Geometry *geom,
         size = pointcloud->num_points();
       }
       break;
-    case ATTR_ELEMENT_VERTEX_MOTION:
-    case ATTR_ELEMENT_VERTEX_NORMAL_MOTION:
-      if (geom->is_pointcloud()) {
-        PointCloud *pointcloud = static_cast<PointCloud *>(geom);
-        size = pointcloud->num_points() * (pointcloud->get_motion_steps() - 1);
-      }
-      break;
+
     case ATTR_ELEMENT_FACE:
       if (geom->is_mesh() || geom->is_volume()) {
         Mesh *mesh = static_cast<Mesh *>(geom);
@@ -403,14 +396,6 @@ size_t Attribute::element_size(Geometry *geom,
       if (geom->is_hair()) {
         Hair *hair = static_cast<Hair *>(geom);
         size = hair->num_keys();
-      }
-      break;
-    case ATTR_ELEMENT_CURVE_KEY_MOTION:
-    case ATTR_ELEMENT_CURVE_KEY_NORMAL_MOTION:
-      if (geom->is_hair()) {
-        Hair *hair = static_cast<Hair *>(geom);
-        DCHECK_GT(hair->get_motion_steps(), 0);
-        size = hair->num_keys() * (hair->get_motion_steps() - 1);
       }
       break;
     default:
@@ -477,11 +462,6 @@ const char *Attribute::standard_name(AttributeStandard std)
       return "undisplaced";
     case ATTR_STD_NORMAL_UNDISPLACED:
       return "undisplaced_N";
-    case ATTR_STD_MOTION_VERTEX_POSITION:
-      return "motion_P";
-    case ATTR_STD_MOTION_VERTEX_NORMAL:
-    case ATTR_STD_MOTION_CORNER_NORMAL:
-      return "motion_N";
     case ATTR_STD_PARTICLE:
       return "particle";
     case ATTR_STD_CURVE_INTERCEPT:
@@ -717,13 +697,7 @@ static TypeDesc find_type_from_geometry_std(Geometry *geometry, AttributeStandar
       case ATTR_STD_POSITION_UNDEFORMED:
       case ATTR_STD_POSITION_UNDISPLACED:
         return TypePoint;
-      case ATTR_STD_MOTION_VERTEX_POSITION:
-        return TypePoint;
-      case ATTR_STD_MOTION_VERTEX_NORMAL:
-        return TypeNormal;
       case ATTR_STD_CORNER_NORMAL:
-        return TypeNormal;
-      case ATTR_STD_MOTION_CORNER_NORMAL:
         return TypeNormal;
       case ATTR_STD_PTEX_FACE_ID:
         return TypeFloat;
@@ -750,8 +724,6 @@ static TypeDesc find_type_from_geometry_std(Geometry *geometry, AttributeStandar
         return TypeFloat2;
       case ATTR_STD_GENERATED:
         return TypePoint;
-      case ATTR_STD_MOTION_VERTEX_POSITION:
-        return TypeFloat4;
       case ATTR_STD_POINT_RANDOM:
         return TypeFloat;
       case ATTR_STD_GENERATED_TRANSFORM:
@@ -796,14 +768,10 @@ static TypeDesc find_type_from_geometry_std(Geometry *geometry, AttributeStandar
         return TypeFloat;
       case ATTR_STD_VERTEX_NORMAL:
         return TypeNormal;
-      case ATTR_STD_MOTION_VERTEX_NORMAL:
-        return TypeNormal;
       case ATTR_STD_UV:
         return TypeFloat2;
       case ATTR_STD_GENERATED:
         return TypePoint;
-      case ATTR_STD_MOTION_VERTEX_POSITION:
-        return TypeFloat4;
       case ATTR_STD_CURVE_INTERCEPT:
         return TypeFloat;
       case ATTR_STD_CURVE_LENGTH:
@@ -851,14 +819,8 @@ static AttributeElement find_element_from_geometry_std(Geometry *geometry, Attri
       case ATTR_STD_POSITION_UNDEFORMED:
       case ATTR_STD_POSITION_UNDISPLACED:
         return ATTR_ELEMENT_VERTEX;
-      case ATTR_STD_MOTION_VERTEX_POSITION:
-        return ATTR_ELEMENT_VERTEX_MOTION;
-      case ATTR_STD_MOTION_VERTEX_NORMAL:
-        return ATTR_ELEMENT_VERTEX_NORMAL_MOTION;
       case ATTR_STD_CORNER_NORMAL:
         return ATTR_ELEMENT_CORNER_NORMAL;
-      case ATTR_STD_MOTION_CORNER_NORMAL:
-        return ATTR_ELEMENT_CORNER_NORMAL_MOTION;
       case ATTR_STD_PTEX_FACE_ID:
         return ATTR_ELEMENT_FACE;
       case ATTR_STD_PTEX_UV:
@@ -884,8 +846,6 @@ static AttributeElement find_element_from_geometry_std(Geometry *geometry, Attri
         return ATTR_ELEMENT_VERTEX;
       case ATTR_STD_GENERATED:
         return ATTR_ELEMENT_VERTEX;
-      case ATTR_STD_MOTION_VERTEX_POSITION:
-        return ATTR_ELEMENT_VERTEX_MOTION;
       case ATTR_STD_POINT_RANDOM:
         return ATTR_ELEMENT_VERTEX;
       case ATTR_STD_GENERATED_TRANSFORM:
@@ -930,14 +890,10 @@ static AttributeElement find_element_from_geometry_std(Geometry *geometry, Attri
         return ATTR_ELEMENT_CURVE_KEY;
       case ATTR_STD_VERTEX_NORMAL:
         return ATTR_ELEMENT_CURVE_KEY_NORMAL;
-      case ATTR_STD_MOTION_VERTEX_NORMAL:
-        return ATTR_ELEMENT_CURVE_KEY_NORMAL_MOTION;
       case ATTR_STD_UV:
         return ATTR_ELEMENT_CURVE;
       case ATTR_STD_GENERATED:
         return ATTR_ELEMENT_CURVE;
-      case ATTR_STD_MOTION_VERTEX_POSITION:
-        return ATTR_ELEMENT_CURVE_KEY_MOTION;
       case ATTR_STD_CURVE_INTERCEPT:
         return ATTR_ELEMENT_CURVE_KEY;
       case ATTR_STD_CURVE_LENGTH:
@@ -1006,6 +962,9 @@ Attribute &AttributeSet::copy(const Attribute &attr)
 {
   Attribute &copy_attr = *add(attr.name, attr.type, attr.element);
   copy_attr.std = attr.std;
+  if (attr.has_motion()) {
+    copy_attr.add_motion(geometry);
+  }
   return copy_attr;
 }
 

@@ -362,7 +362,6 @@ void GeometryManager::geom_calc_offset(Scene *scene, BVHLayout bvh_layout)
   size_t tri_size = 0;
 
   size_t curve_size = 0;
-  size_t curve_key_size = 0;
   size_t curve_segment_size = 0;
 
   size_t point_size = 0;
@@ -392,12 +391,10 @@ void GeometryManager::geom_calc_offset(Scene *scene, BVHLayout bvh_layout)
       Hair *hair = static_cast<Hair *>(geom);
 
       prim_offset_changed = (hair->curve_segment_offset != curve_segment_size);
-      hair->curve_key_offset = curve_key_size;
       hair->curve_segment_offset = curve_segment_size;
       hair->prim_offset = curve_size;
 
       curve_size += hair->num_curves();
-      curve_key_size += hair->num_keys();
       curve_segment_size += hair->num_segments();
     }
     else if (geom->is_pointcloud()) {
@@ -622,12 +619,10 @@ void GeometryManager::device_update_preprocess(Device *device, Scene *scene, Pro
 
     if (device_update_flags & DEVICE_CURVE_DATA_NEEDS_REALLOC) {
       dscene->curves.tag_realloc();
-      dscene->curve_keys.tag_realloc();
       dscene->curve_segments.tag_realloc();
     }
 
     if (device_update_flags & DEVICE_POINT_DATA_NEEDS_REALLOC) {
-      dscene->points.tag_realloc();
       dscene->points_shader.tag_realloc();
     }
   }
@@ -691,13 +686,11 @@ void GeometryManager::device_update_preprocess(Device *device, Scene *scene, Pro
   }
 
   if (device_update_flags & DEVICE_CURVE_DATA_MODIFIED) {
-    dscene->curve_keys.tag_modified();
     dscene->curves.tag_modified();
     dscene->curve_segments.tag_modified();
   }
 
   if (device_update_flags & DEVICE_POINT_DATA_MODIFIED) {
-    dscene->points.tag_modified();
     dscene->points_shader.tag_modified();
   }
 
@@ -984,7 +977,13 @@ void GeometryManager::device_update(Device *device,
     return;
   }
 
-  {
+  /* Attributes must be uploaded to the device before displacement and hair shadow
+   * transparency, which run shader evaluation. Otherwise the upload is deferred
+   * until after BVH building. */
+  const bool need_attributes_before_bvh = true_displacement_used ||
+                                          curve_need_update_shadow_transparency;
+
+  if (need_attributes_before_bvh) {
     const scoped_callback_timer timer([scene](double time) {
       if (scene->update_stats) {
         scene->update_stats->geometry.times.add_entry({"device_update (attributes)", time});
@@ -1057,20 +1056,12 @@ void GeometryManager::device_update(Device *device,
     return;
   }
 
-  /* Device re-update after applying transforms and displacement. */
+  /* Displacement and hair shadow transparency modified the geometry. Free device buffers
+   * that need to be reallocated, so the BVH and attributes are rebuilt from the updated
+   * data below. Freeing the attribute buffers uploaded earlier also keeps them from
+   * overlapping with the temporary BVH building buffers, lowering peak memory usage. */
   if (displacement_done || curve_shadow_transparency_done) {
-    const scoped_callback_timer timer([scene](double time) {
-      if (scene->update_stats) {
-        scene->update_stats->geometry.times.add_entry(
-            {"device_update (displacement: attributes)", time});
-      }
-    });
     device_free(device, dscene, false);
-
-    device_update_attributes(device, dscene, scene, progress);
-    if (progress.get_cancel()) {
-      return;
-    }
   }
 
   /* Update the BVH even when there is no geometry so the kernel's BVH data is still valid,
@@ -1154,6 +1145,22 @@ void GeometryManager::device_update(Device *device,
   dscene->data.bvh.bvh_layout = BVHParams::best_bvh_layout(
       scene->params.bvh_layout, device->get_bvh_layout_mask(dscene->data.kernel_features));
 
+  /* Upload attributes to the device.
+   *
+   * This is deferred until after BVH building so the attribute buffers do not overlap with
+   * the temporary buffers allocated during BVH building. */
+  {
+    const scoped_callback_timer timer([scene](double time) {
+      if (scene->update_stats) {
+        scene->update_stats->geometry.times.add_entry({"device_update (attributes)", time});
+      }
+    });
+    device_update_attributes(device, dscene, scene, progress);
+    if (progress.get_cancel()) {
+      return;
+    }
+  }
+
   {
     const scoped_callback_timer timer([scene](double time) {
       if (scene->update_stats) {
@@ -1194,9 +1201,7 @@ void GeometryManager::device_update(Device *device,
   dscene->tri_shader.clear_modified();
   dscene->tri_vindex.clear_modified();
   dscene->curves.clear_modified();
-  dscene->curve_keys.clear_modified();
   dscene->curve_segments.clear_modified();
-  dscene->points.clear_modified();
   dscene->points_shader.clear_modified();
   dscene->attributes_map.clear_modified();
   dscene->attributes_float.clear_modified();
@@ -1220,9 +1225,7 @@ void GeometryManager::device_free(Device *device, DeviceScene *dscene, bool forc
   dscene->tri_shader.free_if_need_realloc(force_free);
   dscene->tri_vindex.free_if_need_realloc(force_free);
   dscene->curves.free_if_need_realloc(force_free);
-  dscene->curve_keys.free_if_need_realloc(force_free);
   dscene->curve_segments.free_if_need_realloc(force_free);
-  dscene->points.free_if_need_realloc(force_free);
   dscene->points_shader.free_if_need_realloc(force_free);
   dscene->attributes_map.free_if_need_realloc(force_free);
   dscene->attributes_float.free_if_need_realloc(force_free);

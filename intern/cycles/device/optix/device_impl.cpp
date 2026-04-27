@@ -1334,8 +1334,9 @@ void OptiXDevice::build_bvh(BVH *bvh, Progress &progress, bool refit)
       const size_t num_segments = hair->num_segments();
 
       size_t num_motion_steps = 1;
-      Attribute *motion_keys = hair->attributes.find(ATTR_STD_MOTION_VERTEX_POSITION);
-      if (pipeline_options.usesMotionBlur && hair->get_use_motion_blur() && motion_keys) {
+      const Attribute *attr_P = hair->attributes.find(ATTR_STD_POSITION);
+      const Attribute *attr_R = hair->attributes.find(ATTR_STD_RADIUS);
+      if (pipeline_options.usesMotionBlur && hair->get_use_motion_blur() && attr_P->has_motion()) {
         num_motion_steps = hair->get_motion_steps();
       }
 
@@ -1360,19 +1361,9 @@ void OptiXDevice::build_bvh(BVH *bvh, Progress &progress, bool refit)
 
       /* Get AABBs for each motion step. */
       for (size_t step = 0; step < num_motion_steps; ++step) {
-        /* The center step for motion vertices is not stored in the attribute. */
-        const size_t center_step = (num_motion_steps - 1) / 2;
-        const packed_float3 *keys_center = nullptr;
-        const packed_float3 *keys_motion = nullptr;
-        if (step == center_step) {
-          keys_center = hair->get_position();
-        }
-        else {
-          const size_t attr_offset = (step > center_step) ? step - 1 : step;
-          keys_motion = motion_keys->data<packed_float3>() + attr_offset * hair->num_keys();
-        }
-        const packed_float3 *keys = keys_center ? keys_center : keys_motion;
-        const auto get_key = [keys](size_t idx) -> float3 { return float3(keys[idx]); };
+        const packed_float3 *keys = attr_P->data_at_time_step<packed_float3>(step,
+                                                                             num_motion_steps);
+        const float *curve_radius_step = attr_R->data_at_time_step<float>(step, num_motion_steps);
 
         if (hair->curve_shape == CURVE_THICK || hair->curve_shape == CURVE_THICK_LINEAR) {
           for (size_t curve_index = 0, segment_index = 0, vertex_index = step * num_vertices;
@@ -1380,7 +1371,6 @@ void OptiXDevice::build_bvh(BVH *bvh, Progress &progress, bool refit)
                ++curve_index)
           {
             const Hair::Curve curve = hair->get_curve(curve_index);
-            const float *curve_radius = hair->get_radius();
 
             if (hair->curve_shape == CURVE_THICK_LINEAR) {
               const int first_key_index = curve.first_key;
@@ -1389,37 +1379,32 @@ void OptiXDevice::build_bvh(BVH *bvh, Progress &progress, bool refit)
                 if (step == 0) {
                   index_data[segment_index++] = vertex_index;
                 }
-                const float3 key = get_key(first_key_index + k);
-                vertex_data[vertex_index++] = make_float4(key, curve_radius[first_key_index + k]);
+                vertex_data[vertex_index++] = make_float4(float3(keys[first_key_index + k]),
+                                                          curve_radius_step[first_key_index + k]);
               }
 
               const int last_key_index = first_key_index + curve.num_keys - 1;
-              {
-                const float3 key = get_key(last_key_index);
-                vertex_data[vertex_index++] = make_float4(key, curve_radius[last_key_index]);
-              }
+              vertex_data[vertex_index++] = make_float4(float3(keys[last_key_index]),
+                                                        curve_radius_step[last_key_index]);
             }
             else {
               const int first_key_index = curve.first_key;
-              {
-                const float3 key = get_key(first_key_index);
-                vertex_data[vertex_index++] = make_float4(key, curve_radius[first_key_index]);
-              }
+              vertex_data[vertex_index++] = make_float4(float3(keys[first_key_index]),
+                                                        curve_radius_step[first_key_index]);
 
               for (int k = 0; k < curve.num_segments(); ++k) {
                 if (step == 0) {
                   index_data[segment_index++] = vertex_index - 1;
                 }
-                const float3 key = get_key(first_key_index + k);
-                vertex_data[vertex_index++] = make_float4(key, curve_radius[first_key_index + k]);
+                vertex_data[vertex_index++] = make_float4(float3(keys[first_key_index + k]),
+                                                          curve_radius_step[first_key_index + k]);
               }
 
               const int last_key_index = first_key_index + curve.num_keys - 1;
-              {
-                const float3 key = get_key(last_key_index);
-                vertex_data[vertex_index++] = make_float4(key, curve_radius[last_key_index]);
-                vertex_data[vertex_index++] = make_float4(key, curve_radius[last_key_index]);
-              }
+              vertex_data[vertex_index++] = make_float4(float3(keys[last_key_index]),
+                                                        curve_radius_step[last_key_index]);
+              vertex_data[vertex_index++] = make_float4(float3(keys[last_key_index]),
+                                                        curve_radius_step[last_key_index]);
             }
           }
         }
@@ -1429,7 +1414,7 @@ void OptiXDevice::build_bvh(BVH *bvh, Progress &progress, bool refit)
 
             for (int segment = 0; segment < curve.num_segments(); ++segment, ++i) {
               BoundBox bounds = BoundBox::empty;
-              curve.bounds_grow(segment, keys, hair->get_radius(), bounds);
+              curve.bounds_grow(segment, keys, curve_radius_step, bounds);
 
               const size_t index = step * num_segments + i;
               aabb_data[index].minX = bounds.min.x;
@@ -1574,8 +1559,11 @@ void OptiXDevice::build_bvh(BVH *bvh, Progress &progress, bool refit)
       }
 
       size_t num_motion_steps = 1;
-      Attribute *motion_points = pointcloud->attributes.find(ATTR_STD_MOTION_VERTEX_POSITION);
-      if (pipeline_options.usesMotionBlur && pointcloud->get_use_motion_blur() && motion_points) {
+      Attribute *attr_P = pointcloud->attributes.find(ATTR_STD_POSITION);
+      Attribute *attr_R = pointcloud->attributes.find(ATTR_STD_RADIUS);
+      if (pipeline_options.usesMotionBlur && pointcloud->get_use_motion_blur() &&
+          attr_P->has_motion())
+      {
         num_motion_steps = pointcloud->get_motion_steps();
       }
 
@@ -1584,44 +1572,22 @@ void OptiXDevice::build_bvh(BVH *bvh, Progress &progress, bool refit)
 
       /* Get AABBs for each motion step. */
       for (size_t step = 0; step < num_motion_steps; ++step) {
-        /* The center step for motion vertices is not stored in the attribute. */
-        size_t center_step = (num_motion_steps - 1) / 2;
+        const packed_float3 *points = attr_P->data_at_time_step<packed_float3>(step,
+                                                                               num_motion_steps);
+        const float *radius = attr_R->data_at_time_step<float>(step, num_motion_steps);
 
-        if (step == center_step) {
-          const packed_float3 *points = pointcloud->get_position();
-          const float *radius = pointcloud->get_radius();
+        for (size_t i = 0; i < num_points; ++i) {
+          const PointCloud::Point point = pointcloud->get_point(i);
+          BoundBox bounds = BoundBox::empty;
+          point.bounds_grow(points, radius, bounds);
 
-          for (size_t i = 0; i < num_points; ++i) {
-            const PointCloud::Point point = pointcloud->get_point(i);
-            BoundBox bounds = BoundBox::empty;
-            point.bounds_grow(points, radius, bounds);
-
-            const size_t index = step * num_points + i;
-            aabb_data[index].minX = bounds.min.x;
-            aabb_data[index].minY = bounds.min.y;
-            aabb_data[index].minZ = bounds.min.z;
-            aabb_data[index].maxX = bounds.max.x;
-            aabb_data[index].maxY = bounds.max.y;
-            aabb_data[index].maxZ = bounds.max.z;
-          }
-        }
-        else {
-          size_t attr_offset = (step > center_step) ? step - 1 : step;
-          const float4 *points = motion_points->data<float4>() + attr_offset * num_points;
-
-          for (size_t i = 0; i < num_points; ++i) {
-            const PointCloud::Point point = pointcloud->get_point(i);
-            BoundBox bounds = BoundBox::empty;
-            point.bounds_grow(points[i], bounds);
-
-            const size_t index = step * num_points + i;
-            aabb_data[index].minX = bounds.min.x;
-            aabb_data[index].minY = bounds.min.y;
-            aabb_data[index].minZ = bounds.min.z;
-            aabb_data[index].maxX = bounds.max.x;
-            aabb_data[index].maxY = bounds.max.y;
-            aabb_data[index].maxZ = bounds.max.z;
-          }
+          const size_t index = step * num_points + i;
+          aabb_data[index].minX = bounds.min.x;
+          aabb_data[index].minY = bounds.min.y;
+          aabb_data[index].minZ = bounds.min.z;
+          aabb_data[index].maxX = bounds.max.x;
+          aabb_data[index].maxY = bounds.max.y;
+          aabb_data[index].maxZ = bounds.max.z;
         }
       }
 

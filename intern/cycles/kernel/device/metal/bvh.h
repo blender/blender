@@ -75,11 +75,12 @@ ccl_device_forceinline bool curve_ribbon_accept(KernelGlobals kg,
 
   /* We can ignore motion blur here because we don't need the positions, and it doesn't affect the
    * radius. */
+  const int position_offset = kernel_data_fetch(objects, object).position_offset;
   float radius[4];
-  radius[0] = kernel_data_fetch(curve_keys, ka).w;
-  radius[1] = kernel_data_fetch(curve_keys, k0).w;
-  radius[2] = kernel_data_fetch(curve_keys, k1).w;
-  radius[3] = kernel_data_fetch(curve_keys, kb).w;
+  radius[0] = kernel_data_fetch(attributes_float4, position_offset + ka).w;
+  radius[1] = kernel_data_fetch(attributes_float4, position_offset + k0).w;
+  radius[2] = kernel_data_fetch(attributes_float4, position_offset + k1).w;
+  radius[3] = kernel_data_fetch(attributes_float4, position_offset + kb).w;
   const float r = metal::catmull_rom(u, radius[0], radius[1], radius[2], radius[3]);
 
   /* MPJ TODO: Can we ignore motion and/or object transforms here? Depends on scaling? */
@@ -124,10 +125,11 @@ ccl_device_forceinline float curve_ribbon_v(KernelGlobals kg,
 
   float4 curve[4];
   if (!is_motion) {
-    curve[0] = kernel_data_fetch(curve_keys, ka);
-    curve[1] = kernel_data_fetch(curve_keys, k0);
-    curve[2] = kernel_data_fetch(curve_keys, k1);
-    curve[3] = kernel_data_fetch(curve_keys, kb);
+    const int position_offset = kernel_data_fetch(objects, object).position_offset;
+    curve[0] = kernel_data_fetch(attributes_float4, position_offset + ka);
+    curve[1] = kernel_data_fetch(attributes_float4, position_offset + k0);
+    curve[2] = kernel_data_fetch(attributes_float4, position_offset + k1);
+    curve[3] = kernel_data_fetch(attributes_float4, position_offset + kb);
   }
   else {
     motion_curve_keys(kg, object, time, ka, k0, k1, kb, curve);

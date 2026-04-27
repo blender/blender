@@ -141,10 +141,9 @@ void BVHBuild::add_reference_curves(BoundBox &root,
                                     Hair *hair,
                                     const int object_index)
 {
-  const Attribute *curve_attr_mP = nullptr;
-  if (hair->has_motion_blur()) {
-    curve_attr_mP = hair->attributes.find(ATTR_STD_MOTION_VERTEX_POSITION);
-  }
+  const Attribute *attr_P = hair->attributes.find(ATTR_STD_POSITION);
+  const Attribute *attr_R = hair->attributes.find(ATTR_STD_RADIUS);
+  const bool has_motion = attr_P->has_motion();
 
   const PrimitiveType primitive_type = hair->primitive_type();
 
@@ -153,7 +152,7 @@ void BVHBuild::add_reference_curves(BoundBox &root,
     const Hair::Curve curve = hair->get_curve(j);
     const float *curve_radius = hair->get_radius();
     for (int k = 0; k < curve.num_keys - 1; k++) {
-      if (curve_attr_mP == nullptr) {
+      if (!has_motion) {
         /* Really simple logic for static hair. */
         BoundBox bounds = BoundBox::empty;
         curve.bounds_grow(k, hair->get_position(), curve_radius, bounds);
@@ -165,18 +164,15 @@ void BVHBuild::add_reference_curves(BoundBox &root,
         }
       }
       else if (params.num_motion_curve_steps == 0 || params.use_spatial_split) {
-        /* Simple case of motion curves: single node for the while
+        /* Simple case of motion curves: single node for the whole
          * shutter time. Lowest memory usage but less optimal
          * rendering.
          */
         /* TODO(sergey): Support motion steps for spatially split BVH. */
         BoundBox bounds = BoundBox::empty;
-        curve.bounds_grow(k, hair->get_position(), curve_radius, bounds);
-        const size_t num_keys = hair->num_keys();
-        const size_t num_steps = hair->get_motion_steps();
-        const float4 *key_steps = curve_attr_mP->data<float4>();
-        for (size_t step = 0; step < num_steps - 1; step++) {
-          curve.bounds_grow(k, key_steps + step * num_keys, bounds);
+        for (int attr_step = 0; attr_step < attr_P->num_motion_steps(); attr_step++) {
+          curve.bounds_grow(
+              k, attr_P->data<packed_float3>(attr_step), attr_R->data<float>(attr_step), bounds);
         }
         if (bounds.valid()) {
           const int packed_type = PRIMITIVE_PACK_SEGMENT(primitive_type, k);
@@ -193,42 +189,21 @@ void BVHBuild::add_reference_curves(BoundBox &root,
         const int num_bvh_steps = params.num_motion_curve_steps * 2 + 1;
         const float num_bvh_steps_inv_1 = 1.0f / (num_bvh_steps - 1);
         const size_t num_steps = hair->get_motion_steps();
-        const packed_float3 *curve_keys = hair->get_position();
-        const float4 *key_steps = curve_attr_mP->data<float4>();
-        const size_t num_keys = hair->num_keys();
         /* Calculate bounding box of the previous time step.
          * Will be reused later to avoid duplicated work on
          * calculating BVH time step boundbox.
          */
         float4 prev_keys[4];
-        curve.cardinal_motion_keys(curve_keys,
-                                   curve_radius,
-                                   key_steps,
-                                   num_keys,
-                                   num_steps,
-                                   0.0f,
-                                   k - 1,
-                                   k,
-                                   k + 1,
-                                   k + 2,
-                                   prev_keys);
+        curve.cardinal_motion_keys(
+            attr_P, attr_R, num_steps, 0.0f, k - 1, k, k + 1, k + 2, prev_keys);
         BoundBox prev_bounds = BoundBox::empty;
         curve.bounds_grow(prev_keys, prev_bounds);
         /* Create all primitive time steps, */
         for (int bvh_step = 1; bvh_step < num_bvh_steps; ++bvh_step) {
           const float curr_time = (float)(bvh_step)*num_bvh_steps_inv_1;
           float4 curr_keys[4];
-          curve.cardinal_motion_keys(curve_keys,
-                                     curve_radius,
-                                     key_steps,
-                                     num_keys,
-                                     num_steps,
-                                     curr_time,
-                                     k - 1,
-                                     k,
-                                     k + 1,
-                                     k + 2,
-                                     curr_keys);
+          curve.cardinal_motion_keys(
+              attr_P, attr_R, num_steps, curr_time, k - 1, k, k + 1, k + 2, curr_keys);
           BoundBox curr_bounds = BoundBox::empty;
           curve.bounds_grow(curr_keys, curr_bounds);
           BoundBox bounds = prev_bounds;
@@ -256,18 +231,16 @@ void BVHBuild::add_reference_points(BoundBox &root,
                                     PointCloud *pointcloud,
                                     const int i)
 {
-  const Attribute *point_attr_mP = nullptr;
-  if (pointcloud->has_motion_blur()) {
-    point_attr_mP = pointcloud->attributes.find(ATTR_STD_MOTION_VERTEX_POSITION);
-  }
+  const Attribute *attr_P = pointcloud->attributes.find(ATTR_STD_POSITION);
+  const Attribute *attr_R = pointcloud->attributes.find(ATTR_STD_RADIUS);
+  const bool has_motion = attr_P->has_motion();
 
   const packed_float3 *points_data = pointcloud->get_position();
   const float *radius_data = pointcloud->get_radius();
   const size_t num_points = pointcloud->num_points();
-  const float4 *motion_data = (point_attr_mP) ? point_attr_mP->data<float4>() : nullptr;
   const size_t num_steps = pointcloud->get_motion_steps();
 
-  if (point_attr_mP == nullptr) {
+  if (!has_motion) {
     /* Really simple logic for static points. */
     for (uint j = 0; j < num_points; j++) {
       const PointCloud::Point point = pointcloud->get_point(j);
@@ -289,9 +262,10 @@ void BVHBuild::add_reference_points(BoundBox &root,
     for (uint j = 0; j < num_points; j++) {
       const PointCloud::Point point = pointcloud->get_point(j);
       BoundBox bounds = BoundBox::empty;
-      point.bounds_grow(points_data, radius_data, bounds);
-      for (size_t step = 0; step < num_steps - 1; step++) {
-        point.bounds_grow(motion_data[step * num_points + j], bounds);
+      for (int attr_step = 0; attr_step < attr_P->num_motion_steps(); attr_step++) {
+        const packed_float3 *mP = attr_P->data<packed_float3>(attr_step);
+        const float *mR = attr_R->data<float>(attr_step);
+        point.bounds_grow(make_float4(float3(mP[j]), mR[j]), bounds);
       }
       if (bounds.valid()) {
         references.push_back(BVHReference(bounds, j, i, PRIMITIVE_MOTION_POINT));
@@ -307,8 +281,7 @@ void BVHBuild::add_reference_points(BoundBox &root,
      */
     const int num_bvh_steps = params.num_motion_point_steps * 2 + 1;
     const float num_bvh_steps_inv_1 = 1.0f / (num_bvh_steps - 1);
-    const size_t num_steps = pointcloud->get_motion_steps();
-    const float4 *point_steps = point_attr_mP->data<float4>();
+    const Attribute *attr_R_motion = attr_R->has_motion() ? attr_R : nullptr;
 
     for (uint j = 0; j < num_points; j++) {
       const PointCloud::Point point = pointcloud->get_point(j);
@@ -318,14 +291,14 @@ void BVHBuild::add_reference_points(BoundBox &root,
        * calculating BVH time step boundbox.
        */
       const float4 prev_key = point.motion_key(
-          points_data, radius_data, point_steps, num_points, num_steps, 0.0f, j);
+          radius_data, attr_P, attr_R_motion, num_steps, 0.0f, j);
       BoundBox prev_bounds = BoundBox::empty;
       point.bounds_grow(prev_key, prev_bounds);
       /* Create all primitive time steps, */
       for (int bvh_step = 1; bvh_step < num_bvh_steps; ++bvh_step) {
         const float curr_time = (float)(bvh_step)*num_bvh_steps_inv_1;
         const float4 curr_key = point.motion_key(
-            points_data, radius_data, point_steps, num_points, num_steps, curr_time, j);
+            radius_data, attr_P, attr_R_motion, num_steps, curr_time, j);
         BoundBox curr_bounds = BoundBox::empty;
         point.bounds_grow(curr_key, curr_bounds);
         BoundBox bounds = prev_bounds;
