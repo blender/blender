@@ -140,16 +140,17 @@ void AbcNurbsReader::readObjectData(Main *bmain, const Alembic::Abc::ISampleSele
     const FloatArraySamplePtr weights = smp.getPositionWeights();
 
     const size_t num_points = positions->size();
+    const bool has_weights = weights && weights->size() >= num_points;
 
     nu->bp = MEM_new_array_zeroed<BPoint>(num_points, "abc_setsplinetype");
 
     BPoint *bp = nu->bp;
     float posw_in = 1.0f;
 
-    for (int i = 0; i < num_points; i++, bp++) {
+    for (size_t i = 0; i < num_points; i++, bp++) {
       const Imath::V3f &pos_in = (*positions)[i];
 
-      if (weights) {
+      if (has_weights) {
         posw_in = (*weights)[i];
       }
 

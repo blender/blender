@@ -1,0 +1,29 @@
+==== Meshes: 2
+- Mesh 'malformed_face_indices' vtx:4 face:0 loop:0 edge:0
+  - attr 'position' FLOAT_VECTOR POINT
+    - (0.000, 0.000, 0.000)
+    - (1.000, 0.000, 0.000)
+    - (1.000, 0.000, 1.000)
+    - (0.000, 0.000, 1.000)
+
+- Mesh 'malformed_vertex_crease' vtx:4 face:1 loop:4 edge:4
+    - 3 2 1 0 
+    - 0/3 2/3 1/2 0/1 
+  - attr 'crease_vert' FLOAT POINT
+    - 0.000 0.000 0.000 0.000 
+  - attr 'position' FLOAT_VECTOR POINT
+    - (0.000, 0.000, 0.000)
+    - (1.000, 0.000, 0.000)
+    - (1.000, 0.000, 1.000)
+    - (0.000, 0.000, 1.000)
+
+==== Objects: 2
+- Obj 'malformed_face_indices' MESH data:'malformed_face_indices'
+  - pos 0.000, 0.000, 0.000
+  - rot 0.000, 0.000, 0.000 (XYZ)
+  - scl 1.000, 1.000, 1.000
+- Obj 'malformed_vertex_crease' MESH data:'malformed_vertex_crease'
+  - pos 0.000, 0.000, 0.000
+  - rot 0.000, 0.000, 0.000 (XYZ)
+  - scl 1.000, 1.000, 1.000
+

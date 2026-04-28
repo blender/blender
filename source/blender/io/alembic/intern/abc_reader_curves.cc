@@ -24,6 +24,7 @@
 #include "BLT_translation.hh"
 
 #include "CLG_log.h"
+#include "IO_validate.hh"
 
 namespace blender {
 
@@ -262,6 +263,17 @@ static std::optional<PreprocessedSampleData> preprocess_sample(StringRefNull iob
     return {};
   }
 
+  if (!validate::size_fits_in_int(positions->size()) ||
+      !validate::size_fits_in_int(per_curve_vertices_count->size()))
+  {
+    CLOG_WARN(&LOG,
+              "Curves too large to import for '%s/%s' at time %f, exceeds max int size",
+              iobject_name.c_str(),
+              schema.getName().c_str(),
+              sample_sel.getRequestedTime());
+    return {};
+  }
+
   const IFloatGeomParam widths_param = schema.getWidthsParam();
   FloatArraySamplePtr radii;
   if (widths_param.valid()) {
@@ -295,10 +307,16 @@ static std::optional<PreprocessedSampleData> preprocess_sample(StringRefNull iob
 
   /* Compute topological information. */
 
+  const int positions_size = positions->size();
   int blender_offset = 0;
   int alembic_offset = 0;
   for (size_t i = 0; i < curve_count; i++) {
-    const int vertices_count = (*per_curve_vertices_count)[i];
+    int vertices_count = (*per_curve_vertices_count)[i];
+
+    /* Guard against invalid vertex counts. */
+    if (vertices_count < 0 || vertices_count > positions_size - alembic_offset) {
+      vertices_count = std::max(0, positions_size - alembic_offset);
+    }
 
     const int curve_order = get_curve_order(smp.getType(), orders, i);
 

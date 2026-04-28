@@ -1,0 +1,16 @@
+==== Point Clouds: 1
+- PointCloud 'malformed_points' points:4
+  - attr 'position' FLOAT_VECTOR POINT
+    - (0.000, 0.000, 0.000)
+    - (1.000, 0.000, 0.000)
+    - (2.000, 0.000, 0.000)
+    - (3.000, 0.000, 0.000)
+  - attr 'radius' FLOAT POINT
+    - 0.010 0.010 0.010 0.010 
+
+==== Objects: 1
+- Obj 'malformed_points' POINTCLOUD data:'malformed_points'
+  - pos 0.000, 0.000, 0.000
+  - rot 0.000, 0.000, 0.000 (XYZ)
+  - scl 1.000, 1.000, 1.000
+

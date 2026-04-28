@@ -526,7 +526,7 @@ void import_blendshapes(Main *bmain,
        * key block point. */
       int a = 0;
       for (const int point : point_indices.AsConst()) {
-        if (point < 0 || point > kb->totelem) {
+        if (point < 0 || point >= kb->totelem) {
           CLOG_WARN(&LOG,
                     "Out of bounds point index %d for blendshape %s",
                     point,
@@ -1112,7 +1112,7 @@ void import_mesh_skel_bindings(Object *mesh_obj, const pxr::UsdPrim &prim, Repor
 
   /* Sanity check: make sure we have the expected number of values for the interpolation type. */
   if (interp == pxr::UsdGeomTokens->vertex &&
-      joint_weights.size() != mesh->verts_num * joint_weights_elem_size)
+      joint_weights.size() != int64_t(mesh->verts_num) * joint_weights_elem_size)
   {
     BKE_reportf(reports,
                 RPT_WARNING,
@@ -1176,15 +1176,15 @@ void import_mesh_skel_bindings(Object *mesh_obj, const pxr::UsdPrim &prim, Repor
   }
 
   /* Set the deform group verts and weights. */
-  for (int i = 0; i < mesh->verts_num; ++i) {
+  for (int64_t i = 0; i < mesh->verts_num; ++i) {
     /* Offset into the weights array, which is
      * always 0 for constant interpolation. */
-    int offset = 0;
+    int64_t offset = 0;
     if (interp == pxr::UsdGeomTokens->vertex) {
       offset = i * joint_weights_elem_size;
     }
     for (int j = 0; j < joint_weights_elem_size; ++j) {
-      const int k = offset + j;
+      const int64_t k = offset + j;
       const float w = joint_weights.AsConst()[k];
       if (w < .00001) {
         /* No deform group if zero weight. */

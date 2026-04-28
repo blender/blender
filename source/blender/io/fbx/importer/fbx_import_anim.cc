@@ -29,15 +29,25 @@
 #include "DNA_material_types.h"
 #include "DNA_object_types.h"
 
+#include "IO_validate.hh"
+
 #include "fbx_import_anim.hh"
 #include "fbx_import_util.hh"
 
+#include "CLG_log.h"
+
 namespace blender::io::fbx {
+
+static CLG_LogRef LOG = {"io.fbx"};
 
 static FCurve *create_fcurve(animrig::Channelbag &channelbag,
                              const animrig::FCurveDescriptor &descriptor,
                              int64_t key_count)
 {
+  if (!validate::size_fits_in_int(key_count)) {
+    CLOG_WARN(&LOG, "Animation curve too large to import, exceeds max int size");
+    key_count = 0;
+  }
   FCurve &cu = channelbag.fcurve_ensure(nullptr, descriptor);
   BKE_fcurve_bezt_resize(cu, key_count);
   return &cu;
@@ -338,16 +348,21 @@ static void create_transform_curve_data(const FbxElementMapping &mapping,
   int64_t rot_index = pos_index + 3;
   int64_t scale_index = rot_index + rot_channels;
   int64_t tot_curves = scale_index + 3;
+  int64_t key_count = sorted_key_times.size();
+  if (!validate::size_fits_in_int(key_count)) {
+    CLOG_WARN(&LOG, "Animation curve too large to import, exceeds max int size");
+    key_count = 0;
+  }
   for (int64_t i = 0; i < tot_curves; i++) {
     BLI_assert_msg(curves[i], "fbx: animation curve was not created successfully");
     if (curves[i]) {
-      BKE_fcurve_bezt_resize(*curves[i], sorted_key_times.size());
+      BKE_fcurve_bezt_resize(*curves[i], key_count);
     }
   }
 
   /* Evaluate transforms at all the key times. */
   math::Quaternion quat_prev = math::Quaternion::identity();
-  for (int64_t i = 0; i < sorted_key_times.size(); i++) {
+  for (int64_t i = 0; i < key_count; i++) {
     double t = sorted_key_times[i];
     float tf = float(t * fps + anim_offset);
     ufbx_transform xform = ufbx_evaluate_transform(fbx_anim, fnode, t);
@@ -408,7 +423,7 @@ static void create_camera_curves(const ufbx_metadata &metadata,
   if (anim.prop_focal_length != nullptr) {
     const ufbx_anim_curve *input_curve = anim.prop_focal_length->anim_value->curves[0];
     FCurve *curve = create_fcurve(channelbag, {"lens", 0}, input_curve->keyframes.count);
-    for (int i = 0; i < input_curve->keyframes.count; i++) {
+    for (int64_t i = 0; i < curve->totvert; i++) {
       const ufbx_keyframe &fkey = input_curve->keyframes[i];
       float tf = float(fkey.time * fps + anim_offset);
       float val = float(fkey.value);
@@ -421,7 +436,7 @@ static void create_camera_curves(const ufbx_metadata &metadata,
     const ufbx_anim_curve *input_curve = anim.prop_focus_dist->anim_value->curves[0];
     FCurve *curve = create_fcurve(
         channelbag, {"dof.focus_distance", 0}, input_curve->keyframes.count);
-    for (int i = 0; i < input_curve->keyframes.count; i++) {
+    for (int64_t i = 0; i < curve->totvert; i++) {
       const ufbx_keyframe &fkey = input_curve->keyframes[i];
       float tf = float(fkey.time * fps + anim_offset);
       /* Animation curves containing camera focus distance have values multiplied by 1000.0 */
@@ -459,7 +474,7 @@ static void create_material_curves(const ElementAnimations &anim,
       const ufbx_anim_curve *input_curve = anim.prop_mat_diffuse->anim_value->curves[ch];
       FCurve *curve_1 = create_fcurve(channelbag, {rna_path_1, ch}, input_curve->keyframes.count);
       FCurve *curve_2 = create_fcurve(chbag_node, {rna_path_2, ch}, input_curve->keyframes.count);
-      for (int i = 0; i < input_curve->keyframes.count; i++) {
+      for (int64_t i = 0; i < curve_1->totvert; i++) {
         const ufbx_keyframe &fkey = input_curve->keyframes[i];
         float tf = float(fkey.time * fps + anim_offset);
         float val = float(fkey.value);
@@ -483,7 +498,7 @@ static void create_blend_shape_curves(const ElementAnimations &anim,
                          "\"].value";
   const ufbx_anim_curve *input_curve = anim.prop_blend_shape->anim_value->curves[0];
   FCurve *curve = create_fcurve(channelbag, {rna_path, 0}, input_curve->keyframes.count);
-  for (int i = 0; i < input_curve->keyframes.count; i++) {
+  for (int64_t i = 0; i < curve->totvert; i++) {
     const ufbx_keyframe &fkey = input_curve->keyframes[i];
     double t = fkey.time;
     float tf = float(t * fps + anim_offset);

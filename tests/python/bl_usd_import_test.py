@@ -141,6 +141,13 @@ class USDImportTest(AbstractUSDTest):
         self.assertEqual(len(mesh.vertices), 5)
         self.assertEqual(len(mesh.polygons[0].vertices), 5)
 
+    def test_import_mesh_invalid_topology(self):
+        """Importer must not crash on invalid topology."""
+
+        infile = str(self.testdir / "usd_mesh_invalid_topology.usda")
+        res = bpy.ops.wm.usd_import(filepath=infile)
+        self.assertEqual({'FINISHED'}, res, f"Unable to import USD file {infile}")
+
     def test_import_mesh_topology_change(self):
         """Test importing meshes with changing topology over time."""
 

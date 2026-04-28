@@ -412,7 +412,7 @@ static const char *load_face_element(PlyReadBuffer &file,
     return "Face element vertex indices property must be a list";
   }
 
-  data->face_vertices.reserve(element.count * 3);
+  data->face_vertices.reserve(int64_t(element.count) * 3);
   data->face_sizes.reserve(element.count);
 
   if (header.type == PlyFormatType::ASCII) {
