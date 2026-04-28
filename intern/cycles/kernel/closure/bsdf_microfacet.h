@@ -406,10 +406,10 @@ ccl_device_forceinline void microfacet_fresnel(KernelGlobals kg,
 
 ccl_device_inline void microfacet_ggx_preserve_energy(KernelGlobals kg,
                                                       ccl_private MicrofacetBsdf *bsdf,
-                                                      const ccl_private ShaderData *sd,
+                                                      const float3 wi,
                                                       const Spectrum Fss)
 {
-  const float mu = dot(sd->wi, bsdf->N);
+  const float mu = dot(wi, bsdf->N);
   const float rough = sqrtf(sqrtf(bsdf->alpha_x * bsdf->alpha_y));
 
   float E;
@@ -469,12 +469,12 @@ ccl_device_inline void microfacet_ggx_preserve_energy(KernelGlobals kg,
  * energy-preserving then transmission should just be `1 - reflection`. For dielectric we could
  * probably split the LUT for multiGGX if smooth assumption is not good enough. */
 ccl_device Spectrum bsdf_microfacet_estimate_albedo(KernelGlobals kg,
-                                                    const ccl_private ShaderData *sd,
+                                                    const float3 wi,
                                                     const ccl_private MicrofacetBsdf *bsdf,
                                                     const bool eval_reflection,
                                                     const bool eval_transmission)
 {
-  const float cos_NI = dot(sd->wi, bsdf->N);
+  const float cos_NI = dot(wi, bsdf->N);
   Spectrum reflectance;
   Spectrum transmittance;
   microfacet_fresnel(kg, bsdf, cos_NI, nullptr, &reflectance, &transmittance);
@@ -878,29 +878,29 @@ ccl_device int bsdf_microfacet_sample(KernelGlobals kg,
 
 ccl_device void bsdf_microfacet_setup_fresnel_conductor(KernelGlobals kg,
                                                         ccl_private MicrofacetBsdf *bsdf,
-                                                        const ccl_private ShaderData *sd,
+                                                        const float3 wi,
                                                         ccl_private FresnelConductor *fresnel,
                                                         const bool preserve_energy)
 {
   bsdf->fresnel_type = MicrofacetFresnel::CONDUCTOR;
   bsdf->fresnel = fresnel;
-  bsdf->sample_weight *= average(bsdf_microfacet_estimate_albedo(kg, sd, bsdf, true, true));
+  bsdf->sample_weight *= average(bsdf_microfacet_estimate_albedo(kg, wi, bsdf, true, true));
 
   if (preserve_energy) {
-    microfacet_ggx_preserve_energy(kg, bsdf, sd, fresnel_conductor_Fss(fresnel->ior));
+    microfacet_ggx_preserve_energy(kg, bsdf, wi, fresnel_conductor_Fss(fresnel->ior));
   }
 }
 
 ccl_device void bsdf_microfacet_setup_fresnel_dielectric_tint(
     KernelGlobals kg,
     ccl_private MicrofacetBsdf *bsdf,
-    const ccl_private ShaderData *sd,
+    const float3 wi,
     ccl_private FresnelDielectricTint *fresnel,
     const bool preserve_energy)
 {
   bsdf->fresnel_type = MicrofacetFresnel::DIELECTRIC_TINT;
   bsdf->fresnel = fresnel;
-  bsdf->sample_weight *= average(bsdf_microfacet_estimate_albedo(kg, sd, bsdf, true, true));
+  bsdf->sample_weight *= average(bsdf_microfacet_estimate_albedo(kg, wi, bsdf, true, true));
 
   if (preserve_energy) {
     /* Assume that the transmissive tint makes up most of the overall color. */
@@ -909,21 +909,21 @@ ccl_device void bsdf_microfacet_setup_fresnel_dielectric_tint(
       /* For purely reflective closures, use the reflection component. */
       Fss = fresnel_dielectric_Fss(bsdf->ior) * fresnel->reflection_tint;
     }
-    microfacet_ggx_preserve_energy(kg, bsdf, sd, Fss);
+    microfacet_ggx_preserve_energy(kg, bsdf, wi, Fss);
   }
 }
 
 ccl_device void bsdf_microfacet_setup_fresnel_generalized_schlick(
     KernelGlobals kg,
     ccl_private MicrofacetBsdf *bsdf,
-    const ccl_private ShaderData *sd,
+    const float3 wi,
     ccl_private FresnelGeneralizedSchlick *fresnel,
     const bool preserve_energy)
 {
   fresnel->f0 = saturate(fresnel->f0);
   bsdf->fresnel_type = MicrofacetFresnel::GENERALIZED_SCHLICK;
   bsdf->fresnel = fresnel;
-  bsdf->sample_weight *= average(bsdf_microfacet_estimate_albedo(kg, sd, bsdf, true, true));
+  bsdf->sample_weight *= average(bsdf_microfacet_estimate_albedo(kg, wi, bsdf, true, true));
 
   if (preserve_energy) {
     Spectrum Fss = one_spectrum();
@@ -948,13 +948,13 @@ ccl_device void bsdf_microfacet_setup_fresnel_generalized_schlick(
       Fss = fresnel->transmission_tint;
     }
 
-    microfacet_ggx_preserve_energy(kg, bsdf, sd, Fss);
+    microfacet_ggx_preserve_energy(kg, bsdf, wi, Fss);
   }
 }
 
 ccl_device void bsdf_microfacet_setup_fresnel_f82_tint(KernelGlobals kg,
                                                        ccl_private MicrofacetBsdf *bsdf,
-                                                       const ccl_private ShaderData *sd,
+                                                       const float3 wi,
                                                        ccl_private FresnelF82Tint *fresnel,
                                                        const Spectrum f82_tint,
                                                        const bool preserve_energy)
@@ -968,16 +968,16 @@ ccl_device void bsdf_microfacet_setup_fresnel_f82_tint(KernelGlobals kg,
 
   bsdf->fresnel_type = MicrofacetFresnel::F82_TINT;
   bsdf->fresnel = fresnel;
-  bsdf->sample_weight *= average(bsdf_microfacet_estimate_albedo(kg, sd, bsdf, true, true));
+  bsdf->sample_weight *= average(bsdf_microfacet_estimate_albedo(kg, wi, bsdf, true, true));
 
   if (preserve_energy) {
-    microfacet_ggx_preserve_energy(kg, bsdf, sd, fresnel_f82_Fss(fresnel->f0, fresnel->b));
+    microfacet_ggx_preserve_energy(kg, bsdf, wi, fresnel_f82_Fss(fresnel->f0, fresnel->b));
   }
 }
 
 ccl_device void bsdf_microfacet_setup_fresnel_constant(KernelGlobals kg,
                                                        ccl_private MicrofacetBsdf *bsdf,
-                                                       const ccl_private ShaderData *sd,
+                                                       const float3 wi,
                                                        const Spectrum color)
 {
   /* Constant Fresnel is a special case - the color is already baked into the closure's
@@ -985,18 +985,18 @@ ccl_device void bsdf_microfacet_setup_fresnel_constant(KernelGlobals kg,
   kernel_assert(bsdf->fresnel_type == MicrofacetFresnel::NONE ||
                 bsdf->fresnel_type == MicrofacetFresnel::DIELECTRIC);
 
-  microfacet_ggx_preserve_energy(kg, bsdf, sd, color);
+  microfacet_ggx_preserve_energy(kg, bsdf, wi, color);
 }
 
 ccl_device void bsdf_microfacet_setup_fresnel_dielectric(KernelGlobals kg,
                                                          ccl_private MicrofacetBsdf *bsdf,
-                                                         const ccl_private ShaderData *sd)
+                                                         const float3 wi)
 {
   bsdf->fresnel_type = MicrofacetFresnel::DIELECTRIC;
-  bsdf->sample_weight *= average(bsdf_microfacet_estimate_albedo(kg, sd, bsdf, true, true));
+  bsdf->sample_weight *= average(bsdf_microfacet_estimate_albedo(kg, wi, bsdf, true, true));
 
   const float Fss = fresnel_dielectric_Fss(bsdf->ior);
-  microfacet_ggx_preserve_energy(kg, bsdf, sd, make_spectrum(Fss));
+  microfacet_ggx_preserve_energy(kg, bsdf, wi, make_spectrum(Fss));
 }
 
 /* GGX microfacet with Smith shadow-masking from:

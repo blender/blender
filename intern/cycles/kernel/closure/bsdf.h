@@ -674,7 +674,7 @@ ccl_device_inline Spectrum bsdf_albedo(KernelGlobals kg,
 #if defined(__SVM__) || defined(__OSL__)
   if (CLOSURE_IS_BSDF_MICROFACET(sc->type)) {
     albedo *= bsdf_microfacet_estimate_albedo(
-        kg, sd, (const ccl_private MicrofacetBsdf *)sc, reflection, transmission);
+        kg, sd->wi, (const ccl_private MicrofacetBsdf *)sc, reflection, transmission);
   }
 #  ifdef __PRINCIPLED_HAIR__
   else if (sc->type == CLOSURE_BSDF_HAIR_CHIANG_ID) {

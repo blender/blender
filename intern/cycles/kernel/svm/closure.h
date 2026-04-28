@@ -235,7 +235,7 @@ ccl_device
 
             /* setup bsdf */
             sd->flag |= bsdf_microfacet_ggx_setup(bsdf);
-            bsdf_microfacet_setup_fresnel_dielectric(kg, bsdf, sd);
+            bsdf_microfacet_setup_fresnel_dielectric(kg, bsdf, sd->wi);
 
             /* Attenuate lower layers */
             const Spectrum albedo = bsdf_albedo(
@@ -318,7 +318,7 @@ ccl_device
               sd->flag |= bsdf_microfacet_ggx_setup(bsdf);
               const bool is_multiggx = (distribution ==
                                         CLOSURE_BSDF_MICROFACET_MULTI_GGX_GLASS_ID);
-              bsdf_microfacet_setup_fresnel_f82_tint(kg, bsdf, sd, fresnel, f82, is_multiggx);
+              bsdf_microfacet_setup_fresnel_f82_tint(kg, bsdf, sd->wi, fresnel, f82, is_multiggx);
             }
           }
           /* Attenuate other components */
@@ -359,7 +359,7 @@ ccl_device
               const bool is_multiggx = (distribution ==
                                         CLOSURE_BSDF_MICROFACET_MULTI_GGX_GLASS_ID);
               bsdf_microfacet_setup_fresnel_generalized_schlick(
-                  kg, bsdf, sd, fresnel, is_multiggx);
+                  kg, bsdf, sd->wi, fresnel, is_multiggx);
             }
           }
           /* Attenuate other components */
@@ -405,7 +405,8 @@ ccl_device
             /* setup bsdf */
             sd->flag |= bsdf_microfacet_ggx_setup(bsdf);
             const bool is_multiggx = (distribution == CLOSURE_BSDF_MICROFACET_MULTI_GGX_GLASS_ID);
-            bsdf_microfacet_setup_fresnel_generalized_schlick(kg, bsdf, sd, fresnel, is_multiggx);
+            bsdf_microfacet_setup_fresnel_generalized_schlick(
+                kg, bsdf, sd->wi, fresnel, is_multiggx);
 
             /* Attenuate lower layers */
             const Spectrum albedo = bsdf_albedo(
@@ -569,7 +570,7 @@ ccl_device
           const float3 k = max(stack_load(stack, cdata.edge_tint_k), zero_float3());
 
           fresnel->ior = {rgb_to_spectrum(n), rgb_to_spectrum(k)};
-          bsdf_microfacet_setup_fresnel_conductor(kg, bsdf, sd, fresnel, is_multiggx);
+          bsdf_microfacet_setup_fresnel_conductor(kg, bsdf, sd->wi, fresnel, is_multiggx);
         }
         else {
           ccl_private FresnelF82Tint *fresnel = (ccl_private FresnelF82Tint *)closure_alloc_extra(
@@ -587,7 +588,7 @@ ccl_device
 
           fresnel->f0 = rgb_to_spectrum(color);
           const Spectrum f82 = rgb_to_spectrum(tint);
-          bsdf_microfacet_setup_fresnel_f82_tint(kg, bsdf, sd, fresnel, f82, is_multiggx);
+          bsdf_microfacet_setup_fresnel_f82_tint(kg, bsdf, sd->wi, fresnel, f82, is_multiggx);
         }
       }
       break;
@@ -668,7 +669,7 @@ ccl_device
         if (type == CLOSURE_BSDF_MICROFACET_MULTI_GGX_ID) {
           const Spectrum color = max(rgb_to_spectrum(stack_load(stack, bsdf_data.color)),
                                      zero_spectrum());
-          bsdf_microfacet_setup_fresnel_constant(kg, bsdf, sd, color);
+          bsdf_microfacet_setup_fresnel_constant(kg, bsdf, sd->wi, color);
         }
       }
 
@@ -771,7 +772,7 @@ ccl_device
           sd->flag |= bsdf_microfacet_ggx_glass_setup(bsdf);
         }
         const bool is_multiggx = (type == CLOSURE_BSDF_MICROFACET_MULTI_GGX_GLASS_ID);
-        bsdf_microfacet_setup_fresnel_generalized_schlick(kg, bsdf, sd, fresnel, is_multiggx);
+        bsdf_microfacet_setup_fresnel_generalized_schlick(kg, bsdf, sd->wi, fresnel, is_multiggx);
       }
       break;
     }
