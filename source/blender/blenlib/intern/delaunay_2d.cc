@@ -2797,18 +2797,18 @@ template<typename T> void detect_holes_with_fillrule_even_odd(CDT_state<T> *cdt_
     if (f_init->deleted || !f_init->symedge || f_init->visit_index != VISIT_INDEX_UNVISITED) {
       continue;
     }
-    fstack.append(f_init);
     cur_region++;
+    /* Mark-on-push: visit_index is assigned the moment a face is queued, never on pop.
+     * This guarantees each face is pushed at most once, removing the per-pop recheck. */
+    f_init->visit_index = cur_region;
+    fstack.append(f_init);
     /* `outer_parity` doubles as a "this region touches outer_face" flag: -1 = no outer-face
      * contact yet; 0/1 = parity reached, with "filled wins" merge on conflict. */
     int8_t outer_parity = -1;
 
     while (!fstack.is_empty()) {
       CDTFace<T> *f = fstack.pop_last();
-      if (f->visit_index != VISIT_INDEX_UNVISITED) {
-        continue;
-      }
-      f->visit_index = cur_region;
+      BLI_assert(f->visit_index == cur_region);
 
       SymEdge<T> *se_start = f->symedge;
       SymEdge<T> *se = se_start;
@@ -2845,6 +2845,7 @@ template<typename T> void detect_holes_with_fillrule_even_odd(CDT_state<T> *cdt_
         else if (!constrained && !neighbor->deleted &&
                  neighbor->visit_index == VISIT_INDEX_UNVISITED)
         {
+          neighbor->visit_index = cur_region;
           fstack.append(neighbor);
         }
       } while ((se = se->next) != se_start);
@@ -2960,18 +2961,18 @@ template<typename T> void detect_holes_with_fillrule_nonzero(CDT_state<T> *cdt_s
     if (f_init->deleted || !f_init->symedge || f_init->visit_index != VISIT_INDEX_UNVISITED) {
       continue;
     }
-    fstack.append(f_init);
     cur_region++;
+    /* Mark-on-push: visit_index is assigned the moment a face is queued, never on pop.
+     * This guarantees each face is pushed at most once, removing the per-pop recheck. */
+    f_init->visit_index = cur_region;
+    fstack.append(f_init);
     bool found_constrained_outer = false;
     bool found_any_outer = false;
     int outer_winding = 0;
 
     while (!fstack.is_empty()) {
       CDTFace<T> *f = fstack.pop_last();
-      if (f->visit_index != VISIT_INDEX_UNVISITED) {
-        continue;
-      }
-      f->visit_index = cur_region;
+      BLI_assert(f->visit_index == cur_region);
 
       SymEdge<T> *se_start = f->symedge;
       SymEdge<T> *se = se_start;
@@ -3017,6 +3018,7 @@ template<typename T> void detect_holes_with_fillrule_nonzero(CDT_state<T> *cdt_s
           found_any_outer = true;
         }
         else if (!neighbor->deleted && neighbor->visit_index == VISIT_INDEX_UNVISITED) {
+          neighbor->visit_index = cur_region;
           fstack.append(neighbor);
         }
       } while ((se = se->next) != se_start);
