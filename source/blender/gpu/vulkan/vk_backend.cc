@@ -551,6 +551,15 @@ void VKBackend::detect_workarounds(VKDevice &device)
       extensions.vertex_input_dynamic_state = false;
     }
   }
+
+  /* Using the texture pool causes issues on Intel Meteor/Arrow/Alder Lake and older iGPUs.
+   * - When using the image cache, visual artifacts can be seen (#156496).
+   * - When using the texture pool without the image cache, memory leaks happen (#157777).
+   * Until the issues have been resolved, the texture pool workaround is used.
+   */
+  if (GPU_type_matches(GPU_DEVICE_INTEL | GPU_DEVICE_INTEL_UHD, GPU_OS_WIN, GPU_DRIVER_OFFICIAL)) {
+    GCaps.texture_pool_workaround = true;
+  }
 #endif
 
 #ifdef __APPLE__
