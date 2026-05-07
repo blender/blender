@@ -129,11 +129,6 @@ static void import_edges(const ufbx_mesh *fmesh,
     edges[edge_idx] = int2(va, vb);
   }
 
-  /* Calculate any remaining edges, and add them to explicitly imported ones.
-   * Note that this clears any per-edge data, so we have to setup edge creases etc.
-   * after that. */
-  bke::mesh_calc_edges(*mesh, true, false);
-
   const bool has_edge_creases = fmesh->edge_crease.count > 0 &&
                                 fmesh->edge_crease.count == fmesh->num_edges;
   const bool has_edge_smooth = fmesh->edge_smoothing.count > 0 &&
@@ -496,13 +491,19 @@ void import_meshes(Main &bmain,
       BLI_addtail(&mesh->vertex_group_names, defgroup);
     }
 
-    /* Validate if needed. */
+    /* FBX files may not contain all edges, so missing edges must be added here.
+     * Validation will do this, and otherwise calculate them explicitly. */
     if (params.validate_meshes) {
-      bool verbose_validate = false;
+      const bool allow_missing_edges = true;
 #ifndef NDEBUG
-      verbose_validate = true;
+      const bool verbose_validate = true;
+#else
+      const bool verbose_validate = false;
 #endif
-      bke::mesh_validate(*mesh, verbose_validate);
+      bke::mesh_validate(*mesh, verbose_validate, allow_missing_edges);
+    }
+    else {
+      bke::mesh_calc_edges(*mesh, true, false);
     }
 
     if (has_custom_normals) {

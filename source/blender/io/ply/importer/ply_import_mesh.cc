@@ -141,14 +141,13 @@ Mesh *convert_ply_to_mesh(PlyData &data, const PLYImportParams &params)
 
   /* It's important to validate the mesh before using it's geometry to calculate derived data. */
   {
-    /* Calculate edges from the rest of the mesh (this could be merged with validate). */
-    bke::mesh_calc_edges(*mesh, true, false);
-
-    bool verbose_validate = false;
+    const bool allow_missing_edges = true;
 #ifndef NDEBUG
-    verbose_validate = true;
+    const bool verbose_validate = true;
+#else
+    const bool verbose_validate = false;
 #endif
-    bke::mesh_validate(*mesh, verbose_validate);
+    bke::mesh_validate(*mesh, verbose_validate, allow_missing_edges);
   }
 
   if (set_custom_normals_for_verts) {
