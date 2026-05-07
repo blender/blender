@@ -22,6 +22,8 @@
 #include "BKE_curve.hh"
 #include "BKE_object.hh"
 
+#include "CLG_log.h"
+
 namespace blender {
 
 using Alembic::AbcGeom::FloatArraySamplePtr;
@@ -35,6 +37,8 @@ using Alembic::AbcGeom::INuPatchSchema;
 using Alembic::AbcGeom::IObject;
 
 namespace io::alembic {
+
+static CLG_LogRef LOG = {"io.alembic"};
 
 AbcNurbsReader::AbcNurbsReader(const AbcReaderConstructorArgs &args) : AbcObjectReader(args)
 {
@@ -116,11 +120,12 @@ void AbcNurbsReader::readObjectData(Main *bmain, const Alembic::Abc::ISampleSele
       smp = schema.getValue(sample_sel);
     }
     catch (Alembic::Util::Exception &ex) {
-      printf("Alembic: error reading nurbs sample for '%s/%s' at time %f: %s\n",
-             m_iobject.getFullName().c_str(),
-             schema.getName().c_str(),
-             sample_sel.getRequestedTime(),
-             ex.what());
+      CLOG_WARN(&LOG,
+                "Error reading nurbs sample for '%s/%s' at time %f: %s",
+                m_iobject.getFullName().c_str(),
+                schema.getName().c_str(),
+                sample_sel.getRequestedTime(),
+                ex.what());
       return;
     }
 

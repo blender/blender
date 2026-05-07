@@ -34,6 +34,8 @@
 #include "BKE_object.hh"
 #include "BKE_subdiv.hh"
 
+#include "CLG_log.h"
+
 namespace blender {
 
 using Alembic::Abc::FloatArraySamplePtr;
@@ -61,6 +63,8 @@ using Alembic::AbcGeom::UInt32ArraySamplePtr;
 using Alembic::AbcGeom::V2fArraySamplePtr;
 
 namespace io::alembic {
+
+static CLG_LogRef LOG = {"io.alembic"};
 
 /* NOTE: Alembic's face winding order is clockwise, to match with Renderman. */
 
@@ -651,11 +655,12 @@ bool AbcMeshReader::topology_changed(const Mesh *existing_mesh, const ISampleSel
     sample = m_schema.getValue(sample_sel);
   }
   catch (Alembic::Util::Exception &ex) {
-    printf("Alembic: error reading mesh sample for '%s/%s' at time %f: %s\n",
-           m_iobject.getFullName().c_str(),
-           m_schema.getName().c_str(),
-           sample_sel.getRequestedTime(),
-           ex.what());
+    CLOG_WARN(&LOG,
+              "Error reading mesh sample for '%s/%s' at time %f: %s",
+              m_iobject.getFullName().c_str(),
+              m_schema.getName().c_str(),
+              sample_sel.getRequestedTime(),
+              ex.what());
     /* A similar error in read_mesh() would just return existing_mesh. */
     return false;
   }
@@ -736,11 +741,12 @@ Mesh *AbcMeshReader::read_mesh(Mesh *existing_mesh,
     if (r_err_str != nullptr) {
       *r_err_str = RPT_("Error reading mesh sample; more detail on the console");
     }
-    printf("Alembic: error reading mesh sample for '%s/%s' at time %f: %s\n",
-           m_iobject.getFullName().c_str(),
-           m_schema.getName().c_str(),
-           sample_sel.getRequestedTime(),
-           ex.what());
+    CLOG_WARN(&LOG,
+              "Error reading mesh sample for '%s/%s' at time %f: %s",
+              m_iobject.getFullName().c_str(),
+              m_schema.getName().c_str(),
+              sample_sel.getRequestedTime(),
+              ex.what());
     return existing_mesh;
   }
 
@@ -756,10 +762,11 @@ Mesh *AbcMeshReader::read_mesh(Mesh *existing_mesh,
     if (r_err_str != nullptr) {
       *r_err_str = RPT_("Invalid mesh; more detail on the console");
     }
-    printf("Alembic: invalid mesh sample for '%s/%s' at time %f, less than 2 loops per face\n",
-           m_iobject.getFullName().c_str(),
-           m_schema.getName().c_str(),
-           sample_sel.getRequestedTime());
+    CLOG_WARN(&LOG,
+              "Invalid mesh sample for '%s/%s' at time %f, less than 2 loops per face",
+              m_iobject.getFullName().c_str(),
+              m_schema.getName().c_str(),
+              sample_sel.getRequestedTime());
     return existing_mesh;
   }
 
@@ -1077,11 +1084,12 @@ Mesh *AbcSubDReader::read_mesh(Mesh *existing_mesh,
     if (r_err_str != nullptr) {
       *r_err_str = RPT_("Error reading mesh sample; more detail on the console");
     }
-    printf("Alembic: error reading mesh sample for '%s/%s' at time %f: %s\n",
-           m_iobject.getFullName().c_str(),
-           m_schema.getName().c_str(),
-           sample_sel.getRequestedTime(),
-           ex.what());
+    CLOG_WARN(&LOG,
+              "Error reading mesh sample for '%s/%s' at time %f: %s",
+              m_iobject.getFullName().c_str(),
+              m_schema.getName().c_str(),
+              sample_sel.getRequestedTime(),
+              ex.what());
     return existing_mesh;
   }
 

@@ -10,8 +10,6 @@
 #include "abc_axis_conversion.h"
 #include "abc_util.h"
 
-#include <cstdio>
-
 #include "DNA_curves_types.h"
 #include "DNA_modifier_types.h"
 #include "DNA_object_types.h"
@@ -24,6 +22,8 @@
 #include "BLI_vector.hh"
 
 #include "BLT_translation.hh"
+
+#include "CLG_log.h"
 
 namespace blender {
 
@@ -43,6 +43,9 @@ using Alembic::AbcGeom::ISampleSelector;
 using Alembic::AbcGeom::kWrapExisting;
 
 namespace io::alembic {
+
+static CLG_LogRef LOG = {"io.alembic"};
+
 static int16_t get_curve_resolution(const ICurvesSchema &schema,
                                     const Alembic::Abc::ISampleSelector &sample_sel)
 {
@@ -238,11 +241,12 @@ static std::optional<PreprocessedSampleData> preprocess_sample(StringRefNull iob
     smp = schema.getValue(sample_sel);
   }
   catch (Alembic::Util::Exception &ex) {
-    printf("Alembic: error reading curve sample for '%s/%s' at time %f: %s\n",
-           iobject_name.c_str(),
-           schema.getName().c_str(),
-           sample_sel.getRequestedTime(),
-           ex.what());
+    CLOG_WARN(&LOG,
+              "Error reading curve sample for '%s/%s' at time %f: %s",
+              iobject_name.c_str(),
+              schema.getName().c_str(),
+              sample_sel.getRequestedTime(),
+              ex.what());
     return {};
   }
 

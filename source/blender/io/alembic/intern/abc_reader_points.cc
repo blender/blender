@@ -21,6 +21,8 @@
 
 #include "BLI_color_types.hh"
 
+#include "CLG_log.h"
+
 #include <algorithm>
 
 namespace blender {
@@ -28,6 +30,8 @@ namespace blender {
 using namespace Alembic::AbcGeom;
 
 namespace io::alembic {
+
+static CLG_LogRef LOG = {"io.alembic"};
 
 AbcPointsReader::AbcPointsReader(const AbcReaderConstructorArgs &args) : AbcObjectReader(args)
 {
@@ -208,11 +212,12 @@ void AbcPointsReader::read_geometry(bke::GeometrySet &geometry_set,
   }
   catch (Alembic::Util::Exception &ex) {
     *r_err_str = RPT_("Error reading points sample; more detail on the console");
-    printf("Alembic: error reading points sample for '%s/%s' at time %f: %s\n",
-           m_iobject.getFullName().c_str(),
-           m_schema.getName().c_str(),
-           sample_sel.getRequestedTime(),
-           ex.what());
+    CLOG_WARN(&LOG,
+              "Error reading points sample for '%s/%s' at time %f: %s",
+              m_iobject.getFullName().c_str(),
+              m_schema.getName().c_str(),
+              sample_sel.getRequestedTime(),
+              ex.what());
     return;
   }
 
