@@ -532,7 +532,7 @@ set(GLSL_SRC
   engines/eevee/shaders/eevee_surf_volume_frag.glsl
   engines/eevee/shaders/eevee_surf_world_frag.glsl
   engines/eevee/shaders/eevee_surfel_cluster_build_comp.glsl
-  engines/eevee/shaders/eevee_surfel_light_comp.glsl
+  engines/eevee/shaders/eevee_surfel_light.bsl.hh
   engines/eevee/shaders/eevee_surfel_list.bsl.hh
   engines/eevee/shaders/eevee_surfel_ray_comp.glsl
   engines/eevee/shaders/eevee_thickness_lib.bsl.hh

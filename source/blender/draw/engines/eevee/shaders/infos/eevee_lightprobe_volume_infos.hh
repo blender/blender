@@ -77,22 +77,6 @@ GPU_SHADER_CREATE_END()
 /** \name Baking
  * \{ */
 
-GPU_SHADER_CREATE_INFO(eevee_surfel_light)
-DEFINE("LIGHT_ITER_FORCE_NO_CULLING")
-DEFINE_VALUE("LIGHT_CLOSURE_EVAL_COUNT", "1")
-LOCAL_GROUP_SIZE(SURFEL_GROUP_SIZE)
-TYPEDEF_SOURCE("eevee_defines.hh")
-TYPEDEF_SOURCE("eevee_lightprobe_shared.hh")
-ADDITIONAL_INFO(draw_view)
-ADDITIONAL_INFO(eevee_global_ubo)
-ADDITIONAL_INFO(eevee_utility_texture)
-ADDITIONAL_INFO(eevee_surfel_common)
-ADDITIONAL_INFO(eevee_light_data)
-ADDITIONAL_INFO(eevee_shadow_data)
-COMPUTE_SOURCE("eevee_surfel_light_comp.glsl")
-DO_STATIC_COMPILATION()
-GPU_SHADER_CREATE_END()
-
 GPU_SHADER_CREATE_INFO(eevee_surfel_cluster_build)
 LOCAL_GROUP_SIZE(SURFEL_GROUP_SIZE)
 BUILTINS(BuiltinBits::TEXTURE_ATOMIC)

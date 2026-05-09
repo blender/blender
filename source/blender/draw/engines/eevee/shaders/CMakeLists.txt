@@ -94,7 +94,6 @@ set(SRC_GLSL_COMP
   eevee_ray_trace_planar_comp.glsl
   eevee_ray_trace_screen_comp.glsl
   eevee_surfel_cluster_build_comp.glsl
-  eevee_surfel_light_comp.glsl
   eevee_surfel_ray_comp.glsl
   eevee_vertex_copy_comp.glsl
 )
