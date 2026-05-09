@@ -426,12 +426,6 @@ set(GLSL_SRC
   engines/eevee/shaders/eevee_depth_of_field_stabilize_comp.glsl
   engines/eevee/shaders/eevee_depth_of_field_tiles_dilate_comp.glsl
   engines/eevee/shaders/eevee_depth_of_field_tiles_flatten_comp.glsl
-  engines/eevee/shaders/eevee_display_lightprobe_volume_frag.glsl
-  engines/eevee/shaders/eevee_display_lightprobe_volume_vert.glsl
-  engines/eevee/shaders/eevee_display_lightprobe_planar_frag.glsl
-  engines/eevee/shaders/eevee_display_lightprobe_planar_vert.glsl
-  engines/eevee/shaders/eevee_display_lightprobe_sphere_frag.glsl
-  engines/eevee/shaders/eevee_display_lightprobe_sphere_vert.glsl
   engines/eevee/shaders/eevee_film_copy_frag.glsl
   engines/eevee/shaders/eevee_film_comp.glsl
   engines/eevee/shaders/eevee_film_cryptomatte_post_comp.glsl
@@ -458,6 +452,7 @@ set(GLSL_SRC
   engines/eevee/shaders/eevee_light_eval_lib.glsl
   engines/eevee/shaders/eevee_light_iter_lib.glsl
   engines/eevee/shaders/eevee_light_lib.glsl
+  engines/eevee/shaders/eevee_lightprobe_display.bsl.hh
   engines/eevee/shaders/eevee_lightprobe_eval_lib.glsl
   engines/eevee/shaders/eevee_lightprobe_volume_bounds_comp.glsl
   engines/eevee/shaders/eevee_lightprobe_volume_ray_comp.glsl

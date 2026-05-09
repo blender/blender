@@ -33,6 +33,7 @@ void SourceProcessor::lower_entry_points(Parser &parser)
     bool is_vertex_func = false;
     bool is_fragment_func = false;
     bool use_early_frag_test = false;
+    bool use_clip_control = false;
     string metal_max_total_threads_per_threadgroup;
     string local_size;
 
@@ -60,6 +61,9 @@ void SourceProcessor::lower_entry_points(Parser &parser)
         }
         else if (attr_str == "metal_max_total_threads_per_threadgroup") {
           metal_max_total_threads_per_threadgroup = attr_scope.str();
+        }
+        else if (attr_str == "clip_control") {
+          use_clip_control = true;
         }
       });
     }
@@ -103,6 +107,15 @@ void SourceProcessor::lower_entry_points(Parser &parser)
       }
       else {
         create_info_decl += "EARLY_FRAGMENT_TEST(true)\n";
+      }
+    }
+
+    if (use_clip_control) {
+      if (!is_vertex_func) {
+        report_error(type, "Only vertex entry point function can use [[clip_control]].");
+      }
+      else {
+        create_info_decl += "BUILTINS(BuiltinBits::CLIP_CONTROL)\n";
       }
     }
 

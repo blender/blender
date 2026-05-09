@@ -30,6 +30,8 @@
 #  define early_fragment_tests maybe_unused
 /* Metal specific hints. To be used on entry point functions. */
 #  define metal_max_total_threads_per_threadgroup(count) maybe_unused
+/* Enable shader patching on GL to remap clip range to 0..1. */
+#  define clip_control maybe_unused
 
 /* In a compute function, specify an input variable containing the 3-dimensional index of the local
  * work invocation within the work group that the current shader is executing in. */

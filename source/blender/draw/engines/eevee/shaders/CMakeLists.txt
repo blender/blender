@@ -26,9 +26,6 @@ set(SRC_GLSL_VERT
   eevee_debug_irradiance_grid_vert.glsl
   eevee_debug_surfels_vert.glsl
   eevee_depth_of_field_scatter_vert.glsl
-  eevee_display_lightprobe_planar_vert.glsl
-  eevee_display_lightprobe_sphere_vert.glsl
-  eevee_display_lightprobe_volume_vert.glsl
   eevee_fullscreen_vert.glsl
   eevee_geom_curves_vert.glsl
   eevee_geom_mesh_vert.glsl
@@ -46,9 +43,6 @@ set(SRC_GLSL_FRAG
   eevee_deferred_combine_frag.glsl
   eevee_deferred_tile_classify_frag.glsl
   eevee_depth_of_field_scatter_frag.glsl
-  eevee_display_lightprobe_planar_frag.glsl
-  eevee_display_lightprobe_sphere_frag.glsl
-  eevee_display_lightprobe_volume_frag.glsl
   eevee_film_copy_frag.glsl
   eevee_film_frag.glsl
   eevee_hiz_debug_frag.glsl

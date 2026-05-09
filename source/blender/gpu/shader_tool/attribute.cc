@@ -65,7 +65,7 @@ void SourceProcessor::lint_attributes(Parser &parser)
           attr_str == "vertex_id" || attr_str == "legacy_info" || attr_str == "vertex" ||
           attr_str == "viewport_index" || attr_str == "work_group_id" ||
           attr_str == "maybe_unused" || attr_str == "fallthrough" || attr_str == "nodiscard" ||
-          attr_str == "node")
+          attr_str == "node" || attr_str == "clip_control")
       {
         if (attr_scope.is_valid()) {
           report_error(attr, "This attribute requires no argument");
