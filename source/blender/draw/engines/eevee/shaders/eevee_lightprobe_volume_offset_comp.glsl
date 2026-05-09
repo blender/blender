@@ -15,7 +15,7 @@
 COMPUTE_SHADER_CREATE_INFO(eevee_lightprobe_volume_offset)
 
 #include "eevee_lightprobe_lib.glsl"
-#include "eevee_surfel_list_lib.glsl"
+#include "eevee_surfel_list.bsl.hh"
 #include "gpu_shader_math_base_lib.glsl"
 #include "gpu_shader_math_constants_lib.glsl"
 

@@ -95,11 +95,6 @@ set(SRC_GLSL_COMP
   eevee_ray_trace_screen_comp.glsl
   eevee_surfel_cluster_build_comp.glsl
   eevee_surfel_light_comp.glsl
-  eevee_surfel_list_build_comp.glsl
-  eevee_surfel_list_flatten_comp.glsl
-  eevee_surfel_list_prefix_comp.glsl
-  eevee_surfel_list_prepare_comp.glsl
-  eevee_surfel_list_sort_comp.glsl
   eevee_surfel_ray_comp.glsl
   eevee_vertex_copy_comp.glsl
 )
@@ -141,7 +136,6 @@ set(SRC_GLSL_LIB
   eevee_shadow_tracing_lib.glsl
   eevee_subsurface_lib.glsl
   eevee_surf_lib.glsl
-  eevee_surfel_list_lib.glsl
   # eevee_transparency_lib.glsl # Require Fragment shader include
   # eevee_velocity_lib.glsl # Has dependency on draw_model_lib that is hard to resolve
 )
