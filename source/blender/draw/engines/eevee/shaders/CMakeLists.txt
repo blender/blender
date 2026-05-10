@@ -90,9 +90,6 @@ set(SRC_GLSL_COMP
   eevee_ray_generate_comp.glsl
   eevee_ray_tile_classify_comp.glsl
   eevee_ray_tile_compact_comp.glsl
-  eevee_ray_trace_fallback_comp.glsl
-  eevee_ray_trace_planar_comp.glsl
-  eevee_ray_trace_screen_comp.glsl
   eevee_surfel_cluster_build_comp.glsl
   eevee_surfel_ray_comp.glsl
   eevee_vertex_copy_comp.glsl
@@ -128,7 +125,6 @@ set(SRC_GLSL_LIB
   eevee_motion_blur_lib.glsl
   # eevee_nodetree_lib.glsl # Has dependency on draw_model_lib that is hard to resolve
   eevee_ray_generate_lib.glsl
-  eevee_ray_trace_screen_lib.glsl
   eevee_renderpass_lib.glsl
   eevee_sampling_lib.glsl
   eevee_shadow_lib.glsl

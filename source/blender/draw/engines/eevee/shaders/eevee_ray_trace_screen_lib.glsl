@@ -144,8 +144,6 @@ ScreenTraceHitData raytrace_screen(RayTraceData rt_data,
   return result;
 }
 
-#ifdef PLANAR_PROBES
-
 ScreenTraceHitData raytrace_planar(RayTraceData rt_data,
                                    sampler2DArrayDepth planar_depth_tx,
                                    PlanarProbeData planar,
@@ -205,8 +203,6 @@ ScreenTraceHitData raytrace_planar(RayTraceData rt_data,
   result.time = length(result.v_hit_P - ray.origin) / length(ray.direction);
   return result;
 }
-
-#endif
 
 /* Modify the ray origin before tracing it. We must do this because ray origin is implicitly
  * reconstructed from gbuffer depth which we cannot modify. */

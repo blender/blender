@@ -19,7 +19,6 @@
 #ifdef GLSL_CPP_STUBS
 #  define EEVEE_SAMPLING_DATA
 #  define MAT_CLIP_PLANE
-#  define PLANAR_PROBES
 #  define MAT_RENDER_PASS_SUPPORT
 #  define SHADOW_READ_ATOMIC
 #endif

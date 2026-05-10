@@ -21,6 +21,7 @@
 #include "eevee_occupancy_lib.bsl.hh"                /* IWYU pragma: export */
 #include "eevee_octahedron_lib.bsl.hh"               /* IWYU pragma: export */
 #include "eevee_ray_denoise.bsl.hh"                  /* IWYU pragma: export */
+#include "eevee_ray_trace.bsl.hh"                    /* IWYU pragma: export */
 #include "eevee_ray_types_lib.bsl.hh"                /* IWYU pragma: export */
 #include "eevee_reverse_z_lib.bsl.hh"                /* IWYU pragma: export */
 #include "eevee_shadow_page_allocate.bsl.hh"         /* IWYU pragma: export */

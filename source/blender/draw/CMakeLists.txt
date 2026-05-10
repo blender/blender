@@ -483,9 +483,7 @@ set(GLSL_SRC
   engines/eevee/shaders/eevee_ray_generate_lib.glsl
   engines/eevee/shaders/eevee_ray_tile_classify_comp.glsl
   engines/eevee/shaders/eevee_ray_tile_compact_comp.glsl
-  engines/eevee/shaders/eevee_ray_trace_fallback_comp.glsl
-  engines/eevee/shaders/eevee_ray_trace_planar_comp.glsl
-  engines/eevee/shaders/eevee_ray_trace_screen_comp.glsl
+  engines/eevee/shaders/eevee_ray_trace.bsl.hh
   engines/eevee/shaders/eevee_ray_trace_screen_lib.glsl
   engines/eevee/shaders/eevee_ray_types_lib.bsl.hh
   engines/eevee/shaders/eevee_reverse_z_lib.bsl.hh
