@@ -78,7 +78,7 @@ NODE_DEFINE(Object)
 
   SOCKET_NODE(geometry, "Geometry", Geometry::get_node_base_type());
   SOCKET_TRANSFORM(tfm, "Transform", transform_identity());
-  SOCKET_UINT(visibility, "Visibility", ~0);
+  SOCKET_UINT(visibility, "Visibility", PATH_RAY_VISIBILITY_ALL);
   SOCKET_COLOR(color, "Color", zero_float3());
   SOCKET_FLOAT(alpha, "Alpha", 0.0f);
   SOCKET_UINT(random_id, "Random ID", 0);
@@ -298,7 +298,8 @@ bool Object::is_traceable() const
 
 uint Object::visibility_for_tracing() const
 {
-  return SHADOW_CATCHER_OBJECT_VISIBILITY(is_shadow_catcher, visibility & PATH_RAY_VISIBILITY_ALL);
+  assert((visibility & ~uint(PATH_RAY_VISIBILITY_ALL)) == 0);
+  return SHADOW_CATCHER_OBJECT_VISIBILITY(is_shadow_catcher, visibility);
 }
 
 float Object::compute_volume_step_size(Progress &progress) const
