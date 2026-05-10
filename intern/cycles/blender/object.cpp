@@ -211,7 +211,7 @@ Object *BlenderSync::sync_object(blender::ViewLayer &b_view_layer,
   const blender::Base *base_parent = BKE_view_layer_base_find(&b_view_layer, b_parent);
   const bool use_holdout = (base_parent && (base_parent->flag & blender::BASE_HOLDOUT) != 0) ||
                            ((b_parent->visibility_flag & blender::OB_HOLDOUT) != 0);
-  uint visibility = object_ray_visibility(b_ob) & PATH_RAY_ALL_VISIBILITY;
+  uint visibility = object_ray_visibility(b_ob) & PATH_RAY_VISIBILITY_ALL;
 
   if (b_parent != &b_ob) {
     visibility &= object_ray_visibility(*b_parent);
@@ -220,7 +220,7 @@ Object *BlenderSync::sync_object(blender::ViewLayer &b_view_layer,
   /* TODO: make holdout objects on excluded layer invisible for non-camera rays. */
 #if 0
   if (use_holdout && (layer_flag & view_layer.exclude_layer)) {
-    visibility &= ~(PATH_RAY_ALL_VISIBILITY - PATH_RAY_CAMERA);
+    visibility &= ~(PATH_RAY_VISIBILITY_ALL - PATH_RAY_VISIBILITY_CAMERA);
   }
 #endif
 
@@ -228,7 +228,7 @@ Object *BlenderSync::sync_object(blender::ViewLayer &b_view_layer,
   const bool use_indirect_only = !use_holdout && base_parent &&
                                  ((base_parent->flag & blender::BASE_INDIRECT_ONLY) != 0);
   if (use_indirect_only) {
-    visibility &= ~PATH_RAY_CAMERA;
+    visibility &= ~PATH_RAY_VISIBILITY_CAMERA;
   }
 
   /* Don't export completely invisible objects. */

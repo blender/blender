@@ -23,16 +23,16 @@ ccl_device_noinline void svm_node_light_path(KernelGlobals kg,
 
   switch (node.path_type) {
     case NODE_LP_camera:
-      info = (path_flag & PATH_RAY_CAMERA) ? 1.0f : 0.0f;
+      info = (path_flag & PATH_RAY_VISIBILITY_CAMERA) ? 1.0f : 0.0f;
       break;
     case NODE_LP_shadow:
-      info = (path_flag & PATH_RAY_SHADOW) ? 1.0f : 0.0f;
+      info = (path_flag & PATH_RAY_VISIBILITY_SHADOW) ? 1.0f : 0.0f;
       break;
     case NODE_LP_diffuse:
-      info = (path_flag & PATH_RAY_DIFFUSE) ? 1.0f : 0.0f;
+      info = (path_flag & PATH_RAY_VISIBILITY_DIFFUSE) ? 1.0f : 0.0f;
       break;
     case NODE_LP_glossy:
-      info = (path_flag & PATH_RAY_GLOSSY) ? 1.0f : 0.0f;
+      info = (path_flag & PATH_RAY_VISIBILITY_GLOSSY) ? 1.0f : 0.0f;
       break;
     case NODE_LP_singular:
       info = (path_flag & PATH_RAY_SINGULAR) ? 1.0f : 0.0f;
@@ -41,10 +41,10 @@ ccl_device_noinline void svm_node_light_path(KernelGlobals kg,
       info = (path_flag & PATH_RAY_REFLECT) ? 1.0f : 0.0f;
       break;
     case NODE_LP_transmission:
-      info = (path_flag & PATH_RAY_TRANSMIT) ? 1.0f : 0.0f;
+      info = (path_flag & PATH_RAY_VISIBILITY_TRANSMIT) ? 1.0f : 0.0f;
       break;
     case NODE_LP_volume_scatter:
-      info = (path_flag & PATH_RAY_VOLUME_SCATTER) ? 1.0f : 0.0f;
+      info = (path_flag & PATH_RAY_VISIBILITY_VOLUME_SCATTER) ? 1.0f : 0.0f;
       break;
     case NODE_LP_backfacing:
       info = (sd->flag & SD_BACKFACING) ? 1.0f : 0.0f;
@@ -63,7 +63,7 @@ ccl_device_noinline void svm_node_light_path(KernelGlobals kg,
 
       /* For background, light emission and shadow evaluation from a
        * surface or volume we are effectively one bounce further. */
-      if (path_flag & (PATH_RAY_SHADOW | PATH_RAY_EMISSION)) {
+      if (path_flag & (PATH_RAY_VISIBILITY_SHADOW | PATH_RAY_EMISSION)) {
         info += 1.0f;
       }
       break;

@@ -671,7 +671,7 @@ static void xml_read_light(XMLReadState &state, const xml_node node)
   /* Create object. */
   Object *object = scene->create_node<Object>();
   object->set_tfm(state.tfm);
-  object->set_visibility(PATH_RAY_ALL_VISIBILITY & ~PATH_RAY_CAMERA);
+  object->set_visibility(PATH_RAY_VISIBILITY_ALL & ~PATH_RAY_VISIBILITY_CAMERA);
   object->set_geometry(light);
 
   xml_read_node(state, light, node);

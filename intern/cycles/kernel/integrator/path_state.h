@@ -56,7 +56,7 @@ ccl_device_inline void path_state_init_integrator(KernelGlobals kg,
   }
   INTEGRATOR_STATE_WRITE(state, path, rng_pixel) = rng_pixel;
   INTEGRATOR_STATE_WRITE(state, path, rng_offset) = PRNG_BOUNCE_NUM;
-  INTEGRATOR_STATE_WRITE(state, path, flag) = PATH_RAY_CAMERA | PATH_RAY_MIS_SKIP |
+  INTEGRATOR_STATE_WRITE(state, path, flag) = PATH_RAY_VISIBILITY_CAMERA | PATH_RAY_MIS_SKIP |
                                               PATH_RAY_TRANSPARENT_BACKGROUND;
   INTEGRATOR_STATE_WRITE(state, path, mis_ray_pdf) = 0.0f;
   INTEGRATOR_STATE_WRITE(state, path, min_ray_pdf) = FLT_MAX;
@@ -144,12 +144,12 @@ ccl_device_inline void path_state_next(KernelGlobals kg,
     flag |= PATH_RAY_TERMINATE_AFTER_TRANSPARENT;
   }
 
-  flag &= ~(PATH_RAY_ALL_VISIBILITY | PATH_RAY_MIS_SKIP | PATH_RAY_MIS_HAD_TRANSMISSION);
+  flag &= ~(PATH_RAY_VISIBILITY_ALL | PATH_RAY_MIS_SKIP | PATH_RAY_MIS_HAD_TRANSMISSION);
 
 #ifdef __VOLUME__
   if (label & LABEL_VOLUME_SCATTER) {
     /* volume scatter */
-    flag |= PATH_RAY_VOLUME_SCATTER | PATH_RAY_MIS_HAD_TRANSMISSION;
+    flag |= PATH_RAY_VISIBILITY_VOLUME_SCATTER | PATH_RAY_MIS_HAD_TRANSMISSION;
     flag &= ~PATH_RAY_TRANSPARENT_BACKGROUND;
     if (!(flag & PATH_RAY_ANY_PASS)) {
       flag |= PATH_RAY_VOLUME_PASS;
@@ -191,7 +191,7 @@ ccl_device_inline void path_state_next(KernelGlobals kg,
     else {
       kernel_assert(label & LABEL_TRANSMIT);
 
-      flag |= PATH_RAY_TRANSMIT;
+      flag |= PATH_RAY_VISIBILITY_TRANSMIT;
 
       if (!(label & LABEL_TRANSMIT_TRANSPARENT)) {
         flag &= ~PATH_RAY_TRANSPARENT_BACKGROUND;
@@ -206,14 +206,14 @@ ccl_device_inline void path_state_next(KernelGlobals kg,
 
     /* diffuse/glossy/singular */
     if (label & LABEL_DIFFUSE) {
-      flag |= PATH_RAY_DIFFUSE | PATH_RAY_DIFFUSE_ANCESTOR;
+      flag |= PATH_RAY_VISIBILITY_DIFFUSE | PATH_RAY_DIFFUSE_ANCESTOR;
     }
     else if (label & LABEL_GLOSSY) {
-      flag |= PATH_RAY_GLOSSY;
+      flag |= PATH_RAY_VISIBILITY_GLOSSY;
     }
     else {
       kernel_assert(label & LABEL_SINGULAR);
-      flag |= PATH_RAY_GLOSSY | PATH_RAY_SINGULAR | PATH_RAY_MIS_SKIP;
+      flag |= PATH_RAY_VISIBILITY_GLOSSY | PATH_RAY_SINGULAR | PATH_RAY_MIS_SKIP;
     }
 
     /* Flag for consistent MIS weights with light tree. */
@@ -256,11 +256,11 @@ ccl_device_inline uint path_state_ray_visibility(ConstIntegratorState state)
 {
   const uint32_t path_flag = INTEGRATOR_STATE(state, path, flag);
 
-  uint32_t visibility = path_flag & PATH_RAY_ALL_VISIBILITY;
+  uint32_t visibility = path_flag & PATH_RAY_VISIBILITY_ALL;
 
   /* For visibility, diffuse/glossy are for reflection only. */
-  if (visibility & PATH_RAY_TRANSMIT) {
-    visibility &= ~(PATH_RAY_DIFFUSE | PATH_RAY_GLOSSY);
+  if (visibility & PATH_RAY_VISIBILITY_TRANSMIT) {
+    visibility &= ~(PATH_RAY_VISIBILITY_DIFFUSE | PATH_RAY_VISIBILITY_GLOSSY);
   }
 
   visibility = SHADOW_CATCHER_PATH_VISIBILITY(path_flag, visibility);

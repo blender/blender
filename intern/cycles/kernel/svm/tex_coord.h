@@ -126,7 +126,7 @@ ccl_device_noinline Float3Type svm_node_tex_coord_eval(KernelGlobals kg,
       break;
     }
     case NODE_TEXCO_WINDOW: {
-      if ((path_flag & PATH_RAY_CAMERA) && sd->object == OBJECT_NONE &&
+      if ((path_flag & PATH_RAY_VISIBILITY_CAMERA) && sd->object == OBJECT_NONE &&
           kernel_data.cam.type == CAMERA_ORTHOGRAPHIC)
       {
         data = Float3Type(camera_world_to_ndc(kg, sd, sd->ray_P));

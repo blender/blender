@@ -298,7 +298,7 @@ bool Object::is_traceable() const
 
 uint Object::visibility_for_tracing() const
 {
-  return SHADOW_CATCHER_OBJECT_VISIBILITY(is_shadow_catcher, visibility & PATH_RAY_ALL_VISIBILITY);
+  return SHADOW_CATCHER_OBJECT_VISIBILITY(is_shadow_catcher, visibility & PATH_RAY_VISIBILITY_ALL);
 }
 
 float Object::compute_volume_step_size(Progress &progress) const
@@ -408,8 +408,8 @@ bool Object::usable_as_light() const
     return false;
   }
   /* Skip if we are not visible for BSDFs. */
-  if (!(get_visibility() &
-        (PATH_RAY_DIFFUSE | PATH_RAY_GLOSSY | PATH_RAY_TRANSMIT | PATH_RAY_VOLUME_SCATTER)))
+  if (!(get_visibility() & (PATH_RAY_VISIBILITY_DIFFUSE | PATH_RAY_VISIBILITY_GLOSSY |
+                            PATH_RAY_VISIBILITY_TRANSMIT | PATH_RAY_VISIBILITY_VOLUME_SCATTER)))
   {
     return false;
   }

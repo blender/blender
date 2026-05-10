@@ -126,7 +126,7 @@ ccl_device_forceinline void integrate_surface_emission(KernelGlobals kg,
   const uint32_t path_flag = INTEGRATOR_STATE(state, path, flag);
 
 #ifdef __LIGHT_LINKING__
-  if (!(path_flag & PATH_RAY_CAMERA) &&
+  if (!(path_flag & PATH_RAY_VISIBILITY_CAMERA) &&
       !light_link_object_match(kg, light_link_receiver_forward(kg, state), sd->object))
   {
     return;
@@ -137,7 +137,7 @@ ccl_device_forceinline void integrate_surface_emission(KernelGlobals kg,
   /* Indirect emission of shadow-linked emissive surfaces is done via shadow rays to dedicated
    * light sources. */
   if (kernel_data.kernel_features & KERNEL_FEATURE_SHADOW_LINKING) {
-    if (!(path_flag & PATH_RAY_CAMERA) &&
+    if (!(path_flag & PATH_RAY_VISIBILITY_CAMERA) &&
         kernel_data_fetch(objects, sd->object).shadow_set_membership != LIGHT_LINK_MASK_ALL)
     {
       return;
@@ -651,7 +651,7 @@ ccl_device_forceinline void integrate_surface_ao(KernelGlobals kg,
   const uint32_t path_flag = INTEGRATOR_STATE(state, path, flag);
 
   if (!(kernel_data.kernel_features & KERNEL_FEATURE_AO_ADDITIVE) &&
-      !(path_flag & PATH_RAY_CAMERA))
+      !(path_flag & PATH_RAY_VISIBILITY_CAMERA))
   {
     return;
   }

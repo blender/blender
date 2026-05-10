@@ -151,7 +151,7 @@ ccl_device_inline void surface_shader_prepare_closures(KernelGlobals kg,
       sd->closure_emission_background = zero_spectrum();
     }
 
-    if (path_flag & PATH_RAY_CAMERA) {
+    if (path_flag & PATH_RAY_VISIBILITY_CAMERA) {
       if (filter_closures & FILTER_CLOSURE_DIRECT_LIGHT) {
         sd->flag &= ~SD_BSDF_HAS_EVAL;
       }
@@ -1162,7 +1162,7 @@ ccl_device void surface_shader_eval(KernelGlobals kg,
    * emission, then we don't need to store closures. The emission and shadow
    * shader data also do not have a closure array to save GPU memory. */
   int max_closures;
-  if (path_flag & (PATH_RAY_TERMINATE | PATH_RAY_SHADOW | PATH_RAY_EMISSION)) {
+  if (path_flag & (PATH_RAY_TERMINATE | PATH_RAY_VISIBILITY_SHADOW | PATH_RAY_EMISSION)) {
     max_closures = 0;
   }
   else {

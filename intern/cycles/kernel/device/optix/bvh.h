@@ -246,7 +246,7 @@ extern "C" __global__ void __anyhit__kernel_optix_visibility_test()
 
   ccl_private Ray *const ray = get_payload_ptr_6<Ray>();
 
-  if (visibility & PATH_RAY_SHADOW_OPAQUE) {
+  if (visibility & PATH_RAY_VISIBILITY_SHADOW_OPAQUE) {
 #ifdef __SHADOW_LINKING__
     if (intersection_skip_shadow_link(nullptr, ray->self, object)) {
       return optixIgnoreIntersection();
@@ -406,7 +406,7 @@ ccl_device_intersect bool scene_intersect(KernelGlobals kg,
   if (0 == ray_mask && (visibility & ~0xFF) != 0) {
     ray_mask = 0xFF;
   }
-  else if (visibility & PATH_RAY_SHADOW_OPAQUE) {
+  else if (visibility & PATH_RAY_VISIBILITY_SHADOW_OPAQUE) {
     ray_flags |= OPTIX_RAY_FLAG_TERMINATE_ON_FIRST_HIT;
   }
 
@@ -461,7 +461,7 @@ ccl_device_intersect bool scene_intersect_shadow(KernelGlobals kg,
   if (0 == ray_mask && (visibility & ~0xFF) != 0) {
     ray_mask = 0xFF;
   }
-  else if (visibility & PATH_RAY_SHADOW_OPAQUE) {
+  else if (visibility & PATH_RAY_VISIBILITY_SHADOW_OPAQUE) {
     ray_flags |= OPTIX_RAY_FLAG_TERMINATE_ON_FIRST_HIT;
   }
 

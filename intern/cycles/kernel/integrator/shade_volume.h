@@ -368,7 +368,7 @@ ccl_device_inline Extrema<float> volume_object_get_extrema(KernelGlobals kg,
                                                            const uint32_t path_flag)
 {
   const int shader_flag = kernel_data_fetch(shaders, (octree.entry.shader & SHADER_MASK)).flags;
-  if ((path_flag & PATH_RAY_CAMERA) || !(shader_flag & SD_HAS_LIGHT_PATH_NODE)) {
+  if ((path_flag & PATH_RAY_VISIBILITY_CAMERA) || !(shader_flag & SD_HAS_LIGHT_PATH_NODE)) {
     /* Use the baked volume density extrema. */
     return octree.node->sigma * object_volume_density(kg, octree.entry.object);
   }
@@ -673,7 +673,7 @@ ccl_device void volume_shadow_null_scattering(KernelGlobals kg,
   path_state_rng_scramble(&rng_state, 0x8647ace4);
 
   OctreeTracing octree(ray->tmin);
-  const uint32_t path_flag = PATH_RAY_SHADOW;
+  const uint32_t path_flag = PATH_RAY_VISIBILITY_SHADOW;
   if (!volume_octree_setup<true>(kg, ray, sd, state, &rng_state, path_flag, octree)) {
     return;
   }
@@ -2074,7 +2074,8 @@ ccl_device void volume_shadow_ray_marching(KernelGlobals kg,
   Spectrum sum = zero_spectrum();
   for (int step = 0; volume_ray_marching_advance(step, ray, &sd->P, vstep); step++) {
     /* compute attenuation over segment */
-    const Spectrum sigma_t = volume_shader_eval_extinction<true>(kg, state, sd, PATH_RAY_SHADOW);
+    const Spectrum sigma_t = volume_shader_eval_extinction<true>(
+        kg, state, sd, PATH_RAY_VISIBILITY_SHADOW);
     /* Compute `expf()` only for every Nth step, to save some calculations
      * because `exp(a)*exp(b) = exp(a+b)`, also do a quick #VOLUME_THROUGHPUT_EPSILON
      * check then. */
@@ -2498,7 +2499,7 @@ ccl_device_forceinline void integrate_volume_direct_light(
   }
 
   if (bounce == 0) {
-    shadow_flag |= PATH_RAY_VOLUME_SCATTER;
+    shadow_flag |= PATH_RAY_VISIBILITY_VOLUME_SCATTER;
     shadow_flag &= ~PATH_RAY_VOLUME_PRIMARY_TRANSMIT;
   }
 

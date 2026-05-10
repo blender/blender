@@ -243,14 +243,14 @@ ccl_device_forceinline int lights_intersect_impl(KernelGlobals kg,
                                                  int num_hits)
 {
 #ifdef __SHADOW_LINKING__
-  const bool is_indirect_ray = !(path_flag & PATH_RAY_CAMERA);
+  const bool is_indirect_ray = !(path_flag & PATH_RAY_VISIBILITY_CAMERA);
 #endif
 
   for (int lamp = 0; lamp < kernel_data.integrator.num_lights; lamp++) {
     const ccl_global KernelLight *klight = &kernel_data_fetch(lights, lamp);
     const int object = klight->object_id;
 
-    if (path_flag & PATH_RAY_CAMERA) {
+    if (path_flag & PATH_RAY_VISIBILITY_CAMERA) {
       if (klight->shader_id & SHADER_EXCLUDE_CAMERA) {
         continue;
       }
@@ -296,7 +296,9 @@ ccl_device_forceinline int lights_intersect_impl(KernelGlobals kg,
 
 #ifdef __LIGHT_LINKING__
     /* Light linking. */
-    if (!(path_flag & PATH_RAY_CAMERA) && !light_link_object_match(kg, receiver_forward, object)) {
+    if (!(path_flag & PATH_RAY_VISIBILITY_CAMERA) &&
+        !light_link_object_match(kg, receiver_forward, object))
+    {
       continue;
     }
 #endif

@@ -936,7 +936,7 @@ ccl_device float light_tree_pdf(KernelGlobals kg,
                                 const uint emitter_id,
                                 const int object_receiver)
 {
-  if (path_flag & PATH_RAY_VOLUME_SCATTER) {
+  if (path_flag & PATH_RAY_VISIBILITY_VOLUME_SCATTER) {
     const float3 D_times_t = N;
     const float3 D = normalize(D_times_t);
     P = P - D_times_t;

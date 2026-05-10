@@ -25,7 +25,7 @@ ccl_device_inline void cameradata_to_shaderglobals(ccl_private ShaderData *sd,
   globals->dPdy = dSdy;
   globals->N = make_float3(rand_lens);
   globals->sd = sd;
-  globals->raytype = PATH_RAY_CAMERA;
+  globals->raytype = PATH_RAY_VISIBILITY_CAMERA;
 }
 
 #ifndef __KERNEL_GPU__

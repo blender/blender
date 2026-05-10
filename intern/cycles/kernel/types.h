@@ -139,32 +139,33 @@ enum PathRayFlag : uint32_t {
    * NOTE: Recalculated after a surface bounce.
    */
 
-  PATH_RAY_CAMERA = (1U << 0U),
+  PATH_RAY_VISIBILITY_CAMERA = (1U << 0U),
   PATH_RAY_REFLECT = (1U << 1U),
-  PATH_RAY_TRANSMIT = (1U << 2U),
-  PATH_RAY_DIFFUSE = (1U << 3U),
-  PATH_RAY_GLOSSY = (1U << 4U),
+  PATH_RAY_VISIBILITY_TRANSMIT = (1U << 2U),
+  PATH_RAY_VISIBILITY_DIFFUSE = (1U << 3U),
+  PATH_RAY_VISIBILITY_GLOSSY = (1U << 4U),
   PATH_RAY_SINGULAR = (1U << 5U),
   PATH_RAY_TRANSPARENT = (1U << 6U),
-  PATH_RAY_VOLUME_SCATTER = (1U << 7U),
+  PATH_RAY_VISIBILITY_VOLUME_SCATTER = (1U << 7U),
   PATH_RAY_IMPORTANCE_BAKE = (1U << 8U),
 
   /* Shadow ray visibility. */
-  PATH_RAY_SHADOW_OPAQUE = (1U << 9U),
-  PATH_RAY_SHADOW_TRANSPARENT = (1U << 10U),
-  PATH_RAY_SHADOW = (PATH_RAY_SHADOW_OPAQUE | PATH_RAY_SHADOW_TRANSPARENT),
+  PATH_RAY_VISIBILITY_SHADOW_OPAQUE = (1U << 9U),
+  PATH_RAY_VISIBILITY_SHADOW_TRANSPARENT = (1U << 10U),
+  PATH_RAY_VISIBILITY_SHADOW = (PATH_RAY_VISIBILITY_SHADOW_OPAQUE |
+                                PATH_RAY_VISIBILITY_SHADOW_TRANSPARENT),
 
   /* Subset of flags used for ray visibility for intersection.
    *
    * NOTE: SHADOW_CATCHER macros below assume there are no more than
    * 16 visibility bits. */
-  PATH_RAY_ALL_VISIBILITY = ((1U << 11U) - 1U),
+  PATH_RAY_VISIBILITY_ALL = ((1U << 11U) - 1U),
 
   /* Special flag to tag unaligned BVH nodes.
    * Only set and used in BVH nodes to distinguish how to interpret bounding box information stored
    * in the node (either it should be intersected as AABB or as OBBU).
    * So this can overlap with path flags. */
-  PATH_RAY_NODE_UNALIGNED = (1U << 11U),
+  PATH_RAY_VISIBILITY_NODE_UNALIGNED = (1U << 11U),
 
   /* --------------------------------------------------------------------
    * Path flags.

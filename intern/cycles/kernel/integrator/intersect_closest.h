@@ -404,7 +404,7 @@ ccl_device void integrator_intersect_closest(KernelGlobals kg,
      * receiver */
     bool from_caustic_caster = false;
     bool from_caustic_receiver = false;
-    if (!(path_flag & PATH_RAY_CAMERA) && last_isect_object != OBJECT_NONE) {
+    if (!(path_flag & PATH_RAY_VISIBILITY_CAMERA) && last_isect_object != OBJECT_NONE) {
       const uint object_flags = kernel_data_fetch(object_flag, last_isect_object);
       from_caustic_receiver = (object_flags & SD_OBJECT_CAUSTICS_RECEIVER);
       from_caustic_caster = (object_flags & SD_OBJECT_CAUSTICS_CASTER);

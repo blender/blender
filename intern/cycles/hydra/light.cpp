@@ -101,10 +101,10 @@ void HdCyclesLight::Sync(HdSceneDelegate *sceneDelegate,
 
     if (auto ds = GetTypedDataSource<bool>(lightDs, _tokens->visibleInPrimaryRay)) {
       if (ds->GetTypedValue(0.0f)) {
-        _object->set_visibility(_object->get_visibility() | PATH_RAY_CAMERA);
+        _object->set_visibility(_object->get_visibility() | PATH_RAY_VISIBILITY_CAMERA);
       }
       else {
-        _object->set_visibility(_object->get_visibility() & ~PATH_RAY_CAMERA);
+        _object->set_visibility(_object->get_visibility() & ~PATH_RAY_VISIBILITY_CAMERA);
       }
     }
 
@@ -395,7 +395,7 @@ void HdCyclesLight::Initialize(HdRenderParam *renderParam)
 
   _object->set_geometry(_light);
   _object->set_random_id(hash_uint2(hash_string(_light->name.c_str()), 0));
-  _object->set_visibility(PATH_RAY_ALL_VISIBILITY & ~PATH_RAY_CAMERA);
+  _object->set_visibility(PATH_RAY_VISIBILITY_ALL & ~PATH_RAY_VISIBILITY_CAMERA);
 
   Shader *const shader = lock.scene->create_node<Shader>();
   array<Node *> used_shaders;

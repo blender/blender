@@ -51,7 +51,7 @@ ccl_device_forceinline bool osl_closure_skip(KernelGlobals kg,
                                              const int scattering)
 {
   /* Caustic options */
-  if ((scattering & LABEL_GLOSSY) && (path_flag & PATH_RAY_DIFFUSE)) {
+  if ((scattering & LABEL_GLOSSY) && (path_flag & PATH_RAY_VISIBILITY_DIFFUSE)) {
     const bool has_reflect = (scattering & LABEL_REFLECT);
     const bool has_transmit = (scattering & LABEL_TRANSMIT);
     const bool reflect_caustics_disabled = !kernel_data.integrator.caustics_reflective;
@@ -466,9 +466,9 @@ ccl_device void osl_closure_generalized_schlick_bsdf_setup(
   }
 
   const bool reflective_caustics = (kernel_data.integrator.caustics_reflective ||
-                                    (path_flag & PATH_RAY_DIFFUSE) == 0);
+                                    (path_flag & PATH_RAY_VISIBILITY_DIFFUSE) == 0);
   const bool refractive_caustics = (kernel_data.integrator.caustics_refractive ||
-                                    (path_flag & PATH_RAY_DIFFUSE) == 0);
+                                    (path_flag & PATH_RAY_VISIBILITY_DIFFUSE) == 0);
 
   fresnel->reflection_tint = reflective_caustics ? rgb_to_spectrum(closure->reflection_tint) :
                                                    zero_spectrum();
@@ -518,9 +518,9 @@ ccl_device void osl_closure_thin_glass_setup(KernelGlobals kg,
   }
 
   const bool reflective_caustics = (kernel_data.integrator.caustics_reflective ||
-                                    (path_flag & PATH_RAY_DIFFUSE) == 0);
+                                    (path_flag & PATH_RAY_VISIBILITY_DIFFUSE) == 0);
   const bool refractive_caustics = (kernel_data.integrator.caustics_refractive ||
-                                    (path_flag & PATH_RAY_DIFFUSE) == 0);
+                                    (path_flag & PATH_RAY_VISIBILITY_DIFFUSE) == 0);
 
   const float3 valid_reflection_N = maybe_ensure_valid_specular_reflection(
       sd, safe_normalize_fallback(closure->N, sd->N));
@@ -1224,7 +1224,7 @@ ccl_device void osl_closure_hair_huang_setup(KernelGlobals kg,
 
   /* For camera ray, check if the hair covers more than one pixel, in which case a nearfield model
    * is needed to prevent ribbon-like appearance. */
-  if ((path_flag & PATH_RAY_CAMERA) && (sd->type & PRIMITIVE_CURVE)) {
+  if ((path_flag & PATH_RAY_VISIBILITY_CAMERA) && (sd->type & PRIMITIVE_CURVE)) {
     /* Interpolate radius between curve keys. */
     const KernelCurve kcurve = kernel_data_fetch(curves, sd->prim);
     const int k0 = kcurve.first_key + PRIMITIVE_UNPACK_SEGMENT(sd->type);

@@ -97,7 +97,7 @@ ccl_device int subsurface_bounce(KernelGlobals kg,
   const Spectrum weight = surface_shader_bssrdf_sample_weight(sd, sc);
   INTEGRATOR_STATE_WRITE(state, path, throughput) *= weight;
 
-  uint32_t path_flag = (INTEGRATOR_STATE(state, path, flag) & ~PATH_RAY_CAMERA);
+  uint32_t path_flag = (INTEGRATOR_STATE(state, path, flag) & ~PATH_RAY_VISIBILITY_CAMERA);
   if (sc->type == CLOSURE_BSSRDF_BURLEY_ID) {
     /* We should never have two consecutive BSSRDF bounces, the second one should
      * be converted to a diffuse BSDF to avoid this. */

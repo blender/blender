@@ -349,16 +349,16 @@ void BackgroundLight::copy_to_kernel(KernelLight *klight,
 
   uint shader_flags = SHADER_USE_MIS;
 
-  if (!(visibility & PATH_RAY_DIFFUSE)) {
+  if (!(visibility & PATH_RAY_VISIBILITY_DIFFUSE)) {
     shader_flags |= SHADER_EXCLUDE_DIFFUSE;
   }
-  if (!(visibility & PATH_RAY_GLOSSY)) {
+  if (!(visibility & PATH_RAY_VISIBILITY_GLOSSY)) {
     shader_flags |= SHADER_EXCLUDE_GLOSSY;
   }
-  if (!(visibility & PATH_RAY_TRANSMIT)) {
+  if (!(visibility & PATH_RAY_VISIBILITY_TRANSMIT)) {
     shader_flags |= SHADER_EXCLUDE_TRANSMIT;
   }
-  if (!(visibility & PATH_RAY_VOLUME_SCATTER)) {
+  if (!(visibility & PATH_RAY_VISIBILITY_VOLUME_SCATTER)) {
     shader_flags |= SHADER_EXCLUDE_SCATTER;
   }
   Light::copy_to_kernel(klight, scene, object, shader_flags);
@@ -438,19 +438,19 @@ static uint light_object_visibility_flags(const Object *object)
   const uint visibility = object->get_visibility();
   uint visibility_flag = 0;
 
-  if (!(visibility & PATH_RAY_CAMERA)) {
+  if (!(visibility & PATH_RAY_VISIBILITY_CAMERA)) {
     visibility_flag |= SHADER_EXCLUDE_CAMERA;
   }
-  if (!(visibility & PATH_RAY_DIFFUSE)) {
+  if (!(visibility & PATH_RAY_VISIBILITY_DIFFUSE)) {
     visibility_flag |= SHADER_EXCLUDE_DIFFUSE;
   }
-  if (!(visibility & PATH_RAY_GLOSSY)) {
+  if (!(visibility & PATH_RAY_VISIBILITY_GLOSSY)) {
     visibility_flag |= SHADER_EXCLUDE_GLOSSY;
   }
-  if (!(visibility & PATH_RAY_TRANSMIT)) {
+  if (!(visibility & PATH_RAY_VISIBILITY_TRANSMIT)) {
     visibility_flag |= SHADER_EXCLUDE_TRANSMIT;
   }
-  if (!(visibility & PATH_RAY_VOLUME_SCATTER)) {
+  if (!(visibility & PATH_RAY_VISIBILITY_VOLUME_SCATTER)) {
     visibility_flag |= SHADER_EXCLUDE_SCATTER;
   }
   if (!(object->get_is_shadow_catcher())) {

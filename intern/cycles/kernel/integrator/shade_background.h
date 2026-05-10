@@ -184,7 +184,7 @@ ccl_device_inline ShaderEvalResult integrate_sun_lights(
 #endif
 
 #ifdef __LIGHT_LINKING__
-    if (!(path_flag & PATH_RAY_CAMERA) &&
+    if (!(path_flag & PATH_RAY_VISIBILITY_CAMERA) &&
         !light_link_object_match(kg, light_link_receiver_forward(kg, state), klight->object_id))
     {
       continue;

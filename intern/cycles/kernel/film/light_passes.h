@@ -208,7 +208,7 @@ ccl_device_inline void film_write_volume_scattering_guiding_pass(KernelGlobals k
   if (path_flag & PATH_RAY_VOLUME_PRIMARY_TRANSMIT) {
     pass_offset = kernel_data.film.pass_volume_transmit;
   }
-  else if (path_flag & PATH_RAY_VOLUME_SCATTER) {
+  else if (path_flag & PATH_RAY_VISIBILITY_VOLUME_SCATTER) {
     pass_offset = kernel_data.film.pass_volume_scatter;
   }
 
@@ -497,7 +497,9 @@ ccl_device_inline void film_write_direct_light(KernelGlobals kg,
 
   /* Ambient occlusion. */
   if (path_flag & PATH_RAY_SHADOW_FOR_AO) {
-    if ((kernel_data.kernel_features & KERNEL_FEATURE_AO_PASS) && (path_flag & PATH_RAY_CAMERA)) {
+    if ((kernel_data.kernel_features & KERNEL_FEATURE_AO_PASS) &&
+        (path_flag & PATH_RAY_VISIBILITY_CAMERA))
+    {
       film_write_pass_spectrum(buffer + kernel_data.film.pass_ao, contribution);
     }
     if (kernel_data.kernel_features & KERNEL_FEATURE_AO_ADDITIVE) {

@@ -365,20 +365,20 @@ void OSLManager::shading_system_init(const string &colorspace_interop_id)
 
       /* our own ray types */
       static const char *raytypes[] = {
-          "camera",          /* PATH_RAY_CAMERA */
+          "camera",          /* PATH_RAY_VISIBILITY_CAMERA */
           "reflection",      /* PATH_RAY_REFLECT */
-          "refraction",      /* PATH_RAY_TRANSMIT */
-          "diffuse",         /* PATH_RAY_DIFFUSE */
-          "glossy",          /* PATH_RAY_GLOSSY */
+          "refraction",      /* PATH_RAY_VISIBILITY_TRANSMIT */
+          "diffuse",         /* PATH_RAY_VISIBILITY_DIFFUSE */
+          "glossy",          /* PATH_RAY_VISIBILITY_GLOSSY */
           "singular",        /* PATH_RAY_SINGULAR */
           "transparent",     /* PATH_RAY_TRANSPARENT */
-          "volume_scatter",  /* PATH_RAY_VOLUME_SCATTER */
+          "volume_scatter",  /* PATH_RAY_VISIBILITY_VOLUME_SCATTER */
           "importance_bake", /* PATH_RAY_IMPORTANCE_BAKE */
 
-          "shadow", /* PATH_RAY_SHADOW_OPAQUE */
-          "shadow", /* PATH_RAY_SHADOW_TRANSPARENT */
+          "shadow", /* PATH_RAY_VISIBILITY_SHADOW_OPAQUE */
+          "shadow", /* PATH_RAY_VISIBILITY_SHADOW_TRANSPARENT */
 
-          "__unused__", /* PATH_RAY_NODE_UNALIGNED */
+          "__unused__", /* PATH_RAY_VISIBILITY_NODE_UNALIGNED */
           "__unused__", /* PATH_RAY_MIS_SKIP */
 
           "diffuse_ancestor", /* PATH_RAY_DIFFUSE_ANCESTOR */

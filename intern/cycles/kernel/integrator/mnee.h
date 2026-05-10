@@ -490,7 +490,7 @@ ccl_device_inline bool mnee_newton_solver(KernelGlobals kg,
       bool projection_success = false;
       for (int isect_count = 0; isect_count < MNEE_MAX_INTERSECTION_COUNT; isect_count++) {
         const bool hit = scene_intersect(
-            kg, &projection_ray, PATH_RAY_TRANSMIT, &projection_isect);
+            kg, &projection_ray, PATH_RAY_VISIBILITY_TRANSMIT, &projection_isect);
         if (!hit) {
           break;
         }
@@ -872,7 +872,7 @@ ccl_device_inline ShaderEvalResult mnee_path_contribution(KernelGlobals kg,
 
     /* Check visibility. */
     probe_ray.D = normalize_len(v.p - probe_ray.P, &probe_ray.tmax);
-    if (scene_intersect(kg, &probe_ray, PATH_RAY_TRANSMIT, &probe_isect)) {
+    if (scene_intersect(kg, &probe_ray, PATH_RAY_VISIBILITY_TRANSMIT, &probe_isect)) {
       const int hit_object = (probe_isect.object == OBJECT_NONE) ?
                                  kernel_data_fetch(prim_object, probe_isect.prim) :
                                  probe_isect.object;
@@ -912,7 +912,7 @@ ccl_device_inline ShaderEvalResult mnee_path_contribution(KernelGlobals kg,
 
     /* Evaluate shader nodes at solution vi. */
     surface_shader_eval<KERNEL_FEATURE_NODE_MASK_SURFACE_SHADOW>(
-        kg, state, sd_mnee, nullptr, PATH_RAY_DIFFUSE, true);
+        kg, state, sd_mnee, nullptr, PATH_RAY_VISIBILITY_DIFFUSE, true);
     if (sd_mnee->flag & SD_CACHE_MISS) {
       /* Restore original state path bounce info. */
       INTEGRATOR_STATE_WRITE(state, path, transmission_bounce) = transmission_bounce;
@@ -985,7 +985,7 @@ ccl_device_inline ShaderEvalResult kernel_path_mnee_sample(KernelGlobals kg,
 
   int vertex_count = 0;
   for (int isect_count = 0; isect_count < MNEE_MAX_INTERSECTION_COUNT; isect_count++) {
-    const bool hit = scene_intersect(kg, &probe_ray, PATH_RAY_TRANSMIT, &probe_isect);
+    const bool hit = scene_intersect(kg, &probe_ray, PATH_RAY_VISIBILITY_TRANSMIT, &probe_isect);
     if (!hit) {
       break;
     }
@@ -1017,7 +1017,7 @@ ccl_device_inline ShaderEvalResult kernel_path_mnee_sample(KernelGlobals kg,
 
       /* Last bool argument is the MNEE flag (for TINY_MAX_CLOSURE cap in kernel_shader.h). */
       surface_shader_eval<KERNEL_FEATURE_NODE_MASK_SURFACE_SHADOW>(
-          kg, state, sd_mnee, nullptr, PATH_RAY_DIFFUSE, true);
+          kg, state, sd_mnee, nullptr, PATH_RAY_VISIBILITY_DIFFUSE, true);
       if (sd_mnee->flag & SD_CACHE_MISS) {
         return SHADER_EVAL_CACHE_MISS;
       }

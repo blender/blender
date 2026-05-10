@@ -458,12 +458,12 @@ ccl_device_inline bool volume_shader_eval_entry(KernelGlobals kg,
     sd->object_flag |= kernel_data_fetch(object_flag, sd->object);
 
     if (shadow && !(kernel_data_fetch(objects, sd->object).visibility &
-                    (path_flag & PATH_RAY_ALL_VISIBILITY)))
+                    (path_flag & PATH_RAY_VISIBILITY_ALL)))
     {
       /* If volume is invisible to shadow ray, the hit is not registered, but the volume is still
        * in the stack. Skip the volume in such cases. */
       /* NOTE: `SHADOW_CATCHER_PATH_VISIBILITY()` is omitted because `path_flag` is just
-       * `PATH_RAY_SHADOW` when evaluating shadows. */
+       * `PATH_RAY_VISIBILITY_SHADOW` when evaluating shadows. */
       return true;
     }
 
@@ -502,7 +502,7 @@ ccl_device_inline void volume_shader_eval(KernelGlobals kg,
    * emission, then we don't need to store closures. The emission and shadow
    * shader data also do not have a closure array to save GPU memory. */
   int max_closures;
-  if (path_flag & (PATH_RAY_TERMINATE | PATH_RAY_SHADOW | PATH_RAY_EMISSION)) {
+  if (path_flag & (PATH_RAY_TERMINATE | PATH_RAY_VISIBILITY_SHADOW | PATH_RAY_EMISSION)) {
     max_closures = 0;
   }
   else {

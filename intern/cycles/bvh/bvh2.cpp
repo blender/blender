@@ -152,8 +152,10 @@ void BVH2::pack_aligned_node(const int idx,
   assert(c1 < 0 || c1 < pack.nodes.size());
 
   int4 data[BVH_NODE_SIZE] = {
-      make_int4(
-          visibility0 & ~PATH_RAY_NODE_UNALIGNED, visibility1 & ~PATH_RAY_NODE_UNALIGNED, c0, c1),
+      make_int4(visibility0 & ~PATH_RAY_VISIBILITY_NODE_UNALIGNED,
+                visibility1 & ~PATH_RAY_VISIBILITY_NODE_UNALIGNED,
+                c0,
+                c1),
       make_int4(__float_as_int(b0.min.x),
                 __float_as_int(b1.min.x),
                 __float_as_int(b0.max.x),
@@ -203,8 +205,10 @@ void BVH2::pack_unaligned_node(const int idx,
   int4 data[BVH_UNALIGNED_NODE_SIZE];
   const Transform space0 = BVHUnaligned::compute_node_transform(b0, aligned_space0);
   const Transform space1 = BVHUnaligned::compute_node_transform(b1, aligned_space1);
-  data[0] = make_int4(
-      visibility0 | PATH_RAY_NODE_UNALIGNED, visibility1 | PATH_RAY_NODE_UNALIGNED, c0, c1);
+  data[0] = make_int4(visibility0 | PATH_RAY_VISIBILITY_NODE_UNALIGNED,
+                      visibility1 | PATH_RAY_VISIBILITY_NODE_UNALIGNED,
+                      c0,
+                      c1);
 
   data[1] = __float4_as_int4(space0.x);
   data[2] = __float4_as_int4(space0.y);
@@ -322,7 +326,7 @@ void BVH2::refit_node(const int idx, bool leaf, BoundBox &bbox, uint &visibility
     assert(idx + BVH_NODE_SIZE <= pack.nodes.size());
 
     const int4 *data = &pack.nodes[idx];
-    const bool is_unaligned = (data[0].x & PATH_RAY_NODE_UNALIGNED) != 0;
+    const bool is_unaligned = (data[0].x & PATH_RAY_VISIBILITY_NODE_UNALIGNED) != 0;
     const int c0 = data[0].z;
     const int c1 = data[0].w;
     /* refit inner node, set bbox from children */
@@ -610,7 +614,7 @@ void BVH2::pack_instances(size_t nodes_size, size_t leaf_nodes_size)
       for (size_t i = 0; i < bvh_nodes_size;) {
         size_t nsize;
         size_t nsize_bbox;
-        if (bvh_nodes[i].x & PATH_RAY_NODE_UNALIGNED) {
+        if (bvh_nodes[i].x & PATH_RAY_VISIBILITY_NODE_UNALIGNED) {
           nsize = BVH_UNALIGNED_NODE_SIZE;
           nsize_bbox = 0;
         }
