@@ -1919,4 +1919,32 @@ Mesh *mesh_merge_verts(const Mesh &mesh,
 
 /** \} */
 
+Mesh *mesh_merge_verts(const Mesh &mesh,
+                       const IndexMask &selection,
+                       const Span<int> merge_ids,
+                       const bke::AttributeFilter & /*attribute_filter*/)
+{
+  Array<int> vert_dest_map(mesh.verts_num, OUT_OF_CONTEXT);
+
+  VectorSet<int> group_indices;
+  selection.foreach_index_optimized<int>([&](const int i) { group_indices.add(merge_ids[i]); });
+
+  Array<int> dst_vert_by_group(mesh.verts_num, -1);
+  selection.foreach_index_optimized<int>([&](const int i) {
+    const int group_i = group_indices.index_of(merge_ids[i]);
+    if (dst_vert_by_group[group_i] == -1) {
+      dst_vert_by_group[group_i] = i;
+    }
+  });
+
+  selection.foreach_index_optimized<int>(
+      [&](const int i) {
+        const int group_i = group_indices.index_of(merge_ids[i]);
+        vert_dest_map[i] = dst_vert_by_group[group_i];
+      },
+      exec_mode::grain_size(8192));
+
+  return create_merged_mesh(mesh, vert_dest_map, selection.size() - group_indices.size(), true);
+}
+
 }  // namespace blender::geometry

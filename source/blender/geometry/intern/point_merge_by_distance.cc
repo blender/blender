@@ -1,4 +1,4 @@
-/* SPDX-FileCopyrightText: 2023 Blender Authors
+/* SPDX-FileCopyrightText: 2026 Blender Authors
  *
  * SPDX-License-Identifier: GPL-2.0-or-later */
 
@@ -15,142 +15,109 @@
 #include "GEO_point_merge_by_distance.hh"
 #include "GEO_randomize.hh"
 
+#include "atomic_ops.h"
+
 namespace blender::geometry {
+
+PointCloud *merge_points(const PointCloud &src_points,
+                         const IndexMask &selection,
+                         const Span<int> merge_ids,
+                         const bke::AttributeFilter &attribute_filter)
+{
+  VectorSet<int> group_indices;
+  selection.foreach_index_optimized<int32_t>(
+      [&](const int i) { group_indices.add(merge_ids[i]); });
+  const int groups_num = group_indices.size();
+
+  Array<int> group_sizes(group_indices.size() + 1, 0);
+  selection.foreach_index_optimized<int>(
+      [&](const int i) {
+        const int group_i = group_indices.index_of(merge_ids[i]);
+        atomic_add_and_fetch_int32(&group_sizes[group_i], 1);
+      },
+      exec_mode::grain_size(8192));
+  BLI_assert(!group_sizes.as_span().drop_back(1).contains(0));
+
+  const OffsetIndices<int> group_offsets = offset_indices::accumulate_counts_to_offsets(
+      group_sizes);
+
+  Array<int> all_group_indices(group_offsets.total_size());
+  Array<int> group_counts(groups_num, 0);
+  selection.foreach_index_optimized<int>(
+      [&](const int i) {
+        const int group_i = group_indices.index_of(merge_ids[i]);
+        const int index_in_group = atomic_fetch_and_add_int32(&group_counts[group_i], 1);
+        all_group_indices[group_offsets[group_i][index_in_group]] = int(i);
+      },
+      exec_mode::grain_size(8192));
+  group_counts = {};
+  offset_indices::sort_small_groups(group_offsets, all_group_indices);
+  const GroupedSpan<int> indices_by_group(group_offsets, all_group_indices);
+
+  IndexMaskMemory memory;
+  const IndexMask unselected = selection.complement(IndexMask(src_points.totpoint), memory);
+
+  PointCloud *dst_pointcloud = BKE_pointcloud_new_nomain(unselected.size() + groups_num);
+  bke::MutableAttributeAccessor dst_attributes = dst_pointcloud->attributes_for_write();
+
+  src_points.attributes().foreach_attribute([&](const bke::AttributeIter &iter) {
+    if (attribute_filter.allow_skip(iter.name)) {
+      return;
+    }
+    bke::GAttributeReader src = iter.get();
+    const CommonVArrayInfo info = src.varray.common_info();
+    if (info.type == CommonVArrayInfo::Type::Single) {
+      const bke::AttributeInitValue init(GPointer(src.varray.type(), info.data));
+      if (dst_attributes.add(iter.name, bke::AttrDomain::Point, iter.data_type, init)) {
+        return;
+      }
+    }
+    const GVArraySpan src_span(*src);
+    bke::GSpanAttributeWriter dst_attribute = dst_attributes.lookup_or_add_for_write_only_span(
+        iter.name, bke::AttrDomain::Point, iter.data_type);
+    array_utils::gather(src_span, unselected, dst_attribute.span.take_front(unselected.size()));
+    if (iter.name == "id" && iter.data_type == bke::AttrType::Int32) {
+      const Span<int> src_typed = src_span.typed<int>();
+      MutableSpan<int> dst_typed = dst_attribute.span.typed<int>().take_back(groups_num);
+      threading::parallel_for(dst_typed.index_range(), 4096, [&](const IndexRange range) {
+        for (const int i : range) {
+          dst_typed[i] = src_typed[indices_by_group[i].first()];
+        }
+      });
+    }
+    else {
+      bke::attribute_math::mix_groups(
+          src_span, indices_by_group, dst_attribute.span.take_back(groups_num));
+    }
+    dst_attribute.finish();
+  });
+
+  debug_randomize_point_order(dst_pointcloud);
+
+  return dst_pointcloud;
+}
 
 PointCloud *point_merge_by_distance(const PointCloud &src_points,
                                     const float merge_distance,
                                     const IndexMask &selection,
                                     const bke::AttributeFilter &attribute_filter)
 {
-  const bke::AttributeAccessor src_attributes = src_points.attributes();
   const Span<float3> positions = src_points.positions();
-  const int src_size = positions.size();
-
-  /* Create the KD tree based on only the selected points, to speed up merge detection and
-   * balancing. */
   KDTree<float3> *tree = kdtree_new<float3>(selection.size());
-  selection.foreach_index(
-      [&](const int64_t i, const int64_t pos) { kdtree_insert<float3>(tree, pos, positions[i]); });
+  selection.foreach_index_optimized<int64_t>(
+      [&](const int64_t i) { kdtree_insert<float3>(tree, i, positions[i]); });
   kdtree_balance<float3>(tree);
-
-  /* Find the duplicates in the KD tree. Because the tree only contains the selected points, the
-   * resulting indices are indices into the selection, rather than indices of the source point
-   * cloud. */
-  Array<int> selection_merge_indices(selection.size(), -1);
-  const int duplicate_count = kdtree_calc_duplicates_fast<float3>(
-      tree, merge_distance, false, selection_merge_indices.data());
+  Array<int> root_indices(src_points.totpoint, -1);
+  kdtree_calc_duplicates_fast<float3>(tree, merge_distance, false, root_indices.data());
   kdtree_free<float3>(tree);
-
-  /* Create the new point cloud and add it to a temporary component for the attribute API. */
-  const int dst_size = src_size - duplicate_count;
-  PointCloud *dst_pointcloud = BKE_pointcloud_new_nomain(dst_size);
-  bke::MutableAttributeAccessor dst_attributes = dst_pointcloud->attributes_for_write();
-
-  /* By default, every point is just "merged" with itself. Then fill in the results of the merge
-   * finding, converting from indices into the selection to indices into the full input point
-   * cloud. */
-  Array<int> merge_indices(src_size);
-  array_utils::fill_index_range<int>(merge_indices);
-
-  selection.foreach_index([&](const int src_index, const int pos) {
-    const int merge_index = selection_merge_indices[pos];
-    if (merge_index != -1) {
-      const int src_merge_index = selection[merge_index];
-      merge_indices[src_index] = src_merge_index;
+  threading::parallel_for(root_indices.index_range(), 1024, [&](const IndexRange range) {
+    for (const int i : range) {
+      if (root_indices[i] == -1) {
+        root_indices[i] = i;
+      }
     }
   });
-
-  /* For every source index, find the corresponding index in the result by iterating through the
-   * source indices and counting how many merges happened before that point. */
-  int merged_points = 0;
-  Array<int> src_to_dst_indices(src_size);
-  for (const int i : IndexRange(src_size)) {
-    src_to_dst_indices[i] = i - merged_points;
-    if (merge_indices[i] != i) {
-      merged_points++;
-    }
-  }
-
-  /* In order to use a contiguous array as the storage for every destination point's source
-   * indices, first the number of source points must be counted for every result point. */
-  Array<int> point_merge_counts(dst_size, 0);
-  for (const int i : IndexRange(src_size)) {
-    const int merge_index = merge_indices[i];
-    const int dst_index = src_to_dst_indices[merge_index];
-    point_merge_counts[dst_index]++;
-  }
-
-  /* This array stores an offset into `merge_map` for every result point. */
-  Array<int> map_offsets_data(dst_size + 1);
-  int offset = 0;
-  for (const int i : IndexRange(dst_size)) {
-    map_offsets_data[i] = offset;
-    offset += point_merge_counts[i];
-  }
-  map_offsets_data.last() = offset;
-  OffsetIndices<int> map_offsets(map_offsets_data);
-
-  point_merge_counts.fill(0);
-
-  /* This array stores all of the source indices for every result point. The size is the source
-   * size because every input point is either merged with another or copied directly. */
-  Array<int> merge_map_indices(src_size);
-  for (const int i : IndexRange(src_size)) {
-    const int merge_index = merge_indices[i];
-    const int dst_index = src_to_dst_indices[merge_index];
-
-    merge_map_indices[map_offsets[dst_index].first() + point_merge_counts[dst_index]] = i;
-    point_merge_counts[dst_index]++;
-  }
-
-  Set<StringRefNull> attribute_names = src_attributes.all_names();
-
-  /* Transfer the ID attribute if it exists, using the ID of the first merged point. */
-  bke::GAttributeReader src_id_attribute = src_attributes.lookup("id");
-  if (src_id_attribute && src_id_attribute.domain == bke::AttrDomain::Point &&
-      src_id_attribute.varray.type().is<int>())
-  {
-    VArraySpan<int> src = src_id_attribute.varray.typed<int>();
-    bke::SpanAttributeWriter<int> dst = dst_attributes.lookup_or_add_for_write_only_span<int>(
-        "id", bke::AttrDomain::Point);
-
-    threading::parallel_for(IndexRange(dst_size), 1024, [&](IndexRange range) {
-      for (const int i_dst : range) {
-        dst.span[i_dst] = src[map_offsets[i_dst].first()];
-      }
-    });
-
-    dst.finish();
-    attribute_names.remove_contained("id");
-  }
-
-  /* Transfer all other attributes. */
-  for (const StringRef name : attribute_names) {
-    if (attribute_filter.allow_skip(name)) {
-      continue;
-    }
-
-    bke::GAttributeReader src_attribute = src_attributes.lookup(name);
-    const bke::AttrType type = bke::cpp_type_to_attribute_type(src_attribute.varray.type());
-
-    const CommonVArrayInfo info = src_attribute.varray.common_info();
-    if (info.type == CommonVArrayInfo::Type::Single) {
-      const bke::AttributeInitValue init(GPointer(src_attribute.varray.type(), info.data));
-      if (dst_attributes.add(name, bke::AttrDomain::Point, type, init)) {
-        continue;
-      }
-    }
-
-    bke::GSpanAttributeWriter dst_attribute = dst_attributes.lookup_or_add_for_write_only_span(
-        name, bke::AttrDomain::Point, type);
-    bke::attribute_math::mix_groups(
-        GVArraySpan(src_attribute.varray), map_offsets, merge_map_indices, dst_attribute.span);
-    dst_attribute.finish();
-  }
-
-  debug_randomize_point_order(dst_pointcloud);
-
-  return dst_pointcloud;
+  return merge_points(src_points, selection, root_indices.as_span(), attribute_filter);
 }
 
 }  // namespace blender::geometry

@@ -6,6 +6,8 @@
 
 #include <optional>
 
+#include "BKE_attribute_filter.hh"
+
 #include "BLI_index_mask.hh"
 #include "BLI_span.hh"
 
@@ -63,6 +65,11 @@ Mesh *mesh_merge_verts(const Mesh &mesh,
                        MutableSpan<int> vert_dest_map,
                        int vert_dest_map_len,
                        const bool do_mix_data);
+
+Mesh *mesh_merge_verts(const Mesh &mesh,
+                       const IndexMask &selection,
+                       Span<int> merge_ids,
+                       const bke::AttributeFilter &attribute_filter);
 
 }  // namespace geometry
 }  // namespace blender
