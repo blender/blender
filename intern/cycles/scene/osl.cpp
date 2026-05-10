@@ -365,18 +365,19 @@ void OSLManager::shading_system_init(const string &colorspace_interop_id)
 
       /* our own ray types */
       static const char *raytypes[] = {
-          "camera",          /* PATH_RAY_VISIBILITY_CAMERA */
-          "reflection",      /* PATH_RAY_REFLECT */
-          "refraction",      /* PATH_RAY_VISIBILITY_TRANSMIT */
-          "diffuse",         /* PATH_RAY_VISIBILITY_DIFFUSE */
-          "glossy",          /* PATH_RAY_VISIBILITY_GLOSSY */
-          "singular",        /* PATH_RAY_SINGULAR */
-          "transparent",     /* PATH_RAY_TRANSPARENT */
-          "volume_scatter",  /* PATH_RAY_VISIBILITY_VOLUME_SCATTER */
-          "importance_bake", /* PATH_RAY_IMPORTANCE_BAKE */
+          "camera",         /* PATH_RAY_VISIBILITY_CAMERA */
+          "refraction",     /* PATH_RAY_VISIBILITY_TRANSMIT */
+          "diffuse",        /* PATH_RAY_VISIBILITY_DIFFUSE */
+          "glossy",         /* PATH_RAY_VISIBILITY_GLOSSY */
+          "volume_scatter", /* PATH_RAY_VISIBILITY_VOLUME_SCATTER */
 
           "shadow", /* PATH_RAY_VISIBILITY_SHADOW_OPAQUE */
           "shadow", /* PATH_RAY_VISIBILITY_SHADOW_TRANSPARENT */
+
+          "reflection",      /* PATH_RAY_REFLECT */
+          "singular",        /* PATH_RAY_SINGULAR */
+          "transparent",     /* PATH_RAY_TRANSPARENT */
+          "importance_bake", /* PATH_RAY_IMPORTANCE_BAKE */
 
           "__unused__", /* PATH_RAY_VISIBILITY_NODE_UNALIGNED */
           "__unused__", /* PATH_RAY_MIS_SKIP */
