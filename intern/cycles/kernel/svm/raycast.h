@@ -77,7 +77,7 @@ ccl_device bool svm_raycast(KernelGlobals kg,
   }
   else {
     /* Ray-trace, leaving out shadow opaque to avoid early exit. */
-    const uint visibility = PATH_RAY_VISIBILITY_ALL - PATH_RAY_VISIBILITY_SHADOW_OPAQUE;
+    const uint visibility = PATH_RAY_VISIBILITY_ALL & ~PATH_RAY_VISIBILITY_SHADOW_OPAQUE;
     if (!scene_intersect(kg, &ray, visibility, &isect)) {
       return false;
     }

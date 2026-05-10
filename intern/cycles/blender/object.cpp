@@ -220,7 +220,7 @@ Object *BlenderSync::sync_object(blender::ViewLayer &b_view_layer,
   /* TODO: make holdout objects on excluded layer invisible for non-camera rays. */
 #if 0
   if (use_holdout && (layer_flag & view_layer.exclude_layer)) {
-    visibility &= ~(PATH_RAY_VISIBILITY_ALL - PATH_RAY_VISIBILITY_CAMERA);
+    visibility &= ~(PATH_RAY_VISIBILITY_ALL & ~PATH_RAY_VISIBILITY_CAMERA);
   }
 #endif
 
