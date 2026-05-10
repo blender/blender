@@ -139,6 +139,8 @@ enum PathRayFlag : uint32_t {
    * NOTE: Recalculated after a surface bounce.
    */
 
+  PATH_RAY_VISIBILITY_NONE = 0,
+
   PATH_RAY_VISIBILITY_CAMERA = (1U << 0U),
   PATH_RAY_REFLECT = (1U << 1U),
   PATH_RAY_VISIBILITY_TRANSMIT = (1U << 2U),

@@ -724,19 +724,19 @@ static inline uint object_ray_visibility(blender::Object &b_ob)
   uint flag = 0;
 
   flag |= ((b_ob.visibility_flag & blender::OB_HIDE_CAMERA) == 0) ? PATH_RAY_VISIBILITY_CAMERA :
-                                                                    PathRayFlag(0);
+                                                                    PATH_RAY_VISIBILITY_NONE;
   flag |= ((b_ob.visibility_flag & blender::OB_HIDE_DIFFUSE) == 0) ? PATH_RAY_VISIBILITY_DIFFUSE :
-                                                                     PathRayFlag(0);
+                                                                     PATH_RAY_VISIBILITY_NONE;
   flag |= ((b_ob.visibility_flag & blender::OB_HIDE_GLOSSY) == 0) ? PATH_RAY_VISIBILITY_GLOSSY :
-                                                                    PathRayFlag(0);
+                                                                    PATH_RAY_VISIBILITY_NONE;
   flag |= ((b_ob.visibility_flag & blender::OB_HIDE_TRANSMISSION) == 0) ?
               PATH_RAY_VISIBILITY_TRANSMIT :
-              PathRayFlag(0);
+              PATH_RAY_VISIBILITY_NONE;
   flag |= ((b_ob.visibility_flag & blender::OB_HIDE_SHADOW) == 0) ? PATH_RAY_VISIBILITY_SHADOW :
-                                                                    PathRayFlag(0);
+                                                                    PATH_RAY_VISIBILITY_NONE;
   flag |= ((b_ob.visibility_flag & blender::OB_HIDE_VOLUME_SCATTER) == 0) ?
               PATH_RAY_VISIBILITY_VOLUME_SCATTER :
-              PathRayFlag(0);
+              PATH_RAY_VISIBILITY_NONE;
 
   return flag;
 }

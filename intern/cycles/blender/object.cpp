@@ -232,7 +232,7 @@ Object *BlenderSync::sync_object(blender::ViewLayer &b_view_layer,
   }
 
   /* Don't export completely invisible objects. */
-  if (visibility == 0) {
+  if (visibility == PATH_RAY_VISIBILITY_NONE) {
     return nullptr;
   }
 
