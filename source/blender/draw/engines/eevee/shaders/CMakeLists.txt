@@ -84,9 +84,6 @@ set(SRC_GLSL_COMP
   eevee_lightprobe_volume_ray_comp.glsl
   eevee_lightprobe_volume_world_comp.glsl
   eevee_lookdev_copy_world_comp.glsl
-  eevee_motion_blur_dilate_comp.glsl
-  eevee_motion_blur_flatten_comp.glsl
-  eevee_motion_blur_gather_comp.glsl
   eevee_ray_generate_comp.glsl
   eevee_ray_tile_classify_comp.glsl
   eevee_ray_tile_compact_comp.glsl
@@ -122,7 +119,6 @@ set(SRC_GLSL_LIB
   eevee_lightprobe_sphere_lib.glsl
   eevee_lightprobe_sphere_mapping_lib.glsl
   eevee_lightprobe_volume_eval_lib.glsl
-  eevee_motion_blur_lib.glsl
   # eevee_nodetree_lib.glsl # Has dependency on draw_model_lib that is hard to resolve
   eevee_ray_generate_lib.glsl
   eevee_renderpass_lib.glsl

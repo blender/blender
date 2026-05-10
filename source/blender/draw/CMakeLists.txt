@@ -336,7 +336,6 @@ set(GLSL_SRC
   engines/eevee/shaders/infos/eevee_lightprobe_volume_infos.hh
   engines/eevee/shaders/infos/eevee_lookdev_infos.hh
   engines/eevee/shaders/infos/eevee_material_infos.hh
-  engines/eevee/shaders/infos/eevee_motion_blur_infos.hh
   engines/eevee/shaders/infos/eevee_nodetree_infos.hh
   engines/eevee/shaders/infos/eevee_raycast_infos.hh
   engines/eevee/shaders/infos/eevee_sampling_infos.hh
@@ -466,10 +465,7 @@ set(GLSL_SRC
   engines/eevee/shaders/eevee_lookdev_display_vert.glsl
   engines/eevee/shaders/eevee_ltc_lib.bsl.hh
   engines/eevee/shaders/eevee_ltc_lut_lib.bsl.hh
-  engines/eevee/shaders/eevee_motion_blur_dilate_comp.glsl
-  engines/eevee/shaders/eevee_motion_blur_flatten_comp.glsl
-  engines/eevee/shaders/eevee_motion_blur_gather_comp.glsl
-  engines/eevee/shaders/eevee_motion_blur_lib.glsl
+  engines/eevee/shaders/eevee_motion_blur.bsl.hh
   engines/eevee/shaders/eevee_nodetree_closures_lib.glsl
   engines/eevee/shaders/eevee_nodetree_frag_lib.glsl
   engines/eevee/shaders/eevee_nodetree_lib.glsl
