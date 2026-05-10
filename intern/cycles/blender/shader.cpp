@@ -1854,7 +1854,7 @@ void BlenderSync::sync_world(blender::Depsgraph &b_depsgraph,
     if (b_world) {
       blender::PointerRNA world_rna_ptr = RNA_id_pointer_create(&b_world->id);
       blender::PointerRNA cvisibility = RNA_pointer_get(&world_rna_ptr, "cycles_visibility");
-      uint visibility = PATH_RAY_VISIBILITY_NONE;
+      PathRayVisibility visibility = PATH_RAY_VISIBILITY_NONE;
 
       visibility |= get_boolean(cvisibility, "camera") ? PATH_RAY_VISIBILITY_CAMERA :
                                                          PATH_RAY_VISIBILITY_NONE;

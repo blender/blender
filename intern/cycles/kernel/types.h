@@ -251,6 +251,11 @@ enum PathRayFlag : uint32_t {
   PATH_RAY_VOLUME_PRIMARY_TRANSMIT = (1U << 23U),
 };
 
+/* Type that is used to pass visibility flags around in the kernel.
+ * It is a wider type than the number of bits required by the visibility enum values due to shadow
+ * catcher visibility (see shadow catcher utilities below). */
+using PathRayVisibility = uint32_t;
+
 // 8bit enum, just in case we need to move more variables in it
 enum PathRayMNEE {
   PATH_MNEE_NONE = 0,

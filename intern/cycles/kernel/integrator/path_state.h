@@ -252,11 +252,11 @@ ccl_device_inline bool path_state_volume_next(IntegratorState state)
 }
 #endif
 
-ccl_device_inline uint path_state_ray_visibility(ConstIntegratorState state)
+ccl_device_inline PathRayVisibility path_state_ray_visibility(ConstIntegratorState state)
 {
   const uint32_t path_flag = INTEGRATOR_STATE(state, path, flag);
 
-  uint32_t visibility = path_flag & PATH_RAY_VISIBILITY_ALL;
+  PathRayVisibility visibility = path_flag & PATH_RAY_VISIBILITY_ALL;
 
   /* For visibility, diffuse/glossy are for reflection only. */
   if (visibility & PATH_RAY_VISIBILITY_TRANSMIT) {

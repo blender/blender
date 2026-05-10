@@ -719,26 +719,30 @@ static inline void object_subdivision_to_mesh(blender::Object &b_ob,
   }
 }
 
-static inline uint object_ray_visibility(blender::Object &b_ob)
+static inline PathRayVisibility object_ray_visibility(blender::Object &b_ob)
 {
-  uint flag = 0;
+  PathRayVisibility visibility = PATH_RAY_VISIBILITY_NONE;
 
-  flag |= ((b_ob.visibility_flag & blender::OB_HIDE_CAMERA) == 0) ? PATH_RAY_VISIBILITY_CAMERA :
-                                                                    PATH_RAY_VISIBILITY_NONE;
-  flag |= ((b_ob.visibility_flag & blender::OB_HIDE_DIFFUSE) == 0) ? PATH_RAY_VISIBILITY_DIFFUSE :
-                                                                     PATH_RAY_VISIBILITY_NONE;
-  flag |= ((b_ob.visibility_flag & blender::OB_HIDE_GLOSSY) == 0) ? PATH_RAY_VISIBILITY_GLOSSY :
-                                                                    PATH_RAY_VISIBILITY_NONE;
-  flag |= ((b_ob.visibility_flag & blender::OB_HIDE_TRANSMISSION) == 0) ?
-              PATH_RAY_VISIBILITY_TRANSMIT :
-              PATH_RAY_VISIBILITY_NONE;
-  flag |= ((b_ob.visibility_flag & blender::OB_HIDE_SHADOW) == 0) ? PATH_RAY_VISIBILITY_SHADOW :
-                                                                    PATH_RAY_VISIBILITY_NONE;
-  flag |= ((b_ob.visibility_flag & blender::OB_HIDE_VOLUME_SCATTER) == 0) ?
-              PATH_RAY_VISIBILITY_VOLUME_SCATTER :
-              PATH_RAY_VISIBILITY_NONE;
+  visibility |= ((b_ob.visibility_flag & blender::OB_HIDE_CAMERA) == 0) ?
+                    PATH_RAY_VISIBILITY_CAMERA :
+                    PATH_RAY_VISIBILITY_NONE;
+  visibility |= ((b_ob.visibility_flag & blender::OB_HIDE_DIFFUSE) == 0) ?
+                    PATH_RAY_VISIBILITY_DIFFUSE :
+                    PATH_RAY_VISIBILITY_NONE;
+  visibility |= ((b_ob.visibility_flag & blender::OB_HIDE_GLOSSY) == 0) ?
+                    PATH_RAY_VISIBILITY_GLOSSY :
+                    PATH_RAY_VISIBILITY_NONE;
+  visibility |= ((b_ob.visibility_flag & blender::OB_HIDE_TRANSMISSION) == 0) ?
+                    PATH_RAY_VISIBILITY_TRANSMIT :
+                    PATH_RAY_VISIBILITY_NONE;
+  visibility |= ((b_ob.visibility_flag & blender::OB_HIDE_SHADOW) == 0) ?
+                    PATH_RAY_VISIBILITY_SHADOW :
+                    PATH_RAY_VISIBILITY_NONE;
+  visibility |= ((b_ob.visibility_flag & blender::OB_HIDE_VOLUME_SCATTER) == 0) ?
+                    PATH_RAY_VISIBILITY_VOLUME_SCATTER :
+                    PATH_RAY_VISIBILITY_NONE;
 
-  return flag;
+  return visibility;
 }
 
 /* Check whether some of "built-in" motion-related attributes are needed to be exported (includes
