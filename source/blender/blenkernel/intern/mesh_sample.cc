@@ -495,16 +495,42 @@ void BaryWeightSampleFn::call(const IndexMask &mask,
   GMutableSpan dst = params.uninitialized_single_output(2, "Value");
   IndexMaskMemory memory;
   const IndexMask valid_mask = array_utils::indices_non_negative(mask, triangle_indices, memory);
-  attribute_math::to_static_type(dst.type(), [&]<typename T>() {
-    if constexpr (!std::is_same_v<T, std::string>) {
-      sample_corner_attribute<T>(corner_tris_,
-                                 triangle_indices,
-                                 bary_weights,
-                                 source_data_->typed<T>(),
-                                 valid_mask,
-                                 dst.typed<T>());
-    }
-  });
+  switch (src_domain_) {
+    case AttrDomain::Point:
+      attribute_math::to_static_type(dst.type(), [&]<typename T>() {
+        if constexpr (!std::is_same_v<T, std::string>) {
+          sample_point_attribute<T>(corner_verts_,
+                                    corner_tris_,
+                                    triangle_indices,
+                                    bary_weights,
+                                    source_data_->typed<T>(),
+                                    valid_mask,
+                                    dst.typed<T>());
+        }
+      });
+      break;
+    case AttrDomain::Face:
+      attribute_math::to_static_type(dst.type(), [&]<typename T>() {
+        sample_face_attribute<T>(
+            tri_faces_, triangle_indices, source_data_->typed<T>(), valid_mask, dst.typed<T>());
+      });
+      break;
+    case AttrDomain::Corner:
+      attribute_math::to_static_type(dst.type(), [&]<typename T>() {
+        if constexpr (!std::is_same_v<T, std::string>) {
+          sample_corner_attribute<T>(corner_tris_,
+                                     triangle_indices,
+                                     bary_weights,
+                                     source_data_->typed<T>(),
+                                     valid_mask,
+                                     dst.typed<T>());
+        }
+      });
+      break;
+    default:
+      BLI_assert_unreachable();
+      break;
+  }
   dst.type().value_initialize_indices(dst.data(), valid_mask.complement(mask, memory));
 }
 
@@ -520,14 +546,23 @@ void BaryWeightSampleFn::hash_unique(UniqueHashBytes &hash) const
 void BaryWeightSampleFn::prepare_for_execution() const
 {
   mutex_.ensure([&]() {
-    const Mesh &mesh = *source_.get_mesh();
+    const auto &component = *source_.get_component<bke::MeshComponent>();
+    const Mesh &mesh = *component.get();
+    corner_verts_ = mesh.corner_verts();
     corner_tris_ = mesh.corner_tris();
-    /* Use the most complex domain for now, ensuring no information is lost. In the future, it
-     * should be possible to use the most complex domain required by the field inputs, to simplify
-     * sampling and avoid domain conversions. */
-    domain_ = AttrDomain::Corner;
-    source_context_.emplace(MeshFieldContext(mesh, domain_));
-    const int domain_size = mesh.attributes().domain_size(domain_);
+    src_domain_ =
+        bke::try_detect_native_field_domain(component, src_field_).value_or(AttrDomain::Corner);
+    if (src_domain_ == AttrDomain::Edge) {
+      /* To maintain legacy behavior and avoid making decisions here about barycentric mixing of
+       * edge attributes, just use the domain interpolation to read the attribute on the face
+       * corner domain. */
+      src_domain_ = AttrDomain::Corner;
+    }
+    else if (src_domain_ == AttrDomain::Face) {
+      tri_faces_ = mesh.corner_tri_faces();
+    }
+    source_context_.emplace(MeshFieldContext(mesh, src_domain_));
+    const int domain_size = mesh.attributes().domain_size(src_domain_);
     source_evaluator_ = std::make_unique<fn::FieldEvaluator>(*source_context_, domain_size);
     source_evaluator_->add(src_field_);
     source_evaluator_->evaluate();

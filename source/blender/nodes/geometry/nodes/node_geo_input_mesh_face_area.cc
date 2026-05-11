@@ -51,6 +51,11 @@ class FaceAreaFieldInput final : public bke::MeshFieldInput {
   {
     return AttrDomain::Face;
   }
+
+  bke::NativeFieldDomain native_domain_info(const Mesh & /*mesh*/) const override
+  {
+    return bke::NativeFieldDomain::Domain{AttrDomain::Face};
+  }
 };
 
 static void node_geo_exec(GeoNodeExecParams params)

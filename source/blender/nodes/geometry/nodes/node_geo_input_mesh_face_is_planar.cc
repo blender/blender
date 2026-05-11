@@ -91,6 +91,11 @@ class PlanarFieldInput final : public bke::MeshFieldInput {
   {
     return AttrDomain::Face;
   }
+
+  bke::NativeFieldDomain native_domain_info(const Mesh & /*mesh*/) const override
+  {
+    return bke::NativeFieldDomain::Domain{AttrDomain::Face};
+  }
 };
 
 static void geo_node_exec(GeoNodeExecParams params)
