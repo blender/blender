@@ -168,13 +168,15 @@ void ImageCache::free_image(DeviceScene &dscene, const KernelImageTexture &tex)
 
 void ImageCache::free_tiled_image(DeviceScene &dscene, const KernelImageTexture &tex)
 {
+  /* Hold the mutex across the whole loop as tile_descriptors may get resized elsewhere. */
+  thread_scoped_lock device_lock(device_mutex);
+
   /* TODO: Shrink tile_descriptors by compacting. */
   KernelTileDescriptor *descriptors = dscene.image_texture_tile_descriptors.data() +
                                       tex.tile_descriptor_offset + tex.tile_levels;
 
   for (int i = 0; i < tex.tile_num; i++) {
     if (kernel_tile_descriptor_loaded(descriptors[i])) {
-      thread_scoped_lock device_lock(device_mutex);
       free_tile(descriptors[i]);
     }
   }
