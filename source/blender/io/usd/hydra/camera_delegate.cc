@@ -10,63 +10,93 @@
 
 #include "BKE_idprop.hh"
 
-#include <pxr/imaging/hd/camera.h>
+#include "BLI_listbase.h"
+
+#include <pxr/imaging/hd/dataSource.h>
+#include <pxr/imaging/hd/overlayContainerDataSource.h>
+#include <pxr/imaging/hd/retainedDataSource.h>
+#include <pxr/imaging/hd/sceneIndexObserver.h>
+#include <pxr/imaging/hd/tokens.h>
 
 namespace blender::io::hydra {
 
-static pxr::VtValue vt_value(const IDProperty *prop)
-{
-  switch (prop->type) {
-    case IDP_INT:
-      return pxr::VtValue{IDP_int_get(prop)};
-    case IDP_FLOAT:
-      return pxr::VtValue{IDP_float_get(prop)};
-    case IDP_DOUBLE:
-      return pxr::VtValue{IDP_double_get(prop)};
-    case IDP_BOOLEAN:
-      return pxr::VtValue{bool(IDP_bool_get(prop))};
-    default:
-      break;
-  }
-  return pxr::VtValue{};
-}
+class BlenderCameraIDPropertiesDataSource : public pxr::HdContainerDataSource {
+ public:
+  HD_DECLARE_DATASOURCE(BlenderCameraIDPropertiesDataSource);
 
-CameraDelegate::CameraDelegate(pxr::HdRenderIndex *render_index, pxr::SdfPath const &delegate_id)
-    : pxr::HdxFreeCameraSceneDelegate{render_index, delegate_id}
+  void set_camera(const Camera *camera)
+  {
+    camera_ = camera;
+  }
+
+  pxr::TfTokenVector GetNames() override
+  {
+    pxr::TfTokenVector result;
+    if (camera_ && camera_->id.properties) {
+      for (const IDProperty &prop : camera_->id.properties->data.group) {
+        result.push_back(pxr::TfToken(prop.name));
+      }
+    }
+    return result;
+  }
+
+  pxr::HdDataSourceBaseHandle Get(const pxr::TfToken &name) override
+  {
+    if (!camera_ || !camera_->id.properties) {
+      return nullptr;
+    }
+    const IDProperty *prop = IDP_GetPropertyFromGroup(camera_->id.properties, name.GetText());
+    if (!prop) {
+      return nullptr;
+    }
+    switch (prop->type) {
+      case IDP_INT:
+        return pxr::HdRetainedTypedSampledDataSource<int>::New(IDP_int_get(prop));
+      case IDP_FLOAT:
+        return pxr::HdRetainedTypedSampledDataSource<float>::New(IDP_float_get(prop));
+      case IDP_DOUBLE:
+        return pxr::HdRetainedTypedSampledDataSource<double>::New(IDP_double_get(prop));
+      case IDP_BOOLEAN:
+        return pxr::HdRetainedTypedSampledDataSource<bool>::New(bool(IDP_bool_get(prop)));
+      default:
+        return nullptr;
+    }
+  }
+
+ private:
+  const Camera *camera_ = nullptr;
+};
+
+CameraDelegate::CameraDelegate(pxr::HdRenderIndex *render_index, pxr::SdfPath const &camera_id)
+    : camera_scene_index_(pxr::HdRetainedSceneIndex::New()),
+      camera_id_(camera_id),
+      free_camera_ds_(pxr::HdxFreeCameraPrimDataSource::New()),
+      id_properties_ds_(BlenderCameraIDPropertiesDataSource::New())
 {
+  pxr::HdContainerDataSourceHandle camera_ds = pxr::HdOverlayContainerDataSource::New(
+      id_properties_ds_, free_camera_ds_);
+
+  camera_scene_index_->AddPrims({{camera_id_, pxr::HdPrimTypeTokens->camera, camera_ds}});
+
+  render_index->InsertSceneIndex(
+      camera_scene_index_, pxr::SdfPath::AbsoluteRootPath(), /*needsPrefixing=*/false);
 }
 
 void CameraDelegate::sync(const Scene *scene)
 {
-  if (!scene || !scene->camera) {
-    return;
-  }
-
-  const Camera *camera = id_cast<const Camera *>(scene->camera->data);
-  if (camera_ == camera) {
-    return;
-  }
-
-  camera_ = camera;
-  GetRenderIndex().GetChangeTracker().MarkSprimDirty(GetCameraId(), pxr::HdCamera::DirtyParams);
+  const Camera *camera = (scene && scene->camera) ? id_cast<const Camera *>(scene->camera->data) :
+                                                    nullptr;
+  id_properties_ds_->set_camera(camera);
+  camera_scene_index_->DirtyPrims({{camera_id_, pxr::HdDataSourceLocator::EmptyLocator()}});
 }
 
-void CameraDelegate::update(const ID *camera)
+void CameraDelegate::SetCamera(pxr::GfCamera const &camera)
 {
-  if (&camera_->id == camera) {
-    GetRenderIndex().GetChangeTracker().MarkSprimDirty(GetCameraId(), pxr::HdCamera::DirtyParams);
+  pxr::HdDataSourceLocatorSet dirty_locators;
+  free_camera_ds_->SetCamera(camera, &dirty_locators);
+  if (!dirty_locators.IsEmpty()) {
+    camera_scene_index_->DirtyPrims({{camera_id_, dirty_locators}});
   }
-}
-
-pxr::VtValue CameraDelegate::GetCameraParamValue(pxr::SdfPath const &id, pxr::TfToken const &key)
-{
-  if (camera_ && camera_->id.properties) {
-    const IDProperty *prop = IDP_GetPropertyFromGroup(camera_->id.properties, key.GetText());
-    if (prop) {
-      return vt_value(prop);
-    }
-  }
-  return pxr::HdxFreeCameraSceneDelegate::GetCameraParamValue(id, key);
 }
 
 }  // namespace blender::io::hydra

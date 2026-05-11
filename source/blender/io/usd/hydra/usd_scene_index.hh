@@ -7,7 +7,9 @@
 #include <string>
 
 #include <pxr/imaging/hd/renderIndex.h>
-#include <pxr/usdImaging/usdImaging/delegate.h>
+#include <pxr/imaging/hd/sceneIndex.h>
+#include <pxr/usd/usd/stage.h>
+#include <pxr/usdImaging/usdImaging/stageSceneIndex.h>
 
 namespace blender {
 
@@ -16,12 +18,13 @@ struct Depsgraph;
 namespace io::hydra {
 
 /* Populate Hydra render index using USD file export, for testing. */
-class USDSceneDelegate {
+class USDSceneIndex {
  private:
   pxr::HdRenderIndex *render_index_;
   pxr::SdfPath const delegate_id_;
   pxr::UsdStageRefPtr stage_;
-  std::unique_ptr<pxr::UsdImagingDelegate> delegate_;
+  pxr::UsdImagingStageSceneIndexRefPtr stage_scene_index_;
+  pxr::HdSceneIndexBaseRefPtr final_scene_index_;
 
   std::string temp_dir_;
   std::string temp_file_;
@@ -29,10 +32,10 @@ class USDSceneDelegate {
   bool use_materialx = true;
 
  public:
-  USDSceneDelegate(pxr::HdRenderIndex *render_index,
-                   pxr::SdfPath const &delegate_id,
-                   bool use_materialx);
-  ~USDSceneDelegate();
+  USDSceneIndex(pxr::HdRenderIndex *render_index,
+                pxr::SdfPath const &delegate_id,
+                bool use_materialx);
+  ~USDSceneIndex();
 
   void populate(Depsgraph *depsgraph);
 };

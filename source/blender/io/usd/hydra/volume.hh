@@ -4,40 +4,21 @@
 
 #pragma once
 
-#include <pxr/imaging/hd/sceneDelegate.h>
+namespace blender {
 
-#include "object.hh"
+struct Object;
 
-namespace blender::io::hydra {
+namespace io::hydra {
 
-class HydraSceneDelegate;
+struct EmittedObject;
+struct PopulateContext;
 
-class VolumeData : public ObjectData {
- protected:
-  std::string filepath_;
-  pxr::HdVolumeFieldDescriptorVector field_descriptors_;
-  MaterialData *mat_data_ = nullptr;
+/** Emit a volume Rprim for either a volume object or fluid modifier. */
+bool emit_volume_object(PopulateContext &ctx, const Object *object, EmittedObject &emitted);
 
- public:
-  VolumeData(HydraSceneDelegate *scene_delegate,
-             const Object *object,
-             pxr::SdfPath const &prim_id);
+/** Emit a per-dupli volume prim. Volumes aren't gprims and don't go
+ * through the instancer prototype mechanism. */
+void emit_volume_dupli(PopulateContext &ctx, const Object *source, const float dupli_mat[4][4]);
 
-  void init() override;
-  void insert() override;
-  void remove() override;
-  void update() override;
-
-  pxr::VtValue get_data(pxr::TfToken const &key) const override;
-  pxr::VtValue get_data(pxr::SdfPath const &id, pxr::TfToken const &key) const override;
-  void available_materials(Set<pxr::SdfPath> &paths) const override;
-
-  MaterialData *get_material_data(pxr::SdfPath const &id) const override;
-
-  pxr::HdVolumeFieldDescriptorVector field_descriptors() const;
-
- protected:
-  void write_materials() override;
-};
-
-}  // namespace blender::io::hydra
+}  // namespace io::hydra
+}  // namespace blender

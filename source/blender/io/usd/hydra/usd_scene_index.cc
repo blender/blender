@@ -2,7 +2,9 @@
  *
  * SPDX-License-Identifier: GPL-2.0-or-later */
 
-#include "usd_scene_delegate.hh"
+#include "usd_scene_index.hh"
+
+#include <pxr/usdImaging/usdImaging/sceneIndices.h>
 
 #include "BLI_fileops.h"
 #include "BLI_path_utils.hh"
@@ -25,9 +27,9 @@ using namespace blender::io::usd;
 
 namespace io::hydra {
 
-USDSceneDelegate::USDSceneDelegate(pxr::HdRenderIndex *render_index,
-                                   pxr::SdfPath const &delegate_id,
-                                   const bool use_materialx)
+USDSceneIndex::USDSceneIndex(pxr::HdRenderIndex *render_index,
+                             pxr::SdfPath const &delegate_id,
+                             const bool use_materialx)
     : render_index_(render_index), delegate_id_(delegate_id), use_materialx(use_materialx)
 {
   /* Temporary directory to write any additional files to, like image or VDB files. */
@@ -35,8 +37,7 @@ USDSceneDelegate::USDSceneDelegate(pxr::HdRenderIndex *render_index,
   SNPRINTF(unique_name, "%p", this);
 
   char dir_path[FILE_MAX];
-  BLI_path_join(
-      dir_path, sizeof(dir_path), BKE_tempdir_session(), "usd_scene_delegate", unique_name);
+  BLI_path_join(dir_path, sizeof(dir_path), BKE_tempdir_session(), "usd_scene_index", unique_name);
   BLI_dir_create_recursive(dir_path);
 
   char file_path[FILE_MAX];
@@ -46,12 +47,15 @@ USDSceneDelegate::USDSceneDelegate(pxr::HdRenderIndex *render_index,
   temp_file_ = file_path;
 }
 
-USDSceneDelegate::~USDSceneDelegate()
+USDSceneIndex::~USDSceneIndex()
 {
+  if (final_scene_index_) {
+    render_index_->RemoveSceneIndex(final_scene_index_);
+  }
   BLI_delete(temp_dir_.c_str(), true, true);
 }
 
-void USDSceneDelegate::populate(Depsgraph *depsgraph)
+void USDSceneIndex::populate(Depsgraph *depsgraph)
 {
   USDExportParams params;
   params.use_instancing = true;
@@ -75,13 +79,23 @@ void USDSceneDelegate::populate(Depsgraph *depsgraph)
   BLI_dir_create_recursive(temp_dir_.c_str());
 
   /* Free previous delegate and stage first to save memory. */
-  delegate_.reset();
+  if (final_scene_index_) {
+    render_index_->RemoveSceneIndex(final_scene_index_);
+    final_scene_index_.Reset();
+    stage_scene_index_.Reset();
+  }
   stage_.Reset();
 
   /* Convert depsgraph to stage + additional file in temp directory. */
   stage_ = io::usd::export_to_stage(params, depsgraph, temp_file_.c_str());
-  delegate_ = std::make_unique<pxr::UsdImagingDelegate>(render_index_, delegate_id_);
-  delegate_->Populate(stage_->GetPseudoRoot());
+
+  /* Build imaging scene index chain and insert into the render index. */
+  pxr::UsdImagingCreateSceneIndicesInfo info;
+  info.stage = stage_;
+  pxr::UsdImagingSceneIndices indices = pxr::UsdImagingCreateSceneIndices(info);
+  stage_scene_index_ = indices.stageSceneIndex;
+  final_scene_index_ = indices.finalSceneIndex;
+  render_index_->InsertSceneIndex(final_scene_index_, delegate_id_);
 
   WM_reports_from_reports_move(nullptr, &worker_reports);
 

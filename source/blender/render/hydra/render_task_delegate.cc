@@ -9,8 +9,14 @@
 #  include <epoxy/gl.h>
 #endif
 
+#include <pxr/imaging/hd/legacyTaskFactory.h>
+#include <pxr/imaging/hd/legacyTaskSchema.h>
 #include <pxr/imaging/hd/renderBuffer.h>
+#include <pxr/imaging/hd/renderBufferSchema.h>
 #include <pxr/imaging/hd/renderDelegate.h>
+#include <pxr/imaging/hd/retainedDataSource.h>
+#include <pxr/imaging/hd/sceneIndexObserver.h>
+#include <pxr/imaging/hd/tokens.h>
 #include <pxr/imaging/hdx/renderTask.h>
 
 #include "BLI_utildefines.h"
@@ -23,13 +29,14 @@
 
 namespace blender::render::hydra {
 
-RenderTaskDelegate::RenderTaskDelegate(pxr::HdRenderIndex *parent_index,
-                                       pxr::SdfPath const &delegate_id)
-    : pxr::HdSceneDelegate(parent_index, delegate_id)
+RenderTaskDelegate::RenderTaskDelegate(pxr::HdRenderIndex *render_index,
+                                       pxr::HdRetainedSceneIndexRefPtr task_scene_index,
+                                       pxr::SdfPath const &base_id)
+    : render_index_(render_index),
+      task_scene_index_(std::move(task_scene_index)),
+      base_id_(base_id),
+      task_id_(base_id.AppendElementString("task"))
 {
-  task_id_ = GetDelegateID().AppendElementString("task");
-  GetRenderIndex().InsertTask<pxr::HdxRenderTask>(this, task_id_);
-
   task_params_.enableLighting = true;
   task_params_.alphaThreshold = 0.1f;
 
@@ -37,40 +44,59 @@ RenderTaskDelegate::RenderTaskDelegate(pxr::HdRenderIndex *parent_index,
    * the former seems to use multisample. */
   task_params_.useAovMultiSample = false;
 
+  publish_task();
+
   CLOG_DEBUG(LOG_HYDRA_RENDER, "%s", task_id_.GetText());
 }
 
-pxr::VtValue RenderTaskDelegate::Get(pxr::SdfPath const &id, pxr::TfToken const &key)
+void RenderTaskDelegate::publish_task()
 {
-  CLOG_DEBUG(LOG_HYDRA_RENDER, "%s, %s", id.GetText(), key.GetText());
+  const pxr::HdRprimCollection collection(pxr::HdTokens->geometry,
+                                          pxr::HdReprSelector(pxr::HdReprTokens->smoothHull));
+  const pxr::TfTokenVector render_tags = {pxr::HdRenderTagTokens->geometry};
 
-  if (key == pxr::HdTokens->params) {
-    return pxr::VtValue(task_params_);
-  }
-  if (key == pxr::HdTokens->collection) {
-    return pxr::VtValue(pxr::HdRprimCollection(
-        pxr::HdTokens->geometry, pxr::HdReprSelector(pxr::HdReprTokens->smoothHull)));
-  }
-  return pxr::VtValue();
+  pxr::HdContainerDataSourceHandle task_ds =
+      pxr::HdLegacyTaskSchema::Builder()
+          .SetFactory(
+              pxr::HdRetainedTypedSampledDataSource<pxr::HdLegacyTaskFactorySharedPtr>::New(
+                  pxr::HdMakeLegacyTaskFactory<pxr::HdxRenderTask>()))
+          .SetParameters(task_params_ds_)
+          .SetCollection(
+              pxr::HdRetainedTypedSampledDataSource<pxr::HdRprimCollection>::New(collection))
+          .SetRenderTags(
+              pxr::HdRetainedTypedSampledDataSource<pxr::TfTokenVector>::New(render_tags))
+          .Build();
+
+  task_scene_index_->AddPrims({{task_id_,
+                                pxr::HdPrimTypeTokens->task,
+                                pxr::HdRetainedContainerDataSource::New(
+                                    pxr::HdLegacyTaskSchema::GetSchemaToken(), task_ds)}});
 }
 
-pxr::TfTokenVector RenderTaskDelegate::GetTaskRenderTags(pxr::SdfPath const &id)
+void RenderTaskDelegate::dirty_task_params()
 {
-  CLOG_DEBUG(LOG_HYDRA_RENDER, "%s", id.GetText());
-
-  return {pxr::HdRenderTagTokens->geometry};
+  task_scene_index_->DirtyPrims({{task_id_, pxr::HdLegacyTaskSchema::GetParametersLocator()}});
 }
 
-pxr::HdRenderBufferDescriptor RenderTaskDelegate::GetRenderBufferDescriptor(pxr::SdfPath const &id)
+void RenderTaskDelegate::publish_buffer(pxr::SdfPath const &buf_id,
+                                        pxr::HdRenderBufferDescriptor const &desc)
 {
-  CLOG_DEBUG(LOG_HYDRA_RENDER, "%s", id.GetText());
+  pxr::HdContainerDataSourceHandle buffer_ds =
+      pxr::HdRenderBufferSchema::Builder()
+          .SetDimensions(pxr::HdRetainedTypedSampledDataSource<pxr::GfVec3i>::New(desc.dimensions))
+          .SetFormat(pxr::HdRetainedTypedSampledDataSource<pxr::HdFormat>::New(desc.format))
+          .SetMultiSampled(pxr::HdRetainedTypedSampledDataSource<bool>::New(desc.multiSampled))
+          .Build();
 
-  return buffer_descriptors_[id];
+  task_scene_index_->AddPrims({{buf_id,
+                                pxr::HdPrimTypeTokens->renderBuffer,
+                                pxr::HdRetainedContainerDataSource::New(
+                                    pxr::HdRenderBufferSchema::GetSchemaToken(), buffer_ds)}});
 }
 
 pxr::HdTaskSharedPtr RenderTaskDelegate::task()
 {
-  return GetRenderIndex().GetTask(task_id_);
+  return render_index_->GetTask(task_id_);
 }
 
 void RenderTaskDelegate::set_camera(pxr::SdfPath const &camera_id)
@@ -79,7 +105,7 @@ void RenderTaskDelegate::set_camera(pxr::SdfPath const &camera_id)
     return;
   }
   task_params_.camera = camera_id;
-  GetRenderIndex().GetChangeTracker().MarkTaskDirty(task_id_, pxr::HdChangeTracker::DirtyParams);
+  dirty_task_params();
 }
 
 bool RenderTaskDelegate::is_converged()
@@ -92,16 +118,15 @@ void RenderTaskDelegate::set_viewport(pxr::GfVec4d const &viewport)
   if (task_params_.viewport == viewport) {
     return;
   }
-  auto &render_index = GetRenderIndex();
   task_params_.viewport = viewport;
-  render_index.GetChangeTracker().MarkTaskDirty(task_id_, pxr::HdChangeTracker::DirtyParams);
+  dirty_task_params();
 
   int w = viewport[2] - viewport[0];
   int h = viewport[3] - viewport[1];
   for (auto &it : buffer_descriptors_) {
     it.second.dimensions = pxr::GfVec3i(w, h, 1);
-    render_index.GetChangeTracker().MarkBprimDirty(it.first,
-                                                   pxr::HdRenderBuffer::DirtyDescription);
+    publish_buffer(it.first, it.second);
+    task_scene_index_->DirtyPrims({{it.first, pxr::HdRenderBufferSchema::GetDimensionsLocator()}});
   }
 }
 
@@ -111,8 +136,7 @@ void RenderTaskDelegate::add_aov(pxr::TfToken const &aov_key)
   if (buffer_descriptors_.find(buf_id) != buffer_descriptors_.end()) {
     return;
   }
-  auto &render_index = GetRenderIndex();
-  pxr::HdAovDescriptor aov_desc = render_index.GetRenderDelegate()->GetDefaultAovDescriptor(
+  pxr::HdAovDescriptor aov_desc = render_index_->GetRenderDelegate()->GetDefaultAovDescriptor(
       aov_key);
 
   if (aov_desc.format == pxr::HdFormatInvalid) {
@@ -131,9 +155,10 @@ void RenderTaskDelegate::add_aov(pxr::TfToken const &aov_key)
 
   int w = task_params_.viewport[2] - task_params_.viewport[0];
   int h = task_params_.viewport[3] - task_params_.viewport[1];
-  render_index.InsertBprim(pxr::HdPrimTypeTokens->renderBuffer, this, buf_id);
-  buffer_descriptors_[buf_id] = pxr::HdRenderBufferDescriptor(
+  pxr::HdRenderBufferDescriptor desc(
       pxr::GfVec3i(w, h, 1), aov_desc.format, aov_desc.multiSampled);
+  buffer_descriptors_[buf_id] = desc;
+  publish_buffer(buf_id, desc);
 
   pxr::HdRenderPassAovBinding binding;
   binding.aovName = aov_key;
@@ -141,7 +166,7 @@ void RenderTaskDelegate::add_aov(pxr::TfToken const &aov_key)
   binding.aovSettings = aov_desc.aovSettings;
   binding.clearValue = aov_desc.clearValue;
   task_params_.aovBindings.push_back(binding);
-  render_index.GetChangeTracker().MarkTaskDirty(task_id_, pxr::HdChangeTracker::DirtyParams);
+  dirty_task_params();
 
   CLOG_DEBUG(LOG_HYDRA_RENDER, "%s", aov_key.GetText());
 }
@@ -149,7 +174,7 @@ void RenderTaskDelegate::add_aov(pxr::TfToken const &aov_key)
 void RenderTaskDelegate::read_aov(pxr::TfToken const &aov_key, void *data)
 {
   pxr::HdRenderBuffer *buffer = static_cast<pxr::HdRenderBuffer *>(
-      GetRenderIndex().GetBprim(pxr::HdPrimTypeTokens->renderBuffer, buffer_id(aov_key)));
+      render_index_->GetBprim(pxr::HdPrimTypeTokens->renderBuffer, buffer_id(aov_key)));
   if (!buffer) {
     return;
   }
@@ -176,8 +201,8 @@ void RenderTaskDelegate::read_aov(pxr::TfToken const &aov_key, void *data)
 
 pxr::HdRenderBuffer *RenderTaskDelegate::get_aov_buffer(pxr::TfToken const &aov_key)
 {
-  return (pxr::HdRenderBuffer *)GetRenderIndex().GetBprim(pxr::HdPrimTypeTokens->renderBuffer,
-                                                          buffer_id(aov_key));
+  return (pxr::HdRenderBuffer *)render_index_->GetBprim(pxr::HdPrimTypeTokens->renderBuffer,
+                                                        buffer_id(aov_key));
 }
 
 void RenderTaskDelegate::bind() {}
@@ -186,7 +211,7 @@ void RenderTaskDelegate::unbind() {}
 
 pxr::SdfPath RenderTaskDelegate::buffer_id(pxr::TfToken const &aov_key) const
 {
-  return GetDelegateID().AppendElementString("aov_" + aov_key.GetString());
+  return base_id_.AppendElementString("aov_" + aov_key.GetString());
 }
 
 GPURenderTaskDelegate::~GPURenderTaskDelegate()
@@ -205,9 +230,8 @@ void GPURenderTaskDelegate::set_viewport(pxr::GfVec4d const &viewport)
   if (task_params_.viewport == viewport) {
     return;
   }
-  auto &render_index = GetRenderIndex();
   task_params_.viewport = viewport;
-  render_index.GetChangeTracker().MarkTaskDirty(task_id_, pxr::HdChangeTracker::DirtyParams);
+  dirty_task_params();
 
   if (tex_color_) {
     GPU_texture_free(tex_color_);
