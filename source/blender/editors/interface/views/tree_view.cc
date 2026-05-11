@@ -526,7 +526,6 @@ void AbstractTreeViewItem::add_treerow_button(Block &block)
                                                                ""));
 
   view_item_but_->view_item = this;
-  view_item_but_->draw_height = unpadded_item_height();
 }
 
 int AbstractTreeViewItem::indent_width() const
