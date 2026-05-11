@@ -588,7 +588,6 @@ struct Setup {
 [[compute, local_size(RAYTRACE_GROUP_SIZE, RAYTRACE_GROUP_SIZE)]]
 void setup([[global_invocation_id]] const uint3 global_id,
            [[local_invocation_id]] const uint3 local_id,
-           [[local_invocation_index]] const uint local_index,
            [[resource_table]] Setup &srt)
 {
   int2 texel = int2(global_id.xy);
