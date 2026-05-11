@@ -297,6 +297,10 @@ struct FieldHashDeep {
   {
     return this->cache.lookup(field);
   }
+  bool contains(const GFieldRef &field) const
+  {
+    return this->cache.contains(field);
+  }
 };
 
 /**
