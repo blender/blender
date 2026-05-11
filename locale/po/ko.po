@@ -1,9 +1,9 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 5.2.0 Alpha (b'396b6a98e9f6')\n"
+"Project-Id-Version: Blender 5.2.0 Alpha (b'8c7c45ad114e')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-05-04 07:43+0000\n"
+"POT-Creation-Date: 2026-05-11 07:23+0000\n"
 "PO-Revision-Date: 2026-03-27 12:12+0000\n"
 "Last-Translator: kim nahyeong <weiing0123@ajou.ac.kr>\n"
 "Language-Team: Korean <https://translate.blender.org/projects/blender-ui/ui/ko/>\n"
@@ -11430,10 +11430,6 @@ msgstr "래티스 관련 애니메이션 데이터의 시각화를 포함"
 
 msgid "Display Light Probe"
 msgstr "디스플레이 라이트 프로브"
-
-
-msgid "Include visualization of lightprobe related animation data"
-msgstr "라이트프로브 관련 애니메이션 데이터의 시각화 포함"
 
 
 msgid "Display Light"
@@ -34769,100 +34765,8 @@ msgid "Editor menu containing buttons"
 msgstr "버튼이 포함된 에디터 메뉴"
 
 
-msgid "Clean Up"
-msgstr "정리"
-
-
-msgid "Show/Hide"
-msgstr "표시/숨기기"
-
-
-msgid "Special Characters"
-msgstr "특수 문자"
-
-
-msgid "Kerning"
-msgstr "자간"
-
-
-msgid "Metaball"
-msgstr "메타볼"
-
-
-msgid "Names"
-msgstr "이름"
-
-
-msgid "Math"
-msgstr "수학"
-
-
-msgid "Bone Roll"
-msgstr "뼈대 롤"
-
-
-msgid "Utilities"
-msgstr "유틸리티"
-
-
-msgid "Pivot Point"
-msgstr "피벗 포인트"
-
-
-msgid "Read"
-msgstr "읽기"
-
-
 msgid "Snap"
 msgstr "스냅"
-
-
-msgid "Sample"
-msgstr "샘플"
-
-
-msgid "Proportional Editing Falloff"
-msgstr "비례 편집 감소"
-
-
-msgid "Write"
-msgstr "쓰기"
-
-
-msgid "Mask Edit"
-msgstr "마스크 편집"
-
-
-msgid "Automasking"
-msgstr "오토마스킹"
-
-
-msgid "Primitives"
-msgstr "프리미티브"
-
-
-msgid "Face Sets Edit"
-msgstr "페이스 세트 편집"
-
-
-msgid "Vertex Group Locks"
-msgstr "버텍스 그룹 잠금"
-
-
-msgid "Gizmo"
-msgstr "기즈모"
-
-
-msgid "Instances"
-msgstr "인스턴스"
-
-
-msgid "Import"
-msgstr "가져오기"
-
-
-msgid "Mirror"
-msgstr "미러"
 
 
 msgid "UV Mapping"
@@ -34875,10 +34779,6 @@ msgstr "로컬 뷰"
 
 msgid "Viewpoint"
 msgstr "뷰포트"
-
-
-msgid "Deprecated"
-msgstr "사용 중단"
 
 
 msgid "Navigation"
@@ -34901,14 +34801,6 @@ msgid "Select More/Less"
 msgstr "선택 증가/감소"
 
 
-msgid "List"
-msgstr "목록"
-
-
-msgid "UV"
-msgstr "UV"
-
-
 msgid "Select Similar"
 msgstr "유사한 선택"
 
@@ -34925,8 +34817,32 @@ msgid "Select Loops"
 msgstr "루프를 선택"
 
 
+msgid "Math"
+msgstr "수학"
+
+
+msgid "Utilities"
+msgstr "유틸리티"
+
+
 msgid "Assign Material"
 msgstr "머티리얼을 할당"
+
+
+msgid "Metaball"
+msgstr "메타볼"
+
+
+msgid "Read"
+msgstr "읽기"
+
+
+msgid "Sample"
+msgstr "샘플"
+
+
+msgid "Write"
+msgstr "쓰기"
 
 
 msgid "Light"
@@ -34935,6 +34851,10 @@ msgstr "라이트"
 
 msgid "Light Probe"
 msgstr "라이트 프로브"
+
+
+msgid "Primitives"
+msgstr "프리미티브"
 
 
 msgid "Add Image"
@@ -34949,8 +34869,16 @@ msgid "Rigid Body"
 msgstr "리지드 바디"
 
 
+msgid "Gizmo"
+msgstr "기즈모"
+
+
 msgid "Apply"
 msgstr "적용"
+
+
+msgid "Instances"
+msgstr "인스턴스"
 
 
 msgid "Track"
@@ -34959,6 +34887,18 @@ msgstr "트랙"
 
 msgid "Quick Effects"
 msgstr "빠른 이펙트"
+
+
+msgid "Show/Hide"
+msgstr "표시/숨기기"
+
+
+msgid "Clean Up"
+msgstr "정리"
+
+
+msgid "Import"
+msgstr "가져오기"
 
 
 msgid "Asset"
@@ -34981,12 +34921,24 @@ msgid "Hooks"
 msgstr "후크"
 
 
-msgid "Layout"
-msgstr "레이아웃"
+msgid "Vertex Group Locks"
+msgstr "버텍스 그룹 잠금"
+
+
+msgid "Deprecated"
+msgstr "사용 중단"
 
 
 msgid "Trim/Add"
 msgstr "트림/추가"
+
+
+msgid "List"
+msgstr "목록"
+
+
+msgid "UV"
+msgstr "UV"
 
 
 msgid "Sculpt Set Pivot"
@@ -35001,10 +34953,6 @@ msgid "Random Mask"
 msgstr "랜덤 마스크"
 
 
-msgid "Adjust"
-msgstr "조정"
-
-
 msgid "Clear Transform"
 msgstr "변환을 지우기"
 
@@ -35013,28 +34961,20 @@ msgid "In-Betweens"
 msgstr "사이에서"
 
 
-msgid "Keying"
-msgstr "키잉"
-
-
 msgid "Propagate"
 msgstr "전파"
-
-
-msgid "Tracking"
-msgstr "트래킹"
 
 
 msgid "Bone Collections"
 msgstr "뼈대 컬렉션"
 
 
+msgid "Names"
+msgstr "이름"
+
+
 msgid "Toggle Bone Options"
 msgstr "뼈대 옵션을 토글"
-
-
-msgid "Creative"
-msgstr "크리에이티브"
 
 
 msgid "Enable Bone Options"
@@ -35043,10 +34983,6 @@ msgstr "뼈대 옵션을 사용"
 
 msgid "Disable Bone Options"
 msgstr "뼈대 옵션을 사용 중지"
-
-
-msgid "Render Preview"
-msgstr "렌더링 미리보기"
 
 
 msgid "Mesh Select Mode"
@@ -35067,6 +35003,66 @@ msgstr "페이스 강도를 설정"
 
 msgid "Merge"
 msgstr "병합"
+
+
+msgid "Special Characters"
+msgstr "특수 문자"
+
+
+msgid "Kerning"
+msgstr "자간"
+
+
+msgid "Layout"
+msgstr "레이아웃"
+
+
+msgid "Bone Roll"
+msgstr "뼈대 롤"
+
+
+msgid "Adjust"
+msgstr "조정"
+
+
+msgid "Keying"
+msgstr "키잉"
+
+
+msgid "Tracking"
+msgstr "트래킹"
+
+
+msgid "Pivot Point"
+msgstr "피벗 포인트"
+
+
+msgid "Proportional Editing Falloff"
+msgstr "비례 편집 감소"
+
+
+msgid "Mask Edit"
+msgstr "마스크 편집"
+
+
+msgid "Automasking"
+msgstr "오토마스킹"
+
+
+msgid "Face Sets Edit"
+msgstr "페이스 세트 편집"
+
+
+msgid "Creative"
+msgstr "크리에이티브"
+
+
+msgid "Render Preview"
+msgstr "렌더링 미리보기"
+
+
+msgid "Mirror"
+msgstr "미러"
 
 
 msgid "Keyframe Insert Pie"
@@ -55824,20 +55820,20 @@ msgid "Flip times of selected keyframes using the current frame as the mirror li
 msgstr "미러 경계선으로 현재 프레임을 사용하여 선택한 키 프레임의 시간을 뒤집기"
 
 
-msgid "By Values Over Zero Value"
-msgstr "0 값 이상 값 기준"
-
-
-msgid "Flip values of selected keyframes (i.e. negative values become positive, and vice versa)"
-msgstr "선택된 키 프레임의 값을 뒤집기 (즉, 음수의 값은 양수가 되고, 또는 반대)"
-
-
 msgid "By Times Over First Selected Marker"
 msgstr "첫 번째 선택된 마커를 초과하는 시간으로 미러"
 
 
 msgid "Flip times of selected keyframes using the first selected marker as the reference point"
 msgstr "첫 번째로 선택한 마커를 기준점으로 사용하여 선택한 키 프레임의 시간을 뒤집기"
+
+
+msgid "By Values Over Zero Value"
+msgstr "0 값 이상 값 기준"
+
+
+msgid "Flip values of selected keyframes (i.e. negative values become positive, and vice versa)"
+msgstr "선택된 키 프레임의 값을 뒤집기 (즉, 음수의 값은 양수가 되고, 또는 반대)"
 
 
 msgctxt "Operator"
@@ -64135,20 +64131,20 @@ msgid "Defines which keys to use as slope and how much to blend towards them"
 msgstr "기울기로 사용할 키와 그 키를 향해 블렌딩할 정도를 정의함"
 
 
-msgid "By Values Over Cursor Value"
-msgstr "커서 값을 초과하는 값으로 미러"
-
-
-msgid "Flip values of selected keyframes using the cursor value (Y/Horizontal component) as the mirror line"
-msgstr "미러 경계선으로 커서 값(Y/수평 요소)을 이용하여 선택한 키 프레임의 값을 뒤집기"
-
-
 msgid "By Times Over Zero Time"
 msgstr "0 시간 이상 시간대별"
 
 
 msgid "Flip times of selected keyframes, effectively reversing the order they appear in"
 msgstr "선택한 키 프레임의 시간을 뒤집어 다음에 나타나는 순서를 반대로 바꿉니다"
+
+
+msgid "By Values Over Cursor Value"
+msgstr "커서 값을 초과하는 값으로 미러"
+
+
+msgid "Flip values of selected keyframes using the cursor value (Y/Horizontal component) as the mirror line"
+msgstr "미러 경계선으로 커서 값(Y/수평 요소)을 이용하여 선택한 키 프레임의 값을 뒤집기"
 
 
 msgid "Paste keys with a value offset"
@@ -90450,6 +90446,62 @@ msgid "Panel containing UI elements"
 msgstr "UI 요소가 포함된 패널"
 
 
+msgid "Mesh Edit Mode"
+msgstr "메시 에디트 모드"
+
+
+msgid "Measurement"
+msgstr "측정"
+
+
+msgid "Curve Edit Mode"
+msgstr "커브 에디트 모드"
+
+
+msgid "Curves Edit Mode"
+msgstr "커브 편집 모드"
+
+
+msgid "Transform Orientations"
+msgstr "변환 오리엔테이션"
+
+
+msgid "Stroke Placement"
+msgstr "스트로크 배치"
+
+
+msgid "Drawing Plane"
+msgstr "드로잉 평면"
+
+
+msgid "Guides"
+msgstr "가이드"
+
+
+msgid "Grease Pencil Options"
+msgstr "그리스 펜슬 옵션"
+
+
+msgid "Quad View"
+msgstr "쿼드 뷰"
+
+
+msgid "Onion Skin"
+msgstr "어니언 스킨"
+
+
+msgid "Stereoscopy"
+msgstr "입체 영상"
+
+
+msgid "Multi Frame"
+msgstr "다중 프레임"
+
+
+msgid "Auto-Masking"
+msgstr "자동 마스킹"
+
+
 msgid "glTF Variants"
 msgstr "glTF 변형"
 
@@ -90458,12 +90510,20 @@ msgid "glTF Material Variants"
 msgstr "glTF 머티리얼 배리언트"
 
 
-msgid "Active Tool"
-msgstr "활성 도구"
+msgid "Curves Sculpt Add Curve Options"
+msgstr "커브 스컬프트 커브 옵션 추가"
 
 
-msgid "View Lock"
-msgstr "뷰 잠금"
+msgid "Curves Sculpt Parameter Falloff"
+msgstr "커브 스컬프트 매개변수 폴오프"
+
+
+msgid "Curves Grow/Shrink Scaling"
+msgstr "커브 성장/축소 스케일링"
+
+
+msgid "Viewport Debug"
+msgstr "뷰포트 디버그"
 
 
 msgid "glTF"
@@ -90472,6 +90532,22 @@ msgstr "glTF"
 
 msgid "glTF Animations"
 msgstr "glTF 애니메이션"
+
+
+msgid "VR"
+msgstr "VR"
+
+
+msgid "VR Info"
+msgstr "VR 정보"
+
+
+msgid "Active Tool"
+msgstr "활성 도구"
+
+
+msgid "View Lock"
+msgstr "뷰 잠금"
 
 
 msgid "Selectability & Visibility"
@@ -90502,92 +90578,12 @@ msgid "Overlays"
 msgstr "오버레이"
 
 
-msgid "Guides"
-msgstr "가이드"
-
-
 msgid "Viewer Node"
 msgstr "뷰어 노드"
 
 
 msgid "Motion Tracking"
 msgstr "모션 트래킹"
-
-
-msgid "Mesh Edit Mode"
-msgstr "메시 에디트 모드"
-
-
-msgid "Measurement"
-msgstr "측정"
-
-
-msgid "Curve Edit Mode"
-msgstr "커브 에디트 모드"
-
-
-msgid "Curves Edit Mode"
-msgstr "커브 편집 모드"
-
-
-msgid "Transform Orientations"
-msgstr "변환 오리엔테이션"
-
-
-msgid "Stroke Placement"
-msgstr "스트로크 배치"
-
-
-msgid "Drawing Plane"
-msgstr "드로잉 평면"
-
-
-msgid "Grease Pencil Options"
-msgstr "그리스 펜슬 옵션"
-
-
-msgid "Quad View"
-msgstr "쿼드 뷰"
-
-
-msgid "Onion Skin"
-msgstr "어니언 스킨"
-
-
-msgid "Stereoscopy"
-msgstr "입체 영상"
-
-
-msgid "Multi Frame"
-msgstr "다중 프레임"
-
-
-msgid "Auto-Masking"
-msgstr "자동 마스킹"
-
-
-msgid "Curves Sculpt Add Curve Options"
-msgstr "커브 스컬프트 커브 옵션 추가"
-
-
-msgid "Curves Sculpt Parameter Falloff"
-msgstr "커브 스컬프트 매개변수 폴오프"
-
-
-msgid "Curves Grow/Shrink Scaling"
-msgstr "커브 성장/축소 스케일링"
-
-
-msgid "Viewport Debug"
-msgstr "뷰포트 디버그"
-
-
-msgid "VR"
-msgstr "VR"
-
-
-msgid "VR Info"
-msgstr "VR 정보"
 
 
 msgid "Import Settings"
@@ -101837,18 +101833,6 @@ msgstr "걸음 수"
 
 msgid "Amount of screen sample per GI ray"
 msgstr "GI 광선당 화면 샘플의 양"
-
-
-msgid "Far Thickness"
-msgstr "먼 두께"
-
-
-msgid "Angular thickness of the surfaces when computing fast GI and ambient occlusion. Reduces energy loss and missing occlusion of far geometry."
-msgstr "빠른 GI 및 주변 오클루션을 계산할 때 표면의 각도 두께. 원거리 지오메트리의 에너지 손실과 오클루션 누락을 줄함"
-
-
-msgid "Near Thickness"
-msgstr "거의 두께"
 
 
 msgid "Geometric thickness of the surfaces when computing fast GI and ambient occlusion. Reduces light leaking and missing contact occlusion."
@@ -121672,10 +121656,6 @@ msgid "Cavity (inverted)"
 msgstr "캐비티(반전)"
 
 
-msgid "Sculpt Curves"
-msgstr "스컬프트 커브"
-
-
 msgid "Sample Bias"
 msgstr "샘플 기초"
 
@@ -122473,10 +122453,6 @@ msgstr "최대 깊이"
 
 msgid "Rays"
 msgstr "광선"
-
-
-msgid "Thickness Near"
-msgstr "두께 근처"
 
 
 msgid "Tracing"
@@ -124079,11 +124055,6 @@ msgid "Backdrop Zoom Out"
 msgstr "배경 화면 줌 축소"
 
 
-msgctxt "Operator"
-msgid "Exit Group"
-msgstr "그룹 종료"
-
-
 msgid "Slot {:d}"
 msgstr "슬롯 {:d}"
 
@@ -124091,6 +124062,11 @@ msgstr "슬롯 {:d}"
 msgctxt "Operator"
 msgid "Clear Viewer"
 msgstr "뷰어 지우기"
+
+
+msgctxt "Operator"
+msgid "Exit Group"
+msgstr "그룹 종료"
 
 
 msgid "Types"
@@ -131230,10 +131206,6 @@ msgid "Data-block renamed to '%s', try again to force renaming it to '%s'"
 msgstr "데이터 블록 이름이 '%s'로 변경된 경우 '%s'로 강제 이름 변경을 다시 시도"
 
 
-msgid "Name in use. The other data-block was renamed to ‘%s’"
-msgstr "사용 중인 이름입니다. 다른 데이터 블록의 이름이 '%s'로 변경되었음"
-
-
 msgid "Picking a bone failed"
 msgstr "뼈대 선택 실패"
 
@@ -132264,10 +132236,6 @@ msgstr "연결할 캐시 파일을 찾아보기"
 
 msgid "Browse Workspace to be linked"
 msgstr "연결된 작업 영역을 찾아보기"
-
-
-msgid "Browse LightProbe to be linked"
-msgstr "연결된 라이트 프로브를 찾아보기"
 
 
 msgid "Browse Curves Data to be linked"
@@ -135868,14 +135836,6 @@ msgstr "마스크에 대해 구현되지 않음"
 
 msgid "Cannot activate a file selector dialog, one already open"
 msgstr "이미 열려 있는 파일 선택기 대화 상자를 활성화할 수 없음"
-
-
-msgid "Property is not editable"
-msgstr "속성은 편집할 수 없음"
-
-
-msgid "Property is not editable: %s"
-msgstr "속성은 편집할 수 없습니다: %s"
 
 
 msgid "Texture Field"

@@ -1,9 +1,9 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 5.2.0 Alpha (b'396b6a98e9f6')\n"
+"Project-Id-Version: Blender 5.2.0 Alpha (b'8c7c45ad114e')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-05-04 07:43+0000\n"
+"POT-Creation-Date: 2026-05-11 07:23+0000\n"
 "PO-Revision-Date: 2025-12-23 20:36+0000\n"
 "Last-Translator: \"Adriel Y.\" <mixnblend@users.noreply.translate.blender.org>\n"
 "Language-Team: Indonesian <https://translate.blender.org/projects/blender-ui/ui/id/>\n"
@@ -15640,12 +15640,16 @@ msgid "Use Material Mask"
 msgstr "Gunakan Masker Bahan"
 
 
-msgid "Metaball"
-msgstr "Metabola"
+msgid "Snap"
+msgstr "Jepret"
 
 
-msgid "Names"
-msgstr "Nama"
+msgid "Navigation"
+msgstr "Navigasi"
+
+
+msgid "Select Linked"
+msgstr "Seleksi yang Terhubung"
 
 
 msgid "Math"
@@ -15656,44 +15660,16 @@ msgid "Utilities"
 msgstr "Utilitas"
 
 
-msgid "Snap"
-msgstr "Jepret"
+msgid "Assign Material"
+msgstr "Tugaskan Bahan"
+
+
+msgid "Metaball"
+msgstr "Metabola"
 
 
 msgid "Sample"
 msgstr "Sampel"
-
-
-msgid "Gizmo"
-msgstr "Gizmo"
-
-
-msgid "Instances"
-msgstr "Contoh-contoh"
-
-
-msgid "Import"
-msgstr "Impor"
-
-
-msgid "Mirror"
-msgstr "Cermin"
-
-
-msgid "Navigation"
-msgstr "Navigasi"
-
-
-msgid "UV"
-msgstr "UV"
-
-
-msgid "Select Linked"
-msgstr "Seleksi yang Terhubung"
-
-
-msgid "Assign Material"
-msgstr "Tugaskan Bahan"
 
 
 msgid "Light"
@@ -15708,12 +15684,24 @@ msgid "Add Image"
 msgstr "Tambah Gambar"
 
 
+msgid "Gizmo"
+msgstr "Gizmo"
+
+
 msgid "Apply"
 msgstr "Tetapkan"
 
 
+msgid "Instances"
+msgstr "Contoh-contoh"
+
+
 msgid "Track"
 msgstr "Lacak"
+
+
+msgid "Import"
+msgstr "Impor"
 
 
 msgid "Asset"
@@ -15724,6 +15712,18 @@ msgid "Hooks"
 msgstr "Kait"
 
 
+msgid "UV"
+msgstr "UV"
+
+
+msgid "Names"
+msgstr "Nama"
+
+
+msgid "Merge"
+msgstr "Menggabungkan"
+
+
 msgid "Layout"
 msgstr "Tata Letak"
 
@@ -15732,8 +15732,8 @@ msgid "Tracking"
 msgstr "Pelacakan"
 
 
-msgid "Merge"
-msgstr "Menggabungkan"
+msgid "Mirror"
+msgstr "Cermin"
 
 
 msgid "Animals"
@@ -32285,14 +32285,6 @@ msgstr "Hapus bingkai kunci yang terseleksi?"
 
 msgid "No selected F-Curves to paste into"
 msgstr "Hapus"
-
-
-msgid "Property is not editable"
-msgstr "Properti tidak dapat diubah"
-
-
-msgid "Property is not editable: %s"
-msgstr "Properti tidak dapat diubah: %s"
 
 
 msgid "Position:"

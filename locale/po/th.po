@@ -1,9 +1,9 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 5.2.0 Alpha (b'396b6a98e9f6')\n"
+"Project-Id-Version: Blender 5.2.0 Alpha (b'8c7c45ad114e')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-05-04 07:43+0000\n"
+"POT-Creation-Date: 2026-05-11 07:23+0000\n"
 "PO-Revision-Date: 2026-03-19 12:41+0000\n"
 "Last-Translator: Banditer1483 <pleum.wongvarit@gmail.com>\n"
 "Language-Team: Thai <https://translate.blender.org/projects/blender-ui/ui/th/>\n"
@@ -4941,40 +4941,8 @@ msgid "Mix Color"
 msgstr "ผสมสี"
 
 
-msgid "Metaball"
-msgstr "เมตาบอล"
-
-
-msgid "Names"
-msgstr "ชื่อ"
-
-
-msgid "Math"
-msgstr "คณิตศาสตร์"
-
-
-msgid "Pivot Point"
-msgstr "จุดหมุน"
-
-
 msgid "Snap"
 msgstr "ยึดติด"
-
-
-msgid "Proportional Editing Falloff"
-msgstr "แก้ไข"
-
-
-msgid "Mask Edit"
-msgstr "การแก้ไขหน้ากาก"
-
-
-msgid "Import"
-msgstr "นำเข้า"
-
-
-msgid "Mirror"
-msgstr "กระจกสะท้อน"
 
 
 msgid "Local View"
@@ -5001,8 +4969,12 @@ msgid "View Regions"
 msgstr "ขอบเขตมุมมอง"
 
 
-msgid "UV"
-msgstr "UV"
+msgid "Math"
+msgstr "คณิตศาสตร์"
+
+
+msgid "Metaball"
+msgstr "เมตาบอล"
 
 
 msgid "Light"
@@ -5021,8 +4993,28 @@ msgid "Track"
 msgstr "แทร็ค"
 
 
+msgid "Import"
+msgstr "นำเข้า"
+
+
 msgid "Hooks"
 msgstr "ตะขอ"
+
+
+msgid "UV"
+msgstr "UV"
+
+
+msgid "Names"
+msgstr "ชื่อ"
+
+
+msgid "Face Data"
+msgstr "ข้อมูลด้าน"
+
+
+msgid "Merge"
+msgstr "ผสาน"
 
 
 msgid "Layout"
@@ -5033,12 +5025,20 @@ msgid "Keying"
 msgstr "คีย์"
 
 
-msgid "Face Data"
-msgstr "ข้อมูลด้าน"
+msgid "Pivot Point"
+msgstr "จุดหมุน"
 
 
-msgid "Merge"
-msgstr "ผสาน"
+msgid "Proportional Editing Falloff"
+msgstr "แก้ไข"
+
+
+msgid "Mask Edit"
+msgstr "การแก้ไขหน้ากาก"
+
+
+msgid "Mirror"
+msgstr "กระจกสะท้อน"
 
 
 msgid "Zoom"

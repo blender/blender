@@ -1,9 +1,9 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 5.2.0 Alpha (b'396b6a98e9f6')\n"
+"Project-Id-Version: Blender 5.2.0 Alpha (b'8c7c45ad114e')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-05-04 07:43+0000\n"
+"POT-Creation-Date: 2026-05-11 07:23+0000\n"
 "PO-Revision-Date: 2026-03-19 19:12+0000\n"
 "Last-Translator: Tamás Máté <royalpython132@gmail.com>\n"
 "Language-Team: Hungarian <https://translate.blender.org/projects/blender-ui/ui/hu/>\n"
@@ -6610,26 +6610,6 @@ msgid "Use Material Mask"
 msgstr "Anyagmaszk használata"
 
 
-msgid "Clean Up"
-msgstr "Tisztítás"
-
-
-msgid "Show/Hide"
-msgstr "Mutat/Rejt"
-
-
-msgid "Metaball"
-msgstr "Meta test"
-
-
-msgid "Import"
-msgstr "Importálás"
-
-
-msgid "Mirror"
-msgstr "Tükrözés"
-
-
 msgid "Local View"
 msgstr "Helyi nézet"
 
@@ -6642,8 +6622,8 @@ msgid "Align View"
 msgstr "Nézet igazítása"
 
 
-msgid "UV"
-msgstr "UV"
+msgid "Metaball"
+msgstr "Meta test"
 
 
 msgid "Light"
@@ -6666,6 +6646,26 @@ msgid "Track"
 msgstr "Nyom"
 
 
+msgid "Show/Hide"
+msgstr "Mutat/Rejt"
+
+
+msgid "Clean Up"
+msgstr "Tisztítás"
+
+
+msgid "Import"
+msgstr "Importálás"
+
+
+msgid "UV"
+msgstr "UV"
+
+
+msgid "Merge"
+msgstr "Összefésülés"
+
+
 msgid "Keying"
 msgstr "Kulcsozás"
 
@@ -6674,8 +6674,8 @@ msgid "Tracking"
 msgstr "Követés"
 
 
-msgid "Merge"
-msgstr "Összefésülés"
+msgid "Mirror"
+msgstr "Tükrözés"
 
 
 msgctxt "MovieClip"

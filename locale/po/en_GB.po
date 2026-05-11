@@ -1,9 +1,9 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 5.2.0 Alpha (b'396b6a98e9f6')\n"
+"Project-Id-Version: Blender 5.2.0 Alpha (b'8c7c45ad114e')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-05-04 07:43+0000\n"
+"POT-Creation-Date: 2026-05-11 07:23+0000\n"
 "PO-Revision-Date: 2026-02-16 18:12+0000\n"
 "Last-Translator: Deniz Jones <sdfoakes@gmail.com>\n"
 "Language-Team: English (United Kingdom) <https://translate.blender.org/projects/blender-ui/ui/en_GB/>\n"
@@ -11426,10 +11426,6 @@ msgstr "Include visualization of lattice related animation data"
 
 msgid "Display Light Probe"
 msgstr "Display Light Probe"
-
-
-msgid "Include visualization of lightprobe related animation data"
-msgstr "Include visualisation of lightprobe related animation data"
 
 
 msgid "Display Light"
@@ -34914,100 +34910,8 @@ msgid "Editor menu containing buttons"
 msgstr "Editor menu containing buttons"
 
 
-msgid "Clean Up"
-msgstr "Clean Up"
-
-
-msgid "Show/Hide"
-msgstr "Show/Hide"
-
-
-msgid "Special Characters"
-msgstr "Special Characters"
-
-
-msgid "Kerning"
-msgstr "Kerning"
-
-
-msgid "Metaball"
-msgstr "Metaball"
-
-
-msgid "Names"
-msgstr "Names"
-
-
-msgid "Math"
-msgstr "Maths"
-
-
-msgid "Bone Roll"
-msgstr "Bone Roll"
-
-
-msgid "Utilities"
-msgstr "Utilities"
-
-
-msgid "Pivot Point"
-msgstr "Pivot Point"
-
-
-msgid "Read"
-msgstr "Read"
-
-
 msgid "Snap"
 msgstr "Snap"
-
-
-msgid "Sample"
-msgstr "Sample"
-
-
-msgid "Proportional Editing Falloff"
-msgstr "Proportional Editing Falloff"
-
-
-msgid "Write"
-msgstr "Write"
-
-
-msgid "Mask Edit"
-msgstr "Mask Edit"
-
-
-msgid "Automasking"
-msgstr "Automasking"
-
-
-msgid "Primitives"
-msgstr "Primitives"
-
-
-msgid "Face Sets Edit"
-msgstr "Face Sets Edit"
-
-
-msgid "Vertex Group Locks"
-msgstr "Vertex Group Locks"
-
-
-msgid "Gizmo"
-msgstr "Gizmo"
-
-
-msgid "Instances"
-msgstr "Instances"
-
-
-msgid "Import"
-msgstr "Import"
-
-
-msgid "Mirror"
-msgstr "Mirror"
 
 
 msgid "UV Mapping"
@@ -35020,10 +34924,6 @@ msgstr "Local View"
 
 msgid "Viewpoint"
 msgstr "Viewpoint"
-
-
-msgid "Deprecated"
-msgstr "Deprecated"
 
 
 msgid "Navigation"
@@ -35046,14 +34946,6 @@ msgid "Select More/Less"
 msgstr "Select More/Less"
 
 
-msgid "List"
-msgstr "List"
-
-
-msgid "UV"
-msgstr "UV"
-
-
 msgid "Select Similar"
 msgstr "Select Similar"
 
@@ -35070,8 +34962,32 @@ msgid "Select Loops"
 msgstr "Select Loops"
 
 
+msgid "Math"
+msgstr "Maths"
+
+
+msgid "Utilities"
+msgstr "Utilities"
+
+
 msgid "Assign Material"
 msgstr "Assign Material"
+
+
+msgid "Metaball"
+msgstr "Metaball"
+
+
+msgid "Read"
+msgstr "Read"
+
+
+msgid "Sample"
+msgstr "Sample"
+
+
+msgid "Write"
+msgstr "Write"
 
 
 msgid "Light"
@@ -35080,6 +34996,10 @@ msgstr "Light"
 
 msgid "Light Probe"
 msgstr "Light Probe"
+
+
+msgid "Primitives"
+msgstr "Primitives"
 
 
 msgid "Add Image"
@@ -35094,8 +35014,16 @@ msgid "Rigid Body"
 msgstr "Rigid Body"
 
 
+msgid "Gizmo"
+msgstr "Gizmo"
+
+
 msgid "Apply"
 msgstr "Apply"
+
+
+msgid "Instances"
+msgstr "Instances"
 
 
 msgid "Track"
@@ -35104,6 +35032,18 @@ msgstr "Track"
 
 msgid "Quick Effects"
 msgstr "Quick Effects"
+
+
+msgid "Show/Hide"
+msgstr "Show/Hide"
+
+
+msgid "Clean Up"
+msgstr "Clean Up"
+
+
+msgid "Import"
+msgstr "Import"
 
 
 msgid "Asset"
@@ -35126,12 +35066,24 @@ msgid "Hooks"
 msgstr "Hooks"
 
 
-msgid "Layout"
-msgstr "Layout"
+msgid "Vertex Group Locks"
+msgstr "Vertex Group Locks"
+
+
+msgid "Deprecated"
+msgstr "Deprecated"
 
 
 msgid "Trim/Add"
 msgstr "Trim/Add"
+
+
+msgid "List"
+msgstr "List"
+
+
+msgid "UV"
+msgstr "UV"
 
 
 msgid "Sculpt Set Pivot"
@@ -35146,10 +35098,6 @@ msgid "Random Mask"
 msgstr "Random Mask"
 
 
-msgid "Adjust"
-msgstr "Adjust"
-
-
 msgid "Clear Transform"
 msgstr "Clear Transform"
 
@@ -35158,28 +35106,20 @@ msgid "In-Betweens"
 msgstr "In-Betweens"
 
 
-msgid "Keying"
-msgstr "Keying"
-
-
 msgid "Propagate"
 msgstr "Propagate"
-
-
-msgid "Tracking"
-msgstr "Tracking"
 
 
 msgid "Bone Collections"
 msgstr "Bone Collections"
 
 
+msgid "Names"
+msgstr "Names"
+
+
 msgid "Toggle Bone Options"
 msgstr "Toggle Bone Options"
-
-
-msgid "Creative"
-msgstr "Creative"
 
 
 msgid "Enable Bone Options"
@@ -35188,10 +35128,6 @@ msgstr "Enable Bone Options"
 
 msgid "Disable Bone Options"
 msgstr "Disable Bone Options"
-
-
-msgid "Render Preview"
-msgstr "Render Preview"
 
 
 msgid "Mesh Select Mode"
@@ -35212,6 +35148,66 @@ msgstr "Set Face Strength"
 
 msgid "Merge"
 msgstr "Merge"
+
+
+msgid "Special Characters"
+msgstr "Special Characters"
+
+
+msgid "Kerning"
+msgstr "Kerning"
+
+
+msgid "Layout"
+msgstr "Layout"
+
+
+msgid "Bone Roll"
+msgstr "Bone Roll"
+
+
+msgid "Adjust"
+msgstr "Adjust"
+
+
+msgid "Keying"
+msgstr "Keying"
+
+
+msgid "Tracking"
+msgstr "Tracking"
+
+
+msgid "Pivot Point"
+msgstr "Pivot Point"
+
+
+msgid "Proportional Editing Falloff"
+msgstr "Proportional Editing Falloff"
+
+
+msgid "Mask Edit"
+msgstr "Mask Edit"
+
+
+msgid "Automasking"
+msgstr "Automasking"
+
+
+msgid "Face Sets Edit"
+msgstr "Face Sets Edit"
+
+
+msgid "Creative"
+msgstr "Creative"
+
+
+msgid "Render Preview"
+msgstr "Render Preview"
+
+
+msgid "Mirror"
+msgstr "Mirror"
 
 
 msgid "Keyframe Insert Pie"
@@ -56207,20 +56203,20 @@ msgid "Flip times of selected keyframes using the current frame as the mirror li
 msgstr "Flip times of selected keyframes using the current frame as the mirror line"
 
 
-msgid "By Values Over Zero Value"
-msgstr "By Values Over Zero Value"
-
-
-msgid "Flip values of selected keyframes (i.e. negative values become positive, and vice versa)"
-msgstr "Flip values of selected keyframes (i.e. negative values become positive, and vice versa)"
-
-
 msgid "By Times Over First Selected Marker"
 msgstr "By Times Over First Selected Marker"
 
 
 msgid "Flip times of selected keyframes using the first selected marker as the reference point"
 msgstr "Flip times of selected keyframes using the first selected marker as the reference point"
+
+
+msgid "By Values Over Zero Value"
+msgstr "By Values Over Zero Value"
+
+
+msgid "Flip values of selected keyframes (i.e. negative values become positive, and vice versa)"
+msgstr "Flip values of selected keyframes (i.e. negative values become positive, and vice versa)"
 
 
 msgctxt "Operator"
@@ -64582,20 +64578,20 @@ msgid "Defines which keys to use as slope and how much to blend towards them"
 msgstr "Defines which keys to use as slope and how much to blend towards them"
 
 
-msgid "By Values Over Cursor Value"
-msgstr "By Values Over Cursor Value"
-
-
-msgid "Flip values of selected keyframes using the cursor value (Y/Horizontal component) as the mirror line"
-msgstr "Flip values of selected keyframes using the cursor value (Y/Horizontal component) as the mirror line"
-
-
 msgid "By Times Over Zero Time"
 msgstr "By Times Over Zero Time"
 
 
 msgid "Flip times of selected keyframes, effectively reversing the order they appear in"
 msgstr "Flip times of selected keyframes, effectively reversing the order they appear in"
+
+
+msgid "By Values Over Cursor Value"
+msgstr "By Values Over Cursor Value"
+
+
+msgid "Flip values of selected keyframes using the cursor value (Y/Horizontal component) as the mirror line"
+msgstr "Flip values of selected keyframes using the cursor value (Y/Horizontal component) as the mirror line"
 
 
 msgid "Paste keys with a value offset"
@@ -91385,6 +91381,62 @@ msgid "Panel containing UI elements"
 msgstr "Panel containing UI elements"
 
 
+msgid "Mesh Edit Mode"
+msgstr "Mesh Edit Mode"
+
+
+msgid "Measurement"
+msgstr "Measurement"
+
+
+msgid "Curve Edit Mode"
+msgstr "Curve Edit Mode"
+
+
+msgid "Curves Edit Mode"
+msgstr "Curves Edit Mode"
+
+
+msgid "Transform Orientations"
+msgstr "Transform Orientations"
+
+
+msgid "Stroke Placement"
+msgstr "Stroke Placement"
+
+
+msgid "Drawing Plane"
+msgstr "Drawing Plane"
+
+
+msgid "Guides"
+msgstr "Guides"
+
+
+msgid "Grease Pencil Options"
+msgstr "Grease Pencil Options"
+
+
+msgid "Quad View"
+msgstr "Quad View"
+
+
+msgid "Onion Skin"
+msgstr "Onion Skin"
+
+
+msgid "Stereoscopy"
+msgstr "Stereoscopy"
+
+
+msgid "Multi Frame"
+msgstr "Multi Frame"
+
+
+msgid "Auto-Masking"
+msgstr "Auto-Masking"
+
+
 msgid "glTF Variants"
 msgstr "glTF Variants"
 
@@ -91393,12 +91445,20 @@ msgid "glTF Material Variants"
 msgstr "glTF Material Variants"
 
 
-msgid "Active Tool"
-msgstr "Active Tool"
+msgid "Curves Sculpt Add Curve Options"
+msgstr "Curves Sculpt Add Curve Options"
 
 
-msgid "View Lock"
-msgstr "View Lock"
+msgid "Curves Sculpt Parameter Falloff"
+msgstr "Curves Sculpt Parameter Falloff"
+
+
+msgid "Curves Grow/Shrink Scaling"
+msgstr "Curves Grow/Shrink Scaling"
+
+
+msgid "Viewport Debug"
+msgstr "Viewport Debug"
 
 
 msgid "glTF"
@@ -91407,6 +91467,22 @@ msgstr "glTF"
 
 msgid "glTF Animations"
 msgstr "glTF Animations"
+
+
+msgid "VR"
+msgstr "VR"
+
+
+msgid "VR Info"
+msgstr "VR Info"
+
+
+msgid "Active Tool"
+msgstr "Active Tool"
+
+
+msgid "View Lock"
+msgstr "View Lock"
 
 
 msgid "Selectability & Visibility"
@@ -91437,92 +91513,12 @@ msgid "Overlays"
 msgstr "Overlays"
 
 
-msgid "Guides"
-msgstr "Guides"
-
-
 msgid "Viewer Node"
 msgstr "Viewer Node"
 
 
 msgid "Motion Tracking"
 msgstr "Motion Tracking"
-
-
-msgid "Mesh Edit Mode"
-msgstr "Mesh Edit Mode"
-
-
-msgid "Measurement"
-msgstr "Measurement"
-
-
-msgid "Curve Edit Mode"
-msgstr "Curve Edit Mode"
-
-
-msgid "Curves Edit Mode"
-msgstr "Curves Edit Mode"
-
-
-msgid "Transform Orientations"
-msgstr "Transform Orientations"
-
-
-msgid "Stroke Placement"
-msgstr "Stroke Placement"
-
-
-msgid "Drawing Plane"
-msgstr "Drawing Plane"
-
-
-msgid "Grease Pencil Options"
-msgstr "Grease Pencil Options"
-
-
-msgid "Quad View"
-msgstr "Quad View"
-
-
-msgid "Onion Skin"
-msgstr "Onion Skin"
-
-
-msgid "Stereoscopy"
-msgstr "Stereoscopy"
-
-
-msgid "Multi Frame"
-msgstr "Multi Frame"
-
-
-msgid "Auto-Masking"
-msgstr "Auto-Masking"
-
-
-msgid "Curves Sculpt Add Curve Options"
-msgstr "Curves Sculpt Add Curve Options"
-
-
-msgid "Curves Sculpt Parameter Falloff"
-msgstr "Curves Sculpt Parameter Falloff"
-
-
-msgid "Curves Grow/Shrink Scaling"
-msgstr "Curves Grow/Shrink Scaling"
-
-
-msgid "Viewport Debug"
-msgstr "Viewport Debug"
-
-
-msgid "VR"
-msgstr "VR"
-
-
-msgid "VR Info"
-msgstr "VR Info"
 
 
 msgid "Import Settings"
@@ -102892,18 +102888,6 @@ msgstr "Step Count"
 
 msgid "Amount of screen sample per GI ray"
 msgstr "Amount of screen sample per GI ray"
-
-
-msgid "Far Thickness"
-msgstr "Far Thickness"
-
-
-msgid "Angular thickness of the surfaces when computing fast GI and ambient occlusion. Reduces energy loss and missing occlusion of far geometry."
-msgstr "Angular thickness of the surfaces when computing fast GI and ambient occlusion. Reduces energy loss and missing occlusion of far geometry."
-
-
-msgid "Near Thickness"
-msgstr "Near Thickness"
 
 
 msgid "Geometric thickness of the surfaces when computing fast GI and ambient occlusion. Reduces light leaking and missing contact occlusion."
@@ -123200,10 +123184,6 @@ msgid "Cavity (inverted)"
 msgstr "Cavity (inverted)"
 
 
-msgid "Sculpt Curves"
-msgstr "Sculpt Curves"
-
-
 msgid "Sample Bias"
 msgstr "Sample Bias"
 
@@ -124001,10 +123981,6 @@ msgstr "Max Depth"
 
 msgid "Rays"
 msgstr "Rays"
-
-
-msgid "Thickness Near"
-msgstr "Thickness Near"
 
 
 msgid "Tracing"
@@ -125640,11 +125616,6 @@ msgid "Backdrop Zoom Out"
 msgstr "Backdrop Zoom Out"
 
 
-msgctxt "Operator"
-msgid "Exit Group"
-msgstr "Exit Group"
-
-
 msgid "Slot {:d}"
 msgstr "Slot {:d}"
 
@@ -125652,6 +125623,11 @@ msgstr "Slot {:d}"
 msgctxt "Operator"
 msgid "Clear Viewer"
 msgstr "Clear Viewer"
+
+
+msgctxt "Operator"
+msgid "Exit Group"
+msgstr "Exit Group"
 
 
 msgid "Types"
@@ -132979,10 +132955,6 @@ msgid "Data-block renamed to '%s', try again to force renaming it to '%s'"
 msgstr "Data-block renamed to '%s', try again to force renaming it to '%s'"
 
 
-msgid "Name in use. The other data-block was renamed to ‘%s’"
-msgstr "Name in use. The other data-block was renamed to ‘%s’"
-
-
 msgid "Picking a bone failed"
 msgstr "Picking a bone failed"
 
@@ -134053,10 +134025,6 @@ msgstr "Browse Cache Files to be linked"
 
 msgid "Browse Workspace to be linked"
 msgstr "Browse Workspace to be linked"
-
-
-msgid "Browse LightProbe to be linked"
-msgstr "Browse LightProbe to be linked"
 
 
 msgid "Browse Curves Data to be linked"
@@ -137745,14 +137713,6 @@ msgstr "Not implemented for Masks"
 
 msgid "Cannot activate a file selector dialog, one already open"
 msgstr "Cannot activate a file selector dialog, one already open"
-
-
-msgid "Property is not editable"
-msgstr "Property is not editable"
-
-
-msgid "Property is not editable: %s"
-msgstr "Property is not editable: %s"
 
 
 msgid "Texture Field"

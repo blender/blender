@@ -1,9 +1,9 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 5.2.0 Alpha (b'396b6a98e9f6')\n"
+"Project-Id-Version: Blender 5.2.0 Alpha (b'8c7c45ad114e')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-05-04 07:43+0000\n"
+"POT-Creation-Date: 2026-05-11 07:23+0000\n"
 "PO-Revision-Date: 2025-11-14 10:59+0000\n"
 "Last-Translator: Isaac Gicheha <shwaky3@gmail.com>\n"
 "Language-Team: Swahili <https://translate.blender.org/projects/blender-ui/ui/sw/>\n"
@@ -28270,64 +28270,8 @@ msgid "Editor menu containing buttons"
 msgstr "Menyu ya mhariri iliyo na vitufe"
 
 
-msgid "Clean Up"
-msgstr "Safisha"
-
-
-msgid "Show/Hide"
-msgstr "Onyesha/Ficha"
-
-
-msgid "Metaball"
-msgstr "Mpira wa miguu"
-
-
-msgid "Math"
-msgstr "Hisabati"
-
-
-msgid "Utilities"
-msgstr "Huduma"
-
-
-msgid "Pivot Point"
-msgstr "Egemeo"
-
-
-msgid "Read"
-msgstr "Soma"
-
-
 msgid "Snap"
 msgstr "Picha"
-
-
-msgid "Sample"
-msgstr "Mfano"
-
-
-msgid "Write"
-msgstr "Andika"
-
-
-msgid "Primitives"
-msgstr "Watu wa kwanza"
-
-
-msgid "Instances"
-msgstr "Matukio"
-
-
-msgid "Import"
-msgstr "Ingiza"
-
-
-msgid "Mirror"
-msgstr "Kioo"
-
-
-msgid "Deprecated"
-msgstr "Imeacha kutumika"
 
 
 msgid "Navigation"
@@ -28338,6 +28282,30 @@ msgid "Select Linked"
 msgstr "Chagua Imeunganishwa"
 
 
+msgid "Math"
+msgstr "Hisabati"
+
+
+msgid "Utilities"
+msgstr "Huduma"
+
+
+msgid "Metaball"
+msgstr "Mpira wa miguu"
+
+
+msgid "Read"
+msgstr "Soma"
+
+
+msgid "Sample"
+msgstr "Mfano"
+
+
+msgid "Write"
+msgstr "Andika"
+
+
 msgid "Light"
 msgstr "Mwanga"
 
@@ -28346,12 +28314,44 @@ msgid "Light Probe"
 msgstr "Uchunguzi wa Mwanga"
 
 
+msgid "Primitives"
+msgstr "Watu wa kwanza"
+
+
 msgid "Apply"
 msgstr "Tumia"
 
 
+msgid "Instances"
+msgstr "Matukio"
+
+
+msgid "Show/Hide"
+msgstr "Onyesha/Ficha"
+
+
+msgid "Clean Up"
+msgstr "Safisha"
+
+
+msgid "Import"
+msgstr "Ingiza"
+
+
 msgid "Asset"
 msgstr "Mali"
+
+
+msgid "Deprecated"
+msgstr "Imeacha kutumika"
+
+
+msgid "Bone Collections"
+msgstr "Mikusanyo ya Mifupa"
+
+
+msgid "Merge"
+msgstr "Unganisha"
 
 
 msgid "Layout"
@@ -28370,12 +28370,12 @@ msgid "Tracking"
 msgstr "Kufuatilia"
 
 
-msgid "Bone Collections"
-msgstr "Mikusanyo ya Mifupa"
+msgid "Pivot Point"
+msgstr "Egemeo"
 
 
-msgid "Merge"
-msgstr "Unganisha"
+msgid "Mirror"
+msgstr "Kioo"
 
 
 msgid "Keyframe Insert Pie"
@@ -44326,20 +44326,20 @@ msgid "Flip times of selected keyframes using the current frame as the mirror li
 msgstr "Badili nyakati za fremu muhimu zilizochaguliwa kwa kutumia fremu ya sasa kama mstari wa kioo"
 
 
-msgid "By Values Over Zero Value"
-msgstr "Kwa Thamani Zilizozidi Thamani Sifuri"
-
-
-msgid "Flip values of selected keyframes (i.e. negative values become positive, and vice versa)"
-msgstr "Badili thamani za fremu muhimu zilizochaguliwa (yaani, thamani hasi huwa chanya, na kinyume chake)"
-
-
 msgid "By Times Over First Selected Marker"
 msgstr "Kwa Times Over Alama ya Kwanza Iliyochaguliwa"
 
 
 msgid "Flip times of selected keyframes using the first selected marker as the reference point"
 msgstr "Badilisha nyakati za fremu muhimu zilizochaguliwa kwa kutumia alama ya kwanza iliyochaguliwa kama sehemu ya marejeleo"
+
+
+msgid "By Values Over Zero Value"
+msgstr "Kwa Thamani Zilizozidi Thamani Sifuri"
+
+
+msgid "Flip values of selected keyframes (i.e. negative values become positive, and vice versa)"
+msgstr "Badili thamani za fremu muhimu zilizochaguliwa (yaani, thamani hasi huwa chanya, na kinyume chake)"
 
 
 msgctxt "Operator"
@@ -51715,20 +51715,20 @@ msgid "Defines which keys to use as slope and how much to blend towards them"
 msgstr "Inafafanua funguo zipi za kutumia kama mteremko na ni kiasi gani cha kuchanganya kuelekea kwao"
 
 
-msgid "By Values Over Cursor Value"
-msgstr "Kwa Thamani Juu ya Thamani ya Mshale"
-
-
-msgid "Flip values of selected keyframes using the cursor value (Y/Horizontal component) as the mirror line"
-msgstr "Badili thamani za fremu muhimu zilizochaguliwa kwa kutumia thamani ya kishale (sehemu ya Y/Mlalo) kama mstari wa kioo"
-
-
 msgid "By Times Over Zero Time"
 msgstr "Kwa Nyakati Zaidi ya Muda Sifuri"
 
 
 msgid "Flip times of selected keyframes, effectively reversing the order they appear in"
 msgstr "Badili nyakati za fremu muhimu zilizochaguliwa, kwa kurudisha nyuma mpangilio unaoonekana"
+
+
+msgid "By Values Over Cursor Value"
+msgstr "Kwa Thamani Juu ya Thamani ya Mshale"
+
+
+msgid "Flip values of selected keyframes using the cursor value (Y/Horizontal component) as the mirror line"
+msgstr "Badili thamani za fremu muhimu zilizochaguliwa kwa kutumia thamani ya kishale (sehemu ya Y/Mlalo) kama mstari wa kioo"
 
 
 msgid "Paste keys with a value offset"
@@ -72590,34 +72590,6 @@ msgid "Panel containing UI elements"
 msgstr "Paneli iliyo na vipengele vya UI"
 
 
-msgid "View Lock"
-msgstr "Kufuli ya Tazama"
-
-
-msgid "Selectability & Visibility"
-msgstr "Uteuzi"
-
-
-msgid "Shadow Settings"
-msgstr "Mipangilio ya Kivuli"
-
-
-msgid "SSAO Settings"
-msgstr "Mipangilio ya SSAO"
-
-
-msgid "Compositor"
-msgstr "Mtunzi"
-
-
-msgid "Viewer Node"
-msgstr "Njia ya Mtazamaji"
-
-
-msgid "Motion Tracking"
-msgstr "Kufuatilia Mwendo"
-
-
 msgid "Mesh Edit Mode"
 msgstr "Njia ya Kuhariri Mesh"
 
@@ -72664,6 +72636,34 @@ msgstr "Curves Sculpt Parameta Falloff"
 
 msgid "Viewport Debug"
 msgstr "Utatuzi wa kituo cha kutazama"
+
+
+msgid "View Lock"
+msgstr "Kufuli ya Tazama"
+
+
+msgid "Selectability & Visibility"
+msgstr "Uteuzi"
+
+
+msgid "Shadow Settings"
+msgstr "Mipangilio ya Kivuli"
+
+
+msgid "SSAO Settings"
+msgstr "Mipangilio ya SSAO"
+
+
+msgid "Compositor"
+msgstr "Mtunzi"
+
+
+msgid "Viewer Node"
+msgstr "Njia ya Mtazamaji"
+
+
+msgid "Motion Tracking"
+msgstr "Kufuatilia Mwendo"
 
 
 msgid "Motion Blur"
@@ -96210,13 +96210,13 @@ msgstr "Mandhari Zoom Out"
 
 
 msgctxt "Operator"
-msgid "Exit Group"
-msgstr "Toka kwenye Kikundi"
+msgid "Clear Viewer"
+msgstr "Mtazamaji Wazi"
 
 
 msgctxt "Operator"
-msgid "Clear Viewer"
-msgstr "Mtazamaji Wazi"
+msgid "Exit Group"
+msgstr "Toka kwenye Kikundi"
 
 
 msgid "Types"
@@ -101557,10 +101557,6 @@ msgstr "Vinjari Faili za Akiba ili kuunganishwa"
 
 msgid "Browse Workspace to be linked"
 msgstr "Vinjari Nafasi ya Kazi ili kuunganishwa"
-
-
-msgid "Browse LightProbe to be linked"
-msgstr "Vinjari LightProbe ili kuunganishwa"
 
 
 msgid "Browse Curves Data to be linked"
