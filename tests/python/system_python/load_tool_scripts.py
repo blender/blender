@@ -31,6 +31,7 @@ EXCLUDED_FILE_PATHS = {
     "doc/python_api/sphinx_doc_gen.py",
 
     # Use newer Python features.
+    "doc/python_api/check_stubs.py",
     "doc/python_api/sphinx_stub_gen.py",
     "doc/python_api/sphinx_stub_validate.py",
 
