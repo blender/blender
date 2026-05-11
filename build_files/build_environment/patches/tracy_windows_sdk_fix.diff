@@ -1,0 +1,13 @@
+diff -Naur tracy-orig/public/client/windows/TracyETW.cpp tracy-a64b9a20294d59421a2f57aeca3c6383d8c48169/public/client/windows/TracyETW.cpp
+--- tracy-orig/public/client/windows/TracyETW.cpp	2026-04-11 09:29:44 -0600
++++ tracy-a64b9a20294d59421a2f57aeca3c6383d8c48169/public/client/windows/TracyETW.cpp	2026-05-04 11:33:43 -0600
+@@ -6,6 +6,9 @@
+ #include <stdio.h>
+ #include <thread>
+ 
++#define CONTROLTRACE_ID TRACEHANDLE 
++#define PROCESSTRACE_HANDLE TRACEHANDLE
++
+ namespace tracy
+ {
+ namespace etw

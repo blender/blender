@@ -34,7 +34,8 @@ ExternalProject_Add(external_opensubdiv
 
   CMAKE_ARGS
     -DCMAKE_INSTALL_PREFIX=${LIBDIR}/opensubdiv
-    -Wno-dev ${DEFAULT_CMAKE_FLAGS}
+    -Wno-dev
+    ${DEFAULT_CMAKE_FLAGS}
     ${OPENSUBDIV_EXTRA_ARGS}
 
   INSTALL_DIR ${LIBDIR}/opensubdiv

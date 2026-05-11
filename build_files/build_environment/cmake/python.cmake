@@ -58,7 +58,7 @@ if(WIN32)
     PATCH_COMMAND mkdir ${PYTHON_EXTERNALS_FOLDER_DOS} &&
       mklink /J ${PYTHON_EXTERNALS_FOLDER_DOS}\\libffi-3.4.4 ${FFI_SOURCE_FOLDER_DOS} &&
       mklink /J ${PYTHON_EXTERNALS_FOLDER_DOS}\\zlib-1.3.1 ${ZLIB_SOURCE_FOLDER_DOS} &&
-      mklink /J ${PYTHON_EXTERNALS_FOLDER_DOS}\\openssl-3.0.18 ${SSL_SOURCE_FOLDER_DOS} &&
+      mklink /J ${PYTHON_EXTERNALS_FOLDER_DOS}\\openssl-3.0.19 ${SSL_SOURCE_FOLDER_DOS} &&
       mklink /J ${PYTHON_EXTERNALS_FOLDER_DOS}\\sqlite-3.50.4.0 ${SQLITE_SOURCE_FOLDER_DOS} &&
       ${CMAKE_COMMAND} -E copy
         ${ZLIB_SOURCE_FOLDER}/../external_zlib-build/zconf.h

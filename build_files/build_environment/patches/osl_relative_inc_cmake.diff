@@ -18,34 +18,30 @@ index 261168c5..0a9343dd 100644
  target_link_libraries (${local_lib}
      PUBLIC
 diff --git a/src/liboslexec/CMakeLists.txt b/src/liboslexec/CMakeLists.txt
-index 8b9cfccd..4ea75927 100644
+index a1e2d18f..92562c2e 100644
 --- a/src/liboslexec/CMakeLists.txt
 +++ b/src/liboslexec/CMakeLists.txt
-@@ -510,11 +510,9 @@ foreach(batched_target ${BATCHED_TARGET_LIST})
-     endforeach(target_src)
-     
-     add_library ( ${batched_target_lib} MODULE ${TARGET_LIB_SOURCES} )
--      
--    target_include_directories (${batched_target_lib}
+@@ -514,9 +514,8 @@ foreach(batched_target ${BATCHED_TARGET_LIST})
+     endif()
+
+     target_include_directories (${batched_target_lib}
 -        PUBLIC
 -            ${CMAKE_INSTALL_FULL_INCLUDEDIR}
 -            ${IMATH_INCLUDES}
-+
-+    target_include_directories (${batched_target_lib} INTERFACE
-+	    $<INSTALL_INTERFACE:${CMAKE_INSTALL_INCLUDEDIR}>
++        INTERFACE
++            $<INSTALL_INTERFACE:${CMAKE_INSTALL_INCLUDEDIR}>
          PRIVATE
              ${ROBINMAP_INCLUDES}
          )
-@@ -531,10 +529,8 @@ foreach(batched_target ${BATCHED_TARGET_LIST})
- endforeach(batched_target)
- 
+@@ -534,9 +533,8 @@ endforeach(batched_target)
+
  add_library (${local_lib} ${lib_src})
--target_include_directories (${local_lib}
+ target_include_directories (${local_lib}
 -    PUBLIC
 -        ${CMAKE_INSTALL_FULL_INCLUDEDIR}
 -        ${IMATH_INCLUDES}
-+target_include_directories(${local_lib} INTERFACE
-+	$<INSTALL_INTERFACE:${CMAKE_INSTALL_INCLUDEDIR}>
++    INTERFACE
++        $<INSTALL_INTERFACE:${CMAKE_INSTALL_INCLUDEDIR}>
      PRIVATE
          "${CMAKE_SOURCE_DIR}/src/liboslcomp"
          ${ROBINMAP_INCLUDES}

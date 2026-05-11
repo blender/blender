@@ -216,9 +216,7 @@ add_library(bf_deps_optional_sdl INTERFACE)
 add_library(bf::dependencies::optional::sdl ALIAS bf_deps_optional_sdl)
 
 if(WITH_SDL)
-  target_compile_definitions(bf_deps_optional_sdl INTERFACE WITH_SDL)
-  target_include_directories(bf_deps_optional_sdl SYSTEM INTERFACE ${SDL_INCLUDE_DIR})
-  target_link_libraries(bf_deps_optional_sdl INTERFACE ${SDL_LIBRARY})
+  target_link_libraries(bf_deps_optional_sdl INTERFACE SDL3::SDL3)
 endif()
 
 # -----------------------------------------------------------------------------
@@ -482,6 +480,28 @@ if(WITH_CYCLES_OSL)
 else()
   add_library(bf_deps_optional_osl INTERFACE)
   add_library(bf::dependencies::optional::osl ALIAS bf_deps_optional_osl)
+endif()
+
+# -----------------------------------------------------------------------------
+# Configure Draco
+
+add_library(bf_deps_optional_draco INTERFACE)
+add_library(bf::dependencies::optional::draco ALIAS bf_deps_optional_draco)
+
+if(TARGET draco::draco)
+  target_compile_definitions(bf_deps_optional_draco INTERFACE WITH_DRACO)
+  target_link_libraries(bf_deps_optional_draco INTERFACE draco::draco)
+endif()
+
+# -----------------------------------------------------------------------------
+# Configure meshoptimizer
+
+add_library(bf_deps_optional_meshoptimizer INTERFACE)
+add_library(bf::dependencies::optional::meshoptimizer ALIAS bf_deps_optional_meshoptimizer)
+
+if(TARGET meshoptimizer::meshoptimizer)
+  target_compile_definitions(bf_deps_optional_meshoptimizer INTERFACE WITH_MESHOPTIMIZER)
+  target_link_libraries(bf_deps_optional_meshoptimizer INTERFACE meshoptimizer::meshoptimizer)
 endif()
 
 # -----------------------------------------------------------------------------

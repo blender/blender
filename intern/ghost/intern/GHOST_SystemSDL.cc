@@ -22,7 +22,7 @@
 
 GHOST_SystemSDL::GHOST_SystemSDL() : GHOST_System()
 {
-  if (SDL_Init(SDL_INIT_VIDEO | SDL_INIT_TIMER) != 0) {
+  if (!SDL_Init(SDL_INIT_VIDEO)) {
     throw std::runtime_error(SDL_GetError());
   }
 
@@ -68,13 +68,9 @@ GHOST_IWindow *GHOST_SystemSDL::createWindow(const char *title,
   if (window) {
     if (GHOST_kWindowStateFullScreen == state) {
       SDL_Window *sdl_win = window->getSDLWindow();
-      SDL_DisplayMode mode;
-
-      memset(&mode, 0, sizeof(mode));
-
-      SDL_SetWindowDisplayMode(sdl_win, &mode);
+      SDL_SetWindowFullscreenMode(sdl_win, nullptr);
       SDL_ShowWindow(sdl_win);
-      SDL_SetWindowFullscreen(sdl_win, SDL_TRUE);
+      SDL_SetWindowFullscreen(sdl_win, true);
     }
 
     if (window->getValid()) {
@@ -106,29 +102,32 @@ GHOST_TSuccess GHOST_SystemSDL::init()
  */
 void GHOST_SystemSDL::getAllDisplayDimensions(uint32_t &width, uint32_t &height) const
 {
-  SDL_DisplayMode mode;
-  const int display_index = 0; /* NOTE: always 0 display. */
-  if (SDL_GetDesktopDisplayMode(display_index, &mode) < 0) {
+  SDL_DisplayID display_id = SDL_GetPrimaryDisplay();
+  const SDL_DisplayMode *mode = SDL_GetDesktopDisplayMode(display_id);
+  if (mode == nullptr) {
     return;
   }
-  width = mode.w;
-  height = mode.h;
+  width = mode->w;
+  height = mode->h;
 }
 
 void GHOST_SystemSDL::getMainDisplayDimensions(uint32_t &width, uint32_t &height) const
 {
-  SDL_DisplayMode mode;
-  const int display_index = 0; /* NOTE: always 0 display. */
-  if (SDL_GetCurrentDisplayMode(display_index, &mode) < 0) {
+  SDL_DisplayID display_id = SDL_GetPrimaryDisplay();
+  const SDL_DisplayMode *mode = SDL_GetCurrentDisplayMode(display_id);
+  if (mode == nullptr) {
     return;
   }
-  width = mode.w;
-  height = mode.h;
+  width = mode->w;
+  height = mode->h;
 }
 
 uint8_t GHOST_SystemSDL::getNumDisplays() const
 {
-  return SDL_GetNumVideoDisplays();
+  int count = 0;
+  SDL_DisplayID *displays = SDL_GetDisplays(&count);
+  SDL_free(displays);
+  return uint8_t(count);
 }
 
 GHOST_IContext *GHOST_SystemSDL::createOffscreenContext(GHOST_GPUSettings gpu_settings)
@@ -175,14 +174,14 @@ GHOST_TSuccess GHOST_SystemSDL::getModifierKeys(GHOST_ModifierKeys &keys) const
 {
   SDL_Keymod mod = SDL_GetModState();
 
-  keys.set(GHOST_kModifierKeyLeftShift, (mod & KMOD_LSHIFT) != 0);
-  keys.set(GHOST_kModifierKeyRightShift, (mod & KMOD_RSHIFT) != 0);
-  keys.set(GHOST_kModifierKeyLeftControl, (mod & KMOD_LCTRL) != 0);
-  keys.set(GHOST_kModifierKeyRightControl, (mod & KMOD_RCTRL) != 0);
-  keys.set(GHOST_kModifierKeyLeftAlt, (mod & KMOD_LALT) != 0);
-  keys.set(GHOST_kModifierKeyRightAlt, (mod & KMOD_RALT) != 0);
-  keys.set(GHOST_kModifierKeyLeftOS, (mod & KMOD_LGUI) != 0);
-  keys.set(GHOST_kModifierKeyRightOS, (mod & KMOD_RGUI) != 0);
+  keys.set(GHOST_kModifierKeyLeftShift, (mod & SDL_KMOD_LSHIFT) != 0);
+  keys.set(GHOST_kModifierKeyRightShift, (mod & SDL_KMOD_RSHIFT) != 0);
+  keys.set(GHOST_kModifierKeyLeftControl, (mod & SDL_KMOD_LCTRL) != 0);
+  keys.set(GHOST_kModifierKeyRightControl, (mod & SDL_KMOD_RCTRL) != 0);
+  keys.set(GHOST_kModifierKeyLeftAlt, (mod & SDL_KMOD_LALT) != 0);
+  keys.set(GHOST_kModifierKeyRightAlt, (mod & SDL_KMOD_RALT) != 0);
+  keys.set(GHOST_kModifierKeyLeftOS, (mod & SDL_KMOD_LGUI) != 0);
+  keys.set(GHOST_kModifierKeyRightOS, (mod & SDL_KMOD_RGUI) != 0);
 
   return GHOST_kSuccess;
 }
@@ -282,11 +281,10 @@ static GHOST_TKey convertSDLKey(SDL_Scancode key)
       GXMAP(type, SDL_SCANCODE_KP_DIVIDE, GHOST_kKeyNumpadSlash);
 
       /* Media keys in some keyboards and laptops with XFree86/XORG. */
-      GXMAP(type, SDL_SCANCODE_AUDIOPLAY, GHOST_kKeyMediaPlay);
-      GXMAP(type, SDL_SCANCODE_AUDIOSTOP, GHOST_kKeyMediaStop);
-      GXMAP(type, SDL_SCANCODE_AUDIOPREV, GHOST_kKeyMediaFirst);
-      // GXMAP(type, XF86XK_AudioRewind, GHOST_kKeyMediaFirst);
-      GXMAP(type, SDL_SCANCODE_AUDIONEXT, GHOST_kKeyMediaLast);
+      GXMAP(type, SDL_SCANCODE_MEDIA_PLAY, GHOST_kKeyMediaPlay);
+      GXMAP(type, SDL_SCANCODE_MEDIA_STOP, GHOST_kKeyMediaStop);
+      GXMAP(type, SDL_SCANCODE_MEDIA_PREVIOUS_TRACK, GHOST_kKeyMediaFirst);
+      GXMAP(type, SDL_SCANCODE_MEDIA_NEXT_TRACK, GHOST_kKeyMediaLast);
 
       /* International Keys. */
 
@@ -307,7 +305,7 @@ static GHOST_TKey convertSDLKey(SDL_Scancode key)
 
 static char convert_keyboard_event_to_ascii(const SDL_KeyboardEvent &sdl_sub_evt)
 {
-  SDL_Keycode sym = sdl_sub_evt.keysym.sym;
+  SDL_Keycode sym = sdl_sub_evt.key;
   if (sym > 127) {
     switch (sym) {
       case SDLK_KP_DIVIDE:
@@ -361,7 +359,7 @@ static char convert_keyboard_event_to_ascii(const SDL_KeyboardEvent &sdl_sub_evt
     }
   }
   else {
-    if (sdl_sub_evt.keysym.mod & (KMOD_LSHIFT | KMOD_RSHIFT)) {
+    if (sdl_sub_evt.mod & (SDL_KMOD_LSHIFT | SDL_KMOD_RSHIFT)) {
       /* Weak US keyboard assumptions. */
       if (sym >= 'a' && sym <= ('a' + 32)) {
         sym -= 32;
@@ -444,7 +442,7 @@ static char convert_keyboard_event_to_ascii(const SDL_KeyboardEvent &sdl_sub_evt
  * Events don't always have valid windows,
  * but GHOST needs a window _always_. Fall back to the GL window.
  */
-static SDL_Window *SDL_GetWindowFromID_fallback(Uint32 id)
+static SDL_Window *SDL_GetWindowFromID_fallback(SDL_WindowID id)
 {
   SDL_Window *sdl_win = SDL_GetWindowFromID(id);
   if (sdl_win == nullptr) {
@@ -458,33 +456,35 @@ void GHOST_SystemSDL::processEvent(SDL_Event *sdl_event)
   std::unique_ptr<GHOST_Event> g_event = nullptr;
 
   switch (sdl_event->type) {
-    case SDL_WINDOWEVENT: {
+    case SDL_EVENT_WINDOW_EXPOSED:
+    case SDL_EVENT_WINDOW_RESIZED:
+    case SDL_EVENT_WINDOW_MOVED:
+    case SDL_EVENT_WINDOW_FOCUS_GAINED:
+    case SDL_EVENT_WINDOW_FOCUS_LOST:
+    case SDL_EVENT_WINDOW_CLOSE_REQUESTED: {
       const SDL_WindowEvent &sdl_sub_evt = sdl_event->window;
-      const uint64_t event_ms = sdl_sub_evt.timestamp;
+      const uint64_t event_ms = SDL_NS_TO_MS(sdl_sub_evt.timestamp);
       GHOST_WindowSDL *window = findGhostWindow(
           SDL_GetWindowFromID_fallback(sdl_sub_evt.windowID));
       /* Can be nullptr on close window. */
-#if 0
-      assert(window != nullptr);
-#endif
 
-      switch (sdl_sub_evt.event) {
-        case SDL_WINDOWEVENT_EXPOSED:
+      switch (sdl_event->type) {
+        case SDL_EVENT_WINDOW_EXPOSED:
           g_event = std::make_unique<GHOST_Event>(event_ms, GHOST_kEventWindowUpdate, window);
           break;
-        case SDL_WINDOWEVENT_RESIZED:
+        case SDL_EVENT_WINDOW_RESIZED:
           g_event = std::make_unique<GHOST_Event>(event_ms, GHOST_kEventWindowSize, window);
           break;
-        case SDL_WINDOWEVENT_MOVED:
+        case SDL_EVENT_WINDOW_MOVED:
           g_event = std::make_unique<GHOST_Event>(event_ms, GHOST_kEventWindowMove, window);
           break;
-        case SDL_WINDOWEVENT_FOCUS_GAINED:
+        case SDL_EVENT_WINDOW_FOCUS_GAINED:
           g_event = std::make_unique<GHOST_Event>(event_ms, GHOST_kEventWindowActivate, window);
           break;
-        case SDL_WINDOWEVENT_FOCUS_LOST:
+        case SDL_EVENT_WINDOW_FOCUS_LOST:
           g_event = std::make_unique<GHOST_Event>(event_ms, GHOST_kEventWindowDeactivate, window);
           break;
-        case SDL_WINDOWEVENT_CLOSE:
+        case SDL_EVENT_WINDOW_CLOSE_REQUESTED:
           g_event = std::make_unique<GHOST_Event>(event_ms, GHOST_kEventWindowClose, window);
           break;
       }
@@ -492,17 +492,17 @@ void GHOST_SystemSDL::processEvent(SDL_Event *sdl_event)
       break;
     }
 
-    case SDL_QUIT: {
+    case SDL_EVENT_QUIT: {
       const SDL_QuitEvent &sdl_sub_evt = sdl_event->quit;
-      const uint64_t event_ms = sdl_sub_evt.timestamp;
+      const uint64_t event_ms = SDL_NS_TO_MS(sdl_sub_evt.timestamp);
       GHOST_IWindow *window = window_manager_->getActiveWindow();
       g_event = std::make_unique<GHOST_Event>(event_ms, GHOST_kEventQuitRequest, window);
       break;
     }
 
-    case SDL_MOUSEMOTION: {
+    case SDL_EVENT_MOUSE_MOTION: {
       const SDL_MouseMotionEvent &sdl_sub_evt = sdl_event->motion;
-      const uint64_t event_ms = sdl_sub_evt.timestamp;
+      const uint64_t event_ms = SDL_NS_TO_MS(sdl_sub_evt.timestamp);
       SDL_Window *sdl_win = SDL_GetWindowFromID_fallback(sdl_sub_evt.windowID);
       GHOST_WindowSDL *window = findGhostWindow(sdl_win);
       assert(window != nullptr);
@@ -510,8 +510,8 @@ void GHOST_SystemSDL::processEvent(SDL_Event *sdl_event)
       int x_win, y_win;
       SDL_GetWindowPosition(sdl_win, &x_win, &y_win);
 
-      int32_t x_root = sdl_sub_evt.x + x_win;
-      int32_t y_root = sdl_sub_evt.y + y_win;
+      int32_t x_root = int32_t(sdl_sub_evt.x) + x_win;
+      int32_t y_root = int32_t(sdl_sub_evt.y) + y_win;
 
 #if 0
       if (window->getCursorGrabMode() != GHOST_kGrabDisable &&
@@ -566,13 +566,12 @@ void GHOST_SystemSDL::processEvent(SDL_Event *sdl_event)
       }
       break;
     }
-    case SDL_MOUSEBUTTONUP:
-    case SDL_MOUSEBUTTONDOWN: {
+    case SDL_EVENT_MOUSE_BUTTON_UP:
+    case SDL_EVENT_MOUSE_BUTTON_DOWN: {
       const SDL_MouseButtonEvent &sdl_sub_evt = sdl_event->button;
-      const uint64_t event_ms = sdl_sub_evt.timestamp;
+      const uint64_t event_ms = SDL_NS_TO_MS(sdl_sub_evt.timestamp);
       GHOST_TButton gbmask = GHOST_kButtonMaskLeft;
-      GHOST_TEventType type = (sdl_sub_evt.state == SDL_PRESSED) ? GHOST_kEventButtonDown :
-                                                                   GHOST_kEventButtonUp;
+      GHOST_TEventType type = sdl_sub_evt.down ? GHOST_kEventButtonDown : GHOST_kEventButtonUp;
 
       GHOST_WindowSDL *window = findGhostWindow(
           SDL_GetWindowFromID_fallback(sdl_sub_evt.windowID));
@@ -603,36 +602,35 @@ void GHOST_SystemSDL::processEvent(SDL_Event *sdl_event)
           event_ms, type, window, gbmask, GHOST_TABLET_DATA_NONE);
       break;
     }
-    case SDL_MOUSEWHEEL: {
+    case SDL_EVENT_MOUSE_WHEEL: {
       const SDL_MouseWheelEvent &sdl_sub_evt = sdl_event->wheel;
-      const uint64_t event_ms = sdl_sub_evt.timestamp;
+      const uint64_t event_ms = SDL_NS_TO_MS(sdl_sub_evt.timestamp);
       GHOST_WindowSDL *window = findGhostWindow(
           SDL_GetWindowFromID_fallback(sdl_sub_evt.windowID));
       assert(window != nullptr);
-      if (sdl_sub_evt.x != 0) {
+      if (sdl_sub_evt.x != 0.0f) {
         g_event = std::make_unique<GHOST_EventWheel>(
-            event_ms, window, GHOST_kEventWheelAxisHorizontal, sdl_sub_evt.x);
+            event_ms, window, GHOST_kEventWheelAxisHorizontal, int(sdl_sub_evt.x));
       }
-      else if (sdl_sub_evt.y != 0) {
+      else if (sdl_sub_evt.y != 0.0f) {
         g_event = std::make_unique<GHOST_EventWheel>(
-            event_ms, window, GHOST_kEventWheelAxisVertical, sdl_sub_evt.y);
+            event_ms, window, GHOST_kEventWheelAxisVertical, int(sdl_sub_evt.y));
       }
       break;
     }
-    case SDL_KEYDOWN:
-    case SDL_KEYUP: {
+    case SDL_EVENT_KEY_DOWN:
+    case SDL_EVENT_KEY_UP: {
       const SDL_KeyboardEvent &sdl_sub_evt = sdl_event->key;
-      const uint64_t event_ms = sdl_sub_evt.timestamp;
-      GHOST_TEventType type = (sdl_sub_evt.state == SDL_PRESSED) ? GHOST_kEventKeyDown :
-                                                                   GHOST_kEventKeyUp;
+      const uint64_t event_ms = SDL_NS_TO_MS(sdl_sub_evt.timestamp);
+      GHOST_TEventType type = sdl_sub_evt.down ? GHOST_kEventKeyDown : GHOST_kEventKeyUp;
       const bool is_repeat = sdl_sub_evt.repeat != 0;
 
       GHOST_WindowSDL *window = findGhostWindow(
           SDL_GetWindowFromID_fallback(sdl_sub_evt.windowID));
       assert(window != nullptr);
 
-      GHOST_TKey gkey = convertSDLKey(sdl_sub_evt.keysym.scancode);
-      /* NOTE: the `sdl_sub_evt.keysym.sym` is truncated,
+      GHOST_TKey gkey = convertSDLKey(sdl_sub_evt.scancode);
+      /* NOTE: the `sdl_sub_evt.key` is truncated,
        * for unicode support ghost has to be modified. */
 
       /* TODO(@ideasman42): support full unicode, SDL supports this but it needs to be
@@ -659,10 +657,10 @@ GHOST_TSuccess GHOST_SystemSDL::getCursorPosition(int32_t &x, int32_t &y) const
   SDL_Window *win = SDL_GetMouseFocus();
   SDL_GetWindowPosition(win, &x_win, &y_win);
 
-  int xi, yi;
-  SDL_GetMouseState(&xi, &yi);
-  x = xi + x_win;
-  y = yi + y_win;
+  float xf, yf;
+  SDL_GetMouseState(&xf, &yf);
+  x = int32_t(xf) + x_win;
+  y = int32_t(yf) + y_win;
 
   return GHOST_kSuccess;
 }
@@ -711,7 +709,8 @@ bool GHOST_SystemSDL::processEvents(bool waitForEvent)
   do {
     GHOST_TimerManager *timerMgr = getTimerManager();
 
-    if (waitForEvent && dirty_windows_.empty() && !SDL_HasEvents(SDL_FIRSTEVENT, SDL_LASTEVENT)) {
+    if (waitForEvent && dirty_windows_.empty() && !SDL_HasEvents(SDL_EVENT_FIRST, SDL_EVENT_LAST))
+    {
       uint64_t next = timerMgr->nextFireTime();
 
       if (next == GHOST_kFireTimeNever) {
@@ -779,7 +778,7 @@ void GHOST_SystemSDL::addDirtyWindow(GHOST_WindowSDL *bad_wind)
 
 GHOST_TSuccess GHOST_SystemSDL::getButtons(GHOST_Buttons &buttons) const
 {
-  Uint8 state = SDL_GetMouseState(nullptr, nullptr);
+  SDL_MouseButtonFlags state = SDL_GetMouseState(nullptr, nullptr);
   buttons.set(GHOST_kButtonMaskLeft, (state & SDL_BUTTON_LMASK) != 0);
   buttons.set(GHOST_kButtonMaskMiddle, (state & SDL_BUTTON_MMASK) != 0);
   buttons.set(GHOST_kButtonMaskRight, (state & SDL_BUTTON_RMASK) != 0);
@@ -827,5 +826,5 @@ void GHOST_SystemSDL::putClipboard(const char *buffer, bool /*selection*/) const
 
 uint64_t GHOST_SystemSDL::getMilliSeconds() const
 {
-  return SDL_GetTicks64();
+  return SDL_GetTicks();
 }

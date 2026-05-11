@@ -55,10 +55,6 @@ if(WITH_BULLET)
   endif()
 endif()
 
-if(WITH_DRACO)
-  add_subdirectory(draco)
-endif()
-
 if(WITH_BINRELOC)
   add_subdirectory(binreloc)
 endif()

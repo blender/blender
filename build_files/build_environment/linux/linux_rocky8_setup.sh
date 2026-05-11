@@ -5,7 +5,6 @@
 
 # This script is part of the official build environment, see wiki page for details.
 # https://developer.blender.org/docs/handbook/release_process/build/rocky_8/
-
 set -e
 
 if [ `id -u` -ne 0 ]; then
@@ -120,18 +119,10 @@ PACKAGES_FOR_LIBS=(
     # For example, this is used for the `python3-mako` package
     # So use the "default" system Python since it means it's most compatible with other packages.
     python3
-    # Required by: `external_mesa`.
-    python3-mako
 
     # Required by: `external_igc`.
+    python3-mako
     python3-pyyaml
-
-    # Required by: `external_mesa`.
-    expat-devel
-
-    # Required by: `external_mesa`.
-    libxshmfence
-    libxshmfence-devel
 
     # Required by: `external_igc` & `external_osl` as a build-time dependency.
     bison
@@ -200,23 +191,23 @@ if [ "$ARCH" != "aarch64" ]; then
     # Register ROCm packages
     rpm --import https://repo.radeon.com/rocm/rocm.gpg.key
 
-    rm -f /etc/yum.repos.d/amdgpu-6.4.3.repo
-    rm -f /etc/yum.repos.d/rocm-6.4.3.repo
+    rm -f /etc/yum.repos.d/graphics-7.2.1.repo
+    rm -f /etc/yum.repos.d/rocm-7.2.1.repo
 
-    tee /etc/yum.repos.d/amdgpu-6.4.3.repo > /dev/null <<EOF
-[amdgpu-6.4.3]
-name=amdgpu-6.4.3
-baseurl=https://repo.radeon.com/amdgpu/6.4.3/el/8.10/main/x86_64/
+    tee /etc/yum.repos.d/graphics-7.2.1.repo > /dev/null <<EOF
+[graphics-7.2.1]
+name=graphics-7.2.1
+baseurl=https://repo.radeon.com/graphics/7.2.1/el/8.10/main/x86_64/
 enabled=1
 priority=50
 gpgcheck=1
 gpgkey=https://repo.radeon.com/rocm/rocm.gpg.key
 EOF
 
-    tee /etc/yum.repos.d/rocm-6.4.3.repo > /dev/null <<EOF
-[ROCm-6.4.3]
-name=ROCm-6.4.3
-baseurl=https://repo.radeon.com/rocm/el8/6.4.3/main
+    tee /etc/yum.repos.d/rocm-7.2.1.repo > /dev/null <<EOF
+[ROCm-7.2.1]
+name=ROCm-7.2.1
+baseurl=https://repo.radeon.com/rocm/el8/7.2.1/main
 enabled=1
 gpgcheck=1
 exclude=rock-dkms
@@ -224,6 +215,6 @@ gpgkey=https://repo.radeon.com/rocm/rocm.gpg.key
 EOF
 
     dnf -y update
-    dnf -y install hipcc6.4.3 hip-devel6.4.3 rocm-llvm6.4.3 rocm-core6.4.3 rocm-device-libs6.4.3
-    update-alternatives --set rocm /opt/rocm-6.4.3
+    dnf -y install hipcc7.2.1 hip-devel7.2.1 rocm-llvm7.2.1 rocm-core7.2.1 rocm-device-libs7.2.1
+    update-alternatives --set rocm /opt/rocm-7.2.1
 fi

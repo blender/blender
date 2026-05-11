@@ -7,7 +7,6 @@
  */
 
 #include "GHOST_WindowSDL.hh"
-#include "SDL_mouse.h"
 
 #include "GHOST_ContextSDL.hh"
 
@@ -32,12 +31,10 @@ GHOST_WindowSDL::GHOST_WindowSDL(GHOST_SystemSDL *system,
 {
 
   /* creating the window _must_ come after setting attributes */
-  sdl_win_ = SDL_CreateWindow(title,
-                              left,
-                              top,
-                              width,
-                              height,
-                              SDL_WINDOW_RESIZABLE | SDL_WINDOW_OPENGL | SDL_WINDOW_SHOWN);
+  sdl_win_ = SDL_CreateWindow(title, width, height, SDL_WINDOW_RESIZABLE | SDL_WINDOW_OPENGL);
+  if (sdl_win_) {
+    SDL_SetWindowPosition(sdl_win_, left, top);
+  }
 
   /* now set up the rendering context. */
   if (setDrawingContextType(type) == GHOST_kSuccess) {
@@ -55,7 +52,7 @@ GHOST_WindowSDL::GHOST_WindowSDL(GHOST_SystemSDL *system,
 GHOST_WindowSDL::~GHOST_WindowSDL()
 {
   if (sdl_custom_cursor_) {
-    SDL_FreeCursor(sdl_custom_cursor_);
+    SDL_DestroyCursor(sdl_custom_cursor_);
   }
 
   releaseNativeHandles();
@@ -108,18 +105,18 @@ GHOST_TSuccess GHOST_WindowSDL::setState(GHOST_TWindowState state)
 {
   switch (state) {
     case GHOST_kWindowStateNormal:
-      SDL_SetWindowFullscreen(sdl_win_, SDL_FALSE);
+      SDL_SetWindowFullscreen(sdl_win_, false);
       SDL_RestoreWindow(sdl_win_);
       break;
     case GHOST_kWindowStateMaximized:
-      SDL_SetWindowFullscreen(sdl_win_, SDL_FALSE);
+      SDL_SetWindowFullscreen(sdl_win_, false);
       SDL_MaximizeWindow(sdl_win_);
       break;
     case GHOST_kWindowStateMinimized:
       SDL_MinimizeWindow(sdl_win_);
       break;
     case GHOST_kWindowStateFullScreen:
-      SDL_SetWindowFullscreen(sdl_win_, SDL_TRUE);
+      SDL_SetWindowFullscreen(sdl_win_, true);
       break;
     default:
       break;
@@ -130,7 +127,7 @@ GHOST_TSuccess GHOST_WindowSDL::setState(GHOST_TWindowState state)
 
 GHOST_TWindowState GHOST_WindowSDL::getState() const
 {
-  Uint32 flags = SDL_GetWindowFlags(sdl_win_);
+  SDL_WindowFlags flags = SDL_GetWindowFlags(sdl_win_);
 
   if (flags & SDL_WINDOW_FULLSCREEN) {
     return GHOST_kWindowStateFullScreen;
@@ -518,7 +515,7 @@ static SDL_Cursor *sdl_ghost_CreateCursor(
   w = ((w + 7) & ~7);
 
   /* Create the surface from a bitmap */
-  surface = SDL_CreateRGBSurface(0, w, h, 32, 0x00FF0000, 0x0000FF00, 0x000000FF, 0xFF000000);
+  surface = SDL_CreateSurface(w, h, SDL_PIXELFORMAT_ARGB8888);
   if (!surface) {
     return nullptr;
   }
@@ -546,7 +543,7 @@ static SDL_Cursor *sdl_ghost_CreateCursor(
 
   cursor = SDL_CreateColorCursor(surface, hot_x, hot_y);
 
-  SDL_FreeSurface(surface);
+  SDL_DestroySurface(surface);
 
   return cursor;
 }
@@ -624,7 +621,7 @@ GHOST_TSuccess GHOST_WindowSDL::setWindowCustomCursorShape(const uint8_t *bitmap
                                                            bool /*can_invert_color*/)
 {
   if (sdl_custom_cursor_) {
-    SDL_FreeCursor(sdl_custom_cursor_);
+    SDL_DestroyCursor(sdl_custom_cursor_);
   }
 
   sdl_custom_cursor_ = sdl_ghost_CreateCursor(
@@ -636,21 +633,26 @@ GHOST_TSuccess GHOST_WindowSDL::setWindowCustomCursorShape(const uint8_t *bitmap
 
 GHOST_TSuccess GHOST_WindowSDL::setWindowCursorVisibility(bool visible)
 {
-  SDL_ShowCursor(visible);
+  if (visible) {
+    SDL_ShowCursor();
+  }
+  else {
+    SDL_HideCursor();
+  }
   return GHOST_kSuccess;
 }
 
 uint16_t GHOST_WindowSDL::getDPIHint()
 {
-  int displayIndex = SDL_GetWindowDisplayIndex(sdl_win_);
-  if (displayIndex < 0) {
+  SDL_DisplayID display_id = SDL_GetDisplayForWindow(sdl_win_);
+  if (display_id == 0) {
     return 96;
   }
 
-  float ddpi;
-  if (SDL_GetDisplayDPI(displayIndex, &ddpi, nullptr, nullptr) != 0) {
+  float scale = SDL_GetDisplayContentScale(display_id);
+  if (scale <= 0.0f) {
     return 96;
   }
 
-  return int(ddpi);
+  return uint16_t(96.0f * scale);
 }
