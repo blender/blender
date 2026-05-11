@@ -63,6 +63,16 @@ Attribute::Attribute(ustring name,
   this->sharing_info = sharing_info;
 }
 
+Attribute::Attribute(Attribute &&other)
+    : name(other.name),
+      std(other.std),
+      type(other.type),
+      element(other.element),
+      modified(other.modified)
+{
+  set_data_from(std::move(other));
+}
+
 void Attribute::free_data()
 {
   /* For voxel data, we need to free the image handle. */
@@ -514,6 +524,25 @@ Attribute *AttributeSet::add_shared(ustring name,
   return &attributes.back();
 }
 
+Attribute *AttributeSet::add_from(Attribute &&other)
+{
+  Attribute *attr = find(other.name);
+  if (attr) {
+    if (attr->type == other.type && attr->element == other.element) {
+      attr->std = other.std;
+      attr->set_data_from(std::move(other));
+      return attr;
+    }
+
+    /* Overwrite attribute with the same name but different type/element. */
+    remove(other.name);
+  }
+
+  attributes.emplace_back(std::move(other));
+  tag_modified(attributes.back());
+  return &attributes.back();
+}
+
 Attribute *AttributeSet::find(ustring name) const
 {
   for (const Attribute &attr : attributes) {
@@ -945,9 +974,7 @@ void AttributeSet::update(AttributeSet &&new_attributes)
 
   /* Add or update old_attributes based on the new_attributes. */
   for (Attribute &attr : new_attributes.attributes) {
-    Attribute *nattr = add(attr.name, attr.type, attr.element);
-    nattr->std = attr.std;
-    nattr->set_data_from(std::move(attr));
+    add_from(std::move(attr));
   }
 
   /* If all attributes were replaced, transform is no longer applied. */
