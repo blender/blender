@@ -4,32 +4,27 @@
  * SPDX-License-Identifier: Apache-2.0 */
 
 #include "hydra/instancer.h"
+#include "hydra/util.h"
 
 #include <pxr/base/gf/quatd.h>
+#include <pxr/base/gf/quatf.h>
+#include <pxr/base/gf/quath.h>
+#include <pxr/imaging/hd/instancedBySchema.h>
+#include <pxr/imaging/hd/instancerTopologySchema.h>
+#include <pxr/imaging/hd/primvarSchema.h>
+#include <pxr/imaging/hd/primvarsSchema.h>
 #include <pxr/imaging/hd/sceneDelegate.h>
+#include <pxr/imaging/hd/xformSchema.h>
 
 HDCYCLES_NAMESPACE_OPEN_SCOPE
 
-HdCyclesInstancer::HdCyclesInstancer(HdSceneDelegate *delegate,
-                                     const SdfPath &instancerId
-#if PXR_VERSION <= 2011
-                                     ,
-                                     const SdfPath &parentId
-#endif
-                                     )
-    : HdInstancer(delegate,
-                  instancerId
-#if PXR_VERSION <= 2011
-                  ,
-                  parentId
-#endif
-      )
+HdCyclesInstancer::HdCyclesInstancer(HdSceneDelegate *delegate, const SdfPath &instancerId)
+    : HdInstancer(delegate, instancerId)
 {
 }
 
-HdCyclesInstancer::~HdCyclesInstancer() {}
+HdCyclesInstancer::~HdCyclesInstancer() = default;
 
-#if PXR_VERSION > 2011
 void HdCyclesInstancer::Sync(HdSceneDelegate *sceneDelegate,
                              HdRenderParam * /*renderParam*/,
                              HdDirtyBits *dirtyBits)
@@ -40,66 +35,74 @@ void HdCyclesInstancer::Sync(HdSceneDelegate *sceneDelegate,
     SyncPrimvars();
   }
 }
-#endif
 
 void HdCyclesInstancer::SyncPrimvars()
 {
   HdSceneDelegate *const sceneDelegate = GetDelegate();
-  const HdDirtyBits dirtyBits =
-      sceneDelegate->GetRenderIndex().GetChangeTracker().GetInstancerDirtyBits(GetId());
+  const SdfPath &id = GetId();
+  const HdSceneIndexPrim prim = GetPrim(sceneDelegate, id);
+  HdPrimvarsSchema primvars = HdPrimvarsSchema::GetFromParent(prim.dataSource);
 
-  for (const HdPrimvarDescriptor &desc :
-       sceneDelegate->GetPrimvarDescriptors(GetId(), HdInterpolationInstance))
-  {
-    if (!HdChangeTracker::IsPrimvarDirty(dirtyBits, GetId(), desc.name)) {
-      continue;
+  auto read_array_primvar = [&](const TfToken &name, auto &out) {
+    using T = std::remove_reference_t<decltype(out)>;
+    if (HdPrimvarSchema pv = primvars.GetPrimvar(name)) {
+      if (auto valueDs = pv.GetPrimvarValue()) {
+        const VtValue v = valueDs->GetValue(0.0f);
+        if (v.IsHolding<T>()) {
+          out = v.UncheckedGet<T>();
+        }
+      }
     }
+  };
 
-    const VtValue value = sceneDelegate->Get(GetId(), desc.name);
-    if (value.IsEmpty()) {
-      continue;
-    }
+  read_array_primvar(HdInstancerTokens->instanceTranslations, _translate);
+  read_array_primvar(HdInstancerTokens->instanceScales, _scale);
+  read_array_primvar(HdInstancerTokens->instanceTransforms, _instanceTransform);
 
-#if PXR_VERSION < 2311
-    if (desc.name == HdInstancerTokens->translate) {
-      _translate = value.Get<VtVec3fArray>();
+  /* Accept different array types for quaternions. */
+  if (HdPrimvarSchema pv = primvars.GetPrimvar(HdInstancerTokens->instanceRotations)) {
+    if (auto valueDs = pv.GetPrimvarValue()) {
+      const VtValue v = valueDs->GetValue(0.0f);
+      if (v.IsHolding<VtVec4fArray>()) {
+        _rotate = v.UncheckedGet<VtVec4fArray>();
+      }
+      else if (v.IsHolding<VtQuatfArray>()) {
+        const VtQuatfArray &src = v.UncheckedGet<VtQuatfArray>();
+        _rotate.reserve(src.size());
+        for (const GfQuatf &q : src) {
+          const GfVec3f &im = q.GetImaginary();
+          _rotate.push_back(GfVec4f(q.GetReal(), im[0], im[1], im[2]));
+        }
+      }
+      else if (v.IsHolding<VtQuathArray>()) {
+        const VtQuathArray &src = v.UncheckedGet<VtQuathArray>();
+        _rotate.reserve(src.size());
+        for (const GfQuath &q : src) {
+          const GfVec3h &im = q.GetImaginary();
+          _rotate.push_back(GfVec4f(q.GetReal(), im[0], im[1], im[2]));
+        }
+      }
     }
-    else if (desc.name == HdInstancerTokens->rotate) {
-      _rotate = value.Get<VtVec4fArray>();
-    }
-    else if (desc.name == HdInstancerTokens->scale) {
-      _scale = value.Get<VtVec3fArray>();
-    }
-    else if (desc.name == HdInstancerTokens->instanceTransform) {
-      _instanceTransform = value.Get<VtMatrix4dArray>();
-    }
-#else
-    if (desc.name == HdInstancerTokens->instanceTranslations) {
-      _translate = value.Get<VtVec3fArray>();
-    }
-    else if (desc.name == HdInstancerTokens->instanceRotations) {
-      _rotate = value.Get<VtVec4fArray>();
-    }
-    else if (desc.name == HdInstancerTokens->instanceScales) {
-      _scale = value.Get<VtVec3fArray>();
-    }
-    else if (desc.name == HdInstancerTokens->instanceTransforms) {
-      _instanceTransform = value.Get<VtMatrix4dArray>();
-    }
-#endif
   }
 
-  sceneDelegate->GetRenderIndex().GetChangeTracker().MarkInstancerClean(GetId());
+  sceneDelegate->GetRenderIndex().GetChangeTracker().MarkInstancerClean(id);
 }
 
 VtMatrix4dArray HdCyclesInstancer::ComputeInstanceTransforms(const SdfPath &prototypeId)
 {
-#if PXR_VERSION <= 2011
-  SyncPrimvars();
-#endif
+  HdSceneDelegate *const sceneDelegate = GetDelegate();
+  const SdfPath &id = GetId();
+  const HdSceneIndexPrim prim = GetPrim(sceneDelegate, id);
 
-  const VtIntArray instanceIndices = GetDelegate()->GetInstanceIndices(GetId(), prototypeId);
-  const GfMatrix4d instanceTransform = GetDelegate()->GetInstancerTransform(GetId());
+  HdInstancerTopologySchema topology = HdInstancerTopologySchema::GetFromParent(prim.dataSource);
+  const VtIntArray instanceIndices = topology ?
+                                         topology.ComputeInstanceIndicesForProto(prototypeId) :
+                                         VtIntArray();
+
+  GfMatrix4d instanceTransform(1.0);
+  if (auto matrixDs = HdXformSchema::GetFromParent(prim.dataSource).GetMatrix()) {
+    instanceTransform = matrixDs->GetTypedValue(0.0f);
+  }
 
   VtMatrix4dArray transforms;
   transforms.reserve(instanceIndices.size());
@@ -133,22 +136,35 @@ VtMatrix4dArray HdCyclesInstancer::ComputeInstanceTransforms(const SdfPath &prot
     transforms.push_back(transform);
   }
 
+  /* Recurse into the parent instancer. */
   VtMatrix4dArray resultTransforms;
 
-  if (auto *const instancer = static_cast<HdCyclesInstancer *>(
-          GetDelegate()->GetRenderIndex().GetInstancer(GetParentId())))
-  {
-    for (const GfMatrix4d &parentTransform : instancer->ComputeInstanceTransforms(GetId())) {
-      for (const GfMatrix4d &localTransform : transforms) {
-        resultTransforms.push_back(parentTransform * localTransform);
-      }
+  HdInstancedBySchema instancedBy = HdInstancedBySchema::GetFromParent(prim.dataSource);
+  SdfPath parentId;
+  if (auto pathsDs = instancedBy.GetPaths()) {
+    const VtArray<SdfPath> parentPaths = pathsDs->GetTypedValue(0.0f);
+    if (!parentPaths.empty()) {
+      parentId = parentPaths.front();
     }
   }
-  else {
-    resultTransforms = std::move(transforms);
+  if (parentId.IsEmpty()) {
+    parentId = GetParentId();
   }
 
-  return resultTransforms;
+  if (!parentId.IsEmpty()) {
+    auto *const parentInstancer = static_cast<HdCyclesInstancer *>(
+        sceneDelegate->GetRenderIndex().GetInstancer(parentId));
+    if (parentInstancer) {
+      for (const GfMatrix4d &parentTransform : parentInstancer->ComputeInstanceTransforms(id)) {
+        for (const GfMatrix4d &localTransform : transforms) {
+          resultTransforms.push_back(parentTransform * localTransform);
+        }
+      }
+      return resultTransforms;
+    }
+  }
+
+  return transforms;
 }
 
 HDCYCLES_NAMESPACE_CLOSE_SCOPE

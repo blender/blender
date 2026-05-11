@@ -22,7 +22,6 @@
 #include "session/session.h"
 
 #include <pxr/base/tf/getenv.h>
-#include <pxr/imaging/hd/extComputation.h>
 #include <pxr/imaging/hgi/tokens.h>
 
 HDCYCLES_NAMESPACE_OPEN_SCOPE
@@ -55,7 +54,6 @@ const TfTokenVector kSupportedSPrimTypes = {
     HdPrimTypeTokens->domeLight,
     HdPrimTypeTokens->rectLight,
     HdPrimTypeTokens->sphereLight,
-    HdPrimTypeTokens->extComputation,
 };
 
 const TfTokenVector kSupportedBPrimTypes = {
@@ -206,20 +204,9 @@ HdRenderPassSharedPtr HdCyclesDelegate::CreateRenderPass(HdRenderIndex *index,
 }
 
 HdInstancer *HdCyclesDelegate::CreateInstancer(HdSceneDelegate *delegate,
-                                               const SdfPath &instancerId
-#if PXR_VERSION < 2102
-                                               ,
-                                               const SdfPath &parentId
-#endif
-)
+                                               const SdfPath &instancerId)
 {
-  return new HdCyclesInstancer(delegate,
-                               instancerId
-#if PXR_VERSION < 2102
-                               ,
-                               parentId
-#endif
-  );
+  return new HdCyclesInstancer(delegate, instancerId);
 }
 
 void HdCyclesDelegate::DestroyInstancer(HdInstancer *instancer)
@@ -227,46 +214,20 @@ void HdCyclesDelegate::DestroyInstancer(HdInstancer *instancer)
   delete instancer;
 }
 
-HdRprim *HdCyclesDelegate::CreateRprim(const TfToken &typeId,
-                                       const SdfPath &rprimId
-#if PXR_VERSION < 2102
-                                       ,
-                                       const SdfPath &instancerId
-#endif
-)
+HdRprim *HdCyclesDelegate::CreateRprim(const TfToken &typeId, const SdfPath &rprimId)
 {
   if (typeId == HdPrimTypeTokens->mesh) {
-    return new HdCyclesMesh(rprimId
-#if PXR_VERSION < 2102
-                            ,
-                            instancerId
-#endif
-    );
+    return new HdCyclesMesh(rprimId);
   }
   if (typeId == HdPrimTypeTokens->basisCurves) {
-    return new HdCyclesCurves(rprimId
-#if PXR_VERSION < 2102
-                              ,
-                              instancerId
-#endif
-    );
+    return new HdCyclesCurves(rprimId);
   }
   if (typeId == HdPrimTypeTokens->points) {
-    return new HdCyclesPoints(rprimId
-#if PXR_VERSION < 2102
-                              ,
-                              instancerId
-#endif
-    );
+    return new HdCyclesPoints(rprimId);
   }
 #ifdef WITH_OPENVDB
   if (typeId == HdPrimTypeTokens->volume) {
-    return new HdCyclesVolume(rprimId
-#  if PXR_VERSION < 2102
-                              ,
-                              instancerId
-#  endif
-    );
+    return new HdCyclesVolume(rprimId);
   }
 #endif
 
@@ -292,9 +253,6 @@ HdSprim *HdCyclesDelegate::CreateSprim(const TfToken &typeId, const SdfPath &spr
       typeId == HdPrimTypeTokens->sphereLight)
   {
     return new HdCyclesLight(sprimId, typeId);
-  }
-  if (typeId == HdPrimTypeTokens->extComputation) {
-    return new HdExtComputation(sprimId);
   }
 
   TF_CODING_ERROR("Unknown Sprim type %s", typeId.GetText());
@@ -350,17 +308,10 @@ TfToken HdCyclesDelegate::GetMaterialBindingPurpose() const
   return HdTokens->full;
 }
 
-#if HD_API_VERSION < 41
-TfToken HdCyclesDelegate::GetMaterialNetworkSelector() const
-{
-  return _tokens->cycles;
-}
-#else
 TfTokenVector HdCyclesDelegate::GetMaterialRenderContexts() const
 {
   return {_tokens->cycles};
 }
-#endif
 
 VtDictionary HdCyclesDelegate::GetRenderStats() const
 {

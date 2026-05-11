@@ -3,16 +3,95 @@
  *
  * SPDX-License-Identifier: Apache-2.0 */
 
-#include "hydra/attribute.h"
+#include "hydra/util.h"
 #include "scene/attribute.h"
 
 #include <pxr/base/gf/vec2f.h>
 #include <pxr/base/gf/vec3f.h>
 #include <pxr/base/gf/vec4f.h>
 #include <pxr/base/vt/array.h>
+#include <pxr/imaging/hd/primvarSchema.h>
+#include <pxr/imaging/hd/renderIndex.h>
+#include <pxr/imaging/hd/sceneDelegate.h>
 #include <pxr/imaging/hd/tokens.h>
 
 HDCYCLES_NAMESPACE_OPEN_SCOPE
+
+HdSceneIndexPrim GetPrim(HdSceneDelegate *delegate, const SdfPath &id)
+{
+  if (!delegate) {
+    return {};
+  }
+  HdSceneIndexBaseRefPtr si = delegate->GetRenderIndex().GetTerminalSceneIndex();
+  if (!si) {
+    return {};
+  }
+  return si->GetPrim(id);
+}
+
+VtValue ReadPrimvar(const HdPrimvarsSchema &primvars, const TfToken &name)
+{
+  if (!primvars) {
+    return {};
+  }
+  HdSampledDataSourceHandle ds = primvars.GetPrimvar(name).GetPrimvarValue();
+  return ds ? ds->GetValue(0.0f) : VtValue();
+}
+
+HdInterpolation ReadPrimvarInterpolation(const HdPrimvarsSchema &primvars, const TfToken &name)
+{
+  if (!primvars) {
+    return HdInterpolationCount;
+  }
+  HdTokenDataSourceHandle ds = primvars.GetPrimvar(name).GetInterpolation();
+  if (!ds) {
+    return HdInterpolationCount;
+  }
+  const TfToken token = ds->GetTypedValue(0.0f);
+  if (token == HdPrimvarSchemaTokens->constant) {
+    return HdInterpolationConstant;
+  }
+  if (token == HdPrimvarSchemaTokens->uniform) {
+    return HdInterpolationUniform;
+  }
+  if (token == HdPrimvarSchemaTokens->varying) {
+    return HdInterpolationVarying;
+  }
+  if (token == HdPrimvarSchemaTokens->vertex) {
+    return HdInterpolationVertex;
+  }
+  if (token == HdPrimvarSchemaTokens->faceVarying) {
+    return HdInterpolationFaceVarying;
+  }
+  if (token == HdPrimvarSchemaTokens->instance) {
+    return HdInterpolationInstance;
+  }
+  return HdInterpolationCount;
+}
+
+TfToken ReadPrimvarRole(const HdPrimvarsSchema &primvars, const TfToken &name)
+{
+  if (!primvars) {
+    return {};
+  }
+  HdTokenDataSourceHandle ds = primvars.GetPrimvar(name).GetRole();
+  return ds ? ds->GetTypedValue(0.0f) : TfToken();
+}
+
+TfTokenVector PrimvarNamesAtInterpolation(const HdPrimvarsSchema &primvars,
+                                          HdInterpolation interpolation)
+{
+  TfTokenVector result;
+  if (!primvars) {
+    return result;
+  }
+  for (const TfToken &name : primvars.GetPrimvarNames()) {
+    if (ReadPrimvarInterpolation(primvars, name) == interpolation) {
+      result.push_back(name);
+    }
+  }
+  return result;
+}
 
 void ApplyPrimvars(AttributeSet &attributes,
                    const ustring &name,
