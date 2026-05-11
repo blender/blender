@@ -77,6 +77,7 @@ class SceneParams {
   int hair_subdivisions;
   CurveShapeType hair_shape;
   float texture_resolution;
+  int texture_limit;
 
   /* Use tx files if they exist. */
   bool use_texture_cache = true;
@@ -99,22 +100,23 @@ class SceneParams {
     hair_subdivisions = 3;
     hair_shape = CURVE_RIBBON;
     texture_resolution = 1.0f;
+    texture_limit = 0;
     background = true;
   }
 
   bool modified(const SceneParams &params) const
   {
-    return !(shadingsystem == params.shadingsystem && bvh_layout == params.bvh_layout &&
-             bvh_type == params.bvh_type &&
-             use_bvh_spatial_split == params.use_bvh_spatial_split &&
-             use_bvh_compact_structure == params.use_bvh_compact_structure &&
-             use_bvh_unaligned_nodes == params.use_bvh_unaligned_nodes &&
-             num_bvh_time_steps == params.num_bvh_time_steps &&
-             hair_subdivisions == params.hair_subdivisions && hair_shape == params.hair_shape &&
-             texture_resolution == params.texture_resolution &&
-             use_texture_cache == params.use_texture_cache &&
-             auto_texture_cache == params.auto_texture_cache &&
-             texture_cache_path == params.texture_cache_path);
+    return !(
+        shadingsystem == params.shadingsystem && bvh_layout == params.bvh_layout &&
+        bvh_type == params.bvh_type && use_bvh_spatial_split == params.use_bvh_spatial_split &&
+        use_bvh_compact_structure == params.use_bvh_compact_structure &&
+        use_bvh_unaligned_nodes == params.use_bvh_unaligned_nodes &&
+        num_bvh_time_steps == params.num_bvh_time_steps &&
+        hair_subdivisions == params.hair_subdivisions && hair_shape == params.hair_shape &&
+        texture_resolution == params.texture_resolution && texture_limit == params.texture_limit &&
+        use_texture_cache == params.use_texture_cache &&
+        auto_texture_cache == params.auto_texture_cache &&
+        texture_cache_path == params.texture_cache_path);
   }
 
   int curve_subdivisions()

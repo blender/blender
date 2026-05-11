@@ -502,8 +502,8 @@ void ImageCache::load_image_tiled(DeviceScene &dscene,
   int num_tiles = 0;
 
   for (int miplevel = 0; max_miplevels; miplevel++) {
-    const int mip_width = metadata.width >> miplevel;
-    const int mip_height = metadata.height >> miplevel;
+    const int mip_width = std::max(1, tex.width >> miplevel);
+    const int mip_height = std::max(1, tex.height >> miplevel);
 
     levels.push_back(num_tiles);
 
@@ -562,8 +562,8 @@ KernelTileDescriptor ImageCache::load_tile(Device &device,
                                            const bool for_cpu_cache_miss,
                                            const size_t bit_index)
 {
-  const int width = metadata.width >> miplevel;
-  const int height = metadata.height >> miplevel;
+  const int width = std::max(int64_t(1), metadata.width >> miplevel);
+  const int height = std::max(int64_t(1), metadata.height >> miplevel);
   const int tile_size = metadata.tile_size;
   const size_t w = min(size_t(width - x), size_t(tile_size));
   const size_t h = min(size_t(height - y), size_t(tile_size));
@@ -637,6 +637,7 @@ void ImageCache::load_requested_tiles(Device &device,
                                       const KernelImageTexture &tex,
                                       ImageLoader &loader,
                                       const ImageMetaData &metadata,
+                                      const int miplevel_offset,
                                       const uint8_t *access_state)
 {
   const int tile_size = metadata.tile_size;
@@ -673,7 +674,7 @@ void ImageCache::load_requested_tiles(Device &device,
     size_t level_start;
     const int miplevel = image_tile_find_miplevel(levels, tex.tile_levels, tile_idx, level_start);
     const size_t idx_in_level = tile_idx - level_start;
-    const int mip_width = metadata.width >> miplevel;
+    const int mip_width = std::max(1, tex.width >> miplevel);
     const size_t tiles_x = divide_up(mip_width, tile_size);
     const size_t tile_y = idx_in_level / tiles_x;
     const size_t tile_x = idx_in_level % tiles_x;
@@ -686,7 +687,7 @@ void ImageCache::load_requested_tiles(Device &device,
                                       metadata,
                                       interpolation,
                                       extension,
-                                      miplevel,
+                                      miplevel + miplevel_offset,
                                       x,
                                       y,
                                       false,
@@ -702,7 +703,8 @@ void ImageCache::load_requested_tile(Device &device,
                                      int x,
                                      int y,
                                      ImageLoader &loader,
-                                     const ImageMetaData &metadata)
+                                     const ImageMetaData &metadata,
+                                     const int miplevel_offset)
 {
   /* This is called by the CPU kernel to immediately load a tile. */
 
@@ -723,7 +725,7 @@ void ImageCache::load_requested_tile(Device &device,
                                                          metadata,
                                                          interpolation,
                                                          extension,
-                                                         miplevel,
+                                                         miplevel + miplevel_offset,
                                                          x,
                                                          y,
                                                          true,
@@ -761,8 +763,8 @@ void ImageCache::collect_statistics(DeviceScene &dscene,
   const size_t tile_bytes = tile_size * tile_size * pixel_bytes;
 
   for (int miplevel = 0; miplevel < tex.tile_levels; miplevel++) {
-    const int width = metadata.width >> miplevel;
-    const int height = metadata.height >> miplevel;
+    const int width = std::max(1, tex.width >> miplevel);
+    const int height = std::max(1, tex.height >> miplevel);
     const int tiles_x = divide_up(width, tile_size);
     const int tiles_y = divide_up(height, tile_size);
     const int tiles_total = tiles_x * tiles_y;

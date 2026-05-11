@@ -2339,9 +2339,13 @@ class CYCLES_RENDER_PT_simplify_viewport(CyclesButtonsPanel, Panel):
         col = layout.column()
         col.prop(rd, "simplify_subdivision", text="Max Subdivision")
         col.prop(rd, "simplify_child_particles", text="Child Particles")
-        col.prop(cscene, "texture_resolution", text="Texture Resolution")
-        col.prop(rd, "simplify_volumes", text="Volume Resolution")
         col.prop(rd, "use_simplify_normals", text="Normals")
+        col.prop(rd, "simplify_volumes", text="Volume Resolution")
+
+        col.separator()
+
+        col.prop(cscene, "texture_resolution", text="Texture Resolution")
+        col.prop(cscene, "texture_limit", text="Texture Size Limit")
 
 
 class CYCLES_RENDER_PT_simplify_render(CyclesButtonsPanel, Panel):
@@ -2365,7 +2369,11 @@ class CYCLES_RENDER_PT_simplify_render(CyclesButtonsPanel, Panel):
 
         col.prop(rd, "simplify_subdivision_render", text="Max Subdivision")
         col.prop(rd, "simplify_child_particles_render", text="Child Particles")
+
+        col.separator()
+
         col.prop(cscene, "texture_resolution_render", text="Texture Resolution")
+        col.prop(cscene, "texture_limit_render", text="Texture Size Limit")
 
 
 class CYCLES_RENDER_PT_simplify_culling(CyclesButtonsPanel, Panel):

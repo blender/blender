@@ -486,12 +486,29 @@ void ImageManager::device_load_image(Device *device,
   tex.transform_3d = img->metadata.transform_3d;
   tex.average_color = img->metadata.average_color;
 
+  int max_dim = std::max(img->metadata.width, img->metadata.height);
+
   if (use_texture_cache && img->metadata.has_tiles_and_mipmaps && img->metadata.tile_size) {
+    /* Apply texture size limit by skipping the highest mip levels. */
+    const int texture_limit = scene->params.texture_limit;
+    img->miplevel_offset = 0;
+    while (texture_limit > 0 && max_dim > texture_limit) {
+      img->miplevel_offset++;
+      tex.width = std::max(1, tex.width / 2);
+      tex.height = std::max(1, tex.height / 2);
+      max_dim /= 2;
+    }
     image_cache.load_image_tiled(scene->dscene, img->metadata, tex);
   }
   else {
+    /* Compute texture resolution scale factor from texture size limit. */
+    float texture_resolution = scene->params.texture_resolution;
+    const int texture_limit = scene->params.texture_limit;
+    if (texture_limit > 0 && max_dim > texture_limit) {
+      texture_resolution = std::min(texture_resolution, float(texture_limit) / float(max_dim));
+    }
     img->vdb_memory = image_cache.load_image_full(
-        *device, *img->loader, img->metadata, scene->params.texture_resolution, tex);
+        *device, *img->loader, img->metadata, texture_resolution, tex);
   }
 
   /* Update image texture device data. */
@@ -533,8 +550,16 @@ void ImageManager::device_cpu_load_requested(Device *device,
   /* Load the tile. */
   const ImageSingle *img = images[image_texture_id];
   const KernelImageTexture &tex = scene->dscene.image_textures[image_texture_id];
-  image_cache.load_requested_tile(
-      *device, scene->dscene, tex, tile_descriptor, miplevel, x, y, *img->loader, img->metadata);
+  image_cache.load_requested_tile(*device,
+                                  scene->dscene,
+                                  tex,
+                                  tile_descriptor,
+                                  miplevel,
+                                  x,
+                                  y,
+                                  *img->loader,
+                                  img->metadata,
+                                  img->miplevel_offset);
 }
 
 void ImageManager::device_gpu_load_requested(Device *device, DeviceQueue &queue, Scene *scene)
@@ -554,8 +579,13 @@ void ImageManager::device_gpu_load_requested(Device *device, DeviceQueue &queue,
     for (size_t i = r.begin(); i != r.end(); i++) {
       if (images[i] && dscene.image_textures[i].tile_descriptor_offset != KERNEL_TILE_LOAD_NONE) {
         ImageSingle *img = images[i];
-        image_cache.load_requested_tiles(
-            *device, dscene, dscene.image_textures[i], *img->loader, img->metadata, access_state);
+        image_cache.load_requested_tiles(*device,
+                                         dscene,
+                                         dscene.image_textures[i],
+                                         *img->loader,
+                                         img->metadata,
+                                         img->miplevel_offset,
+                                         access_state);
       }
     }
   });
