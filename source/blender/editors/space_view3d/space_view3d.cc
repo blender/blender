@@ -1557,8 +1557,7 @@ static void view3d_space_blend_read_data(BlendDataReader *reader, SpaceLink *sl)
 
   v3d->runtime = View3D_Runtime{};
 
-  if (v3d->gpd) {
-    BLO_read_struct(reader, bGPdata, &v3d->gpd);
+  if (BLO_read_struct_nonnull(reader, bGPdata, &v3d->gpd)) {
     BKE_gpencil_blend_read_data(reader, v3d->gpd);
   }
   BLO_read_struct(reader, RegionView3D, &v3d->localvd);

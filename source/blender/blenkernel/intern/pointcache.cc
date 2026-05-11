@@ -3850,18 +3850,19 @@ void BKE_ptcache_blend_read_data(BlendDataReader *reader,
       }
     }
 
-    BLO_read_struct(reader, PointCache, ocache);
+    BLO_read_struct_nonnull(reader, PointCache, ocache);
   }
-  else if (*ocache) {
+  else {
     /* old "single" caches need to be linked too */
-    BLO_read_struct(reader, PointCache, ocache);
-    direct_link_pointcache(reader, *ocache);
-    if (force_disk) {
-      (*ocache)->flag |= PTCACHE_DISK_CACHE;
-      (*ocache)->step = 1;
-    }
+    if (BLO_read_struct_nonnull(reader, PointCache, ocache)) {
+      direct_link_pointcache(reader, *ocache);
+      if (force_disk) {
+        (*ocache)->flag |= PTCACHE_DISK_CACHE;
+        (*ocache)->step = 1;
+      }
 
-    ptcaches->first = ptcaches->last = *ocache;
+      ptcaches->first = ptcaches->last = *ocache;
+    }
   }
 }
 

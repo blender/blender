@@ -453,15 +453,11 @@ static void socket_data_write(BlendWriter *writer, bNodeTreeInterfaceSocket &soc
 
 template<typename T> void socket_data_read_data_impl(BlendDataReader *reader, T **data)
 {
-  /* FIXME Avoid using low-level untyped read function here. Cannot use the BLO_read_struct
-   * currently (macro expansion would process `T` instead of the actual type). */
-  BLO_read_data_address(reader, data);
+  BLO_read_struct(reader, T, data);
 }
 template<> void socket_data_read_data_impl(BlendDataReader *reader, bNodeSocketValueMenu **data)
 {
-  /* FIXME Avoid using low-level untyped read function here. No type info available here currently.
-   */
-  BLO_read_data_address(reader, data);
+  BLO_read_struct(reader, bNodeSocketValueMenu, data);
   /* Clear runtime data. */
   (*data)->enum_items = nullptr;
   (*data)->runtime_flag = 0;

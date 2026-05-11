@@ -48,7 +48,7 @@ enum eSDNA_Type {
   SDNA_TYPE_INT8 = 12,
   /**
    * Type used for untyped raw bytes buffers (written by #BlendWriter::write_raw and read by
-   * #BLO_read_data_address).
+   * #BLO_read_raw_address).
    *
    * Technically, it also covers all 'raw data' types above.
    */

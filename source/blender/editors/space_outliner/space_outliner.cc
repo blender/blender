@@ -541,16 +541,15 @@ static void outliner_space_blend_read_data(BlendDataReader *reader, SpaceLink *s
   SpaceOutliner *space_outliner = reinterpret_cast<SpaceOutliner *>(sl);
   space_outliner->runtime = MEM_new<SpaceOutliner_Runtime>(__func__);
 
-  /* use #BLO_read_get_new_data_address_no_us and do not free old memory avoiding double
+  /* use #BLO_read_struct_no_us and do not free old memory avoiding double
    * frees and use of freed memory. this could happen because of a
    * bug fixed in revision 58959 where the treestore memory address
    * was not unique */
-  TreeStore *ts = static_cast<TreeStore *>(
-      BLO_read_get_new_data_address_no_us(reader, space_outliner->treestore, sizeof(TreeStore)));
+  TreeStore *ts = reinterpret_cast<TreeStore *>(space_outliner->treestore);
   space_outliner->treestore = nullptr;
-  if (ts) {
-    TreeStoreElem *elems = static_cast<TreeStoreElem *>(BLO_read_get_new_data_address_no_us(
-        reader, ts->data, sizeof(TreeStoreElem) * ts->usedelem));
+  if (BLO_read_struct_no_us(reader, TreeStore, &ts)) {
+    TreeStoreElem *elems = ts->data;
+    BLO_read_struct_array_no_us(reader, TreeStoreElem, &elems, ts->usedelem);
 
     space_outliner->treestore = BLI_mempool_create(
         sizeof(TreeStoreElem), ts->usedelem, 512, BLI_MEMPOOL_ALLOW_ITER);

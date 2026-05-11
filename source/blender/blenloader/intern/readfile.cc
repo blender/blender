@@ -5874,17 +5874,9 @@ static void *blo_verify_data_address(FileData *fd,
   return new_address;
 }
 
-void *BLO_read_get_new_data_address(BlendDataReader *reader, const void *old_address)
+void *blo_read_raw_address_impl(BlendDataReader *reader, const void *old_address)
 {
   return newdataadr(reader->fd, old_address);
-}
-
-void *BLO_read_get_new_data_address_no_us(BlendDataReader *reader,
-                                          const void *old_address,
-                                          const size_t expected_size)
-{
-  void *new_address = newdataadr_no_us(reader->fd, old_address);
-  return blo_verify_data_address(reader->fd, new_address, old_address, expected_size);
 }
 
 void *blo_read_struct_impl(BlendDataReader *reader,
@@ -5893,6 +5885,42 @@ void *blo_read_struct_impl(BlendDataReader *reader,
 {
   void *new_address = newdataadr(reader->fd, old_address);
   return blo_verify_data_address(reader->fd, new_address, old_address, expected_size);
+}
+
+void *blo_read_struct_no_us_impl(BlendDataReader *reader,
+                                 const void *old_address,
+                                 const size_t expected_size)
+{
+  void *new_address = newdataadr_no_us(reader->fd, old_address);
+  return blo_verify_data_address(reader->fd, new_address, old_address, expected_size);
+}
+
+static void *blo_check_data_address_nonnull(FileData *fd,
+                                            const void *old_address,
+                                            void *new_address)
+{
+  if (old_address != nullptr && new_address == nullptr) {
+    blo_readfile_invalidate(fd,
+                            (*fd->bmain->split_mains)[fd->bmain->split_mains->size() - 1],
+                            "Corrupt .blend file, missing required data block.");
+  }
+  return new_address;
+}
+
+void *blo_read_struct_nonnull_impl(BlendDataReader *reader,
+                                   const void *old_address,
+                                   const size_t expected_size)
+{
+  void *new_address = blo_read_struct_impl(reader, old_address, expected_size);
+  return blo_check_data_address_nonnull(reader->fd, old_address, new_address);
+}
+
+void *blo_read_struct_no_us_nonnull_impl(BlendDataReader *reader,
+                                         const void *old_address,
+                                         const size_t expected_size)
+{
+  void *new_address = blo_read_struct_no_us_impl(reader, old_address, expected_size);
+  return blo_check_data_address_nonnull(reader->fd, old_address, new_address);
 }
 
 bool blo_read_array_impl(BlendDataReader *reader,
@@ -5990,7 +6018,7 @@ void BLO_read_struct_list_with_size(BlendDataReader *reader,
 
 void BLO_read_string(BlendDataReader *reader, char **ptr_p)
 {
-  BLO_read_data_address(reader, ptr_p);
+  BLO_read_raw_address(reader, ptr_p);
 
 #ifndef NDEBUG
   const char *str = *ptr_p;

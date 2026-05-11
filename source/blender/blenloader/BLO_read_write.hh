@@ -289,39 +289,66 @@ bool BLO_write_is_undo(BlendWriter *writer);
  * }
  * \endcode
  *
- * Avoid using the generic #BLO_read_data_address
- * (and low-level API like #BLO_read_get_new_data_address)
- * when possible, use the typed functions instead.
+ * Avoid using the generic #BLO_read_raw_address when possible, use the typed functions instead.
  * Only data written with #BlendWriter::write_raw should typically be read with
- * #BLO_read_data_address.
+ * #BLO_read_raw_address.
  * \{ */
 
-void *BLO_read_get_new_data_address(BlendDataReader *reader, const void *old_address);
-#define BLO_read_data_address(reader, ptr_p) \
-  *((void **)ptr_p) = BLO_read_get_new_data_address((reader), *(ptr_p))
+void *blo_read_raw_address_impl(BlendDataReader *reader, const void *old_address);
+#define BLO_read_raw_address(reader, ptr_p) \
+  *((void **)ptr_p) = blo_read_raw_address_impl((reader), *(ptr_p))
 
 /**
- * Does not consider the read data as 'used'. It will still be freed by readfile code at the
- * end of the reading process, if no other 'real' usage was detected for it.
+ * Read function for pointers to structs.
+ *
+ * NOTE: Currently the usage of the type info is very minimal/basic, it does a loose check on
+ * the data size and marks the blend file as invalid when it's mismatched.
+ */
+void *blo_read_struct_impl(BlendDataReader *reader, const void *old_address, size_t expected_size);
+#define BLO_read_struct(reader, struct_name, ptr_p) \
+  (*((void **)ptr_p) = blo_read_struct_impl(reader, *((void **)ptr_p), sizeof(struct_name)))
+
+/**
+ * Like #BLO_read_struct, but mark the blend file as invalid (with an error report) when the
+ * pointer was non-null but failed to resolve.
+ */
+void *blo_read_struct_nonnull_impl(BlendDataReader *reader,
+                                   const void *old_address,
+                                   size_t expected_size);
+#define BLO_read_struct_nonnull(reader, struct_name, ptr_p) \
+  (*((void **)ptr_p) = blo_read_struct_nonnull_impl( \
+       reader, *((void **)ptr_p), sizeof(struct_name)))
+
+/**
+ * Like #BLO_read_struct, but does not consider the read data as 'used'. It will still be freed
+ * by readfile code at the end of the reading process, if no other 'real' usage was detected.
  *
  * Typical valid usages include:
  * - Restoring pointers to a specific item in an array or list (usually 'active' item e.g.). The
  *   found item is expected to also be read as part of its array/list storage reading.
  * - Doing temporary access to deprecated data as part of some versioning code.
  */
-void *BLO_read_get_new_data_address_no_us(BlendDataReader *reader,
-                                          const void *old_address,
-                                          size_t expected_size);
+void *blo_read_struct_no_us_impl(BlendDataReader *reader,
+                                 const void *old_address,
+                                 size_t expected_size);
+
+#define BLO_read_struct_no_us(reader, struct_name, ptr_p) \
+  (*((void **)ptr_p) = blo_read_struct_no_us_impl(reader, *((void **)ptr_p), sizeof(struct_name)))
+
+#define BLO_read_struct_array_no_us(reader, struct_name, ptr_p, array_size) \
+  (*((void **)ptr_p) = blo_read_struct_no_us_impl( \
+       reader, *((void **)ptr_p), sizeof(struct_name) * size_t(array_size)))
 
 /**
- * The 'main' read function for non-basic data types.
- *
- * NOTE: Currently the usage of the type info is very minimal/basic, it merely does a lose check on
- * the data size.
+ * Like #BLO_read_struct_no_us, but with the same nonnull semantics as #BLO_read_struct_nonnull.
  */
-void *blo_read_struct_impl(BlendDataReader *reader, const void *old_address, size_t expected_size);
-#define BLO_read_struct(reader, struct_name, ptr_p) \
-  *((void **)ptr_p) = blo_read_struct_impl(reader, *((void **)ptr_p), sizeof(struct_name))
+void *blo_read_struct_no_us_nonnull_impl(BlendDataReader *reader,
+                                         const void *old_address,
+                                         size_t expected_size);
+
+#define BLO_read_struct_no_us_nonnull(reader, struct_name, ptr_p) \
+  (*((void **)ptr_p) = blo_read_struct_no_us_nonnull_impl( \
+       reader, *((void **)ptr_p), sizeof(struct_name)))
 
 /**
  * Similar to #BLO_read_struct, but can use a (DNA) type name instead of the type

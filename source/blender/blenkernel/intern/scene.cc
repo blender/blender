@@ -1431,7 +1431,7 @@ static void scene_blend_read_data(BlendDataReader *reader, ID *id)
       BKE_curveprofile_blend_read(reader, sce->toolsettings->custom_bevel_profile_preset);
     }
 
-    BLO_read_data_address(reader, &sce->toolsettings->paint_mode.canvas_image);
+    BLO_read_raw_address(reader, &sce->toolsettings->paint_mode.canvas_image);
     BLO_read_struct(reader, SequencerToolSettings, &sce->toolsettings->sequencer_tool_settings);
   }
 
@@ -1439,10 +1439,8 @@ static void scene_blend_read_data(BlendDataReader *reader, ID *id)
     BLO_read_struct(reader, Editing, &sce->ed);
     Editing *ed = sce->ed;
 
-    ed->act_strip = static_cast<Strip *>(
-        BLO_read_get_new_data_address_no_us(reader, ed->act_strip, sizeof(Strip)));
-    ed->current_meta_strip = static_cast<Strip *>(
-        BLO_read_get_new_data_address_no_us(reader, ed->current_meta_strip, sizeof(Strip)));
+    BLO_read_struct_no_us(reader, Strip, &ed->act_strip);
+    BLO_read_struct_no_us(reader, Strip, &ed->current_meta_strip);
     ed->runtime = MEM_new<seq::EditingRuntime>(__func__);
 
     /* recursive link sequences, lb will be correctly initialized */
@@ -1458,8 +1456,7 @@ static void scene_blend_read_data(BlendDataReader *reader, ID *id)
     for (MetaStack &ms : ed->metastack) {
       BLO_read_struct(reader, Strip, &ms.parent_strip);
 
-      ms.old_strip = static_cast<Strip *>(
-          BLO_read_get_new_data_address_no_us(reader, ms.old_strip, sizeof(Strip)));
+      BLO_read_struct_no_us(reader, Strip, &ms.old_strip);
     }
   }
 
