@@ -6439,6 +6439,8 @@ void rna_iterator_array_begin(CollectionPropertyIterator *iter,
   iter->parent = *ptr;
 
   ArrayIterator *internal;
+  /* Ensure clearing `data` doesn't prevent it from being freed. */
+  void *data_free = data;
 
   if (data == nullptr) {
     length = 0;
@@ -6456,7 +6458,7 @@ void rna_iterator_array_begin(CollectionPropertyIterator *iter,
 
   internal = &iter->internal.array;
   internal->ptr = static_cast<char *>(data);
-  internal->free_ptr = free_ptr ? data : nullptr;
+  internal->free_ptr = free_ptr ? data_free : nullptr;
   internal->endptr = (static_cast<char *>(data)) + itemsize * length;
   internal->itemsize = itemsize;
   internal->skip = skip;
