@@ -353,7 +353,7 @@ class GRAPH_MT_channel(Menu):
         # To get it to display the hotkey.
         layout.operator_context = operator_context
         layout.operator_menu_enum("graph.fmodifier_add", "type").only_active = False
-        layout.operator_context = 'INVOKE_REGION_CHANNELS'
+        layout.operator("graph.fmodifier_delete", text="Delete F-Curve Modifiers")
 
         layout.separator()
         layout.operator("graph.hide", text="Hide Selected Curves").unselected = False

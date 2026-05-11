@@ -192,6 +192,7 @@ enum eGraphKeys_Mirror_Mode {
 /* ----------- */
 
 void GRAPH_OT_fmodifier_add(wmOperatorType *ot);
+void GRAPH_OT_fmodifier_delete(wmOperatorType *ot);
 void GRAPH_OT_fmodifier_copy(wmOperatorType *ot);
 void GRAPH_OT_fmodifier_paste(wmOperatorType *ot);
 
