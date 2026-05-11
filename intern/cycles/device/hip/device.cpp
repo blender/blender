@@ -167,7 +167,11 @@ void device_hip_info(vector<DeviceInfo> &devices)
     info.description = string(name);
     info.num = num;
 
+#  ifdef _WIN32
+    info.has_mnee = hipIsNotRDNA2(num);
+#  else
     info.has_mnee = true;
+#  endif
     info.has_nanovdb = true;
 
     info.has_gpu_queue = true;
