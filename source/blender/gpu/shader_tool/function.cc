@@ -418,7 +418,7 @@ void SourceProcessor::lower_entry_points(Parser &parser)
           report_error(attributes[3], "unrecognized mode, expecting 'any', 'greater' or 'less'");
         }
         else {
-          create_info_decl += "DEPTH_WRITE(" + to_uppercase(mode) + ")\n";
+          create_info_decl += "DEPTH_WRITE(DepthWrite::" + to_uppercase(mode) + ")\n";
           replace_word(srt_var, "gl_FragDepth");
         }
       }

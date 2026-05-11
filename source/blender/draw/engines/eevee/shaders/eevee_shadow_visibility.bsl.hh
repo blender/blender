@@ -10,7 +10,8 @@
 
 #pragma once
 
-#include "infos/eevee_shadow_pipeline_infos.hh"
+#include "infos/eevee_common_infos.hh"
+#include "infos/eevee_shadow_infos.hh"
 
 COMPUTE_SHADER_CREATE_INFO(draw_view)
 COMPUTE_SHADER_CREATE_INFO(draw_view_culling)
@@ -39,7 +40,8 @@ struct ViewVisibility {
 
   bool shadow_linking_affects_caster(uint view_id, uint resource_id)
   {
-    ObjectInfos object_infos = drw_infos[resource_id];
+    const auto &infos_buf = buffer_get(draw_object_infos, drw_infos);
+    ObjectInfos object_infos = infos_buf[resource_id];
     return bitmask64_test(render_view_buf[view_id].shadow_set_membership,
                           blocker_shadow_set_get(object_infos));
   }

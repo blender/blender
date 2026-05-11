@@ -42,6 +42,11 @@ struct [[host_shared]] ShadowSceneData {
   float film_pixel_radius;
   /* Global switch for jittered shadows. */
   bool32_t use_jitter;
+  /* Output atomic counter instead of depth. */
+  bool32_t use_debug_cost;
+  int _pad0;
+  int _pad1;
+  int _pad2;
 };
 
 /* Light Clamping. */

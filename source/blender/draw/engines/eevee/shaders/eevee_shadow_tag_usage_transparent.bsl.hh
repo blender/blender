@@ -9,9 +9,8 @@
  */
 
 #pragma once
-#pragma create_info
 
-#include "infos/eevee_shadow_pipeline_infos.hh"
+#include "infos/eevee_shadow_infos.hh"
 
 COMPUTE_SHADER_CREATE_INFO(draw_modelmat)
 

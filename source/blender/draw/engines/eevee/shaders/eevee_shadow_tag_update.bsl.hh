@@ -12,7 +12,6 @@
  */
 
 #pragma once
-#pragma create_info
 
 #include "eevee_defines.hh"
 #include "eevee_shadow_shared.hh"
