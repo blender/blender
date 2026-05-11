@@ -159,6 +159,8 @@ class TestEnvironment:
         Check if the given executable is a full installation of blender by checking
         the availability of the 'license' directory.
         """
+        # Follow symlink to actual install location.
+        executable_path = executable_path.resolve()
         if platform.system() == "Darwin":
             license_path = executable_path.parent.parent / 'Resources' / 'text' / 'license'
         else:
