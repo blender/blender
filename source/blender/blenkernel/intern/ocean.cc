@@ -33,6 +33,7 @@
 
 #include "IMB_imbuf.hh"
 #include "IMB_imbuf_types.hh"
+#include "IMB_interp.hh"
 
 #include "RE_texture.h"
 
@@ -1245,29 +1246,30 @@ void BKE_ocean_cache_eval_uv(OceanCache *och, OceanResult *ocr, int f, float u, 
     v += 1.0f;
   }
 
+  const float texel_x = u * res_x - 0.5f;
+  const float texel_y = v * res_y - 0.5f;
   if (och->ibufs_disp[f]) {
-    ibuf_sample(och->ibufs_disp[f], u, v, (1.0f / float(res_x)), (1.0f / float(res_y)), result);
+    imbuf::interpolate_bilinear_fl(och->ibufs_disp[f], result, texel_x, texel_y);
     copy_v3_v3(ocr->disp, result);
   }
 
   if (och->ibufs_foam[f]) {
-    ibuf_sample(och->ibufs_foam[f], u, v, (1.0f / float(res_x)), (1.0f / float(res_y)), result);
+    imbuf::interpolate_bilinear_fl(och->ibufs_foam[f], result, texel_x, texel_y);
     ocr->foam = result[0];
   }
 
   if (och->ibufs_spray[f]) {
-    ibuf_sample(och->ibufs_spray[f], u, v, (1.0f / float(res_x)), (1.0f / float(res_y)), result);
+    imbuf::interpolate_bilinear_fl(och->ibufs_spray[f], result, texel_x, texel_y);
     copy_v3_v3(ocr->Eplus, result);
   }
 
   if (och->ibufs_spray_inverse[f]) {
-    ibuf_sample(
-        och->ibufs_spray_inverse[f], u, v, (1.0f / float(res_x)), (1.0f / float(res_y)), result);
+    imbuf::interpolate_bilinear_fl(och->ibufs_spray_inverse[f], result, texel_x, texel_y);
     copy_v3_v3(ocr->Eminus, result);
   }
 
   if (och->ibufs_norm[f]) {
-    ibuf_sample(och->ibufs_norm[f], u, v, (1.0f / float(res_x)), (1.0f / float(res_y)), result);
+    imbuf::interpolate_bilinear_fl(och->ibufs_norm[f], result, texel_x, texel_y);
     copy_v3_v3(ocr->normal, result);
   }
 }

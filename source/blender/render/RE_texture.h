@@ -49,10 +49,6 @@ float texture_value_blend(float tex, float out, float fact, float facg, int blen
 void RE_texture_rng_init();
 void RE_texture_rng_exit();
 
-/* `texture_image.cc` */
-
-void ibuf_sample(struct ImBuf *ibuf, float fx, float fy, float dx, float dy, float result[4]);
-
 /* `texture_procedural.cc` */
 
 /**
