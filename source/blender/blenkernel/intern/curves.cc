@@ -383,8 +383,7 @@ void curves_normals_point_domain_calc(const CurvesGeometry &curves, MutableSpan<
 {
   const bke::CurvesFieldContext context(curves, AttrDomain::Point);
   fn::FieldEvaluator evaluator(context, curves.points_num());
-  fn::Field<float3> field = fn::Field<float3>::from_input<bke::NormalFieldInput>();
-  evaluator.add_with_destination(std::move(field), normals);
+  evaluator.add_with_destination(bke::NormalFieldInput::get_field(), normals);
   evaluator.evaluate();
 }
 
