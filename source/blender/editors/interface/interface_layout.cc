@@ -1189,7 +1189,7 @@ static Button *item_with_label(Layout *layout,
                   subtype == PROP_DIRPATH ? "BUTTONS_OT_directory_browse" :
                                             "BUTTONS_OT_file_browse",
                   wm::OpCallContext::InvokeDefault,
-                  ICON_FILEBROWSER,
+                  RNA_property_editable(ptr, prop) ? ICON_FILEBROWSER : ICON_FOLDER_REDIRECT,
                   x,
                   y,
                   UI_UNIT_X,
