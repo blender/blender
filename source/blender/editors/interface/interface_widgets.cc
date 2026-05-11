@@ -2033,8 +2033,8 @@ static void widget_draw_textbox(const uiFontStyle *fstyle,
 
   rect.xmax = std::max<int>(rect.xmin, rect.xmax - text_padding - scrollbar_pad);
 
-  rect.ymax -= textbox_padding_top() / but->block->aspect;
-  rect.ymin += textbox_padding_bottom() / but->block->aspect;
+  rect.ymax -= textbox_vertical_padding() / but->block->aspect;
+  rect.ymin += textbox_vertical_padding() / but->block->aspect;
 
   BLI_assert(but->type == ButtonType::TextBox);
 
@@ -2309,12 +2309,12 @@ static void widget_draw_textbox(const uiFontStyle *fstyle,
   GPU_blend(GPU_BLEND_NONE);
 
   GPU_scissor(scissor[0], scissor[1], scissor[2], scissor[3]);
-  rcti grip_rect = {.xmin = rect.xmin,
-                    .xmax = rect.xmax,
-                    .ymin = button_rect->ymin,
-                    .ymax = button_rect->ymin +
-                            int(std::round(textbox_grip_height() / textbox->block->aspect))};
-  widget_draw_icon_centered(ICON_GRIP, textbox->block->aspect, 1.0f, &grip_rect, wcol->text);
+  rcti grip_rect = *button_rect;
+  grip_rect.ymax = grip_rect.ymin + std::floor(textbox_grip_height() / but->block->aspect);
+  grip_rect.xmin = grip_rect.xmax - text_padding - scrollbar_pad;
+  widget_draw_icon_centered(
+      ICON_GRIP_CORNER_BOTTOM_RIGHT, textbox->block->aspect, 1.0f, &grip_rect, wcol->text);
+
   if (textbox->last_total_lines <= visible_lines) {
     return;
   }
@@ -2322,7 +2322,7 @@ static void widget_draw_textbox(const uiFontStyle *fstyle,
   rcti scroll_rect = *button_rect;
   BLI_rcti_pad(&scroll_rect, -scrollbar_pad, -scrollbar_pad);
   scroll_rect.xmin = scroll_rect.xmax - text_padding;
-  scroll_rect.ymin += textbox_padding_bottom() / but->block->aspect;
+  scroll_rect.ymin += textbox_grip_height() / but->block->aspect;
 
   rcti slider_rect = scroll_rect;
 

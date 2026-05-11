@@ -4405,8 +4405,8 @@ static int do_but_textedit_select(
       rctf rect;
       block_to_window_rctf(data->region, block, &rect, &but->rect);
 
-      rect.ymax -= textbox_padding_top() / block->aspect;
-      rect.ymin += textbox_padding_bottom() / block->aspect;
+      rect.ymax -= textbox_vertical_padding() / block->aspect;
+      rect.ymin += textbox_vertical_padding() / block->aspect;
 
       if (BLI_rctf_isect_y(&rect, event->xy[1])) {
         break;
@@ -5286,9 +5286,10 @@ static int do_but_TEXTBOX(bContext *C,
 
       rctf scroll_rect = rect;
       scroll_rect.xmin = rect.xmax - button_text_padding(textbox);
-      scroll_rect.ymin += textbox_padding_bottom() / block->aspect;
+      scroll_rect.ymin += textbox_grip_height() / block->aspect;
 
       rctf grip_rect = rect;
+      grip_rect.xmin = grip_rect.xmax - button_text_padding(textbox);
       grip_rect.ymax = grip_rect.ymin + textbox_grip_height() / block->aspect;
 
       /* Update mouse cursor on mouse move. */
@@ -5351,7 +5352,7 @@ static int do_but_TEXTBOX(bContext *C,
         int mx = event->xy[0];
         int my = event->xy[1];
         window_to_block(data->region, block, &mx, &my);
-        const float ymin = textbox->rect.ymin + textbox_padding_bottom();
+        const float ymin = textbox->rect.ymin + textbox_grip_height();
         const float range = textbox->rect.ymax - ymin;
         const int scroll = round_fl_to_int(
             (range - (my - ymin)) / range *

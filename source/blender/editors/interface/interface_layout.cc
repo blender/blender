@@ -2795,8 +2795,8 @@ void Layout::textbox_with_state(PointerRNA *ptr,
                                0,
                                0,
                                w,
-                               line_heigth * textbox_state->visible_lines + textbox_padding_top() +
-                                   textbox_padding_bottom(),
+                               line_heigth * textbox_state->visible_lines +
+                                   textbox_vertical_padding() * 2.0f,
                                ptr,
                                prop,
                                0,

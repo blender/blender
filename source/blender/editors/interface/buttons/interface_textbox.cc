@@ -85,8 +85,8 @@ void textbox_textedit_set_cursor_pos(ButtonTextBox *textbox,
   block_to_window_fl(region, textbox->block, &start.x, &start.y);
   block_to_window_fl(region, textbox->block, &end.x, &end.y);
 
-  start.y += textbox_padding_bottom() / textbox->block->aspect;
-  end.y -= textbox_padding_top() / textbox->block->aspect;
+  start.y += textbox_vertical_padding() / textbox->block->aspect;
+  end.y -= textbox_vertical_padding() / textbox->block->aspect;
 
   const Vector<StringRef> lines = textbox_wrap_lines(textbox);
   uiFontStyle fstyle = style_get()->widget;
@@ -304,14 +304,9 @@ void ButtonTextBox::line_scroll_set(int line_scroll)
   this->state->scroll = this->line_scroll();
 }
 
-float textbox_padding_top()
+float textbox_vertical_padding()
 {
   return U.pixelsize + 2.0f * UI_SCALE_FAC;
-}
-
-float textbox_padding_bottom()
-{
-  return textbox_grip_height() + 0.25f * UI_SCALE_FAC;
 }
 
 TextboxState *textbox_ensure_state(ARegion *region, StringRefNull idname)
