@@ -203,6 +203,14 @@ class PushRelaxPoseBone(AbstractPoseSlideTest):
 
 class BreakdownerTestPoseBone(AbstractPoseSlideTest):
 
+    def setUp(self) -> None:
+        super().setUp()
+        bpy.context.preferences.edit.use_keyframe_insert_available = False
+
+    def tearDown(self) -> None:
+        super().tearDown()
+        bpy.context.preferences.edit.use_keyframe_insert_available = True
+
     def test_no_keys(self):
         # The case of no keys will produce no interpolation.
         self.pose_bone.location = (1, 1, 1)
