@@ -53,6 +53,7 @@ set(SRC
   nodes/node_fn_quaternion_to_rotation.cc
   nodes/node_fn_random_value.cc
   nodes/node_fn_replace_string.cc
+  nodes/node_fn_reverse_string.cc
   nodes/node_fn_rotate_euler.cc
   nodes/node_fn_rotate_rotation.cc
   nodes/node_fn_rotate_vector.cc

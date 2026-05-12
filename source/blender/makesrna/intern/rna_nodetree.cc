@@ -10443,6 +10443,7 @@ static void rna_def_nodes(BlenderRNA *brna)
   define("FunctionNode", "FunctionNodeQuaternionToRotation");
   define("FunctionNode", "FunctionNodeRandomValue", def_fn_random_value);
   define("FunctionNode", "FunctionNodeReplaceString");
+  define("FunctionNode", "FunctionNodeReverseString");
   define("FunctionNode", "FunctionNodeRotateEuler", def_fn_rotate_euler);
   define("FunctionNode", "FunctionNodeRotateRotation");
   define("FunctionNode", "FunctionNodeRotateVector");

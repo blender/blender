@@ -371,6 +371,7 @@ class NODE_MT_compositor_node_text_base(node_add_menu.NodeMenu):
         self.node_operator(layout, "FunctionNodeFormatString")
         self.node_operator(layout, "FunctionNodeMatchString")
         self.node_operator(layout, "FunctionNodeReplaceString")
+        self.node_operator(layout, "FunctionNodeReverseString")
         self.node_operator(layout, "FunctionNodeSliceString")
         self.node_operator(layout, "FunctionNodeTrimString")
         layout.separator()
