@@ -172,6 +172,16 @@ def cancel_download(asset_library_url: str, full_asset_url: str) -> None:
     downloader.cancel_download(full_asset_url)
 
 
+def cancel_download_all_assets() -> None:
+    """Cancel all active/queued downloads of all assets.
+
+    This shuts down all asset downloaders, effectively cancelling all their downloads.
+    """
+
+    for downloader in _asset_downloaders.values():
+        downloader.cancel_and_shutdown()
+
+
 def _asset_download_done(
     downloader: AssetDownloader,
     _http_req_descr: http_dl.RequestDescription,
@@ -228,6 +238,9 @@ class DownloadStatus(enum.Enum):
 
     FAILED = 'failed'
     """Unexpected exceptions occurred."""
+
+    CANCELLED = 'cancelled'
+    """There still were pending downloads when the downloader shut down."""
 
 
 class AssetDownloader:
@@ -388,7 +401,8 @@ class AssetDownloader:
 
             # TODO: delay this for a few minutes, so that we don't need a new
             # background process for every asset.
-            self.shutdown(DownloadStatus.FINISHED)
+            self._status = DownloadStatus.FINISHED
+            self.shutdown()
 
     def _on_callback_error(
             self,
@@ -399,7 +413,8 @@ class AssetDownloader:
             "exception while handling downloaded file ({!r}, saved to {!r})".format(
                 http_req_descr, local_file))
         self.report({'ERROR'}, "Resource download had an issue, download aborted")
-        self.shutdown(DownloadStatus.FAILED)
+        self._status = DownloadStatus.FAILED
+        self.shutdown()
 
     def _queue_download(self, asset_url: str, download_to_path: Path | str) -> str:
         """Queue up this download.
@@ -433,10 +448,22 @@ class AssetDownloader:
         if 'ERROR' in level:
             self._error_message = message
 
-    def shutdown(self, status: DownloadStatus) -> None:
-        """Stop the background downloader, update the status and call the 'done' callback."""
+    def cancel_and_shutdown(self) -> None:
+        """Cancel all downloads and shut down the background downloader."""
 
-        self._status = status
+        # Only set to 'Cancelled' if the downloader was still downloading.
+        if self._status == DownloadStatus.DOWNLOADING:
+            if self._bg_downloader and self._bg_downloader.num_pending_downloads > 0:
+                self._status = DownloadStatus.CANCELLED
+            else:
+                self._status = DownloadStatus.FINISHED
+
+        # The downloads themselves don't have to be explicitly cancelled,
+        # shutting down the downloader will do that implicitly.
+        self.shutdown()
+
+    def shutdown(self) -> None:
+        """Stop the background downloader and call the 'done' callback."""
 
         # The timer is no longer necessary, the bg_downloader.shutdown() call
         # takes care of the last queued messages.
@@ -444,18 +471,20 @@ class AssetDownloader:
             bpy.app.timers.unregister(self.on_timer_event)
 
         try:
-            if self._bg_downloader:
-                # Only report if this is actually triggering a shutdown. If that was
-                # already triggered somehow, don't bother.
-                if not self._bg_downloader.is_shutdown_requested:
-                    # It may be tempting to call self.report(...) here, and report on the
-                    # cancellation. However, this should be done by the caller, when they know
-                    # of the reason of the cancellation and thus can provide more info.
-                    num_pending = self._bg_downloader.num_pending_downloads
-                    if num_pending:
-                        logger.warning("Shutting down background downloader, %d downloads pending", num_pending)
+            if not self._bg_downloader:
+                return
 
-                self._bg_downloader.shutdown()
+            # Only report if this is actually triggering a shutdown. If that was
+            # already triggered somehow, don't bother.
+            if not self._bg_downloader.is_shutdown_requested:
+                # It may be tempting to call self.report(...) here, and report on the
+                # cancellation. However, this should be done by the caller, when they know
+                # of the reason of the cancellation and thus can provide more info.
+                num_pending = self._bg_downloader.num_pending_downloads
+                if num_pending:
+                    logger.warning("Shutting down background downloader, %d downloads pending", num_pending)
+
+            self._bg_downloader.shutdown()
         finally:
             # Regardless of whether the shutdown had some issues, the timer has
             # been unregistered, so there will be no more message handling, and
@@ -470,7 +499,8 @@ class AssetDownloader:
             self._bg_downloader.update()
         except http_dl.BackgroundProcessNotRunningError:
             logger.error("Background downloader subprocess died, aborting.")
-            self.shutdown(DownloadStatus.FAILED)
+            self._status = DownloadStatus.FAILED
+            self.shutdown()
             return 0  # Deactivate the timer.
         except Exception:
             logger.exception(
@@ -531,7 +561,8 @@ class AssetDownloader:
             if self._num_assets_pending:
                 self.report({'WARNING'}, "Cancelled {} pending download".format(self._num_assets_pending))
             logger.warning("Download cancelled: %s", http_req_descr)
-            self.shutdown(DownloadStatus.FAILED)
+            self._status = DownloadStatus.FAILED
+            self.shutdown()
             return
 
         # TODO: tell Blender there was an error downloading.
