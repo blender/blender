@@ -215,7 +215,7 @@ static void render_layer_allocate_pass(RenderResult *rr, RenderPass *rp)
   rp->ibuf->color_mode = get_color_mode_for_pass(*rp);
   rp->ibuf->channels = rp->channels;
   copy_v2_v2_db(rp->ibuf->ppm, rr->ppm);
-  IMB_assign_float_buffer(rp->ibuf, buffer_data, IB_TAKE_OWNERSHIP);
+  rp->ibuf->assign_float_data(buffer_data);
   assign_render_pass_ibuf_colorspace(*rp);
 
   if (STREQ(rp->name, RE_PASSNAME_VECTOR)) {
@@ -444,7 +444,7 @@ void RE_pass_set_buffer_data(RenderPass *pass, float *data)
 {
   ImBuf *ibuf = RE_RenderPassEnsureImBuf(pass);
 
-  IMB_assign_float_buffer(ibuf, data, IB_TAKE_OWNERSHIP);
+  ibuf->assign_float_data(data);
 }
 
 gpu::Texture *RE_pass_ensure_gpu_texture_cache(Render *re, RenderPass *rpass)
@@ -1155,7 +1155,7 @@ void RE_render_result_rect_from_ibuf(RenderResult *rr, const ImBuf *ibuf, const 
     if (!rv_ibuf->float_data()) {
       float *data = MEM_new_array_uninitialized<float>(4 * size_t(rr->rectx) * size_t(rr->recty),
                                                        "render_seq float");
-      IMB_assign_float_buffer(rv_ibuf, data, IB_TAKE_OWNERSHIP);
+      rv_ibuf->assign_float_data(data);
     }
 
     memcpy(rv_ibuf->float_data_for_write(),
@@ -1172,7 +1172,7 @@ void RE_render_result_rect_from_ibuf(RenderResult *rr, const ImBuf *ibuf, const 
     if (!rv_ibuf->byte_data()) {
       uint8_t *data = MEM_new_array_uninitialized<uint8_t>(
           4 * size_t(rr->rectx) * size_t(rr->recty), "render_seq byte");
-      IMB_assign_byte_buffer(rv_ibuf, data, IB_TAKE_OWNERSHIP);
+      rv_ibuf->assign_byte_data(data);
     }
 
     memcpy(rv_ibuf->byte_data_for_write(), ibuf->byte_data(), sizeof(int) * rr->rectx * rr->recty);
@@ -1189,9 +1189,8 @@ void render_result_rect_fill_zero(RenderResult *rr, const int view_id)
   ImBuf *ibuf = RE_RenderViewEnsureImBuf(rr, rv);
 
   if (!ibuf->float_data() && !ibuf->byte_data()) {
-    uint8_t *data = MEM_new_array_zeroed<uint8_t>(4 * size_t(rr->rectx) * size_t(rr->recty),
-                                                  "render_seq rect");
-    IMB_assign_byte_buffer(ibuf, data, IB_TAKE_OWNERSHIP);
+    ibuf->assign_byte_data(
+        MEM_new_array_zeroed<uint8_t>(4 * size_t(rr->rectx) * size_t(rr->recty), __func__));
     return;
   }
 

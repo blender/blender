@@ -475,14 +475,11 @@ void IMB_crop(ImBuf *ibuf, const int2 &rect_pos, const int2 &rect_size)
   }
 
   if (const uchar *byte_data = ibuf->byte_data()) {
-    IMB_assign_byte_buffer(
-        ibuf, create_cropped_buffer(byte_data, src_size, rect_pos, rect_size), IB_TAKE_OWNERSHIP);
+    ibuf->assign_byte_data(create_cropped_buffer(byte_data, src_size, rect_pos, rect_size));
   }
   if (const float *float_data = ibuf->float_data()) {
-    IMB_assign_float_buffer(
-        ibuf,
-        create_cropped_buffer(float_data, src_size, ibuf->channels, rect_pos, rect_size),
-        IB_TAKE_OWNERSHIP);
+    ibuf->assign_float_data(
+        create_cropped_buffer(float_data, src_size, ibuf->channels, rect_pos, rect_size));
   }
 
   ibuf->x = rect_size.x;

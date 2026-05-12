@@ -255,6 +255,30 @@ bool IMB_alloc_byte_pixels(ImBuf *ibuf, bool initialize_pixels)
   return true;
 }
 
+void ImBuf::assign_byte_data(uint8_t *data)
+{
+  imb_free_buffer(this->byte_buffer);
+  this->flags &= ~IB_byte_data;
+  if (data) {
+    this->byte_buffer.data = data;
+    this->byte_buffer.ownership = IB_TAKE_OWNERSHIP;
+
+    this->flags |= IB_byte_data;
+  }
+}
+
+void ImBuf::assign_float_data(float *data)
+{
+  imb_free_buffer(this->float_buffer);
+  this->flags &= ~IB_float_data;
+  if (data) {
+    this->float_buffer.data = data;
+    this->float_buffer.ownership = IB_TAKE_OWNERSHIP;
+
+    this->flags |= IB_float_data;
+  }
+}
+
 uint8_t *IMB_steal_byte_buffer(ImBuf *ibuf)
 {
   uint8_t *data = imb_steal_buffer_data(ibuf->byte_buffer);
@@ -331,7 +355,7 @@ void IMB_ensure_host_buffer(ImBuf *ibuf)
   GPU_memory_barrier(GPU_BARRIER_TEXTURE_UPDATE);
   float *output_buffer = static_cast<float *>(
       GPU_texture_read(ibuf->gpu.texture, GPU_DATA_FLOAT, 0));
-  IMB_assign_float_buffer(ibuf, output_buffer, IB_TAKE_OWNERSHIP);
+  ibuf->assign_float_data(output_buffer);
 
   if (need_secondary_context) {
     IMB_deactivate_gpu_context();
@@ -369,12 +393,12 @@ ImBuf *IMB_allocFromBufferOwn(
     /* TODO(sergey): The 4 channels is the historical code. Should probably be `channels`, but
      * needs a dedicated investigation. */
     BLI_assert(MEM_allocN_len(float_buffer) == sizeof(float[4]) * w * h);
-    IMB_assign_float_buffer(ibuf, float_buffer, IB_TAKE_OWNERSHIP);
+    ibuf->assign_float_data(float_buffer);
   }
 
   if (byte_buffer) {
     BLI_assert(MEM_allocN_len(byte_buffer) == sizeof(uint8_t[4]) * w * h);
-    IMB_assign_byte_buffer(ibuf, byte_buffer, IB_TAKE_OWNERSHIP);
+    ibuf->assign_byte_data(byte_buffer);
   }
 
   return ibuf;

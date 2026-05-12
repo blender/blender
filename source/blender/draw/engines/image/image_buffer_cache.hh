@@ -95,7 +95,7 @@ struct FloatBufferCache {
     ImBuf *new_imbuf = IMB_allocImBuf(image_buffer->x, image_buffer->y, 0);
     new_imbuf->color_mode = image_buffer->color_mode;
 
-    IMB_assign_float_buffer(new_imbuf, IMB_steal_float_buffer(image_buffer), IB_TAKE_OWNERSHIP);
+    new_imbuf->assign_float_data(IMB_steal_float_buffer(image_buffer));
 
     cache_.append(FloatImageBuffer(image_buffer, new_imbuf));
     return new_imbuf;

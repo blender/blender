@@ -184,18 +184,18 @@ class Context : public compositor::Context {
       if (result.is_single_value()) {
         float *data = MEM_new_array_uninitialized<float>(
             4 * size_t(render_result->rectx) * size_t(render_result->recty), __func__);
-        IMB_assign_float_buffer(image_buffer, data, IB_TAKE_OWNERSHIP);
+        image_buffer->assign_float_data(data);
         IMB_rectfill(image_buffer, result.get_single_value<compositor::Color>());
       }
       else if (this->use_gpu()) {
         GPU_memory_barrier(GPU_BARRIER_TEXTURE_UPDATE);
         float *output_buffer = static_cast<float *>(GPU_texture_read(result, GPU_DATA_FLOAT, 0));
-        IMB_assign_float_buffer(image_buffer, output_buffer, IB_TAKE_OWNERSHIP);
+        image_buffer->assign_float_data(output_buffer);
       }
       else {
         float *data = MEM_new_array_uninitialized<float>(
             4 * size_t(render_result->rectx) * size_t(render_result->recty), __func__);
-        IMB_assign_float_buffer(image_buffer, data, IB_TAKE_OWNERSHIP);
+        image_buffer->assign_float_data(data);
         std::memcpy(image_buffer->float_data_for_write(),
                     result.cpu_data().data(),
                     render_result->rectx * render_result->recty * 4 * sizeof(float));

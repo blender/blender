@@ -1297,10 +1297,10 @@ static ImBuf *ffmpeg_fetchibuf(MovieReader *anim, int position, IMB_Timecode_Typ
   uint8_t *buffer_data = static_cast<uint8_t *>(
       MEM_new_uninitialized_aligned(pixel_size * anim->x * anim->y, align, "ffmpeg ibuf"));
   if (anim->is_float) {
-    IMB_assign_float_buffer(cur_frame_final, (float *)buffer_data, IB_TAKE_OWNERSHIP);
+    cur_frame_final->assign_float_data((float *)buffer_data);
   }
   else {
-    IMB_assign_byte_buffer(cur_frame_final, buffer_data, IB_TAKE_OWNERSHIP);
+    cur_frame_final->assign_byte_data(buffer_data);
   }
 
   AVFrame *final_frame = ffmpeg_frame_by_pts_get(anim, pts_to_search);

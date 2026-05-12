@@ -828,7 +828,7 @@ void convert_multilayer_ibuf(ImBuf *ibuf)
                                          ibuf->y,
                                          ibuf->x,
                                          ibuf->x);
-    IMB_assign_float_buffer(ibuf, dst, IB_TAKE_OWNERSHIP);
+    ibuf->assign_float_data(dst);
     ibuf->channels = 4;
   }
 }

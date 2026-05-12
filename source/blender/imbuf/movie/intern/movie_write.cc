@@ -416,7 +416,7 @@ static ImBuf *alloc_imbuf_for_colorspace_transform(const ImBuf *input_ibuf)
   const size_t num_pixels = IMB_get_pixel_count(input_ibuf);
   float *buffer = MEM_new_array_uninitialized<float>(num_pixels * result_ibuf->channels,
                                                      "movie hdr image");
-  IMB_assign_float_buffer(result_ibuf, buffer, IB_TAKE_OWNERSHIP);
+  result_ibuf->assign_float_data(buffer);
 
   /* Transfer flags related to color space conversion from the original image buffer. */
   result_ibuf->flags |= (input_ibuf->flags & IB_alphamode_channel_packed);

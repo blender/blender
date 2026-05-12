@@ -629,7 +629,7 @@ static ImBuf *make_grayscale_ibuf_copy(ImBuf *ibuf)
   grayscale->channels = 1;
   float *rect_float = MEM_new_array_zeroed<float>(num_pixels, "tracking grayscale image");
   if (rect_float != nullptr) {
-    IMB_assign_float_buffer(grayscale, rect_float, IB_TAKE_OWNERSHIP);
+    grayscale->assign_float_data(rect_float);
 
     for (int i = 0; i < grayscale->x * grayscale->y; i++) {
       const float *pixel = ibuf->float_data() + ibuf->channels * i;
@@ -657,7 +657,7 @@ static ImBuf *float_image_to_ibuf(libmv_FloatImage *float_image)
   ibuf->channels = float_image->channels;
   float *rect_float = MEM_new_array_zeroed<float>(num_total_channels, "tracking grayscale image");
   if (rect_float != nullptr) {
-    IMB_assign_float_buffer(ibuf, rect_float, IB_TAKE_OWNERSHIP);
+    ibuf->assign_float_data(rect_float);
 
     memcpy(rect_float, float_image->buffer, num_total_channels * sizeof(float));
   }

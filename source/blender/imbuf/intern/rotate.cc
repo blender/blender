@@ -75,7 +75,7 @@ bool IMB_rotate_orthogonal(ImBuf *ibuf, int degrees)
     float *dst_pixels = MEM_new_array_uninitialized<float>(
         size_t(channels) * size_t(size_x) * size_t(size_y), __func__);
     rotate_pixels<float>(degrees, size_x, size_y, src_pixels, dst_pixels, ibuf->channels);
-    IMB_assign_float_buffer(ibuf, dst_pixels, IB_TAKE_OWNERSHIP);
+    ibuf->assign_float_data(dst_pixels);
     if (ibuf->byte_data()) {
       IMB_byte_from_float(ibuf);
     }
@@ -85,7 +85,7 @@ bool IMB_rotate_orthogonal(ImBuf *ibuf, int degrees)
     uchar *dst_pixels = MEM_new_array_uninitialized<uchar>(4 * size_t(size_x) * size_t(size_y),
                                                            __func__);
     rotate_pixels<uchar>(degrees, size_x, size_y, src_pixels, dst_pixels, 4);
-    IMB_assign_byte_buffer(ibuf, dst_pixels, IB_TAKE_OWNERSHIP);
+    ibuf->assign_byte_data(dst_pixels);
   }
 
   return true;

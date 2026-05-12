@@ -446,13 +446,13 @@ bool IMB_scale(ImBuf *ibuf, const int2 new_size, IMBScaleFilter filter, bool thr
         float *dst = MEM_new_array_uninitialized<float>(
             size_t(ibuf->channels) * new_size.x * new_size.y, __func__);
         scale_nearest_func(src, src_size, ibuf->channels, dst, new_size, threaded);
-        IMB_assign_float_buffer(ibuf, dst, IB_TAKE_OWNERSHIP);
+        ibuf->assign_float_data(dst);
       }
       if (const uchar *src = ibuf->byte_data()) {
         uchar *dst = MEM_new_array_uninitialized<uchar>(size_t(new_size.x) * new_size.y * 4,
                                                         __func__);
         scale_nearest_func(src, src_size, 4, dst, new_size, threaded);
-        IMB_assign_byte_buffer(ibuf, dst, IB_TAKE_OWNERSHIP);
+        ibuf->assign_byte_data(dst);
       }
       break;
     }
@@ -461,13 +461,13 @@ bool IMB_scale(ImBuf *ibuf, const int2 new_size, IMBScaleFilter filter, bool thr
         float *dst = MEM_new_array_uninitialized<float>(
             size_t(ibuf->channels) * new_size.x * new_size.y, __func__);
         scale_bilinear(src, src_size, ibuf->channels, dst, new_size, threaded);
-        IMB_assign_float_buffer(ibuf, dst, IB_TAKE_OWNERSHIP);
+        ibuf->assign_float_data(dst);
       }
       if (const uchar *src = ibuf->byte_data()) {
         uchar *dst = MEM_new_array_uninitialized<uchar>(size_t(new_size.x) * new_size.y * 4,
                                                         __func__);
         scale_bilinear(src, src_size, 4, dst, new_size, threaded);
-        IMB_assign_byte_buffer(ibuf, dst, IB_TAKE_OWNERSHIP);
+        ibuf->assign_byte_data(dst);
       }
       break;
     }
@@ -476,13 +476,13 @@ bool IMB_scale(ImBuf *ibuf, const int2 new_size, IMBScaleFilter filter, bool thr
         float *dst = MEM_new_array_uninitialized<float>(
             size_t(ibuf->channels) * new_size.x * new_size.y, __func__);
         imb_scale_box(src, src_size, ibuf->channels, dst, new_size, threaded);
-        IMB_assign_float_buffer(ibuf, dst, IB_TAKE_OWNERSHIP);
+        ibuf->assign_float_data(dst);
       }
       if (const uchar *src = ibuf->byte_data()) {
         uchar *dst = MEM_new_array_uninitialized<uchar>(size_t(new_size.x) * new_size.y * 4,
                                                         __func__);
         imb_scale_box(src, src_size, 4, dst, new_size, threaded);
-        IMB_assign_byte_buffer(ibuf, dst, IB_TAKE_OWNERSHIP);
+        ibuf->assign_byte_data(dst);
       }
       break;
     }

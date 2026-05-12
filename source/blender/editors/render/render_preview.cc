@@ -1162,9 +1162,7 @@ static void shader_preview_texture(ShaderPreview *sp, Tex *tex, Scene *sce, Rend
   RenderResult *rr = RE_AcquireResultWrite(re);
   RenderView *rv = static_cast<RenderView *>(rr->views.first);
   ImBuf *rv_ibuf = RE_RenderViewEnsureImBuf(rr, rv);
-  IMB_assign_float_buffer(rv_ibuf,
-                          MEM_new_array_zeroed<float>(4 * width * height, "texture render result"),
-                          IB_TAKE_OWNERSHIP);
+  rv_ibuf->assign_float_data(MEM_new_array_zeroed<float>(size_t(4) * width * height, __func__));
   RE_ReleaseResult(re);
 
   /* Get texture image pool (if any) */

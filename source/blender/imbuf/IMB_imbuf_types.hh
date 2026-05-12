@@ -292,6 +292,10 @@ struct ImBuf {
   const float *float_data() const;
   float *float_data_for_write();
 
+  /** Take sole ownership of a buffer allocated with the guarded allocator. */
+  void assign_byte_data(uint8_t *data);
+  void assign_float_data(float *data);
+
   [[nodiscard]] bool can_contain_alpha() const
   {
     return color_mode == ImColorMode::RGBA || color_mode == ImColorMode::BW_A;
