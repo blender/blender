@@ -2394,7 +2394,6 @@ def pyrna2sphinx(basepath: Path) -> None:
 
         fw(title_string(title, "="))
 
-
         fw(".. currentmodule:: {:s}\n\n".format(struct_module_name))
 
         # Docs first? OK.
