@@ -86,6 +86,7 @@ class SocketUsageParams {
    * Utility for the case when the socket depends on a specific menu input to have a certain value.
    */
   bool menu_input_may_be(UString identifier, int enum_value) const;
+  bool bool_input_may_be(UString identifier, bool bool_value) const;
 };
 
 /**
