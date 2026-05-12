@@ -64,6 +64,7 @@
 #include "ED_markers.hh"
 #include "ED_numinput.hh"
 #include "ED_screen.hh"
+#include "ED_transformable.hh"
 #include "ED_util.hh"
 
 #include "ANIM_fcurve.hh"
@@ -75,19 +76,10 @@ namespace blender {
 /* **************************************************** */
 /* A) Push & Relax, Breakdowner */
 
-/** Axis Locks. */
-enum AxisMutable {
-  AXIS_MUTABLE_X = (1 << 0),
-  AXIS_MUTABLE_Y = (1 << 1),
-  AXIS_MUTABLE_Z = (1 << 2),
-  AXIS_MUTABLE_ALL = AXIS_MUTABLE_X | AXIS_MUTABLE_Y | AXIS_MUTABLE_Z,
-};
-ENUM_OPERATORS(AxisMutable);
-
 /**
  * Returns true if the given property index matches the axis flag.
  */
-static bool is_axis_mutable(const int index, const AxisMutable axis_flag)
+static bool is_axis_mutable(const int index, const ed::AxisMutable axis_flag)
 {
   /* AxisMutable happens to be set up in such a way that X, Y and Z correspond to bits 0, 1
    * and 2. The AXIS_MUTABLE_ALL case has all these bits set. */
@@ -167,7 +159,7 @@ struct tPoseSlideOp {
   /** Which transforms/channels are affected. */
   ePoseSlide_Channels channels;
   /** Axis-limits for transforms. */
-  AxisMutable axis_mutability;
+  ed::AxisMutable axis_mutability;
 
   tSlider *slider;
 
@@ -195,10 +187,14 @@ static const EnumPropertyItem prop_channels_types[] = {
 
 /* Property enum for AxisMutable. */
 static const EnumPropertyItem prop_axis_lock_types[] = {
-    {AXIS_MUTABLE_ALL, "FREE", 0, "Free", "All axes are affected"},
-    {AXIS_MUTABLE_X, "X", 0, "X", "Only X-axis transforms are affected"},
-    {AXIS_MUTABLE_Y, "Y", 0, "Y", "Only Y-axis transforms are affected"},
-    {AXIS_MUTABLE_Z, "Z", 0, "Z", "Only Z-axis transforms are affected"}, /* TODO: Combinations? */
+    {ed::AXIS_MUTABLE_ALL, "FREE", 0, "Free", "All axes are affected"},
+    {ed::AXIS_MUTABLE_X, "X", 0, "X", "Only X-axis transforms are affected"},
+    {ed::AXIS_MUTABLE_Y, "Y", 0, "Y", "Only Y-axis transforms are affected"},
+    {ed::AXIS_MUTABLE_Z,
+     "Z",
+     0,
+     "Z",
+     "Only Z-axis transforms are affected"}, /* TODO: Combinations? */
     {0, nullptr, 0, nullptr, nullptr},
 };
 
@@ -240,7 +236,7 @@ static int pose_slide_init(bContext *C, wmOperator *op, ePoseSlide_Modes mode)
 
   /* Get the set of properties/axes that can be operated on. */
   pso->channels = ePoseSlide_Channels(RNA_enum_get(op->ptr, "channels"));
-  pso->axis_mutability = AxisMutable(RNA_enum_get(op->ptr, "axis_lock"));
+  pso->axis_mutability = ed::AxisMutable(RNA_enum_get(op->ptr, "axis_lock"));
 
   pso->slider = ED_slider_create(C);
   ED_slider_factor_set(pso->slider, RNA_float_get(op->ptr, "factor"));
@@ -458,7 +454,7 @@ static void pose_slide_apply_vec3(tPoseSlideOp *pso,
   const Vector<FCurve *> fcurves = fcurves_filtered_by_path(slide_subject->fcurves, path);
   for (FCurve *fcurve : fcurves) {
     const int idx = fcurve->array_index;
-    const AxisMutable axis_flags = pso->axis_mutability;
+    const ed::AxisMutable axis_flags = pso->axis_mutability;
 
     /* Check if this F-Curve is ok given the current axis locks. */
     BLI_assert(fcurve->array_index < 3);
@@ -727,7 +723,7 @@ static void pose_slide_apply_quat(tPoseSlideOp *pso, SlideSubject *slide_subject
 static void pose_slide_rest_pose_apply_vec3(tPoseSlideOp *pso, float vec[3], float default_value)
 {
   /* We only slide to the rest pose. So only use the default rest pose value. */
-  const AxisMutable axis_flags = pso->axis_mutability;
+  const ed::AxisMutable axis_flags = pso->axis_mutability;
   const float factor = ED_slider_factor_get(pso->slider);
   for (int idx = 0; idx < 3; idx++) {
     if (is_axis_mutable(idx, axis_flags)) {
@@ -983,11 +979,11 @@ static void pose_slide_draw_status(bContext *C, tPoseSlideOp *pso)
   }
 
   if (ELEM(pso->channels, PS_TFM_LOC, PS_TFM_ROT, PS_TFM_SCALE)) {
-    status.item_bool("", pso->axis_mutability & AXIS_MUTABLE_X, ICON_EVENT_X);
-    status.item_bool("", pso->axis_mutability & AXIS_MUTABLE_Y, ICON_EVENT_Y);
-    status.item_bool("", pso->axis_mutability & AXIS_MUTABLE_Z, ICON_EVENT_Z);
-    status.item(pso->axis_mutability == AXIS_MUTABLE_ALL ? IFACE_("All Axes") :
-                                                           IFACE_("Single Axis"),
+    status.item_bool("", pso->axis_mutability & ed::AXIS_MUTABLE_X, ICON_EVENT_X);
+    status.item_bool("", pso->axis_mutability & ed::AXIS_MUTABLE_Y, ICON_EVENT_Y);
+    status.item_bool("", pso->axis_mutability & ed::AXIS_MUTABLE_Z, ICON_EVENT_Z);
+    status.item(pso->axis_mutability == ed::AXIS_MUTABLE_ALL ? IFACE_("All Axes") :
+                                                               IFACE_("Single Axis"),
                 ICON_NONE);
   }
 
@@ -1116,18 +1112,20 @@ static void pose_slide_toggle_channels_mode(wmOperator *op,
   RNA_enum_set(op->ptr, "channels", pso->channels);
 
   /* Reset axis limits too for good measure */
-  pso->axis_mutability = AXIS_MUTABLE_ALL;
+  pso->axis_mutability = ed::AXIS_MUTABLE_ALL;
   RNA_enum_set(op->ptr, "axis_lock", pso->axis_mutability);
 }
 
 /**
  * Handle an event to toggle axis mutability - returns whether any change in state is needed.
  */
-static bool pose_slide_toggle_axis_mutability(wmOperator *op, tPoseSlideOp *pso, AxisMutable axis)
+static bool pose_slide_toggle_axis_mutability(wmOperator *op,
+                                              tPoseSlideOp *pso,
+                                              ed::AxisMutable axis)
 {
   /* Axis can only be set when a transform is set - it doesn't make sense otherwise */
   if (ELEM(pso->channels, PS_TFM_ALL, PS_TFM_BBONE_SHAPE, PS_TFM_PROPS)) {
-    pso->axis_mutability = AXIS_MUTABLE_ALL;
+    pso->axis_mutability = ed::AXIS_MUTABLE_ALL;
     RNA_enum_set(op->ptr, "axis_lock", pso->axis_mutability);
     return false;
   }
@@ -1135,7 +1133,7 @@ static bool pose_slide_toggle_axis_mutability(wmOperator *op, tPoseSlideOp *pso,
   /* Turn on or off? */
   if (pso->axis_mutability == axis) {
     /* Already limiting on this axis, so turn off */
-    pso->axis_mutability = AXIS_MUTABLE_ALL;
+    pso->axis_mutability = ed::AXIS_MUTABLE_ALL;
   }
   else {
     /* Only this axis */
@@ -1270,19 +1268,19 @@ static wmOperatorStatus pose_slide_modal(bContext *C, wmOperator *op, const wmEv
           /* Axis Locks */
           /* XXX: Hardcoded... */
           case EVT_XKEY: {
-            if (pose_slide_toggle_axis_mutability(op, pso, AXIS_MUTABLE_X)) {
+            if (pose_slide_toggle_axis_mutability(op, pso, ed::AXIS_MUTABLE_X)) {
               do_pose_update = true;
             }
             break;
           }
           case EVT_YKEY: {
-            if (pose_slide_toggle_axis_mutability(op, pso, AXIS_MUTABLE_Y)) {
+            if (pose_slide_toggle_axis_mutability(op, pso, ed::AXIS_MUTABLE_Y)) {
               do_pose_update = true;
             }
             break;
           }
           case EVT_ZKEY: {
-            if (pose_slide_toggle_axis_mutability(op, pso, AXIS_MUTABLE_Z)) {
+            if (pose_slide_toggle_axis_mutability(op, pso, ed::AXIS_MUTABLE_Z)) {
               do_pose_update = true;
             }
             break;
@@ -1415,7 +1413,7 @@ static void pose_slide_opdef_properties(wmOperatorType *ot)
   prop = RNA_def_enum(ot->srna,
                       "axis_lock",
                       prop_axis_lock_types,
-                      AXIS_MUTABLE_ALL,
+                      ed::AXIS_MUTABLE_ALL,
                       "Axis Lock",
                       "Transform axis to restrict effects to");
   RNA_def_property_flag(prop, PROP_SKIP_SAVE);
