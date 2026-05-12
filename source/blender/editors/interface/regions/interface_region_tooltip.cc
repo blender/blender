@@ -1139,7 +1139,7 @@ static std::unique_ptr<TooltipData> tooltip_data_from_button_or_extra_icon(
                            true);
   }
 
-  if (ELEM(but->type, ButtonType::Text, ButtonType::SearchMenu)) {
+  if (ELEM(but->type, ButtonType::TextBox, ButtonType::Text, ButtonType::SearchMenu)) {
     /* Better not show the value of a password. */
     if ((rnaprop && (RNA_property_subtype(rnaprop) == PROP_PASSWORD)) == 0) {
       /* Full string. */
