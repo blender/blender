@@ -1259,4 +1259,29 @@ ccl_device void osl_closure_rayleigh_setup(KernelGlobals /*kg*/,
   sd->flag |= volume_rayleigh_setup(volume);
 }
 
+ccl_device void osl_closure_anisotropic_vdf_setup(KernelGlobals kg,
+                                                  ccl_private ShaderData *sd,
+                                                  const uint32_t /*path_flag*/,
+                                                  float3 weight,
+                                                  const ccl_private AnisotropicVDFClosure *closure,
+                                                  float3 * /*layer_albedo*/)
+{
+  if (!(sd->flag & SD_IS_VOLUME_SHADER_EVAL)) {
+    return;
+  }
+
+  weight *= object_volume_density(kg, sd->object) * closure->extinction;
+  volume_extinction_setup(sd, rgb_to_spectrum(weight));
+
+  ccl_private HenyeyGreensteinVolume *volume = (ccl_private HenyeyGreensteinVolume *)bsdf_alloc(
+      sd, sizeof(HenyeyGreensteinVolume), rgb_to_spectrum(weight * closure->albedo));
+  if (!volume) {
+    return;
+  }
+
+  volume->g = closure->anisotropy;
+
+  sd->flag |= volume_henyey_greenstein_setup(volume);
+}
+
 CCL_NAMESPACE_END

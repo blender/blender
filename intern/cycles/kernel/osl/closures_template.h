@@ -279,6 +279,12 @@ OSL_CLOSURE_STRUCT_END(VolumeDraine, draine)
 OSL_CLOSURE_STRUCT_BEGIN(VolumeRayleigh, rayleigh)
 OSL_CLOSURE_STRUCT_END(VolumeRayleigh, rayleigh)
 
+OSL_CLOSURE_STRUCT_BEGIN(AnisotropicVDF, anisotropic_vdf)
+  OSL_CLOSURE_STRUCT_MEMBER(AnisotropicVDF, COLOR, packed_float3, albedo, nullptr)
+  OSL_CLOSURE_STRUCT_MEMBER(AnisotropicVDF, COLOR, packed_float3, extinction, nullptr)
+  OSL_CLOSURE_STRUCT_MEMBER(AnisotropicVDF, FLOAT, float, anisotropy, nullptr)
+OSL_CLOSURE_STRUCT_END(AnisotropicVDF, anisotropic_vdf)
+
 #undef OSL_CLOSURE_STRUCT_BEGIN
 #undef OSL_CLOSURE_STRUCT_END
 #undef OSL_CLOSURE_STRUCT_MEMBER
