@@ -86,7 +86,7 @@ PyDoc_STRVAR(
     "   Returns an orientedViewEdgeIterator pointing to the ViewEdge given\n"
     "   as argument.\n"
     "\n"
-    "   :arg edge: A ViewEdge object.\n"
+    "   :param edge: A ViewEdge object.\n"
     "   :type edge: :class:`ViewEdge`\n"
     "   :return: An orientedViewEdgeIterator pointing to the given ViewEdge.\n"
     "   :rtype: :class:`orientedViewEdgeIterator`\n");

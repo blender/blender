@@ -27,14 +27,14 @@ PyDoc_STRVAR(
     "\n"
     "   Builds a SamplingShader object.\n"
     "\n"
-    "   :arg sampling: The sampling to use for the stroke resampling.\n"
+    "   :param sampling: The sampling to use for the stroke resampling.\n"
     "   :type sampling: float\n"
     "\n"
     ".. method:: shade(stroke)\n"
     "\n"
     "   Resamples the stroke.\n"
     "\n"
-    "   :arg stroke: A Stroke object.\n"
+    "   :param stroke: A Stroke object.\n"
     "   :type stroke: :class:`freestyle.types.Stroke`\n");
 static int SamplingShader___init__(BPy_SamplingShader *self, PyObject *args, PyObject *kwds)
 {

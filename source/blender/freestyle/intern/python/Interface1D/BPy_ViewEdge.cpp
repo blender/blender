@@ -31,12 +31,16 @@ PyDoc_STRVAR(
     "it connects two :class:`ViewVertex` objects. It is made by connecting\n"
     "a set of FEdges.\n"
     "\n"
-    ".. method:: __init__()\n"
-    "            __init__(brother)\n"
+    ".. method:: __init__(*args)\n"
+    "\n"
+    "   Accepted call signatures:\n"
+    "\n"
+    "   - ``__init__()``\n"
+    "   - ``__init__(brother)``\n"
     "\n"
     "   Builds a :class:`ViewEdge` using the default constructor or the copy constructor.\n"
     "\n"
-    "   :arg brother: A ViewEdge object.\n"
+    "   :param brother: A ViewEdge object.\n"
     "   :type brother: :class:`ViewEdge`\n");
 static int ViewEdge_init(BPy_ViewEdge *self, PyObject *args, PyObject *kwds)
 {

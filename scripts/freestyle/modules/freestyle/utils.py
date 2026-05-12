@@ -79,13 +79,30 @@ class BoundedProperty(namedtuple("BoundedProperty", ["min", "max", "delta"])):
 # -- real utility functions  -- #
 
 def rgb_to_bw(r, g, b):
-    """Method to convert rgb to a bw intensity value."""
+    """Method to convert rgb to a bw intensity value.
+
+    :param r: Red channel (0..1).
+    :type r: float
+    :param g: Green channel (0..1).
+    :type g: float
+    :param b: Blue channel (0..1).
+    :type b: float
+    :rtype: float
+    """
     return 0.35 * r + 0.45 * g + 0.2 * b
 
 
 def bound(lower, x, higher):
     """Returns x bounded by a maximum and minimum value. Equivalent to:
     return min(max(x, lower), higher)
+
+    :param lower: Lower bound.
+    :type lower: float
+    :param x: Value to clamp.
+    :type x: float
+    :param higher: Upper bound.
+    :type higher: float
+    :rtype: float
     """
     # this is about 50% quicker than min(max(x, lower), higher)
     return (lower if x <= lower else higher if x >= higher else x)
@@ -97,7 +114,12 @@ def get_strokes():
 
 
 def is_poly_clockwise(stroke):
-    """True if the stroke is orientated in a clockwise way, False otherwise"""
+    """True if the stroke is orientated in a clockwise way, False otherwise
+
+    :param stroke: A stroke whose orientation is tested.
+    :type stroke: :class:`Stroke`
+    :rtype: bool
+    """
     v = sum((v2.point.x - v1.point.x) * (v1.point.y + v2.point.y) for v1, v2 in pairwise(stroke))
     v1, v2 = stroke[0], stroke[-1]
     if (v1.point - v2.point).length > 1e-3:
@@ -106,7 +128,12 @@ def is_poly_clockwise(stroke):
 
 
 def get_object_name(stroke):
-    """Returns the name of the object that this stroke is drawn on."""
+    """Returns the name of the object that this stroke is drawn on.
+
+    :param stroke: A stroke.
+    :type stroke: :class:`Stroke`
+    :rtype: str | None
+    """
     fedge = stroke[0].fedge
     if fedge is None:
         return None
@@ -114,7 +141,12 @@ def get_object_name(stroke):
 
 
 def material_from_fedge(fe):
-    "get the diffuse RGBA color from an FEdge"
+    """Get the diffuse RGBA color from an FEdge.
+
+    :param fe: An FEdge.
+    :type fe: :class:`FEdge`
+    :rtype: :class:`Material` | None
+    """
     if fe is None:
         return None
     if fe.is_smooth:
@@ -128,6 +160,10 @@ def material_from_fedge(fe):
 def bounding_box(stroke):
     """
     Returns the maximum and minimum coordinates (the bounding box) of the stroke's vertices
+
+    :param stroke: A stroke.
+    :type stroke: :class:`Stroke`
+    :rtype: tuple[:class:`mathutils.Vector`, :class:`mathutils.Vector`]
     """
     x, y = zip(*(svert.point for svert in stroke))
     return (Vector((min(x), min(y))), Vector((max(x), max(y))))
@@ -136,6 +172,10 @@ def bounding_box(stroke):
 def normal_at_I0D(it: Interface0DIterator) -> Vector:
     """Normal at an Interface0D object. In contrast to Normal2DF0D this
        function uses the actual data instead of underlying Fedge objects.
+
+    :param it: An iterator over Interface0D objects.
+    :type it: :class:`Interface0DIterator`
+    :rtype: :class:`mathutils.Vector`
     """
     if it.at_last and it.is_begin:
         # corner-case
@@ -161,14 +201,24 @@ def normal_at_I0D(it: Interface0DIterator) -> Vector:
 
 
 def angle_x_normal(it: Interface0DIterator):
-    """unsigned angle between a Point's normal and the X axis, in radians"""
+    """unsigned angle between a Point's normal and the X axis, in radians
+
+    :param it: An iterator over Interface0D objects.
+    :type it: :class:`Interface0DIterator`
+    :rtype: float
+    """
     normal = normal_at_I0D(it)
     return abs(atan2(normal[1], normal[0]))
 
 
 def curvature_from_stroke_vertex(svert):
     """The 3D curvature of an stroke vertex' underlying geometry
-       The result is None or in the range [-inf, inf]"""
+       The result is None or in the range [-inf, inf]
+
+    :param svert: A stroke vertex.
+    :type svert: :class:`StrokeVertex`
+    :rtype: float | None
+    """
     c1 = svert.first_svertex.curvatures
     c2 = svert.second_svertex.curvatures
     if c1 is None and c2 is None:
@@ -261,7 +311,14 @@ def simplifyDouglasPeucker(points, tolerance):
 
 
 def simplify(points, tolerance):
-    """Simplifies a set of points"""
+    """Simplifies a set of points.
+
+    :param points: Points to simplify.
+    :type points: Sequence[:class:`mathutils.Vector`]
+    :param tolerance: Maximum allowed deviation from the original curve.
+    :type tolerance: float
+    :rtype: tuple
+    """
     return simplifyDouglasPeucker(points, tolerance * tolerance)
 
 
@@ -288,14 +345,24 @@ class BoundingBox:
 
     @classmethod
     def from_sequence(cls, sequence):
-        """BoundingBox from sequence of 2D or 3D Vector objects"""
+        """BoundingBox from sequence of 2D or 3D Vector objects.
+
+        :param sequence: An iterable of vectors to compute the box from.
+        :type sequence: Iterable[:class:`mathutils.Vector`]
+        :rtype: :class:`BoundingBox`
+        """
         x, y = zip(*sequence)
         mini = Vector((min(x), min(y)))
         maxi = Vector((max(x), max(y)))
         return cls(mini, maxi)
 
     def inside(self, other):
-        """True if self inside other, False otherwise"""
+        """True if self inside other, False otherwise.
+
+        :param other: Another bounding box to test containment against.
+        :type other: :class:`BoundingBox`
+        :rtype: bool
+        """
         if self.size != other.size:
             raise TypeError("Expected two BoundingBox of the same size, got", self, other)
         return (self.minimum.x >= other.minimum.x and self.minimum.y >= other.minimum.y and
@@ -310,13 +377,24 @@ class StrokeCollector(StrokeShader):
         self.strokes = []
 
     def shade(self, stroke):
+        """
+        :param stroke: The stroke to collect.
+        :type stroke: :class:`Stroke`
+        """
         self.strokes.append(stroke)
 
 
 # -- helper functions for chaining -- #
 
 def get_chain_length(ve, orientation):
-    """Returns the 2d length of a given ViewEdge."""
+    """Returns the 2d length of a given ViewEdge.
+
+    :param ve: The ViewEdge whose chain length to compute.
+    :type ve: :class:`ViewEdge`
+    :param orientation: Direction in which to traverse the chain.
+    :type orientation: bool
+    :rtype: float
+    """
     from freestyle.chainingiterators import pyChainSilhouetteGenericIterator
     length = 0.0
     # setup iterator
@@ -351,15 +429,32 @@ def get_chain_length(ve, orientation):
 
 
 def find_matching_vertex(id, it):
-    """Finds the matching vertex, or returns None."""
+    """Finds the matching vertex, or returns None.
+
+    :param id: The ID to match.
+    :type id: :class:`Id`
+    :param it: An iterator over candidate ViewEdges.
+    :type it: :class:`AdjacencyIterator`
+    :rtype: :class:`ViewEdge` | None
+    """
     return next((ve for ve in it if ve.id == id), None)
 
 
 # -- helper functions for iterating -- #
 
-def pairwise(iterable, types={Stroke, StrokeVertexIterator}):
-    """Yields a tuple containing the previous and current object """
+def pairwise(iterable, types=None):
+    """Yields a tuple containing the previous and current object.
+
+    :param iterable: An iterable of items.
+    :type iterable: Iterable[Any]
+    :param types: Container types for which the iterator's ``incremented()``
+        method is used instead of standard tee-based pairing. When ``None``
+        defaults to ``(Stroke, StrokeVertexIterator)``.
+    :type types: tuple[type, ...] | None
+    """
     # use .incremented() for types that support it
+    if types is None:
+        types = (Stroke, StrokeVertexIterator)
     if type(iterable) in types:
         it = iter(iterable)
         return zip(it, it.incremented())
@@ -370,7 +465,11 @@ def pairwise(iterable, types={Stroke, StrokeVertexIterator}):
 
 
 def tripplewise(iterable):
-    """Yields a tuple containing the current object and its immediate neighbors """
+    """Yields a tuple containing the current object and its immediate neighbors.
+
+    :param iterable: An iterable of items.
+    :type iterable: Iterable[Any]
+    """
     a, b, c = tee(iterable)
     next(b, None)
     next(c, None)
@@ -378,7 +477,11 @@ def tripplewise(iterable):
 
 
 def iter_t2d_along_stroke(stroke):
-    """Yields the progress along the stroke."""
+    """Yields the progress along the stroke.
+
+    :param stroke: A stroke.
+    :type stroke: :class:`Stroke`
+    """
     total = stroke.length_2d
     distance = 0.0
     # yield for the comparison from the first vertex to itself
@@ -393,6 +496,15 @@ def iter_distance_from_camera(stroke, range_min, range_max, normfac):
     Yields the distance to the camera relative to the maximum
     possible distance for every stroke vertex, constrained by
     given minimum and maximum values.
+
+    :param stroke: A stroke.
+    :type stroke: :class:`Stroke`
+    :param range_min: Distances below this value are clamped to 0.
+    :type range_min: float
+    :param range_max: Distances above this value are clamped to 1.
+    :type range_max: float
+    :param normfac: Normalization factor applied to ``distance - range_min``.
+    :type normfac: float
     """
     for svert in stroke:
         # length in the camera coordinate
@@ -408,6 +520,17 @@ def iter_distance_from_object(stroke, location, range_min, range_max, normfac):
     yields the distance to the given object relative to the maximum
     possible distance for every stroke vertex, constrained by
     given minimum and maximum values.
+
+    :param stroke: A stroke.
+    :type stroke: :class:`Stroke`
+    :param location: Reference location in 3D space.
+    :type location: :class:`mathutils.Vector`
+    :param range_min: Distances below this value are clamped to 0.
+    :type range_min: float
+    :param range_max: Distances above this value are clamped to 1.
+    :type range_max: float
+    :param normfac: Normalization factor applied to ``distance - range_min``.
+    :type normfac: float
     """
     for svert in stroke:
         distance = (svert.point_3d - location).length  # in the camera coordinate
@@ -418,7 +541,15 @@ def iter_distance_from_object(stroke, location, range_min, range_max, normfac):
 
 
 def iter_material_value(stroke, func, attribute):
-    """Yields a specific material attribute from the vertex' underlying material."""
+    """Yields a specific material attribute from the vertex' underlying material.
+
+    :param stroke: A stroke.
+    :type stroke: :class:`Stroke`
+    :param func: A function returning a material for the iterator's current vertex.
+    :type func: Callable[[:class:`Interface0DIterator`], :class:`Material`]
+    :param attribute: The material attribute name (e.g. ``LINE``, ``DIFF``, ``ALPHA``).
+    :type attribute: str
+    """
     it = Interface0DIterator(stroke)
     for svert in it:
         material = func(it)
@@ -462,7 +593,11 @@ def iter_material_value(stroke, func, attribute):
 
 
 def iter_distance_along_stroke(stroke):
-    """Yields the absolute distance along the stroke up to the current vertex."""
+    """Yields the absolute distance along the stroke up to the current vertex.
+
+    :param stroke: A stroke.
+    :type stroke: :class:`Stroke`
+    """
     distance = 0.0
     # the positions need to be copied, because they are changed in the calling function
     points = tuple(svert.point.copy() for svert in stroke)
@@ -479,6 +614,9 @@ def stroke_curvature(it):
     Compute the 2D curvature at the stroke vertex pointed by the iterator 'it'.
     K = 1 / R
     where R is the radius of the circle going through the current vertex and its neighbors
+
+    :param it: An iterator over a stroke's vertices.
+    :type it: :class:`StrokeVertexIterator`
     """
     for _ in it:
         if (it.is_begin or it.is_end):
@@ -516,6 +654,9 @@ def stroke_normal(stroke):
     vertex position (and therefore the vertex normal) changes.
     for use in geometry modifiers it is advised to
     cast this generator function to a tuple or list
+
+    :param stroke: A stroke.
+    :type stroke: :class:`Stroke`
     """
     it = iter(stroke)
     yield from (normal_at_I0D(it) for _ in it)

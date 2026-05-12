@@ -27,14 +27,14 @@ PyDoc_STRVAR(
     "\n"
     "   Builds a ConstantThicknessShader object.\n"
     "\n"
-    "   :arg thickness: The thickness that must be assigned to the stroke.\n"
+    "   :param thickness: The thickness that must be assigned to the stroke.\n"
     "   :type thickness: float\n"
     "\n"
     ".. method:: shade(stroke)\n"
     "\n"
     "   Assigns an absolute constant thickness to every vertex of the Stroke.\n"
     "\n"
-    "   :arg stroke: A Stroke object.\n"
+    "   :param stroke: A Stroke object.\n"
     "   :type stroke: :class:`freestyle.types.Stroke`\n");
 static int ConstantThicknessShader___init__(BPy_ConstantThicknessShader *self,
                                             PyObject *args,

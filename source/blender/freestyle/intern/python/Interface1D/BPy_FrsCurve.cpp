@@ -28,16 +28,20 @@ PyDoc_STRVAR(
     "type of the initial curve vertices. A :class:`Chain` is a\n"
     "specialization of a Curve.\n"
     "\n"
-    ".. method:: __init__()\n"
-    "            __init__(brother)\n"
-    "            __init__(id)\n"
+    ".. method:: __init__(*args)\n"
+    "\n"
+    "   Accepted call signatures:\n"
+    "\n"
+    "   - ``__init__()``\n"
+    "   - ``__init__(brother)``\n"
+    "   - ``__init__(id)``\n"
     "\n"
     "   Builds a :class:`FrsCurve` using a default constructor,\n"
     "   copy constructor or from an :class:`Id`.\n"
     "\n"
-    "   :arg brother: A Curve object.\n"
+    "   :param brother: A Curve object.\n"
     "   :type brother: :class:`Curve`\n"
-    "   :arg id: An Id object.\n"
+    "   :param id: An Id object.\n"
     "   :type id: :class:`Id`\n");
 static int FrsCurve_init(BPy_FrsCurve *self, PyObject *args, PyObject *kwds)
 {
@@ -74,7 +78,7 @@ PyDoc_STRVAR(
     "\n"
     "   Adds a single vertex at the end of the Curve.\n"
     "\n"
-    "   :arg vertex: A vertex object.\n"
+    "   :param vertex: A vertex object.\n"
     "   :type vertex: :class:`SVertex` | :class:`CurvePoint`\n");
 static PyObject *FrsCurve_push_vertex_back(BPy_FrsCurve *self, PyObject *args, PyObject *kwds)
 {
@@ -105,7 +109,7 @@ PyDoc_STRVAR(
     "\n"
     "   Adds a single vertex at the front of the Curve.\n"
     "\n"
-    "   :arg vertex: A vertex object.\n"
+    "   :param vertex: A vertex object.\n"
     "   :type vertex: :class:`SVertex` | :class:`CurvePoint`\n");
 static PyObject *FrsCurve_push_vertex_front(BPy_FrsCurve *self, PyObject *args, PyObject *kwds)
 {

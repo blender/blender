@@ -26,13 +26,17 @@ PyDoc_STRVAR(
     "plane). An instance of an orientedViewEdgeIterator can only be\n"
     "obtained from a ViewVertex by calling edges_begin() or edges_end().\n"
     "\n"
-    ".. method:: __init__()\n"
-    "            __init__(iBrother)\n"
+    ".. method:: __init__(*args)\n"
+    "\n"
+    "   Accepted call signatures:\n"
+    "\n"
+    "   - ``__init__()``\n"
+    "   - ``__init__(iBrother)``\n"
     "\n"
     "   Creates an :class:`orientedViewEdgeIterator` using either the\n"
     "   default constructor or the copy constructor.\n"
     "\n"
-    "   :arg iBrother: An orientedViewEdgeIterator object.\n"
+    "   :param iBrother: An orientedViewEdgeIterator object.\n"
     "   :type iBrother: :class:`orientedViewEdgeIterator`\n");
 static int orientedViewEdgeIterator_init(BPy_orientedViewEdgeIterator *self,
                                          PyObject *args,

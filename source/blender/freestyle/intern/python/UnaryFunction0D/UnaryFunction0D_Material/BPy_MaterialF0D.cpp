@@ -40,7 +40,7 @@ PyDoc_STRVAR(
     "   willing to deal with this cases in a specific way should implement its\n"
     "   own getMaterial functor.\n"
     "\n"
-    "   :arg it: An Interface0DIterator object.\n"
+    "   :param it: An Interface0DIterator object.\n"
     "   :type it: :class:`freestyle.types.Interface0DIterator`\n"
     "   :return: The material of the object evaluated at the pointed\n"
     "      Interface0D.\n"

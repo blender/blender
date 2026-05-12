@@ -198,7 +198,7 @@ PyDoc_STRVAR(
     "\n"
     "   The shading method. Must be overloaded by inherited classes.\n"
     "\n"
-    "   :arg stroke: A Stroke object.\n"
+    "   :param stroke: A Stroke object.\n"
     "   :type stroke: :class:`Stroke`\n");
 static PyObject *StrokeShader_shade(BPy_StrokeShader *self, PyObject *args, PyObject *kwds)
 {

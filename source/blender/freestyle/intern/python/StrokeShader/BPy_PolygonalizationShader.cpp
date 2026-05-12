@@ -27,7 +27,7 @@ PyDoc_STRVAR(
     "\n"
     "   Builds a PolygonalizationShader object.\n"
     "\n"
-    "   :arg error: The error we want our polygonal approximation to have\n"
+    "   :param error: The error we want our polygonal approximation to have\n"
     "      with respect to the original geometry. The smaller, the closer\n"
     "      the new stroke is to the original one. This error corresponds to\n"
     "      the maximum distance between the new stroke and the old one.\n"
@@ -41,7 +41,7 @@ PyDoc_STRVAR(
     "   to subdivide using the original stroke vertices until a certain\n"
     "   error is reached.\n"
     "\n"
-    "   :arg stroke: A Stroke object.\n"
+    "   :param stroke: A Stroke object.\n"
     "   :type stroke: :class:`freestyle.types.Stroke`\n");
 static int PolygonalizationShader___init__(BPy_PolygonalizationShader *self,
                                            PyObject *args,

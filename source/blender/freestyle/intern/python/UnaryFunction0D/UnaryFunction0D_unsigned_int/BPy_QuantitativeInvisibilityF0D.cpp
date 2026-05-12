@@ -37,7 +37,7 @@ PyDoc_STRVAR(
     "   problematic cases, and the user willing to deal with this cases in a\n"
     "   specific way should implement its own getQIF0D functor.\n"
     "\n"
-    "   :arg it: An Interface0DIterator object.\n"
+    "   :param it: An Interface0DIterator object.\n"
     "   :type it: :class:`freestyle.types.Interface0DIterator`\n"
     "   :return: The quantitative invisibility of the pointed Interface0D.\n"
     "   :rtype: int\n");

@@ -114,7 +114,7 @@ PyDoc_STRVAR(
     "   Returns the FEdge that lies between this 0D element and the 0D\n"
     "   element given as the argument.\n"
     "\n"
-    "   :arg inter: A 0D element.\n"
+    "   :param inter: A 0D element.\n"
     "   :type inter: :class:`Interface0D`\n"
     "   :return: The FEdge lying between the two 0D elements.\n"
     "   :rtype: :class:`FEdge`\n");

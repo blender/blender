@@ -25,15 +25,19 @@ PyDoc_STRVAR(
     "Class defining an iterator over Interface0D elements. An instance of\n"
     "this iterator is always obtained from a 1D element.\n"
     "\n"
-    ".. method:: __init__(brother)\n"
-    "            __init__(it)\n"
+    ".. method:: __init__(*args)\n"
+    "\n"
+    "   Accepted call signatures:\n"
+    "\n"
+    "   - ``__init__(brother)``\n"
+    "   - ``__init__(it)``\n"
     "\n"
     "   Construct a nested Interface0DIterator using either the copy constructor\n"
     "   or the constructor that takes an argument of a Function0D.\n"
     "\n"
-    "   :arg brother: An Interface0DIterator object.\n"
+    "   :param brother: An Interface0DIterator object.\n"
     "   :type brother: :class:`Interface0DIterator`\n"
-    "   :arg it: An iterator object to be nested.\n"
+    "   :param it: An iterator object to be nested.\n"
     "   :type it: :class:`SVertexIterator` | :class:`CurvePointIterator` | "
     ":class:`StrokeVertexIterator`\n");
 static int convert_nested_it(PyObject *obj, void *v)
@@ -130,12 +134,13 @@ static PyObject *Interface0DIterator_iternext(BPy_Interface0DIterator *self)
 PyDoc_STRVAR(
     /* Wrap. */
     Interface0DIterator_object_doc,
-    "The 0D object currently pointed to by this iterator. Note that the object\n"
-    "may be an instance of an Interface0D subclass. For example if the iterator\n"
-    "has been created from the `vertices_begin()` method of the :class:`Stroke`\n"
-    "class, the .object property refers to a :class:`StrokeVertex` object.\n"
+    "The 0D object currently pointed to by this iterator. The object may be an\n"
+    "instance of :class:`Interface0D` or one of its subclasses. For example if\n"
+    "the iterator has been created from the `vertices_begin()` method of the\n"
+    ":class:`Stroke` class, the .object property refers to a :class:`StrokeVertex`\n"
+    "object.\n"
     "\n"
-    ":type: :class:`Interface0D` or one of its subclasses.\n");
+    ":type: :class:`Interface0D`\n");
 static PyObject *Interface0DIterator_object_get(BPy_Interface0DIterator *self, void * /*closure*/)
 {
   if (self->if0D_it->isEnd()) {
