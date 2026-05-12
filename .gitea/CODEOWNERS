@@ -288,7 +288,7 @@ build_files/config/.*           @bartvdbraak
 # --------------------------------------------------
 # glTF
 scripts/addons_core/io_scene_gltf2/.*       @JulienDuroure
-extern/draco/.*                             @JulienDuroure
+intern/draco_bridge/.*                      @JulienDuroure
 
 # --------------------------------------------------
 # Asset System
