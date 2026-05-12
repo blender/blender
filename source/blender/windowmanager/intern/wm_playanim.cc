@@ -743,7 +743,7 @@ static void playanim_toscreen_ex(GhostData &ghost_data,
     CLAMP(offs_y, 0.0f, 1.0f);
 
     /* Checkerboard for case alpha. */
-    if (ibuf->planes == 32) {
+    if (ibuf->can_contain_alpha()) {
       GPU_blend(GPU_BLEND_ALPHA);
 
       imm_draw_box_checker_2d_ex(offs_x,

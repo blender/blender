@@ -73,7 +73,7 @@ void IMB_filtery(ImBuf *ibuf)
 
   for (; x > 0; x--) {
     if (point) {
-      if (ibuf->planes > 24) {
+      if (ibuf->color_mode == ImColorMode::RGBA) {
         filtcolum(point, y, skip);
       }
       point++;
@@ -85,7 +85,7 @@ void IMB_filtery(ImBuf *ibuf)
       point++;
     }
     if (pointf) {
-      if (ibuf->planes > 24) {
+      if (ibuf->color_mode == ImColorMode::RGBA) {
         filtcolumf(pointf, y, skip);
       }
       pointf++;
@@ -333,12 +333,12 @@ void IMB_filter_extend(ImBuf *ibuf, char *mask, int filter)
   }
 }
 
-void IMB_premultiply_rect(uint8_t *rect, char planes, int w, int h)
+void IMB_premultiply_rect(uint8_t *rect, ImColorMode color_mode, int w, int h)
 {
   uint8_t *cp;
   int x, y, val;
 
-  if (planes == 24) { /* put alpha at 255 */
+  if (color_mode == ImColorMode::RGB) { /* put alpha at 255 */
     cp = rect;
 
     for (y = 0; y < h; y++) {
@@ -386,7 +386,7 @@ void IMB_premultiply_alpha(ImBuf *ibuf)
   }
 
   if (uchar *byte_data = ibuf->byte_data_for_write()) {
-    IMB_premultiply_rect(byte_data, ibuf->planes, ibuf->x, ibuf->y);
+    IMB_premultiply_rect(byte_data, ibuf->color_mode, ibuf->x, ibuf->y);
   }
 
   if (float *float_data = ibuf->float_data_for_write()) {
@@ -394,13 +394,13 @@ void IMB_premultiply_alpha(ImBuf *ibuf)
   }
 }
 
-void IMB_unpremultiply_rect(uint8_t *rect, char planes, int w, int h)
+void IMB_unpremultiply_rect(uint8_t *rect, ImColorMode color_mode, int w, int h)
 {
   uchar *cp;
   int x, y;
   float val;
 
-  if (planes == 24) { /* put alpha at 255 */
+  if (color_mode == ImColorMode::RGB) { /* put alpha at 255 */
     cp = rect;
 
     for (y = 0; y < h; y++) {
@@ -448,7 +448,7 @@ void IMB_unpremultiply_alpha(ImBuf *ibuf)
   }
 
   if (uchar *byte_data = ibuf->byte_data_for_write()) {
-    IMB_unpremultiply_rect(byte_data, ibuf->planes, ibuf->x, ibuf->y);
+    IMB_unpremultiply_rect(byte_data, ibuf->color_mode, ibuf->x, ibuf->y);
   }
 
   if (float *float_data = ibuf->float_data_for_write()) {

@@ -152,8 +152,8 @@ struct PixelNode {
                    ImBuf &image_buffer)
   {
     if (tile.flags.dirty) {
-      if (image_buffer.planes == 8) {
-        image_buffer.planes = 32;
+      if (image_buffer.color_mode == ImColorMode::BW) {
+        image_buffer.color_mode = ImColorMode::RGBA;
         BKE_image_partial_update_mark_full_update(&image);
       }
       else {

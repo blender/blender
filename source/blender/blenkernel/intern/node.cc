@@ -4806,7 +4806,7 @@ bNodePreview *node_ensure_preview(Map<bNodeInstanceKey, bNodePreview> &previews,
 {
   bNodePreview *preview = &previews.lookup_or_add_cb(key, [&]() {
     bNodePreview preview;
-    preview.ibuf = IMB_allocImBuf(xsize, ysize, 32, IB_byte_data);
+    preview.ibuf = IMB_allocImBuf(xsize, ysize, IB_byte_data);
     return preview;
   });
 

@@ -56,7 +56,7 @@ static std::tuple<WriteContext, ImageSpec> prepare_save_dpx(ImBuf *ibuf, int fla
     bits_per_sample = 16;
   }
 
-  const int file_channels = ibuf->planes >> 3;
+  const int file_channels = ibuf->color_mode_channels_get();
   const TypeDesc data_format = bits_per_sample == 8 ? TypeDesc::UINT8 : TypeDesc::UINT16;
 
   WriteContext ctx = imb_create_write_context("dpx", ibuf, flags);

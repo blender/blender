@@ -498,8 +498,8 @@ static void seq_proxy_build_frame(const Scene *scene,
   else {
     /* Byte image: save as JPG. */
     ibuf->ftype = IMB_FTYPE_JPG;
-    if (ibuf->planes == 32) {
-      ibuf->planes = 24; /* JPGs do not support alpha. */
+    if (ibuf->can_contain_alpha()) {
+      ibuf->color_mode = ImColorMode::RGB; /* JPGs do not support alpha. */
     }
   }
   BLI_file_ensure_parent_dir_exists(filepath);

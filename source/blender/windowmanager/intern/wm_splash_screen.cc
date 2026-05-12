@@ -167,7 +167,7 @@ static ImBuf *wm_block_splash_image(int width, int *r_height)
   }
 
   if (ibuf) {
-    ibuf->planes = 32; /* The image might not have an alpha channel. */
+    ibuf->color_mode = ImColorMode::RGBA; /* The image might not have an alpha channel. */
     height = (width * ibuf->y) / ibuf->x;
     if (width != ibuf->x || height != ibuf->y) {
       IMB_scale(ibuf, width, height, IMBScaleFilter::Box, false);
@@ -203,7 +203,7 @@ static ImBuf *wm_block_splash_banner_image(int *r_width,
     return nullptr;
   }
 
-  ibuf->planes = 32; /* The image might not have an alpha channel. */
+  ibuf->color_mode = ImColorMode::RGBA; /* The image might not have an alpha channel. */
 
   width = ibuf->x;
   height = ibuf->y;

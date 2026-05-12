@@ -92,7 +92,7 @@ ImBuf *imb_load_filepath_thumbnail_webp(const char *filepath,
   const int dest_w = std::max(int(config.input.width * scale), 1);
   const int dest_h = std::max(int(config.input.height * scale), 1);
 
-  ImBuf *ibuf = IMB_allocImBuf(dest_w, dest_h, 32, IB_byte_data);
+  ImBuf *ibuf = IMB_allocImBuf(dest_w, dest_h, IB_byte_data);
   if (ibuf == nullptr) {
     CLOG_ERROR(&LOG, "Failed to allocate image memory");
     BLI_mmap_free(mmap_file);
@@ -129,7 +129,11 @@ ImBuf *imb_load_filepath_thumbnail_webp(const char *filepath,
 
 static std::tuple<WriteContext, ImageSpec> prepare_save_webp(ImBuf *ibuf, int flags)
 {
-  const int file_channels = ibuf->planes >> 3;
+  int file_channels = ibuf->color_mode_channels_get();
+  /* WebP does not support 2-channel (gray + alpha) writes; promote to RGBA. */
+  if (file_channels == 2) {
+    file_channels = 4;
+  }
   const TypeDesc data_format = TypeDesc::UINT8;
 
   WriteContext ctx = imb_create_write_context("webp", ibuf, flags, false);

@@ -4343,7 +4343,7 @@ static void tile_fill_init(PointerRNA *ptr, Image *ima, ImageTile *tile)
     RNA_int_set(ptr, "width", ibuf->x);
     RNA_int_set(ptr, "height", ibuf->y);
     RNA_boolean_set(ptr, "float", ibuf->float_data() != nullptr);
-    RNA_boolean_set(ptr, "alpha", ibuf->planes > 24);
+    RNA_boolean_set(ptr, "alpha", ibuf->can_contain_alpha());
 
     BKE_image_release_ibuf(ima, ibuf, nullptr);
   }

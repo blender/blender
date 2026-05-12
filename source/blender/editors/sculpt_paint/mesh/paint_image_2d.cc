@@ -405,7 +405,7 @@ static ImBuf *brush_painter_imbuf_new(
   float brush_rgb[3];
 
   /* allocate image buffer */
-  ImBuf *ibuf = IMB_allocImBuf(size, size, 32, (is_float) ? IB_float_data : IB_byte_data);
+  ImBuf *ibuf = IMB_allocImBuf(size, size, (is_float) ? IB_float_data : IB_byte_data);
 
   /* get brush color */
   if (brush->image_brush_type == IMAGE_PAINT_BRUSH_TYPE_DRAW) {
@@ -620,13 +620,13 @@ static void brush_painter_imbuf_partial_update(BrushPainter *painter,
   /* create brush image buffer if it didn't exist yet */
   imbflag = (cache->is_float) ? IB_float_data : IB_byte_data;
   if (!cache->ibuf) {
-    cache->ibuf = IMB_allocImBuf(diameter, diameter, 32, imbflag);
+    cache->ibuf = IMB_allocImBuf(diameter, diameter, imbflag);
   }
   ibuf = cache->ibuf;
 
   /* create new texture image buffer with coordinates relative to old */
   oldtexibuf = cache->texibuf;
-  cache->texibuf = IMB_allocImBuf(diameter, diameter, 32, imbflag);
+  cache->texibuf = IMB_allocImBuf(diameter, diameter, imbflag);
 
   if (oldtexibuf) {
     srcx = srcy = 0;
@@ -1179,7 +1179,8 @@ static ImBuf *paint_2d_lift_clone(ImBuf *ibuf, ImBuf *ibufb, const int *pos)
   /* NOTE: #allocImbuf returns zeroed memory, so regions outside image will
    * have zero alpha, and hence not be blended onto the image */
   int w = ibufb->x, h = ibufb->y, destx = 0, desty = 0, srcx = pos[0], srcy = pos[1];
-  ImBuf *clonebuf = IMB_allocImBuf(w, h, ibufb->planes, ibufb->flags);
+  ImBuf *clonebuf = IMB_allocImBuf(w, h, ibufb->flags);
+  clonebuf->color_mode = ibufb->color_mode;
 
   IMB_rectclip(clonebuf, ibuf, &destx, &desty, &srcx, &srcy, &w, &h);
   IMB_rectblend(clonebuf,
@@ -1238,7 +1239,7 @@ static void paint_2d_do_making_brush(ImagePaintState *s,
                                      int tileh)
 {
   ImBuf tmpbuf;
-  IMB_initImBuf(&tmpbuf, ED_IMAGE_UNDO_TILE_SIZE, ED_IMAGE_UNDO_TILE_SIZE, 32, 0);
+  IMB_initImBuf(&tmpbuf, ED_IMAGE_UNDO_TILE_SIZE, ED_IMAGE_UNDO_TILE_SIZE, 0);
 
   PaintTileMap *undo_tiles = ED_image_paint_tile_map_get();
 

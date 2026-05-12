@@ -160,7 +160,7 @@ void RE_bake_margin(ImBuf *ibuf,
       break;
   }
 
-  if (ibuf->planes != R_IMF_PLANES_RGBA) {
+  if (!ibuf->can_contain_alpha()) {
     /* clear alpha added by filtering */
     IMB_rectfill_alpha(ibuf, 1.0f);
   }
@@ -1035,10 +1035,10 @@ void RE_bake_ibuf_clear(Image *image, const bool is_tangent)
   BLI_assert(ibuf);
 
   if (is_tangent) {
-    IMB_rectfill(ibuf, (ibuf->planes == R_IMF_PLANES_RGBA) ? nor_alpha : nor_solid);
+    IMB_rectfill(ibuf, ibuf->can_contain_alpha() ? nor_alpha : nor_solid);
   }
   else {
-    IMB_rectfill(ibuf, (ibuf->planes == R_IMF_PLANES_RGBA) ? vec_alpha : vec_solid);
+    IMB_rectfill(ibuf, ibuf->can_contain_alpha() ? vec_alpha : vec_solid);
   }
 
   BKE_image_release_ibuf(image, ibuf, lock);

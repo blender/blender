@@ -63,7 +63,7 @@ static void maskmodifier_apply(ModifierApplyContext &context, StripModifierData 
     apply_modifier_op(op, context.image, mask, context.transform);
 
     /* Image has gained transparency. */
-    context.image->planes = R_IMF_PLANES_RGBA;
+    context.image->color_mode = ImColorMode::RGBA;
   }
 
   if (mask != nullptr) {

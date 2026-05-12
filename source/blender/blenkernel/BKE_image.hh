@@ -453,7 +453,7 @@ void BKE_image_merge(Main *bmain, Image *dest, Image *source);
 bool BKE_image_scale(Image *image, int width, int height, ImageUser *iuser);
 
 /**
- * Check if texture has alpha `planes == 32 || planes == 16`.
+ * Check if image might contain alpha.
  */
 bool BKE_image_has_alpha(Image *image);
 

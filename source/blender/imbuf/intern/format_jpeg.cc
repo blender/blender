@@ -297,16 +297,26 @@ static ImBuf *ibJpegImageFromCinfo(
     x = cinfo->output_width;
     y = cinfo->output_height;
 
+    ImColorMode color_mode = ImColorMode::RGBA;
+    if (depth == 1) {
+      color_mode = ImColorMode::BW;
+    }
+    else if (depth == 3) {
+      color_mode = ImColorMode::RGB;
+    }
+
     if (flags & IB_test) {
       jpeg_abort_decompress(cinfo);
-      ibuf = IMB_allocImBuf(x, y, 8 * depth, 0);
+      ibuf = IMB_allocImBuf(x, y, 0);
+      if (ibuf) {
+        ibuf->color_mode = color_mode;
+      }
     }
-    else if ((ibuf = IMB_allocImBuf(x, y, 8 * depth, IB_byte_data | IB_uninitialized_pixels)) ==
-             nullptr)
-    {
+    else if ((ibuf = IMB_allocImBuf(x, y, IB_byte_data | IB_uninitialized_pixels)) == nullptr) {
       jpeg_abort_decompress(cinfo);
     }
     else {
+      ibuf->color_mode = color_mode;
       row_stride = cinfo->output_width * depth;
 
       row_pointer = (*cinfo->mem->alloc_sarray)(
@@ -697,17 +707,9 @@ static int init_jpeg(FILE *outfile, jpeg_compress_struct *cinfo, ImBuf *ibuf)
   cinfo->image_height = ibuf->y;
 
   cinfo->in_color_space = JCS_RGB;
-  if (ibuf->planes == 8) {
+  if (ibuf->color_mode == ImColorMode::BW) {
     cinfo->in_color_space = JCS_GRAYSCALE;
   }
-#if 0
-  /* just write RGBA as RGB,
-   * unsupported feature only confuses other s/w */
-
-  if (ibuf->planes == 32) {
-    cinfo->in_color_space = JCS_UNKNOWN;
-  }
-#endif
   switch (cinfo->in_color_space) {
     case JCS_RGB:
       cinfo->input_components = 3;

@@ -717,8 +717,8 @@ PyDoc_STRVAR(
 static PyObject *py_imbuf_planes_get(Py_ImBuf *self, void * /*closure*/)
 {
   PY_IMBUF_CHECK_OBJ(self);
-  ImBuf *imbuf = self->ibuf;
-  return PyLong_FromLong(imbuf->planes);
+  const ImBuf *ibuf = self->ibuf;
+  return PyLong_FromLong(ibuf->color_mode_channels_get() * 8);
 }
 
 PyDoc_STRVAR(
@@ -1384,18 +1384,32 @@ static PyObject *M_imbuf_new(PyObject * /*self*/, PyObject *args, PyObject *kw)
     PyErr_Format(PyExc_ValueError, "new: Image size cannot be below 1 (%d, %d)", UNPACK2(size));
     return nullptr;
   }
-  if (!ELEM(planes, 8, 16, 24, 32)) {
+
+  const uint flags = IB_byte_data;
+  ImColorMode color_mode = ImColorMode::RGBA;
+  if (planes == 8) {
+    color_mode = ImColorMode::BW;
+  }
+  else if (planes == 16) {
+    color_mode = ImColorMode::BW_A;
+  }
+  else if (planes == 24) {
+    color_mode = ImColorMode::RGB;
+  }
+  else if (planes == 32) {
+    color_mode = ImColorMode::RGBA;
+  }
+  else {
     PyErr_Format(PyExc_ValueError, "new: planes must be 8, 16, 24 or 32, got %d", planes);
     return nullptr;
   }
 
-  const uint flags = IB_byte_data;
-
-  ImBuf *ibuf = IMB_allocImBuf(UNPACK2(size), uchar(planes), flags);
+  ImBuf *ibuf = IMB_allocImBuf(UNPACK2(size), flags);
   if (ibuf == nullptr) {
     PyErr_Format(PyExc_ValueError, "new: Unable to create image (%d, %d)", UNPACK2(size));
     return nullptr;
   }
+  ibuf->color_mode = color_mode;
   return Py_ImBuf_CreatePyObject(ibuf);
 }
 

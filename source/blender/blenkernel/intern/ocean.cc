@@ -1424,11 +1424,11 @@ void BKE_ocean_bake(Ocean *o,
   for (f = och->start, i = 0; f <= och->end; f++, i++) {
 
     /* create a new imbuf to store image for this frame */
-    ibuf_foam = IMB_allocImBuf(res_x, res_y, 32, IB_float_data);
-    ibuf_disp = IMB_allocImBuf(res_x, res_y, 32, IB_float_data);
-    ibuf_normal = IMB_allocImBuf(res_x, res_y, 32, IB_float_data);
-    ibuf_spray = IMB_allocImBuf(res_x, res_y, 32, IB_float_data);
-    ibuf_spray_inverse = IMB_allocImBuf(res_x, res_y, 32, IB_float_data);
+    ibuf_foam = IMB_allocImBuf(res_x, res_y, IB_float_data);
+    ibuf_disp = IMB_allocImBuf(res_x, res_y, IB_float_data);
+    ibuf_normal = IMB_allocImBuf(res_x, res_y, IB_float_data);
+    ibuf_spray = IMB_allocImBuf(res_x, res_y, IB_float_data);
+    ibuf_spray_inverse = IMB_allocImBuf(res_x, res_y, IB_float_data);
 
     BKE_ocean_simulate(o, och->time[i], och->wave_scale, och->chop_amount);
 

@@ -106,7 +106,11 @@ static std::tuple<WriteContext, ImageSpec, bool> prepare_save_avif(ImBuf *ibuf, 
                               (ibuf->foptions.flag & AVIF_12BIT) ? 12 :
                                                                    8;
   const bool use_float = bits_per_sample > 8;
-  const int file_channels = ibuf->planes >> 3;
+  int file_channels = ibuf->color_mode_channels_get();
+  /* AVIF/HEIF does not support 2-channel (gray + alpha) writes; promote to RGBA. */
+  if (file_channels == 2) {
+    file_channels = 4;
+  }
   const TypeDesc data_format = use_float ? TypeDesc::UINT16 : TypeDesc::UINT8;
 
   WriteContext ctx = imb_create_write_context("heif", ibuf, flags, use_float);

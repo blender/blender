@@ -190,7 +190,7 @@ static void do_versions_image_settings_2_60(Scene *sce)
 
   /* we know no data loss happens here, the old values were in char range */
   imf->imtype = char(rd->imtype);
-  imf->planes = char(rd->planes);
+  imf->planes = ImColorMode(rd->planes);
   imf->compress = char(rd->quality);
   imf->quality = char(rd->quality);
 

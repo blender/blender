@@ -82,7 +82,7 @@ ImBuf *bitmap_to_image(const Bitmap &bm)
 
   const int2 size = {bm.w, bm.h};
   const uint imb_flag = IB_byte_data;
-  ImBuf *ibuf = IMB_allocImBuf(size.x, size.y, 32, imb_flag);
+  ImBuf *ibuf = IMB_allocImBuf(size.x, size.y, imb_flag);
   BLI_assert(ibuf->byte_data() != nullptr);
 
   const int num_words = bm.dy * bm.h;

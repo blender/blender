@@ -2328,7 +2328,7 @@ ImBuf *IMB_colormanagement_imbuf_for_write(ImBuf *ibuf,
    * made already. helps keep things locally here, not spreading it to all possible image writers
    * we've got.
    */
-  if (image_format->planes != R_IMF_PLANES_RGBA) {
+  if (image_format->planes != ImColorMode::RGBA) {
     float color[3] = {0, 0, 0};
 
     colormanaged_ibuf = imbuf_ensure_editable(ibuf, colormanaged_ibuf, allocate_result);

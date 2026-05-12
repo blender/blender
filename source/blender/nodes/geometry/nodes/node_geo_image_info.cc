@@ -54,7 +54,7 @@ static void node_geo_exec(GeoNodeExecParams params)
     return;
   }
 
-  params.set_output("Has Alpha"_ustr, ELEM(ibuf->planes, 32, 16));
+  params.set_output("Has Alpha"_ustr, ibuf->can_contain_alpha());
   params.set_output("Width"_ustr, ibuf->x);
   params.set_output("Height"_ustr, ibuf->y);
 

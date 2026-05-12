@@ -361,7 +361,7 @@ static ImBuf *thumb_create_ex(const char *file_path,
       return nullptr;
     }
     if (size == THB_FAIL) {
-      img = IMB_allocImBuf(1, 1, 32, IB_byte_data | IB_metadata);
+      img = IMB_allocImBuf(1, 1, IB_byte_data | IB_metadata);
       if (!img) {
         return nullptr;
       }
@@ -448,7 +448,7 @@ static ImBuf *thumb_create_ex(const char *file_path,
       IMB_metadata_set_field(img->metadata, "X-Blender::Hash", hash);
     }
     img->ftype = IMB_FTYPE_PNG;
-    img->planes = 32;
+    img->color_mode = ImColorMode::RGBA;
 
     /* If we generated from a 16bit PNG e.g., we have a float rect, not a byte one - fix this. */
     IMB_byte_from_float(img);

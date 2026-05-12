@@ -122,7 +122,7 @@ ImBuf *IMB_thumb_load_image(const char *filepath,
 /**
  * Allocate and free image buffer.
  */
-ImBuf *IMB_allocImBuf(unsigned int x, unsigned int y, unsigned char planes, unsigned int flags);
+ImBuf *IMB_allocImBuf(unsigned int x, unsigned int y, unsigned int flags);
 void IMB_freeImBuf(ImBuf *ibuf);
 
 /**
@@ -130,8 +130,7 @@ void IMB_freeImBuf(ImBuf *ibuf);
  *
  * Use in cases when temporary image buffer is allocated on stack.
  */
-bool IMB_initImBuf(
-    ImBuf *ibuf, unsigned int x, unsigned int y, unsigned char planes, unsigned int flags);
+bool IMB_initImBuf(ImBuf *ibuf, unsigned int x, unsigned int y, unsigned int flags);
 
 /**
  * Create a copy of a pixel buffer and wrap it to a new ImBuf

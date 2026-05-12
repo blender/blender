@@ -231,13 +231,13 @@ static void clear_single_image(Image *image, ClearFlag flag)
       ImBuf *ibuf = BKE_image_acquire_ibuf(image, &iuser, nullptr);
 
       if (flag == CLEAR_TANGENT_NORMAL) {
-        IMB_rectfill(ibuf, (ibuf->planes == R_IMF_PLANES_RGBA) ? nor_alpha : nor_solid);
+        IMB_rectfill(ibuf, ibuf->can_contain_alpha() ? nor_alpha : nor_solid);
       }
       else if (flag == CLEAR_DISPLACEMENT) {
-        IMB_rectfill(ibuf, (ibuf->planes == R_IMF_PLANES_RGBA) ? disp_alpha : disp_solid);
+        IMB_rectfill(ibuf, ibuf->can_contain_alpha() ? disp_alpha : disp_solid);
       }
       else {
-        IMB_rectfill(ibuf, (ibuf->planes == R_IMF_PLANES_RGBA) ? vec_alpha : vec_solid);
+        IMB_rectfill(ibuf, ibuf->can_contain_alpha() ? vec_alpha : vec_solid);
       }
 
       image->id.tag |= ID_TAG_DOIT;

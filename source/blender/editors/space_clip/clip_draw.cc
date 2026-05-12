@@ -318,7 +318,7 @@ static void draw_movieclip_buffer(const bContext *C,
   ui::view2d_view_to_region(&region->v2d, 0.0f, 0.0f, &x, &y);
 
   /* checkerboard for case alpha */
-  if (ibuf->planes == 32) {
+  if (ibuf->can_contain_alpha()) {
     GPU_blend(GPU_BLEND_ALPHA);
 
     imm_draw_box_checker_2d(x, y, x + zoomx * ibuf->x, y + zoomy * ibuf->y);
@@ -333,7 +333,7 @@ static void draw_movieclip_buffer(const bContext *C,
 
   ED_draw_imbuf_ctx(C, ibuf, x, y, use_filter, zoomx * width / ibuf->x, zoomy * height / ibuf->y);
 
-  if (ibuf->planes == 32) {
+  if (ibuf->can_contain_alpha()) {
     GPU_blend(GPU_BLEND_NONE);
   }
 
@@ -1249,7 +1249,7 @@ static void draw_plane_marker_image(Scene *scene,
 
       homogeneous_2d_to_gl_matrix(perspective_matrix, gl_matrix);
 
-      if (plane_track->image_opacity != 1.0f || ibuf->planes == 32) {
+      if (plane_track->image_opacity != 1.0f || ibuf->can_contain_alpha()) {
         transparent = true;
         GPU_blend(GPU_BLEND_ALPHA);
       }

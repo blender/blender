@@ -587,7 +587,7 @@ struct RGBAHalf {
 static void convert_input_to_half_rgba(const ImBuf *ibuf, RGBAHalf *dst)
 {
   const int channels = ibuf->channels;
-  const bool is_alpha = (channels >= 4) && (ibuf->planes == 32);
+  const bool is_alpha = (channels >= 4) && (ibuf->can_contain_alpha());
   const int width = ibuf->x;
   const int height = ibuf->y;
 
@@ -707,7 +707,7 @@ bool imb_save_openexr(ImBuf *ibuf, const char *filepath, int /*flags*/)
    * byte image (half precision is always enough for that case). */
   const bool half_precision = (ibuf->foptions.flag & OPENEXR_HALF) ||
                               ibuf->float_data() == nullptr;
-  const bool is_alpha = (ibuf->channels >= 4) && (ibuf->planes == 32);
+  const bool is_alpha = (ibuf->channels >= 4) && (ibuf->can_contain_alpha());
   try {
     Header header(ibuf->x, ibuf->y);
     save_setup_header(ibuf, half_precision, is_alpha, header);
@@ -739,7 +739,7 @@ Vector<uint8_t> imb_save_buffer_openexr(ImBuf *ibuf, int /*flags*/)
   const bool half_precision = (ibuf->foptions.flag & OPENEXR_HALF) ||
                               ibuf->float_data() == nullptr;
 
-  const bool is_alpha = (ibuf->channels >= 4) && (ibuf->planes == 32);
+  const bool is_alpha = (ibuf->channels >= 4) && (ibuf->can_contain_alpha());
   try {
     Header header(ibuf->x, ibuf->y);
     save_setup_header(ibuf, half_precision, is_alpha, header);
@@ -2143,7 +2143,8 @@ ImBuf *imb_load_openexr(const uchar *mem, size_t size, int flags, ImFileColorSpa
     else {
       const bool is_alpha = exr_has_alpha(*file);
 
-      ibuf = IMB_allocImBuf(width, height, is_alpha ? 32 : 24, 0);
+      ibuf = IMB_allocImBuf(width, height, 0);
+      ibuf->color_mode = is_alpha ? ImColorMode::RGBA : ImColorMode::RGB;
       ibuf->foptions.flag |= exr_is_half_float(*file) ? OPENEXR_HALF : 0;
       ibuf->foptions.flag |= openexr_header_get_compression(file_header);
 
@@ -2376,7 +2377,7 @@ ImBuf *imb_load_filepath_thumbnail_openexr(const char *filepath,
     int dest_w = std::max(int(source_w * scale_factor), 1);
     int dest_h = std::max(int(source_h * scale_factor), 1);
 
-    ibuf = IMB_allocImBuf(dest_w, dest_h, 32, IB_float_data);
+    ibuf = IMB_allocImBuf(dest_w, dest_h, IB_float_data);
 
     /* A single row of source pixels. */
     Imf::Array<Imf::Rgba> pixels(source_w);

@@ -105,11 +105,24 @@ static ImBuf *load_pixels(
   constexpr bool is_float = sizeof(T) > 1;
   const uint format_flag = (is_float ? IB_float_data : IB_byte_data) | IB_uninitialized_pixels;
   const uint ibuf_flags = (flags & IB_test) ? 0 : format_flag;
-  const int planes = use_all_planes ? 32 : 8 * channels;
-  ImBuf *ibuf = IMB_allocImBuf(width, height, planes, ibuf_flags);
+
+  ImColorMode color_mode = ImColorMode::RGBA;
+  if (channels == 2) {
+    color_mode = ImColorMode::BW_A;
+  }
+  else if (!use_all_planes) {
+    if (channels == 1) {
+      color_mode = ImColorMode::BW;
+    }
+    else if (channels == 3) {
+      color_mode = ImColorMode::RGB;
+    }
+  }
+  ImBuf *ibuf = IMB_allocImBuf(width, height, ibuf_flags);
   if (!ibuf) {
     return nullptr;
   }
+  ibuf->color_mode = color_mode;
 
   /* No need to load actual pixel data during the test phase. */
   if (flags & IB_test) {
@@ -324,6 +337,14 @@ static void oiio_write_prepare(const ImageSpec &file_spec, ImageBuf &orig_buf, I
                            cspan<int>(channel_order, file_spec.nchannels),
                            cspan<float>(channel_values, file_spec.nchannels),
                            cspan<std::string>(channel_names, file_spec.nchannels));
+  }
+  else if (file_spec.nchannels == 2 && original_channels_count >= 2) {
+    /* Gray-scale + alpha output (#ImColorMode::BW_A). The #ImBuf source replicates gray into
+     * RGB and stores alpha at index 3, so extract {gray, alpha} = {0, 3}. */
+    const int channel_order[] = {0, 3};
+    const float channel_values[] = {0.0f, 1.0f};
+    const std::string channel_names[] = {"Y", "A"};
+    ImageBufAlgo::channels(final_buf, orig_buf, 2, channel_order, channel_values, channel_names);
   }
   else if (original_channels_count != file_spec.nchannels) {
     /* Either trim or fill new channels based on the needed channels count. */

@@ -174,19 +174,19 @@ void render_result_views_shallowdelete(RenderResult *rr)
 /** \name New
  * \{ */
 
-static int get_num_planes_for_pass_ibuf(const RenderPass &render_pass)
+static ImColorMode get_color_mode_for_pass(const RenderPass &render_pass)
 {
   switch (render_pass.channels) {
     case 1:
-      return R_IMF_PLANES_BW;
+      return ImColorMode::BW;
     case 3:
-      return R_IMF_PLANES_RGB;
+      return ImColorMode::RGB;
     case 4:
-      return R_IMF_PLANES_RGBA;
+      return ImColorMode::RGBA;
   }
 
   /* Fall back to a commonly used default value of planes for odd-ball number of channel. */
-  return R_IMF_PLANES_RGBA;
+  return ImColorMode::RGBA;
 }
 
 static void assign_render_pass_ibuf_colorspace(RenderPass &render_pass)
@@ -211,7 +211,8 @@ static void render_layer_allocate_pass(RenderResult *rr, RenderPass *rp)
   const size_t rectsize = size_t(rr->rectx) * rr->recty * rp->channels;
   float *buffer_data = MEM_new_array_zeroed<float>(rectsize, rp->name);
 
-  rp->ibuf = IMB_allocImBuf(rr->rectx, rr->recty, get_num_planes_for_pass_ibuf(*rp), 0);
+  rp->ibuf = IMB_allocImBuf(rr->rectx, rr->recty, 0);
+  rp->ibuf->color_mode = get_color_mode_for_pass(*rp);
   rp->ibuf->channels = rp->channels;
   copy_v2_v2_db(rp->ibuf->ppm, rr->ppm);
   IMB_assign_float_buffer(rp->ibuf, buffer_data, IB_TAKE_OWNERSHIP);
@@ -1088,7 +1089,8 @@ ImBuf *RE_render_result_rect_to_ibuf(RenderResult *rr,
                                      const float dither,
                                      const int view_id)
 {
-  ImBuf *ibuf = IMB_allocImBuf(rr->rectx, rr->recty, imf->planes, 0);
+  ImBuf *ibuf = IMB_allocImBuf(rr->rectx, rr->recty, 0);
+  ibuf->color_mode = imf->planes;
   RenderView *rv = RE_RenderViewGetById(rr, view_id);
 
   /* if not exists, BKE_imbuf_write makes one */
@@ -1129,7 +1131,7 @@ ImBuf *RE_render_result_rect_to_ibuf(RenderResult *rr,
 
   /* Color -> gray-scale. */
   /* editing directly would alter the render view */
-  if (imf->planes == R_IMF_PLANES_BW && imf->imtype != R_IMF_IMTYPE_MULTILAYER &&
+  if (imf->planes == ImColorMode::BW && imf->imtype != R_IMF_IMTYPE_MULTILAYER &&
       !(ibuf->float_data() && !ibuf->byte_data() && ibuf->channels == 1))
   {
     ImBuf *ibuf_bw = IMB_dupImBuf(ibuf);
@@ -1348,8 +1350,8 @@ RenderResult *RE_DuplicateRenderResult(RenderResult *rr)
 ImBuf *RE_RenderPassEnsureImBuf(RenderPass *render_pass)
 {
   if (!render_pass->ibuf) {
-    render_pass->ibuf = IMB_allocImBuf(
-        render_pass->rectx, render_pass->recty, get_num_planes_for_pass_ibuf(*render_pass), 0);
+    render_pass->ibuf = IMB_allocImBuf(render_pass->rectx, render_pass->recty, 0);
+    render_pass->ibuf->color_mode = get_color_mode_for_pass(*render_pass);
     render_pass->ibuf->channels = render_pass->channels;
     assign_render_pass_ibuf_colorspace(*render_pass);
   }
@@ -1360,7 +1362,7 @@ ImBuf *RE_RenderPassEnsureImBuf(RenderPass *render_pass)
 ImBuf *RE_RenderViewEnsureImBuf(const RenderResult *render_result, RenderView *render_view)
 {
   if (!render_view->ibuf) {
-    render_view->ibuf = IMB_allocImBuf(render_result->rectx, render_result->recty, 32, 0);
+    render_view->ibuf = IMB_allocImBuf(render_result->rectx, render_result->recty, 0);
   }
 
   return render_view->ibuf;

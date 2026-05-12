@@ -361,7 +361,7 @@ ImBuf *IMB_allocFromBufferOwn(
     return nullptr;
   }
 
-  ImBuf *ibuf = IMB_allocImBuf(w, h, 32, 0);
+  ImBuf *ibuf = IMB_allocImBuf(w, h, 0);
 
   ibuf->channels = channels;
 
@@ -389,7 +389,7 @@ ImBuf *IMB_allocFromBuffer(
     return nullptr;
   }
 
-  ibuf = IMB_allocImBuf(w, h, 32, 0);
+  ibuf = IMB_allocImBuf(w, h, 0);
 
   ibuf->channels = channels;
 
@@ -412,12 +412,12 @@ ImBuf *IMB_allocFromBuffer(
   return ibuf;
 }
 
-ImBuf *IMB_allocImBuf(uint x, uint y, uchar planes, uint flags)
+ImBuf *IMB_allocImBuf(uint x, uint y, uint flags)
 {
   ImBuf *ibuf = MEM_new<ImBuf>("ImBuf_struct");
 
   if (ibuf) {
-    if (!IMB_initImBuf(ibuf, x, y, planes, flags)) {
+    if (!IMB_initImBuf(ibuf, x, y, flags)) {
       IMB_freeImBuf(ibuf);
       return nullptr;
     }
@@ -426,13 +426,13 @@ ImBuf *IMB_allocImBuf(uint x, uint y, uchar planes, uint flags)
   return ibuf;
 }
 
-bool IMB_initImBuf(ImBuf *ibuf, uint x, uint y, uchar planes, uint flags)
+bool IMB_initImBuf(ImBuf *ibuf, uint x, uint y, uint flags)
 {
   *ibuf = ImBuf{};
 
   ibuf->x = x;
   ibuf->y = y;
-  ibuf->planes = planes;
+  ibuf->color_mode = ImColorMode::RGBA;
   ibuf->ftype = IMB_FTYPE_PNG;
   /* float option, is set to other values when buffers get assigned. */
   ibuf->channels = 4;
@@ -465,7 +465,7 @@ ImBuf *IMB_dupImBuf(const ImBuf *ibuf1)
     return nullptr;
   }
 
-  ImBuf *ibuf2 = IMB_allocImBuf(ibuf1->x, ibuf1->y, ibuf1->planes, 0);
+  ImBuf *ibuf2 = IMB_allocImBuf(ibuf1->x, ibuf1->y, 0);
   if (ibuf2 == nullptr) {
     return nullptr;
   }
@@ -477,7 +477,7 @@ ImBuf *IMB_dupImBuf(const ImBuf *ibuf1)
   ibuf2->data_offset[1] = ibuf1->data_offset[1];
   ibuf2->display_offset[0] = ibuf1->display_offset[0];
   ibuf2->display_offset[1] = ibuf1->display_offset[1];
-  ibuf2->planes = ibuf1->planes;
+  ibuf2->color_mode = ibuf1->color_mode;
   ibuf2->channels = ibuf1->channels;
   ibuf2->flags = ibuf1->flags;
   if (const float *src_buffer = ibuf1->float_data()) {

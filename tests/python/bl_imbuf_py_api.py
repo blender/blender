@@ -434,8 +434,7 @@ class TestImBufPlanes(unittest.TestCase):
                 imbuf.new((2, 2), planes=p)
 
     def test_planes_roundtrip(self):
-        file_type = 'IRIS'
-        file_ext = imbuf.file_types[file_type].file_extensions[0]
+        from collections import namedtuple
         # Per-plane pixel data (2x2 = 4 pixels, packed as 0xRRGGBBAA).
         # 8: gray-scale (R=G=B, A ignored on save, becomes 0xFF on load).
         # 16: gray-scale + alpha (R=G=B, A preserved).
@@ -447,29 +446,121 @@ class TestImBufPlanes(unittest.TestCase):
             24: (0xFF0000FF, 0x00FF00FF, 0x0000FFFF, 0xAABBCCFF),
             32: (0xFF000080, 0x00FF00C0, 0x0000FF40, 0xAABBCCDD),
         }
+        # Each format declares the plane modes it natively round-trips, whether it needs the
+        # lossy-codec setup (quality=100 + 64x64 tiled image so each tile lies in a uniform
+        # DCT region; JPEG2000 also needs >= 64x64 for the default 6 resolution levels), and
+        # the max allowed per-channel pixel error. JPEG planes=24 and AVIF planes=24/32 have
+        # irreducible RGB->YCbCr->RGB integer rounding (~1) even at quality=100 (AVIF/HEIC
+        # has no truly lossless mode in our build).
+        FormatTest = namedtuple('FormatTest', ('file_type', 'supported_planes', 'is_lossy', 'tolerance'))
+        formats = (
+            FormatTest(
+                file_type='IRIS',
+                supported_planes=(8, 16, 24, 32),
+                is_lossy=False,
+                tolerance=0,
+            ),
+            FormatTest(
+                file_type='TGA',
+                supported_planes=(8, 16, 24, 32),
+                is_lossy=False,
+                tolerance=0,
+            ),
+            FormatTest(
+                file_type='PNG',
+                supported_planes=(8, 16, 24, 32),
+                is_lossy=False,
+                tolerance=0,
+            ),
+            FormatTest(
+                file_type='TIFF',
+                supported_planes=(8, 16, 24, 32),
+                is_lossy=False,
+                tolerance=0,
+            ),
+            FormatTest(
+                file_type='JPEG2000',
+                supported_planes=(8, 16, 24, 32),
+                is_lossy=True,
+                tolerance=0,
+            ),
+            FormatTest(
+                file_type='JPEG',
+                supported_planes=(8, 24),
+                is_lossy=True,
+                tolerance=1,
+            ),
+            FormatTest(
+                file_type='BMP',
+                supported_planes=(24, 32),
+                is_lossy=False,
+                tolerance=0,
+            ),
+            FormatTest(
+                file_type='WEBP',
+                supported_planes=(24, 32),
+                is_lossy=True,
+                tolerance=0,
+            ),
+            FormatTest(
+                file_type='AVIF',
+                supported_planes=(24, 32),
+                is_lossy=True,
+                tolerance=1,
+            ),
+        )
         with tempfile.TemporaryDirectory() as tempdir:
-            for pixel_planes, pixels in pixel_data.items():
-                with self.subTest(planes=pixel_planes):
-                    ibuf = imbuf.new((2, 2), planes=pixel_planes)
-                    ibuf.file_type = file_type
-                    with ibuf.with_buffer('BYTE', write=True) as buf:
-                        # Flatten via `cast('B')` to use 1-D slice-assignment
-                        # (memoryview sub-views are not implemented).
-                        flat = buf.cast('B')
-                        for i, pixel in enumerate(pixels):
-                            flat[i * 4:(i + 1) * 4] = bytes(rgba_bytes_from_packed_int(pixel))
-                    filepath = os.path.join(tempdir, "test_{:d}{:s}".format(pixel_planes, file_ext))
-                    imbuf.write(ibuf, filepath=filepath)
-                    ibuf.free()
+            for fmt in formats:
+                if fmt.file_type not in imbuf.file_types:
+                    continue
+                file_ext = imbuf.file_types[fmt.file_type].file_extensions[0]
+                # Each of the 4 test pixels is tiled into a `scale x scale` block; verification
+                # samples the tile center, which lies away from chroma-subsampling boundaries.
+                scale = 32 if fmt.is_lossy else 1
+                quality = 100 if fmt.is_lossy else 90
+                size = (2 * scale, 2 * scale)
+                for pixel_planes in fmt.supported_planes:
+                    pixels = pixel_data[pixel_planes]
+                    with self.subTest(file_type=fmt.file_type, planes=pixel_planes):
+                        ibuf = imbuf.new(size, planes=pixel_planes)
+                        ibuf.file_type = fmt.file_type
+                        ibuf.quality = quality
+                        with ibuf.with_buffer('BYTE', write=True) as buf:
+                            # Flatten via `cast('B')` to use 1-D slice-assignment
+                            # (memoryview sub-views are not implemented).
+                            flat = buf.cast('B')
+                            for ty in range(2):
+                                for tx in range(2):
+                                    pix_bytes = bytes(
+                                        rgba_bytes_from_packed_int(pixels[ty * 2 + tx]))
+                                    for y in range(scale):
+                                        row = (ty * scale + y) * size[0]
+                                        for x in range(scale):
+                                            index = (row + tx * scale + x) * 4
+                                            flat[index:index + 4] = pix_bytes
+                        filepath = os.path.join(
+                            tempdir, "test_{:s}_{:d}{:s}".format(fmt.file_type, pixel_planes, file_ext))
+                        imbuf.write(ibuf, filepath=filepath)
+                        ibuf.free()
 
-                    ibuf_loaded = imbuf.load(filepath)
-                    self.assertEqual(ibuf_loaded.planes, pixel_planes)
-                    with ibuf_loaded.with_buffer('BYTE') as buf:
-                        flat = buf.cast('B')
-                        for i, expected in enumerate(pixels):
-                            actual = tuple(flat[i * 4:(i + 1) * 4])
-                            self.assertEqual(actual, rgba_bytes_from_packed_int(expected))
-                    ibuf_loaded.free()
+                        ibuf_loaded = imbuf.load(filepath)
+                        self.assertEqual(ibuf_loaded.planes, pixel_planes)
+                        with ibuf_loaded.with_buffer('BYTE') as buf:
+                            flat = buf.cast('B')
+                            for ty in range(2):
+                                for tx in range(2):
+                                    expected = rgba_bytes_from_packed_int(pixels[ty * 2 + tx])
+                                    # Center of each tile (avoids chroma-boundary artifacts).
+                                    cx = tx * scale + scale // 2
+                                    cy = ty * scale + scale // 2
+                                    index = (cy * size[0] + cx) * 4
+                                    actual = tuple(flat[index:index + 4])
+                                    if fmt.tolerance == 0:
+                                        self.assertEqual(actual, expected)
+                                    else:
+                                        for ch_a, ch_e in zip(actual, expected):
+                                            self.assertLessEqual(abs(ch_a - ch_e), fmt.tolerance)
+                        ibuf_loaded.free()
 
 
 class TestImBufPixelsBytes(unittest.TestCase):

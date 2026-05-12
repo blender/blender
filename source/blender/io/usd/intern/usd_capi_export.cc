@@ -404,7 +404,7 @@ std::string cache_image_color(const float color[4])
     return file_path;
   }
 
-  ImBuf *ibuf = IMB_allocImBuf(1, 1, 32, IB_float_data);
+  ImBuf *ibuf = IMB_allocImBuf(1, 1, IB_float_data);
   IMB_rectfill(ibuf, color);
   ibuf->ftype = IMB_FTYPE_OPENEXR;
   ibuf->foptions.flag = R_IMF_EXR_CODEC_RLE;

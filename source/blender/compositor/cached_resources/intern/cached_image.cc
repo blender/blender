@@ -195,8 +195,8 @@ static ImBuf *compute_linear_buffer(ImBuf *image_buffer)
 {
   /* Do not pass the flags to the allocation function to avoid buffer allocation, but assign them
    * after to retain important information like precision and alpha mode. */
-  ImBuf *linear_image_buffer = IMB_allocImBuf(
-      image_buffer->x, image_buffer->y, image_buffer->planes, 0);
+  ImBuf *linear_image_buffer = IMB_allocImBuf(image_buffer->x, image_buffer->y, 0);
+  linear_image_buffer->color_mode = image_buffer->color_mode;
   linear_image_buffer->flags = image_buffer->flags;
 
   /* Assign the float buffer if it exists, as well as its number of channels. */

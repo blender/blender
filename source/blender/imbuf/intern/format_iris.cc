@@ -271,11 +271,22 @@ ImBuf *imb_loadiris(const uchar *mem, size_t size, int flags, ImFileColorSpace &
 
   const int zsize_file = image.zsize;
   const int zsize_read = min_ii(image.zsize, 4);
+  ImColorMode color_mode = ImColorMode::RGBA;
+  if (image.zsize == 1) {
+    color_mode = ImColorMode::BW;
+  }
+  else if (image.zsize == 2) {
+    color_mode = ImColorMode::BW_A;
+  }
+  else if (image.zsize == 3) {
+    color_mode = ImColorMode::RGB;
+  }
 
   if (flags & IB_test) {
-    ibuf = IMB_allocImBuf(image.xsize, image.ysize, 8 * image.zsize, 0);
+    ibuf = IMB_allocImBuf(image.xsize, image.ysize, 0);
     if (ibuf) {
       ibuf->ftype = IMB_FTYPE_IRIS;
+      ibuf->color_mode = color_mode;
     }
     return ibuf;
   }
@@ -318,11 +329,11 @@ ImBuf *imb_loadiris(const uchar *mem, size_t size, int flags, ImFileColorSpace &
 
     if (bpp == 1) {
 
-      ibuf = IMB_allocImBuf(xsize, ysize, 8 * zsize_read, IB_byte_data);
+      ibuf = IMB_allocImBuf(xsize, ysize, IB_byte_data);
       if (!ibuf) {
         goto fail_rle;
       }
-      ibuf->planes = std::min<int>(ibuf->planes, 32);
+      ibuf->color_mode = color_mode;
       base = reinterpret_cast<uint *>(ibuf->byte_data_for_write());
 
       if (badorder) {
@@ -373,7 +384,7 @@ ImBuf *imb_loadiris(const uchar *mem, size_t size, int flags, ImFileColorSpace &
     }
     else { /* bpp == 2 */
 
-      ibuf = IMB_allocImBuf(xsize, ysize, 32, (flags & IB_byte_data) | IB_float_data);
+      ibuf = IMB_allocImBuf(xsize, ysize, (flags & IB_byte_data) | IB_float_data);
       if (!ibuf) {
         goto fail_rle;
       }
@@ -433,11 +444,11 @@ ImBuf *imb_loadiris(const uchar *mem, size_t size, int flags, ImFileColorSpace &
 
     if (bpp == 1) {
 
-      ibuf = IMB_allocImBuf(xsize, ysize, 8 * zsize_read, IB_byte_data);
+      ibuf = IMB_allocImBuf(xsize, ysize, IB_byte_data);
       if (!ibuf) {
         goto fail_uncompressed;
       }
-      ibuf->planes = std::min<int>(ibuf->planes, 32);
+      ibuf->color_mode = color_mode;
 
       base = reinterpret_cast<uint *>(ibuf->byte_data_for_write());
 
@@ -464,7 +475,7 @@ ImBuf *imb_loadiris(const uchar *mem, size_t size, int flags, ImFileColorSpace &
     }
     else { /* bpp == 2 */
 
-      ibuf = IMB_allocImBuf(xsize, ysize, 32, (flags & IB_byte_data) | IB_float_data);
+      ibuf = IMB_allocImBuf(xsize, ysize, (flags & IB_byte_data) | IB_float_data);
       if (!ibuf) {
         goto fail_uncompressed;
       }
@@ -761,7 +772,6 @@ fail:
 /**
  * \param filepath: The file path to write to.
  * \param lptr: an array of integers to an iris image file (each int represents one pixel).
- * \param zptr: depth-buffer (optional, may be nullptr).
  * \param xsize: with width of the pixel-array.
  * \param ysize: height of the pixel-array.
  * \param zsize: specifies what kind of image file to write out.
@@ -769,14 +779,9 @@ fail:
  *      and a single channel black and white image is saved.
  * - 3: an RGB image file is saved.
  * - 4: an RGBA image file is saved.
- * - 8: an RGBA image and a Z-buffer (non-null `zptr`).
  */
-static bool output_iris(const char *filepath,
-                        const uint *lptr,
-                        const int *zptr,
-                        const int xsize,
-                        const int ysize,
-                        const int zsize)
+static bool output_iris(
+    const char *filepath, const uint *lptr, const int xsize, const int ysize, const int zsize)
 {
   FILE *outf;
   IRIS_Header *image;
@@ -836,9 +841,6 @@ static bool output_iris(const char *filepath,
         if (z < 4) {
           len = compressrow(reinterpret_cast<const uchar *>(lptr), rlebuf, z, xsize);
         }
-        else if (z < 8 && zptr) {
-          len = compressrow(reinterpret_cast<const uchar *>(zptr), rlebuf, z - 4, xsize);
-        }
       }
 
       BLI_assert_msg(len <= rlebuflen, "The length calculated for 'rlebuflen' was too small!");
@@ -849,9 +851,6 @@ static bool output_iris(const char *filepath,
       pos += len;
     }
     lptr += xsize;
-    if (zptr) {
-      zptr += xsize;
-    }
   }
 
   fseek(outf, HEADER_SIZE, SEEK_SET);
@@ -951,15 +950,23 @@ bool imb_saveiris(ImBuf *ibuf, const char *filepath, int /*flags*/)
     return false;
   }
 
-  const short zsize = (ibuf->planes + 7) >> 3;
-
-  const bool ok = output_iris(filepath,
-                              reinterpret_cast<const uint *>(ibuf->byte_data()),
-                              nullptr,
-                              ibuf->x,
-                              ibuf->y,
-                              zsize);
-
+  int zsize = 4;
+  switch (ibuf->color_mode) {
+    case ImColorMode::BW:
+      zsize = 1;
+      break;
+    case ImColorMode::BW_A:
+      zsize = 2;
+      break;
+    case ImColorMode::RGB:
+      zsize = 3;
+      break;
+    case ImColorMode::RGBA:
+      zsize = 4;
+      break;
+  }
+  const bool ok = output_iris(
+      filepath, reinterpret_cast<const uint *>(ibuf->byte_data()), ibuf->x, ibuf->y, zsize);
   return ok;
 }
 

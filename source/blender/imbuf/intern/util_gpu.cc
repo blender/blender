@@ -28,7 +28,7 @@ static CLG_LogRef LOG = {"image.gpu"};
 
 static bool imb_is_grayscale_texture_format_compatible(const ImBuf *ibuf)
 {
-  if (ibuf->planes > 8) {
+  if (ibuf->color_mode != ImColorMode::BW) {
     return false;
   }
 

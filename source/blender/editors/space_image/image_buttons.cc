@@ -1225,7 +1225,7 @@ void uiTemplateImageInfo(ui::Layout *layout, bContext *C, Image *ima, ImageUser 
         ofs += BLI_snprintf_utf8_rlen(
             str + ofs, len - ofs, RPT_("%d float channel(s)"), ibuf->channels);
       }
-      else if (ibuf->planes == R_IMF_PLANES_RGBA) {
+      else if (ibuf->color_mode == ImColorMode::RGBA) {
         ofs += BLI_strncpy_utf8_rlen(str + ofs, RPT_(" RGBA float"), len - ofs);
       }
       else {
@@ -1233,7 +1233,7 @@ void uiTemplateImageInfo(ui::Layout *layout, bContext *C, Image *ima, ImageUser 
       }
     }
     else {
-      if (ibuf->planes == R_IMF_PLANES_RGBA) {
+      if (ibuf->color_mode == ImColorMode::RGBA) {
         ofs += BLI_strncpy_utf8_rlen(str + ofs, RPT_(" RGBA byte"), len - ofs);
       }
       else {
@@ -1246,7 +1246,7 @@ void uiTemplateImageInfo(ui::Layout *layout, bContext *C, Image *ima, ImageUser 
     /* Try to see if this texture is a compressed format, if not, get the generic format. */
     if (!IMB_gpu_get_compressed_format(ibuf, &texture_format)) {
       texture_format = IMB_gpu_get_texture_format(
-          ibuf, ima->flag & IMA_HIGH_BITDEPTH, ibuf->planes >= 8);
+          ibuf, ima->flag & IMA_HIGH_BITDEPTH, ibuf->color_mode == ImColorMode::BW);
     }
 
     const char *texture_format_description = GPU_texture_format_name(texture_format);

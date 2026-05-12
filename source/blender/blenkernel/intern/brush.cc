@@ -1709,7 +1709,7 @@ ImBuf *BKE_brush_gen_radial_control_imbuf(Brush *br, bool secondary, bool displa
 
   BKE_curvemapping_init(br->curve_distance_falloff);
 
-  ImBuf *im = IMB_allocImBuf(side, side, 32, IB_float_data);
+  ImBuf *im = IMB_allocImBuf(side, side, IB_float_data);
 
   const bool have_texture = brush_gen_texture(br, side, secondary, im->float_data_for_write());
 
