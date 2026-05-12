@@ -24,6 +24,7 @@ void StaticCacheManager::reset()
   van_vliet_gaussian_coefficients.reset();
   fog_glow_kernels.reset();
   image_coordinates.reset();
+  string_images.reset();
 }
 
 void StaticCacheManager::free()

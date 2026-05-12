@@ -601,6 +601,7 @@ static rcti draw_text_outline(const RenderData *context,
              reinterpret_cast<uchar *>(tmp_buf.data()),
              size.x,
              size.y,
+             4,
              out->byte_buffer.colorspace);
 
   text_draw(data->text_ptr, runtime, float4(1.0f));
@@ -702,7 +703,7 @@ static rcti draw_text_outline(const RenderData *context,
       }
     }
   });
-  BLF_buffer(runtime->font, nullptr, byte_data, size.x, size.y, out->byte_buffer.colorspace);
+  BLF_buffer(runtime->font, nullptr, byte_data, size.x, size.y, 4, out->byte_buffer.colorspace);
 
   return outline_rect;
 }
@@ -1087,9 +1088,9 @@ static ImBuf *do_text_effect(const RenderData *context,
 
   rcti outline_rect = draw_text_outline(context, data, runtime, out);
   BLF_buffer(
-      font, nullptr, out->byte_data_for_write(), out->x, out->y, out->byte_buffer.colorspace);
+      font, nullptr, out->byte_data_for_write(), out->x, out->y, 4, out->byte_buffer.colorspace);
   text_draw(data->text_ptr, runtime, data->color);
-  BLF_buffer(font, nullptr, nullptr, 0, 0, nullptr);
+  BLF_buffer(font, nullptr, nullptr, 0, 0, 4, nullptr);
   BLF_disable(font, font_flags);
 
   /* Draw shadow. */

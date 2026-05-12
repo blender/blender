@@ -40,7 +40,7 @@ struct TransDataMasking {
   MaskSplinePoint *point;
   float parent_matrix[3][3];
   float parent_inverse_matrix[3][3];
-  char orig_handle_type;
+  eBezTriple_Handle orig_handle_type;
 
   eMaskWhichHandle which_handle;
 };

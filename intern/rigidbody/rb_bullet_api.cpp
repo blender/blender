@@ -829,7 +829,7 @@ rbCollisionShape *RB_shape_new_gimpact_mesh(rbMeshData *mesh)
   rbCollisionShape *shape = new rbCollisionShape;
 
   btGImpactMeshShape *gimpactShape = new btGImpactMeshShape(mesh->index_array);
-  gimpactShape->updateBound();  // TODO: add this to the update collision margin call?
+  gimpactShape->updateBound();
 
   shape->cshape = gimpactShape;
   shape->mesh = mesh;
@@ -909,6 +909,10 @@ float RB_shape_get_margin(rbCollisionShape *shape)
 void RB_shape_set_margin(rbCollisionShape *shape, float value)
 {
   shape->cshape->setMargin(value);
+
+  if (shape->cshape->getShapeType() == GIMPACT_SHAPE_PROXYTYPE) {
+    ((btGImpactMeshShape *)shape->cshape)->updateBound();
+  }
 }
 
 /* ********************************** */

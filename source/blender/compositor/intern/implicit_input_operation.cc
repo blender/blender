@@ -44,7 +44,7 @@ void ImplicitInputOperation::execute()
       break;
     case ImplicitInput::TextureCoordinates:
       const int2 size = this->context().get_compositing_domain().data_size;
-      result.wrap_external(this->context().cache_manager().image_coordinates.get(
+      result.share_data(this->context().cache_manager().image_coordinates.get(
           this->context(), size, CoordinatesType::Uniform));
   }
 }

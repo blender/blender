@@ -904,6 +904,12 @@ void BlenderSession::view_draw(const int w, const int h)
   /* pause in redraw in case update is not being called due to final render */
   session->set_pause(BlenderSync::get_session_pause(*b_scene, background));
 
+  /* Update navigating state. */
+  const bool dimensions_changed = (width != w || height != h || pixelsize != blender::U.pixelsize);
+  const bool is_navigating = region_view3d_navigating_or_transforming(b_rv3d) ||
+                             dimensions_changed;
+  session->set_navigating(is_navigating);
+
   /* before drawing, we verify camera and viewport size changes, because
    * we do not get update callbacks for those, we must detect them here */
   if (session->ready_to_reset()) {
@@ -911,8 +917,7 @@ void BlenderSession::view_draw(const int w, const int h)
 
     /* If dimensions changed, reset. We need to check pixel size here because
      * it's only valid during drawing, as it can change per window. */
-    const float new_pixelsize = blender::U.pixelsize;
-    if (width != w || height != h || pixelsize != new_pixelsize) {
+    if (dimensions_changed) {
       if (start_resize_time == 0.0) {
         /* don't react immediately to resizes to avoid flickery resizing
          * of the viewport, and some window managers changing the window
@@ -926,7 +931,7 @@ void BlenderSession::view_draw(const int w, const int h)
       else {
         width = w;
         height = h;
-        pixelsize = new_pixelsize;
+        pixelsize = blender::U.pixelsize;
         reset = true;
       }
     }

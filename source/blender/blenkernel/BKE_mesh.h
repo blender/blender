@@ -41,6 +41,8 @@ namespace draw {
 struct MeshBatchCache;
 }
 
+enum eMSelect_Type : int;
+
 /* TODO: Move to `BKE_mesh_types.hh` when possible. */
 enum eMeshBatchDirtyMode : int8_t {
   BKE_MESH_BATCH_DIRTY_ALL = 0,
@@ -220,12 +222,12 @@ void BKE_mesh_mselect_validate(Mesh *mesh);
 /**
  * \return the index within `me->mselect`, or -1
  */
-int BKE_mesh_mselect_find(const Mesh *mesh, int index, int type);
+int BKE_mesh_mselect_find(const Mesh *mesh, int index, eMSelect_Type type);
 /**
  * \return The index of the active element.
  */
-int BKE_mesh_mselect_active_get(const Mesh *mesh, int type);
-void BKE_mesh_mselect_active_set(Mesh *mesh, int index, int type);
+int BKE_mesh_mselect_active_get(const Mesh *mesh, eMSelect_Type type);
+void BKE_mesh_mselect_active_set(Mesh *mesh, int index, eMSelect_Type type);
 
 void BKE_mesh_count_selected_items(const Mesh *mesh, int r_count[3]);
 

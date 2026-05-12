@@ -135,6 +135,8 @@ kernel_image_tile_map(KernelGlobals kg,
   KernelTileDescriptor tile_descriptor = kernel_data_fetch(
       image_texture_tile_descriptors, tex.tile_descriptor_offset + tile_offset);
 
+  const uint access_index = tex.tile_descriptor_offset + tile_offset;
+
   if (!kernel_tile_descriptor_loaded(tile_descriptor)) {
 #ifdef __KERNEL_GPU__
     /* For GPU, mark load requested and cancel shader execution. */
@@ -144,10 +146,10 @@ kernel_image_tile_map(KernelGlobals kg,
       kernel_data_write(image_texture_tile_descriptors,
                         tex.tile_descriptor_offset + tile_offset,
                         tile_descriptor);
-      /* Set byte in request mask that will be read back to host. Using a byte
-       * mask instead of a bitmask avoids the need for atomics. */
-      const uint mask_index = tex.tile_descriptor_offset + tile_offset;
-      kernel_data_array(image_texture_tile_request_mask)[mask_index] = 1;
+      /* Set access state that will be read back to host. Using a byte
+       * instead of a bitmask avoids the need for atomics. */
+      kernel_data_array(
+          image_texture_tile_access_state)[access_index] = KERNEL_TILE_ACCESS_REQUESTED;
     }
     if (tile_descriptor == KERNEL_TILE_LOAD_REQUEST) {
       sd->flag |= SD_CACHE_MISS;
@@ -157,7 +159,7 @@ kernel_image_tile_map(KernelGlobals kg,
     /* For CPU, load tile immediately. */
     if (tile_descriptor != KERNEL_TILE_LOAD_FAILED) {
       KernelTileDescriptor &p_tile_descriptor =
-          kg->image_texture_tile_descriptors.data[tex.tile_descriptor_offset + tile_offset];
+          kg->image_texture_tile_descriptors.data[access_index];
       kg->image_load_requested_cpu(image_texture_id,
                                    level,
                                    tile_x << tile_size_shift,
@@ -169,6 +171,13 @@ kernel_image_tile_map(KernelGlobals kg,
       return tile_descriptor;
     }
 #endif
+  }
+
+  /* Mark tile as used for cache eviction tracking. Read before writing as we
+   * expect most of the time this was already written. */
+  if (kernel_data_array(image_texture_tile_access_state)[access_index] != KERNEL_TILE_ACCESS_USED)
+  {
+    kernel_data_array(image_texture_tile_access_state)[access_index] = KERNEL_TILE_ACCESS_USED;
   }
 
   /* Remap coordinates into tiled image space. */

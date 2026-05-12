@@ -11,6 +11,7 @@
 #include "scene/shader.h"
 #include "scene/stats.h"
 #include "session/buffers.h"
+#include "session/cache_eviction.h"
 #include "session/tile.h"
 
 #include "util/progress.h"
@@ -140,6 +141,7 @@ class Session {
   void reset(const SessionParams &session_params, const BufferParams &buffer_params);
 
   void set_pause(bool pause);
+  void set_navigating(bool navigating);
 
   void set_samples(const int samples);
   void set_time_limit(const double time_limit);
@@ -240,6 +242,9 @@ class Session {
 
   TileManager tile_manager_;
   BufferParams buffer_params_;
+
+  /* Manages when image cache eviction happens. */
+  CacheEvictionManager eviction_manager_;
 
   /* Render scheduler is used to get work to be rendered with the current big tile. */
   RenderScheduler render_scheduler_;

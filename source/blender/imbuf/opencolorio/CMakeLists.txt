@@ -59,6 +59,8 @@ set(SRC
   intern/libocio/libocio_look.hh
   intern/libocio/libocio_processor.cc
   intern/libocio/libocio_processor.hh
+  intern/libocio/libocio_scope.cc
+  intern/libocio/libocio_view.cc
   intern/libocio/libocio_view.hh
 
   OCIO_api.hh
@@ -71,6 +73,7 @@ set(SRC
   OCIO_matrix.hh
   OCIO_packed_image.hh
   OCIO_role_names.hh
+  OCIO_scope.hh
   OCIO_version.hh
   OCIO_view.hh
 )
@@ -82,7 +85,7 @@ set(LIB
   PRIVATE bf::gpu
   PRIVATE bf::intern::guardedalloc
   PRIVATE bf::intern::clog
-  PUBLIC bf::dependencies::optional::opencolorio
+  PUBLIC bf::dependencies::opencolorio
 )
 
 blender_add_lib(bf_imbuf_opencolorio "${SRC}" "${INC}" "${INC_SYS}" "${LIB}")

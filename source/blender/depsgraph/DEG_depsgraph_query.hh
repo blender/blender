@@ -295,7 +295,7 @@ void DEG_iterator_objects_end(BLI_Iterator *iter);
     DEGObjectIterData data_ = { \
         (settings_), \
         (settings_)->depsgraph, \
-        (int)(settings_)->flags, \
+        int((settings_)->flags), \
     }; \
 \
     ITER_BEGIN (DEG_iterator_objects_begin, \

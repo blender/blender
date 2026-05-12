@@ -35,6 +35,7 @@
 #include "WM_api.hh"
 #include "WM_types.hh"
 
+#include "ED_anim_api.hh"
 #include "ED_armature.hh"
 #include "ED_keyframing.hh"
 
@@ -405,7 +406,7 @@ void slide_subjects_autokey(bContext *C,
       if (ob->pose->avs.path_bakeflag & MOTIONPATH_BAKE_HAS_PATHS) {
         // ED_pose_clear_paths(C, ob); /* XXX for now, don't need to clear. */
         /* TODO(sergey): Should ensure we can use more narrow update range here. */
-        ED_pose_recalculate_paths(C, scene, ob, POSE_PATH_CALC_RANGE_FULL);
+        ED_pose_recalculate_paths(C, scene, ob, ANIMVIZ_CALC_RANGE_FULL);
       }
     }
   }

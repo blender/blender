@@ -27,19 +27,23 @@ PyDoc_STRVAR(
     "\n"
     "Class to define a vertex of the embedding.\n"
     "\n"
-    ".. method:: __init__()\n"
-    "            __init__(brother)\n"
-    "            __init__(point_3d, id)\n"
+    ".. method:: __init__(*args)\n"
+    "\n"
+    "   Accepted call signatures:\n"
+    "\n"
+    "   - ``__init__()``\n"
+    "   - ``__init__(brother)``\n"
+    "   - ``__init__(point_3d, id)``\n"
     "\n"
     "   Builds a :class:`SVertex` using the default constructor,\n"
     "   copy constructor or the overloaded constructor which builds"
     "   a :class:`SVertex` from 3D coordinates and an Id.\n"
     "\n"
-    "   :arg brother: A SVertex object.\n"
+    "   :param brother: A SVertex object.\n"
     "   :type brother: :class:`SVertex`\n"
-    "   :arg point_3d: A three-dimensional vector.\n"
+    "   :param point_3d: A three-dimensional vector.\n"
     "   :type point_3d: :class:`mathutils.Vector`\n"
-    "   :arg id: An Id object.\n"
+    "   :param id: An Id object.\n"
     "   :type id: :class:`Id`\n");
 static int SVertex_init(BPy_SVertex *self, PyObject *args, PyObject *kwds)
 {
@@ -80,7 +84,7 @@ PyDoc_STRVAR(
     "   Adds a normal to the SVertex's set of normals. If the same normal\n"
     "   is already in the set, nothing changes.\n"
     "\n"
-    "   :arg normal: A three-dimensional vector.\n"
+    "   :param normal: A three-dimensional vector.\n"
     "   :type normal: :class:`mathutils.Vector` | tuple[float, float, float] | list[float]\n");
 static PyObject *SVertex_add_normal(BPy_SVertex *self, PyObject *args, PyObject *kwds)
 {
@@ -107,7 +111,7 @@ PyDoc_STRVAR(
     "\n"
     "   Add an FEdge to the list of edges emanating from this SVertex.\n"
     "\n"
-    "   :arg fedge: An FEdge.\n"
+    "   :param fedge: An FEdge.\n"
     "   :type fedge: :class:`FEdge`\n");
 static PyObject *SVertex_add_fedge(BPy_SVertex *self, PyObject *args, PyObject *kwds)
 {
@@ -363,7 +367,7 @@ PyDoc_STRVAR(
     "has exactly one normal. In a smooth surface, an SVertex can have any\n"
     "number of normals.\n"
     "\n"
-    ":type: list of :class:`mathutils.Vector`\n");
+    ":type: list[:class:`mathutils.Vector`]\n");
 static PyObject *SVertex_normals_get(BPy_SVertex *self, void * /*closure*/)
 {
   PyObject *py_normals;

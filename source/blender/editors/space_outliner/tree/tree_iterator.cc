@@ -18,12 +18,12 @@ namespace blender::ed::outliner::tree_iterator {
 
 void all(const SpaceOutliner &space_outliner, const ConstVisitorFn visitor)
 {
-  all_open(space_outliner, space_outliner.tree, visitor);
+  all_open(space_outliner, space_outliner.runtime->tree, visitor);
 }
 
 void all(SpaceOutliner &space_outliner, const VisitorFn visitor)
 {
-  all_open(space_outliner, space_outliner.tree, visitor);
+  all_open(space_outliner, space_outliner.runtime->tree, visitor);
 }
 
 void all(const ListBaseT<TreeElement> &subtree, const ConstVisitorFn visitor)
@@ -49,12 +49,12 @@ void all(ListBaseT<TreeElement> &subtree, const VisitorFn visitor)
 
 void all_open(const SpaceOutliner &space_outliner, const ConstVisitorFn visitor)
 {
-  all_open(space_outliner, space_outliner.tree, visitor);
+  all_open(space_outliner, space_outliner.runtime->tree, visitor);
 }
 
 void all_open(SpaceOutliner &space_outliner, const VisitorFn visitor)
 {
-  all_open(space_outliner, space_outliner.tree, visitor);
+  all_open(space_outliner, space_outliner.runtime->tree, visitor);
 }
 
 void all_open(const SpaceOutliner &space_outliner,

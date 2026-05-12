@@ -220,15 +220,17 @@ Vector<float> visualkey_get_values(PointerRNA *ptr, PropertyRNA *prop)
     rotmode = ob->rotmode;
   }
   else if (ptr->type == RNA_PoseBone) {
+    Object *ob = id_cast<Object *>(ptr->owner_id);
     bPoseChannel *pchan = static_cast<bPoseChannel *>(ptr->data);
+    Bone *bone = pchan->bone_get(*ob);
 
-    BKE_armature_mat_pose_to_bone(pchan, pchan->pose_mat, tmat);
+    BKE_armature_mat_pose_to_bone({pchan, bone}, pchan->pose_mat, tmat);
     rotmode = pchan->rotmode;
 
     /* Loc code is specific... */
     if (strstr(identifier, "location")) {
       /* Only use for non-connected bones. */
-      if ((pchan->bone->parent == nullptr) || !(pchan->bone->flag & BONE_CONNECTED)) {
+      if ((bone->parent == nullptr) || !(bone->flag & BONE_CONNECTED)) {
         values.extend({tmat[3], 3});
         return values;
       }

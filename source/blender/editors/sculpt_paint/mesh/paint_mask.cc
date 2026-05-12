@@ -219,18 +219,45 @@ void update_mask_mesh(const Depsgraph &depsgraph,
   Array<bool> node_changed(node_mask.min_array_size(), false);
 
   threading::EnumerableThreadSpecific<LocalData> all_tls;
+  /* Even if only shared vertices of a node are updated it needs to be marked dirty, The mask
+   * values for the shared vertices are written by the thread processing the owning node, so
+   * cache the values before the main update loop to avoid nondeterministic read/write ordering.
+   */
+  Array<Vector<float>> old_masks(node_mask.min_array_size());
   node_mask.foreach_index(
       [&](const int i) {
         LocalData &tls = all_tls.local();
-        const Span<int> verts = hide::node_visible_verts(nodes[i], hide_vert, tls.visible_verts);
-        tls.mask.resize(verts.size());
-        gather_data_mesh(mask.span.as_span(), verts, tls.mask.as_mutable_span());
-        update_fn(tls.mask, verts);
-        if (array_utils::indexed_data_equal<float>(mask.span, verts, tls.mask)) {
-          return;
+        const Span<int> shared_visible_verts = hide::node_visible_shared_verts(
+            nodes[i], hide_vert, tls.visible_verts);
+        old_masks[i].resize(shared_visible_verts.size());
+        gather_data_mesh(
+            mask.span.as_span(), shared_visible_verts, old_masks[i].as_mutable_span());
+      },
+      exec_mode::grain_size(1));
+
+  node_mask.foreach_index(
+      [&](const int i) {
+        LocalData &tls = all_tls.local();
+        int unique_visible_verts_num = 0;
+        const Span<int> all_visible_verts = hide::node_visible_all_verts(
+            nodes[i], hide_vert, tls.visible_verts, unique_visible_verts_num);
+        const Span<int> unique_verts = all_visible_verts.take_front(unique_visible_verts_num);
+        const Span<int> shared_verts = all_visible_verts.drop_front(unique_visible_verts_num);
+        tls.mask.resize(all_visible_verts.size());
+        gather_data_mesh(mask.span.as_span(), all_visible_verts, tls.mask.as_mutable_span());
+        update_fn(tls.mask, all_visible_verts);
+        if (array_utils::indexed_data_equal<float>(
+                mask.span, unique_verts, tls.mask.as_span().take_front(unique_verts.size())))
+        {
+          if (shared_verts.is_empty() ||
+              old_masks[i].as_span() == tls.mask.as_span().drop_front(unique_verts.size()))
+          {
+            return;
+          }
         }
         undo::push_node(depsgraph, object, &nodes[i], undo::Type::Mask);
-        scatter_data_mesh(tls.mask.as_span(), verts, mask.span);
+        scatter_data_mesh(
+            tls.mask.as_span().take_front(unique_verts.size()), unique_verts, mask.span);
         bke::pbvh::node_update_mask_mesh(mask.span, nodes[i]);
         node_changed[i] = true;
       },

@@ -103,6 +103,7 @@ Shader::Shader() : Node(get_node_type())
   prev_has_surface_shadow_transparency = false;
   prev_volume_step_rate = 0.0f;
   has_light_path_node = false;
+  has_aov_output_node = false;
 
   emission_estimate = zero_float3();
   emission_sampling = EMISSION_SAMPLING_NONE;
@@ -242,6 +243,7 @@ void Shader::estimate_emission()
   for (ShaderNode *node : graph->nodes) {
     if (node->special_type == SHADER_SPECIAL_TYPE_OUTPUT_AOV) {
       emission_is_constant = false;
+      break;
     }
   }
 
@@ -383,10 +385,13 @@ void Shader::tag_update(Scene *scene)
    * disconnect a node */
 
   const AttributeRequestSet prev_attributes = attributes;
+  const AttributeRequestSet prev_global_attributes = global_attributes;
 
   attributes.clear();
+  global_attributes.clear();
   for (ShaderNode *node : graph->nodes) {
     node->attributes(this, &attributes);
+    node->global_attributes(this, &global_attributes);
   }
 
   if (has_displacement) {
@@ -403,7 +408,7 @@ void Shader::tag_update(Scene *scene)
 
   /* compare if the attributes changed, mesh manager will check
    * need_update_attribute, update the relevant meshes and clear it. */
-  if (attributes.modified(prev_attributes)) {
+  if (attributes.modified(prev_attributes) || global_attributes.modified(prev_global_attributes)) {
     need_update_attribute = true;
     scene->geometry_manager->tag_update(scene, GeometryManager::SHADER_ATTRIBUTE_MODIFIED);
     scene->procedural_manager->tag_update();
@@ -560,12 +565,16 @@ void ShaderManager::device_update_pre(Device * /*device*/,
       shader->has_displacement = output->input("Displacement")->link != nullptr;
       shader->has_bump_from_surface = false;
 
+      /* Determine both properties. */
       shader->has_light_path_node = false;
+      shader->has_aov_output_node = false;
       for (ShaderNode *node : shader->graph->nodes) {
         if (node->special_type == SHADER_SPECIAL_TYPE_LIGHT_PATH) {
           /* TODO: check if the light path node is linked to the volume output. */
           shader->has_light_path_node = true;
-          break;
+        }
+        else if (node->special_type == SHADER_SPECIAL_TYPE_OUTPUT_AOV) {
+          shader->has_aov_output_node = true;
         }
       }
     }
@@ -892,7 +901,7 @@ string ShaderManager::get_cryptomatte_materials(Scene *scene)
   string manifest = "{";
   unordered_set<ustring> materials;
   for (Shader *shader : scene->shaders) {
-    if (materials.count(shader->name)) {
+    if (materials.contains(shader->name)) {
       continue;
     }
     materials.insert(shader->name);

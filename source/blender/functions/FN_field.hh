@@ -182,7 +182,7 @@ class GField {
   uint64_t hash() const;
 
   /**
-   * Get a typed reference to this field. Not that #Field<T> happens to be identical to #GField on
+   * Get a typed reference to this field. Note that #Field<T> happens to be identical to #GField on
    * a bit-level. So this is just a cast.
    */
   template<typename T> const Field<T> &typed() const;
@@ -285,6 +285,25 @@ class FieldContext {
 };
 
 /**
+ * "Deep" hashing for fields that considers the operation and inputs semantically, rather than
+ * just the shallow data (i.e. memory address) of the field data, like the default "hash()"
+ * implementation. Because common field reuse would give this potentially exponential cost, this
+ * struct caches the hashes of intermediate fields.
+ */
+struct FieldHashDeep {
+  Map<GFieldRef, UniqueHash> cache;
+  UniqueHash ensure(const GFieldRef &field);
+  UniqueHash lookup(const GFieldRef &field) const
+  {
+    return this->cache.lookup(field);
+  }
+  bool contains(const GFieldRef &field) const
+  {
+    return this->cache.contains(field);
+  }
+};
+
+/**
  * Cache of field inputs. This is used quite often and is therefore computed eagerly for
  * intermediate operations. Otherwise one would have to parse the field tree every time the set of
  * inputs is required. Since many fields share the same set of inputs, this is often shared.
@@ -318,7 +337,7 @@ class FieldInput : public ImplicitSharingMixin {
 
  public:
   FieldInput(const CPPType &type, std::string debug_name = "");
-  ~FieldInput();
+  ~FieldInput() override;
 
   StringRefNull debug_name() const;
   virtual std::string socket_inspection_name() const;
@@ -327,8 +346,8 @@ class FieldInput : public ImplicitSharingMixin {
 
   const FieldInputsPtr &field_inputs() const;
 
-  virtual uint64_t hash() const;
-  virtual bool is_equal_to(const FieldInput &other) const;
+  uint64_t hash() const;
+  virtual void hash_unique(UniqueHashBytes &hash, FieldHashDeep &deep_hash_cache) const;
 
   /**
    * If this #FieldInput depends on other fields, this function should be overridden.
@@ -402,8 +421,7 @@ class IndexFieldInput final : public FieldInput {
                                  const IndexMask &mask,
                                  ResourceScope &scope) const final;
 
-  uint64_t hash() const override;
-  bool is_equal_to(const fn::FieldInput &other) const override;
+  void hash_unique(UniqueHashBytes &hash, FieldHashDeep &deep_hash_cache) const override;
 
   /** Cached index field to avoid allocating a new one every time. */
   static const Field<int> &get_field();
@@ -524,16 +542,6 @@ inline const CPPType &FieldInput::cpp_type() const
   return *this->type_;
 }
 
-inline uint64_t FieldInput::hash() const
-{
-  return get_default_hash(this);
-}
-
-inline bool FieldInput::is_equal_to(const FieldInput &other) const
-{
-  return this == &other;
-}
-
 inline const FieldInputsPtr &FieldOperation::field_inputs() const
 {
   return field_inputs_;
@@ -648,7 +656,7 @@ inline const CPPType &GFieldRef::cpp_type() const
 
 inline bool operator==(const FieldInput &a, const FieldInput &b)
 {
-  return a.is_equal_to(b);
+  return &a == &b;
 }
 
 inline const mf::MultiFunction &FieldOperation::multi_function() const

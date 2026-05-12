@@ -363,6 +363,8 @@ static int seq_proxy_context_count(Strip *strip, Scene *scene)
       }
       break;
     }
+    default:
+      break;
   }
 
   return num_views;

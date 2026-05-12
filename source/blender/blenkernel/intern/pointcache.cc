@@ -157,7 +157,10 @@ static int ptcache_basic_header_write(PTCacheFile *pf)
 
   return 1;
 }
-static void ptcache_add_extra_data(PTCacheMem *pm, uint type, uint count, void *data)
+static void ptcache_add_extra_data(PTCacheMem *pm,
+                                   ePointCache_ExtraDataType type,
+                                   uint count,
+                                   void *data)
 {
   PTCacheExtra *extra = MEM_new<PTCacheExtra>("Point cache: extra data descriptor");
 
@@ -531,6 +534,8 @@ static void ptcache_particle_extra_read(void *psys_v, PTCacheMem *pm, float /*cf
         psys->tot_fluidsprings = psys->alloc_fluidsprings = extra->totdata;
         break;
       }
+      case BPHYS_EXTRA_CLOTH_ACCELERATION:
+        break;
     }
   }
 }
@@ -633,6 +638,8 @@ static void ptcache_cloth_extra_read(void *cloth_v, PTCacheMem *pm, float /*cfra
         copy_v3_v3(cloth->average_acceleration, static_cast<const float *>(extra->data));
         break;
       }
+      case BPHYS_EXTRA_FLUID_SPRINGS:
+        break;
     }
   }
 }
@@ -1931,7 +1938,7 @@ static PTCacheMem *ptcache_disk_frame_to_mem(PTCacheID *pid, int cfra)
   }
 
   if (!error && pf->flag & PTCACHE_TYPEFLAG_EXTRADATA) {
-    uint extratype = 0;
+    ePointCache_ExtraDataType extratype = ePointCache_ExtraDataType{};
 
     while (!error && ptcache_file_read(pf, &extratype, 1, sizeof(uint))) {
       PTCacheExtra *extra = MEM_new<PTCacheExtra>("Pointcache extradata");
@@ -3353,7 +3360,7 @@ void BKE_ptcache_disk_to_mem(PTCacheID *pid)
 {
   PointCache *cache = pid->cache;
   PTCacheMem *pm = nullptr;
-  int baked = cache->flag & PTCACHE_BAKED;
+  ePointCache_Flag baked = cache->flag & PTCACHE_BAKED;
   int cfra, sfra = cache->startframe, efra = cache->endframe;
 
   /* Remove possible bake flag to allow clear */
@@ -3377,7 +3384,7 @@ void BKE_ptcache_mem_to_disk(PTCacheID *pid)
 {
   PointCache *cache = pid->cache;
   PTCacheMem *pm = static_cast<PTCacheMem *>(cache->mem_cache.first);
-  int baked = cache->flag & PTCACHE_BAKED;
+  ePointCache_Flag baked = cache->flag & PTCACHE_BAKED;
 
   /* Remove possible bake flag to allow clear */
   cache->flag &= ~PTCACHE_BAKED;
@@ -3767,28 +3774,40 @@ void BKE_ptcache_blend_write(BlendWriter *writer, ListBaseT<PointCache> *ptcache
 
 static void direct_link_pointcache_mem(BlendDataReader *reader, PTCacheMem *pm)
 {
+  bool ok = true;
   for (int i = 0; i < BPHYS_TOT_DATA; i++) {
+    if (pm->data[i] == nullptr) {
+      continue;
+    }
+
     if (i == BPHYS_DATA_BOIDS) {
-      BLO_read_struct_array(reader, BoidData, pm->totpoint, &pm->data[i]);
+      ok &= BLO_read_array(reader, reinterpret_cast<BoidData **>(&pm->data[i]), pm->totpoint);
     }
     else if (i == BPHYS_DATA_INDEX) { /* Only 'cache type' to use uint values. */
-      BLO_read_uint32_array(reader, pm->totpoint, reinterpret_cast<uint32_t **>(&pm->data[i]));
+      ok &= BLO_read_array(reader, reinterpret_cast<uint32_t **>(&pm->data[i]), pm->totpoint);
     }
     else { /* All other types of caches use (vectors of) floats. */
       /* data_size returns bytes. */
-      const uint32_t items_num = pm->totpoint * (BKE_ptcache_data_size(i) / sizeof(float));
-      BLO_read_float_array(reader, items_num, reinterpret_cast<float **>(&pm->data[i]));
+      ok &= BLO_read_array(reader,
+                           reinterpret_cast<float **>(&pm->data[i]),
+                           pm->totpoint,
+                           BKE_ptcache_data_size(i) / sizeof(float));
     }
+  }
+  if (!ok) {
+    pm->totpoint = 0;
   }
 
   BLO_read_struct_list(reader, PTCacheExtra, &pm->extradata);
 
   for (PTCacheExtra &extra : pm->extradata) {
     if (extra.type == BPHYS_EXTRA_FLUID_SPRINGS) {
-      BLO_read_struct_array(reader, ParticleSpring, extra.totdata, &extra.data);
+      BLO_read_array_and_validate_size(
+          reader, reinterpret_cast<ParticleSpring **>(&extra.data), &extra.totdata);
     }
     else if (extra.type == BPHYS_EXTRA_CLOTH_ACCELERATION) {
-      BLO_read_struct_array(reader, vec3f, extra.totdata, &extra.data);
+      BLO_read_array_and_validate_size(
+          reader, reinterpret_cast<vec3f **>(&extra.data), &extra.totdata);
     }
     else if (extra.data) {
       extra.data = nullptr;
@@ -3831,18 +3850,19 @@ void BKE_ptcache_blend_read_data(BlendDataReader *reader,
       }
     }
 
-    BLO_read_struct(reader, PointCache, ocache);
+    BLO_read_struct_nonnull(reader, PointCache, ocache);
   }
-  else if (*ocache) {
+  else {
     /* old "single" caches need to be linked too */
-    BLO_read_struct(reader, PointCache, ocache);
-    direct_link_pointcache(reader, *ocache);
-    if (force_disk) {
-      (*ocache)->flag |= PTCACHE_DISK_CACHE;
-      (*ocache)->step = 1;
-    }
+    if (BLO_read_struct_nonnull(reader, PointCache, ocache)) {
+      direct_link_pointcache(reader, *ocache);
+      if (force_disk) {
+        (*ocache)->flag |= PTCACHE_DISK_CACHE;
+        (*ocache)->step = 1;
+      }
 
-    ptcaches->first = ptcaches->last = *ocache;
+      ptcaches->first = ptcaches->last = *ocache;
+    }
   }
 }
 

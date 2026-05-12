@@ -26,7 +26,7 @@ static void node_register()
 {
   static bke::bNodeType ntype;
 
-  fn_node_type_base(&ntype, "FunctionNodeStringLength"_ustr, FN_NODE_STRING_LENGTH);
+  fn_cmp_node_type_base(&ntype, "FunctionNodeStringLength"_ustr, FN_NODE_STRING_LENGTH);
   ntype.ui_name = "String Length";
   ntype.ui_description = "Output the number of characters in the given string";
   ntype.enum_name_legacy = "STRING_LENGTH";

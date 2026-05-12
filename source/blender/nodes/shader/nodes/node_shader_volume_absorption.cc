@@ -10,11 +10,14 @@ namespace nodes::node_shader_volume_absorption_cc {
 
 static void node_declare(NodeDeclarationBuilder &b)
 {
+  const bNodeTree *ntree = b.tree_or_null();
+  const bool is_gpu_internal = ntree && (ntree->flag & NTREE_IS_GPU_SHADER_INTERNAL);
+
   b.add_input<decl::Color>("Color"_ustr).default_value({0.8f, 0.8f, 0.8f, 1.0f});
 #define SOCK_COLOR_ID 0
   b.add_input<decl::Float>("Density"_ustr).default_value(1.0f).min(0.0f).max(1000.0f);
 #define SOCK_DENSITY_ID 1
-  b.add_input<decl::Float>("Weight"_ustr).available(false);
+  b.add_input<decl::Float>("Weight"_ustr).available(is_gpu_internal);
   b.add_output<decl::Shader>("Volume"_ustr).translation_context(BLT_I18NCONTEXT_ID_ID);
 }
 

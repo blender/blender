@@ -50,6 +50,7 @@ struct GPUDisplayParameters {
   float dither = 0.0f;
   float temperature = 6500.0f;
   float tint = 10.0f;
+  float opacity = 1.0f;
   bool use_white_balance = false;
   /* Divide RGB by alpha before performing the transform. */
   bool use_predivide = false;
@@ -62,6 +63,9 @@ struct GPUDisplayParameters {
   /* Rather than outputting colors for the specified display, output extended
    * sRGB colors emulating the specified display. */
   bool use_display_emulation = false;
+  /* Rather than outputting native display colors, output in a color space
+   * suitable for plotting SDR or HDR scopes. */
+  bool use_scope_space = false;
 };
 
 class GPUShaderBinder {

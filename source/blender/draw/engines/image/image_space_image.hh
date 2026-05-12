@@ -96,25 +96,23 @@ class SpaceImageAccessor : public AbstractSpaceAccessor {
     return sima->mode == SI_MODE_VIEW;
   }
 
-  void init_ss_to_texture_matrix(const ARegion *region,
-                                 const float image_offset[2],
-                                 const float image_resolution[2],
-                                 float r_uv_to_texture[4][4]) const override
+  float get_zoom() const override
   {
-    unit_m4(r_uv_to_texture);
-    float scale_x = 1.0 / BLI_rctf_size_x(&region->v2d.cur);
-    float scale_y = 1.0 / BLI_rctf_size_y(&region->v2d.cur);
+    return this->sima->zoom;
+  }
 
-    float display_offset_x = scale_x * image_offset[0] / image_resolution[0];
-    float display_offset_y = scale_y * image_offset[1] / image_resolution[1];
+  float get_aspect_ratio() const override
+  {
+    float2 aspect_ratio;
+    ED_space_image_get_aspect(this->sima, &aspect_ratio.x, &aspect_ratio.y);
+    return aspect_ratio.y;
+  }
 
-    float translate_x = scale_x * -region->v2d.cur.xmin + display_offset_x;
-    float translate_y = scale_y * -region->v2d.cur.ymin + display_offset_y;
-
-    r_uv_to_texture[0][0] = scale_x;
-    r_uv_to_texture[1][1] = scale_y;
-    r_uv_to_texture[3][0] = translate_x;
-    r_uv_to_texture[3][1] = translate_y;
+  float2 get_pan_offset() const override
+  {
+    /* The offsets are stored with zooming, so retrieve original offsets by multiplying the zoom.
+     * Furthermore, take the negatives since we want the offset of the image, not the space. */
+    return -float2(sima->xof, sima->yof) * sima->zoom;
   }
 };
 

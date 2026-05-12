@@ -22,6 +22,7 @@
 #include "BKE_context.hh"
 #include "BKE_global.hh"
 #include "BKE_idprop.hh"
+#include "DNA_asset_types.h"
 
 #ifdef WITH_PYTHON
 #  include "BPY_extern_run.hh"
@@ -54,7 +55,6 @@ RemoteAssetLibrary::RemoteAssetLibrary(const bUserAssetLibrary &custom_library)
 {
   BLI_assert(custom_library.flag & ASSET_LIBRARY_USE_REMOTE_URL);
 
-  import_method_ = ASSET_IMPORT_APPEND_REUSE;
   may_override_import_method_ = false;
   remote_url_ = custom_library.remote_url;
 }
@@ -78,6 +78,14 @@ std::optional<AssetLibraryReference> RemoteAssetLibrary::library_reference() con
   library_ref.type = ASSET_LIBRARY_CUSTOM;
   library_ref.custom_library_index = index;
   return library_ref;
+}
+
+std::optional<eAssetImportMethod> RemoteAssetLibrary::import_method() const
+{
+  if (U.experimental.no_data_block_packing) {
+    return ASSET_IMPORT_APPEND_REUSE;
+  }
+  return ASSET_IMPORT_PACK;
 }
 
 std::optional<StringRefNull> RemoteAssetLibrary::remote_url() const
@@ -589,7 +597,7 @@ std::string remote_library_asset_preview_path(const AssetRepresentation &asset)
      * either the period before the last extension, or the null character at the end of the file
      * name). */
     const char *ext = BLI_path_extension_or_end(preview_url->c_str());
-    BLI_snprintf(thumb_name, sizeof(thumb_name), "%s%s", hexdigest, ext);
+    SNPRINTF(thumb_name, "%s%s", hexdigest, ext);
   }
 
   /* First two letters of the thumbnail name (MD5 hash of the URI) as sub-directory name. */

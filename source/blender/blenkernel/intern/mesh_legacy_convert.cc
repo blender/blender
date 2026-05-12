@@ -841,7 +841,6 @@ static void mesh_loops_to_tessdata(Mesh &mesh,
                                    CustomData *fdata_legacy,
                                    CustomData *corner_data,
                                    MFace *mface,
-                                   const int *polyindices,
                                    uint (*loopindices)[4],
                                    const int num_faces)
 {
@@ -856,7 +855,6 @@ static void mesh_loops_to_tessdata(Mesh &mesh,
   const bool hasOrigSpace = CustomData_has_layer(corner_data, CD_ORIGSPACE_MLOOP);
   const bool hasLoopNormal = CustomData_has_layer(corner_data, CD_NORMAL);
   int findex, i, j;
-  const int *pidx;
   uint(*lidx)[4];
 
   const bke::AttributeAccessor attributes = mesh.attributes();
@@ -866,9 +864,7 @@ static void mesh_loops_to_tessdata(Mesh &mesh,
         CustomData_get_layer_n_for_write(fdata_legacy, CD_MTFACE, i, num_faces));
     const VArraySpan uv = *attributes.lookup<float2>(uv_names[i], bke::AttrDomain::Corner);
 
-    for (findex = 0, pidx = polyindices, lidx = loopindices; findex < num_faces;
-         pidx++, lidx++, findex++, texface++)
-    {
+    for (findex = 0, lidx = loopindices; findex < num_faces; lidx++, findex++, texface++) {
       for (j = (mface ? mface[findex].v4 : (*lidx)[3]) ? 4 : 3; j--;) {
         copy_v2_v2(texface->uv[j], uv[(*lidx)[j]]);
       }
@@ -1053,7 +1049,7 @@ static void mesh_tessface_calc(Mesh &mesh)
     lidx[3] = 0; \
     mf->mat_nr = material_indices[poly_index]; \
     mf->flag = sharp_faces[poly_index] ? 0 : ME_SMOOTH; \
-    mf->edcode = 0; \
+    mf->edcode = eMFace_EdgeCode{}; \
     (void)0
 
 /* ALMOST IDENTICAL TO DEFINE ABOVE (see EXCEPTION) */
@@ -1076,7 +1072,7 @@ static void mesh_tessface_calc(Mesh &mesh)
     lidx[3] = l4; \
     mf->mat_nr = material_indices[poly_index]; \
     mf->flag = sharp_faces[poly_index] ? 0 : ME_SMOOTH; \
-    mf->edcode = TESSFACE_IS_QUAD; \
+    mf->edcode = eMFace_EdgeCode(TESSFACE_IS_QUAD); \
     (void)0
 
     else if (mp_totloop == 3) {
@@ -1163,7 +1159,7 @@ static void mesh_tessface_calc(Mesh &mesh)
         lidx[3] = 0;
 
         mf->mat_nr = material_indices ? material_indices[poly_index] : 0;
-        mf->edcode = 0;
+        mf->edcode = eMFace_EdgeCode{};
 
         mface_index++;
       }
@@ -1204,8 +1200,7 @@ static void mesh_tessface_calc(Mesh &mesh)
    * (because they are sorted for polygons, and our quads are still mere copies of their polygons).
    * So we pass nullptr as #MFace pointer, and #mesh_loops_to_tessdata
    * will use the fourth loop index as quad test. */
-  mesh_loops_to_tessdata(
-      mesh, fdata_legacy, &mesh.corner_data, nullptr, mface_to_poly_map, lindices, totface);
+  mesh_loops_to_tessdata(mesh, fdata_legacy, &mesh.corner_data, nullptr, lindices, totface);
 
   /* NOTE: quad detection issue - fourth vert-index vs fourth loop-index:
    * ...However, most #TFace code uses `MFace->v4 == 0` test to check whether it is a tri or quad.
@@ -1216,7 +1211,7 @@ static void mesh_tessface_calc(Mesh &mesh)
   for (mface_index = 0; mface_index < totface; mface_index++, mf++) {
     if (mf->edcode == TESSFACE_IS_QUAD) {
       BKE_mesh_mface_index_validate(mf, fdata_legacy, mface_index, 4);
-      mf->edcode = 0;
+      mf->edcode = eMFace_EdgeCode{};
     }
   }
 #endif
@@ -1594,14 +1589,14 @@ void BKE_mesh_legacy_convert_flags_to_hide_layers(Mesh *mesh)
   if (mesh->medge) {
     const Span<MEdge> edges(mesh->medge, mesh->edges_num);
     if (std::any_of(edges.begin(), edges.end(), [](const MEdge &edge) {
-          return edge.flag_legacy & ME_HIDE;
+          return int(edge.flag_legacy) & ME_HIDE;
         }))
     {
       SpanAttributeWriter<bool> hide_edge = attributes.lookup_or_add_for_write_only_span<bool>(
           ".hide_edge", AttrDomain::Edge);
       threading::parallel_for(edges.index_range(), 4096, [&](IndexRange range) {
         for (const int i : range) {
-          hide_edge.span[i] = edges[i].flag_legacy & ME_HIDE;
+          hide_edge.span[i] = int(edges[i].flag_legacy) & ME_HIDE;
         }
       });
       hide_edge.finish();
@@ -1612,14 +1607,14 @@ void BKE_mesh_legacy_convert_flags_to_hide_layers(Mesh *mesh)
       static_cast<const MPoly *>(CustomData_get_layer(&mesh->face_data, CD_MPOLY)),
       mesh->faces_num);
   if (std::any_of(polys.begin(), polys.end(), [](const MPoly &poly) {
-        return poly.flag_legacy & ME_HIDE;
+        return int(poly.flag_legacy) & ME_HIDE;
       }))
   {
     SpanAttributeWriter<bool> hide_poly = attributes.lookup_or_add_for_write_only_span<bool>(
         ".hide_poly", AttrDomain::Face);
     threading::parallel_for(polys.index_range(), 4096, [&](IndexRange range) {
       for (const int i : range) {
-        hide_poly.span[i] = polys[i].flag_legacy & ME_HIDE;
+        hide_poly.span[i] = int(polys[i].flag_legacy) & ME_HIDE;
       }
     });
     hide_poly.finish();
@@ -2119,49 +2114,49 @@ static bNodeTree *add_auto_smooth_node_tree(Main &bmain, Library *owner_library)
 
   node_add_link(*group,
                 *edge_angle,
-                *node_find_socket(*edge_angle, SOCK_OUT, "Unsigned Angle"),
+                *node_find_socket(*edge_angle, SOCK_OUT, "Unsigned Angle"_ustr),
                 *less_than_or_equal,
-                *node_find_socket(*less_than_or_equal, SOCK_IN, "A"));
+                *node_find_socket(*less_than_or_equal, SOCK_IN, "A"_ustr));
   node_add_link(*group,
                 *shade_smooth_face,
-                *node_find_socket(*shade_smooth_face, SOCK_OUT, "Geometry"),
+                *node_find_socket(*shade_smooth_face, SOCK_OUT, "Geometry"_ustr),
                 *group_output,
-                *node_find_socket(*group_output, SOCK_IN, "Socket_0"));
+                *node_find_socket(*group_output, SOCK_IN, "Socket_0"_ustr));
   node_add_link(*group,
                 *group_input_angle,
-                *node_find_socket(*group_input_angle, SOCK_OUT, "Socket_2"),
+                *node_find_socket(*group_input_angle, SOCK_OUT, "Socket_2"_ustr),
                 *less_than_or_equal,
-                *node_find_socket(*less_than_or_equal, SOCK_IN, "B"));
+                *node_find_socket(*less_than_or_equal, SOCK_IN, "B"_ustr));
   node_add_link(*group,
                 *less_than_or_equal,
-                *node_find_socket(*less_than_or_equal, SOCK_OUT, "Result"),
+                *node_find_socket(*less_than_or_equal, SOCK_OUT, "Result"_ustr),
                 *boolean_and,
-                *node_find_socket(*boolean_and, SOCK_IN, "Boolean"));
+                *node_find_socket(*boolean_and, SOCK_IN, "Boolean"_ustr));
   node_add_link(*group,
                 *face_smooth,
-                *node_find_socket(*face_smooth, SOCK_OUT, "Smooth"),
+                *node_find_socket(*face_smooth, SOCK_OUT, "Smooth"_ustr),
                 *boolean_and,
-                *node_find_socket(*boolean_and, SOCK_IN, "Boolean_001"));
+                *node_find_socket(*boolean_and, SOCK_IN, "Boolean_001"_ustr));
   node_add_link(*group,
                 *group_input_mesh,
-                *node_find_socket(*group_input_mesh, SOCK_OUT, "Socket_1"),
+                *node_find_socket(*group_input_mesh, SOCK_OUT, "Socket_1"_ustr),
                 *shade_smooth_edge,
-                *node_find_socket(*shade_smooth_edge, SOCK_IN, "Geometry"));
+                *node_find_socket(*shade_smooth_edge, SOCK_IN, "Geometry"_ustr));
   node_add_link(*group,
                 *edge_smooth,
-                *node_find_socket(*edge_smooth, SOCK_OUT, "Smooth"),
+                *node_find_socket(*edge_smooth, SOCK_OUT, "Smooth"_ustr),
                 *shade_smooth_edge,
-                *node_find_socket(*shade_smooth_edge, SOCK_IN, "Selection"));
+                *node_find_socket(*shade_smooth_edge, SOCK_IN, "Selection"_ustr));
   node_add_link(*group,
                 *shade_smooth_edge,
-                *node_find_socket(*shade_smooth_edge, SOCK_OUT, "Geometry"),
+                *node_find_socket(*shade_smooth_edge, SOCK_OUT, "Geometry"_ustr),
                 *shade_smooth_face,
-                *node_find_socket(*shade_smooth_face, SOCK_IN, "Geometry"));
+                *node_find_socket(*shade_smooth_face, SOCK_IN, "Geometry"_ustr));
   node_add_link(*group,
                 *boolean_and,
-                *node_find_socket(*boolean_and, SOCK_OUT, "Boolean"),
+                *node_find_socket(*boolean_and, SOCK_OUT, "Boolean"_ustr),
                 *shade_smooth_edge,
-                *node_find_socket(*shade_smooth_edge, SOCK_IN, "Shade Smooth"));
+                *node_find_socket(*shade_smooth_edge, SOCK_IN, "Shade Smooth"_ustr));
 
   for (bNode &node : group->nodes) {
     node_set_selected(node, false);

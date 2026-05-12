@@ -293,6 +293,10 @@ class Device {
   /* Returns path guiding device handle. */
   virtual void *get_guiding_device() const;
 
+  /* Read back a device_memory byte buffer from device and OR values into the host buffer.
+   * The host buffer is not zeroed as part of this. */
+  virtual void mem_or_from_device(device_memory &mem);
+
   /* Sub-devices */
 
   /* Run given callback for every individual device which will be handling rendering.
@@ -383,7 +387,7 @@ class GPUDevice : public Device {
   size_t device_image_headroom = 0;
   size_t device_working_headroom = 0;
   using texMemObject = unsigned long long;
-  using arrayMemObject = unsigned long long;
+  using arrayMemObject = uintptr_t;
   struct Mem {
     Mem() = default;
 

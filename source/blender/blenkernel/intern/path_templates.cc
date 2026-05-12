@@ -872,11 +872,11 @@ static Vector<Error> eval_template(std::string *r_out_path,
 
       /* Curly brace escapes. */
       case TokenType::LEFT_CURLY_BRACE: {
-        strcpy(replacement_string, "{");
+        ARRAY_SET_ITEMS(replacement_string, '{', '\0');
         break;
       }
       case TokenType::RIGHT_CURLY_BRACE: {
-        strcpy(replacement_string, "}");
+        ARRAY_SET_ITEMS(replacement_string, '}', '\0');
         break;
       }
 

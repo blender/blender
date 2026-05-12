@@ -139,7 +139,7 @@ static bool geometry_node_tree_socket_type_valid(bke::bNodeTreeType * /*treetype
                SOCK_IMAGE,
                SOCK_MATERIAL,
                SOCK_MENU) ||
-          ELEM(socket_type->type, SOCK_BUNDLE, SOCK_CLOSURE, SOCK_FONT));
+          ELEM(socket_type->type, SOCK_BUNDLE, SOCK_CLOSURE, SOCK_FONT, SOCK_SOUND));
 }
 
 void register_node_tree_type_geo()

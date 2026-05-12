@@ -35,7 +35,7 @@ void BKE_freestyle_config_init(FreestyleConfig *config)
   config->mode = FREESTYLE_CONTROL_EDITOR_MODE;
 
   BLI_listbase_clear(&config->modules);
-  config->flags = 0;
+  config->flags = eFreestyleConfig_Flags{};
   config->sphere_radius = 0.1f;
   config->dkr_epsilon = 0.0f;
   config->crease_angle = DEG2RADF(134.43f);
@@ -178,7 +178,7 @@ FreestyleLineSet *BKE_freestyle_lineset_add(Main *bmain, FreestyleConfig *config
   lineset->qi_start = 0;
   lineset->qi_end = 100;
   lineset->edge_types = FREESTYLE_FE_SILHOUETTE | FREESTYLE_FE_BORDER | FREESTYLE_FE_CREASE;
-  lineset->exclude_edge_types = 0;
+  lineset->exclude_edge_types = eFreestyleLineSet_EdgeTypes{};
   lineset->group = nullptr;
   if (name) {
     STRNCPY_UTF8(lineset->name, name);

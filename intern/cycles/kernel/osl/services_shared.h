@@ -1179,7 +1179,7 @@ ccl_device_inline bool osl_shared_get_object_standard_attribute(KernelGlobals kg
     if (sd->type & PRIMITIVE_TRIANGLE) {
       const AttributeDescriptor desc = find_attribute(
           kg, sd->object, sd->prim, ATTR_STD_NORMAL_UNDISPLACED);
-      if (desc.offset != ATTR_STD_NOT_FOUND) {
+      if (is_attribute_found(desc)) {
         return osl_shared_get_object_attribute(kg, sd, desc, type, derivatives, val);
       }
       const float3 f = triangle_smooth_normal_unnormalized_object_space(kg, sd);

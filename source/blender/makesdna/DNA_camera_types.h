@@ -8,6 +8,7 @@
 
 #pragma once
 
+#include "BLI_enum_flags.hh"
 #include "BLI_math_constants.h"
 
 #include "DNA_ID.h"
@@ -22,7 +23,7 @@ struct AnimData;
 struct Object;
 
 /* type */
-enum {
+enum eCamera_Type : char {
   CAM_PERSP = 0,
   CAM_ORTHO = 1,
   CAM_PANO = 2,
@@ -30,7 +31,7 @@ enum {
 };
 
 /* panorama_type */
-enum {
+enum eCamera_PanoType : char {
   CAM_PANORAMA_EQUIRECTANGULAR = 0,
   CAM_PANORAMA_FISHEYE_EQUIDISTANT = 1,
   CAM_PANORAMA_FISHEYE_EQUISOLID = 2,
@@ -41,13 +42,13 @@ enum {
 };
 
 /* custom_mode */
-enum {
+enum eCamera_CustomMode : int {
   CAM_CUSTOM_SHADER_INTERNAL = 0,
   CAM_CUSTOM_SHADER_EXTERNAL = 1,
 };
 
 /* dtx */
-enum {
+enum eCamera_DrawExtraFlag : char {
   CAM_DTX_CENTER = (1 << 0),
   CAM_DTX_CENTER_DIAG = (1 << 1),
   CAM_DTX_THIRDS = (1 << 2),
@@ -57,9 +58,10 @@ enum {
   CAM_DTX_HARMONY_TRI_A = (1 << 6),
   CAM_DTX_HARMONY_TRI_B = (1 << 7),
 };
+ENUM_OPERATORS(eCamera_DrawExtraFlag)
 
 /* flag */
-enum {
+enum eCamera_Flag : short {
   CAM_SHOWLIMITS = (1 << 0),
   CAM_SHOWMIST = (1 << 1),
   CAM_SHOWPASSEPARTOUT = (1 << 2),
@@ -74,9 +76,10 @@ enum {
   CAM_SHOW_SAFE_CENTER = (1 << 9),
   CAM_SHOW_BG_IMAGE = (1 << 10),
 };
+ENUM_OPERATORS(eCamera_Flag)
 
 /* Sensor fit */
-enum {
+enum eCamera_SensorFit : char {
   CAMERA_SENSOR_FIT_AUTO = 0,
   CAMERA_SENSOR_FIT_HOR = 1,
   CAMERA_SENSOR_FIT_VERT = 2,
@@ -86,28 +89,29 @@ enum {
 #define DEFAULT_SENSOR_HEIGHT 24.0f
 
 /* stereo->convergence_mode */
-enum {
+enum eCamera_Stereo_ConvergenceMode : short {
   CAM_S3D_OFFAXIS = 0,
   CAM_S3D_PARALLEL = 1,
   CAM_S3D_TOE = 2,
 };
 
 /* stereo->pivot */
-enum {
+enum eCamera_Stereo_Pivot : short {
   CAM_S3D_PIVOT_LEFT = 0,
   CAM_S3D_PIVOT_RIGHT = 1,
   CAM_S3D_PIVOT_CENTER = 2,
 };
 
 /* stereo->flag */
-enum {
+enum eCamera_Stereo_Flag : short {
   CAM_S3D_SPHERICAL = (1 << 0),
   CAM_S3D_POLE_MERGE = (1 << 1),
 };
+ENUM_OPERATORS(eCamera_Stereo_Flag)
 
 /* CameraBGImage->flag */
 /* may want to use 1 for select ? */
-enum {
+enum eCamera_BGImage_Flag : short {
   CAM_BGIMG_FLAG_EXPANDED = (1 << 1),
   CAM_BGIMG_FLAG_CAMERACLIP = (1 << 2),
   CAM_BGIMG_FLAG_DISABLED = (1 << 3),
@@ -126,27 +130,29 @@ enum {
   /* That background image has been inserted in local override (i.e. it can be fully edited!). */
   CAM_BGIMG_FLAG_OVERRIDE_LIBRARY_LOCAL = (1 << 9),
 };
+ENUM_OPERATORS(eCamera_BGImage_Flag)
 
 /* CameraBGImage->source */
 /* may want to use 1 for select? */
-enum {
+enum eCamera_BGImage_Source : short {
   CAM_BGIMG_SOURCE_IMAGE = 0,
   CAM_BGIMG_SOURCE_MOVIE = 1,
 };
 
 /* CameraDOFSettings->flag */
-enum {
+enum eCamera_DOF_Flag : short {
   CAM_DOF_ENABLED = (1 << 0),
 };
+ENUM_OPERATORS(eCamera_DOF_Flag)
 
 /* ------------------------------------------- */
 /* Stereo Settings */
 struct CameraStereoSettings {
   float interocular_distance = 0.065f;
   float convergence_distance = 30.0f * 0.065f;
-  short convergence_mode = 0;
-  short pivot = 0;
-  short flag = 0;
+  eCamera_Stereo_ConvergenceMode convergence_mode = {};
+  eCamera_Stereo_Pivot pivot = {};
+  eCamera_Stereo_Flag flag = {};
   char _pad[2] = {};
   /* Cut-off angle at which interocular distance start to fade down. */
   float pole_merge_angle_from = DEG2RADF(60.0f);
@@ -164,8 +170,8 @@ struct CameraBGImage {
   struct MovieClipUser cuser;
   float offset[2] = {}, scale = 0, rotation = 0;
   float alpha = 0;
-  short flag = 0;
-  short source = 0;
+  eCamera_BGImage_Flag flag = {};
+  eCamera_BGImage_Source source = {};
 };
 
 /** Properties for dof effect. */
@@ -178,7 +184,7 @@ struct CameraDOFSettings {
   float aperture_rotation = 0;
   float aperture_ratio = 1.0f;
   int aperture_blades = 0;
-  short flag = 0;
+  eCamera_DOF_Flag flag = {};
   char _pad[2] = {};
 };
 
@@ -202,10 +208,10 @@ struct Camera {
   struct AnimData *adt = nullptr;
 
   /** CAM_PERSP, CAM_ORTHO, CAM_PANO or CAM_CUSTOM. */
-  char type = 0;
+  eCamera_Type type = {};
   /** Draw type extra. */
-  char dtx = 0;
-  short flag = CAM_SHOWPASSEPARTOUT;
+  eCamera_DrawExtraFlag dtx = {};
+  eCamera_Flag flag = CAM_SHOWPASSEPARTOUT;
   float passepartalpha = 0.5f;
   float clip_start = 0.1f, clip_end = 1000.0f;
   float lens = 50.0f, ortho_scale = 6.0, drawsize = 1.0f;
@@ -213,8 +219,8 @@ struct Camera {
   float shiftx = 0, shifty = 0;
   DNA_DEPRECATED float dof_distance = 0;
 
-  char sensor_fit = 0;
-  char panorama_type = CAM_PANORAMA_FISHEYE_EQUISOLID;
+  eCamera_SensorFit sensor_fit = {};
+  eCamera_PanoType panorama_type = CAM_PANORAMA_FISHEYE_EQUISOLID;
   char _pad[2] = {};
 
   /* Fish-eye properties. */
@@ -243,7 +249,7 @@ struct Camera {
 
   char custom_bytecode_hash[64] = "";
   char *custom_bytecode = nullptr;
-  int custom_mode = 0;
+  eCamera_CustomMode custom_mode = {};
   int _pad3 = {};
 
   DNA_DEPRECATED struct Object *dof_ob = nullptr;

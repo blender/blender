@@ -8,9 +8,10 @@ import pathlib
 import sys
 import tempfile
 import unittest
-from pxr import Ar, Gf, Sdf, Usd, UsdGeom, UsdShade, UsdUI
+from pxr import Ar, Gf, Sdf, Usd, UsdGeom, UsdLux, UsdShade, UsdUI
 
 import bpy
+import mathutils
 
 sys.path.append(str(pathlib.Path(__file__).parent.absolute()))
 from modules.colored_print import (print_message, use_message_colors)
@@ -1846,6 +1847,87 @@ class USDImportTest(AbstractUSDTest):
         self.assertEqual(xform[alt_label_key], alt_label_attr.Get())
         self.assertIn(alt_description_key, xform, "Alternate description should be imported")
         self.assertEqual(xform[alt_description_key], alt_description_attr.Get())
+
+    def test_import_colorspace(self):
+        """Test colorspace conversion on import, including hierarchy and per-prim override."""
+
+        texfile = str(self.testdir / "textures/test_grid_1001.png")
+        usd_path = self.tempdir / "colorspace_test.usda"
+
+        light_color = mathutils.Color((0.8, 0.2, 0.1))
+        mesh_color = mathutils.Color((0.3, 0.5, 1.0))
+
+        stage = Usd.Stage.CreateNew(str(usd_path))
+        root = UsdGeom.Xform.Define(stage, "/root")
+        stage.SetDefaultPrim(root.GetPrim())
+
+        # Set ACEScg linear colorspace on the root, inherited by children.
+        cs_api = Usd.ColorSpaceAPI.Apply(root.GetPrim())
+        cs_api.CreateColorSpaceNameAttr("lin_ap1_scene")
+
+        # Light inherits lin_ap1_scene from root.
+        light = UsdLux.SphereLight.Define(stage, "/root/Light")
+        light.CreateColorAttr(Gf.Vec3f(*light_color))
+        light.CreateIntensityAttr(1.0)
+
+        # Mesh with displayColor overridden to sRGB.
+        mesh = UsdGeom.Mesh.Define(stage, "/root/Mesh")
+        mesh.CreatePointsAttr([Gf.Vec3f(0, 0, 0), Gf.Vec3f(1, 0, 0),
+                               Gf.Vec3f(1, 1, 0), Gf.Vec3f(0, 1, 0)])
+        mesh.CreateFaceVertexCountsAttr([4])
+        mesh.CreateFaceVertexIndicesAttr([0, 1, 2, 3])
+        mesh_cs_api = Usd.ColorSpaceAPI.Apply(mesh.GetPrim())
+        mesh_cs_api.CreateColorSpaceNameAttr("srgb_rec709_scene")
+        pv_api = UsdGeom.PrimvarsAPI(mesh)
+        color_pv = pv_api.CreatePrimvar("displayColor",
+                                        Sdf.ValueTypeNames.Color3fArray,
+                                        UsdGeom.Tokens.constant)
+        color_pv.Set([Gf.Vec3f(*mesh_color)])
+
+        # Material with a texture that has ColorSpaceAPI set to Non-Color/data.
+        mat = UsdShade.Material.Define(stage, "/root/Material")
+        shader = UsdShade.Shader.Define(stage, "/root/Material/Surface")
+        shader.CreateIdAttr("UsdPreviewSurface")
+        mat.CreateSurfaceOutput().ConnectToSource(shader.ConnectableAPI(), "surface")
+        tex = UsdShade.Shader.Define(stage, "/root/Material/Texture")
+        tex.CreateIdAttr("UsdUVTexture")
+        tex.CreateInput('file', Sdf.ValueTypeNames.Asset).Set(texfile)
+        tex.CreateOutput("rgb", Sdf.ValueTypeNames.Float3)
+        shader.CreateInput("diffuseColor", Sdf.ValueTypeNames.Color3f).ConnectToSource(
+            tex.ConnectableAPI(), "rgb")
+        tex_cs_api = Usd.ColorSpaceAPI.Apply(tex.GetPrim())
+        tex_cs_api.CreateColorSpaceNameAttr("data")
+
+        # Bind material to mesh.
+        UsdShade.MaterialBindingAPI.Apply(mesh.GetPrim()).Bind(mat)
+
+        stage.Save()
+
+        res = bpy.ops.wm.usd_import(filepath=str(usd_path))
+        self.assertEqual({'FINISHED'}, res, f"Unable to import USD file {usd_path}")
+
+        # Light inherits lin_ap1_scene, gets converted to lin_rec709_scene.
+        light_data = bpy.data.lights.get("Light")
+        self.assertIsNotNone(light_data, "Light should be imported")
+        expected_light = light_color.from_acescg_to_scene_linear()
+        for i in range(3):
+            self.assertAlmostEqual(light_data.color[i], expected_light[i], places=2)
+
+        # Mesh displayColor has sRGB override, gets converted to lin_rec709_scene.
+        mesh_obj = bpy.data.objects.get("Mesh")
+        self.assertIsNotNone(mesh_obj, "Mesh should be imported")
+        color_attr = mesh_obj.data.color_attributes.get("displayColor")
+        self.assertIsNotNone(color_attr, "displayColor attribute should exist")
+        expected_mesh = mesh_color.from_srgb_to_scene_linear()
+        for sample in color_attr.data:
+            for i in range(3):
+                self.assertAlmostEqual(sample.color[i], expected_mesh[i], places=2)
+
+        # Texture with "data" colorspace should be imported as Non-Color.
+        tex_image = bpy.data.images.get("test_grid_1001.png")
+        self.assertIsNotNone(tex_image, "Texture image should be imported")
+        self.assertTrue(tex_image.colorspace_settings.name == "Non-Color",
+                        f"Texture should be non-color, got '{tex_image.colorspace_settings.name}'")
 
 
 class USDImportComparisonTest(unittest.TestCase):

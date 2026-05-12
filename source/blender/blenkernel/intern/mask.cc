@@ -151,13 +151,13 @@ static void mask_blend_read_data(BlendDataReader *reader, ID *id)
     for (MaskSpline &spline : masklay.splines) {
       MaskSplinePoint *points_old = spline.points;
 
-      BLO_read_struct_array(reader, MaskSplinePoint, spline.tot_point, &spline.points);
+      BLO_read_array_and_validate_size(reader, &spline.points, &spline.tot_point);
 
       for (int i = 0; i < spline.tot_point; i++) {
         MaskSplinePoint *point = &spline.points[i];
 
         if (point->tot_uw) {
-          BLO_read_struct_array(reader, MaskSplinePointUW, point->tot_uw, &point->uw);
+          BLO_read_array_and_validate_size(reader, &point->uw, &point->tot_uw);
         }
       }
 
@@ -172,9 +172,13 @@ static void mask_blend_read_data(BlendDataReader *reader, ID *id)
     BLO_read_struct_list(reader, MaskLayerShape, &masklay.splines_shapes);
 
     for (MaskLayerShape &masklay_shape : masklay.splines_shapes) {
-      BLO_read_float_array(reader,
-                           masklay_shape.tot_vert * (sizeof(MaskLayerShapeElem) / sizeof(float)),
-                           &masklay_shape.data);
+      if (!BLO_read_array(reader,
+                          &masklay_shape.data,
+                          masklay_shape.tot_vert,
+                          sizeof(MaskLayerShapeElem) / sizeof(float)))
+      {
+        masklay_shape.tot_vert = 0;
+      }
     }
 
     BLO_read_struct(reader, MaskSpline, &masklay.act_spline);
@@ -950,14 +954,14 @@ void BKE_mask_point_select_set_handle(MaskSplinePoint *point,
 {
   if (do_select) {
     if (ELEM(which_handle, MASK_WHICH_HANDLE_STICK, MASK_WHICH_HANDLE_BOTH)) {
-      point->bezt.f1 |= SELECT;
-      point->bezt.f3 |= SELECT;
+      point->bezt.f1 |= BEZT_FLAG_SELECT;
+      point->bezt.f3 |= BEZT_FLAG_SELECT;
     }
     else if (which_handle == MASK_WHICH_HANDLE_LEFT) {
-      point->bezt.f1 |= SELECT;
+      point->bezt.f1 |= BEZT_FLAG_SELECT;
     }
     else if (which_handle == MASK_WHICH_HANDLE_RIGHT) {
-      point->bezt.f3 |= SELECT;
+      point->bezt.f3 |= BEZT_FLAG_SELECT;
     }
     else {
       BLI_assert_msg(0, "Wrong which_handle passed to BKE_mask_point_select_set_handle");
@@ -965,14 +969,14 @@ void BKE_mask_point_select_set_handle(MaskSplinePoint *point,
   }
   else {
     if (ELEM(which_handle, MASK_WHICH_HANDLE_STICK, MASK_WHICH_HANDLE_BOTH)) {
-      point->bezt.f1 &= ~SELECT;
-      point->bezt.f3 &= ~SELECT;
+      point->bezt.f1 &= ~BEZT_FLAG_SELECT;
+      point->bezt.f3 &= ~BEZT_FLAG_SELECT;
     }
     else if (which_handle == MASK_WHICH_HANDLE_LEFT) {
-      point->bezt.f1 &= ~SELECT;
+      point->bezt.f1 &= ~BEZT_FLAG_SELECT;
     }
     else if (which_handle == MASK_WHICH_HANDLE_RIGHT) {
-      point->bezt.f3 &= ~SELECT;
+      point->bezt.f3 &= ~BEZT_FLAG_SELECT;
     }
     else {
       BLI_assert_msg(0, "Wrong which_handle passed to BKE_mask_point_select_set_handle");
@@ -1463,7 +1467,7 @@ void BKE_mask_calc_handle_point_auto(MaskSpline *spline,
                                      const bool do_recalc_length)
 {
   MaskSplinePoint *point_prev, *point_next;
-  const uint8_t h_back[2] = {point->bezt.h1, point->bezt.h2};
+  const eBezTriple_Handle h_back[2] = {point->bezt.h1, point->bezt.h2};
   const float length_average = (do_recalc_length) ?
                                    0.0f /* dummy value */ :
                                    (len_v3v3(point->bezt.vec[0], point->bezt.vec[1]) +

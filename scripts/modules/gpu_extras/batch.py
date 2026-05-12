@@ -19,6 +19,8 @@ def batch_for_shader(shader, type, content, *, indices=None):
        For the dictionary values see documentation for :class:`gpu.types.GPUVertBuf.attr_fill` data argument.
     :type content: dict[str, Buffer | Sequence[float] | Sequence[int] | \
 Sequence[Sequence[float]] | Sequence[Sequence[int]]]
+    :param indices: Optional index buffer contents. When omitted, the batch draws all vertices in order.
+    :type indices: Sequence[int] | Sequence[Sequence[int]] | None
     :return: compatible batch
     :rtype: :class:`gpu.types.GPUBatch`
     """

@@ -39,6 +39,9 @@ struct DisplayParameters {
   /* Rather than outputting colors for the specified display, output extended
    * sRGB colors emulating the specified display. */
   bool use_display_emulation = false;
+  /* Rather than outputting native display colors, output in a color space
+   * suitable for plotting SDR or HDR scopes. */
+  bool use_scope_space = false;
   /* Invert the entire transform. */
   bool inverse = false;
 };

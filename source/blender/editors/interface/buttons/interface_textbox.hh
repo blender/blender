@@ -34,7 +34,7 @@ void textbox_textedit_set_cursor_pos(ButtonTextBox *textbox,
                                      const ARegion *region,
                                      const float2 xy);
 
-/** Returns the index of the which containings the string offset. */
+/** Returns the index of the line which contains the string offset. */
 int textbox_wrapped_line_index_from_char_offset(Span<StringRef> lines, int offset);
 
 /**
@@ -51,12 +51,12 @@ void textbox_jump_line(ButtonTextBox *textbox,
  */
 Vector<StringRef> textbox_wrap_lines(ButtonTextBox *textbox);
 
+Vector<StringRef> textbox_wrap_placeholder(ButtonTextBox *textbox);
+
 float textbox_grip_height();
 
-/* Top padding for text in a textbox. */
-float textbox_padding_top();
-/* Bottom padding for text in a textbox, this includes grip height. */
-float textbox_padding_bottom();
+/* Top/Bottom padding for text in a text-box. */
+float textbox_vertical_padding();
 
 TextboxState *textbox_ensure_state(ARegion *region, StringRefNull idname);
 

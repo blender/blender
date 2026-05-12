@@ -745,6 +745,31 @@ template<typename T> void nestedholes_test()
   CDT_result<T> out3 = delaunay_2d_calc(in, CDT_INSIDE_WITH_HOLES);
   EXPECT_EQ(out3.vert.size(), 12);
   EXPECT_EQ(out3.face.size(), 10);
+  {
+    int v8 = get_orig_index(out3.vert_orig, 8);
+    int v9 = get_orig_index(out3.vert_orig, 9);
+    int v10 = get_orig_index(out3.vert_orig, 10);
+    int v11 = get_orig_index(out3.vert_orig, 11);
+    EXPECT_NE(v8, -1);
+    EXPECT_NE(v9, -1);
+    EXPECT_NE(v10, -1);
+    EXPECT_NE(v11, -1);
+
+    int f_inner_a = get_output_tri_index(out3, v8, v9, v10);
+    int f_inner_b = get_output_tri_index(out3, v8, v10, v11);
+    int f_inner_c = get_output_tri_index(out3, v8, v9, v11);
+    int f_inner_d = get_output_tri_index(out3, v9, v10, v11);
+    EXPECT_TRUE((f_inner_a != -1 && f_inner_b != -1) || (f_inner_c != -1 && f_inner_d != -1));
+
+    bool found_face_2 = false;
+    for (int f = 0; f < int(out3.face.size()); f++) {
+      if (output_face_has_input_id(out3, f, 2)) {
+        found_face_2 = true;
+        break;
+      }
+    }
+    EXPECT_TRUE(found_face_2);
+  }
   if (DO_DRAW) {
     graph_draw<T>("NestedHoles - inside with holes", out3.vert, out3.edge, out3.face);
   }
@@ -753,6 +778,283 @@ template<typename T> void nestedholes_test()
   EXPECT_EQ(out4.face.size(), 3);
   if (DO_DRAW) {
     graph_draw<T>("NestedHoles - valid bmesh with holes", out4.vert, out4.edge, out4.face);
+  }
+}
+
+template<typename T> void even_odd_nested_holes_deep_test()
+{
+  /* Five concentric squares - one nesting level deeper than `NestedHoles`. Filled bands are
+   * the outermost ring, the third ring, and the innermost square; the second and fourth
+   * rings are holes. An off-by-one in the parity XOR would mis-fill an alternate ring. */
+  const char *spec = R"(20 0 5
+  -0.5 -0.5
+  0.5 -0.5
+  0.5 0.5
+  -0.5 0.5
+  -0.4 -0.4
+  0.4 -0.4
+  0.4 0.4
+  -0.4 0.4
+  -0.3 -0.3
+  0.3 -0.3
+  0.3 0.3
+  -0.3 0.3
+  -0.2 -0.2
+  0.2 -0.2
+  0.2 0.2
+  -0.2 0.2
+  -0.1 -0.1
+  0.1 -0.1
+  0.1 0.1
+  -0.1 0.1
+  0 1 2 3
+  4 5 6 7
+  8 9 10 11
+  12 13 14 15
+  16 17 18 19
+  )";
+
+  CDT_input<T> in = fill_input_from_string<T>(spec);
+  CDT_result<T> out = delaunay_2d_calc(in, CDT_INSIDE_WITH_HOLES);
+
+  /* Three filled bands: outermost ring (8 tris), middle filled ring (8 tris),
+   * innermost square (2 tris) -> 18 triangles total. */
+  EXPECT_EQ(out.vert.size(), 20);
+  EXPECT_EQ(out.face.size(), 18);
+
+  /* Innermost square (input ids 16..19) must be present and filled. */
+  int v_i[4];
+  for (int k = 0; k < 4; k++) {
+    v_i[k] = get_orig_index(out.vert_orig, k + 16);
+    EXPECT_NE(v_i[k], -1);
+  }
+  bool inner_a = get_output_tri_index(out, v_i[0], v_i[1], v_i[2]) != -1 &&
+                 get_output_tri_index(out, v_i[0], v_i[2], v_i[3]) != -1;
+  bool inner_b = get_output_tri_index(out, v_i[0], v_i[1], v_i[3]) != -1 &&
+                 get_output_tri_index(out, v_i[1], v_i[2], v_i[3]) != -1;
+  EXPECT_TRUE(inner_a || inner_b);
+
+  /* Innermost-square input-id (4) appears on at least one output face. */
+  bool found_inner_id = false;
+  for (int f = 0; f < int(out.face.size()); f++) {
+    if (output_face_has_input_id(out, f, 4)) {
+      found_inner_id = true;
+      break;
+    }
+  }
+  EXPECT_TRUE(found_inner_id);
+
+  /* The ring between sq1 and sq2 (input ids 1 and 2) must be a hole - no output face is
+   * "inside sq1 but not sq2". Without this, a buggy `{ring2, ring3, innermost}` fill would
+   * pass the count + innermost checks (8 + 8 + 2 = 18, innermost filled). */
+  bool found_ring2_face = false;
+  for (int f = 0; f < int(out.face.size()); f++) {
+    if (output_face_has_input_id(out, f, 1) && !output_face_has_input_id(out, f, 2)) {
+      found_ring2_face = true;
+      break;
+    }
+  }
+  EXPECT_FALSE(found_ring2_face);
+
+  if (DO_DRAW) {
+    graph_draw<T>("EvenOddNestedHolesDeep", out.vert, out.edge, out.face);
+  }
+}
+
+template<typename T> void even_odd_boundary_disagreement_test()
+{
+  /* Outer rectangle (input id 0) and inner rectangle (input id 1) sharing a portion of the
+   * convex hull. The inner's bottom edge `(1,0)-(3,0)` lies on the outer's bottom edge
+   * `(0,0)-(4,0)`, so the CDT splits the bottom hull at verts 4 and 5 and produces three
+   * boundary edges with mixed multiplicities:
+   *   `(0,0)-(1,0)` and `(3,0)-(4,0)` carry only the outer polygon -> flip 1.
+   *   `(1,0)-(3,0)` carries both polygons                          -> flip 0.
+   * The "inside outer, outside inner" flood-region thus has multiple boundary edges to
+   * `outer_face` with mixed flips, so the boundary-disagreement branch in
+   * `detect_holes_with_fillrule_even_odd` is reachable on this input.
+   *
+   * Note: this test pins the *output* ("inside outer, outside inner" filled, "inside inner"
+   * a hole) on a specific input that exercises the disagreement branch; it does not by
+   * itself distinguish "filled wins" from a hypothetical "first wins" rule, since for this
+   * input the `cdt->edges` iteration order happens to visit a flip=1 edge first. A more
+   * discriminating test would need to control that order. */
+  const char *spec = R"(8 0 2
+  0 0
+  4 0
+  4 2
+  0 2
+  1 0
+  3 0
+  3 1
+  1 1
+  0 1 2 3
+  4 5 6 7
+  )";
+
+  CDT_input<T> in = fill_input_from_string<T>(spec);
+  CDT_result<T> out = delaunay_2d_calc(in, CDT_INSIDE_WITH_HOLES);
+
+  /* All 8 input verts survive. Total Delaunay triangles with `H = 6` hull verts (the four
+   * outer corners plus 4 and 5, both collinear on the bottom hull) is `2V - H - 2 = 8`.
+   * The 2 inner-rectangle triangles are holes; the remaining 6 in the U-shaped outer region
+   * survive. */
+  EXPECT_EQ(out.vert.size(), 8);
+  EXPECT_EQ(out.face.size(), 6);
+
+  /* Every output face is inside the outer polygon (input id 0) and none is inside the
+   * inner one (input id 1). A regression that flipped the conflict-resolution rule and
+   * marked the outer region as a hole would invert this: only the 2 inner-rect triangles
+   * would survive and all output faces would have input id 1. */
+  for (int f = 0; f < int(out.face.size()); f++) {
+    EXPECT_TRUE(output_face_has_input_id(out, f, 0));
+    EXPECT_FALSE(output_face_has_input_id(out, f, 1));
+  }
+
+  if (DO_DRAW) {
+    graph_draw<T>("EvenOddBoundaryDisagreement", out.vert, out.edge, out.face);
+  }
+}
+
+/* Outer 4x4 rect plus a 2x2 inner rect listed twice.
+ *
+ * Ensure fixed:
+ *
+ * - Outer edges count 1 (flip 1), inner edges count 2 (flip 0): outer ring reaches
+ *   parity 1 from `outer_face`, "inside inner" inherits via flip 0. All 10 triangles
+ *   filled.
+ * - Even-odd is independent of `need_ids`: the detector reads `polygon_boundary_count_map`,
+ *   not `CDTEdge::input_ids` (which collapses when `need_ids = false`). */
+template<typename T> void even_odd_coincident_polygons_need_ids_stable_test()
+{
+  const char *spec = R"(8 0 3
+  0.0 0.0
+  4.0 0.0
+  4.0 4.0
+  0.0 4.0
+  1.0 1.0
+  3.0 1.0
+  3.0 3.0
+  1.0 3.0
+  0 1 2 3
+  4 5 6 7
+  4 5 6 7
+  )";
+
+  CDT_input<T> in_with_ids = fill_input_from_string<T>(spec);
+  in_with_ids.need_ids = true;
+  CDT_result<T> out_with_ids = delaunay_2d_calc(in_with_ids, CDT_INSIDE_WITH_HOLES);
+
+  CDT_input<T> in_no_ids = fill_input_from_string<T>(spec);
+  in_no_ids.need_ids = false;
+  CDT_result<T> out_no_ids = delaunay_2d_calc(in_no_ids, CDT_INSIDE_WITH_HOLES);
+
+  /* V=8, H=4 hull -> 2V - H - 2 = 10 triangles. */
+  EXPECT_EQ(out_with_ids.vert.size(), 8);
+  EXPECT_EQ(out_with_ids.face.size(), 10);
+
+  EXPECT_EQ(out_no_ids.vert.size(), out_with_ids.vert.size());
+  EXPECT_EQ(out_no_ids.edge.size(), out_with_ids.edge.size());
+  EXPECT_EQ(out_no_ids.face.size(), out_with_ids.face.size());
+
+  /* Non-zero fills everywhere too (outer ring winding +1, inside inner +3). */
+  CDT_result<T> out_nonzero = delaunay_2d_calc(in_with_ids, CDT_INSIDE_WITH_HOLES_NONZERO);
+  EXPECT_EQ(out_nonzero.vert.size(), 8);
+  EXPECT_EQ(out_nonzero.face.size(), 10);
+
+  if (DO_DRAW) {
+    graph_draw<T>("EvenOddCoincidentPolygonsNeedIdsStable - even-odd",
+                  out_with_ids.vert,
+                  out_with_ids.edge,
+                  out_with_ids.face);
+    graph_draw<T>("EvenOddCoincidentPolygonsNeedIdsStable - non-zero",
+                  out_nonzero.vert,
+                  out_nonzero.edge,
+                  out_nonzero.face);
+  }
+}
+
+/**
+ * Single face whose vertex list traces an outer ring and an inner ring, then repeats the
+ * whole sequence. Each unique boundary edge is walked twice within one face. Without
+ * per-face dedup of polygon-boundary counts, the face is dropped entirely.
+ */
+template<typename T> void even_odd_self_doubled_polygon_with_hole_test()
+{
+  const char *spec = R"(16 0 1
+  0.0 0.0
+  0.0 4.0
+  4.0 4.0
+  4.0 0.0
+  1.0 1.0
+  1.0 3.0
+  3.0 3.0
+  3.0 1.0
+  0.0 0.0
+  0.0 4.0
+  4.0 4.0
+  4.0 0.0
+  1.0 1.0
+  1.0 3.0
+  3.0 3.0
+  3.0 1.0
+  0 1 2 3 4 5 6 7 8 9 10 11 12 13 14 15
+  )";
+
+  CDT_input<T> in = fill_input_from_string<T>(spec);
+  in.need_ids = true;
+
+  CDT_result<T> out = delaunay_2d_calc(in, CDT_CONSTRAINTS_VALID_BMESH_WITH_HOLES);
+  if (DO_DRAW) {
+    graph_draw<T>("EvenOddSelfDoubledPolygonWithHole", out.vert, out.edge, out.face);
+  }
+
+  EXPECT_EQ(out.vert.size(), 9);
+  EXPECT_EQ(out.edge.size(), 11);
+  EXPECT_EQ(out.face.size(), 2);
+}
+
+template<typename T> void disjoint_polys_in_large_hull_test()
+{
+  const char *spec = R"(6 0 2
+  0.0 0.0
+  1.0 0.0
+  0.5 1.0
+  3.0 0.0
+  4.0 0.0
+  3.5 1.0
+  0 1 2
+  3 4 5
+  )";
+
+  CDT_input<T> in = fill_input_from_string<T>(spec);
+
+  CDT_result<T> out = delaunay_2d_calc(in, CDT_INSIDE_WITH_HOLES);
+  EXPECT_EQ(out.vert.size(), 6);
+  EXPECT_EQ(out.face.size(), 2);
+
+  int verts[6];
+  for (int i = 0; i < 6; i++) {
+    verts[i] = get_orig_index(out.vert_orig, i);
+    EXPECT_NE(verts[i], -1);
+  }
+
+  int f_a = get_output_tri_index(out, verts[0], verts[1], verts[2]);
+  int f_b = get_output_tri_index(out, verts[3], verts[4], verts[5]);
+  EXPECT_NE(f_a, -1);
+  EXPECT_NE(f_b, -1);
+  EXPECT_TRUE(output_face_has_input_id(out, f_a, 0));
+  EXPECT_TRUE(output_face_has_input_id(out, f_b, 1));
+
+  /* The non-zero rule gets count checks only, not per-face checks.
+   * The optimization being validated lives in the even-odd path.
+   * the non-zero check exists only to confirm this geometry does
+   * not distinguish the two rules. */
+  CDT_result<T> out_nonzero = delaunay_2d_calc(in, CDT_INSIDE_WITH_HOLES_NONZERO);
+  EXPECT_EQ(out_nonzero.vert.size(), 6);
+  EXPECT_EQ(out_nonzero.face.size(), 2);
+
+  if (DO_DRAW) {
+    graph_draw<T>("DisjointPolysInLargeHull", out.vert, out.edge, out.face);
   }
 }
 
@@ -1061,10 +1363,47 @@ template<typename T> void nonzero_winding_multi_face_edge_test()
   EXPECT_EQ(out_evenodd.vert.size(), 8);
   EXPECT_EQ(out_nonzero.vert.size(), 8);
 
-  /* Even-odd: middle band [1,2] is a hole (2 crossings = outside).
-   * Non-zero: all bands filled (winding > 0).
-   * So non-zero should have more faces than even-odd. */
-  EXPECT_LT(out_evenodd.face.size(), out_nonzero.face.size());
+  /* The 3 stacked rectangles share the bottom edge (multiplicity 3). The bottom
+   * band (y=0..1) is inside all 3 polygons (3 crossings -> odd -> filled),
+   * the middle band (y=1..2) is inside 2 polygons (-> hole), and the top
+   * band (y=2..3) is inside 1 polygon (-> filled). So even-odd fills the
+   * bottom and top bands and removes the middle band; non-zero has all
+   * positive winding so it fills all 3 bands. */
+  EXPECT_EQ(out_evenodd.face.size(), 4);
+  EXPECT_EQ(out_nonzero.face.size(), 6);
+
+  /* Pin which 4 triangles survive in even-odd. Each band is a quadrilateral
+   * split into 2 triangles. The bottom band uses verts 0,1,2,3; the middle
+   * band 2,3,4,5; the top band 4,5,6,7. Even-odd output must contain the
+   * bottom band's 2 tris and the top band's 2 tris, and must NOT contain
+   * the middle band's 2 tris. Catches a balanced-swap bug that would
+   * preserve the count of 4 by filling middle and removing top, for
+   * example. */
+  for (CDT_result<T> *out_p : {&out_evenodd, &out_nonzero}) {
+    CDT_result<T> &out = *out_p;
+    int verts[8];
+    for (int i = 0; i < 8; i++) {
+      verts[i] = get_orig_index(out.vert_orig, i);
+      EXPECT_NE(verts[i], -1);
+    }
+    /* Bottom band tris (v0,v1,v3) and (v1,v2,v3): present in both rules. */
+    EXPECT_NE(get_output_tri_index(out, verts[3], verts[0], verts[1]), -1);
+    EXPECT_NE(get_output_tri_index(out, verts[1], verts[2], verts[3]), -1);
+    /* Top band tris (v4,v5,v7) and (v4,v6,v7): present in both rules. */
+    EXPECT_NE(get_output_tri_index(out, verts[7], verts[5], verts[4]), -1);
+    EXPECT_NE(get_output_tri_index(out, verts[4], verts[6], verts[7]), -1);
+    /* Middle band tris (v2,v3,v5) and (v2,v4,v5): present only in non-zero. */
+    int f_mid_a = get_output_tri_index(out, verts[5], verts[3], verts[2]);
+    int f_mid_b = get_output_tri_index(out, verts[2], verts[4], verts[5]);
+    if (out_p == &out_evenodd) {
+      EXPECT_EQ(f_mid_a, -1);
+      EXPECT_EQ(f_mid_b, -1);
+    }
+    else {
+      EXPECT_NE(f_mid_a, -1);
+      EXPECT_NE(f_mid_b, -1);
+    }
+  }
 }
 
 /**
@@ -1131,13 +1470,43 @@ template<typename T> void nonzero_winding_multi_face_edge_mixed_test()
   EXPECT_EQ(out_evenodd.vert.size(), 8);
   EXPECT_EQ(out_nonzero.vert.size(), 8);
 
-  /* With CW middle face, the winding calculation differs from all-CCW case.
-   * This verifies winding accumulation with cancellation works correctly.
-   * The middle face (CW) subtracts from the outer, so effectively:
-   * - [0,1]: face 0 only (face 1 CW cancels contribution) -> inside
-   * - [1,2]: face 1 (CW, negative) + face 2 (CCW, positive) -> net depends on geometry
-   * - [2,3]: face 2 only -> inside */
-  EXPECT_EQ(out_evenodd.face.size(), out_nonzero.face.size());
+  /* Same 3-stacked-rectangles geometry as the all-CCW test, but face 1 is
+   * declared CW (`5 4 1 0`). Even-odd is winding-independent: only the
+   * multiplicity of each unique CDT edge matters. Edge (0,1) is still in
+   * all 3 faces (multiplicity 3 -> flip 1) and the y=1, y=2 inner edges
+   * still have multiplicity 2 (flip 0) - so the even-odd output is
+   * identical to the non-mixed test: bottom band (y=0..1) and top band
+   * (y=2..3) filled, middle band (y=1..2) is a hole. 4 triangles total.
+   *
+   * For non-zero, face 1's CW direction contributes -1 winding to the
+   * middle band, cancelling face 2's +1, so the middle band has net
+   * winding 0 and is a hole. The non-zero output is therefore *also*
+   * 4 triangles (not 6 as in the all-CCW non-mixed test). */
+  EXPECT_EQ(out_evenodd.face.size(), 4);
+  EXPECT_EQ(out_nonzero.face.size(), 4);
+
+  /* Pin which 4 triangles are filled in both rules. Same band tris as
+   * the non-mixed test: bottom band (verts 0,1,2,3) split into
+   * (v0,v1,v3) and (v1,v2,v3); top band (verts 4,5,6,7) split into
+   * (v4,v5,v7) and (v4,v6,v7). Middle band (verts 2,3,4,5) tris must
+   * be ABSENT in both even-odd AND non-zero. */
+  for (CDT_result<T> *out_p : {&out_evenodd, &out_nonzero}) {
+    CDT_result<T> &out = *out_p;
+    int verts[8];
+    for (int i = 0; i < 8; i++) {
+      verts[i] = get_orig_index(out.vert_orig, i);
+      EXPECT_NE(verts[i], -1);
+    }
+    /* Bottom band tris (v0,v1,v3) and (v1,v2,v3): present in both rules. */
+    EXPECT_NE(get_output_tri_index(out, verts[3], verts[0], verts[1]), -1);
+    EXPECT_NE(get_output_tri_index(out, verts[1], verts[2], verts[3]), -1);
+    /* Top band tris (v4,v5,v7) and (v4,v6,v7): present in both rules. */
+    EXPECT_NE(get_output_tri_index(out, verts[7], verts[5], verts[4]), -1);
+    EXPECT_NE(get_output_tri_index(out, verts[4], verts[6], verts[7]), -1);
+    /* Middle band tris must be absent in both rules. */
+    EXPECT_EQ(get_output_tri_index(out, verts[5], verts[3], verts[2]), -1);
+    EXPECT_EQ(get_output_tri_index(out, verts[2], verts[4], verts[5]), -1);
+  }
 }
 
 /**
@@ -1374,11 +1743,9 @@ template<typename T> void nonzero_winding_fan_test()
   EXPECT_EQ(out_evenodd.vert.size(), 5);
   EXPECT_EQ(out_nonzero.vert.size(), 5);
 
-  /* The adjacent triangles share edges with opposite traversal directions,
-   * creating zero-winding edges at the center. This results in different
-   * behavior between even-odd and non-zero rules.
-   * Non-zero correctly fills all 4 triangular regions. */
-  EXPECT_LT(out_evenodd.face.size(), out_nonzero.face.size());
+  /* Spokes count 2 (flip 0), rims count 1 (flip 1). All four wedges reach parity 1 from
+   * `outer_face` and are filled, matching non-zero. */
+  EXPECT_EQ(out_evenodd.face.size(), 4);
   EXPECT_EQ(out_nonzero.face.size(), 4);
 }
 
@@ -1510,9 +1877,43 @@ template<typename T> void nonzero_winding_self_intersect_test()
   EXPECT_EQ(out_evenodd.vert.size(), 5);
   EXPECT_EQ(out_nonzero.vert.size(), 5);
 
-  /* Self-intersecting polygon creates complex winding.
-   * Both rules should fill the two triangular lobes of the figure-8. */
-  EXPECT_EQ(out_evenodd.face.size(), out_nonzero.face.size());
+  /* Self-intersecting polygon creates two triangular lobes of the figure-8.
+   * Both fill rules should produce exactly those two filled triangles. */
+  EXPECT_EQ(out_evenodd.face.size(), 2);
+  EXPECT_EQ(out_nonzero.face.size(), 2);
+
+  /* Verify the two filled faces are the top and bottom lobes, not the
+   * side wedges (which would have the same count but wrong geometry). */
+  int verts[4];
+  for (int i = 0; i < 4; i++) {
+    verts[i] = get_orig_index(out_evenodd.vert_orig, i);
+    EXPECT_NE(verts[i], -1);
+  }
+
+  /* The intersection vertex at (0, 0) is the only output vertex not
+   * mapped from one of the four input vertices. */
+  int v_int = -1;
+  for (int i = 0; i < int(out_evenodd.vert.size()); i++) {
+    if (i != verts[0] && i != verts[1] && i != verts[2] && i != verts[3]) {
+      v_int = i;
+      break;
+    }
+  }
+  EXPECT_NE(v_int, -1);
+
+  /* Top lobe: (-1,1), (1,1), (0,0) -> v2, v1, v_int.
+   * Bottom lobe: (1,-1), (-1,-1), (0,0) -> v3, v0, v_int.
+   * Output winding is not guaranteed; accept either orientation. */
+  int top_lobe = get_output_tri_index(out_evenodd, verts[2], verts[1], v_int);
+  if (top_lobe == -1) {
+    top_lobe = get_output_tri_index(out_evenodd, verts[1], verts[2], v_int);
+  }
+  int bot_lobe = get_output_tri_index(out_evenodd, verts[3], verts[0], v_int);
+  if (bot_lobe == -1) {
+    bot_lobe = get_output_tri_index(out_evenodd, verts[0], verts[3], v_int);
+  }
+  EXPECT_NE(top_lobe, -1);
+  EXPECT_NE(bot_lobe, -1);
 }
 
 /**
@@ -1820,10 +2221,9 @@ template<typename T> void nonzero_winding_coincident_verts_test()
   EXPECT_EQ(out_evenodd.vert.size(), 4);
   EXPECT_EQ(out_nonzero.vert.size(), 4);
 
-  /* The shared edge has winding 0 (CCW + CW cancel). Non-zero fills both
-   * triangles because their outer edges have non-zero winding.
-   * Even-odd treats the shared edge differently. */
-  EXPECT_LT(out_evenodd.face.size(), out_nonzero.face.size());
+  /* Merged base edge has count 2 (flip 0); both triangles reach parity 1 via their rims
+   * and are filled, matching non-zero. */
+  EXPECT_EQ(out_evenodd.face.size(), 2);
   EXPECT_EQ(out_nonzero.face.size(), 2);
 }
 
@@ -2822,6 +3222,64 @@ template<typename T> void repeattri_test()
   }
 }
 
+/* Adjacency-deduplication exercise: two adjacent CCW rectangles share a
+ * boundary that has been split by a midpoint vertex, so the shared
+ * boundary becomes TWO distinct constrained CDT edges - both between
+ * the same pair of regions (left rect interior, right rect interior).
+ *
+ * The even-odd region-adjacency build appends a canonical entry for
+ * each cross-region constrained edge it encounters; with two edges
+ * between the same region pair, the second entry is a duplicate that
+ * the helper's stable_sort + std::unique must collapse. The test pins
+ * the BEHAVIOR: both rectangles must be correctly filled.
+ *
+ * Geometry (7 verts, 2 face constraints):
+ *
+ *      4-------3-------6     y=1
+ *      |       |       |
+ *      |   X   2   Y   |     y=0.5  (vert 2 is the midpoint)
+ *      |       |       |
+ *      0-------1-------5     y=0
+ *
+ * Face 0 (X, left): 0,1,2,3,4 (CCW). 5 verts because of midpoint 2.
+ * Face 1 (Y, right): 1,5,6,3,2 (CCW). 5 verts because of midpoint 2.
+ *
+ * Shared CDT edges between X and Y: (1,2) and (2,3) - both with
+ * multiplicity 2, both with parity flip 0. */
+template<typename T> void shared_split_boundary_test()
+{
+  const char *spec = R"(7 0 2
+  0.0 0.0
+  1.0 0.0
+  1.0 0.5
+  1.0 1.0
+  0.0 1.0
+  2.0 0.0
+  2.0 1.0
+  0 1 2 3 4
+  1 5 6 3 2
+  )";
+
+  CDT_input<T> in = fill_input_from_string<T>(spec);
+
+  CDT_result<T> out_evenodd = delaunay_2d_calc(in, CDT_INSIDE_WITH_HOLES);
+  CDT_result<T> out_nonzero = delaunay_2d_calc(in, CDT_INSIDE_WITH_HOLES_NONZERO);
+
+  /* No new vertices needed (no intersections); both 5-vert pentagons
+   * triangulate into 3 triangles each. */
+  EXPECT_EQ(out_evenodd.vert.size(), 7);
+  EXPECT_EQ(out_nonzero.vert.size(), 7);
+  EXPECT_EQ(out_evenodd.face.size(), 6);
+  EXPECT_EQ(out_nonzero.face.size(), 6);
+
+  if (DO_DRAW) {
+    graph_draw<T>(
+        "SharedSplitBoundary - even-odd", out_evenodd.vert, out_evenodd.edge, out_evenodd.face);
+    graph_draw<T>(
+        "SharedSplitBoundary - non-zero", out_nonzero.vert, out_nonzero.edge, out_nonzero.face);
+  }
+}
+
 template<typename T> void square_o_test()
 {
   const char *spec = R"(8 0 2
@@ -2913,6 +3371,26 @@ TEST(delaunay_d, LineHoleInSquare)
 TEST(delaunay_d, NestedHoles)
 {
   nestedholes_test<double>();
+}
+
+TEST(delaunay_d, EvenOddNestedHolesDeep)
+{
+  even_odd_nested_holes_deep_test<double>();
+}
+
+TEST(delaunay_d, EvenOddBoundaryDisagreement)
+{
+  even_odd_boundary_disagreement_test<double>();
+}
+
+TEST(delaunay_d, EvenOddCoincidentPolygonsNeedIdsStable)
+{
+  even_odd_coincident_polygons_need_ids_stable_test<double>();
+}
+
+TEST(delaunay_d, EvenOddSelfDoubledPolygonWithHole)
+{
+  even_odd_self_doubled_polygon_with_hole_test<double>();
 }
 
 TEST(delaunay_d, NonZeroWinding)
@@ -3075,6 +3553,11 @@ TEST(delaunay_d, DiamondInSquareWire)
   diamondinsquarewire_test<double>();
 }
 
+TEST(delaunay_d, DisjointPolysInLargeHull)
+{
+  disjoint_polys_in_large_hull_test<double>();
+}
+
 TEST(delaunay_d, RepeatEdge)
 {
   repeatedge_test<double>();
@@ -3083,6 +3566,11 @@ TEST(delaunay_d, RepeatEdge)
 TEST(delaunay_d, RepeatTri)
 {
   repeattri_test<double>();
+}
+
+TEST(delaunay_d, SharedSplitBoundary)
+{
+  shared_split_boundary_test<double>();
 }
 
 TEST(delaunay_d, SquareO)
@@ -3145,6 +3633,11 @@ TEST(delaunay_m, LineInSquare)
   lineinsquare_test<mpq_class>();
 }
 
+TEST(delaunay_m, DisjointPolysInLargeHull)
+{
+  disjoint_polys_in_large_hull_test<mpq_class>();
+}
+
 TEST(delaunay_m, LineHoleInSquare)
 {
   lineholeinsquare_test<mpq_class>();
@@ -3153,6 +3646,26 @@ TEST(delaunay_m, LineHoleInSquare)
 TEST(delaunay_m, NestedHoles)
 {
   nestedholes_test<mpq_class>();
+}
+
+TEST(delaunay_m, EvenOddNestedHolesDeep)
+{
+  even_odd_nested_holes_deep_test<mpq_class>();
+}
+
+TEST(delaunay_m, EvenOddBoundaryDisagreement)
+{
+  even_odd_boundary_disagreement_test<mpq_class>();
+}
+
+TEST(delaunay_m, EvenOddCoincidentPolygonsNeedIdsStable)
+{
+  even_odd_coincident_polygons_need_ids_stable_test<mpq_class>();
+}
+
+TEST(delaunay_m, EvenOddSelfDoubledPolygonWithHole)
+{
+  even_odd_self_doubled_polygon_with_hole_test<mpq_class>();
 }
 
 TEST(delaunay_m, NonZeroWinding)
@@ -3323,6 +3836,11 @@ TEST(delaunay_m, RepeatEdge)
 TEST(delaunay_m, RepeatTri)
 {
   repeattri_test<mpq_class>();
+}
+
+TEST(delaunay_m, SharedSplitBoundary)
+{
+  shared_split_boundary_test<mpq_class>();
 }
 #  endif
 #endif

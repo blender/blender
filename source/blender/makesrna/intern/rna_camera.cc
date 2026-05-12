@@ -115,8 +115,8 @@ static void rna_Camera_custom_mode_set(PointerRNA *ptr, int value)
 {
   Camera *camera = id_cast<Camera *>(ptr->owner_id);
 
-  if (camera->custom_mode != value) {
-    camera->custom_mode = value;
+  if (camera->custom_mode != eCamera_CustomMode(value)) {
+    camera->custom_mode = eCamera_CustomMode(value);
     camera->custom_filepath[0] = '\0';
 
     /* replace text data-block by filepath */

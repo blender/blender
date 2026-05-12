@@ -223,7 +223,7 @@ ccl_device Spectrum camera_sample_orthographic(KernelGlobals kg,
   /* ray differential */
   differential3 dP;
   dP.dx = make_float3(kernel_data.cam.dx);
-  dP.dy = make_float3(kernel_data.cam.dx);
+  dP.dy = make_float3(kernel_data.cam.dy);
 
   ray->dP = differential_make_compact(dP) * kernel_data.cam.differential_scale;
   ray->dD = differential_zero_compact();

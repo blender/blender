@@ -13,6 +13,7 @@
 #  include "GPU_platform.hh"
 
 #  include "COM_context.hh"
+#  include "COM_result.hh"
 #  include "COM_utilities_oidn.hh"
 
 #  include <OpenImageDenoise/oidn.hpp>
@@ -92,17 +93,18 @@ oidn::DeviceRef create_oidn_device(const Context &context)
   return oidn::newDevice(oidn::DeviceType::Default);
 }
 
-oidn::BufferRef create_oidn_buffer(const oidn::DeviceRef &device, const MutableSpan<float> image)
+oidn::BufferRef create_oidn_buffer(const oidn::DeviceRef &device, Result &image)
 {
   /* The device can access host-side data, so create a shared buffer that wraps the data. */
   const bool can_access_host_memory = device.get<bool>("systemMemorySupported");
   if (can_access_host_memory) {
-    return device.newBuffer(image.data(), image.size_in_bytes());
+    /* OIDN does not have const pointer variant in the shared buffer API, so use a const_cast. */
+    return device.newBuffer(const_cast<void *>(image.cpu_data().data()), image.size_in_bytes());
   }
 
   /* Otherwise, create a device-only buffer and copy the data to it. */
   oidn::BufferRef buffer = device.newBuffer(image.size_in_bytes(), oidn::Storage::Device);
-  buffer.write(0, image.size_in_bytes(), image.data());
+  buffer.write(0, image.size_in_bytes(), image.cpu_data().data());
   return buffer;
 }
 

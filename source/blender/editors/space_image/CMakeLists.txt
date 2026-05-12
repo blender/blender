@@ -51,10 +51,6 @@ if(WITH_IMAGE_OPENJPEG)
   add_definitions(-DWITH_IMAGE_OPENJPEG)
 endif()
 
-if(WITH_IMAGE_OPENEXR)
-  add_definitions(-DWITH_IMAGE_OPENEXR)
-endif()
-
 if(WITH_IMAGE_CINEON)
   add_definitions(-DWITH_IMAGE_CINEON)
 endif()

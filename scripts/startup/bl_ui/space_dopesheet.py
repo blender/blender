@@ -552,6 +552,7 @@ class DOPESHEET_MT_select(Menu):
 
             layout.separator()
             layout.operator("action.select_linked")
+            layout.operator_menu_enum("action.select_by_type", "type")
 
         layout.separator()
         layout.operator("action.select_column", text="Columns on Selected Keys").mode = 'KEYS'
@@ -665,12 +666,11 @@ class DOPESHEET_MT_key(Menu):
         layout.operator_menu_enum("action.mirror", "type", text="Mirror")
 
         layout.separator()
+        layout.operator("action.frame_jump", text="Jump to Selected")
+
+        layout.separator()
         layout.operator("action.keyframe_insert")
 
-        layout.separator()
-        layout.operator("action.frame_jump")
-
-        layout.separator()
         layout.operator("action.copy")
         layout.operator("action.paste")
         layout.operator("action.paste", text="Paste Flipped").flipped = True
@@ -915,6 +915,7 @@ class DOPESHEET_MT_channel_context_menu(Menu):
 
         if is_graph_editor:
             layout.operator_menu_enum("graph.fmodifier_add", "type", text="Add F-Curve Modifier").only_active = False
+            layout.operator("graph.fmodifier_delete", text="Delete F-Curve Modifiers")
             layout.separator()
             layout.operator("graph.hide", text="Hide Selected Curves").unselected = False
             layout.operator("graph.hide", text="Hide Unselected Curves").unselected = True

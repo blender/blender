@@ -26,7 +26,7 @@ PyDoc_STRVAR(
     "\n"
     "   Builds a LocalAverageDepthF0D object.\n"
     "\n"
-    "   :arg mask_size: The size of the mask.\n"
+    "   :param mask_size: The size of the mask.\n"
     "   :type mask_size: float\n"
     "\n"
     ".. method:: __call__(it)\n"
@@ -36,7 +36,7 @@ PyDoc_STRVAR(
     "   Interface0DIterator. The result is obtained by querying the depth\n"
     "   buffer on a window around that point.\n"
     "\n"
-    "   :arg it: An Interface0DIterator object.\n"
+    "   :param it: An Interface0DIterator object.\n"
     "   :type it: :class:`freestyle.types.Interface0DIterator`\n"
     "   :return: The average depth around the pointed Interface0D.\n"
     "   :rtype: float\n");

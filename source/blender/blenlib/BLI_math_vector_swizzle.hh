@@ -10,6 +10,7 @@
 
 #include "BLI_assert.h"
 
+#include <algorithm>
 #include <array>
 #include <type_traits>
 
@@ -78,8 +79,8 @@ template<typename T> struct VecSwizzleFunc<T, 4> : VecSwizzleFunc<T, 3> {
  */
 template<typename T, int Size, int x, int y, int z = y, int w = z> struct VecSwizzleReadOnly {
   using VecT = VecBase<T, Size>;
-  static constexpr int max_comp = std::max(std::max(std::max(x, y), z), w);
-  static constexpr int min_comp = std::min(std::min(std::min(x, y), z), w);
+  static constexpr int max_comp = std::max({x, y, z, w});
+  static constexpr int min_comp = std::min({x, y, z, w});
   static constexpr int effective_len = max_comp - min_comp + 1;
 
  private:

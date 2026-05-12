@@ -22,7 +22,7 @@ ccl_device_noinline void svm_node_vertex_color(KernelGlobals kg,
   float alpha;
 
   const AttributeDescriptor descriptor = find_attribute(kg, sd, node.layer_id);
-  if (descriptor.offset != ATTR_STD_NOT_FOUND) {
+  if (is_attribute_found(descriptor)) {
     if (descriptor.type == NODE_ATTR_FLOAT4 || descriptor.type == NODE_ATTR_RGBA) {
       const float4 vertex_color = primitive_surface_attribute<float4>(kg, sd, descriptor);
       color = make_float3(vertex_color);
@@ -56,7 +56,7 @@ ccl_device_noinline void svm_node_vertex_color_derivative(
   float alpha;
 
   const AttributeDescriptor descriptor = find_attribute(kg, sd, node.layer_id);
-  if (descriptor.offset != ATTR_STD_NOT_FOUND) {
+  if (is_attribute_found(descriptor)) {
     if (descriptor.type == NODE_ATTR_FLOAT4 || descriptor.type == NODE_ATTR_RGBA) {
       dual4 vertex_color = primitive_surface_attribute<dual4>(kg, sd, descriptor);
       if (node.bump_offset == NODE_BUMP_OFFSET_DX) {

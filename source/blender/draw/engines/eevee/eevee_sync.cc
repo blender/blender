@@ -62,7 +62,7 @@ static inline void geometry_volume_call(PassMain::Sub *pass,
   if (pass != nullptr) {
     PassMain::Sub *object_pass = volume_sub_pass(*pass, scene, ob, gpumat);
     if (object_pass != nullptr) {
-      object_pass->draw(geom, {res_handle});
+      object_pass->draw(geom, {ResourceID(res_handle)});
     }
   }
 }
@@ -89,6 +89,10 @@ void SyncModule::sync_volume_passes(const ObjectHandle &ob_handle,
                                     const Material &material,
                                     FunctionRef<void(const MaterialPass &, int)> sync_cb)
 {
+  if (material.volume_occupancy.gpumat == nullptr || material.volume_material.gpumat == nullptr) {
+    return;
+  }
+
   blender::Material *blender_mat = GPU_material_get_material(material.volume_material.gpumat);
 
   for (int instance : IndexRange(ob_handle.instances_count())) {

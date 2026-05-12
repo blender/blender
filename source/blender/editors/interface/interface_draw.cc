@@ -13,8 +13,10 @@
 #include "DNA_curve_types.h"
 #include "DNA_curveprofile_types.h"
 #include "DNA_movieclip_types.h"
+#include "DNA_scene_types.h"
 #include "DNA_screen_types.h"
 
+#include "BLI_math_matrix.hh"
 #include "BLI_math_rotation.h"
 #include "BLI_polyfill_2d.h"
 #include "BLI_rect.h"
@@ -25,12 +27,16 @@
 
 #include "BKE_colorband.hh"
 #include "BKE_colortools.hh"
+#include "BKE_context.hh"
 #include "BKE_curveprofile.h"
 #include "BKE_tracking.hh"
 
 #include "IMB_colormanagement.hh"
 #include "IMB_imbuf.hh"
 #include "IMB_imbuf_types.hh"
+
+#include "OCIO_scope.hh"
+#include "OCIO_view.hh"
 
 #include "BIF_glutil.hh"
 
@@ -509,8 +515,7 @@ void draw_but_HISTOGRAM(ARegion *region,
 
   GPU_blend(GPU_BLEND_ALPHA);
 
-  float color[4];
-  theme::get_color_4fv(TH_PREVIEW_BACK, color);
+  const float color[4] = {0.0f, 0.0f, 0.0f, 1.0f};
   draw_roundbox_corner_set(CNR_ALL);
   rctf back_rect{};
   back_rect.xmin = rect.xmin - 1;
@@ -678,7 +683,8 @@ static void circle_draw_rgb(float *points, int tot_points, const float *col, GPU
   GPU_batch_discard(batch);
 }
 
-void draw_but_WAVEFORM(ARegion *region,
+void draw_but_WAVEFORM(const bContext *C,
+                       ARegion *region,
                        Button *but,
                        const uiWidgetColors * /*wcol*/,
                        const rcti *recti)
@@ -726,8 +732,7 @@ void draw_but_WAVEFORM(ARegion *region,
 
   GPU_blend(GPU_BLEND_ALPHA);
 
-  float color[4];
-  theme::get_color_4fv(TH_PREVIEW_BACK, color);
+  const float color[4] = {0.0f, 0.0f, 0.0f, 1.0f};
   draw_roundbox_corner_set(CNR_ALL);
   rctf back_rect{};
   back_rect.xmin = rect.xmin - 1.0f;
@@ -750,17 +755,47 @@ void draw_but_WAVEFORM(ARegion *region,
               BLI_rcti_size_x(&scissor_new),
               BLI_rcti_size_y(&scissor_new));
 
-  /* draw scale numbers first before binding any shader */
-  for (int i = 0; i < 6; i++) {
-    char str[4];
-    SNPRINTF_UTF8(str, "%-3d", i * 20);
-    str[3] = '\0';
-    BLF_color4f(BLF_default(), 1.0f, 1.0f, 1.0f, 0.08f);
-    BLF_draw_default(rect.xmin + 1, yofs - 5 + (i * 0.2f) * h, 0, str, sizeof(str) - 1);
+  /* Get scope info for the current display/view. */
+  const Scene *scene = CTX_data_scene(C);
+  const ocio::ScopeInfo &scope_info = IMB_colormanagement_get_scope_info(&scene->display_settings,
+                                                                         &scene->view_settings);
+
+  /* Draw labels centered on each grid line, with the line starting after the text.
+   * Font size is chosen so all labels fit without overlap. */
+  const int font_id = BLF_default();
+  float font_size = 8.0f * UI_SCALE_FAC;
+  float min_gap = FLT_MAX;
+  for (int i = 1; i < scope_info.graticules.size(); i++) {
+    min_gap = std::min(min_gap,
+                       scope_info.graticules[i].value - scope_info.graticules[i - 1].value);
+  }
+  font_size = std::min(font_size, min_gap * h * 0.8f);
+  BLF_size(font_id, font_size);
+  BLF_color4f(font_id, 1.0f, 1.0f, 1.0f, 0.2f);
+
+  struct GraticuleLine {
+    float x_start, y;
+  };
+  Vector<GraticuleLine> grid_lines;
+
+  for (const ocio::ScopeGraticule &graticule : scope_info.graticules) {
+    const float y = yofs + graticule.value * h;
+    const size_t label_len = strlen(graticule.label);
+
+    float text_width, text_height;
+    BLF_width_and_height(font_id, graticule.label, label_len, &text_width, &text_height);
+    const float gap = text_width + text_height;
+
+    BLF_position(font_id, rect.xmin + (gap - text_width) * 0.5f, y - text_height * 0.5f, 0);
+    BLF_draw(font_id, graticule.label, label_len);
+
+    grid_lines.append({rect.xmin + gap, y});
   }
 
-  /* Flush text cache before drawing things on top. */
+  /* Flush text cache before drawing lines on top. */
   BLF_batch_draw_flush();
+
+  GPU_blend(GPU_BLEND_ALPHA);
 
   GPUVertFormat *format = immVertexFormat();
   GPU_scissor_test(true);
@@ -768,29 +803,15 @@ void draw_but_WAVEFORM(ARegion *region,
 
   immBindBuiltinProgram(GPU_SHADER_3D_UNIFORM_COLOR);
 
-  immUniformColor4f(1.0f, 1.0f, 1.0f, 0.08f);
+  immUniformColor4f(1.0f, 1.0f, 1.0f, 0.2f);
 
-  /* draw grid lines here */
-  immBegin(GPU_PRIM_LINES, 12);
-
-  for (int i = 0; i < 6; i++) {
-    immVertex2f(pos, rect.xmin + 22, yofs + (i * 0.2f) * h);
-    immVertex2f(pos, rect.xmax + 1, yofs + (i * 0.2f) * h);
+  /* Draw grid lines. */
+  immBegin(GPU_PRIM_LINES, int(grid_lines.size()) * 2);
+  for (const GraticuleLine &line : grid_lines) {
+    immVertex2f(pos, line.x_start, line.y);
+    immVertex2f(pos, rect.xmax, line.y);
   }
-
   immEnd();
-
-  /* 3 vertical separation */
-  if (scopes->wavefrm_mode != SCOPES_WAVEFRM_LUMA) {
-    immBegin(GPU_PRIM_LINES, 4);
-
-    for (int i = 1; i < 3; i++) {
-      immVertex2f(pos, rect.xmin + i * w3, rect.ymin);
-      immVertex2f(pos, rect.xmin + i * w3, rect.ymax);
-    }
-
-    immEnd();
-  }
 
   /* separate min max zone on the right */
   immBegin(GPU_PRIM_LINES, 2);
@@ -940,17 +961,21 @@ static float polar_to_y(float center, float diam, float ampli, float angle)
   return center + diam * ampli * sinf(angle);
 }
 
-static void vectorscope_draw_target(
-    uint pos, float centerx, float centery, float diam, const float colf[3], char label)
+static void vectorscope_draw_target(uint pos,
+                                    float centerx,
+                                    float centery,
+                                    float diam,
+                                    const float colf[3],
+                                    char label,
+                                    const float3x3 &yuv_matrix)
 {
-  float y, u, v;
   float tangle = 0.0f, tampli;
   float dangle, dampli;
   const char labelstr[2] = {label, '\0'};
 
-  rgb_to_yuv(colf[0], colf[1], colf[2], &y, &u, &v, BLI_YUV_ITU_BT709);
-  u *= SCOPES_VEC_U_SCALE;
-  v *= SCOPES_VEC_V_SCALE;
+  const float3 yuv = yuv_matrix * float3(colf[0], colf[1], colf[2]);
+  const float u = yuv.y;
+  const float v = yuv.z;
 
   if (u > 0 && v >= 0) {
     tangle = atanf(v / u);
@@ -998,13 +1023,20 @@ static void vectorscope_draw_target(
   immEnd();
 }
 
-void draw_but_VECTORSCOPE(ARegion *region,
+void draw_but_VECTORSCOPE(const bContext *C,
+                          ARegion *region,
                           Button *but,
                           const uiWidgetColors * /*wcol*/,
                           const rcti *recti)
 {
   const float skin_rad = DEG2RADF(123.0f); /* angle in radians of the skin tone line */
   const Scopes *scopes = reinterpret_cast<const Scopes *>(but->poin);
+
+  const Scene *scene = CTX_data_scene(C);
+  const ocio::ScopeInfo scope_info = IMB_colormanagement_get_scope_info(&scene->display_settings,
+                                                                        &scene->view_settings);
+  const float3x3 &yuv_matrix = scope_info.yuv_matrix;
+  const float3x3 inv_yuv_to_rec709 = scope_info.scope_gamut_to_rec709 * math::invert(yuv_matrix);
 
   const float colors[6][3] = {
       {0.75, 0.0, 0.0},  /* Red */
@@ -1034,8 +1066,7 @@ void draw_but_VECTORSCOPE(ARegion *region,
   GPU_line_smooth(true);
   GPU_blend(GPU_BLEND_ALPHA);
 
-  float color[4];
-  theme::get_color_4fv(TH_PREVIEW_BACK, color);
+  const float color[4] = {0.0f, 0.0f, 0.0f, 1.0f};
   draw_roundbox_corner_set(CNR_ALL);
   rctf back_rect{};
   back_rect.xmin = rect.xmin - 1;
@@ -1089,18 +1120,16 @@ void draw_but_VECTORSCOPE(ARegion *region,
       const float x = polar_to_x(centerx, diam, r, a);
       const float y = polar_to_y(centery, diam, r, a);
 
-      const float u = (x - centerx) / diam / SCOPES_VEC_U_SCALE;
-      const float v = (y - centery) / diam / SCOPES_VEC_V_SCALE;
-
       circle_fill_points[(i + 1) * 2] = x;
       circle_fill_points[(i + 1) * 2 + 1] = y;
 
-      float r, g, b;
-      yuv_to_rgb(0.5f, u, v, &r, &g, &b, BLI_YUV_ITU_BT709);
+      const float cb = (x - centerx) / diam;
+      const float cr = (y - centery) / diam;
+      const float3 rgb = inv_yuv_to_rec709 * float3(0.5f, cb, cr);
 
-      circle_fill_vertex_colors[(i + 1) * 4] = r * 0.2f;
-      circle_fill_vertex_colors[(i + 1) * 4 + 1] = g * 0.2f;
-      circle_fill_vertex_colors[(i + 1) * 4 + 2] = b * 0.2f;
+      circle_fill_vertex_colors[(i + 1) * 4] = rgb.x * 0.2f;
+      circle_fill_vertex_colors[(i + 1) * 4 + 1] = rgb.y * 0.2f;
+      circle_fill_vertex_colors[(i + 1) * 4 + 2] = rgb.z * 0.2f;
       circle_fill_vertex_colors[(i + 1) * 4 + 3] = 0.8f;
     }
 
@@ -1135,14 +1164,13 @@ void draw_but_VECTORSCOPE(ARegion *region,
     circle_points[i * 2] = x;
     circle_points[i * 2 + 1] = y;
 
-    const float u = (x - centerx) / diam / SCOPES_VEC_U_SCALE;
-    const float v = (y - centery) / diam / SCOPES_VEC_V_SCALE;
-    float r, g, b;
-    yuv_to_rgb(0.5f, u, v, &r, &g, &b, BLI_YUV_ITU_BT709);
+    const float cb = (x - centerx) / diam;
+    const float cr = (y - centery) / diam;
+    const float3 ring_rgb = inv_yuv_to_rec709 * float3(0.5f, cb, cr);
 
-    circle_vertex_colors[i * 4] = r;
-    circle_vertex_colors[i * 4 + 1] = g;
-    circle_vertex_colors[i * 4 + 2] = b;
+    circle_vertex_colors[i * 4] = ring_rgb.x;
+    circle_vertex_colors[i * 4 + 1] = ring_rgb.y;
+    circle_vertex_colors[i * 4 + 2] = ring_rgb.z;
     circle_vertex_colors[i * 4 + 3] = 0.8f;
   }
 
@@ -1199,7 +1227,7 @@ void draw_but_VECTORSCOPE(ARegion *region,
 
   /* saturation points */
   for (int i = 0; i < 6; i++) {
-    vectorscope_draw_target(pos, centerx, centery, diam, colors[i], color_names[i]);
+    vectorscope_draw_target(pos, centerx, centery, diam, colors[i], color_names[i], yuv_matrix);
   }
 
   if (scopes->ok && scopes->vecscope != nullptr) {

@@ -129,7 +129,7 @@ static void node_register()
 {
   static bke::bNodeType ntype;
 
-  fn_node_type_base(&ntype, "FunctionNodeStringToValue"_ustr);
+  fn_cmp_node_type_base(&ntype, "FunctionNodeStringToValue"_ustr);
   ntype.ui_name = "String to Value";
   ntype.ui_description = "Derive a numeric value from a given string representation";
   ntype.nclass = NODE_CLASS_CONVERTER;

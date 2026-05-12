@@ -24,3 +24,26 @@ index 22fb79d44..ad0f3a7a8 100644
  endif(GCC)
  
  # Build options
+diff --git a/source/common/cpu.cpp b/source/common/cpu.cpp
+index ae0907890..4d4c7dd97 100644
+--- a/source/common/cpu.cpp
++++ b/source/common/cpu.cpp
+@@ -61,6 +61,10 @@ static void sigill_handler(int sig)
+
+ #endif // if X265_ARCH_ARM
+
++#if X265_ARCH_ARM64
++#include "aarch64/cpu.h"
++#endif // if X265_ARCH_ARM64
++
+ namespace X265_NS {
+ static bool enable512 = false;
+ const cpu_name_t cpu_names[] =
+@@ -390,7 +394,6 @@ uint32_t cpu_detect(bool benableavx512)
+ }
+
+ #elif X265_ARCH_ARM64
+-#include "aarch64/cpu.h"
+
+ uint32_t cpu_detect(bool benableavx512)
+ {

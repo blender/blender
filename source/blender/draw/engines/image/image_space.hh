@@ -8,6 +8,8 @@
 
 #pragma once
 
+#include "BLI_math_matrix_types.hh"
+
 namespace blender {
 
 struct ARegion;
@@ -76,14 +78,14 @@ class AbstractSpaceAccessor {
   /** \brief Draw image with display window offsets. */
   virtual bool use_display_window() const = 0;
 
-  /**
-   * \brief Initialize r_uv_to_texture matrix to transform from normalized screen space coordinates
-   * (0..1) to texture space UV coordinates.
-   */
-  virtual void init_ss_to_texture_matrix(const ARegion *region,
-                                         const float image_offset[2],
-                                         const float image_resolution[2],
-                                         float r_uv_to_texture[4][4]) const = 0;
+  /** \brief Gets the zoom factor of the space. A factor of 2 is a zoom-in by two times. */
+  virtual float get_zoom() const = 0;
+
+  /** \brief Gets the aspect ratio of the image. The ratio is for the vertical axis. */
+  virtual float get_aspect_ratio() const = 0;
+
+  /** \brief Gets the pan offset of the space in image pixel space. */
+  virtual float2 get_pan_offset() const = 0;
 };
 
 }  // namespace image_engine

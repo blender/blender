@@ -217,6 +217,23 @@ struct _mtl_sampler {
   {
     return texture->gather(*samp, coord);
   }
+  /* Note: Not available for depth textures. */
+  NON_ARRAY_FN DataVec gather0(FltCoord coord) const
+  {
+    return texture->gather(*samp, coord, int2(0), component::x);
+  }
+  NON_ARRAY_FN DataVec gather1(FltCoord coord) const
+  {
+    return texture->gather(*samp, coord, int2(0), component::y);
+  }
+  NON_ARRAY_FN DataVec gather2(FltCoord coord) const
+  {
+    return texture->gather(*samp, coord, int2(0), component::z);
+  }
+  NON_ARRAY_FN DataVec gather3(FltCoord coord) const
+  {
+    return texture->gather(*samp, coord, int2(0), component::w);
+  }
   NON_ARRAY_FN DataVec fetch(IntCoord coord) const
   {
     return texture->sample(_mtl_fetch_samp, FltCoord(coord));
@@ -245,6 +262,23 @@ struct _mtl_sampler {
   ARRAY_FN DataVec gather(FltCoord coord) const
   {
     return texture->gather(*samp, uv_mask(coord), layer_mask(coord));
+  }
+  /* Note: Not available for depth textures. */
+  ARRAY_FN DataVec gather0(FltCoord coord) const
+  {
+    return texture->gather(*samp, uv_mask(coord), layer_mask(coord), int2(0), component::x);
+  }
+  ARRAY_FN DataVec gather1(FltCoord coord) const
+  {
+    return texture->gather(*samp, uv_mask(coord), layer_mask(coord), int2(0), component::y);
+  }
+  ARRAY_FN DataVec gather2(FltCoord coord) const
+  {
+    return texture->gather(*samp, uv_mask(coord), layer_mask(coord), int2(0), component::z);
+  }
+  ARRAY_FN DataVec gather3(FltCoord coord) const
+  {
+    return texture->gather(*samp, uv_mask(coord), layer_mask(coord), int2(0), component::w);
   }
   ARRAY_FN DataVec fetch(IntCoord coord) const
   {
@@ -535,6 +569,24 @@ SAMPLER_FN DataVec textureLod(SamplerT texture, FltCoord coord, float lod)
 SAMPLER_FN DataVec textureLodOffset(SamplerT texture, FltCoord coord, float lod, IntDeriv offset)
 {
   return texture.sample_lod(coord, level(lod), offset);
+}
+
+/* Note: Not available for depth sampler. */
+SAMPLER_FN DataVec textureGather0(SamplerT texture, FltCoord coord)
+{
+  return texture.gather0(coord);
+}
+SAMPLER_FN DataVec textureGather1(SamplerT texture, FltCoord coord)
+{
+  return texture.gather1(coord);
+}
+SAMPLER_FN DataVec textureGather2(SamplerT texture, FltCoord coord)
+{
+  return texture.gather2(coord);
+}
+SAMPLER_FN DataVec textureGather3(SamplerT texture, FltCoord coord)
+{
+  return texture.gather3(coord);
 }
 
 SAMPLER_FN DataVec textureGather(SamplerT texture, FltCoord coord)

@@ -235,6 +235,16 @@ class WaveFunction : public mf::MultiFunction {
       });
     }
   }
+
+  void hash_unique(UniqueHashBytes &hash) const override
+  {
+    static constexpr int8_t id = 0;
+    hash.add(&id);
+    hash.add(wave_type_);
+    hash.add(bands_direction_);
+    hash.add(rings_direction_);
+    hash.add(wave_profile_);
+  }
 };
 
 static void sh_node_wave_tex_build_multi_function(NodeMultiFunctionBuilder &builder)

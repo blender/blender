@@ -1037,8 +1037,7 @@ static void tool_settings_update_snap_toggle(TransInfo *t)
 {
   bool is_snap_enabled = (t->modifiers & MOD_SNAP) != 0;
 
-  /* Type is #eSnapFlag, but type must match various snap attributes in #ToolSettings. */
-  short *snap_flag_ptr;
+  eSnapFlag *snap_flag_ptr;
 
   wmMsgParams_RNA msg_key_params = {{}};
   msg_key_params.ptr = RNA_pointer_create_discrete(&t->scene->id, RNA_ToolSettings, t->settings);
@@ -1052,8 +1051,8 @@ static void tool_settings_update_snap_toggle(TransInfo *t)
 
 wmOperatorStatus transformEvent(TransInfo *t, wmOperator *op, const wmEvent *event)
 {
-  bool is_navigating = t->vod ? (static_cast<RegionView3D *>(t->region->regiondata))->rflag &
-                                    RV3D_NAVIGATING :
+  bool is_navigating = t->vod ? ((static_cast<RegionView3D *>(t->region->regiondata))->rflag &
+                                 RV3D_NAVIGATING) != 0 :
                                 false;
 
   /* Handle modal numinput events first, if already activated. */

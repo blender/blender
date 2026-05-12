@@ -601,7 +601,7 @@ struct BKEIDDeleteOptions {
 
   /**
    * If `true`, do not validate and update liboverride hierarchy root pointers after deleting some
-   * IDs. Usefull e.g. for ID deletion within liboverride resync process and the like.
+   * IDs. Useful e.g. for ID deletion within liboverride resync process and the like.
    */
   bool prevent_liboverride_hierarchy_root_ensure = false;
 };

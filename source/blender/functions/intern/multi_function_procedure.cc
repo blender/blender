@@ -287,6 +287,13 @@ bool Procedure::validate() const
   return true;
 }
 
+void Procedure::prepare_for_execution()
+{
+  for (const CallInstruction *instruction : call_instructions_) {
+    instruction->fn().prepare_for_execution();
+  }
+}
+
 bool Procedure::validate_all_instruction_pointers_set() const
 {
   for (const CallInstruction *instruction : call_instructions_) {

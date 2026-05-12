@@ -201,17 +201,17 @@ static void sample_bary_coords(const Mesh &mesh,
           [&](const IndexRange range) { return points_by_tri[range].size(); }));
 }
 
-BLI_NOINLINE static KDTree_3d *build_kdtree(Span<float3> positions)
+BLI_NOINLINE static KDTree<float3> *build_kdtree(Span<float3> positions)
 {
-  KDTree_3d *kdtree = kdtree_3d_new(positions.size());
+  KDTree<float3> *kdtree = kdtree_new<float3>(positions.size());
 
   int i_point = 0;
   for (const float3 position : positions) {
-    kdtree_3d_insert(kdtree, i_point, position);
+    kdtree_insert<float3>(kdtree, i_point, position);
     i_point++;
   }
 
-  kdtree_3d_balance(kdtree);
+  kdtree_balance<float3>(kdtree);
   return kdtree;
 }
 
@@ -222,31 +222,23 @@ BLI_NOINLINE static void update_elimination_mask_for_close_points(
     return;
   }
 
-  KDTree_3d *kdtree = build_kdtree(positions);
-  BLI_SCOPED_DEFER([&]() { kdtree_3d_free(kdtree); });
+  KDTree<float3> *kdtree = build_kdtree(positions);
+  BLI_SCOPED_DEFER([&]() { kdtree_free<float3>(kdtree); });
 
   for (const int i : positions.index_range()) {
     if (elimination_mask[i]) {
       continue;
     }
 
-    struct CallbackData {
-      int index;
-      MutableSpan<bool> elimination_mask;
-    } callback_data = {i, elimination_mask};
-
-    kdtree_3d_range_search_cb(
-        kdtree,
-        positions[i],
-        minimum_distance,
-        [](void *user_data, int index, const float3 & /*co*/, float /*dist_sq*/) {
-          CallbackData &callback_data = *static_cast<CallbackData *>(user_data);
-          if (index != callback_data.index) {
-            callback_data.elimination_mask[index] = true;
-          }
-          return true;
-        },
-        &callback_data);
+    kdtree_range_search_cb<float3>(kdtree,
+                                   positions[i],
+                                   minimum_distance,
+                                   [&](int index, const float3 & /*co*/, float /*dist_sq*/) {
+                                     if (index != i) {
+                                       elimination_mask[index] = true;
+                                     }
+                                     return true;
+                                   });
   }
 }
 

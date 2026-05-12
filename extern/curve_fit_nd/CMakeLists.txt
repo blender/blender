@@ -17,6 +17,7 @@ set(SRC
 
   curve_fit_nd.h
   intern/curve_fit_inline.h
+  intern/curve_fit_intern.h
   intern/generic_alloc_impl.h
   intern/generic_heap.c
   intern/generic_heap.h

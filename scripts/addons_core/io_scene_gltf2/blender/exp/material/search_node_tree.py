@@ -1023,6 +1023,65 @@ def get_attribute_name(socket, export_settings):
     return False, None, None
 
 
+def detect_iridescence_thickness_texure(socket, minimum_thickness_socket, export_settings):
+    # Check that we have a specific tree branch with all data required for the iridescence thickness texture
+
+    if socket.socket is None:
+        return False, None
+
+    # Check that the socket is linked to a Mix node
+    if not socket.socket.is_linked:
+        return False, None
+    mix_node = socket.socket.links[0].from_node
+    if mix_node is None or mix_node.type != "MIX":
+        return False, None
+    if mix_node.data_type != "FLOAT":
+        return False, None
+
+    # Check that the mix node factor is linked to a separate RGB node, with R
+    # linked to the iridescence thickness texture
+    if not mix_node.inputs['Factor'].is_linked:
+        return False, None
+    separate_rgb_node = mix_node.inputs['Factor'].links[0].from_node
+    if separate_rgb_node is None or separate_rgb_node.type != "SEPARATE_COLOR":
+        return False, None
+    if not separate_rgb_node.inputs[0].is_linked:
+        return False, None
+    iridescence_thickness_texture_node = separate_rgb_node.inputs[0].links[0].from_node
+    if iridescence_thickness_texture_node is None or iridescence_thickness_texture_node.type != "TEX_IMAGE":
+        return False, None
+
+    # Check that the mix node A is linked to a value node, that is itself
+    # linked (output) to the iridescence minimum thickness socket of the glTF
+    # material output node
+    if not mix_node.inputs['A'].is_linked:
+        return False, None
+    value_node = mix_node.inputs['A'].links[0].from_node
+    if value_node is None or value_node.type != "VALUE":
+        return False, None
+    if not value_node.outputs[0].is_linked:
+        return False, None
+    if not len(value_node.outputs[0].links) == 2:
+        return False, None
+    if minimum_thickness_socket.socket is None:
+        return False, None
+    if minimum_thickness_socket.socket.links[0].from_node != value_node:
+        return False, None
+
+    # Check that the mix node B is linked to a value node
+    if not mix_node.inputs['B'].is_linked:
+        return False, None
+    value_node_2 = mix_node.inputs['B'].links[0].from_node
+    if value_node_2 is None or value_node_2.type != "VALUE":
+        return False, None
+
+    return True, {
+        'thickness_minimum': value_node.outputs[0],
+        'thickness_maximum': value_node_2.outputs[0],
+        'tex_socket': NodeSocket(separate_rgb_node.inputs[0], socket.group_path),
+    }
+
+
 def detect_anisotropy_nodes(
         anisotropy_socket,
         anisotropy_rotation_socket,

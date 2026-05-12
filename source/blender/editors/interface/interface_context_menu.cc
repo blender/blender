@@ -75,6 +75,36 @@ static IDProperty *shortcut_property_from_rna(bContext *C, Button *but)
   return prop;
 }
 
+static IDProperty *shortcut_property_from_rna_for_enum(bContext *C,
+                                                       Button *but_parent,
+                                                       Button *but)
+{
+  /* This is basically same as #shortcut_property_from_rna but with "value" in IDProperty in group.
+   * It's required for creating keyitem for enum values. */
+
+  /* If this returns null, we won't be able to bind shortcuts to these RNA properties.
+   * Support can be added at #wm_context_member_from_ptr. */
+  std::optional<std::string> final_data_path = WM_context_path_resolve_property_full(
+      C, &but_parent->rnapoin, but_parent->rnaprop, but_parent->rnaindex);
+  if (!final_data_path.has_value()) {
+    return nullptr;
+  }
+
+  const char *identifier = nullptr;
+  RNA_property_enum_identifier(
+      C, &but_parent->rnapoin, but_parent->rnaprop, int(but->hardmin), &identifier);
+
+  if (identifier == nullptr) {
+    /* Return early when valid identifier is not found for the button representing enum value. */
+    return nullptr;
+  }
+  /* Create ID property of data path and value, to pass to the operator. */
+  IDProperty *prop = bke::idprop::create_group(__func__).release();
+  IDP_AddToGroup(prop, bke::idprop::create("data_path", final_data_path.value()).release());
+  IDP_AddToGroup(prop, bke::idprop::create("value", identifier).release());
+  return prop;
+}
+
 static const char *shortcut_get_operator_property(bContext *C, Button *but, IDProperty **r_prop)
 {
   if (but->optype) {
@@ -103,6 +133,21 @@ static const char *shortcut_get_operator_property(bContext *C, Button *but, IDPr
         return nullptr;
       }
       return "WM_OT_context_menu_enum";
+    }
+  }
+
+  if (but->type == ButtonType::ButMenu) {
+    if ((but->block->handle != nullptr)) {
+      Button *but_parent = but->block->handle->popup_create_vars.but;
+      if (but_parent && but_parent->rnaprop &&
+          (RNA_property_type(but_parent->rnaprop) == PROP_ENUM))
+      {
+        *r_prop = shortcut_property_from_rna_for_enum(C, but_parent, but);
+        if (*r_prop == nullptr) {
+          return nullptr;
+        }
+        return "WM_OT_context_set_enum";
+      }
     }
   }
 
@@ -867,7 +912,7 @@ bool popup_context_menu_for_button(bContext *C, Button *but, const wmEvent *even
     /* Swap render X and Y dimensions. */
     if (but->rnaprop && but->rnapoin.type == RNA_RenderSettings) {
       const std::string prop_id = RNA_property_identifier(but->rnaprop);
-      if (prop_id == "resolution_x" || prop_id == "resolution_y") {
+      if (ELEM(prop_id, "resolution_x", "resolution_y")) {
         layout.op("RENDER_OT_swap_dimensions",
                   CTX_IFACE_(BLT_I18NCONTEXT_OPERATOR_DEFAULT, "Swap Dimensions"),
                   ICON_RENDER_SWAP_DIMENSIONS);
@@ -1307,21 +1352,19 @@ void popup_context_menu_for_panel(bContext *C, ARegion *region, Panel *panel)
   if (!any_item_visible) {
     return;
   }
-  if (panel->type->parent != nullptr) {
-    return;
-  }
-  if (!panel_can_be_pinned(panel)) {
+  if (panel && panel->type->parent != nullptr) {
     return;
   }
 
   PointerRNA ptr = RNA_pointer_create_discrete(&screen->id, RNA_Panel, panel);
 
-  PopupMenu *pup = popup_menu_begin(C, IFACE_("Panel"), ICON_NONE);
+  PopupMenu *pup = popup_menu_begin(C, IFACE_("Sidebar"), ICON_NONE);
   Layout &layout = *popup_menu_layout(pup);
 
-  if (has_panel_category) {
+  if (has_panel_category && panel && panel_can_be_pinned(panel)) {
     char tmpstr[80];
-    SNPRINTF_UTF8(tmpstr, "%s" UI_SEP_CHAR_S "%s", IFACE_("Pin"), IFACE_("Shift Left Mouse"));
+    SNPRINTF_UTF8(
+        tmpstr, "%s" UI_SEP_CHAR_S "%s", IFACE_("Pin Panel"), IFACE_("Shift Left Mouse"));
     layout.prop(&ptr, "use_pin", UI_ITEM_NONE, tmpstr, ICON_NONE);
 
     /* evil, force shortcut flag */
@@ -1330,7 +1373,12 @@ void popup_context_menu_for_panel(bContext *C, ARegion *region, Panel *panel)
       Button *but = block->buttons_ptrs.last().get();
       but->flag |= BUT_HAS_SEP_CHAR;
     }
+    layout.separator();
   }
+
+  PointerRNA prefs_ptr = RNA_pointer_create_discrete(nullptr, RNA_PreferencesSystem, &U);
+  layout.prop(&prefs_ptr, "show_panel_tabs_compact", UI_ITEM_NONE, "Compact Tabs", ICON_NONE);
+
   popup_menu_end(C, pup);
 }
 

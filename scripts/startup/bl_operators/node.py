@@ -365,6 +365,7 @@ class NodeSwapOperator(NodeOperator):
     @staticmethod
     def transfer_links(tree, old_node, new_node, is_input):
         both_math_nodes = (old_node.bl_idname in math_nodes) and (new_node.bl_idname in math_nodes)
+        is_reroute = old_node.bl_idname == "NodeReroute"
 
         if is_input:
             if both_math_nodes:
@@ -379,6 +380,19 @@ class NodeSwapOperator(NodeOperator):
                             tree.links.new(link.from_socket, new_socket)
                         except IndexError:
                             pass
+            elif is_reroute:
+                # Transfer reroute input to the first compatible socket.
+                input = old_node.inputs[0]
+                new_socket = None
+                for s in new_node.inputs:
+                    if s.hide or not s.enabled:
+                        continue
+                    if s.type == input.type or cast_value(input, s) is not None:
+                        new_socket = s
+                        break
+                if new_socket:
+                    for link in input.links[:]:
+                        tree.links.new(link.from_socket, new_socket)
             else:
                 for input in old_node.inputs:
                     links = sorted(input.links, key=lambda link: link.multi_input_sort_id)
@@ -407,7 +421,23 @@ class NodeSwapOperator(NodeOperator):
                             new_link = tree.links.new(new_socket, link.to_socket)
                         except IndexError:
                             pass
-
+            elif is_reroute:
+                # Find first compatible output socket.
+                output = old_node.outputs[0]
+                new_socket = None
+                for s in new_node.outputs:
+                    if s.hide or not s.enabled:
+                        continue
+                    if s.type == output.type or cast_value(s, output) is not None:
+                        new_socket = s
+                        break
+                if new_socket:
+                    # Transfer reroute outputs to chosen socket.
+                    for link in output.links[:]:
+                        is_multi_input = link.to_socket.is_multi_input
+                        new_link = tree.links.new(new_socket, link.to_socket)
+                        if is_multi_input:
+                            new_link.swap_multi_input_sort_id(link)
             else:
                 for output in old_node.outputs:
                     for link in output.links[:]:
@@ -573,6 +603,12 @@ class NODE_OT_swap_node(NodeSwapOperator, Operator):
                         socket.hide = True
 
             new_node.location_absolute = old_node.location_absolute
+            if old_node.bl_idname == "NodeReroute":
+                # The `new_node.dimensions` have not been computed yet, but `new_node.width` should be correct.
+                # Instead of centering the node vertically, we use an offset that makes it appear vertically
+                # centered if it were collapsed. Besides, `new_node.height` is not yet computed at this point.
+                new_node.location_absolute.x -= new_node.width / 2
+                new_node.location_absolute.y += 10
             new_node.select = True
 
             zone_pair = self.get_zone_pair(tree, old_node)
@@ -687,6 +723,19 @@ class NODE_OT_swap_empty_group(NodeSwapOperator, bpy.types.Operator):
         output_node.select = False
         output_node.location.x = 200
         return group
+
+
+class NODE_OT_add_typed_bundle(NodeAddOperator, bpy.types.Operator):
+    bl_idname = "node.add_typed_bundle"
+    bl_label = "Add Typed Bundle"
+    bl_description = "Add a Combine Bundle node with a type input"
+    bl_options = {'REGISTER', 'UNDO'}
+
+    def execute(self, context):
+        self.deselect_nodes(context)
+        node = self.create_node(context, "NodeCombineBundle")
+        node.bundle_items.new("STRING", "Type")
+        return {"FINISHED"}
 
 
 class ZoneOperator:
@@ -1157,8 +1206,11 @@ class NODE_OT_interface_item_new_panel_toggle(Operator):
         active_panel = interface.active
 
         item = interface.new_socket(active_panel.name, socket_type='NodeSocketBool', in_out='INPUT')
-        item.is_panel_toggle = True
+
+        # Set is_panel_toggle after moving into parent
         interface.move_to_parent(item, active_panel, 0)
+        item.is_panel_toggle = True
+
         return {'FINISHED'}
 
 
@@ -1274,8 +1326,6 @@ class NODE_OT_interface_item_make_panel_toggle(NodeInterfaceOperator, Operator):
         # Use the same name as the panel in the UI for clarity.
         active_item.name = parent_panel.name
 
-        # Move the socket to the first position.
-        interface.move_to_parent(active_item, parent_panel, 0)
         # Make the panel active.
         interface.active = parent_panel
 
@@ -1469,6 +1519,7 @@ classes = (
     NODE_OT_add_repeat_zone,
     NODE_OT_add_foreach_geometry_element_zone,
     NODE_OT_add_closure_zone,
+    NODE_OT_add_typed_bundle,
     NODE_OT_collapse_hide_unused_toggle,
     NODE_OT_interface_item_new,
     NODE_OT_interface_item_new_panel_toggle,

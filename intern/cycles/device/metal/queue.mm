@@ -274,7 +274,7 @@ int MetalDeviceQueue::num_concurrent_states(const size_t state_size) const
 
     /* Only use 90% of available working set for safety. */
     size_t percent = 90;
-    if (auto str = getenv("CYCLES_METAL_WORKING_SET_PERCENT")) {
+    if (auto *str = getenv("CYCLES_METAL_WORKING_SET_PERCENT")) {
       percent = atoi(str);
     }
 
@@ -302,7 +302,7 @@ int MetalDeviceQueue::num_concurrent_states(const size_t state_size) const
         /* Aggressive safety margin: only grow if it leaves us at < 50% max working set
          * utilization. */
         size_t grow_percent = 50;
-        if (auto str = getenv("CYCLES_METAL_GROW_PERCENT")) {
+        if (auto *str = getenv("CYCLES_METAL_GROW_PERCENT")) {
           grow_percent = atoi(str);
         }
 

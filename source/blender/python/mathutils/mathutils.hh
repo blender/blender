@@ -236,16 +236,33 @@ void _BaseMathObject_RaiseNotFrozenExc(const BaseMathObject *self);
                                           const char *error_prefix);
 
 /**
+ * Returns true when a slice does *not* address every element of an `array_num`.
+ */
+[[nodiscard]] inline bool mathutils_slice_is_subset(Py_ssize_t start,
+                                                    Py_ssize_t step,
+                                                    Py_ssize_t slice_length,
+                                                    Py_ssize_t array_num)
+{
+  return !((slice_length == array_num) &&
+           /* All forward `[:]`. */
+           ((start == 0 && step == 1) ||
+            /* All reverse `[::-1]`. */
+            (start == array_num - 1 && step == -1)));
+}
+
+/**
  * helper function that returns a Python `__hash__`.
  *
  * \note consistent with the equivalent tuple of floats (CPython's `tuplehash`)
  */
 [[nodiscard]] Py_hash_t mathutils_array_hash(const float *array, size_t array_len);
 
-/* zero remaining unused elements of the array */
+/** Zero remaining unused elements of the array. */
 #define MU_ARRAY_ZERO (1u << 30)
-/* ignore larger py sequences than requested (just use first elements),
- * handy when using 3d vectors as 2d */
+/**
+ * Ignore larger py sequences than requested (just use first elements),
+ * handy when using 3d vectors as 2d.
+ */
 #define MU_ARRAY_SPILL (1u << 31)
 
 #define MU_ARRAY_FLAGS (MU_ARRAY_ZERO | MU_ARRAY_SPILL)
@@ -266,7 +283,6 @@ void _BaseMathObject_RaiseNotFrozenExc(const BaseMathObject *self);
                                                MatrixObject *mat);
 
 #ifndef MATH_STANDALONE
-/* dynstr as python string utility functions */
 /* dynstr as python string utility functions, frees 'ds'! */
 [[nodiscard]] PyObject *mathutils_dynstr_to_py(struct DynStr *ds);
 #endif

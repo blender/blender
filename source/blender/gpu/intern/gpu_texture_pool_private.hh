@@ -47,7 +47,7 @@ class TexturePoolImpl : public TexturePool {
   Set<TextureHandle> acquired_;
 
  public:
-  ~TexturePoolImpl();
+  ~TexturePoolImpl() override;
 
   Texture *acquire_texture(int2 extent,
                            TextureFormat format,

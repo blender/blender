@@ -22,7 +22,6 @@
 
 #include "CLG_log.h"
 
-#include "IMB_allocimbuf.hh"
 #include "IMB_filetype.hh"
 #include "IMB_imbuf.hh"
 #include "IMB_imbuf_types.hh"

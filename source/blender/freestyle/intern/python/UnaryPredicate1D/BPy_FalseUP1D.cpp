@@ -23,7 +23,7 @@ PyDoc_STRVAR(
     "\n"
     "   Always returns false.\n"
     "\n"
-    "   :arg inter: An Interface1D object.\n"
+    "   :param inter: An Interface1D object.\n"
     "   :type inter: :class:`freestyle.types.Interface1D`\n"
     "   :return: False.\n"
     "   :rtype: bool\n");

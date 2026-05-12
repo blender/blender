@@ -167,6 +167,10 @@ class Bounds : Overlay {
         case RB_SHAPE_CAPSULE:
           add_bounds(true, OB_BOUND_CAPSULE);
           break;
+        case RB_SHAPE_CONVEXH:
+        case RB_SHAPE_TRIMESH:
+        case RB_SHAPE_COMPOUND:
+          break;
       };
     }
 

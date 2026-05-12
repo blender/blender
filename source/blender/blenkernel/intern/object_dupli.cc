@@ -61,7 +61,7 @@
 #include "DEG_depsgraph.hh"
 #include "DEG_depsgraph_query.hh"
 
-#include "NOD_geometry_nodes_log.hh"
+#include "NOD_eval_log.hh"
 
 #include "RNA_access.hh"
 #include "RNA_path.hh"
@@ -74,7 +74,6 @@ namespace blender {
 using bke::GeometrySet;
 using bke::InstanceReference;
 using bke::Instances;
-namespace geo_log = nodes::geo_eval_log;
 
 /* -------------------------------------------------------------------- */
 /** \name Internal Duplicate Context
@@ -1849,8 +1848,8 @@ void object_duplilist_preview(Depsgraph *depsgraph,
     if (!nmd_orig->runtime->eval_log) {
       continue;
     }
-    if (const geo_log::ViewerNodeLog *viewer_log =
-            geo_log::GeoNodesLog::find_viewer_node_log_for_path(*viewer_path))
+    if (const nodes::eval_log::ViewerNodeLog *viewer_log =
+            nodes::eval_log::NodesEvalLog::find_viewer_node_log_for_path(*viewer_path))
     {
       if (const bke::GeometrySet *viewer_geometry = viewer_log->main_geometry()) {
         ctx.preview_base_geometry = &*viewer_geometry;

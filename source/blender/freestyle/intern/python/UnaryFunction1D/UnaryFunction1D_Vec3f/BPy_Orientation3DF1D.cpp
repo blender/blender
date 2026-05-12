@@ -28,7 +28,7 @@ PyDoc_STRVAR(
     "\n"
     "   Builds an Orientation3DF1D object.\n"
     "\n"
-    "   :arg integration_type: The integration method used to compute a single value\n"
+    "   :param integration_type: The integration method used to compute a single value\n"
     "      from a set of values.\n"
     "   :type integration_type: :class:`freestyle.types.IntegrationType`\n"
     "\n"
@@ -36,7 +36,7 @@ PyDoc_STRVAR(
     "\n"
     "   Returns the 3D orientation of the Interface1D.\n"
     "\n"
-    "   :arg inter: An Interface1D object.\n"
+    "   :param inter: An Interface1D object.\n"
     "   :type inter: :class:`freestyle.types.Interface1D`\n"
     "   :return: The 3D orientation of the Interface1D.\n"
     "   :rtype: :class:`mathutils.Vector`\n");

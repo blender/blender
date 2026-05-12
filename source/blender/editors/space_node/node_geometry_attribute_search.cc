@@ -30,14 +30,14 @@
 #include "UI_interface_layout.hh"
 #include "UI_resources.hh"
 
-#include "NOD_geometry_nodes_log.hh"
+#include "NOD_eval_log.hh"
 #include "NOD_socket.hh"
 
 #include "node_intern.hh"
 
 namespace blender {
 
-using nodes::geo_eval_log::GeometryAttributeInfo;
+using nodes::eval_log::GeometryAttributeInfo;
 
 namespace ed::space_node {
 
@@ -53,7 +53,7 @@ BLI_STATIC_ASSERT(std::is_trivially_destructible_v<AttributeSearchData>, "");
 static Vector<const GeometryAttributeInfo *> get_attribute_info_from_context(
     const bContext &C, AttributeSearchData &data)
 {
-  using namespace nodes::geo_eval_log;
+  using namespace nodes::eval_log;
 
   SpaceNode *snode = CTX_wm_space_node(&C);
   if (!snode) {
@@ -74,14 +74,14 @@ static Vector<const GeometryAttributeInfo *> get_attribute_info_from_context(
   if (!tree_zones) {
     return {};
   }
-  const ContextualGeoTreeLogs tree_logs = GeoNodesLog::get_contextual_tree_logs(*snode);
+  const ContextualNodeTreeLogs tree_logs = NodesEvalLog::get_contextual_tree_logs(*snode);
 
   Set<StringRef> names;
 
   /* For the attribute input node, collect attribute information from all nodes in the group. */
   if (node->type_legacy == GEO_NODE_INPUT_NAMED_ATTRIBUTE) {
     Vector<const GeometryAttributeInfo *> attributes;
-    tree_logs.foreach_tree_log([&](GeoTreeLog &tree_log) {
+    tree_logs.foreach_tree_log([&](NodeTreeLog &tree_log) {
       tree_log.ensure_socket_values();
       tree_log.ensure_existing_attributes();
       for (const GeometryAttributeInfo *attribute : tree_log.existing_attributes) {
@@ -96,12 +96,12 @@ static Vector<const GeometryAttributeInfo *> get_attribute_info_from_context(
     });
     return attributes;
   }
-  GeoTreeLog *tree_log = tree_logs.get_main_tree_log(*node);
+  NodeTreeLog *tree_log = tree_logs.get_main_tree_log(*node);
   if (!tree_log) {
     return {};
   }
   tree_log->ensure_socket_values();
-  GeoNodeLog *node_log = tree_log->nodes.lookup_ptr(node->identifier);
+  NodeLog *node_log = tree_log->nodes.lookup_ptr(node->identifier);
   if (node_log == nullptr) {
     return {};
   }

@@ -48,7 +48,7 @@ static void node_register()
 {
   static bke::bNodeType ntype;
 
-  fn_node_type_base(
+  fn_cmp_node_type_base(
       &ntype, "FunctionNodeInputSpecialCharacters"_ustr, FN_NODE_INPUT_SPECIAL_CHARACTERS);
   ntype.ui_name = "Special Characters";
   ntype.ui_description =

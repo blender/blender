@@ -338,10 +338,9 @@ class MultiDevice : public Device {
 
     /* Get the memory owner of this key (first try current device, then peer devices) */
     SubDevice *owner_sub = &sub;
-    if (owner_sub->ptr_map.find(key) == owner_sub->ptr_map.end()) {
+    if (!owner_sub->ptr_map.contains(key)) {
       for (SubDevice *island_sub : peer_islands[sub.peer_island_index]) {
-        if (island_sub != owner_sub && island_sub->ptr_map.find(key) != island_sub->ptr_map.end())
-        {
+        if (island_sub != owner_sub && island_sub->ptr_map.contains(key)) {
           owner_sub = island_sub;
         }
       }
@@ -356,7 +355,7 @@ class MultiDevice : public Device {
     /* Get the memory owner of this key or the device with the lowest memory usage when new */
     SubDevice *owner_sub = island.front();
     for (SubDevice *island_sub : island) {
-      if (key ? (island_sub->ptr_map.find(key) != island_sub->ptr_map.end()) :
+      if (key ? (island_sub->ptr_map.contains(key)) :
                 (island_sub->device->stats.mem_used < owner_sub->device->stats.mem_used))
       {
         owner_sub = island_sub;
@@ -492,6 +491,21 @@ class MultiDevice : public Device {
 
     assert(!"is_shared failed to find matching device");
     return false;
+  }
+
+  void mem_or_from_device(device_memory &mem) override
+  {
+    device_ptr key = mem.device_pointer;
+
+    for (const vector<SubDevice *> &island : peer_islands) {
+      SubDevice *owner_sub = find_matching_mem_device(key, *island.front());
+      mem.device = owner_sub->device.get();
+      mem.device_pointer = owner_sub->ptr_map[key];
+      owner_sub->device->mem_or_from_device(mem);
+    }
+
+    mem.device = this;
+    mem.device_pointer = key;
   }
 
   void mem_copy_from(

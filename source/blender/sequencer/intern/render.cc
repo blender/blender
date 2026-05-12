@@ -18,7 +18,6 @@
 #include "DNA_space_types.h"
 #include "DNA_world_types.h"
 
-#include "BLI_linklist.h"
 #include "BLI_listbase.h"
 #include "BLI_math_geom.h"
 #include "BLI_math_matrix.hh"
@@ -761,8 +760,12 @@ static ImBuf *seq_render_effect_strip_impl(const RenderData *context,
             target_frame = std::floor(target_frame);
           }
 
-          intra_frame_cache_set_cur_frame(
-              context->scene, target_frame, context->view_id, context->rectx, context->recty);
+          intra_frame_cache_set_cur_frame(context->scene,
+                                          target_frame,
+                                          context->view_id,
+                                          context->rectx,
+                                          context->recty,
+                                          context->render != nullptr);
           ibuf[i] = seq_render_strip(context, state, input[0], target_frame);
         }
         else { /* Other effects. */
@@ -1614,8 +1617,12 @@ static ImBuf *do_render_strip_seqbase(const RenderData *context,
       BKE_animsys_evaluate_all_animation(context->bmain, context->depsgraph, frame_index);
     }
 
-    intra_frame_cache_set_cur_frame(
-        context->scene, frame_index, context->view_id, context->rectx, context->recty);
+    intra_frame_cache_set_cur_frame(context->scene,
+                                    frame_index,
+                                    context->view_id,
+                                    context->rectx,
+                                    context->recty,
+                                    context->render != nullptr);
     ibuf = seq_render_strip_stack(context,
                                   state,
                                   channels,
@@ -1647,12 +1654,8 @@ static ImBuf *do_render_strip_uncached(const RenderData *context,
   }
   else if (strip->type == STRIP_TYPE_SCENE) {
     /* Recursive check. */
-    if (BLI_linklist_index(state->scene_parents, strip->scene) == -1) {
-      LinkNode scene_parent{};
-      scene_parent.next = state->scene_parents;
-      scene_parent.link = context->scene;
-      state->scene_parents = &scene_parent;
-      /* End check. */
+    if (!state->scenes_in_progress.contains(strip->scene)) {
+      state->scenes_in_progress.add(context->scene);
 
       if (strip->flag & SEQ_SCENE_STRIPS) {
         if (strip->scene && (context->scene != strip->scene)) {
@@ -1670,8 +1673,8 @@ static ImBuf *do_render_strip_uncached(const RenderData *context,
         ibuf = seq_render_scene_strip(context, strip, frame_index, timeline_frame);
       }
 
-      /* Step back in the recursive check list. */
-      state->scene_parents = state->scene_parents->next;
+      /* End recursive check. */
+      state->scenes_in_progress.remove(context->scene);
     }
   }
   else if (strip->is_effect()) {
@@ -1789,7 +1792,7 @@ static ImBuf *seq_render_strip_stack_apply_effect(
   return out;
 }
 
-static bool is_opaque_alpha_over(const Strip *strip)
+static bool is_opaque_alpha_over(const Strip *strip, const RenderData *context)
 {
   if (strip->blend_mode != STRIP_BLEND_ALPHAOVER) {
     return false;
@@ -1801,11 +1804,12 @@ static bool is_opaque_alpha_over(const Strip *strip)
     return false;
   }
   for (StripModifierData &smd : strip->modifiers) {
+    const bool modifier_enabled = (context->render && !(smd.flag & STRIP_MODIFIER_FLAG_MUTE)) ||
+                                  (!context->render &&
+                                   (smd.flag & STRIP_MODIFIER_FLAG_SHOW_PREVIEW));
     /* Assume result is not opaque if there is an enabled Mask or Compositor modifiers, which could
      * introduce alpha. */
-    if ((smd.flag & STRIP_MODIFIER_FLAG_MUTE) == 0 &&
-        ELEM(smd.type, eSeqModifierType_Mask, eSeqModifierType_Compositor))
-    {
+    if (modifier_enabled && ELEM(smd.type, eSeqModifierType_Mask, eSeqModifierType_Compositor)) {
       return false;
     }
   }
@@ -1852,7 +1856,9 @@ static ImBuf *seq_render_strip_stack(const RenderData *context,
      * - Likewise, if we are at the bottom of the stack; the input can be used as-is.
      * - If we are rendering a strip that is known to be opaque, we mark it as an occluder,
      *   so that strips below can check if they are completely hidden. */
-    if (out == nullptr && early_out == StripEarlyOut::DoEffect && is_opaque_alpha_over(strip)) {
+    if (out == nullptr && early_out == StripEarlyOut::DoEffect &&
+        is_opaque_alpha_over(strip, context))
+    {
       ImBuf *test = seq_render_strip(context, state, strip, timeline_frame);
       if (ELEM(test->planes, R_IMF_PLANES_BW, R_IMF_PLANES_RGB) || i == 0) {
         early_out = StripEarlyOut::UseInput2;
@@ -1961,14 +1967,22 @@ ImBuf *render_give_ibuf(const RenderData *context, float timeline_frame, int cha
     channels = ed->current_channels();
   }
 
-  intra_frame_cache_set_cur_frame(
-      scene, timeline_frame, context->view_id, context->rectx, context->recty);
+  intra_frame_cache_set_cur_frame(scene,
+                                  timeline_frame,
+                                  context->view_id,
+                                  context->rectx,
+                                  context->recty,
+                                  context->render != nullptr);
 
   Scene *orig_scene = prefetch_get_original_scene(context);
   ImBuf *out = nullptr;
   if (!context->skip_cache) {
-    out = final_image_cache_get(
-        orig_scene, timeline_frame, context->view_id, chanshown, {context->rectx, context->recty});
+    out = final_image_cache_get(orig_scene,
+                                timeline_frame,
+                                context->view_id,
+                                chanshown,
+                                {context->rectx, context->recty},
+                                context->render != nullptr);
   }
 
   Vector<Strip *> strips = query_rendered_strips_sorted(
@@ -1993,6 +2007,7 @@ ImBuf *render_give_ibuf(const RenderData *context, float timeline_frame, int cha
                             context->view_id,
                             chanshown,
                             {context->rectx, context->recty},
+                            context->render != nullptr,
                             out);
     }
   }
@@ -2017,8 +2032,12 @@ ImBuf *render_give_ibuf_direct(const RenderData *context, float timeline_frame, 
 {
   SeqRenderState state;
 
-  intra_frame_cache_set_cur_frame(
-      context->scene, timeline_frame, context->view_id, context->rectx, context->recty);
+  intra_frame_cache_set_cur_frame(context->scene,
+                                  timeline_frame,
+                                  context->view_id,
+                                  context->rectx,
+                                  context->recty,
+                                  context->render != nullptr);
   ImBuf *ibuf = seq_render_strip(context, &state, strip, timeline_frame);
   return ibuf;
 }
@@ -2042,27 +2061,33 @@ float get_render_scale_factor(const RenderData &context)
   return get_render_scale_factor(context.preview_render_size, context.scene->r.size);
 }
 
-void render_begin_gpu(const RenderData &rd)
+bool render_begin_gpu(const RenderData &rd)
 {
   if (rd.gpu_context.ghost_context != nullptr) {
     /* Use GPU context from VSE render data. */
     gpu::GPU_activate_secondary_context(rd.gpu_context);
     GPU_render_begin();
+    return true;
   }
-  else if (BLI_thread_is_main()) {
+
+  if (BLI_thread_is_main()) {
     /* Use main GPU context. */
     DRW_gpu_context_enable();
+    return DRW_gpu_context_is_enabled();
   }
-  else {
-    /* Use GPU context from Render. */
-    BLI_assert(rd.render != nullptr);
-    GHOST_IContext *render_ghost_context = RE_system_gpu_context_get(rd.render);
-    BLI_assert(render_ghost_context != nullptr);
-    WM_system_gpu_context_activate(render_ghost_context);
-    void *render_gpu_context = RE_blender_gpu_context_ensure(rd.render);
-    GPU_render_begin();
-    GPU_context_active_set(static_cast<GPUContext *>(render_gpu_context));
+
+  /* Use GPU context from Render. */
+  BLI_assert(rd.render != nullptr);
+  GHOST_IContext *render_ghost_context = RE_system_gpu_context_get(rd.render);
+  if (!render_ghost_context) {
+    return false;
   }
+
+  WM_system_gpu_context_activate(render_ghost_context);
+  void *render_gpu_context = RE_blender_gpu_context_ensure(rd.render);
+  GPU_render_begin();
+  GPU_context_active_set(static_cast<GPUContext *>(render_gpu_context));
+  return true;
 }
 
 void render_end_gpu(const RenderData &rd)

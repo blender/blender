@@ -271,7 +271,8 @@ void USDCameraReader::read_object_data(Main *bmain, const pxr::UsdTimeCode time)
    */
   if (read_attribute_values(usd_fstop, time, data)) {
     camera->dof.aperture_fstop = scale_default(data.initial_value, 1, camera->dof.aperture_fstop);
-    camera->dof.flag |= data.initial_value.value_or(0.0f) != 0.0f ? CAM_DOF_ENABLED : 0;
+    camera->dof.flag |= data.initial_value.value_or(0.0f) != 0.0f ? CAM_DOF_ENABLED :
+                                                                    eCamera_DOF_Flag{};
 
     if (!data.samples.is_empty()) {
       FCurve *curve1 = create_fcurve(channelbag, {"dof.aperture_fstop", 0}, data.samples.size());

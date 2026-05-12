@@ -757,4 +757,26 @@ struct BlenderRNA {
 
 #define CONTAINER_RNA_ID(cont) (*(const char **)(((ContainerRNA *)(cont)) + 1))
 
+/* Check compatibility of DNA types with RNA types. */
+inline bool is_dnatype_float_compat(const StringRef dnatype)
+{
+  return ELEM(dnatype, "float", "double");
+}
+inline bool is_dnatype_int_compat(const StringRef dnatype)
+{
+  return ELEM(dnatype, "int", "short", "char", "uchar", "ushort", "int8_t");
+}
+inline bool is_dnatype_boolean_compat(const StringRef dnatype)
+{
+  return is_dnatype_int_compat(dnatype) || ELEM(dnatype, "int64_t", "uint64_t");
+}
+inline bool is_dnatype_boolean_bitshift_fullrange_compat(const StringRef dnatype)
+{
+  /* Several types cannot use all their bytes to store a bit-set (bit-shift operations on negative
+   * numbers are "arithmetic", i.e. preserve the sign, i.e. are not "pure" binary shifting).
+   *
+   * Currently, all signed types and `uint64_t` cannot use their left-most bit (i.e. sign bit). */
+  return ELEM(dnatype, "char", "uchar", "ushort", "uint", "uint8_t", "uint16_t", "uint32_t");
+}
+
 }  // namespace blender

@@ -23,6 +23,13 @@ IMAGE(0, SFLOAT_16_16_16_16, write, image2D, output_img)
 DO_STATIC_COMPILATION()
 GPU_SHADER_CREATE_END()
 
+GPU_SHADER_CREATE_INFO(compositor_pad_zero_float)
+ADDITIONAL_INFO(compositor_pad_shared)
+COMPILATION_CONSTANT(bool, zero_pad, true)
+IMAGE(0, SFLOAT_16, write, image2D, output_img)
+DO_STATIC_COMPILATION()
+GPU_SHADER_CREATE_END()
+
 GPU_SHADER_CREATE_INFO(compositor_pad_extend_float)
 ADDITIONAL_INFO(compositor_pad_shared)
 COMPILATION_CONSTANT(bool, zero_pad, false)

@@ -12,7 +12,7 @@
   PTCacheEditKey *key; \
   int k
 #define POINT_P \
-  PTCacheEditPoint *point; \
+  [[maybe_unused]] PTCacheEditPoint *point; \
   int p
 #define LOOP_POINTS for (p = 0, point = edit->points; p < edit->totpoint; p++, point++)
 #define LOOP_VISIBLE_POINTS \

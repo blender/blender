@@ -31,7 +31,7 @@ PyDoc_STRVAR(
     "   Returns the :class:`freestyle.types.ViewShape` containing the\n"
     "   Interface0D pointed by the Interface0DIterator.\n"
     "\n"
-    "   :arg it: An Interface0DIterator object.\n"
+    "   :param it: An Interface0DIterator object.\n"
     "   :type it: :class:`freestyle.types.Interface0DIterator`\n"
     "   :return: The ViewShape containing the pointed Interface0D.\n"
     "   :rtype: :class:`freestyle.types.ViewShape`\n");

@@ -28,11 +28,11 @@ struct NodeEnum {
 
   bool exists(ustring x) const
   {
-    return left.find(x) != left.end();
+    return left.contains(x);
   }
   bool exists(const int y) const
   {
-    return right.find(y) != right.end();
+    return right.contains(y);
   }
 
   int operator[](const char *x) const

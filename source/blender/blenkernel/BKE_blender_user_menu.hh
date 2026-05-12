@@ -15,6 +15,8 @@ namespace blender {
 struct bUserMenu;
 struct bUserMenuItem;
 
+enum eUserMenu_Type : char;
+
 bUserMenu *BKE_blender_user_menu_find(ListBaseT<bUserMenu> *lb,
                                       char space_type,
                                       const char *context);
@@ -22,7 +24,7 @@ bUserMenu *BKE_blender_user_menu_ensure(ListBaseT<bUserMenu> *lb,
                                         char space_type,
                                         const char *context);
 
-bUserMenuItem *BKE_blender_user_menu_item_add(ListBaseT<bUserMenuItem> *lb, int type);
+bUserMenuItem *BKE_blender_user_menu_item_add(ListBaseT<bUserMenuItem> *lb, eUserMenu_Type type);
 void BKE_blender_user_menu_item_free(bUserMenuItem *umi);
 void BKE_blender_user_menu_item_free_list(ListBaseT<bUserMenuItem> *lb);
 

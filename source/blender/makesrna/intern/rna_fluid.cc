@@ -215,7 +215,8 @@ static void rna_Fluid_parts_create(Main *bmain,
   UNUSED_VARS(bmain, ptr, pset_name, parts_name, psys_name, psys_type);
 #  else
   Object *ob = (Object *)ptr->owner_id;
-  BKE_fluid_particle_system_create(bmain, ob, pset_name, parts_name, psys_name, psys_type);
+  BKE_fluid_particle_system_create(
+      bmain, ob, pset_name, parts_name, psys_name, eParticleType(psys_type));
 
   DEG_id_tag_update(&ob->id, ID_RECALC_GEOMETRY);
   DEG_relations_tag_update(bmain);
@@ -506,25 +507,25 @@ static void rna_Fluid_cache_endframe_set(PointerRNA *ptr, int value)
 static void rna_Fluid_cachetype_mesh_set(PointerRNA *ptr, int value)
 {
   FluidDomainSettings *settings = static_cast<FluidDomainSettings *>(ptr->data);
-  BKE_fluid_cachetype_mesh_set(settings, value);
+  BKE_fluid_cachetype_mesh_set(settings, eFluidDomain_FileFormat(value));
 }
 
 static void rna_Fluid_cachetype_data_set(PointerRNA *ptr, int value)
 {
   FluidDomainSettings *settings = static_cast<FluidDomainSettings *>(ptr->data);
-  BKE_fluid_cachetype_data_set(settings, value);
+  BKE_fluid_cachetype_data_set(settings, eFluidDomain_FileFormat(value));
 }
 
 static void rna_Fluid_cachetype_particle_set(PointerRNA *ptr, int value)
 {
   FluidDomainSettings *settings = static_cast<FluidDomainSettings *>(ptr->data);
-  BKE_fluid_cachetype_particle_set(settings, value);
+  BKE_fluid_cachetype_particle_set(settings, eFluidDomain_FileFormat(value));
 }
 
 static void rna_Fluid_cachetype_noise_set(PointerRNA *ptr, int value)
 {
   FluidDomainSettings *settings = static_cast<FluidDomainSettings *>(ptr->data);
-  BKE_fluid_cachetype_noise_set(settings, value);
+  BKE_fluid_cachetype_noise_set(settings, eFluidDomain_FileFormat(value));
 }
 
 static void rna_Fluid_cachetype_set(PointerRNA *ptr, int value)
@@ -532,8 +533,8 @@ static void rna_Fluid_cachetype_set(PointerRNA *ptr, int value)
   FluidDomainSettings *settings = static_cast<FluidDomainSettings *>(ptr->data);
 
   if (value != settings->cache_type) {
-    settings->cache_type = value;
-    settings->cache_flag = 0;
+    settings->cache_type = eFluidDomain_CacheType(value);
+    settings->cache_flag = {};
   }
 }
 
@@ -858,7 +859,7 @@ static void rna_Fluid_domaintype_set(PointerRNA *ptr, int value)
 {
   FluidDomainSettings *settings = static_cast<FluidDomainSettings *>(ptr->data);
   Object *ob = id_cast<Object *>(ptr->owner_id);
-  BKE_fluid_domain_type_set(ob, settings, value);
+  BKE_fluid_domain_type_set(ob, settings, eFluidDomain_Type(value));
   BKE_fluid_fields_sanitize(settings);
 }
 
@@ -1197,7 +1198,7 @@ static void rna_Fluid_flowsource_set(PointerRNA *ptr, int value)
   FluidFlowSettings *settings = static_cast<FluidFlowSettings *>(ptr->data);
 
   if (value != settings->source) {
-    settings->source = value;
+    settings->source = eFluidFlow_Source(value);
   }
 }
 
@@ -1239,8 +1240,8 @@ static void rna_Fluid_flowtype_set(PointerRNA *ptr, int value)
   FluidFlowSettings *settings = static_cast<FluidFlowSettings *>(ptr->data);
 
   if (value != settings->type) {
-    short prev_value = settings->type;
-    settings->type = value;
+    eFluidFlow_Type prev_value = settings->type;
+    settings->type = eFluidFlow_Type(value);
 
     /* Force flow source to mesh for liquids.
      * Also use different surface emission. Liquids should by default not emit around surface. */

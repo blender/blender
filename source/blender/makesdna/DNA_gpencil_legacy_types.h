@@ -8,6 +8,8 @@
 
 #pragma once
 
+#include "BLI_enum_flags.hh"
+
 #include "DNA_ID.h"
 #include "DNA_curve_types.h"
 #include "DNA_listBase.h"
@@ -19,16 +21,17 @@ struct MDeformVert;
 struct tGPspoint;
 
 /** #bGPDspoint.flag */
-enum eGPDspoint_Flag {
+enum eGPDspoint_Flag : int {
   /* stroke point is selected (for editing) */
   GP_SPOINT_SELECT = (1 << 0),
 
   /* stroke point is tagged (for some editing operation) */
   GP_SPOINT_TAG = (1 << 1),
 };
+ENUM_OPERATORS(eGPDspoint_Flag)
 
 /** #bGPDpalettecolor.flag */
-enum eGPDpalettecolor_Flag {
+enum eGPDpalettecolor_Flag : short {
   /* color is active */
   /* PC_COLOR_ACTIVE = (1 << 0), */ /* UNUSED */
   /* don't display color */
@@ -40,28 +43,32 @@ enum eGPDpalettecolor_Flag {
   /* "volumetric" strokes */
   PC_COLOR_VOLUMETRIC = (1 << 4),
 };
+ENUM_OPERATORS(eGPDpalettecolor_Flag)
 
 /** #bGPDpalette.flag */
-enum eGPDpalette_Flag {
+enum eGPDpalette_Flag : short {
   /* palette is active */
   PL_PALETTE_ACTIVE = (1 << 0),
 };
+ENUM_OPERATORS(eGPDpalette_Flag)
 
 /* bGPDcurve_point->flag */
-enum eGPDcurve_point_Flag {
+enum eGPDcurve_point_Flag : int {
   GP_CURVE_POINT_SELECT = (1 << 0),
 };
+ENUM_OPERATORS(eGPDcurve_point_Flag)
 
 /* bGPDcurve_Flag->flag */
-enum bGPDcurve_Flag {
+enum bGPDcurve_Flag : short {
   /* Flag to indicated that the stroke data has been changed and the curve needs to be refitted */
   GP_CURVE_NEEDS_STROKE_UPDATE = (1 << 0),
   /* Curve is selected */
   GP_CURVE_SELECT = (1 << 1),
 };
+ENUM_OPERATORS(bGPDcurve_Flag)
 
 /** #bGPDstroke.flag */
-enum eGPDstroke_Flag {
+enum eGPDstroke_Flag : short {
   /* stroke is in 3d-space */
   GP_STROKE_3DSPACE = (1 << 0),
   /* stroke is in 2d-space */
@@ -89,11 +96,12 @@ enum eGPDstroke_Flag {
   /* Tag for update geometry */
   GP_STROKE_TAG = (1 << 14),
   /* only for use with stroke-buffer (while drawing eraser) */
-  GP_STROKE_ERASER = (1 << 15),
+  GP_STROKE_ERASER = static_cast<short>(1 << 15),
 };
+ENUM_OPERATORS(eGPDstroke_Flag)
 
 /** #bGPDstroke.caps */
-enum eGPDstroke_Caps {
+enum eGPDstroke_Caps : short {
   /* type of extreme */
   GP_STROKE_CAP_ROUND = 0,
   GP_STROKE_CAP_FLAT = 1,
@@ -103,7 +111,7 @@ enum eGPDstroke_Caps {
 };
 
 /** #bGPDataRuntime.arrowstyle */
-enum eGPDstroke_Arrowstyle {
+enum eGPDstroke_Arrowstyle : int {
   GP_STROKE_ARROWSTYLE_NONE = 0,
   GP_STROKE_ARROWSTYLE_SEGMENT = 2,
   GP_STROKE_ARROWSTYLE_OPEN = 3,
@@ -112,7 +120,7 @@ enum eGPDstroke_Arrowstyle {
 };
 
 /* bGPDframe->flag */
-enum eGPDframe_Flag {
+enum eGPDframe_Flag : short {
   /* frame is being painted on */
   GP_FRAME_PAINT = (1 << 0),
   /* for editing in Action Editor */
@@ -120,17 +128,19 @@ enum eGPDframe_Flag {
   /* Line Art generation */
   GP_FRAME_LRT_CLEARED = (1 << 2),
 };
+ENUM_OPERATORS(eGPDframe_Flag)
 
 /* bGPDlayer_Mask->flag */
-enum ebGPDlayer_Mask_Flag {
+enum ebGPDlayer_Mask_Flag : short {
   /* Mask is hidden. */
   GP_MASK_HIDE = (1 << 0),
   /* Mask is inverted. */
   GP_MASK_INVERT = (1 << 1),
 };
+ENUM_OPERATORS(ebGPDlayer_Mask_Flag)
 
 /* bGPDlayer->flag */
-enum eGPDlayer_Flag {
+enum eGPDlayer_Flag : short {
   /* don't display layer */
   GP_LAYER_HIDE = (1 << 0),
   /* protected from further editing */
@@ -158,18 +168,20 @@ enum eGPDlayer_Flag {
   /* Ruler Layer */
   GP_LAYER_IS_RULER = (1 << 14),
   /* Disable masks in view-layer render */
-  GP_LAYER_DISABLE_MASKS_IN_VIEWLAYER = (1 << 15),
+  GP_LAYER_DISABLE_MASKS_IN_VIEWLAYER = static_cast<short>(1 << 15),
 };
+ENUM_OPERATORS(eGPDlayer_Flag)
 
 /** #bGPDlayer.onion_flag */
-enum eGPDlayer_OnionFlag {
+enum eGPDlayer_OnionFlag : short {
   /* do onion skinning */
   GP_LAYER_ONIONSKIN = (1 << 0),
   GP_LAYER_ONIONSKIN_CUSTOM_COLOR = (1 << 1),
 };
+ENUM_OPERATORS(eGPDlayer_OnionFlag)
 
 /** #bGPDlayer.blend_mode */
-enum eGPLayerBlendModes {
+enum eGPLayerBlendModes : int {
   eGplBlendMode_Regular = 0,
   eGplBlendMode_HardLight = 1,
   eGplBlendMode_Add = 2,
@@ -185,7 +197,7 @@ enum eGPLayerBlendModes {
  *       since they have been made redundant by interaction
  *       changes made during the porting process.
  */
-enum eGPdata_Flag {
+enum eGPdata_Flag : int {
   /* data-block is used for "annotations"
    * NOTE: This flag used to be used in 2.4x, but should hardly ever have been set.
    *       We can use this freely now, as all GP data-blocks from pre-2.8 will get
@@ -246,9 +258,10 @@ enum eGPdata_Flag {
   /* Use adaptive curve resolution */
   GP_DATA_CURVE_ADAPTIVE_RESOLUTION = (1 << 22),
 };
+ENUM_OPERATORS(eGPdata_Flag)
 
 /* gpd->onion_flag */
-enum eGPD_OnionFlag {
+enum eGPD_OnionFlag : int {
   /* use custom color for ghosts before current frame */
   GP_ONION_GHOST_PREVCOL = (1 << 0),
   /* use custom color for ghosts after current frame */
@@ -260,16 +273,17 @@ enum eGPD_OnionFlag {
   /* Loop showing first frame after last frame */
   GP_ONION_LOOP = (1 << 4),
 };
+ENUM_OPERATORS(eGPD_OnionFlag)
 
 /* gpd->onion_mode */
-enum eGP_OnionModes {
+enum eGP_OnionModes : int {
   GP_ONION_MODE_ABSOLUTE = 0,
   GP_ONION_MODE_RELATIVE = 1,
   GP_ONION_MODE_SELECTED = 2,
 };
 
 /* draw modes (Use 2D or 3D position) */
-enum eGP_DrawMode {
+enum eGP_DrawMode : short {
   GP_DRAWMODE_2D = 0,
   GP_DRAWMODE_3D = 1,
 };
@@ -301,7 +315,7 @@ struct bGPDspoint {
   /** Seconds since start of stroke. */
   float time = 0;
   /** Additional options. */
-  int flag = 0;
+  eGPDspoint_Flag flag = {};
 
   /** Factor of uv along the stroke. */
   float uv_fac = 0;
@@ -344,7 +358,7 @@ struct bGPDpalettecolor {
   /** Color that should be used for drawing "fills" for strokes. */
   float fill[4] = {};
   /** Settings for palette color. */
-  short flag = 0;
+  eGPDpalettecolor_Flag flag = {};
   /** Padding for compiler alignment error. */
   char _pad[6] = {};
 };
@@ -360,7 +374,7 @@ struct bGPDpalette {
   /** Palette name. Must be unique. */
   char info[64] = "";
 
-  short flag = 0;
+  eGPDpalette_Flag flag = {};
   char _pad[6] = {};
 };
 
@@ -378,7 +392,7 @@ struct bGPDcurve_point {
   int point_index = 0;
 
   /** Additional options. */
-  int flag = 0;
+  eGPDcurve_point_Flag flag = {};
 
   /** Factor of uv along the stroke. */
   float uv_fac = 0;
@@ -404,7 +418,7 @@ struct bGPDcurve {
   /** Total number of curve points. */
   int tot_curve_points = 0;
   /** General flag. */
-  short flag = 0;
+  bGPDcurve_Flag flag = {};
   char _pad[2] = {};
 };
 
@@ -458,7 +472,8 @@ struct bGPDstroke {
   /** Thickness of stroke. */
   short thickness = 0;
   /** Various settings about this stroke. */
-  short flag = 0, _pad[2] = {};
+  eGPDstroke_Flag flag = {};
+  short _pad[2] = {};
 
   /** Init time of stroke. */
   double inittime = 0;
@@ -469,7 +484,7 @@ struct bGPDstroke {
   /** Material index. */
   int mat_nr = 0;
   /** Caps mode for each stroke extreme */
-  short caps[2] = {};
+  eGPDstroke_Caps caps[2] = {};
 
   /** gradient control along y for color */
   float hardness = 0;
@@ -532,7 +547,7 @@ struct bGPDframe {
   int framenum = 0;
 
   /** Temp settings. */
-  short flag = 0;
+  eGPDframe_Flag flag = {};
   /** Keyframe type (eBezTriple_KeyframeType). */
   short key_type = 0;
 
@@ -548,7 +563,7 @@ struct bGPDlayer_Mask {
 
   struct bGPDlayer_Mask *next = nullptr, *prev = nullptr;
   char name[128] = "";
-  short flag = 0;
+  ebGPDlayer_Mask_Flag flag = {};
   /** Index for sorting. Only valid while sorting algorithm is running. */
   short sort_index = 0;
   char _pad[4] = {};
@@ -575,9 +590,9 @@ struct bGPDlayer {
   bGPDframe *actframe = nullptr;
 
   /** Settings for layer. */
-  short flag = 0;
-  /** Per-layer onion-skinning flags (eGPDlayer_OnionFlag). */
-  short onion_flag = 0;
+  eGPDlayer_Flag flag = {};
+  /** Per-layer onion-skinning flags. */
+  eGPDlayer_OnionFlag onion_flag = {};
 
   /** Color for strokes in layers. Used for annotations, and for ruler
    * (which uses GPencil internally). */
@@ -612,7 +627,7 @@ struct bGPDlayer {
   char viewlayername[64] = "";
 
   /** Blend modes. */
-  int blend_mode = 0;
+  eGPLayerBlendModes blend_mode = eGplBlendMode_Regular;
   /** Vertex Paint opacity by Layer. */
   float vertex_paint_opacity = 0;
 
@@ -669,7 +684,7 @@ struct bGPdata_Runtime {
    *   whole paint operation is over
    */
   /** Flags for stroke that cache represents. */
-  short sbuffer_sflag = 0;
+  eGPDstroke_Flag sbuffer_sflag = eGPDstroke_Flag{};
   char _pad1[2] = {};
   /** Number of elements currently used in cache. */
   int sbuffer_used = 0;
@@ -686,8 +701,8 @@ struct bGPdata_Runtime {
   float arrow_start[8] = {};
   float arrow_end[8] = {};
   /* Arrow style for each corner */
-  int arrow_start_style = 0;
-  int arrow_end_style = 0;
+  eGPDstroke_Arrowstyle arrow_start_style = GP_STROKE_ARROWSTYLE_NONE;
+  eGPDstroke_Arrowstyle arrow_end_style = GP_STROKE_ARROWSTYLE_NONE;
 
   char _pad[4] = {};
 };
@@ -720,7 +735,7 @@ struct bGPdata {
   /** bGPDlayer. */
   ListBaseT<bGPDlayer> layers = {nullptr, nullptr};
   /** Settings for this data-block. */
-  int flag = 0;
+  eGPdata_Flag flag = {};
   /** Default resolution for generated curves using curve editing method. */
   int curve_edit_resolution = 0;
   /** Curve Editing error threshold. */
@@ -744,10 +759,10 @@ struct bGPdata {
   /* Onion skinning */
   /** Onion alpha factor change. */
   float onion_factor = 0;
-  /** Onion skinning range (eGP_OnionModes). */
-  int onion_mode = 0;
-  /** Onion skinning flags (eGPD_OnionFlag). */
-  int onion_flag = 0;
+  /** Onion skinning range. */
+  eGP_OnionModes onion_mode = GP_ONION_MODE_ABSOLUTE;
+  /** Onion skinning flags. */
+  eGPD_OnionFlag onion_flag = {};
   /**
    * Ghosts Before: max number of ghost frames to show between
    * active frame and the one before it (0 = only the ghost itself).
@@ -778,8 +793,8 @@ struct bGPdata {
   int totstroke = 0;
   int totpoint = 0;
 
-  /** Draw mode for strokes (eGP_DrawMode). */
-  short draw_mode = 0;
+  /** Draw mode for strokes. */
+  eGP_DrawMode draw_mode = GP_DRAWMODE_2D;
   /** Keyframe type for onion filter  (eBezTriple_KeyframeType plus All option) */
   short onion_keytype = 0;
 

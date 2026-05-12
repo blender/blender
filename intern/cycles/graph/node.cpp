@@ -817,22 +817,22 @@ void Node::dereference_all_used_nodes()
 
 bool Node::socket_is_modified(const SocketType &input) const
 {
-  return (socket_modified & input.modified_flag_bit) != 0;
+  return socket_modified.test(input.modified_flag_bit);
 }
 
 bool Node::is_modified() const
 {
-  return socket_modified != 0;
+  return socket_modified.any();
 }
 
 void Node::tag_modified()
 {
-  socket_modified = ~0ull;
+  socket_modified.set();
 }
 
 void Node::clear_modified()
 {
-  socket_modified = 0;
+  socket_modified.reset();
 }
 
 template<typename T> void Node::set_if_different(const SocketType &input, T value)
@@ -842,7 +842,7 @@ template<typename T> void Node::set_if_different(const SocketType &input, T valu
   }
 
   get_socket_value<T>(this, input) = value;
-  socket_modified |= input.modified_flag_bit;
+  socket_modified.set(input.modified_flag_bit);
 }
 
 void Node::set_if_different(const SocketType &input, Node *value)
@@ -861,7 +861,7 @@ void Node::set_if_different(const SocketType &input, Node *value)
   }
 
   get_socket_value<Node *>(this, input) = value;
-  socket_modified |= input.modified_flag_bit;
+  socket_modified.set(input.modified_flag_bit);
 }
 
 template<typename T> void Node::set_if_different(const SocketType &input, array<T> &value)
@@ -873,7 +873,7 @@ template<typename T> void Node::set_if_different(const SocketType &input, array<
   }
 
   get_socket_value<array<T>>(this, input).steal_data(value);
-  socket_modified |= input.modified_flag_bit;
+  socket_modified.set(input.modified_flag_bit);
 }
 
 void Node::set_if_different(const SocketType &input, array<Node *> &value)
@@ -894,7 +894,7 @@ void Node::set_if_different(const SocketType &input, array<Node *> &value)
   }
 
   get_socket_value<array<Node *>>(this, input).steal_data(value);
-  socket_modified |= input.modified_flag_bit;
+  socket_modified.set(input.modified_flag_bit);
 }
 
 void Node::print_modified_sockets() const

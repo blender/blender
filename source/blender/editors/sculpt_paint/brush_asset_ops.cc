@@ -70,6 +70,18 @@ static wmOperatorStatus brush_asset_activate_exec(bContext *C, wmOperator *op)
     return OPERATOR_CANCELLED;
   }
 
+  if (asset->get_id_type() != ID_BR) {
+    BKE_reportf(op->reports, RPT_ERROR, "Asset '%s' is not a brush", asset->get_name().c_str());
+    return OPERATOR_CANCELLED;
+  }
+  if (asset->is_online()) {
+    BKE_reportf(op->reports,
+                RPT_ERROR,
+                "Brush '%s' needs downloading before it can be used (check context menu)",
+                asset->get_name().c_str());
+    return OPERATOR_CANCELLED;
+  }
+
   const bool use_toggle = RNA_boolean_get(op->ptr, "use_toggle");
   AssetWeakReference brush_asset_reference = asset->make_weak_reference();
   Paint *paint = BKE_paint_get_active_from_context(C);

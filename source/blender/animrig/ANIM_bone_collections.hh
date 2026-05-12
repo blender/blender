@@ -321,7 +321,7 @@ bool ANIM_bonecoll_is_visible_editbone(const bArmature *armature, const EditBone
 
 inline bool ANIM_bonecoll_is_visible_pchan(const bArmature *armature, const bPoseChannel *pchan)
 {
-  return ANIM_bone_in_visible_collection(armature, pchan->bone);
+  return ANIM_bone_in_visible_collection(armature, pchan->bone_get(*armature));
 }
 
 inline bool ANIM_bonecoll_is_visible_actbone(const bArmature *armature)

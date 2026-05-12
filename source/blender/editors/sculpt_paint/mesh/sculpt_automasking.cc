@@ -715,7 +715,7 @@ void calc_vert_factors(const Depsgraph &depsgraph,
       bool ignore = ss.cache && ss.cache->brush &&
                     ss.cache->brush->sculpt_brush_type == SCULPT_BRUSH_TYPE_DRAW_FACE_SETS &&
                     (automasking.settings.initial_face_set == face_set_none_id ||
-                     face_set::vert_face_set_get(vert_to_face_map, face_sets, vert) ==
+                     face_set::vert_face_set_max_get(vert_to_face_map, face_sets, vert) ==
                          ss.cache->paint_face_set);
 
       if (!ignore && !face_set::vert_has_unique_face_set(vert_to_face_map, face_sets, vert)) {
@@ -830,7 +830,7 @@ void calc_face_factors(const Depsgraph &depsgraph,
         bool ignore = ss.cache && ss.cache->brush &&
                       ss.cache->brush->sculpt_brush_type == SCULPT_BRUSH_TYPE_DRAW_FACE_SETS &&
                       (automasking.settings.initial_face_set == face_set_none_id ||
-                       face_set::vert_face_set_get(vert_to_face_map, face_sets, vert) ==
+                       face_set::vert_face_set_max_get(vert_to_face_map, face_sets, vert) ==
                            ss.cache->paint_face_set);
 
         if (!ignore && !face_set::vert_has_unique_face_set(vert_to_face_map, face_sets, vert)) {
@@ -1088,7 +1088,7 @@ void calc_vert_factors(const Depsgraph &depsgraph,
       bool ignore = ss.cache && ss.cache->brush &&
                     ss.cache->brush->sculpt_brush_type == SCULPT_BRUSH_TYPE_DRAW_FACE_SETS &&
                     (automasking.settings.initial_face_set == face_set_none_id ||
-                     face_set::vert_face_set_get(face_set_offset, *vert) ==
+                     face_set::vert_face_set_max_get(face_set_offset, *vert) ==
                          ss.cache->paint_face_set);
 
       if (!ignore && !face_set::vert_has_unique_face_set(face_set_offset, *vert)) {

@@ -43,6 +43,8 @@
 
 #include "BLO_readfile.hh"
 
+#include "BLT_date_string.hh"
+#include "BLT_lang.hh"
 #include "BLT_translation.hh"
 
 #include "BLF_api.hh"
@@ -84,7 +86,7 @@ namespace blender {
 using RemoteLibraryLoadingStatus = asset_system::RemoteLibraryLoadingStatus;
 
 void ED_file_path_button(bScreen *screen,
-                         const SpaceFile *sfile,
+                         SpaceFile *sfile,
                          FileSelectParams *params,
                          ui::Block *block)
 {
@@ -92,9 +94,11 @@ void ED_file_path_button(bScreen *screen,
 
   BLI_assert_msg(params != nullptr,
                  "File select parameters not set. The caller is expected to check this.");
+  BLI_assert(params == sfile->params || params == &sfile->asset_params->base_params);
 
-  PointerRNA params_rna_ptr = RNA_pointer_create_discrete(
-      &screen->id, RNA_FileSelectParams, params);
+  PointerRNA space_ptr = RNA_pointer_create_discrete(&screen->id, RNA_SpaceFileBrowser, sfile);
+  PointerRNA params_rna_ptr = RNA_pointer_create_with_parent(
+      space_ptr, RNA_FileSelectParams, params);
 
   /* callbacks for operator check functions */
   block_func_set(block, file_draw_check_cb, nullptr, nullptr);
@@ -303,19 +307,20 @@ static void file_draw_tooltip_custom_func(bContext & /*C*/,
       free_imbuf = true;
     }
 
-    char date_str[FILELIST_DIRENTRY_DATE_LEN], time_str[FILELIST_DIRENTRY_TIME_LEN];
-    bool is_today, is_yesterday;
-    std::string day_string;
-    BLI_filelist_entry_datetime_to_string(
-        nullptr, file->time, false, time_str, date_str, &is_today, &is_yesterday);
-    if (is_today || is_yesterday) {
-      day_string = (is_today ? TIP_("Today") : TIP_("Yesterday")) + std::string(" ");
-    }
+    const time_t file_time = (time_t)file->time;
+    const std::tm mod_time = *std::localtime(&file_time);
+    const time_t ts_now = time(nullptr);
+    const std::tm now = *std::localtime(&ts_now);
+    const char *lang = BLT_lang_get();
+    std::string modified_s = blender::date_string::datetime(mod_time,
+                                                            lang,
+                                                            date_string::DateFormat(U.date_format),
+                                                            date_string::TimeFormat(U.time_format),
+                                                            &now,
+                                                            TIP_("Today"),
+                                                            TIP_("Yesterday"));
     tooltip_text_field_add(tip,
-                           fmt::format(fmt::runtime(TIP_("Modified: {}{}{}")),
-                                       day_string,
-                                       (is_today || is_yesterday) ? "" : date_str,
-                                       (is_today || is_yesterday) ? time_str : ""),
+                           fmt::format(fmt::runtime(TIP_("Modified: {}")), modified_s),
                            {},
                            ui::TIP_STYLE_NORMAL,
                            ui::TIP_LC_NORMAL);
@@ -593,8 +598,7 @@ static rcti file_measure_string_multiline(const StringRef string, const int wrap
   rcti textbox;
   BLF_wordwrap(font_id,
                wrap_width,
-               BLFWrapMode(int(BLFWrapMode::Typographical) | int(BLFWrapMode::Path) |
-                           int(BLFWrapMode::HardLimit)));
+               BLFWrapMode::Typographical | BLFWrapMode::Path | BLFWrapMode::HardLimit);
   BLF_enable(font_id, BLF_WORD_WRAP);
   BLF_boundbox(font_id, string.data(), string.size(), &textbox);
   BLF_disable(font_id, BLF_WORD_WRAP);
@@ -1229,18 +1233,22 @@ static const char *filelist_get_details_column_string(
     case COLUMN_DATETIME:
       if (!(file->typeflag & FILE_TYPE_BLENDERLIB) && !FILENAME_IS_CURRPAR(file->relpath)) {
         if (file->draw_data.datetime_str[0] == '\0' || update_stat_strings) {
-          char date[FILELIST_DIRENTRY_DATE_LEN], time[FILELIST_DIRENTRY_TIME_LEN];
-          bool is_today, is_yesterday;
-
-          BLI_filelist_entry_datetime_to_string(
-              nullptr, file->time, compact, time, date, &is_today, &is_yesterday);
-
-          if (!compact && (is_today || is_yesterday)) {
-            STRNCPY_UTF8(date, is_today ? IFACE_("Today") : IFACE_("Yesterday"));
-          }
-          SNPRINTF_UTF8(file->draw_data.datetime_str, compact ? "%s" : "%s %s", date, time);
+          const time_t file_time = (time_t)file->time;
+          const std::tm mod_time = *std::localtime(&file_time);
+          const time_t ts_now = time(nullptr);
+          const std::tm now = *std::localtime(&ts_now);
+          const char *lang = BLT_lang_get();
+          std::string modified_s =
+              compact ? date_string::date(mod_time, lang, date_string::DateFormat(U.date_format)) :
+                        date_string::datetime(mod_time,
+                                              lang,
+                                              date_string::DateFormat(U.date_format),
+                                              date_string::TimeFormat(U.time_format),
+                                              &now,
+                                              TIP_("Today"),
+                                              TIP_("Yesterday"));
+          STRNCPY_UTF8(file->draw_data.datetime_str, modified_s.c_str());
         }
-
         return file->draw_data.datetime_str;
       }
       break;

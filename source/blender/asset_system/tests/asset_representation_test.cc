@@ -10,12 +10,14 @@
 #include "BKE_lib_id.hh"
 #include "BKE_main.hh"
 
+#if defined(WIN32)
+#  include "BLI_string.h"
+#endif
+
 #include "DNA_asset_types.h"
 #include "DNA_object_types.h"
 
 #include "ED_asset_mark_clear.hh"
-
-#include "BLI_string.h"
 
 #include "../intern/utils.hh"
 

@@ -68,7 +68,7 @@ AssetLibraryReference library_reference_from_enum_value(int value)
 
   /* Simple case: Predefined repository, just set the value. */
   if (value < ASSET_LIBRARY_CUSTOM) {
-    library.type = value;
+    library.type = eAssetLibraryType(value);
     library.custom_library_index = -1;
     BLI_assert(ELEM(value, ASSET_LIBRARY_ALL, ASSET_LIBRARY_LOCAL, ASSET_LIBRARY_ESSENTIALS));
     return library;

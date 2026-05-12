@@ -38,7 +38,7 @@ class GHOST_Context : public GHOST_IContext {
   /**
    * Returns the thread's currently active drawing context.
    */
-  static inline GHOST_Context *getActiveDrawingContext()
+  static GHOST_Context *getActiveDrawingContext()
   {
     return active_context_;
   }

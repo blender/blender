@@ -136,13 +136,13 @@ static void node_geo_exec(GeoNodeExecParams params)
     geometry_transform = self_object->world_to_object() * object->object_to_world();
   }
 
-  bPoseChannel *pchan = BKE_pose_channel_find_name(object->pose, bone_name.c_str());
+  const bPoseChannel *pchan = BKE_pose_channel_find_name(object->pose, bone_name.c_str());
   if (!pchan) {
     params.set_default_remaining_outputs();
     params.error_message_add(NodeWarningType::Error, TIP_("Bone not found"));
     return;
   }
-  Bone *bone = pchan->bone;
+  const Bone *bone = pchan->bone_get(*object);
   const float4x4 pose = geometry_transform * float4x4(pchan->pose_mat);
   const float4x4 rest_pose = geometry_transform * float4x4(bone->arm_mat);
 
@@ -154,7 +154,7 @@ static void node_geo_exec(GeoNodeExecParams params)
                               math::invert(parent_pose) * pose;
 
   float4x4 transform_pose;
-  BKE_pchan_to_mat4(pchan, transform_pose.ptr());
+  BKE_pchan_to_mat4({pchan, bone}, transform_pose.ptr());
 
   params.set_output("Pose"_ustr, pose);
   params.set_output("Local Pose"_ustr, local_pose);

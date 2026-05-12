@@ -22,6 +22,10 @@ namespace animrig {
 class BoneColor;
 }
 
+namespace bke {
+struct bArmature_Runtime;
+}
+
 struct AnimData;
 struct BoneCollection;
 struct BoneCollectionMember;
@@ -30,7 +34,7 @@ struct EditBone;
 
 /* armature->flag */
 /* don't use bit 7, was saved in files to disable stuff */
-enum eArmature_Flag {
+enum eArmature_Flag : int {
   ARM_RESTPOS = (1 << 0),
   /** XRAY is here only for backwards converting */
   ARM_FLAG_UNUSED_1 = (1 << 1), /* cleared */
@@ -62,9 +66,10 @@ enum eArmature_Flag {
   /** Other objects are used for visualizing various states (hack for efficient updates). */
   ARM_HAS_VIZ_DEPS = (1 << 14),
 };
+ENUM_OPERATORS(eArmature_Flag);
 
 /* armature->drawtype */
-enum eArmature_Drawtype {
+enum eArmature_Drawtype : int {
   ARM_DRAW_TYPE_ARMATURE_DEFINED = -1, /* Use draw type from Armature (only used on Bones). */
   ARM_DRAW_TYPE_OCTA = 0,
   ARM_DRAW_TYPE_STICK = 1,
@@ -74,7 +79,7 @@ enum eArmature_Drawtype {
 };
 
 /* armature->deformflag */
-enum eArmature_DeformFlag {
+enum eArmature_DeformFlag : short {
   ARM_DEF_VGROUP = (1 << 0),
   ARM_DEF_ENVELOPE = (1 << 1),
   ARM_DEF_QUATERNION = (1 << 2),
@@ -83,10 +88,11 @@ enum eArmature_DeformFlag {
 #endif
   ARM_DEF_INVERT_VGROUP = (1 << 4),
 };
+ENUM_OPERATORS(eArmature_DeformFlag)
 
 #ifdef DNA_DEPRECATED_ALLOW /* Old animation system (armature only viz). */
 /** #bArmature.pathflag */
-enum eArmature_PathFlag {
+enum eArmature_PathFlag : short {
   ARM_PATH_FNUMS = (1 << 0),
   ARM_PATH_KFRAS = (1 << 1),
   ARM_PATH_HEADS = (1 << 2),
@@ -96,7 +102,7 @@ enum eArmature_PathFlag {
 #endif
 
 /* bone->flag */
-enum eBone_Flag {
+enum eBone_Flag : int {
   /**
    * Bone selection, must only be set when the bone is not hidden
    * (#BONE_HIDDEN_A / #BONE_HIDDEN_P flags must not be enabled as well).
@@ -171,7 +177,7 @@ enum eBone_Flag {
 ENUM_OPERATORS(eBone_Flag)
 
 /* bone->inherit_scale_mode */
-enum eBone_InheritScaleMode {
+enum eBone_InheritScaleMode : char {
   /* Inherit all scale and shear. */
   BONE_INHERIT_SCALE_FULL = 0,
   /* Inherit scale, but remove final shear. */
@@ -187,7 +193,7 @@ enum eBone_InheritScaleMode {
 };
 
 /* bone->bbone_prev_type, bbone_next_type */
-enum eBone_BBoneHandleType {
+enum eBone_BBoneHandleType : char {
   BBONE_HANDLE_AUTO = 0,     /* Default mode based on parents & children. */
   BBONE_HANDLE_ABSOLUTE = 1, /* Custom handle in absolute position mode. */
   BBONE_HANDLE_RELATIVE = 2, /* Custom handle in relative position mode. */
@@ -195,21 +201,22 @@ enum eBone_BBoneHandleType {
 };
 
 /* bone->bbone_mapping_mode */
-enum eBone_BBoneMappingMode {
+enum eBone_BBoneMappingMode : char {
   BBONE_MAPPING_STRAIGHT = 0, /* Default mode that ignores the rest pose curvature. */
   BBONE_MAPPING_CURVED = 1,   /* Mode that takes the rest pose curvature into account. */
 };
 
 /* bone->bbone_flag */
-enum eBone_BBoneFlag {
+enum eBone_BBoneFlag : int {
   /** Add the parent Out roll to the In roll. */
   BBONE_ADD_PARENT_END_ROLL = (1 << 0),
   /** Multiply B-Bone easing values with Scale Length. */
   BBONE_SCALE_EASING = (1 << 1),
 };
+ENUM_OPERATORS(eBone_BBoneFlag)
 
 /* bone->bbone_prev/next_flag */
-enum eBone_BBoneHandleFlag {
+enum eBone_BBoneHandleFlag : short {
   /** Use handle bone scaling for scale X. */
   BBONE_HANDLE_SCALE_X = (1 << 0),
   /** Use handle bone scaling for scale Y (length). */
@@ -226,7 +233,7 @@ enum eBone_BBoneHandleFlag {
 #define MAXBONENAME 64
 
 /** #BoneCollection.flag */
-enum eBoneCollection_Flag {
+enum eBoneCollection_Flag : uint8_t {
   BONE_COLLECTION_VISIBLE = (1 << 0),    /* Visibility flag of this particular collection. */
   BONE_COLLECTION_SELECTABLE = (1 << 1), /* Intended to be implemented in the not-so-far future. */
   BONE_COLLECTION_OVERRIDE_LIBRARY_LOCAL = (1 << 2), /* Added by a local library override. */
@@ -321,12 +328,12 @@ struct Bone {
    * bone.matrix in RNA. Computed in BKE_armature_where_is_bone(). */
   float bone_mat[3][3] = {};
 
-  int flag = 0;
+  eBone_Flag flag = {};
   int8_t drawtype = ARM_DRAW_TYPE_ARMATURE_DEFINED; /* eArmature_Drawtype */
   char _pad1[3] = {};
   BoneColor color; /* MUST be named the same as in bPoseChannel and EditBone structs. */
 
-  char inherit_scale_mode = 0;
+  eBone_InheritScaleMode inherit_scale_mode = {};
   char _pad[3] = {};
 
   /** Head position in armature space. So should be the same as head in edit mode. */
@@ -375,34 +382,22 @@ struct Bone {
   /** For B-bones. */
   short segments = 0;
   /** Vertex to segment mapping mode. */
-  char bbone_mapping_mode = 0;
+  eBone_BBoneMappingMode bbone_mapping_mode = {};
   char _pad2[7] = {};
 
   /** Type of next/prev bone handles. */
-  char bbone_prev_type = 0;
-  char bbone_next_type = 0;
+  eBone_BBoneHandleType bbone_prev_type = {};
+  eBone_BBoneHandleType bbone_next_type = {};
   /** B-Bone flags. */
-  int bbone_flag = 0;
-  short bbone_prev_flag = 0;
-  short bbone_next_flag = 0;
+  eBone_BBoneFlag bbone_flag = {};
+  eBone_BBoneHandleFlag bbone_prev_flag = {};
+  eBone_BBoneHandleFlag bbone_next_flag = {};
   /** Next/prev bones to use as handle references when calculating bbones (optional). */
   struct Bone *bbone_prev = nullptr;
   struct Bone *bbone_next = nullptr;
 
   /* Keep last. */
   Bone_Runtime runtime;
-};
-
-struct bArmature_Runtime {
-  /**
-   * Index of the active collection, -1 if there is no collection active.
-   *
-   * For UIList support in the user interface. Assigning here does nothing, use
-   * `ANIM_armature_bonecoll_active_set` to set the active bone collection.
-   */
-  int active_collection_index = 0;
-  uint8_t _pad0[4] = {};
-  struct BoneCollection *active_collection = nullptr;
 };
 
 struct bArmature {
@@ -415,6 +410,7 @@ struct bArmature {
   ID id;
   struct AnimData *adt = nullptr;
 
+  /** Root bones. Children are listed in Bone::childbase. */
   ListBaseT<Bone> bonebase = {nullptr, nullptr};
 
   /** Use a hash-table for quicker lookups of bones by name. */
@@ -439,10 +435,10 @@ struct bArmature {
   char needs_flush_to_id = 0;
   char _pad0[3] = {};
 
-  int flag = ARM_COL_CUSTOM;         /* custom bone-group colors */
-  int drawtype = ARM_DRAW_TYPE_OCTA; /* eArmature_Drawtype */
+  eArmature_Flag flag = ARM_COL_CUSTOM;
+  eArmature_Drawtype drawtype = ARM_DRAW_TYPE_OCTA;
 
-  short deformflag = ARM_DEF_VGROUP | ARM_DEF_ENVELOPE;
+  eArmature_DeformFlag deformflag = ARM_DEF_VGROUP | ARM_DEF_ENVELOPE;
   short pathflag = 0;
 
   /** This is used only for reading/writing BoneCollections in blend
@@ -479,7 +475,7 @@ struct bArmature {
   float axes_position = 0;
 
   /** Keep last, for consistency with the position of other DNA runtime structures. */
-  struct bArmature_Runtime runtime;
+  bke::bArmature_Runtime *runtime = nullptr;
 
 #ifdef __cplusplus
   /* Collection array access for convenient for-loop iteration. */
@@ -493,6 +489,10 @@ struct bArmature {
   /* Return the span of children of the given bone collection. */
   Span<const BoneCollection *> collection_children(const BoneCollection *parent) const;
   Span<BoneCollection *> collection_children(BoneCollection *parent);
+
+  const Bone *bone_get_indexed(int64_t bone_index) const;
+  Bone *bone_get_indexed(int64_t bone_index);
+
 #endif
 };
 
@@ -514,8 +514,7 @@ struct BoneCollection {
 
   ListBaseT<BoneCollectionMember> bones = {nullptr, nullptr};
 
-  /** eBoneCollection_Flag. */
-  uint8_t flags = 0;
+  eBoneCollection_Flag flags = {};
   uint8_t _pad0[7] = {};
 
   /*

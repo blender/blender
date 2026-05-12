@@ -25,12 +25,16 @@ PyDoc_STRVAR(
     "View vertex for corners, cusps, etc. associated to a single SVertex.\n"
     "Can be associated to 2 or more view edges.\n"
     "\n"
-    ".. method:: __init__()\n"
-    "            __init__(svertex)\n"
+    ".. method:: __init__(*args)\n"
+    "\n"
+    "   Accepted call signatures:\n"
+    "\n"
+    "   - ``__init__()``\n"
+    "   - ``__init__(svertex)``\n"
     "\n"
     "   Builds a :class:`NonTVertex` using the default constructor or a :class:`SVertex`.\n"
     "\n"
-    "   :arg svertex: An SVertex object.\n"
+    "   :param svertex: An SVertex object.\n"
     "   :type svertex: :class:`SVertex`\n");
 
 /* NOTE: No copy constructor in Python because the C++ copy constructor is 'protected'. */

@@ -203,18 +203,17 @@ bool BKE_appdir_folder_documents(char *dir)
   return true;
 }
 
-bool BKE_appdir_folder_caches(char *path, const size_t path_maxncpy)
+void BKE_appdir_folder_caches(char *path, const size_t path_maxncpy)
 {
   path[0] = '\0';
 
   const GHOST_ISystemPaths *ghost_system_paths = GHOST_ISystemPaths::get();
   std::optional<std::string> caches_root_path = ghost_system_paths->getUserSpecialDir(
       GHOST_kUserSpecialDirCaches);
-  if (!caches_root_path || !BLI_is_dir(caches_root_path->c_str())) {
-    caches_root_path = BKE_tempdir_base();
-  }
-  if (!caches_root_path || !BLI_is_dir(caches_root_path->c_str())) {
-    return false;
+  if (!caches_root_path || caches_root_path->empty()) [[unlikely]] {
+    const char *tempdir = BKE_tempdir_session();
+    BLI_path_join(path, path_maxncpy, tempdir, ".cache", SEP_STR);
+    return;
   }
 
 #ifdef WIN32
@@ -230,8 +229,6 @@ bool BKE_appdir_folder_caches(char *path, const size_t path_maxncpy)
 #else /* __linux__ */
   BLI_path_join(path, path_maxncpy, caches_root_path->c_str(), "blender", SEP_STR);
 #endif
-
-  return true;
 }
 
 bool BKE_appdir_font_folder_default(char *dir, size_t dir_maxncpy)

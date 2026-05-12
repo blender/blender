@@ -35,7 +35,7 @@ static void node_register()
 {
   static bke::bNodeType ntype;
 
-  fn_node_type_base(&ntype, "FunctionNodeSliceString"_ustr, FN_NODE_SLICE_STRING);
+  fn_cmp_node_type_base(&ntype, "FunctionNodeSliceString"_ustr, FN_NODE_SLICE_STRING);
   ntype.ui_name = "Slice String";
   ntype.ui_description = "Extract a string segment from a larger string";
   ntype.enum_name_legacy = "SLICE_STRING";

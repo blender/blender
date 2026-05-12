@@ -64,7 +64,7 @@ struct UndoCurve {
   ListBaseT<FCurve> drivers;
 
   int actnu;
-  int flag;
+  eCurveFlag flag;
 
   /* Stored in the object, needed since users may change the active key while in edit-mode. */
   struct {

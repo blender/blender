@@ -32,7 +32,7 @@ PyDoc_STRVAR(
     "\n"
     "   Returns the time stamp of the Interface1D.\n"
     "\n"
-    "   :arg inter: An Interface1D object.\n"
+    "   :param inter: An Interface1D object.\n"
     "   :type inter: :class:`freestyle.types.Interface1D`\n");
 static int TimeStampF1D___init__(BPy_TimeStampF1D *self, PyObject *args, PyObject *kwds)
 {

@@ -281,6 +281,11 @@ static short acf_nodetree_rootType_offset(bNodeTree *ntree)
       case NTREE_TEXTURE:
         /* 2 additional levels */
         return INDENT_STEP_SIZE * 2;
+
+      case NTREE_GEOMETRY:
+      case NTREE_UNDEFINED:
+      case NTREE_CUSTOM:
+        break;
     }
   }
 
@@ -4036,7 +4041,7 @@ static int layer_group_icon(bAnimListElem *ale)
   const LayerGroup &group = *static_cast<LayerGroup *>(ale->data);
   int icon = ICON_GREASEPENCIL_LAYER_GROUP;
   if (group.color_tag != LAYERGROUP_COLOR_NONE) {
-    icon = ICON_LAYERGROUP_COLOR_01 + group.color_tag;
+    icon = ICON_LAYERGROUP_COLOR_01 + int(group.color_tag);
   }
   return icon;
 }
@@ -5876,48 +5881,48 @@ static void draw_setting_widget(bAnimContext *ac,
   ui::Button *but = nullptr;
   switch (ptrsize) {
     case sizeof(int): /* integer pointer for setting */
-      but = uiDefIconButBitI(block,
-                             butType,
-                             flag,
-                             icon,
-                             xpos,
-                             ypos,
-                             ICON_WIDTH,
-                             ICON_WIDTH,
-                             static_cast<int *>(ptr),
-                             0,
-                             0,
-                             tooltip);
+      but = uiDefIconButBit(block,
+                            butType,
+                            flag,
+                            icon,
+                            xpos,
+                            ypos,
+                            ICON_WIDTH,
+                            ICON_WIDTH,
+                            static_cast<int *>(ptr),
+                            0,
+                            0,
+                            tooltip);
       break;
 
     case sizeof(short): /* short pointer for setting */
-      but = uiDefIconButBitS(block,
-                             butType,
-                             flag,
-                             icon,
-                             xpos,
-                             ypos,
-                             ICON_WIDTH,
-                             ICON_WIDTH,
-                             static_cast<short *>(ptr),
-                             0,
-                             0,
-                             tooltip);
+      but = uiDefIconButBit(block,
+                            butType,
+                            flag,
+                            icon,
+                            xpos,
+                            ypos,
+                            ICON_WIDTH,
+                            ICON_WIDTH,
+                            static_cast<short *>(ptr),
+                            0,
+                            0,
+                            tooltip);
       break;
 
     case sizeof(char): /* char pointer for setting */
-      but = uiDefIconButBitC(block,
-                             butType,
-                             flag,
-                             icon,
-                             xpos,
-                             ypos,
-                             ICON_WIDTH,
-                             ICON_WIDTH,
-                             static_cast<char *>(ptr),
-                             0,
-                             0,
-                             tooltip);
+      but = uiDefIconButBit(block,
+                            butType,
+                            flag,
+                            icon,
+                            xpos,
+                            ypos,
+                            ICON_WIDTH,
+                            ICON_WIDTH,
+                            static_cast<char *>(ptr),
+                            0,
+                            0,
+                            tooltip);
       break;
   }
   if (!but) {

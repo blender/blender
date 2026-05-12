@@ -184,7 +184,7 @@ class Context : public compositor::Context {
 
     if (realization_operation) {
       Result realize_input = this->create_result(ResultType::Color, viewer_result.precision());
-      realize_input.wrap_external(viewer_result);
+      realize_input.share_data(viewer_result);
       realization_operation->map_input_to_result(&realize_input);
       realization_operation->evaluate();
 
@@ -215,7 +215,7 @@ class Context : public compositor::Context {
     if (DRW_viewport_pass_texture_exists(pass_name)) {
       gpu::Texture *pass_texture = DRW_viewport_pass_texture_get(pass_name).gpu_texture();
       compositor::Result pass = compositor::Result(*this, GPU_texture_format(pass_texture));
-      pass.wrap_external(pass_texture);
+      pass.share_data(pass_texture);
       return pass;
     }
 
@@ -224,7 +224,7 @@ class Context : public compositor::Context {
     if (STREQ(pass_name, RE_PASSNAME_COMBINED)) {
       gpu::Texture *combined_texture = DRW_context_get()->viewport_texture_list_get()->color;
       compositor::Result pass = compositor::Result(*this, GPU_texture_format(combined_texture));
-      pass.wrap_external(combined_texture);
+      pass.share_data(combined_texture);
       return pass;
     }
 
@@ -329,12 +329,14 @@ class Context : public compositor::Context {
   {
     using namespace compositor;
     const bNodeTree &node_group = *DRW_context_get()->scene->compositing_node_group;
+    const bke::DataBlockComputeContext compute_context(nullptr, this->get_scene().id);
     NodeGroupOperation node_group_operation(*this,
                                             node_group,
                                             this->needed_outputs(),
                                             nullptr,
                                             node_group.active_viewer_key,
-                                            bke::NODE_INSTANCE_KEY_BASE);
+                                            bke::NODE_INSTANCE_KEY_BASE,
+                                            compute_context);
 
     /* Set the reference count for the outputs, only the first color output is actually needed,
      * while the rest are ignored. */

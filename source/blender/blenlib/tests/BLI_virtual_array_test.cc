@@ -13,7 +13,15 @@
 
 namespace blender::tests {
 
-TEST(virtual_array, Span)
+class VirtualArrayTest : public testing::Test {
+ public:
+  static void SetUpTestSuite()
+  {
+    register_cpp_types();
+  }
+};
+
+TEST_F(VirtualArrayTest, Span)
 {
   std::array<int, 5> data = {3, 4, 5, 6, 7};
   VArray<int> varray = VArray<int>::from_span(data);
@@ -25,7 +33,7 @@ TEST(virtual_array, Span)
   EXPECT_EQ(varray.get_internal_span().data(), data.data());
 }
 
-TEST(virtual_array, Single)
+TEST_F(VirtualArrayTest, Single)
 {
   VArray<int> varray = VArray<int>::from_single(10, 4);
   EXPECT_EQ(varray.size(), 4);
@@ -36,7 +44,7 @@ TEST(virtual_array, Single)
   EXPECT_EQ(varray.get_internal_single(), 10);
 }
 
-TEST(virtual_array, Array)
+TEST_F(VirtualArrayTest, Array)
 {
   Array<int> array = {1, 2, 3, 5, 8};
   {
@@ -61,7 +69,7 @@ TEST(virtual_array, Array)
   }
 }
 
-TEST(virtual_array, MutableArray)
+TEST_F(VirtualArrayTest, MutableArray)
 {
   Array<int, 0> array = {1, 2, 3, 5, 8};
   const Span<int> array_span = array;
@@ -80,7 +88,7 @@ TEST(virtual_array, MutableArray)
   EXPECT_EQ(array_span.data(), varray_span.data());
 }
 
-TEST(virtual_array, Vector)
+TEST_F(VirtualArrayTest, Vector)
 {
   Vector<int> vector = {9, 8, 7, 6};
   VArray<int> varray = VArray<int>::from_container(std::move(vector));
@@ -89,7 +97,7 @@ TEST(virtual_array, Vector)
   EXPECT_EQ(varray[3], 6);
 }
 
-TEST(virtual_array, StdVector)
+TEST_F(VirtualArrayTest, StdVector)
 {
   std::vector<int> vector = {5, 6, 7, 8};
   VArray<int> varray = VArray<int>::from_container(std::move(vector));
@@ -98,7 +106,7 @@ TEST(virtual_array, StdVector)
   EXPECT_EQ(varray[1], 6);
 }
 
-TEST(virtual_array, StdArray)
+TEST_F(VirtualArrayTest, StdArray)
 {
   std::array<int, 4> array = {2, 3, 4, 5};
   VArray<int> varray = VArray<int>::from_container(std::move(array));
@@ -107,7 +115,7 @@ TEST(virtual_array, StdArray)
   EXPECT_EQ(varray[1], 3);
 }
 
-TEST(virtual_array, VectorSet)
+TEST_F(VirtualArrayTest, VectorSet)
 {
   VectorSet<int> vector_set = {5, 3, 7, 3, 3, 5, 1};
   VArray<int> varray = VArray<int>::from_container(std::move(vector_set));
@@ -119,7 +127,7 @@ TEST(virtual_array, VectorSet)
   EXPECT_EQ(varray[3], 1);
 }
 
-TEST(virtual_array, Func)
+TEST_F(VirtualArrayTest, Func)
 {
   auto func = [](int64_t index) { return int(index * index); };
   VArray<int> varray = VArray<int>::from_func(10, func);
@@ -129,7 +137,7 @@ TEST(virtual_array, Func)
   EXPECT_EQ(varray[9], 81);
 }
 
-TEST(virtual_array, AsSpan)
+TEST_F(VirtualArrayTest, AsSpan)
 {
   auto func = [](int64_t index) { return int(10 * index); };
   VArray<int> func_varray = VArray<int>::from_func(10, func);
@@ -152,7 +160,7 @@ static void set_x(std::array<int, 3> &item, int value)
   item[0] = value;
 }
 
-TEST(virtual_array, DerivedSpan)
+TEST_F(VirtualArrayTest, DerivedSpan)
 {
   Vector<std::array<int, 3>> vector;
   vector.append({3, 4, 5});
@@ -176,7 +184,7 @@ TEST(virtual_array, DerivedSpan)
   }
 }
 
-TEST(virtual_array, MutableToImmutable)
+TEST_F(VirtualArrayTest, MutableToImmutable)
 {
   std::array<int, 4> array = {4, 2, 6, 4};
   {
@@ -204,7 +212,7 @@ TEST(virtual_array, MutableToImmutable)
   }
 }
 
-TEST(virtual_array, MaterializeCompressed)
+TEST_F(VirtualArrayTest, MaterializeCompressed)
 {
   IndexMaskMemory memory;
   {
@@ -253,7 +261,7 @@ TEST(virtual_array, MaterializeCompressed)
   }
 }
 
-TEST(virtual_array, EmptySpanWrapper)
+TEST_F(VirtualArrayTest, EmptySpanWrapper)
 {
   {
     VArray<int> varray;

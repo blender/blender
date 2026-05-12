@@ -531,7 +531,7 @@ static void blend_read(BlendDataReader *reader, ModifierData *md)
     BKE_curvemapping_blend_read(reader, hmd->curfalloff);
   }
 
-  BLO_read_int32_array(reader, hmd->indexar_num, &hmd->indexar);
+  BLO_read_array_and_validate_size(reader, &hmd->indexar, &hmd->indexar_num);
 }
 
 ModifierTypeInfo modifierType_Hook = {

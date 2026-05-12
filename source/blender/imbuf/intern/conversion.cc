@@ -16,7 +16,6 @@
 #include "IMB_imbuf_types.hh"
 
 #include "IMB_colormanagement.hh"
-#include "IMB_colormanagement_intern.hh"
 
 #include "MEM_guardedalloc.h"
 

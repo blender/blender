@@ -61,7 +61,7 @@ static wmOperatorStatus paintmode_toggle_exec(bContext *C, wmOperator *op)
   Main *bmain = CTX_data_main(C);
   ToolSettings *ts = CTX_data_tool_settings(C);
 
-  short mode;
+  eObjectMode mode;
   Object *ob = CTX_data_active_object(C);
   BLI_assert(ob != nullptr);
 
@@ -171,7 +171,7 @@ static wmOperatorStatus sculptmode_toggle_exec(bContext *C, wmOperator *op)
   const bool back = RNA_boolean_get(op->ptr, "back");
 
   wmMsgBus *mbus = CTX_wm_message_bus(C);
-  short mode;
+  eObjectMode mode;
   Object *ob = CTX_data_active_object(C);
   BLI_assert(ob != nullptr);
   const bool is_mode_set = (ob->mode & OB_MODE_SCULPT_GREASE_PENCIL) != 0;
@@ -260,7 +260,7 @@ static wmOperatorStatus weightmode_toggle_exec(bContext *C, wmOperator *op)
   const bool back = RNA_boolean_get(op->ptr, "back");
 
   wmMsgBus *mbus = CTX_wm_message_bus(C);
-  short mode;
+  eObjectMode mode;
   Object *ob = CTX_data_active_object(C);
   BLI_assert(ob != nullptr);
   const bool is_mode_set = (ob->mode & OB_MODE_WEIGHT_GREASE_PENCIL) != 0;
@@ -353,7 +353,7 @@ static wmOperatorStatus vertexmode_toggle_exec(bContext *C, wmOperator *op)
   Scene *scene = CTX_data_scene(C);
   ToolSettings *ts = CTX_data_tool_settings(C);
 
-  short mode;
+  eObjectMode mode;
   Object *ob = CTX_data_active_object(C);
   BLI_assert(ob != nullptr);
   const bool is_mode_set = (ob->mode & OB_MODE_VERTEX_GREASE_PENCIL) != 0;

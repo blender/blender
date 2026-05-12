@@ -123,10 +123,10 @@ void clean_fcurve(bAnimListElem *ale,
 
   /* now insert first keyframe, as it should be ok */
   bezt = old_bezts;
-  animrig::insert_bezt_fcurve(fcu, bezt, eInsertKeyFlags(0));
+  animrig::insert_bezt_fcurve(fcu, bezt, eInsertKeyFlags{});
   if (!(bezt->f2 & SELECT)) {
     lastb = fcu->bezt;
-    lastb->f1 = lastb->f2 = lastb->f3 = 0;
+    lastb->f1 = lastb->f2 = lastb->f3 = eBezTriple_Flag{};
   }
 
   /* Loop through BezTriples, comparing them. Skip any that do
@@ -155,9 +155,9 @@ void clean_fcurve(bAnimListElem *ale,
     cur[1] = bezt->vec[1][1];
 
     if (only_selected_keys && !(bezt->f2 & SELECT)) {
-      animrig::insert_bezt_fcurve(fcu, bezt, eInsertKeyFlags(0));
+      animrig::insert_bezt_fcurve(fcu, bezt, eInsertKeyFlags{});
       lastb = (fcu->bezt + (fcu->totvert - 1));
-      lastb->f1 = lastb->f2 = lastb->f3 = 0;
+      lastb->f1 = lastb->f2 = lastb->f3 = eBezTriple_Flag{};
       continue;
     }
 
@@ -172,7 +172,7 @@ void clean_fcurve(bAnimListElem *ale,
         if (cur[1] > next[1]) {
           if (IS_EQT(cur[1], prev[1], thresh) == 0) {
             /* add new keyframe */
-            animrig::insert_bezt_fcurve(fcu, bezt, eInsertKeyFlags(0));
+            animrig::insert_bezt_fcurve(fcu, bezt, eInsertKeyFlags{});
           }
         }
       }
@@ -180,7 +180,7 @@ void clean_fcurve(bAnimListElem *ale,
         /* only add if values are a considerable distance apart */
         if (IS_EQT(cur[1], prev[1], thresh) == 0) {
           /* add new keyframe */
-          animrig::insert_bezt_fcurve(fcu, bezt, eInsertKeyFlags(0));
+          animrig::insert_bezt_fcurve(fcu, bezt, eInsertKeyFlags{});
         }
       }
     }
@@ -190,18 +190,18 @@ void clean_fcurve(bAnimListElem *ale,
         /* does current have same value as previous and next? */
         if (IS_EQT(cur[1], prev[1], thresh) == 0) {
           /* add new keyframe */
-          animrig::insert_bezt_fcurve(fcu, bezt, eInsertKeyFlags(0));
+          animrig::insert_bezt_fcurve(fcu, bezt, eInsertKeyFlags{});
         }
         else if (IS_EQT(cur[1], next[1], thresh) == 0) {
           /* add new keyframe */
-          animrig::insert_bezt_fcurve(fcu, bezt, eInsertKeyFlags(0));
+          animrig::insert_bezt_fcurve(fcu, bezt, eInsertKeyFlags{});
         }
       }
       else {
         /* add if value doesn't equal that of previous */
         if (IS_EQT(cur[1], prev[1], thresh) == 0) {
           /* add new keyframe */
-          animrig::insert_bezt_fcurve(fcu, bezt, eInsertKeyFlags(0));
+          animrig::insert_bezt_fcurve(fcu, bezt, eInsertKeyFlags{});
         }
       }
     }
@@ -1079,7 +1079,7 @@ static void decimate_fcurve_segment(FCurve *fcu,
                                 12, /* The actual resolution displayed in the viewport is dynamic
                                      * so we just pick a value that preserves the curve shape. */
                                 false,
-                                SELECT,
+                                BEZT_FLAG_SELECT,
                                 BEZT_FLAG_TEMP_TAG,
                                 error_sq_max,
                                 target_fcurve_verts);
@@ -1121,7 +1121,7 @@ bool decimate_fcurve(bAnimListElem *ale, float remove_ratio, float error_sq_max)
     BezTriple *bezt = (old_bezts + i);
     bezt->f2 &= ~BEZT_FLAG_IGNORE_TAG;
     if ((bezt->f2 & BEZT_FLAG_TEMP_TAG) == 0) {
-      animrig::insert_bezt_fcurve(fcu, bezt, eInsertKeyFlags(0));
+      animrig::insert_bezt_fcurve(fcu, bezt, eInsertKeyFlags{});
     }
   }
   /* now free the memory used by the old BezTriples */
@@ -1967,7 +1967,7 @@ static void paste_animedit_keys_fcurve(FCurve *fcu,
         /* select verts in range for removal */
         for (i = 0, bezt = fcu->bezt; i < fcu->totvert; i++, bezt++) {
           if ((f_min < bezt[0].vec[1][0]) && (bezt[0].vec[1][0] < f_max)) {
-            bezt->f2 |= SELECT;
+            bezt->f2 |= BEZT_FLAG_SELECT;
           }
         }
 

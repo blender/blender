@@ -98,6 +98,8 @@ class AttributeTexts : Overlay {
         add_attributes_to_text_cache(dt, curves.attributes(), object_to_world);
         break;
       }
+      default:
+        break;
     }
   }
 

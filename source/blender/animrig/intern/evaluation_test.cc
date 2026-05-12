@@ -8,6 +8,7 @@
 
 #include "BKE_action.hh"
 #include "BKE_animsys.h"
+#include "BKE_gtest_base.hh"
 #include "BKE_idtype.hh"
 #include "BKE_lib_id.hh"
 #include "BKE_main.hh"
@@ -16,21 +17,19 @@
 #include "DNA_object_types.h"
 
 #include "RNA_access.hh"
-#include "RNA_define.hh"
 #include "RNA_prototypes.hh"
 
 #include "BLI_math_base.h"
 
 #include <optional>
 
-#include "CLG_log.h"
 #include "testing/testing.h"
 
 namespace blender::animrig::tests {
 
 using namespace blender::animrig::internal;
 
-class AnimationEvaluationTest : public testing::Test {
+class AnimationEvaluationTest : public bke::BlenderGTestBase {
  protected:
   Main *bmain;
   Action *action;
@@ -43,23 +42,6 @@ class AnimationEvaluationTest : public testing::Test {
   PointerRNA cube_rna_ptr;
 
  public:
-  static void SetUpTestSuite()
-  {
-    /* BKE_id_free() hits a code path that uses CLOG, which crashes if not initialized properly. */
-    CLG_init();
-
-    /* To make id_can_have_animdata() and friends work, the `id_types` array needs to be set up. */
-    BKE_idtype_init();
-
-    RNA_init();
-  }
-
-  static void TearDownTestSuite()
-  {
-    CLG_exit();
-    RNA_exit();
-  }
-
   void SetUp() override
   {
     bmain = BKE_main_new();
@@ -294,7 +276,9 @@ class AccessibleEvaluationResult : public EvaluationResult {
   }
 };
 
-TEST(AnimationEvaluationResultTest, prop_identifier_hashing)
+class AnimationEvaluationResultTest : public bke::BlenderGTestBase {};
+
+TEST_F(AnimationEvaluationResultTest, prop_identifier_hashing)
 {
   AccessibleEvaluationResult result;
 

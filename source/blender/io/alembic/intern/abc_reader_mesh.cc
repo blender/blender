@@ -490,15 +490,12 @@ static void read_mesh_sample(const std::string &iobject_full_name,
 
 /* ************************************************************************** */
 
-AbcMeshReader::AbcMeshReader(const IObject &object, ImportSettings &settings)
-    : AbcObjectReader(object, settings)
+AbcMeshReader::AbcMeshReader(const AbcReaderConstructorArgs &args) : AbcObjectReader(args)
 {
   m_settings->read_flag |= MOD_MESHSEQ_READ_ALL;
 
   IPolyMesh ipoly_mesh(m_iobject, kWrapExisting);
   m_schema = ipoly_mesh.getSchema();
-
-  get_min_max_time(m_iobject, m_schema, m_min_time, m_max_time);
 }
 
 bool AbcMeshReader::valid() const
@@ -608,7 +605,10 @@ void AbcMeshReader::readObjectData(Main *bmain, const Alembic::Abc::ISampleSelec
   m_object = BKE_object_add_only_object(bmain, OB_MESH, m_object_name.c_str());
   m_object->data = id_cast<ID *>(mesh);
 
-  Mesh *read_mesh = this->read_mesh(mesh, sample_sel, MOD_MESHSEQ_READ_ALL, "", 0.0f, nullptr);
+  AbcReadGeometryParams read_params{};
+  read_params.read_flag = MOD_MESHSEQ_READ_ALL;
+
+  Mesh *read_mesh = this->read_mesh(mesh, sample_sel, read_params, nullptr);
   if (read_mesh != mesh) {
     BKE_mesh_nomain_to_mesh(read_mesh, mesh, m_object);
   }
@@ -709,9 +709,7 @@ bool AbcMeshReader::topology_changed(const Mesh *existing_mesh, const ISampleSel
 
 void AbcMeshReader::read_geometry(bke::GeometrySet &geometry_set,
                                   const Alembic::Abc::ISampleSelector &sample_sel,
-                                  const int read_flag,
-                                  const char *velocity_name,
-                                  const float velocity_scale,
+                                  const AbcReadGeometryParams &read_params,
                                   const char **r_err_str)
 {
   Mesh *mesh = geometry_set.get_mesh_for_write();
@@ -720,17 +718,14 @@ void AbcMeshReader::read_geometry(bke::GeometrySet &geometry_set,
     return;
   }
 
-  Mesh *new_mesh = read_mesh(
-      mesh, sample_sel, read_flag, velocity_name, velocity_scale, r_err_str);
+  Mesh *new_mesh = read_mesh(mesh, sample_sel, read_params, r_err_str);
 
   geometry_set.replace_mesh(new_mesh);
 }
 
 Mesh *AbcMeshReader::read_mesh(Mesh *existing_mesh,
                                const ISampleSelector &sample_sel,
-                               const int read_flag,
-                               const char *velocity_name,
-                               const float velocity_scale,
+                               const AbcReadGeometryParams &read_params,
                                const char **r_err_str)
 {
   IPolyMeshSchema::Sample sample;
@@ -772,9 +767,9 @@ Mesh *AbcMeshReader::read_mesh(Mesh *existing_mesh,
 
   /* Only read point data when streaming meshes, unless we need to create new ones. */
   ImportSettings settings;
-  settings.read_flag |= read_flag;
-  settings.velocity_name = velocity_name;
-  settings.velocity_scale = velocity_scale;
+  settings.read_flag |= read_params.read_flag;
+  settings.velocity_name = read_params.velocity_name;
+  settings.velocity_scale = read_params.velocity_scale;
 
   if (topology_changed(existing_mesh, sample_sel)) {
     new_mesh = BKE_mesh_new_nomain_from_template(
@@ -840,7 +835,7 @@ void AbcMeshReader::assign_facesets_to_material_indices(const ISampleSelector &s
   int current_mat = 0;
 
   for (const std::string &grp_name : face_sets) {
-    if (r_mat_map.find(grp_name) == r_mat_map.end()) {
+    if (!r_mat_map.contains(grp_name)) {
       r_mat_map[grp_name] = ++current_mat;
     }
 
@@ -1012,15 +1007,12 @@ static void read_edge_creases(Mesh *mesh,
 
 /* ************************************************************************** */
 
-AbcSubDReader::AbcSubDReader(const IObject &object, ImportSettings &settings)
-    : AbcObjectReader(object, settings)
+AbcSubDReader::AbcSubDReader(const AbcReaderConstructorArgs &args) : AbcObjectReader(args)
 {
   m_settings->read_flag |= MOD_MESHSEQ_READ_ALL;
 
   ISubD isubd_mesh(m_iobject, kWrapExisting);
   m_schema = isubd_mesh.getSchema();
-
-  get_min_max_time(m_iobject, m_schema, m_min_time, m_max_time);
 }
 
 bool AbcSubDReader::valid() const
@@ -1055,7 +1047,10 @@ void AbcSubDReader::readObjectData(Main *bmain, const Alembic::Abc::ISampleSelec
   m_object = BKE_object_add_only_object(bmain, OB_MESH, m_object_name.c_str());
   m_object->data = id_cast<ID *>(mesh);
 
-  Mesh *read_mesh = this->read_mesh(mesh, sample_sel, MOD_MESHSEQ_READ_ALL, "", 0.0f, nullptr);
+  AbcReadGeometryParams read_params{};
+  read_params.read_flag = MOD_MESHSEQ_READ_ALL;
+
+  Mesh *read_mesh = this->read_mesh(mesh, sample_sel, read_params, nullptr);
   if (read_mesh != mesh) {
     BKE_mesh_nomain_to_mesh(read_mesh, mesh, m_object);
   }
@@ -1071,9 +1066,7 @@ void AbcSubDReader::readObjectData(Main *bmain, const Alembic::Abc::ISampleSelec
 
 Mesh *AbcSubDReader::read_mesh(Mesh *existing_mesh,
                                const ISampleSelector &sample_sel,
-                               const int read_flag,
-                               const char *velocity_name,
-                               const float velocity_scale,
+                               const AbcReadGeometryParams &read_params,
                                const char **r_err_str)
 {
   ISubDSchema::Sample sample;
@@ -1099,9 +1092,9 @@ Mesh *AbcSubDReader::read_mesh(Mesh *existing_mesh,
   Mesh *new_mesh = nullptr;
 
   ImportSettings settings;
-  settings.read_flag |= read_flag;
-  settings.velocity_name = velocity_name;
-  settings.velocity_scale = velocity_scale;
+  settings.read_flag |= read_params.read_flag;
+  settings.velocity_name = read_params.velocity_name;
+  settings.velocity_scale = read_params.velocity_scale;
 
   if (existing_mesh->verts_num != positions->size()) {
     new_mesh = BKE_mesh_new_nomain_from_template(
@@ -1144,9 +1137,7 @@ Mesh *AbcSubDReader::read_mesh(Mesh *existing_mesh,
 
 void AbcSubDReader::read_geometry(bke::GeometrySet &geometry_set,
                                   const Alembic::Abc::ISampleSelector &sample_sel,
-                                  const int read_flag,
-                                  const char *velocity_name,
-                                  const float velocity_scale,
+                                  const AbcReadGeometryParams &read_params,
                                   const char **r_err_str)
 {
   Mesh *mesh = geometry_set.get_mesh_for_write();
@@ -1155,8 +1146,7 @@ void AbcSubDReader::read_geometry(bke::GeometrySet &geometry_set,
     return;
   }
 
-  Mesh *new_mesh = read_mesh(
-      mesh, sample_sel, read_flag, velocity_name, velocity_scale, r_err_str);
+  Mesh *new_mesh = read_mesh(mesh, sample_sel, read_params, r_err_str);
 
   geometry_set.replace_mesh(new_mesh);
 }

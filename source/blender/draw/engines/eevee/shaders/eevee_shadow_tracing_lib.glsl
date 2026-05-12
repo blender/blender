@@ -8,7 +8,7 @@
  * Evaluate shadowing using shadow map ray-tracing.
  */
 
-#include "infos/eevee_shadow_pipeline_infos.hh"
+#include "infos/eevee_shadow_infos.hh"
 #include "infos/eevee_uniform_infos.hh"
 
 SHADER_LIBRARY_CREATE_INFO(eevee_global_ubo)
@@ -313,7 +313,7 @@ float3 shadow_pcf_offset(float3 L, float3 Ng, float2 random)
   float cos_theta = abs(dot(L, Ng));
   float sin_theta = sin_from_cos(cos_theta);
   /* Slope of the receiver plane with respect to light direction. Equal to `tan(theta)`.
-   * Stop at 45° angle to avoid large bias and peter panning artifacts. */
+   * Stop at 45 degrees angle to avoid large bias and peter panning artifacts. */
   float cone_height = saturate(sin_theta * safe_rcp(cos_theta));
   /* We choose a random disk distribution because it is rotationally invariant.
    * This saves us the trouble of getting the correct orientation for punctual. */
@@ -323,7 +323,8 @@ float3 shadow_pcf_offset(float3 L, float3 Ng, float2 random)
   float3 cone_sample = float3(disk_sample, distance_to_center * cone_height);
   /* Setup the cone around the light vector. */
   float3 pcf_offset = from_up_axis(L) * cone_sample;
-  /* Offset the cone in normal direction to avoid self shadowing when angle is greater than 45°. */
+  /* Offset the cone in normal direction to avoid self shadowing
+   * when angle is greater than 45 degrees. */
   pcf_offset += Ng * saturate(sin_theta - cos_theta);
   return pcf_offset;
 }

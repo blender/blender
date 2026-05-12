@@ -156,6 +156,7 @@ void Film::device_update(Device *device, DeviceScene *dscene, Scene *scene)
   kfilm->exposure = exposure;
   kfilm->pass_alpha_threshold = pass_alpha_threshold;
   kfilm->pass_flag = 0;
+  kfilm->denoising_pass_flag = 0;
 
   kfilm->use_approximate_shadow_catcher = get_use_approximate_shadow_catcher();
 
@@ -200,6 +201,7 @@ void Film::device_update(Device *device, DeviceScene *dscene, Scene *scene)
   kfilm->pass_denoising_normal = PASS_UNUSED;
   kfilm->pass_denoising_roughness = PASS_UNUSED;
   kfilm->pass_denoising_depth = PASS_UNUSED;
+  kfilm->pass_denoising_backward_motion = PASS_UNUSED;
   kfilm->pass_sample_count = PASS_UNUSED;
   kfilm->pass_render_time = PASS_UNUSED;
   kfilm->pass_adaptive_aux_buffer = PASS_UNUSED;
@@ -250,6 +252,9 @@ void Film::device_update(Device *device, DeviceScene *dscene, Scene *scene)
     }
     else if (pass->get_type() <= PASS_CATEGORY_DATA_END) {
       kfilm->pass_flag |= pass_flag;
+    }
+    else if (pass->get_type() <= PASS_CATEGORY_DENOISING_END) {
+      kfilm->denoising_pass_flag |= pass_flag;
     }
     else {
       assert(pass->get_type() <= PASS_CATEGORY_BAKE_END);
@@ -387,6 +392,9 @@ void Film::device_update(Device *device, DeviceScene *dscene, Scene *scene)
       case PASS_DENOISING_DEPTH:
         kfilm->pass_denoising_depth = kfilm->pass_stride;
         break;
+      case PASS_DENOISING_BACKWARD_MOTION:
+        kfilm->pass_denoising_backward_motion = kfilm->pass_stride;
+        break;
 
       case PASS_SHADOW_CATCHER:
         kfilm->pass_shadow_catcher = kfilm->pass_stride;
@@ -493,7 +501,7 @@ bool Film::update_lightgroups(Scene *scene)
   for (const Pass *pass : scene->passes) {
     const ustring lightgroup = pass->get_lightgroup();
     if (!lightgroup.empty()) {
-      if (!lightgroups.count(lightgroup)) {
+      if (!lightgroups.contains(lightgroup)) {
         lightgroups[lightgroup] = i++;
       }
     }
@@ -562,6 +570,9 @@ void Film::update_passes(Scene *scene)
     }
     if (denoiser_passes & DENOISER_PASS_MOTION) {
       add_auto_pass(scene, PASS_MOTION);
+    }
+    if (denoiser_passes & DENOISER_PASS_BACKWARD_MOTION) {
+      add_auto_pass(scene, PASS_DENOISING_BACKWARD_MOTION);
     }
   }
 
@@ -789,7 +800,7 @@ uint Film::get_kernel_features(const Scene *scene) const
                                   !is_volume_guiding_pass(pass_type);
 
     if (has_denoise_pass ||
-        (pass_type >= PASS_DENOISING_ALBEDO && pass_type <= PASS_DENOISING_DEPTH))
+        (pass_type >= PASS_DENOISING_ALBEDO && pass_type <= PASS_DENOISING_BACKWARD_MOTION))
     {
       kernel_features |= KERNEL_FEATURE_DENOISING;
     }

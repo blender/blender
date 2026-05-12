@@ -1407,7 +1407,7 @@ static void rearrange_animchannels_filter_visible(
     ListBaseT<bAnimListElem> *anim_data_visible,
     bAnimContext *ac,
     const eAnim_ChannelType type,
-    const eAnimFilter_Flags additional_filters = eAnimFilter_Flags(0))
+    const eAnimFilter_Flags additional_filters = eAnimFilter_Flags{})
 {
   ListBaseT<bAnimListElem> anim_data = {nullptr, nullptr};
   eAnimFilter_Flags filter = (ANIMFILTER_DATA_VISIBLE | ANIMFILTER_LIST_VISIBLE |
@@ -4757,7 +4757,7 @@ static bool select_anim_channel_keys(bAnimContext *ac, int channel_index, bool e
 
         if (fcu_inner != nullptr && fcu_inner->bezt != nullptr) {
           for (i = 0, bezt = fcu_inner->bezt; i < fcu_inner->totvert; i++, bezt++) {
-            bezt->f2 = bezt->f1 = bezt->f3 = 0;
+            bezt->f2 = bezt->f1 = bezt->f3 = eBezTriple_Flag{};
           }
         }
       }
@@ -4766,7 +4766,7 @@ static bool select_anim_channel_keys(bAnimContext *ac, int channel_index, bool e
     }
 
     for (i = 0, bezt = fcu->bezt; i < fcu->totvert; i++, bezt++) {
-      bezt->f2 = bezt->f1 = bezt->f3 = SELECT;
+      bezt->f2 = bezt->f1 = bezt->f3 = BEZT_FLAG_SELECT;
     }
   }
 
@@ -5078,7 +5078,8 @@ static wmOperatorStatus channels_bake_exec(bContext *C, wmOperator *op)
   const bool remove_outside_range = RNA_boolean_get(op->ptr, "remove_outside_range");
   const BakeCurveRemove remove_existing = remove_outside_range ? BakeCurveRemove::ALL :
                                                                  BakeCurveRemove::IN_RANGE;
-  const int interpolation_type = RNA_enum_get(op->ptr, "interpolation_type");
+  const eBezTriple_Interpolation interpolation_type = eBezTriple_Interpolation(
+      RNA_enum_get(op->ptr, "interpolation_type"));
   const bool bake_modifiers = RNA_boolean_get(op->ptr, "bake_modifiers");
 
   for (bAnimListElem &ale : anim_data) {
@@ -5091,7 +5092,7 @@ static wmOperatorStatus channels_bake_exec(bContext *C, wmOperator *op)
         int(ANIM_nla_tweakedit_remap(&ale, frame_range[1], NLATIME_CONVERT_UNMAP)),
     };
     /* Save current state of modifier flags so they can be reapplied after baking. */
-    Vector<short> modifier_flags;
+    Vector<eFModifier_Flags> modifier_flags;
     if (!bake_modifiers) {
       for (FModifier &modifier : fcu->modifiers) {
         modifier_flags.append(modifier.flag);
@@ -5106,7 +5107,8 @@ static wmOperatorStatus channels_bake_exec(bContext *C, wmOperator *op)
     /* Since the interpolation of a key defines the curve following it, the last key in the baked
      * segment needs to keep the interpolation mode that existed previously so the curve isn't
      * changed. */
-    const char segment_end_interpolation = fcu->bezt[min_ii(last_index, fcu->totvert - 1)].ipo;
+    const eBezTriple_Interpolation segment_end_interpolation =
+        fcu->bezt[min_ii(last_index, fcu->totvert - 1)].ipo;
 
     const float step = RNA_float_get(op->ptr, "step");
     bake_fcurve(fcu, nla_mapped_range, step, remove_existing);

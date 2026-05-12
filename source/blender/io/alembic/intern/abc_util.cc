@@ -154,20 +154,20 @@ std::optional<SampleInterpolationSettings> get_sample_interpolation_settings(
 
 // #define USE_NURBS
 
-AbcObjectReader *create_reader(const Alembic::AbcGeom::IObject &object, ImportSettings &settings)
+AbcObjectReader *create_reader(const AbcReaderConstructorArgs &args)
 {
   AbcObjectReader *reader = nullptr;
 
-  const Alembic::AbcGeom::MetaData &md = object.getMetaData();
+  const Alembic::AbcGeom::MetaData &md = args.object.getMetaData();
 
   if (Alembic::AbcGeom::IXform::matches(md)) {
-    reader = new AbcEmptyReader(object, settings);
+    reader = new AbcEmptyReader(args);
   }
   else if (Alembic::AbcGeom::IPolyMesh::matches(md)) {
-    reader = new AbcMeshReader(object, settings);
+    reader = new AbcMeshReader(args);
   }
   else if (Alembic::AbcGeom::ISubD::matches(md)) {
-    reader = new AbcSubDReader(object, settings);
+    reader = new AbcSubDReader(args);
   }
   else if (Alembic::AbcGeom::INuPatch::matches(md)) {
 #ifdef USE_NURBS
@@ -177,14 +177,14 @@ AbcObjectReader *create_reader(const Alembic::AbcGeom::IObject &object, ImportSe
      * Blender. Need to figure out exactly how these points are
      * duplicated, in all cases (cyclic U, cyclic V, and cyclic UV).
      * Until this is fixed, disabling NURBS reading. */
-    reader = new AbcNurbsReader(child, settings);
+    reader = new AbcNurbsReader(args);
 #endif
   }
   else if (Alembic::AbcGeom::ICamera::matches(md)) {
-    reader = new AbcCameraReader(object, settings);
+    reader = new AbcCameraReader(args);
   }
   else if (Alembic::AbcGeom::IPoints::matches(md)) {
-    reader = new AbcPointsReader(object, settings);
+    reader = new AbcPointsReader(args);
   }
   else if (Alembic::AbcMaterial::IMaterial::matches(md)) {
     /* Pass for now. */
@@ -196,11 +196,11 @@ AbcObjectReader *create_reader(const Alembic::AbcGeom::IObject &object, ImportSe
     /* Pass, those are handled in the mesh reader. */
   }
   else if (Alembic::AbcGeom::ICurves::matches(md)) {
-    reader = new AbcCurveReader(object, settings);
+    reader = new AbcCurveReader(args);
   }
   else {
     std::cerr << "Alembic: unknown how to handle objects of schema '" << md.get("schemaObjTitle")
-              << "', skipping object '" << object.getFullName() << "'" << std::endl;
+              << "', skipping object '" << args.object.getFullName() << "'" << std::endl;
   }
 
   return reader;

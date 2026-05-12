@@ -35,11 +35,11 @@
 
 #include "MEM_guardedalloc.h"
 
+#include "IMB_cache.hh"
 #include "IMB_colormanagement.hh"
 #include "IMB_imbuf.hh"
 #include "IMB_imbuf_types.hh"
 #include "IMB_metadata.hh"
-#include "IMB_moviecache.hh"
 #include "IMB_openexr.hh"
 
 #include "MOV_read.hh"
@@ -119,7 +119,7 @@ namespace blender {
 
 static CLG_LogRef LOG = {"image"};
 
-static void image_init(Image *ima, short source, short type);
+static void image_init(Image *ima, eImageSource source, eImageType type);
 static void image_free_packedfiles(Image *ima);
 static void copy_image_packedfiles(ListBaseT<ImagePackedFile> *lb_dst,
                                    const ListBaseT<ImagePackedFile> *lb_src);
@@ -515,14 +515,14 @@ static void imagecache_put(Image *image, int index, ImBuf *ibuf)
     // char cache_name[64];
     // SNPRINTF_UTF8(cache_name, "Image Datablock %s", image->id.name);
 
-    image->runtime->cache = IMB_moviecache_create(
+    image->runtime->cache = IMB_cache_create(
         "Image Datablock Cache", sizeof(ImageCacheKey), imagecache_hashhash, imagecache_hashcmp);
-    IMB_moviecache_set_getdata_callback(image->runtime->cache, imagecache_keydata);
+    IMB_cache_set_getdata_callback(image->runtime->cache, imagecache_keydata);
   }
 
   key.index = index;
 
-  IMB_moviecache_put(image->runtime->cache, &key, ibuf);
+  IMB_cache_put(image->runtime->cache, &key, ibuf);
 }
 
 static void imagecache_remove(Image *image, int index)
@@ -533,7 +533,7 @@ static void imagecache_remove(Image *image, int index)
 
   ImageCacheKey key;
   key.index = index;
-  IMB_moviecache_remove(image->runtime->cache, &key);
+  IMB_cache_remove(image->runtime->cache, &key);
 }
 
 static ImBuf *imagecache_get(Image *image, int index, bool *r_is_cached_empty)
@@ -541,7 +541,7 @@ static ImBuf *imagecache_get(Image *image, int index, bool *r_is_cached_empty)
   if (image->runtime->cache) {
     ImageCacheKey key;
     key.index = index;
-    return IMB_moviecache_get(image->runtime->cache, &key, r_is_cached_empty);
+    return IMB_cache_get(image->runtime->cache, &key, r_is_cached_empty);
   }
 
   return nullptr;
@@ -556,7 +556,7 @@ static ImBuf *imagecache_get(Image *image, int index, bool *r_is_cached_empty)
 static void image_free_cached_frames(Image *image)
 {
   if (image->runtime->cache) {
-    IMB_moviecache_free(image->runtime->cache);
+    IMB_cache_free(image->runtime->cache);
     image->runtime->cache = nullptr;
   }
 }
@@ -638,7 +638,7 @@ static ImageTile *imagetile_alloc(int tile_number)
 }
 
 /* only image block itself */
-static void image_init(Image *ima, short source, short type)
+static void image_init(Image *ima, eImageSource source, eImageType type)
 {
   INIT_DEFAULT_STRUCT_AFTER(ima, id);
 
@@ -667,8 +667,8 @@ static void image_init(Image *ima, short source, short type)
 static Image *image_alloc(Main *bmain,
                           std::optional<Library *> owner_library,
                           const char *name,
-                          short source,
-                          short type)
+                          eImageSource source,
+                          eImageType type)
 {
   Image *ima;
 
@@ -748,15 +748,15 @@ void BKE_image_merge(Main *bmain, Image *dest, Image *source)
       std::scoped_lock lock_dst(dest->runtime->cache_mutex);
 
       if (source->runtime->cache != nullptr) {
-        MovieCacheIter *iter;
-        iter = IMB_moviecacheIter_new(source->runtime->cache);
-        while (!IMB_moviecacheIter_done(iter)) {
-          ImBuf *ibuf = IMB_moviecacheIter_getImBuf(iter);
-          ImageCacheKey *key = static_cast<ImageCacheKey *>(IMB_moviecacheIter_getUserKey(iter));
+        ImBufCacheIter *iter;
+        iter = IMB_cacheIter_new(source->runtime->cache);
+        while (!IMB_cacheIter_done(iter)) {
+          ImBuf *ibuf = IMB_cacheIter_getImBuf(iter);
+          ImageCacheKey *key = static_cast<ImageCacheKey *>(IMB_cacheIter_getUserKey(iter));
           imagecache_put(dest, key->index, ibuf);
-          IMB_moviecacheIter_step(iter);
+          IMB_cacheIter_step(iter);
         }
-        IMB_moviecacheIter_free(iter);
+        IMB_cacheIter_free(iter);
       }
     }
     BKE_id_free(bmain, source);
@@ -1005,7 +1005,7 @@ char BKE_image_alpha_mode_from_extension_ex(const char *filepath)
 
 void BKE_image_alpha_mode_from_extension(Image *image)
 {
-  image->alpha_mode = BKE_image_alpha_mode_from_extension_ex(image->filepath);
+  image->alpha_mode = eImageAlphaMode(BKE_image_alpha_mode_from_extension_ex(image->filepath));
 }
 
 static void image_abs_path(Main *bmain,
@@ -1260,8 +1260,8 @@ Image *BKE_image_add_generated(Main *bmain,
   ImageTile *tile = static_cast<ImageTile *>(ima->tiles.first);
   tile->gen_x = width;
   tile->gen_y = height;
-  tile->gen_type = gen_type;
-  tile->gen_flag |= (floatbuf ? IMA_GEN_FLOAT : 0);
+  tile->gen_type = eImageGenType(gen_type);
+  tile->gen_flag |= eImage_GenFlag(floatbuf ? IMA_GEN_FLOAT : 0);
   tile->gen_depth = depth;
   copy_v4_v4(tile->gen_color, color);
 
@@ -1363,19 +1363,18 @@ static bool image_memorypack_imbuf(
 {
   ibuf->ftype = ibuf->float_data() ? IMB_FTYPE_OPENEXR : IMB_FTYPE_PNG;
 
-  IMB_save_image(ibuf, filepath, IB_byte_data | IB_mem);
-
-  if (ibuf->encoded_buffer.data == nullptr) {
+  Vector<uint8_t> encoded = IMB_save_image_to_buffer(ibuf, IB_byte_data);
+  if (encoded.is_empty()) {
     CLOG_STR_ERROR(&LOG, "memory save for pack error");
     image_free_packedfiles(ima);
     return false;
   }
 
-  ImagePackedFile *imapf;
-  const int encoded_size = ibuf->encoded_size;
-  PackedFile *pf = BKE_packedfile_new_from_memory(IMB_steal_encoded_buffer(ibuf), encoded_size);
+  auto *shared_data = new ImplicitSharedValue<Vector<uint8_t>>(std::move(encoded));
+  PackedFile *pf = BKE_packedfile_new_from_memory(
+      shared_data->data.data(), int(shared_data->data.size()), shared_data);
 
-  imapf = MEM_new<ImagePackedFile>("Image PackedFile");
+  ImagePackedFile *imapf = MEM_new<ImagePackedFile>("Image PackedFile");
   STRNCPY(imapf->filepath, filepath);
   imapf->packedfile = pf;
   imapf->view = view;
@@ -1560,18 +1559,18 @@ static uintptr_t image_mem_size(Image *image)
   std::scoped_lock lock(image->runtime->cache_mutex);
 
   if (image->runtime->cache != nullptr) {
-    MovieCacheIter *iter = IMB_moviecacheIter_new(image->runtime->cache);
+    ImBufCacheIter *iter = IMB_cacheIter_new(image->runtime->cache);
 
-    while (!IMB_moviecacheIter_done(iter)) {
-      ImBuf *ibuf = IMB_moviecacheIter_getImBuf(iter);
-      IMB_moviecacheIter_step(iter);
+    while (!IMB_cacheIter_done(iter)) {
+      ImBuf *ibuf = IMB_cacheIter_getImBuf(iter);
+      IMB_cacheIter_step(iter);
       if (ibuf == nullptr) {
         continue;
       }
 
       size += IMB_get_size_in_memory(ibuf);
     }
-    IMB_moviecacheIter_free(iter);
+    IMB_cacheIter_free(iter);
   }
 
   return size;
@@ -1641,7 +1640,7 @@ void BKE_image_free_all_textures(Main *bmain)
       uintptr_t old_size = image_mem_size(ima);
 #endif
 
-      IMB_moviecache_cleanup(ima->runtime->cache, imagecache_check_dirty, nullptr);
+      IMB_cache_cleanup(ima->runtime->cache, imagecache_check_dirty, nullptr);
 
 #ifdef CHECK_FREED_SIZE
       tot_freed_size += old_size - image_mem_size(ima);
@@ -1667,7 +1666,7 @@ void BKE_image_free_anim_ibufs(Image *ima, int except_frame)
 {
   std::scoped_lock lock(ima->runtime->cache_mutex);
   if (ima->runtime->cache != nullptr) {
-    IMB_moviecache_cleanup(ima->runtime->cache, imagecache_check_free_anim, &except_frame);
+    IMB_cache_cleanup(ima->runtime->cache, imagecache_check_free_anim, &except_frame);
   }
 }
 
@@ -2069,6 +2068,7 @@ void BKE_image_stamp_buf(Scene *scene,
              ibuf->byte_data_for_write(),
              ibuf->x,
              ibuf->y,
+             4,
              ibuf->byte_buffer.colorspace);
   /* No conversion to scene linear needed, #BLF_buffer_col accepts sRGB. */
   BLF_buffer_col(mono, scene->r.fg_stamp);
@@ -2319,7 +2319,7 @@ void BKE_image_stamp_buf(Scene *scene,
   }
 
   /* cleanup the buffer. */
-  BLF_buffer(mono, nullptr, nullptr, 0, 0, nullptr);
+  BLF_buffer(mono, nullptr, nullptr, 0, 0, 4, nullptr);
   BLF_wordwrap(mono, 0);
 
 #undef TEXT_SIZE_CHECK
@@ -2703,7 +2703,7 @@ Image *BKE_image_ensure_viewer(Main *bmain, int type, const char *name)
   }
 
   if (ima == nullptr) {
-    ima = image_alloc(bmain, std::nullopt, name, IMA_SRC_VIEWER, type);
+    ima = image_alloc(bmain, std::nullopt, name, IMA_SRC_VIEWER, eImageType(type));
   }
 
   /* Happens on reload, image-window cannot be image user when hidden. */
@@ -2841,6 +2841,10 @@ static void image_walk_ntree_all_users(
           }
         }
       }
+      break;
+    case NTREE_GEOMETRY:
+    case NTREE_CUSTOM:
+    case NTREE_UNDEFINED:
       break;
   }
 }
@@ -3862,13 +3866,9 @@ void BKE_image_release_renderresult(Scene *scene, Image *ima, RenderResult *rend
 
 bool BKE_image_is_openexr(Image *ima)
 {
-#ifdef WITH_IMAGE_OPENEXR
   if (ELEM(ima->source, IMA_SRC_FILE, IMA_SRC_SEQUENCE, IMA_SRC_TILED)) {
     return BLI_path_extension_check(ima->filepath, ".exr");
   }
-#else
-  UNUSED_VARS(ima);
-#endif
   return false;
 }
 
@@ -3946,7 +3946,6 @@ static void image_add_view(Image *ima, const char *viewname, const char *filepat
 
 /* After imbuf load, OpenEXR type can return with a EXR-handle open
  * in that case we have to build a render-result. */
-#ifdef WITH_IMAGE_OPENEXR
 static void image_create_multilayer(Image *ima, ImBuf *ibuf, int framenr)
 {
   const char *colorspace = ima->colorspace_settings.name;
@@ -3968,7 +3967,6 @@ static void image_create_multilayer(Image *ima, ImBuf *ibuf, int framenr)
   /* set proper views */
   image_init_multilayer_multiview(ima, ima->rr);
 }
-#endif /* WITH_IMAGE_OPENEXR */
 
 /** Common stuff to do with images after loading. */
 static void image_init_after_load(Image *ima, ImageUser *iuser, ImBuf * /*ibuf*/)
@@ -4226,7 +4224,6 @@ static ImBuf *load_image_single(Image *ima,
   }
 
   if (ibuf) {
-#ifdef WITH_IMAGE_OPENEXR
     if (ibuf->ftype == IMB_FTYPE_OPENEXR && ibuf->exrhandle) {
       /* Handle multilayer and multiview cases, don't assign ibuf here.
        * will be set layer in BKE_image_acquire_ibuf from ima->rr. */
@@ -4240,9 +4237,7 @@ static ImBuf *load_image_single(Image *ima,
         *r_cache_ibuf = false;
       }
     }
-    else
-#endif
-    {
+    else {
       image_init_after_load(ima, iuser, ibuf);
 
       /* Make packed file for auto-pack. */
@@ -5420,18 +5415,18 @@ bool BKE_image_is_dirty_writable(Image *image, bool *r_is_writable)
 
   std::scoped_lock lock(image->runtime->cache_mutex);
   if (image->runtime->cache != nullptr) {
-    MovieCacheIter *iter = IMB_moviecacheIter_new(image->runtime->cache);
+    ImBufCacheIter *iter = IMB_cacheIter_new(image->runtime->cache);
 
-    while (!IMB_moviecacheIter_done(iter)) {
-      ImBuf *ibuf = IMB_moviecacheIter_getImBuf(iter);
+    while (!IMB_cacheIter_done(iter)) {
+      ImBuf *ibuf = IMB_cacheIter_getImBuf(iter);
       if (ibuf != nullptr && ibuf->userflags & IB_BITMAPDIRTY) {
         is_writable = BKE_image_buffer_format_writable(ibuf);
         is_dirty = true;
         break;
       }
-      IMB_moviecacheIter_step(iter);
+      IMB_cacheIter_step(iter);
     }
-    IMB_moviecacheIter_free(iter);
+    IMB_cacheIter_free(iter);
   }
 
   if (r_is_writable) {
@@ -5463,17 +5458,17 @@ void BKE_image_file_format_set(Image *image, eImbFileType ftype, const ImbFormat
 {
   std::scoped_lock lock(image->runtime->cache_mutex);
   if (image->runtime->cache != nullptr) {
-    MovieCacheIter *iter = IMB_moviecacheIter_new(image->runtime->cache);
+    ImBufCacheIter *iter = IMB_cacheIter_new(image->runtime->cache);
 
-    while (!IMB_moviecacheIter_done(iter)) {
-      ImBuf *ibuf = IMB_moviecacheIter_getImBuf(iter);
+    while (!IMB_cacheIter_done(iter)) {
+      ImBuf *ibuf = IMB_cacheIter_getImBuf(iter);
       if (ibuf != nullptr) {
         ibuf->ftype = ftype;
         ibuf->foptions = *options;
       }
-      IMB_moviecacheIter_step(iter);
+      IMB_cacheIter_step(iter);
     }
-    IMB_moviecacheIter_free(iter);
+    IMB_cacheIter_free(iter);
   }
 }
 
@@ -5483,17 +5478,17 @@ bool BKE_image_has_loaded_ibuf(Image *image)
 
   std::scoped_lock lock(image->runtime->cache_mutex);
   if (image->runtime->cache != nullptr) {
-    MovieCacheIter *iter = IMB_moviecacheIter_new(image->runtime->cache);
+    ImBufCacheIter *iter = IMB_cacheIter_new(image->runtime->cache);
 
-    while (!IMB_moviecacheIter_done(iter)) {
-      ImBuf *ibuf = IMB_moviecacheIter_getImBuf(iter);
+    while (!IMB_cacheIter_done(iter)) {
+      ImBuf *ibuf = IMB_cacheIter_getImBuf(iter);
       if (ibuf != nullptr) {
         has_loaded_ibuf = true;
         break;
       }
-      IMB_moviecacheIter_step(iter);
+      IMB_cacheIter_step(iter);
     }
-    IMB_moviecacheIter_free(iter);
+    IMB_cacheIter_free(iter);
   }
 
   return has_loaded_ibuf;
@@ -5506,18 +5501,18 @@ ImBuf *BKE_image_get_ibuf_with_name(Image *image, const char *filepath)
 
   std::scoped_lock lock(image->runtime->cache_mutex);
   if (image->runtime->cache != nullptr) {
-    MovieCacheIter *iter = IMB_moviecacheIter_new(image->runtime->cache);
+    ImBufCacheIter *iter = IMB_cacheIter_new(image->runtime->cache);
 
-    while (!IMB_moviecacheIter_done(iter)) {
-      ImBuf *current_ibuf = IMB_moviecacheIter_getImBuf(iter);
+    while (!IMB_cacheIter_done(iter)) {
+      ImBuf *current_ibuf = IMB_cacheIter_getImBuf(iter);
       if (current_ibuf != nullptr && current_ibuf->filepath == filepath) {
         ibuf = current_ibuf;
         IMB_refImBuf(ibuf);
         break;
       }
-      IMB_moviecacheIter_step(iter);
+      IMB_cacheIter_step(iter);
     }
-    IMB_moviecacheIter_free(iter);
+    IMB_cacheIter_free(iter);
   }
 
   return ibuf;
@@ -5529,16 +5524,16 @@ ImBuf *BKE_image_get_first_ibuf(Image *image)
 
   std::scoped_lock lock(image->runtime->cache_mutex);
   if (image->runtime->cache != nullptr) {
-    MovieCacheIter *iter = IMB_moviecacheIter_new(image->runtime->cache);
+    ImBufCacheIter *iter = IMB_cacheIter_new(image->runtime->cache);
 
-    while (!IMB_moviecacheIter_done(iter)) {
-      ibuf = IMB_moviecacheIter_getImBuf(iter);
+    while (!IMB_cacheIter_done(iter)) {
+      ibuf = IMB_cacheIter_getImBuf(iter);
       if (ibuf != nullptr) {
         IMB_refImBuf(ibuf);
       }
       break;
     }
-    IMB_moviecacheIter_free(iter);
+    IMB_cacheIter_free(iter);
   }
 
   return ibuf;

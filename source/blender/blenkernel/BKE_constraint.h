@@ -22,6 +22,8 @@ struct bConstraint;
 struct bConstraintTarget;
 struct bPoseChannel;
 
+enum eBConstraint_Types : short;
+
 /* ---------------------------------------------------------------------------- */
 
 /* special struct for use in constraint evaluation */
@@ -34,6 +36,8 @@ struct bConstraintOb {
   struct Object *ob;
   /** pose channel that owns the constraints being evaluated */
   struct bPoseChannel *pchan;
+  /** Armature bone of the above pchan. */
+  struct Bone *pchan_armbone;
 
   /** matrix where constraints are accumulated + solved */
   float matrix[4][4];
@@ -240,14 +244,16 @@ bool BKE_constraint_is_nonlocal_in_liboverride(const struct Object *ob,
 /**
  * Add new constraint for the given object.
  */
-struct bConstraint *BKE_constraint_add_for_object(struct Object *ob, const char *name, short type);
+struct bConstraint *BKE_constraint_add_for_object(struct Object *ob,
+                                                  const char *name,
+                                                  eBConstraint_Types type);
 /**
  * Add new constraint for the given bone.
  */
 struct bConstraint *BKE_constraint_add_for_pose(struct Object *ob,
                                                 struct bPoseChannel *pchan,
                                                 const char *name,
-                                                short type);
+                                                eBConstraint_Types type);
 
 /**
  * Remove the specified constraint from the given constraint stack.
@@ -321,6 +327,9 @@ void BKE_constraint_mat_convertspace(struct Object *ob,
  *
  * None of the actual calculations of the matrices should be done here! Also, this function is
  * not to be used by any new constraints, particularly any that have multiple targets.
+ *
+ * NOTE: ownertype=CONSTRAINT_OBTYPE_BONE is NOT supported by this function. Computing that also
+ * needs the bone-owning object, and that is not passed here.
  */
 void BKE_constraint_target_matrix_get(struct Depsgraph *depsgraph,
                                       struct Scene *scene,

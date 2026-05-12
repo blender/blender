@@ -55,13 +55,6 @@ TimelineValue VKDevice::render_graph_submit(render_graph::VKRenderGraph *render_
                                             VkSemaphore signal_semaphore,
                                             VkFence signal_fence)
 {
-  if (render_graph->is_empty()) {
-    render_graph->reset();
-    BLI_thread_queue_push(
-        unused_render_graphs_, render_graph, BLI_THREAD_QUEUE_WORK_PRIORITY_NORMAL);
-    return timeline_value_;
-  }
-
   /* Syncing input flags. */
   /* When we wait for completion/submission we must submit to device. */
   submit_to_device |= wait_for_completion;

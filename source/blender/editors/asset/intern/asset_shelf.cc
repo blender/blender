@@ -423,7 +423,6 @@ void region_init(wmWindowManager *wm, ARegion *region)
   region->v2d.scroll = V2D_SCROLL_RIGHT | V2D_SCROLL_VERTICAL_HIDE;
   region->v2d.keepzoom |= V2D_LOCKZOOM_X | V2D_LOCKZOOM_Y;
   region->v2d.keepofs |= V2D_KEEPOFS_Y;
-  region->v2d.keeptot |= V2D_KEEPTOT_STRICT;
 
   region->v2d.flag |= V2D_SNAP_TO_PAGESIZE_Y;
   region->v2d.page_size_y = active_shelf ? tile_height(active_shelf->settings) :

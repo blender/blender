@@ -5,11 +5,17 @@
 #include <fmt/format.h>
 
 #include "BKE_context.hh"
+#include "BKE_lib_id.hh"
 #include "BKE_type_conversions.hh"
 
 #include "BLO_read_write.hh"
 
+#include "DNA_collection_types.h"
+#include "DNA_image_types.h"
 #include "DNA_modifier_types.h"
+#include "DNA_object_types.h"
+#include "DNA_sound_types.h"
+#include "DNA_vfont_types.h"
 
 #include "NOD_geo_viewer.hh"
 #include "NOD_node_extra_info.hh"
@@ -22,6 +28,7 @@
 #include "UI_resources.hh"
 
 #include "ED_node.hh"
+#include "ED_outliner.hh"
 #include "ED_viewer_path.hh"
 
 #include "RNA_enum_types.hh"
@@ -72,11 +79,70 @@ static void draw_string(ui::Layout &layout, const StringRef value)
   const int max_display_length = 200;
   layout.label(value.substr(0, max_display_length), ICON_NONE);
 }
+static void draw_data_block(ui::Layout &layout, const ID *id)
+{
+  if (!id) {
+    layout.label(IFACE_("(None)"), ICON_NONE);
+    return;
+  }
+  const int icon = ED_outliner_icon_from_id(*id);
+  layout.label(BKE_id_name(*id), icon);
+}
+
+static bool draw_gpointer(CustomSocketDrawParams &params, const GPointer value)
+{
+  if (value.is_type<float>()) {
+    draw_float(params.layout, *value.get<float>());
+    return true;
+  }
+  if (value.is_type<float3>()) {
+    draw_vector(params.layout, *value.get<float3>());
+    return true;
+  }
+  if (value.is_type<int>()) {
+    draw_int(params.layout, *value.get<int>());
+    return true;
+  }
+  if (value.is_type<bool>()) {
+    draw_bool(params.layout, *value.get<bool>());
+    return true;
+  }
+  if (value.is_type<std::string>()) {
+    draw_string(params.layout, *value.get<std::string>());
+    return true;
+  }
+  if (value.is_type<ColorGeometry4f>()) {
+    draw_color(params.layout, *value.get<ColorGeometry4f>());
+    return true;
+  }
+  if (value.is_type<Object *>()) {
+    draw_data_block(params.layout, id_cast<const ID *>(*value.get<Object *>()));
+    return true;
+  }
+  if (value.is_type<Collection *>()) {
+    draw_data_block(params.layout, id_cast<const ID *>(*value.get<Collection *>()));
+    return true;
+  }
+  if (value.is_type<Image *>()) {
+    draw_data_block(params.layout, id_cast<const ID *>(*value.get<Image *>()));
+    return true;
+  }
+  if (value.is_type<VFont *>()) {
+    draw_data_block(params.layout, id_cast<const ID *>(*value.get<VFont *>()));
+    return true;
+  }
+  if (value.is_type<bSound *>()) {
+    draw_data_block(params.layout, id_cast<const ID *>(*value.get<bSound *>()));
+    return true;
+  }
+  return false;
+}
+
 static bool draw_from_viewer_log_value(CustomSocketDrawParams &params,
-                                       geo_eval_log::GeoTreeLog &tree_log)
+                                       eval_log::NodeTreeLog &tree_log)
 {
   tree_log.ensure_viewer_node_logs();
-  geo_eval_log::ViewerNodeLog *viewer_log = tree_log.viewer_node_logs.lookup_default(
+  eval_log::ViewerNodeLog *viewer_log = tree_log.viewer_node_logs.lookup_default(
       params.node.identifier, nullptr);
   if (!viewer_log) {
     return false;
@@ -84,7 +150,7 @@ static bool draw_from_viewer_log_value(CustomSocketDrawParams &params,
   const int socket_index = params.socket.index();
   const auto &storage = *static_cast<NodeGeometryViewer *>(params.node.storage);
   const NodeGeometryViewerItem &viewer_item = storage.items[socket_index];
-  const geo_eval_log::ViewerNodeLog::Item *item_log = viewer_log->items.lookup_key_ptr_as(
+  const eval_log::ViewerNodeLog::Item *item_log = viewer_log->items.lookup_key_ptr_as(
       viewer_item.identifier);
   if (!item_log) {
     return false;
@@ -94,32 +160,9 @@ static bool draw_from_viewer_log_value(CustomSocketDrawParams &params,
     return false;
   }
   const GPointer single_value = value.get_single_ptr();
-  if (single_value.is_type<float>()) {
-    draw_float(params.layout, *single_value.get<float>());
-    return true;
-  }
-  if (single_value.is_type<float3>()) {
-    draw_vector(params.layout, *single_value.get<float3>());
-    return true;
-  }
-  if (single_value.is_type<int>()) {
-    draw_int(params.layout, *single_value.get<int>());
-    return true;
-  }
-  if (single_value.is_type<bool>()) {
-    draw_bool(params.layout, *single_value.get<bool>());
-    return true;
-  }
-  if (single_value.is_type<std::string>()) {
-    draw_string(params.layout, *single_value.get<std::string>());
-    return true;
-  }
-  if (single_value.is_type<ColorGeometry4f>()) {
-    draw_color(params.layout, *single_value.get<ColorGeometry4f>());
-    return true;
-  }
-  return false;
+  return draw_gpointer(params, single_value);
 }
+
 static bool draw_generic_value_log(CustomSocketDrawParams &params, const GPointer &value)
 {
   const CPPType &value_type = *value.type();
@@ -134,46 +177,27 @@ static bool draw_generic_value_log(CustomSocketDrawParams &params, const GPointe
   conversions.convert_to_uninitialized(
       value_type, socket_base_cpp_type, value.get(), socket_value);
   BLI_SCOPED_DEFER([&]() { socket_base_cpp_type.destruct(socket_value); });
-  switch (params.socket.type) {
-    case SOCK_INT:
-      draw_int(params.layout, *static_cast<int *>(socket_value));
-      return true;
-    case SOCK_FLOAT:
-      draw_float(params.layout, *static_cast<float *>(socket_value));
-      return true;
-    case SOCK_VECTOR:
-      draw_vector(params.layout, *static_cast<float3 *>(socket_value));
-      return true;
-    case SOCK_RGBA:
-      draw_color(params.layout, *static_cast<ColorGeometry4f *>(socket_value));
-      return true;
-    case SOCK_BOOLEAN:
-      draw_bool(params.layout, *static_cast<bool *>(socket_value));
-      return true;
-    default:
-      return false;
-  }
-  return false;
+  return draw_gpointer(params, {socket_base_cpp_type, socket_value});
 }
+
 static bool draw_from_socket_log_value(CustomSocketDrawParams &params,
-                                       geo_eval_log::GeoTreeLog &tree_log)
+                                       eval_log::NodeTreeLog &tree_log)
 {
   tree_log.ensure_socket_values();
-  geo_eval_log::ValueLog *value_log = tree_log.find_socket_value_log(params.socket);
+  eval_log::ValueLog *value_log = tree_log.find_socket_value_log(params.socket);
   if (!value_log) {
     return false;
   }
-  if (const auto *generic_value_log = dynamic_cast<const geo_eval_log::GenericValueLog *>(
-          value_log))
-  {
+  if (const auto *generic_value_log = dynamic_cast<const eval_log::GenericValueLog *>(value_log)) {
     return draw_generic_value_log(params, generic_value_log->value);
   }
-  if (const auto *string_value_log = dynamic_cast<const geo_eval_log::StringLog *>(value_log)) {
+  if (const auto *string_value_log = dynamic_cast<const eval_log::StringLog *>(value_log)) {
     draw_string(params.layout, string_value_log->value);
     return true;
   }
   return false;
 }
+
 static void draw_input_socket(CustomSocketDrawParams &params)
 {
   SpaceNode *snode = CTX_wm_space_node(&params.C);
@@ -187,9 +211,9 @@ static void draw_input_socket(CustomSocketDrawParams &params)
     params.draw_standard(params.layout);
     return;
   }
-  const geo_eval_log::ContextualGeoTreeLogs geo_tree_logs =
-      geo_eval_log::GeoNodesLog::get_contextual_tree_logs(*snode);
-  geo_eval_log::GeoTreeLog *tree_log = geo_tree_logs.get_main_tree_log(params.node);
+  const eval_log::ContextualNodeTreeLogs tree_logs =
+      eval_log::NodesEvalLog::get_contextual_tree_logs(*snode);
+  eval_log::NodeTreeLog *tree_log = tree_logs.get_main_tree_log(params.node);
   if (!tree_log) {
     params.draw_standard(params.layout);
     return;
@@ -306,7 +330,7 @@ static void node_gather_link_searches(GatherLinkSearchOpParams &params)
  * Evaluates the first field after for each geometry as ".viewer" attribute. This attribute is used
  * by drawing code.
  */
-static void log_viewer_attribute(const bNode &node, geo_eval_log::ViewerNodeLog &r_log)
+static void log_viewer_attribute(const bNode &node, eval_log::ViewerNodeLog &r_log)
 {
   const auto &storage = *static_cast<NodeGeometryViewer *>(node.storage);
   const StringRef viewer_attribute_name = ".viewer";
@@ -372,14 +396,14 @@ static void log_viewer_attribute(const bNode &node, geo_eval_log::ViewerNodeLog 
         }
       });
     }
-    /* Avoid overriding the viewer attribute with other fields.*/
+    /* Avoid overriding the viewer attribute with other fields. */
     last_geometry_identifier.reset();
   }
 }
 
 static void geo_viewer_node_log_impl(const bNode &node,
                                      const Span<bke::SocketValueVariant *> input_values,
-                                     geo_eval_log::ViewerNodeLog &r_log)
+                                     eval_log::ViewerNodeLog &r_log)
 {
   const auto &storage = *static_cast<NodeGeometryViewer *>(node.storage);
   for (const int i : IndexRange(storage.items_num)) {
@@ -390,9 +414,7 @@ static void geo_viewer_node_log_impl(const bNode &node,
     const NodeGeometryViewerItem &item = storage.items[i];
 
     bke::SocketValueVariant &value = *input_values[i];
-    if (value.is_single() && value.get_single_ptr().is_type<bke::GeometrySet>()) {
-      value.get_single_ptr().get<bke::GeometrySet>()->ensure_owns_direct_data();
-    }
+    value.ensure_owns_direct_data();
     r_log.items.add_new({item.identifier, item.name, std::move(value)});
   }
   log_viewer_attribute(node, r_log);
@@ -520,7 +542,7 @@ void GeoViewerItemsAccessor::blend_read_data_item(BlendDataReader *reader,
 
 void geo_viewer_node_log(const bNode &node,
                          const Span<bke::SocketValueVariant *> input_values,
-                         geo_eval_log::ViewerNodeLog &r_log)
+                         eval_log::ViewerNodeLog &r_log)
 {
   node_geo_viewer_cc::geo_viewer_node_log_impl(node, input_values, r_log);
 }

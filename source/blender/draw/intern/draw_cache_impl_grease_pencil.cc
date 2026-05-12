@@ -1111,6 +1111,8 @@ static void grease_pencil_edit_batch_ensure(Object &object,
               object, info.drawing, info.layer_index, memory);
       const IndexMask nurbs_curves = grease_pencil_get_editable_selected_nurbs_curves(
           object, info.drawing, info.layer_index, memory);
+      const IndexMask selected_editable_fill_strokes = bke::greasepencil::selected_mask_to_fills(
+          selected_editable_strokes, info.drawing.strokes(), bke::AttrDomain::Curve, memory);
 
       index_buf_add_nurbs_lines(
           info.drawing, nurbs_curves, lines_data, &lines_ibo_index, &drawing_line_start_offset);
@@ -1120,7 +1122,7 @@ static void grease_pencil_edit_batch_ensure(Object &object,
                                         &handle_lines_id,
                                         &drawing_start_offset);
       index_buf_add_points(info.drawing,
-                           selected_editable_strokes,
+                           selected_editable_fill_strokes,
                            points_data,
                            &points_ibo_index,
                            &drawing_start_offset);

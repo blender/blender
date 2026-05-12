@@ -29,7 +29,7 @@ ccl_device AttributeDescriptor svm_node_attr_init(KernelGlobals kg,
 
   if (sd->object != OBJECT_NONE) {
     desc = find_attribute(kg, sd, node.attr);
-    if (desc.offset == ATTR_STD_NOT_FOUND) {
+    if (!is_attribute_found(desc)) {
       desc = attribute_not_found();
       desc.offset = 0;
       desc.type = (NodeAttributeType)node.output_type;
@@ -85,7 +85,7 @@ svm_node_attr_surface_eval(KernelGlobals kg,
     return uv;
   }
 
-  if (node.attr == ATTR_STD_GENERATED && desc.element == ATTR_ELEMENT_NONE) {
+  if (node.attr == ATTR_STD_GENERATED && !is_attribute_found(desc)) {
     Float3Type f = shading_position<Float3Type>(sd);
     object_inverse_position_transform_if_object(kg, sd, &f);
     return f;

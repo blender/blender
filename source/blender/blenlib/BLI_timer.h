@@ -35,12 +35,12 @@ bool BLI_timer_is_registered(uintptr_t uuid);
 bool BLI_timer_unregister(uintptr_t uuid);
 
 /** Execute all registered functions that are due. */
-void BLI_timer_execute(void);
+void BLI_timer_execute();
 
-void BLI_timer_free(void);
+void BLI_timer_free();
 
 /* This function is to be called next to BKE_CB_EVT_LOAD_PRE, to make sure the module
  * is properly configured for the new file. */
-void BLI_timer_on_file_load(void);
+void BLI_timer_on_file_load();
 
 }  // namespace blender

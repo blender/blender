@@ -9,11 +9,17 @@ shader node_raycast(point Position = P,
                     float Length = 1.0,
                     int only_local = 0,
                     float bump_filter_width = 0.0,
+                    string float_attribute_names[] = {},
+                    string alpha_attribute_names[] = {},
+                    string vector_attribute_names[] = {},
                     output float IsHit = 0.0,
                     output float SelfHit = 0.0,
                     output float HitDistance = Length,
                     output point HitPosition = point(0.0, 0.0, 0.0),
-                    output normal HitNormal = normal(0.0, 0.0, 0.0))
+                    output normal HitNormal = normal(0.0, 0.0, 0.0),
+                    output float float_attributes[32] = {},
+                    output float alpha_attributes[32] = {},
+                    output vector vector_attributes[32] = {})
 {
   float mindist = 0.0;
   if (bump_filter_width > 0.0) {
@@ -37,5 +43,28 @@ shader node_raycast(point Position = P,
     getmessage("trace", "hitdist", HitDistance);
     getmessage("trace", "P", HitPosition);
     getmessage("trace", "N", HitNormal);
+
+    for (int i = 0; i < arraylength(float_attribute_names); ++i) {
+      getmessage("trace", float_attribute_names[i], float_attributes[i]);
+    }
+    for (int i = 0; i < arraylength(alpha_attribute_names); ++i) {
+      float data[4] = {0.0, 0.0, 0.0, 0.0};
+      getmessage("trace", alpha_attribute_names[i], data);
+      alpha_attributes[i] = data[3];
+    }
+    for (int i = 0; i < arraylength(vector_attribute_names); ++i) {
+      getmessage("trace", vector_attribute_names[i], vector_attributes[i]);
+    }
+  }
+  else {
+    for (int i = 0; i < arraylength(float_attribute_names); ++i) {
+      float_attributes[i] = 0.0;
+    }
+    for (int i = 0; i < arraylength(alpha_attribute_names); ++i) {
+      alpha_attributes[i] = 0.0;
+    }
+    for (int i = 0; i < arraylength(vector_attribute_names); ++i) {
+      vector_attributes[i] = point(0.0, 0.0, 0.0);
+    }
   }
 }

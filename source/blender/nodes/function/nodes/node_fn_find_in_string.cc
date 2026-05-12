@@ -80,7 +80,7 @@ static void node_register()
 {
   static bke::bNodeType ntype;
 
-  fn_node_type_base(&ntype, "FunctionNodeFindInString"_ustr, FN_NODE_FIND_IN_STRING);
+  fn_cmp_node_type_base(&ntype, "FunctionNodeFindInString"_ustr, FN_NODE_FIND_IN_STRING);
   ntype.ui_name = "Find in String";
   ntype.ui_description =
       "Find the number of times a given string occurs in another string and the position of the "

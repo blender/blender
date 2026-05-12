@@ -34,8 +34,8 @@
 
 #include "MOD_nodes.hh"
 
+#include "NOD_eval_log.hh"
 #include "NOD_geometry_nodes_gizmos.hh"
-#include "NOD_geometry_nodes_log.hh"
 
 #include "UI_resources.hh"
 
@@ -50,8 +50,8 @@
 namespace blender {
 
 namespace ed::view3d::geometry_nodes_gizmos {
-namespace geo_eval_log = nodes::geo_eval_log;
-using geo_eval_log::GeoTreeLog;
+namespace eval_log = nodes::eval_log;
+using eval_log::NodeTreeLog;
 
 static bool gizmo_is_interacting(const wmGizmo &gizmo)
 {
@@ -124,7 +124,7 @@ struct GizmosUpdateParams {
   /* Transform of the object and geometry that the gizmo belongs to. */
   float4x4 parent_transform;
   const bNode &gizmo_node;
-  GeoTreeLog &tree_log;
+  NodeTreeLog &tree_log;
   UpdateReport &r_report;
   nodes::inverse_eval::ElemVariant elem;
 
@@ -733,9 +733,20 @@ class TransformGizmos : public NodeGizmos {
           }
           const float3x3 rotation_matrix = math::from_rotation<float3x3>(
               math::AxisAngle(local_scale_axis, math::to_vector<float3>(axis)));
-          const float3x3 scale_matrix = math::invert(rotation_matrix) *
-                                        math::from_scale<float3x3>(scale) * rotation_matrix;
-          value.view<3, 3>() = scale_matrix * value.view<3, 3>();
+          const float3x3 scaled = math::invert(rotation_matrix) *
+                                  math::from_scale<float3x3>(scale) * rotation_matrix *
+                                  value.view<3, 3>();
+
+          /* Apply only the new column lengths to the original directions to avoid
+           * rotation drift when repeatedly applying the scale transform, see #155866. */
+          for (int i = 0; i < 3; i++) {
+            const float3 col = float3(value[i]);
+            const float len_sq = math::length_squared(col);
+            if (len_sq > math::square(1e-6f)) {
+              const float len = math::sqrt(len_sq);
+              value[i] = float4(col * (math::length(float3(scaled[i])) / len), 0.0f);
+            }
+          }
           value_variant.set(value);
         });
       };
@@ -888,7 +899,7 @@ static bke::GeometrySet find_geometry_for_gizmo(const Object &object_eval,
 {
   if (v3d.flag2 & V3D_SHOW_VIEWER) {
     const ViewerPath &viewer_path = v3d.viewer_path;
-    if (const geo_eval_log::ViewerNodeLog *viewer_log =
+    if (const eval_log::ViewerNodeLog *viewer_log =
             nmd_orig.runtime->eval_log->find_viewer_node_log_for_path(viewer_path))
     {
       if (const bke::GeometrySet *viewer_geometry = viewer_log->main_geometry()) {
@@ -1007,7 +1018,7 @@ static void WIDGETGROUP_geometry_nodes_refresh(const bContext *C, wmGizmoGroup *
         /* Initially show all gizmos. They may be hidden as part of the update again. */
         node_gizmos->show_all();
 
-        GeoTreeLog &tree_log = nmd_orig.runtime->eval_log->get_tree_log(compute_context.hash());
+        NodeTreeLog &tree_log = nmd_orig.runtime->eval_log->get_tree_log(compute_context.hash());
         tree_log.ensure_socket_values();
         tree_log.ensure_evaluated_gizmo_nodes();
 

@@ -59,15 +59,15 @@ static void link_sockets(bNodeTree *ntree,
                          bNode *to_node,
                          const char *to_node_id)
 {
-  bNodeSocket *from_sock{bke::node_find_socket(*from_node, SOCK_OUT, from_node_id)};
-  bNodeSocket *to_sock{bke::node_find_socket(*to_node, SOCK_IN, to_node_id)};
+  bNodeSocket *from_sock{bke::node_find_socket(*from_node, SOCK_OUT, UString(from_node_id))};
+  bNodeSocket *to_sock{bke::node_find_socket(*to_node, SOCK_IN, UString(to_node_id))};
   BLI_assert(from_sock && to_sock);
   bke::node_add_link(*ntree, *from_node, *from_sock, *to_node, *to_sock);
 }
 
 static void set_socket_float(const char *socket_id, const float value, bNode *node)
 {
-  bNodeSocket *socket{bke::node_find_socket(*node, SOCK_IN, socket_id)};
+  bNodeSocket *socket{bke::node_find_socket(*node, SOCK_IN, UString(socket_id))};
   BLI_assert(socket && socket->type == SOCK_FLOAT);
   bNodeSocketValueFloat *dst = socket->default_value_typed<bNodeSocketValueFloat>();
   dst->value = value;
@@ -75,7 +75,7 @@ static void set_socket_float(const char *socket_id, const float value, bNode *no
 
 static void set_socket_rgb(const char *socket_id, float vr, float vg, float vb, bNode *node)
 {
-  bNodeSocket *socket{bke::node_find_socket(*node, SOCK_IN, socket_id)};
+  bNodeSocket *socket{bke::node_find_socket(*node, SOCK_IN, UString(socket_id))};
   BLI_assert(socket && socket->type == SOCK_RGBA);
   bNodeSocketValueRGBA *dst = socket->default_value_typed<bNodeSocketValueRGBA>();
   dst->value[0] = vr;
@@ -86,7 +86,7 @@ static void set_socket_rgb(const char *socket_id, float vr, float vg, float vb, 
 
 static void set_socket_vector(const char *socket_id, float vx, float vy, float vz, bNode *node)
 {
-  bNodeSocket *socket{bke::node_find_socket(*node, SOCK_IN, socket_id)};
+  bNodeSocket *socket{bke::node_find_socket(*node, SOCK_IN, UString(socket_id))};
   BLI_assert(socket && socket->type == SOCK_VECTOR);
   bNodeSocketValueVector *dst = socket->default_value_typed<bNodeSocketValueVector>();
   dst->value[0] = vx;

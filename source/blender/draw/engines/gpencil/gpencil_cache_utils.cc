@@ -242,7 +242,7 @@ static float4 grease_pencil_layer_final_tint_and_alpha_get(const Instance *inst,
     const float4 onion_col_custom = use_next_col ? float4(color_next, 1.0f) :
                                                    float4(color_prev, 1.0f);
 
-    *r_alpha = use_onion_fade ? (1.0f / abs(onion_id)) : 0.5f;
+    *r_alpha = use_onion_fade ? (1.0f / abs(onion_id)) : 1.0f;
     *r_alpha *= onion_factor;
     *r_alpha = (onion_factor > 0.0f) ? clamp_f(*r_alpha, 0.1f, 1.0f) :
                                        clamp_f(*r_alpha, 0.01f, 1.0f);

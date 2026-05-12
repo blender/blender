@@ -28,13 +28,13 @@ ccl_device_noinline_cpu float3 svm_magic(const float3 p,
    * smaller value. This is due to the value in the -2*PI to 2*PI range
    * effectively being lost due to floating point precision.
    */
-  const float px = fmodf(p.x, M_2PI_F);
-  const float py = fmodf(p.y, M_2PI_F);
-  const float pz = fmodf(p.z, M_2PI_F);
+  const float px = fmodf(p.x * scale, M_2PI_F);
+  const float py = fmodf(p.y * scale, M_2PI_F);
+  const float pz = fmodf(p.z * scale, M_2PI_F);
 
-  float x = sinf((px + py + pz) * 5.0f * scale);
-  float y = cosf((-px + py - pz) * 5.0f * scale);
-  float z = -cosf((-px - py + pz) * 5.0f * scale);
+  float x = sinf((px + py + pz) * 5.0f);
+  float y = cosf((-px + py - pz) * 5.0f);
+  float z = -cosf((-px - py + pz) * 5.0f);
 
   if (n > 0) {
     x *= distortion;

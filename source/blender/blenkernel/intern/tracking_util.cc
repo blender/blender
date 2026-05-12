@@ -608,7 +608,7 @@ static ImBuf *accessor_get_preprocessed_ibuf(TrackingImageAccessor *accessor,
   scene_frame = BKE_movieclip_remap_clip_to_scene_frame(clip, frame);
   BKE_movieclip_user_set_frame(&user, scene_frame);
   user.render_size = MCLIP_PROXY_RENDER_SIZE_FULL;
-  user.render_flag = 0;
+  user.render_flag = eMovieClipProxy_RenderFlag{};
   ibuf = BKE_movieclip_get_ibuf(clip, &user);
 
   return ibuf;
@@ -699,14 +699,14 @@ static ImBuf *accessor_get_ibuf(TrackingImageAccessor *accessor,
     final_ibuf = IMB_allocImBuf(width, height, 32, IB_float_data);
 
     if (orig_ibuf->float_data() != nullptr) {
-      IMB_rectcpy(final_ibuf,
-                  orig_ibuf,
-                  dst_offset_x,
-                  dst_offset_y,
-                  clamped_origin_x,
-                  clamped_origin_y,
-                  clamped_width,
-                  clamped_height);
+      IMB_copy_rect(final_ibuf->float_data_for_write(),
+                    int2(final_ibuf->x, final_ibuf->y),
+                    orig_ibuf->float_data(),
+                    int2(orig_ibuf->x, orig_ibuf->y),
+                    orig_ibuf->channels,
+                    int2(clamped_origin_x, clamped_origin_y),
+                    int2(dst_offset_x, dst_offset_y),
+                    int2(clamped_width, clamped_height));
     }
     else {
       /* TODO(sergey): We don't do any color space or alpha conversion
@@ -852,7 +852,7 @@ static libmv_CacheKey accessor_get_mask_for_track_callback(libmv_FrameAccessorUs
   int scene_frame = BKE_movieclip_remap_clip_to_scene_frame(clip, frame);
   BKE_movieclip_user_set_frame(&user, scene_frame);
   user.render_size = MCLIP_PROXY_RENDER_SIZE_FULL;
-  user.render_flag = 0;
+  user.render_flag = eMovieClipProxy_RenderFlag{};
   /* Get frame width and height so we can convert stroke coordinates
    * and other things from normalized to pixel space.
    */

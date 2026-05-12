@@ -35,6 +35,8 @@ using namespace blender::gpu;
 GLContext::GLContext(GHOST_IWindow *ghost_window, GLSharedOrphanLists &shared_orphan_list)
     : shared_orphan_list_(shared_orphan_list)
 {
+  GLBackend::get()->add_context_id(context_id);
+
   if (G.debug & G_DEBUG_GPU) {
     debug::init_gl_callbacks();
   }
@@ -102,6 +104,8 @@ GLContext::~GLContext()
     cache->clear();
   }
   glDeleteBuffers(1, &default_attr_vbo_);
+
+  GLBackend::get()->remove_context_id(context_id);
 }
 
 /** \} */

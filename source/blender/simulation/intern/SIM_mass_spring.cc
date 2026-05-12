@@ -952,7 +952,6 @@ static void cloth_continuum_step(ClothModifierData *clmd, float dt)
   Cloth *cloth = clmd->clothObject;
   Implicit_Data *data = cloth->implicit;
   int mvert_num = cloth->mvert_num;
-  ClothVertex *vert;
 
   const float fluid_factor = 0.95f; /* blend between PIC and FLIP methods */
   float smoothfac = parms->velocity_smooth;
@@ -982,7 +981,7 @@ static void cloth_continuum_step(ClothModifierData *clmd, float dt)
     /* main hair continuum solver */
     SIM_hair_volume_solve_divergence(grid, dt, density_target, density_strength);
 
-    for (i = 0, vert = cloth->verts; i < mvert_num; i++, vert++) {
+    for (i = 0; i < mvert_num; i++) {
       float x[3], v[3], nv[3];
 
       /* calculate volumetric velocity influence */

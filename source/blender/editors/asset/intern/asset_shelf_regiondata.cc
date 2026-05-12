@@ -82,13 +82,11 @@ void regiondata_blend_write(BlendWriter *writer, const RegionAssetShelf *shelf_r
 
 void regiondata_blend_read_data(BlendDataReader *reader, RegionAssetShelf **shelf_regiondata)
 {
-  if (!*shelf_regiondata) {
+  if (!BLO_read_struct_nonnull(reader, RegionAssetShelf, shelf_regiondata)) {
     return;
   }
-
-  BLO_read_struct(reader, RegionAssetShelf, shelf_regiondata);
   if ((*shelf_regiondata)->active_shelf) {
-    BLO_read_struct(reader, AssetShelf, &(*shelf_regiondata)->active_shelf);
+    BLO_read_struct_nonnull(reader, AssetShelf, &(*shelf_regiondata)->active_shelf);
   }
 
   BLO_read_struct_list(reader, AssetShelf, &(*shelf_regiondata)->shelves);

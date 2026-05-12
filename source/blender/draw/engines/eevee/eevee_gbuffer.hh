@@ -189,7 +189,7 @@ struct GBuffer {
   }
 
   /* Bind the GBuffer frame-buffer correctly using the correct workarounds. */
-  void bind(Framebuffer &gbuffer_fb)
+  void bind(Framebuffer &gbuffer_fb, bool clear_combined = false)
   {
     /* Workaround a Metal bug that is only showing up on ATI/Intel GPUs. */
     if (GPU_type_matches(
@@ -206,11 +206,14 @@ struct GBuffer {
       GPU_framebuffer_bind(gbuffer_fb);
       GPU_framebuffer_clear_stencil(gbuffer_fb, 0x0u);
     }
+
+    GPULoadOp combined_load_action = clear_combined ? GPU_LOADACTION_CLEAR : GPU_LOADACTION_LOAD;
+
     GPU_framebuffer_bind_ex(
         gbuffer_fb,
         {
             {GPU_LOADACTION_LOAD, GPU_STOREACTION_STORE},       /* Depth. */
-            {GPU_LOADACTION_LOAD, GPU_STOREACTION_STORE},       /* Combined. */
+            {combined_load_action, GPU_STOREACTION_STORE, {0}}, /* Combined. */
             {GPU_LOADACTION_CLEAR, GPU_STOREACTION_STORE, {0}}, /* GBuf Header. */
             {GPU_LOADACTION_DONT_CARE, GPU_STOREACTION_STORE},  /* GBuf Normal. */
             {GPU_LOADACTION_DONT_CARE, GPU_STOREACTION_STORE},  /* GBuf Closure. */

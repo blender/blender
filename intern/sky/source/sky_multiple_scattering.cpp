@@ -129,7 +129,7 @@ class SkyMultipleScattering {
   }
 
   /* Compute atmosphere's transmittance from the given altitude to the sun. */
-  inline float4 get_transmittance(const float cos_theta, const float normalized_altitude) const
+  float4 get_transmittance(const float cos_theta, const float normalized_altitude) const
   {
     const float3 sun_dir = sun_direction(cos_theta);
     const float distance_to_earth_center = mix(
@@ -225,11 +225,11 @@ class SkyMultipleScattering {
   float ozone_density;
 
   /* Compute absorption/scattering coeffients at the given altitude. */
-  inline void get_atmosphere_collision_coefficients(const float altitude,
-                                                    float4 &aerosol_absorption,
-                                                    float4 &aerosol_scattering,
-                                                    float4 &molecular_absorption,
-                                                    float4 &molecular_scattering) const
+  void get_atmosphere_collision_coefficients(const float altitude,
+                                             float4 &aerosol_absorption,
+                                             float4 &aerosol_scattering,
+                                             float4 &molecular_absorption,
+                                             float4 &molecular_scattering) const
   {
     const float local_aerosol_density = get_aerosol_density(altitude) * aerosol_density;
     aerosol_absorption = AEROSOL_ABSORPTION_CROSS_SECTION * local_aerosol_density;
@@ -238,7 +238,7 @@ class SkyMultipleScattering {
     molecular_scattering = get_molecular_scattering_coefficient(altitude) * air_density;
   }
 
-  inline float4 lookup_multiscattering(float cos_theta, float normalized_height, float d) const
+  float4 lookup_multiscattering(float cos_theta, float normalized_height, float d) const
   {
     /* Solid angle subtended by the planet from a point at d distance from the planet center. */
     const float omega = M_2PI_F * (1.0f - safe_sqrtf(1.0f - sqr(EARTH_RADIUS / d)));
@@ -258,7 +258,7 @@ class SkyMultipleScattering {
   }
 
   /* Look up a transmittance from the precomputed LUT. */
-  inline float4 lookup_transmittance(const float cos_theta, const float normalized_altitude) const
+  float4 lookup_transmittance(const float cos_theta, const float normalized_altitude) const
   {
     const float u = saturate(cos_theta * 0.5f + 0.5f);
     const float v = saturate(normalized_altitude);
@@ -276,7 +276,7 @@ class SkyMultipleScattering {
   }
 
   /* Specialized versions of lookup_transmittance that skip one interpolation. */
-  inline float4 lookup_transmittance_at_ground(const float cos_theta) const
+  float4 lookup_transmittance_at_ground(const float cos_theta) const
   {
     const float u = saturate(cos_theta * 0.5f + 0.5f);
     const float x = float(TRANSMITTANCE_RES_X - 1) * u;
@@ -287,7 +287,7 @@ class SkyMultipleScattering {
     return mix(transmittance_lut[y][x1], transmittance_lut[y][x2], fx);
   }
 
-  inline float4 lookup_transmittance_to_sun(const float normalized_altitude) const
+  float4 lookup_transmittance_to_sun(const float normalized_altitude) const
   {
     const float v = saturate(normalized_altitude);
     const float y = float(TRANSMITTANCE_RES_Y - 1) * v;

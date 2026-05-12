@@ -127,7 +127,7 @@ static void node_register()
 {
   static bke::bNodeType ntype;
 
-  fn_node_type_base(&ntype, "FunctionNodeValueToString"_ustr, FN_NODE_VALUE_TO_STRING);
+  fn_cmp_node_type_base(&ntype, "FunctionNodeValueToString"_ustr, FN_NODE_VALUE_TO_STRING);
   ntype.ui_name = "Value to String";
   ntype.ui_description = "Generate a string representation of the given input value";
   ntype.enum_name_legacy = "VALUE_TO_STRING";

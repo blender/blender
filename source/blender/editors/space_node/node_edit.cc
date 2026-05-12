@@ -405,30 +405,38 @@ static bool socket_is_occluded(const float2 &location,
 /** \name Node Size Widget Operator
  * \{ */
 
-struct NodeSizeWidget {
-  float mxstart, mystart;
+struct NodeResizeData {
+  bNode *node;
   float oldlocx, oldlocy;
   float oldwidth, oldheight;
+};
+
+struct NodeSizeWidget {
+  float mxstart, mystart;
+  Vector<NodeResizeData> nodes_data;
   int directions;
   bool precision, snap_to_grid;
 };
 
-static void node_resize_init(
-    bContext *C, wmOperator *op, const float2 &cursor, const bNode *node, NodeResizeDirection dir)
+static void node_resize_init(bContext *C,
+                             wmOperator *op,
+                             const float2 &cursor,
+                             const VectorSet<bNode *> &nodes,
+                             NodeResizeDirection dir)
 {
   Scene *scene = CTX_data_scene(C);
-  NodeSizeWidget *nsw = MEM_new_zeroed<NodeSizeWidget>(__func__);
+  NodeSizeWidget *nsw = MEM_new<NodeSizeWidget>(__func__);
 
   op->customdata = nsw;
 
   nsw->mxstart = cursor.x;
   nsw->mystart = cursor.y;
 
-  /* store old */
-  nsw->oldlocx = node->location[0];
-  nsw->oldlocy = node->location[1];
-  nsw->oldwidth = node->width;
-  nsw->oldheight = node->height;
+  for (bNode *node : nodes) {
+    nsw->nodes_data.append(
+        {node, node->location[0], node->location[1], node->width, node->height});
+  }
+
   nsw->directions = dir;
   nsw->snap_to_grid = scene->toolsettings->snap_flag_node;
 
@@ -445,13 +453,12 @@ static void node_resize_exit(bContext *C, wmOperator *op, bool cancel)
 
   /* Restore old data on cancel. */
   if (cancel) {
-    SpaceNode *snode = CTX_wm_space_node(C);
-    bNode *node = bke::node_get_active(*snode->edittree);
-
-    node->location[0] = nsw->oldlocx;
-    node->location[1] = nsw->oldlocy;
-    node->width = nsw->oldwidth;
-    node->height = nsw->oldheight;
+    for (const NodeResizeData &rd : nsw->nodes_data) {
+      rd.node->location[0] = rd.oldlocx;
+      rd.node->location[1] = rd.oldlocy;
+      rd.node->width = rd.oldwidth;
+      rd.node->height = rd.oldheight;
+    }
   }
 
   MEM_delete(nsw);
@@ -503,7 +510,6 @@ static wmOperatorStatus node_resize_modal(bContext *C, wmOperator *op, const wmE
 {
   SpaceNode *snode = CTX_wm_space_node(C);
   ARegion *region = CTX_wm_region(C);
-  bNode *node = bke::node_get_active(*snode->edittree);
   NodeSizeWidget *nsw = static_cast<NodeSizeWidget *>(op->customdata);
 
   if (event->type == EVT_MODAL_MAP) {
@@ -533,10 +539,11 @@ static wmOperatorStatus node_resize_modal(bContext *C, wmOperator *op, const wmE
       const float dx = (mx - nsw->mxstart) / UI_SCALE_FAC;
       const float dy = (my - nsw->mystart) / UI_SCALE_FAC;
 
-      if (node) {
+      for (NodeResizeData &rd : nsw->nodes_data) {
+        bNode *node = rd.node;
         float *pwidth = &node->width;
         float *pheight = &node->height;
-        float oldwidth = nsw->oldwidth;
+        float oldwidth = rd.oldwidth;
         float widthmin = node->typeinfo->minwidth;
         float widthmax = node->typeinfo->maxwidth;
 
@@ -550,7 +557,7 @@ static wmOperatorStatus node_resize_modal(bContext *C, wmOperator *op, const wmE
             CLAMP(*pwidth, widthmin, widthmax);
           }
           if (nsw->directions & NODE_RESIZE_LEFT) {
-            float locmax = nsw->oldlocx + oldwidth;
+            float locmax = rd.oldlocx + oldwidth;
             *pwidth = oldwidth - dx;
 
             if (nsw->snap_to_grid) {
@@ -562,12 +569,12 @@ static wmOperatorStatus node_resize_modal(bContext *C, wmOperator *op, const wmE
         }
 
         /* Height works the other way round. */
-        {
+        if (node->is_frame()) {
           float heightmin = UI_SCALE_FAC * node->typeinfo->minheight;
           float heightmax = UI_SCALE_FAC * node->typeinfo->maxheight;
           if (nsw->directions & NODE_RESIZE_TOP) {
-            float locmin = nsw->oldlocy - nsw->oldheight;
-            *pheight = nsw->oldheight + dy;
+            float locmin = rd.oldlocy - rd.oldheight;
+            *pheight = rd.oldheight + dy;
 
             if (nsw->snap_to_grid) {
               *pheight = nearest_node_grid_coord(*pheight);
@@ -576,7 +583,7 @@ static wmOperatorStatus node_resize_modal(bContext *C, wmOperator *op, const wmE
             node->location[1] = locmin + *pheight;
           }
           if (nsw->directions & NODE_RESIZE_BOTTOM) {
-            *pheight = nsw->oldheight - dy;
+            *pheight = rd.oldheight - dy;
 
             if (nsw->snap_to_grid) {
               *pheight = nearest_node_grid_coord(*pheight);
@@ -613,23 +620,26 @@ static wmOperatorStatus node_resize_invoke(bContext *C, wmOperator *op, const wm
 {
   SpaceNode *snode = CTX_wm_space_node(C);
   ARegion *region = CTX_wm_region(C);
-  const bNode *node = bke::node_get_active(*snode->edittree);
-
-  if (node == nullptr) {
-    return OPERATOR_CANCELLED | OPERATOR_PASS_THROUGH;
-  }
 
   /* Convert mouse coordinates to `v2d` space. */
   float2 cursor;
   int2 mval;
   WM_event_drag_start_mval(event, region, mval);
   ui::view2d_region_to_view(&region->v2d, mval.x, mval.y, &cursor.x, &cursor.y);
+
+  /* Use the hovered node to determine the resize direction.
+   * This node may not be the active one if multiple nodes are selected. */
+  const bNode *node = node_under_mouse_get(*snode, cursor);
+  if (node == nullptr) {
+    return OPERATOR_CANCELLED | OPERATOR_PASS_THROUGH;
+  }
+
   const NodeResizeDirection dir = node_get_resize_direction(*snode, node, cursor.x, cursor.y);
   if (dir == NODE_RESIZE_NONE) {
     return OPERATOR_CANCELLED | OPERATOR_PASS_THROUGH;
   }
 
-  node_resize_init(C, op, cursor, node, dir);
+  node_resize_init(C, op, cursor, get_selected_nodes(*snode->edittree), dir);
   return OPERATOR_RUNNING_MODAL;
 }
 
@@ -648,7 +658,7 @@ void NODE_OT_resize(wmOperatorType *ot)
   /* API callbacks. */
   ot->invoke = node_resize_invoke;
   ot->modal = node_resize_modal;
-  ot->poll = ED_operator_node_active;
+  ot->poll = ED_operator_node_editable;
   ot->cancel = node_resize_cancel;
 
   /* flags */
@@ -1199,7 +1209,9 @@ void NODE_OT_render_changed(wmOperatorType *ot)
  * If the flag is not set on all nodes, it is set. If tag_update is true, the nodes will be tagged
  * for a property change update.
  */
-static void node_flag_toggle_exec(SpaceNode *snode, int toggle_flag, const bool tag_update = false)
+static void node_flag_toggle_exec(SpaceNode *snode,
+                                  eNode_Flag toggle_flag,
+                                  const bool tag_update = false)
 {
   int tot_eq = 0, tot_neq = 0;
 

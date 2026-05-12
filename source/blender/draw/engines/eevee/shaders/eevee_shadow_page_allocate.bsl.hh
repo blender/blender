@@ -23,10 +23,10 @@ using TileMaps = eevee::shadow::TileMaps;
 void allocate([[resource_table]] PageAllocator &allocator,
               [[resource_table]] TileMaps &tilemaps,
               [[resource_table]] Statistics &stats,
-              [[global_invocation_id]] const uint3 global_invocation_id,
+              [[global_invocation_id]] const uint3 global_id,
               [[local_invocation_index]] const uint local_tile)
 {
-  ShadowTileMapData tilemap_data = tilemaps.tilemaps_buf[global_invocation_id.z];
+  ShadowTileMapData tilemap_data = tilemaps.tilemaps_buf[global_id.z];
 
   uint tile_start = uint(tilemap_data.tiles_index);
   for (int lod = 0; lod <= SHADOW_TILEMAP_LOD; lod++) {

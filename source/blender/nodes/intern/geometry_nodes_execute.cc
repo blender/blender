@@ -49,7 +49,6 @@
 namespace blender {
 
 namespace lf = fn::lazy_function;
-namespace geo_log = nodes::geo_eval_log;
 
 namespace nodes {
 

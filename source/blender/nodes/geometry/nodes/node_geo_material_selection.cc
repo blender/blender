@@ -129,25 +129,21 @@ class MaterialSelectionFieldInput final : public bke::GeometryFieldInput {
     }
   }
 
-  uint64_t hash() const override
+  void hash_unique(UniqueHashBytes &hash, fn::FieldHashDeep & /*deep_hash_cache*/) const override
   {
-    return get_default_hash(material_);
-  }
-
-  bool is_equal_to(const fn::FieldInput &other) const override
-  {
-    if (const MaterialSelectionFieldInput *other_material_selection =
-            dynamic_cast<const MaterialSelectionFieldInput *>(&other))
-    {
-      return material_ == other_material_selection->material_;
-    }
-    return false;
+    static constexpr int8_t id = 0;
+    hash.add(&id);
+    hash.add(material_);
   }
 
   std::optional<AttrDomain> preferred_domain(
       const GeometryComponent & /*component*/) const override
   {
     return AttrDomain::Face;
+  }
+  bke::NativeFieldDomain native_domain_info(const GeometryComponent & /*component*/) const override
+  {
+    return bke::NativeFieldDomain::Domain{AttrDomain::Face};
   }
 };
 

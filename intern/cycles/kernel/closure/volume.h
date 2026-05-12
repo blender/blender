@@ -72,6 +72,14 @@ ccl_device int volume_phase_sample(const ccl_private ShaderData *sd,
   }
 }
 
+/* Widen the compact ray differential dD after a phase function scatter to
+ * match the lobe's angular spread. See bsdf_widen_dD for details. */
+ccl_device_forceinline float volume_phase_widen_dD(const float prev_dD,
+                                                   const float sampled_roughness)
+{
+  return max(prev_dD, sampled_roughness);
+}
+
 ccl_device bool volume_phase_equal(const ccl_private ShaderClosure *c1,
                                    const ccl_private ShaderClosure *c2)
 {

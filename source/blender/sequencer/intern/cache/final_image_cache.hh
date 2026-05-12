@@ -31,10 +31,15 @@ void final_image_cache_put(Scene *scene,
                            int view_id,
                            int display_channel,
                            int2 image_size,
+                           bool is_render,
                            ImBuf *image);
 
-ImBuf *final_image_cache_get(
-    Scene *scene, float timeline_frame, int view_id, int display_channel, int2 image_size);
+ImBuf *final_image_cache_get(Scene *scene,
+                             float timeline_frame,
+                             int view_id,
+                             int display_channel,
+                             int2 image_size,
+                             bool is_render);
 
 void final_image_cache_invalidate_frame_range(Scene *scene,
                                               const float timeline_frame_start,

@@ -42,7 +42,7 @@ static void node_declare(NodeDeclarationBuilder &b)
       const UString identifier(
           EvaluateClosureOutputItemsAccessor::socket_identifier_for_item(item));
       auto &decl = panel.add_output(socket_type, UString(item.name), identifier);
-      if (item.structure_type != NODE_INTERFACE_SOCKET_STRUCTURE_TYPE_AUTO) {
+      if (item.structure_type != NodeSocketInterfaceStructureType::Auto) {
         decl.structure_type(StructureType(item.structure_type));
       }
       else {
@@ -56,7 +56,10 @@ static void node_declare(NodeDeclarationBuilder &b)
       const UString identifier(
           EvaluateClosureInputItemsAccessor::socket_identifier_for_item(item));
       auto &decl = panel.add_input(socket_type, UString(item.name), identifier);
-      if (item.structure_type != NODE_INTERFACE_SOCKET_STRUCTURE_TYPE_AUTO) {
+      if (socket_type_supports_fields(socket_type)) {
+        decl.supports_field();
+      }
+      if (item.structure_type != NodeSocketInterfaceStructureType::Auto) {
         decl.structure_type(StructureType(item.structure_type));
       }
       else {

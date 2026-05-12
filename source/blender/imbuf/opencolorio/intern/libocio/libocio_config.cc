@@ -4,26 +4,24 @@
 
 #include "libocio_config.hh"
 
-#if defined(WITH_OPENCOLORIO)
+#include <algorithm>
+#include <numeric>
 
-#  include <algorithm>
-#  include <numeric>
+#include <fmt/format.h>
 
-#  include <fmt/format.h>
+#include "BLI_array.hh"
+#include "BLI_assert.h"
+#include "BLI_index_range.hh"
+#include "BLI_math_matrix.hh"
 
-#  include "BLI_array.hh"
-#  include "BLI_assert.h"
-#  include "BLI_index_range.hh"
-#  include "BLI_math_matrix.hh"
+#include "OCIO_matrix.hh"
+#include "OCIO_role_names.hh"
 
-#  include "OCIO_matrix.hh"
-#  include "OCIO_role_names.hh"
-
-#  include "error_handling.hh"
-#  include "libocio_colorspace.hh"
-#  include "libocio_cpu_processor.hh"
-#  include "libocio_display_processor.hh"
-#  include "libocio_processor.hh"
+#include "error_handling.hh"
+#include "libocio_colorspace.hh"
+#include "libocio_cpu_processor.hh"
+#include "libocio_display_processor.hh"
+#include "libocio_processor.hh"
 
 namespace blender::ocio {
 
@@ -578,5 +576,3 @@ const GPUShaderBinder &LibOCIOConfig::get_gpu_shader_binder() const
 /** \} */
 
 }  // namespace blender::ocio
-
-#endif

@@ -79,7 +79,7 @@ ccl_device float point_random(KernelGlobals kg, const ccl_private ShaderData *sd
 {
   if (sd->type & PRIMITIVE_POINT) {
     const AttributeDescriptor desc = find_attribute(kg, sd, ATTR_STD_POINT_RANDOM);
-    return (desc.offset != ATTR_STD_NOT_FOUND) ? point_attribute<float>(kg, sd, desc) : 0.0f;
+    return is_attribute_found(desc) ? point_attribute<float>(kg, sd, desc) : 0.0f;
   }
   return 0.0f;
 }

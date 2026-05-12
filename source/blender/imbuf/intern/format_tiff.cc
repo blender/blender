@@ -46,7 +46,7 @@ ImBuf *imb_load_tiff(const uchar *mem, size_t size, int flags, ImFileColorSpace 
   return ibuf;
 }
 
-bool imb_save_tiff(ImBuf *ibuf, const char *filepath, int flags)
+static std::tuple<WriteContext, ImageSpec> prepare_save_tiff(ImBuf *ibuf, int flags)
 {
   const bool is_16bit = ((ibuf->foptions.flag & TIF_16BIT) && ibuf->float_data());
   const int file_channels = ibuf->planes >> 3;
@@ -75,7 +75,19 @@ bool imb_save_tiff(ImBuf *ibuf, const char *filepath, int flags)
     file_spec.attribute("compression", "none");
   }
 
+  return {ctx, file_spec};
+}
+
+bool imb_save_tiff(ImBuf *ibuf, const char *filepath, int flags)
+{
+  const auto [ctx, file_spec] = prepare_save_tiff(ibuf, flags);
   return imb_oiio_write(ctx, filepath, file_spec);
+}
+
+Vector<uint8_t> imb_save_buffer_tiff(ImBuf *ibuf, int flags)
+{
+  const auto [ctx, file_spec] = prepare_save_tiff(ibuf, flags);
+  return imb_oiio_write_buffer(ctx, file_spec);
 }
 
 }  // namespace blender

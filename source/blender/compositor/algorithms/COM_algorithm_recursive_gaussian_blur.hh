@@ -17,11 +17,14 @@ namespace blender::compositor {
  * approximation that might suffer from fringing and artifacts, though those are typically
  * unnoticeable. Neumann boundary is assumed.
  *
+ * If extend_bounds is true, the input will be zero padded by radius amount of pixels.
+ *
  * The output is written to the given output result, which will be allocated internally and is thus
  * expected not to be previously allocated. */
 void recursive_gaussian_blur(Context &context,
                              const Result &input,
                              Result &output,
-                             const float2 &radius);
+                             const float2 &radius,
+                             const bool extend_bounds = false);
 
 }  // namespace blender::compositor

@@ -15,24 +15,32 @@ $PKG_CONFIG_PATH"
   )
 endif()
 
+set(RUBBERBAND_EXTRA_OPTIONS
+  -Dauto_features=disabled
+  -Ddefault_library=static
+  -Dfft=fftw
+)
+
 ExternalProject_Add(external_rubberband
   URL file://${PACKAGE_DIR}/${RUBBERBAND_FILE}
   DOWNLOAD_DIR ${DOWNLOAD_DIR}
   URL_HASH ${RUBBERBAND_HASH_TYPE}=${RUBBERBAND_HASH}
   PREFIX ${BUILD_DIR}/rubberband
 
-  PATCH_COMMAND ${PATCH_CMD} -p 1 
-    -d ${BUILD_DIR}/rubberband/src/external_rubberband 
-    -i ${PATCH_DIR}/rubberband_remove_dll_exports.diff
+  PATCH_COMMAND
+    ${PATCH_CMD} -p 1
+      -d ${BUILD_DIR}/rubberband/src/external_rubberband
+      -i ${PATCH_DIR}/rubberband_remove_dll_exports.diff &&
+    ${PATCH_CMD} -p 1
+      -d ${BUILD_DIR}/rubberband/src/external_rubberband
+      -i ${PATCH_DIR}/rubberband_missing_cstdlib.diff
 
   CONFIGURE_COMMAND ${RUBBERBAND_CONFIGURE_ENV} &&
     ${CMAKE_COMMAND} -E env ${RUBBERBAND_PKG_ENV} ${MESON} setup
       --prefix ${LIBDIR}/rubberband
       --libdir lib
       ${MESON_BUILD_TYPE}
-      -Dauto_features=disabled
-      -Ddefault_library=static
-      -Dfft=fftw
+      ${RUBBERBAND_EXTRA_OPTIONS}
       ${BUILD_DIR}/rubberband/src/external_rubberband-build
       ${BUILD_DIR}/rubberband/src/external_rubberband
 

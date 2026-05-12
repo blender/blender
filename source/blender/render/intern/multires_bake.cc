@@ -598,7 +598,7 @@ static void rasterize_half(const MultiresBaker &baker,
   const int y1 = y1_in >= h ? h : y1_in;
 
   for (int y = y0; y < y1; y++) {
-    /*-b(x-x0) + a(y-y0) = 0 */
+    /* `-b(x-x0) + a(y-y0) = 0`. */
     float x_l = s_stable ? (s0.x + (((s1.x - s0.x) * (y - s0.y)) / (s1.y - s0.y))) : s0.x;
     float x_r = l_stable ? (l0.x + (((l1.x - l0.x) * (y - l0.y)) / (l1.y - l0.y))) : l0.x;
     if (is_mid_right) {

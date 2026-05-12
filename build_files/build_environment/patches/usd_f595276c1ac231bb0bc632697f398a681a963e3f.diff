@@ -1,0 +1,88 @@
+diff --git a/pxr/usd/usd/wrapObject.cpp b/pxr/usd/usd/wrapObject.cpp
+index ac38cb3be6..3145591945 100644
+--- a/pxr/usd/usd/wrapObject.cpp
++++ b/pxr/usd/usd/wrapObject.cpp
+@@ -125,7 +125,9 @@ static size_t __hash__(const UsdObject &self) { return hash_value(self); }
+ // an exception instead of crashing from Python.
+ 
+ // Store the original __getattribute__ so we can dispatch to it after verifying
+-// validity.
++// validity. Note that this TfPyObjWrapper is intentionally leaked to avoid
++// running Python refcount operations in its d'tor during process shutdown, 
++// which is unsafe if Python has been finalized.
+ static TfStaticData<TfPyObjWrapper> _object__getattribute__;
+ 
+ // This function gets wrapped as __getattribute__ on UsdObject.
+diff --git a/pxr/usd/usd/wrapPrimDefinition.cpp b/pxr/usd/usd/wrapPrimDefinition.cpp
+index 890efcad9b..83453930d1 100644
+--- a/pxr/usd/usd/wrapPrimDefinition.cpp
++++ b/pxr/usd/usd/wrapPrimDefinition.cpp
+@@ -9,6 +9,7 @@
+ #include "pxr/usd/usd/pyConversions.h"
+ #include "pxr/usd/usd/prim.h"
+ 
++#include "pxr/base/tf/staticData.h"
+ #include "pxr/base/tf/pyResultConversions.h"
+ #include "pxr/external/boost/python.hpp"
+ 
+@@ -94,8 +95,15 @@ _WrapAttributeGetFallbackValue(const UsdPrimDefinition::Attribute &self)
+ 
+ // Override that prevents crashing if an attempt is made to call data access 
+ // methods on an invalid UsdPrimDefinition::Property from python.
++
++// Store the original __getattribute__ so we can dispatch to it after verifying
++// validity. Note that this TfPyObjWrapper is intentionally leaked to avoid
++// running Python refcount operations in its d'tor during process shutdown, 
++// which is unsafe if Python has been finalized.
++static TfStaticData<TfPyObjWrapper> _object__getattribute__;
++
+ static object
+-__getattribute__Impl(object selfObj, const char *name, const object &getattribute) {
++__getattribute__(object selfObj, const char *name) {
+     // Allow attribute lookups if the attribute name starts with '__', if the
+     // object's Property is valid, or if the attribute is one of a specific
+     // inclusion list.
+@@ -105,7 +113,7 @@ __getattribute__Impl(object selfObj, const char *name, const object &getattribut
+         strcmp(name, "IsAttribute") == 0 ||
+         strcmp(name, "IsRelationship") == 0) {
+         // Dispatch to object's __getattribute__.
+-        return getattribute(selfObj, name);
++        return (*_object__getattribute__)(selfObj, name);
+     } else {
+         // Otherwise raise a runtime error.
+         TfPyThrowRuntimeError(
+@@ -198,15 +206,10 @@ void wrapUsdPrimDefinition()
+             .def("GetVariability", &This::Property::GetVariability)
+             .def("GetDocumentation", &This::Property::GetDocumentation)
+             ;
+-        // Override __getattribute__ to prevent crashing if an attempt is made
+-        // to call data access methods on an invalid UsdPrimDefinition::Property
+-        // from python.
+-        static object __getattribute__ = object(clsObj.attr("__getattribute__"));
+-        clsObj.def("__getattribute__", 
+-            +[](object selfObj, const char *name) {
+-                return __getattribute__Impl(
+-                    selfObj, name, __getattribute__);
+-            });
++
++        // Save existing __getattribute__ and replace.
++        *_object__getattribute__ = object(clsObj.attr("__getattribute__"));
++        clsObj.def("__getattribute__", __getattribute__);
+     }
+ 
+     class_<This::Attribute, bases<This::Property>>("Attribute")
+diff --git a/pxr/usd/usd/wrapSchemaBase.cpp b/pxr/usd/usd/wrapSchemaBase.cpp
+index 9b773997d1..d121741b29 100644
+--- a/pxr/usd/usd/wrapSchemaBase.cpp
++++ b/pxr/usd/usd/wrapSchemaBase.cpp
+@@ -26,7 +26,9 @@ using namespace pxr_boost::python;
+ // and raise an exception instead of crashing from Python.
+ 
+ // Store the original __getattribute__ so we can dispatch to it after verifying
+-// validity.
++// validity. Note that this TfPyObjWrapper is intentionally leaked to avoid
++// running Python refcount operations in its d'tor during process shutdown, 
++// which is unsafe if Python has been finalized.
+ static TfStaticData<TfPyObjWrapper> _object__getattribute__;
+ 
+ // This function gets wrapped as __getattribute__ on UsdSchemaBase.

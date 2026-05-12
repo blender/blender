@@ -293,6 +293,13 @@ void BKE_gpencil_material_attr_init(Material *ma)
     gp_style->placement_count = 1;
     gp_style->placement_density = 10.0f;
     gp_style->placement_radius_spacing = 100.0f;
+    gp_style->random_size_factor = 0.0f;
+    gp_style->random_strength_factor = 0.0f;
+    gp_style->random_rotation_factor = 0.0f;
+    gp_style->random_hue_factor = 0.0f;
+    gp_style->random_saturation_factor = 0.0f;
+    gp_style->random_value_factor = 0.0f;
+    gp_style->random_noise_scale = 1.0f;
   }
 }
 
@@ -2090,16 +2097,16 @@ static void material_default_surface_init(Material **ma_p)
   bNodeTree *ntree = ma->nodetree;
 
   bNode *principled = bke::node_add_static_node(nullptr, *ntree, SH_NODE_BSDF_PRINCIPLED);
-  bNodeSocket *base_color = bke::node_find_socket(*principled, SOCK_IN, "Base Color");
+  bNodeSocket *base_color = bke::node_find_socket(*principled, SOCK_IN, "Base Color"_ustr);
   copy_v3_v3((static_cast<bNodeSocketValueRGBA *>(base_color->default_value))->value, &ma->r);
 
   bNode *output = bke::node_add_static_node(nullptr, *ntree, SH_NODE_OUTPUT_MATERIAL);
 
   bke::node_add_link(*ntree,
                      *principled,
-                     *bke::node_find_socket(*principled, SOCK_OUT, "BSDF"),
+                     *bke::node_find_socket(*principled, SOCK_OUT, "BSDF"_ustr),
                      *output,
-                     *bke::node_find_socket(*output, SOCK_IN, "Surface"));
+                     *bke::node_find_socket(*output, SOCK_IN, "Surface"_ustr));
 
   principled->location[0] = -200.0f;
   principled->location[1] = 100.0f;
@@ -2119,9 +2126,9 @@ static void material_default_volume_init(Material **ma_p)
 
   bke::node_add_link(*ntree,
                      *principled,
-                     *bke::node_find_socket(*principled, SOCK_OUT, "Volume"),
+                     *bke::node_find_socket(*principled, SOCK_OUT, "Volume"_ustr),
                      *output,
-                     *bke::node_find_socket(*output, SOCK_IN, "Volume"));
+                     *bke::node_find_socket(*output, SOCK_IN, "Volume"_ustr));
 
   principled->location[0] = -200.0f;
   principled->location[1] = 100.0f;
@@ -2141,9 +2148,9 @@ static void material_default_holdout_init(Material **ma_p)
 
   bke::node_add_link(*ntree,
                      *holdout,
-                     *bke::node_find_socket(*holdout, SOCK_OUT, "Holdout"),
+                     *bke::node_find_socket(*holdout, SOCK_OUT, "Holdout"_ustr),
                      *output,
-                     *bke::node_find_socket(*output, SOCK_IN, "Surface"));
+                     *bke::node_find_socket(*output, SOCK_IN, "Surface"_ustr));
 
   holdout->location[0] = 10.0f;
   holdout->location[1] = 300.0f;

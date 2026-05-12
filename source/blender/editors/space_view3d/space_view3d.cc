@@ -1063,7 +1063,7 @@ static void view3d_header_region_listener(const wmRegionListenerParams *params)
       break;
     case NC_MATERIAL:
       /* For the canvas picker. */
-      if (wmn->data == ND_SHADING_LINKS) {
+      if (ELEM(wmn->data, ND_SHADING_LINKS, ND_NODES)) {
         ED_region_tag_redraw(region);
       }
       break;
@@ -1557,8 +1557,7 @@ static void view3d_space_blend_read_data(BlendDataReader *reader, SpaceLink *sl)
 
   v3d->runtime = View3D_Runtime{};
 
-  if (v3d->gpd) {
-    BLO_read_struct(reader, bGPdata, &v3d->gpd);
+  if (BLO_read_struct_nonnull(reader, bGPdata, &v3d->gpd)) {
     BKE_gpencil_blend_read_data(reader, v3d->gpd);
   }
   BLO_read_struct(reader, RegionView3D, &v3d->localvd);

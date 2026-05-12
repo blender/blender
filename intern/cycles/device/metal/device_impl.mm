@@ -125,7 +125,7 @@ MetalDevice::MetalDevice(const DeviceInfo &info, Stats &stats, Profiler &profile
     /* Create a global counter sampling buffer when kernel profiling is enabled.
      * There's a limit to the number of concurrent counter sampling buffers per device, so we
      * create one that can be reused by successive device queues. */
-    if (auto str = getenv("CYCLES_METAL_PROFILING")) {
+    if (auto *str = getenv("CYCLES_METAL_PROFILING")) {
       if (atoi(str) && [mtlDevice supportsCounterSampling:MTLCounterSamplingPointAtStageBoundary])
       {
         NSArray<id<MTLCounterSet>> *counterSets = [mtlDevice counterSets];
@@ -757,6 +757,11 @@ void MetalDevice::mem_copy_from(
   /* No need to copy - Apple Silicon has Unified Memory Architecture. */
 }
 
+void MetalDevice::mem_or_from_device(device_memory & /*mem*/)
+{
+  /* No need to copy - Apple Silicon has Unified Memory Architecture. */
+}
+
 void MetalDevice::mem_zero(device_memory &mem)
 {
   if (!mem.device_pointer) {
@@ -1183,7 +1188,7 @@ void MetalDevice::image_free(device_image &mem)
   if (mem.data_height == 0) {
     generic_free(mem);
   }
-  else if (metal_mem_map.count(&mem)) {
+  else if (metal_mem_map.contains(&mem)) {
     std::lock_guard<std::recursive_mutex> lock(metal_mem_map_mutex);
     MetalMem &mmem = *metal_mem_map.at(&mem);
 

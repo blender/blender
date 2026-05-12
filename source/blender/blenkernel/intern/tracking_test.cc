@@ -19,7 +19,7 @@ class TrackingTest : public ::testing::Test {
   MovieTrackingMarker *addMarkerToTrack(MovieTrackingTrack *track,
                                         int frame_number,
                                         const float2 &position = float2(0.0f, 0.0f),
-                                        int flag = 0)
+                                        TrackingMarkerFlag flag = TrackingMarkerFlag{})
   {
     MovieTrackingMarker marker = {{0.0f}};
     copy_v2_v2(marker.pos, position);

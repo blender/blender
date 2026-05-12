@@ -197,6 +197,38 @@ Quaternion to_quaternion(float4x4 mat, const bool normalized)
   return to_quaternion(to_float3x3(mat), normalized);
 }
 
+Quaternion to_quaternion(AxisAngle axis_angle)
+{
+  float angle_cos = cos(axis_angle.angle);
+  /** Using half angle identities: sin(angle / 2) = sqrt((1 - angle_cos) / 2) */
+  float sine = sqrt(0.5f - angle_cos * 0.5f);
+  float cosine = sqrt(0.5f + angle_cos * 0.5f);
+
+  /* TODO(fclem): Optimize. */
+  float angle_sin = sin(axis_angle.angle);
+  if (angle_sin < 0.0f) {
+    sine = -sine;
+  }
+
+  Quaternion quat;
+  quat.x = cosine;
+  quat.y = axis_angle.axis.x * sine;
+  quat.z = axis_angle.axis.y * sine;
+  quat.w = axis_angle.axis.z * sine;
+  return quat;
+}
+
+Quaternion to_quaternion(float3 axis, float angle)
+{
+  if (is_zero(axis)) {
+    return Quaternion::identity();
+  }
+  AxisAngle aa;
+  aa.axis = normalize(axis);
+  aa.angle = angle;
+  return to_quaternion(aa);
+}
+
 /** \} */
 
 /* -------------------------------------------------------------------- */
@@ -247,27 +279,6 @@ EulerXYZ to_euler(float4x4 mat)
 /* -------------------------------------------------------------------- */
 /** \name Axis Angle Functions
  * \{ */
-
-Quaternion to_axis_angle(AxisAngle axis_angle)
-{
-  float angle_cos = cos(axis_angle.angle);
-  /** Using half angle identities: sin(angle / 2) = sqrt((1 - angle_cos) / 2) */
-  float sine = sqrt(0.5f - angle_cos * 0.5f);
-  float cosine = sqrt(0.5f + angle_cos * 0.5f);
-
-  /* TODO(fclem): Optimize. */
-  float angle_sin = sin(axis_angle.angle);
-  if (angle_sin < 0.0f) {
-    sine = -sine;
-  }
-
-  Quaternion quat;
-  quat.x = cosine;
-  quat.y = axis_angle.axis.x * sine;
-  quat.z = axis_angle.axis.y * sine;
-  quat.w = axis_angle.axis.z * sine;
-  return quat;
-}
 
 AxisAngle to_axis_angle(Quaternion quat)
 {

@@ -803,10 +803,10 @@ static uint8_t *cursor_bitmap_from_text(const char *text,
   if (text_to_draw) {
     const float color[4] = {1.0f, 1.0f, 1.0f, 1.0f};
     BLF_buffer_col(font_id, color);
-    BLF_buffer(font_id, nullptr, bitmap_rgba, dest_size[0], dest_size[1], nullptr);
+    BLF_buffer(font_id, nullptr, bitmap_rgba, dest_size[0], dest_size[1], 4, nullptr);
     BLF_position(font_id, font_padding, font_padding + font_descender, 0.0f);
     BLF_draw_buffer(font_id, text, text_len);
-    BLF_buffer(font_id, nullptr, nullptr, 0, 0, nullptr);
+    BLF_buffer(font_id, nullptr, nullptr, 0, 0, 4, nullptr);
 
     cursor_bitmap_rgba_flip_y(bitmap_rgba, dest_size);
   }

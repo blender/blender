@@ -15,10 +15,10 @@ namespace blender {
  * Return an indication of time, expressed as seconds since some fixed point.
  * Successive calls are guaranteed to generate values greater than or equal to the last call.
  */
-extern double BLI_time_now_seconds(void);
+extern double BLI_time_now_seconds();
 
 /** `int` version of #BLI_time_now_seconds. */
-extern long int BLI_time_now_seconds_i(void);
+extern long int BLI_time_now_seconds_i();
 
 /**
  * Platform-independent sleep function.

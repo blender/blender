@@ -584,8 +584,8 @@ class FILEBROWSER_MT_view_pie(Menu):
 
         pie = layout.menu_pie()
         view = context.space_data
-
-        pie.prop_enum(view.params, "display_type", value='LIST_VERTICAL')
+        if view.browse_mode == 'FILES':
+            pie.prop_enum(view.params, "display_type", value='LIST_VERTICAL')
         pie.prop_enum(view.params, "display_type", value='LIST_HORIZONTAL')
         pie.prop_enum(view.params, "display_type", value='THUMBNAIL')
 
@@ -788,9 +788,10 @@ class ASSETBROWSER_PT_metadata(asset_utils.AssetBrowserPanel, Panel):
                 col.prop(asset.metadata, "catalog_id", text="UUID")
                 col.prop(asset.metadata, "catalog_simple_name", text="Simple Name")
 
-        row = layout.row(align=True)
-        row.prop(wm, "asset_path_dummy", text="Source", icon='CURRENT_FILE' if is_local_asset else 'NONE')
-        row.operator("asset.open_containing_blend_file", text="", icon='FILE_BLEND')
+        if not asset.is_online:
+            row = layout.row(align=True)
+            row.prop(wm, "asset_path_dummy", text="Source", icon='CURRENT_FILE' if is_local_asset else 'NONE')
+            row.operator("asset.open_containing_blend_file", text="", icon='FILE_BLEND')
 
         metadata = asset.metadata
         self.metadata_prop(layout, metadata, "description")
@@ -866,9 +867,8 @@ class ASSETBROWSER_MT_context_menu(AssetBrowserMenu, Menu):
         layout = self.layout
         st = context.space_data
         params = st.params
-        asset = context.asset
 
-        if asset and asset.is_online:
+        if bpy.ops.asset.assets_download.poll():
             layout.operator("asset.assets_download")
             layout.separator()
 

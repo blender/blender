@@ -4,6 +4,7 @@
 #include "testing/testing.h"
 
 #include "BKE_brush.hh"
+#include "BKE_gtest_base.hh"
 #include "BKE_idtype.hh"
 #include "BKE_lib_id.hh"
 #include "BKE_main.hh"
@@ -16,14 +17,9 @@
 
 namespace blender {
 
-class BrushTest : public testing::Test {
+class BrushTest : public bke::BlenderGTestBase {
  public:
   Main *bmain = nullptr;
-
-  static void SetUpTestSuite()
-  {
-    BKE_idtype_init();
-  }
 
   void SetUp() override
   {

@@ -117,6 +117,8 @@ class Sculpts : Overlay {
       case OB_CURVES:
         curves_sync(manager, ob_ref, state);
         break;
+      default:
+        break;
     }
   }
 

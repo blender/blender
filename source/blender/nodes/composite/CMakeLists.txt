@@ -100,6 +100,7 @@ set(SRC
   nodes/node_composite_set_alpha.cc
   nodes/node_composite_split.cc
   nodes/node_composite_stabilize_2d.cc
+  nodes/node_composite_string_to_image.cc
   nodes/node_composite_strip_info.cc
   nodes/node_composite_switch.cc
   nodes/node_composite_switch_view.cc
@@ -133,7 +134,7 @@ set(LIB
   PRIVATE bf::render
   PRIVATE bf::windowmanager
   PRIVATE bf::sequencer
-  PRIVATE bf::dependencies::optional::opencolorio
+  PRIVATE bf::dependencies::opencolorio
   PRIVATE bf::dependencies::optional::tbb
   PRIVATE bf::dependencies::optional::openimagedenoise
   PRIVATE bf::dependencies::optional::fftw3
@@ -149,10 +150,6 @@ add_node_discovery(
 list(APPEND LIB
   bf_nodes_compositor_generated
 )
-
-if(WITH_IMAGE_OPENEXR)
-  add_definitions(-DWITH_IMAGE_OPENEXR)
-endif()
 
 blender_add_lib(bf_nodes_composite "${SRC}" "${INC}" "${INC_SYS}" "${LIB}")
 target_link_libraries(bf_nodes_compositor_generated bf_nodes_composite)

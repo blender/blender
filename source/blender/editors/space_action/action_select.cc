@@ -25,6 +25,7 @@
 
 #include "RNA_access.hh"
 #include "RNA_define.hh"
+#include "RNA_enum_types.hh"
 
 #include "BKE_context.hh"
 #include "BKE_fcurve.hh"
@@ -2137,6 +2138,76 @@ void ACTION_OT_clickselect(wmOperatorType *ot)
                          "Only Channel",
                          "Select all the keyframes in the channel under the mouse");
   RNA_def_property_flag(prop, PROP_SKIP_SAVE);
+}
+
+/** \} */
+
+/* -------------------------------------------------------------------- */
+/** \name Select by Keyframe Type operator
+ * \{ */
+
+static wmOperatorStatus select_by_type_exec(bContext *C, wmOperator *op)
+{
+  bAnimContext ac;
+
+  if (ANIM_animdata_get_context(C, &ac) == 0) {
+    return OPERATOR_CANCELLED;
+  }
+
+  ListBaseT<bAnimListElem> anim_data = {nullptr, nullptr};
+  const eAnimFilter_Flags filter = (ANIMFILTER_DATA_VISIBLE | ANIMFILTER_LIST_VISIBLE |
+                                    ANIMFILTER_NODUPLIS | ANIMFILTER_FOREDIT |
+                                    ANIMFILTER_FCURVESONLY);
+  ANIM_animdata_filter(&ac, &anim_data, filter, ac.data, ac.datatype);
+  const eBezTriple_KeyframeType key_type = eBezTriple_KeyframeType(RNA_enum_get(op->ptr, "type"));
+  const bool extend = RNA_boolean_get(op->ptr, "extend");
+  for (bAnimListElem &elem : anim_data) {
+    FCurve *fcurve = static_cast<FCurve *>(elem.data);
+    if (!fcurve->bezt) {
+      continue;
+    }
+    for (int i = 0; i < fcurve->totvert; i++) {
+      BezTriple &key = fcurve->bezt[i];
+      if (BEZKEYTYPE(&key) == key_type) {
+        BEZT_SEL_ALL(&key);
+      }
+      else if (!extend) {
+        BEZT_DESEL_ALL(&key);
+      }
+    }
+  }
+
+  WM_event_add_notifier(C, NC_ANIMATION | ND_KEYFRAME | NA_SELECTED, nullptr);
+  ANIM_animdata_freelist(&anim_data);
+
+  return OPERATOR_FINISHED;
+}
+
+void ACTION_OT_select_by_type(wmOperatorType *ot)
+{
+  ot->name = "Select by Type";
+  ot->idname = "ACTION_OT_select_by_type";
+  ot->description = "Select all keyframes of the given type";
+
+  ot->exec = select_by_type_exec;
+  ot->poll = ED_operator_action_active;
+
+  ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
+
+  PropertyRNA *prop = RNA_def_boolean(ot->srna,
+                                      "extend",
+                                      true,
+                                      "Extend Selection",
+                                      "Keeps the current selection and adds the given type to it. "
+                                      "If disabled, only keys of the type will be selected");
+  RNA_def_property_flag(prop, PROP_SKIP_SAVE);
+
+  RNA_def_enum(ot->srna,
+               "type",
+               rna_enum_beztriple_keyframe_type_items,
+               0,
+               "Type",
+               "The type of keyframe to select");
 }
 
 /** \} */

@@ -14,6 +14,7 @@
 #include "DNA_material_types.h"
 #include "DNA_mesh_types.h"
 #include "DNA_meshdata_types.h"
+#include "DNA_modifier_types.h"
 #include "DNA_object_types.h"
 
 #include "RNA_access.hh"
@@ -1442,7 +1443,7 @@ static wmOperatorStatus bake(const BakeAPIRender *bkr,
   Mesh *me_cage_eval = nullptr;
 
   MultiresModifierData *mmd_low = nullptr;
-  int mmd_flags_low = 0;
+  MultiresModifierFlag mmd_flags_low = {};
 
   BakePixel *pixel_array_low = nullptr;
   BakePixel *pixel_array_high = nullptr;
@@ -1779,7 +1780,7 @@ static wmOperatorStatus bake(const BakeAPIRender *bkr,
           /* From multi-resolution. */
           Mesh *me_nores = nullptr;
           ModifierData *md = nullptr;
-          int mode;
+          ModifierMode mode;
 
           BKE_object_eval_reset(ob_low_eval);
           md = BKE_modifiers_findby_type(ob_low_eval, eModifierType_Multires);

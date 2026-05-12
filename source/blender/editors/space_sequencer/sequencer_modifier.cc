@@ -44,7 +44,7 @@ static wmOperatorStatus strip_modifier_add_exec(bContext *C, wmOperator *op)
 {
   Scene *scene = CTX_data_sequencer_scene(C);
   Strip *strip = seq::select_active_get(scene);
-  int type = RNA_enum_get(op->ptr, "type");
+  eStripModifierType type = eStripModifierType(RNA_enum_get(op->ptr, "type"));
 
   StripModifierData *smd = seq::modifier_new(strip, nullptr, type);
   seq::modifier_persistent_uid_init(*strip, *smd);
@@ -117,8 +117,7 @@ static wmOperatorStatus strip_modifier_remove_exec(bContext *C, wmOperator *op)
     return OPERATOR_CANCELLED;
   }
 
-  BLI_remlink(&strip->modifiers, smd);
-  seq::modifier_free(smd);
+  seq::modifier_remove(strip, smd);
 
   if (ELEM(strip->type, STRIP_TYPE_SOUND)) {
     DEG_id_tag_update(&scene->id, ID_RECALC_SEQUENCER_STRIPS | ID_RECALC_AUDIO);
@@ -294,11 +293,16 @@ static wmOperatorStatus strip_modifier_copy_exec(bContext *C, wmOperator *op)
     if (src_smd) {
       StripModifierData *smd_new = seq::modifier_copy(*strip_iter, src_smd, 0);
       seq::modifier_persistent_uid_init(*strip_iter, *smd_new);
+      seq::modifier_set_active(strip_iter, smd_new);
     }
     else {
       for (StripModifierData &smd : active_strip->modifiers) {
         StripModifierData *smd_new = seq::modifier_copy(*strip_iter, &smd, 0);
         seq::modifier_persistent_uid_init(*strip_iter, *smd_new);
+        /* When appending to an existing stack, ensure at most one is active. */
+        if ((type == SEQ_MODIFIER_COPY_APPEND) && (smd.flag & STRIP_MODIFIER_FLAG_ACTIVE) != 0) {
+          seq::modifier_set_active(strip_iter, smd_new);
+        }
       }
     }
   }
@@ -381,6 +385,7 @@ static wmOperatorStatus strip_modifier_duplicate_exec(bContext *C, wmOperator *o
 
   StripModifierData *smd_new = seq::modifier_copy(*active_strip, smd, 0);
   seq::modifier_persistent_uid_init(*active_strip, *smd_new);
+  seq::modifier_set_active(active_strip, smd_new);
 
   seq::relations_invalidate_cache(sequencer_scene, active_strip);
 

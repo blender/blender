@@ -884,13 +884,13 @@ PaintStroke::PaintStroke(bContext *C, wmOperator *op, int event_type) : event_ty
   if (this->brush->mtex.tex && this->brush->mtex.tex->type == TEX_IMAGE &&
       this->brush->mtex.tex->ima)
   {
-    ImBuf *tex_ibuf = BKE_image_pool_acquire_ibuf(
+    ImBuf *tex_ibuf = BKE_image_acquire_ibuf(
         this->brush->mtex.tex->ima, &this->brush->mtex.tex->iuser, nullptr);
     if (tex_ibuf && tex_ibuf->float_data() == nullptr) {
       paint_runtime->do_linear_conversion = true;
       paint_runtime->colorspace = tex_ibuf->byte_buffer.colorspace;
     }
-    BKE_image_pool_release_ibuf(this->brush->mtex.tex->ima, tex_ibuf, nullptr);
+    BKE_image_release_ibuf(this->brush->mtex.tex->ima, tex_ibuf, nullptr);
   }
 
   if (stroke_mode_ == BrushStrokeMode::Invert) {
@@ -1360,7 +1360,7 @@ bool PaintStroke::curve_end(bContext *C, wmOperator *op)
 }
 
 static void paint_stroke_line_constrain(float2 last_mouse_position,
-                                        float2 constrained_pos,
+                                        float2 &constrained_pos,
                                         float2 &mouse)
 {
   float2 line = mouse - last_mouse_position;
@@ -1556,8 +1556,9 @@ wmOperatorStatus PaintStroke::modal(bContext *C, wmOperator *op, const wmEvent *
     }
 
     mouse = {float(event->mval[0]), float(event->mval[1])};
-    paint_stroke_line_constrain(this->last_mouse_position, this->constrained_pos, mouse);
-
+    if (this->constrain_line) {
+      paint_stroke_line_constrain(this->last_mouse_position, this->constrained_pos, mouse);
+    }
     if (stroke_started_ && (first_modal || ISMOUSE_MOTION(event->type))) {
       if ((br->mtex.brush_angle_mode & MTEX_ANGLE_RAKE) ||
           (br->mask_mtex.brush_angle_mode & MTEX_ANGLE_RAKE))

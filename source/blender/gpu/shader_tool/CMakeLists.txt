@@ -22,13 +22,25 @@ set(SRC
   template.cc
   union.cc
 
+  enums.hh
+  expression.hh
   intermediate.hh
+  metadata.hh
   processor.hh
   scope.hh
+  time_it.hh
   token.hh
   token_stream.hh
+  utils.hh
 
   lexit/lexit.cc
+
+  lexit/identifier.hh
+  lexit/lexit.hh
+  lexit/simd.hh
+  lexit/tables.hh
+  lexit/types.hh
+  lexit/vector.hh
 )
 
 if(WITH_GPU_SHADER_ASSERT)

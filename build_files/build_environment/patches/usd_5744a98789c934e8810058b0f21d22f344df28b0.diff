@@ -1,0 +1,71 @@
+diff --git a/pxr/external/boost/python/src/object/function.cpp b/pxr/external/boost/python/src/object/function.cpp
+index 365837abb0..7e0b5b5f51 100644
+--- a/pxr/external/boost/python/src/object/function.cpp
++++ b/pxr/external/boost/python/src/object/function.cpp
+@@ -299,7 +299,8 @@ object function::signatures(bool show_return_type) const
+ 
+ void function::argument_error(PyObject* args, PyObject* /*keywords*/) const
+ {
+-    static handle<> exception(
++    // Intentionally leak to avoid unsafe refcount operations during shutdown.
++    static handle<>* exception = new handle<>(
+         PyErr_NewException(const_cast<char*>("Boost.Python.ArgumentError"), PyExc_TypeError, 0));
+ 
+     object message = "Python argument types in\n    %s.%s("
+@@ -318,7 +319,7 @@ void function::argument_error(PyObject* args, PyObject* /*keywords*/) const
+ #if PXR_BOOST_PYTHON_DEBUG_ERROR_MESSAGES
+     std::printf("\n--------\n%s\n--------\n", extract<const char*>(message)());
+ #endif 
+-    PyErr_SetObject(exception.get(), message.ptr());
++    PyErr_SetObject(exception->get(), message.ptr());
+     throw_error_already_set();
+ }
+ 
+@@ -405,13 +406,13 @@ namespace
+   
+   handle<function> not_implemented_function()
+   {
+-      
+-      static object keeper(
++      // Intentionally leak to avoid unsafe refcount operations during shutdown.
++      static object* keeper = new object(
+           function_object(
+               py_function(&not_implemented, type_list<void>(), 2)
+             , python::detail::keyword_range())
+           );
+-      return handle<function>(borrowed(downcast<function>(keeper.ptr())));
++      return handle<function>(borrowed(downcast<function>(keeper->ptr())));
+   }
+ }
+ 
+@@ -812,11 +813,12 @@ namespace detail
+ {
+   object PXR_BOOST_PYTHON_DECL make_raw_function(objects::py_function f)
+   {
+-      static keyword k;
++      // Intentionally leak to avoid unsafe refcount operations during shutdown.
++      static keyword* k = new keyword;
+     
+       return objects::function_object(
+           f
+-          , keyword_range(&k,&k));
++          , keyword_range(k,k));
+   }
+   void PXR_BOOST_PYTHON_DECL pure_virtual_called()
+   {
+diff --git a/pxr/external/boost/python/src/object/pickle_support.cpp b/pxr/external/boost/python/src/object/pickle_support.cpp
+index 90f1280225..733cc86ab9 100644
+--- a/pxr/external/boost/python/src/object/pickle_support.cpp
++++ b/pxr/external/boost/python/src/object/pickle_support.cpp
+@@ -95,8 +95,9 @@ namespace {
+ 
+ object const& make_instance_reduce_function()
+ {
+-    static object result(&instance_reduce);
+-    return result;
++    // Intentionally leak to avoid unsafe refcount operations during shutdown.
++    static object* result = new object(&instance_reduce);
++    return *result;
+ }
+ 
+ }} // namespace PXR_BOOST_NAMESPACE::python

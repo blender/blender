@@ -77,13 +77,18 @@ ImBuf *IMB_font_preview(const char *filepath,
   const float col[4] = {1.0f, 1.0f, 1.0f, 0.0f};
   IMB_rectfill(ibuf, col);
 
-  BLF_buffer(
-      font_id, ibuf->float_data_for_write(), ibuf->byte_data_for_write(), width, height, nullptr);
+  BLF_buffer(font_id,
+             ibuf->float_data_for_write(),
+             ibuf->byte_data_for_write(),
+             width,
+             height,
+             4,
+             nullptr);
 
   BLF_position(font_id, 0.0f, height * 0.3f, 0.0f);
   BLF_draw_buffer(font_id, sample, 1024);
 
-  BLF_buffer(font_id, nullptr, nullptr, 0, 0, nullptr);
+  BLF_buffer(font_id, nullptr, nullptr, 0, 0, 4, nullptr);
 
   if (font_id != 0) {
     BLF_unload_id(font_id);

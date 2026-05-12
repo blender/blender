@@ -17,9 +17,7 @@ class EssentialsAssetLibrary : public OnDiskAssetLibrary {
   EssentialsAssetLibrary();
 
   std::optional<AssetLibraryReference> library_reference() const override;
-
-  /** Update the default import method based on whether packed data-blocks are supported. */
-  void update_default_import_method();
+  std::optional<eAssetImportMethod> import_method() const override;
 };
 
 }  // namespace blender::asset_system

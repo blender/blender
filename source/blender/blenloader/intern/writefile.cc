@@ -892,7 +892,7 @@ static void writestruct_at_address_nr(WriteData *wd,
     }
   }
 
-  /* Get the address identifier that will be written to the file.*/
+  /* Get the address identifier that will be written to the file. */
   const void *address_id = get_address_id(*wd, adr);
 
   const void *data_to_write;

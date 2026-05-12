@@ -912,7 +912,7 @@ static string path_source_replace_includes_recursive(const string &_source,
 
   auto pragma_once = _source.find("#pragma once");
   if (pragma_once != string::npos) {
-    if (state->pragma_onced.find(source_filepath) != state->pragma_onced.end()) {
+    if (state->pragma_onced.contains(source_filepath)) {
       return "";
     }
     state->pragma_onced.insert(source_filepath);

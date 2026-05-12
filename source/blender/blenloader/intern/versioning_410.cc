@@ -131,7 +131,7 @@ static void versioning_update_noise_texture_node(bNodeTree *ntree)
 
     (static_cast<NodeTexNoise *>(node.storage))->type = SHD_NOISE_FBM;
 
-    bNodeSocket *roughness_socket = bke::node_find_socket(node, SOCK_IN, "Roughness");
+    bNodeSocket *roughness_socket = bke::node_find_socket(node, SOCK_IN, "Roughness"_ustr);
     if (roughness_socket == nullptr) {
       /* Noise Texture node was created before the Roughness input was added. */
       continue;
@@ -161,10 +161,10 @@ static void versioning_update_noise_texture_node(bNodeTree *ntree)
       clamp_node->locx_legacy = node.locx_legacy;
       clamp_node->locy_legacy = node.locy_legacy - 300.0f;
       clamp_node->flag |= NODE_COLLAPSED;
-      bNodeSocket *clamp_socket_value = bke::node_find_socket(*clamp_node, SOCK_IN, "Value");
-      bNodeSocket *clamp_socket_min = bke::node_find_socket(*clamp_node, SOCK_IN, "Min");
-      bNodeSocket *clamp_socket_max = bke::node_find_socket(*clamp_node, SOCK_IN, "Max");
-      bNodeSocket *clamp_socket_out = bke::node_find_socket(*clamp_node, SOCK_OUT, "Result");
+      bNodeSocket *clamp_socket_value = bke::node_find_socket(*clamp_node, SOCK_IN, "Value"_ustr);
+      bNodeSocket *clamp_socket_min = bke::node_find_socket(*clamp_node, SOCK_IN, "Min"_ustr);
+      bNodeSocket *clamp_socket_max = bke::node_find_socket(*clamp_node, SOCK_IN, "Max"_ustr);
+      bNodeSocket *clamp_socket_out = bke::node_find_socket(*clamp_node, SOCK_OUT, "Result"_ustr);
 
       *version_cycles_node_socket_float_value(clamp_socket_min) = 0.0f;
       *version_cycles_node_socket_float_value(clamp_socket_max) = 1.0f;
@@ -240,11 +240,11 @@ static void versioning_replace_musgrave_texture_node(bNodeTree *ntree)
     uint8_t noise_type = (static_cast<NodeTexNoise *>(node.storage))->type;
     float locy_offset = 0.0f;
 
-    bNodeSocket *fac_socket = bke::node_find_socket(node, SOCK_OUT, "Fac");
+    bNodeSocket *fac_socket = bke::node_find_socket(node, SOCK_OUT, "Fac"_ustr);
     /* Clear label because Musgrave output socket label is set to "Height" instead of "Fac". */
     fac_socket->label[0] = '\0';
 
-    bNodeSocket *detail_socket = bke::node_find_socket(node, SOCK_IN, "Detail");
+    bNodeSocket *detail_socket = bke::node_find_socket(node, SOCK_IN, "Detail"_ustr);
     float *detail = version_cycles_node_socket_float_value(detail_socket);
 
     if (detail_link != nullptr) {
@@ -260,7 +260,7 @@ static void versioning_replace_musgrave_texture_node(bNodeTree *ntree)
       min_node->flag |= NODE_COLLAPSED;
       bNodeSocket *min_socket_A = static_cast<bNodeSocket *>(BLI_findlink(&min_node->inputs, 0));
       bNodeSocket *min_socket_B = static_cast<bNodeSocket *>(BLI_findlink(&min_node->inputs, 1));
-      bNodeSocket *min_socket_out = bke::node_find_socket(*min_node, SOCK_OUT, "Value");
+      bNodeSocket *min_socket_out = bke::node_find_socket(*min_node, SOCK_OUT, "Value"_ustr);
 
       bNode *sub1_node = bke::node_add_static_node(nullptr, *ntree, SH_NODE_MATH);
       sub1_node->parent = node.parent;
@@ -270,7 +270,7 @@ static void versioning_replace_musgrave_texture_node(bNodeTree *ntree)
       sub1_node->flag |= NODE_COLLAPSED;
       bNodeSocket *sub1_socket_A = static_cast<bNodeSocket *>(BLI_findlink(&sub1_node->inputs, 0));
       bNodeSocket *sub1_socket_B = static_cast<bNodeSocket *>(BLI_findlink(&sub1_node->inputs, 1));
-      bNodeSocket *sub1_socket_out = bke::node_find_socket(*sub1_node, SOCK_OUT, "Value");
+      bNodeSocket *sub1_socket_out = bke::node_find_socket(*sub1_node, SOCK_OUT, "Value"_ustr);
 
       *version_cycles_node_socket_float_value(min_socket_B) = 14.0f;
       *version_cycles_node_socket_float_value(sub1_socket_B) = 1.0f;
@@ -296,7 +296,8 @@ static void versioning_replace_musgrave_texture_node(bNodeTree *ntree)
             BLI_findlink(&greater_node->inputs, 0));
         bNodeSocket *greater_socket_B = static_cast<bNodeSocket *>(
             BLI_findlink(&greater_node->inputs, 1));
-        bNodeSocket *greater_socket_out = bke::node_find_socket(*greater_node, SOCK_OUT, "Value");
+        bNodeSocket *greater_socket_out = bke::node_find_socket(
+            *greater_node, SOCK_OUT, "Value"_ustr);
 
         *version_cycles_node_socket_float_value(greater_socket_B) = 1.0f;
 
@@ -313,10 +314,12 @@ static void versioning_replace_musgrave_texture_node(bNodeTree *ntree)
         clamp_node->locx_legacy = node.locx_legacy;
         clamp_node->locy_legacy = node.locy_legacy + 40.0f;
         clamp_node->flag |= NODE_COLLAPSED;
-        bNodeSocket *clamp_socket_value = bke::node_find_socket(*clamp_node, SOCK_IN, "Value");
-        bNodeSocket *clamp_socket_min = bke::node_find_socket(*clamp_node, SOCK_IN, "Min");
-        bNodeSocket *clamp_socket_max = bke::node_find_socket(*clamp_node, SOCK_IN, "Max");
-        bNodeSocket *clamp_socket_out = bke::node_find_socket(*clamp_node, SOCK_OUT, "Result");
+        bNodeSocket *clamp_socket_value = bke::node_find_socket(
+            *clamp_node, SOCK_IN, "Value"_ustr);
+        bNodeSocket *clamp_socket_min = bke::node_find_socket(*clamp_node, SOCK_IN, "Min"_ustr);
+        bNodeSocket *clamp_socket_max = bke::node_find_socket(*clamp_node, SOCK_IN, "Max"_ustr);
+        bNodeSocket *clamp_socket_out = bke::node_find_socket(
+            *clamp_node, SOCK_OUT, "Result"_ustr);
 
         bNode *mul_node = bke::node_add_static_node(nullptr, *ntree, SH_NODE_MATH);
         mul_node->parent = node.parent;
@@ -326,7 +329,7 @@ static void versioning_replace_musgrave_texture_node(bNodeTree *ntree)
         mul_node->flag |= NODE_COLLAPSED;
         bNodeSocket *mul_socket_A = static_cast<bNodeSocket *>(BLI_findlink(&mul_node->inputs, 0));
         bNodeSocket *mul_socket_B = static_cast<bNodeSocket *>(BLI_findlink(&mul_node->inputs, 1));
-        bNodeSocket *mul_socket_out = bke::node_find_socket(*mul_node, SOCK_OUT, "Value");
+        bNodeSocket *mul_socket_out = bke::node_find_socket(*mul_node, SOCK_OUT, "Value"_ustr);
 
         *version_cycles_node_socket_float_value(clamp_socket_min) = 0.0f;
         *version_cycles_node_socket_float_value(clamp_socket_max) = 1.0f;
@@ -345,7 +348,7 @@ static void versioning_replace_musgrave_texture_node(bNodeTree *ntree)
               BLI_findlink(&sub2_node->inputs, 0));
           bNodeSocket *sub2_socket_B = static_cast<bNodeSocket *>(
               BLI_findlink(&sub2_node->inputs, 1));
-          bNodeSocket *sub2_socket_out = bke::node_find_socket(*sub2_node, SOCK_OUT, "Value");
+          bNodeSocket *sub2_socket_out = bke::node_find_socket(*sub2_node, SOCK_OUT, "Value"_ustr);
 
           bNode *add_node = bke::node_add_static_node(nullptr, *ntree, SH_NODE_MATH);
           add_node->parent = node.parent;
@@ -357,7 +360,7 @@ static void versioning_replace_musgrave_texture_node(bNodeTree *ntree)
               BLI_findlink(&add_node->inputs, 0));
           bNodeSocket *add_socket_B = static_cast<bNodeSocket *>(
               BLI_findlink(&add_node->inputs, 1));
-          bNodeSocket *add_socket_out = bke::node_find_socket(*add_node, SOCK_OUT, "Value");
+          bNodeSocket *add_socket_out = bke::node_find_socket(*add_node, SOCK_OUT, "Value"_ustr);
 
           *version_cycles_node_socket_float_value(sub2_socket_A) = 1.0f;
 
@@ -403,7 +406,7 @@ static void versioning_replace_musgrave_texture_node(bNodeTree *ntree)
               BLI_findlink(&mul_node->inputs, 0));
           bNodeSocket *mul_socket_B = static_cast<bNodeSocket *>(
               BLI_findlink(&mul_node->inputs, 1));
-          bNodeSocket *mul_socket_out = bke::node_find_socket(*mul_node, SOCK_OUT, "Value");
+          bNodeSocket *mul_socket_out = bke::node_find_socket(*mul_node, SOCK_OUT, "Value"_ustr);
 
           *version_cycles_node_socket_float_value(mul_socket_B) = *detail;
 
@@ -420,7 +423,7 @@ static void versioning_replace_musgrave_texture_node(bNodeTree *ntree)
                 BLI_findlink(&add_node->inputs, 0));
             bNodeSocket *add_socket_B = static_cast<bNodeSocket *>(
                 BLI_findlink(&add_node->inputs, 1));
-            bNodeSocket *add_socket_out = bke::node_find_socket(*add_node, SOCK_OUT, "Value");
+            bNodeSocket *add_socket_out = bke::node_find_socket(*add_node, SOCK_OUT, "Value"_ustr);
 
             *version_cycles_node_socket_float_value(add_socket_B) = 1.0f - *detail;
 
@@ -452,9 +455,9 @@ static void versioning_replace_musgrave_texture_node(bNodeTree *ntree)
       }
     }
 
-    bNodeSocket *roughness_socket = bke::node_find_socket(node, SOCK_IN, "Roughness");
+    bNodeSocket *roughness_socket = bke::node_find_socket(node, SOCK_IN, "Roughness"_ustr);
     float *roughness = version_cycles_node_socket_float_value(roughness_socket);
-    bNodeSocket *lacunarity_socket = bke::node_find_socket(node, SOCK_IN, "Lacunarity");
+    bNodeSocket *lacunarity_socket = bke::node_find_socket(node, SOCK_IN, "Lacunarity"_ustr);
     float *lacunarity = version_cycles_node_socket_float_value(lacunarity_socket);
 
     *roughness = std::fmaxf(*roughness, 1e-5f);
@@ -472,7 +475,7 @@ static void versioning_replace_musgrave_texture_node(bNodeTree *ntree)
       max1_node->flag |= NODE_COLLAPSED;
       bNodeSocket *max1_socket_A = static_cast<bNodeSocket *>(BLI_findlink(&max1_node->inputs, 0));
       bNodeSocket *max1_socket_B = static_cast<bNodeSocket *>(BLI_findlink(&max1_node->inputs, 1));
-      bNodeSocket *max1_socket_out = bke::node_find_socket(*max1_node, SOCK_OUT, "Value");
+      bNodeSocket *max1_socket_out = bke::node_find_socket(*max1_node, SOCK_OUT, "Value"_ustr);
 
       bNode *mul_node = bke::node_add_static_node(nullptr, *ntree, SH_NODE_MATH);
       mul_node->parent = node.parent;
@@ -482,7 +485,7 @@ static void versioning_replace_musgrave_texture_node(bNodeTree *ntree)
       mul_node->flag |= NODE_COLLAPSED;
       bNodeSocket *mul_socket_A = static_cast<bNodeSocket *>(BLI_findlink(&mul_node->inputs, 0));
       bNodeSocket *mul_socket_B = static_cast<bNodeSocket *>(BLI_findlink(&mul_node->inputs, 1));
-      bNodeSocket *mul_socket_out = bke::node_find_socket(*mul_node, SOCK_OUT, "Value");
+      bNodeSocket *mul_socket_out = bke::node_find_socket(*mul_node, SOCK_OUT, "Value"_ustr);
 
       bNode *pow_node = bke::node_add_static_node(nullptr, *ntree, SH_NODE_MATH);
       pow_node->parent = node.parent;
@@ -492,7 +495,7 @@ static void versioning_replace_musgrave_texture_node(bNodeTree *ntree)
       pow_node->flag |= NODE_COLLAPSED;
       bNodeSocket *pow_socket_A = static_cast<bNodeSocket *>(BLI_findlink(&pow_node->inputs, 0));
       bNodeSocket *pow_socket_B = static_cast<bNodeSocket *>(BLI_findlink(&pow_node->inputs, 1));
-      bNodeSocket *pow_socket_out = bke::node_find_socket(*pow_node, SOCK_OUT, "Value");
+      bNodeSocket *pow_socket_out = bke::node_find_socket(*pow_node, SOCK_OUT, "Value"_ustr);
 
       *version_cycles_node_socket_float_value(max1_socket_B) = -1e-5f;
       *version_cycles_node_socket_float_value(mul_socket_B) = -1.0f;
@@ -518,7 +521,7 @@ static void versioning_replace_musgrave_texture_node(bNodeTree *ntree)
             BLI_findlink(&max2_node->inputs, 0));
         bNodeSocket *max2_socket_B = static_cast<bNodeSocket *>(
             BLI_findlink(&max2_node->inputs, 1));
-        bNodeSocket *max2_socket_out = bke::node_find_socket(*max2_node, SOCK_OUT, "Value");
+        bNodeSocket *max2_socket_out = bke::node_find_socket(*max2_node, SOCK_OUT, "Value"_ustr);
 
         *version_cycles_node_socket_float_value(max2_socket_B) = -1e-5f;
 
@@ -541,7 +544,7 @@ static void versioning_replace_musgrave_texture_node(bNodeTree *ntree)
       max2_node->flag |= NODE_COLLAPSED;
       bNodeSocket *max2_socket_A = static_cast<bNodeSocket *>(BLI_findlink(&max2_node->inputs, 0));
       bNodeSocket *max2_socket_B = static_cast<bNodeSocket *>(BLI_findlink(&max2_node->inputs, 1));
-      bNodeSocket *max2_socket_out = bke::node_find_socket(*max2_node, SOCK_OUT, "Value");
+      bNodeSocket *max2_socket_out = bke::node_find_socket(*max2_node, SOCK_OUT, "Value"_ustr);
 
       bNode *pow_node = bke::node_add_static_node(nullptr, *ntree, SH_NODE_MATH);
       pow_node->parent = node.parent;
@@ -551,7 +554,7 @@ static void versioning_replace_musgrave_texture_node(bNodeTree *ntree)
       pow_node->flag |= NODE_COLLAPSED;
       bNodeSocket *pow_socket_A = static_cast<bNodeSocket *>(BLI_findlink(&pow_node->inputs, 0));
       bNodeSocket *pow_socket_B = static_cast<bNodeSocket *>(BLI_findlink(&pow_node->inputs, 1));
-      bNodeSocket *pow_socket_out = bke::node_find_socket(*pow_node, SOCK_OUT, "Value");
+      bNodeSocket *pow_socket_out = bke::node_find_socket(*pow_node, SOCK_OUT, "Value"_ustr);
 
       *version_cycles_node_socket_float_value(max2_socket_B) = -1e-5f;
       *version_cycles_node_socket_float_value(pow_socket_A) = *lacunarity;
@@ -595,16 +598,15 @@ static void versioning_replace_splitviewer(bNodeTree *ntree)
 
     bNodeSocket *split_out_socket = bke::node_add_static_socket(
         *ntree, node, SOCK_OUT, SOCK_IMAGE, PROP_NONE, "Image", "Image");
-    bNodeSocket *viewer_in_socket = bke::node_find_socket(*viewer_node, SOCK_IN, "Image");
+    bNodeSocket *viewer_in_socket = bke::node_find_socket(*viewer_node, SOCK_IN, "Image"_ustr);
 
     bke::node_add_link(*ntree, node, *split_out_socket, *viewer_node, *viewer_in_socket);
   }
 }
 
-static void version_socket_identifier_suffixes_for_dynamic_types(
-    const ListBaseT<bNodeSocket> &sockets,
-    const char *separator,
-    const std::optional<int> total = std::nullopt)
+void version_socket_identifier_suffixes_for_dynamic_types(const ListBaseT<bNodeSocket> &sockets,
+                                                          const char *separator,
+                                                          const std::optional<int> total)
 {
   int index = 0;
   for (bNodeSocket &socket : sockets) {
@@ -704,10 +706,13 @@ static void change_input_socket_to_rotation_type(bNodeTree &ntree,
     convert->locx_legacy = node.locx_legacy - 40;
     convert->locy_legacy = node.locy_legacy;
     link.tonode = convert;
-    link.tosock = bke::node_find_socket(*convert, SOCK_IN, "Euler");
+    link.tosock = bke::node_find_socket(*convert, SOCK_IN, "Euler"_ustr);
 
-    bke::node_add_link(
-        ntree, *convert, *bke::node_find_socket(*convert, SOCK_OUT, "Rotation"), node, socket);
+    bke::node_add_link(ntree,
+                       *convert,
+                       *bke::node_find_socket(*convert, SOCK_OUT, "Rotation"_ustr),
+                       node,
+                       socket);
   }
 }
 
@@ -733,10 +738,10 @@ static void change_output_socket_to_rotation_type(bNodeTree &ntree,
     convert->locx_legacy = node.locx_legacy + 40;
     convert->locy_legacy = node.locy_legacy;
     link.fromnode = convert;
-    link.fromsock = bke::node_find_socket(*convert, SOCK_OUT, "Euler");
+    link.fromsock = bke::node_find_socket(*convert, SOCK_OUT, "Euler"_ustr);
 
     bke::node_add_link(
-        ntree, node, socket, *convert, *bke::node_find_socket(*convert, SOCK_IN, "Rotation"));
+        ntree, node, socket, *convert, *bke::node_find_socket(*convert, SOCK_IN, "Rotation"_ustr));
   }
 }
 
@@ -748,7 +753,7 @@ static void version_geometry_nodes_use_rotation_socket(bNodeTree &ntree)
                  "GeometryNodeRotateInstances",
                  "GeometryNodeTransform"))
     {
-      bNodeSocket *socket = bke::node_find_socket(node, SOCK_IN, "Rotation");
+      bNodeSocket *socket = bke::node_find_socket(node, SOCK_IN, "Rotation"_ustr);
       change_input_socket_to_rotation_type(ntree, node, *socket);
     }
     if (STR_ELEM(node.idname,
@@ -756,7 +761,7 @@ static void version_geometry_nodes_use_rotation_socket(bNodeTree &ntree)
                  "GeometryNodeObjectInfo",
                  "GeometryNodeInputInstanceRotation"))
     {
-      bNodeSocket *socket = bke::node_find_socket(node, SOCK_OUT, "Rotation");
+      bNodeSocket *socket = bke::node_find_socket(node, SOCK_OUT, "Rotation"_ustr);
       change_output_socket_to_rotation_type(ntree, node, *socket);
     }
   }
@@ -775,7 +780,7 @@ static void fix_geometry_nodes_object_info_scale(bNodeTree &ntree)
     if (node.type_legacy != GEO_NODE_OBJECT_INFO) {
       continue;
     }
-    bNodeSocket *scale = bke::node_find_socket(node, SOCK_OUT, "Scale");
+    bNodeSocket *scale = bke::node_find_socket(node, SOCK_OUT, "Scale"_ustr);
     const Span<bNodeLink *> links = out_links_per_socket.lookup(scale);
     if (links.is_empty()) {
       continue;
@@ -943,10 +948,10 @@ void blo_do_versions_410(FileData *fd, Library * /*lib*/, Main *bmain)
     if (!DNA_struct_member_exists(fd->filesdna, "Material", "char", "displacement_method")) {
       /* Replace Cycles.displacement_method by Material::displacement_method. */
       for (Material &material : bmain->materials) {
-        int displacement_method = MA_DISPLACEMENT_BUMP;
+        eMaterial_DisplacementMethod displacement_method = MA_DISPLACEMENT_BUMP;
         if (IDProperty *cmat = version_cycles_properties_from_ID(&material.id)) {
-          displacement_method = version_cycles_property_int(
-              cmat, "displacement_method", MA_DISPLACEMENT_BUMP);
+          displacement_method = eMaterial_DisplacementMethod(
+              version_cycles_property_int(cmat, "displacement_method", MA_DISPLACEMENT_BUMP));
         }
         material.displacement_method = displacement_method;
       }
@@ -1165,7 +1170,9 @@ void blo_do_versions_410(FileData *fd, Library * /*lib*/, Main *bmain)
     for (Brush &brush : bmain->brushes) {
       /* The `sculpt_flag` was used to store the `BRUSH_DIR_IN`
        * With the fix for #115313 this is now just using the `brush->flag`. */
-      if (brush.gpencil_settings && (brush.gpencil_settings->sculpt_flag & BRUSH_DIR_IN) != 0) {
+      if (brush.gpencil_settings &&
+          (brush.gpencil_settings->sculpt_flag & eGP_Sculpt_Flag(BRUSH_DIR_IN)) != 0)
+      {
         brush.flag |= BRUSH_DIR_IN;
       }
     }

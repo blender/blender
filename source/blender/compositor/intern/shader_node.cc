@@ -74,6 +74,7 @@ static GPUType gpu_type_from_socket(const bNodeSocket &socket)
           return GPU_NONE;
       }
     case SOCK_RGBA:
+    case SOCK_ROTATION:
       return GPU_VEC4;
     case SOCK_MATRIX:
       return GPU_MAT4;

@@ -9,7 +9,7 @@
 
 void main()
 {
-  const float2 coordinates = transform_point(image_matrix, float3(screen_uv, 0.0f)).xy();
+  const float2 coordinates = transform_point(to_float3x3(image_matrix), screen_uv);
   if (!is_repeated &&
       (any(lessThan(coordinates, float2(0.0))) || any(greaterThan(coordinates, float2(1.0)))))
   {

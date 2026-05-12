@@ -72,14 +72,14 @@ static void version_geometry_nodes_properties(FileData &fd,
     return;
   }
   if (ID_MISSING(&nmd.node_group->id)) {
-    /* Keeping the old idproperties is not an option, and not really usefull, since if the
-     * blendfile is saved in this current state, it won't be re-versionned here later anyway.
+    /* Keeping the old idproperties is not an option, and not really useful, since if the
+     * blend-file is saved in this current state, it won't be re-versioned here later anyway.
      *
      * Furthermore, the whole remaining part of the code expects this to be nullptr, and keeping it
      * at runtime actually causes weird issues in depsgraph nodes building phase.
      *
      * So all in all, it's simpler and safer to also just lose these values here - if file is not
-     * saved in this state, next loading will do the versionning if the nodegroup is available
+     * saved in this state, next loading will do the versioning if the node-group is available
      * again, otherwise that data is lost.
      */
     IDP_FreeProperty(nmd.settings_legacy.properties);
@@ -261,7 +261,7 @@ static void version_clear_strip_linear_modifier_flag(Main &bmain)
     Editing *ed = seq::editing_get(&scene);
     if (ed != nullptr) {
       seq::foreach_strip(&ed->seqbase, [&](Strip *strip) {
-        constexpr int flag_linear_modifiers = 1 << 23;
+        constexpr eStripFlag flag_linear_modifiers = eStripFlag(1 << 23);
         strip->flag &= ~flag_linear_modifiers;
         return true;
       });
@@ -284,6 +284,24 @@ static void fix_single_point_curves_custom_knots(Main *bmain)
         nu->flagv &= (CU_NURB_CYCLIC | CU_NURB_BEZIER | CU_NURB_ENDPOINT);
       }
     }
+  }
+}
+
+static void version_strip_modifier_show_preview_flag(Main &bmain)
+{
+  for (Scene &scene : bmain.scenes) {
+    Editing *ed = seq::editing_get(&scene);
+    if (ed == nullptr) {
+      continue;
+    }
+    seq::foreach_strip(&ed->seqbase, [&](Strip *strip) {
+      for (StripModifierData &smd : strip->modifiers) {
+        if ((smd.flag & STRIP_MODIFIER_FLAG_MUTE) == 0) {
+          smd.flag |= STRIP_MODIFIER_FLAG_SHOW_PREVIEW;
+        }
+      }
+      return true;
+    });
   }
 }
 
@@ -483,6 +501,85 @@ void blo_do_versions_520(FileData * /*fd*/, Library * /*lib*/, Main *bmain)
       brush.mesh_automasking_settings->cavity_curve_op = nullptr;
     }
   }
+
+  if (!MAIN_VERSION_FILE_ATLEAST(bmain, 502, 21)) {
+    for (Material &materials : bmain->materials) {
+      if (materials.gp_style != nullptr) {
+        materials.gp_style->random_size_factor = 0.0f;
+        materials.gp_style->random_strength_factor = 0.0f;
+        materials.gp_style->random_rotation_factor = 0.0f;
+        materials.gp_style->random_hue_factor = 0.0f;
+        materials.gp_style->random_saturation_factor = 0.0f;
+        materials.gp_style->random_value_factor = 0.0f;
+        materials.gp_style->random_noise_scale = 1.0f;
+      }
+    }
+  }
+
+  if (!MAIN_VERSION_FILE_ATLEAST(bmain, 502, 22)) {
+    version_strip_modifier_show_preview_flag(*bmain);
+  }
+
+  /* The ID member of the Viewer node is no longer initialized to the Viewer Image, so clear that
+   * member. */
+  if (!MAIN_VERSION_FILE_ATLEAST(bmain, 502, 23)) {
+    FOREACH_NODETREE_BEGIN (bmain, node_tree, id) {
+      if (node_tree->type == NTREE_COMPOSIT) {
+        for (bNode &node : node_tree->nodes) {
+          if (node.type_legacy == CMP_NODE_VIEWER) {
+            node.id = nullptr;
+          }
+        }
+      }
+    }
+    FOREACH_NODETREE_END;
+  }
+
+  if (!MAIN_VERSION_FILE_ATLEAST(bmain, 502, 24)) {
+    FOREACH_NODETREE_BEGIN (bmain, node_tree, id) {
+      if (node_tree->type == NTREE_SHADER) {
+        for (bNode &node : node_tree->nodes) {
+          if (node.type_legacy == SH_NODE_RAYCAST && node.storage == nullptr) {
+            node.storage = MEM_new<NodeShaderRaycast>(__func__);
+          }
+        }
+      }
+    }
+    FOREACH_NODETREE_END;
+  }
+
+  if (!MAIN_VERSION_FILE_ATLEAST(bmain, 502, 25)) {
+    for (bScreen &screen : bmain->screens) {
+      for (ScrArea &area : screen.areabase) {
+        for (SpaceLink &space : area.spacedata) {
+          if (space.spacetype == SPACE_OUTLINER) {
+            SpaceOutliner *space_outliner = reinterpret_cast<SpaceOutliner *>(&space);
+            space_outliner->flag |= SO_SCROLL_TO_ACTIVE;
+          }
+        }
+      }
+    }
+  }
+
+  if (!MAIN_VERSION_FILE_ATLEAST(bmain, 502, 26)) {
+    FOREACH_NODETREE_BEGIN (bmain, tree, id) {
+      if (tree->type != NTREE_GEOMETRY) {
+        continue;
+      }
+      for (bNode &node : tree->nodes) {
+        switch (node.type_legacy) {
+          case FN_NODE_COMPARE:
+          case FN_NODE_RANDOM_VALUE: {
+            version_socket_identifier_suffixes_for_dynamic_types(node.inputs, "_");
+            version_socket_identifier_suffixes_for_dynamic_types(node.outputs, "_");
+            break;
+          }
+        }
+      }
+    }
+    FOREACH_NODETREE_END;
+  }
+
   /**
    * Always bump subversion in BKE_blender_version.h when adding versioning
    * code here, and wrap it inside a MAIN_VERSION_FILE_ATLEAST check.

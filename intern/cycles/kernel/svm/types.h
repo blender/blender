@@ -565,8 +565,6 @@ static_assert(NBUILTIN_CLOSURES < 256, "Too many Closure types (need to change S
 #define CLOSURE_IS_RAY_PORTAL(type) (type == CLOSURE_BSDF_RAY_PORTAL_ID)
 
 #define CLOSURE_WEIGHT_CUTOFF 1e-5f
-/* Treat closure as singular if the squared roughness is below this threshold. */
-#define BSDF_ROUGHNESS_SQ_THRESH 2e-10f
 #define THINFILM_THICKNESS_CUTOFF 0.1f
 
 CCL_NAMESPACE_END

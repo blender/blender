@@ -563,6 +563,8 @@ ccl_device_forceinline int integrate_surface_bsdf_bssrdf_bounce(
     INTEGRATOR_STATE_WRITE(state, ray, tmax) = FLT_MAX;
 #ifdef __RAY_DIFFERENTIALS__
     INTEGRATOR_STATE_WRITE(state, ray, dP) = differential_make_compact(sd->dP);
+    INTEGRATOR_STATE_WRITE(state, ray, dD) = bsdf_widen_dD(INTEGRATOR_STATE(state, ray, dD),
+                                                           bsdf_sampled_roughness);
 #endif
   }
 

@@ -282,6 +282,7 @@ class SocketDeclaration : public ItemDeclaration {
   std::unique_ptr<SocketUsageInferenceFn> usage_inference_fn;
 
   friend NodeDeclarationBuilder;
+  friend class FlatBundleTypeBuilder;
   friend class BaseSocketDeclarationBuilder;
   template<typename SocketDecl> friend class SocketDeclarationBuilder;
 
@@ -326,6 +327,7 @@ class BaseSocketDeclarationBuilder {
 
   friend class NodeDeclarationBuilder;
   friend class DeclarationListBuilder;
+  friend class FlatBundleTypeBuilder;
 
  public:
   virtual ~BaseSocketDeclarationBuilder() = default;
@@ -496,6 +498,8 @@ class BaseSocketDeclarationBuilder {
 
   bool is_input() const;
   bool is_output() const;
+
+  virtual BaseSocketDeclarationBuilder &try_copy_ui_data(const SocketDeclaration &other_decl);
 };
 
 /**
@@ -512,6 +516,7 @@ class SocketDeclarationBuilder : public BaseSocketDeclarationBuilder {
 
   friend class NodeDeclarationBuilder;
   friend class DeclarationListBuilder;
+  friend class FlatBundleTypeBuilder;
 };
 
 using SocketDeclarationPtr = std::unique_ptr<SocketDeclaration>;

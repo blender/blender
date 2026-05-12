@@ -8,11 +8,14 @@
 
 #pragma once
 
+#include <utility>
+
+#include "BLI_map.hh"
+#include "BLI_string_ref.hh"
 #include "BLI_sys_types.h"
 
 namespace blender {
 
-struct GHash;
 struct MemArena;
 
 /**
@@ -33,14 +36,6 @@ int DNA_member_array_num(const char *str);
 /** Find the start offset of the member id (the name) within the full member definition. */
 uint DNA_member_id_offset_start(const char *member_full);
 /**
- * Find the end offset of the member id (the name) within the trimmed full member definition.
- *
- * WARNING: Expects an input string which has already been trimmed from its non-identifier
- * prefixes. E.g. passing `*var[n1]` to this function will return `0`, while passing `var[n1]` will
- * return the expected `3` value.
- */
-uint DNA_member_id_offset_end(const char *member_full_trimmed);
-/**
  * Copy the member id part (the bare name) of the full source member into \a member_id_dst.
  *
  * \param member_id_dst: destination char buffer, must be at least the size of \a member_src_full.
@@ -50,6 +45,11 @@ uint DNA_member_id_strip_copy(char *member_id_dst, const char *member_full_src);
  * Same as #DNA_member_id_strip_copy, but modifies the given \a member string in place.
  */
 uint DNA_member_id_strip(char *member);
+/**
+ * Return the stripped member identifier portion of #member_full. This references
+ * the original string and does not make a copy.
+ */
+StringRef DNA_member_id_string_ref(StringRefNull member_full);
 /**
  * Check if the member identifier given in \a member_id matches the full name given in \a
  * member_full. E.g. `var` matches full names like `var` or `*var[3]`, but not `variable`.
@@ -78,19 +78,21 @@ char *DNA_member_id_rename(struct MemArena *mem_arena,
                            uint member_full_src_offset_len);
 
 /**
- * When requesting version info, support both directions.
+ * Rename maps built from `dna_rename_defs.h` and other versioning.
  *
  * - 'Static' is the original name of the data, the one that is still stored in blend-files
  *   DNA info (to avoid breaking forward compatibility).
  * - 'Alias' is the current name of the data, the one used in current DNA definition code.
  */
-enum eDNA_RenameDir {
-  DNA_RENAME_STATIC_FROM_ALIAS = -1,
-  DNA_RENAME_ALIAS_FROM_STATIC = 1,
+struct DnaRenameMaps {
+  /* Type name mapping. */
+  Map<StringRefNull, StringRefNull> types;
+  /** Member name mapping (first in pair is always the static struct name). */
+  Map<std::pair<StringRefNull, StringRefNull>, StringRefNull> members;
 };
-void DNA_alias_maps(enum eDNA_RenameDir version_dir,
-                    struct GHash **r_type_map,
-                    struct GHash **r_member_map);
+
+DnaRenameMaps DNA_rename_maps_alias_to_static();
+DnaRenameMaps DNA_rename_maps_static_to_alias();
 
 /**
  * DNA Compatibility Hack.

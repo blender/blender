@@ -84,6 +84,7 @@ set(LIB
   PRIVATE bf::blenlib
   PRIVATE bf::blentranslation
   PRIVATE bf::blenloader
+  PRIVATE bf::depsgraph
   PRIVATE bf::dna
   PRIVATE bf::functions
   PRIVATE bf::gpu

@@ -17,6 +17,8 @@ WAYLAND_DYNLOAD_FN(wl_display_connect)
 WAYLAND_DYNLOAD_FN(wl_display_disconnect)
 WAYLAND_DYNLOAD_FN(wl_display_dispatch)
 WAYLAND_DYNLOAD_FN(wl_display_dispatch_pending)
+WAYLAND_DYNLOAD_FN(wl_display_dispatch_queue)
+WAYLAND_DYNLOAD_FN(wl_display_create_queue)
 WAYLAND_DYNLOAD_FN(wl_display_get_fd)
 WAYLAND_DYNLOAD_FN(wl_display_get_protocol_error)
 WAYLAND_DYNLOAD_FN(wl_display_prepare_read)
@@ -25,11 +27,13 @@ WAYLAND_DYNLOAD_FN(wl_display_cancel_read)
 WAYLAND_DYNLOAD_FN(wl_display_roundtrip)
 WAYLAND_DYNLOAD_FN(wl_display_flush)
 WAYLAND_DYNLOAD_FN(wl_display_get_error)
+WAYLAND_DYNLOAD_FN(wl_event_queue_destroy)
 WAYLAND_DYNLOAD_FN(wl_log_set_handler_client)
 WAYLAND_DYNLOAD_FN(wl_proxy_add_listener)
 WAYLAND_DYNLOAD_FN(wl_proxy_destroy)
 WAYLAND_DYNLOAD_FN(wl_proxy_marshal_flags)
 WAYLAND_DYNLOAD_FN(wl_proxy_marshal_array_flags)
+WAYLAND_DYNLOAD_FN(wl_proxy_set_queue)
 WAYLAND_DYNLOAD_FN(wl_proxy_set_user_data)
 WAYLAND_DYNLOAD_FN(wl_proxy_get_user_data)
 WAYLAND_DYNLOAD_FN(wl_proxy_get_version)
@@ -77,6 +81,9 @@ struct WaylandDynload_Client {
   int WL_DYN_FN(wl_display_dispatch)(struct wl_display *display);
   int WL_DYN_FN(wl_display_roundtrip)(struct wl_display *display);
   int WL_DYN_FN(wl_display_dispatch_pending)(struct wl_display *display);
+  int WL_DYN_FN(wl_display_dispatch_queue)(struct wl_display *display,
+                                           struct wl_event_queue *queue);
+  struct wl_event_queue *WL_DYN_FN(wl_display_create_queue)(struct wl_display *display);
   int WL_DYN_FN(wl_display_get_fd)(struct wl_display *display);
   uint32_t WL_DYN_FN(wl_display_get_protocol_error)(struct wl_display *display,
                                                     const struct wl_interface **interface,
@@ -86,6 +93,7 @@ struct WaylandDynload_Client {
   void WL_DYN_FN(wl_display_cancel_read)(struct wl_display *display);
   int WL_DYN_FN(wl_display_flush)(struct wl_display *display);
   int WL_DYN_FN(wl_display_get_error)(struct wl_display *display);
+  void WL_DYN_FN(wl_event_queue_destroy)(struct wl_event_queue *queue);
   void WL_DYN_FN(wl_log_set_handler_client)(wl_log_func_t);
   int WL_DYN_FN(wl_proxy_add_listener)(struct wl_proxy *proxy,
                                        void (**implementation)(void),
@@ -103,6 +111,7 @@ struct WaylandDynload_Client {
                                                            uint32_t version,
                                                            uint32_t flags,
                                                            union wl_argument *args);
+  void WL_DYN_FN(wl_proxy_set_queue)(struct wl_proxy *proxy, struct wl_event_queue *queue);
   void WL_DYN_FN(wl_proxy_set_user_data)(struct wl_proxy *proxy, void *user_data);
   void *WL_DYN_FN(wl_proxy_get_user_data)(struct wl_proxy *proxy);
   uint32_t WL_DYN_FN(wl_proxy_get_version)(struct wl_proxy *proxy);
@@ -121,6 +130,10 @@ struct WaylandDynload_Client {
 #      define wl_display_dispatch(...) (*wayland_dynload_client.wl_display_dispatch)(__VA_ARGS__)
 #      define wl_display_dispatch_pending(...) \
         (*wayland_dynload_client.wl_display_dispatch_pending)(__VA_ARGS__)
+#      define wl_display_dispatch_queue(...) \
+        (*wayland_dynload_client.wl_display_dispatch_queue)(__VA_ARGS__)
+#      define wl_display_create_queue(...) \
+        (*wayland_dynload_client.wl_display_create_queue)(__VA_ARGS__)
 #      define wl_display_get_fd(...) (*wayland_dynload_client.wl_display_get_fd)(__VA_ARGS__)
 #      define wl_display_get_protocol_error(...) \
         (*wayland_dynload_client.wl_display_get_protocol_error)(__VA_ARGS__)
@@ -133,6 +146,8 @@ struct WaylandDynload_Client {
 #      define wl_display_roundtrip(...) (*wayland_dynload_client.wl_display_roundtrip)(__VA_ARGS__)
 #      define wl_display_flush(...) (*wayland_dynload_client.wl_display_flush)(__VA_ARGS__)
 #      define wl_display_get_error(...) (*wayland_dynload_client.wl_display_get_error)(__VA_ARGS__)
+#      define wl_event_queue_destroy(...) \
+        (*wayland_dynload_client.wl_event_queue_destroy)(__VA_ARGS__)
 #      define wl_log_set_handler_client(...) \
         (*wayland_dynload_client.wl_log_set_handler_client)(__VA_ARGS__)
 #      define wl_proxy_add_listener(...) \
@@ -142,6 +157,7 @@ struct WaylandDynload_Client {
         (*wayland_dynload_client.wl_proxy_marshal_flags)(__VA_ARGS__)
 #      define wl_proxy_marshal_array_flags(...) \
         (*wayland_dynload_client.wl_proxy_marshal_array_flags)(__VA_ARGS__)
+#      define wl_proxy_set_queue(...) (*wayland_dynload_client.wl_proxy_set_queue)(__VA_ARGS__)
 #      define wl_proxy_set_user_data(...) \
         (*wayland_dynload_client.wl_proxy_set_user_data)(__VA_ARGS__)
 #      define wl_proxy_get_user_data(...) \

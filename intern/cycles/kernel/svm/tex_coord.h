@@ -245,7 +245,7 @@ ccl_device_noinline void svm_node_normal_map(KernelGlobals kg,
     const AttributeDescriptor attr = find_attribute(kg, sd, node.attr);
     const AttributeDescriptor attr_sign = find_attribute(kg, sd, node.attr_sign);
 
-    if (attr.offset == ATTR_STD_NOT_FOUND || attr_sign.offset == ATTR_STD_NOT_FOUND) {
+    if (!is_attribute_found(attr) || !is_attribute_found(attr_sign)) {
       /* Fall back to unperturbed normal. */
       stack_store_float3(stack, node.normal_offset, sd->N);
       return;
@@ -260,8 +260,8 @@ ccl_device_noinline void svm_node_normal_map(KernelGlobals kg,
       const AttributeDescriptor attr_undisplaced_normal =
           (node.use_original_base) ?
               find_attribute(kg, sd->object, sd->prim, ATTR_STD_NORMAL_UNDISPLACED) :
-              AttributeDescriptor{ATTR_ELEMENT_NONE, NODE_ATTR_FLOAT3, ATTR_STD_NOT_FOUND};
-      if (attr_undisplaced_normal.offset != ATTR_STD_NOT_FOUND) {
+              attribute_not_found();
+      if (is_attribute_found(attr_undisplaced_normal)) {
         normal = primitive_surface_attribute<float3>(kg, sd, attr_undisplaced_normal);
         /* Can't interpolate in tangent space as the displaced normal is not used
          * for the tangent frame. */
@@ -351,7 +351,7 @@ ccl_device_noinline void svm_node_tangent(KernelGlobals kg,
   Float3Type tangent;
   if (node.direction_type == NODE_TANGENT_UVMAP) {
     /* UV map */
-    if (desc.offset == ATTR_STD_NOT_FOUND) {
+    if (!is_attribute_found(desc)) {
       stack_store(stack, node.tangent_offset, Float3Type());
       return;
     }
@@ -370,7 +370,7 @@ ccl_device_noinline void svm_node_tangent(KernelGlobals kg,
   else {
     /* radial */
     Float3Type generated;
-    if (desc.offset == ATTR_STD_NOT_FOUND) {
+    if (!is_attribute_found(desc)) {
       generated = shading_position<Float3Type>(sd);
     }
     else if (desc.type == NODE_ATTR_FLOAT2) {

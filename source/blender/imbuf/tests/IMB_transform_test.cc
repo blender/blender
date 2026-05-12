@@ -7,9 +7,14 @@
 #include "BLI_color_types.hh"
 #include "BLI_math_matrix.hh"
 #include "BLI_math_quaternion_types.hh"
+
 #include "IMB_imbuf.hh"
 
+#include "BKE_gtest_base.hh"
+
 namespace blender::imbuf::tests {
+
+class ImBufTransformTest : public bke::BlenderGTestBase {};
 
 static ImBuf *create_6x2_test_image()
 {
@@ -57,7 +62,7 @@ static ImBuf *transform_fractional_larger(eIMBInterpolationFilterMode filter)
   return dst;
 }
 
-TEST(imbuf_transform, nearest_2x_smaller)
+TEST_F(ImBufTransformTest, nearest_2x_smaller)
 {
   ImBuf *res = transform_2x_smaller(IMB_FILTER_NEAREST);
   const ColorTheme4b *got = reinterpret_cast<ColorTheme4b *>(res->byte_data_for_write());
@@ -67,7 +72,7 @@ TEST(imbuf_transform, nearest_2x_smaller)
   IMB_freeImBuf(res);
 }
 
-TEST(imbuf_transform, box_2x_smaller)
+TEST_F(ImBufTransformTest, box_2x_smaller)
 {
   ImBuf *res = transform_2x_smaller(IMB_FILTER_BOX);
   const ColorTheme4b *got = reinterpret_cast<const ColorTheme4b *>(res->byte_data());
@@ -78,7 +83,7 @@ TEST(imbuf_transform, box_2x_smaller)
   IMB_freeImBuf(res);
 }
 
-TEST(imbuf_transform, bilinear_2x_smaller)
+TEST_F(ImBufTransformTest, bilinear_2x_smaller)
 {
   ImBuf *res = transform_2x_smaller(IMB_FILTER_BILINEAR);
   const ColorTheme4b *got = reinterpret_cast<const ColorTheme4b *>(res->byte_data());
@@ -88,7 +93,7 @@ TEST(imbuf_transform, bilinear_2x_smaller)
   IMB_freeImBuf(res);
 }
 
-TEST(imbuf_transform, cubic_bspline_2x_smaller)
+TEST_F(ImBufTransformTest, cubic_bspline_2x_smaller)
 {
   ImBuf *res = transform_2x_smaller(IMB_FILTER_CUBIC_BSPLINE);
   const ColorTheme4b *got = reinterpret_cast<const ColorTheme4b *>(res->byte_data());
@@ -98,7 +103,7 @@ TEST(imbuf_transform, cubic_bspline_2x_smaller)
   IMB_freeImBuf(res);
 }
 
-TEST(imbuf_transform, cubic_mitchell_2x_smaller)
+TEST_F(ImBufTransformTest, cubic_mitchell_2x_smaller)
 {
   ImBuf *res = transform_2x_smaller(IMB_FILTER_CUBIC_MITCHELL);
   const ColorTheme4b *got = reinterpret_cast<const ColorTheme4b *>(res->byte_data());
@@ -108,7 +113,7 @@ TEST(imbuf_transform, cubic_mitchell_2x_smaller)
   IMB_freeImBuf(res);
 }
 
-TEST(imbuf_transform, cubic_mitchell_fractional_larger)
+TEST_F(ImBufTransformTest, cubic_mitchell_fractional_larger)
 {
   ImBuf *res = transform_fractional_larger(IMB_FILTER_CUBIC_MITCHELL);
   const ColorTheme4b *got = reinterpret_cast<const ColorTheme4b *>(res->byte_data());
@@ -121,7 +126,7 @@ TEST(imbuf_transform, cubic_mitchell_fractional_larger)
   IMB_freeImBuf(res);
 }
 
-TEST(imbuf_transform, nearest_very_large_scale)
+TEST_F(ImBufTransformTest, nearest_very_large_scale)
 {
   /* Create 511x1 black image, with three middle pixels being red/green/blue. */
   ImBuf *src = IMB_allocImBuf(511, 1, 32, IB_byte_data);

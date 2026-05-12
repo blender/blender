@@ -27,7 +27,7 @@ set(LIB
   PRIVATE bf::intern::guardedalloc
   PRIVATE bf::intern::clog
   PRIVATE bf::dependencies::openimageio
-  PRIVATE bf::dependencies::optional::openexr
+  PRIVATE bf::dependencies::openexr
   PRIVATE bf::dependencies::optional::pugixml
 )
 

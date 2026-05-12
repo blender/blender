@@ -301,11 +301,7 @@ class STRIP_PT_effect(StripButtonsPanel, Panel):
         elif strip_type == 'TEXT':
             layout = self.layout
             col = layout.column()
-            col.scale_x = 1.3
-            col.scale_y = 1.3
-            col.use_property_split = False
-            col.prop(strip, "text", text="")
-            col.use_property_split = True
+            col.textbox(strip, "text", textbox_state=strip.textbox_state)
             layout.prop(strip, "wrap_width", text="Wrap Width")
 
         col = layout.column(align=True)
@@ -527,7 +523,11 @@ class STRIP_PT_source(StripButtonsPanel, Panel):
                 if elem:
                     col.prop(elem, "filename", text="")  # strip.elements[0] could be a fallback
 
-                col.prop(strip.colorspace_settings, "name", text="Color Space")
+                col.prop_with_menu(
+                    strip.colorspace_settings,
+                    "name",
+                    text="Color Space",
+                    menu="UI_MT_color_space_select")
 
                 col.prop(strip, "alpha_mode", text="Alpha")
                 sub = col.column(align=True)
@@ -537,7 +537,11 @@ class STRIP_PT_source(StripButtonsPanel, Panel):
 
                 col = layout.column()
                 col.prop(strip, "filepath", text="")
-                col.prop(strip.colorspace_settings, "name", text="Color Space")
+                col.prop_with_menu(
+                    strip.colorspace_settings,
+                    "name",
+                    text="Color Space",
+                    menu="UI_MT_color_space_select")
                 col.prop(strip, "stream_index")
                 col.prop(strip, "use_deinterlace")
 

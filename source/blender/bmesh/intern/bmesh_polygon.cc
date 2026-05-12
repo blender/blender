@@ -9,6 +9,7 @@
  * with polygons (normal/area calculation, tessellation, etc)
  */
 
+#include <algorithm>
 #include <array>
 
 #include "DNA_modifier_types.h"
@@ -971,7 +972,49 @@ void BM_verts_calc_normal_from_cloud_ex(
       }
     }
 
-    normal_quad_v3(r_normal, co_a, co_b, co_a_opposite, co_b_opposite);
+    if (normal_quad_v3(r_normal, co_a, co_b, co_a_opposite, co_b_opposite) != 0.0f) {
+      /* Refine by accumulating a normal over all vertices
+       * in radial order around the initial normal - so all vertices contribute to the result. */
+
+      blender::Array<int> order(varr_len);
+      blender::Array<float> angles(varr_len);
+      for (int i = 0; i < varr_len; i++) {
+        order[i] = i;
+        float dir_test[3];
+        sub_v3_v3v3(dir_test, varr[i]->co, center);
+        angles[i] = angle_signed_on_axis_v3v3_v3(dir_a, dir_test, r_normal);
+      }
+      std::ranges::sort(order, [&](int a, int b) {
+        /* This order ensures the normal doesn't "flip" when refining. */
+        return angles[a] > angles[b];
+      });
+      float normal_refine[3] = {0.0f, 0.0f, 0.0f};
+      const float *v_prev = varr[order[varr_len - 1]]->co;
+      for (int i = 0; i < varr_len; i++) {
+        const float *v_curr = varr[order[i]]->co;
+        add_newell_cross_v3_v3v3(normal_refine, v_prev, v_curr);
+        v_prev = v_curr;
+      }
+
+      if (normalize_v3(normal_refine) != 0.0f) {
+        if (r_index_tangent) {
+          /* Re-compute the tangent, because it's *possible* the original
+           * tangent is aligned with the new normal. */
+          float dist_sq_max = -1.0f;
+          for (int i = 0; i < varr_len; i++) {
+            float dir_test[3];
+            sub_v3_v3v3(dir_test, varr[i]->co, center);
+            project_plane_normalized_v3_v3v3(dir_test, dir_test, normal_refine);
+            const float dist_sq_test = len_squared_v3(dir_test);
+            if (!(dist_sq_test <= dist_sq_max)) {
+              co_a_index = i;
+              dist_sq_max = dist_sq_test;
+            }
+          }
+        }
+        copy_v3_v3(r_normal, normal_refine);
+      }
+    }
   }
 
 finally:

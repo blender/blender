@@ -340,7 +340,7 @@ static bool rna_Collection_children_override_apply(Main *bmain,
   return true;
 }
 
-static void rna_Collection_flag_set(PointerRNA *ptr, const bool value, const int flag)
+static void rna_Collection_flag_set(PointerRNA *ptr, const bool value, const eCollection_Flag flag)
 {
   Collection *collection = static_cast<Collection *>(ptr->data);
 
@@ -397,7 +397,7 @@ static void rna_Collection_color_tag_set(PointerRNA *ptr, int value)
     return;
   }
 
-  collection->color_tag = value;
+  collection->color_tag = CollectionColorTag(value);
 }
 
 static void rna_Collection_color_tag_update(Main * /*bmain*/, Scene *scene, PointerRNA * /*ptr*/)

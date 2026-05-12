@@ -326,7 +326,7 @@ static int node_shader_gpu_tex_sky(GPUMaterial *mat,
 
 static void node_shader_update_sky(bNodeTree *ntree, bNode *node)
 {
-  bNodeSocket *sockVector = bke::node_find_socket(*node, SOCK_IN, "Vector");
+  bNodeSocket *sockVector = bke::node_find_socket(*node, SOCK_IN, "Vector"_ustr);
 
   NodeTexSky *tex = static_cast<NodeTexSky *>(node->storage);
   bke::node_set_socket_availability(

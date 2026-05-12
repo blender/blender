@@ -515,6 +515,13 @@ bool GHOST_Wintab::trustCoordinates()
 
 bool GHOST_Wintab::testCoordinates(int sysX, int sysY, int wtX, int wtY)
 {
+  /* Some (faulty) drivers can report (WTInfoA) that the tablet extent is
+   * zero. This will cause divide by zero in mapWintabToSysCoordinates. #150560 */
+  if (tablet_coord_.x.ext == 0 || tablet_coord_.y.ext == 0) {
+    coord_trusted_ = false;
+    return false;
+  }
+
   mapWintabToSysCoordinates(wtX, wtY, wtX, wtY);
 
   /* Allow off by one pixel tolerance in case of rounding error. */

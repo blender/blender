@@ -1077,6 +1077,11 @@ static void rna_AttributeGroupID_active_set(PointerRNA *ptr,
   }
 
   bke::Attribute *attr = attribute_ptr.data_as<bke::Attribute>();
+  if (!attr) {
+    BKE_attributes_active_clear(owner);
+    return;
+  }
+
   BKE_attributes_active_set(owner, attr->name());
 }
 

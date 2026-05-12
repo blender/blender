@@ -502,7 +502,7 @@ void select_all(bke::CurvesGeometry &curves, const bke::AttrDomain selection_dom
   select_all(curves, selection, selection_domain, action);
 }
 
-void select_linked(bke::CurvesGeometry &curves, const IndexMask &curves_mask)
+void select_linked(bke::CurvesGeometry &curves, const IndexMask &curves_mask, const bool unselect)
 {
   const OffsetIndices points_by_curve = curves.points_by_curve();
   const VArray<int8_t> curve_types = curves.curve_types();
@@ -521,17 +521,24 @@ void select_linked(bke::CurvesGeometry &curves, const IndexMask &curves_mask)
                                              all_writers :
                                              selection_writer;
         const IndexRange points = points_by_curve[curve];
-
         for (const int i : curve_writers) {
           bke::GSpanAttributeWriter &selection = selection_writers[i];
           GMutableSpan selection_curve = selection.span.slice(points);
-          if (has_anything_selected(selection_curve)) {
-            fill_selection_true(selection_curve);
+          const array_utils::BooleanMix selection_state = array_utils::booleans_mix_calc(
+              VArray<bool>::from_span(selection_curve.typed<bool>()));
+          const bool all_points_selected = selection_state == array_utils::BooleanMix::AllTrue;
+          if (selection_state != array_utils::BooleanMix::AllFalse) {
+            if (unselect == all_points_selected) {
+              fill_selection(selection_curve, !unselect);
+            }
+
             for (const int j : curve_writers) {
               if (j == i) {
                 continue;
               }
-              fill_selection_true(selection_writers[j].span.slice(points));
+              if (unselect == all_points_selected) {
+                fill_selection(selection_curve, !unselect);
+              }
             }
             return;
           }
@@ -541,9 +548,9 @@ void select_linked(bke::CurvesGeometry &curves, const IndexMask &curves_mask)
   finish_attribute_writers(selection_writers);
 }
 
-void select_linked(bke::CurvesGeometry &curves)
+void select_linked(bke::CurvesGeometry &curves, const bool unselect)
 {
-  select_linked(curves, curves.curves_range());
+  select_linked(curves, curves.curves_range(), unselect);
 }
 
 void select_alternate(bke::CurvesGeometry &curves,

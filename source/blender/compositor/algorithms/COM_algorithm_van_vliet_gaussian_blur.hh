@@ -29,11 +29,14 @@ namespace blender::compositor {
  * Further, for sigma values less than 3, use direct convolution instead, since it is faster and
  * more accurate. Neumann boundary is assumed.
  *
+ * If extend_bounds is true, the input will be zero padded by radius amount of pixels.
+ *
  * The output is written to the given output result, which will be allocated internally and is thus
  * expected not to be previously allocated. */
 void van_vliet_gaussian_blur(Context &context,
                              const Result &input,
                              Result &output,
-                             const float2 &sigma);
+                             const float2 &sigma,
+                             const bool extend_bounds);
 
 }  // namespace blender::compositor

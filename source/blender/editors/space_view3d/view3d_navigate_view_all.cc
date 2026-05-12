@@ -104,7 +104,7 @@ static void view3d_from_minmax(bContext *C,
   size = max_fff(afm[0], afm[1], afm[2]);
 
   if (do_zoom) {
-    char persp;
+    eRegionView3D_Persp persp;
 
     if (rv3d->is_persp) {
       if (rv3d->persp == RV3D_CAMOB && ED_view3d_camera_lock_check(v3d, rv3d)) {

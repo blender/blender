@@ -485,11 +485,14 @@ class SocketUsageInferencerImpl {
     const bool is_top_level = context == nullptr;
     if (is_top_level) {
       if (socket == show_input_socket) {
-        this->usage_task__with_dependent_sockets(show_input_socket, {}, {}, context);
+        /* At the top level, the show input is always used. */
+        all_socket_usages_.add_new(socket, true);
       }
       if (socket == message_input_socket) {
-        this->usage_task__with_dependent_sockets(
-            message_input_socket, {}, {&*show_input_socket}, context);
+        /* The message input is used if the show input is true. */
+        const InferenceValue show_inference_value = this->get_socket_value(show_input_socket);
+        const bool show_value = show_inference_value.get_if_primitive<bool>().value_or(true);
+        all_socket_usages_.add_new(socket, show_value);
       }
       return;
     }
@@ -592,17 +595,17 @@ class SocketUsageInferencerImpl {
 
   /**
    * Utility that handles simple cases where a socket is used if any of its dependent sockets is
-   * used.
+   * used and all of the boolean condition inputs are true.
    */
   void usage_task__with_dependent_sockets(const SocketInContext &socket,
-                                          const Span<const bNodeSocket *> dependent_outputs,
+                                          const Span<const bNodeSocket *> dependent_sockets,
                                           const Span<const bNodeSocket *> condition_inputs,
                                           const ComputeContext *dependent_socket_context)
   {
     /* Check if any of the dependent outputs are used. */
     SocketInContext next_unknown_socket;
     bool any_output_used = false;
-    for (const bNodeSocket *dependent_socket_ptr : dependent_outputs) {
+    for (const bNodeSocket *dependent_socket_ptr : dependent_sockets) {
       const SocketInContext dependent_socket{dependent_socket_context, dependent_socket_ptr};
       const std::optional<bool> is_used = all_socket_usages_.lookup_try(dependent_socket);
       if (!is_used.has_value()) {
@@ -626,7 +629,7 @@ class SocketUsageInferencerImpl {
       this->push_usage_task(next_unknown_socket);
       return;
     }
-    if (!any_output_used && !dependent_outputs.is_empty()) {
+    if (!any_output_used) {
       all_socket_usages_.add_new(socket, false);
       return;
     }

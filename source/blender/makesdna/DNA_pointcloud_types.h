@@ -15,6 +15,7 @@
 #include <optional>
 
 #include "BLI_bounds_types.hh"
+#include "BLI_enum_flags.hh"
 #include "BLI_math_vector_types.hh"
 #include "BLI_memory_counter_fwd.hh"
 #include "BLI_span.hh"
@@ -35,9 +36,10 @@ struct PointCloudBatchCache;
 }
 
 /** #PointCloud.flag */
-enum {
+enum ePointCloud_Flag : int {
   PT_DS_EXPAND = (1 << 0),
 };
+ENUM_OPERATORS(ePointCloud_Flag)
 
 struct PointCloud {
 #ifdef __cplusplus
@@ -48,7 +50,7 @@ struct PointCloud {
   ID id;
   struct AnimData *adt = nullptr; /* animation data (must be immediately after id) */
 
-  int flag = 0;
+  ePointCloud_Flag flag = {};
 
   /* Geometry */
   int totpoint = 0;

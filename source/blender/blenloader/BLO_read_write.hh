@@ -30,6 +30,8 @@
 
 #pragma once
 
+#include <type_traits>
+
 #include "DNA_ID.h"
 #include "DNA_listBase.h"
 #include "DNA_sdna_type_ids.hh"
@@ -82,7 +84,7 @@ struct BlendWriter {
    * conversion for them in readfile code.
    * Basic typed array methods (like #write_int8_array etc.) also use this
    * internally, but if their matching read function is used to load the data (like
-   * #BLO_read_int8_array), the read function will take care of endianness conversion.
+   * #BLO_read_array), the read function will take care of endianness conversion.
    */
   void write_raw(size_t size_in_bytes, const void *data);
 
@@ -282,51 +284,74 @@ bool BLO_write_is_undo(BlendWriter *writer);
  * BLO_read_struct_list(reader, TimeMarker, &action->markers);
  *
  * writer->write_int32_array(hmd->totindex, hmd->indexar);
- * BLO_read_int32_array(reader, hmd->totindex, &hmd->indexar);
+ * if (!BLO_read_array(reader, &hmd->indexar, hmd->totindex)) {
+ *   hmd->totindex = 0;
+ * }
  * \endcode
  *
- * Avoid using the generic #BLO_read_data_address
- * (and low-level API like #BLO_read_get_new_data_address)
- * when possible, use the typed functions instead.
+ * Avoid using the generic #BLO_read_raw_address when possible, use the typed functions instead.
  * Only data written with #BlendWriter::write_raw should typically be read with
- * #BLO_read_data_address.
+ * #BLO_read_raw_address.
  * \{ */
 
-void *BLO_read_get_new_data_address(BlendDataReader *reader, const void *old_address);
-#define BLO_read_data_address(reader, ptr_p) \
-  *((void **)ptr_p) = BLO_read_get_new_data_address((reader), *(ptr_p))
+void *blo_read_raw_address_impl(BlendDataReader *reader, const void *old_address);
+#define BLO_read_raw_address(reader, ptr_p) \
+  *((void **)ptr_p) = blo_read_raw_address_impl((reader), *(ptr_p))
 
 /**
- * Does not consider the read data as 'used'. It will still be freed by readfile code at the
- * end of the reading process, if no other 'real' usage was detected for it.
+ * Read function for pointers to structs.
+ *
+ * NOTE: Currently the usage of the type info is very minimal/basic, it does a loose check on
+ * the data size and marks the blend file as invalid when it's mismatched.
+ */
+void *blo_read_struct_impl(BlendDataReader *reader, const void *old_address, size_t expected_size);
+#define BLO_read_struct(reader, struct_name, ptr_p) \
+  (*((void **)ptr_p) = blo_read_struct_impl(reader, *((void **)ptr_p), sizeof(struct_name)))
+
+/**
+ * Like #BLO_read_struct, but mark the blend file as invalid (with an error report) when the
+ * pointer was non-null but failed to resolve.
+ */
+void *blo_read_struct_nonnull_impl(BlendDataReader *reader,
+                                   const void *old_address,
+                                   size_t expected_size);
+#define BLO_read_struct_nonnull(reader, struct_name, ptr_p) \
+  (*((void **)ptr_p) = blo_read_struct_nonnull_impl( \
+       reader, *((void **)ptr_p), sizeof(struct_name)))
+
+/**
+ * Like #BLO_read_struct, but does not consider the read data as 'used'. It will still be freed
+ * by readfile code at the end of the reading process, if no other 'real' usage was detected.
  *
  * Typical valid usages include:
  * - Restoring pointers to a specific item in an array or list (usually 'active' item e.g.). The
  *   found item is expected to also be read as part of its array/list storage reading.
  * - Doing temporary access to deprecated data as part of some versioning code.
  */
-void *BLO_read_get_new_data_address_no_us(BlendDataReader *reader,
-                                          const void *old_address,
-                                          size_t expected_size);
+void *blo_read_struct_no_us_impl(BlendDataReader *reader,
+                                 const void *old_address,
+                                 size_t expected_size);
+
+#define BLO_read_struct_no_us(reader, struct_name, ptr_p) \
+  (*((void **)ptr_p) = blo_read_struct_no_us_impl(reader, *((void **)ptr_p), sizeof(struct_name)))
+
+#define BLO_read_struct_array_no_us(reader, struct_name, ptr_p, array_size) \
+  (*((void **)ptr_p) = blo_read_struct_no_us_impl( \
+       reader, *((void **)ptr_p), sizeof(struct_name) * size_t(array_size)))
 
 /**
- * The 'main' read function and helper macros for non-basic data types.
- *
- * NOTE: Currently the usage of the type info is very minimal/basic, it merely does a lose check on
- * the data size.
+ * Like #BLO_read_struct_no_us, but with the same nonnull semantics as #BLO_read_struct_nonnull.
  */
-void *BLO_read_struct_array_with_size(BlendDataReader *reader,
-                                      const void *old_address,
-                                      size_t expected_size);
-#define BLO_read_struct(reader, struct_name, ptr_p) \
-  *((void **)ptr_p) = BLO_read_struct_array_with_size( \
-      reader, *((void **)ptr_p), sizeof(struct_name))
-#define BLO_read_struct_array(reader, struct_name, array_size, ptr_p) \
-  *((void **)ptr_p) = BLO_read_struct_array_with_size( \
-      reader, *((void **)ptr_p), sizeof(struct_name) * (array_size))
+void *blo_read_struct_no_us_nonnull_impl(BlendDataReader *reader,
+                                         const void *old_address,
+                                         size_t expected_size);
+
+#define BLO_read_struct_no_us_nonnull(reader, struct_name, ptr_p) \
+  (*((void **)ptr_p) = blo_read_struct_no_us_nonnull_impl( \
+       reader, *((void **)ptr_p), sizeof(struct_name)))
 
 /**
- * Similar to #BLO_read_struct_array_with_size, but can use a (DNA) type name instead of the type
+ * Similar to #BLO_read_struct, but can use a (DNA) type name instead of the type
  * itself to find the expected data size.
  *
  * Somewhat mirrors #BlendWriter::write_struct_array_by_name.
@@ -348,18 +373,73 @@ void BLO_read_struct_list_with_size(BlendDataReader *reader,
 #define BLO_read_struct_list(reader, struct_name, list) \
   BLO_read_struct_list_with_size(reader, sizeof(struct_name), list)
 
-/* Update data pointers and correct byte-order if necessary. */
+/**
+ * Read an array of typed elements (struct or primitive type) from the file.
+ *
+ * With corrupt blend files the size may not match the array memory allocation.
+ * This must be handled either by using #BLO_read_array_and_validate_size to
+ * automatically set the size to zero, or checking the return value of
+ * #BLO_read_array to manually handle invalid data.
+ *
+ * Typically #BLO_read_array_and_validate_size should be used for cases where
+ * a size member is only for the array pointer, while a size member shared
+ * between multiple array needs particular handling.
+ */
+[[nodiscard]] bool blo_read_array_impl(
+    BlendDataReader *reader, int64_t array_size, int elems, size_t elem_size, void **ptr_p);
 
-void BLO_read_char_array(BlendDataReader *reader, int64_t array_size, char **ptr_p);
-void BLO_read_int8_array(BlendDataReader *reader, int64_t array_size, int8_t **ptr_p);
-void BLO_read_uint8_array(BlendDataReader *reader, int64_t array_size, uint8_t **ptr_p);
-void BLO_read_int16_array(BlendDataReader *reader, const int64_t array_size, int16_t **ptr_p);
-void BLO_read_int32_array(BlendDataReader *reader, int64_t array_size, int32_t **ptr_p);
-void BLO_read_uint32_array(BlendDataReader *reader, int64_t array_size, uint32_t **ptr_p);
-void BLO_read_float_array(BlendDataReader *reader, int64_t array_size, float **ptr_p);
-void BLO_read_float3_array(BlendDataReader *reader, int64_t array_size, float **ptr_p);
-void BLO_read_double_array(BlendDataReader *reader, int64_t array_size, double **ptr_p);
-void BLO_read_pointer_array(BlendDataReader *reader, int64_t array_size, void **ptr_p);
+template<typename T, typename SizeT>
+  requires(!std::is_void_v<T> && !std::is_pointer_v<T>)
+[[nodiscard]] bool BLO_read_array(BlendDataReader *reader,
+                                  T **ptr_p,
+                                  const SizeT array_size,
+                                  const int elems = 1)
+{
+  return blo_read_array_impl(
+      reader, int64_t(array_size), elems, sizeof(T), reinterpret_cast<void **>(ptr_p));
+}
+
+template<typename T, typename SizeT>
+  requires(!std::is_void_v<T> && !std::is_pointer_v<T>)
+void BLO_read_array_and_validate_size(BlendDataReader *reader,
+                                      T **ptr_p,
+                                      SizeT *array_size,
+                                      const int elems = 1)
+{
+  if (!blo_read_array_impl(
+          reader, int64_t(*array_size), elems, sizeof(T), reinterpret_cast<void **>(ptr_p)))
+  {
+    *array_size = 0;
+  }
+}
+
+/**
+ * Read an array of pointers, converting between 32/64-bit pointer sizes if needed.
+ * Same size mismatch handling as #BLO_read_array.
+ */
+[[nodiscard]] bool blo_read_pointer_array_impl(BlendDataReader *reader,
+                                               int64_t array_size,
+                                               void **ptr_p);
+
+template<typename T, typename SizeT>
+  requires(std::is_pointer_v<T> || std::is_void_v<T>)
+[[nodiscard]] bool BLO_read_pointer_array(BlendDataReader *reader,
+                                          T **ptr_p,
+                                          const SizeT array_size)
+{
+  return blo_read_pointer_array_impl(reader, array_size, reinterpret_cast<void **>(ptr_p));
+}
+
+template<typename T, typename SizeT>
+  requires(std::is_pointer_v<T> || std::is_void_v<T>)
+void BLO_read_pointer_array_and_validate_size(BlendDataReader *reader,
+                                              T **ptr_p,
+                                              SizeT *array_size)
+{
+  if (!blo_read_pointer_array_impl(reader, *array_size, reinterpret_cast<void **>(ptr_p))) {
+    *array_size = 0;
+  }
+}
 
 /* Read null terminated string. */
 

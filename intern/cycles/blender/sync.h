@@ -252,6 +252,9 @@ class BlenderSync {
   enum ShaderFlags { SHADER_WITH_LAYER_ATTRS };
 
   id_map<const void *, Shader, ShaderFlags> shader_map;
+  /* To keep track of the AOVs in consecutive view layers that are rendered, this is the old data
+   * for comparing. */
+  blender::Vector<std::pair<std::string, int>> shader_view_layer_aovs;
   id_map<ObjectKey, Object> object_map;
   id_map<void *, Procedural> procedural_map;
   id_map<GeometryKey, Geometry> geometry_map;

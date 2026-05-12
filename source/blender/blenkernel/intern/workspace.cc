@@ -30,7 +30,6 @@
 #include "BKE_viewer_path.hh"
 #include "BKE_workspace.hh"
 
-#include "DNA_listBase.h"
 #include "DNA_scene_types.h"
 #include "DNA_screen_types.h"
 #include "DNA_windowmanager_types.h"
@@ -160,11 +159,11 @@ static void workspace_blend_read_data(BlendDataReader *reader, ID *id)
   for (WorkSpaceDataRelation &relation : workspace->hook_layout_relations) {
     /* Parent pointer does not belong to workspace data and is therefore restored in lib_link step
      * of window manager. */
-    /* FIXME: Should not use that untyped #BLO_read_data_address call, especially since it's
+    /* FIXME: Should not use that untyped #BLO_read_raw_address call, especially since it's
      * reference-counting the matching data in readfile code. Problem currently is that there is no
      * type info available for this void pointer (_should_ be pointing to a #WorkSpaceLayout ?), so
-     * #BLO_read_get_new_data_address_no_us cannot be used here. */
-    BLO_read_data_address(reader, &relation.value);
+     * #BLO_read_struct_no_us cannot be used here. */
+    BLO_read_raw_address(reader, &relation.value);
   }
 
   for (bToolRef &tref : workspace->tools) {

@@ -106,6 +106,8 @@ class ForceFields : Overlay {
           matrix.location() = ob->object_to_world().location();
         }
         break;
+      default:
+        break;
     }
 
     if (pd->falloff == PFIELD_FALL_TUBE) {

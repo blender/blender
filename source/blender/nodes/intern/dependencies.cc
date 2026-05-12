@@ -5,6 +5,7 @@
 #include "NOD_dependencies.hh"
 
 #include "DNA_ID.h"
+#include "DNA_node_types.h"
 #include "DNA_object_types.h"
 
 #include "BKE_image.hh"
@@ -137,43 +138,39 @@ static void add_eval_dependencies_from_socket(const bNodeSocket &socket, EvalDep
       }
       break;
     }
+    default:
+      break;
   }
 }
 
 static void add_eval_dependencies_from_node_data(const bNodeTree &tree, EvalDependencies &deps)
 {
-  for (const bNode *node : tree.nodes_by_type("GeometryNodeInputObject"_ustr)) {
-    if (node->is_muted()) {
-      continue;
-    }
-    deps.add_object(reinterpret_cast<Object *>(node->id));
-  }
-  for (const bNode *node : tree.nodes_by_type("GeometryNodeInputCollection"_ustr)) {
-    if (node->is_muted()) {
-      continue;
-    }
-    deps.add_generic_id(node->id);
-  }
-  for (const bNode *node : tree.nodes_by_type("CompositorNodeCryptomatteV2"_ustr)) {
+  for (const bNode *node : tree.all_nodes()) {
     if (node->is_muted()) {
       continue;
     }
 
-    if (CMPNodeCryptomatteSource(node->custom1) != CMP_NODE_CRYPTOMATTE_SOURCE_IMAGE) {
+    /* Group nodes are handles separately. */
+    if (node->is_group()) {
       continue;
     }
 
-    if (node->id && BKE_image_is_animated(reinterpret_cast<Image *>(node->id))) {
-      deps.time_dependent = true;
-    }
-  }
-  for (const bNode *node : tree.nodes_by_type("CompositorNodeImage"_ustr)) {
-    if (node->is_muted()) {
+    if (node->id == nullptr) {
       continue;
     }
 
-    if (node->id && BKE_image_is_animated(reinterpret_cast<Image *>(node->id))) {
-      deps.time_dependent = true;
+    ID_Type id_type = GS(node->id->name);
+    if (id_type == ID_OB) {
+      deps.add_object(reinterpret_cast<Object *>(node->id));
+    }
+    else if (id_type == ID_IM) {
+      if (BKE_image_is_animated(reinterpret_cast<Image *>(node->id))) {
+        deps.time_dependent = true;
+      }
+      deps.add_generic_id(node->id);
+    }
+    else {
+      deps.add_generic_id(node->id);
     }
   }
 }

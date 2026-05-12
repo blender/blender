@@ -64,6 +64,7 @@ class AssetCatalogService {
   explicit AssetCatalogService(const CatalogFilePath &asset_library_root = {},
                                std::optional<read_only_tag> read_only_tag = std::nullopt);
   explicit AssetCatalogService(read_only_tag);
+  ~AssetCatalogService();
 
   /**
    * Set tag indicating that some catalog modifications are unsaved, which could

@@ -32,6 +32,8 @@ struct Scene;
 struct View3D;
 struct ViewLayer;
 
+enum eObject_Flag : short;
+
 enum eViewLayerCopyMethod {
   VIEWLAYER_ADD_NEW = 0,
   VIEWLAYER_ADD_EMPTY = 1,
@@ -86,7 +88,7 @@ void BKE_view_layer_free_object_content(ViewLayer *view_layer);
 void BKE_view_layer_selected_objects_tag(const Main &bmain,
                                          const Scene *scene,
                                          ViewLayer *view_layer,
-                                         int tag);
+                                         eObject_Flag tag);
 
 /**
  * Fallback for when a Scene has no camera to use.
@@ -292,7 +294,7 @@ void BKE_layer_collection_set_visible(const Main &bmain,
                                       LayerCollection *lc,
                                       bool visible,
                                       bool hierarchy);
-void BKE_layer_collection_set_flag(LayerCollection *lc, int flag, bool value);
+void BKE_layer_collection_set_flag(LayerCollection *lc, eLayerCollection_Flag flag, bool value);
 
 /* Evaluation. */
 

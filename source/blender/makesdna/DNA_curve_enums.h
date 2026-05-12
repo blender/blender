@@ -8,6 +8,8 @@
 
 #pragma once
 
+#include "BLI_enum_flags.hh"
+
 namespace blender {
 
 /** Used in `readfile.cc` and `editfont.cc`. */
@@ -16,13 +18,14 @@ namespace blender {
 /* **************** CURVE ********************* */
 
 /** #Curve.texspace_flag */
-enum {
+enum eCurveTexspaceFlag : char {
   CU_TEXSPACE_FLAG_AUTO = 1 << 0,
   CU_TEXSPACE_FLAG_AUTO_EVALUATED = 1 << 1,
 };
+ENUM_OPERATORS(eCurveTexspaceFlag)
 
 /** #Curve.flag */
-enum {
+enum eCurveFlag : int {
   CU_3D = 1 << 0,
   CU_FRONT = 1 << 1,
   CU_BACK = 1 << 2,
@@ -43,9 +46,10 @@ enum {
   /** map taper object to beveled area */
   CU_MAP_TAPER = 1 << 15,
 };
+ENUM_OPERATORS(eCurveFlag)
 
 /** #Curve.twist_mode */
-enum {
+enum eCurveTwistMode : short {
   CU_TWIST_Z_UP = 0,
   /* CU_TWIST_Y_UP      = 1, */ /* not used yet */
   /* CU_TWIST_X_UP      = 2, */
@@ -54,14 +58,14 @@ enum {
 };
 
 /* Curve.bevfac1_mapping, Curve.bevfac2_mapping, bevel factor mapping */
-enum {
+enum eCurveBevfacMapping : char {
   CU_BEVFAC_MAP_RESOLU = 0,
   CU_BEVFAC_MAP_SEGMENT = 1,
   CU_BEVFAC_MAP_SPLINE = 2,
 };
 
 /** #Curve.spacemode */
-enum {
+enum eCurveSpaceMode : char {
   CU_ALIGN_X_LEFT = 0,
   CU_ALIGN_X_MIDDLE = 1,
   CU_ALIGN_X_RIGHT = 2,
@@ -70,7 +74,7 @@ enum {
 };
 
 /** #Curve.align_y */
-enum {
+enum eCurveAlignY : char {
   CU_ALIGN_Y_TOP_BASELINE = 0,
   CU_ALIGN_Y_TOP = 1,
   CU_ALIGN_Y_CENTER = 2,
@@ -79,14 +83,14 @@ enum {
 };
 
 /** #Curve.bevel_mode */
-enum {
+enum eCurveBevelMode : char {
   CU_BEV_MODE_ROUND = 0,
   CU_BEV_MODE_OBJECT = 1,
   CU_BEV_MODE_CURVE_PROFILE = 2,
 };
 
 /** #Curve.taper_radius_mode */
-enum {
+enum eCurveTaperRadiusMode : char {
   /** Override the radius of the bevel point with the taper radius. */
   CU_TAPER_RADIUS_OVERRIDE = 0,
   /** Multiply the radius of the bevel point by the taper radius. */
@@ -96,7 +100,7 @@ enum {
 };
 
 /** #Curve.fill_solver */
-enum CurveFillSolverType {
+enum CurveFillSolverType : char {
   /**
    * Fast filling without support for self-intersections.
    * Uses `BLI_scanfill`.
@@ -109,25 +113,26 @@ enum CurveFillSolverType {
 };
 
 /** #Curve.fill_rule */
-enum CurveFillRuleType {
+enum CurveFillRuleType : char {
   CU_FILL_RULE_EVEN_ODD = 0,
   CU_FILL_RULE_NONZERO = 1,
 };
 
 /* Curve.overflow. */
-enum {
+enum eCurveOverflow : char {
   CU_OVERFLOW_NONE = 0,
   CU_OVERFLOW_SCALE = 1,
   CU_OVERFLOW_TRUNCATE = 2,
 };
 
 /** #Nurb.flag */
-enum {
+enum eNurbFlag : short {
   CU_SMOOTH = 1 << 0,
 };
+ENUM_OPERATORS(eNurbFlag)
 
 /** #Nurb.type */
-enum {
+enum eNurbType : short {
   CU_POLY = 0,
   CU_BEZIER = 1,
   CU_NURBS = 4,
@@ -150,27 +155,29 @@ enum {
 };
 
 /* Nurb.flagu, Nurb.flagv */
-enum {
+enum eNurbKnotFlag : short {
   CU_NURB_CYCLIC = 1 << 0,
   CU_NURB_ENDPOINT = 1 << 1,
   CU_NURB_BEZIER = 1 << 2,
   CU_NURB_CUSTOM = 1 << 3,
 };
+ENUM_OPERATORS(eNurbKnotFlag)
 
 #define CU_ACT_NONE -1
 
 /* *************** BEZTRIPLE **************** */
 
 /** #BezTriple.f1, #BezTriple.f2, #BezTriple.f3. */
-enum eBezTriple_Flag {
-  /* `SELECT = (1 << 0)` */
+enum eBezTriple_Flag : uint8_t {
+  BEZT_FLAG_SELECT = (1 << 0),
   BEZT_FLAG_TEMP_TAG = (1 << 1), /* always clear. */
   /* Can be used to ignore keyframe points for certain operations. */
   BEZT_FLAG_IGNORE_TAG = (1 << 2),
 };
+ENUM_OPERATORS(eBezTriple_Flag)
 
 /* h1 h2 (beztriple) */
-enum eBezTriple_Handle {
+enum eBezTriple_Handle : uint8_t {
   HD_FREE = 0,
   HD_AUTO = 1,
   HD_VECT = 2,
@@ -180,7 +187,7 @@ enum eBezTriple_Handle {
 };
 
 /* auto_handle_type (beztriple) */
-enum eBezTriple_Auto_Type {
+enum eBezTriple_Auto_Type : char {
   /* Normal automatic handle that can be refined further. */
   HD_AUTOTYPE_NORMAL = 0,
   /* Handle locked horizontal due to being an Auto Clamped local
@@ -190,7 +197,7 @@ enum eBezTriple_Auto_Type {
 };
 
 /* interpolation modes (used only for BezTriple->ipo) */
-enum eBezTriple_Interpolation {
+enum eBezTriple_Interpolation : char {
   /* traditional interpolation */
   BEZT_IPO_CONST = 0, /* constant interpolation */
   BEZT_IPO_LIN = 1,   /* linear interpolation */
@@ -210,7 +217,7 @@ enum eBezTriple_Interpolation {
 };
 
 /* easing modes (used only for Keyframes - BezTriple->easing) */
-enum eBezTriple_Easing {
+enum eBezTriple_Easing : char {
   BEZT_IPO_EASE_AUTO = 0,
 
   BEZT_IPO_EASE_IN = 1,
@@ -219,7 +226,7 @@ enum eBezTriple_Easing {
 };
 
 /* types of keyframe (used only for BezTriple->hide when BezTriple is used in F-Curves) */
-enum eBezTriple_KeyframeType {
+enum eBezTriple_KeyframeType : char {
   BEZT_KEYTYPE_KEYFRAME = 0,  /* default - 'proper' Keyframe */
   BEZT_KEYTYPE_EXTREME = 1,   /* 'extreme' keyframe */
   BEZT_KEYTYPE_BREAKDOWN = 2, /* 'breakdown' keyframe */
@@ -240,7 +247,7 @@ enum eBezTriple_KeyframeType {
  * \note This must *not* be used for run-time / evaluation flags.
  * If this is needed, see: #CharTrans.
  */
-enum {
+enum eCharInfoFlag : char {
   CU_CHINFO_BOLD = 1 << 0,
   CU_CHINFO_ITALIC = 1 << 1,
   CU_CHINFO_UNDERLINE = 1 << 2,
@@ -249,6 +256,7 @@ enum {
   CU_CHINFO_UNUSED_5 = 1 << 5, /* Dirty. */
   CU_CHINFO_UNUSED_6 = 1 << 6, /* Dirty. */
 };
+ENUM_OPERATORS(eCharInfoFlag)
 
 /** User adjustable as styles (not relating to run-time layout calculation). */
 #define CU_CHINFO_STYLE_ALL \

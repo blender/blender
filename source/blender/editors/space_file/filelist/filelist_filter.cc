@@ -7,6 +7,7 @@
  */
 
 #include "AS_asset_representation.hh"
+#include "AS_essentials_library.hh"
 
 #include "BLI_fnmatch.h"
 #include "BLI_listbase.h"
@@ -14,6 +15,7 @@
 #include "BLI_string.h"
 #include "BLI_string_search.hh"
 #include "BLI_string_utf8.h"
+#include "BLI_uuid.h"
 #include "BLI_vector.hh"
 
 #include "BKE_idtype.hh"
@@ -188,6 +190,9 @@ bool is_filtered_asset(FileListInternEntry *file, FileListFilter *filter)
   }
 
   if (((filter->flags & FLF_ASSETS_HIDE_ONLINE) != 0) && asset->is_online()) {
+    return false;
+  }
+  if (asset_system::skip_experimental_asset_catalog(asset_data.catalog_id)) {
     return false;
   }
 

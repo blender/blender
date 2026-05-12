@@ -413,7 +413,7 @@ static void rna_Nurb_type_set(PointerRNA *ptr, int value)
   Nurb *nu = static_cast<Nurb *>(ptr->data);
   const int pntsu_prev = nu->pntsu;
 
-  if (BKE_nurb_type_convert(nu, value, true, nullptr)) {
+  if (BKE_nurb_type_convert(nu, eNurbType(value), true, nullptr)) {
     if (nu->pntsu != pntsu_prev) {
       cu->actvert = CU_ACT_NONE;
     }
@@ -517,7 +517,7 @@ static void rna_Curve_bevel_mode_set(PointerRNA *ptr, int value)
     }
   }
 
-  cu->bevel_mode = value;
+  cu->bevel_mode = eCurveBevelMode(value);
 }
 
 static bool rna_Curve_otherObject_poll(PointerRNA *ptr, PointerRNA value)
@@ -718,9 +718,10 @@ static void rna_Curve_spline_bezpoints_add(ID *id, Nurb *nu, ReportList *reports
   }
 }
 
-static Nurb *rna_Curve_spline_new(Curve *cu, int type)
+static Nurb *rna_Curve_spline_new(Curve *cu, int type_i)
 {
   Nurb *nu = MEM_new<Nurb>("spline.new");
+  const eNurbType type = eNurbType(type_i);
 
   if (type == CU_BEZIER) {
     BezTriple *bezt = MEM_new_zeroed<BezTriple>("spline.new.bezt");

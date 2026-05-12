@@ -9,10 +9,10 @@ namespace blender {
 struct Image;
 
 /* Create python module _cycles used by addon. */
-void *CCL_python_module_init(void);
+void *CCL_python_module_init();
 
-void CCL_log_init(void);
-void CCL_implicit_sharing_init(void);
+void CCL_log_init();
+void CCL_implicit_sharing_init();
 
 /* Texture cache generation. */
 

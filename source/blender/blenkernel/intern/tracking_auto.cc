@@ -261,7 +261,7 @@ static MovieTrackingMarker libmv_marker_to_dna_marker(const libmv_Marker &libmv_
   libmv_frame_to_normalized_relative(
       libmv_marker.search_region_max, libmv_marker.center, frame_dimensions, marker.search_max);
 
-  marker.flag = 0;
+  marker.flag = TrackingMarkerFlag{};
   if (libmv_marker.source == LIBMV_MARKER_SOURCE_TRACKED) {
     marker.flag |= MARKER_TRACKED;
   }
@@ -598,7 +598,7 @@ static void reference_keyframed_image_buffers(AutoTrackContext *context)
     MovieClipUser user_at_keyframe;
     BKE_movieclip_user_set_frame(&user_at_keyframe, scene_frame);
     user_at_keyframe.render_size = MCLIP_PROXY_RENDER_SIZE_FULL;
-    user_at_keyframe.render_flag = 0;
+    user_at_keyframe.render_flag = eMovieClipProxy_RenderFlag{};
 
     /* Keep reference to the image buffer so that we can manipulate its flags later on.
      * Also request the movie cache to not remove the image buffer from the cache. */

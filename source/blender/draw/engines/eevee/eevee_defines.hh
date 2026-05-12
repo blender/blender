@@ -272,15 +272,20 @@
 /* Uniform Buffers. */
 /* Slot 0 is GPU_NODE_TREE_UBO_SLOT. */
 #define UNIFORM_BUF_SLOT 1
+/* Split from the main uniform buffer since they're updated multiple times per frame. */
+#define PIPELINE_BUF_SLOT 2
+#define RAYTRACE_BUF_SLOT 3
 /* Only during surface shading (forward and deferred eval). */
-#define IRRADIANCE_GRID_BUF_SLOT 2
-#define SPHERE_PROBE_BUF_SLOT 3
-#define PLANAR_PROBE_BUF_SLOT 4
+#define IRRADIANCE_GRID_BUF_SLOT 4
+#define SPHERE_PROBE_BUF_SLOT 5
+#define PLANAR_PROBE_BUF_SLOT 6
 /* Only during pre-pass. */
-#define VELOCITY_CAMERA_PREV_BUF 2
-#define VELOCITY_CAMERA_CURR_BUF 3
-#define VELOCITY_CAMERA_NEXT_BUF 4
-#define CLIP_PLANE_BUF 5
+#define VELOCITY_CAMERA_PREV_BUF 4
+#define VELOCITY_CAMERA_CURR_BUF 5
+#define VELOCITY_CAMERA_NEXT_BUF 6
+#define CLIP_PLANE_BUF 7
+/* Only during subsurface scattering */
+#define SUBSURFACE_BUF_SLOT 4
 
 /* Storage Buffers. */
 #define LIGHT_CULL_BUF_SLOT 0

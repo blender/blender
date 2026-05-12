@@ -43,6 +43,8 @@ set(LLVM_EXTRA_ARGS
   -DLLVM_ENABLE_PROJECTS=clang${LLVM_EXTRA_PROJECTS}
   -DPython3_ROOT_DIR=${LIBDIR}/python/
   -DPython3_EXECUTABLE=${PYTHON_BINARY}
+  # Enforce C++17 as C++20 cause compilation errors on recent GCC versions, fixed in LLVM 22.1.0 (GH PR #169772), remove on upgrade.
+  -DCMAKE_CXX_STANDARD=17
   ${LLVM_XML2_ARGS}
 )
 
@@ -60,7 +62,7 @@ if(WIN32)
     ${PATCH_CMD} -p 1 -d
       ${BUILD_DIR}/llvm/src/external_llvm <
       ${PATCH_DIR}/llvm_clang_cuda_msvc_header_fix.diff
-    )
+  )
 else()
   set(LLVM_GENERATOR "Unix Makefiles")
 endif()

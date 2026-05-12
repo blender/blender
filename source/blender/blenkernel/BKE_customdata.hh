@@ -550,7 +550,7 @@ void CustomData_set_layer_render_index(CustomData *data, eCustomDataType type, i
 /**
  * Adds flag to the layer flags.
  */
-void CustomData_set_layer_flag(CustomData *data, eCustomDataType type, int flag);
+void CustomData_set_layer_flag(CustomData *data, eCustomDataType type, eCustomDataLayer_Flag flag);
 
 void CustomData_bmesh_set_default(CustomData *data, void **block);
 void CustomData_bmesh_free_block(CustomData *data, void **block);

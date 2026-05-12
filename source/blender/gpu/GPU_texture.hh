@@ -128,7 +128,7 @@ enum class TextureFormat : uint8_t {
 #undef DECLARE
 };
 
-inline constexpr DataFormat to_data_format(TextureFormat format)
+constexpr DataFormat to_data_format(TextureFormat format)
 {
   return DataFormat(int(format));
 }
@@ -199,7 +199,7 @@ enum class TextureTargetFormat : uint8_t {
 #undef DECLARE
 };
 
-inline constexpr TextureFormat to_texture_format(TextureTargetFormat format)
+constexpr TextureFormat to_texture_format(TextureTargetFormat format)
 {
   return TextureFormat(int(format));
 }
@@ -264,7 +264,7 @@ enum class TextureWriteFormat : uint8_t {
 #undef DECLARE
 };
 
-inline constexpr TextureFormat to_texture_format(TextureWriteFormat format)
+constexpr TextureFormat to_texture_format(TextureWriteFormat format)
 {
   return TextureFormat(int(format));
 }

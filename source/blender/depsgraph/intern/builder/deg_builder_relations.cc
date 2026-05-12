@@ -1036,6 +1036,10 @@ void DepsgraphRelationBuilder::build_object_data(Object *object)
     case OB_SPEAKER:
       build_object_data_speaker(object);
       break;
+    case OB_EMPTY:
+    case OB_GPENCIL_LEGACY:
+    case OB_TYPE_MAX:
+      break;
   }
   Key *key = BKE_key_from_object(object);
   if (key != nullptr) {
@@ -2483,6 +2487,8 @@ void DepsgraphRelationBuilder::build_particle_systems(Object *object)
             build_particle_system_visualization_object(object, &psys, go.ob);
           }
         }
+        break;
+      default:
         break;
     }
   }

@@ -19,8 +19,8 @@
 
 void _BLI_assert_print_pos(const char *file, int line, const char *function, const char *id);
 void _BLI_assert_print_extra(const char *str);
-void _BLI_assert_print_backtrace(void);
-void _BLI_assert_abort(void);
+void _BLI_assert_print_backtrace();
+void _BLI_assert_abort();
 void _BLI_assert_unreachable_print(const char *file, int line, const char *function);
 
 #ifdef _MSC_VER

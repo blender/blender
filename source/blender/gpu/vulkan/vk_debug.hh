@@ -30,7 +30,7 @@ class VKDebuggingTools {
   void print_labels(const VkDebugUtilsMessengerCallbackDataEXT *callback_data);
 
  private:
-  VkDebugUtilsMessengerEXT vk_debug_utils_messenger = nullptr;
+  VkDebugUtilsMessengerEXT vk_debug_utils_messenger = VK_NULL_HANDLE;
 };
 
 void object_label(VkObjectType vk_object_type, uint64_t object_handle, const char *name);

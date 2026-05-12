@@ -27,7 +27,7 @@ PyDoc_STRVAR(
     "\n"
     "   Builds a TipRemoverShader object.\n"
     "\n"
-    "   :arg tip_length: The length of the piece of stroke we want to remove\n"
+    "   :param tip_length: The length of the piece of stroke we want to remove\n"
     "      at each extremity.\n"
     "   :type tip_length: float\n"
     "\n"
@@ -35,7 +35,7 @@ PyDoc_STRVAR(
     "\n"
     "   Removes the stroke's extremities.\n"
     "\n"
-    "   :arg stroke: A Stroke object.\n"
+    "   :param stroke: A Stroke object.\n"
     "   :type stroke: :class:`freestyle.types.Stroke`\n");
 static int TipRemoverShader___init__(BPy_TipRemoverShader *self, PyObject *args, PyObject *kwds)
 {

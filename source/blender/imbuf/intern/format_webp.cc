@@ -127,7 +127,7 @@ ImBuf *imb_load_filepath_thumbnail_webp(const char *filepath,
   return ibuf;
 }
 
-bool imb_savewebp(ImBuf *ibuf, const char *filepath, int flags)
+static std::tuple<WriteContext, ImageSpec> prepare_save_webp(ImBuf *ibuf, int flags)
 {
   const int file_channels = ibuf->planes >> 3;
   const TypeDesc data_format = TypeDesc::UINT8;
@@ -150,8 +150,19 @@ bool imb_savewebp(ImBuf *ibuf, const char *filepath, int flags)
     file_spec.attribute("compression",
                         std::string("webp:") + std::to_string(ibuf->foptions.quality));
   }
+  return {ctx, file_spec};
+}
 
+bool imb_savewebp(ImBuf *ibuf, const char *filepath, int flags)
+{
+  const auto [ctx, file_spec] = prepare_save_webp(ibuf, flags);
   return imb_oiio_write(ctx, filepath, file_spec);
+}
+
+Vector<uint8_t> imb_save_buffer_webp(ImBuf *ibuf, int flags)
+{
+  const auto [ctx, file_spec] = prepare_save_webp(ibuf, flags);
+  return imb_oiio_write_buffer(ctx, file_spec);
 }
 
 }  // namespace blender

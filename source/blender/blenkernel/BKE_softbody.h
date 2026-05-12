@@ -32,7 +32,7 @@ struct BodyPoint {
 /**
  * Allocates and initializes general main data.
  */
-extern struct SoftBody *sbNew(void);
+extern struct SoftBody *sbNew();
 
 /**
  * Frees internal data and soft-body itself.
@@ -68,7 +68,7 @@ extern void sbObjectToSoftbody(struct Object *ob);
  * Soft-body global visible functions.
  * Links the soft-body module to a 'test for Interrupt' function, pass NULL to clear the callback.
  */
-extern void sbSetInterruptCallBack(int (*f)(void));
+extern void sbSetInterruptCallBack(int (*f)());
 
 /**
  * A precise position vector denoting the motion of the center of mass give a rotation/scale matrix

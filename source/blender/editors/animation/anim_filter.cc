@@ -1012,7 +1012,7 @@ static bool skip_fcurve_selected_data(bAnimContext *ac,
                                       ID *owner_id,
                                       const eAnimFilter_Flags filter_mode)
 {
-  if (fcu->grp != nullptr && fcu->grp->flag & ADT_CURVES_ALWAYS_VISIBLE) {
+  if (fcu->grp != nullptr && fcu->grp->flag & AGRP_CURVES_ALWAYS_VISIBLE) {
     return false;
   }
   /* hidden items should be skipped if we only care about visible data,
@@ -1033,7 +1033,7 @@ static bool skip_fcurve_selected_data(bAnimContext *ac,
       pchan = BKE_pose_channel_find_name(ob->pose, bone_name);
 
       /* check whether to continue or skip */
-      if (pchan && pchan->bone) {
+      if (pchan && pchan->bone_get(*ob)) {
         /* If only visible channels,
          * skip if bone not visible unless user wants channels from hidden data too. */
         if (skip_hidden) {
@@ -3083,6 +3083,8 @@ static size_t animdata_filter_ds_obdata(bAnimContext *ac,
       expanded = FILTER_LIGHTPROBE_OBJD(probe);
       break;
     }
+    default:
+      break;
   }
 
   /* add object data animation channels */
@@ -3103,6 +3105,8 @@ static size_t animdata_filter_ds_obdata(bAnimContext *ac,
         }
         break;
       }
+      default:
+        break;
     }
   }
   END_ANIMFILTER_SUBCHANNELS;

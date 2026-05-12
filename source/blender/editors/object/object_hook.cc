@@ -376,21 +376,21 @@ static void select_editcurve_hook(Object *obedit, HookModifierData *hmd)
       a = nu.pntsu;
       while (a--) {
         if (nr == hmd->indexar[index]) {
-          bezt->f1 |= SELECT;
+          bezt->f1 |= BEZT_FLAG_SELECT;
           if (index < hmd->indexar_num - 1) {
             index++;
           }
         }
         nr++;
         if (nr == hmd->indexar[index]) {
-          bezt->f2 |= SELECT;
+          bezt->f2 |= BEZT_FLAG_SELECT;
           if (index < hmd->indexar_num - 1) {
             index++;
           }
         }
         nr++;
         if (nr == hmd->indexar[index]) {
-          bezt->f3 |= SELECT;
+          bezt->f3 |= BEZT_FLAG_SELECT;
           if (index < hmd->indexar_num - 1) {
             index++;
           }

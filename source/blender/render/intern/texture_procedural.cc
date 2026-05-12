@@ -721,10 +721,11 @@ static int multitex(Tex *tex,
         tex->nodetree, texres, texvec, thread, tex, which_output, cfra, texnode_preview, nullptr);
   }
   else {
+    if (tex->type == eTex_Type(0)) {
+      texres->tin = 0.0f;
+      return 0;
+    }
     switch (tex->type) {
-      case 0:
-        texres->tin = 0.0f;
-        return 0;
       case TEX_CLOUDS:
         retval = clouds(tex, texvec, texres);
         break;

@@ -2606,6 +2606,8 @@ ccl_device_forceinline bool integrate_volume_phase_scatter(
   INTEGRATOR_STATE_WRITE(state, ray, tmax) = FLT_MAX;
 #  ifdef __RAY_DIFFERENTIALS__
   INTEGRATOR_STATE_WRITE(state, ray, dP) = differential_make_compact(sd->dP);
+  INTEGRATOR_STATE_WRITE(state, ray, dD) = volume_phase_widen_dD(INTEGRATOR_STATE(state, ray, dD),
+                                                                 sampled_roughness);
 #  endif
   // Save memory by storing last hit prim and object in isect
   INTEGRATOR_STATE_WRITE(state, isect, prim) = sd->prim;

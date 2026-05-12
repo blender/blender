@@ -72,6 +72,8 @@ set(SRC_OSL
   node_particle_info.osl
   node_ray_portal_bsdf.osl
   node_raycast.osl
+  node_raycast_attr_float.osl
+  node_raycast_attr_vector.osl
   node_refraction_bsdf.osl
   node_rgb_curves.osl
   node_rgb_ramp.osl
@@ -159,6 +161,7 @@ set(SRC_OSL_HEADERS
   node_noise.h
   node_ramp_util.h
   node_radial_tiling_shared.h
+  node_scatter.h
   node_voronoi.h
   stdcycles.h
   ${SRC_OSL_HEADER_DIST}

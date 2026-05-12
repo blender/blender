@@ -218,10 +218,10 @@ static void ntree_version_245(FileData *fd, Library * /*lib*/, bNodeTree *ntree)
       if (node.storage && nodeid && GS(nodeid->name) == ID_IM) {
         image = id_cast<Image *>(nodeid);
         iuser = static_cast<ImageUser *>(node.storage);
-        if (iuser->flag & IMA_OLD_PREMUL) {
-          iuser->flag &= ~IMA_OLD_PREMUL;
+        if (iuser->flag & eImageUser_Flag(IMA_OLD_PREMUL)) {
+          iuser->flag &= ~eImageUser_Flag(IMA_OLD_PREMUL);
         }
-        if (iuser->flag & IMA_DO_PREMUL) {
+        if (iuser->flag & eImageUser_Flag(IMA_DO_PREMUL)) {
           image->flag &= ~IMA_OLD_PREMUL;
           image->alpha_mode = IMA_ALPHA_STRAIGHT;
         }
@@ -430,8 +430,8 @@ void blo_do_version_old_trackto_to_constraints(Object *ob)
 
     /* copy tracking settings from the object */
     data->tar = ob->track;
-    data->reserved1 = ob->trackflag;
-    data->reserved2 = ob->upflag;
+    data->reserved1 = eTrackToAxis_Modes(ob->trackflag);
+    data->reserved2 = eUpAxis_Modes(ob->upflag);
   }
 
   /* clear old track setting */
@@ -511,7 +511,7 @@ void blo_do_versions_pre250(FileData *fd, Library *lib, Main *bmain)
     Object *ob = static_cast<Object *>(bmain->objects.first);
     while (ob) {
       if (ob->transflag & 1) {
-        ob->transflag -= 1;
+        ob->transflag &= ~eObject_TransFlag(1);
       }
       ob = static_cast<Object *>(ob->id.next);
     }
@@ -762,10 +762,8 @@ void blo_do_versions_pre250(FileData *fd, Library *lib, Main *bmain)
     for (mesh = static_cast<Mesh *>(bmain->meshes.first); mesh;
          mesh = static_cast<Mesh *>(mesh->id.next))
     {
-      enum {
-        ME_SMESH = (1 << 6),
-        ME_SUBSURF = (1 << 7),
-      };
+      constexpr eMesh_Flag ME_SMESH = eMesh_Flag(1 << 6);
+      constexpr eMesh_Flag ME_SUBSURF = eMesh_Flag(1 << 7);
       if (mesh->flag & ME_SMESH) {
         mesh->flag &= ~ME_SMESH;
         mesh->flag |= ME_SUBSURF;
@@ -846,7 +844,7 @@ void blo_do_versions_pre250(FileData *fd, Library *lib, Main *bmain)
     for (mesh = static_cast<Mesh *>(bmain->meshes.first); mesh;
          mesh = static_cast<Mesh *>(mesh->id.next))
     {
-      enum { ME_SUBSURF = (1 << 7) };
+      constexpr eMesh_Flag ME_SUBSURF = eMesh_Flag(1 << 7);
       if ((mesh->flag & ME_SUBSURF) && (mesh->subdivr == 0)) {
         mesh->subdivr = mesh->subdiv;
       }
@@ -860,7 +858,7 @@ void blo_do_versions_pre250(FileData *fd, Library *lib, Main *bmain)
         for (SpaceLink &sl : area.spacedata) {
           if (sl.spacetype == SPACE_GRAPH) {
             SpaceSeq *sseq = reinterpret_cast<SpaceSeq *>(&sl);
-            sseq->v2d.keeptot = 0;
+            sseq->v2d.keeptot = {};
           }
         }
       }
@@ -886,8 +884,8 @@ void blo_do_versions_pre250(FileData *fd, Library *lib, Main *bmain)
       for (bConstraint &curcon : list) {
         if (curcon.type == CONSTRAINT_TYPE_TRACKTO) {
           bTrackToConstraint *data = static_cast<bTrackToConstraint *>(curcon.data);
-          data->reserved1 = ob->trackflag;
-          data->reserved2 = ob->upflag;
+          data->reserved1 = eTrackToAxis_Modes(ob->trackflag);
+          data->reserved2 = eUpAxis_Modes(ob->upflag);
         }
       }
 
@@ -897,8 +895,8 @@ void blo_do_versions_pre250(FileData *fd, Library *lib, Main *bmain)
             for (bConstraint &curcon : pchan.constraints) {
               if (curcon.type == CONSTRAINT_TYPE_TRACKTO) {
                 bTrackToConstraint *data = static_cast<bTrackToConstraint *>(curcon.data);
-                data->reserved1 = ob->trackflag;
-                data->reserved2 = ob->upflag;
+                data->reserved1 = eTrackToAxis_Modes(ob->trackflag);
+                data->reserved2 = eUpAxis_Modes(ob->upflag);
               }
             }
           }
@@ -955,8 +953,8 @@ void blo_do_versions_pre250(FileData *fd, Library *lib, Main *bmain)
       for (bConstraint &curcon : list) {
         if (curcon.type == CONSTRAINT_TYPE_TRACKTO) {
           bTrackToConstraint *data = static_cast<bTrackToConstraint *>(curcon.data);
-          data->reserved1 = ob->trackflag;
-          data->reserved2 = ob->upflag;
+          data->reserved1 = eTrackToAxis_Modes(ob->trackflag);
+          data->reserved2 = eUpAxis_Modes(ob->upflag);
         }
       }
 
@@ -966,8 +964,8 @@ void blo_do_versions_pre250(FileData *fd, Library *lib, Main *bmain)
             for (bConstraint &curcon : pchan.constraints) {
               if (curcon.type == CONSTRAINT_TYPE_TRACKTO) {
                 bTrackToConstraint *data = static_cast<bTrackToConstraint *>(curcon.data);
-                data->reserved1 = ob->trackflag;
-                data->reserved2 = ob->upflag;
+                data->reserved1 = eTrackToAxis_Modes(ob->trackflag);
+                data->reserved2 = eUpAxis_Modes(ob->upflag);
               }
             }
           }
@@ -988,47 +986,47 @@ void blo_do_versions_pre250(FileData *fd, Library *lib, Main *bmain)
 
             sbuts->v2d.maxzoom = 1.2f;
 
-            if (sbuts->mainb == BUTS_LAMP) {
-              sbuts->mainb = CONTEXT_SHADING;
+            if (sbuts->mainb == eSpaceButtons_Context(BUTS_LAMP)) {
+              sbuts->mainb = eSpaceButtons_Context(CONTEXT_SHADING);
               // sbuts->tab[CONTEXT_SHADING] = TAB_SHADING_LAMP;
             }
-            else if (sbuts->mainb == BUTS_MAT) {
-              sbuts->mainb = CONTEXT_SHADING;
+            else if (sbuts->mainb == eSpaceButtons_Context(BUTS_MAT)) {
+              sbuts->mainb = eSpaceButtons_Context(CONTEXT_SHADING);
               // sbuts->tab[CONTEXT_SHADING] = TAB_SHADING_MAT;
             }
-            else if (sbuts->mainb == BUTS_TEX) {
-              sbuts->mainb = CONTEXT_SHADING;
+            else if (sbuts->mainb == eSpaceButtons_Context(BUTS_TEX)) {
+              sbuts->mainb = eSpaceButtons_Context(CONTEXT_SHADING);
               // sbuts->tab[CONTEXT_SHADING] = TAB_SHADING_TEX;
             }
-            else if (sbuts->mainb == BUTS_ANIM) {
-              sbuts->mainb = CONTEXT_OBJECT;
+            else if (sbuts->mainb == eSpaceButtons_Context(BUTS_ANIM)) {
+              sbuts->mainb = eSpaceButtons_Context(CONTEXT_OBJECT);
             }
-            else if (sbuts->mainb == BUTS_WORLD) {
-              sbuts->mainb = CONTEXT_SCENE;
+            else if (sbuts->mainb == eSpaceButtons_Context(BUTS_WORLD)) {
+              sbuts->mainb = eSpaceButtons_Context(CONTEXT_SCENE);
               // sbuts->tab[CONTEXT_SCENE] = TAB_SCENE_WORLD;
             }
-            else if (sbuts->mainb == BUTS_RENDER) {
-              sbuts->mainb = CONTEXT_SCENE;
+            else if (sbuts->mainb == eSpaceButtons_Context(BUTS_RENDER)) {
+              sbuts->mainb = eSpaceButtons_Context(CONTEXT_SCENE);
               // sbuts->tab[CONTEXT_SCENE] = TAB_SCENE_RENDER;
             }
-            else if (sbuts->mainb == BUTS_FPAINT) {
-              sbuts->mainb = CONTEXT_EDITING;
+            else if (sbuts->mainb == eSpaceButtons_Context(BUTS_FPAINT)) {
+              sbuts->mainb = eSpaceButtons_Context(CONTEXT_EDITING);
             }
-            else if (sbuts->mainb == BUTS_RADIO) {
-              sbuts->mainb = CONTEXT_SHADING;
+            else if (sbuts->mainb == eSpaceButtons_Context(BUTS_RADIO)) {
+              sbuts->mainb = eSpaceButtons_Context(CONTEXT_SHADING);
               // sbuts->tab[CONTEXT_SHADING] = TAB_SHADING_RAD;
             }
-            else if (sbuts->mainb == BUTS_CONSTRAINT) {
-              sbuts->mainb = CONTEXT_OBJECT;
+            else if (sbuts->mainb == eSpaceButtons_Context(BUTS_CONSTRAINT)) {
+              sbuts->mainb = eSpaceButtons_Context(CONTEXT_OBJECT);
             }
-            else if (sbuts->mainb == BUTS_SCRIPT) {
-              sbuts->mainb = CONTEXT_OBJECT;
+            else if (sbuts->mainb == eSpaceButtons_Context(BUTS_SCRIPT)) {
+              sbuts->mainb = eSpaceButtons_Context(CONTEXT_OBJECT);
             }
-            else if (sbuts->mainb == BUTS_EDIT) {
-              sbuts->mainb = CONTEXT_EDITING;
+            else if (sbuts->mainb == eSpaceButtons_Context(BUTS_EDIT)) {
+              sbuts->mainb = eSpaceButtons_Context(CONTEXT_EDITING);
             }
             else {
-              sbuts->mainb = CONTEXT_SCENE;
+              sbuts->mainb = eSpaceButtons_Context(CONTEXT_SCENE);
             }
           }
         }
@@ -1275,7 +1273,7 @@ void blo_do_versions_pre250(FileData *fd, Library *lib, Main *bmain)
         arm = static_cast<bArmature *>(
             blo_do_versions_newlibadr(fd, &ob->id, ID_IS_LINKED(ob), ob->data));
         enum { ARM_DRAWXRAY = (1 << 1) };
-        if (arm->flag & ARM_DRAWXRAY) {
+        if (arm->flag & eArmature_Flag(ARM_DRAWXRAY)) {
           ob->dtx |= OB_DRAW_IN_FRONT;
         }
       }
@@ -1283,10 +1281,8 @@ void blo_do_versions_pre250(FileData *fd, Library *lib, Main *bmain)
         Mesh *mesh = static_cast<Mesh *>(
             blo_do_versions_newlibadr(fd, &ob->id, ID_IS_LINKED(ob), ob->data));
 
-        enum {
-          ME_SUBSURF = (1 << 7),
-          ME_OPT_EDGES = (1 << 8),
-        };
+        constexpr eMesh_Flag ME_SUBSURF = eMesh_Flag(1 << 7);
+        constexpr eMesh_Flag ME_OPT_EDGES = eMesh_Flag(1 << 8);
 
         if (mesh->flag & ME_SUBSURF) {
           SubsurfModifierData *smd = reinterpret_cast<SubsurfModifierData *>(
@@ -1296,12 +1292,12 @@ void blo_do_versions_pre250(FileData *fd, Library *lib, Main *bmain)
           smd->renderLevels = std::max<short>(1, mesh->subdivr);
           smd->subdivType = mesh->subsurftype;
 
-          smd->modifier.mode = 0;
+          smd->modifier.mode = ModifierMode{};
           if (mesh->subdiv != 0) {
-            smd->modifier.mode |= 1;
+            smd->modifier.mode |= ModifierMode(1);
           }
           if (mesh->subdivr != 0) {
-            smd->modifier.mode |= 2;
+            smd->modifier.mode |= ModifierMode(2);
           }
 
           if (mesh->flag & ME_OPT_EDGES) {
@@ -1394,7 +1390,6 @@ void blo_do_versions_pre250(FileData *fd, Library *lib, Main *bmain)
 
       if (ob->pose) {
         for (bPoseChannel &pchan : ob->pose->chanbase) {
-          /* NOTE: pchan->bone is also lib-link stuff. */
           if (pchan.limitmin[0] == 0.0f && pchan.limitmax[0] == 0.0f) {
             pchan.limitmin[0] = pchan.limitmin[1] = pchan.limitmin[2] = -180.0f;
             pchan.limitmax[0] = pchan.limitmax[1] = pchan.limitmax[2] = 180.0f;
@@ -1705,6 +1700,8 @@ void blo_do_versions_pre250(FileData *fd, Library *lib, Main *bmain)
 
             break;
           }
+          default:
+            break;
         }
       }
 
@@ -1730,6 +1727,8 @@ void blo_do_versions_pre250(FileData *fd, Library *lib, Main *bmain)
                   }
                   break;
                 }
+                default:
+                  break;
               }
             }
           }
@@ -1742,7 +1741,7 @@ void blo_do_versions_pre250(FileData *fd, Library *lib, Main *bmain)
           CurveModifierData *cmd = reinterpret_cast<CurveModifierData *>(&md);
 
           if (cmd->defaxis == 0) {
-            cmd->defaxis = ob->trackflag + 1;
+            cmd->defaxis = CurveModifierDefaultAxis(ob->trackflag + 1);
           }
         }
       }
@@ -1784,7 +1783,7 @@ void blo_do_versions_pre250(FileData *fd, Library *lib, Main *bmain)
 
         ima->gen_x = 256;
         ima->gen_y = 256;
-        ima->gen_type = 1;
+        ima->gen_type = eImageGenType(1);
 
         if (STREQLEN(ima->id.name + 2, "Viewer Node", sizeof(ima->id.name) - 2)) {
           ima->source = IMA_SRC_VIEWER;
@@ -1806,14 +1805,14 @@ void blo_do_versions_pre250(FileData *fd, Library *lib, Main *bmain)
         if (tex->type == TEX_IMAGE && tex->ima) {
           ima = static_cast<Image *>(
               blo_do_versions_newlibadr(fd, &tex->id, ID_IS_LINKED(tex), tex->ima));
-          if (tex->imaflag & TEX_ANIM5) {
+          if (tex->imaflag & eTex_ImaFlag(TEX_ANIM5)) {
             ima->source = IMA_SRC_MOVIE;
           }
         }
         tex->iuser.frames = tex->frames;
         tex->iuser.offset = tex->offset;
         tex->iuser.sfra = tex->sfra;
-        tex->iuser.cycl = (tex->imaflag & TEX_ANIMCYCLIC) != 0;
+        tex->iuser.cycl = (tex->imaflag & eTex_ImaFlag(TEX_ANIMCYCLIC)) != 0;
       }
       for (sce = static_cast<Scene *>(bmain->scenes.first); sce;
            sce = static_cast<Scene *>(sce->id.next))
@@ -1942,11 +1941,13 @@ void blo_do_versions_pre250(FileData *fd, Library *lib, Main *bmain)
               bLocLimitConstraint *data = static_cast<bLocLimitConstraint *>(curcon.data);
 
               /* old limit without parent option for objects */
-              if (data->flag2) {
+              if (int(data->flag2)) {
                 curcon.ownspace = CONSTRAINT_SPACE_LOCAL;
               }
               break;
             }
+            default:
+              break;
           }
         }
 
@@ -1974,6 +1975,8 @@ void blo_do_versions_pre250(FileData *fd, Library *lib, Main *bmain)
                     }
                     break;
                   }
+                  default:
+                    break;
                 }
               }
 
@@ -2077,13 +2080,13 @@ void blo_do_versions_pre250(FileData *fd, Library *lib, Main *bmain)
     for (tex = static_cast<Tex *>(bmain->textures.first); tex;
          tex = static_cast<Tex *>(tex->id.next))
     {
-      if (tex->iuser.flag & IMA_OLD_PREMUL) {
-        tex->iuser.flag &= ~IMA_OLD_PREMUL;
+      if (int(tex->iuser.flag) & int(IMA_OLD_PREMUL)) {
+        tex->iuser.flag &= ~eImageUser_Flag(IMA_OLD_PREMUL);
       }
 
       ima = static_cast<Image *>(
           blo_do_versions_newlibadr(fd, &tex->id, ID_IS_LINKED(tex), tex->ima));
-      if (ima && (tex->iuser.flag & IMA_DO_PREMUL)) {
+      if (ima && (int(tex->iuser.flag) & int(IMA_DO_PREMUL))) {
         ima->flag &= ~IMA_OLD_PREMUL;
         ima->alpha_mode = IMA_ALPHA_STRAIGHT;
       }
@@ -2282,13 +2285,14 @@ void blo_do_versions_pre250(FileData *fd, Library *lib, Main *bmain)
 
         part->rotmode = PART_ROT_VEL;
 
-        part->flag |= (paf->flag & PAF_BSPLINE) ? PART_HAIR_BSPLINE : 0;
-        part->flag |= (paf->flag & PAF_TRAND) ? PART_TRAND : 0;
-        part->flag |= (paf->flag & PAF_EDISTR) ? PART_EDISTR : 0;
-        part->flag |= (paf->flag & PAF_UNBORN) ? PART_UNBORN : 0;
-        part->flag |= (paf->flag & PAF_DIED) ? PART_DIED : 0;
-        part->from |= (paf->flag & PAF_FACE) ? PART_FROM_FACE : 0;
-        part->draw |= (paf->flag & PAF_SHOWE) ? PART_DRAW_EMITTER : 0;
+        part->flag |= (paf->flag & PAF_BSPLINE) ? PART_HAIR_BSPLINE : eParticleFlag{};
+        part->flag |= (paf->flag & PAF_TRAND) ? PART_TRAND : eParticleFlag{};
+        part->flag |= (paf->flag & PAF_EDISTR) ? PART_EDISTR : eParticleFlag{};
+        part->flag |= (paf->flag & PAF_UNBORN) ? PART_UNBORN : eParticleFlag{};
+        part->flag |= (paf->flag & PAF_DIED) ? PART_DIED : eParticleFlag{};
+        part->from = eParticleFrom(part->from | ((paf->flag & PAF_FACE) ? PART_FROM_FACE : 0));
+        part->draw |= eParticleDrawFlag((paf->flag & PAF_SHOWE) ? PART_DRAW_EMITTER :
+                                                                  eParticleDrawFlag{});
 
         psys->vgroup[PSYS_VG_DENSITY] = paf->vertgroup;
         psys->vgroup[PSYS_VG_VEL] = paf->vertgroup_v;
@@ -2417,7 +2421,7 @@ void blo_do_versions_pre250(FileData *fd, Library *lib, Main *bmain)
         MEM_delete(ob->fluidsimSettings);
 
         fluidmd->fss->lastgoodframe = INT_MAX;
-        fluidmd->fss->flag = 0;
+        fluidmd->fss->flag = eFluidsim_Flag{};
         fluidmd->fss->meshVelocities = nullptr;
       }
     }

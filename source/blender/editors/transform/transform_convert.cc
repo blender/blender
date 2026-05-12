@@ -242,7 +242,7 @@ static void set_prop_dist(TransInfo *t, const bool with_dist)
   TransData **td_table = MEM_new_array_uninitialized<TransData *>(td_table_len, __func__);
 
   /* Create and fill KD-tree of selected's positions - in global or proj_vec space. */
-  KDTree_3d *td_tree = kdtree_3d_new(td_table_len);
+  KDTree<float3> *td_tree = kdtree_new<float3>(td_table_len);
 
   int td_table_index = 0;
   FOREACH_TRANS_DATA_CONTAINER (t, tc) {
@@ -253,13 +253,13 @@ static void set_prop_dist(TransInfo *t, const bool with_dist)
 
       const float3 vec = prop_dist_loc_get(tc, td, use_island, proj_vec);
 
-      kdtree_3d_insert(td_tree, td_table_index, vec);
+      kdtree_insert<float3>(td_tree, td_table_index, vec);
       td_table[td_table_index++] = td;
     });
   }
   BLI_assert(td_table_index == td_table_len);
 
-  kdtree_3d_balance(td_tree);
+  kdtree_balance<float3>(td_tree);
 
   /* For each non-selected vertex, find distance to the nearest selected vertex. */
   FOREACH_TRANS_DATA_CONTAINER (t, tc) {
@@ -271,8 +271,8 @@ static void set_prop_dist(TransInfo *t, const bool with_dist)
 
       const float3 vec = prop_dist_loc_get(tc, td, use_island, proj_vec);
 
-      KDTreeNearest_3d nearest;
-      const int td_index = kdtree_3d_find_nearest(td_tree, vec, &nearest);
+      KDTreeNearest<float3> nearest;
+      const int td_index = kdtree_find_nearest<float3>(td_tree, vec, &nearest);
 
       td->rdist = -1.0f;
       if (td_index != -1) {
@@ -291,7 +291,7 @@ static void set_prop_dist(TransInfo *t, const bool with_dist)
     });
   }
 
-  kdtree_3d_free(td_tree);
+  kdtree_free<float3>(td_tree);
   MEM_delete(td_table);
 }
 

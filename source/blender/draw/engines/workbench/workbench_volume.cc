@@ -55,7 +55,7 @@ void VolumePass::object_sync_volume(Manager &manager,
 
   PassMain::Sub &sub_ps = ps_.sub("Volume Object SubPass");
 
-  const bool use_slice = (volume.display.axis_slice_method == AXIS_SLICE_SINGLE);
+  const bool use_slice = (volume.display.axis_slice_method == VOLUME_AXIS_SLICE_SINGLE);
 
   sub_ps.shader_set(
       ShaderCache::get().volume_get(false, volume.display.interpolation_method, false, use_slice));

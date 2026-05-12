@@ -359,7 +359,7 @@ bool GeometryManager::displace(Device *device, Scene *scene, Mesh *mesh, Progres
   }
 
   /* Corner normals for sharp edges and faces should be preserved, but we can not
-   * individually dispace corners as the mesh would break apart. Instead we
+   * individually displace corners as the mesh would break apart. Instead we
    * compute the delta between vertex normals before and after displacement and
    * apply the delta to corner normals. */
   bool need_recompute_vertex_normals = false;

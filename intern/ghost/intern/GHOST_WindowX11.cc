@@ -361,14 +361,20 @@ GHOST_WindowX11::GHOST_WindowX11(GHOST_SystemX11 *system,
     GHOST_PRINT("Created window\n");
   }
   else {
-    const char *text =
-        "A graphics card and driver with support for OpenGL 4.3 or higher is "
-        "required.\n\nInstalling the latest driver for your graphics card might resolve the "
-        "issue.";
-    const char *help = "https://www.blender.org/download/requirements/";
-    system->showMessageBox(
-        "Unsupported hardware", text, "Learn More", "Close", help, GHOST_DialogError);
-    exit(0);
+#ifdef WITH_OPENGL_BACKEND
+    if (type == GHOST_kDrawingContextTypeOpenGL) {
+      const char *text =
+          "A graphics card and driver with support for OpenGL 4.3 or higher is "
+          "required.\n\nInstalling the latest driver for your graphics card might resolve the "
+          "issue.";
+      const char *help = "https://www.blender.org/download/requirements/";
+      system->showMessageBox(
+          "Unsupported hardware", text, "Learn More", "Close", help, GHOST_DialogError);
+    }
+#endif /* WITH_OPENGL_BACKEND */
+    XDestroyWindow(display_, window_);
+    window_ = None;
+    return;
   }
 
   setTitle(title);

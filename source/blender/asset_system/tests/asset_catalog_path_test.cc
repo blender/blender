@@ -7,6 +7,8 @@
 #include "BLI_set.hh"
 #include "BLI_vector.hh"
 
+#include "BKE_gtest_base.hh"
+
 #include <set>
 #include <sstream>
 
@@ -14,7 +16,9 @@
 
 namespace blender::asset_system::tests {
 
-TEST(AssetCatalogPathTest, construction)
+class AssetCatalogPathTest : public bke::BlenderGTestBase {};
+
+TEST_F(AssetCatalogPathTest, construction)
 {
   AssetCatalogPath default_constructed;
   /* Use `.str()` to use `std:string`'s comparison operators here, not our own (which are tested
@@ -41,7 +45,7 @@ TEST(AssetCatalogPathTest, construction)
   EXPECT_EQ(from_string_ref, "long/string/with/a/path");
 }
 
-TEST(AssetCatalogPathTest, length)
+TEST_F(AssetCatalogPathTest, length)
 {
   const AssetCatalogPath one("1");
   EXPECT_EQ(1, one.length());
@@ -53,7 +57,7 @@ TEST(AssetCatalogPathTest, length)
   EXPECT_EQ(21, utf8.length()) << "13 characters should be 21 bytes.";
 }
 
-TEST(AssetCatalogPathTest, name)
+TEST_F(AssetCatalogPathTest, name)
 {
   EXPECT_EQ(StringRefNull(""), AssetCatalogPath("").name());
   EXPECT_EQ(StringRefNull("word"), AssetCatalogPath("word").name());
@@ -62,7 +66,7 @@ TEST(AssetCatalogPathTest, name)
             AssetCatalogPath("these/are/not/windows\\paths").name());
 }
 
-TEST(AssetCatalogPathTest, comparison_operators)
+TEST_F(AssetCatalogPathTest, comparison_operators)
 {
   const AssetCatalogPath empty("");
   const AssetCatalogPath the_path("the/path");
@@ -89,7 +93,7 @@ TEST(AssetCatalogPathTest, comparison_operators)
   EXPECT_TRUE(the_path);
 }
 
-TEST(AssetCatalogPathTest, move_semantics)
+TEST_F(AssetCatalogPathTest, move_semantics)
 {
   AssetCatalogPath source_path("source/path");
   EXPECT_TRUE(source_path);
@@ -99,7 +103,7 @@ TEST(AssetCatalogPathTest, move_semantics)
   EXPECT_TRUE(dest_path);
 }
 
-TEST(AssetCatalogPathTest, concatenation)
+TEST_F(AssetCatalogPathTest, concatenation)
 {
   AssetCatalogPath some_parent("some/родитель");
   AssetCatalogPath child = some_parent / "ребенок";
@@ -125,7 +129,7 @@ TEST(AssetCatalogPathTest, concatenation)
   EXPECT_EQ(concatenated_with_string, "some/родитель/child");
 }
 
-TEST(AssetCatalogPathTest, hashable)
+TEST_F(AssetCatalogPathTest, hashable)
 {
   AssetCatalogPath path("heyyyyy");
 
@@ -136,7 +140,7 @@ TEST(AssetCatalogPathTest, hashable)
   path_blender_set.add(path);
 }
 
-TEST(AssetCatalogPathTest, stream_operator)
+TEST_F(AssetCatalogPathTest, stream_operator)
 {
   AssetCatalogPath path("путь/в/Пермь");
   std::stringstream sstream;
@@ -144,7 +148,7 @@ TEST(AssetCatalogPathTest, stream_operator)
   EXPECT_EQ("путь/в/Пермь", sstream.str());
 }
 
-TEST(AssetCatalogPathTest, is_contained_in)
+TEST_F(AssetCatalogPathTest, is_contained_in)
 {
   const AssetCatalogPath catpath("simple/path/child");
   EXPECT_FALSE(catpath.is_contained_in("unrelated"));
@@ -176,7 +180,7 @@ TEST(AssetCatalogPathTest, is_contained_in)
       << "dotdot path components should have no meaning";
 }
 
-TEST(AssetCatalogPathTest, cleanup)
+TEST_F(AssetCatalogPathTest, cleanup)
 {
   {
     AssetCatalogPath ugly_path("/  some /   родитель  / ");
@@ -207,7 +211,7 @@ TEST(AssetCatalogPathTest, cleanup)
   }
 }
 
-TEST(AssetCatalogPathTest, iterate_components)
+TEST_F(AssetCatalogPathTest, iterate_components)
 {
   AssetCatalogPath path("путь/в/Пермь");
   Vector<std::pair<std::string, bool>> seen_components;
@@ -229,7 +233,7 @@ TEST(AssetCatalogPathTest, iterate_components)
   EXPECT_TRUE(seen_components[2].second);
 }
 
-TEST(AssetCatalogPathTest, rebase)
+TEST_F(AssetCatalogPathTest, rebase)
 {
   AssetCatalogPath path("some/path/to/some/catalog");
   EXPECT_EQ(path.rebase("some/path", "new/base"), "new/base/to/some/catalog");
@@ -249,7 +253,7 @@ TEST(AssetCatalogPathTest, rebase)
   EXPECT_EQ(empty.rebase("", ""), "");
 }
 
-TEST(AssetCatalogPathTest, parent)
+TEST_F(AssetCatalogPathTest, parent)
 {
   const AssetCatalogPath ascii_path("path/with/missing/parents");
   EXPECT_EQ(ascii_path.parent(), "path/with/missing");

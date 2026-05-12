@@ -822,7 +822,7 @@ static void rna_space_active_tool_reset(const PointerRNA *ptr)
 
 static bool rna_Space_bool_from_region_flag_get_by_type(PointerRNA *ptr,
                                                         const int region_type,
-                                                        const int region_flag)
+                                                        const eRegion_Flag region_flag)
 {
   ScrArea *area = rna_area_from_space(ptr);
   ARegion *region = BKE_area_find_region_type(area, region_type);
@@ -834,7 +834,7 @@ static bool rna_Space_bool_from_region_flag_get_by_type(PointerRNA *ptr,
 
 static void rna_Space_bool_from_region_flag_set_by_type(PointerRNA *ptr,
                                                         const int region_type,
-                                                        const int region_flag,
+                                                        const eRegion_Flag region_flag,
                                                         bool value)
 {
   ScrArea *area = rna_area_from_space(ptr);
@@ -848,7 +848,7 @@ static void rna_Space_bool_from_region_flag_set_by_type(PointerRNA *ptr,
 static void rna_Space_bool_from_region_flag_update_by_type(bContext *C,
                                                            PointerRNA *ptr,
                                                            const int region_type,
-                                                           const int region_flag)
+                                                           const eRegion_Flag region_flag)
 {
   ScrArea *area = rna_area_from_space(ptr);
   ARegion *region = BKE_area_find_region_type(area, region_type);
@@ -1488,7 +1488,7 @@ static void rna_3DViewShading_type_set(PointerRNA *ptr, int value)
   if (value != shading->type && value == OB_RENDER) {
     shading->prev_type = shading->type;
   }
-  shading->type = value;
+  shading->type = eDrawType(value);
 }
 
 static const EnumPropertyItem *rna_3DViewShading_type_itemf(bContext * /*C*/,
@@ -1638,6 +1638,10 @@ static const EnumPropertyItem *rna_View3DShading_studio_light_itemf(bContext * /
           case OB_RENDER:
             show_studiolight = ((sl.flag & STUDIOLIGHT_TYPE_WORLD) != 0);
             icon_id = sl.icon_id_radiance;
+            break;
+
+          case OB_BOUNDBOX:
+          case OB_WIRE:
             break;
         }
       }
@@ -1952,8 +1956,8 @@ static bool rna_SpaceImageEditor_show_uvedit_get(PointerRNA *ptr)
   if (win != nullptr) {
     Scene *scene = WM_window_get_active_scene(win);
     ViewLayer *view_layer = WM_window_get_active_view_layer(win);
-    /* FIXME Using G_MAIN is weak, but should work in practrice given current context (code already
-     * relies on 'G_MAIN data'). */
+    /* FIXME Using G_MAIN is weak, but should work in practice given current context
+     * (code already relies on 'G_MAIN data'). */
     BKE_view_layer_synced_ensure(*G_MAIN, scene, view_layer);
     obedit = BKE_view_layer_edit_object_get(view_layer);
   }
@@ -1969,8 +1973,8 @@ static bool rna_SpaceImageEditor_show_maskedit_get(PointerRNA *ptr)
   if (win != nullptr) {
     Scene *scene = WM_window_get_active_scene(win);
     ViewLayer *view_layer = WM_window_get_active_view_layer(win);
-    /* FIXME Using G_MAIN is weak, but should work in practrice given current context (code already
-     * relies on 'G_MAIN data'). */
+    /* FIXME Using G_MAIN is weak, but should work in practice given current context
+     * (code already relies on 'G_MAIN data'). */
     BKE_view_layer_synced_ensure(*G_MAIN, scene, view_layer);
     obedit = BKE_view_layer_edit_object_get(view_layer);
   }
@@ -2287,8 +2291,8 @@ static void rna_SpaceProperties_context_set(PointerRNA *ptr, int value)
 {
   SpaceProperties *sbuts = static_cast<SpaceProperties *>(ptr->data);
 
-  sbuts->mainb = value;
-  sbuts->mainbuser = value;
+  sbuts->mainb = eSpaceButtons_Context(value);
+  sbuts->mainbuser = eSpaceButtons_Context(value);
 }
 
 static const EnumPropertyItem *rna_SpaceProperties_context_itemf(bContext * /*C*/,
@@ -2550,6 +2554,22 @@ static void rna_SpaceGraphEditor_normalize_update(bContext *C, PointerRNA * /*pt
     return;
   }
 
+  ListBaseT<bAnimListElem> anim_data = {nullptr, nullptr};
+  /* This has to use the same filters as the graph editor uses to get its FCurves. */
+  const eAnimFilter_Flags filter = (ANIMFILTER_DATA_VISIBLE | ANIMFILTER_LIST_VISIBLE |
+                                    ANIMFILTER_NODUPLIS | ANIMFILTER_FCURVESONLY |
+                                    ANIMFILTER_CURVE_VISIBLE);
+  ANIM_animdata_filter(&ac, &anim_data, filter, ac.data, eAnimCont_Types(ac.datatype));
+  for (bAnimListElem &ale : anim_data) {
+    FCurve *fcu = static_cast<FCurve *>(ale.key_data);
+    float offset;
+    /* Calling this function updates the cached values in the `FCurve`. Doing so makes it so that
+     * the normalization will be correct after enabling the normalization, even with auto normalize
+     * disabled. */
+    ANIM_unit_mapping_get_factor(ac.scene, ale.id, fcu, ANIM_UNITCONV_NORMALIZE, &offset);
+  }
+  ANIM_animdata_freelist(&anim_data);
+
   ANIM_frame_channel_y_extents(C, &ac);
   ED_area_tag_refresh(ac.area);
 }
@@ -2591,8 +2611,8 @@ static void seq_build_proxy(bContext *C, PointerRNA *ptr)
     }
 
     /* Add new proxy size. */
-    strip.data->proxy->build_size_flags |= seq::rendersize_to_proxysize(
-        eSpaceSeq_Proxy_RenderSize(sseq->render_size));
+    strip.data->proxy->build_size_flags |= eStripProxyBuildSize(
+        seq::rendersize_to_proxysize(eSpaceSeq_Proxy_RenderSize(sseq->render_size)));
 
     /* Build proxy. */
     seq::proxy_build_start(pj->main, pj->scene, &strip, &processed_paths, true, pj->queue);
@@ -2999,9 +3019,12 @@ static void rna_SpaceNodeEditor_path_pop(SpaceNode *snode, bContext *C)
 }
 
 static void rna_SpaceNodeEditor_show_backdrop_update(Main * /*bmain*/,
-                                                     Scene * /*scene*/,
+                                                     Scene *scene,
                                                      PointerRNA * /*ptr*/)
 {
+  if (scene->compositing_node_group) {
+    DEG_id_tag_update(&scene->compositing_node_group->id, ID_RECALC_NTREE_OUTPUT);
+  }
   WM_main_add_notifier(NC_NODE | NA_EDITED, nullptr);
   WM_main_add_notifier(NC_SCENE | ND_NODES, nullptr);
 }
@@ -3100,9 +3123,18 @@ static std::optional<std::string> rna_SpaceClipOverlay_path(const PointerRNA *pt
 
 /* File browser. */
 
-static std::optional<std::string> rna_FileSelectParams_path(const PointerRNA * /*ptr*/)
+static std::optional<std::string> rna_FileSelectParams_path(const PointerRNA *ptr)
 {
-  return "params";
+  const PointerRNA space_ptr = ptr->parent();
+  if (!space_ptr.owner_id) {
+    return std::nullopt;
+  }
+
+  std::optional<std::string> editor_path = BKE_screen_path_from_screen_to_space(&space_ptr);
+  if (!editor_path) {
+    return std::nullopt;
+  }
+  return fmt::format("{}.params", *editor_path);
 }
 
 int rna_FileSelectParams_filename_editable(const PointerRNA *ptr, const char **r_info)
@@ -3884,12 +3916,25 @@ static void rna_FileAssetSelectParams_catalog_id_set(PointerRNA *ptr, const char
 }
 
 static const EnumPropertyItem *rna_FileAssetSelectParams_import_method_itemf(
-    bContext * /*C*/, PointerRNA * /*ptr*/, PropertyRNA * /*prop*/, bool *r_free)
+    bContext * /*C*/, PointerRNA *ptr, PropertyRNA * /*prop*/, bool *r_free)
 {
+  const FileAssetSelectParams *params = static_cast<FileAssetSelectParams *>(ptr->data);
+
   EnumPropertyItem *items = nullptr;
   int items_num = 0;
   for (const EnumPropertyItem *item = rna_enum_asset_import_method_items; item->identifier; item++)
   {
+    if ((item->value == FILE_ASSET_IMPORT_LINK) &&
+        (params->asset_library_ref.type == ASSET_LIBRARY_CUSTOM))
+    {
+      const bUserAssetLibrary *user_library = BKE_preferences_asset_library_find_index(
+          &U, params->asset_library_ref.custom_library_index);
+      if (user_library && user_library->flag & ASSET_LIBRARY_USE_REMOTE_URL) {
+        /* Don't allow linking with remote libraries. */
+        continue;
+      }
+    }
+
     switch (eFileAssetImportMethod(item->value)) {
       case FILE_ASSET_IMPORT_APPEND_REUSE: {
         if (U.experimental.no_data_block_packing) {
@@ -4396,6 +4441,14 @@ static void rna_def_space_outliner(BlenderRNA *brna)
   RNA_def_property_boolean_sdna(prop, nullptr, "flag", SO_MODE_COLUMN);
   RNA_def_property_ui_text(
       prop, "Show Mode Column", "Show the mode column for mode toggle and activation");
+  RNA_def_property_update(prop, NC_SPACE | ND_SPACE_OUTLINER, nullptr);
+
+  prop = RNA_def_property(srna, "scroll_to_active", PROP_BOOLEAN, PROP_NONE);
+  RNA_def_property_boolean_sdna(prop, nullptr, "flag", SO_SCROLL_TO_ACTIVE);
+  RNA_def_property_ui_text(
+      prop,
+      "Scroll to Active",
+      "Scroll the active item into view when it changes outside of the Outliner");
   RNA_def_property_update(prop, NC_SPACE | ND_SPACE_OUTLINER, nullptr);
 
   /* Granular restriction column option. */

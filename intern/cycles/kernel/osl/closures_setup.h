@@ -87,15 +87,8 @@ ccl_device void osl_closure_diffuse_setup(KernelGlobals kg,
     return;
   }
 
-  ccl_private DiffuseBsdf *bsdf = (ccl_private DiffuseBsdf *)bsdf_alloc(
-      sd, sizeof(DiffuseBsdf), rgb_to_spectrum(weight));
-  if (!bsdf) {
-    return;
-  }
-
-  bsdf->N = safe_normalize_fallback(closure->N, sd->N);
-
-  sd->flag |= bsdf_diffuse_setup(bsdf);
+  const float3 N = safe_normalize_fallback(closure->N, sd->N);
+  bsdf_diffuse_setup(sd, N, rgb_to_spectrum(weight));
 }
 
 /* Deprecated form, will be removed in OSL 2.0. */
@@ -110,16 +103,9 @@ ccl_device void osl_closure_oren_nayar_setup(KernelGlobals kg,
     return;
   }
 
-  ccl_private OrenNayarBsdf *bsdf = (ccl_private OrenNayarBsdf *)bsdf_alloc(
-      sd, sizeof(OrenNayarBsdf), rgb_to_spectrum(weight));
-  if (!bsdf) {
-    return;
-  }
-
-  bsdf->N = safe_normalize_fallback(closure->N, sd->N);
-  bsdf->roughness = closure->roughness;
-
-  sd->flag |= bsdf_oren_nayar_setup(sd, bsdf, rgb_to_spectrum(weight));
+  const float3 N = safe_normalize_fallback(closure->N, sd->N);
+  const Spectrum color = rgb_to_spectrum(weight);
+  bsdf_oren_nayar_setup(sd, N, color, closure->roughness, color);
 }
 
 ccl_device void osl_closure_oren_nayar_diffuse_bsdf_setup(
@@ -134,16 +120,10 @@ ccl_device void osl_closure_oren_nayar_diffuse_bsdf_setup(
     return;
   }
 
-  ccl_private OrenNayarBsdf *bsdf = (ccl_private OrenNayarBsdf *)bsdf_alloc(
-      sd, sizeof(OrenNayarBsdf), rgb_to_spectrum(weight * closure->albedo));
-  if (!bsdf) {
-    return;
-  }
-
-  bsdf->N = safe_normalize_fallback(closure->N, sd->N);
-  bsdf->roughness = closure->roughness;
-
-  sd->flag |= bsdf_oren_nayar_setup(sd, bsdf, rgb_to_spectrum(closure->albedo));
+  const float3 N = safe_normalize_fallback(closure->N, sd->N);
+  const Spectrum closure_weight = rgb_to_spectrum(weight * closure->albedo);
+  const Spectrum color = rgb_to_spectrum(closure->albedo);
+  bsdf_oren_nayar_setup(sd, N, closure_weight, closure->roughness, color);
 }
 
 ccl_device void osl_closure_burley_diffuse_bsdf_setup(
@@ -180,15 +160,8 @@ ccl_device void osl_closure_translucent_setup(KernelGlobals kg,
     return;
   }
 
-  ccl_private DiffuseBsdf *bsdf = (ccl_private DiffuseBsdf *)bsdf_alloc(
-      sd, sizeof(DiffuseBsdf), rgb_to_spectrum(weight));
-  if (!bsdf) {
-    return;
-  }
-
-  bsdf->N = safe_normalize_fallback(closure->N, sd->N);
-
-  sd->flag |= bsdf_translucent_setup(bsdf);
+  const float3 N = safe_normalize_fallback(closure->N, sd->N);
+  bsdf_translucent_setup(sd, N, rgb_to_spectrum(weight));
 }
 
 ccl_device void osl_closure_translucent_bsdf_setup(
@@ -203,15 +176,8 @@ ccl_device void osl_closure_translucent_bsdf_setup(
     return;
   }
 
-  ccl_private DiffuseBsdf *bsdf = (ccl_private DiffuseBsdf *)bsdf_alloc(
-      sd, sizeof(DiffuseBsdf), rgb_to_spectrum(weight * closure->albedo));
-  if (!bsdf) {
-    return;
-  }
-
-  bsdf->N = safe_normalize_fallback(closure->N, sd->N);
-
-  sd->flag |= bsdf_translucent_setup(bsdf);
+  const float3 N = safe_normalize_fallback(closure->N, sd->N);
+  bsdf_translucent_setup(sd, N, rgb_to_spectrum(weight * closure->albedo));
 }
 
 ccl_device void osl_closure_reflection_setup(KernelGlobals kg,

@@ -628,6 +628,9 @@ float4 gpencil_vertex(float4 viewport_res,
 
       out_ndc = dot_segment(float2(x, y), ss1, ss2, is_squares, viewport_res);
 
+      out_ndc /= out_ndc.w;
+      out_ndc.z = (use_curr) ? (ndc1.z / ndc1.w) : (ndc2.z / ndc2.w);
+
       out_uv.x = (use_curr) ? uv1.z : uv2.z;
     }
     else if (is_dot && is_single_dot) {

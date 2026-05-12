@@ -57,7 +57,7 @@ static float3 direction_bisect(const float3 &pos,
   }
   const float3 tangent = prev_dir + other_dir;
   const float norm = math::length(tangent);
-  if (norm < 0.6627619f) { /* Approximates angle between segments < 45°) */
+  if (norm < 0.6627619f) { /* Approximates angle between segments < 45 degrees). */
     if (norm < 2e-7) {     /* Approximately < sin(1e-5) */
       return other_dir;
     }

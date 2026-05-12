@@ -34,6 +34,54 @@ void put_pixel(int x, int y, float4 col)
   atomicAdd(raster_buf[index].col_a, col_fx.a);
 }
 
+/* Convert from sRGB to linear using the sRGB EOTF. */
+float srgb_to_linear(float c)
+{
+  return (c < 0.04045f) ? c / 12.92f : pow((c + 0.055f) / 1.055f, 2.4f);
+}
+
+/* Convert from scope space to linear. See libocio_scope.cc for details
+ * on this mapping. */
+float scope_to_linear(float c)
+{
+  const float SCOPE_SDR_IN_HDR_SCOPE = 0.75f;
+  const float SCOPE_HDR_B = 0.0368291f;
+  const float SCOPE_HDR_C = 0.8882908f;
+  const float SCOPE_HDR_D = 0.8307242f;
+
+  if (scope_is_hdr) {
+    if (c > SCOPE_SDR_IN_HDR_SCOPE) {
+      return exp((c - SCOPE_HDR_D) / SCOPE_HDR_B) + SCOPE_HDR_C;
+    }
+    c /= SCOPE_SDR_IN_HDR_SCOPE;
+  }
+  return srgb_to_linear(c);
+}
+
+/* Convert from linear Rec.709 to extended sRGB. */
+float linear_to_extended_srgb(float c)
+{
+  float c_sign = sign(c);
+  c = abs(c);
+  c = (c < 0.0031308f) ? c * 12.92f : 1.055f * pow(c, 1.0f / 2.4f) - 0.055f;
+  return c_sign * c;
+}
+
+/* Convert from scope space color (that is suitable for plotting positions)
+ * to extended sRGB (the color space of the frame-buffer). */
+float3 scope_to_extended_srgb(float3 color)
+{
+  float3 scope_linear = float3(scope_to_linear(max(color.r, 0.0f)),
+                               scope_to_linear(max(color.g, 0.0f)),
+                               scope_to_linear(max(color.b, 0.0f)));
+
+  float3 rec709_linear = scope_gamut_to_rec709 * scope_linear;
+
+  return float3(linear_to_extended_srgb(rec709_linear.r),
+                linear_to_extended_srgb(rec709_linear.g),
+                linear_to_extended_srgb(rec709_linear.b));
+}
+
 void main()
 {
   /* Fetch pixel from the input image, corresponding to current point. */
@@ -41,17 +89,22 @@ void main()
   if (any(greaterThanEqual(texel, int2(image_width, image_height)))) {
     return;
   }
-  float4 color = texelFetch(image, texel, 0);
+
+  float4 image_color = texelFetch(image, texel, 0);
   if (img_premultiplied) {
-    color_alpha_unpremultiply(color, color);
+    color_alpha_unpremultiply(image_color, image_color);
   }
+
+  /* Convert scope space image color to position and frame-buffer color. */
+  float3 position = clamp(image_color.rgb, 0.0f, 1.0f);
+  float4 color = float4(scope_to_extended_srgb(image_color.rgb), 1.0f);
 
   /* Calculate point position based on scope mode; possibly adjust color too. */
   float2 pos = float2(0.0);
   if (scope_mode == SEQ_DRAW_IMG_WAVEFORM) {
     /* Waveform: pixel height based on luminance. */
     pos.x = texel.x - image_width / 2;
-    pos.y = (get_luminance(color.rgb, luma_coeffs) - 0.5f) * image_height;
+    pos.y = (get_luminance(position, scope_luma_coeffs) - 0.5f) * image_height;
   }
   else if (scope_mode == SEQ_DRAW_IMG_RGBPARADE) {
     /* RGB parade: similar to waveform, except three different "bands"
@@ -64,28 +117,25 @@ void main()
     float factor = 0.4f;
     if (channel == 0) {
       pos.x = column - image_width / 2;
-      pos.y = (color.r - 0.5f) * image_height;
+      pos.y = (position.r - 0.5f) * image_height;
       color.rgb = mix(color.rgb, float3(1, other_channels, other_channels), factor);
     }
     if (channel == 1) {
       pos.x = column - image_width / 2 + image_width / 3;
-      pos.y = (color.g - 0.5f) * image_height;
+      pos.y = (position.g - 0.5f) * image_height;
       color.rgb = mix(color.rgb, float3(other_channels, 1, other_channels), factor);
     }
     if (channel == 2) {
       pos.x = column - image_width / 2 + image_width * 2 / 3;
-      pos.y = (color.b - 0.5f) * image_height;
+      pos.y = (position.b - 0.5f) * image_height;
       color.rgb = mix(color.rgb, float3(other_channels, other_channels, 1), factor);
     }
   }
   else if (scope_mode == SEQ_DRAW_IMG_VECTORSCOPE) {
     /* Vectorscope: pixel position is based on U,V of the color. */
-    float4 yuva;
-    rgba_to_yuva_itu_709(color, yuva);
+    float3 yuv = scope_yuv_matrix * position;
     float vec_size = min(image_width, image_height);
-    /* Multiplier to map YUV U,V range (+-0.436, +-0.615) to +-0.5 on both axes. */
-    float2 uv_scale = float2(0.5f / 0.436f, 0.5f / 0.615f);
-    pos = yuva.yz * vec_size * uv_scale;
+    pos = yuv.yz * vec_size;
   }
 
   /* Determine final point color: we want to keep the hue, desaturate it a bit,

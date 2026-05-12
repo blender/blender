@@ -9,6 +9,8 @@
 #include "UI_interface_c.hh"
 #include "UI_interface_layout.hh"
 
+#include "COM_node_operation.hh"
+
 #include "node_geometry_util.hh"
 
 namespace blender::nodes::node_geo_input_font_cc {
@@ -38,17 +40,38 @@ static void node_geo_exec(GeoNodeExecParams params)
   params.set_output("Font"_ustr, font);
 }
 
+using namespace blender::compositor;
+
+class InputFontOperation : public NodeOperation {
+ public:
+  using NodeOperation::NodeOperation;
+
+  void execute() override
+  {
+    VFont *font = id_cast<VFont *>(this->node().id);
+    Result &result = this->get_result("Font");
+    result.allocate_single_value();
+    result.set_single_value(font);
+  }
+};
+
+static NodeOperation *get_compositor_operation(Context &context, const bNode &node)
+{
+  return new InputFontOperation(context, node);
+}
+
 static void node_register()
 {
   static bke::bNodeType ntype;
 
-  geo_node_type_base(&ntype, "GeometryNodeInputFont"_ustr);
+  geo_cmp_node_type_base(&ntype, "GeometryNodeInputFont"_ustr);
   ntype.ui_name = "Font";
   ntype.ui_description = "Output a font";
   ntype.nclass = NODE_CLASS_INPUT;
   ntype.declare = node_declare;
   ntype.initfunc = node_init;
   ntype.geometry_node_execute = node_geo_exec;
+  ntype.get_compositor_operation = get_compositor_operation;
   bke::node_register_type(ntype);
 }
 NOD_REGISTER_NODE(node_register)

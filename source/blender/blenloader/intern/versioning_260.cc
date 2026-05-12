@@ -1030,6 +1030,9 @@ static StringRefNull node_socket_get_static_idname(bNodeSocket *sock)
     case SOCK_SHADER: {
       return *bke::node_static_socket_type(SOCK_SHADER, PROP_NONE);
     }
+    default: {
+      return "";
+    }
   }
   return "";
 }
@@ -1050,6 +1053,8 @@ static void do_versions_nodetree_customnodes(bNodeTree *ntree, int /*is_group*/)
         break;
       case NTREE_TEXTURE:
         STRNCPY(ntree->idname, "TextureNodeTree");
+        break;
+      default:
         break;
     }
 
@@ -1195,7 +1200,7 @@ static bool strip_colorbalance_update_cb(Strip *strip, void * /*user_data*/)
 
 static bool strip_set_alpha_mode_cb(Strip *strip, void * /*user_data*/)
 {
-  enum { SEQ_MAKE_PREMUL = (1 << 6) };
+  constexpr eStripFlag SEQ_MAKE_PREMUL = eStripFlag(1 << 6);
   if (strip->flag & SEQ_MAKE_PREMUL) {
     strip->alpha_mode = SEQ_ALPHA_STRAIGHT;
   }
@@ -1226,8 +1231,8 @@ static bNodeSocket *version_make_socket_stub(const char *idname,
   bNodeSocket *socket = MEM_new<bNodeSocket>(__func__);
   socket->runtime = MEM_new<bke::bNodeSocketRuntime>(__func__);
   STRNCPY_UTF8(socket->idname, idname);
-  socket->type = int(type);
-  socket->in_out = int(in_out);
+  socket->type = type;
+  socket->in_out = in_out;
 
   socket->limit = (in_out == SOCK_IN ? 1 : 0xFFF);
 
@@ -1312,7 +1317,7 @@ void blo_do_versions_260(FileData *fd, Library * /*lib*/, Main *bmain)
         /* there are files with invalid audio_channels value, the real cause
          * is unknown, but we fix it here anyway to avoid crashes */
         if (sce.r.ffcodecdata.audio_channels == 0) {
-          sce.r.ffcodecdata.audio_channels = 2;
+          sce.r.ffcodecdata.audio_channels = eFFMpegAudioChannels(2);
         }
 
         if (sce.nodetree) {
@@ -1429,10 +1434,10 @@ void blo_do_versions_260(FileData *fd, Library * /*lib*/, Main *bmain)
           clip.aspy = 1.0f;
         }
 
-        clip.proxy.build_tc_flag = IMB_TC_RECORD_RUN;
+        clip.proxy.build_tc_flag = MCLIP_TC_RECORD_RUN;
 
         if (clip.proxy.build_size_flag == 0) {
-          clip.proxy.build_size_flag = IMB_PROXY_25;
+          clip.proxy.build_size_flag = MCLIP_PROXY_SIZE_25;
         }
 
         if (clip.proxy.quality == 0) {
@@ -1553,7 +1558,7 @@ void blo_do_versions_260(FileData *fd, Library * /*lib*/, Main *bmain)
         MovieTrackingObject *tracking_object = static_cast<MovieTrackingObject *>(
             tracking->objects.first);
 
-        clip.proxy.build_tc_flag |= IMB_TC_RECORD_RUN_NO_GAPS;
+        clip.proxy.build_tc_flag |= MCLIP_TC_RECORD_RUN_NO_GAPS;
 
         if (!tracking->settings.object_distance) {
           tracking->settings.object_distance = 1.0f;
@@ -1596,7 +1601,7 @@ void blo_do_versions_260(FileData *fd, Library * /*lib*/, Main *bmain)
         ups->size = ts->sculpt_paint_unified_size;
         ups->unprojected_size = ts->sculpt_paint_unified_unprojected_radius;
         ups->alpha = ts->sculpt_paint_unified_alpha;
-        ups->flag = ts->sculpt_paint_settings;
+        ups->flag = eUnifiedPaintSettingsFlags(ts->sculpt_paint_settings);
       }
     }
   }
@@ -2236,7 +2241,7 @@ void blo_do_versions_260(FileData *fd, Library * /*lib*/, Main *bmain)
             }
             case SPACE_SEQ: {
               SpaceSeq *sseq = reinterpret_cast<SpaceSeq *>(&sl);
-              sseq->flag |= SEQ_PREVIEW_SHOW_GPENCIL;
+              sseq->preview_overlay.flag |= SEQ_PREVIEW_SHOW_GPENCIL;
               break;
             }
             case SPACE_IMAGE: {
@@ -2282,7 +2287,7 @@ void blo_do_versions_260(FileData *fd, Library * /*lib*/, Main *bmain)
             blo_do_versions_newlibadr(fd, &tex.id, ID_IS_LINKED(&tex), tex.ima));
 
         if (image && (image->flag & IMA_DO_PREMUL) == 0) {
-          enum { IMA_IGNORE_ALPHA = (1 << 12) };
+          constexpr eImage_Flag IMA_IGNORE_ALPHA = eImage_Flag(1 << 12);
           image->flag |= IMA_IGNORE_ALPHA;
         }
       }
@@ -2548,7 +2553,7 @@ void blo_do_versions_260(FileData *fd, Library * /*lib*/, Main *bmain)
 #define BRUSH_TEXTURE_OVERLAY (1 << 21)
 
     for (Brush &brush : bmain->brushes) {
-      brush.overlay_flags = 0;
+      brush.overlay_flags = eOverlayFlags{};
       if (brush.flag & BRUSH_TEXTURE_OVERLAY) {
         brush.overlay_flags |= (BRUSH_OVERLAY_PRIMARY | BRUSH_OVERLAY_CURSOR);
       }
@@ -2704,7 +2709,7 @@ void blo_do_versions_260(FileData *fd, Library * /*lib*/, Main *bmain)
   }
 
   if (!MAIN_VERSION_FILE_ATLEAST(bmain, 268, 2)) {
-#define BRUSH_FIXED (1 << 6)
+    constexpr eBrushFlags BRUSH_FIXED = eBrushFlags(1 << 6);
     for (Brush &brush : bmain->brushes) {
       brush.flag &= ~BRUSH_FIXED;
 

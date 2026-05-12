@@ -5,7 +5,7 @@
 /** \file
  * \ingroup edtransform
  *
- * Used to apply 90 degree rotations directly, without imprecisions from radian angles,
+ * Used to apply 90 degree rotations directly, without imprecision from radian angles,
  * see #150900.
  */
 

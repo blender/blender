@@ -9,6 +9,7 @@
 #include "NOD_value_elem_eval.hh"
 
 #include "node_function_util.hh"
+#include "node_shader_util.hh"
 
 namespace blender::nodes::node_fn_rotation_to_axis_angle_cc {
 
@@ -45,6 +46,15 @@ class QuaterniontoAxisAngleFunction : public mf::MultiFunction {
     });
   }
 };
+
+static int node_gpu_material(GPUMaterial *mat,
+                             bNode *node,
+                             bNodeExecData * /*execdata*/,
+                             GPUNodeStack *in,
+                             GPUNodeStack *out)
+{
+  return GPU_stack_link(mat, node, "rotation_to_axis_angle", in, out);
+}
 
 static void node_build_multi_function(NodeMultiFunctionBuilder &builder)
 {
@@ -89,13 +99,14 @@ static void node_eval_inverse(inverse_eval::InverseEvalParams &params)
 static void node_register()
 {
   static bke::bNodeType ntype;
-  fn_node_type_base(
+  fn_cmp_node_type_base(
       &ntype, "FunctionNodeRotationToAxisAngle"_ustr, FN_NODE_ROTATION_TO_AXIS_ANGLE);
   ntype.ui_name = "Rotation to Axis Angle";
   ntype.ui_description = "Convert a rotation to axis angle components";
   ntype.enum_name_legacy = "ROTATION_TO_AXIS_ANGLE";
   ntype.nclass = NODE_CLASS_CONVERTER;
   ntype.declare = node_declare;
+  ntype.gpu_fn = node_gpu_material;
   ntype.build_multi_function = node_build_multi_function;
   ntype.eval_elem = node_eval_elem;
   ntype.eval_inverse_elem = node_eval_inverse_elem;

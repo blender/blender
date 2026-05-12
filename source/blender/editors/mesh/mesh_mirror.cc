@@ -29,7 +29,7 @@ namespace blender {
 #define KD_THRESH 0.00002f
 
 static struct {
-  KDTree_3d *tree;
+  KDTree<float3> *tree;
 } MirrKdStore = {nullptr};
 
 void ED_mesh_mirror_spatial_table_begin(Object *ob, BMEditMesh *em, Mesh *mesh_eval)
@@ -44,7 +44,7 @@ void ED_mesh_mirror_spatial_table_begin(Object *ob, BMEditMesh *em, Mesh *mesh_e
     ED_mesh_mirror_spatial_table_end(ob);
   }
 
-  MirrKdStore.tree = kdtree_3d_new(totvert);
+  MirrKdStore.tree = kdtree_new<float3>(totvert);
 
   if (use_em) {
     BMVert *eve;
@@ -55,18 +55,18 @@ void ED_mesh_mirror_spatial_table_begin(Object *ob, BMEditMesh *em, Mesh *mesh_e
     BM_mesh_elem_table_ensure(em->bm, BM_VERT);
 
     BM_ITER_MESH_INDEX (eve, &iter, em->bm, BM_VERTS_OF_MESH, i) {
-      kdtree_3d_insert(MirrKdStore.tree, i, eve->co);
+      kdtree_insert<float3>(MirrKdStore.tree, i, eve->co);
     }
   }
   else {
     const Span<float3> positions = mesh_eval ? mesh_eval->vert_positions() :
                                                mesh->vert_positions();
     for (int i = 0; i < totvert; i++) {
-      kdtree_3d_insert(MirrKdStore.tree, i, positions[i]);
+      kdtree_insert<float3>(MirrKdStore.tree, i, positions[i]);
     }
   }
 
-  kdtree_3d_balance(MirrKdStore.tree);
+  kdtree_balance<float3>(MirrKdStore.tree);
 }
 
 int ED_mesh_mirror_spatial_table_lookup(Object *ob,
@@ -79,8 +79,8 @@ int ED_mesh_mirror_spatial_table_lookup(Object *ob,
   }
 
   if (MirrKdStore.tree) {
-    KDTreeNearest_3d nearest;
-    const int i = kdtree_3d_find_nearest(MirrKdStore.tree, co, &nearest);
+    KDTreeNearest<float3> nearest;
+    const int i = kdtree_find_nearest<float3>(MirrKdStore.tree, co, &nearest);
 
     if (i != -1) {
       if (nearest.dist < KD_THRESH) {
@@ -95,7 +95,7 @@ void ED_mesh_mirror_spatial_table_end(Object * /*ob*/)
 {
   /* TODO: store this in object/object-data (keep unused argument for now). */
   if (MirrKdStore.tree) {
-    kdtree_3d_free(MirrKdStore.tree);
+    kdtree_free<float3>(MirrKdStore.tree);
     MirrKdStore.tree = nullptr;
   }
 }

@@ -155,6 +155,8 @@ class AttributeViewer : Overlay {
          */
         break;
       }
+      default:
+        break;
     }
   }
 
@@ -245,6 +247,8 @@ class AttributeViewer : Overlay {
         }
         break;
       }
+      default:
+        break;
     }
   }
 };

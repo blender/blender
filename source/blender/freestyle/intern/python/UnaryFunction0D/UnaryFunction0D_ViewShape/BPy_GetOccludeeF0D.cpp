@@ -31,7 +31,7 @@ PyDoc_STRVAR(
     "   Returns the :class:`freestyle.types.ViewShape` that the Interface0D\n"
     "   pointed by the Interface0DIterator occludes.\n"
     "\n"
-    "   :arg it: An Interface0DIterator object.\n"
+    "   :param it: An Interface0DIterator object.\n"
     "   :type it: :class:`freestyle.types.Interface0DIterator`\n"
     "   :return: The ViewShape occluded by the pointed Interface0D.\n"
     "   :rtype: :class:`freestyle.types.ViewShape`\n");

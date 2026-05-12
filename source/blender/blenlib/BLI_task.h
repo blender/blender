@@ -29,9 +29,9 @@ struct BLI_mempool;
  * be called from the main threads. All other scheduler and pool functions are thread-safe.
  * \{ */
 
-void BLI_task_scheduler_init(void);
-void BLI_task_scheduler_exit(void);
-int BLI_task_scheduler_num_threads(void);
+void BLI_task_scheduler_init();
+void BLI_task_scheduler_exit();
+int BLI_task_scheduler_num_threads();
 
 /** \} */
 
@@ -317,7 +317,7 @@ struct TaskNode;
 typedef void (*TaskGraphNodeRunFunction)(void *__restrict task_data);
 typedef void (*TaskGraphNodeFreeFunction)(void *task_data);
 
-struct TaskGraph *BLI_task_graph_create(void);
+struct TaskGraph *BLI_task_graph_create();
 void BLI_task_graph_work_and_wait(struct TaskGraph *task_graph);
 void BLI_task_graph_free(struct TaskGraph *task_graph);
 struct TaskNode *BLI_task_graph_node_create(struct TaskGraph *task_graph,

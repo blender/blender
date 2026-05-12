@@ -116,17 +116,22 @@ bool DepsgraphBuilder::is_modifier_visibility_animated(const Object *object,
 bool DepsgraphBuilder::check_pchan_has_bbone(const Object *object, const bPoseChannel *pchan)
 {
   BLI_assert(object->type == OB_ARMATURE);
-  if (pchan == nullptr || pchan->bone == nullptr) {
+  bArmature *armature = id_cast<bArmature *>(object->data);
+  if (pchan == nullptr) {
+    return false;
+  }
+  const Bone *bone = pchan->bone_get(*armature);
+  if (bone == nullptr) {
     return false;
   }
   /* We don't really care whether segments are higher than 1 due to static user input (as in,
    * rigger entered value like 3 manually), or due to animation. In either way we need to create
    * special evaluation. */
-  if (pchan->bone->segments > 1) {
+  if (bone->segments > 1) {
     return true;
   }
-  bArmature *armature = id_cast<bArmature *>(object->data);
-  AnimatedPropertyID property_id(&armature->id, RNA_Bone, pchan->bone, "bbone_segments");
+  AnimatedPropertyID property_id(
+      &armature->id, RNA_Bone, const_cast<Bone *>(bone), "bbone_segments");
   /* Check both Object and Armature animation data, because drivers modifying Armature
    * state could easily be created in the Object AnimData. */
   return cache_->isPropertyAnimated(&object->id, property_id) ||

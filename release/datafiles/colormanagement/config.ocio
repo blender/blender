@@ -131,7 +131,7 @@ display_colorspaces:
 
   - !<ColorSpace>
     name: sRGB
-    aliases: [srgb_rec709_display, srgb_rec709_scene, sRGB 2.2, sRGB I-D65, srgb_display, sRGB - Display, g22_rec709, Utility - Gamma 2.2 - Rec.709 - Texture, Utility - sRGB - Texture, sRGB - Texture, srgb_tx, srgb_texture, Input - Generic - sRGB - Texture, "sRGB Display: 2.2 Gamma - Rec.709"]
+    aliases: [srgb_rec709_display, srgb_rec709_scene, sRGB I-D65, srgb_display, sRGB - Display, Utility - sRGB - Texture, sRGB - Texture, srgb_tx, srgb_texture, Input - Generic - sRGB - Texture, "sRGB Display: 2.2 Gamma - Rec.709"]
     family: Display
     equalitygroup:
     bitdepth: 32f
@@ -146,7 +146,7 @@ display_colorspaces:
 
   - !<ColorSpace>
     name: Display P3
-    aliases: [srgb_p3d65_display, srgb_p3d65_scene, Display P3 2.2, Display P3 I-D65, P3-D65 - Display, p3_d65_display, p3d65_display, AppleP3 sRGB OETF]
+    aliases: [srgb_p3d65_display, Display P3 2.2, Display P3 I-D65, P3-D65 - Display, p3_d65_display, p3d65_display, AppleP3 sRGB OETF]
     family: Display
     equalitygroup:
     bitdepth: 32f
@@ -227,9 +227,10 @@ display_colorspaces:
 
   - !<ColorSpace>
     name: Filmic sRGB
-    family: Utilities
+    family: View Inverse
     description: |
-      sRGB display space with Filmic view transform
+      Filmic view transform for sRGB.
+      May be used to convert backplates or matte paintings to the working space.
     interop_id: srgb_rec709_display
     from_display_reference: !<GroupTransform>
       children:
@@ -238,9 +239,10 @@ display_colorspaces:
 
   - !<ColorSpace>
     name: AgX Base sRGB
-    family: Utilities
+    family: View Inverse
     description: |
-      AgX Base Image Encoding for sRGB Display
+      AgX view transform for sRGB.
+      May be used to convert backplates or matte paintings to the working space.
     interop_id: srgb_rec709_display
     from_display_reference: !<GroupTransform>
       children:
@@ -251,11 +253,12 @@ display_colorspaces:
 
   - !<ColorSpace>
     name: ACES 1.3 sRGB
-    family: Utilities
+    family: View Inverse
     equalitygroup:
     bitdepth: 32f
     description: |
-       ACES 1.0 Output Transform for SDR D65 video, limited to Rec.709 gamut
+      ACES 1.3 view transform for sRGB.
+      May be used to convert backplates or matte paintings to the working space.
     encoding: sdr-video
     isdata: false
     interop_id: srgb_rec709_display
@@ -267,11 +270,12 @@ display_colorspaces:
 
   - !<ColorSpace>
     name: ACES 2.0 sRGB
-    family: Utilities
+    family: View Inverse
     equalitygroup:
     bitdepth: 32f
     description: |
-       ACES 2 Output Transform for 100 nit SDR Rec709
+      ACES 2.0 view transform for sRGB.
+      May be used to convert backplates or matte paintings to the working space.
     encoding: sdr-video
     isdata: false
     interop_id: srgb_rec709_display
@@ -283,11 +287,12 @@ display_colorspaces:
 
   - !<ColorSpace>
     name: Khronos PBR Neutral sRGB
-    family: Utilities
+    family: View Inverse
     equalitygroup:
     bitdepth: 32f
     description: |
-      Khronos PBR Neutral Image Encoding for sRGB Display
+      Khronos PBR Neutral view transform for sRGB.
+      May be used to convert backplates or matte paintings to the working space.
     encoding: sdr-video
     isdata: false
     interop_id: srgb_rec709_display
@@ -321,7 +326,7 @@ view_transforms:
     name: AgX Base Rec.2020
     family: AgX
     description: |
-      AgX Base Image Encoding for BT.2020 Display
+      AgX Base Image Encoding for display with Gamma 2.4 and Rec.2020 gamut
     from_scene_reference: !<GroupTransform>
       children:
         - !<ColorSpaceTransform> {src: ACES2065-1, dst: Linear FilmLight E-Gamut}
@@ -398,7 +403,7 @@ view_transforms:
     name: ACES 1.3 Display P3
     family: ACES
     description: |
-       ACES 1.1 Output Transform for SDR D65 video, limited to P3 gamut
+       ACES 1.1 Output Transform for SDR D65 video, with P3 gamut
     from_scene_reference: !<GroupTransform>
       children:
         - !<BuiltinTransform> {style: ACES-OUTPUT - ACES2065-1_to_CIE-XYZ-D65 - SDR-VIDEO-P3lim_1.1}
@@ -407,7 +412,7 @@ view_transforms:
     name: ACES 1.3 Rec.1886
     family: ACES
     description: |
-       ACES 1.0 Output Transform for SDR D65 video, limited to Rec.709 gamut
+       ACES 1.0 Output Transform for SDR D65 video, with Rec.709 gamut
     from_scene_reference: !<GroupTransform>
       children:
         - !<BuiltinTransform> {style: ACES-OUTPUT - ACES2065-1_to_CIE-XYZ-D65 - SDR-VIDEO_1.0}
@@ -416,7 +421,7 @@ view_transforms:
     name: ACES 1.1 Rec.2100-PQ - HDR 1000 nits
     family: ACES
     description: |
-      ACES 1.1 Output Transform for 1000 nit HDR D65 video, limited to Rec.2020 gamut
+      ACES 1.1 Output Transform for 1000 nit HDR D65 video, with Rec.2020 gamut
     from_scene_reference: !<GroupTransform>
       children:
         - !<BuiltinTransform> {style: ACES-OUTPUT - ACES2065-1_to_CIE-XYZ-D65 - HDR-VIDEO-1000nit-15nit-REC2020lim_1.1}
@@ -425,7 +430,7 @@ view_transforms:
     name: ACES 1.1 Rec.2100-PQ - HDR 2000 nits
     family: ACES
     description: |
-      ACES 1.1 Output Transform for 2000 nit HDR D65 video, limited to Rec.2020 gamut
+      ACES 1.1 Output Transform for 2000 nit HDR D65 video, with Rec.2020 gamut
     from_scene_reference: !<GroupTransform>
       children:
         - !<BuiltinTransform> {style: ACES-OUTPUT - ACES2065-1_to_CIE-XYZ-D65 - HDR-VIDEO-2000nit-15nit-REC2020lim_1.1}
@@ -434,7 +439,7 @@ view_transforms:
     name: ACES 1.1 Rec.2100-PQ - HDR 4000 nits
     family: ACES
     description: |
-      ACES 1.1 Output Transform for 4000 nit HDR D65 video, limited to Rec.2020 gamut
+      ACES 1.1 Output Transform for 4000 nit HDR D65 video, with Rec.2020 gamut
     from_scene_reference: !<GroupTransform>
       children:
         - !<BuiltinTransform> {style: ACES-OUTPUT - ACES2065-1_to_CIE-XYZ-D65 - HDR-VIDEO-4000nit-15nit-REC2020lim_1.1}
@@ -452,7 +457,7 @@ view_transforms:
     name: ACES 2.0 Rec.1886
     family: ACES
     description: |
-       ACES 2 Output Transform for 100 nit SDR Rec709
+       ACES 2 Output Transform for 100 nit SDR, with Rec709 gamut
     from_scene_reference: !<GroupTransform>
       children:
         - !<BuiltinTransform> {style: ACES-OUTPUT - ACES2065-1_to_CIE-XYZ-D65 - SDR-100nit-REC709_2.0}
@@ -461,7 +466,7 @@ view_transforms:
     name: ACES 2.0 Rec.2100-PQ - HDR 500 nits
     family: ACES
     description: |
-       ACES 2 Output Transform for 500 nit HDR Rec2020
+       ACES 2 Output Transform for 500 nit HDR, with Rec.2020 gamut
     from_scene_reference: !<GroupTransform>
       children:
         - !<BuiltinTransform> {style: ACES-OUTPUT - ACES2065-1_to_CIE-XYZ-D65 - HDR-500nit-REC2020_2.0}
@@ -470,7 +475,7 @@ view_transforms:
     name: ACES 2.0 Rec.2100-PQ - HDR 1000 nits
     family: ACES
     description: |
-       ACES 2 Output Transform for 1000 nit HDR Rec2020
+       ACES 2 Output Transform for 1000 nit HDR, with Rec.2020 gamut
     from_scene_reference: !<GroupTransform>
       children:
         - !<BuiltinTransform> {style: ACES-OUTPUT - ACES2065-1_to_CIE-XYZ-D65 - HDR-1000nit-REC2020_2.0}
@@ -479,7 +484,7 @@ view_transforms:
     name: ACES 2.0 Rec.2100-PQ - HDR 2000 nits
     family: ACES
     description: |
-       ACES 2 Output Transform for 2000 nit HDR Rec2020
+       ACES 2 Output Transform for 2000 nit HDR, with Rec.2020 gamut
     from_scene_reference: !<GroupTransform>
       children:
         - !<BuiltinTransform> {style: ACES-OUTPUT - ACES2065-1_to_CIE-XYZ-D65 - HDR-2000nit-REC2020_2.0}
@@ -488,7 +493,7 @@ view_transforms:
     name: ACES 2.0 Rec.2100-PQ - HDR 4000 nits
     family: ACES
     description: |
-       ACES 2 Output Transform for 4000 nit HDR Rec2020
+       ACES 2 Output Transform for 4000 nit HDR, with Rec.2020 gamut
     from_scene_reference: !<GroupTransform>
       children:
         - !<BuiltinTransform> {style: ACES-OUTPUT - ACES2065-1_to_CIE-XYZ-D65 - HDR-4000nit-REC2020_2.0}
@@ -554,6 +559,19 @@ colorspaces:
         - !<MatrixTransform> {matrix: [1.7166512, -0.3556708, -0.2533663, 0, -0.6666844, 1.6164812, 0.0157685, 0, 0.0176399, -0.0427706, 0.9421031, 0, 0, 0, 0, 1]}
 
   - !<ColorSpace>
+    name: Linear Adobe RGB
+    aliases: [lin_adobergb_scene, lin_adobergb, Linear AdobeRGB, Utility - Linear - Adobe RGB]
+    family: Linear
+    equalitygroup:
+    bitdepth: 32f
+    description: |
+      Linear Adobe RGB (1998) with illuminant D65 white point.
+      For use with scene-referred textures.
+    isdata: false
+    interop_id: lin_adobergb_scene
+    from_scene_reference: !<MatrixTransform> {matrix: [1.72456031681181, -0.419993594161504, -0.304566722650304, 0, -0.276479914229922, 1.37271908766826, -0.0962391734383339, 0, -0.0261255258256649, -0.0901747806551909, 1.11630030648086, 0, 0, 0, 0, 1]}
+
+  - !<ColorSpace>
     name: ACES2065-1
     aliases: [lin_ap0_scene, lin_ap0, Linear ACES, aces2065_1, ACES - ACES2065-1, "ACES: Linear - AP0"]
     family: Linear
@@ -603,6 +621,37 @@ colorspaces:
     encoding: log
     allocation: uniform
     to_scene_reference: !<BuiltinTransform> {style: APPLE_LOG_to_ACES2065-1}
+
+  - !<ColorSpace>
+    name: Apple Log 2
+    aliases: [apple_log_2, ocio:applelog_applewg_scene]
+    interop_id: ocio:applelog_applewg_scene
+    family: Input/Apple
+    equalitygroup:
+    bitdepth: 32f
+    description: |
+      Apple camera input space using Apple Log transfer function and Apple Wide Gamut primaries.
+    isdata: false
+    encoding: log
+    allocation: uniform
+    to_scene_reference: !<GroupTransform>
+      children:
+        - !<BuiltinTransform> {style: CURVE - APPLE_LOG_to_LINEAR}
+        - !<MatrixTransform> {matrix: [0.694961049318096, 0.241405268785364, 0.06363368189654, 0, 0.0473627464149325, 1.00429592505428, -0.0516586714692158, 0, -0.021989789359883, -0.0289891049714743, 1.05097889433136, 0, 0, 0, 0, 1]}
+
+  - !<ColorSpace>
+    name: Linear Apple Wide Gamut
+    aliases: [lin_apple_wide_gamut, lin_applewg, ocio:linear_applewg_scene]
+    interop_id: ocio:linear_applewg_scene
+    family: Input/Apple
+    equalitygroup:
+    bitdepth: 32f
+    description: |
+      Apple camera input space using linear Apple Wide Gamut primaries.
+    isdata: false
+    encoding: scene-linear
+    allocation: uniform
+    to_scene_reference: !<MatrixTransform> {matrix: [0.694961049318096, 0.241405268785364, 0.06363368189654, 0, 0.0473627464149325, 1.00429592505428, -0.0516586714692158, 0, -0.021989789359883, -0.0289891049714743, 1.05097889433136, 0, 0, 0, 0, 1]}
 
   - !<ColorSpace>
     name: ARRI LogC3 (EI800)
@@ -1053,9 +1102,121 @@ colorspaces:
         - !<ColorSpaceTransform> {src: ACES2065-1, dst: Linear Rec.709, direction: inverse}
 
   - !<ColorSpace>
+    name: Gamma 1.8 Encoded Rec.709
+    aliases: [g18_rec709_scene, g18_rec709, Gamma 1.8 Rec.709 - Texture, Utility - Gamma 1.8 - Rec.709 - Texture]
+    family: Utility
+    equalitygroup:
+    bitdepth: 32f
+    description: |
+      1.8 gamma-encoded Rec.709 with illuminant D65 white point.
+      For use with scene-referred textures.
+    isdata: false
+    interop_id: g18_rec709_scene
+    from_scene_reference: !<GroupTransform>
+      children:
+        - !<MatrixTransform> {matrix: [2.52168618674388, -1.13413098823972, -0.387555198504164, 0, -0.276479914229922, 1.37271908766826, -0.096239173438334, 0, -0.0153780649660342, -0.152975335867399, 1.16835340083343, 0, 0, 0, 0, 1]}
+        - !<ExponentTransform> {value: 1.8, style: pass_thru, direction: inverse}
+
+  - !<ColorSpace>
+    name: Gamma 2.2 Encoded Rec.709
+    aliases: [g22_rec709_scene, g22_rec709, Gamma 2.2 Rec.709 - Texture, Utility - Gamma 2.2 - Rec.709 - Texture, sRGB 2.2]
+    family: Utility
+    equalitygroup:
+    bitdepth: 32f
+    description: |
+      2.2 gamma-encoded Rec.709 with illuminant D65 white point.
+      For use with scene-referred textures.
+    isdata: false
+    interop_id: g22_rec709_scene
+    from_scene_reference: !<GroupTransform>
+      children:
+        - !<MatrixTransform> {matrix: [2.52168618674388, -1.13413098823972, -0.387555198504164, 0, -0.276479914229922, 1.37271908766826, -0.096239173438334, 0, -0.0153780649660342, -0.152975335867399, 1.16835340083343, 0, 0, 0, 0, 1]}
+        - !<ExponentTransform> {value: 2.2, style: pass_thru, direction: inverse}
+
+  - !<ColorSpace>
+    name: Gamma 2.4 Encoded Rec.709
+    aliases: [ocio:g24_rec709_scene, g24_rec709, Gamma 2.4 Rec.709 - Texture, Utility - Rec.709 - Display, rec709_display]
+    family: Utility
+    equalitygroup:
+    bitdepth: 32f
+    description: |
+      2.4 gamma-encoded Rec.709 with illuminant D65 white point.
+      For use with scene-referred textures.
+    isdata: false
+    interop_id: ocio:g24_rec709_scene
+    from_scene_reference: !<GroupTransform>
+      children:
+        - !<MatrixTransform> {matrix: [2.52168618674388, -1.13413098823972, -0.387555198504164, 0, -0.276479914229922, 1.37271908766826, -0.096239173438334, 0, -0.0153780649660342, -0.152975335867399, 1.16835340083343, 0, 0, 0, 0, 1]}
+        - !<ExponentTransform> {value: 2.4, style: pass_thru, direction: inverse}
+
+  - !<ColorSpace>
+    name: sRGB Encoded P3-D65
+    aliases: [srgb_p3d65_scene, srgb_p3d65, srgb_displayp3, sRGB Encoded P3-D65 - Texture]
+    family: Utility
+    equalitygroup:
+    bitdepth: 32f
+    description: |
+      sRGB-encoded P3-D65 with illuminant D65 white point.
+      For use with scene-referred textures.
+    isdata: false
+    interop_id: srgb_p3d65_scene
+    from_scene_reference: !<GroupTransform>
+      children:
+        - !<MatrixTransform> {matrix: [2.02490528596679, -0.689069761034766, -0.335835524932019, 0, -0.183597032256178, 1.28950620775902, -0.105909175502841, 0, 0.00905856112234766, -0.0592796840575522, 1.0502211229352, 0, 0, 0, 0, 1]}
+        - !<ExponentWithLinearTransform> {gamma: 2.4, offset: 0.055, direction: inverse}
+
+  - !<ColorSpace>
+    name: Gamma 2.2 Encoded AdobeRGB
+    aliases: [g22_adobergb_scene, g22_adobergb, adobergb, AdobeRGB, Gamma 2.2 Adobe RGB - Texture]
+    family: Utility
+    equalitygroup:
+    bitdepth: 32f
+    description: |
+      2.2 gamma-encoded Adobe RGB (1998) with illuminant D65 white point.
+      For use with scene-referred textures.
+    isdata: false
+    interop_id: g22_adobergb_scene
+    from_scene_reference: !<GroupTransform>
+      children:
+        - !<MatrixTransform> {matrix: [1.72456031681181, -0.419993594161504, -0.304566722650304, 0, -0.276479914229922, 1.37271908766826, -0.0962391734383339, 0, -0.0261255258256649, -0.0901747806551909, 1.11630030648086, 0, 0, 0, 0, 1]}
+        - !<ExponentTransform> {value: 2.19921875, style: pass_thru, direction: inverse}
+
+  - !<ColorSpace>
+    name: sRGB Encoded AP1
+    aliases: [srgb_ap1_scene, srgb_ap1, sRGB Encoded AP1 - Texture]
+    family: Utility
+    equalitygroup:
+    bitdepth: 32f
+    description: |
+      sRGB-encoded AP1 with ACES white point.
+      For use with scene-referred textures.
+    isdata: false
+    interop_id: srgb_ap1_scene
+    from_scene_reference: !<GroupTransform>
+      children:
+        - !<MatrixTransform> {matrix: [1.45143931614567, -0.23651074689374, -0.214928569251925, 0, -0.0765537733960206, 1.17622969983357, -0.0996759264375522, 0, 0.00831614842569772, -0.00603244979102102, 0.997716301365323, 0, 0, 0, 0, 1]}
+        - !<ExponentWithLinearTransform> {gamma: 2.4, offset: 0.055, direction: inverse}
+
+  - !<ColorSpace>
+    name: Gamma 2.2 Encoded AP1
+    aliases: [g22_ap1_scene, g22_ap1, Gamma 2.2 AP1 - Texture]
+    family: Utility
+    equalitygroup:
+    bitdepth: 32f
+    description: |
+      2.2 gamma-encoded AP1 with ACES white point.
+      For use with scene-referred textures.
+    isdata: false
+    interop_id: g22_ap1_scene
+    from_scene_reference: !<GroupTransform>
+      children:
+        - !<MatrixTransform> {matrix: [1.45143931614567, -0.23651074689374, -0.214928569251925, 0, -0.0765537733960206, 1.17622969983357, -0.0996759264375522, 0, 0.00831614842569772, -0.00603244979102102, 0.997716301365323, 0, 0, 0, 0, 1]}
+        - !<ExponentTransform> {value: 2.2, style: pass_thru, direction: inverse}
+
+  - !<ColorSpace>
     name: Luminance Compensation Rec.2020
     aliases: [Luminance Compensation BT.2020]
-    family: Utilities
+    family: Utility
     equalitygroup:
     bitdepth: 32f
     description: |

@@ -52,7 +52,7 @@ TEX_TEMPLATE SizeVec textureSize(T, int) RET;
 TEX_TEMPLATE DataVec texelFetch(T, IntCoord, int) RET;
 TEX_TEMPLATE DataVec texelFetchOffset(T, IntCoord, int, IntCoord) RET;
 TEX_TEMPLATE DataVec texture(T, FltCoord, float /*bias*/ = 0.0f) RET;
-TEX_TEMPLATE DataVec textureGather(T, FltCoord) RET;
+TEX_TEMPLATE DataVec textureGather(T, FltCoord, int /*comp*/ = 0) RET;
 TEX_TEMPLATE DataVec textureGrad(T, FltCoord, DerivVec, DerivVec) RET;
 TEX_TEMPLATE DataVec textureLod(T, FltCoord, float) RET;
 TEX_TEMPLATE DataVec textureLodOffset(T, FltCoord, float, IntCoord) RET;
@@ -108,6 +108,7 @@ int4 texelFetch(isamplerBuffer, int) RET;
 uint4 texelFetch(usamplerBuffer, int) RET;
 
 float4 texelFetchExtend(sampler2D /*samp*/, int2 /*texel*/, int /*lvl*/) RET;
+float4 texelFetchExtend(sampler2DDepth /*samp*/, int2 /*texel*/, int /*lvl*/) RET;
 
 /** \} */
 

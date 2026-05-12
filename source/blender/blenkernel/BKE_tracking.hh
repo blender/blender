@@ -33,6 +33,8 @@ struct Scene;
 struct bGPDlayer;
 struct rcti;
 
+enum TrackingTrackFlag : int;
+
 /* --------------------------------------------------------------------
  * Common types and constants.
  */
@@ -196,14 +198,18 @@ MovieTrackingTrack **BKE_tracking_selected_tracks_in_active_object(MovieTracking
  * \param area: which part of marker should be selected.
  * \param flag: flag to be set for areas.
  */
-void BKE_tracking_track_flag_set(MovieTrackingTrack *track, eTrackArea area, int flag);
+void BKE_tracking_track_flag_set(MovieTrackingTrack *track,
+                                 eTrackArea area,
+                                 TrackingTrackFlag flag);
 /**
  * Clear flag from all specified track's areas.
  *
  * \param area: which part of marker should be selected.
  * \param flag: flag to be cleared for areas.
  */
-void BKE_tracking_track_flag_clear(MovieTrackingTrack *track, eTrackArea area, int flag);
+void BKE_tracking_track_flag_clear(MovieTrackingTrack *track,
+                                   eTrackArea area,
+                                   TrackingTrackFlag flag);
 
 /**
  * Check whether track has got marker at specified frame.

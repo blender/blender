@@ -8,6 +8,7 @@
 
 #pragma once
 
+#include "BLI_enum_flags.hh"
 #include "BLI_math_constants.h"
 
 #include "DNA_ID.h"
@@ -28,7 +29,7 @@ struct IDProperty;
 struct bUserMenuItem;
 
 /** #UserDef.flag */
-enum eUserPref_Flag {
+enum eUserPref_Flag : int {
   USER_AUTOSAVE = (1 << 0),
   USER_FLAG_NUMINPUT_ADVANCED = (1 << 1),
   USER_FLAG_RECENT_SEARCHES_DISABLE = (1 << 2),
@@ -59,14 +60,16 @@ enum eUserPref_Flag {
   USER_FLAG_UNUSED_27 = (1 << 27), /* dirty */
   USER_HIDE_DOT_DATABLOCK = (1 << 28),
 };
+ENUM_OPERATORS(eUserPref_Flag)
 
 /** #UserDef.extension_flag */
-enum eUserPref_ExtensionFlag {
+enum eUserPref_ExtensionFlag : char {
   USER_EXTENSION_FLAG_ONLINE_ACCESS_HANDLED = 1 << 0,
 };
+ENUM_OPERATORS(eUserPref_ExtensionFlag)
 
 /** #UserDef.file_preview_type */
-enum eUserpref_File_Preview_Type {
+enum eUserpref_File_Preview_Type : char {
   USER_FILE_PREVIEW_NONE = 0,
   USER_FILE_PREVIEW_AUTO,
   USER_FILE_PREVIEW_SCREENSHOT,
@@ -74,15 +77,16 @@ enum eUserpref_File_Preview_Type {
 };
 
 /** #UserDef.save_modified_images */
-enum eUserpref_Save_Modified_Images {
+enum eUserpref_Save_Modified_Images : char {
   USER_SAVE_MODIFIED_IMAGES_ASK = 0,
   USER_SAVE_MODIFIED_IMAGES_ALWAYS,
   USER_SAVE_MODIFIED_IMAGES_NEVER,
 };
 
-enum eUserPref_PrefFlag {
+enum eUserPref_PrefFlag : char {
   USER_PREF_FLAG_SAVE = (1 << 0),
 };
+ENUM_OPERATORS(eUserPref_PrefFlag)
 
 /* Helper macro for checking frame clamping */
 #define FRAMENUMBER_MIN_CLAMP(cfra) \
@@ -94,7 +98,7 @@ enum eUserPref_PrefFlag {
   (void)0
 
 /** #UserDef.viewzoom */
-enum eViewZoom_Style {
+enum eViewZoom_Style : char {
   /** Update zoom continuously with a timer while dragging the cursor. */
   USER_ZOOM_CONTINUE = 0,
   /** Map changes in distance from the view center to zoom. */
@@ -104,26 +108,27 @@ enum eViewZoom_Style {
 };
 
 /** #UserDef.navigation_mode */
-enum eViewNavigation_Method {
+enum eViewNavigation_Method : char {
   VIEW_NAVIGATION_WALK = 0,
   VIEW_NAVIGATION_FLY = 1,
 };
 
 /** #UserDef.uiflag */
-enum eUserpref_MiniAxisType {
+enum eUserpref_MiniAxisType : char {
   USER_MINI_AXIS_TYPE_GIZMO = 0,
   USER_MINI_AXIS_TYPE_MINIMAL = 1,
   USER_MINI_AXIS_TYPE_NONE = 2,
 };
 
 /** #UserDef.flag */
-enum eWalkNavigation_Flag {
+enum eWalkNavigation_Flag : short {
   USER_WALK_GRAVITY = (1 << 0),
   USER_WALK_MOUSE_REVERSE = (1 << 1),
 };
+ENUM_OPERATORS(eWalkNavigation_Flag)
 
 /** #UserDef.uiflag */
-enum eUserpref_UI_Flag {
+enum eUserpref_UI_Flag : uint32_t {
   USER_NO_MULTITOUCH_GESTURES = (1 << 0),
   USER_REDUCE_MOTION = (1 << 1),
   USER_WHEELZOOMDIR = (1 << 2),
@@ -163,32 +168,36 @@ enum eUserpref_UI_Flag {
   USER_SAVE_PROMPT = (1 << 30),
   USER_HIDE_SYSTEM_BOOKMARKS = (1u << 31),
 };
+ENUM_OPERATORS(eUserpref_UI_Flag)
 
 /**
  * #UserDef.uiflag2
  *
  * \note don't add new flags here, use 'uiflag' which has flags free.
  */
-enum eUserpref_UI_Flag2 {
+enum eUserpref_UI_Flag2 : char {
   USER_ALWAYS_SHOW_NUMBER_ARROWS = (1 << 0), /* cleared */
   USER_REGION_OVERLAP = (1 << 1),
   USER_UIFLAG2_UNUSED_2 = (1 << 2),
   USER_UIFLAG2_UNUSED_3 = (1 << 3), /* dirty */
   USER_UIFLAG2_SHOW_ONLINE_ASSETS = (1 << 4),
+  USER_UIFLAG2_PANEL_TABS_COMPACT = (1 << 5),
 };
+ENUM_OPERATORS(eUserpref_UI_Flag2)
 
 /** #UserDef.gpu_flag */
-enum eUserpref_GPU_Flag {
+enum eUserpref_GPU_Flag : char {
   USER_GPU_FLAG_UNUSED_0 = (1 << 0), /* Unused. To be removed. */
   USER_GPU_FLAG_NO_EDIT_MODE_SMOOTH_WIRE = (1 << 1),
   USER_GPU_FLAG_OVERLAY_SMOOTH_WIRE = (1 << 2),
   USER_GPU_FLAG_SUBDIVISION_EVALUATION = (1 << 3),
   USER_GPU_FLAG_FRESNEL_EDIT = (1 << 4),
 };
+ENUM_OPERATORS(eUserpref_GPU_Flag)
 
 /** #UserDef.gpu_backend
  * NOTE: Keep in sync with GPUBackendType. */
-enum eUserPref_GPUBackendType {
+enum eUserPref_GPUBackendType : short {
   USER_GPU_BACKEND_OPENGL = 1 << 0,
   USER_GPU_BACKEND_METAL = 1 << 1,
   USER_GPU_BACKEND_VULKAN = 1 << 3,
@@ -200,7 +209,7 @@ enum eUserPref_GPUBackendType {
 };
 
 /** #UserDef.tablet_api */
-enum eUserpref_TabletAPI {
+enum eUserpref_TabletAPI : short {
   USER_TABLET_AUTOMATIC = 0,
   USER_TABLET_NATIVE = 1,
   USER_TABLET_WINTAB = 2,
@@ -209,19 +218,21 @@ enum eUserpref_TabletAPI {
 /**
  * #UserDef.tablet_flag
  */
-enum eUserPref_Tablet_Flags {
+enum eUserPref_Tablet_Flags : int {
   USER_TABLET_SHOW_DEBUG_VALUES = (1 << 0),
 };
+ENUM_OPERATORS(eUserPref_Tablet_Flags)
 
 /** #UserDef.app_flag */
-enum eUserpref_APP_Flag {
+enum eUserpref_APP_Flag : char {
   USER_APP_LOCK_CORNER_SPLIT = (1 << 0),
   USER_APP_HIDE_REGION_TOGGLE = (1 << 1),
   USER_APP_LOCK_EDGE_RESIZE = (1 << 2),
 };
+ENUM_OPERATORS(eUserpref_APP_Flag)
 
 /** #UserDef.statusbar_flag */
-enum eUserpref_StatusBar_Flag {
+enum eUserpref_StatusBar_Flag : char {
   STATUSBAR_SHOW_MEMORY = (1 << 0),
   STATUSBAR_SHOW_VRAM = (1 << 1),
   STATUSBAR_SHOW_STATS = (1 << 2),
@@ -229,12 +240,13 @@ enum eUserpref_StatusBar_Flag {
   STATUSBAR_SHOW_SCENE_DURATION = (1 << 4),
   STATUSBAR_SHOW_EXTENSIONS_UPDATES = (1 << 5),
 };
+ENUM_OPERATORS(eUserpref_StatusBar_Flag)
 
 /**
  * Auto-Keying mode.
  * #UserDef.autokey_mode
  */
-enum eAutokey_Mode {
+enum eAutokey_Mode : short {
   /* AUTOKEY_ON is a bit-flag. */
   AUTOKEY_ON = 1,
 
@@ -245,12 +257,13 @@ enum eAutokey_Mode {
   AUTOKEY_MODE_NORMAL = 3,
   AUTOKEY_MODE_EDITKEYS = 5,
 };
+ENUM_OPERATORS(eAutokey_Mode)
 
 /**
  * Zoom to frame mode.
  * #UserDef.view_frame_type
  */
-enum eZoomFrame_Mode {
+enum eZoomFrame_Mode : char {
   ZOOM_FRAME_MODE_KEEP_RANGE = 0,
   ZOOM_FRAME_MODE_SECONDS = 1,
   ZOOM_FRAME_MODE_KEYFRAMES = 2,
@@ -262,7 +275,7 @@ enum eZoomFrame_Mode {
  * Not all of those flags are stored in the user preferences (U.keying_flag).
  * Some are stored on the scene (toolsettings.keying_flag).
  */
-enum eKeying_Flag {
+enum eKeying_Flag : short {
   /* Settings used across manual and auto-keying. */
   KEYING_FLAG_VISUALKEY = (1 << 2),
   KEYING_FLAG_XYZ2RGB = (1 << 3),
@@ -278,34 +291,38 @@ enum eKeying_Flag {
   /* Manual Keying options. */
   MANUALKEY_FLAG_INSERTNEEDED = (1 << 11),
 };
+ENUM_OPERATORS(eKeying_Flag)
 
-enum eKeyInsertChannels {
+enum eKeyInsertChannels : short {
   USER_ANIM_KEY_CHANNEL_LOCATION = (1 << 0),
   USER_ANIM_KEY_CHANNEL_ROTATION = (1 << 1),
   USER_ANIM_KEY_CHANNEL_SCALE = (1 << 2),
   USER_ANIM_KEY_CHANNEL_ROTATION_MODE = (1 << 3),
   USER_ANIM_KEY_CHANNEL_CUSTOM_PROPERTIES = (1 << 4),
 };
+ENUM_OPERATORS(eKeyInsertChannels)
 
 /**
  * Animation flags
  * #UserDef.animation_flag, used for animation flags that aren't covered by more specific flags
  * (like eKeying_Flag).
  */
-enum eUserpref_Anim_Flags {
+enum eUserpref_Anim_Flags : short {
   USER_ANIM_SHOW_CHANNEL_GROUP_COLORS = (1 << 0),
   USER_ANIM_ONLY_SHOW_SELECTED_CURVE_KEYS = (1 << 1),
   USER_ANIM_HIGH_QUALITY_DRAWING = (1 << 2),
 };
+ENUM_OPERATORS(eUserpref_Anim_Flags)
 
-enum eFixToCam_Flags {
+enum eFixToCam_Flags : uint8_t {
   FIX_TO_CAM_FLAG_USE_LOC = (1 << 0),
   FIX_TO_CAM_FLAG_USE_ROT = (1 << 1),
   FIX_TO_CAM_FLAG_USE_SCALE = (1 << 2),
 };
+ENUM_OPERATORS(eFixToCam_Flags)
 
 /** #UserDef.transopts */
-enum eUserpref_Translation_Flags {
+enum eUserpref_Translation_Flags : short {
   USER_TR_TOOLTIPS = (1 << 0),
   USER_TR_IFACE = (1 << 1),
   USER_TR_REPORTS = (1 << 2),
@@ -316,20 +333,22 @@ enum eUserpref_Translation_Flags {
   USER_TR_UNUSED_7 = (1 << 7),            /* cleared */
   USER_TR_NEWDATANAME = (1 << 8),
 };
+ENUM_OPERATORS(eUserpref_Translation_Flags)
 
 /**
  * Text Editor options
  * #UserDef.text_flag
  */
-enum eTextEdit_Flags {
+enum eTextEdit_Flags : char {
   USER_TEXT_EDIT_AUTO_CLOSE = (1 << 0),
 };
+ENUM_OPERATORS(eTextEdit_Flags)
 
 /**
  * Text draw options
  * #UserDef.text_render
  */
-enum eText_Draw_Options {
+enum eText_Draw_Options : char {
   USER_TEXT_DISABLE_AA = (1 << 0),
 
   USER_TEXT_HINTING_NONE = (1 << 1),
@@ -338,24 +357,27 @@ enum eText_Draw_Options {
 
   USER_TEXT_RENDER_SUBPIXELAA = (1 << 4),
 };
+ENUM_OPERATORS(eText_Draw_Options)
 
 /**
  * Grease Pencil Settings.
  * #UserDef.gp_settings
  */
-enum eGP_UserdefSettings {
+enum eGP_UserdefSettings : short {
   GP_PAINT_UNUSED_0 = (1 << 0),
 };
+ENUM_OPERATORS(eGP_UserdefSettings)
 
-enum {
+enum eUserpref_Gizmo_Flag : char {
   USER_GIZMO_DRAW = (1 << 0),
 };
+ENUM_OPERATORS(eUserpref_Gizmo_Flag)
 
 /**
  * Color Picker Types.
  * #UserDef.color_picker_type
  */
-enum eColorPicker_Types {
+enum eColorPicker_Types : short {
   USER_CP_CIRCLE_HSV = 0,
   USER_CP_SQUARE_SV = 1,
   USER_CP_SQUARE_HS = 2,
@@ -367,7 +389,7 @@ enum eColorPicker_Types {
  * Time-code display styles.
  * #UserDef.timecode_style
  */
-enum eTimecodeStyles {
+enum eTimecodeStyles : short {
   /**
    * As little info as is necessary to show relevant info with '+' to denote the frames
    * i.e. HH:MM:SS+FF, MM:SS+FF, SS+FF, or MM:SS.
@@ -389,7 +411,7 @@ enum eTimecodeStyles {
 };
 
 /** #UserDef.ndof_flag (3D mouse options) */
-enum eNdof_Flag {
+enum eNdof_Flag : int {
   NDOF_SHOW_GUIDE_ORBIT_AXIS = (1 << 0),
   NDOF_FLY_HELICOPTER = (1 << 1),
   /**
@@ -426,12 +448,13 @@ enum eNdof_Flag {
   /** Must only be used when `!NDOF_IS_ORBIT_AROUND_CENTER_MODE(&U)`. */
   NDOF_FLY_SPEED_AUTO = (1 << 20),
 };
+ENUM_OPERATORS(eNdof_Flag)
 
 /**
  * NDOF Navigation Modes.
  * Each mode describes some style of navigation rather than control a single aspect of navigation.
  */
-enum eNdof_Navigation_Mode {
+enum eNdof_Navigation_Mode : uint8_t {
   /**
    * 3D mouse cap represents objects movement in 3D space.
    * Pulling the cap will pull the objects closer to the camera.
@@ -469,7 +492,7 @@ enum eNdof_Navigation_Mode {
 #define NDOF_PIXELS_PER_SECOND 600.0f
 
 /** UserDef.ogl_multisamples */
-enum eMultiSample_Type {
+enum eMultiSample_Type : short {
   USER_MULTISAMPLE_NONE = 0,
   USER_MULTISAMPLE_2 = 2,
   USER_MULTISAMPLE_4 = 4,
@@ -477,77 +500,72 @@ enum eMultiSample_Type {
   USER_MULTISAMPLE_16 = 16,
 };
 
-/** #UserDef.image_draw_method */
-enum eImageDrawMethod {
-  IMAGE_DRAW_METHOD_AUTO = 0,
-  IMAGE_DRAW_METHOD_GLSL = 1,
-  IMAGE_DRAW_METHOD_2DTEXTURE = 2,
-};
-
 /** #UserDef.virtual_pixel */
-enum eUserpref_VirtualPixel {
+enum eUserpref_VirtualPixel : int {
   VIRTUAL_PIXEL_NATIVE = 0,
   VIRTUAL_PIXEL_DOUBLE = 1,
 };
 
 /** #UserDef.factor_display_type */
-enum eUserpref_FactorDisplay {
+enum eUserpref_FactorDisplay : char {
   USER_FACTOR_AS_FACTOR = 0,
   USER_FACTOR_AS_PERCENTAGE = 1,
 };
 
 /** #UserDef.xr_navigation_flag */
-enum eUserpref_XrNavigationFlags {
+enum eUserpref_XrNavigationFlags : short {
   USER_XR_NAV_SNAP_TURN = (1 << 0),
   USER_XR_NAV_INVERT_ROTATION = (1 << 1),
 };
+ENUM_OPERATORS(eUserpref_XrNavigationFlags)
 
-enum eUserpref_RenderDisplayType {
+enum eUserpref_RenderDisplayType : char {
   USER_RENDER_DISPLAY_NONE = 0,
   USER_RENDER_DISPLAY_SCREEN = 1,
   USER_RENDER_DISPLAY_AREA = 2,
   USER_RENDER_DISPLAY_WINDOW = 3
 };
 
-enum eUserpref_TempSpaceDisplayType {
+enum eUserpref_TempSpaceDisplayType : char {
   USER_TEMP_SPACE_DISPLAY_FULLSCREEN = 0,
   USER_TEMP_SPACE_DISPLAY_WINDOW = 1,
 };
 
-enum eUserpref_EmulateMMBMod {
+enum eUserpref_EmulateMMBMod : char {
   USER_EMU_MMB_MOD_ALT = 0,
   USER_EMU_MMB_MOD_OSKEY = 1,
 };
 
-enum eUserpref_TrackpadScrollDir {
+enum eUserpref_TrackpadScrollDir : char {
   USER_TRACKPAD_SCROLL_DIR_TRADITIONAL = 0,
   USER_TRACKPAD_SCROLL_DIR_NATURAL = 1,
 };
 
-enum eUserpref_DiskCacheCompression {
+enum eUserpref_DiskCacheCompression : char {
   USER_SEQ_DISK_CACHE_COMPRESSION_NONE = 0,
   USER_SEQ_DISK_CACHE_COMPRESSION_LOW = 1,
   USER_SEQ_DISK_CACHE_COMPRESSION_HIGH = 2,
 };
 
-enum eUserpref_SeqProxySetup {
+enum eUserpref_SeqProxySetup : short {
   USER_SEQ_PROXY_SETUP_MANUAL = 0,
   USER_SEQ_PROXY_SETUP_AUTOMATIC = 1,
 };
 
-enum eUserpref_SeqEditorFlags {
+enum eUserpref_SeqEditorFlags : int {
   USER_SEQ_ED_UNUSED_0 = (1 << 0), /* Dirty. */
   USER_SEQ_ED_CONNECT_STRIPS_BY_DEFAULT = (1 << 1),
 };
+ENUM_OPERATORS(eUserpref_SeqEditorFlags)
 
-enum eUserpref_ShaderCompileMethod {
+enum eUserpref_ShaderCompileMethod : short {
   USER_SHADER_COMPILE_THREAD = 0,
   USER_SHADER_COMPILE_SUBPROCESS = 1,
 };
 
 /* Locale Ids. Auto will try to get local from OS. Our default is English though. */
 /** #UserDef.language */
-enum {
+enum eUserpref_Language : short {
   ULANGUAGE_AUTO = 0,
   ULANGUAGE_ENGLISH = 1,
 };
@@ -563,18 +581,19 @@ struct bAddon {
 };
 
 /** #bPathCompare.flag */
-enum ePathCompare_Flag {
+enum ePathCompare_Flag : char {
   USER_PATHCMP_GLOB = (1 << 0),
 };
+ENUM_OPERATORS(ePathCompare_Flag)
 
 struct bPathCompare {
   struct bPathCompare *next = nullptr, *prev = nullptr;
   char path[/*FILE_MAXDIR*/ 768] = "";
-  char flag = 0;
+  ePathCompare_Flag flag = {};
   char _pad0[7] = {};
 };
 
-enum {
+enum eUserMenu_Type : char {
   USER_MENU_TYPE_SEP = 1,
   USER_MENU_TYPE_OPERATOR = 2,
   USER_MENU_TYPE_MENU = 3,
@@ -593,7 +612,7 @@ struct bUserMenu {
 struct bUserMenuItem {
   struct bUserMenuItem *next = nullptr, *prev = nullptr;
   char ui_name[64] = "";
-  char type = 0;
+  eUserMenu_Type type = {};
   char _pad0[7] = {};
 };
 
@@ -635,7 +654,7 @@ struct bUserAssetLibrary {
   char _pad0[4] = {};
 };
 
-enum eUserExtensionRepo_Flag {
+enum eUserExtensionRepo_Flag : uint8_t {
   /** Maintain disk cache. */
   USER_EXTENSION_REPO_FLAG_NO_CACHE = 1 << 0,
   USER_EXTENSION_REPO_FLAG_DISABLED = 1 << 1,
@@ -644,12 +663,13 @@ enum eUserExtensionRepo_Flag {
   USER_EXTENSION_REPO_FLAG_SYNC_ON_STARTUP = 1 << 4,
   USER_EXTENSION_REPO_FLAG_USE_ACCESS_TOKEN = 1 << 5,
 };
+ENUM_OPERATORS(eUserExtensionRepo_Flag)
 
 /**
  * The source to use (User or System), only valid when the
  * #USER_EXTENSION_REPO_FLAG_USE_REMOTE_URL flag isn't set.
  */
-enum eUserExtensionRepo_Source {
+enum eUserExtensionRepo_Source : uint8_t {
   USER_EXTENSION_REPO_SOURCE_USER = 0,
   USER_EXTENSION_REPO_SOURCE_SYSTEM = 1,
 };
@@ -682,10 +702,10 @@ struct bUserExtensionRepo {
   char custom_dirpath[/*FILE_MAX*/ 1024] = "";
   char remote_url[/*FILE_MAX*/ 1024] = "";
 
-  /** Options for the repository (#eUserExtensionRepo_Flag). */
-  uint8_t flag = 0;
-  /** The source location when the custom directory isn't used (#eUserExtensionRepo_Source). */
-  uint8_t source = 0;
+  /** Options for the repository. */
+  eUserExtensionRepo_Flag flag = {};
+  /** The source location when the custom directory isn't used. */
+  eUserExtensionRepo_Source source = {};
 
   char _pad0[6] = {};
 };
@@ -707,7 +727,7 @@ struct WalkNavigation {
   float jump_height = 0.4;
   /** Duration to use for teleporting. */
   float teleport_time = 0.2;
-  short flag = 0;
+  eWalkNavigation_Flag flag = {};
   char _pad0[6] = {};
 };
 
@@ -715,7 +735,7 @@ struct XrNavigation {
   float vignette_intensity = 70;
   float turn_speed = DEG2RAD(60);
   float turn_amount = DEG2RAD(30);
-  short flag = USER_XR_NAV_SNAP_TURN;
+  eUserpref_XrNavigationFlags flag = USER_XR_NAV_SNAP_TURN;
   char _pad0[2] = {};
 };
 
@@ -729,7 +749,7 @@ struct UserDef_Runtime {
 // #define WITH_USERDEF_WORKSPACES
 
 /** #UserDef_SpaceData.section_active (UI active_section) */
-enum eUserPref_Section {
+enum eUserPref_Section : char {
   USER_SECTION_INTERFACE = 0,
   USER_SECTION_EDITING = 1,
   USER_SECTION_SAVE_LOAD = 2,
@@ -755,20 +775,21 @@ enum eUserPref_Section {
 };
 
 /** #UserDef_SpaceData.flag (State of the user preferences UI). */
-enum eUserPref_SpaceData_Flag {
+enum eUserPref_SpaceData_Flag : char {
   /** Hide/expand key-map preferences. */
   USER_SPACEDATA_INPUT_HIDE_UI_KEYCONFIG = (1 << 0),
   USER_SPACEDATA_ADDONS_SHOW_ONLY_ENABLED = (1 << 1),
 };
+ENUM_OPERATORS(eUserPref_SpaceData_Flag)
 
 /**
  * Store UI data here instead of the space
  * since the space is typically a window which is freed.
  */
 struct UserDef_SpaceData {
-  char section_active = USER_SECTION_INTERFACE;
-  /** #eUserPref_SpaceData_Flag UI options. */
-  char flag = 0;
+  eUserPref_Section section_active = USER_SECTION_INTERFACE;
+  /** UI options. */
+  eUserPref_SpaceData_Flag flag = {};
   char _pad0[6] = {};
 };
 
@@ -777,14 +798,14 @@ struct UserDef_SpaceData {
  * #UserDef_SpaceData.)
  */
 struct UserDef_FileSpaceData {
-  int display_type = FILE_VERTICALDISPLAY; /* FileSelectParams.display */
-  int thumbnail_size = 96;                 /* FileSelectParams.thumbnail_size */
-  int sort_type = FILE_SORT_ALPHA;         /* FileSelectParams.sort */
-  int details_flags = FILE_DETAILS_SIZE |
-                      FILE_DETAILS_DATETIME; /* FileSelectParams.details_flags */
-  int flag = FILE_HIDE_DOT;                  /* FileSelectParams.flag */
-  int _pad0 = {};
-  uint64_t filter_id = FILTER_ID_ALL; /* FileSelectParams.filter_id */
+  eFileDisplayType display_type = FILE_VERTICALDISPLAY; /* FileSelectParams.display */
+  eFileSortType sort_type = FILE_SORT_ALPHA;            /* FileSelectParams.sort */
+  int thumbnail_size = 96;                              /* FileSelectParams.thumbnail_size */
+  eFileDetails details_flags = FILE_DETAILS_SIZE |
+                               FILE_DETAILS_DATETIME; /* FileSelectParams.details_flags */
+  char _pad[5] = {};
+  eFileSel_Params_Flag flag = FILE_HIDE_DOT; /* FileSelectParams.flag */
+  uint64_t filter_id = FILTER_ID_ALL;        /* FileSelectParams.filter_id */
 };
 
 struct UserDef_TempWinBounds {
@@ -823,10 +844,10 @@ struct UserDef_Experimental {
   char use_extended_asset_browser = 0;
   char use_sculpt_texture_paint = 0;
   char use_shader_node_previews = 0;
-  char use_geometry_nodes_lists = 0;
   char use_geometry_bundle = 0;
   char use_remote_asset_libraries = 0;
   char use_collection_importer = 0;
+  char use_geometry_nodes_hair_dynamics = 0;
   char _pad[2] = {};
 };
 
@@ -872,25 +893,23 @@ struct UserDef {
   /** UserDef has separate do-version handling, and can be read from other files. */
   int versionfile = 0, subversionfile = 0;
 
-  /** #eUserPref_Flag. */
-  int flag = (USER_AUTOSAVE | USER_TOOLTIPS | USER_RELPATHS | USER_RELEASECONFIRM |
-              USER_SCRIPT_AUTOEXEC_DISABLE | USER_NONEGFRAMES | USER_FILECOMPRESS |
-              USER_HIDE_DOT_DATABLOCK);
+  eUserPref_Flag flag = USER_AUTOSAVE | USER_TOOLTIPS | USER_RELPATHS | USER_RELEASECONFIRM |
+                        USER_SCRIPT_AUTOEXEC_DISABLE | USER_NONEGFRAMES | USER_FILECOMPRESS |
+                        USER_HIDE_DOT_DATABLOCK;
   /** #eDupli_ID_Flags. */
   unsigned int dupflag = USER_DUP_MESH | USER_DUP_CURVE | USER_DUP_SURF | USER_DUP_LATTICE |
                          USER_DUP_FONT | USER_DUP_MBALL | USER_DUP_LAMP | USER_DUP_ARM |
                          USER_DUP_CAMERA | USER_DUP_SPEAKER | USER_DUP_ACT | USER_DUP_LIGHTPROBE |
                          USER_DUP_GPENCIL | USER_DUP_CURVES | USER_DUP_POINTCLOUD;
-  /** #eUserPref_PrefFlag preferences for the preferences. */
-  char pref_flag = USER_PREF_FLAG_SAVE;
+  /** Preferences for the preferences. */
+  eUserPref_PrefFlag pref_flag = USER_PREF_FLAG_SAVE;
   char savetime = 2;
-  char mouse_emulate_3_button_modifier = 0;
+  eUserpref_EmulateMMBMod mouse_emulate_3_button_modifier = {};
   /**
    * Workaround for WAYLAND (at time of writing compositors don't support this info).
-   * #eUserpref_TrackpadScrollDir type
    * TODO: Remove this once this API is better supported by Wayland compositors, see #107676.
    */
-  char trackpad_scroll_direction = 0;
+  eUserpref_TrackpadScrollDir trackpad_scroll_direction = {};
   /**  length. */
   char tempdir[/*FILE_MAXDIR*/ 768] = "";
   char fontdir[/*FILE_MAXDIR*/ 768] = "//";
@@ -911,8 +930,8 @@ struct UserDef {
 
   /** Minimum spacing between grid-lines in View2D grids. */
   short v2d_min_gridsize = 45;
-  /** #eTimecodeStyles, style of time-code display. */
-  short timecode_style = USER_TIMECODE_MINIMAL;
+  /** Style of time-code display. */
+  eTimecodeStyles timecode_style = USER_TIMECODE_MINIMAL;
 
   short versions = 1;
   short dbl_click_time = 350;
@@ -922,22 +941,28 @@ struct UserDef {
   /** Space around each area. Inter-editor gap width. */
   char border_width = 2;
 
-  char mini_axis_type = USER_MINI_AXIS_TYPE_GIZMO;
-  /** #eUserpref_UI_Flag. */
-  int uiflag = USER_FILTERFILEEXTS | USER_DRAWVIEWINFO | USER_PLAINMENUS |
-               USER_LOCK_CURSOR_ADJUST | USER_DEPTH_CURSOR | USER_AUTOPERSP |
-               USER_NODE_AUTO_OFFSET | USER_GLOBALUNDO | USER_SHOW_GIZMO_NAVIGATE |
-               USER_SHOW_VIEWPORTNAME | USER_SHOW_FPS | USER_CONTINUOUS_MOUSE | USER_SAVE_PROMPT;
-  /** #eUserpref_UI_Flag2. */
-  char uiflag2 = USER_REGION_OVERLAP | USER_UIFLAG2_SHOW_ONLINE_ASSETS;
-  char gpu_flag = USER_GPU_FLAG_OVERLAY_SMOOTH_WIRE | USER_GPU_FLAG_SUBDIVISION_EVALUATION;
-  char _pad8[6] = {};
+  eUserpref_MiniAxisType mini_axis_type = USER_MINI_AXIS_TYPE_GIZMO;
+  eUserpref_UI_Flag uiflag = USER_FILTERFILEEXTS | USER_DRAWVIEWINFO | USER_PLAINMENUS |
+                             USER_LOCK_CURSOR_ADJUST | USER_DEPTH_CURSOR | USER_AUTOPERSP |
+                             USER_NODE_AUTO_OFFSET | USER_GLOBALUNDO | USER_SHOW_GIZMO_NAVIGATE |
+                             USER_SHOW_VIEWPORTNAME | USER_SHOW_FPS | USER_CONTINUOUS_MOUSE |
+                             USER_SAVE_PROMPT;
+  eUserpref_UI_Flag2 uiflag2 = USER_REGION_OVERLAP | USER_UIFLAG2_SHOW_ONLINE_ASSETS;
+  eUserpref_GPU_Flag gpu_flag = USER_GPU_FLAG_OVERLAY_SMOOTH_WIRE |
+                                USER_GPU_FLAG_SUBDIVISION_EVALUATION;
+
+  /* date_string::DateFormat */
+  char date_format = 0;
+  /* date_string::TimeFormat */
+  char time_format = 0;
+
+  char _pad8[4] = {};
   /* Experimental flag for app-templates to make changes to behavior
    * which are outside the scope of typical preferences. */
-  char app_flag = 0;
-  char viewzoom = USER_ZOOM_DOLLY;
+  eUserpref_APP_Flag app_flag = {};
+  eViewZoom_Style viewzoom = USER_ZOOM_DOLLY;
   /** Default language of English (1), not Automatic (0). */
-  short language = 1;
+  eUserpref_Language language = ULANGUAGE_ENGLISH;
 
   int mixbufsize = 2048;
   int audiodevice = 0;
@@ -974,15 +999,15 @@ struct UserDef {
    */
   float pixelsize = 1;
   /** Deprecated, for forward compatibility. */
-  int virtual_pixel = 0;
+  eUserpref_VirtualPixel virtual_pixel = {};
 
   /** Console scroll-back limit. */
   int scrollback = 256;
   /** Node insert offset (aka auto-offset) margin, but might be useful for later stuff as well. */
   char node_margin = 40;
   char node_preview_res = 120;
-  /** #eUserpref_Translation_Flags. */
-  short transopts = USER_TR_TOOLTIPS | USER_TR_IFACE | USER_TR_REPORTS | USER_TR_NEWDATANAME;
+  eUserpref_Translation_Flags transopts = USER_TR_TOOLTIPS | USER_TR_IFACE | USER_TR_REPORTS |
+                                          USER_TR_NEWDATANAME;
   short menuthreshold1 = 5, menuthreshold2 = 2;
 
   /** Startup application template. */
@@ -1027,8 +1052,8 @@ struct UserDef {
 
   /** Index of the extension repo in the Preferences UI. */
   short active_extension_repo = 0;
-  /** Flag for all extensions (#eUserPref_ExtensionFlag). */
-  char extension_flag = 0;
+  /** Flag for all extensions. */
+  eUserPref_ExtensionFlag extension_flag = {};
 
   /* Network settings, used by extensions but not specific to extensions. */
 
@@ -1043,12 +1068,11 @@ struct UserDef {
   int undomemory = 0;
   DNA_DEPRECATED float gpu_viewport_quality = 0;
   short gp_manhattandist = 1, gp_euclideandist = 2, gp_eraser = 25;
-  /** #eGP_UserdefSettings. */
-  short gp_settings = 0;
+  eGP_UserdefSettings gp_settings = {};
   char _pad13[4] = {};
   struct SolidLight light_param[4];
   float light_ambient[3] = {};
-  char gizmo_flag = USER_GIZMO_DRAW;
+  eUserpref_Gizmo_Flag gizmo_flag = USER_GIZMO_DRAW;
   /** Generic gizmo size. */
   char gizmo_size = 75;
   /** Navigate gizmo size. */
@@ -1073,17 +1097,15 @@ struct UserDef {
   /** Milliseconds to spend spinning the view. */
   short smooth_viewtx = 200;
   short glreslimit = 0;
-  /** #eColorPicker_Types. */
-  short color_picker_type = USER_CP_CIRCLE_HSV;
+  eColorPicker_Types color_picker_type = USER_CP_CIRCLE_HSV;
   /** Curve smoothing type for newly added F-Curves. */
-  char auto_smoothing_new = FCURVE_SMOOTH_CONT_ACCEL;
+  eFCurve_Smoothing auto_smoothing_new = FCURVE_SMOOTH_CONT_ACCEL;
   /** Interpolation mode for newly added F-Curves. */
-  char ipo_new = BEZT_IPO_BEZ;
+  eBezTriple_Interpolation ipo_new = BEZT_IPO_BEZ;
   /** Handle types for newly added keyframes. */
-  char keyhandles_new = HD_AUTO_ANIM;
+  eBezTriple_Handle keyhandles_new = HD_AUTO_ANIM;
   char _pad11[4] = {};
-  /** #eZoomFrame_Mode. */
-  char view_frame_type = ZOOM_FRAME_MODE_KEEP_RANGE;
+  eZoomFrame_Mode view_frame_type = ZOOM_FRAME_MODE_KEEP_RANGE;
 
   /** Number of keyframes to zoom around current frame. */
   int view_frame_keyframes = 0;
@@ -1098,12 +1120,12 @@ struct UserDef {
   /** Max number of parallel shader compilation workers. */
   short gpu_shader_workers = 0;
   /** eUserpref_ShaderCompileMethod (OpenGL only). */
-  short shader_compilation_method = USER_SHADER_COMPILE_THREAD;
+  eUserpref_ShaderCompileMethod shader_compilation_method = USER_SHADER_COMPILE_THREAD;
 
   char _pad16[2] = {};
 
   /** #GPUBackendType */
-  short gpu_backend = USER_GPU_BACKEND_DEFAULT;
+  eUserPref_GPUBackendType gpu_backend = USER_GPU_BACKEND_DEFAULT;
 
   /** Number of samples for FPS display calculations. */
   short playback_fps_samples = 8;
@@ -1113,14 +1135,13 @@ struct UserDef {
   short anisotropic_filter = 2;
 
   /** Tablet API to use (Windows only). */
-  short tablet_api = USER_TABLET_AUTOMATIC;
+  eUserpref_TabletAPI tablet_api = USER_TABLET_AUTOMATIC;
 
   /** Raw tablet pressure that maps to 100%. */
   float pressure_threshold_max = 1.0;
   /** Curve non-linearity parameter. */
   float pressure_softness = 0;
-  /** #eUserPref_Tablet_Flags */
-  int tablet_flag = 0;
+  eUserPref_Tablet_Flags tablet_flag = {};
 
   /** 3D mouse: overall translation sensitivity. */
   float ndof_translation_sensitivity = 4.0;
@@ -1128,34 +1149,33 @@ struct UserDef {
   float ndof_rotation_sensitivity = 4.0;
   /** 3D mouse: dead-zone. */
   float ndof_deadzone = 0;
-  /** #eNdof_Flag, flags for 3D mouse. */
-  int ndof_flag = NDOF_SHOW_GUIDE_ORBIT_CENTER | NDOF_ORBIT_CENTER_AUTO | NDOF_LOCK_HORIZON |
-                  NDOF_SHOULD_PAN | NDOF_SHOULD_ZOOM | NDOF_SHOULD_ROTATE | NDOF_CAMERA_PAN_ZOOM;
-  /** #eNdof_Navigation_Mode, current navigation mode. */
-  uint8_t ndof_navigation_mode = 0;
-  char _pad17[1] = {};
-
-  /** eImageDrawMethod, Method to be used to draw the images
-   * (AUTO, GLSL, Textures or DrawPixels) */
-  short image_draw_method = IMAGE_DRAW_METHOD_AUTO;
+  /** Flags for 3D mouse. */
+  eNdof_Flag ndof_flag = NDOF_SHOW_GUIDE_ORBIT_CENTER | NDOF_ORBIT_CENTER_AUTO |
+                         NDOF_LOCK_HORIZON | NDOF_SHOULD_PAN | NDOF_SHOULD_ZOOM |
+                         NDOF_SHOULD_ROTATE | NDOF_CAMERA_PAN_ZOOM;
+  /** Current navigation mode. */
+  eNdof_Navigation_Mode ndof_navigation_mode = {};
+  char _pad17[3] = {};
 
   float glalphaclip = 0.004;
 
-  /** #eAutokey_Mode, auto-keying mode. */
-  short autokey_mode = (AUTOKEY_MODE_NORMAL & ~AUTOKEY_ON);
+  /** Auto-keying mode. */
+  eAutokey_Mode autokey_mode = eAutokey_Mode(AUTOKEY_MODE_NORMAL & ~AUTOKEY_ON);
   /** Flags for inserting keyframes. */
-  short keying_flag = KEYING_FLAG_XYZ2RGB | AUTOKEY_FLAG_INSERTNEEDED;
+  eKeying_Flag keying_flag = KEYING_FLAG_XYZ2RGB | AUTOKEY_FLAG_INSERTNEEDED |
+                             AUTOKEY_FLAG_INSERTAVAILABLE;
   /** Flags for which channels to insert keys at. */
-  short key_insert_channels = USER_ANIM_KEY_CHANNEL_LOCATION | USER_ANIM_KEY_CHANNEL_ROTATION |
-                              USER_ANIM_KEY_CHANNEL_SCALE |
-                              USER_ANIM_KEY_CHANNEL_CUSTOM_PROPERTIES;  // eKeyInsertChannels
+  eKeyInsertChannels key_insert_channels = USER_ANIM_KEY_CHANNEL_LOCATION |
+                                           USER_ANIM_KEY_CHANNEL_ROTATION |
+                                           USER_ANIM_KEY_CHANNEL_SCALE |
+                                           USER_ANIM_KEY_CHANNEL_CUSTOM_PROPERTIES;
   char _pad15[2] = {};
   /** Flags for animation. */
-  short animation_flag = USER_ANIM_HIGH_QUALITY_DRAWING;
+  eUserpref_Anim_Flags animation_flag = USER_ANIM_HIGH_QUALITY_DRAWING;
 
   /** Options for text rendering. */
-  char text_render = 0;
-  char navigation_mode = VIEW_NAVIGATION_WALK;
+  eText_Draw_Options text_render = {};
+  eViewNavigation_Method navigation_mode = VIEW_NAVIGATION_WALK;
 
   /** Turn-table rotation amount per-pixel in radians. Scaled with DPI. */
   float view_rotate_sensitivity_turntable = DEG2RAD(0.4);
@@ -1201,30 +1221,28 @@ struct UserDef {
   /** Pie menu distance from center before a direction is set. */
   short pie_menu_threshold = 12;
 
-  int sequencer_editor_flag = USER_SEQ_ED_CONNECT_STRIPS_BY_DEFAULT; /* eUserpref_SeqEditorFlags */
+  eUserpref_SeqEditorFlags sequencer_editor_flag = USER_SEQ_ED_CONNECT_STRIPS_BY_DEFAULT;
 
-  char factor_display_type = USER_FACTOR_AS_FACTOR;
+  eUserpref_FactorDisplay factor_display_type = USER_FACTOR_AS_FACTOR;
 
   char viewport_aa = 8;
 
-  char render_display_type = USER_RENDER_DISPLAY_WINDOW; /* eUserpref_RenderDisplayType */
-  char filebrowser_display_type =
-      USER_TEMP_SPACE_DISPLAY_WINDOW; /* eUserpref_TempSpaceDisplayType */
-  char preferences_display_type =
-      USER_TEMP_SPACE_DISPLAY_WINDOW; /* eUserpref_TempSpaceDisplayType */
+  eUserpref_RenderDisplayType render_display_type = USER_RENDER_DISPLAY_WINDOW;
+  eUserpref_TempSpaceDisplayType filebrowser_display_type = USER_TEMP_SPACE_DISPLAY_WINDOW;
+  eUserpref_TempSpaceDisplayType preferences_display_type = USER_TEMP_SPACE_DISPLAY_WINDOW;
   char _pad18[7] = {};
 
-  short sequencer_proxy_setup = USER_SEQ_PROXY_SETUP_AUTOMATIC; /* eUserpref_SeqProxySetup */
+  eUserpref_SeqProxySetup sequencer_proxy_setup = USER_SEQ_PROXY_SETUP_AUTOMATIC;
   short _pad1 = {};
 
   float collection_instance_empty_size = 1.0f;
-  char text_flag = 0;
+  eTextEdit_Flags text_flag = {};
 
-  char save_modified_images = USER_SAVE_MODIFIED_IMAGES_ASK; /* eUserpref_Save_Modified_Images */
+  eUserpref_Save_Modified_Images save_modified_images = USER_SAVE_MODIFIED_IMAGES_ASK;
 
-  char file_preview_type = USER_FILE_PREVIEW_AUTO; /* eUserpref_File_Preview_Type */
-  char statusbar_flag = STATUSBAR_SHOW_VERSION |
-                        STATUSBAR_SHOW_EXTENSIONS_UPDATES; /* eUserpref_StatusBar_Flag */
+  eUserpref_File_Preview_Type file_preview_type = USER_FILE_PREVIEW_AUTO;
+  eUserpref_StatusBar_Flag statusbar_flag = eUserpref_StatusBar_Flag(
+      STATUSBAR_SHOW_VERSION | STATUSBAR_SHOW_EXTENSIONS_UPDATES);
 
   struct WalkNavigation walk_navigation;
   struct XrNavigation xr_navigation;

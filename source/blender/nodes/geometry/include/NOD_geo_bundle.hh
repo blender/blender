@@ -171,4 +171,6 @@ struct SeparateBundleItemsAccessor : public socket_items::SocketItemsAccessorDef
   }
 };
 
+std::optional<StringRefNull> combine_bundle_node_type(const bNodeTree &tree, const bNode &node);
+
 }  // namespace blender::nodes

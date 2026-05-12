@@ -52,7 +52,7 @@ class CustomPropertiesTest(unittest.TestCase):
             Prop(name='location', type=Types.IDP_STRING, value='café'),
             Prop(name='size', type=Types.IDP_FLOAT, value=32.7),
             Prop(name='count', type=Types.IDP_INT, value=47),
-            Prop(name='amazing', type=Types.IDP_BOOLEAN, value=True),
+            Prop(name='amazing', type=Types.IDP_BOOL, value=True),
         ]
         # autopep8: on
 

@@ -16,6 +16,7 @@
 #include "GPU_texture.hh"
 
 #include "IMB_colormanagement.hh"
+#include "IMB_filetype.hh"
 #include "IMB_imbuf.hh"
 #include "IMB_imbuf_types.hh"
 
@@ -102,27 +103,26 @@ static const char *imb_gpu_get_swizzle(const ImBuf *ibuf)
 /* Return false if no suitable format was found. */
 bool IMB_gpu_get_compressed_format(const ImBuf *ibuf, gpu::TextureFormat *r_texture_format)
 {
-  /* For DDS we only support data, scene linear and sRGB. Converting to
-   * different colorspace would break the compression. */
-  const bool use_srgb = (!IMB_colormanagement_space_is_data(ibuf->byte_buffer.colorspace) &&
-                         !IMB_colormanagement_space_is_scene_linear(ibuf->byte_buffer.colorspace));
-
-  if (ibuf->dds_data.fourcc == FOURCC_DXT1) {
-    *r_texture_format = (use_srgb) ? gpu::TextureFormat::SRGB_DXT1 :
-                                     gpu::TextureFormat::SNORM_DXT1;
-  }
-  else if (ibuf->dds_data.fourcc == FOURCC_DXT3) {
-    *r_texture_format = (use_srgb) ? gpu::TextureFormat::SRGB_DXT3 :
-                                     gpu::TextureFormat::SNORM_DXT3;
-  }
-  else if (ibuf->dds_data.fourcc == FOURCC_DXT5) {
-    *r_texture_format = (use_srgb) ? gpu::TextureFormat::SRGB_DXT5 :
-                                     gpu::TextureFormat::SNORM_DXT5;
-  }
-  else {
+  if (ibuf->ftype != IMB_FTYPE_DDS) {
     return false;
   }
-  return true;
+
+  /* Compressed DDS files can really only express sRGB or data/linear. */
+  const bool use_srgb = (!IMB_colormanagement_space_is_data(ibuf->byte_buffer.colorspace) &&
+                         !IMB_colormanagement_space_is_scene_linear(ibuf->byte_buffer.colorspace));
+  if (ibuf->foptions.flag & DDS_COMPRESSED_DXT1) {
+    *r_texture_format = use_srgb ? gpu::TextureFormat::SRGB_DXT1 : gpu::TextureFormat::SNORM_DXT1;
+    return true;
+  }
+  if (ibuf->foptions.flag & DDS_COMPRESSED_DXT3) {
+    *r_texture_format = use_srgb ? gpu::TextureFormat::SRGB_DXT3 : gpu::TextureFormat::SNORM_DXT3;
+    return true;
+  }
+  if (ibuf->foptions.flag & DDS_COMPRESSED_DXT5) {
+    *r_texture_format = use_srgb ? gpu::TextureFormat::SRGB_DXT5 : gpu::TextureFormat::SNORM_DXT5;
+    return true;
+  }
+  return false;
 }
 
 /**
@@ -363,35 +363,50 @@ gpu::Texture *IMB_create_gpu_texture(
   if (ibuf->ftype == IMB_FTYPE_DDS) {
     gpu::TextureFormat compressed_format;
     if (!IMB_gpu_get_compressed_format(ibuf, &compressed_format)) {
-      CLOG_WARN(&LOG, "Unable to find a suitable DXT compression");
+      CLOG_WARN(&LOG,
+                "DDS image '%s' is not in a supported GPU compression format",
+                ibuf->filepath.c_str());
     }
     else if (do_rescale) {
-      CLOG_WARN(&LOG, "Unable to load DXT image resolution");
+      CLOG_WARN(
+          &LOG, "DDS image '%s' can't use compressed due to size limit", ibuf->filepath.c_str());
     }
     else if (!is_power_of_2_i(ibuf->x) || !is_power_of_2_i(ibuf->y)) {
       /* We require POT DXT/S3TC texture sizes not because something in there
        * intrinsically needs it, but because we flip them upside down at
        * load time, and that (when mipmaps are involved) is only possible
        * with POT height. */
-      CLOG_WARN(&LOG, "Unable to load non-power-of-two DXT image resolution");
+      CLOG_WARN(&LOG,
+                "DDS image '%s' can't use compressed due to non power of two size",
+                ibuf->filepath.c_str());
     }
     else {
-      tex = GPU_texture_create_compressed_2d(name,
-                                             ibuf->x,
-                                             ibuf->y,
-                                             ibuf->dds_data.nummipmaps,
-                                             compressed_format,
-                                             GPU_TEXTURE_USAGE_GENERAL,
-                                             ibuf->dds_data.data);
 
-      if (tex != nullptr) {
-        return tex;
+      int mip_count = 0;
+      uint8_t *compressed_data = imb_load_dds_compressed_data(
+          ibuf->filepath.c_str(), ibuf->x, ibuf->y, mip_count);
+      if (compressed_data != nullptr) {
+        tex = GPU_texture_create_compressed_2d(name,
+                                               ibuf->x,
+                                               ibuf->y,
+                                               mip_count,
+                                               compressed_format,
+                                               GPU_TEXTURE_USAGE_GENERAL,
+                                               compressed_data);
+        MEM_delete(compressed_data);
+        if (tex != nullptr) {
+          return tex;
+        }
+        CLOG_WARN(&LOG,
+                  "DDS image '%s' failed to create compressed GPU texture",
+                  ibuf->filepath.c_str());
       }
-
-      CLOG_WARN(&LOG, "ST3C support not found");
+      else {
+        CLOG_WARN(&LOG, "DDS image '%s' failed to load data from file", ibuf->filepath.c_str());
+      }
     }
-    /* Fall back to uncompressed texture. */
-    CLOG_WARN(&LOG, "Falling back to uncompressed (%s, %ix%i).", name, ibuf->x, ibuf->y);
+    /* Fallback to uncompressed texture. */
+    CLOG_WARN(&LOG, "DDS image '%s' falling back to uncompressed", ibuf->filepath.c_str());
   }
 
   gpu::TextureFormat tex_format;

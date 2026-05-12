@@ -17,7 +17,7 @@ class AbcCameraReader final : public AbcObjectReader {
   Alembic::AbcGeom::ICameraSchema m_schema;
 
  public:
-  AbcCameraReader(const Alembic::Abc::IObject &object, ImportSettings &settings);
+  AbcCameraReader(const AbcReaderConstructorArgs &args);
 
   bool valid() const override;
   bool accepts_object_type(const Alembic::AbcCoreAbstract::ObjectHeader &alembic_header,

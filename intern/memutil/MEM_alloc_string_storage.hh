@@ -83,7 +83,7 @@ class AllocStringStorageContainer {
   template<typename keyT, template<typename> typename hashT>
   std::any &ensure_storage(const std::string &storage_identifier)
   {
-    if (storage_.count(storage_identifier) == 0) {
+    if (!storage_.contains(storage_identifier)) {
       AllocStringStorage<keyT, hashT> storage_for_identifier;
       return (storage_[storage_identifier] = std::make_any<AllocStringStorage<keyT, hashT>>(
                   std::move(storage_for_identifier)));

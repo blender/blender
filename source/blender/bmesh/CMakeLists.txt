@@ -31,6 +31,7 @@ set(SRC
   operators/bmo_fill_edgeloop.cc
   operators/bmo_fill_grid.cc
   operators/bmo_fill_holes.cc
+  operators/bmo_flatten.cc
   operators/bmo_hull.cc
   operators/bmo_inset.cc
   operators/bmo_join_triangles.cc

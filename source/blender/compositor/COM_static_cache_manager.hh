@@ -16,6 +16,7 @@
 #include "COM_morphological_distance_feather_weights.hh"
 #include "COM_ocio_color_space_conversion_shader.hh"
 #include "COM_smaa_precomputed_textures.hh"
+#include "COM_string_image.hh"
 #include "COM_symmetric_blur_weights.hh"
 #include "COM_symmetric_separable_blur_weights.hh"
 #include "COM_van_vliet_gaussian_coefficients.hh"
@@ -62,6 +63,7 @@ class StaticCacheManager {
   VanVlietGaussianCoefficientsContainer van_vliet_gaussian_coefficients;
   FogGlowKernelContainer fog_glow_kernels;
   ImageCoordinatesContainer image_coordinates;
+  StringImageContainer string_images;
 
  public:
   /* Reset the cache manager by deleting the cached resources that are no longer needed because

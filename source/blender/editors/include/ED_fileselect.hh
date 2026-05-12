@@ -39,6 +39,8 @@ namespace asset_system {
 class AssetLibrary;
 }
 
+enum eFileSortType : short;
+
 #define FILE_LAYOUT_HOR 1
 #define FILE_LAYOUT_VER 2
 
@@ -57,7 +59,7 @@ struct FileAttributeColumn {
 
   float width;
   /** The sort type to use when sorting by this column. */
-  int sort_type; /* eFileSortType */
+  eFileSortType sort_type;
 
   /** Alignment of column texts, header text is always left aligned */
   int text_align; /* eFontStyle_Align */
@@ -226,7 +228,7 @@ void ED_file_change_dir_ex(bContext *C, ScrArea *area);
 void ED_file_change_dir(bContext *C);
 
 void ED_file_path_button(bScreen *screen,
-                         const SpaceFile *sfile,
+                         SpaceFile *sfile,
                          FileSelectParams *params,
                          ui::Block *block);
 

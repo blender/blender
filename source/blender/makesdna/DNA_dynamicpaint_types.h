@@ -10,10 +10,12 @@
 
 #include "DNA_listBase.h"
 
+#include "BLI_enum_flags.hh"
+
 namespace blender {
 
 /* surface type */
-enum {
+enum eDynamicPaint_SurfaceType : short {
   MOD_DPAINT_SURFACE_T_PAINT = 0,
   MOD_DPAINT_SURFACE_T_DISPLACE = 1,
   MOD_DPAINT_SURFACE_T_WEIGHT = 2,
@@ -21,7 +23,7 @@ enum {
 };
 
 /* surface flags */
-enum {
+enum eDynamicPaint_SurfaceFlags : int {
   MOD_DPAINT_ACTIVE = 1 << 0, /* Is surface enabled */
 
   MOD_DPAINT_ANTIALIAS = 1 << 1,    /* do anti-aliasing. */
@@ -37,28 +39,30 @@ enum {
   MOD_DPAINT_OUT1 = 1 << 10, /* output primary surface */
   MOD_DPAINT_OUT2 = 1 << 11, /* output secondary surface */
 };
+ENUM_OPERATORS(eDynamicPaint_SurfaceFlags)
 
 /* image_fileformat */
-enum {
+enum eDynamicPaint_ImageFormat : short {
   MOD_DPAINT_IMGFORMAT_PNG = 0,
   MOD_DPAINT_IMGFORMAT_OPENEXR = 1,
 };
 
-/* disp_format */
-enum {
+/* disp_type */
+enum eDynamicPaint_DispType : short {
   MOD_DPAINT_DISP_DISPLACE = 0, /* displacement output displace map */
   MOD_DPAINT_DISP_DEPTH = 1,    /* displacement output depth data */
 };
 
 /* effect */
-enum {
+enum eDynamicPaint_EffectFlags : int {
   MOD_DPAINT_EFFECT_DO_SPREAD = 1 << 0, /* do spread effect */
   MOD_DPAINT_EFFECT_DO_DRIP = 1 << 1,   /* do drip effect */
   MOD_DPAINT_EFFECT_DO_SHRINK = 1 << 2, /* do shrink effect */
 };
+ENUM_OPERATORS(eDynamicPaint_EffectFlags)
 
 /* init_color_type */
-enum {
+enum eDynamicPaint_InitColorType : short {
   MOD_DPAINT_INITIAL_NONE = 0,
   MOD_DPAINT_INITIAL_COLOR = 1,
   MOD_DPAINT_INITIAL_TEXTURE = 2,
@@ -66,13 +70,14 @@ enum {
 };
 
 /* canvas flags */
-enum {
+enum eDynamicPaint_CanvasFlags : short {
   /** surface is already baking, so it won't get updated (loop) */
   MOD_DPAINT_BAKING = 1 << 1,
 };
+ENUM_OPERATORS(eDynamicPaint_CanvasFlags)
 
 /* flags */
-enum {
+enum eDynamicPaint_BrushFlags : int {
   /** use particle radius */
   MOD_DPAINT_PART_RAD = 1 << 0,
   // MOD_DPAINT_USE_MATERIAL       = 1 << 1,  /* DNA_DEPRECATED */
@@ -102,9 +107,10 @@ enum {
   MOD_DPAINT_USES_VELOCITY = (MOD_DPAINT_DO_SMUDGE | MOD_DPAINT_VELOCITY_ALPHA |
                               MOD_DPAINT_VELOCITY_COLOR | MOD_DPAINT_VELOCITY_DEPTH),
 };
+ENUM_OPERATORS(eDynamicPaint_BrushFlags)
 
 /* collision type */
-enum {
+enum eDynamicPaint_CollisionType : int {
   MOD_DPAINT_COL_VOLUME = 0,  /* paint with mesh volume */
   MOD_DPAINT_COL_DIST = 1,    /* paint using distance to mesh surface */
   MOD_DPAINT_COL_VOLDIST = 2, /* use both volume and distance */
@@ -113,14 +119,14 @@ enum {
 };
 
 /* proximity_falloff */
-enum {
+enum eDynamicPaint_ProximityFalloff : short {
   MOD_DPAINT_PRFALL_CONSTANT = 0, /* no-falloff */
   MOD_DPAINT_PRFALL_SMOOTH = 1,   /* smooth, linear falloff */
   MOD_DPAINT_PRFALL_RAMP = 2,     /* use color ramp */
 };
 
 /* wave_brush_type */
-enum {
+enum eDynamicPaint_WaveBrushType : short {
   MOD_DPAINT_WAVEB_DEPTH = 0,   /* use intersection depth */
   MOD_DPAINT_WAVEB_FORCE = 1,   /* act as a force on intersection area */
   MOD_DPAINT_WAVEB_REFLECT = 2, /* obstacle that reflects waves */
@@ -128,7 +134,7 @@ enum {
 };
 
 /* brush ray_dir */
-enum {
+enum eDynamicPaint_RayDir : short {
   MOD_DPAINT_RAY_CANVAS = 0,
   MOD_DPAINT_RAY_BRUSH_AVG = 1,
   MOD_DPAINT_RAY_ZPLUS = 2,
@@ -137,7 +143,7 @@ enum {
 struct PaintSurfaceData;
 
 /* surface format */
-enum {
+enum eDynamicPaint_SurfaceFormat : short {
   MOD_DPAINT_SURFACE_F_PTEX = 0,
   MOD_DPAINT_SURFACE_F_VERTEX = 1,
   MOD_DPAINT_SURFACE_F_IMAGESEQ = 2,
@@ -160,12 +166,15 @@ struct DynamicPaintSurface {
 
   /* surface */
   char name[64] = "";
-  short format = 0, type = 0;
-  short disp_type = 0, image_fileformat = 0;
+  eDynamicPaint_SurfaceFormat format = MOD_DPAINT_SURFACE_F_PTEX;
+  eDynamicPaint_SurfaceType type = MOD_DPAINT_SURFACE_T_PAINT;
+  eDynamicPaint_DispType disp_type = MOD_DPAINT_DISP_DISPLACE;
+  eDynamicPaint_ImageFormat image_fileformat = MOD_DPAINT_IMGFORMAT_PNG;
   /** Ui selection box. */
   short effect_ui = 0;
-  short init_color_type = 0;
-  int flags = 0, effect = 0;
+  eDynamicPaint_InitColorType init_color_type = MOD_DPAINT_INITIAL_NONE;
+  eDynamicPaint_SurfaceFlags flags = {};
+  eDynamicPaint_EffectFlags effect = {};
 
   int image_resolution = 0, substeps = 0;
   int start_frame = 0, end_frame = 0;
@@ -201,7 +210,8 @@ struct DynamicPaintCanvasSettings {
   struct DynamicPaintModifierData *pmd = nullptr;
 
   ListBaseT<DynamicPaintSurface> surfaces = {nullptr, nullptr};
-  short active_sur = 0, flags = 0;
+  short active_sur = 0;
+  eDynamicPaint_CanvasFlags flags = {};
   char _pad[4] = {};
 
   /** Bake error description. */
@@ -221,8 +231,8 @@ struct DynamicPaintBrushSettings {
    */
   struct ParticleSystem *psys = nullptr;
 
-  int flags = 0;
-  int collision = 0;
+  eDynamicPaint_BrushFlags flags = {};
+  eDynamicPaint_CollisionType collision = MOD_DPAINT_COL_VOLUME;
 
   float r = 0, g = 0, b = 0, alpha = 0;
   float wetness = 0;
@@ -236,9 +246,9 @@ struct DynamicPaintBrushSettings {
   /** Velocity paint ramp. */
   struct ColorBand *vel_ramp = nullptr;
 
-  short proximity_falloff = 0;
-  short wave_type = 0;
-  short ray_dir = 0;
+  eDynamicPaint_ProximityFalloff proximity_falloff = MOD_DPAINT_PRFALL_CONSTANT;
+  eDynamicPaint_WaveBrushType wave_type = MOD_DPAINT_WAVEB_DEPTH;
+  eDynamicPaint_RayDir ray_dir = MOD_DPAINT_RAY_CANVAS;
   char _pad[2] = {};
 
   float wave_factor = 0, wave_clamp = 0;

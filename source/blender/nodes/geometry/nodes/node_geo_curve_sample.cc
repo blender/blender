@@ -222,15 +222,18 @@ class SampleCurveFunction : public mf::MultiFunction {
 
   mf::Signature signature_;
 
-  std::optional<bke::CurvesFieldContext> source_context_;
-  std::unique_ptr<FieldEvaluator> source_evaluator_;
-  const GVArray *source_data_;
+  mutable CacheMutex mutex_;
+  mutable std::optional<bke::CurvesFieldContext> source_context_;
+  mutable std::unique_ptr<FieldEvaluator> source_evaluator_;
+  mutable const GVArray *source_data_;
 
  public:
   SampleCurveFunction(GeometrySet geometry_set,
                       const GeometryNodeCurveSampleMode length_mode,
-                      const GField &src_field)
-      : geometry_set_(std::move(geometry_set)), src_field_(src_field), length_mode_(length_mode)
+                      GField src_field)
+      : geometry_set_(std::move(geometry_set)),
+        src_field_(std::move(src_field)),
+        length_mode_(length_mode)
   {
     mf::SignatureBuilder builder{"Sample Curve", signature_};
     builder.single_input<int>("Curve Index");
@@ -240,8 +243,6 @@ class SampleCurveFunction : public mf::MultiFunction {
     builder.single_output<float3>("Normal", mf::ParamFlag::SupportsUnusedOutput);
     builder.single_output("Value", src_field_.cpp_type(), mf::ParamFlag::SupportsUnusedOutput);
     this->set_signature(&signature_);
-
-    this->evaluate_source();
   }
 
   void call(const IndexMask &mask, mf::Params params, mf::Context /*context*/) const override
@@ -434,16 +435,27 @@ class SampleCurveFunction : public mf::MultiFunction {
     }
   }
 
- private:
-  void evaluate_source()
+  void prepare_for_execution() const override
   {
-    const Curves &curves_id = *geometry_set_.get_curves();
-    const bke::CurvesGeometry &curves = curves_id.geometry.wrap();
-    source_context_.emplace(bke::CurvesFieldContext{curves_id, AttrDomain::Point});
-    source_evaluator_ = std::make_unique<FieldEvaluator>(*source_context_, curves.points_num());
-    source_evaluator_->add(src_field_);
-    source_evaluator_->evaluate();
-    source_data_ = &source_evaluator_->get_evaluated(0);
+    mutex_.ensure([&]() {
+      const Curves &curves_id = *geometry_set_.get_curves();
+      const bke::CurvesGeometry &curves = curves_id.geometry.wrap();
+      source_context_.emplace(bke::CurvesFieldContext{curves_id, AttrDomain::Point});
+      source_evaluator_ = std::make_unique<FieldEvaluator>(*source_context_, curves.points_num());
+      source_evaluator_->add(src_field_);
+      source_evaluator_->evaluate();
+      source_data_ = &source_evaluator_->get_evaluated(0);
+    });
+  }
+
+  void hash_unique(UniqueHashBytes &hash) const override
+  {
+    static constexpr int8_t id = 0;
+    hash.add(&id);
+    hash.add(geometry_set_.get_curves());
+    hash.add(length_mode_);
+    fn::FieldHashDeep field_hash;
+    hash.add(field_hash.ensure(src_field_));
   }
 };
 

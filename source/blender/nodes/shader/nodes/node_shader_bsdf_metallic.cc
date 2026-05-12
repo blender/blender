@@ -13,6 +13,9 @@ namespace nodes::node_shader_bsdf_metallic_cc {
 
 static void node_declare(NodeDeclarationBuilder &b)
 {
+  const bNodeTree *ntree = b.tree_or_null();
+  const bool is_gpu_internal = ntree && (ntree->flag & NTREE_IS_GPU_SHADER_INTERNAL);
+
   b.use_custom_socket_order();
 
   b.add_output<decl::Shader>("BSDF"_ustr);
@@ -63,7 +66,7 @@ static void node_declare(NodeDeclarationBuilder &b)
       .description("Rotates the direction of anisotropy, with 1.0 going full circle");
   b.add_input<decl::Vector>("Normal"_ustr).hide_value();
   b.add_input<decl::Vector>("Tangent"_ustr).hide_value();
-  b.add_input<decl::Float>("Weight"_ustr).available(false);
+  b.add_input<decl::Float>("Weight"_ustr).available(is_gpu_internal);
 
   PanelDeclarationBuilder &film = b.add_panel("Thin Film"_ustr).default_closed(true);
   film.add_input<decl::Float>("Thin Film Thickness"_ustr)
@@ -130,13 +133,13 @@ static void node_shader_update_metallic(bNodeTree *ntree, bNode *node)
   const bool is_physical = (node->custom2 == SHD_PHYSICAL_CONDUCTOR);
 
   bke::node_set_socket_availability(
-      *ntree, *bke::node_find_socket(*node, SOCK_IN, "Base Color"), !is_physical);
+      *ntree, *bke::node_find_socket(*node, SOCK_IN, "Base Color"_ustr), !is_physical);
   bke::node_set_socket_availability(
-      *ntree, *bke::node_find_socket(*node, SOCK_IN, "Edge Tint"), !is_physical);
+      *ntree, *bke::node_find_socket(*node, SOCK_IN, "Edge Tint"_ustr), !is_physical);
   bke::node_set_socket_availability(
-      *ntree, *bke::node_find_socket(*node, SOCK_IN, "IOR"), is_physical);
+      *ntree, *bke::node_find_socket(*node, SOCK_IN, "IOR"_ustr), is_physical);
   bke::node_set_socket_availability(
-      *ntree, *bke::node_find_socket(*node, SOCK_IN, "Extinction"), is_physical);
+      *ntree, *bke::node_find_socket(*node, SOCK_IN, "Extinction"_ustr), is_physical);
 }
 
 NODE_SHADER_MATERIALX_BEGIN

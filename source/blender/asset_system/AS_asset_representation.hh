@@ -145,6 +145,10 @@ class AssetRepresentation : NonCopyable, NonMovable {
    */
   Span<OnlineAssetFile> online_asset_files() const;
   /**
+   * Return the sum of sizes of all files associated with this asset, according to the listing.
+   */
+  std::optional<int64_t> online_asset_files_combined_size_in_bytes() const;
+  /**
    * For online assets (see #is_online()), the URL the asset's preview should be requested from.
    *
    * Will return an empty value if this is not an online asset.

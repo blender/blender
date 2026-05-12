@@ -185,7 +185,7 @@ bool RNA_property_overridable_library_set(PointerRNA * /*ptr*/,
   /* Only works for pure custom properties IDProps. */
   if (prop->magic != RNA_MAGIC) {
     IDProperty *idprop = reinterpret_cast<IDProperty *>(prop);
-    constexpr short flags = (IDP_FLAG_OVERRIDABLE_LIBRARY | IDP_FLAG_STATIC_TYPE);
+    constexpr eIDPropertyFlag flags = IDP_FLAG_OVERRIDABLE_LIBRARY | IDP_FLAG_STATIC_TYPE;
     idprop->flag = is_overridable ? (idprop->flag | flags) : (idprop->flag & ~flags);
     return true;
   }
@@ -259,7 +259,7 @@ bool RNA_property_equals(
   rna_property_rna_or_id_get(prop, ptr_b, &prop_b);
 
   return (rna_property_override_diff(
-              bmain, &prop_a, &prop_b, nullptr, 0, mode, nullptr, eRNAOverrideMatch(0), nullptr) ==
+              bmain, &prop_a, &prop_b, nullptr, 0, mode, nullptr, eRNAOverrideMatch{}, nullptr) ==
           0);
 }
 
@@ -782,7 +782,7 @@ bool RNA_struct_override_matches(Main *bmain,
     }
 #endif
 
-    eRNAOverrideMatchResult report_flags = eRNAOverrideMatchResult(0);
+    eRNAOverrideMatchResult report_flags = eRNAOverrideMatchResult{};
     const int diff = rna_property_override_diff(bmain,
                                                 &prop_local,
                                                 &prop_reference,
@@ -1728,7 +1728,7 @@ IDOverrideLibraryPropertyOperation *RNA_property_override_property_operation_get
     Main *bmain,
     PointerRNA *ptr,
     PropertyRNA *prop,
-    const short operation,
+    const eID_OverrideLib_Op operation,
     const int index,
     const bool strict,
     bool *r_strict,
@@ -1753,7 +1753,7 @@ eRNAOverrideStatus RNA_property_override_library_status(Main *bmain,
                                                         PropertyRNA *prop,
                                                         const int index)
 {
-  eRNAOverrideStatus override_status = eRNAOverrideStatus(0);
+  eRNAOverrideStatus override_status = eRNAOverrideStatus{};
 
   if (!ptr || !prop || !ptr->owner_id || !ID_IS_OVERRIDE_LIBRARY(ptr->owner_id)) {
     return override_status;

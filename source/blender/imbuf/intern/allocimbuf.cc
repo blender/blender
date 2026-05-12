@@ -15,16 +15,12 @@
 #include "IMB_imbuf.hh"
 #include "IMB_imbuf_types.hh"
 
-#include "IMB_allocimbuf.hh"
 #include "IMB_colormanagement_intern.hh"
-#include "IMB_filetype.hh"
 #include "IMB_metadata.hh"
 
 #include "imbuf.hh"
 
 #include "MEM_guardedalloc.h"
-
-#include "BLI_threads.h"
 
 #include "GPU_context.hh"
 #include "GPU_state.hh"
@@ -56,28 +52,6 @@ template<class BufferType> static void imb_free_buffer(BufferType &buffer)
   /* Reset buffer to defaults. */
   buffer.data = nullptr;
   buffer.ownership = IB_DO_NOT_TAKE_OWNERSHIP;
-}
-
-/* Free the specified DDS buffer storage, freeing memory when needed and restoring the state of the
- * buffer to its defaults. */
-static void imb_free_dds_buffer(DDSData &dds_data)
-{
-  if (dds_data.data) {
-    switch (dds_data.ownership) {
-      case IB_DO_NOT_TAKE_OWNERSHIP:
-        break;
-
-      case IB_TAKE_OWNERSHIP:
-        /* dds_data.data is allocated by DirectDrawSurface::readData(), so don't use
-         * MEM_delete! */
-        free(dds_data.data);
-        break;
-    }
-  }
-
-  /* Reset buffer to defaults. */
-  dds_data.data = nullptr;
-  dds_data.ownership = IB_DO_NOT_TAKE_OWNERSHIP;
 }
 
 /* Allocate pixel storage of the given buffer. The buffer owns the allocated memory.
@@ -164,25 +138,10 @@ void IMB_free_byte_pixels(ImBuf *ibuf)
   ibuf->flags &= ~IB_byte_data;
 }
 
-static void free_encoded_data(ImBuf *ibuf)
-{
-  if (ibuf == nullptr) {
-    return;
-  }
-
-  imb_free_buffer(ibuf->encoded_buffer);
-
-  ibuf->encoded_buffer_size = 0;
-  ibuf->encoded_size = 0;
-
-  ibuf->flags &= ~IB_mem;
-}
-
 void IMB_free_all_data(ImBuf *ibuf)
 {
   IMB_free_byte_pixels(ibuf);
   IMB_free_float_pixels(ibuf);
-  free_encoded_data(ibuf);
 }
 
 void IMB_free_gpu_textures(ImBuf *ibuf)
@@ -210,8 +169,6 @@ void IMB_freeImBuf(ImBuf *ibuf)
     IMB_free_all_data(ibuf);
     IMB_free_gpu_textures(ibuf);
     IMB_metadata_free(ibuf->metadata);
-    colormanage_cache_free(ibuf);
-    imb_free_dds_buffer(ibuf->dds_data);
     MEM_delete(ibuf);
   }
 }
@@ -239,66 +196,6 @@ ImBuf *IMB_makeSingleUser(ImBuf *ibuf)
   IMB_freeImBuf(ibuf);
 
   return rval;
-}
-
-bool imb_addencodedbufferImBuf(ImBuf *ibuf)
-{
-  if (ibuf == nullptr) {
-    return false;
-  }
-
-  free_encoded_data(ibuf);
-
-  if (ibuf->encoded_buffer_size == 0) {
-    ibuf->encoded_buffer_size = 10000;
-  }
-
-  ibuf->encoded_size = 0;
-
-  if (!imb_alloc_buffer(
-          ibuf->encoded_buffer, ibuf->encoded_buffer_size, 1, 1, sizeof(uint8_t), true))
-  {
-    return false;
-  }
-
-  ibuf->flags |= IB_mem;
-
-  return true;
-}
-
-bool imb_enlargeencodedbufferImBuf(ImBuf *ibuf)
-{
-  if (ibuf == nullptr) {
-    return false;
-  }
-
-  if (ibuf->encoded_buffer_size < ibuf->encoded_size) {
-    CLOG_ERROR(&LOG, "%s: error in parameters\n", __func__);
-    return false;
-  }
-
-  uint newsize = 2 * ibuf->encoded_buffer_size;
-  newsize = std::max<uint>(newsize, 10000);
-
-  ImBufByteBuffer new_buffer;
-  if (!imb_alloc_buffer(new_buffer, newsize, 1, 1, sizeof(uint8_t), true)) {
-    return false;
-  }
-
-  if (ibuf->encoded_buffer.data) {
-    memcpy(new_buffer.data, ibuf->encoded_buffer.data, ibuf->encoded_size);
-  }
-  else {
-    ibuf->encoded_size = 0;
-  }
-
-  imb_free_buffer(ibuf->encoded_buffer);
-
-  ibuf->encoded_buffer = new_buffer;
-  ibuf->encoded_buffer_size = newsize;
-  ibuf->flags |= IB_mem;
-
-  return true;
 }
 
 void *imb_alloc_pixels(
@@ -369,18 +266,6 @@ float *IMB_steal_float_buffer(ImBuf *ibuf)
 {
   float *data = imb_steal_buffer_data(ibuf->float_buffer);
   ibuf->flags &= ~IB_float_data;
-  return data;
-}
-
-uint8_t *IMB_steal_encoded_buffer(ImBuf *ibuf)
-{
-  uint8_t *data = imb_steal_buffer_data(ibuf->encoded_buffer);
-
-  ibuf->encoded_size = 0;
-  ibuf->encoded_buffer_size = 0;
-
-  ibuf->flags &= ~IB_mem;
-
   return data;
 }
 
@@ -467,16 +352,6 @@ void IMB_assign_float_buffer(ImBuf *ibuf,
 {
   IMB_assign_float_buffer(ibuf, buffer.data, ownership);
   ibuf->float_buffer.colorspace = buffer.colorspace;
-}
-
-void IMB_assign_dds_data(ImBuf *ibuf, const DDSData &data, const ImBufOwnership ownership)
-{
-  BLI_assert(ibuf->ftype == IMB_FTYPE_DDS);
-
-  imb_free_dds_buffer(ibuf->dds_data);
-
-  ibuf->dds_data = data;
-  ibuf->dds_data.ownership = ownership;
 }
 
 ImBuf *IMB_allocFromBufferOwn(
@@ -586,80 +461,55 @@ bool IMB_initImBuf(ImBuf *ibuf, uint x, uint y, uchar planes, uint flags)
 
 ImBuf *IMB_dupImBuf(const ImBuf *ibuf1)
 {
-  ImBuf *ibuf2, tbuf;
-  int flags = IB_uninitialized_pixels;
-  int x, y;
-
   if (ibuf1 == nullptr) {
     return nullptr;
   }
 
-  if (ibuf1->byte_data()) {
-    flags |= IB_byte_data;
-  }
-
-  x = ibuf1->x;
-  y = ibuf1->y;
-
-  ibuf2 = IMB_allocImBuf(x, y, ibuf1->planes, flags);
+  ImBuf *ibuf2 = IMB_allocImBuf(ibuf1->x, ibuf1->y, ibuf1->planes, 0);
   if (ibuf2 == nullptr) {
     return nullptr;
   }
-
-  if (flags & IB_byte_data) {
-    memcpy(ibuf2->byte_data_for_write(), ibuf1->byte_data(), size_t(x) * y * 4 * sizeof(uint8_t));
-  }
-
-  if (ibuf1->float_data()) {
-    /* Ensure the correct number of channels are being allocated for the new #ImBuf. Some
-     * compositing scenarios might end up with >4 channels and we want to duplicate them properly.
-     */
-    if (IMB_alloc_float_pixels(ibuf2, ibuf1->channels, false) == false) {
-      IMB_freeImBuf(ibuf2);
-      return nullptr;
-    }
-
+  ibuf2->x = ibuf1->x;
+  ibuf2->y = ibuf1->y;
+  ibuf2->display_size[0] = ibuf1->display_size[0];
+  ibuf2->display_size[1] = ibuf1->display_size[1];
+  ibuf2->data_offset[0] = ibuf1->data_offset[0];
+  ibuf2->data_offset[1] = ibuf1->data_offset[1];
+  ibuf2->display_offset[0] = ibuf1->display_offset[0];
+  ibuf2->display_offset[1] = ibuf1->display_offset[1];
+  ibuf2->planes = ibuf1->planes;
+  ibuf2->channels = ibuf1->channels;
+  ibuf2->flags = ibuf1->flags;
+  if (const float *src_buffer = ibuf1->float_data()) {
+    IMB_alloc_float_pixels(ibuf2, ibuf1->channels, false);
     memcpy(ibuf2->float_data_for_write(),
-           ibuf1->float_data(),
-           size_t(ibuf2->channels) * x * y * sizeof(float));
+           src_buffer,
+           sizeof(float) * ibuf1->channels * ibuf1->x * ibuf1->y);
+    ibuf2->float_buffer.colorspace = ibuf1->float_buffer.colorspace;
   }
-
-  if (ibuf1->encoded_buffer.data) {
-    ibuf2->encoded_buffer_size = ibuf1->encoded_buffer_size;
-    if (imb_addencodedbufferImBuf(ibuf2) == false) {
-      IMB_freeImBuf(ibuf2);
-      return nullptr;
-    }
-
-    memcpy(ibuf2->encoded_buffer.data, ibuf1->encoded_buffer.data, ibuf1->encoded_size);
+  if (const uint8_t *src_buffer = ibuf1->byte_data()) {
+    IMB_alloc_byte_pixels(ibuf2, false);
+    memcpy(ibuf2->byte_data_for_write(), src_buffer, sizeof(uint8_t) * 4 * ibuf1->x * ibuf1->y);
+    ibuf2->byte_buffer.colorspace = ibuf1->byte_buffer.colorspace;
   }
-
-  ibuf2->byte_buffer.colorspace = ibuf1->byte_buffer.colorspace;
-  ibuf2->float_buffer.colorspace = ibuf1->float_buffer.colorspace;
-
-  /* silly trick to copy the entire contents of ibuf1 struct over to ibuf */
-  tbuf = *ibuf1;
-
-  /* fix pointers */
-  tbuf.byte_buffer = ibuf2->byte_buffer;
-  tbuf.float_buffer = ibuf2->float_buffer;
-  tbuf.encoded_buffer = ibuf2->encoded_buffer;
-  tbuf.dds_data.data = nullptr;
-
-  /* Set `malloc` flag. */
-  tbuf.refcounter = 0;
-
-  /* for now don't duplicate metadata */
-  tbuf.metadata = nullptr;
-
-  tbuf.display_buffer_flags = nullptr;
-  tbuf.colormanage_cache = nullptr;
-
   /* GPU textures can not be easily copied, as it is not guaranteed that this function is called
    * from within an active GPU context. */
-  tbuf.gpu.texture = nullptr;
-
-  *ibuf2 = tbuf;
+  ibuf2->gpu.texture = nullptr;
+  ibuf2->ppm[0] = ibuf1->ppm[0];
+  ibuf2->ppm[1] = ibuf1->ppm[1];
+  ibuf2->dither = ibuf1->dither;
+  ibuf2->index = ibuf1->index;
+  ibuf2->userflags = ibuf1->userflags;
+  ibuf2->userflags = ibuf1->userflags;
+  /* for now don't duplicate metadata */
+  ibuf2->metadata = nullptr;
+  ibuf2->exrhandle = ibuf1->exrhandle;
+  ibuf2->ftype = ibuf1->ftype;
+  ibuf2->foptions = ibuf1->foptions;
+  ibuf2->filepath = ibuf1->filepath;
+  ibuf2->fileframe = ibuf1->fileframe;
+  ibuf2->refcounter = 0;
+  ibuf2->colormanage_flag = ibuf1->colormanage_flag;
 
   return ibuf2;
 }

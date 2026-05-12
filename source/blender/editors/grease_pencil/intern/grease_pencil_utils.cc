@@ -288,7 +288,7 @@ bool DrawingPlacement::use_project_to_stroke() const
 
 void DrawingPlacement::cache_viewport_depths(Depsgraph *depsgraph, ARegion *region, View3D *view3d)
 {
-  const short previous_gp_flag = view3d->gp_flag;
+  const eView3D_GPFlag previous_gp_flag = view3d->gp_flag;
   eV3DDepthOverrideMode mode = V3D_DEPTH_GPENCIL_ONLY;
 
   if (use_project_to_surface()) {

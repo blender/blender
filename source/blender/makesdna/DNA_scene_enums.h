@@ -13,7 +13,7 @@
 namespace blender {
 
 /** #ToolSettings.vgroupsubset */
-enum eVGroupSelect {
+enum eVGroupSelect : char {
   WT_VGROUP_ALL = 0,
   WT_VGROUP_ACTIVE = 1,
   WT_VGROUP_BONE_SELECT = 2,
@@ -25,7 +25,7 @@ enum eVGroupSelect {
   ((1 << WT_VGROUP_ACTIVE) | (1 << WT_VGROUP_BONE_SELECT) | (1 << WT_VGROUP_BONE_DEFORM) | \
    (1 << WT_VGROUP_BONE_DEFORM_OFF) | (1 << WT_VGROUP_ALL))
 
-enum eSeqImageFitMethod {
+enum eSeqImageFitMethod : int {
   SEQ_SCALE_TO_FIT,
   SEQ_SCALE_TO_FILL,
   SEQ_STRETCH_TO_FILL,
@@ -36,7 +36,7 @@ enum eSeqImageFitMethod {
  * #Paint::symmetry_flags
  * (for now just a duplicate of sculpt symmetry flags).
  */
-enum ePaintSymmetryFlags {
+enum ePaintSymmetryFlags : int {
   PAINT_SYMM_NONE = 0,
   PAINT_SYMM_X = (1 << 0),
   PAINT_SYMM_Y = (1 << 1),
@@ -58,7 +58,7 @@ inline ePaintSymmetryFlags operator++(ePaintSymmetryFlags &flags, int)
 #endif
 
 /** #UnifiedPaintSettings::flag */
-enum eUnifiedPaintSettingsFlags {
+enum eUnifiedPaintSettingsFlags : int {
   UNIFIED_PAINT_SIZE = (1 << 0),
   UNIFIED_PAINT_ALPHA = (1 << 1),
   /** Only used if unified size is enabled, mirrors the brush flag #BRUSH_LOCK_SIZE. */
@@ -70,16 +70,18 @@ enum eUnifiedPaintSettingsFlags {
   UNIFIED_PAINT_INPUT_SAMPLES = (1 << 7),
   UNIFIED_PAINT_COLOR_JITTER = (1 << 8),
 };
+ENUM_OPERATORS(eUnifiedPaintSettingsFlags)
 
-/** Paint::curve_visibility_flag*/
-enum PaintCurveVisibilityFlags {
+/** Paint::curve_visibility_flag */
+enum PaintCurveVisibilityFlags : int {
   PAINT_CURVE_SHOW_STRENGTH = (1 << 0),
   PAINT_CURVE_SHOW_SIZE = (1 << 1),
   PAINT_CURVE_SHOW_JITTER = (1 << 2),
 };
+ENUM_OPERATORS(PaintCurveVisibilityFlags)
 
 /** #SceneRenderLayer::passflag */
-enum eScenePassType {
+enum eScenePassType : uint32_t {
   SCE_PASS_COMBINED = (1 << 0),
   SCE_PASS_DEPTH = (1 << 1),
   SCE_PASS_UNUSED_1 = (1 << 2), /* RGBA */
@@ -113,6 +115,7 @@ enum eScenePassType {
   SCE_PASS_SUBSURFACE_COLOR = (1 << 30),
   SCE_PASS_ROUGHNESS = (1u << 31u),
 };
+ENUM_OPERATORS(eScenePassType)
 
 #define RE_PASSNAME_DEPRECATED "Deprecated"
 
@@ -156,7 +159,7 @@ enum eScenePassType {
 #define RE_PASSNAME_GREASE_PENCIL "Grease Pencil"
 
 /** #SceneRenderLayer::layflag */
-enum {
+enum eSceneLayer_Flag : int {
   SCE_LAY_SOLID = 1 << 0,
   SCE_LAY_UNUSED_1 = 1 << 1,
   SCE_LAY_UNUSED_2 = 1 << 2,
@@ -179,27 +182,29 @@ enum {
   SCE_LAY_UNUSED_6 = 1 << 18,
   SCE_LAY_UNUSED_7 = 1 << 19,
 };
+ENUM_OPERATORS(eSceneLayer_Flag)
 
 /** #SceneRenderView::viewflag */
-enum {
+enum eSceneView_Flag : int {
   SCE_VIEW_DISABLE = 1 << 0,
 };
+ENUM_OPERATORS(eSceneView_Flag)
 
 /** #RenderData::views_format */
-enum {
+enum eSceneViews_Format : char {
   SCE_VIEWS_FORMAT_STEREO_3D = 0,
   SCE_VIEWS_FORMAT_MULTIVIEW = 1,
 };
 
 /** #ImageFormatData::views_format (also used for #Strip::views_format). */
-enum {
+enum eImageFormat_ViewsFormat : char {
   R_IMF_VIEWS_INDIVIDUAL = 0,
   R_IMF_VIEWS_STEREO_3D = 1,
   R_IMF_VIEWS_MULTIVIEW = 2,
 };
 
 /** #Stereo3dFormat::display_mode */
-enum eStereoDisplayMode {
+enum eStereoDisplayMode : char {
   S3D_DISPLAY_ANAGLYPH = 0,
   S3D_DISPLAY_INTERLACE = 1,
   S3D_DISPLAY_PAGEFLIP = 2,
@@ -208,28 +213,29 @@ enum eStereoDisplayMode {
 };
 
 /** #Stereo3dFormat::flag */
-enum eStereo3dFlag {
+enum eStereo3dFlag : short {
   S3D_INTERLACE_SWAP = (1 << 0),
   S3D_SIDEBYSIDE_CROSSEYED = (1 << 1),
   S3D_SQUEEZED_FRAME = (1 << 2),
 };
+ENUM_OPERATORS(eStereo3dFlag)
 
 /** #Stereo3dFormat::anaglyph_type */
-enum eStereo3dAnaglyphType {
+enum eStereo3dAnaglyphType : char {
   S3D_ANAGLYPH_REDCYAN = 0,
   S3D_ANAGLYPH_GREENMAGENTA = 1,
   S3D_ANAGLYPH_YELLOWBLUE = 2,
 };
 
 /** #Stereo3dFormat::interlace_type */
-enum eStereo3dInterlaceType {
+enum eStereo3dInterlaceType : char {
   S3D_INTERLACE_ROW = 0,
   S3D_INTERLACE_COLUMN = 1,
   S3D_INTERLACE_CHECKERBOARD = 2,
 };
 
 /** #View3D::stereo3d_camera / #View3D::multiview_eye / #ImageUser::multiview_eye */
-enum eStereoViews {
+enum eStereoViews : char {
   STEREO_LEFT_ID = 0,
   STEREO_RIGHT_ID = 1,
   STEREO_3D_ID = 2,

@@ -22,7 +22,7 @@
 namespace blender {
 
 /** Generate new UID which is unique throughout the Blender session. */
-SessionUID BLI_session_uid_generate(void);
+SessionUID BLI_session_uid_generate();
 
 /** Check whether the UID is properly generated. */
 bool BLI_session_uid_is_generated(const SessionUID *uid);

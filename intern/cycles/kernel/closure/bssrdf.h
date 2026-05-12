@@ -332,13 +332,7 @@ ccl_device int bssrdf_setup(ccl_private ShaderData *sd,
 
   if (bssrdf_channels < SPECTRUM_CHANNELS) {
     /* Add diffuse BSDF if any radius too small. */
-    ccl_private DiffuseBsdf *bsdf = (ccl_private DiffuseBsdf *)bsdf_alloc(
-        sd, sizeof(DiffuseBsdf), diffuse_weight);
-
-    if (bsdf) {
-      bsdf->N = bssrdf->N;
-      flag |= bsdf_diffuse_setup(bsdf);
-    }
+    bsdf_diffuse_setup(sd, bssrdf->N, diffuse_weight);
   }
 
   /* Setup BSSRDF if radius is large enough. */

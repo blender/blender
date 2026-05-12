@@ -134,7 +134,7 @@ const asset_system::AssetRepresentation *operator_asset_reference_props_get_asse
     const bContext &C, PointerRNA &ptr, ReportList *reports)
 {
   AssetWeakReference weak_ref{};
-  weak_ref.asset_library_type = RNA_enum_get(&ptr, "asset_library_type");
+  weak_ref.asset_library_type = eAssetLibraryType(RNA_enum_get(&ptr, "asset_library_type"));
   weak_ref.asset_library_identifier = RNA_string_get_alloc(
       &ptr, "asset_library_identifier", nullptr, 0, nullptr);
   weak_ref.relative_asset_identifier = RNA_string_get_alloc(

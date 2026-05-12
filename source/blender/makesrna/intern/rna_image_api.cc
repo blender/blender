@@ -385,7 +385,7 @@ void RNA_api_image(StructRNA *srna)
               INT_MAX);
   /* return value */
   parm = RNA_def_int(
-      func, "error", 0, -INT_MAX, INT_MAX, "Error", "OpenGL error value", -INT_MAX, INT_MAX);
+      func, "error", 0, INT_MIN, INT_MAX, "Error", "OpenGL error value", INT_MIN, INT_MAX);
   RNA_def_function_return(func, parm);
 
   func = RNA_def_function(srna, "gl_load", "rna_Image_gl_load");
@@ -417,7 +417,7 @@ void RNA_api_image(StructRNA *srna)
               INT_MAX);
   /* return value */
   parm = RNA_def_int(
-      func, "error", 0, -INT_MAX, INT_MAX, "Error", "OpenGL error value", -INT_MAX, INT_MAX);
+      func, "error", 0, INT_MIN, INT_MAX, "Error", "OpenGL error value", INT_MIN, INT_MAX);
   RNA_def_function_return(func, parm);
 
   func = RNA_def_function(srna, "gl_free", "rna_Image_gl_free");

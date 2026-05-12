@@ -230,6 +230,7 @@ void GPU_shader_uniform_4fv(gpu::Shader *sh, const char *name, const float data[
 void GPU_shader_uniform_2iv(gpu::Shader *sh, const char *name, const int data[2]);
 void GPU_shader_uniform_3iv(gpu::Shader *sh, const char *name, const int data[3]);
 void GPU_shader_uniform_mat4(gpu::Shader *sh, const char *name, const float data[4][4]);
+void GPU_shader_uniform_mat3(gpu::Shader *sh, const char *name, const float data[3][3]);
 void GPU_shader_uniform_mat3_as_mat4(gpu::Shader *sh, const char *name, const float data[3][3]);
 void GPU_shader_uniform_1f_array(gpu::Shader *sh, const char *name, int len, const float *val);
 void GPU_shader_uniform_2fv_array(gpu::Shader *sh,

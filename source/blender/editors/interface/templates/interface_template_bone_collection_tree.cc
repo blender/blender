@@ -272,7 +272,7 @@ class BoneCollectionItem : public AbstractTreeViewItem {
 
   std::optional<bool> should_be_active() const override
   {
-    return armature_.runtime.active_collection_index == bcoll_index_;
+    return armature_.runtime->active_collection_index == bcoll_index_;
   }
 
   void on_activate(bContext &C) override

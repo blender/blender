@@ -76,11 +76,14 @@ enum eCurveElem_Types {
 /**
  * Returns 1 in case (de)selection was successful.
  */
-bool select_beztriple(BezTriple *bezt, bool selstatus, uint8_t flag, eVisible_Types hidden);
+bool select_beztriple(BezTriple *bezt,
+                      bool selstatus,
+                      eBezTriple_Flag flag,
+                      eVisible_Types hidden);
 /**
  * Returns 1 in case (de)selection was successful.
  */
-bool select_bpoint(BPoint *bp, bool selstatus, uint8_t flag, bool hidden);
+bool select_bpoint(BPoint *bp, bool selstatus, eBezTriple_Flag flag, bool hidden);
 
 void FONT_OT_text_insert(wmOperatorType *ot);
 void FONT_OT_line_break(wmOperatorType *ot);
@@ -168,13 +171,13 @@ void ed_dissolve_bez_segment(BezTriple *bezt_prev,
 
 /* helper functions */
 void ed_editnurb_translate_flag(ListBaseT<Nurb> *editnurb,
-                                uint8_t flag,
+                                eBezTriple_Flag flag,
                                 const float vec[3],
                                 bool is_2d);
 /**
  * Only for #OB_SURF.
  */
-bool ed_editnurb_extrude_flag(EditNurb *editnurb, uint8_t flag);
+bool ed_editnurb_extrude_flag(EditNurb *editnurb, eBezTriple_Flag flag);
 /**
  * \param axis: is in world-space.
  * \param cent: is in object-space.

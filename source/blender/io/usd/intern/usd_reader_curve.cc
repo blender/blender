@@ -331,14 +331,19 @@ void USDBasisCurvesReader::read_curve_sample(Curves *curves_id, const pxr::UsdTi
   }
 
   if (!usd_widths.empty()) {
-    MutableSpan<float> radii = curves.radius_for_write();
     Span<float> widths = Span(usd_widths.cdata(), usd_widths.size());
 
     pxr::TfToken widths_interp = curve_prim_.GetWidthsInterpolation();
     if (widths_interp == pxr::UsdGeomTokens->constant || widths.size() == 1) {
-      radii.fill(widths[0] / 2.0f);
+      set_single_value(curves.attributes_for_write(),
+                       "radius",
+                       bke::AttrDomain::Point,
+                       bke::AttrType::Float,
+                       bke::AttributeInitValue(widths[0] / 2.0f));
     }
     else {
+      MutableSpan<float> radii = curves.radius_for_write();
+
       const bool is_bezier_vertex_interp = (type == pxr::UsdGeomTokens->cubic &&
                                             basis == pxr::UsdGeomTokens->bezier &&
                                             widths_interp == pxr::UsdGeomTokens->vertex);

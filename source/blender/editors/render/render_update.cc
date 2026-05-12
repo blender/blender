@@ -105,6 +105,20 @@ void ED_render_view3d_update(Depsgraph *depsgraph,
   }
 }
 
+static void update_compositor(const DEGEditorUpdateContext *update_context)
+{
+  const Scene *scene = DEG_get_evaluated(update_context->depsgraph, update_context->scene);
+  const bNodeTree *node_tree = scene->compositing_node_group;
+  if (!node_tree) {
+    return;
+  }
+
+  if (node_tree->id.recalc & ID_RECALC_NTREE_OUTPUT) {
+    ED_node_compositor_job(
+        update_context->bmain, update_context->scene, update_context->view_layer);
+  }
+}
+
 void ED_render_scene_update(const DEGEditorUpdateContext *update_ctx, const bool updated)
 {
   Main *bmain = update_ctx->bmain;
@@ -138,6 +152,8 @@ void ED_render_scene_update(const DEGEditorUpdateContext *update_ctx, const bool
       }
     }
   }
+
+  update_compositor(update_ctx);
 
   recursive_check = false;
 }

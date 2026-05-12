@@ -12,6 +12,7 @@
 #include "scene/stats.h"
 
 #include "util/atomic.h"
+#include "util/debug.h"
 #include "util/image.h"
 #include "util/image_impl.h"
 #include "util/image_metadata.h"
@@ -23,6 +24,72 @@
 #include <algorithm>
 
 CCL_NAMESPACE_BEGIN
+
+/* ImageCacheStats. */
+
+void ImageCacheStats::reset()
+{
+  thread_scoped_lock lock(mutex_);
+  evicted_mask.clear();
+  current_loaded = 0;
+  current_tiled_bytes = 0;
+  total_loaded = 0;
+  total_evicted = 0;
+  total_reloaded = 0;
+  peak_loaded = 0;
+  peak_tiled_bytes = 0;
+}
+
+void ImageCacheStats::resize(const size_t size)
+{
+  thread_scoped_lock lock(mutex_);
+  if (size > evicted_mask.size()) {
+    evicted_mask.resize(size, 0);
+  }
+}
+
+void ImageCacheStats::clear_range(const size_t begin, const size_t end)
+{
+  thread_scoped_lock lock(mutex_);
+  const size_t clipped_end = std::min(end, evicted_mask.size());
+  for (size_t i = begin; i < clipped_end; i++) {
+    evicted_mask[i] = 0;
+  }
+}
+
+void ImageCacheStats::load_tile(const size_t bit_index)
+{
+  thread_scoped_lock lock(mutex_);
+  total_loaded++;
+  current_loaded++;
+  peak_loaded = std::max(peak_loaded, current_loaded);
+
+  if (bit_index < evicted_mask.size() && evicted_mask[bit_index] != 0) {
+    evicted_mask[bit_index] = 0;
+    total_reloaded++;
+  }
+}
+
+void ImageCacheStats::evict_tile(const size_t bit_index)
+{
+  thread_scoped_lock lock(mutex_);
+  evicted_mask[bit_index] = 1;
+  total_evicted++;
+  current_loaded--;
+}
+
+void ImageCacheStats::add_tiled_bytes(const size_t bytes)
+{
+  thread_scoped_lock lock(mutex_);
+  current_tiled_bytes += bytes;
+  peak_tiled_bytes = std::max(peak_tiled_bytes, current_tiled_bytes);
+}
+
+void ImageCacheStats::remove_tiled_bytes(const size_t bytes)
+{
+  thread_scoped_lock lock(mutex_);
+  current_tiled_bytes -= bytes;
+}
 
 /* ImageCache::DeviceImage */
 
@@ -47,7 +114,10 @@ void ImageCache::device_free(DeviceScene &dscene)
   images.clear();
   images_first_free.clear();
   dscene.image_texture_tile_descriptors.free();
-  dscene.image_texture_tile_request_mask.free();
+  dscene.image_texture_tile_access_state.free();
+
+  /* Reset eviction statistics. */
+  stats.reset();
 }
 
 /* Full image management. */
@@ -98,6 +168,9 @@ void ImageCache::free_image(DeviceScene &dscene, const KernelImageTexture &tex)
 
 void ImageCache::free_tiled_image(DeviceScene &dscene, const KernelImageTexture &tex)
 {
+  /* Hold the mutex across the whole loop as tile_descriptors may get resized elsewhere. */
+  thread_scoped_lock device_lock(device_mutex);
+
   /* TODO: Shrink tile_descriptors by compacting. */
   KernelTileDescriptor *descriptors = dscene.image_texture_tile_descriptors.data() +
                                       tex.tile_descriptor_offset + tex.tile_levels;
@@ -107,6 +180,10 @@ void ImageCache::free_tiled_image(DeviceScene &dscene, const KernelImageTexture 
       free_tile(descriptors[i]);
     }
   }
+
+  /* Clear eviction statistics bits for this image's tile descriptor range. */
+  const size_t begin = size_t(tex.tile_descriptor_offset) + size_t(tex.tile_levels);
+  stats.clear_range(begin, begin + size_t(tex.tile_num));
 }
 template<TypeDesc::BASETYPE FileFormat, typename StorageType>
 device_image *ImageCache::load_full(Device &device,
@@ -321,6 +398,10 @@ device_image &ImageCache::alloc_tile(Device &device,
 
     img->alloc(tile_size_padded * TILE_IMAGE_MAX_TILES, tile_size_padded);
     tile_offset = 0;
+
+    stats.add_tiled_bytes(img->memory_size());
+
+    images_first_free[key] = std::min(size_t(image_info_id), images_first_free[key]);
   }
 
   if (alloc_image && device.has_unified_memory()) {
@@ -366,8 +447,6 @@ device_image &ImageCache::alloc_tile(Device &device,
 
 void ImageCache::free_tile(const KernelTileDescriptor tile)
 {
-  thread_scoped_lock device_lock(device_mutex);
-
   const uint image_info_id = kernel_tile_descriptor_image_info_id(tile);
   const uint tile_offset = kernel_tile_descriptor_offset(tile);
 
@@ -384,6 +463,7 @@ void ImageCache::free_tile(const KernelTileDescriptor tile)
 
   if (img->occupancy == 0) {
     /* All tiles free, remove the device image entirely. */
+    stats.remove_tiled_bytes(img->memory_size());
     deferred_updates.erase(images[image_info_id]);
     deferred_gpu_updates.erase(images[image_info_id]);
     images.replace(image_info_id, nullptr);
@@ -422,8 +502,8 @@ void ImageCache::load_image_tiled(DeviceScene &dscene,
   int num_tiles = 0;
 
   for (int miplevel = 0; max_miplevels; miplevel++) {
-    const int mip_width = metadata.width >> miplevel;
-    const int mip_height = metadata.height >> miplevel;
+    const int mip_width = std::max(1, tex.width >> miplevel);
+    const int mip_height = std::max(1, tex.height >> miplevel);
 
     levels.push_back(num_tiles);
 
@@ -439,17 +519,21 @@ void ImageCache::load_image_tiled(DeviceScene &dscene,
     const thread_scoped_lock device_lock(device_mutex);
 
     device_vector<KernelTileDescriptor> &tile_descriptors = dscene.image_texture_tile_descriptors;
-    device_vector<uint8_t> &tile_request_mask = dscene.image_texture_tile_request_mask;
+    device_vector<uint8_t> &tile_access = dscene.image_texture_tile_access_state;
 
     const int tile_descriptor_offset = tile_descriptors.size();
     tile_descriptors.resize(tile_descriptor_offset + levels.size() + num_tiles);
 
-    /* Resize request mask to match tile descriptors. */
-    const size_t old_size = tile_request_mask.size();
+    /* Resize access state to match tile descriptors. */
+    const size_t old_size = tile_access.size();
     if (tile_descriptors.size() > old_size) {
-      tile_request_mask.resize(tile_descriptors.size());
-      memset(tile_request_mask.data() + old_size, 0, tile_descriptors.size() - old_size);
+      tile_access.resize(tile_descriptors.size());
+      memset(tile_access.data() + old_size,
+             KERNEL_TILE_ACCESS_NONE,
+             tile_descriptors.size() - old_size);
     }
+
+    stats.resize(tile_descriptors.size());
 
     KernelTileDescriptor *descr_data = tile_descriptors.data() + tile_descriptor_offset;
 
@@ -475,10 +559,11 @@ KernelTileDescriptor ImageCache::load_tile(Device &device,
                                            const int miplevel,
                                            const int x,
                                            const int y,
-                                           const bool for_cpu_cache_miss)
+                                           const bool for_cpu_cache_miss,
+                                           const size_t bit_index)
 {
-  const int width = metadata.width >> miplevel;
-  const int height = metadata.height >> miplevel;
+  const int width = std::max(int64_t(1), metadata.width >> miplevel);
+  const int height = std::max(int64_t(1), metadata.height >> miplevel);
   const int tile_size = metadata.tile_size;
   const size_t w = min(size_t(width - x), size_t(tile_size));
   const size_t h = min(size_t(height - y), size_t(tile_size));
@@ -520,7 +605,31 @@ KernelTileDescriptor ImageCache::load_tile(Device &device,
                 << " (" << x << " " << y << ")";
   }
 
+  if (ok) {
+    stats.load_tile(bit_index);
+  }
+
   return (ok) ? tile_descriptor : KERNEL_TILE_LOAD_FAILED;
+}
+
+/* Find the mip level that contains the tile index. */
+static int image_tile_find_miplevel(const KernelTileDescriptor *levels,
+                                    const int tile_levels,
+                                    const size_t tile_idx,
+                                    size_t &r_level_start)
+{
+  int miplevel = 0;
+  size_t level_start = 0;
+  for (int m = 0; m < tile_levels; m++) {
+    const size_t level_offset = levels[m] - tile_levels;
+    if (tile_idx < level_offset) {
+      break;
+    }
+    level_start = level_offset;
+    miplevel = m;
+  }
+  r_level_start = level_start;
+  return miplevel;
 }
 
 void ImageCache::load_requested_tiles(Device &device,
@@ -528,7 +637,8 @@ void ImageCache::load_requested_tiles(Device &device,
                                       const KernelImageTexture &tex,
                                       ImageLoader &loader,
                                       const ImageMetaData &metadata,
-                                      const uint8_t *request_mask)
+                                      const int miplevel_offset,
+                                      const uint8_t *access_state)
 {
   const int tile_size = metadata.tile_size;
   const InterpolationType interpolation = InterpolationType(tex.interpolation);
@@ -539,9 +649,9 @@ void ImageCache::load_requested_tiles(Device &device,
   const KernelTileDescriptor *levels = dscene.image_texture_tile_descriptors.data() +
                                        tex.tile_descriptor_offset;
 
-  /* Scan request mask for this image's tiles. */
+  /* Scan access state for this image's tiles. */
   for (size_t tile_idx = 0; tile_idx < tex.tile_num; tile_idx++) {
-    if (request_mask[base_offset + tile_idx] == 0) {
+    if (!(access_state[base_offset + tile_idx] & KERNEL_TILE_ACCESS_REQUESTED)) {
       continue;
     }
 
@@ -553,37 +663,35 @@ void ImageCache::load_requested_tiles(Device &device,
 
     /* Atomically claim this tile slot. If another thread or GPU callback wins the race,
      * skip and let the winner load it. We don't require KERNEL_TILE_LOAD_REQUEST because
-     * the request mask might be set without it even if that race condition is unlikely. */
+     * the access state might be set without it even if that race condition is unlikely. */
     const KernelTileDescriptor old = atomic_cas_uint32(
         &descriptors[tile_idx], KERNEL_TILE_LOAD_NONE, KERNEL_TILE_LOAD_REQUEST);
     if (old != KERNEL_TILE_LOAD_NONE && old != KERNEL_TILE_LOAD_REQUEST) {
       continue;
     }
 
-    /* Find miplevel for this tile index. The stored level values are offsets from
-     * tile_descriptor_offset, so subtract tile_levels to get the tile index. */
-    int miplevel = 0;
-    size_t level_start = 0;
-    for (int m = 0; m < tex.tile_levels; m++) {
-      const size_t level_offset = levels[m] - tex.tile_levels;
-      if (tile_idx < level_offset) {
-        break;
-      }
-      level_start = level_offset;
-      miplevel = m;
-    }
-
-    /* Compute tile pixel coordinates within miplevel. */
+    /* Find miplevel for this tile index, and compute tile pixel coordinates. */
+    size_t level_start;
+    const int miplevel = image_tile_find_miplevel(levels, tex.tile_levels, tile_idx, level_start);
     const size_t idx_in_level = tile_idx - level_start;
-    const int mip_width = metadata.width >> miplevel;
+    const int mip_width = std::max(1, tex.width >> miplevel);
     const size_t tiles_x = divide_up(mip_width, tile_size);
     const size_t tile_y = idx_in_level / tiles_x;
     const size_t tile_x = idx_in_level % tiles_x;
     const size_t x = tile_x * tile_size;
     const size_t y = tile_y * tile_size;
 
-    descriptors[tile_idx] = load_tile(
-        device, dscene, loader, metadata, interpolation, extension, miplevel, x, y, false);
+    descriptors[tile_idx] = load_tile(device,
+                                      dscene,
+                                      loader,
+                                      metadata,
+                                      interpolation,
+                                      extension,
+                                      miplevel + miplevel_offset,
+                                      x,
+                                      y,
+                                      false,
+                                      base_offset + tile_idx);
   }
 }
 
@@ -595,7 +703,8 @@ void ImageCache::load_requested_tile(Device &device,
                                      int x,
                                      int y,
                                      ImageLoader &loader,
-                                     const ImageMetaData &metadata)
+                                     const ImageMetaData &metadata,
+                                     const int miplevel_offset)
 {
   /* This is called by the CPU kernel to immediately load a tile. */
 
@@ -608,8 +717,19 @@ void ImageCache::load_requested_tile(Device &device,
   {
     const InterpolationType interpolation = InterpolationType(tex.interpolation);
     const ExtensionType extension = ExtensionType(tex.extension);
-    KernelTileDescriptor tile_descriptor_new = load_tile(
-        device, dscene, loader, metadata, interpolation, extension, miplevel, x, y, true);
+    const size_t bit_index = &r_tile_descriptor - dscene.image_texture_tile_descriptors.data();
+
+    KernelTileDescriptor tile_descriptor_new = load_tile(device,
+                                                         dscene,
+                                                         loader,
+                                                         metadata,
+                                                         interpolation,
+                                                         extension,
+                                                         miplevel + miplevel_offset,
+                                                         x,
+                                                         y,
+                                                         true,
+                                                         bit_index);
     r_tile_descriptor = tile_descriptor_new;
     return;
   }
@@ -643,8 +763,8 @@ void ImageCache::collect_statistics(DeviceScene &dscene,
   const size_t tile_bytes = tile_size * tile_size * pixel_bytes;
 
   for (int miplevel = 0; miplevel < tex.tile_levels; miplevel++) {
-    const int width = metadata.width >> miplevel;
-    const int height = metadata.height >> miplevel;
+    const int width = std::max(1, tex.width >> miplevel);
+    const int height = std::max(1, tex.height >> miplevel);
     const int tiles_x = divide_up(width, tile_size);
     const int tiles_y = divide_up(height, tile_size);
     const int tiles_total = tiles_x * tiles_y;
@@ -669,9 +789,110 @@ void ImageCache::collect_statistics(DeviceScene &dscene,
   }
 }
 
+void ImageCache::evict_unused(const Device &device,
+                              DeviceScene &dscene,
+                              std::span<KernelImageTexture> image_textures,
+                              const uint8_t *access_state)
+{
+  device_vector<KernelTileDescriptor> &tile_descriptors = dscene.image_texture_tile_descriptors;
+  if (tile_descriptors.size() == 0) {
+    return;
+  }
+
+  const bool cpu_only = (device.info.type == DEVICE_CPU);
+  const size_t preserve_budget = size_t(DebugFlags().texture_cache.preserve_unused) * 1024 * 1024;
+
+  /* Hold the mutex for the entire eviction pass. */
+  thread_scoped_lock device_lock(device_mutex);
+
+  /* Collect unused tiles. */
+  struct UnusedTile {
+    size_t global_idx;
+    size_t tile_bytes;
+  };
+
+  vector<UnusedTile> unused_tiles;
+  size_t num_used = 0;
+  size_t num_evicted = 0;
+  size_t num_preserved = 0;
+  size_t preserved_bytes = 0;
+
+  /* Free a single unused tile, updating descriptor and statistics. */
+  const auto evict_tile = [&](const size_t global_idx) {
+    KernelTileDescriptor &descriptor = tile_descriptors[global_idx];
+    free_tile(descriptor);
+    descriptor = KERNEL_TILE_LOAD_NONE;
+    num_evicted++;
+    stats.evict_tile(global_idx);
+  };
+
+  for (size_t img_idx = 0; img_idx < image_textures.size(); img_idx++) {
+    const KernelImageTexture &tex = image_textures[img_idx];
+    if (tex.tile_descriptor_offset == KERNEL_TILE_LOAD_NONE) {
+      continue;
+    }
+
+    const size_t base_offset = tex.tile_descriptor_offset + tex.tile_levels;
+    for (int i = 0; i < tex.tile_num; i++) {
+      const size_t global_idx = base_offset + i;
+      KernelTileDescriptor &descriptor = tile_descriptors[global_idx];
+      if (!kernel_tile_descriptor_loaded(descriptor)) {
+        continue;
+      }
+      if (access_state[global_idx] & KERNEL_TILE_ACCESS_USED) {
+        num_used++;
+        continue;
+      }
+
+      /* Look up the DeviceImage to determine host-mapped status and tile size. */
+      const uint image_info_id = kernel_tile_descriptor_image_info_id(descriptor);
+      DeviceImage *img = images[image_info_id];
+      bool is_host_mapped = false;
+      size_t tile_bytes = 0;
+      if (img) {
+        is_host_mapped = !cpu_only && (img->shared_pointer != nullptr);
+        const size_t pixel_bytes = img->data_elements * datatype_size(img->data_type);
+        const size_t tile_size_padded = img->data_height;
+        tile_bytes = tile_size_padded * tile_size_padded * pixel_bytes;
+      }
+
+      if (is_host_mapped) {
+        /* Host-mapped tiles are slower to sample, always evict. */
+        evict_tile(global_idx);
+      }
+      else {
+        unused_tiles.push_back({global_idx, tile_bytes});
+        preserved_bytes += tile_bytes;
+      }
+    }
+  }
+
+  /* Evict device-resident tiles until preserved bytes fits within the budget.
+   * Note this means tiles loaded earlier will be preserved, as tiles loaded later are
+   * less likely to be needed often. */
+  for (const UnusedTile &tile : unused_tiles) {
+    if (preserved_bytes <= preserve_budget) {
+      /* Within budget, preserve remaining device-resident tiles. */
+      num_preserved++;
+    }
+    else {
+      /* Over budget, evict to bring preserved bytes down. */
+      evict_tile(tile.global_idx);
+      preserved_bytes -= tile.tile_bytes;
+    }
+  }
+
+  if (num_evicted > 0) {
+    dscene.image_texture_tile_descriptors.tag_modified();
+    LOG_DEBUG << "Texture cache tile eviction: " << num_evicted << " evicted, " << num_used
+              << " used, " << num_preserved << " preserved (" << preserved_bytes / (1024 * 1024)
+              << " MB).";
+  }
+}
+
 size_t ImageCache::memory_size(DeviceScene &dscene) const
 {
-  return dscene.image_texture_tile_request_mask.memory_size() +
+  return dscene.image_texture_tile_access_state.memory_size() +
          dscene.image_texture_tile_descriptors.memory_size();
 }
 
@@ -685,10 +906,10 @@ void ImageCache::copy_to_device(DeviceScene &dscene)
 
   thread_scoped_lock device_lock(device_mutex);
   dscene.image_texture_tile_descriptors.copy_to_device_if_modified();
-  dscene.image_texture_tile_request_mask.copy_to_device_if_modified();
+  dscene.image_texture_tile_access_state.copy_to_device_if_modified();
 
   dscene.image_texture_tile_descriptors.clear_modified();
-  dscene.image_texture_tile_request_mask.clear_modified();
+  dscene.image_texture_tile_access_state.clear_modified();
 }
 
 void ImageCache::copy_to_device(DeviceScene &dscene, DeviceQueue &queue)
@@ -701,9 +922,11 @@ void ImageCache::copy_to_device(DeviceScene &dscene, DeviceQueue &queue)
    * without freeing, and load_image_info() is delayed. */
   copy_images_to_device();
 
-  /* Copy updated tile descriptors and zero request bits for this GPU device only. */
+  /* Copy updated tile descriptors for this GPU device only.
+   * Note the tile access buffer is not zeroed here as we want to keep the USED
+   * state until cache eviction. Some tiles may remain as REQUESTED but that's
+   * fine, they will be skipped in load_requested_tiles if already loaded. */
   queue.copy_to_device(dscene.image_texture_tile_descriptors);
-  queue.zero_to_device(dscene.image_texture_tile_request_mask);
 
   /* Update image info only for this GPU device. */
   queue.load_image_info();

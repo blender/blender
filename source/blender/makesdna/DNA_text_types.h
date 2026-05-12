@@ -10,13 +10,15 @@
 
 #pragma once
 
+#include "BLI_enum_flags.hh"
+
 #include "DNA_ID.h"
 #include "DNA_listBase.h"
 
 namespace blender {
 
 /** #Text.flags */
-enum {
+enum eText_Flag : int {
   /** Set if the file in run-time differs from the file on disk, or if there is no file on disk. */
   TXT_ISDIRTY = 1 << 0,
   /** When the text hasn't been written to a file. #Text.filepath may be NULL or invalid. */
@@ -32,6 +34,7 @@ enum {
   /** Use space instead of tabs. */
   TXT_TABSTOSPACES = 1 << 10,
 };
+ENUM_OPERATORS(eText_Flag)
 
 struct TextLine {
   struct TextLine *next = nullptr, *prev = nullptr;
@@ -66,7 +69,7 @@ struct Text {
    */
   void *compiled = nullptr;
 
-  int flags = 0;
+  eText_Flag flags = {};
   char _pad0[4] = {};
 
   ListBaseT<TextLine> lines = {nullptr, nullptr};

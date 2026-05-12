@@ -22,6 +22,7 @@ class RemoteAssetLibrary : public AssetLibrary {
  public:
   RemoteAssetLibrary(const bUserAssetLibrary &custom_library);
   std::optional<AssetLibraryReference> library_reference() const override;
+  std::optional<eAssetImportMethod> import_method() const override;
   std::optional<StringRefNull> remote_url() const override;
   void refresh_catalogs() override;
   void load_or_reload_catalogs();

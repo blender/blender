@@ -73,7 +73,7 @@ class BokehImageOperation : public NodeOperation {
         this->get_color_shift());
 
     Result &output = this->get_result("Image");
-    output.wrap_external(bokeh_kernel);
+    output.share_data(bokeh_kernel);
   }
 
   Domain compute_domain() override

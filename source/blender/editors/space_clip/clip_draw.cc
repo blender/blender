@@ -304,7 +304,7 @@ static void draw_movieclip_muted(ARegion *region, int width, int height, float z
 static void draw_movieclip_buffer(const bContext *C,
                                   SpaceClip *sc,
                                   ARegion *region,
-                                  ImBuf *ibuf,
+                                  const ImBuf *ibuf,
                                   int width,
                                   int height,
                                   float zoomx,
@@ -1193,21 +1193,53 @@ static void draw_plane_marker_image(Scene *scene,
                                     MovieTrackingPlaneMarker *plane_marker)
 {
   Image *image = plane_track->image;
-  ImBuf *ibuf;
-  void *lock;
-
   if (image == nullptr) {
     return;
   }
 
-  ibuf = BKE_image_acquire_ibuf(image, nullptr, &lock);
+  void *lock;
+  ImBuf *ibuf = BKE_image_acquire_ibuf(image, nullptr, &lock);
 
   if (ibuf) {
-    void *cache_handle;
-    const uchar *display_buffer = IMB_display_buffer_acquire(
-        ibuf, &scene->view_settings, &scene->display_settings, &cache_handle);
+    GPUVertFormat *imm_format = immVertexFormat();
+    uint pos = GPU_vertformat_attr_add(imm_format, "pos", gpu::VertAttrType::SFLOAT_32_32_32);
+    uint texCoord = GPU_vertformat_attr_add(
+        imm_format, "texCoord", gpu::VertAttrType::SFLOAT_32_32);
 
-    if (display_buffer) {
+    const ColorSpace *colorspace = ibuf->float_data() ? ibuf->float_buffer.colorspace :
+                                                        ibuf->byte_buffer.colorspace;
+    const bool predivide = IMB_alpha_affects_rgb(ibuf);
+    if (IMB_colormanagement_setup_glsl_draw_from_space(&scene->view_settings,
+                                                       &scene->display_settings,
+                                                       colorspace,
+                                                       ibuf->dither,
+                                                       predivide,
+                                                       false,
+                                                       DISPLAY_SPACE_DRAW,
+                                                       plane_track->image_opacity))
+    {
+      const void *texture_data = nullptr;
+      gpu::TextureFormat texture_format = gpu::TextureFormat::Invalid;
+      eGPUDataFormat data_format = GPU_DATA_FLOAT;
+      if (ibuf->float_data()) {
+        data_format = GPU_DATA_FLOAT;
+        if (ibuf->channels == 4) {
+          texture_format = gpu::TextureFormat::SFLOAT_16_16_16_16;
+        }
+        else if (ibuf->channels == 3) {
+          texture_format = gpu::TextureFormat::SFLOAT_16_16_16;
+        }
+        else if (ibuf->channels == 1) {
+          texture_format = gpu::TextureFormat::SFLOAT_16;
+        }
+        texture_data = ibuf->float_data();
+      }
+      else {
+        data_format = GPU_DATA_UBYTE;
+        texture_format = gpu::TextureFormat::UNORM_8_8_8_8;
+        texture_data = ibuf->byte_data();
+      }
+
       float frame_corners[4][2] = {{0.0f, 0.0f}, {1.0f, 0.0f}, {1.0f, 1.0f}, {0.0f, 1.0f}};
       float perspective_matrix[3][3];
       float gl_matrix[4][4];
@@ -1226,25 +1258,15 @@ static void draw_plane_marker_image(Scene *scene,
                                                     ibuf->x,
                                                     ibuf->y,
                                                     1,
-                                                    gpu::TextureFormat::UNORM_8_8_8_8,
+                                                    texture_format,
                                                     GPU_TEXTURE_USAGE_SHADER_READ,
                                                     nullptr);
-      GPU_texture_update(texture, GPU_DATA_UBYTE, display_buffer);
+      GPU_texture_update(texture, data_format, texture_data);
       GPU_texture_filter_mode(texture, false);
+      GPU_texture_bind(texture, 0);
 
       GPU_matrix_push();
       GPU_matrix_mul(gl_matrix);
-
-      GPUVertFormat *imm_format = immVertexFormat();
-      uint pos = GPU_vertformat_attr_add(imm_format, "pos", gpu::VertAttrType::SFLOAT_32_32_32);
-      uint texCoord = GPU_vertformat_attr_add(
-          imm_format, "texCoord", gpu::VertAttrType::SFLOAT_32_32);
-
-      /* Use 3D image for correct display of planar tracked images. */
-      immBindBuiltinProgram(GPU_SHADER_3D_IMAGE_COLOR);
-
-      immBindTexture("image", texture);
-      immUniformColor4f(1.0f, 1.0f, 1.0f, plane_track->image_opacity);
 
       immBegin(GPU_PRIM_TRI_FAN, 4);
 
@@ -1262,8 +1284,6 @@ static void draw_plane_marker_image(Scene *scene,
 
       immEnd();
 
-      immUnbindProgram();
-
       GPU_matrix_pop();
 
       GPU_texture_unbind(texture);
@@ -1274,7 +1294,7 @@ static void draw_plane_marker_image(Scene *scene,
       }
     }
 
-    IMB_display_buffer_release(cache_handle);
+    IMB_colormanagement_finish_glsl_draw();
   }
 
   BKE_image_release_ibuf(image, ibuf, lock);
@@ -1963,8 +1983,9 @@ void clip_draw_main(const bContext *C, SpaceClip *sc, ARegion *region)
 
   if (width && height) {
     draw_stabilization_border(sc, region, width, height, zoomx, zoomy);
-    if (sc->overlay.flag & SC_SHOW_OVERLAYS)
+    if (sc->overlay.flag & SC_SHOW_OVERLAYS) {
       draw_tracking_tracks(sc, scene, region, clip, width, height, zoomx, zoomy);
+    }
     draw_distortion(sc, region, clip, width, height, zoomx, zoomy);
   }
 }

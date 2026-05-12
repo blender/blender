@@ -259,7 +259,7 @@ static void rna_RigidBodyOb_type_set(PointerRNA *ptr, int value)
 {
   RigidBodyOb *rbo = static_cast<RigidBodyOb *>(ptr->data);
 
-  rbo->type = value;
+  rbo->type = eRigidBodyOb_Type(value);
   rbo->flag |= RBO_FLAG_NEEDS_VALIDATE;
 }
 
@@ -267,7 +267,7 @@ static void rna_RigidBodyOb_shape_set(PointerRNA *ptr, int value)
 {
   RigidBodyOb *rbo = static_cast<RigidBodyOb *>(ptr->data);
 
-  rbo->shape = value;
+  rbo->shape = eRigidBody_Shape(value);
   rbo->flag |= RBO_FLAG_NEEDS_VALIDATE;
 }
 
@@ -454,7 +454,7 @@ static void rna_RigidBodyCon_type_set(PointerRNA *ptr, int value)
 {
   RigidBodyCon *rbc = static_cast<RigidBodyCon *>(ptr->data);
 
-  rbc->type = value;
+  rbc->type = eRigidBodyCon_Type(value);
   rbc->flag |= RBC_FLAG_NEEDS_VALIDATE;
 }
 
@@ -462,7 +462,7 @@ static void rna_RigidBodyCon_spring_type_set(PointerRNA *ptr, int value)
 {
   RigidBodyCon *rbc = static_cast<RigidBodyCon *>(ptr->data);
 
-  rbc->spring_type = value;
+  rbc->spring_type = eRigidBodyCon_SpringType(value);
   rbc->flag |= RBC_FLAG_NEEDS_VALIDATE;
 }
 

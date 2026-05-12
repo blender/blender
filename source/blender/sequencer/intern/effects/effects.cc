@@ -289,7 +289,7 @@ EffectHandle strip_effect_handle_get(Strip *strip)
 {
   EffectHandle h = {};
   if (strip->is_effect()) {
-    h = effect_handle_get(StripType(strip->type));
+    h = effect_handle_get(strip->type);
   }
   return h;
 }
@@ -298,7 +298,7 @@ EffectHandle strip_blend_mode_handle_get(Strip *strip)
 {
   EffectHandle h = {};
   if (strip->blend_mode != STRIP_BLEND_REPLACE) {
-    h = effect_handle_for_blend_mode_get(StripBlendMode(strip->blend_mode));
+    h = effect_handle_for_blend_mode_get(strip->blend_mode);
   }
   return h;
 }
@@ -322,7 +322,7 @@ static float transition_fader_calc(const Scene *scene, const Strip *strip, float
 float effect_fader_calc(Scene *scene, Strip *strip, float timeline_frame)
 {
   if (strip->flag & SEQ_USE_EFFECT_DEFAULT_FADE) {
-    if (effect_is_transition(StripType(strip->type))) {
+    if (effect_is_transition(strip->type)) {
       return transition_fader_calc(scene, strip, timeline_frame);
     }
     return 1.0f;

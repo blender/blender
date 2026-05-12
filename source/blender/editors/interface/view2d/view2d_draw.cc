@@ -154,7 +154,7 @@ static void get_parallel_lines_draw_steps(const float line_distance,
                                           uint *r_steps)
 {
   if (view_bounds.x >= view_bounds.y) {
-    r_start_value = 0;
+    *r_start_value = 0;
     *r_steps = 0;
     return;
   }

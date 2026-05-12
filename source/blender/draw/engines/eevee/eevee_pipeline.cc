@@ -200,62 +200,21 @@ void ShadowPipeline::sync()
 {
   render_ps_.init();
 
-  /* NOTE: TILE_COPY technique perform a three-pass implementation. First performing the clear
-   * directly on tile, followed by a fast depth-only pass, then storing the on-tile results into
-   * the shadow atlas during a final storage pass. This takes advantage of TBDR architecture,
-   * reducing overdraw and additional per-fragment calculations. */
-  bool shadow_update_tbdr = (ShadowModule::shadow_technique == ShadowTechnique::TILE_COPY);
-  if (shadow_update_tbdr) {
-    draw::PassMain::Sub &pass = render_ps_.sub("Shadow.TilePageClear");
-    pass.subpass_transition(GPU_ATTACHMENT_WRITE, {GPU_ATTACHMENT_WRITE});
-    pass.shader_set(inst_.shaders.static_shader_get(SHADOW_PAGE_TILE_CLEAR));
-    /* Only manually clear depth of the updated tiles.
-     * This is because the depth is initialized to near depth using attachments for fast clear and
-     * color is cleared to far depth. This way we can save a bit of bandwidth by only clearing
-     * the updated tiles depth to far depth and not touch the color attachment. */
-    pass.state_set(DRW_STATE_WRITE_DEPTH | DRW_STATE_DEPTH_ALWAYS);
-    pass.bind_ssbo("src_coord_buf", inst_.shadows.src_coord_buf_);
-    pass.draw_procedural_indirect(GPU_PRIM_TRIS, inst_.shadows.tile_draw_buf_);
-  }
-
   {
-    /* Metal writes depth value in local tile memory, which is considered a color attachment. */
-    DRWState state = DRW_STATE_WRITE_DEPTH | DRW_STATE_DEPTH_LESS | DRW_STATE_WRITE_COLOR;
+    DRWState state = DRW_STATE_WRITE_DEPTH | DRW_STATE_DEPTH_LESS;
 
     draw::PassMain::Sub &pass = render_ps_.sub("Shadow.Surface");
     pass.state_set(state);
     pass.bind_texture(RBUFS_UTILITY_TEX_SLOT, inst_.pipelines.utility_tx);
     pass.bind_ssbo(SHADOW_RENDER_VIEW_BUF_SLOT, &inst_.shadows.render_view_buf_);
-    if (!shadow_update_tbdr) {
-      /* We do not need all of the shadow information when using the TBDR-optimized approach. */
-      pass.bind_image(SHADOW_ATLAS_IMG_SLOT, inst_.shadows.atlas_tx_);
-      pass.bind_ssbo(SHADOW_RENDER_MAP_BUF_SLOT, &inst_.shadows.render_map_buf_);
-      pass.bind_ssbo(SHADOW_PAGE_INFO_SLOT, &inst_.shadows.pages_infos_data_);
-    }
+    pass.bind_image(SHADOW_ATLAS_IMG_SLOT, inst_.shadows.atlas_tx_);
+    pass.bind_ssbo(SHADOW_RENDER_MAP_BUF_SLOT, &inst_.shadows.render_map_buf_);
+    pass.bind_ssbo(SHADOW_PAGE_INFO_SLOT, &inst_.shadows.pages_infos_data_);
     pass.bind_resources(inst_.uniform_data);
     pass.bind_resources(inst_.sampling);
     surface_double_sided_ps_ = &pass.sub("Shadow.Surface.Double-Sided");
     surface_single_sided_ps_ = &pass.sub("Shadow.Surface.Single-Sided");
     surface_single_sided_ps_->state_set(state | DRW_STATE_CULL_BACK);
-  }
-
-  if (shadow_update_tbdr) {
-    draw::PassMain::Sub &pass = render_ps_.sub("Shadow.TilePageStore");
-    pass.shader_set(inst_.shaders.static_shader_get(SHADOW_PAGE_TILE_STORE));
-    /* The most optimal way would be to only store pixels that have been rendered to (depth > 0).
-     * But that requires that the destination pages in the atlas would have been already cleared
-     * using compute. Experiments showed that it is faster to just copy the whole tiles back.
-     *
-     * For relative performance, raster-based clear within tile update adds around 0.1ms vs 0.25ms
-     * for compute based clear for a simple test case. */
-    pass.state_set(DRW_STATE_DEPTH_ALWAYS);
-    /* Metal have implicit sync with Raster Order Groups. Other backend need to have manual
-     * sub-pass transition to allow reading the frame-buffer. This is a no-op on Metal. */
-    pass.subpass_transition(GPU_ATTACHMENT_WRITE, {GPU_ATTACHMENT_READ});
-    pass.bind_image(SHADOW_ATLAS_IMG_SLOT, inst_.shadows.atlas_tx_);
-    pass.bind_ssbo("dst_coord_buf", inst_.shadows.dst_coord_buf_);
-    pass.bind_ssbo("src_coord_buf", inst_.shadows.src_coord_buf_);
-    pass.draw_procedural_indirect(GPU_PRIM_TRIS, inst_.shadows.tile_draw_buf_);
   }
 }
 
@@ -578,7 +537,7 @@ void ForwardPipeline::render(View &view,
   inst_.hiz_buffer.set_dirty();
   inst_.hiz_buffer.update();
 
-  inst_.shadows.set_view(view, extent);
+  inst_.shadows.render(view, extent);
   inst_.volume_probes.set_view(view);
   inst_.sphere_probes.set_view(view);
 
@@ -658,15 +617,7 @@ void DeferredLayerBase::gbuffer_pass_sync(Instance &inst)
   gbuffer_ps_.bind_resources(inst.uniform_data);
   gbuffer_ps_.bind_resources(inst.sampling);
   gbuffer_ps_.bind_resources(inst.hiz_buffer.front);
-  gbuffer_ps_.bind_resources(inst.hiz_buffer.front);
   gbuffer_ps_.bind_resources(inst.cryptomatte);
-
-  /* Bind light resources for the NPR materials that gets rendered first.
-   * Non-NPR shaders will override these resource bindings. */
-  gbuffer_ps_.bind_resources(inst.lights);
-  gbuffer_ps_.bind_resources(inst.shadows);
-  gbuffer_ps_.bind_resources(inst.sphere_probes);
-  gbuffer_ps_.bind_resources(inst.volume_probes);
 
   DRWState state = DRW_STATE_WRITE_COLOR | DRW_STATE_DEPTH_EQUAL | DRW_STATE_WRITE_STENCIL |
                    DRW_STATE_CLIP_CONTROL_UNIT_RANGE | DRW_STATE_STENCIL_ALWAYS;
@@ -684,6 +635,10 @@ void DeferredLayerBase::gbuffer_pass_sync(Instance &inst)
         pass = &gbuffer_ps_.sub(subpass_names[hybrid][raycast][double_sided]);
         pass->state_set(double_sided ? state : (state | DRW_STATE_CULL_BACK));
         if (hybrid) {
+          pass->bind_resources(inst.lights);
+          pass->bind_resources(inst.shadows);
+          pass->bind_resources(inst.sphere_probes);
+          pass->bind_resources(inst.volume_probes);
           pass->bind_texture(HIZ_PREVIOUS_LAYER_TEX_SLOT, &inst.hiz_buffer.back.ref_tx_);
           pass->bind_texture(RADIANCE_PREVIOUS_LAYER_TEX_SLOT, &radiance_behind_tx_);
         }
@@ -990,8 +945,7 @@ PassMain::Sub *DeferredLayer::material_add(blender::Material *blender_mat, GPUMa
   return material_pass;
 }
 
-gpu::Texture *DeferredLayer::render(View &main_view,
-                                    View &render_view,
+gpu::Texture *DeferredLayer::render(View &render_view,
                                     Framebuffer &prepass_fb,
                                     Framebuffer &combined_fb,
                                     Framebuffer &gbuffer_fb,
@@ -1025,7 +979,7 @@ gpu::Texture *DeferredLayer::render(View &main_view,
 
   inst_.volume_probes.set_view(render_view);
   inst_.sphere_probes.set_view(render_view);
-  inst_.shadows.set_view(render_view, extent);
+  inst_.shadows.render(render_view, extent);
 
   inst_.gbuffer.bind(gbuffer_fb);
   inst_.manager->submit(gbuffer_ps_, render_view);
@@ -1038,7 +992,7 @@ gpu::Texture *DeferredLayer::render(View &main_view,
 
   if (use_raytracing_) {
     indirect_result_ = inst_.raytracing.render(
-        rt_buffer, radiance_behind_tx, closure_bits_, main_view, render_view);
+        rt_buffer, radiance_behind_tx, closure_bits_, render_view);
   }
   else if (use_split_radiance_) {
     indirect_result_ = inst_.raytracing.alloc_only(rt_buffer);
@@ -1169,7 +1123,7 @@ PassMain::Sub *DeferredPipeline::material_add(blender::Material *blender_mat, GP
   return opaque_layer_.material_add(blender_mat, gpumat);
 }
 
-void DeferredPipeline::render(View &main_view,
+void DeferredPipeline::render(View & /*main_view*/,
                               View &render_view,
                               Framebuffer &prepass_fb,
                               Framebuffer &combined_fb,
@@ -1181,8 +1135,7 @@ void DeferredPipeline::render(View &main_view,
   gpu::Texture *feedback_tx = nullptr;
 
   GPU_debug_group_begin("Deferred.Opaque");
-  feedback_tx = opaque_layer_.render(main_view,
-                                     render_view,
+  feedback_tx = opaque_layer_.render(render_view,
                                      prepass_fb,
                                      combined_fb,
                                      gbuffer_fb,
@@ -1192,8 +1145,7 @@ void DeferredPipeline::render(View &main_view,
   GPU_debug_group_end();
 
   GPU_debug_group_begin("Deferred.Refract");
-  feedback_tx = refraction_layer_.render(main_view,
-                                         render_view,
+  feedback_tx = refraction_layer_.render(render_view,
                                          prepass_fb,
                                          combined_fb,
                                          gbuffer_fb,
@@ -1511,7 +1463,7 @@ void DeferredProbePipeline::render(View &view,
   inst_.hiz_buffer.update();
 
   inst_.lights.set_view(view, extent);
-  inst_.shadows.set_view(view, extent);
+  inst_.shadows.render(view, extent);
   inst_.volume_probes.set_view(view);
   inst_.sphere_probes.set_view(view);
 
@@ -1608,7 +1560,7 @@ void PlanarProbePipeline::render(View &view,
   radiance_behind_tx_ = dummy_black_;
 
   inst_.pipelines.data.ray_type = RAY_TYPE_GLOSSY;
-  inst_.uniform_data.push_update();
+  inst_.uniform_data.pipeline.push_update();
 
   GPU_framebuffer_bind(prepass_fb);
   GPU_framebuffer_clear_depth(prepass_fb, inst_.film.depth.clear_value);
@@ -1620,18 +1572,18 @@ void PlanarProbePipeline::render(View &view,
   inst_.hiz_buffer.update();
 
   inst_.lights.set_view(view, extent);
-  inst_.shadows.set_view(view, extent);
+  inst_.shadows.render(view, extent);
   inst_.volume_probes.set_view(view);
   inst_.sphere_probes.set_view(view);
 
-  inst_.gbuffer.bind(gbuffer_fb);
+  inst_.gbuffer.bind(gbuffer_fb, true);
   inst_.manager->submit(gbuffer_ps_, view);
 
   GPU_framebuffer_bind(combined_fb);
   inst_.manager->submit(eval_light_ps_, view);
 
   inst_.pipelines.data.ray_type = RAY_TYPE_CAMERA;
-  inst_.uniform_data.push_update();
+  inst_.uniform_data.pipeline.push_update();
 
   GPU_debug_group_end();
 }

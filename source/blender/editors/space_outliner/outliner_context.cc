@@ -45,8 +45,8 @@ int /*eContextResult*/ outliner_main_region_context(const bContext *C,
   }
 
   if (CTX_data_equals(member, "id")) {
-    const TreeElement *active_element = outliner_find_element_with_flag(&space_outliner->tree,
-                                                                        TSE_ACTIVE);
+    const TreeElement *active_element = outliner_find_element_with_flag(
+        &space_outliner->runtime->tree, TSE_ACTIVE);
     if (!active_element) {
       return CTX_RESULT_NO_DATA;
     }

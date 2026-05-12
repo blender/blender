@@ -295,6 +295,14 @@ class SampleNearestFunction : public mf::MultiFunction {
         break;
     }
   }
+
+  void hash_unique(UniqueHashBytes &hash) const override
+  {
+    static constexpr int8_t id = 0;
+    hash.add(&id);
+    hash.add(domain_);
+    hash.add(src_component_);
+  }
 };
 
 static void node_geo_exec(GeoNodeExecParams params)

@@ -174,6 +174,11 @@ RESHAPE(float3x3, mat3x3, mat3x4)
 #define sampler_get(create_info, _res) _res
 #define image_get(create_info, _res) _res
 #define srt_access(create_info, _res) access_##create_info##_##_res()
+/**
+ * WORKAROUND(fclem): Only used for cases when passing down the resource_table is impractical.
+ * Note that this placeholder is just for the code to compile.
+ */
+#define resource_table_get(table_type) table_type()
 
 /* Incompatible keywords. */
 #define static
@@ -181,6 +186,12 @@ RESHAPE(float3x3, mat3x3, mat3x4)
 #define device
 #define thread
 #define threadgroup
+
+/* MSL component compatibility. */
+#define textureGather0(_tex, _co) textureGather(_tex, _co, 0)
+#define textureGather1(_tex, _co) textureGather(_tex, _co, 1)
+#define textureGather2(_tex, _co) textureGather(_tex, _co, 2)
+#define textureGather3(_tex, _co) textureGather(_tex, _co, 3)
 
 /**
  * This string type is much like the OSL string.

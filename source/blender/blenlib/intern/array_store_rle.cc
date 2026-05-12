@@ -155,7 +155,7 @@ static inline bool all_bytes_homogeneous(const uintptr_t x)
 {
   /* Pattern of 0x01 in each byte position (0x01010101... for any word size).
    * Multiplying a byte value by this spreads it to all byte positions. */
-  constexpr uintptr_t byte_spread = ~(uintptr_t)0 / 255;
+  constexpr uintptr_t byte_spread = ~uintptr_t(0) / 255;
 
   const uintptr_t first_byte = x & 0xFF;
   return x == first_byte * byte_spread;

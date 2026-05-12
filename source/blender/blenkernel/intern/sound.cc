@@ -12,8 +12,13 @@
 #include <cstdlib>
 #include <cstring>
 #include <mutex>
+#include <numeric>
 #include <optional>
 #include <thread>
+
+#ifdef WITH_FFTW3
+#  include <fftw3.h>
+#endif
 
 #include "MEM_guardedalloc.h"
 
@@ -84,6 +89,7 @@
 #include "BKE_packedFile.hh"
 #include "BKE_scene_runtime.hh"
 #include "BKE_sound.hh"
+#include "BKE_sound_sample.hh"
 
 #include "DEG_depsgraph.hh"
 #include "DEG_depsgraph_query.hh"
@@ -92,6 +98,8 @@
 
 #include "SEQ_sequencer.hh"
 #include "SEQ_sound.hh"
+
+#include "BLI_concurrent_map.hh"
 
 #include "CLG_log.h"
 
@@ -108,6 +116,9 @@ enum class SoundTags {
 };
 ENUM_OPERATORS(SoundTags);
 
+using bSoundFrequencySamplerMap =
+    ConcurrentMap<bSoundFrequencySampler::Key, std::shared_ptr<bSoundFrequencySampler>>;
+
 struct SoundRuntime {
   AUD_Sound handle;
   AUD_Sound cache;
@@ -121,6 +132,9 @@ struct SoundRuntime {
    * save/restore a pointer. */
   Vector<float> *waveform = nullptr;
   SoundTags tags = SoundTags::None;
+
+  /** Caches frequency samplers for this sound. */
+  bSoundFrequencySamplerMap samplers;
 };
 
 }  // namespace bke
@@ -1256,8 +1270,9 @@ static int sound_read(
   for (int i = 0; i < length; i++) {
     len = floor(samplejump * (i + 1)) - floor(samplejump * i);
 
-    if (*interrupt)
+    if (*interrupt) {
       return 0;
+    }
 
     aBuffer.assureSize(len * AUD_SAMPLE_SIZE(specs));
     buf = aBuffer.getBuffer();
@@ -1267,10 +1282,12 @@ static int sound_read(
     max = min = *buf;
     power = *buf * *buf;
     for (int j = 1; j < len; j++) {
-      if (buf[j] < min)
+      if (buf[j] < min) {
         min = buf[j];
-      if (buf[j] > max)
+      }
+      if (buf[j] > max) {
         max = buf[j];
+      }
       power += buf[j] * buf[j];
     }
 
@@ -1278,10 +1295,12 @@ static int sound_read(
     buffer[i * 3 + 1] = max;
     buffer[i * 3 + 2] = std::sqrt(power / len);
 
-    if (overallmax < max)
+    if (overallmax < max) {
       overallmax = max;
-    if (overallmax < -min)
+    }
+    if (overallmax < -min) {
       overallmax = -min;
+    }
 
     if (eos) {
       length = i;
@@ -1397,13 +1416,13 @@ static void sound_update_base(Scene *scene, Object *object, Set<AUD_SequenceEntr
         mat4_to_quat(quat, object->object_to_world().ptr());
         float3 location = object->object_to_world().location();
         set_audaspace_anim_property(
-            strip_runtime.speaker_handle, aud::AP_LOCATION, scene->r.cfra, location, 1);
+            strip_runtime.speaker_handle, aud::AP_LOCATION, scene->r.cfra, location, true);
         set_audaspace_anim_property(
-            strip_runtime.speaker_handle, aud::AP_ORIENTATION, scene->r.cfra, quat, 1);
+            strip_runtime.speaker_handle, aud::AP_ORIENTATION, scene->r.cfra, quat, true);
         set_audaspace_anim_property(
-            strip_runtime.speaker_handle, aud::AP_VOLUME, scene->r.cfra, &speaker->volume, 1);
+            strip_runtime.speaker_handle, aud::AP_VOLUME, scene->r.cfra, &speaker->volume, true);
         set_audaspace_anim_property(
-            strip_runtime.speaker_handle, aud::AP_PITCH, scene->r.cfra, &speaker->pitch, 1);
+            strip_runtime.speaker_handle, aud::AP_PITCH, scene->r.cfra, &speaker->pitch, true);
         strip_runtime.speaker_handle->setSound(speaker->sound->runtime->playback_handle);
         strip_runtime.speaker_handle->mute(mute);
       }
@@ -1440,8 +1459,9 @@ void BKE_sound_update_scene(Depsgraph *depsgraph, Scene *scene)
   if (scene->camera) {
     mat4_to_quat(quat, scene->camera->object_to_world().ptr());
     float3 location = scene->camera->object_to_world().location();
-    set_audaspace_anim_property(audio.sound_scene, aud::AP_LOCATION, scene->r.cfra, location, 1);
-    set_audaspace_anim_property(audio.sound_scene, aud::AP_ORIENTATION, scene->r.cfra, quat, 1);
+    set_audaspace_anim_property(
+        audio.sound_scene, aud::AP_LOCATION, scene->r.cfra, location, true);
+    set_audaspace_anim_property(audio.sound_scene, aud::AP_ORIENTATION, scene->r.cfra, quat, true);
   }
 
   audio.speaker_handles = new_set;
@@ -1474,8 +1494,9 @@ char **BKE_sound_get_device_names()
 
     for (int i = 0; i < v_names.size(); i++) {
       std::string name = v_names[i];
-      names[i] = (char *)malloc(sizeof(char) * (name.length() + 1));
-      strcpy(names[i], name.c_str());
+      const size_t name_size = sizeof(char) * (name.length() + 1);
+      names[i] = (char *)malloc(name_size);
+      memcpy(names[i], name.c_str(), name_size);
     }
     names[v_names.size()] = nullptr;
     audio_device_names = names;
@@ -1654,7 +1675,7 @@ AUD_Handle bke::sound_device_play(AUD_Device device, AUD_Sound sound)
   return nullptr;
 }
 
-bool bke::sound_device_read(AUD_Device device, unsigned char *buffer, int length)
+bool bke::sound_device_read(AUD_Device device, uchar *buffer, int length)
 {
   BLI_assert(buffer);
   auto read_device = std::dynamic_pointer_cast<aud::ReadDevice>(device);
@@ -1728,26 +1749,32 @@ float *bke::sound_read_file_buffer(const char *filename,
 
     AUD_Sound sound = AUD_Sound(new ChannelMapper(file, specs));
 
-    if (high < rate)
+    if (high < rate) {
       sound = AUD_Sound(new Lowpass(sound, high));
-    if (low > 0)
+    }
+    if (low > 0) {
       sound = AUD_Sound(new Highpass(sound, low));
+    }
 
     sound = AUD_Sound(new Envelope(sound, attack, release, threshold, 0.1f));
     sound = AUD_Sound(new LinearResample(sound, specs));
 
-    if (square)
+    if (square) {
       sound = AUD_Sound(new Threshold(sound, sthreshold));
+    }
 
-    if (accumulate)
+    if (accumulate) {
       sound = AUD_Sound(new Accumulator(sound, additive));
-    else if (additive)
+    }
+    else if (additive) {
       sound = AUD_Sound(new Sum(sound));
+    }
 
     reader = sound->createReader();
 
-    if (!reader.get())
+    if (!reader.get()) {
       return nullptr;
+    }
 
     int len;
     bool eos;
@@ -1769,14 +1796,14 @@ float *bke::sound_read_file_buffer(const char *filename,
 }
 
 bool bke::sound_mixdown(AUD_Sequence sequence,
-                        unsigned int start,
-                        unsigned int length,
-                        unsigned int buffersize,
+                        uint start,
+                        uint length,
+                        uint buffersize,
                         const char *filename,
                         const aud::DeviceSpecs &specs,
                         aud::Container format,
                         aud::Codec codec,
-                        unsigned int bitrate,
+                        uint bitrate,
                         bool split_channels,
                         std::string &r_error,
                         bool (*progress_callback)(float, void *),
@@ -2084,5 +2111,359 @@ const Vector<float> *BKE_sound_runtime_get_waveform(const bSound *sound)
 {
   return sound->runtime->waveform;
 }
+
+namespace bke {
+
+const bSoundFrequencySampler *bSoundFrequencySampler::get_cached(const bSound &sound,
+                                                                 const Key &key)
+{
+#ifdef WITH_AUDASPACE
+  {
+    /* Fast common case when the sampler has been created already. */
+    bSoundFrequencySamplerMap::ConstAccessor accessor;
+    if (sound.runtime->samplers.lookup(accessor, key)) {
+      return accessor->second.get();
+    }
+  }
+  AUD_Sound sound_handle = sound.runtime->handle;
+  if (!sound_handle) {
+    /* Maybe try to load the sound in this case instead of relying on cache. */
+    return nullptr;
+  }
+  /* Slower case when the sampler is newly created. */
+  bSoundFrequencySamplerMap::MutableAccessor accessor;
+  if (sound.runtime->samplers.add(accessor, key)) {
+    if (key.channel.has_value()) {
+      const SoundInfo info = sound_info_get(sound_handle);
+      const int channel = *key.channel;
+      if (channel < 0 || channel >= info.specs.channels) {
+        return nullptr;
+      }
+    }
+    accessor->second = std::make_shared<bSoundFrequencySampler>(sound_handle, key);
+  }
+  return accessor->second.get();
+#else
+  UNUSED_VARS(sound, key);
+  return nullptr;
+#endif
+}
+
+static bSoundFrequencySampler::WindowWeights compute_window_function_weights(
+    const bSoundFrequencySampler::WindowFunction window, const int size)
+{
+  Array<float> weights(size);
+  switch (window) {
+    case bSoundFrequencySampler::WindowFunction::Hann: {
+      for (const int i : IndexRange(size)) {
+        weights[i] = 0.5f - 0.5f * math::cos((2.0f * std::numbers::pi * i) / (size - 1));
+      }
+      break;
+    }
+    case bSoundFrequencySampler::WindowFunction::Hamming: {
+      for (const int i : IndexRange(size)) {
+        weights[i] = 0.54f - 0.46f * math::cos((2.0f * std::numbers::pi * i) / (size - 1));
+      }
+      break;
+    }
+    case bSoundFrequencySampler::WindowFunction::Blackman: {
+      for (const int i : IndexRange(size)) {
+        weights[i] = 0.42f - 0.5f * math::cos((2.0f * std::numbers::pi * i) / (size - 1)) +
+                     0.08f * math::cos((4.0f * std::numbers::pi * i) / (size - 1));
+      }
+      break;
+    }
+    case bSoundFrequencySampler::WindowFunction::Rectangular: {
+      weights.fill(1.0f);
+      break;
+    }
+  }
+  const float sum = std::accumulate(weights.begin(), weights.end(), 0.0f);
+  return bSoundFrequencySampler::WindowWeights{std::move(weights), sum};
+}
+
+/** Caches the window function weights so that each combination is only computed once. */
+static const bSoundFrequencySampler::WindowWeights &get_window_function_weights(
+    const bSoundFrequencySampler::WindowFunction window, const int size)
+{
+  static Mutex mutex;
+  static Map<std::pair<bSoundFrequencySampler::WindowFunction, int>,
+             std::unique_ptr<bSoundFrequencySampler::WindowWeights>>
+      map;
+  std::lock_guard lock{mutex};
+  return *map.lookup_or_add_cb({window, size}, [&]() {
+    return std::make_unique<bSoundFrequencySampler::WindowWeights>(
+        compute_window_function_weights(window, size));
+  });
+}
+
+bSoundFrequencySampler::bSoundFrequencySampler(AUD_Sound sound, const Key &key)
+    : sound_(sound),
+      key_(key),
+      window_weights_(get_window_function_weights(key.window_function, key.fft_size))
+{
+#ifdef WITH_AUDASPACE
+  const SoundInfo info = bke::sound_info_get(sound_);
+  samples_per_second_ = info.specs.samplerate;
+  /* This could be a parameter but a single fixed value seems fine for now and makes caching much
+   * simpler. */
+  window_cache_stride_ = key.fft_size / 8;
+  const int window_caches_num = std::ceil(info.length * info.specs.samplerate /
+                                          window_cache_stride_);
+  window_caches_.reinitialize(window_caches_num);
+#else
+  UNUSED_VARS(sound, key);
+  BLI_assert_unreachable();
+#endif
+}
+
+std::optional<Array<float>> bSoundFrequencySampler::compute_fft(const int start_sample) const
+{
+  /* Since the result of the dft algorithm is symmetric in this case, only the first half is
+   * computed. */
+  const int frequencies_num = key_.fft_size / 2;
+
+#if defined(WITH_AUDASPACE) && defined(WITH_FFTW3)
+  /* Read some extra samples before the ones we are actually interested in here. This is done
+   * because the #read function may sometimes give invalid data for the first samples. */
+  const int warmup_samples = std::min(2000, start_sample);
+
+  /* Prepare the reader. */
+  std::shared_ptr<aud::IReader> reader = sound_->createReader();
+  const aud::Specs specs = reader->getSpecs();
+  const int channels_num = specs.channels;
+
+  /* Read the raw samples from the audio stream. */
+  Array<float> read_buffer_extra((key_.fft_size + warmup_samples) * channels_num);
+  bool is_end_of_stream = false;
+  int length = key_.fft_size + warmup_samples;
+  reader->seek(std::max(start_sample - warmup_samples, 0));
+  reader->read(length, is_end_of_stream, read_buffer_extra.data());
+  const Span<float> read_buffer = read_buffer_extra.as_span().drop_front(warmup_samples *
+                                                                         channels_num);
+  const int read_length = read_buffer.size() / channels_num;
+
+  /* Pull out the samples for the requested channel(s). */
+  Array<float> buffer(key_.fft_size, 0.0f);
+  if (key_.channel.has_value()) {
+    const int channel = *key_.channel;
+    if (channel < 0 || channel >= channels_num) {
+      return std::nullopt;
+    }
+    for (const int i : IndexRange(read_length)) {
+      buffer[i] = read_buffer[i * channels_num + channel];
+    }
+  }
+  else {
+    for (const int i : IndexRange(read_length)) {
+      for (const int c : IndexRange(channels_num)) {
+        buffer[i] += read_buffer[i * channels_num + c];
+      }
+      buffer[i] /= channels_num;
+    }
+  }
+
+  /* Apply window function which avoids spectral leakage (depending on the function). */
+  for (const int i : IndexRange(read_length)) {
+    buffer[i] *= window_weights_.weights[i];
+  }
+
+  /* Set up the fftw plan. */
+  fftwf_complex *fftwf_buffer = static_cast<fftwf_complex *>(
+      fftwf_malloc(sizeof(fftwf_complex) * (frequencies_num + 1)));
+  fftwf_plan plan = fftwf_plan_dft_r2c_1d(
+      key_.fft_size, buffer.data(), fftwf_buffer, FFTW_ESTIMATE);
+  BLI_SCOPED_DEFER([&]() {
+    fftwf_destroy_plan(plan);
+    fftwf_free(fftwf_buffer);
+  });
+
+  /* Actually perform the fourier transform. */
+  fftwf_execute(plan);
+
+  /* Compute the amplitudes of the frequencies. */
+  Array<float> frequency_amplitudes(frequencies_num);
+  /* The scaling factor is applied so that changing the fft size or window function does not affect
+   * the magnitude of the result. */
+  const float scaling_factor = 1.0f / window_weights_.weights_sum;
+  for (const int i : IndexRange(frequencies_num)) {
+    const fftwf_complex &c = fftwf_buffer[i];
+    /* Take real and imaginary parts into account which correspond to the sin and cos component of
+     * the frequency. */
+    frequency_amplitudes[i] = sqrt(pow2f(c[0]) + pow2f(c[1])) * scaling_factor;
+  }
+
+  return frequency_amplitudes;
+#else
+  UNUSED_VARS(start_sample);
+  return Array<float>(frequencies_num, 0.0f);
+#endif
+}
+
+static float catmul_rom_interpolation(
+    const float p0, const float p1, const float p2, const float p3, const float t)
+{
+  const float t2 = t * t;
+  const float t3 = t2 * t;
+
+  const float value = 0.5 * ((2 * p1) + (-p0 + p2) * t + (2 * p0 - 5 * p1 + 4 * p2 - p3) * t2 +
+                             (-p0 + 3 * p1 - 3 * p2 + p3) * t3);
+  return value;
+}
+
+static float bspline_interpolation(
+    const float p0, const float p1, const float p2, const float p3, const float t)
+{
+  const float t2 = t * t;
+  const float t3 = t2 * t;
+
+  const float b0 = (1.0f - t) * (1.0f - t) * (1.0f - t) / 6.0f;
+  const float b1 = (3.0f * t3 - 6.0f * t2 + 4.0f) / 6.0f;
+  const float b2 = (-3.0f * t3 + 3.0f * t2 + 3.0f * t + 1.0f) / 6.0f;
+  const float b3 = t3 / 6.0f;
+
+  return (b0 * p0 + b1 * p1 + b2 * p2 + b3 * p3);
+}
+
+float bSoundFrequencySampler::sample(const float time,
+                                     const float low,
+                                     const float high,
+                                     const InterpolationMethod time_interpolation,
+                                     const InterpolationMethod frequency_interpolation) const
+{
+  if (low >= high) {
+    return 0.0f;
+  }
+  const float i_float = std::max(
+      0.0f, (time * samples_per_second_ - key_.fft_size / 2) / window_cache_stride_);
+  const int i_pre = floorf(i_float);
+  const int i_post = i_pre + 1;
+  const float t = fractf(i_float);
+
+  switch (time_interpolation) {
+    case InterpolationMethod::Linear: {
+      const float v_prev = this->sample_frequency_range_in_window(
+          i_pre, low, high, frequency_interpolation);
+      const float v_next = this->sample_frequency_range_in_window(
+          i_post, low, high, frequency_interpolation);
+
+      return math::interpolate(v_prev, v_next, t);
+    }
+    case InterpolationMethod::CatmullRom: {
+      const int i_pre2 = i_pre - 1;
+      const int i_post2 = i_post + 1;
+
+      const float p0 = this->sample_frequency_range_in_window(
+          i_pre2, low, high, frequency_interpolation);
+      const float p1 = this->sample_frequency_range_in_window(
+          i_pre, low, high, frequency_interpolation);
+      const float p2 = this->sample_frequency_range_in_window(
+          i_post, low, high, frequency_interpolation);
+      const float p3 = this->sample_frequency_range_in_window(
+          i_post2, low, high, frequency_interpolation);
+
+      return catmul_rom_interpolation(p0, p1, p2, p3, t);
+    }
+    default:
+    case InterpolationMethod::BSpline: {
+      const int i_pre2 = i_pre - 1;
+      const int i_post2 = i_post + 1;
+
+      const float p0 = this->sample_frequency_range_in_window(
+          i_pre2, low, high, frequency_interpolation);
+      const float p1 = this->sample_frequency_range_in_window(
+          i_pre, low, high, frequency_interpolation);
+      const float p2 = this->sample_frequency_range_in_window(
+          i_post, low, high, frequency_interpolation);
+      const float p3 = this->sample_frequency_range_in_window(
+          i_post2, low, high, frequency_interpolation);
+
+      return bspline_interpolation(p0, p1, p2, p3, t);
+    }
+  }
+}
+
+float bSoundFrequencySampler::sample_frequency_range_in_window(int window_i,
+                                                               float low,
+                                                               float high,
+                                                               InterpolationMethod method) const
+{
+  const std::optional<Span<float>> window_opt = this->ensure_window_cache(window_i);
+  if (!window_opt.has_value()) {
+    return 0.0f;
+  }
+  const Span<float> window_values = *window_opt;
+  const float cumulative_low = this->sample_cumulative_frequency(window_values, low, method);
+  const float cumulative_high = this->sample_cumulative_frequency(window_values, high, method);
+  return cumulative_high - cumulative_low;
+}
+
+float bSoundFrequencySampler::sample_cumulative_frequency(const Span<float> window_values,
+                                                          const float frequency,
+                                                          const InterpolationMethod method) const
+{
+  const int max_i = window_values.size() - 1;
+  const float i_float = frequency * key_.fft_size / samples_per_second_;
+  const int i_pre = std::clamp<int>(std::floor(i_float), 0, max_i);
+  const int i_post = std::min(i_pre + 1, max_i);
+  const float t = fractf(i_float);
+
+  switch (method) {
+    case InterpolationMethod::Linear: {
+      return math::interpolate(window_values[i_pre], window_values[i_post], t);
+    }
+    case InterpolationMethod::CatmullRom: {
+      const int i_pre2 = std::max(i_pre - 1, 0);
+      const int i_post2 = std::min(i_post + 1, max_i);
+
+      const float p0 = window_values[i_pre2];
+      const float p1 = window_values[i_pre];
+      const float p2 = window_values[i_post];
+      const float p3 = window_values[i_post2];
+
+      return catmul_rom_interpolation(p0, p1, p2, p3, t);
+    }
+    case InterpolationMethod::BSpline: {
+      const int i_pre2 = std::max(i_pre - 1, 0);
+      const int i_post2 = std::min(i_post + 1, max_i);
+
+      const float p0 = window_values[i_pre2];
+      const float p1 = window_values[i_pre];
+      const float p2 = window_values[i_post];
+      const float p3 = window_values[i_post2];
+
+      return bspline_interpolation(p0, p1, p2, p3, t);
+    }
+  }
+  return 0.0f;
+}
+
+std::optional<Span<float>> bSoundFrequencySampler::ensure_window_cache(int window_i) const
+{
+  /* Clamp window so that too low or high indices get mapped to the closest valid index. */
+  window_i = std::clamp<int>(window_i, 0, window_caches_.size() - 1);
+
+  const WindowCache &window = window_caches_[window_i];
+  /* Compute the FFT of that window if that wasn't done already. */
+  window.mutex.ensure([&]() {
+    std::optional<Array<float>> fft_array = this->compute_fft(window_i * window_cache_stride_);
+    if (!fft_array.has_value()) {
+      return;
+    }
+    /* Compute prefix sum for the fft values. */
+    const Span<float> fft_values = fft_array->as_span();
+    window.cumulative_amplitudes.emplace(fft_values.size() + 1);
+    float sum = 0.0f;
+    for (const int i : fft_array->index_range()) {
+      const float value = std::abs(fft_values[i]);
+      (*window.cumulative_amplitudes)[i] = sum;
+      sum += value;
+    }
+    window.cumulative_amplitudes->last() = sum;
+  });
+  return window.cumulative_amplitudes;
+}
+
+}  // namespace bke
 
 }  // namespace blender

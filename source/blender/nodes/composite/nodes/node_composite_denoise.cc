@@ -6,15 +6,10 @@
 #  include "BLI_system.h"
 #endif
 
-#include "BLI_span.hh"
-
 #include "MEM_guardedalloc.h"
 
 #include "UI_interface_layout.hh"
 #include "UI_resources.hh"
-
-#include "GPU_state.hh"
-#include "GPU_texture.hh"
 
 #include "DNA_node_types.h"
 
@@ -154,52 +149,46 @@ class DenoiseOperation : public NodeOperation {
 
   void execute() override
   {
-    const Result &input_image = get_input("Image");
-    Result &output_image = get_result("Image");
+    const Result &input_image = this->get_input("Image");
+    Result &output_image = this->get_result("Image");
 
     if (!is_oidn_supported() || input_image.is_single_value()) {
       output_image.share_data(input_image);
       return;
     }
 
-    output_image.allocate_texture(input_image.domain());
-
 #ifdef WITH_OPENIMAGEDENOISE
     oidn::DeviceRef device = create_oidn_device(this->context());
     device.set("setAffinity", false);
     device.commit();
 
-    const int width = input_image.domain().data_size.x;
-    const int height = input_image.domain().data_size.y;
-    const int pixel_stride = sizeof(float) * 4;
-    const eGPUDataFormat data_format = GPU_DATA_FLOAT;
-
-    Vector<float *> temporary_buffers_to_free;
-
-    float *input_color = nullptr;
-    float *output_color = nullptr;
+    /* For GPU, we download the input into a temporary result and mark it to be freed later, and
+     * since it is temporary, we also perform denoising in-place. */
+    Result denoise_input = this->context().create_result(input_image.type());
+    Result *denoise_output = nullptr;
     if (this->context().use_gpu()) {
-      /* Download the input texture and set it as both the input and output of the filter to
-       * denoise it in-place. Make sure to track the downloaded buffer to be later freed. */
-      GPU_memory_barrier(GPU_BARRIER_TEXTURE_UPDATE);
-      input_color = static_cast<float *>(GPU_texture_read(input_image, data_format, 0));
-      output_color = input_color;
-      temporary_buffers_to_free.append(input_color);
+      Result input_image_cpu = input_image.download_to_cpu();
+      denoise_input.share_data(input_image_cpu);
+      input_image_cpu.release();
+
+      denoise_output = &denoise_input;
     }
     else {
-      input_color = const_cast<float *>(static_cast<const float *>(input_image.cpu_data().data()));
-      output_color = static_cast<float *>(output_image.cpu_data().data());
+      denoise_input.share_data(input_image);
+
+      output_image.allocate_texture(input_image.domain());
+      denoise_output = &output_image;
     }
 
-    const int64_t buffer_size = int64_t(width) * height * input_image.channels_count();
-    const MutableSpan<float> input_buffer_span = MutableSpan<float>(input_color, buffer_size);
-    oidn::BufferRef input_buffer = create_oidn_buffer(device, input_buffer_span);
-    const MutableSpan<float> output_buffer_span = MutableSpan<float>(output_color, buffer_size);
-    oidn::BufferRef output_buffer = create_oidn_buffer(device, output_buffer_span);
+    oidn::BufferRef input_buffer = create_oidn_buffer(device, denoise_input);
+    oidn::BufferRef output_buffer = create_oidn_buffer(device, *denoise_output);
 
     oidn::FilterRef filter = device.newFilter("RT");
-    filter.setImage("color", input_buffer, oidn::Format::Float3, width, height, 0, pixel_stride);
-    filter.setImage("output", output_buffer, oidn::Format::Float3, width, height, 0, pixel_stride);
+    const int2 size = input_image.domain().data_size;
+    const int pixel_stride = sizeof(float) * denoise_input.channels_count();
+    filter.setImage("color", input_buffer, oidn::Format::Float3, size.x, size.y, 0, pixel_stride);
+    filter.setImage(
+        "output", output_buffer, oidn::Format::Float3, size.x, size.y, 0, pixel_stride);
     filter.set("hdr", use_hdr());
     filter.set("cleanAux", auxiliary_passes_are_clean());
     this->set_filter_quality(filter);
@@ -208,93 +197,92 @@ class DenoiseOperation : public NodeOperation {
     /* If the albedo input is not a single value input, set it to the albedo input of the filter,
      * denoising it if needed. */
     Result &input_albedo = this->get_input("Albedo");
+    Result denoise_albedo = this->context().create_result(input_albedo.type());
     if (!input_albedo.is_single_value()) {
-      float *albedo = nullptr;
       if (this->should_denoise_auxiliary_passes()) {
-        albedo = input_albedo.derived_resources()
-                     .denoised_auxiliary_passes
-                     .get(this->context(),
-                          input_albedo,
-                          DenoisedAuxiliaryPassType::Albedo,
-                          this->get_quality())
-                     .denoised_buffer;
+        denoise_albedo.share_data(input_albedo.derived_resources()
+                                      .denoised_auxiliary_passes
+                                      .get(this->context(),
+                                           input_albedo,
+                                           DenoisedAuxiliaryPassType::Albedo,
+                                           this->get_quality())
+                                      .result);
       }
       else {
         if (this->context().use_gpu()) {
-          albedo = static_cast<float *>(GPU_texture_read(input_albedo, data_format, 0));
-          temporary_buffers_to_free.append(albedo);
+          Result input_albedo_cpu = input_albedo.download_to_cpu();
+          denoise_albedo.share_data(input_albedo_cpu);
+          input_albedo_cpu.release();
         }
         else {
-          albedo = static_cast<float *>(input_albedo.cpu_data().data());
+          denoise_albedo.share_data(input_albedo);
         }
       }
 
-      const MutableSpan<float> albedo_buffer_span = MutableSpan<float>(albedo, buffer_size);
-      oidn::BufferRef albedo_buffer = create_oidn_buffer(device, albedo_buffer_span);
-
+      oidn::BufferRef albedo_buffer = create_oidn_buffer(device, denoise_albedo);
+      const int pixel_stride = sizeof(float) * denoise_albedo.channels_count();
       filter.setImage(
-          "albedo", albedo_buffer, oidn::Format::Float3, width, height, 0, pixel_stride);
+          "albedo", albedo_buffer, oidn::Format::Float3, size.x, size.y, 0, pixel_stride);
     }
 
     /* If the albedo and normal inputs are not single value inputs, set the normal input to the
      * albedo input of the filter, denoising it if needed. Notice that we also consider the albedo
      * input because OIDN doesn't support denoising with only the normal auxiliary pass. */
     Result &input_normal = this->get_input("Normal");
+    Result denoise_normal = this->context().create_result(input_normal.type());
     if (!input_albedo.is_single_value() && !input_normal.is_single_value()) {
-      float *normal = nullptr;
       if (should_denoise_auxiliary_passes()) {
-        normal = input_normal.derived_resources()
-                     .denoised_auxiliary_passes
-                     .get(this->context(),
-                          input_normal,
-                          DenoisedAuxiliaryPassType::Normal,
-                          this->get_quality())
-                     .denoised_buffer;
+        denoise_normal.share_data(input_normal.derived_resources()
+                                      .denoised_auxiliary_passes
+                                      .get(this->context(),
+                                           input_normal,
+                                           DenoisedAuxiliaryPassType::Normal,
+                                           this->get_quality())
+                                      .result);
       }
       else {
         if (this->context().use_gpu()) {
-          normal = static_cast<float *>(GPU_texture_read(input_normal, data_format, 0));
-          temporary_buffers_to_free.append(normal);
+          Result input_normal_cpu = input_normal.download_to_cpu();
+          denoise_normal.share_data(input_normal_cpu);
+          input_normal_cpu.release();
         }
         else {
-          normal = static_cast<float *>(input_normal.cpu_data().data());
+          denoise_normal.share_data(input_normal);
         }
       }
 
-      const int normal_channels_count = input_normal.channels_count();
-      int normal_pixel_stride = sizeof(float) * normal_channels_count;
-
-      const int64_t normal_buffer_size = int64_t(width) * height * normal_channels_count;
-      const MutableSpan<float> normal_buffer_span = MutableSpan<float>(normal, normal_buffer_size);
-      oidn::BufferRef normal_buffer = create_oidn_buffer(device, normal_buffer_span);
-
+      oidn::BufferRef normal_buffer = create_oidn_buffer(device, denoise_normal);
+      const int pixel_stride = sizeof(float) * denoise_normal.channels_count();
       filter.setImage(
-          "normal", normal_buffer, oidn::Format::Float3, width, height, 0, normal_pixel_stride);
+          "normal", normal_buffer, oidn::Format::Float3, size.x, size.y, 0, pixel_stride);
     }
 
     filter.commit();
     filter.execute();
 
     if (output_buffer.getStorage() != oidn::Storage::Host) {
-      output_buffer.read(0, buffer_size * sizeof(float), output_color);
+      output_buffer.read(
+          0, denoise_output->size_in_bytes(), denoise_output->cpu_data_for_write().data());
     }
 
     if (this->context().use_gpu()) {
-      GPU_texture_update(output_image, data_format, output_color);
+      Result output_gpu = denoise_output->upload_to_gpu(true);
+      output_image.share_data(output_gpu);
+      output_gpu.release();
     }
     else {
       /* OIDN already wrote to the output directly, however, OIDN skips the alpha channel, so we
        * need to restore it. */
-      parallel_for(int2(width, height), [&](const int2 texel) {
+      parallel_for(size, [&](const int2 texel) {
         const float alpha = input_image.load_pixel<Color>(texel).a;
         output_image.store_pixel(
             texel, Color(float4(float4(output_image.load_pixel<Color>(texel)).xyz(), alpha)));
       });
     }
 
-    for (float *buffer : temporary_buffers_to_free) {
-      MEM_delete(buffer);
-    }
+    denoise_input.release();
+    denoise_albedo.release();
+    denoise_normal.release();
 #endif
   }
 

@@ -79,7 +79,7 @@ class Attribute {
             const void *data,
             int size,
             ImplicitSharingInfo sharing_info);
-  Attribute(Attribute &&other) = delete;
+  Attribute(Attribute &&other);
   Attribute &operator=(Attribute &&other) = delete;
   Attribute(const Attribute &other) = delete;
   Attribute &operator=(const Attribute &other) = delete;
@@ -219,6 +219,7 @@ class AttributeSet {
                         const void *data,
                         int size,
                         ImplicitSharingInfo sharing_info);
+  Attribute *add_from(Attribute &&other);
   Attribute *find(ustring name) const;
   void remove(ustring name);
 

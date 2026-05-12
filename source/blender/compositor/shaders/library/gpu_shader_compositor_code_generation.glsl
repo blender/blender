@@ -64,6 +64,12 @@ void float_to_bool(float value, float &output_value)
   output_value = float(float_to_bool(value));
 }
 
+[[node]]
+void float_to_quaternion(float value, float4 &output_value)
+{
+  output_value = float_to_quaternion(value);
+}
+
 /* --------------------------------------------------------------------
  * Int to other.
  */
@@ -168,6 +174,12 @@ void float2_to_bool(float2 value, float &output_value)
   output_value = float(float2_to_bool(value));
 }
 
+[[node]]
+void float2_to_quaternion(float2 value, float4 &output_value)
+{
+  output_value = float2_to_quaternion(value);
+}
+
 /* --------------------------------------------------------------------
  * Float3 to other.
  */
@@ -218,6 +230,12 @@ void float3_to_float4(float3 value, float4 &output_value)
 void float3_to_bool(float3 value, float &output_value)
 {
   output_value = float(float3_to_bool(value));
+}
+
+[[node]]
+void float3_to_quaternion(float3 value, float4 &output_value)
+{
+  output_value = float3_to_quaternion(value);
 }
 
 /* --------------------------------------------------------------------
@@ -322,6 +340,12 @@ void float4_to_color(float4 value, float4 &output_value)
 void float4_to_bool(float4 value, float &output_value)
 {
   output_value = float(float4_to_bool(value));
+}
+
+[[node]]
+void float4_to_quaternion(float4 value, float4 &output_value)
+{
+  output_value = float4_to_quaternion(value);
 }
 
 /* --------------------------------------------------------------------
@@ -481,6 +505,44 @@ void bool_to_int3(float value, float3 &output_value)
 }
 
 /* --------------------------------------------------------------------
+ * Float4x4 to other.
+ */
+
+[[node]]
+void float4x4_to_quaternion(float4x4 mat, float4 &output_value)
+{
+  output_value = float4x4_to_quaternion(mat);
+}
+
+/* --------------------------------------------------------------------
+ * Quaternion to other.
+ */
+
+[[node]]
+void quaternion_to_float2(float4 value, float2 &output_value)
+{
+  output_value = quaternion_to_float2(value);
+}
+
+[[node]]
+void quaternion_to_float3(float4 value, float3 &output_value)
+{
+  output_value = quaternion_to_float3(value);
+}
+
+[[node]]
+void quaternion_to_float4(float4 value, float4 &output_value)
+{
+  output_value = quaternion_to_float4(value);
+}
+
+[[node]]
+void quaternion_to_float4x4(float4 value, float4x4 &output_value)
+{
+  output_value = quaternion_to_float4x4(value);
+}
+
+/* --------------------------------------------------------------------
  * Internal Code Generation Functions.
  */
 
@@ -542,4 +604,14 @@ float4 float4_from_float3(float3 value)
 float4 float4_from_float(float value)
 {
   return float_to_color(value);
+}
+
+float4 float4_from_float4x4(float4x4 mat)
+{
+  return float4x4_to_quaternion(mat);
+}
+
+float4x4 float4x4_from_float4(float4 value)
+{
+  return quaternion_to_float4x4(value);
 }

@@ -112,7 +112,7 @@ ColorSpaceProcessor *ColorSpaceManager::get_processor(ustring colorspace)
   /* Cache processor until free_memory(), memory overhead is expected to be
    * small and the processor is likely to be reused. */
   const thread_scoped_lock cache_processors_lock(cache_processors_mutex);
-  if (cache_processors.find(colorspace) == cache_processors.end()) {
+  if (!cache_processors.contains(colorspace)) {
     try {
       if (colorspace == u_colorspace_srgb) {
         /* Linear Rec.709 to sRGB is handled separately in to_scene_linear, here
@@ -305,7 +305,7 @@ ustring ColorSpaceManager::detect_known_colorspace(ustring colorspace,
   }
 #endif
 
-  /* Fall back to simple guess if we don't have OpenColorIO .*/
+  /* Fall back to simple guess if we don't have OpenColorIO. */
   if (colorspace == u_colorspace_auto) {
     colorspace = (is_float && !(strcmp(file_colorspace, "srgb_rec709_scene") == 0 ||
                                 strcmp(file_colorspace, "srgb_rec709_display") == 0)) ?
@@ -331,7 +331,7 @@ ustring ColorSpaceManager::detect_known_colorspace(ustring colorspace,
   {
     const thread_scoped_lock cache_lock(cache_colorspaces_mutex);
     /* Cached lookup. */
-    if (cached_colorspaces.find(colorspace) != cached_colorspaces.end()) {
+    if (cached_colorspaces.contains(colorspace)) {
       return cached_colorspaces[colorspace];
     }
   }

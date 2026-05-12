@@ -264,7 +264,7 @@ struct XFormObjectData_Mesh : public XFormObjectData {
   Array<float3> key_data;
   Array<float3> positions;
   bool is_edit_mode = false;
-  virtual ~XFormObjectData_Mesh() = default;
+  ~XFormObjectData_Mesh() override = default;
 };
 
 struct XFormObjectData_Lattice : public XFormObjectData {
@@ -272,7 +272,7 @@ struct XFormObjectData_Lattice : public XFormObjectData {
   Array<float3> key_data;
   Array<float3> positions;
   bool is_edit_mode = false;
-  virtual ~XFormObjectData_Lattice() = default;
+  ~XFormObjectData_Lattice() override = default;
 };
 
 struct XFormObjectData_Curve : public XFormObjectData {
@@ -280,37 +280,37 @@ struct XFormObjectData_Curve : public XFormObjectData {
   Array<float3> key_data;
   Array<float3> positions;
   bool is_edit_mode = false;
-  virtual ~XFormObjectData_Curve() = default;
+  ~XFormObjectData_Curve() override = default;
 };
 
 struct XFormObjectData_Armature : public XFormObjectData {
   Array<ElemData_Armature> elems;
   bool is_edit_mode = false;
-  virtual ~XFormObjectData_Armature() = default;
+  ~XFormObjectData_Armature() override = default;
 };
 
 struct XFormObjectData_MetaBall : public XFormObjectData {
   Array<ElemData_MetaBall> elems;
   bool is_edit_mode = false;
-  virtual ~XFormObjectData_MetaBall() = default;
+  ~XFormObjectData_MetaBall() override = default;
 };
 
 struct XFormObjectData_GreasePencil : public XFormObjectData {
   Array<float3> positions;
   Array<float> radii;
-  virtual ~XFormObjectData_GreasePencil() = default;
+  ~XFormObjectData_GreasePencil() override = default;
 };
 
 struct XFormObjectData_Curves : public XFormObjectData {
   Array<float3> positions;
   Array<float> radii;
-  virtual ~XFormObjectData_Curves() = default;
+  ~XFormObjectData_Curves() override = default;
 };
 
 struct XFormObjectData_PointCloud : public XFormObjectData {
   Array<float3> positions;
   Array<float> radii;
-  virtual ~XFormObjectData_PointCloud() = default;
+  ~XFormObjectData_PointCloud() override = default;
 };
 
 static std::unique_ptr<XFormObjectData> data_xform_create_ex(ID *id, bool is_edit_mode)

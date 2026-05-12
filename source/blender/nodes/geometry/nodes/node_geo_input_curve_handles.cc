@@ -83,19 +83,12 @@ class HandlePositionFieldInput final : public bke::GeometryFieldInput {
     fn(relative_);
   }
 
-  uint64_t hash() const final
+  void hash_unique(UniqueHashBytes &hash, fn::FieldHashDeep &deep_hash_cache) const final
   {
-    return get_default_hash(relative_, left_);
-  }
-
-  bool is_equal_to(const fn::FieldInput &other) const final
-  {
-    if (const HandlePositionFieldInput *other_handle =
-            dynamic_cast<const HandlePositionFieldInput *>(&other))
-    {
-      return relative_ == other_handle->relative_ && left_ == other_handle->left_;
-    }
-    return false;
+    static constexpr int8_t id = 0;
+    hash.add(&id);
+    hash.add(deep_hash_cache.ensure(relative_));
+    hash.add(left_);
   }
 
   std::optional<AttrDomain> preferred_domain(

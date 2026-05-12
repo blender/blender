@@ -240,9 +240,9 @@ static void tonemap_calc_chunk_luminance(const int width,
   }
 }
 
-static AreaLuminance tonemap_calc_input_luminance(const ImBuf *ibuf)
+static AreaLuminance tonemap_calc_input_luminance(ImBuf *ibuf)
 {
-  float *float_data = ibuf->float_buffer.data;
+  float *float_data = ibuf->float_data_for_write();
   AreaLuminance lum;
   lum = threading::parallel_reduce(
       IndexRange(ibuf->y),
@@ -292,7 +292,7 @@ static void tonemapmodifier_apply(ModifierApplyContext &context, StripModifierDa
       reinterpret_cast<const SequencerTonemapModifierData *>(smd);
 
   TonemapApplyOp op;
-  op.type = eModTonemapType(tmmd->type);
+  op.type = tmmd->type;
   op.ibuf = context.image;
   op.lum = tonemap_calc_input_luminance(context.image);
   if (op.lum.pixel_count == 0) {

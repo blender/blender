@@ -258,7 +258,7 @@ messenger_callback(VkDebugUtilsMessageSeverityFlagBitsEXT message_severity,
 
 void VKDebuggingTools::init_messenger(VkInstance vk_instance)
 {
-  if (vk_debug_utils_messenger) {
+  if (vk_debug_utils_messenger != VK_NULL_HANDLE) {
     return;
   }
 
@@ -286,13 +286,13 @@ void VKDebuggingTools::init_messenger(VkInstance vk_instance)
 
 void VKDebuggingTools::destroy_messenger(VkInstance vk_instance)
 {
-  if (vk_debug_utils_messenger == nullptr) {
+  if (vk_debug_utils_messenger == VK_NULL_HANDLE) {
     return;
   }
 
   VKDevice &device = VKBackend::get().device;
   device.functions.vkDestroyDebugUtilsMessenger(vk_instance, vk_debug_utils_messenger, nullptr);
-  vk_debug_utils_messenger = nullptr;
+  vk_debug_utils_messenger = VK_NULL_HANDLE;
 }
 
 };  // namespace gpu::debug

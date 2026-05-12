@@ -294,7 +294,7 @@ struct CurvesEffectOperationExecutor {
     brush_pos_end_re_ = stroke_extension.mouse_position;
 
     if (stroke_extension.is_first) {
-      if (falloff_shape_ == PAINT_FALLOFF_SHAPE_SPHERE || (U.flag & USER_ORBIT_SELECTION)) {
+      if (falloff_shape_ == PAINT_FALLOFF_SHAPE_SPHERE || (U.uiflag & USER_ORBIT_SELECTION)) {
         if (std::optional<CurvesBrush3D> brush_3d = sample_curves_3d_brush(
                 *ctx_.depsgraph,
                 *ctx_.region,

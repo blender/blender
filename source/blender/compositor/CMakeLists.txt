@@ -8,6 +8,7 @@ set(INC
   cached_resources
   derived_resources
   utilities
+  ../nodes/geometry/include
   ../gpu/intern
   ../makesrna
   ../render/intern
@@ -34,7 +35,6 @@ set(SRC
   COM_node_operation.hh
   COM_operation.hh
   COM_pixel_operation.hh
-  COM_profiler.hh
   COM_realize_on_domain_operation.hh
   COM_render_context.hh
   COM_result.hh
@@ -61,7 +61,6 @@ set(SRC
   intern/node_operation.cc
   intern/operation.cc
   intern/pixel_operation.cc
-  intern/profiler.cc
   intern/realize_on_domain_operation.cc
   intern/render_context.cc
   intern/result.cc
@@ -122,6 +121,7 @@ set(SRC
   cached_resources/intern/morphological_distance_feather_weights.cc
   cached_resources/intern/ocio_color_space_conversion_shader.cc
   cached_resources/intern/smaa_precomputed_textures.cc
+  cached_resources/intern/string_image.cc
   cached_resources/intern/symmetric_blur_weights.cc
   cached_resources/intern/symmetric_separable_blur_weights.cc
   cached_resources/intern/van_vliet_gaussian_coefficients.cc
@@ -139,6 +139,7 @@ set(SRC
   cached_resources/COM_morphological_distance_feather_weights.hh
   cached_resources/COM_ocio_color_space_conversion_shader.hh
   cached_resources/COM_smaa_precomputed_textures.hh
+  cached_resources/COM_string_image.hh
   cached_resources/COM_symmetric_blur_weights.hh
   cached_resources/COM_symmetric_separable_blur_weights.hh
   cached_resources/COM_van_vliet_gaussian_coefficients.hh
@@ -154,6 +155,7 @@ set(SRC
 )
 
 set(LIB
+  PRIVATE bf::blenfont
   PRIVATE bf::blenkernel
   PRIVATE bf::blentranslation
   PRIVATE bf::functions
@@ -165,7 +167,7 @@ set(LIB
   PRIVATE bf::dna
   PRIVATE bf::intern::guardedalloc
   PRIVATE bf::intern::clog
-  PRIVATE bf::dependencies::optional::opencolorio
+  PRIVATE bf::dependencies::opencolorio
   PRIVATE bf::dependencies::optional::tbb
   PRIVATE bf::dependencies::optional::fftw3
   PRIVATE bf::dependencies::optional::openimagedenoise

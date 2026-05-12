@@ -208,6 +208,9 @@ struct Symbol {
   size_t definition_line;
   bool is_method;
   bool is_static;
+  bool is_struct;
+  /* For structures only. */
+  std::vector<std::pair<std::string, std::string>> members;
 
   bool operator<(const Symbol &other) const
   {
@@ -227,6 +230,9 @@ struct Symbol {
     }
     if (identifier != other.identifier) {
       return identifier < other.identifier;
+    }
+    if (is_struct != other.is_struct) {
+      return is_struct < other.is_struct;
     }
     return false;
   }

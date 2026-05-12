@@ -33,6 +33,8 @@ void SourceProcessor::lower_entry_points(Parser &parser)
     bool is_vertex_func = false;
     bool is_fragment_func = false;
     bool use_early_frag_test = false;
+    bool use_clip_control = false;
+    bool use_texture_atomic = false;
     string metal_max_total_threads_per_threadgroup;
     string local_size;
 
@@ -60,6 +62,12 @@ void SourceProcessor::lower_entry_points(Parser &parser)
         }
         else if (attr_str == "metal_max_total_threads_per_threadgroup") {
           metal_max_total_threads_per_threadgroup = attr_scope.str();
+        }
+        else if (attr_str == "clip_control") {
+          use_clip_control = true;
+        }
+        else if (attr_str == "texture_atomic") {
+          use_texture_atomic = true;
         }
       });
     }
@@ -104,6 +112,19 @@ void SourceProcessor::lower_entry_points(Parser &parser)
       else {
         create_info_decl += "EARLY_FRAGMENT_TEST(true)\n";
       }
+    }
+
+    if (use_clip_control) {
+      if (!is_vertex_func) {
+        report_error(type, "Only vertex entry point function can use [[clip_control]].");
+      }
+      else {
+        create_info_decl += "BUILTINS(BuiltinBits::CLIP_CONTROL)\n";
+      }
+    }
+
+    if (use_texture_atomic) {
+      create_info_decl += "BUILTINS(BuiltinBits::TEXTURE_ATOMIC)\n";
     }
 
     if (!metal_max_total_threads_per_threadgroup.empty()) {
@@ -397,7 +418,7 @@ void SourceProcessor::lower_entry_points(Parser &parser)
           report_error(attributes[3], "unrecognized mode, expecting 'any', 'greater' or 'less'");
         }
         else {
-          create_info_decl += "DEPTH_WRITE(" + to_uppercase(mode) + ")\n";
+          create_info_decl += "DEPTH_WRITE(DepthWrite::" + to_uppercase(mode) + ")\n";
           replace_word(srt_var, "gl_FragDepth");
         }
       }

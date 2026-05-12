@@ -37,7 +37,7 @@ class MetalDevice : public Device {
   id<MTLBuffer> launch_params_buffer = nil;
   KernelParamsMetal *launch_params = nullptr;
 
-  /* MetalRT members ----------------------------------*/
+  /* MetalRT members ---------------------------------- */
   bool use_metalrt = false;
   bool use_metalrt_extended_limits = false;
   bool motion_blur = false;
@@ -53,7 +53,7 @@ class MetalDevice : public Device {
 
   API_AVAILABLE(macos(11.0))
   id<MTLAccelerationStructure> accel_struct = nil;
-  /*---------------------------------------------------*/
+  /* --------------------------------------------------- */
 
   uint kernel_features = 0;
   bool using_nanovdb = false;
@@ -166,6 +166,8 @@ class MetalDevice : public Device {
   }
   void mem_copy_from(
       device_memory &mem, const size_t y, size_t w, const size_t h, size_t elem) override;
+
+  void mem_or_from_device(device_memory &mem) override;
 
   void mem_zero(device_memory &mem) override;
 

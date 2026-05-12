@@ -346,18 +346,15 @@ void comp_main([[global_invocation_id]] const uint3 global_id, [[resource_table]
   /* Make sure missing cases are noticeable. */
   float4 result = float4(-1);
   switch (uint(lut.type)) {
-    case LUT_GGX_BRDF_SPLIT_SUM: {
-      GGXBrdfClosure func = GGXBrdfClosure::from_params(lut_normalized_coordinate);
-      result = integrate<GGXBrdfClosure>(func);
-    } break;
-    case LUT_GGX_BSDF_SPLIT_SUM: {
-      GGXBsdfClosure func = GGXBsdfClosure::from_params(lut_normalized_coordinate);
-      result = integrate<GGXBsdfClosure>(func);
-    } break;
-    case LUT_GGX_BTDF_IOR_GT_ONE: {
-      GGXBtdfGt1Closure func = GGXBtdfGt1Closure::from_params(lut_normalized_coordinate);
-      result = integrate<GGXBtdfGt1Closure>(func);
-    } break;
+    case LUT_GGX_BRDF_SPLIT_SUM:
+      result = integrate(GGXBrdfClosure::from_params(lut_normalized_coordinate));
+      break;
+    case LUT_GGX_BSDF_SPLIT_SUM:
+      result = integrate(GGXBsdfClosure::from_params(lut_normalized_coordinate));
+      break;
+    case LUT_GGX_BTDF_IOR_GT_ONE:
+      result = integrate(GGXBtdfGt1Closure::from_params(lut_normalized_coordinate));
+      break;
     case LUT_BURLEY_SSS_PROFILE:
       result = burley_sss_translucency(lut_normalized_coordinate);
       break;

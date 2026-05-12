@@ -266,6 +266,133 @@ def draw_kmi(display_keymaps, kc, km, kmi, layout, level):
 _EVENT_TYPES = set()
 _EVENT_TYPE_MAP = {}
 _EVENT_TYPE_MAP_EXTRA = {}
+_EVENT_TYPE_MAP_I18N = {}
+
+_MODIFIER_ALIASES = {}
+_VALUE_ALIASES = {}
+
+_search_tables_language_init = None
+
+
+def _init_search_tables():
+    # Build all search lookup tables once from bl_rna enums + translations.
+    global _search_tables_language_init
+
+    current_language = bpy.context.preferences.view.language
+    if _search_tables_language_init == current_language:
+        return
+
+    _search_tables_language_init = current_language
+
+    _EVENT_TYPES.clear()
+    _EVENT_TYPE_MAP.clear()
+    _EVENT_TYPE_MAP_EXTRA.clear()
+    _EVENT_TYPE_MAP_I18N.clear()
+    _MODIFIER_ALIASES.clear()
+    _VALUE_ALIASES.clear()
+
+    from sys import platform
+
+    # Event type tables.
+    enum = bpy.types.Event.bl_rna.properties["type"].enum_items
+    _EVENT_TYPES.update(enum.keys())
+    _EVENT_TYPE_MAP.update({
+        item.name.replace(" ", "_").upper(): key
+        for key, item in enum.items()
+    })
+
+    # Translated event type names (only entries that differ from English).
+    # Match context used by WM_key_event_string.
+    for key, item in enum.items():
+        translated = iface_(item.name, i18n_contexts.ui_events_keymaps)
+        if translated != item.name:
+            _EVENT_TYPE_MAP_I18N[translated.replace(" ", "_").upper()] = key
+
+    del enum
+
+    _EVENT_TYPE_MAP_EXTRA.update({
+        "`": 'ACCENT_GRAVE',
+        "*": 'NUMPAD_ASTERIX',
+        "/": 'NUMPAD_SLASH',
+        '+': 'NUMPAD_PLUS',
+        "-": 'NUMPAD_MINUS',
+        ".": 'NUMPAD_PERIOD',
+        "'": 'QUOTE',
+        "RMB": 'RIGHTMOUSE',
+        "LMB": 'LEFTMOUSE',
+        "MMB": 'MIDDLEMOUSE',
+    })
+    _EVENT_TYPE_MAP_EXTRA.update({
+        "{:d}".format(i): "NUMPAD_{:d}".format(i) for i in range(10)
+    })
+
+    #  Modifier {alias: kmi_attribute}
+    _MODIFIER_ALIASES.update({
+        "ctrl": "ctrl",
+        "alt": "alt",
+        "shift": "shift",
+        "oskey": "oskey",
+        "hyper": "hyper",
+        "any": "any",
+
+        # macOS specific modifiers names
+        "control": "ctrl",
+        "option": "alt",
+        "cmd": "oskey",
+        "command": "oskey",
+    })
+
+    match platform:
+        case "darwin":
+            pass  # "cmd" already mapped above
+        case "win32":
+            _MODIFIER_ALIASES["win"] = "oskey"
+        case _:
+            _MODIFIER_ALIASES["os"] = "oskey"
+
+    # Translated modifier labels (e.g. "Maj" -> "shift" in French).
+    # Match contexts used by WM_key_event_string.
+    for english_label, attr, ctx in (
+        ("Shift", "shift", i18n_contexts.id_windowmanager),
+        ("Ctrl", "ctrl", None),
+        ("Alt", "alt", None),
+        ("Cmd", "oskey", None),
+        ("Win", "oskey", None),
+        ("OS", "oskey", None),
+        ("Hyper", "hyper", None),
+        ("Any", "any", None),
+    ):
+        translated = iface_(english_label, ctx).lower()
+        if translated not in _MODIFIER_ALIASES:
+            _MODIFIER_ALIASES[translated] = attr
+
+    # Event value {alias: enum_identifier}
+    _VALUE_ALIASES.update({
+        "dbl": "DOUBLE_CLICK",
+        "double": "DOUBLE_CLICK",
+        "doubleclick": "DOUBLE_CLICK",
+        "double_click": "DOUBLE_CLICK",
+        "press": "PRESS",
+        "release": "RELEASE",
+        "click": "CLICK",
+        "drag": "CLICK_DRAG",
+        "clickdrag": "CLICK_DRAG",
+        "click_drag": "CLICK_DRAG",
+    })
+
+    # Translated event value names from bl_rna.
+    value_prop = bpy.types.Event.bl_rna.properties["value"]
+    value_enum = value_prop.enum_items
+    for key, item in value_enum.items():
+        english_norm = item.name.replace(" ", "").replace("-", "").lower()
+        if english_norm not in _VALUE_ALIASES:
+            _VALUE_ALIASES[english_norm] = key
+        translated = iface_(item.name, value_prop.translation_context)
+        if translated != item.name:
+            translated_norm = translated.replace(" ", "").replace("-", "").lower()
+            if translated_norm not in _VALUE_ALIASES:
+                _VALUE_ALIASES[translated_norm] = key
+    del value_prop, value_enum
 
 
 def draw_filtered(display_keymaps, filter_type, filter_text, layout):
@@ -275,50 +402,10 @@ def draw_filtered(display_keymaps, filter_type, filter_text, layout):
             return (filter_text in kmi.idname.lower() or
                     filter_text in kmi.name.lower())
     else:
-        if not _EVENT_TYPES:
-            enum = bpy.types.Event.bl_rna.properties["type"].enum_items
-            _EVENT_TYPES.update(enum.keys())
-            _EVENT_TYPE_MAP.update({
-                item.name.replace(" ", "_").upper(): key
-                for key, item in enum.items()
-            })
+        _init_search_tables()
 
-            del enum
-            _EVENT_TYPE_MAP_EXTRA.update({
-                "`": 'ACCENT_GRAVE',
-                "*": 'NUMPAD_ASTERIX',
-                "/": 'NUMPAD_SLASH',
-                '+': 'NUMPAD_PLUS',
-                "-": 'NUMPAD_MINUS',
-                ".": 'NUMPAD_PERIOD',
-                "'": 'QUOTE',
-                "RMB": 'RIGHTMOUSE',
-                "LMB": 'LEFTMOUSE',
-                "MMB": 'MIDDLEMOUSE',
-            })
-            _EVENT_TYPE_MAP_EXTRA.update({
-                "{:d}".format(i): "NUMPAD_{:d}".format(i) for i in range(10)
-            })
-        # done with once off init
-
-        filter_text_split = filter_text.strip()
         filter_text_split = filter_text.split()
 
-        # Modifier {kmi.attribute: name} mapping
-        key_mod = {
-            "ctrl": "ctrl",
-            "alt": "alt",
-            "shift": "shift",
-            "oskey": "oskey",
-            "hyper": "hyper",
-            "any": "any",
-
-            # macOS specific modifiers names
-            "control": "ctrl",
-            "option": "alt",
-            "cmd": "oskey",
-            "command": "oskey",
-        }
         # KeyMapItem like dict, use for comparing against
         # attr: {states, ...}
         kmi_test_dict = {}
@@ -326,15 +413,40 @@ def draw_filtered(display_keymaps, filter_type, filter_text, layout):
         # keymap items must match against all.
         kmi_test_type = []
 
-        # initialize? - so if a kmi has a MOD assigned it won't show up.
-        # for kv in key_mod.values():
-        #     kmi_test_dict[kv] = {False}
-
         # altname: attr
-        for kk, kv in key_mod.items():
-            if kk in filter_text_split:
-                filter_text_split.remove(kk)
-                kmi_test_dict[kv] = {True}
+        remaining = []
+        for token in filter_text_split:
+            attr = _MODIFIER_ALIASES.get(token)
+            if attr is not None:
+                kmi_test_dict[attr] = {True}
+            else:
+                remaining.append(token)
+        filter_text_split = remaining
+
+        # Recognize event value prefixes (e.g. "dbl-a", "press a").
+        normalized_tokens = []
+        for token in filter_text_split:
+            prefix, sep, rest = token.partition("-")
+
+            if sep:
+                # "dbl-a", "drag-left" -> check prefix as event value.
+                val = _VALUE_ALIASES.get(prefix)
+                if val is not None:
+                    kmi_test_dict.setdefault("value", set()).add(val)
+                    if rest:
+                        normalized_tokens.append(rest)
+                    continue
+
+            # Try the whole token as an event value (e.g. "press", "release").
+            val = _VALUE_ALIASES.get(token)
+            if val is not None:
+                kmi_test_dict.setdefault("value", set()).add(val)
+                continue
+
+            # Not a value -> keep as an event type token.
+            normalized_tokens.append(token)
+
+        filter_text_split = normalized_tokens
 
         # what's left should be the event type
         def kmi_type_set_from_string(kmi_type):
@@ -346,7 +458,7 @@ def draw_filtered(display_keymaps, filter_type, filter_text, layout):
 
             if not kmi_type_set or len(kmi_type) > 1:
                 # replacement table
-                for event_type_map in (_EVENT_TYPE_MAP, _EVENT_TYPE_MAP_EXTRA):
+                for event_type_map in (_EVENT_TYPE_MAP, _EVENT_TYPE_MAP_I18N, _EVENT_TYPE_MAP_EXTRA):
                     kmi_type_test = event_type_map.get(kmi_type)
                     if kmi_type_test is not None:
                         kmi_type_set.add(kmi_type_test)
@@ -359,7 +471,7 @@ def draw_filtered(display_keymaps, filter_type, filter_text, layout):
                                 kmi_type_set.add(v)
             return kmi_type_set
 
-        for i, kmi_type in enumerate(filter_text_split):
+        for kmi_type in filter_text_split:
             kmi_type_set = kmi_type_set_from_string(kmi_type)
 
             if not kmi_type_set:

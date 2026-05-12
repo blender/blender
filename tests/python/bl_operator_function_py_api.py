@@ -25,38 +25,38 @@ class TestOperatorFunctionAccess(unittest.TestCase):
 
 class TestOperatorCall(unittest.TestCase):
 
-    def test_call_clear_recent_files(self):
-        self.assertEqual(bpy.ops.wm.clear_recent_files(), {'FINISHED'})
+    def test_call_previews_clear(self):
+        self.assertEqual(bpy.ops.wm.previews_clear(), {'FINISHED'})
 
 
 class TestOperatorCallPositionalArgs(unittest.TestCase):
 
     def test_exec_default(self):
-        self.assertEqual(bpy.ops.wm.clear_recent_files('EXEC_DEFAULT'), {'FINISHED'})
+        self.assertEqual(bpy.ops.wm.previews_clear('EXEC_DEFAULT'), {'FINISHED'})
 
     def test_invoke_default(self):
-        self.assertEqual(bpy.ops.wm.clear_recent_files('INVOKE_DEFAULT'), {'FINISHED'})
+        self.assertEqual(bpy.ops.wm.previews_clear('INVOKE_DEFAULT'), {'FINISHED'})
 
     def test_undo_flag(self):
-        self.assertEqual(bpy.ops.wm.clear_recent_files(True), {'FINISHED'})
+        self.assertEqual(bpy.ops.wm.previews_clear(True), {'FINISHED'})
 
     def test_undo_flag_false(self):
-        self.assertEqual(bpy.ops.wm.clear_recent_files(False), {'FINISHED'})
+        self.assertEqual(bpy.ops.wm.previews_clear(False), {'FINISHED'})
 
     def test_undo_flag_int(self):
-        self.assertEqual(bpy.ops.wm.clear_recent_files(1), {'FINISHED'})
+        self.assertEqual(bpy.ops.wm.previews_clear(1), {'FINISHED'})
 
     def test_undo_flag_int_zero(self):
-        self.assertEqual(bpy.ops.wm.clear_recent_files(0), {'FINISHED'})
+        self.assertEqual(bpy.ops.wm.previews_clear(0), {'FINISHED'})
 
     def test_context_and_undo(self):
-        self.assertEqual(bpy.ops.wm.clear_recent_files('EXEC_DEFAULT', True), {'FINISHED'})
+        self.assertEqual(bpy.ops.wm.previews_clear('EXEC_DEFAULT', True), {'FINISHED'})
 
     def test_context_and_undo_int(self):
-        self.assertEqual(bpy.ops.wm.clear_recent_files('EXEC_DEFAULT', 1), {'FINISHED'})
+        self.assertEqual(bpy.ops.wm.previews_clear('EXEC_DEFAULT', 1), {'FINISHED'})
 
     def test_negative_int(self):
-        self.assertEqual(bpy.ops.wm.clear_recent_files(-1), {'FINISHED'})
+        self.assertEqual(bpy.ops.wm.previews_clear(-1), {'FINISHED'})
 
 
 class TestOperatorCallPositionalArgsInvalid(unittest.TestCase):
@@ -64,7 +64,7 @@ class TestOperatorCallPositionalArgsInvalid(unittest.TestCase):
     def test_args_invalid_type(self):
         for arg in (1.0, None, [], {}, (), set(), b'EXEC_DEFAULT'):
             with self.assertRaises(ValueError):
-                bpy.ops.wm.clear_recent_files(arg)
+                bpy.ops.wm.previews_clear(arg)
 
     def test_args_invalid_order(self):
         for args in (
@@ -72,7 +72,7 @@ class TestOperatorCallPositionalArgsInvalid(unittest.TestCase):
                 (1, 'EXEC_DEFAULT'),
         ):
             with self.assertRaises(ValueError):
-                bpy.ops.wm.clear_recent_files(*args)
+                bpy.ops.wm.previews_clear(*args)
 
     def test_args_invalid_duplicates(self):
         for args in (
@@ -85,7 +85,7 @@ class TestOperatorCallPositionalArgsInvalid(unittest.TestCase):
                 (True, True, 'EXEC_DEFAULT', 'EXEC_DEFAULT'),
         ):
             with self.assertRaises(ValueError):
-                bpy.ops.wm.clear_recent_files(*args)
+                bpy.ops.wm.previews_clear(*args)
 
 
 class TestOperatorCallKeywordArgs(unittest.TestCase):
@@ -162,11 +162,11 @@ class TestOperatorCallInvalid(unittest.TestCase):
 
     def test_invalid_context_string(self):
         with self.assertRaises(TypeError):
-            bpy.ops.wm.clear_recent_files('INVALID_CONTEXT')
+            bpy.ops.wm.previews_clear('INVALID_CONTEXT')
 
     def test_invalid_keyword_argument(self):
         with self.assertRaises(TypeError):
-            bpy.ops.wm.clear_recent_files(nonexistent_prop=True)
+            bpy.ops.wm.previews_clear(nonexistent_prop=True)
 
     def test_poll_failure(self):
         # Edit-mode operator cannot run without an active mesh in edit-mode.

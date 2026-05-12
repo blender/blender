@@ -292,7 +292,9 @@ int rna_LayerCollection_name_length(PointerRNA *ptr)
   return strlen(id->name + 2);
 }
 
-static void rna_LayerCollection_flag_set(PointerRNA *ptr, const bool value, const int flag)
+static void rna_LayerCollection_flag_set(PointerRNA *ptr,
+                                         const bool value,
+                                         const eLayerCollection_Flag flag)
 {
   LayerCollection *layer_collection = static_cast<LayerCollection *>(ptr->data);
   Collection *collection = layer_collection->collection;

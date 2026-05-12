@@ -316,6 +316,8 @@ static std::pair<bool, AbcObjectReader *> visit_object(
   const MetaData &md = object.getMetaData();
   bool parent_is_part_of_this_object = false;
 
+  const AbcReaderConstructorArgs args = create_reader_constructor_args(object, settings);
+
   if (!object.getParent()) {
     /* The root itself is not an object we should import. */
   }
@@ -336,15 +338,15 @@ static std::pair<bool, AbcObjectReader *> visit_object(
     }
 
     if (create_empty) {
-      reader = new AbcEmptyReader(object, settings);
+      reader = new AbcEmptyReader(args);
     }
   }
   else if (IPolyMesh::matches(md)) {
-    reader = new AbcMeshReader(object, settings);
+    reader = new AbcMeshReader(args);
     parent_is_part_of_this_object = true;
   }
   else if (ISubD::matches(md)) {
-    reader = new AbcSubDReader(object, settings);
+    reader = new AbcSubDReader(args);
     parent_is_part_of_this_object = true;
   }
   else if (INuPatch::matches(md)) {
@@ -355,16 +357,16 @@ static std::pair<bool, AbcObjectReader *> visit_object(
      * Blender. Need to figure out exactly how these points are
      * duplicated, in all cases (cyclic U, cyclic V, and cyclic UV).
      * Until this is fixed, disabling NURBS reading. */
-    reader = new AbcNurbsReader(object, settings);
+    reader = new AbcNurbsReader(args);
     parent_is_part_of_this_object = true;
 #endif
   }
   else if (ICamera::matches(md)) {
-    reader = new AbcCameraReader(object, settings);
+    reader = new AbcCameraReader(args);
     parent_is_part_of_this_object = true;
   }
   else if (IPoints::matches(md)) {
-    reader = new AbcPointsReader(object, settings);
+    reader = new AbcPointsReader(args);
     parent_is_part_of_this_object = true;
   }
   else if (IMaterial::matches(md)) {
@@ -377,7 +379,7 @@ static std::pair<bool, AbcObjectReader *> visit_object(
     /* Pass, those are handled in the mesh reader. */
   }
   else if (ICurves::matches(md)) {
-    reader = new AbcCurveReader(object, settings);
+    reader = new AbcCurveReader(args);
     parent_is_part_of_this_object = true;
   }
   else {
@@ -463,7 +465,7 @@ struct ImportJobData {
   /** Min time read from file import. */
   chrono_t min_time = std::numeric_limits<chrono_t>::max();
   /** Max time read from file import. */
-  chrono_t max_time = std::numeric_limits<chrono_t>::min();
+  chrono_t max_time = -std::numeric_limits<chrono_t>::max();
 
   bool *stop;
   bool *do_update;
@@ -559,9 +561,7 @@ static void import_file(ImportJobData *data, const char *filepath, float progres
 
     if (reader->valid()) {
       reader->readObjectData(data->bmain, sample_sel);
-
-      data->min_time = std::min(data->min_time, reader->minTime());
-      data->max_time = std::max(data->max_time, reader->maxTime());
+      reader->readVisibility();
     }
     else {
       std::cerr << "Object " << reader->name() << " in Alembic file " << filepath
@@ -574,6 +574,12 @@ static void import_file(ImportJobData *data, const char *filepath, float progres
       data->was_cancelled = true;
       return;
     }
+  }
+
+  const TimeInfo time_info = archive->getTimeInfo();
+  if (time_info.is_valid()) {
+    data->min_time = std::min(data->min_time, time_info.min_time);
+    data->max_time = std::max(data->max_time, time_info.max_time);
   }
 
   /* Setup parenthood. */
@@ -702,6 +708,17 @@ static void import_endjob(void *user_data)
       has_instantiated_object = true;
       /* TODO: is setting active needed? */
       BKE_view_layer_base_select_and_set_active(view_layer, base);
+
+      /* If the object is hidden, we set the base as hidden instead so that hide/unhide shortcuts
+       * work and the outliner shows the right value. We also unset the flag on the object as users
+       * are more likely to interact with viewport visibility from the outliner or shortcuts than
+       * in the object visibility panel. */
+      if ((ob->visibility_flag & OB_HIDE_VIEWPORT) != 0) {
+        base->flag |= BASE_HIDDEN;
+        ob->visibility_flag &= ~OB_HIDE_VIEWPORT;
+        /* Needed for the shortcut (ALT+H) to work. */
+        BKE_base_eval_flags(base);
+      }
 
       DEG_id_tag_update(&lc->collection->id, ID_RECALC_SYNC_TO_EVAL);
       DEG_id_tag_update_ex(data->bmain,
@@ -883,12 +900,11 @@ void ABC_read_geometry(CacheReader *reader,
   }
 
   ISampleSelector sample_sel = sample_selector_for_time(params->time);
-  abc_reader->read_geometry(geometry_set,
-                            sample_sel,
-                            params->read_flags,
-                            params->velocity_name,
-                            params->velocity_scale,
-                            r_err_str);
+  AbcReadGeometryParams read_params;
+  read_params.read_flag = params->read_flags;
+  read_params.velocity_name = params->velocity_name ? params->velocity_name : "";
+  read_params.velocity_scale = params->velocity_scale;
+  abc_reader->read_geometry(geometry_set, sample_sel, read_params, r_err_str);
 }
 
 bool ABC_mesh_topology_changed(CacheReader *reader,
@@ -949,7 +965,10 @@ CacheReader *CacheReader_open_alembic_object(CacheArchiveHandle *handle,
   archive_data->settings->blender_archive_version_prior_44 =
       archive->is_blender_archive_version_prior_44();
 
-  AbcObjectReader *abc_reader = create_reader(iobject, *archive_data->settings);
+  const AbcReaderConstructorArgs args = create_reader_constructor_args(iobject,
+                                                                       *archive_data->settings);
+
+  AbcObjectReader *abc_reader = create_reader(args);
   if (abc_reader == nullptr) {
     /* This object is not supported */
     return nullptr;

@@ -447,6 +447,8 @@ static void flushTransUVs(TransInfo *t)
             td->loc2d[0] = roundf(td->loc2d[0]);
             td->loc2d[1] = roundf(td->loc2d[1]);
             break;
+          case SI_PIXEL_ROUND_DISABLED:
+            break;
         }
 
         td->loc2d[0] /= size[0];

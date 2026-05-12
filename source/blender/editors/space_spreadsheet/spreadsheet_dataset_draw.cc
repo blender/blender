@@ -34,9 +34,9 @@
 #include "ED_outliner.hh"
 #include "ED_spreadsheet.hh"
 
+#include "NOD_eval_log.hh"
 #include "NOD_geometry_nodes_bundle.hh"
 #include "NOD_geometry_nodes_closure.hh"
-#include "NOD_geometry_nodes_log.hh"
 
 #include "spreadsheet_data_source_geometry.hh"
 #include "spreadsheet_dataset_draw.hh"
@@ -1248,12 +1248,12 @@ struct ViewerDataPath {
 
 class ViewerNodeItem : public ViewerDataTreeItem {
  private:
-  const nodes::geo_eval_log::ViewerNodeLog::Item &item_;
+  const nodes::eval_log::ViewerNodeLog::Item &item_;
 
   friend ViewerDataPath;
 
  public:
-  ViewerNodeItem(const nodes::geo_eval_log::ViewerNodeLog::Item &item) : item_(item)
+  ViewerNodeItem(const nodes::eval_log::ViewerNodeLog::Item &item) : item_(item)
   {
     label_ = std::to_string(item.identifier);
   }
@@ -1323,11 +1323,11 @@ class ViewerDataTreeView : public ui::AbstractTreeView {
 
   void build_tree() override
   {
-    const nodes::geo_eval_log::ViewerNodeLog *log = viewer_node_log_lookup(sspreadsheet_);
+    const nodes::eval_log::ViewerNodeLog *log = viewer_node_log_lookup(sspreadsheet_);
     if (!log) {
       return;
     }
-    for (const nodes::geo_eval_log::ViewerNodeLog::Item &item : log->items) {
+    for (const nodes::eval_log::ViewerNodeLog::Item &item : log->items) {
       const bke::SocketValueVariant &value = item.value;
       auto &child_item = this->add_tree_item<ViewerNodeItem>(item);
       this->build_value(child_item, value);

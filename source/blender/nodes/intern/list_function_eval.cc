@@ -25,7 +25,7 @@ GVArray ListFieldContext::get_varray_for_input(const FieldInput &field_input,
   return fn::IndexFieldInput::get_index_varray(mask);
 }
 
-ListPtr evaluate_field_to_list(GField field, const int64_t count)
+GListPtr evaluate_field_to_list(GField field, const int64_t count)
 {
   const CPPType &cpp_type = field.cpp_type();
   GArray array(cpp_type, count);
@@ -35,15 +35,15 @@ ListPtr evaluate_field_to_list(GField field, const int64_t count)
   evaluator.add_with_destination(std::move(field), array);
   evaluator.evaluate();
 
-  return List::from_garray(std::move(array));
+  return GList::from_garray(std::move(array));
 }
 
-static ListPtr create_repeated_list(ListPtr list, const int64_t dst_size)
+static GListPtr create_repeated_list(GListPtr list, const int64_t dst_size)
 {
   if (list->size() >= dst_size) {
     return list;
   }
-  if (const auto *data = std::get_if<nodes::List::ArrayData>(&list->data())) {
+  if (const auto *data = std::get_if<nodes::GList::ArrayData>(&list->data())) {
     const int64_t size = list->size();
     BLI_assert(size > 0);
     const CPPType &cpp_type = list->cpp_type();
@@ -57,11 +57,11 @@ static ListPtr create_repeated_list(ListPtr list, const int64_t dst_size)
       cpp_type.copy_construct_n(data->data, new_data[chunks * size], last_chunk_size);
     }
 
-    return List::from_garray(std::move(new_data));
+    return GList::from_garray(std::move(new_data));
   }
-  if (const auto *data = std::get_if<nodes::List::SingleData>(&list->data())) {
+  if (const auto *data = std::get_if<nodes::GList::SingleData>(&list->data())) {
     const CPPType &cpp_type = list->cpp_type();
-    return List::create(cpp_type, *data, dst_size);
+    return GList::create(cpp_type, *data, dst_size);
   }
   BLI_assert_unreachable();
   return {};
@@ -69,14 +69,14 @@ static ListPtr create_repeated_list(ListPtr list, const int64_t dst_size)
 
 static void add_list_to_params(mf::ParamsBuilder &params,
                                const mf::ParamType &param_type,
-                               const List &list)
+                               const GList &list)
 {
   const CPPType &cpp_type = param_type.data_type().single_type();
   BLI_assert(cpp_type == list.cpp_type());
-  if (const auto *array_data = std::get_if<nodes::List::ArrayData>(&list.data())) {
+  if (const auto *array_data = std::get_if<nodes::GList::ArrayData>(&list.data())) {
     params.add_readonly_single_input(GSpan(cpp_type, array_data->data, list.size()));
   }
-  else if (const auto *single_data = std::get_if<nodes::List::SingleData>(&list.data())) {
+  else if (const auto *single_data = std::get_if<nodes::GList::SingleData>(&list.data())) {
     params.add_readonly_single_input(GPointer(cpp_type, single_data->value));
   }
 }
@@ -90,7 +90,7 @@ void execute_multi_function_on_value_variant__list(const MultiFunction &fn,
   for (const int i : input_values.index_range()) {
     SocketValueVariant &input_variant = *input_values[i];
     if (input_variant.is_list()) {
-      if (ListPtr list = input_variant.get<ListPtr>()) {
+      if (GListPtr list = input_variant.get<GListPtr>()) {
         max_size = std::max(max_size, list->size());
       }
     }
@@ -101,7 +101,7 @@ void execute_multi_function_on_value_variant__list(const MultiFunction &fn,
   mf::ContextBuilder context;
   context.user_data(user_data);
 
-  Array<ListPtr, 8> input_lists(input_values.size());
+  Array<GListPtr, 8> input_lists(input_values.size());
   for (const int i : input_values.index_range()) {
     const mf::ParamType param_type = fn.param_type(params.next_param_index());
     const CPPType &cpp_type = param_type.data_type().single_type();
@@ -111,7 +111,7 @@ void execute_multi_function_on_value_variant__list(const MultiFunction &fn,
       params.add_readonly_single_input(GPointer(cpp_type, value));
     }
     else if (input_variant.is_list()) {
-      ListPtr list_ptr = input_variant.get<ListPtr>();
+      GListPtr list_ptr = input_variant.get<GListPtr>();
       if (!list_ptr || list_ptr->size() == 0) {
         params.add_readonly_single_input(GPointer(cpp_type, cpp_type.default_value()));
         continue;
@@ -141,7 +141,7 @@ void execute_multi_function_on_value_variant__list(const MultiFunction &fn,
     GArray array(cpp_type, max_size, NoInitialization{});
 
     params.add_uninitialized_single_output(GMutableSpan(cpp_type, array.data(), max_size));
-    output_variant.set(List::from_garray(std::move(array)));
+    output_variant.set(GList::from_garray(std::move(array)));
   }
   fn.call(mask, params, context);
 }

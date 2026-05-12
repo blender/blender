@@ -393,7 +393,7 @@ void BLI_rctf_union_x(rctf *rct, const float x)
   rct->xmax = max_ff(rct->xmax, x);
 }
 
-void BLI_rctf_union_y(struct rctf *rct, const float y)
+void BLI_rctf_union_y(rctf *rct, const float y)
 {
   rct->ymin = min_ff(rct->ymin, y);
   rct->ymax = max_ff(rct->ymax, y);

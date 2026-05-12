@@ -3580,7 +3580,7 @@ static wmOperatorStatus quadview_size_modal(bContext *C, wmOperator *op, const w
         quad_y = round(quad_y * 12.0f) / 12.0f;
       }
 
-      /* Clamp.*/
+      /* Clamp. */
       qsd->area->quadview_ratio[0] = std::clamp(quad_x, 0.1f, 0.9f);
       qsd->area->quadview_ratio[1] = std::clamp(quad_y, 0.2f, 0.8f);
 
@@ -3777,6 +3777,7 @@ static wmOperatorStatus frame_jump_exec(bContext *C, wmOperator *op)
     else {
       scene->r.cfra = playback_range.start_frame;
     }
+    scene->r.subframe = 0.0f;
 
     ED_areas_do_frame_follow(C, true);
 
@@ -5568,8 +5569,11 @@ static void view3d_localview_update_rv3d(RegionView3D *rv3d)
   }
 }
 
-static void region_quadview_init_rv3d(
-    ScrArea *area, ARegion *region, const char viewlock, const char view, const char persp)
+static void region_quadview_init_rv3d(ScrArea *area,
+                                      ARegion *region,
+                                      const eRegionView3D_ViewLock viewlock,
+                                      const eRegionView3D_View view,
+                                      const eRegionView3D_Persp persp)
 {
   RegionView3D *rv3d = static_cast<RegionView3D *>(region->regiondata);
   rv3d->rflag &= ~RV3D_WAS_CAMOB;
@@ -5579,7 +5583,7 @@ static void region_quadview_init_rv3d(
   }
 
   rv3d->viewlock = viewlock;
-  rv3d->runtime_viewlock = 0;
+  rv3d->runtime_viewlock = eRegionView3D_ViewLock{};
   rv3d->view = view;
   rv3d->view_axis_roll = RV3D_VIEW_AXIS_ROLL_0;
   rv3d->persp = persp;
@@ -5606,7 +5610,7 @@ static wmOperatorStatus region_quadview_exec(bContext *C, wmOperator *op)
     ScrArea *area = CTX_wm_area(C);
 
     /* keep current region */
-    region->alignment = 0;
+    region->alignment = eRegion_Alignment{};
 
     if (area->spacetype == SPACE_VIEW3D) {
       RegionView3D *rv3d = static_cast<RegionView3D *>(region->regiondata);
@@ -5625,7 +5629,7 @@ static wmOperatorStatus region_quadview_exec(bContext *C, wmOperator *op)
       }
 
       rv3d->viewlock_quad = RV3D_VIEWLOCK_INIT;
-      rv3d->viewlock = 0;
+      rv3d->viewlock = eRegionView3D_ViewLock{};
 
       /* FIXME: This fixes missing update to workbench TAA. (see #76216)
        * However, it would be nice if the tagging should be done in a more conventional way. */
@@ -5635,7 +5639,7 @@ static wmOperatorStatus region_quadview_exec(bContext *C, wmOperator *op)
       for (ARegion &region_iter : area->regionbase) {
         if (region_iter.regiontype == RGN_TYPE_WINDOW) {
           RegionView3D *rv3d_iter = static_cast<RegionView3D *>(region_iter.regiondata);
-          rv3d->viewlock_quad |= rv3d_iter->viewlock;
+          rv3d->viewlock_quad |= eRegionView3D_ViewLockQuad(int(rv3d_iter->viewlock));
         }
       }
     }
@@ -5677,9 +5681,10 @@ static wmOperatorStatus region_quadview_exec(bContext *C, wmOperator *op)
        * We could avoid manipulating rv3d->localvd here if exiting
        * localview with a 4-split would assign these view locks */
       RegionView3D *rv3d = static_cast<RegionView3D *>(region->regiondata);
-      const char viewlock = (rv3d->viewlock_quad & RV3D_VIEWLOCK_INIT) ?
-                                (rv3d->viewlock_quad & ~RV3D_VIEWLOCK_INIT) :
-                                RV3D_LOCK_ROTATION;
+      const eRegionView3D_ViewLock viewlock = (rv3d->viewlock_quad & RV3D_VIEWLOCK_INIT) ?
+                                                  eRegionView3D_ViewLock(int(
+                                                      rv3d->viewlock_quad & ~RV3D_VIEWLOCK_INIT)) :
+                                                  RV3D_LOCK_ROTATION;
 
       region_quadview_init_rv3d(
           area, region, viewlock, ED_view3d_lock_view_from_index(index_qsplit++), RV3D_ORTHO);
@@ -5856,7 +5861,7 @@ static wmOperatorStatus header_toggle_menus_exec(bContext *C, wmOperator * /*op*
 {
   ScrArea *area = CTX_wm_area(C);
 
-  area->flag = area->flag ^ HEADER_NO_PULLDOWN;
+  area->flag ^= HEADER_NO_PULLDOWN;
 
   ED_area_tag_redraw(area);
   WM_event_add_notifier(C, NC_SCREEN | NA_EDITED, nullptr);
@@ -6399,6 +6404,9 @@ static wmOperatorStatus screen_animation_step_invoke(bContext *C,
     sad->flag &= ~ANIMPLAY_FLAG_USE_NEXT_FRAME;
     sad->flag |= ANIMPLAY_FLAG_JUMPED;
   }
+
+  /* Always reset the subframe on animation playback. */
+  scene->r.subframe = 0.0f;
 
   if (sad->flag & ANIMPLAY_FLAG_JUMPED) {
     DEG_id_tag_update(&scene->id, ID_RECALC_FRAME_CHANGE);
@@ -7103,7 +7111,7 @@ static void SCREEN_OT_delete(wmOperatorType *ot)
 struct RegionAlphaInfo {
   ScrArea *area;
   ARegion *region, *child_region; /* other region */
-  int hidden;
+  eRegion_Flag hidden;
 };
 
 #define TIMEOUT 0.22f

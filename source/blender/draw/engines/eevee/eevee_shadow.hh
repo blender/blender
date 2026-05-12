@@ -44,20 +44,6 @@ constexpr static const float shadow_clipmap_scale_mat[4][4] = {{SHADOW_TILEMAP_R
                                                                {0, 0, 0.5, 0},
                                                                {0, 0, 0.5, 1}};
 
-/* Technique used for updating the virtual shadow map contents. */
-enum class ShadowTechnique {
-  /* Default virtual shadow map update using large virtual framebuffer to rasterize geometry with
-   * per-fragment textureAtomicMin to perform depth-test and indirectly store nearest depth value
-   * in the shadow atlas. */
-  ATOMIC_RASTER = 0,
-
-  /* Tile-architecture optimized virtual shadow map update, leveraging on-tile memory for clearing
-   * and depth-testing during geometry rasterization to avoid atomic operations, simplify mesh
-   * depth shader and only perform a single storage operation per pixel. This technique performs
-   * a 3-pass solution, first clearing tiles, updating depth and storing final results. */
-  TILE_COPY = 1,
-};
-
 using ShadowStatisticsBuf = draw::StorageBuffer<ShadowStatistics>;
 using ShadowPagesInfoDataBuf = draw::StorageBuffer<ShadowPagesInfoData>;
 using ShadowPageHeapBuf = draw::StorageVectorBuffer<uint, SHADOW_MAX_PAGE>;
@@ -200,9 +186,6 @@ class ShadowModule {
   friend ShadowTileMapPool;
 
  public:
-  /* Shadowing technique. */
-  static ShadowTechnique shadow_technique;
-
   /** Need to be first because of destructor order. */
   ShadowTileMapPool tilemap_pool;
 
@@ -310,22 +293,16 @@ class ShadowModule {
 
    protected:
     /** Special culling pass to take shadow linking into consideration. */
-    virtual void compute_visibility(ObjectBoundsBuf &bounds,
-                                    ObjectInfosBuf &infos,
-                                    uint resource_len,
-                                    bool debug_freeze) override;
+    void compute_visibility(ObjectBoundsBuf &bounds,
+                            ObjectInfosBuf &infos,
+                            uint resource_len,
+                            bool debug_freeze) override;
   };
 
   /** Multi-View containing a maximum of 64 view to be rendered with the shadow pipeline. */
   ShadowView shadow_multi_view_ = {"ShadowMultiView", inst_, render_view_buf_};
   /** Framebuffer with the atlas_tx attached. */
   Framebuffer render_fb_ = {"shadow_write_framebuffer"};
-
-  /* NOTE(Metal): Metal requires memoryless textures to be created which represent attachments in
-   * the shadow write frame-buffer. These textures do not occupy any physical memory, but require a
-   * Texture object containing its parameters. */
-  Texture shadow_depth_fb_tx_ = {"shadow_depth_fb_tx_"};
-  Texture shadow_depth_accum_tx_ = {"shadow_depth_accum_tx_"};
 
   /** Arrays of viewports to rendering each tile to. */
   std::array<int4, 16> multi_viewports_;
@@ -371,12 +348,13 @@ class ShadowModule {
 
   void set_lights_data();
 
+  void set_view(View &view, int2 extent);
+
   /* Update all shadow regions visible inside the view.
    * If called multiple time for the same view, it will only do the depth buffer scanning
    * to check any new opaque surfaces.
-   * Expect the HiZ buffer to be up to date.
-   * Needs to be called after `LightModule::set_view();`. */
-  void set_view(View &view, int2 extent);
+   * Needs to be called after `LightModule::set_view();` and after `ShadowModule::set_view();`. */
+  void render(View &view, int2 extent);
 
   void debug_end_sync();
   void debug_draw(View &view, gpu::FrameBuffer *view_fb);

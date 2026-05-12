@@ -1,0 +1,21 @@
+Project: Tracy Frame Profiler
+URL: https://github.com/wolfpld/tracy
+License: SPDX:BSD-3-Clause
+Copyright: Copyright (c) 2017-2025, Bartosz Taudul <wolf@nereid.pl>
+Upstream version: cb84ba76ffd611e6c162040d0828f249
+Local modifications: None
+
+This extern target is only used to build the Tracy Profiler server/GUI frontend,
+not the main Tracy client library, which is built as a pre-compiled library in
+`build_files/build_environment/cmake/tracy.cmake`.
+
+This target is not a dependency of Blender nor any other extern target, and is only
+meant to be manually built by developers. As the Tracy repository does not provide
+pre-built profiler frontend binaries for all platforms, this target is provided for
+developers to conveniently build the profiler locally. Note that this target will
+download required dependency packages (GLFW, ImGui, Capstone, etc...) from the
+internet via CPM if they aren't available locally system-wide.
+
+As such, an exception is made by naming the target `tracy_profiler` instead of
+`extern_tracy_profiler` to allow developers to conveniently use `make/ninja tracy_profiler`
+to optionally build it if desired.

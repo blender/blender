@@ -168,7 +168,7 @@ size_t manta_get_index(int x, int max_x, int y, int max_y, int z /*, int max_z *
 {
   return x + y * max_x + z * max_x * max_y;
 }
-size_t manta_get_index2d(int x, int max_x, int y /*, int max_y, int z, int max_z */)
+size_t manta_get_index2d(int x, int max_x, int y /* , int max_y, int z, int max_z */)
 {
   return x + y * max_x;
 }

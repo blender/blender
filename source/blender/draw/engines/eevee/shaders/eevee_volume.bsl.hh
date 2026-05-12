@@ -366,7 +366,7 @@ void resolve_vert([[vertex_id]] const int vert_id, [[position]] float4 &out_posi
 /* Step 4 : Apply final integration on top of the scene color.
  * This is only for opaque geometry. */
 [[fragment]]
-void resolve_frag([[resource_table]] const Resolve &srt,
+void resolve_frag([[resource_table]] const Resolve & /*srt*/,
                   [[resource_table]] const UnifiedVolumeData &volumes,
                   [[frag_coord]] const float4 frag_co,
                   [[out]] FragOut &out_frag)

@@ -3,6 +3,7 @@
  * SPDX-License-Identifier: GPL-2.0-or-later */
 
 #include "usd_reader_light.hh"
+#include "usd_colorspace_utils.hh"
 
 #include "BLI_math_rotation.h"
 
@@ -158,6 +159,7 @@ void USDLightReader::read_object_data(Main *bmain, const pxr::UsdTimeCode time)
   if (pxr::UsdAttribute color_attr = light_api.GetColorAttr()) {
     pxr::GfVec3f color;
     if (color_attr.Get(&color, time)) {
+      colorspace_attr_to_scene_linear(color_attr, color);
       blight->r = color[0];
       blight->g = color[1];
       blight->b = color[2];

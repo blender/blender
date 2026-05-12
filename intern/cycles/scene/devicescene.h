@@ -95,7 +95,7 @@ class DeviceScene {
   /* Image textures */
   device_vector<KernelImageTexture> image_textures;
   device_vector<KernelTileDescriptor> image_texture_tile_descriptors;
-  device_vector<uint8_t> image_texture_tile_request_mask;
+  device_vector<uint8_t> image_texture_tile_access_state;
   device_vector<KernelImageUDIM> image_texture_udims;
 
   KernelData data;

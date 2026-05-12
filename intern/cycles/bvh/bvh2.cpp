@@ -545,7 +545,7 @@ void BVH2::pack_instances(size_t nodes_size, size_t leaf_nodes_size)
      * node offset for this object */
     const unordered_map<Geometry *, int>::iterator it = geometry_map.find(geom);
 
-    if (geometry_map.find(geom) != geometry_map.end()) {
+    if (geometry_map.contains(geom)) {
       const int noffset = it->second;
       pack.object_node[object_offset++] = noffset;
       continue;
@@ -591,7 +591,7 @@ void BVH2::pack_instances(size_t nodes_size, size_t leaf_nodes_size)
     if (bvh->pack.leaf_nodes.size()) {
       int4 *leaf_nodes_offset = bvh->pack.leaf_nodes.data();
       const size_t leaf_nodes_offset_size = bvh->pack.leaf_nodes.size();
-      for (size_t i = 0, j = 0; i < leaf_nodes_offset_size; i += BVH_NODE_LEAF_SIZE, j++) {
+      for (size_t i = 0; i < leaf_nodes_offset_size; i += BVH_NODE_LEAF_SIZE) {
         int4 data = leaf_nodes_offset[i];
         data.x += prim_offset;
         data.y += prim_offset;

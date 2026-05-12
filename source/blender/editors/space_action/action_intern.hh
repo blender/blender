@@ -63,6 +63,7 @@ void ACTION_OT_select_more(wmOperatorType *ot);
 void ACTION_OT_select_less(wmOperatorType *ot);
 void ACTION_OT_select_leftright(wmOperatorType *ot);
 void ACTION_OT_clickselect(wmOperatorType *ot);
+void ACTION_OT_select_by_type(wmOperatorType *ot);
 
 /* defines for left-right select tool */
 enum eActKeys_LeftRightSelect_Mode {

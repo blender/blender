@@ -528,7 +528,7 @@ void psys_thread_context_free(ParticleThreadContext *ctx)
     MEM_delete(ctx->seams);
   }
   // if (ctx->vertpart) MEM_delete(ctx->vertpart);
-  kdtree_3d_free(ctx->tree);
+  kdtree_free<float3>(ctx->tree);
 
   if (ctx->clumpcurve != nullptr) {
     BKE_curvemapping_free(ctx->clumpcurve);
@@ -561,6 +561,8 @@ static void init_particle_texture(ParticleSimulationData *sim, ParticleData *pa,
         pa->flag |= PARS_UNEXIST;
       }
       pa->time = 0.0f;
+      break;
+    default:
       break;
   }
 }
@@ -1199,7 +1201,7 @@ static void set_keyed_keys(ParticleSimulationData *sim)
   PARTICLE_P;
   ParticleKey *key;
   int totpart = psys->totpart, k, totkeys = psys->totkeyed;
-  int keyed_flag = 0;
+  eParticleSystem_Flag keyed_flag = eParticleSystem_Flag{};
 
   ksim.depsgraph = sim->depsgraph;
   ksim.scene = sim->scene;
@@ -1368,17 +1370,17 @@ void psys_update_particle_tree(ParticleSystem *psys, float cfra)
         }
       }
 
-      kdtree_3d_free(psys->tree);
-      psys->tree = kdtree_3d_new(totpart);
+      kdtree_free<float3>(psys->tree);
+      psys->tree = kdtree_new<float3>(totpart);
 
       LOOP_SHOWN_PARTICLES
       {
         if (pa->alive == PARS_ALIVE) {
           const float *co = (pa->state.time == cfra) ? pa->prev_state.co : pa->state.co;
-          kdtree_3d_insert(psys->tree, p, co);
+          kdtree_insert<float3>(psys->tree, p, co);
         }
       }
-      kdtree_3d_balance(psys->tree);
+      kdtree_balance<float3>(psys->tree);
 
       psys->tree_frame = cfra;
     }
@@ -3884,6 +3886,10 @@ static void dynamics_step(ParticleSimulationData *sim, float cfra)
       }
       break;
     }
+    case PART_PHYS_NEWTON:
+    case PART_PHYS_KEYED:
+    case PART_PHYS_NO:
+      break;
   }
   /* initialize all particles for dynamics */
   LOOP_SHOWN_PARTICLES
@@ -4052,6 +4058,9 @@ static void dynamics_step(ParticleSimulationData *sim, float cfra)
       psys_sph_finalize(&sphdata);
       break;
     }
+    case PART_PHYS_NO:
+    case PART_PHYS_KEYED:
+      break;
   }
 
   /* finalize particle state and time after dynamics */
@@ -4471,7 +4480,7 @@ static void system_step(ParticleSimulationData *sim, float cfra, const bool use_
   PointCache *cache = psys->pointcache;
   PTCacheID ptcacheid, *pid = nullptr;
   PARTICLE_P;
-  float disp, cache_cfra = cfra; /*, *vg_vel= 0, *vg_tan= 0, *vg_rot= 0, *vg_size= 0; */
+  float disp, cache_cfra = cfra; /* , *vg_vel= 0, *vg_tan= 0, *vg_rot= 0, *vg_size= 0; */
   int startframe = 0, endframe = 100, oldtotpart = 0;
 
   /* cache shouldn't be used for hair or "continue physics" */

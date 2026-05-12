@@ -101,9 +101,9 @@ static void detect_retrieve_libmv_features(MovieTracking *tracking,
     if (ok) {
       MovieTrackingTrack *track = BKE_tracking_track_add(
           tracking, tracksbase, xu, yu, framenr, width, height);
-      track->flag |= SELECT;
-      track->pat_flag |= SELECT;
-      track->search_flag |= SELECT;
+      track->flag |= TRACK_SELECT;
+      track->pat_flag |= TRACK_SELECT;
+      track->search_flag |= TRACK_SELECT;
     }
   }
 }

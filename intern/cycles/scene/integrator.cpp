@@ -37,8 +37,9 @@ static float halton(int &a, int &b, int base)
   }
   else {
     int y = b / base;
-    while (x <= y)
+    while (x <= y) {
       y /= base;
+    }
     a = (1 + base) * y - x;
   }
   return static_cast<float>(a) / static_cast<float>(b);

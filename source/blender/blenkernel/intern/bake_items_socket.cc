@@ -93,7 +93,7 @@ static std::unique_ptr<BakeItem> move_common_socket_value_to_bake_item(
     }
     case SOCK_STRING: {
       if (socket_value.is_list()) {
-        return std::make_unique<ListBakeItem>(socket_value.extract<nodes::ListPtr>());
+        return std::make_unique<ListBakeItem>(socket_value.extract<nodes::GListPtr>());
       }
       return std::make_unique<StringBakeItem>(socket_value.extract<std::string>());
     }
@@ -109,7 +109,7 @@ static std::unique_ptr<BakeItem> move_common_socket_value_to_bake_item(
         return {};
       }
       if (socket_value.is_list()) {
-        return std::make_unique<ListBakeItem>(socket_value.extract<nodes::ListPtr>());
+        return std::make_unique<ListBakeItem>(socket_value.extract<nodes::GListPtr>());
       }
 #ifdef WITH_OPENVDB
       if (socket_value.is_volume_grid()) {
@@ -130,9 +130,9 @@ static std::unique_ptr<BakeItem> move_common_socket_value_to_bake_item(
     }
     case SOCK_BUNDLE: {
       if (socket_value.is_list()) {
-        const nodes::ListPtr list = socket_value.extract<nodes::ListPtr>();
+        const nodes::GListPtr list = socket_value.extract<nodes::GListPtr>();
         Vector<BundleBakeItem> bake_item_list(list->size());
-        const VArray<nodes::BundlePtr> bundle_varray = list->varray<nodes::BundlePtr>();
+        const VArray<nodes::BundlePtr> bundle_varray = list->typed<nodes::BundlePtr>().varray();
         for (const int i : bake_item_list.index_range()) {
           nodes::BundlePtr bundle_ptr = bundle_varray[i];
           if (bundle_ptr) {
@@ -334,7 +334,7 @@ static bool copy_bundle_bake_item_to_socket_value(const BundleBakeItem &bundle_b
         return SocketValueVariant::From(std::move(field));
       }
       if (const auto *item = dynamic_cast<const ListBakeItem *>(&bake_item)) {
-        if (const auto *simple_list = std::get_if<nodes::ListPtr>(&item->value)) {
+        if (const auto *simple_list = std::get_if<nodes::GListPtr>(&item->value)) {
           if (*simple_list && (*simple_list)->cpp_type() == base_type) {
             return SocketValueVariant::From(std::move(*simple_list));
           }
@@ -363,7 +363,7 @@ static bool copy_bundle_bake_item_to_socket_value(const BundleBakeItem &bundle_b
         return SocketValueVariant(std::string(item->value()));
       }
       if (const auto *item = dynamic_cast<const ListBakeItem *>(&bake_item)) {
-        if (const auto *simple_list = std::get_if<nodes::ListPtr>(&item->value)) {
+        if (const auto *simple_list = std::get_if<nodes::GListPtr>(&item->value)) {
           if (*simple_list && (*simple_list)->cpp_type() == CPPType::get<std::string>()) {
             return SocketValueVariant::From(std::move(*simple_list));
           }
@@ -386,7 +386,7 @@ static bool copy_bundle_bake_item_to_socket_value(const BundleBakeItem &bundle_b
         if (const auto *bundle_list = std::get_if<ListBakeItem::BundleList>(&item->value)) {
           const CPPType &type = CPPType::get<nodes::BundlePtr>();
           const int count = bundle_list->size();
-          auto array_data = nodes::List::ArrayData::ForDefaultValue(type, count);
+          auto array_data = nodes::GList::ArrayData::ForDefaultValue(type, count);
           MutableSpan array_span(
               static_cast<nodes::BundlePtr *>(const_cast<void *>(array_data.data)), count);
           for (const int i : IndexRange(count)) {
@@ -395,7 +395,7 @@ static bool copy_bundle_bake_item_to_socket_value(const BundleBakeItem &bundle_b
             copy_bundle_bake_item_to_socket_value(
                 (*bundle_list)[i], bundle, data_block_map, r_attribute_map);
           }
-          nodes::ListPtr list_ptr = nodes::List::create(type, std::move(array_data), count);
+          nodes::GListPtr list_ptr = nodes::GList::create(type, std::move(array_data), count);
           return bke::SocketValueVariant::From(std::move(list_ptr));
         }
         return std::nullopt;

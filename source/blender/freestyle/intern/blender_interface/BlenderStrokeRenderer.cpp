@@ -234,6 +234,7 @@ Material *BlenderStrokeRenderer::GetStrokeShader(blender::Main *bmain,
       }
     }
     ma->nodetree = ntree;
+    ntree->owner_id = &ma->id;
   }
   else {
     ntree = ma->nodetree;
@@ -867,7 +868,7 @@ blender::Object *BlenderStrokeRenderer::NewMesh() const
   return ob;
 }
 
-blender::Render *BlenderStrokeRenderer::RenderScene(blender::Render * /*re*/, bool render)
+blender::Render *BlenderStrokeRenderer::RenderScene(blender::Render *re, bool render)
 {
   using namespace blender;
   Camera *camera = (Camera *)freestyle_scene->camera->data;
@@ -883,8 +884,14 @@ blender::Render *BlenderStrokeRenderer::RenderScene(blender::Render * /*re*/, bo
   Render *freestyle_render = RE_NewSceneRender(freestyle_scene);
   DEG_graph_relations_update(freestyle_depsgraph);
 
+  freestyle_render->pipeline_depsgraph = re->pipeline_depsgraph;
+  freestyle_render->pipeline_scene_eval = re->pipeline_scene_eval;
+
   RE_RenderFreestyleStrokes(
       freestyle_render, freestyle_bmain, freestyle_scene, render && get_stroke_count() > 0);
+
+  freestyle_render->pipeline_depsgraph = nullptr;
+  freestyle_render->pipeline_scene_eval = nullptr;
 
   return freestyle_render;
 }

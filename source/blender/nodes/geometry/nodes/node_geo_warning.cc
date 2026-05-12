@@ -60,8 +60,7 @@ class LazyFunctionForWarningNode : public LazyFunction {
     GeoNodesUserData &user_data = *static_cast<GeoNodesUserData *>(context.user_data);
     GeoNodesLocalUserData &local_user_data = *static_cast<GeoNodesLocalUserData *>(
         context.local_user_data);
-    if (geo_eval_log::GeoTreeLogger *tree_logger = local_user_data.try_get_tree_logger(user_data))
-    {
+    if (eval_log::NodeTreeLogger *tree_logger = local_user_data.try_get_tree_logger(user_data)) {
       tree_logger->node_warnings.append(
           *tree_logger->allocator,
           {node_.identifier, {NodeWarningType(node_.custom1), std::move(message)}});

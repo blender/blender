@@ -17,6 +17,7 @@
  * void store_int(const uint id, float value) {}
  * void store_int2(const uint id, vec2 value) {}
  * void store_int3(const uint id, vec3 value) {}
+ * void store_int4(const uint id, vec4 value) {}
  * void store_bool(const uint id, float value) {}
  * void store_float4x4(const uint id, float4x4 value) {}
  * void store_menu(const uint id, float value) {}

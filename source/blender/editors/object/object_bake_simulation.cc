@@ -813,6 +813,27 @@ static PathUsersMap bake_simulation_get_path_users(bContext *C, const Span<Objec
         continue;
       }
       const NodesModifierData *nmd = reinterpret_cast<const NodesModifierData *>(&md);
+
+      /* If bakes have a custom directory, report that instead of the modifier data directory. */
+      bool all_bakes_have_custom_dir = true;
+      for (NodesModifierBake &bake : MutableSpan{nmd->bakes, nmd->bakes_num}) {
+        auto bake_path = bke::bake::get_node_bake_path(*bmain, *object, *nmd, bake.id);
+        if (!bake_path || !bake_path.value().bake_dir ||
+            bake_path.value().bake_dir.value().empty())
+        {
+          all_bakes_have_custom_dir = false;
+          continue;
+        }
+        path_users.add_or_modify(
+            bake_path.value().bake_dir.value(),
+            [](int *value) { *value = 1; },
+            [](int *value) { ++(*value); });
+      }
+
+      /* If all bakes have a custom directory, we're done. */
+      if (all_bakes_have_custom_dir)
+        continue;
+
       if (StringRef(nmd->bake_directory).is_empty()) {
         continue;
       }

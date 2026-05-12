@@ -130,7 +130,7 @@ ccl_device float curve_random(KernelGlobals kg, const ccl_private ShaderData *sd
 {
   if (sd->type & PRIMITIVE_CURVE) {
     const AttributeDescriptor desc = find_attribute(kg, sd, ATTR_STD_CURVE_RANDOM);
-    return (desc.offset != ATTR_STD_NOT_FOUND) ? curve_attribute<float>(kg, sd, desc) : 0.0f;
+    return is_attribute_found(desc) ? curve_attribute<float>(kg, sd, desc) : 0.0f;
   }
   return 0.0f;
 }

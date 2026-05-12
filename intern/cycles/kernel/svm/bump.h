@@ -32,7 +32,7 @@ ccl_device_noinline void svm_node_enter_bump_eval(KernelGlobals kg,
 
   /* Set position as if undisplaced. */
   const AttributeDescriptor desc = find_attribute(kg, sd, ATTR_STD_POSITION_UNDISPLACED);
-  if (desc.offset != ATTR_STD_NOT_FOUND) {
+  if (is_attribute_found(desc)) {
     dual3 attr = primitive_surface_attribute<dual3>(kg, sd, desc);
     object_position_transform(kg, sd, &attr);
 

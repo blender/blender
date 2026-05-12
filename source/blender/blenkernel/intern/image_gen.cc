@@ -303,7 +303,7 @@ static void checker_board_text(
 
   /* Using nullptr will assume the byte buffer has sRGB color-space, which currently
    * matches the default color-space of new images. */
-  BLF_buffer(mono, rect_float, rect, width, height, nullptr);
+  BLF_buffer(mono, rect_float, rect, width, height, 4, nullptr);
 
   const float text_color[4] = {0.0, 0.0, 0.0, 1.0};
   const float text_outline[4] = {1.0, 1.0, 1.0, 1.0};
@@ -355,7 +355,7 @@ static void checker_board_text(
   }
 
   /* cleanup the buffer. */
-  BLF_buffer(mono, nullptr, nullptr, 0, 0, nullptr);
+  BLF_buffer(mono, nullptr, nullptr, 0, 0, 4, nullptr);
 }
 
 static void checker_board_color_prepare_slice(

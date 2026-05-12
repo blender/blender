@@ -15,12 +15,12 @@ diff --git a/src/liboslexec/llvm_util.cpp b/src/liboslexec/llvm_util.cpp
 index ad85cec1..8da4149c 100644
 --- a/src/liboslexec/llvm_util.cpp
 +++ b/src/liboslexec/llvm_util.cpp
-@@ -1831,7 +1831,7 @@ LLVM_Util::nvptx_target_machine()
-                    && "PTX compile error: LLVM Target is not initialized");
- 
-         m_nvptx_target_machine = llvm_target->createTargetMachine(
--            ModuleTriple.str(), CUDA_TARGET_ARCH, "+ptx50", options,
-+            ModuleTriple.str(), CUDA_TARGET_ARCH, "+ptx60", options,
-             llvm::Reloc::Static, llvm::CodeModel::Small,
+@@ -1841,7 +1841,7 @@ LLVM_Util::nvptx_target_machine()
+ #else
+             ModuleTriple.str(),
+ #endif
+-            CUDA_TARGET_ARCH, "+ptx50", options, llvm::Reloc::Static,
++            CUDA_TARGET_ARCH, "+ptx60", options, llvm::Reloc::Static,
+             llvm::CodeModel::Small,
  #if OSL_LLVM_VERSION >= 180
              llvm::CodeGenOptLevel::Default

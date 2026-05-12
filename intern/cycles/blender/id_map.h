@@ -56,7 +56,7 @@ template<typename K, typename T, typename Flags = uint> class id_map {
 
   bool check_recalc(const blender::ID *id)
   {
-    return id && b_recalc.find(id) != b_recalc.end();
+    return id && b_recalc.contains(id);
   }
 
   bool has_recalc()
@@ -84,9 +84,9 @@ template<typename K, typename T, typename Flags = uint> class id_map {
   }
   bool update(T *data, const blender::ID *id, const blender::ID *parent)
   {
-    bool recalc = (b_recalc.find(id) != b_recalc.end());
+    bool recalc = (b_recalc.contains(id));
     if (parent && parent != id) {
-      recalc = recalc || (b_recalc.find(parent) != b_recalc.end());
+      recalc = recalc || (b_recalc.contains(parent));
     }
     used(data);
     return recalc;

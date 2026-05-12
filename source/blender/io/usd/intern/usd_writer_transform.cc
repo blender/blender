@@ -97,8 +97,9 @@ void USDTransformWriter::do_write(HierarchyContext &context)
     }
 
     if (usd_export_context_.export_params.convert_scene_units != SceneUnits::Meters) {
-      const float scale = float(1.0 / get_meters_per_unit(usd_export_context_.export_params));
-      matrix_world = math::scale(matrix_world, float4(scale));
+      const float3 scale = float3(1.0 / get_meters_per_unit(usd_export_context_.export_params));
+      const float4x4 mat_scale = math::from_scale<float4x4>(scale);
+      matrix_world = mat_scale * matrix_world;
     }
 
     parent_relative_matrix = context.parent_matrix_inv_world * matrix_world;

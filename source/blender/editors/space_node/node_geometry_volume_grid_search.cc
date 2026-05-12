@@ -23,7 +23,7 @@
 #include "UI_interface_layout.hh"
 #include "UI_resources.hh"
 
-#include "NOD_geometry_nodes_log.hh"
+#include "NOD_eval_log.hh"
 
 #include "UI_string_search.hh"
 
@@ -33,8 +33,8 @@
 
 namespace blender {
 
-using nodes::geo_eval_log::GeometryInfoLog;
-using nodes::geo_eval_log::VolumeGridInfo;
+using nodes::eval_log::GeometryInfoLog;
+using nodes::eval_log::VolumeGridInfo;
 
 namespace ed::space_node {
 
@@ -51,7 +51,7 @@ BLI_STATIC_ASSERT(std::is_trivially_destructible_v<GridSearchData>, "");
 static Vector<const VolumeGridInfo *> get_grid_names_from_context(const bContext &C,
                                                                   GridSearchData &data)
 {
-  using namespace nodes::geo_eval_log;
+  using namespace nodes::eval_log;
 
   SpaceNode *snode = CTX_wm_space_node(&C);
   if (!snode) {
@@ -72,16 +72,16 @@ static Vector<const VolumeGridInfo *> get_grid_names_from_context(const bContext
   if (!tree_zones) {
     return {};
   }
-  const ContextualGeoTreeLogs tree_logs = GeoNodesLog::get_contextual_tree_logs(*snode);
+  const ContextualNodeTreeLogs tree_logs = NodesEvalLog::get_contextual_tree_logs(*snode);
 
   Set<StringRef> names;
 
-  GeoTreeLog *tree_log = tree_logs.get_main_tree_log(*node);
+  NodeTreeLog *tree_log = tree_logs.get_main_tree_log(*node);
   if (!tree_log) {
     return {};
   }
   tree_log->ensure_socket_values();
-  GeoNodeLog *node_log = tree_log->nodes.lookup_ptr(node->identifier);
+  NodeLog *node_log = tree_log->nodes.lookup_ptr(node->identifier);
   if (node_log == nullptr) {
     return {};
   }

@@ -72,6 +72,7 @@ void OSLRenderServices::register_closures(OSL::ShadingSystem *ss)
       #lower, OSL_CLOSURE_##Upper##_ID, osl_closure_##lower##_params(), nullptr, nullptr);
 
 #include "closures_template.h"
+
   ss->register_closure(
       "layer", OSL_CLOSURE_LAYER_ID, osl_closure_layer_params(), nullptr, nullptr);
 }
@@ -135,7 +136,7 @@ void osl_eval_nodes_surface(const ThreadKernelGlobalsCPU *kg,
       /* set state as if undisplaced */
       if (sd->flag & SD_HAS_DISPLACEMENT) {
         const AttributeDescriptor desc = find_attribute(kg, sd, ATTR_STD_POSITION_UNDISPLACED);
-        kernel_assert(desc.offset != ATTR_STD_NOT_FOUND);
+        kernel_assert(is_attribute_found(desc));
 
         dual3 P = primitive_surface_attribute<dual3>(kg, sd, desc);
         object_position_transform(kg, sd, &P);

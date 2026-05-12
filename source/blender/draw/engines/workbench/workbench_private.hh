@@ -407,11 +407,11 @@ class ShadowPass {
     void set_mode(PassType type);
 
    protected:
-    virtual void compute_visibility(ObjectBoundsBuf &bounds,
-                                    ObjectInfosBuf &infos,
-                                    uint resource_len,
-                                    bool debug_freeze) override;
-    virtual VisibilityBuf &get_visibility_buffer() override;
+    void compute_visibility(ObjectBoundsBuf &bounds,
+                            ObjectInfosBuf &infos,
+                            uint resource_len,
+                            bool debug_freeze) override;
+    VisibilityBuf &get_visibility_buffer() override;
   } view_ = {};
 
   bool enabled_;

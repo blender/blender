@@ -30,7 +30,7 @@ namespace blender::ui {
 static void strip_modifier_panel_id(void *smd_link, char *r_name)
 {
   StripModifierData *smd = reinterpret_cast<StripModifierData *>(smd_link);
-  seq::modifier_type_panel_id(eStripModifierType(smd->type), r_name);
+  seq::modifier_type_panel_id(smd->type, r_name);
 }
 
 void template_strip_modifiers(Layout * /*layout*/, bContext *C)

@@ -38,7 +38,7 @@
 
 namespace blender::seq {
 
-/*-------------------------------------------------------------------- */
+/* -------------------------------------------------------------------- */
 /** \name Retiming Get
  * \{ */
 
@@ -257,7 +257,7 @@ void retiming_key_speed_set(const Scene *scene,
 
 /** \} */
 
-/*-------------------------------------------------------------------- */
+/* -------------------------------------------------------------------- */
 /** \name Retiming Freeze Frame
  * \{ */
 
@@ -344,7 +344,7 @@ static void strip_retiming_cleanup_freeze_frame(SeqRetimingKey *key)
 
 /** \} */
 
-/*-------------------------------------------------------------------- */
+/* -------------------------------------------------------------------- */
 /** \name Retiming Edit
  * \{ */
 
@@ -386,7 +386,7 @@ SeqRetimingKey fake_retiming_key_init(const Scene *scene, const Strip *strip, in
   SeqRetimingKey fake_key = {0};
   fake_key.strip_frame_index = (frame - strip->content_start() - sound_offset) *
                                strip->media_playback_rate_factor(scene_fps);
-  fake_key.flag = 0;
+  fake_key.flag = SEQ_RETIMING_FLAG_NONE;
   return fake_key;
 }
 
@@ -619,7 +619,7 @@ void retiming_remove_key(Strip *strip, SeqRetimingKey *key)
 
 /** \} */
 
-/*-------------------------------------------------------------------- */
+/* -------------------------------------------------------------------- */
 /** \name Retiming Transition
  * \{ */
 
@@ -908,7 +908,7 @@ static void strip_retiming_key_offset(const Scene *scene,
 
 /** \} */
 
-/*-------------------------------------------------------------------- */
+/* -------------------------------------------------------------------- */
 /** \name Retiming Set
  * \{ */
 
@@ -981,7 +981,7 @@ void retiming_key_frame_set(const Scene *scene, Strip *strip, SeqRetimingKey *ke
 
 /** \} */
 
-/*-------------------------------------------------------------------- */
+/* -------------------------------------------------------------------- */
 /** \name Retiming Range
  * \{ */
 
@@ -1278,7 +1278,7 @@ void retiming_sound_animation_data_set(const Scene *scene, const Strip *strip)
 
 /** \} */
 
-/*-------------------------------------------------------------------- */
+/* -------------------------------------------------------------------- */
 /** \name Retiming Selection
  * \{ */
 

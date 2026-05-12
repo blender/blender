@@ -59,16 +59,19 @@ class ExportHelper:
     # True == use ext, False == no ext, None == do nothing.
     check_extension = True
 
-    def invoke(self, context, _event):
+    def invoke(self, context, event):
         """
         Invoke the file selector for exporting, setting a default filepath
         based on the current blend file name.
 
         :param context: The context.
         :type context: :class:`bpy.types.Context`
+        :param event: The window event.
+        :type event: :class:`bpy.types.Event`
         :return: The operator return value.
         :rtype: set[str]
         """
+        del event
         import os
         if not self.filepath:
             blend_filepath = context.blend_data.filepath
@@ -82,13 +85,16 @@ class ExportHelper:
         context.window_manager.fileselect_add(self)
         return {'RUNNING_MODAL'}
 
-    def check(self, _context):
+    def check(self, context):
         """
         Validate the filepath and axis conversion settings.
 
+        :param context: The context.
+        :type context: :class:`bpy.types.Context`
         :return: True when a property was updated.
         :rtype: bool
         """
+        del context
         import os
         change_ext = False
         change_axis = _check_axis_conversion(self)
@@ -119,15 +125,18 @@ class ImportHelper:
         options={'SKIP_PRESET', 'HIDDEN'}
     )
 
-    def invoke(self, context, _event):
+    def invoke(self, context, event):
         """
         Invoke the file selector for importing.
 
         :param context: The context.
         :type context: :class:`bpy.types.Context`
+        :param event: The window event.
+        :type event: :class:`bpy.types.Event`
         :return: The operator return value.
         :rtype: set[str]
         """
+        del event
         context.window_manager.fileselect_add(self)
         return {'RUNNING_MODAL'}
 
@@ -165,13 +174,16 @@ class ImportHelper:
         context.window_manager.fileselect_add(self)
         return {'RUNNING_MODAL'}
 
-    def check(self, _context):
+    def check(self, context):
         """
         Validate axis conversion settings.
 
+        :param context: The context.
+        :type context: :class:`bpy.types.Context`
         :return: True when a property was updated.
         :rtype: bool
         """
+        del context
         return _check_axis_conversion(self)
 
 

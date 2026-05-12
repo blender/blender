@@ -6,14 +6,13 @@
 
 #include "testing/testing.h"
 
-#include "CLG_log.h"
-
 #include "BLI_array.hh"
 #include "BLI_listbase.h"
 #include "BLI_path_utils.hh"
 #include "BLI_string.h"
 
 #include "BKE_collection.hh"
+#include "BKE_gtest_base.hh"
 #include "BKE_idtype.hh"
 #include "BKE_lib_id.hh"
 #include "BKE_library.hh"
@@ -26,18 +25,7 @@
 
 namespace blender::bke::tests {
 
-class BMainTest : public testing::Test {
- public:
-  static void SetUpTestSuite()
-  {
-    CLG_init();
-    BKE_idtype_init();
-  }
-  static void TearDownTestSuite()
-  {
-    CLG_exit();
-  }
-};
+class BMainTest : public bke::BlenderGTestBase {};
 
 class BMainAllIDsIteratorTest : public BMainTest {
  public:

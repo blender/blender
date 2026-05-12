@@ -137,7 +137,7 @@ static void find_auto_structure_type_sockets(const bNodeTree &tree,
   /* Handle group inputs. */
   for (const int i : tree.interface_inputs().index_range()) {
     const bNodeTreeInterfaceSocket &io_socket = *tree.interface_inputs()[i];
-    if (io_socket.structure_type != NODE_INTERFACE_SOCKET_STRUCTURE_TYPE_AUTO) {
+    if (io_socket.structure_type != NodeSocketInterfaceStructureType::Auto) {
       continue;
     }
     for (const bNode *node : tree.group_input_nodes()) {
@@ -163,14 +163,14 @@ static void find_auto_structure_type_sockets(const bNodeTree &tree,
     const auto &storage = *static_cast<const NodeClosureOutput *>(closure_output_node->storage);
     for (const int i : IndexRange(storage.input_items.items_num)) {
       const NodeClosureInputItem &item = storage.input_items.items[i];
-      if (item.structure_type == NODE_INTERFACE_SOCKET_STRUCTURE_TYPE_AUTO) {
+      if (item.structure_type == NodeSocketInterfaceStructureType::Auto) {
         const bNodeSocket &socket = closure_input_node->output_socket(i);
         is_auto_structure_type[socket.index_in_tree()].set();
       }
     }
     for (const int i : IndexRange(storage.output_items.items_num)) {
       const NodeClosureOutputItem &item = storage.output_items.items[i];
-      if (item.structure_type == NODE_INTERFACE_SOCKET_STRUCTURE_TYPE_AUTO) {
+      if (item.structure_type == NodeSocketInterfaceStructureType::Auto) {
         const bNodeSocket &socket = closure_output_node->input_socket(i);
         is_auto_structure_type[socket.index_in_tree()].set();
       }
@@ -182,14 +182,14 @@ static void find_auto_structure_type_sockets(const bNodeTree &tree,
     auto &storage = *static_cast<NodeEvaluateClosure *>(evaluate_closure_node->storage);
     for (const int i : IndexRange(storage.input_items.items_num)) {
       const NodeEvaluateClosureInputItem &item = storage.input_items.items[i];
-      if (item.structure_type == NODE_INTERFACE_SOCKET_STRUCTURE_TYPE_AUTO) {
+      if (item.structure_type == NodeSocketInterfaceStructureType::Auto) {
         const bNodeSocket &socket = evaluate_closure_node->input_socket(i + 1);
         is_auto_structure_type[socket.index_in_tree()].set();
       }
     }
     for (const int i : IndexRange(storage.output_items.items_num)) {
       const NodeEvaluateClosureOutputItem &item = storage.output_items.items[i];
-      if (item.structure_type == NODE_INTERFACE_SOCKET_STRUCTURE_TYPE_AUTO) {
+      if (item.structure_type == NodeSocketInterfaceStructureType::Auto) {
         const bNodeSocket &socket = evaluate_closure_node->output_socket(i);
         is_auto_structure_type[socket.index_in_tree()].set();
       }
@@ -201,7 +201,7 @@ static void find_auto_structure_type_sockets(const bNodeTree &tree,
     auto &storage = *static_cast<NodeCombineBundle *>(node->storage);
     for (const int i : IndexRange(storage.items_num)) {
       const NodeCombineBundleItem &item = storage.items[i];
-      if (item.structure_type == NODE_INTERFACE_SOCKET_STRUCTURE_TYPE_AUTO) {
+      if (item.structure_type == NodeSocketInterfaceStructureType::Auto) {
         const bNodeSocket &socket = node->input_socket(i);
         is_auto_structure_type[socket.index_in_tree()].set();
       }
@@ -213,7 +213,7 @@ static void find_auto_structure_type_sockets(const bNodeTree &tree,
     auto &storage = *static_cast<NodeSeparateBundle *>(node->storage);
     for (const int i : IndexRange(storage.items_num)) {
       const NodeSeparateBundleItem &item = storage.items[i];
-      if (item.structure_type == NODE_INTERFACE_SOCKET_STRUCTURE_TYPE_AUTO) {
+      if (item.structure_type == NodeSocketInterfaceStructureType::Auto) {
         const bNodeSocket &socket = node->output_socket(i);
         is_auto_structure_type[socket.index_in_tree()].set();
       }
@@ -223,7 +223,7 @@ static void find_auto_structure_type_sockets(const bNodeTree &tree,
   /* Handle Store Bundle Item nodes. */
   for (const bNode *node : tree.nodes_by_type("NodeStoreBundleItem"_ustr)) {
     auto &storage = *static_cast<NodeStoreBundleItem *>(node->storage);
-    if (storage.structure_type == NODE_INTERFACE_SOCKET_STRUCTURE_TYPE_AUTO) {
+    if (storage.structure_type == NodeSocketInterfaceStructureType::Auto) {
       const bNodeSocket &socket = *node->input_by_identifier("Item"_ustr);
       is_auto_structure_type[socket.index_in_tree()].set();
     }
@@ -232,7 +232,7 @@ static void find_auto_structure_type_sockets(const bNodeTree &tree,
   /* Handle Get Bundle Item nodes. */
   for (const bNode *node : tree.nodes_by_type("NodeGetBundleItem"_ustr)) {
     auto &storage = *static_cast<NodeGetBundleItem *>(node->storage);
-    if (storage.structure_type == NODE_INTERFACE_SOCKET_STRUCTURE_TYPE_AUTO) {
+    if (storage.structure_type == NodeSocketInterfaceStructureType::Auto) {
       const bNodeSocket &socket = *node->output_by_identifier("Item"_ustr);
       is_auto_structure_type[socket.index_in_tree()].set();
     }
@@ -316,7 +316,7 @@ static void store_group_input_structure_types(const bNodeTree &tree,
   /* Build derived interface structure types from group input nodes. */
   for (const int i : tree.interface_inputs().index_range()) {
     const bNodeTreeInterfaceSocket &io_socket = *tree.interface_inputs()[i];
-    if (io_socket.structure_type != NODE_INTERFACE_SOCKET_STRUCTURE_TYPE_AUTO) {
+    if (io_socket.structure_type != NodeSocketInterfaceStructureType::Auto) {
       derived_interface.inputs[i] = StructureType(io_socket.structure_type);
       continue;
     }
@@ -866,7 +866,7 @@ static void store_group_output_structure_types(
   const Span<const bNodeTreeInterfaceSocket *> interface_outputs = tree.interface_outputs();
   const Span<const bNodeSocket *> sockets = group_output_node->input_sockets().drop_back(1);
   for (const int i : sockets.index_range()) {
-    if (interface_outputs[i]->structure_type != NODE_INTERFACE_SOCKET_STRUCTURE_TYPE_AUTO) {
+    if (interface_outputs[i]->structure_type != NodeSocketInterfaceStructureType::Auto) {
       interface.outputs[i] = {StructureType(interface_outputs[i]->structure_type), {}};
       continue;
     }

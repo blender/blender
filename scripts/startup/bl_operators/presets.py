@@ -652,7 +652,6 @@ class AddPresetEEVEERaytracing(AddPresetBase, Operator):
         "eevee.fast_gi_quality",
         "eevee.fast_gi_distance",
         "eevee.fast_gi_thickness_near",
-        "eevee.fast_gi_thickness_far",
         "eevee.fast_gi_bias",
     ]
 

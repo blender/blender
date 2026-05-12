@@ -113,7 +113,7 @@ class Instance : public DrawEngine {
 
   Instance() : selection_type_(select::SelectionType::DISABLED) {};
   Instance(const SelectionType selection_type) : selection_type_(selection_type) {};
-  ~Instance()
+  ~Instance() override
   {
     DRW_text_cache_destroy(state.dt);
   }

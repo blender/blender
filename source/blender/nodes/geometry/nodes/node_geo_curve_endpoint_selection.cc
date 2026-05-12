@@ -87,19 +87,12 @@ class EndpointFieldInput final : public bke::GeometryFieldInput {
     fn(end_size_);
   }
 
-  uint64_t hash() const final
+  void hash_unique(UniqueHashBytes &hash, fn::FieldHashDeep &deep_hash_cache) const final
   {
-    return get_default_hash(start_size_, end_size_);
-  }
-
-  bool is_equal_to(const fn::FieldInput &other) const final
-  {
-    if (const EndpointFieldInput *other_endpoint = dynamic_cast<const EndpointFieldInput *>(
-            &other))
-    {
-      return start_size_ == other_endpoint->start_size_ && end_size_ == other_endpoint->end_size_;
-    }
-    return false;
+    static constexpr int8_t id = 0;
+    hash.add(&id);
+    hash.add(deep_hash_cache.ensure(start_size_));
+    hash.add(deep_hash_cache.ensure(end_size_));
   }
 
   std::optional<AttrDomain> preferred_domain(const GeometryComponent & /*component*/) const final

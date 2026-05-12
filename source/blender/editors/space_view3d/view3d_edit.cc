@@ -1167,7 +1167,7 @@ static wmOperatorStatus toggle_shading_exec(bContext *C, wmOperator *op)
   Main *bmain = CTX_data_main(C);
   View3D *v3d = CTX_wm_view3d(C);
   ScrArea *area = CTX_wm_area(C);
-  int type = RNA_enum_get(op->ptr, "type");
+  const eDrawType type = eDrawType(RNA_enum_get(op->ptr, "type"));
 
   if (type == OB_SOLID) {
     if (v3d->shading.type != type) {
@@ -1181,7 +1181,8 @@ static wmOperatorStatus toggle_shading_exec(bContext *C, wmOperator *op)
     }
   }
   else {
-    char *prev_type = ((type == OB_WIRE) ? &v3d->shading.prev_type_wire : &v3d->shading.prev_type);
+    eDrawType *prev_type = ((type == OB_WIRE) ? &v3d->shading.prev_type_wire :
+                                                &v3d->shading.prev_type);
     if (v3d->shading.type == type) {
       if (*prev_type == type || !ELEM(*prev_type, OB_WIRE, OB_SOLID, OB_MATERIAL, OB_RENDER)) {
         *prev_type = OB_SOLID;

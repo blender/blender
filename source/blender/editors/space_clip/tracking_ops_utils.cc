@@ -36,7 +36,7 @@ void clip_tracking_clear_invisible_track_selection(SpaceClip *sc, MovieClip *cli
   const MovieTrackingObject *tracking_object = BKE_tracking_object_get_active(&clip->tracking);
   for (MovieTrackingTrack &track : tracking_object->tracks) {
     if ((track.flag & TRACK_HIDDEN) == 0) {
-      BKE_tracking_track_flag_clear(&track, hidden, SELECT);
+      BKE_tracking_track_flag_clear(&track, hidden, TRACK_SELECT);
     }
   }
 }

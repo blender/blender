@@ -1,21 +1,20 @@
 # SPDX-FileCopyrightText: 2025 Blender Authors
 #
 # SPDX-License-Identifier: GPL-2.0-or-later */
+"""
+blender -b --factory-startup --python tests/python/bl_object_modifier_multires.py -- --testdir tests/files/sculpting/
+"""
 
 __all__ = (
     "main",
 )
 
-import unittest
-import sys
 import pathlib
+import sys
+import unittest
 
 import bpy
 from mathutils import Vector
-
-"""
-blender -b --factory-startup --python tests/python/bl_object_modifier_multires.py -- --testdir tests/files/sculpting/
-"""
 
 args = None
 

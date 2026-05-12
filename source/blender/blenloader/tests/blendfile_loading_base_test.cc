@@ -9,6 +9,7 @@
 #include "BKE_blender.hh"
 #include "BKE_callbacks.hh"
 #include "BKE_context.hh"
+#include "BKE_cpp_types.hh"
 #include "BKE_global.hh"
 #include "BKE_idtype.hh"
 #include "BKE_image.hh"
@@ -63,6 +64,7 @@ void BlendfileLoadingBaseTest::SetUpTestCase()
   BKE_blender_globals_init();
 
   BKE_idtype_init();
+  BKE_cpp_types_init();
   BKE_appdir_init();
   IMB_init();
   BKE_modifier_init();

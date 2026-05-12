@@ -617,7 +617,7 @@ static void panel_custom_data_active_set(Panel *panel)
 /**
  * Set flag state for a panel and its sub-panels.
  */
-static void panel_set_flag_recursive(Panel *panel, short flag, bool value)
+static void panel_set_flag_recursive(Panel *panel, ePanel_Flag flag, bool value)
 {
   SET_FLAG_FROM_TEST(panel->flag, value, flag);
 
@@ -1472,8 +1472,12 @@ void panel_category_tabs_draw_all(ARegion *region, const char *category_id_activ
 
   is_alpha = (region->overlap && (theme_col_back[3] != 255));
 
-  BLF_enable(fontid, BLF_ROTATION);
-  BLF_rotation(fontid, is_left ? M_PI_2 : -M_PI_2);
+  const bool compact = U.uiflag2 & USER_UIFLAG2_PANEL_TABS_COMPACT;
+  if (!compact) {
+    BLF_enable(fontid, BLF_ROTATION);
+    BLF_rotation(fontid, is_left ? M_PI_2 : -M_PI_2);
+  }
+
   fontscale(&fstyle_points, aspect);
   BLF_size(fontid, fstyle_points * UI_SCALE_FAC);
 
@@ -1489,7 +1493,8 @@ void panel_category_tabs_draw_all(ARegion *region, const char *category_id_activ
     const char *category_id = pc_dyn.idname;
     const char *category_id_draw = IFACE_(category_id);
     const int category_width = round_fl_to_int(
-        BLF_width(fontid, category_id_draw, BLF_DRAW_STR_DUMMY_MAX));
+        compact ? 10.5 * UI_SCALE_FAC * zoom :
+                  BLF_width(fontid, category_id_draw, BLF_DRAW_STR_DUMMY_MAX));
 
     rct->xmin = rct_xmin;
     rct->xmax = rct_xmax;
@@ -1617,31 +1622,83 @@ void panel_category_tabs_draw_all(ARegion *region, const char *category_id_activ
     }
 
     /* Tab titles. */
-
-    /* Offset toward the middle of the rect. */
-    const int text_v_ofs = round_fl_to_int(float(rct_xmax - rct_xmin) * 0.5f);
-    /* Offset down as the font size increases. */
-    const int text_size_offset = round_fl_to_int(fstyle_points * UI_SCALE_FAC * 0.35f);
-
-    BLF_position(fontid,
-                 is_left ? rct->xmax - text_v_ofs + text_size_offset :
-                           rct->xmin + text_v_ofs - text_size_offset,
-                 is_left ? rct->ymin + tab_v_pad_text : rct->ymax - tab_v_pad_text,
-                 0.0f);
     BLF_color3ubv(fontid, is_active ? theme_col_tab_text_sel : theme_col_tab_text);
 
-    if (fstyle->shadow) {
-      BLF_enable(fontid, BLF_SHADOW);
-      const float shadow_color[4] = {
-          fstyle->shadowcolor, fstyle->shadowcolor, fstyle->shadowcolor, fstyle->shadowalpha};
-      BLF_shadow(fontid, FontShadowType(fstyle->shadow), shadow_color);
-      BLF_shadow_offset(fontid, fstyle->shadx, fstyle->shady);
+    if (compact) {
+      if (pc_dyn.icon != ICON_NONE) {
+        const float icon_size = 16.0f * UI_SCALE_FAC * zoom;
+        const float ofs_x = float(rct_xmax - rct_xmin - icon_size) / 2.0f;
+        const float ofs_y = float(rct->ymax - rct->ymin - icon_size) / 2.0f;
+        icon_draw_ex(float(rct_xmin) + ofs_x,
+                     float(rct->ymin) + ofs_y,
+                     pc_dyn.icon,
+                     aspect / UI_SCALE_FAC,
+                     0.9f,
+                     0.0f,
+                     nullptr,
+                     false,
+                     nullptr,
+                     false);
+        BLF_size(fontid, fstyle_points * UI_SCALE_FAC);
+      }
+      else {
+        std::string title;
+        int char_offset1 = BLI_str_utf8_offset_from_index(category_id_draw, category_draw_len, 1);
+        if (char_offset1 > 2) {
+          /* Only a single complex character, symbol, or emoji. */
+          title = std::string(category_id_draw, char_offset1);
+        }
+        else {
+          int char_offset2 = BLI_str_utf8_offset_from_index(
+              category_id_draw, category_draw_len, 2);
+          char *space = BLI_strcasestr(category_id_draw, " ");
+          if (char_offset2 == 2 && isupper(category_id_draw[1])) {
+            /* First two characters are Latin with second uppercase. */
+            title = std::string(category_id_draw, char_offset2);
+          }
+          else if (space && category_draw_len > (space - category_id_draw)) {
+            /* First characters from each of the first two words. */
+            title = std::string(category_id_draw, char_offset1) + std::string(space + 1, 1);
+          }
+          else {
+            /* First two characters of a single word. */
+            title = std::string(category_id_draw, char_offset2);
+          }
+        }
+
+        float width;
+        float height;
+        BLF_width_and_height(fontid, title.c_str(), title.size(), &width, &height);
+        const float ofs_x = float(rct_xmax - rct_xmin - width) / 2.0f;
+        const float ofs_y = float(rct->ymax - rct->ymin - height) / 2.0f;
+        BLF_position(fontid, rct->xmin + ofs_x, rct->ymin + ofs_y, 0.0f);
+        BLF_draw(fontid, title.c_str(), title.size());
+      }
     }
+    else {
+      /* Offset toward the middle of the rect. */
+      const int text_v_ofs = round_fl_to_int(float(rct_xmax - rct_xmin) * 0.5f);
+      /* Offset down as the font size increases. */
+      const int text_size_offset = round_fl_to_int(fstyle_points * UI_SCALE_FAC * 0.35f);
 
-    BLF_draw(fontid, category_id_draw, category_draw_len);
+      BLF_position(fontid,
+                   is_left ? rct->xmax - text_v_ofs + text_size_offset :
+                             rct->xmin + text_v_ofs - text_size_offset,
+                   is_left ? rct->ymin + tab_v_pad_text : rct->ymax - tab_v_pad_text,
+                   0.0f);
+      if (fstyle->shadow) {
+        BLF_enable(fontid, BLF_SHADOW);
+        const float shadow_color[4] = {
+            fstyle->shadowcolor, fstyle->shadowcolor, fstyle->shadowcolor, fstyle->shadowalpha};
+        BLF_shadow(fontid, FontShadowType(fstyle->shadow), shadow_color);
+        BLF_shadow_offset(fontid, fstyle->shadx, fstyle->shady);
+      }
 
-    if (fstyle->shadow) {
-      BLF_disable(fontid, BLF_SHADOW);
+      BLF_draw(fontid, category_id_draw, category_draw_len);
+
+      if (fstyle->shadow) {
+        BLF_disable(fontid, BLF_SHADOW);
+      }
     }
 
     GPU_blend(GPU_BLEND_NONE);
@@ -2490,12 +2547,13 @@ static PanelCategoryDyn *panel_categories_find_mouse_over(ARegion *region, const
   return nullptr;
 }
 
-void panel_category_add(ARegion *region, const char *name)
+void panel_category_add(ARegion *region, const char *name, int icon)
 {
   PanelCategoryDyn *pc_dyn = MEM_new<PanelCategoryDyn>(__func__);
   BLI_addtail(&region->runtime->panels_category, pc_dyn);
 
   STRNCPY_UTF8(pc_dyn->idname, name);
+  pc_dyn->icon = icon;
 
   /* 'pc_dyn->rect' must be set on draw. */
 }
@@ -2562,6 +2620,34 @@ static int handle_panel_category_cycling(const wmEvent *event,
   return WM_UI_HANDLER_CONTINUE;
 }
 
+static ARegion *WM_panel_category_tooltip_init(
+    bContext *C, ARegion *region, int * /*r_pass*/, double * /*pass_delay*/, bool *r_exit_on_event)
+{
+  *r_exit_on_event = true;
+
+  BLI_assert(BKE_regiontype_uses_category_tabs(region->runtime->type));
+
+  bScreen *screen = CTX_wm_screen(C);
+  const int mouse_x = screen->tool_tip->event_xy[0];
+  const int mouse_y = screen->tool_tip->event_xy[1];
+  PanelCategoryDyn *tab = nullptr;
+  for (PanelCategoryDyn &ptd : region->runtime->panels_category) {
+    if (BLI_rcti_isect_pt(&ptd.rect, mouse_x - region->winrct.xmin, mouse_y - region->winrct.ymin))
+    {
+      tab = &ptd;
+      break;
+    }
+  }
+
+  if (tab) {
+    const int x = region->winrct.xmin + tab->rect.xmin;
+    const int y = region->winrct.ymin + tab->rect.ymin;
+    return ui::tooltip_create_from_panel_category(C, TIP_(tab->idname), x, y);
+  }
+
+  return nullptr;
+}
+
 static void panel_region_width_set(ARegion *region, const float aspect, int unscaled_size)
 {
   const float size_new = unscaled_size / aspect;
@@ -2586,13 +2672,7 @@ int handler_panel_region(bContext *C,
                          ARegion *region,
                          const Button *active_but)
 {
-  /* Mouse-move events are handled by separate handlers for dragging and drag collapsing. */
-  if (ISMOUSE_MOTION(event->type)) {
-    return WM_UI_HANDLER_CONTINUE;
-  }
-
-  /* We only use KM_PRESS events in this function, so it's simpler to return early. */
-  if (event->val != KM_PRESS) {
+  if (event->val == KM_RELEASE) {
     return WM_UI_HANDLER_CONTINUE;
   }
 
@@ -2605,7 +2685,7 @@ int handler_panel_region(bContext *C,
 
   /* Handle category tabs. */
   if (panel_category_tabs_is_visible(region)) {
-    if (event->type == LEFTMOUSE) {
+    if (event->type == LEFTMOUSE && event->val == KM_PRESS) {
       PanelCategoryDyn *pc_dyn = panel_categories_find_mouse_over(region, event);
       if (pc_dyn) {
         const bool already_active = STREQ(pc_dyn->idname,
@@ -2645,10 +2725,29 @@ int handler_panel_region(bContext *C,
              ELEM(event->type, WHEELUPMOUSE, WHEELDOWNMOUSE))
     {
       /* Cycle tabs. */
+      WM_tooltip_clear(C, CTX_wm_window(C));
       retval = handle_panel_category_cycling(event, region, active_but);
     }
     if (event->type == EVT_PADPERIOD) {
+      WM_tooltip_clear(C, CTX_wm_window(C));
       retval = panel_category_show_active_tab(region, event->xy);
+    }
+    else if (event->type == MOUSEMOVE && U.flag & USER_TOOLTIPS &&
+             U.uiflag2 & USER_UIFLAG2_PANEL_TABS_COMPACT)
+    {
+      PanelCategoryDyn *pc_dyn = panel_categories_find_mouse_over(region, event);
+      if (pc_dyn) {
+        WM_tooltip_timer_init_ex(
+            C, CTX_wm_window(C), CTX_wm_area(C), region, WM_panel_category_tooltip_init, 0.0f);
+      }
+      else {
+        WM_tooltip_clear(C, CTX_wm_window(C));
+      }
+    }
+    else if ((event->type == RIGHTMOUSE) && panel_categories_find_mouse_over(region, event)) {
+      BLI_assert(retval == WM_UI_HANDLER_CONTINUE);
+      retval = WM_UI_HANDLER_BREAK;
+      popup_context_menu_for_panel(C, region, nullptr);
     }
   }
 
@@ -2696,7 +2795,15 @@ int handler_panel_region(bContext *C,
       continue;
     }
 
-    if (has_panel_header && mouse_state == PANEL_MOUSE_INSIDE_HEADER) {
+    if (has_panel_header && event->type == RIGHTMOUSE) {
+      if (ELEM(mouse_state, PANEL_MOUSE_INSIDE_HEADER, PANEL_MOUSE_INSIDE_CONTENT)) {
+        retval = WM_UI_HANDLER_BREAK;
+        popup_context_menu_for_panel(C, region, block.panel);
+        break;
+      }
+    }
+
+    if ((has_panel_header && mouse_state == PANEL_MOUSE_INSIDE_HEADER)) {
       /* All mouse clicks inside panel headers should return in break. */
       if (ELEM(event->type, EVT_RETKEY, EVT_PADENTER, LEFTMOUSE)) {
         retval = WM_UI_HANDLER_BREAK;

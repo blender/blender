@@ -5,9 +5,14 @@
 #include "testing/testing.h"
 
 #include "BLI_math_vector_types.hh"
+
 #include "IMB_imbuf.hh"
 
+#include "BKE_gtest_base.hh"
+
 namespace blender::imbuf::tests {
+
+class ImBufScalingTest : public bke::BlenderGTestBase {};
 
 static ImBuf *create_6x2_test_image()
 {
@@ -103,7 +108,7 @@ static ImBuf *scale_fractional_larger(bool nearest, bool threaded, int float_cha
   return img;
 }
 
-TEST(imbuf_scaling, nearest_2x_smaller)
+TEST_F(ImBufScalingTest, nearest_2x_smaller)
 {
   ImBuf *res = scale_2x_smaller(true, false);
   const uchar4 *got = reinterpret_cast<const uchar4 *>(res->byte_data());
@@ -113,7 +118,7 @@ TEST(imbuf_scaling, nearest_2x_smaller)
   IMB_freeImBuf(res);
 }
 
-TEST(imbuf_scaling, threaded_2x_smaller)
+TEST_F(ImBufScalingTest, threaded_2x_smaller)
 {
   ImBuf *res = scale_2x_smaller(false, true);
   const uchar4 *got = reinterpret_cast<const uchar4 *>(res->byte_data());
@@ -123,7 +128,7 @@ TEST(imbuf_scaling, threaded_2x_smaller)
   IMB_freeImBuf(res);
 }
 
-TEST(imbuf_scaling, bilinear_2x_smaller)
+TEST_F(ImBufScalingTest, bilinear_2x_smaller)
 {
   ImBuf *res = scale_2x_smaller(false, false);
   const uchar4 *got = reinterpret_cast<const uchar4 *>(res->byte_data());
@@ -135,7 +140,7 @@ TEST(imbuf_scaling, bilinear_2x_smaller)
   IMB_freeImBuf(res);
 }
 
-TEST(imbuf_scaling, nearest_to_1x1)
+TEST_F(ImBufScalingTest, nearest_to_1x1)
 {
   ImBuf *res = scale_to_1x1(true, false);
   const uchar4 *got = reinterpret_cast<const uchar4 *>(res->byte_data());
@@ -143,7 +148,7 @@ TEST(imbuf_scaling, nearest_to_1x1)
   IMB_freeImBuf(res);
 }
 
-TEST(imbuf_scaling, threaded_to_1x1)
+TEST_F(ImBufScalingTest, threaded_to_1x1)
 {
   ImBuf *res = scale_to_1x1(false, true);
   const uchar4 *got = reinterpret_cast<const uchar4 *>(res->byte_data());
@@ -151,7 +156,7 @@ TEST(imbuf_scaling, threaded_to_1x1)
   IMB_freeImBuf(res);
 }
 
-TEST(imbuf_scaling, bilinear_to_1x1)
+TEST_F(ImBufScalingTest, bilinear_to_1x1)
 {
   ImBuf *res = scale_to_1x1(false, false);
   const uchar4 *got = reinterpret_cast<const uchar4 *>(res->byte_data());
@@ -159,7 +164,7 @@ TEST(imbuf_scaling, bilinear_to_1x1)
   IMB_freeImBuf(res);
 }
 
-TEST(imbuf_scaling, nearest_fractional_larger)
+TEST_F(ImBufScalingTest, nearest_fractional_larger)
 {
   ImBuf *res = scale_fractional_larger(true, false);
   const uchar4 *got = reinterpret_cast<const uchar4 *>(res->byte_data());
@@ -172,7 +177,7 @@ TEST(imbuf_scaling, nearest_fractional_larger)
   IMB_freeImBuf(res);
 }
 
-TEST(imbuf_scaling, bilinear_fractional_larger)
+TEST_F(ImBufScalingTest, bilinear_fractional_larger)
 {
   ImBuf *res = scale_fractional_larger(false, false);
   const uchar4 *got = reinterpret_cast<const uchar4 *>(res->byte_data());
@@ -190,7 +195,7 @@ TEST(imbuf_scaling, bilinear_fractional_larger)
 
 static constexpr float EPS = 0.0001f;
 
-TEST(imbuf_scaling, nearest_2x_smaller_fl1)
+TEST_F(ImBufScalingTest, nearest_2x_smaller_fl1)
 {
   ImBuf *res = scale_2x_smaller(true, false, 1);
   const float *got = res->float_data();
@@ -200,7 +205,7 @@ TEST(imbuf_scaling, nearest_2x_smaller_fl1)
   IMB_freeImBuf(res);
 }
 
-TEST(imbuf_scaling, nearest_2x_smaller_fl2)
+TEST_F(ImBufScalingTest, nearest_2x_smaller_fl2)
 {
   ImBuf *res = scale_2x_smaller(true, false, 2);
   const float2 *got = reinterpret_cast<const float2 *>(res->float_data());
@@ -210,7 +215,7 @@ TEST(imbuf_scaling, nearest_2x_smaller_fl2)
   IMB_freeImBuf(res);
 }
 
-TEST(imbuf_scaling, nearest_2x_smaller_fl3)
+TEST_F(ImBufScalingTest, nearest_2x_smaller_fl3)
 {
   ImBuf *res = scale_2x_smaller(true, false, 3);
   const float3 *got = reinterpret_cast<const float3 *>(res->float_data());
@@ -220,7 +225,7 @@ TEST(imbuf_scaling, nearest_2x_smaller_fl3)
   IMB_freeImBuf(res);
 }
 
-TEST(imbuf_scaling, nearest_2x_smaller_fl4)
+TEST_F(ImBufScalingTest, nearest_2x_smaller_fl4)
 {
   ImBuf *res = scale_2x_smaller(true, false, 4);
   const float4 *got = reinterpret_cast<const float4 *>(res->float_data());
@@ -230,7 +235,7 @@ TEST(imbuf_scaling, nearest_2x_smaller_fl4)
   IMB_freeImBuf(res);
 }
 
-TEST(imbuf_scaling, nearest_to_1x1_fl3)
+TEST_F(ImBufScalingTest, nearest_to_1x1_fl3)
 {
   ImBuf *res = scale_to_1x1(true, false, 3);
   const float3 *got = reinterpret_cast<const float3 *>(res->float_data());
@@ -238,7 +243,7 @@ TEST(imbuf_scaling, nearest_to_1x1_fl3)
   IMB_freeImBuf(res);
 }
 
-TEST(imbuf_scaling, threaded_to_1x1_fl3)
+TEST_F(ImBufScalingTest, threaded_to_1x1_fl3)
 {
   ImBuf *res = scale_to_1x1(false, true, 3);
   const float3 *got = reinterpret_cast<const float3 *>(res->float_data());
@@ -246,7 +251,7 @@ TEST(imbuf_scaling, threaded_to_1x1_fl3)
   IMB_freeImBuf(res);
 }
 
-TEST(imbuf_scaling, bilinear_to_1x1_fl3)
+TEST_F(ImBufScalingTest, bilinear_to_1x1_fl3)
 {
   ImBuf *res = scale_to_1x1(false, false, 3);
   const float3 *got = reinterpret_cast<const float3 *>(res->float_data());
@@ -254,7 +259,7 @@ TEST(imbuf_scaling, bilinear_to_1x1_fl3)
   IMB_freeImBuf(res);
 }
 
-TEST(imbuf_scaling, bilinear_2x_smaller_fl3)
+TEST_F(ImBufScalingTest, bilinear_2x_smaller_fl3)
 {
   ImBuf *res = scale_2x_smaller(false, false, 3);
   const float3 *got = reinterpret_cast<const float3 *>(res->float_data());
@@ -264,7 +269,7 @@ TEST(imbuf_scaling, bilinear_2x_smaller_fl3)
   IMB_freeImBuf(res);
 }
 
-TEST(imbuf_scaling, bilinear_2x_smaller_fl4)
+TEST_F(ImBufScalingTest, bilinear_2x_smaller_fl4)
 {
   ImBuf *res = scale_2x_smaller(false, false, 4);
   const float4 *got = reinterpret_cast<const float4 *>(res->float_data());
@@ -274,7 +279,7 @@ TEST(imbuf_scaling, bilinear_2x_smaller_fl4)
   IMB_freeImBuf(res);
 }
 
-TEST(imbuf_scaling, threaded_2x_smaller_fl3)
+TEST_F(ImBufScalingTest, threaded_2x_smaller_fl3)
 {
   ImBuf *res = scale_2x_smaller(false, true, 3);
   const float3 *got = reinterpret_cast<const float3 *>(res->float_data());
@@ -284,7 +289,7 @@ TEST(imbuf_scaling, threaded_2x_smaller_fl3)
   IMB_freeImBuf(res);
 }
 
-TEST(imbuf_scaling, threaded_2x_smaller_fl4)
+TEST_F(ImBufScalingTest, threaded_2x_smaller_fl4)
 {
   ImBuf *res = scale_2x_smaller(false, true, 4);
   const float4 *got = reinterpret_cast<const float4 *>(res->float_data());

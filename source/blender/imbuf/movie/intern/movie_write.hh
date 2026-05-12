@@ -29,6 +29,8 @@ extern "C" {
 #  include <libavutil/opt.h>
 #  include <libavutil/rational.h>
 #  include <libavutil/samplefmt.h>
+#  include <libavutil/spherical.h>
+#  include <libavutil/stereo3d.h>
 
 #  include "ffmpeg_compat.h"
 }

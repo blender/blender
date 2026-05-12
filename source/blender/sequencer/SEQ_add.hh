@@ -57,7 +57,7 @@ struct LoadData {
   eLoadFlags flags;
   eSeqImageFitMethod fit_method;
   bool use_multiview;
-  char views_format;
+  eImageFormat_ViewsFormat views_format;
   Stereo3dFormat *stereo3d_format;
   bool allow_invalid_file;     /* Used by RNA API to create placeholder strips. */
   double r_video_stream_start; /* For AV synchronization. Set by `seq::add_movie_strip`. */

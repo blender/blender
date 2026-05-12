@@ -580,26 +580,23 @@ class FileOutputOperation : public NodeOperation {
                            const char *pass_name,
                            const char *view_name)
   {
-    /* For single values, we fill a buffer that covers the domain of the operation with the value
-     * of the result. */
-    const int2 size = result.is_single_value() ? this->compute_domain().data_size :
-                                                 result.domain().data_size;
-
-    /* The image buffer in the file output will take ownership of this buffer and freeing it will
-     * be its responsibility. */
-    float *buffer = nullptr;
+    Result data = this->context().create_result(result.type());
     if (result.is_single_value()) {
-      buffer = this->inflate_result(result, size);
+      /* For single values, we fill a buffer that covers the domain of the operation with the value
+       * of the result. */
+      data.allocate_texture(this->compute_domain(), true, ResultStorageType::CPU);
+      const GPointer single_value = result.single_value();
+      const int64_t pixel_count = int64_t(data.domain().data_size.x) * data.domain().data_size.y;
+      single_value.type()->fill_assign_n(
+          single_value.get(), data.cpu_data_for_write().data(), pixel_count);
+    }
+    else if (this->context().use_gpu()) {
+      Result result_cpu = result.download_to_cpu();
+      data.share_data(result_cpu);
+      result_cpu.release();
     }
     else {
-      if (this->context().use_gpu()) {
-        GPU_memory_barrier(GPU_BARRIER_TEXTURE_UPDATE);
-        buffer = static_cast<float *>(GPU_texture_read(result, GPU_DATA_FLOAT, 0));
-      }
-      else {
-        /* Copy the result into a new buffer. */
-        buffer = MEM_dupalloc(static_cast<const float *>(result.cpu_data().data()));
-      }
+      data.share_data(result);
     }
 
     switch (result.type()) {
@@ -608,39 +605,32 @@ class FileOutputOperation : public NodeOperation {
          * specify that all uppercase RGBA channels will be compressed, and Cryptomatte should not
          * be compressed. */
         if (result.meta_data.is_cryptomatte_layer()) {
-          file_output.add_pass(pass_name, view_name, "rgba", buffer);
+          file_output.add_pass(pass_name, view_name, "rgba", data);
         }
         else {
-          file_output.add_pass(pass_name, view_name, "RGBA", buffer);
+          file_output.add_pass(pass_name, view_name, "RGBA", data);
         }
         break;
       case ResultType::Float3:
-        /* Float3 results might be stored in 4-component textures due to hardware limitations, so
-         * we need to convert the buffer to a 3-component buffer on the host. */
-        if (!result.is_single_value() && this->context().use_gpu() &&
-            GPU_texture_component_len(GPU_texture_format(result)) == 4)
-        {
-          file_output.add_pass(pass_name, view_name, "XYZ", float4_to_float3_image(size, buffer));
-        }
-        else {
-          file_output.add_pass(pass_name, view_name, "XYZ", buffer);
-        }
+        file_output.add_pass(pass_name, view_name, "XYZ", data);
         break;
       case ResultType::Float4:
-        file_output.add_pass(pass_name, view_name, "XYZW", buffer);
+        file_output.add_pass(pass_name, view_name, "XYZW", data);
         break;
       case ResultType::Float:
-        file_output.add_pass(pass_name, view_name, "V", buffer);
+        file_output.add_pass(pass_name, view_name, "V", data);
         break;
       case ResultType::Float2:
-        file_output.add_pass(pass_name, view_name, "XY", buffer);
+        file_output.add_pass(pass_name, view_name, "XY", data);
         break;
       case ResultType::Int2:
       case ResultType::Int3:
+      case ResultType::Int4:
       case ResultType::Int:
       case ResultType::Bool:
       case ResultType::Float4x4:
       case ResultType::Menu:
+      case ResultType::Quaternion:
       case ResultType::String:
       case ResultType::Object:
       case ResultType::Image:
@@ -652,96 +642,45 @@ class FileOutputOperation : public NodeOperation {
         BLI_assert_unreachable();
         break;
     }
-  }
 
-  /* Allocates and fills an image buffer of the specified size with the value of the given single
-   * value result. */
-  float *inflate_result(const Result &result, const int2 size)
-  {
-    BLI_assert(result.is_single_value());
-
-    const int64_t length = int64_t(size.x) * size.y;
-    const int64_t buffer_size = length * (result.get_cpp_type().size / sizeof(float));
-    float *buffer = MEM_new_array_uninitialized<float>(buffer_size,
-                                                       "File Output Inflated Buffer.");
-
-    switch (result.type()) {
-      case ResultType::Float:
-      case ResultType::Float2:
-      case ResultType::Float3:
-      case ResultType::Float4:
-      case ResultType::Color: {
-        const GPointer single_value = result.single_value();
-        single_value.type()->fill_assign_n(single_value.get(), buffer, length);
-        return buffer;
-      }
-      case ResultType::Int:
-      case ResultType::Int2:
-      case ResultType::Int3:
-      case ResultType::Bool:
-      case ResultType::Float4x4:
-      case ResultType::Menu:
-      case ResultType::String:
-      case ResultType::Object:
-      case ResultType::Image:
-      case ResultType::Font:
-      case ResultType::Scene:
-      case ResultType::Text:
-      case ResultType::Mask:
-        /* Not supported. */
-        BLI_assert_unreachable();
-        return nullptr;
-    }
-
-    BLI_assert_unreachable();
-    return nullptr;
+    data.release();
   }
 
   /* Read the data stored the given result and add a view of the given name and read buffer. */
   void add_view_for_result(FileOutput &file_output, const Result &result, const char *view_name)
   {
-    /* The image buffer in the file output will take ownership of this buffer and freeing it will
-     * be its responsibility. */
-    float *buffer = nullptr;
+    Result data = this->context().create_result(result.type());
     if (this->context().use_gpu()) {
-      GPU_memory_barrier(GPU_BARRIER_TEXTURE_UPDATE);
-      buffer = static_cast<float *>(GPU_texture_read(result, GPU_DATA_FLOAT, 0));
+      Result result_cpu = result.download_to_cpu();
+      data.share_data(result_cpu);
+      result_cpu.release();
     }
     else {
-      /* Copy the result into a new buffer. */
-      buffer = MEM_dupalloc(static_cast<const float *>(result.cpu_data().data()));
+      data.share_data(result);
     }
 
-    const int2 size = result.domain().data_size;
     switch (result.type()) {
       case ResultType::Color:
-        file_output.add_view(view_name, 4, buffer);
+        file_output.add_view(view_name, data);
         break;
       case ResultType::Float4:
-        file_output.add_view(view_name, 4, buffer);
+        file_output.add_view(view_name, data);
         break;
       case ResultType::Float3:
-        /* Float3 results might be stored in 4-component textures due to hardware limitations, so
-         * we need to convert the buffer to a 3-component buffer on the host. */
-        if (!result.is_single_value() && this->context().use_gpu() &&
-            GPU_texture_component_len(GPU_texture_format(result)) == 4)
-        {
-          file_output.add_view(view_name, 3, float4_to_float3_image(size, buffer));
-        }
-        else {
-          file_output.add_view(view_name, 3, buffer);
-        }
+        file_output.add_view(view_name, data);
         break;
       case ResultType::Float:
-        file_output.add_view(view_name, 1, buffer);
+        file_output.add_view(view_name, data);
         break;
       case ResultType::Float2:
       case ResultType::Int2:
       case ResultType::Int:
       case ResultType::Int3:
+      case ResultType::Int4:
       case ResultType::Bool:
       case ResultType::Float4x4:
       case ResultType::Menu:
+      case ResultType::Quaternion:
       case ResultType::String:
       case ResultType::Object:
       case ResultType::Image:
@@ -753,24 +692,8 @@ class FileOutputOperation : public NodeOperation {
         BLI_assert_unreachable();
         break;
     }
-  }
 
-  /* Given a float4 image, return a newly allocated float3 image that ignores the last channel. The
-   * input image is freed. */
-  float *float4_to_float3_image(int2 size, float *float4_image)
-  {
-    float *float3_image = MEM_new_array_uninitialized<float>(3 * size_t(size.x) * size_t(size.y),
-                                                             "File Output Vector Buffer.");
-
-    parallel_for(size, [&](const int2 texel) {
-      for (int i = 0; i < 3; i++) {
-        const int64_t pixel_index = int64_t(texel.y) * size.x + texel.x;
-        float3_image[pixel_index * 3 + i] = float4_image[pixel_index * 4 + i];
-      }
-    });
-
-    MEM_delete(float4_image);
-    return float3_image;
+    data.release();
   }
 
   /* Add Cryptomatte meta data to the file if they exist for the given result of the given layer

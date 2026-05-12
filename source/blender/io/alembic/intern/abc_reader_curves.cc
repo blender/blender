@@ -353,13 +353,10 @@ static std::optional<PreprocessedSampleData> preprocess_sample(StringRefNull iob
   return data;
 }
 
-AbcCurveReader::AbcCurveReader(const Alembic::Abc::IObject &object, ImportSettings &settings)
-    : AbcObjectReader(object, settings)
+AbcCurveReader::AbcCurveReader(const AbcReaderConstructorArgs &args) : AbcObjectReader(args)
 {
-  ICurves abc_curves(object, kWrapExisting);
+  ICurves abc_curves(m_iobject, kWrapExisting);
   m_curves_schema = abc_curves.getSchema();
-
-  get_min_max_time(m_iobject, m_curves_schema, m_min_time, m_max_time);
 }
 
 bool AbcCurveReader::valid() const
@@ -561,14 +558,12 @@ void AbcCurveReader::read_curves_sample(Curves *curves_id,
 
 void AbcCurveReader::read_geometry(bke::GeometrySet &geometry_set,
                                    const Alembic::Abc::ISampleSelector &sample_sel,
-                                   int read_flag,
-                                   const char * /*velocity_name*/,
-                                   const float /*velocity_scale*/,
+                                   const AbcReadGeometryParams &read_params,
                                    const char ** /*r_err_str*/)
 {
   Curves *curves = geometry_set.get_curves_for_write();
 
-  bool use_interpolation = read_flag & MOD_MESHSEQ_INTERPOLATE_VERTICES;
+  bool use_interpolation = read_params.read_flag & MOD_MESHSEQ_INTERPOLATE_VERTICES;
   read_curves_sample(curves, use_interpolation, m_curves_schema, sample_sel);
 }
 

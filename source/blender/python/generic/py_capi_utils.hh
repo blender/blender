@@ -56,6 +56,8 @@ void PyC_StackSpit();
 [[nodiscard]] std::optional<int> PyC_ExceptionSystemExitCode();
 
 /**
+ * Capture exit code from current python exception.
+ *
  * If the current exception is `SystemExit`, capture the exit code and return true.
  * Otherwise return false;
  */
@@ -81,7 +83,11 @@ PyObject *PyC_Err_SetString_Prefix(PyObject *exception_type_prefix, const char *
 void PyC_Err_PrintWithFunc(PyObject *py_func);
 
 void PyC_FileAndNum(const char **r_filename, int *r_lineno);
-void PyC_FileAndNum_Safe(const char **r_filename, int *r_lineno); /* checks python is running */
+/**
+ * The "safe" version checks Python is running first.
+ * Typically the caller should know this but there are times it's impractical.
+ */
+void PyC_FileAndNum_Safe(const char **r_filename, int *r_lineno);
 [[nodiscard]] int PyC_AsArray_FAST(void *array,
                                    size_t array_item_size,
                                    PyObject *value_fast,
@@ -419,6 +425,7 @@ struct PyC_StringEnum {
 [[nodiscard]] int PyC_CheckArgs_DeepCopy(PyObject *args);
 
 /* Integer parsing (with overflow checks), -1 on error. */
+
 /**
  * Comparison with #PyObject_IsTrue
  * ================================
@@ -469,7 +476,7 @@ struct PyC_StringEnum {
  */
 [[nodiscard]] uint64_t PyC_Long_AsU64(PyObject *value);
 
-/* inline so type signatures match as expected */
+/** Inline so type signatures match as expected. */
 [[nodiscard]] Py_LOCAL_INLINE(int32_t) PyC_Long_AsI32(PyObject *value)
 {
   return int32_t(PyLong_AsInt(value));
@@ -479,7 +486,8 @@ struct PyC_StringEnum {
   return int64_t(PyLong_AsLongLong(value));
 }
 
-/* utils for format string in `struct` module style syntax */
+/* Utils for format string in `struct` module style syntax. */
+
 [[nodiscard]] char PyC_StructFmt_type_from_str(const char *typestr);
 [[nodiscard]] bool PyC_StructFmt_type_is_float_any(char format);
 [[nodiscard]] bool PyC_StructFmt_type_is_int_any(char format);
@@ -519,5 +527,19 @@ struct PyC_StringEnum {
  * unlike regular Python function calls, does not enforce string keys.
  */
 [[nodiscard]] bool PyC_Dict_CheckKeysAreStrings(PyObject *dict);
+
+/**
+ * Create a `memoryview` from the contents of `info`,
+ * similar to #PyMemoryView_FromBuffer.
+ *
+ * Unlike #PyMemoryView_FromBuffer the returned `memoryview` takes ownership of `info->buf`:
+ * when the last reference to the `memoryview`
+ * (or any `memoryview` derived from it via `cast()` / slicing) is released,
+ * the buffer is freed with #MEM_delete_void.
+ *
+ * \return A new `memoryview` reference, or null with an exception set on failure.
+ * `info->buf` is freed even when the function returns null.
+ */
+[[nodiscard]] PyObject *PyC_MemoryView_FromBufferOwned(const Py_buffer *info);
 
 }  // namespace blender

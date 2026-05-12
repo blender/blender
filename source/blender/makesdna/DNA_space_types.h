@@ -97,7 +97,7 @@ struct SpaceLink {
   /** Storage of regions for inactive spaces. */
   ListBaseT<ARegion> regionbase = {nullptr, nullptr};
   char spacetype = 0;
-  char link_flag = 0;
+  eSpace_Link_Flag link_flag = {};
   char _pad0[6] = {};
 };
 
@@ -113,7 +113,7 @@ struct SpaceInfo {
   /** Storage of regions for inactive spaces. */
   ListBaseT<ARegion> regionbase = {nullptr, nullptr};
   char spacetype = 0;
-  char link_flag = 0;
+  eSpace_Link_Flag link_flag = {};
   char _pad0[6] = {};
   /* End 'SpaceLink' header. */
 
@@ -135,7 +135,7 @@ struct SpaceProperties {
   /** Storage of regions for inactive spaces. */
   ListBaseT<ARegion> regionbase = {nullptr, nullptr};
   char spacetype = 0;
-  char link_flag = 0;
+  eSpace_Link_Flag link_flag = {};
   char _pad0[6] = {};
   /* End 'SpaceLink' header. */
 
@@ -146,14 +146,14 @@ struct SpaceProperties {
   short space_subtype = 0;
 
   /** Context tabs. */
-  short mainb = 0, mainbo = 0, mainbuser = 0;
+  eSpaceButtons_Context mainb = BCONTEXT_RENDER, mainbo = BCONTEXT_RENDER,
+                        mainbuser = BCONTEXT_RENDER;
   uint32_t visible_tabs = 0;
   /** Preview is signal to refresh. */
   short preview = 0;
-  char flag = 0;
+  eSpaceButtons_Flag flag = {};
 
-  /* eSpaceButtons_OutlinerSync */
-  char outliner_sync = 0;
+  eSpaceButtons_OutlinerSync outliner_sync = PROPERTIES_SYNC_AUTO;
 
   /** Runtime. */
   void *path = nullptr;
@@ -179,14 +179,12 @@ struct SpaceOutliner {
   /** Storage of regions for inactive spaces. */
   ListBaseT<ARegion> regionbase = {nullptr, nullptr};
   char spacetype = 0;
-  char link_flag = 0;
+  eSpace_Link_Flag link_flag = {};
   char _pad0[6] = {};
   /* End 'SpaceLink' header. */
 
   /** Deprecated, copied to region. */
   DNA_DEPRECATED View2D v2d;
-
-  ListBaseT<ed::outliner::TreeElement> tree = {nullptr, nullptr};
 
   /**
    * Treestore is an ordered list of TreeStoreElem's from outliner tree;
@@ -199,19 +197,19 @@ struct SpaceOutliner {
 
   char search_string[64] = "";
 
-  short flag = 0;
-  short outlinevis = 0;
-  short lib_override_view_mode = 0;
-  short storeflag = 0;
-  char search_flags = 0;
+  eSpaceOutliner_Flag flag = {};
+  eSpaceOutliner_Mode outlinevis = SO_SCENES;
+  eSpaceOutliner_LibOverrideViewMode lib_override_view_mode = SO_LIB_OVERRIDE_VIEW_PROPERTIES;
+  eSpaceOutliner_StoreFlag storeflag = {};
+  eSpaceOutliner_Search_Flags search_flags = {};
   char _pad[6] = {};
 
   /** Selection syncing flag (#WM_OUTLINER_SYNC_SELECT_FROM_OBJECT and similar flags). */
   char sync_select_dirty = 0;
 
-  int filter = 0;
-  char filter_state = 0;
-  char show_restrict_flags = 0;
+  eSpaceOutliner_Filter filter = {};
+  eSpaceOutliner_StateFilter filter_state = SO_FILTER_OB_ALL;
+  eSpaceOutliner_ShowRestrictFlag show_restrict_flags = {};
   short filter_id_type = 0;
 
   ed::outliner::SpaceOutliner_Runtime *runtime = nullptr;
@@ -239,7 +237,7 @@ struct SpaceGraph {
   /** Storage of regions for inactive spaces. */
   ListBaseT<ARegion> regionbase = {nullptr, nullptr};
   char spacetype = 0;
-  char link_flag = 0;
+  eSpace_Link_Flag link_flag = {};
   char _pad0[6] = {};
   /* End 'SpaceLink' header. */
 
@@ -250,12 +248,12 @@ struct SpaceGraph {
    * \note we use a pointer due to code-linking issues. */
   struct bDopeSheet *ads = nullptr;
 
-  /** Mode for the Graph editor (eGraphEdit_Mode). */
-  short mode = 0;
+  /** Mode for the Graph editor. */
+  eGraphEdit_Mode mode = SIPO_MODE_ANIMATION;
   /* Snapping now lives on the Scene. */
   DNA_DEPRECATED short autosnap = 0;
-  /** Settings for Graph editor (eGraphEdit_Flag). */
-  int flag = 0;
+  /** Settings for Graph editor. */
+  eGraphEdit_Flag flag = {};
 
   /** Time value for cursor (when in drivers mode; animation uses current frame). */
   float cursorTime = 0;
@@ -282,13 +280,13 @@ struct SpaceNla {
   /** Storage of regions for inactive spaces. */
   ListBaseT<ARegion> regionbase = {nullptr, nullptr};
   char spacetype = 0;
-  char link_flag = 0;
+  eSpace_Link_Flag link_flag = {};
   char _pad0[6] = {};
   /* End 'SpaceLink' header. */
 
   /* Snapping now lives on the Scene. */
   DNA_DEPRECATED short autosnap = 0;
-  short flag = 0;
+  eSpaceNla_Flag flag = {};
   char _pad[4] = {};
 
   struct bDopeSheet *ads = nullptr;
@@ -303,17 +301,17 @@ struct SpaceNla {
  * \{ */
 
 struct SequencerPreviewOverlay {
-  int flag = 0;
+  eSpaceSeq_SequencerPreviewOverlay_Flag flag = {};
   char _pad0[4] = {};
 };
 
 struct SequencerTimelineOverlay {
-  int flag = 0;
+  eSpaceSeq_SequencerTimelineOverlay_Flag flag = {};
   char _pad0[4] = {};
 };
 
 struct SequencerCacheOverlay {
-  int flag = 0;
+  eSpaceSeq_SequencerCacheOverlay_Flag flag = {};
   char _pad0[4] = {};
 };
 
@@ -325,7 +323,7 @@ struct SpaceSeq {
   /** Storage of regions for inactive spaces. */
   ListBaseT<ARegion> regionbase = {nullptr, nullptr};
   char spacetype = 0;
-  char link_flag = 0;
+  eSpace_Link_Flag link_flag = {};
   char _pad0[6] = {};
   /* End 'SpaceLink' header. */
 
@@ -335,19 +333,19 @@ struct SpaceSeq {
   /** Deprecated: offset for drawing the image preview. */
   DNA_DEPRECATED float xof = 0;
   DNA_DEPRECATED float yof = 0;
-  short mainb = 0; /* eSpaceSeq_RegionType; strange name for view type (image, histogram, ...). */
-  short render_size = 0; /* eSpaceSeq_Proxy_RenderSize. */
+  eSpaceSeq_RegionType mainb = {}; /* Strange name for view type (image, histogram, ...). */
+  eSpaceSeq_Proxy_RenderSize render_size = SEQ_RENDER_SIZE_SCENE;
   short chanshown = 0;
   short zebra = 0; /* Show overexposed. 0=disabled; otherwise as percentage of "pure white". */
-  int flag = 0;
+  eSpaceSeq_Flag flag = {};
   /** Deprecated, handled by View2D now. */
   DNA_DEPRECATED float zoom = 0;
   /** See SEQ_VIEW_* below. */
-  char view = 0;
-  char overlay_frame_type = 0;
+  eSpaceSeq_Displays view = SEQ_VIEW_SEQUENCE;
+  eSpaceSeq_OverlayFrameType overlay_frame_type = SEQ_OVERLAY_FRAME_TYPE_RECT;
   /** Overlay an image of the editing on below the strips. */
-  char draw_flag = 0;
-  char gizmo_flag = 0;
+  eSpaceSeq_DrawFlag draw_flag = {};
+  eSpaceSeq_Gizmo_Flag gizmo_flag = {};
   char _pad[4] = {};
 
   /** 2D cursor for transform. */
@@ -371,9 +369,9 @@ struct MaskSpaceInfo {
   /* **** mask editing **** */
   struct Mask *mask = nullptr;
   /* draw options */
-  char draw_flag = MASK_DRAWFLAG_SPLINE;         /* MaskDrawFlag */
-  char draw_type = MASK_DT_OUTLINE;              /* MaskDrawType */
-  char overlay_mode = MASK_OVERLAY_ALPHACHANNEL; /* MaskOverlayMode */
+  MaskDrawFlag draw_flag = MASK_DRAWFLAG_SPLINE;
+  MaskDrawType draw_type = MASK_DT_OUTLINE;
+  MaskOverlayMode overlay_mode = MASK_OVERLAY_ALPHACHANNEL;
   char _pad3[1] = {};
   float blend_factor = 0.7f;
 };
@@ -398,7 +396,7 @@ struct FileSelectParams {
   char file[/*FILE_MAXFILE*/ 256] = "";
 
   char renamefile[/*FILE_MAXFILE*/ 256] = "";
-  short rename_flag = 0;
+  eFileSel_Params_RenameFlag rename_flag = {};
   char _pad[4] = {};
   /** An ID that was just renamed. Used to identify a renamed asset file over re-reads, similar to
    * `renamefile` but for local IDs (takes precedence). Don't keep this stored across handlers!
@@ -427,15 +425,15 @@ struct FileSelectParams {
 
   /* short */
   /** XXX: for now store type here, should be moved to the operator. */
-  short type = 0; /* eFileSelectType */
+  eFileSelectType type = {};
   /** Settings for filter, hiding dots files. */
-  short flag = 0;
+  eFileSel_Params_Flag flag = {};
   /** Sort order. */
-  short sort = 0;
+  eFileSortType sort = FILE_SORT_DEFAULT;
   /** Display mode flag. */
-  short display = 0;
+  eFileDisplayType display = FILE_DEFAULTDISPLAY;
   /** Details toggles (file size, creation date, etc.) */
-  char details_flags = 0;
+  eFileDetails details_flags = {};
   char _pad1 = {};
 
   /** Filter when (flags & FILE_FILTER) is true. */
@@ -454,16 +452,16 @@ struct FileAssetSelectParams {
   FileSelectParams base_params;
 
   AssetLibraryReference asset_library_ref;
-  short asset_catalog_visibility = 0; /* eFileSel_Params_AssetCatalogVisibility */
+  eFileSel_Params_AssetCatalogVisibility asset_catalog_visibility = FILE_SHOW_ASSETS_ALL_CATALOGS;
   char _pad[6] = {};
   /** If #asset_catalog_visibility is #FILE_SHOW_ASSETS_FROM_CATALOG, this sets the ID of the
    * catalog to show. */
   bUUID catalog_id;
 
-  short import_method = 0; /* eFileAssetImportMethod */
-  short import_flags = 0;  /* eFileImportFlags */
+  eFileAssetImportMethod import_method = FILE_ASSET_IMPORT_LINK;
+  eFileAssetImportFlags import_flags = {};
 
-  int asset_flags = 0; /* #eFileSel_AssetParams_Flag */
+  eFileSel_AssetParams_Flag asset_flags = {};
 };
 
 /**
@@ -474,7 +472,7 @@ struct FileFolderHistory {
   struct FileFolderLists *next = nullptr, *prev = nullptr;
 
   /** The browse mode this prev/next folder-lists are created for. */
-  char browse_mode = 0; /* eFileBrowse_Mode */
+  eFileBrowse_Mode browse_mode = FILE_BROWSE_MODE_FILES;
   char _pad[7] = {};
 
   /** Holds the list of previous directories to show. */
@@ -489,15 +487,15 @@ struct SpaceFile {
   /** Storage of regions for inactive spaces. */
   ListBaseT<ARegion> regionbase = {nullptr, nullptr};
   char spacetype = 0;
-  char link_flag = 0;
+  eSpace_Link_Flag link_flag = {};
   char _pad0[6] = {};
   /* End 'SpaceLink' header. */
 
   /** Is this a File Browser or an Asset Browser? */
-  char browse_mode = 0; /* eFileBrowse_Mode */
+  eFileBrowse_Mode browse_mode = FILE_BROWSE_MODE_FILES;
   char _pad1[1] = {};
 
-  short tags = 0;
+  eFileTags tags = {};
 
   int scroll_offset = 0;
 
@@ -564,7 +562,9 @@ struct FileDirEntry {
   struct {
     /* Temp caching of UI-generated strings. */
     char size_str[16] = "";
-    char datetime_str[16 + 8] = "";
+    /* Maximum length includes possibility for 4-character x 4-byte
+     * short month name and 2-character x 4-byte "am/pm" translation. */
+    char datetime_str[40] = "";
   } draw_data;
 
   /** #eFileSel_File_Types. */
@@ -589,7 +589,7 @@ struct FileDirEntry {
   /* The icon_id for the preview image. */
   int preview_icon_id = 0;
 
-  short flags = 0;
+  eFileEntry_Flag flags = {};
   /* eFileAttributes defined in BLI_fileops.h */
   int attributes = 0;
 };
@@ -619,7 +619,7 @@ struct FileDirEntryArr {
 /* Image/UV Editor */
 
 struct SpaceImageOverlay {
-  int flag = 0;
+  eSpaceImageOverlay_Flag flag = {};
   float passepartout_alpha = 0;
 };
 
@@ -628,7 +628,7 @@ struct SpaceImage {
   /** Storage of regions for inactive spaces. */
   ListBaseT<ARegion> regionbase = {nullptr, nullptr};
   char spacetype = 0;
-  char link_flag = 0;
+  eSpace_Link_Flag link_flag = {};
   char _pad0[6] = {};
   /* End 'SpaceLink' header. */
 
@@ -653,27 +653,27 @@ struct SpaceImage {
   float centx = 0, centy = 0;
 
   /** View/paint/mask. */
-  char mode = 0;
+  eSpaceImage_Mode mode = SI_MODE_VIEW;
   /* Storage for sub-space types. */
-  char mode_prev = 0;
+  eSpaceImage_Mode mode_prev = SI_MODE_VIEW;
 
   char pin = 0;
 
-  char pixel_round_mode = 0;
+  eSpaceImage_PixelRoundMode pixel_round_mode = SI_PIXEL_ROUND_DISABLED;
 
   char lock = 0;
   /** UV draw type. */
-  char dt_uv = 0;
+  eSpaceImage_UVDT dt_uv = SI_UVDT_OUTLINE;
   /** Sticky selection type. */
-  char dt_uvstretch = 0;
+  eSpaceImage_UVDT_Stretch dt_uvstretch = SI_UVDT_STRETCH_ANGLE;
   char around = 0;
 
-  char gizmo_flag = 0;
+  eSpaceImage_Gizmo_Flag gizmo_flag = {};
 
-  char grid_shape_source = 0;
+  eSpaceImage_GridShapeSource grid_shape_source = SI_GRID_SHAPE_DYNAMIC;
   char _pad1[6] = {};
 
-  int flag = 0;
+  eSpaceImage_Flag flag = {};
 
   float uv_opacity = 0;
   float uv_face_opacity = 0;
@@ -704,7 +704,7 @@ struct SpaceText {
   /** Storage of regions for inactive spaces. */
   ListBaseT<ARegion> regionbase = {nullptr, nullptr};
   char spacetype = 0;
-  char link_flag = 0;
+  eSpace_Link_Flag link_flag = {};
   char _pad0[6] = {};
   /* End 'SpaceLink' header. */
 
@@ -717,7 +717,7 @@ struct SpaceText {
   int left = 0;
   char _pad1[4] = {};
 
-  short flags = 0;
+  eSpaceText_Flags flags = {};
 
   /** User preference, is font_size! */
   short lheight = 0;
@@ -815,10 +815,8 @@ struct bNodeTreePath {
 };
 
 struct SpaceNodeOverlay {
-  /* eSpaceNodeOverlay_Flag */
-  int flag = 0;
-  /* eSpaceNodeOverlay_preview_shape */
-  int preview_shape = 0;
+  eSpaceNodeOverlay_Flag flag = {};
+  eSpaceNodeOverlay_preview_shape preview_shape = SN_OVERLAY_PREVIEW_FLAT;
   float passepartout_alpha = 0;
   char _pad[4] = {};
 };
@@ -830,7 +828,7 @@ struct SpaceNode {
   /** Storage of regions for inactive spaces. */
   ListBaseT<ARegion> regionbase = {nullptr, nullptr};
   char spacetype = 0;
-  char link_flag = 0;
+  eSpace_Link_Flag link_flag = {};
   char _pad0[6] = {};
   /* End 'SpaceLink' header. */
 
@@ -840,10 +838,10 @@ struct SpaceNode {
   /** Context, no need to save in file? well... pinning... */
   struct ID *id = nullptr, *from = nullptr;
 
-  short flag = 0;
+  eSpaceNode_Flag flag = {};
 
   /** Direction for offsetting nodes on insertion. */
-  char insert_ofs_dir = 0;
+  eSpaceNode_InsertOffsetDir insert_ofs_dir = SNODE_INSERTOFS_DIR_RIGHT;
   char _pad1 = {};
 
   /** Offset for drawing the backdrop. */
@@ -870,10 +868,10 @@ struct SpaceNode {
   /** Same as #bNodeTree::type (deprecated). */
   DNA_DEPRECATED int treetype = 0;
 
-  /** Texture-from object, world or brush (#eSpaceNode_TexFrom). */
-  short texfrom = 0;
-  /** Shader from object or world (#eSpaceNode_ShaderFrom). */
-  char shaderfrom = 0;
+  /** Texture-from object, world or brush. */
+  eSpaceNode_TexFrom texfrom = SNODE_TEX_WORLD;
+  /** Shader from object or world. */
+  eSpaceNode_ShaderFrom shaderfrom = SNODE_SHADER_OBJECT;
   /**
    * The sub type of the node tree being edited.
    * #SpaceNodeGeometryNodesType or #SpaceNodeCompositorNodesType.
@@ -891,7 +889,7 @@ struct SpaceNode {
   /** Grease-pencil data. */
   struct bGPdata *gpd = nullptr;
 
-  char gizmo_flag = 0;
+  eSpaceNode_Gizmo_Flag gizmo_flag = {};
   char _pad2[7] = {};
 
   SpaceNodeOverlay overlay;
@@ -992,11 +990,11 @@ struct SpaceClip {
   /** Storage of regions for inactive spaces. */
   ListBaseT<ARegion> regionbase = {nullptr, nullptr};
   char spacetype = SPACE_CLIP;
-  char link_flag = 0;
+  eSpace_Link_Flag link_flag = {};
   char _pad0[6] = {};
   /* End 'SpaceLink' header. */
 
-  char gizmo_flag = 0;
+  eSpaceClip_Gizmo_Flag gizmo_flag = {};
   char _pad1[3] = {};
 
   /** User defined offset, image is centered. */
@@ -1014,12 +1012,12 @@ struct SpaceClip {
   struct MovieClipScopes scopes;
 
   /** Flags. */
-  int flag = SC_SHOW_MARKER_PATTERN | SC_SHOW_TRACK_PATH | SC_SHOW_GRAPH_TRACKS_MOTION |
-             SC_SHOW_GRAPH_FRAMES | SC_SHOW_ANNOTATION;
+  eSpaceClip_Flag flag = SC_SHOW_MARKER_PATTERN | SC_SHOW_TRACK_PATH |
+                         SC_SHOW_GRAPH_TRACKS_MOTION | SC_SHOW_GRAPH_FRAMES | SC_SHOW_ANNOTATION;
   /** Editor mode (editing context being displayed). */
-  short mode = SC_MODE_TRACKING;
+  eSpaceClip_Mode mode = SC_MODE_TRACKING;
   /** Type of the clip editor view. */
-  short view = SC_VIEW_CLIP;
+  eSpaceClip_View view = SC_VIEW_CLIP;
 
   /** Length of displaying path, in frames. */
   int path_length = 20;
@@ -1039,11 +1037,11 @@ struct SpaceClip {
   int postproc_flag = 0;
 
   /* grease pencil */
-  short gpencil_src = SC_GPENCIL_SRC_CLIP;
+  eSpaceClip_GPencil_Source gpencil_src = SC_GPENCIL_SRC_CLIP;
   char _pad2[2] = {};
 
   /** Pivot point for transforms. */
-  int around = V3D_AROUND_CENTER_MEDIAN;
+  eView3D_Around around = V3D_AROUND_CENTER_MEDIAN;
   char _pad4[4] = {};
 
   /** Mask editor 2d cursor. */
@@ -1091,7 +1089,7 @@ struct SpaceStatusBar {
 /** \name Spreadsheet
  * \{ */
 
-enum SpreadsheetClosureInputOutput {
+enum SpreadsheetClosureInputOutput : int8_t {
   SPREADSHEET_CLOSURE_NONE = 0,
   SPREADSHEET_CLOSURE_INPUT = 1,
   SPREADSHEET_CLOSURE_OUTPUT = 2,
@@ -1169,15 +1167,14 @@ typedef struct SpreadsheetBundleTreeViewPath {
   SpreadsheetBundlePathElem *bundle_path = nullptr;
   int bundle_path_num = 0;
 
-  /** #SpreadsheetClosureInputOutput. */
-  int8_t closure_input_output = SPREADSHEET_CLOSURE_NONE;
+  SpreadsheetClosureInputOutput closure_input_output = SPREADSHEET_CLOSURE_NONE;
   char _pad[3] = {};
 } SpreadsheetBundleTreeViewPath;
 
-typedef enum SpreadsheetGeometryItemType {
+enum SpreadsheetGeometryItemType : uint8_t {
   SPREADSHEET_GEOMETRY_ITEM_TYPE_DOMAIN = 0,
   SPREADSHEET_GEOMETRY_ITEM_TYPE_BUNDLE = 1,
-} SpreadsheetGeometryItemType;
+};
 
 struct SpreadsheetTableIDGeometry {
   SpreadsheetTableID base;
@@ -1205,8 +1202,7 @@ struct SpreadsheetTableIDGeometry {
   uint8_t attribute_domain = 0;
   /** #eSpaceSpreadsheet_ObjectEvalState. */
   uint8_t object_eval_state = 0;
-  /** #SpreadsheetGeometryItemType. */
-  uint8_t geometry_item_type = 0;
+  SpreadsheetGeometryItemType geometry_item_type = SPREADSHEET_GEOMETRY_ITEM_TYPE_DOMAIN;
   SpreadsheetBundleTreeViewPath geometry_bundle_path = {};
   char _pad1[4] = {};
   /** Grease Pencil layer index for grease pencil component. */
@@ -1238,7 +1234,7 @@ struct SpaceSpreadsheet {
   /** Storage of regions for inactive spaces. */
   ListBaseT<ARegion> regionbase = {nullptr, nullptr};
   char spacetype = 0;
-  char link_flag = 0;
+  eSpace_Link_Flag link_flag = {};
   char _pad0[6] = {};
   /* End 'SpaceLink' header. */
 

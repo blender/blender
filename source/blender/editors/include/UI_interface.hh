@@ -21,7 +21,7 @@
 
 namespace blender {
 
-namespace nodes::geo_eval_log {
+namespace nodes::eval_log {
 struct GeometryAttributeInfo;
 }
 
@@ -88,7 +88,7 @@ void template_breadcrumbs(Layout &layout, Span<ContextPathItem> context_path);
 
 void attribute_search_add_items(StringRef str,
                                 bool can_create_attribute,
-                                Span<const nodes::geo_eval_log::GeometryAttributeInfo *> infos,
+                                Span<const nodes::eval_log::GeometryAttributeInfo *> infos,
                                 SearchItems *items,
                                 bool is_first);
 void grease_pencil_layer_search_add_items(StringRef str,

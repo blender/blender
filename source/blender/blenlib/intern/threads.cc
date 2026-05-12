@@ -95,7 +95,6 @@ static pthread_mutex_t _viewer_lock = PTHREAD_MUTEX_INITIALIZER;
 static pthread_mutex_t _custom1_lock = PTHREAD_MUTEX_INITIALIZER;
 static pthread_mutex_t _nodes_lock = PTHREAD_MUTEX_INITIALIZER;
 static pthread_mutex_t _movieclip_lock = PTHREAD_MUTEX_INITIALIZER;
-static pthread_mutex_t _colormanage_lock = PTHREAD_MUTEX_INITIALIZER;
 static pthread_mutex_t _fftw_lock = PTHREAD_MUTEX_INITIALIZER;
 static pthread_mutex_t _view3d_lock = PTHREAD_MUTEX_INITIALIZER;
 static pthread_t mainid;
@@ -315,8 +314,6 @@ static ThreadMutex *global_mutex_from_type(const int type)
       return &_nodes_lock;
     case LOCK_MOVIECLIP:
       return &_movieclip_lock;
-    case LOCK_COLORMANAGE:
-      return &_colormanage_lock;
     case LOCK_FFTW:
       return &_fftw_lock;
     case LOCK_VIEW3D:
@@ -715,7 +712,7 @@ bool BLI_thread_queue_cancel_work(ThreadQueue *queue, uint64_t work_id)
 
 void *BLI_thread_queue_pop(ThreadQueue *queue)
 {
-  ThreadQueueWork work_reference = {0};
+  ThreadQueueWork work_reference = {nullptr};
 
   /* wait until there is work */
   pthread_mutex_lock(&queue->mutex);
@@ -786,7 +783,7 @@ static void wait_timeout(timespec *timeout, int ms)
 void *BLI_thread_queue_pop_timeout(ThreadQueue *queue, int ms)
 {
   double t;
-  ThreadQueueWork work_reference = {0};
+  ThreadQueueWork work_reference = {nullptr};
   timespec timeout;
 
   t = BLI_time_now_seconds();

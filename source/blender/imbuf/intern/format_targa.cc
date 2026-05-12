@@ -32,7 +32,7 @@ ImBuf *imb_load_tga(const uchar *mem, size_t size, int flags, ImFileColorSpace &
   return imb_oiio_read(ctx, config, r_colorspace, spec);
 }
 
-bool imb_save_tga(ImBuf *ibuf, const char *filepath, int flags)
+static std::tuple<WriteContext, ImageSpec> prepare_save_tga(ImBuf *ibuf, int flags)
 {
   const int file_channels = ibuf->planes >> 3;
   const TypeDesc data_format = TypeDesc::UINT8;
@@ -42,7 +42,19 @@ bool imb_save_tga(ImBuf *ibuf, const char *filepath, int flags)
   file_spec.attribute("oiio:UnassociatedAlpha", 1);
   file_spec.attribute("compression", (ibuf->foptions.flag & RAWTGA) ? "none" : "rle");
 
+  return {ctx, file_spec};
+}
+
+bool imb_save_tga(ImBuf *ibuf, const char *filepath, int flags)
+{
+  const auto [ctx, file_spec] = prepare_save_tga(ibuf, flags);
   return imb_oiio_write(ctx, filepath, file_spec);
+}
+
+Vector<uint8_t> imb_save_buffer_tga(ImBuf *ibuf, int flags)
+{
+  const auto [ctx, file_spec] = prepare_save_tga(ibuf, flags);
+  return imb_oiio_write_buffer(ctx, file_spec);
 }
 
 }  // namespace blender

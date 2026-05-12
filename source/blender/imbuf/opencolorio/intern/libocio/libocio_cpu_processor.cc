@@ -4,13 +4,11 @@
 
 #include "libocio_cpu_processor.hh"
 
-#if defined(WITH_OPENCOLORIO)
+#include "OCIO_packed_image.hh"
 
-#  include "OCIO_packed_image.hh"
+#include "BLI_assert.h"
 
-#  include "BLI_assert.h"
-
-#  include "error_handling.hh"
+#include "error_handling.hh"
 
 namespace blender::ocio {
 
@@ -107,5 +105,3 @@ void LibOCIOCPUProcessor::apply_predivide(const PackedImage &image) const
 }
 
 }  // namespace blender::ocio
-
-#endif

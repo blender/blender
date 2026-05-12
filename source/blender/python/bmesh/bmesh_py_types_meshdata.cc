@@ -241,7 +241,7 @@ static PyObject *bpy_bmvertskin_flag_get(BPy_BMVertSkin *self, void *flag_p)
 
 static int bpy_bmvertskin_flag_set(BPy_BMVertSkin *self, PyObject *value, void *flag_p)
 {
-  const int flag = POINTER_AS_INT(flag_p);
+  const eMVertSkinFlag flag = eMVertSkinFlag(POINTER_AS_INT(flag_p));
 
   switch (PyC_Long_AsBool(value)) {
     case true:

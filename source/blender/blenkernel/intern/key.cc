@@ -150,7 +150,8 @@ static void shapekey_blend_read_data(BlendDataReader *reader, ID *id)
   BLO_read_struct(reader, KeyBlock, &key->refkey);
 
   for (KeyBlock &kb : key->block) {
-    BLO_read_data_address(reader, &kb.data);
+    BLO_read_array_and_validate_size(
+        reader, reinterpret_cast<std::byte **>(&kb.data), &kb.totelem, key->elemsize);
 
     /* NOTE: This is endianness-sensitive. */
     /* Keyblock data would need specific endian switching depending of the exact type of data it

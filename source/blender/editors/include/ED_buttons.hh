@@ -44,6 +44,6 @@ bool ED_buttons_should_sync_with_outliner(const bContext *C,
 void ED_buttons_set_context(const bContext *C,
                             SpaceProperties *sbuts,
                             PointerRNA *ptr,
-                            int context);
+                            eSpaceButtons_Context context);
 
 }  // namespace blender

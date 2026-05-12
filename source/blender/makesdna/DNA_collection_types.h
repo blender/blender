@@ -14,6 +14,8 @@
 #include "DNA_defs.h"
 #include "DNA_listBase.h"
 
+#include "BLI_enum_flags.hh"
+
 namespace blender {
 
 namespace bke {
@@ -25,18 +27,19 @@ struct Object;
 struct GHash;
 struct LayoutPanelState;
 
-enum IOHandlerPanelFlag {
+enum IOHandlerPanelFlag : int {
   IO_HANDLER_PANEL_OPEN = 1 << 0,
 };
+ENUM_OPERATORS(IOHandlerPanelFlag)
 
 /* Light linking state of object or collection: defines how they react to the emitters in the
  * scene. See the comment for the link_state in the CollectionLightLinking for the details. */
-enum eCollectionLightLinkingState {
+enum eCollectionLightLinkingState : uint8_t {
   COLLECTION_LIGHT_LINKING_STATE_INCLUDE = 0,
   COLLECTION_LIGHT_LINKING_STATE_EXCLUDE = 1,
 };
 
-enum eCollectionLineArt_Usage {
+enum eCollectionLineArt_Usage : uint8_t {
   COLLECTION_LRT_INCLUDE = 0,
   COLLECTION_LRT_OCCLUSION_ONLY = (1 << 0),
   COLLECTION_LRT_EXCLUDE = (1 << 1),
@@ -44,14 +47,16 @@ enum eCollectionLineArt_Usage {
   COLLECTION_LRT_NO_INTERSECTION = (1 << 3),
   COLLECTION_LRT_FORCE_INTERSECTION = (1 << 4),
 };
+ENUM_OPERATORS(eCollectionLineArt_Usage)
 
-enum eCollectionLineArt_Flags {
+enum eCollectionLineArt_Flags : uint8_t {
   COLLECTION_LRT_USE_INTERSECTION_MASK = (1 << 0),
   COLLECTION_LRT_USE_INTERSECTION_PRIORITY = (1 << 1),
 };
+ENUM_OPERATORS(eCollectionLineArt_Flags)
 
 /** #Collection.flag */
-enum {
+enum eCollection_Flag : uint8_t {
   /** Disable in viewports. */
   COLLECTION_HIDE_VIEWPORT = (1 << 0),
   /** Not selectable in viewport. */
@@ -66,12 +71,13 @@ enum {
   /** for object_cache_instanced. */
   COLLECTION_HAS_OBJECT_CACHE_INSTANCED = (1 << 6),
 };
+ENUM_OPERATORS(eCollection_Flag)
 
 #define COLLECTION_FLAG_ALL_RUNTIME \
   (COLLECTION_HAS_OBJECT_CACHE | COLLECTION_HAS_OBJECT_CACHE_INSTANCED)
 
 /** #Collection.color_tag */
-enum CollectionColorTag {
+enum CollectionColorTag : int8_t {
   COLLECTION_COLOR_NONE = -1,
   COLLECTION_COLOR_01,
   COLLECTION_COLOR_02,
@@ -108,7 +114,7 @@ struct CollectionLightLinking {
    *
    *   - EXCLUDE: the collection or object does not cast shadow when lit by this emitter, but does
    *     for other light sources in the scene. */
-  uint8_t link_state = 0;
+  eCollectionLightLinkingState link_state = COLLECTION_LIGHT_LINKING_STATE_INCLUDE;
 
   uint8_t _pad[3] = {};
 };
@@ -182,13 +188,13 @@ struct Collection {
   DNA_DEPRECATED unsigned int layer = 0;
   float instance_offset[3] = {};
 
-  uint8_t flag = 0;
-  int8_t color_tag = COLLECTION_COLOR_NONE;
+  eCollection_Flag flag = {};
+  CollectionColorTag color_tag = COLLECTION_COLOR_NONE;
 
   char _pad1[2] = {};
 
-  uint8_t lineart_usage = 0; /* #eCollectionLineArt_Usage */
-  uint8_t lineart_flags = 0; /* #eCollectionLineArt_Flags */
+  eCollectionLineArt_Usage lineart_usage = COLLECTION_LRT_INCLUDE;
+  eCollectionLineArt_Flags lineart_flags = {};
   uint8_t lineart_intersection_mask = 0;
   uint8_t lineart_intersection_priority = 0;
 

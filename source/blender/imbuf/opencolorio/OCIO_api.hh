@@ -13,4 +13,5 @@
 #include "OCIO_matrix.hh"
 #include "OCIO_packed_image.hh"
 #include "OCIO_role_names.hh"
+#include "OCIO_scope.hh"
 #include "OCIO_view.hh"

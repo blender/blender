@@ -5,6 +5,7 @@
 #include "BLI_math_quaternion.hh"
 
 #include "node_function_util.hh"
+#include "node_shader_util.hh"
 
 namespace blender::nodes::node_fn_invert_rotation_cc {
 
@@ -17,6 +18,15 @@ static void node_declare(NodeDeclarationBuilder &b)
   b.add_output<decl::Rotation>("Rotation"_ustr).align_with_previous();
 };
 
+static int node_gpu_material(GPUMaterial *mat,
+                             bNode *node,
+                             bNodeExecData * /*execdata*/,
+                             GPUNodeStack *in,
+                             GPUNodeStack *out)
+{
+  return GPU_stack_link(mat, node, "invert_rotation", in, out);
+}
+
 static void node_build_multi_function(NodeMultiFunctionBuilder &builder)
 {
   static auto fn = mf::build::SI1_SO<math::Quaternion, math::Quaternion>(
@@ -27,12 +37,13 @@ static void node_build_multi_function(NodeMultiFunctionBuilder &builder)
 static void node_register()
 {
   static bke::bNodeType ntype;
-  fn_node_type_base(&ntype, "FunctionNodeInvertRotation"_ustr, FN_NODE_INVERT_ROTATION);
+  fn_cmp_node_type_base(&ntype, "FunctionNodeInvertRotation"_ustr, FN_NODE_INVERT_ROTATION);
   ntype.ui_name = "Invert Rotation";
   ntype.ui_description = "Compute the inverse of the given rotation";
   ntype.enum_name_legacy = "INVERT_ROTATION";
   ntype.nclass = NODE_CLASS_CONVERTER;
   ntype.declare = node_declare;
+  ntype.gpu_fn = node_gpu_material;
   ntype.build_multi_function = node_build_multi_function;
   bke::node_register_type(ntype);
 }

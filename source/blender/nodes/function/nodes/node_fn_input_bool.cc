@@ -32,7 +32,7 @@ static int gpu_shader_bool(GPUMaterial *mat,
                            GPUNodeStack *out)
 {
   NodeInputBool *node_storage = static_cast<NodeInputBool *>(node->storage);
-  float value = static_cast<float>(node_storage->boolean);
+  float value = float(node_storage->boolean);
   return GPU_link(mat, "set_value", GPU_uniform(&value), &out->link);
 }
 

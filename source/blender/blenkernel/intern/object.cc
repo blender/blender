@@ -538,7 +538,7 @@ static void object_foreach_path_particles(Object *ob, BPathForeachPathData *bpat
   for (ParticleSystem &psys : ob->particlesystem) {
     bool all_caches_external = true;
 
-    if (psys.part->type == PART_HAIR && (psys.part->flag & PSYS_HAIR_DYNAMICS) == 0) {
+    if (psys.part->type == PART_HAIR && (psys.flag & PSYS_HAIR_DYNAMICS) == 0) {
       /* Hair system without dynamics, this means it doesn't use its particle cache.
        * NOTE: the PSYS_HAIR_DYNAMICS flag can be animated, so technically this is only correct for
        * the current frame. */
@@ -898,8 +898,9 @@ static void object_blend_read_data(BlendDataReader *reader, ID *id)
   BLO_read_struct_list(reader, bDeformGroup, &ob->defbase);
   BLO_read_struct_list(reader, bFaceMap, &ob->fmaps);
 
-  BLO_read_pointer_array(reader, ob->totcol, reinterpret_cast<void **>(&ob->mat));
-  BLO_read_char_array(reader, ob->totcol, &ob->matbits);
+  BLO_read_pointer_array_and_validate_size(reader, &ob->mat, &ob->totcol);
+  /* Ignore failure to read, matbis will become null which is valid. */
+  (void)BLO_read_array(reader, &ob->matbits, ob->totcol);
 
   /* do it here, below old data gets converted */
   BKE_modifier_blend_read_data(reader, &ob->modifiers, ob);
@@ -919,7 +920,7 @@ static void object_blend_read_data(BlendDataReader *reader, ID *id)
           BKE_modifier_new(eModifierType_Wave));
 
       wmd->damp = wav->damp;
-      wmd->flag = wav->flag;
+      wmd->flag = WaveModifierFlag(wav->flag);
       wmd->height = wav->height;
       wmd->lifetime = wav->lifetime;
       wmd->narrow = wav->narrow;
@@ -972,7 +973,7 @@ static void object_blend_read_data(BlendDataReader *reader, ID *id)
     sb->scratch = nullptr;
     /* although not used anymore */
     /* still have to be loaded to be compatible with old files */
-    BLO_read_pointer_array(reader, sb->totkey, reinterpret_cast<void **>(&sb->keys));
+    BLO_read_pointer_array_and_validate_size(reader, &sb->keys, &sb->totkey);
     if (sb->keys) {
       for (int a = 0; a < sb->totkey; a++) {
         BLO_read_struct(reader, SBVertex, &sb->keys[a]);
@@ -1021,7 +1022,7 @@ static void object_blend_read_data(BlendDataReader *reader, ID *id)
     HookModifierData *hmd = reinterpret_cast<HookModifierData *>(
         BKE_modifier_new(eModifierType_Hook));
 
-    BLO_read_int32_array(reader, hook->totindex, &hook->indexar);
+    BLO_read_array_and_validate_size(reader, &hook->indexar, &hook->totindex);
 
     /* Do conversion here because if we have loaded
      * a hook we need to make sure it gets converted
@@ -1251,7 +1252,7 @@ static AssetTypeInfo AssetType_OB = {
 IDTypeInfo IDType_ID_OB = {
     .id_code = Object::id_type,
     .id_filter = FILTER_ID_OB,
-    /* Could be more specific, but simpler to just always say 'yes' here.*/
+    /* Could be more specific, but simpler to just always say 'yes' here. */
     .dependencies_id_types = FILTER_ID_ALL,
     .main_listbase_index = INDEX_ID_OB,
     .struct_size = sizeof(Object),
@@ -1515,23 +1516,23 @@ static ParticleSystem *object_copy_modifier_particle_system_ensure(Main *bmain,
   return psys_dst;
 }
 
-bool BKE_object_copy_modifier(Main *bmain,
-                              const Scene *scene,
-                              Object *ob_dst,
-                              const Object *ob_src,
-                              const ModifierData *md_src)
+ModifierData *BKE_object_copy_modifier(Main *bmain,
+                                       const Scene *scene,
+                                       Object *ob_dst,
+                                       const Object *ob_src,
+                                       const ModifierData *md_src)
 {
   const ModifierTypeInfo *mti = BKE_modifier_get_info(ModifierType(md_src->type));
   if (!object_modifier_type_copy_check(ModifierType(md_src->type))) {
     /* We never allow copying those modifiers here. */
-    return false;
+    return nullptr;
   }
   if (!BKE_object_support_modifier_type_check(ob_dst, md_src->type)) {
-    return false;
+    return nullptr;
   }
   if (mti->flags & eModifierTypeFlag_Single) {
     if (BKE_modifiers_findby_type(ob_dst, ModifierType(md_src->type)) != nullptr) {
-      return false;
+      return nullptr;
     }
   }
 
@@ -1617,9 +1618,7 @@ bool BKE_object_copy_modifier(Main *bmain,
     BKE_modifiers_persistent_uid_init(*ob_dst, *md_dst);
   }
 
-  BKE_object_modifier_set_active(ob_dst, md_dst);
-
-  return true;
+  return md_dst;
 }
 
 bool BKE_object_modifier_stack_copy(Object *ob_dst,
@@ -2107,7 +2106,7 @@ bool BKE_object_exists_check(Main *bmain, const Object *obtest)
 
 /* *************************************************** */
 
-static const char *get_obdata_defname(int type)
+static const char *get_obdata_defname(ObjectType type)
 {
   switch (type) {
     case OB_MESH:
@@ -2148,7 +2147,7 @@ static const char *get_obdata_defname(int type)
   }
 }
 
-static void object_init(Object *ob, const short ob_type)
+static void object_init(Object *ob, const ObjectType ob_type)
 {
   object_init_data(&ob->id);
 
@@ -2174,7 +2173,7 @@ static void object_init(Object *ob, const short ob_type)
   }
 }
 
-void *BKE_object_obdata_add_from_type(Main *bmain, int type, const char *name)
+void *BKE_object_obdata_add_from_type(Main *bmain, ObjectType type, const char *name)
 {
   if (name == nullptr) {
     name = get_obdata_defname(type);
@@ -2254,7 +2253,7 @@ int BKE_object_obdata_to_type(const ID *id)
   }
 }
 
-Object *BKE_object_add_only_object(Main *bmain, int type, const char *name)
+Object *BKE_object_add_only_object(Main *bmain, ObjectType type, const char *name)
 {
   if (!name) {
     name = get_obdata_defname(type);
@@ -2274,7 +2273,7 @@ Object *BKE_object_add_only_object(Main *bmain, int type, const char *name)
 }
 
 static Object *object_add_common(
-    Main *bmain, const Scene *scene, ViewLayer *view_layer, int type, const char *name)
+    Main *bmain, const Scene *scene, ViewLayer *view_layer, ObjectType type, const char *name)
 {
   Object *ob = BKE_object_add_only_object(bmain, type, name);
   ob->data = static_cast<ID *>(BKE_object_obdata_add_from_type(bmain, type, name));
@@ -2286,7 +2285,7 @@ static Object *object_add_common(
 }
 
 Object *BKE_object_add(
-    Main *bmain, Scene *scene, ViewLayer *view_layer, int type, const char *name)
+    Main *bmain, Scene *scene, ViewLayer *view_layer, ObjectType type, const char *name)
 {
   Object *ob = object_add_common(bmain, scene, view_layer, type, name);
 
@@ -2304,8 +2303,12 @@ Object *BKE_object_add(
   return ob;
 }
 
-Object *BKE_object_add_from(
-    Main *bmain, Scene *scene, ViewLayer *view_layer, int type, const char *name, Object *ob_src)
+Object *BKE_object_add_from(Main *bmain,
+                            Scene *scene,
+                            ViewLayer *view_layer,
+                            ObjectType type,
+                            const char *name,
+                            Object *ob_src)
 {
   Object *ob = object_add_common(bmain, scene, view_layer, type, name);
   BKE_collection_object_add_from(bmain, scene, ob_src, ob);
@@ -2320,7 +2323,7 @@ Object *BKE_object_add_from(
 Object *BKE_object_add_for_data(Main *bmain,
                                 const Scene *scene,
                                 ViewLayer *view_layer,
-                                int type,
+                                ObjectType type,
                                 const char *name,
                                 ID *data,
                                 bool do_id_user)
@@ -2529,6 +2532,8 @@ Object *BKE_object_pose_armature_get_with_wpaint_check(Object *ob)
         }
         break;
       }
+      default:
+        break;
     }
   }
   return BKE_object_pose_armature_get(ob);
@@ -2768,6 +2773,8 @@ Object *BKE_object_duplicate(Main *bmain,
         id_new = BKE_id_copy_for_duplicate(bmain, id_old, dupflag, copy_flags);
       }
       break;
+    default:
+      break;
   }
 
   /* If obdata has been copied, we may also have to duplicate the materials assigned to it. */
@@ -2871,6 +2878,8 @@ void BKE_object_obdata_size_init(Object *ob, const float size)
       BKE_lattice_transform(lt, static_cast<float (*)[4]>(mat), false);
       break;
     }
+    default:
+      break;
   }
 }
 
@@ -3203,7 +3212,8 @@ static void ob_parbone(const Object *ob, const Object *par, float r_mat[4][4])
 
   /* Make sure the bone is still valid */
   const bPoseChannel *pchan = BKE_pose_channel_find_name(par->pose, ob->parsubstr);
-  if (!pchan || !pchan->bone) {
+  const Bone *pchan_bone = pchan ? pchan->bone_get(*par) : nullptr;
+  if (!pchan || !pchan_bone) {
     CLOG_WARN(
         &LOG, "Parent Bone: '%s' for Object: '%s' doesn't exist", ob->parsubstr, ob->id.name + 2);
     unit_m4(r_mat);
@@ -3211,7 +3221,7 @@ static void ob_parbone(const Object *ob, const Object *par, float r_mat[4][4])
   }
 
   /* get bone transform */
-  if (pchan->bone->flag & BONE_RELATIVE_PARENTING) {
+  if (pchan_bone->flag & BONE_RELATIVE_PARENTING) {
     /* the new option uses the root - expected behavior, but differs from old... */
     /* XXX check on version patching? */
     copy_m4_m4(r_mat, pchan->chan_mat);
@@ -3221,7 +3231,7 @@ static void ob_parbone(const Object *ob, const Object *par, float r_mat[4][4])
 
     /* but for backwards compatibility, the child has to move to the tail */
     copy_v3_v3(vec, r_mat[1]);
-    mul_v3_fl(vec, pchan->bone->length);
+    mul_v3_fl(vec, pchan_bone->length);
     add_v3_v3(r_mat[3], vec);
   }
 }
@@ -3411,6 +3421,8 @@ void BKE_object_get_parent_matrix(const Object *ob, Object *par, float r_parentm
 
     case PARSKEL:
       copy_m4_m4(r_parentmat, par->object_to_world().ptr());
+      break;
+    default:
       break;
   }
 }
@@ -3697,6 +3709,8 @@ std::optional<Bounds<float3>> BKE_object_boundbox_get(const Object *ob)
       return BKE_volume_min_max(id_cast<const Volume *>(ob->data));
     case OB_GREASE_PENCIL:
       return id_cast<const GreasePencil *>(ob->data)->bounds_min_max_eval();
+    default:
+      break;
   }
   return std::nullopt;
 }
@@ -3805,7 +3819,7 @@ void BKE_object_minmax(Object *ob, float3 &r_min, float3 &r_max)
 
 void BKE_object_empty_draw_type_set(Object *ob, const int value)
 {
-  ob->empty_drawtype = value;
+  ob->empty_drawtype = eObject_EmptyDrawType(value);
 
   if (ob->type == OB_EMPTY && ob->empty_drawtype == OB_EMPTY_IMAGE) {
     if (!ob->iuser) {
@@ -4217,7 +4231,7 @@ void BKE_object_handle_update_ex(Depsgraph *depsgraph,
   if (ob->pose != nullptr) {
     BKE_pose_channels_hash_ensure(ob->pose);
     if (ob->pose->flag & POSE_CONSTRAINTS_NEED_UPDATE_FLAGS) {
-      BKE_pose_update_constraint_flags(ob->pose);
+      BKE_pose_update_constraint_flags(*ob);
     }
   }
   if (recalc_data) {
@@ -4744,6 +4758,8 @@ bool BKE_object_shapekey_remove(Main *bmain, Object *ob, KeyBlock *kb)
         case OB_LATTICE:
           BKE_keyblock_convert_to_lattice(key->refkey, id_cast<Lattice *>(ob->data));
           break;
+        default:
+          break;
       }
     }
   }
@@ -5254,9 +5270,9 @@ void BKE_object_groups_clear(Main *bmain, Scene *scene, Object *ob)
 /** \name Object KD-Tree
  * \{ */
 
-KDTree_3d *BKE_object_as_kdtree(Object *ob, int *r_tot)
+KDTree<float3> *BKE_object_as_kdtree(Object *ob, int *r_tot)
 {
-  KDTree_3d *tree = nullptr;
+  KDTree<float3> *tree = nullptr;
   uint tot = 0;
 
   switch (ob->type) {
@@ -5276,14 +5292,14 @@ KDTree_3d *BKE_object_as_kdtree(Object *ob, int *r_tot)
 
         /* Tree over-allocates in case where some verts have #ORIGINDEX_NONE. */
         tot = 0;
-        tree = kdtree_3d_new(positions.size());
+        tree = kdtree_new<float3>(positions.size());
 
         /* We don't how many verts from the DM we can use. */
         for (i = 0; i < positions.size(); i++) {
           if (index[i] != ORIGINDEX_NONE) {
             float co[3];
             mul_v3_m4v3(co, ob->object_to_world().ptr(), positions[i]);
-            kdtree_3d_insert(tree, index[i], co);
+            kdtree_insert<float3>(tree, index[i], co);
             tot++;
           }
         }
@@ -5292,16 +5308,16 @@ KDTree_3d *BKE_object_as_kdtree(Object *ob, int *r_tot)
         const Span<float3> positions = mesh->vert_positions();
 
         tot = positions.size();
-        tree = kdtree_3d_new(tot);
+        tree = kdtree_new<float3>(tot);
 
         for (i = 0; i < tot; i++) {
           float co[3];
           mul_v3_m4v3(co, ob->object_to_world().ptr(), positions[i]);
-          kdtree_3d_insert(tree, i, co);
+          kdtree_insert<float3>(tree, i, co);
         }
       }
 
-      kdtree_3d_balance(tree);
+      kdtree_balance<float3>(tree);
       break;
     }
     case OB_CURVES_LEGACY:
@@ -5313,7 +5329,7 @@ KDTree_3d *BKE_object_as_kdtree(Object *ob, int *r_tot)
       Nurb *nu;
 
       tot = BKE_nurbList_verts_count_without_handles(&cu->nurb);
-      tree = kdtree_3d_new(tot);
+      tree = kdtree_new<float3>(tot);
       i = 0;
 
       nu = static_cast<Nurb *>(cu->nurb.first);
@@ -5326,7 +5342,7 @@ KDTree_3d *BKE_object_as_kdtree(Object *ob, int *r_tot)
           while (a--) {
             float co[3];
             mul_v3_m4v3(co, ob->object_to_world().ptr(), bezt->vec[1]);
-            kdtree_3d_insert(tree, i++, co);
+            kdtree_insert<float3>(tree, i++, co);
             bezt++;
           }
         }
@@ -5338,14 +5354,14 @@ KDTree_3d *BKE_object_as_kdtree(Object *ob, int *r_tot)
           while (a--) {
             float co[3];
             mul_v3_m4v3(co, ob->object_to_world().ptr(), bp->vec);
-            kdtree_3d_insert(tree, i++, co);
+            kdtree_insert<float3>(tree, i++, co);
             bp++;
           }
         }
         nu = nu->next;
       }
 
-      kdtree_3d_balance(tree);
+      kdtree_balance<float3>(tree);
       break;
     }
     case OB_LATTICE: {
@@ -5355,18 +5371,20 @@ KDTree_3d *BKE_object_as_kdtree(Object *ob, int *r_tot)
       uint i;
 
       tot = lt->pntsu * lt->pntsv * lt->pntsw;
-      tree = kdtree_3d_new(tot);
+      tree = kdtree_new<float3>(tot);
       i = 0;
 
       for (bp = lt->def; i < tot; bp++) {
         float co[3];
         mul_v3_m4v3(co, ob->object_to_world().ptr(), bp->vec);
-        kdtree_3d_insert(tree, i++, co);
+        kdtree_insert<float3>(tree, i++, co);
       }
 
-      kdtree_3d_balance(tree);
+      kdtree_balance<float3>(tree);
       break;
     }
+    default:
+      break;
   }
 
   *r_tot = tot;
@@ -5625,7 +5643,7 @@ SubsurfModifierData *BKE_object_get_last_subsurf_modifier(const Object *ob)
 
 void BKE_object_replace_data_on_shallow_copy(Object *ob, ID *new_data)
 {
-  ob->type = BKE_object_obdata_to_type(new_data);
+  ob->type = ObjectType(BKE_object_obdata_to_type(new_data));
   ob->data = new_data;
   ob->runtime->geometry_set_eval = nullptr;
   ob->runtime->contained_geometry_types = 0;

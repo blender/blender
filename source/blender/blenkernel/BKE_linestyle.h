@@ -33,16 +33,16 @@ FreestyleLineStyle *BKE_linestyle_active_from_view_layer(struct ViewLayer *view_
 
 LineStyleModifier *BKE_linestyle_color_modifier_add(FreestyleLineStyle *linestyle,
                                                     const char *name,
-                                                    int type);
+                                                    eLineStyleModifier_Type type);
 LineStyleModifier *BKE_linestyle_alpha_modifier_add(FreestyleLineStyle *linestyle,
                                                     const char *name,
-                                                    int type);
+                                                    eLineStyleModifier_Type type);
 LineStyleModifier *BKE_linestyle_thickness_modifier_add(FreestyleLineStyle *linestyle,
                                                         const char *name,
-                                                        int type);
+                                                        eLineStyleModifier_Type type);
 LineStyleModifier *BKE_linestyle_geometry_modifier_add(FreestyleLineStyle *linestyle,
                                                        const char *name,
-                                                       int type);
+                                                       eLineStyleModifier_Type type);
 
 LineStyleModifier *BKE_linestyle_color_modifier_copy(FreestyleLineStyle *linestyle,
                                                      const LineStyleModifier *m,

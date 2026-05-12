@@ -21,17 +21,14 @@ using Alembic::Abc::ISampleSelector;
 
 namespace io::alembic {
 
-AbcEmptyReader::AbcEmptyReader(const Alembic::Abc::IObject &object, ImportSettings &settings)
-    : AbcObjectReader(object, settings)
+AbcEmptyReader::AbcEmptyReader(const AbcReaderConstructorArgs &args) : AbcObjectReader(args)
 {
   /* Empties have no data. It makes the import of Alembic files easier to
    * understand when we name the empty after its name in Alembic. */
-  m_object_name = object.getName();
+  m_object_name = m_iobject.getName();
 
-  Alembic::AbcGeom::IXform xform(object, Alembic::AbcGeom::kWrapExisting);
+  Alembic::AbcGeom::IXform xform(m_iobject, Alembic::AbcGeom::kWrapExisting);
   m_schema = xform.getSchema();
-
-  get_min_max_time(m_iobject, m_schema, m_min_time, m_max_time);
 }
 
 bool AbcEmptyReader::valid() const

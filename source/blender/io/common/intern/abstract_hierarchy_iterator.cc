@@ -518,7 +518,7 @@ void AbstractHierarchyIterator::context_update_for_graph_index(
 
   /* If the parent type is such that it cannot be exported (at least not currently to USD or
    * Alembic), always check the parent for animation. */
-  const short partype = context->object->partype & PARTYPE;
+  const eObject_Partype partype = context->object->partype & PARTYPE;
   context->animation_check_include_parent |= ELEM(partype, PARBONE, PARVERT1, PARVERT3, PARSKEL);
 
   if (context->export_parent != context->object->parent) {
@@ -770,6 +770,8 @@ void AbstractHierarchyIterator::make_writers_particle_systems(
       case PART_FLUID_FOAMBUBBLE:
       case PART_FLUID_SPRAYFOAMBUBBLE:
         writer = ensure_writer(&hair_context, &AbstractHierarchyIterator::create_particle_writer);
+        break;
+      default:
         break;
     }
     if (!writer) {

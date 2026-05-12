@@ -86,7 +86,7 @@ void BLI_bitmap_randomize(unsigned int *bitmap, unsigned int bits_num, unsigned 
     ATTR_NONNULL(1);
 
 /** array versions for thread safe random generation */
-RNG_THREAD_ARRAY *BLI_rng_threaded_new(void);
+RNG_THREAD_ARRAY *BLI_rng_threaded_new();
 void BLI_rng_threaded_free(struct RNG_THREAD_ARRAY *rngarr) ATTR_NONNULL(1);
 int BLI_rng_thread_rand(RNG_THREAD_ARRAY *rngarr, int thread) ATTR_WARN_UNUSED_RESULT;
 

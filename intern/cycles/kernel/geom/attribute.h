@@ -21,6 +21,11 @@ CCL_NAMESPACE_BEGIN
  * Lookup of attributes is different between OSL and SVM, as OSL is ustring
  * based while for SVM we use integer ids. */
 
+ccl_device_forceinline bool is_attribute_found(const ccl_private AttributeDescriptor &desc)
+{
+  return desc.offset != ATTR_STD_NOT_FOUND;
+}
+
 ccl_device_inline AttributeDescriptor attribute_not_found()
 {
   const AttributeDescriptor desc = {ATTR_ELEMENT_NONE, (NodeAttributeType)0, ATTR_STD_NOT_FOUND};

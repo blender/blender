@@ -816,6 +816,8 @@ static void draw_seq_text_get_source(const Strip *strip, char *r_source, size_t 
       }
       break;
     }
+    default:
+      break;
   }
 }
 
@@ -1199,7 +1201,7 @@ static void draw_multicam_highlight(const TimelineDrawContext &ctx,
 static void seq_prefetch_wm_notify(const bContext *C, Scene *scene)
 {
   if (seq::prefetch_need_redraw(C, scene)) {
-    WM_event_add_notifier(C, NC_SCENE | ND_SEQUENCER, nullptr);
+    WM_event_add_notifier(C, NC_SCENE | ND_SEQUENCER_PREFETCH, nullptr);
   }
 }
 
@@ -1327,8 +1329,7 @@ static void draw_strips_background(const TimelineDrawContext &ctx,
 
     /* Transition state. */
     if (show_overlay && strip.can_draw_strip_content &&
-        seq::effect_is_transition(StripType(strip.strip->type)) && strip.strip->input1 &&
-        strip.strip->input2)
+        seq::effect_is_transition(strip.strip->type) && strip.strip->input1 && strip.strip->input2)
     {
       data.flags |= GPU_SEQ_FLAG_TRANSITION;
 

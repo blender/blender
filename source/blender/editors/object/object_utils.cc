@@ -118,6 +118,8 @@ bool calc_active_center_for_editmode(Object *obedit, const bool select_only, flo
       mul_m4_v3(obedit->world_to_object().ptr(), r_center);
       return true;
     }
+    default:
+      break;
   }
 
   return false;

@@ -1,0 +1,13 @@
+diff --git a/src/common/mathmisc.h b/src/common/mathmisc.h
+index d8bcc14..66f3378 100644
+--- a/src/common/mathmisc.h
++++ b/src/common/mathmisc.h
+@@ -26,6 +26,8 @@
+ 
+ #include "sysutils.h"
+ 
++#include <cstdlib>
++
+ #ifndef M_PI
+ #define M_PI 3.14159265358979323846
+ #endif // M_PI

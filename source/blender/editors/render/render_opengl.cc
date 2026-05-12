@@ -272,7 +272,8 @@ static void screen_opengl_render_doit(OGLRender *oglrender, RenderResult *rr)
 
   if (oglrender->is_sequencer) {
     SpaceSeq *sseq = oglrender->sseq;
-    bGPdata *gpd = (sseq && (sseq->flag & SEQ_PREVIEW_SHOW_GPENCIL)) ? sseq->gpd : nullptr;
+    bGPdata *gpd = (sseq && (sseq->preview_overlay.flag & SEQ_PREVIEW_SHOW_GPENCIL)) ? sseq->gpd :
+                                                                                       nullptr;
 
     /* use pre-calculated ImBuf (avoids deadlock), see: */
     ImBuf *ibuf = oglrender->seq_data.ibufs_arr[oglrender->view_id];

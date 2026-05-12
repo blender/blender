@@ -502,6 +502,8 @@ struct wmNotifier {
 /* For updating motion paths in 3dview. */
 #define ND_DRAW_ANIMVIZ (33 << 16)
 #define ND_BONE_COLLECTION (34 << 16)
+/* For sequencer prefetch indicator redraw. */
+#define ND_SEQUENCER_PREFETCH (35 << 16)
 
 /* NC_MATERIAL Material. */
 #define ND_SHADING (30 << 16)

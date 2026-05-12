@@ -148,9 +148,7 @@ def run_entry(env: api.TestEnvironment,
     updated = True
 
     # Log all output to dedicated log file.
-    logname = testcategory + '_' + testname + '_' + revision
-    if device_id != 'CPU':
-        logname += '_' + device_id
+    logname = testcategory + '_' + testname + '_' + device_id + '_' + revision
     env.set_log_file(config.logs_dir / (logname + '.log'), clear=True)
 
     # Clear output

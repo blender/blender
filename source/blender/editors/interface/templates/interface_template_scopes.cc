@@ -49,7 +49,7 @@ void template_histogram(Layout *layout, PointerRNA *ptr, const StringRefNull pro
   uiDefBut(block, ButtonType::Histogram, "", 0, 0, UI_UNIT_X * 10, hist->height, hist, 0, 0, "");
 
   /* Resize grip. */
-  uiDefIconButI(block,
+  uiDefIconButV(block,
                 ButtonType::Grip,
                 ICON_GRIP,
                 0,
@@ -105,7 +105,7 @@ void template_waveform(Layout *layout, PointerRNA *ptr, const StringRefNull prop
            "");
 
   /* Resize grip. */
-  uiDefIconButI(block,
+  uiDefIconButV(block,
                 ButtonType::Grip,
                 ICON_GRIP,
                 0,
@@ -161,7 +161,7 @@ void template_vectorscope(Layout *layout, PointerRNA *ptr, const StringRefNull p
            "");
 
   /* Resize grip. */
-  uiDefIconButI(block,
+  uiDefIconButV(block,
                 ButtonType::Grip,
                 ICON_GRIP,
                 0,

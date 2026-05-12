@@ -59,7 +59,10 @@ ccl_device_forceinline void film_write_denoising_features_surface(KernelGlobals 
     normal += (sc->type == CLOSURE_BSDF_HAIR_HUANG_ID ? safe_normalize(sd->dPdu) : sc->N) *
               closure_weight;
 
+    /* bsdf_get_specular_roughness_squared returns GGX alpha squared (alpha_x*alpha_y). Use sqrtf
+     * to get GGX alpha. */
     const float roughness = sqrtf(bsdf_get_specular_roughness_squared(sc));
+
     /* Transition smoothly from specular to diffuse between 0.0 and 0.15 roughness. */
     const float diffuse_weight = (sc->type == CLOSURE_BSDF_HAIR_HUANG_ID) ?
                                      1.0f :
@@ -67,7 +70,8 @@ ccl_device_forceinline void film_write_denoising_features_surface(KernelGlobals 
 
     diffuse_albedo += closure_albedo * diffuse_weight;
     specular_albedo += closure_albedo * (1.0f - diffuse_weight);
-    specular_roughness += roughness * closure_weight;
+    /* Apply sqrtf again to convert GGX alpha to perceptual roughness. */
+    specular_roughness += sqrtf(roughness) * closure_weight;
 
     sum_weight += closure_weight;
     sum_nonspecular_weight += closure_weight * diffuse_weight;
@@ -118,7 +122,7 @@ ccl_device_forceinline void film_write_denoising_features_surface(KernelGlobals 
 
   if (INTEGRATOR_STATE(state, path, bounce) == 0) {
     if (kernel_data.film.pass_denoising_roughness != PASS_UNUSED) {
-      const float denoising_roughness = ensure_finite(sqrtf(specular_roughness) *
+      const float denoising_roughness = ensure_finite(specular_roughness *
                                                       average(denoising_feature_throughput));
       film_write_pass_float(buffer + kernel_data.film.pass_denoising_roughness,
                             denoising_roughness);
@@ -129,6 +133,12 @@ ccl_device_forceinline void film_write_denoising_features_surface(KernelGlobals 
                                                                denoising_feature_throughput);
       film_write_pass_spectrum(buffer + kernel_data.film.pass_denoising_specular_albedo,
                                denoising_specular_albedo);
+    }
+
+    if (kernel_data.film.pass_denoising_backward_motion != PASS_UNUSED) {
+      const float3 backward_motion = primitive_motion_vector_backward_depth_delta(kg, sd);
+      film_write_pass_float3(buffer + kernel_data.film.pass_denoising_backward_motion,
+                             backward_motion);
     }
   }
 

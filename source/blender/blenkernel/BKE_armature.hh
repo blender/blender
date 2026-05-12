@@ -14,10 +14,13 @@
 #include "BLI_function_ref.hh"
 #include "BLI_math_matrix_types.hh"
 #include "BLI_math_vector_types.hh"
+#include "BLI_mutex.hh"
 #include "BLI_set.hh"
 
 #include "DNA_armature_types.h"
 #include "DNA_listBase.h"
+
+#include "BKE_pose.hh"
 
 namespace blender {
 
@@ -36,6 +39,8 @@ struct bConstraint;
 struct bPose;
 struct bPoseChannel;
 struct MDeformVert;
+
+enum eRotationModes : short;
 
 struct EditBone {
   EditBone *next = nullptr, *prev = nullptr;
@@ -66,10 +71,10 @@ struct EditBone {
    * their parents. Therefore any rotations specified during the
    * animation are automatically relative to the bones' rest positions.
    */
-  int flag = 0;
+  eBone_Flag flag = {};
   int layer = 0;
   int drawtype = 0; /* eArmature_Drawtype */
-  char inherit_scale_mode = 0;
+  eBone_InheritScaleMode inherit_scale_mode = BONE_INHERIT_SCALE_FULL;
 
   /* Envelope distance & weight */
   float dist = 0, weight = 0;
@@ -91,12 +96,12 @@ struct EditBone {
   /** Mapping of vertices to segments. */
   eBone_BBoneMappingMode bbone_mapping_mode = BBONE_MAPPING_STRAIGHT;
   /** Type of next/prev bone handles */
-  char bbone_prev_type = 0;
-  char bbone_next_type = 0;
+  eBone_BBoneHandleType bbone_prev_type = BBONE_HANDLE_AUTO;
+  eBone_BBoneHandleType bbone_next_type = BBONE_HANDLE_AUTO;
   /** B-Bone flags. */
-  int bbone_flag = 0;
-  short bbone_prev_flag = 0;
-  short bbone_next_flag = 0;
+  eBone_BBoneFlag bbone_flag = {};
+  eBone_BBoneHandleFlag bbone_prev_flag = {};
+  eBone_BBoneHandleFlag bbone_next_flag = {};
   /** Next/prev bones to use as handle references when calculating bbones (optional) */
   EditBone *bbone_prev = nullptr;
   EditBone *bbone_next = nullptr;
@@ -163,6 +168,12 @@ void BKE_armature_transform(bArmature *arm, const float mat[4][4], bool do_props
  */
 std::optional<Bounds<float3>> BKE_armature_min_max(const Object *ob);
 
+using ForeachBoneFn = FunctionRef<void(int index, const Bone &bone)>;
+/**
+ * Visit each bone in the armature, in depth-first order.
+ */
+void BKE_armature_foreach_bone(const bArmature &armature, ForeachBoneFn callback);
+
 /**
  * Calculate the axis-aligned bounds of `pchan` in object-space,
  * taking into account custom transform when set.
@@ -179,8 +190,8 @@ std::optional<Bounds<float3>> BKE_armature_min_max(const Object *ob);
  * account when calculating the bounds.
  */
 void BKE_pchan_minmax(const Object *ob,
-                      const bPoseChannel *pchan,
-                      const bool use_empty_drawtype,
+                      bke::PChanBoneConst pchanbone,
+                      bool use_empty_drawtype,
                       float3 &r_min,
                       float3 &r_max);
 /**
@@ -246,11 +257,10 @@ void BKE_armature_where_is_bone(Bone *bone, const Bone *bone_parent, bool use_re
  * (needed in remap case, since we cannot always wait for a complete pose rebuild).
  */
 void BKE_pose_clear_pointers(bPose *pose);
-void BKE_pose_remap_bone_pointers(bArmature *armature, bPose *pose);
 /**
  * Update the links for the B-Bone handles from Bone data.
  */
-void BKE_pchan_rebuild_bbone_handles(bPose *pose, bPoseChannel *pchan);
+void BKE_pchan_rebuild_bbone_handles(bPose *pose, bke::PChanBone pchanbone);
 void BKE_pose_channels_clear_with_null_bone(Object *armature_ob, bool do_id_user);
 /**
  * Only after leave edit-mode, duplicating, validating older files, library syncing.
@@ -266,6 +276,23 @@ void BKE_pose_rebuild(Main *bmain, Object *ob, bArmature *arm, bool do_id_user);
  * \param bmain: May be NULL, only used to tag depsgraph as being dirty.
  */
 void BKE_pose_ensure(Main *bmain, Object *ob, bArmature *arm, bool do_id_user);
+
+/**
+ * Ensure the object's pose bone indices are up to date.
+ *
+ * This is only necessary when calling `pchan->bone_get(armature)`, as that cannot verify the
+ * up-to-dateness of the pose bone indices.
+ *
+ * When calling `pchan->bone_get(object)` the check is performed automatically. However, calling
+ * that in a hot loop will cost some performance; passing the armature is preferred in that case.
+ *
+ * This takes a const Object, because it does not modify anything except its pose channels' runtime
+ * field `bone_index`. There is no conceptual change to the object, it's just the bone lookup info
+ * that's being refreshed. Ideally the field would be marked `mutable`, but currently the
+ * bPoseChannel_runtime struct is part of DNA, which doesn't support that keyword.
+ */
+void BKE_pose_ensure_bone_indices(const Object &pose_object);
+
 /**
  * \note This is the only function adding poses.
  * \note This only reads anim data from channels, and writes to channels.
@@ -286,7 +313,7 @@ void BKE_pose_where_is_bone(Depsgraph *depsgraph,
 /**
  * Calculate tail of pose-channel.
  */
-void BKE_pose_where_is_bone_tail(bPoseChannel *pchan);
+void BKE_pose_where_is_bone_tail(bke::PChanBone pchanbone);
 
 void vec_roll_to_mat3(const float vec[3], float roll, float r_mat[3][3]);
 
@@ -322,7 +349,7 @@ void BKE_armature_loc_world_to_pose(Object *ob, const float inloc[3], float outl
  * \note this cannot be used to convert to pose-space transforms of the supplied
  * pose-channel into its local space (i.e. *visual*-keyframing).
  */
-void BKE_armature_mat_pose_to_bone(const bPoseChannel *pchan,
+void BKE_armature_mat_pose_to_bone(bke::PChanBoneConst pchanbone,
                                    const float inmat[4][4],
                                    float outmat[4][4]);
 /**
@@ -330,13 +357,13 @@ void BKE_armature_mat_pose_to_bone(const bPoseChannel *pchan,
  * \note this cannot be used to convert to pose-space location of the supplied
  * pose-channel into its local space (i.e. *visual*-keyframing).
  */
-void BKE_armature_loc_pose_to_bone(const bPoseChannel *pchan,
+void BKE_armature_loc_pose_to_bone(bke::PChanBoneConst pchanbone,
                                    const float inloc[3],
                                    float outloc[3]);
 /**
  * Convert Bone-Space Matrix to Pose-Space Matrix.
  */
-void BKE_armature_mat_bone_to_pose(const bPoseChannel *pchan,
+void BKE_armature_mat_bone_to_pose(bke::PChanBoneConst pchanbone,
                                    const float inmat[4][4],
                                    float outmat[4][4]);
 /**
@@ -386,13 +413,13 @@ void BKE_pchan_apply_mat4(bPoseChannel *pchan, const float mat[4][4], bool use_c
 /**
  * Convert the loc/rot/size to \a r_chanmat (typically #bPoseChannel.chan_mat).
  */
-void BKE_pchan_to_mat4(const bPoseChannel *pchan, float r_chanmat[4][4]);
+void BKE_pchan_to_mat4(bke::PChanBoneConst pchanbone, float r_chanmat[4][4]);
 
 /**
  * Convert the loc/rot/size to mat4 (`pchan.chan_mat`),
  * used in `constraint.cc` too.
  */
-void BKE_pchan_calc_mat(bPoseChannel *pchan);
+void BKE_pchan_calc_mat(bke::PChanBone pchanbone);
 
 /**
  * Simple helper, computes the offset bone matrix:
@@ -440,7 +467,7 @@ void BKE_bone_parent_transform_apply(const BoneParentTransform *bpt,
  * pose-channel into its local space (i.e. *visual*-key-framing).
  * (NOTE(@mont29): I don't understand that, so I keep it :p).
  */
-void BKE_bone_parent_transform_calc_from_pchan(const bPoseChannel *pchan,
+void BKE_bone_parent_transform_calc_from_pchan(bke::PChanBoneConst pchanbone,
                                                BoneParentTransform *r_bpt);
 /**
  * Compute the parent transform using data decoupled from specific data structures.
@@ -465,8 +492,12 @@ void BKE_bone_parent_transform_calc_from_matrices(int bone_flag,
  * - the result should be that the rotations given in the provided pointers have had conversions
  *   applied (as appropriate), such that the rotation of the element hasn't 'visually' changed.
  */
-void BKE_rotMode_change_values(
-    float quat[4], float eul[3], float axis[3], float *angle, short oldMode, short newMode);
+void BKE_rotMode_change_values(float quat[4],
+                               float eul[3],
+                               float axis[3],
+                               float *angle,
+                               eRotationModes oldMode,
+                               eRotationModes newMode);
 
 /* B-Bone support */
 #define MAX_BBONE_SUBDIV 32
@@ -513,13 +544,14 @@ void BKE_pchan_protected_rotation_axisangle_set(bPoseChannel *pchan,
 /**
  * Get "next" and "prev" bones - these are used for handle calculations.
  */
-void BKE_pchan_bbone_handles_get(bPoseChannel *pchan,
+void BKE_pchan_bbone_handles_get(bke::PChanBoneConst pchanbone,
                                  bPoseChannel **r_prev,
                                  bPoseChannel **r_next);
 /**
  * Compute B-Bone spline parameters for the given channel.
  */
-void BKE_pchan_bbone_spline_params_get(bPoseChannel *pchan,
+void BKE_pchan_bbone_spline_params_get(bke::PChanBoneConst pchanbone,
+                                       const bArmature &armature,
                                        bool rest,
                                        BBoneSplineParameters *param);
 
@@ -527,7 +559,8 @@ void BKE_pchan_bbone_spline_params_get(bPoseChannel *pchan,
  * Fills the array with the desired amount of bone->segments elements.
  * This calculation is done within unit bone space.
  */
-void BKE_pchan_bbone_spline_setup(bPoseChannel *pchan,
+void BKE_pchan_bbone_spline_setup(bke::PChanBone pchanbone,
+                                  const bArmature &armature,
                                   bool rest,
                                   bool for_deform,
                                   Mat4 *result_array);
@@ -553,7 +586,7 @@ int BKE_pchan_bbone_spline_compute(BBoneSplineParameters *param,
 /**
  * Compute and cache the B-Bone shape in the channel runtime struct.
  */
-void BKE_pchan_bbone_segments_cache_compute(bPoseChannel *pchan);
+void BKE_pchan_bbone_segments_cache_compute(bke::PChanBone pchanbone, const bArmature &armature);
 /**
  * Copy cached B-Bone segments from one channel to another.
  */
@@ -563,12 +596,12 @@ void BKE_pchan_bbone_segments_cache_copy(bPoseChannel *pchan, bPoseChannel *pcha
  * Calculate index and blend factor for the two B-Bone segment nodes
  * affecting the specified point along the bone.
  *
- * \param pchan: Pose channel.
+ * \param bone: Pose channel's armature bone.
  * \param head_tail: head-tail position along the bone (auto-clamped between 0 and 1).
  * \param r_index: OUTPUT index of the first segment joint affecting the point.
  * \param r_blend_next: OUTPUT blend factor between the first and the second segment in [0..1]
  */
-void BKE_pchan_bbone_deform_clamp_segment_index(const bPoseChannel *pchan,
+void BKE_pchan_bbone_deform_clamp_segment_index(const Bone &bone,
                                                 float head_tail,
                                                 int *r_index,
                                                 float *r_blend_next);
@@ -582,7 +615,7 @@ void BKE_pchan_bbone_deform_clamp_segment_index(const bPoseChannel *pchan,
  * \param r_index: OUTPUT index of the first segment joint affecting the point.
  * \param r_blend_next: OUTPUT blend factor between the first and the second segment in [0..1]
  */
-void BKE_pchan_bbone_deform_segment_index(const bPoseChannel *pchan,
+void BKE_pchan_bbone_deform_segment_index(bke::PChanBoneConst pchanbone,
                                           const float *co,
                                           int *r_index,
                                           float *r_blend_next);
@@ -693,6 +726,45 @@ void BKE_armature_deform_coords_with_editmesh(
 /** \} */
 
 namespace bke {
+
+struct bArmature_Runtime {
+  /**
+   * Index of the active collection, -1 if there is no collection active.
+   *
+   * For UIList support in the user interface. Assigning here does nothing, use
+   * `ANIM_armature_bonecoll_active_set` to set the active bone collection.
+   */
+  int active_collection_index = 0;
+  BoneCollection *active_collection = nullptr;
+
+  /**
+   * Indexable storage for bones. The bone hierarchy is stored depth-first, so a bone is followed
+   * by its children.
+   *
+   * Used by bPoseChan::bone_get() to obtain a bone pointer by index.
+   */
+  Array<Bone *> bones;
+  uint64_t bones_generation_count = 0;
+  /**
+   * Mutex to protect the `bones` and `bones_generation_count` fields.
+   *
+   * This is used when regenerating the bones array, to ensure only a single thread does this. Read
+   * access to the bones array is not protected. So far this has worked well; it's not guaranteed
+   * that there won't be a race condition, though. */
+  Mutex bones_mutex;
+
+  /** Clear the `bones` array, ensuring it is rebuilt on its next use. */
+  void bones_tag_rebuild();
+
+  /**
+   * Return whether the `bones` array has bones (true), or whether it needs rebuilding (false).
+   *
+   * Note that this returns 'invalid' when the Armature has no bones. This is because the bones
+   * array is only used to obtain a bone pointer by index, which means it's only valid to be used
+   * when there actually are bones.
+   */
+  bool is_bones_array_valid() const;
+};
 
 struct SelectedBonesResult {
   bool all_bones_selected = true;

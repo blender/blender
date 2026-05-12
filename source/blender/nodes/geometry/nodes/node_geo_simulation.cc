@@ -546,9 +546,7 @@ class LazyFunctionForSimulationOutputNode final : public LazyFunction {
       return;
     }
     if (!user_data.call_data->simulation_params) {
-      if (geo_eval_log::GeoTreeLogger *tree_logger = local_user_data.try_get_tree_logger(
-              user_data))
-      {
+      if (eval_log::NodeTreeLogger *tree_logger = local_user_data.try_get_tree_logger(user_data)) {
         tree_logger->node_warnings.append(
             *tree_logger->allocator,
             {node_.identifier,
@@ -563,9 +561,7 @@ class LazyFunctionForSimulationOutputNode final : public LazyFunction {
       return;
     }
     if (found_id->is_in_loop || found_id->is_in_closure) {
-      if (geo_eval_log::GeoTreeLogger *tree_logger = local_user_data.try_get_tree_logger(
-              user_data))
-      {
+      if (eval_log::NodeTreeLogger *tree_logger = local_user_data.try_get_tree_logger(user_data)) {
         const StringRefNull message = TIP_("Simulation must not be in a loop or closure");
         tree_logger->node_warnings.append(*tree_logger->allocator,
                                           {node_.identifier, {NodeWarningType::Error, message}});

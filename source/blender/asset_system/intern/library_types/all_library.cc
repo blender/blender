@@ -11,10 +11,6 @@
 /* For getting the experimental flag for remote library support. */
 #include "DNA_userdef_types.h"
 
-#include "AS_asset_catalog_tree.hh"
-#include "asset_catalog_collection.hh"
-#include "asset_catalog_definition_file.hh"
-
 #include "all_library.hh"
 
 #include "CLG_log.h"
@@ -34,6 +30,11 @@ AllAssetLibrary::AllAssetLibrary()
 std::optional<AssetLibraryReference> AllAssetLibrary::library_reference() const
 {
   return all_library_reference();
+}
+
+std::optional<eAssetImportMethod> AllAssetLibrary::import_method() const
+{
+  return {};
 }
 
 void AllAssetLibrary::rebuild_catalogs_from_nested(const bool reload_nested_catalogs)

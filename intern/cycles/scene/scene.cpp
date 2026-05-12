@@ -412,7 +412,9 @@ Scene::MotionType Scene::need_motion() const
   if (integrator->get_motion_blur()) {
     return MOTION_BLUR;
   }
-  if (Pass::contains(passes, PASS_MOTION)) {
+  if (Pass::contains(passes, PASS_MOTION) ||
+      Pass::contains(passes, PASS_DENOISING_BACKWARD_MOTION))
+  {
     return MOTION_PASS;
   }
   return MOTION_NONE;
@@ -426,7 +428,7 @@ float Scene::motion_shutter_time()
   return camera->get_shuttertime();
 }
 
-bool Scene::need_global_attribute(AttributeStandard std)
+bool Scene::need_global_attribute(AttributeStandard std) const
 {
   if (std == ATTR_STD_UV) {
     return Pass::contains(passes, PASS_UV);
@@ -449,6 +451,10 @@ void Scene::need_global_attributes(AttributeRequestSet &attributes)
     if (need_global_attribute((AttributeStandard)std)) {
       attributes.add((AttributeStandard)std);
     }
+  }
+
+  for (const Shader *shader : shaders) {
+    attributes.add(shader->global_attributes);
   }
 }
 

@@ -1368,7 +1368,7 @@ static wmOperatorStatus armature_dissolve_selected_exec(bContext *C, wmOperator 
     bool changed = false;
 
     /* store for mirror */
-    Map<EditBone *, int> ebone_flag_orig;
+    Map<EditBone *, eBone_Flag> ebone_flag_orig;
     int ebone_num = 0;
 
     for (EditBone &ebone : *arm->edbo) {
@@ -1387,7 +1387,7 @@ static wmOperatorStatus armature_dissolve_selected_exec(bContext *C, wmOperator 
 
       for (const auto &item : ebone_flag_orig.items()) {
         ebone = item.key;
-        int &flag = item.value;
+        eBone_Flag &flag = item.value;
         flag = ebone->flag & ~flag;
       }
     }
@@ -1463,7 +1463,7 @@ static wmOperatorStatus armature_dissolve_selected_exec(bContext *C, wmOperator 
 
       if (arm->flag & ARM_MIRROR_EDIT) {
         for (EditBone &ebone : *arm->edbo) {
-          if (const int *flag_p = ebone_flag_orig.lookup_ptr(&ebone)) {
+          if (const eBone_Flag *flag_p = ebone_flag_orig.lookup_ptr(&ebone)) {
             ebone.flag &= ~*flag_p;
           }
         }

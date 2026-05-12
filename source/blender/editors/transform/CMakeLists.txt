@@ -93,6 +93,7 @@ set(SRC
   transform_snap_object_camera.cc
   transform_snap_object_curve.cc
   transform_snap_object_editmesh.cc
+  transform_snap_object_lattice.cc
   transform_snap_object_mesh.cc
   transform_snap_sequencer.cc
 

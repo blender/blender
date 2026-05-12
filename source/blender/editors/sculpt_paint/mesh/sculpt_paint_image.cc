@@ -173,92 +173,127 @@ static BitVector<> init_uv_primitives_brush_test(SculptSession &ss,
   return brush_test;
 }
 
-static bool paint_row_float(const Brush &brush,
-                            const TileColorspaceProcessor &processors,
-                            const float4 &brush_color,
-                            const PackedPixelRow &pixel_row,
-                            const Span<float> factors,
-                            ImBuf *image_buffer)
+/** Apply the per-pixel factor to the initial brush color. */
+static void calc_brush_colors(MutableSpan<float4> buffer_colors,
+                              Span<float> factors,
+                              const float4 &brush_color)
 {
-  int offset = int(pixel_row.start_image_coordinate.y) * image_buffer->x +
-               int(pixel_row.start_image_coordinate.x);
-  bool pixels_painted = false;
-  float *buffer_data = image_buffer->float_data_for_write();
-  for (int x = 0; x < pixel_row.num_pixels; x++) {
-    float4 color(&buffer_data[offset * 4]);
-    if (!processors.is_noop) {
-      processors.buffer_to_linear_processor.apply_v4(color);
-    }
+  BLI_assert(buffer_colors.size() == factors.size());
 
-    float4 paint_color = brush_color * factors[x];
-    float4 buffer_color;
-
-#ifdef DEBUG_PIXEL_NODES
-    if ((pixel_row.start_image_coordinate.y >> 3) & 1) {
-      paint_color[0] *= 0.5f;
-      paint_color[1] *= 0.5f;
-      paint_color[2] *= 0.5f;
-    }
-#endif
-
-    blend_color_mix_float(buffer_color, color, paint_color);
-    buffer_color *= brush.alpha;
-    IMB_blend_color_float(color, color, buffer_color, static_cast<IMB_BlendMode>(brush.blend));
-
-    if (!processors.is_noop) {
-      processors.linear_to_buffer_processor.apply_v4(color);
-    }
-
-    copy_v4_v4(&buffer_data[offset * 4], color);
-    pixels_painted = true;
-
-    offset++;
+  for (const int i : buffer_colors.index_range()) {
+    buffer_colors[i] = brush_color * factors[i];
   }
-  return pixels_painted;
 }
 
-static bool paint_row_byte(const Brush &brush,
-                           const TileColorspaceProcessor &processors,
-                           const float4 &brush_color,
-                           const PackedPixelRow &pixel_row,
-                           const Span<float> factors,
-                           ImBuf *image_buffer)
+static MutableSpan<float4> read_image_pixels(MutableSpan<float4> image_pixels,
+                                             const TileColorspaceProcessor &processors,
+                                             const PackedPixelRow &pixel_row,
+                                             const int width)
 {
-  int offset = int(pixel_row.start_image_coordinate.y) * image_buffer->x +
-               int(pixel_row.start_image_coordinate.x);
-  bool pixels_painted = false;
-  uint8_t *buffer_data = image_buffer->byte_data_for_write();
-  for (int x = 0; x < pixel_row.num_pixels; x++) {
-    float4 color;
-    rgba_uchar_to_float(color, &buffer_data[4 * offset]);
-    if (!processors.is_noop) {
-      processors.buffer_to_linear_processor.apply_v4(color);
-    }
+  const int start_offset = int(pixel_row.start_image_coordinate.y) * width +
+                           int(pixel_row.start_image_coordinate.x);
+  MutableSpan<float4> scene_linear_pixels = image_pixels.slice(start_offset, pixel_row.num_pixels);
 
-    float4 paint_color = brush_color * factors[x];
-    float4 buffer_color;
+  if (processors.is_noop) {
+    return scene_linear_pixels;
+  }
+
+  processors.buffer_to_linear_processor.apply(
+      reinterpret_cast<float *>(scene_linear_pixels.data()), pixel_row.num_pixels, 1, 4, false);
+
+  return scene_linear_pixels;
+}
+
+static MutableSpan<float4> read_image_pixels(Span<uchar4> image_pixels,
+                                             const TileColorspaceProcessor &processors,
+                                             const PackedPixelRow &pixel_row,
+                                             const int width,
+                                             Vector<float4> &storage)
+{
+  storage.resize(pixel_row.num_pixels);
+  const int start_offset = int(pixel_row.start_image_coordinate.y) * width +
+                           int(pixel_row.start_image_coordinate.x);
+
+  for (int i = 0; i < pixel_row.num_pixels; i++) {
+    rgba_uchar_to_float(storage[i], image_pixels[start_offset + i]);
+  }
+
+  if (processors.is_noop) {
+    return storage;
+  }
+
+  processors.buffer_to_linear_processor.apply(
+      reinterpret_cast<float *>(storage.data()), pixel_row.num_pixels, 1, 4, false);
+
+  return storage;
+}
+
+static void write_image_pixels(MutableSpan<float4> scene_linear_pixels,
+                               MutableSpan<uchar4> image_pixels,
+                               const TileColorspaceProcessor &processors,
+                               const PackedPixelRow &pixel_row,
+                               const int width)
+{
+  if (!processors.is_noop) {
+    processors.linear_to_buffer_processor.apply(
+        reinterpret_cast<float *>(scene_linear_pixels.data()), pixel_row.num_pixels, 1, 4, false);
+  }
+
+  const int start_offset = int(pixel_row.start_image_coordinate.y) * width +
+                           int(pixel_row.start_image_coordinate.x);
+
+  for (int i = 0; i < pixel_row.num_pixels; i++) {
+    rgba_float_to_uchar(image_pixels[start_offset + i], scene_linear_pixels[i]);
+  }
+}
+
+static void write_image_pixels(MutableSpan<float4> scene_linear_pixels,
+                               MutableSpan<float4> image_pixels,
+                               const TileColorspaceProcessor &processors,
+                               const PackedPixelRow &pixel_row,
+                               const int width)
+{
+  if (!processors.is_noop) {
+    processors.linear_to_buffer_processor.apply(
+        reinterpret_cast<float *>(scene_linear_pixels.data()), pixel_row.num_pixels, 1, 4, false);
+  }
+
+  const int start_offset = int(pixel_row.start_image_coordinate.y) * width +
+                           int(pixel_row.start_image_coordinate.x);
+
+  std::copy_n(
+      scene_linear_pixels.begin(), pixel_row.num_pixels, image_pixels.begin() + start_offset);
+}
+
+static void blend_colors(MutableSpan<float4> paint_pixels,
+                         Span<float4> scene_linear_pixels,
+                         const Brush &brush)
+{
+  BLI_assert(paint_pixels.size() == scene_linear_pixels.size());
+
+  /* Mix the initial image color with the paint color. */
+  for (const int i : paint_pixels.index_range()) {
+    blend_color_mix_float(paint_pixels[i], scene_linear_pixels[i], paint_pixels[i]);
+    paint_pixels[i] *= brush.alpha;
+  }
+
+  /* Apply the blended color to the original image with the brush alpha. */
+  IMB_blend_color_float(
+      paint_pixels, scene_linear_pixels, paint_pixels, IMB_BlendMode(brush.blend));
+}
 
 #ifdef DEBUG_PIXEL_NODES
-    if ((pixel_row.start_image_coordinate.y >> 3) & 1) {
-      paint_color[0] *= 0.5f;
-      paint_color[1] *= 0.5f;
-      paint_color[2] *= 0.5f;
+static void apply_debug_color(MutableSpan<float4> paint_pixels, const PackedPixelRow &pixel_row)
+{
+  if ((pixel_row.start_image_coordinate.y >> 3) & 1) {
+    for (const int i : paint_pixels.index_range()) {
+      paint_pixels[i][0] *= 0.5f;
+      paint_pixels[i][1] *= 0.5f;
+      paint_pixels[i][2] *= 0.5f;
     }
-#endif
-
-    blend_color_mix_float(buffer_color, color, paint_color);
-    buffer_color *= brush.alpha;
-    IMB_blend_color_float(color, color, buffer_color, static_cast<IMB_BlendMode>(brush.blend));
-    if (!processors.is_noop) {
-      processors.linear_to_buffer_processor.apply_v4(color);
-    }
-    rgba_float_to_uchar(&buffer_data[4 * offset], color);
-    pixels_painted = true;
-
-    offset++;
   }
-  return pixels_painted;
 }
+#endif
 
 static void do_paint_pixels(const Depsgraph &depsgraph,
                             Object &object,
@@ -292,6 +327,8 @@ static void do_paint_pixels(const Depsgraph &depsgraph,
   debug_color[3] = 1.0f;
 #endif
 
+  Vector<float4> byte_to_float_pixels;
+  Vector<float4> paint_pixels;
   Vector<float3> pixel_positions;
   Vector<float> factors;
   Vector<float> distances;
@@ -301,6 +338,19 @@ static void do_paint_pixels(const Depsgraph &depsgraph,
     ImBuf *image_buffer = image_data.buffers.lookup_default(tile_data.tile_number, nullptr);
     if (image_buffer == nullptr) {
       continue;
+    }
+
+    MutableSpan<float4> float_buffer;
+    MutableSpan<uchar4> byte_buffer;
+
+    if (image_buffer->float_data()) {
+      BLI_assert(ELEM(image_buffer->channels, 0, 4));
+      float_buffer = MutableSpan(reinterpret_cast<float4 *>(image_buffer->float_data_for_write()),
+                                 image_buffer->x * image_buffer->y);
+    }
+    else {
+      byte_buffer = MutableSpan(reinterpret_cast<uchar4 *>(image_buffer->byte_data_for_write()),
+                                image_buffer->x * image_buffer->y);
     }
 
     const TileColorspaceProcessor *processors = image_data.processors.lookup_ptr(
@@ -331,19 +381,40 @@ static void do_paint_pixels(const Depsgraph &depsgraph,
       calc_brush_texture_factors(ss, brush, pixel_positions, factors);
       scale_factors(factors, cache.bstrength);
 
-      bool pixels_painted = false;
-      if (image_buffer->float_data() != nullptr) {
-        pixels_painted = paint_row_float(
-            brush, *processors, brush_color, pixel_row, factors, image_buffer);
-      }
-      else {
-        pixels_painted = paint_row_byte(
-            brush, *processors, brush_color, pixel_row, factors, image_buffer);
+      const bool pixels_painted = std::ranges::any_of(
+          factors, [](const float factor) { return factor != 0.0f; });
+
+      if (!pixels_painted) {
+        continue;
       }
 
-      if (pixels_painted) {
-        tile_data.mark_dirty(pixel_row);
+      paint_pixels.resize(pixel_positions.size());
+      calc_brush_colors(paint_pixels, factors, brush_color);
+
+      MutableSpan<float4> scene_linear_pixels;
+      if (!float_buffer.is_empty()) {
+        scene_linear_pixels = read_image_pixels(
+            float_buffer, *processors, pixel_row, image_buffer->x);
       }
+      else {
+        scene_linear_pixels = read_image_pixels(
+            byte_buffer, *processors, pixel_row, image_buffer->x, byte_to_float_pixels);
+      }
+
+#ifdef DEBUG_PIXEL_NODES
+      apply_debug_color(scene_linear_pixels, pixel_row);
+#endif
+
+      blend_colors(paint_pixels, scene_linear_pixels, brush);
+
+      if (!float_buffer.is_empty()) {
+        write_image_pixels(paint_pixels, float_buffer, *processors, pixel_row, image_buffer->x);
+      }
+      else {
+        write_image_pixels(paint_pixels, byte_buffer, *processors, pixel_row, image_buffer->x);
+      }
+
+      tile_data.mark_dirty(pixel_row);
     }
 
     if (tile_data.flags.dirty) {
@@ -370,8 +441,7 @@ static void push_undo(const PixelNode &node_data,
                       Image &image,
                       ImageUser &image_user,
                       const TileNumber tile_number,
-                      ImBuf &image_buffer,
-                      ImBuf **tmpibuf)
+                      ImBuf &image_buffer)
 {
   for (const UDIMTileUndo &tile_undo : node_data.undo_regions) {
     if (tile_undo.tile_number != tile_number) {
@@ -390,17 +460,8 @@ static void push_undo(const PixelNode &node_data,
                       &tileh);
     for (int ty = tiley; ty <= tileh; ty++) {
       for (int tx = tilex; tx <= tilew; tx++) {
-        ED_image_paint_tile_push(undo_tiles,
-                                 &image,
-                                 &image_buffer,
-                                 tmpibuf,
-                                 &image_user,
-                                 tx,
-                                 ty,
-                                 nullptr,
-                                 nullptr,
-                                 true,
-                                 true);
+        ED_image_paint_tile_push(
+            undo_tiles, &image, &image_buffer, &image_user, tx, ty, nullptr, nullptr, true, true);
       }
     }
   }
@@ -410,22 +471,13 @@ static void do_push_undo_tile(ImageData &image_data,
                               bke::pbvh::Node & /*node*/,
                               PixelNode &pixel_node)
 {
-  ImBuf *tmpibuf = nullptr;
   for (const UDIMTilePixels &tile : pixel_node.tiles) {
     ImBuf *buffer = image_data.buffers.lookup_default(tile.tile_number, nullptr);
     if (buffer == nullptr) {
       continue;
     }
 
-    push_undo(pixel_node,
-              *image_data.image,
-              *image_data.image_user,
-              tile.tile_number,
-              *buffer,
-              &tmpibuf);
-  }
-  if (tmpibuf) {
-    IMB_freeImBuf(tmpibuf);
+    push_undo(pixel_node, *image_data.image, *image_data.image_user, tile.tile_number, *buffer);
   }
 }
 
@@ -499,10 +551,8 @@ void SCULPT_do_paint_brush_image(const Depsgraph &depsgraph,
   PixelData &pixel_data = *pbvh.pixels_;
   MutableSpan<PixelNode> pixel_nodes = pixel_data.nodes;
 
-  /* Explicitly marked as serial due to image buffer fetching being non-threadsafe */
   node_mask.foreach_index(
-      [&](const int i) { fetch_image_buffers(image_data, nodes[i], pixel_nodes[i]); },
-      exec_mode::serial);
+      [&](const int i) { fetch_image_buffers(image_data, nodes[i], pixel_nodes[i]); });
   node_mask.foreach_index(
       [&](const int i) { do_push_undo_tile(image_data, nodes[i], pixel_nodes[i]); },
       exec_mode::grain_size(1));
@@ -514,12 +564,10 @@ void SCULPT_do_paint_brush_image(const Depsgraph &depsgraph,
 
   fix_non_manifold_seam_bleeding(ob, image_data, nodes, pixel_nodes, node_mask);
 
-  node_mask.foreach_index(
-      [&](const int i) {
-        bke::pbvh::pixels::mark_image_dirty(
-            nodes[i], pixel_nodes[i], *image_data.image, image_data.buffers);
-      },
-      exec_mode::grain_size(1));
+  node_mask.foreach_index([&](const int i) {
+    bke::pbvh::pixels::mark_image_dirty(
+        nodes[i], pixel_nodes[i], *image_data.image, image_data.buffers);
+  });
 }
 
 }  // namespace blender

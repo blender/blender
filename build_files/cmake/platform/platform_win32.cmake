@@ -414,6 +414,14 @@ if(WITH_LIBMV)
   find_package(Ceres REQUIRED CONFIG)
 endif()
 
+if(WITH_DRACO)
+  find_package(draco REQUIRED CONFIG)
+endif()
+
+if(WITH_MESHOPTIMIZER)
+  find_package(meshoptimizer REQUIRED CONFIG)
+endif()
+
 windows_find_package(ZLIB) # We want to find before finding things that depend on it like PNG.
 windows_find_package(PNG)
 if(NOT PNG_FOUND)
@@ -531,12 +539,10 @@ endif()
 
 set(openjph_ROOT ${LIBDIR}/openjph)
 
-if(WITH_IMAGE_OPENEXR)
-  set(IMATH_ROOT ${LIBDIR}/imath)
-  find_package(IMATH REQUIRED CONFIG)
-  set(OpenEXR_ROOT ${LIBDIR}/openexr)
-  find_package(OpenEXR REQUIRED CONFIG)
-endif()
+set(IMATH_ROOT ${LIBDIR}/imath)
+find_package(IMATH REQUIRED CONFIG)
+set(OpenEXR_ROOT ${LIBDIR}/openexr)
+find_package(OpenEXR REQUIRED CONFIG)
 
 # Try to find tiff first then complain and set static and maybe wrong paths
 windows_find_package(TIFF)
@@ -630,32 +636,7 @@ if(WITH_LLVM)
 
 endif()
 
-if(WITH_OPENCOLORIO)
-  windows_find_package(OpenColorIO)
-  if(NOT OpenColorIO_FOUND)
-    set(OPENCOLORIO ${LIBDIR}/OpenColorIO)
-    set(OPENCOLORIO_INCLUDE_DIRS ${OPENCOLORIO}/include)
-    set(OPENCOLORIO_LIBPATH ${OPENCOLORIO}/lib)
-    if(EXISTS ${OPENCOLORIO_LIBPATH}/libexpatMD.lib) # 3.4
-      set(OPENCOLORIO_LIBRARIES
-        optimized ${OPENCOLORIO_LIBPATH}/OpenColorIO.lib
-        optimized ${OPENCOLORIO_LIBPATH}/libexpatMD.lib
-        optimized ${OPENCOLORIO_LIBPATH}/pystring.lib
-        optimized ${OPENCOLORIO_LIBPATH}/libyaml-cpp.lib
-        debug ${OPENCOLORIO_LIBPATH}/OpencolorIO_d.lib
-        debug ${OPENCOLORIO_LIBPATH}/libexpatdMD.lib
-        debug ${OPENCOLORIO_LIBPATH}/pystring_d.lib
-        debug ${OPENCOLORIO_LIBPATH}/libyaml-cpp_d.lib
-      )
-      set(OPENCOLORIO_DEFINITIONS "-DOpenColorIO_SKIP_IMPORTS")
-    else()
-      set(OPENCOLORIO_LIBRARIES
-        optimized ${OPENCOLORIO_LIBPATH}/OpenColorIO.lib
-        debug ${OPENCOLORIO_LIBPATH}/OpencolorIO_d.lib
-      )
-    endif()
-  endif()
-endif()
+find_package(OpenColorIO REQUIRED CONFIG)
 
 if(WITH_OPENVDB)
   windows_find_package(OpenVDB)
@@ -788,10 +769,7 @@ if(WITH_RUBBERBAND)
 endif()
 
 if(WITH_SDL)
-  set(SDL ${LIBDIR}/sdl)
-  set(SDL_INCLUDE_DIR ${SDL}/include)
-  set(SDL_LIBPATH ${SDL}/lib)
-  set(SDL_LIBRARY ${SDL_LIBPATH}/SDL2.lib)
+  find_package(SDL3 REQUIRED CONFIG)
 endif()
 
 # Audio IO
@@ -878,8 +856,8 @@ endif()
 
 if(WITH_CYCLES AND WITH_CYCLES_OSL)
   set(CYCLES_OSL ${LIBDIR}/osl CACHE PATH "Path to OpenShadingLanguage installation")
-  set(OSL_ROOT ${CYCLES_OSL}) 
-  find_package(OSL REQUIRED CONFIG) 
+  set(OSL_ROOT ${CYCLES_OSL})
+  find_package(OSL REQUIRED CONFIG)
 endif()
 
 if(WITH_CYCLES AND WITH_CYCLES_EMBREE)
@@ -1220,6 +1198,11 @@ if(WITH_CYCLES AND (WITH_CYCLES_DEVICE_ONEAPI OR (WITH_CYCLES_EMBREE AND EMBREE_
     optimized ${SYCL_LIBRARY}
     debug ${SYCL_LIBRARY_DEBUG}
   )
+endif()
+
+if(WITH_TRACY)
+  set(Tracy_ROOT_DIR ${LIBDIR}/tracy)
+  find_package(Tracy REQUIRED CONFIG)
 endif()
 
 # Add the MSVC directory to the path so when building with ASAN enabled tools such as

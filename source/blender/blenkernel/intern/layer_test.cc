@@ -4,6 +4,7 @@
 #include "testing/testing.h"
 
 #include "BKE_appdir.hh"
+#include "BKE_gtest_base.hh"
 #include "BKE_idtype.hh"
 #include "BKE_layer.hh"
 #include "BKE_main.hh"
@@ -23,16 +24,10 @@
 
 namespace blender::bke::tests {
 
-TEST(view_layer, aov_unique_names)
-{
-  /* Set Up */
-  CLG_init();
-  RNA_init();
-  BKE_idtype_init();
-  BKE_appdir_init();
-  IMB_init();
-  RE_engines_init();
+class ViewLayerTest : public bke::BlenderGTestBase {};
 
+TEST_F(ViewLayerTest, aov_unique_names)
+{
   Main *bmain = BKE_main_new();
   Scene *scene = BKE_scene_add(bmain, "Scene");
   ViewLayer *view_layer = static_cast<ViewLayer *>(scene->view_layers.first);
@@ -78,13 +73,7 @@ TEST(view_layer, aov_unique_names)
 
   BKE_main_free(bmain);
 
-  /* Tear down */
   RE_engine_free(engine);
-  RE_engines_exit();
-  IMB_exit();
-  BKE_appdir_exit();
-  RNA_exit();
-  CLG_exit();
 }
 
 static void test_render_pass_conflict(Scene *scene,
@@ -119,15 +108,8 @@ static void test_render_pass_conflict(Scene *scene,
   EXPECT_TRUE(STREQ(aov->name, render_pass_name));
 }
 
-TEST(view_layer, aov_conflict)
+TEST_F(ViewLayerTest, aov_conflict)
 {
-  /* Set Up */
-  CLG_init();
-  RNA_init();
-  BKE_appdir_init();
-  IMB_init();
-  RE_engines_init();
-
   Main *bmain = BKE_main_new();
   Scene *scene = BKE_scene_add(bmain, "Scene");
   ViewLayer *view_layer = static_cast<ViewLayer *>(scene->view_layers.first);
@@ -163,14 +145,7 @@ TEST(view_layer, aov_conflict)
       scene, engine, view_layer, aov, "Glossy Color", "use_pass_glossy_color");
 
   BKE_main_free(bmain);
-
-  /* Tear down */
   RE_engine_free(engine);
-  RE_engines_exit();
-  IMB_exit();
-  BKE_appdir_exit();
-  RNA_exit();
-  CLG_exit();
 }
 
 }  // namespace blender::bke::tests

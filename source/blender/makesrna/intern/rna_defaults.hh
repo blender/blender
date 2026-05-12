@@ -1,4 +1,4 @@
-/* SPDX-FileCopyrightText: 2001-2002 NaN Holding BV. All rights reserved.
+/* SPDX-FileCopyrightText: 2025-2026 Blender Authors
  *
  * SPDX-License-Identifier: GPL-2.0-or-later */
 
@@ -13,4 +13,8 @@
 
 #include "dna_type_offsets.h"
 
-extern const void *DNA_default_table[SDNA_TYPE_MAX];
+namespace blender {
+
+extern const void *const *const DNA_member_default_table[];
+
+};

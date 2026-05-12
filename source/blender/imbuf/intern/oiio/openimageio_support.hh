@@ -72,14 +72,20 @@ ImBuf *imb_oiio_read(const ReadContext &ctx,
                      OIIO::ImageSpec &r_newspec);
 
 /**
- * The primary method for writing data from an #ImBuf to either a physical or in-memory
- * destination.
+ * The primary method for writing data from an #ImBuf to a file.
  *
  * The `file_spec` parameter will typically come from #imb_create_write_spec.
  */
 bool imb_oiio_write(const WriteContext &ctx,
                     const char *filepath,
                     const OIIO::ImageSpec &file_spec);
+
+/**
+ * The primary method for writing data from an #ImBuf to an in-memory buffer.
+ *
+ * The `file_spec` parameter will typically come from #imb_create_write_spec.
+ */
+Vector<uint8_t> imb_oiio_write_buffer(const WriteContext &ctx, const OIIO::ImageSpec &file_spec);
 
 /**
  * Create a #WriteContext based on the provided #ImBuf and format information.

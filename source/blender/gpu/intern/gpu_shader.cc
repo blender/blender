@@ -691,6 +691,12 @@ void GPU_shader_uniform_mat4(gpu::Shader *sh, const char *name, const float data
   GPU_shader_uniform_float_ex(sh, loc, 16, 1, reinterpret_cast<const float *>(data));
 }
 
+void GPU_shader_uniform_mat3(gpu::Shader *sh, const char *name, const float data[3][3])
+{
+  const int loc = GPU_shader_get_uniform(sh, name);
+  GPU_shader_uniform_float_ex(sh, loc, 9, 1, reinterpret_cast<const float *>(data));
+}
+
 void GPU_shader_uniform_mat3_as_mat4(gpu::Shader *sh, const char *name, const float data[3][3])
 {
   float matrix[4][4];
@@ -867,7 +873,6 @@ Shader *ShaderCompiler::compile(const shader::ShaderCreateInfo &orig_info, bool 
 
     Vector<StringRefNull> sources;
     standard_defines(sources);
-    sources.append("#define GPU_VERTEX_SHADER\n");
     if (!info.geometry_source_.is_empty()) {
       sources.append("#define USE_GEOMETRY_SHADER\n");
     }
@@ -892,7 +897,6 @@ Shader *ShaderCompiler::compile(const shader::ShaderCreateInfo &orig_info, bool 
 
     Vector<StringRefNull> sources;
     standard_defines(sources);
-    sources.append("#define GPU_FRAGMENT_SHADER\n");
     if (!info.geometry_source_.is_empty()) {
       sources.append("#define USE_GEOMETRY_SHADER\n");
     }
@@ -941,7 +945,6 @@ Shader *ShaderCompiler::compile(const shader::ShaderCreateInfo &orig_info, bool 
 
     Vector<StringRefNull> sources;
     standard_defines(sources);
-    sources.append("#define GPU_COMPUTE_SHADER\n");
     sources.append(defines);
     sources.append(layout);
     sources.append(resources);

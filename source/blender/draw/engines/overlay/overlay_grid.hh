@@ -340,9 +340,17 @@ class Grid : Overlay {
       grid_ubo_.offset = camera_offs.xy();
     }
     else { /* Orthographic. */
-      float3 camera_offs = drw_view_position -
-                           drw_view_forward * dot(drw_view_position, drw_view_forward);
-      grid_ubo_.offset = camera_offs.xy();
+      const float forward_z = drw_view_forward.z;
+      constexpr float eps = 1e-6f;
+      if (abs(forward_z) > eps) {
+        /* Center the grid on the intersection of the orthographic view ray with the XY plane. */
+        float3 camera_offs = drw_view_position -
+                             drw_view_forward * safe_divide(drw_view_position.z, forward_z);
+        grid_ubo_.offset = camera_offs.xy();
+      }
+      else {
+        grid_ubo_.offset = drw_view_position.xy();
+      }
     }
 
     /* Find the lowest relevant grid level for the above distance. */
@@ -377,9 +385,12 @@ class Grid : Overlay {
       /* WATCH(not_mark): This appears to function in ortho/VR, but I'm not convinced. */
       bool use_clip_end = rv3d->is_persp ||
                           ((v3d->flag & (V3D_XR_SESSION_SURFACE | V3D_XR_SESSION_MIRROR)) != 0);
-      float clip_dist = use_clip_end ? v3d->clip_end :
-                                       (4.0f / max(rv3d->winmat[0][0], rv3d->winmat[1][1]));
-      grid_ubo_.clip_rect = float2(clip_dist);
+      if (use_clip_end) {
+        grid_ubo_.clip_rect = float2(v3d->clip_end);
+      }
+      else {
+        grid_ubo_.clip_rect = float2(4.0f / rv3d->winmat[0][0], 4.0f / rv3d->winmat[1][1]);
+      }
     }
 
     /* This suffices for most cases, and in others we fade to hide it. */

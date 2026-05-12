@@ -352,13 +352,13 @@ template<typename T> struct AngleCartesianBase {
 /**
  * A `math::AngleFraction<T>` stores a radian angle as quotient.
  * - Storage : `2 * sizeof(int64_t)`
- * - Range : [-INT64_MAX..INT64_MAX] but angle must be expressed as fraction (be in Q subset).
+ * - Range : [INT64_MIN..INT64_MAX] but angle must be expressed as fraction (be in Q subset).
  * - Fast : Everything not slow.
  * - Slow : `cos()`, `sin()`, `tan()` for angles not optimized.
  *
  * It offers the best accuracy for fractions of Pi radian angles. For instance
  * `sin(AngleFraction::tau() * n - AngleFraction::pi() / 2)` will exactly return `-1` for any `n`
- * within [-INT_MAX..INT_MAX]. This holds true even with very high radian values.
+ * within [INT_MIN..INT_MAX]. This holds true even with very high radian values.
  *
  * Arithmetic operators are relatively cheap (4 operations for addition, 2 for multiplication) but
  * not as cheap as a `AngleRadian`. Another nice property is that the `cos()` and `sin()` functions

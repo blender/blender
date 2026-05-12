@@ -79,10 +79,10 @@ bool ED_mask_select_check(const Mask *mask)
 void ED_mask_spline_select_set(MaskSpline *spline, const bool do_select)
 {
   if (do_select) {
-    spline->flag |= SELECT;
+    spline->flag |= MASK_SPLINE_SELECT;
   }
   else {
-    spline->flag &= ~SELECT;
+    spline->flag &= ~MASK_SPLINE_SELECT;
   }
 
   for (int i = 0; i < spline->tot_point; i++) {
@@ -146,7 +146,7 @@ void ED_mask_select_flush_all(Mask *mask)
 {
   for (MaskLayer &mask_layer : mask->masklayers) {
     for (MaskSpline &spline : mask_layer.splines) {
-      spline.flag &= ~SELECT;
+      spline.flag &= ~MASK_SPLINE_SELECT;
 
       /* Intentionally *don't* do this in the mask layer loop
        * so we clear flags on all splines. */
@@ -158,14 +158,14 @@ void ED_mask_select_flush_all(Mask *mask)
         MaskSplinePoint *cur_point = &spline.points[i];
 
         if (BKE_mask_point_selected(cur_point)) {
-          spline.flag |= SELECT;
+          spline.flag |= MASK_SPLINE_SELECT;
         }
         else {
           int j;
 
           for (j = 0; j < cur_point->tot_uw; j++) {
             if (cur_point->uw[j].flag & SELECT) {
-              spline.flag |= SELECT;
+              spline.flag |= MASK_SPLINE_SELECT;
               break;
             }
           }

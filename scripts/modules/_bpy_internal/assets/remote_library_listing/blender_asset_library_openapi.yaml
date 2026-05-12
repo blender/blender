@@ -330,7 +330,7 @@ components:
           IDP_ARRAY,
           IDP_GROUP,
           IDP_DOUBLE,
-          IDP_BOOLEAN,
+          IDP_BOOL,
         ]
 
     CatalogV1:

@@ -8,6 +8,7 @@
 
 #pragma once
 
+#include "BLI_enum_flags.hh"
 #include "BLI_math_constants.h"
 
 #include "DNA_defs.h"
@@ -16,7 +17,7 @@ namespace blender {
 
 /* SIMULATION FLAGS: goal flags, etc. */
 /* These are the bits used in SimSettings.flags. */
-enum CLOTH_SIMSETTINGS_FLAGS {
+enum CLOTH_SIMSETTINGS_FLAGS : int {
   /** Object is only collision object, no cloth simulation is done. */
   CLOTH_SIMSETTINGS_FLAG_COLLOBJ = (1 << 2),
   /** DEPRECATED, for versioning only. */
@@ -42,18 +43,20 @@ enum CLOTH_SIMSETTINGS_FLAGS {
   /** Make simulation respect deformations in the base object. */
   CLOTH_SIMSETTINGS_FLAG_DYNAMIC_BASEMESH = (1 << 15),
 };
+ENUM_OPERATORS(CLOTH_SIMSETTINGS_FLAGS)
 
 /* ClothSimSettings.bending_model. */
-enum CLOTH_BENDING_MODEL {
+enum CLOTH_BENDING_MODEL : short {
   CLOTH_BENDING_LINEAR = 0,
   CLOTH_BENDING_ANGULAR = 1,
 };
 
 /* COLLISION FLAGS */
-enum CLOTH_COLLISIONSETTINGS_FLAGS {
+enum CLOTH_COLLISIONSETTINGS_FLAGS : int {
   CLOTH_COLLSETTINGS_FLAG_ENABLED = (1 << 1), /* enables cloth - object collisions */
   CLOTH_COLLSETTINGS_FLAG_SELF = (1 << 2),    /* enables selfcollisions */
 };
+ENUM_OPERATORS(CLOTH_COLLISIONSETTINGS_FLAGS)
 
 /**
  * This struct contains all the global data required to run a simulation.
@@ -158,8 +161,8 @@ struct ClothSimSettings {
 
   /** Number of time steps per frame. */
   int stepsPerFrame = 5;
-  /** Flags, see CSIMSETT_FLAGS enum above. */
-  int flags = CLOTH_SIMSETTINGS_FLAG_INTERNAL_SPRINGS_NORMAL;
+  /** Flags. */
+  CLOTH_SIMSETTINGS_FLAGS flags = CLOTH_SIMSETTINGS_FLAG_INTERNAL_SPRINGS_NORMAL;
   /** How many frames of simulation to do before we start. */
   DNA_DEPRECATED int preroll = 0;
   /** In percent!; if tearing enabled, a spring will get cut. */
@@ -182,7 +185,7 @@ struct ClothSimSettings {
 
   struct EffectorWeights *effector_weights = nullptr;
 
-  short bending_model = CLOTH_BENDING_ANGULAR;
+  CLOTH_BENDING_MODEL bending_model = CLOTH_BENDING_ANGULAR;
   /** Vertex group for scaling structural stiffness. */
   short vgroup_shear = 0;
   float tension = 15.0f;
@@ -227,8 +230,7 @@ struct ClothCollSettings {
   float selfepsilon = 0.015f;
   DNA_DEPRECATED float repel_force = 0;
   DNA_DEPRECATED float distance_repel = 0;
-  /** Collision flags defined in BKE_cloth.hh. */
-  int flags = CLOTH_COLLSETTINGS_FLAG_ENABLED;
+  CLOTH_COLLISIONSETTINGS_FLAGS flags = CLOTH_COLLSETTINGS_FLAG_ENABLED;
   /** How many iterations for the selfcollision loop. */
   DNA_DEPRECATED short self_loop_count = 0;
   /** How many iterations for the collision loop. */

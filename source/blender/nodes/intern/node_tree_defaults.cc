@@ -69,11 +69,11 @@ void node_tree_shader_default(const bContext *C, Main *bmain, ID *id)
       output = bke::node_add_static_node(nullptr, *ntree, SH_NODE_OUTPUT_WORLD);
       bke::node_add_link(*ntree,
                          *shader,
-                         *bke::node_find_socket(*shader, SOCK_OUT, "Background"),
+                         *bke::node_find_socket(*shader, SOCK_OUT, "Background"_ustr),
                          *output,
-                         *bke::node_find_socket(*output, SOCK_IN, "Surface"));
+                         *bke::node_find_socket(*output, SOCK_IN, "Surface"_ustr));
 
-      bNodeSocket *color_sock = bke::node_find_socket(*shader, SOCK_IN, "Color");
+      bNodeSocket *color_sock = bke::node_find_socket(*shader, SOCK_IN, "Color"_ustr);
       copy_v3_v3((reinterpret_cast<bNodeSocketValueRGBA *>(color_sock->default_value))->value,
                  &world->horr);
     }
@@ -84,9 +84,9 @@ void node_tree_shader_default(const bContext *C, Main *bmain, ID *id)
       output = bke::node_add_static_node(nullptr, *ntree, SH_NODE_OUTPUT_LIGHT);
       bke::node_add_link(*ntree,
                          *shader,
-                         *bke::node_find_socket(*shader, SOCK_OUT, "Emission"),
+                         *bke::node_find_socket(*shader, SOCK_OUT, "Emission"_ustr),
                          *output,
-                         *bke::node_find_socket(*output, SOCK_IN, "Surface"));
+                         *bke::node_find_socket(*output, SOCK_IN, "Surface"_ustr));
     }
 
     shader->location[0] = -200.0f;

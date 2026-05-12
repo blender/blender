@@ -15,6 +15,7 @@
 #include "BKE_layer.hh"
 #include "BKE_lib_id.hh"
 #include "BKE_object.hh"
+#include "BKE_pose.hh"
 
 #include "DNA_armature_types.h"
 #include "DNA_object_types.h"
@@ -50,7 +51,12 @@ namespace blender {
 
 struct BoneSplineHandle {
   wmGizmo *gizmo;
+
+  /* These cannot be packed into a bke::PChanBone, as this struct is allocated with
+   * MEM_new_zeroed() and therefore must be trivial. */
   bPoseChannel *pchan;
+  Bone *pchan_bone;
+
   /* We could remove, keep since at the moment for checking the conversion. */
   float co[3];
   int index;
@@ -64,17 +70,18 @@ static void gizmo_bbone_offset_get(const wmGizmo * /*gz*/, wmGizmoProperty *gz_p
 {
   BoneSplineHandle *bh = static_cast<BoneSplineHandle *>(gz_prop->custom_func.user_data);
   bPoseChannel *pchan = bh->pchan;
+  Bone *pchan_bone = bh->pchan_bone;
 
   float *value = static_cast<float *>(value_p);
   BLI_assert(gz_prop->type->array_length == 3);
 
   if (bh->index == 0) {
-    bh->co[1] = pchan->bone->ease1 / BBONE_SCALE_Y;
+    bh->co[1] = pchan_bone->ease1 / BBONE_SCALE_Y;
     bh->co[0] = pchan->curve_in_x;
     bh->co[2] = pchan->curve_in_z;
   }
   else {
-    bh->co[1] = -pchan->bone->ease2 / BBONE_SCALE_Y;
+    bh->co[1] = -pchan_bone->ease2 / BBONE_SCALE_Y;
     bh->co[0] = pchan->curve_out_x;
     bh->co[2] = pchan->curve_out_z;
   }
@@ -87,6 +94,7 @@ static void gizmo_bbone_offset_set(const wmGizmo * /*gz*/,
 {
   BoneSplineHandle *bh = static_cast<BoneSplineHandle *>(gz_prop->custom_func.user_data);
   bPoseChannel *pchan = bh->pchan;
+  Bone *pchan_bone = bh->pchan_bone;
 
   const float *value = static_cast<const float *>(value_p);
 
@@ -94,12 +102,12 @@ static void gizmo_bbone_offset_set(const wmGizmo * /*gz*/,
   copy_v3_v3(bh->co, value);
 
   if (bh->index == 0) {
-    pchan->bone->ease1 = max_ff(0.0f, bh->co[1] * BBONE_SCALE_Y);
+    pchan_bone->ease1 = max_ff(0.0f, bh->co[1] * BBONE_SCALE_Y);
     pchan->curve_in_x = bh->co[0];
     pchan->curve_in_z = bh->co[2];
   }
   else {
-    pchan->bone->ease2 = max_ff(0.0f, -bh->co[1] * BBONE_SCALE_Y);
+    pchan_bone->ease2 = max_ff(0.0f, -bh->co[1] * BBONE_SCALE_Y);
     pchan->curve_out_x = bh->co[0];
     pchan->curve_out_z = bh->co[2];
   }
@@ -123,7 +131,7 @@ static bool WIDGETGROUP_armature_spline_poll(const bContext *C, wmGizmoGroupType
       const bArmature *arm = id_cast<const bArmature *>(ob->data);
       if (arm->drawtype == ARM_DRAW_TYPE_B_BONE) {
         bPoseChannel *pchan = BKE_pose_channel_active_if_bonecoll_visible(ob);
-        if (pchan && pchan->bone->segments > 1) {
+        if (pchan && pchan->bone_get(*ob)->segments > 1) {
           if (BKE_id_is_editable(CTX_data_main(C), &arm->id)) {
             return true;
           }
@@ -183,11 +191,13 @@ static void WIDGETGROUP_armature_spline_refresh(const bContext *C, wmGizmoGroup 
 
   BoneSplineWidgetGroup *bspline_group = static_cast<BoneSplineWidgetGroup *>(gzgroup->customdata);
   bPoseChannel *pchan = BKE_pose_channel_active_if_bonecoll_visible(ob);
+  Bone *pchan_bone = pchan ? pchan->bone_get(*ob) : nullptr;
 
   /* Handles */
   for (int i = 0; i < ARRAY_SIZE(bspline_group->handles); i++) {
     wmGizmo *gz = bspline_group->handles[i].gizmo;
     bspline_group->handles[i].pchan = pchan;
+    bspline_group->handles[i].pchan_bone = pchan_bone;
     bspline_group->handles[i].index = i;
 
     float mat[4][4];

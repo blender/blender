@@ -12,11 +12,8 @@
 
 #include "DNA_defs.h"
 
-#include "MEM_guardedalloc.h"
-
 #include "BLI_alloca.h"
 #include "BLI_assert.h"
-#include "BLI_ghash.h"
 #include "BLI_sys_types.h"
 #include "BLI_utildefines.h"
 
@@ -88,7 +85,7 @@ uint DNA_member_id_offset_start(const char *member_full)
   return elem_full_offset;
 }
 
-uint DNA_member_id_offset_end(const char *member_full_trimmed)
+static uint dna_member_id_length(const char *member_full_trimmed)
 {
   uint elem_full_offset = 0;
   while (is_identifier(member_full_trimmed[elem_full_offset])) {
@@ -97,24 +94,27 @@ uint DNA_member_id_offset_end(const char *member_full_trimmed)
   return elem_full_offset;
 }
 
+StringRef DNA_member_id_string_ref(const StringRefNull member_full)
+{
+  const uint id_start = DNA_member_id_offset_start(member_full.c_str());
+  const uint id_len = dna_member_id_length(member_full.c_str() + id_start);
+  return StringRef(member_full.c_str() + id_start, id_len);
+}
+
 uint DNA_member_id_strip_copy(char *member_id_dst, const char *member_full_src)
 {
-  const uint member_src_offset = DNA_member_id_offset_start(member_full_src);
-  const char *member_src_trimmed = member_full_src + member_src_offset;
-  const uint member_src_trimmed_len = DNA_member_id_offset_end(member_src_trimmed);
-  memcpy(member_id_dst, member_src_trimmed, member_src_trimmed_len);
-  member_id_dst[member_src_trimmed_len] = '\0';
-  return member_src_trimmed_len;
+  const StringRef stripped = DNA_member_id_string_ref(member_full_src);
+  memcpy(member_id_dst, stripped.data(), stripped.size());
+  member_id_dst[stripped.size()] = '\0';
+  return stripped.size();
 }
 
 uint DNA_member_id_strip(char *member)
 {
-  const uint member_offset = DNA_member_id_offset_start(member);
-  const char *member_trimmed = member + member_offset;
-  const uint member_trimmed_len = DNA_member_id_offset_end(member_trimmed);
-  memmove(member, member_trimmed, member_trimmed_len);
-  member[member_trimmed_len] = '\0';
-  return member_trimmed_len;
+  const StringRef stripped = DNA_member_id_string_ref(member);
+  memmove(member, stripped.data(), stripped.size());
+  member[stripped.size()] = '\0';
+  return stripped.size();
 }
 
 bool DNA_member_id_match(const char *member_id,
@@ -161,7 +161,7 @@ char *DNA_member_id_rename(MemArena *mem_arena,
   memcpy(&member_full_dst[i], member_id_dst, member_id_dst_len + 1);
   i += member_id_dst_len;
   const uint member_full_src_offset_end = member_full_src_offset_len + member_id_src_len;
-  BLI_assert(DNA_member_id_offset_end(member_full_src + member_full_src_offset_len) ==
+  BLI_assert(dna_member_id_length(member_full_src + member_full_src_offset_len) ==
              (member_full_src_offset_end - member_full_src_offset_len));
   if (member_full_src[member_full_src_offset_end] != '\0') {
     const int member_full_tail_len = (member_full_src_len - member_full_src_offset_end);
@@ -178,104 +178,62 @@ char *DNA_member_id_rename(MemArena *mem_arena,
 /** \} */
 
 /* -------------------------------------------------------------------- */
-/** \name Versioning
+/** \name Rename Maps
  * \{ */
 
-static uint strhash_pair_p(const void *ptr)
-{
-  const char *const *pair = static_cast<const char *const *>(ptr);
-  return (BLI_ghashutil_strhash_p(pair[0]) ^ BLI_ghashutil_strhash_p(pair[1]));
-}
-
-static bool strhash_pair_cmp(const void *a, const void *b)
-{
-  const char *const *pair_a = static_cast<const char *const *>(a);
-  const char *const *pair_b = static_cast<const char *const *>(b);
-  return (STREQ(pair_a[0], pair_b[0]) && STREQ(pair_a[1], pair_b[1])) ? false : true;
-}
-
-void DNA_alias_maps(enum eDNA_RenameDir version_dir, GHash **r_type_map, GHash **r_member_map)
-{
-  GHash *type_map_local = nullptr;
-  if (r_type_map) {
-    const char *type_data[][2] = {
+struct StructRename {
+  const char *old_name;
+  const char *new_name;
+};
+static const StructRename struct_renames[] = {
 #define DNA_STRUCT_RENAME(old, new) {#old, #new},
-#define DNA_STRUCT_RENAME_MEMBER(struct_name, old, new)
+#define DNA_STRUCT_RENAME_MEMBER(new_struct_name, old, new)
 #include "dna_rename_defs.h"
 #undef DNA_STRUCT_RENAME
 #undef DNA_STRUCT_RENAME_MEMBER
-    };
+};
 
-    int elem_key, elem_val;
-    if (version_dir == DNA_RENAME_ALIAS_FROM_STATIC) {
-      elem_key = 0;
-      elem_val = 1;
-    }
-    else {
-      elem_key = 1;
-      elem_val = 0;
-    }
-    GHash *type_map = BLI_ghash_str_new_ex(__func__, ARRAY_SIZE(type_data));
-    for (int i = 0; i < ARRAY_SIZE(type_data); i++) {
-      BLI_ghash_insert(type_map, (void *)type_data[i][elem_key], (void *)type_data[i][elem_val]);
-    }
-
-    if (version_dir == DNA_RENAME_STATIC_FROM_ALIAS) {
-      const char *renames[][2] = {
-          /* {old, new}, like in #DNA_STRUCT_RENAME */
-          {"uchar", "uint8_t"},
-          {"short", "int16_t"},
-          {"ushort", "uint16_t"},
-          {"int", "int32_t"},
-          {"int", "uint32_t"},
-      };
-      for (int i = 0; i < ARRAY_SIZE(renames); i++) {
-        BLI_ghash_insert(type_map, (void *)renames[i][elem_key], (void *)renames[i][elem_val]);
-      }
-    }
-
-    *r_type_map = type_map;
-
-    /* We know the direction of this, for local use. */
-    type_map_local = BLI_ghash_str_new_ex(__func__, ARRAY_SIZE(type_data));
-    for (int i = 0; i < ARRAY_SIZE(type_data); i++) {
-      BLI_ghash_insert(type_map_local, (void *)type_data[i][1], (void *)type_data[i][0]);
-    }
-  }
-
-  if (r_member_map != nullptr) {
-    const char *member_data[][3] = {
+struct MemberRename {
+  const char *new_struct_name;
+  const char *old_name;
+  const char *new_name;
+};
+static const MemberRename member_renames[] = {
 #define DNA_STRUCT_RENAME(old, new)
-#define DNA_STRUCT_RENAME_MEMBER(struct_name, old, new) {#struct_name, #old, #new},
+#define DNA_STRUCT_RENAME_MEMBER(new_struct_name, old, new) {#new_struct_name, #old, #new},
 #include "dna_rename_defs.h"
 #undef DNA_STRUCT_RENAME
 #undef DNA_STRUCT_RENAME_MEMBER
-    };
+};
 
-    int elem_key, elem_val;
-    if (version_dir == DNA_RENAME_ALIAS_FROM_STATIC) {
-      elem_key = 1;
-      elem_val = 2;
-    }
-    else {
-      elem_key = 2;
-      elem_val = 1;
-    }
-    GHash *member_map = BLI_ghash_new_ex(
-        strhash_pair_p, strhash_pair_cmp, __func__, ARRAY_SIZE(member_data));
-    for (int i = 0; i < ARRAY_SIZE(member_data); i++) {
-      const char **str_pair = MEM_new_array_uninitialized<const char *>(2, __func__);
-      str_pair[0] = static_cast<const char *>(
-          BLI_ghash_lookup_default(type_map_local, member_data[i][0], (void *)member_data[i][0]));
-      str_pair[1] = member_data[i][elem_key];
-      BLI_ghash_insert(member_map, (void *)str_pair, (void *)member_data[i][elem_val]);
-    }
-    *r_member_map = member_map;
+DnaRenameMaps DNA_rename_maps_alias_to_static()
+{
+  DnaRenameMaps data;
+  for (const StructRename &r : struct_renames) {
+    data.types.add_new(r.new_name, r.old_name);
   }
+  for (const MemberRename &r : member_renames) {
+    const StringRefNull struct_static = data.types.lookup_default(r.new_struct_name,
+                                                                  r.new_struct_name);
+    data.members.add_new({struct_static, r.new_name}, r.old_name);
+  }
+  return data;
+}
 
-  if (type_map_local) {
-    BLI_ghash_free(type_map_local, nullptr, nullptr);
+DnaRenameMaps DNA_rename_maps_static_to_alias()
+{
+  DnaRenameMaps data;
+  Map<StringRefNull, StringRefNull> struct_alias_to_static;
+  for (const StructRename &r : struct_renames) {
+    data.types.add_new(r.old_name, r.new_name);
+    struct_alias_to_static.add_new(r.new_name, r.old_name);
   }
+  for (const MemberRename &r : member_renames) {
+    const StringRefNull struct_static = struct_alias_to_static.lookup_default(r.new_struct_name,
+                                                                              r.new_struct_name);
+    data.members.add_new({struct_static, r.old_name}, r.new_name);
+  }
+  return data;
 }
 
 #undef DNA_MAKESDNA

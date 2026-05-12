@@ -34,6 +34,11 @@ std::optional<AssetLibraryReference> OnDiskAssetLibrary::library_reference() con
   return {};
 }
 
+std::optional<eAssetImportMethod> OnDiskAssetLibrary::import_method() const
+{
+  return {};
+}
+
 void OnDiskAssetLibrary::refresh_catalogs()
 {
   this->catalog_service().reload_catalogs();

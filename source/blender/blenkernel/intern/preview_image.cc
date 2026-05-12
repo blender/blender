@@ -396,7 +396,7 @@ void BKE_previewimg_ensure(PreviewImage *prv, const int size)
   if (do_preview) {
     prv->w[ICON_SIZE_PREVIEW] = thumb->x;
     prv->h[ICON_SIZE_PREVIEW] = thumb->y;
-    prv->rect[ICON_SIZE_PREVIEW] = reinterpret_cast<unsigned int *>(
+    prv->rect[ICON_SIZE_PREVIEW] = reinterpret_cast<uint *>(
         MEM_dupalloc<uint8_t>(thumb->byte_data()));
     prv->flag[ICON_SIZE_PREVIEW] &= ~(PRV_CHANGED | PRV_USER_EDITED | PRV_RENDERING);
   }
@@ -416,7 +416,7 @@ void BKE_previewimg_ensure(PreviewImage *prv, const int size)
     IMB_scale(thumb, icon_w, icon_h, IMBScaleFilter::Box, false);
     prv->w[ICON_SIZE_ICON] = icon_w;
     prv->h[ICON_SIZE_ICON] = icon_h;
-    prv->rect[ICON_SIZE_ICON] = reinterpret_cast<unsigned int *>(
+    prv->rect[ICON_SIZE_ICON] = reinterpret_cast<uint *>(
         MEM_dupalloc<uint8_t>(thumb->byte_data()));
     prv->flag[ICON_SIZE_ICON] &= ~(PRV_CHANGED | PRV_USER_EDITED | PRV_RENDERING);
   }
@@ -581,7 +581,10 @@ void BKE_previewimg_blend_read(BlendDataReader *reader, PreviewImage *prv)
 
   for (int i = 0; i < NUM_ICON_SIZES; i++) {
     if (prv->rect[i]) {
-      BLO_read_uint32_array(reader, prv->w[i] * prv->h[i], &prv->rect[i]);
+      if (!BLO_read_array(reader, &prv->rect[i], int64_t(prv->w[i]) * prv->h[i])) {
+        prv->w[i] = 0;
+        prv->h[i] = 0;
+      }
     }
 
     /* PRV_RENDERING is a runtime only flag currently, but for undo indicates that we need

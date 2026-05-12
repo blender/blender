@@ -1094,12 +1094,13 @@ static std::unique_ptr<IKChain> ik_chain_init_face_sets_mesh(const Depsgraph &de
         is_weighted[to_v].set();
 
         if (vert_inside_brush_radius(to_v_position, pose_initial_co, radius, symm)) {
-          const int visited_face_set = face_set::vert_face_set_get(
+          const int visited_face_set = face_set::vert_face_set_max_get(
               vert_to_face_map, face_sets, to_v);
           visited_face_sets.add(visited_face_set);
         }
         else if (symmetry_check) {
-          current_data.face_set = face_set::vert_face_set_get(vert_to_face_map, face_sets, to_v);
+          current_data.face_set = face_set::vert_face_set_max_get(
+              vert_to_face_map, face_sets, to_v);
           visited_face_sets.add(current_data.face_set);
         }
         return true;
@@ -1150,7 +1151,7 @@ static std::unique_ptr<IKChain> ik_chain_init_face_sets_mesh(const Depsgraph &de
       for (const int neighbor_idx : vert_neighbors_get_mesh(
                faces, corner_verts, vert_to_face_map, hide_poly, to_v, neighbors))
       {
-        const int next_face_set_candidate = face_set::vert_face_set_get(
+        const int next_face_set_candidate = face_set::vert_face_set_max_get(
             vert_to_face_map, face_sets, neighbor_idx);
 
         /* Check if we can get a valid face set for the next iteration from this neighbor. */
@@ -1436,11 +1437,11 @@ static std::unique_ptr<IKChain> ik_chain_init_face_sets_bmesh(Object &object,
         is_weighted[to_v_i].set();
 
         if (vert_inside_brush_radius(to_v_position, pose_initial_co, radius, symm)) {
-          const int visited_face_set = face_set::vert_face_set_get(face_set_offset, *to_v);
+          const int visited_face_set = face_set::vert_face_set_max_get(face_set_offset, *to_v);
           visited_face_sets.add(visited_face_set);
         }
         else if (symmetry_check) {
-          current_data.face_set = face_set::vert_face_set_get(face_set_offset, *to_v);
+          current_data.face_set = face_set::vert_face_set_max_get(face_set_offset, *to_v);
           visited_face_sets.add(current_data.face_set);
         }
         return true;
@@ -1487,8 +1488,8 @@ static std::unique_ptr<IKChain> ik_chain_init_face_sets_bmesh(Object &object,
       bool count_as_boundary = false;
 
       for (BMVert *neighbor : vert_neighbors_get_bmesh(*to_v, neighbors)) {
-        const int next_face_set_candidate = face_set::vert_face_set_get(face_set_offset,
-                                                                        *neighbor);
+        const int next_face_set_candidate = face_set::vert_face_set_max_get(face_set_offset,
+                                                                            *neighbor);
 
         /* Check if we can get a valid face set for the next iteration from this neighbor. */
         if (face_set::vert_has_unique_face_set(face_set_offset, *neighbor) &&
@@ -1663,7 +1664,7 @@ static std::unique_ptr<IKChain> ik_chain_init_face_sets_fk_mesh(const Depsgraph 
   step_floodfill.execute(object, vert_to_face_map, [&](int from_v, int to_v) {
     floodfill_step[to_v] = floodfill_step[from_v] + 1;
 
-    const int to_face_set = face_set::vert_face_set_get(vert_to_face_map, face_sets, to_v);
+    const int to_face_set = face_set::vert_face_set_max_get(vert_to_face_map, face_sets, to_v);
     if (!visited_face_sets.contains(to_face_set)) {
       if (face_set::vert_has_unique_face_set(vert_to_face_map, face_sets, to_v) &&
           !face_set::vert_has_unique_face_set(vert_to_face_map, face_sets, from_v) &&
@@ -1849,7 +1850,7 @@ static std::unique_ptr<IKChain> ik_chain_init_face_sets_fk_bmesh(const Depsgraph
 
     floodfill_step[to_v_i] = floodfill_step[from_v_i] + 1;
 
-    const int to_face_set = face_set::vert_face_set_get(face_set_offset, *to_v);
+    const int to_face_set = face_set::vert_face_set_max_get(face_set_offset, *to_v);
     if (!visited_face_sets.contains(to_face_set)) {
       if (face_set::vert_has_unique_face_set(face_set_offset, *to_v) &&
           !face_set::vert_has_unique_face_set(face_set_offset, *from_v) &&

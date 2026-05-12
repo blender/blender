@@ -636,7 +636,8 @@ void BLI_ewa_filter(const int width,
                     const float dv[2],
                     ewa_filter_read_pixel_cb read_pixel_cb,
                     void *userdata,
-                    float result[4])
+                    float result[4],
+                    bool clip)
 {
   /* Scaling `dxt` / `dyt` by full resolution can cause overflow because of huge A/B/C and esp.
    * F values, scaling by aspect ratio alone does the opposite, so try something in between
@@ -705,7 +706,7 @@ void BLI_ewa_filter(const int width,
   }
 
   /* Early output check for cases the whole region is outside of the buffer. */
-  if ((u2 < 0 || u1 >= width) || (v2 < 0 || v1 >= height)) {
+  if (clip && ((u2 < 0 || u1 >= width) || (v2 < 0 || v1 >= height))) {
     zero_v4(result);
     return;
   }

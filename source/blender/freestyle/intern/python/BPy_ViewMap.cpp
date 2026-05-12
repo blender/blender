@@ -71,9 +71,9 @@ PyDoc_STRVAR(
     "\n"
     "   Gets the ViewEdge nearest to the 2D point specified as arguments.\n"
     "\n"
-    "   :arg x: X coordinate of a 2D point.\n"
+    "   :param x: X coordinate of a 2D point.\n"
     "   :type x: float\n"
-    "   :arg y: Y coordinate of a 2D point.\n"
+    "   :param y: Y coordinate of a 2D point.\n"
     "   :type y: float\n"
     "   :return: The ViewEdge nearest to the specified 2D point.\n"
     "   :rtype: :class:`ViewEdge`\n");
@@ -99,9 +99,9 @@ PyDoc_STRVAR(
     "\n"
     "   Gets the FEdge nearest to the 2D point specified as arguments.\n"
     "\n"
-    "   :arg x: X coordinate of a 2D point.\n"
+    "   :param x: X coordinate of a 2D point.\n"
     "   :type x: float\n"
-    "   :arg y: Y coordinate of a 2D point.\n"
+    "   :param y: Y coordinate of a 2D point.\n"
     "   :type y: float\n"
     "   :return: The FEdge nearest to the specified 2D point.\n"
     "   :rtype: :class:`FEdge`\n");

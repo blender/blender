@@ -16,6 +16,8 @@
 
 #include "GHOST_XrAction.hh"
 
+#include "GHOST_utildefines.hh"
+
 /* -------------------------------------------------------------------- */
 /** \name GHOST_XrActionSpace
  *
@@ -69,8 +71,8 @@ GHOST_XrActionProfile::GHOST_XrActionProfile(XrInstance instance,
            (std::string("Failed to get interaction profile path \"") + info.profile_path + "\".")
                .data());
 
-  const bool is_float_action = (type == GHOST_kXrActionTypeFloatInput ||
-                                type == GHOST_kXrActionTypeVector2fInput);
+  const bool is_float_action = ELEM(
+      type, GHOST_kXrActionTypeFloatInput, GHOST_kXrActionTypeVector2fInput);
   const bool is_button_action = (is_float_action || type == GHOST_kXrActionTypeBooleanInput);
   const bool is_pose_action = (type == GHOST_kXrActionTypePoseInput);
 
@@ -266,8 +268,8 @@ void GHOST_XrAction::updateState(XrSession session,
                                  XrSpace reference_space,
                                  const XrTime &predicted_display_time)
 {
-  const bool is_float_action = (type_ == GHOST_kXrActionTypeFloatInput ||
-                                type_ == GHOST_kXrActionTypeVector2fInput);
+  const bool is_float_action = ELEM(
+      type_, GHOST_kXrActionTypeFloatInput, GHOST_kXrActionTypeVector2fInput);
   const bool is_button_action = (is_float_action || type_ == GHOST_kXrActionTypeBooleanInput);
 
   XrActionStateGetInfo state_info{XR_TYPE_ACTION_STATE_GET_INFO};

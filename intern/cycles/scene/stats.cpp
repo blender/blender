@@ -8,6 +8,8 @@
 
 #include "util/string.h"
 
+#include <cinttypes>
+
 CCL_NAMESPACE_BEGIN
 
 static int kIndentNumSpaces = 2;
@@ -275,6 +277,12 @@ string ImageStats::full_report(const int indent_level)
                             string_human_readable_size(tiled_images_size).c_str(),
                             string_human_readable_number(tiled_images_size).c_str());
   }
+  if (tiled_images_peak_size > 0) {
+    result += string_printf("%sPeak tiled image memory: %s (%s)\n",
+                            indent.c_str(),
+                            string_human_readable_size(tiled_images_peak_size).c_str(),
+                            string_human_readable_number(tiled_images_peak_size).c_str());
+  }
   if (overhead_size > 0) {
     result += string_printf("%sOverhead image memory: %s (%s)\n",
                             indent.c_str(),
@@ -286,6 +294,37 @@ string ImageStats::full_report(const int indent_level)
                           indent.c_str(),
                           string_human_readable_size(total_memory).c_str(),
                           string_human_readable_number(total_memory).c_str());
+  const size_t peak_total_memory = full_images.total_size + tiled_images_peak_size + overhead_size;
+  if (tiled_images_peak_size > 0) {
+    result += string_printf("%sPeak total image memory: %s (%s)\n",
+                            indent.c_str(),
+                            string_human_readable_size(peak_total_memory).c_str(),
+                            string_human_readable_number(peak_total_memory).c_str());
+  }
+
+  if (eviction.tiles_loaded > 0) {
+    result += string_printf(
+        "%sTiles:\n"
+        "%sLoaded: %" PRId64
+        "\n"
+        "%sPeak: %" PRId64
+        " (%.1f%%)\n"
+        "%sEvicted: %" PRId64
+        " (%.1f%%)\n"
+        "%sReloaded: %" PRId64 " (%.1f%%)\n",
+        indent.c_str(),
+        double_indent.c_str(),
+        eviction.tiles_loaded,
+        double_indent.c_str(),
+        eviction.peak_loaded,
+        100.0 * eviction.peak_loaded / eviction.tiles_loaded,
+        double_indent.c_str(),
+        eviction.tiles_evicted,
+        100.0 * eviction.tiles_evicted / eviction.tiles_loaded,
+        double_indent.c_str(),
+        eviction.tiles_reloaded,
+        100.0 * eviction.tiles_reloaded / eviction.tiles_loaded);
+  }
 
   return result;
 }

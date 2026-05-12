@@ -1242,7 +1242,7 @@ wmOperatorStatus PenToolOperation::modal(bContext *C, wmOperator *op, const wmEv
 
   std::atomic<bool> changed = false;
   this->center_of_mass_co = calculate_center_of_mass(*this, false);
-  if (event->type == MOUSEMOVE || event->type == INBETWEEN_MOUSEMOVE) {
+  if (ELEM(event->type, MOUSEMOVE, INBETWEEN_MOUSEMOVE)) {
     if (this->move_seg && this->closest_element.element_mode == ElementMode::Edge) {
       const int curves_index = this->closest_element.drawing_index;
       const float4x4 &layer_to_world = this->layer_to_world_per_curves[curves_index];
@@ -1284,20 +1284,21 @@ class CurvesPenToolOperation : public PenToolOperation {
  public:
   Vector<Curves *> all_curves;
 
-  float3 project(const float2 &screen_co) const
+  float3 project(const float2 &screen_co) const override
   {
     const float4x4 &layer_to_world = this->layer_to_world_per_curves[*this->active_drawing_index];
     return this->screen_to_layer(layer_to_world, screen_co, float3(0.0f));
   }
 
-  IndexMask all_selected_points(const int curves_index, IndexMaskMemory &memory) const
+  IndexMask all_selected_points(const int curves_index, IndexMaskMemory &memory) const override
   {
     const Curves *curves_id = this->all_curves[curves_index];
     const bke::CurvesGeometry &curves = curves_id->geometry.wrap();
     return retrieve_all_selected_points(curves, this->vc.v3d->overlay.handle_display, memory);
   }
 
-  IndexMask visible_bezier_handle_points(const int curves_index, IndexMaskMemory &memory) const
+  IndexMask visible_bezier_handle_points(const int curves_index,
+                                         IndexMaskMemory &memory) const override
   {
     const Curves *curves_id = this->all_curves[curves_index];
     const bke::CurvesGeometry &curves = curves_id->geometry.wrap();
@@ -1305,37 +1306,38 @@ class CurvesPenToolOperation : public PenToolOperation {
         curves, this->vc.v3d->overlay.handle_display, memory);
   }
 
-  IndexMask editable_curves(const int curves_index, IndexMaskMemory & /*memory*/) const
+  IndexMask editable_curves(const int curves_index, IndexMaskMemory & /*memory*/) const override
   {
     const Curves *curves_id = this->all_curves[curves_index];
     const bke::CurvesGeometry &curves = curves_id->geometry.wrap();
     return curves.curves_range();
   }
 
-  void tag_curve_changed(const int curves_index) const
+  void tag_curve_changed(const int curves_index) const override
   {
     Curves *curves_id = this->all_curves[curves_index];
     bke::CurvesGeometry &curves = curves_id->geometry.wrap();
     curves.tag_topology_changed();
   }
 
-  bke::CurvesGeometry &get_curves(const int curves_index) const
+  bke::CurvesGeometry &get_curves(const int curves_index) const override
   {
     Curves *curves_id = this->all_curves[curves_index];
     return curves_id->geometry.wrap();
   }
 
-  IndexRange curves_range() const
+  IndexRange curves_range() const override
   {
     return this->all_curves.index_range();
   }
 
-  void single_point_attributes(bke::CurvesGeometry & /*curves*/, const int /*curves_index*/) const
+  void single_point_attributes(bke::CurvesGeometry & /*curves*/,
+                               const int /*curves_index*/) const override
   {
     return;
   }
 
-  bool can_create_new_curve(wmOperator *op) const
+  bool can_create_new_curve(wmOperator *op) const override
   {
     if (this->active_drawing_index == std::nullopt) {
       BKE_report(op->reports, RPT_ERROR, "No active Curves Object");
@@ -1345,7 +1347,7 @@ class CurvesPenToolOperation : public PenToolOperation {
     return true;
   }
 
-  void update_view(bContext *C) const
+  void update_view(bContext *C) const override
   {
     for (Curves *curves_id : this->all_curves) {
       DEG_id_tag_update(&curves_id->id, ID_RECALC_GEOMETRY);
@@ -1356,7 +1358,7 @@ class CurvesPenToolOperation : public PenToolOperation {
 
   std::optional<wmOperatorStatus> initialize(bContext *C,
                                              wmOperator * /*op*/,
-                                             const wmEvent * /*event*/)
+                                             const wmEvent * /*event*/) override
   {
     this->active_drawing_index = std::nullopt;
     VectorSet<Curves *> unique_curves;

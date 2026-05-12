@@ -37,6 +37,7 @@
 #include "BKE_idtype.hh"
 #include "BKE_lib_id.hh"
 #include "BKE_main.hh"
+#include "BKE_node_tree_interface.hh"
 #include "BKE_preview_image.hh"
 #include "BKE_screen.hh"
 
@@ -460,6 +461,12 @@ void WM_drag_data_free(eWM_DragDataType dragtype, void *poin)
       MEM_delete(str);
       break;
     }
+    case WM_DRAG_NODE_TREE_INTERFACE: {
+      bke::node_interface::bNodeTreeInterfaceItemReference *item_reference =
+          static_cast<bke::node_interface::bNodeTreeInterfaceItemReference *>(poin);
+      bke::node_interface::item_reference_free(item_reference);
+      break;
+    }
     default:
       MEM_delete_void(poin);
       break;
@@ -508,13 +515,6 @@ static wmDropBox *dropbox_active(bContext *C,
                                  wmDrag *drag,
                                  const wmEvent *event)
 {
-  if (wmDragAsset *asset_data = WM_drag_get_asset_data(drag, 0)) {
-    if (asset_data->asset->is_online()) {
-      drag->drop_state.disabled_info = RPT_("Downloading asset...");
-      return nullptr;
-    }
-  }
-
   for (wmEventHandler &handler_base : *handlers) {
     if (handler_base.type == WM_HANDLER_TYPE_DROPBOX) {
       wmEventHandler_Dropbox *handler = reinterpret_cast<wmEventHandler_Dropbox *>(&handler_base);
@@ -557,12 +557,57 @@ static wmDropBox *dropbox_active(bContext *C,
   return nullptr;
 }
 
+static bool has_single_asset_drag(const wmWindowManager &wm)
+{
+  for (const wmDrag &drag : wm.runtime->drags) {
+    if (drag.type == WM_DRAG_ASSET) {
+      return true;
+    }
+  }
+  return false;
+}
+
+static bool drag_global_poll(const bContext *C,
+                             const wmDrag *drag,
+                             std::string *r_status_info,
+                             std::string *r_disabled_info)
+{
+  if (wmDragAsset *asset_data = WM_drag_get_asset_data(drag, 0)) {
+    if (asset_data->asset->is_online()) {
+      *r_status_info = RPT_("Downloading asset...");
+      return false;
+    }
+  }
+
+  if (!wm_drag_asset_path_exists(drag).value_or(true)) {
+    if ((drag->type == WM_DRAG_ASSET_LIST) && has_single_asset_drag(*CTX_wm_manager(C))) {
+      /* Return false without displaying a message. The "Asset not found" message below tends to
+       * show up twice when both #WM_DRAG_ASSET and #WM_DRAG_ASSET_LIST are present. Skip the check
+       * for the former if the latter exists. */
+      return false;
+    }
+
+    *r_disabled_info = RPT_("Asset not found");
+    return false;
+  }
+
+  return true;
+}
+
 /* Return active operator tooltip/name when mouse is in box. */
 static wmDropBox *wm_dropbox_active(bContext *C, wmDrag *drag, const wmEvent *event)
 {
-  /* Always do this check for asset dragging (as if it was in every poll). */
-  if (!wm_drag_asset_path_exists(drag).value_or(true)) {
-    drag->drop_state.disabled_info = RPT_("Asset not found");
+  drag->drop_state.disabled_info = std::nullopt;
+
+  std::string disabled_info;
+  /* The red of the `disabled_info` looks scary. Use this instead for non-error conditions, it will
+   * show in the normal text color. */
+  std::string status_info;
+  /* Always do these checks for dragging (as if they were in every poll). */
+  if (!drag_global_poll(C, drag, &status_info, &disabled_info)) {
+    drag->drop_state.disabled_info = disabled_info;
+    /* Just use the tooltip for status info. There's no drop-box active to fill it anyway. */
+    drag->drop_state.tooltip = status_info;
     return nullptr;
   }
 
@@ -570,8 +615,6 @@ static wmDropBox *wm_dropbox_active(bContext *C, wmDrag *drag, const wmEvent *ev
   bScreen *screen = WM_window_get_active_screen(win);
   ScrArea *area = BKE_screen_find_area_xy(screen, SPACE_TYPE_ANY, event->xy);
   wmDropBox *drop = nullptr;
-
-  drag->drop_state.disabled_info = std::nullopt;
 
   if (area) {
     ARegion *region = ED_area_find_region_xy_visual(area, RGN_TYPE_ANY, event->xy);

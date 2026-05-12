@@ -13,9 +13,16 @@
 #include "BLI_utildefines.h"
 
 #include "DNA_scene_types.h"
+#include "DNA_space_enums.h"
+#include "DNA_space_types.h"
 
 #include "BKE_context.hh"
 #include "BKE_scene.hh"
+
+#include "DNA_theme_types.h"
+#include "IMB_colormanagement.hh"
+
+#include "OCIO_scope.hh"
 
 #include "WM_api.hh"
 #include "WM_types.hh"
@@ -167,9 +174,50 @@ void SEQUENCER_OT_view_frame(wmOperatorType *ot)
 
 /** \} */
 
+rctf SEQ_view_frame_fit(const SpaceSeq *sseq, const ARegion *region, rctf v2d_rect)
+{
+  const float region_w = std::max(float(BLI_rcti_size_x(&region->winrct)), 1.0f);
+  const float region_h = std::max(float(BLI_rcti_size_y(&region->winrct)), 1.0f);
+
+  if (sseq->mainb == SEQ_DRAW_IMG_VECTORSCOPE) {
+    /* The vector-scope circle uses min(width, height) as its diameter.
+     * Adjust the framing to match the region aspect ratio so the circle
+     * fits tightly regardless of whether the region is wide or tall. */
+    const float region_aspect = region_w / region_h;
+    const float circle_radius = std::min(BLI_rctf_size_x(&v2d_rect), BLI_rctf_size_y(&v2d_rect)) *
+                                0.5f;
+    const float cx = BLI_rctf_cent_x(&v2d_rect);
+    const float cy = BLI_rctf_cent_y(&v2d_rect);
+    const float half_w = circle_radius * std::max(region_aspect, 1.0f);
+    const float half_h = circle_radius * std::max(1.0f / region_aspect, 1.0f);
+    BLI_rctf_init(&v2d_rect, cx - half_w, cx + half_w, cy - half_h, cy + half_h);
+  }
+
+  /* Add fixed pixel padding on all sides for scopes. */
+  if (ELEM(sseq->mainb,
+           SEQ_DRAW_IMG_HISTOGRAM,
+           SEQ_DRAW_IMG_WAVEFORM,
+           SEQ_DRAW_IMG_RGBPARADE,
+           SEQ_DRAW_IMG_VECTORSCOPE))
+  {
+    const float PAD_PX = 10.0f * UI_SCALE_FAC;
+    const float pad_x = PAD_PX * BLI_rctf_size_x(&v2d_rect) / region_w;
+    const float pad_y = PAD_PX * BLI_rctf_size_y(&v2d_rect) / region_h;
+    v2d_rect.xmin -= pad_x;
+    v2d_rect.xmax += pad_x;
+    v2d_rect.ymin -= pad_y;
+    v2d_rect.ymax += pad_y;
+  }
+
+  return v2d_rect;
+}
+
 /* For frame all/selected operators, when we are in preview region
  * with histogram/waveform display mode, frame the extents of the scope. */
-static bool view_frame_preview_scope(bContext *C, wmOperator *op, ARegion *region)
+static bool view_frame_preview_scope(bContext *C,
+                                     wmOperator *op,
+                                     ARegion *region,
+                                     const bool use_max_nits)
 {
   if (!region || region->regiontype != RGN_TYPE_PREVIEW) {
     return false;
@@ -181,33 +229,31 @@ static bool view_frame_preview_scope(bContext *C, wmOperator *op, ARegion *regio
   const View2D *v2d = ui::view2d_fromcontext(C);
   const int smooth_viewtx = WM_operator_smooth_viewtx_get(op);
 
-  if (sseq->mainb == SEQ_DRAW_IMG_HISTOGRAM) {
-    /* For histogram scope, use extents of the histogram. */
-    const ScopeHistogram &hist = sseq->runtime->scopes.histogram;
-    if (hist.data.is_empty()) {
-      return false;
+  if (ELEM(sseq->mainb,
+           SEQ_DRAW_IMG_HISTOGRAM,
+           SEQ_DRAW_IMG_WAVEFORM,
+           SEQ_DRAW_IMG_RGBPARADE,
+           SEQ_DRAW_IMG_VECTORSCOPE))
+  {
+    float max_nits_scale = 1.0f;
+    if (use_max_nits) {
+      /* Optionally limit X range to max nits of the view transform. */
+      const Scene *scene = CTX_data_sequencer_scene(C);
+      const ocio::ScopeInfo scope_info = IMB_colormanagement_get_scope_info(
+          &scene->display_settings, &scene->view_settings);
+      if (scope_info.view_transform_max_nits > 0) {
+        max_nits_scale = scope_info.view_transform_max_nits_value;
+      }
     }
 
     rctf cur_new = v2d->tot;
-    const float val_max = ScopeHistogram::bin_to_float(math::reduce_max(hist.max_bin));
-    cur_new.xmax = cur_new.xmin + (cur_new.xmax - cur_new.xmin) * val_max;
-
-    /* Add some padding around whole histogram. */
-    BLI_rctf_scale(&cur_new, 1.1f);
-
-    ui::view2d_smooth_view(C, region, &cur_new, smooth_viewtx);
-    return true;
-  }
-
-  if (ELEM(sseq->mainb, SEQ_DRAW_IMG_WAVEFORM, SEQ_DRAW_IMG_RGBPARADE)) {
-    /* For waveform/parade scopes, use 3.0 display space Y value as bounds
-     * for HDR content. */
-    const bool hdr = sseq->runtime->scopes.last_ibuf_float;
-    rctf cur_new = v2d->tot;
-    if (hdr) {
-      const float val_max = 3.0f;
-      cur_new.ymax = cur_new.ymin + (cur_new.ymax - cur_new.ymin) * val_max;
+    if (sseq->mainb == SEQ_DRAW_IMG_HISTOGRAM) {
+      cur_new.xmax *= max_nits_scale;
     }
+    else if (ELEM(sseq->mainb, SEQ_DRAW_IMG_WAVEFORM, SEQ_DRAW_IMG_RGBPARADE)) {
+      cur_new.ymax *= max_nits_scale;
+    }
+    cur_new = SEQ_view_frame_fit(sseq, region, cur_new);
     ui::view2d_smooth_view(C, region, &cur_new, smooth_viewtx);
     return true;
   }
@@ -225,7 +271,7 @@ static wmOperatorStatus sequencer_view_all_preview_exec(bContext *C, wmOperator 
   bScreen *screen = CTX_wm_screen(C);
   ScrArea *area = CTX_wm_area(C);
 
-  if (view_frame_preview_scope(C, op, CTX_wm_region(C))) {
+  if (view_frame_preview_scope(C, op, CTX_wm_region(C), false)) {
     return OPERATOR_FINISHED;
   }
 
@@ -440,7 +486,7 @@ static wmOperatorStatus sequencer_view_selected_exec(bContext *C, wmOperator *op
   View2D *v2d = ui::view2d_fromcontext(C);
   rctf cur_new = v2d->cur;
 
-  if (view_frame_preview_scope(C, op, region)) {
+  if (view_frame_preview_scope(C, op, region, true)) {
     return OPERATOR_FINISHED;
   }
 

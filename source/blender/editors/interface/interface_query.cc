@@ -510,19 +510,20 @@ Button *view_item_find_mouse_over(const ARegion *region, const int xy[2])
   return button_find_mouse_over_ex(region, xy, false, false, but_is_view_item_fn, nullptr);
 }
 
-static bool but_is_active_view_item(const Button *but, const void * /*customdata*/)
+static bool but_is_active_view_item(const Button *but, const void *view)
 {
   if (but->type != ButtonType::ViewItem) {
     return false;
   }
 
   const auto *view_item_but = static_cast<const ButtonViewItem *>(but);
-  return view_item_but->view_item->is_active();
+  return (!view || &view_item_but->view_item->get_view() == view) &&
+         view_item_but->view_item->is_active();
 }
 
-Button *view_item_find_active(const ARegion *region)
+Button *view_item_find_active(const ARegion *region, const AbstractView *view)
 {
-  return but_find(region, but_is_active_view_item, nullptr);
+  return but_find(region, but_is_active_view_item, view);
 }
 
 Button *view_item_find_search_highlight(const ARegion *region)

@@ -469,12 +469,17 @@ static bool init_structDNA(SDNA *sdna, const char **r_error_message)
   }
 
   {
-    /* second part of gravity problem, setting "gravity" type to void */
+    /* second part of gravity problem, setting "gravity" type to void.
+     *
+     * NOTE: The gravity fix only applies to pre-2011 blend-files, which had `void` at
+     * type index 9 in their SDNA (`int64_t` was inserted before `void` in the `types`
+     * array later, shifting `void` to a later index in current Blender's SDNA, but the
+     * file's SDNA loaded here still has `void` at 9). */
     if (member_index_gravity_fix > -1) {
       for (int struct_index = 0; struct_index < sdna->structs_num; struct_index++) {
         sp = reinterpret_cast<short *>(sdna->structs[struct_index]);
         if (STREQ(sdna->types[sp[0]], "ClothSimSettings")) {
-          sp[10] = SDNA_TYPE_VOID;
+          sp[10] = 9;
         }
       }
     }
@@ -845,8 +850,10 @@ static void cast_primitive_type(const eSDNA_Type old_type,
         old_value_f = double(value);
         break;
       }
+      case SDNA_TYPE_VOID:
       case SDNA_TYPE_RAW_DATA:
-        BLI_assert_msg(false, "Conversion from SDNA_TYPE_RAW_DATA is not supported");
+        BLI_assert_msg(false,
+                       "Conversion from SDNA_TYPE_VOID/SDNA_TYPE_RAW_DATA is not supported");
         break;
     }
 
@@ -887,8 +894,9 @@ static void cast_primitive_type(const eSDNA_Type old_type,
       case SDNA_TYPE_INT8:
         *reinterpret_cast<int8_t *>(new_data) = int8_t(old_value_i);
         break;
+      case SDNA_TYPE_VOID:
       case SDNA_TYPE_RAW_DATA:
-        BLI_assert_msg(false, "Conversion to SDNA_TYPE_RAW_DATA is not supported");
+        BLI_assert_msg(false, "Conversion to SDNA_TYPE_VOID/SDNA_TYPE_RAW_DATA is not supported");
         break;
     }
 
@@ -1687,6 +1695,8 @@ int DNA_elem_type_size(const eSDNA_Type elem_nr)
     case SDNA_TYPE_INT64:
     case SDNA_TYPE_UINT64:
       return 8;
+    case SDNA_TYPE_VOID:
+      return 0;
     case SDNA_TYPE_RAW_DATA:
       BLI_assert_msg(false, "Operations on the size of SDNA_TYPE_RAW_DATA is not supported");
       return 0;
@@ -1864,22 +1874,21 @@ static void sdna_expand_names(SDNA *sdna)
 }
 
 static const char *dna_sdna_alias_from_static_elem_full(SDNA *sdna,
-                                                        GHash *elem_map_alias_from_static,
+                                                        const DnaRenameMaps &rename_maps,
                                                         const char *struct_name_static,
                                                         const char *elem_static_full)
 {
   const int elem_static_full_len = strlen(elem_static_full);
   char *elem_static = static_cast<char *>(alloca(elem_static_full_len + 1));
   const int elem_static_len = DNA_member_id_strip_copy(elem_static, elem_static_full);
-  const char *str_pair[2] = {struct_name_static, elem_static};
-  const char *elem_alias = static_cast<const char *>(
-      BLI_ghash_lookup(elem_map_alias_from_static, str_pair));
+  const StringRefNull *elem_alias = rename_maps.members.lookup_ptr(
+      {struct_name_static, elem_static});
   if (elem_alias) {
     return DNA_member_id_rename(sdna->mem_arena,
                                 elem_static,
                                 elem_static_len,
-                                elem_alias,
-                                strlen(elem_alias),
+                                elem_alias->c_str(),
+                                elem_alias->size(),
                                 elem_static_full,
                                 elem_static_full_len,
                                 DNA_member_id_offset_start(elem_static_full));
@@ -1900,11 +1909,7 @@ void DNA_sdna_alias_data_ensure(SDNA *sdna)
     sdna->mem_arena = BLI_memarena_new(BLI_MEMARENA_STD_BUFSIZE, __func__);
   }
 
-  GHash *type_map_alias_from_static;
-  GHash *member_map_alias_from_static;
-
-  DNA_alias_maps(
-      DNA_RENAME_ALIAS_FROM_STATIC, &type_map_alias_from_static, &member_map_alias_from_static);
+  const DnaRenameMaps rename_maps = DNA_rename_maps_static_to_alias();
 
   if (sdna->alias.types == nullptr) {
     sdna->alias.types = MEM_new_array_uninitialized<const char *>(size_t(sdna->types_num),
@@ -1916,8 +1921,8 @@ void DNA_sdna_alias_data_ensure(SDNA *sdna)
         type_name_static = DNA_struct_rename_legacy_hack_alias_from_static(type_name_static);
       }
 
-      sdna->alias.types[type_index] = static_cast<const char *>(BLI_ghash_lookup_default(
-          type_map_alias_from_static, type_name_static, (void *)type_name_static));
+      sdna->alias.types[type_index] =
+          rename_maps.types.lookup_default_as(type_name_static, type_name_static).c_str();
     }
   }
 
@@ -1936,10 +1941,7 @@ void DNA_sdna_alias_data_ensure(SDNA *sdna)
       for (int a = 0; a < struct_info->members_num; a++) {
         const SDNA_StructMember *member = &struct_info->members[a];
         const char *member_alias_full = dna_sdna_alias_from_static_elem_full(
-            sdna,
-            member_map_alias_from_static,
-            struct_name_static,
-            sdna->members[member->member_index]);
+            sdna, rename_maps, struct_name_static, sdna->members[member->member_index]);
         if (member_alias_full != nullptr) {
           sdna->alias.members[member->member_index] = member_alias_full;
         }
@@ -1949,8 +1951,6 @@ void DNA_sdna_alias_data_ensure(SDNA *sdna)
       }
     }
   }
-  BLI_ghash_free(type_map_alias_from_static, nullptr, nullptr);
-  BLI_ghash_free(member_map_alias_from_static, MEM_delete_void, nullptr);
 }
 
 void DNA_sdna_alias_data_ensure_structs_map(SDNA *sdna)
@@ -2181,6 +2181,7 @@ static void print_single_struct_recursive(const SDNA &sdna,
                 fmt::format_to(dst, "{}", *reinterpret_cast<const uint64_t *>(current_data));
                 break;
               }
+              case SDNA_TYPE_VOID:
               case SDNA_TYPE_RAW_DATA: {
                 BLI_assert_unreachable();
                 break;

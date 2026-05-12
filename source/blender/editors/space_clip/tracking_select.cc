@@ -528,14 +528,14 @@ TrackingPick ed_tracking_pick_closest(const TrackPickOptions *options,
 void ed_tracking_deselect_all_tracks(ListBaseT<MovieTrackingTrack> *tracks_base)
 {
   for (MovieTrackingTrack &track : *tracks_base) {
-    BKE_tracking_track_flag_clear(&track, TRACK_AREA_ALL, SELECT);
+    BKE_tracking_track_flag_clear(&track, TRACK_AREA_ALL, TRACK_SELECT);
   }
 }
 
 void ed_tracking_deselect_all_plane_tracks(ListBaseT<MovieTrackingPlaneTrack> *plane_tracks_base)
 {
   for (MovieTrackingPlaneTrack &plane_track : *plane_tracks_base) {
-    plane_track.flag &= ~SELECT;
+    plane_track.flag &= ~PLANE_TRACK_SELECT;
   }
 }
 
@@ -629,11 +629,11 @@ static wmOperatorStatus select_exec(bContext *C, wmOperator *op)
 
     if (PLANE_TRACK_VIEW_SELECTED(plane_track)) {
       if (extend) {
-        plane_track->flag &= ~SELECT;
+        plane_track->flag &= ~PLANE_TRACK_SELECT;
       }
     }
     else {
-      plane_track->flag |= SELECT;
+      plane_track->flag |= PLANE_TRACK_SELECT;
     }
 
     tracking_object->active_track = nullptr;
@@ -754,10 +754,10 @@ static wmOperatorStatus box_select_exec(bContext *C, wmOperator *op)
     if (ED_space_clip_marker_is_visible(sc, tracking_object, &track, marker)) {
       if (BLI_rctf_isect_pt_v(&rectf, marker->pos)) {
         if (select) {
-          BKE_tracking_track_flag_set(&track, TRACK_AREA_ALL, SELECT);
+          BKE_tracking_track_flag_set(&track, TRACK_AREA_ALL, TRACK_SELECT);
         }
         else {
-          BKE_tracking_track_flag_clear(&track, TRACK_AREA_ALL, SELECT);
+          BKE_tracking_track_flag_clear(&track, TRACK_AREA_ALL, TRACK_SELECT);
         }
       }
       changed = true;
@@ -775,10 +775,10 @@ static wmOperatorStatus box_select_exec(bContext *C, wmOperator *op)
     for (int i = 0; i < 4; i++) {
       if (BLI_rctf_isect_pt_v(&rectf, plane_marker->corners[i])) {
         if (select) {
-          plane_track.flag |= SELECT;
+          plane_track.flag |= PLANE_TRACK_SELECT;
         }
         else {
-          plane_track.flag &= ~SELECT;
+          plane_track.flag &= ~PLANE_TRACK_SELECT;
         }
       }
     }
@@ -852,10 +852,10 @@ static int do_lasso_select_marker(bContext *C, const Span<int2> mcoords, bool se
           BLI_lasso_is_point_inside(mcoords, screen_co[0], screen_co[1], V2D_IS_CLIPPED))
       {
         if (select) {
-          BKE_tracking_track_flag_set(&track, TRACK_AREA_ALL, SELECT);
+          BKE_tracking_track_flag_set(&track, TRACK_AREA_ALL, TRACK_SELECT);
         }
         else {
-          BKE_tracking_track_flag_clear(&track, TRACK_AREA_ALL, SELECT);
+          BKE_tracking_track_flag_clear(&track, TRACK_AREA_ALL, TRACK_SELECT);
         }
       }
 
@@ -881,10 +881,10 @@ static int do_lasso_select_marker(bContext *C, const Span<int2> mcoords, bool se
           BLI_lasso_is_point_inside(mcoords, screen_co[0], screen_co[1], V2D_IS_CLIPPED))
       {
         if (select) {
-          plane_track.flag |= SELECT;
+          plane_track.flag |= PLANE_TRACK_SELECT;
         }
         else {
-          plane_track.flag &= ~SELECT;
+          plane_track.flag &= ~PLANE_TRACK_SELECT;
         }
       }
     }
@@ -1013,10 +1013,10 @@ static wmOperatorStatus circle_select_exec(bContext *C, wmOperator *op)
         marker_inside_ellipse(marker, offset, ellipse))
     {
       if (select) {
-        BKE_tracking_track_flag_set(&track, TRACK_AREA_ALL, SELECT);
+        BKE_tracking_track_flag_set(&track, TRACK_AREA_ALL, TRACK_SELECT);
       }
       else {
-        BKE_tracking_track_flag_clear(&track, TRACK_AREA_ALL, SELECT);
+        BKE_tracking_track_flag_clear(&track, TRACK_AREA_ALL, TRACK_SELECT);
       }
       changed = true;
     }
@@ -1033,10 +1033,10 @@ static wmOperatorStatus circle_select_exec(bContext *C, wmOperator *op)
     for (int i = 0; i < 4; i++) {
       if (point_inside_ellipse(plane_marker->corners[i], offset, ellipse)) {
         if (select) {
-          plane_track.flag |= SELECT;
+          plane_track.flag |= PLANE_TRACK_SELECT;
         }
         else {
-          plane_track.flag &= ~SELECT;
+          plane_track.flag &= ~PLANE_TRACK_SELECT;
         }
       }
     }
@@ -1169,12 +1169,12 @@ static wmOperatorStatus select_grouped_exec(bContext *C, wmOperator *op)
     }
 
     if (ok) {
-      track.flag |= SELECT;
+      track.flag |= TRACK_SELECT;
       if (sc->flag & SC_SHOW_MARKER_PATTERN) {
-        track.pat_flag |= SELECT;
+        track.pat_flag |= TRACK_SELECT;
       }
       if (sc->flag & SC_SHOW_MARKER_SEARCH) {
-        track.search_flag |= SELECT;
+        track.search_flag |= TRACK_SELECT;
       }
     }
   }

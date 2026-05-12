@@ -119,6 +119,8 @@ void main()
     /* Output unmodified radiance for indirect lighting. */
     float3 out_radiance = imageLoad(radiance_feedback_img, texel).rgb;
     out_radiance += out_direct + out_indirect;
+    /* Prevent NaNs from propagating. */
+    out_radiance = any(isnan(out_radiance)) ? float3(0.0f) : out_radiance;
     imageStore(radiance_feedback_img, texel, float4(out_radiance, 0.0f));
   }
 

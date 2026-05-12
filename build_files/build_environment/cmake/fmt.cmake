@@ -22,13 +22,13 @@ ExternalProject_Add(external_fmt
 )
 
 if(WIN32)
-    ExternalProject_Add_Step(external_fmt after_install
-      COMMAND ${CMAKE_COMMAND} -E copy_directory
-        ${LIBDIR}/fmt/
-        ${HARVEST_TARGET}/fmt
+  ExternalProject_Add_Step(external_fmt after_install
+    COMMAND ${CMAKE_COMMAND} -E copy_directory
+      ${LIBDIR}/fmt/
+      ${HARVEST_TARGET}/fmt
 
-      DEPENDEES install
-    )
+    DEPENDEES install
+  )
 
 else()
   harvest(external_fmt fmt/include fmt/include "*.h")

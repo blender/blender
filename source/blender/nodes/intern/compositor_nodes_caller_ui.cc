@@ -275,7 +275,7 @@ void draw_compositor_nodes_modifier_ui(const bContext &C,
 
   layout.use_property_split_set(true);
 
-  if ((cmd.flag & HIDE_DATABLOCK_SELECTOR) == 0) {
+  if ((cmd.flag & SEQ_COMP_MOD_HIDE_DATABLOCK_SELECTOR) == 0) {
     const char *newop = (cmd.node_group == nullptr) ?
                             "node.new_compositor_sequencer_node_group" :
                             "node.duplicate_compositing_modifier_node_group";

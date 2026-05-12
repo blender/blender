@@ -2,7 +2,13 @@
  *
  * SPDX-License-Identifier: GPL-2.0-or-later */
 
+#include "BKE_action.hh"
 #include "BKE_armature.hh"
+#include "BKE_gtest_base.hh"
+#include "BKE_lib_id.hh"
+#include "BKE_main.hh"
+#include "BKE_object.hh"
+#include "BKE_object_types.hh"
 
 #include "BLI_listbase.h"
 #include "BLI_math_matrix.h"
@@ -11,7 +17,12 @@
 #include "BLI_math_vector.h"
 #include "BLI_string.h"
 
+#include "DNA_ID.h"
+#include "DNA_action_types.h"
 #include "DNA_armature_types.h"
+#include "DNA_object_types.h"
+
+#include "MEM_guardedalloc.h"
 
 #include "testing/testing.h"
 
@@ -372,7 +383,7 @@ class BKE_armature_find_selected_bones_test : public testing::Test {
 TEST_F(BKE_armature_find_selected_bones_test, some_bones_selected)
 {
   bone1.flag = BONE_SELECTED;
-  bone2.flag = 0;
+  bone2.flag = eBone_Flag{};
   bone3.flag = BONE_SELECTED;
 
   std::vector<Bone *> seen_bones;
@@ -390,7 +401,7 @@ TEST_F(BKE_armature_find_selected_bones_test, some_bones_selected)
 
 TEST_F(BKE_armature_find_selected_bones_test, no_bones_selected)
 {
-  bone1.flag = bone2.flag = bone3.flag = 0;
+  bone1.flag = bone2.flag = bone3.flag = eBone_Flag{};
 
   std::vector<Bone *> seen_bones;
   auto callback = [&](Bone *bone) { seen_bones.push_back(bone); };
@@ -418,6 +429,200 @@ TEST_F(BKE_armature_find_selected_bones_test, all_bones_selected)
 
   EXPECT_TRUE(result.all_bones_selected);
   EXPECT_FALSE(result.no_bones_selected);
+}
+
+class BoneIndexTestBase {
+ public:
+  Main *bmain = nullptr;
+  bArmature *armature = nullptr;
+  Bone *bone_root = nullptr;
+  Bone *bone_child1 = nullptr;
+  Bone *bone_child2 = nullptr;
+
+  void create_armature()
+  {
+    armature = BKE_armature_add(bmain, "Test Armature");
+
+    bone_root = MEM_new<Bone>(__func__);
+    bone_child1 = MEM_new<Bone>(__func__);
+    bone_child2 = MEM_new<Bone>(__func__);
+
+    bone_child1->parent = bone_root;
+    bone_child2->parent = bone_root;
+
+    STRNCPY(bone_root->name, "bone_root");
+    STRNCPY(bone_child1->name, "bone_child1");
+    STRNCPY(bone_child2->name, "bone_child2");
+
+    BLI_addtail(&armature->bonebase, bone_root);
+    BLI_addtail(&bone_root->childbase, bone_child1);
+    BLI_addtail(&bone_root->childbase, bone_child2);
+  }
+};
+
+class ArmatureBoneIndexTest : public BoneIndexTestBase, public BlenderGTestBase {
+ public:
+  void SetUp() override
+  {
+    bmain = BKE_main_new();
+  }
+
+  void TearDown() override
+  {
+    BKE_main_free(bmain);
+  }
+};
+
+TEST_F(ArmatureBoneIndexTest, armature_init_data)
+{
+  create_armature();
+
+  EXPECT_EQ(0, armature->runtime->bones.size())
+      << "After low-level bone adding, the runtime array should be empty.";
+  ASSERT_NE(0, armature->id.session_uid);
+  EXPECT_EQ(uint64_t(armature->id.session_uid) << 32, armature->runtime->bones_generation_count);
+
+  EXPECT_EQ(bone_root, armature->bone_get_indexed(0));
+  EXPECT_EQ(3, armature->runtime->bones.size())
+      << "After calling bone_get_index(), the runtime array should be filled.";
+
+  EXPECT_EQ(bone_child1, armature->bone_get_indexed(1));
+
+  armature->runtime->bones_tag_rebuild();
+  EXPECT_EQ(bone_child2, armature->bone_get_indexed(2));
+  EXPECT_EQ(3, armature->runtime->bones.size())
+      << "After clearing the bone array, calling bone_get_index() should rebuild it.";
+}
+
+TEST_F(ArmatureBoneIndexTest, armature_copy_data)
+{
+  create_armature();
+  EXPECT_EQ(bone_root, armature->bone_get_indexed(0)); /* Ensure the bone array is created. */
+
+  /* Regular copy, should get its own generation counter. */
+  bArmature *copy = id_cast<bArmature *>(BKE_id_copy(this->bmain, &armature->id));
+  ASSERT_NE(0, armature->id.session_uid);
+  EXPECT_NE(armature->runtime->bones_generation_count, copy->runtime->bones_generation_count);
+  EXPECT_EQ(3, copy->runtime->bones.size());
+
+  /* Getting the indexed bone should return a copied bone, and not the original. */
+  Bone *copybone_root = static_cast<Bone *>(copy->bonebase.first);
+  EXPECT_EQ(copybone_root, copy->bone_get_indexed(0));
+
+  /* CoW-copy, should reuse the generation counter. */
+  bArmature *cow_copy = id_cast<bArmature *>(
+      BKE_id_copy_in_lib(this->bmain,
+                         std::nullopt,
+                         &armature->id,
+                         std::nullopt,
+                         nullptr,
+                         LIB_ID_COPY_DEFAULT | LIB_ID_COPY_SET_COPIED_ON_WRITE));
+  ASSERT_NE(0, armature->id.session_uid);
+  EXPECT_EQ(armature->runtime->bones_generation_count, cow_copy->runtime->bones_generation_count);
+  EXPECT_EQ(3, cow_copy->runtime->bones.size());
+}
+
+class PoseBoneIndexTest : public BoneIndexTestBase, public BlenderGTestBase {
+ public:
+  Object *object = nullptr;
+
+  void SetUp() override
+  {
+    bmain = BKE_main_new();
+  }
+
+  void TearDown() override
+  {
+    BKE_main_free(bmain);
+  }
+
+  void create_object()
+  {
+    create_armature();
+    object = BKE_object_add_only_object(bmain, OB_ARMATURE, "PoseObject");
+    object->data = &armature->id;
+    id_us_plus(&armature->id);
+    BKE_pose_rebuild(bmain, object, armature, /*do_id_user=*/true);
+  }
+};
+
+TEST_F(PoseBoneIndexTest, pose_bone_get)
+{
+  create_object();
+
+  bPoseChannel *pchan_root = BKE_pose_channel_find_name(object->pose, bone_root->name);
+  bPoseChannel *pchan_child1 = BKE_pose_channel_find_name(object->pose, bone_child1->name);
+  bPoseChannel *pchan_child2 = BKE_pose_channel_find_name(object->pose, bone_child2->name);
+  EXPECT_EQ(bone_root, pchan_root->bone_get(*object));
+  EXPECT_EQ(bone_child1, pchan_child1->bone_get(*object));
+  EXPECT_EQ(bone_child2, pchan_child2->bone_get(*object));
+}
+
+TEST_F(PoseBoneIndexTest, reassign_armature_copy)
+{
+  create_object();
+
+  bPoseChannel *pchan_root = BKE_pose_channel_find_name(object->pose, bone_root->name);
+  bPoseChannel *pchan_child1 = BKE_pose_channel_find_name(object->pose, bone_child1->name);
+  bPoseChannel *pchan_child2 = BKE_pose_channel_find_name(object->pose, bone_child2->name);
+
+  /* Create a copy of the armature. */
+  bArmature *copy = id_cast<bArmature *>(BKE_id_copy(this->bmain, &armature->id));
+  Bone *copybone_root = BKE_armature_find_bone_name(copy, bone_root->name);
+  Bone *copybone_child1 = BKE_armature_find_bone_name(copy, bone_child1->name);
+  Bone *copybone_child2 = BKE_armature_find_bone_name(copy, bone_child2->name);
+
+  /* Check that the copy actually copied all the bones. Since this test trusts these pointers,
+   * better to be safe than sorry. */
+  ASSERT_NE(bone_root, copybone_root);
+  ASSERT_NE(bone_child1, copybone_child1);
+  ASSERT_NE(bone_child2, copybone_child2);
+
+  /* Check that the copy did indeed not change the order of the bones. */
+  Array<Bone *> expected_bones = {copybone_root, copybone_child1, copybone_child2};
+  ASSERT_EQ(expected_bones, copy->runtime->bones);
+
+  /* Assign the armature copy. After this, getting bone pointers should just work without
+   * explicitly rebuilding the pose. */
+  id_us_min(&armature->id);
+  object->data = &copy->id;
+  id_us_plus(&copy->id);
+
+  EXPECT_EQ(copybone_root, pchan_root->bone_get(*object));
+  EXPECT_EQ(copybone_child1, pchan_child1->bone_get(*object));
+  EXPECT_EQ(copybone_child2, pchan_child2->bone_get(*object));
+
+  /* Getting from the original armature should also work, because bone indices haven't changed. */
+  EXPECT_EQ(bone_root, pchan_root->bone_get(*armature));
+  EXPECT_EQ(bone_child1, pchan_child1->bone_get(*armature));
+  EXPECT_EQ(bone_child2, pchan_child2->bone_get(*armature));
+}
+
+TEST_F(PoseBoneIndexTest, pose_rebuild_test)
+{
+  /* After exiting Armature Edit mode, all Bones get recreated from EditBones. This clears the
+   * bones array, which triggers a rebuild of that array on first access. But, when this access
+   * happens via pchan->bone_get(), the pchan's bone index may need rebuilding as well. */
+
+  create_object(); /* Create armature + pose with 3 bones. */
+
+  bPoseChannel *pchan_root = BKE_pose_channel_find_name(object->pose, bone_root->name);
+  bPoseChannel *pchan_child1 = BKE_pose_channel_find_name(object->pose, bone_child1->name);
+
+  /* Mimick going into Armature Edit mode and deleting bone 'child2'. */
+  BLI_remlink(&bone_root->childbase, bone_child2);
+  MEM_delete(bone_child2);
+  bone_child2 = nullptr;
+  armature->runtime->bones_tag_rebuild();
+
+  EXPECT_EQ(bone_root, pchan_root->bone_get(*object));
+  EXPECT_EQ(bone_child1, pchan_child1->bone_get(*object));
+  /* This will fail, because bone_get() asserts the bone index is valid. */
+  // EXPECT_EQ(nullptr, pchan_child2->bone_get(*object));
+
+  const uint64_t armature_generation_count = armature->runtime->bones_generation_count;
+  const uint64_t object_generation_count = object->runtime->pose_bones_generation_count;
+  EXPECT_EQ(armature_generation_count, object_generation_count);
 }
 
 }  // namespace blender::bke::tests

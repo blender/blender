@@ -141,6 +141,55 @@ class Instance : public DrawEngine {
     }
   }
 
+  /* Computes a transformation matrix from the normalized screen space coordinates with half pixel
+   * offsets into the image sampler space. */
+  float3x3 compute_screen_space_to_sampler_space_transformation(const float2 output_size,
+                                                                const float2 image_offset,
+                                                                const float2 image_size,
+                                                                const float2 pan_offset,
+                                                                const float zoom,
+                                                                const float aspect_ratio) const
+  {
+    /* Transforms output normalized screen coordinates with half pixel offsets into integer data
+     * coordinates. */
+    const float3x3 output_screen_uv_to_output_texel = math::from_scale<float3x3, 2>(output_size);
+    const float3x3 output_texel_to_output_data = math::from_location<float3x3>(float2(-0.5f));
+
+    /* Transforms output data coordinates into the centered virtual space. */
+    const float2 output_center = float2(output_size) / 2.0f;
+    const float2 output_translation = -output_center;
+    const float3x3 output_data_to_virtual = math::from_location<float3x3>(output_translation);
+
+    /* Transform the image in pixel space based on the pan offset, zoom, and aspect ratio. */
+    const float3x3 image_transformation = math::from_loc_scale<float3x3>(
+        pan_offset, float2(zoom) * float2(1.0f, aspect_ratio));
+
+    /* Transforms image data coordinates into the centered virtual space with the image offset. We
+     * also bias translations to avoids the round-to-even behavior of some GPUs at pixel
+     * boundaries. */
+    const float2 image_center = image_size / 2.0f;
+    const float2 corrective_translation = float2(std::numeric_limits<float>::epsilon() * 10e3f);
+    const float2 image_translation = image_offset - image_center + corrective_translation;
+    const float3x3 image_data_to_virtual = math::translate(image_transformation,
+                                                           image_translation);
+
+    /* Transforms the output data space to the image data space. */
+    const float3x3 virtual_to_image_data = math::invert(image_data_to_virtual);
+    const float3x3 output_data_to_image_data = virtual_to_image_data * output_data_to_virtual;
+
+    /* Transform from image data coordinates to image sampler normalized coordinates with half
+     * pixel offsets. */
+    const float3x3 image_data_to_image_texel = math::from_location<float3x3>(float2(0.5f));
+    const float3x3 image_texel_to_image_sampler = math::from_scale<float3x3, 2>(1.0f / image_size);
+
+    const float3x3 output_screen_uv_to_image_sampler = image_texel_to_image_sampler *
+                                                       image_data_to_image_texel *
+                                                       output_data_to_image_data *
+                                                       output_texel_to_output_data *
+                                                       output_screen_uv_to_output_texel;
+    return output_screen_uv_to_image_sampler;
+  }
+
   void image_sync()
   {
     state.image = space_->get_image(main_);
@@ -153,16 +202,22 @@ class Instance : public DrawEngine {
     void *lock;
     ImBuf *image_buffer = space_->acquire_image_buffer(state.image, &lock);
 
-    /* Setup the matrix to go from screen UV coordinates to UV texture space coordinates. */
-    float image_resolution[2] = {image_buffer ? image_buffer->x : 1024.0f,
-                                 image_buffer ? image_buffer->y : 1024.0f};
+    const float2 image_size = float2(image_buffer ? image_buffer->x : 1024.0f,
+                                     image_buffer ? image_buffer->y : 1024.0f);
     float2 offset = float2(0.0f);
     if (image_buffer && space_->use_display_window() &&
         (image_buffer->flags & IB_has_display_window))
     {
       offset = float2(image_buffer->display_offset);
     }
-    space_->init_ss_to_texture_matrix(region, offset, image_resolution, state.ss_to_texture);
+
+    state.ss_to_texture = this->compute_screen_space_to_sampler_space_transformation(
+        float2(region->winx, region->winy),
+        offset,
+        image_size,
+        space_->get_pan_offset(),
+        space_->get_zoom(),
+        space_->get_aspect_ratio());
 
     const Scene *scene = DRW_context_get()->scene;
     state.sh_params.update(space_.get(), scene, state.image, image_buffer);

@@ -51,7 +51,7 @@ void device_metal_info(vector<DeviceInfo> &devices)
     string id = string("METAL_") + device_name;
 
     /* Hardware ID might not be unique, add device number in that case. */
-    if (unique_ids.find(id) != unique_ids.end()) {
+    if (unique_ids.contains(id)) {
       id += string_printf("_ID_%d", device_index);
     }
     unique_ids.insert(id);

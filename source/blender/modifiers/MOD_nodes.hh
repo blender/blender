@@ -20,8 +20,8 @@ struct NodesModifierBake;
 namespace bke::bake {
 struct ModifierCache;
 }
-namespace nodes::geo_eval_log {
-class GeoNodesLog;
+namespace nodes::eval_log {
+class NodesEvalLog;
 }
 
 /**
@@ -50,7 +50,7 @@ struct NodesModifierRuntime {
    * This is a shared pointer because we might want to keep it around in some cases after the
    * evaluation (e.g. for gizmo backpropagation).
    */
-  std::shared_ptr<nodes::geo_eval_log::GeoNodesLog> eval_log;
+  std::shared_ptr<nodes::eval_log::NodesEvalLog> eval_log;
   /**
    * Simulation cache that is shared between original and evaluated modifiers. This allows the
    * original modifier to be removed, without also removing the simulation state which may still be

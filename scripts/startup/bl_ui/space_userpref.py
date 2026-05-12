@@ -289,6 +289,9 @@ class USERPREF_PT_interface_translation(InterfacePanel, CenterAlignMixIn, Panel)
         col.prop(view, "use_translate_reports", text="Reports")
         col.prop(view, "use_translate_new_dataname", text="New Data")
 
+        layout.prop(view, "date_format")
+        layout.prop(view, "time_format", text="Time")
+
 
 class USERPREF_PT_interface_accessibility(InterfacePanel, CenterAlignMixIn, Panel):
     bl_label = "Accessibility"
@@ -690,8 +693,8 @@ class USERPREF_PT_system_sound(SystemPanel, CenterAlignMixIn, Panel):
 
         layout.prop(system, "audio_device", expand=False)
 
-        sub = layout.grid_flow(row_major=False, columns=0, even_columns=False, even_rows=False, align=False)
-        sub.active = system.audio_device not in {'NONE', 'None'}
+        sub = layout.column()
+        sub.active = system.audio_device not in {'SOUND_NONE', 'NONE', 'None', ''}
         sub.prop(system, "audio_channels", text="Channels")
         sub.prop(system, "audio_mixing_buffer", text="Mixing Buffer")
         sub.prop(system, "audio_sample_rate", text="Sample Rate")
@@ -953,7 +956,6 @@ class USERPREF_PT_viewport_textures(ViewportPanel, CenterAlignMixIn, Panel):
         col.prop(system, "gl_texture_limit", text="Limit Size")
         col.prop(system, "anisotropic_filter")
         col.prop(system, "gl_clip_alpha", slider=True)
-        col.prop(system, "image_draw_method", text="Image Display Method")
 
 
 class USERPREF_PT_viewport_subdivision(ViewportPanel, CenterAlignMixIn, Panel):
@@ -2807,7 +2809,11 @@ class USERPREF_PT_file_paths_asset_libraries(AssetsPanel, Panel):
         if active_library.use_remote_url:
             use_remote_libraries = context.preferences.experimental.use_remote_asset_libraries
             if use_remote_libraries:
-                layout.prop(active_library, "remote_url")
+                row = layout.row()
+                row.alert = active_library.remote_url == ""
+                row.prop(active_library, "remote_url", text="", icon='INTERNET', placeholder="Repository URL")
+
+            layout.prop(active_library, "import_method", text="Import Method")
         else:
             layout.prop(active_library, "path")
             layout.prop(active_library, "import_method", text="Import Method")
@@ -2822,6 +2828,11 @@ class USERPREF_UL_asset_libraries(UIList):
         icon = 'INTERNET' if asset_library.use_remote_url else 'DISK_DRIVE'
         row = layout.row(align=True)
         row.prop(asset_library, "name", text="", icon=icon, emboss=False)
+
+        if asset_library.enabled:
+            if asset_library.use_remote_url and asset_library.remote_url == "":
+                row.label(text="", icon='ERROR')
+
         row.prop(asset_library, "enabled", text="", emboss=False,
                  icon='CHECKBOX_HLT' if asset_library.enabled else 'CHECKBOX_DEHLT')
 
@@ -3073,10 +3084,10 @@ class USERPREF_PT_experimental_new_features(ExperimentalPanel, Panel):
                 ({"property": "use_extended_asset_browser"},
                  ("blender/blender/projects/10", "Pipeline, Assets & IO Project Page")),
                 ({"property": "use_shader_node_previews"}, ("blender/blender/issues/110353", "#110353")),
-                ({"property": "use_geometry_nodes_lists"}, ("blender/blender/issues/140918", "#140918")),
                 ({"property": "use_geometry_bundle"}, ("blender/blender/issues/150574", "#150574")),
                 ({"property": "use_remote_asset_libraries"}, ("blender/blender/issues/134495", "#134495")),
                 ({"property": "use_collection_importer"}, ("blender/blender/issues/132171", "#132171")),
+                ({"property": "use_geometry_nodes_hair_dynamics"}, ("blender/blender/issues/141609", "#141609")),
                 ({"property": "use_action_layers"}, ("blender/blender/issues/154504", "#154504")),
             ),
         )

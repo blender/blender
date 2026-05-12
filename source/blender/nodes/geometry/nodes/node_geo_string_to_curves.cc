@@ -281,14 +281,14 @@ static std::optional<TextLayout> get_text_layout(GeoNodeExecParams &params)
   cu.smallcaps_scale = 0.75f;
   cu.wordspace = 1.0f;
   /* Set values from inputs */
-  cu.spacemode = align_x;
-  cu.align_y = align_y;
+  cu.spacemode = eCurveSpaceMode(align_x);
+  cu.align_y = eCurveAlignY(align_y);
   cu.fsize = font_size;
   cu.spacing = char_spacing;
   cu.wordspace = word_spacing;
   cu.linedist = line_spacing;
   cu.vfont = vfont;
-  cu.overflow = overflow;
+  cu.overflow = eCurveOverflow(overflow);
   cu.tb = MEM_new_array<TextBox>(MAXTEXTBOX, __func__);
   cu.tb->w = textbox_w;
   cu.tb->h = textbox_h;

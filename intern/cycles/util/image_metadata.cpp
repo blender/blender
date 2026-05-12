@@ -363,6 +363,11 @@ bool ImageMetaData::oiio_load_metadata(OIIO::string_view filepath, OIIO::ImageSp
     return false;
   }
 
+  if (spec.depth > 1) {
+    LOG_ERROR << "Image file " << filepath << " has unsupported depth of " << spec.depth;
+    return false;
+  }
+
   width = spec.width;
   height = spec.height;
   is_compressible_as_srgb = false;
@@ -763,6 +768,11 @@ bool ImageMetaData::oiio_load_pixels(OIIO::string_view filepath,
   config.attribute("oiio:UnassociatedAlpha", 1);
 
   if (!in->open(filepath, spec, config)) {
+    return false;
+  }
+
+  if (spec.depth > 1) {
+    LOG_ERROR << "Image file " << filepath << " has unsupported depth " << spec.depth;
     return false;
   }
 

@@ -48,7 +48,7 @@ if(WIN32)
     BUILD_COMMAND ${CMAKE_COMMAND} --build .
     INSTALL_COMMAND ${CMAKE_COMMAND} --build . --target install
     INSTALL_DIR ${LIBDIR}/aom
-)
+  )
 else()
   ExternalProject_Add(external_aom
     URL file://${PACKAGE_DIR}/${AOM_FILE}
@@ -73,26 +73,26 @@ endif()
 if(NOT WIN32)
   harvest(external_aom aom/lib ffmpeg/lib "*.a")
 else()
-    if(BUILD_MODE STREQUAL Release)
-      # aom insists on building a static version even if you
-      # do not want it, get rid of it by copying the import lib
-      # on top of it, so other projects don't accidentally link
-      # the static library.
-      ExternalProject_Add_Step(external_aom after_install
-        COMMAND ${CMAKE_COMMAND} -E copy
-          ${LIBDIR}/aom/lib/aom_dll.lib
-          ${LIBDIR}/aom/lib/aom.lib
-        COMMAND ${CMAKE_COMMAND} -E copy_directory
-          ${LIBDIR}/aom/
-          ${HARVEST_TARGET}/aom/
-        DEPENDEES install
-      )
-    else()
-      ExternalProject_Add_Step(external_aom after_install
-        COMMAND ${CMAKE_COMMAND} -E copy
-          ${LIBDIR}/aom/lib/aom_dll.lib
-          ${LIBDIR}/aom/lib/aom.lib
-        DEPENDEES install
-      )
-    endif()
+  if(BUILD_MODE STREQUAL Release)
+    # aom insists on building a static version even if you
+    # do not want it, get rid of it by copying the import lib
+    # on top of it, so other projects don't accidentally link
+    # the static library.
+    ExternalProject_Add_Step(external_aom after_install
+      COMMAND ${CMAKE_COMMAND} -E copy
+        ${LIBDIR}/aom/lib/aom_dll.lib
+        ${LIBDIR}/aom/lib/aom.lib
+      COMMAND ${CMAKE_COMMAND} -E copy_directory
+        ${LIBDIR}/aom/
+        ${HARVEST_TARGET}/aom/
+      DEPENDEES install
+    )
+  else()
+    ExternalProject_Add_Step(external_aom after_install
+      COMMAND ${CMAKE_COMMAND} -E copy
+        ${LIBDIR}/aom/lib/aom_dll.lib
+        ${LIBDIR}/aom/lib/aom.lib
+      DEPENDEES install
+    )
+  endif()
 endif()

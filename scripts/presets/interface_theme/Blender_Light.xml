@@ -429,7 +429,6 @@
             channel_group="#278c0e37"
             channel_group_active="#4eb33555"
             channel="#999999ff"
-            channels_selected="#60c04044"
             keyframe="#e8e8e8"
             keyframe_selected="#ffbe33"
             keyframe_extreme="#e8b3cc"
@@ -730,7 +729,6 @@
     <properties>
       <ThemeProperties
         match="#5680c2"
-        active_modifier="#5680c2ff"
         >
         <space>
           <ThemeSpaceGeneric

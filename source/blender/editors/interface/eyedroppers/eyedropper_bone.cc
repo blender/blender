@@ -8,6 +8,7 @@
  * Eyedropper (bones)
  */
 
+#include "DNA_ID.h"
 #include "DNA_layer_types.h"
 
 #include "BKE_armature.hh"
@@ -49,7 +50,7 @@ enum class SampleResult {
 };
 
 struct BoneDropper {
-  /* The ptr.owner_id is the ID for which we are searching the property.*/
+  /** The `ptr.owner_id` is the ID for which we are searching the property. */
   PointerRNA ptr = {};
   PropertyRNA *prop = nullptr;
   /* The property we are looking for. */
@@ -387,12 +388,11 @@ static SampleResult bonedropper_sample(bContext *C, BoneDropper &bdr, const int 
       bdr.search_ptr.type == RNA_Armature)
   {
     /* We are searching for something in the armature but got a pose bone on the object, so we
-     * need to do a conversion. We will just assume the ID under the cursor is the one we are
-     * searching for since there is no way to get the armature ID from the object ID that we
-     * have. */
+     * need to do a conversion. */
+    Object *pose_ob = id_cast<Object *>(sample_data.bone_rna.owner_id);
     bPoseChannel *pose_bone = static_cast<bPoseChannel *>(sample_data.bone_rna.data);
     sample_data.bone_rna = RNA_pointer_create_discrete(
-        bdr.search_ptr.owner_id, RNA_Bone, pose_bone->bone);
+        bdr.search_ptr.owner_id, RNA_Bone, pose_bone->bone_get(*pose_ob));
   }
 
   PropertyType type = RNA_property_type(bdr.prop);

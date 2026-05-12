@@ -6,6 +6,7 @@
 
 #include "IO_subdiv_disabler.hh"
 #include "usd.hh"
+#include "usd_colorspace_utils.hh"
 #include "usd_hierarchy_iterator.hh"
 #include "usd_hook.hh"
 #include "usd_instancing_utils.hh"
@@ -189,6 +190,10 @@ static void ensure_root_prim(pxr::UsdStageRefPtr stage, const USDExportParams &p
     const math::EulerXYZ eul = math::to_euler(math::transpose(mrot));
     xf_api.SetRotate(pxr::GfVec3f(eul.x().degree(), eul.y().degree(), eul.z().degree()));
   }
+
+  /* Color-space on the root prim. It's also applied on all individual prims that need
+   * it, but perhaps this is useful to signal the overall color-space of the file. */
+  colorspace_apply_to_prim(root_xf.GetPrim());
 
   for (const auto &path : pxr::SdfPath(params.root_prim_path).GetPrefixes()) {
     auto xform = pxr::UsdGeomXform::Define(stage, path);
@@ -569,6 +574,7 @@ pxr::UsdStageRefPtr export_to_stage(const USDExportParams &params,
   if (params.export_animation) {
     /* Writing the animated frames is not 100% of the work, here it's assumed to be 75% of it. */
     float progress_per_frame = 0.75f / std::max(1, (scene->r.efra - scene->r.sfra + 1));
+    int exported_frame_count = 0;
 
     for (float frame = scene->r.sfra; frame <= scene->r.efra; frame++) {
       if (G.is_break || worker_status->stop) {
@@ -582,6 +588,13 @@ pxr::UsdStageRefPtr export_to_stage(const USDExportParams &params,
 
       iter.set_export_frame(frame);
       iter.iterate_and_write();
+
+      /* Check if we need to perform an incremental save. A value of 0 will never trigger. */
+      exported_frame_count++;
+      if (exported_frame_count == params.incremental_frames) {
+        usd_stage->GetRootLayer()->Save();
+        exported_frame_count = 0;
+      }
 
       worker_status->progress += progress_per_frame;
       worker_status->do_update = true;

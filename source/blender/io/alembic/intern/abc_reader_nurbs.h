@@ -17,7 +17,7 @@ class AbcNurbsReader final : public AbcObjectReader {
   std::vector<std::pair<Alembic::AbcGeom::INuPatchSchema, Alembic::Abc::IObject>> m_schemas;
 
  public:
-  AbcNurbsReader(const Alembic::Abc::IObject &object, ImportSettings &settings);
+  AbcNurbsReader(const AbcReaderConstructorArgs &args);
 
   bool valid() const override;
 

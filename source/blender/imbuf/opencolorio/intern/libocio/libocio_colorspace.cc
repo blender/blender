@@ -7,17 +7,15 @@
 #include "error_handling.hh"
 #include "intern/cpu_processor_cache.hh"
 
-#if defined(WITH_OPENCOLORIO)
+#include <cmath>
 
-#  include <cmath>
+#include "BLI_math_color.h"
 
-#  include "BLI_math_color.h"
+#include "CLG_log.h"
 
-#  include "CLG_log.h"
-
-#  include "../description.hh"
-#  include "libocio_cpu_processor.hh"
-#  include "libocio_processor.hh"
+#include "../description.hh"
+#include "libocio_cpu_processor.hh"
+#include "libocio_processor.hh"
 
 namespace blender {
 
@@ -116,9 +114,9 @@ LibOCIOColorSpace::LibOCIOColorSpace(const int index,
   this->family_ = (family) ? family : "";
   this->index = index;
 
-#  if OCIO_VERSION_HEX >= 0x02050000
+#if OCIO_VERSION_HEX >= 0x02050000
   interop_id_ = ocio_color_space->getInteropID();
-#  endif
+#endif
 
   if (interop_id_.is_empty()) {
     /* For older configs and older OpenColorIO versions, check the aliases as fallback.
@@ -206,7 +204,7 @@ bool LibOCIOColorSpace::is_primary_interop_id() const
 
 std::string LibOCIOColorSpace::icc_profile_path() const
 {
-#  if OCIO_VERSION_HEX >= 0x02050000
+#if OCIO_VERSION_HEX >= 0x02050000
   try {
     /* Both these methods can throw exceptions. */
     const char *profile_name = ocio_color_space_->getInterchangeAttribute("icc_profile_name");
@@ -218,7 +216,7 @@ std::string LibOCIOColorSpace::icc_profile_path() const
   catch (OCIO_NAMESPACE::Exception &exception) {
     report_exception(exception);
   }
-#  endif
+#endif
 
   return "";
 }
@@ -277,5 +275,3 @@ void LibOCIOColorSpace::clear_caches()
 
 }  // namespace ocio
 }  // namespace blender
-
-#endif

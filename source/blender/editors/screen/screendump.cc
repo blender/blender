@@ -13,6 +13,7 @@
 #include "MEM_guardedalloc.h"
 
 #include "BLI_path_utils.hh"
+#include "BLI_rect.h"
 #include "BLI_string_utf8.h"
 #include "BLI_utildefines.h"
 
@@ -121,7 +122,9 @@ static wmOperatorStatus screenshot_exec(bContext *C, wmOperator *op)
 
       /* crop to show only single editor */
       if (use_crop) {
-        IMB_rect_crop(ibuf, &scd->crop);
+        IMB_crop(ibuf,
+                 int2(scd->crop.xmin, scd->crop.ymin),
+                 int2(BLI_rcti_size_x(&scd->crop) + 1, BLI_rcti_size_y(&scd->crop) + 1));
       }
 
       if ((scd->im_format.planes == R_IMF_PLANES_BW) &&

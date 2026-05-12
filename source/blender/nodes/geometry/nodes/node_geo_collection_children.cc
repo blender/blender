@@ -12,6 +12,8 @@
 
 #include "DEG_depsgraph_query.hh"
 
+#include "NOD_geometry_nodes_list.hh"
+
 #include "node_geometry_util.hh"
 
 #include <algorithm>
@@ -72,7 +74,7 @@ static void node_geo_exec(GeoNodeExecParams params)
     obj_collections.extend(child_collections);
   }
 
-  params.set_output("Collections"_ustr, List::from_container(std::move(child_collections)));
+  params.set_output("Collections"_ustr, GList::from_container(std::move(child_collections)));
 
   if (!params.output_is_required("Objects"_ustr)) {
     params.set_default_remaining_outputs();
@@ -92,7 +94,7 @@ static void node_geo_exec(GeoNodeExecParams params)
     return BLI_strcasecmp_natural(BKE_id_name(a->id), BKE_id_name(b->id)) < 0;
   });
 
-  params.set_output("Objects"_ustr, List::from_container(std::move(child_objects)));
+  params.set_output("Objects"_ustr, GList::from_container(std::move(child_objects)));
 }
 
 static void node_register()

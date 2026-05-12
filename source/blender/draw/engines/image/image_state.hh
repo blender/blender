@@ -8,6 +8,8 @@
 
 #pragma once
 
+#include "BLI_math_matrix_types.hh"
+
 #include "BKE_image_wrappers.hh"
 
 #include "image_batches.hh"
@@ -57,7 +59,7 @@ struct State {
   FloatBufferCache float_buffers;
 
   /** \brief Transform matrix to convert a normalized screen space coordinates to texture space. */
-  float ss_to_texture[4][4];
+  float3x3 ss_to_texture;
 
   Vector<TextureInfo> texture_infos;
 

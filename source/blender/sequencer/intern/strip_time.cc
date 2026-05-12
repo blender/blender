@@ -484,6 +484,8 @@ float Strip::media_fps(Scene *scene)
         return float(this->scene->r.frs_sec) / this->scene->r.frs_sec_base;
       }
       break;
+    default:
+      break;
   }
   return 0.0f;
 }

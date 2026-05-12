@@ -24,7 +24,7 @@ class AbcMeshReader final : public AbcObjectReader {
   Alembic::AbcGeom::IPolyMeshSchema m_schema;
 
  public:
-  AbcMeshReader(const Alembic::Abc::IObject &object, ImportSettings &settings);
+  AbcMeshReader(const AbcReaderConstructorArgs &args);
 
   bool valid() const override;
   bool accepts_object_type(const Alembic::AbcCoreAbstract::ObjectHeader &alembic_header,
@@ -34,16 +34,12 @@ class AbcMeshReader final : public AbcObjectReader {
 
   struct Mesh *read_mesh(struct Mesh *existing_mesh,
                          const Alembic::Abc::ISampleSelector &sample_sel,
-                         int read_flag,
-                         const char *velocity_name,
-                         float velocity_scale,
+                         const AbcReadGeometryParams &read_params,
                          const char **r_err_str);
 
   void read_geometry(bke::GeometrySet &geometry_set,
                      const Alembic::Abc::ISampleSelector &sample_sel,
-                     int read_flag,
-                     const char *velocity_name,
-                     float velocity_scale,
+                     const AbcReadGeometryParams &read_params,
                      const char **r_err_str) override;
 
   bool topology_changed(const Mesh *existing_mesh,
@@ -63,7 +59,7 @@ class AbcSubDReader final : public AbcObjectReader {
   Alembic::AbcGeom::ISubDSchema m_schema;
 
  public:
-  AbcSubDReader(const Alembic::Abc::IObject &object, ImportSettings &settings);
+  AbcSubDReader(const AbcReaderConstructorArgs &args);
 
   bool valid() const override;
   bool accepts_object_type(const Alembic::AbcCoreAbstract::ObjectHeader &alembic_header,
@@ -73,17 +69,13 @@ class AbcSubDReader final : public AbcObjectReader {
 
   void read_geometry(bke::GeometrySet &geometry_set,
                      const Alembic::Abc::ISampleSelector &sample_sel,
-                     int read_flag,
-                     const char *velocity_name,
-                     const float velocity_scale,
+                     const AbcReadGeometryParams &read_params,
                      const char **r_err_str) override;
 
  private:
   struct Mesh *read_mesh(struct Mesh *existing_mesh,
                          const Alembic::Abc::ISampleSelector &sample_sel,
-                         int read_flag,
-                         const char *velocity_name,
-                         const float velocity_scale,
+                         const AbcReadGeometryParams &read_params,
                          const char **r_err_str);
 };
 

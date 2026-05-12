@@ -51,6 +51,7 @@ set(SRC
   ED_asset_temp_id_consumer.hh
   ED_asset_type.hh
   intern/asset_index.hh
+  intern/asset_indexer_remote_listing.hh
   intern/asset_library_reference.hh
   intern/asset_shelf.hh
 )

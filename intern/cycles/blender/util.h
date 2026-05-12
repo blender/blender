@@ -787,7 +787,7 @@ class EdgeMap {
   bool exists(int v0, int v1)
   {
     get_sorted_verts(v0, v1);
-    return edges_.find(std::pair<int, int>(v0, v1)) != edges_.end();
+    return edges_.contains(std::pair<int, int>(v0, v1));
   }
 
  protected:

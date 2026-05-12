@@ -164,8 +164,8 @@ void NodeType::register_input(ustring name,
   socket.enum_values = enum_values;
   socket.node_type = node_type;
   socket.flags = flags | extra_flags;
-  assert(inputs.size() < std::numeric_limits<SocketModifiedFlags>::digits);
-  socket.modified_flag_bit = (1ull << inputs.size());
+  assert(inputs.size() < SocketModifiedFlags().size());
+  socket.modified_flag_bit = inputs.size();
   inputs.push_back(socket);
 }
 
@@ -265,7 +265,7 @@ NodeType *NodeType::add(const char *name_, CreateFunc create_, Type type_, const
   /* Types can be lazily registered from multiple threads. */
   thread_scoped_lock lock(types_mutex());
 
-  if (types().find(name) != types().end()) {
+  if (types().contains(name)) {
     LOG_ERROR << "Node type " << name_ << " registered twice";
     assert(0);
     return nullptr;

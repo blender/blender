@@ -284,7 +284,8 @@ RNANodeIdentifier RNANodeQuery::construct_node_identifier(const PointerRNA *ptr,
            RNA_struct_is_a(ptr->type, RNA_MeshLoopColor) ||
            RNA_struct_is_a(ptr->type, RNA_VertexGroupElement) ||
            RNA_struct_is_a(ptr->type, RNA_ShaderFx) ||
-           (RNA_property_flag(const_cast<PropertyRNA *>(prop)) & PROP_FORCE_GEOMETRY_EVAL) != 0)
+           (prop &&
+            RNA_property_flag(const_cast<PropertyRNA *>(prop)) & PROP_FORCE_GEOMETRY_EVAL) != 0)
   {
     /* When modifier is used as FROM operation this is likely referencing to
      * the property (for example, modifier's influence).

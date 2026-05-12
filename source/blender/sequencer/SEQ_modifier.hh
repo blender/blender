@@ -85,8 +85,8 @@ struct StripModifierDataRuntime {
 
 void modifiers_init();
 
-const StripModifierTypeInfo *modifier_type_info_get(int type);
-StripModifierData *modifier_new(Strip *strip, const char *name, int type);
+const StripModifierTypeInfo *modifier_type_info_get(eStripModifierType type);
+StripModifierData *modifier_new(Strip *strip, const char *name, eStripModifierType type);
 bool modifier_remove(Strip *strip, StripModifierData *smd);
 void modifier_clear(Strip *strip);
 void modifier_free(StripModifierData *smd);
@@ -98,7 +98,7 @@ StripModifierData *modifier_find_by_name(Strip *strip, const char *name);
  */
 StripModifierData *modifier_copy(Strip &strip_dst, StripModifierData *mod_src, int flag);
 void modifier_list_copy(Strip *strip_new, Strip *strip, int flag);
-int sequence_supports_modifiers(Strip *strip);
+bool strip_supports_modifiers(const Strip *strip);
 
 void modifier_blend_write(BlendWriter *writer, ListBaseT<StripModifierData> *modbase);
 void modifier_blend_read_data(BlendDataReader *reader, ListBaseT<StripModifierData> *lb);

@@ -103,7 +103,7 @@ using eSign = int8_t;
  * - the KDTree is only built & used when the polygon is concave.
  */
 
-using axis_t = bool;
+using axis_t = uint8_t;
 
 /* use for sorting */
 struct KDTreeNode2D_head {

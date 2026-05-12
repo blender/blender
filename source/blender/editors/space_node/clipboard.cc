@@ -5,6 +5,7 @@
 #include "DNA_space_types.h"
 
 #include "BLI_listbase.h"
+#include "BLI_string_utf8.h"
 
 #include "BKE_appdir.hh"
 #include "BKE_blendfile.hh"
@@ -131,8 +132,9 @@ static int node_copy_local(bNodeTree &from_tree,
       bNode *from_node = node_map.lookup(link.fromnode);
       bNode *to_node = node_map.lookup(link.tonode);
 
-      bNodeSocket *from = bke::node_find_socket(*from_node, SOCK_OUT, link.fromsock->identifier);
-      bNodeSocket *to = bke::node_find_socket(*to_node, SOCK_IN, link.tosock->identifier);
+      bNodeSocket *from = bke::node_find_socket(
+          *from_node, SOCK_OUT, link.fromsock->identifier_ustr());
+      bNodeSocket *to = bke::node_find_socket(*to_node, SOCK_IN, link.tosock->identifier_ustr());
       if (!from || !to) {
         continue;
       }
@@ -173,7 +175,7 @@ static wmOperatorStatus node_clipboard_copy_exec(bContext *C, wmOperator *op)
                             {(PartialWriteContext::IDAddOperations::SET_FAKE_USER |
                               PartialWriteContext::IDAddOperations::SET_CLIPBOARD_MARK)}));
 
-  strcpy(copy_tree->idname, node_tree->typeinfo->idname.c_str());
+  STRNCPY_UTF8(copy_tree->idname, node_tree->typeinfo->idname.c_str());
   bke::node_tree_set_type(*copy_tree);
 
   /* Copy node interface to avoid losing links to Group Input and Group Output nodes.

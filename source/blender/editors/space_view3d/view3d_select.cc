@@ -456,7 +456,7 @@ static void view3d_userdata_lassoselect_init(LassoSelectUserData *r_data,
   r_data->mcoords = mcoords;
   r_data->sel_op = sel_op;
   /* SELECT by default, but can be changed if needed (only few cases use and respect this). */
-  r_data->select_flag = eBezTriple_Flag(SELECT);
+  r_data->select_flag = BEZT_FLAG_SELECT;
 
   /* runtime */
   r_data->pass = 0;
@@ -667,7 +667,7 @@ static bool do_pose_tag_select_op_exec(MutableSpan<Base *> bases, const eSelectO
 
     bool changed = false;
     for (bPoseChannel &pchan : ob_iter->pose->chanbase) {
-      Bone *bone = pchan.bone;
+      Bone *bone = pchan.bone_get(*ob_iter);
       if ((bone->flag & BONE_UNSELECTABLE) == 0) {
         const bool is_select = pchan.flag & POSE_SELECTED;
         const bool is_inside = pchan.runtime.flag & POSE_RUNTIME_IN_SELECTION_AREA;
@@ -954,7 +954,7 @@ static void do_lasso_select_curve__doSelect(void *user_data,
       data->is_changed = true;
     }
     else {
-      uint8_t *flag_p = (&bezt->f1) + beztindex;
+      eBezTriple_Flag *flag_p = (&bezt->f1) + beztindex;
       const bool is_select = *flag_p & SELECT;
       const int sel_op_result = ED_select_op_action_deselected(data->sel_op, is_select, is_inside);
       if (sel_op_result != -1) {
@@ -991,7 +991,8 @@ static bool do_lasso_select_curve(const ViewContext *vc,
 
   /* Deselect items that were not added to selection (indicated by temp flag). */
   if (deselect_all) {
-    data.is_changed |= BKE_nurbList_flag_set_from_flag(nurbs, BEZT_FLAG_TEMP_TAG, SELECT);
+    data.is_changed |= BKE_nurbList_flag_set_from_flag(
+        nurbs, BEZT_FLAG_TEMP_TAG, BEZT_FLAG_SELECT);
   }
 
   if (data.is_changed) {
@@ -1164,7 +1165,7 @@ static void do_lasso_select_mball__doSelectElem(void *user_data,
                               data->mcoords, screen_co[0], screen_co[1], INT_MAX));
   const int sel_op_result = ED_select_op_action_deselected(data->sel_op, is_select, is_inside);
   if (sel_op_result != -1) {
-    SET_FLAG_FROM_TEST(ml->flag, sel_op_result, SELECT);
+    SET_FLAG_FROM_TEST(ml->flag, sel_op_result, MB_SELECT);
     data->is_changed = true;
   }
 }
@@ -2013,7 +2014,7 @@ static bool bone_mouse_select_menu(bContext *C,
       const uint hit_bone = (select_id & ~BONESEL_ANY) >> 16;
       bPoseChannel *pchan = static_cast<bPoseChannel *>(
           BLI_findlink(&bone_base->object->pose->chanbase, hit_bone));
-      if (pchan && !(pchan->bone->flag & BONE_UNSELECTABLE)) {
+      if (pchan && !(pchan->bone_get(*bone_base->object)->flag & BONE_UNSELECTABLE)) {
         bone_ptr = pchan;
       }
     }
@@ -2473,8 +2474,7 @@ static Base *mouse_select_object_center(const ViewContext *vc, Base *startbase, 
 
 static Base *ed_view3d_give_base_under_cursor_ex(bContext *C,
                                                  const int mval[2],
-                                                 int *r_material_slot,
-                                                 bool skip_editmode)
+                                                 int *r_material_slot)
 {
   Depsgraph *depsgraph = CTX_data_ensure_evaluated_depsgraph(C);
   Base *basact = nullptr;
@@ -2484,11 +2484,7 @@ static Base *ed_view3d_give_base_under_cursor_ex(bContext *C,
   view3d_operator_needs_gpu(C);
   BKE_object_update_select_id(CTX_data_main(C));
 
-  ViewContext vc = ED_view3d_viewcontext_init(C, depsgraph);
-  /* Signal for #view3d_gpu_select to skip edit-mode objects. */
-  if (skip_editmode) {
-    vc.obedit = nullptr;
-  }
+  const ViewContext vc = ED_view3d_viewcontext_init(C, depsgraph);
 
   const bool do_nearest = !XRAY_ACTIVE(vc.v3d);
   const bool do_material_slot_selection = r_material_slot != nullptr;
@@ -2507,12 +2503,7 @@ static Base *ed_view3d_give_base_under_cursor_ex(bContext *C,
 
 Base *ED_view3d_give_base_under_cursor(bContext *C, const int mval[2])
 {
-  return ed_view3d_give_base_under_cursor_ex(C, mval, nullptr, false);
-}
-
-Base *ED_view3d_give_base_under_cursor_skip_editmode(bContext *C, const int mval[2])
-{
-  return ed_view3d_give_base_under_cursor_ex(C, mval, nullptr, true);
+  return ed_view3d_give_base_under_cursor_ex(C, mval, nullptr);
 }
 
 Object *ED_view3d_give_object_under_cursor(bContext *C, const int mval[2])
@@ -2528,7 +2519,7 @@ Object *ED_view3d_give_material_slot_under_cursor(bContext *C,
                                                   const int mval[2],
                                                   int *r_material_slot)
 {
-  Base *base = ed_view3d_give_base_under_cursor_ex(C, mval, r_material_slot, false);
+  Base *base = ed_view3d_give_base_under_cursor_ex(C, mval, r_material_slot);
   if (base) {
     return base->object;
   }
@@ -2693,10 +2684,9 @@ static bool ed_object_select_pick(bContext *C,
     gpu->has_bones = false;
 
     /* If objects have pose-mode set, the bones are in the same selection buffer. */
-    const eV3DSelectObjectFilter select_filter = ((object_only == false) ?
-                                                      ED_view3d_select_filter_from_mode(scene,
-                                                                                        vc.obact) :
-                                                      VIEW3D_SELECT_FILTER_NOP);
+    const eV3DSelectObjectFilter select_filter =
+        ((object_only == false) ? ED_view3d_select_filter_from_mode(scene, v3d, vc.obact) :
+                                  VIEW3D_SELECT_FILTER_NOP);
     gpu->hits = mixed_bones_object_selectbuffer_extended(
         &vc, &gpu->buffer, mval, select_filter, true, enumerate, &gpu->do_nearest);
     gpu->has_bones = (object_only && gpu->hits > 0) ?
@@ -3766,7 +3756,7 @@ static void view3d_userdata_boxselect_init(BoxSelectUserData *r_data,
 
   r_data->sel_op = sel_op;
   /* SELECT by default, but can be changed if needed (only few cases use and respect this). */
-  r_data->select_flag = eBezTriple_Flag(SELECT);
+  r_data->select_flag = BEZT_FLAG_SELECT;
 
   /* runtime */
   r_data->is_done = false;
@@ -3932,7 +3922,7 @@ static void do_nurbs_box_select__doSelect(void *user_data,
       bezt->f1 = bezt->f3 = bezt->f2;
     }
     else {
-      uint8_t *flag_p = (&bezt->f1) + beztindex;
+      eBezTriple_Flag *flag_p = (&bezt->f1) + beztindex;
       const bool is_select = *flag_p & SELECT;
       const int sel_op_result = ED_select_op_action_deselected(data->sel_op, is_select, is_inside);
       if (sel_op_result != -1) {
@@ -3963,7 +3953,8 @@ static bool do_nurbs_box_select(const ViewContext *vc, const rcti *rect, const e
 
   /* Deselect items that were not added to selection (indicated by temp flag). */
   if (deselect_all) {
-    data.is_changed |= BKE_nurbList_flag_set_from_flag(nurbs, BEZT_FLAG_TEMP_TAG, SELECT);
+    data.is_changed |= BKE_nurbList_flag_set_from_flag(
+        nurbs, BEZT_FLAG_TEMP_TAG, BEZT_FLAG_SELECT);
   }
 
   BKE_curve_nurb_vert_active_validate(curve);
@@ -4260,7 +4251,7 @@ static bool do_meta_box_select(const ViewContext *vc, const rcti *rect, const eS
 
     const int sel_op_result = ED_select_op_action_deselected(sel_op, is_select, is_inside);
     if (sel_op_result != -1) {
-      SET_FLAG_FROM_TEST(ml->flag, sel_op_result, SELECT);
+      SET_FLAG_FROM_TEST(ml->flag, sel_op_result, MB_SELECT);
     }
     changed |= (flag_prev != ml->flag);
   }
@@ -4355,8 +4346,8 @@ static bool do_object_box_select(bContext *C,
   View3D *v3d = vc->v3d;
 
   GPUSelectBuffer buffer;
-  const eV3DSelectObjectFilter select_filter = ED_view3d_select_filter_from_mode(vc->scene,
-                                                                                 vc->obact);
+  const eV3DSelectObjectFilter select_filter = ED_view3d_select_filter_from_mode(
+      vc->scene, v3d, vc->obact);
   const int hits = view3d_gpu_select(
       vc, &buffer, rect, VIEW3D_SELECT_ALL, select_filter, eV3DSelectShape::BOX);
   BKE_view_layer_synced_ensure(*vc->bmain, vc->scene, vc->view_layer);
@@ -4489,8 +4480,8 @@ static bool do_pose_box_select(bContext *C,
 
   /* Selection buffer has bones potentially too. */
   GPUSelectBuffer buffer;
-  const eV3DSelectObjectFilter select_filter = ED_view3d_select_filter_from_mode(vc->scene,
-                                                                                 vc->obact);
+  const eV3DSelectObjectFilter select_filter = ED_view3d_select_filter_from_mode(
+      vc->scene, vc->v3d, vc->obact);
   const int hits = view3d_gpu_select(
       vc, &buffer, rect, VIEW3D_SELECT_ALL, select_filter, eV3DSelectShape::BOX);
   process_pose_bone_hits(buffer, hits, bases);
@@ -4778,7 +4769,7 @@ static void view3d_userdata_circleselect_init(CircleSelectUserData *r_data,
   r_data->radius_squared = rad * rad;
 
   /* SELECT by default, but can be changed if needed (only few cases use and respect this). */
-  r_data->select_flag = eBezTriple_Flag(SELECT);
+  r_data->select_flag = BEZT_FLAG_SELECT;
 
   /* runtime */
   r_data->is_changed = false;
@@ -5116,7 +5107,8 @@ static bool nurbscurve_circle_select(const ViewContext *vc,
 
   /* Deselect items that were not added to selection (indicated by temp flag). */
   if (deselect_all) {
-    data.is_changed |= BKE_nurbList_flag_set_from_flag(nurbs, BEZT_FLAG_TEMP_TAG, SELECT);
+    data.is_changed |= BKE_nurbList_flag_set_from_flag(
+        nurbs, BEZT_FLAG_TEMP_TAG, BEZT_FLAG_SELECT);
   }
 
   BKE_curve_nurb_vert_active_validate(id_cast<Curve *>(vc->obedit->data));
@@ -5163,8 +5155,8 @@ static bool pose_circle_select(bContext *C,
 
   /* Selection buffer has bones potentially too. */
   GPUSelectBuffer buffer;
-  const eV3DSelectObjectFilter select_filter = ED_view3d_select_filter_from_mode(vc->scene,
-                                                                                 vc->obact);
+  const eV3DSelectObjectFilter select_filter = ED_view3d_select_filter_from_mode(
+      vc->scene, vc->v3d, vc->obact);
   rcti rect;
   BLI_rcti_init_pt_radius(&rect, mval, radius);
   const int hits = view3d_gpu_select(
@@ -5333,10 +5325,10 @@ static void do_circle_select_mball__doSelectElem(void *user_data,
 
   if (len_squared_v2v2(data->mval_fl, screen_co) <= data->radius_squared) {
     if (data->select) {
-      ml->flag |= SELECT;
+      ml->flag |= MB_SELECT;
     }
     else {
-      ml->flag &= ~SELECT;
+      ml->flag &= ~MB_SELECT;
     }
     data->is_changed = true;
   }

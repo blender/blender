@@ -251,6 +251,14 @@ static PyObject *pygpu_buffer_to_list_recursive(BPyGPUBuffer *self)
   return list;
 }
 
+PyDoc_STRVAR(
+    /* Wrap. */
+    pygpu_buffer_dimensions_doc,
+    "The size of the buffer for each dimension.\n"
+    "\n"
+    "Setting the dimensions is supported when the total number of elements is unchanged.\n"
+    "\n"
+    ":type: list[int]\n");
 static PyObject *pygpu_buffer_dimensions_get(BPyGPUBuffer *self, void * /*arg*/)
 {
   PyObject *list = PyList_New(self->shape_len);
@@ -601,7 +609,7 @@ static PyGetSetDef pygpu_buffer_getseters[] = {
     {"dimensions",
      reinterpret_cast<getter>(pygpu_buffer_dimensions_get),
      reinterpret_cast<setter>(pygpu_buffer_dimensions_set),
-     nullptr,
+     pygpu_buffer_dimensions_doc,
      nullptr},
     {nullptr, nullptr, nullptr, nullptr, nullptr},
 };

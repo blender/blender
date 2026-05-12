@@ -253,6 +253,6 @@ ccl_device VolumeSampleMethod volume_stack_sample_method(KernelGlobals kg, Integ
   return method;
 }
 
-#endif /* __VOLUME__*/
+#endif /* __VOLUME__ */
 
 CCL_NAMESPACE_END

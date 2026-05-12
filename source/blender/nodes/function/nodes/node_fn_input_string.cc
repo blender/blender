@@ -20,13 +20,13 @@ namespace blender::nodes::node_fn_input_string_cc {
 
 static void node_declare(NodeDeclarationBuilder &b)
 {
-  b.is_function_node();
   b.add_output<decl::String>("String"_ustr).custom_draw([](CustomSocketDrawParams &params) {
     params.layout.alignment_set(ui::LayoutAlign::Expand);
     params.layout.textbox_with_state(
         &params.node_ptr,
         "string",
-        RNA_pointer_get(&params.node_ptr, "textbox_state").data_as<TextboxState>());
+        RNA_pointer_get(&params.node_ptr, "textbox_state").data_as<TextboxState>(),
+        IFACE_("String"));
   });
 }
 
@@ -106,7 +106,7 @@ static void node_register()
 {
   static bke::bNodeType ntype;
 
-  fn_node_type_base(&ntype, "FunctionNodeInputString"_ustr, FN_NODE_INPUT_STRING);
+  fn_cmp_node_type_base(&ntype, "FunctionNodeInputString"_ustr, FN_NODE_INPUT_STRING);
   ntype.ui_name = "String";
   ntype.ui_description = "Provide a string value that can be connected to other nodes in the tree";
   ntype.enum_name_legacy = "INPUT_STRING";

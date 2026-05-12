@@ -254,7 +254,7 @@ ccl_device_extern bool osl_get_attribute(ccl_private ShaderGlobals *sg,
   const int object = sd->object;
 
   const AttributeDescriptor desc = find_attribute(kg, object, sd->prim, name);
-  if (desc.offset != ATTR_STD_NOT_FOUND) {
+  if (is_attribute_found(desc)) {
     return osl_shared_get_object_attribute(kg, sd, desc, type, derivatives, res);
   }
   return osl_shared_get_object_standard_attribute(kg, sg, sd, name, type, derivatives, res);

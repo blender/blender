@@ -34,16 +34,16 @@ template<typename T = int64_t> class DisjointSet {
 
   /**
    * Join the sets containing elements x and y. Nothing happens when they have been in the same set
-   * before.
+   * before. Shared root is returned.
    */
-  void join(const T x, const T y)
+  T join(const T x, const T y)
   {
     T root1 = this->find_root(x);
     T root2 = this->find_root(y);
 
     /* x and y are in the same set already. */
     if (root1 == root2) {
-      return;
+      return root1;
     }
 
     /* Implement union by rank heuristic. */
@@ -55,6 +55,8 @@ template<typename T = int64_t> class DisjointSet {
     if (ranks_[root1] == ranks_[root2]) {
       ranks_[root1]++;
     }
+
+    return root1;
   }
 
   /**
@@ -84,6 +86,21 @@ template<typename T = int64_t> class DisjointSet {
       const T parent = parents_[to_root];
       parents_[to_root] = root;
       to_root = parent;
+    }
+
+    return root;
+  }
+
+  /**
+   * Same as above but intended to be threadsafe. Better to use even if this is expected to be not
+   * an issue.
+   */
+  T find_root(const T x) const
+  {
+    /* Find root by following parents. */
+    T root = x;
+    while (parents_[root] != root) {
+      root = parents_[root];
     }
 
     return root;

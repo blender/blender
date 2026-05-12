@@ -207,7 +207,7 @@ ccl_device_inline void surface_shader_prepare_closures(KernelGlobals kg,
 
       /* NOTE: this is a sufficient condition. If `blur_roughness < THRESH < original_roughness`
        * then the flag was already set. */
-      if (sqr(blur_roughness) > BSDF_ROUGHNESS_SQ_THRESH) {
+      if (!roughness_is_almost_specular(blur_roughness, blur_roughness)) {
         sd->flag |= SD_BSDF_HAS_EVAL;
       }
     }
@@ -1188,12 +1188,7 @@ ccl_device void surface_shader_eval(KernelGlobals kg,
       sd->flag |= SD_EMISSION;
     }
     else {
-      ccl_private DiffuseBsdf *bsdf = (ccl_private DiffuseBsdf *)bsdf_alloc(
-          sd, sizeof(DiffuseBsdf), make_spectrum(0.8f));
-      if (bsdf != nullptr) {
-        bsdf->N = sd->N;
-        sd->flag |= bsdf_diffuse_setup(bsdf);
-      }
+      bsdf_diffuse_setup(sd, sd->N, make_spectrum(0.8f));
     }
 #endif
   }

@@ -17,35 +17,27 @@ namespace blender::nodes::node_fn_rotate_euler_cc {
 
 static void node_declare(NodeDeclarationBuilder &b)
 {
-  auto enable_axis_angle = [](bNode &node) {
-    node.custom1 = FN_NODE_ROTATE_EULER_TYPE_AXIS_ANGLE;
-  };
-
   b.is_function_node();
   b.add_input<decl::Vector>("Rotation"_ustr).subtype(PROP_EULER).hide_value();
-  b.add_input<decl::Vector>("Rotate By"_ustr).subtype(PROP_EULER).make_available([](bNode &node) {
-    node.custom1 = FN_NODE_ROTATE_EULER_TYPE_EULER;
-  });
-  b.add_input<decl::Vector>("Axis"_ustr)
-      .default_value({0.0, 0.0, 1.0})
-      .subtype(PROP_XYZ)
-      .make_available(enable_axis_angle);
-  b.add_input<decl::Float>("Angle"_ustr).subtype(PROP_ANGLE).make_available(enable_axis_angle);
+
+  const bNode *node = b.node_or_null();
+  if (node != nullptr) {
+    const auto type = FunctionNodeRotateEulerType(node->custom1);
+    switch (type) {
+      case FN_NODE_ROTATE_EULER_TYPE_EULER:
+        b.add_input<decl::Vector>("Rotate By"_ustr).subtype(PROP_EULER);
+        break;
+      case FN_NODE_ROTATE_EULER_TYPE_AXIS_ANGLE: {
+        b.add_input<decl::Vector>("Axis"_ustr).default_value({0.0, 0.0, 1.0}).subtype(PROP_XYZ);
+        b.add_input<decl::Float>("Angle"_ustr).subtype(PROP_ANGLE);
+        break;
+      }
+      default:
+        BLI_assert_unreachable();
+        break;
+    }
+  }
   b.add_output<decl::Vector>("Rotation"_ustr);
-}
-
-static void node_update(bNodeTree *ntree, bNode *node)
-{
-  bNodeSocket *rotate_by_socket = static_cast<bNodeSocket *>(BLI_findlink(&node->inputs, 1));
-  bNodeSocket *axis_socket = static_cast<bNodeSocket *>(BLI_findlink(&node->inputs, 2));
-  bNodeSocket *angle_socket = static_cast<bNodeSocket *>(BLI_findlink(&node->inputs, 3));
-
-  bke::node_set_socket_availability(
-      *ntree, *rotate_by_socket, ELEM(node->custom1, FN_NODE_ROTATE_EULER_TYPE_EULER));
-  bke::node_set_socket_availability(
-      *ntree, *axis_socket, ELEM(node->custom1, FN_NODE_ROTATE_EULER_TYPE_AXIS_ANGLE));
-  bke::node_set_socket_availability(
-      *ntree, *angle_socket, ELEM(node->custom1, FN_NODE_ROTATE_EULER_TYPE_AXIS_ANGLE));
 }
 
 static void node_layout(ui::Layout &layout, bContext * /*C*/, PointerRNA *ptr)
@@ -138,7 +130,6 @@ static void node_register()
   ntype.nclass = NODE_CLASS_CONVERTER;
   ntype.declare = node_declare;
   ntype.draw_buttons = node_layout;
-  ntype.updatefunc = node_update;
   ntype.build_multi_function = node_build_multi_function;
   ntype.deprecation_notice = N_("Use the \"Rotate Rotation\" node instead");
   bke::node_register_type(ntype);

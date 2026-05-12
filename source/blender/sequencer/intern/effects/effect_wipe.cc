@@ -24,7 +24,7 @@ namespace blender::seq {
 struct WipeData {
   WipeData(const WipeVars *wipe, int width, int height, float fac)
   {
-    this->type = eEffectWipeType(wipe->wipetype);
+    this->type = wipe->wipetype;
     this->forward = wipe->forward != 0;
     this->size = float2(width, height);
 

@@ -35,6 +35,8 @@ struct ReportList;
 struct Scene;
 struct bContext;
 
+enum eID_OverrideLib_Op : short;
+
 /* Types */
 BlenderRNA &RNA_blender_rna_get();
 
@@ -1092,14 +1094,15 @@ IDOverrideLibraryProperty *RNA_property_override_property_get(Main *bmain,
 
 IDOverrideLibraryPropertyOperation *RNA_property_override_property_operation_find(
     Main *bmain, PointerRNA *ptr, PropertyRNA *prop, int index, bool strict, bool *r_strict);
-IDOverrideLibraryPropertyOperation *RNA_property_override_property_operation_get(Main *bmain,
-                                                                                 PointerRNA *ptr,
-                                                                                 PropertyRNA *prop,
-                                                                                 short operation,
-                                                                                 int index,
-                                                                                 bool strict,
-                                                                                 bool *r_strict,
-                                                                                 bool *r_created);
+IDOverrideLibraryPropertyOperation *RNA_property_override_property_operation_get(
+    Main *bmain,
+    PointerRNA *ptr,
+    PropertyRNA *prop,
+    eID_OverrideLib_Op operation,
+    int index,
+    bool strict,
+    bool *r_strict,
+    bool *r_created);
 
 eRNAOverrideStatus RNA_property_override_library_status(Main *bmain,
                                                         PointerRNA *ptr,

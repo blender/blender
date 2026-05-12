@@ -32,8 +32,7 @@
  * 3. Override the `call` function.
  */
 
-#include "BLI_hash.hh"
-
+#include "BLI_unique_hash.hh"
 #include "FN_multi_function_context.hh"
 #include "FN_multi_function_params.hh"
 
@@ -57,15 +56,8 @@ class MultiFunction : NonCopyable, NonMovable {
   void call_auto(const IndexMask &mask, Params params, Context context) const;
   virtual void call(const IndexMask &mask, Params params, Context context) const = 0;
 
-  virtual uint64_t hash() const
-  {
-    return get_default_hash(this);
-  }
-
-  virtual bool equals(const MultiFunction & /*other*/) const
-  {
-    return false;
-  }
+  virtual void hash_unique(UniqueHashBytes &hash) const;
+  virtual bool equals(const MultiFunction &other) const;
 
   int param_amount() const
   {
@@ -124,6 +116,14 @@ class MultiFunction : NonCopyable, NonMovable {
   };
 
   ExecutionHints execution_hints() const;
+
+  /**
+   * For performance reasons it might make sense to delay construction of data inside the node
+   * until we can be sure that the function will be evaluated. This method should be called before
+   * execution. The work must be protected by a lock though, since it may be called from multiple
+   * threads.
+   */
+  virtual void prepare_for_execution() const {}
 
  protected:
   /* Make the function use the given signature. This should be called once in the constructor of

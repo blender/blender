@@ -1,0 +1,12 @@
+/* SPDX-FileCopyrightText: 2011-2026 Blender Foundation
+ *
+ * SPDX-License-Identifier: Apache-2.0 */
+
+#include "stdcycles.h"
+
+shader node_raycast_attr_float(int attribute_index = 0,
+                               float float_attributes[32] = {},
+                               output float value = 0.0)
+{
+  value = float_attributes[attribute_index];
+}

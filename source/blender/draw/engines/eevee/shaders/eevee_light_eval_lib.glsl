@@ -40,7 +40,7 @@ SHADER_LIBRARY_CREATE_INFO(eevee_light_data)
 #  define LIGHT_CLOSURE_EVAL_COUNT 3
 #endif
 
-/* For forward compat until everything is ported to BSL. */
+/* For forward compatibility until everything is ported to BSL. */
 #ifdef SRT_CONSTANT_light_closure_eval_count
 #  define LIGHT_CLOSURE_EVAL_COUNT SRT_CONSTANT_light_closure_eval_count
 #endif

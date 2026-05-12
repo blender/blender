@@ -867,7 +867,7 @@ BaseSocketDeclarationBuilder &BaseSocketDeclarationBuilder::usage_by_menu(
     const UString menu_input_identifier, const Array<int> menu_values)
 {
   this->make_available([menu_input_identifier, menu_values](bNode &node) {
-    bNodeSocket &menu_socket = *bke::node_find_socket(node, SOCK_IN, menu_input_identifier.ref());
+    bNodeSocket &menu_socket = *bke::node_find_socket(node, SOCK_IN, menu_input_identifier);
     const SocketDeclaration &socket_declaration = *menu_socket.runtime->declaration;
     socket_declaration.make_available(node);
     bNodeSocketValueMenu *value = menu_socket.default_value_typed<bNodeSocketValueMenu>();
@@ -900,7 +900,7 @@ BaseSocketDeclarationBuilder &BaseSocketDeclarationBuilder::usage_by_menu(
         }
 
         const bNodeSocket &menu_socket = *bke::node_find_socket(
-            params.node, SOCK_IN, menu_input_identifier.ref());
+            params.node, SOCK_IN, UString(menu_input_identifier.ref()));
         const SocketDeclaration &menu_socket_declaration = *menu_socket.runtime->declaration;
         if (!menu_socket_declaration.usage_inference_fn) {
           return menu_might_be_any_value;
@@ -930,7 +930,7 @@ BaseSocketDeclarationBuilder &BaseSocketDeclarationBuilder::structure_type(
     const StructureType structure_type)
 {
   BLI_assert(NodeSocketInterfaceStructureType(structure_type) !=
-             NODE_INTERFACE_SOCKET_STRUCTURE_TYPE_AUTO);
+             NodeSocketInterfaceStructureType::Auto);
   decl_base_->structure_type = structure_type;
   return *this;
 }
@@ -970,6 +970,13 @@ BaseSocketDeclarationBuilder &BaseSocketDeclarationBuilder::is_layer_name(const 
 BaseSocketDeclarationBuilder &BaseSocketDeclarationBuilder::is_volume_grid_name(const bool value)
 {
   decl_base_->is_volume_grid_name = value;
+  return *this;
+}
+
+BaseSocketDeclarationBuilder &BaseSocketDeclarationBuilder::try_copy_ui_data(
+    const SocketDeclaration & /*other_decl*/)
+{
+  /* Can't copy any value by default. */
   return *this;
 }
 

@@ -284,9 +284,9 @@ static void do_version_hue_sat_node(bNodeTree *ntree, bNode *node)
 
   /* Convert value from old storage to new sockets. */
   NodeHueSat *nhs = static_cast<NodeHueSat *>(node->storage);
-  bNodeSocket *hue = bke::node_find_socket(*node, SOCK_IN, "Hue");
-  bNodeSocket *saturation = bke::node_find_socket(*node, SOCK_IN, "Saturation");
-  bNodeSocket *value = bke::node_find_socket(*node, SOCK_IN, "Value");
+  bNodeSocket *hue = bke::node_find_socket(*node, SOCK_IN, "Hue"_ustr);
+  bNodeSocket *saturation = bke::node_find_socket(*node, SOCK_IN, "Saturation"_ustr);
+  bNodeSocket *value = bke::node_find_socket(*node, SOCK_IN, "Value"_ustr);
   if (hue == nullptr) {
     hue = bke::node_add_static_socket(
         *ntree, *node, SOCK_IN, SOCK_FLOAT, PROP_FACTOR, "Hue", "Hue");
@@ -996,7 +996,7 @@ void blo_do_versions_270(FileData *fd, Library * /*lib*/, Main *bmain)
   }
 
   if (!MAIN_VERSION_FILE_ATLEAST(bmain, 275, 3)) {
-#define BRUSH_TORUS (1 << 1)
+    constexpr eBrushFlags BRUSH_TORUS = eBrushFlags(1 << 1);
     for (Brush &br : bmain->brushes) {
       br.flag &= ~BRUSH_TORUS;
     }
@@ -1078,7 +1078,7 @@ void blo_do_versions_270(FileData *fd, Library * /*lib*/, Main *bmain)
       /* Ensure that the data-block's onion-skinning toggle flag
        * stays in sync with the status of the actual layers. */
       for (bGPDlayer &gpl : gpd.layers) {
-        if (gpl.flag & GP_LAYER_ONIONSKIN) {
+        if (gpl.flag & eGPDlayer_Flag(GP_LAYER_ONIONSKIN)) {
           enabled = true;
         }
       }
@@ -1220,7 +1220,8 @@ void blo_do_versions_270(FileData *fd, Library * /*lib*/, Main *bmain)
              * These seem to have been runtime flags used by the IK solver, but that stuff
              * should be able to be recalculated automatically anyway, so it should be fine.
              */
-            pchan.flag &= ~((1 << 3) | (1 << 4) | (1 << 5) | (1 << 6) | (1 << 7) | (1 << 8));
+            pchan.flag &= ~ePchan_Flag((1 << 3) | (1 << 4) | (1 << 5) | (1 << 6) | (1 << 7) |
+                                       (1 << 8));
           }
         }
       }
@@ -1306,7 +1307,7 @@ void blo_do_versions_270(FileData *fd, Library * /*lib*/, Main *bmain)
               if (gpl.flag & GP_LAYER_LOCKED) {
                 palcolor->flag |= PC_COLOR_LOCKED;
               }
-              if (gpl.flag & GP_LAYER_ONIONSKIN) {
+              if (gpl.flag & eGPDlayer_Flag(GP_LAYER_ONIONSKIN)) {
                 palcolor->flag |= PC_COLOR_ONIONSKIN;
               }
               if (gpl.flag & GP_LAYER_VOLUMETRIC) {
@@ -1608,7 +1609,7 @@ void blo_do_versions_270(FileData *fd, Library * /*lib*/, Main *bmain)
         for (ModifierData &md : ob.modifiers) {
           if (md.type == eModifierType_SimpleDeform) {
             SimpleDeformModifierData *smd = reinterpret_cast<SimpleDeformModifierData *>(&md);
-            smd->deform_axis = 2;
+            smd->deform_axis = SimpleDeformModifierLockAxis(2);
           }
         }
       }
@@ -1628,7 +1629,7 @@ void blo_do_versions_270(FileData *fd, Library * /*lib*/, Main *bmain)
       else {
         preset = FFM_PRESET_GOOD;
       }
-      scene.r.ffcodecdata.ffmpeg_preset = preset;
+      scene.r.ffcodecdata.ffmpeg_preset = eFFMpegPreset(preset);
     }
 
     if (!DNA_struct_member_exists(

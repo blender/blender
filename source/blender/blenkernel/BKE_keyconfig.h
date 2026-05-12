@@ -41,8 +41,8 @@ struct wmKeyConfigPrefType_Runtime *BKE_keyconfig_pref_type_find(const char *idn
 void BKE_keyconfig_pref_type_add(struct wmKeyConfigPrefType_Runtime *kpt_rt);
 void BKE_keyconfig_pref_type_remove(const struct wmKeyConfigPrefType_Runtime *kpt_rt);
 
-void BKE_keyconfig_pref_type_init(void);
-void BKE_keyconfig_pref_type_free(void);
+void BKE_keyconfig_pref_type_init();
+void BKE_keyconfig_pref_type_free();
 
 /* Versioning. */
 

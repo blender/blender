@@ -220,7 +220,7 @@ static bool cycles_precompute(std::string name)
         return precompute_ggx_gen_schlick_s(rough, mu, 1.0f, exponent, rand);
       }};
 
-  if (precompute_terms.count(name) == 0) {
+  if (!precompute_terms.contains(name)) {
     return false;
   }
 

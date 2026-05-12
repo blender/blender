@@ -13,5 +13,10 @@ COMPUTE_SHADER_CREATE_INFO(OCIO_Processor)
 void main()
 {
   int2 texel = int2(gl_GlobalInvocationID.xy);
-  imageStore(output_img, texel, OCIOMain(texture_load(input_tx, texel)));
+  float4 color = texture_load(input_tx, texel);
+  color = OCIOMain(color);
+  if (premultiply_output) {
+    color.xyz() *= color.w;
+  }
+  imageStore(output_img, texel, color);
 }

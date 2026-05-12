@@ -288,6 +288,16 @@ class BrickFunction : public mf::MultiFunction {
       }
     });
   }
+
+  void hash_unique(UniqueHashBytes &hash) const override
+  {
+    static constexpr int8_t id = 0;
+    hash.add(&id);
+    hash.add(offset_);
+    hash.add(offset_freq_);
+    hash.add(squash_);
+    hash.add(squash_freq_);
+  }
 };
 
 static void sh_node_brick_build_multi_function(NodeMultiFunctionBuilder &builder)

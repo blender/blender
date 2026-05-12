@@ -37,6 +37,7 @@ class CPUProcessor;
 class ColorSpace;
 class Config;
 class Display;
+struct ScopeInfo;
 }  // namespace ocio
 
 using ColorManagedConfig = ocio::Config;
@@ -57,6 +58,8 @@ enum ColorManagedDisplaySpace {
   DISPLAY_SPACE_VIDEO_OUTPUT,
   /** Convert to display space for inspecting color values as text in the UI. */
   DISPLAY_SPACE_COLOR_INSPECTION,
+  /** Convert to space suitable for plotting scopes. */
+  DISPLAY_SPACE_SCOPE,
 };
 
 enum class ColorManagedFileOutput { Image, Video };
@@ -308,12 +311,6 @@ void IMB_colormanagement_pixel_to_display_space_v4(
     const ColorManagedDisplaySettings *display_settings,
     ColorManagedDisplaySpace display_space = DISPLAY_SPACE_DRAW);
 
-void IMB_colormanagement_imbuf_make_display_space(
-    ImBuf *ibuf,
-    const ColorManagedViewSettings *view_settings,
-    const ColorManagedDisplaySettings *display_settings,
-    ColorManagedDisplaySpace display_space = DISPLAY_SPACE_DRAW);
-
 /**
  * Prepare image buffer to be saved on disk, applying color management if needed
  * color management would be applied if image is saving as render result and if
@@ -331,39 +328,18 @@ ImBuf *IMB_colormanagement_imbuf_for_write(ImBuf *ibuf,
                                            bool allocate_result,
                                            const ImageFormatData *image_format);
 
-/** \} */
-
-/* -------------------------------------------------------------------- */
-/** \name Public Display Buffers Interfaces
- * \{ */
-
 void IMB_colormanagement_display_settings_from_ctx(
     const bContext *C,
     ColorManagedViewSettings **r_view_settings,
     ColorManagedDisplaySettings **r_display_settings);
 
-/**
- * Acquire display buffer for given image buffer using specified view and display settings.
- */
-const uchar *IMB_display_buffer_acquire(ImBuf *ibuf,
-                                        const ColorManagedViewSettings *view_settings,
-                                        const ColorManagedDisplaySettings *display_settings,
-                                        void **cache_handle);
-/**
- * Same as #IMB_display_buffer_acquire but gets view and display settings from context.
- */
-const uchar *IMB_display_buffer_acquire_ctx(const bContext *C, ImBuf *ibuf, void **cache_handle);
-
-void IMB_display_buffer_transform_apply(unsigned char *display_buffer,
-                                        float *linear_buffer,
-                                        int width,
-                                        int height,
-                                        int channels,
-                                        const ColorManagedViewSettings *view_settings,
-                                        const ColorManagedDisplaySettings *display_settings,
-                                        bool predivide);
-
-void IMB_display_buffer_release(void *cache_handle);
+void IMB_colormanagement_scene_linear_to_display_buffer(
+    uint8_t *display_buffer,
+    const float *linear_buffer,
+    int width,
+    int height,
+    const ColorManagedViewSettings *view_settings,
+    const ColorManagedDisplaySettings *display_settings);
 
 /** \} */
 
@@ -391,6 +367,14 @@ bool IMB_colormanagement_display_is_wide_gamut(const ColorManagedDisplaySettings
                                                const char *view_name);
 bool IMB_colormanagement_display_support_emulation(
     const ColorManagedDisplaySettings *display_settings, const char *view_name);
+
+/** Max luminance of the view transform, or 0 if no maximum found. */
+int IMB_colormanagement_view_max_nits(const char *display_name, const char *view_name);
+
+/** Get scope display info for waveform/parade/vector-scope. */
+ocio::ScopeInfo IMB_colormanagement_get_scope_info(
+    const ColorManagedDisplaySettings *display_settings,
+    const ColorManagedViewSettings *view_settings);
 
 /** \} */
 
@@ -476,42 +460,6 @@ void IMB_colormanagement_colorspace_items_add(EnumPropertyItem **items, int *tot
 /** \} */
 
 /* -------------------------------------------------------------------- */
-/** \name Tile-based Buffer Management
- * \{ */
-
-void IMB_partial_display_buffer_update(ImBuf *ibuf,
-                                       const float *linear_buffer,
-                                       const unsigned char *byte_buffer,
-                                       int stride,
-                                       int offset_x,
-                                       int offset_y,
-                                       const ColorManagedViewSettings *view_settings,
-                                       const ColorManagedDisplaySettings *display_settings,
-                                       int xmin,
-                                       int ymin,
-                                       int xmax,
-                                       int ymax);
-
-void IMB_partial_display_buffer_update_threaded(
-    ImBuf *ibuf,
-    const float *linear_buffer,
-    const unsigned char *byte_buffer,
-    int stride,
-    int offset_x,
-    int offset_y,
-    const ColorManagedViewSettings *view_settings,
-    const ColorManagedDisplaySettings *display_settings,
-    int xmin,
-    int ymin,
-    int xmax,
-    int ymax);
-
-void IMB_partial_display_buffer_update_delayed(
-    ImBuf *ibuf, int xmin, int ymin, int xmax, int ymax);
-
-/** \} */
-
-/* -------------------------------------------------------------------- */
 /** \name Pixel Processor Functions
  * \{ */
 class ColormanageProcessor : NonCopyable {
@@ -538,7 +486,8 @@ class ColormanageProcessor : NonCopyable {
       const ColorManagedViewSettings *view_settings,
       const ColorManagedDisplaySettings *display_settings,
       ColorManagedDisplaySpace display_space = DISPLAY_SPACE_DRAW,
-      bool inverse = false);
+      bool inverse = false,
+      const char *from_colorspace = nullptr);
   static std::optional<ColormanageProcessor> display_processor_for_imbuf(
       const ImBuf *ibuf,
       const ColorManagedViewSettings *view_settings,
@@ -563,11 +512,6 @@ class ColormanageProcessor : NonCopyable {
     return std::get<const ocio::CPUProcessor *>(cpu_processor_);
   }
 };
-
-bool IMB_colormanagement_display_processor_needed(
-    const ImBuf *ibuf,
-    const ColorManagedViewSettings *view_settings,
-    const ColorManagedDisplaySettings *display_settings);
 
 /** \} */
 
@@ -604,7 +548,9 @@ bool IMB_colormanagement_setup_glsl_draw_from_space(
     const ColorSpace *from_colorspace,
     float dither,
     bool predivide,
-    bool do_overlay_merge);
+    bool do_overlay_merge,
+    ColorManagedDisplaySpace display_space = DISPLAY_SPACE_DRAW,
+    float opacity = 1.0f);
 /**
  * Same as setup_glsl_draw, but color management settings are guessing from a given context.
  */

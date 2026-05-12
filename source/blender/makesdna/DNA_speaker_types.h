@@ -10,6 +10,8 @@
 
 #include <cfloat>
 
+#include "BLI_enum_flags.hh"
+
 #include "DNA_ID.h"
 
 namespace blender {
@@ -20,11 +22,12 @@ struct bSound;
 /* **************** SPEAKER ********************* */
 
 /** #Speaker::flag */
-enum {
+enum eSpeaker_Flag : short {
   SPK_DS_EXPAND = 1 << 0,
   SPK_MUTED = 1 << 1,
   // SPK_RELATIVE = 1 << 2, /* UNUSED */
 };
+ENUM_OPERATORS(eSpeaker_Flag)
 
 struct Speaker {
 #ifdef __cplusplus
@@ -53,7 +56,7 @@ struct Speaker {
   float pitch = 1.0f;
 
   /* flag */
-  short flag = 0;
+  eSpeaker_Flag flag = {};
   char _pad1[6] = {};
 };
 

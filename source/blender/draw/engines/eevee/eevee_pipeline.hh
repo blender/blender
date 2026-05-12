@@ -403,8 +403,7 @@ class DeferredLayer : DeferredLayerBase {
   static bool do_split_direct_indirect_radiance(const Instance &inst);
 
   /* Returns the radiance buffer to feed the next layer. */
-  gpu::Texture *render(View &main_view,
-                       View &render_view,
+  gpu::Texture *render(View &render_view,
                        Framebuffer &prepass_fb,
                        Framebuffer &combined_fb,
                        Framebuffer &gbuffer_fb,

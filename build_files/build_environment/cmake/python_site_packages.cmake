@@ -3,7 +3,6 @@
 # SPDX-License-Identifier: GPL-2.0-or-later
 
 if(WIN32 AND BUILD_MODE STREQUAL Debug)
-  set(SITE_PACKAGES_EXTRA --global-option build --global-option --debug)
   # zstandard is determined to build and link release mode libs in a debug
   # configuration, the only way to make it happy is to bend to its will
   # and give it a library to link with.
@@ -17,11 +16,11 @@ else()
 endif()
 
 set(PIP_CONSTRAINT_FILE ${BUILD_DIR}/constraints.txt)
-  # setuptools-scm is causing issues with their latest version
-  # issue: https://github.com/pypa/setuptools-scm/issues/1316
-  # but pinning it doesn't work since downstream package dependencies
-  # also seem to resolve the later versions
-  # we can alter this behaviour by using pip constraints
+# setuptools-scm is causing issues with their latest version
+# issue: https://github.com/pypa/setuptools-scm/issues/1316
+# but pinning it doesn't work since downstream package dependencies
+# also seem to resolve the later versions
+# we can alter this behaviour by using pip constraints
 file(WRITE ${PIP_CONSTRAINT_FILE}
 "setuptools-scm==${SETUPTOOLS_SCM_VERSION}\n"
 )
@@ -48,11 +47,13 @@ ExternalProject_Add(external_python_site_packages
       requests==${REQUESTS_VERSION}
       autopep8==${AUTOPEP8_VERSION}
       pycodestyle==${PYCODESTYLE_VERSION}
+      docutils==${DOCUTILS_VERSION}
       meson==${MESON_VERSION}
       attrs==${ATTRS_VERSION}
       cattrs==${CATTRS_VERSION}
       fastjsonschema==${FASTJSONSCHEMA_VERSION}
       typing-extensions==${TYPING_EXTENSIONS_VERSION}
+      tomli-w==${TOMLI_W_VERSION}
       --no-binary :all:
 )
 

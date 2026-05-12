@@ -56,7 +56,7 @@ struct OceanCache {
   int baked;
 };
 
-struct Ocean *BKE_ocean_add(void);
+struct Ocean *BKE_ocean_add();
 void BKE_ocean_free_data(struct Ocean *oc);
 void BKE_ocean_free(struct Ocean *oc);
 bool BKE_ocean_ensure(struct OceanModifierData *omd, int resolution);

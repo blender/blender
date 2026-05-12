@@ -30,13 +30,13 @@ struct DynStr;
  *
  * \return Pointer to a new #DynStr.
  */
-DynStr *BLI_dynstr_new(void) ATTR_MALLOC ATTR_WARN_UNUSED_RESULT;
+DynStr *BLI_dynstr_new() ATTR_MALLOC ATTR_WARN_UNUSED_RESULT;
 /**
  * Create a new #DynStr.
  *
  * \return Pointer to a new #DynStr.
  */
-DynStr *BLI_dynstr_new_memarena(void) ATTR_MALLOC ATTR_WARN_UNUSED_RESULT;
+DynStr *BLI_dynstr_new_memarena() ATTR_MALLOC ATTR_WARN_UNUSED_RESULT;
 
 /**
  * Append a c-string to a #DynStr.

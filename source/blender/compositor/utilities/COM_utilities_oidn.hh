@@ -6,8 +6,6 @@
 
 #ifdef WITH_OPENIMAGEDENOISE
 
-#  include "BLI_span.hh"
-
 #  include "COM_context.hh"
 
 #  include <OpenImageDenoise/oidn.hpp>
@@ -25,7 +23,7 @@ oidn::DeviceRef create_oidn_device(const Context &context);
  * host-side data, the returned buffer is a simple wrapper around the data, otherwise, the data is
  * copied to a device-only buffer. It is thus expected that the given image data will outlive the
  * returned buffer. */
-oidn::BufferRef create_oidn_buffer(const oidn::DeviceRef &device, const MutableSpan<float> image);
+oidn::BufferRef create_oidn_buffer(const oidn::DeviceRef &device, Result &image);
 
 }  // namespace blender::compositor
 

@@ -35,6 +35,7 @@
 
 #  include "BKE_cloth.hh"
 #  include "BKE_context.hh"
+#  include "BKE_particle.h"
 
 #  include "BLT_translation.hh"
 
@@ -420,27 +421,61 @@ static void rna_ClothSettings_gravity_set(PointerRNA *ptr, const float *values)
 
 static std::optional<std::string> rna_ClothSettings_path(const PointerRNA *ptr)
 {
+  const ClothSimSettings *settings = static_cast<ClothSimSettings *>(ptr->data);
   const Object *ob = id_cast<Object *>(ptr->owner_id);
-  const ModifierData *md = BKE_modifiers_findby_type(ob, eModifierType_Cloth);
 
+  /* ClothSettings can be used in the Cloth modifier... */
+  const ModifierData *md = BKE_modifiers_findby_type(ob, eModifierType_Cloth);
   if (md) {
-    char name_esc[sizeof(md->name) * 2];
-    BLI_str_escape(name_esc, md->name, sizeof(name_esc));
-    return fmt::format("modifiers[\"{}\"].settings", name_esc);
+    const ClothModifierData *clmd = reinterpret_cast<const ClothModifierData *>(md);
+    if (clmd->sim_parms == settings) {
+      char name_esc[sizeof(md->name) * 2];
+      BLI_str_escape(name_esc, md->name, sizeof(name_esc));
+      return fmt::format("modifiers[\"{}\"].settings", name_esc);
+    }
   }
+  /* ... but also in Hair dynamics. */
+  for (ParticleSystem &psys : ob->particlesystem) {
+    if (!psys.clmd) {
+      continue;
+    }
+    if (psys.clmd->sim_parms == settings) {
+      char name_esc[sizeof(psys.name) * 2];
+      BLI_str_escape(name_esc, psys.name, sizeof(name_esc));
+      return fmt::format("particle_systems[\"{}\"].cloth.settings", name_esc);
+    }
+  }
+
   return std::nullopt;
 }
 
 static std::optional<std::string> rna_ClothCollisionSettings_path(const PointerRNA *ptr)
 {
+  const ClothCollSettings *settings = static_cast<ClothCollSettings *>(ptr->data);
   const Object *ob = id_cast<Object *>(ptr->owner_id);
-  const ModifierData *md = BKE_modifiers_findby_type(ob, eModifierType_Cloth);
 
+  /* ClothCollisionSettings can be used in the Cloth modifier... */
+  const ModifierData *md = BKE_modifiers_findby_type(ob, eModifierType_Cloth);
   if (md) {
-    char name_esc[sizeof(md->name) * 2];
-    BLI_str_escape(name_esc, md->name, sizeof(name_esc));
-    return fmt::format("modifiers[\"{}\"].collision_settings", name_esc);
+    const ClothModifierData *clmd = reinterpret_cast<const ClothModifierData *>(md);
+    if (clmd->coll_parms == settings) {
+      char name_esc[sizeof(md->name) * 2];
+      BLI_str_escape(name_esc, md->name, sizeof(name_esc));
+      return fmt::format("modifiers[\"{}\"].collision_settings", name_esc);
+    }
   }
+  /* ... but also in Hair dynamics. */
+  for (ParticleSystem &psys : ob->particlesystem) {
+    if (!psys.clmd) {
+      continue;
+    }
+    if (psys.clmd->coll_parms == settings) {
+      char name_esc[sizeof(psys.name) * 2];
+      BLI_str_escape(name_esc, psys.name, sizeof(name_esc));
+      return fmt::format("particle_systems[\"{}\"].cloth.collision_settings", name_esc);
+    }
+  }
+
   return std::nullopt;
 }
 

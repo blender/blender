@@ -213,7 +213,7 @@ void BKE_gpencil_blend_read_data(BlendDataReader *reader, bGPdata *gpd)
   BLO_read_struct_list(reader, bDeformGroup, &gpd->vertex_group_names);
 
   /* Materials. */
-  BLO_read_pointer_array(reader, gpd->totcol, reinterpret_cast<void **>(&gpd->mat));
+  BLO_read_pointer_array_and_validate_size(reader, &gpd->mat, &gpd->totcol);
 
   /* Relink layers. */
   BLO_read_struct_list(reader, bGPDlayer, &gpd->layers);
@@ -235,22 +235,21 @@ void BKE_gpencil_blend_read_data(BlendDataReader *reader, bGPdata *gpd)
 
       for (bGPDstroke &gps : gpf.strokes) {
         /* Relink stroke points array. */
-        BLO_read_struct_array(reader, bGPDspoint, gps.totpoints, &gps.points);
+        BLO_read_array_and_validate_size(reader, &gps.points, &gps.totpoints);
         /* Relink geometry. */
-        BLO_read_struct_array(reader, bGPDtriangle, gps.tot_triangles, &gps.triangles);
+        BLO_read_array_and_validate_size(reader, &gps.triangles, &gps.tot_triangles);
 
         /* Relink stroke edit curve. */
         BLO_read_struct(reader, bGPDcurve, &gps.editcurve);
         if (gps.editcurve != nullptr) {
           /* Relink curve point array. */
           bGPDcurve *gpc = gps.editcurve;
-          BLO_read_struct_array(
-              reader, bGPDcurve_point, gpc->tot_curve_points, &gps.editcurve->curve_points);
+          BLO_read_array_and_validate_size(
+              reader, &gps.editcurve->curve_points, &gpc->tot_curve_points);
         }
 
         /* Relink weight data. */
-        if (gps.dvert) {
-          BLO_read_struct_array(reader, MDeformVert, gps.totpoints, &gps.dvert);
+        if (gps.dvert && BLO_read_array(reader, &gps.dvert, gps.totpoints)) {
           BKE_defvert_blend_read(reader, gps.totpoints, gps.dvert);
         }
       }

@@ -6181,6 +6181,98 @@ void UV_OT_select_overlap(wmOperatorType *ot)
                   "Extend selection rather than clearing the existing selection");
 }
 
+enum class UVWinding {
+  Positive = 0,
+  Negative = 1,
+};
+
+static wmOperatorStatus uv_select_by_winding_exec(bContext *C, wmOperator *op)
+{
+  Depsgraph *depsgraph = CTX_data_ensure_evaluated_depsgraph(C);
+  const Main *bmain = CTX_data_main(C);
+  Scene *scene = CTX_data_scene(C);
+  const ToolSettings *ts = scene->toolsettings;
+  ViewLayer *view_layer = CTX_data_view_layer(C);
+  const bool extend = RNA_boolean_get(op->ptr, "extend");
+  const int winding = RNA_enum_get(op->ptr, "winding");
+  const float winding_sign = winding == int(UVWinding::Positive) ? -1.0f : 1.0f;
+
+  Vector<Object *> objects = BKE_view_layer_array_from_objects_in_edit_mode_unique_data_with_uvs(
+      *bmain, scene, view_layer, nullptr);
+
+  if (!extend) {
+    uv_select_all_perform_multi(scene, objects, SEL_DESELECT);
+  }
+
+  for (Object *obedit : objects) {
+    BMesh *bm = BKE_editmesh_from_object(obedit)->bm;
+    const BMUVOffsets offsets = BM_uv_map_offsets_get(bm);
+
+    BM_mesh_elem_hflag_disable_all(bm, BM_FACE, BM_ELEM_TAG, false);
+
+    bool changed = false;
+    BMFace *efa;
+    BMIter iter;
+    BM_ITER_MESH (efa, &iter, bm, BM_FACES_OF_MESH) {
+      if (!uvedit_face_visible_test(scene, efa)) {
+        continue;
+      }
+      const float area = BM_face_calc_area_uv_signed(efa, offsets.uv);
+      if (area * winding_sign > 0.0f) {
+        BM_elem_flag_enable(efa, BM_ELEM_TAG);
+        changed = true;
+      }
+    }
+
+    if (changed) {
+      uv_select_flush_from_tag_face(scene, obedit, true);
+
+      if (ts->uv_flag & UV_FLAG_SELECT_SYNC) {
+        ED_uvedit_select_sync_flush(ts, bm, true);
+      }
+      else {
+        ED_uvedit_selectmode_flush(scene, bm);
+      }
+
+      uv_select_tag_update_for_object(depsgraph, ts, obedit);
+    }
+  }
+
+  return OPERATOR_FINISHED;
+}
+
+void UV_OT_select_by_winding(wmOperatorType *ot)
+{
+  static const EnumPropertyItem prop_winding_types[] = {
+      {int(UVWinding::Positive), "POSITIVE", 0, "Positive", ""},
+      {int(UVWinding::Negative), "NEGATIVE", 0, "Negative", ""},
+      {0, nullptr, 0, nullptr, nullptr},
+  };
+
+  /* identifiers */
+  ot->name = "Select by Winding";
+  ot->description = "Select UV faces by their winding";
+  ot->idname = "UV_OT_select_by_winding";
+  ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
+
+  /* API callbacks. */
+  ot->exec = uv_select_by_winding_exec;
+  ot->poll = ED_operator_uvedit;
+
+  /* properties */
+  RNA_def_enum(ot->srna,
+               "winding",
+               prop_winding_types,
+               int(UVWinding::Negative),
+               "Winding",
+               "Select faces with positive or negative winding");
+  RNA_def_boolean(ot->srna,
+                  "extend",
+                  false,
+                  "Extend",
+                  "Extend selection rather than clearing the existing selection");
+}
+
 /** \} */
 /** \name Select Similar Operator
  * \{ */
@@ -6389,7 +6481,7 @@ static wmOperatorStatus uv_select_similar_vert_exec(bContext *C, wmOperator *op)
   }
 
   int tree_index = 0;
-  KDTree_1d *tree_1d = kdtree_1d_new(max_verts_selected_all);
+  KDTree<float> *tree_1d = kdtree_new<float>(max_verts_selected_all);
 
   for (Object *ob : objects) {
     BMesh *bm = BKE_editmesh_from_object(ob)->bm;
@@ -6414,14 +6506,14 @@ static wmOperatorStatus uv_select_similar_vert_exec(bContext *C, wmOperator *op)
           continue;
         }
         float needle = get_uv_vert_needle(type, l->v, ob_m3, l, offsets);
-        kdtree_1d_insert(tree_1d, tree_index++, &needle);
+        kdtree_insert<float>(tree_1d, tree_index++, needle);
       }
     }
   }
 
   if (tree_1d != nullptr) {
-    kdtree_1d_deduplicate(tree_1d);
-    kdtree_1d_balance(tree_1d);
+    kdtree_deduplicate<float>(tree_1d);
+    kdtree_balance<float>(tree_1d);
   }
 
   for (Object *ob : objects) {
@@ -6480,7 +6572,7 @@ static wmOperatorStatus uv_select_similar_vert_exec(bContext *C, wmOperator *op)
     }
   }
 
-  kdtree_1d_free(tree_1d);
+  kdtree_free<float>(tree_1d);
   return OPERATOR_FINISHED;
 }
 
@@ -6514,7 +6606,7 @@ static wmOperatorStatus uv_select_similar_edge_exec(bContext *C, wmOperator *op)
   }
 
   int tree_index = 0;
-  KDTree_1d *tree_1d = kdtree_1d_new(max_edges_selected_all);
+  KDTree<float> *tree_1d = kdtree_new<float>(max_edges_selected_all);
 
   for (Object *ob : objects) {
     BMesh *bm = BKE_editmesh_from_object(ob)->bm;
@@ -6541,15 +6633,15 @@ static wmOperatorStatus uv_select_similar_edge_exec(bContext *C, wmOperator *op)
 
         float needle = get_uv_edge_needle(type, l->e, ob_m3, l, l->next, offsets);
         if (tree_1d) {
-          kdtree_1d_insert(tree_1d, tree_index++, &needle);
+          kdtree_insert<float>(tree_1d, tree_index++, needle);
         }
       }
     }
   }
 
   if (tree_1d != nullptr) {
-    kdtree_1d_deduplicate(tree_1d);
-    kdtree_1d_balance(tree_1d);
+    kdtree_deduplicate<float>(tree_1d);
+    kdtree_balance<float>(tree_1d);
   }
 
   for (Object *ob : objects) {
@@ -6608,7 +6700,7 @@ static wmOperatorStatus uv_select_similar_edge_exec(bContext *C, wmOperator *op)
     }
   }
 
-  kdtree_1d_free(tree_1d);
+  kdtree_free<float>(tree_1d);
   return OPERATOR_FINISHED;
 }
 
@@ -6652,7 +6744,7 @@ static wmOperatorStatus uv_select_similar_face_exec(bContext *C, wmOperator *op)
   }
 
   int tree_index = 0;
-  KDTree_1d *tree_1d = kdtree_1d_new(max_faces_selected_all);
+  KDTree<float> *tree_1d = kdtree_new<float>(max_faces_selected_all);
 
   for (const int ob_index : objects.index_range()) {
     Object *ob = objects[ob_index];
@@ -6681,14 +6773,14 @@ static wmOperatorStatus uv_select_similar_face_exec(bContext *C, wmOperator *op)
 
       float needle = get_uv_face_needle(type, face, ob_index, ob_m3, offsets, material_remap);
       if (tree_1d) {
-        kdtree_1d_insert(tree_1d, tree_index++, &needle);
+        kdtree_insert<float>(tree_1d, tree_index++, needle);
       }
     }
   }
 
   if (tree_1d != nullptr) {
-    kdtree_1d_deduplicate(tree_1d);
-    kdtree_1d_balance(tree_1d);
+    kdtree_deduplicate<float>(tree_1d);
+    kdtree_balance<float>(tree_1d);
   }
 
   for (const int ob_index : objects.index_range()) {
@@ -6750,7 +6842,7 @@ static wmOperatorStatus uv_select_similar_face_exec(bContext *C, wmOperator *op)
     }
   }
 
-  kdtree_1d_free(tree_1d);
+  kdtree_free<float>(tree_1d);
   return OPERATOR_FINISHED;
 }
 
@@ -6793,7 +6885,7 @@ static wmOperatorStatus uv_select_similar_island_exec(bContext *C, wmOperator *o
   FaceIsland **island_array = MEM_new_array_zeroed<FaceIsland *>(island_list_len, __func__);
 
   int tree_index = 0;
-  KDTree_1d *tree_1d = kdtree_1d_new(island_list_len);
+  KDTree<float> *tree_1d = kdtree_new<float>(island_list_len);
 
   for (const int ob_index : objects.index_range()) {
     Object *obedit = objects[ob_index];
@@ -6809,14 +6901,14 @@ static wmOperatorStatus uv_select_similar_island_exec(bContext *C, wmOperator *o
       }
       float needle = get_uv_island_needle(type, &island, ob_m3, island.offsets);
       if (tree_1d) {
-        kdtree_1d_insert(tree_1d, tree_index++, &needle);
+        kdtree_insert<float>(tree_1d, tree_index++, needle);
       }
     }
   }
 
   if (tree_1d != nullptr) {
-    kdtree_1d_deduplicate(tree_1d);
-    kdtree_1d_balance(tree_1d);
+    kdtree_deduplicate<float>(tree_1d);
+    kdtree_balance<float>(tree_1d);
   }
 
   int tot_island_index = 0;
@@ -6874,7 +6966,7 @@ static wmOperatorStatus uv_select_similar_island_exec(bContext *C, wmOperator *o
 
   MEM_SAFE_DELETE(island_array);
   MEM_SAFE_DELETE(island_list_ptr);
-  kdtree_1d_free(tree_1d);
+  kdtree_free<float>(tree_1d);
 
   return OPERATOR_FINISHED;
 }
@@ -6893,7 +6985,8 @@ static wmOperatorStatus uv_select_similar_exec(bContext *C, wmOperator *op)
     ts->select_thresh = RNA_property_float_get(op->ptr, prop);
   }
 
-  const int selectmode = (ts->uv_flag & UV_FLAG_SELECT_SYNC) ? ts->selectmode : ts->uv_selectmode;
+  const int selectmode = (ts->uv_flag & UV_FLAG_SELECT_SYNC) ? ts->selectmode :
+                                                               int(ts->uv_selectmode);
   if (use_select_linked) {
     return uv_select_similar_island_exec(C, op);
   }
@@ -6941,7 +7034,7 @@ static const EnumPropertyItem *uv_select_similar_type_itemf(bContext *C,
   if (ts) {
     const bool use_select_linked = ED_uvedit_select_island_check(ts);
     const int selectmode = (ts->uv_flag & UV_FLAG_SELECT_SYNC) ? ts->selectmode :
-                                                                 ts->uv_selectmode;
+                                                                 int(ts->uv_selectmode);
     /* TODO: co-exist with selection modes. */
     if (use_select_linked) {
       RNA_enum_items_add_value(&item, &totitem, uv_select_similar_type_items, UV_SSIM_AREA_UV);
@@ -7283,7 +7376,7 @@ static wmOperatorStatus uv_select_mode_exec(bContext *C, wmOperator *op)
 {
   Scene *scene = CTX_data_scene(C);
   ToolSettings *ts = scene->toolsettings;
-  const char new_uv_selectmode = RNA_enum_get(op->ptr, "type");
+  const eTool_UvSelectMode new_uv_selectmode = eTool_UvSelectMode(RNA_enum_get(op->ptr, "type"));
 
   /* Early exit if no change in current selection mode */
   if (new_uv_selectmode == ts->uv_selectmode) {

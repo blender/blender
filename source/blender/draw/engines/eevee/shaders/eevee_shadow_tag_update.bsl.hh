@@ -12,7 +12,6 @@
  */
 
 #pragma once
-#pragma create_info
 
 #include "eevee_defines.hh"
 #include "eevee_shadow_shared.hh"
@@ -115,7 +114,7 @@ void tag_update_frag([[resource_table]] Tiles &tiles,
   /* Tag only LOD0. The lower LOD will be written by the tag_propagate pass. */
   int tile_index = shadow_tile_offset(texel, tilemap.tiles_index, 0);
   /* Tag using a transient flag that allows to differentiate new updates (to be propagated to LODs)
-   * from the existing persitent flag SHADOW_DO_UPDATE. */
+   * from the existing persistent flag SHADOW_DO_UPDATE. */
   atomicOr(tiles.tiles_buf[tile_index], uint(SHADOW_TAG_UPDATE));
 }
 

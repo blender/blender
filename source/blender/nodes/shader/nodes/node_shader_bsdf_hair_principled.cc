@@ -36,6 +36,9 @@ static void node_declare(NodeDeclarationBuilder &b)
     static_cast<NodeShaderHairPrincipled *>(node.storage)->model = SHD_PRINCIPLED_HAIR_CHIANG;
   };
 
+  const bNodeTree *ntree = b.tree_or_null();
+  const bool is_gpu_internal = ntree && (ntree->flag & NTREE_IS_GPU_SHADER_INTERNAL);
+
   b.add_input<decl::Color>("Color"_ustr)
       .default_value({0.017513f, 0.005763f, 0.002059f, 1.0f})
       .description("The RGB color of the strand. Only used in Direct Coloring")
@@ -133,7 +136,7 @@ static void node_declare(NodeDeclarationBuilder &b)
       .subtype(PROP_FACTOR)
       .description("Vary roughness values for each strand");
   b.add_input<decl::Float>("Random"_ustr).hide_value();
-  b.add_input<decl::Float>("Weight"_ustr).available(false);
+  b.add_input<decl::Float>("Weight"_ustr).available(is_gpu_internal);
   b.add_input<decl::Float>("Reflection"_ustr, "R lobe"_ustr)
       .default_value(1.0f)
       .min(0.0f)

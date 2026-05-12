@@ -495,7 +495,7 @@ Base *ED_outliner_give_base_under_cursor(bContext *C, const int mval[2])
 
   ui::view2d_region_to_view(&region->v2d, mval[0], mval[1], &view_mval[0], &view_mval[1]);
 
-  te = outliner_find_item_at_y(space_outliner, &space_outliner->tree, view_mval[1]);
+  te = outliner_find_item_at_y(space_outliner, &space_outliner->runtime->tree, view_mval[1]);
   if (te) {
     TreeStoreElem *tselem = TREESTORE(te);
     if ((tselem->type == TSE_SOME_ID) && (te->idcode == ID_OB)) {
@@ -517,7 +517,8 @@ bool ED_outliner_give_rna_under_cursor(bContext *C, const int mval[2], PointerRN
   float view_mval[2];
   ui::view2d_region_to_view(&region->v2d, mval[0], mval[1], &view_mval[0], &view_mval[1]);
 
-  TreeElement *te = outliner_find_item_at_y(space_outliner, &space_outliner->tree, view_mval[1]);
+  TreeElement *te = outliner_find_item_at_y(
+      space_outliner, &space_outliner->runtime->tree, view_mval[1]);
   if (!te) {
     return false;
   }

@@ -130,40 +130,39 @@ GHOST_WindowWin32::GHOST_WindowWin32(GHOST_SystemWin32 *system,
   h_DC_ = ::GetDC(h_wnd_);
 
   if (!setDrawingContextType(type)) {
-    const char *title = "Blender - Unsupported Graphics Card Configuration";
-    const char *text = "";
+    if (type == GHOST_kDrawingContextTypeOpenGL) {
+      const char *title = "Blender - Unsupported Graphics Card Configuration";
+      const char *text = "";
 #if defined(WIN32)
-    if (strncmp(blender::BLI_getenv("PROCESSOR_IDENTIFIER"), "ARM", 3) == 0 &&
-        strstr(blender::BLI_getenv("PROCESSOR_IDENTIFIER"), "Qualcomm") != NULL)
-    {
-      text =
-          "A driver with support for OpenGL 4.3 or higher is required.\n\n"
-          "Qualcomm devices require the \"OpenCL™, OpenGL®, and Vulkan® Compatibility Pack\" "
-          "from the Microsoft Store.\n\n"
-          "Devices using processors older than a Qualcomm Snapdragon 8cx Gen3 are incompatible, "
-          "but may be able to run an emulated x64 copy of Blender, such as a 3.x LTS release.";
-    }
-    else
+      if (strncmp(blender::BLI_getenv("PROCESSOR_IDENTIFIER"), "ARM", 3) == 0 &&
+          strstr(blender::BLI_getenv("PROCESSOR_IDENTIFIER"), "Qualcomm") != NULL)
+      {
+        text =
+            "A driver with support for OpenGL 4.3 or higher is required.\n\n"
+            "Qualcomm devices require the \"OpenCL™, OpenGL®, and Vulkan® Compatibility Pack\" "
+            "from the Microsoft Store.\n\n"
+            "Devices using processors older than a Qualcomm Snapdragon 8cx Gen3 are incompatible, "
+            "but may be able to run an emulated x64 copy of Blender, such as a 3.x LTS release.";
+      }
+      else
 #endif
-    {
-      text =
-          "A graphics card and driver with support for OpenGL 4.3 or higher is "
-          "required.\n\nInstalling the latest driver for your graphics card might resolve the "
-          "issue.";
-      if (GetSystemMetrics(SM_CMONITORS) > 1) {
+      {
         text =
             "A graphics card and driver with support for OpenGL 4.3 or higher is "
-            "required.\n\nPlugging all monitors into your primary graphics card might resolve "
-            "this issue. Installing the latest driver for your graphics card could also help.";
+            "required.\n\nInstalling the latest driver for your graphics card might resolve the "
+            "issue.";
+        if (GetSystemMetrics(SM_CMONITORS) > 1) {
+          text =
+              "A graphics card and driver with support for OpenGL 4.3 or higher is "
+              "required.\n\nPlugging all monitors into your primary graphics card might resolve "
+              "this issue. Installing the latest driver for your graphics card could also help.";
+        }
       }
+      MessageBox(h_wnd_, text, title, MB_OK | MB_ICONERROR);
     }
-    MessageBox(h_wnd_, text, title, MB_OK | MB_ICONERROR);
     ::ReleaseDC(h_wnd_, h_DC_);
     ::DestroyWindow(h_wnd_);
     h_wnd_ = nullptr;
-    if (!parent_window) {
-      exit(0);
-    }
     return;
   }
 

@@ -1635,9 +1635,26 @@ function(compile_sources_as_cpp
   define
   )
 
-  foreach(glsl_file ${sources})
-    set_source_files_properties(${glsl_file} PROPERTIES LANGUAGE CXX)
-  endforeach()
+  # On Windows, MSVC/Clang echo the filename being compiled to the console.
+  # Ninja suppresses this only for recognized C++ extensions (.cc/.cpp etc.),
+  # not .glsl. Generate a .cc wrapper per source so Ninja suppresses the echo.
+  # On other platforms, just set LANGUAGE CXX directly on each source file.
+
+  if(WIN32)
+    foreach(glsl_file ${sources})
+      get_filename_component(_file_from ${CMAKE_CURRENT_SOURCE_DIR}/${glsl_file}   REALPATH)
+      get_filename_component(_file_to   ${CMAKE_CURRENT_BINARY_DIR}/${glsl_file}.cc REALPATH)
+      file(WRITE "${_file_to}" "#include \"${_file_from}\"\n")
+      list(APPEND sources ${_file_to})
+      # Mark the original file as header only, so no attempt will be made at compiling it
+      # regardless of extention.
+      set_source_files_properties(${glsl_file} PROPERTIES HEADER_FILE_ONLY TRUE)
+    endforeach()
+  else()
+    foreach(glsl_file ${sources})
+      set_source_files_properties(${glsl_file} PROPERTIES LANGUAGE CXX)
+    endforeach()
+  endif()
 
   add_library(${library} OBJECT ${sources})
   set_target_properties(${library} PROPERTIES LINKER_LANGUAGE CXX)

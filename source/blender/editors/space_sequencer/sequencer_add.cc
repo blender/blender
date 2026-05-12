@@ -1175,7 +1175,7 @@ static void seq_build_proxy(bContext *C, Span<Strip *> movie_strips)
   for (Strip *strip : movie_strips) {
     /* Enable and set proxy size. */
     seq::proxy_set(strip, true);
-    strip->data->proxy->build_size_flags = seq_get_proxy_size_flags(C);
+    strip->data->proxy->build_size_flags = eStripProxyBuildSize(seq_get_proxy_size_flags(C));
     strip->data->proxy->build_flags |= SEQ_PROXY_SKIP_EXISTING;
     seq::proxy_build_start(pj->main, pj->scene, strip, nullptr, true, pj->queue);
   }

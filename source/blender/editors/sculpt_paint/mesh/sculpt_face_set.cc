@@ -74,6 +74,25 @@ namespace blender::ed::sculpt_paint::face_set {
 /** \name Public API
  * \{ */
 
+int find_next_available_id(const Mesh &mesh)
+{
+  const bke::AttributeAccessor attributes = mesh.attributes();
+  const VArraySpan<int> face_sets = *attributes.lookup<int>(".sculpt_face_set",
+                                                            bke::AttrDomain::Face);
+  const int max = threading::parallel_reduce(
+      face_sets.index_range(),
+      4096,
+      1,
+      [&](const IndexRange range, int max) {
+        for (const int id : face_sets.slice(range)) {
+          max = std::max(max, id);
+        }
+        return max;
+      },
+      [](const int a, const int b) { return std::max(a, b); });
+  return max + 1;
+}
+
 int find_next_available_id(Object &object)
 {
   SculptSession &ss = *object.runtime->sculpt_session;
@@ -81,21 +100,7 @@ int find_next_available_id(Object &object)
     case bke::pbvh::Type::Mesh:
     case bke::pbvh::Type::Grids: {
       Mesh &mesh = *id_cast<Mesh *>(object.data);
-      const bke::AttributeAccessor attributes = mesh.attributes();
-      const VArraySpan<int> face_sets = *attributes.lookup<int>(".sculpt_face_set",
-                                                                bke::AttrDomain::Face);
-      const int max = threading::parallel_reduce(
-          face_sets.index_range(),
-          4096,
-          1,
-          [&](const IndexRange range, int max) {
-            for (const int id : face_sets.slice(range)) {
-              max = std::max(max, id);
-            }
-            return max;
-          },
-          [](const int a, const int b) { return std::max(a, b); });
-      return max + 1;
+      return find_next_available_id(mesh);
     }
     case bke::pbvh::Type::BMesh: {
       BMesh &bm = *ss.bm;

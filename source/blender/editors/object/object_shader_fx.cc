@@ -70,7 +70,7 @@ ShaderFxData *shaderfx_add(
   }
 
   /* get new effect data to add */
-  new_fx = BKE_shaderfx_new(type);
+  new_fx = BKE_shaderfx_new(ShaderFxType(type));
 
   BLI_addtail(&ob->shader_fx, new_fx);
 

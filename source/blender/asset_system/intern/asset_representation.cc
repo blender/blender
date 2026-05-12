@@ -190,6 +190,18 @@ Span<OnlineAssetFile> AssetRepresentation::online_asset_files() const
   return std::get<ExternalAsset>(asset_).online_info_->files;
 }
 
+std::optional<int64_t> AssetRepresentation::online_asset_files_combined_size_in_bytes() const
+{
+  if (!this->is_online()) {
+    return {};
+  }
+  int64_t size = 0;
+  for (const OnlineAssetFile &file : online_asset_files()) {
+    size += file.size_in_bytes.value_or(0);
+  }
+  return size;
+}
+
 std::optional<StringRefNull> AssetRepresentation::online_asset_preview_url() const
 {
   if (!this->is_online()) {
@@ -226,12 +238,12 @@ void AssetRepresentation::online_asset_mark_downloaded()
 
 std::optional<eAssetImportMethod> AssetRepresentation::get_import_method() const
 {
-  return owner_asset_library_.import_method_;
+  return owner_asset_library_.import_method();
 }
 
 bool AssetRepresentation::may_override_import_method() const
 {
-  if (!owner_asset_library_.import_method_) {
+  if (!owner_asset_library_.import_method()) {
     return true;
   }
   return owner_asset_library_.may_override_import_method_;
@@ -239,7 +251,7 @@ bool AssetRepresentation::may_override_import_method() const
 
 bool AssetRepresentation::get_use_relative_path() const
 {
-  return owner_asset_library_.use_relative_path_;
+  return owner_asset_library_.use_relative_paths();
 }
 
 ID *AssetRepresentation::local_id() const

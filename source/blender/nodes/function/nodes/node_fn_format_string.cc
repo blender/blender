@@ -195,18 +195,19 @@ static FormatPatternInfo get_pattern_by_type_impl(const CPPType &type)
     /* Sign-aware zero padding. */
     pattern += "0?";
   }
-  const std::string integer_or_identifier = "(\\d+|(\\{.*\\}))";
-  /* Width. */
-  pattern += integer_or_identifier;
+  /* A width cannot start with 0, as 0 is parsed as the padding flag. */
+  const std::string width_integer_or_identifier = "([1-9]\\d*|(\\{.*\\}))";
+  pattern += width_integer_or_identifier;
   pattern += "?";
   groups_num += 2;
   const int width_group = groups_num;
 
   std::optional<int> precision_group;
   if (type.is<float>() || type.is<std::string>()) {
-    /* Precision. */
+    /* Precision is allowed to be 0. */
+    const std::string precision_integer_or_identifier = "(\\d+|(\\{.*\\}))";
     pattern += "(\\.";
-    pattern += integer_or_identifier;
+    pattern += precision_integer_or_identifier;
     pattern += ")?";
     groups_num += 3;
     precision_group = groups_num;
@@ -785,7 +786,7 @@ static void node_register()
 {
   static bke::bNodeType ntype;
 
-  fn_node_type_base(&ntype, "FunctionNodeFormatString"_ustr);
+  fn_cmp_node_type_base(&ntype, "FunctionNodeFormatString"_ustr);
   ntype.ui_name = "Format String";
   ntype.ui_description =
       "Insert values into a string using a Python and path template compatible formatting syntax";

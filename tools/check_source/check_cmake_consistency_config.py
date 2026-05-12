@@ -107,7 +107,7 @@ IGNORE_SOURCE = (
 # NOTE: keep commented block to show the intended format (even when unused).
 IGNORE_SOURCE_MISSING: tuple[tuple[str, tuple[str, ...]], ...] = (
     (   # Use for `WITH_NANOVDB`.
-        "intern/cycles/kernel/CMakeLists.txt", (
+        "intern/cycles/kernel/device/hiprt/CMakeLists.txt", (
             "hiprt/impl/Aabb.h",
             "hiprt/impl/BvhNode.h",
             "hiprt/impl/Geometry.h",

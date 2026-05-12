@@ -1197,7 +1197,7 @@ string ObjectManager::get_cryptomatte_objects(Scene *scene)
 
   unordered_set<ustring> objects;
   for (Object *object : scene->objects) {
-    if (objects.count(object->name)) {
+    if (objects.contains(object->name)) {
       continue;
     }
     objects.insert(object->name);
@@ -1213,7 +1213,7 @@ string ObjectManager::get_cryptomatte_assets(Scene *scene)
   string manifest = "{";
   unordered_set<ustring> assets;
   for (Object *ob : scene->objects) {
-    if (assets.count(ob->asset_name)) {
+    if (assets.contains(ob->asset_name)) {
       continue;
     }
     assets.insert(ob->asset_name);

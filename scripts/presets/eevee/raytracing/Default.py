@@ -17,6 +17,5 @@ eevee.fast_gi_ray_count = 2
 eevee.fast_gi_step_count = 8
 eevee.fast_gi_quality = 0.25
 eevee.fast_gi_distance = 0.0
-eevee.fast_gi_thickness_near = 0.25
-eevee.fast_gi_thickness_far = 0.7853981852531433
+eevee.fast_gi_thickness_near = 0.1
 eevee.fast_gi_bias = 0.05000000074505806

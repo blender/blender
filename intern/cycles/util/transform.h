@@ -693,7 +693,7 @@ Transform transform_from_viewplane(BoundBox2D &viewplane);
  * It does not support any mathematical operations, only conversion to Transform. */
 
 struct PackedTransform {
-  ccl_device_inline_method PackedTransform() = default;
+  PackedTransform() = default;
 
   ccl_device_inline_method PackedTransform(const Transform a) : x(a.x), y(a.y), z(a.z) {}
 

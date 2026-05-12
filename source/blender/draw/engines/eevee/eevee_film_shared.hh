@@ -95,8 +95,6 @@ struct [[host_shared]] FilmData {
   int display_id;
   /** Storage type of the render-pass to be displayed. */
   enum ePassStorageType display_storage_type;
-  /** True if we bypass the accumulation and directly output the accumulation buffer. */
-  bool32_t display_only;
   /** Start of AOVs and number of aov. */
   int aov_color_id;
   int aov_color_len;
@@ -124,7 +122,7 @@ struct [[host_shared]] FilmData {
   int samples_len;
   /** Sum of the weights of all samples in the sample table. */
   float samples_weight_total;
-  int _pad2;
+  int _pad0, _pad1;
   struct FilmSample samples[FILM_PRECOMP_SAMPLE_MAX];
 };
 

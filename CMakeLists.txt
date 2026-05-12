@@ -306,7 +306,6 @@ Use the systems bullet library (currently unsupported due to missing features in
   OFF
 )
 mark_as_advanced(WITH_SYSTEM_BULLET)
-option(WITH_OPENCOLORIO "Enable OpenColorIO color management" ON)
 
 option(WITH_XR_OPENXR "Enable VR features through the OpenXR specification" ON)
 
@@ -432,7 +431,6 @@ option(WITH_MOD_OCEANSIM "Enable Ocean Modifier" ON)
 option(WITH_UV_SLIM "SLIM UV unwrapping solver" ON)
 
 # Image format support
-option(WITH_IMAGE_OPENEXR "Enable OpenEXR Support (http://www.openexr.com)" ON)
 option(WITH_IMAGE_OPENJPEG "Enable OpenJpeg Support (http://www.openjpeg.org)" ON)
 option(WITH_IMAGE_CINEON "Enable CINEON and DPX Image Support" ON)
 option(WITH_IMAGE_WEBP "Enable WebP Image Support" ON)
@@ -472,7 +470,7 @@ option(WITH_IO_FBX "Enable FBX 3D file format support (*.fbx)" ON)
 option(WITH_IO_GREASE_PENCIL "Enable grease-pencil file format IO (*.svg, *.pdf)" ON)
 
 # Sound output
-option(WITH_SDL "Enable SDL for sound" OFF)
+option(WITH_SDL_AUDIO "Enable SDL audio support" OFF)
 option(WITH_OPENAL "Enable OpenAL Support (http://www.openal.org)" ON)
 if(APPLE)
   option(WITH_COREAUDIO "Enable CoreAudio for audio support on macOS" ON)
@@ -507,6 +505,7 @@ endif()
 
 # Compression
 option(WITH_DRACO "Enable Draco mesh compression Python module (used for glTF)" ON)
+option(WITH_MESHOPTIMIZER "Enable meshoptimizer compression Python module (used for glTF)" ON)
 
 # Camera/motion tracking
 option(WITH_LIBMV "Enable Libmv structure from motion library" ON)
@@ -926,6 +925,16 @@ Allows testing shader compilation offline and enable C++ IDE support for shader 
 mark_as_advanced(WITH_GPU_SHADER_CPP_COMPILATION)
 
 
+# Profiling
+option(WITH_TRACY "\
+Enable profiling via the Tracy Frame Profiler. \
+This option adds a `tracy_profiler` target for building the profiler GUI front-end. \
+Requires internet access."
+  OFF
+)
+mark_as_advanced(WITH_TRACY)
+
+
 # OpenGL
 if(NOT APPLE)
   option(WITH_OPENGL_BACKEND "Enable OpenGL support as graphic backend" ON)
@@ -1301,11 +1310,8 @@ set_and_warn_dependency(WITH_AUDASPACE WITH_OPENAL OFF)
 set_and_warn_dependency(WITH_AUDASPACE WITH_COREAUDIO OFF)
 set_and_warn_dependency(WITH_AUDASPACE WITH_JACK OFF)
 set_and_warn_dependency(WITH_AUDASPACE WITH_PULSEAUDIO OFF)
+set_and_warn_dependency(WITH_AUDASPACE WITH_SDL_AUDIO OFF)
 set_and_warn_dependency(WITH_AUDASPACE WITH_WASAPI OFF)
-
-if(NOT WITH_SDL AND WITH_GHOST_SDL)
-  message(FATAL_ERROR "WITH_GHOST_SDL requires WITH_SDL")
-endif()
 
 # python module, needs some different options
 if(WITH_PYTHON_MODULE AND WITH_PYTHON_INSTALL)
@@ -1314,6 +1320,7 @@ endif()
 
 set_and_warn_dependency(WITH_PYTHON WITH_CYCLES        OFF)
 set_and_warn_dependency(WITH_PYTHON WITH_DRACO         OFF)
+set_and_warn_dependency(WITH_PYTHON WITH_MESHOPTIMIZER OFF)
 set_and_warn_dependency(WITH_PYTHON WITH_MOD_FLUID     OFF)
 
 if(WITH_CYCLES)
@@ -1329,11 +1336,6 @@ set_and_warn_dependency(WITH_TBB WITH_MOD_FLUID         OFF)
 
 # NanoVDB requires OpenVDB to convert the data structure
 set_and_warn_dependency(WITH_OPENVDB WITH_NANOVDB       OFF)
-
-# OpenVDB, Alembic and OSL uses `half` or `imath` from OpenEXR
-set_and_warn_dependency(WITH_IMAGE_OPENEXR WITH_OPENVDB OFF)
-set_and_warn_dependency(WITH_IMAGE_OPENEXR WITH_ALEMBIC OFF)
-set_and_warn_dependency(WITH_IMAGE_OPENEXR WITH_CYCLES_OSL OFF)
 
 # Hydra requires USD.
 set_and_warn_dependency(WITH_USD WITH_HYDRA OFF)
@@ -1435,6 +1437,12 @@ set(WITH_BINRELOC OFF)
 
 # MACOSX only, set to avoid uninitialized
 set(EXETYPE "")
+
+# WITH_SDL is uncached, depends on either WITH_SDL_AUDIO or WITH_GHOST_SDL being set.
+set(WITH_SDL OFF)
+if(WITH_SDL_AUDIO OR WITH_GHOST_SDL)
+  set(WITH_SDL ON)
+endif()
 
 # C/C++ flags
 set(PLATFORM_CFLAGS "")
@@ -2043,6 +2051,7 @@ if(CMAKE_C_COMPILER_ID STREQUAL "GNU")
     C_AND_CXX_WARN_NO_FORMAT -Wno-format
     C_AND_CXX_WARN_NO_SWITCH -Wno-switch
     C_AND_CXX_WARN_NO_UNUSED_VARIABLE -Wno-unused-variable
+    C_AND_CXX_WARN_NO_UNUSED_BUT_SET_VARIABLE -Wno-unused-but-set-variable
     C_AND_CXX_WARN_NO_UNINITIALIZED -Wno-uninitialized
     C_AND_CXX_WARN_NO_IMPLICIT_FALLTHROUGH -Wno-implicit-fallthrough
   )
@@ -2528,7 +2537,6 @@ if(FIRST_RUN)
   info_cfg_option(WITH_INPUT_IME)
   info_cfg_option(WITH_INTERNATIONAL)
   info_cfg_option(WITH_MANIFOLD)
-  info_cfg_option(WITH_OPENCOLORIO)
   info_cfg_option(WITH_OPENIMAGEDENOISE)
   info_cfg_option(WITH_OPENSUBDIV)
   info_cfg_option(WITH_OPENVDB)
@@ -2565,9 +2573,11 @@ if(FIRST_RUN)
     endif()
   endif()
 
+  info_cfg_text("Profiling Options:")
+  info_cfg_option(WITH_TRACY)
+
   info_cfg_text("Image Formats:")
   info_cfg_option(WITH_IMAGE_CINEON)
-  info_cfg_option(WITH_IMAGE_OPENEXR)
   info_cfg_option(WITH_IMAGE_OPENJPEG)
 
   info_cfg_text("Audio:")
@@ -2581,7 +2591,7 @@ if(FIRST_RUN)
   info_cfg_option(WITH_OPENAL)
   info_cfg_option(WITH_PULSEAUDIO)
   info_cfg_option(WITH_PULSEAUDIO_DYNLOAD)
-  info_cfg_option(WITH_SDL)
+  info_cfg_option(WITH_SDL_AUDIO)
   info_cfg_option(WITH_WASAPI)
 
   if(WITH_PYTHON)

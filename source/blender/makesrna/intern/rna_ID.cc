@@ -1010,7 +1010,7 @@ static IDOverrideLibraryPropertyOperation *rna_ID_override_library_property_oper
   bool strict;
   IDOverrideLibraryPropertyOperation *result = BKE_lib_override_library_property_operation_get(
       override_property,
-      operation,
+      eID_OverrideLib_Op(operation),
       subitem_refname,
       subitem_locname,
       use_id ? std::optional(subitem_refid) : std::nullopt,

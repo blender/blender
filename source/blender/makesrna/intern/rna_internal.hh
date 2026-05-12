@@ -11,8 +11,14 @@
 #include <cstdint>
 
 #include "BLI_compiler_attrs.h"
+#include "BLI_string_ref.hh"
+#include "BLI_utildefines.h"
 
 #include "DNA_listBase.h"
+
+#ifndef RNA_RUNTIME
+#  include "dna_parse.h"
+#endif
 
 #include "rna_internal_types.hh"
 
@@ -45,6 +51,7 @@ struct ViewLayer;
 
 /* Data structures used during define */
 
+#ifndef RNA_RUNTIME
 struct ContainerDefRNA {
   void *next, *prev;
 
@@ -62,51 +69,47 @@ struct FunctionDefRNA {
 };
 
 struct PropertyDefRNA {
-  PropertyDefRNA *next, *prev;
+  PropertyDefRNA *next = nullptr, *prev = nullptr;
 
-  ContainerRNA *cont;
-  PropertyRNA *prop;
+  ContainerRNA *cont = nullptr;
+  PropertyRNA *prop = nullptr;
 
   /* struct */
-  const char *dnastructname;
-  const char *dnastructfromname;
-  const char *dnastructfromprop;
+  StringRefNull dnastructname;
+  StringRefNull dnastructfromname;
+  StringRefNull dnastructfromprop;
 
   /* property */
-  const char *dnaname;
-  const char *dnatype;
-  int dnaarraylength;
-  int dnapointerlevel;
-  /**
-   * Offset in bytes within `dnastructname`.
-   * -1 when unusable (follows pointer for example). */
-  int dnaoffset;
-  int dnasize;
+  StringRefNull dnaname;
+  StringRefNull dnatype;
+  int dnaarraylength = 0;
+  int dnapointerlevel = 0;
+  const void *dnadefaultdata = nullptr;
 
   /* for finding length of array collections */
-  const char *dnalengthstructname;
-  const char *dnalengthname;
-  int dnalengthfixed;
+  StringRefNull dnalengthstructname;
+  StringRefNull dnalengthname;
+  int dnalengthfixed = 0;
 
-  int64_t booleanbit;
-  bool booleannegative;
+  int64_t booleanbit = 0;
+  bool booleannegative = false;
 
   /* not to be confused with PROP_ENUM_FLAG
    * this only allows one of the flags to be set at a time, clearing all others */
-  int enumbitflags;
+  int enumbitflags = 0;
 };
 
 struct StructDefRNA {
   ContainerDefRNA cont;
 
-  StructRNA *srna;
-  const char *filename;
+  StructRNA *srna = nullptr;
+  StringRefNull filename;
 
-  const char *dnaname;
+  StringRefNull dnaname;
 
   /* for derived structs to find data in some property */
-  const char *dnafromname;
-  const char *dnafromprop;
+  StringRefNull dnafromname;
+  StringRefNull dnafromprop;
 
   ListBaseT<FunctionDefRNA> functions;
 };
@@ -115,27 +118,28 @@ struct AllocDefRNA {
   AllocDefRNA *next, *prev;
   void *mem;
 };
+#endif
 
 struct BlenderDefRNA {
-  struct SDNA *sdna;
-  ListBaseT<StructDefRNA> structs;
-  ListBaseT<AllocDefRNA> allocs;
-  struct StructRNA *laststruct;
-  bool error;
-  bool silent;
-  bool preprocess;
-  bool verify;
-  bool animate;
+  struct StructRNA *laststruct = nullptr;
+  bool error = false;
+  bool silent = false;
+  bool verify = true;
+  bool animate = true;
   /** Whether RNA properties defined should be overridable or not by default. */
-  bool make_overridable;
+  bool make_overridable = false;
 
   /* Keep last. */
 #ifndef RNA_RUNTIME
+  Vector<dna::ParsedStruct> dna_structs;
+  ListBaseT<StructDefRNA> structs = {};
+  ListBaseT<AllocDefRNA> allocs = {};
+
   struct {
     /** #RNA_def_property_update */
     struct {
-      int noteflag;
-      const char *updatefunc;
+      int noteflag = 0;
+      const char *updatefunc = nullptr;
     } property_update;
   } fallback;
 #endif
@@ -642,10 +646,12 @@ void rna_addtail(ListBase *listbase, void *vlink);
 void rna_freelinkN(ListBase *listbase, void *vlink);
 void rna_freelistN(ListBase *listbase);
 
+#ifndef RNA_RUNTIME
 StructDefRNA *rna_find_struct_def(StructRNA *srna);
 FunctionDefRNA *rna_find_function_def(FunctionRNA *func);
 PropertyDefRNA *rna_find_parameter_def(PropertyRNA *parm);
 PropertyDefRNA *rna_find_struct_property_def(StructRNA *srna, PropertyRNA *prop);
+#endif
 
 /* Pointer Handling */
 

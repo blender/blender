@@ -280,7 +280,7 @@ void sound_equalizermodifier_copy_data(StripModifierData *target, StripModifierD
   }
 }
 
-#ifdef WITH_AUDASPACE
+#ifdef WITH_CONVOLUTION
 static uint64_t sound_equalizermodifier_get_params_hash(float *buf)
 {
   return XXH3_64bits(buf, sizeof(float) * SOUND_EQUALIZER_SIZE_DEFINITION);
@@ -517,11 +517,11 @@ AUD_Sound sound_modifier_recreator(Strip *strip,
 
   /* Check if the modifier mute flag has changed. */
   if ((smd->flag & STRIP_MODIFIER_FLAG_MUTE) != (smd->runtime->flag & STRIP_MODIFIER_FLAG_MUTE)) {
-    int runtime_flag = smd->runtime->flag;
+    eStripModifierFlag runtime_flag = smd->runtime->flag;
     /* Update the runtime mute flag and flag the sound handle for update. */
     runtime_flag &= ~(STRIP_MODIFIER_FLAG_MUTE);            /* Clear the bit. */
     runtime_flag |= (smd->flag & STRIP_MODIFIER_FLAG_MUTE); /* Set the bit. */
-    smd->runtime->flag = static_cast<eStripModifierFlag>(runtime_flag);
+    smd->runtime->flag = runtime_flag;
     needs_update = true;
   }
 

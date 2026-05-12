@@ -35,6 +35,19 @@ SOURCE_EXT = (
     ".m", ".mm",
 )
 
+# CMake commands where argument order may be significant (e.g. positional arguments),
+# all lines within these commands are excluded from sorting.
+SORT_SKIP_COMMANDS: set[str] = {
+    "add_custom_command",
+}
+
+# CMake variable names where the order of entries may be significant,
+# all lines within `set(<name> ...)` or `list(APPEND <name> ...)` are excluded from sorting.
+SORT_SKIP_VARIABLES: set[str] = {
+    "LIB",
+    "TEST_LIB",
+}
+
 
 def sort_cmake_file_lists(fn: str, data_src: str) -> str | None:
     fn_dir = os.path.dirname(fn)
@@ -75,6 +88,46 @@ def sort_cmake_file_lists(fn: str, data_src: str) -> str | None:
                     return True
         return False
 
+    def calc_skip_lines(lines: list[str]) -> set[int]:
+        """
+        Compute line indices to skip sorting, where order may be significant
+        (e.g. positional command arguments or library link order).
+        """
+
+        def is_skip_command(cmd_name: str, args: list[str]) -> bool:
+            if cmd_name in SORT_SKIP_COMMANDS:
+                return True
+            if cmd_name == "set":
+                if args and args[0] in SORT_SKIP_VARIABLES:
+                    return True
+            if cmd_name == "list":
+                if len(args) >= 2 and args[1] in SORT_SKIP_VARIABLES:
+                    return True
+            return False
+
+        skip_lines: set[int] = set()
+        skip_depth = 0
+        in_skip_cmd = False
+        for i, line in enumerate(lines):
+            line_strip = line.split("#", 1)[0]
+            if not in_skip_cmd:
+                ls = line_strip.lstrip()
+                paren_pos = ls.find("(")
+                if paren_pos != -1:
+                    cmd_name = ls[:paren_pos].strip()
+                    args = ls[paren_pos + 1:].split()
+                    if is_skip_command(cmd_name, args):
+                        in_skip_cmd = True
+                        skip_depth = 0
+            if in_skip_cmd:
+                skip_lines.add(i)
+                skip_depth += line_strip.count("(") - line_strip.count(")")
+                if skip_depth <= 0:
+                    in_skip_cmd = False
+        return skip_lines
+
+    skip_lines = calc_skip_lines(lines)
+
     i = 0
     while i < len(lines):
         if can_sort(lines[i]):
@@ -86,7 +139,11 @@ def sort_cmake_file_lists(fn: str, data_src: str) -> str | None:
                     break
                 j = j + 1
             if i != j:
-                lines[i:j + 1] = list(sorted(lines[i:j + 1]))
+                # Skip blocks span full commands; their boundaries contain
+                # parentheses which fail `can_sort`, so a sortable group
+                # cannot straddle a skip boundary - checking `i` suffices.
+                if i not in skip_lines:
+                    lines[i:j + 1] = list(sorted(lines[i:j + 1]))
             i = j
         i = i + 1
 

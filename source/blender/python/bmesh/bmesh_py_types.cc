@@ -2234,17 +2234,17 @@ PyDoc_STRVAR(
 static PyObject *bpy_bmesh_calc_volume(BPy_BMElem *self, PyObject *args, PyObject *kw)
 {
   static const char *kwlist[] = {"signed", nullptr};
-  PyObject *is_signed = Py_False;
+  bool is_signed = false;
 
   BPY_BM_CHECK_OBJ(self);
 
   if (!PyArg_ParseTupleAndKeywords(
-          args, kw, "|$O!:calc_volume", const_cast<char **>(kwlist), &PyBool_Type, &is_signed))
+          args, kw, "|$O&:calc_volume", const_cast<char **>(kwlist), PyC_ParseBool, &is_signed))
   {
     return nullptr;
   }
 
-  return PyFloat_FromDouble(BM_mesh_calc_volume(self->bm, is_signed != Py_False));
+  return PyFloat_FromDouble(BM_mesh_calc_volume(self->bm, is_signed));
 }
 
 PyDoc_STRVAR(
@@ -4530,7 +4530,7 @@ static PyObject *bpy_bmelemseq_subscript(BPy_BMElemSeq *self, PyObject *key)
     PySliceObject *key_slice = reinterpret_cast<PySliceObject *>(key);
     Py_ssize_t step = 1;
 
-    if (key_slice->step != Py_None && !_PyEval_SliceIndex(key, &step)) {
+    if (key_slice->step != Py_None && !_PyEval_SliceIndex(key_slice->step, &step)) {
       return nullptr;
     }
     if (step != 1) {

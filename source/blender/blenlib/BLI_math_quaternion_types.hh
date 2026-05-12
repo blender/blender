@@ -79,6 +79,18 @@ template<typename T> struct QuaternionBase {
     return {this->w, this->x, this->y, this->z};
   }
 
+  /** C-style pointer dereference. */
+
+  operator const T *() const
+  {
+    return reinterpret_cast<const T *>(this);
+  }
+
+  operator T *()
+  {
+    return reinterpret_cast<T *>(this);
+  }
+
   /**
    * Create an exponential map representation of this quaternion.
    * An exponential map is basically the rotation axis multiplied by the rotation angle.

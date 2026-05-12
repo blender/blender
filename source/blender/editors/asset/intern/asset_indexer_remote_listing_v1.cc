@@ -96,6 +96,7 @@ static ReadingResult<RemoteListingAssetEntry> listing_entry_from_asset_dictionar
       if (const RemoteListingFileEntry *file_entry = file_path_to_entry_map.lookup_ptr(file.path))
       {
         file.url = file_entry->download_url;
+        file.size_in_bytes = file_entry->size_in_bytes;
       }
       else {
         return ReadingResult<RemoteListingAssetEntry>::Failure(
@@ -155,6 +156,7 @@ static ReadingResult<RemoteListingFileEntry> listing_file_from_asset_dictionary(
    * (see `download_asset()` in `asset_downloader.py`) so here we can just use
    * an empty string to indicate "no URL". */
   file_entry.download_url.url = dictionary.lookup_str("url").value_or("");
+  file_entry.size_in_bytes = dictionary.lookup_int("size_in_bytes");
 
   return ReadingResult<RemoteListingFileEntry>::Success(std::move(file_entry));
 }

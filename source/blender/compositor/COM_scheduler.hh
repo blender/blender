@@ -5,7 +5,6 @@
 #pragma once
 
 #include "BLI_set.hh"
-#include "BLI_string_ref.hh"
 #include "BLI_vector_set.hh"
 
 #include "COM_context.hh"
@@ -27,8 +26,8 @@ struct Schedule {
  * dependencies based on a heuristic estimation of the number of needed buffers. */
 Schedule compute_schedule(const Context &context,
                           const bNodeTree &node_group,
+                          NodeGroupOperation &node_group_operation,
                           const NodeGroupOutputTypes needed_outputs_types,
-                          const Set<StringRef> &needed_outputs,
                           const bNodeInstanceKey instance_key,
                           const bNodeInstanceKey active_node_group_instance_key);
 

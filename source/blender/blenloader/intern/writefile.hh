@@ -56,7 +56,7 @@ struct WriteDataStableAddressIDs {
    * can't determine if a pointer is local or not.
    *
    * Note that in undo (memfile) case, this set is _not_ reset after every ID writing, to ensure
-   * that all generated address ids remain unique across a whole blenfile writing operation.
+   * that all generated address ids remain unique across a whole blend-file writing operation.
    */
   Set<uint64_t> used_ids;
   /**

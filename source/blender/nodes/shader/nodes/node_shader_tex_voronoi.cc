@@ -95,12 +95,12 @@ static void node_shader_buts_tex_voronoi(ui::Layout &layout, bContext * /*C*/, P
   }
 }
 
-static void node_shader_init_tex_voronoi(bNodeTree * /*ntree*/, bNode *node)
+static void node_shader_init_tex_voronoi(bNodeTree *node_tree, bNode *node)
 {
   NodeTexVoronoi *tex = MEM_new<NodeTexVoronoi>(__func__);
   BKE_texture_mapping_default(&tex->base.tex_mapping, TEXMAP_TYPE_POINT);
   BKE_texture_colormapping_default(&tex->base.color_mapping);
-  tex->dimensions = 3;
+  tex->dimensions = node_tree->type == NTREE_COMPOSIT ? 2 : 3;
   tex->distance = SHD_VORONOI_EUCLIDEAN;
   tex->feature = SHD_VORONOI_F1;
   tex->normalize = false;
@@ -173,19 +173,19 @@ static int node_shader_gpu_tex_voronoi(GPUMaterial *mat,
 
 static void node_shader_update_tex_voronoi(bNodeTree *ntree, bNode *node)
 {
-  bNodeSocket *inVectorSock = bke::node_find_socket(*node, SOCK_IN, "Vector");
-  bNodeSocket *inWSock = bke::node_find_socket(*node, SOCK_IN, "W");
-  bNodeSocket *inDetailSock = bke::node_find_socket(*node, SOCK_IN, "Detail");
-  bNodeSocket *inRoughnessSock = bke::node_find_socket(*node, SOCK_IN, "Roughness");
-  bNodeSocket *inLacunaritySock = bke::node_find_socket(*node, SOCK_IN, "Lacunarity");
-  bNodeSocket *inSmoothnessSock = bke::node_find_socket(*node, SOCK_IN, "Smoothness");
-  bNodeSocket *inExponentSock = bke::node_find_socket(*node, SOCK_IN, "Exponent");
+  bNodeSocket *inVectorSock = bke::node_find_socket(*node, SOCK_IN, "Vector"_ustr);
+  bNodeSocket *inWSock = bke::node_find_socket(*node, SOCK_IN, "W"_ustr);
+  bNodeSocket *inDetailSock = bke::node_find_socket(*node, SOCK_IN, "Detail"_ustr);
+  bNodeSocket *inRoughnessSock = bke::node_find_socket(*node, SOCK_IN, "Roughness"_ustr);
+  bNodeSocket *inLacunaritySock = bke::node_find_socket(*node, SOCK_IN, "Lacunarity"_ustr);
+  bNodeSocket *inSmoothnessSock = bke::node_find_socket(*node, SOCK_IN, "Smoothness"_ustr);
+  bNodeSocket *inExponentSock = bke::node_find_socket(*node, SOCK_IN, "Exponent"_ustr);
 
-  bNodeSocket *outDistanceSock = bke::node_find_socket(*node, SOCK_OUT, "Distance");
-  bNodeSocket *outColorSock = bke::node_find_socket(*node, SOCK_OUT, "Color");
-  bNodeSocket *outPositionSock = bke::node_find_socket(*node, SOCK_OUT, "Position");
-  bNodeSocket *outWSock = bke::node_find_socket(*node, SOCK_OUT, "W");
-  bNodeSocket *outRadiusSock = bke::node_find_socket(*node, SOCK_OUT, "Radius");
+  bNodeSocket *outDistanceSock = bke::node_find_socket(*node, SOCK_OUT, "Distance"_ustr);
+  bNodeSocket *outColorSock = bke::node_find_socket(*node, SOCK_OUT, "Color"_ustr);
+  bNodeSocket *outPositionSock = bke::node_find_socket(*node, SOCK_OUT, "Position"_ustr);
+  bNodeSocket *outWSock = bke::node_find_socket(*node, SOCK_OUT, "W"_ustr);
+  bNodeSocket *outRadiusSock = bke::node_find_socket(*node, SOCK_OUT, "Radius"_ustr);
 
   const NodeTexVoronoi &storage = node_storage(*node);
 
@@ -528,6 +528,16 @@ class VoronoiMetricFunction : public mf::MultiFunction {
     }
   }
 
+  void hash_unique(UniqueHashBytes &hash) const override
+  {
+    static constexpr int8_t id = 0;
+    hash.add(&id);
+    hash.add(dimensions_);
+    hash.add(feature_);
+    hash.add(metric_);
+    hash.add(normalize_);
+  }
+
   ExecutionHints get_execution_hints() const override
   {
     return voronoi_execution_hints;
@@ -676,6 +686,14 @@ class VoronoiDistToEdgeFunction : public mf::MultiFunction {
     }
   }
 
+  void hash_unique(UniqueHashBytes &hash) const override
+  {
+    static constexpr int8_t id = 0;
+    hash.add(&id);
+    hash.add(dimensions_);
+    hash.add(normalize_);
+  }
+
   ExecutionHints get_execution_hints() const override
   {
     return voronoi_execution_hints;
@@ -786,6 +804,13 @@ class VoronoiNSphereFunction : public mf::MultiFunction {
         break;
       }
     }
+  }
+
+  void hash_unique(UniqueHashBytes &hash) const override
+  {
+    static constexpr int8_t id = 0;
+    hash.add(&id);
+    hash.add(dimensions_);
   }
 
   ExecutionHints get_execution_hints() const override

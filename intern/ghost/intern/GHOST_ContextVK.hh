@@ -179,6 +179,16 @@ class GHOST_ContextVK : public GHOST_Context {
       std::function<void(GHOST_VulkanOpenXRData *)> openxr_release_framebuffer_image_callback)
       override;
 
+#ifdef WITH_GHOST_WAYLAND
+  /**
+   * \brief Check if the active driver supports wayland color management.
+   *
+   * NVIDIA driver before 595 don't support wayland color management protocol as expected resulting
+   * in to bright output.
+   */
+  static GHOST_TSuccess supportsWaylandColorManagement();
+#endif
+
   /**
    * Sets the swap interval for `swapBuffers`.
    * \param interval: The swap interval to use.

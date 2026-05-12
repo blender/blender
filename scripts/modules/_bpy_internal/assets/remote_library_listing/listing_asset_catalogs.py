@@ -118,7 +118,7 @@ def write(catalogs: list[api_models.CatalogV1], catalog_filepath: Path,
     # TODO: this really should be using an RNA API.
 
     # Sanitize the library name, as it should not contain any newlines for the Asset Catalog Definition File to be
-    # valid. To be on the safe side, just collapse all whitespace to spaces. Same for colons, those are used as field
+    # valid. To be on the safe side, just collapse all white-space to spaces. Same for colons, those are used as field
     # separators and shouldn't be included in any of the fields themselves.
     unwanted_chars_re = re.compile(r'[\s:]+')
     lib_name = unwanted_chars_re.sub(' ', asset_library_meta.name)

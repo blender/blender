@@ -302,9 +302,9 @@ def main():
                     default_value = 'False'
                 elif tp == BMO_OP_SLOT_MAT:
                     tp_str = ":class:`mathutils.Matrix`"
-                    default_value = 'mathutils.Matrix.Identity(4)'
+                    default_value = '((1, 0, 0, 0), (0, 1, 0, 0), (0, 0, 1, 0), (0, 0, 0, 1))'
                 elif tp == BMO_OP_SLOT_VEC:
-                    default_value = 'mathutils.Vector()'
+                    default_value = '(0.0, 0.0, 0.0)'
                     if is_ret:
                         tp_str = ":class:`mathutils.Vector`"
                     else:

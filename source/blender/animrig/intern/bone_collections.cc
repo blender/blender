@@ -169,9 +169,9 @@ static void bonecoll_insert_at_index(bArmature *armature, BoneCollection *bcoll,
   const int rotate_count = armature->collection_array_num - index - 1;
   animrig::internal::bonecolls_rotate_block(armature, index, rotate_count, +1);
 
-  if (armature->runtime.active_collection_index >= index) {
+  if (armature->runtime->active_collection_index >= index) {
     ANIM_armature_bonecoll_active_index_set(armature,
-                                            armature->runtime.active_collection_index + 1);
+                                            armature->runtime->active_collection_index + 1);
   }
 }
 
@@ -232,7 +232,7 @@ BoneCollection *ANIM_armature_bonecoll_new(bArmature *armature,
   }
 
   /* Restore the active bone collection pointer, as its index might have changed. */
-  ANIM_armature_bonecoll_active_set(armature, armature->runtime.active_collection);
+  ANIM_armature_bonecoll_active_set(armature, armature->runtime->active_collection);
 
   return bcoll;
 }
@@ -391,8 +391,8 @@ BoneCollection *ANIM_armature_bonecoll_insert_copy_after(bArmature *armature_dst
 
 static void armature_bonecoll_active_clear(bArmature *armature)
 {
-  armature->runtime.active_collection_index = -1;
-  armature->runtime.active_collection = nullptr;
+  armature->runtime->active_collection_index = -1;
+  armature->runtime->active_collection = nullptr;
   armature->active_collection_name[0] = '\0';
 }
 
@@ -411,8 +411,8 @@ void ANIM_armature_bonecoll_active_set(bArmature *armature, BoneCollection *bcol
   }
 
   STRNCPY(armature->active_collection_name, bcoll->name);
-  armature->runtime.active_collection_index = index;
-  armature->runtime.active_collection = bcoll;
+  armature->runtime->active_collection_index = index;
+  armature->runtime->active_collection = bcoll;
 }
 
 void ANIM_armature_bonecoll_active_index_set(bArmature *armature, const int bone_collection_index)
@@ -425,8 +425,8 @@ void ANIM_armature_bonecoll_active_index_set(bArmature *armature, const int bone
   BoneCollection *bcoll = armature->collection_array[bone_collection_index];
 
   STRNCPY(armature->active_collection_name, bcoll->name);
-  armature->runtime.active_collection_index = bone_collection_index;
-  armature->runtime.active_collection = bcoll;
+  armature->runtime->active_collection_index = bone_collection_index;
+  armature->runtime->active_collection = bcoll;
 }
 
 void ANIM_armature_bonecoll_active_name_set(bArmature *armature, const char *name)
@@ -446,8 +446,8 @@ void ANIM_armature_bonecoll_active_runtime_refresh(bArmature *armature)
   int index = 0;
   for (BoneCollection *bcoll : armature->collections_span()) {
     if (bcoll->name == active_name) {
-      armature->runtime.active_collection_index = index;
-      armature->runtime.active_collection = bcoll;
+      armature->runtime->active_collection_index = index;
+      armature->runtime->active_collection = bcoll;
       return;
     }
     index++;
@@ -615,7 +615,7 @@ void ANIM_armature_bonecoll_remove_from_index(bArmature *armature, int index)
   BoneCollection *bcoll = armature->collection_array[index];
 
   /* Get the active bone collection index before the armature is manipulated. */
-  const int active_collection_index = armature->runtime.active_collection_index;
+  const int active_collection_index = armature->runtime->active_collection_index;
 
   /* The parent needs updating, so better to find it before this bone collection is removed. */
   int parent_bcoll_index = armature_bonecoll_find_parent_index(armature, index);
@@ -1050,12 +1050,12 @@ void ANIM_armature_bonecoll_hide_all(bArmature *armature)
 
 void ANIM_armature_bonecoll_assign_active(const bArmature *armature, EditBone *ebone)
 {
-  if (armature->runtime.active_collection == nullptr) {
+  if (armature->runtime->active_collection == nullptr) {
     /* No active collection, do not assign to any. */
     return;
   }
 
-  ANIM_armature_bonecoll_assign_editbone(armature->runtime.active_collection, ebone);
+  ANIM_armature_bonecoll_assign_editbone(armature->runtime->active_collection, ebone);
 }
 
 static bool bcoll_list_contains(const ListBaseT<BoneCollectionReference> *collection_refs,
@@ -1117,7 +1117,7 @@ void ANIM_armature_bonecoll_show_from_ebone(bArmature *armature, const EditBone 
 
 void ANIM_armature_bonecoll_show_from_pchan(bArmature *armature, const bPoseChannel *pchan)
 {
-  ANIM_armature_bonecoll_show_from_bone(armature, pchan->bone);
+  ANIM_armature_bonecoll_show_from_bone(armature, pchan->bone_get(*armature));
 }
 
 /* ********* */
@@ -1201,7 +1201,7 @@ int armature_bonecoll_child_number_set(bArmature *armature,
   parent_bcoll->child_index = old_parent_child_index;
 
   /* Make sure that if this was the active bone collection, its index also changes. */
-  if (armature->runtime.active_collection_index == bcoll_index) {
+  if (armature->runtime->active_collection_index == bcoll_index) {
     ANIM_armature_bonecoll_active_index_set(armature, to_index);
   }
 
@@ -1473,7 +1473,7 @@ void bonecolls_rotate_block(bArmature *armature,
                             const int count,
                             const int direction)
 {
-  BLI_assert_msg(direction == 1 || direction == -1, "`direction` must be either -1 or +1");
+  BLI_assert_msg(ELEM(direction, 1, -1), "`direction` must be either -1 or +1");
 
   if (count == 0) {
     return;
@@ -1516,12 +1516,12 @@ void bonecolls_rotate_block(bArmature *armature,
   }
 
   /* Make sure the active bone collection index is moved as well. */
-  const int active_index = armature->runtime.active_collection_index;
+  const int active_index = armature->runtime->active_collection_index;
   if (active_index == move_from_index) {
-    armature->runtime.active_collection_index = move_to_index;
+    armature->runtime->active_collection_index = move_to_index;
   }
   else if (start_index <= active_index && active_index < start_index + count) {
-    armature->runtime.active_collection_index += direction;
+    armature->runtime->active_collection_index += direction;
   }
 }
 

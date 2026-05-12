@@ -459,7 +459,7 @@ struct u8x128_table {
     return table;
   }
 
-  /* Perform a 128 bytes table lookup for each lane of the input vector.*/
+  /** Perform a 128 bytes table lookup for each lane of the input vector. */
   template<int Size> u8_base<Size> operator[](u8_base<Size> index) const
   {
     /* https://lemire.me/blog/2019/07/23/arbitrary-byte-to-byte-maps-using-arm-neon/

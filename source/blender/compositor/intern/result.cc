@@ -7,15 +7,14 @@
 #include <string>
 #include <variant>
 
-#include "MEM_guardedalloc.h"
-
 #include "BLI_assert.h"
 #include "BLI_cpp_type.hh"
+#include "BLI_generic_array.hh"
 #include "BLI_generic_pointer.hh"
 #include "BLI_generic_span.hh"
 #include "BLI_math_matrix_types.hh"
+#include "BLI_math_quaternion_types.hh"
 #include "BLI_math_vector_types.hh"
-#include "BLI_utildefines.h"
 
 #include "GPU_shader.hh"
 #include "GPU_state.hh"
@@ -26,6 +25,7 @@
 #include "COM_derived_resources.hh"
 #include "COM_domain.hh"
 #include "COM_result.hh"
+#include "COM_utilities.hh"
 
 namespace blender::compositor {
 
@@ -52,9 +52,11 @@ bool Result::is_single_value_only_type(ResultType type)
     case ResultType::Int:
     case ResultType::Int2:
     case ResultType::Int3:
+    case ResultType::Int4:
     case ResultType::Bool:
     case ResultType::Float4x4:
     case ResultType::Menu:
+    case ResultType::Quaternion:
       return false;
     case ResultType::String:
     case ResultType::Object:
@@ -94,6 +96,8 @@ gpu::TextureFormat Result::gpu_texture_format(ResultType type, ResultPrecision p
           /* RGB textures are not fully supported by hardware, so we store Int3 results in RGBA
            * textures. */
           return gpu::TextureFormat::SINT_16_16_16_16;
+        case ResultType::Int4:
+          return gpu::TextureFormat::SINT_16_16_16_16;
         case ResultType::Bool:
           /* No bool texture formats, so we store in an 8-bit integer. Precision doesn't matter. */
           return gpu::TextureFormat::SINT_8;
@@ -104,6 +108,8 @@ gpu::TextureFormat Result::gpu_texture_format(ResultType type, ResultPrecision p
           /* Menu values are technically stored in 32-bit integers, but 8 is sufficient in
            * practice. */
           return gpu::TextureFormat::SINT_8;
+        case ResultType::Quaternion:
+          return gpu::TextureFormat::SFLOAT_16_16_16_16;
         case ResultType::String:
         case ResultType::Object:
         case ResultType::Image:
@@ -138,6 +144,8 @@ gpu::TextureFormat Result::gpu_texture_format(ResultType type, ResultPrecision p
           /* RGB textures are not fully supported by hardware, so we store Int3 results in RGBA
            * textures. */
           return gpu::TextureFormat::SINT_32_32_32_32;
+        case ResultType::Int4:
+          return gpu::TextureFormat::SINT_32_32_32_32;
         case ResultType::Bool:
           /* No bool texture formats, so we store in an 8-bit integer. Precision doesn't matter. */
           return gpu::TextureFormat::SINT_8;
@@ -148,6 +156,8 @@ gpu::TextureFormat Result::gpu_texture_format(ResultType type, ResultPrecision p
           /* Menu values are technically stored in 32-bit integers, but 8 is sufficient in
            * practice. */
           return gpu::TextureFormat::SINT_8;
+        case ResultType::Quaternion:
+          return gpu::TextureFormat::SFLOAT_32_32_32_32;
         case ResultType::String:
         case ResultType::Object:
         case ResultType::Image:
@@ -172,6 +182,7 @@ eGPUDataFormat Result::gpu_data_format(ResultType type)
   switch (type) {
     case ResultType::Float:
     case ResultType::Color:
+    case ResultType::Quaternion:
     case ResultType::Float4:
     case ResultType::Float3:
     case ResultType::Float2:
@@ -180,6 +191,7 @@ eGPUDataFormat Result::gpu_data_format(ResultType type)
     case ResultType::Int:
     case ResultType::Int2:
     case ResultType::Int3:
+    case ResultType::Int4:
     case ResultType::Bool:
     case ResultType::Menu:
       return GPU_DATA_INT;
@@ -330,8 +342,7 @@ ResultType Result::type(gpu::TextureFormat format)
       return ResultType::Int2;
     case gpu::TextureFormat::SINT_16_16_16_16:
     case gpu::TextureFormat::SINT_32_32_32_32:
-      /* Stores Int3, see Result::gpu_texture_format. */
-      return ResultType::Int3;
+      return ResultType::Int4;
     case gpu::TextureFormat::SINT_8:
       return ResultType::Bool;
     default:
@@ -361,12 +372,16 @@ const CPPType &Result::cpp_type(const ResultType type)
       return CPPType::get<int2>();
     case ResultType::Int3:
       return CPPType::get<int3>();
+    case ResultType::Int4:
+      return CPPType::get<int4>();
     case ResultType::Bool:
       return CPPType::get<bool>();
     case ResultType::Float4x4:
       return CPPType::get<float4x4>();
     case ResultType::Menu:
       return CPPType::get<nodes::MenuValue>();
+    case ResultType::Quaternion:
+      return CPPType::get<math::Quaternion>();
     case ResultType::String:
       return CPPType::get<std::string>();
     case ResultType::Object:
@@ -406,12 +421,16 @@ const char *Result::type_name(const ResultType type)
       return "int2";
     case ResultType::Int3:
       return "int3";
+    case ResultType::Int4:
+      return "int4";
     case ResultType::Bool:
       return "bool";
     case ResultType::Float4x4:
       return "float4x4";
     case ResultType::Menu:
       return "menu";
+    case ResultType::Quaternion:
+      return "quaternion";
     case ResultType::String:
       return "string";
     case ResultType::Object:
@@ -523,6 +542,9 @@ void Result::allocate_single_value()
     case ResultType::Int3:
       this->set_single_value(int3(0));
       break;
+    case ResultType::Int4:
+      this->set_single_value(int4(0));
+      break;
     case ResultType::Bool:
       this->set_single_value(false);
       break;
@@ -531,6 +553,9 @@ void Result::allocate_single_value()
       break;
     case ResultType::Menu:
       this->set_single_value(nodes::MenuValue(0));
+      break;
+    case ResultType::Quaternion:
+      this->set_single_value(math::Quaternion(0.0f, 0.0f, 0.0f, 0.0f));
       break;
     case ResultType::String:
       this->set_single_value(std::string(""));
@@ -565,11 +590,74 @@ Result Result::upload_to_gpu(const bool from_pool) const
 {
   BLI_assert(storage_type_ == ResultStorageType::CPU);
   BLI_assert(this->is_allocated());
+  BLI_assert(!this->is_single_value());
 
   Result result = Result(*context_, this->type(), this->precision());
   result.allocate_texture(this->domain(), from_pool, ResultStorageType::GPU);
 
-  GPU_texture_update(result, this->get_gpu_data_format(), this->cpu_data().data());
+  switch (this->type()) {
+    case ResultType::Float:
+    case ResultType::Color:
+    case ResultType::Quaternion:
+    case ResultType::Float4:
+    case ResultType::Float2:
+    case ResultType::Int:
+    case ResultType::Int2:
+    case ResultType::Int4:
+    case ResultType::Bool:
+    case ResultType::Menu:
+      GPU_texture_update(result, this->get_gpu_data_format(), this->cpu_data().data());
+      break;
+    case ResultType::Int3: {
+      /* Int3 is stored as an Int4 on GPU due to hardware limitations, so copy to an Int4 result
+       * before uploading. */
+      Result temporary_result = Result(*context_, ResultType::Int4, this->precision());
+      temporary_result.allocate_texture(this->domain(), false, ResultStorageType::CPU);
+      parallel_for(this->domain().data_size, [&](const int2 texel) {
+        temporary_result.store_pixel(texel, int4(this->load_pixel<int3>(texel), 0));
+      });
+      GPU_texture_update(result, this->get_gpu_data_format(), temporary_result.cpu_data().data());
+      temporary_result.release();
+      break;
+    }
+    case ResultType::Float3: {
+      /* Float3 is stored as a Float4 on GPU due to hardware limitations, so copy to a Float4
+       * result before uploading. */
+      Result temporary_result = Result(*context_, ResultType::Float4, this->precision());
+      temporary_result.allocate_texture(this->domain(), false, ResultStorageType::CPU);
+      parallel_for(this->domain().data_size, [&](const int2 texel) {
+        temporary_result.store_pixel(texel, float4(this->load_pixel<float3>(texel), 0.0f));
+      });
+      GPU_texture_update(result, this->get_gpu_data_format(), temporary_result.cpu_data().data());
+      temporary_result.release();
+      break;
+    }
+    case ResultType::Float4x4: {
+      const int2 size = this->domain().data_size;
+      Result temporary_result = Result(*context_, ResultType::Float4, this->precision());
+      /* Float4x4 is stored in a 4-layer array texture, with each layer storing a column, so copy
+       * to a result with 4 times the height, each slice storing a column. */
+      temporary_result.allocate_texture(size * int2(1, 4), false, ResultStorageType::CPU);
+      for (int i = 0; i < 4; i++) {
+        parallel_for(this->domain().data_size, [&](const int2 texel) {
+          temporary_result.store_pixel(texel + int2(0, size.y * i),
+                                       this->load_pixel<float4x4>(texel)[i]);
+        });
+      }
+      GPU_texture_update(result, this->get_gpu_data_format(), temporary_result.cpu_data().data());
+      temporary_result.release();
+      break;
+    }
+    case ResultType::String:
+    case ResultType::Object:
+    case ResultType::Image:
+    case ResultType::Font:
+    case ResultType::Scene:
+    case ResultType::Text:
+    case ResultType::Mask:
+      /* Single only types do not support GPU. */
+      break;
+  }
   return result;
 }
 
@@ -579,9 +667,89 @@ Result Result::download_to_cpu() const
   BLI_assert(this->is_allocated());
 
   Result result = Result(*context_, this->type(), this->precision());
+  result.allocate_texture(this->domain(), false, ResultStorageType::CPU);
+
   GPU_memory_barrier(GPU_BARRIER_TEXTURE_UPDATE);
-  void *data = GPU_texture_read(*this, this->get_gpu_data_format(), 0);
-  result.steal_data(data, this->domain());
+
+  switch (this->type()) {
+    case ResultType::Float:
+    case ResultType::Color:
+    case ResultType::Quaternion:
+    case ResultType::Float4:
+    case ResultType::Float2:
+    case ResultType::Int:
+    case ResultType::Int2:
+    case ResultType::Int4:
+    case ResultType::Bool:
+    case ResultType::Menu:
+      GPU_texture_read(*this, this->get_gpu_data_format(), 0, result.cpu_data_for_write().data());
+      break;
+    case ResultType::Int3: {
+      if (this->channels_count() == 3) {
+        GPU_texture_read(
+            *this, this->get_gpu_data_format(), 0, result.cpu_data_for_write().data());
+        break;
+      }
+      /* Int3 is stored as an Int4 on GPU due to hardware limitations, so read to an Int4 result
+       * before copying to result. */
+      Result temporary_result = Result(*context_, ResultType::Int4, this->precision());
+      temporary_result.allocate_texture(this->domain(), false, ResultStorageType::CPU);
+      GPU_texture_read(
+          *this, this->get_gpu_data_format(), 0, temporary_result.cpu_data_for_write().data());
+      parallel_for(this->domain().data_size, [&](const int2 texel) {
+        result.store_pixel(texel, temporary_result.load_pixel<int4>(texel).xyz());
+      });
+      temporary_result.release();
+      break;
+    }
+    case ResultType::Float3: {
+      if (this->channels_count() == 3) {
+        GPU_texture_read(
+            *this, this->get_gpu_data_format(), 0, result.cpu_data_for_write().data());
+        break;
+      }
+      /* Float3 is stored as a Float4 on GPU due to hardware limitations, so read to a Float4
+       * result before copying to result. */
+      Result temporary_result = Result(*context_, ResultType::Float4, this->precision());
+      temporary_result.allocate_texture(this->domain(), false, ResultStorageType::CPU);
+      GPU_texture_read(
+          *this, this->get_gpu_data_format(), 0, temporary_result.cpu_data_for_write().data());
+      parallel_for(this->domain().data_size, [&](const int2 texel) {
+        result.store_pixel(texel, temporary_result.load_pixel<float4>(texel).xyz());
+      });
+      temporary_result.release();
+      break;
+    }
+    case ResultType::Float4x4: {
+      /* Float4x4 is stored in a 4-layer array texture, with each layer storing a column, so read
+       * to a result with 4 times the height, each slice storing a column, before finally copying
+       * and constructing the float4x4 in the result. */
+      const int2 size = this->domain().data_size;
+      Result temporary_result = Result(*context_, ResultType::Float4, this->precision());
+      temporary_result.allocate_texture(size * int2(1, 4), false, ResultStorageType::CPU);
+      GPU_texture_read(
+          *this, this->get_gpu_data_format(), 0, temporary_result.cpu_data_for_write().data());
+      parallel_for(this->domain().data_size, [&](const int2 texel) {
+        result.store_pixel(
+            texel,
+            float4x4(temporary_result.load_pixel<float4>(texel + int2(0, size.y * 0)),
+                     temporary_result.load_pixel<float4>(texel + int2(0, size.y * 1)),
+                     temporary_result.load_pixel<float4>(texel + int2(0, size.y * 2)),
+                     temporary_result.load_pixel<float4>(texel + int2(0, size.y * 3))));
+      });
+      temporary_result.release();
+      break;
+    }
+    case ResultType::String:
+    case ResultType::Object:
+    case ResultType::Image:
+    case ResultType::Font:
+    case ResultType::Scene:
+    case ResultType::Text:
+    case ResultType::Mask:
+      /* Single only types do not support GPU. */
+      break;
+  }
 
   return result;
 }
@@ -632,31 +800,12 @@ void Result::share_data(const Result &source)
   *this = source;
   reference_count_ = reference_count;
 
-  (*data_reference_count_)++;
-}
+  if (sharing_info_) {
+    sharing_info_->add_user();
+  }
 
-void Result::steal_data(Result &source)
-{
-  BLI_assert(type_ == source.type_);
-  BLI_assert(!this->is_allocated() && source.is_allocated());
-
-  /* Overwrite everything except reference counts. */
-  const int reference_count = reference_count_;
-  *this = source;
-  reference_count_ = reference_count;
-
-  source = Result(*context_, type_, precision_);
-}
-
-void Result::steal_data(void *data, const Domain &domain)
-{
-  BLI_assert(!this->is_allocated());
-
-  const int64_t array_size = int64_t(domain.data_size.x) * int64_t(domain.data_size.y);
-  cpu_data_ = GMutableSpan(this->get_cpp_type(), data, array_size);
-  storage_type_ = ResultStorageType::CPU;
-  domain_ = domain;
-  data_reference_count_ = new int(1);
+  /* Derived resources can't be shared, so reset them. */
+  derived_resources_ = nullptr;
 }
 
 /* Returns true if the given GPU texture is compatible with the type and precision of the given
@@ -684,43 +833,33 @@ void Result::steal_data(void *data, const Domain &domain)
   return GPU_texture_format(texture) == result.get_gpu_texture_format();
 }
 
-void Result::wrap_external(gpu::Texture *texture)
+void Result::share_data(gpu::Texture *texture, ImplicitSharingInfo *sharing_info)
 {
   BLI_assert(is_compatible_texture(texture, *this));
   BLI_assert(!this->is_allocated());
 
   gpu_texture_ = texture;
   storage_type_ = ResultStorageType::GPU;
-  is_external_ = true;
   is_single_value_ = false;
   domain_ = Domain(int2(GPU_texture_width(texture), GPU_texture_height(texture)));
-  data_reference_count_ = new int(1);
+  sharing_info_ = sharing_info;
+  if (sharing_info) {
+    sharing_info_->add_user();
+  }
 }
 
-void Result::wrap_external(void *data, int2 size)
+void Result::share_data(const void *data, const int2 size, ImplicitSharingInfo *sharing_info)
 {
   BLI_assert(!this->is_allocated());
 
   const int64_t array_size = int64_t(size.x) * int64_t(size.y);
-  cpu_data_ = GMutableSpan(this->get_cpp_type(), data, array_size);
+  cpu_data_ = GSpan(this->get_cpp_type(), data, array_size);
   storage_type_ = ResultStorageType::CPU;
-  is_external_ = true;
   domain_ = Domain(size);
-  data_reference_count_ = new int(1);
-}
-
-void Result::wrap_external(const Result &result)
-{
-  BLI_assert(type_ == result.type());
-  BLI_assert(precision_ == result.precision());
-  BLI_assert(!this->is_allocated());
-
-  /* Steal the data of the given result and mark it as wrapping external data, but create a
-   * temporary copy of the result first, since steal_data will reset it. */
-  Result result_copy = result;
-  this->steal_data(result_copy);
-  is_external_ = true;
-  (*data_reference_count_)++;
+  sharing_info_ = sharing_info;
+  if (sharing_info) {
+    sharing_info_->add_user();
+  }
 }
 
 void Result::set_transformation(const float3x3 &transformation)
@@ -776,59 +915,19 @@ void Result::free()
     return;
   }
 
-  /* Data is still shared with some other result, so decrement data reference count and reset data
-   * members without actually freeing the data itself. */
-  BLI_assert(*data_reference_count_ >= 1);
-  if (*data_reference_count_ != 1) {
-    (*data_reference_count_)--;
-
-    switch (storage_type_) {
-      case ResultStorageType::GPU:
-        gpu_texture_ = nullptr;
-        break;
-      case ResultStorageType::CPU:
-        cpu_data_ = GMutableSpan();
-        break;
-    }
-
-    data_reference_count_ = nullptr;
-    derived_resources_ = nullptr;
-
-    return;
-  }
-
-  delete data_reference_count_;
-  data_reference_count_ = nullptr;
-
   delete derived_resources_;
   derived_resources_ = nullptr;
 
-  if (is_external_) {
-    switch (storage_type_) {
-      case ResultStorageType::GPU:
-        gpu_texture_ = nullptr;
-        break;
-      case ResultStorageType::CPU:
-        cpu_data_ = GMutableSpan();
-        break;
-    }
-    return;
+  if (sharing_info_) {
+    sharing_info_->remove_user_and_delete_if_last();
   }
-
+  sharing_info_ = nullptr;
   switch (storage_type_) {
     case ResultStorageType::GPU:
-      if (is_from_pool_) {
-        gpu::TexturePool::get().release_texture(this->gpu_texture());
-      }
-      else {
-        GPU_texture_free(this->gpu_texture());
-      }
       gpu_texture_ = nullptr;
       break;
     case ResultStorageType::CPU:
-      this->cpu_data().type().destruct_n(this->cpu_data().data(), this->cpu_data().size());
-      MEM_delete_void(this->cpu_data().data());
-      cpu_data_ = GMutableSpan();
+      cpu_data_ = GSpan();
       break;
   }
 }
@@ -912,6 +1011,8 @@ int64_t Result::channels_count() const
       return 3;
     case ResultType::Color:
     case ResultType::Float4:
+    case ResultType::Int4:
+    case ResultType::Quaternion:
       return 4;
     case ResultType::Float4x4:
       return 16;
@@ -966,8 +1067,10 @@ void Result::update_single_value_data()
         case ResultType::Color:
         case ResultType::Int:
         case ResultType::Int2:
+        case ResultType::Int4:
         case ResultType::Bool:
         case ResultType::Menu:
+        case ResultType::Quaternion:
           GPU_texture_update(
               this->gpu_texture(), this->get_gpu_data_format(), this->single_value().get());
           break;
@@ -1005,10 +1108,55 @@ void Result::update_single_value_data()
       }
       break;
     case ResultStorageType::CPU:
-      this->get_cpp_type().copy_assign(this->single_value().get(), this->cpu_data().data());
+      this->get_cpp_type().copy_assign(this->single_value().get(),
+                                       this->cpu_data_for_write().data());
       break;
   }
 }
+
+/* A RAII structure that makes it easier to manage the different ways of allocating and freeing
+ * GPU textures. */
+class GPUData {
+ public:
+  /* The allocated texture. */
+  gpu::Texture *texture;
+
+ private:
+  /* If true, the GPU texture was allocated from the texture pool of the context and should be
+   * released back into the pool instead of being freed. */
+  const bool is_from_pool_;
+
+ public:
+  GPUData(const int2 size,
+          const ResultType type,
+          const ResultPrecision precision,
+          const bool is_from_pool)
+      : is_from_pool_(type == ResultType::Float4x4 ? false : is_from_pool)
+  {
+    const gpu::TextureFormat format = Result::gpu_texture_format(type, precision);
+    const eGPUTextureUsage usage = GPU_TEXTURE_USAGE_GENERAL;
+    if (type == ResultType::Float4x4) {
+      this->texture = GPU_texture_create_2d_array(
+          __func__, size.x, size.y, 4, 1, format, usage, nullptr);
+    }
+    else if (is_from_pool) {
+      this->texture = gpu::TexturePool::get().acquire_texture(size, format, usage);
+    }
+    else {
+      this->texture = GPU_texture_create_2d(__func__, size.x, size.y, 1, format, usage, nullptr);
+    }
+  }
+
+  ~GPUData()
+  {
+    if (is_from_pool_) {
+      gpu::TexturePool::get().release_texture(this->texture);
+    }
+    else {
+      GPU_texture_free(this->texture);
+    }
+  }
+};
 
 void Result::allocate_data(const int2 size,
                            const bool from_pool,
@@ -1020,39 +1168,18 @@ void Result::allocate_data(const int2 size,
                                                   context_->use_gpu();
   if (use_gpu) {
     storage_type_ = ResultStorageType::GPU;
-
-    const gpu::TextureFormat format = this->get_gpu_texture_format();
-    const eGPUTextureUsage usage = GPU_TEXTURE_USAGE_GENERAL;
-    if (this->type() == ResultType::Float4x4) {
-      is_from_pool_ = false;
-      gpu_texture_ = GPU_texture_create_2d_array(
-          __func__, size.x, size.y, 4, 1, format, usage, nullptr);
-    }
-    else if (from_pool) {
-      is_from_pool_ = true;
-      gpu_texture_ = gpu::TexturePool::get().acquire_texture(size, format, usage);
-    }
-    else {
-      is_from_pool_ = false;
-      gpu_texture_ = GPU_texture_create_2d(__func__, size.x, size.y, 1, format, usage, nullptr);
-    }
+    auto *new_texture = new ImplicitSharedValue<GPUData>(
+        size, this->type(), this->precision(), from_pool);
+    sharing_info_ = new_texture;
+    gpu_texture_ = new_texture->data.texture;
   }
   else {
     storage_type_ = ResultStorageType::CPU;
-
-    const CPPType &cpp_type = this->get_cpp_type();
-    const int64_t item_size = cpp_type.size;
-    const int64_t alignment = cpp_type.alignment;
     const int64_t array_size = int64_t(size.x) * int64_t(size.y);
-    const int64_t memory_size = array_size * item_size;
-
-    void *data = MEM_new_uninitialized_aligned(memory_size, alignment, AT);
-    cpp_type.default_construct_n(data, array_size);
-
-    cpu_data_ = GMutableSpan(cpp_type, data, array_size);
+    auto *new_array = new ImplicitSharedValue<GArray<>>(this->get_cpp_type(), array_size);
+    sharing_info_ = new_array;
+    cpu_data_ = new_array->data.as_span();
   }
-
-  data_reference_count_ = new int(1);
 }
 
 }  // namespace blender::compositor

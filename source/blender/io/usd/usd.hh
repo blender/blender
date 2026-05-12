@@ -113,7 +113,6 @@ enum class SceneUnits {
 };
 
 struct USDExportParams {
-  bool export_animation = false;
   bool selected_objects_only = false;
 
   bool export_meshes = true;
@@ -140,6 +139,9 @@ struct USDExportParams {
   bool export_custom_properties = true;
   bool author_blender_name = true;
   bool allow_unicode = true;
+
+  bool export_animation = false;
+  int incremental_frames = 0;
 
   SubdivExportMode export_subdiv = SubdivExportMode::Match;
   enum eEvaluationMode evaluation_mode = DAG_EVAL_VIEWPORT;
@@ -183,7 +185,7 @@ struct USDImportParams {
   float light_intensity_scale;
   bool apply_unit_conversion_scale;
 
-  char mesh_read_flag;
+  MeshSeqCacheModifierReadFlag mesh_read_flag;
   bool set_frame_range;
   bool is_sequence;
   int sequence_len;

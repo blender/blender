@@ -76,6 +76,9 @@ void template_color_picker(Layout *layout,
         case USER_CP_SQUARE_HV:
           hsv_but->gradient_type = GRAD_HV;
           break;
+        case USER_CP_CIRCLE_HSV:
+        case USER_CP_CIRCLE_HSL:
+          break;
       }
       but = hsv_but;
       break;

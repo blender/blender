@@ -59,9 +59,9 @@ class OneTexture : public BaseTextureMethod {
 
   void update_bounds(const ARegion *region) override
   {
-    float4x4 mat = math::invert(float4x4(instance_data->ss_to_texture));
-    float2 region_uv_min = math::transform_point(mat, float3(0.0f, 0.0f, 0.0f)).xy();
-    float2 region_uv_max = math::transform_point(mat, float3(1.0f, 1.0f, 0.0f)).xy();
+    float3x3 mat = instance_data->ss_to_texture;
+    float2 region_uv_min = math::transform_point(mat, float2(0.0f, 0.0f));
+    float2 region_uv_max = math::transform_point(mat, float2(1.0f, 1.0f));
 
     TextureInfo &texture_info = instance_data->texture_infos[0];
     texture_info.tile_id = int2(0);
@@ -136,9 +136,9 @@ template<size_t Divisions> class ScreenTileTextures : public BaseTextureMethod {
   {
     /* determine uv_area of the region. */
     Vector<TextureInfo *> unassigned_textures;
-    float4x4 mat = math::invert(float4x4(instance_data->ss_to_texture));
-    float2 region_uv_min = math::transform_point(mat, float3(0.0f, 0.0f, 0.0f)).xy();
-    float2 region_uv_max = math::transform_point(mat, float3(1.0f, 1.0f, 0.0f)).xy();
+    float3x3 mat = instance_data->ss_to_texture;
+    float2 region_uv_min = math::transform_point(mat, float2(0.0f, 0.0f));
+    float2 region_uv_max = math::transform_point(mat, float2(1.0f, 1.0f));
     float2 region_uv_span = region_uv_max - region_uv_min;
 
     /* Calculate uv coordinates of each vert in the grid of textures. */

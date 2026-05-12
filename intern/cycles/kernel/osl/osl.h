@@ -144,6 +144,7 @@ ccl_device void flatten_closure_tree(KernelGlobals kg,
     break; \
   }
 #include "closures_template.h"
+
       default:
         break;
     }
@@ -218,7 +219,7 @@ ccl_device_inline void osl_eval_nodes(KernelGlobals kg,
       /* Set position state as if undisplaced. */
       if (sd->flag & SD_HAS_DISPLACEMENT) {
         const AttributeDescriptor desc = find_attribute(kg, sd, ATTR_STD_POSITION_UNDISPLACED);
-        kernel_assert(desc.offset != ATTR_STD_NOT_FOUND);
+        kernel_assert(is_attribute_found(desc));
 
         dual3 P = primitive_surface_attribute<dual3>(kg, sd, desc);
 

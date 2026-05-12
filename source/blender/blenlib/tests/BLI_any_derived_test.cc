@@ -32,7 +32,7 @@ class AnyVirtualTestTimes10 : public AnyVirtualTestBase {
  public:
   AnyVirtualTestTimes10(const int v) : AnyVirtualTestBase(v * 10) {}
 
-  virtual void set_value(const int v) override
+  void set_value(const int v) override
   {
     this->value = v * 10;
   }

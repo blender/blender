@@ -214,10 +214,10 @@ void SourceProcessor::lower_unions(Parser &parser)
         if (is_enum) {
           return struct_member.type + "(floatBitsToUint(" + access + "))";
         }
-        if (type.substr(0, 4) == "uint") {
+        if (type.starts_with("uint")) {
           return "floatBitsToUint(" + access + ")";
         }
-        if (type.substr(0, 3) == "int") {
+        if (type.starts_with("int")) {
           return "floatBitsToInt(" + access + ")";
         }
         if (type == "bool") {
@@ -235,10 +235,10 @@ void SourceProcessor::lower_unions(Parser &parser)
         if (is_enum) {
           return "uintBitsToFloat(uint(" + access + "))";
         }
-        if (type.substr(0, 4) == "uint") {
+        if (type.starts_with("uint")) {
           return "uintBitsToFloat(" + access + ")";
         }
-        if (type.substr(0, 3) == "int") {
+        if (type.starts_with("int")) {
           return "intBitsToFloat(" + access + ")";
         }
         if (type == "bool") {
@@ -357,7 +357,7 @@ void SourceProcessor::lower_unions(Parser &parser)
         dst.emplace_back(member);
         continue;
       }
-      if (struct_members.find(member.type) == struct_members.end()) {
+      if (!struct_members.contains(member.type)) {
         report_error(
             type,
             "Unknown type encountered while unwrapping union. Contained types must be defined "
@@ -383,19 +383,19 @@ void SourceProcessor::lower_unions(Parser &parser)
   };
 
   parser().foreach_struct([&](Token, Scope, Token struct_name, Scope body) {
-    if (union_members.find(string(struct_name.str())) != union_members.end()) {
+    if (union_members.contains(string(struct_name.str()))) {
       replace_placeholder_member(body);
       return;
     }
 
     body.foreach_declaration([&](Scope, Token, Token type, Scope, Token name, Scope, Token) {
-      if (union_members.find(string(type.str())) == union_members.end()) {
+      if (!union_members.contains(string(type.str()))) {
         return;
       }
 
       const vector<Member> &members = union_members.find(string(type.str()))->second;
       for (const auto &member : members) {
-        if (struct_members.find(member.type) == struct_members.end()) {
+        if (!struct_members.contains(member.type)) {
           report_error(
               type,
               "Unknown union member type. Type must be defined in this file and decorated "

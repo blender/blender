@@ -7,7 +7,6 @@
  */
 
 #include "BKE_screen.hh"
-#include "BLI_bounds.hh"
 #include "BLI_math_matrix.hh"
 #include "BLI_rect.h"
 
@@ -77,11 +76,6 @@ void Camera::init()
   float overscan = 0.0f;
   if ((inst_.scene->eevee.flag & SCE_EEVEE_OVERSCAN) && (inst_.drw_view || inst_.render)) {
     overscan = inst_.scene->eevee.overscan / 100.0f;
-    if (inst_.is_custom_matrix()) {
-      /* If using a custom matrix (XR and some off-screen render paths)
-       * we need to use the v3d `winmat` as-is. */
-      overscan = 0.0f;
-    }
   }
   overscan_changed_ = assign_if_different(overscan_, overscan);
   camera_changed_ = assign_if_different(last_camera_object_, inst_.camera_orig_object);
@@ -138,29 +132,14 @@ void Camera::sync()
   else if (inst_.drw_view) {
     data.viewmat = inst_.drw_view->viewmat();
     data.viewinv = inst_.drw_view->viewinv();
+    data.winmat = inst_.drw_view->winmat();
 
-    if (inst_.is_custom_matrix()) {
-      /* If using a custom matrix (XR and some off-screen render paths)
-       * we need to use the v3d `winmat` as-is. */
-      data.winmat = inst_.drw_view->winmat();
-      data.wininv = inst_.drw_view->wininv();
+    if (film_offset != int2(0) || film_extent != display_extent) {
+      data.winmat = projection_crop_matrix(film_offset, film_extent, display_extent) * data.winmat;
     }
-    else {
-      CameraParams params = v3d_camera_params_get();
 
-      BKE_camera_params_compute_viewplane(&params, UNPACK2(display_extent), 1.0f, 1.0f);
-
-      BLI_assert(BLI_rctf_size_x(&params.viewplane) > 0.0f);
-      BLI_assert(BLI_rctf_size_y(&params.viewplane) > 0.0f);
-
-      BKE_camera_params_crop_viewplane(&params.viewplane, UNPACK2(display_extent), &film_rect);
-
-      RE_GetWindowMatrixWithOverscan(params.is_ortho,
-                                     params.clip_start,
-                                     params.clip_end,
-                                     params.viewplane,
-                                     overscan_,
-                                     data.winmat.ptr());
+    if (overscan_ != 0.0f) {
+      data.winmat = projection_overscan_matrix(film_extent, int2(film_overscan)) * data.winmat;
     }
   }
   else if (inst_.render) {
@@ -278,39 +257,38 @@ void Camera::update_bounds()
   data_.screen_diagonal_length = math::distance(p0, p1);
 }
 
-CameraParams Camera::v3d_camera_params_get() const
+float4x4 Camera::projection_crop_matrix(int2 film_offset, int2 film_extent, int2 display_extent)
 {
-  BLI_assert(inst_.drw_view);
+  float2 uv_min = float2(film_offset) / float2(display_extent);
+  float2 uv_max = float2(film_offset + film_extent) / float2(display_extent);
 
-  CameraParams params;
-  BKE_camera_params_init(&params);
+  float2 ndc_min = uv_min * 2.0f - 1.0f;
+  float2 ndc_max = uv_max * 2.0f - 1.0f;
 
-  const bool is_camera_viewport_image_render = inst_.rv3d->persp == RV3D_CAMOB &&
-                                               inst_.is_viewport_image_render;
-  if (is_camera_viewport_image_render) {
-    /* We are rendering camera view, no need for pan/zoom params from viewport. */
-    BKE_camera_params_from_object(&params, inst_.camera_eval_object);
-  }
-  else {
-    BKE_camera_params_from_view3d(&params, inst_.depsgraph, inst_.v3d, inst_.rv3d);
-  }
+  float2 ndc_size = ndc_max - ndc_min;
+  float2 ndc_center = (ndc_min + ndc_max) * 0.5f;
 
-  if (inst_.camera_eval_object) {
-    /* Stereo setup, will be skipped if not needed. */
-    const bool is_right = inst_.v3d->multiview_eye == STEREO_RIGHT_ID;
-    BKE_camera_multiview_params(&inst_.scene->r,
-                                &params,
-                                inst_.camera_eval_object,
-                                is_right ? STEREO_RIGHT_NAME : STEREO_LEFT_NAME);
-    if (!is_camera_viewport_image_render) {
-      /* BKE_camera_multiview_params overwrites shiftx without taking zoom into account.
-       * Replicate the shift scaling done inside BKE_camera_params_from_view3d. */
-      float zoom = BKE_screen_view3d_zoom_to_fac(inst_.rv3d->camzoom);
-      params.shiftx *= zoom;
-    }
-  }
+  float2 scale = 2.0f / ndc_size;
+  float2 offset = -ndc_center * scale;
 
-  return params;
+  float4x4 crop_matrix = float4x4::identity();
+  crop_matrix[0][0] = scale.x;
+  crop_matrix[1][1] = scale.y;
+  crop_matrix[3][0] = offset.x;
+  crop_matrix[3][1] = offset.y;
+
+  return crop_matrix;
+}
+
+float4x4 Camera::projection_overscan_matrix(int2 film_extent, int2 film_overscan)
+{
+  float2 overscan_scale = float2(film_extent) / float2(film_extent + film_overscan * 2);
+
+  float4x4 overscan_matrix = float4x4::identity();
+  overscan_matrix[0][0] = overscan_scale.x;
+  overscan_matrix[1][1] = overscan_scale.y;
+
+  return overscan_matrix;
 }
 
 /** \} */

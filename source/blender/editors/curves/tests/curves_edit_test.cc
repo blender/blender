@@ -8,6 +8,8 @@
 
 #include "ED_curves.hh"
 
+#include "BKE_gtest_base.hh"
+
 #include "testing/testing.h"
 
 namespace blender::ed::curves::tests {
@@ -60,7 +62,9 @@ static void validate_positions(const Span<Vector<float3>> expected_positions,
   }
 }
 
-TEST(curves_editors, DuplicatePointsTwoSingle)
+class CurvesEditorsTest : public bke::BlenderGTestBase {};
+
+TEST_F(CurvesEditorsTest, DuplicatePointsTwoSingle)
 {
   /* Two points from single curve. */
   const Vector<float3> expected_positions = {{-1.5, 0, 0}, {-1, 1, 0}, {1, 1, 0}, {1.5, 0, 0}};
@@ -83,7 +87,7 @@ TEST(curves_editors, DuplicatePointsTwoSingle)
   EXPECT_TRUE(positions[5] == expected_positions[2]);
 }
 
-TEST(curves_editors, DuplicatePointsFourThree)
+TEST_F(CurvesEditorsTest, DuplicatePointsFourThree)
 {
   /* Four points from three curves. One curve has one point. */
   const Vector<Vector<float3>> expected_positions = {
@@ -116,7 +120,7 @@ TEST(curves_editors, DuplicatePointsFourThree)
   EXPECT_TRUE(positions[13] == expected_positions[2][4]);
 }
 
-TEST(curves_editors, DuplicatePointsTwoCyclic)
+TEST_F(CurvesEditorsTest, DuplicatePointsTwoCyclic)
 {
   /* Two points from cyclic curve. Points are on cycle. */
   const Vector<Vector<float3>> expected_positions = {
@@ -148,7 +152,7 @@ TEST(curves_editors, DuplicatePointsTwoCyclic)
   EXPECT_TRUE(positions[15] == expected_positions[2][0]);
 }
 
-TEST(curves_editors, SplitPointsTwoSingle)
+TEST_F(CurvesEditorsTest, SplitPointsTwoSingle)
 {
   /* Split two points from single curve. */
   const Vector<float3> positions = {{-1.5, 0, 0}, {-1, 1, 0}, {1, 1, 0}, {1.5, 0, 0}};
@@ -166,7 +170,7 @@ TEST(curves_editors, SplitPointsTwoSingle)
   validate_positions(expected_positions, new_curves.points_by_curve(), new_curves.positions());
 }
 
-TEST(curves_editors, SplitPointsFourThree)
+TEST_F(CurvesEditorsTest, SplitPointsFourThree)
 {
   /* Four points from three curves. One curve has one point. */
   const Vector<Vector<float3>> positions = {
@@ -191,7 +195,7 @@ TEST(curves_editors, SplitPointsFourThree)
   validate_positions(expected_positions, new_curves.points_by_curve(), new_curves.positions());
 }
 
-TEST(curves_editors, SplitPointsTwoCyclic)
+TEST_F(CurvesEditorsTest, SplitPointsTwoCyclic)
 {
   /* Two points from cyclic curve. Points are on cycle. */
   const Vector<Vector<float3>> positions = {
@@ -222,7 +226,7 @@ TEST(curves_editors, SplitPointsTwoCyclic)
   }
 }
 
-TEST(curves_editors, SplitPointsTwoTouchCyclic)
+TEST_F(CurvesEditorsTest, SplitPointsTwoTouchCyclic)
 {
   /* Two points from cyclic curve. Points are touching cycle. */
   const Vector<Vector<float3>> positions = {
@@ -248,7 +252,7 @@ TEST(curves_editors, SplitPointsTwoTouchCyclic)
   validate_positions(expected_positions, new_curves.points_by_curve(), new_curves.positions());
 }
 
-TEST(curves_editors, SplitEverySecondCyclic)
+TEST_F(CurvesEditorsTest, SplitEverySecondCyclic)
 {
   /* Split every second point in cyclic curve. Expected result all selected points
    * as separate curves and original curve. */
@@ -284,7 +288,7 @@ TEST(curves_editors, SplitEverySecondCyclic)
   validate_positions(expected_positions, new_curves.points_by_curve(), new_curves.positions());
 }
 
-TEST(curves_editors, SplitAllSelectedButFirstCyclic)
+TEST_F(CurvesEditorsTest, SplitAllSelectedButFirstCyclic)
 {
   /* Split all except first points in cyclic curve. Expected result two curves. One from selected
    * points another from first, second and last. Both not cyclic. */
@@ -316,7 +320,7 @@ TEST(curves_editors, SplitAllSelectedButFirstCyclic)
   EXPECT_FALSE(new_curves.cyclic()[1]);
 }
 
-TEST(curves_editors, SplitTwoOnSeamAndExtraCyclic)
+TEST_F(CurvesEditorsTest, SplitTwoOnSeamAndExtraCyclic)
 {
   /* Split first, last and pair in the middle. Expected result four non cyclic curves. */
   const Vector<Vector<float3>> positions = {{{0, -1, 0},

@@ -276,6 +276,7 @@ enum {
 
   G_DEBUG_GPU_SHADER_NO_PREPROCESSOR = (1 << 28), /* Disable the preprocessor (implies NO_DCE). */
   G_DEBUG_GPU_SHADER_NO_DCE = (1 << 29),          /* Disable Dead Code Elimination. */
+  G_DEBUG_GPU_DEVICE_NO_FALLBACK = (1 << 30), /* Fail when the requested GPU device is invalid. */
 };
 
 #define G_DEBUG_ALL \

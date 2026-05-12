@@ -114,9 +114,7 @@ AssetLibrary *AssetLibraryService::get_asset_library(
       }
 
       AssetLibrary *library = this->get_asset_library_on_disk_custom_preferences(custom_library);
-      library->import_method_ = eAssetImportMethod(custom_library->import_method);
       library->may_override_import_method_ = true;
-      library->use_relative_path_ = (custom_library->flag & ASSET_LIBRARY_RELATIVE_PATH) != 0;
 
       return library;
     }

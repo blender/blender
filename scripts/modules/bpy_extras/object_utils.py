@@ -166,8 +166,14 @@ def object_data_add(context, obdata, operator=None, name=None):
 
 
 class AddObjectHelper:
-    def align_update_callback(self, _context):
-        """Update callback for the align property, resets rotation for world alignment."""
+    def align_update_callback(self, context):
+        """
+        Update callback for the align property, resets rotation for world alignment.
+
+        :param context: The context.
+        :type context: :class:`bpy.types.Context`
+        """
+        del context
         if self.align == 'WORLD':
             self.rotation.zero()
 

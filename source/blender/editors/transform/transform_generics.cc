@@ -1411,7 +1411,6 @@ void transform_data_ext_rotate(TransData *td,
                                float mat[3][3],
                                bool use_drot)
 {
-  float totmat[3][3];
   float smat[3][3];
   float fmat[3][3];
   float obmat[3][3];
@@ -1419,7 +1418,6 @@ void transform_data_ext_rotate(TransData *td,
   float dmat[3][3]; /* Delta rotation. */
   float dmat_inv[3][3];
 
-  mul_m3_m3m3(totmat, mat, td->mtx);
   mul_m3_m3m3(smat, td->smtx, mat);
 
   /* Logic from #BKE_object_rot_to_mat3. */

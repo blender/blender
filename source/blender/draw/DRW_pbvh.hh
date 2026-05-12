@@ -57,7 +57,7 @@ struct ViewportRequest {
 
 class DrawCache : public bke::pbvh::DrawCache {
  public:
-  virtual ~DrawCache() = default;
+  ~DrawCache() override = default;
   /**
    * Recalculate and copy data as necessary to prepare batches for drawing triangles for a
    * specific combination of attributes.

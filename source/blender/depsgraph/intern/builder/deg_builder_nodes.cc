@@ -1662,6 +1662,8 @@ void DepsgraphNodeBuilder::build_particle_systems(Object *object, bool is_object
           build_collection(nullptr, part->instance_collection);
         }
         break;
+      default:
+        break;
     }
   }
   op_node = add_operation_node(psys_comp, OperationCode::PARTICLE_SYSTEM_DONE);

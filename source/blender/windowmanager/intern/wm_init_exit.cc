@@ -292,6 +292,18 @@ void WM_init(bContext *C, int argc, const char **argv)
   ED_file_init();
 
   if (!G.background) {
+    wmWindowManager *wm = CTX_wm_manager(C);
+    if (wm != nullptr) {
+      wm_window_ghostwindows_remove_invalid(C, wm);
+    }
+    if (wm == nullptr || BLI_listbase_is_empty(&wm->windows)) {
+      if (params_file_read_post != nullptr) {
+        MEM_delete_void(static_cast<void *>(params_file_read_post));
+        params_file_read_post = nullptr;
+      }
+      WM_exit(C, EXIT_FAILURE);
+    }
+
     GPU_render_begin();
 
 #ifdef WITH_INPUT_NDOF

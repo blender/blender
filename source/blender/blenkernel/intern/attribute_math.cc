@@ -364,7 +364,7 @@ void mix_groups(const GSpan src,
 template<typename T>
 void shift_left(MutableSpan<T> data, int src_begin, int src_end, int dst_begin)
 {
-  if (src_begin == dst_begin || src_begin == src_end) {
+  if (ELEM(src_begin, dst_begin, src_end)) {
     return;
   }
   std::move(data.data() + src_begin, data.data() + src_end, data.data() + dst_begin);

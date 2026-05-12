@@ -47,7 +47,7 @@ static void node_register()
 {
   static bke::bNodeType ntype;
 
-  fn_node_type_base(&ntype, "FunctionNodeInputRotation"_ustr, FN_NODE_INPUT_ROTATION);
+  fn_cmp_node_type_base(&ntype, "FunctionNodeInputRotation"_ustr, FN_NODE_INPUT_ROTATION);
   ntype.ui_name = "Rotation";
   ntype.ui_description =
       "Provide a rotation value that can be connected to other nodes in the tree";

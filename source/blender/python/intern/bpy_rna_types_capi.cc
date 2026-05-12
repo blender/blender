@@ -28,16 +28,11 @@
 #include "bpy_rna_text.hh"
 #include "bpy_rna_types_capi.hh"
 #include "bpy_rna_ui.hh"
+#include "bpy_rna_wm.hh"
 
 #include "bpy_rna_operator.hh"
 
-#include "../generic/py_capi_utils.hh"
-
 #include "RNA_prototypes.hh"
-
-#include "MEM_guardedalloc.h"
-
-#include "WM_api.hh"
 
 namespace blender {
 
@@ -104,102 +99,33 @@ static PyMethodDef pyrna_text_methods[] = {
 /** \} */
 
 /* -------------------------------------------------------------------- */
-/** \name Window Manager Clipboard Property
- *
- * Avoid using the RNA API because this value may change between checking its length
- * and creating the buffer, causing writes past the allocated length.
- * \{ */
-
-PyDoc_STRVAR(
-    /* Wrap. */
-    pyrna_WindowManager_clipboard_doc,
-    "Clipboard text storage.\n"
-    "\n"
-    ":type: str\n");
-static PyObject *pyrna_WindowManager_clipboard_get(PyObject * /*self*/, void * /*flag*/)
-{
-  int text_len = 0;
-  /* No need for UTF8 validation as #PyC_UnicodeFromBytesAndSize handles invalid byte sequences. */
-  char *text = WM_clipboard_text_get(false, false, &text_len);
-  PyObject *result = PyC_UnicodeFromBytesAndSize(text ? text : "", text_len);
-  if (text != nullptr) {
-    MEM_delete(text);
-  }
-  return result;
-}
-
-static int pyrna_WindowManager_clipboard_set(PyObject * /*self*/, PyObject *value, void * /*flag*/)
-{
-  PyObject *value_coerce = nullptr;
-  const char *text = PyC_UnicodeAsBytes(value, &value_coerce);
-  if (text == nullptr) {
-    return -1;
-  }
-  WM_clipboard_text_set(text, false);
-  Py_XDECREF(value_coerce);
-  return 0;
-}
-
-/** \} */
-
-/* -------------------------------------------------------------------- */
 /** \name Window Manager Type
  * \{ */
 
-PyDoc_STRVAR(
-    /* Wrap. */
-    pyrna_draw_cursor_add_doc,
-    ".. classmethod:: draw_cursor_add(callback, args, space_type, region_type)\n"
-    "\n"
-    "   Add a new draw cursor handler to this space type.\n"
-    "   It will be called every time the cursor for the specified region in the space "
-    "type will be drawn.\n"
-    "   Note: All arguments are positional only for now.\n"
-    "\n"
-    "   :param callback:\n"
-    "      A function that will be called when the cursor is drawn.\n"
-    "      It gets the specified arguments as input with the mouse position "
-    "(``tuple[int, int]``) as last argument.\n"
-    "   :type callback: Callable[..., Any]\n"
-    "   :param args: Arguments that will be passed to the callback.\n"
-    "   :type args: tuple[Any, ...]\n"
-    "   :param space_type: The space type the callback draws in; for example ``VIEW_3D``. "
-    "(:class:`bpy.types.Space.type`)\n"
-    "   :type space_type: str\n"
-    "   :param region_type: The region type the callback draws in; usually ``WINDOW``. "
-    "(:class:`bpy.types.Region.type`)\n"
-    "   :type region_type: str\n"
-    "   :return: Handler that can be removed later on.\n"
-    "   :rtype: object\n");
-PyDoc_STRVAR(
-    /* Wrap. */
-    pyrna_draw_cursor_remove_doc,
-    ".. classmethod:: draw_cursor_remove(handler)\n"
-    "\n"
-    "   Remove a draw cursor handler that was added previously.\n"
-    "\n"
-    "   :param handler: The draw cursor handler that should be removed.\n"
-    "   :type handler: object\n");
-
 static PyMethodDef pyrna_windowmanager_methods[] = {
-    {"draw_cursor_add",
-     static_cast<PyCFunction>(pyrna_callback_classmethod_add),
-     METH_VARARGS | METH_CLASS,
-     pyrna_draw_cursor_add_doc},
-    {"draw_cursor_remove",
-     static_cast<PyCFunction>(pyrna_callback_classmethod_remove),
-     METH_VARARGS | METH_CLASS,
-     pyrna_draw_cursor_remove_doc},
+    {nullptr, nullptr, 0, nullptr}, /* #BPY_rna_windowmanager_draw_cursor_add_method_def */
+    {nullptr, nullptr, 0, nullptr}, /* #BPY_rna_windowmanager_draw_cursor_remove_method_def */
     {nullptr, nullptr, 0, nullptr},
 };
 
 static PyGetSetDef pyrna_windowmanager_getset[] = {
-    {"clipboard",
-     pyrna_WindowManager_clipboard_get,
-     pyrna_WindowManager_clipboard_set,
-     pyrna_WindowManager_clipboard_doc,
-     nullptr},
-    {nullptr, nullptr, nullptr, nullptr, nullptr} /* Sentinel */
+    {nullptr,
+     nullptr,
+     nullptr,
+     nullptr,
+     nullptr}, /* #BPY_rna_windowmanager_clipboard_getset_def */
+    {nullptr, nullptr, nullptr, nullptr, nullptr}, /* Sentinel */
+};
+
+/** \} */
+
+/* -------------------------------------------------------------------- */
+/** \name Window Type
+ * \{ */
+
+static PyMethodDef pyrna_window_methods[] = {
+    {nullptr, nullptr, 0, nullptr}, /* #BPY_rna_window_screenshot_method_def */
+    {nullptr, nullptr, 0, nullptr},
 };
 
 /** \} */
@@ -273,7 +199,7 @@ static PyMethodDef pyrna_space_methods[] = {
 /** \name Public API
  * \{ */
 
-void BPY_rna_types_extend_capi()
+void BPY_rna_types_extend_capi(PyObject *bpy_types)
 {
   /* BlendData */
   ARRAY_SET_ITEMS(pyrna_blenddata_methods,
@@ -314,11 +240,21 @@ void BPY_rna_types_extend_capi()
   pyrna_struct_type_extend_capi(RNA_Operator, pyrna_operator_methods, nullptr);
 
   /* WindowManager */
+  ARRAY_SET_ITEMS(pyrna_windowmanager_methods,
+                  BPY_rna_windowmanager_draw_cursor_add_method_def,
+                  BPY_rna_windowmanager_draw_cursor_remove_method_def);
+  BLI_STATIC_ASSERT(ARRAY_SIZE(pyrna_windowmanager_methods) == 3, "Unexpected number of methods")
+  ARRAY_SET_ITEMS(pyrna_windowmanager_getset, BPY_rna_windowmanager_clipboard_getset_def);
   pyrna_struct_type_extend_capi(
       RNA_WindowManager, pyrna_windowmanager_methods, pyrna_windowmanager_getset);
 
+  /* Window */
+  ARRAY_SET_ITEMS(pyrna_window_methods, BPY_rna_window_screenshot_method_def);
+  BLI_STATIC_ASSERT(ARRAY_SIZE(pyrna_window_methods) == 2, "Unexpected number of methods")
+  pyrna_struct_type_extend_capi(RNA_Window, pyrna_window_methods, nullptr);
+
   /* Context */
-  bpy_rna_context_types_init();
+  bpy_rna_context_types_init(bpy_types);
 
   ARRAY_SET_ITEMS(pyrna_context_methods, BPY_rna_context_temp_override_method_def);
   pyrna_struct_type_extend_capi(RNA_Context, pyrna_context_methods, nullptr);

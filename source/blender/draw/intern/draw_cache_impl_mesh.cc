@@ -134,7 +134,7 @@ BLI_INLINE void mesh_cd_layers_type_merge(DRW_MeshCDMask *a, const DRW_MeshCDMas
 
 static void mesh_cd_calc_edit_uv_layer(const Mesh & /*mesh*/, DRW_MeshCDMask *cd_used)
 {
-  cd_used->edit_uv = 1;
+  cd_used->edit_uv = true;
 }
 
 static void mesh_cd_calc_active_uv_layer(const Object &object,
@@ -799,7 +799,7 @@ gpu::Batch *DRW_mesh_batch_cache_get_sculpt_overlays(Mesh &mesh)
 {
   MeshBatchCache &cache = *mesh_batch_cache_get(mesh);
 
-  cache.cd_needed.sculpt_overlays = 1;
+  cache.cd_needed.sculpt_overlays = true;
   cache.batch_requested |= (MBC_SCULPT_OVERLAYS);
   DRW_batch_request(&cache.batch.sculpt_overlays);
 
@@ -1111,7 +1111,7 @@ void DRW_mesh_batch_cache_create_requested(TaskGraph &task_graph,
                                                          &mesh;
       if (CustomData_get_layer(&me_final->vert_data, CD_ORCO) == nullptr) {
         /* Skip orco calculation */
-        cache.cd_needed.orco = 0;
+        cache.cd_needed.orco = false;
       }
     }
 

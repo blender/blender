@@ -55,13 +55,13 @@ using bke::PointCloudComponent;
 using bke::SocketValueVariant;
 using bke::SpanAttributeWriter;
 using bke::VolumeComponent;
+using eval_log::NamedAttributeUsage;
 using fn::Field;
 using fn::FieldContext;
 using fn::FieldEvaluator;
 using fn::FieldInput;
 using fn::FieldOperation;
 using fn::GField;
-using geo_eval_log::NamedAttributeUsage;
 
 class NodeAttributeFilter : public AttributeFilter {
  private:
@@ -221,7 +221,7 @@ class GeoNodeExecParams {
     }
   }
 
-  geo_eval_log::GeoTreeLogger *get_local_tree_logger() const
+  eval_log::NodeTreeLogger *get_local_tree_logger() const
   {
     return this->local_user_data()->try_get_tree_logger(*this->user_data());
   }

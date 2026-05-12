@@ -140,7 +140,7 @@ static wmOperatorStatus stabilize_2d_select_exec(bContext *C, wmOperator * /*op*
 
   for (MovieTrackingTrack &track : tracking_object->tracks) {
     if (track.flag & TRACK_USE_2D_STAB) {
-      BKE_tracking_track_flag_set(&track, TRACK_AREA_ALL, SELECT);
+      BKE_tracking_track_flag_set(&track, TRACK_AREA_ALL, TRACK_SELECT);
       update = true;
     }
   }
@@ -269,7 +269,7 @@ static wmOperatorStatus stabilize_2d_rotation_select_exec(bContext *C, wmOperato
 
   for (MovieTrackingTrack &track : tracking_object->tracks) {
     if (track.flag & TRACK_USE_2D_STAB_ROT) {
-      BKE_tracking_track_flag_set(&track, TRACK_AREA_ALL, SELECT);
+      BKE_tracking_track_flag_set(&track, TRACK_AREA_ALL, TRACK_SELECT);
       update = true;
     }
   }

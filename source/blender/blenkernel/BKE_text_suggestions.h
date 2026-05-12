@@ -38,21 +38,21 @@ struct SuggList {
 };
 
 /* Free all text tool memory */
-void free_texttools(void);
+void free_texttools();
 
 /* Used to identify which Text object the current tools should appear against */
 void texttool_text_set_active(struct Text *text);
-void texttool_text_clear(void);
+void texttool_text_clear();
 short texttool_text_is_active(struct Text *text);
 
 /* Suggestions */
 void texttool_suggest_add(const char *name, char type);
 void texttool_suggest_prefix(const char *prefix, int prefix_len);
-void texttool_suggest_clear(void);
-SuggItem *texttool_suggest_first(void);
-SuggItem *texttool_suggest_last(void);
+void texttool_suggest_clear();
+SuggItem *texttool_suggest_first();
+SuggItem *texttool_suggest_last();
 void texttool_suggest_select(SuggItem *sel);
-SuggItem *texttool_suggest_selected(void);
-int *texttool_suggest_top(void);
+SuggItem *texttool_suggest_selected();
+int *texttool_suggest_top();
 
 }  // namespace blender

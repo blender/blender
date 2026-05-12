@@ -8,6 +8,7 @@
 #include "NOD_rna_define.hh"
 
 #include "node_function_util.hh"
+#include "node_shader_util.hh"
 
 namespace blender::nodes::node_fn_rotate_rotation_cc {
 
@@ -30,6 +31,28 @@ static void node_declare(NodeDeclarationBuilder &b)
 static void node_layout(ui::Layout &layout, bContext * /*C*/, PointerRNA *ptr)
 {
   layout.prop(ptr, "rotation_space", ui::ITEM_R_EXPAND, std::nullopt, ICON_NONE);
+}
+
+static int node_gpu_material(GPUMaterial *mat,
+                             bNode *node,
+                             bNodeExecData * /*execdata*/,
+                             GPUNodeStack *in,
+                             GPUNodeStack *out)
+{
+  const char *name = nullptr;
+  switch (RotationSpace(node->custom1)) {
+    case RotationSpace::Global:
+      name = "rotate_rotation_global";
+      break;
+    case RotationSpace::Local:
+      name = "rotate_rotation_local";
+      break;
+  }
+
+  if (name != nullptr) {
+    return GPU_stack_link(mat, node, name, in, out);
+  }
+  return 0;
 }
 
 static void node_build_multi_function(NodeMultiFunctionBuilder &builder)
@@ -77,13 +100,14 @@ static void node_rna(StructRNA *srna)
 static void node_register()
 {
   static bke::bNodeType ntype;
-  fn_node_type_base(&ntype, "FunctionNodeRotateRotation"_ustr, FN_NODE_ROTATE_ROTATION);
+  fn_cmp_node_type_base(&ntype, "FunctionNodeRotateRotation"_ustr, FN_NODE_ROTATE_ROTATION);
   ntype.ui_name = "Rotate Rotation";
   ntype.ui_description = "Apply a secondary rotation to a given rotation value";
   ntype.enum_name_legacy = "ROTATE_ROTATION";
   ntype.nclass = NODE_CLASS_CONVERTER;
   ntype.declare = node_declare;
   ntype.draw_buttons = node_layout;
+  ntype.gpu_fn = node_gpu_material;
   ntype.build_multi_function = node_build_multi_function;
   bke::node_register_type(ntype);
 

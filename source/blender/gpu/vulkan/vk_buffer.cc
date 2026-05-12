@@ -218,7 +218,7 @@ VkDeviceMemory VKBuffer::export_memory_get(size_t &memory_size)
   /* VMA_ALLOCATION_CREATE_DEDICATED_MEMORY_BIT should ensure this. */
   if (info.offset != 0) {
     BLI_assert(!"Failed to get zero offset export memory for Vulkan buffer");
-    return nullptr;
+    return VK_NULL_HANDLE;
   }
 
   memory_size = info.size;

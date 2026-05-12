@@ -222,9 +222,9 @@ int active_face_set_get(const Object &object)
   return face_set_none_id;
 }
 
-int vert_face_set_get(const GroupedSpan<int> vert_to_face_map,
-                      const Span<int> face_sets,
-                      const int vert)
+int vert_face_set_max_get(const GroupedSpan<int> vert_to_face_map,
+                          const Span<int> face_sets,
+                          const int vert)
 {
   int face_set = face_set_none_id;
   for (const int face : vert_to_face_map[vert]) {
@@ -239,9 +239,23 @@ int vert_face_set_get(const SubdivCCG &subdiv_ccg, const Span<int> face_sets, co
   return face_sets[face];
 }
 
-int vert_face_set_get(const int /*face_set_offset*/, const BMVert & /*vert*/)
+int vert_face_set_max_get(const int /*face_set_offset*/, const BMVert & /*vert*/)
 {
   return face_set_none_id;
+}
+
+Set<int> vert_face_sets_get(const GroupedSpan<int> vert_to_face_map,
+                            const Span<int> face_sets,
+                            const int vert)
+{
+  Set<int> result;
+  for (const int face : vert_to_face_map[vert]) {
+    result.add(face_sets[face]);
+  }
+  if (result.is_empty()) {
+    result.add(face_set_none_id);
+  }
+  return result;
 }
 
 bool vert_has_face_set(const GroupedSpan<int> vert_to_face_map,
@@ -278,6 +292,22 @@ bool vert_has_face_set(const int face_set_offset, const BMVert &vert, const int 
   BMFace *face;
   BM_ITER_ELEM (face, &iter, &const_cast<BMVert &>(vert), BM_FACES_OF_VERT) {
     if (BM_ELEM_CD_GET_INT(face, face_set_offset) == face_set) {
+      return true;
+    }
+  }
+  return false;
+}
+
+bool vert_has_any_face_set(const GroupedSpan<int> vert_to_face_map,
+                           const Span<int> face_sets,
+                           int vert,
+                           const Set<int> &allowed_face_sets)
+{
+  if (face_sets.is_empty()) {
+    return allowed_face_sets.contains(face_set_none_id);
+  }
+  for (const int face : vert_to_face_map[vert]) {
+    if (allowed_face_sets.contains(face_sets[face])) {
       return true;
     }
   }
@@ -368,6 +398,77 @@ bool vert_has_unique_face_set(const OffsetIndices<int> faces,
   }
   BLI_assert_unreachable();
   return true;
+}
+
+bool coord_has_face_set(const OffsetIndices<int> faces,
+                        const Span<int> corner_verts,
+                        const GroupedSpan<int> vert_to_face_map,
+                        const Span<int> face_sets,
+                        const SubdivCCG &subdiv_ccg,
+                        const SubdivCCGCoord coord,
+                        const int face_set)
+{
+  if (face_sets.is_empty()) {
+    return face_set == face_set_none_id;
+  }
+
+  if (face_set == face_set_none_id) {
+    return false;
+  }
+
+  Set<int> allowed_face_sets;
+  allowed_face_sets.add(face_set);
+  return coord_has_any_face_set(
+      faces, corner_verts, vert_to_face_map, face_sets, subdiv_ccg, coord, allowed_face_sets);
+}
+
+bool coord_has_any_face_set(const OffsetIndices<int> faces,
+                            const Span<int> corner_verts,
+                            const GroupedSpan<int> vert_to_face_map,
+                            const Span<int> face_sets,
+                            const SubdivCCG &subdiv_ccg,
+                            const SubdivCCGCoord coord,
+                            const Set<int> &allowed_face_sets)
+{
+  if (face_sets.is_empty()) {
+    return allowed_face_sets.contains(face_set_none_id);
+  }
+
+  if (allowed_face_sets.is_empty()) {
+    return false;
+  }
+
+  int v1, v2;
+  const SubdivCCGAdjacencyType adjacency = BKE_subdiv_ccg_coarse_mesh_adjacency_info_get(
+      subdiv_ccg, coord, corner_verts, faces, v1, v2);
+  switch (adjacency) {
+    case SubdivCCGAdjacencyType::Vertex: {
+      for (const int face : vert_to_face_map[v1]) {
+        if (allowed_face_sets.contains(face_sets[face])) {
+          return true;
+        }
+      }
+      return false;
+    }
+    case SubdivCCGAdjacencyType::Edge:
+      for (const int face : vert_to_face_map[v1]) {
+        const Span<int> face_verts = corner_verts.slice(faces[face]);
+        if (!face_verts.contains(v2)) {
+          continue;
+        }
+        if (allowed_face_sets.contains(face_sets[face])) {
+          return true;
+        }
+      }
+      return false;
+    case SubdivCCGAdjacencyType::None: {
+      const int face = BKE_subdiv_ccg_grid_to_face_index(subdiv_ccg, coord.grid_index);
+      return allowed_face_sets.contains(face_sets[face]);
+    }
+  }
+
+  BLI_assert_unreachable();
+  return false;
 }
 
 bool vert_has_unique_face_set(const int /*face_set_offset*/, const BMVert & /*vert*/)
@@ -3440,6 +3541,8 @@ static void do_brush_action(const Depsgraph &depsgraph,
       break;
     case SCULPT_BRUSH_TYPE_SCENE_PROJECT:
       brushes::do_scene_project_brush(depsgraph, sd, ob, node_mask);
+      break;
+    case SCULPT_BRUSH_TYPE_SIMPLIFY:
       break;
   }
 

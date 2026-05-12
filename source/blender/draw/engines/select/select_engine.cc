@@ -356,6 +356,8 @@ struct Instance : public DrawEngine {
       case OB_CURVES_LEGACY:
       case OB_SURF:
         break;
+      default:
+        break;
     }
     BLI_assert_unreachable();
     return ElemIndexRanges{};

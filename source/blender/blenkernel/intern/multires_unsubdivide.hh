@@ -17,6 +17,7 @@ struct BMesh;
 struct Mesh;
 struct MDisps;
 struct MultiresModifierData;
+struct MultiresUnsubdivideInfo;
 
 struct MultiresUnsubdivideGrid {
   /* For sanity checks. */
@@ -74,6 +75,7 @@ void multires_unsubdivide_context_free(MultiresUnsubdivideContext *context);
  */
 
 /* Rebuilds all subdivision to the level 0 base mesh. */
-bool multires_unsubdivide_to_basemesh(MultiresUnsubdivideContext *context);
+bool multires_unsubdivide_to_basemesh(MultiresUnsubdivideContext *context,
+                                      MultiresUnsubdivideInfo &info);
 
 }  // namespace blender

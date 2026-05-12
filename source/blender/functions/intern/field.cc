@@ -2,8 +2,13 @@
  *
  * SPDX-License-Identifier: GPL-2.0-or-later */
 
+#include "BLI_set.hh"
+#include "BLI_stack.hh"
+
 #include "FN_field.hh"
 #include "FN_multi_function_registry.hh"
+
+#include <xxhash.h>
 
 namespace blender::fn {
 
@@ -96,6 +101,65 @@ uint64_t GField::hash() const
       ref.variant_);
 }
 
+UniqueHash FieldHashDeep::ensure(const GFieldRef &field)
+{
+  if (const UniqueHash *cached = cache.lookup_ptr(field)) {
+    return *cached;
+  }
+
+  /* With a post-order DFS traversal, push each node twice. On the first pop (not yet in
+   * `visited`), push a field's children. On the second pop (already in `visited`), all children
+   * will be in `cache`, so compute and store the hash. Checking the cache for a hash avoids
+   * duplicate work when the same sub-field is reached via multiple paths (e.g. diamond-shaped
+   * graphs). */
+  Set<GFieldRef, 8> visited;
+  Stack<GFieldRef, 16> stack;
+  stack.push(field);
+  while (!stack.is_empty()) {
+    GFieldRef current = stack.pop();
+    if (cache.contains(current)) {
+      continue;
+    }
+    if (visited.contains(current)) {
+      UniqueHashBytes hash_context;
+      std::visit(
+          [&]<typename T>(const T &v) {
+            if constexpr (std::is_same_v<T, GFieldRef::Value>) {
+              v.type->hash_unique(v.value, hash_context);
+              hash_context.add(v.type);
+            }
+            else if constexpr (std::is_same_v<T, GFieldRef::Input>) {
+              v.node->hash_unique(hash_context, *this);
+            }
+            else if constexpr (std::is_same_v<T, GFieldRef::MultiFn>) {
+              v.node->multi_function().hash_unique(hash_context);
+              hash_context.add(v.output_i);
+              for (const GField &input_field : v.node->inputs()) {
+                hash_context.add(cache.lookup(input_field));
+              }
+            }
+          },
+          current.variant());
+      const Span bytes = hash_context.data.as_span();
+      UniqueHash hash;
+      const XXH128_hash_t xxhash = XXH3_128bits(bytes.data(), bytes.size());
+      static_assert(sizeof(UniqueHash) == sizeof(xxhash));
+      memcpy(static_cast<void *>(&hash), &xxhash, sizeof(xxhash));
+      cache.add_new(current, hash);
+      continue;
+    }
+    visited.add(current);
+    stack.push(current);
+    if (const auto *multi_fn = std::get_if<GFieldRef::MultiFn>(&current.variant())) {
+      for (const GField &input : multi_fn->node->inputs()) {
+        stack.push(input);
+      }
+    }
+  }
+
+  return cache.lookup(field);
+}
+
 const FieldInputsPtr &FieldInput::field_inputs() const
 {
   field_inputs_mutex_.ensure([&]() {
@@ -106,9 +170,22 @@ const FieldInputsPtr &FieldInput::field_inputs() const
   return field_inputs_;
 }
 
+uint64_t FieldInput::hash() const
+{
+  UniqueHashBytes hash_context;
+  FieldHashDeep deep_hash_cache;
+  this->hash_unique(hash_context, deep_hash_cache);
+  return get_default_hash(hash_context.data);
+}
+
 FieldInput::~FieldInput() = default;
 
 void FieldInput::foreach_recursive_field(FunctionRef<void(const GField &)> /*fn*/) const {}
+
+void FieldInput::hash_unique(UniqueHashBytes &hash, FieldHashDeep & /*deep_hash_cache*/) const
+{
+  hash.add(this);
+}
 
 void FieldInput::delete_self()
 {
@@ -403,15 +480,11 @@ GVArray IndexFieldInput::get_varray_for_context(const fn::FieldContext & /*conte
   return get_index_varray(mask);
 }
 
-uint64_t IndexFieldInput::hash() const
+void IndexFieldInput::hash_unique(UniqueHashBytes &hash,
+                                  fn::FieldHashDeep & /*deep_hash_cache*/) const
 {
-  /* Some random constant hash. */
-  return 128736487678;
-}
-
-bool IndexFieldInput::is_equal_to(const fn::FieldInput &other) const
-{
-  return dynamic_cast<const IndexFieldInput *>(&other) != nullptr;
+  static constexpr int8_t id = 0;
+  hash.add(&id);
 }
 
 const Field<int> &IndexFieldInput::get_field()

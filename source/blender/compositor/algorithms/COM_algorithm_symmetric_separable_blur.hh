@@ -13,12 +13,14 @@
 namespace blender::compositor {
 
 /* Blur the input using a horizontal and a vertical separable blur passes given a certain radius
- * and filter type using SymmetricSeparableBlurWeights. The result is written to the given output,
- * which will be allocated internally and is thus expected not to be previously allocated. */
+ * and filter type using SymmetricSeparableBlurWeights. If extend_bounds is true, the input will be
+ * zero padded by radius amount of pixels. The result is written to the given output, which will be
+ * allocated internally and is thus expected not to be previously allocated. */
 void symmetric_separable_blur(Context &context,
                               const Result &input,
                               Result &output,
                               const float2 &radius,
-                              const math::FilterKernel filter_type = math::FilterKernel::Gauss);
+                              const math::FilterKernel filter_type = math::FilterKernel::Gauss,
+                              const bool extend_bounds = false);
 
 }  // namespace blender::compositor

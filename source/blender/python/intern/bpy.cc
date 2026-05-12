@@ -14,6 +14,7 @@
 #define PY_SSIZE_T_CLEAN
 
 #include <Python.h>
+#include <optional>
 
 #include "BLI_string.h"
 #include "BLI_string_utils.hh"
@@ -313,16 +314,16 @@ static PyObject *bpy_system_resource(PyObject * /*self*/, PyObject *args, PyObje
 PyDoc_STRVAR(
     /* Wrap. */
     bpy_resource_path_doc,
-    ".. function:: resource_path(type, *, major=bpy.app.version[0], minor=bpy.app.version[1])\n"
+    ".. function:: resource_path(type, *, major=None, minor=None)\n"
     "\n"
     "   Return the base path for storing system files.\n"
     "\n"
     "   :param type: The resource type.\n"
     "   :type type: Literal['USER', 'LOCAL', 'SYSTEM']\n"
-    "   :param major: major version, defaults to current.\n"
-    "   :type major: int\n"
-    "   :param minor: minor version, defaults to current.\n"
-    "   :type minor: int\n"
+    "   :param major: Major version. None (the default) uses ``bpy.app.version[0]``.\n"
+    "   :type major: int | None\n"
+    "   :param minor: Minor version. None (the default) uses ``bpy.app.version[1]``.\n"
+    "   :type minor: int | None\n"
     "   :return: the resource path (not necessarily existing).\n"
     "   :rtype: str\n");
 static PyObject *bpy_resource_path(PyObject * /*self*/, PyObject *args, PyObject *kw)
@@ -335,26 +336,38 @@ static PyObject *bpy_resource_path(PyObject * /*self*/, PyObject *args, PyObject
   };
   PyC_StringEnum type = {type_items};
 
-  int major = BLENDER_VERSION / 100, minor = BLENDER_VERSION % 100;
+  std::optional<int> major;
+  std::optional<int> minor;
 
   static const char *_keywords[] = {"type", "major", "minor", nullptr};
   static _PyArg_Parser _parser = {
       "O&" /* `type` */
       "|$" /* Optional keyword only arguments. */
-      "i"  /* `major` */
-      "i"  /* `minor` */
+      "O&" /* `major` */
+      "O&" /* `minor` */
       ":resource_path",
       _keywords,
       nullptr,
   };
-  if (!_PyArg_ParseTupleAndKeywordsFast(
-          args, kw, &_parser, PyC_ParseStringEnum, &type, &major, &minor))
+  if (!_PyArg_ParseTupleAndKeywordsFast(args,
+                                        kw,
+                                        &_parser,
+                                        PyC_ParseStringEnum,
+                                        &type,
+                                        PyC_ParseOptionalInt,
+                                        &major,
+                                        PyC_ParseOptionalInt,
+                                        &minor))
   {
     return nullptr;
   }
 
+  /* `None` (or missing) selects the current Blender version. */
+  const int version = major.value_or(BLENDER_VERSION / 100) * 100 +
+                      minor.value_or(BLENDER_VERSION % 100);
+
   const std::optional<std::string> path = BKE_appdir_resource_path_id_with_version(
-      type.value_found, false, (major * 100) + minor);
+      type.value_found, false, version);
 
   return PyC_UnicodeFromStdStr(path.value_or(""));
 }
@@ -806,7 +819,7 @@ void BPy_init_modules(bContext *C)
   PyModule_AddObject(mod, "context", reinterpret_cast<PyObject *>(bpy_context_module));
 
   /* Register methods and property get/set for RNA types. */
-  BPY_rna_types_extend_capi();
+  BPY_rna_types_extend_capi(bpy_types);
 
 #define PYMODULE_ADD_METHOD(mod, meth) \
   PyModule_AddObject(mod, (meth)->ml_name, (PyObject *)PyCFunction_New(meth, mod))

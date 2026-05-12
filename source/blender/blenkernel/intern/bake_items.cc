@@ -194,7 +194,7 @@ void VolumeGridBakeItem::count_memory(MemoryCounter &memory) const
 
 #endif
 
-ListBakeItem::ListBakeItem(nodes::ListPtr list) : value(std::move(list)) {}
+ListBakeItem::ListBakeItem(nodes::GListPtr list) : value(std::move(list)) {}
 
 ListBakeItem::ListBakeItem(Vector<BundleBakeItem> &&items) : value(std::move(items)) {}
 

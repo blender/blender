@@ -30,7 +30,7 @@ void BPY_python_backtrace(FILE *fp);
 
 /* `bpy_app.cc` */
 
-/* Access `main_args_help_as_string` needed to resolve bad level call. */
+/** Access `main_args_help_as_string` needed to resolve bad level call. */
 extern char *(*BPY_python_app_help_text_fn)(bool all);
 
 }  // namespace blender

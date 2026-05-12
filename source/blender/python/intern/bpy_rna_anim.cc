@@ -10,6 +10,7 @@
 
 #include <Python.h>
 #include <cfloat> /* FLT_MAX */
+#include <optional>
 
 #include "MEM_guardedalloc.h"
 
@@ -45,6 +46,7 @@
 #include "bpy_rna_anim.hh"
 
 #include "../generic/py_capi_rna.hh"
+#include "../generic/py_capi_utils.hh"
 #include "../generic/python_utildefines.hh"
 
 #include "DEG_depsgraph.hh"
@@ -255,17 +257,20 @@ static int pyrna_struct_keyframe_parse(PointerRNA *ptr,
   static const char *kwlist[] = {
       "data_path", "index", "frame", "group", "options", "keytype", nullptr};
   PyObject *pyoptions = nullptr;
+  std::optional<float> cfra;
   char *keytype_name = nullptr;
   const char *path;
 
-  /* NOTE: `parse_str` MUST start with `s|ifsO!`. */
+  /* NOTE: `parse_str` MUST start with `s|iO&sO!`.
+   * `frame` accepts `None` (meaning "current frame") via `PyC_ParseOptionalFloat`. */
   if (!PyArg_ParseTupleAndKeywords(args,
                                    kw,
                                    parse_str,
                                    const_cast<char **>(kwlist),
                                    &path,
                                    r_index,
-                                   r_cfra,
+                                   PyC_ParseOptionalFloat,
+                                   &cfra,
                                    r_group_name,
                                    &PySet_Type,
                                    &pyoptions,
@@ -302,7 +307,10 @@ static int pyrna_struct_keyframe_parse(PointerRNA *ptr,
     return -1;
   }
 
-  if (*r_cfra == FLT_MAX) {
+  if (cfra.has_value()) {
+    *r_cfra = *cfra;
+  }
+  else {
     *r_cfra = CTX_data_scene(BPY_context_get())->r.cfra;
   }
 
@@ -310,9 +318,8 @@ static int pyrna_struct_keyframe_parse(PointerRNA *ptr,
 }
 
 char pyrna_struct_keyframe_insert_doc[] =
-    ".. method:: keyframe_insert(data_path, *, index=-1, "
-    "frame=bpy.context.scene.frame_current, "
-    "group=\"\", options=set(), keytype='KEYFRAME')\n"
+    ".. method:: keyframe_insert(data_path, *, index=-1, frame=None, group=\"\", "
+    "options=set(), keytype='KEYFRAME')\n"
     "\n"
     "   Insert a keyframe on the property given, adding fcurves and animation data when "
     "necessary.\n"
@@ -323,9 +330,9 @@ char pyrna_struct_keyframe_insert_doc[] =
     "      Defaults to -1 which will key all indices or a single channel if the property is not "
     "an array.\n"
     "   :type index: int\n"
-    "   :param frame: The frame on which the keyframe is inserted, defaulting to the current "
-    "frame.\n"
-    "   :type frame: float\n"
+    "   :param frame: The frame on which the keyframe is inserted. "
+    "None (the default) uses ``bpy.context.scene.frame_current``.\n"
+    "   :type frame: float | None\n"
     "   :param group: The name of the group the F-Curve should be added to if it doesn't exist "
     "yet.\n"
     "   :type group: str\n"
@@ -361,7 +368,7 @@ PyObject *pyrna_struct_keyframe_insert(BPy_StructRNA *self, PyObject *args, PyOb
   if (pyrna_struct_keyframe_parse(&self->ptr.value(),
                                   args,
                                   kw,
-                                  "s|$ifsO!s:bpy_struct.keyframe_insert()",
+                                  "s|$iO&sO!s:bpy_struct.keyframe_insert()",
                                   "bpy_struct.keyframe_insert()",
                                   &path_full,
                                   &index,
@@ -471,9 +478,7 @@ PyObject *pyrna_struct_keyframe_insert(BPy_StructRNA *self, PyObject *args, PyOb
 }
 
 char pyrna_struct_keyframe_delete_doc[] =
-    ".. method:: keyframe_delete(data_path, *, index=-1, "
-    "frame=bpy.context.scene.frame_current, "
-    "group=\"\")\n"
+    ".. method:: keyframe_delete(data_path, *, index=-1, frame=None, group=\"\")\n"
     "\n"
     "   Remove a keyframe from this properties fcurve.\n"
     "\n"
@@ -484,9 +489,9 @@ char pyrna_struct_keyframe_delete_doc[] =
     "Defaults to -1 removing all indices or a single channel "
     "if the property is not an array.\n"
     "   :type index: int\n"
-    "   :param frame: The frame on which the keyframe is deleted, "
-    "defaulting to the current frame.\n"
-    "   :type frame: float\n"
+    "   :param frame: The frame on which the keyframe is deleted. "
+    "None (the default) uses ``bpy.context.scene.frame_current``.\n"
+    "   :type frame: float | None\n"
     "   :param group: The name of the group the F-Curve should be added to if it doesn't exist "
     "yet.\n"
     "   :type group: str\n"
@@ -505,7 +510,7 @@ PyObject *pyrna_struct_keyframe_delete(BPy_StructRNA *self, PyObject *args, PyOb
   if (pyrna_struct_keyframe_parse(&self->ptr.value(),
                                   args,
                                   kw,
-                                  "s|$ifsOs!:bpy_struct.keyframe_delete()",
+                                  "s|$iO&sOs!:bpy_struct.keyframe_delete()",
                                   "bpy_struct.keyframe_delete()",
                                   &path_full,
                                   &index,

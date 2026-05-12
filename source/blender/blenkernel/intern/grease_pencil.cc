@@ -337,9 +337,8 @@ static void grease_pencil_blend_read_data(BlendDataReader *reader, ID *id)
   grease_pencil->attribute_storage.wrap().blend_read(*reader);
 
   /* Read materials. */
-  BLO_read_pointer_array(reader,
-                         grease_pencil->material_array_num,
-                         reinterpret_cast<void **>(&grease_pencil->material_array));
+  BLO_read_pointer_array_and_validate_size(
+      reader, &grease_pencil->material_array, &grease_pencil->material_array_num);
   /* Read vertex group names. */
   BLO_read_struct_list(reader, bDeformGroup, &grease_pencil->vertex_group_names);
 
@@ -386,7 +385,7 @@ constexpr StringRef ATTR_FILL_COLOR = "fill_color";
 Drawing::Drawing()
 {
   this->base.type = GP_DRAWING;
-  this->base.flag = 0;
+  this->base.flag = GreasePencilDrawingBaseFlag{};
 
   new (&this->geometry) bke::CurvesGeometry();
   /* Initialize runtime data. */
@@ -413,7 +412,7 @@ Drawing::Drawing(Drawing &&other)
   this->base.type = GP_DRAWING;
   other.base.type = GP_DRAWING;
   this->base.flag = other.base.flag;
-  other.base.flag = 0;
+  other.base.flag = GreasePencilDrawingBaseFlag{};
 
   new (&this->geometry) bke::CurvesGeometry(std::move(other.geometry.wrap()));
 
@@ -576,7 +575,7 @@ static void update_triangle_and_offsets_cache(const Span<float3> positions,
                 array_utils::fill_index_range<int>(face, fill_points.first());
                 const Span<float2> projpoints = projverts_span.slice(fill_points);
 
-                /* Curve have to be in a counterclockwise order, so check if a flip is need.*/
+                /* Curve have to be in a counterclockwise order, so check if a flip is need. */
                 if (cross_poly_v2(reinterpret_cast<const float (*)[2]>(projpoints.data()),
                                   projpoints.size()) < 0.0)
                 {
@@ -1243,7 +1242,7 @@ void Drawing::tag_topology_changed(const IndexMask &changed_curves)
 DrawingReference::DrawingReference()
 {
   this->base.type = GP_DRAWING_REFERENCE;
-  this->base.flag = 0;
+  this->base.flag = GreasePencilDrawingBaseFlag{};
 
   this->id_reference = nullptr;
 }
@@ -1289,7 +1288,7 @@ TreeNode::TreeNode()
   this->parent = nullptr;
 
   this->GreasePencilLayerTreeNode::name = nullptr;
-  this->flag = 0;
+  this->flag = GreasePencilLayerTreeNodeFlag{};
   this->color[0] = this->color[1] = this->color[2] = 0;
 }
 
@@ -1372,7 +1371,7 @@ int64_t TreeNode::depth() const
 LayerMask::LayerMask()
 {
   this->layer_name = nullptr;
-  this->flag = 0;
+  this->flag = GreasePencilLayerMaskFlag{};
 }
 
 LayerMask::LayerMask(const StringRef name) : LayerMask()
@@ -1408,7 +1407,7 @@ Layer::Layer()
   this->frames_storage.num = 0;
   this->frames_storage.keys = nullptr;
   this->frames_storage.values = nullptr;
-  this->frames_storage.flag = 0;
+  this->frames_storage.flag = GreasePencilLayerFramesMapStorageFlag{};
 
   this->blend_mode = GP_LAYER_BLEND_NONE;
   this->opacity = 1.0f;
@@ -4577,9 +4576,8 @@ bke::MutableAttributeAccessor GreasePencil::attributes_for_write()
 
 static void read_drawing_array(GreasePencil &grease_pencil, BlendDataReader *reader)
 {
-  BLO_read_pointer_array(reader,
-                         grease_pencil.drawing_array_num,
-                         reinterpret_cast<void **>(&grease_pencil.drawing_array));
+  BLO_read_pointer_array_and_validate_size(
+      reader, &grease_pencil.drawing_array, &grease_pencil.drawing_array_num);
   for (int i = 0; i < grease_pencil.drawing_array_num; i++) {
     BLO_read_struct(reader, GreasePencilDrawingBase, &grease_pencil.drawing_array[i]);
     GreasePencilDrawingBase *drawing_base = grease_pencil.drawing_array[i];
@@ -4650,9 +4648,14 @@ static void read_layer(BlendDataReader *reader,
   BLO_read_string(reader, &node->viewlayername);
 
   /* Read frames storage. */
-  BLO_read_int32_array(reader, node->frames_storage.num, &node->frames_storage.keys);
-  BLO_read_struct_array(
-      reader, GreasePencilFrame, node->frames_storage.num, &node->frames_storage.values);
+  {
+    bool ok = true;
+    ok &= BLO_read_array(reader, &node->frames_storage.keys, node->frames_storage.num);
+    ok &= BLO_read_array(reader, &node->frames_storage.values, node->frames_storage.num);
+    if (!ok) {
+      node->frames_storage.num = 0;
+    }
+  }
 
   /* Read layer masks. */
   BLO_read_struct_list(reader, GreasePencilLayerMask, &node->masks);

@@ -632,7 +632,7 @@ TEST(string, StrFormatDecimalUnits)
   EXPECT_STREQ("-1.0B", size_str);
 
   /* Smallest possible value. */
-  BLI_str_format_decimal_unit(size_str, size = -INT32_MAX);
+  BLI_str_format_decimal_unit(size_str, size = INT32_MIN);
   EXPECT_STREQ("-2.1B", size_str);
 }
 
@@ -729,7 +729,7 @@ TEST(string, StrFormatIntegerUnits)
   EXPECT_STREQ("-1B", size_str);
 
   /* Smallest possible value. */
-  BLI_str_format_integer_unit(size_str, size = -INT32_MAX);
+  BLI_str_format_integer_unit(size_str, size = INT32_MIN);
   EXPECT_STREQ("-2B", size_str);
 }
 

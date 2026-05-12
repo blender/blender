@@ -82,6 +82,22 @@ struct MicrofacetBsdf {
 
 static_assert(sizeof(ShaderClosure) >= sizeof(MicrofacetBsdf), "MicrofacetBsdf is too large!");
 
+ccl_device_forceinline FresnelGeneralizedSchlick
+generalized_schlick_setup(const float ior,
+                          const bool reflective_caustics,
+                          const bool refractive_caustics,
+                          const Spectrum reflection_tint,
+                          const Spectrum transmission_tint,
+                          const FresnelThinFilm thinfilm)
+{
+  return {/* .thin_film = */ thinfilm,
+          /* .reflection_tint = */ reflective_caustics ? one_spectrum() : zero_spectrum(),
+          /* .transmission_tint = */ refractive_caustics ? transmission_tint : zero_spectrum(),
+          /* .f0 = */ F0_from_ior(ior) * reflection_tint,
+          /* .f90 = */ one_spectrum(),
+          /* .exponent = */ -ior};
+}
+
 /* Beckmann VNDF importance sampling algorithm from:
  * Importance Sampling Microfacet-Based BSDFs using the Distribution of Visible Normals.
  * Eric Heitz and Eugene d'Eon, EGSR 2014.
@@ -219,6 +235,71 @@ ccl_device_forceinline float3 microfacet_ggx_sample_vndf(const float3 wi,
   return normalize(make_float3(alpha_x * H_.x, alpha_y * H_.y, max(0.0f, H_.z)));
 }
 
+/* Computes Fresnel reflectance and transmittance of the Generalized Schlick Model. */
+ccl_device_forceinline void generalized_schlick_fresnel(
+    KernelGlobals kg,
+    const ccl_private FresnelGeneralizedSchlick *fresnel,
+    const float ior,
+    const float cos_theta_i,
+    ccl_private float *r_cos_theta_t,
+    ccl_private Spectrum *r_reflectance,
+    ccl_private Spectrum *r_transmittance)
+{
+  Spectrum F;
+  if (fresnel->thin_film.thickness > THINFILM_THICKNESS_CUTOFF) {
+    /* Iridescence doesn't combine well with the general case. We only expose it through the
+     * Principled BSDF for now, so it's fine to not support custom exponents and F90. */
+    kernel_assert(fresnel->exponent < 0.0f);
+    kernel_assert(fresnel->f90 == one_spectrum());
+    F = fresnel_iridescence<float>(
+        kg, 1.0f, fresnel->thin_film, {ior, 0.0f}, nullptr, cos_theta_i, r_cos_theta_t);
+    /* Apply F0 scaling (here per-channel, since iridescence produces colored output).
+     * Note that the usual approach (as used below) cannot be used here, since F may be below
+     * F0_real. Therefore, use a different approach: Scale the result by (F0 / F0_real), with the
+     * strength of the scaling depending on how close F is to F0_real.
+     * There isn't one single "correct" way to do this, it's just for artistic control anyways.
+     */
+    const float F0_real = F0_from_ior(ior);
+    if (F0_real > 1e-5f && !isequal(F, one_spectrum())) {
+      FOREACH_SPECTRUM_CHANNEL (i) {
+        const float s = saturatef(inverse_lerp(1.0f, F0_real, GET_SPECTRUM_CHANNEL(F, i)));
+        const float factor = GET_SPECTRUM_CHANNEL(fresnel->f0, i) / F0_real;
+        GET_SPECTRUM_CHANNEL(F, i) *= mix(1.0f, factor, s);
+      }
+    }
+  }
+  else if (fresnel->exponent < 0.0f) {
+    /* Special case: Use real Fresnel curve to determine the interpolation between F0 and F90.
+     * Used by Principled BSDF. */
+    const float F_real = fresnel_dielectric(cos_theta_i, ior, r_cos_theta_t);
+    const float F0_real = F0_from_ior(ior);
+    const float s = saturatef(inverse_lerp(F0_real, 1.0f, F_real));
+    F = mix(fresnel->f0, fresnel->f90, s);
+  }
+  else {
+    /* Regular case: Generalized Schlick term. */
+    const float cos_theta_t_sq = 1.0f - (1.0f - sqr(cos_theta_i)) / sqr(ior);
+    if (cos_theta_t_sq <= 0.0f) {
+      /* Total internal reflection */
+      *r_reflectance = fresnel->reflection_tint;
+      *r_transmittance = zero_spectrum();
+      return;
+    }
+    const float cos_theta_t = sqrtf(cos_theta_t_sq);
+    if (r_cos_theta_t) {
+      *r_cos_theta_t = cos_theta_t;
+    }
+
+    /* TODO(lukas): Is a special case for exponent==5 worth it? */
+    /* When going from a higher to a lower IOR, we must use the transmitted angle. */
+    const float fresnel_angle = (ior < 1.0f) ? cos_theta_t : cos_theta_i;
+    const float s = powf(1.0f - fresnel_angle, fresnel->exponent);
+    F = mix(fresnel->f0, fresnel->f90, s);
+  }
+  *r_reflectance = F * fresnel->reflection_tint;
+  *r_transmittance = (one_spectrum() - F) * fresnel->transmission_tint;
+}
+
 /* Computes the Fresnel reflectance and transmittance given the Microfacet BSDF and the cosine of
  * the incoming angle `cos_theta_i`.
  * Also returns the cosine of the angle between the normal and the refracted ray as `r_cos_theta_t`
@@ -287,59 +368,8 @@ ccl_device_forceinline void microfacet_fresnel(KernelGlobals kg,
   else if (bsdf->fresnel_type == MicrofacetFresnel::GENERALIZED_SCHLICK) {
     ccl_private FresnelGeneralizedSchlick *fresnel = (ccl_private FresnelGeneralizedSchlick *)
                                                          bsdf->fresnel;
-    Spectrum F;
-    if (fresnel->thin_film.thickness > THINFILM_THICKNESS_CUTOFF) {
-      /* Iridescence doesn't combine well with the general case. We only expose it through the
-       * Principled BSDF for now, so it's fine to not support custom exponents and F90. */
-      kernel_assert(fresnel->exponent < 0.0f);
-      kernel_assert(fresnel->f90 == one_spectrum());
-      F = fresnel_iridescence<float>(
-          kg, 1.0f, fresnel->thin_film, {bsdf->ior, 0.0f}, nullptr, cos_theta_i, r_cos_theta_t);
-      /* Apply F0 scaling (here per-channel, since iridescence produces colored output).
-       * Note that the usual approach (as used below) cannot be used here, since F may be below
-       * F0_real. Therefore, use a different approach: Scale the result by (F0 / F0_real), with
-       * the strength of the scaling depending on how close F is to F0_real.
-       * There isn't one single "correct" way to do this, it's just for artistic control anyways.
-       */
-      const float F0_real = F0_from_ior(bsdf->ior);
-      if (F0_real > 1e-5f && !isequal(F, one_spectrum())) {
-        FOREACH_SPECTRUM_CHANNEL (i) {
-          const float s = saturatef(inverse_lerp(1.0f, F0_real, GET_SPECTRUM_CHANNEL(F, i)));
-          const float factor = GET_SPECTRUM_CHANNEL(fresnel->f0, i) / F0_real;
-          GET_SPECTRUM_CHANNEL(F, i) *= mix(1.0f, factor, s);
-        }
-      }
-    }
-    else if (fresnel->exponent < 0.0f) {
-      /* Special case: Use real Fresnel curve to determine the interpolation between F0 and F90.
-       * Used by Principled BSDF. */
-      const float F_real = fresnel_dielectric(cos_theta_i, bsdf->ior, r_cos_theta_t);
-      const float F0_real = F0_from_ior(bsdf->ior);
-      const float s = saturatef(inverse_lerp(F0_real, 1.0f, F_real));
-      F = mix(fresnel->f0, fresnel->f90, s);
-    }
-    else {
-      /* Regular case: Generalized Schlick term. */
-      const float cos_theta_t_sq = 1.0f - (1.0f - sqr(cos_theta_i)) / sqr(bsdf->ior);
-      if (cos_theta_t_sq <= 0.0f) {
-        /* Total internal reflection */
-        *r_reflectance = fresnel->reflection_tint * (float)has_reflection;
-        *r_transmittance = zero_spectrum();
-        return;
-      }
-      const float cos_theta_t = sqrtf(cos_theta_t_sq);
-      if (r_cos_theta_t) {
-        *r_cos_theta_t = cos_theta_t;
-      }
-
-      /* TODO(lukas): Is a special case for exponent==5 worth it? */
-      /* When going from a higher to a lower IOR, we must use the transmitted angle. */
-      const float fresnel_angle = ((bsdf->ior < 1.0f) ? cos_theta_t : cos_theta_i);
-      const float s = powf(1.0f - fresnel_angle, fresnel->exponent);
-      F = mix(fresnel->f0, fresnel->f90, s);
-    }
-    *r_reflectance = F * fresnel->reflection_tint;
-    *r_transmittance = (one_spectrum() - F) * fresnel->transmission_tint;
+    generalized_schlick_fresnel(
+        kg, fresnel, bsdf->ior, cos_theta_i, r_cos_theta_t, r_reflectance, r_transmittance);
   }
   else {
     kernel_assert(bsdf->fresnel_type == MicrofacetFresnel::NONE);
@@ -577,10 +607,16 @@ ccl_device_inline float bsdf_aniso_D(const float alpha_x, const float alpha_y, f
   return M_1_PI_F / (alpha2 * sqr(len_squared(H)));
 }
 
-/* Do not set `SD_BSDF_HAS_EVAL` flag if the squared roughness is below a certain threshold. */
+/* Below certain roughness threshold we can treat closures as perfectly specular. */
+ccl_device_forceinline bool roughness_is_almost_specular(const float alpha_x, const float alpha_y)
+{
+  return (alpha_x * alpha_y) <= 2e-10f;
+}
+
+/* A specular BSDF has no eval. */
 ccl_device_forceinline int bsdf_microfacet_eval_flag(const ccl_private MicrofacetBsdf *bsdf)
 {
-  return (bsdf->alpha_x * bsdf->alpha_y > BSDF_ROUGHNESS_SQ_THRESH) ? SD_BSDF_HAS_EVAL : 0;
+  return roughness_is_almost_specular(bsdf->alpha_x, bsdf->alpha_y) ? 0 : SD_BSDF_HAS_EVAL;
 }
 
 template<MicrofacetType m_type>
@@ -699,7 +735,7 @@ ccl_device int bsdf_microfacet_sample(KernelGlobals kg,
   const float m_inv_eta = safe_divide(1.0f, bsdf->ior);
   const float alpha_x = bsdf->alpha_x;
   const float alpha_y = bsdf->alpha_y;
-  bool m_singular = !bsdf_microfacet_eval_flag(bsdf);
+  bool m_singular = roughness_is_almost_specular(alpha_x, alpha_y);
 
   /* Half vector. */
   float3 H;

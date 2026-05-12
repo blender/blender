@@ -9,9 +9,8 @@
  */
 
 #pragma once
-#pragma create_info
 
-#include "infos/eevee_shadow_pipeline_infos.hh"
+#include "infos/eevee_shadow_infos.hh"
 
 COMPUTE_SHADER_CREATE_INFO(draw_modelmat)
 
@@ -140,7 +139,7 @@ float nextafter(float value)
 
 [[vertex]]
 void tag_usage_vert([[resource_table]] TagUsageTransparent &srt,
-                    [[resource_table]] TagUsage &tag,
+                    [[resource_table]] TagUsage & /*tag*/,
                     [[in]] const VertIn &v_in,
                     [[out]] VertOut &v_out,
                     [[position]] float4 &out_position)

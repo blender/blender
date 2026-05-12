@@ -429,23 +429,26 @@ static void mesh_blend_write(BlendWriter *writer, ID *id, const void *id_address
 static void mesh_blend_read_data(BlendDataReader *reader, ID *id)
 {
   Mesh *mesh = reinterpret_cast<Mesh *>(id);
-  BLO_read_pointer_array(reader, mesh->totcol, reinterpret_cast<void **>(&mesh->mat));
+  BLO_read_pointer_array_and_validate_size(reader, &mesh->mat, &mesh->totcol);
   /* This check added for python created meshes. */
   if (!mesh->mat) {
     mesh->totcol = 0;
   }
 
   /* Deprecated pointers to custom data layers are read here for backward compatibility
-   * with files where these were owning pointers rather than a view into custom data. */
-  BLO_read_struct_array(reader, MVert, mesh->verts_num, &mesh->mvert);
-  BLO_read_struct_array(reader, MEdge, mesh->edges_num, &mesh->medge);
-  BLO_read_struct_array(reader, MFace, mesh->totface_legacy, &mesh->mface);
-  BLO_read_struct_array(reader, MTFace, mesh->totface_legacy, &mesh->mtface);
-  BLO_read_struct_array(reader, MDeformVert, mesh->verts_num, &mesh->dvert);
-  BLO_read_struct_array(reader, TFace, mesh->totface_legacy, &mesh->tface);
-  BLO_read_struct_array(reader, MCol, mesh->totface_legacy, &mesh->mcol);
+   * with files where these were owning pointers rather than a view into custom data.
+   *
+   * Ignore failure to read, these arrays are not further accessed here and blend file
+   * read will abort before versioning runs. */
+  (void)BLO_read_array(reader, &mesh->mvert, mesh->verts_num);
+  (void)BLO_read_array(reader, &mesh->medge, mesh->edges_num);
+  (void)BLO_read_array(reader, &mesh->mface, mesh->totface_legacy);
+  (void)BLO_read_array(reader, &mesh->mtface, mesh->totface_legacy);
+  (void)BLO_read_array(reader, &mesh->dvert, mesh->verts_num);
+  (void)BLO_read_array(reader, &mesh->tface, mesh->totface_legacy);
+  (void)BLO_read_array(reader, &mesh->mcol, mesh->totface_legacy);
 
-  BLO_read_struct_array(reader, MSelect, mesh->totselect, &mesh->mselect);
+  BLO_read_array_and_validate_size(reader, &mesh->mselect, &mesh->totselect);
 
   BLO_read_struct_list(reader, bDeformGroup, &mesh->vertex_group_names);
 
@@ -474,8 +477,12 @@ static void mesh_blend_read_data(BlendDataReader *reader, ID *id)
   if (mesh->face_offset_indices) {
     mesh->runtime->face_offsets_sharing_info = BLO_read_shared(
         reader, &mesh->face_offset_indices, [&]() {
-          BLO_read_int32_array(reader, mesh->faces_num + 1, &mesh->face_offset_indices);
-          return implicit_sharing::info_for_mem_free(mesh->face_offset_indices);
+          if (!BLO_read_array(reader, &mesh->face_offset_indices, int64_t(mesh->faces_num) + 1)) {
+            mesh->faces_num = 0;
+          }
+          return mesh->face_offset_indices ?
+                     implicit_sharing::info_for_mem_free(mesh->face_offset_indices) :
+                     nullptr;
         });
   }
 
@@ -642,6 +649,18 @@ void mesh_ensure_active_uv_map(Mesh &mesh)
   const StringRefNull found = get_first_uv_map_name(mesh);
   if (!found.is_empty()) {
     mesh.uv_maps_active_set(found);
+  }
+}
+
+void mesh_ensure_default_uv_map(Mesh &mesh)
+{
+  const StringRefNull default_name = mesh.default_uv_map_name();
+  if (!default_name.is_empty()) {
+    return;
+  }
+  const StringRefNull found = get_first_uv_map_name(mesh);
+  if (!found.is_empty()) {
+    mesh.uv_maps_default_set(found);
   }
 }
 
@@ -2138,7 +2157,7 @@ void BKE_mesh_mselect_validate(Mesh *mesh)
   mesh->mselect = mselect_dst;
 }
 
-int BKE_mesh_mselect_find(const Mesh *mesh, int index, int type)
+int BKE_mesh_mselect_find(const Mesh *mesh, int index, eMSelect_Type type)
 {
   BLI_assert(ELEM(type, ME_VSEL, ME_ESEL, ME_FSEL));
 
@@ -2151,7 +2170,7 @@ int BKE_mesh_mselect_find(const Mesh *mesh, int index, int type)
   return -1;
 }
 
-int BKE_mesh_mselect_active_get(const Mesh *mesh, int type)
+int BKE_mesh_mselect_active_get(const Mesh *mesh, eMSelect_Type type)
 {
   BLI_assert(ELEM(type, ME_VSEL, ME_ESEL, ME_FSEL));
 
@@ -2163,7 +2182,7 @@ int BKE_mesh_mselect_active_get(const Mesh *mesh, int type)
   return -1;
 }
 
-void BKE_mesh_mselect_active_set(Mesh *mesh, int index, int type)
+void BKE_mesh_mselect_active_set(Mesh *mesh, int index, eMSelect_Type type)
 {
   const int msel_index = BKE_mesh_mselect_find(mesh, index, type);
 
@@ -2172,7 +2191,7 @@ void BKE_mesh_mselect_active_set(Mesh *mesh, int index, int type)
     mesh->mselect = static_cast<MSelect *>(
         MEM_realloc_uninitialized(mesh->mselect, sizeof(MSelect) * (mesh->totselect + 1)));
     mesh->mselect[mesh->totselect].index = index;
-    mesh->mselect[mesh->totselect].type = type;
+    mesh->mselect[mesh->totselect].type = eMSelect_Type(type);
     mesh->totselect++;
   }
   else if (msel_index != mesh->totselect - 1) {

@@ -26,7 +26,7 @@ PyDoc_STRVAR(
     "\n"
     "   Builds a ReadCompleteViewMapPixelF0D object.\n"
     "\n"
-    "   :arg level: The level of the pyramid from which the pixel must be\n"
+    "   :param level: The level of the pyramid from which the pixel must be\n"
     "      read.\n"
     "   :type level: int\n"
     "\n"
@@ -34,7 +34,7 @@ PyDoc_STRVAR(
     "\n"
     "   Reads a pixel in one of the level of the complete viewmap.\n"
     "\n"
-    "   :arg it: An Interface0DIterator object.\n"
+    "   :param it: An Interface0DIterator object.\n"
     "   :type it: :class:`freestyle.types.Interface0DIterator`\n"
     "   :return: A pixel in one of the level of the complete viewmap.\n"
     "   :rtype: float\n");

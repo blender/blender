@@ -1979,6 +1979,9 @@ FCurve &Channelbag::fcurve_clone(const FCurve &old_fcurve,
   if (new_fcurve) {
     MEM_delete(new_fcurve->bezt);
     new_fcurve->bezt = MEM_dupalloc(old_fcurve.bezt);
+    MEM_delete(new_fcurve->fpt);
+    new_fcurve->fpt = MEM_dupalloc(old_fcurve.fpt);
+    new_fcurve->totvert = old_fcurve.totvert;
   }
   else {
     new_fcurve = BKE_fcurve_copy(&old_fcurve);

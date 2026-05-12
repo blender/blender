@@ -696,11 +696,27 @@ void funcTA() { A_fn(); }
 template<typename T>
 void func(T a) {a;}
 template void func<float>(float a);
+template<typename T>
+void foo(T &a) {a;}
+template void foo<float>(float &a);
+
+void f(float a)
+{
+  func(a);
+  foo(a);
+}
 )";
     string expect = R"(
 #line 3
 void func(float a) {a;}
-#line 5
+#line 6
+void foo(_ref(float ,a)) {a;}
+#line 9
+void f(float a)
+{
+  func(a);
+  foo(a);
+}
 )";
     string error;
     string output = process_test_string(input, error);
@@ -2339,6 +2355,76 @@ void U_fn();
 }
 GPU_TEST(preprocess_empty_struct);
 
+static void test_preprocess_structured_bindings()
+{
+  using namespace shader;
+  using namespace std;
+
+  {
+    string input = R"(
+struct S {
+  int i;
+  float b;
+};
+
+S test()
+{
+  return S{};
+}
+
+void fn(S u, S &v)
+{
+  S t;
+  S &r = t;
+  {
+    int u;
+    int t;
+  }
+  auto [a, b] = S{};
+  auto [c, d] = test();
+  auto [e, f] = t;
+  auto [g, h] = u;
+  auto [i, j] = r;
+  auto [k, l] = v;
+}
+)";
+    string expect = R"(
+struct S {
+  int i;
+  float b;
+};
+#line 2
+                 S S_ctor_() {S r;r.i=0;r.b=0.0f;return r;}
+#line 7
+S test()
+{
+  return S_ctor_();
+}
+
+void fn(S u, _ref(S ,v))
+{
+  S t;
+
+  {
+    int u;
+    int t;
+  }
+  S _u0= S_ctor_();int a=_u0.i;float b=_u0.b;
+  S _u1= test();int c=_u1.i;float d=_u1.b;
+  S _u2= t;int e=_u2.i;float f=_u2.b;
+  S _u3= u;int g=_u3.i;float h=_u3.b;
+  S _u4= t;int i=_u4.i;float j=_u4.b;
+  S _u5= v;int k=_u5.i;float l=_u5.b;
+}
+)";
+    string error;
+    string output = process_test_string(input, error);
+    EXPECT_EQ(output, expect);
+    EXPECT_EQ(error, "");
+  }
+}
+GPU_TEST(preprocess_structured_bindings);
+
 static void test_preprocess_struct_methods()
 {
   using namespace shader;
@@ -2796,7 +2882,7 @@ BUILTINS(BuiltinBits::CLIP_DISTANCES)
 GPU_SHADER_CREATE_END()
 
 GPU_SHADER_CREATE_INFO(ns_fragment_function_infos_)
-DEPTH_WRITE(GREATER)
+DEPTH_WRITE(DepthWrite::GREATER)
 BUILTINS(BuiltinBits::STENCIL_REF)
 BUILTINS(BuiltinBits::POINT_COORD)
 BUILTINS(BuiltinBits::FRONT_FACING)

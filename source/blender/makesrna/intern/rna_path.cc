@@ -14,7 +14,6 @@
 #include "BLI_alloca.h"
 #include "BLI_dynstr.h"
 #include "BLI_hash.hh"
-#include "BLI_listbase.h"
 #include "BLI_string.h"
 #include "BLI_string_ref.hh"
 #include "BLI_utildefines.h"
@@ -34,6 +33,8 @@
 
 #include "rna_access_internal.hh"
 #include "rna_internal.hh"
+
+#include <ranges>
 
 namespace blender {
 
@@ -383,13 +384,12 @@ static bool rna_path_parse(const PointerRNA *ptr,
                            PropertyRNA **r_prop,
                            int *r_index,
                            PointerRNA *r_item_ptr,
-                           ListBaseT<PropertyElemRNA> *r_elements,
+                           Vector<PropertyElemRNA> *r_elements,
                            const bool eval_pointer)
 {
   BLI_assert(r_item_ptr == nullptr || !eval_pointer);
   PropertyRNA *prop;
   PointerRNA curptr, nextptr;
-  PropertyElemRNA *prop_elem = nullptr;
   int index = -1;
   char fixedbuf[256];
   int type;
@@ -447,11 +447,12 @@ static bool rna_path_parse(const PointerRNA *ptr,
     }
 
     if (r_elements) {
-      prop_elem = MEM_new<PropertyElemRNA>(__func__);
-      prop_elem->ptr = curptr;
-      prop_elem->prop = prop;
-      prop_elem->index = -1; /* index will be added later, if needed. */
-      BLI_addtail(r_elements, prop_elem);
+      /* index will be added later, if needed. */
+      r_elements->append(PropertyElemRNA{
+          .ptr = curptr,
+          .prop = prop,
+          .index = -1,
+      });
     }
 
     type = RNA_property_type(prop);
@@ -494,13 +495,13 @@ static bool rna_path_parse(const PointerRNA *ptr,
         break;
       }
       default:
-        if (r_index || prop_elem) {
+        if (r_index || r_elements) {
           if (!rna_path_parse_array_index(&path, &curptr, prop, &index)) {
             return false;
           }
 
-          if (prop_elem) {
-            prop_elem->index = index;
+          if (r_elements) {
+            r_elements->last().index = index;
           }
         }
         break;
@@ -520,14 +521,15 @@ static bool rna_path_parse(const PointerRNA *ptr,
     *r_item_ptr = nextptr;
   }
 
-  if (prop_elem &&
-      (prop_elem->ptr.data != curptr.data || prop_elem->prop != prop || prop_elem->index != index))
-  {
-    prop_elem = MEM_new<PropertyElemRNA>(__func__);
-    prop_elem->ptr = curptr;
-    prop_elem->prop = prop;
-    prop_elem->index = index;
-    BLI_addtail(r_elements, prop_elem);
+  if (r_elements) {
+    PropertyElemRNA &last = r_elements->last();
+    if ((last.ptr.data != curptr.data || last.prop != prop || last.index != index)) {
+      r_elements->append(PropertyElemRNA{
+          .ptr = curptr,
+          .prop = prop,
+          .index = index,
+      });
+    }
   }
 
   return true;
@@ -611,7 +613,7 @@ bool RNA_path_resolve_property_and_item_pointer_full(const PointerRNA *ptr,
 }
 bool RNA_path_resolve_elements(PointerRNA *ptr,
                                const char *path,
-                               ListBaseT<PropertyElemRNA> *r_elements)
+                               Vector<PropertyElemRNA> *r_elements)
 {
   return rna_path_parse(ptr, path, nullptr, nullptr, nullptr, nullptr, r_elements, false);
 }
@@ -834,7 +836,6 @@ static char *rna_idp_path(PointerRNA *ptr,
   IDP_Chain link;
 
   const IDProperty *iter;
-  int i;
 
   BLI_assert(haystack->type == IDP_GROUP);
 
@@ -843,9 +844,7 @@ static char *rna_idp_path(PointerRNA *ptr,
   link.name = nullptr;
   link.index = -1;
 
-  for (i = 0, iter = static_cast<IDProperty *>(haystack->data.group.first); iter;
-       iter = iter->next, i++)
-  {
+  for (iter = static_cast<IDProperty *>(haystack->data.group.first); iter; iter = iter->next) {
     if (needle == iter) { /* found! */
       link.name = iter->name;
       link.index = -1;
@@ -1205,7 +1204,6 @@ std::optional<std::string> RNA_path_resolve_from_type_to_property(const PointerR
 {
   /* Try to recursively find an "type"'d ancestor,
    * to handle situations where path from ID is not enough. */
-  ListBaseT<PropertyElemRNA> path_elems = {nullptr};
   const std::optional<std::string> full_path = RNA_path_from_ID_to_property(ptr, prop);
   if (!full_path) {
     return std::nullopt;
@@ -1214,8 +1212,9 @@ std::optional<std::string> RNA_path_resolve_from_type_to_property(const PointerR
   PointerRNA idptr = RNA_id_pointer_create(ptr->owner_id);
 
   std::optional<std::string> path;
+  Vector<PropertyElemRNA> path_elems;
   if (RNA_path_resolve_elements(&idptr, full_path->c_str(), &path_elems)) {
-    for (PropertyElemRNA &prop_elem : path_elems.items_reversed()) {
+    for (PropertyElemRNA &prop_elem : path_elems | std::views::reverse) {
       if (RNA_struct_is_a(prop_elem.ptr.type, type)) {
         if (const std::optional<std::string> ref_path = RNA_path_from_ID_to_struct(&prop_elem.ptr))
         {
@@ -1224,11 +1223,6 @@ std::optional<std::string> RNA_path_resolve_from_type_to_property(const PointerR
         break;
       }
     }
-
-    for (PropertyElemRNA &prop_elem : path_elems.items_mutable()) {
-      MEM_delete(&prop_elem);
-    }
-    BLI_listbase_clear(&path_elems);
   }
 
   return path;

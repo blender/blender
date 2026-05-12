@@ -27,6 +27,7 @@
 
 namespace blender {
 
+using Alembic::Abc::chrono_t;
 using Alembic::Abc::ErrorHandler;
 using Alembic::Abc::Exception;
 using Alembic::Abc::IArchive;
@@ -157,6 +158,16 @@ bool ArchiveReader::is_blender_archive_version_prior_44()
   }
 
   return false;
+}
+
+TimeInfo ArchiveReader::getTimeInfo()
+{
+  chrono_t min_time = std::numeric_limits<chrono_t>::max();
+  chrono_t max_time = -std::numeric_limits<chrono_t>::max();
+
+  Alembic::Abc::GetArchiveStartAndEndTime(m_archive, min_time, max_time);
+
+  return {min_time, max_time};
 }
 
 }  // namespace io::alembic

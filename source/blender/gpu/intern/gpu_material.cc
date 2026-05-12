@@ -164,6 +164,7 @@ GPUMaterialFromNodeTreeResult GPU_material_from_nodetree(
   /* Localize tree to create links for reroute and mute. */
   bNodeTree *localtree = bke::node_tree_add_tree(
       nullptr, (StringRef(ntree->id.name) + " Inlined").c_str(), ntree->idname);
+  localtree->flag |= NTREE_IS_GPU_SHADER_INTERNAL;
   nodes::InlineShaderNodeTreeParams inline_params;
   inline_params.allow_preserving_repeat_zones = true;
   inline_params.target_engine_ = engine == GPU_MAT_EEVEE ? SHD_OUTPUT_EEVEE : SHD_OUTPUT_ALL;

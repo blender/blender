@@ -10,6 +10,7 @@
 
 #pragma once
 
+#include "BLI_enum_flags.hh"
 #include "BLI_sys_types.h"
 
 #include "BLI_implicit_sharing.h"
@@ -17,7 +18,7 @@
 namespace blender {
 
 /** #CustomDataLayer.type */
-enum eCustomDataType {
+enum eCustomDataType : int {
   /**
    * Used by GPU attributes in the cases when we don't know which layer
    * we are addressing in advance.
@@ -173,8 +174,8 @@ enum eCustomDataType {
 #define MAX_CUSTOMDATA_LAYER_NAME 68
 #define MAX_CUSTOMDATA_LAYER_NAME_NO_PREFIX 64
 
-/** #CustomData.flag */
-enum {
+/** #CustomDataLayer.flag */
+enum eCustomDataLayer_Flag : int {
   /**
    * Indicates layer should not be copied by #CustomData_from_template or #CustomData_copy_data.
    */
@@ -191,15 +192,16 @@ enum {
   CD_FLAG_COLOR_RENDER = (1 << 6)
 #endif
 };
+ENUM_OPERATORS(eCustomDataLayer_Flag)
 
 /** Descriptor and storage for a custom data layer. */
 struct CustomDataLayer {
   /** Type of data in layer. */
-  int type = 0;
+  eCustomDataType type = {};
   /** In editmode, offset of layer in block. */
   int offset = 0;
   /** General purpose flag. */
-  int flag = 0;
+  eCustomDataLayer_Flag flag = {};
   /** Number of the active layer of this type. */
   int active = 0;
   /** Number of the layer to render. */

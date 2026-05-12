@@ -30,6 +30,7 @@ enum DenoiserPass {
   DENOISER_PASS_ROUGHNESS = 1 << 3,
   DENOISER_PASS_DEPTH = 1 << 4,
   DENOISER_PASS_MOTION = 1 << 5,
+  DENOISER_PASS_BACKWARD_MOTION = 1 << 6,
 };
 
 using DenoiserPassMask = int;

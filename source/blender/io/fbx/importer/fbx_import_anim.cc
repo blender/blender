@@ -50,7 +50,7 @@ static void set_curve_sample(FCurve *curve, int64_t key_index, float time, float
   bez.vec[1][0] = time;
   bez.vec[1][1] = value;
   bez.ipo = BEZT_IPO_LIN;
-  bez.f1 = bez.f2 = bez.f3 = SELECT;
+  bez.f1 = bez.f2 = bez.f3 = BEZT_FLAG_SELECT;
   bez.h1 = bez.h2 = HD_AUTO_ANIM;
 }
 

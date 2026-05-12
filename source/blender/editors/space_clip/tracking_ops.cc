@@ -1052,7 +1052,7 @@ static wmOperatorStatus hide_tracks_exec(bContext *C, wmOperator *op)
   }
 
   const MovieTrackingPlaneTrack *active_plane_track = tracking_object->active_plane_track;
-  if (active_plane_track != nullptr && active_plane_track->flag & TRACK_HIDDEN) {
+  if (active_plane_track != nullptr && active_plane_track->flag & PLANE_TRACK_HIDDEN) {
     tracking_object->active_plane_track = nullptr;
   }
 
@@ -1722,7 +1722,7 @@ static wmOperatorStatus clean_tracks_exec(bContext *C, wmOperator *op)
 
       if (!ok) {
         if (action == TrackingCleanAction::Select) {
-          BKE_tracking_track_flag_set(&track, TRACK_AREA_ALL, SELECT);
+          BKE_tracking_track_flag_set(&track, TRACK_AREA_ALL, TRACK_SELECT);
         }
         else if (action == TrackingCleanAction::DeleteTrack) {
           if (&track == tracking_object->active_track) {

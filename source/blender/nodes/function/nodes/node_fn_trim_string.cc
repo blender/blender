@@ -68,7 +68,7 @@ static void node_register()
 {
   static bke::bNodeType ntype;
 
-  fn_node_type_base(&ntype, "FunctionNodeTrimString"_ustr);
+  fn_cmp_node_type_base(&ntype, "FunctionNodeTrimString"_ustr);
   ntype.ui_name = "Trim String";
   ntype.ui_description = "Remove characters from the beginning and end of a string";
   ntype.nclass = NODE_CLASS_CONVERTER;

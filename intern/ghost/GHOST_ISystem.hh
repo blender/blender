@@ -61,7 +61,7 @@ class GHOST_IEventConsumer;
  * - Microsoft Windows.
  * - X11 (Linux).
  * - Wayland (Linux).
- * - SDL2.
+ * - SDL3.
  * - null (headless mode).
  *
  * \section Building GHOST

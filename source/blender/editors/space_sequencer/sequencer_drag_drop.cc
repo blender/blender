@@ -86,8 +86,8 @@ static void generic_poll_operations(const bContext *C, const wmEvent *event, uin
   /* Ideally we would reuse the transform modal keymap for snapping, but drag and drop doesn't have
    * access to transform engine, so just hard-code the invert key to a sane default. */
   const bool do_invert = event->modifier & KM_CTRL;
-  g_drop_coords.use_snapping = do_invert ? !(ts->snap_flag_seq & SCE_SNAP) :
-                                           (ts->snap_flag_seq & SCE_SNAP);
+  g_drop_coords.use_snapping = do_invert ? (ts->snap_flag_seq & SCE_SNAP) == 0 :
+                                           (ts->snap_flag_seq & SCE_SNAP) != 0;
 }
 
 /* While drag-and-drop in the sequencer, the internal drop-box implementation allows to have a drop

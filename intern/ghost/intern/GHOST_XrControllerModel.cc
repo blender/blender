@@ -17,6 +17,8 @@
 
 #include "GHOST_XrControllerModel.hh"
 
+#include "GHOST_utildefines.hh"
+
 #define TINYGLTF_IMPLEMENTATION
 #define TINYGLTF_NO_STB_IMAGE
 #define TINYGLTF_NO_STB_IMAGE_WRITE
@@ -109,7 +111,7 @@ static void load_attribute_accessor(const tinygltf::Model &gltf_model,
   }
 
   const tinygltf::BufferView &buffer_view = gltf_model.bufferViews.at(accessor.bufferView);
-  if (buffer_view.target != TINYGLTF_TARGET_ARRAY_BUFFER && buffer_view.target != 0) {
+  if (!ELEM(buffer_view.target, TINYGLTF_TARGET_ARRAY_BUFFER, 0)) {
     throw GHOST_XrException(
         "glTF: Accessor for primitive attribute uses bufferview with invalid 'target' type.");
   }
@@ -138,14 +140,14 @@ static void read_indices(const tinygltf::Accessor &accessor,
 {
 
   /* Allow 0 (not specified) even though spec doesn't seem to allow this (BoomBox GLB fails). */
-  if (buffer_view.target != TINYGLTF_TARGET_ELEMENT_ARRAY_BUFFER && buffer_view.target != 0) {
+  if (!ELEM(buffer_view.target, TINYGLTF_TARGET_ELEMENT_ARRAY_BUFFER, 0)) {
     throw GHOST_XrException(
         "glTF: Accessor for indices uses bufferview with invalid 'target' type.");
   }
 
   constexpr size_t component_size_bytes = sizeof(TSrcIndex);
   /* Index buffer must be packed per glTF spec. */
-  if (buffer_view.byteStride != 0 && buffer_view.byteStride != component_size_bytes) {
+  if (!ELEM(buffer_view.byteStride, 0, component_size_bytes)) {
     throw GHOST_XrException(
         "glTF: Accessor for indices uses bufferview with invalid 'byteStride'.");
   }

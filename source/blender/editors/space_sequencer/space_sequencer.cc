@@ -287,6 +287,9 @@ static void sequencer_listener(const wmSpaceTypeListenerParams *params)
         case ND_SEQUENCER:
           sequencer_scopes_tag_refresh(area, params->scene);
           break;
+        case ND_SEQUENCER_PREFETCH:
+          ED_area_tag_redraw(area);
+          break;
       }
       break;
     case NC_WINDOW:
@@ -553,6 +556,7 @@ static void sequencer_main_region_listener(const wmRegionListenerParams *params)
         case ND_MARKERS:
         case ND_RENDER_OPTIONS: /* For FPS and FPS Base. */
         case ND_SEQUENCER:
+        case ND_SEQUENCER_PREFETCH:
         case ND_RENDER_RESULT:
           ED_region_tag_redraw(region);
           WM_gizmomap_tag_refresh(region->runtime->gizmo_map);
@@ -846,7 +850,7 @@ static void sequencer_preview_region_layout(const bContext *C, ARegion *region)
 
   if (sseq->flag & SEQ_ZOOM_TO_FIT) {
     View2D *v2d = &region->v2d;
-    v2d->cur = v2d->tot;
+    v2d->cur = SEQ_view_frame_fit(sseq, region, v2d->tot);
   }
 }
 
@@ -959,7 +963,9 @@ static void sequencer_preview_region_listener(const wmRegionListenerParams *para
         case ND_FRAME:
         case ND_MARKERS:
         case ND_SEQUENCER:
+        case ND_SEQUENCER_PREFETCH:
         case ND_RENDER_OPTIONS:
+        case ND_RENDER_RESULT: /* Un-blank the preview after render. */
         case ND_DRAW_RENDER_VIEWPORT:
           ED_region_tag_redraw(region);
           break;
@@ -1032,6 +1038,7 @@ static void sequencer_buttons_region_listener(const wmRegionListenerParams *para
       switch (wmn->data) {
         case ND_FRAME:
         case ND_SEQUENCER:
+        case ND_SEQUENCER_PREFETCH:
           ED_region_tag_redraw(region);
           break;
       }

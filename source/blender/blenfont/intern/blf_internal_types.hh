@@ -233,10 +233,15 @@ struct FontBufInfoBLF {
   /** Buffer size, keep signed so comparisons with negative values work. */
   int dims[2];
 
+  /** The number of channels in the buffer. Can be either 1 or 4 for grayscale and color buffers
+   * respectively. The red channel of the color is used in case of a grayscale buffer. */
+  int channel_count;
+
   /** Color-space of the byte buffer (float is scene linear). */
   const ColorSpace *colorspace;
 
-  /** The color, the alphas is get from the glyph! (color is sRGB space). */
+  /** The color, the alphas is get from the glyph! (color is sRGB space). The red channel of the
+   * color is used in case of a grayscale buffer. */
   float col_init[4];
   /** Cached conversion from 'col_init'. */
   unsigned char col_char[4];

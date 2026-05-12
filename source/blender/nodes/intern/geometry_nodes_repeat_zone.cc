@@ -210,8 +210,7 @@ class LazyFunctionForRepeatZone : public LazyFunction {
     /* Show a warning when the inspection index is out of range. */
     if (node_storage.inspection_index > 0) {
       if (node_storage.inspection_index >= iterations) {
-        if (geo_eval_log::GeoTreeLogger *tree_logger = local_user_data.try_get_tree_logger(
-                user_data))
+        if (eval_log::NodeTreeLogger *tree_logger = local_user_data.try_get_tree_logger(user_data))
         {
           tree_logger->node_warnings.append(
               *tree_logger->allocator,

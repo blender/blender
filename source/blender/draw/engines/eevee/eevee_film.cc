@@ -571,6 +571,7 @@ void Film::sync()
     accumulate_ps_.dispatch(int3(math::divide_ceil(data_.extent, int2(FILM_GROUP_SIZE)), 1));
   }
   else {
+    accumulate_ps_.push_constant("display_only", &display_only_);
     accumulate_ps_.draw_procedural(GPU_PRIM_TRIS, 1, 3);
   }
 
@@ -858,13 +859,9 @@ void Film::accumulate(View &view, gpu::Texture *combined_final_tx)
     GPU_framebuffer_viewport_set(dfbl->default_fb, UNPACK2(data_.offset), UNPACK2(data_.extent));
   }
 
-  update_sample_table();
-
   combined_final_tx_ = combined_final_tx;
 
-  data_.display_only = false;
-  inst_.uniform_data.push_update();
-
+  display_only_ = false;
   inst_.manager->submit(accumulate_ps_, view);
   inst_.manager->submit(copy_ps_, view);
 
@@ -890,11 +887,9 @@ void Film::display()
 
   combined_final_tx_ = inst_.render_buffers.combined_tx;
 
-  data_.display_only = true;
-  inst_.uniform_data.push_update();
-
   draw::View &drw_view = draw::View::default_get();
 
+  display_only_ = true;
   DRW_manager_get()->submit(accumulate_ps_, drw_view);
 
   inst_.render_buffers.release();

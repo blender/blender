@@ -9,6 +9,8 @@
 
 #pragma once
 
+#include "BLI_enum_flags.hh"
+
 #include "DNA_listBase.h"
 #include "DNA_object_force_types.h"
 
@@ -20,7 +22,7 @@ struct EffectorWeights;
 struct RigidBodyWorld_Runtime;
 
 /** RigidBodyWorld.flag */
-enum eRigidBodyWorld_Flag {
+enum eRigidBodyWorld_Flag : int {
   /* should sim world be skipped when evaluating (user setting) */
   RBW_FLAG_MUTED = (1 << 0),
   /* sim data needs to be rebuilt */
@@ -28,9 +30,10 @@ enum eRigidBodyWorld_Flag {
   /** Use split impulse when stepping the simulation. */
   RBW_FLAG_USE_SPLIT_IMPULSE = (1 << 2),
 };
+ENUM_OPERATORS(eRigidBodyWorld_Flag)
 
 /** #RigidBodyOb.type */
-enum eRigidBodyOb_Type {
+enum eRigidBodyOb_Type : short {
   /* active geometry participant in simulation. is directly controlled by sim */
   RBO_TYPE_ACTIVE = 0,
   /* passive geometry participant in simulation. is directly controlled by animsys */
@@ -38,7 +41,7 @@ enum eRigidBodyOb_Type {
 };
 
 /** #RigidBodyOb.flag */
-enum eRigidBodyOb_Flag {
+enum eRigidBodyOb_Flag : int {
   /* rigidbody is kinematic (controlled by the animation system) */
   RBO_FLAG_KINEMATIC = (1 << 0),
   /* rigidbody needs to be validated (usually set after duplicating and not hooked up yet) */
@@ -56,9 +59,10 @@ enum eRigidBodyOb_Flag {
   /* collision shape deforms during simulation (only for passive triangle mesh shapes) */
   RBO_FLAG_USE_DEFORM = (1 << 7),
 };
+ENUM_OPERATORS(eRigidBodyOb_Flag)
 
 /** Rigid Body Collision Shape. */
-enum eRigidBody_Shape {
+enum eRigidBody_Shape : short {
   /** Simple box (i.e. bounding box). */
   RB_SHAPE_BOX = 0,
   /** Sphere. */
@@ -79,7 +83,7 @@ enum eRigidBody_Shape {
   RB_SHAPE_COMPOUND = 7,
 };
 
-enum eRigidBody_MeshSource {
+enum eRigidBody_MeshSource : short {
   /** Base mesh. */
   RBO_MESH_BASE = 0,
   /** Only deformations. */
@@ -89,7 +93,7 @@ enum eRigidBody_MeshSource {
 };
 
 /** Participation types for #RigidBodyOb.type */
-enum eRigidBodyCon_Type {
+enum eRigidBodyCon_Type : short {
   /** lets bodies rotate around a specified point */
   RBC_TYPE_POINT = 0,
   /** lets bodies rotate around a specified axis */
@@ -118,13 +122,13 @@ enum eRigidBodyCon_Type {
 };
 
 /** Spring implementation type for RigidBodyOb. */
-enum eRigidBodyCon_SpringType {
+enum eRigidBodyCon_SpringType : char {
   RBC_SPRING_TYPE1 = 0, /* btGeneric6DofSpringConstraint */
   RBC_SPRING_TYPE2 = 1, /* btGeneric6DofSpring2Constraint */
 };
 
 /** #RigidBodyCon.flag */
-enum eRigidBodyCon_Flag {
+enum eRigidBodyCon_Flag : int {
   /* constraint influences rigid body motion */
   RBC_FLAG_ENABLED = (1 << 0),
   /* constraint needs to be validated */
@@ -154,6 +158,7 @@ enum eRigidBodyCon_Flag {
   RBC_FLAG_USE_SPRING_ANG_Y = (1 << 17),
   RBC_FLAG_USE_SPRING_ANG_Z = (1 << 18),
 };
+ENUM_OPERATORS(eRigidBodyCon_Flag)
 
 /* ******************************** */
 /* RigidBody World */
@@ -205,8 +210,8 @@ struct RigidBodyWorld {
   /** Number of constraint solver iterations made per simulation step. */
   short num_solver_iterations = 0;
 
-  /** (#eRigidBodyWorld_Flag) settings for this RigidBodyWorld. */
-  int flag = 0;
+  /** Settings for this RigidBodyWorld. */
+  eRigidBodyWorld_Flag flag = {};
   /** Used to speed up or slow down the simulation. */
   float time_scale = 0;
 };
@@ -236,17 +241,16 @@ struct RigidBodyOb_Shared {
  */
 struct RigidBodyOb {
   /* General Settings for this RigidBodyOb */
-  /** (eRigidBodyOb_Type) role of RigidBody in sim. */
-  short type = 0;
-  /** (eRigidBody_Shape) collision shape to use. */
-  short shape = 0;
+  /** Role of RigidBody in sim. */
+  eRigidBodyOb_Type type = RBO_TYPE_ACTIVE;
+  /** Collision shape to use. */
+  eRigidBody_Shape shape = RB_SHAPE_BOX;
 
-  /** (eRigidBodyOb_Flag). */
-  int flag = 0;
+  eRigidBodyOb_Flag flag = {};
   /** Collision groups that determines which rigid bodies can collide with each other. */
   int col_groups = 0;
-  /** (eRigidBody_MeshSource) mesh source for mesh based collision shapes. */
-  short mesh_source = 0;
+  /** Mesh source for mesh based collision shapes. */
+  eRigidBody_MeshSource mesh_source = RBO_MESH_BASE;
   char _pad[2] = {};
 
   /* Physics Parameters */
@@ -295,18 +299,17 @@ struct RigidBodyCon {
   struct Object *ob2 = nullptr;
 
   /* General Settings for this RigidBodyCon */
-  /** (eRigidBodyCon_Type) role of RigidBody in sim. */
-  short type = 0;
+  /** Role of RigidBody in sim. */
+  eRigidBodyCon_Type type = RBC_TYPE_POINT;
   /** Number of constraint solver iterations made per simulation step. */
   short num_solver_iterations = 0;
 
-  /** (eRigidBodyCon_Flag). */
-  int flag = 0;
+  eRigidBodyCon_Flag flag = {};
 
   /** Breaking impulse threshold. */
   float breaking_threshold = 0;
   /** Spring implementation to use. */
-  char spring_type = 0;
+  eRigidBodyCon_SpringType spring_type = RBC_SPRING_TYPE1;
   char _pad[3] = {};
 
   /* limits */

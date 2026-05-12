@@ -1264,7 +1264,7 @@ bool lineart_main_try_generate_shadow_v3(
                                scene,
                                nullptr,
                                ld,
-                               lmd->flags & MOD_LINEART_ALLOW_DUPLI_OBJECTS,
+                               int(lmd->flags) & int(MOD_LINEART_ALLOW_DUPLI_OBJECTS),
                                true,
                                nullptr,
                                included_objects);

@@ -71,13 +71,16 @@ void immDrawPixelsTexScaledFullSize(const IMMDrawPixelsTexState *state,
                                     const float color[4]);
 
 /**
- * #immDrawPixelsTex - Functions like a limited #glDrawPixels, but actually draws the
- * image using textures, which can be tremendously faster on low-end
- * cards, and also avoids problems with the raster position being
- * clipped when off-screen. Pixel unpacking parameters and
- * the #glPixelZoom values are _not_ respected.
- *
+ * Uses the currently bound shader.
  * \attention Use #immDrawPixelsTexSetup before calling this function.
+ *
+ * If using a special shader double check it uses the same
+ * attributes "pos" "texCoord" and uniform "image".
+ *
+ * If color is NULL then use white by default
+ *
+ * Unless <em>state->do_shader_unbind<em> is explicitly set to `false`, the shader is unbound when
+ * finished.
  *
  * \attention This routine makes many assumptions: the `rect` data
  * is expected to be in RGBA byte or float format, and the
@@ -95,21 +98,6 @@ void immDrawPixelsTexTiled(IMMDrawPixelsTexState *state,
                            float xzoom,
                            float yzoom,
                            const float color[4]);
-void immDrawPixelsTexTiled_clipping(IMMDrawPixelsTexState *state,
-                                    float x,
-                                    float y,
-                                    int img_w,
-                                    int img_h,
-                                    gpu::TextureFormat gpu_format,
-                                    bool use_filter,
-                                    const void *rect,
-                                    float clip_min_x,
-                                    float clip_min_y,
-                                    float clip_max_x,
-                                    float clip_max_y,
-                                    float xzoom,
-                                    float yzoom,
-                                    const float color[4]);
 void immDrawPixelsTexTiled_scaling(IMMDrawPixelsTexState *state,
                                    float x,
                                    float y,
@@ -123,47 +111,13 @@ void immDrawPixelsTexTiled_scaling(IMMDrawPixelsTexState *state,
                                    float xzoom,
                                    float yzoom,
                                    const float color[4]);
-/**
- * Use the currently bound shader.
- *
- * Use #immDrawPixelsTexSetup to bind the shader you
- * want before calling #immDrawPixelsTex.
- *
- * If using a special shader double check it uses the same
- * attributes "pos" "texCoord" and uniform "image".
- *
- * If color is NULL then use white by default
- *
- * Unless <em>state->do_shader_unbind<em> is explicitly set to `false`, the shader is unbound when
- * finished.
- */
-void immDrawPixelsTexTiled_scaling_clipping(IMMDrawPixelsTexState *state,
-                                            float x,
-                                            float y,
-                                            int img_w,
-                                            int img_h,
-                                            gpu::TextureFormat gpu_format,
-                                            bool use_filter,
-                                            const void *rect,
-                                            float scaleX,
-                                            float scaleY,
-                                            float clip_min_x,
-                                            float clip_min_y,
-                                            float clip_max_x,
-                                            float clip_max_y,
-                                            float xzoom,
-                                            float yzoom,
-                                            const float color[4]);
 
 /* Image buffer drawing functions, with display transform
  *
  * The view and display settings can either be specified manually,
- * or retrieved from the context with the '_ctx' variations.
- *
- * For better performance clipping coordinates can be specified so parts of the
- * image outside the view are skipped. */
+ * or retrieved from the context with the '_ctx' variations.*/
 
-void ED_draw_imbuf(ImBuf *ibuf,
+void ED_draw_imbuf(const ImBuf *ibuf,
                    float x,
                    float y,
                    bool use_filter,
@@ -174,34 +128,13 @@ void ED_draw_imbuf(ImBuf *ibuf,
 /**
  * Draw given image buffer on a screen using GLSL for display transform.
  */
-void ED_draw_imbuf_clipping(ImBuf *ibuf,
-                            float x,
-                            float y,
-                            bool use_filter,
-                            const ColorManagedViewSettings *view_settings,
-                            const ColorManagedDisplaySettings *display_settings,
-                            float clip_min_x,
-                            float clip_min_y,
-                            float clip_max_x,
-                            float clip_max_y,
-                            float zoom_x,
-                            float zoom_y);
-
-void ED_draw_imbuf_ctx(
-    const bContext *C, ImBuf *ibuf, float x, float y, bool use_filter, float zoom_x, float zoom_y);
-void ED_draw_imbuf_ctx_clipping(const bContext *C,
-                                ImBuf *ibuf,
-                                float x,
-                                float y,
-                                bool use_filter,
-                                float clip_min_x,
-                                float clip_min_y,
-                                float clip_max_x,
-                                float clip_max_y,
-                                float zoom_x,
-                                float zoom_y);
-
-int ED_draw_imbuf_method(const ImBuf *ibuf);
+void ED_draw_imbuf_ctx(const bContext *C,
+                       const ImBuf *ibuf,
+                       float x,
+                       float y,
+                       bool use_filter,
+                       float zoom_x,
+                       float zoom_y);
 
 /**
  * Don't move to `GPU_immediate_util.hh`

@@ -609,11 +609,11 @@ void gpu::MTLTexture::update_sub(int mip,
           totalsize = input_bytes_per_pixel * max_ulul(expected_update_w, 1);
           break;
         case 2:
-          totalsize = input_bytes_per_pixel * max_ulul(expected_update_w, 1) * (size_t)extent[1];
+          totalsize = input_bytes_per_pixel * max_ulul(expected_update_w, 1) * size_t(extent[1]);
           break;
         case 3:
-          totalsize = input_bytes_per_pixel * max_ulul(expected_update_w, 1) * (size_t)extent[1] *
-                      (size_t)extent[2];
+          totalsize = input_bytes_per_pixel * max_ulul(expected_update_w, 1) * size_t(extent[1]) *
+                      size_t(extent[2]);
           break;
         default:
           BLI_assert(false);
@@ -809,7 +809,7 @@ void gpu::MTLTexture::update_sub(int mip,
           int max_array_index = ((type_ == GPU_TEXTURE_1D_ARRAY) ? extent[1] : 1);
           for (int array_index = 0; array_index < max_array_index; array_index++) {
 
-            size_t buffer_array_offset = (bytes_per_image * (size_t)array_index);
+            size_t buffer_array_offset = (bytes_per_image * size_t(array_index));
             [blit_encoder
                      copyFromBuffer:staging_buffer
                        sourceOffset:buffer_array_offset

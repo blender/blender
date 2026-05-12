@@ -163,14 +163,7 @@ ccl_device void subsurface_shader_data_setup(KernelGlobals kg, ccl_private Shade
   sd->num_closure_left = kernel_data.max_closures;
 
   const Spectrum weight = one_spectrum();
-
-  ccl_private DiffuseBsdf *bsdf = (ccl_private DiffuseBsdf *)bsdf_alloc(
-      sd, sizeof(DiffuseBsdf), weight);
-
-  if (bsdf) {
-    bsdf->N = N;
-    sd->flag |= bsdf_diffuse_setup(bsdf);
-  }
+  bsdf_diffuse_setup(sd, N, weight);
 }
 
 ccl_device_inline bool subsurface_scatter(KernelGlobals kg, IntegratorState state)

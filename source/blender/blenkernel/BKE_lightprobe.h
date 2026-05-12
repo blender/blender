@@ -21,7 +21,9 @@ struct LightProbeObjectCache;
 struct LightProbeGridCacheFrame;
 struct Object;
 
-void BKE_lightprobe_type_set(struct LightProbe *probe, short lightprobe_type);
+enum eLightProbeType : char;
+
+void BKE_lightprobe_type_set(struct LightProbe *probe, eLightProbeType lightprobe_type);
 struct LightProbe *BKE_lightprobe_add(struct Main *bmain, const char *name);
 
 void BKE_lightprobe_cache_blend_write(struct BlendWriter *writer,
@@ -33,7 +35,7 @@ void BKE_lightprobe_cache_blend_read(struct BlendDataReader *reader,
 /**
  * Create a single empty irradiance grid cache.
  */
-struct LightProbeGridCacheFrame *BKE_lightprobe_grid_cache_frame_create(void);
+struct LightProbeGridCacheFrame *BKE_lightprobe_grid_cache_frame_create();
 
 /**
  * Create a copy of a cache frame.

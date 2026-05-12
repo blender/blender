@@ -80,29 +80,44 @@ struct TestType {
 
 }  // namespace tests
 
-BLI_CPP_TYPE_MAKE(tests::TestType, CPPTypeFlags::BasicType)
+template<> void hash_unique_default(const tests::TestType &value, UniqueHashBytes &hash)
+{
+  const int int_value = value.value;
+  hash.add(int_value);
+}
 
 namespace tests {
 
-static const CPPType &CPPType_TestType = CPPType::get<TestType>();
+class CPPTypeTest : public testing::Test {
+ public:
+  const CPPType &CPPType_TestType;
 
-TEST(cpp_type, Size)
+  CPPTypeTest() : CPPType_TestType(CPPType::get<TestType>()) {}
+
+  static void SetUpTestSuite()
+  {
+    register_cpp_types();
+    BLI_CPP_TYPE_REGISTER(tests::TestType, CPPTypeFlags::BasicType);
+  }
+};
+
+TEST_F(CPPTypeTest, Size)
 {
   EXPECT_EQ(CPPType_TestType.size, sizeof(TestType));
 }
 
-TEST(cpp_type, Alignment)
+TEST_F(CPPTypeTest, Alignment)
 {
   EXPECT_EQ(CPPType_TestType.alignment, alignof(TestType));
 }
 
-TEST(cpp_type, Is)
+TEST_F(CPPTypeTest, Is)
 {
   EXPECT_TRUE(CPPType_TestType.is<TestType>());
   EXPECT_FALSE(CPPType_TestType.is<int>());
 }
 
-TEST(cpp_type, DefaultConstruction)
+TEST_F(CPPTypeTest, DefaultConstruction)
 {
   int buffer[10] = {0};
   CPPType_TestType.default_construct(static_cast<void *>(buffer));
@@ -124,14 +139,14 @@ TEST(cpp_type, DefaultConstruction)
   EXPECT_EQ(buffer[8], 0);
 }
 
-TEST(cpp_type, DefaultConstructTrivial)
+TEST_F(CPPTypeTest, DefaultConstructTrivial)
 {
   int value = 5;
   CPPType::get<int>().default_construct(&value);
   EXPECT_EQ(value, 5);
 }
 
-TEST(cpp_type, ValueInitialize)
+TEST_F(CPPTypeTest, ValueInitialize)
 {
   int buffer[10] = {0};
   CPPType_TestType.value_initialize(static_cast<void *>(buffer));
@@ -153,14 +168,14 @@ TEST(cpp_type, ValueInitialize)
   EXPECT_EQ(buffer[8], 0);
 }
 
-TEST(cpp_type, ValueInitializeTrivial)
+TEST_F(CPPTypeTest, ValueInitializeTrivial)
 {
   int value = 5;
   CPPType::get<int>().value_initialize(&value);
   EXPECT_EQ(value, 0);
 }
 
-TEST(cpp_type, Destruct)
+TEST_F(CPPTypeTest, Destruct)
 {
   int buffer[10] = {0};
   CPPType_TestType.destruct(static_cast<void *>(buffer));
@@ -182,7 +197,7 @@ TEST(cpp_type, Destruct)
   EXPECT_EQ(buffer[8], 0);
 }
 
-TEST(cpp_type, CopyToUninitialized)
+TEST_F(CPPTypeTest, CopyToUninitialized)
 {
   int buffer1[10] = {0};
   int buffer2[10] = {0};
@@ -216,7 +231,7 @@ TEST(cpp_type, CopyToUninitialized)
   EXPECT_EQ(buffer2[8], 0);
 }
 
-TEST(cpp_type, CopyToInitialized)
+TEST_F(CPPTypeTest, CopyToInitialized)
 {
   int buffer1[10] = {0};
   int buffer2[10] = {0};
@@ -250,7 +265,7 @@ TEST(cpp_type, CopyToInitialized)
   EXPECT_EQ(buffer2[8], 0);
 }
 
-TEST(cpp_type, RelocateToUninitialized)
+TEST_F(CPPTypeTest, RelocateToUninitialized)
 {
   int buffer1[10] = {0};
   int buffer2[10] = {0};
@@ -285,7 +300,7 @@ TEST(cpp_type, RelocateToUninitialized)
   EXPECT_EQ(buffer2[8], 0);
 }
 
-TEST(cpp_type, RelocateToInitialized)
+TEST_F(CPPTypeTest, RelocateToInitialized)
 {
   int buffer1[10] = {0};
   int buffer2[10] = {0};
@@ -320,7 +335,7 @@ TEST(cpp_type, RelocateToInitialized)
   EXPECT_EQ(buffer2[8], 0);
 }
 
-TEST(cpp_type, FillInitialized)
+TEST_F(CPPTypeTest, FillInitialized)
 {
   int buffer1 = 0;
   int buffer2[10] = {0};
@@ -349,7 +364,7 @@ TEST(cpp_type, FillInitialized)
   EXPECT_EQ(buffer2[9], 0);
 }
 
-TEST(cpp_type, FillUninitialized)
+TEST_F(CPPTypeTest, FillUninitialized)
 {
   int buffer1 = 0;
   int buffer2[10] = {0};
@@ -379,7 +394,7 @@ TEST(cpp_type, FillUninitialized)
   EXPECT_EQ(buffer2[9], 0);
 }
 
-TEST(cpp_type, DebugPrint)
+TEST_F(CPPTypeTest, DebugPrint)
 {
   int value = 42;
   std::stringstream ss;
@@ -388,7 +403,7 @@ TEST(cpp_type, DebugPrint)
   EXPECT_EQ(text, "42");
 }
 
-TEST(cpp_type, ToStaticType)
+TEST_F(CPPTypeTest, ToStaticType)
 {
   Vector<const CPPType *> types;
   auto fn = [&]<typename T>() { types.append(&CPPType::get<T>()); };
@@ -401,7 +416,7 @@ TEST(cpp_type, ToStaticType)
   EXPECT_EQ(types[1], &CPPType::get<float>());
 }
 
-TEST(cpp_type, CopyAssignCompressed)
+TEST_F(CPPTypeTest, CopyAssignCompressed)
 {
   std::array<std::string, 5> array = {"a", "b", "c", "d", "e"};
   std::array<std::string, 3> array_compressed;

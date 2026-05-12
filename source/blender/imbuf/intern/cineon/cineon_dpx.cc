@@ -66,18 +66,13 @@ static ImBuf *imb_load_dpx_cineon(
   return ibuf;
 }
 
-static int imb_save_dpx_cineon(ImBuf *ibuf, const char *filepath, int use_cineon, int flags)
+static int imb_save_dpx_cineon(ImBuf *ibuf, const char *filepath, int use_cineon)
 {
   LogImageFile *logImage;
   float *fbuf;
   float *fbuf_ptr;
   const uchar *rect_ptr;
   int x, y, depth, bitspersample, rvalue;
-
-  if (flags & IB_mem) {
-    printf("DPX/Cineon: saving in memory is not supported.\n");
-    return 0;
-  }
 
   logImageSetVerbose((G.debug & G_DEBUG) ? 1 : 0);
 
@@ -174,9 +169,9 @@ static int imb_save_dpx_cineon(ImBuf *ibuf, const char *filepath, int use_cineon
   return rvalue;
 }
 
-bool imb_save_cineon(ImBuf *buf, const char *filepath, int flags)
+bool imb_save_cineon(ImBuf *buf, const char *filepath, int /*flags*/)
 {
-  return imb_save_dpx_cineon(buf, filepath, 1, flags);
+  return imb_save_dpx_cineon(buf, filepath, 1);
 }
 
 bool imb_is_a_cineon(const uchar *mem, size_t size)

@@ -12,6 +12,7 @@
 #include "AS_asset_catalog.hh"
 #include "AS_asset_catalog_tree.hh"
 #include "AS_asset_library.hh"
+#include "AS_essentials_library.hh"
 #include "asset_catalog_collection.hh"
 #include "asset_catalog_definition_file.hh"
 
@@ -47,6 +48,8 @@ AssetCatalogService::AssetCatalogService(read_only_tag /*unused*/) : AssetCatalo
 {
   const_cast<bool &>(is_read_only_) = true;
 }
+
+AssetCatalogService::~AssetCatalogService() = default;
 
 void AssetCatalogService::tag_has_unsaved_changes(AssetCatalog *edited_catalog)
 {
@@ -378,6 +381,10 @@ std::unique_ptr<AssetCatalogDefinitionFile> AssetCatalogService::parse_catalog_f
 
   auto catalog_parsed_callback = [this, catalog_definition_file_path, &seen_paths](
                                      std::unique_ptr<AssetCatalog> catalog) {
+    if (skip_experimental_asset_catalog(catalog->catalog_id)) {
+      return false;
+    }
+
     if (catalog_collection_->catalogs_.contains(catalog->catalog_id)) {
       /* TODO(@sybren): apparently another CDF was already loaded. This is not supported yet. */
       std::cerr << catalog_definition_file_path << ": multiple definitions of catalog "
@@ -411,6 +418,10 @@ void AssetCatalogService::reload_catalogs()
   Set<CatalogID> cats_in_file;
 
   auto catalog_parsed_callback = [this, &cats_in_file](std::unique_ptr<AssetCatalog> catalog) {
+    if (skip_experimental_asset_catalog(catalog->catalog_id)) {
+      return false;
+    }
+
     const CatalogID catalog_id = catalog->catalog_id;
     cats_in_file.add(catalog_id);
 
@@ -624,14 +635,14 @@ void AssetCatalogService::create_missing_catalogs()
     const AssetCatalogPath path = *paths_to_check.begin();
     paths_to_check.erase(paths_to_check.begin());
 
-    if (seen_paths.find(path) != seen_paths.end()) {
+    if (seen_paths.contains(path)) {
       /* This path has been seen already, so it can be ignored. */
       continue;
     }
     seen_paths.insert(path);
 
     const AssetCatalogPath parent_path = path.parent();
-    if (seen_paths.find(parent_path) != seen_paths.end()) {
+    if (seen_paths.contains(parent_path)) {
       /* The parent exists, continue to the next path. */
       continue;
     }

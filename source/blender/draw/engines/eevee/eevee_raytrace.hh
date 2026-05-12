@@ -154,54 +154,57 @@ class RayTraceModule {
   draw::PassSimple denoise_spatial_ps_ = {"DenoiseSpatial"};
   draw::PassSimple denoise_temporal_ps_ = {"DenoiseTemporal"};
   draw::PassSimple denoise_bilateral_ps_ = {"DenoiseBilateral"};
-  draw::PassSimple horizon_schedule_ps_ = {"HorizonScan.Schedule"};
-  draw::PassSimple horizon_setup_ps_ = {"HorizonScan.Setup"};
-  draw::PassSimple horizon_scan_ps_ = {"HorizonScan.Trace"};
-  draw::PassSimple horizon_denoise_ps_ = {"HorizonScan.Denoise"};
-  draw::PassSimple horizon_resolve_ps_ = {"HorizonScan.Resolve"};
+  draw::PassSimple fast_gi_schedule_ps_ = {"FastGI.Schedule"};
+  draw::PassSimple fast_gi_setup_ps_ = {"FastGI.Setup"};
+  draw::PassSimple fast_gi_scan_ps_ = {"FastGI.Trace"};
+  draw::PassSimple fast_gi_denoise_ps_ = {"FastGI.Denoise"};
+  draw::PassSimple fast_gi_resolve_ps_ = {"FastGI.Resolve"};
 
   /** Dispatch with enough tiles for the whole screen. */
   int3 tile_classify_dispatch_size_ = int3(1);
   /** Dispatch with enough tiles for the tile mask. */
   int3 tile_compact_dispatch_size_ = int3(1);
-  int3 horizon_schedule_dispatch_size_ = int3(1);
+  int3 fast_gi_schedule_dispatch_size_ = int3(1);
   /** Dispatch with enough tiles for the tracing resolution. */
   int3 tracing_dispatch_size_ = int3(1);
-  int3 horizon_tracing_dispatch_size_ = int3(1);
+  int3 fast_gi_tracing_dispatch_size_ = int3(1);
   /** 2D tile mask to check which unused adjacent tile we need to clear and which tile we need to
    * dispatch for each work type. */
   Texture tile_raytrace_denoise_tx_ = {"tile_raytrace_denoise_tx_"};
   Texture tile_raytrace_tracing_tx_ = {"tile_raytrace_tracing_tx_"};
-  Texture tile_horizon_denoise_tx_ = {"tile_horizon_denoise_tx_"};
-  Texture tile_horizon_tracing_tx_ = {"tile_horizon_tracing_tx_"};
+  Texture tile_fast_gi_denoise_tx_ = {"tile_fast_gi_denoise_tx_"};
+  Texture tile_fast_gi_tracing_tx_ = {"tile_fast_gi_tracing_tx_"};
   /** Indirect dispatch rays. Avoid dispatching work-groups that will not trace anything. */
   DispatchIndirectBuf raytrace_tracing_dispatch_buf_ = {"raytrace_tracing_dispatch_buf_"};
   /** Indirect dispatch denoise full-resolution tiles. */
   DispatchIndirectBuf raytrace_denoise_dispatch_buf_ = {"raytrace_denoise_dispatch_buf_"};
-  /** Indirect dispatch horizon scan. Avoid dispatching work-groups that will not scan anything. */
-  DispatchIndirectBuf horizon_tracing_dispatch_buf_ = {"horizon_tracing_dispatch_buf_"};
+  /** Indirect dispatch fast GI scan. Avoid dispatching work-groups that will not scan anything. */
+  DispatchIndirectBuf fast_gi_tracing_dispatch_buf_ = {"fast_gi_tracing_dispatch_buf_"};
   /** Indirect dispatch denoise full-resolution tiles. */
-  DispatchIndirectBuf horizon_denoise_dispatch_buf_ = {"horizon_denoise_dispatch_buf_"};
-  /** Pointer to the texture to store the result of horizon scan in. */
-  gpu::Texture *horizon_scan_output_tx_[3] = {nullptr};
+  DispatchIndirectBuf fast_gi_denoise_dispatch_buf_ = {"fast_gi_denoise_dispatch_buf_"};
+  /** Pointer to the texture to store the result of fast GI scan in. */
+  gpu::Texture *fast_gi_scan_output_tx_[3] = {nullptr};
   /** Tile buffer that contains tile coordinates. */
   RayTraceTileBuf raytrace_tracing_tiles_buf_ = {"raytrace_tracing_tiles_buf_"};
   RayTraceTileBuf raytrace_denoise_tiles_buf_ = {"raytrace_denoise_tiles_buf_"};
-  RayTraceTileBuf horizon_tracing_tiles_buf_ = {"horizon_tracing_tiles_buf_"};
-  RayTraceTileBuf horizon_denoise_tiles_buf_ = {"horizon_denoise_tiles_buf_"};
+  RayTraceTileBuf fast_gi_tracing_tiles_buf_ = {"fast_gi_tracing_tiles_buf_"};
+  RayTraceTileBuf fast_gi_denoise_tiles_buf_ = {"fast_gi_denoise_tiles_buf_"};
   /** Texture containing the ray direction and PDF. */
   TextureFromPool ray_data_tx_ = {"ray_data_tx"};
   /** Texture containing the ray hit time. */
   TextureFromPool ray_time_tx_ = {"ray_data_tx"};
   /** Texture containing the ray hit radiance (tracing-res). */
   TextureFromPool ray_radiance_tx_ = {"ray_radiance_tx"};
-  /** Texture containing the horizon local radiance. */
-  TextureFromPool horizon_radiance_tx_[4] = {{"horizon_radiance_tx_"}};
-  TextureFromPool horizon_radiance_denoised_tx_[4] = {{"horizon_radiance_denoised_tx_"}};
+  /** Texture containing the fast GI local radiance. */
+  TextureFromPool fast_gi_radiance_tx_[4] = {{"fast_gi_radiance_tx_"}};
+  TextureFromPool fast_gi_radiance_denoised_tx_[4] = {{"fast_gi_radiance_denoised_tx_"}};
   /** Texture containing the input screen radiance but re-projected. */
-  TextureFromPool downsampled_in_radiance_tx_ = {"downsampled_in_radiance_tx_"};
+  Texture downsampled_in_radiance_tx_ = {"downsampled_in_radiance_tx_"};
   /** Texture containing the view space normal. The BSDF normal is arbitrarily chosen. */
-  TextureFromPool downsampled_in_normal_tx_ = {"downsampled_in_normal_tx_"};
+  Texture downsampled_in_normal_tx_ = {"downsampled_in_normal_tx_"};
+  /** Pointers to the mip view of the above textures. Available after sync. */
+  gpu::Texture *downsampled_in_radiance_tx_ptr_[4] = {nullptr};
+  gpu::Texture *downsampled_in_normal_tx_ptr_[4] = {nullptr};
   /** Textures containing the ray hit radiance denoised (full-res). One of them is result_tx. */
   gpu::Texture *denoised_spatial_tx_ = nullptr;
   gpu::Texture *denoised_temporal_tx_ = nullptr;
@@ -253,19 +256,13 @@ class RayTraceModule {
    * current state.
    *
    * \arg rt_buffer is the layer's permanent storage.
-   * \arg screen_radiance_back_tx is the texture used for screen space transmission rays.
-   * \arg screen_radiance_front_tx is the texture used for screen space reflection rays.
-   * \arg screen_radiance_persmat is the view projection matrix used for screen_radiance_front_tx.
    * \arg active_closures is a mask of all active closures in a deferred layer.
-   * \arg main_view is the un-jittered view.
    * \arg render_view is the TAA jittered view.
    * \arg force_no_tracing will run the pipeline without any tracing, relying only on local probes.
    */
   RayTraceResult render(RayTraceBuffer &rt_buffer,
                         gpu::Texture *screen_radiance_back_tx,
                         eClosureBits active_closures,
-                        /* TODO(fclem): Maybe wrap these two in some other class. */
-                        View &main_view,
                         View &render_view);
 
   /**
@@ -291,13 +288,18 @@ class RayTraceModule {
     return use_raytracing() && ray_tracing_options_.trace_max_roughness < 1.0f;
   }
 
+  /**
+   * Update screen space thickness parameters.
+   * Needs to be called early in the frame to allow raycast node usage.
+   * Needs uniform_data.push_update() to be called afterward to take effect.
+   */
+  void thickness_parameters_setup(const float4x4 &winmat, const int2 extent);
+
  private:
   RayTraceResultTexture trace(int closure_index,
                               bool active_layer,
                               RaytraceEEVEE options,
                               RayTraceBuffer &rt_buffer,
-                              /* TODO(fclem): Maybe wrap these two in some other class. */
-                              View &main_view,
                               View &render_view);
 };
 

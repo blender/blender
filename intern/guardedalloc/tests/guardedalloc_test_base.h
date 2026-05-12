@@ -11,7 +11,7 @@
 
 class LockFreeAllocatorTest : public ::testing::Test {
  protected:
-  virtual void SetUp()
+  void SetUp() override
   {
     MEM_use_lockfree_allocator();
   }
@@ -19,7 +19,7 @@ class LockFreeAllocatorTest : public ::testing::Test {
 
 class GuardedAllocatorTest : public ::testing::Test {
  protected:
-  virtual void SetUp()
+  void SetUp() override
   {
     MEM_use_guarded_allocator();
   }

@@ -1461,7 +1461,7 @@ wmOperatorStatus WM_operator_call_notest(bContext *C, wmOperator *op)
 
 wmOperatorStatus WM_operator_repeat(bContext *C, wmOperator *op)
 {
-  const int op_flag = OP_IS_REPEAT;
+  const eOperator_Flag op_flag = OP_IS_REPEAT;
   op->flag |= op_flag;
   const wmOperatorStatus ret = wm_operator_exec(C, op, true, true);
   op->flag &= ~op_flag;
@@ -1469,7 +1469,7 @@ wmOperatorStatus WM_operator_repeat(bContext *C, wmOperator *op)
 }
 wmOperatorStatus WM_operator_repeat_last(bContext *C, wmOperator *op)
 {
-  const int op_flag = OP_IS_REPEAT_LAST;
+  const eOperator_Flag op_flag = OP_IS_REPEAT_LAST;
   op->flag |= op_flag;
   const wmOperatorStatus ret = wm_operator_exec(C, op, true, true);
   op->flag &= ~op_flag;
@@ -4075,8 +4075,8 @@ static void wm_event_handle_xrevent(wmWindowManager *wm,
 
   /* Check if the XR context scene matches the main Blender context scene to counter-act possible
    * re-allocation on undo operator execution. */
-  const unsigned int xr_ctx_scene_uid = CTX_data_scene(xr_context)->id.session_uid;
-  const unsigned int main_ctx_scene_uid = CTX_data_scene(main_context)->id.session_uid;
+  const uint xr_ctx_scene_uid = CTX_data_scene(xr_context)->id.session_uid;
+  const uint main_ctx_scene_uid = CTX_data_scene(main_context)->id.session_uid;
   const bool ctx_xr_main_scene_match = (xr_ctx_scene_uid == main_ctx_scene_uid);
 
   /* Only process XR operator handlers to prevent interferences with main window handlers.
@@ -5068,6 +5068,9 @@ bool WM_event_handler_region_v2d_mask_poll(const wmWindow * /*win*/,
                                            const ARegion *region,
                                            const wmEvent *event)
 {
+  if (wm_event_always_pass(event)) {
+    return true;
+  }
   rcti rect = region->v2d.mask;
   BLI_rcti_translate(&rect, region->winrct.xmin, region->winrct.ymin);
   return event_or_prev_in_rect(event, &rect);

@@ -97,14 +97,15 @@ static void blend_read(BlendDataReader *reader, ModifierData *md)
   modifier::greasepencil::read_influence_data(reader, &mmd->influence);
 }
 
-static Array<int> point_counts_to_keep_concurrent(const bke::CurvesGeometry &curves,
-                                                  const IndexMask &selection,
-                                                  const int time_alignment,
-                                                  const int transition,
-                                                  const float factor,
-                                                  const bool clamp_points,
-                                                  int &r_curves_num,
-                                                  int &r_points_num)
+static Array<int> point_counts_to_keep_concurrent(
+    const bke::CurvesGeometry &curves,
+    const IndexMask &selection,
+    const GreasePencilBuildTimeAlignment time_alignment,
+    const GreasePencilBuildTransition transition,
+    const float factor,
+    const bool clamp_points,
+    int &r_curves_num,
+    int &r_points_num)
 {
   const int stroke_count = curves.curves_num();
   const OffsetIndices<int> points_by_curve = curves.points_by_curve();
@@ -169,8 +170,8 @@ static Array<int> point_counts_to_keep_concurrent(const bke::CurvesGeometry &cur
 static bke::CurvesGeometry build_concurrent(bke::greasepencil::Drawing &drawing,
                                             bke::CurvesGeometry &curves,
                                             const IndexMask &selection,
-                                            const int time_alignment,
-                                            const int transition,
+                                            const GreasePencilBuildTimeAlignment time_alignment,
+                                            const GreasePencilBuildTransition transition,
                                             const float factor,
                                             const float factor_start,
                                             const float factor_opacity,
@@ -282,7 +283,7 @@ static bke::CurvesGeometry build_concurrent(bke::greasepencil::Drawing &drawing,
 
 static void points_info_sequential(const bke::CurvesGeometry &curves,
                                    const IndexMask &selection,
-                                   const int transition,
+                                   const GreasePencilBuildTransition transition,
                                    const float factor,
                                    const bool clamp_points,
                                    int &r_curves_num,
@@ -325,7 +326,7 @@ static void points_info_sequential(const bke::CurvesGeometry &curves,
 static bke::CurvesGeometry build_sequential(bke::greasepencil::Drawing &drawing,
                                             bke::CurvesGeometry &curves,
                                             const IndexMask &selection,
-                                            const int transition,
+                                            const GreasePencilBuildTransition transition,
                                             const float factor,
                                             const float factor_start,
                                             const float factor_opacity,
@@ -657,9 +658,12 @@ static void build_drawing(const GreasePencilBuildModifierData &mmd,
     std::swap(factor, factor_start);
   }
 
-  const float use_time_alignment = mmd.transition != MOD_GREASE_PENCIL_BUILD_TRANSITION_GROW ?
-                                       !mmd.time_alignment :
-                                       mmd.time_alignment;
+  const GreasePencilBuildTimeAlignment use_time_alignment =
+      mmd.transition != MOD_GREASE_PENCIL_BUILD_TRANSITION_GROW ?
+          ((mmd.time_alignment == MOD_GREASE_PENCIL_BUILD_TIMEALIGN_START) ?
+               MOD_GREASE_PENCIL_BUILD_TIMEALIGN_END :
+               MOD_GREASE_PENCIL_BUILD_TIMEALIGN_START) :
+          mmd.time_alignment;
   switch (mmd.mode) {
     default:
     case MOD_GREASE_PENCIL_BUILD_MODE_SEQUENTIAL:

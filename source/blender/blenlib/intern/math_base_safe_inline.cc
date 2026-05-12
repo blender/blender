@@ -60,7 +60,7 @@ MINLINE float safe_acosf(float a)
 
 MINLINE float safe_powf(float base, float exponent)
 {
-  if (UNLIKELY(base < 0.0f && exponent != (int)exponent)) {
+  if (UNLIKELY(base < 0.0f && exponent != int(exponent))) {
     return 0.0f;
   }
   return powf(base, exponent);

@@ -1203,28 +1203,22 @@ void render_result_rect_fill_zero(RenderResult *rr, const int view_id)
 }
 
 void render_result_rect_get_pixels(RenderResult *rr,
-                                   uint *rect,
+                                   uint8_t *rect,
                                    int rectx,
                                    int recty,
                                    const ColorManagedViewSettings *view_settings,
                                    const ColorManagedDisplaySettings *display_settings,
                                    const int view_id)
 {
-  RenderView *rv = RE_RenderViewGetById(rr, view_id);
-  if (ImBuf *ibuf = rv ? rv->ibuf : nullptr) {
+  const RenderView *rv = RE_RenderViewGetById(rr, view_id);
+  if (const ImBuf *ibuf = rv ? rv->ibuf : nullptr) {
     if (ibuf->byte_data()) {
-      memcpy(rect, ibuf->byte_data_for_write(), sizeof(int) * rr->rectx * rr->recty);
+      memcpy(rect, ibuf->byte_data(), sizeof(int) * rr->rectx * rr->recty);
       return;
     }
     if (ibuf->float_data()) {
-      IMB_display_buffer_transform_apply(reinterpret_cast<uchar *>(rect),
-                                         ibuf->float_data_for_write(),
-                                         rr->rectx,
-                                         rr->recty,
-                                         4,
-                                         view_settings,
-                                         display_settings,
-                                         true);
+      IMB_colormanagement_scene_linear_to_display_buffer(
+          rect, ibuf->float_data(), rr->rectx, rr->recty, view_settings, display_settings);
       return;
     }
   }

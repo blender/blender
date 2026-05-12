@@ -31,6 +31,7 @@ enum [[host_shared]] gpMaterialFlag : uint32_t {
   GP_DOTS_PLACEMENT_MODE_COUNT = 0u,
   GP_DOTS_PLACEMENT_MODE_DENSITY = (1u << 16u),
   GP_DOTS_PLACEMENT_MODE_RADIUS = (1u << 17u),
+  GP_DOTS_USE_RANDOMIZATION = (1u << 18u),
 };
 
 enum [[host_shared]] gpLightType : uint32_t {
@@ -78,6 +79,7 @@ struct [[host_shared]] gpMaterial {
   /** NOTE(@fclem): Needs floatBitsToUint(). */
 #  define _flag packed2.w
 #endif
+  uint4 random_packed;
 };
 
 struct [[host_shared]] gpLight {

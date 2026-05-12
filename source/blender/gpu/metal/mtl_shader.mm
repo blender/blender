@@ -60,6 +60,25 @@ const char *to_string(ShaderStage stage)
   return "Unknown Shader Stage";
 }
 
+std::string shader_stage_define(const ShaderStage stage)
+{
+  std::string define = "#define ";
+  switch (stage) {
+    case ShaderStage::VERTEX:
+      define += "GPU_VERTEX_SHADER";
+      break;
+    case ShaderStage::FRAGMENT:
+      define += "GPU_FRAGMENT_SHADER";
+      break;
+    case ShaderStage::COMPUTE:
+      define += "GPU_COMPUTE_SHADER";
+      break;
+    default:
+      BLI_assert_unreachable();
+  }
+  return define;
+}
+
 /* -------------------------------------------------------------------- */
 /** \name Creation / Destruction.
  * \{ */
@@ -222,6 +241,8 @@ id<MTLLibrary> MTLShader::create_shader_library(const shader::ShaderCreateInfo &
   std::string shader_compat;
   {
     std::stringstream ss;
+    /* Shader stage needs to be defined before the compat part. */
+    ss << shader_stage_define(stage) << "\n";
     ss << "#define MTL_WORKGROUP_SIZE_X " << info.compute_layout_.local_size_x << "\n";
     ss << "#define MTL_WORKGROUP_SIZE_Y " << info.compute_layout_.local_size_y << "\n";
     ss << "#define MTL_WORKGROUP_SIZE_Z " << info.compute_layout_.local_size_z << "\n";

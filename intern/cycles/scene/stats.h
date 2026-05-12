@@ -148,6 +148,14 @@ class MeshStats {
   NamedSizeStats geometry;
 };
 
+/* Cumulative eviction counters for texture cache. */
+struct ImageEvictionStats {
+  int64_t tiles_loaded = 0;   /* Total tiles loaded (including reloads). */
+  int64_t tiles_evicted = 0;  /* Total tiles evicted. */
+  int64_t tiles_reloaded = 0; /* Tiles loaded that had been previously evicted. */
+  int64_t peak_loaded = 0;    /* High-water mark of simultaneously loaded tiles. */
+};
+
 /* Per-mip-level tile statistics for tiled images. */
 struct ImageMipLevelStats {
   int width = 0;
@@ -176,8 +184,12 @@ class ImageStats {
 
   /* Tiled image statistics. */
   vector<ImageTileStats> tiled_images;
-  size_t tiled_images_size = 0; /* Total size of loaded tiles. */
-  size_t overhead_size = 0;     /* Non-pixel memory overhead. */
+  size_t tiled_images_size = 0;      /* Total size of currently loaded tiles. */
+  size_t tiled_images_peak_size = 0; /* Peak loaded tiles size. */
+  size_t overhead_size = 0;          /* Non-pixel memory overhead. */
+
+  /* Tile eviction statistics. */
+  ImageEvictionStats eviction;
 };
 
 /* Render process statistics. */

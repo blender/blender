@@ -40,10 +40,7 @@ struct Cull {
 };
 
 [[compute, local_size(CULLING_SELECT_GROUP_SIZE)]]
-void cull_main([[resource_table]] Cull &srt,
-               [[global_invocation_id]] const uint3 global_id,
-               [[local_invocation_id]] const uint3 local_id,
-               [[local_invocation_index]] const uint local_index)
+void cull_main([[resource_table]] Cull &srt, [[global_invocation_id]] const uint3 global_id)
 {
   uint l_idx = global_id.x;
   if (l_idx >= srt.light_cull_buf.items_count) {
@@ -143,8 +140,7 @@ struct Sort {
 [[compute, local_size(CULLING_SORT_GROUP_SIZE)]]
 void sort_main([[resource_table]] Sort &srt,
                [[global_invocation_id]] const uint3 global_id,
-               [[local_invocation_id]] const uint3 local_id,
-               [[local_invocation_index]] const uint local_index)
+               [[local_invocation_id]] const uint3 local_id)
 {
   /* Early exit if no lights are present to prevent out of bounds buffer read. */
   if (srt.light_cull_buf.visible_count == 0) {
@@ -217,10 +213,7 @@ struct ZBinning {
 };
 
 [[compute, local_size(CULLING_ZBIN_GROUP_SIZE)]]
-void zbin_main([[resource_table]] ZBinning &srt,
-               [[global_invocation_id]] const uint3 global_id,
-               [[local_invocation_id]] const uint3 local_id,
-               [[local_invocation_index]] const uint local_index)
+void zbin_main([[resource_table]] ZBinning &srt, [[local_invocation_id]] const uint3 local_id)
 {
   constexpr uint zbin_iter = CULLING_ZBIN_COUNT / gl_WorkGroupSize.x;
   const uint zbin_local = local_id.x * zbin_iter;
@@ -387,10 +380,7 @@ struct Tile {
 };
 
 [[compute, local_size(CULLING_TILE_GROUP_SIZE)]]
-void tile_main([[resource_table]] Tile &srt,
-               [[global_invocation_id]] const uint3 global_id,
-               [[local_invocation_id]] const uint3 local_id,
-               [[local_invocation_index]] const uint local_index)
+void tile_main([[resource_table]] Tile &srt, [[global_invocation_id]] const uint3 global_id)
 {
   uint word_idx = global_id.x % srt.light_cull_buf.tile_word_len;
   uint tile_idx = global_id.x / srt.light_cull_buf.tile_word_len;
@@ -492,7 +482,7 @@ void debug_vert([[vertex_id]] const int vert_id,
 }
 
 [[fragment]]
-void debug_frag([[resource_table]] Debug &srt,
+void debug_frag([[resource_table]] Debug & /*srt*/,
                 [[frag_coord]] const float4 frag_co,
                 [[in]] const DebugVertOut &v_out,
                 [[out]] DebugFragOut &frag_out)

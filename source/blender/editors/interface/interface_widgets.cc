@@ -1728,10 +1728,7 @@ Vector<StringRef> text_clip_multiline_middle(const uiFontStyle *fstyle,
   BLI_assert(max_lines > 0);
 
   const Vector<StringRef> lines = BLF_string_wrap(
-      fstyle->uifont_id,
-      str,
-      max_line_width,
-      BLFWrapMode(int(BLFWrapMode::Typographical) | int(BLFWrapMode::HardLimit)));
+      fstyle->uifont_id, str, max_line_width, BLFWrapMode::Typographical | BLFWrapMode::HardLimit);
 
   if (lines.size() <= max_lines) {
     return lines;
@@ -1879,6 +1876,8 @@ static void text_clip_right_label(const uiFontStyle *fstyle, Button *but, const 
   /* need to set this first */
   fontstyle_set(fstyle);
 
+  /* Clear stale edit scroll offset so numeric text is not scrolled. See #157999. */
+  but->ofs = 0;
   but->strwidth = BLF_width(fstyle->uifont_id, new_drawstr, drawstr_len);
 
   /* The string already fits, so do nothing. */
@@ -1892,8 +1891,6 @@ static void text_clip_right_label(const uiFontStyle *fstyle, Button *but, const 
 
   /* Assume the string will have an ellipsis for initial tests. */
   but->strwidth += sep_strwidth;
-
-  but->ofs = 0;
 
   /* First shorten number-buttons eg,
    *   Translucency: 0.000
@@ -2036,8 +2033,8 @@ static void widget_draw_textbox(const uiFontStyle *fstyle,
 
   rect.xmax = std::max<int>(rect.xmin, rect.xmax - text_padding - scrollbar_pad);
 
-  rect.ymax -= textbox_padding_top() / but->block->aspect;
-  rect.ymin += textbox_padding_bottom() / but->block->aspect;
+  rect.ymax -= textbox_vertical_padding() / but->block->aspect;
+  rect.ymin += textbox_vertical_padding() / but->block->aspect;
 
   BLI_assert(but->type == ButtonType::TextBox);
 
@@ -2183,9 +2180,9 @@ static void widget_draw_textbox(const uiFontStyle *fstyle,
         const float y = rect.ymax - (line_height * float(selection.line - scroll));
         immRectf(pos,
                  rect.xmin + bounds.min,
-                 y - line_height + U.pixelsize,
+                 y - line_height,
                  std::min(rect.xmin + bounds.max, rect.xmax - 2),
-                 y - U.pixelsize);
+                 y);
       }
       immUnbindProgram();
       GPU_blend(GPU_BLEND_NONE);
@@ -2257,11 +2254,7 @@ static void widget_draw_textbox(const uiFontStyle *fstyle,
       immUniformThemeColor(TH_WIDGET_TEXT_CURSOR);
       const int y = rect.ymax - (line_height * (line_cursor - scroll));
       /* draw cursor */
-      immRectf(pos,
-               rect.xmin + t,
-               y - line_height + U.pixelsize,
-               rect.xmin + t + caret_width,
-               y - U.pixelsize);
+      immRectf(pos, rect.xmin + t, y - line_height, rect.xmin + t + caret_width, y);
 
       immUnbindProgram();
 #ifdef WITH_INPUT_IME
@@ -2289,7 +2282,17 @@ static void widget_draw_textbox(const uiFontStyle *fstyle,
   params.align = align;
   params.word_clip = false;
   float ymax = rect.ymax;
-  for (const StringRef line : lines.as_span().slice_safe(scroll, visible_lines)) {
+
+  uchar col[4];
+  copy_v4_v4_uchar(col, wcol->text);
+  uiFontStyle style = *fstyle;
+  Vector<blender::StringRef> draw_lines = lines;
+  if (textbox->wrap_cache->text.empty() && textbox->placeholder) {
+    draw_lines = textbox_wrap_placeholder(textbox);
+    style.shadow = 0;
+    col[3] *= 0.33f;
+  }
+  for (const StringRef line : draw_lines.as_span().slice_safe(scroll, visible_lines)) {
     if (rect.xmin > button_rect->xmax - scrollbar_pad - text_padding) {
       break;
     }
@@ -2297,7 +2300,7 @@ static void widget_draw_textbox(const uiFontStyle *fstyle,
     ymax -= line_height;
     rect.ymin = ymax;
     fontstyle_draw_ex(
-        fstyle, &rect, line.begin(), line.size(), wcol->text, &params, nullptr, nullptr, nullptr);
+        &style, &rect, line.begin(), line.size(), col, &params, nullptr, nullptr, nullptr);
   }
 
   BLF_batch_draw_flush();
@@ -2306,20 +2309,20 @@ static void widget_draw_textbox(const uiFontStyle *fstyle,
   GPU_blend(GPU_BLEND_NONE);
 
   GPU_scissor(scissor[0], scissor[1], scissor[2], scissor[3]);
-  rcti grip_rect = {.xmin = rect.xmin,
-                    .xmax = rect.xmax,
-                    .ymin = button_rect->ymin,
-                    .ymax = button_rect->ymin +
-                            int(std::round(textbox_grip_height() / textbox->block->aspect))};
-  widget_draw_icon_centered(ICON_GRIP, textbox->block->aspect, 1.0f, &grip_rect, wcol->text);
-  if (lines.size() <= visible_lines) {
+  rcti grip_rect = *button_rect;
+  grip_rect.ymax = grip_rect.ymin + std::floor(textbox_grip_height() / but->block->aspect);
+  grip_rect.xmin = grip_rect.xmax - text_padding - scrollbar_pad;
+  widget_draw_icon_centered(
+      ICON_GRIP_CORNER_BOTTOM_RIGHT, textbox->block->aspect, 1.0f, &grip_rect, wcol->text);
+
+  if (textbox->last_total_lines <= visible_lines) {
     return;
   }
   /* Draw scrollbar. */
   rcti scroll_rect = *button_rect;
   BLI_rcti_pad(&scroll_rect, -scrollbar_pad, -scrollbar_pad);
   scroll_rect.xmin = scroll_rect.xmax - text_padding;
-  scroll_rect.ymin += textbox_padding_bottom() / but->block->aspect;
+  scroll_rect.ymin += textbox_grip_height() / but->block->aspect;
 
   rcti slider_rect = scroll_rect;
 
@@ -2640,8 +2643,8 @@ static void widget_draw_text(const uiFontStyle *fstyle,
     }
   }
 
-  /* Show placeholder text if the input is empty and not being edited. */
-  if (!drawstr[0] && !but->editstr && ELEM(but->type, ButtonType::Text, ButtonType::SearchMenu)) {
+  /* Show placeholder text if the input is empty. */
+  if (!drawstr[0] && ELEM(but->type, ButtonType::Text, ButtonType::SearchMenu)) {
     const char *placeholder = button_placeholder_get(but);
     if (placeholder && placeholder[0]) {
       FontStyleDrawParams params{};
@@ -5641,11 +5644,11 @@ void draw_button(const bContext *C, ARegion *region, uiStyle *style, Button *but
         break;
 
       case ButtonType::Waveform:
-        draw_but_WAVEFORM(region, but, &tui->wcol_regular, rect);
+        draw_but_WAVEFORM(C, region, but, &tui->wcol_regular, rect);
         break;
 
       case ButtonType::Vectorscope:
-        draw_but_VECTORSCOPE(region, but, &tui->wcol_regular, rect);
+        draw_but_VECTORSCOPE(C, region, but, &tui->wcol_regular, rect);
         break;
 
       case ButtonType::Curve:

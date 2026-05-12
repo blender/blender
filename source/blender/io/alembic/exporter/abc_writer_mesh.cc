@@ -398,7 +398,7 @@ void ABCGenericMeshWriter::get_geo_groups(Object *object,
 
     std::string name = args_.hierarchy_iterator->get_id_name(&mat->id);
 
-    if (geo_groups.find(name) == geo_groups.end()) {
+    if (!geo_groups.contains(name)) {
       std::vector<int32_t> faceArray;
       geo_groups[name] = faceArray;
     }

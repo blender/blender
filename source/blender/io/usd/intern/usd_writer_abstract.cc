@@ -3,6 +3,7 @@
  * SPDX-License-Identifier: GPL-2.0-or-later */
 #include "usd_writer_abstract.hh"
 #include "usd_attribute_utils.hh"
+#include "usd_colorspace_utils.hh"
 #include "usd_hierarchy_iterator.hh"
 #include "usd_utils.hh"
 #include "usd_writer_material.hh"
@@ -314,6 +315,7 @@ pxr::UsdShadeMaterial USDAbstractWriter::ensure_usd_material_created(
   auto prim = usd_material.GetPrim();
   add_to_prim_map(prim.GetPath(), &material->id);
   write_id_properties(prim, material->id, get_export_time_code());
+  colorspace_apply_to_prim(prim);
 
   return usd_material;
 }
@@ -533,6 +535,11 @@ void USDAbstractWriter::write_user_properties(const pxr::UsdPrim &prim,
         break;
       case IDP_ARRAY:
         create_vector_attrib(prim, prop, prop_token, time);
+        break;
+      case IDP_GROUP:
+      case IDP_ID:
+      case IDP_IDPARRAY:
+        /* Not supported. */
         break;
     }
   }

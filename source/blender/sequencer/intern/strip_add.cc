@@ -224,7 +224,7 @@ void add_image_init_alpha_mode(Main *bmain, Scene *scene, Strip *strip)
       strip->alpha_mode = SEQ_ALPHA_STRAIGHT;
       if (ibuf) {
         if (ibuf->flags & IB_alphamode_premul) {
-          strip->alpha_mode = IMA_ALPHA_PREMUL;
+          strip->alpha_mode = SEQ_ALPHA_PREMUL;
         }
 
         IMB_freeImBuf(ibuf);
@@ -689,6 +689,8 @@ void add_reload_new_file(Main *bmain, Scene *scene, Strip *strip, const bool loc
       strip->len = std::max(strip->len, 0);
       break;
     }
+    default:
+      break;
   }
 
   free_strip_proxy(strip);

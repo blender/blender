@@ -140,7 +140,7 @@ static int add_driver_with_target(ReportList * /*reports*/,
                                   PropertyRNA *dst_prop,
                                   PointerRNA *src_ptr,
                                   PropertyRNA *src_prop,
-                                  int driver_type)
+                                  eDriver_Types driver_type)
 {
   FCurve *fcu;
   const char *prop_name = RNA_property_identifier(src_prop);
@@ -279,7 +279,7 @@ int ANIM_add_driver_with_target(ReportList *reports,
                                 const char src_path[],
                                 int src_index,
                                 short flag,
-                                int driver_type,
+                                eDriver_Types driver_type,
                                 short mapping_type)
 {
   PointerRNA ptr;
@@ -382,8 +382,12 @@ int ANIM_add_driver_with_target(ReportList *reports,
 
 /* --------------------------------- */
 
-int ANIM_add_driver(
-    ReportList *reports, ID *id, const char rna_path[], int array_index, short flag, int type)
+int ANIM_add_driver(ReportList *reports,
+                    ID *id,
+                    const char rna_path[],
+                    int array_index,
+                    short flag,
+                    eDriver_Types type)
 {
   PointerRNA ptr;
   PropertyRNA *prop;

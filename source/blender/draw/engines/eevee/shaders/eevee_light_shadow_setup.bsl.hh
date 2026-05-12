@@ -265,9 +265,7 @@ struct Resources {
 
 [[compute, local_size(CULLING_SELECT_GROUP_SIZE)]]
 void shadow_setup_main([[resource_table]] Resources &srt,
-                       [[global_invocation_id]] const uint3 global_id,
-                       [[local_invocation_id]] const uint3 local_id,
-                       [[local_invocation_index]] const uint local_index)
+                       [[global_invocation_id]] const uint3 global_id)
 {
 
   uint l_idx = global_id.x;

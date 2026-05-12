@@ -140,6 +140,8 @@ struct Convolve {
   [[image(0, write, DEFERRED_RADIANCE_FORMAT)]] uimage2D out_direct_light_img;
   [[image(1, write, RAYTRACE_RADIANCE_FORMAT)]] image2D out_indirect_light_img;
 
+  [[uniform(SUBSURFACE_BUF_SLOT)]] const SubsurfaceData &subsurface_buf;
+
   [[storage(0, read)]] const uint (&tiles_coord_buf)[];
 
   [[shared]] float3 cached_radiance[SUBSURFACE_GROUP_SIZE][SUBSURFACE_GROUP_SIZE];
@@ -219,7 +221,7 @@ void convolve_main([[resource_table]] Convolve &srt,
   }
 
   /* Avoid too small radii that have float imprecision. */
-  float3 clamped_sss_radius = max(float3(uniform_buf.subsurface.min_radius),
+  float3 clamped_sss_radius = max(float3(srt.subsurface_buf.min_radius),
                                   closure.sss_radius / max_radius) *
                               max_radius;
   /* Scale albedo because we can have HDR value caused by BSDF sampling. */
@@ -235,9 +237,9 @@ void convolve_main([[resource_table]] Convolve &srt,
   float3 accum_weight = float3(0.0f);
   float3 accum_radiance = float3(0.0f);
 
-  for (int i = 0; i < uniform_buf.subsurface.sample_len; i++) {
-    float2 sample_uv = center_uv + sample_space * uniform_buf.subsurface.samples[i].xy;
-    float pdf_inv = uniform_buf.subsurface.samples[i].z;
+  for (int i = 0; i < srt.subsurface_buf.sample_len; i++) {
+    float2 sample_uv = center_uv + sample_space * srt.subsurface_buf.samples[i].xy;
+    float pdf_inv = srt.subsurface_buf.samples[i].z;
 
     SubSurfaceSample samp = srt.sample_neighborhood(sample_uv);
     /* Reject radiance from other surfaces. Avoids light leak between objects. */

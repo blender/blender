@@ -147,7 +147,7 @@ void BPY_free_srna_pytype(StructRNA *srna);
  * Get current Python stack location.
  * Returns a string like `filename.py:123` if available, #std::nullopt otherwise.
  */
-[[nodiscard]] std::optional<std::string> BPY_python_current_file_and_line(void);
+[[nodiscard]] std::optional<std::string> BPY_python_current_file_and_line();
 
 /* `bpy_rna_callback.cc` */
 

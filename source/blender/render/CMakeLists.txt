@@ -63,6 +63,7 @@ set(LIB
   PRIVATE bf::imbuf::movie
   PRIVATE bf::intern::guardedalloc
   bf_compositor
+  bf_imbuf_openexr
   PRIVATE bf::intern::atomic
   PRIVATE bf::intern::clog
   PRIVATE bf::nodes
@@ -75,13 +76,6 @@ if(WITH_PYTHON)
   list(APPEND INC
     ../python
   )
-endif()
-
-if(WITH_IMAGE_OPENEXR)
-  list(APPEND LIB
-    bf_imbuf_openexr
-  )
-  add_definitions(-DWITH_IMAGE_OPENEXR)
 endif()
 
 if(WITH_FREESTYLE)

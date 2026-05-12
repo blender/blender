@@ -71,7 +71,7 @@ GPUPixelBufferNativeHandle VKPixelBuffer::get_native_handle()
   /* Get device memory. */
   size_t memory_size = 0;
   VkDeviceMemory memory = buffer_.export_memory_get(memory_size);
-  if (memory == nullptr) {
+  if (memory == VK_NULL_HANDLE) {
     CLOG_ERROR(&LOG, "Failed to get device memory for Vulkan pixel buffer");
     return native_handle;
   }

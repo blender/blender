@@ -103,7 +103,7 @@ def _find_assets(
         if thumbnail_path and should_write_thumbnails:
             _save_thumbnail(datablock, thumbnail_path)
 
-        if thumbnail_path:
+        if thumbnail_path and thumbnail_path.exists():
             as_posix = thumbnail_path.relative_to(asset_library_root).as_posix()
             thumbnail = api_models.URLWithHash(
                 url=urllib.parse.quote(as_posix),
@@ -152,7 +152,7 @@ def _get_asset_meta(asset_data: bpy.types.AssetData) -> api_models.AssetMetadata
 
         match item_value:
             case bool():
-                value_type = api_models.CustomPropertyTypeV1.IDP_BOOLEAN
+                value_type = api_models.CustomPropertyTypeV1.IDP_BOOL
             case int():
                 value_type = api_models.CustomPropertyTypeV1.IDP_INT
             case str():

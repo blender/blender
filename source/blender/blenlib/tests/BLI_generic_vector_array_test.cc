@@ -8,14 +8,22 @@
 
 namespace blender::tests {
 
-TEST(generic_vector_array, Construct)
+class GenericVectorArrayTest : public testing::Test {
+ public:
+  static void SetUpTestSuite()
+  {
+    register_cpp_types();
+  }
+};
+
+TEST_F(GenericVectorArrayTest, Construct)
 {
   GVectorArray vector_array{CPPType::get<int>(), 4};
   EXPECT_EQ(vector_array.size(), 4);
   EXPECT_FALSE(vector_array.is_empty());
 }
 
-TEST(generic_vector_array, Append)
+TEST_F(GenericVectorArrayTest, Append)
 {
   GVectorArray vector_array{CPPType::get<int>(), 3};
   int value1 = 2;
@@ -30,7 +38,7 @@ TEST(generic_vector_array, Append)
   EXPECT_EQ(vector_array[2].size(), 0);
 }
 
-TEST(generic_vector_array, Extend)
+TEST_F(GenericVectorArrayTest, Extend)
 {
   GVectorArray vector_array{CPPType::get<int>(), 3};
   vector_array.extend(0, Span<int>({1, 4, 6, 4}));

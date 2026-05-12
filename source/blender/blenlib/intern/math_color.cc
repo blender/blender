@@ -886,7 +886,8 @@ bool whitepoint_to_temp_tint(const float3 &white, float &temperature, float &tin
 
   /* Find first entry that's "to the right" of the white point. */
   auto check = [uv](const float val, const locus_entry_t &entry) { return entry.dist(uv) < val; };
-  const auto entry = std::upper_bound(planck_locus.begin(), planck_locus.end(), 0.0f, check);
+  std::array<locus_entry_t, 31>::const_iterator entry = std::upper_bound(
+      planck_locus.begin(), planck_locus.end(), 0.0f, check);
   if (entry == planck_locus.begin() || entry == planck_locus.end()) {
     return false;
   }
@@ -916,7 +917,8 @@ float3 whitepoint_from_temp_tint(const float temperature, const float tint)
   const float mired = clamp(
       1e6f / temperature, planck_locus[0].mired, planck_locus[planck_locus.size() - 1].mired);
   auto check = [](const locus_entry_t &entry, const float val) { return entry.mired < val; };
-  const auto entry = std::lower_bound(planck_locus.begin(), planck_locus.end(), mired, check);
+  std::array<locus_entry_t, 31>::const_iterator entry = std::lower_bound(
+      planck_locus.begin(), planck_locus.end(), mired, check);
   const size_t i = size_t(entry - planck_locus.begin());
   const locus_entry_t &low = planck_locus[i - 1], high = planck_locus[i];
 

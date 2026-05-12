@@ -169,7 +169,7 @@ static bool parse_channels(const ImageSpec &in_spec,
   }
 
   /* If file contains a single unnamed layer, name it after the first layer metadata we find. */
-  if (file_layers.size() == 1 && file_layers.find("") != file_layers.end()) {
+  if (file_layers.size() == 1 && file_layers.contains("")) {
     for (const ParamValue &attrib : in_spec.extra_attribs) {
       const string attrib_name = attrib.name().string();
       if (string_startswith(attrib_name, "cycles.") && string_endswith(attrib_name, ".samples")) {
@@ -528,7 +528,7 @@ static void read_layer_samples(vector<MergeImage> &images,
     const ImageSpec &in_spec = image.in->spec();
 
     for (auto &layer : image.layers) {
-      const bool initialize = (layer_samples.count(layer.name) == 0);
+      const bool initialize = (!layer_samples.contains(layer.name));
       auto &current_layer_samples = layer_samples[layer.name];
 
       if (initialize) {

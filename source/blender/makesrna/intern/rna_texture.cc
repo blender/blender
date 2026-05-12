@@ -229,7 +229,7 @@ static void rna_Texture_type_set(PointerRNA *ptr, int value)
 {
   Tex *tex = static_cast<Tex *>(ptr->data);
 
-  BKE_texture_type_set(tex, value);
+  BKE_texture_type_set(tex, eTex_Type(value));
 }
 
 void rna_TextureSlotTexture_update(bContext *C, PointerRNA *ptr)
@@ -436,7 +436,7 @@ static void rna_Texture_use_nodes_update(bContext *C, PointerRNA *ptr)
   Tex *tex = static_cast<Tex *>(ptr->data);
 
   if (tex->use_nodes) {
-    tex->type = 0;
+    tex->type = eTex_Type{};
 
     if (tex->nodetree == nullptr) {
       ED_node_texture_default(C, tex);

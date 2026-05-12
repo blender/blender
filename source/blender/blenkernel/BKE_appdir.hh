@@ -61,10 +61,13 @@ bool BKE_appdir_folder_documents(char *dir) ATTR_NONNULL(1) ATTR_WARN_UNUSED_RES
  * - Windows: `%USERPROFILE%\AppData\Local\Blender Foundation\Blender\Cache\`
  * - MacOS: `$HOME/Library/Caches/Blender/`
  *
- * \returns True if the path is valid. It doesn't create or checks format
- * if the `blender` folder exists. It does check if the parent of the path exists.
+ * \note In rare cases when the cache directory is inaccessible,
+ * the temporary session directory is used with a `.cache/` subdirectory.
+ *
+ * \note The value may be set without the directory existing.
+ * The caller is responsible for creating the directory.
  */
-bool BKE_appdir_folder_caches(char *path, size_t path_maxncpy) ATTR_NONNULL(1);
+void BKE_appdir_folder_caches(char *path, size_t path_maxncpy) ATTR_NONNULL(1);
 
 /**
  * Get a folder out of the \a folder_id presets for paths.

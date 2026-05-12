@@ -135,6 +135,7 @@ test: FORCE
 	@$(MAKE) -C "$(BASE_DIR)" test_cli;
 	@$(MAKE) -C "$(BASE_DIR)" test_blender;
 	@$(MAKE) -C "$(BASE_DIR)" test_cli_blender;
+	@$(MAKE) -C "$(BASE_DIR)" test_path_pattern_match;
 watch_test: FORCE
 	@cd "$(BASE_DIR)" && \
 	while true; do \

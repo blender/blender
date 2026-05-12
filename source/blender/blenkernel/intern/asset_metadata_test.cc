@@ -3,6 +3,7 @@
  * SPDX-License-Identifier: GPL-2.0-or-later */
 
 #include "BKE_asset.hh"
+#include "BKE_gtest_base.hh"
 
 #include "BLI_uuid.h"
 
@@ -12,7 +13,9 @@
 
 namespace blender::bke::tests {
 
-TEST(AssetMetadataTest, set_catalog_id)
+class AssetMetadataTest : public bke::BlenderGTestBase {};
+
+TEST_F(AssetMetadataTest, set_catalog_id)
 {
   AssetMetaData meta{};
   const bUUID uuid = BLI_uuid_generate_random();

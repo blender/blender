@@ -51,6 +51,9 @@ bool is_auto_resync_enabled();
 
 }  // namespace bke::liboverride
 
+enum eID_OverrideLib_Op : short;
+enum eID_OverrideLib_PropTag : short;
+
 /** Some runtime-only tags for IDOverrideLibrary struct. */
 enum class IDOverrideLibraryTag {
   /** This override needs to be reloaded. */
@@ -442,7 +445,7 @@ IDOverrideLibraryPropertyOperation *BKE_lib_override_library_property_operation_
  */
 IDOverrideLibraryPropertyOperation *BKE_lib_override_library_property_operation_get(
     IDOverrideLibraryProperty *liboverride_property,
-    short operation,
+    eID_OverrideLib_Op operation,
     const char *subitem_refname,
     const char *subitem_locname,
     const std::optional<ID *> &subitem_refid,
@@ -571,18 +574,18 @@ void BKE_lib_override_library_id_hierarchy_reset(Main *bmain,
  * Set or clear given tag in all operations in that override property data.
  */
 void BKE_lib_override_library_operations_tag(IDOverrideLibraryProperty *liboverride_property,
-                                             short tag,
+                                             eID_OverrideLib_PropTag tag,
                                              bool do_set);
 /**
  * Set or clear given tag in all properties and operations in that override data.
  */
 void BKE_lib_override_library_properties_tag(IDOverrideLibrary *liboverride,
-                                             short tag,
+                                             eID_OverrideLib_PropTag tag,
                                              bool do_set);
 /**
  * Set or clear given tag in all properties and operations in that Main's ID override data.
  */
-void BKE_lib_override_library_main_tag(Main *bmain, short tag, bool do_set);
+void BKE_lib_override_library_main_tag(Main *bmain, eID_OverrideLib_PropTag tag, bool do_set);
 
 /**
  * Remove all tagged-as-unused properties and operations from that ID override data.

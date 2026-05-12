@@ -15,8 +15,10 @@
 #include "BLI_cpp_type.hh"
 #include "BLI_generic_pointer.hh"
 #include "BLI_generic_span.hh"
+#include "BLI_implicit_sharing.hh"
 #include "BLI_math_interp.hh"
 #include "BLI_math_matrix_types.hh"
+#include "BLI_math_quaternion_types.hh"
 #include "BLI_math_vector.h"
 #include "BLI_math_vector.hh"
 #include "BLI_math_vector_types.hh"
@@ -54,9 +56,11 @@ enum class ResultType : uint8_t {
   Int,
   Int2,
   Int3,
+  Int4,
   Bool,
   Float4x4,
   Menu,
+  Quaternion,
 
   /* Single value only types. See Result::is_single_value_only_type. */
   String,
@@ -78,7 +82,7 @@ enum class ResultPrecision : uint8_t {
 enum class ResultStorageType : uint8_t {
   /* Stored as a gpu::Texture on the GPU. */
   GPU,
-  /* Stored as a buffer on the CPU and wrapped in a GMutableSpan. */
+  /* Stored as a buffer on the CPU. */
   CPU,
 };
 
@@ -105,15 +109,10 @@ using Color = ColorSceneLinear4f<eAlpha::Premultiplied>;
  * space. This area is called the Domain of the result, see the discussion in COM_domain.hh for
  * more information.
  *
- * Allocated data of results can be shared by multiple results, this is achieved by tracking an
- * extra reference count for data data_reference_count_, which is heap allocated along with the
- * data, and shared by all results that share the same data. This reference count is incremented
- * every time the data is shared by a call to the share_data method, and decremented during
- * freeing, where the data is only freed if the reference count is 1, that is, no longer shared.
- *
- * A result can wrap external data that is not allocated nor managed by the result. This is set up
- * by a call to the wrap_external method. In that case, when the reference count eventually reach
- * zero, the data will not be freed.
+ * The result data can be shared by multiple results or shared with some external entity outside of
+ * the compositor. This is achieved by managing the data in an ImplicitSharingInfo, which is heap
+ * allocated and shared by all results that share the same data. See the sharing_info_ and the
+ * share_data method for more information.
  *
  * A result may store resources that are computed and cached in case they are needed by multiple
  * operations. Those are called Derived Resources and can be accessed using the derived_resources
@@ -132,27 +131,30 @@ class Result {
   bool is_single_value_ = false;
   /* The type of storage used to hold the data. Used to correctly interpret the data union. */
   ResultStorageType storage_type_ = ResultStorageType::GPU;
-  /* Stores the result's pixel data, either stored in a GPU texture or a buffer that is wrapped in
-   * a GMutableSpan on CPU. This will represent a 1x1 image if the result is a single value, the
-   * value of which will be identical to that of the value member. See class description for more
-   * information. */
+  /* Stores a reference to the result's pixel data managed by the sharing info, either stored in a
+   * GPU texture or a buffer that is wrapped in a GSpan on CPU. This will represent a 1x1 image if
+   * the result is a single value, the value of which will be identical to that of the value
+   * member. See class description for more information. */
   union {
     /* This will be a 2D texture for most types, but can be a 2D texture array for large types like
      * float4x4 where each column will be stored in a layer. */
     gpu::Texture *gpu_texture_ = nullptr;
-    GMutableSpan cpu_data_;
+    GSpan cpu_data_;
   };
+  /* Implicit sharing info manages the result's data, allowing it to be shared between multiple
+   * results and eventually freeing it when it is no longer needed. It is heap allocated during
+   * data allocation, it gains new users through calls to share_data, and its users get removed
+   * and its data potentially deleted in the free method. Notice that implicit sharing in Blender
+   * allows copying shared data to make it mutable, this is not allowed in the compositor, and it
+   * does not implement a copy-on-write mechanism, so copying needs to be done explicitly. The
+   * result may contain data with a nullptr sharing info, this is a special case where the data is
+   * considered external and needn't be managed/freed by the result. */
+  ImplicitSharingInfo *sharing_info_ = nullptr;
   /* The number of users that currently needs this result. Operations initializes this by calling
    * the set_reference_count method before evaluation. Once each operation that needs the result no
    * longer needs it, the release method is called and the reference count is decremented, until it
    * reaches zero, where the result's data is then released. */
   int reference_count_ = 1;
-  /* Allocated result data can be shared by multiple results by calling the share_data method. This
-   * member stores the number of results that share the data. This is heap allocated and have the
-   * same lifetime as allocated data, that's because this reference count is shared by all results
-   * that share the same data. Unlike the result's reference count, the data is freed if the count
-   * becomes 1, that is, data is no longer shared with some other result. */
-  int *data_reference_count_ = nullptr;
   /* If the result is a single value, this member stores the value of the result, the value of
    * which will be identical to that stored in the data_ member. The active variant member depends
    * on the type of the result. This member is uninitialized and should not be used if the result
@@ -165,9 +167,11 @@ class Result {
                int32_t,
                int2,
                int3,
+               int4,
                bool,
                float4x4,
                nodes::MenuValue,
+               math::Quaternion,
                std::string,
                Object *,
                Image *,
@@ -179,14 +183,6 @@ class Result {
   /* The domain of the result. This only matters if the result was not a single value. See the
    * discussion in COM_domain.hh for more information. */
   Domain domain_ = Domain::identity();
-  /* If true, then the result wraps external data that is not allocated nor managed by the result.
-   * This is set up by a call to the wrap_external method. In that case, when the reference count
-   * eventually reach zero, the data will not be freed. */
-  bool is_external_ = false;
-  /* If true, the GPU texture that holds the data was allocated from the texture pool of the
-   * context and should be released back into the pool instead of being freed. For CPU storage,
-   * this is irrelevant. */
-  bool is_from_pool_ = false;
   /* Stores resources that are derived from this result. Lazily allocated if needed. See the class
    * description for more information. */
   DerivedResources *derived_resources_ = nullptr;
@@ -244,7 +240,7 @@ class Result {
 
   /* Returns the appropriate texture format based on the result's type and precision. This is
    * identical to the gpu_texture_format static method. This will match the format of the allocated
-   * texture, with one exception. Results of type Float3 or Int3 that wrap external textures might
+   * texture, with one exception. Results of type Float3 or Int3 that share external textures might
    * hold a 3-component texture as opposed to a 4-component one, which would have been created by
    * uploading data from CPU. */
   gpu::TextureFormat get_gpu_texture_format() const;
@@ -296,39 +292,24 @@ class Result {
   /* Unbind the GPU texture which was previously bound using bind_as_image. */
   void unbind_as_image() const;
 
-  /* Share the data of the given source result. For a source that wraps external results, this just
-   * shallow copies the data since it can be transparency shared. Otherwise, the data is also
-   * shallow copied and the data_reference_count_ is incremented to denote sharing. The source data
-   * is expect to be allocated and have the same type and precision as this result. */
+  /* Share the data of the given source result. This is done by simply adding a new user to the
+   * sharing info of the result. The source data is expect to be allocated and have the same type
+   * and precision as this result. */
   void share_data(const Result &source);
 
-  /* Steal the allocated data from the given source result and assign it to this result, then
-   * remove any references to the data from the source result. It is assumed that:
-   *
-   *   - Both results are of the same type.
-   *   - This result is not allocated but the source result is allocated.
-   *
-   * This is most useful in multi-step compositor operations where some steps can be optional, in
-   * that case, intermediate results can be temporary results that can eventually be stolen by the
-   * actual output of the operation. See the uses of the method for a practical example of use. */
-  void steal_data(Result &source);
+  /* Share the data of a GPU texture that is managed by the given implicit sharing info. If no
+   * implicit sharing info is provided, the texture is assumed to be external, has a lifetime that
+   * covers the entire evaluation of the compositor, and will thus not be freed. The domain will be
+   * set to have the data and display size as the texture size. The given texture should have a
+   * format that is compatible with the result. */
+  void share_data(gpu::Texture *texture, ImplicitSharingInfo *sharing_info = nullptr);
 
-  /* Similar to the Result variant of steal_data, but steals from a raw data buffer. The buffer is
-   * assumed to be allocated using Blender's guarded allocator. */
-  void steal_data(void *data, const Domain &domain);
-
-  /* Set up the result to wrap an external GPU texture that is not allocated nor managed by the
-   * result. The is_external_ member will be set to true, the domain will be set to have the same
-   * size as the texture, and the texture will be set to the given texture. See the is_external_
-   * member for more information. The given texture should have the same format as the result and
-   * is assumed to have a lifetime that covers the evaluation of the compositor. */
-  void wrap_external(gpu::Texture *texture);
-
-  /* Identical to GPU variant of wrap_external but wraps a CPU buffer instead. */
-  void wrap_external(void *data, int2 size);
-
-  /* Identical to GPU variant of wrap_external but wraps whatever the given result has instead. */
-  void wrap_external(const Result &result);
+  /* Share the data of a GPU buffer that is managed by the given implicit sharing info. If no
+   * implicit sharing info is provided, the buffer is assumed to be external, has a lifetime that
+   * covers the entire evaluation of the compositor, and will thus not be freed. The domain will be
+   * set to have the data and display size as the given size. The given buffer should have a format
+   * that is compatible with the result. */
+  void share_data(const void *data, int2 size, ImplicitSharingInfo *sharing_info = nullptr);
 
   /* Sets the transformation of the domain of the result to the given transformation. */
   void set_transformation(const float3x3 &transformation);
@@ -355,8 +336,8 @@ class Result {
   /* Decrement the reference count of the result and free its data if it reaches zero. */
   void release();
 
-  /* Frees the result data. If the result is not allocated, wraps external data, or shares data
-   * with some other result, then this does nothing. */
+  /* Remove a user from the result's data and frees the data if there are no more owners. If the
+   * result is not allocated, this will do nothing. */
   void free();
 
   /* Returns true if this result should be computed and false otherwise. The result should be
@@ -402,7 +383,7 @@ class Result {
   gpu::Texture *gpu_texture() const;
 
   GSpan cpu_data() const;
-  GMutableSpan cpu_data();
+  GMutableSpan cpu_data_for_write();
 
   /* It is important to call update_single_value_data after adjusting the single value. See that
    * method for more information. */
@@ -525,10 +506,11 @@ BLI_INLINE_METHOD GSpan Result::cpu_data() const
   return cpu_data_;
 }
 
-BLI_INLINE_METHOD GMutableSpan Result::cpu_data()
+BLI_INLINE_METHOD GMutableSpan Result::cpu_data_for_write()
 {
   BLI_assert(storage_type_ == ResultStorageType::CPU);
-  return cpu_data_;
+  BLI_assert(sharing_info_ && sharing_info_->is_mutable());
+  return GMutableSpan(cpu_data_.type(), const_cast<void *>(cpu_data_.data()), cpu_data_.size());
 }
 
 template<typename T> BLI_INLINE_METHOD const T &Result::get_single_value() const
@@ -654,7 +636,7 @@ BLI_INLINE_METHOD T Result::load_pixel_zero(const int2 &texel) const
 template<typename T>
 BLI_INLINE_METHOD void Result::store_pixel(const int2 &texel, const T &pixel_value)
 {
-  this->cpu_data().typed<T>()[this->get_pixel_index(texel)] = pixel_value;
+  this->cpu_data_for_write().typed<T>()[this->get_pixel_index(texel)] = pixel_value;
 }
 
 struct EWASamplingData {
@@ -690,8 +672,8 @@ BLI_INLINE_METHOD T Result::sample(const float2 &coordinates,
   const int2 size = domain_.data_size;
   const float2 texel_coordinates = coordinates * float2(size);
 
-  if constexpr (is_same_any_v<T, float, float2, float3, float4, Color>) {
-    T pixel_value = T(0);
+  if constexpr (is_same_any_v<T, float, float2, float3, float4, Color, math::Quaternion>) {
+    T pixel_value;
     const float *buffer = static_cast<const float *>(this->cpu_data().data());
     float *output = nullptr;
     if constexpr (std::is_same_v<T, float>) {
@@ -753,7 +735,8 @@ BLI_INLINE_METHOD T Result::sample(const float2 &coordinates,
                        y_gradient,
                        sample_ewa_read_callback,
                        &sampling_data,
-                       output);
+                       output,
+                       extension_mode_x == Extension::Clip && extension_mode_y == Extension::Clip);
         break;
     }
 

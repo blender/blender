@@ -27,6 +27,13 @@ namespace ed::sculpt_paint::hide {
 Span<int> node_visible_verts(const bke::pbvh::MeshNode &node,
                              Span<bool> hide_vert,
                              Vector<int> &indices);
+Span<int> node_visible_shared_verts(const bke::pbvh::MeshNode &node,
+                                    Span<bool> hide_vert,
+                                    Vector<int> &indices);
+Span<int> node_visible_all_verts(const bke::pbvh::MeshNode &node,
+                                 Span<bool> hide_vert,
+                                 Vector<int> &indices,
+                                 int &unique_verts_num);
 
 /* Determines if all faces attached to a given vertex are visible. */
 bool vert_all_faces_visible_get(Span<bool> hide_poly, GroupedSpan<int> vert_to_face_map, int vert);

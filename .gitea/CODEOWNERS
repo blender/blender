@@ -95,6 +95,11 @@ source/python/generic/.*   @mont29 @ideasman42
 # --------------------------------------------------
 # BPY (Scripts).
 scripts/modules/.*     @ideasman42
+scripts/modules/_bpy_internal/assets/remote_library.*     @dr.sybren
+scripts/modules/_bpy_internal/disk_file_hash_service/.*   @dr.sybren
+scripts/modules/_bpy_internal/http/.*                     @dr.sybren
+tests/python/bl_disk_file_hash_service_test.py            @dr.sybren
+tests/python/bl_http_downloader.py                        @dr.sybren
 
 # --------------------------------------------------
 # Motion tracking and Libmv.
@@ -216,7 +221,7 @@ source/blender/editors/space_text/.*      @ideasman42
 
 # --------------------------------------------------
 # VSE.
-source/blender/sequencer/.*                  @eliphaz 
+source/blender/sequencer/.*                  @eliphaz
 source/blender/editors/space_sequencer/.*    @eliphaz
 
 # --------------------------------------------------

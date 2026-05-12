@@ -107,7 +107,7 @@ static void rna_Image_source_set(PointerRNA *ptr, int value)
   Image *ima = id_cast<Image *>(ptr->owner_id);
 
   if (value != ima->source) {
-    ima->source = value;
+    ima->source = eImageSource(value);
     BLI_assert(BKE_id_is_in_global_main(&ima->id));
     BKE_image_signal(G_MAIN, ima, nullptr, IMA_SIGNAL_SRC_CHANGE);
     if (ima->source == IMA_SRC_TILED) {
@@ -140,7 +140,7 @@ static void rna_Image_generated_type_set(PointerRNA *ptr, int value)
 {
   Image *ima = static_cast<Image *>(ptr->data);
   ImageTile *base_tile = BKE_image_get_tile(ima, 0);
-  base_tile->gen_type = value;
+  base_tile->gen_type = eImageGenType(value);
 }
 
 static int rna_Image_generated_width_get(PointerRNA *ptr)

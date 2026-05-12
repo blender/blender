@@ -64,8 +64,6 @@
 
 namespace blender {
 
-ENUM_OPERATORS(eUserpref_StatusBar_Flag)
-
 struct SceneStats {
   uint64_t totvert, totvertsel, totvertsculpt;
   uint64_t totedge, totedgesel;
@@ -224,6 +222,8 @@ static void stats_object(Object *ob,
     case OB_VOLUME: {
       break;
     }
+    default:
+      break;
   }
 }
 

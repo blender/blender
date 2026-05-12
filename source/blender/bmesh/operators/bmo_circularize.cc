@@ -506,7 +506,7 @@ static void project_on_mesh(BVHTree *bvh_tree,
     if (f->len < 3 || BM_elem_flag_test(f, BM_ELEM_HIDDEN)) {
       continue;
     }
-    if (f->len == 3 || f->len == 4) {
+    if (ELEM(f->len, 3, 4)) {
       BMLoop *l_start = f->l_first;
       BMVert *v1 = l_start->prev->v;
       BMVert *v2 = l_start->v;

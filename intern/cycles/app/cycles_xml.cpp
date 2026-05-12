@@ -227,7 +227,7 @@ static void xml_read_shader_graph(XMLReadState &state, Shader *shader, const xml
         ShaderOutput *output = nullptr;
         ShaderInput *input = nullptr;
 
-        if (graph_reader.node_map.find(from_node_name) != graph_reader.node_map.end()) {
+        if (graph_reader.node_map.contains(from_node_name)) {
           ShaderNode *fromnode = (ShaderNode *)graph_reader.node_map[from_node_name];
 
           for (ShaderOutput *out : fromnode->outputs) {
@@ -245,7 +245,7 @@ static void xml_read_shader_graph(XMLReadState &state, Shader *shader, const xml
           LOG_ERROR << "Unknown shader node name \"" << from_node_name << "\"";
         }
 
-        if (graph_reader.node_map.find(to_node_name) != graph_reader.node_map.end()) {
+        if (graph_reader.node_map.contains(to_node_name)) {
           ShaderNode *tonode = (ShaderNode *)graph_reader.node_map[to_node_name];
 
           for (ShaderInput *in : tonode->inputs) {

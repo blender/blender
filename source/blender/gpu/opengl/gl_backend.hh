@@ -45,6 +45,9 @@ class GLBackend : public GPUBackend {
   renderdoc::api::Renderdoc renderdoc_;
 #endif
 
+  Set<int> valid_contexts_;
+  std::mutex valid_contexts_mutex_;
+
  public:
   GLBackend()
   {
@@ -87,6 +90,24 @@ class GLBackend : public GPUBackend {
   {
     return new GLContext(ghost_window, shared_orphan_list_);
   };
+
+  void add_context_id(int context_id)
+  {
+    std::lock_guard lock(valid_contexts_mutex_);
+    valid_contexts_.add(context_id);
+  }
+
+  void remove_context_id(int context_id)
+  {
+    std::lock_guard lock(valid_contexts_mutex_);
+    valid_contexts_.remove(context_id);
+  }
+
+  bool is_valid_context_id(int context_id)
+  {
+    std::lock_guard lock(valid_contexts_mutex_);
+    return valid_contexts_.contains(context_id);
+  }
 
   Batch *batch_alloc() override
   {

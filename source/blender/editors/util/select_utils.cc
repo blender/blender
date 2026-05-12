@@ -90,7 +90,7 @@ bool ED_select_similar_compare_float(const float delta,
   }
 }
 
-bool ED_select_similar_compare_float_tree(const KDTree_1d *tree,
+bool ED_select_similar_compare_float_tree(const KDTree<float> *tree,
                                           const float length,
                                           const float thresh,
                                           const eSimilarCmp compare)
@@ -121,10 +121,10 @@ bool ED_select_similar_compare_float_tree(const KDTree_1d *tree,
       return false;
   }
 
-  KDTreeNearest_1d nearest;
-  if (kdtree_1d_find_nearest(tree, &nearest_edge_length, &nearest) != -1) {
-    BLI_assert(compare == SIM_CMP_EQ || nearest.co[0] >= 0.0f); /* See precision note above. */
-    float delta = length - nearest.co[0];
+  KDTreeNearest<float> nearest;
+  if (kdtree_find_nearest<float>(tree, nearest_edge_length, &nearest) != -1) {
+    BLI_assert(compare == SIM_CMP_EQ || nearest.co >= 0.0f); /* See precision note above. */
+    float delta = length - nearest.co;
     return ED_select_similar_compare_float(delta, thresh, compare);
   }
 

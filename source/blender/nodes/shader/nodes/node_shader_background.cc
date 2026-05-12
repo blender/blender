@@ -10,6 +10,9 @@ namespace nodes::node_shader_background_cc {
 
 static void node_declare(NodeDeclarationBuilder &b)
 {
+  const bNodeTree *ntree = b.tree_or_null();
+  const bool is_gpu_internal = ntree && (ntree->flag & NTREE_IS_GPU_SHADER_INTERNAL);
+
   b.add_input<decl::Color>("Color"_ustr)
       .default_value({0.8f, 0.8f, 0.8f, 1.0f})
       .description("Color of the emitted light");
@@ -19,7 +22,7 @@ static void node_declare(NodeDeclarationBuilder &b)
       .max(1000000.0f)
       .description("Strength of the emitted light")
       .translation_context(BLT_I18NCONTEXT_AMOUNT);
-  b.add_input<decl::Float>("Weight"_ustr).available(false);
+  b.add_input<decl::Float>("Weight"_ustr).available(is_gpu_internal);
   b.add_output<decl::Shader>("Background"_ustr);
 }
 
