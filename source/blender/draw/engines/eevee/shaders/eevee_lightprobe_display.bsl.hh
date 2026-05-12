@@ -81,9 +81,10 @@ void frag_main([[resource_table]] const Resources &srt,
 
   float2 uv = frag_co.xy / float2(textureSize(planar_radiance_tx, 0).xy);
   /* Render is inverted in Y. */
-  uv.y = 1.0f - uv.y;
+  float2 planar_uv = float2(uv.x, 1.0f - uv.y);
 
-  float depth = reverse_z::read(texture(planar_depth_tx, float3(uv, v_out.probe_index)).r);
+  float depth = reverse_z::read(
+      textureLod(planar_depth_tx, float3(planar_uv, v_out.probe_index), 0.0f).r);
   if (depth == 1.0f) {
     float3 ndc = drw_screen_to_ndc(float3(uv, 0.0f));
     float3 wP = drw_point_ndc_to_world(ndc);
@@ -94,7 +95,7 @@ void frag_main([[resource_table]] const Resources &srt,
     frag_out.color = lightprobe_spheres_sample(R, 0.0f, world_atlas_coord);
   }
   else {
-    frag_out.color = texture(planar_radiance_tx, float3(uv, v_out.probe_index));
+    frag_out.color = textureLod(planar_radiance_tx, float3(planar_uv, v_out.probe_index), 0.0f);
   }
   frag_out.color.a = 0.0f;
 }
