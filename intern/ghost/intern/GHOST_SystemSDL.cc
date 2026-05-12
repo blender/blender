@@ -793,8 +793,6 @@ GHOST_TCapabilityFlag GHOST_SystemSDL::getCapabilities() const
       GHOST_CAPABILITY_FLAG_ALL &
       /* NOTE: order the following flags as they they're declared in the source. */
       ~(
-          /* This SDL back-end has not yet implemented primary clipboard. */
-          GHOST_kCapabilityClipboardPrimary |
           /* This SDL back-end has not yet implemented image copy/paste. */
           GHOST_kCapabilityClipboardImage |
           /* This SDL back-end has not yet implemented color sampling the desktop. */
@@ -815,10 +813,10 @@ GHOST_TCapabilityFlag GHOST_SystemSDL::getCapabilities() const
           GHOST_kCapabilityWindowPath));
 }
 
-char *GHOST_SystemSDL::getClipboard(bool /*selection*/) const
+char *GHOST_SystemSDL::getClipboard(bool selection) const
 {
   /* The clipboard must be freed with `SDL_free`, copy for the return value. */
-  char *sdl_text = SDL_GetClipboardText();
+  char *sdl_text = selection ? SDL_GetPrimarySelectionText() : SDL_GetClipboardText();
   if (sdl_text == nullptr) {
     return nullptr;
   }
@@ -827,9 +825,14 @@ char *GHOST_SystemSDL::getClipboard(bool /*selection*/) const
   return result;
 }
 
-void GHOST_SystemSDL::putClipboard(const char *buffer, bool /*selection*/) const
+void GHOST_SystemSDL::putClipboard(const char *buffer, bool selection) const
 {
-  SDL_SetClipboardText(buffer);
+  if (selection) {
+    SDL_SetPrimarySelectionText(buffer);
+  }
+  else {
+    SDL_SetClipboardText(buffer);
+  }
 }
 
 uint64_t GHOST_SystemSDL::getMilliSeconds() const
