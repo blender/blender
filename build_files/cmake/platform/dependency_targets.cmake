@@ -348,8 +348,8 @@ endif()
 add_library(bf_deps_epoxy INTERFACE)
 add_library(bf::dependencies::epoxy ALIAS bf_deps_epoxy)
 
-target_include_directories(bf_deps_epoxy SYSTEM INTERFACE ${Epoxy_INCLUDE_DIRS})
-target_link_libraries(bf_deps_epoxy INTERFACE ${Epoxy_LIBRARIES})
+target_include_directories(bf_deps_epoxy SYSTEM INTERFACE ${EPOXY_INCLUDE_DIRS})
+target_link_libraries(bf_deps_epoxy INTERFACE ${EPOXY_LIBRARIES})
 
 # -----------------------------------------------------------------------------
 # Configure Gflags
