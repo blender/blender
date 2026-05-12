@@ -3005,7 +3005,7 @@ def write_rst_types_index(basepath: Path) -> None:
 
         for type_name in bpy_types_capi_iter():
             identifier = "bpy.types." + type_name
-            if identifier in EXCLUDE_MODULES:
+            if identifier in GLOBAL.exclude_modules:
                 continue
             fw("   {:s}.rst\n".format(identifier))
         fw("\n")
