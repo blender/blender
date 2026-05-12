@@ -2554,6 +2554,22 @@ static void rna_SpaceGraphEditor_normalize_update(bContext *C, PointerRNA * /*pt
     return;
   }
 
+  ListBaseT<bAnimListElem> anim_data = {nullptr, nullptr};
+  /* This has to use the same filters as the graph editor uses to get its FCurves. */
+  const eAnimFilter_Flags filter = (ANIMFILTER_DATA_VISIBLE | ANIMFILTER_LIST_VISIBLE |
+                                    ANIMFILTER_NODUPLIS | ANIMFILTER_FCURVESONLY |
+                                    ANIMFILTER_CURVE_VISIBLE);
+  ANIM_animdata_filter(&ac, &anim_data, filter, ac.data, eAnimCont_Types(ac.datatype));
+  for (bAnimListElem &ale : anim_data) {
+    FCurve *fcu = static_cast<FCurve *>(ale.key_data);
+    float offset;
+    /* Calling this function updates the cached values in the `FCurve`. Doing so makes it so that
+     * the normalization will be correct after enabling the normalization, even with auto normalize
+     * disabled. */
+    ANIM_unit_mapping_get_factor(ac.scene, ale.id, fcu, ANIM_UNITCONV_NORMALIZE, &offset);
+  }
+  ANIM_animdata_freelist(&anim_data);
+
   ANIM_frame_channel_y_extents(C, &ac);
   ED_area_tag_refresh(ac.area);
 }
