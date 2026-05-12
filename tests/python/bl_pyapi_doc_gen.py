@@ -104,7 +104,7 @@ class DocGenTest(unittest.TestCase):
             with self.subTest("sphinx_stub_gen"):
                 stub_gen_script = os.path.join(SPHINX_DOC_GEN_DIR, "sphinx_stub_gen.py")
                 result = subprocess.run(
-                    [PYTHON_BIN, stub_gen_script, rst_dir, "-o", stubs_dir],
+                    [PYTHON_BIN, stub_gen_script, rst_dir, "-o", stubs_dir, "--strict-docs"],
                     check=False,
                 )
                 self.assertEqual(

@@ -429,7 +429,7 @@ def extract_class(node: ApiNode, source_path: Path) -> ClassInfo:
         )
         State.structure_errors += 1
 
-    check_params_documented(name, init_args, fields, source_path)
+    check_params_consistent(name, init_args, fields, source_path)
 
     for child in node.children:
         if not isinstance(child, ApiNode):
@@ -453,19 +453,24 @@ def extract_class(node: ApiNode, source_path: Path) -> ClassInfo:
     return cls
 
 
-def check_params_documented(
+def check_params_consistent(
     qual_name: str,
     args: ast.arguments | None,
     fields: dict[str, str],
     source_path: Path,
 ) -> None:
-    """Warn for parameters lacking ``:param X:`` or ``:type X:`` documentation."""
+    """
+    Warn for parameters lacking ``:param X:`` / ``:type X:`` documentation,
+    and for ``:param X:`` / ``:type X:`` fields that do not match any argument.
+    """
     if args is None:
         return
     # `self`/`cls` are omitted from RST signatures, so no skip needed; `*args`/`**kwargs`
     # excluded as they're conventionally documented as a group.
+    arg_names: set[str] = set()
     for arg in args.posonlyargs + args.args + args.kwonlyargs:
         name = arg.arg
+        arg_names.add(name)
         has_param = ("param " + name) in fields
         has_type = ("type " + name) in fields
         issue: str | None = None
@@ -482,6 +487,23 @@ def check_params_documented(
                 file=sys.stderr,
             )
             State.undocumented_errors += 1
+
+    # Inverse: warn for `:param X:` / `:type X:` whose `X` is not an argument.
+    # Skip when the signature is variadic - `*args` / `**kwargs` can accept any caller-supplied name.
+    if args.vararg is None and args.kwarg is None:
+        for key in fields:
+            for prefix in ("param ", "type "):
+                if key.startswith(prefix):
+                    pname = key[len(prefix):]
+                    if pname not in arg_names:
+                        print(
+                            "Warning: {:s}: {:s}: orphan ':{:s}{:s}:' (no matching argument)".format(
+                                source_path.name, qual_name, prefix, pname,
+                            ),
+                            file=sys.stderr,
+                        )
+                        State.undocumented_errors += 1
+                    break
 
 
 def extract_callable(
@@ -508,7 +530,7 @@ def extract_callable(
         return_type = body_rtype
 
     qual_name = "{:s}.{:s}".format(class_name, name) if class_name else name
-    check_params_documented(qual_name, parsed_args, fields, source_path)
+    check_params_consistent(qual_name, parsed_args, fields, source_path)
 
     return name, params, return_type, body_param_types
 
@@ -1848,7 +1870,7 @@ def main() -> int:
 
     if State.undocumented_errors:
         print(
-            "\n{:d} undocumented parameter(s) encountered".format(State.undocumented_errors),
+            "\n{:d} parameter documentation issue(s) encountered".format(State.undocumented_errors),
             file=sys.stderr,
         )
         if args.strict_docs:
