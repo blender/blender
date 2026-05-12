@@ -5632,6 +5632,7 @@ class VIEW3D_MT_edit_armature(Menu):
             layout.operator("armature.extrude_forked")
 
         layout.operator("armature.duplicate_move")
+        layout.operator("armature.duplicate_rename")
         layout.operator("armature.fill")
 
         layout.separator()

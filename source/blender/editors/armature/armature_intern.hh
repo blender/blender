@@ -57,6 +57,7 @@ void ARMATURE_OT_shortest_path_pick(wmOperatorType *ot);
 void ARMATURE_OT_delete(wmOperatorType *ot);
 void ARMATURE_OT_dissolve(wmOperatorType *ot);
 void ARMATURE_OT_duplicate(wmOperatorType *ot);
+void ARMATURE_OT_duplicate_rename(wmOperatorType *ot);
 void ARMATURE_OT_symmetrize(wmOperatorType *ot);
 void ARMATURE_OT_extrude(wmOperatorType *ot);
 void ARMATURE_OT_hide(wmOperatorType *ot);
