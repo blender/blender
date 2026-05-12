@@ -93,6 +93,37 @@ class VKShaderInterface : public ShaderInterface {
   }
 
  private:
+  /**
+   * Temporary state used during the initialization of the shader interface.
+   */
+  struct InitContext {
+    const shader::ShaderCreateInfo &info;
+    ShaderInput *input_ptr = nullptr;
+    uint32_t name_buffer_offset = 0;
+    VKPushConstants::StorageType push_constants_storage_type;
+    bool supports_local_read = false;
+  };
+
+  /**
+   * Compute the total number of resources and allocate the input and name buffers.
+   */
+  void compute_resource_counts(InitContext &ctx);
+
+  /**
+   * Populate the input buffer with attributes, UBOs, samplers, images, push constants, and SSBOs.
+   */
+  void populate_shader_inputs(InitContext &ctx);
+
+  /**
+   * Map the built-in uniform and block locations.
+   */
+  void populate_builtins();
+
+  /**
+   * Initialize the descriptor set layout and update resource binding information.
+   */
+  void populate_resource_bindings(InitContext &ctx);
+
   void init_descriptor_set_layout_info(const shader::ShaderCreateInfo &info,
                                        int64_t resources_len,
                                        Span<shader::ShaderCreateInfo::Resource> resources,
