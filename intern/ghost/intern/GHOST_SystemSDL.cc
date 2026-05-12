@@ -7,6 +7,7 @@
  */
 
 #include <cassert>
+#include <cstring>
 #include <stdexcept>
 
 #include "GHOST_ContextSDL.hh"
@@ -816,7 +817,14 @@ GHOST_TCapabilityFlag GHOST_SystemSDL::getCapabilities() const
 
 char *GHOST_SystemSDL::getClipboard(bool /*selection*/) const
 {
-  return (char *)SDL_GetClipboardText();
+  /* The clipboard must be freed with `SDL_free`, copy for the return value. */
+  char *sdl_text = SDL_GetClipboardText();
+  if (sdl_text == nullptr) {
+    return nullptr;
+  }
+  char *result = strdup(sdl_text);
+  SDL_free(sdl_text);
+  return result;
 }
 
 void GHOST_SystemSDL::putClipboard(const char *buffer, bool /*selection*/) const
