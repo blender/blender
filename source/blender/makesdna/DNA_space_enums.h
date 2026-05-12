@@ -516,9 +516,7 @@ enum eFileAssetImportFlags : short {
 ENUM_OPERATORS(eFileAssetImportFlags)
 
 enum eFileSel_AssetParams_Flag : int {
-  /** Only show files available offline. More than a filter, it prevents downloading asset listings
-   * when enabled. */
-  FILE_ASSETS_HIDE_ONLINE = (1 << 0),
+  // FILE_ASSETS_FLAG_DEPRECATED_1 = (1 << 0), /* Not cleared! */
 };
 ENUM_OPERATORS(eFileSel_AssetParams_Flag)
 

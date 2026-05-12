@@ -452,8 +452,9 @@ struct FileAssetSelectParams {
   FileSelectParams base_params;
 
   AssetLibraryReference asset_library_ref;
+  char _pad[5] = {};
+  AssetAccess asset_access = AssetAccess::OnlineAndOffline;
   eFileSel_Params_AssetCatalogVisibility asset_catalog_visibility = FILE_SHOW_ASSETS_ALL_CATALOGS;
-  char _pad[6] = {};
   /** If #asset_catalog_visibility is #FILE_SHOW_ASSETS_FROM_CATALOG, this sets the ID of the
    * catalog to show. */
   bUUID catalog_id;

@@ -241,6 +241,13 @@ static void file_refresh(const bContext *C, ScrArea *area)
   filelist_setrecursion(sfile->files, params->recursion_level);
   filelist_setsorting(sfile->files, params->sort, params->flag & FILE_SORT_INVERT);
   filelist_setlibrary(sfile->files, asset_params ? &asset_params->asset_library_ref : nullptr);
+
+  const bool show_assets_online = asset_params && ELEM(asset_params->asset_access,
+                                                       AssetAccess::OnlineAndOffline,
+                                                       AssetAccess::OnlyOnline);
+  const bool show_assets_offline = asset_params && ELEM(asset_params->asset_access,
+                                                        AssetAccess::OnlineAndOffline,
+                                                        AssetAccess::OnlyOffline);
   filelist_setfilter_options(
       sfile->files,
       (params->flag & FILE_FILTER) != 0,
@@ -249,12 +256,12 @@ static void file_refresh(const bContext *C, ScrArea *area)
       params->filter,
       params->filter_id,
       (params->flag & FILE_ASSETS_ONLY) != 0,
-      asset_params && (asset_params->asset_flags & FILE_ASSETS_HIDE_ONLINE) != 0,
+      /*filter_assets_hide_online=*/!show_assets_online,
+      /*filter_assets_hide_offline=*/!show_assets_offline,
       params->filter_glob,
       params->filter_search);
   if (asset_params) {
-    filelist_set_asset_include_online(sfile->files,
-                                      !(asset_params->asset_flags & FILE_ASSETS_HIDE_ONLINE));
+    filelist_set_asset_include_online(sfile->files, show_assets_online);
     filelist_set_asset_catalog_filter_options(
         sfile->files,
         eFileSel_Params_AssetCatalogVisibility(asset_params->asset_catalog_visibility),

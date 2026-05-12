@@ -55,6 +55,12 @@ enum eAssetLibrary_Flag : int {
   ASSET_LIBRARY_USE_REMOTE_URL = (1 << 2),
 };
 
+enum class AssetAccess : int8_t {
+  OnlineAndOffline = 0,
+  OnlyOnline = 1,
+  OnlyOffline = 2,
+};
+
 /**
  * \brief User defined tag.
  * Currently only used by assets, could be used more often at some point.

@@ -408,6 +408,25 @@ static const EnumPropertyItem rna_enum_asset_import_method_items[] = {
     {0, nullptr, 0, nullptr, nullptr},
 };
 
+const EnumPropertyItem rna_enum_asset_access_items[] = {
+    {int(AssetAccess::OnlineAndOffline),
+     "ALL",
+     0,
+     "Online and Offline",
+     "Show assets that are both hosted online (need downloading) and available on disk already"},
+    {int(AssetAccess::OnlyOnline),
+     "ONLY_ONLINE",
+     0,
+     "Online Only",
+     "Show only assets that need downloading (requires internet access)"},
+    {int(AssetAccess::OnlyOffline),
+     "ONLY_OFFLINE",
+     0,
+     "Offline Only",
+     "Show only assets that are available on disk already (no internet access needed)"},
+    {0, nullptr, 0, nullptr, nullptr},
+};
+
 #ifndef RNA_RUNTIME
 static const EnumPropertyItem stereo3d_eye_items[] = {
     {STEREO_LEFT_ID, "LEFT_EYE", ICON_NONE, "Left Eye"},
@@ -7863,11 +7882,10 @@ static void rna_def_fileselect_asset_params(BlenderRNA *brna)
                            "them directly to the scene");
   RNA_def_property_update(prop, NC_SPACE | ND_SPACE_FILE_PARAMS, nullptr);
 
-  prop = RNA_def_property(srna, "show_online_assets", PROP_BOOLEAN, PROP_NONE);
-  RNA_def_property_boolean_negative_sdna(prop, nullptr, "asset_flags", FILE_ASSETS_HIDE_ONLINE);
-  RNA_def_property_ui_text(prop,
-                           "Show Online Assets",
-                           "When internet access is enabled, load and display online assets");
+  prop = RNA_def_property(srna, "asset_access", PROP_ENUM, PROP_NONE);
+  RNA_def_property_enum_items(prop, rna_enum_asset_access_items);
+  RNA_def_property_ui_text(
+      prop, "Asset Access", "Choose the visibility of online and offline assets");
   RNA_def_property_update(prop, NC_SPACE | ND_SPACE_FILE_PARAMS, nullptr);
 
   prop = RNA_def_property(srna, "instance_collections_on_append", PROP_BOOLEAN, PROP_NONE);

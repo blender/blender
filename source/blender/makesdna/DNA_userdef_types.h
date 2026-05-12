@@ -180,7 +180,7 @@ enum eUserpref_UI_Flag2 : char {
   USER_REGION_OVERLAP = (1 << 1),
   USER_UIFLAG2_UNUSED_2 = (1 << 2),
   USER_UIFLAG2_UNUSED_3 = (1 << 3), /* dirty */
-  USER_UIFLAG2_SHOW_ONLINE_ASSETS = (1 << 4),
+  USER_UIFLAG2_UNUSED_4 = (1 << 4), /* Not cleared! */
   USER_UIFLAG2_PANEL_TABS_COMPACT = (1 << 5),
 };
 ENUM_OPERATORS(eUserpref_UI_Flag2)
@@ -935,7 +935,9 @@ struct UserDef {
   short versions = 1;
   short dbl_click_time = 350;
 
-  char _pad0[2] = {};
+  AssetAccess asset_access = AssetAccess::OnlineAndOffline;
+
+  char _pad0 = {};
 
   /** Space around each area. Inter-editor gap width. */
   char border_width = 2;
@@ -946,7 +948,7 @@ struct UserDef {
                              USER_NODE_AUTO_OFFSET | USER_GLOBALUNDO | USER_SHOW_GIZMO_NAVIGATE |
                              USER_SHOW_VIEWPORTNAME | USER_SHOW_FPS | USER_CONTINUOUS_MOUSE |
                              USER_SAVE_PROMPT;
-  eUserpref_UI_Flag2 uiflag2 = USER_REGION_OVERLAP | USER_UIFLAG2_SHOW_ONLINE_ASSETS;
+  eUserpref_UI_Flag2 uiflag2 = USER_REGION_OVERLAP;
   eUserpref_GPU_Flag gpu_flag = USER_GPU_FLAG_OVERLAY_SMOOTH_WIRE |
                                 USER_GPU_FLAG_SUBDIVISION_EVALUATION;
 

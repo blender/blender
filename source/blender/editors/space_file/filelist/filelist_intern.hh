@@ -190,6 +190,7 @@ enum {
   FLF_HIDE_LIB_DIR = 1 << 3,
   FLF_ASSETS_ONLY = 1 << 4,
   FLF_ASSETS_HIDE_ONLINE = 1 << 5,
+  FLF_ASSETS_HIDE_OFFLINE = 1 << 6,
 };
 
 struct FileListReadJob;
