@@ -4,6 +4,7 @@
 
 set(INC
   PUBLIC .
+  PUBLIC xpbd
   ../makesrna
   ../../../intern/eigen
 )
@@ -57,6 +58,8 @@ set(SRC
   intern/uv_parametrizer.cc
   intern/volume_grid_resample.cc
 
+  xpbd/intern/xpbd_constraint_coloring.cc
+
   GEO_add_curves_on_mesh.hh
   GEO_curve_constraints.hh
   GEO_curves_remove_and_split.hh
@@ -100,6 +103,28 @@ set(SRC
   GEO_uv_pack.hh
   GEO_uv_parametrizer.hh
   GEO_volume_grid_resample.hh
+
+  xpbd/GEO_xpbd_constraint_align_rotations.hh
+  xpbd/GEO_xpbd_constraint_collision_edge.hh
+  xpbd/GEO_xpbd_constraint_collision_face.hh
+  xpbd/GEO_xpbd_constraint_coloring.hh
+  xpbd/GEO_xpbd_constraint_damping_angular.hh
+  xpbd/GEO_xpbd_constraint_damping_linear.hh
+  xpbd/GEO_xpbd_constraint_distance.hh
+  xpbd/GEO_xpbd_constraint_friction_edge.hh
+  xpbd/GEO_xpbd_constraint_friction_face.hh
+  xpbd/GEO_xpbd_constraint_math.hh
+  xpbd/GEO_xpbd_constraint_pin_position.hh
+  xpbd/GEO_xpbd_constraint_pin_rotation.hh
+  xpbd/GEO_xpbd_constraint_rod_bend_twist.hh
+  xpbd/GEO_xpbd_constraint_rod_stretch_shear.hh
+  xpbd/GEO_xpbd_constraint_set.hh
+  xpbd/GEO_xpbd_constraint_set_params.hh
+  xpbd/GEO_xpbd_constraint_set_templated.hh
+  xpbd/GEO_xpbd_geometry_ref.hh
+  xpbd/GEO_xpbd_updater_gauss_seidel.hh
+  xpbd/GEO_xpbd_updater_velocity.hh
+
   intern/mesh_boolean_intern.hh
   intern/mesh_boolean_manifold.hh
 )

@@ -2345,8 +2345,9 @@ static wmOperatorStatus object_curves_empty_hair_add_exec(bContext *C, wmOperato
     curves_id->surface_uv_map = BLI_strdupn(uv_name.data(), uv_name.size());
   }
 
-  /* Add deformation modifier. */
-  ed::curves::ensure_surface_deformation_node_exists(*C, *curves_ob);
+  if (!U.experimental.use_geometry_nodes_hair_dynamics) {
+    ed::curves::ensure_surface_deformation_node_exists(*C, *curves_ob);
+  }
 
   /* Make sure the surface object has a rest position attribute which is necessary for
    * deformations. */

@@ -418,6 +418,10 @@ static void node_declare(NodeDeclarationBuilder &b)
       input_decl.supports_field().structure_type(StructureType::Dynamic);
       output_decl.dependent_field({input_decl.index()});
     }
+    if (socket_type == SOCK_BUNDLE) {
+      dynamic_cast<decl::BundleBuilder &>(output_decl)
+          .pass_through_input_index(input_decl.index());
+    }
   }
   b.add_input<decl::Extend>(""_ustr, "__extend__"_ustr).structure_type(StructureType::Dynamic);
   b.add_output<decl::Extend>(""_ustr, "__extend__"_ustr)
@@ -748,6 +752,10 @@ static void node_declare(NodeDeclarationBuilder &b)
       /* If it's below a geometry input it may be a field evaluated on that geometry. */
       input_decl.supports_field().structure_type(StructureType::Dynamic);
       output_decl.dependent_field({input_decl.index()});
+    }
+    if (socket_type == SOCK_BUNDLE) {
+      dynamic_cast<decl::BundleBuilder &>(output_decl)
+          .pass_through_input_index(input_decl.index());
     }
   }
   b.add_input<decl::Extend>(""_ustr, "__extend__"_ustr).structure_type(StructureType::Dynamic);

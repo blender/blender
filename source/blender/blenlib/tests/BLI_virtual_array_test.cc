@@ -7,6 +7,8 @@
 #include "BLI_vector.hh"
 #include "BLI_vector_set.hh"
 #include "BLI_virtual_array.hh"
+#include "BLI_virtual_array_range_spans.hh"
+
 #include "testing/testing.h"
 
 #include "BLI_strict_flags.h" /* IWYU pragma: keep. Keep last. */
@@ -291,6 +293,67 @@ TEST_F(VirtualArrayTest, EmptySpanWrapper)
     GMutableVArraySpan span2 = std::move(span1);
     EXPECT_TRUE(span2.is_empty());
   }
+}
+
+TEST_F(VirtualArrayTest, SingleValueRangeSpans)
+{
+  const VArray<int> varray = VArray<int>::from_single(42, 10);
+  ResourceScope scope;
+  const VArrayRangeSpans<int> spans(scope, varray, 3);
+
+  const Span<int> span1 = spans.get_span_for_range(IndexRange::from_begin_size(0, 3));
+  const Span<int> span2 = spans.get_span_for_range(IndexRange::from_begin_size(7, 3));
+  const Span<int> span3 = spans.get_span_for_range(IndexRange::from_begin_size(5, 1));
+  EXPECT_EQ_SPAN(span1, {42, 42, 42});
+  EXPECT_EQ(span1.data(), span2.data());
+  EXPECT_EQ(span1.data(), span3.data());
+}
+
+TEST_F(VirtualArrayTest, SpanRangeSpans)
+{
+  const Array<int> array = {0, 1, 2, 3, 4, 5, 6, 7, 8, 9};
+  const VArray<int> varray = VArray<int>::from_span(array);
+  ResourceScope scope;
+  const VArrayRangeSpans<int> spans(scope, varray, 3);
+
+  const Span<int> span1 = spans.get_span_for_range(IndexRange::from_begin_size(0, 3));
+  EXPECT_EQ(span1.data(), array.data());
+
+  const Span<int> span2 = spans.get_span_for_range(IndexRange::from_begin_size(7, 3));
+  EXPECT_EQ(span2.data(), &array[7]);
+
+  const Span<int> span3 = spans.get_span_for_range(IndexRange::from_begin_size(5, 1));
+  EXPECT_EQ(span3.data(), &array[5]);
+}
+
+TEST_F(VirtualArrayTest, ArrayRangeSpans)
+{
+  const VArray<int> varray = VArray<int>::from_container(Array<int>{0, 1, 2, 3, 4, 5, 6, 7, 8, 9});
+  ResourceScope scope;
+  const VArrayRangeSpans<int> spans(scope, varray, 3);
+
+  const Span<int> span1 = spans.get_span_for_range(IndexRange::from_begin_size(0, 3));
+  const Span<int> span2 = spans.get_span_for_range(IndexRange::from_begin_size(7, 3));
+  const Span<int> span3 = spans.get_span_for_range(IndexRange::from_begin_size(5, 1));
+
+  EXPECT_EQ(span1.data() + 7, span2.data());
+  EXPECT_EQ(span1.data() + 5, span3.data());
+}
+
+TEST_F(VirtualArrayTest, FunctionRangeSpans)
+{
+  const VArray<int> varray = VArray<int>::from_std_func(10, [](const int64_t i) { return i; });
+  ResourceScope scope;
+  const VArrayRangeSpans<int> spans(scope, varray, 3);
+
+  const Span<int> span1 = spans.get_span_for_range(IndexRange::from_begin_size(0, 3));
+  EXPECT_EQ_SPAN(span1, {0, 1, 2});
+
+  const Span<int> span2 = spans.get_span_for_range(IndexRange::from_begin_size(7, 3));
+  EXPECT_EQ_SPAN(span2, {7, 8, 9});
+
+  const Span<int> span3 = spans.get_span_for_range(IndexRange::from_begin_size(5, 1));
+  EXPECT_EQ_SPAN(span3, {5});
 }
 
 TEST(generic_virtual_array, FromFunc)
