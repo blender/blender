@@ -2136,6 +2136,27 @@ static StructRNA *rna_NodesModifierBake_data_block_typef(PointerRNA *ptr)
   return ID_code_to_RNA_type(data_block->id_type);
 }
 
+static std::optional<std::string> rna_NodesModifierBake_path(const PointerRNA *ptr)
+{
+  const std::optional<AncestorPointerRNA> ancestor = RNA_struct_search_closest_ancestor_by_type(
+      ptr, RNA_NodesModifier);
+  if (!ancestor) {
+    return std::nullopt;
+  }
+
+  const ModifierData *md = static_cast<ModifierData *>(ancestor->data);
+  BLI_assert(md->type == eModifierType_Nodes);
+  const NodesModifierData *nmd = reinterpret_cast<const NodesModifierData *>(md);
+  const NodesModifierBake *nmd_bake = ptr->data_as<NodesModifierBake>();
+  Span<NodesModifierBake> bakes = {nmd->bakes, nmd->bakes_num};
+  if (!bakes.contains_ptr(nmd_bake)) {
+    return std::nullopt;
+  }
+  const int64_t idx = nmd_bake - bakes.begin();
+
+  return fmt::format("modifiers[\"{}\"].bakes[{}]", md->name, idx);
+}
+
 bool rna_GreasePencilModifier_material_poll(PointerRNA *ptr, PointerRNA value)
 {
   Object *ob = reinterpret_cast<Object *>(ptr->owner_id);
@@ -7996,6 +8017,7 @@ static void rna_def_modifier_nodes_bake(BlenderRNA *brna)
 
   srna = RNA_def_struct(brna, "NodesModifierBake", nullptr);
   RNA_def_struct_ui_text(srna, "Nodes Modifier Bake", "");
+  RNA_def_struct_path_func(srna, "rna_NodesModifierBake_path");
 
   prop = RNA_def_property(srna, "directory", PROP_STRING, PROP_DIRPATH);
   RNA_def_property_flag(prop, PROP_PATH_SUPPORTS_BLEND_RELATIVE);

@@ -1347,7 +1347,8 @@ static int /*eContextResult*/ node_context(const bContext *C,
     if (snode->edittree) {
       for (bNode *node : snode->edittree->all_nodes()) {
         if (node->flag & NODE_SELECT) {
-          CTX_data_list_add(result, &snode->edittree->id, RNA_Node, node);
+          PointerRNA ptr = RNA_pointer_create_id_subdata(snode->edittree->id, RNA_Node, node);
+          CTX_data_list_add_ptr(result, &ptr);
         }
       }
     }
@@ -1357,7 +1358,8 @@ static int /*eContextResult*/ node_context(const bContext *C,
   if (CTX_data_equals(member, "active_node")) {
     if (snode->edittree) {
       bNode *node = bke::node_get_active(*snode->edittree);
-      CTX_data_pointer_set(result, &snode->edittree->id, RNA_Node, node);
+      PointerRNA ptr = RNA_pointer_create_id_subdata(snode->edittree->id, RNA_Node, node);
+      CTX_data_pointer_set_ptr(result, &ptr);
     }
 
     CTX_data_type_set(result, ContextDataType::Pointer);
