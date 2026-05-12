@@ -21,6 +21,21 @@ CCL_NAMESPACE_BEGIN
 
 /* Closure */
 
+#if OSL_LIBRARY_VERSION_CODE >= 11500
+
+ccl_device_extern void *rs_allocate_closure(ccl_private ShaderGlobals *sg,
+                                            const size_t size,
+                                            const size_t alignment)
+{
+  ccl_private uint8_t *closure_pool = sg->closure_pool;
+  closure_pool = reinterpret_cast<ccl_private uint8_t *>(
+      (reinterpret_cast<size_t>(closure_pool) + alignment - 1) & (-alignment));
+  sg->closure_pool = closure_pool + size;
+  return closure_pool;
+}
+
+#else
+
 ccl_device_extern ccl_private OSLClosure *osl_mul_closure_color(ccl_private ShaderGlobals *sg,
                                                                 ccl_private OSLClosure *a,
                                                                 const ccl_private float3 *weight)
@@ -137,6 +152,8 @@ ccl_device_extern ccl_private OSLClosure *osl_allocate_weighted_closure_componen
 
   return closure;
 }
+
+#endif
 
 /* Utilities */
 
