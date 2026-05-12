@@ -50,7 +50,7 @@ enum class SampleResult {
 };
 
 struct BoneDropper {
-  /* The ptr.owner_id is the ID for which we are searching the property.*/
+  /** The `ptr.owner_id` is the ID for which we are searching the property. */
   PointerRNA ptr = {};
   PropertyRNA *prop = nullptr;
   /* The property we are looking for. */

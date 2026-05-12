@@ -2544,7 +2544,7 @@ static bool lib_override_library_resync(Main *bmain,
       /* We need to 'move back' newly created override into its proper library (since it was
        * duplicated from the reference ID with 'no main' option, it should currently be the same
        * as the reference ID one). */
-      BLI_assert(/*!ID_IS_LINKED(id_override_new) || */ id_override_new->lib ==
+      BLI_assert(/* `!ID_IS_LINKED(id_override_new) ||` */ id_override_new->lib ==
                  id_reference_iter->lib);
       BLI_assert(id_override_old == nullptr || id_override_old->lib == id_root->lib);
       id_override_new->lib = id_root->lib;

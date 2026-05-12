@@ -725,7 +725,7 @@ static void distribute_children_exec(ParticleTask *thread, ChildParticle *cpa, i
   if (ctx->tree) {
     KDTreeNearest<float3> ptn[10];
     int w, maxw;  //, do_seams;
-    float maxd /*, mind,dd */, totw = 0.0f;
+    float maxd /* , mind, dd */, totw = 0.0f;
     int parent[10];
     float pweight[10];
 

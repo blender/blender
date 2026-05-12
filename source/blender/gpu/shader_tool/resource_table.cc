@@ -495,7 +495,7 @@ void SourceProcessor::lower_resource_table(Parser &parser)
     body.foreach_declaration([&](Scope attributes,
                                  Token const_tok,
                                  Token type,
-                                 Scope /*template_scope TODO */,
+                                 Scope /*template_scope*/, /* TODO */
                                  Token name,
                                  Scope array,
                                  Token decl_end) {

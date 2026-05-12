@@ -935,7 +935,7 @@ struct bPose {
   ePose_IKSolverType iksolver = {};
   /** Temporary IK data, depends on the IK solver. Not saved in file. */
   void *ikdata = nullptr;
-  /** IK solver parameter for ItaSC .*/
+  /** IK solver parameter for ItaSC. */
   bItasc *ikparam = nullptr;
 
   /** Settings for visualization of bone animation. */

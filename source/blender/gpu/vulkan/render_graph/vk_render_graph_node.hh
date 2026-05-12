@@ -103,9 +103,9 @@ struct VKRenderGraphNode {
   };
 
   struct {
-    /* Range where the input/output buffers are stored inside #VKRenderGraph.buffer_links_.*/
+    /** Range where the input/output buffers are stored inside #VKRenderGraph.buffer_links_. */
     IndexRange buffers;
-    /* Range where the input/output images are stored inside #VKRenderGraph.image_links_.*/
+    /** Range where the input/output images are stored inside #VKRenderGraph.image_links_. */
     IndexRange images;
   } links;
 

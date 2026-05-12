@@ -995,7 +995,7 @@ static bool rna_Action_is_action_legacy_get(PointerRNA *ptr)
 }
 static bool rna_Action_is_action_layered_get(PointerRNA * /* ptr */)
 {
-  /*All actions are layered through versioning. */
+  /* All actions are layered through versioning. */
   return true;
 }
 

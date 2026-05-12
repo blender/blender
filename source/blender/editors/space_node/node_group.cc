@@ -301,7 +301,7 @@ static void node_group_ungroup(bContext &C, bNodeTree &ntree, bNode &group_node)
   /* Delete the original group instance. */
   bke::node_remove_node(&bmain, ntree, group_node, true);
 
-  /* Select ungrouped nodes*/
+  /* Select ungrouped nodes. */
   for (bNode *node : copied_nodes.node_map().values()) {
     bke::node_set_selected(*node, true);
   }

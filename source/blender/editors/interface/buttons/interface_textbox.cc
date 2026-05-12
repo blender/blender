@@ -78,7 +78,7 @@ void textbox_textedit_set_cursor_pos(ButtonTextBox *textbox,
                                      const float2 xy)
 {
 
-  /* Don't include grip bounds when selecting text with the mouse.*/
+  /* Don't include grip bounds when selecting text with the mouse. */
   float2 start = {textbox->rect.xmin, textbox->rect.ymin};
   float2 end = {textbox->rect.xmax, textbox->rect.ymax};
 

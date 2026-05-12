@@ -90,12 +90,12 @@ generalized_schlick_setup(const float ior,
                           const Spectrum transmission_tint,
                           const FresnelThinFilm thinfilm)
 {
-  return {/*.thin_film = */ thinfilm,
-          /*.reflection_tint = */ reflective_caustics ? one_spectrum() : zero_spectrum(),
-          /*.transmission_tint = */ refractive_caustics ? transmission_tint : zero_spectrum(),
-          /*.f0 = */ F0_from_ior(ior) * reflection_tint,
-          /*.f90 = */ one_spectrum(),
-          /*.exponent = */ -ior};
+  return {/* .thin_film = */ thinfilm,
+          /* .reflection_tint = */ reflective_caustics ? one_spectrum() : zero_spectrum(),
+          /* .transmission_tint = */ refractive_caustics ? transmission_tint : zero_spectrum(),
+          /* .f0 = */ F0_from_ior(ior) * reflection_tint,
+          /* .f90 = */ one_spectrum(),
+          /* .exponent = */ -ior};
 }
 
 /* Beckmann VNDF importance sampling algorithm from:

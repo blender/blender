@@ -153,7 +153,7 @@ static float SoftHeunTol = 1.0f;
 /* local prototypes */
 static void free_softbody_intern(SoftBody *sb);
 
-/*+++ frame based timing +++ */
+/* +++ frame based timing +++ */
 
 /* Physical unit of force is `kg * m / sec^2`. */
 
@@ -1226,7 +1226,7 @@ static void scan_for_ext_face_forces(Object *ob, float timenow)
     bf = sb->scratch->bodyface;
     for (a = 0; a < sb->scratch->bodyface_num; a++, bf++) {
       bf->ext_force[0] = bf->ext_force[1] = bf->ext_force[2] = 0.0f;
-      /*+++edges intruding. */
+      /* +++edges intruding. */
       bf->flag &= ~BFF_INTERSECT;
       zero_v3(feedback);
       if (sb_detect_face_collisionCached(sb->bpoint[bf->v1].pos,
@@ -1244,9 +1244,9 @@ static void scan_for_ext_face_forces(Object *ob, float timenow)
         bf->flag |= BFF_INTERSECT;
         choke = min_ff(max_ff(damp, choke), 1.0f);
       }
-      /*---edges intruding. */
+      /* ---edges intruding. */
 
-      /*+++ close vertices. */
+      /* +++ close vertices. */
       if ((bf->flag & BFF_INTERSECT) == 0) {
         bf->flag &= ~BFF_CLOSEVERT;
         tune = -1.0f;
@@ -1267,7 +1267,7 @@ static void scan_for_ext_face_forces(Object *ob, float timenow)
           choke = min_ff(max_ff(damp, choke), 1.0f);
         }
       }
-      /*--- close vertices. */
+      /* --- close vertices. */
     }
     bf = sb->scratch->bodyface;
     for (a = 0; a < sb->scratch->bodyface_num; a++, bf++) {
@@ -1280,7 +1280,7 @@ static void scan_for_ext_face_forces(Object *ob, float timenow)
   }
 }
 
-/*  --- the face external section. */
+/* --- the face external section. */
 
 /* +++ the spring external section. */
 
@@ -2224,7 +2224,7 @@ static void softbody_calc_forces(
   // float gravity;           /* UNUSED */
   // float iks;
   float fieldfactor = -1.0f, windfactor = 0.25;
-  int do_deflector /*, do_selfcollision */, do_springcollision, do_aero;
+  int do_deflector /* , do_selfcollision */, do_springcollision, do_aero;
 
   // gravity = sb->grav * sb_grav_force_scale(ob); /* UNUSED */
 
@@ -3618,7 +3618,7 @@ void sbObjectStep(Depsgraph *depsgraph,
   if (cache_result == PTCACHE_READ_OLD) {
     /* pass */
   }
-  else if (/*ob->id.lib || */
+  else if (/* ob->id.lib || */
            /* "library linking & point-caches" has to be solved properly at some point. */
            (cache->flag & PTCACHE_BAKED))
   {

@@ -36,7 +36,7 @@ void renderpass_clear_vert([[vertex_id]] const int vert_id, [[position]] float4 
 }
 
 [[fragment]]
-void renderpass_clear_frag([[resource_table]] RenderPassClear & /*srt */,
+void renderpass_clear_frag([[resource_table]] RenderPassClear & /*srt*/,
                            [[frag_coord]] const float4 frag_co,
                            [[out]] RenderPassClearFragOut &frag_out)
 {

@@ -1252,7 +1252,7 @@ static AssetTypeInfo AssetType_OB = {
 IDTypeInfo IDType_ID_OB = {
     .id_code = Object::id_type,
     .id_filter = FILTER_ID_OB,
-    /* Could be more specific, but simpler to just always say 'yes' here.*/
+    /* Could be more specific, but simpler to just always say 'yes' here. */
     .dependencies_id_types = FILTER_ID_ALL,
     .main_listbase_index = INDEX_ID_OB,
     .struct_size = sizeof(Object),

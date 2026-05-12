@@ -668,7 +668,7 @@ static void register_common_functions_impl()
 
 void register_common_functions()
 {
-  /* Make sure the functions are only registered once even if called multiple times.*/
+  /* Make sure the functions are only registered once even if called multiple times. */
   [[maybe_unused]] static bool registered = []() {
     register_common_functions_impl();
     return true;

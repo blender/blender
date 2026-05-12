@@ -22,7 +22,7 @@ struct PipelineState {
   Vector<SpecializationConstant::Value> specialization_constants_;
   /* Vertex input */
   GPUPrimType primitive_;
-  /* Pre-fragment and Fragment stage*/
+  /* Pre-fragment and Fragment stage. */
   GPUState state_ = {{GPU_WRITE_COLOR}};
   uint32_t viewport_count_;
   /* Attachment formats. */

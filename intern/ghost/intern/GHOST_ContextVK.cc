@@ -945,7 +945,7 @@ GHOST_TSuccess GHOST_ContextVK::swapBufferAcquire()
     recreateSwapchain(use_hdr_swapchain);
   }
 
-  /* Acquiree next image, swapchain can be (or become) invalid when minimizing window.*/
+  /* Acquiree next image, swapchain can be (or become) invalid when minimizing window. */
   uint32_t image_index = 0;
   if (swapchain_ != VK_NULL_HANDLE) {
     /* Some platforms (NVIDIA/Wayland) can receive an out of date swapchain when acquiring the next
@@ -1618,7 +1618,7 @@ GHOST_TSuccess GHOST_ContextVK::initializeDrawingContext()
      * We work around this by requesting Vulkan promoted extensions.
      */
 #ifdef WITH_XR_OPENXR
-    /* Vulkan 1.1 promoted instance extensions, enabled for OpenXR usage.*/
+    /* Vulkan 1.1 promoted instance extensions, enabled for OpenXR usage. */
     instance_vk.extensions.enable(VK_KHR_EXTERNAL_FENCE_CAPABILITIES_EXTENSION_NAME);
     instance_vk.extensions.enable(VK_KHR_EXTERNAL_MEMORY_CAPABILITIES_EXTENSION_NAME);
     instance_vk.extensions.enable(VK_KHR_EXTERNAL_SEMAPHORE_CAPABILITIES_EXTENSION_NAME);

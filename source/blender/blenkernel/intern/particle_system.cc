@@ -4480,7 +4480,7 @@ static void system_step(ParticleSimulationData *sim, float cfra, const bool use_
   PointCache *cache = psys->pointcache;
   PTCacheID ptcacheid, *pid = nullptr;
   PARTICLE_P;
-  float disp, cache_cfra = cfra; /*, *vg_vel= 0, *vg_tan= 0, *vg_rot= 0, *vg_size= 0; */
+  float disp, cache_cfra = cfra; /* , *vg_vel= 0, *vg_tan= 0, *vg_rot= 0, *vg_size= 0; */
   int startframe = 0, endframe = 100, oldtotpart = 0;
 
   /* cache shouldn't be used for hair or "continue physics" */

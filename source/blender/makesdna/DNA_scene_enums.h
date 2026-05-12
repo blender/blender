@@ -72,7 +72,7 @@ enum eUnifiedPaintSettingsFlags : int {
 };
 ENUM_OPERATORS(eUnifiedPaintSettingsFlags)
 
-/** Paint::curve_visibility_flag*/
+/** Paint::curve_visibility_flag */
 enum PaintCurveVisibilityFlags : int {
   PAINT_CURVE_SHOW_STRENGTH = (1 << 0),
   PAINT_CURVE_SHOW_SIZE = (1 << 1),

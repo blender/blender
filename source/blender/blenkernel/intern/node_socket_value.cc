@@ -308,7 +308,7 @@ template<typename T> void SocketValueVariant::store_impl(T value)
     value_.extra.kind = Kind::List;
   }
   else if constexpr (nodes::is_ListPtr_v<T>) {
-    /* Always store #ListPtr as #GListPtr.*/
+    /* Always store #ListPtr as #GListPtr. */
     this->store_impl<nodes::GListPtr>(std::move(value));
   }
 #ifdef WITH_OPENVDB

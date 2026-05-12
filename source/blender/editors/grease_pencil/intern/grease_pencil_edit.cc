@@ -4965,7 +4965,7 @@ static wmOperatorStatus grease_pencil_set_corner_type_exec(bContext *C, wmOperat
     miter_angle = GP_STROKE_MITER_ANGLE_BEVEL;
   }
   else if (corner_type == CornerType::Miter) {
-    /* Prevent the angle from being set to zero, and becoming the `Round` type.*/
+    /* Prevent the angle from being set to zero, and becoming the `Round` type. */
     if (miter_angle == 0.0f) {
       miter_angle = DEG2RADF(1.0f);
     }

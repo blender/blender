@@ -3664,7 +3664,7 @@ void button_range_set_soft(Button *but)
   }
 }
 
-/* ******************* Free ********************/
+/* ******************* Free ******************* */
 
 /**
  * Free data specific to a certain button type.

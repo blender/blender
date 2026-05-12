@@ -129,7 +129,7 @@ KERNEL_STRUCT_MEMBER(guiding, bool, use_surface_guiding, KERNEL_FEATURE_PATH_GUI
 /* Random number used for additional guiding decisions (e.g., cache query, selection to use guiding
  * or BSDF sampling) */
 KERNEL_STRUCT_MEMBER(guiding, float, sample_surface_guiding_rand, KERNEL_FEATURE_PATH_GUIDING)
-/* The probability to use surface guiding (i.e., diffuse sampling prob * guiding prob)*/
+/* The probability to use surface guiding (i.e., diffuse sampling prob * guiding prob). */
 KERNEL_STRUCT_MEMBER(guiding, float, surface_guiding_sampling_prob, KERNEL_FEATURE_PATH_GUIDING)
 /* Probability of sampling a BSSRDF closure instead of a BSDF closure. */
 KERNEL_STRUCT_MEMBER(guiding, float, bssrdf_sampling_prob, KERNEL_FEATURE_PATH_GUIDING)

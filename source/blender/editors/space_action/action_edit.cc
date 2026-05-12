@@ -166,7 +166,7 @@ static bool get_keyframe_extents(bAnimContext *ac, float *min, float *max, const
   /* Get data to filter, from Action or Dope-sheet. */
   /* XXX: what is sel doing here?!
    *      Commented it, was breaking things (eg. the "auto preview range" tool). */
-  filter = (ANIMFILTER_DATA_VISIBLE | ANIMFILTER_LIST_VISIBLE /*| ANIMFILTER_SEL */ |
+  filter = (ANIMFILTER_DATA_VISIBLE | ANIMFILTER_LIST_VISIBLE /* | ANIMFILTER_SEL */ |
             ANIMFILTER_NODUPLIS);
   ANIM_animdata_filter(ac, &anim_data, filter, ac->data, eAnimCont_Types(ac->datatype));
 

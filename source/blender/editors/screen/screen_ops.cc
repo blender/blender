@@ -3580,7 +3580,7 @@ static wmOperatorStatus quadview_size_modal(bContext *C, wmOperator *op, const w
         quad_y = round(quad_y * 12.0f) / 12.0f;
       }
 
-      /* Clamp.*/
+      /* Clamp. */
       qsd->area->quadview_ratio[0] = std::clamp(quad_x, 0.1f, 0.9f);
       qsd->area->quadview_ratio[1] = std::clamp(quad_y, 0.2f, 0.8f);
 

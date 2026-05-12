@@ -396,7 +396,7 @@ static void log_viewer_attribute(const bNode &node, eval_log::ViewerNodeLog &r_l
         }
       });
     }
-    /* Avoid overriding the viewer attribute with other fields.*/
+    /* Avoid overriding the viewer attribute with other fields. */
     last_geometry_identifier.reset();
   }
 }

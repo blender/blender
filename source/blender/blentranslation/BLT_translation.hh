@@ -45,7 +45,7 @@ StringRef BLT_translate_do_new_dataname(StringRef msgctxt, StringRef msgid);
 #define CTX_N_(context, msgid) msgid
 
 /* These macros should be used everywhere in UI code. */
-/*#  define _(msgid) BLT_gettext(msgid) */
+// #define _(msgid) BLT_gettext(msgid)
 #define IFACE_(msgid) BLT_translate_do_iface(NULL, msgid)
 #define TIP_(msgid) BLT_translate_do_tooltip(NULL, msgid)
 #define RPT_(msgid) BLT_translate_do_report(NULL, msgid)

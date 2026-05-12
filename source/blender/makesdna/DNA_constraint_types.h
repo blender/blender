@@ -68,7 +68,7 @@ enum Attribute_Domain : uint8_t {
   CON_ATTRIBUTE_DOMAIN_INSTANCE = 5,
 };
 
-/** Attribute Data Type*/
+/** Attribute Data Type */
 enum Attribute_Data_Type : uint8_t {
   CON_ATTRIBUTE_VECTOR = 0,
   CON_ATTRIBUTE_QUATERNION = 1,

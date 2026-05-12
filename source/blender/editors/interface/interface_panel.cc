@@ -1645,7 +1645,7 @@ void panel_category_tabs_draw_all(ARegion *region, const char *category_id_activ
         std::string title;
         int char_offset1 = BLI_str_utf8_offset_from_index(category_id_draw, category_draw_len, 1);
         if (char_offset1 > 2) {
-          /* only a single complex character, symbol, or emoji.*/
+          /* Only a single complex character, symbol, or emoji. */
           title = std::string(category_id_draw, char_offset1);
         }
         else {

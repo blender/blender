@@ -305,7 +305,7 @@ ustring ColorSpaceManager::detect_known_colorspace(ustring colorspace,
   }
 #endif
 
-  /* Fall back to simple guess if we don't have OpenColorIO .*/
+  /* Fall back to simple guess if we don't have OpenColorIO. */
   if (colorspace == u_colorspace_auto) {
     colorspace = (is_float && !(strcmp(file_colorspace, "srgb_rec709_scene") == 0 ||
                                 strcmp(file_colorspace, "srgb_rec709_display") == 0)) ?

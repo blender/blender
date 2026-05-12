@@ -104,7 +104,7 @@ void SourceProcessor::parse_namespace_symbols(SourceProcessor::Parser &parser,
 
     if (t.next() == '<') {
       if (t.next(2) == '>') {
-        /* Template specialization.*/
+        /* Template specialization. */
         return;
       }
       TemplateDefinition symbol = SourceProcessor::parse_template_definition(

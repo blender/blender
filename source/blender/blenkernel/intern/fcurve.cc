@@ -1154,7 +1154,7 @@ void BKE_fcurve_handles_recalc_ex(FCurve &fcu, const eBezTriple_Flag handle_sel_
    * - Only bezier-interpolation has handles (for now).
    */
   if (fcu.bezt == nullptr ||
-      (fcu.totvert < 2) /*|| ELEM(fcu->ipo, BEZT_IPO_CONST, BEZT_IPO_LIN) */)
+      (fcu.totvert < 2) /* || ELEM(fcu->ipo, BEZT_IPO_CONST, BEZT_IPO_LIN) */)
   {
     return;
   }
