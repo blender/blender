@@ -670,7 +670,9 @@ float2 Film::pixel_jitter_get() const
 {
   float2 jitter = inst_.sampling.rng_2d_get(SAMPLING_FILTER_U);
 
-  if (!use_box_filter && data_.filter_radius < M_SQRT1_2 && !inst_.camera.is_panoramic()) {
+  if (!use_box_filter && data_.filter_radius < M_SQRT1_2 && !inst_.camera.is_panoramic() &&
+      !inst_.sampling.use_custom_pixel_jitter_sample())
+  {
     /* For filter size less than a pixel, change sampling strategy and use a uniform disk
      * distribution covering the filter shape. This avoids putting samples in areas without any
      * weights. */
