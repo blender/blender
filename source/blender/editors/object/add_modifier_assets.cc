@@ -109,7 +109,10 @@ static void catalog_assets_draw(const bContext *C, Menu *menu)
   wmOperatorType *ot = WM_operatortype_find("OBJECT_OT_modifier_add_node_group", true);
   for (const asset_system::AssetRepresentation *asset : assets) {
     if (skip_essentials) {
-      if (asset->owner_asset_library().library_reference()->type == ASSET_LIBRARY_ESSENTIALS) {
+      if (ELEM(asset->owner_asset_library().library_reference()->type,
+               ASSET_LIBRARY_ESSENTIALS,
+               ASSET_LIBRARY_ONLINE_ESSENTIALS))
+      {
         continue;
       }
     }

@@ -2485,7 +2485,7 @@ static void rna_def_asset_shelf(BlenderRNA *brna)
   parm = RNA_def_pointer(func, "layout", "UILayout", "", "The layout to draw into");
   RNA_def_parameter_flags(parm, PropertyFlag(0), PARM_REQUIRED);
 
-  prop = rna_def_asset_library_reference_common(
+  prop = rna_def_asset_library_ui_reference_common(
       srna, "rna_AssetShelf_asset_library_get", "rna_AssetShelf_asset_library_set");
   RNA_def_property_ui_text(
       prop, "Asset Library", "Choose the asset library to display assets from");

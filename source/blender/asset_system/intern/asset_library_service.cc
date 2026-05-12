@@ -84,6 +84,9 @@ AssetLibrary *AssetLibraryService::get_asset_library(
 
       return this->get_asset_library_on_disk_builtin(type, root_path);
     }
+    case ASSET_LIBRARY_ONLINE_ESSENTIALS: {
+      return this->get_online_essentials_asset_library();
+    }
     case ASSET_LIBRARY_LOCAL: {
       /* For the "Current File" library we get the asset library root path based on main. */
       std::string root_path = bmain ? AS_asset_library_find_suitable_root_path_from_main(bmain) :
@@ -105,7 +108,10 @@ AssetLibrary *AssetLibraryService::get_asset_library(
       }
 
       if (custom_library->flag & ASSET_LIBRARY_USE_REMOTE_URL) {
-        return this->get_remote_asset_library(*custom_library);
+        if (is_online_essentials_url(custom_library->remote_url)) {
+          return this->get_online_essentials_asset_library();
+        }
+        return this->get_preferences_remote_asset_library(*custom_library);
       }
 
       std::string root_path = custom_library->dirpath;
@@ -123,7 +129,22 @@ AssetLibrary *AssetLibraryService::get_asset_library(
   return nullptr;
 }
 
-AssetLibrary *AssetLibraryService::get_remote_asset_library(
+AssetLibrary *AssetLibraryService::get_online_essentials_asset_library()
+{
+  if (online_essentials_library_) {
+    CLOG_DEBUG(&LOG, "get online essentials lib (cached)");
+    online_essentials_library_->load_or_reload_catalogs();
+  }
+  else {
+    CLOG_DEBUG(&LOG, "get online essentials lib (loaded)");
+    online_essentials_library_ = std::make_unique<OnlineEssentialsLibrary>();
+  }
+
+  AssetLibrary *lib = online_essentials_library_.get();
+  return lib;
+}
+
+AssetLibrary *AssetLibraryService::get_preferences_remote_asset_library(
     const bUserAssetLibrary &custom_library)
 {
   if (!custom_library.remote_url[0]) {
@@ -132,7 +153,8 @@ AssetLibrary *AssetLibraryService::get_remote_asset_library(
 
   const StringRefNull remote_url = custom_library.remote_url;
 
-  std::unique_ptr<RemoteAssetLibrary> *lib_uptr_ptr = remote_libraries_.lookup_ptr(remote_url);
+  std::unique_ptr<PreferencesRemoteAssetLibrary> *lib_uptr_ptr = remote_libraries_.lookup_ptr(
+      remote_url);
   if (lib_uptr_ptr != nullptr) {
     CLOG_DEBUG(&LOG, "get \"%s\" (cached)", remote_url.c_str());
     AssetLibrary *lib = lib_uptr_ptr->get();
@@ -140,8 +162,8 @@ AssetLibrary *AssetLibraryService::get_remote_asset_library(
     return lib;
   }
 
-  std::unique_ptr<RemoteAssetLibrary> lib_uptr = std::make_unique<RemoteAssetLibrary>(
-      custom_library);
+  std::unique_ptr<PreferencesRemoteAssetLibrary> lib_uptr =
+      std::make_unique<PreferencesRemoteAssetLibrary>(custom_library);
   AssetLibrary *lib = lib_uptr.get();
   lib->load_or_reload_catalogs();
 
@@ -406,6 +428,9 @@ std::string AssetLibraryService::resolve_asset_weak_reference_to_library_path(
     case ASSET_LIBRARY_ESSENTIALS:
       library_dirpath = essentials_directory_path();
       break;
+    case ASSET_LIBRARY_ONLINE_ESSENTIALS:
+      library_dirpath = online_essentials_cache_directory_path();
+      break;
     case ASSET_LIBRARY_LOCAL:
     case ASSET_LIBRARY_ALL:
       return "";
@@ -517,7 +542,8 @@ std::optional<AssetLibraryService::ExplodedPath> AssetLibraryService::
       return exploded;
     }
     case ASSET_LIBRARY_CUSTOM:
-    case ASSET_LIBRARY_ESSENTIALS: {
+    case ASSET_LIBRARY_ESSENTIALS:
+    case ASSET_LIBRARY_ONLINE_ESSENTIALS: {
       std::string full_path = this->resolve_asset_weak_reference_to_full_path(asset_reference);
       /* #full_path uses native slashes, so others don't need to be considered in the following. */
 
@@ -570,6 +596,9 @@ std::string AssetLibraryService::root_path_from_library_ref(
   }
   if (ELEM(library_reference.type, ASSET_LIBRARY_ESSENTIALS)) {
     return essentials_directory_path();
+  }
+  if (library_reference.type == ASSET_LIBRARY_ONLINE_ESSENTIALS) {
+    return online_essentials_cache_directory_path();
   }
 
   bUserAssetLibrary *custom_library = find_custom_asset_library_from_library_ref(
@@ -661,6 +690,12 @@ void AssetLibraryService::foreach_loaded_asset_library(FunctionRef<void(AssetLib
     break;
   }
 
+  const bool include_remote_libraries = USER_EXPERIMENTAL_TEST(&U, use_remote_asset_libraries);
+
+  if (include_remote_libraries && online_essentials_library_) {
+    fn(*online_essentials_library_);
+  }
+
   for (const auto &asset_lib_uptr : on_disk_libraries_.values()) {
     /* Already handled above. */
     if (asset_lib_uptr->library_type() == ASSET_LIBRARY_ESSENTIALS) {
@@ -672,9 +707,11 @@ void AssetLibraryService::foreach_loaded_asset_library(FunctionRef<void(AssetLib
     }
   }
 
-  if (USER_EXPERIMENTAL_TEST(&U, use_remote_asset_libraries)) {
+  if (include_remote_libraries) {
     for (const auto &asset_lib_uptr : remote_libraries_.values()) {
-      fn(*asset_lib_uptr);
+      if (asset_lib_uptr->is_enabled()) {
+        fn(*asset_lib_uptr);
+      }
     }
   }
 }

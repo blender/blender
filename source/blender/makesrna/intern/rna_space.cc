@@ -7841,9 +7841,9 @@ static void rna_def_fileselect_asset_params(BlenderRNA *brna)
   RNA_def_struct_ui_text(
       srna, "Asset Select Parameters", "Settings for the file selection in Asset Browser mode");
 
-  prop = rna_def_asset_library_reference_common(srna,
-                                                "rna_FileAssetSelectParams_asset_library_get",
-                                                "rna_FileAssetSelectParams_asset_library_set");
+  prop = rna_def_asset_library_ui_reference_common(srna,
+                                                   "rna_FileAssetSelectParams_asset_library_get",
+                                                   "rna_FileAssetSelectParams_asset_library_set");
   RNA_def_property_ui_text(prop, "Asset Library", "");
   RNA_def_property_update(prop, NC_SPACE | ND_SPACE_FILE_PARAMS, nullptr);
 

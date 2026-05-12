@@ -35,7 +35,12 @@ const EnumPropertyItem rna_enum_asset_library_type_items[] = {
      "ESSENTIALS",
      0,
      "Essentials",
-     "Show the basic building blocks and utilities coming with Blender"},
+     "Show basic building blocks and utilities coming with Blender"},
+    {ASSET_LIBRARY_ONLINE_ESSENTIALS,
+     "ONLINE_ESSENTIALS",
+     0,
+     "Online Essentials",
+     "Show additional building blocks and utilities available online"},
     {ASSET_LIBRARY_CUSTOM,
      "CUSTOM",
      0,
@@ -455,16 +460,17 @@ static bool rna_AssetRepresentation_is_online_get(PointerRNA *ptr)
   return asset->is_online();
 }
 
-const EnumPropertyItem *rna_asset_library_reference_itemf(bContext * /*C*/,
-                                                          PointerRNA * /*ptr*/,
-                                                          PropertyRNA * /*prop*/,
-                                                          bool *r_free)
+const EnumPropertyItem *rna_asset_library_ui_reference_itemf(bContext * /*C*/,
+                                                             PointerRNA * /*ptr*/,
+                                                             PropertyRNA * /*prop*/,
+                                                             bool *r_free)
 {
   const EnumPropertyItem *items = ed::asset::library_reference_to_rna_enum_itemf(
       /* Include all valid libraries for the user to choose from. */
       /*include_readonly=*/true,
       /*include_current_file=*/true,
-      /*include_remote_libraries=*/true);
+      /*include_remote_libraries=*/true,
+      /*include_separate_online_essentials=*/false);
   if (!items) {
     *r_free = false;
     return rna_enum_dummy_NULL_items;
@@ -706,13 +712,13 @@ static void rna_def_asset_library_reference(BlenderRNA *brna)
       srna, "Asset Library Reference", "Identifier to refer to the asset library");
 }
 
-PropertyRNA *rna_def_asset_library_reference_common(StructRNA *srna,
-                                                    const char *get,
-                                                    const char *set)
+PropertyRNA *rna_def_asset_library_ui_reference_common(StructRNA *srna,
+                                                       const char *get,
+                                                       const char *set)
 {
   PropertyRNA *prop = RNA_def_property(srna, "asset_library_reference", PROP_ENUM, PROP_NONE);
   RNA_def_property_enum_items(prop, rna_enum_asset_library_type_items);
-  RNA_def_property_enum_funcs(prop, get, set, "rna_asset_library_reference_itemf");
+  RNA_def_property_enum_funcs(prop, get, set, "rna_asset_library_ui_reference_itemf");
 
   return prop;
 }

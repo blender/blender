@@ -18,6 +18,7 @@ struct UserDef;
 struct bUserExtensionRepo;
 struct bUserAssetLibrary;
 struct bUserAssetShelfSettings;
+class StringRef;
 
 /* -------------------------------------------------------------------- */
 /** \name Preferences File
@@ -51,6 +52,21 @@ struct bUserAssetLibrary *BKE_preferences_remote_asset_library_add(struct UserDe
                                                                    const char *name,
                                                                    const char *remote_url)
     ATTR_NONNULL(1, 3);
+
+/**
+ * \brief Update the remote URL and the cache directory derived from the URL.
+ *
+ * - Copies \a remote_url into #bUserAssetLibrary.remote_url, shortening to #FILE_MAX bytes if
+ *   necessary.
+ * - Adds a trailing slash if not present, and if the URL doesn't point directly to the
+ *   `/_asset-library-meta.json` already.
+ * - Updates #bUserAssetLibrary.dirpath to the cache path derived from the new URL. See
+ *   #asset_system::remote_library_cache_directory_path_from_url() (or
+ *   #asset_system::online_essentials_cache_directory_path() in case of the online essentials URL).
+ */
+void BKE_preferences_remote_asset_library_url_set(bUserAssetLibrary *library,
+                                                  StringRef remote_url);
+
 /**
  * Unlink and free a library preference member.
  * \note Free's \a library itself.

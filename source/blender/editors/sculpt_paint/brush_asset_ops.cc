@@ -323,7 +323,8 @@ static const EnumPropertyItem *rna_asset_library_reference_itemf(bContext * /*C*
       /* Only get writable libraries. */
       /*include_readonly=*/false,
       /*include_current_file=*/true,
-      /*include_remote_libraries=*/false);
+      /*include_remote_libraries=*/false,
+      /*include_separate_online_essentials=*/false);
   if (!items) {
     *r_free = false;
     return nullptr;

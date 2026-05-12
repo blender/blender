@@ -491,7 +491,7 @@ static void rna_def_workspace(BlenderRNA *brna)
   RNA_def_property_ui_text(prop, "Use UI Tags", "Filter the UI by tags");
   RNA_def_property_update(prop, 0, "rna_window_update_all");
 
-  prop = rna_def_asset_library_reference_common(
+  prop = rna_def_asset_library_ui_reference_common(
       srna, "rna_WorkSpace_asset_library_get", "rna_WorkSpace_asset_library_set");
   RNA_def_property_ui_text(prop,
                            "Asset Library",

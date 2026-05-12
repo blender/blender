@@ -216,7 +216,8 @@ static void filelist_remote_asset_library_update_loading_flags(RemoteLibraryRequ
 }
 
 /* Called when starting the job (from the main thread). */
-void remote_asset_library_request(FileListReadJob *job_params, bUserAssetLibrary &library)
+void remote_asset_library_request(FileListReadJob *job_params,
+                                  const asset_system::RemoteLibraryDefinitionRef &library)
 {
   if (!USER_EXPERIMENTAL_TEST(&U, use_remote_asset_libraries)) {
     return;
@@ -229,12 +230,12 @@ void remote_asset_library_request(FileListReadJob *job_params, bUserAssetLibrary
   }
 
   /* Check if the library's cache directory exists, otherwise, request download. */
-  if (!BLI_is_dir(library.dirpath)) {
+  if (!BLI_is_dir(library.cache_dirpath.c_str())) {
     blender::asset_system::remote_library_request_download(library);
   }
 
   std::unique_ptr<RemoteLibraryRequest> request = std::make_unique<RemoteLibraryRequest>();
-  request->dirpath = library.dirpath;
+  request->dirpath = library.cache_dirpath;
   request->request_time = RemoteLibraryLoadingStatus::loading_start_time(library.remote_url);
 
   filelist_remote_asset_library_update_loading_flags(*request, library.remote_url);

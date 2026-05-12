@@ -592,6 +592,7 @@ ENUM_OPERATORS(eFileDetails)
 /** File selector types. */
 enum eFileSelectType : short {
   FILE_LOADLIB = 1,
+
   /** Load assets from #Main. */
   FILE_MAIN_ASSET = 3,
   /** Load assets of an asset library containing external files. */
@@ -599,6 +600,9 @@ enum eFileSelectType : short {
   /** Load all asset libraries. */
   FILE_ASSET_LIBRARY_ALL = 5,
   FILE_ASSET_LIBRARY_REMOTE = 6,
+  /** Load assets from the bundled essentials library *and the online essentials library* (if
+   * online access is enabled). */
+  FILE_ASSET_LIBRARY_ESSENTIALS = 7,
 
   FILE_UNIX = 8,
   FILE_BLENDER = 8, /* don't display relative paths */

@@ -8,7 +8,7 @@
 
 #include <fmt/format.h>
 
-#include "BKE_report.hh"
+#include "BLI_assert.h"
 #include "BLI_fileops.h"
 #include "BLI_hash_md5.hh"
 #include "BLI_listbase.h"
@@ -19,15 +19,17 @@
 
 #include "BLT_translation.hh"
 
+#include "BKE_appdir.hh"
 #include "BKE_context.hh"
 #include "BKE_global.hh"
 #include "BKE_idprop.hh"
-#include "DNA_asset_types.h"
+#include "BKE_report.hh"
 
 #ifdef WITH_PYTHON
 #  include "BPY_extern_run.hh"
 #endif
 
+#include "DNA_asset_types.h"
 #include "DNA_space_enums.h"
 #include "DNA_userdef_types.h"
 
@@ -41,25 +43,71 @@
 #include "WM_message.hh"
 
 #include "AS_asset_representation.hh"
+#include "AS_essentials_library.hh"
 #include "AS_remote_library.hh"
 #include "remote_library.hh"
 
 namespace blender::asset_system {
 
-RemoteAssetLibrary::RemoteAssetLibrary(const bUserAssetLibrary &custom_library)
-    : AssetLibrary(ASSET_LIBRARY_CUSTOM,
-                   /*is_read_only=*/true,
-                   custom_library.name,
-                   custom_library.dirpath),
+RemoteLibraryDefinitionRef::RemoteLibraryDefinitionRef(const bUserAssetLibrary &library_definition)
+    : remote_url(library_definition.remote_url), cache_dirpath(library_definition.dirpath)
+{
+  BLI_assert((library_definition.flag & ASSET_LIBRARY_USE_REMOTE_URL) != 0);
+}
+
+/* -------------------------------------------------------------------- */
+/** \name Remote Library Base Class
+ *
+ *  Used by #PreferencesRemoteAssetLibrary and #OnlineEssentialsLibrary.
+ * \{ */
+
+RemoteAssetLibrary::RemoteAssetLibrary(const eAssetLibraryType library_type,
+                                       const bool is_read_only,
+                                       const StringRef remote_url,
+                                       const StringRef name,
+                                       const StringRef root_path)
+    : AssetLibrary(library_type, is_read_only, name, root_path), remote_url_(remote_url)
+{
+  may_override_import_method_ = false;
+}
+
+std::optional<eAssetImportMethod> RemoteAssetLibrary::import_method() const
+{
+  if (U.experimental.no_data_block_packing) {
+    return ASSET_IMPORT_APPEND_REUSE;
+  }
+  return ASSET_IMPORT_PACK;
+}
+
+std::optional<StringRefNull> RemoteAssetLibrary::remote_url() const
+{
+  return remote_url_;
+}
+
+void RemoteAssetLibrary::refresh_catalogs()
+{
+  this->catalog_service().reload_catalogs();
+}
+
+/** \} */
+
+/* -------------------------------------------------------------------- */
+/** \name Preferences Remote Library
+ * \{ */
+
+PreferencesRemoteAssetLibrary::PreferencesRemoteAssetLibrary(
+    const bUserAssetLibrary &custom_library)
+    : RemoteAssetLibrary(ASSET_LIBRARY_CUSTOM,
+                         /*is_read_only=*/true,
+                         /*remote_url=*/custom_library.remote_url,
+                         /*name=*/custom_library.name,
+                         /*root_path=*/custom_library.dirpath),
       user_library_(custom_library)
 {
   BLI_assert(custom_library.flag & ASSET_LIBRARY_USE_REMOTE_URL);
-
-  may_override_import_method_ = false;
-  remote_url_ = custom_library.remote_url;
 }
 
-std::optional<AssetLibraryReference> RemoteAssetLibrary::library_reference() const
+std::optional<AssetLibraryReference> PreferencesRemoteAssetLibrary::library_reference() const
 {
   const bUserAssetLibrary *library_definition = user_library_.user_asset_library();
   if (library_definition == nullptr) {
@@ -80,23 +128,17 @@ std::optional<AssetLibraryReference> RemoteAssetLibrary::library_reference() con
   return library_ref;
 }
 
-std::optional<eAssetImportMethod> RemoteAssetLibrary::import_method() const
+bool PreferencesRemoteAssetLibrary::is_enabled() const
 {
-  if (U.experimental.no_data_block_packing) {
-    return ASSET_IMPORT_APPEND_REUSE;
+  const bUserAssetLibrary *library_definition = user_library_.user_asset_library();
+  if (!library_definition) {
+    return false;
   }
-  return ASSET_IMPORT_PACK;
+
+  return (library_definition->flag & ASSET_LIBRARY_DISABLED) == 0;
 }
 
-std::optional<StringRefNull> RemoteAssetLibrary::remote_url() const
-{
-  return remote_url_;
-}
-
-void RemoteAssetLibrary::refresh_catalogs()
-{
-  this->catalog_service().reload_catalogs();
-}
+/** \} */
 
 /* -------------------------------------------------------------------- */
 /** \name Remote Library Loading Status
@@ -313,9 +355,8 @@ bool RemoteLibraryLoadingStatus::handle_timeout(const StringRef url)
 /** \name Download Requests
  * \{ */
 
-void remote_library_request_download(const bUserAssetLibrary &library_definition)
+void remote_library_request_download(const RemoteLibraryDefinitionRef &library_definition)
 {
-  BLI_assert(library_definition.flag & ASSET_LIBRARY_USE_REMOTE_URL);
   BLI_assert_msg(BLI_thread_is_main(), "Calling into Python from a thread is not safe");
   /* Ensure we don't attempt to download anything when online access is disabled. */
   if ((G.f & G_FLAG_INTERNET_ALLOW) == 0) {
@@ -326,6 +367,11 @@ void remote_library_request_download(const bUserAssetLibrary &library_definition
     return;
   }
 
+  BLI_assert_msg(!is_online_essentials_url(library_definition.remote_url) ||
+                     library_definition.cache_dirpath == online_essentials_cache_directory_path(),
+                 "The online essentials library must be downloaded to "
+                 "online_essentials_cache_directory_path()");
+
 #ifdef WITH_PYTHON
   /* Remote library is already downloading. */
   if (RemoteLibraryLoadingStatus::status(library_definition.remote_url) ==
@@ -335,7 +381,7 @@ void remote_library_request_download(const bUserAssetLibrary &library_definition
   }
 
   /* Returns true if the directory exists, also if it pre-existed. */
-  if (!BLI_dir_create_recursive(library_definition.dirpath)) {
+  if (!BLI_dir_create_recursive(library_definition.cache_dirpath.c_str())) {
     return;
   }
 
@@ -350,7 +396,7 @@ void remote_library_request_download(const bUserAssetLibrary &library_definition
 
     std::unique_ptr locals = bke::idprop::create_group("locals");
     IDP_AddToGroup(locals.get(), IDP_NewString(library_definition.remote_url, "library_url"));
-    IDP_AddToGroup(locals.get(), IDP_NewString(library_definition.dirpath, "library_path"));
+    IDP_AddToGroup(locals.get(), IDP_NewString(library_definition.cache_dirpath, "library_path"));
 
     /* TODO: report errors in the UI somehow. */
     BPY_run_string_exec_with_locals(nullptr, script, *locals);
@@ -567,8 +613,51 @@ StringRefNull OnlineAssetInfo::asset_file() const
 }
 
 /* -------------------------------------------------------------------- */
-/** \name Preview Images
+/** \name Cache Paths
  * \{ */
+
+/**
+ * Maximum length of the remote library directory name. Kept short to avoid path length issues with
+ * deeply nested asset libraries.
+ *
+ * The directory name will be the MD5 hash of the URL.
+ */
+const int8_t REMOTE_LIBRARY_DIRNAME_LEN = 16;
+
+std::string remote_library_cache_directory_path_from_url(const StringRef remote_url)
+{
+  BLI_assert_msg(
+      remote_url != online_essentials_url(),
+      "Online Essentials URL should use asset_system::online_essentials_cache_directory_path()");
+
+  char library_identifier[REMOTE_LIBRARY_DIRNAME_LEN + 1];
+  {
+    /* MD5 hash part. */
+    uchar digest[16];
+    BLI_hash_md5_buffer(remote_url.data(), remote_url.size(), digest);
+    char hex_digest[33];
+    BLI_hash_md5_to_hexdigest(digest, hex_digest);
+    /* This adds a null terminator. */
+    BLI_strncpy(library_identifier, hex_digest, REMOTE_LIBRARY_DIRNAME_LEN + 1);
+  }
+
+  return remote_library_cache_directory_path(library_identifier);
+}
+
+std::string remote_library_cache_directory_path(const StringRefNull library_dirname)
+{
+  char cache_path[FILE_MAXDIR];
+  BKE_appdir_folder_caches(cache_path, sizeof(cache_path));
+
+  char library_cache_path[FILE_MAXDIR];
+  BLI_path_join(library_cache_path,
+                sizeof(library_cache_path),
+                cache_path,
+                "remote-assets",
+                library_dirname.c_str());
+
+  return library_cache_path;
+}
 
 std::string remote_library_asset_preview_path(const AssetRepresentation &asset)
 {
@@ -619,7 +708,15 @@ std::string remote_library_asset_preview_path(const AssetRepresentation &asset)
 /** \name Other Free Functions
  * \{ */
 
-void foreach_registered_remote_library(FunctionRef<void(bUserAssetLibrary &)> fn)
+bool remote_library_url_ends_with_top_meta_file_name(const StringRef url)
+{
+  if (url.size() < REMOTE_LIBRARY_TOP_META_FILE_NAME_LEADING_SLASH.size()) {
+    return false;
+  }
+  return url.endswith(REMOTE_LIBRARY_TOP_META_FILE_NAME_LEADING_SLASH);
+}
+
+void foreach_registered_user_remote_library(FunctionRef<void(bUserAssetLibrary &)> fn)
 {
   for (bUserAssetLibrary &library : U.asset_libraries) {
     if ((library.flag & ASSET_LIBRARY_USE_REMOTE_URL) && library.remote_url[0]) {
