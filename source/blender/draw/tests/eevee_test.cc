@@ -813,27 +813,27 @@ static void test_eevee_shadow_finalize()
     tile.do_update = true;
     tiles_data[lod2_ofs] = shadow_tile_pack(tile);
 
-    tile.page = uint3(0, 1, 0);
+    tile.page = uint3(4, 0, 0);
     tile.do_update = true;
     tiles_data[lod3_ofs] = shadow_tile_pack(tile);
 
-    tile.page = uint3(1, 1, 0);
+    tile.page = uint3(5, 0, 0);
     tile.do_update = true;
     tiles_data[lod4_ofs] = shadow_tile_pack(tile);
 
-    tile.page = uint3(2, 1, 0);
+    tile.page = uint3(6, 0, 0);
     tile.do_update = true;
     tiles_data[lod5_ofs] = shadow_tile_pack(tile);
 
-    tile.page = uint3(3, 1, 0);
+    tile.page = uint3(7, 0, 0);
     tile.do_update = true;
     tiles_data[lod0_ofs + 31] = shadow_tile_pack(tile);
 
-    tile.page = uint3(0, 2, 0);
+    tile.page = uint3(0, 1, 0);
     tile.do_update = true;
     tiles_data[lod3_ofs + 8] = shadow_tile_pack(tile);
 
-    tile.page = uint3(1, 2, 0);
+    tile.page = uint3(1, 1, 0);
     tile.do_update = true;
     tiles_data[lod0_ofs + 32 * 16 - 8] = shadow_tile_pack(tile);
 

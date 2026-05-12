@@ -205,22 +205,26 @@ enum [[host_shared]] eShadowFlag : uint32_t {
   SHADOW_TAG_UPDATE = (1u << 31u)
 };
 
-/* NOTE: Trust the input to be in valid range (max is [3,3,255]).
- * If it is in valid range, it should pack to 12bits so that `shadow_tile_pack()` can use it.
+/* NOTE: Trust the input to be in valid range (max is [7,7,127]).
+ * If it is in valid range, it should pack to 14bits so that `shadow_tile_pack()` can use it.
  * But sometime this is used to encode invalid pages uint3(-1) and it needs to output uint(-1).
  */
 static inline uint shadow_page_pack(uint3 page)
 {
-  return (page.x << 0u) | (page.y << 2u) | (page.z << 4u);
+  return (page.x << 0u) | (page.y << 3u) | (page.z << 6u);
 }
 static inline uint3 shadow_page_unpack(uint data)
 {
   uint3 page;
-  BLI_STATIC_ASSERT(SHADOW_PAGE_PER_ROW <= 4 && SHADOW_PAGE_PER_COL <= 4, "Update page packing")
-  page.x = (data >> 0u) & 3u;
-  page.y = (data >> 2u) & 3u;
-  BLI_STATIC_ASSERT(SHADOW_MAX_PAGE <= 4096, "Update page packing")
-  page.z = (data >> 4u) & 255u;
+  BLI_STATIC_ASSERT(SHADOW_PAGE_PER_ROW <= 8 && SHADOW_PAGE_PER_COL <= 8 &&
+                        SHADOW_PAGE_MAX_LAYER <= 128,
+                    "Update page packing")
+  page.x = (data >> 0u) & 7u;
+  page.y = (data >> 3u) & 7u;
+  page.z = (data >> 6u) & 127u;
+  BLI_STATIC_ASSERT(SHADOW_MAX_PAGE ==
+                        (SHADOW_PAGE_PER_ROW * SHADOW_PAGE_PER_COL * SHADOW_PAGE_MAX_LAYER),
+                    "Update page packing")
   return page;
 }
 
@@ -228,11 +232,11 @@ static inline ShadowTileData shadow_tile_unpack(ShadowTileDataPacked data)
 {
   ShadowTileData tile;
   tile.page = shadow_page_unpack(data);
-  /* -- 12 bits -- */
+  /* -- 13 bits -- */
   /* Unused bits. */
-  /* -- 15 bits -- */
-  BLI_STATIC_ASSERT(SHADOW_MAX_PAGE <= 4096, "Update page packing")
-  tile.cache_index = (data >> 15u) & 4095u;
+  /* -- 14 bits -- */
+  BLI_STATIC_ASSERT(SHADOW_MAX_PAGE <= 8192, "Update page packing")
+  tile.cache_index = (data >> 14u) & 8191u;
   /* -- 27 bits -- */
   tile.is_used = (data & SHADOW_IS_USED) != 0;
   tile.is_cached = (data & SHADOW_IS_CACHED) != 0;
@@ -248,7 +252,8 @@ static inline ShadowTileDataPacked shadow_tile_pack(ShadowTileData tile)
   /* NOTE: Page might be set to invalid values for tracking invalid usages.
    * So we have to mask the result. */
   data = shadow_page_pack(tile.page) & uint(SHADOW_MAX_PAGE - 1);
-  data |= (tile.cache_index & 4095u) << 15u;
+  BLI_STATIC_ASSERT(SHADOW_MAX_PAGE <= 8192, "Update page packing")
+  data |= (tile.cache_index & 8191u) << 14u;
   data |= (tile.is_used ? uint(SHADOW_IS_USED) : 0);
   data |= (tile.is_allocated ? uint(SHADOW_IS_ALLOCATED) : 0);
   data |= (tile.is_cached ? uint(SHADOW_IS_CACHED) : 0);
@@ -294,9 +299,10 @@ static inline ShadowSamplingTile shadow_sampling_tile_unpack(ShadowSamplingTileP
 {
   ShadowSamplingTile tile;
   tile.page = shadow_page_unpack(data);
-  /* -- 12 bits -- */
+  /* -- 13 bits -- */
   /* Max value is actually SHADOW_TILEMAP_MAX_CLIPMAP_LOD but we mask the bits. */
-  tile.lod = (data >> 12u) & 15u;
+  BLI_STATIC_ASSERT(SHADOW_TILEMAP_MAX_CLIPMAP_LOD <= 8u, "Update lod packing")
+  tile.lod = (data >> 13u) & 7u;
   /* -- 16 bits -- */
   tile.lod_offset = shadow_lod_offset_unpack(data >> 16u);
   /* -- 32 bits -- */
@@ -322,8 +328,10 @@ static inline ShadowSamplingTilePacked shadow_sampling_tile_pack(ShadowSamplingT
     tile.lod_offset.x = 1;
   }
   uint data = shadow_page_pack(tile.page);
+  BLI_STATIC_ASSERT(SHADOW_MAX_PAGE <= 8192, "Update page packing")
   /* Max value is actually SHADOW_TILEMAP_MAX_CLIPMAP_LOD but we mask the bits. */
-  data |= (tile.lod & 15u) << 12u;
+  BLI_STATIC_ASSERT(SHADOW_TILEMAP_MAX_CLIPMAP_LOD <= 8u, "Update lod packing")
+  data |= (tile.lod & 7u) << 13u;
   data |= shadow_lod_offset_pack(tile.lod_offset) << 16u;
   return data;
 }
