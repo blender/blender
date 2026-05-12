@@ -123,6 +123,11 @@ NODE_DEFINE(Film)
 
   SOCKET_BOOLEAN(use_sample_count, "Use Sample Count Pass", false);
 
+  SOCKET_BOOLEAN(denoising_pass_follow_reflections, "Denoising Pass Reflections", true);
+  SOCKET_BOOLEAN(denoising_pass_use_albedo_roughness_weighting,
+                 "Denoising Pass Albedo Roughness Weighting",
+                 true);
+
   return type;
 }
 
@@ -458,6 +463,15 @@ void Film::device_update(Device *device, DeviceScene *dscene, Scene *scene)
 
   kfilm->cryptomatte_passes = cryptomatte_passes;
   kfilm->cryptomatte_depth = cryptomatte_depth;
+
+  /* denoiser pass parameters */
+  kfilm->denoising_pass_options_flag = 0;
+  if (denoising_pass_follow_reflections) {
+    kfilm->denoising_pass_options_flag |= DENOISING_PASS_FOLLOW_REFLECTIONS;
+  }
+  if (denoising_pass_use_albedo_roughness_weighting) {
+    kfilm->denoising_pass_options_flag |= DENOISING_PASS_USE_ALBEDO_ROUGHNESS_WEIGHTING;
+  }
 
   clear_modified();
 }
