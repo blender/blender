@@ -49,8 +49,6 @@
 #include "NOD_geometry_nodes_list_fwd.hh"
 #include "NOD_geometry_nodes_warning.hh"
 
-#include "FN_field.hh"
-
 #include "DNA_node_types.h"
 
 namespace blender {
@@ -58,6 +56,10 @@ namespace blender {
 struct SpaceNode;
 struct NodesModifierData;
 struct Report;
+
+namespace fn {
+class GField;
+}
 
 namespace nodes::eval_log {
 

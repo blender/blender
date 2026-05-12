@@ -21,6 +21,7 @@
 #include "BKE_node.hh"
 #include "BKE_node_runtime.hh"
 #include "BKE_scene.hh"
+#include "BKE_scene_runtime.hh"
 
 #include "DRW_engine.hh"
 #include "DRW_render.hh"
@@ -34,6 +35,8 @@
 #include "COM_realize_on_domain_operation.hh"
 #include "COM_render_context.hh"
 #include "COM_result.hh"
+
+#include "NOD_eval_log.hh"
 
 #include "RE_compositor.hh"
 #include "RE_pipeline.h"
@@ -64,7 +67,6 @@ class ContextInputData {
   const bNodeTree *node_tree;
   std::string view_name;
   compositor::RenderContext *render_context;
-  compositor::Profiler *profiler;
   compositor::NodeGroupOutputTypes needed_outputs;
 
   ContextInputData(const Render *render,
@@ -73,7 +75,6 @@ class ContextInputData {
                    const bNodeTree &node_tree,
                    const char *view_name,
                    compositor::RenderContext *render_context,
-                   compositor::Profiler *profiler,
                    compositor::NodeGroupOutputTypes needed_outputs)
       : render(render),
         scene(&scene),
@@ -81,7 +82,6 @@ class ContextInputData {
         node_tree(&node_tree),
         view_name(view_name),
         render_context(render_context),
-        profiler(profiler),
         needed_outputs(needed_outputs)
   {
   }
@@ -545,9 +545,9 @@ class Context : public compositor::Context {
     return input_data_.render_context;
   }
 
-  compositor::Profiler *profiler() const override
+  nodes::eval_log::NodesEvalLog *nodes_evaluation_log() const override
   {
-    return input_data_.profiler;
+    return this->get_scene().runtime->compositor.nodes_evaluation_log.get();
   }
 
   void evaluate_operation_post() const override
@@ -572,6 +572,10 @@ class Context : public compositor::Context {
 
   void evaluate()
   {
+    /* Reset log before evaluation. */
+    this->get_scene().runtime->compositor.nodes_evaluation_log =
+        std::make_unique<nodes::eval_log::NodesEvalLog>();
+
     using namespace compositor;
     const NodeGroupOutputTypes needed_outputs = this->needed_outputs();
     const bNodeTree &node_group = *input_data_.node_tree;
@@ -579,12 +583,14 @@ class Context : public compositor::Context {
         flag_is_set(needed_outputs, NodeGroupOutputTypes::NodePreviews) ?
             &node_group.runtime->previews :
             nullptr;
+    const bke::DataBlockComputeContext compute_context(nullptr, this->get_scene().id);
     NodeGroupOperation node_group_operation(*this,
                                             node_group,
                                             needed_outputs,
                                             node_previews,
                                             node_group.active_viewer_key,
-                                            bke::NODE_INSTANCE_KEY_BASE);
+                                            bke::NODE_INSTANCE_KEY_BASE,
+                                            compute_context);
 
     /* Set the reference count for the outputs, only the first color output is actually needed,
      * while the rest are ignored. */
@@ -786,13 +792,12 @@ void Render::compositor_execute(const Scene &scene,
                                 const bNodeTree &node_tree,
                                 const char *view_name,
                                 compositor::RenderContext *render_context,
-                                compositor::Profiler *profiler,
                                 compositor::NodeGroupOutputTypes needed_outputs)
 {
   std::unique_lock lock(this->compositor_mutex);
 
   render::ContextInputData input_data(
-      this, scene, render_data, node_tree, view_name, render_context, profiler, needed_outputs);
+      this, scene, render_data, node_tree, view_name, render_context, needed_outputs);
 
   if (this->compositor && this->compositor->needs_to_be_recreated(input_data)) {
     /* Free it here and it will be recreated in the check below. */
@@ -823,11 +828,10 @@ void RE_compositor_execute(Render &render,
                            const bNodeTree &node_tree,
                            const char *view_name,
                            compositor::RenderContext *render_context,
-                           compositor::Profiler *profiler,
                            compositor::NodeGroupOutputTypes needed_outputs)
 {
   render.compositor_execute(
-      scene, render_data, node_tree, view_name, render_context, profiler, needed_outputs);
+      scene, render_data, node_tree, view_name, render_context, needed_outputs);
 }
 
 void RE_compositor_free(Render &render)

@@ -146,8 +146,6 @@ struct TreeDrawContext {
 
   NestedTreePreviews *nested_group_infos = nullptr;
 
-  Map<bNodeInstanceKey, timeit::Nanoseconds> *compositor_per_node_execution_time = nullptr;
-
   /**
    * Label for reroute nodes that is derived from upstream reroute nodes.
    */
@@ -2229,10 +2227,13 @@ static void node_add_error_message_button(const TreeDrawContext &tree_draw_ctx,
   }
 }
 
-static std::optional<std::chrono::nanoseconds> geo_node_get_execution_time(
+static std::optional<std::chrono::nanoseconds> node_get_execution_time(
     const TreeDrawContext &tree_draw_ctx, const SpaceNode &snode, const bNode &node)
 {
   const bNodeTree &ntree = *snode.edittree;
+  if (!ELEM(ntree.type, NTREE_GEOMETRY, NTREE_COMPOSIT)) {
+    return std::nullopt;
+  }
 
   nodes::eval_log::NodeTreeLog *tree_log = [&]() -> nodes::eval_log::NodeTreeLog * {
     const bNodeTreeZones *zones = ntree.zones();
@@ -2259,7 +2260,7 @@ static std::optional<std::chrono::nanoseconds> geo_node_get_execution_time(
 
     for (const bNode *tnode : node.direct_children_in_frame()) {
       if (tnode->is_frame()) {
-        std::optional<std::chrono::nanoseconds> sub_frame_run_time = geo_node_get_execution_time(
+        std::optional<std::chrono::nanoseconds> sub_frame_run_time = node_get_execution_time(
             tree_draw_ctx, snode, *tnode);
         if (sub_frame_run_time.has_value()) {
           run_time += *sub_frame_run_time;
@@ -2284,85 +2285,6 @@ static std::optional<std::chrono::nanoseconds> geo_node_get_execution_time(
     return node_log->execution_time;
   }
   return std::nullopt;
-}
-
-/* Create node key instance, assuming the node comes from the currently edited node tree. */
-static bNodeInstanceKey current_node_instance_key(const SpaceNode &snode, const bNode &node)
-{
-  const bNodeTreePath *path = static_cast<const bNodeTreePath *>(snode.treepath.last);
-
-  /* Some code in this file checks for the non-null elements of the tree path. However, if we did
-   * iterate into a node it is expected that there is a tree, and it should be in the path.
-   * Otherwise something else went wrong. */
-  BLI_assert(path);
-
-  /* Assume that the currently editing tree is the last in the path. */
-  BLI_assert(snode.edittree == path->nodetree);
-
-  return bke::node_instance_key(path->parent_key, snode.edittree, &node);
-}
-
-static std::optional<std::chrono::nanoseconds> compositor_accumulate_frame_node_execution_time(
-    const TreeDrawContext &tree_draw_ctx, const SpaceNode &snode, const bNode &node)
-{
-  BLI_assert(tree_draw_ctx.compositor_per_node_execution_time);
-
-  timeit::Nanoseconds frame_execution_time(0);
-  bool has_any_execution_time = false;
-
-  for (const bNode *current_node : node.direct_children_in_frame()) {
-    const bNodeInstanceKey key = current_node_instance_key(snode, *current_node);
-    if (const timeit::Nanoseconds *node_execution_time =
-            tree_draw_ctx.compositor_per_node_execution_time->lookup_ptr(key))
-    {
-      frame_execution_time += *node_execution_time;
-      has_any_execution_time = true;
-    }
-  }
-
-  if (!has_any_execution_time) {
-    return std::nullopt;
-  }
-
-  return frame_execution_time;
-}
-
-static std::optional<std::chrono::nanoseconds> compositor_node_get_execution_time(
-    const TreeDrawContext &tree_draw_ctx, const SpaceNode &snode, const bNode &node)
-{
-  BLI_assert(tree_draw_ctx.compositor_per_node_execution_time);
-
-  /* For the frame nodes accumulate execution time of its children. */
-  if (node.is_frame()) {
-    return compositor_accumulate_frame_node_execution_time(tree_draw_ctx, snode, node);
-  }
-
-  /* For other nodes simply lookup execution time.
-   * The group node instances have their own entries in the execution times map. */
-  const bNodeInstanceKey key = current_node_instance_key(snode, node);
-  if (const timeit::Nanoseconds *execution_time =
-          tree_draw_ctx.compositor_per_node_execution_time->lookup_ptr(key))
-  {
-    if (execution_time->count() == 0) {
-      return std::nullopt;
-    }
-    return *execution_time;
-  }
-
-  return std::nullopt;
-}
-
-static std::optional<std::chrono::nanoseconds> node_get_execution_time(
-    const TreeDrawContext &tree_draw_ctx, const SpaceNode &snode, const bNode &node)
-{
-  switch (snode.edittree->type) {
-    case NTREE_GEOMETRY:
-      return geo_node_get_execution_time(tree_draw_ctx, snode, node);
-    case NTREE_COMPOSIT:
-      return compositor_node_get_execution_time(tree_draw_ctx, snode, node);
-    default:
-      return std::nullopt;
-  }
 }
 
 static std::string node_get_execution_time_label(TreeDrawContext &tree_draw_ctx,
@@ -4726,13 +4648,16 @@ static void draw_nodetree(const bContext &C,
   tree_draw_ctx.menu_switch_source_by_index_switch =
       find_menu_switch_sources_for_index_switch_nodes(*snode, ntree, compute_context_cache);
 
-  BLI_SCOPED_DEFER([&]() { ntree.runtime->sockets_on_active_gizmo_paths.clear(); });
-  if (ntree.type == NTREE_GEOMETRY) {
+  if (ELEM(ntree.type, NTREE_GEOMETRY, NTREE_COMPOSIT)) {
     tree_draw_ctx.tree_logs = nodes::eval_log::NodesEvalLog::get_contextual_tree_logs(*snode);
     tree_draw_ctx.tree_logs.foreach_tree_log([&](nodes::eval_log::NodeTreeLog &log) {
       log.ensure_node_warnings(*tree_draw_ctx.bmain);
       log.ensure_execution_times();
     });
+  }
+
+  BLI_SCOPED_DEFER([&]() { ntree.runtime->sockets_on_active_gizmo_paths.clear(); });
+  if (ntree.type == NTREE_GEOMETRY) {
     const WorkSpace *workspace = CTX_wm_workspace(&C);
     tree_draw_ctx.active_geometry_nodes_viewer = viewer_path::find_geometry_nodes_viewer(
         workspace->viewer_path, *snode);
@@ -4741,11 +4666,6 @@ static void draw_nodetree(const bContext &C,
      * special gizmo drawing. */
     ntree.runtime->sockets_on_active_gizmo_paths = find_sockets_on_active_gizmo_paths(
         C, *snode, compute_context_cache);
-  }
-  else if (ntree.type == NTREE_COMPOSIT) {
-    const Scene *scene = CTX_data_scene(&C);
-    tree_draw_ctx.compositor_per_node_execution_time =
-        &scene->runtime->compositor.per_node_execution_time;
   }
   else if (ntree.type == NTREE_SHADER) {
     if (USER_EXPERIMENTAL_TEST(&U, use_shader_node_previews) &&

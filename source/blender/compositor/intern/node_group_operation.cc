@@ -2,6 +2,7 @@
  *
  * SPDX-License-Identifier: GPL-2.0-or-later */
 
+#include "BLI_compute_context.hh"
 #include "BLI_set.hh"
 #include "BLI_string_ref.hh"
 #include "BLI_vector_set.hh"
@@ -10,6 +11,8 @@
 
 #include "BKE_node.hh"
 #include "BKE_node_runtime.hh"
+
+#include "NOD_eval_log.hh"
 
 #include "COM_compile_state.hh"
 #include "COM_context.hh"
@@ -36,13 +39,15 @@ NodeGroupOperation::NodeGroupOperation(Context &context,
                                        const NodeGroupOutputTypes needed_outputs,
                                        Map<bNodeInstanceKey, bke::bNodePreview> *node_previews,
                                        const bNodeInstanceKey active_node_group_instance_key,
-                                       const bNodeInstanceKey instance_key)
+                                       const bNodeInstanceKey instance_key,
+                                       const ComputeContext &compute_context)
     : Operation(context),
       node_group_(node_group),
       needed_output_types_(needed_outputs),
       node_previews_(node_previews),
       active_node_group_instance_key_(active_node_group_instance_key),
-      instance_key_(instance_key)
+      instance_key_(instance_key),
+      compute_context_(compute_context)
 {
   node_group.ensure_interface_cache();
   for (const bNodeTreeInterfaceSocket *input : node_group.interface_inputs()) {
@@ -57,8 +62,35 @@ NodeGroupOperation::NodeGroupOperation(Context &context,
   }
 }
 
+class ScopedNodeGroupTimer {
+ private:
+  const ComputeContext &compute_context_;
+  nodes::eval_log::NodesEvalLog *log_;
+
+  nodes::eval_log::TimePoint start_;
+
+ public:
+  ScopedNodeGroupTimer(const ComputeContext &compute_context, nodes::eval_log::NodesEvalLog *log)
+      : compute_context_(compute_context), log_(log)
+  {
+    start_ = nodes::eval_log::Clock::now();
+  }
+
+  ~ScopedNodeGroupTimer()
+  {
+    if (!log_) {
+      return;
+    }
+    const nodes::eval_log::TimePoint end = nodes::eval_log::Clock::now();
+    nodes::eval_log::NodeTreeLogger &tree_logger = log_->get_local_tree_logger(compute_context_);
+    tree_logger.execution_time = end - start_;
+  }
+};
+
 void NodeGroupOperation::execute()
 {
+  const ScopedNodeGroupTimer node_group_timer{compute_context_,
+                                              this->context().nodes_evaluation_log()};
   const Schedule schedule = compute_schedule(this->context(),
                                              node_group_,
                                              *this,
@@ -95,6 +127,7 @@ void NodeGroupOperation::evaluate_node(const bNode &node, CompileState &compile_
 {
   NodeOperation *operation = this->get_node_operation(node);
   operation->set_instance_key(bke::node_instance_key(instance_key_, &node_group_, &node));
+  operation->set_compute_context(compute_context_);
 
   /* Only set previews if the node group is currently being viewed. Except if the node is a group
    * node, because a child node group might be the active one. */

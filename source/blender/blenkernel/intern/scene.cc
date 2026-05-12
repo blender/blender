@@ -97,6 +97,8 @@
 #include "DEG_depsgraph_debug.hh"
 #include "DEG_depsgraph_query.hh"
 
+#include "NOD_eval_log.hh"
+
 #include "RE_engine.h"
 
 #include "RNA_access.hh"

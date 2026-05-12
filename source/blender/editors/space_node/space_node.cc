@@ -508,6 +508,21 @@ static const ComputeContext *get_node_editor_root_compute_context(
     }
     return nullptr;
   }
+  if (snode.nodetree->type == NTREE_COMPOSIT) {
+    switch (SpaceNodeCompositorNodesType(snode.node_tree_sub_type)) {
+      case SNODE_COMPOSITOR_SCENE: {
+        const Scene *scene = reinterpret_cast<Scene *>(snode.id);
+        if (!scene) {
+          return nullptr;
+        }
+        return &compute_context_cache.for_data_block(nullptr, scene->id);
+      }
+      case SNODE_COMPOSITOR_SEQUENCER: {
+        return nullptr;
+      }
+    }
+    return nullptr;
+  }
   if (snode.nodetree->type == NTREE_SHADER) {
     return &compute_context_cache.for_shader(nullptr, snode.nodetree);
   }
@@ -520,7 +535,7 @@ static const ComputeContext *get_node_editor_root_compute_context(
   if (!snode.edittree) {
     return nullptr;
   }
-  if (!ELEM(snode.edittree->type, NTREE_GEOMETRY, NTREE_SHADER)) {
+  if (!ELEM(snode.edittree->type, NTREE_GEOMETRY, NTREE_SHADER, NTREE_COMPOSIT)) {
     return nullptr;
   }
   const ComputeContext *root_context = get_node_editor_root_compute_context(snode,
