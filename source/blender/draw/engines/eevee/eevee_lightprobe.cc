@@ -15,6 +15,8 @@
 #include "eevee_instance.hh"
 #include "eevee_lightprobe.hh"
 
+#include <iostream>
+
 namespace blender::eevee {
 
 /* -------------------------------------------------------------------- */
