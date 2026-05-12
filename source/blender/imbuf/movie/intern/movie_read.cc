@@ -1483,6 +1483,31 @@ ImBuf *MOV_decode_frame(MovieReader *anim,
   return ibuf;
 }
 
+int MOV_get_video_stream_count(MovieReader *anim)
+{
+#ifdef WITH_FFMPEG
+  if (anim == nullptr) {
+    return 0;
+  }
+  if (anim->state == MovieReader::State::Uninitialized && !anim_getnew(anim)) {
+    return 0;
+  }
+  if (anim->pFormatCtx == nullptr) {
+    return 0;
+  }
+  int count = 0;
+  for (int i = 0; i < anim->pFormatCtx->nb_streams; i++) {
+    if (anim->pFormatCtx->streams[i]->codecpar->codec_type == AVMEDIA_TYPE_VIDEO) {
+      count++;
+    }
+  }
+  return count;
+#else
+  UNUSED_VARS(anim);
+  return 0;
+#endif
+}
+
 int MOV_get_duration_frames(MovieReader *anim, IMB_Timecode_Type tc)
 {
   if (tc == IMB_TC_NONE) {

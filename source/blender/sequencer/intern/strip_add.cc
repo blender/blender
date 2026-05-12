@@ -291,24 +291,10 @@ Strip *add_image_strip(Main *bmain, Scene *scene, ListBaseT<Strip> *seqbase, Loa
 
 #ifdef WITH_AUDASPACE
 
-void add_sound_av_sync(Main *bmain, Scene *scene, Strip *strip, LoadData *load_data)
-{
-  SoundStreamInfo sound_stream;
-  if (!BKE_sound_stream_info_get(bmain, load_data->path, 0, &sound_stream)) {
-    return;
-  }
-
-  const double av_stream_offset = sound_stream.start - load_data->r_video_stream_start;
-  const int frame_offset = av_stream_offset * scene->frames_per_second();
-  /* Set sub-frame offset. */
-  strip->sound->offset_time = (double(frame_offset) / scene->frames_per_second()) -
-                              av_stream_offset;
-  transform_translate_strip(scene, strip, frame_offset);
-}
-
 Strip *add_sound_strip(Main *bmain, Scene *scene, ListBaseT<Strip> *seqbase, LoadData *load_data)
 {
-  bSound *sound = BKE_sound_new_file_exists(bmain, load_data->path); /* Handles relative paths. */
+  /* Handles relative paths. */
+  bSound *sound = BKE_sound_new_file_exists(bmain, load_data->path, load_data->stream_index);
   SoundInfo info;
   bool sound_loaded = BKE_sound_info_get(bmain, sound, &info);
 
@@ -325,6 +311,7 @@ Strip *add_sound_strip(Main *bmain, Scene *scene, ListBaseT<Strip> *seqbase, Loa
   Strip *strip = strip_alloc(
       seqbase, load_data->start_frame, load_data->channel, STRIP_TYPE_SOUND);
   strip->sound = sound;
+  strip->streamindex = load_data->stream_index;
 
   /* We round the frame duration as the audio sample lengths usually does not
    * line up with the video frames. Therefore we round this number to the
@@ -365,13 +352,6 @@ Strip *add_sound_strip(Main *bmain, Scene *scene, ListBaseT<Strip> *seqbase, Loa
 }
 
 #else   // WITH_AUDASPACE
-
-void add_sound_av_sync(Main * /*bmain*/,
-                       Scene * /*scene*/,
-                       Strip * /*strip*/,
-                       LoadData * /*load_data*/)
-{
-}
 
 Strip *add_sound_strip(Main * /*bmain*/,
                        Scene * /*scene*/,
@@ -442,7 +422,7 @@ Strip *add_movie_strip(Main *bmain, Scene *scene, ListBaseT<Strip> *seqbase, Loa
   if (is_multiview_loaded == false) {
     /* Sequencer takes care of colorspace conversion of the result. The input is the best to be
      * kept unchanged for the performance reasons. */
-    anim_arr[0] = openanim(filepath, IB_byte_data, 0, true, colorspace);
+    anim_arr[0] = openanim(filepath, IB_byte_data, load_data->stream_index, true, colorspace);
   }
 
   if (anim_arr[0] == nullptr && !load_data->allow_invalid_file) {
@@ -450,7 +430,7 @@ Strip *add_movie_strip(Main *bmain, Scene *scene, ListBaseT<Strip> *seqbase, Loa
   }
 
   float video_fps = 0.0f;
-  load_data->r_video_stream_start = 0.0;
+  load_data->video_stream_start = 0.0;
 
   if (anim_arr[0] != nullptr) {
     short fps_num;
@@ -467,11 +447,12 @@ Strip *add_movie_strip(Main *bmain, Scene *scene, ListBaseT<Strip> *seqbase, Loa
       DEG_id_tag_update(&scene->id, ID_RECALC_AUDIO_FPS | ID_RECALC_SEQUENCER_STRIPS);
     }
 
-    load_data->r_video_stream_start = MOV_get_start_offset_seconds(anim_arr[0]);
+    load_data->video_stream_start = MOV_get_start_offset_seconds(anim_arr[0]);
   }
 
   Strip *strip = strip_alloc(
       seqbase, load_data->start_frame, load_data->channel, STRIP_TYPE_MOVIE);
+  strip->streamindex = load_data->stream_index;
 
   /* Multiview settings. */
   if (load_data->use_multiview) {

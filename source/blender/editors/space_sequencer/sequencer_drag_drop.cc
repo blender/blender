@@ -47,7 +47,9 @@
 /* For querying audio files. */
 #ifdef WITH_AUDASPACE
 #  include "BKE_sound.hh"
+#  include <Exception.h>
 #  include <file/File.h>
+#  include <file/FileManager.h>
 #endif
 
 /* Own include. */
@@ -58,8 +60,10 @@ namespace blender::ed::vse {
 
 struct SeqDropCoords {
   float start_frame, channel;
-  int strip_len, channel_len;
+  int num_channels;
+  int num_audio = 0;
   float playback_rate;
+  int strip_length;
   float audio_length;
   bool only_audio = false;
   bool in_use = false;
@@ -196,14 +200,14 @@ static float update_overlay_strip_position_data(bContext *C, const int mval[2])
 
   if (coords->playback_rate != 0.0f) {
     float scene_playback_rate = float(scene->r.frs_sec) / scene->r.frs_sec_base;
-    strip_len = coords->strip_len / (coords->playback_rate / scene_playback_rate);
+    strip_len = coords->strip_length / (coords->playback_rate / scene_playback_rate);
   }
   else if (coords->only_audio) {
     float scene_playback_rate = float(scene->r.frs_sec) / scene->r.frs_sec_base;
     strip_len = coords->audio_length * scene_playback_rate;
   }
   else {
-    strip_len = coords->strip_len;
+    strip_len = coords->strip_length;
   }
 
   end_frame = coords->start_frame + strip_len;
@@ -234,13 +238,13 @@ static float update_overlay_strip_position_data(bContext *C, const int mval[2])
   Strip dummy_strip{};
   seq::strip_channel_set(&dummy_strip, coords->channel);
   dummy_strip.start = coords->start_frame;
-  dummy_strip.len = coords->strip_len;
+  dummy_strip.len = coords->strip_length;
   dummy_strip.speed_factor = 1.0f;
   dummy_strip.media_playback_rate = coords->playback_rate;
   dummy_strip.flag = SEQ_AUTO_PLAYBACK_RATE;
   Editing *ed = seq::editing_ensure(scene);
 
-  for (int i = 0; i < coords->channel_len && !coords->is_intersecting; i++) {
+  for (int i = 0; i < coords->num_channels && !coords->is_intersecting; i++) {
     coords->is_intersecting = seq::transform_test_overlap(
         scene, ed->current_strips(), &dummy_strip);
     seq::strip_channel_set(&dummy_strip, dummy_strip.channel + 1);
@@ -417,15 +421,12 @@ static void draw_strip_in_view(bContext *C, wmWindow * /*win*/, wmDrag *drag, co
 
   StripsDrawBatch batch(&region->v2d);
 
-  for (int i = 0; i < coords->channel_len; i++) {
+  for (int i = 0; i < coords->num_channels; i++) {
     float y1 = floorf(coords->channel) + i + STRIP_OFSBOTTOM;
     float y2 = floorf(coords->channel) + i + STRIP_OFSTOP;
 
-    if (coords->type == TH_SEQ_MOVIE && i == 0 && coords->channel_len > 1) {
-      /* Assume only video strips occupies two channels.
-       * One for video and the other for audio.
-       * The audio channel is added first.
-       */
+    /* Audio strips sit at the bottom, video strips sit above them. */
+    if (i < coords->num_audio) {
       ui::theme::get_color_3ubv(TH_SEQ_AUDIO, strip_color);
     }
     else {
@@ -441,7 +442,7 @@ static void draw_strip_in_view(bContext *C, wmWindow * /*win*/, wmDrag *drag, co
       strip_color[1] = strip_color[2] = 33;
     }
     else {
-      if (coords->channel_len - 1 == i) {
+      if (coords->num_channels - 1 == i) {
         text_color[0] = text_color[1] = text_color[2] = 255;
         ui::theme::get_color_3ubv(TH_SEQ_ACTIVE, strip_color);
         data.flags |= GPU_SEQ_FLAG_ACTIVE;
@@ -558,6 +559,13 @@ static void prefetch_data_fn(void *custom_data, wmJobWorkerStatus * /*worker_sta
       if (info.specs.channels != SOUND_CHANNELS_INVALID) {
         g_drop_coords.audio_length = info.length;
       }
+      try {
+        const int audio_streams = int(aud::FileManager::queryStreams(job_data->path).size());
+        g_drop_coords.num_channels = audio_streams;
+        g_drop_coords.num_audio = g_drop_coords.num_channels;
+      }
+      catch (aud::Exception &) {
+      }
       /* The playback rate is defined by the scene. This will be computed later in
        * #update_overlay_strip_position_data, when we know the scene from the context. So set it to
        * 0 for now. */
@@ -573,20 +581,22 @@ static void prefetch_data_fn(void *custom_data, wmJobWorkerStatus * /*worker_sta
   MovieReader *anim = openanim(job_data->path, IB_byte_data, 0, true, colorspace);
 
   if (anim != nullptr) {
-    g_drop_coords.strip_len = MOV_get_duration_frames(anim, IMB_TC_NONE);
+    g_drop_coords.strip_length = MOV_get_duration_frames(anim, IMB_TC_NONE);
     g_drop_coords.playback_rate = MOV_get_fps(anim);
-    MOV_close(anim);
-#ifdef WITH_AUDASPACE
-    /* Try to load sound and see if the video has a sound channel. */
-    AUD_Sound sound = AUD_Sound(new aud::File(job_data->path));
-    if (sound != nullptr) {
+    const int video_streams = MOV_get_video_stream_count(anim);
+    int audio_streams = 0;
 
-      SoundInfo info = bke::sound_info_get(sound);
-      if (info.specs.channels != SOUND_CHANNELS_INVALID) {
-        g_drop_coords.channel_len = 2;
-      }
+    MOV_close(anim);
+
+#ifdef WITH_AUDASPACE
+    try {
+      audio_streams = int(aud::FileManager::queryStreams(job_data->path).size());
+    }
+    catch (aud::Exception &) {
     }
 #endif
+    g_drop_coords.num_channels = video_streams + audio_streams;
+    g_drop_coords.num_audio = audio_streams;
   }
 }
 
@@ -598,9 +608,6 @@ static void free_prefetch_data_fn(void *custom_data)
 
 static void start_audio_video_job(bContext *C, wmDrag *drag, bool only_audio)
 {
-  g_drop_coords.strip_len = 0;
-  g_drop_coords.channel_len = 1;
-
   wmWindowManager *wm = CTX_wm_manager(C);
 
   wmJob *wm_job = WM_jobs_get(wm,
@@ -658,8 +665,8 @@ static void image_drop_on_enter(wmDropBox *drop, wmDrag * /*drag*/)
   }
 
   SeqDropCoords *coords = static_cast<SeqDropCoords *>(drop->draw_data);
-  coords->strip_len = DEFAULT_IMG_STRIP_LENGTH;
-  coords->channel_len = 1;
+  coords->strip_length = DEFAULT_IMG_STRIP_LENGTH;
+  coords->num_channels = 1;
 }
 
 static void sequencer_drop_on_exit(wmDropBox *drop, wmDrag * /*drag*/)

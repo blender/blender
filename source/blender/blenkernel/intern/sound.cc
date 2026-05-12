@@ -304,7 +304,7 @@ BLI_INLINE void sound_verify_evaluated_id(const ID *id)
              (ID_TAG_COPIED_ON_EVAL | ID_TAG_COPIED_ON_EVAL_FINAL_RESULT | ID_TAG_NO_MAIN));
 }
 
-bSound *BKE_sound_new_file(Main *bmain, const char *filepath)
+bSound *BKE_sound_new_file(Main *bmain, const char *filepath, short stream_index)
 {
   bSound *sound;
   const char *blendfile_path = BKE_main_blendfile_path(bmain);
@@ -316,6 +316,7 @@ bSound *BKE_sound_new_file(Main *bmain, const char *filepath)
   sound = static_cast<bSound *>(BKE_libblock_alloc(bmain, ID_SO, BLI_path_basename(filepath), 0));
   STRNCPY(sound->filepath, filepath);
   sound_init_runtime(sound);
+  sound->stream_index = stream_index;
 
   /* Extract sound specs for bSound */
   SoundInfo info;
@@ -328,7 +329,7 @@ bSound *BKE_sound_new_file(Main *bmain, const char *filepath)
   return sound;
 }
 
-static bSound *sound_new_file_exists_ex(Main *bmain, const char *filepath, bool *r_exists)
+static bSound *sound_new_file_exists_ex(Main *bmain, const char *filepath, short stream_index)
 {
   bSound *sound;
   char filepath_abs[FILE_MAX], filepath_test[FILE_MAX];
@@ -336,31 +337,28 @@ static bSound *sound_new_file_exists_ex(Main *bmain, const char *filepath, bool 
   STRNCPY(filepath_abs, filepath);
   BLI_path_abs(filepath_abs, BKE_main_blendfile_path(bmain));
 
-  /* first search an identical filepath */
+  /* Search for an existing sound matching both filepath and stream index. */
   for (sound = static_cast<bSound *>(bmain->sounds.first); sound;
        sound = static_cast<bSound *>(sound->id.next))
   {
+    if (sound->stream_index != stream_index) {
+      continue;
+    }
     STRNCPY(filepath_test, sound->filepath);
     BLI_path_abs(filepath_test, ID_BLEND_PATH(bmain, &sound->id));
 
     if (BLI_path_cmp(filepath_test, filepath_abs) == 0) {
       id_us_plus(&sound->id); /* officially should not, it doesn't link here! */
-      if (r_exists) {
-        *r_exists = true;
-      }
       return sound;
     }
   }
 
-  if (r_exists) {
-    *r_exists = false;
-  }
-  return BKE_sound_new_file(bmain, filepath);
+  return BKE_sound_new_file(bmain, filepath, stream_index);
 }
 
-bSound *BKE_sound_new_file_exists(Main *bmain, const char *filepath)
+bSound *BKE_sound_new_file_exists(Main *bmain, const char *filepath, short stream_index)
 {
-  return sound_new_file_exists_ex(bmain, filepath, nullptr);
+  return sound_new_file_exists_ex(bmain, filepath, stream_index);
 }
 
 static void sound_free_audio(bSound *sound)
@@ -712,11 +710,11 @@ static void sound_load_audio(Main *bmain, bSound *sound, bool free_waveform)
 
     /* but we need a packed file then */
     if (pf) {
-      runtime->handle = AUD_Sound(new aud::File((uchar *)pf->data, pf->size));
+      runtime->handle = AUD_Sound(new aud::File((uchar *)pf->data, pf->size, sound->stream_index));
     }
     else {
       /* or else load it from disk */
-      runtime->handle = AUD_Sound(new aud::File(fullpath));
+      runtime->handle = AUD_Sound(new aud::File(fullpath, sound->stream_index));
     }
   }
   if (sound->flags & SOUND_FLAGS_MONO) {
@@ -1550,6 +1548,22 @@ bool BKE_sound_stream_info_get(Main *main,
   return true;
 }
 
+int BKE_sound_stream_count(Main *main, const char *filepath)
+{
+  char filepath_abs[FILE_MAX];
+  STRNCPY(filepath_abs, filepath);
+  BLI_path_abs(filepath_abs, BKE_main_blendfile_path(main));
+
+  std::vector<aud::StreamInfo> streams;
+  try {
+    streams = aud::FileManager::queryStreams(filepath_abs);
+    return streams.size();
+  }
+  catch (aud::Exception &) {
+    return 0;
+  }
+}
+
 #  ifdef WITH_RUBBERBAND
 AUD_Sound BKE_sound_ensure_time_stretch_effect(const Strip *strip, float fps)
 {
@@ -1958,6 +1972,11 @@ bool BKE_sound_stream_info_get(Main * /*main*/,
                                SoundStreamInfo * /*sound_info*/)
 {
   return false;
+}
+
+int BKE_sound_stream_count(Main * /*main*/, const char * /*filepath*/)
+{
+  return 0;
 }
 
 #endif /* WITH_AUDASPACE */

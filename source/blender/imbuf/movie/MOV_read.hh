@@ -82,6 +82,12 @@ ImBuf *MOV_decode_frame(MovieReader *anim,
 ImBuf *MOV_decode_preview_frame(MovieReader *anim);
 
 /**
+ * Returns the number of video streams in the movie file backing `anim`.
+ * Returns 0 if the file cannot be opened or contains no video streams.
+ */
+int MOV_get_video_stream_count(MovieReader *anim);
+
+/**
  * Return the length (in frames) of the movie.
  */
 int MOV_get_duration_frames(MovieReader *anim, IMB_Timecode_Type tc);
