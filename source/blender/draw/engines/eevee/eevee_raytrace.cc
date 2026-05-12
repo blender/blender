@@ -11,7 +11,6 @@
 #include "GPU_debug.hh"
 
 #include "eevee_instance.hh"
-#include <iostream>
 
 #include "eevee_raytrace.hh"
 
