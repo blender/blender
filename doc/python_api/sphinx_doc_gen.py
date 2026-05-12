@@ -2394,6 +2394,7 @@ def pyrna2sphinx(basepath: Path) -> None:
 
         fw(title_string(title, "="))
 
+
         fw(".. currentmodule:: {:s}\n\n".format(struct_module_name))
 
         # Docs first? OK.
@@ -2428,7 +2429,15 @@ def pyrna2sphinx(basepath: Path) -> None:
         ]
         subclass_ids.sort()
         if subclass_ids:
-            fw("subclasses --- \n" + ", ".join((":class:`{:s}`".format(s)) for s in subclass_ids) + "\n\n")
+            fw(".. toctree::\n")
+            # Add a title and limit to direct sub classes.
+            fw("   :caption: Subclasses\n")
+            fw("   :maxdepth: 1\n\n")
+
+            for s in subclass_ids:
+                fw("   {:s}.{:s}.rst\n".format(struct_module_name, s))
+
+        fw("\n")
 
         base_id = getattr(struct.base, "identifier", "")
 
@@ -2719,8 +2728,15 @@ def pyrna2sphinx(basepath: Path) -> None:
                     if not rna_info.rna_id_ignore(s.identifier)
                 ]
                 if subclass_ids:
-                    fw("subclasses --- \n" + ", ".join((":class:`{:s}`".format(s))
-                       for s in sorted(subclass_ids)) + "\n\n")
+                    fw(".. toctree::\n")
+                    # Add a title and limit to direct sub classes.
+                    fw("   :caption: Subclasses\n")
+                    fw("   :maxdepth: 1\n\n")
+
+                    for s in sorted(subclass_ids):
+                        fw("   {:s}.{:s}.rst\n".format(class_module_name, s))
+
+                fw("\n")
 
             if base_class is not None:
                 fw(".. class:: {:s}({:s})\n\n".format(class_name, base_class))
@@ -2980,10 +2996,20 @@ def write_rst_types_index(basepath: Path) -> None:
         fw(title_string("Types (bpy.types)", "="))
         fw(".. module:: bpy.types\n\n")
         fw(".. toctree::\n")
-        # Only show top-level entries (avoids unreasonably large pages).
-        fw("   :maxdepth: 1\n")
-        fw("   :glob:\n\n")
-        fw("   bpy.types.*\n\n")
+        # Hide page headings such as example sections from main TOC.
+        fw("   :titlesonly:\n\n")
+        fw("   bpy.types.bpy_struct.rst\n\n")
+        fw("   bpy.types.bpy_prop.rst\n")
+        fw("   bpy.types.bpy_prop_array.rst\n")
+        fw("   bpy.types.bpy_prop_collection_idprop.rst\n")
+        fw("   bpy.types.bpy_prop_collection.rst\n")
+
+        for type_name in bpy_types_capi_iter():
+            identifier = "bpy.types." + type_name
+            if identifier in EXCLUDE_MODULES:
+                continue
+            fw("   {:s}.rst\n".format(identifier))
+        fw("\n")
 
         # This needs to be included somewhere, while it's hidden, list to avoid warnings.
         if USE_SHARED_RNA_ENUM_ITEMS_STATIC:
