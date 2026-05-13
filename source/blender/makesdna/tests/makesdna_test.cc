@@ -166,7 +166,7 @@ TEST_F(SDNATest, struct_member_offset_by_name_without_alias)
                 sdna, "StructWithVectorMatrixTypes", "float", "my_float3[3]"),
             offsetof(StructWithVectorMatrixTypes, my_float3));
   EXPECT_EQ(DNA_struct_member_offset_by_name_without_alias(
-                sdna, "StructWithVectorMatrixTypes", "float", "my_matrix[4]4]"),
+                sdna, "StructWithVectorMatrixTypes", "float", "my_matrix[4][4]"),
             offsetof(StructWithVectorMatrixTypes, my_matrix));
 
   /* Enum members are stored using their underlying integer type. */
