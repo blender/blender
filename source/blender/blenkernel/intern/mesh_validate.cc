@@ -849,7 +849,10 @@ static bool validate_mdisps(const Mesh &mesh, const bool verbose, Mesh *mesh_mut
   return false;
 }
 
-static bool mesh_validate_impl(const Mesh &mesh, const bool verbose, Mesh *mesh_mut)
+static bool mesh_validate_impl(const Mesh &mesh,
+                               const bool verbose,
+                               const bool allow_missing_edges,
+                               Mesh *mesh_mut)
 {
   IndexMaskMemory memory;
 
@@ -879,13 +882,15 @@ static bool mesh_validate_impl(const Mesh &mesh, const bool verbose, Mesh *mesh_
   valid_faces = IndexMask::from_difference(valid_faces, duplicate_faces, memory);
 
   const IndexMask faces_missing_edges = find_faces_missing_edges(
-      mesh, valid_faces, unique_edges, memory, verbose);
+      mesh, valid_faces, unique_edges, memory, verbose && !allow_missing_edges);
   const IndexMask valid_and_missing_edge_faces = valid_faces;
   valid_faces = IndexMask::from_difference(valid_faces, faces_missing_edges, memory);
 
   const bool any_corner_edges_bad = find_faces_bad_edges(mesh, valid_faces, memory, verbose);
 
-  bool valid = valid_edges.size() == mesh.edges_num && valid_faces.size() == mesh.faces_num &&
+  const int64_t valid_faces_count = allow_missing_edges ? valid_and_missing_edge_faces.size() :
+                                                          valid_faces.size();
+  bool valid = valid_edges.size() == mesh.edges_num && valid_faces_count == mesh.faces_num &&
                !any_corner_edges_bad;
 
   if (mesh_mut) {
@@ -922,17 +927,17 @@ static bool mesh_validate_impl(const Mesh &mesh, const bool verbose, Mesh *mesh_
   return false;
 }
 
-bool mesh_validate(Mesh &mesh, const bool verbose)
+bool mesh_validate(Mesh &mesh, const bool verbose, const bool allow_missing_edges)
 {
   if (verbose) {
     CLOG_INFO(&LOG, "Validating Mesh: %s", mesh.id.name + 2);
   }
-  return mesh_validate_impl(mesh, verbose, &mesh);
+  return mesh_validate_impl(mesh, verbose, allow_missing_edges, &mesh);
 }
 
 bool mesh_is_valid(const Mesh &mesh, const bool verbose)
 {
-  return mesh_validate_impl(mesh, verbose, nullptr);
+  return mesh_validate_impl(mesh, verbose, false, nullptr);
 }
 
 bool mesh_validate_material_indices(Mesh &mesh)

@@ -18,6 +18,7 @@
 #include "BLI_vector.hh"
 
 #include "IO_string_utils.hh"
+#include "IO_validate.hh"
 
 #include "obj_export_mtl.hh"
 #include "obj_import_file_reader.hh"
@@ -353,6 +354,9 @@ static void geom_add_curve_vertex_indices(Geometry *geom,
     }
     /* Always keep stored indices non-negative and zero-based. */
     index += index < 0 ? global_vertices.vertices.size() : -1;
+    if (!validate::index_in_range(index, global_vertices.vertices.size())) {
+      index = 0;
+    }
     geom->nurbs_element_.curv_indices.append(index);
   }
 }

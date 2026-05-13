@@ -3,24 +3,6 @@
 # SPDX-License-Identifier: Apache-2.0
 
 ###########################################################################
-# SDL
-###########################################################################
-
-if(WITH_CYCLES_STANDALONE AND WITH_CYCLES_STANDALONE_GUI)
-  # We can't use the version from the Blender precompiled libraries because
-  # it does not include the video subsystem.
-  find_package(SDL2 REQUIRED)
-  set_and_warn_library_found("SDL" SDL2_FOUND WITH_CYCLES_STANDALONE_GUI)
-
-  if(SDL2_FOUND)
-    include_directories(
-      SYSTEM
-      ${SDL2_INCLUDE_DIRS}
-    )
-  endif()
-endif()
-
-###########################################################################
 # CUDA
 ###########################################################################
 

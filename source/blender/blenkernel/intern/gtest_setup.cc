@@ -89,6 +89,7 @@ void gtest_teardown()
   BLI_task_scheduler_exit();
   BKE_brush_system_exit();
   BKE_sound_exit_once();
+  BKE_callback_global_finalize();
   BKE_appdir_exit();
   IMB_cache_destruct();
   IMB_exit();

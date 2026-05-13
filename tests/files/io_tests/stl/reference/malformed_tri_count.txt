@@ -1,0 +1,9 @@
+==== Meshes: 1
+- Mesh 'malformed_tri_count' vtx:0 face:0 loop:0 edge:0
+
+==== Objects: 1
+- Obj 'malformed_tri_count' MESH data:'malformed_tri_count'
+  - pos 0.000, 0.000, 0.000
+  - rot 0.000, 0.000, 0.000 (XYZ)
+  - scl 1.000, 1.000, 1.000
+

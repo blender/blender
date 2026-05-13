@@ -14,6 +14,8 @@
 #include "BKE_node.hh"
 #include "BKE_node_runtime.hh"
 
+#include "NOD_eval_log.hh"
+
 #include "COM_algorithm_compute_preview.hh"
 #include "COM_context.hh"
 #include "COM_operation.hh"
@@ -26,18 +28,25 @@ namespace blender::compositor {
 
 PixelOperation::PixelOperation(Context &context,
                                PixelCompileUnit &compile_unit,
-                               const Schedule &schedule)
-    : Operation(context), compile_unit_(compile_unit), schedule_(schedule)
+                               const Schedule &schedule,
+                               const ComputeContext &compute_context)
+    : Operation(context),
+      compile_unit_(compile_unit),
+      schedule_(schedule),
+      compute_context_(compute_context)
 {
 }
 
 void PixelOperation::compute_preview()
 {
   for (const bNodeSocket *output : preview_outputs_) {
-    Result &result = get_result(get_output_identifier_from_output_socket(*output));
-    const bNodeInstanceKey instance_key = bke::node_instance_key(
-        instance_key_, &output->owner_node().owner_tree(), &output->owner_node());
-    compositor::compute_preview(context(), node_previews_, instance_key, result);
+    Result &result = this->get_result(get_output_identifier_from_output_socket(*output));
+    ImBuf *preview = compositor::compute_preview(context(), result);
+    nodes::eval_log::NodeTreeLogger &tree_logger =
+        this->context().nodes_evaluation_log()->get_local_tree_logger(compute_context_);
+    tree_logger.node_image_previews.append(*tree_logger.allocator,
+                                           {output->owner_node().identifier, preview});
+
     /* Preview results gets as an extra reference in pixel operations as can be seen in the
      * compute_results_reference_counts method, so release it after computing preview. */
     result.release();
@@ -86,24 +95,9 @@ void PixelOperation::compute_results_reference_counts(const Schedule &schedule)
   }
 }
 
-void PixelOperation::set_instance_key(const bNodeInstanceKey &instance_key)
+void PixelOperation::set_needs_node_previews(const bool needed)
 {
-  instance_key_ = instance_key;
-}
-
-bNodeInstanceKey PixelOperation::get_instance_key()
-{
-  return instance_key_;
-}
-
-void PixelOperation::set_node_previews(Map<bNodeInstanceKey, bke::bNodePreview> *node_previews)
-{
-  node_previews_ = node_previews;
-}
-
-Map<bNodeInstanceKey, bke::bNodePreview> *PixelOperation::get_node_previews()
-{
-  return node_previews_;
+  needs_node_previews_ = needed;
 }
 
 }  // namespace blender::compositor

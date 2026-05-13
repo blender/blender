@@ -15,12 +15,18 @@
 
 #include "DNA_mesh_types.h"
 
+#include "IO_validate.hh"
+
+#include "CLG_log.h"
+
 #include "stl_data.hh"
 #include "stl_import.hh"
 #include "stl_import_binary_reader.hh"
 #include "stl_import_mesh.hh"
 
 namespace blender::io::stl {
+
+static CLG_LogRef LOG = {"io.stl"};
 
 Mesh *read_stl_binary(FILE *file, const bool use_custom_normals)
 {
@@ -34,6 +40,11 @@ Mesh *read_stl_binary(FILE *file, const bool use_custom_normals)
 
   if (num_tris == 0) {
     return BKE_mesh_new_nomain(0, 0, 0, 0);
+  }
+
+  if (!validate::size_fits_in_int(int64_t(num_tris) * 3)) {
+    CLOG_WARN(&LOG, "STL mesh too large to import, exceeds max int size");
+    return nullptr;
   }
 
   Array<PackedTriangle> tris_buf(chunk_size);

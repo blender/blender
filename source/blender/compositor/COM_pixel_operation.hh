@@ -70,13 +70,10 @@ class PixelOperation : public Operation {
   PixelCompileUnit compile_unit_;
   /* A reference to the node execution schedule that is being compiled. */
   const Schedule &schedule_;
-  /* A node instance key that identifies the particular group node that uses the node group that
-   * this pixel operation belongs to. If the node group represents a top-level standalone node
-   * group with no associated group node, this will be bke::NODE_INSTANCE_KEY_BASE. */
-  bNodeInstanceKey instance_key_ = bke::NODE_INSTANCE_KEY_BASE;
-  /* A map that associates each node instance identified by its node instance key to its node
-   * preview. This could be nullptr if node previews are not needed. */
-  Map<bNodeInstanceKey, bke::bNodePreview> *node_previews_ = nullptr;
+  /* The compute context where this pixel operation is executing. */
+  const ComputeContext &compute_context_;
+  /* False if node previews are not needed and true otherwise. */
+  bool needs_node_previews_ = false;
   /* A map that associates the identifier of each input of the operation with the output socket it
    * is linked to. This is needed to help the compiler establish links between operations. */
   Map<std::string, const bNodeSocket *> inputs_to_linked_outputs_map_;
@@ -105,7 +102,10 @@ class PixelOperation : public Operation {
   VectorSet<const bNodeSocket *> preview_outputs_;
 
  public:
-  PixelOperation(Context &context, PixelCompileUnit &compile_unit, const Schedule &schedule);
+  PixelOperation(Context &context,
+                 PixelCompileUnit &compile_unit,
+                 const Schedule &schedule,
+                 const ComputeContext &compute_context);
 
   /* Compute a node preview for all nodes in the pixel operations if the node requires a preview.
    *
@@ -146,13 +146,8 @@ class PixelOperation : public Operation {
    * The node execution schedule is given as an input. */
   void compute_results_reference_counts(const Schedule &schedule);
 
-  /* Getter and setter for instance_key_. */
-  void set_instance_key(const bNodeInstanceKey &instance_key);
-  bNodeInstanceKey get_instance_key();
-
-  /* Getter and setter for node_previews_. */
-  void set_node_previews(Map<bNodeInstanceKey, bke::bNodePreview> *node_previews);
-  Map<bNodeInstanceKey, bke::bNodePreview> *get_node_previews();
+  /* Setter for needs_node_previews_. */
+  void set_needs_node_previews(const bool needed);
 };
 
 }  // namespace blender::compositor

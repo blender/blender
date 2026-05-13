@@ -31,9 +31,9 @@ STLMeshHelper::STLMeshHelper(int tris_num, bool use_custom_normals)
   duplicate_tris_num_ = 0;
   tris_.reserve(tris_num);
   /* Upper bound (all vertices are unique). */
-  verts_.reserve(tris_num * 3);
+  verts_.reserve(int64_t(tris_num) * 3);
   if (use_custom_normals) {
-    loop_normals_.reserve(tris_num * 3);
+    loop_normals_.reserve(int64_t(tris_num) * 3);
   }
 }
 

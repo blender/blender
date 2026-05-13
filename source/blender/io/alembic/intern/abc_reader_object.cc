@@ -28,6 +28,8 @@
 
 #include "Alembic/AbcGeom/Visibility.h"
 
+#include "CLG_log.h"
+
 namespace blender {
 
 using Alembic::AbcGeom::IObject;
@@ -38,6 +40,8 @@ using Alembic::AbcGeom::IXformSchema;
 using Alembic::AbcGeom::ObjectVisibility;
 
 namespace io::alembic {
+
+static CLG_LogRef LOG = {"io.alembic"};
 
 AbcReaderConstructorArgs create_reader_constructor_args(const IObject &object,
                                                         ImportSettings &settings)
@@ -201,9 +205,10 @@ Alembic::AbcGeom::IXform AbcObjectReader::xform()
       return IXform(m_iobject, Alembic::AbcGeom::kWrapExisting);
     }
     catch (Alembic::Util::Exception &ex) {
-      printf("Alembic: error reading object transform for '%s': %s\n",
-             m_iobject.getFullName().c_str(),
-             ex.what());
+      CLOG_WARN(&LOG,
+                "Error reading object transform for '%s': %s",
+                m_iobject.getFullName().c_str(),
+                ex.what());
       return IXform();
     }
   }
@@ -218,9 +223,10 @@ Alembic::AbcGeom::IXform AbcObjectReader::xform()
       return IXform(abc_parent, Alembic::AbcGeom::kWrapExisting);
     }
     catch (Alembic::Util::Exception &ex) {
-      printf("Alembic: error reading object transform for '%s': %s\n",
-             abc_parent.getFullName().c_str(),
-             ex.what());
+      CLOG_WARN(&LOG,
+                "Error reading object transform for '%s': %s",
+                abc_parent.getFullName().c_str(),
+                ex.what());
       return IXform();
     }
   }

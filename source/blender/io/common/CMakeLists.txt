@@ -28,6 +28,7 @@ set(SRC
   IO_string_utils.hh
   IO_subdiv_disabler.hh
   IO_types.hh
+  IO_validate.hh
   intern/dupli_parent_finder.hh
 )
 

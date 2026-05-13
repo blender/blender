@@ -37,6 +37,8 @@
 #include "DNA_modifier_types.h"
 #include "DNA_object_types.h"
 
+#include "IO_validate.hh"
+
 #include <pxr/base/gf/matrix4f.h>
 #include <pxr/base/vt/array.h>
 #include <pxr/base/vt/types.h>
@@ -187,18 +189,9 @@ USDMeshReadData::USDMeshReadData(const pxr::UsdGeomMesh &mesh_prim, const pxr::U
     normal_interpolation = mesh_prim.GetNormalsInterpolation();
   }
 
-  /* Check if the topology makes sense. */
-  if (positions_.empty()) {
-    face_counts_.clear();
+  /* Drop dangling face_indices when there are no faces. */
+  if (face_counts_.empty()) {
     face_indices_.clear();
-  }
-  else {
-    const auto max_it = std::max_element(face_indices_.cbegin(), face_indices_.cend());
-    if (max_it == face_indices_.cend() || (*max_it + 1) > positions_.size()) {
-      positions_.clear();
-      face_counts_.clear();
-      face_indices_.clear();
-    }
   }
 
   mesh_prim.GetOrientationAttr().Get(&orientation, time);
@@ -284,27 +277,44 @@ bool USDMeshReader::read_faces(Mesh *mesh, const USDMeshReadData &usd_data) cons
   MutableSpan<int> face_offsets = mesh->face_offsets_for_write();
   MutableSpan<int> corner_verts = mesh->corner_verts_for_write();
 
-  int loop_index = 0;
+  int64_t loop_index = 0;
+  bool all_faces_ok = true;
 
   const Span<int> face_counts = usd_data.face_counts();
   const Span<int> face_indices = usd_data.face_indices();
-  for (int i = 0; i < face_counts.size(); i++) {
-    const int face_size = face_counts[i];
+  const int64_t corners_num = face_indices.size();
+  for (const int64_t i : face_counts.index_range()) {
+    int face_size = face_counts[i];
 
-    face_offsets[i] = loop_index;
+    face_offsets[i] = int(loop_index);
+
+    if (face_size < 3 || face_size > corners_num - loop_index) {
+      face_size = 0;
+      all_faces_ok = false;
+    }
 
     /* Polygons are always assumed to be smooth-shaded. If the mesh should be flat-shaded,
      * this is encoded in custom loop normals. */
 
     if (is_left_handed_) {
-      int loop_end_index = loop_index + (face_size - 1);
-      for (int f = 0; f < face_size; ++f, ++loop_index) {
-        corner_verts[loop_index] = face_indices[loop_end_index - f];
+      int64_t loop_end_index = loop_index + (face_size - 1);
+      for (int64_t f = 0; f < face_size; ++f, ++loop_index) {
+        int vidx = face_indices[loop_end_index - f];
+        if (!validate::index_in_range(vidx, mesh->verts_num)) {
+          vidx = 0;
+          all_faces_ok = false;
+        }
+        corner_verts[loop_index] = vidx;
       }
     }
     else {
-      for (int f = 0; f < face_size; ++f, ++loop_index) {
-        corner_verts[loop_index] = face_indices[loop_index];
+      for (int64_t f = 0; f < face_size; ++f, ++loop_index) {
+        int vidx = face_indices[loop_index];
+        if (!validate::index_in_range(vidx, mesh->verts_num)) {
+          vidx = 0;
+          all_faces_ok = false;
+        }
+        corner_verts[loop_index] = vidx;
       }
     }
   }
@@ -312,7 +322,9 @@ bool USDMeshReader::read_faces(Mesh *mesh, const USDMeshReadData &usd_data) cons
   /* Check for faces with duplicate vertex indices. These will require a mesh validate to fix. */
   IndexMaskMemory memory;
   const IndexMask bad_faces = bke::mesh_find_faces_duplicate_verts(*mesh, memory);
-  const bool all_faces_ok = bad_faces.is_empty();
+  if (!bad_faces.is_empty()) {
+    all_faces_ok = false;
+  }
 
   /* If we detect bad faces it would be unsafe to continue beyond this point without first
    * performing a destructive validate. Any operation requiring mesh connectivity information can
@@ -390,12 +402,15 @@ void USDMeshReader::read_uv_data_primvar(Mesh *mesh,
         const IndexRange face = faces[i];
         for (int j : face.index_range()) {
           const int rev_index = face.last(j);
-          uv_data.span[face.start() + j] = float2(usd_uvs[rev_index][0], usd_uvs[rev_index][1]);
+          uv_data.span[face.start() + j] = validate::index_in_range(rev_index, usd_uvs.size()) ?
+                                               float2(usd_uvs[rev_index][0],
+                                                      usd_uvs[rev_index][1]) :
+                                               float2(0.0f);
         }
       }
     }
     else {
-      for (int i = 0; i < uv_data.span.size(); ++i) {
+      for (const int64_t i : uv_data.span.index_range()) {
         uv_data.span[i] = float2(usd_uvs[i][0], usd_uvs[i][1]);
       }
     }
@@ -406,8 +421,10 @@ void USDMeshReader::read_uv_data_primvar(Mesh *mesh,
     BLI_assert(mesh->verts_num == usd_uvs.size());
     for (int i = 0; i < uv_data.span.size(); ++i) {
       /* Get the vertex index for this corner. */
-      int vi = corner_verts[i];
-      uv_data.span[i] = float2(usd_uvs[vi][0], usd_uvs[vi][1]);
+      const int vi = corner_verts[i];
+      uv_data.span[i] = validate::index_in_range(vi, usd_uvs.size()) ?
+                            float2(usd_uvs[vi][0], usd_uvs[vi][1]) :
+                            float2(0.0f);
     }
   }
 
@@ -492,11 +509,15 @@ void USDMeshReader::read_vertex_creases(Mesh *mesh, const pxr::UsdTimeCode time)
   Span<float> corner_sharpnesses = Span(usd_corner_sharpnesses.cdata(),
                                         usd_corner_sharpnesses.size());
 
-  for (size_t i = 0; i < corner_indices.size(); i++) {
+  for (const int64_t i : corner_indices.index_range()) {
+    const int idx = corner_indices[i];
+    if (!validate::index_in_range(idx, mesh->verts_num)) {
+      continue;
+    }
     const float crease = settings_->blender_stage_version_prior_44 ?
                              corner_sharpnesses[i] :
                              bke::subdiv::sharpness_to_crease(corner_sharpnesses[i]);
-    creases.span[corner_indices[i]] = std::clamp(crease, 0.0f, 1.0f);
+    creases.span[idx] = std::clamp(crease, 0.0f, 1.0f);
   }
   creases.finish();
 }
@@ -548,8 +569,8 @@ void USDMeshReader::read_edge_creases(Mesh *mesh, const pxr::UsdTimeCode time)
   Span<int> crease_indices = Span(usd_crease_indices.cdata(), usd_crease_indices.size());
   Span<float> crease_sharpness = Span(usd_crease_sharpness.cdata(), usd_crease_sharpness.size());
 
-  size_t index_start = 0;
-  for (size_t i = 0; i < crease_lengths.size(); i++) {
+  int64_t index_start = 0;
+  for (const int64_t i : crease_lengths.index_range()) {
     const int length = crease_lengths[i];
     if (length < 2) {
       /* Since each crease must be at least one edge long, each element of this array must be at
@@ -572,7 +593,7 @@ void USDMeshReader::read_edge_creases(Mesh *mesh, const pxr::UsdTimeCode time)
                        crease_sharpness[i] :
                        bke::subdiv::sharpness_to_crease(crease_sharpness[i]);
     crease = std::clamp(crease, 0.0f, 1.0f);
-    for (size_t j = 0; j < length - 1; j++) {
+    for (int64_t j = 0; j < length - 1; j++) {
       const int v1 = crease_indices[index_start + j];
       const int v2 = crease_indices[index_start + j + 1];
       const int edge_i = edge_map.index_of_try({v1, v2});
@@ -943,6 +964,16 @@ Mesh *USDMeshReader::read_mesh(Mesh *existing_mesh,
   USDMeshReadData usd_data(mesh_prim_, params.motion_sample_time);
   if (usd_data.orientation == pxr::UsdGeomTokens->leftHanded) {
     is_left_handed_ = true;
+  }
+
+  if (!validate::size_fits_in_int(usd_data.positions().size()) ||
+      !validate::size_fits_in_int(usd_data.face_counts().size()) ||
+      !validate::size_fits_in_int(usd_data.face_indices().size()))
+  {
+    CLOG_WARN(&LOG,
+              "Mesh '%s' too large to import, exceeds max int size",
+              this->prim_path().GetAsString().c_str());
+    return existing_mesh;
   }
 
   Mesh *active_mesh = existing_mesh;

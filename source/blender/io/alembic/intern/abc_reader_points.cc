@@ -21,6 +21,10 @@
 
 #include "BLI_color_types.hh"
 
+#include "IO_validate.hh"
+
+#include "CLG_log.h"
+
 #include <algorithm>
 
 namespace blender {
@@ -28,6 +32,8 @@ namespace blender {
 using namespace Alembic::AbcGeom;
 
 namespace io::alembic {
+
+static CLG_LogRef LOG = {"io.alembic"};
 
 AbcPointsReader::AbcPointsReader(const AbcReaderConstructorArgs &args) : AbcObjectReader(args)
 {
@@ -208,11 +214,12 @@ void AbcPointsReader::read_geometry(bke::GeometrySet &geometry_set,
   }
   catch (Alembic::Util::Exception &ex) {
     *r_err_str = RPT_("Error reading points sample; more detail on the console");
-    printf("Alembic: error reading points sample for '%s/%s' at time %f: %s\n",
-           m_iobject.getFullName().c_str(),
-           m_schema.getName().c_str(),
-           sample_sel.getRequestedTime(),
-           ex.what());
+    CLOG_WARN(&LOG,
+              "Error reading points sample for '%s/%s' at time %f: %s",
+              m_iobject.getFullName().c_str(),
+              m_schema.getName().c_str(),
+              sample_sel.getRequestedTime(),
+              ex.what());
     return;
   }
 
@@ -227,6 +234,15 @@ void AbcPointsReader::read_geometry(bke::GeometrySet &geometry_set,
   if (widths_param.valid()) {
     IFloatGeomParam::Sample wsample = widths_param.getExpandedValue(sample_sel);
     widths = wsample.getVals();
+  }
+
+  if (!validate::size_fits_in_int(positions->size())) {
+    CLOG_WARN(&LOG,
+              "Point cloud too large to import for '%s/%s' at time %f, exceeds max int size",
+              m_iobject.getFullName().c_str(),
+              m_schema.getName().c_str(),
+              sample_sel.getRequestedTime());
+    return;
   }
 
   if (pointcloud->totpoint != positions->size()) {

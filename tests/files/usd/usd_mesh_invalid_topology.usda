@@ -1,0 +1,56 @@
+#usda 1.0
+(
+    doc = "Malformed USD meshes."
+    metersPerUnit = 1
+    upAxis = "Z"
+)
+
+# Quad with one face index that points outside the points array.
+def Mesh "m_oob_face_index"
+{
+    int[] faceVertexCounts = [4]
+    int[] faceVertexIndices = [0, 1, 99, 3]
+    point3f[] points = [(0, 0, 0), (1, 0, 0), (1, 1, 0), (0, 1, 0)]
+    uniform token subdivisionScheme = "none"
+}
+
+# Face_indices/face_counts disagree on total corner count.
+def Mesh "m_inconsistent_face_counts"
+{
+    int[] faceVertexCounts = [3, 4]
+    int[] faceVertexIndices = [0, 1, 2, 3, 4]
+    point3f[] points = [(0, 0, 0), (1, 0, 0), (1, 1, 0), (0, 1, 0), (2, 0, 0)]
+    uniform token subdivisionScheme = "none"
+}
+
+# Non-positive faceVertexCount entry.
+def Mesh "m_zero_face_count"
+{
+    int[] faceVertexCounts = [0, 3]
+    int[] faceVertexIndices = [0, 1, 2]
+    point3f[] points = [(0, 0, 0), (1, 0, 0), (0, 1, 0)]
+    uniform token subdivisionScheme = "none"
+}
+
+# Quad with a faceVarying UV index referencing a UV that does not exist.
+def Mesh "m_oob_uv_index"
+{
+    int[] faceVertexCounts = [4]
+    int[] faceVertexIndices = [0, 1, 2, 3]
+    point3f[] points = [(0, 0, 0), (1, 0, 0), (1, 1, 0), (0, 1, 0)]
+    texCoord2f[] primvars:st = [(0, 0), (1, 0), (1, 1), (0, 1)] (
+        interpolation = "faceVarying"
+    )
+    uniform token subdivisionScheme = "none"
+}
+
+# Vertex crease referencing a vertex that does not exist.
+def Mesh "m_oob_vertex_crease"
+{
+    int[] faceVertexCounts = [4]
+    int[] faceVertexIndices = [0, 1, 2, 3]
+    int[] cornerIndices = [99]
+    float[] cornerSharpnesses = [1.0]
+    point3f[] points = [(0, 0, 0), (1, 0, 0), (1, 1, 0), (0, 1, 0)]
+    uniform token subdivisionScheme = "catmullClark"
+}

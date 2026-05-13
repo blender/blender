@@ -34,6 +34,8 @@
 #include "BKE_customdata.hh"
 #include "BKE_mesh.hh"
 
+#include "IO_validate.hh"
+
 namespace blender {
 
 /* NOTE: for now only UVs and Vertex Colors are supported for streaming.
@@ -323,20 +325,26 @@ static void read_uvs(const CDStreamConfig &config,
 {
   const OffsetIndices faces = config.mesh->faces();
   const int *corner_verts = config.corner_verts;
-
-  uint uv_index, loop_index, rev_loop_index;
+  const int64_t indices_size = int64_t(indices->size());
+  const int64_t uvs_size = int64_t(uvs->size());
 
   BLI_assert(uv_scope != ABC_UV_SCOPE_NONE);
   const bool do_uvs_per_loop = (uv_scope == ABC_UV_SCOPE_LOOP);
 
-  for (const int i : faces.index_range()) {
+  for (const int64_t i : faces.index_range()) {
     const IndexRange face = faces[i];
-    uint rev_loop_offset = face.start() + face.size() - 1;
+    const int64_t rev_loop_offset = face.start() + face.size() - 1;
 
-    for (int f = 0; f < face.size(); f++) {
-      rev_loop_index = rev_loop_offset - f;
-      loop_index = do_uvs_per_loop ? face.start() + f : corner_verts[rev_loop_index];
-      uv_index = (*indices)[loop_index];
+    for (int64_t f = 0; f < face.size(); f++) {
+      const int64_t rev_loop_index = rev_loop_offset - f;
+      const int64_t loop_index = do_uvs_per_loop ? face.start() + f : corner_verts[rev_loop_index];
+      if (!validate::index_in_range(loop_index, indices_size)) {
+        continue;
+      }
+      const int64_t uv_index = (*indices)[loop_index];
+      if (!validate::index_in_range(uv_index, uvs_size)) {
+        continue;
+      }
       const Imath::V2f &uv = (*uvs)[uv_index];
 
       float2 &loopuv = uv_map[rev_loop_index];
@@ -346,14 +354,14 @@ static void read_uvs(const CDStreamConfig &config,
   }
 }
 
-static size_t mcols_out_of_bounds_check(const size_t color_index,
-                                        const size_t array_size,
-                                        const std::string &iobject_full_name,
-                                        const PropertyHeader &prop_header,
-                                        bool &r_is_out_of_bounds,
-                                        bool &r_bounds_warning_given)
+static int64_t mcols_out_of_bounds_check(const int64_t color_index,
+                                         const int64_t array_size,
+                                         const std::string &iobject_full_name,
+                                         const PropertyHeader &prop_header,
+                                         bool &r_is_out_of_bounds,
+                                         bool &r_bounds_warning_given)
 {
-  if (color_index < array_size) {
+  if (validate::index_in_range(color_index, array_size)) {
     return color_index;
   }
 
@@ -419,8 +427,8 @@ static void read_custom_data_mcols(const std::string &iobject_full_name,
   const OffsetIndices faces = config.mesh->faces();
   const int *corner_verts = config.corner_verts;
 
-  size_t face_index = 0;
-  size_t color_index;
+  int64_t face_index = 0;
+  int64_t color_index;
   bool bounds_warning_given = false;
 
   /* The colors can go through two layers of indexing. Often the 'indices'
@@ -429,11 +437,11 @@ static void read_custom_data_mcols(const std::string &iobject_full_name,
    * is why we have to check for indices->size() > 0 */
   bool use_dual_indexing = is_facevarying && indices->size() > 0;
 
-  for (const int i : faces.index_range()) {
+  for (const int64_t i : faces.index_range()) {
     const IndexRange face = faces[i];
-    int corner = face.start() + face.size();
+    int64_t corner = face.start() + face.size();
 
-    for (int j = 0; j < face.size(); j++, face_index++) {
+    for (int64_t j = 0; j < face.size(); j++, face_index++) {
       corner--;
 
       color_index = is_facevarying ? face_index : corner_verts[corner];
@@ -515,18 +523,18 @@ void read_velocity(const V3fArraySamplePtr &velocities,
                    const CDStreamConfig &config,
                    const float velocity_scale)
 {
-  const int num_velocity_vectors = int(velocities->size());
-  if (num_velocity_vectors != config.mesh->verts_num) {
+  if (velocities->size() != config.mesh->verts_num) {
     /* Files containing videogrammetry data may be malformed and export velocity data on missing
      * frames (most likely by copying the last valid data). */
     return;
   }
+  const int64_t num_velocity_vectors = config.mesh->verts_num;
 
   bke::MutableAttributeAccessor attributes = config.mesh->attributes_for_write();
   bke::SpanAttributeWriter attr = attributes.lookup_or_add_for_write_span<float3>(
       "velocity", bke::AttrDomain::Point);
   MutableSpan<float3> velocity = attr.span;
-  for (int i = 0; i < num_velocity_vectors; i++) {
+  for (int64_t i = 0; i < num_velocity_vectors; i++) {
     const Imath::V3f &vel_in = (*velocities)[i];
     copy_zup_from_yup(velocity[i], vel_in.getValue());
     mul_v3_fl(velocity[i], velocity_scale);

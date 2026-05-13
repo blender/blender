@@ -1811,21 +1811,6 @@ struct bNodeInstanceKey {
 #endif
 };
 
-/**
- * Base struct for entries in node instance hash.
- *
- * \warning pointers are cast to this struct internally,
- * it must be first member in hash entry structs!
- */
-#
-#
-struct bNodeInstanceHashEntry {
-  bNodeInstanceKey key;
-
-  /** Tags for cleaning the cache. */
-  short tag = 0;
-};
-
 struct bNodeLink {
   struct bNodeLink *next = nullptr, *prev = nullptr;
 

@@ -1,0 +1,24 @@
+==== Curves(new): 1
+- Curve 'malformed_curves' splines:1 control-points:2
+  - attr 'curve_type' INT8 CURVE
+    - 2 
+  - attr 'handle_left' FLOAT_VECTOR POINT
+    - (-1.000, 0.000, 0.000)
+    - (2.000, 0.000, 0.000)
+  - attr 'handle_right' FLOAT_VECTOR POINT
+    - (1.000, 0.000, 0.000)
+    - (4.000, 0.000, 0.000)
+  - attr 'handle_type_left' INT8 POINT
+    - 3 3 
+  - attr 'handle_type_right' INT8 POINT
+    - 3 3 
+  - attr 'position' FLOAT_VECTOR POINT
+    - (0.000, 0.000, 0.000)
+    - (3.000, 0.000, 0.000)
+
+==== Objects: 1
+- Obj 'malformed_curves' CURVES data:'malformed_curves'
+  - pos 0.000, 0.000, 0.000
+  - rot 0.000, 0.000, 0.000 (XYZ)
+  - scl 1.000, 1.000, 1.000
+

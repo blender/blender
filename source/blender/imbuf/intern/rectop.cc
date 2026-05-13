@@ -486,27 +486,6 @@ void IMB_crop(ImBuf *ibuf, const int2 &rect_pos, const int2 &rect_size)
   ibuf->y = rect_size.y;
 }
 
-/**
- * Re-allocate buffers at a new size.
- */
-static void rect_realloc_4bytes(void **buf_p, const uint size[2])
-{
-  if (*buf_p == nullptr) {
-    return;
-  }
-  MEM_delete_void(*buf_p);
-  *buf_p = MEM_new_array_uninitialized<uint>(size_t(size[0]) * size_t(size[1]), __func__);
-}
-
-static void rect_realloc_16bytes(void **buf_p, const uint size[2])
-{
-  if (*buf_p == nullptr) {
-    return;
-  }
-  MEM_delete_void(*buf_p);
-  *buf_p = MEM_new_array_uninitialized<uint>(4 * size_t(size[0]) * size_t(size[1]), __func__);
-}
-
 void IMB_rect_size_set(ImBuf *ibuf, const uint size[2])
 {
   BLI_assert(size[0] > 0 && size[1] > 0);
@@ -514,12 +493,15 @@ void IMB_rect_size_set(ImBuf *ibuf, const uint size[2])
     return;
   }
 
-  /* TODO(sergey: Validate ownership. */
-  rect_realloc_4bytes(reinterpret_cast<void **>(&ibuf->byte_buffer.data), size);
-  rect_realloc_16bytes(reinterpret_cast<void **>(&ibuf->float_buffer.data), size);
-
   ibuf->x = size[0];
   ibuf->y = size[1];
+
+  if (ibuf->float_data()) {
+    IMB_alloc_float_pixels(ibuf, ibuf->channels, false);
+  }
+  if (ibuf->byte_data()) {
+    IMB_alloc_byte_pixels(ibuf, false);
+  }
 }
 
 /** \} */

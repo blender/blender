@@ -11,7 +11,7 @@ void view_clipping_distances([[maybe_unused]] float3 wpos)
 #if defined(GPU_VERTEX_SHADER)
   VERTEX_SHADER_CREATE_INFO(drw_clipped)
   /* WORKAROUND(fclem): Allow both legacy and SRT code-path to coexist.
-   * Metal back-end checks fFor this exact condition to declare gl_ClipDistance and not pay the
+   * Metal back-end checks for this exact condition to declare gl_ClipDistance and not pay the
    * price of enabling clip distance. This is something to fix at some point. */
 #  if defined(SRT_CONSTANT_use_clipping) ? (SRT_CONSTANT_use_clipping == 1) : \
                                            defined(USE_WORLD_CLIP_PLANES)
@@ -31,7 +31,7 @@ void view_clipping_distances_bypass()
 #if defined(GPU_VERTEX_SHADER)
   VERTEX_SHADER_CREATE_INFO(drw_clipped)
   /* WORKAROUND(fclem): Allow both legacy and SRT code-path to coexist.
-   * Metal back-end checks fFor this exact condition to declare gl_ClipDistance and not pay the
+   * Metal back-end checks for this exact condition to declare gl_ClipDistance and not pay the
    * price of enabling clip distance. This is something to fix at some point. */
 #  if defined(SRT_CONSTANT_use_clipping) ? (SRT_CONSTANT_use_clipping == 1) : \
                                            defined(USE_WORLD_CLIP_PLANES)

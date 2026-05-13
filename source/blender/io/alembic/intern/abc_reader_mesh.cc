@@ -34,6 +34,9 @@
 #include "BKE_object.hh"
 #include "BKE_subdiv.hh"
 
+#include "CLG_log.h"
+#include "IO_validate.hh"
+
 namespace blender {
 
 using Alembic::Abc::FloatArraySamplePtr;
@@ -61,6 +64,8 @@ using Alembic::AbcGeom::UInt32ArraySamplePtr;
 using Alembic::AbcGeom::V2fArraySamplePtr;
 
 namespace io::alembic {
+
+static CLG_LogRef LOG = {"io.alembic"};
 
 /* NOTE: Alembic's face winding order is clockwise, to match with Renderman. */
 
@@ -210,19 +215,21 @@ static void read_mpolys(CDStreamConfig &config, const AbcMeshData &mesh_data)
   const Int32ArraySamplePtr &face_indices = mesh_data.face_indices;
   const Int32ArraySamplePtr &face_counts = mesh_data.face_counts;
   const V2fArraySamplePtr &uvs = mesh_data.uvs;
-  const size_t uvs_size = uvs == nullptr ? 0 : uvs->size();
+  const int64_t uvs_size = uvs == nullptr ? 0 : int64_t(uvs->size());
 
   const UInt32ArraySamplePtr &uvs_indices = mesh_data.uvs_indices;
+  const int64_t uvs_indices_size = uvs_indices == nullptr ? 0 : int64_t(uvs_indices->size());
 
   const bool do_uvs = (uv_maps && uvs && uvs_indices);
   const bool do_uvs_per_loop = do_uvs && mesh_data.uv_scope == ABC_UV_SCOPE_LOOP;
   BLI_assert(!do_uvs || mesh_data.uv_scope != ABC_UV_SCOPE_NONE);
-  uint loop_index = 0;
-  uint rev_loop_index = 0;
-  uint uv_index = 0;
+  int64_t loop_index = 0;
+  int64_t rev_loop_index = 0;
 
-  for (int i = 0; i < face_counts->size(); i++) {
-    const int face_size = (*face_counts)[i];
+  const int64_t corners_num = int64_t(face_indices->size());
+
+  for (int64_t i = 0; i < face_counts->size(); i++) {
+    int face_size = (*face_counts)[i];
 
     face_offsets[i] = loop_index;
 
@@ -230,18 +237,31 @@ static void read_mpolys(CDStreamConfig &config, const AbcMeshData &mesh_data)
      * this is encoded in custom loop normals. See #71246. */
 
     /* NOTE: Alembic data is stored in the reverse order. */
-    rev_loop_index = loop_index + (face_size - 1);
+    if (face_size > 0 && face_size <= corners_num - loop_index) {
+      rev_loop_index = loop_index + (face_size - 1);
+    }
+    else {
+      rev_loop_index = loop_index;
+      face_size = 0;
+    }
 
-    uint last_vertex_index = 0;
-    for (int f = 0; f < face_size; f++, loop_index++, rev_loop_index--) {
-      const int vert = (*face_indices)[loop_index];
+    const int64_t last_vertex_index = 0;
+    for (int64_t f = 0; f < face_size; f++, loop_index++, rev_loop_index--) {
+      int vert = (*face_indices)[loop_index];
+      if (!validate::index_in_range(vert, config.mesh->verts_num)) {
+        vert = 0;
+      }
       corner_verts[rev_loop_index] = vert;
 
       if (do_uvs) {
-        uv_index = (*uvs_indices)[do_uvs_per_loop ? loop_index : last_vertex_index];
+        const int64_t lookup_index = do_uvs_per_loop ? loop_index : last_vertex_index;
+        if (!validate::index_in_range(lookup_index, uvs_indices_size)) {
+          continue;
+        }
+        const int64_t uv_index = (*uvs_indices)[lookup_index];
 
         /* Some Alembic files are broken (or at least export UVs in a way we don't expect). */
-        if (uv_index >= uvs_size) {
+        if (!validate::index_in_range(uv_index, uvs_size)) {
           continue;
         }
 
@@ -651,11 +671,12 @@ bool AbcMeshReader::topology_changed(const Mesh *existing_mesh, const ISampleSel
     sample = m_schema.getValue(sample_sel);
   }
   catch (Alembic::Util::Exception &ex) {
-    printf("Alembic: error reading mesh sample for '%s/%s' at time %f: %s\n",
-           m_iobject.getFullName().c_str(),
-           m_schema.getName().c_str(),
-           sample_sel.getRequestedTime(),
-           ex.what());
+    CLOG_WARN(&LOG,
+              "Error reading mesh sample for '%s/%s' at time %f: %s",
+              m_iobject.getFullName().c_str(),
+              m_schema.getName().c_str(),
+              sample_sel.getRequestedTime(),
+              ex.what());
     /* A similar error in read_mesh() would just return existing_mesh. */
     return false;
   }
@@ -682,20 +703,29 @@ bool AbcMeshReader::topology_changed(const Mesh *existing_mesh, const ISampleSel
 
   /* Otherwise, we need to check the connectivity as files from e.g. videogrammetry may have the
    * same face count, but different connections between faces. */
-  uint abc_index = 0;
+  int64_t abc_index = 0;
 
   const int *mesh_corner_verts = existing_mesh->corner_verts().data();
   const int *mesh_face_offsets = existing_mesh->face_offsets().data();
+  const int64_t mesh_corners_num = existing_mesh->corners_num;
+  const int64_t abc_corners_num = int64_t(face_indices->size());
 
-  for (int i = 0; i < face_counts->size(); i++) {
+  for (int64_t i = 0; i < face_counts->size(); i++) {
     if (mesh_face_offsets[i] != abc_index) {
       return true;
     }
 
     const int abc_face_size = (*face_counts)[i];
+    /* If the file's face_counts would advance abc_index past either array, the topology must
+     * differ from the existing mesh; treat as changed rather than read out of bounds. */
+    if (abc_face_size < 0 || abc_face_size > abc_corners_num - abc_index ||
+        abc_face_size > mesh_corners_num - abc_index)
+    {
+      return true;
+    }
     /* NOTE: Alembic data is stored in the reverse order. */
-    uint rev_loop_index = abc_index + (abc_face_size - 1);
-    for (int f = 0; f < abc_face_size; f++, abc_index++, rev_loop_index--) {
+    int64_t rev_loop_index = abc_index + (abc_face_size > 0 ? abc_face_size - 1 : 0);
+    for (int64_t f = 0; f < abc_face_size; f++, abc_index++, rev_loop_index--) {
       const int mesh_vert = mesh_corner_verts[rev_loop_index];
       const int abc_vert = (*face_indices)[abc_index];
       if (mesh_vert != abc_vert) {
@@ -736,11 +766,12 @@ Mesh *AbcMeshReader::read_mesh(Mesh *existing_mesh,
     if (r_err_str != nullptr) {
       *r_err_str = RPT_("Error reading mesh sample; more detail on the console");
     }
-    printf("Alembic: error reading mesh sample for '%s/%s' at time %f: %s\n",
-           m_iobject.getFullName().c_str(),
-           m_schema.getName().c_str(),
-           sample_sel.getRequestedTime(),
-           ex.what());
+    CLOG_WARN(&LOG,
+              "Error reading mesh sample for '%s/%s' at time %f: %s",
+              m_iobject.getFullName().c_str(),
+              m_schema.getName().c_str(),
+              sample_sel.getRequestedTime(),
+              ex.what());
     return existing_mesh;
   }
 
@@ -749,17 +780,32 @@ Mesh *AbcMeshReader::read_mesh(Mesh *existing_mesh,
   const Alembic::Abc::Int32ArraySamplePtr &face_counts = sample.getFaceCounts();
 
   /* Do some very minimal mesh validation. */
-  const int poly_count = face_counts->size();
-  const int loop_count = face_indices->size();
+  const int64_t poly_count = face_counts->size();
+  const int64_t loop_count = face_indices->size();
+  const int64_t vert_count = positions->size();
+  if (!validate::size_fits_in_int(poly_count) || !validate::size_fits_in_int(loop_count) ||
+      !validate::size_fits_in_int(vert_count))
+  {
+    if (r_err_str != nullptr) {
+      *r_err_str = RPT_("Mesh too large; more detail on the console");
+    }
+    CLOG_WARN(&LOG,
+              "Mesh too large for '%s/%s' at time %f, exceeds max int size",
+              m_iobject.getFullName().c_str(),
+              m_schema.getName().c_str(),
+              sample_sel.getRequestedTime());
+    return existing_mesh;
+  }
   /* This is the same test as in poly_to_tri_count(). */
   if (poly_count > 0 && loop_count < poly_count * 2) {
     if (r_err_str != nullptr) {
       *r_err_str = RPT_("Invalid mesh; more detail on the console");
     }
-    printf("Alembic: invalid mesh sample for '%s/%s' at time %f, less than 2 loops per face\n",
-           m_iobject.getFullName().c_str(),
-           m_schema.getName().c_str(),
-           sample_sel.getRequestedTime());
+    CLOG_WARN(&LOG,
+              "Invalid mesh sample for '%s/%s' at time %f, less than 2 loops per face",
+              m_iobject.getFullName().c_str(),
+              m_schema.getName().c_str(),
+              sample_sel.getRequestedTime());
     return existing_mesh;
   }
 
@@ -951,11 +997,12 @@ static void read_vertex_creases(Mesh *mesh,
   creases.span.fill(0.0f);
 
   const int totvert = mesh->verts_num;
+  const int64_t indices_num = indices->size();
 
-  for (int i = 0, v = indices->size(); i < v; ++i) {
+  for (int64_t i = 0, v = indices_num; i < v; ++i) {
     const int idx = (*indices)[i];
 
-    if (idx >= totvert) {
+    if (!validate::index_in_range(idx, totvert)) {
       continue;
     }
 
@@ -988,7 +1035,9 @@ static void read_edge_creases(Mesh *mesh,
   bke::SpanAttributeWriter<float> creases = attributes.lookup_or_add_for_write_span<float>(
       "crease_edge", bke::AttrDomain::Edge);
 
-  for (int i = 0, s = 0, e = indices->size(); i < e; i += 2, s++) {
+  const int64_t sharp_num = int64_t(sharpnesses->size());
+  const int64_t indices_num = int64_t(indices->size());
+  for (int64_t i = 0, s = 0; i + 1 < indices_num && s < sharp_num; i += 2, s++) {
     int v1 = (*indices)[i];
     int v2 = (*indices)[i + 1];
     const int *index = edge_hash.lookup_ptr({v1, v2});
@@ -1077,17 +1126,33 @@ Mesh *AbcSubDReader::read_mesh(Mesh *existing_mesh,
     if (r_err_str != nullptr) {
       *r_err_str = RPT_("Error reading mesh sample; more detail on the console");
     }
-    printf("Alembic: error reading mesh sample for '%s/%s' at time %f: %s\n",
-           m_iobject.getFullName().c_str(),
-           m_schema.getName().c_str(),
-           sample_sel.getRequestedTime(),
-           ex.what());
+    CLOG_WARN(&LOG,
+              "Error reading mesh sample for '%s/%s' at time %f: %s",
+              m_iobject.getFullName().c_str(),
+              m_schema.getName().c_str(),
+              sample_sel.getRequestedTime(),
+              ex.what());
     return existing_mesh;
   }
 
   const P3fArraySamplePtr &positions = sample.getPositions();
   const Alembic::Abc::Int32ArraySamplePtr &face_indices = sample.getFaceIndices();
   const Alembic::Abc::Int32ArraySamplePtr &face_counts = sample.getFaceCounts();
+
+  if (!validate::size_fits_in_int(positions->size()) ||
+      !validate::size_fits_in_int(face_counts->size()) ||
+      !validate::size_fits_in_int(face_indices->size()))
+  {
+    if (r_err_str != nullptr) {
+      *r_err_str = RPT_("Mesh too large; more detail on the console");
+    }
+    CLOG_WARN(&LOG,
+              "Mesh too large for '%s/%s' at time %f, exceeds max int size",
+              m_iobject.getFullName().c_str(),
+              m_schema.getName().c_str(),
+              sample_sel.getRequestedTime());
+    return existing_mesh;
+  }
 
   Mesh *new_mesh = nullptr;
 

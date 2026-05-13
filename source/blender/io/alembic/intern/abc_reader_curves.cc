@@ -10,8 +10,6 @@
 #include "abc_axis_conversion.h"
 #include "abc_util.h"
 
-#include <cstdio>
-
 #include "DNA_curves_types.h"
 #include "DNA_modifier_types.h"
 #include "DNA_object_types.h"
@@ -24,6 +22,9 @@
 #include "BLI_vector.hh"
 
 #include "BLT_translation.hh"
+
+#include "CLG_log.h"
+#include "IO_validate.hh"
 
 namespace blender {
 
@@ -43,6 +44,9 @@ using Alembic::AbcGeom::ISampleSelector;
 using Alembic::AbcGeom::kWrapExisting;
 
 namespace io::alembic {
+
+static CLG_LogRef LOG = {"io.alembic"};
+
 static int16_t get_curve_resolution(const ICurvesSchema &schema,
                                     const Alembic::Abc::ISampleSelector &sample_sel)
 {
@@ -238,11 +242,12 @@ static std::optional<PreprocessedSampleData> preprocess_sample(StringRefNull iob
     smp = schema.getValue(sample_sel);
   }
   catch (Alembic::Util::Exception &ex) {
-    printf("Alembic: error reading curve sample for '%s/%s' at time %f: %s\n",
-           iobject_name.c_str(),
-           schema.getName().c_str(),
-           sample_sel.getRequestedTime(),
-           ex.what());
+    CLOG_WARN(&LOG,
+              "Error reading curve sample for '%s/%s' at time %f: %s",
+              iobject_name.c_str(),
+              schema.getName().c_str(),
+              sample_sel.getRequestedTime(),
+              ex.what());
     return {};
   }
 
@@ -255,6 +260,17 @@ static std::optional<PreprocessedSampleData> preprocess_sample(StringRefNull iob
   const UcharArraySamplePtr orders = smp.getOrders();
 
   if (positions->size() == 0) {
+    return {};
+  }
+
+  if (!validate::size_fits_in_int(positions->size()) ||
+      !validate::size_fits_in_int(per_curve_vertices_count->size()))
+  {
+    CLOG_WARN(&LOG,
+              "Curves too large to import for '%s/%s' at time %f, exceeds max int size",
+              iobject_name.c_str(),
+              schema.getName().c_str(),
+              sample_sel.getRequestedTime());
     return {};
   }
 
@@ -291,10 +307,16 @@ static std::optional<PreprocessedSampleData> preprocess_sample(StringRefNull iob
 
   /* Compute topological information. */
 
+  const int positions_size = positions->size();
   int blender_offset = 0;
   int alembic_offset = 0;
   for (size_t i = 0; i < curve_count; i++) {
-    const int vertices_count = (*per_curve_vertices_count)[i];
+    int vertices_count = (*per_curve_vertices_count)[i];
+
+    /* Guard against invalid vertex counts. */
+    if (vertices_count < 0 || vertices_count > positions_size - alembic_offset) {
+      vertices_count = std::max(0, positions_size - alembic_offset);
+    }
 
     const int curve_order = get_curve_order(smp.getType(), orders, i);
 

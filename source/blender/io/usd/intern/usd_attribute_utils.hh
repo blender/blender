@@ -14,6 +14,8 @@
 
 #include "BKE_attribute.hh"
 
+#include "IO_validate.hh"
+
 #include <pxr/base/gf/quatf.h>
 #include <pxr/base/gf/vec2f.h>
 #include <pxr/base/gf/vec3f.h>
@@ -266,7 +268,10 @@ void copy_primvar_to_blender_buffer(const pxr::UsdGeomPrimvar &primvar,
         const IndexRange face = faces[i];
         for (int j : face.index_range()) {
           const int rev_index = face.last(j);
-          attribute[face.start() + j] = detail::convert_value<USDT, BlenderT>(usd_data[rev_index]);
+          attribute[face.start() + j] = validate::index_in_range(rev_index, usd_data.size()) ?
+                                            detail::convert_value<USDT, BlenderT>(
+                                                usd_data[rev_index]) :
+                                            BlenderT();
         }
       }
     }

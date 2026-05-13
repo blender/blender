@@ -12,7 +12,6 @@
 #include "IMB_colormanagement.hh"
 #include "IMB_imbuf.hh"
 
-#include "BKE_node_runtime.hh"
 #include "BKE_type_conversions.hh"
 
 #include "GPU_shader.hh"
@@ -29,10 +28,10 @@
 
 namespace blender::compositor {
 
-static void compute_preview_cpu(Context &context, const Result &input, bke::bNodePreview *preview)
+static void compute_preview_cpu(Context &context, const Result &input, ImBuf *output)
 {
   const int2 input_size = input.domain().data_size;
-  const int2 preview_size = int2(preview->ibuf->x, preview->ibuf->y);
+  const int2 preview_size = int2(output->x, output->y);
 
   Result input_as_color = context.create_result(ResultType::Color);
   if (input.type() == ResultType::Color) {
@@ -47,7 +46,7 @@ static void compute_preview_cpu(Context &context, const Result &input, bke::bNod
   ColormanageProcessor color_processor = ColormanageProcessor::display_processor_new(
       &context.get_scene().view_settings, &context.get_scene().display_settings);
 
-  uchar *data_dst = preview->ibuf->byte_data_for_write();
+  uchar *data_dst = output->byte_data_for_write();
   threading::parallel_for(IndexRange(preview_size.y), 1, [&](const IndexRange sub_y_range) {
     for (const int64_t y : sub_y_range) {
       for (const int64_t x : IndexRange(preview_size.x)) {
@@ -67,11 +66,9 @@ static void compute_preview_cpu(Context &context, const Result &input, bke::bNod
   }
 }
 
-static void compute_preview_gpu(Context &context,
-                                const Result &input_result,
-                                bke::bNodePreview *preview)
+static void compute_preview_gpu(Context &context, const Result &input_result, ImBuf *output)
 {
-  const int2 preview_size = int2(preview->ibuf->x, preview->ibuf->y);
+  const int2 preview_size = int2(output->x, output->y);
 
   gpu::Shader *shader = context.get_shader("compositor_compute_preview");
   GPU_shader_bind(shader);
@@ -105,7 +102,7 @@ static void compute_preview_gpu(Context &context,
   ColormanageProcessor color_processor = ColormanageProcessor::display_processor_new(
       &context.get_scene().view_settings, &context.get_scene().display_settings);
 
-  uchar *data_dst = preview->ibuf->byte_data_for_write();
+  uchar *data_dst = output->byte_data_for_write();
   threading::parallel_for(IndexRange(preview_size.y), 1, [&](const IndexRange sub_y_range) {
     for (const int64_t y : sub_y_range) {
       for (const int64_t x : IndexRange(preview_size.x)) {
@@ -131,26 +128,18 @@ static int2 compute_preview_size(int2 size)
   return int2(int(greater_dimension_size * (float(size.x) / size.y)), greater_dimension_size);
 }
 
-void compute_preview(Context &context,
-                     Map<bNodeInstanceKey, bke::bNodePreview> *node_previews,
-                     const bNodeInstanceKey &node_instance_key,
-                     const Result &input_result)
+ImBuf *compute_preview(Context &context, const Result &input)
 {
-  if (input_result.is_single_value()) {
-    return;
-  }
-
-  const int2 preview_size = compute_preview_size(input_result.domain().data_size);
-
-  bke::bNodePreview *preview = bke::node_ensure_preview(
-      *node_previews, node_instance_key, preview_size.x, preview_size.y);
-
+  const int2 preview_size = compute_preview_size(input.domain().data_size);
+  ImBuf *image_buffer = IMB_allocImBuf(UNPACK2(preview_size), IB_byte_data);
   if (context.use_gpu()) {
-    compute_preview_gpu(context, input_result, preview);
+    compute_preview_gpu(context, input, image_buffer);
   }
   else {
-    compute_preview_cpu(context, input_result, preview);
+    compute_preview_cpu(context, input, image_buffer);
   }
+
+  return image_buffer;
 }
 
 }  // namespace blender::compositor

@@ -44,7 +44,7 @@ struct GlobalVertices {
    */
   Vector<float3> mrgb_block;
 
-  void set_vertex_color(size_t index, float3 color)
+  void set_vertex_color(int64_t index, float3 color)
   {
     if (index >= vertex_colors.size()) {
       vertex_colors.resize(index + 1, float3(-1.0, -1.0, -1.0));
@@ -52,7 +52,7 @@ struct GlobalVertices {
     vertex_colors[index] = color;
   }
 
-  void set_vertex_weight(size_t index, float weight)
+  void set_vertex_weight(int64_t index, float weight)
   {
     if (index >= vertex_weights.size()) {
       vertex_weights.resize(index + 1, 1.0);
@@ -60,7 +60,7 @@ struct GlobalVertices {
     vertex_weights[index] = weight;
   }
 
-  bool has_vertex_color(size_t index) const
+  bool has_vertex_color(int64_t index) const
   {
     return index < vertex_colors.size() && vertex_colors[index].x >= 0.0;
   }
@@ -69,7 +69,7 @@ struct GlobalVertices {
   {
     if (!mrgb_block.is_empty()) {
       /* Set color of the last mrgb_block.size() verts. */
-      size_t start_of_block = 0;
+      int64_t start_of_block = 0;
       if (mrgb_block.size() <= vertices.size()) {
         start_of_block = vertices.size() - mrgb_block.size();
       }
@@ -101,8 +101,8 @@ struct FaceElem {
   int vertex_group_index = -1;
   int material_index = -1;
   bool shaded_smooth = false;
-  int start_index_ = 0;
-  int corner_count_ = 0;
+  int64_t start_index_ = 0;
+  int64_t corner_count_ = 0;
 };
 
 /**
@@ -152,7 +152,7 @@ struct Geometry {
   bool has_invalid_faces_ = false;
   bool has_vertex_groups_ = false;
   NurbsElement nurbs_element_;
-  int total_corner_ = 0;
+  int64_t total_corner_ = 0;
 
   int get_vertex_count() const
   {

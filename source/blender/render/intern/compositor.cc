@@ -579,15 +579,10 @@ class Context : public compositor::Context {
     using namespace compositor;
     const NodeGroupOutputTypes needed_outputs = this->needed_outputs();
     const bNodeTree &node_group = *input_data_.node_tree;
-    Map<bNodeInstanceKey, bke::bNodePreview> *node_previews =
-        flag_is_set(needed_outputs, NodeGroupOutputTypes::NodePreviews) ?
-            &node_group.runtime->previews :
-            nullptr;
     const bke::DataBlockComputeContext compute_context(nullptr, this->get_scene().id);
     NodeGroupOperation node_group_operation(*this,
                                             node_group,
                                             needed_outputs,
-                                            node_previews,
                                             node_group.active_viewer_key,
                                             bke::NODE_INSTANCE_KEY_BASE,
                                             compute_context);

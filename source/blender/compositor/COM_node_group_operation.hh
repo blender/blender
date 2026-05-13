@@ -103,9 +103,6 @@ class NodeGroupOperation : public Operation {
   const bNodeTree &node_group_;
   /* The node group outputs that should be computed. See NodeGroupOutputTypes for more details. */
   const NodeGroupOutputTypes needed_output_types_;
-  /* A map that associates each node instance identified by its node instance key to its node
-   * preview. This could be nullptr if node previews are not needed. */
-  Map<bNodeInstanceKey, bke::bNodePreview> *node_previews_ = nullptr;
   /* The node instance key of the active node group. This could be this node group or a child of
    * it. In case of the former, this will be equal to instance_key_. */
   const bNodeInstanceKey active_node_group_instance_key_ = bke::NODE_INSTANCE_KEY_BASE;
@@ -125,7 +122,6 @@ class NodeGroupOperation : public Operation {
   NodeGroupOperation(Context &context,
                      const bNodeTree &node_group,
                      const NodeGroupOutputTypes needed_outputs,
-                     Map<bNodeInstanceKey, bke::bNodePreview> *node_previews,
                      const bNodeInstanceKey active_node_group_instance_key,
                      const bNodeInstanceKey instance_key,
                      const ComputeContext &compute_context);

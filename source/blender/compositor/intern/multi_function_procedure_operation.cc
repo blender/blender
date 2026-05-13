@@ -45,11 +45,13 @@
 
 namespace blender::compositor {
 
-MultiFunctionProcedureOperation::MultiFunctionProcedureOperation(Context &context,
-                                                                 PixelCompileUnit &compile_unit,
-                                                                 const Schedule &schedule,
-                                                                 const bool is_single_value)
-    : PixelOperation(context, compile_unit, schedule),
+MultiFunctionProcedureOperation::MultiFunctionProcedureOperation(
+    Context &context,
+    PixelCompileUnit &compile_unit,
+    const Schedule &schedule,
+    const bool is_single_value,
+    const ComputeContext &compute_context)
+    : PixelOperation(context, compile_unit, schedule, compute_context),
       procedure_builder_(procedure_),
       is_single_value_(is_single_value)
 {
@@ -433,9 +435,8 @@ mf::Variable *MultiFunctionProcedureOperation::get_multi_function_input_variable
 void MultiFunctionProcedureOperation::assign_output_variables(const bNode &node,
                                                               Vector<mf::Variable *> &variables)
 {
-  const bool is_node_preview_needed = this->get_node_previews() != nullptr;
-  const bNodeSocket *preview_output = is_node_preview_needed ? find_preview_output_socket(node) :
-                                                               nullptr;
+  const bNodeSocket *preview_output = needs_node_previews_ ? find_preview_output_socket(node) :
+                                                             nullptr;
 
   int available_outputs_index = 0;
   for (const bNodeSocket *output : node.output_sockets()) {
