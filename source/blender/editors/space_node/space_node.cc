@@ -1380,15 +1380,6 @@ static int /*eContextResult*/ node_context(const bContext *C,
     CTX_data_type_set(result, ContextDataType::Pointer);
     return CTX_RESULT_OK;
   }
-  if (CTX_data_equals(member, "node_previews")) {
-    if (snode->nodetree) {
-      CTX_data_pointer_set(
-          result, &snode->nodetree->id, RNA_NodeInstanceHash, &snode->nodetree->runtime->previews);
-    }
-
-    CTX_data_type_set(result, ContextDataType::Pointer);
-    return CTX_RESULT_OK;
-  }
   if (CTX_data_equals(member, "material")) {
     if (snode->id && GS(snode->id->name) == ID_MA) {
       CTX_data_id_pointer_set(result, snode->id);

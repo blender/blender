@@ -583,7 +583,6 @@ class NodeTreeMainUpdater {
     this->update_individual_nodes(ntree);
     this->update_internal_links(ntree);
     this->update_generic_callback(ntree);
-    this->remove_unused_previews_when_necessary(ntree);
     this->make_node_previews_dirty(ntree);
 
     this->propagate_runtime_flags(ntree);
@@ -919,17 +918,6 @@ class NodeTreeMainUpdater {
       return;
     }
     ntree.typeinfo->update(&ntree);
-  }
-
-  void remove_unused_previews_when_necessary(bNodeTree &ntree)
-  {
-    /* Don't trigger preview removal when only those flags are set. */
-    const uint32_t allowed_flags = NTREE_CHANGED_LINK | NTREE_CHANGED_SOCKET_PROPERTY |
-                                   NTREE_CHANGED_NODE_PROPERTY | NTREE_CHANGED_NODE_OUTPUT;
-    if ((ntree.runtime->changed_flag & allowed_flags) == ntree.runtime->changed_flag) {
-      return;
-    }
-    bke::node_preview_remove_unused(&ntree);
   }
 
   void make_node_previews_dirty(bNodeTree &ntree)

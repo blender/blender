@@ -74,7 +74,10 @@ class ShaderOperation : public PixelOperation {
 
   /* Construct and compile a GPU material from the given shader compile unit and execution schedule
    * by calling GPU_material_from_callbacks with the appropriate callbacks. */
-  ShaderOperation(Context &context, PixelCompileUnit &compile_unit, const Schedule &schedule);
+  ShaderOperation(Context &context,
+                  PixelCompileUnit &compile_unit,
+                  const Schedule &schedule,
+                  const ComputeContext &compute_context);
 
   /* Free the GPU material. */
   ~ShaderOperation() override;

@@ -333,7 +333,6 @@ class Context : public compositor::Context {
     NodeGroupOperation node_group_operation(*this,
                                             node_group,
                                             this->needed_outputs(),
-                                            nullptr,
                                             node_group.active_viewer_key,
                                             bke::NODE_INSTANCE_KEY_BASE,
                                             compute_context);

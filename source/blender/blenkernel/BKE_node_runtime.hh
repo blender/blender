@@ -246,12 +246,6 @@ class bNodeTreeRuntime : NonCopyable, NonMovable {
    */
   std::unique_ptr<nodes::EvalDependencies> eval_dependencies;
 
-  /**
-   * Node previews for the compositor.
-   * Only available in base node trees (e.g. scene->compositing_node_group).
-   */
-  Map<bNodeInstanceKey, bNodePreview> previews;
-
   /** Only valid when #topology_cache_is_dirty is false. */
   Vector<bNodeLink *> links;
   Vector<bNodeSocket *> sockets;

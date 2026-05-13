@@ -140,9 +140,6 @@ static void compositor_job_complete(void *compositor_job_data)
   Scene *scene = compositor_job->scene;
   BKE_callback_exec_id(compositor_job->bmain, &scene->id, BKE_CB_EVT_COMPOSITE_POST);
 
-  bke::node_preview_merge_tree(
-      scene->compositing_node_group, compositor_job->evaluated_node_tree, true);
-
   Scene *evaluated_scene = DEG_get_evaluated_scene(scene->runtime->compositor.preview_depsgraph);
   scene->runtime->compositor.nodes_evaluation_log = std::move(
       evaluated_scene->runtime->compositor.nodes_evaluation_log);

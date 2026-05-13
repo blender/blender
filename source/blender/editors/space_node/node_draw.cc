@@ -2835,8 +2835,7 @@ static void node_draw_basis(const bContext &C,
                             const SpaceNode &snode,
                             bNodeTree &ntree,
                             const bNode &node,
-                            ui::Block &block,
-                            bNodeInstanceKey key)
+                            ui::Block &block)
 {
   const float iconbutw = NODE_HEADER_ICON_SIZE;
   const bool show_preview = (snode.overlay.flag & SN_OVERLAY_SHOW_OVERLAYS) &&
@@ -2877,9 +2876,6 @@ static void node_draw_basis(const bContext &C,
     bool drawn_with_previews = false;
 
     if (show_preview) {
-      Map<bNodeInstanceKey, bke::bNodePreview> *previews_compo =
-          static_cast<Map<bNodeInstanceKey, bke::bNodePreview> *>(
-              CTX_data_pointer_get(&C, "node_previews").data);
       NestedTreePreviews *previews_shader = tree_draw_ctx.nested_group_infos;
 
       if (previews_shader) {
@@ -2888,11 +2884,18 @@ static void node_draw_basis(const bContext &C,
         node_release_preview_ibuf(*previews_shader);
         drawn_with_previews = true;
       }
-      else if (previews_compo) {
-        if (bke::bNodePreview *preview_compositor = previews_compo->lookup_ptr(key)) {
-          node_draw_extra_info_panel(
-              C, tree_draw_ctx, snode, node, preview_compositor->ibuf, block);
-          drawn_with_previews = true;
+
+      if (const nodes::eval_log::NodeTreeLog *tree_log = tree_draw_ctx.tree_logs.get_main_tree_log(
+              node))
+      {
+        if (const nodes::eval_log::NodeLog *node_log = tree_log->nodes.lookup_ptr_as(
+                node.identifier))
+        {
+          if (node_log->image_preview) {
+            node_draw_extra_info_panel(
+                C, tree_draw_ctx, snode, node, node_log->image_preview, block);
+            drawn_with_previews = true;
+          }
         }
       }
     }
@@ -4043,8 +4046,7 @@ static void node_draw(const bContext &C,
                       const SpaceNode &snode,
                       bNodeTree &ntree,
                       bNode &node,
-                      ui::Block &block,
-                      bNodeInstanceKey key)
+                      ui::Block &block)
 {
   if (node.is_frame()) {
     /* Should have been drawn before already. */
@@ -4059,7 +4061,7 @@ static void node_draw(const bContext &C,
       node_draw_collapsed(C, tree_draw_ctx, v2d, snode, ntree, node, block);
     }
     else {
-      node_draw_basis(C, tree_draw_ctx, v2d, snode, ntree, node, block, key);
+      node_draw_basis(C, tree_draw_ctx, v2d, snode, ntree, node, block);
     }
   }
 }
@@ -4494,8 +4496,7 @@ static void node_draw_nodetree(const bContext &C,
                                SpaceNode &snode,
                                bNodeTree &ntree,
                                Span<bNode *> nodes,
-                               Span<ui::Block *> blocks,
-                               bNodeInstanceKey parent_key)
+                               Span<ui::Block *> blocks)
 {
 #ifdef USE_DRAW_TOT_UPDATE
   BLI_rctf_init_minmax(&region.v2d.tot);
@@ -4540,8 +4541,7 @@ static void node_draw_nodetree(const bContext &C,
       continue;
     }
 
-    const bNodeInstanceKey key = bke::node_instance_key(parent_key, &ntree, &node);
-    node_draw(C, tree_draw_ctx, region, snode, ntree, node, *blocks[node.index()], key);
+    node_draw(C, tree_draw_ctx, region, snode, ntree, node, *blocks[node.index()]);
   }
 
   ui::Block &invalid_links_block = invalid_links_uiblock_init(C);
@@ -4624,10 +4624,7 @@ static Map<const bNode *, const bNode *> find_menu_switch_sources_for_index_swit
   return result;
 }
 
-static void draw_nodetree(const bContext &C,
-                          ARegion &region,
-                          bNodeTree &ntree,
-                          bNodeInstanceKey parent_key)
+static void draw_nodetree(const bContext &C, ARegion &region, bNodeTree &ntree)
 {
   SpaceNode *snode = CTX_wm_space_node(&C);
   ntree.ensure_topology_cache();
@@ -4653,6 +4650,7 @@ static void draw_nodetree(const bContext &C,
     tree_draw_ctx.tree_logs.foreach_tree_log([&](nodes::eval_log::NodeTreeLog &log) {
       log.ensure_node_warnings(*tree_draw_ctx.bmain);
       log.ensure_execution_times();
+      log.ensure_node_image_previews();
     });
   }
 
@@ -4691,7 +4689,7 @@ static void draw_nodetree(const bContext &C,
 
   node_update_nodetree(C, tree_draw_ctx, ntree, nodes, blocks);
   node_draw_zones_and_frames(region, *snode, ntree);
-  node_draw_nodetree(C, tree_draw_ctx, region, *snode, ntree, nodes, blocks, parent_key);
+  node_draw_nodetree(C, tree_draw_ctx, region, *snode, ntree, nodes, blocks);
 }
 
 static void draw_background_color()
@@ -4811,7 +4809,7 @@ void node_draw_space(const bContext &C, ARegion &region)
         GPU_matrix_projection_set(original_proj);
       }
 
-      draw_nodetree(C, region, *ntree, path->parent_key);
+      draw_nodetree(C, region, *ntree);
     }
 
     /* Temporary links. */

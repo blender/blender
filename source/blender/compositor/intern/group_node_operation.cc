@@ -67,7 +67,6 @@ class GroupNodeOperation : public NodeOperation {
     NodeGroupOperation operation(this->context(),
                                  *node_group,
                                  needed_outputs_,
-                                 this->get_node_previews(),
                                  active_node_group_instance_key_,
                                  this->get_instance_key(),
                                  compute_context);

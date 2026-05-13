@@ -46,8 +46,9 @@ namespace blender::compositor {
 
 ShaderOperation::ShaderOperation(Context &context,
                                  PixelCompileUnit &compile_unit,
-                                 const Schedule &schedule)
-    : PixelOperation(context, compile_unit, schedule)
+                                 const Schedule &schedule,
+                                 const ComputeContext &compute_context)
+    : PixelOperation(context, compile_unit, schedule, compute_context)
 {
   material_ = GPU_material_from_callbacks(
       GPU_MAT_COMPOSITOR, &construct_material, &generate_code, this);
@@ -480,9 +481,8 @@ void ShaderOperation::declare_operation_input(const bNodeSocket &input_socket,
 
 void ShaderOperation::populate_results_for_node(const bNode &node)
 {
-  const bool is_node_preview_needed = this->get_node_previews() != nullptr;
-  const bNodeSocket *preview_output = is_node_preview_needed ? find_preview_output_socket(node) :
-                                                               nullptr;
+  const bNodeSocket *preview_output = needs_node_previews_ ? find_preview_output_socket(node) :
+                                                             nullptr;
 
   for (const bNodeSocket *output : node.output_sockets()) {
     if (!is_socket_available(output)) {

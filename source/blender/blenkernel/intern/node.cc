@@ -209,12 +209,6 @@ static void ntree_copy_data(Main * /*bmain*/,
   }
 
   ntree_dst->tree_interface.copy_data(ntree_src->tree_interface, flag);
-  /* copy preview hash */
-  if ((flag & LIB_ID_COPY_NO_PREVIEW) == 0) {
-    for (const auto &item : ntree_src->runtime->previews.items()) {
-      dst_runtime.previews.add_new(item.key, item.value);
-    }
-  }
 
   if (ntree_src->runtime->field_inferencing_interface) {
     dst_runtime.field_inferencing_interface = std::make_unique<FieldInferencingInterface>(
@@ -4784,101 +4778,6 @@ bNodeTree *node_tree_copy_tree_ex(const bNodeTree &ntree, Main *bmain, const boo
 bNodeTree *node_tree_copy_tree(Main *bmain, const bNodeTree &ntree)
 {
   return node_tree_copy_tree_ex(ntree, bmain, true);
-}
-
-/* *************** Node Preview *********** */
-
-/* XXX this should be removed eventually ...
- * Currently BKE functions are modeled closely on previous code,
- * using node_preview_init_tree to set up previews for a whole node tree in advance.
- * This should be left more to the individual node tree implementations. */
-
-bool node_preview_used(const bNode &node)
-{
-  /* XXX check for closed nodes? */
-  return (node.typeinfo->flag & NODE_PREVIEW) != 0;
-}
-
-bNodePreview *node_ensure_preview(Map<bNodeInstanceKey, bNodePreview> &previews,
-                                  bNodeInstanceKey key,
-                                  const int xsize,
-                                  const int ysize)
-{
-  bNodePreview *preview = &previews.lookup_or_add_cb(key, [&]() {
-    bNodePreview preview;
-    preview.ibuf = IMB_allocImBuf(xsize, ysize, IB_byte_data);
-    return preview;
-  });
-
-  const uint size[2] = {uint(xsize), uint(ysize)};
-  IMB_rect_size_set(preview->ibuf, size);
-  if (!preview->ibuf->byte_data()) {
-    IMB_alloc_byte_pixels(preview->ibuf);
-  }
-
-  return preview;
-}
-
-bNodePreview::bNodePreview(const bNodePreview &other)
-{
-  this->ibuf = IMB_dupImBuf(other.ibuf);
-}
-
-bNodePreview::bNodePreview(bNodePreview &&other)
-{
-  this->ibuf = other.ibuf;
-  other.ibuf = nullptr;
-}
-
-bNodePreview::~bNodePreview()
-{
-  if (this->ibuf) {
-    IMB_freeImBuf(this->ibuf);
-  }
-}
-
-static void collect_used_previews(Map<bNodeInstanceKey, bNodePreview> &previews,
-                                  bNodeTree *ntree,
-                                  bNodeInstanceKey parent_key,
-                                  Set<bNodeInstanceKey> &used)
-{
-  for (bNode *node : ntree->all_nodes()) {
-    bNodeInstanceKey key = node_instance_key(parent_key, ntree, node);
-
-    if (node_preview_used(*node)) {
-      used.add(key);
-    }
-
-    if (node->is_group()) {
-      if (bNodeTree *group = reinterpret_cast<bNodeTree *>(node->id)) {
-        collect_used_previews(previews, group, key, used);
-      }
-    }
-  }
-}
-
-void node_preview_remove_unused(bNodeTree *ntree)
-{
-  Set<bNodeInstanceKey> used_previews;
-  collect_used_previews(ntree->runtime->previews, ntree, NODE_INSTANCE_KEY_BASE, used_previews);
-  ntree->runtime->previews.remove_if([&](const MapItem<bNodeInstanceKey, bNodePreview> &item) {
-    return !used_previews.contains(item.key);
-  });
-}
-
-void node_preview_merge_tree(bNodeTree *to_ntree, bNodeTree *from_ntree, bool remove_old)
-{
-  if (remove_old || to_ntree->runtime->previews.is_empty()) {
-    to_ntree->runtime->previews.clear();
-    to_ntree->runtime->previews = std::move(from_ntree->runtime->previews);
-    node_preview_remove_unused(to_ntree);
-  }
-  else {
-    for (const auto &item : from_ntree->runtime->previews.items()) {
-      to_ntree->runtime->previews.add(item.key, std::move(item.value));
-    }
-    from_ntree->runtime->previews.clear();
-  }
 }
 
 void node_unlink_node(bNodeTree &ntree, bNode &node)

@@ -126,24 +126,26 @@ const ComputeContext &NodeOperation::get_compute_context() const
   return *compute_context_;
 }
 
-void NodeOperation::set_node_previews(Map<bNodeInstanceKey, bke::bNodePreview> *node_previews)
+void NodeOperation::set_needs_node_previews(const bool needed)
 {
-  node_previews_ = node_previews;
-}
-
-Map<bNodeInstanceKey, bke::bNodePreview> *NodeOperation::get_node_previews()
-{
-  return node_previews_;
+  needs_node_previews_ = needed;
 }
 
 void NodeOperation::compute_preview()
 {
-  if (node_previews_ && is_node_preview_needed(this->node())) {
-    const Result *result = get_preview_result();
-    if (result) {
-      compositor::compute_preview(context(), node_previews_, this->get_instance_key(), *result);
-    }
+  if (!needs_node_previews_ || !is_node_preview_needed(this->node())) {
+    return;
   }
+
+  const Result *result = this->get_preview_result();
+  if (!result || result->is_single_value()) {
+    return;
+  }
+
+  ImBuf *preview = compositor::compute_preview(this->context(), *result);
+  nodes::eval_log::NodeTreeLogger &tree_logger =
+      this->context().nodes_evaluation_log()->get_local_tree_logger(this->get_compute_context());
+  tree_logger.node_image_previews.append(*tree_logger.allocator, {node_.identifier, preview});
 }
 
 const bNode &NodeOperation::node() const
