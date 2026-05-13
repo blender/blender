@@ -219,23 +219,36 @@ static void *imb_gpu_get_data(ImBuf *ibuf,
   }
 
   if (do_rescale) {
-    const uint8_t *rect = (is_float_rect) ? nullptr : static_cast<uint8_t *>(data_rect);
-    const float *rect_float = (is_float_rect) ? static_cast<float *>(data_rect) : nullptr;
-
-    ImBuf *scale_ibuf = IMB_allocFromBuffer(rect, rect_float, ibuf->x, ibuf->y, 4);
-    IMB_scale(scale_ibuf, UNPACK2(rescale_size), IMBScaleFilter::Box, false);
-
-    if (freedata) {
-      MEM_delete_void(data_rect);
+    if (is_float_rect) {
+      float *new_rect = MEM_new_array_uninitialized<float>(
+          4 * size_t(rescale_size[0]) * size_t(rescale_size[1]), __func__);
+      IMB_scale_box(static_cast<float *>(data_rect),
+                    int2(ibuf->x, ibuf->y),
+                    4,
+                    new_rect,
+                    rescale_size,
+                    true);
+      if (freedata) {
+        MEM_delete_void(data_rect);
+      }
+      data_rect = new_rect;
+      *r_freedata = freedata = true;
     }
-
-    data_rect = (is_float_rect) ? static_cast<void *>(scale_ibuf->float_data_for_write()) :
-                                  static_cast<void *>(scale_ibuf->byte_data_for_write());
-    *r_freedata = freedata = true;
-    /* Steal the rescaled buffer to avoid double free. */
-    (void)IMB_steal_byte_buffer(scale_ibuf);
-    (void)IMB_steal_float_buffer(scale_ibuf);
-    IMB_freeImBuf(scale_ibuf);
+    else {
+      uchar *new_rect = MEM_new_array_uninitialized<uchar>(
+          4 * size_t(rescale_size[0]) * size_t(rescale_size[1]), __func__);
+      IMB_scale_box(static_cast<uchar *>(data_rect),
+                    int2(ibuf->x, ibuf->y),
+                    4,
+                    new_rect,
+                    rescale_size,
+                    true);
+      if (freedata) {
+        MEM_delete_void(data_rect);
+      }
+      data_rect = new_rect;
+      *r_freedata = freedata = true;
+    }
   }
 
   /* Pack first channel data manually at the start of the buffer. */

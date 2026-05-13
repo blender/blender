@@ -334,6 +334,26 @@ static void imb_scale_box(const BufferT *src_buffer,
   MEM_delete(tmp_buffer);
 }
 
+void IMB_scale_box(const float *src_buffer,
+                   const int2 src_size,
+                   const int channels,
+                   float *dst_buffer,
+                   const int2 dst_size,
+                   const bool threaded)
+{
+  imb_scale_box(src_buffer, src_size, channels, dst_buffer, dst_size, threaded);
+}
+
+void IMB_scale_box(const uchar *src_buffer,
+                   const int2 src_size,
+                   const int channels,
+                   uchar *dst_buffer,
+                   const int2 dst_size,
+                   const bool threaded)
+{
+  imb_scale_box(src_buffer, src_size, channels, dst_buffer, dst_size, threaded);
+}
+
 template<typename T>
 static void scale_nearest(
     const T *src, T *dst, const int2 src_size, const int2 dst_size, IndexRange y_range)
