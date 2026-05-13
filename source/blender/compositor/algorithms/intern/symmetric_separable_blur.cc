@@ -91,13 +91,10 @@ static Result blur_pass_gpu(Context &context,
    * effectively undoing the transposition in the horizontal pass. This is done to improve
    * spatial cache locality in the shader and to avoid having two separate shaders for each blur
    * pass. */
-  Domain domain = input.domain();
-  const int2 transposed_domain = int2(domain.data_size.y, domain.data_size.x);
-
-  output.allocate_texture(transposed_domain);
+  output.allocate_texture(input.domain().transposed());
   output.bind_as_image(shader, "output_img");
 
-  compute_dispatch_threads_at_least(shader, domain.data_size);
+  compute_dispatch_threads_at_least(shader, input.domain().data_size);
 
   GPU_shader_unbind();
   input.unbind_as_texture();
@@ -123,10 +120,7 @@ static Result blur_pass_cpu(Context &context,
    * it will effectively do a vertical blur and write to the output transposed, effectively undoing
    * the transposition in the horizontal pass. This is done to improve spatial cache locality in
    * the shader and to avoid having two separate shaders for each blur pass. */
-  const Domain domain = input.domain();
-  const int2 transposed_domain = int2(domain.data_size.y, domain.data_size.x);
-
-  output.allocate_texture(transposed_domain);
+  output.allocate_texture(input.domain().transposed());
 
   switch (input.type()) {
     case ResultType::Float:
