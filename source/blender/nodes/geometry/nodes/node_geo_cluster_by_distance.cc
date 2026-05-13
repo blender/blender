@@ -87,7 +87,7 @@ class ClusterByDistanceFieldInput final : public bke::GeometryFieldInput {
 
     Array<int> cluster_ids(mask.min_array_size());
 
-    const IndexMask mask_to_fallback = IndexMask::from_difference(mask, selection, memory);
+    const IndexMask mask_to_fallback = IndexMask::from_difference(mask, mask_to_cluster, memory);
     array_utils::fill_index_range<int>(mask_to_fallback, cluster_ids);
 
     std::optional<VArraySpan<int>> group_id_span;
@@ -104,13 +104,14 @@ class ClusterByDistanceFieldInput final : public bke::GeometryFieldInput {
 
     const int groups_num = group_indices.size();
     if (groups_num == 1) {
-      KDTree<float3> *tree = kdtree_new<float3>(selection.size());
-      selection.foreach_index([&](const int i) { kdtree_insert<float3>(tree, i, positions[i]); });
+      KDTree<float3> *tree = kdtree_new<float3>(mask_to_cluster.size());
+      mask_to_cluster.foreach_index(
+          [&](const int i) { kdtree_insert<float3>(tree, i, positions[i]); });
       kdtree_balance<float3>(tree);
-      index_mask::masked_fill<int>(cluster_ids, NO_CLUSTER_VALUE, selection);
+      index_mask::masked_fill<int>(cluster_ids, NO_CLUSTER_VALUE, mask_to_cluster);
       kdtree_calc_duplicates_fast<float3>(tree, distance_, true, cluster_ids.data());
       kdtree_free<float3>(tree);
-      set_no_cluster_value(cluster_ids, selection);
+      set_no_cluster_value(cluster_ids, mask_to_cluster);
       return VArray<int>::from_container(std::move(cluster_ids));
     }
 
