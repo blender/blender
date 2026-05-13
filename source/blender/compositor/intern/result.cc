@@ -800,10 +800,6 @@ void Result::share_data(const Result &source)
   *this = source;
   reference_count_ = reference_count;
 
-  if (sharing_info_) {
-    sharing_info_->add_user();
-  }
-
   /* Derived resources can't be shared, so reset them. */
   derived_resources_ = nullptr;
 }
@@ -833,7 +829,7 @@ void Result::share_data(const Result &source)
   return GPU_texture_format(texture) == result.get_gpu_texture_format();
 }
 
-void Result::share_data(gpu::Texture *texture, ImplicitSharingInfo *sharing_info)
+void Result::share_data(gpu::Texture *texture, ImplicitSharingPtr<> sharing_info)
 {
   BLI_assert(is_compatible_texture(texture, *this));
   BLI_assert(!this->is_allocated());
@@ -842,13 +838,10 @@ void Result::share_data(gpu::Texture *texture, ImplicitSharingInfo *sharing_info
   storage_type_ = ResultStorageType::GPU;
   is_single_value_ = false;
   domain_ = Domain(int2(GPU_texture_width(texture), GPU_texture_height(texture)));
-  sharing_info_ = sharing_info;
-  if (sharing_info) {
-    sharing_info_->add_user();
-  }
+  sharing_info_ = std::move(sharing_info);
 }
 
-void Result::share_data(const void *data, const int2 size, ImplicitSharingInfo *sharing_info)
+void Result::share_data(const void *data, const int2 size, ImplicitSharingPtr<> sharing_info)
 {
   BLI_assert(!this->is_allocated());
 
@@ -856,10 +849,7 @@ void Result::share_data(const void *data, const int2 size, ImplicitSharingInfo *
   cpu_data_ = GSpan(this->get_cpp_type(), data, array_size);
   storage_type_ = ResultStorageType::CPU;
   domain_ = Domain(size);
-  sharing_info_ = sharing_info;
-  if (sharing_info) {
-    sharing_info_->add_user();
-  }
+  sharing_info_ = std::move(sharing_info);
 }
 
 void Result::set_transformation(const float3x3 &transformation)
@@ -918,10 +908,7 @@ void Result::free()
   delete derived_resources_;
   derived_resources_ = nullptr;
 
-  if (sharing_info_) {
-    sharing_info_->remove_user_and_delete_if_last();
-  }
-  sharing_info_ = nullptr;
+  sharing_info_ = {};
   switch (storage_type_) {
     case ResultStorageType::GPU:
       gpu_texture_ = nullptr;
@@ -1170,14 +1157,14 @@ void Result::allocate_data(const int2 size,
     storage_type_ = ResultStorageType::GPU;
     auto *new_texture = new ImplicitSharedValue<GPUData>(
         size, this->type(), this->precision(), from_pool);
-    sharing_info_ = new_texture;
+    sharing_info_ = ImplicitSharingPtr<>(new_texture);
     gpu_texture_ = new_texture->data.texture;
   }
   else {
     storage_type_ = ResultStorageType::CPU;
     const int64_t array_size = int64_t(size.x) * int64_t(size.y);
     auto *new_array = new ImplicitSharedValue<GArray<>>(this->get_cpp_type(), array_size);
-    sharing_info_ = new_array;
+    sharing_info_ = ImplicitSharingPtr<>(new_array);
     cpu_data_ = new_array->data.as_span();
   }
 }
