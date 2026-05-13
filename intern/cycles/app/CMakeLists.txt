@@ -34,12 +34,9 @@ else()
 endif()
 
 if(WITH_CYCLES_STANDALONE AND WITH_CYCLES_STANDALONE_GUI)
-  list(APPEND INC_SYS
-    ${SDL2_INCLUDE_DIRS}
-  )
   list(APPEND LIB
     bf::dependencies::epoxy
-    ${SDL2_LIBRARIES}
+    bf::dependencies::optional::sdl
   )
 endif()
 

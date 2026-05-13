@@ -1431,9 +1431,9 @@ set(WITH_BINRELOC OFF)
 # MACOSX only, set to avoid uninitialized
 set(EXETYPE "")
 
-# WITH_SDL is uncached, depends on either WITH_SDL_AUDIO or WITH_GHOST_SDL being set.
+# WITH_SDL is uncached, depends on either WITH_SDL_AUDIO, WITH_GHOST_SDL or WITH_CYCLES_STANDALONE_GUI being set.
 set(WITH_SDL OFF)
-if(WITH_SDL_AUDIO OR WITH_GHOST_SDL)
+if(WITH_SDL_AUDIO OR WITH_GHOST_SDL OR WITH_CYCLES_STANDALONE_GUI)
   set(WITH_SDL ON)
 endif()
 
