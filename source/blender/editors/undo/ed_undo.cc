@@ -387,6 +387,12 @@ bool ED_undo_is_valid(const bContext *C, const char *undoname)
   return BKE_undosys_stack_has_undo(wm->runtime->undo_stack, undoname);
 }
 
+bool ED_undo_has_redo_step(const bContext *C)
+{
+  const wmWindowManager *wm = CTX_wm_manager(C);
+  return BKE_undosys_stack_has_redo(wm->runtime->undo_stack);
+}
+
 bool ED_undo_is_memfile_compatible(const bContext *C)
 {
   /* Some modes don't co-exist with memfile undo, disable their use: #60593

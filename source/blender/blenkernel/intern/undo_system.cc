@@ -388,6 +388,14 @@ bool BKE_undosys_stack_has_undo(const UndoStack *ustack, const char *name)
   return !BLI_listbase_is_empty(&ustack->steps);
 }
 
+bool BKE_undosys_stack_has_redo(const UndoStack *ustack)
+{
+  if (!ustack->step_active) {
+    return false;
+  }
+  return ustack->step_active->next != nullptr;
+}
+
 UndoStep *BKE_undosys_stack_active_with_type(UndoStack *ustack, const UndoType *ut)
 {
   UndoStep *us = ustack->step_active;
