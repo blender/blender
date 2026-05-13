@@ -262,6 +262,8 @@ struct DeferredLayerBase {
   eClosureBits closure_bits_ = CLOSURE_NONE;
   /* Maximum closure count considering all material in this pass. */
   int closure_count_ = 0;
+  /* True if this is a planar probe deferred layer. To be set before sync. */
+  bool is_probe_ = false;
 
   /* Stencil values used during the deferred pipeline. */
   enum class StencilBits : uint8_t {
@@ -606,6 +608,7 @@ class DeferredProbePipeline {
     float4 data(0.0f);
     dummy_black.ensure_2d(
         gpu::TextureFormat::SFLOAT_16_16_16_16, int2(1), GPU_TEXTURE_USAGE_SHADER_READ, data);
+    opaque_layer_.is_probe_ = true;
   }
 
   void begin_sync();
@@ -660,6 +663,7 @@ class PlanarProbePipeline : DeferredLayerBase {
     float4 data(0.0f);
     dummy_black_.ensure_2d(
         gpu::TextureFormat::SFLOAT_16_16_16_16, int2(1), GPU_TEXTURE_USAGE_SHADER_READ, data);
+    is_probe_ = true;
   };
 
   void begin_sync();

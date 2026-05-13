@@ -321,6 +321,7 @@ void ForwardPipeline::sync()
       opaque_ps_.bind_resources(inst_.hiz_buffer.front);
       opaque_ps_.bind_resources(inst_.volume_probes);
       opaque_ps_.bind_resources(inst_.sphere_probes);
+      opaque_ps_.bind_resources(inst_.planar_probes);
     }
 
     const DRWState state = DRW_STATE_WRITE_COLOR | DRW_STATE_CLIP_CONTROL_UNIT_RANGE |
@@ -361,6 +362,7 @@ void ForwardPipeline::sync()
     sub.bind_resources(inst_.hiz_buffer.front);
     sub.bind_resources(inst_.volume_probes);
     sub.bind_resources(inst_.sphere_probes);
+    sub.bind_resources(inst_.planar_probes);
   }
   {
     gpu::Shader *sh = inst_.shaders.static_shader_get(TRANSPARENCY_RESOLVE);
@@ -639,6 +641,12 @@ void DeferredLayerBase::gbuffer_pass_sync(Instance &inst)
           pass->bind_resources(inst.shadows);
           pass->bind_resources(inst.sphere_probes);
           pass->bind_resources(inst.volume_probes);
+          if (is_probe_) {
+            pass->bind_resources(inst.planar_probes.dummy_resources);
+          }
+          else {
+            pass->bind_resources(inst.planar_probes);
+          }
           pass->bind_texture(HIZ_PREVIOUS_LAYER_TEX_SLOT, &inst.hiz_buffer.back.ref_tx_);
           pass->bind_texture(RADIANCE_PREVIOUS_LAYER_TEX_SLOT, &radiance_behind_tx_);
         }

@@ -274,7 +274,7 @@ void trace([[resource_table]] Resources &srt,
   float3 P = drw_point_screen_to_world(float3(uv, depth));
   float3 V = drw_world_incident_vector(P);
 
-  int planar_id = lightprobe_planar_select(P, V, ray_data_im.xyz);
+  int planar_id = lightprobe_planar_select(P, ray_data_im.xyz);
   if (planar_id == -1) {
     return;
   }

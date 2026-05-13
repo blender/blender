@@ -31,7 +31,7 @@ Thickness g_thickness_forward;
 float4 closure_to_rgba_forward(Closure /*cl_unused*/)
 {
   float3 radiance, transmittance;
-  forward_lighting_eval(g_thickness_forward, radiance, transmittance);
+  forward_lighting_eval(g_thickness_forward, gl_FragCoord.xy, radiance, transmittance);
 
   /* Reset for the next closure tree. */
   float noise = utility_tx_fetch(utility_tx, gl_FragCoord.xy, UTIL_BLUE_NOISE_LAYER).r;
@@ -63,6 +63,7 @@ struct SurfaceForward {
   [[legacy_info]] ShaderCreateInfo eevee_global_ubo;
   [[legacy_info]] ShaderCreateInfo eevee_light_data;
   [[legacy_info]] ShaderCreateInfo eevee_lightprobe_data;
+  [[legacy_info]] ShaderCreateInfo eevee_lightprobe_planar_data;
   [[legacy_info]] ShaderCreateInfo eevee_utility_texture;
   [[legacy_info]] ShaderCreateInfo eevee_sampling_data;
   [[legacy_info]] ShaderCreateInfo eevee_shadow_data;
@@ -106,7 +107,7 @@ void surf_forward([[resource_table]] SurfaceForward & /*srt*/,
   nodetree_surface(closure_rand);
 
   float3 radiance, transmittance;
-  forward_lighting_eval(g_thickness_forward, radiance, transmittance);
+  forward_lighting_eval(g_thickness_forward, gl_FragCoord.xy, radiance, transmittance);
 
   /* Volumetric resolve and compositing. */
   float2 uvs = gl_FragCoord.xy * uniform_buf.volumes.main_view_extent_inv;

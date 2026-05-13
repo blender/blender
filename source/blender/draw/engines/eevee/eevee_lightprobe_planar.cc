@@ -55,6 +55,15 @@ void PlanarProbeModule::init()
   }
 
   do_display_draw_ = false;
+
+  eGPUTextureUsage usage = GPU_TEXTURE_USAGE_SHADER_READ;
+  /* Tag the end of the array. */
+  dummy_resources.dummy_probe_planar_buf_[0].layer_id = -1;
+  dummy_resources.dummy_probe_planar_buf_.push_update();
+  dummy_resources.dummy_radiance_tx_.ensure_2d_array(
+      gpu::TextureFormat::UFLOAT_11_11_10, int2(1), 1, usage);
+  dummy_resources.dummy_depth_tx_.ensure_2d_array(
+      gpu::TextureFormat::SFLOAT_32_DEPTH, int2(1), 1, usage);
 }
 
 void PlanarProbeModule::end_sync()
