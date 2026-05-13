@@ -8,8 +8,17 @@ else()
   set(AOM_LIBRARY libaom${LIBEXT})
 endif()
 
+if(ANDROID)
+  set(LIBHEIF_EXTRA_ARGS
+    # Override the find root path back to ANDROID_NDK only to workaround a curious issue in tiff (transitive dep of
+    # libheif) which exports the CMath::CMath target incorrectly.
+    # Also discussed here: https://gitlab.com/libtiff/libtiff/-/work_items/625
+    -DCMAKE_FIND_ROOT_PATH=${ANDROID_NDK}
+  )
+endif()
 
 set(LIBHEIF_EXTRA_ARGS
+  ${LIBHEIF_EXTRA_ARGS}
   -DWITH_AOM_ENCODER=ON
   -DWITH_AOM_DECODER=ON
   -DWITH_DAV1D=OFF
@@ -30,7 +39,10 @@ set(LIBHEIF_EXTRA_ARGS
   -DWITH_X265=OFF
   -DAOM_INCLUDE_DIR=${LIBDIR}/aom/include/
   -DAOM_LIBRARY=${LIBDIR}/aom/lib/${AOM_LIBRARY}
+  -DJPEG_LIBRARY=${LIBDIR}/jpeg/lib/libjpeg.a
+  -DJPEG_INCLUDE_DIR=${LIBDIR}/jpeg/include
   -DBUILD_SHARED_LIBS=OFF
+  -DBUILD_TESTING=OFF
   -DWITH_EXAMPLES=OFF
   -DWITH_EXAMPLE_HEIF_VIEW=OFF
   -DWITH_GDK_PIXBUF=OFF
