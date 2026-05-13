@@ -3,6 +3,7 @@
  * SPDX-License-Identifier: GPL-2.0-or-later */
 
 #include "BLI_array.hh"
+#include "BLI_array_utils.hh"
 #include "BLI_index_mask.hh"
 #include "BLI_kdtree.hh"
 
@@ -87,8 +88,7 @@ class ClusterByDistanceFieldInput final : public bke::GeometryFieldInput {
     Array<int> cluster_ids(mask.min_array_size());
 
     const IndexMask mask_to_fallback = IndexMask::from_difference(mask, selection, memory);
-    mask_to_fallback.foreach_index_optimized<int>([&](const int i) { cluster_ids[i] = i; },
-                                                  exec_mode::parallel);
+    array_utils::fill_index_range<int>(mask_to_fallback, cluster_ids);
 
     std::optional<VArraySpan<int>> group_id_span;
     const auto group_indices = [&]() -> VectorSet<int> {
