@@ -6,8 +6,8 @@
 #include "DNA_pointcloud_types.h"
 
 #include "GEO_foreach_geometry.hh"
-#include "GEO_mesh_merge_by_distance.hh"
-#include "GEO_point_merge_by_distance.hh"
+#include "GEO_mesh_merge_verts.hh"
+#include "GEO_point_merge.hh"
 
 #include "node_geometry_util.hh"
 
