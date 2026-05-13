@@ -360,4 +360,3 @@ While developing a script it is good to time it to be aware of any changes in pe
    # Do something...
 
    print("My Script Finished: %.4f sec" % (time.time() - time_start))
-   

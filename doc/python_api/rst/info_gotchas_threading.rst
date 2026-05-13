@@ -10,8 +10,8 @@ So far, no work has been done to make Blender's Python integration thread safe,
 so until it's properly supported, it's best not make use of this.
 
 Note that some modules in the Python standard library may use threads as well.
-An example is the `multiprocessing.Queue <https://docs.python.org/3/library/multiprocessing.html#multiprocessing.Queue>`_
-class.
+An example is the
+`multiprocessing.Queue <https://docs.python.org/3/library/multiprocessing.html#multiprocessing.Queue>`_ class.
 
 Python threading with Blender only works properly when the threads finish up
 before the script does, for example by using ``threading.Thread.join()``. In other

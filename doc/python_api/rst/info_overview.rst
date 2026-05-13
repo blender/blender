@@ -486,4 +486,3 @@ To call the operators from the previous example:
    >>> bpy.ops.object.operator_2()
    Hello World OBJECT_OT_operator_2
    {'FINISHED'}
-   
