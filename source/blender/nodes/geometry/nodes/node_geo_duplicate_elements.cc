@@ -124,11 +124,8 @@ static void create_duplicate_index_attribute(bke::MutableAttributeAccessor attri
 {
   SpanAttributeWriter<int> duplicate_indices = attributes.lookup_or_add_for_write_only_span<int>(
       *attribute_outputs.duplicate_index, output_domain);
-  for (const int i : IndexRange(selection.size())) {
-    MutableSpan<int> indices = duplicate_indices.span.slice(offsets[i]);
-    for (const int i : indices.index_range()) {
-      indices[i] = i;
-    }
+  for (const int i : selection.index_range()) {
+    array_utils::fill_index_range(duplicate_indices.span.slice(offsets[i]));
   }
   duplicate_indices.finish();
 }
