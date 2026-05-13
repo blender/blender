@@ -145,18 +145,6 @@ Attribute::SingleData Attribute::SingleData::from_default_value(const CPPType &t
   return from_value(default_value_for_type(type));
 }
 
-AttrStorageType Attribute::storage_type() const
-{
-  if (std::get_if<Attribute::ArrayData>(&data_)) {
-    return AttrStorageType::Array;
-  }
-  if (std::get_if<Attribute::SingleData>(&data_)) {
-    return AttrStorageType::Single;
-  }
-  BLI_assert_unreachable();
-  return AttrStorageType::Array;
-}
-
 Attribute::DataVariant &Attribute::data_for_write()
 {
   if (auto *data = std::get_if<Attribute::ArrayData>(&data_)) {

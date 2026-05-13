@@ -330,6 +330,7 @@ set(SRC
   BKE_asset_edit.hh
   BKE_attribute.h
   BKE_attribute.hh
+  BKE_attribute_enums.hh
   BKE_attribute_filter.hh
   BKE_attribute_filters.hh
   BKE_attribute_legacy_convert.hh
