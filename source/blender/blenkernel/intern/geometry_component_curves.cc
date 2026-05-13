@@ -283,15 +283,11 @@ GVArray CurveLengthFieldInput::get_varray_for_context(const CurvesGeometry &curv
   return construct_curve_length_gvarray(curves, domain);
 }
 
-uint64_t CurveLengthFieldInput::hash() const
+void CurveLengthFieldInput::hash_unique(UniqueHashBytes &hash,
+                                        fn::FieldHashDeep & /*deep_hash_cache*/) const
 {
-  /* Some random constant hash. */
-  return 3549623580;
-}
-
-bool CurveLengthFieldInput::is_equal_to(const fn::FieldInput &other) const
-{
-  return dynamic_cast<const CurveLengthFieldInput *>(&other) != nullptr;
+  static constexpr int8_t id = 0;
+  hash.add(&id);
 }
 
 std::optional<AttrDomain> CurveLengthFieldInput::preferred_domain(

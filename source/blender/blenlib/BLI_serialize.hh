@@ -256,6 +256,7 @@ class DictionaryValue : public Value {
   const std::shared_ptr<Value> *lookup(StringRef key) const;
   std::optional<StringRefNull> lookup_str(StringRef key) const;
   std::optional<int64_t> lookup_int(StringRef key) const;
+  std::optional<bool> lookup_bool(StringRef key) const;
   std::optional<double> lookup_double(StringRef key) const;
   const DictionaryValue *lookup_dict(StringRef key) const;
   const ArrayValue *lookup_array(StringRef key) const;
@@ -266,6 +267,7 @@ class DictionaryValue : public Value {
 
   void append(std::string key, std::shared_ptr<Value> value);
   void append_int(std::string key, int64_t value);
+  void append_bool(std::string key, bool value);
   void append_double(std::string key, double value);
   void append_str(std::string key, std::string value);
   std::shared_ptr<DictionaryValue> append_dict(std::string key);

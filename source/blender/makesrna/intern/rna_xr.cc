@@ -187,7 +187,7 @@ static void rna_XrActionMapBinding_axis0_region_set(PointerRNA *ptr, int value)
 #  ifdef WITH_XR_OPENXR
   XrActionMapBinding *amb = static_cast<XrActionMapBinding *>(ptr->data);
   amb->axis_flag &= ~(XR_AXIS0_POS | XR_AXIS0_NEG);
-  amb->axis_flag |= value;
+  amb->axis_flag |= eXrAxisFlag(value);
 #  else
   UNUSED_VARS(ptr, value);
 #  endif
@@ -214,7 +214,7 @@ static void rna_XrActionMapBinding_axis1_region_set(PointerRNA *ptr, int value)
 #  ifdef WITH_XR_OPENXR
   XrActionMapBinding *amb = static_cast<XrActionMapBinding *>(ptr->data);
   amb->axis_flag &= ~(XR_AXIS1_POS | XR_AXIS1_NEG);
-  amb->axis_flag |= value;
+  amb->axis_flag |= eXrAxisFlag(value);
 #  else
   UNUSED_VARS(ptr, value);
 #  endif
@@ -470,7 +470,7 @@ static void rna_XrActionMapItem_haptic_mode_set(PointerRNA *ptr, int value)
 #  ifdef WITH_XR_OPENXR
   XrActionMapItem *ami = static_cast<XrActionMapItem *>(ptr->data);
   ami->haptic_flag &= ~(XR_HAPTIC_PRESS | XR_HAPTIC_RELEASE | XR_HAPTIC_REPEAT);
-  ami->haptic_flag |= value;
+  ami->haptic_flag |= eXrHapticFlag(value);
 #  else
   UNUSED_VARS(ptr, value);
 #  endif

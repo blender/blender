@@ -595,6 +595,7 @@ PyDoc_STRVAR(
     "   Get the range for this target property.\n"
     "\n"
     "   :param target: Target property name.\n"
+    "   :type target: str\n"
     "   :return: The range of this property (min, max).\n"
     "   :rtype: tuple[float, float]\n");
 static PyObject *bpy_gizmo_target_get_range(PyObject * /*self*/, PyObject *args, PyObject *kw)

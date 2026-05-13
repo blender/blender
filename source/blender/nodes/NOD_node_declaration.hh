@@ -282,6 +282,7 @@ class SocketDeclaration : public ItemDeclaration {
   std::unique_ptr<SocketUsageInferenceFn> usage_inference_fn;
 
   friend NodeDeclarationBuilder;
+  friend class FlatBundleTypeBuilder;
   friend class BaseSocketDeclarationBuilder;
   template<typename SocketDecl> friend class SocketDeclarationBuilder;
 
@@ -326,6 +327,7 @@ class BaseSocketDeclarationBuilder {
 
   friend class NodeDeclarationBuilder;
   friend class DeclarationListBuilder;
+  friend class FlatBundleTypeBuilder;
 
  public:
   virtual ~BaseSocketDeclarationBuilder() = default;
@@ -467,6 +469,17 @@ class BaseSocketDeclarationBuilder {
                                               const Array<int> menu_values);
 
   /**
+   * Utility method for the case when this socket is only used when the given boolean input matches
+   * the specified value.
+   */
+  BaseSocketDeclarationBuilder &usage_by_bool(UString bool_input_identifier, bool value);
+
+  /**
+   * The socket is only used if the parent panel toggle is checked.
+   */
+  BaseSocketDeclarationBuilder &usage_by_panel_toggle();
+
+  /**
    * Puts this socket on the same row as the previous socket. This only works when one of them is
    * an input and the other is an output.
    */
@@ -496,6 +509,8 @@ class BaseSocketDeclarationBuilder {
 
   bool is_input() const;
   bool is_output() const;
+
+  virtual BaseSocketDeclarationBuilder &try_copy_ui_data(const SocketDeclaration &other_decl);
 };
 
 /**
@@ -512,6 +527,7 @@ class SocketDeclarationBuilder : public BaseSocketDeclarationBuilder {
 
   friend class NodeDeclarationBuilder;
   friend class DeclarationListBuilder;
+  friend class FlatBundleTypeBuilder;
 };
 
 using SocketDeclarationPtr = std::unique_ptr<SocketDeclaration>;

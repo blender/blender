@@ -10,38 +10,43 @@
 
 #include "DNA_ID.h"
 
+#include "BLI_enum_flags.hh"
 #include "BLI_set.hh"
 
 namespace blender {
 
 /* CacheFile::type */
-enum eCacheFileType {
+enum eCacheFileType : char {
   CACHEFILE_TYPE_ALEMBIC = 1,
   CACHEFILE_TYPE_USD = 2,
   CACHE_FILE_TYPE_INVALID = 0,
 };
 
 /* CacheFile::flag */
-enum {
+enum eCacheFile_Flag : short {
   CACHEFILE_DS_EXPAND = (1 << 0),
   CACHEFILE_UNUSED_0 = (1 << 1),
 };
+ENUM_OPERATORS(eCacheFile_Flag)
 
 #if 0 /* UNUSED */
 /* CacheFile::draw_flag */
-enum {
+enum eCacheFile_DrawFlag : short {
   CACHEFILE_KEYFRAME_DRAWN = (1 << 0),
 };
 #endif
 
 /* CacheFileLayer::flag */
-enum { CACHEFILE_LAYER_HIDDEN = (1 << 0) };
+enum eCacheFileLayer_Flag : int {
+  CACHEFILE_LAYER_HIDDEN = (1 << 0),
+};
+ENUM_OPERATORS(eCacheFileLayer_Flag)
 
 /* CacheFile::velocity_unit
  * Determines what temporal unit is used to interpret velocity vectors for motion blur effects. */
-enum {
-  CACHEFILE_VELOCITY_UNIT_FRAME,
-  CACHEFILE_VELOCITY_UNIT_SECOND,
+enum eCacheFile_VelocityUnit : char {
+  CACHEFILE_VELOCITY_UNIT_FRAME = 0,
+  CACHEFILE_VELOCITY_UNIT_SECOND = 1,
 };
 
 /* Representation of an object's path inside the archive.
@@ -56,7 +61,7 @@ struct CacheFileLayer {
   struct CacheFileLayer *next = nullptr, *prev = nullptr;
 
   char filepath[/*FILE_MAX*/ 1024] = "";
-  int flag = 0;
+  eCacheFileLayer_Flag flag = {};
   int _pad = {};
 };
 
@@ -91,10 +96,9 @@ struct CacheFile {
   float frame_offset = 0;
 
   /** Animation flag. */
-  short flag = 0;
+  eCacheFile_Flag flag = {};
 
-  /* eCacheFileType enum. */
-  char type = 0;
+  eCacheFileType type = CACHE_FILE_TYPE_INVALID;
 
   char _pad1[1] = {};
 
@@ -103,7 +107,7 @@ struct CacheFile {
 
   char _pad2[3] = {};
 
-  char velocity_unit = 0;
+  eCacheFile_VelocityUnit velocity_unit = {};
   /* Name of the velocity property in the archive. */
   char velocity_name[64] = "";
 

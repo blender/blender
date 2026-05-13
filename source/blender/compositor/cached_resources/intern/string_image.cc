@@ -179,6 +179,7 @@ StringImage::StringImage(Context &context,
   BLI_SCOPED_DEFER([&]() { BLF_unload_id(font_identifier); });
 
   BLF_size(font_identifier, size);
+  BLF_enable(font_identifier, BLF_NO_FALLBACK);
 
   Vector<StringRef> lines = BLF_string_wrap(
       font_identifier, string, wrap_width.value_or(-1), BLFWrapMode::Typographical);
@@ -206,7 +207,7 @@ StringImage::StringImage(Context &context,
 
   BLF_buffer_col(font_identifier, Color(1.0f, 1.0f, 1.0f, 1.0f));
   BLF_buffer(font_identifier,
-             static_cast<float *>(this->result.cpu_data().data()),
+             static_cast<float *>(this->result.cpu_data_for_write().data()),
              nullptr,
              total_width,
              total_height,

@@ -1088,7 +1088,7 @@ static void convert_pose(IK_Scene *ikscene)
        a++, ikchan++)
   {
     pchan = ikchan->pchan;
-    bone = pchan->bone;
+    bone = pchan->bone_get(*ikscene->blArmature);
 
     if (pchan->parent) {
       unit_m4(bmat);
@@ -1112,7 +1112,7 @@ static void convert_pose(IK_Scene *ikscene)
 }
 
 /* compute array of joint value corresponding to current pose */
-static void BKE_pose_rest(IK_Scene *ikscene)
+static void pose_rest(IK_Scene *ikscene)
 {
   bPoseChannel *pchan;
   IK_Channel *ikchan;
@@ -1132,7 +1132,7 @@ static void BKE_pose_rest(IK_Scene *ikscene)
        a++, ikchan++)
   {
     pchan = ikchan->pchan;
-    bone = pchan->bone;
+    bone = pchan->bone_get(*ikscene->blArmature);
 
     if (ikchan->jointType & IK_TRANSY) {
       rot[ikchan->ndof - 1] = bone->length * scale;
@@ -1212,12 +1212,12 @@ static IK_Scene *convert_tree(
   /* build the array of joints corresponding to the IK chain */
   convert_channels(depsgraph, ikscene, tree, ctime);
   /* in Blender, the rest pose is always 0 for joints */
-  BKE_pose_rest(ikscene);
+  pose_rest(ikscene);
   rot = ikscene->jointArray(0);
 
   for (a = 0, ikchan = ikscene->channels; a < tree->totchannel; a++, ikchan++) {
     pchan = ikchan->pchan;
-    bone = pchan->bone;
+    bone = pchan->bone_get(*ob);
 
     KDL::Frame tip(iTaSC::F_identity);
     /* compute the position and rotation of the head from previous segment */
@@ -1257,7 +1257,7 @@ static IK_Scene *convert_tree(
     length = bone->length * ikscene->blScale;
     parent = (a > 0) ? ikscene->channels[tree->parent[a]].tail : root;
     /* first the fixed segment to the bone head */
-    if (!(ikchan->pchan->bone->flag & BONE_CONNECTED) || head.M.GetRot().Norm() > KDL::epsilon) {
+    if (!(bone->flag & BONE_CONNECTED) || head.M.GetRot().Norm() > KDL::epsilon) {
       joint = bone->name;
       joint += ":H";
       ret = arm->addSegment(joint, parent, KDL::Joint::None, 0.0, head);
@@ -1466,15 +1466,16 @@ static IK_Scene *convert_tree(
         break;
       }
       /* initialize all the fields that we can set at this time */
+      const Bone *bone = pchan->bone_get(*ob);
       iktarget->blenderConstraint = target->con;
       iktarget->channel = target->tip;
       iktarget->simulation = (ikparam->flag & ITASC_SIMULATION);
       iktarget->rootChannel = ikscene->channels[0].pchan;
       iktarget->owner = ob;
-      iktarget->targetName = pchan->bone->name;
+      iktarget->targetName = bone->name;
       iktarget->targetName += ":T:";
       iktarget->targetName += target->con->name;
-      iktarget->constraintName = pchan->bone->name;
+      iktarget->constraintName = bone->name;
       iktarget->constraintName += ":C:";
       iktarget->constraintName += target->con->name;
       numtarget++;
@@ -1523,9 +1524,10 @@ static IK_Scene *convert_tree(
     /* it has a parent, get the pose matrix from it */
     float baseFrame[4][4];
     pchan = pchan->parent;
-    copy_m4_m4(baseFrame, pchan->bone->arm_mat);
+    const Bone *bone = pchan->bone_get(*ob);
+    copy_m4_m4(baseFrame, bone->arm_mat);
     /* move to the tail and scale to get rest pose of armature base */
-    copy_v3_v3(baseFrame[3], pchan->bone->arm_tail);
+    copy_v3_v3(baseFrame[3], bone->arm_tail);
     invert_m4_m4(invBaseFrame, baseFrame);
   }
   else {
@@ -1547,13 +1549,16 @@ static IK_Scene *convert_tree(
     for (bone_count = 0, bone_length = 0.0f, a = iktarget->channel; a >= 0;
          a = tree->parent[a], bone_count++)
     {
-      bone_length += ikscene->blScale * tree->pchan[a]->bone->length;
+      const bPoseChannel *pchan = tree->pchan[a];
+      const Bone *bone = pchan->bone_get(*ob);
+      bone_length += ikscene->blScale * bone->length;
     }
     bone_length /= bone_count;
 
     /* store the rest pose of the end effector to compute enforce target */
-    copy_m4_m4(mat, pchan->bone->arm_mat);
-    copy_v3_v3(mat[3], pchan->bone->arm_tail);
+    const Bone *bone = pchan->bone_get(*ob);
+    copy_m4_m4(mat, bone->arm_mat);
+    copy_v3_v3(mat[3], bone->arm_tail);
     /* get the rest pose relative to the armature base */
     mul_m4_m4m4(iktarget->eeRest, invBaseFrame, mat);
     iktarget->eeBlend = (!ikscene->polarConstraint && condata->type == CONSTRAINT_IK_COPYPOSE) ?

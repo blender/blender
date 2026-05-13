@@ -410,7 +410,7 @@ static wmOperatorStatus material_isolate_exec(bContext *C, wmOperator *op)
   MaterialGPencilStyle *active_material = BKE_gpencil_material_settings(ob, ob->actcol);
   MaterialGPencilStyle *gp_style;
 
-  int flags = GP_MATERIAL_LOCKED;
+  eMaterialGPencilStyle_Flag flags = GP_MATERIAL_LOCKED;
   bool isolate = false;
 
   if (RNA_boolean_get(op->ptr, "affect_visibility")) {

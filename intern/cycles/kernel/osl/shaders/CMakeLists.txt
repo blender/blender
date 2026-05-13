@@ -72,6 +72,8 @@ set(SRC_OSL
   node_particle_info.osl
   node_ray_portal_bsdf.osl
   node_raycast.osl
+  node_raycast_attr_float.osl
+  node_raycast_attr_vector.osl
   node_refraction_bsdf.osl
   node_rgb_curves.osl
   node_rgb_ramp.osl

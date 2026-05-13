@@ -601,6 +601,8 @@ void Instance::object_sync(ObjectRef &ob_ref, Manager &manager)
       case OB_GREASE_PENCIL:
         layer.grease_pencil.edit_object_sync(manager, ob_ref, resources, state);
         break;
+      default:
+        break;
     }
   }
 
@@ -643,6 +645,8 @@ void Instance::object_sync(ObjectRef &ob_ref, Manager &manager)
         break;
       case OB_SPEAKER:
         layer.speakers.object_sync(manager, ob_ref, resources, state);
+        break;
+      default:
         break;
     }
     layer.attribute_viewer.object_sync(manager, ob_ref, resources, state);
@@ -1087,6 +1091,8 @@ bool Instance::object_is_edit_mode(const Object *object)
       case OB_VOLUME:
         /* No edit mode yet. */
         return false;
+      default:
+        break;
     }
   }
   return false;

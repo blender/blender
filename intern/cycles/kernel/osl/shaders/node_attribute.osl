@@ -18,15 +18,14 @@ shader node_attribute(string bump_offset = "center",
   if (!success && (name == "geom:generated")) {
     /* No generated attribute, fall back to object coordinates. */
     Color = transform("object", P);
-    Fac = average(Color);
     data[3] = 1.0;
   }
   else {
-    getattribute(name, Fac);
     Color = color(data[0], data[1], data[2]);
   }
 
   Vector = point(Color);
+  Fac = average(Color);
   Alpha = data[3];
 
   if (bump_offset == "dx") {

@@ -2,6 +2,7 @@
  *
  * SPDX-License-Identifier: GPL-2.0-or-later */
 
+#include "BKE_pose.hh"
 #include "BLI_listbase.h"
 #include "BLI_math_matrix.h"
 #include "BLI_math_rotation.h"
@@ -11,6 +12,7 @@
 #include "BKE_anim_data.hh"
 #include "BKE_animsys.h"
 #include "BKE_armature.hh"
+#include "BKE_gtest_base.hh"
 #include "BKE_idtype.hh"
 #include "BKE_lib_id.hh"
 #include "BKE_main.hh"
@@ -23,10 +25,6 @@
 #include "ANIM_action.hh"
 #include "ANIM_pose.hh"
 
-#include "CLG_log.h"
-
-#include "RNA_define.hh"
-
 #include "testing/testing.h"
 
 namespace blender {
@@ -36,7 +34,7 @@ constexpr char msg_unexpected_modification[] =
 
 namespace animrig::tests {
 
-class PoseTest : public testing::Test {
+class PoseTest : public bke::BlenderGTestBase {
  public:
   Main *bmain;
   Action *pose_action;
@@ -45,23 +43,6 @@ class PoseTest : public testing::Test {
   Object *obj_armature_b;
   StripKeyframeData *keyframe_data;
   const animrig::KeyframeSettings key_settings = {BEZT_KEYTYPE_KEYFRAME, HD_AUTO, BEZT_IPO_BEZ};
-
-  static void SetUpTestSuite()
-  {
-    /* BKE_id_free() hits a code path that uses CLOG, which crashes if not initialized properly. */
-    CLG_init();
-
-    /* To make id_can_have_animdata() and friends work, the `id_types` array needs to be set up. */
-    BKE_idtype_init();
-
-    RNA_init();
-  }
-
-  static void TearDownTestSuite()
-  {
-    CLG_exit();
-    RNA_exit();
-  }
 
   void SetUp() override
   {
@@ -409,6 +390,7 @@ TEST_F(PoseTest, apply_action_differing_rotation_mode_from_euler)
       bmain, slot_a, {"pose.bones[\"BoneA\"].rotation_euler", 2}, {1, 0}, key_settings);
 
   bPoseChannel *bone_a = BKE_pose_channel_find_name(obj_armature_a->pose, "BoneA");
+  const bke::PChanBone pchanbone_a{bone_a, bone_a->bone_get(*obj_armature_a)};
   AnimationEvalContext eval_context = {nullptr, 1.0f};
 
   /* First check that applying works if the rotation mode matches. */
@@ -418,19 +400,19 @@ TEST_F(PoseTest, apply_action_differing_rotation_mode_from_euler)
   EXPECT_NEAR(bone_a->eul[1], 1, 0.001);
   EXPECT_NEAR(bone_a->eul[2], 0, 0.001);
 
-  BKE_pchan_calc_mat(bone_a);
+  BKE_pchan_calc_mat(pchanbone_a);
   float expected_matrix[4][4];
   copy_m4_m4(expected_matrix, bone_a->chan_mat);
 
   /* Check that other rotation modes work the same as applying euler directly. */
   bone_a->rotmode = ROT_MODE_QUAT;
   animrig::pose_apply_action({obj_armature_a}, *pose_action, &eval_context, 1.0);
-  BKE_pchan_calc_mat(bone_a);
+  BKE_pchan_calc_mat(pchanbone_a);
   EXPECT_M4_NEAR(expected_matrix, bone_a->chan_mat, 0.001);
 
   bone_a->rotmode = ROT_MODE_AXISANGLE;
   animrig::pose_apply_action({obj_armature_a}, *pose_action, &eval_context, 1.0);
-  BKE_pchan_calc_mat(bone_a);
+  BKE_pchan_calc_mat(pchanbone_a);
   EXPECT_M4_NEAR(expected_matrix, bone_a->chan_mat, 0.001);
 
   /* Not doing blend testing here since the rotation matrix will not align. Component wise
@@ -470,6 +452,7 @@ TEST_F(PoseTest, apply_action_differing_rotation_mode_from_quaternion)
                                  key_settings);
 
   bPoseChannel *bone_a = BKE_pose_channel_find_name(obj_armature_a->pose, "BoneA");
+  const bke::PChanBone pchanbone_a{bone_a, bone_a->bone_get(*obj_armature_a)};
   AnimationEvalContext eval_context = {nullptr, 1.0f};
 
   /* First check that applying works if the rotation mode matches. */
@@ -480,19 +463,19 @@ TEST_F(PoseTest, apply_action_differing_rotation_mode_from_quaternion)
   EXPECT_NEAR(bone_a->quat[2], quaternion[2], 0.001);
   EXPECT_NEAR(bone_a->quat[3], quaternion[3], 0.001);
 
-  BKE_pchan_calc_mat(bone_a);
+  BKE_pchan_calc_mat(pchanbone_a);
   float expected_matrix[4][4];
   copy_m4_m4(expected_matrix, bone_a->chan_mat);
 
   /* Check that other rotation modes work the same as applying quaternion directly. */
   bone_a->rotmode = ROT_MODE_XYZ;
   animrig::pose_apply_action({obj_armature_a}, *pose_action, &eval_context, 1.0);
-  BKE_pchan_calc_mat(bone_a);
+  BKE_pchan_calc_mat(pchanbone_a);
   EXPECT_M4_NEAR(expected_matrix, bone_a->chan_mat, 0.001);
 
   bone_a->rotmode = ROT_MODE_AXISANGLE;
   animrig::pose_apply_action({obj_armature_a}, *pose_action, &eval_context, 1.0);
-  BKE_pchan_calc_mat(bone_a);
+  BKE_pchan_calc_mat(pchanbone_a);
   EXPECT_M4_NEAR(expected_matrix, bone_a->chan_mat, 0.001);
 
   reset_pose_bone_rotations(*bone_a);
@@ -500,17 +483,17 @@ TEST_F(PoseTest, apply_action_differing_rotation_mode_from_quaternion)
   /* Also test with blend factor other than 1. */
   bone_a->rotmode = ROT_MODE_QUAT;
   animrig::pose_apply_action({obj_armature_a}, *pose_action, &eval_context, 0.7);
-  BKE_pchan_calc_mat(bone_a);
+  BKE_pchan_calc_mat(pchanbone_a);
   copy_m4_m4(expected_matrix, bone_a->chan_mat);
 
   bone_a->rotmode = ROT_MODE_AXISANGLE;
   animrig::pose_apply_action({obj_armature_a}, *pose_action, &eval_context, 0.7);
-  BKE_pchan_calc_mat(bone_a);
+  BKE_pchan_calc_mat(pchanbone_a);
   EXPECT_M4_NEAR(expected_matrix, bone_a->chan_mat, 0.001);
 
   bone_a->rotmode = ROT_MODE_XYZ;
   animrig::pose_apply_action({obj_armature_a}, *pose_action, &eval_context, 0.7);
-  BKE_pchan_calc_mat(bone_a);
+  BKE_pchan_calc_mat(pchanbone_a);
   EXPECT_M4_NEAR(expected_matrix, bone_a->chan_mat, 0.001);
 }
 
@@ -530,6 +513,7 @@ TEST_F(PoseTest, apply_action_differing_rotation_mode_from_axisangle)
       bmain, slot_a, {"pose.bones[\"BoneA\"].rotation_axis_angle", 3}, {1, -0.42}, key_settings);
 
   bPoseChannel *bone_a = BKE_pose_channel_find_name(obj_armature_a->pose, "BoneA");
+  const bke::PChanBone pchanbone_a{bone_a, bone_a->bone_get(*obj_armature_a)};
   AnimationEvalContext eval_context = {nullptr, 1.0f};
 
   /* First check that applying works if the rotation mode matches. */
@@ -540,19 +524,19 @@ TEST_F(PoseTest, apply_action_differing_rotation_mode_from_axisangle)
   EXPECT_NEAR(bone_a->rotAxis[1], 0.86, 0.001);
   EXPECT_NEAR(bone_a->rotAxis[2], -0.42, 0.001);
 
-  BKE_pchan_calc_mat(bone_a);
+  BKE_pchan_calc_mat(pchanbone_a);
   float expected_matrix[4][4];
   copy_m4_m4(expected_matrix, bone_a->chan_mat);
 
   /* Check that other rotation modes work the same as applying quaternion directly. */
   bone_a->rotmode = ROT_MODE_XYZ;
   animrig::pose_apply_action({obj_armature_a}, *pose_action, &eval_context, 1.0);
-  BKE_pchan_calc_mat(bone_a);
+  BKE_pchan_calc_mat(pchanbone_a);
   EXPECT_M4_NEAR(expected_matrix, bone_a->chan_mat, 0.001);
 
   bone_a->rotmode = ROT_MODE_QUAT;
   animrig::pose_apply_action({obj_armature_a}, *pose_action, &eval_context, 1.0);
-  BKE_pchan_calc_mat(bone_a);
+  BKE_pchan_calc_mat(pchanbone_a);
   EXPECT_M4_NEAR(expected_matrix, bone_a->chan_mat, 0.001);
 
   reset_pose_bone_rotations(*bone_a);
@@ -560,17 +544,17 @@ TEST_F(PoseTest, apply_action_differing_rotation_mode_from_axisangle)
   /* Also test with blend factor other than 1. */
   bone_a->rotmode = ROT_MODE_AXISANGLE;
   animrig::pose_apply_action({obj_armature_a}, *pose_action, &eval_context, 0.7);
-  BKE_pchan_calc_mat(bone_a);
+  BKE_pchan_calc_mat(pchanbone_a);
   copy_m4_m4(expected_matrix, bone_a->chan_mat);
 
   bone_a->rotmode = ROT_MODE_QUAT;
   animrig::pose_apply_action({obj_armature_a}, *pose_action, &eval_context, 0.7);
-  BKE_pchan_calc_mat(bone_a);
+  BKE_pchan_calc_mat(pchanbone_a);
   EXPECT_M4_NEAR(expected_matrix, bone_a->chan_mat, 0.001);
 
   bone_a->rotmode = ROT_MODE_XYZ;
   animrig::pose_apply_action({obj_armature_a}, *pose_action, &eval_context, 0.7);
-  BKE_pchan_calc_mat(bone_a);
+  BKE_pchan_calc_mat(pchanbone_a);
   EXPECT_M4_NEAR(expected_matrix, bone_a->chan_mat, 0.001);
 }
 

@@ -6,6 +6,11 @@
 
 #include "gpu_shader_compat.hh"
 
+/* For forward compatibility until everything is ported to BSL. */
+#ifdef SRT_CONSTANT_light_iter_force_no_culling
+#  define LIGHT_ITER_FORCE_NO_CULLING SRT_CONSTANT_light_iter_force_no_culling
+#endif
+
 uint bitfield_mask(uint bit_width, uint bit_min)
 {
   /* Cannot bit shift more than 31 positions. */

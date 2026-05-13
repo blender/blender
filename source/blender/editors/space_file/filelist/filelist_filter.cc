@@ -7,6 +7,7 @@
  */
 
 #include "AS_asset_representation.hh"
+#include "AS_essentials_library.hh"
 
 #include "BLI_fnmatch.h"
 #include "BLI_listbase.h"
@@ -14,6 +15,7 @@
 #include "BLI_string.h"
 #include "BLI_string_search.hh"
 #include "BLI_string_utf8.h"
+#include "BLI_uuid.h"
 #include "BLI_vector.hh"
 
 #include "BKE_idtype.hh"
@@ -187,7 +189,14 @@ bool is_filtered_asset(FileListInternEntry *file, FileListFilter *filter)
     return false;
   }
 
-  if (((filter->flags & FLF_ASSETS_HIDE_ONLINE) != 0) && asset->is_online()) {
+  const bool is_online = asset->is_online();
+  if (((filter->flags & FLF_ASSETS_HIDE_ONLINE) != 0) && is_online) {
+    return false;
+  }
+  if (((filter->flags & FLF_ASSETS_HIDE_OFFLINE) != 0) && !is_online) {
+    return false;
+  }
+  if (asset_system::skip_experimental_asset_catalog(asset_data.catalog_id)) {
     return false;
   }
 
@@ -369,6 +378,7 @@ void filelist_setfilter_options(FileList *filelist,
                                 const uint64_t filter_id,
                                 const bool filter_assets_only,
                                 const bool filter_assets_hide_online,
+                                const bool filter_assets_hide_offline,
                                 const char *filter_glob,
                                 const char *filter_search)
 {
@@ -394,6 +404,12 @@ void filelist_setfilter_options(FileList *filelist,
       (filter_assets_hide_online != 0))
   {
     filelist->filter_data.flags ^= FLF_ASSETS_HIDE_ONLINE;
+    update = true;
+  }
+  if (((filelist->filter_data.flags & FLF_ASSETS_HIDE_OFFLINE) != 0) !=
+      (filter_assets_hide_offline != 0))
+  {
+    filelist->filter_data.flags ^= FLF_ASSETS_HIDE_OFFLINE;
     update = true;
   }
   if (filelist->filter_data.filter != filter) {

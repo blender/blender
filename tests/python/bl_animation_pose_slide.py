@@ -203,6 +203,14 @@ class PushRelaxPoseBone(AbstractPoseSlideTest):
 
 class BreakdownerTestPoseBone(AbstractPoseSlideTest):
 
+    def setUp(self) -> None:
+        super().setUp()
+        bpy.context.preferences.edit.use_keyframe_insert_available = False
+
+    def tearDown(self) -> None:
+        super().tearDown()
+        bpy.context.preferences.edit.use_keyframe_insert_available = True
+
     def test_no_keys(self):
         # The case of no keys will produce no interpolation.
         self.pose_bone.location = (1, 1, 1)
@@ -349,28 +357,7 @@ class BreakdownerTestPoseBone(AbstractPoseSlideTest):
         self.assertAlmostEqual(self.pose_bone.rotation_quaternion[3], 0, 3)
 
 
-def main():
-    global args
-    import argparse
-
-    argv = [sys.argv[0]]
-    if '--' in sys.argv:
-        argv += sys.argv[sys.argv.index('--') + 1:]
-
-    parser = argparse.ArgumentParser()
-    parser.add_argument(
-        "--output-dir",
-        dest="output_dir",
-        type=pathlib.Path,
-        default=pathlib.Path("."),
-        help="Where to output temp saved blendfiles",
-        required=False,
-    )
-
-    args, remaining = parser.parse_known_args(argv)
-
-    unittest.main(argv=remaining)
-
-
 if __name__ == "__main__":
-    main()
+    import sys
+    sys.argv = [__file__] + (sys.argv[sys.argv.index("--") + 1:] if "--" in sys.argv else [])
+    unittest.main()

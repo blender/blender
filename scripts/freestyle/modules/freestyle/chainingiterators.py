@@ -82,6 +82,14 @@ class pyChainSilhouetteIterator(ChainingIterator):
         pass
 
     def traverse(self, iter):
+        """
+        Returns the next ViewEdge to chain.
+
+        :param iter: An adjacency iterator over the candidate ViewEdges.
+        :type iter: :class:`AdjacencyIterator`
+        :return: The next ViewEdge, or None to stop chaining.
+        :rtype: :class:`ViewEdge` | None
+        """
         it = AdjacencyIterator(iter)
         # case of TVertex
         vertex = self.next_vertex
@@ -113,7 +121,7 @@ class pyChainSilhouetteGenericIterator(ChainingIterator):
     silhouettes, then borders, then suggestive contours, then all other
     edge types.
 
-    .. method:: __init__(self, stayInSelection=True, stayInUnvisited=True)
+    .. method:: __init__(stayInSelection=True, stayInUnvisited=True)
 
        Builds a pyChainSilhouetteGenericIterator object.
 
@@ -130,6 +138,14 @@ class pyChainSilhouetteGenericIterator(ChainingIterator):
         pass
 
     def traverse(self, iter):
+        """
+        Returns the next ViewEdge to chain.
+
+        :param iter: An adjacency iterator over the candidate ViewEdges.
+        :type iter: :class:`AdjacencyIterator`
+        :return: The next ViewEdge, or None to stop chaining.
+        :rtype: :class:`ViewEdge` | None
+        """
         it = AdjacencyIterator(iter)
         # case of TVertex
         vertex = self.next_vertex
@@ -167,6 +183,15 @@ class pyExternalContourChainingIterator(ChainingIterator):
         self._nEdges = 0
 
     def checkViewEdge(self, ve, orientation):
+        """
+        Tests whether a ViewEdge belongs to the external contour.
+
+        :param ve: The ViewEdge to test.
+        :type ve: :class:`ViewEdge`
+        :param orientation: Iteration orientation.
+        :type orientation: bool
+        :rtype: bool
+        """
         vertex = (ve.first_viewvertex if orientation else
                   ve.last_viewvertex)
 
@@ -179,6 +204,14 @@ class pyExternalContourChainingIterator(ChainingIterator):
         return result
 
     def traverse(self, iter):
+        """
+        Returns the next ViewEdge to chain.
+
+        :param iter: An adjacency iterator over the candidate ViewEdges.
+        :type iter: :class:`AdjacencyIterator`
+        :return: The next ViewEdge, or None to stop chaining.
+        :rtype: :class:`ViewEdge` | None
+        """
         winner = None
         self._nEdges += 1
 
@@ -203,7 +236,7 @@ class pySketchyChainSilhouetteIterator(ChainingIterator):
     Natural chaining iterator with a sketchy multiple touch.  It chains the
     same ViewEdge multiple times to achieve a sketchy effect.
 
-    .. method:: __init__(self, nRounds=3,stayInSelection=True)
+    .. method:: __init__(nRounds=3,stayInSelection=True)
 
        Builds a pySketchyChainSilhouetteIterator object.
 
@@ -226,6 +259,10 @@ class pySketchyChainSilhouetteIterator(ChainingIterator):
         """
         Creates the sketchy effect by causing the chain to run from
         the start again. (loop over itself again)
+
+        :param ve: The candidate ViewEdge, or None to fall back to the current edge.
+        :type ve: :class:`ViewEdge` | None
+        :rtype: :class:`ViewEdge` | None
         """
         if ve is None:
             ve = self.current_edge
@@ -234,6 +271,14 @@ class pySketchyChainSilhouetteIterator(ChainingIterator):
         return ve
 
     def traverse(self, iter):
+        """
+        Returns the next ViewEdge to chain.
+
+        :param iter: An adjacency iterator over the candidate ViewEdges.
+        :type iter: :class:`AdjacencyIterator`
+        :return: The next ViewEdge, or None to stop chaining.
+        :rtype: :class:`ViewEdge` | None
+        """
         it = AdjacencyIterator(iter)
         # case of TVertex
         vertex = self.next_vertex
@@ -277,6 +322,14 @@ class pySketchyChainingIterator(ChainingIterator):
         self._timeStamp = CF.get_time_stamp() + self._nRounds
 
     def traverse(self, iter):
+        """
+        Returns the next ViewEdge to chain.
+
+        :param iter: An adjacency iterator over the candidate ViewEdges.
+        :type iter: :class:`AdjacencyIterator`
+        :return: The next ViewEdge, or None to stop chaining.
+        :rtype: :class:`ViewEdge` | None
+        """
         winner = None
         found = False
 
@@ -304,7 +357,7 @@ class pyFillOcclusionsRelativeChainingIterator(ChainingIterator):
     """
     Chaining iterator that fills small occlusions
 
-    .. method:: __init__(self, percent)
+    .. method:: __init__(percent)
 
        Builds a pyFillOcclusionsRelativeChainingIterator object.
 
@@ -325,6 +378,14 @@ class pyFillOcclusionsRelativeChainingIterator(ChainingIterator):
         self._length = 0.0
 
     def traverse(self, iter):
+        """
+        Returns the next ViewEdge to chain.
+
+        :param iter: An adjacency iterator over the candidate ViewEdges.
+        :type iter: :class:`AdjacencyIterator`
+        :return: The next ViewEdge, or None to stop chaining.
+        :rtype: :class:`ViewEdge` | None
+        """
         winner = None
         winnerOrientation = False
         it = AdjacencyIterator(iter)
@@ -378,7 +439,7 @@ class pyFillOcclusionsAbsoluteChainingIterator(ChainingIterator):
     """
     Chaining iterator that fills small occlusions
 
-    .. method:: __init__(self, length)
+    .. method:: __init__(length)
 
        Builds a pyFillOcclusionsAbsoluteChainingIterator object.
 
@@ -395,6 +456,14 @@ class pyFillOcclusionsAbsoluteChainingIterator(ChainingIterator):
         pass
 
     def traverse(self, iter):
+        """
+        Returns the next ViewEdge to chain.
+
+        :param iter: An adjacency iterator over the candidate ViewEdges.
+        :type iter: :class:`AdjacencyIterator`
+        :return: The next ViewEdge, or None to stop chaining.
+        :rtype: :class:`ViewEdge` | None
+        """
         winner = None
         winnerOrientation = False
         it = AdjacencyIterator(iter)
@@ -441,7 +510,7 @@ class pyFillOcclusionsAbsoluteAndRelativeChainingIterator(ChainingIterator):
     Chaining iterator that fills small occlusions regardless of the
     selection.
 
-    .. method:: __init__(self, percent, l)
+    .. method:: __init__(percent, l)
 
        Builds a pyFillOcclusionsAbsoluteAndRelativeChainingIterator object.
 
@@ -464,6 +533,14 @@ class pyFillOcclusionsAbsoluteAndRelativeChainingIterator(ChainingIterator):
         self._length = 0.0
 
     def traverse(self, iter):
+        """
+        Returns the next ViewEdge to chain.
+
+        :param iter: An adjacency iterator over the candidate ViewEdges.
+        :type iter: :class:`AdjacencyIterator`
+        :return: The next ViewEdge, or None to stop chaining.
+        :rtype: :class:`ViewEdge` | None
+        """
         winner = None
         winnerOrientation = False
         it = AdjacencyIterator(iter)
@@ -512,7 +589,7 @@ class pyFillQi0AbsoluteAndRelativeChainingIterator(ChainingIterator):
     Chaining iterator that fills small occlusions regardless of the
     selection.
 
-    .. method:: __init__(self, percent, l)
+    .. method:: __init__(percent, l)
 
        Builds a pyFillQi0AbsoluteAndRelativeChainingIterator object.
 
@@ -535,6 +612,14 @@ class pyFillQi0AbsoluteAndRelativeChainingIterator(ChainingIterator):
         self._length = 0.0
 
     def traverse(self, iter):
+        """
+        Returns the next ViewEdge to chain.
+
+        :param iter: An adjacency iterator over the candidate ViewEdges.
+        :type iter: :class:`AdjacencyIterator`
+        :return: The next ViewEdge, or None to stop chaining.
+        :rtype: :class:`ViewEdge` | None
+        """
         winner = None
         winnerOrientation = False
         it = AdjacencyIterator(iter)
@@ -584,7 +669,7 @@ class pyNoIdChainSilhouetteIterator(ChainingIterator):
     silhouettes, then borders, then suggestive contours, then all other edge
     types.  It won't chain the same ViewEdge twice.
 
-    .. method:: __init__(self, stayInSelection=True)
+    .. method:: __init__(stayInSelection=True)
 
        Builds a pyNoIdChainSilhouetteIterator object.
 
@@ -599,6 +684,14 @@ class pyNoIdChainSilhouetteIterator(ChainingIterator):
         pass
 
     def traverse(self, iter):
+        """
+        Returns the next ViewEdge to chain.
+
+        :param iter: An adjacency iterator over the candidate ViewEdges.
+        :type iter: :class:`AdjacencyIterator`
+        :return: The next ViewEdge, or None to stop chaining.
+        :rtype: :class:`ViewEdge` | None
+        """
         winner = None
         it = AdjacencyIterator(iter)
         # case of TVertex

@@ -56,6 +56,7 @@ void filelist_setfilter_options(FileList *filelist,
                                 uint64_t filter_id,
                                 bool filter_assets_only,
                                 bool filter_assets_hide_online,
+                                bool filter_assets_hide_offline,
                                 const char *filter_glob,
                                 const char *filter_search);
 /**

@@ -36,26 +36,16 @@
 
 #include "BLI_cache_mutex.hh"
 #include "BLI_string_ref.hh"
+#include "BLI_unique_hash.hh"
 
 namespace blender {
 
 class ComputeContext;
 
 /**
- * A hash that uniquely identifies a specific (non-fixed-size) compute context. The hash has to
- * have enough bits to make collisions practically impossible.
+ * A hash that uniquely identifies a specific (non-fixed-size) compute context.
  */
-struct ComputeContextHash {
-  uint64_t v1 = 0;
-  uint64_t v2 = 0;
-
-  uint64_t hash() const
-  {
-    return v1;
-  }
-
-  friend bool operator==(const ComputeContextHash &a, const ComputeContextHash &b) = default;
-
+struct ComputeContextHash : public UniqueHash {
   /**
    * Standard way to create a compute context hash.
    * \param parent: The optional parent context.

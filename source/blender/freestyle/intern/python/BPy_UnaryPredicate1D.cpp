@@ -114,7 +114,7 @@ PyDoc_STRVAR(
     "\n"
     "   Must be overload by inherited classes.\n"
     "\n"
-    "   :arg inter: The Interface1D on which we wish to evaluate the predicate.\n"
+    "   :param inter: The Interface1D on which we wish to evaluate the predicate.\n"
     "   :type inter: :class:`Interface1D`\n"
     "   :return: True if the condition is satisfied, false otherwise.\n"
     "   :rtype: bool\n");

@@ -195,7 +195,7 @@ static Scene *preview_prepare_scene(const Main *bmain,
 
   /* Only enable the combined render-pass. */
   view_layer->passflag = SCE_PASS_COMBINED;
-  view_layer->eevee.render_passes = 0;
+  view_layer->eevee.render_passes = eViewLayerEEVEEPassType{};
 
   /* This flag tells render to not execute depsgraph or F-Curves etc. */
   scene_preview->r.scemode |= R_BUTS_PREVIEW;
@@ -427,7 +427,7 @@ static void connect_node_to_surface_output(const Span<bNodeTreePath *> treepath,
     socket_preview = socket_preview->link->fromsock;
   }
   /* Ensure output is usable. */
-  out_surface_socket = bke::node_find_socket(output_node, SOCK_IN, "Surface");
+  out_surface_socket = bke::node_find_socket(output_node, SOCK_IN, "Surface"_ustr);
   if (out_surface_socket->link) {
     /* Make sure no node is already wired to the output before wiring. */
     bke::node_remove_link(main_nt, *out_surface_socket->link);
@@ -462,7 +462,7 @@ static void connect_nodes_to_aovs(const Span<bNodeTreePath *> treepath,
     if (socket_preview == nullptr) {
       continue;
     }
-    bNodeSocket *aov_socket = bke::node_find_socket(*aov_node, SOCK_IN, "Color");
+    bNodeSocket *aov_socket = bke::node_find_socket(*aov_node, SOCK_IN, "Color"_ustr);
     if (socket_preview->in_out == SOCK_IN) {
       if (socket_preview->link == nullptr) {
         /* Copy the custom value of the socket directly to the AOV node.
@@ -482,6 +482,8 @@ static void connect_nodes_to_aovs(const Span<bNodeTreePath *> treepath,
             ptr = RNA_pointer_create_discrete(
                 id_cast<ID *>(active_nt), RNA_NodeSocket, socket_preview);
             RNA_float_get_array(&ptr, "default_value", vec);
+            break;
+          default:
             break;
         }
         ptr = RNA_pointer_create_discrete(id_cast<ID *>(active_nt), RNA_NodeSocket, aov_socket);
@@ -525,7 +527,7 @@ static bool prepare_viewlayer_update(void *pvl_data, ViewLayer *vl, Depsgraph *d
   }
 
   bNodeSocket *displacement_socket = bke::node_find_socket(
-      *job_data->mat_output_copy, SOCK_IN, "Displacement");
+      *job_data->mat_output_copy, SOCK_IN, "Displacement"_ustr);
   if (job_data->mat_displacement_copy.first != nullptr && displacement_socket->link == nullptr) {
     bke::node_add_link(*job_data->treepath_copy.first()->nodetree,
                        *job_data->mat_displacement_copy.first,
@@ -698,7 +700,7 @@ static void shader_preview_startjob(void *customdata, wmJobWorkerStatus *worker_
   for (bNode *node_iter : job_data->mat_copy->nodetree->all_nodes()) {
     if (node_iter->flag & NODE_DO_OUTPUT) {
       node_iter->flag &= ~NODE_DO_OUTPUT;
-      bNodeSocket *disp_socket = bke::node_find_socket(*node_iter, SOCK_IN, "Displacement");
+      bNodeSocket *disp_socket = bke::node_find_socket(*node_iter, SOCK_IN, "Displacement"_ustr);
       if (disp_socket != nullptr && disp_socket->link != nullptr) {
         job_data->mat_displacement_copy = std::make_pair(disp_socket->link->fromnode,
                                                          disp_socket->link->fromsock);

@@ -139,11 +139,11 @@ bool OSLRenderServices::get_inverse_matrix(OSL::ShaderGlobals *sg,
 }
 
 bool OSLRenderServices::get_array_attribute(OSL::ShaderGlobals * /*sg*/,
-                                            bool /* derivatives*/,
-                                            OSLUStringHash /* object*/,
-                                            const TypeDesc /* type*/,
-                                            OSLUStringHash /* name*/,
-                                            const int /* index*/,
+                                            bool /*derivatives*/,
+                                            OSLUStringHash /*object*/,
+                                            const TypeDesc /*type*/,
+                                            OSLUStringHash /*name*/,
+                                            const int /*index*/,
                                             void * /*val*/)
 {
   return false;
@@ -238,8 +238,8 @@ bool OSLRenderServices::get_attribute(ShaderGlobals *globals,
 }
 
 bool OSLRenderServices::get_userdata(bool /*derivatives*/,
-                                     OSLUStringHash /* name*/,
-                                     const TypeDesc /* type*/,
+                                     OSLUStringHash /*name*/,
+                                     const TypeDesc /*type*/,
                                      OSL::ShaderGlobals * /*sg*/,
                                      void * /*val*/)
 {

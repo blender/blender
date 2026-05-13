@@ -41,7 +41,7 @@ static void set_property_of_socket(eNodeSocketDatatype property_type,
                                    bNode *r_node)
 {
   BLI_assert(r_node);
-  bNodeSocket *socket{bke::node_find_socket(*r_node, SOCK_IN, socket_id)};
+  bNodeSocket *socket{bke::node_find_socket(*r_node, SOCK_IN, UString(socket_id))};
   BLI_assert(socket && socket->type == property_type);
   switch (property_type) {
     case SOCK_FLOAT: {
@@ -178,8 +178,8 @@ static void link_sockets(bNodeTree *ntree,
                          bNode *to_node,
                          const char *to_node_id)
 {
-  bNodeSocket *from_sock{bke::node_find_socket(*from_node, SOCK_OUT, from_node_id)};
-  bNodeSocket *to_sock{bke::node_find_socket(*to_node, SOCK_IN, to_node_id)};
+  bNodeSocket *from_sock{bke::node_find_socket(*from_node, SOCK_OUT, UString(from_node_id))};
+  bNodeSocket *to_sock{bke::node_find_socket(*to_node, SOCK_IN, UString(to_node_id))};
   BLI_assert(from_sock && to_sock);
   bke::node_add_link(*ntree, *from_node, *from_sock, *to_node, *to_sock);
 }

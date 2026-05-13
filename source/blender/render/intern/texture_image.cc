@@ -23,7 +23,6 @@
 #include "DNA_image_types.h"
 #include "DNA_texture_types.h"
 
-#include "BLI_math_interp.hh"
 #include "BLI_math_vector.h"
 #include "BLI_rect.h"
 #include "BLI_threads.h"
@@ -638,116 +637,6 @@ static void boxsample(ImBuf *ibuf,
   }
 }
 
-/* -------------------------------------------------------------------- */
-/* from here, some functions only used for the new filtering */
-
-/* anisotropic filters, data struct used instead of long line of (possibly unused) func args */
-struct AFData {
-  float dxt[2], dyt[2];
-  int intpol, extflag;
-};
-
-/* this only used here to make it easier to pass extend flags as single int */
-enum { TXC_XMIR = 1, TXC_YMIR, TXC_REPT, TXC_EXTD };
-
-/**
- * Similar to `ibuf_get_color()` but clips/wraps coords according to repeat/extend flags
- * returns true if out of range in clip-mode.
- */
-static int ibuf_get_color_clip(float col[4], ImBuf *ibuf, int x, int y, int extflag)
-{
-  int clip = 0;
-  switch (extflag) {
-    case TXC_XMIR: /* y rep */
-      x %= 2 * ibuf->x;
-      x += x < 0 ? 2 * ibuf->x : 0;
-      x = x >= ibuf->x ? 2 * ibuf->x - x - 1 : x;
-      y %= ibuf->y;
-      y += y < 0 ? ibuf->y : 0;
-      break;
-    case TXC_YMIR: /* x rep */
-      x %= ibuf->x;
-      x += x < 0 ? ibuf->x : 0;
-      y %= 2 * ibuf->y;
-      y += y < 0 ? 2 * ibuf->y : 0;
-      y = y >= ibuf->y ? 2 * ibuf->y - y - 1 : y;
-      break;
-    case TXC_EXTD:
-      x = (x < 0) ? 0 : ((x >= ibuf->x) ? (ibuf->x - 1) : x);
-      y = (y < 0) ? 0 : ((y >= ibuf->y) ? (ibuf->y - 1) : y);
-      break;
-    case TXC_REPT:
-      x %= ibuf->x;
-      x += (x < 0) ? ibuf->x : 0;
-      y %= ibuf->y;
-      y += (y < 0) ? ibuf->y : 0;
-      break;
-    default: {            /* as extend, if clipped, set alpha to 0.0 */
-      x = std::max(x, 0); /* TXF alpha: clip = 1; } */
-      if (x >= ibuf->x) {
-        x = ibuf->x - 1;
-      } /* TXF alpha: clip = 1; } */
-      y = std::max(y, 0); /* TXF alpha: clip = 1; } */
-      if (y >= ibuf->y) {
-        y = ibuf->y - 1;
-      } /* TXF alpha: clip = 1; } */
-    }
-  }
-
-  if (ibuf->float_data()) {
-    const float *fp = ibuf->float_data() + (x + int64_t(y) * ibuf->x) * ibuf->channels;
-    if (ibuf->channels == 1) {
-      col[0] = col[1] = col[2] = col[3] = *fp;
-    }
-    else {
-      col[0] = fp[0];
-      col[1] = fp[1];
-      col[2] = fp[2];
-      col[3] = clip ? 0.0f : (ibuf->channels == 4 ? fp[3] : 1.0f);
-    }
-  }
-  else {
-    const uchar *rect = ibuf->byte_data() + 4 * (x + int64_t(y) * ibuf->x);
-    float inv_alpha_fac = (1.0f / 255.0f) * rect[3] * (1.0f / 255.0f);
-    col[0] = rect[0] * inv_alpha_fac;
-    col[1] = rect[1] * inv_alpha_fac;
-    col[2] = rect[2] * inv_alpha_fac;
-    col[3] = clip ? 0.0f : rect[3] * (1.0f / 255.0f);
-  }
-  return clip;
-}
-
-struct ReadEWAData {
-  ImBuf *ibuf;
-  const AFData *AFD;
-};
-
-static void ewa_read_pixel_cb(void *userdata, int x, int y, float result[4])
-{
-  ReadEWAData *data = static_cast<ReadEWAData *>(userdata);
-  ibuf_get_color_clip(result, data->ibuf, x, y, data->AFD->extflag);
-}
-
-static void ewa_eval(TexResult *texr, ImBuf *ibuf, float fx, float fy, const AFData *AFD)
-{
-  ReadEWAData data;
-  const float uv[2] = {fx, fy};
-  data.ibuf = ibuf;
-  data.AFD = AFD;
-  BLI_ewa_filter(ibuf->x,
-                 ibuf->y,
-                 AFD->intpol != 0,
-                 texr->talpha,
-                 uv,
-                 AFD->dxt,
-                 AFD->dyt,
-                 ewa_read_pixel_cb,
-                 &data,
-                 texr->trgba);
-}
-
-#undef EWA_MAXIDX
-
 void image_sample(
     Image *ima, float fx, float fy, float dx, float dy, float result[4], ImagePool *pool)
 {
@@ -766,26 +655,6 @@ void image_sample(
   ima->flag |= IMA_USED_FOR_RENDER;
 
   BKE_image_pool_release_ibuf(ima, ibuf, pool);
-}
-
-void ibuf_sample(ImBuf *ibuf, float fx, float fy, float dx, float dy, float result[4])
-{
-  TexResult texres = {0};
-  AFData AFD;
-
-  AFD.dxt[0] = dx;
-  AFD.dxt[1] = dx;
-  AFD.dyt[0] = dy;
-  AFD.dyt[1] = dy;
-  // copy_v2_v2(AFD.dxt, dx);
-  // copy_v2_v2(AFD.dyt, dy);
-
-  AFD.intpol = 1;
-  AFD.extflag = TXC_EXTD;
-
-  ewa_eval(&texres, ibuf, fx, fy, &AFD);
-
-  copy_v4_v4(result, texres.trgba);
 }
 
 }  // namespace blender

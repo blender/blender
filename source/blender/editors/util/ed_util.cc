@@ -122,11 +122,11 @@ void ED_editors_init(bContext *C)
    * active object in this scene. */
   Object *obact = CTX_data_active_object(C);
   for (Object &ob : bmain->objects) {
-    int mode = ob.mode;
+    eObjectMode mode = ob.mode;
     if (mode == OB_MODE_OBJECT) {
       continue;
     }
-    if (BKE_object_has_mode_data(&ob, eObjectMode(mode))) {
+    if (BKE_object_has_mode_data(&ob, mode)) {
       /* For multi-edit mode we may already have mode data. */
       continue;
     }
@@ -196,7 +196,7 @@ void ED_editors_init(bContext *C)
     else {
       /* TODO(@ideasman42): avoid operator calls. */
       if (obact == &ob) {
-        object::mode_set(C, eObjectMode(mode));
+        object::mode_set(C, mode);
       }
     }
   }

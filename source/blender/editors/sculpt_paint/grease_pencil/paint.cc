@@ -243,7 +243,7 @@ class PaintOperation : public GreasePencilStrokeOperation {
   /** Set to true when the paint operation is used to draw fill guides. */
   bool do_fill_guides_;
 
-  /* Used when hiding the fill while drawing. (#GP_BRUSH_DISSABLE_LASSO)*/
+  /** Used when hiding the fill while drawing. (#GP_BRUSH_DISSABLE_LASSO). */
   float start_opacity_;
 
   friend struct PaintOperationExecutor;

@@ -21,7 +21,7 @@ struct bContext;
 namespace nodes {
 class Bundle;
 }
-namespace nodes::geo_eval_log {
+namespace nodes::eval_log {
 class ViewerNodeLog;
 }
 
@@ -59,8 +59,7 @@ void spreadsheet_operatortypes();
 Object *spreadsheet_get_object_eval(const SpaceSpreadsheet *sspreadsheet,
                                     const Depsgraph *depsgraph);
 
-const nodes::geo_eval_log::ViewerNodeLog *viewer_node_log_lookup(
-    const SpaceSpreadsheet &sspreadsheet);
+const nodes::eval_log::ViewerNodeLog *viewer_node_log_lookup(const SpaceSpreadsheet &sspreadsheet);
 
 bke::SocketValueVariant root_display_data_get(const SpaceSpreadsheet *sspreadsheet,
                                               Object *object_eval);

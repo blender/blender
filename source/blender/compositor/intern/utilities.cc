@@ -76,6 +76,8 @@ ResultType socket_data_type_to_result_type(const eNodeSocketDatatype data_type,
       return ResultType::Menu;
     case SOCK_STRING:
       return ResultType::String;
+    case SOCK_ROTATION:
+      return ResultType::Quaternion;
     case SOCK_OBJECT:
       return ResultType::Object;
     case SOCK_IMAGE:
@@ -214,7 +216,7 @@ InputDescriptor input_descriptor_from_interface_input(const bNodeTree &node_grou
   input_descriptor.type = get_node_interface_socket_result_type(socket);
   input_descriptor.domain_priority = node_group.interface_input_index(socket);
   input_descriptor.expects_single_value = socket.structure_type ==
-                                          NODE_INTERFACE_SOCKET_STRUCTURE_TYPE_SINGLE;
+                                          NodeSocketInterfaceStructureType::Single;
   input_descriptor.realization_mode = InputRealizationMode::None;
   input_descriptor.implicit_input = socket.default_input == NODE_DEFAULT_INPUT_POSITION_FIELD ?
                                         ImplicitInput::TextureCoordinates :

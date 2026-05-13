@@ -3,10 +3,6 @@
  * SPDX-License-Identifier: GPL-2.0-or-later */
 #include "testing/testing.h"
 
-#include "CLG_log.h"
-
-#include "GHOST_ISystemPaths.hh"
-
 #include "DNA_material_types.h"
 #include "DNA_mesh_types.h"
 #include "DNA_node_types.h"
@@ -15,10 +11,10 @@
 
 #include "RNA_define.hh"
 
-#include "BKE_appdir.hh"
 #include "BKE_collection.hh"
 #include "BKE_context.hh"
 #include "BKE_global.hh"
+#include "BKE_gtest_base.hh"
 #include "BKE_idprop.hh"
 #include "BKE_idtype.hh"
 #include "BKE_lib_id.hh"
@@ -31,8 +27,6 @@
 #include "BKE_scene.hh"
 
 #include "NOD_defaults.hh"
-
-#include "IMB_imbuf.hh"
 
 #include "BLI_index_range.hh"
 #include "BLI_set.hh"
@@ -72,31 +66,7 @@ class TestData {
   }
 };
 
-class LibQueryTest : public ::testing::Test {
-
- protected:
-  static void SetUpTestSuite()
-  {
-    CLG_init();
-    BKE_idtype_init();
-    RNA_init();
-    bke::node_system_init();
-    BKE_appdir_init();
-    IMB_init();
-    BKE_materials_init();
-  }
-
-  static void TearDownTestSuite()
-  {
-    BKE_materials_exit();
-    bke::node_system_exit();
-    RNA_exit();
-    IMB_exit();
-    BKE_appdir_exit();
-    GHOST_ISystemPaths::dispose();
-    CLG_exit();
-  }
-};
+class LibQueryTest : public bke::BlenderGTestBase {};
 
 class WholeIDTestData : public TestData {
  public:

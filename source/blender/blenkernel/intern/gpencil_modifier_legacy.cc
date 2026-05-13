@@ -403,7 +403,7 @@ void BKE_gpencil_modifier_blend_read_data(BlendDataReader *reader,
 
     /* if modifiers disappear, or for upward compatibility */
     if (!gpencil_modifier_type_valid(md.type)) {
-      md.type = eModifierType_None;
+      md.type = eGpencilModifierType_None;
     }
 
     /* If linking from a library, clear 'local' library override flag. */
@@ -478,16 +478,14 @@ void BKE_gpencil_modifier_blend_read_data(BlendDataReader *reader,
     }
     else if (md.type == eGpencilModifierType_Dash) {
       DashGpencilModifierData *gpmd = reinterpret_cast<DashGpencilModifierData *>(&md);
-      BLO_read_struct_array(
-          reader, DashGpencilModifierSegment, gpmd->segments_len, &gpmd->segments);
+      BLO_read_array_and_validate_size(reader, &gpmd->segments, &gpmd->segments_len);
       for (int i = 0; i < gpmd->segments_len; i++) {
         gpmd->segments[i].dmd = gpmd;
       }
     }
     else if (md.type == eGpencilModifierType_Time) {
       TimeGpencilModifierData *gpmd = reinterpret_cast<TimeGpencilModifierData *>(&md);
-      BLO_read_struct_array(
-          reader, TimeGpencilModifierSegment, gpmd->segments_len, &gpmd->segments);
+      BLO_read_array_and_validate_size(reader, &gpmd->segments, &gpmd->segments_len);
       for (int i = 0; i < gpmd->segments_len; i++) {
         gpmd->segments[i].gpmd = gpmd;
       }

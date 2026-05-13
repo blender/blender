@@ -157,7 +157,8 @@ static wmOperatorStatus sculpt_mask_init_exec(bContext *C, wmOperator *op)
 
           write_mask_mesh(depsgraph, ob, node_mask, [&](MutableSpan<float> mask, Span<int> verts) {
             for (const int vert : verts) {
-              const int face_set = face_set::vert_face_set_get(vert_to_face_map, face_sets, vert);
+              const int face_set = face_set::vert_face_set_max_get(
+                  vert_to_face_map, face_sets, vert);
               mask[vert] = BLI_hash_int_01(face_set + seed);
             }
           });

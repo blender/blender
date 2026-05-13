@@ -1492,7 +1492,7 @@ void RNA_api_keymapitems(StructRNA *srna)
 
   func = RNA_def_function(srna, "match_event", "rna_KeyMap_item_match_event");
   RNA_def_function_flag(func, FUNC_USE_SELF_ID | FUNC_USE_CONTEXT);
-  parm = RNA_def_pointer(func, "event", "Event", "", "");
+  parm = RNA_def_pointer(func, "event", "Event", "", "Event to match against");
   RNA_def_parameter_flags(parm, PropertyFlag(0), PARM_REQUIRED);
   parm = RNA_def_pointer(func, "item", "KeyMapItem", "", "");
   RNA_def_parameter_flags(parm, PropertyFlag(0), PARM_RNAPTR);

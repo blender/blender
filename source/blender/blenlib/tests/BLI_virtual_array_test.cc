@@ -7,13 +7,23 @@
 #include "BLI_vector.hh"
 #include "BLI_vector_set.hh"
 #include "BLI_virtual_array.hh"
+#include "BLI_virtual_array_range_spans.hh"
+
 #include "testing/testing.h"
 
 #include "BLI_strict_flags.h" /* IWYU pragma: keep. Keep last. */
 
 namespace blender::tests {
 
-TEST(virtual_array, Span)
+class VirtualArrayTest : public testing::Test {
+ public:
+  static void SetUpTestSuite()
+  {
+    register_cpp_types();
+  }
+};
+
+TEST_F(VirtualArrayTest, Span)
 {
   std::array<int, 5> data = {3, 4, 5, 6, 7};
   VArray<int> varray = VArray<int>::from_span(data);
@@ -25,7 +35,7 @@ TEST(virtual_array, Span)
   EXPECT_EQ(varray.get_internal_span().data(), data.data());
 }
 
-TEST(virtual_array, Single)
+TEST_F(VirtualArrayTest, Single)
 {
   VArray<int> varray = VArray<int>::from_single(10, 4);
   EXPECT_EQ(varray.size(), 4);
@@ -36,7 +46,7 @@ TEST(virtual_array, Single)
   EXPECT_EQ(varray.get_internal_single(), 10);
 }
 
-TEST(virtual_array, Array)
+TEST_F(VirtualArrayTest, Array)
 {
   Array<int> array = {1, 2, 3, 5, 8};
   {
@@ -61,7 +71,7 @@ TEST(virtual_array, Array)
   }
 }
 
-TEST(virtual_array, MutableArray)
+TEST_F(VirtualArrayTest, MutableArray)
 {
   Array<int, 0> array = {1, 2, 3, 5, 8};
   const Span<int> array_span = array;
@@ -80,7 +90,7 @@ TEST(virtual_array, MutableArray)
   EXPECT_EQ(array_span.data(), varray_span.data());
 }
 
-TEST(virtual_array, Vector)
+TEST_F(VirtualArrayTest, Vector)
 {
   Vector<int> vector = {9, 8, 7, 6};
   VArray<int> varray = VArray<int>::from_container(std::move(vector));
@@ -89,7 +99,7 @@ TEST(virtual_array, Vector)
   EXPECT_EQ(varray[3], 6);
 }
 
-TEST(virtual_array, StdVector)
+TEST_F(VirtualArrayTest, StdVector)
 {
   std::vector<int> vector = {5, 6, 7, 8};
   VArray<int> varray = VArray<int>::from_container(std::move(vector));
@@ -98,7 +108,7 @@ TEST(virtual_array, StdVector)
   EXPECT_EQ(varray[1], 6);
 }
 
-TEST(virtual_array, StdArray)
+TEST_F(VirtualArrayTest, StdArray)
 {
   std::array<int, 4> array = {2, 3, 4, 5};
   VArray<int> varray = VArray<int>::from_container(std::move(array));
@@ -107,7 +117,7 @@ TEST(virtual_array, StdArray)
   EXPECT_EQ(varray[1], 3);
 }
 
-TEST(virtual_array, VectorSet)
+TEST_F(VirtualArrayTest, VectorSet)
 {
   VectorSet<int> vector_set = {5, 3, 7, 3, 3, 5, 1};
   VArray<int> varray = VArray<int>::from_container(std::move(vector_set));
@@ -119,7 +129,7 @@ TEST(virtual_array, VectorSet)
   EXPECT_EQ(varray[3], 1);
 }
 
-TEST(virtual_array, Func)
+TEST_F(VirtualArrayTest, Func)
 {
   auto func = [](int64_t index) { return int(index * index); };
   VArray<int> varray = VArray<int>::from_func(10, func);
@@ -129,7 +139,7 @@ TEST(virtual_array, Func)
   EXPECT_EQ(varray[9], 81);
 }
 
-TEST(virtual_array, AsSpan)
+TEST_F(VirtualArrayTest, AsSpan)
 {
   auto func = [](int64_t index) { return int(10 * index); };
   VArray<int> func_varray = VArray<int>::from_func(10, func);
@@ -152,7 +162,7 @@ static void set_x(std::array<int, 3> &item, int value)
   item[0] = value;
 }
 
-TEST(virtual_array, DerivedSpan)
+TEST_F(VirtualArrayTest, DerivedSpan)
 {
   Vector<std::array<int, 3>> vector;
   vector.append({3, 4, 5});
@@ -176,7 +186,7 @@ TEST(virtual_array, DerivedSpan)
   }
 }
 
-TEST(virtual_array, MutableToImmutable)
+TEST_F(VirtualArrayTest, MutableToImmutable)
 {
   std::array<int, 4> array = {4, 2, 6, 4};
   {
@@ -204,7 +214,7 @@ TEST(virtual_array, MutableToImmutable)
   }
 }
 
-TEST(virtual_array, MaterializeCompressed)
+TEST_F(VirtualArrayTest, MaterializeCompressed)
 {
   IndexMaskMemory memory;
   {
@@ -253,7 +263,7 @@ TEST(virtual_array, MaterializeCompressed)
   }
 }
 
-TEST(virtual_array, EmptySpanWrapper)
+TEST_F(VirtualArrayTest, EmptySpanWrapper)
 {
   {
     VArray<int> varray;
@@ -283,6 +293,67 @@ TEST(virtual_array, EmptySpanWrapper)
     GMutableVArraySpan span2 = std::move(span1);
     EXPECT_TRUE(span2.is_empty());
   }
+}
+
+TEST_F(VirtualArrayTest, SingleValueRangeSpans)
+{
+  const VArray<int> varray = VArray<int>::from_single(42, 10);
+  ResourceScope scope;
+  const VArrayRangeSpans<int> spans(scope, varray, 3);
+
+  const Span<int> span1 = spans.get_span_for_range(IndexRange::from_begin_size(0, 3));
+  const Span<int> span2 = spans.get_span_for_range(IndexRange::from_begin_size(7, 3));
+  const Span<int> span3 = spans.get_span_for_range(IndexRange::from_begin_size(5, 1));
+  EXPECT_EQ_SPAN(span1, {42, 42, 42});
+  EXPECT_EQ(span1.data(), span2.data());
+  EXPECT_EQ(span1.data(), span3.data());
+}
+
+TEST_F(VirtualArrayTest, SpanRangeSpans)
+{
+  const Array<int> array = {0, 1, 2, 3, 4, 5, 6, 7, 8, 9};
+  const VArray<int> varray = VArray<int>::from_span(array);
+  ResourceScope scope;
+  const VArrayRangeSpans<int> spans(scope, varray, 3);
+
+  const Span<int> span1 = spans.get_span_for_range(IndexRange::from_begin_size(0, 3));
+  EXPECT_EQ(span1.data(), array.data());
+
+  const Span<int> span2 = spans.get_span_for_range(IndexRange::from_begin_size(7, 3));
+  EXPECT_EQ(span2.data(), &array[7]);
+
+  const Span<int> span3 = spans.get_span_for_range(IndexRange::from_begin_size(5, 1));
+  EXPECT_EQ(span3.data(), &array[5]);
+}
+
+TEST_F(VirtualArrayTest, ArrayRangeSpans)
+{
+  const VArray<int> varray = VArray<int>::from_container(Array<int>{0, 1, 2, 3, 4, 5, 6, 7, 8, 9});
+  ResourceScope scope;
+  const VArrayRangeSpans<int> spans(scope, varray, 3);
+
+  const Span<int> span1 = spans.get_span_for_range(IndexRange::from_begin_size(0, 3));
+  const Span<int> span2 = spans.get_span_for_range(IndexRange::from_begin_size(7, 3));
+  const Span<int> span3 = spans.get_span_for_range(IndexRange::from_begin_size(5, 1));
+
+  EXPECT_EQ(span1.data() + 7, span2.data());
+  EXPECT_EQ(span1.data() + 5, span3.data());
+}
+
+TEST_F(VirtualArrayTest, FunctionRangeSpans)
+{
+  const VArray<int> varray = VArray<int>::from_std_func(10, [](const int64_t i) { return i; });
+  ResourceScope scope;
+  const VArrayRangeSpans<int> spans(scope, varray, 3);
+
+  const Span<int> span1 = spans.get_span_for_range(IndexRange::from_begin_size(0, 3));
+  EXPECT_EQ_SPAN(span1, {0, 1, 2});
+
+  const Span<int> span2 = spans.get_span_for_range(IndexRange::from_begin_size(7, 3));
+  EXPECT_EQ_SPAN(span2, {7, 8, 9});
+
+  const Span<int> span3 = spans.get_span_for_range(IndexRange::from_begin_size(5, 1));
+  EXPECT_EQ_SPAN(span3, {5});
 }
 
 TEST(generic_virtual_array, FromFunc)

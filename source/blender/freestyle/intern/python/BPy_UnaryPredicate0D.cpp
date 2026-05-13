@@ -62,7 +62,7 @@ PyDoc_STRVAR(
     "\n"
     "   Must be overload by inherited classes.\n"
     "\n"
-    "   :arg it: The Interface0DIterator pointing onto the Interface0D at\n"
+    "   :param it: The Interface0DIterator pointing onto the Interface0D at\n"
     "      which we wish to evaluate the predicate.\n"
     "   :type it: :class:`Interface0DIterator`\n"
     "   :return: True if the condition is satisfied, false otherwise.\n"

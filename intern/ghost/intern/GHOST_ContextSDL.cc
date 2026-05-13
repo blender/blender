@@ -53,7 +53,7 @@ GHOST_ContextSDL::~GHOST_ContextSDL()
     if (s_sharedCount == 0) {
       s_sharedContext = nullptr;
     }
-    SDL_GL_DeleteContext(context_);
+    SDL_GL_DestroyContext(context_);
   }
 
   if (hidden_window_ != nullptr) {
@@ -74,7 +74,7 @@ GHOST_TSuccess GHOST_ContextSDL::activateDrawingContext()
     return GHOST_kFailure;
   }
   active_context_ = this;
-  return (SDL_GL_MakeCurrent(window_, context_) == 0) ? GHOST_kSuccess : GHOST_kFailure;
+  return SDL_GL_MakeCurrent(window_, context_) ? GHOST_kSuccess : GHOST_kFailure;
 }
 
 GHOST_TSuccess GHOST_ContextSDL::releaseDrawingContext()
@@ -84,7 +84,7 @@ GHOST_TSuccess GHOST_ContextSDL::releaseDrawingContext()
   }
   active_context_ = nullptr;
   /* Untested, may not work. */
-  return (SDL_GL_MakeCurrent(nullptr, nullptr) == 0) ? GHOST_kSuccess : GHOST_kFailure;
+  return SDL_GL_MakeCurrent(nullptr, nullptr) ? GHOST_kSuccess : GHOST_kFailure;
 }
 
 GHOST_TSuccess GHOST_ContextSDL::initializeDrawingContext()
@@ -112,8 +112,6 @@ GHOST_TSuccess GHOST_ContextSDL::initializeDrawingContext()
 
   if (window_ == nullptr) {
     hidden_window_ = SDL_CreateWindow("Offscreen Context Windows",
-                                      SDL_WINDOWPOS_UNDEFINED,
-                                      SDL_WINDOWPOS_UNDEFINED,
                                       1,
                                       1,
                                       SDL_WINDOW_OPENGL | SDL_WINDOW_BORDERLESS |
@@ -132,7 +130,7 @@ GHOST_TSuccess GHOST_ContextSDL::initializeDrawingContext()
     }
     s_sharedCount++;
 
-    success = (SDL_GL_MakeCurrent(window_, context_) == 0) ? GHOST_kSuccess : GHOST_kFailure;
+    success = SDL_GL_MakeCurrent(window_, context_) ? GHOST_kSuccess : GHOST_kFailure;
 
     {
       const GHOST_TVSyncModes vsync = getVSync();
@@ -163,7 +161,7 @@ GHOST_TSuccess GHOST_ContextSDL::releaseNativeHandles()
 
 GHOST_TSuccess GHOST_ContextSDL::setSwapInterval(int interval)
 {
-  if (SDL_GL_SetSwapInterval(interval) == -1) {
+  if (!SDL_GL_SetSwapInterval(interval)) {
     return GHOST_kFailure;
   }
   return GHOST_kSuccess;
@@ -171,6 +169,8 @@ GHOST_TSuccess GHOST_ContextSDL::setSwapInterval(int interval)
 
 GHOST_TSuccess GHOST_ContextSDL::getSwapInterval(int &interval_out)
 {
-  interval_out = SDL_GL_GetSwapInterval();
+  if (!SDL_GL_GetSwapInterval(&interval_out)) {
+    return GHOST_kFailure;
+  }
   return GHOST_kSuccess;
 }

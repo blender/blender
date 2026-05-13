@@ -46,6 +46,32 @@ float4 scene_linear_from_YCoCg(float4 ycocg_color)
 
 /** \} */
 
+/* -------------------------------------------------------------------- */
+/** \name Logarithmic space
+ *
+ * Used to crunch highlights and noise during denoising accumulations.
+ * \{ */
+
+float3 log_from_scene_linear(float3 color)
+{
+  return log2(1.0f + color);
+}
+float4 log_from_scene_linear(float4 color)
+{
+  return float4(log_from_scene_linear(color.rgb), color.a);
+}
+
+float3 scene_linear_from_log(float3 color)
+{
+  return exp2(color) - 1.0f;
+}
+float4 scene_linear_from_log(float4 color)
+{
+  return float4(scene_linear_from_log(color.rgb), color.a);
+}
+
+/** \} */
+
 /**
  * Clamp components to avoid black square artifacts if a pixel goes NaN or negative.
  * Threshold is arbitrary.

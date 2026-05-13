@@ -50,6 +50,7 @@ struct GPUDisplayParameters {
   float dither = 0.0f;
   float temperature = 6500.0f;
   float tint = 10.0f;
+  float opacity = 1.0f;
   bool use_white_balance = false;
   /* Divide RGB by alpha before performing the transform. */
   bool use_predivide = false;

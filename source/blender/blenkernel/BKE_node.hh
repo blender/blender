@@ -107,7 +107,7 @@ struct bNodeSocketTemplate {
   float min, max;
   /** Would use PropertySubType but this is a bad level include to use RNA. */
   int subtype;
-  int flag;
+  eNodeSocketFlag flag;
 
   /* After this line is used internal only. */
 
@@ -256,7 +256,8 @@ struct bNodeType {
 
   float width = 0.0f, minwidth = 0.0f, maxwidth = 0.0f;
   float height = 0.0f, minheight = 0.0f, maxheight = 0.0f;
-  short nclass = 0, flag = 0;
+  short nclass = 0;
+  eNode_Flag flag = {};
 
   /* templates for static sockets */
   bNodeSocketTemplate *inputs = nullptr, *outputs = nullptr;
@@ -500,8 +501,8 @@ enum class NodeColorTag {
 using bNodeClassCallback = void (*)(void *calldata, int nclass, StringRefNull name);
 
 struct bNodeTreeType {
-  int type = 0;   /* type identifier */
-  UString idname; /* identifier name */
+  eNodeTree_Type type = {}; /* type identifier */
+  UString idname;           /* identifier name */
 
   /* The ID name of group nodes for this type. */
   UString group_idname;
@@ -671,10 +672,10 @@ std::optional<StringRefNull> node_static_socket_label(int type, int subtype);
 
 Span<bNodeSocketType *> node_socket_types_get();
 
-bNodeSocket *node_find_socket(bNode &node, eNodeSocketInOut in_out, StringRef identifier);
+bNodeSocket *node_find_socket(bNode &node, eNodeSocketInOut in_out, UString identifier);
 const bNodeSocket *node_find_socket(const bNode &node,
                                     eNodeSocketInOut in_out,
-                                    StringRef identifier);
+                                    UString identifier);
 bNodeSocket *node_add_socket(bNodeTree &ntree,
                              bNode &node,
                              eNodeSocketInOut in_out,
@@ -940,7 +941,7 @@ void node_tree_update_all_new(Main &main);
 IDProperty *node_create_asset_meta_data_properties(const bNodeTree &node_tree);
 void node_update_asset_metadata(bNodeTree &node_tree);
 
-void node_tree_node_flag_set(bNodeTree &ntree, int flag, bool enable);
+void node_tree_node_flag_set(bNodeTree &ntree, eNode_Flag flag, bool enable);
 
 /**
  * \note `ntree` itself has been read!

@@ -96,10 +96,10 @@ void ensure_surface_deformation_node_exists(bContext &C, Object &curves_ob)
                      *group_input,
                      *static_cast<bNodeSocket *>(group_input->outputs.first),
                      *deform_node,
-                     *bke::node_find_socket(*deform_node, SOCK_IN, "Curves"));
+                     *bke::node_find_socket(*deform_node, SOCK_IN, "Curves"_ustr));
   bke::node_add_link(*ntree,
                      *deform_node,
-                     *bke::node_find_socket(*deform_node, SOCK_OUT, "Curves"),
+                     *bke::node_find_socket(*deform_node, SOCK_OUT, "Curves"_ustr),
                      *group_output,
                      *static_cast<bNodeSocket *>(group_output->inputs.first));
 

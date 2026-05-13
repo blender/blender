@@ -8,6 +8,7 @@
 
 #  include "DNA_volume_types.h"
 
+#  include "BKE_gtest_base.hh"
 #  include "BKE_idtype.hh"
 #  include "BKE_lib_id.hh"
 #  include "BKE_main.hh"
@@ -16,16 +17,9 @@
 
 namespace blender::bke::tests {
 
-class VolumeTest : public ::testing::Test {
+class VolumeTest : public BlenderGTestBase {
  public:
   Main *bmain;
-
-  static void SetUpTestSuite()
-  {
-    BKE_idtype_init();
-  }
-
-  static void TearDownTestSuite() {}
 
   void SetUp() override
   {

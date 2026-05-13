@@ -2,21 +2,27 @@
 #
 # SPDX-License-Identifier: GPL-2.0-or-later
 
+set(WAYLAND_PROTOCOLS_PKG_ENV "PKG_CONFIG_PATH=${LIBDIR}/wayland/lib64/pkgconfig:$PKG_CONFIG_PATH")
+
+set(WAYLAND_PROTOCOLS_EXTRA_OPTIONS
+  -Dtests=false
+)
+
 ExternalProject_Add(external_wayland_protocols
   URL file://${PACKAGE_DIR}/${WL_PROTOCOLS_FILE}
   DOWNLOAD_DIR ${DOWNLOAD_DIR}
   URL_HASH ${WL_PROTOCOLS_HASH_TYPE}=${WL_PROTOCOLS_HASH}
   PREFIX ${BUILD_DIR}/wayland-protocols
-  # Use `-E` so the `PKG_CONFIG_PATH` can be defined to link against our own WAYLAND.
 
-  CONFIGURE_COMMAND ${CMAKE_COMMAND} -E
-    env PKG_CONFIG_PATH=${LIBDIR}/wayland/lib64/pkgconfig:$PKG_CONFIG_PATH
-    ${MESON}
+  # Use `-E` so the `PKG_CONFIG_PATH` can be defined to link against our own WAYLAND.
+  CONFIGURE_COMMAND ${CONFIGURE_ENV} &&
+    ${CMAKE_COMMAND} -E env ${WAYLAND_PROTOCOLS_PKG_ENV}
+    ${MESON} setup
       --prefix ${LIBDIR}/wayland-protocols
       ${MESON_BUILD_TYPE}
+      ${WAYLAND_PROTOCOLS_EXTRA_OPTIONS}
       .
       ../external_wayland_protocols
-      -Dtests=false
 
   BUILD_COMMAND ninja
   INSTALL_COMMAND ninja install

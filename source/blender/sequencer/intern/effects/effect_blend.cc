@@ -337,7 +337,7 @@ static ImBuf *do_blend_mode_effect(const RenderData *context,
   ImBuf *dst = prepare_effect_imbufs(context, src1, src2);
   BlendModeEffectOp op;
   op.factor = fac;
-  op.blend_mode = StripBlendMode(strip->blend_mode);
+  op.blend_mode = strip->blend_mode;
   apply_effect_op(op, src1, src2, dst);
   return dst;
 }
@@ -372,7 +372,7 @@ static ImBuf *do_colormix_effect(const RenderData *context,
   ImBuf *dst = prepare_effect_imbufs(context, src1, src2);
   const ColorMixVars *data = static_cast<const ColorMixVars *>(strip->effectdata);
   BlendModeEffectOp op;
-  op.blend_mode = StripBlendMode(data->blend_effect);
+  op.blend_mode = data->blend_effect;
   op.factor = data->factor;
   apply_effect_op(op, src1, src2, dst);
   return dst;

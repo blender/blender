@@ -22,12 +22,6 @@
 /** \name Sampler Types
  * \{ */
 
-/* MSL component compatibility. */
-#define gatherComp0 0
-#define gatherComp1 1
-#define gatherComp2 2
-#define gatherComp3 3
-
 template<typename T,
          int Dimensions,
          bool Cube = false,
@@ -114,6 +108,7 @@ int4 texelFetch(isamplerBuffer, int) RET;
 uint4 texelFetch(usamplerBuffer, int) RET;
 
 float4 texelFetchExtend(sampler2D /*samp*/, int2 /*texel*/, int /*lvl*/) RET;
+float4 texelFetchExtend(sampler2DDepth /*samp*/, int2 /*texel*/, int /*lvl*/) RET;
 
 /** \} */
 

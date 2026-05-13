@@ -451,6 +451,8 @@ void mesh_ensure_default_uv_attribute_on_add(Mesh &mesh,
 
 /** Make sure that if there are any uv maps, the active one is set. */
 void mesh_ensure_active_uv_map(Mesh &mesh);
+/** Make sure that if there are any uv maps, the default one is set. */
+void mesh_ensure_default_uv_map(Mesh &mesh);
 
 void mesh_data_update(Depsgraph &depsgraph,
                       const Scene &scene,

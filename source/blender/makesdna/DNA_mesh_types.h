@@ -13,6 +13,8 @@
 #include "DNA_customdata_types.h"
 #include "DNA_defs.h"
 
+#include "BLI_enum_flags.hh"
+
 #include <optional>
 
 #include "BLI_index_mask_fwd.hh"
@@ -49,13 +51,14 @@ struct MEdge;
 struct MFace;
 
 /** #Mesh.texspace_flag */
-enum {
+enum eMesh_TexSpaceFlag : char {
   ME_TEXSPACE_FLAG_AUTO = 1 << 0,
   ME_TEXSPACE_FLAG_AUTO_EVALUATED = 1 << 1,
 };
+ENUM_OPERATORS(eMesh_TexSpaceFlag)
 
 /** #Mesh.editflag */
-enum {
+enum eMesh_EditFlag : char {
   ME_EDIT_MIRROR_VERTEX_GROUPS = 1 << 0,
   ME_EDIT_MIRROR_Y = 1 << 1, /* unused so far */
   ME_EDIT_MIRROR_Z = 1 << 2, /* unused so far */
@@ -64,6 +67,7 @@ enum {
   ME_EDIT_MIRROR_TOPO = 1 << 4,
   ME_EDIT_PAINT_VERT_SEL = 1 << 5,
 };
+ENUM_OPERATORS(eMesh_EditFlag)
 
 /* Helper macro to see if vertex group X mirror is on. */
 #define ME_USING_MIRROR_X_VERTEX_GROUPS(_me) \
@@ -77,7 +81,7 @@ enum {
                                                 0)
 
 /** #Mesh.flag */
-enum {
+enum eMesh_Flag : uint16_t {
   ME_FLAG_UNUSED_0 = 1 << 0,     /* cleared */
   ME_FLAG_UNUSED_1 = 1 << 1,     /* cleared */
   ME_FLAG_DEPRECATED_2 = 1 << 2, /* deprecated */
@@ -104,35 +108,38 @@ enum {
   ME_REMESH_REPROJECT_VOLUME = 1 << 14,
   ME_FLAG_UNUSED_9 = 1 << 15, /* deprecated */
 };
+ENUM_OPERATORS(eMesh_Flag)
 
 #ifdef DNA_DEPRECATED_ALLOW
 /** #Mesh.cd_flag */
-enum {
+enum eMesh_CDFlag : char {
   ME_CDFLAG_VERT_BWEIGHT = 1 << 0,
   ME_CDFLAG_EDGE_BWEIGHT = 1 << 1,
   ME_CDFLAG_EDGE_CREASE = 1 << 2,
   ME_CDFLAG_VERT_CREASE = 1 << 3,
 };
+ENUM_OPERATORS(eMesh_CDFlag)
 #endif
 
 /** #Mesh.remesh_mode */
-enum {
+enum eMesh_RemeshMode : char {
   REMESH_VOXEL = 0,
   REMESH_QUAD = 1,
 };
 
 /** #SubsurfModifierData.subdivType */
-enum MeshSubdivType {
+enum MeshSubdivType : int {
   ME_CC_SUBSURF = 0,
   ME_SIMPLE_SUBSURF = 1,
 };
 
 /** #Mesh.symmetry */
-enum eMeshSymmetryType {
+enum eMeshSymmetryType : char {
   ME_SYMMETRY_X = 1 << 0,
   ME_SYMMETRY_Y = 1 << 1,
   ME_SYMMETRY_Z = 1 << 2,
 };
+ENUM_OPERATORS(eMeshSymmetryType)
 
 struct Mesh {
 #ifdef __cplusplus
@@ -234,9 +241,9 @@ struct Mesh {
   char texspace_flag = ME_TEXSPACE_FLAG_AUTO;
 
   /** Various flags used when editing the mesh. */
-  char editflag = ME_EDIT_MIRROR_VERTEX_GROUPS;
+  eMesh_EditFlag editflag = ME_EDIT_MIRROR_VERTEX_GROUPS;
   /** Mostly more flags used when editing or displaying the mesh. */
-  uint16_t flag = ME_REMESH_REPROJECT_VOLUME | ME_REMESH_REPROJECT_ATTRIBUTES;
+  eMesh_Flag flag = ME_REMESH_REPROJECT_VOLUME | ME_REMESH_REPROJECT_ATTRIBUTES;
 
   DNA_DEPRECATED float smoothresh_legacy = 0;
 
@@ -272,13 +279,13 @@ struct Mesh {
   char *clone_uv_map_attribute = nullptr;
 
   /**
-   * User-defined symmetry flag (#eMeshSymmetryType) that causes editing operations to maintain
+   * User-defined symmetry flag that causes editing operations to maintain
    * symmetrical geometry. Supported by operations such as transform and weight-painting.
    */
-  char symmetry = 0;
+  eMeshSymmetryType symmetry = {};
 
   /** Choice between different remesh methods in the UI. */
-  char remesh_mode = 0;
+  eMesh_RemeshMode remesh_mode = REMESH_VOXEL;
 
   /** The length of the #mat array. */
   short totcol = 0;

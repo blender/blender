@@ -82,6 +82,12 @@ ImBuf *MOV_decode_frame(MovieReader *anim,
 ImBuf *MOV_decode_preview_frame(MovieReader *anim);
 
 /**
+ * Returns the number of video streams in the movie file backing `anim`.
+ * Returns 0 if the file cannot be opened or contains no video streams.
+ */
+int MOV_get_video_stream_count(MovieReader *anim);
+
+/**
  * Return the length (in frames) of the movie.
  */
 int MOV_get_duration_frames(MovieReader *anim, IMB_Timecode_Type tc);
@@ -133,15 +139,14 @@ void MOV_get_filename(const MovieReader *anim, char *filename, int filename_maxn
  */
 IDProperty *MOV_load_metadata(MovieReader *anim);
 
-/*-------------------------------------------------------------------- */
-/*
- * Movie proxy / timecode index related functionality.
- */
-
 /**
  * Sets multi-view suffix to be used when building proxies for this movie.
  */
 void MOV_set_multiview_suffix(MovieReader *anim, const char *suffix);
+
+/* -------------------------------------------------------------------- */
+/** \name Movie proxy / time-code index related functionality
+ * \{ */
 
 /**
  * Close any internally opened proxies of this movie.
@@ -199,5 +204,7 @@ void MOV_proxy_builder_process(MovieProxyBuilder *context,
  * Finish building proxies / time-codes indices, and delete the builder.
  */
 void MOV_proxy_builder_finish(MovieProxyBuilder *context, bool stop);
+
+/** \} */
 
 }  // namespace blender

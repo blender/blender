@@ -256,7 +256,7 @@ static Object *rna_Main_objects_new(Main *bmain, ReportList *reports, const char
     id_us_plus(data);
   }
 
-  ob = BKE_object_add_only_object(bmain, type, safe_name);
+  ob = BKE_object_add_only_object(bmain, ObjectType(type), safe_name);
 
   ob->data = data;
   BKE_object_materials_sync_length(bmain, ob, ob->data);
@@ -368,7 +368,7 @@ static Light *rna_Main_lights_new(Main *bmain, const char *name, int type)
   rna_idname_validate(name, safe_name);
 
   Light *lamp = BKE_light_add(bmain, safe_name);
-  lamp->type = type;
+  lamp->type = eLightType(type);
   id_us_min(&lamp->id);
 
   WM_main_add_notifier(NC_ID | NA_ADDED, nullptr);
@@ -455,7 +455,7 @@ static Curve *rna_Main_curves_new(Main *bmain, const char *name, int type)
   char safe_name[MAX_ID_NAME - 2];
   rna_idname_validate(name, safe_name);
 
-  Curve *cu = BKE_curve_add(bmain, safe_name, type);
+  Curve *cu = BKE_curve_add(bmain, safe_name, ObjectType(type));
   id_us_min(&cu->id);
 
   WM_main_add_notifier(NC_ID | NA_ADDED, nullptr);
@@ -510,7 +510,7 @@ static Tex *rna_Main_textures_new(Main *bmain, const char *name, int type)
   rna_idname_validate(name, safe_name);
 
   Tex *tex = BKE_texture_add(bmain, safe_name);
-  BKE_texture_type_set(tex, type);
+  BKE_texture_type_set(tex, eTex_Type(type));
   id_us_min(&tex->id);
 
   WM_main_add_notifier(NC_ID | NA_ADDED, nullptr);
@@ -751,7 +751,7 @@ static LightProbe *rna_Main_lightprobe_new(Main *bmain, const char *name, int ty
 
   LightProbe *probe = BKE_lightprobe_add(bmain, safe_name);
 
-  BKE_lightprobe_type_set(probe, type);
+  BKE_lightprobe_type_set(probe, eLightProbeType(type));
 
   id_us_min(&probe->id);
 

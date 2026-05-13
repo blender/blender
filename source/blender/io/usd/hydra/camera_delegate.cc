@@ -25,6 +25,8 @@ static pxr::VtValue vt_value(const IDProperty *prop)
       return pxr::VtValue{IDP_double_get(prop)};
     case IDP_BOOLEAN:
       return pxr::VtValue{bool(IDP_bool_get(prop))};
+    default:
+      break;
   }
   return pxr::VtValue{};
 }

@@ -678,7 +678,7 @@ void BKE_brush_init_gpencil_settings(Brush *brush)
   }
 
   brush->gpencil_settings->draw_smoothlvl = 1;
-  brush->gpencil_settings->flag = 0;
+  brush->gpencil_settings->flag = eGPDbrush_Flag{};
   brush->gpencil_settings->flag |= GP_BRUSH_USE_PRESSURE;
   brush->gpencil_settings->draw_strength = 1.0f;
   brush->gpencil_settings->draw_jitter = 0.0f;
@@ -1294,8 +1294,8 @@ bool BKE_brush_use_locked_size(const Paint *paint, const Brush *brush)
 {
   const short us_flag = paint->unified_paint_settings.flag;
 
-  return (us_flag & UNIFIED_PAINT_SIZE) ? (us_flag & UNIFIED_PAINT_BRUSH_LOCK_SIZE) :
-                                          (brush->flag & BRUSH_LOCK_SIZE);
+  return (us_flag & UNIFIED_PAINT_SIZE) ? (us_flag & UNIFIED_PAINT_BRUSH_LOCK_SIZE) != 0 :
+                                          (brush->flag & BRUSH_LOCK_SIZE) != 0;
 }
 
 bool BKE_brush_use_size_pressure(const Brush *brush)
@@ -1709,7 +1709,7 @@ ImBuf *BKE_brush_gen_radial_control_imbuf(Brush *br, bool secondary, bool displa
 
   BKE_curvemapping_init(br->curve_distance_falloff);
 
-  ImBuf *im = IMB_allocImBuf(side, side, 32, IB_float_data);
+  ImBuf *im = IMB_allocImBuf(side, side, IB_float_data);
 
   const bool have_texture = brush_gen_texture(br, side, secondary, im->float_data_for_write());
 

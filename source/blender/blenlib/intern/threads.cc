@@ -95,7 +95,6 @@ static pthread_mutex_t _viewer_lock = PTHREAD_MUTEX_INITIALIZER;
 static pthread_mutex_t _custom1_lock = PTHREAD_MUTEX_INITIALIZER;
 static pthread_mutex_t _nodes_lock = PTHREAD_MUTEX_INITIALIZER;
 static pthread_mutex_t _movieclip_lock = PTHREAD_MUTEX_INITIALIZER;
-static pthread_mutex_t _colormanage_lock = PTHREAD_MUTEX_INITIALIZER;
 static pthread_mutex_t _fftw_lock = PTHREAD_MUTEX_INITIALIZER;
 static pthread_mutex_t _view3d_lock = PTHREAD_MUTEX_INITIALIZER;
 static pthread_t mainid;
@@ -315,8 +314,6 @@ static ThreadMutex *global_mutex_from_type(const int type)
       return &_nodes_lock;
     case LOCK_MOVIECLIP:
       return &_movieclip_lock;
-    case LOCK_COLORMANAGE:
-      return &_colormanage_lock;
     case LOCK_FFTW:
       return &_fftw_lock;
     case LOCK_VIEW3D:

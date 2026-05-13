@@ -233,7 +233,7 @@ static int hipewHipInit(void) {
   /* Library paths. */
 #ifdef _WIN32
   /* Expected in C:/Windows/System32 or similar, no path needed. */
-  const char *hip_paths[] = { "amdhip64_6.dll", "amdhip64_7.dll", NULL};
+  const char *hip_paths[] = { "amdhip64_7.dll", "amdhip64_6.dll", NULL};
 #elif defined(__APPLE__)
   /* Default installation path. */
   const char *hip_paths[] = {"", NULL};
@@ -242,12 +242,12 @@ static int hipewHipInit(void) {
    * search for libraries there. */
 
   const char* hip_paths[] = { "libamdhip64.so",
-                            "libamdhip64.so.6",
-                            "/opt/rocm/lib/libamdhip64.so.6",
-                            "/opt/rocm/hip/lib/libamdhip64.so.6",
                             "libamdhip64.so.7",
                             "/opt/rocm/lib/libamdhip64.so.7",
                             "/opt/rocm/hip/lib/libamdhip64.so.7",
+                            "libamdhip64.so.6",
+                            "/opt/rocm/lib/libamdhip64.so.6",
+                            "/opt/rocm/hip/lib/libamdhip64.so.6",
                              NULL };
 #endif
   static int initialized = 0;

@@ -148,7 +148,7 @@ static void sclip_zoom_set_factor_exec(bContext *C, const wmEvent *event, float 
     mpos = location;
   }
 
-  sclip_zoom_set_factor(C, factor, mpos, mpos ? (U.uiflag & USER_ZOOM_TO_MOUSEPOS) : false);
+  sclip_zoom_set_factor(C, factor, mpos, mpos ? (U.uiflag & USER_ZOOM_TO_MOUSEPOS) != 0 : false);
 
   ED_region_tag_redraw(region);
 }
@@ -1596,7 +1596,7 @@ void CLIP_OT_rebuild_proxy(wmOperatorType *ot)
 static wmOperatorStatus mode_set_exec(bContext *C, wmOperator *op)
 {
   SpaceClip *sc = CTX_wm_space_clip(C);
-  int mode = RNA_enum_get(op->ptr, "mode");
+  const eSpaceClip_Mode mode = eSpaceClip_Mode(RNA_enum_get(op->ptr, "mode"));
 
   sc->mode = mode;
 

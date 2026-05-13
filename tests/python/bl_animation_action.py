@@ -910,9 +910,8 @@ def main():
         "--output-dir",
         dest="output_dir",
         type=pathlib.Path,
-        default=pathlib.Path("."),
         help="Where to output temp saved blendfiles",
-        required=False,
+        required=True,
     )
 
     args, remaining = parser.parse_known_args(argv)

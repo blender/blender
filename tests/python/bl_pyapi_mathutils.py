@@ -69,6 +69,157 @@ def _test_flat_buffer_protocol(self, ty, n):
         view[0] = 1
 
 
+class GenericSliceMixIn:
+    """
+    Slice get/set tests parameterized by ``generic_len``
+    (the length of the slice-target sequence).
+    Sub-classes must:
+    - Set ``generic_len``.
+    - Implement ``generic_make(values)`` returning a fresh instance whose
+      contents equal ``values``. Required because some types (e.g. ``MatrixAccess``) can't be constructed by type.
+    - Inherit ``unittest.TestCase``.
+    """
+    generic_len = 0
+
+    def generic_make(self, values):
+        raise NotImplementedError
+
+    def test_slice_get(self):
+        base = tuple(float(i + 1) for i in range(self.generic_len))
+        obj = self.generic_make(base)
+        self.assertIsInstance(obj[:], tuple)
+        # Step 1.
+        self.assertEqual(obj[:], base)
+        self.assertEqual(obj[1:], base[1:])
+        self.assertEqual(obj[:-1], base[:-1])
+        self.assertEqual(obj[-1:], base[-1:])
+        self.assertEqual(obj[1:1], ())
+        # Stepped.
+        self.assertEqual(obj[::2], base[::2])
+        self.assertEqual(obj[::-1], base[::-1])
+        self.assertEqual(obj[::-2], base[::-2])
+        self.assertEqual(obj[1:1:-1], ())
+
+    def test_slice_set(self):
+        base = tuple(float(i + 1) for i in range(self.generic_len))
+        # Forward full overwrite (fast path).
+        obj = self.generic_make(base)
+        new_full = tuple(10.0 * (i + 1) for i in range(self.generic_len))
+        obj[:] = new_full
+        self.assertEqual(tuple(obj), new_full)
+        # Reverse full overwrite (fast path).
+        obj[::-1] = base
+        self.assertEqual(tuple(obj), base[::-1])
+        # Partial step-1 (slow path).
+        obj = self.generic_make(base)
+        new_tail = tuple(50.0 * (i + 1) for i in range(self.generic_len - 1))
+        obj[1:] = new_tail
+        self.assertEqual(tuple(obj), (base[0],) + new_tail)
+        # Stepped partial (slow path).
+        obj = self.generic_make(base)
+        every_other = base[::2]
+        new_every_other = tuple(99.0 + i for i in range(len(every_other)))
+        obj[::2] = new_every_other
+        expected = list(base)
+        for i, v in zip(range(0, self.generic_len, 2), new_every_other):
+            expected[i] = v
+        self.assertEqual(tuple(obj), tuple(expected))
+        # Empty extended slice with empty seq is a no-op.
+        obj = self.generic_make(base)
+        obj[5:2:1] = ()
+        self.assertEqual(tuple(obj), base)
+
+    def test_slice_set_length_mismatch(self):
+        base = tuple(float(i + 1) for i in range(self.generic_len))
+        obj = self.generic_make(base)
+        with self.assertRaises(ValueError):
+            obj[:] = base[:-1]
+        with self.assertRaises(ValueError):
+            obj[::2] = base
+        with self.assertRaises(ValueError):
+            obj[5:2:1] = (1.0,)
+        self.assertEqual(tuple(obj), base)
+
+    def test_slice_set_frozen(self):
+        base = tuple(float(i + 1) for i in range(self.generic_len))
+        obj = self.generic_make(base)
+        obj.freeze()
+        # Fast path (full overwrite, frozen check only).
+        with self.assertRaises(TypeError):
+            obj[:] = base
+        # Slow path (partial, frozen check inside `ReadCallback_ForWrite`).
+        with self.assertRaises(TypeError):
+            obj[::2] = base[::2]
+        self.assertEqual(tuple(obj), base)
+
+    def test_slice_set_self_aliased_reverse(self):
+        # `obj[::-1] = obj` must reverse in place. Exercises the parse-through-seq
+        # sync path that silently undoes the `is_subset=false` fast-path skip.
+        base = tuple(float(i + 1) for i in range(self.generic_len))
+        obj = self.generic_make(base)
+        obj[::-1] = obj
+        self.assertEqual(tuple(obj), base[::-1])
+
+    def test_slice_set_self_aliased_full(self):
+        # `obj[:] = obj` writes original values back; effectively a no-op.
+        base = tuple(float(i + 1) for i in range(self.generic_len))
+        obj = self.generic_make(base)
+        obj[:] = obj
+        self.assertEqual(tuple(obj), base)
+
+    def test_slice_set_type_error_atomic(self):
+        # A bad element in seq must raise TypeError without partially mutating the object.
+        # Catches a future "optimization" that drops atomicity.
+        base = tuple(float(i + 1) for i in range(self.generic_len))
+        obj = self.generic_make(base)
+        # `obj[-2:]` is `slice_length=2` for any `generic_len >= 2`,
+        # so the parse failure is uniformly on the bad element rather
+        # than depending on whether a length-mismatch check fires first.
+        with self.assertRaises(TypeError):
+            obj[-2:] = [99.0, "not_a_float"]
+        self.assertEqual(tuple(obj), base)
+
+    def test_slice_set_identity_preserved(self):
+        # In-place slice assignment must not replace the underlying object.
+        base = tuple(float(i + 1) for i in range(self.generic_len))
+        obj = self.generic_make(base)
+        original_id = id(obj)
+        obj[:] = base
+        self.assertEqual(id(obj), original_id)
+        obj[::2] = base[::2]
+        self.assertEqual(id(obj), original_id)
+
+    def test_slice_set_seq_longer_than_slice(self):
+        # Assigning a sequence longer than the slice must raise ValueError,
+        # not silently truncate to the slice length.
+        base = tuple(float(i + 1) for i in range(self.generic_len))
+        obj = self.generic_make(base)
+        # `obj[0:1]` is a 1-length slice; pass 2 elements.
+        with self.assertRaises(ValueError):
+            obj[0:1] = [99.0, 98.0]
+        self.assertEqual(tuple(obj), base)
+
+    def test_slice_set_nonempty_seq_into_empty_slice(self):
+        # Assigning a non-empty sequence to an empty slice must raise ValueError,
+        # not silently no-op.
+        base = tuple(float(i + 1) for i in range(self.generic_len))
+        obj = self.generic_make(base)
+        with self.assertRaises(ValueError):
+            obj[1:1] = [99.0]
+        self.assertEqual(tuple(obj), base)
+
+    def test_slice_set_empty_slice_empty_seq(self):
+        # Empty slice with an empty sequence is a no-op.
+        base = tuple(float(i + 1) for i in range(self.generic_len))
+        obj = self.generic_make(base)
+        obj[0:0] = ()
+        self.assertEqual(tuple(obj), base)
+        obj[1:1] = ()
+        self.assertEqual(tuple(obj), base)
+        obj[-1:-1] = ()
+        self.assertEqual(tuple(obj), base)
+
+
 class MatrixTesting(unittest.TestCase):
 
     def assertAlmostEqualMatrix(self, first, second, size, *, places=6, msg=None, delta=None):
@@ -299,6 +450,19 @@ class MatrixTesting(unittest.TestCase):
         with self.assertRaises(TypeError):
             mat[0][0] = 0.0
 
+    def test_matrix_freeze_iter(self):
+        rows = (
+            (1.0, 2.0, 3.0),
+            (4.0, 5.0, 6.0),
+            (7.0, 8.0, 9.0),
+        )
+        cols = tuple(zip(*rows))
+        mat = Matrix(rows)
+        mat.freeze()
+        self.assertEqual(tuple(tuple(v) for v in mat), rows)
+        self.assertEqual(tuple(tuple(v) for v in mat.row), rows)
+        self.assertEqual(tuple(tuple(v) for v in mat.col), cols)
+
     def test_buffer_protocol(self):
         expected = [list(range(i * 4, (i * 4) + 4)) for i in range(4)]
         m = Matrix(expected)
@@ -307,6 +471,188 @@ class MatrixTesting(unittest.TestCase):
         self.assertEqual(view.shape, (4, 4))
         self.assertEqual(view.format, "f")
         self.assertEqual(view.tolist(), expected)
+
+
+class MatrixSliceMixIn:
+    """
+    Slice get/set tests for the ``Matrix`` row sequence.
+    Items are row ``Vector`` of length ``matrix_size``.
+
+    ``matrix_access_attr`` selects which sequence is being sliced:
+    ``""`` for the matrix itself (``mat[i:j]``), or ``"row"`` / ``"col"``
+    for the ``MatrixAccess`` wrappers (``mat.row[i:j]`` / ``mat.col[i:j]``).
+    """
+    matrix_size = 0
+    matrix_access_attr = ""
+
+    def _make_value(self, seed):
+        """
+        A distinct ``Vector`` value for the given integer seed.
+        """
+        return Vector(tuple(float(seed * 100 + j) for j in range(self.matrix_size)))
+
+    def _make_obj(self, values):
+        """
+        Build a `Matrix` whose rows or columns equal ``values``,
+        and return ``(mat, accessor)`` where ``accessor`` is the
+        sequence being sliced (the matrix itself, or ``mat.row`` / ``mat.col``).
+        """
+        n = self.matrix_size
+        if self.matrix_access_attr == "col":
+            rows = tuple(
+                tuple(values[c][r] for c in range(n))
+                for r in range(n)
+            )
+        else:
+            assert self.matrix_access_attr in {"", "row"}
+            rows = tuple(tuple(v) for v in values)
+        mat = Matrix(rows)
+        accessor = mat if self.matrix_access_attr == "" else getattr(mat, self.matrix_access_attr)
+        return mat, accessor
+
+    def test_slice_set_type_error_atomic(self):
+        # A non-sequence element must raise TypeError without mutating the matrix.
+        # `99.0` isn't a row/col-sequence so the parse fails on it.
+        n = self.matrix_size
+        base = tuple(self._make_value(i + 1) for i in range(n))
+        _mat, obj = self._make_obj(base)
+        # `obj[-2:]` is `slice_length=2` for any `generic_len >= 2`,
+        # so the parse failure is uniformly on the bad element rather
+        # than depending on whether a length-mismatch check fires first.
+        with self.assertRaises(TypeError):
+            obj[-2:] = [99.0, "not_a_float"]
+        self.assertEqual(tuple(obj), base)
+
+    def test_slice_get(self):
+        n = self.matrix_size
+        base = tuple(self._make_value(i + 1) for i in range(n))
+        _mat, obj = self._make_obj(base)
+        self.assertIsInstance(obj[:], tuple)
+        # Step 1.
+        self.assertEqual(obj[:], base)
+        self.assertEqual(obj[1:], base[1:])
+        self.assertEqual(obj[:-1], base[:-1])
+        self.assertEqual(obj[-1:], base[-1:])
+        self.assertEqual(obj[1:1], ())
+        # Stepped.
+        self.assertEqual(obj[::2], base[::2])
+        self.assertEqual(obj[::-1], base[::-1])
+        self.assertEqual(obj[::-2], base[::-2])
+        self.assertEqual(obj[1:1:-1], ())
+
+    def test_slice_set(self):
+        n = self.matrix_size
+        base = tuple(self._make_value(i + 1) for i in range(n))
+        # Forward full overwrite (fast path).
+        _mat, obj = self._make_obj(base)
+        new_full = tuple(self._make_value(10 * (i + 1)) for i in range(n))
+        obj[:] = new_full
+        self.assertEqual(tuple(obj), new_full)
+        # Reverse full overwrite (fast path).
+        obj[::-1] = base
+        self.assertEqual(tuple(obj), base[::-1])
+        # Partial step-1 (slow path).
+        _mat, obj = self._make_obj(base)
+        new_tail = tuple(self._make_value(50 * (i + 1)) for i in range(n - 1))
+        obj[1:] = new_tail
+        self.assertEqual(tuple(obj), (base[0],) + new_tail)
+        # Stepped partial (slow path).
+        _mat, obj = self._make_obj(base)
+        every_other = base[::2]
+        new_every_other = tuple(self._make_value(99 + i) for i in range(len(every_other)))
+        obj[::2] = new_every_other
+        expected = list(base)
+        for i, v in zip(range(0, n, 2), new_every_other):
+            expected[i] = v
+        self.assertEqual(tuple(obj), tuple(expected))
+        # Empty extended slice with empty seq is a no-op.
+        _mat, obj = self._make_obj(base)
+        obj[5:2:1] = ()
+        self.assertEqual(tuple(obj), base)
+
+    def test_slice_set_length_mismatch(self):
+        n = self.matrix_size
+        base = tuple(self._make_value(i + 1) for i in range(n))
+        _mat, obj = self._make_obj(base)
+        with self.assertRaises(ValueError):
+            obj[:] = base[:-1]
+        with self.assertRaises(ValueError):
+            obj[::2] = base
+        with self.assertRaises(ValueError):
+            obj[5:2:1] = (self._make_value(1),)
+        self.assertEqual(tuple(obj), base)
+
+    def test_slice_set_frozen(self):
+        n = self.matrix_size
+        base = tuple(self._make_value(i + 1) for i in range(n))
+        mat, obj = self._make_obj(base)
+        # `MatrixAccess` has no `freeze()`; freezing the matrix is enough either way.
+        mat.freeze()
+        # Fast path (full overwrite, frozen check only).
+        with self.assertRaises(TypeError):
+            obj[:] = base
+        # Slow path (partial, frozen check inside ReadCallback_ForWrite).
+        with self.assertRaises(TypeError):
+            obj[::2] = base[::2]
+        self.assertEqual(tuple(obj), base)
+
+    def test_slice_set_self_aliased_reverse(self):
+        # `obj[::-1] = obj` reverses rows/cols in place.
+        # Atomicity comes from staging all parsed rows/cols before assigning.
+        n = self.matrix_size
+        base = tuple(self._make_value(i + 1) for i in range(n))
+        _mat, obj = self._make_obj(base)
+        obj[::-1] = obj
+        self.assertEqual(tuple(obj), base[::-1])
+
+    def test_slice_set_self_aliased_full(self):
+        # `obj[:] = obj` writes original values back; effectively a no-op.
+        n = self.matrix_size
+        base = tuple(self._make_value(i + 1) for i in range(n))
+        _mat, obj = self._make_obj(base)
+        obj[:] = obj
+        self.assertEqual(tuple(obj), base)
+
+    def test_slice_set_identity_preserved(self):
+        # Slice assignment must not replace the matrix or its `MatrixAccess` wrapper.
+        n = self.matrix_size
+        base = tuple(self._make_value(i + 1) for i in range(n))
+        _mat, obj = self._make_obj(base)
+        original_id = id(obj)
+        obj[:] = base
+        self.assertEqual(id(obj), original_id)
+        obj[::2] = base[::2]
+        self.assertEqual(id(obj), original_id)
+
+
+class Matrix3x3TestingSlice(MatrixSliceMixIn, unittest.TestCase):
+    matrix_size = 3
+    matrix_access_attr = ""
+
+
+class Matrix4x4TestingSlice(MatrixSliceMixIn, unittest.TestCase):
+    matrix_size = 4
+    matrix_access_attr = ""
+
+
+class MatrixAccess3x3RowTestingSlice(MatrixSliceMixIn, unittest.TestCase):
+    matrix_size = 3
+    matrix_access_attr = "row"
+
+
+class MatrixAccess3x3ColTestingSlice(MatrixSliceMixIn, unittest.TestCase):
+    matrix_size = 3
+    matrix_access_attr = "col"
+
+
+class MatrixAccess4x4RowTestingSlice(MatrixSliceMixIn, unittest.TestCase):
+    matrix_size = 4
+    matrix_access_attr = "row"
+
+
+class MatrixAccess4x4ColTestingSlice(MatrixSliceMixIn, unittest.TestCase):
+    matrix_size = 4
+    matrix_access_attr = "col"
 
 
 class VectorTesting(unittest.TestCase):
@@ -373,6 +719,34 @@ class VectorTesting(unittest.TestCase):
         _test_flat_buffer_protocol(self, Vector, 10)
 
 
+class VectorTestingSlice2(GenericSliceMixIn, unittest.TestCase):
+    generic_len = 2
+
+    def generic_make(self, values):
+        return Vector(values)
+
+
+class VectorTestingSlice3(GenericSliceMixIn, unittest.TestCase):
+    generic_len = 3
+
+    def generic_make(self, values):
+        return Vector(values)
+
+
+class VectorTestingSlice4(GenericSliceMixIn, unittest.TestCase):
+    generic_len = 4
+
+    def generic_make(self, values):
+        return Vector(values)
+
+
+class VectorTestingSlice10(GenericSliceMixIn, unittest.TestCase):
+    generic_len = 10
+
+    def generic_make(self, values):
+        return Vector(values)
+
+
 class QuaternionTesting(unittest.TestCase):
 
     def test_to_expmap(self):
@@ -405,16 +779,37 @@ class QuaternionTesting(unittest.TestCase):
         _test_flat_buffer_protocol(self, Quaternion, 4)
 
 
+class QuaternionTestingSlice(GenericSliceMixIn, unittest.TestCase):
+    generic_len = 4
+
+    def generic_make(self, values):
+        return Quaternion(values)
+
+
 class EulerTesting(unittest.TestCase):
 
     def test_buffer_protocol(self):
         _test_flat_buffer_protocol(self, Euler, 3)
 
 
+class EulerTestingSlice(GenericSliceMixIn, unittest.TestCase):
+    generic_len = 3
+
+    def generic_make(self, values):
+        return Euler(values)
+
+
 class ColorTesting(unittest.TestCase):
 
     def test_buffer_protocol(self):
         _test_flat_buffer_protocol(self, Color, 3)
+
+
+class ColorTestingSlice(GenericSliceMixIn, unittest.TestCase):
+    generic_len = 3
+
+    def generic_make(self, values):
+        return Color(values)
 
 
 # Test features of `mathutils` types.

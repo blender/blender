@@ -52,7 +52,7 @@ static wmOperatorStatus create_plane_track_tracks_exec(bContext *C, wmOperator *
 
   BKE_tracking_tracks_deselect_all(&tracking_object->tracks);
 
-  plane_track->flag |= SELECT;
+  plane_track->flag |= PLANE_TRACK_SELECT;
   tracking_object->active_track = nullptr;
   tracking_object->active_plane_track = plane_track;
 

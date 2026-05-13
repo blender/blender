@@ -965,6 +965,7 @@ static void sequencer_preview_region_listener(const wmRegionListenerParams *para
         case ND_SEQUENCER:
         case ND_SEQUENCER_PREFETCH:
         case ND_RENDER_OPTIONS:
+        case ND_RENDER_RESULT: /* Un-blank the preview after render. */
         case ND_DRAW_RENDER_VIEWPORT:
           ED_region_tag_redraw(region);
           break;

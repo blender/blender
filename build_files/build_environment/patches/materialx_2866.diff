@@ -1,0 +1,32 @@
+From b96760b242a946f619525b13d7d389ddb8922ca1 Mon Sep 17 00:00:00 2001
+From: Mark Final <mark.final@foundry.com>
+Date: Wed, 15 Apr 2026 10:03:03 +0100
+Subject: [PATCH] Fix crash on exit with a debug Python
+
+Under the hood (in both before and after code), this statement is adding the Exception instance as an attribute to the module.
+
+Other examples found using the pattern, suggesting the static variable scope was not needed:
+
+- py::register_exception<mx::ExceptionOrphanedElement>(mod, "ExceptionOrphanedElement");
+- py::register_exception<mx::ExceptionFoundCycle>(mod, "ExceptionFoundCycle");
+- py::register_exception<mx::ExceptionParseError>(mod, "ExceptionParseError");
+- py::register_exception<mx::ExceptionFileMissing>(mod, "ExceptionFileMissing");
+
+Fixes https://github.com/AcademySoftwareFoundation/MaterialX/issues/2749
+---
+ source/PyMaterialX/PyMaterialXCore/PyException.cpp | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/source/PyMaterialX/PyMaterialXCore/PyException.cpp b/source/PyMaterialX/PyMaterialXCore/PyException.cpp
+index 6f953ffc06..222bedd93a 100644
+--- a/source/PyMaterialX/PyMaterialXCore/PyException.cpp
++++ b/source/PyMaterialX/PyMaterialXCore/PyException.cpp
+@@ -12,7 +12,7 @@ namespace mx = MaterialX;
+ 
+ void bindPyException(py::module& mod)
+ {
+-    static py::exception<mx::Exception> pyException(mod, "Exception");
++    py::register_exception<mx::Exception>(mod, "Exception");
+ 
+     py::register_exception_translator(
+         [](std::exception_ptr errPtr)

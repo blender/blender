@@ -65,7 +65,7 @@ void SourceProcessor::lint_attributes(Parser &parser)
           attr_str == "vertex_id" || attr_str == "legacy_info" || attr_str == "vertex" ||
           attr_str == "viewport_index" || attr_str == "work_group_id" ||
           attr_str == "maybe_unused" || attr_str == "fallthrough" || attr_str == "nodiscard" ||
-          attr_str == "node")
+          attr_str == "node" || attr_str == "clip_control" || attr_str == "texture_atomic")
       {
         if (attr_scope.is_valid()) {
           report_error(attr, "This attribute requires no argument");
@@ -74,8 +74,8 @@ void SourceProcessor::lint_attributes(Parser &parser)
       }
       else if (attr_str == "attribute" || attr_str == "index" || attr_str == "frag_color" ||
                attr_str == "frag_depth" || attr_str == "uniform" || attr_str == "condition" ||
-               attr_str == "frequency" || attr_str == "sampler" ||
-               attr_str == "specialization_constant")
+               attr_str == "raster_order_group" || attr_str == "frequency" ||
+               attr_str == "sampler" || attr_str == "specialization_constant")
       {
         if (attr_scope.is_invalid()) {
           report_error(attr, "This attribute requires 1 argument");

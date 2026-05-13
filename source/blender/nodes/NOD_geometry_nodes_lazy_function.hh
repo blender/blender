@@ -25,7 +25,7 @@
 #include "FN_lazy_function_graph.hh"
 #include "FN_lazy_function_graph_executor.hh"
 
-#include "NOD_geometry_nodes_log.hh"
+#include "NOD_eval_log.hh"
 #include "NOD_multi_function.hh"
 #include "NOD_nested_node_id.hh"
 
@@ -225,7 +225,7 @@ struct GeoNodesCallData {
    * Optional logger that keeps track of data generated during evaluation to allow for better
    * debugging afterwards.
    */
-  geo_eval_log::GeoNodesLog *eval_log = nullptr;
+  eval_log::NodesEvalLog *eval_log = nullptr;
   /**
    * Optional injected behavior for simulations.
    */
@@ -306,7 +306,7 @@ struct GeoNodesLocalUserData : public fn::LocalUserData {
    * Thread-local logger for the current node tree in the current compute context. It is only
    * instantiated when it is actually used and then cached for the current thread.
    */
-  mutable std::optional<geo_eval_log::GeoTreeLogger *> tree_logger_;
+  mutable std::optional<eval_log::NodeTreeLogger *> tree_logger_;
 
  public:
   GeoNodesLocalUserData(GeoNodesUserData & /*user_data*/) {}
@@ -315,7 +315,7 @@ struct GeoNodesLocalUserData : public fn::LocalUserData {
    * Get the current tree logger. This method is not thread-safe, each thread is supposed to have
    * a separate logger.
    */
-  geo_eval_log::GeoTreeLogger *try_get_tree_logger(const GeoNodesUserData &user_data) const
+  eval_log::NodeTreeLogger *try_get_tree_logger(const GeoNodesUserData &user_data) const
   {
     if (!tree_logger_.has_value()) {
       this->ensure_tree_logger(user_data);
@@ -523,24 +523,22 @@ constexpr auto node_timer_log_threshold = std::chrono::microseconds(100);
 class ScopedComputeContextTimer {
  private:
   lf::Context &context_;
-  geo_eval_log::TimePoint start_;
+  eval_log::TimePoint start_;
 
  public:
   ScopedComputeContextTimer(lf::Context &entered_context) : context_(entered_context)
   {
-    start_ = geo_eval_log::Clock::now();
+    start_ = eval_log::Clock::now();
   }
 
   ~ScopedComputeContextTimer()
   {
-    const geo_eval_log::TimePoint end = geo_eval_log::Clock::now();
+    const eval_log::TimePoint end = eval_log::Clock::now();
     auto &user_data = static_cast<GeoNodesUserData &>(*context_.user_data);
     auto &local_user_data = static_cast<GeoNodesLocalUserData &>(*context_.local_user_data);
     const std::chrono::duration duration = end - start_;
     if (user_data.verbose_log || duration > node_timer_log_threshold) {
-      if (geo_eval_log::GeoTreeLogger *tree_logger = local_user_data.try_get_tree_logger(
-              user_data))
-      {
+      if (eval_log::NodeTreeLogger *tree_logger = local_user_data.try_get_tree_logger(user_data)) {
         tree_logger->execution_time += duration;
       }
     }
@@ -554,24 +552,22 @@ class ScopedNodeTimer {
  private:
   const lf::Context &context_;
   const bNode &node_;
-  geo_eval_log::TimePoint start_;
+  eval_log::TimePoint start_;
 
  public:
   ScopedNodeTimer(const lf::Context &context, const bNode &node) : context_(context), node_(node)
   {
-    start_ = geo_eval_log::Clock::now();
+    start_ = eval_log::Clock::now();
   }
 
   ~ScopedNodeTimer()
   {
-    const geo_eval_log::TimePoint end = geo_eval_log::Clock::now();
+    const eval_log::TimePoint end = eval_log::Clock::now();
     auto &user_data = static_cast<GeoNodesUserData &>(*context_.user_data);
     auto &local_user_data = static_cast<GeoNodesLocalUserData &>(*context_.local_user_data);
     const std::chrono::duration duration = end - start_;
     if (user_data.verbose_log || duration > node_timer_log_threshold) {
-      if (geo_eval_log::GeoTreeLogger *tree_logger = local_user_data.try_get_tree_logger(
-              user_data))
-      {
+      if (eval_log::NodeTreeLogger *tree_logger = local_user_data.try_get_tree_logger(user_data)) {
         tree_logger->node_execution_times.append(*tree_logger->allocator,
                                                  {node_.identifier, start_, end});
       }

@@ -5,6 +5,7 @@
 #include <string>
 
 #include "BLI_assert.h"
+#include "BLI_math_euler.hh"
 #include "BLI_math_vector_types.hh"
 
 #include "DNA_node_types.h"
@@ -107,6 +108,14 @@ void SingleValueNodeInputOperation::execute()
     }
     case SOCK_STRING: {
       const std::string value = input_socket_.default_value_typed<bNodeSocketValueString>()->value;
+      result.set_single_value(value);
+      break;
+    }
+    case SOCK_ROTATION: {
+      const bNodeSocketValueRotation *rotation =
+          input_socket_.default_value_typed<bNodeSocketValueRotation>();
+      const math::EulerXYZ euler(float3(rotation->value_euler));
+      const math::Quaternion value = math::to_quaternion(euler);
       result.set_single_value(value);
       break;
     }

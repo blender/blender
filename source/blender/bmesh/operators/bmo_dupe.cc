@@ -560,16 +560,36 @@ void bmo_spin_exec(BMesh *bm, BMOperator *op)
   const bool do_dupli = BMO_slot_bool_get(op->slots_in, "use_duplicate");
   const bool use_normal_flip = BMO_slot_bool_get(op->slots_in, "use_normal_flip");
   /* Caller needs to perform other sanity checks (such as the spin being 360d). */
-  const bool use_merge = BMO_slot_bool_get(op->slots_in, "use_merge") && steps >= 3;
+  const bool use_merge = BMO_slot_bool_get(op->slots_in, "use_merge") &&
+                         /* Don't create duplicate geometry. */
+                         (steps >= 3) &&
+                         /* Only the "extrude" code path supports merging. */
+                         (do_dupli == false);
 
   BMVert **vtable = nullptr;
+  float (*vtable_coords)[3] = nullptr;
+
+  /* When merging, store the original vertices to splice them back together. */
   if (use_merge) {
     vtable = MEM_new_array_uninitialized<BMVert *>(bm->totvert, __func__);
+  }
+
+  /* When extruding, always restore the original location before rotating. */
+  if (do_dupli == false) {
+    vtable_coords = MEM_new_array_uninitialized<float[3]>(bm->totvert, __func__);
+  }
+
+  if (vtable || vtable_coords) {
     int i = 0;
     BMIter iter;
     BMVert *v;
     BM_ITER_MESH_INDEX (v, &iter, bm, BM_VERTS_OF_MESH, i) {
-      vtable[i] = v;
+      if (vtable) {
+        vtable[i] = v;
+      }
+      if (vtable_coords) {
+        copy_v3_v3(vtable_coords[i], v->co);
+      }
       /* Evil! store original index in normal,
        * this is duplicated into every other vertex.
        * So we can read the original from the final.
@@ -624,9 +644,23 @@ void bmo_spin_exec(BMesh *bm, BMOperator *op)
                    true);
       BMO_op_exec(bm, &extop);
       if ((use_merge && (a == steps - 1)) == false) {
-        /* For extrude mode, rotate the extruded geometry to the current step position.
-         * Use `rmat` which is computed fresh each step from the origin angle to avoid
-         * floating-point error accumulation. */
+
+        /* Reset each new vert's location to its un-rotated origin so the rotate below
+         * runs as a single fresh rotation from the original position
+         * (avoids precision loss from chained rotations, see: #148890). */
+        if (a != 0) {
+          BMOpSlot *slot_geom_out = BMO_slot_get(extop.slots_out, "geom.out");
+          BMElem **elem_array = reinterpret_cast<BMElem **>(slot_geom_out->data.buf);
+          const int elem_array_len = slot_geom_out->len;
+          for (int i = 0; i < elem_array_len; i++) {
+            if (elem_array[i]->head.htype == BM_VERT) {
+              BMVert *v_src = reinterpret_cast<BMVert *>(elem_array[i]);
+              const int index = *(reinterpret_cast<const int *>(&v_src->no[0]));
+              copy_v3_v3(v_src->co, vtable_coords[index]);
+            }
+          }
+        }
+
         BMO_op_callf(bm,
                      op->flag,
                      "rotate cent=%v matrix=%m3 space=%s verts=%S",
@@ -688,11 +722,13 @@ void bmo_spin_exec(BMesh *bm, BMOperator *op)
     }
 
     if (use_dvec) {
-      mul_m3_v3(rmat, dvec);
+      float dvec_step[3];
+      mul_v3_m3v3(dvec_step, rmat, dvec);
+      mul_v3_fl(dvec_step, float(a + 1));
       BMO_op_callf(bm,
                    op->flag,
                    "translate vec=%v space=%s verts=%S",
-                   dvec,
+                   dvec_step,
                    op,
                    "space",
                    op,
@@ -702,6 +738,9 @@ void bmo_spin_exec(BMesh *bm, BMOperator *op)
 
   if (vtable) {
     MEM_delete(vtable);
+  }
+  if (vtable_coords) {
+    MEM_delete(vtable_coords);
   }
 }
 

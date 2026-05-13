@@ -116,8 +116,17 @@ void node_bsdf_principled(float4 base_color,
   /* First layer: Sheen */
   float3 sheen_data_color = float3(0.0f);
   if (sheen_weight > 0.0f) {
+    float sheen_NV = NV;
+#ifdef MAT_CLEARCOAT
+    if (coat_weight > 0.0f) {
+      float3 sheen_N = safe_normalize(mix(N, CN, saturate(coat_weight)));
+      sheen_NV = dot(sheen_N, V);
+    }
+#endif
+
     /* TODO: Maybe sheen_weight should be specular. */
-    float3 sheen_color = sheen_weight * sheen_tint.rgb * principled_sheen(NV, sheen_roughness);
+    float3 sheen_color = sheen_weight * sheen_tint.rgb *
+                         principled_sheen(sheen_NV, sheen_roughness);
     sheen_data_color = weight * sheen_color;
     /* Attenuate lower layers */
     weight *= max((1.0f - math_reduce_max(sheen_color)), 0.0f);

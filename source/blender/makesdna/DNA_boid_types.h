@@ -8,11 +8,12 @@
 
 #pragma once
 
+#include "BLI_enum_flags.hh"
 #include "DNA_listBase.h"
 
 namespace blender {
 
-enum eBoidRuleType {
+enum eBoidRuleType : int {
   eBoidRuleType_None = 0,
   /** go to goal assigned object or loudest assigned signal source */
   eBoidRuleType_Goal = 1,
@@ -33,28 +34,31 @@ enum eBoidRuleType {
 };
 
 /* boidrule->flag */
-enum {
+enum eBoidRule_Flag : int {
   BOIDRULE_CURRENT = 1 << 0,
   BOIDRULE_IN_AIR = 1 << 2,
   BOIDRULE_ON_LAND = 1 << 3,
 };
+ENUM_OPERATORS(eBoidRule_Flag)
 
 #define BRULE_LEADER_IN_LINE (1 << 0)
 
 #define BOIDSTATE_CURRENT 1
 
-enum {
+enum eBoidRuleGoalAvoid_Option : int {
   BRULE_GOAL_AVOID_PREDICT = 1 << 0,
   BRULE_GOAL_AVOID_ARRIVE = 1 << 1,
   BRULE_GOAL_AVOID_SIGNAL = 1 << 2,
 };
+ENUM_OPERATORS(eBoidRuleGoalAvoid_Option)
 
-enum {
+enum eBoidRuleAvoidCollision_Option : int {
   BRULE_ACOLL_WITH_BOIDS = 1 << 0,
   BRULE_ACOLL_WITH_DEFLECTORS = 1 << 1,
 };
+ENUM_OPERATORS(eBoidRuleAvoidCollision_Option)
 
-enum eBoidMode {
+enum eBoidMode : short {
   eBoidMode_InAir = 0,
   eBoidMode_OnLand = 1,
   eBoidMode_Climbing = 2,
@@ -62,29 +66,31 @@ enum eBoidMode {
   eBoidMode_Liftoff = 4,
 };
 
-enum eBoidRulesetType {
+enum eBoidRulesetType : int {
   eBoidRulesetType_Fuzzy = 0,
   eBoidRulesetType_Random = 1,
   eBoidRulesetType_Average = 2,
 };
 
 /** #BoidSettings::options */
-enum {
+enum eBoid_Option : int {
   BOID_ALLOW_FLIGHT = 1 << 0,
   BOID_ALLOW_LAND = 1 << 1,
   BOID_ALLOW_CLIMB = 1 << 2,
 };
+ENUM_OPERATORS(eBoid_Option)
 
 struct BoidRule {
   struct BoidRule *next = nullptr, *prev = nullptr;
-  int type = 0, flag = 0;
+  eBoidRuleType type = eBoidRuleType_None;
+  eBoidRule_Flag flag = {};
   char name[32] = "";
 };
 
 struct BoidRuleGoalAvoid {
   BoidRule rule;
   struct Object *ob = nullptr;
-  int options = 0;
+  eBoidRuleGoalAvoid_Option options = {};
   float fear_factor = 0;
 
   /* signals */
@@ -93,7 +99,7 @@ struct BoidRuleGoalAvoid {
 
 struct BoidRuleAvoidCollision {
   BoidRule rule;
-  int options = 0;
+  eBoidRuleAvoidCollision_Option options = {};
   float look_ahead = 0;
 };
 
@@ -102,7 +108,8 @@ struct BoidRuleFollowLeader {
   struct Object *ob = nullptr;
   float loc[3] = {}, oloc[3] = {};
   float cfra = 0, distance = 0;
-  int options = 0, queue_size = 0;
+  eBoidRuleGoalAvoid_Option options = {};
+  int queue_size = 0;
 };
 
 struct BoidRuleAverageSpeed {
@@ -118,7 +125,8 @@ struct BoidRuleFight {
 
 struct BoidData {
   float health = 0, acc[3] = {};
-  short state_id = 0, mode = 0;
+  short state_id = 0;
+  eBoidMode mode = eBoidMode_InAir;
 };
 
 struct BoidState {
@@ -130,7 +138,7 @@ struct BoidState {
   int id = 0, flag = 0;
 
   /* rules */
-  int ruleset_type = 0;
+  eBoidRulesetType ruleset_type = eBoidRulesetType_Fuzzy;
   float rule_fuzziness = 0;
 
   /* signal */
@@ -139,7 +147,8 @@ struct BoidState {
 };
 
 struct BoidSettings {
-  int options = 0, last_state_id = 0;
+  eBoid_Option options = {};
+  int last_state_id = 0;
 
   float landing_smoothness = 0, height = 0;
   float banking = 0, pitch = 0;

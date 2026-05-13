@@ -8,12 +8,14 @@
 
 #pragma once
 
+#include "BLI_enum_flags.hh"
+
 #include "DNA_vec_types.h"
 
 namespace blender {
 
 /** #CurveProfilePoint.flag */
-enum {
+enum eCurveProfilePoint_Flag : short {
   PROF_SELECT = (1 << 0),
   PROF_H1_SELECT = (1 << 1),
   PROF_H2_SELECT = (1 << 2),
@@ -21,17 +23,19 @@ enum {
   PROF_H1_ACTIVE = (1 << 4),
   PROF_H2_ACTIVE = (1 << 5),
 };
+ENUM_OPERATORS(eCurveProfilePoint_Flag)
 
 /** #CurveProfile.flag */
-enum {
+enum eCurveProfile_Flag : int {
   PROF_USE_CLIP = (1 << 0), /* Keep control points inside bounding rectangle. */
   /* PROF_SYMMETRY_MODE = (1 << 1),         Unused for now. */
   PROF_SAMPLE_STRAIGHT_EDGES = (1 << 2), /* Sample extra points on straight edges. */
   PROF_SAMPLE_EVEN_LENGTHS = (1 << 3),   /* Put segments evenly spaced along the path. */
   PROF_DIRTY_PRESET = (1 << 4),          /* Marks when the dynamic preset has been changed. */
 };
+ENUM_OPERATORS(eCurveProfile_Flag)
 
-enum eCurveProfilePresets {
+enum eCurveProfilePresets : int {
   PROF_PRESET_LINE = 0,     /* Default simple line between end points. */
   PROF_PRESET_SUPPORTS = 1, /* Support loops for a regular curved profile. */
   PROF_PRESET_CORNICE = 2,  /* Molding type example. */
@@ -48,7 +52,7 @@ struct CurveProfilePoint {
   /** Location of the point, keep together. */
   float x = 0, y = 0;
   /** Flag selection state and others. */
-  short flag = 0;
+  eCurveProfilePoint_Flag flag = {};
   /** Flags for both handle's type (eBezTriple_Handle auto, vect, free, and aligned supported). */
   char h1 = 0, h2 = 0;
   /** Handle locations, keep together.
@@ -67,7 +71,7 @@ struct CurveProfile {
   /** Number of sampled points. */
   short segments_len = 0;
   /** Preset to use when reset. */
-  int preset = 0;
+  eCurveProfilePresets preset = PROF_PRESET_LINE;
   /** Sequence of points defining the shape of the curve. */
   CurveProfilePoint *path = nullptr;
   /** Display and evaluation table at higher resolution for curves. */
@@ -75,7 +79,7 @@ struct CurveProfile {
   /** The positions of the sampled points. Used to display a preview of where they will be. */
   CurveProfilePoint *segments = nullptr;
   /** Flag for mode states, sampling options, etc... */
-  int flag = 0;
+  eCurveProfile_Flag flag = {};
   /** Used for keeping track how many times the widget is changed. */
   int changed_timestamp = 0;
   /** Widget's current view, and clipping rect (is default rect too). */

@@ -57,9 +57,7 @@ struct tSplineIK_Tree {
 /* ----------- */
 
 /* Tag the bones in the chain formed by the given bone for IK. */
-static void splineik_init_tree_from_pchan(Scene * /*scene*/,
-                                          Object * /*ob*/,
-                                          bPoseChannel *pchan_tip)
+static void splineik_init_tree_from_pchan(Scene * /*scene*/, Object *ob, bPoseChannel *pchan_tip)
 {
   bPoseChannel *pchan, *pchan_root = nullptr;
   bPoseChannel *pchan_chain[255];
@@ -93,14 +91,15 @@ static void splineik_init_tree_from_pchan(Scene * /*scene*/,
 
   /* Find the root bone and the chain of bones from the root to the tip.
    * NOTE: this assumes that the bones are connected, but that may not be true... */
+  Bone *pchan_bone = pchan_tip->bone_get(*ob);
   for (pchan = pchan_tip; pchan && (segcount < ik_data->chainlen);
-       pchan = pchan->parent, segcount++)
+       pchan = pchan->parent, pchan_bone = pchan_bone->parent, segcount++)
   {
     /* Store this segment in the chain. */
     pchan_chain[segcount] = pchan;
 
     /* If performing rebinding, calculate the length of the bone. */
-    bone_lengths[segcount] = pchan->bone->length;
+    bone_lengths[segcount] = pchan_bone->length;
     totlength += bone_lengths[segcount];
   }
 
@@ -407,8 +406,9 @@ static void splineik_evaluate_bone(
     tSplineIK_Tree *tree, Object *ob, bPoseChannel *pchan, int index, tSplineIk_EvalState *state)
 {
   bSplineIKConstraint *ik_data = tree->ik_data;
+  Bone *pchan_bone = pchan->bone_get(*ob);
 
-  if (pchan->bone->length < FLT_EPSILON) {
+  if (pchan_bone->length < FLT_EPSILON) {
     /* Only move the bone position with zero length bones. */
     float bone_pos[4], rad;
     BKE_where_on_path(
@@ -437,7 +437,7 @@ static void splineik_evaluate_bone(
   float curveLen = tree->points[index] - tree->points[index + 1];
   float bone_len = len_v3v3(pose_head, pose_tail);
   float point_start = state->curve_position;
-  float pose_scale = bone_len / pchan->bone->length;
+  float pose_scale = bone_len / pchan_bone->length;
   float base_scale = 1.0f;
 
   if (ik_data->yScaleMode == CONSTRAINT_SPLINEIK_YS_ORIGINAL) {
@@ -477,7 +477,7 @@ static void splineik_evaluate_bone(
       }
       else {
         /* Don't take bone scale into account. */
-        sphere_radius = pchan->bone->length;
+        sphere_radius = pchan_bone->length;
       }
 
       /* Calculate the tail position with sphere curve intersection. */
@@ -519,7 +519,7 @@ static void splineik_evaluate_bone(
    * - scaleFac: the factor that the bone length is scaled by to get the desired amount.
    */
   sub_v3_v3v3(spline_vec, pose_tail, pose_head);
-  scale_fac = len_v3(spline_vec) / pchan->bone->length;
+  scale_fac = len_v3(spline_vec) / pchan_bone->length;
 
   /* Step 3: compute the shortest rotation needed
    * to map from the bone rotation to the current axis.
@@ -618,6 +618,9 @@ static void splineik_evaluate_bone(
 
     /* Apply volume preservation. */
     switch (ik_data->xzScaleMode) {
+      case CONSTRAINT_SPLINEIK_XZS_NONE:
+      case CONSTRAINT_SPLINEIK_XZS_ORIGINAL:
+        break;
       case CONSTRAINT_SPLINEIK_XZS_INVERSE: {
         /* Old 'volume preservation' method using the inverse scale. */
         float scale;
@@ -731,7 +734,7 @@ static void splineik_evaluate_bone(
   mul_v3_mat3_m4v3(orig_tail, state->locrot_offset, pchan->pose_tail);
 
   /* Recalculate tail, as it's now outdated after the head gets adjusted above! */
-  BKE_pose_where_is_bone_tail(pchan);
+  BKE_pose_where_is_bone_tail({pchan, pchan_bone});
 
   /* Update the offset in the accumulated parent transform. */
   sub_v3_v3v3(state->locrot_offset[3], pchan->pose_tail, orig_tail);
@@ -838,7 +841,8 @@ void BKE_pose_eval_init(Depsgraph *depsgraph, Scene * /*scene*/, Object *object)
     pchan->flag &= ~(POSE_DONE | POSE_CHAIN | POSE_IKTREE | POSE_IKSPLINE);
 
     /* Free B-Bone shape data cache if it's not a B-Bone. */
-    if (pchan->bone == nullptr || pchan->bone->segments <= 1) {
+    const Bone *bone = pchan->bone_get(*object);
+    if (bone == nullptr || bone->segments <= 1) {
       BKE_pose_channel_free_bbone_cache(&pchan->runtime);
     }
   }
@@ -874,7 +878,7 @@ void BKE_pose_eval_bone(Depsgraph *depsgraph, Scene *scene, Object *object, int 
       depsgraph, __func__, object->id.name, object, "pchan", pchan->name, pchan);
   BLI_assert(object->type == OB_ARMATURE);
   if (armature->flag & ARM_RESTPOS) {
-    Bone *bone = pchan->bone;
+    Bone *bone = pchan->bone_get(*object);
     if (bone) {
       copy_m4_m4(pchan->pose_mat, bone->arm_mat);
       copy_v3_v3(pchan->pose_head, bone->arm_head);
@@ -959,17 +963,18 @@ void BKE_pose_bone_done(Depsgraph *depsgraph, Object *object, int pchan_index)
   float imat[4][4];
   DEG_debug_print_eval_subdata(
       depsgraph, __func__, object->id.name, object, "pchan", pchan->name, pchan);
-  if (pchan->bone) {
-    invert_m4_m4(imat, pchan->bone->arm_mat);
+  const Bone *bone = pchan->bone_get(*armature);
+  if (bone) {
+    invert_m4_m4(imat, bone->arm_mat);
     mul_m4_m4m4(pchan->chan_mat, pchan->pose_mat, imat);
-    if (!(pchan->bone->flag & BONE_NO_DEFORM)) {
-      mat4_to_dquat(&pchan->runtime.deform_dual_quat, pchan->bone->arm_mat, pchan->chan_mat);
+    if (!(bone->flag & BONE_NO_DEFORM)) {
+      mat4_to_dquat(&pchan->runtime.deform_dual_quat, bone->arm_mat, pchan->chan_mat);
     }
   }
   pose_channel_flush_to_orig_if_needed(depsgraph, object, pchan);
   if (DEG_is_active(depsgraph)) {
     bPoseChannel *pchan_orig = pchan->orig_pchan;
-    if (pchan->bone == nullptr || pchan->bone->segments <= 1) {
+    if (bone == nullptr || bone->segments <= 1) {
       BKE_pose_channel_free_bbone_cache(&pchan_orig->runtime);
     }
   }
@@ -984,8 +989,9 @@ void BKE_pose_eval_bbone_segments(Depsgraph *depsgraph, Object *object, int pcha
   bPoseChannel *pchan = pose_pchan_get_indexed(object, pchan_index);
   DEG_debug_print_eval_subdata(
       depsgraph, __func__, object->id.name, object, "pchan", pchan->name, pchan);
-  if (pchan->bone != nullptr && pchan->bone->segments > 1) {
-    BKE_pchan_bbone_segments_cache_compute(pchan);
+  Bone *bone = pchan->bone_get(*object);
+  if (bone != nullptr && bone->segments > 1) {
+    BKE_pchan_bbone_segments_cache_compute({pchan, bone}, *armature);
     if (DEG_is_active(depsgraph)) {
       BKE_pchan_bbone_segments_cache_copy(pchan->orig_pchan, pchan);
     }

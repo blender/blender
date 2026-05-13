@@ -1,10 +1,10 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 5.2.0 Alpha (b'b1f67602e773')\n"
+"Project-Id-Version: Blender 5.2.0 Alpha (b'8c7c45ad114e')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-04-13 10:20+0000\n"
-"PO-Revision-Date: 2026-03-19 12:41+0000\n"
+"POT-Creation-Date: 2026-05-11 07:23+0000\n"
+"PO-Revision-Date: 2026-04-22 14:12+0000\n"
 "Last-Translator: Karlo Pavicic <soulcreature@hotmail.com>\n"
 "Language-Team: Croatian <https://translate.blender.org/projects/blender-ui/ui/hr/>\n"
 "Language: hr\n"
@@ -143,7 +143,7 @@ msgstr "Maska"
 
 msgctxt "ID"
 msgid "Material"
-msgstr "Materjal"
+msgstr "Materijal"
 
 
 msgctxt "ID"
@@ -265,6 +265,38 @@ msgid "Animation Visualization"
 msgstr "Vizualizacija animacije"
 
 
+msgid "When calculating Bone Paths, use Head or Tips"
+msgstr "Pri računanju putanja kostiju, koristi Glavu ili Rep"
+
+
+msgid "Calculate bone paths from heads"
+msgstr "Izračunaj putanje kostiju koristeći glave"
+
+
+msgid "Calculate bone paths from tails"
+msgstr "Izračunaj putanje kostiju koristeći repove"
+
+
+msgid "File Browser"
+msgstr "Preglednik datoteka"
+
+
+msgid "Armature Bones"
+msgstr "Kosti armature"
+
+
+msgid "Collection of armature bones"
+msgstr "Kolekcija kostiju armature"
+
+
+msgid "Active Bone"
+msgstr "Aktivna kost"
+
+
+msgid "Armature's active bone"
+msgstr "Aktivna kost armature"
+
+
 msgid "Asset Library"
 msgstr "Zbirka asseta"
 
@@ -326,7 +358,7 @@ msgstr "Maske"
 
 
 msgid "Materials"
-msgstr "Materjali"
+msgstr "Materijali"
 
 
 msgid "Scenes"
@@ -381,13 +413,25 @@ msgid "Face Corner"
 msgstr "Kut lica"
 
 
+msgid "Random"
+msgstr "Nasumično"
+
+
 msgctxt "Operator"
 msgid "Add"
 msgstr "Dodaj"
 
 
+msgid "Material"
+msgstr "Materijal"
+
+
 msgid "Vertex Color"
 msgstr "Boja vrha"
+
+
+msgid "Scale"
+msgstr "Skaliranje"
 
 
 msgid "Vertex Mass"
@@ -399,11 +443,23 @@ msgstr "Krivulja"
 
 
 msgid "View"
-msgstr "Pregled"
+msgstr "Pogled"
 
 
 msgid "Output"
 msgstr "Ispis"
+
+
+msgid "Limit Rotation"
+msgstr "Ograniči rotaciju"
+
+
+msgid "Maintain Volume"
+msgstr "Održavanje volumena"
+
+
+msgid "Armature"
+msgstr "Armatura"
 
 
 msgid "Cursor"
@@ -478,6 +534,10 @@ msgid "Window"
 msgstr "Prozor"
 
 
+msgid "Tools"
+msgstr "Alati"
+
+
 msgctxt "Brush"
 msgid "Bend"
 msgstr "Savij"
@@ -486,6 +546,11 @@ msgstr "Savij"
 msgctxt "Curve"
 msgid "Sphere"
 msgstr "Sfera"
+
+
+msgctxt "Brush"
+msgid "Scale"
+msgstr "Veličina"
 
 
 msgctxt "Brush"
@@ -586,6 +651,10 @@ msgid "Refraction Depth"
 msgstr "Dubina refrakcije"
 
 
+msgid "Edges"
+msgstr "Bridovi"
+
+
 msgid "Vertex Colors"
 msgstr "Boje vrhova"
 
@@ -598,6 +667,14 @@ msgid "Vertices"
 msgstr "Vrhovi"
 
 
+msgid "Tool"
+msgstr "Alat"
+
+
+msgid "Constraints"
+msgstr "Ograničenja"
+
+
 msgid "Cylinder"
 msgstr "Valjak"
 
@@ -606,12 +683,36 @@ msgid "Circle"
 msgstr "Kružnica"
 
 
+msgid "Faces"
+msgstr "Lica"
+
+
 msgid "Vertex Paint"
 msgstr "Bojanje vrhova"
 
 
 msgid "Texture Paint"
 msgstr "Teksturiranje"
+
+
+msgid "Pose"
+msgstr "Poza"
+
+
+msgid "Current pose for armatures"
+msgstr "Trenutačna poza za armature"
+
+
+msgid "Display All Edges"
+msgstr "Prikaži sve bridove"
+
+
+msgid "Vertex Groups"
+msgstr "Skupovi vrhova"
+
+
+msgid "Vertex groups of the object"
+msgstr "Skupovi vrhova objekta"
 
 
 msgid "3D Cursor"
@@ -638,20 +739,53 @@ msgid "Animation"
 msgstr "Animacija"
 
 
+msgctxt "UI_Events_KeyMaps"
+msgid "Delete"
+msgstr "Obriši"
+
+
+msgid "Navigation"
+msgstr "Navigacija"
+
+
 msgid "Light"
 msgstr "Svjetlo"
+
+
+msgid "Relations"
+msgstr "Odnosi"
+
+
+msgid "Clean Up"
+msgstr "Počisti"
+
+
+msgid "Merge"
+msgstr "Spajanje"
 
 
 msgid "Console"
 msgstr "Konzola"
 
 
+msgid "Physics"
+msgstr "Fizika"
+
+
 msgid "Templates"
 msgstr "Predlošci"
 
 
+msgid "System"
+msgstr "Sistem"
+
+
 msgid "File"
 msgstr "Datoteka"
+
+
+msgid "External Data"
+msgstr "Vanjski podaci"
 
 
 msgid "Help"
@@ -660,6 +794,18 @@ msgstr "Pomoć"
 
 msgid "Vertex Normal"
 msgstr "Normala vrha"
+
+
+msgid "Ball"
+msgstr "Lopta"
+
+
+msgid "Wireframe"
+msgstr "Mreža"
+
+
+msgid "Use Vertex Groups"
+msgstr "Koristi skupove vrhova"
 
 
 msgid "Vertex Mapping"
@@ -674,12 +820,49 @@ msgid "Nearest Edge Vertex"
 msgstr "Najbliži vrh brida"
 
 
+msgid "Symmetry"
+msgstr "Simetrija"
+
+
+msgid "Maintain symmetry on an axis"
+msgstr "Zadrži simetriju na osi"
+
+
+msgid "Mirror vertex groups (e.g. .R->.L)"
+msgstr "Zrcali skupove vrhova (npr. .R->.L)"
+
+
 msgid "Origin"
 msgstr "Ishodište"
 
 
+msgctxt "Curve"
+msgid "Random"
+msgstr "Nasumično"
+
+
+msgid "Rotate"
+msgstr "Rotiranje"
+
+
+msgid "Parallelogram"
+msgstr "Paralelogram"
+
+
+msgid "Create a parallelogram"
+msgstr "Napravi paralelogram"
+
+
+msgid "Only Edges & Faces"
+msgstr "Samo bridove i lica"
+
+
 msgid "Only Faces"
 msgstr "Samo lica"
+
+
+msgid "Merge by Distance"
+msgstr "Spoji obzirom na udaljenost"
 
 
 msgid "UV Sphere"
@@ -714,12 +897,27 @@ msgstr "Kreiraj torus"
 
 msgctxt "Operator"
 msgid "Save System Info..."
-msgstr "Spremi informacije o sistemu"
+msgstr "Spremi informacije o sistemu..."
+
+
+msgctxt "Operator"
+msgid "Extrude to Cursor"
+msgstr "Izvlačenje prema kursoru"
+
+
+msgctxt "Operator"
+msgid "Delete Selected Bone(s)"
+msgstr "Obriši označenu/-e kost/-i"
 
 
 msgctxt "Operator"
 msgid "Select"
 msgstr "Selekcija"
+
+
+msgctxt "Operator"
+msgid "Delete"
+msgstr "Obriši"
 
 
 msgctxt "Python console"
@@ -750,6 +948,15 @@ msgid "JPEG Format (.jpg)"
 msgstr "JPEG format"
 
 
+msgid "General"
+msgstr "Generalno"
+
+
+msgctxt "Operator"
+msgid "Delete Selected Files"
+msgstr "Obriši označene datoteke"
+
+
 msgid "Open"
 msgstr "Otvori"
 
@@ -757,6 +964,11 @@ msgstr "Otvori"
 msgctxt "Operator"
 msgid "Select Mode"
 msgstr "Vrsta selekcije"
+
+
+msgctxt "Operator"
+msgid "Merge by Distance"
+msgstr "Spoji obzirom na udaljenost"
 
 
 msgctxt "Operator"
@@ -786,6 +998,10 @@ msgid "Save an image packed in the .blend file to disk"
 msgstr "Spremi sliku upakiranu u .blend datoteci na disk"
 
 
+msgid "Delete selected vertices, edges or faces"
+msgstr "Obriši označene vrhove, bridove ili lica"
+
+
 msgid "Extrude Region"
 msgstr "Izvlačenje selekcije"
 
@@ -793,6 +1009,16 @@ msgstr "Izvlačenje selekcije"
 msgctxt "Operator"
 msgid "Extrude Region"
 msgstr "Izvlačenje selekcije"
+
+
+msgctxt "Mesh"
+msgid "At First"
+msgstr "Pri prvom"
+
+
+msgctxt "Mesh"
+msgid "At Last"
+msgstr "Pri zadnjem"
 
 
 msgctxt "Operator"
@@ -850,6 +1076,19 @@ msgid "Add UV Sphere"
 msgstr "Kreiraj UV sferu"
 
 
+msgctxt "Mesh"
+msgid "Vertex Groups"
+msgstr "Skupovi vrhova"
+
+
+msgid "Delete selected strips"
+msgstr "Obriši označene trake"
+
+
+msgid "Delete selected objects"
+msgstr "Obriši označene objekte"
+
+
 msgctxt "Operator"
 msgid "Monkey"
 msgstr "Majmun"
@@ -861,6 +1100,64 @@ msgstr "Premještanje ishodišta na težište objekta (Ploha)"
 
 msgid "Origin to Center of Mass (Volume)"
 msgstr "Premještanje ishodišta na težište objekta (Volumen)"
+
+
+msgid "Lock all vertex groups"
+msgstr "Zaključaj sve skupove vrhova"
+
+
+msgid "Unlock all vertex groups"
+msgstr "Otključaj sve skupove vrhova"
+
+
+msgid "Apply to selected vertex groups"
+msgstr "Primjeni na označene skupove vrhova"
+
+
+msgid "Apply to unselected vertex groups"
+msgstr "Primjeni na neoznačene skupove vrhova"
+
+
+msgid "Mirror all vertex groups weights"
+msgstr "Zrcali sve utjecaje skupova vrhova"
+
+
+msgid "Delete the active or all vertex groups from the active object"
+msgstr "Obriši aktivne ili sve skupove vrhova s aktivnog objekta"
+
+
+msgid "Remove all vertex groups"
+msgstr "Ukloni sve skupove vrhova"
+
+
+msgid "Remove all unlocked vertex groups"
+msgstr "Ukloni sve otključane skupove vrhova"
+
+
+msgctxt "Operator"
+msgid "Sort Vertex Groups"
+msgstr "Sortiraj skupove vrhova"
+
+
+msgid "Sort vertex groups"
+msgstr "Sortiraj skupove vrhova"
+
+
+msgid "Base Color"
+msgstr "Osnovna boja"
+
+
+msgid "Select one of the vertex groups available under current mouse position"
+msgstr "Označi jedan od dostupnih skupova vrhova obzirom na trenutačnu poziciju kursora"
+
+
+msgid "Pose Name"
+msgstr "Ime poze"
+
+
+msgctxt "Operator"
+msgid "Copy Pose"
+msgstr "Kopiraj pozu"
 
 
 msgctxt "Operator"
@@ -889,6 +1186,11 @@ msgstr "Sfera"
 
 
 msgctxt "Operator"
+msgid "Random"
+msgstr "Nasumično"
+
+
+msgctxt "Operator"
 msgid "Open Text"
 msgstr "Otvori tekst"
 
@@ -905,12 +1207,21 @@ msgstr "Spremi kao"
 
 msgctxt "Operator"
 msgid "Set 3D Cursor"
-msgstr "Postavljanje 3D kursora"
+msgstr "Pozicioniranje 3D kursora"
+
+
+msgid "Set the location of the 3D cursor"
+msgstr "Postavljanje lokacije 3D kursora"
 
 
 msgctxt "Operator"
 msgid "Rotate View"
 msgstr "Rotiranje prikaza"
+
+
+msgctxt "ID"
+msgid "Cameras"
+msgstr "Kamere"
 
 
 msgctxt "Operator"
@@ -957,6 +1268,14 @@ msgid "Drawing Plane"
 msgstr "Crtača ploha"
 
 
+msgid "Bone Constraints"
+msgstr "Ograničenja kostiju"
+
+
+msgid "Color Palette"
+msgstr "Paleta boja"
+
+
 msgctxt "Operator"
 msgid "Annotate"
 msgstr "Označavanje"
@@ -978,12 +1297,31 @@ msgstr "Brisanje oznaka"
 
 
 msgctxt "Operator"
+msgid "Select Box"
+msgstr "Označavanje kutijom"
+
+
+msgctxt "Operator"
+msgid "Select Circle"
+msgstr "Označavanje kružnicom"
+
+
+msgctxt "Operator"
+msgid "Select Lasso"
+msgstr "Označavanje lasom"
+
+
+msgctxt "Operator"
 msgid "Cursor"
 msgstr "Kursor"
 
 
 msgid "Shadows"
 msgstr "Sjene"
+
+
+msgid "Playback"
+msgstr "Reprodukcija"
 
 
 msgctxt "WindowManager"
@@ -994,6 +1332,16 @@ msgstr "Jezik"
 msgctxt "Operator"
 msgid "Measure"
 msgstr "Mjerenje"
+
+
+msgctxt "Operator"
+msgid "Extrude Along Normals"
+msgstr "Izvlačenje po normalama"
+
+
+msgctxt "Operator"
+msgid "Knife"
+msgstr "Nož"
 
 
 msgctxt "Operator"
@@ -1015,8 +1363,16 @@ msgid "Edge Type"
 msgstr "Vrsta brida"
 
 
+msgid "Pose Matrix"
+msgstr "Matrica poze"
+
+
 msgid "Edge Resize"
 msgstr "Podešivanje veličine brida"
+
+
+msgid "Camera View"
+msgstr "Pogled kamere"
 
 
 msgid "Allow Online Access"
@@ -1025,6 +1381,10 @@ msgstr "Dozvoli pristup internetu"
 
 msgid "Language"
 msgstr "Jezik"
+
+
+msgid "Tooltips"
+msgstr "Opisi alata"
 
 
 msgid "Only Seconds"
@@ -1068,6 +1428,10 @@ msgid "Shadows Resolution Scale"
 msgstr "Veličina rezolucije sjena"
 
 
+msgid "Asset Browser"
+msgstr "Preglednik zbirki"
+
+
 msgctxt "ID"
 msgid "Render"
 msgstr "Renderiranje"
@@ -1099,9 +1463,21 @@ msgid "Window Background"
 msgstr "Pozadina prozora"
 
 
+msgid "All Vertex Groups"
+msgstr "Svi skupovi vrhova"
+
+
+msgid "Vertex Groups assigned to non Deform Bones"
+msgstr "Skupovi vrhova dodijeljeni Nedeformirajućim Kostima"
+
+
 msgctxt "View3D"
 msgid "Select"
 msgstr "Selektiraj"
+
+
+msgid "Relationship Lines"
+msgstr "Linije odnosa"
 
 
 msgid "Window height"
@@ -1123,8 +1499,23 @@ msgstr "Krivulja"
 
 
 msgctxt "WindowManager"
+msgid "Armature"
+msgstr "Armatura"
+
+
+msgctxt "WindowManager"
 msgid "Undo"
 msgstr "Korak unazad"
+
+
+msgctxt "WindowManager"
+msgid "Set and Use 3D Cursor"
+msgstr "postavljanje i korištenje 3D kursora"
+
+
+msgctxt "WindowManager"
+msgid "File Browser"
+msgstr "Preglednik datoteka"
 
 
 msgctxt "WindowManager"
@@ -1148,7 +1539,7 @@ msgstr "Torus"
 
 msgctxt "Operator"
 msgid "Open..."
-msgstr "Otvori"
+msgstr "Otvori..."
 
 
 msgid "Blender is free software"
@@ -1218,6 +1609,10 @@ msgid "The reference manual for this version of Blender"
 msgstr "Korisnički priručnik za ovu verziju Blendera"
 
 
+msgid "Armature(s)"
+msgstr "Armatura/-e"
+
+
 msgctxt "Operator"
 msgid "Manual"
 msgstr "Priručnik"
@@ -1226,6 +1621,20 @@ msgstr "Priručnik"
 msgctxt "Operator"
 msgid "Support"
 msgstr "Podrška"
+
+
+msgctxt "Operator"
+msgid "Get Involved"
+msgstr "Uključi se"
+
+
+msgid "Scene(s)"
+msgstr "Scena/e"
+
+
+msgctxt "Operator"
+msgid "Add Bone Constraint"
+msgstr "Dodavanje ograničenja kosti"
 
 
 msgctxt "Operator"
@@ -1299,7 +1708,7 @@ msgstr "Prilagodi prethodno korišten operator..."
 
 msgctxt "Operator"
 msgid "Repeat History..."
-msgstr "Povijest ponavljanja"
+msgstr "Povijest ponavljanja..."
 
 
 msgctxt "Operator"
@@ -1333,12 +1742,24 @@ msgstr "Pretraživanje operatora..."
 
 msgctxt "Operator"
 msgid "Save Screenshot (Editor)..."
-msgstr "Spremi snimku zaslona (Editor)"
+msgstr "Spremi snimku zaslona (Editor)..."
+
+
+msgid "User Tooltips"
+msgstr "Korisnički opisi alata"
 
 
 msgctxt "Preferences"
 msgid "Translate"
 msgstr "Prevedi"
+
+
+msgid "Scene Statistics"
+msgstr "Statistike scene"
+
+
+msgid "Scene Duration"
+msgstr "Trajanje scene"
 
 
 msgctxt "View3D"
@@ -1399,6 +1820,15 @@ msgid "Origins (All)"
 msgstr "Ishodišta (sva)"
 
 
+msgctxt "Operator"
+msgid "Armature"
+msgstr "Armatura"
+
+
+msgid "armatures"
+msgstr "armature"
+
+
 msgid "Scene Collection"
 msgstr "Kolekcije scene"
 
@@ -1452,7 +1882,7 @@ msgstr "maske"
 
 
 msgid "materials"
-msgstr "materjali"
+msgstr "materijali"
 
 
 msgid "Conversion is not supported"
@@ -1675,13 +2105,58 @@ msgid "<invalid>"
 msgstr "<nije valjano>"
 
 
+msgid "Delete selected markers?"
+msgstr "Obriši označene markere?"
+
+
+msgid "Scene not found"
+msgstr "Scena nije pronađena"
+
+
+msgid "Delete selected bones?"
+msgstr "Obriši označene kosti?"
+
+
+msgid "Active object is not a selected armature"
+msgstr "Aktivni objekt nije označena armatura"
+
+
+msgid "Cannot join objects that share armature data: %s"
+msgstr "Nije moguće spojiti objekte koji dijele podatke armature: %s"
+
+
+msgid "Show Original Pose"
+msgstr "Prikaži originalnu pozu"
+
+
+msgid "Relax Pose"
+msgstr "Opusti pozu"
+
+
+msgid "No pose to copy"
+msgstr "Nema poze za kopiranje"
+
+
+msgid "The active object needs to be an armature"
+msgstr "Aktivni objekt mora biti armatura"
+
+
 msgid "Redo"
 msgstr "Korak unaprijed"
+
+
+msgctxt "Armature"
+msgid "New"
+msgstr "Nova"
 
 
 msgctxt "Speaker"
 msgid "New"
 msgstr "Novi"
+
+
+msgid "No weights/vertex groups on object(s)"
+msgstr "Nema utjecaja/skupova vrhova na objektu/objektima"
 
 
 msgctxt "Mesh"
@@ -1727,9 +2202,94 @@ msgid "Measure"
 msgstr "Mjerenje"
 
 
+msgid "No weights/vertex groups on object"
+msgstr "Nema utjecaja/skupova vrhova na objektu"
+
+
+msgid "Delete selected objects?"
+msgstr "Obriši označene objekte?"
+
+
 msgctxt "Light"
 msgid "Sphere"
 msgstr "Sfera"
+
+
+msgid "Armature has no active object bone"
+msgstr "Armatura nema aktivnu kost"
+
+
+msgid "Could not find scene"
+msgstr "Nije bilo moguće pronaći scenu"
+
+
+msgid "Lock all vertex groups of the active object"
+msgstr "Zaključaj sve skupove vrhova na aktivnom objektu"
+
+
+msgid "Lock selected vertex groups of the active object"
+msgstr "Zaključaj označene skupove vrhova na aktivnom objektu"
+
+
+msgid "Lock unselected vertex groups of the active object"
+msgstr "Zaključaj neoznačene skupove vrhova na aktivnom objektu"
+
+
+msgid "Lock selected and unlock unselected vertex groups of the active object"
+msgstr "Zaključaj označene i neoznačene skupove vrhova na aktivnom objektu"
+
+
+msgid "Unlock all vertex groups of the active object"
+msgstr "Otključaj sve skupove vrhova na aktivnom objektu"
+
+
+msgid "Unlock selected vertex groups of the active object"
+msgstr "Otključaj označene skupove vrhova na aktivnom objektu"
+
+
+msgid "Unlock unselected vertex groups of the active object"
+msgstr "Otključaj neoznačene skupove vrhova na aktivnom objektu"
+
+
+msgid "Unlock selected and lock unselected vertex groups of the active object"
+msgstr "Otključaj označene i neoznačene skupove vrhova na aktivnom objektu"
+
+
+msgid "All Vertex Groups assigned to Selection"
+msgstr "Svi skupovi vrhova dodijeljeni označenomu"
+
+
+msgid "All Vertex Groups assigned to Deform Bones"
+msgstr "Svi skupovi vrhova dodijeljeni Deformirajućim kostima"
+
+
+msgid "Object has no vertex groups"
+msgstr "Objekt nema setove vrhova"
+
+
+msgid "Render active scene"
+msgstr "Izrenderiraj aktivnu scenu"
+
+
+msgid "Scene has no camera"
+msgstr "Scena nema kameru"
+
+
+msgid "No vertex groups found"
+msgstr "Nema pronađenih setova vrhova"
+
+
+msgid "Delete selected files?"
+msgstr "Obriši označene datoteke?"
+
+
+msgctxt "Operator"
+msgid "Delete Scene(s)"
+msgstr "Obriši scenu/e"
+
+
+msgid "Empty Scene"
+msgstr "Prazna scena"
 
 
 msgid "Undo History"
@@ -1784,6 +2344,47 @@ msgid "cursor"
 msgstr "kursor"
 
 
+msgid "Only armature objects are supported"
+msgstr "Samo objekti armatura su podržani"
+
+
+msgid "Armature '%s' does not contain bone '%s'"
+msgstr "Armatura '%s' ne sadrži kost '%s'"
+
+
+msgid "Bone collection '%s' not found in Armature '%s'"
+msgstr "Kolekcija kostiju '%s' nije pronađena u Armaturi '%s'"
+
+
+msgid "Relationship"
+msgstr "Odnos"
+
+
+msgid "Strip '%s' not in scene '%s'"
+msgstr "Traka '%s' nije u sceni '%s'"
+
+
+msgctxt "Render Layer"
+msgid "General"
+msgstr "Generalno"
+
+
+msgid "Create Armature"
+msgstr "Kreiraj armaturu"
+
+
+msgid "Scene Size"
+msgstr "Veličina scene"
+
+
+msgid "Object is not an armature"
+msgstr "Objekt nije armatura"
+
+
+msgid "The camera used for rendering the scene"
+msgstr "Kamera koja se koristi za renderiranje scene"
+
+
 msgid "Vertices X"
 msgstr "Vrhovi X"
 
@@ -1794,6 +2395,18 @@ msgstr "Vrhovi Y"
 
 msgid "Vertices Z"
 msgstr "Vrhovi Z"
+
+
+msgid "Random Color"
+msgstr "Nasumična boja"
+
+
+msgid "No camera found in scene \"%s\""
+msgstr "Nema pronađenih kamera u sceni \"%s\""
+
+
+msgid "Cannot move strip to different scene"
+msgstr "Traka se ne može pomaknuti u drugu scenu"
 
 
 msgid "Save As..."

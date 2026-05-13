@@ -1801,15 +1801,15 @@ std::optional<Mesh *> mesh_merge_by_distance_all(const Mesh &mesh,
 {
   Array<int> vert_dest_map(mesh.verts_num, OUT_OF_CONTEXT);
 
-  KDTree_3d *tree = kdtree_3d_new(selection.size());
+  KDTree<float3> *tree = kdtree_new<float3>(selection.size());
 
   const Span<float3> positions = mesh.vert_positions();
-  selection.foreach_index([&](const int64_t i) { kdtree_3d_insert(tree, i, positions[i]); });
+  selection.foreach_index([&](const int64_t i) { kdtree_insert<float3>(tree, i, positions[i]); });
 
-  kdtree_3d_balance(tree);
-  const int vert_kill_len = kdtree_3d_calc_duplicates_fast(
+  kdtree_balance<float3>(tree);
+  const int vert_kill_len = kdtree_calc_duplicates_fast<float3>(
       tree, merge_distance, true, vert_dest_map.data());
-  kdtree_3d_free(tree);
+  kdtree_free<float3>(tree);
 
   if (vert_kill_len == 0) {
     return std::nullopt;
@@ -1918,5 +1918,33 @@ Mesh *mesh_merge_verts(const Mesh &mesh,
 }
 
 /** \} */
+
+Mesh *mesh_merge_verts(const Mesh &mesh,
+                       const IndexMask &selection,
+                       const Span<int> merge_ids,
+                       const bke::AttributeFilter & /*attribute_filter*/)
+{
+  Array<int> vert_dest_map(mesh.verts_num, OUT_OF_CONTEXT);
+
+  VectorSet<int> group_indices;
+  selection.foreach_index_optimized<int>([&](const int i) { group_indices.add(merge_ids[i]); });
+
+  Array<int> dst_vert_by_group(mesh.verts_num, -1);
+  selection.foreach_index_optimized<int>([&](const int i) {
+    const int group_i = group_indices.index_of(merge_ids[i]);
+    if (dst_vert_by_group[group_i] == -1) {
+      dst_vert_by_group[group_i] = i;
+    }
+  });
+
+  selection.foreach_index_optimized<int>(
+      [&](const int i) {
+        const int group_i = group_indices.index_of(merge_ids[i]);
+        vert_dest_map[i] = dst_vert_by_group[group_i];
+      },
+      exec_mode::grain_size(8192));
+
+  return create_merged_mesh(mesh, vert_dest_map, selection.size() - group_indices.size(), true);
+}
 
 }  // namespace blender::geometry

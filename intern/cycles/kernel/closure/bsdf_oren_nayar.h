@@ -89,10 +89,10 @@ ccl_device_inline OrenNayarParam bsdf_oren_nayar_param(const Spectrum color,
                        (one_spectrum() - albedo * (1.0f - Eavg));
   const float Ev = a * M_PI_F + b * bsdf_oren_nayar_G(max(nv, 0.0f));
 
-  return {/*.roughness = */ roughness,
-          /*.a = */ a,
-          /*.b = */ b,
-          /*.multiscatter_term = */ Ems * (1.0f - Ev)};
+  return {/* .roughness = */ roughness,
+          /* .a = */ a,
+          /* .b = */ b,
+          /* .multiscatter_term = */ Ems * (1.0f - Ev)};
 }
 
 ccl_device void bsdf_oren_nayar_setup(ccl_private ShaderData *sd,

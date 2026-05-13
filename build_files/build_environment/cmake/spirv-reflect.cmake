@@ -14,10 +14,6 @@ ExternalProject_Add(external_spirv_reflect
   PREFIX ${BUILD_DIR}/spirv_reflect
   CMAKE_GENERATOR ${PLATFORM_ALT_GENERATOR}
 
-  PATCH_COMMAND ${PATCH_CMD} -p 1 -d
-    ${BUILD_DIR}/spirv_reflect/src/external_spirv_reflect <
-    ${PATCH_DIR}/spirv_reflect.diff
-
   CMAKE_ARGS
     -DCMAKE_INSTALL_PREFIX=${LIBDIR}/spirv_reflect
     ${DEFAULT_CMAKE_FLAGS}

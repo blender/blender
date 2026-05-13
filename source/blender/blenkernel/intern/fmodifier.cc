@@ -1200,7 +1200,7 @@ FModifier *add_fmodifier(ListBaseT<FModifier> *modifiers, int type, FCurve *owne
 
   /* add modifier itself */
   fcm = MEM_new<FModifier>("F-Curve Modifier");
-  fcm->type = type;
+  fcm->type = eFModifier_Types(type);
   fcm->ui_expand_flag = UI_PANEL_DATA_EXPAND_ROOT; /* Expand the main panel, not the sub-panels. */
   fcm->curve = owner_fcu;
   fcm->influence = 1.0f;

@@ -115,7 +115,7 @@ std::string NodeItem::type(Type type)
 
 bool NodeItem::is_arithmetic(Type type)
 {
-  return type >= Type::Float && type <= Type::Color4;
+  return type >= Type::Boolean && type <= Type::Color4;
 }
 
 NodeItem::operator bool() const
@@ -193,6 +193,12 @@ NodeItem NodeItem::operator[](int index) const
   if (value) {
     float v = 0.0f;
     switch (type()) {
+      case Type::Boolean:
+        v = value->asA<bool>() ? 1.0f : 0.0f;
+        break;
+      case Type::Integer:
+        v = value->asA<int>();
+        break;
       case Type::Float:
         v = value->asA<float>();
         break;
@@ -567,6 +573,23 @@ NodeItem NodeItem::convert(Type to_type) const
 
   /* Converting types which requires > 1 iteration */
   switch (from_type) {
+    case Type::Boolean:
+    case Type::Integer:
+      switch (to_type) {
+        case Type::Vector2:
+          return convert(Type::Float).convert(Type::Vector2);
+        case Type::Vector3:
+          return convert(Type::Float).convert(Type::Vector3);
+        case Type::Vector4:
+          return convert(Type::Float).convert(Type::Vector4);
+        case Type::Color3:
+          return convert(Type::Float).convert(Type::Color3);
+        case Type::Color4:
+          return convert(Type::Float).convert(Type::Color4);
+        default:
+          break;
+      }
+      break;
     case Type::Vector2:
       switch (to_type) {
         case Type::Vector4:
@@ -625,6 +648,13 @@ NodeItem NodeItem::convert(Type to_type) const
   NodeItem res = empty();
   if (value) {
     switch (from_type) {
+      case Type::Boolean: {
+        if (to_type == Type::Integer) {
+          int v = value->asA<bool>();
+          res.value = MaterialX::Value::createValue<int>(v);
+        }
+        break;
+      }
       case Type::Float: {
         float v = value->asA<float>();
         switch (to_type) {
@@ -996,6 +1026,16 @@ NodeItem NodeItem::arithmetic(const std::string &category, std::function<float(f
 
   if (value) {
     switch (type) {
+      case Type::Boolean: {
+        float v = value->asA<bool>() ? 1.0f : 0.0f;
+        res.value = MaterialX::Value::createValue<float>(func(v));
+        break;
+      }
+      case Type::Integer: {
+        float v = value->asA<int>();
+        res.value = MaterialX::Value::createValue<float>(func(v));
+        break;
+      }
       case Type::Float: {
         float v = value->asA<float>();
         res.value = MaterialX::Value::createValue<float>(func(v));
@@ -1055,6 +1095,18 @@ NodeItem NodeItem::arithmetic(const NodeItem &other,
 
   if (value && other.value) {
     switch (to_type) {
+      case Type::Boolean: {
+        float v1 = item1.value->asA<bool>() ? 1.0f : 0.0f;
+        float v2 = item2.value->asA<bool>() ? 1.0f : 0.0f;
+        res.value = MaterialX::Value::createValue<float>(func(v1, v2));
+        break;
+      }
+      case Type::Integer: {
+        float v1 = item1.value->asA<int>();
+        float v2 = item2.value->asA<int>();
+        res.value = MaterialX::Value::createValue<float>(func(v1, v2));
+        break;
+      }
       case Type::Float: {
         float v1 = item1.value->asA<float>();
         float v2 = item2.value->asA<float>();

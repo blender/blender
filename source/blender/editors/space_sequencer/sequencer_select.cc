@@ -250,7 +250,7 @@ static void select_linked_time_strip(const Scene *scene,
       if (left_match && right_match) {
         /* Direct match, copy all selection settings. */
         strip_dest.flag &= ~STRIP_ALLSEL;
-        strip_dest.flag |= strip_source->flag & (STRIP_ALLSEL);
+        strip_dest.flag |= strip_source->flag & STRIP_ALLSEL;
         recurs_sel_strip(&strip_dest);
       }
       else if (left_match && handle_clicked == STRIP_HANDLE_LEFT) {
@@ -507,7 +507,7 @@ static wmOperatorStatus sequencer_select_inverse_exec(bContext *C, wmOperator * 
       strip->flag &= ~STRIP_ALLSEL;
     }
     else {
-      strip->flag &= ~(SEQ_LEFTSEL + SEQ_RIGHTSEL);
+      strip->flag &= ~(SEQ_LEFTSEL | SEQ_RIGHTSEL);
       strip->flag |= SEQ_SELECT;
     }
   }
@@ -828,7 +828,7 @@ static void sequencer_select_connected_strips(const StripSelection &selection)
     for (Strip *connection : connections) {
       /* Copy selection settings exactly for connected strips. */
       connection->flag &= ~STRIP_ALLSEL;
-      connection->flag |= source->flag & (STRIP_ALLSEL);
+      connection->flag |= source->flag & STRIP_ALLSEL;
     }
   }
 }
@@ -1597,7 +1597,7 @@ static bool select_more_less_impl(Scene *scene, bool select_more)
 
   Set<Strip *> neighbors;
   const int neighbor_selection_filter = select_more ? 0 : 1;
-  const eStripFlag selection_filter = select_more ? SEQ_SELECT : eStripFlag(0);
+  const eStripFlag selection_filter = select_more ? SEQ_SELECT : SEQ_FLAG_NONE;
 
   for (Strip &strip : *seq::active_seqbase_get(ed)) {
     if ((strip.flag & SEQ_SELECT) != selection_filter) {
@@ -2795,12 +2795,12 @@ static bool select_grouped_effect(Span<Strip *> strips,
     if (STRIP_CHANNEL_CHECK(strip, channel) && strip->is_effect() &&
         seq::relation_is_effect_of_strip(strip, act_strip))
     {
-      effects.add(StripType(strip->type));
+      effects.add(strip->type);
     }
   }
 
   for (Strip *strip : strips) {
-    if (STRIP_CHANNEL_CHECK(strip, channel) && effects.contains(StripType(strip->type))) {
+    if (STRIP_CHANNEL_CHECK(strip, channel) && effects.contains(strip->type)) {
       if (strip->input1) {
         strip->input1->flag |= SEQ_SELECT;
       }

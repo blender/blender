@@ -11,6 +11,8 @@
 #include "DNA_listBase.h"
 #include "DNA_vec_defaults.h"
 
+#include "BLI_enum_flags.hh"
+
 namespace blender {
 
 namespace gpu {
@@ -21,7 +23,7 @@ class Texture;
  * #FluidDomainSettings.flags
  * Domain flags.
  */
-enum {
+enum eFluidDomain_Flags : int {
   FLUID_DOMAIN_USE_NOISE = (1 << 1),        /* Use noise. */
   FLUID_DOMAIN_USE_DISSOLVE = (1 << 2),     /* Let smoke dissolve. */
   FLUID_DOMAIN_USE_DISSOLVE_LOG = (1 << 3), /* Using 1/x for dissolve. */
@@ -42,12 +44,13 @@ enum {
   FLUID_DOMAIN_USE_RESUMABLE_CACHE = (1 << 16), /* Determine if cache should be resumable. */
   FLUID_DOMAIN_USE_VISCOSITY = (1 << 17),       /* Use viscosity. */
 };
+ENUM_OPERATORS(eFluidDomain_Flags)
 
 /**
  * #FluidDomainSettings.border_collisions
  * Border collisions.
  */
-enum {
+enum eFluidDomain_BorderFlags : int {
   FLUID_DOMAIN_BORDER_FRONT = (1 << 1),
   FLUID_DOMAIN_BORDER_BACK = (1 << 2),
   FLUID_DOMAIN_BORDER_RIGHT = (1 << 3),
@@ -55,21 +58,23 @@ enum {
   FLUID_DOMAIN_BORDER_TOP = (1 << 5),
   FLUID_DOMAIN_BORDER_BOTTOM = (1 << 6),
 };
+ENUM_OPERATORS(eFluidDomain_BorderFlags)
 
 /* Cache file formats. */
-enum {
+enum eFluidDomain_FileFormat : char {
   FLUID_DOMAIN_FILE_UNI = (1 << 0),
   FLUID_DOMAIN_FILE_OPENVDB = (1 << 1),
   FLUID_DOMAIN_FILE_RAW = (1 << 2),
   FLUID_DOMAIN_FILE_OBJECT = (1 << 3),
   FLUID_DOMAIN_FILE_BIN_OBJECT = (1 << 4),
 };
+ENUM_OPERATORS(eFluidDomain_FileFormat)
 
 /**
  * #FluidDomainSettings.axis_slice_method
  * Axis aligned method.
  */
-enum {
+enum eFluidDomain_AxisSliceMethod : char {
   AXIS_SLICE_FULL = 0,
   AXIS_SLICE_SINGLE = 1,
 };
@@ -78,7 +83,7 @@ enum {
  * #FluidDomainSettings.slice_axis
  * Single slice direction.
  */
-enum {
+enum eFluidDomain_SliceAxis : char {
   SLICE_AXIS_AUTO = 0,
   SLICE_AXIS_X = 1,
   SLICE_AXIS_Y = 2,
@@ -89,44 +94,45 @@ enum {
  * #FluidDomainSettings.interp_method
  * Display interpolation method.
  */
-enum FLUID_DisplayInterpolationMethod {
+enum FLUID_DisplayInterpolationMethod : char {
   FLUID_DISPLAY_INTERP_LINEAR = 0,
   FLUID_DISPLAY_INTERP_CUBIC = 1,
   FLUID_DISPLAY_INTERP_CLOSEST = 2,
 };
 
 /** #FluidDomainSettings.vector_draw_type */
-enum {
+enum eFluidDomain_VectorDrawType : char {
   VECTOR_DRAW_NEEDLE = 0,
   VECTOR_DRAW_STREAMLINE = 1,
   VECTOR_DRAW_MAC = 2,
 };
 
 /** #FluidDomainSettings.vector_draw_mac_components */
-enum {
+enum eFluidDomain_VectorDrawMAC : char {
   VECTOR_DRAW_MAC_X = (1 << 0),
   VECTOR_DRAW_MAC_Y = (1 << 1),
   VECTOR_DRAW_MAC_Z = (1 << 2),
 };
+ENUM_OPERATORS(eFluidDomain_VectorDrawMAC)
 
 /**
  * #FluidDomainSettings.vector_field
  * Fluid domain vector fields.
  */
-enum FLUID_DisplayVectorField {
+enum FLUID_DisplayVectorField : char {
   FLUID_DOMAIN_VECTOR_FIELD_VELOCITY = 0,
   FLUID_DOMAIN_VECTOR_FIELD_GUIDE_VELOCITY = 1,
   FLUID_DOMAIN_VECTOR_FIELD_FORCE = 2,
 };
 
 /** #FluidDomainSettings.sndparticle_boundary */
-enum {
+enum eFluidDomain_SndParticleBoundary : char {
   SNDPARTICLE_BOUNDARY_DELETE = 0,
   SNDPARTICLE_BOUNDARY_PUSHOUT = 1,
 };
 
 /** #FluidDomainSettings.sndparticle_combined_export */
-enum {
+enum eFluidDomain_SndParticleCombinedExport : char {
   SNDPARTICLE_COMBINED_EXPORT_OFF = 0,
   SNDPARTICLE_COMBINED_EXPORT_SPRAY_FOAM = 1,
   SNDPARTICLE_COMBINED_EXPORT_SPRAY_BUBBLE = 2,
@@ -135,7 +141,7 @@ enum {
 };
 
 /** #FluidDomainSettings.coba_field */
-enum {
+enum eFluidDomain_CobaField : char {
   FLUID_DOMAIN_FIELD_DENSITY = 0,
   FLUID_DOMAIN_FIELD_HEAT = 1,
   FLUID_DOMAIN_FIELD_FUEL = 2,
@@ -162,7 +168,7 @@ enum {
  * #FluidDomainSettings.gridlines_color_field
  * Fluid grid-line display color field types.
  */
-enum {
+enum eFluidDomain_GridlineColorField : char {
   FLUID_GRIDLINE_COLOR_TYPE_NONE = 0,
   FLUID_GRIDLINE_COLOR_TYPE_FLAGS = 1,
   FLUID_GRIDLINE_COLOR_TYPE_RANGE = 2,
@@ -172,7 +178,7 @@ enum {
  * #FluidDomainSettings.gridlines_cell_filter
  * Fluid cell types.
  */
-enum {
+enum eFluidDomain_GridlineCellFilter : char {
   FLUID_CELL_TYPE_NONE = 0,
   FLUID_CELL_TYPE_FLUID = (1 << 0),
   FLUID_CELL_TYPE_OBSTACLE = (1 << 1),
@@ -180,27 +186,28 @@ enum {
   FLUID_CELL_TYPE_INFLOW = (1 << 3),
   FLUID_CELL_TYPE_OUTFLOW = (1 << 4),
 };
+ENUM_OPERATORS(eFluidDomain_GridlineCellFilter)
 
 /* Fluid domain types. */
-enum {
+enum eFluidDomain_Type : short {
   FLUID_DOMAIN_TYPE_GAS = 0,
   FLUID_DOMAIN_TYPE_LIQUID = 1,
 };
 
 /* Mesh levelset generator types. */
-enum {
+enum eFluidDomain_MeshGenerator : short {
   FLUID_DOMAIN_MESH_IMPROVED = 0,
   FLUID_DOMAIN_MESH_UNION = 1,
 };
 
 /* Guiding velocity source. */
-enum {
+enum eFluidDomain_GuideSource : short {
   FLUID_DOMAIN_GUIDE_SRC_DOMAIN = 0,
   FLUID_DOMAIN_GUIDE_SRC_EFFECTOR = 1,
 };
 
 /* Fluid data fields (active_fields). */
-enum {
+enum eFluidDomain_ActiveFields : int {
   FLUID_DOMAIN_ACTIVE_HEAT = (1 << 0),
   FLUID_DOMAIN_ACTIVE_FIRE = (1 << 1),
   FLUID_DOMAIN_ACTIVE_COLORS = (1 << 2),
@@ -210,24 +217,27 @@ enum {
   FLUID_DOMAIN_ACTIVE_INVEL = (1 << 6),
   FLUID_DOMAIN_ACTIVE_OUTFLOW = (1 << 7),
 };
+ENUM_OPERATORS(eFluidDomain_ActiveFields)
 
 /* Particle types. */
-enum {
+enum eFluidDomain_ParticleTypes : int {
   FLUID_DOMAIN_PARTICLE_FLIP = (1 << 0),
   FLUID_DOMAIN_PARTICLE_SPRAY = (1 << 1),
   FLUID_DOMAIN_PARTICLE_BUBBLE = (1 << 2),
   FLUID_DOMAIN_PARTICLE_FOAM = (1 << 3),
   FLUID_DOMAIN_PARTICLE_TRACER = (1 << 4),
 };
+ENUM_OPERATORS(eFluidDomain_ParticleTypes)
 
 /* Liquid simulation methods. */
-enum {
+enum eFluidDomain_SimMethod : short {
   FLUID_DOMAIN_METHOD_FLIP = (1 << 0),
   FLUID_DOMAIN_METHOD_APIC = (1 << 1),
 };
+ENUM_OPERATORS(eFluidDomain_SimMethod)
 
 /* Cache options. */
-enum {
+enum eFluidDomain_CacheFlag : int {
   FLUID_DOMAIN_BAKING_DATA = (1 << 0),
   FLUID_DOMAIN_BAKED_DATA = (1 << 1),
   FLUID_DOMAIN_BAKING_NOISE = (1 << 2),
@@ -244,6 +254,7 @@ enum {
   FLUID_DOMAIN_OUTDATED_PARTICLES = (1 << 13),
   FLUID_DOMAIN_OUTDATED_GUIDE = (1 << 14),
 };
+ENUM_OPERATORS(eFluidDomain_CacheFlag)
 
 #define FLUID_DOMAIN_BAKING_ALL \
   (FLUID_DOMAIN_BAKING_DATA | FLUID_DOMAIN_BAKING_NOISE | FLUID_DOMAIN_BAKING_MESH | \
@@ -426,30 +437,30 @@ enum {
 #define FLUID_DOMAIN_EXTENSION_OBJ ".obj"
 #define FLUID_DOMAIN_EXTENSION_BINOBJ ".bobj.gz"
 
-enum {
+enum eFluidDomain_GridType : int {
   FLUID_DOMAIN_GRID_FLOAT = 0,
   FLUID_DOMAIN_GRID_INT = 1,
   FLUID_DOMAIN_GRID_VEC3F = 2,
 };
 
-enum {
+enum eFluidDomain_CacheFilesMode : int {
   FLUID_DOMAIN_CACHE_FILES_SINGLE = 0,
   FLUID_DOMAIN_CACHE_FILES_COMBINED = 1,
 };
 
-enum {
+enum eFluidDomain_CacheType : short {
   FLUID_DOMAIN_CACHE_REPLAY = 0,
   FLUID_DOMAIN_CACHE_MODULAR = 1,
   FLUID_DOMAIN_CACHE_ALL = 2,
 };
 
-enum {
+enum eFluidDomain_OpenVDBCompression : int {
   VDB_COMPRESSION_BLOSC = 0,
   VDB_COMPRESSION_ZIP = 1,
   VDB_COMPRESSION_NONE = 2,
 };
 
-enum {
+enum eFluidDomain_OpenVDBDepth : char {
   VDB_PRECISION_HALF_FLOAT = 0,
   VDB_PRECISION_FULL_FLOAT = 1,
   VDB_PRECISION_MINI_FLOAT = 2,
@@ -457,20 +468,20 @@ enum {
 
 /* Deprecated values (i.e. all defines and enums below this line up until typedefs). */
 /* Cache compression. */
-enum {
+enum eFluidDomain_CacheComp : int {
   SM_CACHE_LIGHT = 0,
   SM_CACHE_HEAVY = 1,
 };
 
 /* High resolution sampling types. */
-enum {
+enum eFluidDomain_HighresSampling : int {
   SM_HRES_NEAREST = 0,
   SM_HRES_LINEAR = 1,
   SM_HRES_FULLSAMPLE = 2,
 };
 
 /* Flow types. */
-enum {
+enum eFluidFlow_Type : short {
   FLUID_FLOW_TYPE_SMOKE = 1,
   FLUID_FLOW_TYPE_FIRE = 2,
   FLUID_FLOW_TYPE_SMOKEFIRE = 3,
@@ -478,26 +489,26 @@ enum {
 };
 
 /* Flow behavior types. */
-enum {
+enum eFluidFlow_Behavior : short {
   FLUID_FLOW_BEHAVIOR_INFLOW = 0,
   FLUID_FLOW_BEHAVIOR_OUTFLOW = 1,
   FLUID_FLOW_BEHAVIOR_GEOMETRY = 2,
 };
 
 /* Flow source types. */
-enum {
+enum eFluidFlow_Source : short {
   FLUID_FLOW_SOURCE_PARTICLES = 0,
   FLUID_FLOW_SOURCE_MESH = 1,
 };
 
 /* Flow texture types. */
-enum {
+enum eFluidFlow_TextureType : short {
   FLUID_FLOW_TEXTURE_MAP_AUTO = 0,
   FLUID_FLOW_TEXTURE_MAP_UV = 1,
 };
 
 /* Flow flags. */
-enum {
+enum eFluidFlow_Flags : int {
   /* Old style emission. */
   FLUID_FLOW_ABSOLUTE = (1 << 1),
   /* Passes particles speed to the smoke. */
@@ -513,15 +524,16 @@ enum {
   /* Notify domain objects about state change (invalidate cache). */
   FLUID_FLOW_NEEDS_UPDATE = (1 << 7),
 };
+ENUM_OPERATORS(eFluidFlow_Flags)
 
 /* Effector types. */
-enum {
+enum eFluidEffector_Type : short {
   FLUID_EFFECTOR_TYPE_COLLISION = 0,
   FLUID_EFFECTOR_TYPE_GUIDE = 1,
 };
 
 /* Guiding velocity modes. */
-enum {
+enum eFluidEffector_GuideMode : short {
   FLUID_EFFECTOR_GUIDE_MAX = 0,
   FLUID_EFFECTOR_GUIDE_MIN = 1,
   FLUID_EFFECTOR_GUIDE_OVERRIDE = 2,
@@ -529,7 +541,7 @@ enum {
 };
 
 /* Effector flags. */
-enum {
+enum eFluidEffector_Flags : int {
   /* Control when to apply inflow. */
   FLUID_EFFECTOR_USE_EFFEC = (1 << 1),
   /* Control how to initialize flow objects. */
@@ -537,6 +549,7 @@ enum {
   /* Notify domain objects about state change (invalidate cache). */
   FLUID_EFFECTOR_NEEDS_UPDATE = (1 << 3),
 };
+ENUM_OPERATORS(eFluidEffector_Flags)
 
 struct FluidDomainSettings {
   /* -- Runtime-only fields (from here on). -- */
@@ -599,15 +612,15 @@ struct FluidDomainSettings {
   float adapt_threshold = 0.002f;
 
   /* Fluid domain options */
-  int maxres = 32;           /* Longest axis on the BB gets this resolution assigned. */
-  int solver_res = 3;        /* Dimension of manta solver, 2d or 3d. */
-  int border_collisions = 0; /* How domain border collisions are handled. */
-  int flags = FLUID_DOMAIN_USE_DISSOLVE_LOG | FLUID_DOMAIN_USE_ADAPTIVE_TIME |
-              FLUID_DOMAIN_USE_MESH; /* Use-mesh, use-noise, etc. */
+  int maxres = 32;    /* Longest axis on the BB gets this resolution assigned. */
+  int solver_res = 3; /* Dimension of manta solver, 2d or 3d. */
+  eFluidDomain_BorderFlags border_collisions = {}; /* How domain border collisions are handled. */
+  eFluidDomain_Flags flags = FLUID_DOMAIN_USE_DISSOLVE_LOG | FLUID_DOMAIN_USE_ADAPTIVE_TIME |
+                             FLUID_DOMAIN_USE_MESH; /* Use-mesh, use-noise, etc. */
   float gravity[3] = {0.0f, 0.0f, -9.81f};
-  int active_fields = 0;
-  short type = FLUID_DOMAIN_TYPE_GAS; /* Gas, liquid. */
-  char _pad2[6] = {};                 /* Unused. */
+  eFluidDomain_ActiveFields active_fields = {};
+  eFluidDomain_Type type = FLUID_DOMAIN_TYPE_GAS; /* Gas, liquid. */
+  char _pad2[6] = {};                             /* Unused. */
 
   /* Smoke domain options. */
   float alpha = 1.0f;
@@ -615,7 +628,7 @@ struct FluidDomainSettings {
   int diss_speed = 5; /* In frames. */
   float vorticity = 0.0f;
   float active_color[3] = {0.0f, 0.0f, 0.0f}; /* Monitor smoke color. */
-  int highres_sampling = SM_HRES_FULLSAMPLE;
+  eFluidDomain_HighresSampling highres_sampling = SM_HRES_FULLSAMPLE;
 
   /* Flame options. */
   float burning_rate = 0.75f, flame_smoke = 1.0f, flame_vorticity = 0.5f;
@@ -641,7 +654,7 @@ struct FluidDomainSettings {
   float fractions_distance = 0.5f;
   float flip_ratio = 0.97f;
   int sys_particle_maximum = 0;
-  short simulation_method = FLUID_DOMAIN_METHOD_FLIP;
+  eFluidDomain_SimMethod simulation_method = FLUID_DOMAIN_METHOD_FLIP;
   char _pad4[6] = {};
 
   /* Viscosity options. */
@@ -660,11 +673,11 @@ struct FluidDomainSettings {
   int mesh_smoothen_pos = 1;
   int mesh_smoothen_neg = 1;
   int mesh_scale = 2;
-  short mesh_generator = FLUID_DOMAIN_MESH_IMPROVED;
+  eFluidDomain_MeshGenerator mesh_generator = FLUID_DOMAIN_MESH_IMPROVED;
   char _pad6[2] = {}; /* Unused. */
 
   /* Secondary particle options. */
-  int particle_type = 0;
+  eFluidDomain_ParticleTypes particle_type = {};
   int particle_scale = 1;
   float sndparticle_tau_min_wc = 2.0f;
   float sndparticle_tau_max_wc = 8.0f;
@@ -680,8 +693,9 @@ struct FluidDomainSettings {
   float sndparticle_l_max = 25.0f;
   int sndparticle_potential_radius = 2;
   int sndparticle_update_radius = 2;
-  char sndparticle_boundary = SNDPARTICLE_BOUNDARY_DELETE;
-  char sndparticle_combined_export = SNDPARTICLE_COMBINED_EXPORT_OFF;
+  eFluidDomain_SndParticleBoundary sndparticle_boundary = SNDPARTICLE_BOUNDARY_DELETE;
+  eFluidDomain_SndParticleCombinedExport sndparticle_combined_export =
+      SNDPARTICLE_COMBINED_EXPORT_OFF;
   char _pad7[6] = {}; /* Unused. */
 
   /* Fluid guiding options. */
@@ -689,7 +703,7 @@ struct FluidDomainSettings {
   int guide_beta = 5;            /* Guiding blur radius (affects size of vortices). */
   float guide_vel_factor = 2.0f; /* Multiply guiding velocity by this factor. */
   int guide_res[3] = {0, 0, 0};  /* Res for velocity guide grids - independent from base res. */
-  short guide_source = FLUID_DOMAIN_GUIDE_SRC_DOMAIN;
+  eFluidDomain_GuideSource guide_source = FLUID_DOMAIN_GUIDE_SRC_DOMAIN;
   char _pad8[2] = {}; /* Unused. */
 
   /* Cache options. */
@@ -701,14 +715,14 @@ struct FluidDomainSettings {
   int cache_frame_pause_particles = 0;
   int cache_frame_pause_guide = 0;
   int cache_frame_offset = 0;
-  int cache_flag = 0;
-  char cache_mesh_format = FLUID_DOMAIN_FILE_BIN_OBJECT;
-  char cache_data_format = FLUID_DOMAIN_FILE_OPENVDB;
-  char cache_particle_format = FLUID_DOMAIN_FILE_OPENVDB;
-  char cache_noise_format = FLUID_DOMAIN_FILE_OPENVDB;
+  eFluidDomain_CacheFlag cache_flag = {};
+  eFluidDomain_FileFormat cache_mesh_format = FLUID_DOMAIN_FILE_BIN_OBJECT;
+  eFluidDomain_FileFormat cache_data_format = FLUID_DOMAIN_FILE_OPENVDB;
+  eFluidDomain_FileFormat cache_particle_format = FLUID_DOMAIN_FILE_OPENVDB;
+  eFluidDomain_FileFormat cache_noise_format = FLUID_DOMAIN_FILE_OPENVDB;
   char cache_directory[/*FILE_MAX*/ 1024] = "";
   char error[64] = ""; /* Bake error description. */
-  short cache_type = FLUID_DOMAIN_CACHE_REPLAY;
+  eFluidDomain_CacheType cache_type = FLUID_DOMAIN_CACHE_REPLAY;
   char cache_id[4] = ""; /* Run-time only */
   char _pad9[2] = {};    /* Unused. */
 
@@ -732,29 +746,32 @@ struct FluidDomainSettings {
   float gridlines_lower_bound = 0.0f;
   float gridlines_upper_bound = 1.0f;
   float gridlines_range_color[4] = {1.0f, 0.0f, 0.0f, 1.0f};
-  char axis_slice_method = AXIS_SLICE_FULL;
-  char slice_axis = 0;
+  eFluidDomain_AxisSliceMethod axis_slice_method = AXIS_SLICE_FULL;
+  eFluidDomain_SliceAxis slice_axis = SLICE_AXIS_AUTO;
   char show_gridlines = false;
   char draw_velocity = false;
-  char vector_draw_type = VECTOR_DRAW_NEEDLE;
-  char vector_field =
+  eFluidDomain_VectorDrawType vector_draw_type = VECTOR_DRAW_NEEDLE;
+  FLUID_DisplayVectorField vector_field =
       FLUID_DOMAIN_VECTOR_FIELD_VELOCITY; /* Simulation field used for vector display. */
   char vector_scale_with_magnitude = true;
-  char vector_draw_mac_components = VECTOR_DRAW_MAC_X | VECTOR_DRAW_MAC_Y | VECTOR_DRAW_MAC_Z;
+  eFluidDomain_VectorDrawMAC vector_draw_mac_components = VECTOR_DRAW_MAC_X | VECTOR_DRAW_MAC_Y |
+                                                          VECTOR_DRAW_MAC_Z;
   char use_coba = false;
-  char coba_field = FLUID_DOMAIN_FIELD_DENSITY; /* Simulation field used for the color mapping. */
-  char interp_method = FLUID_DISPLAY_INTERP_LINEAR;
-  char gridlines_color_field = 0; /* Simulation field used to color map onto gridlines. */
-  char gridlines_cell_filter = FLUID_CELL_TYPE_NONE;
+  eFluidDomain_CobaField coba_field =
+      FLUID_DOMAIN_FIELD_DENSITY; /* Simulation field used for the color mapping. */
+  FLUID_DisplayInterpolationMethod interp_method = FLUID_DISPLAY_INTERP_LINEAR;
+  eFluidDomain_GridlineColorField gridlines_color_field =
+      FLUID_GRIDLINE_COLOR_TYPE_NONE; /* Simulation field used to color map onto gridlines. */
+  eFluidDomain_GridlineCellFilter gridlines_cell_filter = FLUID_CELL_TYPE_NONE;
   char _pad10[3] = {}; /* Unused. */
 
   /* Velocity factor for motion blur rendering. */
   float velocity_scale = 1.0f;
 
   /* OpenVDB cache options. */
-  int openvdb_compression = VDB_COMPRESSION_BLOSC;
+  eFluidDomain_OpenVDBCompression openvdb_compression = VDB_COMPRESSION_BLOSC;
   float clipping = 1e-6f;
-  char openvdb_data_depth = 0;
+  eFluidDomain_OpenVDBDepth openvdb_data_depth = VDB_PRECISION_HALF_FLOAT;
   char _pad11[7] = {}; /* Unused. */
 
   /* -- Deprecated / unused options (below). -- */
@@ -772,9 +789,9 @@ struct FluidDomainSettings {
   struct ListBaseT<PointCache> ptcaches[2] = {
     {nullptr, nullptr}, {nullptr, nullptr},
   };
-  int cache_comp = SM_CACHE_LIGHT;
-  int cache_high_comp = SM_CACHE_LIGHT;
-  char cache_file_format = 0;
+  eFluidDomain_CacheComp cache_comp = SM_CACHE_LIGHT;
+  eFluidDomain_CacheComp cache_high_comp = SM_CACHE_LIGHT;
+  eFluidDomain_FileFormat cache_file_format = {};
   char _pad13[7] = {}; /* Unused. */
 };
 
@@ -821,13 +838,13 @@ struct FluidFlowSettings {
   char _pad3[4] = {};
   short vgroup_density = 0;
 
-  short type = FLUID_FLOW_TYPE_SMOKE;            /* Smoke, flames, both, outflow, liquid. */
-  short behavior = FLUID_FLOW_BEHAVIOR_GEOMETRY; /* Inflow, outflow, static. */
-  short source = FLUID_FLOW_SOURCE_MESH;
-  short texture_type = 0;
+  eFluidFlow_Type type = FLUID_FLOW_TYPE_SMOKE; /* Smoke, flames, both, outflow, liquid. */
+  eFluidFlow_Behavior behavior = FLUID_FLOW_BEHAVIOR_GEOMETRY; /* Inflow, outflow, static. */
+  eFluidFlow_Source source = FLUID_FLOW_SOURCE_MESH;
+  eFluidFlow_TextureType texture_type = FLUID_FLOW_TEXTURE_MAP_AUTO;
   short _pad4[3] = {};
-  int flags = FLUID_FLOW_ABSOLUTE | FLUID_FLOW_USE_PART_SIZE |
-              FLUID_FLOW_USE_INFLOW; /* Absolute emission etc. */
+  eFluidFlow_Flags flags = FLUID_FLOW_ABSOLUTE | FLUID_FLOW_USE_PART_SIZE |
+                           FLUID_FLOW_USE_INFLOW; /* Absolute emission etc. */
 };
 
 /* Collision objects (filled with smoke). */
@@ -844,14 +861,14 @@ struct FluidEffectorSettings {
   /* -- User-accessible fields (from here on). -- */
 
   float surface_distance = 0.0f; /* Thickness of mesh surface, used in obstacle SDF. */
-  int flags = FLUID_EFFECTOR_USE_EFFEC;
+  eFluidEffector_Flags flags = FLUID_EFFECTOR_USE_EFFEC;
   int subframes = 0;
-  short type = FLUID_EFFECTOR_TYPE_COLLISION;
+  eFluidEffector_Type type = FLUID_EFFECTOR_TYPE_COLLISION;
   char _pad1[6] = {};
 
   /* Guiding options. */
   float vel_multi = 1.0f; /* Multiplier for object velocity. */
-  short guide_mode = FLUID_EFFECTOR_GUIDE_OVERRIDE;
+  eFluidEffector_GuideMode guide_mode = FLUID_EFFECTOR_GUIDE_OVERRIDE;
   char _pad2[2] = {};
 };
 

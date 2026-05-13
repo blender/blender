@@ -32,7 +32,7 @@ TemplateDefinition SourceProcessor::parse_template_definition(SourceProcessor::P
                                                               Token template_tok,
                                                               bool is_method,
                                                               Scope ns_scope,
-                                                              std::string filepath)
+                                                              const std::string &filepath)
 {
   Token def_start = template_tok;
   Scope template_args = def_start.next().scope();
@@ -69,7 +69,7 @@ TemplateDefinition SourceProcessor::parse_template_definition(SourceProcessor::P
 void SourceProcessor::parse_namespace_symbols(SourceProcessor::Parser &parser,
                                               Scope ns,
                                               metadata::Source &metadata,
-                                              std::string filepath)
+                                              const std::string &filepath)
 {
   ns.foreach_scope(ScopeType::Namespace, [&](const Scope &ns) {
     parse_namespace_symbols(parser, ns, metadata, filepath);
@@ -104,7 +104,7 @@ void SourceProcessor::parse_namespace_symbols(SourceProcessor::Parser &parser,
 
     if (t.next() == '<') {
       if (t.next(2) == '>') {
-        /* Template specialization.*/
+        /* Template specialization. */
         return;
       }
       TemplateDefinition symbol = SourceProcessor::parse_template_definition(

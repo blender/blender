@@ -80,6 +80,7 @@ else()
   set(IGC_TARGET Linux64)
 endif()
 
+string(REPLACE "-DCMAKE_CXX_STANDARD=20" " " IGC_CMAKE_FLAGS "${DEFAULT_CMAKE_FLAGS}")
 set(IGC_EXTRA_ARGS
   -DIGC_OPTION__ARCHITECTURE_TARGET=${IGC_TARGET}
   -DIGC_OPTION__ARCHITECTURE_HOST=${IGC_TARGET}
@@ -97,7 +98,7 @@ ExternalProject_Add(external_igc
 
   CMAKE_ARGS
     -DCMAKE_INSTALL_PREFIX=${LIBDIR}/igc
-    ${DEFAULT_CMAKE_FLAGS}
+    ${IGC_CMAKE_FLAGS}
     ${IGC_EXTRA_ARGS}
 
   # IGC is pretty set in its way where sub projects ought to live, for some it offers

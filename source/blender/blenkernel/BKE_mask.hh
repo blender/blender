@@ -160,16 +160,16 @@ inline bool BKE_mask_point_is_handle_selected(const MaskSplinePoint *point,
 
 inline void BKE_mask_point_select_handles(MaskSplinePoint *p)
 {
-  p->bezt.f1 |= SELECT;
-  p->bezt.f2 |= SELECT;
-  p->bezt.f3 |= SELECT;
+  p->bezt.f1 |= BEZT_FLAG_SELECT;
+  p->bezt.f2 |= BEZT_FLAG_SELECT;
+  p->bezt.f3 |= BEZT_FLAG_SELECT;
 }
 
 inline void BKE_mask_point_deselect_handles(MaskSplinePoint *p)
 {
-  p->bezt.f1 &= ~SELECT;
-  p->bezt.f2 &= ~SELECT;
-  p->bezt.f3 &= ~SELECT;
+  p->bezt.f1 &= ~BEZT_FLAG_SELECT;
+  p->bezt.f2 &= ~BEZT_FLAG_SELECT;
+  p->bezt.f3 &= ~BEZT_FLAG_SELECT;
 }
 
 /** \} */

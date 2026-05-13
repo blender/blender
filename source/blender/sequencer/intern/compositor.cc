@@ -44,7 +44,7 @@ void CompositorContext::create_result_from_input(compositor::Result &result, ImB
     /* CPU path: ensure input is linear float. */
     ensure_ibuf_is_linear_space(&input, true);
     BLI_assert(input.float_data());
-    result.wrap_external(input.float_data_for_write(), size);
+    result.share_data(input.float_data(), size);
     return;
   }
 

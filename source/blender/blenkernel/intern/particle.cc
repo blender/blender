@@ -1033,7 +1033,7 @@ void psys_free(Object *ob, ParticleSystem *psys)
     BLI_freelistN(&psys->targets);
 
     BLI_bvhtree_free(psys->bvhtree);
-    kdtree_3d_free(psys->tree);
+    kdtree_free<float3>(psys->tree);
 
     if (psys->fluid_springs) {
       MEM_delete(psys->fluid_springs);
@@ -2606,7 +2606,7 @@ void psys_find_parents(ParticleSimulationData *sim, const bool use_render_params
 {
   ParticleSystem *psys = sim->psys;
   ParticleSettings *part = sim->psys->part;
-  KDTree_3d *tree;
+  KDTree<float3> *tree;
   ChildParticle *cpa;
   ParticleTexture ptex;
   int p, totparent, totchild = sim->psys->totchild;
@@ -2621,7 +2621,7 @@ void psys_find_parents(ParticleSimulationData *sim, const bool use_render_params
   /* hard limit, workaround for it being ignored above */
   totparent = std::min(sim->psys->totpart, totparent);
 
-  tree = kdtree_3d_new(totparent);
+  tree = kdtree_new<float3>(totparent);
 
   for (p = 0, cpa = sim->psys->child; p < totparent; p++, cpa++) {
     psys_particle_on_emitter(sim->psmd,
@@ -2651,11 +2651,11 @@ void psys_find_parents(ParticleSimulationData *sim, const bool use_render_params
                     psys->cfra);
 
     if (ptex.exist >= psys_frand(psys, p + 24)) {
-      kdtree_3d_insert(tree, p, orco);
+      kdtree_insert<float3>(tree, p, orco);
     }
   }
 
-  kdtree_3d_balance(tree);
+  kdtree_balance<float3>(tree);
 
   for (; p < totchild; p++, cpa++) {
     psys_particle_on_emitter(sim->psmd,
@@ -2669,10 +2669,10 @@ void psys_find_parents(ParticleSimulationData *sim, const bool use_render_params
                              nullptr,
                              nullptr,
                              orco);
-    cpa->parent = kdtree_3d_find_nearest(tree, orco, nullptr);
+    cpa->parent = kdtree_find_nearest<float3>(tree, orco, nullptr);
   }
 
-  kdtree_3d_free(tree);
+  kdtree_free<float3>(tree);
 }
 
 static bool psys_thread_context_init_path(ParticleThreadContext *ctx,
@@ -5591,11 +5591,11 @@ void BKE_particle_system_blend_read_data(BlendDataReader *reader,
   int a;
 
   for (ParticleSystem &psys : *particles) {
-    BLO_read_struct_array(reader, ParticleData, psys.totpart, &psys.particles);
+    BLO_read_array_and_validate_size(reader, &psys.particles, &psys.totpart);
 
     if (psys.particles && psys.particles->hair) {
       for (a = 0, pa = psys.particles; a < psys.totpart; a++, pa++) {
-        BLO_read_struct_array(reader, HairKey, pa->totkey, &pa->hair);
+        BLO_read_array_and_validate_size(reader, &pa->hair, &pa->totkey);
       }
     }
 
@@ -5610,14 +5610,16 @@ void BKE_particle_system_blend_read_data(BlendDataReader *reader,
 
     if (psys.particles && psys.particles->boid) {
       pa = psys.particles;
-      BLO_read_struct_array(reader, BoidParticle, psys.totpart, &pa->boid);
+      BLO_read_array_and_validate_size(reader, &pa->boid, &psys.totpart);
 
-      /* This is purely runtime data, but still can be an issue if left dangling. */
-      pa->boid->ground = nullptr;
-
-      for (a = 1, pa++; a < psys.totpart; a++, pa++) {
-        pa->boid = (pa - 1)->boid + 1;
+      if (pa->boid) {
+        /* This is purely runtime data, but still can be an issue if left dangling. */
         pa->boid->ground = nullptr;
+
+        for (a = 1, pa++; a < psys.totpart; a++, pa++) {
+          pa->boid = (pa - 1)->boid + 1;
+          pa->boid->ground = nullptr;
+        }
       }
     }
     else if (psys.particles) {
@@ -5626,9 +5628,9 @@ void BKE_particle_system_blend_read_data(BlendDataReader *reader,
       }
     }
 
-    BLO_read_struct_array(reader, ParticleSpring, psys.tot_fluidsprings, &psys.fluid_springs);
+    BLO_read_array_and_validate_size(reader, &psys.fluid_springs, &psys.tot_fluidsprings);
 
-    BLO_read_struct_array(reader, ChildParticle, psys.totchild, &psys.child);
+    BLO_read_array_and_validate_size(reader, &psys.child, &psys.totchild);
     psys.effectors = nullptr;
 
     BLO_read_struct_list(reader, ParticleTarget, &psys.targets);

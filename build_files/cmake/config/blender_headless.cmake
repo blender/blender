@@ -20,7 +20,7 @@ set(WITH_COREAUDIO           OFF CACHE BOOL "" FORCE)
 set(WITH_JACK                OFF CACHE BOOL "" FORCE)
 set(WITH_OPENAL              OFF CACHE BOOL "" FORCE)
 set(WITH_PULSEAUDIO          OFF CACHE BOOL "" FORCE)
-set(WITH_SDL                 OFF CACHE BOOL "" FORCE)
+set(WITH_SDL_AUDIO           OFF CACHE BOOL "" FORCE)
 set(WITH_WASAPI              OFF CACHE BOOL "" FORCE)
 
 # other features which are not especially useful as a python module

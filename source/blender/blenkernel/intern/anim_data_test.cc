@@ -3,6 +3,7 @@
  * SPDX-License-Identifier: GPL-2.0-or-later */
 
 #include "BKE_action.hh"
+#include "BKE_gtest_base.hh"
 #include "BKE_idtype.hh"
 #include "BKE_lib_id.hh"
 #include "BKE_main.hh"
@@ -21,13 +22,10 @@
 
 namespace blender::bke::tests {
 
-TEST(anim_data, BKE_fcurves_id_cb_test)
-{
-  /* BKE_id_free() hits a code path that uses CLOG, which crashes if not initialized properly. */
-  CLG_init();
-  /* To make id_can_have_animdata() and friends work, the `id_types` array needs to be set up. */
-  BKE_idtype_init();
+class AnimDataTest : public bke::BlenderGTestBase {};
 
+TEST_F(AnimDataTest, BKE_fcurves_id_cb_test)
+{
   Main *bmain = BKE_main_new();
   bAction *action = BKE_id_new<bAction>(bmain, "ACÄnimåtië");
   Object *cube = BKE_object_add_only_object(bmain, OB_EMPTY, "Küüübus");
@@ -75,7 +73,6 @@ TEST(anim_data, BKE_fcurves_id_cb_test)
   EXPECT_EQ(&fcurve_suzanne_scale1, reported_fcurves[1]);
 
   BKE_main_free(bmain);
-  CLG_exit();
 }
 
 }  // namespace blender::bke::tests

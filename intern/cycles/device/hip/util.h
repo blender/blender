@@ -77,6 +77,15 @@ static inline bool hipIsRDNA2OrNewer(const int hipDevId)
   return (major > 10 || (major == 10 && minor >= 3));
 }
 
+static inline bool hipIsNotRDNA2(const int hipDevId)
+{
+  int major, minor;
+  hipDeviceGetAttribute(&major, hipDeviceAttributeComputeCapabilityMajor, hipDevId);
+  hipDeviceGetAttribute(&minor, hipDeviceAttributeComputeCapabilityMinor, hipDevId);
+
+  return !(major == 10 && minor == 3);
+}
+
 static inline bool hipSupportsDeviceOIDN(const int hipDevId)
 {
   /* Matches HIPDevice::getArch in HIP. */

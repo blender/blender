@@ -12,11 +12,7 @@
 #  include "draw_view_infos.hh"
 
 #  include "eevee_geom_infos.hh"
-#  include "eevee_surf_capture_infos.hh"
-#  include "eevee_surf_deferred_infos.hh"
 #  include "eevee_surf_depth_infos.hh"
-#  include "eevee_surf_forward_infos.hh"
-#  include "eevee_surf_hybrid_infos.hh"
 #  include "eevee_surf_shadow_infos.hh"
 #  include "eevee_surf_volume_infos.hh"
 #  include "eevee_surf_world_infos.hh"
@@ -60,21 +56,21 @@ CREATE_INFO_VARIANT(eevee_surface_depth_curves, eevee_geom_curves, eevee_surf_de
 CREATE_INFO_VARIANT(eevee_surface_depth_mesh, eevee_geom_mesh, eevee_surf_depth, eevee_material_stub)
 CREATE_INFO_VARIANT(eevee_surface_depth_pointcloud, eevee_geom_pointcloud, eevee_surf_depth, eevee_material_stub)
 CREATE_INFO_VARIANT(eevee_surface_depth_volume, eevee_geom_volume, eevee_surf_depth, eevee_material_stub)
-CREATE_INFO_VARIANT(eevee_surface_deferred_world, eevee_geom_world, eevee_surf_deferred, eevee_material_stub)
-CREATE_INFO_VARIANT(eevee_surface_deferred_curves, eevee_geom_curves, eevee_surf_deferred, eevee_material_stub)
-CREATE_INFO_VARIANT(eevee_surface_deferred_mesh, eevee_geom_mesh, eevee_surf_deferred, eevee_material_stub)
-CREATE_INFO_VARIANT(eevee_surface_deferred_pointcloud, eevee_geom_pointcloud, eevee_surf_deferred, eevee_material_stub)
-CREATE_INFO_VARIANT(eevee_surface_deferred_volume, eevee_geom_volume, eevee_surf_deferred, eevee_material_stub)
-CREATE_INFO_VARIANT(eevee_surface_forward_world, eevee_geom_world, eevee_surf_forward, eevee_material_stub)
-CREATE_INFO_VARIANT(eevee_surface_forward_curves, eevee_geom_curves, eevee_surf_forward, eevee_material_stub)
-CREATE_INFO_VARIANT(eevee_surface_forward_mesh, eevee_geom_mesh, eevee_surf_forward, eevee_material_stub)
-CREATE_INFO_VARIANT(eevee_surface_forward_pointcloud, eevee_geom_pointcloud, eevee_surf_forward, eevee_material_stub)
-CREATE_INFO_VARIANT(eevee_surface_forward_volume, eevee_geom_volume, eevee_surf_forward, eevee_material_stub)
-CREATE_INFO_VARIANT(eevee_surface_capture_world, eevee_geom_world, eevee_surf_capture, eevee_material_stub)
-CREATE_INFO_VARIANT(eevee_surface_capture_curves, eevee_geom_curves, eevee_surf_capture, eevee_material_stub)
-CREATE_INFO_VARIANT(eevee_surface_capture_mesh, eevee_geom_mesh, eevee_surf_capture, eevee_material_stub)
-CREATE_INFO_VARIANT(eevee_surface_capture_pointcloud, eevee_geom_pointcloud, eevee_surf_capture, eevee_material_stub)
-CREATE_INFO_VARIANT(eevee_surface_capture_volume, eevee_geom_volume, eevee_surf_capture, eevee_material_stub)
+// CREATE_INFO_VARIANT(eevee_surface_deferred_world, eevee_geom_world, eevee_surf_deferred, eevee_material_stub)
+// CREATE_INFO_VARIANT(eevee_surface_deferred_curves, eevee_geom_curves, eevee_surf_deferred, eevee_material_stub)
+// CREATE_INFO_VARIANT(eevee_surface_deferred_mesh, eevee_geom_mesh, eevee_surf_deferred, eevee_material_stub)
+// CREATE_INFO_VARIANT(eevee_surface_deferred_pointcloud, eevee_geom_pointcloud, eevee_surf_deferred, eevee_material_stub)
+// CREATE_INFO_VARIANT(eevee_surface_deferred_volume, eevee_geom_volume, eevee_surf_deferred, eevee_material_stub)
+// CREATE_INFO_VARIANT(eevee_surface_forward_world, eevee_geom_world, eevee_surf_forward, eevee_material_stub)
+// CREATE_INFO_VARIANT(eevee_surface_forward_curves, eevee_geom_curves, eevee_surf_forward, eevee_material_stub)
+// CREATE_INFO_VARIANT(eevee_surface_forward_mesh, eevee_geom_mesh, eevee_surf_forward, eevee_material_stub)
+// CREATE_INFO_VARIANT(eevee_surface_forward_pointcloud, eevee_geom_pointcloud, eevee_surf_forward, eevee_material_stub)
+// CREATE_INFO_VARIANT(eevee_surface_forward_volume, eevee_geom_volume, eevee_surf_forward, eevee_material_stub)
+// CREATE_INFO_VARIANT(eevee_surface_capture_world, eevee_geom_world, eevee_surf_capture, eevee_material_stub)
+// CREATE_INFO_VARIANT(eevee_surface_capture_curves, eevee_geom_curves, eevee_surf_capture, eevee_material_stub)
+// CREATE_INFO_VARIANT(eevee_surface_capture_mesh, eevee_geom_mesh, eevee_surf_capture, eevee_material_stub)
+// CREATE_INFO_VARIANT(eevee_surface_capture_pointcloud, eevee_geom_pointcloud, eevee_surf_capture, eevee_material_stub)
+// CREATE_INFO_VARIANT(eevee_surface_capture_volume, eevee_geom_volume, eevee_surf_capture, eevee_material_stub)
 CREATE_INFO_VARIANT(eevee_surface_volume_world, eevee_geom_world, eevee_surf_volume, eevee_material_stub)
 CREATE_INFO_VARIANT(eevee_surface_volume_curves, eevee_geom_curves, eevee_surf_volume, eevee_material_stub)
 CREATE_INFO_VARIANT(eevee_surface_volume_mesh, eevee_geom_mesh, eevee_surf_volume, eevee_material_stub)

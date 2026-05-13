@@ -68,6 +68,8 @@ def connect_sockets(input, output):
     :type input: :class:`bpy.types.NodeSocket`
     :param output: The output socket.
     :type output: :class:`bpy.types.NodeSocket`
+    :return: The created link, or ``None`` when the sockets cannot be connected.
+    :rtype: :class:`bpy.types.NodeLink` | None
     """
     import bpy
 

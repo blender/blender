@@ -424,7 +424,7 @@ bNodeTreeInterfaceSocket *add_interface_socket_from_node(
     std::optional<eNodeSocketInOut> in_out = std::nullopt);
 
 /**
- * Reference to a node tree's interface item.
+ * Reference to a node tree's dragged interface items.
  *
  * Used by the node interface drag controller to reorder interface items and
  * the node space drop-boxes to drop Group Input/Output nodes into the node
@@ -432,9 +432,6 @@ bNodeTreeInterfaceSocket *add_interface_socket_from_node(
  */
 struct bNodeTreeInterfaceItemReference {
   bNodeTree *tree;
-  /* The item under the cursor when dragging started. Used to create Group Input node in the node
-   * editor. */
-  bNodeTreeInterfaceItem *item;
   /* All dragged items. If a parent item is selected, its children are excluded because they are
    * dragged implicitly. */
   bNodeTreeInterfaceItem **items;

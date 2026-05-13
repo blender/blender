@@ -723,7 +723,7 @@
   - backface False probe True shadow False
 
 ==== Images: 6
-- Image 'alpha.png' 128x128 32bpp
+- Image 'alpha.png' 128x128 16bpp
 - Image 'checkerboard_diffuse.png' 128x128 24bpp
 - Image 'checkerboard_emissive.png' 128x128 24bpp
 - Image 'checkerboard_metallic.png' 128x128 24bpp

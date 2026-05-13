@@ -1255,6 +1255,8 @@ static void draw_fcurve(bAnimContext *ac, SpaceGraph *sipo, ARegion *region, bAn
           case FMODIFIER_TYPE_ENVELOPE: /* envelope */
             draw_fcurve_modifier_controls_envelope(fcm, &region->v2d, ale);
             break;
+          default:
+            break;
         }
       }
     }

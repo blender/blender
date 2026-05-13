@@ -527,8 +527,7 @@ Mesh *MOD_solidify_nonmanifold_modifyMesh(ModifierData *md,
                 vert_adj_edges[vert] = ref;
               }
               else {
-                const uint *f = old_edge_vert_ref->edges;
-                for (uint k = 0; k < len && k <= old_edge_vert_ref->edges_len; k++, f++) {
+                for (uint k = 0; k < len && k <= old_edge_vert_ref->edges_len; k++) {
                   const uint edge = old_edge_vert_ref->edges[k];
                   if (edge == MOD_SOLIDIFY_EMPTY_TAG || k == old_edge_vert_ref->edges_len) {
                     old_edge_vert_ref->edges[k] = i;
@@ -622,10 +621,9 @@ Mesh *MOD_solidify_nonmanifold_modifyMesh(ModifierData *md,
 
     /* Filter duplicate faces. */
     {
-      const int2 *edge = orig_edges.data();
       /* Iterate over edges and only check the faces around an edge for duplicates
        * (performance optimization). */
-      for (uint i = 0; i < edges_num; i++, edge++) {
+      for (uint i = 0; i < edges_num; i++) {
         if (edge_adj_faces_len[i] > 0) {
           const OldEdgeFaceRef *adj_faces = edge_adj_faces[i];
           uint adj_len = adj_faces->faces_len;

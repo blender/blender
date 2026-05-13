@@ -369,6 +369,18 @@ static inline Transform get_transform(const blender::float4x4 &matrix)
                         ptr[14]);
 }
 
+static inline float2 get_float2(blender::PointerRNA &ptr, const char *name)
+{
+  float2 f;
+  RNA_float_get_array(&ptr, name, &f.x);
+  return f;
+}
+
+static inline void set_float2(blender::PointerRNA &ptr, const char *name, const float2 value)
+{
+  RNA_float_set_array(&ptr, name, &value.x);
+}
+
 static inline float3 get_float3(blender::PointerRNA &ptr, const char *name)
 {
   float3 f;

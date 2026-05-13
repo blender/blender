@@ -236,6 +236,21 @@ void _BaseMathObject_RaiseNotFrozenExc(const BaseMathObject *self);
                                           const char *error_prefix);
 
 /**
+ * Returns true when a slice does *not* address every element of an `array_num`.
+ */
+[[nodiscard]] inline bool mathutils_slice_is_subset(Py_ssize_t start,
+                                                    Py_ssize_t step,
+                                                    Py_ssize_t slice_length,
+                                                    Py_ssize_t array_num)
+{
+  return !((slice_length == array_num) &&
+           /* All forward `[:]`. */
+           ((start == 0 && step == 1) ||
+            /* All reverse `[::-1]`. */
+            (start == array_num - 1 && step == -1)));
+}
+
+/**
  * helper function that returns a Python `__hash__`.
  *
  * \note consistent with the equivalent tuple of floats (CPython's `tuplehash`)

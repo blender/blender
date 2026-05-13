@@ -11,7 +11,15 @@
 
 namespace blender::tests {
 
-TEST(generic_array, TypeConstructor)
+class GenericArrayTest : public testing::Test {
+ public:
+  static void SetUpTestSuite()
+  {
+    register_cpp_types();
+  }
+};
+
+TEST_F(GenericArrayTest, TypeConstructor)
 {
   GArray array(CPPType::get<float>());
   EXPECT_TRUE(array.data() == nullptr);
@@ -20,7 +28,7 @@ TEST(generic_array, TypeConstructor)
   EXPECT_TRUE(array.is_empty());
 }
 
-TEST(generic_array, MoveConstructor)
+TEST_F(GenericArrayTest, MoveConstructor)
 {
   GArray array_a(CPPType::get<int32_t>(), int64_t(10));
   GMutableSpan span_a = array_a.as_mutable_span();
@@ -40,7 +48,7 @@ TEST(generic_array, MoveConstructor)
   EXPECT_EQ(array_b.type(), array_a.type()); /* NOLINT: bugprone-use-after-move */
 }
 
-TEST(generic_array, CopyConstructor)
+TEST_F(GenericArrayTest, CopyConstructor)
 {
   GArray array_a(CPPType::get<int32_t>(), int64_t(10));
   GMutableSpan span_a = array_a.as_mutable_span();
@@ -64,7 +72,7 @@ TEST(generic_array, CopyConstructor)
   EXPECT_FALSE(array_a.is_empty());
 }
 
-TEST(generic_array, BufferAndSizeConstructor)
+TEST_F(GenericArrayTest, BufferAndSizeConstructor)
 {
   int32_t *values = MEM_new_array_uninitialized<int32_t>(12, __func__);
   void *buffer = static_cast<void *>(values);
@@ -79,7 +87,7 @@ TEST(generic_array, BufferAndSizeConstructor)
   EXPECT_EQ(array[3], &values[3]);
 }
 
-TEST(generic_array, Reinitialize)
+TEST_F(GenericArrayTest, Reinitialize)
 {
   GArray array(CPPType::get<int32_t>(), int64_t(5));
   EXPECT_FALSE(array.data() == nullptr);
@@ -104,7 +112,7 @@ TEST(generic_array, Reinitialize)
   EXPECT_EQ(array.size(), 0);
 }
 
-TEST(generic_array, InContainer)
+TEST_F(GenericArrayTest, InContainer)
 {
   Array<GArray<>> arrays;
   for (GArray<> &array : arrays) {
@@ -116,7 +124,7 @@ TEST(generic_array, InContainer)
   }
 }
 
-TEST(generic_array, ReinitEmpty)
+TEST_F(GenericArrayTest, ReinitEmpty)
 {
   GArray<> array(CPPType::get<int>());
   array.reinitialize(10);
@@ -125,7 +133,7 @@ TEST(generic_array, ReinitEmpty)
   EXPECT_EQ(array.as_span().typed<int>()[9], 7);
 }
 
-TEST(generic_array, AssignDefault)
+TEST_F(GenericArrayTest, AssignDefault)
 {
   GArray<> array(CPPType::get<int32_t>(), int64_t(5));
   array = {};
@@ -133,7 +141,7 @@ TEST(generic_array, AssignDefault)
   EXPECT_EQ(array.data(), nullptr);
 }
 
-TEST(generic_array, DefaultConstructor)
+TEST_F(GenericArrayTest, DefaultConstructor)
 {
   GArray<> array;
 

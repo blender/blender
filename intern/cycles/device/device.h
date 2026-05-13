@@ -387,7 +387,7 @@ class GPUDevice : public Device {
   size_t device_image_headroom = 0;
   size_t device_working_headroom = 0;
   using texMemObject = unsigned long long;
-  using arrayMemObject = unsigned long long;
+  using arrayMemObject = uintptr_t;
   struct Mem {
     Mem() = default;
 

@@ -1,85 +1,27 @@
 # SPDX-FileCopyrightText: 2025 Blender Authors
 #
 # SPDX-License-Identifier: GPL-2.0-or-later */
+"""
+blender -b --factory-startup --python tests/python/sculpt_paint/weight_paint_brushes_test.py -- --testdir tests/files/mesh_paint/
+"""
 
 __all__ = (
     "main",
 )
 
 import math
-import unittest
-import sys
-import pathlib
 import numpy as np
+import os
+import pathlib
+import sys
+import unittest
 
 import bpy
 
-"""
-blender -b --factory-startup --python tests/python/sculpt_paint/weight_paint_brushes_test.py -- --testdir tests/files/mesh_paint/
-"""
+sys.path.append(os.path.dirname(os.path.realpath(__file__)))
+from modules.test_helpers import set_view3d_context_override, generate_stroke
 
 args = None
-
-
-def set_view3d_context_override(context_override):
-    """
-    Set context override to become the first viewport in the active workspace
-
-    The ``context_override`` is expected to be a copy of an actual current context
-    obtained by `context.copy()`
-    """
-
-    for area in context_override["screen"].areas:
-        if area.type != 'VIEW_3D':
-            continue
-        for space in area.spaces:
-            if space.type != 'VIEW_3D':
-                continue
-            for region in area.regions:
-                if region.type != 'WINDOW':
-                    continue
-                context_override["area"] = area
-                context_override["region"] = region
-
-
-def generate_stroke(context, start_over_mesh=False):
-    """
-    Generate stroke for the bpy.ops.sculpt.brush_stroke operator
-
-    The generated stroke coves the full plane diagonal.
-    """
-    import bpy
-    from mathutils import Vector
-
-    template = {
-        "name": "stroke",
-        "mouse": (0.0, 0.0),
-        "mouse_event": (0, 0),
-        "is_start": True,
-        "location": (0, 0, 0),
-        "pressure": 1.0,
-        "time": 1.0,
-        "size": 1.0,
-        "x_tilt": 0,
-        "y_tilt": 0
-    }
-
-    num_steps = 100
-    if start_over_mesh:
-        start = Vector((context['area'].width // 2, context['area'].height // 2))
-    else:
-        start = Vector((context['area'].width, context['area'].height))
-
-    end = Vector((0, 0))
-    delta = (end - start) / (num_steps - 1)
-
-    stroke = []
-    for i in range(num_steps):
-        step = template.copy()
-        step["mouse_event"] = start + delta * i
-        stroke.append(step)
-
-    return stroke
 
 
 def get_weights(ob, vgroup):

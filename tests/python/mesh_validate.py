@@ -112,6 +112,97 @@ class TestMeshValidate(unittest.TestCase):
         self.assertTrue(mesh.validate(verbose=True))
         self.assertFalse(mesh.validate(verbose=True))
 
+    def test_negative_intermediate_face_offset(self):
+        # An intermediate face's start offset is negative.
+        verts = [(0, 0, 0), (1, 0, 0), (1, 1, 0), (0, 1, 0),
+                 (2, 0, 0), (3, 0, 0), (3, 1, 0), (2, 1, 0)]
+        edges = []
+        faces = [(0, 1, 2, 3), (4, 5, 6, 7)]
+
+        mesh = bpy.data.meshes.new("test_mesh")
+        mesh.from_pydata(verts, edges, faces)
+
+        mesh.polygons[1].loop_start = -4
+
+        self.assertTrue(mesh.validate(verbose=True))
+        self.assertFalse(mesh.validate(verbose=True))
+
+    def test_intermediate_face_offset_past_corners(self):
+        # An intermediate face's start offset is beyond the number of corners.
+        verts = [(0, 0, 0), (1, 0, 0), (1, 1, 0), (0, 1, 0),
+                 (2, 0, 0), (3, 0, 0), (3, 1, 0), (2, 1, 0)]
+        edges = []
+        faces = [(0, 1, 2, 3), (4, 5, 6, 7)]
+
+        mesh = bpy.data.meshes.new("test_mesh")
+        mesh.from_pydata(verts, edges, faces)
+
+        mesh.polygons[1].loop_start = 1000
+
+        self.assertTrue(mesh.validate(verbose=True))
+        self.assertFalse(mesh.validate(verbose=True))
+
+    def test_corner_edge_to_duplicate_edge(self):
+        # A corner referencing a duplicate edge that gets removed must be
+        # redirected to the kept edge.
+        verts = [(0, 0, 0), (1, 0, 0), (1, 1, 0), (0, 1, 0)]
+        edges = [(0, 1), (1, 2), (2, 3), (3, 0), (0, 1)]
+        faces = [(0, 1, 2, 3)]
+
+        mesh = bpy.data.meshes.new("test_mesh")
+        mesh.from_pydata(verts, edges, faces)
+
+        # Point the first corner's edge at the duplicate.
+        corner_edges = mesh.attributes[".corner_edge"].data
+        corner_edges[0].value = 4
+
+        self.assertTrue(mesh.validate(verbose=True))
+        self.assertFalse(mesh.validate(verbose=True))
+
+    def test_bad_corner_edge_after_bad_vert_edge(self):
+        # When earlier edges have been removed (e.g. for out-of-range verts), the
+        # index used by the bad-edge fix-up must adapt.
+        verts = [(0, 0, 0), (1, 0, 0), (1, 1, 0), (0, 1, 0)]
+        faces = [(0, 1, 2, 3)]
+
+        mesh = bpy.data.meshes.new("test_mesh")
+        mesh.from_pydata(verts, [], faces)
+
+        # Give an edge an out-of-range vertex so it gets removed by validation.
+        mesh.attributes[".edge_verts"].data[0].value = (0, 99)
+
+        self.assertTrue(mesh.validate(verbose=True))
+        self.assertFalse(mesh.validate(verbose=True))
+
+    def test_missing_edge_with_oob_corner_edge(self):
+        # A face with a missing edge and an out-of-range corner_edge index.
+        verts = [(0, 0, 0), (1, 0, 0), (1, 1, 0), (0, 1, 0)]
+        faces = [(0, 1, 2, 3)]
+
+        mesh = bpy.data.meshes.new("test_mesh")
+        mesh.from_pydata(verts, [], faces)
+
+        mesh.attributes[".edge_verts"].data[0].value = (0, 99)
+        mesh.attributes[".corner_edge"].data[0].value = 999
+
+        self.assertTrue(mesh.validate(verbose=True))
+        self.assertFalse(mesh.validate(verbose=True))
+
+    def test_overlapping_face_offsets(self):
+        # Non-monotonic face offsets.
+        verts = [(float(i), 0.0, 0.0) for i in range(12)]
+        faces = [(0, 1, 2, 3), (4, 5, 6, 7), (8, 9, 10, 11)]
+
+        mesh = bpy.data.meshes.new("test_mesh")
+        mesh.from_pydata(verts, [], faces)
+
+        mesh.polygons[1].loop_start = 5
+        mesh.polygons[2].loop_start = 3
+
+        self.assertTrue(mesh.validate(verbose=True))
+        self.assertEqual(len(mesh.polygons), 0)
+        self.assertFalse(mesh.validate(verbose=True))
+
 
 args = None
 

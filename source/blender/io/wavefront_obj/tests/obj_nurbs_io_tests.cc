@@ -6,15 +6,13 @@
 
 #include "BKE_appdir.hh"
 #include "BKE_curves.hh"
-#include "BKE_geometry_compare.hh"
-#include "BKE_idtype.hh"
+#include "BKE_gtest_base.hh"
 
 #include "obj_export_file_writer.hh"
 #include "obj_export_nurbs.hh"
 #include "obj_exporter.hh"
 #include "obj_importer.hh"
 
-#include "CLG_log.h"
 #include "testing/testing.h"
 
 namespace blender::io::obj {
@@ -37,22 +35,8 @@ static OBJImportParams default_import_params(const std::string &filepath)
   return params;
 }
 
-class OBJCurvesTest : public testing::Test {
+class OBJCurvesTest : public bke::BlenderGTestBase {
  public:
-  static void SetUpTestSuite()
-  {
-    /* BKE_id_free() hits a code path that uses CLOG, which crashes if not initialized properly. */
-    CLG_init();
-
-    /* Might not be necessary but... */
-    BKE_idtype_init();
-  }
-
-  static void TearDownTestSuite()
-  {
-    CLG_exit();
-  }
-
   void write_curves(const Span<std::unique_ptr<IOBJCurve>> curves, OBJExportParams params)
   {
     export_objects(params, Span<std::unique_ptr<OBJMesh>>(nullptr, 0), curves, params.filepath);

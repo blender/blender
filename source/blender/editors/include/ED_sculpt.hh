@@ -88,6 +88,7 @@ size_t step_memory_size_get(UndoStep *step);
 
 namespace face_set {
 
+int find_next_available_id(const Mesh &object);
 int find_next_available_id(Object &object);
 void initialize_none_to_id(Mesh *mesh, int new_id);
 int active_update_and_get(bContext *C, Object &ob, const float mval_fl[2]);

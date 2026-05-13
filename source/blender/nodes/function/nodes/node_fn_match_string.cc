@@ -84,7 +84,7 @@ static void node_gather_link_searches(GatherLinkSearchOpParams &params)
           params.add_item(IFACE_(item->name), [operation](LinkSearchOpParams &params) {
             bNode &node = params.add_node("FunctionNodeMatchString"_ustr);
             params.update_and_connect_available_socket(node, "String"_ustr);
-            bke::node_find_socket(node, SOCK_IN, "Operation")
+            bke::node_find_socket(node, SOCK_IN, "Operation"_ustr)
                 ->default_value_typed<bNodeSocketValueMenu>()
                 ->value = int(operation);
           });

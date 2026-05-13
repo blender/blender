@@ -58,7 +58,7 @@ static void rna_WorkSpaceTool_setup(ID *id,
   STRNCPY(tref_rt.op, op_idname);
   tref_rt.brush_type = brush_type;
   tref_rt.index = index;
-  tref_rt.flag = options;
+  tref_rt.flag = ebToolRef_Runtime_Flag(options);
 
   /* While it's logical to assign both these values from setup,
    * it's useful to stored this in DNA for re-use, exceptional case: write to the 'tref'. */

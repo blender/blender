@@ -201,19 +201,19 @@ static bool wm_stereo3d_set_properties(bContext * /*C*/, wmOperator *op)
 
   prop = RNA_struct_find_property(op->ptr, "display_mode");
   if (RNA_property_is_set(op->ptr, prop)) {
-    s3d->display_mode = RNA_property_enum_get(op->ptr, prop);
+    s3d->display_mode = eStereoDisplayMode(RNA_property_enum_get(op->ptr, prop));
     is_set = true;
   }
 
   prop = RNA_struct_find_property(op->ptr, "anaglyph_type");
   if (RNA_property_is_set(op->ptr, prop)) {
-    s3d->anaglyph_type = RNA_property_enum_get(op->ptr, prop);
+    s3d->anaglyph_type = eStereo3dAnaglyphType(RNA_property_enum_get(op->ptr, prop));
     is_set = true;
   }
 
   prop = RNA_struct_find_property(op->ptr, "interlace_type");
   if (RNA_property_is_set(op->ptr, prop)) {
-    s3d->interlace_type = RNA_property_enum_get(op->ptr, prop);
+    s3d->interlace_type = eStereo3dInterlaceType(RNA_property_enum_get(op->ptr, prop));
     is_set = true;
   }
 
@@ -259,7 +259,7 @@ wmOperatorStatus wm_stereo3d_set_exec(bContext *C, wmOperator *op)
   wmWindow *win_src = CTX_wm_window(C);
   wmWindow *win_dst = nullptr;
   const bool is_fullscreen = WM_window_is_fullscreen(win_src);
-  char prev_display_mode = win_src->stereo3d_format->display_mode;
+  eStereoDisplayMode prev_display_mode = win_src->stereo3d_format->display_mode;
   bool ok = true;
 
   if (G.background) {

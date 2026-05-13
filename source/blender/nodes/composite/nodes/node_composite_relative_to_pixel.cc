@@ -60,11 +60,11 @@ static void node_update(bNodeTree *ntree, bNode *node)
   const auto data_type = CMPNodeRelativeToPixelDataType(node->custom1);
   const auto reference_dimension = CMPNodeRelativeToPixelReferenceDimension(node->custom2);
 
-  bNodeSocket *float_input = bke::node_find_socket(*node, SOCK_IN, "Float Value");
+  bNodeSocket *float_input = bke::node_find_socket(*node, SOCK_IN, "Float Value"_ustr);
   bke::node_set_socket_availability(
       *ntree, *float_input, data_type == CMP_NODE_RELATIVE_TO_PIXEL_DATA_TYPE_FLOAT);
 
-  bNodeSocket *vector_input = bke::node_find_socket(*node, SOCK_IN, "Vector Value");
+  bNodeSocket *vector_input = bke::node_find_socket(*node, SOCK_IN, "Vector Value"_ustr);
   bke::node_set_socket_availability(
       *ntree, *vector_input, data_type == CMP_NODE_RELATIVE_TO_PIXEL_DATA_TYPE_VECTOR);
 
@@ -72,7 +72,7 @@ static void node_update(bNodeTree *ntree, bNode *node)
    * different. */
   const bool is_per_dimension = reference_dimension ==
                                 CMP_NODE_RELATIVE_TO_PIXEL_REFERENCE_DIMENSION_PER_DIMENSION;
-  bNodeSocket *float_output = bke::node_find_socket(*node, SOCK_OUT, "Float Value");
+  bNodeSocket *float_output = bke::node_find_socket(*node, SOCK_OUT, "Float Value"_ustr);
   bke::node_set_socket_availability(*ntree,
                                     *float_output,
                                     data_type == CMP_NODE_RELATIVE_TO_PIXEL_DATA_TYPE_FLOAT &&
@@ -80,7 +80,7 @@ static void node_update(bNodeTree *ntree, bNode *node)
 
   /* The vector output exist if the reference is per dimension even if the data type is float,
    * since each dimension can be different. */
-  bNodeSocket *vector_output = bke::node_find_socket(*node, SOCK_OUT, "Vector Value");
+  bNodeSocket *vector_output = bke::node_find_socket(*node, SOCK_OUT, "Vector Value"_ustr);
   bke::node_set_socket_availability(*ntree,
                                     *vector_output,
                                     data_type == CMP_NODE_RELATIVE_TO_PIXEL_DATA_TYPE_VECTOR ||

@@ -118,8 +118,7 @@ struct LightEval {
 [[fragment, early_fragment_tests]]
 void light_eval_frag([[resource_table]] LightEval &srt,
                      [[frag_coord]] const float4 frag_co,
-                     [[in]] const VertOut v_out,
-                     [[out]] FragOut &frag_out)
+                     [[in]] const VertOut v_out)
 {
   const int2 texel = int2(frag_co.xy);
 
@@ -254,7 +253,7 @@ struct SphereProbeEval {
 /* Sphere probe evaluate everything as diffuse since they can only rely on volume light-probes
  * being available. */
 [[fragment, early_fragment_tests]]
-void sphere_eval_frag([[resource_table]] SphereProbeEval &srt,
+void sphere_eval_frag([[resource_table]] SphereProbeEval & /*srt*/,
                       [[frag_coord]] const float4 frag_co,
                       [[in]] const VertOut v_out,
                       [[out]] FragOut &frag_out)
@@ -359,7 +358,7 @@ struct PlanarProbeEval {
 };
 
 [[fragment, early_fragment_tests]]
-void planar_eval_frag([[resource_table]] PlanarProbeEval &srt,
+void planar_eval_frag([[resource_table]] PlanarProbeEval & /*srt*/,
                       [[frag_coord]] const float4 frag_co,
                       [[in]] const VertOut v_out,
                       [[out]] FragOut &frag_out)

@@ -652,8 +652,7 @@ static void blend_read(BlendDataReader *reader, ModifierData *md)
 
   modifier::greasepencil::read_influence_data(reader, &tmd->influence);
 
-  BLO_read_struct_array(
-      reader, GreasePencilTimeModifierSegment, tmd->segments_num, &tmd->segments_array);
+  BLO_read_array_and_validate_size(reader, &tmd->segments_array, &tmd->segments_num);
 }
 
 ModifierTypeInfo modifierType_GreasePencilTime = {

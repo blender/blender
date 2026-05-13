@@ -292,6 +292,18 @@ void WM_init(bContext *C, int argc, const char **argv)
   ED_file_init();
 
   if (!G.background) {
+    wmWindowManager *wm = CTX_wm_manager(C);
+    if (wm != nullptr) {
+      wm_window_ghostwindows_remove_invalid(C, wm);
+    }
+    if (wm == nullptr || BLI_listbase_is_empty(&wm->windows)) {
+      if (params_file_read_post != nullptr) {
+        MEM_delete_void(static_cast<void *>(params_file_read_post));
+        params_file_read_post = nullptr;
+      }
+      WM_exit(C, EXIT_FAILURE);
+    }
+
     GPU_render_begin();
 
 #ifdef WITH_INPUT_NDOF
@@ -433,18 +445,30 @@ static int wm_exit_handler(bContext *C, const wmEvent *event, void *userdata)
   return WM_UI_HANDLER_BREAK;
 }
 
+static void wm_exit_schedule_delayed_for_window(const bContext *C, wmWindow &win)
+{
+  /* Use modal UI handler for now.
+   * Could add separate WM handlers or so, but probably not worth it. */
+  WM_event_add_ui_handler(
+      C, &win.runtime->modalhandlers, wm_exit_handler, nullptr, nullptr, eWM_EventHandlerFlag(0));
+  WM_event_add_mousemove(&win); /* Ensure handler actually gets called. */
+}
+
 void wm_exit_schedule_delayed(const bContext *C)
 {
   /* What we do here is a little bit hacky, but quite simple and doesn't require bigger
    * changes: Add a handler wrapping WM_exit() to cause a delayed call of it. */
 
-  wmWindow *win = CTX_wm_window(C);
-
-  /* Use modal UI handler for now.
-   * Could add separate WM handlers or so, but probably not worth it. */
-  WM_event_add_ui_handler(
-      C, &win->runtime->modalhandlers, wm_exit_handler, nullptr, nullptr, eWM_EventHandlerFlag(0));
-  WM_event_add_mousemove(win); /* Ensure handler actually gets called. */
+  if (wmWindow *win = CTX_wm_window(C)) {
+    wm_exit_schedule_delayed_for_window(C, *win);
+  }
+  else {
+    /* Unlikely but possible, in this case just ensure exit runs as it's not interactive. */
+    wmWindowManager *wm = static_cast<wmWindowManager *>(G_MAIN->wm.first);
+    for (wmWindow &win : wm->windows) {
+      wm_exit_schedule_delayed_for_window(C, win);
+    }
+  }
 }
 
 void UV_clipboard_free();

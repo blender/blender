@@ -74,6 +74,8 @@ void ABCCurveWriter::create_alembic_objects(const HierarchyContext *context)
       resolution_u = curves.resolution().first();
       break;
     }
+    default:
+      break;
   }
 
   OCompoundProperty user_props = abc_curve_schema_.getUserProperties();
@@ -275,10 +277,13 @@ Mesh *ABCCurveMeshWriter::get_export_mesh(Object *object_eval, bool &r_needsfree
       return BKE_mesh_new_nomain_from_curve(object_eval);
     }
 
-    case OB_CURVES:
+    case OB_CURVES: {
       Curves *curves = id_cast<Curves *>(object_eval->data);
       r_needsfree = true;
       return bke::curve_to_wire_mesh(curves->geometry.wrap());
+    }
+    default:
+      break;
   }
 
   return nullptr;

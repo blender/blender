@@ -4,20 +4,18 @@
 
 #pragma once
 
-#if defined(WITH_OPENCOLORIO)
+#include "MEM_guardedalloc.h"
 
-#  include "MEM_guardedalloc.h"
+#include "BLI_vector.hh"
 
-#  include "BLI_vector.hh"
+#include "OCIO_config.hh"
 
-#  include "OCIO_config.hh"
+#include "libocio_colorspace.hh"
+#include "libocio_display.hh"
+#include "libocio_gpu_shader_binder.hh"
+#include "libocio_look.hh"
 
-#  include "libocio_colorspace.hh"
-#  include "libocio_display.hh"
-#  include "libocio_gpu_shader_binder.hh"
-#  include "libocio_look.hh"
-
-#  include "../opencolorio.hh"
+#include "../opencolorio.hh"
 
 namespace blender::ocio {
 
@@ -109,5 +107,3 @@ class LibOCIOConfig : public Config {
 };
 
 }  // namespace blender::ocio
-
-#endif

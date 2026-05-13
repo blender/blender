@@ -176,6 +176,52 @@ TEST(math_half, float_to_half_array)
   EXPECT_EQ_ARRAY(exp, dst, 14);
 }
 
+TEST(math_half, float_to_half_clamp_array)
+{
+  const float src[17] = {
+      0.0f,
+      5.960464478e-08f,
+      0.003183364868f,
+      1.999023438f,
+      2.0f,
+      65504.0f,
+      std::numeric_limits<float>::infinity(),
+      -0.0f,
+      -5.960464478e-08f,
+      -0.4172363281f,
+      -78.3125f,
+      -65504.0f,
+      -std::numeric_limits<float>::infinity(),
+      100000.0f,
+      -100000.0f,
+      std::numeric_limits<float>::quiet_NaN(),
+      -std::numeric_limits<float>::quiet_NaN(),
+  };
+  /* One extra entry in destination, to check that function leaves it intact. */
+  const uint16_t exp[18] = {0,
+                            1,
+                            6789,
+                            16383,
+                            16384,
+                            25552,
+                            25552,
+                            32768,
+                            32769,
+                            46765,
+                            51456,
+                            51456,
+                            51456,
+                            25552,
+                            51456,
+                            0,
+                            0,
+                            12345};
+  uint16_t dst[18] = {};
+  dst[17] = 12345;
+  math::float_to_half_clamp_array(src, dst, 17, -10.0f, 1000.0f);
+  EXPECT_EQ_ARRAY(exp, dst, 18);
+}
+
 TEST(math_half, float_to_half_make_finite_array)
 {
   const float src[17] = {

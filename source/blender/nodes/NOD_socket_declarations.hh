@@ -6,6 +6,7 @@
 
 #include <cfloat>
 
+#include "NOD_bundle_type.hh"
 #include "NOD_menu_value.hh"
 #include "NOD_node_declaration.hh"
 
@@ -47,6 +48,7 @@ class FloatBuilder : public SocketDeclarationBuilder<Float> {
   FloatBuilder &max(float value);
   FloatBuilder &default_value(float value);
   FloatBuilder &subtype(PropertySubType subtype);
+  FloatBuilder &try_copy_ui_data(const SocketDeclaration &other_decl) override;
 };
 
 class IntBuilder;
@@ -76,6 +78,7 @@ class IntBuilder : public SocketDeclarationBuilder<Int> {
   IntBuilder &max(int value);
   IntBuilder &default_value(int value);
   IntBuilder &subtype(PropertySubType subtype);
+  IntBuilder &try_copy_ui_data(const SocketDeclaration &other_decl) override;
 };
 
 class VectorBuilder;
@@ -110,6 +113,7 @@ class VectorBuilder : public SocketDeclarationBuilder<Vector> {
   VectorBuilder &min(float min);
   VectorBuilder &max(float max);
   VectorBuilder &compact();
+  VectorBuilder &try_copy_ui_data(const SocketDeclaration &other_decl) override;
 };
 
 class IntVectorBuilder;
@@ -165,6 +169,7 @@ class Bool : public SocketDeclaration {
 class BoolBuilder : public SocketDeclarationBuilder<Bool> {
  public:
   BoolBuilder &default_value(bool value);
+  BoolBuilder &try_copy_ui_data(const SocketDeclaration &other_decl) override;
 };
 
 class ColorBuilder;
@@ -188,6 +193,7 @@ class Color : public SocketDeclaration {
 class ColorBuilder : public SocketDeclarationBuilder<Color> {
  public:
   ColorBuilder &default_value(const ColorGeometry4f value);
+  ColorBuilder &try_copy_ui_data(const SocketDeclaration &other_decl) override;
 };
 
 class RotationBuilder;
@@ -211,6 +217,7 @@ class Rotation : public SocketDeclaration {
 class RotationBuilder : public SocketDeclarationBuilder<Rotation> {
  public:
   RotationBuilder &default_value(const math::EulerXYZ &value);
+  RotationBuilder &try_copy_ui_data(const SocketDeclaration &other_decl) override;
 };
 
 class MatrixBuilder;
@@ -256,6 +263,7 @@ class StringBuilder : public SocketDeclarationBuilder<String> {
   StringBuilder &default_value(const std::string value);
   StringBuilder &subtype(PropertySubType subtype);
   StringBuilder &path_filter(std::optional<std::string> filter);
+  StringBuilder &try_copy_ui_data(const SocketDeclaration &other_decl) override;
 };
 
 class MenuBuilder;
@@ -285,8 +293,10 @@ class MenuBuilder : public SocketDeclarationBuilder<Menu> {
   /** Draw the menu items next to each other instead of as a drop-down menu. */
   MenuBuilder &expanded(bool value = true);
 
+  using StaticItemFilterFn = bool (*)(const EnumPropertyItem &item);
   /** Set the available items in the menu. The items array must have static lifetime. */
-  MenuBuilder &static_items(const EnumPropertyItem *items);
+  MenuBuilder &static_items(const EnumPropertyItem *items,
+                            const StaticItemFilterFn filter_fn = nullptr);
 };
 
 class BundleBuilder;
@@ -300,6 +310,8 @@ class Bundle : public SocketDeclaration {
    */
   std::optional<int> pass_through_input_index;
 
+  std::optional<BundleType> bundle_type;
+
   friend BundleBuilder;
 
   using Builder = BundleBuilder;
@@ -312,6 +324,8 @@ class Bundle : public SocketDeclaration {
 
 class BundleBuilder : public SocketDeclarationBuilder<Bundle> {
  public:
+  BundleBuilder &bundle_type(BundleType bundle_type);
+
   /** On output sockets, indicate that the bundle structure is passed through from an input. */
   BundleBuilder &pass_through_input_index(std::optional<int> index);
 };

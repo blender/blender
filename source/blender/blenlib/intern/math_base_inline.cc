@@ -158,10 +158,10 @@ MINLINE unsigned int log2_ceil_u(unsigned int x)
 #define _round_clamp_fl_impl(arg, ty, min, max) \
   { \
     float r = floorf(arg + 0.5f); \
-    if (UNLIKELY(r <= (float)min)) { \
+    if (UNLIKELY(r <= float(min))) { \
       return (ty)min; \
     } \
-    if (UNLIKELY(r >= (float)max)) { \
+    if (UNLIKELY(r >= float(max))) { \
       return (ty)max; \
     } \
     return (ty)r; \
@@ -170,10 +170,10 @@ MINLINE unsigned int log2_ceil_u(unsigned int x)
 #define _round_clamp_db_impl(arg, ty, min, max) \
   { \
     double r = floor(arg + 0.5); \
-    if (UNLIKELY(r <= (double)min)) { \
+    if (UNLIKELY(r <= double(min))) { \
       return (ty)min; \
     } \
-    if (UNLIKELY(r >= (double)max)) { \
+    if (UNLIKELY(r >= double(max))) { \
       return (ty)max; \
     } \
     return (ty)r; \

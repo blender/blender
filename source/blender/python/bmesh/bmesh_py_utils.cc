@@ -31,7 +31,7 @@ namespace blender {
 PyDoc_STRVAR(
     /* Wrap. */
     bpy_bm_utils_vert_collapse_edge_doc,
-    ".. method:: vert_collapse_edge(vert, edge)\n"
+    ".. function:: vert_collapse_edge(vert, edge)\n"
     "\n"
     "   Collapse a vertex into an edge.\n"
     "\n"
@@ -87,7 +87,7 @@ static PyObject *bpy_bm_utils_vert_collapse_edge(PyObject * /*self*/, PyObject *
 PyDoc_STRVAR(
     /* Wrap. */
     bpy_bm_utils_vert_collapse_faces_doc,
-    ".. method:: vert_collapse_faces(vert, edge, fac, join_faces)\n"
+    ".. function:: vert_collapse_faces(vert, edge, fac, join_faces)\n"
     "\n"
     "   Collapses a vertex that has only two manifold edges onto a vertex it shares an "
     "edge with.\n"
@@ -159,7 +159,7 @@ static PyObject *bpy_bm_utils_vert_collapse_faces(PyObject * /*self*/, PyObject 
 PyDoc_STRVAR(
     /* Wrap. */
     bpy_bm_utils_vert_dissolve_doc,
-    ".. method:: vert_dissolve(vert)\n"
+    ".. function:: vert_dissolve(vert)\n"
     "\n"
     "   Dissolve this vertex (will be removed).\n"
     "\n"
@@ -187,7 +187,7 @@ static PyObject *bpy_bm_utils_vert_dissolve(PyObject * /*self*/, PyObject *args)
 PyDoc_STRVAR(
     /* Wrap. */
     bpy_bm_utils_vert_splice_doc,
-    ".. method:: vert_splice(vert, vert_target)\n"
+    ".. function:: vert_splice(vert, vert_target)\n"
     "\n"
     "   Splice vert into vert_target, merging them.\n"
     "\n"
@@ -245,7 +245,7 @@ static PyObject *bpy_bm_utils_vert_splice(PyObject * /*self*/, PyObject *args)
 PyDoc_STRVAR(
     /* Wrap. */
     bpy_bm_utils_vert_separate_doc,
-    ".. method:: vert_separate(vert, edges)\n"
+    ".. function:: vert_separate(vert, edges)\n"
     "\n"
     "   Separate this vertex at every edge.\n"
     "\n"
@@ -297,7 +297,7 @@ static PyObject *bpy_bm_utils_vert_separate(PyObject * /*self*/, PyObject *args)
 PyDoc_STRVAR(
     /* Wrap. */
     bpy_bm_utils_edge_split_doc,
-    ".. method:: edge_split(edge, vert, fac)\n"
+    ".. function:: edge_split(edge, vert, fac)\n"
     "\n"
     "   Split an edge, return the newly created data.\n"
     "\n"
@@ -354,7 +354,7 @@ static PyObject *bpy_bm_utils_edge_split(PyObject * /*self*/, PyObject *args)
 PyDoc_STRVAR(
     /* Wrap. */
     bpy_bm_utils_edge_rotate_doc,
-    ".. method:: edge_rotate(edge, ccw=False)\n"
+    ".. function:: edge_rotate(edge, ccw=False)\n"
     "\n"
     "   Rotate the edge and return the newly created edge.\n"
     "   If rotating the edge fails, None will be returned.\n"
@@ -395,7 +395,7 @@ static PyObject *bpy_bm_utils_edge_rotate(PyObject * /*self*/, PyObject *args)
 PyDoc_STRVAR(
     /* Wrap. */
     bpy_bm_utils_face_split_doc,
-    ".. method:: face_split(face, vert_a, vert_b, *, coords=(), use_exist=True, source=None)\n"
+    ".. function:: face_split(face, vert_a, vert_b, *, coords=(), use_exist=True, source=None)\n"
     "\n"
     "   Face split with optional intermediate points.\n"
     "\n"
@@ -542,7 +542,7 @@ static PyObject *bpy_bm_utils_face_split(PyObject * /*self*/, PyObject *args, Py
 PyDoc_STRVAR(
     /* Wrap. */
     bpy_bm_utils_face_split_edgenet_doc,
-    ".. method:: face_split_edgenet(face, edgenet)\n"
+    ".. function:: face_split_edgenet(face, edgenet)\n"
     "\n"
     "   Splits a face into any number of regions defined by an edgenet.\n"
     "\n"
@@ -611,7 +611,7 @@ static PyObject *bpy_bm_utils_face_split_edgenet(PyObject * /*self*/, PyObject *
 PyDoc_STRVAR(
     /* Wrap. */
     bpy_bm_utils_face_join_doc,
-    ".. method:: face_join(faces, remove=True)\n"
+    ".. function:: face_join(faces, remove=True)\n"
     "\n"
     "   Joins a sequence of faces.\n"
     "\n"
@@ -660,7 +660,7 @@ static PyObject *bpy_bm_utils_face_join(PyObject * /*self*/, PyObject *args)
 PyDoc_STRVAR(
     /* Wrap. */
     bpy_bm_utils_face_vert_separate_doc,
-    ".. method:: face_vert_separate(face, vert)\n"
+    ".. function:: face_vert_separate(face, vert)\n"
     "\n"
     "   Rip a vertex in a face away and add a new vertex.\n"
     "\n"
@@ -715,7 +715,7 @@ static PyObject *bpy_bm_utils_face_vert_separate(PyObject * /*self*/, PyObject *
 PyDoc_STRVAR(
     /* Wrap. */
     bpy_bm_utils_face_flip_doc,
-    ".. method:: face_flip(face)\n"
+    ".. function:: face_flip(face)\n"
     "\n"
     "   Flip the face's direction.\n"
     "\n"
@@ -740,7 +740,7 @@ static PyObject *bpy_bm_utils_face_flip(PyObject * /*self*/, BPy_BMFace *value)
 PyDoc_STRVAR(
     /* Wrap. */
     bpy_bm_utils_loop_separate_doc,
-    ".. method:: loop_separate(loop)\n"
+    ".. function:: loop_separate(loop)\n"
     "\n"
     "   Rip a vertex in a face away and add a new vertex.\n"
     "\n"
@@ -779,7 +779,7 @@ static PyObject *bpy_bm_utils_loop_separate(PyObject * /*self*/, BPy_BMLoop *val
 PyDoc_STRVAR(
     /* Wrap. */
     bpy_bm_utils_uv_select_check_doc,
-    ".. method:: uv_select_check(bm, /, *, sync=True, flush=False, contiguous=False)\n"
+    ".. function:: uv_select_check(bm, /, *, sync=True, flush=False, contiguous=False)\n"
     "\n"
     "   Check UV selection state for consistency issues.\n"
     "\n"

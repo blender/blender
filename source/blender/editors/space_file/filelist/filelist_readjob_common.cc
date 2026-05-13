@@ -202,7 +202,7 @@ static int filelist_add_userfonts_regpath(HKEY hKeyParent,
       /* Find last slash to determine basename/relpath portion. */
       const char *val_str = (const char *)KeyValue;
       const char *lslash_str = BLI_path_slash_rfind(val_str);
-      const size_t lslash = lslash_str ? (size_t)(lslash_str - val_str) + 1 : 0;
+      const size_t lslash = lslash_str ? size_t(lslash_str - val_str) + 1 : 0;
 
       BLI_stat(val_str, &entry->st);
       entry->relpath = BLI_strdup(val_str + lslash);

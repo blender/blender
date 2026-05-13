@@ -1697,24 +1697,24 @@ static void blend_read(BlendDataReader *reader, ModifierData *md)
 
   if (smd->verts) {
     smd->verts_sharing_info = BLO_read_shared(reader, &smd->verts, [&]() {
-      BLO_read_struct_array(reader, SDefVert, smd->bind_verts_num, &smd->verts);
+      BLO_read_array_and_validate_size(reader, &smd->verts, &smd->bind_verts_num);
       for (int i = 0; i < smd->bind_verts_num; i++) {
-        BLO_read_struct_array(reader, SDefBind, smd->verts[i].binds_num, &smd->verts[i].binds);
+        BLO_read_array_and_validate_size(reader, &smd->verts[i].binds, &smd->verts[i].binds_num);
 
         if (smd->verts[i].binds) {
           for (int j = 0; j < smd->verts[i].binds_num; j++) {
-            BLO_read_uint32_array(
-                reader, smd->verts[i].binds[j].verts_num, &smd->verts[i].binds[j].vert_inds);
-
-            if (ELEM(smd->verts[i].binds[j].mode,
-                     MOD_SDEF_MODE_CENTROID,
-                     MOD_SDEF_MODE_CORNER_TRIS))
-            {
-              BLO_read_float3_array(reader, 1, &smd->verts[i].binds[j].vert_weights);
+            SDefBind &bind = smd->verts[i].binds[j];
+            bool ok = BLO_read_array(reader, &bind.vert_inds, bind.verts_num);
+            if (ELEM(bind.mode, MOD_SDEF_MODE_CENTROID, MOD_SDEF_MODE_CORNER_TRIS)) {
+              ok &= BLO_read_array(reader, &bind.vert_weights, 1, 3);
             }
             else {
-              BLO_read_float_array(
-                  reader, smd->verts[i].binds[j].verts_num, &smd->verts[i].binds[j].vert_weights);
+              ok &= BLO_read_array(reader, &bind.vert_weights, bind.verts_num);
+            }
+            if (!ok) {
+              bind.verts_num = 0;
+              bind.vert_inds = nullptr;
+              bind.vert_weights = nullptr;
             }
           }
         }

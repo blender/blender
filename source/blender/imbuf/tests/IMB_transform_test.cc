@@ -7,13 +7,18 @@
 #include "BLI_color_types.hh"
 #include "BLI_math_matrix.hh"
 #include "BLI_math_quaternion_types.hh"
+
 #include "IMB_imbuf.hh"
+
+#include "BKE_gtest_base.hh"
 
 namespace blender::imbuf::tests {
 
+class ImBufTransformTest : public bke::BlenderGTestBase {};
+
 static ImBuf *create_6x2_test_image()
 {
-  ImBuf *img = IMB_allocImBuf(6, 2, 32, IB_byte_data);
+  ImBuf *img = IMB_allocImBuf(6, 2, IB_byte_data);
   ColorTheme4b *col = reinterpret_cast<ColorTheme4b *>(img->byte_data_for_write());
 
   /* Source pixels are spelled out in 2x2 blocks below:
@@ -40,7 +45,7 @@ static ImBuf *create_6x2_test_image()
 static ImBuf *transform_2x_smaller(eIMBInterpolationFilterMode filter)
 {
   ImBuf *src = create_6x2_test_image();
-  ImBuf *dst = IMB_allocImBuf(3, 1, 32, IB_byte_data);
+  ImBuf *dst = IMB_allocImBuf(3, 1, IB_byte_data);
   float3x3 matrix = math::from_scale<float3x3>(float3(2.0f));
   IMB_transform(src, dst, IMB_TRANSFORM_MODE_REGULAR, filter, matrix, nullptr);
   IMB_freeImBuf(src);
@@ -50,14 +55,14 @@ static ImBuf *transform_2x_smaller(eIMBInterpolationFilterMode filter)
 static ImBuf *transform_fractional_larger(eIMBInterpolationFilterMode filter)
 {
   ImBuf *src = create_6x2_test_image();
-  ImBuf *dst = IMB_allocImBuf(9, 7, 32, IB_byte_data);
+  ImBuf *dst = IMB_allocImBuf(9, 7, IB_byte_data);
   float3x3 matrix = math::from_scale<float3x3>(float3(6.0f / 9.0f, 2.0f / 7.0f, 1.0f));
   IMB_transform(src, dst, IMB_TRANSFORM_MODE_REGULAR, filter, matrix, nullptr);
   IMB_freeImBuf(src);
   return dst;
 }
 
-TEST(imbuf_transform, nearest_2x_smaller)
+TEST_F(ImBufTransformTest, nearest_2x_smaller)
 {
   ImBuf *res = transform_2x_smaller(IMB_FILTER_NEAREST);
   const ColorTheme4b *got = reinterpret_cast<ColorTheme4b *>(res->byte_data_for_write());
@@ -67,7 +72,7 @@ TEST(imbuf_transform, nearest_2x_smaller)
   IMB_freeImBuf(res);
 }
 
-TEST(imbuf_transform, box_2x_smaller)
+TEST_F(ImBufTransformTest, box_2x_smaller)
 {
   ImBuf *res = transform_2x_smaller(IMB_FILTER_BOX);
   const ColorTheme4b *got = reinterpret_cast<const ColorTheme4b *>(res->byte_data());
@@ -78,7 +83,7 @@ TEST(imbuf_transform, box_2x_smaller)
   IMB_freeImBuf(res);
 }
 
-TEST(imbuf_transform, bilinear_2x_smaller)
+TEST_F(ImBufTransformTest, bilinear_2x_smaller)
 {
   ImBuf *res = transform_2x_smaller(IMB_FILTER_BILINEAR);
   const ColorTheme4b *got = reinterpret_cast<const ColorTheme4b *>(res->byte_data());
@@ -88,7 +93,7 @@ TEST(imbuf_transform, bilinear_2x_smaller)
   IMB_freeImBuf(res);
 }
 
-TEST(imbuf_transform, cubic_bspline_2x_smaller)
+TEST_F(ImBufTransformTest, cubic_bspline_2x_smaller)
 {
   ImBuf *res = transform_2x_smaller(IMB_FILTER_CUBIC_BSPLINE);
   const ColorTheme4b *got = reinterpret_cast<const ColorTheme4b *>(res->byte_data());
@@ -98,7 +103,7 @@ TEST(imbuf_transform, cubic_bspline_2x_smaller)
   IMB_freeImBuf(res);
 }
 
-TEST(imbuf_transform, cubic_mitchell_2x_smaller)
+TEST_F(ImBufTransformTest, cubic_mitchell_2x_smaller)
 {
   ImBuf *res = transform_2x_smaller(IMB_FILTER_CUBIC_MITCHELL);
   const ColorTheme4b *got = reinterpret_cast<const ColorTheme4b *>(res->byte_data());
@@ -108,7 +113,7 @@ TEST(imbuf_transform, cubic_mitchell_2x_smaller)
   IMB_freeImBuf(res);
 }
 
-TEST(imbuf_transform, cubic_mitchell_fractional_larger)
+TEST_F(ImBufTransformTest, cubic_mitchell_fractional_larger)
 {
   ImBuf *res = transform_fractional_larger(IMB_FILTER_CUBIC_MITCHELL);
   const ColorTheme4b *got = reinterpret_cast<const ColorTheme4b *>(res->byte_data());
@@ -121,10 +126,10 @@ TEST(imbuf_transform, cubic_mitchell_fractional_larger)
   IMB_freeImBuf(res);
 }
 
-TEST(imbuf_transform, nearest_very_large_scale)
+TEST_F(ImBufTransformTest, nearest_very_large_scale)
 {
   /* Create 511x1 black image, with three middle pixels being red/green/blue. */
-  ImBuf *src = IMB_allocImBuf(511, 1, 32, IB_byte_data);
+  ImBuf *src = IMB_allocImBuf(511, 1, IB_byte_data);
   ColorTheme4b col_r = ColorTheme4b(255, 0, 0, 255);
   ColorTheme4b col_g = ColorTheme4b(0, 255, 0, 255);
   ColorTheme4b col_b = ColorTheme4b(0, 0, 255, 255);
@@ -136,7 +141,7 @@ TEST(imbuf_transform, nearest_very_large_scale)
 
   /* Create 3841x1 image, and scale the input image so that the three middle
    * pixels cover almost all of it, except the rightmost pixel. */
-  ImBuf *res = IMB_allocImBuf(3841, 1, 32, IB_byte_data);
+  ImBuf *res = IMB_allocImBuf(3841, 1, IB_byte_data);
   float3x3 matrix = math::from_loc_rot_scale<float3x3>(
       float2(254, 0), 0.0f, float2(3.0f / 3840.0f, 1));
   IMB_transform(src, res, IMB_TRANSFORM_MODE_REGULAR, IMB_FILTER_NEAREST, matrix, nullptr);

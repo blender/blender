@@ -62,7 +62,7 @@ bool ED_id_rename(Main &bmain, ID &id, StringRefNull name)
           "ID '%s' forcefully renamed, another ID had to also be renamed to avoid name collision",
           id.name + 2);
       WM_global_reportf(RPT_INFO,
-                        "Name in use. The other data-block was renamed to ‘%s’",
+                        "Name in use. The other data-block was renamed to '%s'",
                         result.other_id->name + 2);
       WM_main_add_notifier(NC_ID | NA_RENAME, &id);
       WM_main_add_notifier(NC_ID | NA_RENAME, result.other_id);

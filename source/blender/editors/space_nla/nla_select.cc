@@ -629,7 +629,7 @@ static wmOperatorStatus mouse_nla_strips(bContext *C,
     /* reset selection mode for next steps */
     select_mode = SELECT_ADD;
 
-    if (strip && wait_to_deselect_others && (strip->flag & DESELECT_STRIPS_CLEARACTIVE)) {
+    if (strip && wait_to_deselect_others && (strip->flag & NLASTRIP_FLAG_SELECT)) {
       ret_value = OPERATOR_RUNNING_MODAL;
     }
     else {

@@ -57,17 +57,11 @@ class EdgeVertsInput final : public bke::MeshFieldInput {
     return construct_edge_verts_gvarray(mesh, vertex_, domain);
   }
 
-  uint64_t hash() const override
+  void hash_unique(UniqueHashBytes &hash, fn::FieldHashDeep & /*deep_hash_cache*/) const override
   {
-    return vertex_ == VertNumber::V1 ? 23847562893465 : 92384598734567;
-  }
-
-  bool is_equal_to(const fn::FieldInput &other) const override
-  {
-    if (const EdgeVertsInput *other_field = dynamic_cast<const EdgeVertsInput *>(&other)) {
-      return vertex_ == other_field->vertex_;
-    }
-    return false;
+    static constexpr int8_t id = 0;
+    hash.add(&id);
+    hash.add(vertex_);
   }
 
   std::optional<AttrDomain> preferred_domain(const Mesh & /*mesh*/) const override
@@ -114,19 +108,11 @@ class EdgePositionFieldInput final : public bke::MeshFieldInput {
     return construct_edge_positions_gvarray(mesh, vertex_, domain);
   }
 
-  uint64_t hash() const override
+  void hash_unique(UniqueHashBytes &hash, fn::FieldHashDeep & /*deep_hash_cache*/) const override
   {
-    return vertex_ == VertNumber::V1 ? 987456978362 : 374587679866;
-  }
-
-  bool is_equal_to(const fn::FieldInput &other) const override
-  {
-    if (const EdgePositionFieldInput *other_field = dynamic_cast<const EdgePositionFieldInput *>(
-            &other))
-    {
-      return vertex_ == other_field->vertex_;
-    }
-    return false;
+    static constexpr int8_t id = 0;
+    hash.add(&id);
+    hash.add(vertex_);
   }
 
   std::optional<AttrDomain> preferred_domain(const Mesh & /*mesh*/) const override

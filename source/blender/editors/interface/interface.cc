@@ -1122,6 +1122,7 @@ static bool but_update_from_old_block(Block *block,
     /* Steal text wrap cache if the old textbox is not active. */
     if (!(oldbut->active || oldbut->semi_modal_state)) {
       textbox->wrap_cache = std::move(old_textbox->wrap_cache);
+      textbox->placeholder_wrap_cache = std::move(old_textbox->placeholder_wrap_cache);
     }
   }
 
@@ -3663,7 +3664,7 @@ void button_range_set_soft(Button *but)
   }
 }
 
-/* ******************* Free ********************/
+/* ******************* Free ******************* */
 
 /**
  * Free data specific to a certain button type.
@@ -4711,20 +4712,20 @@ static void def_but_rna__menu(bContext *C, Layout *layout, void *but_p)
 
       Button *item_but;
       if (icon) {
-        item_but = uiDefIconTextButI(block,
-                                     ButtonType::ButMenu,
-                                     icon,
-                                     item->name,
-                                     0,
-                                     0,
-                                     UI_UNIT_X * 5,
-                                     UI_UNIT_Y,
-                                     &handle->retvalue,
-                                     description_static);
+        item_but = uiDefIconTextBut(block,
+                                    ButtonType::ButMenu,
+                                    icon,
+                                    item->name,
+                                    0,
+                                    0,
+                                    UI_UNIT_X * 5,
+                                    UI_UNIT_Y,
+                                    &handle->retvalue,
+                                    description_static);
         button_retval_set(item_but, B_NOP);
       }
       else {
-        item_but = uiDefButI(block,
+        item_but = uiDefButV(block,
                              ButtonType::ButMenu,
                              item->name,
                              0,
@@ -5155,45 +5156,6 @@ void button_retval_set(Button *but, int retval)
   but->retval = retval;
 }
 
-/**
- * if \a _x_ is a power of two (only one bit) return the power,
- * otherwise return -1.
- *
- * for powers of two:
- * \code{.c}
- *     ((1 << findBitIndex(x)) == x);
- * \endcode
- */
-static int findBitIndex(uint x)
-{
-  if (!x || !is_power_of_2_i(x)) { /* is_power_of_2_i(x) strips lowest bit */
-    return -1;
-  }
-  int idx = 0;
-
-  if (x & 0xFFFF0000) {
-    idx += 16;
-    x >>= 16;
-  }
-  if (x & 0xFF00) {
-    idx += 8;
-    x >>= 8;
-  }
-  if (x & 0xF0) {
-    idx += 4;
-    x >>= 4;
-  }
-  if (x & 0xC) {
-    idx += 2;
-    x >>= 2;
-  }
-  if (x & 0x2) {
-    idx += 1;
-  }
-
-  return idx;
-}
-
 /* Auto-complete helper functions. */
 struct AutoComplete {
   size_t maxncpy;
@@ -5306,210 +5268,6 @@ static void but_update_and_icon_set(Button *but, int icon)
   button_update(but);
 }
 
-static Button *uiDefButBit(Block *block,
-                           ButtonTypeWithPointerType but_and_ptr_type,
-                           int bit,
-                           const StringRef str,
-                           int x,
-                           int y,
-                           short width,
-                           short height,
-                           void *poin,
-                           float min,
-                           float max,
-                           const std::optional<StringRef> tip)
-{
-  const int bitIdx = findBitIndex(bit);
-  if (bitIdx == -1) {
-    return nullptr;
-  }
-  return uiDefBut(
-      block,
-      {but_and_ptr_type.but_type, but_and_ptr_type.pointer_type | ButPointerType::Bit, bitIdx},
-      str,
-      x,
-      y,
-      width,
-      height,
-      poin,
-      min,
-      max,
-      tip);
-}
-Button *uiDefButF(Block *block,
-                  ButtonType type,
-                  const StringRef str,
-                  int x,
-                  int y,
-                  short width,
-                  short height,
-                  float *poin,
-                  float min,
-                  float max,
-                  const std::optional<StringRef> tip)
-{
-  return uiDefBut(block,
-                  {type, ButPointerType::Float},
-                  str,
-                  x,
-                  y,
-                  width,
-                  height,
-                  static_cast<void *>(poin),
-                  min,
-                  max,
-                  tip);
-}
-Button *uiDefButI(Block *block,
-                  ButtonType type,
-                  const StringRef str,
-                  int x,
-                  int y,
-                  short width,
-                  short height,
-                  int *poin,
-                  float min,
-                  float max,
-                  const std::optional<StringRef> tip)
-{
-  return uiDefBut(block,
-                  {type, ButPointerType::Int},
-                  str,
-                  x,
-                  y,
-                  width,
-                  height,
-                  static_cast<void *>(poin),
-                  min,
-                  max,
-                  tip);
-}
-Button *uiDefButBitI(Block *block,
-                     ButtonType type,
-                     int bit,
-                     const StringRef str,
-                     int x,
-                     int y,
-                     short width,
-                     short height,
-                     int *poin,
-                     float min,
-                     float max,
-                     const std::optional<StringRef> tip)
-{
-  return uiDefButBit(block,
-                     {type, ButPointerType::Int},
-                     bit,
-                     str,
-                     x,
-                     y,
-                     width,
-                     height,
-                     static_cast<void *>(poin),
-                     min,
-                     max,
-                     tip);
-}
-Button *uiDefButS(Block *block,
-                  ButtonType type,
-                  const StringRef str,
-                  int x,
-                  int y,
-                  short width,
-                  short height,
-                  short *poin,
-                  float min,
-                  float max,
-                  const std::optional<StringRef> tip)
-{
-  return uiDefBut(block,
-                  {type, ButPointerType::Short},
-                  str,
-                  x,
-                  y,
-                  width,
-                  height,
-                  static_cast<void *>(poin),
-                  min,
-                  max,
-                  tip);
-}
-Button *uiDefButBitS(Block *block,
-                     ButtonType type,
-                     int bit,
-                     const StringRef str,
-                     int x,
-                     int y,
-                     short width,
-                     short height,
-                     short *poin,
-                     float min,
-                     float max,
-                     const std::optional<StringRef> tip)
-{
-  return uiDefButBit(block,
-                     {type, ButPointerType::Short},
-                     bit,
-                     str,
-                     x,
-                     y,
-                     width,
-                     height,
-                     static_cast<void *>(poin),
-                     min,
-                     max,
-                     tip);
-}
-Button *uiDefButC(Block *block,
-                  ButtonType type,
-                  const StringRef str,
-                  int x,
-                  int y,
-                  short width,
-                  short height,
-                  char *poin,
-                  float min,
-                  float max,
-                  const std::optional<StringRef> tip)
-{
-  return uiDefBut(block,
-                  {type, ButPointerType::Char},
-                  str,
-                  x,
-                  y,
-                  width,
-                  height,
-                  static_cast<void *>(poin),
-                  min,
-                  max,
-                  tip);
-}
-Button *uiDefButBitC(Block *block,
-                     ButtonType type,
-                     int bit,
-                     const StringRef str,
-                     int x,
-                     int y,
-                     short width,
-                     short height,
-                     char *poin,
-                     float min,
-                     float max,
-                     const std::optional<StringRef> tip)
-{
-  return uiDefButBit(block,
-                     {type, ButPointerType::Char},
-                     bit,
-                     str,
-                     x,
-                     y,
-                     width,
-                     height,
-                     static_cast<void *>(poin),
-                     min,
-                     max,
-                     tip);
-}
 Button *uiDefButR(Block *block,
                   ButtonType type,
                   const std::optional<StringRef> str,
@@ -5622,163 +5380,6 @@ Button *uiDefIconPreviewBut(Block *block,
   button_update(but);
   return but;
 }
-static Button *uiDefIconButBit(Block *block,
-                               ButtonTypeWithPointerType but_and_ptr_type,
-                               int bit,
-                               int icon,
-                               int x,
-                               int y,
-                               short width,
-                               short height,
-                               void *poin,
-                               float min,
-                               float max,
-                               const std::optional<StringRef> tip)
-{
-  const int bitIdx = findBitIndex(bit);
-  if (bitIdx == -1) {
-    return nullptr;
-  }
-  return uiDefIconBut(
-      block,
-      {but_and_ptr_type.but_type, but_and_ptr_type.pointer_type | ButPointerType::Bit, bitIdx},
-      icon,
-      x,
-      y,
-      width,
-      height,
-      poin,
-      min,
-      max,
-      tip);
-}
-
-Button *uiDefIconButI(Block *block,
-                      ButtonType type,
-                      int icon,
-                      int x,
-                      int y,
-                      short width,
-                      short height,
-                      int *poin,
-                      float min,
-                      float max,
-                      const std::optional<StringRef> tip)
-{
-  return uiDefIconBut(block,
-                      {type, ButPointerType::Int},
-                      icon,
-                      x,
-                      y,
-                      width,
-                      height,
-                      static_cast<void *>(poin),
-                      min,
-                      max,
-                      tip);
-}
-Button *uiDefIconButBitI(Block *block,
-                         ButtonType type,
-                         int bit,
-                         int icon,
-                         int x,
-                         int y,
-                         short width,
-                         short height,
-                         int *poin,
-                         float min,
-                         float max,
-                         const std::optional<StringRef> tip)
-{
-  return uiDefIconButBit(block,
-                         {type, ButPointerType::Int},
-                         bit,
-                         icon,
-                         x,
-                         y,
-                         width,
-                         height,
-                         static_cast<void *>(poin),
-                         min,
-                         max,
-                         tip);
-}
-Button *uiDefIconButS(Block *block,
-                      ButtonType type,
-                      int icon,
-                      int x,
-                      int y,
-                      short width,
-                      short height,
-                      short *poin,
-                      float min,
-                      float max,
-                      const std::optional<StringRef> tip)
-{
-  return uiDefIconBut(block,
-                      {type, ButPointerType::Short},
-                      icon,
-                      x,
-                      y,
-                      width,
-                      height,
-                      static_cast<void *>(poin),
-                      min,
-                      max,
-                      tip);
-}
-Button *uiDefIconButBitS(Block *block,
-                         ButtonType type,
-                         int bit,
-                         int icon,
-                         int x,
-                         int y,
-                         short width,
-                         short height,
-                         short *poin,
-                         float min,
-                         float max,
-                         const std::optional<StringRef> tip)
-{
-  return uiDefIconButBit(block,
-                         {type, ButPointerType::Short},
-                         bit,
-                         icon,
-                         x,
-                         y,
-                         width,
-                         height,
-                         static_cast<void *>(poin),
-                         min,
-                         max,
-                         tip);
-}
-Button *uiDefIconButBitC(Block *block,
-                         ButtonType type,
-                         int bit,
-                         int icon,
-                         int x,
-                         int y,
-                         short width,
-                         short height,
-                         char *poin,
-                         float min,
-                         float max,
-                         const std::optional<StringRef> tip)
-{
-  return uiDefIconButBit(block,
-                         {type, ButPointerType::Char},
-                         bit,
-                         icon,
-                         x,
-                         y,
-                         width,
-                         height,
-                         static_cast<void *>(poin),
-                         min,
-                         max,
-                         tip);
-}
 Button *uiDefIconButR(Block *block,
                       ButtonType type,
                       int icon,
@@ -5863,51 +5464,6 @@ Button *uiDefIconTextBut(Block *block,
   but->drawflag |= BUT_ICON_LEFT;
   return but;
 }
-Button *uiDefIconTextButI(Block *block,
-                          ButtonType type,
-                          int icon,
-                          const StringRef str,
-                          int x,
-                          int y,
-                          short width,
-                          short height,
-                          int *poin,
-                          const std::optional<StringRef> tip)
-{
-  return uiDefIconTextBut(block,
-                          {type, ButPointerType::Int},
-                          icon,
-                          str,
-                          x,
-                          y,
-                          width,
-                          height,
-                          static_cast<void *>(poin),
-                          tip);
-}
-Button *uiDefIconTextButS(Block *block,
-                          ButtonType type,
-                          int icon,
-                          const StringRef str,
-                          int x,
-                          int y,
-                          short width,
-                          short height,
-                          short *poin,
-                          const std::optional<StringRef> tip)
-{
-  return uiDefIconTextBut(block,
-                          {type, ButPointerType::Short},
-                          icon,
-                          str,
-                          x,
-                          y,
-                          width,
-                          height,
-                          static_cast<void *>(poin),
-                          tip);
-}
-
 Button *uiDefIconTextButR(Block *block,
                           ButtonType type,
                           int icon,

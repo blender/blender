@@ -145,7 +145,7 @@ template<typename T = ImplicitSharingInfo, bool IsStrong = true> class ImplicitS
   {
     BLI_assert(data_);
     if (!data_->is_mutable()) {
-      /* The data is shared and therefore immutable. Make a mutable copy.*/
+      /* The data is shared and therefore immutable. Make a mutable copy. */
       *this = data_->copy();
     }
     BLI_assert(data_->is_mutable());

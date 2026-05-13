@@ -129,4 +129,17 @@ TEST(multi_value_map, UniquePtr)
   EXPECT_EQ(map.lookup(std::make_unique<int>(10)).size(), 0);
 }
 
+TEST(multi_value_map, MutableItems)
+{
+  MultiValueMap<int, int> map;
+  map.add(1, 3);
+  map.add(1, 4);
+  for (auto &&item : map.items()) {
+    /* Mostly just checking if this compiles. */
+    MutableSpan<int> span = item.value;
+    EXPECT_TRUE(span.contains(3));
+    EXPECT_TRUE(span.contains(4));
+  }
+}
+
 }  // namespace blender::tests

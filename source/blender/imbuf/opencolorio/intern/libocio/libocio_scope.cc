@@ -2,19 +2,17 @@
  *
  * SPDX-License-Identifier: GPL-2.0-or-later */
 
-#if defined(WITH_OPENCOLORIO)
+#include <cmath>
+#include <memory>
+#include <mutex>
 
-#  include <cmath>
-#  include <memory>
-#  include <mutex>
+#include "libocio_view.hh"
 
-#  include "libocio_view.hh"
+#include "BLI_math_matrix.hh"
+#include "BLI_string.h"
 
-#  include "BLI_math_matrix.hh"
-#  include "BLI_string.h"
-
-#  include "OCIO_matrix.hh"
-#  include "OCIO_scope.hh"
+#include "OCIO_matrix.hh"
+#include "OCIO_scope.hh"
 
 namespace blender::ocio {
 
@@ -255,5 +253,3 @@ void LibOCIOView::append_scope_space_transforms(OCIO_NAMESPACE::GroupTransformRc
 }
 
 }  // namespace blender::ocio
-
-#endif

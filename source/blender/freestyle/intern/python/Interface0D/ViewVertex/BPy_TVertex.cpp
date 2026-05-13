@@ -58,7 +58,7 @@ PyDoc_STRVAR(
     "\n"
     "   Returns the SVertex (among the 2) belonging to the given FEdge.\n"
     "\n"
-    "   :arg fedge: An FEdge object.\n"
+    "   :param fedge: An FEdge object.\n"
     "   :type fedge: :class:`FEdge`\n"
     "   :return: The SVertex belonging to the given FEdge.\n"
     "   :rtype: :class:`SVertex`\n");
@@ -86,7 +86,7 @@ PyDoc_STRVAR(
     "   ViewEdge is frontEdgeA, frontEdgeB is returned. If the ViewEdge is\n"
     "   frontEdgeB, frontEdgeA is returned. Same for back edges.\n"
     "\n"
-    "   :arg viewedge: A ViewEdge object.\n"
+    "   :param viewedge: A ViewEdge object.\n"
     "   :type viewedge: :class:`ViewEdge`\n"
     "   :return: The mate edge of the given ViewEdge.\n"
     "   :rtype: :class:`ViewEdge`\n");

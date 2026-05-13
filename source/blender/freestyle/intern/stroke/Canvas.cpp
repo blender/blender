@@ -415,7 +415,7 @@ void Canvas::loadMap(const char *iFileName, const char *iMapName, uint iNbLevels
 #endif
 
     // soc  QImage qtmp(ow, oh, QImage::Format_RGB32);
-    blender::ImBuf *qtmp = IMB_allocImBuf(ow, oh, 32, blender::IB_byte_data);
+    blender::ImBuf *qtmp = IMB_allocImBuf(ow, oh, blender::IB_byte_data);
 
     // int k = (1 << i);
     uchar *qtmp_byte_data = qtmp->byte_data_for_write();

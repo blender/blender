@@ -19,7 +19,7 @@ void main()
 {
   int2 texel = int2(gl_FragCoord.xy);
 
-  if (uniform_buf.pipeline.use_monochromatic_transmittance) {
+  if (pipeline_buf.use_monochromatic_transmittance) {
     float4 data = texelFetch(transparency_r_tx, texel, 0);
     out_radiance = float4(data.rgb, 0.0f);
     out_transmittance = data.aaaa;

@@ -441,7 +441,7 @@ class ShaderNodesInliner {
                                                                 *used_link->tosock->typeinfo));
       return;
     }
-    /* If the origin socket does not have a value yet, only schedule it for evaluation for now.*/
+    /* If the origin socket does not have a value yet, only schedule it for evaluation for now. */
     this->schedule_socket(origin_socket);
   }
 
@@ -1001,7 +1001,7 @@ class ShaderNodesInliner {
       if (key != item.key) {
         continue;
       }
-      /* Extract the value from the bundle.*/
+      /* Extract the value from the bundle. */
       const SocketValue converted_value = this->handle_implicit_conversion(
           item.value, *item.socket_type, *socket->typeinfo);
       this->store_socket_value(socket, converted_value);

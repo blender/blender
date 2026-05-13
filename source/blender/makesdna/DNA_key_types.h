@@ -14,12 +14,14 @@
 #include "DNA_ID.h"
 #include "DNA_listBase.h"
 
+#include "BLI_enum_flags.hh"
+
 namespace blender {
 
 struct AnimData;
 
 /* Key::type: KeyBlocks are interpreted as... */
-enum ShapekeyContainerType {
+enum ShapekeyContainerType : char {
   /* Sequential positions over time (using KeyBlock::pos and Key::ctime) */
   KEY_NORMAL = 0,
 
@@ -28,25 +30,27 @@ enum ShapekeyContainerType {
 };
 
 /* Key::flag */
-enum ShapekeyContainerFlag {
+enum ShapekeyContainerFlag : short {
   KEY_DS_EXPAND = 1,
 };
+ENUM_OPERATORS(ShapekeyContainerFlag)
 
 /* The obvious name would be `KeyBlockType` but this enum is actually used in places outside of
  * Shape Keys (NURBS, particles, etc.). */
-enum KeyInterpolationType {
+enum KeyInterpolationType : short {
   KEY_LINEAR = 0,
   KEY_CARDINAL = 1,
   KEY_BSPLINE = 2,
   KEY_CATMULL_ROM = 3,
 };
 
-enum KeyBlockFlag {
+enum KeyBlockFlag : short {
   KEYBLOCK_MUTE = (1 << 0),
   KEYBLOCK_SEL = (1 << 1),
   KEYBLOCK_LOCKED = (1 << 2),
   KEYBLOCK_LOCKED_SHAPE = (1 << 3),
 };
+ENUM_OPERATORS(KeyBlockFlag)
 
 #define KEYELEM_FLOAT_LEN_COORD 3
 
@@ -75,14 +79,13 @@ struct KeyBlock {
   /** Influence (typically [0 - 1] but can be more), `(Key::type == KEY_RELATIVE)` only. */
   float curval = 0;
 
-  /** Interpolation type. Used for `(Key::type == KEY_NORMAL)` only (KeyInterpolationType). */
-  short type = 0;
+  /** Interpolation type. Used for `(Key::type == KEY_NORMAL)` only. */
+  KeyInterpolationType type = KEY_LINEAR;
   char _pad1[2] = {};
 
   /** `relative == 0` means first key is reference, otherwise the index of Key::blocks. */
   short relative = 0;
-  /* KeyBlockFlag */
-  short flag = 0;
+  KeyBlockFlag flag = {};
 
   /** Total number of items in the keyblock (compare with mesh/curve verts to check we match). */
   int totelem = 0;
@@ -135,10 +138,9 @@ struct Key {
 
   /** (totkey == BLI_listbase_count(&key->block)). */
   int totkey = 0;
-  /* ShapekeyContainerFlag */
-  short flag = 0;
-  /** Absolute or relative shape key (ShapekeyContainerType). */
-  char type = 0;
+  ShapekeyContainerFlag flag = {};
+  /** Absolute or relative shape key. */
+  ShapekeyContainerType type = KEY_NORMAL;
   char _pad2 = {};
 
   /** Only used when (Key::type == KEY_NORMAL), this value is used as a time slider,

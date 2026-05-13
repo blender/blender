@@ -17,15 +17,15 @@ namespace blender {
  * \{ */
 
 /** #ColorBand::color_mode. */
-enum {
-  COLBAND_BLEND_RGB,
+enum eColorBand_ColorMode : char {
+  COLBAND_BLEND_RGB = 0,
   COLBAND_BLEND_HSV = 1,
   COLBAND_BLEND_HSL = 2,
 };
 
 /** #ColorBand::ipotype (interpolation). */
-enum {
-  COLBAND_INTERP_LINEAR,
+enum eColorBand_Interp : char {
+  COLBAND_INTERP_LINEAR = 0,
   COLBAND_INTERP_EASE = 1,
   COLBAND_INTERP_B_SPLINE = 2,
   COLBAND_INTERP_CARDINAL = 3,
@@ -33,8 +33,8 @@ enum {
 };
 
 /** #ColorBand::ipotype_hue (hue interpolation). */
-enum {
-  COLBAND_HUE_NEAR,
+enum eColorBand_HueInterp : char {
+  COLBAND_HUE_NEAR = 0,
   COLBAND_HUE_FAR = 1,
   COLBAND_HUE_CW = 2,
   COLBAND_HUE_CCW = 3,
@@ -67,8 +67,9 @@ struct CBData {
  */
 struct ColorBand {
   short tot = 0, cur = 0;
-  char ipotype = 0, ipotype_hue = 0;
-  char color_mode = 0;
+  eColorBand_Interp ipotype = COLBAND_INTERP_LINEAR;
+  eColorBand_HueInterp ipotype_hue = COLBAND_HUE_NEAR;
+  eColorBand_ColorMode color_mode = COLBAND_BLEND_RGB;
   char _pad[1] = {};
 
   CBData data[32];

@@ -9,9 +9,9 @@
  */
 
 #pragma once
-#pragma create_info
 
-#include "infos/eevee_shadow_pipeline_infos.hh"
+#include "infos/eevee_common_infos.hh"
+#include "infos/eevee_light_infos.hh"
 
 COMPUTE_SHADER_CREATE_INFO(draw_view)
 COMPUTE_SHADER_CREATE_INFO(draw_view_culling)
@@ -304,10 +304,10 @@ struct TagUsageVolume {
  * This pass scans all volume froxels and tags tiles needed for shadowing.
  */
 [[compute, local_size(VOLUME_GROUP_SIZE, VOLUME_GROUP_SIZE, VOLUME_GROUP_SIZE)]]
-void tag_usage_volume([[resource_table]] TagUsageVolume &srt,
+void tag_usage_volume([[resource_table]] TagUsageVolume & /*srt*/,
                       [[resource_table]] UnifiedVolumeProperties &volume,
                       [[resource_table]] TagUsage &tag,
-                      [[resource_table]] SurfelCapture &capture,
+                      [[resource_table]] SurfelCapture & /*capture*/,
                       [[global_invocation_id]] const uint3 global_id)
 {
   int3 froxel = int3(global_id);

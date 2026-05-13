@@ -399,6 +399,28 @@ int space_text_get_char_pos(const SpaceText *st, const char *line, int cur)
   return a;
 }
 
+/**
+ * Compute the format-string index for the character at byte offset `cur` in `line`.
+ * Tabs expand to the next tab-stop; all other characters occupy one format entry,
+ * matching the convention used by #flatten_string and the format functions.
+ *
+ * \note This is similar to #space_text_get_char_pos but counts non-tab characters as 1
+ * (format entries) rather than using their display width.
+ */
+static int space_text_get_format_index(const SpaceText *st, const char *line, int cur)
+{
+  int fc = 0;
+  for (int i = 0; i < cur && line[i]; i += BLI_str_utf8_size_safe(line + i)) {
+    if (line[i] == '\t') {
+      fc += st->tabnumber - (fc % st->tabnumber);
+    }
+    else {
+      fc++;
+    }
+  }
+  return fc;
+}
+
 static const char *txt_utf8_forward_columns(const char *str, int columns, int *padding)
 {
   const char *p = str;
@@ -1350,7 +1372,7 @@ static void draw_brackets(const SpaceText *st, const TextDrawContext *tdc, ARegi
 
   linep = startl;
   c = startc;
-  fc = BLI_str_utf8_offset_to_index(linep->line, linep->len, startc);
+  fc = space_text_get_format_index(st, linep->line, startc);
   endl = nullptr;
   endc = -1;
   find = -b;
@@ -1385,7 +1407,12 @@ static void draw_brackets(const SpaceText *st, const TextDrawContext *tdc, ARegi
             stack++;
           }
         }
-        fc++;
+        if (linep->line[c] == '\t') {
+          fc += st->tabnumber - fc % st->tabnumber;
+        }
+        else {
+          fc++;
+        }
         c += BLI_str_utf8_size_safe(linep->line + c);
       }
       if (endl) {
@@ -1398,9 +1425,18 @@ static void draw_brackets(const SpaceText *st, const TextDrawContext *tdc, ARegi
   }
   else {
     /* Closing bracket, search backward for open. */
-    fc--;
     if (c > 0) {
       c -= linep->line + c - BLI_str_find_prev_char_utf8(linep->line + c, linep->line);
+      if (linep->line[c] == '\t') {
+        fc = space_text_get_format_index(st, linep->line, c);
+      }
+      else {
+        fc--;
+      }
+    }
+    else {
+      BLI_assert(fc == 0);
+      fc = -1;
     }
     while (linep) {
       while (fc >= 0) {
@@ -1420,9 +1456,18 @@ static void draw_brackets(const SpaceText *st, const TextDrawContext *tdc, ARegi
             stack++;
           }
         }
-        fc--;
         if (c > 0) {
           c -= linep->line + c - BLI_str_find_prev_char_utf8(linep->line + c, linep->line);
+          if (linep->line[c] == '\t') {
+            fc = space_text_get_format_index(st, linep->line, c);
+          }
+          else {
+            fc--;
+          }
+        }
+        else {
+          BLI_assert(fc == 0);
+          fc = -1;
         }
       }
       if (endl) {
@@ -1430,16 +1475,14 @@ static void draw_brackets(const SpaceText *st, const TextDrawContext *tdc, ARegi
       }
       linep = linep->prev;
       if (linep) {
-        if (linep->format) {
-          fc = strlen(linep->format) - 1;
-        }
-        else {
-          fc = -1;
-        }
-        if (linep->len) {
+        /* Without a format string, brackets can't be matched on this line;
+         * the format check skips unnecessary iteration. */
+        if (linep->format && linep->len) {
           c = BLI_str_find_prev_char_utf8(linep->line + linep->len, linep->line) - linep->line;
+          fc = space_text_get_format_index(st, linep->line, c);
         }
         else {
+          BLI_assert(fc == 0);
           fc = -1;
         }
       }

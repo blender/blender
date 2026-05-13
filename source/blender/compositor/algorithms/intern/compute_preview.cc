@@ -41,7 +41,7 @@ static void compute_preview_cpu(Context &context, const Result &input, bke::bNod
   else {
     input_as_color.allocate_texture(input.domain());
     const bke::DataTypeConversions &conversions = bke::get_implicit_type_conversions();
-    conversions.convert_to_initialized_n(input.cpu_data(), input_as_color.cpu_data());
+    conversions.convert_to_initialized_n(input.cpu_data(), input_as_color.cpu_data_for_write());
   }
 
   ColormanageProcessor color_processor = ColormanageProcessor::display_processor_new(

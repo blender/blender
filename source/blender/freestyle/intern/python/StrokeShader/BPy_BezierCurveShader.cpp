@@ -27,7 +27,7 @@ PyDoc_STRVAR(
     "\n"
     "   Builds a BezierCurveShader object.\n"
     "\n"
-    "   :arg error: The error we're allowing for the approximation. This\n"
+    "   :param error: The error we're allowing for the approximation. This\n"
     "     error is the max distance allowed between the new curve and the\n"
     "     original geometry.\n"
     "   :type error: float\n"
@@ -37,7 +37,7 @@ PyDoc_STRVAR(
     "   Transforms the stroke backbone geometry so that it corresponds to a\n"
     "   Bezier Curve approximation of the original backbone geometry.\n"
     "\n"
-    "   :arg stroke: A Stroke object.\n"
+    "   :param stroke: A Stroke object.\n"
     "   :type stroke: :class:`freestyle.types.Stroke`\n");
 static int BezierCurveShader___init__(BPy_BezierCurveShader *self, PyObject *args, PyObject *kwds)
 {

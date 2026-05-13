@@ -56,6 +56,7 @@ void SubsurfaceModule::end_sync()
     pass.state_set(DRW_STATE_NO_DRAW);
     pass.shader_set(inst_.shaders.static_shader_get(SUBSURFACE_CONVOLVE));
     pass.bind_resources(inst_.uniform_data);
+    pass.bind_ubo(SUBSURFACE_BUF_SLOT, data_);
     pass.bind_resources(inst_.gbuffer);
     pass.bind_texture("radiance_tx", &radiance_tx_, sampler);
     pass.bind_texture("depth_tx", &inst_.render_buffers.depth_tx, sampler);
@@ -77,7 +78,9 @@ void SubsurfaceModule::render(gpu::Texture *direct_diffuse_light_tx,
     return;
   }
 
+  /* TODO: This only needs to be update once per render sample. */
   precompute_samples_location();
+  data_.push_update();
 
   int2 render_extent = inst_.film.render_extent_get();
   setup_dispatch_size_ = int3(math::divide_ceil(render_extent, int2(SUBSURFACE_GROUP_SIZE)), 1);
@@ -124,8 +127,6 @@ void SubsurfaceModule::precompute_samples_location()
   }
   /* Avoid float imprecision. */
   data_.min_radius = max_ff(data_.min_radius, 1e-4f);
-
-  inst_.uniform_data.push_update();
 }
 
 /** \} */

@@ -154,8 +154,8 @@ void main()
   }
 
 #if defined(POINTS)
-  final_color = wire_col.rgbb;
-  final_color_inner = rim_col.rgbb;
+  final_color = float4(wire_col * wire_opacity, wire_opacity);
+  final_color_inner = float4(rim_col * wire_opacity, wire_opacity);
 
 #else
   /* Convert to screen position [0..sizeVp]. */

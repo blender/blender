@@ -31,7 +31,7 @@ PyDoc_STRVAR(
     "   Returns the :class:`freestyle.types.Nature` of the 1D element the\n"
     "   Interface0D pointed by the Interface0DIterator belongs to.\n"
     "\n"
-    "   :arg it: An Interface0DIterator object.\n"
+    "   :param it: An Interface0DIterator object.\n"
     "   :type it: :class:`freestyle.types.Interface0DIterator`\n"
     "   :return: The nature of the 1D element to which the pointed Interface0D\n"
     "      belongs.\n"

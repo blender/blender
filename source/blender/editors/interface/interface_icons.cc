@@ -2210,6 +2210,9 @@ int icon_from_object_type(const Object *object)
       }
     case OB_GREASE_PENCIL:
       return ICON_OUTLINER_OB_GREASEPENCIL;
+    case OB_GPENCIL_LEGACY:
+    case OB_TYPE_MAX:
+      break;
   }
   return ICON_NONE;
 }
@@ -2219,7 +2222,7 @@ int icon_color_from_collection(const Collection *collection)
   int icon = ICON_OUTLINER_COLLECTION;
 
   if (collection->color_tag != COLLECTION_COLOR_NONE) {
-    icon = ICON_COLLECTION_COLOR_01 + collection->color_tag;
+    icon = ICON_COLLECTION_COLOR_01 + int(collection->color_tag);
   }
 
   return icon;

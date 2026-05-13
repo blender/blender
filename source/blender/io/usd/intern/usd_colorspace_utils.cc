@@ -68,6 +68,14 @@ void colorspace_attr_to_scene_linear(const pxr::UsdAttribute &attr, pxr::GfVec3f
   }
 }
 
+void colorspace_attr_to_scene_linear(const pxr::UsdAttribute &attr, ColorGeometry4f &color)
+{
+  const ColorSpace *cs = colorspace_from_attr(attr);
+  if (cs) {
+    IMB_colormanagement_colorspace_to_scene_linear_v4(&color.r, false, cs);
+  }
+}
+
 void colorspace_attr_to_scene_linear(const pxr::UsdAttribute &attr,
                                      MutableSpan<ColorGeometry4f> colors)
 {

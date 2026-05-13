@@ -327,7 +327,7 @@ void BKE_fluid_cache_free_all(FluidDomainSettings *fds, Object *ob)
 void BKE_fluid_cache_free(FluidDomainSettings *fds, Object *ob, int cache_map)
 {
   char temp_dir[FILE_MAX];
-  int flags = fds->cache_flag;
+  eFluidDomain_CacheFlag flags = fds->cache_flag;
   const char *relbase = BKE_modifier_path_relbase_from_global(ob);
 
   if (cache_map & FLUID_DOMAIN_OUTDATED_DATA) {
@@ -1121,11 +1121,12 @@ static void update_obstacleflags(FluidDomainSettings *fds,
                                  Object **coll_ob_array,
                                  int coll_ob_array_len)
 {
-  int active_fields = fds->active_fields;
+  eFluidDomain_ActiveFields active_fields = fds->active_fields;
   uint coll_index;
 
   /* First, remove all flags that we want to update. */
-  int prev_flags = (FLUID_DOMAIN_ACTIVE_OBSTACLE | FLUID_DOMAIN_ACTIVE_GUIDE);
+  const eFluidDomain_ActiveFields prev_flags = (FLUID_DOMAIN_ACTIVE_OBSTACLE |
+                                                FLUID_DOMAIN_ACTIVE_GUIDE);
   active_fields &= ~prev_flags;
 
   /* Monitor active fields based on flow settings */
@@ -1476,7 +1477,7 @@ static void update_obstacles(Depsgraph *depsgraph,
 
 struct EmitFromParticlesData {
   FluidFlowSettings *ffs;
-  KDTree_3d *tree;
+  KDTree<float3> *tree;
 
   FluidObjectBB *bb;
   float *particle_vel;
@@ -1501,9 +1502,9 @@ static void emit_from_particles_task_cb(void *__restrict userdata,
       const float ray_start[3] = {float(x) + 0.5f, float(y) + 0.5f, float(z) + 0.5f};
 
       /* Find particle distance from the kdtree. */
-      KDTreeNearest_3d nearest;
+      KDTreeNearest<float3> nearest;
       const float range = data->solid + data->smooth;
-      kdtree_3d_find_nearest(data->tree, ray_start, &nearest);
+      kdtree_find_nearest<float3>(data->tree, ray_start, &nearest);
 
       if (nearest.dist < range) {
         bb->influence[index] = (nearest.dist < data->solid) ?
@@ -1542,7 +1543,7 @@ static void emit_from_particles(Object *flow_ob,
     /* radius based flow */
     const float solid = ffs->particle_size * 0.5f;
     const float smooth = 0.5f; /* add 0.5 cells of linear falloff to reduce aliasing */
-    KDTree_3d *tree = nullptr;
+    KDTree<float3> *tree = nullptr;
 
     sim.depsgraph = depsgraph;
     sim.scene = scene;
@@ -1567,7 +1568,7 @@ static void emit_from_particles(Object *flow_ob,
 
     /* setup particle radius emission if enabled */
     if (ffs->flags & FLUID_FLOW_USE_PART_SIZE) {
-      tree = kdtree_3d_new(psys->totpart + psys->totchild);
+      tree = kdtree_new<float3>(psys->totpart + psys->totchild);
       bounds_margin = int(ceil(solid + smooth));
     }
 
@@ -1606,7 +1607,7 @@ static void emit_from_particles(Object *flow_ob,
       mul_mat3_m4_v3(fds->imat, &particle_vel[valid_particles * 3]);
 
       if (ffs->flags & FLUID_FLOW_USE_PART_SIZE) {
-        kdtree_3d_insert(tree, valid_particles, pos);
+        kdtree_insert<float3>(tree, valid_particles, pos);
       }
 
       /* calculate emission map bounds */
@@ -1659,7 +1660,7 @@ static void emit_from_particles(Object *flow_ob,
         res[i] = bb->res[i];
       }
 
-      kdtree_3d_balance(tree);
+      kdtree_balance<float3>(tree);
 
       EmitFromParticlesData data{};
       data.ffs = ffs;
@@ -1679,7 +1680,7 @@ static void emit_from_particles(Object *flow_ob,
     }
 
     if (ffs->flags & FLUID_FLOW_USE_PART_SIZE) {
-      kdtree_3d_free(tree);
+      kdtree_free<float3>(tree);
     }
 
     /* free data */
@@ -2543,12 +2544,14 @@ static void ensure_flowsfields(FluidDomainSettings *fds)
 
 static void update_flowsflags(FluidDomainSettings *fds, Object **flowobjs, int numflowobj)
 {
-  int active_fields = fds->active_fields;
+  eFluidDomain_ActiveFields active_fields = fds->active_fields;
   uint flow_index;
 
   /* First, remove all flags that we want to update. */
-  int prev_flags = (FLUID_DOMAIN_ACTIVE_INVEL | FLUID_DOMAIN_ACTIVE_OUTFLOW |
-                    FLUID_DOMAIN_ACTIVE_HEAT | FLUID_DOMAIN_ACTIVE_FIRE);
+  const eFluidDomain_ActiveFields prev_flags = (FLUID_DOMAIN_ACTIVE_INVEL |
+                                                FLUID_DOMAIN_ACTIVE_OUTFLOW |
+                                                FLUID_DOMAIN_ACTIVE_HEAT |
+                                                FLUID_DOMAIN_ACTIVE_FIRE);
   active_fields &= ~prev_flags;
 
   /* Monitor active fields based on flow settings. */
@@ -3888,6 +3891,11 @@ static void fluid_modifier_processDomain(FluidModifierData *fmd,
   /* Try to read from cache and keep track of read success. */
   if (read_cache) {
 
+    /* Reallocate fluid object to match cached config before reading mesh/particles. */
+    if (has_config && manta_needs_realloc(fds->fluid, fmd)) {
+      BKE_fluid_reallocate_fluid(fds, fds->res, 1);
+    }
+
     /* Read mesh cache. */
     if (with_liquid && with_mesh) {
       if (mesh_frame != scene_framenr) {
@@ -3942,13 +3950,6 @@ static void fluid_modifier_processDomain(FluidModifierData *fmd,
     else {
       if (data_frame != scene_framenr) {
         has_config = manta_read_config(fds->fluid, fmd, data_frame);
-      }
-
-      if (with_smoke || with_liquid) {
-        /* Read config and realloc fluid object if needed. */
-        if (has_config && manta_needs_realloc(fds->fluid, fmd)) {
-          BKE_fluid_reallocate_fluid(fds, fds->res, 1);
-        }
       }
 
       read_partial = !baking_data && !baking_particles && !baking_mesh && next_data &&
@@ -4423,7 +4424,7 @@ void BKE_fluid_particle_system_create(Main *bmain,
                                       const char *pset_name,
                                       const char *parts_name,
                                       const char *psys_name,
-                                      const int psys_type)
+                                      eParticleType psys_type)
 {
   ParticleSystem *psys;
   ParticleSettings *part;
@@ -4503,7 +4504,8 @@ void BKE_fluid_cache_endframe_set(FluidDomainSettings *settings, int value)
                                                                       value;
 }
 
-void BKE_fluid_cachetype_mesh_set(FluidDomainSettings *settings, int cache_mesh_format)
+void BKE_fluid_cachetype_mesh_set(FluidDomainSettings *settings,
+                                  eFluidDomain_FileFormat cache_mesh_format)
 {
   if (cache_mesh_format == settings->cache_mesh_format) {
     return;
@@ -4512,7 +4514,8 @@ void BKE_fluid_cachetype_mesh_set(FluidDomainSettings *settings, int cache_mesh_
   settings->cache_mesh_format = cache_mesh_format;
 }
 
-void BKE_fluid_cachetype_data_set(FluidDomainSettings *settings, int cache_data_format)
+void BKE_fluid_cachetype_data_set(FluidDomainSettings *settings,
+                                  eFluidDomain_FileFormat cache_data_format)
 {
   if (cache_data_format == settings->cache_data_format) {
     return;
@@ -4521,7 +4524,8 @@ void BKE_fluid_cachetype_data_set(FluidDomainSettings *settings, int cache_data_
   settings->cache_data_format = cache_data_format;
 }
 
-void BKE_fluid_cachetype_particle_set(FluidDomainSettings *settings, int cache_particle_format)
+void BKE_fluid_cachetype_particle_set(FluidDomainSettings *settings,
+                                      eFluidDomain_FileFormat cache_particle_format)
 {
   if (cache_particle_format == settings->cache_particle_format) {
     return;
@@ -4530,7 +4534,8 @@ void BKE_fluid_cachetype_particle_set(FluidDomainSettings *settings, int cache_p
   settings->cache_particle_format = cache_particle_format;
 }
 
-void BKE_fluid_cachetype_noise_set(FluidDomainSettings *settings, int cache_noise_format)
+void BKE_fluid_cachetype_noise_set(FluidDomainSettings *settings,
+                                   eFluidDomain_FileFormat cache_noise_format)
 {
   if (cache_noise_format == settings->cache_noise_format) {
     return;
@@ -4539,17 +4544,21 @@ void BKE_fluid_cachetype_noise_set(FluidDomainSettings *settings, int cache_nois
   settings->cache_noise_format = cache_noise_format;
 }
 
-void BKE_fluid_collisionextents_set(FluidDomainSettings *settings, int value, bool clear)
+void BKE_fluid_collisionextents_set(FluidDomainSettings *settings,
+                                    eFluidDomain_BorderFlags value,
+                                    bool clear)
 {
   if (clear) {
-    settings->border_collisions &= value;
+    settings->border_collisions &= ~value;
   }
   else {
     settings->border_collisions |= value;
   }
 }
 
-void BKE_fluid_particles_set(FluidDomainSettings *settings, int value, bool clear)
+void BKE_fluid_particles_set(FluidDomainSettings *settings,
+                             eFluidDomain_ParticleTypes value,
+                             bool clear)
 {
   if (clear) {
     settings->particle_type &= ~value;
@@ -4559,7 +4568,9 @@ void BKE_fluid_particles_set(FluidDomainSettings *settings, int value, bool clea
   }
 }
 
-void BKE_fluid_domain_type_set(Object *object, FluidDomainSettings *settings, int type)
+void BKE_fluid_domain_type_set(Object *object,
+                               FluidDomainSettings *settings,
+                               eFluidDomain_Type type)
 {
   /* Set values for border collision:
    * Liquids should have a closed domain, smoke domains should be open. */
@@ -4586,12 +4597,14 @@ void BKE_fluid_domain_type_set(Object *object, FluidDomainSettings *settings, in
   settings->type = type;
 }
 
-void BKE_fluid_flow_behavior_set(Object * /*object*/, FluidFlowSettings *settings, int behavior)
+void BKE_fluid_flow_behavior_set(Object * /*object*/,
+                                 FluidFlowSettings *settings,
+                                 eFluidFlow_Behavior behavior)
 {
   settings->behavior = behavior;
 }
 
-void BKE_fluid_flow_type_set(Object *object, FluidFlowSettings *settings, int type)
+void BKE_fluid_flow_type_set(Object *object, FluidFlowSettings *settings, eFluidFlow_Type type)
 {
   /* By default, liquid flow objects should behave like their geometry (geometry behavior),
    * gas flow objects should continuously produce smoke (inflow behavior). */
@@ -4606,7 +4619,9 @@ void BKE_fluid_flow_type_set(Object *object, FluidFlowSettings *settings, int ty
   settings->type = type;
 }
 
-void BKE_fluid_effector_type_set(Object * /*object*/, FluidEffectorSettings *settings, int type)
+void BKE_fluid_effector_type_set(Object * /*object*/,
+                                 FluidEffectorSettings *settings,
+                                 eFluidEffector_Type type)
 {
   settings->type = type;
 }
@@ -4746,7 +4761,7 @@ static void fluid_modifier_reset_ex(FluidModifierData *fmd, bool need_lock)
 
     fmd->time = -1;
     fmd->domain->total_cells = 0;
-    fmd->domain->active_fields = 0;
+    fmd->domain->active_fields = eFluidDomain_ActiveFields{};
   }
   else if (fmd->flow) {
     MEM_SAFE_DELETE(fmd->flow->verts_old);

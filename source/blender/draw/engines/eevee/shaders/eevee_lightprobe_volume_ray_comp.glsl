@@ -17,7 +17,7 @@ COMPUTE_SHADER_CREATE_INFO(eevee_lightprobe_volume_ray)
 #include "eevee_lightprobe_lib.glsl"
 #include "eevee_lightprobe_sphere_lib.glsl"
 #include "eevee_spherical_harmonics.bsl.hh"
-#include "eevee_surfel_list_lib.glsl"
+#include "eevee_surfel_list.bsl.hh"
 #include "gpu_shader_math_base_lib.glsl"
 #include "gpu_shader_utildefines_lib.glsl"
 
@@ -107,7 +107,7 @@ void main()
 
   /* Project to get ray linked list. */
   float irradiance_sample_ray_distance;
-  int list_index = surfel_list_index_get(
+  int list_index = eevee::surfel::list_index_get(
       list_info_buf.ray_grid_size, P, irradiance_sample_ray_distance);
 
   /* Walk the ray to get which surfels the irradiance sample is between. */

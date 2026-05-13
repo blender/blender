@@ -441,6 +441,8 @@ class ObjectRef {
         case OB_VOLUME:
           /* No edit mode yet. */
           return false;
+        default:
+          return false;
       }
     }
     return false;

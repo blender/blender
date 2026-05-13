@@ -8,8 +8,12 @@
 #include "FN_multi_function_builder.hh"
 #include "FN_multi_function_test_common.hh"
 
+#include "BKE_gtest_base.hh"
+
 namespace blender::fn::multi_function::tests {
+
 namespace {
+class MultiFunctionTest : public bke::BlenderGTestBase {};
 
 class AddFunction : public MultiFunction {
  public:
@@ -36,7 +40,7 @@ class AddFunction : public MultiFunction {
   }
 };
 
-TEST(multi_function, AddFunction)
+TEST_F(MultiFunctionTest, AddFunction)
 {
   AddFunction fn;
 
@@ -60,7 +64,7 @@ TEST(multi_function, AddFunction)
   EXPECT_EQ(output[2], 36);
 }
 
-TEST(multi_function, AddPrefixFunction)
+TEST_F(MultiFunctionTest, AddPrefixFunction)
 {
   AddPrefixFunction fn;
 
@@ -89,7 +93,7 @@ TEST(multi_function, AddPrefixFunction)
   EXPECT_EQ(strings[3], "ABAnother much longer string to trigger an allocation");
 }
 
-TEST(multi_function, CreateRangeFunction)
+TEST_F(MultiFunctionTest, CreateRangeFunction)
 {
   CreateRangeFunction fn;
 
@@ -120,7 +124,7 @@ TEST(multi_function, CreateRangeFunction)
   EXPECT_EQ(ranges_ref[2][1], 1);
 }
 
-TEST(multi_function, GenericAppendFunction)
+TEST_F(MultiFunctionTest, GenericAppendFunction)
 {
   GenericAppendFunction fn(CPPType::get<int32_t>());
 
@@ -154,7 +158,7 @@ TEST(multi_function, GenericAppendFunction)
   EXPECT_EQ(vectors_ref[3][0], 1);
 }
 
-TEST(multi_function, CustomMF_Constant)
+TEST_F(MultiFunctionTest, CustomMF_Constant)
 {
   CustomMF_Constant<int> fn{42};
 
@@ -175,7 +179,7 @@ TEST(multi_function, CustomMF_Constant)
   EXPECT_EQ(outputs[3], 42);
 }
 
-TEST(multi_function, CustomMF_GenericConstant)
+TEST_F(MultiFunctionTest, CustomMF_GenericConstant)
 {
   int value = 42;
   CustomMF_GenericConstant fn{CPPType::get<int32_t>(), (const void *)&value, false};
@@ -197,7 +201,7 @@ TEST(multi_function, CustomMF_GenericConstant)
   EXPECT_EQ(outputs[3], 0);
 }
 
-TEST(multi_function, CustomMF_GenericConstantArray)
+TEST_F(MultiFunctionTest, CustomMF_GenericConstantArray)
 {
   std::array<int, 4> values = {3, 4, 5, 6};
   CustomMF_GenericConstantArray fn{GSpan(Span(values))};
@@ -226,7 +230,7 @@ TEST(multi_function, CustomMF_GenericConstantArray)
   }
 }
 
-TEST(multi_function, IgnoredOutputs)
+TEST_F(MultiFunctionTest, IgnoredOutputs)
 {
   OptionalOutputsFunction fn;
   {
@@ -255,7 +259,7 @@ TEST(multi_function, IgnoredOutputs)
   }
 }
 
-TEST(multi_function, build_move_only)
+TEST_F(MultiFunctionTest, build_move_only)
 {
   auto adder = std::make_unique<int>(10);
   const auto fn = mf::build::SI1_SO<int, int>(

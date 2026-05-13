@@ -10,6 +10,7 @@
 
 #include "BKE_appdir.hh"
 #include "BKE_global.hh"
+#include "BKE_gtest_base.hh"
 #include "BKE_idtype.hh"
 #include "BKE_image.hh"
 #include "BKE_main.hh"
@@ -19,21 +20,21 @@
 #include "testing/testing.h"
 #include "gmock/gmock.h"
 
+#include "IMB_cache.hh"
 #include "IMB_imbuf.hh"
-#include "IMB_moviecache.hh"
 
 #include "DNA_image_types.h"
 
 #include "RE_pipeline.h"
-
-#include "CLG_log.h"
 
 namespace blender::bke::tests {
 
 using testing::Eq;
 using testing::Pointwise;
 
-TEST(udim, image_ensure_tile_token)
+class UdimTest : public BlenderGTestBase {};
+
+TEST_F(UdimTest, image_ensure_tile_token)
 {
   auto verify = [](const char *original, const char *expected) {
     char result[FILE_MAX];
@@ -94,7 +95,7 @@ TEST(udim, image_ensure_tile_token)
   }
 }
 
-TEST(udim, image_get_tile_strformat)
+TEST_F(UdimTest, image_get_tile_strformat)
 {
   eUDIM_TILE_FORMAT tile_format;
   char *udim_pattern;
@@ -126,7 +127,7 @@ TEST(udim, image_get_tile_strformat)
   MEM_delete(udim_pattern);
 }
 
-TEST(udim, image_get_tile_number_from_filepath)
+TEST_F(UdimTest, image_get_tile_number_from_filepath)
 {
   eUDIM_TILE_FORMAT tile_format;
   char *udim_pattern;
@@ -181,7 +182,7 @@ TEST(udim, image_get_tile_number_from_filepath)
   MEM_delete(udim_pattern);
 }
 
-TEST(udim, image_set_filepath_from_tile_number)
+TEST_F(UdimTest, image_set_filepath_from_tile_number)
 {
   eUDIM_TILE_FORMAT tile_format;
   char *udim_pattern;
@@ -216,7 +217,7 @@ TEST(udim, image_set_filepath_from_tile_number)
   MEM_delete(udim_pattern);
 }
 
-class ImageTest : public ::testing::Test {
+class ImageTest : public BlenderGTestBase {
   Main *bmain_ = nullptr;
 
   RenderResult *get_image_render_result(Image &image)
@@ -231,23 +232,8 @@ class ImageTest : public ::testing::Test {
   }
 
  protected:
-  static void SetUpTestSuite()
-  {
-    CLG_init();
-    BKE_idtype_init();
-  }
-
-  static void TearDownTestSuite()
-  {
-    CLG_exit();
-  }
-
   void SetUp() override
   {
-    BKE_appdir_init();
-    IMB_init();
-    IMB_moviecache_init();
-
     bmain_ = BKE_main_new();
     G_MAIN = bmain_;
   }
@@ -256,10 +242,6 @@ class ImageTest : public ::testing::Test {
   {
     BKE_main_free(bmain_);
     G_MAIN = nullptr;
-
-    IMB_moviecache_destruct();
-    IMB_exit();
-    BKE_appdir_exit();
   }
 
   Image *load_image(const char *path)

@@ -274,12 +274,6 @@ struct SpaceNode_Runtime {
 
   std::optional<int> frame_identifier_to_highlight;
 
-  /**
-   * Indicates that the compositing int the space tree needs to be re-evaluated using
-   * regular compositing pipeline.
-   */
-  bool recalc_regular_compositing;
-
   /** Temporary data for modal linking operator. */
   std::unique_ptr<bNodeLinkDrag> linkdrag;
 
@@ -627,6 +621,14 @@ void node_geometry_add_volume_grid_search_button(const bContext &C,
                                                  PointerRNA &socket_ptr,
                                                  ui::Layout &layout,
                                                  StringRef placeholder = "");
+
+/* `node_bundle_type_search.cc` */
+
+void node_bundle_type_add_string_search_button(const bContext &C,
+                                               const bNode &node,
+                                               PointerRNA &socket_ptr,
+                                               ui::Layout &layout,
+                                               StringRef placeholder = "");
 
 /* `node_context_path.cc` */
 

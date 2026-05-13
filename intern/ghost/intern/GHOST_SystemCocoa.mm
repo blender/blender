@@ -1245,7 +1245,7 @@ static blender::ImBuf *NSImageToImBuf(NSImage *image)
 {
   const NSSize imageSize = getNSImagePixelSize(image);
   blender::ImBuf *ibuf = blender::IMB_allocImBuf(
-      imageSize.width, imageSize.height, 32, blender::IB_byte_data);
+      imageSize.width, imageSize.height, blender::IB_byte_data);
 
   if (!ibuf) {
     return nullptr;

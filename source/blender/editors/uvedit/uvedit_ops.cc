@@ -1104,7 +1104,7 @@ static wmOperatorStatus uv_remove_doubles_to_selected(bContext *C, wmOperator *o
     uv_maxlen += em->bm->totloop;
   }
 
-  KDTree_2d *tree = kdtree_2d_new(uv_maxlen);
+  KDTree<float2> *tree = kdtree_new<float2>(uv_maxlen);
 
   Vector<int> duplicates;
   Vector<float *> uv_map_arr;
@@ -1115,7 +1115,7 @@ static wmOperatorStatus uv_remove_doubles_to_selected(bContext *C, wmOperator *o
     Object *obedit = objects[ob_index];
     BMEditMesh *em = BKE_editmesh_from_object(obedit);
     ED_uvedit_foreach_uv(scene, em->bm, true, true, [&](float luv[2]) {
-      kdtree_2d_insert(tree, uv_map_count, luv);
+      kdtree_insert<float2>(tree, uv_map_count, luv);
       duplicates.append(-1);
       uv_map_arr.append(luv);
       uv_map_count++;
@@ -1124,8 +1124,9 @@ static wmOperatorStatus uv_remove_doubles_to_selected(bContext *C, wmOperator *o
     ob_uv_map_max_idx[ob_index] = uv_map_count - 1;
   }
 
-  kdtree_2d_balance(tree);
-  int found_duplicates = kdtree_2d_calc_duplicates_fast(tree, threshold, false, duplicates.data());
+  kdtree_balance<float2>(tree);
+  int found_duplicates = kdtree_calc_duplicates_fast<float2>(
+      tree, threshold, false, duplicates.data());
 
   if (found_duplicates > 0) {
     /* Calculate average uv for duplicates. */
@@ -1181,7 +1182,7 @@ static wmOperatorStatus uv_remove_doubles_to_selected(bContext *C, wmOperator *o
     }
   }
 
-  kdtree_2d_free(tree);
+  kdtree_free<float2>(tree);
   MEM_delete(changed);
   MEM_delete(ob_uv_map_max_idx);
 
@@ -1206,7 +1207,7 @@ static wmOperatorStatus uv_remove_doubles_to_unselected(bContext *C, wmOperator 
     uv_maxlen += em->bm->totloop;
   }
 
-  KDTree_2d *tree = kdtree_2d_new(uv_maxlen);
+  KDTree<float2> *tree = kdtree_new<float2>(uv_maxlen);
 
   Vector<float *> uv_map_arr;
 
@@ -1214,20 +1215,20 @@ static wmOperatorStatus uv_remove_doubles_to_unselected(bContext *C, wmOperator 
 
   /* Add visible non-selected uvs to tree */
   ED_uvedit_foreach_uv_multi(scene, objects, true, false, [&](float luv[2]) {
-    kdtree_2d_insert(tree, uv_map_count, luv);
+    kdtree_insert<float2>(tree, uv_map_count, luv);
     uv_map_arr.append(luv);
     uv_map_count++;
   });
 
-  kdtree_2d_balance(tree);
+  kdtree_balance<float2>(tree);
 
   /* For each selected uv, find duplicate non selected uv. */
   for (Object *obedit : objects) {
     bool changed = false;
     BMEditMesh *em = BKE_editmesh_from_object(obedit);
     ED_uvedit_foreach_uv(scene, em->bm, true, true, [&](float luv[2]) {
-      KDTreeNearest_2d nearest;
-      const int i = kdtree_2d_find_nearest(tree, luv, &nearest);
+      KDTreeNearest<float2> nearest;
+      const int i = kdtree_find_nearest<float2>(tree, luv, &nearest);
 
       if (i != -1 && nearest.dist < threshold) {
         copy_v2_v2(luv, uv_map_arr[i]);
@@ -1242,7 +1243,7 @@ static wmOperatorStatus uv_remove_doubles_to_unselected(bContext *C, wmOperator 
     }
   }
 
-  kdtree_2d_free(tree);
+  kdtree_free<float2>(tree);
 
   return OPERATOR_FINISHED;
 }
@@ -2755,6 +2756,7 @@ void ED_operatortypes_uvedit()
   WM_operatortype_append(UV_OT_select_more);
   WM_operatortype_append(UV_OT_select_less);
   WM_operatortype_append(UV_OT_select_overlap);
+  WM_operatortype_append(UV_OT_select_by_winding);
   WM_operatortype_append(UV_OT_select_mode);
   WM_operatortype_append(UV_OT_select_tile);
 
@@ -2804,7 +2806,7 @@ void ED_operatormacros_uvedit()
   wmOperatorTypeMacro *otmacro;
 
   ot = WM_operatortype_append_macro("UV_OT_rip_move",
-                                    "UV Rip Move",
+                                    "Rip Move UVs",
                                     "Unstitch UVs and move the result",
                                     OPTYPE_UNDO | OPTYPE_REGISTER);
   WM_operatortype_macro_define(ot, "UV_OT_rip");

@@ -630,6 +630,6 @@ void BLO_readfile_id_runtime_data_free_all(Main &bmain);
  */
 void BLO_readfile_id_runtime_data_free(ID &id);
 
-#define BLEN_THUMB_MEMSIZE_FILE(_x, _y) (sizeof(int) * (2 + (size_t)(_x) * (size_t)(_y)))
+#define BLEN_THUMB_MEMSIZE_FILE(_x, _y) (sizeof(int) * (2 + size_t(_x) * size_t(_y)))
 
 }  // namespace blender

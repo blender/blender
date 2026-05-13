@@ -21,6 +21,8 @@ struct Tex;
 struct TexMapping;
 struct TexResult;
 
+enum eTex_Type : short;
+
 /** #ColorBand.data length. */
 #define MAXCOLORBAND 32
 
@@ -31,7 +33,7 @@ void BKE_texture_mtex_foreach_id(struct LibraryForeachIDData *data, struct MTex 
 
 void BKE_texture_default(struct Tex *tex);
 struct Tex *BKE_texture_add(struct Main *bmain, const char *name);
-void BKE_texture_type_set(struct Tex *tex, int type);
+void BKE_texture_type_set(struct Tex *tex, eTex_Type type);
 
 void BKE_texture_mtex_default(struct MTex *mtex);
 struct MTex *BKE_texture_mtex_add();

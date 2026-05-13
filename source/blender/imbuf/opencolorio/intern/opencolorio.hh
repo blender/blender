@@ -9,9 +9,7 @@
 #  pragma warning(disable : 4251 4275)
 #endif
 
-#ifdef WITH_OPENCOLORIO
-#  include <OpenColorIO/OpenColorIO.h>
-#endif
+#include <OpenColorIO/OpenColorIO.h>
 
 #ifdef _MSC_VER
 #  pragma warning(pop)

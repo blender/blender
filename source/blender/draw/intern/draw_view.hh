@@ -223,9 +223,10 @@ class View {
   };
 
   /* Returns frustum planes equations. Available only after sync. */
-  std::array<float4, 6> frustum_planes_get(int view_id = 0);
-  /* Returns frustum corners positions in world space. Available only after sync. */
-  std::array<float3, 8> frustum_corners_get(int view_id = 0);
+  std::array<float4, 6> frustum_planes_get(int view_id = 0) const;
+  /* Returns frustum corners positions in world space. Available only after sync.
+   * Follow bounding box corner order. */
+  std::array<float3, 8> frustum_corners_get(int view_id = 0) const;
 
  protected:
   /** Called from draw manager. */

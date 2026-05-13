@@ -24,17 +24,20 @@ static void node_declare(NodeDeclarationBuilder &b)
   b.add_output<decl::Bool>("Has Neighbor"_ustr).field_source_reference_all();
 }
 
-static KDTree_3d *build_kdtree(const Span<float3> positions, const IndexMask &mask)
+static KDTree<float3> *build_kdtree(const Span<float3> positions, const IndexMask &mask)
 {
-  KDTree_3d *tree = kdtree_3d_new(mask.size());
-  mask.foreach_index([&](const int index) { kdtree_3d_insert(tree, index, positions[index]); });
-  kdtree_3d_balance(tree);
+  KDTree<float3> *tree = kdtree_new<float3>(mask.size());
+  mask.foreach_index(
+      [&](const int index) { kdtree_insert<float3>(tree, index, positions[index]); });
+  kdtree_balance<float3>(tree);
   return tree;
 }
 
-static int find_nearest_non_self(const KDTree_3d &tree, const float3 &position, const int index)
+static int find_nearest_non_self(const KDTree<float3> &tree,
+                                 const float3 &position,
+                                 const int index)
 {
-  return kdtree_find_nearest_cb_cpp<float3>(
+  return kdtree_find_nearest_cb<float3>(
       &tree,
       position,
       nullptr,
@@ -43,7 +46,7 @@ static int find_nearest_non_self(const KDTree_3d &tree, const float3 &position, 
       });
 }
 
-static void find_neighbors(const KDTree_3d &tree,
+static void find_neighbors(const KDTree<float3> &tree,
                            const Span<float3> positions,
                            const IndexMask &mask,
                            MutableSpan<int> r_indices)
@@ -86,9 +89,9 @@ class IndexOfNearestFieldInput final : public bke::GeometryFieldInput {
 
     if (group_ids.is_single()) {
       result.reinitialize(mask.min_array_size());
-      KDTree_3d *tree = build_kdtree(positions, IndexRange(domain_size));
+      KDTree<float3> *tree = build_kdtree(positions, IndexRange(domain_size));
       find_neighbors(*tree, positions, mask, result);
-      kdtree_3d_free(tree);
+      kdtree_free<float3>(tree);
       return VArray<int>::from_container(std::move(result));
     }
     const VArraySpan<int> group_ids_span(group_ids);
@@ -124,9 +127,9 @@ class IndexOfNearestFieldInput final : public bke::GeometryFieldInput {
       for (const int group_index : range) {
         const IndexMask &tree_mask = all_indices_by_group_id[group_index];
         const IndexMask &lookup_mask = lookup_indices_by_group_id[group_index];
-        KDTree_3d *tree = build_kdtree(positions, tree_mask);
+        KDTree<float3> *tree = build_kdtree(positions, tree_mask);
         find_neighbors(*tree, positions, lookup_mask, result);
-        kdtree_3d_free(tree);
+        kdtree_free<float3>(tree);
       }
     });
 
@@ -139,18 +142,12 @@ class IndexOfNearestFieldInput final : public bke::GeometryFieldInput {
     fn(group_field_);
   }
 
-  uint64_t hash() const final
+  void hash_unique(UniqueHashBytes &hash, fn::FieldHashDeep &deep_hash_cache) const override
   {
-    return get_default_hash(positions_field_, group_field_);
-  }
-
-  bool is_equal_to(const fn::FieldInput &other) const final
-  {
-    if (const auto *other_field = dynamic_cast<const IndexOfNearestFieldInput *>(&other)) {
-      return positions_field_ == other_field->positions_field_ &&
-             group_field_ == other_field->group_field_;
-    }
-    return false;
+    static constexpr int8_t id = 0;
+    hash.add(&id);
+    hash.add(deep_hash_cache.ensure(positions_field_));
+    hash.add(deep_hash_cache.ensure(group_field_));
   }
 
   std::optional<AttrDomain> preferred_domain(const GeometryComponent &component) const final
@@ -206,17 +203,11 @@ class HasNeighborFieldInput final : public bke::GeometryFieldInput {
     fn(group_field_);
   }
 
-  uint64_t hash() const final
+  void hash_unique(UniqueHashBytes &hash, fn::FieldHashDeep &deep_hash_cache) const final
   {
-    return get_default_hash(39847876, group_field_);
-  }
-
-  bool is_equal_to(const fn::FieldInput &other) const final
-  {
-    if (const auto *other_field = dynamic_cast<const HasNeighborFieldInput *>(&other)) {
-      return group_field_ == other_field->group_field_;
-    }
-    return false;
+    static constexpr int8_t id = 0;
+    hash.add(&id);
+    hash.add(deep_hash_cache.ensure(group_field_));
   }
 
   std::optional<AttrDomain> preferred_domain(const GeometryComponent &component) const final

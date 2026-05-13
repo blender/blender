@@ -498,6 +498,7 @@ void graphedit_operatortypes()
 
   /* F-Curve Modifiers */
   WM_operatortype_append(GRAPH_OT_fmodifier_add);
+  WM_operatortype_append(GRAPH_OT_fmodifier_delete);
   WM_operatortype_append(GRAPH_OT_fmodifier_copy);
   WM_operatortype_append(GRAPH_OT_fmodifier_paste);
 

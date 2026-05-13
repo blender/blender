@@ -814,9 +814,9 @@ static void blend_read(BlendDataReader *reader, ModifierData *md)
 
   if (csmd->bind_coords) {
     csmd->bind_coords_sharing_info = BLO_read_shared(reader, &csmd->bind_coords, [&]() {
-      BLO_read_float3_array(
-          reader, int(csmd->bind_coords_num), reinterpret_cast<float **>(&csmd->bind_coords));
-      return implicit_sharing::info_for_mem_free(csmd->bind_coords);
+      BLO_read_array_and_validate_size(
+          reader, reinterpret_cast<float **>(&csmd->bind_coords), &csmd->bind_coords_num, 3);
+      return csmd->bind_coords ? implicit_sharing::info_for_mem_free(csmd->bind_coords) : nullptr;
     });
   }
 

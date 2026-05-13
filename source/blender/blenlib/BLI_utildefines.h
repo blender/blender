@@ -395,6 +395,23 @@ constexpr bool memory_is_zero(const void *data, const size_t size)
   return (arr_byte == arr_end);
 }
 
+/** Similar to #memory_is_zero but is easier to see through for the compiler. */
+template<typename T> constexpr bool value_is_zero(const T &value)
+{
+  if constexpr (std::is_pointer_v<T>) {
+    return value == nullptr;
+  }
+  else if constexpr (std::is_integral_v<T>) {
+    return value == 0;
+  }
+  else if constexpr (std::is_floating_point_v<T>) {
+    return value == 0.0f;
+  }
+  else {
+    return memory_is_zero(&value, sizeof(T));
+  }
+}
+
 #  define MEMCMP_STRUCT_AFTER_IS_ZERO_OR_EQUAL(struct_dst, struct_src, member) \
     (memory_is_zero((const char *)(struct_dst) + OFFSETOF_STRUCT_AFTER(struct_dst, member), \
                     sizeof(*(struct_dst)) - OFFSETOF_STRUCT_AFTER(struct_dst, member)) || \

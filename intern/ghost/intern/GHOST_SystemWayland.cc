@@ -1130,6 +1130,12 @@ struct GWL_Seat {
      * The active layout, where a single #xkb_keymap may have multiple layouts.
      */
     xkb_layout_index_t layout_active = 0;
+    /**
+     * Layout to use as a fall-back for resolving physical key positions when the active
+     * layout's key-symbol is not recognized by #xkb_map_gkey (e.g. Cyrillic), see: #120892.
+     * #XKB_LAYOUT_INVALID when no configured layout could help.
+     */
+    xkb_layout_index_t layout_fallback = XKB_LAYOUT_INVALID;
   } xkb;
 
 #ifdef WITH_INPUT_IME
@@ -1284,6 +1290,11 @@ static GWL_SeatStatePointer *gwl_seat_state_pointer_from_cursor_surface(
   return nullptr;
 }
 
+#ifdef USE_NON_LATIN_KB_WORKAROUND
+static xkb_layout_index_t xkb_keymap_get_fallback_layout(xkb_keymap *keymap,
+                                                         const xkb_layout_index_t layout_active);
+#endif
+
 /**
  * Account for changes to #GWL_Seat::xkb::layout_active by running #xkb_state_update_mask
  * on static states which are used for lookups.
@@ -1315,6 +1326,30 @@ static void gwl_seat_key_layout_active_state_update_mask(GWL_Seat *seat)
     xkb_state_update_mask(
         seat->xkb.state_empty_with_numlock, 1 << mod_mod2, 0, 1 << mod_numlock, 0, 0, group);
   }
+
+#ifdef USE_NON_LATIN_KB_WORKAROUND
+  /* Re-evaluate against the now-current active layout. The flag must track the active layout
+   * (not just layout 0) because `state_empty_with_shift` follows the active layout and the
+   * digit-row workaround reads from it. */
+  seat->xkb_use_non_latin_workaround = false;
+  if (seat->xkb.state_empty_with_shift) {
+    seat->xkb_use_non_latin_workaround = true;
+    for (xkb_keycode_t key_code = KEY_1 + EVDEV_OFFSET; key_code <= KEY_0 + EVDEV_OFFSET;
+         key_code++)
+    {
+      const xkb_keysym_t sym_test = xkb_state_key_get_one_sym(seat->xkb.state_empty_with_shift,
+                                                              key_code);
+      if (!(sym_test >= XKB_KEY_0 && sym_test <= XKB_KEY_9)) {
+        seat->xkb_use_non_latin_workaround = false;
+        break;
+      }
+    }
+  }
+
+  /* The fall-back layout is selected relative to the active layout, so recompute on change. */
+  seat->xkb.layout_fallback = xkb_keymap_get_fallback_layout(xkb_state_get_keymap(seat->xkb.state),
+                                                             group);
+#endif
 }
 
 /** Callback that runs from GHOST's timer. */
@@ -2255,6 +2290,96 @@ static GHOST_TKey xkb_map_gkey_or_scan_code(const xkb_keysym_t sym, const uint32
   }
 
   return gkey;
+}
+
+#ifdef USE_NON_LATIN_KB_WORKAROUND
+/**
+ * Pick a fall-back layout when the active layout produces a key-symbol
+ * not recognized by #xkb_map_gkey (e.g. Cyrillic), see: #120892.
+ * Returns #XKB_LAYOUT_INVALID when no configured layout could help.
+ *
+ * In practice this means the user needs to have at least one keyboard layout
+ * available that maps characters A-Z (English any Latin alphabet layout).
+ */
+static xkb_layout_index_t xkb_keymap_get_fallback_layout(xkb_keymap *keymap,
+                                                         const xkb_layout_index_t layout_active)
+{
+  const xkb_layout_index_t layouts_num = xkb_keymap_num_layouts(keymap);
+  if (layouts_num <= 1) {
+    return XKB_LAYOUT_INVALID;
+  }
+  const xkb_keycode_t keycode_min = xkb_keymap_min_keycode(keymap);
+  const xkb_keycode_t keycode_max = xkb_keymap_max_keycode(keymap);
+  xkb_layout_index_t layout_best = 0;
+  int score_best = -1;
+  /* Value should always be set, if `layout_active` is invalid,
+   * return #XKB_LAYOUT_INVALID because the result can't be reasoned about usefully. */
+  int score_active = std::numeric_limits<int>::max();
+  for (xkb_layout_index_t layout_test = 0; layout_test < layouts_num; layout_test++) {
+    int score_test = 0;
+    for (xkb_keycode_t key = keycode_min; key <= keycode_max; key++) {
+      const xkb_keysym_t *syms;
+      if (xkb_keymap_key_get_syms_by_level(keymap, key, layout_test, 0, &syms) > 0 &&
+          xkb_map_gkey(syms[0]) != GHOST_kKeyUnknown)
+      {
+        score_test++;
+      }
+    }
+    /* Strict `>` keeps the lower layout index on ties. */
+    if (score_test > score_best) {
+      score_best = score_test;
+      layout_best = layout_test;
+    }
+    if (layout_test == layout_active) {
+      score_active = score_test;
+    }
+  }
+  GHOST_ASSERT(score_active != std::numeric_limits<int>::max(),
+               "Invalid `layout_active` passed in.");
+
+  /* The fallback layout must be an improvement over the active layout. */
+  if (score_best <= score_active) {
+    return XKB_LAYOUT_INVALID;
+  }
+  return layout_best;
+}
+#endif
+
+/**
+ * If `sym` maps to a known #GHOST_TKey, return it.
+ * Otherwise try the same key-code in `layout_fallback` and return its key-symbol
+ * if it maps to a known #GHOST_TKey; otherwise return `sym` unchanged. See: #120892.
+ */
+static xkb_keysym_t xkb_keymap_get_one_sym_with_fallback(const xkb_keysym_t sym,
+                                                         xkb_keymap *keymap,
+                                                         const xkb_keycode_t key,
+                                                         const xkb_layout_index_t layout_fallback)
+{
+#ifndef USE_NON_LATIN_KB_WORKAROUND
+  GHOST_ASSERT(layout_fallback == XKB_LAYOUT_INVALID,
+               "Fallback key-map is expected to be disabled!");
+#endif
+
+  if (layout_fallback == XKB_LAYOUT_INVALID || xkb_map_gkey(sym) != GHOST_kKeyUnknown) {
+    return sym;
+  }
+  const xkb_keysym_t *syms;
+  if (xkb_keymap_key_get_syms_by_level(keymap, key, layout_fallback, 0, &syms) > 0 &&
+      xkb_map_gkey(syms[0]) != GHOST_kKeyUnknown)
+  {
+    return syms[0];
+  }
+  return sym;
+}
+
+/**
+ * #xkb_state_key_get_one_sym with #xkb_keymap_get_one_sym_with_fallback applied to the result.
+ */
+static xkb_keysym_t xkb_state_key_get_one_sym_with_fallback(
+    xkb_state *state, const xkb_keycode_t key, const xkb_layout_index_t layout_fallback)
+{
+  return xkb_keymap_get_one_sym_with_fallback(
+      xkb_state_key_get_one_sym(state, key), xkb_state_get_keymap(state), key, layout_fallback);
 }
 
 static int pointer_axis_as_index(const uint32_t axis)
@@ -5754,23 +5879,6 @@ static void keyboard_handle_keymap(void *data,
 
   gwl_seat_key_layout_active_state_update_mask(seat);
 
-#ifdef USE_NON_LATIN_KB_WORKAROUND
-  seat->xkb_use_non_latin_workaround = false;
-  if (seat->xkb.state_empty_with_shift) {
-    seat->xkb_use_non_latin_workaround = true;
-    for (xkb_keycode_t key_code = KEY_1 + EVDEV_OFFSET; key_code <= KEY_0 + EVDEV_OFFSET;
-         key_code++)
-    {
-      const xkb_keysym_t sym_test = xkb_state_key_get_one_sym(seat->xkb.state_empty_with_shift,
-                                                              key_code);
-      if (!(sym_test >= XKB_KEY_0 && sym_test <= XKB_KEY_9)) {
-        seat->xkb_use_non_latin_workaround = false;
-        break;
-      }
-    }
-  }
-#endif
-
   keyboard_depressed_state_reset(seat);
 
   xkb_keymap_unref(keymap);
@@ -5818,7 +5926,8 @@ static void keyboard_handle_enter(void *data,
   WL_ARRAY_FOR_EACH (key, keys) {
     const xkb_keycode_t key_code = *key + EVDEV_OFFSET;
     CLOG_DEBUG(LOG, "enter (key_held=%d)", int(key_code));
-    const xkb_keysym_t sym = xkb_state_key_get_one_sym(seat->xkb.state, key_code);
+    const xkb_keysym_t sym = xkb_state_key_get_one_sym_with_fallback(
+        seat->xkb.state, key_code, seat->xkb.layout_fallback);
     const GHOST_TKey gkey = xkb_map_gkey_or_scan_code(sym, *key);
     if (gkey != GHOST_kKeyUnknown) {
       keyboard_depressed_state_key_event(seat, gkey, GHOST_kEventKeyDown);
@@ -5898,6 +6007,7 @@ static xkb_keysym_t xkb_state_key_get_one_sym_without_modifiers(
     xkb_state *xkb_state_empty,
     xkb_state *xkb_state_empty_with_numlock,
     xkb_state *xkb_state_empty_with_shift,
+    const xkb_layout_index_t layout_fallback,
     const bool xkb_use_non_latin_workaround,
     const xkb_keycode_t key)
 {
@@ -5938,7 +6048,10 @@ static xkb_keysym_t xkb_state_key_get_one_sym_without_modifiers(
 #endif
   }
 
-  return sym;
+  /* Layout fall-back follows the number-pad and #USE_NON_LATIN_KB_WORKAROUND handling so
+   * those operate on the un-substituted active-layout `sym` (required for non-Latin layouts). */
+  return xkb_keymap_get_one_sym_with_fallback(
+      sym, xkb_state_get_keymap(xkb_state_empty), key, layout_fallback);
 }
 
 static bool xkb_compose_state_feed_and_get_utf8(
@@ -6043,6 +6156,7 @@ static void keyboard_handle_key(void *data,
       seat->xkb.state_empty,
       seat->xkb.state_empty_with_numlock,
       seat->xkb.state_empty_with_shift,
+      seat->xkb.layout_fallback,
 #ifdef USE_NON_LATIN_KB_WORKAROUND
       seat->xkb_use_non_latin_workaround,
 #else
@@ -8890,17 +9004,19 @@ GHOST_TSuccess GHOST_SystemWayland::putClipboardImage(uint *rgba, int width, int
       reinterpret_cast<uint8_t *>(rgba), nullptr, width, height, 32);
   ibuf->ftype = blender::IMB_FTYPE_PNG;
   ibuf->foptions.quality = 15;
-  if (!IMB_save_image(ibuf, "<memory>", blender::IB_byte_data | blender::IB_mem)) {
+  blender::Vector<uint8_t> encoded = blender::IMB_save_image_to_buffer(ibuf,
+                                                                       blender::IB_byte_data);
+  if (encoded.is_empty()) {
     blender::IMB_freeImBuf(ibuf);
     return GHOST_kFailure;
   }
 
-  /* Copy #ImBuf encoded_buffer to data source. */
+  /* Copy encoded buffer to data source. */
   GWL_SimpleBuffer *imgbuffer = &data_source->buffer_out;
   gwl_simple_buffer_free_data(imgbuffer);
-  imgbuffer->data_size = ibuf->encoded_buffer_size;
+  imgbuffer->data_size = encoded.size();
   char *data = static_cast<char *>(malloc(imgbuffer->data_size));
-  std::memcpy(data, ibuf->encoded_buffer.data, ibuf->encoded_buffer_size);
+  std::memcpy(data, encoded.data(), encoded.size());
   imgbuffer->data = data;
 
   data_source->wl.source = wl_data_device_manager_create_data_source(

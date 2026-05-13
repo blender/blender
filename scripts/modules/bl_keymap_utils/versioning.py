@@ -256,7 +256,7 @@ def keyconfig_update(keyconfig_data, keyconfig_version):
                     toggle_path_index = -1
                     toggle_path_identifier = ""
 
-                    for prop_idx, (prop_id, prop_path) in enumerate(item_prop["properties"]):
+                    for prop_index, (prop_id, prop_path) in enumerate(item_prop["properties"]):
                         if prop_id == "data_path_primary":
                             if re_toolsetting_brush.fullmatch(prop_path):
                                 # Example:
@@ -271,7 +271,7 @@ def keyconfig_update(keyconfig_data, keyconfig_version):
                                 # 'tool_settings.unified_paint_settings.size'
                                 # results in
                                 # 'size'
-                                secondary_path_index = prop_idx
+                                secondary_path_index = prop_index
                                 secondary_path_identifier = prop_path.split(".", 2)[-1]
                         elif prop_id == "use_secondary":
                             if prop_path.startswith("tool_settings.unified_paint_settings."):
@@ -279,7 +279,7 @@ def keyconfig_update(keyconfig_data, keyconfig_version):
                                 # 'tool_settings.unified_paint_settings.use_unified_size'
                                 # results in
                                 # 'use_unified_size'
-                                toggle_path_index = prop_idx
+                                toggle_path_index = prop_index
                                 toggle_path_identifier = prop_path.split(".", 2)[-1]
 
                     if updated_path_elements and secondary_path_index != -1 and toggle_path_index != -1:
@@ -332,5 +332,32 @@ def keyconfig_update(keyconfig_data, keyconfig_version):
 
     if keyconfig_version < (5, 1, 11):
         rename_keymap({"Grease Pencil Paint Mode": "Grease Pencil Draw Mode"})
+
+    if keyconfig_version < (5, 2, 21):
+        if not has_copy:
+            keyconfig_data = copy.deepcopy(keyconfig_data)
+            has_copy = True
+
+        for _km_name, _km_parms, km_items_data in keyconfig_data:
+            for (item_op, _item_event, item_prop) in km_items_data["items"]:
+                if item_op in {
+                    "grease_pencil.brush_stroke",
+                    "grease_pencil.sculpt_paint",
+                    "paint.image_paint",
+                    "paint.vertex_paint",
+                    "paint.weight_paint",
+                    "sculpt.brush_stroke",
+                    "sculpt_curves.brush_stroke",
+                } and item_prop:
+                    index_to_fix = -1
+                    value_to_copy = None
+                    for prop_index, (prop_id, prop_value) in enumerate(item_prop["properties"]):
+                        if prop_id == "mode" and prop_value != 'INVERT':
+                            # The 'INVERT' value does not need to be migrated, as it is still a valid enum value
+                            index_to_fix = prop_index
+                            value_to_copy = prop_value
+                            break
+                    if index_to_fix != -1:
+                        item_prop["properties"][index_to_fix] = ("brush_toggle", value_to_copy)
 
     return keyconfig_data

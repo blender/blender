@@ -192,7 +192,7 @@ have a new instance for every redraw.
 Some other types, like :class:`bpy.types.Operator`, have an even more complex internal handling,
 which can lead to several instantiations for a single operator execution.
 
-There are a few cases where defining ``__init__()`` does make sense, e.g. when sub-classing a
+There are a few cases where defining ``__init__()`` does make sense, e.g., when sub-classing a
 :class:`bpy.types.RenderEngine`. When doing so, the parent matching function must always be called,
 otherwise Blender's internal initialization won't happen properly:
 
@@ -218,12 +218,12 @@ otherwise Blender's internal initialization won't happen properly:
    internal data, and may change depending on the implementation.
 
    Unfortunately, the error message, generated in case the expected constructor is not called, can
-   be fairly cryptic and unhelping. Generally they should be about failure to create a (python)
+   be fairly cryptic and unhelpful. Generally they should be about failure to create a (python)
    object:
 
       MemoryError: couldn't create bpy_struct object
 
-   With Operators, it might be something like that:
+   With Operators, it might be something like this:
 
       RuntimeError: could not create instance of <OPERATOR_OT_identifier> to call callback function execute
 
@@ -263,7 +263,7 @@ otherwise Blender's internal initialization won't happen properly:
    fail with the following error:
    ``AttributeError: 'super' object has no attribute '__del__'``.
    If a call to the MRO 'parent' destructor is needed for some reason, the caller code must ensure
-   that the destructor does exist, e.g. using something like that:
+   that the destructor does exist, e.g., using something like this:
    ``getattr(super(), "__del__", lambda self: None)(self)``
 
 
@@ -296,7 +296,7 @@ A simple Blender Python module can look like this:
    if __name__ == "__main__":
        register()
 
-These functions usually appear at the bottom of the script containing class registration sometimes adding menu items.
+These functions usually appear at the bottom of the script containing class registration, sometimes adding menu items.
 You can also use them for internal purposes setting up data for your own tools but take care
 since register won't re-run when a new blend-file is loaded.
 
@@ -324,7 +324,7 @@ Class Registration
 Registering a class with Blender results in the class definition being loaded into Blender,
 where it becomes available alongside existing functionality.
 Once this class is loaded you can access it from :mod:`bpy.types`,
-using the ``bl_idname`` rather than the classes original name.
+using the ``bl_idname`` rather than the class's original name.
 
 .. note::
 
@@ -414,7 +414,7 @@ For example, if you want to store material settings for a custom engine:
 
 .. important::
 
-   The lower most class needs to be registered first and that ``unregister()`` is a mirror of ``register()``.
+   The lowest class needs to be registered first and that ``unregister()`` is a mirror of ``register()``.
 
 
 Manipulating Classes

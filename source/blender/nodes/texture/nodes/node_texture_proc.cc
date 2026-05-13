@@ -237,7 +237,7 @@ static void init(bNodeTree * /*ntree*/, bNode *node)
   node->storage = tex;
 
   BKE_texture_default(tex);
-  tex->type = node->type_legacy - TEX_NODE_PROC;
+  tex->type = eTex_Type(node->type_legacy - TEX_NODE_PROC);
 
   if (tex->type == TEX_WOOD) {
     tex->stype = TEX_BANDNOISE;

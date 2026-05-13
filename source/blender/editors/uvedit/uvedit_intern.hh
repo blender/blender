@@ -194,6 +194,7 @@ void UV_OT_select_circle(wmOperatorType *ot);
 void UV_OT_select_more(wmOperatorType *ot);
 void UV_OT_select_less(wmOperatorType *ot);
 void UV_OT_select_overlap(wmOperatorType *ot);
+void UV_OT_select_by_winding(wmOperatorType *ot);
 void UV_OT_select_similar(wmOperatorType *ot);
 void UV_OT_select_tile(wmOperatorType *ot);
 

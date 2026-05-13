@@ -25,7 +25,6 @@
 
 #include "IMB_colormanagement.hh"
 
-#include "SEQ_render.hh"
 #include "SEQ_thumbnail_cache.hh"
 
 #include "WM_api.hh"
@@ -440,10 +439,6 @@ void draw_strip_thumbnails(const TimelineDrawContext &ctx,
     return;
   }
 
-  Scene *sequencer_scene = CTX_data_sequencer_scene(ctx.C);
-  ColorManagedViewSettings *view_settings = &sequencer_scene->view_settings;
-  ColorManagedDisplaySettings *display_settings = &sequencer_scene->display_settings;
-
   /* Arrange thumbnail images into a texture atlas, using a simple
    * "add to current row until end, then start a new row". Thumbnail
    * images are most often same height (but varying width due to horizontal
@@ -489,23 +484,19 @@ void draw_strip_thumbnails(const TimelineDrawContext &ctx,
     const rcti &rect = rects[i];
     SeqThumbInfo &info = thumbs[i];
 
-    void *cache_handle = nullptr;
-    const uchar *display_buffer = IMB_display_buffer_acquire(
-        info.ibuf, view_settings, display_settings, &cache_handle);
-    if (display_buffer != nullptr && info.ibuf != nullptr) {
-      int cropx_min = int(info.cropx_min);
-      int cropx_max = int(math::ceil(info.cropx_max));
-      int width = cropx_max - cropx_min + 1;
-      int height = info.ibuf->y;
-      const uchar *src = display_buffer + cropx_min * 4;
-      uchar *dst = &tex_data[(rect.ymin * ATLAS_WIDTH + rect.xmin) * 4];
-      for (int y = 0; y < height; y++) {
-        memcpy(dst, src, width * 4);
-        src += info.ibuf->x * 4;
-        dst += ATLAS_WIDTH * 4;
-      }
+    const uchar *thumb_image = info.ibuf->byte_data();
+    BLI_assert_msg(thumb_image != nullptr, "Sequencer thumbnails are expected to be byte images");
+    int cropx_min = int(info.cropx_min);
+    int cropx_max = int(math::ceil(info.cropx_max));
+    int width = cropx_max - cropx_min + 1;
+    int height = info.ibuf->y;
+    const uchar *src = thumb_image + cropx_min * 4;
+    uchar *dst = &tex_data[(rect.ymin * ATLAS_WIDTH + rect.xmin) * 4];
+    for (int y = 0; y < height; y++) {
+      memcpy(dst, src, width * 4);
+      src += info.ibuf->x * 4;
+      dst += ATLAS_WIDTH * 4;
     }
-    IMB_display_buffer_release(cache_handle);
 
     /* Release thumb image reference. */
     IMB_freeImBuf(info.ibuf);

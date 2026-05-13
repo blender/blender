@@ -256,7 +256,7 @@ static void volume_blend_read_data(BlendDataReader *reader, ID *id)
   volume->runtime->frame = 0;
 
   /* materials */
-  BLO_read_pointer_array(reader, volume->totcol, reinterpret_cast<void **>(&volume->mat));
+  BLO_read_pointer_array_and_validate_size(reader, &volume->mat, &volume->totcol);
 }
 
 static void volume_blend_read_after_liblink(BlendLibReader * /*reader*/, ID *id)

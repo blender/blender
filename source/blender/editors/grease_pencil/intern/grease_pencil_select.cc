@@ -1078,15 +1078,15 @@ static wmOperatorStatus select_set_mode_exec(bContext *C, wmOperator *op)
   bool changed = false;
   if (BKE_object_is_mode_compat(ob, OB_MODE_EDIT)) {
     changed = (mode_new != ts->gpencil_selectmode_edit);
-    ts->gpencil_selectmode_edit = mode_new;
+    ts->gpencil_selectmode_edit = eGPencil_Selectmode_types(mode_new);
   }
   else if (BKE_object_is_mode_compat(ob, OB_MODE_SCULPT_GREASE_PENCIL)) {
     changed = (mode_new != ts->gpencil_selectmode_sculpt);
-    ts->gpencil_selectmode_sculpt = mode_new;
+    ts->gpencil_selectmode_sculpt = eGP_Sculpt_SelectMaskFlag(mode_new);
   }
   else if (BKE_object_is_mode_compat(ob, OB_MODE_VERTEX_GREASE_PENCIL)) {
     changed = (mode_new != ts->gpencil_selectmode_vertex);
-    ts->gpencil_selectmode_vertex = mode_new;
+    ts->gpencil_selectmode_vertex = eGP_Vertex_SelectMaskFlag(mode_new);
   }
 
   changed |= ensure_selection_domain(ts, ob);

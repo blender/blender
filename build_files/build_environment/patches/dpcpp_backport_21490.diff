@@ -1,0 +1,19 @@
+diff --git a/unified-runtime/source/adapters/level_zero/adapter.cpp b/unified-runtime/source/adapters/level_zero/adapter.cpp
+index 7fb83133c..e1fe3a80a 100644
+--- a/unified-runtime/source/adapters/level_zero/adapter.cpp
++++ b/unified-runtime/source/adapters/level_zero/adapter.cpp
+@@ -23,13 +23,8 @@
+
+ ZeUSMImportExtension ZeUSMImport;
+
+-// Due to multiple DLLMain definitions with SYCL, Global Adapter is init at
+-// variable creation.
+-#if defined(_WIN32)
+-ur_adapter_handle_t_ *GlobalAdapter = new ur_adapter_handle_t_();
+-#else
++// This is a backport of the upstream bugfix https://github.com/intel/llvm/pull/21490
+ ur_adapter_handle_t_ *GlobalAdapter;
+-#endif
+ // This is a temporary workaround on windows, where UR adapter is teardowned
+ // before the UR loader, which will result in access violation when we use print
+ // function as the overrided print function was already released with the UR

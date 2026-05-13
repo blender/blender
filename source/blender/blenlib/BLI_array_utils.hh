@@ -403,6 +403,26 @@ template<typename T> inline void fill_index_range(MutableSpan<T> span, const T s
   std::iota(span.begin(), span.end(), start);
 }
 
+template<typename T, exec_mode::Tag Mode = exec_mode::Parallel>
+inline void fill_index_range(const IndexMask &mask, MutableSpan<T> span, const Mode mode = {})
+{
+  mask.foreach_index_optimized<T>([&](const T index) { span[index] = index; }, mode);
+}
+
+template<typename T, exec_mode::Tag Mode = exec_mode::Parallel>
+inline void fill_index_range(const IndexMask &mask,
+                             MutableSpan<T> span,
+                             const T start,
+                             const Mode mode = {})
+{
+  if (start == 0) {
+    fill_index_range(mask, span, mode);
+  }
+  else {
+    mask.foreach_index_optimized<T>([&](const T index) { span[index] = start + index; }, mode);
+  }
+}
+
 template<typename T>
 bool indexed_data_equal(const Span<T> all_values, const Span<int> indices, const Span<T> values)
 {

@@ -8,6 +8,7 @@
 #include "NOD_value_elem_eval.hh"
 
 #include "node_function_util.hh"
+#include "node_shader_util.hh"
 
 namespace blender::nodes::node_fn_rotation_to_euler_cc {
 
@@ -17,6 +18,15 @@ static void node_declare(NodeDeclarationBuilder &b)
   b.add_input<decl::Rotation>("Rotation"_ustr);
   b.add_output<decl::Vector>("Euler"_ustr).subtype(PROP_EULER);
 };
+
+static int node_gpu_material(GPUMaterial *mat,
+                             bNode *node,
+                             bNodeExecData * /*execdata*/,
+                             GPUNodeStack *in,
+                             GPUNodeStack *out)
+{
+  return GPU_stack_link(mat, node, "rotation_to_euler", in, out);
+}
 
 static void node_build_multi_function(NodeMultiFunctionBuilder &builder)
 {
@@ -54,12 +64,13 @@ static void node_eval_inverse(inverse_eval::InverseEvalParams &params)
 static void node_register()
 {
   static bke::bNodeType ntype;
-  fn_node_type_base(&ntype, "FunctionNodeRotationToEuler"_ustr, FN_NODE_ROTATION_TO_EULER);
+  fn_cmp_node_type_base(&ntype, "FunctionNodeRotationToEuler"_ustr, FN_NODE_ROTATION_TO_EULER);
   ntype.ui_name = "Rotation to Euler";
   ntype.ui_description = "Convert a standard rotation value to an Euler rotation";
   ntype.enum_name_legacy = "ROTATION_TO_EULER";
   ntype.nclass = NODE_CLASS_CONVERTER;
   ntype.declare = node_declare;
+  ntype.gpu_fn = node_gpu_material;
   ntype.build_multi_function = node_build_multi_function;
   ntype.eval_elem = node_eval_elem;
   ntype.eval_inverse_elem = node_eval_inverse_elem;

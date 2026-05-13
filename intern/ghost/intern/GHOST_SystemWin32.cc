@@ -2783,12 +2783,14 @@ static bool putClipboardImagePNG(uint *rgba, int width, int height)
       reinterpret_cast<uint8_t *>(rgba), nullptr, width, height, 32);
   ibuf->ftype = blender::IMB_FTYPE_PNG;
   ibuf->foptions.quality = 15;
-  if (!blender::IMB_save_image(ibuf, "<memory>", blender::IB_byte_data | blender::IB_mem)) {
+  blender::Vector<uint8_t> encoded = blender::IMB_save_image_to_buffer(ibuf,
+                                                                       blender::IB_byte_data);
+  if (encoded.is_empty()) {
     blender::IMB_freeImBuf(ibuf);
     return false;
   }
 
-  HGLOBAL hMem = GlobalAlloc(GHND, ibuf->encoded_buffer_size);
+  HGLOBAL hMem = GlobalAlloc(GHND, encoded.size());
   if (!hMem) {
     blender::IMB_freeImBuf(ibuf);
     return false;
@@ -2801,7 +2803,7 @@ static bool putClipboardImagePNG(uint *rgba, int width, int height)
     return false;
   }
 
-  memcpy(pMem, ibuf->encoded_buffer.data, ibuf->encoded_buffer_size);
+  memcpy(pMem, encoded.data(), encoded.size());
 
   GlobalUnlock(hMem);
   blender::IMB_freeImBuf(ibuf);

@@ -7,7 +7,8 @@
 #include "CLG_log.h"
 
 #include "BLI_math_color.h"
-#include "BLI_threads.h"
+
+#include "BKE_gtest_base.hh"
 
 #include "GPU_context.hh"
 #include "GPU_debug.hh"
@@ -34,8 +35,7 @@ void GPUTest::SetUpTestSuite(GHOST_TDrawingContextType draw_context_type,
   prev_g_debug_ = G.debug;
   G.debug |= g_debug_flags;
 
-  CLG_init();
-  BLI_threadapi_init();
+  bke::gtest_setup();
   GPU_backend_type_selection_set(gpu_backend_type);
   if (!GPU_backend_supported()) {
     GTEST_SKIP() << "GPU backend not supported";
@@ -69,7 +69,8 @@ void GPUTest::TearDownTestSuite()
   ghost_system_->disposeContext(ghost_context_);
   GHOST_ISystem::disposeSystem();
   GHOST_ISystemPaths::dispose();
-  CLG_exit();
+
+  bke::gtest_teardown();
 
   G.debug = prev_g_debug_;
 }

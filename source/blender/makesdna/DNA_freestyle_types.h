@@ -11,6 +11,8 @@
 #include "DNA_defs.h"
 #include "DNA_listBase.h"
 
+#include "BLI_enum_flags.hh"
+
 namespace blender {
 
 struct Collection;
@@ -18,7 +20,7 @@ struct FreestyleLineStyle;
 struct Text;
 
 /* FreestyleConfig::flags */
-enum {
+enum eFreestyleConfig_Flags : int {
   FREESTYLE_SUGGESTIVE_CONTOURS_FLAG = 1 << 0,
   FREESTYLE_RIDGES_AND_VALLEYS_FLAG = 1 << 1,
   FREESTYLE_MATERIAL_BOUNDARIES_FLAG = 1 << 2,
@@ -28,15 +30,16 @@ enum {
   FREESTYLE_VIEW_MAP_CACHE = 1 << 6,
   FREESTYLE_AS_RENDER_PASS = 1 << 7,
 };
+ENUM_OPERATORS(eFreestyleConfig_Flags)
 
 /* FreestyleConfig::mode */
-enum {
+enum eFreestyleControl_Mode : int {
   FREESTYLE_CONTROL_SCRIPT_MODE = 1,
   FREESTYLE_CONTROL_EDITOR_MODE = 2,
 };
 
 /* FreestyleLineSet::flags */
-enum {
+enum eFreestyleLineSet_Flags : int {
   FREESTYLE_LINESET_CURRENT = 1 << 0,
   FREESTYLE_LINESET_ENABLED = 1 << 1,
   FREESTYLE_LINESET_FE_NOT = 1 << 2,
@@ -45,18 +48,20 @@ enum {
   FREESTYLE_LINESET_FM_NOT = 1 << 5,
   FREESTYLE_LINESET_FM_BOTH = 1 << 6,
 };
+ENUM_OPERATORS(eFreestyleLineSet_Flags)
 
 /* FreestyleLineSet::selection */
-enum {
+enum eFreestyleLineSet_Selection : int {
   FREESTYLE_SEL_VISIBILITY = 1 << 0,
   FREESTYLE_SEL_EDGE_TYPES = 1 << 1,
   FREESTYLE_SEL_GROUP = 1 << 2,
   FREESTYLE_SEL_IMAGE_BORDER = 1 << 3,
   FREESTYLE_SEL_FACE_MARK = 1 << 4,
 };
+ENUM_OPERATORS(eFreestyleLineSet_Selection)
 
 /* FreestyleLineSet::edge_types, exclude_edge_types */
-enum {
+enum eFreestyleLineSet_EdgeTypes : int {
   FREESTYLE_FE_SILHOUETTE = 1 << 0,
   FREESTYLE_FE_BORDER = 1 << 1,
   FREESTYLE_FE_CREASE = 1 << 2,
@@ -68,9 +73,10 @@ enum {
   FREESTYLE_FE_EXTERNAL_CONTOUR = 1 << 8,
   FREESTYLE_FE_EDGE_MARK = 1 << 9,
 };
+ENUM_OPERATORS(eFreestyleLineSet_EdgeTypes)
 
 /* FreestyleLineSet::qi */
-enum {
+enum eFreestyleLineSet_QI : short {
   FREESTYLE_QI_VISIBLE = 1,
   FREESTYLE_QI_HIDDEN = 2,
   FREESTYLE_QI_RANGE = 3,
@@ -78,7 +84,7 @@ enum {
 
 /* FreestyleConfig::raycasting_algorithm */
 /* Defines should be replaced with ViewMapBuilder::visibility_algo */
-enum {
+enum eFreestyleRaycastingAlgorithm : int {
   FREESTYLE_ALGO_REGULAR = 1,
   FREESTYLE_ALGO_FAST = 2,
   FREESTYLE_ALGO_VERYFAST = 3,
@@ -92,16 +98,16 @@ struct FreestyleLineSet {
   struct FreestyleLineSet *next = nullptr, *prev = nullptr;
 
   char name[/*MAX_NAME*/ 64] = "";
-  int flags = 0;
+  eFreestyleLineSet_Flags flags = {};
 
   /** Selection criteria. */
-  int selection = 0;
+  eFreestyleLineSet_Selection selection = {};
   /** Quantitative invisibility. */
-  short qi = 0;
+  eFreestyleLineSet_QI qi = {};
   char _pad1[2] = {};
   int qi_start = 0, qi_end = 0;
   /** Feature edge types. */
-  int edge_types = 0, exclude_edge_types = 0;
+  eFreestyleLineSet_EdgeTypes edge_types = {}, exclude_edge_types = {};
   char _pad2[4] = {};
   /** Group of target objects. */
   struct Collection *group = nullptr;
@@ -121,10 +127,10 @@ struct FreestyleConfig {
   ListBaseT<FreestyleModuleConfig> modules = {nullptr, nullptr};
 
   /** Scripting, editor. */
-  int mode = 0;
+  eFreestyleControl_Mode mode = {};
   DNA_DEPRECATED int raycasting_algorithm = 0;
   /** Suggestive contours, ridges/valleys, material boundaries. */
-  int flags = 0;
+  eFreestyleConfig_Flags flags = {};
   float sphere_radius = 0;
   float dkr_epsilon = 0;
   /** In radians. */

@@ -8,6 +8,7 @@
 
 #pragma once
 
+#include "BLI_enum_flags.hh"
 #include "BLI_math_constants.h"
 
 #include "DNA_ID.h"
@@ -24,7 +25,7 @@ struct bNodeTree;
 #endif
 
 /** #World::mode */
-enum {
+enum eWorld_Mode : short {
   WO_MIST = 1 << 0,
   WO_MODE_UNUSED_1 = 1 << 1, /* cleared */
   WO_MODE_UNUSED_2 = 1 << 2, /* cleared */
@@ -34,16 +35,17 @@ enum {
   WO_MODE_UNUSED_6 = 1 << 6, /* cleared */
   WO_MODE_UNUSED_7 = 1 << 7, /* cleared */
 };
+ENUM_OPERATORS(eWorld_Mode)
 
 /** #World::mistype */
-enum {
+enum eWorld_MistType : short {
   WO_MIST_QUADRATIC = 0,
   WO_MIST_LINEAR = 1,
   WO_MIST_INVERSE_QUADRATIC = 2,
 };
 
 /** #World::flag */
-enum {
+enum eWorld_Flag : short {
   WO_DS_EXPAND = 1 << 0,
   /**
    * NOTE: this must have the same value as #MA_DS_SHOW_TEXS,
@@ -61,9 +63,10 @@ enum {
   WO_USE_SUN_SHADOW = 1 << 4,
   WO_USE_SUN_SHADOW_JITTER = 1 << 5,
 };
+ENUM_OPERATORS(eWorld_Flag)
 
 /** #World::probe_resolution. */
-enum eLightProbeResolution {
+enum eLightProbeResolution : int {
   LIGHT_PROBE_RESOLUTION_128 = 7,
   LIGHT_PROBE_RESOLUTION_256 = 8,
   LIGHT_PROBE_RESOLUTION_512 = 9,
@@ -87,7 +90,8 @@ struct World {
   struct AnimData *adt = nullptr;
 
   char _pad0[4] = {};
-  short texact = 0, mistype = 0;
+  short texact = 0;
+  eWorld_MistType mistype = WO_MIST_QUADRATIC;
 
   float horr = 0.05f, horg = 0.05f, horb = 0.05f;
 
@@ -101,10 +105,10 @@ struct World {
    * Some world modes
    * bit 0: Do mist
    */
-  short mode = 0;
+  eWorld_Mode mode = {};
 
   /** Assorted settings. */
-  short flag = WO_USE_SUN_SHADOW;
+  eWorld_Flag flag = WO_USE_SUN_SHADOW;
 
   float misi = 0, miststa = 5.0f, mistdist = 25.0f, misthi = 0;
 
@@ -112,10 +116,8 @@ struct World {
   float aodist = 10.0f, aoenergy = 1.0f;
 
   /** Eevee settings. */
-  /**
-   * Resolution of the world probe when baked to a texture. Contains `eLightProbeResolution`.
-   */
-  int probe_resolution = LIGHT_PROBE_RESOLUTION_1024;
+  /** Resolution of the world probe when baked to a texture. */
+  eLightProbeResolution probe_resolution = LIGHT_PROBE_RESOLUTION_1024;
   /** Threshold for sun extraction. */
   float sun_threshold = 10.0f;
   /** Angle for sun extraction. */

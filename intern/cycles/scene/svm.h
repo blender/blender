@@ -84,6 +84,7 @@ class SVMCompiler {
   SVMInputFloat3 input_float3_from_offset(SVMStackOffset offset);
   SVMStackOffset input_link(const char *name);
   SVMStackOffset output(const char *name);
+  SVMStackOffset output(ShaderOutput *shader_output);
 
   /* Add simple SVM node without parameters. */
   void add_node(ShaderNodeType type);

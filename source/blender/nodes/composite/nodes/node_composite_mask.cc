@@ -112,7 +112,7 @@ class MaskOperation : public NodeOperation {
         false);
 
     Result &output_mask = this->get_result("Mask");
-    output_mask.wrap_external(cached_mask);
+    output_mask.share_data(cached_mask);
   }
 
   Domain compute_domain() override

@@ -305,6 +305,12 @@ std::optional<AttrDomain> GeometryFieldInput::preferred_domain(
   return std::nullopt;
 }
 
+NativeFieldDomain GeometryFieldInput::native_domain_info(
+    const GeometryComponent & /*component*/) const
+{
+  return NativeFieldDomain::None();
+}
+
 GVArray MeshFieldInput::get_varray_for_context(const fn::FieldContext &context,
                                                const IndexMask &mask,
                                                ResourceScope & /*scope*/) const
@@ -325,6 +331,11 @@ GVArray MeshFieldInput::get_varray_for_context(const fn::FieldContext &context,
 std::optional<AttrDomain> MeshFieldInput::preferred_domain(const Mesh & /*mesh*/) const
 {
   return std::nullopt;
+}
+
+NativeFieldDomain MeshFieldInput::native_domain_info(const Mesh & /*mesh*/) const
+{
+  return NativeFieldDomain::None();
 }
 
 GVArray CurvesFieldInput::get_varray_for_context(const fn::FieldContext &context,
@@ -450,6 +461,20 @@ GVArray AttributeExistsFieldInput::get_varray_for_context(const bke::GeometryFie
   return VArray<bool>::from_single(exists, domain_size);
 }
 
+void AttributeExistsFieldInput::hash_unique(UniqueHashBytes &hash,
+                                            fn::FieldHashDeep & /*deep_hash_cache*/) const
+{
+  static constexpr int8_t id = 0;
+  hash.add(&id);
+  hash.data.extend(Span(name_.data(), name_.size()).cast<std::byte>());
+}
+
+NativeFieldDomain AttributeExistsFieldInput::native_domain_info(
+    const GeometryComponent & /*component*/) const
+{
+  return NativeFieldDomain::Constant();
+}
+
 std::string AttributeFieldInput::socket_inspection_name() const
 {
   if (socket_inspection_name_) {
@@ -458,17 +483,11 @@ std::string AttributeFieldInput::socket_inspection_name() const
   return fmt::format(fmt::runtime(TIP_("\"{}\" attribute from geometry")), name_);
 }
 
-uint64_t AttributeFieldInput::hash() const
+void AttributeFieldInput::hash_unique(UniqueHashBytes &hash,
+                                      fn::FieldHashDeep & /*deep_hash_cache*/) const
 {
-  return get_default_hash(name_, type_);
-}
-
-bool AttributeFieldInput::is_equal_to(const fn::FieldInput &other) const
-{
-  if (const AttributeFieldInput *other_typed = dynamic_cast<const AttributeFieldInput *>(&other)) {
-    return name_ == other_typed->name_ && type_ == other_typed->type_;
-  }
-  return false;
+  hash.data.extend(Span(name_.data(), name_.size()).cast<std::byte>());
+  hash.add(type_);
 }
 
 std::optional<AttrDomain> AttributeFieldInput::preferred_domain(
@@ -483,6 +502,19 @@ std::optional<AttrDomain> AttributeFieldInput::preferred_domain(
     return std::nullopt;
   }
   return meta_data->domain;
+}
+
+NativeFieldDomain AttributeFieldInput::native_domain_info(const GeometryComponent &component) const
+{
+  const std::optional<AttributeAccessor> attributes = component.attributes();
+  if (!attributes.has_value()) {
+    return NativeFieldDomain::Constant();
+  }
+  const std::optional<AttributeMetaData> meta_data = attributes->lookup_meta_data(name_);
+  if (!meta_data.has_value()) {
+    return NativeFieldDomain::Constant();
+  }
+  return NativeFieldDomain(NativeFieldDomain::Domain{meta_data->domain});
 }
 
 static StringRef get_random_id_attribute_name(const AttrDomain domain)
@@ -516,16 +548,11 @@ std::string IDAttributeFieldInput::socket_inspection_name() const
   return TIP_("ID / Index");
 }
 
-uint64_t IDAttributeFieldInput::hash() const
+void IDAttributeFieldInput::hash_unique(UniqueHashBytes &hash,
+                                        fn::FieldHashDeep & /*deep_hash_cache*/) const
 {
-  /* All random ID attribute inputs are the same within the same evaluation context. */
-  return 92386459827;
-}
-
-bool IDAttributeFieldInput::is_equal_to(const fn::FieldInput &other) const
-{
-  /* All random ID attribute inputs are the same within the same evaluation context. */
-  return dynamic_cast<const IDAttributeFieldInput *>(&other) != nullptr;
+  static constexpr int8_t id = 0;
+  hash.add(&id);
 }
 
 const fn::Field<int> &IDAttributeFieldInput::get_field()
@@ -568,19 +595,11 @@ GVArray NamedLayerSelectionFieldInput::get_varray_for_context(
   return VArray<bool>::from_func(mask.min_array_size(), layer_is_selected);
 }
 
-uint64_t NamedLayerSelectionFieldInput::hash() const
+void NamedLayerSelectionFieldInput::hash_unique(UniqueHashBytes &hash,
+                                                fn::FieldHashDeep & /*deep_hash_cache*/) const
 {
-  return get_default_hash(layer_name_, type_);
-}
-
-bool NamedLayerSelectionFieldInput::is_equal_to(const fn::FieldInput &other) const
-{
-  if (const NamedLayerSelectionFieldInput *other_named_layer =
-          dynamic_cast<const NamedLayerSelectionFieldInput *>(&other))
-  {
-    return layer_name_ == other_named_layer->layer_name_;
-  }
-  return false;
+  hash.data.extend(Span(layer_name_.data(), layer_name_.size()).cast<std::byte>());
+  hash.add(type_);
 }
 
 std::optional<AttrDomain> NamedLayerSelectionFieldInput::preferred_domain(
@@ -627,6 +646,17 @@ GVArray EvaluateAtIndexInput::get_varray_for_context(const bke::GeometryFieldCon
   return GVArray::from_garray(std::move(dst_array));
 }
 
+void EvaluateAtIndexInput::hash_unique(UniqueHashBytes &hash,
+                                       fn::FieldHashDeep &deep_hash_cache) const
+{
+  static constexpr int8_t id = 0;
+  hash.add(&id);
+  hash.add(type_);
+  hash.add(deep_hash_cache.ensure(index_field_));
+  hash.add(deep_hash_cache.ensure(value_field_));
+  hash.add(value_field_domain_);
+}
+
 static bool component_is_available(const GeometrySet &geometry,
                                    const GeometryComponent::Type type,
                                    const AttrDomain domain)
@@ -669,22 +699,22 @@ SampleIndexFunction::SampleIndexFunction(GeometrySet geometry,
   builder.single_input<int>("Index");
   builder.single_output("Value", src_field_.cpp_type());
   this->set_signature(&signature_);
-
-  this->evaluate_field();
 }
 
-void SampleIndexFunction::evaluate_field()
+void SampleIndexFunction::prepare_for_execution() const
 {
-  const GeometryComponent *component = find_source_component(src_geometry_, domain_);
-  if (component == nullptr) {
-    return;
-  }
-  const int domain_num = component->attribute_domain_size(domain_);
-  geometry_context_.emplace(GeometryFieldContext(*component, domain_));
-  evaluator_ = std::make_unique<fn::FieldEvaluator>(*geometry_context_, domain_num);
-  evaluator_->add(src_field_);
-  evaluator_->evaluate();
-  src_data_ = &evaluator_->get_evaluated(0);
+  mutex_.ensure([&]() {
+    const GeometryComponent *component = find_source_component(src_geometry_, domain_);
+    if (component == nullptr) {
+      return;
+    }
+    const int domain_num = component->attribute_domain_size(domain_);
+    geometry_context_.emplace(GeometryFieldContext(*component, domain_));
+    evaluator_ = std::make_unique<fn::FieldEvaluator>(*geometry_context_, domain_num);
+    evaluator_->add(src_field_);
+    evaluator_->evaluate();
+    src_data_ = &evaluator_->get_evaluated(0);
+  });
 }
 
 void SampleIndexFunction::call(const IndexMask &mask,
@@ -705,6 +735,16 @@ void SampleIndexFunction::call(const IndexMask &mask,
       mask, indices, src_data_->index_range(), memory);
   bke::attribute_math::gather(*src_data_, indices, valid_mask, dst);
   dst.type().value_initialize_indices(dst.data(), valid_mask.complement(mask, memory));
+}
+
+void SampleIndexFunction::hash_unique(UniqueHashBytes &hash) const
+{
+  static constexpr int8_t id = 0;
+  hash.add(&id);
+  hash.add(find_source_component(src_geometry_, domain_));
+  hash.add(domain_);
+  fn::FieldHashDeep field_hash;
+  hash.add(field_hash.ensure(src_field_));
 }
 
 EvaluateOnDomainInput::EvaluateOnDomainInput(fn::GField field, AttrDomain domain)
@@ -756,6 +796,15 @@ GVArray EvaluateOnDomainInput::get_varray_for_context(const bke::GeometryFieldCo
   return attributes.adapt_domain(GVArray::from_garray(std::move(values)), src_domain_, dst_domain);
 }
 
+void EvaluateOnDomainInput::hash_unique(UniqueHashBytes &hash,
+                                        fn::FieldHashDeep &deep_hash_cache) const
+{
+  static constexpr int8_t id = 0;
+  hash.add(&id);
+  hash.add(deep_hash_cache.ensure(src_field_));
+  hash.add(src_domain_);
+}
+
 void EvaluateOnDomainInput::foreach_recursive_field(FunctionRef<void(const fn::GField &)> fn) const
 {
   fn(src_field_);
@@ -765,6 +814,12 @@ std::optional<AttrDomain> EvaluateOnDomainInput::preferred_domain(
     const GeometryComponent & /*component*/) const
 {
   return src_domain_;
+}
+
+NativeFieldDomain EvaluateOnDomainInput::native_domain_info(
+    const GeometryComponent & /*component*/) const
+{
+  return bke::NativeFieldDomain::Domain{src_domain_};
 }
 
 }  // namespace bke
@@ -793,18 +848,37 @@ std::string NormalFieldInput::socket_inspection_name() const
   return true_normals_ ? TIP_("True Normal") : TIP_("Normal");
 }
 
-uint64_t NormalFieldInput::hash() const
+void NormalFieldInput::hash_unique(UniqueHashBytes &hash,
+                                   fn::FieldHashDeep & /*deep_hash_cache*/) const
 {
-  return get_default_hash(2980541, legacy_corner_normals_, true_normals_);
+  static constexpr int8_t id = 0;
+  hash.add(&id);
+  hash.add(legacy_corner_normals_);
+  hash.add(true_normals_);
 }
 
-bool NormalFieldInput::is_equal_to(const fn::FieldInput &other) const
+NativeFieldDomain NormalFieldInput::native_domain_info(const GeometryComponent &component) const
 {
-  if (const NormalFieldInput *other_typed = dynamic_cast<const NormalFieldInput *>(&other)) {
-    return legacy_corner_normals_ == other_typed->legacy_corner_normals_ &&
-           true_normals_ == other_typed->true_normals_;
+  switch (component.type()) {
+    case GeometryComponent::Type::Mesh: {
+      if (const Mesh *mesh = static_cast<const MeshComponent &>(component).get()) {
+        switch (mesh->normals_domain()) {
+          case MeshNormalDomain::Face:
+            return bke::NativeFieldDomain::Domain{AttrDomain::Face};
+          case MeshNormalDomain::Point:
+            return bke::NativeFieldDomain::Domain{AttrDomain::Point};
+          case MeshNormalDomain::Corner:
+            return bke::NativeFieldDomain::Domain{AttrDomain::Corner};
+        }
+      }
+      break;
+    }
+    case GeometryComponent::Type::Curve:
+      return bke::NativeFieldDomain::Domain{AttrDomain::Point};
+    default:
+      return bke::NativeFieldDomain::Constant();
   }
-  return false;
+  return bke::NativeFieldDomain::Constant();
 }
 
 const fn::Field<float3> &NormalFieldInput::get_field()
@@ -1108,6 +1182,46 @@ bool try_capture_fields_on_geometry(GeometryComponent &component,
 {
   const fn::Field<bool> selection = fn::Field<bool>(true);
   return try_capture_fields_on_geometry(component, names, domain, selection, fields);
+}
+
+std::optional<AttrDomain> try_detect_native_field_domain(const GeometryComponent &component,
+                                                         const fn::GField &field)
+{
+  const fn::FieldInputsPtr &field_inputs = field.field_inputs();
+  if (!field_inputs) {
+    return std::nullopt;
+  }
+  VectorSet<AttrDomain, 8> domains;
+  for (const fn::FieldInput &field_input : field_inputs->inputs) {
+    if (const auto *input = dynamic_cast<const GeometryFieldInput *>(&field_input)) {
+      const NativeFieldDomain domain_info = input->native_domain_info(component);
+      if (std::holds_alternative<NativeFieldDomain::None>(domain_info.variant)) {
+        return std::nullopt;
+      }
+      if (const auto *value = std::get_if<NativeFieldDomain::Domain>(&domain_info.variant)) {
+        domains.add(value->domain);
+      }
+    }
+    if (component.type() == GeometryComponent::Type::Mesh) {
+      if (const Mesh *mesh = static_cast<const MeshComponent &>(component).get()) {
+        if (const auto *input = dynamic_cast<const MeshFieldInput *>(&field_input)) {
+          const NativeFieldDomain domain_info = input->native_domain_info(*mesh);
+          if (std::holds_alternative<NativeFieldDomain::None>(domain_info.variant)) {
+            return std::nullopt;
+          }
+          if (const auto *value = std::get_if<NativeFieldDomain::Domain>(&domain_info.variant)) {
+            domains.add(value->domain);
+          }
+        }
+      }
+    }
+    return std::nullopt;
+  }
+  if (domains.size() != 1) {
+    /* Any combination of domains means there is no particular native domain. */
+    return std::nullopt;
+  }
+  return domains[0];
 }
 
 std::optional<AttrDomain> try_detect_field_domain(const GeometryComponent &component,

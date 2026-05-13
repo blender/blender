@@ -223,7 +223,7 @@ struct PTCacheUndo {
   struct ParticleData *particles;
   KDTree3d *emitter_field;
   float *emitter_cosnos;
-  int psys_flag;
+  eParticleSystem_Flag psys_flag;
 
   /* cache stuff */
   ListBaseT<PTCacheMem> mem_cache;

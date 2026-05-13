@@ -598,7 +598,7 @@ static void rasterize_half(const MultiresBaker &baker,
   const int y1 = y1_in >= h ? h : y1_in;
 
   for (int y = y0; y < y1; y++) {
-    /*-b(x-x0) + a(y-y0) = 0 */
+    /* `-b(x-x0) + a(y-y0) = 0`. */
     float x_l = s_stable ? (s0.x + (((s1.x - s0.x) * (y - s0.y)) / (s1.y - s0.y))) : s0.x;
     float x_r = l_stable ? (l0.x + (((l1.x - l0.x) * (y - l0.y)) / (l1.y - l0.y))) : l0.x;
     if (is_mid_right) {
@@ -1573,7 +1573,7 @@ static void bake_ibuf_filter(ImBuf &ibuf,
                              const float2 uv_offset)
 {
   /* NOTE: Must check before filtering. */
-  const bool is_new_alpha = (ibuf.planes != R_IMF_PLANES_RGBA) && BKE_imbuf_alpha_test(&ibuf);
+  const bool is_new_alpha = !ibuf.can_contain_alpha() && BKE_imbuf_alpha_test(&ibuf);
 
   if (margin) {
     switch (margin_type) {
@@ -1596,10 +1596,10 @@ static void bake_ibuf_filter(ImBuf &ibuf,
 
   /* If the bake results in new alpha then change the image setting. */
   if (is_new_alpha) {
-    ibuf.planes = R_IMF_PLANES_RGBA;
+    ibuf.color_mode = ImColorMode::RGBA;
   }
   else {
-    if (margin && ibuf.planes != R_IMF_PLANES_RGBA) {
+    if (margin && !ibuf.can_contain_alpha()) {
       /* Clear alpha added by filtering. */
       IMB_rectfill_alpha(&ibuf, 1.0f);
     }

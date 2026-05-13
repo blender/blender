@@ -1,45 +1,23 @@
 # SPDX-FileCopyrightText: 2026 Blender Authors
 #
 # SPDX-License-Identifier: GPL-2.0-or-later */
+"""
+blender -b --factory-startup --python tests/python/sculpt_paint/face_set_test.py -- --testdir tests/files/sculpting
+"""
 
 __all__ = (
     "main",
 )
 
-import math
-import unittest
-import sys
-import pathlib
 import numpy as np
+import os
+import pathlib
+import sys
+import unittest
 
 import bpy
 
-"""
-blender -b --factory-startup --python tests/python/sculpt_paint/face_set_test.py -- --testdir tests/files/sculpting
-"""
-
 args = None
-
-
-def set_view3d_context_override(context_override):
-    """
-    Set context override to become the first viewport in the active workspace
-
-    The ``context_override`` is expected to be a copy of an actual current context
-    obtained by `context.copy()`
-    """
-
-    for area in context_override["screen"].areas:
-        if area.type != 'VIEW_3D':
-            continue
-        for space in area.spaces:
-            if space.type != 'VIEW_3D':
-                continue
-            for region in area.regions:
-                if region.type != 'WINDOW':
-                    continue
-                context_override["area"] = area
-                context_override["region"] = region
 
 
 def get_attribute_data(

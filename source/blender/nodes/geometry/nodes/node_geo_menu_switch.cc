@@ -295,6 +295,14 @@ class MenuSwitchFn : public mf::MultiFunction {
 
     type_.fill_construct_indices(type_.default_value(), value_output.data(), masks[invalid_index]);
   }
+
+  void hash_unique(UniqueHashBytes &hash) const override
+  {
+    static constexpr int8_t id = 0;
+    hash.add(&id);
+    hash.add(&type_);
+    hash.add(&enum_def_);
+  }
 };
 
 class LazyFunctionForMenuSwitchNode : public LazyFunction {

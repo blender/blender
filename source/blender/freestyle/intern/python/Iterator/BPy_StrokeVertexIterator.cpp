@@ -35,13 +35,17 @@ PyDoc_STRVAR(
     "a StrokeVertexIterator can be converted to an Interface0DIterator by\n"
     "by calling Interface0DIterator(it).\n"
     "\n"
-    ".. method:: __init__()\n"
-    "            __init__(brother)\n"
+    ".. method:: __init__(*args)\n"
+    "\n"
+    "   Accepted call signatures:\n"
+    "\n"
+    "   - ``__init__()``\n"
+    "   - ``__init__(brother)``\n"
     "\n"
     "   Creates a :class:`StrokeVertexIterator` using either the\n"
     "   default constructor or the copy constructor.\n"
     "\n"
-    "   :arg brother: A StrokeVertexIterator object.\n"
+    "   :param brother: A StrokeVertexIterator object.\n"
     "   :type brother: :class:`StrokeVertexIterator`\n");
 static int StrokeVertexIterator_init(BPy_StrokeVertexIterator *self,
                                      PyObject *args,

@@ -1296,6 +1296,9 @@ static void init_meta(Depsgraph *depsgraph, PROCESS *process, Scene *scene, Obje
 
       switch (ml.type) {
         case MB_BALL:
+        case MB_TUBEX:
+        case MB_TUBEY:
+        case MB_TUBEZ:
           break;
         case MB_CUBE: /* cube is "expanded" by expz, expy and expx */
           expz += ml.expz;

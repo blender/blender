@@ -21,7 +21,9 @@ struct LightProbeObjectCache;
 struct LightProbeGridCacheFrame;
 struct Object;
 
-void BKE_lightprobe_type_set(struct LightProbe *probe, short lightprobe_type);
+enum eLightProbeType : char;
+
+void BKE_lightprobe_type_set(struct LightProbe *probe, eLightProbeType lightprobe_type);
 struct LightProbe *BKE_lightprobe_add(struct Main *bmain, const char *name);
 
 void BKE_lightprobe_cache_blend_write(struct BlendWriter *writer,

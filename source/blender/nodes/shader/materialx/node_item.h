@@ -27,10 +27,10 @@ class NodeItem {
     /* Value types */
     String,
     Filename,
-    Boolean,
-    Integer,
 
     /* Arithmetic types. NOTE: Ordered by type cast */
+    Boolean,
+    Integer,
     Float,
     Vector2,
     Vector3,

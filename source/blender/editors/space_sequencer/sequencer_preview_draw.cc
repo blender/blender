@@ -401,8 +401,8 @@ static void draw_histogram(ARegion &region,
     return;
   }
 
-  const ocio::ScopeInfo scope_info = IMB_colormanagement_get_scope_info(
-      display_settings, view_settings->view_transform);
+  const ocio::ScopeInfo scope_info = IMB_colormanagement_get_scope_info(display_settings,
+                                                                        view_settings);
 
   /* Grid lines from scope info graticules, with labels centered on each line. */
   const uchar col_grid[4] = {128, 128, 128, 128};
@@ -490,8 +490,8 @@ static void draw_waveform_graticule(ARegion *region,
                                     const ColorManagedViewSettings *view_settings,
                                     const ColorManagedDisplaySettings *display_settings)
 {
-  const ocio::ScopeInfo scope_info = IMB_colormanagement_get_scope_info(
-      display_settings, view_settings->view_transform);
+  const ocio::ScopeInfo scope_info = IMB_colormanagement_get_scope_info(display_settings,
+                                                                        view_settings);
 
   const uchar col_grid[4] = {128, 128, 128, 128};
   const float x0 = area.xmin;
@@ -787,8 +787,8 @@ static void sequencer_draw_scopes(Scene *scene,
       const float point_size = (BLI_rcti_size_x(&region.v2d.mask) + 1) /
                                BLI_rctf_size_x(&region.v2d.cur);
 
-      const ocio::ScopeInfo scope_info = IMB_colormanagement_get_scope_info(
-          &display_settings, view_settings.view_transform);
+      const ocio::ScopeInfo scope_info = IMB_colormanagement_get_scope_info(&display_settings,
+                                                                            &view_settings);
 
       int viewport_size_i[4];
       GPU_viewport_size_get_i(viewport_size_i);
@@ -894,8 +894,8 @@ static void sequencer_draw_scopes(Scene *scene,
   }
   if (space_sequencer.mainb == SEQ_DRAW_IMG_VECTORSCOPE) {
     use_blend = true;
-    const ocio::ScopeInfo scope_info = IMB_colormanagement_get_scope_info(
-        &display_settings, view_settings.view_transform);
+    const ocio::ScopeInfo scope_info = IMB_colormanagement_get_scope_info(&display_settings,
+                                                                          &view_settings);
     draw_vectorscope_graticule(&region, quads, preview, scope_info);
   }
 

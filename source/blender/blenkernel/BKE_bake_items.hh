@@ -15,7 +15,7 @@
 #include "BKE_geometry_set.hh"
 #include "BKE_volume_grid_fwd.hh"
 
-#include "NOD_geometry_nodes_list_fwd.hh"
+#include "NOD_geometry_nodes_list.hh"
 
 namespace blender::bke::bake {
 
@@ -175,9 +175,9 @@ class ListBakeItem : public BakeItem {
   /* List of bake items for bundles which need additional preparation for baking. */
   using BundleList = Vector<BundleBakeItem>;
 
-  std::variant<nodes::ListPtr, BundleList> value;
+  std::variant<nodes::GListPtr, BundleList> value;
 
-  ListBakeItem(nodes::ListPtr list);
+  ListBakeItem(nodes::GListPtr list);
   ListBakeItem(Vector<BundleBakeItem> &&items);
   ~ListBakeItem() override;
 

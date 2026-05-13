@@ -525,7 +525,7 @@ static void determine_group_input_states(
       else if (is_layer_selection_field(*group_input)) {
         new_inferencing_interface.inputs[index] = InputSocketFieldType::Implicit;
       }
-      else if (group_input->structure_type == NODE_INTERFACE_SOCKET_STRUCTURE_TYPE_SINGLE) {
+      else if (group_input->structure_type == NodeSocketInterfaceStructureType::Single) {
         new_inferencing_interface.inputs[index] = InputSocketFieldType::None;
       }
     }

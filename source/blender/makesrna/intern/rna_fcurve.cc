@@ -475,7 +475,7 @@ static void rna_DriverVariable_type_set(PointerRNA *ptr, int value)
   DriverVar *dvar = static_cast<DriverVar *>(ptr->data);
 
   /* call the API function for this */
-  driver_change_variable_type(dvar, value);
+  driver_change_variable_type(dvar, eDriverVar_Types(value));
 }
 
 void rna_DriverVariable_name_set(PointerRNA *ptr, const char *value)

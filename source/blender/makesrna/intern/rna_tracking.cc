@@ -303,14 +303,14 @@ static void rna_trackingTrack_select_set(PointerRNA *ptr, bool value)
   MovieTrackingTrack *track = static_cast<MovieTrackingTrack *>(ptr->data);
 
   if (value) {
-    track->flag |= SELECT;
-    track->pat_flag |= SELECT;
-    track->search_flag |= SELECT;
+    track->flag |= TRACK_SELECT;
+    track->pat_flag |= TRACK_SELECT;
+    track->search_flag |= TRACK_SELECT;
   }
   else {
-    track->flag &= ~SELECT;
-    track->pat_flag &= ~SELECT;
-    track->search_flag &= ~SELECT;
+    track->flag &= ~TRACK_SELECT;
+    track->pat_flag &= ~TRACK_SELECT;
+    track->search_flag &= ~TRACK_SELECT;
   }
 }
 

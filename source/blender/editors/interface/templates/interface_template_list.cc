@@ -627,7 +627,7 @@ static std::string uilist_item_tooltip_func(bContext * /*C*/, void *argN, const 
 static uiList *uilist_ensure(const bContext *C,
                              uiListType *ui_list_type,
                              const char *list_id,
-                             int layout_type,
+                             euiList_LayoutType layout_type,
                              bool sort_reverse,
                              bool sort_lock)
 {
@@ -799,7 +799,7 @@ static void template_uilist_layout_draw(const bContext *C,
       /* Add scroll-bar. */
       if (items->item_vec.size() > visual_info.visual_items) {
         row->column(false);
-        but = uiDefButI(block,
+        but = uiDefButV(block,
                         ButtonType::Scroll,
                         "",
                         0,
@@ -890,22 +890,22 @@ static void template_uilist_layout_draw(const bContext *C,
     block_emboss_set(subblock, EmbossType::None);
 
     if (ui_list->filter_flag & UILST_FLT_SHOW) {
-      but = uiDefIconButBitI(subblock,
-                             ButtonType::Toggle,
-                             UILST_FLT_SHOW,
-                             ICON_DISCLOSURE_TRI_DOWN,
-                             0,
-                             0,
-                             UI_UNIT_X,
-                             UI_UNIT_Y * 0.5f,
-                             &(ui_list->filter_flag),
-                             0,
-                             0,
-                             TIP_("Hide filtering options"));
+      but = uiDefIconButBit(subblock,
+                            ButtonType::Toggle,
+                            UILST_FLT_SHOW,
+                            ICON_DISCLOSURE_TRI_DOWN,
+                            0,
+                            0,
+                            UI_UNIT_X,
+                            UI_UNIT_Y * 0.5f,
+                            &ui_list->filter_flag,
+                            0,
+                            0,
+                            TIP_("Hide filtering options"));
       button_flag_disable(but, BUT_UNDO); /* skip undo on screen buttons */
 
       if (add_grip_but) {
-        but = uiDefIconButI(subblock,
+        but = uiDefIconButV(subblock,
                             ButtonType::Grip,
                             ICON_GRIP,
                             0,
@@ -938,22 +938,22 @@ static void template_uilist_layout_draw(const bContext *C,
       layout_data->draw_filter(ui_list, C, *col);
     }
     else {
-      but = uiDefIconButBitI(subblock,
-                             ButtonType::Toggle,
-                             UILST_FLT_SHOW,
-                             ICON_DISCLOSURE_TRI_RIGHT,
-                             0,
-                             0,
-                             UI_UNIT_X,
-                             UI_UNIT_Y * 0.5f,
-                             &(ui_list->filter_flag),
-                             0,
-                             0,
-                             TIP_("Show filtering options"));
+      but = uiDefIconButBit(subblock,
+                            ButtonType::Toggle,
+                            UILST_FLT_SHOW,
+                            ICON_DISCLOSURE_TRI_RIGHT,
+                            0,
+                            0,
+                            UI_UNIT_X,
+                            UI_UNIT_Y * 0.5f,
+                            &ui_list->filter_flag,
+                            0,
+                            0,
+                            TIP_("Show filtering options"));
       button_flag_disable(but, BUT_UNDO); /* skip undo on screen buttons */
 
       if (add_grip_but) {
-        but = uiDefIconButI(subblock,
+        but = uiDefIconButV(subblock,
                             ButtonType::Grip,
                             ICON_GRIP,
                             0,
@@ -1011,7 +1011,7 @@ void template_uilist(Layout *layout,
   uiList *ui_list = uilist_ensure(C,
                                   ui_list_type,
                                   list_id,
-                                  layout_type,
+                                  euiList_LayoutType(layout_type),
                                   flags & TEMPLATE_LIST_SORT_REVERSE,
                                   flags & TEMPLATE_LIST_SORT_LOCK);
 

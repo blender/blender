@@ -45,12 +45,16 @@ PyDoc_STRVAR(
     "Class to define a feature shape. It is the gathering of feature\n"
     "elements from an identified input shape.\n"
     "\n"
-    ".. method:: __init__()\n"
-    "            __init__(brother)\n"
+    ".. method:: __init__(*args)\n"
+    "\n"
+    "   Accepted call signatures:\n"
+    "\n"
+    "   - ``__init__()``\n"
+    "   - ``__init__(brother)``\n"
     "\n"
     "   Creates a :class:`SShape` class using either a default constructor or copy constructor.\n"
     "\n"
-    "   :arg brother: An SShape object.\n"
+    "   :param brother: An SShape object.\n"
     "   :type brother: :class:`SShape`\n");
 static int SShape_init(BPy_SShape *self, PyObject *args, PyObject *kwds)
 {
@@ -88,7 +92,7 @@ static char SShape_add_edge_doc[] =
     "\n"
     "   Adds an FEdge to the list of FEdges.\n"
     "\n"
-    "   :arg edge: An FEdge object.\n"
+    "   :param edge: An FEdge object.\n"
     "   :type edge: :class:`FEdge`\n";
 
 static PyObject *SShape_add_edge(BPy_SShape *self, PyObject *args, PyObject *kwds)
@@ -111,7 +115,7 @@ PyDoc_STRVAR(
     "   Adds an SVertex to the list of SVertex of this Shape. The SShape\n"
     "   attribute of the SVertex is also set to this SShape.\n"
     "\n"
-    "   :arg vertex: An SVertex object.\n"
+    "   :param vertex: An SVertex object.\n"
     "   :type vertex: :class:`SVertex`\n");
 static PyObject *SShape_add_vertex(BPy_SShape *self, PyObject *args, PyObject *kwds)
 {
@@ -242,7 +246,7 @@ PyDoc_STRVAR(
     SShape_vertices_doc,
     "The list of vertices constituting this SShape.\n"
     "\n"
-    ":type: List of :class:`SVertex`\n");
+    ":type: list[:class:`SVertex`]\n");
 static PyObject *SShape_vertices_get(BPy_SShape *self, void * /*closure*/)
 {
 
@@ -263,7 +267,7 @@ PyDoc_STRVAR(
     SShape_edges_doc,
     "The list of edges constituting this SShape.\n"
     "\n"
-    ":type: List of :class:`FEdge`\n");
+    ":type: list[:class:`FEdge`]\n");
 static PyObject *SShape_edges_get(BPy_SShape *self, void * /*closure*/)
 {
 

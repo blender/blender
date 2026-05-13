@@ -28,6 +28,6 @@ void execute_multi_function_on_value_variant__list(const MultiFunction &fn,
                                                    const Span<SocketValueVariant *> output_values,
                                                    GeoNodesUserData *user_data);
 
-ListPtr evaluate_field_to_list(GField field, const int64_t count);
+GListPtr evaluate_field_to_list(GField field, const int64_t count);
 
 }  // namespace blender::nodes

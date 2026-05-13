@@ -22,6 +22,8 @@ class PreferencesOnDiskAssetLibrary : public OnDiskAssetLibrary {
   explicit PreferencesOnDiskAssetLibrary(const bUserAssetLibrary &user_asset_library);
 
   std::optional<AssetLibraryReference> library_reference() const override;
+  std::optional<eAssetImportMethod> import_method() const override;
+  bool use_relative_paths() const override;
   bool is_enabled() const override;
 };
 

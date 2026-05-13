@@ -216,7 +216,8 @@ static void filelist_remote_asset_library_update_loading_flags(RemoteLibraryRequ
 }
 
 /* Called when starting the job (from the main thread). */
-void remote_asset_library_request(FileListReadJob *job_params, bUserAssetLibrary &library)
+void remote_asset_library_request(FileListReadJob *job_params,
+                                  const asset_system::RemoteLibraryDefinitionRef &library)
 {
   if (!USER_EXPERIMENTAL_TEST(&U, use_remote_asset_libraries)) {
     return;
@@ -229,24 +230,17 @@ void remote_asset_library_request(FileListReadJob *job_params, bUserAssetLibrary
   }
 
   /* Check if the library's cache directory exists, otherwise, request download. */
-  if (!BLI_is_dir(library.dirpath)) {
+  if (!BLI_is_dir(library.cache_dirpath.c_str())) {
     blender::asset_system::remote_library_request_download(library);
   }
 
   std::unique_ptr<RemoteLibraryRequest> request = std::make_unique<RemoteLibraryRequest>();
-  request->dirpath = library.dirpath;
+  request->dirpath = library.cache_dirpath;
   request->request_time = RemoteLibraryLoadingStatus::loading_start_time(library.remote_url);
 
   filelist_remote_asset_library_update_loading_flags(*request, library.remote_url);
 
   job_params->remote_library_requests.add(library.remote_url, std::move(request));
-}
-
-static bool filelist_checkdir_remote_asset_library(const FileList * /*filelist*/,
-                                                   char /*dirpath*/[FILE_MAX_LIBEXTRA],
-                                                   const bool /*do_change*/)
-{
-  return (G.f & G_FLAG_INTERNET_ALLOW) != 0;
 }
 
 static bUserAssetLibrary *lookup_remote_library(const FileListReadJob *job_params)
@@ -282,6 +276,14 @@ static void filelist_readjob_remote_asset_library(FileListReadJob *job_params,
 
   filelist_readjob_load_asset_library_data(job_params, do_update);
 
+  /* There are no online requests when internet access is disabled or the online assets filter is
+   * disabled. */
+  if (job_params->remote_library_requests.is_empty()) {
+    /* Only get assets that were downloaded already. */
+    filelist_readjob_recursive_dir_add_items(true, job_params, stop, do_update, progress);
+    return;
+  }
+
   BLI_assert_msg(job_params->remote_library_requests.size() == 1,
                  "reading callback for a single remote library should only have a single remote "
                  "library request registered (check what the starting callback is requesting)");
@@ -302,7 +304,7 @@ void filelist_timer_step_remote_asset_library(FileListReadJob *job_params)
 void filelist_set_readjob_remote_asset_library(FileList *filelist)
 {
   /* TODO rename to something like #is_valid_fn(). */
-  filelist->check_dir_fn = filelist_checkdir_remote_asset_library;
+  filelist->check_dir_fn = filelist_checkdir_return_always_valid;
   filelist->start_job_fn = filelist_start_job_remote_asset_library;
   filelist->timer_step_fn = filelist_timer_step_remote_asset_library;
   filelist->read_job_fn = filelist_readjob_remote_asset_library;

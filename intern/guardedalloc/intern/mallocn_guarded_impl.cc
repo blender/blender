@@ -18,6 +18,7 @@
 #include <pthread.h>
 
 #include "MEM_guardedalloc.h"
+#include "MEM_safe_multiply.h"
 
 /* Quiet warnings when dealing with allocated data written into the blend file.
  * This also rounds up and causes warnings which we don't consider bugs in practice. */

@@ -38,8 +38,12 @@ void BKE_sound_refresh_callback_bmain(Main *bmain);
 
 void BKE_sound_force_device(const char *device);
 
-bSound *BKE_sound_new_file(Main *bmain, const char *filepath);
-bSound *BKE_sound_new_file_exists(Main *bmain, const char *filepath);
+/**
+ * Looks up an existing sound by `(filepath, stream_index)`.
+ * Returns it if found, otherwise, creates a new one.
+ */
+bSound *BKE_sound_new_file_exists(Main *bmain, const char *filepath, short stream_index = 0);
+bSound *BKE_sound_new_file(Main *bmain, const char *filepath, short stream_index = 0);
 
 void BKE_sound_load(Main *bmain, bSound *sound);
 
@@ -93,6 +97,12 @@ bool BKE_sound_stream_info_get(Main *main,
                                const char *filepath,
                                int stream,
                                SoundStreamInfo *sound_info);
+
+/**
+ * Returns the number of audio streams in the given file.
+ * Returns 0 if the file cannot be opened.
+ */
+int BKE_sound_stream_count(Main *main, const char *filepath);
 
 #if defined(WITH_AUDASPACE)
 AUD_Device BKE_sound_mixdown(const Scene *scene,

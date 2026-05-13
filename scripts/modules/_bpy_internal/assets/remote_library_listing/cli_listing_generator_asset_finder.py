@@ -152,7 +152,7 @@ def _get_asset_meta(asset_data: bpy.types.AssetData) -> api_models.AssetMetadata
 
         match item_value:
             case bool():
-                value_type = api_models.CustomPropertyTypeV1.IDP_BOOLEAN
+                value_type = api_models.CustomPropertyTypeV1.IDP_BOOL
             case int():
                 value_type = api_models.CustomPropertyTypeV1.IDP_INT
             case str():

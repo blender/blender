@@ -80,8 +80,11 @@ extern "C" {
 namespace blender {
 
 void selectend_nurb(Object *obedit, enum eEndPoint_Types selfirst, bool doswap, bool selstatus);
-static void adduplicateflagNurb(
-    Object *obedit, View3D *v3d, ListBaseT<Nurb> *newnurb, const uint8_t flag, const bool split);
+static void adduplicateflagNurb(Object *obedit,
+                                View3D *v3d,
+                                ListBaseT<Nurb> *newnurb,
+                                const eBezTriple_Flag flag,
+                                const bool split);
 static bool curve_delete_segments(Object *obedit, View3D *v3d, const bool split);
 static bool curve_delete_vertices(Object *obedit, View3D *v3d);
 
@@ -1428,7 +1431,7 @@ static wmOperatorStatus separate_exec(bContext *C, wmOperator *op)
     }
 
     /* 1. Duplicate geometry and check for valid selection for separate. */
-    adduplicateflagNurb(oldob, v3d, &newnurb, SELECT, true);
+    adduplicateflagNurb(oldob, v3d, &newnurb, BEZT_FLAG_SELECT, true);
 
     if (BLI_listbase_is_empty(&newnurb)) {
       status.error_generic++;
@@ -1545,7 +1548,7 @@ static wmOperatorStatus curve_split_exec(bContext *C, wmOperator *op)
 
     ListBaseT<Nurb> newnurb = {nullptr, nullptr};
 
-    adduplicateflagNurb(obedit, v3d, &newnurb, SELECT, true);
+    adduplicateflagNurb(obedit, v3d, &newnurb, BEZT_FLAG_SELECT, true);
 
     if (BLI_listbase_is_empty(&newnurb)) {
       count_failed += 1;
@@ -1599,7 +1602,7 @@ void CURVE_OT_split(wmOperatorType *ot)
  * \{ */
 
 /* return true if U direction is selected and number of selected columns v */
-static bool isNurbselU(Nurb *nu, int *v, int flag)
+static bool isNurbselU(Nurb *nu, int *v, eBezTriple_Flag flag)
 {
   BPoint *bp;
   int a, b, sel;
@@ -1626,7 +1629,7 @@ static bool isNurbselU(Nurb *nu, int *v, int flag)
 }
 
 /* return true if V direction is selected and number of selected rows u */
-static bool isNurbselV(Nurb *nu, int *u, int flag)
+static bool isNurbselV(Nurb *nu, int *u, eBezTriple_Flag flag)
 {
   BPoint *bp;
   int a, b, sel;
@@ -1654,7 +1657,7 @@ static bool isNurbselV(Nurb *nu, int *u, int flag)
 }
 
 static void rotateflagNurb(ListBaseT<Nurb> *editnurb,
-                           short flag,
+                           eBezTriple_Flag flag,
                            const float cent[3],
                            const float rotmat[3][3])
 {
@@ -1680,7 +1683,7 @@ static void rotateflagNurb(ListBaseT<Nurb> *editnurb,
 }
 
 void ed_editnurb_translate_flag(ListBaseT<Nurb> *editnurb,
-                                uint8_t flag,
+                                eBezTriple_Flag flag,
                                 const float vec[3],
                                 bool is_2d)
 {
@@ -1776,7 +1779,7 @@ static void ed_surf_delete_selected(Object *obedit)
       BKE_nurb_free(&nu);
     }
     else {
-      if (isNurbselU(&nu, &newv, SELECT)) {
+      if (isNurbselU(&nu, &newv, BEZT_FLAG_SELECT)) {
         /* U direction selected */
         newv = nu.pntsv - newv;
         if (newv != nu.pntsv) {
@@ -1802,7 +1805,7 @@ static void ed_surf_delete_selected(Object *obedit)
           BKE_nurb_knot_calc_v(&nu);
         }
       }
-      else if (isNurbselV(&nu, &newu, SELECT)) {
+      else if (isNurbselV(&nu, &newu, BEZT_FLAG_SELECT)) {
         /* V direction selected */
         newu = nu.pntsu - newu;
         if (newu != nu.pntsu) {
@@ -1986,7 +1989,7 @@ static void select_bpoints(BPoint *bp,
                            const int stride,
                            const int count,
                            const bool selstatus,
-                           const uint8_t flag,
+                           const eBezTriple_Flag flag,
                            const bool hidden)
 {
   for (int i = 0; i < count; i++) {
@@ -2093,7 +2096,7 @@ static NurbDim editnurb_find_max_points_num(const EditNurb *editnurb)
   return ret;
 }
 
-bool ed_editnurb_extrude_flag(EditNurb *editnurb, const uint8_t flag)
+bool ed_editnurb_extrude_flag(EditNurb *editnurb, const eBezTriple_Flag flag)
 {
   const NurbDim max = editnurb_find_max_points_num(editnurb);
   /* One point induces at most one interval. Except single point case, it can give + 1.
@@ -2198,8 +2201,11 @@ static bool calc_duplicate_actvert(const ListBaseT<Nurb> *editnurb,
   return false;
 }
 
-static void adduplicateflagNurb(
-    Object *obedit, View3D *v3d, ListBaseT<Nurb> *newnurb, const uint8_t flag, const bool split)
+static void adduplicateflagNurb(Object *obedit,
+                                View3D *v3d,
+                                ListBaseT<Nurb> *newnurb,
+                                const eBezTriple_Flag flag,
+                                const bool split)
 {
   ListBaseT<Nurb> *editnurb = object_editcurve_get(obedit);
   Nurb *newnu;
@@ -2380,8 +2386,8 @@ static void adduplicateflagNurb(
         }
         MEM_delete(usel);
 
-        if ((newu == 0 || newv == 0) ||
-            (split && !isNurbselU(&nu, &newv, SELECT) && !isNurbselV(&nu, &newu, SELECT)))
+        if ((newu == 0 || newv == 0) || (split && !isNurbselU(&nu, &newv, BEZT_FLAG_SELECT) &&
+                                         !isNurbselV(&nu, &newu, BEZT_FLAG_SELECT)))
         {
           if (G.debug & G_DEBUG) {
             printf("Can't duplicate Nurb\n");
@@ -3327,11 +3333,11 @@ static wmOperatorStatus hide_exec(bContext *C, wmOperator *op)
         sel = 0;
         while (a--) {
           if (invert == 0 && BEZT_ISSEL_ANY_HIDDENHANDLES(v3d, bezt)) {
-            select_beztriple(bezt, false, SELECT, HIDDEN);
+            select_beztriple(bezt, false, BEZT_FLAG_SELECT, HIDDEN);
             bezt->hide = 1;
           }
           else if (invert && !BEZT_ISSEL_ANY_HIDDENHANDLES(v3d, bezt)) {
-            select_beztriple(bezt, false, SELECT, HIDDEN);
+            select_beztriple(bezt, false, BEZT_FLAG_SELECT, HIDDEN);
             bezt->hide = 1;
           }
           if (bezt->hide) {
@@ -3349,11 +3355,11 @@ static wmOperatorStatus hide_exec(bContext *C, wmOperator *op)
         sel = 0;
         while (a--) {
           if (invert == 0 && (bp->f1 & SELECT)) {
-            select_bpoint(bp, false, SELECT, HIDDEN);
+            select_bpoint(bp, false, BEZT_FLAG_SELECT, HIDDEN);
             bp->hide = 1;
           }
           else if (invert && (bp->f1 & SELECT) == 0) {
-            select_bpoint(bp, false, SELECT, HIDDEN);
+            select_bpoint(bp, false, BEZT_FLAG_SELECT, HIDDEN);
             bp->hide = 1;
           }
           if (bp->hide) {
@@ -3423,7 +3429,7 @@ static wmOperatorStatus reveal_exec(bContext *C, wmOperator *op)
         a = nu.pntsu;
         while (a--) {
           if (bezt->hide) {
-            select_beztriple(bezt, select, SELECT, HIDDEN);
+            select_beztriple(bezt, select, BEZT_FLAG_SELECT, HIDDEN);
             bezt->hide = 0;
             changed = true;
           }
@@ -3435,7 +3441,7 @@ static wmOperatorStatus reveal_exec(bContext *C, wmOperator *op)
         a = nu.pntsu * nu.pntsv;
         while (a--) {
           if (bp->hide) {
-            select_bpoint(bp, select, SELECT, HIDDEN);
+            select_bpoint(bp, select, BEZT_FLAG_SELECT, HIDDEN);
             bp->hide = 0;
             changed = true;
           }
@@ -3969,7 +3975,7 @@ static wmOperatorStatus set_spline_type_exec(bContext *C, wmOperator *op)
       if (ED_curve_nurb_select_check(v3d, &nu)) {
         const int pntsu_prev = nu.pntsu;
         const char *err_msg = nullptr;
-        if (BKE_nurb_type_convert(&nu, type, use_handles, &err_msg)) {
+        if (BKE_nurb_type_convert(&nu, eNurbType(type), use_handles, &err_msg)) {
           changed = true;
           if (pntsu_prev != nu.pntsu) {
             changed_size = true;
@@ -4044,7 +4050,7 @@ static wmOperatorStatus set_handle_type_exec(bContext *C, wmOperator *op)
   const Scene *scene = CTX_data_scene(C);
   ViewLayer *view_layer = CTX_data_view_layer(C);
   View3D *v3d = CTX_wm_view3d(C);
-  const int handle_type = RNA_enum_get(op->ptr, "type");
+  const eBezTriple_Handle handle_type = eBezTriple_Handle(RNA_enum_get(op->ptr, "type"));
   const bool hide_handles = (v3d && (v3d->overlay.handle_display == CURVE_HANDLE_NONE));
   const eNurbHandleTest_Mode handle_mode = hide_handles ? NURB_HANDLE_TEST_KNOT_ONLY :
                                                           NURB_HANDLE_TEST_KNOT_OR_EACH;
@@ -4130,7 +4136,7 @@ static wmOperatorStatus curve_normals_make_consistent_exec(bContext *C, wmOperat
     totobjects++;
 
     ListBaseT<Nurb> *editnurb = object_editcurve_get(obedit);
-    BKE_nurbList_handles_recalculate(editnurb, calc_length, SELECT);
+    BKE_nurbList_handles_recalculate(editnurb, calc_length, BEZT_FLAG_SELECT);
 
     WM_event_add_notifier(C, NC_GEOM | ND_DATA, obedit->data);
     DEG_id_tag_update(obedit->data, 0);
@@ -4464,7 +4470,7 @@ static bool merge_2_nurb(Curve *cu, ListBaseT<Nurb> *editnurb, Nurb *nu1, Nurb *
         keyIndex_updateBP(cu->editnurb, bp1, bp, 1);
         *bp = *bp1;
         bp1++;
-        select_bpoint(bp, true, SELECT, HIDDEN);
+        select_bpoint(bp, true, BEZT_FLAG_SELECT, HIDDEN);
       }
       else {
         keyIndex_updateBP(cu->editnurb, bp2, bp, 1);
@@ -4882,7 +4888,7 @@ bool ED_curve_editnurb_select_pick(bContext *C,
 
   if (params.sel_op == SEL_OP_SET) {
     if ((found && params.select_passthrough) &&
-        (((bezt ? (&bezt->f1)[hand] : bp->f1) & SELECT) != 0))
+        (((bezt ? uint8_t((&bezt->f1)[hand]) : bp->f1) & SELECT) != 0))
     {
       found = false;
     }
@@ -4910,24 +4916,24 @@ bool ED_curve_editnurb_select_pick(bContext *C,
         if (bezt) {
           if (hand == 1) {
             if (use_handle_select) {
-              bezt->f2 |= SELECT;
+              bezt->f2 |= BEZT_FLAG_SELECT;
             }
             else {
-              select_beztriple(bezt, true, SELECT, HIDDEN);
+              select_beztriple(bezt, true, BEZT_FLAG_SELECT, HIDDEN);
             }
           }
           else {
             if (hand == 0) {
-              bezt->f1 |= SELECT;
+              bezt->f1 |= BEZT_FLAG_SELECT;
             }
             else {
-              bezt->f3 |= SELECT;
+              bezt->f3 |= BEZT_FLAG_SELECT;
             }
           }
           BKE_curve_nurb_vert_active_set(cu, nu, bezt);
         }
         else {
-          select_bpoint(bp, true, SELECT, HIDDEN);
+          select_bpoint(bp, true, BEZT_FLAG_SELECT, HIDDEN);
           BKE_curve_nurb_vert_active_set(cu, nu, bp);
         }
         break;
@@ -4936,24 +4942,24 @@ bool ED_curve_editnurb_select_pick(bContext *C,
         if (bezt) {
           if (hand == 1) {
             if (use_handle_select) {
-              bezt->f2 &= ~SELECT;
+              bezt->f2 &= ~BEZT_FLAG_SELECT;
             }
             else {
-              select_beztriple(bezt, false, SELECT, HIDDEN);
+              select_beztriple(bezt, false, BEZT_FLAG_SELECT, HIDDEN);
             }
             if (bezt == vert) {
               cu->actvert = CU_ACT_NONE;
             }
           }
           else if (hand == 0) {
-            bezt->f1 &= ~SELECT;
+            bezt->f1 &= ~BEZT_FLAG_SELECT;
           }
           else {
-            bezt->f3 &= ~SELECT;
+            bezt->f3 &= ~BEZT_FLAG_SELECT;
           }
         }
         else {
-          select_bpoint(bp, false, SELECT, HIDDEN);
+          select_bpoint(bp, false, BEZT_FLAG_SELECT, HIDDEN);
           if (bp == vert) {
             cu->actvert = CU_ACT_NONE;
           }
@@ -4965,10 +4971,10 @@ bool ED_curve_editnurb_select_pick(bContext *C,
           if (hand == 1) {
             if (bezt->f2 & SELECT) {
               if (use_handle_select) {
-                bezt->f2 &= ~SELECT;
+                bezt->f2 &= ~BEZT_FLAG_SELECT;
               }
               else {
-                select_beztriple(bezt, false, SELECT, HIDDEN);
+                select_beztriple(bezt, false, BEZT_FLAG_SELECT, HIDDEN);
               }
               if (bezt == vert) {
                 cu->actvert = CU_ACT_NONE;
@@ -4976,60 +4982,60 @@ bool ED_curve_editnurb_select_pick(bContext *C,
             }
             else {
               if (use_handle_select) {
-                bezt->f2 |= SELECT;
+                bezt->f2 |= BEZT_FLAG_SELECT;
               }
               else {
-                select_beztriple(bezt, true, SELECT, HIDDEN);
+                select_beztriple(bezt, true, BEZT_FLAG_SELECT, HIDDEN);
               }
               BKE_curve_nurb_vert_active_set(cu, nu, bezt);
             }
           }
           else if (hand == 0) {
-            bezt->f1 ^= SELECT;
+            bezt->f1 ^= BEZT_FLAG_SELECT;
           }
           else {
-            bezt->f3 ^= SELECT;
+            bezt->f3 ^= BEZT_FLAG_SELECT;
           }
         }
         else {
           if (bp->f1 & SELECT) {
-            select_bpoint(bp, false, SELECT, HIDDEN);
+            select_bpoint(bp, false, BEZT_FLAG_SELECT, HIDDEN);
             if (bp == vert) {
               cu->actvert = CU_ACT_NONE;
             }
           }
           else {
-            select_bpoint(bp, true, SELECT, HIDDEN);
+            select_bpoint(bp, true, BEZT_FLAG_SELECT, HIDDEN);
             BKE_curve_nurb_vert_active_set(cu, nu, bp);
           }
         }
         break;
       }
       case SEL_OP_SET: {
-        BKE_nurbList_flag_set(editnurb, SELECT, false);
+        BKE_nurbList_flag_set(editnurb, BEZT_FLAG_SELECT, false);
 
         if (bezt) {
 
           if (hand == 1) {
             if (use_handle_select) {
-              bezt->f2 |= SELECT;
+              bezt->f2 |= BEZT_FLAG_SELECT;
             }
             else {
-              select_beztriple(bezt, true, SELECT, HIDDEN);
+              select_beztriple(bezt, true, BEZT_FLAG_SELECT, HIDDEN);
             }
           }
           else {
             if (hand == 0) {
-              bezt->f1 |= SELECT;
+              bezt->f1 |= BEZT_FLAG_SELECT;
             }
             else {
-              bezt->f3 |= SELECT;
+              bezt->f3 |= BEZT_FLAG_SELECT;
             }
           }
           BKE_curve_nurb_vert_active_set(cu, nu, bezt);
         }
         else {
-          select_bpoint(bp, true, SELECT, HIDDEN);
+          select_bpoint(bp, true, BEZT_FLAG_SELECT, HIDDEN);
           BKE_curve_nurb_vert_active_set(cu, nu, bp);
         }
         break;
@@ -5111,7 +5117,7 @@ bool ed_editnurb_spin(
   ok = true;
 
   for (a = 0; a < 7; a++) {
-    ok = ed_editnurb_extrude_flag(cu->editnurb, SELECT);
+    ok = ed_editnurb_extrude_flag(cu->editnurb, BEZT_FLAG_SELECT);
 
     if (ok == false) {
       return changed;
@@ -5119,14 +5125,14 @@ bool ed_editnurb_spin(
 
     changed = true;
 
-    rotateflagNurb(editnurb, SELECT, cent, rotmat);
+    rotateflagNurb(editnurb, BEZT_FLAG_SELECT, cent, rotmat);
 
     if ((a & 1) == 0) {
-      rotateflagNurb(editnurb, SELECT, cent, scalemat1);
+      rotateflagNurb(editnurb, BEZT_FLAG_SELECT, cent, scalemat1);
       weightflagNurb(editnurb, SELECT, 0.5 * M_SQRT2);
     }
     else {
-      rotateflagNurb(editnurb, SELECT, cent, scalemat2);
+      rotateflagNurb(editnurb, BEZT_FLAG_SELECT, cent, scalemat2);
       weightflagNurb(editnurb, SELECT, 2.0 / M_SQRT2);
     }
   }
@@ -5356,7 +5362,7 @@ static bool ed_editcurve_extrude(Curve *cu, EditNurb *editnurb, View3D *v3d)
            * without this, the vertices are copied but only the handles are transformed.
            * which seems buggy from a user perspective. */
           if (is_selected) {
-            bezt->f2 |= SELECT;
+            bezt->f2 |= BEZT_FLAG_SELECT;
           }
           if (bezt_prev && is_prev_selected != is_selected) {
             int count = i - offset + 1;
@@ -5828,7 +5834,7 @@ static wmOperatorStatus curve_extrude_exec(bContext *C, wmOperator * /*op*/)
       changed = ed_editcurve_extrude(cu, editnurb, v3d);
     }
     else {
-      changed = ed_editnurb_extrude_flag(editnurb, SELECT);
+      changed = ed_editnurb_extrude_flag(editnurb, BEZT_FLAG_SELECT);
     }
 
     if (changed) {
@@ -6059,7 +6065,7 @@ static wmOperatorStatus duplicate_exec(bContext *C, wmOperator *op)
     }
 
     ListBaseT<Nurb> newnurb = {nullptr, nullptr};
-    adduplicateflagNurb(obedit, v3d, &newnurb, SELECT, false);
+    adduplicateflagNurb(obedit, v3d, &newnurb, BEZT_FLAG_SELECT, false);
 
     if (BLI_listbase_is_empty(&newnurb)) {
       count_failed += 1;
@@ -6252,7 +6258,7 @@ static bool curve_delete_segments(Object *obedit, View3D *v3d, const bool split)
     else if (nu.pntsv >= 1) {
       int u, v;
 
-      if (isNurbselV(&nu, &u, SELECT)) {
+      if (isNurbselV(&nu, &u, BEZT_FLAG_SELECT)) {
         for (a = 0, bp = nu.bp; a < nu.pntsu; a++, bp++) {
           if (!(bp->f1 & SELECT)) {
             enda = a;
@@ -6383,7 +6389,7 @@ static bool curve_delete_segments(Object *obedit, View3D *v3d, const bool split)
           }
         }
       }
-      else if (isNurbselU(&nu, &v, SELECT)) {
+      else if (isNurbselU(&nu, &v, BEZT_FLAG_SELECT)) {
         for (a = 0, bp = nu.bp; a < nu.pntsv; a++, bp += nu.pntsu) {
           if (!(bp->f1 & SELECT)) {
             enda = a;
@@ -6513,7 +6519,7 @@ static bool curve_delete_segments(Object *obedit, View3D *v3d, const bool split)
       if (split) {
         /* deselect for split operator */
         for (b = 0, bezt1 = nu.bezt; b < nu.pntsu; b++, bezt1++) {
-          select_beztriple(bezt1, false, SELECT, eVisible_Types(true));
+          select_beztriple(bezt1, false, BEZT_FLAG_SELECT, HIDDEN);
         }
       }
 
@@ -6523,7 +6529,7 @@ static bool curve_delete_segments(Object *obedit, View3D *v3d, const bool split)
       if (split) {
         /* deselect for split operator */
         for (b = 0, bp1 = nu.bp; b < nu.pntsu * nu.pntsv; b++, bp1++) {
-          select_bpoint(bp1, false, SELECT, HIDDEN);
+          select_bpoint(bp1, false, BEZT_FLAG_SELECT, HIDDEN);
         }
       }
 

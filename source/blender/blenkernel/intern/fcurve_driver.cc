@@ -74,7 +74,7 @@ struct DriverVarTypeInfo {
   /* Allocation of target slots. */
   int num_targets;                              /* Number of target slots required. */
   const char *target_names[MAX_DRIVER_TARGETS]; /* UI names that should be given to the slots. */
-  short target_flags[MAX_DRIVER_TARGETS]; /* Flags defining the requirements for each slot. */
+  eDriverTarget_Flag target_flags[MAX_DRIVER_TARGETS];
 };
 
 /* Macro to begin definitions */
@@ -640,7 +640,7 @@ static float dvar_eval_transChan(const AnimationEvalContext * /*anim_eval_contex
         /* Specially calculate local matrix, since chan_mat is not valid
          * since it stores delta transform of pose_mat so that deforms work
          * so it cannot be used here for "transform" space. */
-        BKE_pchan_to_mat4(pchan, mat);
+        BKE_pchan_to_mat4({pchan, pchan->bone_get(*ob)}, mat);
       }
     }
     else {
@@ -808,7 +808,7 @@ static DriverVarTypeInfo dvar_types[MAX_DVAR_TYPES] = {
     BEGIN_DVAR_TYPEDEF(DVAR_TYPE_SINGLE_PROP) dvar_eval_singleProp, /* Eval callback. */
     1,                                                              /* Number of targets used. */
     {"Property"},                                                   /* UI names for targets */
-    {0}                                                             /* Flags. */
+    {eDriverTarget_Flag{}}                                          /* Flags. */
     END_DVAR_TYPEDEF,
 
     BEGIN_DVAR_TYPEDEF(DVAR_TYPE_ROT_DIFF) dvar_eval_rotDiff, /* Eval callback. */
@@ -834,15 +834,15 @@ static DriverVarTypeInfo dvar_types[MAX_DVAR_TYPES] = {
     BEGIN_DVAR_TYPEDEF(DVAR_TYPE_CONTEXT_PROP) dvar_eval_contextProp, /* Eval callback. */
     1,                                                                /* Number of targets used. */
     {"Property"},                                                     /* UI names for targets */
-    {0}                                                               /* Flags. */
+    {eDriverTarget_Flag{}}                                            /* Flags. */
     END_DVAR_TYPEDEF,
 };
 
 /* Get driver variable typeinfo */
-static const DriverVarTypeInfo *get_dvar_typeinfo(int type)
+static const DriverVarTypeInfo *get_dvar_typeinfo(eDriverVar_Types type)
 {
   /* Check if valid type. */
-  if ((type >= 0) && (type < MAX_DVAR_TYPES)) {
+  if (uint32_t(type) < MAX_DVAR_TYPES) {
     return &dvar_types[type];
   }
 
@@ -905,7 +905,7 @@ void driver_variables_copy(ListBaseT<DriverVar> *dst_vars, const ListBaseT<Drive
   }
 }
 
-void driver_change_variable_type(DriverVar *dvar, int type)
+void driver_change_variable_type(DriverVar *dvar, eDriverVar_Types type)
 {
   const DriverVarTypeInfo *dvti = get_dvar_typeinfo(type);
 
@@ -921,7 +921,7 @@ void driver_change_variable_type(DriverVar *dvar, int type)
   /* Make changes to the targets based on the defines for these types.
    * NOTE: only need to make sure the ones we're using here are valid. */
   DRIVER_TARGETS_USED_LOOPER_BEGIN (dvar) {
-    short flags = dvti->target_flags[tarIndex];
+    eDriverTarget_Flag flags = dvti->target_flags[tarIndex];
 
     /* Store the flags. */
     dtar->flag = flags;

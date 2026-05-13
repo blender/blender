@@ -121,7 +121,7 @@ struct PaintStroke : NonCopyable, NonMovable {
   Brush *brush = nullptr;
   UnifiedPaintSettings *ups = nullptr;
 
-  /* TODO: These are only public so that cursor drawing code can use them. Find a better place.*/
+  /* TODO: These are only public so that cursor drawing code can use them. Find a better place. */
   float2 last_mouse_position = float2(0.0f, 0.0f);
   bool constrain_line = false;
   float2 constrained_pos = float2(0.0f, 0.0f);
@@ -159,7 +159,7 @@ struct PaintStroke : NonCopyable, NonMovable {
   int event_type_ = 0;
   /* check if stroke variables have been initialized */
   bool stroke_init_ = false;
-  /* check if input variables have been initialized (e.g. cursor position & pressure)*/
+  /** Check if input variables have been initialized (e.g. cursor position & pressure). */
   bool input_init_ = false;
   float2 initial_mouse_ = float2(0.0f, 0.0f);
   float cached_size_pressure_ = 0.0f;

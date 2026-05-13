@@ -67,7 +67,7 @@ Set<std::string> get_bone_deformed_vertex_group_names(const Object &object)
 
     bPose *pose = gamd->object->pose;
     for (bPoseChannel &channel : pose->chanbase) {
-      if (channel.bone->flag & BONE_NO_DEFORM) {
+      if (channel.bone_get(*gamd->object)->flag & BONE_NO_DEFORM) {
         continue;
       }
       /* When a vertex group name matches the bone name, it is bone-deformed. */

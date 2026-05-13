@@ -27,11 +27,17 @@ ExternalProject_Add(external_abseil
   INSTALL_DIR ${LIBDIR}/abseil
 )
 
-ExternalProject_Add_Step(external_abseil after_install
-  COMMAND ${CMAKE_COMMAND} -E copy_directory
-    ${LIBDIR}/abseil/
-    ${HARVEST_TARGET}/abseil
-  COMMAND ${CMAKE_COMMAND} -E remove_directory
-    ${HARVEST_TARGET}/abseil/lib/pkgconfig
-  DEPENDEES install
-)
+if(WIN32)
+  ExternalProject_Add_Step(external_abseil after_install
+    COMMAND ${CMAKE_COMMAND} -E copy_directory
+      ${LIBDIR}/abseil/
+      ${HARVEST_TARGET}/abseil
+    COMMAND ${CMAKE_COMMAND} -E remove_directory
+      ${HARVEST_TARGET}/abseil/lib/pkgconfig
+    DEPENDEES install
+  )
+else()
+  harvest(external_abseil abseil/include abseil/include "*.h")
+  harvest(external_abseil abseil/lib/cmake/absl abseil/lib/cmake/absl "*.cmake")
+  harvest(external_abseil abseil/lib abseil/lib "*.a")
+endif()

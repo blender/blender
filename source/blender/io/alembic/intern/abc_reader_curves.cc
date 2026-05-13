@@ -357,8 +357,6 @@ AbcCurveReader::AbcCurveReader(const AbcReaderConstructorArgs &args) : AbcObject
 {
   ICurves abc_curves(m_iobject, kWrapExisting);
   m_curves_schema = abc_curves.getSchema();
-
-  get_min_max_time(m_iobject, m_curves_schema, m_min_time, m_max_time);
 }
 
 bool AbcCurveReader::valid() const

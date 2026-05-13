@@ -29,21 +29,17 @@ static VKBindType to_bind_type(shader::ShaderCreateInfo::Resource::BindType bind
   return VKBindType::UNIFORM_BUFFER;
 }
 
-void VKShaderInterface::init(const shader::ShaderCreateInfo &info)
+void VKShaderInterface::compute_resource_counts(InitContext &ctx)
 {
-  static char PUSH_CONSTANTS_FALLBACK_NAME[] = "push_constants_fallback";
-  static size_t PUSH_CONSTANTS_FALLBACK_NAME_LEN = strlen(PUSH_CONSTANTS_FALLBACK_NAME);
-  static char SUBPASS_FALLBACK_NAME[] = "gpu_subpass_img_0";
-  static size_t SUBPASS_FALLBACK_NAME_LEN = strlen(SUBPASS_FALLBACK_NAME);
-
+  const shader::ShaderCreateInfo &info = ctx.info;
   using namespace blender::gpu::shader;
-  shader_builtins_ = info.builtins_;
 
   attr_len_ = info.vertex_inputs_.size();
   uniform_len_ = info.push_constants_.size();
   constant_len_ = info.specialization_constants_.size();
   ssbo_len_ = 0;
   ubo_len_ = 0;
+
   Vector<ShaderCreateInfo::Resource> all_resources;
   all_resources.extend(info.pass_resources_);
   all_resources.extend(info.batch_resources_);
@@ -63,15 +59,21 @@ void VKShaderInterface::init(const shader::ShaderCreateInfo &info)
         break;
     }
   }
+
   const VKDevice &device = VKBackend::get().device;
-  const bool supports_local_read = device.extensions_get().dynamic_rendering_local_read;
+  ctx.supports_local_read = device.extensions_get().dynamic_rendering_local_read;
   uniform_len_ += info.subpass_inputs_.size();
 
   /* Reserve 1 uniform buffer for push constants fallback. */
   size_t names_size = info.interface_names_size_;
-  const VKPushConstants::StorageType push_constants_storage_type =
-      VKPushConstants::Layout::determine_storage_type(info, device);
-  if (push_constants_storage_type == VKPushConstants::StorageType::UNIFORM_BUFFER) {
+  ctx.push_constants_storage_type = VKPushConstants::Layout::determine_storage_type(info, device);
+
+  static char PUSH_CONSTANTS_FALLBACK_NAME[] = "push_constants_fallback";
+  static size_t PUSH_CONSTANTS_FALLBACK_NAME_LEN = strlen(PUSH_CONSTANTS_FALLBACK_NAME);
+  static char SUBPASS_FALLBACK_NAME[] = "gpu_subpass_img_0";
+  static size_t SUBPASS_FALLBACK_NAME_LEN = strlen(SUBPASS_FALLBACK_NAME);
+
+  if (ctx.push_constants_storage_type == VKPushConstants::StorageType::BUFFER) {
     ubo_len_++;
     names_size += PUSH_CONSTANTS_FALLBACK_NAME_LEN + 1;
   }
@@ -79,76 +81,89 @@ void VKShaderInterface::init(const shader::ShaderCreateInfo &info)
 
   int32_t input_tot_len = attr_len_ + ubo_len_ + uniform_len_ + ssbo_len_ + constant_len_;
   inputs_ = MEM_new_array_zeroed<ShaderInput>(input_tot_len, __func__);
-  ShaderInput *input = inputs_;
+  ctx.input_ptr = inputs_;
 
   name_buffer_ = MEM_new_array_uninitialized<char>(names_size, "name_buffer");
-  uint32_t name_buffer_offset = 0;
+  ctx.name_buffer_offset = 0;
+}
+
+void VKShaderInterface::populate_shader_inputs(InitContext &ctx)
+{
+  const shader::ShaderCreateInfo &info = ctx.info;
+  using namespace blender::gpu::shader;
+
+  Vector<ShaderCreateInfo::Resource> all_resources;
+  all_resources.extend(info.pass_resources_);
+  all_resources.extend(info.batch_resources_);
+  all_resources.extend(info.geometry_resources_);
 
   /* Attributes */
   for (const ShaderCreateInfo::VertIn &attr : info.vertex_inputs_) {
-    copy_input_name(input, attr.name, name_buffer_, name_buffer_offset);
-    input->location = input->binding = attr.index;
-    if (input->location != -1) {
-      enabled_attr_mask_ |= (1 << input->location);
-
-      /* Used in `GPU_shader_get_attribute_info`. */
-      attr_types_[input->location] = uint8_t(attr.type);
+    copy_input_name(ctx.input_ptr, attr.name, name_buffer_, ctx.name_buffer_offset);
+    ctx.input_ptr->location = ctx.input_ptr->binding = attr.index;
+    if (ctx.input_ptr->location != -1) {
+      enabled_attr_mask_ |= (1 << ctx.input_ptr->location);
+      attr_types_[ctx.input_ptr->location] = uint8_t(attr.type);
     }
-
-    input++;
+    ctx.input_ptr++;
   }
 
   /* Uniform blocks */
   for (const ShaderCreateInfo::Resource &res : all_resources) {
     if (res.bind_type == ShaderCreateInfo::Resource::BindType::UNIFORM_BUFFER) {
-      copy_input_name(input, res.uniformbuf.name, name_buffer_, name_buffer_offset);
-      input->location = input->binding = res.slot;
-      input++;
+      copy_input_name(ctx.input_ptr, res.uniformbuf.name, name_buffer_, ctx.name_buffer_offset);
+      ctx.input_ptr->location = ctx.input_ptr->binding = res.slot;
+      ctx.input_ptr++;
     }
   }
+
   /* Add push constant when using uniform buffer as a fallback. */
-  int32_t push_constants_fallback_location = -1;
-  if (push_constants_storage_type == VKPushConstants::StorageType::UNIFORM_BUFFER) {
-    copy_input_name(input, PUSH_CONSTANTS_FALLBACK_NAME, name_buffer_, name_buffer_offset);
-    input->location = input->binding = -1;
-    input++;
+  static char PUSH_CONSTANTS_FALLBACK_NAME[] = "push_constants_fallback";
+  if (ctx.push_constants_storage_type == VKPushConstants::StorageType::BUFFER) {
+    copy_input_name(
+        ctx.input_ptr, PUSH_CONSTANTS_FALLBACK_NAME, name_buffer_, ctx.name_buffer_offset);
+    ctx.input_ptr->location = ctx.input_ptr->binding = -1;
+    ctx.input_ptr++;
   }
 
   /* Images, Samplers and buffers. */
+  static char SUBPASS_FALLBACK_NAME[] = "gpu_subpass_img_0";
   for (const ShaderCreateInfo::SubpassIn &subpass_in : info.subpass_inputs_) {
-    copy_input_name(input, SUBPASS_FALLBACK_NAME, name_buffer_, name_buffer_offset);
-    input->location = input->binding = subpass_in.index;
-    input++;
+    copy_input_name(ctx.input_ptr, SUBPASS_FALLBACK_NAME, name_buffer_, ctx.name_buffer_offset);
+    ctx.input_ptr->location = ctx.input_ptr->binding = subpass_in.index;
+    ctx.input_ptr++;
   }
+
   for (const ShaderCreateInfo::Resource &res : all_resources) {
     if (res.bind_type == ShaderCreateInfo::Resource::BindType::SAMPLER) {
-      copy_input_name(input, res.sampler.name, name_buffer_, name_buffer_offset);
-      input->location = input->binding = res.slot;
-      input++;
+      copy_input_name(ctx.input_ptr, res.sampler.name, name_buffer_, ctx.name_buffer_offset);
+      ctx.input_ptr->location = ctx.input_ptr->binding = res.slot;
+      ctx.input_ptr++;
     }
     else if (res.bind_type == ShaderCreateInfo::Resource::BindType::IMAGE) {
-      copy_input_name(input, res.image.name, name_buffer_, name_buffer_offset);
-      input->location = input->binding = res.slot + BIND_SPACE_IMAGE_OFFSET;
-      input++;
+      copy_input_name(ctx.input_ptr, res.image.name, name_buffer_, ctx.name_buffer_offset);
+      ctx.input_ptr->location = ctx.input_ptr->binding = res.slot + BIND_SPACE_IMAGE_OFFSET;
+      ctx.input_ptr++;
     }
   }
+
   set_image_formats_from_info(info);
 
   /* Push constants. */
   int32_t push_constant_location = 1024;
   for (const ShaderCreateInfo::PushConst &push_constant : info.push_constants_) {
-    copy_input_name(input, push_constant.name, name_buffer_, name_buffer_offset);
-    input->location = push_constant_location++;
-    input->binding = -1;
-    input++;
+    copy_input_name(ctx.input_ptr, push_constant.name, name_buffer_, ctx.name_buffer_offset);
+    ctx.input_ptr->location = push_constant_location++;
+    ctx.input_ptr->binding = -1;
+    ctx.input_ptr++;
   }
 
   /* Storage buffers */
   for (const ShaderCreateInfo::Resource &res : all_resources) {
     if (res.bind_type == ShaderCreateInfo::Resource::BindType::STORAGE_BUFFER) {
-      copy_input_name(input, res.storagebuf.name, name_buffer_, name_buffer_offset);
-      input->location = input->binding = res.slot;
-      input++;
+      copy_input_name(ctx.input_ptr, res.storagebuf.name, name_buffer_, ctx.name_buffer_offset);
+      ctx.input_ptr->location = ctx.input_ptr->binding = res.slot;
+      ctx.input_ptr++;
     }
   }
 
@@ -164,47 +179,56 @@ void VKShaderInterface::init(const shader::ShaderCreateInfo &info)
   /* Constants */
   int constant_id = 0;
   for (const SpecializationConstant &constant : info.specialization_constants_) {
-    copy_input_name(input, constant.name, name_buffer_, name_buffer_offset);
-    input->location = constant_id++;
-    input++;
+    copy_input_name(ctx.input_ptr, constant.name, name_buffer_, ctx.name_buffer_offset);
+    ctx.input_ptr->location = constant_id++;
+    ctx.input_ptr++;
   }
 
   sort_inputs();
+}
 
-  /* Builtin Uniforms */
+void VKShaderInterface::populate_builtins()
+{
   for (int32_t u_int = 0; u_int < GPU_NUM_UNIFORMS; u_int++) {
     GPUUniformBuiltin u = static_cast<GPUUniformBuiltin>(u_int);
     const ShaderInput *uni = this->uniform_get(builtin_uniform_name(u));
     builtins_[u] = (uni != nullptr) ? uni->location : -1;
   }
 
-  /* Builtin Uniforms Blocks */
   for (int32_t u_int = 0; u_int < GPU_NUM_UNIFORM_BLOCKS; u_int++) {
     GPUUniformBlockBuiltin u = static_cast<GPUUniformBlockBuiltin>(u_int);
     const ShaderInput *block = this->ubo_get(builtin_uniform_block_name(u));
     builtin_blocks_[u] = (block != nullptr) ? block->binding : -1;
   }
+}
 
-  /* Determine the descriptor set locations after the inputs have been sorted. */
-  /* NOTE: input_tot_len is sometimes more than we need. */
+void VKShaderInterface::populate_resource_bindings(InitContext &ctx)
+{
+  const shader::ShaderCreateInfo &info = ctx.info;
+  using namespace blender::gpu::shader;
+
+  Vector<ShaderCreateInfo::Resource> all_resources;
+  all_resources.extend(info.pass_resources_);
+  all_resources.extend(info.batch_resources_);
+  all_resources.extend(info.geometry_resources_);
+
+  int32_t input_tot_len = attr_len_ + ubo_len_ + uniform_len_ + ssbo_len_ + constant_len_;
   const uint32_t resources_len = input_tot_len;
 
-  /* Initialize the descriptor set layout. */
-  init_descriptor_set_layout_info(info, resources_len, all_resources, push_constants_storage_type);
+  init_descriptor_set_layout_info(
+      info, resources_len, all_resources, ctx.push_constants_storage_type);
 
-  /* Update the descriptor set locations, bind types and access masks. */
   resource_bindings_ = Array<VKResourceBinding>(resources_len);
   resource_bindings_.fill({});
 
   uint32_t descriptor_set_location = 0;
   for (const ShaderCreateInfo::SubpassIn &subpass_in : info.subpass_inputs_) {
-    const ShaderInput *input = supports_local_read ?
+    const ShaderInput *input = ctx.supports_local_read ?
                                    texture_get(subpass_in.index) :
-                                   shader_input_get(
-                                       shader::ShaderCreateInfo::Resource::BindType::SAMPLER,
-                                       subpass_in.index);
+                                   shader_input_get(ShaderCreateInfo::Resource::BindType::SAMPLER,
+                                                    subpass_in.index);
     BLI_assert(input);
-    BLI_assert(STREQ(input_name_get(input), SUBPASS_FALLBACK_NAME));
+    BLI_assert(STREQ(input_name_get(input), "gpu_subpass_img_0"));
     descriptor_set_location_update(input,
                                    descriptor_set_location++,
                                    VKBindType::INPUT_ATTACHMENT,
@@ -256,12 +280,11 @@ void VKShaderInterface::init(const shader::ShaderCreateInfo &info)
     descriptor_set_location_update(input, descriptor_set_location++, bind_type, res, arrayed);
   }
 
-  /* Post initializing push constants. */
-  /* Determine the binding location of push constants fallback buffer. */
   int32_t push_constant_descriptor_set_location = -1;
-  if (push_constants_storage_type == VKPushConstants::StorageType::UNIFORM_BUFFER) {
+  if (ctx.push_constants_storage_type == VKPushConstants::StorageType::BUFFER) {
     push_constant_descriptor_set_location = descriptor_set_location++;
-    const ShaderInput *push_constant_input = ubo_get(PUSH_CONSTANTS_FALLBACK_NAME);
+    const ShaderInput *push_constant_input = ubo_get("push_constants_fallback");
+    const int32_t push_constants_fallback_location = -1;
     descriptor_set_location_update(push_constant_input,
                                    push_constants_fallback_location,
                                    VKBindType::UNIFORM_BUFFER,
@@ -269,7 +292,19 @@ void VKShaderInterface::init(const shader::ShaderCreateInfo &info)
                                    VKImageViewArrayed::DONT_CARE);
   }
   push_constants_layout_.init(
-      info, *this, push_constants_storage_type, push_constant_descriptor_set_location);
+      info, *this, ctx.push_constants_storage_type, push_constant_descriptor_set_location);
+}
+
+void VKShaderInterface::init(const shader::ShaderCreateInfo &info)
+{
+  InitContext ctx{info};
+
+  shader_builtins_ = info.builtins_;
+
+  compute_resource_counts(ctx);
+  populate_shader_inputs(ctx);
+  populate_builtins();
+  populate_resource_bindings(ctx);
 }
 
 static int32_t shader_input_index(const ShaderInput *shader_inputs,
@@ -432,7 +467,7 @@ void VKShaderInterface::init_descriptor_set_layout_info(
   for (const shader::ShaderCreateInfo::Resource &res : all_resources) {
     descriptor_set_layout_info_.bindings.append(to_vk_descriptor_type(res));
   }
-  if (push_constants_storage == VKPushConstants::StorageType::UNIFORM_BUFFER) {
+  if (push_constants_storage == VKPushConstants::StorageType::BUFFER) {
     descriptor_set_layout_info_.bindings.append(VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER);
   }
 }

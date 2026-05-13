@@ -126,8 +126,9 @@ static bool rna_BoneCollection_assign_abstract(BoneCollection *bcoll,
   }
 
   if (RNA_struct_is_a(bone_ptr->type, RNA_PoseBone)) {
+    Object *ob = id_cast<Object *>(bone_ptr->owner_id);
     bPoseChannel *pchan = static_cast<bPoseChannel *>(bone_ptr->data);
-    const bool made_any_change = assign_bone(bcoll, pchan->bone);
+    const bool made_any_change = assign_bone(bcoll, pchan->bone_get(*ob));
     if (made_any_change) {
       WM_event_add_notifier(C, NC_OBJECT | ND_BONE_COLLECTION, nullptr);
     }

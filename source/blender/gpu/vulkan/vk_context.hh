@@ -15,6 +15,7 @@
 #include "GHOST_Types.hh"
 
 #include "render_graph/vk_render_graph.hh"
+#include "vk_buffer_pool.hh"
 #include "vk_common.hh"
 #include "vk_debug.hh"
 #include "vk_descriptor_pools.hh"
@@ -76,6 +77,7 @@ class VKContext : public Context, NonCopyable {
 
  public:
   VKDiscardPool discard_pool;
+  VKBufferPool push_constants_pool;
 
   const render_graph::VKRenderGraph &render_graph() const
   {

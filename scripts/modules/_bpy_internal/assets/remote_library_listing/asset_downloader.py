@@ -37,7 +37,7 @@ def download_asset_file(
         asset_library_local_path: Path,
         asset_url: str,
         asset_hash: str,
-        save_to: Path) -> None:
+        save_to: Path) -> str:
     """Download an asset file to a file on disk.
 
     :param asset_library_url: Root URL of the remote asset library. Used as an
@@ -56,6 +56,8 @@ def download_asset_file(
     :param save_to: the path on disk where to download to. While the download is
         pending, ".part" will be appended to the filename. When the download
         finishes successfully, it is renamed to the final path.
+
+    :returns: the final URL that was queued for downloading.
     """
     try:
         downloader = _asset_downloaders[asset_library_url]
@@ -83,7 +85,8 @@ def download_asset_file(
 
     # Include the hash in the URL, and download the asset.
     download_url = hashing.url((asset_url, asset_hash))
-    downloader.download_asset_file(download_url, save_to)
+    full_url = downloader.download_asset_file(download_url, save_to)
+    return full_url
 
 
 def download_preview(
@@ -145,6 +148,40 @@ def download_preview(
     downloader.download_asset_file(download_url, dst_filepath)
 
 
+def cancel_download(asset_library_url: str, full_asset_url: str) -> None:
+    """Cancel a running/queued asset download.
+
+    Cancelling a URL that has already been fully downloaded, or one that was never
+    queued is a no-op.
+
+    :param asset_library_url: Root URL of the remote asset library. Used as an
+        identifier of this library (to create a downloader per library).
+        Contrary to the download function, this is NOT used to resolve relative
+        URLs.
+    :param full_asset_url: the URL that's queued for download. MUST be the final
+        URL as returned by download_asset_file().
+    """
+
+    try:
+        downloader = _asset_downloaders[asset_library_url]
+    except KeyError:
+        # No downloader could mean that the cancel came in just a millisecond
+        # too late, and the download was already finished.
+        return
+
+    downloader.cancel_download(full_asset_url)
+
+
+def cancel_download_all_assets() -> None:
+    """Cancel all active/queued downloads of all assets.
+
+    This shuts down all asset downloaders, effectively cancelling all their downloads.
+    """
+
+    for downloader in _asset_downloaders.values():
+        downloader.cancel_and_shutdown()
+
+
 def _asset_download_done(
     downloader: AssetDownloader,
     _http_req_descr: http_dl.RequestDescription,
@@ -202,6 +239,9 @@ class DownloadStatus(enum.Enum):
     FAILED = 'failed'
     """Unexpected exceptions occurred."""
 
+    CANCELLED = 'cancelled'
+    """There still were pending downloads when the downloader shut down."""
+
 
 class AssetDownloader:
     _locator: RemoteAssetListingLocator
@@ -235,6 +275,8 @@ class AssetDownloader:
     Each 'poll' involves sending queued messages back & forth between the main
     Blender process and the background download process.
     """
+
+    _HTTP_METHOD = "GET"
 
     def __init__(
         self,
@@ -325,15 +367,33 @@ class AssetDownloader:
             # Double-check the registration worked, see #139720 for details.
             assert bpy.app.timers.is_registered(self.on_timer_event)
 
-    def download_asset_file(self, asset_url: str, save_to: Path) -> None:
-        """Download an asset or preview file to a local file."""
+    def download_asset_file(self, asset_url: str, save_to: Path) -> str:
+        """Download an asset or preview file to a local file.
+
+        Returns the URL that was queued. This is different than the given URL
+        when the latter is relative.
+        """
 
         # If the downloader was shut down, start it up again.
         if not self._bg_downloader:
             self.start()
 
         self._status = DownloadStatus.DOWNLOADING
-        self._queue_download(asset_url, save_to)
+        url = self._queue_download(asset_url, save_to)
+        return url
+
+    def cancel_download(self, full_asset_url: str) -> None:
+        """Cancel downloading a URL.
+
+        If the URL was never queued, or it has already been downloaded,
+        this is a no-op.
+        """
+        if not self._bg_downloader:
+            return
+
+        logger.info("cancelling download of %s", full_asset_url)
+        http_req_descr = http_dl.RequestDescription(self._HTTP_METHOD, full_asset_url)
+        self._bg_downloader.cancel_download(http_req_descr)
 
     def _shutdown_if_done(self) -> None:
         if self._num_assets_pending == 0 and (self._bg_downloader is None or self._bg_downloader.all_downloads_done):
@@ -341,7 +401,8 @@ class AssetDownloader:
 
             # TODO: delay this for a few minutes, so that we don't need a new
             # background process for every asset.
-            self.shutdown(DownloadStatus.FINISHED)
+            self._status = DownloadStatus.FINISHED
+            self.shutdown()
 
     def _on_callback_error(
             self,
@@ -352,22 +413,27 @@ class AssetDownloader:
             "exception while handling downloaded file ({!r}, saved to {!r})".format(
                 http_req_descr, local_file))
         self.report({'ERROR'}, "Resource download had an issue, download aborted")
-        self.shutdown(DownloadStatus.FAILED)
+        self._status = DownloadStatus.FAILED
+        self.shutdown()
 
-    def _queue_download(self, asset_url: str, download_to_path: Path | str) -> Path:
-        """Queue up this download, returning the path to which it will be downloaded."""
+    def _queue_download(self, asset_url: str, download_to_path: Path | str) -> str:
+        """Queue up this download.
+
+        Returns the URL of the download, and the path to which it will be downloaded.
+        """
         remote_url = urllib.parse.urljoin(self._locator.remote_url, asset_url)
         download_to_path = self._locator.local_path / download_to_path
 
         logger.info("downloading %s to %s", remote_url, download_to_path)
 
         assert self._bg_downloader, "downloads can only be queued when the bgdownloader is available"
-        self._bg_downloader.queue_download(
+        request_descr = self._bg_downloader.queue_download(
             remote_url,
             download_to_path,
             self._on_asset_done,
+            http_method=self._HTTP_METHOD,
         )
-        return download_to_path
+        return request_descr.url
 
     def _on_asset_done(self,
                        http_req_descr: http_dl.RequestDescription,
@@ -382,10 +448,22 @@ class AssetDownloader:
         if 'ERROR' in level:
             self._error_message = message
 
-    def shutdown(self, status: DownloadStatus) -> None:
-        """Stop the background downloader, update the status and call the 'done' callback."""
+    def cancel_and_shutdown(self) -> None:
+        """Cancel all downloads and shut down the background downloader."""
 
-        self._status = status
+        # Only set to 'Cancelled' if the downloader was still downloading.
+        if self._status == DownloadStatus.DOWNLOADING:
+            if self._bg_downloader and self._bg_downloader.num_pending_downloads > 0:
+                self._status = DownloadStatus.CANCELLED
+            else:
+                self._status = DownloadStatus.FINISHED
+
+        # The downloads themselves don't have to be explicitly cancelled,
+        # shutting down the downloader will do that implicitly.
+        self.shutdown()
+
+    def shutdown(self) -> None:
+        """Stop the background downloader and call the 'done' callback."""
 
         # The timer is no longer necessary, the bg_downloader.shutdown() call
         # takes care of the last queued messages.
@@ -393,18 +471,20 @@ class AssetDownloader:
             bpy.app.timers.unregister(self.on_timer_event)
 
         try:
-            if self._bg_downloader:
-                # Only report if this is actually triggering a shutdown. If that was
-                # already triggered somehow, don't bother.
-                if not self._bg_downloader.is_shutdown_requested:
-                    # It may be tempting to call self.report(...) here, and report on the
-                    # cancellation. However, this should be done by the caller, when they know
-                    # of the reason of the cancellation and thus can provide more info.
-                    num_pending = self._bg_downloader.num_pending_downloads
-                    if num_pending:
-                        logger.warning("Shutting down background downloader, %d downloads pending", num_pending)
+            if not self._bg_downloader:
+                return
 
-                self._bg_downloader.shutdown()
+            # Only report if this is actually triggering a shutdown. If that was
+            # already triggered somehow, don't bother.
+            if not self._bg_downloader.is_shutdown_requested:
+                # It may be tempting to call self.report(...) here, and report on the
+                # cancellation. However, this should be done by the caller, when they know
+                # of the reason of the cancellation and thus can provide more info.
+                num_pending = self._bg_downloader.num_pending_downloads
+                if num_pending:
+                    logger.warning("Shutting down background downloader, %d downloads pending", num_pending)
+
+            self._bg_downloader.shutdown()
         finally:
             # Regardless of whether the shutdown had some issues, the timer has
             # been unregistered, so there will be no more message handling, and
@@ -419,7 +499,8 @@ class AssetDownloader:
             self._bg_downloader.update()
         except http_dl.BackgroundProcessNotRunningError:
             logger.error("Background downloader subprocess died, aborting.")
-            self.shutdown(DownloadStatus.FAILED)
+            self._status = DownloadStatus.FAILED
+            self.shutdown()
             return 0  # Deactivate the timer.
         except Exception:
             logger.exception(
@@ -480,7 +561,8 @@ class AssetDownloader:
             if self._num_assets_pending:
                 self.report({'WARNING'}, "Cancelled {} pending download".format(self._num_assets_pending))
             logger.warning("Download cancelled: %s", http_req_descr)
-            self.shutdown(DownloadStatus.FAILED)
+            self._status = DownloadStatus.FAILED
+            self.shutdown()
             return
 
         # TODO: tell Blender there was an error downloading.

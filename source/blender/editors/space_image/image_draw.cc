@@ -21,9 +21,9 @@
 #include "BLI_threads.h"
 #include "BLI_utildefines.h"
 
+#include "IMB_cache.hh"
 #include "IMB_colormanagement.hh"
 #include "IMB_imbuf_enums.h"
-#include "IMB_moviecache.hh"
 
 #include "BKE_context.hh"
 #include "BKE_image.hh"
@@ -518,8 +518,7 @@ void draw_image_cache(const bContext *C, ARegion *region)
     int *points = nullptr;
 
     std::scoped_lock lock(image->runtime->cache_mutex);
-    IMB_moviecache_get_cache_segments(
-        image->runtime->cache, IMB_PROXY_NONE, 0, &num_segments, &points);
+    IMB_cache_get_cache_segments(image->runtime->cache, IMB_PROXY_NONE, 0, &num_segments, &points);
 
     ED_region_cache_draw_cached_segments(
         region, num_segments, points, sfra + sima->iuser.offset, efra + sima->iuser.offset);

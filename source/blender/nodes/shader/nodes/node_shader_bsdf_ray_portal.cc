@@ -70,7 +70,7 @@ void register_node_type_sh_bsdf_ray_portal()
   ntype.ui_description = "Continue tracing from an arbitrary new position and in a new direction";
   ntype.enum_name_legacy = "BSDF_RAY_PORTAL";
   ntype.nclass = NODE_CLASS_SHADER;
-  ntype.add_ui_poll = object_shader_nodes_poll;
+  ntype.add_ui_poll = object_cycles_shader_nodes_poll;
   ntype.declare = file_ns::node_declare;
   ntype.gather_link_search_ops = search_link_ops_for_shader_bsdf_node;
   ntype.gpu_fn = file_ns::node_shader_gpu_bsdf_ray_portal;

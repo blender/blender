@@ -72,6 +72,14 @@ void node_compositor_store_output_int3(const float id, float3 value, float3 &out
   out_value = value;
 }
 
+/* GPUMaterial doesn't support int4, so it is passed as a float4. */
+[[node]]
+void node_compositor_store_output_int4(const float id, float4 value, float4 &out_value)
+{
+  store_int4(floatBitsToUint(id), value);
+  out_value = value;
+}
+
 /* GPUMaterial doesn't support bool, so it is passed as a float. */
 [[node]]
 void node_compositor_store_output_bool(const float id, float value, float &out_value)
@@ -92,5 +100,12 @@ void node_compositor_store_output_float4x4(const float id, float4x4 value, float
 void node_compositor_store_output_menu(const float id, float value, float &out_value)
 {
   store_menu(floatBitsToUint(id), value);
+  out_value = value;
+}
+
+[[node]]
+void node_compositor_store_output_quaternion(const float id, float4 value, float4 &out_value)
+{
+  store_quaternion(floatBitsToUint(id), value);
   out_value = value;
 }

@@ -141,11 +141,17 @@ void DepsgraphNodeBuilder::build_rig(Object *object)
     /* By definition, no need to tag depsgraph as dirty from here, so we can pass nullptr bmain. */
     BKE_pose_rebuild(nullptr, object, armature, true);
   }
+  else {
+    /* Ensure the pose bone indices are up to date, so that the rest of the depsgraph building code
+     * can use `pchan->bone_get(armature)`, which is faster than passing the object. */
+    BKE_pose_ensure_bone_indices(*object);
+  }
+
   /* Speed optimization for animation lookups. */
   if (object->pose != nullptr) {
     BKE_pose_channels_hash_ensure(object->pose);
     if (object->pose->flag & POSE_CONSTRAINTS_NEED_UPDATE_FLAGS) {
-      BKE_pose_update_constraint_flags(object->pose);
+      BKE_pose_update_constraint_flags(*object);
     }
   }
   /**

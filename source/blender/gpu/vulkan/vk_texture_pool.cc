@@ -304,14 +304,9 @@ void VKTexturePool::AllocationHandle::free()
 
 VKTexturePool::VKTexturePool()
 {
-  /* VKImageCache causes issues on several platforms.
-   * - On many RDNA2 Mesa configs (dGPU, iGPU), causes sporadic crashes (#154768, #155202).
-   * - On Intel Meteor/Arrow/Alder Lake and older iGPUs, causes visual artifacts (#156496).
-   * As most platforms have fast VkImage handle creation, it is simply not instantiated there. */
-  bool use_image_cache_workaround =
-      GPU_type_matches(GPU_DEVICE_ATI, GPU_OS_UNIX, GPU_DRIVER_OPENSOURCE) ||
-      GPU_type_matches(GPU_DEVICE_INTEL | GPU_DEVICE_INTEL_UHD, GPU_OS_WIN, GPU_DRIVER_ANY);
-  if (!use_image_cache_workaround) {
+  /* VKImageCache causes sporadic crashes on many RDNA2 Mesa configs (dGPU, iGPU; #154768,
+   * #155202). As Mesa has fast VkImage handle creation, it is simply not instantiated there. */
+  if (!GPU_type_matches(GPU_DEVICE_ATI, GPU_OS_UNIX, GPU_DRIVER_OPENSOURCE)) {
     image_cache_ = VKImageCache();
   }
 }

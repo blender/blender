@@ -272,7 +272,7 @@ class RemoteAssetListingDownloader:
                     'X-Blender': "{:d}.{:d}".format(*bpy.app.version),
                 },
                 timeout=300,
-                max_size_bytes=MAX_JSON_FILE_SIZE_MB * 1024 * 1024,
+                max_disk_size_bytes=MAX_JSON_FILE_SIZE_MB * 1024 * 1024,
             ),
             on_callback_error=self._on_callback_error,
         )

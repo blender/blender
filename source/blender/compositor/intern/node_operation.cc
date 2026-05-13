@@ -4,7 +4,6 @@
 
 #include "BLI_assert.h"
 #include "BLI_string_ref.hh"
-#include "BLI_timeit.hh"
 #include "BLI_vector_set.hh"
 
 #include "DNA_node_types.h"
@@ -13,6 +12,8 @@
 #include "BKE_node_runtime.hh"
 
 #include "GPU_debug.hh"
+
+#include "NOD_eval_log.hh"
 
 #include "COM_algorithm_compute_preview.hh"
 #include "COM_context.hh"
@@ -46,17 +47,43 @@ NodeOperation::NodeOperation(Context &context, const bNode &node) : Operation(co
   }
 }
 
+class ScopedNodeTimer {
+ private:
+  const bNode &node_;
+  const ComputeContext &compute_context_;
+  nodes::eval_log::NodesEvalLog *log_;
+
+  nodes::eval_log::TimePoint start_;
+
+ public:
+  ScopedNodeTimer(const bNode &node,
+                  const ComputeContext &compute_context,
+                  nodes::eval_log::NodesEvalLog *log)
+      : node_(node), compute_context_(compute_context), log_(log)
+  {
+    start_ = nodes::eval_log::Clock::now();
+  }
+
+  ~ScopedNodeTimer()
+  {
+    if (!log_) {
+      return;
+    }
+    const nodes::eval_log::TimePoint end = nodes::eval_log::Clock::now();
+    nodes::eval_log::NodeTreeLogger &tree_logger = log_->get_local_tree_logger(compute_context_);
+    tree_logger.node_execution_times.append(*tree_logger.allocator,
+                                            {node_.identifier, start_, end});
+  }
+};
+
 void NodeOperation::evaluate()
 {
+  const ScopedNodeTimer node_timer{
+      this->node(), this->get_compute_context(), this->context().nodes_evaluation_log()};
   if (this->context().use_gpu()) {
     GPU_debug_group_begin(this->node().typeinfo->idname.c_str());
   }
-  const timeit::TimePoint before_time = timeit::Clock::now();
   Operation::evaluate();
-  const timeit::TimePoint after_time = timeit::Clock::now();
-  if (this->context().profiler()) {
-    this->context().profiler()->set_node_evaluation_time(instance_key_, after_time - before_time);
-  }
   if (this->context().use_gpu()) {
     GPU_debug_group_end();
   }
@@ -87,6 +114,16 @@ void NodeOperation::set_instance_key(const bNodeInstanceKey &instance_key)
 const bNodeInstanceKey &NodeOperation::get_instance_key() const
 {
   return instance_key_;
+}
+
+void NodeOperation::set_compute_context(const ComputeContext &compute_context)
+{
+  compute_context_ = &compute_context;
+}
+
+const ComputeContext &NodeOperation::get_compute_context() const
+{
+  return *compute_context_;
 }
 
 void NodeOperation::set_node_previews(Map<bNodeInstanceKey, bke::bNodePreview> *node_previews)

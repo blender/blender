@@ -29,7 +29,7 @@
 namespace blender::ed::transform {
 
 struct TransDataTrackingCurves {
-  int flag;
+  TrackingMarkerFlag flag;
 
   /* Marker transformation from curves editor. */
   float *prev_pos;
@@ -237,7 +237,6 @@ static void cancelTransTrackingCurves(TransInfo *t)
 
 static void flushTransTrackingCurves(TransInfo *t)
 {
-  TransData *td;
   TransData2D *td2d;
   TransDataTrackingCurves *tdt;
   int td_index;
@@ -250,11 +249,10 @@ static void flushTransTrackingCurves(TransInfo *t)
 
   /* Flush to 2d vector from internally used 3d vector. */
   for (td_index = 0,
-      td = tc->data,
       td2d = tc->data_2d,
       tdt = static_cast<TransDataTrackingCurves *>(tc->custom.type.data);
        td_index < tc->data_len;
-       td_index++, td2d++, td++, tdt++)
+       td_index++, td2d++, tdt++)
   {
     {
       td2d->loc2d[tdt->coord] = tdt->prev_pos[tdt->coord] + td2d->loc[1] * tdt->scale;

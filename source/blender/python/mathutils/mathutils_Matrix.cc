@@ -35,7 +35,11 @@ enum eMatrixAccess_t {
 static PyObject *Matrix_copy_notest(MatrixObject *self, const float *matrix);
 static PyObject *Matrix_copy(MatrixObject *self);
 static PyObject *Matrix_deepcopy(MatrixObject *self, PyObject *args);
-static int Matrix_ass_slice(MatrixObject *self, int begin, int end, PyObject *value);
+static int Matrix_ass_slice(MatrixObject *self,
+                            Py_ssize_t start,
+                            Py_ssize_t step,
+                            Py_ssize_t slice_length,
+                            PyObject *value);
 static PyObject *matrix__apply_to_copy(PyObject *(*matrix_func)(MatrixObject *),
                                        MatrixObject *self);
 static PyObject *MatrixAccess_CreatePyObject(MatrixObject *matrix, const eMatrixAccess_t type);
@@ -634,7 +638,8 @@ static PyObject *Matrix_vectorcall(PyObject *type,
           /* Sane row & col size, new matrix and assign as slice. */
           PyObject *matrix = Matrix_CreatePyObject(
               nullptr, col_num, row_num, reinterpret_cast<PyTypeObject *>(type));
-          if (Matrix_ass_slice(reinterpret_cast<MatrixObject *>(matrix), 0, INT_MAX, arg) == 0) {
+          if (Matrix_ass_slice(reinterpret_cast<MatrixObject *>(matrix), 0, 1, row_num, arg) == 0)
+          {
             return matrix;
           }
           /* matrix ok, slice assignment not */
@@ -707,7 +712,7 @@ static PyObject *C_Matrix_Identity(PyObject *cls, PyObject *args)
 PyDoc_STRVAR(
     /* Wrap. */
     C_Matrix_Rotation_doc,
-    ".. classmethod:: Rotation(angle, size, axis, /)\n"
+    ".. classmethod:: Rotation(angle, size, axis=None, /)\n"
     "\n"
     "   Create a matrix representing a rotation.\n"
     "\n"
@@ -715,14 +720,15 @@ PyDoc_STRVAR(
     "   :type angle: float\n"
     "   :param size: The size of the rotation matrix to construct [2, 4].\n"
     "   :type size: int\n"
-    "   :param axis: an axis string or a 3D Vector Object\n"
-    "      (optional when size is 2).\n"
-    "   :type axis: Literal['X', 'Y', 'Z'] | Sequence[float]\n"
+    "   :param axis: Axis of rotation: a single-character string ('X', 'Y' or 'Z')\n"
+    "      or a 3D vector. Required for ``size`` 3 or 4. Must be None (or omitted)\n"
+    "      when ``size`` is 2 - 2D rotation has no axis.\n"
+    "   :type axis: Literal['X', 'Y', 'Z'] | Sequence[float] | None\n"
     "   :return: A new rotation matrix.\n"
     "   :rtype: :class:`Matrix`\n");
 static PyObject *C_Matrix_Rotation(PyObject *cls, PyObject *args)
 {
-  PyObject *vec = nullptr;
+  PyObject *vec = Py_None;
   const char *axis = nullptr;
   int matSize;
   double angle; /* Use double because of precision problems at high values. */
@@ -732,7 +738,7 @@ static PyObject *C_Matrix_Rotation(PyObject *cls, PyObject *args)
     return nullptr;
   }
 
-  if (vec && PyUnicode_Check(vec)) {
+  if (vec != Py_None && PyUnicode_Check(vec)) {
     axis = PyUnicode_AsUTF8(vec);
     if (axis == nullptr || axis[0] == '\0' || axis[1] != '\0' || axis[0] < 'X' || axis[0] > 'Z') {
       PyErr_SetString(PyExc_ValueError,
@@ -743,7 +749,7 @@ static PyObject *C_Matrix_Rotation(PyObject *cls, PyObject *args)
     }
 
     /* use the string */
-    vec = nullptr;
+    vec = Py_None;
   }
 
   angle = angle_wrap_rad(angle);
@@ -754,13 +760,13 @@ static PyObject *C_Matrix_Rotation(PyObject *cls, PyObject *args)
                     "can only return a 2x2 3x3 or 4x4 matrix");
     return nullptr;
   }
-  if (matSize == 2 && (vec != nullptr)) {
+  if (matSize == 2 && (vec != Py_None)) {
     PyErr_SetString(PyExc_ValueError,
                     "Matrix.Rotation(): "
                     "cannot create a 2x2 rotation matrix around arbitrary axis");
     return nullptr;
   }
-  if (ELEM(matSize, 3, 4) && (axis == nullptr) && (vec == nullptr)) {
+  if (ELEM(matSize, 3, 4) && (axis == nullptr) && (vec == Py_None)) {
     PyErr_SetString(PyExc_ValueError,
                     "Matrix.Rotation(): "
                     "axis of rotation for 3d and 4d matrices is required");
@@ -768,7 +774,7 @@ static PyObject *C_Matrix_Rotation(PyObject *cls, PyObject *args)
   }
 
   /* check for valid vector/axis above */
-  if (vec) {
+  if (vec != Py_None) {
     float tvec[3];
 
     if (mathutils_array_parse(
@@ -856,7 +862,7 @@ static PyObject *C_Matrix_Diagonal(PyObject *cls, PyObject *value)
 PyDoc_STRVAR(
     /* Wrap. */
     C_Matrix_Scale_doc,
-    ".. classmethod:: Scale(factor, size, axis, /)\n"
+    ".. classmethod:: Scale(factor, size, axis=None, /)\n"
     "\n"
     "   Create a matrix representing a scaling.\n"
     "\n"
@@ -864,13 +870,14 @@ PyDoc_STRVAR(
     "   :type factor: float\n"
     "   :param size: The size of the scale matrix to construct [2, 4].\n"
     "   :type size: int\n"
-    "   :param axis: Direction to influence scale. (optional).\n"
-    "   :type axis: Sequence[float]\n"
+    "   :param axis: Direction along which to scale. When None (or omitted),\n"
+    "      ``factor`` is applied uniformly along all axes.\n"
+    "   :type axis: Sequence[float] | None\n"
     "   :return: A new scale matrix.\n"
     "   :rtype: :class:`Matrix`\n");
 static PyObject *C_Matrix_Scale(PyObject *cls, PyObject *args)
 {
-  PyObject *vec = nullptr;
+  PyObject *vec = Py_None;
   int vec_num;
   float tvec[3];
   float factor;
@@ -886,7 +893,7 @@ static PyObject *C_Matrix_Scale(PyObject *cls, PyObject *args)
                     "can only return a 2x2 3x3 or 4x4 matrix");
     return nullptr;
   }
-  if (vec) {
+  if (vec != Py_None) {
     vec_num = (matSize == 2 ? 2 : 3);
     if (mathutils_array_parse(
             tvec, vec_num, vec_num, vec, "Matrix.Scale(factor, size, axis), invalid 'axis' arg") ==
@@ -895,7 +902,7 @@ static PyObject *C_Matrix_Scale(PyObject *cls, PyObject *args)
       return nullptr;
     }
   }
-  if (vec == nullptr) { /* scaling along axis */
+  if (vec == Py_None) { /* scaling along axis */
     if (matSize == 2) {
       mat[0] = factor;
       mat[3] = factor;
@@ -2587,7 +2594,8 @@ static Py_ssize_t Matrix_len(MatrixObject *self)
  */
 static PyObject *Matrix_item_row(MatrixObject *self, Py_ssize_t row)
 {
-  if (BaseMath_ReadCallback_ForWrite(self) == -1) {
+  /* Read-only: write through the returned wrapper is prevented by its own set callback. */
+  if (BaseMath_ReadCallback(self) == -1) {
     return nullptr;
   }
 
@@ -2606,7 +2614,8 @@ static PyObject *Matrix_item_row(MatrixObject *self, Py_ssize_t row)
  */
 static PyObject *Matrix_item_col(MatrixObject *self, Py_ssize_t col)
 {
-  if (BaseMath_ReadCallback_ForWrite(self) == -1) {
+  /* Read-only: write through the returned wrapper is prevented by its own set callback. */
+  if (BaseMath_ReadCallback(self) == -1) {
     return nullptr;
   }
 
@@ -2678,88 +2687,98 @@ static int Matrix_ass_item_col(MatrixObject *self, int col, PyObject *value)
   return 0;
 }
 
-/** Sequence slice accessor (get): `x = object[i:j]`. */
-static PyObject *Matrix_slice(MatrixObject *self, int begin, int end)
+/**
+ * Sequence slice accessor (get): `x = object[i:j]` / `object[i:j:step]`.
+ * \return a tuple of `Vector` row wrappers.
+ */
+static PyObject *Matrix_slice(MatrixObject *self,
+                              Py_ssize_t start,
+                              Py_ssize_t step,
+                              Py_ssize_t slice_length)
 {
-
-  PyObject *tuple;
-  int count;
-
   if (BaseMath_ReadCallback(self) == -1) {
     return nullptr;
   }
 
-  CLAMP(begin, 0, self->row_num);
-  CLAMP(end, 0, self->row_num);
-  begin = std::min(begin, end);
-
-  tuple = PyTuple_New(end - begin);
-  for (count = begin; count < end; count++) {
+  PyObject *tuple = PyTuple_New(slice_length);
+  Py_ssize_t index = start;
+  for (Py_ssize_t i = 0; i < slice_length; i++, index += step) {
+    BLI_assert(index >= 0 && index < self->row_num);
     PyTuple_SET_ITEM(tuple,
-                     count - begin,
+                     i,
                      Vector_CreatePyObject_cb(
-                         (PyObject *)self, self->col_num, mathutils_matrix_row_cb_index, count));
+                         (PyObject *)self, self->col_num, mathutils_matrix_row_cb_index, index));
   }
-
   return tuple;
 }
 
-/** Sequence slice accessor (set): `object[i:j] = x`. */
-static int Matrix_ass_slice(MatrixObject *self, int begin, int end, PyObject *value)
+/**
+ * Sequence slice accessor (set): `object[i:j] = x` / `object[i:j:step] = x`.
+ * `value` must be a sequence of `slice_length` row-sequences, each with
+ * `col_num` floats (Python list semantics: extended slice cannot resize).
+ */
+static int Matrix_ass_slice(MatrixObject *self,
+                            Py_ssize_t start,
+                            Py_ssize_t step,
+                            Py_ssize_t slice_length,
+                            PyObject *value)
 {
-  PyObject *value_fast;
+  /* Subset writes merge into existing values, so sync the source first. */
+  if (mathutils_slice_is_subset(start, step, slice_length, self->row_num)) {
+    if (BaseMath_ReadCallback_ForWrite(self) == -1) {
+      return -1;
+    }
+  }
+  else {
+    if (BaseMath_Prepare_ForWrite(self) == -1) {
+      return -1;
+    }
+  }
 
-  if (BaseMath_ReadCallback_ForWrite(self) == -1) {
+  PyObject *value_fast = PySequence_Fast(value, "matrix[slice] = value");
+  if (value_fast == nullptr) {
     return -1;
   }
 
-  CLAMP(begin, 0, self->row_num);
-  CLAMP(end, 0, self->row_num);
-  begin = std::min(begin, end);
-
-  /* non list/tuple cases */
-  if (!(value_fast = PySequence_Fast(value, "matrix[begin:end] = value"))) {
-    /* PySequence_Fast sets the error */
-    return -1;
-  }
-
-  PyObject **value_fast_items = PySequence_Fast_ITEMS(value_fast);
-  const int size = end - begin;
-  int row, col;
-  float mat[MATRIX_MAX_DIM * MATRIX_MAX_DIM];
-  float vec[4];
-
-  if (PySequence_Fast_GET_SIZE(value_fast) != size) {
+  const Py_ssize_t value_num = PySequence_Fast_GET_SIZE(value_fast);
+  if (value_num != slice_length) {
     Py_DECREF(value_fast);
-    PyErr_SetString(PyExc_ValueError,
-                    "matrix[begin:end] = []: "
-                    "size mismatch in slice assignment");
+    PyErr_Format(PyExc_ValueError,
+                 "matrix[slice] = value: sequence size is %zd, expected %zd",
+                 value_num,
+                 slice_length);
     return -1;
   }
 
-  memcpy(mat, self->matrix, self->col_num * self->row_num * sizeof(float));
+  /* Stage parsed rows so a mid-sequence parse failure cannot leave the matrix
+   * half-written: only commit after every row has parsed successfully. */
+  BLI_assert(slice_length <= MATRIX_MAX_DIM);
+  BLI_assert(self->col_num <= MATRIX_MAX_DIM);
+  float staging[MATRIX_MAX_DIM][MATRIX_MAX_DIM];
+  PyObject **value_fast_items = PySequence_Fast_ITEMS(value_fast);
 
-  /* parse sub items */
-  for (row = begin; row < end; row++) {
-    /* parse each sub sequence */
-    PyObject *item = value_fast_items[row - begin];
-
-    if (mathutils_array_parse(
-            vec, self->col_num, self->col_num, item, "matrix[begin:end] = value assignment") == -1)
+  for (Py_ssize_t i = 0; i < slice_length; i++) {
+    if (mathutils_array_parse(staging[i],
+                              self->col_num,
+                              self->col_num,
+                              value_fast_items[i],
+                              "matrix[slice] = value") == -1)
     {
       Py_DECREF(value_fast);
       return -1;
-    }
-
-    for (col = 0; col < self->col_num; col++) {
-      mat[col * self->row_num + row] = vec[col];
     }
   }
 
   Py_DECREF(value_fast);
 
-  /* Parsed well - now set in matrix. */
-  memcpy(self->matrix, mat, self->col_num * self->row_num * sizeof(float));
+  /* Commit. */
+  Py_ssize_t index = start;
+  for (Py_ssize_t i = 0; i < slice_length; i++, index += step) {
+    BLI_assert(index >= 0 && index < self->row_num);
+    for (int col = 0; col < self->col_num; col++) {
+      MATRIX_ITEM(self, index, col) = staging[i][col];
+    }
+  }
 
   (void)BaseMath_WriteCallback(self);
   return 0;
@@ -2780,21 +2799,13 @@ static PyObject *Matrix_subscript(MatrixObject *self, PyObject *item)
     return Matrix_item_row(self, i);
   }
   if (PySlice_Check(item)) {
-    Py_ssize_t start, stop, step, slicelength;
+    Py_ssize_t start, stop, step, slice_length;
 
-    if (PySlice_GetIndicesEx(item, self->row_num, &start, &stop, &step, &slicelength) < 0) {
+    if (PySlice_GetIndicesEx(item, self->row_num, &start, &stop, &step, &slice_length) < 0) {
       return nullptr;
     }
 
-    if (slicelength <= 0) {
-      return PyTuple_New(0);
-    }
-    if (step == 1) {
-      return Matrix_slice(self, start, stop);
-    }
-
-    PyErr_SetString(PyExc_IndexError, "slice steps not supported with matrices");
-    return nullptr;
+    return Matrix_slice(self, start, step, slice_length);
   }
 
   PyErr_Format(
@@ -2816,18 +2827,13 @@ static int Matrix_ass_subscript(MatrixObject *self, PyObject *item, PyObject *va
     return Matrix_ass_item_row(self, i, value);
   }
   if (PySlice_Check(item)) {
-    Py_ssize_t start, stop, step, slicelength;
+    Py_ssize_t start, stop, step, slice_length;
 
-    if (PySlice_GetIndicesEx(item, self->row_num, &start, &stop, &step, &slicelength) < 0) {
+    if (PySlice_GetIndicesEx(item, self->row_num, &start, &stop, &step, &slice_length) < 0) {
       return -1;
     }
 
-    if (step == 1) {
-      return Matrix_ass_slice(self, start, stop, value);
-    }
-
-    PyErr_SetString(PyExc_IndexError, "slice steps not supported with matrices");
-    return -1;
+    return Matrix_ass_slice(self, start, step, slice_length, value);
   }
 
   PyErr_Format(
@@ -3657,7 +3663,7 @@ static PyMethodDef Matrix_methods[] = {
 PyDoc_STRVAR(
     /* Wrap. */
     matrix_doc,
-    ".. class:: Matrix(rows=Matrix.Identity(4), /)\n"
+    ".. class:: Matrix(rows=((1, 0, 0, 0), (0, 1, 0, 0), (0, 0, 1, 0), (0, 0, 0, 1)), /)\n"
     "\n"
     "   This object gives access to Matrices in Blender, supporting square and rectangular\n"
     "   matrices from 2x2 up to 4x4.\n"
@@ -3972,12 +3978,15 @@ static Py_ssize_t MatrixAccess_len(MatrixAccessObject *self)
   return (self->type == MAT_ACCESS_ROW) ? self->matrix_user->row_num : self->matrix_user->col_num;
 }
 
-static PyObject *MatrixAccess_slice(MatrixAccessObject *self, Py_ssize_t begin, Py_ssize_t end)
+/**
+ * Slice get: `mat.row[i:j]` / `mat.row[i:j:step]` (or `.col`).
+ * \return a tuple of `Vector` row/column wrappers.
+ */
+static PyObject *MatrixAccess_slice(MatrixAccessObject *self,
+                                    Py_ssize_t start,
+                                    Py_ssize_t step,
+                                    Py_ssize_t slice_length)
 {
-  PyObject *tuple;
-  Py_ssize_t count;
-
-  /* row/col access */
   MatrixObject *matrix_user = self->matrix_user;
   int matrix_access_len;
   PyObject *(*Matrix_item_new)(MatrixObject *, Py_ssize_t);
@@ -3986,24 +3995,115 @@ static PyObject *MatrixAccess_slice(MatrixAccessObject *self, Py_ssize_t begin, 
     matrix_access_len = matrix_user->row_num;
     Matrix_item_new = Matrix_item_row;
   }
-  else { /* MAT_ACCESS_ROW */
+  else { /* MAT_ACCESS_COL */
     matrix_access_len = matrix_user->col_num;
     Matrix_item_new = Matrix_item_col;
   }
 
-  CLAMP(begin, 0, matrix_access_len);
-  if (end < 0) {
-    end = (matrix_access_len + 1) + end;
+  PyObject *tuple = PyTuple_New(slice_length);
+  Py_ssize_t index = start;
+  for (Py_ssize_t i = 0; i < slice_length; i++, index += step) {
+    BLI_assert(index >= 0 && index < matrix_access_len);
+    UNUSED_VARS_NDEBUG(matrix_access_len);
+    PyTuple_SET_ITEM(tuple, i, Matrix_item_new(matrix_user, index));
   }
-  CLAMP(end, 0, matrix_access_len);
-  begin = std::min(begin, end);
-
-  tuple = PyTuple_New(end - begin);
-  for (count = begin; count < end; count++) {
-    PyTuple_SET_ITEM(tuple, count - begin, Matrix_item_new(matrix_user, count));
-  }
-
   return tuple;
+}
+
+/**
+ * Slice set: `mat.row[i:j] = (vec, ...)` / `mat.row[i:j:step] = (...)` (or `.col`).
+ * Length of `value` must equal `slice_length` and each item must be a sequence
+ * of `axis_size` floats (Python list semantics: extended slice cannot resize).
+ */
+static int MatrixAccess_ass_slice(MatrixAccessObject *self,
+                                  Py_ssize_t start,
+                                  Py_ssize_t step,
+                                  Py_ssize_t slice_length,
+                                  PyObject *value)
+{
+  MatrixObject *matrix_user = self->matrix_user;
+  int matrix_access_len;
+  int axis_size;
+
+  if (self->type == MAT_ACCESS_ROW) {
+    matrix_access_len = matrix_user->row_num;
+    axis_size = matrix_user->col_num;
+  }
+  else { /* MAT_ACCESS_COL */
+    matrix_access_len = matrix_user->col_num;
+    axis_size = matrix_user->row_num;
+  }
+
+  /* Subset writes merge into existing values, so sync the source first. */
+  if (mathutils_slice_is_subset(start, step, slice_length, matrix_access_len)) {
+    if (BaseMath_ReadCallback_ForWrite(matrix_user) == -1) {
+      return -1;
+    }
+  }
+  else {
+    if (BaseMath_Prepare_ForWrite(matrix_user) == -1) {
+      return -1;
+    }
+  }
+
+  PyObject *value_fast = PySequence_Fast(value, "matrix.row/col[slice] = value");
+  if (value_fast == nullptr) {
+    return -1;
+  }
+
+  const Py_ssize_t value_num = PySequence_Fast_GET_SIZE(value_fast);
+  if (value_num != slice_length) {
+    Py_DECREF(value_fast);
+    PyErr_Format(PyExc_ValueError,
+                 "matrix.%s[slice] = value: sequence size is %zd, expected %zd",
+                 (self->type == MAT_ACCESS_ROW) ? "row" : "col",
+                 value_num,
+                 slice_length);
+    return -1;
+  }
+
+  /* Stage parsed rows/cols so a mid-sequence parse failure cannot leave the
+   * matrix half-written: only commit after every item has parsed successfully. */
+  BLI_assert(slice_length <= MATRIX_MAX_DIM);
+  BLI_assert(axis_size <= MATRIX_MAX_DIM);
+  float staging[MATRIX_MAX_DIM][MATRIX_MAX_DIM];
+  PyObject **value_fast_items = PySequence_Fast_ITEMS(value_fast);
+
+  for (Py_ssize_t i = 0; i < slice_length; i++) {
+    if (mathutils_array_parse(staging[i],
+                              axis_size,
+                              axis_size,
+                              value_fast_items[i],
+                              "matrix.row/col[slice] = value") == -1)
+    {
+      Py_DECREF(value_fast);
+      return -1;
+    }
+  }
+
+  Py_DECREF(value_fast);
+
+  /* Commit. */
+  Py_ssize_t index = start;
+  if (self->type == MAT_ACCESS_ROW) {
+    for (Py_ssize_t i = 0; i < slice_length; i++, index += step) {
+      BLI_assert(index >= 0 && index < matrix_access_len);
+      for (int col = 0; col < axis_size; col++) {
+        MATRIX_ITEM(matrix_user, index, col) = staging[i][col];
+      }
+    }
+  }
+  else { /* MAT_ACCESS_COL */
+    for (Py_ssize_t i = 0; i < slice_length; i++, index += step) {
+      BLI_assert(index >= 0 && index < matrix_access_len);
+      for (int row = 0; row < axis_size; row++) {
+        MATRIX_ITEM(matrix_user, row, index) = staging[i][row];
+      }
+    }
+  }
+
+  (void)BaseMath_WriteCallback(matrix_user);
+  return 0;
 }
 
 static PyObject *MatrixAccess_subscript(MatrixAccessObject *self, PyObject *item)
@@ -4022,29 +4122,22 @@ static PyObject *MatrixAccess_subscript(MatrixAccessObject *self, PyObject *item
       }
       return Matrix_item_row(matrix_user, i);
     }
-    /* MAT_ACCESS_ROW */
+    /* MAT_ACCESS_COL */
     if (i < 0) {
       i += matrix_user->col_num;
     }
     return Matrix_item_col(matrix_user, i);
   }
   if (PySlice_Check(item)) {
-    Py_ssize_t start, stop, step, slicelength;
+    Py_ssize_t start, stop, step, slice_length;
 
-    if (PySlice_GetIndicesEx(item, MatrixAccess_len(self), &start, &stop, &step, &slicelength) < 0)
+    if (PySlice_GetIndicesEx(item, MatrixAccess_len(self), &start, &stop, &step, &slice_length) <
+        0)
     {
       return nullptr;
     }
 
-    if (slicelength <= 0) {
-      return PyTuple_New(0);
-    }
-    if (step == 1) {
-      return MatrixAccess_slice(self, start, stop);
-    }
-
-    PyErr_SetString(PyExc_IndexError, "slice steps not supported with matrix accessors");
-    return nullptr;
+    return MatrixAccess_slice(self, start, step, slice_length);
   }
 
   PyErr_Format(
@@ -4068,13 +4161,23 @@ static int MatrixAccess_ass_subscript(MatrixAccessObject *self, PyObject *item, 
       }
       return Matrix_ass_item_row(matrix_user, i, value);
     }
-    /* MAT_ACCESS_ROW */
+    /* MAT_ACCESS_COL */
     if (i < 0) {
       i += matrix_user->col_num;
     }
     return Matrix_ass_item_col(matrix_user, i, value);
   }
-  /* TODO: slice. */
+  if (PySlice_Check(item)) {
+    Py_ssize_t start, stop, step, slice_length;
+
+    if (PySlice_GetIndicesEx(item, MatrixAccess_len(self), &start, &stop, &step, &slice_length) <
+        0)
+    {
+      return -1;
+    }
+
+    return MatrixAccess_ass_slice(self, start, step, slice_length, value);
+  }
 
   PyErr_Format(
       PyExc_TypeError, "matrix indices must be integers, not %.200s", Py_TYPE(item)->tp_name);
@@ -4086,7 +4189,7 @@ static PyObject *MatrixAccess_iter(MatrixAccessObject *self)
   /* Try get values from a collection. */
   PyObject *ret;
   PyObject *iter = nullptr;
-  ret = MatrixAccess_slice(self, 0, MATRIX_MAX_DIM);
+  ret = MatrixAccess_slice(self, 0, 1, MatrixAccess_len(self));
 
   /* We know this is a tuple so no need to #PyIter_Check
    * otherwise it could be nullptr (unlikely) if conversion failed. */

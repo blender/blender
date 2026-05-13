@@ -15,45 +15,50 @@
 #include "DNA_curve_types.h"
 #include "DNA_listBase.h"
 
+#include "BLI_enum_flags.hh"
+
 namespace blender {
 
-enum MaskParentType {
+enum MaskParentType : int {
   MASK_PARENT_POINT_TRACK = 0, /* parenting happens to point track */
   MASK_PARENT_PLANE_TRACK = 1, /* parenting happens to plane track */
 };
 
-enum MaskSplineFlag {
-  /* reserve (1 << 0) for SELECT */
+enum MaskSplineFlag : short {
+  MASK_SPLINE_SELECT = (1 << 0),
   MASK_SPLINE_CYCLIC = (1 << 1),
   MASK_SPLINE_NOFILL = (1 << 2),
   MASK_SPLINE_NOINTERSECT = (1 << 3),
 };
+ENUM_OPERATORS(MaskSplineFlag)
 
-enum MaskSplineInterp {
+enum MaskSplineInterp : char {
   MASK_SPLINE_INTERP_LINEAR = 1,
   MASK_SPLINE_INTERP_EASE = 2,
 };
 
-enum MaskSplineOffset {
+enum MaskSplineOffset : char {
   MASK_SPLINE_OFFSET_EVEN = 0,
   MASK_SPLINE_OFFSET_SMOOTH = 1,
 };
 
-enum MaskLayerVisibility {
+enum MaskLayerVisibility : char {
   MASK_HIDE_VIEW = 1 << 0,   /* Note: match #OB_HIDE_VIEWPORT value. */
   MASK_HIDE_SELECT = 1 << 1, /* Note: match #OB_HIDE_SELECT value. */
   MASK_HIDE_RENDER = 1 << 2, /* Note: match #OB_HIDE_RENDER value. */
 };
+ENUM_OPERATORS(MaskLayerVisibility)
 
 /* #MaskSpaceInfo.draw_flag */
-enum MaskDrawFlag {
+enum MaskDrawFlag : char {
   MASK_DRAWFLAG_SMOOTH_DEPRECATED = 1 << 0, /* Deprecated. */
   MASK_DRAWFLAG_OVERLAY = 1 << 1,
   MASK_DRAWFLAG_SPLINE = 1 << 2,
 };
+ENUM_OPERATORS(MaskDrawFlag)
 
 /* #MaskSpaceInfo.draw_type. Note: match values of #eSpaceImage_UVDT. */
-enum MaskDrawType {
+enum MaskDrawType : char {
   MASK_DT_OUTLINE = 0,
   MASK_DT_DASH = 1,
   MASK_DT_BLACK = 2,
@@ -61,12 +66,12 @@ enum MaskDrawType {
 };
 
 /* #MaskSpaceInfo.overlay_mode */
-enum MaskOverlayMode {
+enum MaskOverlayMode : char {
   MASK_OVERLAY_ALPHACHANNEL = 0,
   MASK_OVERLAY_COMBINED = 1,
 };
 
-enum MaskLayerBlend {
+enum MaskLayerBlend : char {
   MASK_BLEND_ADD = 0,
   MASK_BLEND_SUBTRACT = 1,
   MASK_BLEND_LIGHTEN = 2,
@@ -78,31 +83,35 @@ enum MaskLayerBlend {
   MASK_BLEND_MERGE_SUBTRACT = 8,
 };
 
-enum MaskLayerBlendFlag {
+enum MaskLayerBlendFlag : char {
   MASK_BLENDFLAG_INVERT = (1 << 0),
 };
+ENUM_OPERATORS(MaskLayerBlendFlag)
 
-enum MaskLayerFlag {
+enum MaskLayerFlag : char {
   MASK_LAYERFLAG_LOCKED = (1 << 4),
   MASK_LAYERFLAG_SELECT = (1 << 5),
 
   /* no holes */
   MASK_LAYERFLAG_FILL_DISCRETE = (1 << 6),
   /** Only for #the MASK_FILL_SOLVER_SWEEP_LINE solver. */
-  MASK_LAYERFLAG_FILL_OVERLAP = (1 << 7),
+  MASK_LAYERFLAG_FILL_OVERLAP = static_cast<char>(1 << 7),
 };
+ENUM_OPERATORS(MaskLayerFlag)
 
 /* masklay_shape->flag */
-enum MaskLayerShapeFlag {
+enum MaskLayerShapeFlag : char {
   MASK_SHAPE_SELECT = (1 << 0),
 };
+ENUM_OPERATORS(MaskLayerShapeFlag)
 
-enum MaskAnimFlag {
+enum MaskAnimFlag : int {
   MASK_ANIMF_EXPAND = (1 << 4),
 };
+ENUM_OPERATORS(MaskAnimFlag)
 
 /** #Mask.fill_solver */
-enum MaskLayerFillSolverType {
+enum MaskLayerFillSolverType : char {
   /**
    * Fast filling without support for self-intersections.
    * Uses `BLI_scanfill`.
@@ -139,8 +148,8 @@ struct Mask {
   /** Frames, used by the sequencer. */
   int sfra = 0, efra = 0;
 
-  /** For anim info, #MaskAnimFlag. */
-  int flag = 0;
+  /** For anim info. */
+  MaskAnimFlag flag = {};
   char _pad[4] = {};
 
   Mask_Runtime runtime;
@@ -149,8 +158,8 @@ struct Mask {
 struct MaskParent {
   /** Type of parenting. */
   int id_type = 0;
-  /** Type of parenting (#MaskParentType). */
-  int type = 0;
+  /** Type of parenting. */
+  MaskParentType type = MASK_PARENT_POINT_TRACK;
   /**
    * ID block of entity to which mask/spline is parented to.
    * In case of parenting to movie tracking data set to MovieClip datablock.
@@ -198,12 +207,12 @@ struct MaskSplinePoint {
 struct MaskSpline {
   struct MaskSpline *next = nullptr, *prev = nullptr;
 
-  /** Spline flags (#MaskSplineFlag). */
-  short flag = 0;
-  /** Feather offset method (#MaskSplineOffset). */
-  char offset_mode = 0;
-  /** Weight interpolation (#MaskSplineInterp). */
-  char weight_interp = 0;
+  /** Spline flags. */
+  MaskSplineFlag flag = {};
+  /** Feather offset method. */
+  MaskSplineOffset offset_mode = MASK_SPLINE_OFFSET_EVEN;
+  /** Weight interpolation. */
+  MaskSplineInterp weight_interp = {};
 
   /** Total number of points. */
   int tot_point = 0;
@@ -223,7 +232,7 @@ struct MaskLayerShape {
   float *data = nullptr; /* Internally a #MaskLayerShapeElem struct for each vertex. */
   int tot_vert = 0;
   int frame = 0;
-  char flag = 0; /* MaskLayerShapeFlag */
+  MaskLayerShapeFlag flag = {};
   char _pad[7] = {};
 
 #ifdef __cplusplus
@@ -260,16 +269,15 @@ struct MaskLayer {
 
   /* blending options */
   float alpha = 0;
-  char blend = 0;      /* MaskLayerBlend */
-  char blend_flag = 0; /* MaskLayerBlendFlag */
+  MaskLayerBlend blend = MASK_BLEND_ADD;
+  MaskLayerBlendFlag blend_flag = {};
   char falloff = 0;
-  char fill_solver = MASK_FILL_SOLVER_CDT; /* MaskLayerFillSolverType */
+  MaskLayerFillSolverType fill_solver = MASK_FILL_SOLVER_CDT;
   char _pad[6] = {};
 
-  char flag = 0; /* MaskLayerFlag */
-  /** Matching 'Object' flag of the same name - eventually use in the outliner
-   * (#MaskLayerVisibility). */
-  char visibility_flag = 0;
+  MaskLayerFlag flag = {};
+  /** Matching 'Object' flag of the same name - eventually use in the outliner. */
+  MaskLayerVisibility visibility_flag = {};
 };
 
 }  // namespace blender

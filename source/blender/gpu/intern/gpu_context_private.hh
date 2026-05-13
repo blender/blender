@@ -62,7 +62,7 @@ class Context {
    * cache wherein compilation of identical source from two distinct threads can result in an
    * invalid cache collision, result in a broken shader object. Appending the unique context ID
    * onto compiled sources ensures the source hashes are different. */
-  static int context_counter;
+  static inline std::atomic<int> context_counter = 0;
   int context_id = 0;
 
   /* Used as a stack. Each render_begin/end pair will push pop from the stack. */

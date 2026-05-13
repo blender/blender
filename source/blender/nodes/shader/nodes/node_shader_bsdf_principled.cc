@@ -381,7 +381,11 @@ static int node_shader_gpu_bsdf_principled(GPUMaterial *mat,
     flag |= GPU_MATFLAG_REFRACTION_MAYBE_COLORED;
   }
   if (use_coat && in[SOCK_COAT_TINT_ID].might_be_tinted()) {
+    /* Coat tints lower layers. */
     flag |= GPU_MATFLAG_REFLECTION_MAYBE_COLORED;
+    if (use_refract) {
+      flag |= GPU_MATFLAG_REFRACTION_MAYBE_COLORED;
+    }
   }
 
   GPU_material_flag_set(mat, flag);
@@ -413,11 +417,11 @@ static void node_shader_update_principled(bNodeTree *ntree, bNode *node)
   const int sss_method = node->custom2;
 
   bke::node_set_socket_availability(*ntree,
-                                    *bke::node_find_socket(*node, SOCK_IN, "Subsurface IOR"),
+                                    *bke::node_find_socket(*node, SOCK_IN, "Subsurface IOR"_ustr),
                                     sss_method == SHD_SUBSURFACE_RANDOM_WALK_SKIN);
   bke::node_set_socket_availability(
       *ntree,
-      *bke::node_find_socket(*node, SOCK_IN, "Subsurface Anisotropy"),
+      *bke::node_find_socket(*node, SOCK_IN, "Subsurface Anisotropy"_ustr),
       sss_method != SHD_SUBSURFACE_BURLEY);
 }
 

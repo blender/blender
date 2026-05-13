@@ -147,7 +147,7 @@ struct Resources {
     if (this->interpolation == 2) [[static_branch]] {
       return sample_tricubic(ima, co);
     }
-    /* Use hardware interpolation*/
+    /* Use hardware interpolation. */
     return texture(ima, co);
   }
 };

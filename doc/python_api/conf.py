@@ -140,5 +140,46 @@ class PatchedPythonDomain(PythonDomain):
             env, fromdocname, builder, typ, target, node, contnode)
 
 
+def register_details_directive(app):
+    """
+    Register a `.. details:: Title` directive.
+
+    Wraps content in an HTML ``<details>`` widget so verbose-but-uninteresting
+    sections (e.g. dunder methods) are foldable. Implemented via ``nodes.raw``
+    around the parsed content - this avoids needing a custom node class
+    (Sphinx pickles the doctree for parallel/incremental builds and cannot
+    reach classes defined in ``conf.py``, which is exec-loaded). Non-HTML
+    builders ignore ``raw`` nodes and render the content inline.
+    """
+    from html import escape
+    from docutils import nodes
+    from docutils.parsers.rst import Directive
+
+    class DetailsDirective(Directive):
+        required_arguments = 0
+        optional_arguments = 1
+        final_argument_whitespace = True
+        has_content = True
+
+        def run(self):
+            summary = self.arguments[0] if self.arguments else "Details"
+            container = nodes.Element()
+            self.state.nested_parse(self.content, self.content_offset, container)
+            children = list(container.children)
+            container.children = []
+            for child in children:
+                child.parent = None
+            open_tag = nodes.raw(
+                "",
+                "<details><summary>{:s}</summary>".format(escape(summary)),
+                format="html",
+            )
+            close_tag = nodes.raw("", "</details>", format="html")
+            return [open_tag, *children, close_tag]
+
+    app.add_directive("details", DetailsDirective)
+
+
 def setup(app):
     app.add_domain(PatchedPythonDomain, override=True)
+    register_details_directive(app)

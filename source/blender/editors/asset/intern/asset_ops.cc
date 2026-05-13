@@ -1117,10 +1117,9 @@ static ImBuf *take_screenshot_crop(bContext *C, const rcti &crop_rect)
     return nullptr;
   }
 
-  ImBuf *image_buffer = IMB_allocImBuf(dumprect_size[0], dumprect_size[1], 24, 0);
-  /* Using IB_TAKE_OWNERSHIP because the crop does kind of take ownership already it seems. At
-   * least freeing the memory after would cause a crash if ownership isn't taken. */
-  IMB_assign_byte_buffer(image_buffer, dumprect, IB_TAKE_OWNERSHIP);
+  ImBuf *image_buffer = IMB_allocImBuf(dumprect_size[0], dumprect_size[1], 0);
+  image_buffer->color_mode = ImColorMode::RGB;
+  image_buffer->assign_byte_data(dumprect);
 
   IMB_crop(image_buffer,
            int2(safe_rect.xmin, safe_rect.ymin),
@@ -1595,7 +1594,9 @@ static wmOperatorStatus assets_download_exec(bContext *C, wmOperator *op)
   const Vector<const asset_system::AssetRepresentation *> assets = selected_or_active_assets(C);
 
   for (const asset_system::AssetRepresentation *asset : assets) {
-    asset_system::remote_library_request_asset_download(*C, *asset, op->reports);
+    if (asset->is_online()) {
+      asset_system::remote_library_request_asset_download(*C, *asset, op->reports);
+    }
   }
 
   return OPERATOR_FINISHED;

@@ -133,8 +133,8 @@ static void strip_convert_transform_animation(const Strip *strip,
   }
 
   /* Hardcoded legacy bit-flags which has been removed. */
-  const uint32_t use_transform_flag = (1 << 16);
-  const uint32_t use_crop_flag = (1 << 17);
+  const eStripFlag use_transform_flag = eStripFlag(1 << 16);
+  const eStripFlag use_crop_flag = eStripFlag(1 << 17);
 
   /* Convert offset animation, but only if crop is not used. */
   if ((strip->flag & use_transform_flag) != 0 && (strip->flag & use_crop_flag) == 0) {
@@ -174,9 +174,9 @@ static void strip_convert_transform_crop(const Scene *scene,
   int image_size_x = scene->r.xsch;
   int image_size_y = scene->r.ysch;
 
-  /* Hard-coded legacy bit-flags which has been removed. */
-  const uint32_t use_transform_flag = (1 << 16);
-  const uint32_t use_crop_flag = (1 << 17);
+  /* Hard-coded legacy bit-flags which have been removed. */
+  const eStripFlag use_transform_flag = eStripFlag(1 << 16);
+  const eStripFlag use_crop_flag = eStripFlag(1 << 17);
 
   const StripElem *s_elem = strip->data->stripdata;
   if (s_elem != nullptr) {
@@ -407,7 +407,7 @@ static void version_node_socket_duplicate(bNodeTree *ntree,
   for (bNodeLink &link : ntree->links.items_mutable()) {
     if (link.tonode->type_legacy == node_type) {
       bNode *node = link.tonode;
-      bNodeSocket *dest_socket = bke::node_find_socket(*node, SOCK_IN, new_name);
+      bNodeSocket *dest_socket = bke::node_find_socket(*node, SOCK_IN, UString(new_name));
       BLI_assert(dest_socket);
       if (STREQ(link.tosock->name, old_name)) {
         bke::node_add_link(*ntree, *link.fromnode, *link.fromsock, *node, *dest_socket);
@@ -418,8 +418,8 @@ static void version_node_socket_duplicate(bNodeTree *ntree,
   /* Duplicate the default value from the old socket and assign it to the new socket. */
   for (bNode &node : ntree->nodes) {
     if (node.type_legacy == node_type) {
-      bNodeSocket *source_socket = bke::node_find_socket(node, SOCK_IN, old_name);
-      bNodeSocket *dest_socket = bke::node_find_socket(node, SOCK_IN, new_name);
+      bNodeSocket *source_socket = bke::node_find_socket(node, SOCK_IN, UString(old_name));
+      bNodeSocket *dest_socket = bke::node_find_socket(node, SOCK_IN, UString(new_name));
       BLI_assert(source_socket && dest_socket);
       if (dest_socket->default_value) {
         MEM_delete_void(dest_socket->default_value);
@@ -715,10 +715,8 @@ static void panels_remove_x_closed_flag_recursive(Panel *panel)
 static void do_versions_point_attributes(CustomData *pdata)
 {
   /* Change to generic named float/float3 attributes. */
-  enum {
-    CD_LOCATION = 43,
-    CD_RADIUS = 44,
-  };
+  constexpr eCustomDataType CD_LOCATION = eCustomDataType(43);
+  constexpr eCustomDataType CD_RADIUS = eCustomDataType(44);
 
   for (int i = 0; i < pdata->totlayer; i++) {
     CustomDataLayer *layer = &pdata->layers[i];
@@ -1298,7 +1296,8 @@ void blo_do_versions_290(FileData *fd, Library * /*lib*/, Main *bmain)
       for (Mesh &mesh : bmain->meshes) {
         /* The previous flags used to store mesh symmetry in edit-mode match the new ones that are
          * used in #Mesh.symmetry. */
-        mesh.symmetry = mesh.editflag & (ME_SYMMETRY_X | ME_SYMMETRY_Y | ME_SYMMETRY_Z);
+        mesh.symmetry = eMeshSymmetryType(int(mesh.editflag) &
+                                          (ME_SYMMETRY_X | ME_SYMMETRY_Y | ME_SYMMETRY_Z));
       }
     }
 
@@ -1895,7 +1894,7 @@ void blo_do_versions_290(FileData *fd, Library * /*lib*/, Main *bmain)
 
       for (Nurb &nu : *nurbs) {
         if (nu.flag & CU_2D) {
-          nu.flag &= ~CU_2D;
+          nu.flag &= ~eNurbFlag(CU_2D);
         }
         else {
           is_2d = false;

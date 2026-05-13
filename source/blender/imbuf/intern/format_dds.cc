@@ -11,15 +11,24 @@
  */
 
 #include <algorithm>
+#include <fcntl.h>
+#if defined(WIN32)
+#  include <io.h>
+#else
+#  include <unistd.h>
+#endif
 
 #include "oiio/openimageio_support.hh"
 
 #include "IMB_filetype.hh"
 #include "IMB_imbuf_types.hh"
 
+#include "BLI_fileops.h"
 #include "BLI_math_base.h"
+#include "BLI_mmap.h"
 #include "BLI_path_utils.hh"
 #include "BLI_string.h"
+#include "MEM_guardedalloc.h"
 
 namespace blender {
 
@@ -27,8 +36,6 @@ const char *imb_file_extensions_dds[] = {".dds", nullptr};
 
 OIIO_NAMESPACE_USING
 using namespace blender::imbuf;
-
-static void LoadDXTCImage(ImBuf *ibuf, Filesystem::IOMemReader &mem_reader);
 
 void imb_init_dds()
 {
@@ -54,11 +61,17 @@ ImBuf *imb_load_dds(const uchar *mem, size_t size, int flags, ImFileColorSpace &
   ReadContext ctx{mem, size, "dds", IMB_FTYPE_DDS, flags};
 
   ImBuf *ibuf = imb_oiio_read(ctx, config, r_colorspace, spec);
-
-  /* Load compressed DDS information if available. */
-  if (ibuf && (flags & IB_test) == 0) {
-    Filesystem::IOMemReader mem_reader(cspan<uchar>(mem, size));
-    LoadDXTCImage(ibuf, mem_reader);
+  if (ibuf) {
+    std::string compression = spec.get_string_attribute("compression", "");
+    if (compression == "DXT1") {
+      ibuf->foptions.flag |= DDS_COMPRESSED_DXT1;
+    }
+    if (compression == "DXT3") {
+      ibuf->foptions.flag |= DDS_COMPRESSED_DXT3;
+    }
+    if (compression == "DXT5") {
+      ibuf->foptions.flag |= DDS_COMPRESSED_DXT5;
+    }
   }
 
   return ibuf;
@@ -188,76 +201,69 @@ static void FlipDXT5BlockHalf(uint8_t *block)
   FlipDXT1BlockHalf(block + 8);
 }
 
+static constexpr uint32_t fourcc_dxt1 = 0x31545844; /* D, X, T, 1 */
+static constexpr uint32_t fourcc_dxt3 = 0x33545844; /* D, X, T, 3 */
+static constexpr uint32_t fourcc_dxt5 = 0x35545844; /* D, X, T, 5 */
+
 /**
  * Flips a DXTC image, by flipping and swapping DXTC blocks as appropriate.
- *
  * Use to flip vertically to fit OpenGL convention.
+ * Returns number of valid mip levels.
  */
-static void FlipDXTCImage(ImBuf *ibuf)
+static int flip_dxtc_image(
+    uint8_t *data, size_t data_size, int width, int height, int levels, uint32_t fourcc)
 {
-  uint32_t width = ibuf->x;
-  uint32_t height = ibuf->y;
-  uint32_t levels = ibuf->dds_data.nummipmaps;
-  int fourcc = ibuf->dds_data.fourcc;
-  uint8_t *data = ibuf->dds_data.data;
-  int data_size = ibuf->dds_data.size;
-
-  uint32_t *num_valid_levels = &ibuf->dds_data.nummipmaps;
-  *num_valid_levels = 0;
-
   /* Must have valid dimensions. */
   if (width == 0 || height == 0) {
-    return;
+    return 0;
   }
+
   /* Height must be a power-of-two: not because something within DXT/S3TC
    * needs it. Only because we want to flip the image upside down, by
    * swapping and flipping block rows, and that in general case (with mipmaps)
    * is only possible for POT height. */
   if (!is_power_of_2_i(height)) {
-    return;
+    return 0;
   }
 
   FlipBlockFunction full_block_function;
   FlipBlockFunction half_block_function;
-  uint block_bytes = 0;
+  size_t block_bytes = 0;
 
   switch (fourcc) {
-    case FOURCC_DXT1:
+    case fourcc_dxt1:
       full_block_function = FlipDXT1BlockFull;
       half_block_function = FlipDXT1BlockHalf;
       block_bytes = 8;
       break;
-    case FOURCC_DXT3:
+    case fourcc_dxt3:
       full_block_function = FlipDXT3BlockFull;
       half_block_function = FlipDXT3BlockHalf;
       block_bytes = 16;
       break;
-    case FOURCC_DXT5:
+    case fourcc_dxt5:
       full_block_function = FlipDXT5BlockFull;
       half_block_function = FlipDXT5BlockHalf;
       block_bytes = 16;
       break;
     default:
-      return;
+      return 0;
   }
 
-  *num_valid_levels = levels;
-
-  uint mip_width = width;
-  uint mip_height = height;
+  int mip_width = width;
+  int mip_height = height;
 
   const uint8_t *data_end = data + data_size;
 
-  for (uint level = 0; level < levels; level++) {
-    uint blocks_per_row = (mip_width + 3) / 4;
-    uint blocks_per_col = (mip_height + 3) / 4;
-    uint blocks = blocks_per_row * blocks_per_col;
+  for (int level = 0; level < levels; level++) {
+    int blocks_per_row = (mip_width + 3) / 4;
+    int blocks_per_col = (mip_height + 3) / 4;
+    int blocks = blocks_per_row * blocks_per_col;
 
     if (data + block_bytes * blocks > data_end) {
       /* Stop flipping when running out of data to be modified, avoiding possible buffer overrun
        * on a malformed files. */
-      *num_valid_levels = level;
-      break;
+      return level;
     }
 
     if (mip_height == 1) {
@@ -266,23 +272,23 @@ static void FlipDXTCImage(ImBuf *ibuf)
     }
     if (mip_height == 2) {
       /* flip the first 2 lines in each block. */
-      for (uint i = 0; i < blocks_per_row; i++) {
+      for (int i = 0; i < blocks_per_row; i++) {
         half_block_function(data + i * block_bytes);
       }
     }
     else {
       /* flip each block. */
-      for (uint i = 0; i < blocks; i++) {
+      for (int i = 0; i < blocks; i++) {
         full_block_function(data + i * block_bytes);
       }
 
       /* Swap each block line in the first half of the image with the
        * corresponding one in the second half.
-       * note that this is a no-op if mip_height is 4. */
-      uint row_bytes = block_bytes * blocks_per_row;
+       * note that this is a no-op if mip height is 4. */
+      size_t row_bytes = block_bytes * blocks_per_row;
       uint8_t *temp_line = new uint8_t[row_bytes];
 
-      for (uint y = 0; y < blocks_per_col / 2; y++) {
+      for (int y = 0; y < blocks_per_col / 2; y++) {
         uint8_t *line1 = data + y * row_bytes;
         uint8_t *line2 = data + (blocks_per_col - y - 1) * row_bytes;
 
@@ -294,44 +300,72 @@ static void FlipDXTCImage(ImBuf *ibuf)
       delete[] temp_line;
     }
 
-    /* mip levels are contiguous. */
+    /* Advance to next mip level. */
     data += block_bytes * blocks;
-    mip_width = std::max(1U, mip_width >> 1);
-    mip_height = std::max(1U, mip_height >> 1);
+    mip_width = std::max(1, mip_width >> 1);
+    mip_height = std::max(1, mip_height >> 1);
   }
+
+  return levels;
 }
 
-static void LoadDXTCImage(ImBuf *ibuf, Filesystem::IOMemReader &mem_reader)
+uint8_t *imb_load_dds_compressed_data(const char *filepath, int width, int height, int &r_mipcount)
 {
-  /* Reach into memory and pull out the pixel format flags and mipmap counts. This is safe if
-   * we've made it this far. */
-  uint32_t flags = 0;
-  mem_reader.pread(&flags, sizeof(uint32_t), 8);
-  /* NOTE: this is endianness-sensitive. */
-  /* `ibuf->dds_data.nummipmaps` is always expected to be little-endian. */
-  mem_reader.pread(&ibuf->dds_data.nummipmaps, sizeof(uint32_t), 28);
-  mem_reader.pread(&ibuf->dds_data.fourcc, sizeof(uint32_t), 84);
+  r_mipcount = 0;
 
-  const uint32_t DDSD_MIPMAPCOUNT = 0x00020000U;
-  if ((flags & DDSD_MIPMAPCOUNT) == 0) {
-    ibuf->dds_data.nummipmaps = 1;
+  /* Due to upside down flipping, we only support compressed DDS files with power of two heights.
+   */
+  if (!is_power_of_2_i(height)) {
+    return nullptr;
   }
 
-  /* Load the compressed data. */
-  if (ibuf->dds_data.fourcc != FOURCC_DDS) {
-    uint32_t dds_header_size = 128;
-    if (ibuf->dds_data.fourcc == FOURCC_DX10) {
-      dds_header_size += 20;
+  const int file = BLI_open(filepath, O_BINARY | O_RDONLY, 0);
+  if (file == -1) {
+    return nullptr;
+  }
+  BLI_mmap_file *mmap_file = BLI_mmap_open(file);
+  close(file);
+  if (mmap_file == nullptr) {
+    return nullptr;
+  }
+
+  uint8_t *result = nullptr;
+
+  const uchar *file_data = static_cast<const uchar *>(BLI_mmap_get_pointer(mmap_file));
+  const size_t file_size = BLI_mmap_get_length(mmap_file);
+
+  constexpr size_t dds_header_size = 128;
+  if (file_size < dds_header_size) {
+    BLI_mmap_free(mmap_file);
+    return nullptr;
+  }
+
+  /* Pull out pixel format and mipmap count flags from DDS header. */
+  uint32_t flags = 0, mipcount = 0, fourcc = 0;
+  memcpy(&flags, file_data + 8, 4);
+  memcpy(&mipcount, file_data + 28, 4);
+  memcpy(&fourcc, file_data + 84, 4);
+
+  /* Due to upside down flipping, we only support DXT1/DXT3/DXT5. Newer formats like BC7 can't
+   * be flipped upside down due to non-symmetrical partition shapes. */
+  if (ELEM(fourcc, fourcc_dxt1, fourcc_dxt3, fourcc_dxt5)) {
+
+    constexpr uint32_t DDSD_MIPMAPCOUNT = 0x00020000U;
+    if ((flags & DDSD_MIPMAPCOUNT) == 0) {
+      mipcount = 1;
     }
 
-    ibuf->dds_data.size = mem_reader.size() - dds_header_size;
-    ibuf->dds_data.data = static_cast<uchar *>(malloc(ibuf->dds_data.size));
-    mem_reader.pread(ibuf->dds_data.data, ibuf->dds_data.size, dds_header_size);
-    ibuf->dds_data.ownership = IB_TAKE_OWNERSHIP;
+    size_t pixel_data_size = file_size - dds_header_size;
 
-    /* Flip compressed image data to match OpenGL convention. */
-    FlipDXTCImage(ibuf);
+    result = MEM_new_array_uninitialized<uint8_t>(pixel_data_size, "DDS compressed data");
+    memcpy(result, file_data + dds_header_size, pixel_data_size);
+
+    r_mipcount = flip_dxtc_image(result, pixel_data_size, width, height, mipcount, fourcc);
   }
+
+  BLI_mmap_free(mmap_file);
+
+  return result;
 }
 
 }  // namespace blender

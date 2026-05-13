@@ -132,8 +132,9 @@ static int node_copy_local(bNodeTree &from_tree,
       bNode *from_node = node_map.lookup(link.fromnode);
       bNode *to_node = node_map.lookup(link.tonode);
 
-      bNodeSocket *from = bke::node_find_socket(*from_node, SOCK_OUT, link.fromsock->identifier);
-      bNodeSocket *to = bke::node_find_socket(*to_node, SOCK_IN, link.tosock->identifier);
+      bNodeSocket *from = bke::node_find_socket(
+          *from_node, SOCK_OUT, link.fromsock->identifier_ustr());
+      bNodeSocket *to = bke::node_find_socket(*to_node, SOCK_IN, link.tosock->identifier_ustr());
       if (!from || !to) {
         continue;
       }

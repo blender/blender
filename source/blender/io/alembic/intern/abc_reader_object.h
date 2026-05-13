@@ -97,9 +97,6 @@ class AbcObjectReader {
    * once we fix the stack memory reference situation. */
   bool m_is_reading_a_file_sequence = false;
 
-  chrono_t m_min_time;
-  chrono_t m_max_time;
-
   /* Use reference counting since the same reader may be used by multiple
    * modifiers and/or constraints. */
   int m_refcount;
@@ -163,9 +160,7 @@ class AbcObjectReader {
   void setupObjectTransform(chrono_t time);
 
   void addCacheModifier();
-
-  chrono_t minTime() const;
-  chrono_t maxTime() const;
+  void readVisibility();
 
   int refcount() const;
   void incref();

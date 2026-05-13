@@ -109,7 +109,7 @@ static void add_group_input_node_fn(nodes::LinkSearchOpParams &params)
   for (bNode *node : params.node_tree.all_nodes()) {
     if (node->is_group_input()) {
       bNodeSocket *new_group_input_socket = bke::node_find_socket(
-          *node, SOCK_OUT, socket_iface->identifier);
+          *node, SOCK_OUT, UString(socket_iface->identifier));
       if (new_group_input_socket) {
         new_group_input_socket->flag |= SOCK_HIDDEN;
       }
@@ -121,7 +121,8 @@ static void add_group_input_node_fn(nodes::LinkSearchOpParams &params)
     socket.flag |= SOCK_HIDDEN;
   }
 
-  bNodeSocket *socket = bke::node_find_socket(group_input, SOCK_OUT, socket_iface->identifier);
+  bNodeSocket *socket = bke::node_find_socket(
+      group_input, SOCK_OUT, UString(socket_iface->identifier));
   if (socket) {
     /* Unhide the socket for the new input in the new node and make a connection to it. */
     socket->flag &= ~SOCK_HIDDEN;
@@ -146,7 +147,8 @@ static void add_existing_group_input_fn(nodes::LinkSearchOpParams &params,
     socket.flag |= SOCK_HIDDEN;
   }
 
-  bNodeSocket *socket = bke::node_find_socket(group_input, SOCK_OUT, interface_socket.identifier);
+  bNodeSocket *socket = bke::node_find_socket(
+      group_input, SOCK_OUT, UString(interface_socket.identifier));
   if (socket != nullptr) {
     socket->flag &= ~SOCK_HIDDEN;
     bke::node_add_link(params.node_tree, group_input, *socket, params.node, params.socket);

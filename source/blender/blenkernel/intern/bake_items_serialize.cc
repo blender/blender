@@ -754,7 +754,7 @@ static GreasePencil *try_load_grease_pencil(const DictionaryValue &io_geometry,
   for (const int layer_i : IndexRange(layers_num)) {
     greasepencil::Layer &layer = grease_pencil->layer(layer_i);
     layer.opacity = layer_opacities[layer_i];
-    layer.blend_mode = layer_blend_modes[layer_i];
+    layer.blend_mode = GreasePencilLayerBlendMode(layer_blend_modes[layer_i]);
     layer.set_local_transform(layer_transforms[layer_i]);
   }
 
@@ -1160,7 +1160,7 @@ static std::shared_ptr<DictionaryValue> serialize_geometry_set(const GeometrySet
       }
 
       layer_opacities.append(layer->opacity);
-      layer_blend_modes.append(layer->blend_mode);
+      layer_blend_modes.append(int8_t(layer->blend_mode));
       layer_transforms.append(layer->local_transform());
     }
 
@@ -1543,9 +1543,10 @@ static void serialize_bake_item(const BakeItem &item,
   }
   else if (const auto *list_state_item = dynamic_cast<const ListBakeItem *>(&item)) {
     r_io_item.append_str("type", "LIST");
-    if (const nodes::ListPtr *simple_list = std::get_if<nodes::ListPtr>(&list_state_item->value)) {
+    if (const nodes::GListPtr *simple_list = std::get_if<nodes::GListPtr>(&list_state_item->value))
+    {
       if (*simple_list) {
-        const nodes::List &list = **simple_list;
+        const nodes::GList &list = **simple_list;
         if (list.cpp_type() == CPPType::get<std::string>()) {
           /* TODO Not supported yet, can't be constructed by users. */
           BLI_assert_unreachable();
@@ -1554,10 +1555,10 @@ static void serialize_bake_item(const BakeItem &item,
           const eCustomDataType data_type = cpp_type_to_custom_data_type(list.cpp_type());
           r_io_item.append_str("item_type", get_data_type_io_name(data_type));
           r_io_item.append_int("num_items", list.size());
-          if (const auto *single_data = std::get_if<nodes::List::SingleData>(&list.data())) {
+          if (const auto *single_data = std::get_if<nodes::GList::SingleData>(&list.data())) {
             r_io_item.append("value", serialize_primitive_value(data_type, single_data->value));
           }
-          else if (const auto *array_data = std::get_if<nodes::List::ArrayData>(&list.data())) {
+          else if (const auto *array_data = std::get_if<nodes::GList::ArrayData>(&list.data())) {
             const GSpan array_span = {list.cpp_type(), array_data->data, list.size()};
             r_io_item.append(
                 "data",
@@ -1684,8 +1685,8 @@ static std::unique_ptr<BakeItem> deserialize_bake_item(const DictionaryValue &io
         if (!deserialize_primitive_value(**io_value, *data_type, buffer)) {
           return {};
         }
-        auto list = nodes::List::create(
-            *cpp_type, nodes::List::SingleData::ForValue(GPointer{cpp_type, buffer}), *num_items);
+        auto list = nodes::GList::create(
+            *cpp_type, nodes::GList::SingleData::ForValue(GPointer{cpp_type, buffer}), *num_items);
         return std::make_unique<ListBakeItem>(std::move(list));
       }
       if (const io::serialize::DictionaryValue *io_data = io_item.lookup_dict("data")) {
@@ -1695,11 +1696,11 @@ static std::unique_ptr<BakeItem> deserialize_bake_item(const DictionaryValue &io
         {
           return {};
         }
-        nodes::List::ArrayData array_data;
+        nodes::GList::ArrayData array_data;
         const auto *sharing_info = new ImplicitSharedValue<GArray<>>(std::move(buffer));
         array_data.data = const_cast<void *>(sharing_info->data.data());
         array_data.sharing_info = ImplicitSharingPtr<>(sharing_info);
-        auto list = nodes::List::create(*cpp_type, std::move(array_data), *num_items);
+        auto list = nodes::GList::create(*cpp_type, std::move(array_data), *num_items);
         return std::make_unique<ListBakeItem>(std::move(list));
       }
     }

@@ -828,13 +828,14 @@ static void grease_pencil_fill_extension_cut(const bContext &C,
     /* Indices that may need to be ignored to avoid self-intersection. */
     int ignore_index1;
     int ignore_index2;
+    int ignore_index3;
   };
   BVHTree_RayCastCallback callback =
       [](void *userdata, int index, const BVHTreeRay *ray, BVHTreeRayHit *hit) {
         using Result = math::isect_result<float2>;
 
         const RaycastArgs &args = *static_cast<const RaycastArgs *>(userdata);
-        if (ELEM(index, args.ignore_index1, args.ignore_index2)) {
+        if (ELEM(index, args.ignore_index1, args.ignore_index2, args.ignore_index3)) {
           return;
         }
 
@@ -872,7 +873,14 @@ static void grease_pencil_fill_extension_cut(const bContext &C,
     const int origin_point = origin_points[i_line];
     const int bvh_origin_index = bvh_curve_offsets[origin_drawing][origin_point];
 
-    RaycastArgs args = {view_starts, view_ends, bvh_index, bvh_origin_index};
+    /* For curvature extensions (mid-stroke), also exclude the adjacent segment. */
+    int bvh_adjacent_index = -1;
+    if (origin_point > 0 && origin_point < bvh_curve_offsets[origin_drawing].size() - 1) {
+      /* This is a curvature extension, exclude the previous segment. */
+      bvh_adjacent_index = bvh_curve_offsets[origin_drawing][origin_point - 1];
+    }
+
+    RaycastArgs args = {view_starts, view_ends, bvh_index, bvh_origin_index, bvh_adjacent_index};
     BVHTreeRayHit hit;
     hit.index = -1;
     hit.dist = FLT_MAX;
@@ -922,7 +930,7 @@ static void grease_pencil_fill_extension_lines_from_circles(
   Array<float2> view_centers(max_kd_entries);
   Array<float> view_radii(max_kd_entries);
 
-  KDTree_2d *kdtree = kdtree_2d_new(max_kd_entries);
+  KDTree<float2> *kdtree = kdtree_new<float2>(max_kd_entries);
 
   /* Insert points for overlap tests. */
   for (const int point_i : circles_range.index_range()) {
@@ -935,13 +943,13 @@ static void grease_pencil_fill_extension_lines_from_circles(
     view_centers[kd_index] = center;
     view_radii[kd_index] = radius;
 
-    kdtree_2d_insert(kdtree, kd_index, center);
+    kdtree_insert<float2>(kdtree, kd_index, center);
   }
   for (const int i_point : feature_points_range.index_range()) {
     /* TODO Insert feature points into the KDTree. */
     UNUSED_VARS(i_point);
   }
-  kdtree_2d_balance(kdtree);
+  kdtree_balance<float2>(kdtree);
 
   struct {
     Vector<float3> starts;
@@ -957,7 +965,7 @@ static void grease_pencil_fill_extension_lines_from_circles(
     const float radius = view_radii[kd_index];
 
     bool found = false;
-    kdtree_range_search_cb_cpp<float2>(
+    kdtree_range_search_cb<float2>(
         kdtree,
         center,
         radius,
@@ -986,7 +994,7 @@ static void grease_pencil_fill_extension_lines_from_circles(
     }
   }
 
-  kdtree_2d_free(kdtree);
+  kdtree_free<float2>(kdtree);
 
   /* Add new extension lines. */
   extension_data.lines.starts.extend(connection_lines.starts);
@@ -1022,6 +1030,7 @@ static ed::greasepencil::ExtensionData grease_pencil_fill_get_extension_data(
     const bke::CurvesGeometry &curves = info.drawing.strokes();
     const OffsetIndices points_by_curve = curves.points_by_curve();
     const Span<float3> positions = curves.positions();
+    const VArray<float> radii = info.drawing.radii();
     const VArray<bool> cyclic = curves.cyclic();
     const float4x4 layer_to_world = grease_pencil.layer(info.layer_index).to_world_space(object);
 
@@ -1047,7 +1056,7 @@ static ed::greasepencil::ExtensionData grease_pencil_fill_get_extension_data(
       const float length = op_data.extension_length;
 
       switch (op_data.extension_mode) {
-        case GP_FILL_EMODE_EXTEND:
+        case GP_FILL_EMODE_EXTEND: {
           extension_data.lines.starts.append(pos_head);
           extension_data.lines.ends.append(pos_head + dir_head * length);
           origin_drawings.append(i_drawing);
@@ -1058,7 +1067,48 @@ static ed::greasepencil::ExtensionData grease_pencil_fill_get_extension_data(
           origin_drawings.append(i_drawing);
           /* Segment index is the start point. */
           origin_points.append(points.last() - 1);
+
+          /* Find points of high curvature and extend them. */
+          float3 pos_prev = math::transform_point(layer_to_world, positions[points[0]]);
+          float3 pos_next = math::transform_point(layer_to_world, positions[points[1]]);
+          float distance_prev;
+          float distance_next;
+          float3 tangent_prev;
+          float3 tangent_next = math::normalize_and_get_length(pos_next - pos_prev, distance_next);
+          for (const int i : points.index_range().drop_front(2)) {
+            tangent_prev = tangent_next;
+            distance_prev = distance_next;
+            pos_prev = pos_next;
+
+            pos_next = math::transform_point(layer_to_world, positions[points[i]]);
+            tangent_next = math::normalize_and_get_length(pos_next - pos_prev, distance_next);
+
+            float curvature_length;
+            const float3 curvature = math::normalize_and_get_length(tangent_next - tangent_prev,
+                                                                    curvature_length);
+
+            /*
+             * The smaller the radius of curvature, the sharper the corner.
+             * The thicker the line, the larger the radius of curvature it
+             * takes to be visually indistinguishable from an endpoint.
+             */
+            const float stroke_radius = radii[points[i - 1]];
+            const float min_radius = stroke_radius;
+
+            /*
+             * Is the radius of curvature (1 / curvature_length) smaller than the
+             * minimum radius? Rearranged algebraically to avoid division by zero.
+             */
+            if (distance_prev + distance_next < 2.0f * curvature_length * min_radius) {
+              /* Extend along direction of curvature. */
+              extension_data.lines.starts.append(pos_prev);
+              extension_data.lines.ends.append(pos_prev + (-curvature * length));
+              origin_drawings.append(i_drawing);
+              origin_points.append(points[i - 1]);
+            }
+          }
           break;
+        }
         case GP_FILL_EMODE_RADIUS:
           extension_data.circles.centers.append(pos_head);
           extension_data.circles.radii.append(length);
@@ -1449,11 +1499,13 @@ static bool grease_pencil_apply_fill(bContext &C, wmOperator &op, const wmEvent 
       continue;
     }
 
-    /* Combine the strokes into a single fill with the same fill ID. */
-    bke::SpanAttributeWriter<int> fill_ids =
-        fill_curves.attributes_for_write().lookup_or_add_for_write_span<int>(
-            "fill_id", bke::AttrDomain::Curve, bke::AttributeInitValue(1));
-    fill_ids.finish();
+    bke::MutableAttributeAccessor attributes = fill_curves.attributes_for_write();
+
+    /* Combine strokes into a single fill with the same fill ID. */
+    attributes.add<int>("fill_id", bke::AttrDomain::Curve, bke::AttributeInitValue(1));
+
+    /* Only create fills. Users can change the appearance however they please afterwards. */
+    attributes.add<bool>("hide_stroke", bke::AttrDomain::Curve, bke::AttributeInitValue(true));
 
     smooth_fill_strokes(fill_curves, fill_curves.curves_range());
 

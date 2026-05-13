@@ -16,6 +16,8 @@
 
 #include "BLO_readfile.hh"
 
+#include "BLT_date_string.hh"
+#include "BLT_lang.hh"
 #include "BLT_translation.hh"
 
 #include "BKE_blendfile.hh"
@@ -82,19 +84,19 @@ static void template_recent_files_tooltip_func(bContext & /*C*/,
 
   BLI_stat_t status;
   if (BLI_stat(path, &status) != -1) {
-    char date_str[FILELIST_DIRENTRY_DATE_LEN], time_st[FILELIST_DIRENTRY_TIME_LEN];
-    bool is_today, is_yesterday;
-    std::string day_string;
-    BLI_filelist_entry_datetime_to_string(
-        nullptr, int64_t(status.st_mtime), false, time_st, date_str, &is_today, &is_yesterday);
-    if (is_today || is_yesterday) {
-      day_string = (is_today ? TIP_("Today") : TIP_("Yesterday")) + std::string(" ");
-    }
+    const tm mod_time = *localtime(&status.st_mtime);
+    const time_t ts_now = time(nullptr);
+    const tm now = *localtime(&ts_now);
+    const char *lang = BLT_lang_get();
+    std::string modified_s = date_string::datetime(mod_time,
+                                                   lang,
+                                                   date_string::DateFormat(U.date_format),
+                                                   date_string::TimeFormat(U.time_format),
+                                                   &now,
+                                                   TIP_("Today"),
+                                                   TIP_("Yesterday"));
     tooltip_text_field_add(tip,
-                           fmt::format(fmt::runtime(TIP_("Modified: {}{}{}")),
-                                       day_string,
-                                       (is_today || is_yesterday) ? "" : date_str,
-                                       (is_today || is_yesterday) ? time_st : ""),
+                           fmt::format(fmt::runtime(TIP_("Modified: {}")), modified_s),
                            {},
                            TIP_STYLE_NORMAL,
                            TIP_LC_NORMAL);

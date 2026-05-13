@@ -362,17 +362,15 @@ void Camera::update(Scene *scene)
   }
 
   if (need_motion == Scene::MOTION_PASS) {
-    if (camera_type == CAMERA_PANORAMA || camera_type == CAMERA_CUSTOM) {
-      if (have_motion) {
-        kcam->motion_pass_pre = transform_inverse(motion[0]);
-        kcam->motion_pass_post = transform_inverse(motion[motion.size() - 1]);
-      }
-      else {
-        kcam->motion_pass_pre = kcam->worldtocamera;
-        kcam->motion_pass_post = kcam->worldtocamera;
-      }
+    if (have_motion) {
+      kcam->motion_pass_pre = transform_inverse(motion[0]);
+      kcam->motion_pass_post = transform_inverse(motion[motion.size() - 1]);
     }
     else {
+      kcam->motion_pass_pre = kcam->worldtocamera;
+      kcam->motion_pass_post = kcam->worldtocamera;
+    }
+    if (camera_type != CAMERA_PANORAMA && camera_type != CAMERA_CUSTOM) {
       if (have_motion || fov != fov_pre || fov != fov_post) {
         /* Note the values for perspective_pre/perspective_post calculated for MOTION_PASS are
          * different to those calculated for MOTION_BLUR below, so the code has not been combined.

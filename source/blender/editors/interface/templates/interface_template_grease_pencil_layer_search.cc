@@ -17,7 +17,7 @@
 
 #include "BKE_attribute.hh"
 
-#include "NOD_geometry_nodes_log.hh"
+#include "NOD_eval_log.hh"
 
 #include "UI_interface.hh"
 #include "UI_resources.hh"

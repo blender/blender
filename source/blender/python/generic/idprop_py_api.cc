@@ -253,6 +253,12 @@ static int BPy_IDGroup_SetData(BPy_IDProperty *self, IDProperty *prop, PyObject 
 }
 #endif
 
+PyDoc_STRVAR(
+    /* Wrap. */
+    BPy_IDGroup_GetName_doc,
+    "The name of this Group.\n"
+    "\n"
+    ":type: str\n");
 static PyObject *BPy_IDGroup_GetName(BPy_IDProperty *self, void * /*closure*/)
 {
   return PyUnicode_FromString(self->prop->name);
@@ -299,7 +305,7 @@ static PyGetSetDef BPy_IDGroup_getseters[] = {
     {"name",
      reinterpret_cast<getter>(BPy_IDGroup_GetName),
      reinterpret_cast<setter>(BPy_IDGroup_SetName),
-     "The name of this Group.",
+     BPy_IDGroup_GetName_doc,
      nullptr},
     {nullptr, nullptr, nullptr, nullptr, nullptr},
 };
@@ -957,13 +963,23 @@ static IDProperty *idp_from_PyMapping(IDProperty * /*prop_exist*/,
   PyObject *keys, *vals, *key, *pval;
   int i, len;
   /* yay! we get into recursive stuff now! */
+  len = PyMapping_Length(ob);
+  if (len == -1) {
+    return nullptr;
+  }
   keys = PyMapping_Keys(ob);
+  if (keys == nullptr) {
+    return nullptr;
+  }
   vals = PyMapping_Values(ob);
+  if (vals == nullptr) {
+    Py_DECREF(keys);
+    return nullptr;
+  }
 
   /* We allocate the group first; if we hit any invalid data,
    * we can delete it easily enough. */
   prop = bke::idprop::create_group(name).release();
-  len = PyMapping_Length(ob);
   for (i = 0; i < len; i++) {
     key = PySequence_GetItem(keys, i);
     pval = PySequence_GetItem(vals, i);
@@ -2200,7 +2216,9 @@ PyDoc_STRVAR(
     BPy_IDArray_get_typecode_doc,
     "The type of the data in the array "
     "{'f': float (32-bit), 'd': double (64-bit), 'i': int, 'b': bool}. "
-    "Both 'f' and 'd' use Python's :class:`float` type but differ in storage precision.");
+    "Both 'f' and 'd' use Python's :class:`float` type but differ in storage precision.\n"
+    "\n"
+    ":type: Literal['f', 'd', 'i', 'b']\n");
 static PyObject *BPy_IDArray_get_typecode(BPy_IDArray *self, void * /*closure*/)
 {
   const char *typecode;

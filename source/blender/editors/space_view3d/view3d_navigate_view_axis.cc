@@ -49,7 +49,7 @@ static wmOperatorStatus view_axis_exec(bContext *C, wmOperator *op)
   View3D *v3d;
   ARegion *region;
   RegionView3D *rv3d;
-  static int perspo = RV3D_PERSP;
+  static eRegionView3D_Persp perspo = RV3D_PERSP;
   int viewnum;
   int view_axis_roll = RV3D_VIEW_AXIS_ROLL_0;
   const int smooth_viewtx = WM_operator_smooth_viewtx_get(op);
@@ -117,7 +117,8 @@ static wmOperatorStatus view_axis_exec(bContext *C, wmOperator *op)
     for (int i = RV3D_VIEW_FRONT; i <= RV3D_VIEW_BOTTOM; i++) {
       for (int j = RV3D_VIEW_AXIS_ROLL_0; j <= RV3D_VIEW_AXIS_ROLL_270; j++) {
         float quat_axis[4];
-        ED_view3d_quat_from_axis_view(i, j, quat_axis);
+        ED_view3d_quat_from_axis_view(
+            eRegionView3D_View(i), eRegionView3D_ViewAxisRoll(j), quat_axis);
         if (align_quat) {
           mul_qt_qtqt(quat_axis, quat_axis, align_quat);
         }
@@ -147,11 +148,21 @@ static wmOperatorStatus view_axis_exec(bContext *C, wmOperator *op)
   }
 
   /* Use this to test if we started out with a camera */
-  const int nextperspo = (rv3d->persp == RV3D_CAMOB) ? rv3d->lpersp : perspo;
+  const eRegionView3D_Persp nextperspo = (rv3d->persp == RV3D_CAMOB) ? rv3d->lpersp : perspo;
   float quat[4];
-  ED_view3d_quat_from_axis_view(viewnum, view_axis_roll, quat);
-  axis_set_view(
-      C, v3d, region, quat, viewnum, view_axis_roll, nextperspo, align_quat, smooth_viewtx);
+  const eRegionView3D_View viewnum_enum = eRegionView3D_View(viewnum);
+  const eRegionView3D_ViewAxisRoll view_axis_roll_enum = eRegionView3D_ViewAxisRoll(
+      view_axis_roll);
+  ED_view3d_quat_from_axis_view(viewnum_enum, view_axis_roll_enum, quat);
+  axis_set_view(C,
+                v3d,
+                region,
+                quat,
+                viewnum_enum,
+                view_axis_roll_enum,
+                nextperspo,
+                align_quat,
+                smooth_viewtx);
 
   perspo = rv3d->persp;
 

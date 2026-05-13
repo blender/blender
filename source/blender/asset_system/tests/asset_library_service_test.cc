@@ -10,6 +10,7 @@
 
 #include "BKE_appdir.hh"
 #include "BKE_callbacks.hh"
+#include "BKE_gtest_base.hh"
 #include "BKE_main.hh"
 
 #include "DNA_asset_types.h"
@@ -22,21 +23,10 @@ namespace blender::asset_system::tests {
 
 const UUID UUID_POSES_ELLIE("df60e1f6-2259-475b-93d9-69a1b4a8db78");
 
-class AssetLibraryServiceTest : public testing::Test {
+class AssetLibraryServiceTest : public bke::BlenderGTestBase {
  public:
   CatalogFilePath asset_library_root_;
   CatalogFilePath temp_library_path_;
-
-  static void SetUpTestSuite()
-  {
-    CLG_init();
-    BKE_callback_global_init();
-  }
-  static void TearDownTestSuite()
-  {
-    CLG_exit();
-    BKE_callback_global_finalize();
-  }
 
   void SetUp() override
   {

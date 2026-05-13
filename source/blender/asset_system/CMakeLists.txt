@@ -88,6 +88,8 @@ if(WITH_GTESTS)
     tests/asset_library_service_test.cc
     tests/asset_library_test.cc
     tests/asset_representation_test.cc
+    tests/essentials_library_test.cc
+    tests/remote_library_test.cc
   )
   set(TEST_COMMON_SRC
     tests/asset_library_test_common.hh

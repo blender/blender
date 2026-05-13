@@ -203,6 +203,8 @@ float4 OCIO_ProcessColor(float4 col, float4 col_overlay)
   }
 #endif
 
+  col.a *= parameters.opacity;
+
 #ifdef OUTPUT_PREMULTIPLIED
   /* Note: do not premultiply with a=0 when input image was already
    * premultiplied; we want to preserve pure emissive colors (#141013).

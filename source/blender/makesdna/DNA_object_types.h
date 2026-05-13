@@ -52,14 +52,16 @@ struct bFaceMap;
 #define MAX_VGROUP_NAME 64
 
 /** #bDeformGroup::flag */
-enum {
+enum ebDeformGroup_Flag : char {
   DG_LOCK_WEIGHT = 1,
 };
+ENUM_OPERATORS(ebDeformGroup_Flag)
 
 /* **************** BASE ********************* */
 
 /** #Base::flag_legacy (also used for #Object::flag). */
-enum {
+enum eObject_Flag : short {
+  OB_SELECT = (1 << 0),
   BA_WAS_SEL = (1 << 1),
   /* NOTE: BA_HAS_RECALC_DATA can be re-used later if freed in `readfile.cc`. */
   // BA_HAS_RECALC_OB = 1 << 2, /* DEPRECATED */
@@ -87,11 +89,12 @@ enum {
   /** Used for the clipboard to mark the active object. */
   OB_FLAG_ACTIVE_CLIPBOARD = 1 << 12,
 };
+ENUM_OPERATORS(eObject_Flag)
 
 /* **************** OBJECT ********************* */
 
 /** #Object.type */
-enum ObjectType {
+enum ObjectType : short {
   OB_EMPTY = 0,
   OB_MESH = 1,
   /** Curve object is still used but replaced by "Curves" for the future (see #95355). */
@@ -125,18 +128,19 @@ enum ObjectType {
 };
 
 /** #Object.partype: first 4 bits: type. */
-enum {
-  PARTYPE = (1 << 4) - 1,
+enum eObject_Partype : short {
   PAROBJECT = 0,
   PARSKEL = 4,
   PARVERT1 = 5,
   PARVERT3 = 6,
   PARBONE = 7,
-
+  /** Mask for the parent type bits. */
+  PARTYPE = (1 << 4) - 1,
 };
+ENUM_OPERATORS(eObject_Partype)
 
 /** #Object.transflag (short) */
-enum {
+enum eObject_TransFlag : short {
   OB_TRANSFORM_ADJUST_ROOT_PARENT_FOR_VIEW_LOCK = 1 << 0,
   OB_TRANSFLAG_UNUSED_1 = 1 << 1, /* cleared */
   OB_NEG_SCALE = 1 << 2,
@@ -158,9 +162,10 @@ enum {
 
   OB_DUPLI = OB_DUPLIVERTS | OB_DUPLICOLLECTION | OB_DUPLIFACES | OB_DUPLIPARTS,
 };
+ENUM_OPERATORS(eObject_TransFlag)
 
 /** #Object.trackflag / #Object.upflag (short) */
-enum {
+enum eObject_Axis : short {
   OB_POSX = 0,
   OB_POSY = 1,
   OB_POSZ = 2,
@@ -170,7 +175,7 @@ enum {
 };
 
 /** #Object.dtx draw type extra flags (short) */
-enum {
+enum eObject_DrawExtraFlag : short {
   OB_DRAWBOUNDOX = 1 << 0,
   OB_AXIS = 1 << 1,
   OB_TEXSPACE = 1 << 2,
@@ -187,9 +192,10 @@ enum {
   /* Enable lights for grease pencil. */
   OB_USE_GPENCIL_LIGHTS = 1 << 10,
 };
+ENUM_OPERATORS(eObject_DrawExtraFlag)
 
 /** #Object.empty_drawtype: no flags */
-enum {
+enum eObject_EmptyDrawType : char {
   OB_ARROWS = 1,
   OB_PLAINAXES = 2,
   OB_CIRCLE = 3,
@@ -204,7 +210,7 @@ enum {
  * Grease-pencil add types.
  * TODO: doesn't need to be DNA, local to `OBJECT_OT_gpencil_add`.
  */
-enum {
+enum eGpencil_AddType : int {
   GP_EMPTY = 0,
   GP_STROKE = 1,
   GP_MONKEY = 2,
@@ -214,7 +220,7 @@ enum {
 };
 
 /** #Object.boundtype */
-enum {
+enum eObject_BoundType : char {
   OB_BOUND_BOX = 0,
   OB_BOUND_SPHERE = 1,
   OB_BOUND_CYLINDER = 2,
@@ -226,7 +232,7 @@ enum {
 };
 
 /** #Object.visibility_flag */
-enum {
+enum eObject_VisibilityFlag : short {
   OB_HIDE_VIEWPORT = 1 << 0,
   OB_HIDE_SELECT = 1 << 1,
   OB_HIDE_RENDER = 1 << 2,
@@ -243,18 +249,20 @@ enum {
   OB_HIDE_PROBE_PLANAR = 1 << 13,
   OB_HIDE_SURFACE_PICK = 1 << 14,
 };
+ENUM_OPERATORS(eObject_VisibilityFlag)
 
 /** #Object.shapeflag */
-enum {
+enum eObject_ShapeFlag : char {
   OB_SHAPE_LOCK = 1 << 0,
 #ifdef DNA_DEPRECATED_ALLOW
   OB_SHAPE_FLAG_UNUSED_1 = 1 << 1, /* cleared */
 #endif
   OB_SHAPE_EDIT_MODE = 1 << 2,
 };
+ENUM_OPERATORS(eObject_ShapeFlag)
 
 /** #Object.nlaflag */
-enum {
+enum eObject_NlaFlag : short {
   OB_ADS_UNUSED_1 = 1 << 0, /* cleared */
   OB_ADS_UNUSED_2 = 1 << 1, /* cleared */
   /* object-channel expanded status */
@@ -268,9 +276,10 @@ enum {
   /* object's particle channels */
   /* OB_ADS_SHOWPARTS = 1 << 14, */ /* UNUSED */
 };
+ENUM_OPERATORS(eObject_NlaFlag)
 
 /** #Object.protectflag */
-enum {
+enum eObject_ProtectFlag : short {
   OB_LOCK_LOCX = 1 << 0,
   OB_LOCK_LOCY = 1 << 1,
   OB_LOCK_LOCZ = 1 << 2,
@@ -286,44 +295,50 @@ enum {
   OB_LOCK_ROTW = 1 << 9,
   OB_LOCK_ROT4D = 1 << 10,
 };
+ENUM_OPERATORS(eObject_ProtectFlag)
 
 /** #Object.duplicator_visibility_flag */
-enum {
+enum eObject_DuplicatorVisibilityFlag : char {
   OB_DUPLI_FLAG_VIEWPORT = 1 << 0,
   OB_DUPLI_FLAG_RENDER = 1 << 1,
 };
+ENUM_OPERATORS(eObject_DuplicatorVisibilityFlag)
 
 /** #Object.empty_image_depth */
-enum {
+enum eObject_EmptyImageDepth : char {
   OB_EMPTY_IMAGE_DEPTH_DEFAULT = 0,
   OB_EMPTY_IMAGE_DEPTH_FRONT = 1,
   OB_EMPTY_IMAGE_DEPTH_BACK = 2,
 };
 
 /** #Object.empty_image_visibility_flag */
-enum {
+enum eObject_EmptyImageVisibilityFlag : char {
   OB_EMPTY_IMAGE_HIDE_PERSPECTIVE = 1 << 0,
   OB_EMPTY_IMAGE_HIDE_ORTHOGRAPHIC = 1 << 1,
   OB_EMPTY_IMAGE_HIDE_BACK = 1 << 2,
   OB_EMPTY_IMAGE_HIDE_FRONT = 1 << 3,
   OB_EMPTY_IMAGE_HIDE_NON_AXIS_ALIGNED = 1 << 4,
 };
+ENUM_OPERATORS(eObject_EmptyImageVisibilityFlag)
 
 /** #Object.empty_image_flag */
-enum {
+enum eObject_EmptyImageFlag : char {
   OB_EMPTY_IMAGE_USE_ALPHA_BLEND = 1 << 0,
 };
+ENUM_OPERATORS(eObject_EmptyImageFlag)
 
-enum ObjectModifierFlag {
+enum ObjectModifierFlag : uchar {
   OB_MODIFIER_FLAG_ADD_REST_POSITION = 1 << 0,
 };
+ENUM_OPERATORS(ObjectModifierFlag)
 
 /** Vertex Groups - Name Info */
 struct bDeformGroup {
   struct bDeformGroup *next = nullptr, *prev = nullptr;
   char name[/*MAX_VGROUP_NAME*/ 64] = "";
   /* need this flag for locking weights */
-  char flag = 0, _pad0[7] = {};
+  ebDeformGroup_Flag flag = {};
+  char _pad0[7] = {};
 };
 
 #ifdef DNA_DEPRECATED_ALLOW
@@ -363,7 +378,7 @@ struct BoundBox {
 /**
  * \warning while the values seem to be flags, they aren't treated as flags.
  */
-enum eObjectLineArt_Usage {
+enum eObjectLineArt_Usage : short {
   OBJECT_LRT_INHERIT = 0,
   OBJECT_LRT_INCLUDE = (1 << 0),
   OBJECT_LRT_OCCLUSION_ONLY = (1 << 1),
@@ -374,14 +389,15 @@ enum eObjectLineArt_Usage {
 };
 ENUM_OPERATORS(eObjectLineArt_Usage);
 
-enum eObjectLineArt_Flags {
+enum eObjectLineArt_Flags : short {
   OBJECT_LRT_OWN_CREASE = (1 << 0),
   OBJECT_LRT_OWN_INTERSECTION_PRIORITY = (1 << 1),
 };
+ENUM_OPERATORS(eObjectLineArt_Flags)
 
 struct ObjectLineArt {
-  short usage = 0;
-  short flags = 0;
+  eObjectLineArt_Usage usage = OBJECT_LRT_INHERIT;
+  eObjectLineArt_Flags flags = {};
 
   /** if OBJECT_LRT_OWN_CREASE is set */
   float crease_threshold = DEG2RAD(140.0f);
@@ -457,8 +473,8 @@ struct Object {
   /** Animation data (must be immediately after id for utilities to use it). */
   struct AnimData *adt = nullptr;
 
-  short type = OB_EMPTY; /* #ObjectType */
-  short partype = 0;
+  ObjectType type = OB_EMPTY;
+  eObject_Partype partype = PAROBJECT;
   /** Can be vertex indices. */
   int par1 = 0, par2 = 0, par3 = 0;
   /** String describing sub-object info. */
@@ -498,8 +514,8 @@ struct Object {
   ListBaseT<ShaderFxData> shader_fx = {nullptr, nullptr};
 
   /** Local object mode. */
-  int mode = 0;
-  int restore_mode = 0;
+  eObjectMode mode = OB_MODE_OBJECT;
+  eObjectMode restore_mode = OB_MODE_OBJECT;
 
   /* materials */
   /** Material slots. */
@@ -538,18 +554,20 @@ struct Object {
   DNA_DEPRECATED unsigned int lay = 0;
 
   /** Copy of Base. */
-  short flag = OB_FLAG_USE_SIMULATION_CACHE;
+  eObject_Flag flag = OB_FLAG_USE_SIMULATION_CACHE;
   /** Deprecated, use 'matbits'. */
   DNA_DEPRECATED short colbits = 0;
 
   /** Transformation settings and transform locks. */
-  short transflag = 0, protectflag = OB_LOCK_ROT4D;
-  short trackflag = 0, upflag = 0;
+  eObject_TransFlag transflag = {};
+  eObject_ProtectFlag protectflag = OB_LOCK_ROT4D;
+  eObject_Axis trackflag = OB_POSX, upflag = OB_POSY;
   /** Used for DopeSheet filtering settings (expanded/collapsed). */
-  short nlaflag = 0;
+  eObject_NlaFlag nlaflag = {};
 
   char _pad1 = {};
-  char duplicator_visibility_flag = OB_DUPLI_FLAG_VIEWPORT | OB_DUPLI_FLAG_RENDER;
+  eObject_DuplicatorVisibilityFlag duplicator_visibility_flag = OB_DUPLI_FLAG_VIEWPORT |
+                                                                OB_DUPLI_FLAG_RENDER;
 
   /* Depsgraph */
   /** Used by depsgraph, flushed from base. */
@@ -564,15 +582,15 @@ struct Object {
   short rotmode = ROT_MODE_EUL;
 
   /** Bounding box use for drawing. */
-  char boundtype = 0;
+  eObject_BoundType boundtype = OB_BOUND_BOX;
   /** Bounding box type used for collision. */
-  char collision_boundtype = 0;
+  eObject_BoundType collision_boundtype = OB_BOUND_BOX;
 
   /** Viewport draw extra settings. */
-  short dtx = 0;
+  eObject_DrawExtraFlag dtx = {};
   /** Viewport draw type. */
-  char dt = OB_TEXTURE;
-  char empty_drawtype = OB_PLAINAXES;
+  eDrawType dt = OB_TEXTURE;
+  eObject_EmptyDrawType empty_drawtype = OB_PLAINAXES;
   float empty_drawsize = 1.0;
   /** Dupliface scale. */
   float instance_faces_scale = 1;
@@ -590,12 +608,12 @@ struct Object {
   short softflag = 0;
 
   /** For restricting view, select, render etc. accessible in outliner. */
-  short visibility_flag = 0;
+  eObject_VisibilityFlag visibility_flag = {};
 
   /** Current shape key for menu or pinned. */
   short shapenr = 0;
   /** Flag for pinning. */
-  char shapeflag = 0;
+  eObject_ShapeFlag shapeflag = {};
 
   char _pad3[1] = {};
 
@@ -627,12 +645,11 @@ struct Object {
   float ima_ofs[2] = {-0.5, -0.5};
   /** Must be non-null when object is an empty image. */
   ImageUser *iuser = nullptr;
-  char empty_image_visibility_flag = 0;
-  char empty_image_depth = OB_EMPTY_IMAGE_DEPTH_DEFAULT;
-  char empty_image_flag = 0;
+  eObject_EmptyImageVisibilityFlag empty_image_visibility_flag = {};
+  eObject_EmptyImageDepth empty_image_depth = OB_EMPTY_IMAGE_DEPTH_DEFAULT;
+  eObject_EmptyImageFlag empty_image_flag = {};
 
-  /** ObjectModifierFlag */
-  uint8_t modifier_flag = 0;
+  ObjectModifierFlag modifier_flag = {};
 
   float shadow_terminator_normal_offset = 0;
   float shadow_terminator_geometry_offset = 0.1f;

@@ -81,7 +81,7 @@ ARegion *do_versions_add_region_if_not_found(ListBaseT<ARegion> *regionbase,
   }
 
   ARegion *new_region = BKE_area_region_new();
-  new_region->regiontype = region_type;
+  new_region->regiontype = eRegion_Type(region_type);
   BLI_insertlinkafter(regionbase, link_after_region, new_region);
   return new_region;
 }
@@ -102,7 +102,7 @@ ARegion *do_versions_ensure_region(ListBaseT<ARegion> *regionbase,
   }
 
   ARegion *new_region = BKE_area_region_new();
-  new_region->regiontype = region_type;
+  new_region->regiontype = eRegion_Type(region_type);
   BLI_insertlinkafter(regionbase, link_after_region, new_region);
   return new_region;
 }
@@ -405,7 +405,7 @@ bNodeSocket *version_node_add_socket_if_not_exist(bNodeTree *ntree,
                                                   const char *identifier,
                                                   const char *name)
 {
-  bNodeSocket *sock = bke::node_find_socket(*node, eNodeSocketInOut(in_out), identifier);
+  bNodeSocket *sock = bke::node_find_socket(*node, eNodeSocketInOut(in_out), UString(identifier));
   if (sock != nullptr) {
     return sock;
   }
@@ -493,7 +493,7 @@ void version_socket_update_is_used(bNodeTree *ntree)
 ARegion *do_versions_add_region(int regiontype, const char * /*name*/)
 {
   ARegion *region = BKE_area_region_new();
-  region->regiontype = regiontype;
+  region->regiontype = eRegion_Type(regiontype);
   return region;
 }
 
@@ -507,7 +507,8 @@ void node_tree_relink_with_socket_id_map(bNodeTree &ntree,
       bNodeSocket *old_socket = link.tosock;
       if (old_socket->is_available()) {
         if (const std::string *new_identifier = map.lookup_ptr_as(old_socket->identifier)) {
-          bNodeSocket *new_socket = bke::node_find_socket(*&new_node, SOCK_IN, *new_identifier);
+          bNodeSocket *new_socket = bke::node_find_socket(
+              *&new_node, SOCK_IN, UString(*new_identifier));
           link.tonode = &new_node;
           link.tosock = new_socket;
           old_socket->link = nullptr;
@@ -518,7 +519,8 @@ void node_tree_relink_with_socket_id_map(bNodeTree &ntree,
       bNodeSocket *old_socket = link.fromsock;
       if (old_socket->is_available()) {
         if (const std::string *new_identifier = map.lookup_ptr_as(old_socket->identifier)) {
-          bNodeSocket *new_socket = bke::node_find_socket(*&new_node, SOCK_OUT, *new_identifier);
+          bNodeSocket *new_socket = bke::node_find_socket(
+              *&new_node, SOCK_OUT, UString(*new_identifier));
           link.fromnode = &new_node;
           link.fromsock = new_socket;
           old_socket->link = nullptr;
@@ -673,7 +675,7 @@ void version_update_node_input(
    * Do this after the link update in case it changes the identifier. */
   for (bNode &node : ntree->nodes) {
     if (check_node(&node)) {
-      bNodeSocket *input = bke::node_find_socket(node, SOCK_IN, socket_identifier);
+      bNodeSocket *input = bke::node_find_socket(node, SOCK_IN, UString(socket_identifier));
       if (input != nullptr) {
         update_input(&node, input);
       }

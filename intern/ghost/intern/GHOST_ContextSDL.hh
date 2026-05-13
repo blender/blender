@@ -10,9 +10,7 @@
 
 #include "GHOST_Context.hh"
 
-extern "C" {
-#include "SDL.h"
-}
+#include <SDL3/SDL.h>
 
 #ifndef GHOST_OPENGL_SDL_CONTEXT_FLAGS
 #  ifdef WITH_GPU_DEBUG

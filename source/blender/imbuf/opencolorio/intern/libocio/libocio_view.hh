@@ -4,16 +4,14 @@
 
 #pragma once
 
-#if defined(WITH_OPENCOLORIO)
+#include "MEM_guardedalloc.h"
 
-#  include "MEM_guardedalloc.h"
+#include "BLI_string_ref.hh"
 
-#  include "BLI_string_ref.hh"
+#include "OCIO_scope.hh"
+#include "OCIO_view.hh"
 
-#  include "OCIO_scope.hh"
-#  include "OCIO_view.hh"
-
-#  include "libocio_colorspace.hh"
+#include "libocio_colorspace.hh"
 
 namespace blender::ocio {
 
@@ -106,5 +104,3 @@ class LibOCIOView : public View {
 };
 
 }  // namespace blender::ocio
-
-#endif

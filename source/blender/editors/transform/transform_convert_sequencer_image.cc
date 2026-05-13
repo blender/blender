@@ -50,7 +50,7 @@ struct TransDataSeq {
   float2 orig_translation;
   float2 orig_scale;
   float orig_rotation;
-  int orig_flag;
+  eStripFlag orig_flag;
   float active_seq_orig_rotation;
   float2 orig_mirror;
 };
@@ -398,11 +398,10 @@ static void special_aftertrans_update__sequencer_image(bContext *C, TransInfo *t
 
   TransDataContainer *tc = TRANS_DATA_CONTAINER_FIRST_SINGLE(t);
   TransData *td = nullptr;
-  TransData2D *td2d = nullptr;
   Scene *scene = CTX_data_sequencer_scene(C);
   int i;
 
-  for (i = 0, td = tc->data, td2d = tc->data_2d; i < tc->data_len; i += 3, td += 3, td2d += 3) {
+  for (i = 0, td = tc->data; i < tc->data_len; i += 3, td += 3) {
     TransDataSeq *tdseq = static_cast<TransDataSeq *>(td->extra);
     Strip *strip = tdseq->strip;
     StripTransform *transform = strip->data->transform;

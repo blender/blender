@@ -70,7 +70,7 @@ static float vfont_metrics_descent(const VFontData_Metrics *metrics)
 
 static VFont *vfont_from_charinfo(const Curve &cu, const CharInfo *info)
 {
-  switch (info->flag & (CU_CHINFO_BOLD | CU_CHINFO_ITALIC)) {
+  switch (int(info->flag & (CU_CHINFO_BOLD | CU_CHINFO_ITALIC))) {
     case CU_CHINFO_BOLD:
       return cu.vfontb ? cu.vfontb : cu.vfont;
     case CU_CHINFO_ITALIC:

@@ -528,7 +528,7 @@ void apply_gizmo_change(
     bContext &C,
     Object &object,
     NodesModifierData &nmd,
-    geo_eval_log::GeoNodesLog &eval_log,
+    eval_log::NodesEvalLog &eval_log,
     const ComputeContext &gizmo_context,
     const bNodeSocket &gizmo_socket,
     const FunctionRef<void(bke::SocketValueVariant &value)> apply_on_gizmo_value_fn)
@@ -536,7 +536,7 @@ void apply_gizmo_change(
   Vector<ie::SocketToUpdate> sockets_to_update;
 
   const bNodeTree &gizmo_node_tree = gizmo_socket.owner_tree();
-  geo_eval_log::GeoTreeLog &gizmo_tree_log = eval_log.get_tree_log(gizmo_context.hash());
+  eval_log::NodeTreeLog &gizmo_tree_log = eval_log.get_tree_log(gizmo_context.hash());
 
   /* Gather all sockets to update together with their new values. */
   for (const bNodeLink *link : gizmo_socket.directly_linked_links()) {

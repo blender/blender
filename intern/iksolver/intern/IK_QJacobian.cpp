@@ -172,7 +172,7 @@ void IK_QJacobian::SubTask(IK_QJacobian &jacobian)
   // doesn't work well at all
   int i;
   for (i = 0; i < m_d_theta.size(); i++) {
-    m_d_theta[i] = m_d_theta[i] + /*m_min_damp * */ jacobian.AngleUpdate(i);
+    m_d_theta[i] = m_d_theta[i] + /* `m_min_damp *` */ jacobian.AngleUpdate(i);
   }
 }
 

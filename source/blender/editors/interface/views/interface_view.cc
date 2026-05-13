@@ -252,7 +252,12 @@ void region_view_scroll_at_borders(bContext *C, wmDropBox &dropbox, const wmEven
   float x = event->xy[0], y = event->xy[1];
   window_to_block_fl(region, block, &x, &y);
 
-  std::optional<rcti> bounds = view->get_bounds();
+  const std::optional<rcti> bounds = view->get_bounds();
+  if (!bounds.has_value()) {
+    WM_event_timer_remove(wm, window, dropbox.timer);
+    dropbox.timer = nullptr;
+    return;
+  }
 
   const float margin = UI_UNIT_Y * 1 / 3;
   const std::optional<ViewScrollDirection> scroll_dir =
@@ -293,9 +298,9 @@ AbstractViewItem *region_views_find_item_at(const ARegion &region, const int xy[
   return item_but->view_item;
 }
 
-AbstractViewItem *region_views_find_active_item(const ARegion *region)
+AbstractViewItem *region_views_find_active_item(const ARegion *region, const AbstractView *view)
 {
-  auto *item_but = static_cast<ButtonViewItem *>(view_item_find_active(region));
+  auto *item_but = static_cast<ButtonViewItem *>(view_item_find_active(region, view));
   if (!item_but) {
     return nullptr;
   }

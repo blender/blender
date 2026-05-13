@@ -171,6 +171,13 @@ class MagicFunction : public mf::MultiFunction {
       });
     }
   }
+
+  void hash_unique(UniqueHashBytes &hash) const override
+  {
+    static constexpr int8_t id = 0;
+    hash.add(&id);
+    hash.add(depth_);
+  }
 };
 
 static void sh_node_magic_tex_build_multi_function(NodeMultiFunctionBuilder &builder)

@@ -92,7 +92,7 @@ static void remove_attributes_recursive(GeometrySet &geometry_set, RemoveAttribu
       }
     }
     if (attributes_to_remove.is_empty()) {
-      break;
+      continue;
     }
 
     GeometryComponent &component = geometry_set.get_component_for_write(type);

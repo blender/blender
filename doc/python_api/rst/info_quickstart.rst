@@ -268,7 +268,7 @@ For example, calling ``bpy.ops.view3d.render_border()`` from the console raises 
 
 In this case the context must be the 3D Viewport with an active camera.
 
-To avoid using try-except clauses wherever operators are called, you can call the operators
+To avoid using try-except clauses wherever operators are called, you can call the operator's
 own ``poll()`` function to check if it can run the operator in the current context.
 
 .. code-block:: python

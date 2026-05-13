@@ -36,6 +36,11 @@ struct TimeMarker;
 struct bAction;
 struct bActionGroup;
 
+enum eInsertKeyFlags : short;
+enum eKSP_Grouping : short;
+enum eKSP_Settings : short;
+enum eKS_Settings : short;
+
 /** Container for data required to do FCurve and Driver evaluation. */
 struct AnimationEvalContext {
   /* For drivers, so that they have access to the dependency graph and the current view layer. See
@@ -63,8 +68,8 @@ AnimationEvalContext BKE_animsys_eval_context_construct_at(
 struct KeyingSet *BKE_keyingset_add(ListBaseT<KeyingSet> *list,
                                     const char idname[],
                                     const char name[],
-                                    short flag,
-                                    short keyingflag);
+                                    eKS_Settings flag,
+                                    eInsertKeyFlags keyingflag);
 
 /**
  * Add a path to a KeyingSet. Nothing is returned for now.
@@ -75,8 +80,8 @@ struct KS_Path *BKE_keyingset_add_path(struct KeyingSet *ks,
                                        const char group_name[],
                                        const char rna_path[],
                                        int array_index,
-                                       short flag,
-                                       short groupmode);
+                                       eKSP_Settings flag,
+                                       eKSP_Grouping groupmode);
 
 /**
  * Find the destination matching the criteria given.

@@ -601,6 +601,12 @@ static PyMethodDef py_blf_bind_imbuf_methods[] = {
 #  endif
 #endif
 
+PyDoc_STRVAR(
+    /* Wrap. */
+    BPyBLFImBufContext_Type_doc,
+    "Context manager returned by :func:`blf.bind_imbuf` that binds an image buffer\n"
+    "as the destination for text drawing.");
+
 static PyTypeObject BPyBLFImBufContext_Type = {
     /*ob_base*/ PyVarObject_HEAD_INIT(nullptr, 0)
     /*tp_name*/ "BLFImBufContext",
@@ -622,7 +628,7 @@ static PyTypeObject BPyBLFImBufContext_Type = {
     /*tp_setattro*/ nullptr,
     /*tp_as_buffer*/ nullptr,
     /*tp_flags*/ Py_TPFLAGS_DEFAULT | Py_TPFLAGS_HAVE_GC,
-    /*tp_doc*/ nullptr,
+    /*tp_doc*/ BPyBLFImBufContext_Type_doc,
     /*tp_traverse*/ reinterpret_cast<traverseproc>(py_blf_bind_imbuf_traverse),
     /*tp_clear*/ reinterpret_cast<inquiry>(py_blf_bind_imbuf_clear),
     /*tp_richcompare*/ nullptr,
@@ -653,8 +659,6 @@ static PyTypeObject BPyBLFImBufContext_Type = {
     /*tp_vectorcall*/ nullptr,
 };
 
-/* NOTE(@ideasman42): `BLFImBufContext` isn't accessible from (without creating an instance),
- * it should be exposed although it doesn't seem especially important either. */
 PyDoc_STRVAR(
     /* Wrap. */
     py_blf_bind_imbuf_doc,
@@ -672,7 +676,7 @@ PyDoc_STRVAR(
     "   :type display_name: str | None\n"
 
     "   :return: The BLF ImBuf context manager.\n"
-    "   :rtype: BLFImBufContext\n");
+    "   :rtype: :class:`blf.types.BLFImBufContext`\n");
 static PyObject *py_blf_bind_imbuf(PyObject * /*self*/, PyObject *args, PyObject *kwds)
 {
   int fontid;
@@ -788,20 +792,61 @@ static PyModuleDef BLF_module_def = {
     /*m_free*/ nullptr,
 };
 
-PyObject *BPyInit_blf()
+/* -------------------------------------------------------------------- */
+/** \name Module Definition (`blf.types`)
+ * \{ */
+
+PyDoc_STRVAR(
+    /* Wrap. */
+    BLF_types_doc,
+    "This module provides access to font drawing types.");
+static PyModuleDef BLF_types_module_def = {
+    /*m_base*/ PyModuleDef_HEAD_INIT,
+    /*m_name*/ "blf.types",
+    /*m_doc*/ BLF_types_doc,
+    /*m_size*/ 0,
+    /*m_methods*/ nullptr,
+    /*m_slots*/ nullptr,
+    /*m_traverse*/ nullptr,
+    /*m_clear*/ nullptr,
+    /*m_free*/ nullptr,
+};
+
+static PyObject *BPyInit_blf_types()
 {
-  PyObject *submodule;
+  PyObject *submodule = PyModule_Create(&BLF_types_module_def);
 
-  submodule = PyModule_Create(&BLF_module_def);
+  if (PyType_Ready(&BPyBLFImBufContext_Type) < 0) {
+    return nullptr;
+  }
 
-  PyModule_AddIntConstant(submodule, "ROTATION", BLF_ROTATION);
-  PyModule_AddIntConstant(submodule, "CLIPPING", BLF_CLIPPING);
-  PyModule_AddIntConstant(submodule, "SHADOW", BLF_SHADOW);
-  PyModule_AddIntConstant(submodule, "WORD_WRAP", BLF_WORD_WRAP);
-  PyModule_AddIntConstant(submodule, "MONOCHROME", BLF_MONOCHROME);
-  PyModule_AddIntConstant(submodule, "NO_FALLBACK", BLF_NO_FALLBACK);
+  PyModule_AddType(submodule, &BPyBLFImBufContext_Type);
 
   return submodule;
+}
+
+/** \} */
+
+PyObject *BPyInit_blf()
+{
+  PyObject *mod;
+  PyObject *submodule;
+  PyObject *sys_modules = PyImport_GetModuleDict();
+
+  mod = PyModule_Create(&BLF_module_def);
+
+  PyModule_AddIntConstant(mod, "ROTATION", BLF_ROTATION);
+  PyModule_AddIntConstant(mod, "CLIPPING", BLF_CLIPPING);
+  PyModule_AddIntConstant(mod, "SHADOW", BLF_SHADOW);
+  PyModule_AddIntConstant(mod, "WORD_WRAP", BLF_WORD_WRAP);
+  PyModule_AddIntConstant(mod, "MONOCHROME", BLF_MONOCHROME);
+  PyModule_AddIntConstant(mod, "NO_FALLBACK", BLF_NO_FALLBACK);
+
+  /* `blf.types` */
+  PyModule_AddObject(mod, "types", (submodule = BPyInit_blf_types()));
+  PyC_Module_AddToSysModules(sys_modules, submodule);
+
+  return mod;
 }
 
 }  // namespace blender

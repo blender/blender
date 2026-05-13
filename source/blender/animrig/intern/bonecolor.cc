@@ -87,12 +87,12 @@ uint64_t BoneColor::hash() const
   return get_default_hash(hash_solid, hash_select, hash_active, custom.flag);
 }
 
-const BoneColor &ANIM_bonecolor_posebone_get(const bPoseChannel *pose_bone)
+const BoneColor &ANIM_bonecolor_posebone_get(const bke::PChanBoneConst pchanbone)
 {
-  if (pose_bone->color.palette_index == 0) {
-    return pose_bone->bone->color.wrap();
+  if (pchanbone.pchan->color.palette_index == 0) {
+    return pchanbone.bone->color.wrap();
   }
-  return pose_bone->color.wrap();
+  return pchanbone.pchan->color.wrap();
 }
 
 };  // namespace blender::animrig

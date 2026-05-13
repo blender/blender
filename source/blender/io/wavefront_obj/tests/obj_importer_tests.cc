@@ -8,20 +8,22 @@
 
 #include "BLI_string.h"
 
+#include "BKE_gtest_base.hh"
+
 #include "CLG_log.h"
 
 #include "obj_import_file_reader.hh"
 
 namespace blender::io::obj {
 
+class OBJImportTest : public bke::BlenderGTestBase {};
+
 /* Extensive tests for OBJ importing are in `io_obj_import_test.py`.
  * The tests here are only for testing OBJ reader buffer refill behavior,
  * by using a very small buffer size on purpose. */
 
-TEST(obj_import, BufferRefillTest)
+TEST_F(OBJImportTest, BufferRefillTest)
 {
-  CLG_init();
-
   OBJImportParams params;
   /* nurbs_cyclic.obj file has quite long lines, good to test read buffer refill. */
   std::string obj_path = tests::flags_test_asset_dir() + SEP_STR "io_tests" SEP_STR "obj" SEP_STR +
@@ -41,8 +43,6 @@ TEST(obj_import, BufferRefillTest)
   EXPECT_EQ(28, global_vertices.vertices.size());
   EXPECT_EQ(31, all_geometries[0]->nurbs_element_.curv_indices.size());
   EXPECT_EQ(35, all_geometries[0]->nurbs_element_.parm.size());
-
-  CLG_exit();
 }
 
 }  // namespace blender::io::obj

@@ -75,7 +75,7 @@ static void node_update(bNodeTree *ntree, bNode *node)
 
 static void int_math_input_defaults(bNode &node, const NodeIntegerMathOperation operation)
 {
-  bNodeSocket *socket_2 = bke::node_find_socket(node, SOCK_IN, "Value_001");
+  bNodeSocket *socket_2 = bke::node_find_socket(node, SOCK_IN, "Value_001"_ustr);
   BLI_assert(socket_2 != nullptr);
   int &value_2 = socket_2->default_value_typed<bNodeSocketValueInt>()->value;
 

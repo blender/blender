@@ -12,6 +12,8 @@
 #include "DNA_defs.h"
 #include "DNA_key_types.h"
 
+#include "BLI_enum_flags.hh"
+
 namespace blender {
 
 struct AnimData;
@@ -24,12 +26,13 @@ struct LatticeBatchCache;
 }
 
 /** #Lattice::flag */
-enum {
+enum eLattice_Flag : short {
   LT_GRID = 1 << 0,
   LT_OUTSIDE = 1 << 1,
 
   LT_DS_EXPAND = 1 << 2,
 };
+ENUM_OPERATORS(eLattice_Flag)
 
 #define LT_ACTBP_NONE -1
 
@@ -59,7 +62,8 @@ struct Lattice {
   ID id;
   struct AnimData *adt = nullptr;
 
-  short pntsu = 0, pntsv = 0, pntsw = 0, flag = LT_GRID;
+  short pntsu = 0, pntsv = 0, pntsw = 0;
+  eLattice_Flag flag = LT_GRID;
   short opntsu = 0, opntsv = 0, opntsw = 0;
   char _pad2[3] = {};
   /* KeyInterpolationType */

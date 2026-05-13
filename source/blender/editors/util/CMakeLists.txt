@@ -80,6 +80,7 @@ set(SRC
   ../include/ED_text.hh
   ../include/ED_time_scrub_ui.hh
   ../include/ED_transform.hh
+  ../include/ED_transformable.hh
   ../include/ED_transform_snap_object_context.hh
   ../include/ED_transverts.hh
   ../include/ED_undo.hh

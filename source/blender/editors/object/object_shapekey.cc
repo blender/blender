@@ -914,6 +914,8 @@ static wmOperatorStatus shape_key_make_basis_exec(bContext *C, wmOperator * /*op
     case OB_LATTICE:
       BKE_keyblock_convert_to_lattice(new_basis_key, id_cast<Lattice *>(ob->data));
       break;
+    default:
+      break;
   }
 
   DEG_id_tag_update(&ob->id, ID_RECALC_GEOMETRY);

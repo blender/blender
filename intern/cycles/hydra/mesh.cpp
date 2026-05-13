@@ -55,7 +55,8 @@ VtValue ComputeTriangulatedFaceVaryingPrimvar(VtValue value,
                                               HdMeshUtil &meshUtil)
 {
   if (meshUtil.ComputeTriangulatedFaceVaryingPrimvar(
-          HdGetValueData(value), value.GetArraySize(), valueType, &value))
+          HdGetValueData(value), value.GetArraySize(), valueType, &value) !=
+      HdMeshComputationResult::Error)
   {
     return value;
   }

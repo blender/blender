@@ -49,39 +49,6 @@ template<class TContainer> bool begins_with(const TContainer &input, const TCont
   return input.size() >= match.size() && std::equal(match.begin(), match.end(), input.begin());
 }
 
-template<typename Schema>
-void get_min_max_time_ex(const Schema &schema, chrono_t &min, chrono_t &max)
-{
-  const Alembic::Abc::TimeSamplingPtr &time_samp = schema.getTimeSampling();
-
-  if (!schema.isConstant()) {
-    const size_t num_samps = schema.getNumSamples();
-
-    if (num_samps > 0) {
-      const chrono_t min_time = time_samp->getSampleTime(0);
-      min = std::min(min, min_time);
-
-      const chrono_t max_time = time_samp->getSampleTime(num_samps - 1);
-      max = std::max(max, max_time);
-    }
-  }
-}
-
-template<typename Schema>
-void get_min_max_time(const Alembic::AbcGeom::IObject &object,
-                      const Schema &schema,
-                      chrono_t &min,
-                      chrono_t &max)
-{
-  get_min_max_time_ex(schema, min, max);
-
-  const Alembic::AbcGeom::IObject &parent = object.getParent();
-  if (parent.valid() && Alembic::AbcGeom::IXform::matches(parent.getMetaData())) {
-    Alembic::AbcGeom::IXform xform(parent, Alembic::AbcGeom::kWrapExisting);
-    get_min_max_time_ex(xform.getSchema(), min, max);
-  }
-}
-
 bool has_property(const Alembic::Abc::ICompoundProperty &prop, const std::string &name);
 V3fArraySamplePtr get_velocity_prop(const Alembic::Abc::ICompoundProperty &schema,
                                     const Alembic::AbcGeom::ISampleSelector &selector,

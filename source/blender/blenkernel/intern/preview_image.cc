@@ -460,7 +460,7 @@ ImBuf *BKE_previewimg_to_imbuf(const PreviewImage *prv, const int size)
 
   if (w > 0 && h > 0 && rect) {
     /* first allocate imbuf for copying preview into it */
-    ima = IMB_allocImBuf(w, h, 32, IB_byte_data);
+    ima = IMB_allocImBuf(w, h, IB_byte_data);
     memcpy(ima->byte_data_for_write(), rect, w * h * sizeof(uint8_t) * 4);
   }
 
@@ -581,7 +581,10 @@ void BKE_previewimg_blend_read(BlendDataReader *reader, PreviewImage *prv)
 
   for (int i = 0; i < NUM_ICON_SIZES; i++) {
     if (prv->rect[i]) {
-      BLO_read_uint32_array(reader, prv->w[i] * prv->h[i], &prv->rect[i]);
+      if (!BLO_read_array(reader, &prv->rect[i], int64_t(prv->w[i]) * prv->h[i])) {
+        prv->w[i] = 0;
+        prv->h[i] = 0;
+      }
     }
 
     /* PRV_RENDERING is a runtime only flag currently, but for undo indicates that we need

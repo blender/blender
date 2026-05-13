@@ -11,28 +11,6 @@ index a15c179..4760e63 100644
    SET(CMAKE_CXX_FLAGS_SYCL "${CMAKE_CXX_FLAGS_SYCL} -Wno-mismatched-tags -Wno-pessimizing-move -Wno-reorder -Wno-unneeded-internal-declaration -Wno-delete-non-abstract-non-virtual-dtor -Wno-dangling-field -Wno-unknown-pragmas -Wno-logical-op-parentheses")
    
    IF (SYCL_ONEAPI_ICX AND WIN32)
-diff --git a/common/simd/arm/sse2neon.h b/common/simd/arm/sse2neon.h
-index b18d41e..35e50a6 100644
---- a/common/simd/arm/sse2neon.h
-+++ b/common/simd/arm/sse2neon.h
-@@ -9038,7 +9038,7 @@ FORCE_INLINE int _sse2neon_sido_negative(int res, int lb, int imm8, int bound)
- FORCE_INLINE int _sse2neon_clz(unsigned int x)
- {
- #if _MSC_VER
--    DWORD cnt = 0;
-+    unsigned long cnt = 0;
-     if (_BitScanForward(&cnt, x))
-         return cnt;
-     return 32;
-@@ -9050,7 +9050,7 @@ FORCE_INLINE int _sse2neon_clz(unsigned int x)
- FORCE_INLINE int _sse2neon_ctz(unsigned int x)
- {
- #if _MSC_VER
--    DWORD cnt = 0;
-+    unsigned long cnt = 0;
-     if (_BitScanReverse(&cnt, x))
-         return 31 - cnt;
-     return 32;
 diff --git a/kernels/CMakeLists.txt b/kernels/CMakeLists.txt
 index b827807..648603a 100644
 --- a/kernels/CMakeLists.txt
@@ -59,25 +37,3 @@ index b827807..648603a 100644
    DISABLE_STACK_PROTECTOR_FOR_INTERSECTORS(${EMBREE_LIBRARY_FILES_AVX2})
    ADD_LIBRARY(embree_avx2 STATIC ${EMBREE_LIBRARY_FILES_AVX2})
    TARGET_LINK_LIBRARIES(embree_avx2 PRIVATE tasking)
-diff --git a/kernels/sycl/rthwif_embree.cpp b/kernels/sycl/rthwif_embree.cpp
-index 00a581b..a58f3a2 100644
---- a/kernels/sycl/rthwif_embree.cpp
-+++ b/kernels/sycl/rthwif_embree.cpp
-@@ -713,13 +713,14 @@
-   if (valid)
-   {
-     float t = intel_get_hit_distance(query, intel_hit_type_committed_hit);
--    float2 uv = intel_get_hit_barycentrics (query, intel_hit_type_committed_hit);
-+    float2 uv(ray.u, ray.v);
-     unsigned int geomID = intel_get_hit_geometry_id(query, intel_hit_type_committed_hit);
- 
-     unsigned int primID = ray.primID;
--    if (intel_get_hit_candidate(query, intel_hit_type_committed_hit) == intel_candidate_type_triangle)
-+    if (intel_get_hit_candidate(query, intel_hit_type_committed_hit) == intel_candidate_type_triangle) {
-       primID = intel_get_hit_triangle_primitive_id(query, intel_hit_type_committed_hit);
--      
-+      uv = intel_get_hit_barycentrics (query, intel_hit_type_committed_hit);
-+    }
-     rayhit_i->ray.tfar = t;
-     rayhit_i->hit.geomID = geomID;
-     rayhit_i->hit.primID = primID;

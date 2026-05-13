@@ -78,8 +78,8 @@ static void version_composite_nodetree_null_id(bNodeTree *ntree, Scene *scene)
 /* Move bone-group color to the individual bones. */
 static void version_bonegroup_migrate_color(Main *bmain)
 {
-  using PoseSet = Set<bPose *>;
-  Map<bArmature *, PoseSet> armature_poses;
+  using PoseObSet = Set<Object *>;
+  Map<bArmature *, PoseObSet> armature_poses;
 
   /* Gather a mapping from armature to the poses that use it. */
   for (Object &ob : bmain->objects) {
@@ -96,19 +96,20 @@ static void version_bonegroup_migrate_color(Main *bmain)
      * NOTE: No need to handle user reference-counting in readfile code. */
     BKE_pose_ensure(bmain, &ob, arm, false);
 
-    PoseSet &pose_set = armature_poses.lookup_or_add_default(arm);
-    pose_set.add(ob.pose);
+    PoseObSet &pose_set = armature_poses.lookup_or_add_default(arm);
+    pose_set.add(&ob);
   }
 
   /* Move colors from the pose's bone-group to either the armature bones or the
    * pose bones, depending on how many poses use the Armature. */
-  for (const PoseSet &pose_set : armature_poses.values()) {
+  for (const PoseObSet &pose_set : armature_poses.values()) {
     /* If the Armature is shared, the bone group colors might be different, and thus they have to
      * be stored on the pose bones. If the Armature is NOT shared, the bone colors can be stored
      * directly on the Armature bones. */
     const bool store_on_armature = pose_set.size() == 1;
 
-    for (bPose *pose : pose_set) {
+    for (Object *pose_ob : pose_set) {
+      bPose *pose = pose_ob->pose;
       for (bPoseChannel &pchan : pose->chanbase) {
         const bActionGroup *bgrp = static_cast<const bActionGroup *>(
             BLI_findlink(&pose->agroups, (pchan.agrp_index - 1)));
@@ -116,7 +117,7 @@ static void version_bonegroup_migrate_color(Main *bmain)
           continue;
         }
 
-        BoneColor &bone_color = store_on_armature ? pchan.bone->color : pchan.color;
+        BoneColor &bone_color = store_on_armature ? pchan.bone_get(*pose_ob)->color : pchan.color;
         bone_color.palette_index = bgrp->customCol;
         memcpy(&bone_color.custom, &bgrp->cs, sizeof(bone_color.custom));
       }
@@ -220,7 +221,7 @@ static void version_bonegroups_to_bonecollections(Main *bmain)
 
       /* Assign the bone. */
       BoneCollection *bcoll = collections_by_group.lookup(bgrp);
-      ANIM_armature_bonecoll_assign(bcoll, pchan.bone);
+      ANIM_armature_bonecoll_assign(bcoll, pchan.bone_get(ob));
     }
 
     /* The list of bone groups (pose->agroups) is intentionally left alone here. This will allow
@@ -523,7 +524,7 @@ static void version_mesh_crease_generic(Main &bmain)
         if (STR_ELEM(
                 node.idname, "GeometryNodeStoreNamedAttribute", "GeometryNodeInputNamedAttribute"))
         {
-          bNodeSocket *socket = bke::node_find_socket(node, SOCK_IN, "Name");
+          bNodeSocket *socket = bke::node_find_socket(node, SOCK_IN, "Name"_ustr);
           if (STREQ(socket->default_value_typed<bNodeSocketValueString>()->value, "crease")) {
             STRNCPY_UTF8(socket->default_value_typed<bNodeSocketValueString>()->value,
                          "crease_edge");
@@ -569,11 +570,11 @@ static void version_replace_texcoord_normal_socket(bNodeTree *ntree)
     {
       if (geometry_node == nullptr) {
         geometry_node = bke::node_add_static_node(nullptr, *ntree, SH_NODE_NEW_GEOMETRY);
-        incoming_socket = bke::node_find_socket(*geometry_node, SOCK_OUT, "Incoming");
+        incoming_socket = bke::node_find_socket(*geometry_node, SOCK_OUT, "Incoming"_ustr);
 
         transform_node = bke::node_add_static_node(nullptr, *ntree, SH_NODE_VECT_TRANSFORM);
-        vec_in_socket = bke::node_find_socket(*transform_node, SOCK_IN, "Vector");
-        vec_out_socket = bke::node_find_socket(*transform_node, SOCK_OUT, "Vector");
+        vec_in_socket = bke::node_find_socket(*transform_node, SOCK_IN, "Vector"_ustr);
+        vec_out_socket = bke::node_find_socket(*transform_node, SOCK_OUT, "Vector"_ustr);
 
         NodeShaderVectTransform *nodeprop = static_cast<NodeShaderVectTransform *>(
             transform_node->storage);
@@ -612,7 +613,7 @@ static void version_principled_transmission_roughness(bNodeTree *ntree)
     if (node.type_legacy != SH_NODE_BSDF_PRINCIPLED) {
       continue;
     }
-    bNodeSocket *sock = bke::node_find_socket(node, SOCK_IN, "Transmission Roughness");
+    bNodeSocket *sock = bke::node_find_socket(node, SOCK_IN, "Transmission Roughness"_ustr);
     if (sock != nullptr) {
       bke::node_remove_socket(*ntree, node, *sock);
     }
@@ -626,7 +627,7 @@ static void version_replace_velvet_sheen_node(bNodeTree *ntree)
     if (node.type_legacy == SH_NODE_BSDF_SHEEN) {
       STRNCPY_UTF8(node.idname, "ShaderNodeBsdfSheen");
 
-      bNodeSocket *sigmaInput = bke::node_find_socket(node, SOCK_IN, "Sigma");
+      bNodeSocket *sigmaInput = bke::node_find_socket(node, SOCK_IN, "Sigma"_ustr);
       if (sigmaInput != nullptr) {
         node.custom1 = SHD_SHEEN_ASHIKHMIN;
         version_node_socket_identifier_set(*sigmaInput, "Roughness");
@@ -641,7 +642,7 @@ static void version_principled_bsdf_sheen(bNodeTree *ntree)
 {
   auto check_node = [](const bNode *node) {
     return (node->type_legacy == SH_NODE_BSDF_PRINCIPLED) &&
-           (bke::node_find_socket(*node, SOCK_IN, "Sheen Roughness") == nullptr);
+           (bke::node_find_socket(*node, SOCK_IN, "Sheen Roughness"_ustr) == nullptr);
   };
   auto update_input = [ntree](bNode *node, bNodeSocket *input) {
     /* Change socket type to Color. */
@@ -650,7 +651,7 @@ static void version_principled_bsdf_sheen(bNodeTree *ntree)
     /* Account for the change in intensity between the old and new model.
      * If the Sheen input is set to a fixed value, adjust it and set the tint to white.
      * Otherwise, if it's connected, keep it as-is but set the tint to 0.2 instead. */
-    bNodeSocket *sheen = bke::node_find_socket(*node, SOCK_IN, "Sheen");
+    bNodeSocket *sheen = bke::node_find_socket(*node, SOCK_IN, "Sheen"_ustr);
     if (sheen != nullptr && sheen->link == nullptr) {
       *version_cycles_node_socket_float_value(sheen) *= 0.2f;
 
@@ -753,14 +754,14 @@ static void version_principled_bsdf_coat(bNodeTree *ntree)
     if (node.type_legacy != SH_NODE_BSDF_PRINCIPLED) {
       continue;
     }
-    if (bke::node_find_socket(node, SOCK_IN, "Coat IOR") != nullptr) {
+    if (bke::node_find_socket(node, SOCK_IN, "Coat IOR"_ustr) != nullptr) {
       continue;
     }
     bNodeSocket *coat_ior_input = bke::node_add_static_socket(
         *ntree, node, SOCK_IN, SOCK_FLOAT, PROP_NONE, "Coat IOR", "Coat IOR");
 
     /* Adjust for 4x change in intensity. */
-    bNodeSocket *coat_input = bke::node_find_socket(node, SOCK_IN, "Clearcoat");
+    bNodeSocket *coat_input = bke::node_find_socket(node, SOCK_IN, "Clearcoat"_ustr);
     *version_cycles_node_socket_float_value(coat_input) *= 0.25f;
     /* When the coat input is dynamic, instead of inserting a *0.25 math node, set the Coat IOR
      * to 1.2 instead - this also roughly quarters reflectivity compared to the 1.5 default. */
@@ -790,7 +791,7 @@ static void version_principled_bsdf_subsurface(bNodeTree *ntree)
     if (node.type_legacy != SH_NODE_BSDF_PRINCIPLED) {
       continue;
     }
-    if (bke::node_find_socket(node, SOCK_IN, "Subsurface Scale")) {
+    if (bke::node_find_socket(node, SOCK_IN, "Subsurface Scale"_ustr)) {
       /* Node is already updated. */
       continue;
     }
@@ -799,7 +800,7 @@ static void version_principled_bsdf_subsurface(bNodeTree *ntree)
     bNodeSocket *scale_in = bke::node_add_static_socket(
         *ntree, node, SOCK_IN, SOCK_FLOAT, PROP_DISTANCE, "Subsurface Scale", "Subsurface Scale");
 
-    bNodeSocket *subsurf = bke::node_find_socket(node, SOCK_IN, "Subsurface");
+    bNodeSocket *subsurf = bke::node_find_socket(node, SOCK_IN, "Subsurface"_ustr);
     float *subsurf_val = version_cycles_node_socket_float_value(subsurf);
 
     if (!subsurf->link && *subsurf_val == 0.0f) {
@@ -815,8 +816,8 @@ static void version_principled_bsdf_subsurface(bNodeTree *ntree)
     }
 
     /* Fix up Subsurface Color input */
-    bNodeSocket *base_col = bke::node_find_socket(node, SOCK_IN, "Base Color");
-    bNodeSocket *subsurf_col = bke::node_find_socket(node, SOCK_IN, "Subsurface Color");
+    bNodeSocket *base_col = bke::node_find_socket(node, SOCK_IN, "Base Color"_ustr);
+    bNodeSocket *subsurf_col = bke::node_find_socket(node, SOCK_IN, "Subsurface Color"_ustr);
     float *base_col_val = version_cycles_node_socket_rgba_value(base_col);
     float *subsurf_col_val = version_cycles_node_socket_rgba_value(subsurf_col);
     /* If any of the three inputs is dynamic, we need a Mix node. */
@@ -826,10 +827,10 @@ static void version_principled_bsdf_subsurface(bNodeTree *ntree)
       mix->locx_legacy = node.locx_legacy - 170;
       mix->locy_legacy = node.locy_legacy - 120;
 
-      bNodeSocket *a_in = bke::node_find_socket(*mix, SOCK_IN, "A_Color");
-      bNodeSocket *b_in = bke::node_find_socket(*mix, SOCK_IN, "B_Color");
-      bNodeSocket *fac_in = bke::node_find_socket(*mix, SOCK_IN, "Factor_Float");
-      bNodeSocket *result_out = bke::node_find_socket(*mix, SOCK_OUT, "Result_Color");
+      bNodeSocket *a_in = bke::node_find_socket(*mix, SOCK_IN, "A_Color"_ustr);
+      bNodeSocket *b_in = bke::node_find_socket(*mix, SOCK_IN, "B_Color"_ustr);
+      bNodeSocket *fac_in = bke::node_find_socket(*mix, SOCK_IN, "Factor_Float"_ustr);
+      bNodeSocket *result_out = bke::node_find_socket(*mix, SOCK_OUT, "Result_Color"_ustr);
 
       copy_v4_v4(version_cycles_node_socket_rgba_value(a_in), base_col_val);
       copy_v4_v4(version_cycles_node_socket_rgba_value(b_in), subsurf_col_val);
@@ -878,11 +879,11 @@ static void version_principled_bsdf_emission(bNodeTree *ntree)
     if (node.type_legacy != SH_NODE_BSDF_PRINCIPLED) {
       continue;
     }
-    if (!bke::node_find_socket(node, SOCK_IN, "Emission")) {
+    if (!bke::node_find_socket(node, SOCK_IN, "Emission"_ustr)) {
       /* Old enough to have neither, new defaults are fine. */
       continue;
     }
-    if (bke::node_find_socket(node, SOCK_IN, "Emission Strength")) {
+    if (bke::node_find_socket(node, SOCK_IN, "Emission Strength"_ustr)) {
       /* New enough to have both, no need to do anything. */
       continue;
     }
@@ -1042,14 +1043,14 @@ static void version_principled_bsdf_specular_tint(bNodeTree *ntree)
     if (node.type_legacy != SH_NODE_BSDF_PRINCIPLED) {
       continue;
     }
-    bNodeSocket *specular_tint_sock = bke::node_find_socket(node, SOCK_IN, "Specular Tint");
+    bNodeSocket *specular_tint_sock = bke::node_find_socket(node, SOCK_IN, "Specular Tint"_ustr);
     if (specular_tint_sock->type == SOCK_RGBA) {
       /* Node is already updated. */
       continue;
     }
 
-    bNodeSocket *base_color_sock = bke::node_find_socket(node, SOCK_IN, "Base Color");
-    bNodeSocket *metallic_sock = bke::node_find_socket(node, SOCK_IN, "Metallic");
+    bNodeSocket *base_color_sock = bke::node_find_socket(node, SOCK_IN, "Base Color"_ustr);
+    bNodeSocket *metallic_sock = bke::node_find_socket(node, SOCK_IN, "Metallic"_ustr);
     float specular_tint_old = *version_cycles_node_socket_float_value(specular_tint_sock);
     float *base_color = version_cycles_node_socket_rgba_value(base_color_sock);
     float metallic = *version_cycles_node_socket_float_value(metallic_sock);
@@ -1088,10 +1089,10 @@ static void version_principled_bsdf_specular_tint(bNodeTree *ntree)
       mix->locx_legacy = node.locx_legacy - 270;
       mix->locy_legacy = node.locy_legacy - 120;
 
-      bNodeSocket *a_in = bke::node_find_socket(*mix, SOCK_IN, "A_Color");
-      bNodeSocket *b_in = bke::node_find_socket(*mix, SOCK_IN, "B_Color");
-      bNodeSocket *fac_in = bke::node_find_socket(*mix, SOCK_IN, "Factor_Float");
-      metallic_mix_out = bke::node_find_socket(*mix, SOCK_OUT, "Result_Color");
+      bNodeSocket *a_in = bke::node_find_socket(*mix, SOCK_IN, "A_Color"_ustr);
+      bNodeSocket *b_in = bke::node_find_socket(*mix, SOCK_IN, "B_Color"_ustr);
+      bNodeSocket *fac_in = bke::node_find_socket(*mix, SOCK_IN, "Factor_Float"_ustr);
+      metallic_mix_out = bke::node_find_socket(*mix, SOCK_OUT, "Result_Color"_ustr);
       metallic_mix_node = mix;
 
       copy_v4_v4(version_cycles_node_socket_rgba_value(a_in), base_color);
@@ -1123,10 +1124,10 @@ static void version_principled_bsdf_specular_tint(bNodeTree *ntree)
       mix->locx_legacy = node.locx_legacy - 170;
       mix->locy_legacy = node.locy_legacy - 120;
 
-      bNodeSocket *a_in = bke::node_find_socket(*mix, SOCK_IN, "A_Color");
-      bNodeSocket *b_in = bke::node_find_socket(*mix, SOCK_IN, "B_Color");
-      bNodeSocket *fac_in = bke::node_find_socket(*mix, SOCK_IN, "Factor_Float");
-      bNodeSocket *result_out = bke::node_find_socket(*mix, SOCK_OUT, "Result_Color");
+      bNodeSocket *a_in = bke::node_find_socket(*mix, SOCK_IN, "A_Color"_ustr);
+      bNodeSocket *b_in = bke::node_find_socket(*mix, SOCK_IN, "B_Color"_ustr);
+      bNodeSocket *fac_in = bke::node_find_socket(*mix, SOCK_IN, "Factor_Float"_ustr);
+      bNodeSocket *result_out = bke::node_find_socket(*mix, SOCK_OUT, "Result_Color"_ustr);
 
       copy_v4_v4(version_cycles_node_socket_rgba_value(a_in), one);
       copy_v4_v4(version_cycles_node_socket_rgba_value(b_in), metallic_mix);
@@ -1212,8 +1213,8 @@ void blo_do_versions_400(FileData *fd, Library * /*lib*/, Main *bmain)
 
 #define SCE_SNAP_PROJECT (1 << 3)
       if (ts->snap_flag & SCE_SNAP_PROJECT) {
-        ts->snap_mode &= ~(1 << 2); /* SCE_SNAP_TO_FACE */
-        ts->snap_mode |= (1 << 8);  /* SCE_SNAP_INDIVIDUAL_PROJECT */
+        ts->snap_mode &= ~eSnapMode(1 << 2); /* SCE_SNAP_TO_FACE */
+        ts->snap_mode |= eSnapMode(1 << 8);  /* SCE_SNAP_INDIVIDUAL_PROJECT */
       }
 #undef SCE_SNAP_PROJECT
     }
@@ -1427,8 +1428,8 @@ void blo_do_versions_400(FileData *fd, Library * /*lib*/, Main *bmain)
       for (Camera &camera : bmain->cameras) {
         IDProperty *ccam = version_cycles_properties_from_ID(&camera.id);
         if (ccam) {
-          camera.panorama_type = version_cycles_property_int(
-              ccam, "panorama_type", default_cam.panorama_type);
+          camera.panorama_type = eCamera_PanoType(
+              version_cycles_property_int(ccam, "panorama_type", default_cam.panorama_type));
           camera.fisheye_fov = version_cycles_property_float(
               ccam, "fisheye_fov", default_cam.fisheye_fov);
           camera.fisheye_lens = version_cycles_property_float(
@@ -1487,7 +1488,7 @@ void blo_do_versions_400(FileData *fd, Library * /*lib*/, Main *bmain)
 
     for (Scene &scene : bmain->scenes) {
       scene.toolsettings->snap_flag_anim |= SCE_SNAP;
-      scene.toolsettings->snap_anim_mode |= (1 << 10); /* SCE_SNAP_TO_FRAME */
+      scene.toolsettings->snap_anim_mode |= eSnapMode(1 << 10); /* SCE_SNAP_TO_FRAME */
     }
   }
 

@@ -76,6 +76,7 @@ void main()
         gp_mat.stroke_color, vert_color, vert_strength, gp_mat._stroke_texture_mix);
 
     gp_interp_flat.mat_flag = gp_flag & ~GP_FILL_FLAGS;
+    gp_interp_flat.mat_flag |= uint(point_data1.mat + gp_material_offset) << GPENCIL_MATID_SHIFT;
 
     if (gp_stroke_order3d) {
       /* Use the fragment depth (see fragment shader). */

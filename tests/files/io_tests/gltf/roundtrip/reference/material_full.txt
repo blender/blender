@@ -12,6 +12,7 @@ None
     "KHR_materials_volume",
     "KHR_materials_sheen",
     "KHR_materials_anisotropy",
+    "KHR_materials_dispersion",
     "KHR_materials_ior",
     "KHR_texture_transform"
   ],
@@ -424,6 +425,9 @@ None
           "anisotropyTexture": {
             "index": 5
           }
+        },
+        "KHR_materials_dispersion": {
+          "dispersion": 0.2
         },
         "KHR_materials_ior": {
           "ior": 1.2

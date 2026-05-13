@@ -5,8 +5,7 @@
 #include "BLI_array_utils.hh"
 
 #include "BKE_curves.hh"
-#include "BKE_idtype.hh"
-#include "BKE_lib_id.hh"
+#include "BKE_gtest_base.hh"
 
 #include "GEO_interpolate_curves.hh"
 
@@ -14,7 +13,7 @@
 
 namespace blender::bke::tests {
 
-class GreasePencilInterpolate : public testing::Test {
+class GreasePencilInterpolate : public BlenderGTestBase {
  public:
   enum class TestCurveShape {
     Zero,

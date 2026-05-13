@@ -908,7 +908,7 @@ float ED_view3d_radius_to_dist_ortho(float lens, float radius);
 float ED_view3d_radius_to_dist(const View3D *v3d,
                                const ARegion *region,
                                const Depsgraph *depsgraph,
-                               char persp,
+                               eRegionView3D_Persp persp,
                                bool use_aspect,
                                float radius);
 
@@ -1007,7 +1007,9 @@ enum class eV3DSelectShape {
   CIRCLE,
 };
 
-eV3DSelectObjectFilter ED_view3d_select_filter_from_mode(const Scene *scene, const Object *obact);
+eV3DSelectObjectFilter ED_view3d_select_filter_from_mode(const Scene *scene,
+                                                         const View3D *v3d,
+                                                         const Object *obact);
 
 /**
  * Optionally cache data for multiple calls to #view3d_gpu_select
@@ -1139,7 +1141,6 @@ void ED_view3d_draw_setup_view(const wmWindowManager *wm,
  * `mval` comes from event->mval, only use within region handlers.
  */
 Base *ED_view3d_give_base_under_cursor(bContext *C, const int mval[2]);
-Base *ED_view3d_give_base_under_cursor_skip_editmode(bContext *C, const int mval[2]);
 Object *ED_view3d_give_object_under_cursor(bContext *C, const int mval[2]);
 Object *ED_view3d_give_material_slot_under_cursor(bContext *C,
                                                   const int mval[2],
@@ -1160,11 +1161,13 @@ void ED_view3d_update_viewmat(const Depsgraph *depsgraph,
                               const float winmat[4][4],
                               const rcti *rect,
                               bool offscreen);
-bool ED_view3d_quat_from_axis_view(char view, char view_axis_roll, float r_quat[4]);
+bool ED_view3d_quat_from_axis_view(eRegionView3D_View view,
+                                   eRegionView3D_ViewAxisRoll view_axis_roll,
+                                   float r_quat[4]);
 bool ED_view3d_quat_to_axis_view(const float quat[4],
                                  float epsilon,
-                                 char *r_view,
-                                 char *r_view_axis_roll);
+                                 eRegionView3D_View *r_view,
+                                 eRegionView3D_ViewAxisRoll *r_view_axis_roll);
 /**
  * A version of #ED_view3d_quat_to_axis_view that updates `quat`
  * if it's within `epsilon` to an axis-view.
@@ -1173,11 +1176,11 @@ bool ED_view3d_quat_to_axis_view(const float quat[4],
  */
 bool ED_view3d_quat_to_axis_view_and_reset_quat(float quat[4],
                                                 float epsilon,
-                                                char *r_view,
-                                                char *r_view_axis_roll);
+                                                eRegionView3D_View *r_view,
+                                                eRegionView3D_ViewAxisRoll *r_view_axis_roll);
 
-char ED_view3d_lock_view_from_index(int index);
-char ED_view3d_axis_view_opposite(char view);
+eRegionView3D_View ED_view3d_lock_view_from_index(int index);
+eRegionView3D_View ED_view3d_axis_view_opposite(eRegionView3D_View view);
 bool ED_view3d_lock(RegionView3D *rv3d);
 
 void ED_view3d_datamask(const Main &bmain,
@@ -1205,7 +1208,7 @@ bool ED_view3d_offset_lock_check(const View3D *v3d, const RegionView3D *rv3d);
 void ED_view3d_persp_switch_from_camera(const Depsgraph *depsgraph,
                                         View3D *v3d,
                                         RegionView3D *rv3d,
-                                        char persp);
+                                        eRegionView3D_Persp persp);
 /**
  * Action to take when rotating the view,
  * handle auto-perspective and logic for switching out of views.

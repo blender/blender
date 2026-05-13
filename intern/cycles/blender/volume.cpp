@@ -13,6 +13,8 @@
 #include "util/log.h"
 #include "util/vector.h"
 
+#include "BLI_bounds.hh"
+
 #include "BKE_volume.hh"
 #include "BKE_volume_grid.hh"
 
@@ -240,6 +242,19 @@ static void sync_smoke_volume(blender::Scene &b_scene,
 
     attr->data_voxel_for_write() = scene->image_manager->add_image(std::move(loader), params);
   }
+
+  /* Create a matrix to transform from object space to normalized texture space [0, 1]. */
+  if (volume->need_attribute(scene, ATTR_STD_GENERATED_TRANSFORM)) {
+    const blender::Mesh &b_mesh = *blender::id_cast<const blender::Mesh *>(b_ob_info.object_data);
+
+    float3 loc;
+    float3 size;
+    mesh_texture_space(b_mesh, loc, size);
+
+    Attribute *attr = volume->attributes.add(ATTR_STD_GENERATED_TRANSFORM);
+    Transform *tfm = attr->data_transform_for_write();
+    *tfm = transform_translate(-loc) * transform_scale(size);
+  }
 }
 
 class BlenderVolumeLoader : public VDBImageLoader {
@@ -383,6 +398,19 @@ static void sync_volume_object(blender::Main &b_data,
     }
   }
 #endif
+
+  /* Create a matrix to transform from object space to normalized texture space [0, 1]. */
+  if (volume->need_attribute(scene, ATTR_STD_GENERATED_TRANSFORM)) {
+    std::optional<const blender::Bounds<blender::float3>> bounds = BKE_volume_min_max(&b_volume);
+
+    const blender::float3 size = bounds->size();
+    const float3 loc = make_float3(bounds->min[0], bounds->min[1], bounds->min[2]);
+    const float3 inv_size = safe_divide(one_float3(), make_float3(size[0], size[1], size[2]));
+
+    Attribute *attr = volume->attributes.add(ATTR_STD_GENERATED_TRANSFORM);
+    Transform *tfm = attr->data_transform_for_write();
+    *tfm = transform_scale(inv_size) * transform_translate(-loc);
+  }
 }
 
 void BlenderSync::sync_volume(BObjectInfo &b_ob_info, Volume *volume)

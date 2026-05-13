@@ -47,7 +47,7 @@ PyDoc_STRVAR(
 static PyObject *pygpu_init(PyObject * /*self*/)
 {
   if (!G.background || GPU_is_init()) {
-    /* GPU is already initialized.*/
+    /* GPU is already initialized. */
     Py_RETURN_NONE;
   }
 

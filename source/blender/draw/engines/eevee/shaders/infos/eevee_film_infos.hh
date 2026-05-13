@@ -53,6 +53,8 @@ GPU_SHADER_CREATE_END()
 
 GPU_SHADER_CREATE_INFO(eevee_film_frag)
 DO_STATIC_COMPILATION()
+/* True if we bypass the accumulation and directly output the accumulation buffer. */
+PUSH_CONSTANT(bool, display_only)
 FRAGMENT_OUT(0, float4, out_color)
 FRAGMENT_SOURCE("eevee_film_frag.glsl")
 ADDITIONAL_INFO(eevee_fullscreen)

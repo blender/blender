@@ -907,7 +907,7 @@ static StringRef template_id_browse_tip(const StructRNA *type)
       case ID_WS:
         return N_("Browse Workspace to be linked");
       case ID_LP:
-        return N_("Browse LightProbe to be linked");
+        return N_("Browse Light Probe to be linked");
       case ID_CV:
         return N_("Browse Curves Data to be linked");
       case ID_PT:

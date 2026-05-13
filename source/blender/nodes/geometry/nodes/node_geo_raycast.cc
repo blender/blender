@@ -227,6 +227,13 @@ class RaycastFunction : public mf::MultiFunction {
                     params.uninitialized_single_output_if_required<float3>(5, "Hit Normal"),
                     params.uninitialized_single_output_if_required<float>(6, "Distance"));
   }
+
+  void hash_unique(UniqueHashBytes &hash) const override
+  {
+    static constexpr int8_t id = 0;
+    hash.add(&id);
+    hash.add(target_.get_mesh());
+  }
 };
 
 static void node_geo_exec(GeoNodeExecParams params)

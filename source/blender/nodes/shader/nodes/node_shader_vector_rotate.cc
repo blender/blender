@@ -211,13 +211,13 @@ static void sh_node_vector_rotate_build_multi_function(NodeMultiFunctionBuilder 
 
 static void node_shader_update_vector_rotate(bNodeTree *ntree, bNode *node)
 {
-  bNodeSocket *sock_rotation = bke::node_find_socket(*node, SOCK_IN, "Rotation");
+  bNodeSocket *sock_rotation = bke::node_find_socket(*node, SOCK_IN, "Rotation"_ustr);
   bke::node_set_socket_availability(
       *ntree, *sock_rotation, ELEM(node->custom1, NODE_VECTOR_ROTATE_TYPE_EULER_XYZ));
-  bNodeSocket *sock_axis = bke::node_find_socket(*node, SOCK_IN, "Axis");
+  bNodeSocket *sock_axis = bke::node_find_socket(*node, SOCK_IN, "Axis"_ustr);
   bke::node_set_socket_availability(
       *ntree, *sock_axis, ELEM(node->custom1, NODE_VECTOR_ROTATE_TYPE_AXIS));
-  bNodeSocket *sock_angle = bke::node_find_socket(*node, SOCK_IN, "Angle");
+  bNodeSocket *sock_angle = bke::node_find_socket(*node, SOCK_IN, "Angle"_ustr);
   bke::node_set_socket_availability(
       *ntree, *sock_angle, !ELEM(node->custom1, NODE_VECTOR_ROTATE_TYPE_EULER_XYZ));
 }

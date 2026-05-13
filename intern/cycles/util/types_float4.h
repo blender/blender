@@ -140,7 +140,7 @@ ccl_device_inline void print_float4(const ccl_private char *label, const float4 
 /* Metal has native packed_float4. */
 #else
 struct packed_float4 {
-  ccl_device_inline_method packed_float4() = default;
+  packed_float4() = default;
 
   ccl_device_inline_method packed_float4(const float4 a) : x(a.x), y(a.y), z(a.z), w(a.w) {}
 

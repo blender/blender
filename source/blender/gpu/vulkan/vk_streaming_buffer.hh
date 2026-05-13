@@ -33,7 +33,7 @@ class VKStreamingBuffer {
   VkBuffer vk_buffer_dst_;
   /** Size of 'vk_buffer_dst_' */
   VkDeviceSize vk_buffer_size_;
-  /**Current offset in the host buffer where new data will be stored. */
+  /** Current offset in the host buffer where new data will be stored. */
   VkDeviceSize offset_ = 0;
   /**
    * Render graph node handle for the copy of the host buffer to vk_buffer_dst_. Used to update the

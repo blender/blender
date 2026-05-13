@@ -665,7 +665,6 @@ static void flushTransSeq(TransInfo *t)
 
   TransDataContainer *tc = TRANS_DATA_CONTAINER_FIRST_SINGLE(t);
   TransData *td = tc->data;
-  TransData2D *td2d = tc->data_2d;
 
   /* This is calculated for offsetting animation of effects that change position with inputs.
    * Maximum(positive or negative) value is used, because individual strips can be clamped. This
@@ -680,7 +679,7 @@ static void flushTransSeq(TransInfo *t)
   view2d_edge_pan_loc_compensate(t, edge_pan_offset);
 
   /* Flush to 2D vector from internally used 3D vector. */
-  for (int a = 0; a < tc->data_len; a++, td++, td2d++) {
+  for (int a = 0; a < tc->data_len; a++, td++) {
     TransDataSeq *tdsq = static_cast<TransDataSeq *>(td->extra);
     Strip *strip = tdsq->strip;
 

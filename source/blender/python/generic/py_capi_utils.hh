@@ -528,4 +528,18 @@ struct PyC_StringEnum {
  */
 [[nodiscard]] bool PyC_Dict_CheckKeysAreStrings(PyObject *dict);
 
+/**
+ * Create a `memoryview` from the contents of `info`,
+ * similar to #PyMemoryView_FromBuffer.
+ *
+ * Unlike #PyMemoryView_FromBuffer the returned `memoryview` takes ownership of `info->buf`:
+ * when the last reference to the `memoryview`
+ * (or any `memoryview` derived from it via `cast()` / slicing) is released,
+ * the buffer is freed with #MEM_delete_void.
+ *
+ * \return A new `memoryview` reference, or null with an exception set on failure.
+ * `info->buf` is freed even when the function returns null.
+ */
+[[nodiscard]] PyObject *PyC_MemoryView_FromBufferOwned(const Py_buffer *info);
+
 }  // namespace blender

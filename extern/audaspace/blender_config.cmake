@@ -40,9 +40,9 @@ set(PYTHONLIBS_FOUND TRUE)
 set(NUMPY_FOUND ${WITH_PYTHON_NUMPY})
 set(NUMPY_INCLUDE_DIRS ${PYTHON_NUMPY_INCLUDE_DIRS})
 
-set(SDL_FOUND ${WITH_SDL})
+set(SDL_FOUND ${WITH_SDL_AUDIO})
 if(SDL_FOUND)
-  set(USE_SDL2 TRUE)
-  # This probably shouldn't be used, but it is.
-  set(SDL_LIBRARY "${SDL2_LIBRARY}")
+  set(USE_SDL3 TRUE)
+  set(SDL_LIBRARY bf::dependencies::optional::sdl)
+  get_target_property(SDL_INCLUDE_DIR SDL3::Headers INTERFACE_INCLUDE_DIRECTORIES)
 endif()

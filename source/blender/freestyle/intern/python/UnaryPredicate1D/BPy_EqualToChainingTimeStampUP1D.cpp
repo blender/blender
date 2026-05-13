@@ -26,7 +26,7 @@ PyDoc_STRVAR(
     "\n"
     "   Builds a EqualToChainingTimeStampUP1D object.\n"
     "\n"
-    "   :arg ts: A time stamp value.\n"
+    "   :param ts: A time stamp value.\n"
     "   :type ts: int\n"
     "\n"
     ".. method:: __call__(inter)\n"
@@ -34,7 +34,7 @@ PyDoc_STRVAR(
     "   Returns true if the Interface1D's time stamp is equal to a certain\n"
     "   user-defined value.\n"
     "\n"
-    "   :arg inter: An Interface1D object.\n"
+    "   :param inter: An Interface1D object.\n"
     "   :type inter: :class:`freestyle.types.Interface1D`\n"
     "   :return: True if the time stamp is equal to a user-defined value.\n"
     "   :rtype: bool\n");

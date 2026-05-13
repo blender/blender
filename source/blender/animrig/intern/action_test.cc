@@ -7,6 +7,7 @@
 #include "BKE_action.hh"
 #include "BKE_anim_data.hh"
 #include "BKE_fcurve.hh"
+#include "BKE_gtest_base.hh"
 #include "BKE_idtype.hh"
 #include "BKE_lib_id.hh"
 #include "BKE_main.hh"
@@ -16,24 +17,21 @@
 #include "DNA_object_types.h"
 
 #include "RNA_access.hh"
-#include "RNA_define.hh"
-#include "RNA_prototypes.hh"
 
-#include "BLI_listbase.h"
 #include "BLI_string.h"
 #include "BLI_string_utf8.h"
-#include "BLI_string_utils.hh"
 
 #include "DEG_depsgraph_build.hh"
 
 #include <limits>
 
-#include "CLG_log.h"
 #include "testing/testing.h"
 
 namespace blender::animrig::tests {
 
-TEST(action, low_level_initialisation)
+class ActionTest : public bke::BlenderGTestBase {};
+
+TEST_F(ActionTest, low_level_initialisation)
 {
   bAction *action = BKE_id_new_nomain<bAction>("NewAction");
 
@@ -43,30 +41,13 @@ TEST(action, low_level_initialisation)
   BKE_id_free(nullptr, action);
 }
 
-class ActionLayersTest : public testing::Test {
+class ActionLayersTest : public bke::BlenderGTestBase {
  public:
   Main *bmain;
   Action *action;
   Object *cube;
   Object *suzanne;
   Object *bob;
-
-  static void SetUpTestSuite()
-  {
-    /* BKE_id_free() hits a code path that uses CLOG, which crashes if not initialized properly. */
-    CLG_init();
-
-    /* To make id_can_have_animdata() and friends work, the `id_types` array needs to be set up. */
-    BKE_idtype_init();
-
-    RNA_init();
-  }
-
-  static void TearDownTestSuite()
-  {
-    CLG_exit();
-    RNA_exit();
-  }
 
   void SetUp() override
   {
@@ -1277,23 +1258,9 @@ static void add_fcurve_to_action(Action &action, FCurve &fcu)
   cbag.fcurve_append(fcu);
 }
 
-class ActionQueryTest : public testing::Test {
+class ActionQueryTest : public bke::BlenderGTestBase {
  public:
   Main *bmain;
-
-  static void SetUpTestSuite()
-  {
-    /* BKE_id_free() hits a code path that uses CLOG, which crashes if not initialized properly. */
-    CLG_init();
-
-    /* To make id_can_have_animdata() and friends work, the `id_types` array needs to be set up. */
-    BKE_idtype_init();
-  }
-
-  static void TearDownTestSuite()
-  {
-    CLG_exit();
-  }
 
   void SetUp() override
   {
@@ -1431,13 +1398,9 @@ TEST_F(ActionQueryTest, action_has_single_frame)
 
 /*-----------------------------------------------------------*/
 
-class ChannelbagTest : public testing::Test {
+class ChannelbagTest : public bke::BlenderGTestBase {
  public:
   Channelbag *channelbag;
-
-  static void SetUpTestSuite() {}
-
-  static void TearDownTestSuite() {}
 
   void SetUp() override
   {
@@ -2139,23 +2102,9 @@ TEST_F(ChannelbagTest, channel_group_fcurve_ungroup)
 
 /*-----------------------------------------------------------*/
 
-class ActionFCurveMoveTest : public testing::Test {
+class ActionFCurveMoveTest : public bke::BlenderGTestBase {
  public:
   Main *bmain;
-
-  static void SetUpTestSuite()
-  {
-    /* BKE_id_free() hits a code path that uses CLOG, which crashes if not initialized properly. */
-    CLG_init();
-
-    /* To make id_can_have_animdata() and friends work, the `id_types` array needs to be set up. */
-    BKE_idtype_init();
-  }
-
-  static void TearDownTestSuite()
-  {
-    CLG_exit();
-  }
 
   void SetUp() override
   {

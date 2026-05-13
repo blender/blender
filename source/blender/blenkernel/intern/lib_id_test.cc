@@ -7,6 +7,7 @@
 #include "BLI_string.h"
 #include "BLI_string_ref.hh"
 
+#include "BKE_gtest_base.hh"
 #include "BKE_idtype.hh"
 #include "BKE_lib_id.hh"
 #include "BKE_main.hh"
@@ -23,7 +24,6 @@ struct LibIDMainSortTestContext {
 
   LibIDMainSortTestContext()
   {
-    BKE_idtype_init();
     bmain = BKE_main_new();
   }
   ~LibIDMainSortTestContext()
@@ -45,7 +45,9 @@ static void test_lib_id_main_sort_check_order(std::initializer_list<ID *> list)
   EXPECT_EQ(prev_id->next, nullptr);
 }
 
-TEST(lib_id_main_sort, local_ids_1)
+class LibIDMainSortTest : public BlenderGTestBase {};
+
+TEST_F(LibIDMainSortTest, local_ids_1)
 {
   LibIDMainSortTestContext ctx;
   EXPECT_TRUE(BLI_listbase_is_empty(&ctx.bmain->libraries));
@@ -75,7 +77,7 @@ static IDNewNameResult change_name(Main *bmain, ID *id, const char *name, const 
   return BKE_libblock_rename(*bmain, *id, name, mode);
 }
 
-TEST(lib_id_main_sort, linked_ids_1)
+TEST_F(LibIDMainSortTest, linked_ids_1)
 {
   LibIDMainSortTestContext ctx;
   EXPECT_TRUE(BLI_listbase_is_empty(&ctx.bmain->libraries));
@@ -111,7 +113,9 @@ TEST(lib_id_main_sort, linked_ids_1)
   EXPECT_EQ(ctx.bmain->name_map_global, nullptr);
 }
 
-TEST(lib_id_main_unique_name, local_ids_rename_existing_never)
+class LibIDMainUniqueNameTest : public BlenderGTestBase {};
+
+TEST_F(LibIDMainUniqueNameTest, local_ids_rename_existing_never)
 {
   LibIDMainSortTestContext ctx;
   EXPECT_TRUE(BLI_listbase_is_empty(&ctx.bmain->libraries));
@@ -188,7 +192,7 @@ TEST(lib_id_main_unique_name, local_ids_rename_existing_never)
   EXPECT_STREQ(future_name, long_name_shorten);
 }
 
-TEST(lib_id_main_unique_name, local_ids_rename_existing_always)
+TEST_F(LibIDMainUniqueNameTest, local_ids_rename_existing_always)
 {
   LibIDMainSortTestContext ctx;
   EXPECT_TRUE(BLI_listbase_is_empty(&ctx.bmain->libraries));
@@ -231,7 +235,7 @@ TEST(lib_id_main_unique_name, local_ids_rename_existing_always)
   EXPECT_EQ(ctx.bmain->name_map_global, nullptr);
 }
 
-TEST(lib_id_main_unique_name, local_ids_rename_existing_same_root)
+TEST_F(LibIDMainUniqueNameTest, local_ids_rename_existing_same_root)
 {
   LibIDMainSortTestContext ctx;
   EXPECT_TRUE(BLI_listbase_is_empty(&ctx.bmain->libraries));
@@ -275,7 +279,7 @@ TEST(lib_id_main_unique_name, local_ids_rename_existing_same_root)
   EXPECT_EQ(ctx.bmain->name_map_global, nullptr);
 }
 
-TEST(lib_id_main_unique_name, linked_ids_1)
+TEST_F(LibIDMainUniqueNameTest, linked_ids_1)
 {
   LibIDMainSortTestContext ctx;
   EXPECT_TRUE(BLI_listbase_is_empty(&ctx.bmain->libraries));
@@ -326,7 +330,9 @@ static void change_name_global(Main *bmain, ID *id, const char *name)
   id_sort_by_name(&bmain->objects.cast<ID>(), id, nullptr);
 }
 
-TEST(lib_id_main_global_unique_name, linked_ids_1)
+class LibIDMainGlobalUniqueNameTest : public BlenderGTestBase {};
+
+TEST_F(LibIDMainGlobalUniqueNameTest, linked_ids_1)
 {
   LibIDMainSortTestContext ctx;
   EXPECT_TRUE(BLI_listbase_is_empty(&ctx.bmain->libraries));
@@ -381,7 +387,7 @@ TEST(lib_id_main_global_unique_name, linked_ids_1)
   EXPECT_TRUE(BKE_main_namemap_validate(*ctx.bmain));
 }
 
-TEST(lib_id_main_unique_name, ids_sorted_by_default)
+TEST_F(LibIDMainUniqueNameTest, ids_sorted_by_default)
 {
   LibIDMainSortTestContext ctx;
 
@@ -404,7 +410,7 @@ static ID *add_id_in_library(Main *bmain, const char *name, Library *lib)
   return id;
 }
 
-TEST(lib_id_main_unique_name, ids_sorted_by_default_with_libraries)
+TEST_F(LibIDMainUniqueNameTest, ids_sorted_by_default_with_libraries)
 {
   LibIDMainSortTestContext ctx;
 
@@ -428,7 +434,7 @@ TEST(lib_id_main_unique_name, ids_sorted_by_default_with_libraries)
   EXPECT_EQ(ctx.bmain->name_map_global, nullptr);
 }
 
-TEST(lib_id_main_unique_name, name_too_long_handling)
+TEST_F(LibIDMainUniqueNameTest, name_too_long_handling)
 {
   LibIDMainSortTestContext ctx;
   constexpr char name_a[] =
@@ -476,7 +482,7 @@ TEST(lib_id_main_unique_name, name_too_long_handling)
   EXPECT_EQ(ctx.bmain->name_map_global, nullptr);
 }
 
-TEST(lib_id_main_unique_name, create_equivalent_numeric_suffixes)
+TEST_F(LibIDMainUniqueNameTest, create_equivalent_numeric_suffixes)
 {
   LibIDMainSortTestContext ctx;
 
@@ -539,7 +545,7 @@ TEST(lib_id_main_unique_name, create_equivalent_numeric_suffixes)
   EXPECT_EQ(ctx.bmain->name_map_global, nullptr);
 }
 
-TEST(lib_id_main_unique_name, re_create_equivalent_numeric_suffixes)
+TEST_F(LibIDMainUniqueNameTest, re_create_equivalent_numeric_suffixes)
 {
   LibIDMainSortTestContext ctx;
 
@@ -588,7 +594,7 @@ TEST(lib_id_main_unique_name, re_create_equivalent_numeric_suffixes)
   EXPECT_EQ(ctx.bmain->name_map_global, nullptr);
 }
 
-TEST(lib_id_main_unique_name, zero_suffix_is_never_assigned)
+TEST_F(LibIDMainUniqueNameTest, zero_suffix_is_never_assigned)
 {
   LibIDMainSortTestContext ctx;
 
@@ -607,7 +613,7 @@ TEST(lib_id_main_unique_name, zero_suffix_is_never_assigned)
   EXPECT_EQ(ctx.bmain->name_map_global, nullptr);
 }
 
-TEST(lib_id_main_unique_name, remove_after_dup_get_original_name)
+TEST_F(LibIDMainUniqueNameTest, remove_after_dup_get_original_name)
 {
   LibIDMainSortTestContext ctx;
 
@@ -628,7 +634,7 @@ TEST(lib_id_main_unique_name, remove_after_dup_get_original_name)
   EXPECT_EQ(ctx.bmain->name_map_global, nullptr);
 }
 
-TEST(lib_id_main_unique_name, name_number_suffix_assignment)
+TEST_F(LibIDMainUniqueNameTest, name_number_suffix_assignment)
 {
   LibIDMainSortTestContext ctx;
 
@@ -717,7 +723,7 @@ TEST(lib_id_main_unique_name, name_number_suffix_assignment)
   EXPECT_EQ(ctx.bmain->name_map_global, nullptr);
 }
 
-TEST(lib_id_main_unique_name, renames_with_duplicates)
+TEST_F(LibIDMainUniqueNameTest, renames_with_duplicates)
 {
   LibIDMainSortTestContext ctx;
 
@@ -745,7 +751,7 @@ TEST(lib_id_main_unique_name, renames_with_duplicates)
   EXPECT_EQ(ctx.bmain->name_map_global, nullptr);
 }
 
-TEST(lib_id_main_unique_name, names_are_unique_per_id_type)
+TEST_F(LibIDMainUniqueNameTest, names_are_unique_per_id_type)
 {
   LibIDMainSortTestContext ctx;
 
@@ -762,7 +768,7 @@ TEST(lib_id_main_unique_name, names_are_unique_per_id_type)
   EXPECT_EQ(ctx.bmain->name_map_global, nullptr);
 }
 
-TEST(lib_id_main_unique_name, name_huge_number_suffix)
+TEST_F(LibIDMainUniqueNameTest, name_huge_number_suffix)
 {
   LibIDMainSortTestContext ctx;
 
@@ -779,7 +785,9 @@ TEST(lib_id_main_unique_name, name_huge_number_suffix)
   EXPECT_EQ(ctx.bmain->name_map_global, nullptr);
 }
 
-TEST(lib_id_make_local, brush)
+class LibIDMakeLocalTest : public BlenderGTestBase {};
+
+TEST_F(LibIDMakeLocalTest, brush)
 {
   LibIDMainSortTestContext ctx;
 

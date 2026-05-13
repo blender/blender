@@ -10,8 +10,10 @@
 
 #include <cstring>
 
+#include "AS_essentials_library.hh"
+#include "AS_remote_library.hh"
+
 #include "BLI_fileops.h"
-#include "BLI_hash_md5.hh"
 #include "BLI_listbase.h"
 #include "BLI_path_utils.hh"
 #include "BLI_string.h"
@@ -21,6 +23,8 @@
 #include "BKE_appdir.hh"
 #include "BKE_asset.hh"
 #include "BKE_preferences.h"
+
+#include "BLI_utildefines.h"
 
 #include "BLT_translation.hh"
 
@@ -182,34 +186,6 @@ void BKE_preferences_asset_library_default_add(UserDef *userdef)
       library->dirpath, sizeof(library->dirpath), documents_path, N_("Blender"), N_("Assets"));
 }
 
-/**
- * Maximum length of the remote library directory name. Kept short to avoid path length issues with
- * deeply nested asset libraries.
- *
- * The directory name will be the MD5 hash of the URL.
- */
-const int8_t REMOTE_LIBRARY_DIRNAME_LEN = 16;
-
-/**
- * Determine the directory name of the asset library's on-disk cache for downloaded files.
- *
- * This is based on the remote URL of the library, and not the library name. As the name can be
- * user-chosen. the URL is a more stable identifier. And if there happen to be multiple libraries
- * in the preferences, with the same URL, they'll share the same cache.
- */
-static void asset_library_directory_name(blender::StringRef remote_url,
-                                         /* Buffer for the directory name + null-terminator. */
-                                         char identifier_buf[REMOTE_LIBRARY_DIRNAME_LEN + 1])
-{
-  /* MD5 hash part. */
-  uchar digest[16];
-  BLI_hash_md5_buffer(remote_url.data(), remote_url.size(), digest);
-  char hex_digest[33];
-  BLI_hash_md5_to_hexdigest(digest, hex_digest);
-  /* This adds a null terminator. */
-  BLI_strncpy(identifier_buf, hex_digest, REMOTE_LIBRARY_DIRNAME_LEN + 1);
-}
-
 bUserAssetLibrary *BKE_preferences_remote_asset_library_add(UserDef *userdef,
                                                             const char *name,
                                                             const char *remote_url)
@@ -219,20 +195,52 @@ bUserAssetLibrary *BKE_preferences_remote_asset_library_add(UserDef *userdef,
   library->flag |= ASSET_LIBRARY_USE_REMOTE_URL;
   BLI_addtail(&userdef->asset_libraries, library);
 
-  STRNCPY(library->remote_url, remote_url);
   if (name) {
     BKE_preferences_asset_library_name_set(userdef, library, name);
   }
 
-  /* Download location cache path. */
-  char cache_path[FILE_MAX];
-  BKE_appdir_folder_caches(cache_path, sizeof(cache_path));
-  char library_identifier[REMOTE_LIBRARY_DIRNAME_LEN + 1];
-  asset_library_directory_name(remote_url, library_identifier);
-  BLI_path_join(
-      library->dirpath, sizeof(library->dirpath), cache_path, "remote-assets", library_identifier);
+  BKE_preferences_remote_asset_library_url_set(library, remote_url);
 
   return library;
+}
+
+/**
+ * Appends a slash to \a str if there isn't one there already. Will do nothing if \a str is empty.
+ *
+ * \param max_len: The maximum length \a str is allowed to have, including 0-terminator.
+ */
+static void url_ensure_trailing_slash(char *str, const size_t max_len)
+{
+  const size_t len = BLI_strnlen(str, max_len);
+  BLI_assert_msg(str[len] == '\0', "String should be null-terminated");
+
+  if (len > 0 && str[len - 1] != '/' && len + 1 < max_len) {
+    str[len] = '/';
+    str[len + 1] = '\0';
+  }
+}
+
+void BKE_preferences_remote_asset_library_url_set(bUserAssetLibrary *library,
+                                                  const StringRef remote_url)
+{
+  remote_url.copy_bytes_truncated(library->remote_url);
+
+  const bool ends_in_top_meta_file = asset_system::remote_library_url_ends_with_top_meta_file_name(
+      library->remote_url);
+
+  if (!ends_in_top_meta_file) {
+    url_ensure_trailing_slash(library->remote_url, sizeof(library->remote_url));
+  }
+
+  /* Update location cache path. */
+  const std::string library_dirpath =
+      asset_system::is_online_essentials_url(library->remote_url) ?
+          /* Special (unusual) case: When the URL path matches the online essentials URL, use the
+           * online essentials cache directory path. Otherwise the downloader deduplicates the
+           * requests, and only downloads file to one of the directories. */
+          std::string{asset_system::online_essentials_cache_directory_path()} :
+          asset_system::remote_library_cache_directory_path_from_url(remote_url);
+  BLI_strncpy_utf8(library->dirpath, library_dirpath.c_str(), sizeof(library->dirpath));
 }
 
 /** \} */

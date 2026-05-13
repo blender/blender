@@ -55,7 +55,7 @@ void main()
         continue;
       }
       float roughness = closure_apparent_roughness_get(cl);
-      float ray_roughness_fac = ray_roughness_factor(uniform_buf.raytrace, roughness);
+      float ray_roughness_fac = ray_roughness_factor(raytrace_buf, roughness);
 
       /* We don't care about race condition here. */
       if (ray_roughness_fac > 0.0f) {
@@ -71,7 +71,7 @@ void main()
 
   if (gl_LocalInvocationIndex == 0u) {
     int2 denoise_tile_co = int2(gl_WorkGroupID.xy);
-    int2 tracing_tile_co = denoise_tile_co / uniform_buf.raytrace.resolution_scale;
+    int2 tracing_tile_co = denoise_tile_co / raytrace_buf.trace_pixel_scale;
 
     for (int i = 0; i < GBUFFER_LAYER_MAX; i++) {
       if (tile_contains_ray_tracing[i] > 0) {
@@ -81,7 +81,7 @@ void main()
     }
 
     if (tile_contains_fast_gi_scan > 0) {
-      int2 tracing_tile_co = denoise_tile_co / uniform_buf.raytrace.fast_gi_resolution_scale;
+      int2 tracing_tile_co = denoise_tile_co / raytrace_buf.fast_gi_resolution_scale;
       imageStoreFast(tile_fast_gi_denoise_img, int3(denoise_tile_co, 0), uint4(1));
       imageStoreFast(tile_fast_gi_tracing_img, int3(tracing_tile_co, 0), uint4(1));
     }

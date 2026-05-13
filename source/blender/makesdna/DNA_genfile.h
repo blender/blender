@@ -42,15 +42,13 @@ enum eSDNA_Type {
   /* SDNA_TYPE_ULONG    = 6, */ /* deprecated (use as int) */
   SDNA_TYPE_FLOAT = 7,
   SDNA_TYPE_DOUBLE = 8,
-/* ,SDNA_TYPE_VOID = 9 */
-/* define so switch statements don't complain */
-#define SDNA_TYPE_VOID 9
-  SDNA_TYPE_INT64 = 10,
-  SDNA_TYPE_UINT64 = 11,
+  SDNA_TYPE_INT64 = 9,
+  SDNA_TYPE_UINT64 = 10,
+  SDNA_TYPE_VOID = 11,
   SDNA_TYPE_INT8 = 12,
   /**
    * Type used for untyped raw bytes buffers (written by #BlendWriter::write_raw and read by
-   * #BLO_read_data_address).
+   * #BLO_read_raw_address).
    *
    * Technically, it also covers all 'raw data' types above.
    */

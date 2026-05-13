@@ -634,7 +634,8 @@ ImBuf *IMB_stereo3d_ImBuf(const ImageFormatData *im_format, ImBuf *ibuf_left, Im
 
   IMB_stereo3d_write_dimensions(
       im_format->stereo3d_format.display_mode, false, ibuf_left->x, ibuf_left->y, &width, &height);
-  ibuf_stereo = IMB_allocImBuf(width, height, ibuf_left->planes, 0);
+  ibuf_stereo = IMB_allocImBuf(width, height, 0);
+  ibuf_stereo->color_mode = ibuf_left->color_mode;
 
   if (is_float) {
     IMB_alloc_float_pixels(ibuf_stereo, ibuf_left->channels);
@@ -1165,8 +1166,9 @@ void IMB_ImBufFromStereo3d(const Stereo3dFormat *s3d,
                                &width,
                                &height);
 
-  ibuf_left = IMB_allocImBuf(width, height, ibuf_stereo3d->planes, 0);
-  ibuf_right = IMB_allocImBuf(width, height, ibuf_stereo3d->planes, 0);
+  ibuf_left = IMB_allocImBuf(width, height, 0);
+  ibuf_right = IMB_allocImBuf(width, height, 0);
+  ibuf_left->color_mode = ibuf_right->color_mode = ibuf_stereo3d->color_mode;
 
   if (is_float) {
     IMB_alloc_float_pixels(ibuf_left, ibuf_stereo3d->channels);

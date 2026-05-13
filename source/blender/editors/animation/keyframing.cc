@@ -137,7 +137,7 @@ void ED_keyframes_add(FCurve *fcu, int num_keys_to_add)
   /* Iterate over the new keys to update their settings. */
   while (num_keys_to_add--) {
     /* Defaults, ignoring user-preference gives predictable results for API. */
-    bezt->f1 = bezt->f2 = bezt->f3 = SELECT;
+    bezt->f1 = bezt->f2 = bezt->f3 = BEZT_FLAG_SELECT;
     bezt->ipo = BEZT_IPO_BEZ;
     bezt->h1 = bezt->h2 = HD_AUTO_ANIM;
     bezt++;
@@ -732,7 +732,8 @@ static bool can_delete_fcurve(FCurve *fcu, Object *ob)
       if (BLI_str_quoted_substr(fcu->rna_path, "pose.bones[", bone_name, sizeof(bone_name))) {
         pchan = BKE_pose_channel_find_name(ob->pose, bone_name);
         /* Delete if bone is selected. */
-        if ((pchan) && (pchan->bone)) {
+        if ((pchan) && (pchan->bone_get(*ob))) {
+          /* TODO(Sybren): use bone_is_selected() to avoid treating invisible bone as selected. */
           if (pchan->flag & POSE_SELECTED) {
             can_delete = true;
           }
@@ -966,7 +967,7 @@ static bool can_delete_key(FCurve *fcu, Object *ob, ReportList *reports)
     pchan = BKE_pose_channel_find_name(ob->pose, bone_name);
 
     /* skip if bone is not selected */
-    if ((pchan) && (pchan->bone)) {
+    if ((pchan) && (pchan->bone_get(*ob))) {
       bArmature *arm = id_cast<bArmature *>(ob->data);
 
       /* Only selected bones should be affected. */
@@ -1298,7 +1299,7 @@ static wmOperatorStatus insert_key_button_exec(bContext *C, wmOperator *op)
             *fcu,
             anim_eval_context.eval_time,
             eBezTriple_KeyframeType(ts->keyframe_type),
-            eInsertKeyFlags(0));
+            eInsertKeyFlags{});
         changed = result == SingleKeyingResult::SUCCESS;
         if (result != SingleKeyingResult::SUCCESS) {
           generate_single_keying_result_report(result, op->reports);

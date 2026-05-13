@@ -54,9 +54,6 @@ float BM_face_calc_normal_vcos(const BMesh *bm,
 
 /**
  * Calculate a normal from a vertex cloud.
- *
- * \note We could make a higher quality version that takes all vertices into account.
- * Currently it finds 4 outer most points returning its normal.
  */
 void BM_verts_calc_normal_from_cloud_ex(
     BMVert **varr, int varr_len, float r_normal[3], float r_center[3], int *r_index_tangent);

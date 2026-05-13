@@ -81,7 +81,7 @@ static TreeElement *outliner_dropzone_find(const SpaceOutliner *space_outliner,
                                            const float fmval[2],
                                            const bool children)
 {
-  for (TreeElement &te : space_outliner->tree) {
+  for (TreeElement &te : space_outliner->runtime->tree) {
     TreeElement *te_valid = outliner_dropzone_element(&te, fmval, children);
     if (te_valid) {
       return te_valid;
@@ -122,7 +122,7 @@ static TreeElement *outliner_drop_insert_find(bContext *C,
   float view_mval[2];
 
   /* Empty tree, e.g. while filtered. */
-  if (BLI_listbase_is_empty(&space_outliner->tree)) {
+  if (BLI_listbase_is_empty(&space_outliner->runtime->tree)) {
     return nullptr;
   }
 
@@ -131,7 +131,8 @@ static TreeElement *outliner_drop_insert_find(bContext *C,
   mval[1] = xy[1] - region->winrct.ymin;
 
   ui::view2d_region_to_view(&region->v2d, mval[0], mval[1], &view_mval[0], &view_mval[1]);
-  te_hovered = outliner_find_item_at_y(space_outliner, &space_outliner->tree, view_mval[1]);
+  te_hovered = outliner_find_item_at_y(
+      space_outliner, &space_outliner->runtime->tree, view_mval[1]);
 
   if (te_hovered) {
     /* Mouse hovers an element (ignoring x-axis),
@@ -163,8 +164,8 @@ static TreeElement *outliner_drop_insert_find(bContext *C,
 
   /* Mouse doesn't hover any item (ignoring x-axis),
    * so it's either above list bounds or below. */
-  TreeElement *first = static_cast<TreeElement *>(space_outliner->tree.first);
-  TreeElement *last = static_cast<TreeElement *>(space_outliner->tree.last);
+  TreeElement *first = static_cast<TreeElement *>(space_outliner->runtime->tree.first);
+  TreeElement *last = static_cast<TreeElement *>(space_outliner->runtime->tree.last);
 
   if (view_mval[1] < last->ys) {
     *r_insert_type = TE_INSERT_AFTER;
@@ -399,7 +400,7 @@ static void parent_drop_set_parents(bContext *C,
   SpaceOutliner *space_outliner = CTX_wm_space_outliner(C);
 
   TreeElement *te = outliner_find_id(
-      space_outliner, &space_outliner->tree, &parent->id, TreeElementFlag(0));
+      space_outliner, &space_outliner->runtime->tree, &parent->id, TreeElementFlag(0));
   Scene *scene = id_cast<Scene *>(outliner_search_back(te, ID_SCE));
 
   if (scene == nullptr) {
@@ -888,6 +889,8 @@ static bool datastack_drop_are_types_valid(StackDropData *drop_data)
     case TSE_GPENCIL_EFFECT:
       return ob_parent->type == OB_GREASE_PENCIL && ob_dst->type == OB_GREASE_PENCIL;
       break;
+    default:
+      break;
   }
 
   return true;
@@ -999,6 +1002,8 @@ static void datastack_drop_link(bContext *C, StackDropData *drop_data)
 
       object::shaderfx_link(ob_dst, drop_data->ob_parent);
       break;
+    default:
+      break;
   }
 }
 
@@ -1010,15 +1015,17 @@ static void datastack_drop_copy(bContext *C, StackDropData *drop_data)
   Object *ob_dst = id_cast<Object *>(tselem->id);
 
   switch (drop_data->drag_tselem->type) {
-    case TSE_MODIFIER:
-      object::modifier_copy_to_object(
+    case TSE_MODIFIER: {
+      ModifierData *md_dst = object::modifier_copy_to_object(
           bmain,
           CTX_data_scene(C),
           drop_data->ob_parent,
           static_cast<const ModifierData *>(drop_data->drag_directdata),
           ob_dst,
           CTX_wm_reports(C));
+      BKE_object_modifier_set_active(ob_dst, md_dst);
       break;
+    }
     case TSE_CONSTRAINT:
       if (tselem->type == TSE_POSE_CHANNEL) {
         object::constraint_copy_for_pose(
@@ -1040,6 +1047,8 @@ static void datastack_drop_copy(bContext *C, StackDropData *drop_data)
       object::shaderfx_copy(ob_dst, static_cast<ShaderFxData *>(drop_data->drag_directdata));
       break;
     }
+    default:
+      break;
   }
 }
 
@@ -1047,7 +1056,8 @@ static void datastack_drop_reorder(bContext *C, ReportList *reports, StackDropDa
 {
   SpaceOutliner *space_outliner = CTX_wm_space_outliner(C);
 
-  TreeElement *drag_te = outliner_find_tree_element(&space_outliner->tree, drop_data->drag_tselem);
+  TreeElement *drag_te = outliner_find_tree_element(&space_outliner->runtime->tree,
+                                                    drop_data->drag_tselem);
   if (!drag_te) {
     return;
   }
@@ -1084,6 +1094,9 @@ static void datastack_drop_reorder(bContext *C, ReportList *reports, StackDropDa
       index = outliner_get_insert_index(drag_te, drop_te, insert_type, &ob->shader_fx);
       object::shaderfx_move_to_index(
           reports, ob, static_cast<ShaderFxData *>(drop_data->drag_directdata), index);
+      break;
+    default:
+      break;
   }
 }
 
@@ -1356,7 +1369,8 @@ static wmOperatorStatus collection_drop_invoke(bContext *C,
     relative = data.to;
     relative_after = (data.insert_type == TE_INSERT_AFTER);
 
-    TreeElement *parent_te = outliner_find_parent_element(&space_outliner->tree, nullptr, data.te);
+    TreeElement *parent_te = outliner_find_parent_element(
+        &space_outliner->runtime->tree, nullptr, data.te);
     data.to = (parent_te) ? outliner_collection_from_tree_element(parent_te) : nullptr;
   }
 
@@ -1448,7 +1462,7 @@ static TreeElement *outliner_item_drag_element_find(SpaceOutliner *space_outline
   WM_event_drag_start_mval(event, region, mval);
 
   const float my = ui::view2d_region_to_view_y(&region->v2d, mval[1]);
-  return outliner_find_item_at_y(space_outliner, &space_outliner->tree, my);
+  return outliner_find_item_at_y(space_outliner, &space_outliner->runtime->tree, my);
 }
 
 static wmOperatorStatus outliner_item_drag_drop_invoke(bContext *C,
@@ -1522,7 +1536,7 @@ static wmOperatorStatus outliner_item_drag_drop_invoke(bContext *C,
 
     if (GS(data.drag_id->name) == ID_OB) {
       outliner_tree_traverse(space_outliner,
-                             &space_outliner->tree,
+                             &space_outliner->runtime->tree,
                              0,
                              TSE_SELECTED,
                              outliner_collect_selected_objects,
@@ -1530,7 +1544,7 @@ static wmOperatorStatus outliner_item_drag_drop_invoke(bContext *C,
     }
     else {
       outliner_tree_traverse(space_outliner,
-                             &space_outliner->tree,
+                             &space_outliner->runtime->tree,
                              0,
                              TSE_SELECTED,
                              outliner_collect_selected_collections,

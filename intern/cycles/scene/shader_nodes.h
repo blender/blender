@@ -13,6 +13,7 @@
 #include "util/array.h"
 #include "util/string.h"
 #include "util/unique_ptr.h"
+#include "util/vector.h"
 
 CCL_NAMESPACE_BEGIN
 
@@ -1393,6 +1394,8 @@ class AttributeNode : public ShaderNode {
   }
   ShaderNodeType shader_node_type() const override;
 
+  static void add_named_attribute_request(AttributeRequestSet *attributes, ustring attribute);
+
   NODE_SOCKET_API(ustring, attribute)
 
   bool stochastic_sample = true;
@@ -1838,7 +1841,18 @@ class VectorDisplacementNode : public ShaderNode {
 
 class RaycastNode : public ShaderNode {
  public:
+  enum AttributeOutputType {
+    ATTR_OUTPUT_FLOAT3,
+    ATTR_OUTPUT_FLOAT,
+    ATTR_OUTPUT_FLOAT_ALPHA,
+  };
+
   SHADER_NODE_CLASS(RaycastNode)
+
+  /* Copy constructor for the purposes of the clone() functionality. */
+  RaycastNode(const RaycastNode &other);
+
+  void global_attributes(Shader *shader, AttributeRequestSet *attributes) override;
 
   bool has_spatial_varying() override
   {
@@ -1853,11 +1867,28 @@ class RaycastNode : public ShaderNode {
     return NODE_RAYCAST;
   }
 
+  /* Add an output socket to the instance of this node which provides access to specified attribute
+   * samples at the intersection. */
+  void add_output_attribute_socket(ustring attribute_name,
+                                   AttributeOutputType attribute_output_type,
+                                   ustring socket_id);
+
   NODE_SOCKET_API(float3, position)
   NODE_SOCKET_API(float3, direction)
   NODE_SOCKET_API(float, length)
 
   NODE_SOCKET_API(bool, only_local)
+
+ private:
+  struct AttributeOutput {
+    ustring attribute_name;
+    AttributeOutputType attribute_output_type;
+    ustring socket_id;
+  };
+  vector<AttributeOutput> attribute_outputs_;
+
+  /* Types for the dynamically registered output sockets. */
+  unique_ptr_vector<SocketType> socket_types_;
 };
 
 CCL_NAMESPACE_END

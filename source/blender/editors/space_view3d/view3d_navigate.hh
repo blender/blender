@@ -47,6 +47,10 @@ struct wmWindow;
 struct wmWindowManager;
 struct ViewLayer;
 
+enum eRegionView3D_View : char;
+enum eRegionView3D_ViewAxisRoll : char;
+enum eRegionView3D_Persp : char;
+
 enum eV3D_OpPropFlag {
   V3D_OP_PROP_MOUSE_CO = (1 << 0),
   V3D_OP_PROP_DELTA = (1 << 1),
@@ -125,21 +129,21 @@ struct ViewOpsData {
 
     /** These variables reflect the same in #RegionView3D. */
 
-    float ofs[3];        /* DOLLY, MOVE, ROTATE and ZOOM. */
-    float ofs_lock[2];   /* MOVE. */
-    float camdx, camdy;  /* MOVE and ZOOM. */
-    float camzoom;       /* ZOOM. */
-    float dist;          /* ROTATE and ZOOM. */
-    float quat[4];       /* ROLL and ROTATE. */
-    char persp;          /* ROTATE. */
-    char view;           /* ROTATE. */
-    char view_axis_roll; /* ROTATE. */
+    float ofs[3];                              /* DOLLY, MOVE, ROTATE and ZOOM. */
+    float ofs_lock[2];                         /* MOVE. */
+    float camdx, camdy;                        /* MOVE and ZOOM. */
+    float camzoom;                             /* ZOOM. */
+    float dist;                                /* ROTATE and ZOOM. */
+    float quat[4];                             /* ROLL and ROTATE. */
+    eRegionView3D_Persp persp;                 /* ROTATE. */
+    eRegionView3D_View view;                   /* ROTATE. */
+    eRegionView3D_ViewAxisRoll view_axis_roll; /* ROTATE. */
 
     /**
      * #RegionView3D.persp set after auto-perspective is applied.
      * If we want the value before running the operator, add a separate member.
      */
-    char persp_with_auto_persp_applied;
+    eRegionView3D_Persp persp_with_auto_persp_applied;
 
     /** The ones below are unrelated to the state of the 3D view. */
 
@@ -255,9 +259,9 @@ void axis_set_view(bContext *C,
                    View3D *v3d,
                    ARegion *region,
                    const float quat_[4],
-                   char view,
-                   char view_axis_roll,
-                   int perspo,
+                   eRegionView3D_View view,
+                   eRegionView3D_ViewAxisRoll view_axis_roll,
+                   eRegionView3D_Persp perspo,
                    const float *align_to_quat,
                    const int smooth_viewtx);
 

@@ -13,7 +13,7 @@
 namespace blender {
 
 /* BrushGpencilSettings->flag */
-enum eGPDbrush_Flag {
+enum eGPDbrush_Flag : int {
   /* brush use pressure */
   GP_BRUSH_USE_PRESSURE = (1 << 0),
   /* brush use pressure for alpha factor */
@@ -58,8 +58,9 @@ enum eGPDbrush_Flag {
   /* Automatically remove fill guides created with fill tool. */
   GP_BRUSH_FILL_AUTO_REMOVE_FILL_GUIDES = (1 << 21),
 };
+ENUM_OPERATORS(eGPDbrush_Flag)
 
-enum eGPDbrush_Flag2 {
+enum eGPDbrush_Flag2 : int {
   /* DEPRECATED: replaced with BRUSH_COLOR_JITTER_USE_HUE_AT_STROKE */
   /* Brush use random Hue at stroke level */
   GP_BRUSH_USE_HUE_AT_STROKE = (1 << 0),
@@ -95,22 +96,23 @@ enum eGPDbrush_Flag2 {
   /* Brush creates curves that use the fill. */
   GP_BRUSH_USE_FILL = (1 << 13),
 };
+ENUM_OPERATORS(eGPDbrush_Flag2)
 
 /* BrushGpencilSettings->fill_draw_mode */
-enum eGP_FillDrawModes {
+enum eGP_FillDrawModes : int {
   GP_FILL_DMODE_BOTH = 0,
   GP_FILL_DMODE_STROKE = 1,
   GP_FILL_DMODE_CONTROL = 2,
 };
 
 /* BrushGpencilSettings->fill_extend_mode */
-enum eGP_FillExtendModes {
+enum eGP_FillExtendModes : int {
   GP_FILL_EMODE_EXTEND = 0,
   GP_FILL_EMODE_RADIUS = 1,
 };
 
 /* BrushGpencilSettings->fill_layer_mode */
-enum eGP_FillLayerModes {
+enum eGP_FillLayerModes : short {
   GP_FILL_GPLMODE_VISIBLE = 0,
   GP_FILL_GPLMODE_ACTIVE = 1,
   GP_FILL_GPLMODE_ALL_ABOVE = 2,
@@ -120,21 +122,21 @@ enum eGP_FillLayerModes {
 };
 
 /* BrushGpencilSettings->gp_eraser_mode */
-enum eGP_BrushEraserMode {
+enum eGP_BrushEraserMode : int {
   GP_BRUSH_ERASER_SOFT = 0,
   GP_BRUSH_ERASER_HARD = 1,
   GP_BRUSH_ERASER_STROKE = 2,
 };
 
 /* BrushGpencilSettings->brush_draw_mode */
-enum eGP_BrushMode {
+enum eGP_BrushMode : short {
   GP_BRUSH_MODE_ACTIVE = 0,
   GP_BRUSH_MODE_MATERIAL = 1,
   GP_BRUSH_MODE_VERTEXCOLOR = 2,
 };
 
 /* Brush.curve_preset */
-enum eBrushCurvePreset {
+enum eBrushCurvePreset : int {
   BRUSH_CURVE_CUSTOM = 0,
   /** Corresponds to CURVE_PRESET_SMOOTH */
   BRUSH_CURVE_SMOOTH = 1,
@@ -156,12 +158,12 @@ enum eBrushCurvePreset {
   BRUSH_CURVE_SMOOTHER = 9,
 };
 
-enum eBrushDeformTarget {
+enum eBrushDeformTarget : int {
   BRUSH_DEFORM_TARGET_GEOMETRY = 0,
   BRUSH_DEFORM_TARGET_CLOTH_SIM = 1,
 };
 
-enum eBrushElasticDeformType {
+enum eBrushElasticDeformType : int {
   BRUSH_ELASTIC_DEFORM_GRAB = 0,
   BRUSH_ELASTIC_DEFORM_GRAB_BISCALE = 1,
   BRUSH_ELASTIC_DEFORM_GRAB_TRISCALE = 2,
@@ -169,7 +171,7 @@ enum eBrushElasticDeformType {
   BRUSH_ELASTIC_DEFORM_TWIST = 4,
 };
 
-enum eBrushClothDeformType {
+enum eBrushClothDeformType : int {
   BRUSH_CLOTH_DEFORM_DRAG = 0,
   BRUSH_CLOTH_DEFORM_PUSH = 1,
   BRUSH_CLOTH_DEFORM_GRAB = 2,
@@ -180,47 +182,47 @@ enum eBrushClothDeformType {
   BRUSH_CLOTH_DEFORM_SNAKE_HOOK = 7,
 };
 
-enum eBrushSmoothDeformType {
+enum eBrushSmoothDeformType : int {
   BRUSH_SMOOTH_DEFORM_LAPLACIAN = 0,
   BRUSH_SMOOTH_DEFORM_SURFACE = 1,
 };
 
-enum eBrushClothForceFalloffType {
+enum eBrushClothForceFalloffType : int {
   BRUSH_CLOTH_FORCE_FALLOFF_RADIAL = 0,
   BRUSH_CLOTH_FORCE_FALLOFF_PLANE = 1,
 };
 
-enum eBrushClothSimulationAreaType {
+enum eBrushClothSimulationAreaType : int {
   BRUSH_CLOTH_SIMULATION_AREA_LOCAL = 0,
   BRUSH_CLOTH_SIMULATION_AREA_GLOBAL = 1,
   BRUSH_CLOTH_SIMULATION_AREA_DYNAMIC = 2,
 };
 
-enum eBrushPoseDeformType {
+enum eBrushPoseDeformType : int {
   BRUSH_POSE_DEFORM_ROTATE_TWIST = 0,
   BRUSH_POSE_DEFORM_SCALE_TRANSLATE = 1,
   BRUSH_POSE_DEFORM_SQUASH_STRETCH = 2,
 };
 
-enum eBrushPoseOriginType {
+enum eBrushPoseOriginType : int {
   BRUSH_POSE_ORIGIN_TOPOLOGY = 0,
   BRUSH_POSE_ORIGIN_FACE_SETS = 1,
   BRUSH_POSE_ORIGIN_FACE_SETS_FK = 2,
 };
 
-enum eBrushSmearDeformType {
+enum eBrushSmearDeformType : int {
   BRUSH_SMEAR_DEFORM_DRAG = 0,
   BRUSH_SMEAR_DEFORM_PINCH = 1,
   BRUSH_SMEAR_DEFORM_EXPAND = 2,
 };
 
-enum eBrushSlideDeformType {
+enum eBrushSlideDeformType : int {
   BRUSH_SLIDE_DEFORM_DRAG = 0,
   BRUSH_SLIDE_DEFORM_PINCH = 1,
   BRUSH_SLIDE_DEFORM_EXPAND = 2,
 };
 
-enum eBrushBoundaryDeformType {
+enum eBrushBoundaryDeformType : int {
   BRUSH_BOUNDARY_DEFORM_BEND = 0,
   BRUSH_BOUNDARY_DEFORM_EXPAND = 1,
   BRUSH_BOUNDARY_DEFORM_INFLATE = 2,
@@ -229,30 +231,30 @@ enum eBrushBoundaryDeformType {
   BRUSH_BOUNDARY_DEFORM_SMOOTH = 5,
 };
 
-enum eBrushBoundaryFalloffType {
+enum eBrushBoundaryFalloffType : int {
   BRUSH_BOUNDARY_FALLOFF_CONSTANT = 0,
   BRUSH_BOUNDARY_FALLOFF_RADIUS = 1,
   BRUSH_BOUNDARY_FALLOFF_LOOP = 2,
   BRUSH_BOUNDARY_FALLOFF_LOOP_INVERT = 3,
 };
 
-enum eBrushSnakeHookDeformType {
+enum eBrushSnakeHookDeformType : int {
   BRUSH_SNAKE_HOOK_DEFORM_FALLOFF = 0,
   BRUSH_SNAKE_HOOK_DEFORM_ELASTIC = 1,
 };
 
-enum eBrushPlaneInversionMode {
+enum eBrushPlaneInversionMode : int {
   BRUSH_PLANE_INVERT_DISPLACEMENT = 0,
   BRUSH_PLANE_SWAP_HEIGHT_AND_DEPTH = 1,
 };
 
-enum eBrushProjectRayDirection {
+enum eBrushProjectRayDirection : int8_t {
   BRUSH_PROJECT_RAY_DIRECTION_VIEW_NORMAL = 0,
   BRUSH_PROJECT_RAY_DIRECTION_PLANE_NORMAL = 1,
 };
 
 /** #Gpencilsettings.Vertex_mode */
-enum eGp_Vertex_Mode {
+enum eGp_Vertex_Mode : int {
   /* Affect to Stroke only. */
   GPPAINT_MODE_STROKE = 0,
   /* Affect to Fill only. */
@@ -262,7 +264,7 @@ enum eGp_Vertex_Mode {
 };
 
 /* sculpt_flag */
-enum eGP_Sculpt_Flag {
+enum eGP_Sculpt_Flag : int {
   /* invert the effect of the brush */
   GP_SCULPT_FLAG_INVERT = (1 << 0),
   /* temporary invert action */
@@ -271,7 +273,7 @@ enum eGP_Sculpt_Flag {
 ENUM_OPERATORS(eGP_Sculpt_Flag)
 
 /* sculpt_mode_flag */
-enum eGP_Sculpt_Mode_Flag {
+enum eGP_Sculpt_Mode_Flag : int {
   /* apply brush to position */
   GP_SCULPT_FLAGMODE_APPLY_POSITION = (1 << 0),
   /* apply brush to strength */
@@ -283,7 +285,7 @@ enum eGP_Sculpt_Mode_Flag {
 };
 ENUM_OPERATORS(eGP_Sculpt_Mode_Flag)
 
-enum eAutomasking_flag {
+enum eAutomasking_flag : int {
   BRUSH_AUTOMASKING_TOPOLOGY = (1 << 0),
   BRUSH_AUTOMASKING_FACE_SETS = (1 << 1),
   BRUSH_AUTOMASKING_BOUNDARY_EDGES = (1 << 2),
@@ -300,8 +302,9 @@ enum eAutomasking_flag {
   BRUSH_AUTOMASKING_VIEW_NORMAL = (1 << 9),
   BRUSH_AUTOMASKING_VIEW_OCCLUSION = (1 << 10),
 };
+ENUM_OPERATORS(eAutomasking_flag)
 
-enum ePaintBrush_flag {
+enum ePaintBrush_flag : int {
   BRUSH_PAINT_HARDNESS_PRESSURE = (1 << 0),
   BRUSH_PAINT_HARDNESS_PRESSURE_INVERT = (1 << 1),
   BRUSH_PAINT_FLOW_PRESSURE = (1 << 2),
@@ -313,21 +316,22 @@ enum ePaintBrush_flag {
   BRUSH_PAINT_DENSITY_PRESSURE = (1 << 8),
   BRUSH_PAINT_DENSITY_PRESSURE_INVERT = (1 << 9),
 };
+ENUM_OPERATORS(ePaintBrush_flag)
 
 /** #Brush.gradient_source */
-enum eBrushGradientSourceStroke {
+enum eBrushGradientSourceStroke : char {
   BRUSH_GRADIENT_PRESSURE = 0,       /* gradient from pressure */
   BRUSH_GRADIENT_SPACING_REPEAT = 1, /* gradient from spacing */
   BRUSH_GRADIENT_SPACING_CLAMP = 2,  /* gradient from spacing */
 };
 
-enum eBrushGradientSourceFill {
+enum eBrushGradientSourceFill : char {
   BRUSH_GRADIENT_LINEAR = 0, /* gradient from pressure */
   BRUSH_GRADIENT_RADIAL = 1, /* gradient from spacing */
 };
 
 /** #Brush.stroke_method */
-enum eBrushStrokeType {
+enum eBrushStrokeType : int8_t {
   BRUSH_STROKE_DOTS = 0,
   BRUSH_STROKE_AIRBRUSH = 1,
   BRUSH_STROKE_ANCHORED = 2,
@@ -338,7 +342,7 @@ enum eBrushStrokeType {
 };
 
 /** #Brush.flag */
-enum eBrushFlags {
+enum eBrushFlags : uint32_t {
   BRUSH_UNUSED_1 = (1 << 0),
   BRUSH_INVERT_TO_SCRAPE_FILL = (1 << 1),
   BRUSH_ALPHA_PRESSURE = (1 << 2),
@@ -372,14 +376,16 @@ enum eBrushFlags {
   BRUSH_ABSOLUTE_JITTER = (1 << 30),
   BRUSH_UNUSED_6 = (1u << 31),
 };
+ENUM_OPERATORS(eBrushFlags)
 
 /** #Brush.sampling_flag */
-enum eBrushSamplingFlags {
+enum eBrushSamplingFlags : int {
   BRUSH_PAINT_ANTIALIASING = (1 << 0),
 };
+ENUM_OPERATORS(eBrushSamplingFlags)
 
 /** #Brush.flag2 */
-enum eBrushFlags2 {
+enum eBrushFlags2 : int {
   BRUSH_MULTIPLANE_SCRAPE_DYNAMIC = (1 << 0),
   BRUSH_MULTIPLANE_SCRAPE_PLANES_PREVIEW = (1 << 1),
   BRUSH_POSE_IK_ANCHORED = (1 << 2),
@@ -393,14 +399,16 @@ enum eBrushFlags2 {
   BRUSH_JITTER_COLOR = (1 << 10),
   BRUSH_PROJECT_USE_BIDIRECTIONAL = (1 << 11),
 };
+ENUM_OPERATORS(eBrushFlags2)
 
-enum BrushMaskPressureFlags {
+enum BrushMaskPressureFlags : int {
   BRUSH_MASK_PRESSURE_RAMP = (1 << 1),
   BRUSH_MASK_PRESSURE_CUTOFF = (1 << 2),
 };
+ENUM_OPERATORS(BrushMaskPressureFlags)
 
 /** #Brush.overlay_flags */
-enum eOverlayFlags {
+enum eOverlayFlags : int {
   BRUSH_OVERLAY_CURSOR = (1),
   BRUSH_OVERLAY_PRIMARY = (1 << 1),
   BRUSH_OVERLAY_SECONDARY = (1 << 2),
@@ -408,13 +416,14 @@ enum eOverlayFlags {
   BRUSH_OVERLAY_PRIMARY_OVERRIDE_ON_STROKE = (1 << 4),
   BRUSH_OVERLAY_SECONDARY_OVERRIDE_ON_STROKE = (1 << 5),
 };
+ENUM_OPERATORS(eOverlayFlags)
 
 #define BRUSH_OVERLAY_OVERRIDE_MASK \
   (BRUSH_OVERLAY_CURSOR_OVERRIDE_ON_STROKE | BRUSH_OVERLAY_PRIMARY_OVERRIDE_ON_STROKE | \
    BRUSH_OVERLAY_SECONDARY_OVERRIDE_ON_STROKE)
 
 /** #Brush.sculpt_brush_type */
-enum eBrushSculptType {
+enum eBrushSculptType : char {
   SCULPT_BRUSH_TYPE_DRAW = 1,
   SCULPT_BRUSH_TYPE_SMOOTH = 2,
   SCULPT_BRUSH_TYPE_PINCH = 3,
@@ -457,7 +466,7 @@ enum eBrushSculptType {
 };
 
 /* Brush.curves_sculpt_brush_type. */
-enum eBrushCurvesSculptType {
+enum eBrushCurvesSculptType : char {
   CURVES_SCULPT_BRUSH_TYPE_COMB = 0,
   CURVES_SCULPT_BRUSH_TYPE_DELETE = 1,
   CURVES_SCULPT_BRUSH_TYPE_SNAKE_HOOK = 2,
@@ -472,7 +481,7 @@ enum eBrushCurvesSculptType {
 };
 
 /** #Brush.image_brush_type */
-enum eBrushImagePaintType {
+enum eBrushImagePaintType : char {
   IMAGE_PAINT_BRUSH_TYPE_DRAW = 0,
   IMAGE_PAINT_BRUSH_TYPE_SOFTEN = 1,
   IMAGE_PAINT_BRUSH_TYPE_SMEAR = 2,
@@ -485,7 +494,7 @@ enum eBrushImagePaintType {
  * This is because #smooth_brush_toggle_on and #smooth_brush_toggle_off
  * assumes that the blur brush has the same enum value. */
 /** #Brush.vertex_brush_type */
-enum eBrushVertexPaintType {
+enum eBrushVertexPaintType : char {
   VPAINT_BRUSH_TYPE_DRAW = 0,
   VPAINT_BRUSH_TYPE_BLUR = 1,
   VPAINT_BRUSH_TYPE_AVERAGE = 2,
@@ -494,7 +503,7 @@ enum eBrushVertexPaintType {
 
 /* See #eBrushVertexPaintType when changing this definition. */
 /** #Brush.weight_brush_type */
-enum eBrushWeightPaintType {
+enum eBrushWeightPaintType : char {
   WPAINT_BRUSH_TYPE_DRAW = 0,
   WPAINT_BRUSH_TYPE_BLUR = 1,
   WPAINT_BRUSH_TYPE_AVERAGE = 2,
@@ -502,7 +511,7 @@ enum eBrushWeightPaintType {
 };
 
 /** #Brush.gpencil_brush_type */
-enum eBrushGPaintType {
+enum eBrushGPaintType : char {
   GPAINT_BRUSH_TYPE_DRAW = 0,
   GPAINT_BRUSH_TYPE_FILL = 1,
   GPAINT_BRUSH_TYPE_ERASE = 2,
@@ -510,7 +519,7 @@ enum eBrushGPaintType {
 };
 
 /** #Brush.gpencil_vertex_brush_type */
-enum eBrushGPVertexType {
+enum eBrushGPVertexType : char {
   GPVERTEX_BRUSH_TYPE_DRAW = 0,
   GPVERTEX_BRUSH_TYPE_BLUR = 1,
   GPVERTEX_BRUSH_TYPE_AVERAGE = 2,
@@ -520,7 +529,7 @@ enum eBrushGPVertexType {
 };
 
 /** #Brush.gpencil_sculpt_brush_type */
-enum eBrushGPSculptType {
+enum eBrushGPSculptType : char {
   GPSCULPT_BRUSH_TYPE_SMOOTH = 0,
   GPSCULPT_BRUSH_TYPE_THICKNESS = 1,
   GPSCULPT_BRUSH_TYPE_STRENGTH = 2,
@@ -533,7 +542,7 @@ enum eBrushGPSculptType {
 };
 
 /** #Brush.gpencil_weight_brush_type */
-enum eBrushGPWeightType {
+enum eBrushGPWeightType : char {
   GPWEIGHT_BRUSH_TYPE_DRAW = 0,
   GPWEIGHT_BRUSH_TYPE_BLUR = 1,
   GPWEIGHT_BRUSH_TYPE_AVERAGE = 2,
@@ -541,7 +550,7 @@ enum eBrushGPWeightType {
 };
 
 /* direction that the brush displaces along */
-enum {
+enum eBrushSculpt_DispDir : int {
   SCULPT_DISP_DIR_AREA = 0,
   SCULPT_DISP_DIR_VIEW = 1,
   SCULPT_DISP_DIR_X = 2,
@@ -549,24 +558,24 @@ enum {
   SCULPT_DISP_DIR_Z = 4,
 };
 
-enum BrushMaskTool {
+enum BrushMaskTool : char {
   BRUSH_MASK_DRAW = 0,
   BRUSH_MASK_SMOOTH = 1,
 };
 
 /* blur kernel types, Brush.blur_mode */
-enum eBlurKernelType {
+enum eBlurKernelType : int {
   KERNEL_GAUSSIAN = 0,
   KERNEL_BOX = 1,
 };
 
 /** #Brush.falloff_shape */
-enum eBrushFalloffShape {
+enum eBrushFalloffShape : char {
   PAINT_FALLOFF_SHAPE_SPHERE = 0,
   PAINT_FALLOFF_SHAPE_TUBE = 1,
 };
 
-enum eBrushCurvesSculptFlag {
+enum eBrushCurvesSculptFlag : uint32_t {
   BRUSH_CURVES_SCULPT_FLAG_SCALE_UNIFORM = (1 << 0),
   BRUSH_CURVES_SCULPT_FLAG_GROW_SHRINK_INVERT = (1 << 1),
   BRUSH_CURVES_SCULPT_FLAG_INTERPOLATE_LENGTH = (1 << 2),
@@ -574,14 +583,15 @@ enum eBrushCurvesSculptFlag {
   BRUSH_CURVES_SCULPT_FLAG_INTERPOLATE_POINT_COUNT = (1 << 4),
   BRUSH_CURVES_SCULPT_FLAG_INTERPOLATE_RADIUS = (1 << 5),
 };
+ENUM_OPERATORS(eBrushCurvesSculptFlag)
 
-enum eBrushCurvesSculptDensityMode {
+enum eBrushCurvesSculptDensityMode : uint8_t {
   BRUSH_CURVES_SCULPT_DENSITY_MODE_AUTO = 0,
   BRUSH_CURVES_SCULPT_DENSITY_MODE_ADD = 1,
   BRUSH_CURVES_SCULPT_DENSITY_MODE_REMOVE = 2,
 };
 
-enum eBrushColorJitterSettings_Flag {
+enum eBrushColorJitterSettings_Flag : int {
   BRUSH_COLOR_JITTER_USE_HUE_AT_STROKE = (1 << 0),
   BRUSH_COLOR_JITTER_USE_SAT_AT_STROKE = (1 << 1),
   BRUSH_COLOR_JITTER_USE_VAL_AT_STROKE = (1 << 2),
@@ -589,6 +599,7 @@ enum eBrushColorJitterSettings_Flag {
   BRUSH_COLOR_JITTER_USE_SAT_RAND_PRESS = (1 << 4),
   BRUSH_COLOR_JITTER_USE_VAL_RAND_PRESS = (1 << 5),
 };
+ENUM_OPERATORS(eBrushColorJitterSettings_Flag)
 
 #define MAX_BRUSH_PIXEL_RADIUS 500
 #define MAX_BRUSH_PIXEL_DIAMETER 1000

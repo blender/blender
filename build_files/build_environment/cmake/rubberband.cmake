@@ -15,6 +15,12 @@ $PKG_CONFIG_PATH"
   )
 endif()
 
+set(RUBBERBAND_EXTRA_OPTIONS
+  -Dauto_features=disabled
+  -Ddefault_library=static
+  -Dfft=fftw
+)
+
 ExternalProject_Add(external_rubberband
   URL file://${PACKAGE_DIR}/${RUBBERBAND_FILE}
   DOWNLOAD_DIR ${DOWNLOAD_DIR}
@@ -34,9 +40,7 @@ ExternalProject_Add(external_rubberband
       --prefix ${LIBDIR}/rubberband
       --libdir lib
       ${MESON_BUILD_TYPE}
-      -Dauto_features=disabled
-      -Ddefault_library=static
-      -Dfft=fftw
+      ${RUBBERBAND_EXTRA_OPTIONS}
       ${BUILD_DIR}/rubberband/src/external_rubberband-build
       ${BUILD_DIR}/rubberband/src/external_rubberband
 

@@ -142,11 +142,8 @@ static PyObject *make_builtopts_info()
   /* HDR */
   SetObjIncref(Py_True);
 
-#ifdef WITH_IMAGE_OPENEXR
+  /* OpenEXR */
   SetObjIncref(Py_True);
-#else
-  SetObjIncref(Py_False);
-#endif
 
 #ifdef WITH_IMAGE_OPENJPEG
   SetObjIncref(Py_True);
@@ -271,11 +268,8 @@ static PyObject *make_builtopts_info()
   SetObjIncref(Py_False);
 #endif
 
-#ifdef WITH_OPENCOLORIO
+  /* OpenColorIO */
   SetObjIncref(Py_True);
-#else
-  SetObjIncref(Py_False);
-#endif
 
 #ifdef _OPENMP
   SetObjIncref(Py_True);

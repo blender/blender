@@ -210,8 +210,6 @@ set(SRC
   BLI_convexhull_2d.hh
   BLI_cpp_type.hh
   BLI_cpp_type_make.hh
-  BLI_cpp_types.hh
-  BLI_cpp_types_make.hh
   BLI_csv_parse.hh
   BLI_delaunay_2d.hh
   BLI_devirtualize_parameters.hh
@@ -395,6 +393,7 @@ set(SRC
   BLI_timecode.h
   BLI_timeit.hh
   BLI_timer.h
+  BLI_unique_hash.hh
   BLI_unique_sorted_indices.hh
   BLI_unroll.hh
   BLI_ustring.hh
@@ -410,6 +409,7 @@ set(SRC
   BLI_vector_set_slots.hh
   BLI_virtual_array.hh
   BLI_virtual_array_fwd.hh
+  BLI_virtual_array_range_spans.hh
   BLI_virtual_vector_array.hh
   BLI_voxel.h
   BLI_winstuff.h

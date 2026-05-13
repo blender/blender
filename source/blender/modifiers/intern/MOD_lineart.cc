@@ -123,7 +123,7 @@ static bool is_disabled(const Scene * /*scene*/, ModifierData *md, bool /*use_re
     return true;
   }
   /* Preventing calculation in depsgraph when baking frames. */
-  if (lmd->flags & MOD_LINEART_IS_BAKED) {
+  if (int(lmd->flags) & int(MOD_LINEART_IS_BAKED)) {
     return true;
   }
 
@@ -756,7 +756,7 @@ static void generate_strokes(ModifierData &md,
   }
 
   const bool is_first_lineart = (&first_lineart == &lmd);
-  const bool use_cache = (lmd.flags & MOD_LINEART_USE_CACHE);
+  const bool use_cache = (int(lmd.flags) & int(MOD_LINEART_USE_CACHE));
   LineartCache *local_lc = (is_first_lineart || use_cache) ? first_lineart.shared_cache : nullptr;
 
   /* Only calculate strokes in these three conditions:

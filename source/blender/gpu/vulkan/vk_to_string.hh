@@ -14,14 +14,17 @@ namespace blender::gpu {
 
 const char *to_string(VkResult result);
 
+std::string to_string(VkBuffer vk_handle);
+/* Define all handles only if type differs */
+#if VK_USE_64_BIT_PTR_DEFINES == 1
 std::string to_string(VkImage vk_handle);
 std::string to_string(VkImageView vk_handle);
-std::string to_string(VkBuffer vk_handle);
 std::string to_string(VkDescriptorSet vk_handle);
 std::string to_string(VkPipeline vk_handle);
 std::string to_string(VkPipelineLayout vk_handle);
 std::string to_string(VkRenderPass vk_handle);
 std::string to_string(VkFramebuffer vk_handle);
+#endif
 
 const char *to_string(VkAttachmentLoadOp vk_attachment_load_op);
 const char *to_string(VkAttachmentStoreOp vk_attachment_store_op);

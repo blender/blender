@@ -29,6 +29,12 @@ void set_float4(float4 input_value, float4 &output_value)
 }
 
 [[node]]
+void set_quaternion(float4 input_value, float4 &output_value)
+{
+  output_value = input_value;
+}
+
+[[node]]
 void set_color(float4 input_value, float4 &output_value)
 {
   output_value = input_value;

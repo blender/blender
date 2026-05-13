@@ -6,7 +6,7 @@
 
 #include "DNA_node_types.h"
 
-#include "NOD_geometry_nodes_log.hh"
+#include "NOD_eval_log.hh"
 #include "NOD_socket_items.hh"
 
 namespace blender::nodes {
@@ -97,6 +97,6 @@ struct GeoViewerItemsAccessor : public socket_items::SocketItemsAccessorDefaults
 
 void geo_viewer_node_log(const bNode &node,
                          const Span<bke::SocketValueVariant *> input_values,
-                         geo_eval_log::ViewerNodeLog &r_log);
+                         eval_log::ViewerNodeLog &r_log);
 
 }  // namespace blender::nodes

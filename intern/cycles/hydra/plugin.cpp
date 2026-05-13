@@ -39,6 +39,11 @@ bool HdCyclesPlugin::IsSupported() const
   return true;
 }
 #else
+bool HdCyclesPlugin::IsSupported(HdRendererCreateArgs const & /*rendererCreateArgs*/,
+                                 std::string * /*reasonWhyNot*/) const
+{
+  return true;
+}
 bool HdCyclesPlugin::IsSupported(bool /*gpuEnabled*/) const
 {
   return true;

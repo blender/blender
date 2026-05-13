@@ -456,14 +456,14 @@ static wmOperatorStatus material_slot_de_select(bContext *C, bool select)
                 if (bezt->hide == 0) {
                   changed = true;
                   if (select) {
-                    bezt->f1 |= SELECT;
-                    bezt->f2 |= SELECT;
-                    bezt->f3 |= SELECT;
+                    bezt->f1 |= BEZT_FLAG_SELECT;
+                    bezt->f2 |= BEZT_FLAG_SELECT;
+                    bezt->f3 |= BEZT_FLAG_SELECT;
                   }
                   else {
-                    bezt->f1 &= ~SELECT;
-                    bezt->f2 &= ~SELECT;
-                    bezt->f3 &= ~SELECT;
+                    bezt->f1 &= ~BEZT_FLAG_SELECT;
+                    bezt->f2 &= ~BEZT_FLAG_SELECT;
+                    bezt->f3 &= ~BEZT_FLAG_SELECT;
                   }
                 }
                 bezt++;
@@ -2212,7 +2212,9 @@ static wmOperatorStatus freestyle_color_modifier_add_exec(bContext *C, wmOperato
     return OPERATOR_CANCELLED;
   }
 
-  if (BKE_linestyle_color_modifier_add(lineset->linestyle, nullptr, type) == nullptr) {
+  if (BKE_linestyle_color_modifier_add(
+          lineset->linestyle, nullptr, eLineStyleModifier_Type(type)) == nullptr)
+  {
     BKE_report(op->reports, RPT_ERROR, "Unknown line color modifier type");
     return OPERATOR_CANCELLED;
   }
@@ -2259,7 +2261,9 @@ static wmOperatorStatus freestyle_alpha_modifier_add_exec(bContext *C, wmOperato
     return OPERATOR_CANCELLED;
   }
 
-  if (BKE_linestyle_alpha_modifier_add(lineset->linestyle, nullptr, type) == nullptr) {
+  if (BKE_linestyle_alpha_modifier_add(
+          lineset->linestyle, nullptr, eLineStyleModifier_Type(type)) == nullptr)
+  {
     BKE_report(op->reports, RPT_ERROR, "Unknown alpha transparency modifier type");
     return OPERATOR_CANCELLED;
   }
@@ -2306,7 +2310,9 @@ static wmOperatorStatus freestyle_thickness_modifier_add_exec(bContext *C, wmOpe
     return OPERATOR_CANCELLED;
   }
 
-  if (BKE_linestyle_thickness_modifier_add(lineset->linestyle, nullptr, type) == nullptr) {
+  if (BKE_linestyle_thickness_modifier_add(
+          lineset->linestyle, nullptr, eLineStyleModifier_Type(type)) == nullptr)
+  {
     BKE_report(op->reports, RPT_ERROR, "Unknown line thickness modifier type");
     return OPERATOR_CANCELLED;
   }
@@ -2353,7 +2359,9 @@ static wmOperatorStatus freestyle_geometry_modifier_add_exec(bContext *C, wmOper
     return OPERATOR_CANCELLED;
   }
 
-  if (BKE_linestyle_geometry_modifier_add(lineset->linestyle, nullptr, type) == nullptr) {
+  if (BKE_linestyle_geometry_modifier_add(
+          lineset->linestyle, nullptr, eLineStyleModifier_Type(type)) == nullptr)
+  {
     BKE_report(op->reports, RPT_ERROR, "Unknown stroke geometry modifier type");
     return OPERATOR_CANCELLED;
   }

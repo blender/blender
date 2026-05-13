@@ -12,7 +12,7 @@ def dll_path() -> Path:
     Get the library path, that should be at addon root
     :return: library path.
     """
-    lib_name = 'extern_draco'
+    lib_name = 'bf_intern_draco_bridge'
     library_name = {
         'win32': '{}.dll'.format(lib_name),
         'linux': 'lib{}.so'.format(lib_name),

@@ -8,6 +8,8 @@ FRAGMENT_SHADER_CREATE_INFO(gpencil_geometry)
 
 #include "draw_colormanagement_lib.glsl"
 #include "draw_grease_pencil_lib.glsl"
+#include "gpu_shader_common_color_utils.glsl"
+#include "gpu_shader_common_hash.glsl"
 #include "gpu_shader_math_vector_lib.glsl"
 
 float3 gpencil_lighting()
@@ -106,6 +108,112 @@ float2x2 calculate_rotation_matrix(float2 x_axis)
 {
   float2 y_axis = orthogonal(x_axis);
   return transpose(float2x2(x_axis, y_axis));
+}
+
+struct RandomParameters {
+  float random_size;
+  float random_strength;
+  float random_rotation;
+
+  float random_hue;
+  float random_saturation;
+  float random_value;
+
+  float random_noise_scale;
+};
+
+RandomParameters unpack_random(uint4 random_packed)
+{
+  float2 unpacked_x = unpackUnorm2x16(random_packed.x);
+  float2 unpacked_y = unpackUnorm2x16(random_packed.y);
+  float2 unpacked_z = unpackUnorm2x16(random_packed.z);
+  return {unpacked_x.x,
+          unpacked_x.y,
+          unpacked_y.x,
+          unpacked_y.y,
+          unpacked_z.x,
+          unpacked_z.y,
+          uintBitsToFloat(random_packed.w)};
+}
+
+float simple_noise(float x)
+{
+  int int_x = int(x);
+  float factor = smoothstep(0.0f, 1.0f, fract(x));
+  return mix(hash_uint_to_float(int_x), hash_uint_to_float(int_x + 1), factor);
+}
+
+float noise_level_2(float x)
+{
+  return (simple_noise(x) + simple_noise(x * 0.353953f)) * 0.5f;
+}
+
+float4 get_dot_color(float2 uv, int i, float2 dx, float2 dy)
+{
+  uint matid = gp_interp_flat.mat_flag >> GPENCIL_MATID_SHIFT;
+  RandomParameters Parameters = unpack_random(gp_materials[matid].random_packed);
+
+  float noise_x = float(i) * Parameters.random_noise_scale;
+
+  if (Parameters.random_rotation > 0.0f || Parameters.random_size > 0.0f) {
+    float rand_rot = noise_level_2(noise_x + 69637.532f);
+    rand_rot -= 0.5f;
+    rand_rot *= 2.0f;
+    rand_rot *= M_PI;
+    rand_rot *= Parameters.random_rotation;
+
+    float2x2 mat = calculate_rotation_matrix(float2(cos(rand_rot), sin(rand_rot)));
+
+    if (Parameters.random_size > 0.0f) {
+      float rand_siz = noise_level_2(noise_x + 18559.853f);
+      rand_siz *= Parameters.random_size;
+      rand_siz = 1.0f - rand_siz;
+
+      rand_siz = 1.0f / rand_siz;
+      mat[0] = mat[0] * rand_siz;
+      mat[1] = mat[1] * rand_siz;
+    }
+
+    uv -= 0.5f;
+    uv = mat * uv;
+    dx = mat * dx;
+    dy = mat * dy;
+    uv += 0.5f;
+  }
+
+  float4 col = get_color(uv, dx, dy);
+  if (Parameters.random_hue > 0.0f || Parameters.random_saturation > 0.0f ||
+      Parameters.random_value > 0.0f)
+  {
+    float4 col_hsva;
+    rgb_to_hsv(col, col_hsva);
+
+    float rand_hue = noise_level_2(noise_x + 97715.184f);
+    float rand_sat = noise_level_2(noise_x + 16430.953f);
+    float rand_val = noise_level_2(noise_x + 86191.195f);
+
+    col_hsva.x += (rand_hue - 0.5f) * Parameters.random_hue;
+    col_hsva.y *= 1.0f + (rand_sat * 2.0f - 1.0f) * Parameters.random_saturation;
+    col_hsva.z *= 1.0f - Parameters.random_value + rand_val * 2.0f * Parameters.random_value;
+
+    col_hsva.x = fract(col_hsva.x);
+    col_hsva.y = clamp(col_hsva.y, 0.0f, 1.0f);
+    col_hsva.z = clamp(col_hsva.z, 0.0f, 1.0f);
+
+    hsv_to_rgb(col_hsva, col);
+  }
+
+  if (Parameters.random_strength > 0.0f) {
+    float rand = noise_level_2(noise_x + 68916.135f);
+
+    rand -= 1.0f;
+    rand *= Parameters.random_strength;
+    rand += 1.0f;
+
+    col *= rand;
+  }
+
+  return col;
 }
 
 float4 alpha_over(float4 base, float4 over)
@@ -386,7 +494,7 @@ void main()
           dx = dx * 0.5f;
           dy = dy * 0.5f;
 
-          frag_color = alpha_over(get_color(uv, dx, dy), frag_color);
+          frag_color = alpha_over(get_dot_color(uv, i, dx, dy), frag_color);
 
           /* Break early if full opacity. */
           if (frag_color.w > 0.999f) {
@@ -395,10 +503,11 @@ void main()
         }
       }
       else {
+        int i = int(gp_interp_flat.point_length.x);
         float2 dx = gpu_dfdx(gp_interp.uv);
         float2 dy = gpu_dfdy(gp_interp.uv);
 
-        frag_color = get_color(gp_interp.uv, dx, dy);
+        frag_color = get_dot_color(gp_interp.uv, i, dx, dy);
       }
     }
     else {  // line

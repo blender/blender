@@ -16,7 +16,6 @@ set(FREETYPE_EXTRA_ARGS
   -DFT_DISABLE_PNG=ON
   -DFT_REQUIRE_BROTLI=ON
   -DFT_REQUIRE_ZLIB=ON
-  # Note: Also fixed in the tmp-lib52 branch
   -DBROTLIDEC_INCLUDE_DIRS=${LIBDIR}/brotli/include
   -DBROTLIDEC_LIBRARIES=${LIBDIR}/brotli/lib/${FREETYPE_LIB_PREFIX}brotlicommon-static${LIBEXT}
   -DZLIB_LIBRARY=${LIBDIR}/zlib/lib/${ZLIB_LIBRARY}

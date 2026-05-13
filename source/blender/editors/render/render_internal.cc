@@ -42,8 +42,6 @@
 #include "BKE_scene.hh"
 #include "BKE_screen.hh"
 
-#include "NOD_composite.hh"
-
 #include "DEG_depsgraph.hh"
 
 #include "WM_api.hh"
@@ -53,12 +51,9 @@
 #include "ED_screen.hh"
 #include "ED_util.hh"
 
-#include "BIF_glutil.hh"
-
 #include "RE_engine.h"
 #include "RE_pipeline.h"
 
-#include "IMB_colormanagement.hh"
 #include "IMB_imbuf.hh"
 #include "IMB_imbuf_types.hh"
 
@@ -166,98 +161,6 @@ static bool image_buffer_calc_tile_rect(const RenderResult *rr,
   *r_offset_x = offset_x;
   *r_offset_y = offset_y;
   return true;
-}
-
-static void image_buffer_rect_update(RenderJob *rj,
-                                     RenderResult *rr,
-                                     ImBuf *ibuf,
-                                     ImageUser *iuser,
-                                     const rcti *tile_rect,
-                                     int offset_x,
-                                     int offset_y,
-                                     const char *viewname)
-{
-  Scene *scene = rj->scene;
-  const float *rectf = nullptr;
-  int linear_stride, linear_offset_x, linear_offset_y;
-  const ColorManagedViewSettings *view_settings;
-  const ColorManagedDisplaySettings *display_settings;
-
-  if (ibuf->userflags & IB_DISPLAY_BUFFER_INVALID) {
-    /* The whole image buffer is to be color managed again anyway. */
-    return;
-  }
-
-  /* The thing here is, the logic below (which was default behavior
-   * of how rectf is acquiring since forever) gives float buffer for
-   * composite output only. This buffer can not be used for other
-   * passes obviously.
-   *
-   * We might try finding corresponding for pass buffer in render result
-   * (which is actually missing when rendering with Cycles, who only
-   * writes all the passes when the tile is finished) or use float
-   * buffer from image buffer as reference, which is easier to use and
-   * contains all the data we need anyway.
-   *                                              - sergey -
-   */
-  /* TODO(sergey): Need to check has_combined here? */
-  if (iuser->pass == 0) {
-    const int view_id = BKE_scene_multiview_view_id_get(&scene->r, viewname);
-    const RenderView *rv = RE_RenderViewGetById(rr, view_id);
-
-    if (rv->ibuf == nullptr) {
-      return;
-    }
-
-    /* find current float rect for display, first case is after composite... still weak */
-    if (rv->ibuf->float_data()) {
-      rectf = rv->ibuf->float_data();
-    }
-    else {
-      if (rv->ibuf->byte_data()) {
-        /* special case, currently only happens with sequencer rendering,
-         * which updates the whole frame, so we can only mark display buffer
-         * as invalid here (sergey)
-         */
-        ibuf->userflags |= IB_DISPLAY_BUFFER_INVALID;
-        return;
-      }
-      if (rr->renlay == nullptr) {
-        return;
-      }
-      rectf = RE_RenderLayerGetPass(rr->renlay, RE_PASSNAME_COMBINED, viewname);
-    }
-    if (rectf == nullptr) {
-      return;
-    }
-
-    rectf += 4 * (rr->rectx * tile_rect->ymin + tile_rect->xmin);
-    linear_stride = rr->rectx;
-    linear_offset_x = offset_x;
-    linear_offset_y = offset_y;
-  }
-  else {
-    rectf = ibuf->float_data();
-    linear_stride = ibuf->x;
-    linear_offset_x = 0;
-    linear_offset_y = 0;
-  }
-
-  view_settings = &scene->view_settings;
-  display_settings = &scene->display_settings;
-
-  IMB_partial_display_buffer_update(ibuf,
-                                    rectf,
-                                    nullptr,
-                                    linear_stride,
-                                    linear_offset_x,
-                                    linear_offset_y,
-                                    view_settings,
-                                    display_settings,
-                                    offset_x,
-                                    offset_y,
-                                    offset_x + BLI_rcti_size_x(tile_rect),
-                                    offset_y + BLI_rcti_size_y(tile_rect));
 }
 
 /* ****************************** render invoking ***************** */
@@ -431,12 +334,6 @@ static wmOperatorStatus screen_render_exec(bContext *C, wmOperator *op)
   ima = BKE_image_ensure_viewer(mainp, IMA_TYPE_R_RESULT, "Render Result");
   BKE_image_signal(mainp, ima, nullptr, IMA_SIGNAL_FREE);
   BKE_image_backup_render(scene, ima, true);
-
-  /* cleanup sequencer caches before starting user triggered render.
-   * otherwise, invalidated cache entries can make their way into
-   * the output rendering. We can't put that into RE_RenderFrame,
-   * since sequence rendering can call that recursively... */
-  seq::cache_cleanup(scene, seq::CacheCleanup::FinalAndIntra);
 
   RE_SetReports(re, op->reports);
 
@@ -716,7 +613,6 @@ static void image_rect_update(void *rjv, RenderResult *rr, rcti *renrect)
   Image *ima = rj->image;
   ImBuf *ibuf;
   void *lock;
-  const char *viewname = RE_GetActiveRenderView(rj->re);
 
   /* only update if we are displaying the slot being rendered */
   if (ima->render_slot != ima->last_render_slot) {
@@ -750,16 +646,6 @@ static void image_rect_update(void *rjv, RenderResult *rr, rcti *renrect)
       return;
     }
 
-    /* Don't waste time on CPU side color management if
-     * image will be displayed using GLSL.
-     *
-     * Need to update rect if Save Buffers enabled because in
-     * this case GLSL doesn't have original float buffer to
-     * operate with.
-     */
-    if (ibuf->channels == 1 || ED_draw_imbuf_method(ibuf) != IMAGE_DRAW_METHOD_GLSL) {
-      image_buffer_rect_update(rj, rr, ibuf, &rj->iuser, &tile_rect, offset_x, offset_y, viewname);
-    }
     ImageTile *image_tile = BKE_image_get_tile(ima, 0);
     BKE_image_update_gputexture_delayed(ima,
                                         image_tile,
@@ -1149,9 +1035,6 @@ static wmOperatorStatus screen_render_invoke(bContext *C, wmOperator *op, const 
   /* flush sculpt and editmode changes */
   ED_editors_flush_edits_ex(bmain, true, false);
 
-  /* Cleanup VSE cache, since it is not guaranteed that stored images are invalid. */
-  seq::cache_cleanup(scene, seq::CacheCleanup::FinalAndIntra);
-
   /* store spare
    * get view3d layer, local layer, make this nice API call to render
    * store spare */
@@ -1407,7 +1290,7 @@ static wmOperatorStatus render_shutter_curve_preset_exec(bContext *C, wmOperator
   Scene *scene = CTX_data_scene(C);
   CurveMapping *mblur_shutter_curve = &scene->r.mblur_shutter_curve;
   CurveMap *cm = mblur_shutter_curve->cm;
-  int preset = RNA_enum_get(op->ptr, "shape");
+  eCurveMappingPreset preset = eCurveMappingPreset(RNA_enum_get(op->ptr, "shape"));
 
   mblur_shutter_curve->flag &= ~CUMA_EXTEND_EXTRAPOLATE;
   mblur_shutter_curve->preset = preset;

@@ -12,6 +12,7 @@
 #include "AS_asset_catalog.hh"
 #include "AS_asset_catalog_tree.hh"
 #include "AS_asset_library.hh"
+#include "AS_essentials_library.hh"
 #include "asset_catalog_collection.hh"
 #include "asset_catalog_definition_file.hh"
 
@@ -380,6 +381,10 @@ std::unique_ptr<AssetCatalogDefinitionFile> AssetCatalogService::parse_catalog_f
 
   auto catalog_parsed_callback = [this, catalog_definition_file_path, &seen_paths](
                                      std::unique_ptr<AssetCatalog> catalog) {
+    if (skip_experimental_asset_catalog(catalog->catalog_id)) {
+      return false;
+    }
+
     if (catalog_collection_->catalogs_.contains(catalog->catalog_id)) {
       /* TODO(@sybren): apparently another CDF was already loaded. This is not supported yet. */
       std::cerr << catalog_definition_file_path << ": multiple definitions of catalog "
@@ -413,6 +418,10 @@ void AssetCatalogService::reload_catalogs()
   Set<CatalogID> cats_in_file;
 
   auto catalog_parsed_callback = [this, &cats_in_file](std::unique_ptr<AssetCatalog> catalog) {
+    if (skip_experimental_asset_catalog(catalog->catalog_id)) {
+      return false;
+    }
+
     const CatalogID catalog_id = catalog->catalog_id;
     cats_in_file.add(catalog_id);
 

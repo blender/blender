@@ -35,6 +35,7 @@ GLFrameBuffer::GLFrameBuffer(
     : FrameBuffer(name)
 {
   context_ = ctx;
+  context_id_ = context_->context_id;
   state_manager_ = static_cast<GLStateManager *>(ctx->state_manager);
   immutable_ = true;
   fbo_id_ = fbo;
@@ -62,6 +63,11 @@ GLFrameBuffer::~GLFrameBuffer()
     return;
   }
 
+  if (!GLBackend::get()->is_valid_context_id(context_id_)) {
+    /* Context was freed. It can happen for GLTexture::framebuffer_. */
+    return;
+  }
+
   /* Context might be partially freed. This happens when destroying the window frame-buffers. */
   if (context_ == Context::get()) {
     glDeleteFramebuffers(1, &fbo_id_);
@@ -81,6 +87,7 @@ GLFrameBuffer::~GLFrameBuffer()
 void GLFrameBuffer::init()
 {
   context_ = GLContext::get();
+  context_id_ = context_->context_id;
   state_manager_ = static_cast<GLStateManager *>(context_->state_manager);
   glGenFramebuffers(1, &fbo_id_);
   /* Binding before setting the label is needed on some drivers.

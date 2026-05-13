@@ -129,6 +129,7 @@ class ImageCache {
                             const KernelImageTexture &tex,
                             ImageLoader &loader,
                             const ImageMetaData &metadata,
+                            int miplevel_offset,
                             const uint8_t *access_state);
 
   void load_requested_tile(Device &device,
@@ -139,7 +140,8 @@ class ImageCache {
                            int x,
                            int y,
                            ImageLoader &loader,
-                           const ImageMetaData &metadata);
+                           const ImageMetaData &metadata,
+                           int miplevel_offset);
 
   /* Copy image cache data to device if modified. Either for all devices, or a single
    * device whose queue is provided. */

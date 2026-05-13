@@ -240,7 +240,7 @@ static bool view_frame_preview_scope(bContext *C,
       /* Optionally limit X range to max nits of the view transform. */
       const Scene *scene = CTX_data_sequencer_scene(C);
       const ocio::ScopeInfo scope_info = IMB_colormanagement_get_scope_info(
-          &scene->display_settings, scene->view_settings.view_transform);
+          &scene->display_settings, &scene->view_settings);
       if (scope_info.view_transform_max_nits > 0) {
         max_nits_scale = scope_info.view_transform_max_nits_value;
       }

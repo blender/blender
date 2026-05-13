@@ -436,8 +436,12 @@ class OUTLINER_PT_filter(Panel):
             col.prop(space, "use_sort_alpha")
 
         if display_mode != 'LIBRARY_OVERRIDES':
-            row = layout.row(align=True)
+            col = layout.column(align=True)
+            row = col.row(align=True)
             row.prop(space, "use_sync_select", text="Sync Selection")
+            row = col.row(align=True)
+            row.active = space.use_sync_select
+            row.prop(space, "scroll_to_active", text="Scroll to Active")
 
             row = layout.row(align=True)
             row.prop(space, "show_mode_column", text="Show Mode Column")

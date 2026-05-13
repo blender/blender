@@ -26,9 +26,9 @@ struct GeometrySet;
 struct IDProperty;
 namespace nodes {
 struct GeoNodesCallData;
-namespace geo_eval_log {
-class GeoNodesLog;
-}  // namespace geo_eval_log
+namespace eval_log {
+class NodesEvalLog;
+}  // namespace eval_log
 }  // namespace nodes
 
 namespace nodes {

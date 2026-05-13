@@ -278,6 +278,8 @@ class Procedure : NonCopyable, NonMovable {
 
   bool validate() const;
 
+  void prepare_for_execution();
+
  private:
   bool validate_all_instruction_pointers_set() const;
   bool validate_all_params_provided() const;

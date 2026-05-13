@@ -59,10 +59,9 @@ void forward_lighting_eval(Thickness thickness, float3 &radiance, float3 &transm
     }
 #  endif
 
-    if ((cl_transmit.type == CLOSURE_BSDF_TRANSLUCENT_ID ||
-         cl_transmit.type == CLOSURE_BSDF_MICROFACET_GGX_REFRACTION_ID ||
-         cl_transmit.type == CLOSURE_BSSRDF_BURLEY_ID) &&
-        (thickness.value() != 0.0f))
+    if (cl_transmit.type == CLOSURE_BSDF_TRANSLUCENT_ID ||
+        cl_transmit.type == CLOSURE_BSDF_MICROFACET_GGX_REFRACTION_ID ||
+        cl_transmit.type == CLOSURE_BSSRDF_BURLEY_ID)
     {
       stack.cl[0] = closure_light_new(cl_transmit, V, thickness);
 

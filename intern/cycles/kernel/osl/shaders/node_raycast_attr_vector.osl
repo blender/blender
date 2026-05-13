@@ -1,0 +1,12 @@
+/* SPDX-FileCopyrightText: 2011-2026 Blender Foundation
+ *
+ * SPDX-License-Identifier: Apache-2.0 */
+
+#include "stdcycles.h"
+
+shader node_raycast_attr_vector(int attribute_index = 0,
+                                point vector_attributes[32] = {},
+                                output point value = point(0.0, 0.0, 0.0))
+{
+  value = vector_attributes[attribute_index];
+}

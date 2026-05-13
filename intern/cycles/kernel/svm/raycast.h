@@ -88,18 +88,32 @@ ccl_device bool svm_raycast(KernelGlobals kg,
   return true;
 }
 
+ccl_device_inline void svm_raycast_attr_eval_and_store(
+    KernelGlobals kg,
+    ccl_private float *stack,
+    ccl_global const SVMNodeAttr &attribute_node,
+    ccl_private ShaderData &hit_sd)
+{
+  NodeAttributeOutputType type = NODE_ATTR_OUTPUT_FLOAT;
+  const AttributeDescriptor desc = svm_node_attr_init(kg, &hit_sd, attribute_node, &type);
+
+  const float3 data = svm_node_attr_surface_eval<float3>(kg, &hit_sd, attribute_node, type, desc);
+  svm_node_attr_store(type, stack, attribute_node.out_offset, data);
+}
+
 template<uint node_feature_mask, typename ConstIntegratorGenericState>
 #  if defined(__KERNEL_OPTIX__)
 ccl_device_inline
 #  else
 ccl_device_noinline
 #  endif
-    void
+    int
     svm_node_raycast(KernelGlobals kg,
                      ConstIntegratorGenericState state,
                      ccl_private ShaderData *sd,
                      ccl_private float *ccl_restrict stack,
-                     const ccl_global SVMNodeRaycast &ccl_restrict node)
+                     const ccl_global SVMNodeRaycast &ccl_restrict node,
+                     int offset)
 {
   const float distance = stack_load(stack, node.distance);
 
@@ -132,6 +146,27 @@ ccl_device_noinline
       hit_distance = hit_sd.ray_length;
       hit_position = position + direction * hit_distance;
       hit_normal = hit_sd.N;
+
+      for (uint16_t i = 0; i < node.num_attributes; i++) {
+        const uint node_type = kernel_data_fetch(svm_nodes, offset++);
+        (void)node_type;
+        kernel_assert(node_type == NODE_ATTR);
+
+        const ccl_global auto &attribute_node = svm_node_get<SVMNodeAttr>(kg, &offset);
+        svm_raycast_attr_eval_and_store(kg, stack, attribute_node, hit_sd);
+      }
+    }
+  }
+
+  if (is_hit == 0.0f) {
+    for (uint16_t i = 0; i < node.num_attributes; i++) {
+      const uint node_type = kernel_data_fetch(svm_nodes, offset++);
+      (void)node_type;
+      kernel_assert(node_type == NODE_ATTR);
+
+      const ccl_global auto &attribute_node = svm_node_get<SVMNodeAttr>(kg, &offset);
+      svm_node_attr_store(
+          attribute_node.output_type, stack, attribute_node.out_offset, make_zero<float3>());
     }
   }
 
@@ -150,6 +185,8 @@ ccl_device_noinline
   if (stack_valid(node.hit_normal_offset)) {
     stack_store_float3(stack, node.hit_normal_offset, hit_normal);
   }
+
+  return offset;
 }
 
 #endif /* __SHADER_RAYTRACE__ */

@@ -655,7 +655,8 @@ static bool bm_face_is_snap_target(BMFace *f, void * /*user_data*/)
   return true;
 }
 
-short *transform_snap_flag_from_spacetype_ptr(TransInfo *t, const PropertyRNA **r_prop = nullptr)
+eSnapFlag *transform_snap_flag_from_spacetype_ptr(TransInfo *t,
+                                                  const PropertyRNA **r_prop = nullptr)
 {
   ToolSettings *ts = t->settings;
   switch (t->spacetype) {
@@ -712,13 +713,13 @@ short *transform_snap_flag_from_spacetype_ptr(TransInfo *t, const PropertyRNA **
 
 static eSnapFlag snap_flag_from_spacetype(TransInfo *t)
 {
-  if (short *snap_flag = transform_snap_flag_from_spacetype_ptr(t)) {
-    return eSnapFlag(*snap_flag);
+  if (eSnapFlag *snap_flag = transform_snap_flag_from_spacetype_ptr(t)) {
+    return *snap_flag;
   }
 
   /* #SPACE_EMPTY.
    * It can happen when the operator is called via a handle in `bpy.app.handlers`. */
-  return eSnapFlag(0);
+  return eSnapFlag{};
 }
 
 static eSnapMode snap_mode_from_spacetype(TransInfo *t)

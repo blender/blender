@@ -18,6 +18,9 @@ struct ReportList;
 struct Scene;
 struct wmKeyConfig;
 
+enum eRigidBodyCon_Type : short;
+enum eRigidBodyOb_Type : short;
+
 /* `particle_edit.cc` */
 
 bool ED_object_particle_edit_mode_supported(const Object *ob);
@@ -33,13 +36,14 @@ bool PE_poll_view3d(bContext *C);
 
 /* `rigidbody_object.cc` */
 
-bool ED_rigidbody_object_add(Main *bmain, Scene *scene, Object *ob, int type, ReportList *reports);
+bool ED_rigidbody_object_add(
+    Main *bmain, Scene *scene, Object *ob, eRigidBodyOb_Type type, ReportList *reports);
 void ED_rigidbody_object_remove(Main *bmain, Scene *scene, Object *ob);
 
 /* `rigidbody_constraint.cc` */
 
 bool ED_rigidbody_constraint_add(
-    Main *bmain, Scene *scene, Object *ob, int type, ReportList *reports);
+    Main *bmain, Scene *scene, Object *ob, eRigidBodyCon_Type type, ReportList *reports);
 void ED_rigidbody_constraint_remove(Main *bmain, Scene *scene, Object *ob);
 
 /* operators */

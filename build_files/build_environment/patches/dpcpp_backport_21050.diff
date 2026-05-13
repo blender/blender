@@ -1,0 +1,101 @@
+diff --git a/unified-runtime/source/adapters/level_zero/platform.cpp b/unified-runtime/source/adapters/level_zero/platform.cpp
+index 3eed2d875..a41c3701c 100644
+--- a/unified-runtime/source/adapters/level_zero/platform.cpp
++++ b/unified-runtime/source/adapters/level_zero/platform.cpp
+@@ -272,15 +272,10 @@ ur_result_t ur_platform_handle_t_::initialize() {
+         ZeDriverEuCountExtensionFound = true;
+       }
+     }
+-    if (strncmp(extension.name,
+-                ZEX_INTEL_QUEUE_COPY_OPERATIONS_OFFLOAD_HINT_EXP_NAME,
+-                strlen(ZEX_INTEL_QUEUE_COPY_OPERATIONS_OFFLOAD_HINT_EXP_NAME) +
+-                    1) == 0) {
+-      if (extension.version ==
+-          ZEX_INTEL_QUEUE_COPY_OPERATIONS_OFFLOAD_HINT_EXP_VERSION_1_0) {
+-        ZeCopyOffloadExtensionSupported = true;
+-      }
+-    }
++    // Backport of https://github.com/intel/llvm/pull/21050, adapted by
++    // Xavier Hallade for the DPC++ v6.3 release.
++    // These changes may already be included in a future DPC++ release
++    // branch - if so, this patch can be removed.
+     if (strncmp(extension.name, ZE_BINDLESS_IMAGE_EXP_NAME,
+                 strlen(ZE_BINDLESS_IMAGE_EXP_NAME) + 1) == 0) {
+       if (extension.version == ZE_BINDLESS_IMAGE_EXP_VERSION_1_0) {
+@@ -526,6 +521,9 @@ ur_result_t ur_platform_handle_t_::initialize() {
+   ZeMemGetPitchFor2dImageExt.Supported =
+       ZeMemGetPitchFor2dImageExt.zeMemGetPitchFor2dImage != nullptr;
+
++  // BACKPORT(#21050)
++  ZeCopyOffloadExtensionSupported = this->isDriverVersionNewerOrSimilar(1, 14, 0);
++
+   return UR_RESULT_SUCCESS;
+ }
+
+diff --git a/unified-runtime/source/adapters/level_zero/v2/command_list_cache.cpp b/unified-runtime/source/adapters/level_zero/v2/command_list_cache.cpp
+index a8dd67fc9..a65050534 100644
+--- a/unified-runtime/source/adapters/level_zero/v2/command_list_cache.cpp
++++ b/unified-runtime/source/adapters/level_zero/v2/command_list_cache.cpp
+@@ -13,11 +13,10 @@
+
+ #include "../device.hpp"
+
+-template <>
+-ze_structure_type_t
+-getZeStructureType<zex_intel_queue_copy_operations_offload_hint_exp_desc_t>() {
+-  return ZEX_INTEL_STRUCTURE_TYPE_QUEUE_COPY_OPERATIONS_OFFLOAD_HINT_EXP_PROPERTIES;
+-}
++// BACKPORT(#21050)
++#ifndef ZE_COMMAND_QUEUE_FLAG_COPY_OFFLOAD_HINT
++#define ZE_COMMAND_QUEUE_FLAG_COPY_OFFLOAD_HINT ZE_BIT(2)
++#endif
+
+ bool v2::immediate_command_list_descriptor_t::operator==(
+     const immediate_command_list_descriptor_t &rhs) const {
+@@ -61,7 +60,7 @@ static bool ForceDisableCopyOffload = [] {
+
+ raii::ze_command_list_handle_t
+ command_list_cache_t::createCommandList(const command_list_descriptor_t &desc) {
+-  ZeStruct<zex_intel_queue_copy_operations_offload_hint_exp_desc_t> offloadDesc;
++  // BACKPORT(#21050)
+   auto requestedCopyOffload =
+       std::visit([](auto &&arg) { return arg.CopyOffloadEnabled; }, desc);
+
+@@ -76,8 +75,7 @@ command_list_cache_t::createCommandList(const command_list_descriptor_t &desc) {
+     requestedCopyOffload = false;
+   }
+
+-  offloadDesc.copyOffloadEnabled = requestedCopyOffload;
+-
++  // BACKPORT(#21050)
+   if (auto ImmCmdDesc =
+           std::get_if<immediate_command_list_descriptor_t>(&desc)) {
+     ze_command_list_handle_t ZeCommandList;
+@@ -91,7 +89,11 @@ command_list_cache_t::createCommandList(const command_list_descriptor_t &desc) {
+       QueueDesc.flags |= ZE_COMMAND_QUEUE_FLAG_EXPLICIT_ONLY;
+       QueueDesc.index = ImmCmdDesc->Index.value();
+     }
+-    QueueDesc.pNext = &offloadDesc;
++
++    // BACKPORT(#21050)
++    if (requestedCopyOffload && ZeCopyOffloadExtensionSupported) {
++      QueueDesc.flags |= ZE_COMMAND_QUEUE_FLAG_COPY_OFFLOAD_HINT;
++    }
+
+     UR_LOG(DEBUG,
+            "create command list ordinal: {}, type: immediate, "
+@@ -114,11 +116,12 @@ command_list_cache_t::createCommandList(const command_list_descriptor_t &desc) {
+     CmdListDesc.flags =
+         RegCmdDesc.IsInOrder ? ZE_COMMAND_LIST_FLAG_IN_ORDER : 0;
+     CmdListDesc.commandQueueGroupOrdinal = RegCmdDesc.Ordinal;
+-    CmdListDesc.pNext = &offloadDesc;
++    // BACKPORT(#21050)
+     ZeStruct<ze_mutable_command_list_exp_desc_t> ZeMutableCommandListDesc;
+     if (IsMutable) {
+       ZeMutableCommandListDesc.flags = 0;
+-      offloadDesc.pNext = &ZeMutableCommandListDesc;
++      // BACKPORT(#21050)
++      CmdListDesc.pNext = &ZeMutableCommandListDesc;
+     }
+
+     UR_LOG(DEBUG,

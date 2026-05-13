@@ -33,3 +33,12 @@ void realize_on_domain_bicubic()
   const float2 coordinates = transform_point(to_float3x3(transformation), float2(texel));
   imageStore(domain_img, texel, texture_bicubic(input_tx, coordinates));
 }
+
+void realize_on_domain_anisotropic()
+{
+  const int2 texel = int2(gl_GlobalInvocationID.xy);
+  const float2 coordinates = transform_point(to_float3x3(transformation), float2(texel));
+  imageStore(domain_img,
+             texel,
+             textureGrad(input_tx, coordinates, transformation[0].xy, transformation[1].xy));
+}

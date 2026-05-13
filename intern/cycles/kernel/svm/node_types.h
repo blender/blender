@@ -1233,12 +1233,12 @@ struct SVMNodeRaycast {
   SVMInputFloat distance;
   float bump_filter_width;
   uint8_t only_local;
+  uint16_t num_attributes;
   SVMStackOffset is_hit_offset;
   SVMStackOffset is_self_hit_offset;
   SVMStackOffset hit_distance_offset;
   SVMStackOffset hit_position_offset;
   SVMStackOffset hit_normal_offset;
-  uint8_t _pad[2];
 };
 static_assert(alignof(SVMNodeRaycast) <= alignof(uint));
 static_assert(sizeof(SVMNodeRaycast) % sizeof(uint) == 0);

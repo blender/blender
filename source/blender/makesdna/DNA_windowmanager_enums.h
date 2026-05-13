@@ -44,7 +44,7 @@ ENUM_OPERATORS(wmOperatorStatus);
   ((void)0)
 
 /** #wmOperator.flag */
-enum {
+enum eOperator_Flag : short {
   /**
    * Low level flag so exec() operators can tell if they were invoked, use with care.
    * Typically this shouldn't make any difference, but it rare cases its needed (see smooth-view).
@@ -71,5 +71,6 @@ enum {
    */
   OP_IS_MODAL_CURSOR_REGION = (1 << 4),
 };
+ENUM_OPERATORS(eOperator_Flag)
 
 }  // namespace blender

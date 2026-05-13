@@ -8,6 +8,8 @@
 
 #pragma once
 
+#include "BLI_enum_flags.hh"
+
 #include "DNA_defs.h"
 #include "DNA_listBase.h"
 
@@ -16,12 +18,13 @@ namespace blender {
 struct BodySpring;
 
 /** #EffectorWeights::flag */
-enum {
+enum eEffectorWeight_Flag : short {
   EFF_WEIGHT_DO_HAIR = 1,
 };
+ENUM_OPERATORS(eEffectorWeight_Flag)
 
 /** #PartDeflect::flag: various settings. */
-enum {
+enum ePField_Flag : int {
   PFIELD_USEMAX = 1 << 0,
   // PDEFLE_DEFORM = 1 << 1, /* UNUSED */
   /** TODO: do_versions for below */
@@ -57,16 +60,17 @@ enum {
   /** Replace collision direction with collider normal. */
   PFIELD_CLOTH_USE_NORMAL = 1 << 20,
 };
+ENUM_OPERATORS(ePField_Flag)
 
 /** #PartDeflect::falloff */
-enum {
+enum ePField_Falloff : short {
   PFIELD_FALL_SPHERE = 0,
   PFIELD_FALL_TUBE = 1,
   PFIELD_FALL_CONE = 2,
 };
 
 /** #PartDeflect::shape */
-enum {
+enum ePField_Shape : short {
   PFIELD_SHAPE_POINT = 0,
   PFIELD_SHAPE_PLANE = 1,
   PFIELD_SHAPE_SURFACE = 2,
@@ -75,21 +79,21 @@ enum {
 };
 
 /** #PartDeflect::tex_mode */
-enum {
+enum ePField_TexMode : short {
   PFIELD_TEX_RGB = 0,
   PFIELD_TEX_GRAD = 1,
   PFIELD_TEX_CURL = 2,
 };
 
 /** #PartDeflect::zdir */
-enum {
+enum ePField_ZDir : short {
   PFIELD_Z_BOTH = 0,
   PFIELD_Z_POS = 1,
   PFIELD_Z_NEG = 2,
 };
 
 /** #Object::softflag */
-enum {
+enum eSoftBody_Flag : int {
   OB_SB_ENABLE = 1 << 0, /* Deprecated (use modifier). */
   OB_SB_GOAL = 1 << 1,
   OB_SB_EDGES = 1 << 2,
@@ -106,16 +110,18 @@ enum {
   // OB_SB_BIG_UI = 1 << 13,     /* Deprecated. */
   OB_SB_AERO_ANGLE = 1 << 14,
 };
+ENUM_OPERATORS(eSoftBody_Flag)
 
 /** #SoftBody::solverflags */
-enum {
+enum eSoftBody_SolverFlag : char {
   SBSO_MONITOR = 1 << 0,
   SBSO_OLDERR = 1 << 1,
   SBSO_ESTIMATEIPO = 1 << 2,
 };
+ENUM_OPERATORS(eSoftBody_SolverFlag)
 
 /** #SoftBody::sbc_mode */
-enum {
+enum eSoftBody_Mode : short {
   SBC_MODE_MANUAL = 0,
   SBC_MODE_AVG = 1,
   SBC_MODE_MIN = 2,
@@ -124,7 +130,7 @@ enum {
 };
 
 /** #PartDeflect.forcefield: Effector Fields types. */
-enum ePFieldType {
+enum ePFieldType : short {
   /** (this is used for general effector weight). */
   PFIELD_NULL = 0,
   /** Force away/towards a point depending on force strength. */
@@ -160,20 +166,20 @@ enum ePFieldType {
 
 struct PartDeflect {
   /** General settings flag. */
-  int flag = 0;
+  ePField_Flag flag = {};
   /** Deflection flag - does mesh deflect particles. */
   short deflect = 0;
   /** Force field type, do the vertices attract / repel particles? */
-  short forcefield = 0;
+  ePFieldType forcefield = PFIELD_NULL;
   /** Fall-off type. */
-  short falloff = 0;
+  ePField_Falloff falloff = PFIELD_FALL_SPHERE;
   /** Point, plane or surface. */
-  short shape = 0;
+  ePField_Shape shape = PFIELD_SHAPE_POINT;
   /** Texture effector. */
-  short tex_mode = 0;
+  ePField_TexMode tex_mode = PFIELD_TEX_RGB;
   /** For curve guide. */
   short kink = 0, kink_axis = 0;
-  short zdir = 0;
+  ePField_ZDir zdir = PFIELD_Z_BOTH;
 
   /* Main effector values */
   /** The strength of the force (+ or - ). */
@@ -273,7 +279,7 @@ struct EffectorWeights {
   /** Effector type specific weights. */
   float weight[14] = {};
   float global_gravity = 0;
-  short flag = 0;
+  eEffectorWeight_Flag flag = {};
   char _pad[2] = {};
 };
 
@@ -357,7 +363,8 @@ struct SoftBody {
   /* baking */
   char _pad1[6] = {};
   /** Local==1: use local coords for baking. */
-  char local = 0, solverflags = 0;
+  char local = 0;
+  eSoftBody_SolverFlag solverflags = {};
 
   /* -- these must be kept for backwards compatibility -- */
   /** Array of size totpointkey. */
@@ -374,7 +381,7 @@ struct SoftBody {
   float balldamp = 0;
   /** Pressure the ball is loaded with. */
   float ballstiff = 0;
-  short sbc_mode = 0;
+  eSoftBody_Mode sbc_mode = SBC_MODE_MANUAL;
   short aeroedge = 0;
   short minloops = 0;
   short maxloops = 0;

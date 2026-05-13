@@ -121,8 +121,8 @@ EditBone *ED_armature_ebone_add_primitive(Object *obedit_arm,
 
   bone->tail[view_aligned ? 1 : 2] = length;
 
-  if (arm->runtime.active_collection) {
-    ANIM_armature_bonecoll_assign_editbone(arm->runtime.active_collection, bone);
+  if (arm->runtime->active_collection) {
+    ANIM_armature_bonecoll_assign_editbone(arm->runtime->active_collection, bone);
   }
 
   return bone;
@@ -603,7 +603,7 @@ static void update_duplicate_loc_rot_constraint_settings(Object *ob,
 {
   /* This code assumes that bRotLimitConstraint and bLocLimitConstraint have the same fields in
    * the same memory locations. */
-  bRotLimitConstraint *limit = static_cast<bRotLimitConstraint *>(curcon->data);
+  bLocLimitConstraint *limit = static_cast<bLocLimitConstraint *>(curcon->data);
   float local_mat[4][4], imat[4][4];
 
   float min_vec[3], max_vec[3];
@@ -656,12 +656,9 @@ static void update_duplicate_loc_rot_constraint_settings(Object *ob,
     max_vec[0] = min_x_copy * -1;
 
     /* Also flip the enabled axis check-boxes accordingly. */
-    const bool use_max_x = (limit->flag & LIMIT_XMAX);
-    const bool use_min_x = (limit->flag & LIMIT_XMIN);
-    limit->flag |= use_max_x ? LIMIT_XMIN : 0;
-    limit->flag &= (use_max_x && !use_min_x) ? ~LIMIT_XMAX : limit->flag;
-    limit->flag |= use_min_x ? LIMIT_XMAX : 0;
-    limit->flag &= (use_min_x && !use_max_x) ? ~LIMIT_XMIN : limit->flag;
+    if (bool(limit->flag & LIMIT_XMIN) != bool(limit->flag & LIMIT_XMAX)) {
+      limit->flag ^= (LIMIT_XMIN | LIMIT_XMAX);
+    }
   }
 
   /* convert back to the settings space */
@@ -856,7 +853,7 @@ static void update_duplicate_transform_constraint_settings(Object *ob,
   mul_m4_v3(imat, trans->to_max_scale);
 }
 
-static void track_axis_x_swap(int &value)
+static void track_axis_x_swap(eTrackToAxis_Modes &value)
 {
   /* Swap track axis X <> -X. */
   if (value == TRACK_X) {
@@ -944,6 +941,8 @@ static void update_duplicate_constraint_settings(EditBone *dup_bone,
         break;
       case CONSTRAINT_TYPE_SHRINKWRAP:
         update_duplicate_constraint_shrinkwrap_settings(&curcon);
+        break;
+      default:
         break;
     }
   }
@@ -1108,12 +1107,14 @@ EditBone *duplicateEditBone(EditBone *cur_bone,
   return duplicateEditBoneObjects(cur_bone, name, editbones, ob, ob);
 }
 
-static wmOperatorStatus armature_duplicate_selected_exec(bContext *C, wmOperator *op)
+static wmOperatorStatus armature_duplicate_selected(bContext *C,
+                                                    const bool do_flip_names,
+                                                    StringRefNull search,
+                                                    StringRefNull replace)
 {
   const Main *bmain = CTX_data_main(C);
   const Scene *scene = CTX_data_scene(C);
   ViewLayer *view_layer = CTX_data_view_layer(C);
-  const bool do_flip_names = RNA_boolean_get(op->ptr, "do_flip_names");
 
   /* cancel if nothing selected */
   if (CTX_DATA_COUNT(C, selected_bones) == 0) {
@@ -1166,6 +1167,11 @@ static wmOperatorStatus armature_duplicate_selected_exec(bContext *C, wmOperator
           if (ED_armature_ebone_find_name(arm->edbo, new_bone_name_buff) == nullptr) {
             new_bone_name = new_bone_name_buff;
           }
+        }
+        std::string buffer(new_bone_name);
+        if (!search.is_empty()) {
+          BLI_string_replace(buffer, search, replace);
+          new_bone_name = buffer.data();
         }
 
         ebone = duplicateEditBone(ebone_iter, new_bone_name, arm->edbo, ob);
@@ -1243,6 +1249,12 @@ static wmOperatorStatus armature_duplicate_selected_exec(bContext *C, wmOperator
   return OPERATOR_FINISHED;
 }
 
+static wmOperatorStatus armature_duplicate_selected_exec(bContext *C, wmOperator *op)
+{
+  const bool do_flip_names = RNA_boolean_get(op->ptr, "do_flip_names");
+  return armature_duplicate_selected(C, do_flip_names, "", "");
+}
+
 void ARMATURE_OT_duplicate(wmOperatorType *ot)
 {
   /* identifiers */
@@ -1263,6 +1275,64 @@ void ARMATURE_OT_duplicate(wmOperatorType *ot)
       false,
       "Flip Names",
       "Try to flip names of the bones, if possible, instead of adding a number extension");
+}
+
+static wmOperatorStatus armature_duplicate_rename_exec(bContext *C, wmOperator *op)
+{
+  const bool do_flip_names = RNA_boolean_get(op->ptr, "do_flip_names");
+  std::string search = RNA_string_get(op->ptr, "search");
+  std::string replace = RNA_string_get(op->ptr, "replace");
+  if (search.empty()) {
+    BKE_report(op->reports, RPT_ERROR, "No search term defined");
+    return OPERATOR_CANCELLED;
+  }
+  return armature_duplicate_selected(C, do_flip_names, search, replace);
+}
+
+static wmOperatorStatus armature_duplicate_rename_invoke(bContext *C,
+                                                         wmOperator *op,
+                                                         const wmEvent *event)
+{
+  return WM_operator_props_popup_confirm(C, op, event);
+}
+
+void ARMATURE_OT_duplicate_rename(wmOperatorType *ot)
+{
+  /* identifiers */
+  ot->name = "Duplicate and Rename";
+  ot->idname = "ARMATURE_OT_duplicate_rename";
+  ot->description =
+      "Make copies of the selected bones within the same armature and replace a part of their "
+      "name";
+
+  /* API callbacks. */
+  ot->invoke = armature_duplicate_rename_invoke;
+  ot->exec = armature_duplicate_rename_exec;
+  ot->poll = ED_operator_editarmature;
+
+  /* flags */
+  ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
+
+  RNA_def_boolean(
+      ot->srna,
+      "do_flip_names",
+      false,
+      "Flip Names",
+      "Try to flip names of the bones, if possible, instead of adding a number extension");
+
+  RNA_def_string(ot->srna,
+                 "search",
+                 nullptr,
+                 MAXBONENAME,
+                 "Search",
+                 "A part of the current bone name that will be replaced");
+  RNA_def_string(ot->srna,
+                 "replace",
+                 nullptr,
+                 MAXBONENAME,
+                 "Replace",
+                 "The substitute to be inserted into the place of the given search term. If left "
+                 "empty the search term will be removed");
 }
 
 /* Get the duplicated or existing mirrored copy of the bone. */
@@ -1416,7 +1486,8 @@ static wmOperatorStatus armature_symmetrize_exec(bContext *C, wmOperator *op)
     {
       if (ebone_iter->temp.ebone) {
         /* copy all flags except for ... */
-        const int flag_copy = (~0) & ~(BONE_SELECTED | BONE_ROOTSEL | BONE_TIPSEL);
+        const eBone_Flag flag_copy = eBone_Flag(~0) &
+                                     ~(BONE_SELECTED | BONE_ROOTSEL | BONE_TIPSEL);
 
         EditBone *ebone = ebone_iter->temp.ebone;
 

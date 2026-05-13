@@ -18,6 +18,8 @@ struct RenderResult;
 
 namespace compositor {
 
+class Result;
+
 /* ------------------------------------------------------------------------------------------------
  * File Output
  *
@@ -64,16 +66,18 @@ class FileOutput {
    * should only be called for EXR images. */
   void add_view(const char *view_name);
 
-  /* Add a view of the given name that stores the given pixel buffer composed of the given number
-   * of channels. */
-  void add_view(const char *view_name, int channels, float *buffer);
+  /* Add a view of the given name that stores the given result data. */
+  void add_view(const char *view_name, const Result &data);
 
-  /* Add a pass of the given name in the given view that stores the given pixel buffer composed of
+  /* Add a pass of the given name in the given view that stores the given result data composed of
    * each of the channels given by the channels string. The channels string should contain a
    * character for each channel in the pixel buffer representing the channel ID. This should only
    * be called for EXR images. The given view name should be the name of an added view using the
    * add_view method. */
-  void add_pass(const char *pass_name, const char *view_name, const char *channels, float *buffer);
+  void add_pass(const char *pass_name,
+                const char *view_name,
+                const char *channels,
+                const Result &data);
 
   /* Add meta data that will eventually be saved to the file if the format supports it. */
   void add_meta_data(std::string key, std::string value);

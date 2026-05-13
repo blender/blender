@@ -1,11 +1,17 @@
 diff --git a/pxr/imaging/hdSt/renderDelegate.cpp b/pxr/imaging/hdSt/renderDelegate.cpp
-index 8e81f3804..b171ac540 100644
+index d430b824c..2cae24678 100644
 --- a/pxr/imaging/hdSt/renderDelegate.cpp
 +++ b/pxr/imaging/hdSt/renderDelegate.cpp
-@@ -549,7 +549,10 @@ HdStRenderDelegate::CommitResources(HdChangeTracker *tracker)
- bool
- HdStRenderDelegate::IsSupported()
+@@ -567,13 +567,10 @@ bool
+ HdStRenderDelegate::IsSupported(
+     HdRendererCreateArgs const& rendererCreateArgs)
  {
+-    if (rendererCreateArgs.hgi) {
+-        return rendererCreateArgs.hgi->IsBackendSupported();
+-    }
+-
+-    // If invalid Hgi instance is provided, check support for platform default
+-    // Hgi.
 -    return Hgi::IsSupported();
 +    // BLENDER: This doesn't take into account the backend, and fails for Vulkan
 +    // because it defaults to OpenGL. Instead assume Blender already succeeded

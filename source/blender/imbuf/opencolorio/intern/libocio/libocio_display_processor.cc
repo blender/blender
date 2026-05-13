@@ -2,27 +2,25 @@
  *
  * SPDX-License-Identifier: GPL-2.0-or-later */
 
-#if defined(WITH_OPENCOLORIO)
+#include <cfloat>
+#include <optional>
+#include <sstream>
 
-#  include <cfloat>
-#  include <optional>
-#  include <sstream>
+#include "BLI_colorspace.hh"
+#include "BLI_math_matrix.hh"
 
-#  include "BLI_colorspace.hh"
-#  include "BLI_math_matrix.hh"
+#include "OCIO_config.hh"
+#include "OCIO_matrix.hh"
+#include "OCIO_view.hh"
 
-#  include "OCIO_config.hh"
-#  include "OCIO_matrix.hh"
-#  include "OCIO_view.hh"
+#include "error_handling.hh"
+#include "libocio_config.hh"
+#include "libocio_display.hh"
+#include "libocio_display_processor.hh"
 
-#  include "error_handling.hh"
-#  include "libocio_config.hh"
-#  include "libocio_display.hh"
-#  include "libocio_display_processor.hh"
+#include "../white_point.hh"
 
-#  include "../white_point.hh"
-
-#  include "CLG_log.h"
+#include "CLG_log.h"
 
 namespace blender::ocio {
 
@@ -31,7 +29,7 @@ static CLG_LogRef LOG = {"color_management"};
 static TransferFunction system_extended_srgb_transfer_function(const LibOCIOView *view,
                                                                const bool use_hdr_buffer)
 {
-#  ifdef __APPLE__
+#ifdef __APPLE__
   /* The Metal backend always uses sRGB or extended sRGB buffer.
    *
    * How this will be decoded depends on the macOS display preset, but from testing
@@ -43,7 +41,7 @@ static TransferFunction system_extended_srgb_transfer_function(const LibOCIOView
    */
   UNUSED_VARS(use_hdr_buffer, view);
   return TransferFunction::sRGB;
-#  elif defined(_WIN32)
+#elif defined(_WIN32)
   /* The Vulkan backend uses either sRGB for SDR, or linear extended sRGB for HDR.
    *
    * - Windows HDR mode off: use_hdr_buffer will be false, and we encode with sRGB.
@@ -58,7 +56,7 @@ static TransferFunction system_extended_srgb_transfer_function(const LibOCIOView
    */
   UNUSED_VARS(use_hdr_buffer, view);
   return TransferFunction::sRGB;
-#  else
+#else
   /* The Vulkan backend uses either sRGB for SDR, or linear extended sRGB for HDR.
    *
    * - When using a HDR swapchain and the display + view is HDR, ensure we pass on
@@ -70,7 +68,7 @@ static TransferFunction system_extended_srgb_transfer_function(const LibOCIOView
    */
   return (use_hdr_buffer && view && view->is_hdr()) ? TransferFunction::Gamma22 :
                                                       TransferFunction::sRGB;
-#  endif
+#endif
 }
 
 static OCIO_NAMESPACE::TransformRcPtr create_extended_srgb_transform(
@@ -556,5 +554,3 @@ OCIO_NAMESPACE::ConstProcessorRcPtr create_ocio_display_processor(
 }
 
 }  // namespace blender::ocio
-
-#endif

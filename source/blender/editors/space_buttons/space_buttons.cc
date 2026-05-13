@@ -1133,7 +1133,7 @@ void ED_spacetype_buttons()
   /* Register the panel types from strip modifiers. The actual panels are built per strip modifier
    * rather than per modifier type. */
   for (int i = 0; i < NUM_STRIP_MODIFIER_TYPES; i++) {
-    const seq::StripModifierTypeInfo *mti = seq::modifier_type_info_get(i);
+    const seq::StripModifierTypeInfo *mti = seq::modifier_type_info_get(eStripModifierType(i));
     if (mti != nullptr && mti->panel_register != nullptr) {
       mti->panel_register(art);
     }

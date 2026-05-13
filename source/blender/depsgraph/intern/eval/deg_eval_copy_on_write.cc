@@ -696,8 +696,6 @@ void update_id_after_copy(const Depsgraph *depsgraph,
       object_cow->runtime->data_orig = object_cow->data;
       if (object_cow->type == OB_ARMATURE) {
         const bArmature *armature_orig = id_cast<bArmature *>(object_orig->data);
-        bArmature *armature_cow = id_cast<bArmature *>(object_cow->data);
-        BKE_pose_remap_bone_pointers(armature_cow, object_cow->pose);
         if (armature_orig->edbo == nullptr) {
           update_pose_orig_pointers(object_orig->pose, object_cow->pose);
         }

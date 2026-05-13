@@ -113,6 +113,12 @@ def add_closure_zone(layout, label):
     return props
 
 
+def add_typed_bundle(layout):
+    props = layout.operator("node.add_typed_bundle", text="Typed Bundle", text_ctxt=i18n_contexts.default)
+    props.use_transform = True
+    return props
+
+
 def set_socket_default_value(settings, socket_identifier, socket_default_value):
     prop = settings.add()
     prop.name = "inputs[\"{:s}\"].default_value".format(socket_identifier)
@@ -355,6 +361,15 @@ class NodeMenu(Menu):
                 props.use_transform = cls.use_transform
 
         return operators
+
+    @classmethod
+    def typed_bundle(cls, layout, label):
+        props = layout.operator("node.add_typed_bundle", text=label, text_ctxt=i18n_contexts.default)
+
+        if hasattr(props, "use_transform"):
+            props.use_transform = cls.use_transform
+
+        return props
 
     @classmethod
     def new_empty_group(cls, layout):

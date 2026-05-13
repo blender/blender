@@ -9,33 +9,21 @@
 #include "DNA_anim_types.h"
 
 #include "BKE_fcurve.hh"
+#include "BKE_gtest_base.hh"
 #include "BKE_idtype.hh"
 #include "BKE_lib_id.hh"
 #include "BKE_main.hh"
 
 #include "RNA_define.hh"
 
-#include "CLG_log.h"
 #include "testing/testing.h"
 
 namespace blender::animrig::tests {
 
-class AnimDrawTest : public testing::Test {
+class AnimDrawTest : public bke::BlenderGTestBase {
  public:
   Main *bmain;
   Object *object;
-
-  static void SetUpTestSuite()
-  {
-    RNA_init();
-    CLG_init();
-    BKE_idtype_init();
-  }
-
-  static void TearDownTestSuite()
-  {
-    CLG_exit();
-  }
 
   void SetUp() override
   {

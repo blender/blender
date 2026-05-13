@@ -8,6 +8,7 @@
 
 #pragma once
 
+#include "BLI_enum_flags.hh"
 #include "BLI_math_constants.h"
 
 #include "DNA_ID.h"
@@ -23,7 +24,7 @@ struct AnimData;
 struct bNodeTree;
 
 /** #Light::flag */
-enum {
+enum eLight_Flag : short {
   LA_DS_EXPAND = 1 << 0,
   /**
    * NOTE: this must have the same value as #MA_DS_SHOW_TEXS,
@@ -31,9 +32,10 @@ enum {
    */
   LA_DS_SHOW_TEXS = 1 << 2,
 };
+ENUM_OPERATORS(eLight_Flag)
 
 /** #Light::type */
-enum {
+enum eLightType : short {
   LA_LOCAL = 0,
   LA_SUN = 1,
   LA_SPOT = 2,
@@ -42,7 +44,7 @@ enum {
 };
 
 /** #Light::mode */
-enum {
+enum eLight_Mode : int {
   LA_SHADOW = 1 << 0,
   // LA_HALO = 1 << 1, /* Deprecated. */
   // LA_LAYER = 1 << 2, /* Deprecated. */
@@ -75,9 +77,10 @@ enum {
   LA_USE_TEMPERATURE = 1 << 24,
   LA_UNNORMALIZED = 1 << 25,
 };
+ENUM_OPERATORS(eLight_Mode)
 
 /** #Light::falloff_type */
-enum {
+enum eLightFalloffType : short {
   LA_FALLOFF_CONSTANT = 0,
   LA_FALLOFF_INVLINEAR = 1,
   LA_FALLOFF_INVSQUARE = 2,
@@ -87,7 +90,7 @@ enum {
 };
 
 /** #Light::area_shape */
-enum {
+enum eLightAreaShape : short {
   LA_AREA_SQUARE = 0,
   LA_AREA_RECT = 1,
   // LA_AREA_CUBE = 2, /* Deprecated. */
@@ -108,8 +111,9 @@ struct Light {
   struct AnimData *adt = nullptr;
 
   /* Type and flags. */
-  short type = 0, flag = 0;
-  int mode = LA_SHADOW | LA_USE_SOFT_FALLOFF;
+  eLightType type = LA_LOCAL;
+  eLight_Flag flag = {};
+  eLight_Mode mode = LA_SHADOW | LA_USE_SOFT_FALLOFF;
 
   /* Color, temperature and energy. */
   float r = 1.0f, g = 1.0f, b = 1.0f;
@@ -125,7 +129,7 @@ struct Light {
   float spotblend = 0.15f;
 
   /* Area light. */
-  short area_shape = 0;
+  eLightAreaShape area_shape = LA_AREA_SQUARE;
   short _pad1 = {};
   float area_size = 0.25f;
   float area_sizey = 0.25f;

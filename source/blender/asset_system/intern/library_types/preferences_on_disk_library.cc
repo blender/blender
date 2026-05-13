@@ -45,6 +45,26 @@ std::optional<AssetLibraryReference> PreferencesOnDiskAssetLibrary::library_refe
   return library_ref;
 }
 
+std::optional<eAssetImportMethod> PreferencesOnDiskAssetLibrary::import_method() const
+{
+  const bUserAssetLibrary *library_definition = user_library_.user_asset_library();
+  if (!library_definition) {
+    return {};
+  }
+
+  return eAssetImportMethod(library_definition->import_method);
+}
+
+bool PreferencesOnDiskAssetLibrary::use_relative_paths() const
+{
+  const bUserAssetLibrary *library_definition = user_library_.user_asset_library();
+  if (!library_definition) {
+    return false;
+  }
+
+  return (library_definition->flag & ASSET_LIBRARY_RELATIVE_PATH) != 0;
+}
+
 bool PreferencesOnDiskAssetLibrary::is_enabled() const
 {
   const bUserAssetLibrary *library_definition = user_library_.user_asset_library();

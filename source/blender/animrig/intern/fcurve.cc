@@ -94,7 +94,7 @@ eFCurve_Flags fcurve_flags_for_property_type(const PropertyType prop_type)
 {
   switch (prop_type) {
     case PROP_FLOAT:
-      return eFCurve_Flags(0);
+      return eFCurve_Flags{};
     case PROP_INT:
       /* Do integer (only 'whole' numbers) interpolation between all points. */
       return FCURVE_INT_VALUES;
@@ -312,7 +312,7 @@ void initialize_bezt(BezTriple *beztr,
   beztr->vec[1][1] = position.y;
   beztr->vec[2][0] = position.x + 1.0f;
   beztr->vec[2][1] = position.y;
-  beztr->f1 = beztr->f2 = beztr->f3 = SELECT;
+  beztr->f1 = beztr->f2 = beztr->f3 = BEZT_FLAG_SELECT;
 
   beztr->h1 = beztr->h2 = settings.handle;
   beztr->ipo = settings.interpolation;

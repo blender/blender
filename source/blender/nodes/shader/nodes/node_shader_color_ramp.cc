@@ -140,6 +140,13 @@ class ColorBandFunction : public mf::MultiFunction {
       alphas[i] = color.a;
     });
   }
+
+  void hash_unique(UniqueHashBytes &hash) const override
+  {
+    static constexpr int8_t id = 0;
+    hash.add(&id);
+    hash.add(&color_band_);
+  }
 };
 
 static void sh_node_valtorgb_build_multi_function(nodes::NodeMultiFunctionBuilder &builder)

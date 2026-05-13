@@ -28,11 +28,11 @@ PyDoc_STRVAR(
     "\n"
     "   Builds a ConstrainedIncreasingThicknessShader object.\n"
     "\n"
-    "   :arg thickness_min: The minimum thickness.\n"
+    "   :param thickness_min: The minimum thickness.\n"
     "   :type thickness_min: float\n"
-    "   :arg thickness_max: The maximum thickness.\n"
+    "   :param thickness_max: The maximum thickness.\n"
     "   :type thickness_max: float\n"
-    "   :arg ratio: The thickness/length ratio that we don't want to exceed. \n"
+    "   :param ratio: The thickness/length ratio that we don't want to exceed. \n"
     "   :type ratio: float\n"
     "\n"
     ".. method:: shade(stroke)\n"
@@ -41,7 +41,7 @@ PyDoc_STRVAR(
     "   the user to control the thickness/length ratio so that we don't get\n"
     "   fat short lines.\n"
     "\n"
-    "   :arg stroke: A Stroke object.\n"
+    "   :param stroke: A Stroke object.\n"
     "   :type stroke: :class:`freestyle.types.Stroke`\n");
 static int ConstrainedIncreasingThicknessShader___init__(
     BPy_ConstrainedIncreasingThicknessShader *self, PyObject *args, PyObject *kwds)

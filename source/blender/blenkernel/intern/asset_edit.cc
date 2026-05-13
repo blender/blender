@@ -19,6 +19,7 @@
 #include "DNA_userdef_types.h"
 
 #include "AS_asset_library.hh"
+#include "AS_essentials_library.hh"
 
 #include "BKE_asset_edit.hh"
 #include "BKE_blendfile.hh"
@@ -243,10 +244,37 @@ static AssetWeakReference asset_weak_reference_for_user_library(
   return weak_ref;
 }
 
+static AssetWeakReference asset_weak_reference_for_online_essentials(const short idcode,
+                                                                     const char *idname,
+                                                                     const char *filepath)
+{
+  BLI_assert(!BLI_path_is_rel(filepath));
+  BLI_assert(BLI_path_is_abs_from_cwd(filepath));
+  BLI_assert(
+      BLI_path_contains(asset_system::online_essentials_cache_directory_path().c_str(), filepath));
+
+  char relative_filepath[FILE_MAX];
+  STRNCPY(relative_filepath, filepath);
+  BLI_path_rel(relative_filepath, asset_system::online_essentials_cache_directory_path().c_str());
+  const char *asset_blend_path = relative_filepath + 2; /* Strip out // prefix. */
+
+  AssetWeakReference weak_ref;
+  weak_ref.asset_library_type = ASSET_LIBRARY_ONLINE_ESSENTIALS;
+  weak_ref.relative_asset_identifier = BLI_sprintfN(
+      "%s/%s/%s", asset_blend_path, BKE_idtype_idcode_to_name(idcode), idname);
+
+  return weak_ref;
+}
+
 static AssetWeakReference asset_weak_reference_for_essentials(const short idcode,
                                                               const char *idname,
                                                               const char *filepath)
 {
+  BLI_assert(!BLI_path_is_rel(filepath));
+  BLI_assert(BLI_path_is_abs_from_cwd(filepath));
+  BLI_assert(!BLI_path_contains(asset_system::online_essentials_cache_directory_path().c_str(),
+                                filepath));
+
   AssetWeakReference weak_ref;
   weak_ref.asset_library_type = ASSET_LIBRARY_ESSENTIALS;
   weak_ref.relative_asset_identifier = BLI_sprintfN("%s/%s/%s/%s",
@@ -392,6 +420,14 @@ std::optional<AssetWeakReference> asset_edit_weak_reference_from_id(const ID &id
   if (user_library && user_library->dirpath[0]) {
     return asset_weak_reference_for_user_library(
         *user_library, idcode, id.name + 2, id.lib->runtime->filepath_abs);
+  }
+
+  const bool is_online_essential = BLI_path_contains(
+      asset_system::online_essentials_cache_directory_path().c_str(),
+      id.lib->runtime->filepath_abs);
+  if (is_online_essential) {
+    return asset_weak_reference_for_online_essentials(
+        idcode, id.name + 2, id.lib->runtime->filepath_abs);
   }
 
   return asset_weak_reference_for_essentials(idcode, id.name + 2, id.lib->runtime->filepath_abs);

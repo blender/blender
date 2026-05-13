@@ -27,6 +27,7 @@ import zlib
 import zstandard
 import cattrs
 import fastjsonschema
+import docutils
 
 # Dynamically loaded modules, to ensure they have satisfactory dependencies.
 import _blake2

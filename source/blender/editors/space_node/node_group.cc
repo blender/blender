@@ -301,7 +301,7 @@ static void node_group_ungroup(bContext &C, bNodeTree &ntree, bNode &group_node)
   /* Delete the original group instance. */
   bke::node_remove_node(&bmain, ntree, group_node, true);
 
-  /* Select ungrouped nodes*/
+  /* Select ungrouped nodes. */
   for (bNode *node : copied_nodes.node_map().values()) {
     bke::node_set_selected(*node, true);
   }
@@ -641,8 +641,8 @@ static bNode *node_group_make_from_nodes(const bContext &C,
   gnode->id = id_cast<ID *>(ngroup);
 
   if (const std::optional<Bounds<float2>> bounds = node_location_bounds(nodes_to_group)) {
-    gnode->location[0] = bounds->center()[0];
-    gnode->location[1] = bounds->center()[1];
+    gnode->location[0] = nearest_node_grid_coord(bounds->center()[0]);
+    gnode->location[1] = nearest_node_grid_coord(bounds->center()[1]);
   }
   if (bNode *parent = ed::space_node::find_common_parent_node(nodes_to_group)) {
     gnode->parent = parent;

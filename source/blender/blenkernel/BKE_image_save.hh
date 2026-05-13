@@ -35,7 +35,7 @@ struct ImageSaveOptions {
   bool save_as_render = false;
   bool do_newpath = false;
 
-  /* Original values, so we can restore when type changes back .*/
+  /* Original values, so we can restore when type changes back. */
   int orig_imtype;
   char orig_colorspace[/*MAX_COLORSPACE_NAME*/ 64];
 

@@ -4,19 +4,17 @@
 
 #pragma once
 
-#if defined(WITH_OPENCOLORIO)
+#include <memory>
 
-#  include <memory>
+#include "MEM_guardedalloc.h"
 
-#  include "MEM_guardedalloc.h"
+#include "BLI_vector.hh"
 
-#  include "BLI_vector.hh"
+#include "OCIO_display.hh"
 
-#  include "OCIO_display.hh"
+#include "../cpu_processor_cache.hh"
 
-#  include "../cpu_processor_cache.hh"
-
-#  include "libocio_view.hh"
+#include "libocio_view.hh"
 
 namespace blender::ocio {
 
@@ -97,5 +95,3 @@ class LibOCIODisplay : public Display {
 };
 
 }  // namespace blender::ocio
-
-#endif

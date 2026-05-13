@@ -9,11 +9,13 @@
 
 #pragma once
 
+#include "BLI_enum_flags.hh"
+
 namespace blender {
 
 /* Grease Pencil Modifiers */
 
-enum eArrayGpencil_Flag {
+enum eArrayGpencil_Flag : int {
   GP_ARRAY_INVERT_LAYER = (1 << 2),
   GP_ARRAY_INVERT_PASS = (1 << 3),
   GP_ARRAY_INVERT_LAYERPASS = (1 << 5),
@@ -23,13 +25,14 @@ enum eArrayGpencil_Flag {
   GP_ARRAY_USE_OB_OFFSET = (1 << 9),
   GP_ARRAY_UNIFORM_RANDOM_SCALE = (1 << 10),
 };
+ENUM_OPERATORS(eArrayGpencil_Flag)
 
-enum eTextureGpencil_Fit {
+enum eTextureGpencil_Fit : short {
   GP_TEX_FIT_STROKE = 0,
   GP_TEX_CONSTANT_LENGTH = 1,
 };
 
-enum eNoiseGpencil_Flag {
+enum eNoiseGpencil_Flag : int {
   GP_NOISE_USE_RANDOM = (1 << 0),
   GP_NOISE_MOD_LOCATION = (1 << 1),  /* Deprecated (only for versioning). */
   GP_NOISE_MOD_STRENGTH = (1 << 2),  /* Deprecated (only for versioning). */
@@ -43,13 +46,14 @@ enum eNoiseGpencil_Flag {
   GP_NOISE_INVERT_LAYERPASS = (1 << 10),
   GP_NOISE_INVERT_MATERIAL = (1 << 11),
 };
+ENUM_OPERATORS(eNoiseGpencil_Flag)
 
-enum eNoiseRandomGpencil_Mode {
+enum eNoiseRandomGpencil_Mode : short {
   GP_NOISE_RANDOM_STEP = 0,
   GP_NOISE_RANDOM_KEYFRAME = 1,
 };
 
-enum eLengthGpencil_Flag {
+enum eLengthGpencil_Flag : int {
   GP_LENGTH_INVERT_LAYER = (1 << 0),
   GP_LENGTH_INVERT_PASS = (1 << 1),
   GP_LENGTH_INVERT_LAYERPASS = (1 << 2),
@@ -58,8 +62,9 @@ enum eLengthGpencil_Flag {
   GP_LENGTH_INVERT_CURVATURE = (1 << 5),
   GP_LENGTH_USE_RANDOM = (1 << 6),
 };
+ENUM_OPERATORS(eLengthGpencil_Flag)
 
-enum eLengthGpencil_Type {
+enum eLengthGpencil_Type : int {
   GP_LENGTH_RELATIVE = 0,
   GP_LENGTH_ABSOLUTE = 1,
 };
@@ -67,7 +72,7 @@ enum eLengthGpencil_Type {
 /* Shrink-wrap Modifier */
 
 /** #ShrinkwrapModifierData.shrinkType */
-enum {
+enum eShrinkwrap_Type : short {
   MOD_SHRINKWRAP_NEAREST_SURFACE = 0,
   MOD_SHRINKWRAP_PROJECT = 1,
   MOD_SHRINKWRAP_NEAREST_VERTEX = 2,
@@ -75,7 +80,7 @@ enum {
 };
 
 /** #ShrinkwrapModifierData.shrinkMode */
-enum {
+enum eShrinkwrap_Mode : char {
   /** Move vertex to the surface of the target object (keepDist towards original position) */
   MOD_SHRINKWRAP_ON_SURFACE = 0,
   /** Move the vertex inside the target object; don't change if already inside */
@@ -89,7 +94,7 @@ enum {
 };
 
 /** #ShrinkwrapModifierData.shrinkOpts */
-enum {
+enum eShrinkwrap_Opts : uint8_t {
   /** Allow shrink-wrap to move the vertex in the positive direction of axis. */
   MOD_SHRINKWRAP_PROJECT_ALLOW_POS_DIR = (1 << 0),
   /** Allow shrink-wrap to move the vertex in the negative direction of axis. */
@@ -108,22 +113,24 @@ enum {
   MOD_SHRINKWRAP_INVERT_VGROUP = (1 << 6),
   MOD_SHRINKWRAP_INVERT_CULL_TARGET = (1 << 7),
 };
+ENUM_OPERATORS(eShrinkwrap_Opts)
 
 #define MOD_SHRINKWRAP_CULL_TARGET_MASK \
   (MOD_SHRINKWRAP_CULL_TARGET_FRONTFACE | MOD_SHRINKWRAP_CULL_TARGET_BACKFACE)
 
 /** #ShrinkwrapModifierData.projAxis */
-enum {
+enum eShrinkwrap_ProjAxis : char {
   /** projection over normal is used if no axis is selected */
   MOD_SHRINKWRAP_PROJECT_OVER_NORMAL = 0,
   MOD_SHRINKWRAP_PROJECT_OVER_X_AXIS = (1 << 0),
   MOD_SHRINKWRAP_PROJECT_OVER_Y_AXIS = (1 << 1),
   MOD_SHRINKWRAP_PROJECT_OVER_Z_AXIS = (1 << 2),
 };
+ENUM_OPERATORS(eShrinkwrap_ProjAxis)
 
 /* TransferData modifier */
 
-enum {
+enum eDTType : int {
   DT_TYPE_MDEFORMVERT = 1 << 0,
   DT_TYPE_SKIN = 1 << 2,
   DT_TYPE_BWEIGHT_VERT = 1 << 3,
@@ -153,6 +160,7 @@ enum {
   DT_TYPE_LOOP_ALL = DT_TYPE_LNOR | DT_TYPE_UV | DT_TYPE_MPROPCOL_LOOP | DT_TYPE_MLOOPCOL_LOOP,
   DT_TYPE_POLY_ALL = DT_TYPE_UV | DT_TYPE_SHARP_FACE | DT_TYPE_FREESTYLE_FACE,
 };
+ENUM_OPERATORS(eDTType)
 
 #define DT_DATATYPE_IS_VERT(_dt) \
   ELEM(_dt, \
@@ -188,7 +196,7 @@ enum {
        DT_TYPE_MPROPCOL_LOOP | DT_TYPE_MLOOPCOL_LOOP, \
        DT_TYPE_UV)
 
-enum {
+enum eDTMultilayerIndex : int {
   DT_MULTILAYER_INDEX_INVALID = -1,
   DT_MULTILAYER_INDEX_MDEFORMVERT = 0,
   DT_MULTILAYER_INDEX_VCOL_LOOP = 2,
@@ -201,7 +209,7 @@ enum {
 
 /* How to select data layers, for types supporting multi-layers.
  * Here too, some options are highly dependent on type of transferred data! */
-enum {
+enum eDTLayersSrc : int {
   DT_LAYERS_ACTIVE_SRC = -1,
   DT_LAYERS_ALL_SRC = -2,
   /* Datatype-specific. */
@@ -213,7 +221,7 @@ enum {
 
 /* How to map a source layer to a destination layer, for types supporting multi-layers.
  * NOTE: if no matching layer can be found, it will be created. */
-enum {
+enum eDTLayersDst : int {
   DT_LAYERS_ACTIVE_DST = -1, /* Only for DT_LAYERS_FROMSEL_ACTIVE. */
   DT_LAYERS_NAME_DST = -2,
   DT_LAYERS_INDEX_DST = -3,
@@ -231,7 +239,7 @@ enum {
  * Also, users will have to check, whether we can get rid of some modes here,
  * not sure all will be useful!
  */
-enum {
+enum eMRemapMode : int {
   MREMAP_USE_VERT = 1 << 4,
   MREMAP_USE_EDGE = 1 << 5,
   MREMAP_USE_LOOP = 1 << 6,
@@ -320,11 +328,12 @@ enum {
   /* ***** Same topology, applies to all four elements types. ***** */
   MREMAP_MODE_TOPOLOGY = MREMAP_MODE_VERT | MREMAP_MODE_EDGE | MREMAP_MODE_LOOP | MREMAP_MODE_POLY,
 };
+ENUM_OPERATORS(eMRemapMode)
 
 /**
  * How to filter out some elements (to leave untouched).
  * Note those options are highly dependent on type of transferred data! */
-enum {
+enum eCDTMixMode : int {
   CDT_MIX_NOMIX = -1, /* Special case, only used because we abuse 'copy' CD callback. */
   CDT_MIX_TRANSFER = 0,
   CDT_MIX_REPLACE_ABOVE_THRESHOLD = 1,

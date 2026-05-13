@@ -796,6 +796,10 @@ class PrimitiveCreator:
                             new_material.extensions["KHR_materials_specular"].extension['specularColorTexture'] = new_tex
                         elif tex == "anisotropyTexture":
                             new_material.extensions["KHR_materials_anisotropy"].extension['anisotropyTexture'] = new_tex
+                        elif tex == "iridescenceTexture":
+                            new_material.extensions["KHR_materials_iridescence"].extension['iridescenceTexture'] = new_tex
+                        elif tex == "iridescenceThicknessTexture":
+                            new_material.extensions["KHR_materials_iridescence"].extension['iridescenceThicknessTexture'] = new_tex
                         else:
                             self.export_settings['log'].warning(
                                 'We are not managing this case (UDIM for {})'.format(tex))

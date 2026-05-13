@@ -562,7 +562,7 @@ static void createTransObject(bContext *C, TransInfo *t)
     td->protectflag = ob->protectflag;
     tx->rotOrder = ob->rotmode;
 
-    if (base->flag & BA_TRANSFORM_CHILD) {
+    if (base->flag_legacy & BA_TRANSFORM_CHILD) {
       td->flag |= TD_NOCENTER;
       td->flag |= TD_NO_LOC;
     }
@@ -898,8 +898,7 @@ static void recalcData_objects(TransInfo *t)
 
   if (motionpath_update) {
     /* Update motion paths once for all transformed objects. */
-    object::motion_paths_recalc_selected(
-        t->context, t->scene, object::OBJECT_PATH_CALC_RANGE_CURRENT_FRAME);
+    object::motion_paths_recalc_selected(t->context, t->scene, ANIMVIZ_CALC_RANGE_CURRENT_FRAME);
   }
 
   if (t->options & CTX_OBMODE_XFORM_SKIP_CHILDREN) {
@@ -981,9 +980,8 @@ static void special_aftertrans_update__object(bContext *C, TransInfo *t)
 
   if (motionpath_update) {
     /* Update motion paths once for all transformed objects. */
-    const object::eObjectPathCalcRange range = canceled ?
-                                                   object::OBJECT_PATH_CALC_RANGE_CURRENT_FRAME :
-                                                   object::OBJECT_PATH_CALC_RANGE_CHANGED;
+    const eAnimvizCalcRange range = canceled ? ANIMVIZ_CALC_RANGE_CURRENT_FRAME :
+                                               ANIMVIZ_CALC_RANGE_CHANGED;
     object::motion_paths_recalc_selected(C, t->scene, range);
   }
 

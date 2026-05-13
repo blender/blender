@@ -39,6 +39,8 @@ set(SRC
   nodes/node_geo_bounding_box.cc
   nodes/node_geo_camera_info.cc
   nodes/node_geo_closure.cc
+  nodes/node_geo_cluster_by_connected.cc
+  nodes/node_geo_cluster_by_distance.cc
   nodes/node_geo_collection_children.cc
   nodes/node_geo_collection_info.cc
   nodes/node_geo_combine_bundle.cc
@@ -95,9 +97,11 @@ set(SRC
   nodes/node_geo_flip_faces.cc
   nodes/node_geo_foreach_geometry_element.cc
   nodes/node_geo_geometry_to_instance.cc
+  nodes/node_geo_get_attribute_names.cc
   nodes/node_geo_get_bundle_item.cc
   nodes/node_geo_get_geometry_bundle.cc
   nodes/node_geo_get_named_grid.cc
+  nodes/node_geo_get_nested_bundle_paths.cc
   nodes/node_geo_gizmo_dial.cc
   nodes/node_geo_gizmo_linear.cc
   nodes/node_geo_gizmo_transform.cc
@@ -137,6 +141,7 @@ set(SRC
   nodes/node_geo_input_id.cc
   nodes/node_geo_input_index.cc
   nodes/node_geo_input_instance_bounds.cc
+  nodes/node_geo_input_instance_reference.cc
   nodes/node_geo_input_instance_rotation.cc
   nodes/node_geo_input_instance_scale.cc
   nodes/node_geo_input_instance_transform.cc
@@ -176,6 +181,7 @@ set(SRC
   nodes/node_geo_menu_switch.cc
   nodes/node_geo_merge_by_distance.cc
   nodes/node_geo_merge_layers.cc
+  nodes/node_geo_merge_points.cc
   nodes/node_geo_mesh_face_group_boundaries.cc
   nodes/node_geo_mesh_primitive_circle.cc
   nodes/node_geo_mesh_primitive_cone.cc
@@ -219,6 +225,7 @@ set(SRC
   nodes/node_geo_sample_index.cc
   nodes/node_geo_sample_nearest.cc
   nodes/node_geo_sample_nearest_surface.cc
+  nodes/node_geo_sample_sound_frequencies.cc
   nodes/node_geo_sample_uv_surface.cc
   nodes/node_geo_scale_elements.cc
   nodes/node_geo_scale_instances.cc
@@ -266,6 +273,7 @@ set(SRC
   nodes/node_geo_string_to_curves.cc
   nodes/node_geo_subdivision_surface.cc
   nodes/node_geo_switch.cc
+  nodes/node_geo_tag_filter.cc
   nodes/node_geo_tool_3d_cursor.cc
   nodes/node_geo_tool_active_element.cc
   nodes/node_geo_tool_face_set.cc
@@ -274,6 +282,7 @@ set(SRC
   nodes/node_geo_tool_set_selection.cc
   nodes/node_geo_transform_geometry.cc
   nodes/node_geo_translate_instances.cc
+  nodes/node_geo_transfer_attributes.cc
   nodes/node_geo_triangulate.cc
   nodes/node_geo_uv_pack_islands.cc
   nodes/node_geo_uv_tangent.cc
@@ -283,6 +292,7 @@ set(SRC
   nodes/node_geo_volume_cube.cc
   nodes/node_geo_volume_to_mesh.cc
   nodes/node_geo_warning.cc
+  nodes/node_geo_xpbd_solver.cc
 
   include/NOD_geo_bake.hh
   include/NOD_geo_bundle.hh
@@ -295,6 +305,7 @@ set(SRC
   include/NOD_geo_menu_switch.hh
   include/NOD_geo_repeat.hh
   include/NOD_geo_simulation.hh
+  include/NOD_geo_tag_filter.hh
   include/NOD_geo_viewer.hh
 
   node_geometry_tree.cc
@@ -357,10 +368,6 @@ if(WITH_BULLET)
   list(APPEND INC
     ../../../../intern/rigidbody
   )
-endif()
-
-if(WITH_IMAGE_OPENEXR)
-  add_definitions(-DWITH_IMAGE_OPENEXR)
 endif()
 
 if(WITH_OPENSUBDIV)

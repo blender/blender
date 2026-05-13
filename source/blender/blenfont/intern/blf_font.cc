@@ -1460,8 +1460,7 @@ static void blf_font_wrap_apply(FontBLF *font,
     if (UNLIKELY(overflows && (wrap.start != wrap.last[0]))) {
       do_draw = true;
     }
-    else if (UNLIKELY((int(mode) & int(BLFWrapMode::HardLimit)) && overflows && (advance_x != 0)))
-    {
+    else if (UNLIKELY(bool(mode & BLFWrapMode::HardLimit) && overflows && (advance_x != 0))) {
       wrap.last[0] = i_curr;
       wrap.last[1] = i_curr;
       do_draw = true;
@@ -1480,14 +1479,12 @@ static void blf_font_wrap_apply(FontBLF *font,
       do_draw = true;
       clip_bytes = 1;
     }
-    else if (UNLIKELY(((int(mode) & int(BLFWrapMode::Minimal)) == int(BLFWrapMode::Minimal)) &&
-                      codepoint != ' ' && (g_prev ? g_prev->c == ' ' : false)))
-    {
+    else if (UNLIKELY(codepoint != ' ' && (g_prev ? g_prev->c == ' ' : false))) {
       wrap.last[0] = i_curr;
       wrap.last[1] = i_curr;
       clip_bytes = 1;
     }
-    else if (UNLIKELY(int(mode) & int(BLFWrapMode::Path))) {
+    else if (UNLIKELY(bool(mode & BLFWrapMode::Path))) {
       if (ELEM(codepoint, SEP, ' ', '?', '&', '=')) {
         /* Break and leave at the end of line. */
         wrap.last[0] = step.i;
@@ -1501,7 +1498,7 @@ static void blf_font_wrap_apply(FontBLF *font,
         clip_bytes = 0;
       }
     }
-    else if (UNLIKELY((int(mode) & int(BLFWrapMode::Typographical)) &&
+    else if (UNLIKELY(bool(mode & BLFWrapMode::Typographical) &&
                       !BLI_str_utf32_char_is_breaking_space(codepoint) &&
                       BLI_str_utf32_char_is_breaking_space(codepoint_prev)))
     {
@@ -1510,7 +1507,7 @@ static void blf_font_wrap_apply(FontBLF *font,
       wrap.last[1] = i_curr;
       clip_bytes = BLI_str_utf8_from_unicode_len(codepoint_prev);
     }
-    else if (UNLIKELY((int(mode) & int(BLFWrapMode::Typographical)) &&
+    else if (UNLIKELY(bool(mode & BLFWrapMode::Typographical) &&
                       BLI_str_utf32_char_is_optional_break_after(codepoint, codepoint_prev)))
     {
       /* Optional break after various characters, keeping it. */
@@ -1518,7 +1515,7 @@ static void blf_font_wrap_apply(FontBLF *font,
       wrap.last[1] = step.i;
       clip_bytes = 0;
     }
-    else if (UNLIKELY((int(mode) & int(BLFWrapMode::Typographical)) &&
+    else if (UNLIKELY(bool(mode & BLFWrapMode::Typographical) &&
                       BLI_str_utf32_char_is_optional_break_before(codepoint, codepoint_prev)))
     {
       /* Optional break before various characters. */

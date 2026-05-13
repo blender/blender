@@ -2,9 +2,7 @@
  *
  * SPDX-License-Identifier: GPL-2.0-or-later */
 
-#if defined(WITH_OPENCOLORIO)
-
-#  include "libocio_view.hh"
+#include "libocio_view.hh"
 
 namespace blender::ocio {
 
@@ -34,5 +32,3 @@ int LibOCIOView::max_nits() const
 }
 
 }  // namespace blender::ocio
-
-#endif

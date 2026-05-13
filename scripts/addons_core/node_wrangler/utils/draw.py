@@ -53,7 +53,7 @@ def draw_rounded_node_border(node, radius=8, colour=(1.0, 1.0, 1.0, 0.7)):
 
     if node.hide:
         nlocx += -1
-        nlocy += 5
+        nlocy += ndimy / 2 - 10 - 1
     if node.type == 'REROUTE':
         # nlocx += 1
         nlocy -= 1

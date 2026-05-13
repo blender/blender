@@ -110,14 +110,15 @@
 #define SHADOW_AABB_TAG_GROUP_SIZE 64
 #define SHADOW_MAX_TILEMAP 4096
 #define SHADOW_MAX_TILE (SHADOW_MAX_TILEMAP * SHADOW_TILEDATA_PER_TILEMAP)
-#define SHADOW_MAX_PAGE 4096
+#define SHADOW_MAX_PAGE 8192
 #define SHADOW_BOUNDS_GROUP_SIZE 64
 #define SHADOW_CLIPMAP_GROUP_SIZE 64
 #define SHADOW_VIEW_MAX 64 /* Must match DRW_VIEW_MAX. */
 #define SHADOW_RENDER_MAP_SIZE (SHADOW_VIEW_MAX * SHADOW_TILEMAP_LOD0_LEN)
 #define SHADOW_ATOMIC 1
-#define SHADOW_PAGE_PER_ROW 4
-#define SHADOW_PAGE_PER_COL 4
+#define SHADOW_PAGE_PER_ROW 8
+#define SHADOW_PAGE_PER_COL 8
+#define SHADOW_PAGE_MAX_LAYER 128
 #define SHADOW_PAGE_PER_LAYER (SHADOW_PAGE_PER_ROW * SHADOW_PAGE_PER_COL)
 #define SHADOW_MAX_STEP 16
 #define SHADOW_MAX_RAY 4
@@ -272,15 +273,20 @@
 /* Uniform Buffers. */
 /* Slot 0 is GPU_NODE_TREE_UBO_SLOT. */
 #define UNIFORM_BUF_SLOT 1
+/* Split from the main uniform buffer since they're updated multiple times per frame. */
+#define PIPELINE_BUF_SLOT 2
+#define RAYTRACE_BUF_SLOT 3
 /* Only during surface shading (forward and deferred eval). */
-#define IRRADIANCE_GRID_BUF_SLOT 2
-#define SPHERE_PROBE_BUF_SLOT 3
-#define PLANAR_PROBE_BUF_SLOT 4
+#define IRRADIANCE_GRID_BUF_SLOT 4
+#define SPHERE_PROBE_BUF_SLOT 5
+#define PLANAR_PROBE_BUF_SLOT 6
 /* Only during pre-pass. */
-#define VELOCITY_CAMERA_PREV_BUF 2
-#define VELOCITY_CAMERA_CURR_BUF 3
-#define VELOCITY_CAMERA_NEXT_BUF 4
-#define CLIP_PLANE_BUF 5
+#define VELOCITY_CAMERA_PREV_BUF 4
+#define VELOCITY_CAMERA_CURR_BUF 5
+#define VELOCITY_CAMERA_NEXT_BUF 6
+#define CLIP_PLANE_BUF 7
+/* Only during subsurface scattering */
+#define SUBSURFACE_BUF_SLOT 4
 
 /* Storage Buffers. */
 #define LIGHT_CULL_BUF_SLOT 0

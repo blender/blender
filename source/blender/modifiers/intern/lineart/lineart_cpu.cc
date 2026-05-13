@@ -2382,6 +2382,8 @@ static int lineart_usage_check(Collection *c, Object *ob, bool is_render)
             return OBJECT_LRT_NO_INTERSECTION;
           case COLLECTION_LRT_FORCE_INTERSECTION:
             return OBJECT_LRT_FORCE_INTERSECTION;
+          case COLLECTION_LRT_INCLUDE:
+            break;
         }
         return OBJECT_LRT_INHERIT;
       }
@@ -5191,7 +5193,7 @@ bool MOD_lineart_compute_feature_lines_v3(Depsgraph *depsgraph,
 
     if (enable_stroke_depth_offset && lmd.stroke_depth_offset > FLT_EPSILON) {
       MOD_lineart_chain_offset_towards_camera(
-          ld, lmd.stroke_depth_offset, lmd.flags & MOD_LINEART_OFFSET_TOWARDS_CUSTOM_CAMERA);
+          ld, lmd.stroke_depth_offset, lmd.flags & LINEART_GPENCIL_OFFSET_TOWARDS_CUSTOM_CAMERA);
     }
 
     if (ld->conf.shadow_use_silhouette) {
@@ -5290,7 +5292,7 @@ void MOD_lineart_gpencil_generate_v3(const LineartCache *cache,
 
   bool invert_input = modifier_calculation_flags & MOD_LINEART_INVERT_SOURCE_VGROUP;
 
-  bool inverse_silhouette = modifier_flags & MOD_LINEART_INVERT_SILHOUETTE_FILTER;
+  bool inverse_silhouette = modifier_flags & LINEART_GPENCIL_INVERT_SILHOUETTE_FILTER;
 
   Vector<LineartChainWriteInfo> writer;
   writer.reserve(128);
@@ -5312,12 +5314,12 @@ void MOD_lineart_gpencil_generate_v3(const LineartCache *cache,
     }
     if (orig_col && ec.object_ref) {
       if (BKE_collection_has_object_recursive_instanced(orig_col, ec.object_ref)) {
-        if (modifier_flags & MOD_LINEART_INVERT_COLLECTION) {
+        if (modifier_flags & LINEART_GPENCIL_INVERT_COLLECTION) {
           continue;
         }
       }
       else {
-        if (!(modifier_flags & MOD_LINEART_INVERT_COLLECTION)) {
+        if (!(modifier_flags & LINEART_GPENCIL_INVERT_COLLECTION)) {
           continue;
         }
       }

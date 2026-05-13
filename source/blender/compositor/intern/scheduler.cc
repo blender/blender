@@ -4,6 +4,7 @@
 
 #include <algorithm>
 
+#include "BLI_index_range.hh"
 #include "BLI_map.hh"
 #include "BLI_set.hh"
 #include "BLI_stack.hh"
@@ -15,6 +16,9 @@
 
 #include "BKE_node.hh"
 #include "BKE_node_runtime.hh"
+
+#include "NOD_geo_index_switch.hh"
+#include "NOD_geo_menu_switch.hh"
 
 #include "COM_context.hh"
 #include "COM_scheduler.hh"
@@ -84,8 +88,8 @@ static bool has_viewer_recursive(const bNodeTree &node_group,
  * Output or Viewer nodes. */
 static void add_output_nodes(const Context &context,
                              const bNodeTree &node_group,
+                             NodeGroupOperation &node_group_operation,
                              NodeGroupOutputTypes needed_outputs_types,
-                             const Set<StringRef> &needed_outputs,
                              const bNodeInstanceKey instance_key,
                              const bNodeInstanceKey active_node_group_instance_key,
                              Stack<const bNode *> &node_stack)
@@ -141,8 +145,16 @@ static void add_output_nodes(const Context &context,
     }
   }
 
+  bool is_any_group_output_needed = false;
+  for (const bNodeTreeInterfaceSocket *output : node_group.interface_outputs()) {
+    if (node_group_operation.get_result(output->identifier).should_compute()) {
+      is_any_group_output_needed = true;
+      break;
+    }
+  }
+
   /* None of the node groups outputs are needed, so no need to add the Group Output node. */
-  if (needed_outputs.is_empty()) {
+  if (!is_any_group_output_needed) {
     return;
   }
 
@@ -159,6 +171,128 @@ static void add_output_nodes(const Context &context,
       node_stack.push(output_node);
     }
   }
+}
+
+/* Returns the value of input of the node with the given identifier in the given node group
+ * operation. If the value can not be determined statically, a nullopt is returned. The value is
+ * only known statically if the input is not connected or directly connected to a group input node
+ * with the same socket type. */
+template<typename T, typename SocketT>
+static std::optional<T> get_input_socket_value(const bNode &node,
+                                               const UString &identifier,
+                                               NodeGroupOperation &node_group_operation)
+{
+  const bNodeSocket &input = *node.input_by_identifier(identifier);
+  if (!input.is_logically_linked()) {
+    return T(input.default_value_typed<SocketT>()->value);
+  }
+
+  const bNodeSocket *linked_output = input.logically_linked_sockets()[0];
+  if (!linked_output->owner_node().is_group_input()) {
+    return std::nullopt;
+  }
+
+  if (linked_output->type != input.type) {
+    return std::nullopt;
+  }
+
+  return node_group_operation.get_input(linked_output->identifier).get_single_value_default<T>();
+}
+
+/* Returns true if the given input of the given Switch node in the given node group operation is
+ * needed by the node. */
+static bool is_switch_node_input_needed(const bNode &node,
+                                        const bNodeSocket &input,
+                                        NodeGroupOperation &node_group_operation)
+{
+  const UString condition_identifier = "Switch"_ustr;
+  if (input.identifier_ustr() == condition_identifier) {
+    return true;
+  }
+
+  const std::optional<bool> condition = get_input_socket_value<bool, bNodeSocketValueBoolean>(
+      node, condition_identifier, node_group_operation);
+  if (!condition.has_value()) {
+    return true;
+  }
+
+  return (input.identifier_ustr() == "On"_ustr) == condition.value();
+}
+
+/* returns true if the given input of the given menu switch node in the given node group operation
+ * is needed by the node. */
+static bool is_menu_switch_node_input_needed(const bNode &node,
+                                             const bNodeSocket &input,
+                                             NodeGroupOperation &node_group_operation)
+{
+  const UString menu_identifier = "Menu"_ustr;
+  if (input.identifier_ustr() == menu_identifier) {
+    return true;
+  }
+
+  const std::optional<nodes::MenuValue> menu =
+      get_input_socket_value<nodes::MenuValue, bNodeSocketValueMenu>(
+          node, menu_identifier, node_group_operation);
+  if (!menu.has_value()) {
+    return true;
+  }
+
+  const NodeEnumItem menu_item = NodeEnumItem{nullptr, nullptr, menu.value().value};
+  const std::string identifier = nodes::MenuSwitchItemsAccessor::socket_identifier_for_item(
+      menu_item);
+  return input.identifier == identifier;
+}
+
+/* Returns true if the given input of the given Index node in the given node group operation is
+ * needed by the node. */
+static bool is_index_switch_node_input_needed(const bNode &node,
+                                              const bNodeSocket &input,
+                                              NodeGroupOperation &node_group_operation)
+{
+  const UString index_identifier = "Index"_ustr;
+  if (input.identifier_ustr() == index_identifier) {
+    return true;
+  }
+
+  const std::optional<int> index = get_input_socket_value<int, bNodeSocketValueInt>(
+      node, index_identifier, node_group_operation);
+  if (!index.has_value()) {
+    return true;
+  }
+
+  const NodeIndexSwitch &storage = *static_cast<const NodeIndexSwitch *>(node.storage);
+  if (!IndexRange(storage.items_num).contains(index.value())) {
+    return false;
+  }
+
+  const std::string identifier = nodes::IndexSwitchItemsAccessor::socket_identifier_for_item(
+      storage.items[index.value()]);
+  return input.identifier == identifier;
+}
+
+/* Returns true if the given input of the given node in the given node group operation is needed by
+ * the compositor. */
+static bool is_input_needed(const bNode &node,
+                            const bNodeSocket &input,
+                            NodeGroupOperation &node_group_operation)
+{
+  if (node.is_group_output()) {
+    return node_group_operation.get_result(input.identifier).should_compute();
+  }
+
+  if (node.is_type("CompositorNodeSwitch"_ustr)) {
+    return is_switch_node_input_needed(node, input, node_group_operation);
+  }
+
+  if (node.is_type("GeometryNodeMenuSwitch"_ustr)) {
+    return is_menu_switch_node_input_needed(node, input, node_group_operation);
+  }
+
+  if (node.is_type("GeometryNodeIndexSwitch"_ustr)) {
+    return is_index_switch_node_input_needed(node, input, node_group_operation);
+  }
+
+  return true;
 }
 
 /* A type representing a mapping that associates each node with a heuristic estimation of the
@@ -216,7 +350,7 @@ using NeededBuffers = Map<const bNode *, int>;
  * - The compiler may decide to compiler the schedule differently depending on runtime information
  *   which we can merely speculate at scheduling-time as described above. */
 static NeededBuffers compute_number_of_needed_buffers(Stack<const bNode *> &output_nodes,
-                                                      const Set<StringRef> &needed_outputs)
+                                                      NodeGroupOperation &node_group_operation)
 {
   NeededBuffers needed_buffers;
 
@@ -242,7 +376,7 @@ static NeededBuffers compute_number_of_needed_buffers(Stack<const bNode *> &outp
         continue;
       }
 
-      if (node.is_group_output() && !needed_outputs.contains(input->identifier)) {
+      if (!is_input_needed(node, *input, node_group_operation)) {
         continue;
       }
 
@@ -284,7 +418,7 @@ static NeededBuffers compute_number_of_needed_buffers(Stack<const bNode *> &outp
         continue;
       }
 
-      if (node.is_group_output() && !needed_outputs.contains(input->identifier)) {
+      if (!is_input_needed(node, *input, node_group_operation)) {
         continue;
       }
 
@@ -356,8 +490,8 @@ static NeededBuffers compute_number_of_needed_buffers(Stack<const bNode *> &outp
  * all buffers will have roughly the same size, which may not always be the case. */
 Schedule compute_schedule(const Context &context,
                           const bNodeTree &node_group,
+                          NodeGroupOperation &node_group_operation,
                           NodeGroupOutputTypes needed_outputs_types,
-                          const Set<StringRef> &needed_outputs,
                           const bNodeInstanceKey instance_key,
                           const bNodeInstanceKey active_node_group_instance_key)
 {
@@ -376,8 +510,8 @@ Schedule compute_schedule(const Context &context,
   /* Add the output nodes whose result should be computed to the stack. */
   add_output_nodes(context,
                    node_group,
+                   node_group_operation,
                    needed_outputs_types,
-                   needed_outputs,
                    instance_key,
                    active_node_group_instance_key,
                    node_stack);
@@ -389,7 +523,7 @@ Schedule compute_schedule(const Context &context,
 
   /* Compute the number of buffers needed by each node connected to the outputs. */
   const NeededBuffers needed_buffers = compute_number_of_needed_buffers(node_stack,
-                                                                        needed_outputs);
+                                                                        node_group_operation);
 
   /* Traverse the node group in a post order depth first manner, scheduling the nodes in an order
    * informed by the number of buffers needed by each node. Post order traversal guarantee that all
@@ -411,7 +545,7 @@ Schedule compute_schedule(const Context &context,
         continue;
       }
 
-      if (node.is_group_output() && !needed_outputs.contains(input->identifier)) {
+      if (!is_input_needed(node, *input, node_group_operation)) {
         schedule.unneeded_inputs.add(input);
         continue;
       }

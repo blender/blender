@@ -155,6 +155,8 @@ Documentation Targets
      Set the environment variable BLENDER_DOC_SPHINX=0
      to only generate RST files (skip the sphinx HTML build).
 
+   * python_stubs:
+     Generate Python API stubs (.pyi) from RST documentation.
    * doc_doxy:
      Generate doxygen C/C++ docs.
    * doc_dna:
@@ -678,6 +680,14 @@ ifneq ($(BLENDER_DOC_SPHINX), 0)
 	@sphinx-build -b html -j $(NPROCS) doc/python_api/sphinx-in doc/python_api/sphinx-out
 	@echo "docs written into: '$(BLENDER_DIR)/doc/python_api/sphinx-out/index.html'"
 endif
+
+python_stubs: .FORCE
+	@ASAN_OPTIONS=halt_on_error=0:${ASAN_OPTIONS} \
+	$(BLENDER_BIN) \
+	    --background --factory-startup --quiet \
+	    --python-exit-code 1 \
+	    --python doc/python_api/sphinx_doc_gen.py
+	@$(PYTHON) doc/python_api/sphinx_stub_gen.py
 
 doc_doxy: .FORCE
 	@cd doc/doxygen; doxygen Doxyfile

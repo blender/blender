@@ -27,16 +27,20 @@ PyDoc_STRVAR(
     "Chain is the last step before the :class:`Stroke` and is used in the\n"
     "Splitting and Creation processes.\n"
     "\n"
-    ".. method:: __init__()\n"
-    "            __init__(brother)\n"
-    "            __init__(id)\n"
+    ".. method:: __init__(*args)\n"
+    "\n"
+    "   Accepted call signatures:\n"
+    "\n"
+    "   - ``__init__()``\n"
+    "   - ``__init__(brother)``\n"
+    "   - ``__init__(id)``\n"
     "\n"
     "   Builds a :class:`Chain` using the default constructor,\n"
     "   copy constructor or from an :class:`Id`.\n"
     "\n"
-    "   :arg brother: A Chain object.\n"
+    "   :param brother: A Chain object.\n"
     "   :type brother: :class:`Chain`\n"
-    "   :arg id: An Id object.\n"
+    "   :param id: An Id object.\n"
     "   :type id: :class:`Id`\n");
 static int Chain_init(BPy_Chain *self, PyObject *args, PyObject *kwds)
 {
@@ -74,9 +78,9 @@ PyDoc_STRVAR(
     "\n"
     "   Adds a ViewEdge at the end of the Chain.\n"
     "\n"
-    "   :arg viewedge: The ViewEdge that must be added.\n"
+    "   :param viewedge: The ViewEdge that must be added.\n"
     "   :type viewedge: :class:`ViewEdge`\n"
-    "   :arg orientation: The orientation with which the ViewEdge must be processed.\n"
+    "   :param orientation: The orientation with which the ViewEdge must be processed.\n"
     "   :type orientation: bool\n");
 static PyObject *Chain_push_viewedge_back(BPy_Chain *self, PyObject *args, PyObject *kwds)
 {
@@ -101,9 +105,9 @@ PyDoc_STRVAR(
     "\n"
     "   Adds a ViewEdge at the beginning of the Chain.\n"
     "\n"
-    "   :arg viewedge: The ViewEdge that must be added.\n"
+    "   :param viewedge: The ViewEdge that must be added.\n"
     "   :type viewedge: :class:`ViewEdge`\n"
-    "   :arg orientation: The orientation with which the ViewEdge must be\n"
+    "   :param orientation: The orientation with which the ViewEdge must be\n"
     "      processed.\n"
     "   :type orientation: bool\n");
 static PyObject *Chain_push_viewedge_front(BPy_Chain *self, PyObject *args, PyObject *kwds)

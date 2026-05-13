@@ -979,7 +979,7 @@ void BLI_bvhtree_insert(BVHTree *tree, int index, const float co[3], int numpoin
 
   /* insert should only possible as long as tree->branch_num is 0 */
   BLI_assert(tree->branch_num <= 0);
-  BLI_assert((size_t)tree->leaf_num < MEM_allocN_len(tree->nodes) / sizeof(*(tree->nodes)));
+  BLI_assert(size_t(tree->leaf_num) < MEM_allocN_len(tree->nodes) / sizeof(*(tree->nodes)));
 
   node = tree->nodes[tree->leaf_num] = &(tree->nodearray[tree->leaf_num]);
   tree->leaf_num++;

@@ -32,6 +32,11 @@ std::optional<AssetLibraryReference> AllAssetLibrary::library_reference() const
   return all_library_reference();
 }
 
+std::optional<eAssetImportMethod> AllAssetLibrary::import_method() const
+{
+  return {};
+}
+
 void AllAssetLibrary::rebuild_catalogs_from_nested(const bool reload_nested_catalogs)
 {
   /* Start with empty catalog storage. Don't do this directly in #this.catalog_service to avoid

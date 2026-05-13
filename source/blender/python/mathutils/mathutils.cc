@@ -41,18 +41,16 @@ PyDoc_STRVAR(
     "- :class:`Vector`,\n");
 
 static int mathutils_array_parse_fast(float *array,
-                                      int size,
+                                      const int array_num,
                                       PyObject *value_fast,
                                       const char *error_prefix)
 {
+  /* Could be allowed but hints at errors, since we would typically want to avoid
+   * converting to a FAST sequence for an empty `array`. */
+  BLI_assert(array_num > 0);
   PyObject *item;
   PyObject **value_fast_items = PySequence_Fast_ITEMS(value_fast);
-
-  int i;
-
-  i = size;
-  do {
-    i--;
+  for (int i = 0; i < array_num; i++) {
     if (((array[i] = PyFloat_AsDouble(item = value_fast_items[i])) == -1.0f) && PyErr_Occurred()) {
       PyErr_Format(PyExc_TypeError,
                    "%.200s: sequence index %d expected a number, "
@@ -60,12 +58,11 @@ static int mathutils_array_parse_fast(float *array,
                    error_prefix,
                    i,
                    Py_TYPE(item)->tp_name);
-      size = -1;
-      break;
+      return -1;
     }
-  } while (i);
+  }
 
-  return size;
+  return array_num;
 }
 
 Py_hash_t mathutils_array_hash(const float *array, size_t array_len)
@@ -176,7 +173,9 @@ int mathutils_array_parse(
       return -1;
     }
 
-    num = mathutils_array_parse_fast(array, num, value_fast, error_prefix);
+    if (num != 0) {
+      num = mathutils_array_parse_fast(array, num, value_fast, error_prefix);
+    }
     Py_DECREF(value_fast);
   }
 
@@ -249,7 +248,7 @@ int mathutils_array_parse_alloc(float **array,
 
   *array = static_cast<float *>(PyMem_Malloc(num * sizeof(float)));
 
-  ret = mathutils_array_parse_fast(*array, num, value_fast, error_prefix);
+  ret = (num != 0) ? mathutils_array_parse_fast(*array, num, value_fast, error_prefix) : 0;
   Py_DECREF(value_fast);
 
   if (ret == -1) {
@@ -885,7 +884,7 @@ PyMODINIT_FUNC PyInit_mathutils()
   PyModule_AddObject(mod, "bvhtree", (submodule = PyInit_mathutils_bvhtree()));
   PyC_Module_AddToSysModules(sys_modules, submodule);
 
-  /* KDTree_3d submodule */
+  /* KDTree<float3> submodule */
   PyModule_AddObject(mod, "kdtree", (submodule = PyInit_mathutils_kdtree()));
   PyC_Module_AddToSysModules(sys_modules, submodule);
 #endif

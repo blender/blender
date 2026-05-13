@@ -1066,7 +1066,7 @@ inline const bke::greasepencil::DrawingReference &GreasePencilDrawingReference::
 
 inline GreasePencilFrame GreasePencilFrame::end()
 {
-  return GreasePencilFrame{-1, 0, 0};
+  return GreasePencilFrame{-1, {}, 0};
 }
 
 inline bool GreasePencilFrame::is_end() const

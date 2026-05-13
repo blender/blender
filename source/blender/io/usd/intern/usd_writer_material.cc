@@ -202,7 +202,7 @@ static void process_inputs(const USDExporterContext &usd_export_context,
     /* Don't export emission color if strength is zero. */
     if (input_spec.input_name == usdtokens::emissive_color) {
       const bNodeSocket *emission_strength_sock = bke::node_find_socket(
-          *node, SOCK_IN, "Emission Strength");
+          *node, SOCK_IN, "Emission Strength"_ustr);
       if (!emission_strength_sock) {
         continue;
       }
@@ -283,16 +283,16 @@ static void process_inputs(const USDExporterContext &usd_export_context,
             /* Attempt one more traversal in case the current node is not the
              * correct NODE_VECTOR_MATH_MULTIPLY_ADD (see code in usd_reader_material). */
             bNodeSocket *sock_current = bke::node_find_socket(
-                *vector_math_node, SOCK_IN, "Vector");
+                *vector_math_node, SOCK_IN, "Vector"_ustr);
             bNodeLink *temp_link = traverse_channel(sock_current, SH_NODE_VECTOR_MATH);
             if (temp_link && temp_link->fromnode->custom1 == NODE_VECTOR_MATH_MULTIPLY_ADD) {
               vector_math_node = temp_link->fromnode;
             }
 
             const bNodeSocket *sock_scale = bke::node_find_socket(
-                *vector_math_node, SOCK_IN, "Vector_001");
+                *vector_math_node, SOCK_IN, "Vector_001"_ustr);
             const bNodeSocket *sock_bias = bke::node_find_socket(
-                *vector_math_node, SOCK_IN, "Vector_002");
+                *vector_math_node, SOCK_IN, "Vector_002"_ustr);
             const float *scale_value =
                 sock_scale->default_value_typed<bNodeSocketValueVector>()->value;
             const float *bias_value =
@@ -305,8 +305,8 @@ static void process_inputs(const USDExporterContext &usd_export_context,
         }
       }
       else {
-        const bNodeSocket *sock_midlevel = bke::node_find_socket(*node, SOCK_IN, "Midlevel");
-        const bNodeSocket *sock_scale = bke::node_find_socket(*node, SOCK_IN, "Scale");
+        const bNodeSocket *sock_midlevel = bke::node_find_socket(*node, SOCK_IN, "Midlevel"_ustr);
+        const bNodeSocket *sock_scale = bke::node_find_socket(*node, SOCK_IN, "Scale"_ustr);
         const float midlevel_value =
             sock_midlevel->default_value_typed<bNodeSocketValueFloat>()->value;
         const float scale_value = sock_scale->default_value_typed<bNodeSocketValueFloat>()->value;
@@ -318,7 +318,7 @@ static void process_inputs(const USDExporterContext &usd_export_context,
       }
 
       /* Look for a connected uvmap node. */
-      if (bNodeSocket *socket = bke::node_find_socket(*input_node, SOCK_IN, "Vector")) {
+      if (bNodeSocket *socket = bke::node_find_socket(*input_node, SOCK_IN, "Vector"_ustr)) {
         if (pxr::UsdShadeInput st_input = usd_shader.CreateInput(usdtokens::st,
                                                                  pxr::SdfValueTypeNames->Float2))
         {
@@ -341,9 +341,9 @@ static void process_inputs(const USDExporterContext &usd_export_context,
           }
           else if (math_node->custom1 == NODE_MATH_SUBTRACT) {
             /* If this is the 1-minus node, we need to search upstream to find the less-than. */
-            bNodeSocket *math_sock = bke::node_find_socket(*math_node, SOCK_IN, "Value");
+            bNodeSocket *math_sock = bke::node_find_socket(*math_node, SOCK_IN, "Value"_ustr);
             if (math_sock->default_value_typed<bNodeSocketValueFloat>()->value == 1.0f) {
-              math_sock = bke::node_find_socket(*math_node, SOCK_IN, "Value_001");
+              math_sock = bke::node_find_socket(*math_node, SOCK_IN, "Value_001"_ustr);
               math_link = traverse_channel(math_sock, SH_NODE_MATH);
               if (math_link && math_link->fromnode) {
                 math_node = math_link->fromnode;
@@ -351,7 +351,7 @@ static void process_inputs(const USDExporterContext &usd_export_context,
                 if (math_node->custom1 == NODE_MATH_LESS_THAN) {
                   /* We found the upstream less-than with the threshold value. */
                   bNodeSocket *threshold_sock = bke::node_find_socket(
-                      *math_node, SOCK_IN, "Value_001");
+                      *math_node, SOCK_IN, "Value_001"_ustr);
                   threshold = threshold_sock->default_value_typed<bNodeSocketValueFloat>()->value;
                 }
               }
@@ -474,8 +474,8 @@ static void create_usd_preview_surface_material(const USDExporterContext &usd_ex
       return;
     }
 
-    bNodeSocket *sock_mid = bke::node_find_socket(*displacement_node, SOCK_IN, "Midlevel");
-    bNodeSocket *sock_scale = bke::node_find_socket(*displacement_node, SOCK_IN, "Scale");
+    bNodeSocket *sock_mid = bke::node_find_socket(*displacement_node, SOCK_IN, "Midlevel"_ustr);
+    bNodeSocket *sock_scale = bke::node_find_socket(*displacement_node, SOCK_IN, "Scale"_ustr);
     if (sock_mid->link || sock_scale->link) {
       CLOG_WARN(&LOG, "Skipping displacement. Midlevel and Scale must be constants.");
       return;
@@ -484,7 +484,7 @@ static void create_usd_preview_surface_material(const USDExporterContext &usd_ex
     usd_material.CreateDisplacementOutput().ConnectToSource(preview_surface.ConnectableAPI(),
                                                             usdtokens::displacement);
 
-    bNodeSocket *sock_height = bke::node_find_socket(*displacement_node, SOCK_IN, "Height");
+    bNodeSocket *sock_height = bke::node_find_socket(*displacement_node, SOCK_IN, "Height"_ustr);
     if (sock_height->link) {
       process_inputs(usd_export_context,
                      usd_material,
@@ -697,7 +697,7 @@ static void create_transform2d_shader(const USDExporterContext &usd_export_conte
   }
 
   if (mapping_node->custom1 != TEXMAP_TYPE_POINT) {
-    if (bNodeSocket *socket = bke::node_find_socket(*mapping_node, SOCK_IN, "Vector")) {
+    if (bNodeSocket *socket = bke::node_find_socket(*mapping_node, SOCK_IN, "Vector"_ustr)) {
       create_uv_input(usd_export_context, socket, usd_material, usd_input, uvmap_name, reports);
     }
     return;
@@ -717,19 +717,19 @@ static void create_transform2d_shader(const USDExporterContext &usd_export_conte
   float loc[3] = {0.0f, 0.0f, 0.0f};
   float rot[3] = {0.0f, 0.0f, 0.0f};
 
-  if (bNodeSocket *scale_socket = bke::node_find_socket(*mapping_node, SOCK_IN, "Scale")) {
+  if (bNodeSocket *scale_socket = bke::node_find_socket(*mapping_node, SOCK_IN, "Scale"_ustr)) {
     copy_v3_v3(scale, scale_socket->default_value_typed<bNodeSocketValueVector>()->value);
     /* Ignore the Z scale. */
     scale[2] = 1.0f;
   }
 
-  if (bNodeSocket *loc_socket = bke::node_find_socket(*mapping_node, SOCK_IN, "Location")) {
+  if (bNodeSocket *loc_socket = bke::node_find_socket(*mapping_node, SOCK_IN, "Location"_ustr)) {
     copy_v3_v3(loc, loc_socket->default_value_typed<bNodeSocketValueVector>()->value);
     /* Ignore the Z translation. */
     loc[2] = 0.0f;
   }
 
-  if (bNodeSocket *rot_socket = bke::node_find_socket(*mapping_node, SOCK_IN, "Rotation")) {
+  if (bNodeSocket *rot_socket = bke::node_find_socket(*mapping_node, SOCK_IN, "Rotation"_ustr)) {
     copy_v3_v3(rot, rot_socket->default_value_typed<bNodeSocketValueVector>()->value);
     /* Ignore the X and Y rotations. */
     rot[0] = 0.0f;
@@ -758,7 +758,7 @@ static void create_transform2d_shader(const USDExporterContext &usd_export_conte
     rot_input.Set(rot_val);
   }
 
-  if (bNodeSocket *socket = bke::node_find_socket(*mapping_node, SOCK_IN, "Vector")) {
+  if (bNodeSocket *socket = bke::node_find_socket(*mapping_node, SOCK_IN, "Vector"_ustr)) {
     if (pxr::UsdShadeInput in_input = transform2d_shader.CreateInput(
             usdtokens::in, pxr::SdfValueTypeNames->Float2))
     {

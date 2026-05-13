@@ -556,7 +556,9 @@ static PyObject *bpy_op_fn_get_bl_options_impl(const char *opname)
 PyDoc_STRVAR(
     /* Wrap. */
     bpy_op_fn_get_bl_options_doc,
-    "Set of option flags for this operator (e.g. 'REGISTER', 'UNDO')");
+    "Set of option flags for this operator (e.g. 'REGISTER', 'UNDO').\n"
+    "\n"
+    ":type: set[str]\n");
 static PyObject *bpy_op_fn_get_bl_options(BPyOpFunction *self, void * /*closure*/)
 {
   return bpy_op_fn_get_bl_options_impl(self->idname);

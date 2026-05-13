@@ -128,11 +128,10 @@ class CornerPinOperation : public NodeOperation {
       }
 
       if (output_mask.should_compute()) {
-        output_mask.steal_data(anti_aliased_plane_mask);
+        output_mask.share_data(anti_aliased_plane_mask);
       }
-      else {
-        anti_aliased_plane_mask.release();
-      }
+
+      anti_aliased_plane_mask.release();
     }
     else {
       if (output_image.should_compute()) {

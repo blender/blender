@@ -169,6 +169,8 @@ void ShaderNode::attributes(Shader *shader, AttributeRequestSet *attributes)
   }
 }
 
+void ShaderNode::global_attributes(Shader * /*shader*/, AttributeRequestSet * /*attributes*/) {}
+
 bool ShaderNode::equals(const ShaderNode &other)
 {
   if (type != other.type || bump != other.bump) {

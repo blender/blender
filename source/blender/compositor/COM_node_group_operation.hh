@@ -113,6 +113,9 @@ class NodeGroupOperation : public Operation {
    * this node group operation represents a top-level standalone node group with no associated
    * group node, this will be bke::NODE_INSTANCE_KEY_BASE. */
   const bNodeInstanceKey instance_key_ = bke::NODE_INSTANCE_KEY_BASE;
+  /* A compute context that identifies the particular group node that uses this node group or the
+   * scene for the top-level compositor node tree. */
+  const ComputeContext &compute_context_;
   /* The compiled operations stream, which contains all compiled operations so far. */
   Vector<std::unique_ptr<Operation>> operations_stream_;
 
@@ -124,7 +127,8 @@ class NodeGroupOperation : public Operation {
                      const NodeGroupOutputTypes needed_outputs,
                      Map<bNodeInstanceKey, bke::bNodePreview> *node_previews,
                      const bNodeInstanceKey active_node_group_instance_key,
-                     const bNodeInstanceKey instance_key);
+                     const bNodeInstanceKey instance_key,
+                     const ComputeContext &compute_context);
 
   /* Compile and evaluate the node group. */
   void execute() override;

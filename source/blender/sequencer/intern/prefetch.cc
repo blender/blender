@@ -268,7 +268,7 @@ void PrefetchJob::init_depsgraph()
   seq_prefetch_update_depsgraph(this);
 
   this->scene_eval = DEG_get_evaluated_scene(this->depsgraph);
-  this->scene_eval->ed->cache_flag = 0;
+  this->scene_eval->ed->cache_flag = SEQ_CACHE_NONE;
 }
 
 void PrefetchJob::init_gpu()
@@ -463,14 +463,14 @@ static bool seq_prefetch_scene_strip_is_rendered(const Scene *scene,
     }
 
     /* Recursive "sequencer-type" scene strip detected, no point in attempting to render it. */
-    if (state.strips_rendering_seqbase.contains(strip)) {
+    if (state.strips_in_progress.contains(strip)) {
       return true;
     }
 
     if (strip->type == STRIP_TYPE_SCENE && (strip->flag & SEQ_SCENE_STRIPS) != 0 &&
         strip->scene != nullptr && editing_get(strip->scene))
     {
-      state.strips_rendering_seqbase.add(strip);
+      state.strips_in_progress.add(strip);
 
       const Scene *target_scene = strip->scene;
       Editing *target_ed = editing_get(target_scene);

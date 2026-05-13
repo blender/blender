@@ -116,9 +116,10 @@ void debug_randomize_vert_order(Mesh *mesh)
 
   const int seed = seed_from_mesh(*mesh);
   const Array<int> new_by_old_map = get_permutation(mesh->verts_num, seed);
+  const Array<int> old_by_new_map = invert_permutation(new_by_old_map);
 
   reorder_customdata(mesh->vert_data, new_by_old_map);
-  reorder_attribute_domain(mesh->attribute_storage.wrap(), bke::AttrDomain::Point, new_by_old_map);
+  reorder_attribute_domain(mesh->attribute_storage.wrap(), bke::AttrDomain::Point, old_by_new_map);
 
   for (int &v : mesh->edges_for_write().cast<int>()) {
     v = new_by_old_map[v];
@@ -138,9 +139,10 @@ void debug_randomize_edge_order(Mesh *mesh)
 
   const int seed = seed_from_mesh(*mesh);
   const Array<int> new_by_old_map = get_permutation(mesh->edges_num, seed);
+  const Array<int> old_by_new_map = invert_permutation(new_by_old_map);
 
   reorder_customdata(mesh->edge_data, new_by_old_map);
-  reorder_attribute_domain(mesh->attribute_storage.wrap(), bke::AttrDomain::Edge, new_by_old_map);
+  reorder_attribute_domain(mesh->attribute_storage.wrap(), bke::AttrDomain::Edge, old_by_new_map);
 
   for (int &e : mesh->corner_edges_for_write()) {
     e = new_by_old_map[e];
@@ -152,12 +154,9 @@ void debug_randomize_edge_order(Mesh *mesh)
 static Array<int> make_new_offset_indices(const OffsetIndices<int> old_offsets,
                                           const Span<int> old_by_new_map)
 {
-  Array<int> new_offsets(old_offsets.data().size());
-  new_offsets[0] = 0;
-  for (const int new_i : old_offsets.index_range()) {
-    const int old_i = old_by_new_map[new_i];
-    new_offsets[new_i + 1] = new_offsets[new_i] + old_offsets[old_i].size();
-  }
+  Array<int> new_offsets(old_offsets.size() + 1);
+  offset_indices::gather_group_sizes(old_offsets, old_by_new_map, new_offsets);
+  offset_indices::accumulate_counts_to_offsets(new_offsets.as_mutable_span());
   return new_offsets;
 }
 
@@ -188,6 +187,8 @@ static void reorder_attribute_groups(bke::AttributeStorage &storage,
                                      const Span<int> new_by_old_map)
 {
   const int groups_num = new_by_old_map.size();
+  BLI_assert(old_offsets.size() == groups_num);
+  BLI_assert(new_offsets.size() == groups_num);
   for (bke::Attribute &attr : storage) {
     if (attr.domain() != domain) {
       continue;
@@ -197,7 +198,8 @@ static void reorder_attribute_groups(bke::AttributeStorage &storage,
       case bke::AttrStorageType::Array: {
         const auto &data = std::get<bke::Attribute::ArrayData>(attr.data());
 
-        auto new_data = bke::Attribute::ArrayData::from_uninitialized(type, new_by_old_map.size());
+        auto new_data = bke::Attribute::ArrayData::from_uninitialized(type,
+                                                                      new_offsets.total_size());
         threading::parallel_for(IndexRange(groups_num), 1024, [&](const IndexRange range) {
           for (const int old_i : range) {
             const int new_i = new_by_old_map[old_i];
@@ -231,7 +233,7 @@ void debug_randomize_face_order(Mesh *mesh)
   const Array<int> old_by_new_map = invert_permutation(new_by_old_map);
 
   reorder_customdata(mesh->face_data, new_by_old_map);
-  reorder_attribute_domain(mesh->attribute_storage.wrap(), bke::AttrDomain::Face, new_by_old_map);
+  reorder_attribute_domain(mesh->attribute_storage.wrap(), bke::AttrDomain::Face, old_by_new_map);
 
   const OffsetIndices old_faces = mesh->faces();
   Array<int> new_face_offsets = make_new_offset_indices(old_faces, old_by_new_map);
@@ -257,8 +259,9 @@ void debug_randomize_point_order(PointCloud *pointcloud)
 
   const int seed = seed_from_pointcloud(*pointcloud);
   const Array<int> new_by_old_map = get_permutation(pointcloud->totpoint, seed);
+  const Array<int> old_by_new_map = invert_permutation(new_by_old_map);
   reorder_attribute_domain(
-      pointcloud->attribute_storage.wrap(), bke::AttrDomain::Point, new_by_old_map);
+      pointcloud->attribute_storage.wrap(), bke::AttrDomain::Point, old_by_new_map);
 
   pointcloud->tag_positions_changed();
   pointcloud->tag_radii_changed();
@@ -276,7 +279,7 @@ void debug_randomize_curve_order(bke::CurvesGeometry *curves)
 
   bke::AttributeStorage &attributes = curves->attribute_storage.wrap();
 
-  reorder_attribute_domain(attributes, bke::AttrDomain::Curve, new_by_old_map);
+  reorder_attribute_domain(attributes, bke::AttrDomain::Curve, old_by_new_map);
 
   const OffsetIndices old_points_by_curve = curves->points_by_curve();
   Array<int> new_curve_offsets = make_new_offset_indices(old_points_by_curve, old_by_new_map);

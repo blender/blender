@@ -156,6 +156,7 @@ class ShaderNode : public Node {
 
   virtual ShaderNode *clone(ShaderGraph *graph) const = 0;
   virtual void attributes(Shader *shader, AttributeRequestSet *attributes);
+  virtual void global_attributes(Shader *shader, AttributeRequestSet *attributes);
   virtual void compile(SVMCompiler &compiler) = 0;
   virtual void compile(OSLCompiler &compiler) = 0;
 

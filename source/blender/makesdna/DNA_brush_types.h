@@ -47,7 +47,7 @@ struct BrushGpencilSettings {
   /** Number of times to subdivide new strokes. */
   short draw_subdivide = 0;
   /** Layers used for fill. */
-  short fill_layer_mode = 0;
+  eGP_FillLayerModes fill_layer_mode = GP_FILL_GPLMODE_VISIBLE;
   short fill_direction = 0;
 
   /** Factor for transparency. */
@@ -57,14 +57,14 @@ struct BrushGpencilSettings {
   int8_t caps_type = 0;
   char _pad1[1] = {};
 
-  int flag2 = 0;
+  eGPDbrush_Flag2 flag2 = {};
 
   /** Number of simplify steps. */
   int fill_simplylvl = 0;
   /** Type of control lines drawing mode. */
-  int fill_draw_mode = 0;
+  eGP_FillDrawModes fill_draw_mode = GP_FILL_DMODE_BOTH;
   /** Type of gap filling extension to use. */
-  int fill_extend_mode = 0;
+  eGP_FillExtendModes fill_extend_mode = GP_FILL_EMODE_EXTEND;
 
   /** Maximum distance before generate new point for very fast mouse movements. */
   int input_samples = 0;
@@ -73,7 +73,7 @@ struct BrushGpencilSettings {
   /** Moved to 'Brush.gpencil_brush_type'. */
   DNA_DEPRECATED int brush_type = 0;
   /** Soft, hard or stroke. */
-  int eraser_mode = 0;
+  eGP_BrushEraserMode eraser_mode = GP_BRUSH_ERASER_SOFT;
   /** Smooth while drawing factor. */
   float active_smooth = 0;
   /** Factor to apply to strength for soft eraser. */
@@ -81,7 +81,7 @@ struct BrushGpencilSettings {
   /** Factor to apply to thickness for soft eraser. */
   float era_thickness_f = 0;
   /** Internal grease pencil drawing flags. */
-  int flag = 0;
+  eGPDbrush_Flag flag = {};
 
   /** gradient control along y for color */
   float hardness = 0;
@@ -92,15 +92,13 @@ struct BrushGpencilSettings {
 
   /** Mix color-factor. */
   float vertex_factor = 0;
-  int vertex_mode = 0;
+  eGp_Vertex_Mode vertex_mode = GPPAINT_MODE_STROKE;
 
-  /** eGP_Sculpt_Flag. */
-  int sculpt_flag = 0;
-  /** eGP_Sculpt_Mode_Flag. */
-  int sculpt_mode_flag = 0;
+  eGP_Sculpt_Flag sculpt_flag = {};
+  eGP_Sculpt_Mode_Flag sculpt_mode_flag = {};
   char _pad2[2] = {};
   /** Brush preselected mode (Active/Material/Vertex-color). */
-  short brush_draw_mode = 0;
+  eGP_BrushMode brush_draw_mode = GP_BRUSH_MODE_ACTIVE;
 
   /** Randomness for Hue. */
   float random_hue = 0;
@@ -109,7 +107,7 @@ struct BrushGpencilSettings {
   /** Randomness for Value. */
   float random_value = 0;
 
-  int color_jitter_flag = 0;
+  eBrushColorJitterSettings_Flag color_jitter_flag = {};
   char _pad3[4] = {};
 
   /** Factor to extend stroke extremes using fill tool. */
@@ -149,8 +147,7 @@ struct BrushCurvesSculptSettings {
   int add_amount = 0;
   /** Number of control points in new curves added by the add brush. */
   int points_per_curve = 0;
-  /* eBrushCurvesSculptFlag. */
-  uint32_t flag = 0;
+  eBrushCurvesSculptFlag flag = {};
   /** When shrinking curves, they shouldn't become shorter than this length. */
   float minimum_length = 0;
   /** Length of newly added curves when it is not interpolated from other curves. */
@@ -161,8 +158,7 @@ struct BrushCurvesSculptSettings {
   float curve_radius = 0;
   /** How often the Density brush tries to add a new curve. */
   int density_add_attempts = 0;
-  /** #eBrushCurvesSculptDensityMode. */
-  uint8_t density_mode = 0;
+  eBrushCurvesSculptDensityMode density_mode = BRUSH_CURVES_SCULPT_DENSITY_MODE_AUTO;
   char _pad[7] = {};
   struct CurveMapping *curve_parameter_falloff = nullptr;
 };
@@ -204,26 +200,25 @@ struct Brush {
   /** Brush diameter. */
   int size = 70; /* diameter of the brush in pixels */
   /** General purpose flags. */
-  int flag = (BRUSH_ALPHA_PRESSURE | BRUSH_SPACE_ATTEN);
-  int flag2 = 0;
-  int sampling_flag = (BRUSH_PAINT_ANTIALIASING);
+  eBrushFlags flag = BRUSH_ALPHA_PRESSURE | BRUSH_SPACE_ATTEN;
+  eBrushFlags2 flag2 = {};
+  eBrushSamplingFlags sampling_flag = BRUSH_PAINT_ANTIALIASING;
 
   /**
    * How the stroke behaves when used via the modal operators.
-   * \see #eBrushStrokeType
    */
-  int8_t stroke_method = BRUSH_STROKE_SPACE;
+  eBrushStrokeType stroke_method = BRUSH_STROKE_SPACE;
   char _pad[7] = {};
   /** Number of samples used to smooth the stroke. */
   int input_samples = 1;
 
   /** Pressure influence for mask. */
-  int mask_pressure = 0;
+  BrushMaskPressureFlags mask_pressure = {};
   /** Jitter the position of the brush. */
   float jitter = 0.0f;
   /** Absolute jitter in pixels. */
   int jitter_absolute = 0;
-  int overlay_flags = 0;
+  eOverlayFlags overlay_flags = {};
   /** Spacing of paint operations. */
   int spacing = 10;
   /** Turning radius (in pixels) for smooth stroke. */
@@ -235,7 +230,7 @@ struct Brush {
 
   /** Color. */
   float color[3] = {1.0f, 1.0f, 1.0f};
-  int color_jitter_flag = 0;
+  eBrushColorJitterSettings_Flag color_jitter_flag = {};
   float hsv_jitter[3] = {};
 
   /** Color jitter pressure curves. */
@@ -258,7 +253,7 @@ struct Brush {
   float wet_persistence = 0;
   /** Density */
   float density = 0;
-  int paint_flags = 0;
+  ePaintBrush_flag paint_flags = {};
 
   /** Tip Shape */
   /* Factor that controls the shape of the brush tip by rounding the corners of a square. */
@@ -278,16 +273,16 @@ struct Brush {
   int dash_samples = 20;
 
   /** The direction of movement for sculpt vertices. */
-  int sculpt_plane = SCULPT_DISP_DIR_AREA;
+  eBrushSculpt_DispDir sculpt_plane = SCULPT_DISP_DIR_AREA;
 
   /** Offset for plane brushes (clay, flatten, fill, scrape). */
   float plane_offset = 0.0f;
 
   int gradient_spacing = 0;
   /** Source for stroke color gradient application. */
-  char gradient_stroke_mode = 0;
+  eBrushGradientSourceStroke gradient_stroke_mode = BRUSH_GRADIENT_PRESSURE;
   /** Source for fill brush color gradient application. */
-  char gradient_fill_mode = 0;
+  eBrushGradientSourceFill gradient_fill_mode = BRUSH_GRADIENT_LINEAR;
 
   /**
    * Tag to indicate to the user that the brush has been changed since being imported. Only set for
@@ -296,29 +291,29 @@ struct Brush {
   char has_unsaved_changes = 0;
 
   /** Projection shape (sphere, circle). */
-  char falloff_shape = 0;
+  eBrushFalloffShape falloff_shape = PAINT_FALLOFF_SHAPE_SPHERE;
   float falloff_angle = 0;
 
   /** Active sculpt brush type. */
-  char sculpt_brush_type = SCULPT_BRUSH_TYPE_DRAW;
+  eBrushSculptType sculpt_brush_type = SCULPT_BRUSH_TYPE_DRAW;
   /** Active vertex paint. */
-  char vertex_brush_type = 0;
+  eBrushVertexPaintType vertex_brush_type = VPAINT_BRUSH_TYPE_DRAW;
   /** Active weight paint. */
-  char weight_brush_type = 0;
+  eBrushWeightPaintType weight_brush_type = WPAINT_BRUSH_TYPE_DRAW;
   /** Active image paint brush type. */
-  char image_brush_type = 0;
+  eBrushImagePaintType image_brush_type = IMAGE_PAINT_BRUSH_TYPE_DRAW;
   /** Enum eBrushMaskTool, only used if sculpt_brush_type is SCULPT_BRUSH_TYPE_MASK. */
-  char mask_tool = 0;
+  BrushMaskTool mask_tool = BRUSH_MASK_DRAW;
   /** Active grease pencil brush type. */
-  char gpencil_brush_type = 0;
+  eBrushGPaintType gpencil_brush_type = GPAINT_BRUSH_TYPE_DRAW;
   /** Active grease pencil vertex brush type. */
-  char gpencil_vertex_brush_type = 0;
+  eBrushGPVertexType gpencil_vertex_brush_type = GPVERTEX_BRUSH_TYPE_DRAW;
   /** Active grease pencil sculpt brush type. */
-  char gpencil_sculpt_brush_type = 0;
+  eBrushGPSculptType gpencil_sculpt_brush_type = GPSCULPT_BRUSH_TYPE_SMOOTH;
   /** Active grease pencil weight brush type. */
-  char gpencil_weight_brush_type = 0;
-  /** Active curves sculpt brush type (#eBrushCurvesSculptType). */
-  char curves_sculpt_brush_type = 0;
+  eBrushGPWeightType gpencil_weight_brush_type = GPWEIGHT_BRUSH_TYPE_DRAW;
+  /** Active curves sculpt brush type. */
+  eBrushCurvesSculptType curves_sculpt_brush_type = CURVES_SCULPT_BRUSH_TYPE_COMB;
 
   char _pad1[2] = {};
 
@@ -343,7 +338,7 @@ struct Brush {
   float plane_depth = 0;
   float stabilize_normal = 0;
   float stabilize_plane = 0;
-  int plane_inversion_mode = 0;
+  eBrushPlaneInversionMode plane_inversion_mode = BRUSH_PLANE_INVERT_DISPLACEMENT;
 
   float texture_sample_bias = 0; /* value to added to texture samples */
 
@@ -352,12 +347,12 @@ struct Brush {
    * of doing a Bezier spline evaluation via CurveMapping for performance reasons.
    * \see #eBrushCurvePreset and #eCurveMappingPreset
    */
-  int curve_distance_falloff_preset = 0;
+  eBrushCurvePreset curve_distance_falloff_preset = BRUSH_CURVE_CUSTOM;
 
   /* Maximum distance to search fake neighbors from a vertex. */
   float disconnected_distance_max = 0.1f;
 
-  int deform_target = 0;
+  eBrushDeformTarget deform_target = BRUSH_DEFORM_TARGET_GEOMETRY;
 
   /* automasking */
   DNA_DEPRECATED int automasking_flags = 0;
@@ -368,28 +363,28 @@ struct Brush {
   DNA_DEPRECATED float automasking_view_normal_limit = 1.570796; /* 90 degrees */
   DNA_DEPRECATED float automasking_view_normal_falloff = 0.25f;
 
-  int elastic_deform_type = 0;
+  eBrushElasticDeformType elastic_deform_type = BRUSH_ELASTIC_DEFORM_GRAB;
   float elastic_deform_volume_preservation = 0;
 
   /* snake hook */
-  int snake_hook_deform_type = 0;
+  eBrushSnakeHookDeformType snake_hook_deform_type = BRUSH_SNAKE_HOOK_DEFORM_FALLOFF;
 
   /* pose */
-  int pose_deform_type = 0;
+  eBrushPoseDeformType pose_deform_type = BRUSH_POSE_DEFORM_ROTATE_TWIST;
   float pose_offset = 0;
   int pose_smooth_iterations = 4;
   int pose_ik_segments = 1;
-  int pose_origin_type = 0;
+  eBrushPoseOriginType pose_origin_type = BRUSH_POSE_ORIGIN_TOPOLOGY;
 
   /* boundary */
-  int boundary_deform_type = 0;
-  int boundary_falloff_type = 0;
+  eBrushBoundaryDeformType boundary_deform_type = BRUSH_BOUNDARY_DEFORM_BEND;
+  eBrushBoundaryFalloffType boundary_falloff_type = BRUSH_BOUNDARY_FALLOFF_CONSTANT;
   float boundary_offset = 0;
 
   /* cloth */
-  int cloth_deform_type = 0;
-  int cloth_force_falloff_type = 0;
-  int cloth_simulation_area_type = 0;
+  eBrushClothDeformType cloth_deform_type = BRUSH_CLOTH_DEFORM_DRAG;
+  eBrushClothForceFalloffType cloth_force_falloff_type = BRUSH_CLOTH_FORCE_FALLOFF_RADIAL;
+  eBrushClothSimulationAreaType cloth_simulation_area_type = BRUSH_CLOTH_SIMULATION_AREA_LOCAL;
 
   float cloth_mass = 1;
   float cloth_damping = 0.01;
@@ -400,7 +395,7 @@ struct Brush {
   float cloth_constraint_softbody_strength = 0;
 
   /* smooth */
-  int smooth_deform_type = 0;
+  eBrushSmoothDeformType smooth_deform_type = BRUSH_SMOOTH_DEFORM_LAPLACIAN;
   float surface_smooth_shape_preservation = 0;
   float surface_smooth_current_vertex = 0;
   int surface_smooth_iterations = 0;
@@ -409,13 +404,13 @@ struct Brush {
   float multiplane_scrape_angle = 0;
 
   /* smear */
-  int smear_deform_type = 0;
+  eBrushSmearDeformType smear_deform_type = BRUSH_SMEAR_DEFORM_DRAG;
 
   /* slide/relax */
-  int slide_deform_type = 0;
+  eBrushSlideDeformType slide_deform_type = BRUSH_SLIDE_DEFORM_DRAG;
 
   /* Scene Project brush */
-  int8_t project_ray_direction_type = BRUSH_PROJECT_RAY_DIRECTION_VIEW_NORMAL;
+  eBrushProjectRayDirection project_ray_direction_type = BRUSH_PROJECT_RAY_DIRECTION_VIEW_NORMAL;
   char _pad2[3] = {};
   float minimum_distance = 0.0f;
 
@@ -429,7 +424,7 @@ struct Brush {
   /* soften/sharpen */
   float sharp_threshold = 0;
   int blur_kernel_radius = 2;
-  int blur_mode = 0;
+  eBlurKernelType blur_mode = KERNEL_GAUSSIAN;
 
   /* fill tool */
   float fill_threshold = 0.2f;

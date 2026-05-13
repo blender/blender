@@ -8,7 +8,7 @@ bl_info = {
     # "author": "JM Soler, Sergey Sharybin", # Original Authors
     "author": "Blender Foundation",
     "blender": (2, 80, 0),
-    "location": "File > Import > Scalable Vector Graphics (.svg)",
+    "location": "File > Import > SVG as Curves (.svg)",
     "description": "Import SVG as curves",
     "warning": "",
     "doc_url": "{BLENDER_MANUAL_URL}/addons/import_export/curve_svg.html",
@@ -40,7 +40,7 @@ from bpy_extras.io_utils import (
 class ImportSVG(bpy.types.Operator, ImportHelper):
     """Load a SVG file"""
     bl_idname = "import_curve.svg"
-    bl_label = "Import SVG"
+    bl_label = "Import SVG as Curves"
     bl_options = {'UNDO'}
 
     filename_ext = ".svg"
@@ -84,8 +84,7 @@ class IO_FH_svg_as_curves(bpy.types.FileHandler):
 
 
 def menu_func_import(self, context):
-    self.layout.operator(ImportSVG.bl_idname,
-                         text="Scalable Vector Graphics (.svg)")
+    self.layout.operator(ImportSVG.bl_idname, text="SVG as Curves (.svg)")
 
 
 classes = [

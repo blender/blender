@@ -27,14 +27,14 @@ PyDoc_STRVAR(
     "\n"
     "   Builds a StrokeTextureStepShader object.\n"
     "\n"
-    "   :arg step: The spacing along the stroke.\n"
+    "   :param step: The spacing along the stroke.\n"
     "   :type step: float\n"
     "\n"
     ".. method:: shade(stroke)\n"
     "\n"
     "   Assigns a spacing factor to the texture coordinates of the Stroke.\n"
     "\n"
-    "   :arg stroke: A Stroke object.\n"
+    "   :param stroke: A Stroke object.\n"
     "   :type stroke: :class:`freestyle.types.Stroke`\n");
 static int StrokeTextureStepShader___init__(BPy_StrokeTextureStepShader *self,
                                             PyObject *args,

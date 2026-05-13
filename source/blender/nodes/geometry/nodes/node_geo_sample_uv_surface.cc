@@ -84,18 +84,17 @@ class ReverseUVSampleFunction : public mf::MultiFunction {
   GeometrySet source_;
   Field<float2> src_uv_map_field_;
 
-  std::optional<bke::MeshFieldContext> source_context_;
-  std::unique_ptr<FieldEvaluator> source_evaluator_;
-  VArraySpan<float2> source_uv_map_;
-
-  std::optional<ReverseUVSampler> reverse_uv_sampler_;
+  mutable CacheMutex mutex_;
+  mutable std::optional<bke::MeshFieldContext> source_context_;
+  mutable std::unique_ptr<FieldEvaluator> source_evaluator_;
+  mutable VArraySpan<float2> source_uv_map_;
+  mutable std::optional<ReverseUVSampler> reverse_uv_sampler_;
 
  public:
   ReverseUVSampleFunction(GeometrySet geometry, Field<float2> src_uv_map_field)
       : source_(std::move(geometry)), src_uv_map_field_(std::move(src_uv_map_field))
   {
     source_.ensure_owns_direct_data();
-    this->evaluate_source();
 
     static const mf::Signature signature = []() {
       mf::Signature signature;
@@ -133,17 +132,27 @@ class ReverseUVSampleFunction : public mf::MultiFunction {
     });
   }
 
- private:
-  void evaluate_source()
+  void hash_unique(UniqueHashBytes &hash) const override
   {
-    const Mesh &mesh = *source_.get_mesh();
-    source_context_.emplace(bke::MeshFieldContext{mesh, AttrDomain::Corner});
-    source_evaluator_ = std::make_unique<FieldEvaluator>(*source_context_, mesh.corners_num);
-    source_evaluator_->add(src_uv_map_field_);
-    source_evaluator_->evaluate();
-    source_uv_map_ = source_evaluator_->get_evaluated<float2>(0);
+    static constexpr int8_t id = 0;
+    hash.add(&id);
+    hash.add(source_.get_mesh());
+    fn::FieldHashDeep field_hash;
+    hash.add(field_hash.ensure(src_uv_map_field_));
+  }
 
-    reverse_uv_sampler_.emplace(source_uv_map_, mesh.corner_tris());
+  void prepare_for_execution() const override
+  {
+    mutex_.ensure([&]() {
+      const Mesh &mesh = *source_.get_mesh();
+      source_context_.emplace(bke::MeshFieldContext{mesh, AttrDomain::Corner});
+      source_evaluator_ = std::make_unique<FieldEvaluator>(*source_context_, mesh.corners_num);
+      source_evaluator_->add(src_uv_map_field_);
+      source_evaluator_->evaluate();
+      source_uv_map_ = source_evaluator_->get_evaluated<float2>(0);
+
+      reverse_uv_sampler_.emplace(source_uv_map_, mesh.corner_tris());
+    });
   }
 };
 

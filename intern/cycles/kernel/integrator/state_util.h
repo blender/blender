@@ -279,7 +279,7 @@ ccl_device_forceinline void integrator_state_write_shadow_volume_stack(Integrato
   INTEGRATOR_STATE_ARRAY_WRITE(state, shadow_volume_stack, i, shader) = entry.shader;
 }
 
-#endif /* __VOLUME__*/
+#endif /* __VOLUME__ */
 
 /* Shadow Intersection */
 

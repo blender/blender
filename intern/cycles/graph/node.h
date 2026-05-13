@@ -38,7 +38,7 @@ struct Transform;
   void tag_##name##_modified() \
   { \
     const SocketType *socket = get_##name##_socket(); \
-    socket_modified |= socket->modified_flag_bit; \
+    socket_modified.set(socket->modified_flag_bit); \
   } \
   type_ const &get_##name() const \
   { \

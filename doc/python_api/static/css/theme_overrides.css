@@ -15,6 +15,12 @@ body {
 	--color-api-name: #e87d0d;
 }
 
+/* Increase the width of main navigation region to
+   allow more text to fit on one line and reduce scrolling. */
+.sidebar-container {
+	width: 18em;
+}
+
 /* Increase the width of "On this page" region,
  * but not when it's being "hidden" by being pushed 15em off the right edge. */
 @media (width > 82em) {

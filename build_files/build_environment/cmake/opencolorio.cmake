@@ -137,7 +137,9 @@ if(WIN32)
       COMMAND ${CMAKE_COMMAND} -E copy_directory
         ${LIBDIR}/opencolorio/lib/site-packages
         ${HARVEST_TARGET}/opencolorio/lib/site-packages-debug
-
+      COMMAND ${CMAKE_COMMAND} -E copy
+        ${LIBDIR}/opencolorio/lib/cmake/OpenColorIO/OpenColorIOTargets-debug.cmake
+        ${HARVEST_TARGET}/opencolorio/lib/cmake/OpenColorIO/OpenColorIOTargets-debug.cmake
       DEPENDEES install
     )
   endif()
@@ -157,6 +159,8 @@ else()
   )
 
   harvest(external_opencolorio opencolorio/include opencolorio/include "*.h")
+  # Cmake files first because harvest_rpath_lib edits them.
+  harvest(external_opencolorio opencolorio/lib/cmake/OpenColorIO opencolorio/lib/cmake/OpenColorIO "*.cmake")
   harvest_rpath_lib(external_opencolorio opencolorio/lib opencolorio/lib "*${SHAREDLIBEXT}*")
   if(NOT ANDROID)
     harvest_rpath_python(

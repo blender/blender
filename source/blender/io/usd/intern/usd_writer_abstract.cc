@@ -536,6 +536,11 @@ void USDAbstractWriter::write_user_properties(const pxr::UsdPrim &prim,
       case IDP_ARRAY:
         create_vector_attrib(prim, prop, prop_token, time);
         break;
+      case IDP_GROUP:
+      case IDP_ID:
+      case IDP_IDPARRAY:
+        /* Not supported. */
+        break;
     }
   }
 }

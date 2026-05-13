@@ -6,15 +6,13 @@
 
 #include "BKE_curves.hh"
 #include "BKE_geometry_set.hh"
-#include "BKE_idtype.hh"
+#include "BKE_gtest_base.hh"
 #include "BKE_instances.hh"
 #include "BKE_lib_id.hh"
 
 #include "DNA_curves_types.h"
 
 #include "GEO_realize_instances.hh"
-
-#include "CLG_log.h"
 
 #include "testing/testing.h"
 
@@ -24,19 +22,7 @@ using namespace blender::bke;
 
 namespace geometry::tests {
 
-class RealizeInstancesTest : public testing::Test {
- public:
-  static void SetUpTestSuite()
-  {
-    CLG_init();
-    BKE_idtype_init();
-  }
-
-  static void TearDownTestSuite()
-  {
-    CLG_exit();
-  }
-};
+class RealizeInstancesTest : public bke::BlenderGTestBase {};
 
 static void create_test_curves(bke::CurvesGeometry &curves, Span<int> offsets)
 {

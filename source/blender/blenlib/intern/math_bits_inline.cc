@@ -133,7 +133,7 @@ MINLINE int count_bits_i(unsigned int i)
 }
 MINLINE int count_bits_uint64(const uint64_t a)
 {
-  return count_bits_i((uint32_t)a) + count_bits_i((uint32_t)(a >> 32));
+  return count_bits_i(uint32_t(a)) + count_bits_i(uint32_t(a >> 32));
 }
 #endif
 

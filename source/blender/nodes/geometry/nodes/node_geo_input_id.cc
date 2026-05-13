@@ -15,7 +15,7 @@ static void node_declare(NodeDeclarationBuilder &b)
 
 static void node_geo_exec(GeoNodeExecParams params)
 {
-  params.set_output("ID"_ustr, Field<int>::from_input<bke::IDAttributeFieldInput>());
+  params.set_output("ID"_ustr, bke::IDAttributeFieldInput::get_field());
 }
 
 static void node_register()

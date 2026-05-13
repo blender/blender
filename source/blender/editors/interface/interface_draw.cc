@@ -757,8 +757,8 @@ void draw_but_WAVEFORM(const bContext *C,
 
   /* Get scope info for the current display/view. */
   const Scene *scene = CTX_data_scene(C);
-  const ocio::ScopeInfo &scope_info = IMB_colormanagement_get_scope_info(
-      &scene->display_settings, scene->view_settings.view_transform);
+  const ocio::ScopeInfo &scope_info = IMB_colormanagement_get_scope_info(&scene->display_settings,
+                                                                         &scene->view_settings);
 
   /* Draw labels centered on each grid line, with the line starting after the text.
    * Font size is chosen so all labels fit without overlap. */
@@ -1033,8 +1033,8 @@ void draw_but_VECTORSCOPE(const bContext *C,
   const Scopes *scopes = reinterpret_cast<const Scopes *>(but->poin);
 
   const Scene *scene = CTX_data_scene(C);
-  const ocio::ScopeInfo scope_info = IMB_colormanagement_get_scope_info(
-      &scene->display_settings, scene->view_settings.view_transform);
+  const ocio::ScopeInfo scope_info = IMB_colormanagement_get_scope_info(&scene->display_settings,
+                                                                        &scene->view_settings);
   const float3x3 &yuv_matrix = scope_info.yuv_matrix;
   const float3x3 inv_yuv_to_rec709 = scope_info.scope_gamut_to_rec709 * math::invert(yuv_matrix);
 

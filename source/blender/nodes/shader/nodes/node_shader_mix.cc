@@ -358,7 +358,7 @@ static const char *gpu_shader_get_name(eNodeSocketDatatype data_type,
           return nullptr;
       }
     case SOCK_ROTATION:
-      return nullptr;
+      return "node_mix_rotation";
     default:
       BLI_assert_unreachable();
       return nullptr;
@@ -470,6 +470,15 @@ class MixColorFunction : public mf::MultiFunction {
       mask.foreach_index_optimized<int64_t>(
           [&](const int64_t i) { clamp_v4(results[i], 0.0f, 1.0f); });
     }
+  }
+
+  void hash_unique(UniqueHashBytes &hash) const override
+  {
+    static constexpr int8_t id = 0;
+    hash.add(&id);
+    hash.add(clamp_factor_);
+    hash.add(clamp_result_);
+    hash.add(blend_type_);
   }
 };
 

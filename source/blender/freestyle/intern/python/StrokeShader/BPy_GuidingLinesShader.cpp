@@ -27,7 +27,7 @@ PyDoc_STRVAR(
     "\n"
     "   Builds a GuidingLinesShader object.\n"
     "\n"
-    "   :arg offset: The line that replaces the stroke is initially in the\n"
+    "   :param offset: The line that replaces the stroke is initially in the\n"
     "      middle of the initial stroke bounding box. offset is the value\n"
     "      of the displacement which is applied to this line along its\n"
     "      normal.\n"
@@ -42,7 +42,7 @@ PyDoc_STRVAR(
     "   stroke's pieces. The bigger the pieces are, the rougher the\n"
     "   approximation is.\n"
     "\n"
-    "   :arg stroke: A Stroke object.\n"
+    "   :param stroke: A Stroke object.\n"
     "   :type stroke: :class:`freestyle.types.Stroke`\n");
 static int GuidingLinesShader___init__(BPy_GuidingLinesShader *self,
                                        PyObject *args,

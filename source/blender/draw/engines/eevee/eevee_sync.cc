@@ -89,6 +89,10 @@ void SyncModule::sync_volume_passes(const ObjectHandle &ob_handle,
                                     const Material &material,
                                     FunctionRef<void(const MaterialPass &, int)> sync_cb)
 {
+  if (material.volume_occupancy.gpumat == nullptr || material.volume_material.gpumat == nullptr) {
+    return;
+  }
+
   blender::Material *blender_mat = GPU_material_get_material(material.volume_material.gpumat);
 
   for (int instance : IndexRange(ob_handle.instances_count())) {

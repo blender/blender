@@ -9,13 +9,17 @@
 
 #include "DNA_action_types.h"
 
+#include "BKE_gtest_base.hh"
+
 #include "BLI_listbase.h"
 
 #include "testing/testing.h"
 
 namespace blender::animrig::versioning::tests {
 
-TEST(animrig_versioning, action_is_layered)
+class AnimrigVersioninTest : public bke::BlenderGTestBase {};
+
+TEST_F(AnimrigVersioninTest, action_is_layered)
 {
   /* This unit test doesn't put valid data in the action under test. Since action_is_layered()
    * only looks at the length of lists, and not their contents, that should be fine. */

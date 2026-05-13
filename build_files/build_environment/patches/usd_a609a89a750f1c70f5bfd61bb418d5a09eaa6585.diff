@@ -1,0 +1,36 @@
+diff --git a/pxr/base/tf/pyErrorInternal.cpp b/pxr/base/tf/pyErrorInternal.cpp
+index a17b447956..5ee42db406 100644
+--- a/pxr/base/tf/pyErrorInternal.cpp
++++ b/pxr/base/tf/pyErrorInternal.cpp
+@@ -11,6 +11,7 @@
+ 
+ #include "pxr/base/tf/enum.h"
+ #include "pxr/base/tf/registryManager.h"
++#include "pxr/base/tf/staticData.h"
+ 
+ #include "pxr/external/boost/python/handle.hpp"
+ #include "pxr/external/boost/python/object.hpp"
+@@ -23,18 +24,18 @@ TF_REGISTRY_FUNCTION(TfEnum) {
+     TF_ADD_ENUM_NAME(TF_PYTHON_EXCEPTION);
+ }
+ 
+-// Should probably use a better mechanism.
+-
+-static handle<> _ExceptionClass;
++// The held handle<> is intentionally leaked to avoid Python refcount ops
++// during shutdown, which is unsafe if Python has been finalized.
++static TfStaticData<handle<>> _ExceptionClass;
+ 
+ handle<> Tf_PyGetErrorExceptionClass()
+ {
+-    return _ExceptionClass;
++    return *_ExceptionClass;
+ }
+ 
+ void Tf_PySetErrorExceptionClass(object const &cls)
+ {
+-    _ExceptionClass = handle<>(borrowed(cls.ptr()));
++    *_ExceptionClass = handle<>(borrowed(cls.ptr()));
+ }
+ 
+ TfPyExceptionStateScope::TfPyExceptionStateScope() :

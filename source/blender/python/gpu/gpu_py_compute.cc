@@ -26,7 +26,7 @@ namespace blender {
 PyDoc_STRVAR(
     /* Wrap. */
     pygpu_compute_dispatch_doc,
-    ".. function:: dispatch(shader, groups_x_len,  groups_y_len,  groups_z_len)\n"
+    ".. function:: dispatch(shader, groups_x_len, groups_y_len, groups_z_len)\n"
     "\n"
     "   Dispatches GPU compute.\n"
     "\n"

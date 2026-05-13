@@ -158,6 +158,8 @@ bool VelocityModule::step_object_sync(const ObjectHandle &ob_handle,
         case OB_MESH:
           data.pos_buf = DRW_cache_mesh_surface_get(ob_handle.object);
           break;
+        default:
+          break;
       }
       return data;
     };

@@ -20,6 +20,7 @@ struct Mesh;
 struct ModifierData;
 struct MultiresModifierData;
 struct Object;
+struct ReportList;
 struct Scene;
 struct SubdivCCG;
 namespace bke::subdiv {
@@ -99,6 +100,16 @@ enum class ApplyBaseMode : int8_t {
   ForSubdivision,
 };
 
+/**
+ * Use when un-subdivide has *partial* success,
+ * report issues to the user as warnings since an "error" implies
+ * failure which is handled separately.
+ */
+struct MultiresUnsubdivideInfo {
+  /** When over zero report that some data was not preserved. */
+  int unsupported_grid_count = 0;
+};
+
 void multiresModifier_base_apply(Depsgraph *depsgraph,
                                  Object *object,
                                  MultiresModifierData *mmd,
@@ -107,7 +118,12 @@ int multiresModifier_rebuild_subdiv(Depsgraph *depsgraph,
                                     Object *object,
                                     MultiresModifierData *mmd,
                                     int rebuild_limit,
-                                    bool switch_view_to_lower_level);
+                                    bool switch_view_to_lower_level,
+                                    MultiresUnsubdivideInfo &info);
+
+void multiresModifier_unsubdivide_report_if_needed(const MultiresUnsubdivideInfo &info,
+                                                   ReportList *reports);
+
 /**
  * If `ob_src` and `ob_dst` both have multi-res modifiers,
  * synchronize them such that `ob_dst` has the same total number of levels as `ob_src`.

@@ -82,9 +82,9 @@ PyDoc_STRVAR(
     "   Must be overload by inherited classes. It evaluates a relation\n"
     "   between two Interface1D objects.\n"
     "\n"
-    "   :arg inter1: The first Interface1D object.\n"
+    "   :param inter1: The first Interface1D object.\n"
     "   :type inter1: :class:`Interface1D`\n"
-    "   :arg inter2: The second Interface1D object.\n"
+    "   :param inter2: The second Interface1D object.\n"
     "   :type inter2: :class:`Interface1D`\n"
     "   :return: True or false.\n"
     "   :rtype: bool\n");

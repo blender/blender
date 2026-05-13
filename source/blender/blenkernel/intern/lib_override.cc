@@ -2544,7 +2544,7 @@ static bool lib_override_library_resync(Main *bmain,
       /* We need to 'move back' newly created override into its proper library (since it was
        * duplicated from the reference ID with 'no main' option, it should currently be the same
        * as the reference ID one). */
-      BLI_assert(/*!ID_IS_LINKED(id_override_new) || */ id_override_new->lib ==
+      BLI_assert(/* `!ID_IS_LINKED(id_override_new) ||` */ id_override_new->lib ==
                  id_reference_iter->lib);
       BLI_assert(id_override_old == nullptr || id_override_old->lib == id_root->lib);
       id_override_new->lib = id_root->lib;
@@ -4404,7 +4404,7 @@ IDOverrideLibraryPropertyOperation *BKE_lib_override_library_property_operation_
 
 IDOverrideLibraryPropertyOperation *BKE_lib_override_library_property_operation_get(
     IDOverrideLibraryProperty *liboverride_property,
-    const short operation,
+    const eID_OverrideLib_Op operation,
     const char *subitem_refname,
     const char *subitem_locname,
     const std::optional<ID *> &subitem_refid,
@@ -5160,7 +5160,7 @@ void BKE_lib_override_library_id_hierarchy_reset(Main *bmain,
 }
 
 void BKE_lib_override_library_operations_tag(IDOverrideLibraryProperty *liboverride_property,
-                                             const short tag,
+                                             const eID_OverrideLib_PropTag tag,
                                              const bool do_set)
 {
   if (liboverride_property != nullptr) {
@@ -5183,7 +5183,7 @@ void BKE_lib_override_library_operations_tag(IDOverrideLibraryProperty *liboverr
 }
 
 void BKE_lib_override_library_properties_tag(IDOverrideLibrary *liboverride,
-                                             const short tag,
+                                             const eID_OverrideLib_PropTag tag,
                                              const bool do_set)
 {
   if (liboverride != nullptr) {
@@ -5193,7 +5193,9 @@ void BKE_lib_override_library_properties_tag(IDOverrideLibrary *liboverride,
   }
 }
 
-void BKE_lib_override_library_main_tag(Main *bmain, const short tag, const bool do_set)
+void BKE_lib_override_library_main_tag(Main *bmain,
+                                       const eID_OverrideLib_PropTag tag,
+                                       const bool do_set)
 {
   ID *id;
 

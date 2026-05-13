@@ -45,21 +45,17 @@ if(WITH_GTESTS)
     ${CMAKE_CURRENT_BINARY_DIR}/test_dna_struct_ids.cc
     ${CMAKE_CURRENT_BINARY_DIR}/test_dna_type_offsets.h
     ${CMAKE_CURRENT_BINARY_DIR}/test_dna_verify.cc
-
-    ../DNA_genfile.h
-
-    ../intern/dna_genfile.cc
-    ../intern/dna_utils.cc
-    ../intern/dna_utils.h
   )
   set(TEST_INC
     PRIVATE ..
     PRIVATE ../intern
   )
   set(TEST_LIB
+    # bf::blenlib twice to avoid ld link error with circular dependency.
+    PRIVATE bf::blenlib
+    PRIVATE bf::dna
     PRIVATE bf::blenlib
   )
 
   blender_add_test_executable(makesdna "${TEST_SRC}" "${TEST_INC}" "${INC_SYS}" "${TEST_LIB}")
-  target_compile_definitions(makesdna_test PRIVATE WITH_DNA_GHASH)
 endif()

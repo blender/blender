@@ -131,7 +131,7 @@ class Geometry : public Node {
   virtual void apply_transform(const Transform &tfm, const bool apply_to_motion) = 0;
 
   /* Attribute Requests */
-  bool need_attribute(Scene *scene, AttributeStandard std);
+  bool need_attribute(const Scene *scene, AttributeStandard std);
   bool need_attribute(Scene *scene, ustring name);
 
   AttributeRequestSet needed_attributes();

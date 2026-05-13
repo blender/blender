@@ -170,6 +170,16 @@ NodeItem NodeParser::get_default(const bNodeSocket &socket, NodeItem::Type to_ty
     case SOCK_CUSTOM:
       /* Return empty */
       break;
+    case SOCK_BOOLEAN: {
+      bool v = socket.default_value_typed<bNodeSocketValueBoolean>()->value;
+      res.value = MaterialX::Value::createValue<bool>(v);
+      break;
+    }
+    case SOCK_INT: {
+      int v = socket.default_value_typed<bNodeSocketValueInt>()->value;
+      res.value = MaterialX::Value::createValue<int>(v);
+      break;
+    }
     case SOCK_FLOAT: {
       float v = socket.default_value_typed<bNodeSocketValueFloat>()->value;
       res.value = MaterialX::Value::createValue<float>(v);

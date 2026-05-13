@@ -290,7 +290,7 @@ void mesh_cursor_active_draw(PaintCursorContext &pcontext)
       break;
     case SCULPT_BRUSH_TYPE_CLOTH: {
       if (brush.cloth_force_falloff_type == BRUSH_CLOTH_FORCE_FALLOFF_PLANE) {
-        /* By definition, the 'Plane Falloff' mode does not have drawable limits.*/
+        /* By definition, the 'Plane Falloff' mode does not have drawable limits. */
         cloth::plane_falloff_preview_draw(
             pcontext.pos, ss, pcontext.outline_col, pcontext.outline_alpha);
       }

@@ -451,6 +451,54 @@ class OverrideLayersTest(AbstractAlembicTest):
         self.assertEqual(len(mesh.polygons), 6)
 
 
+class AlembicVisibilityImportTests(AbstractAlembicTest):
+    def assertObjectVisibility(self, ob_name, state):
+        view_layer = bpy.context.view_layer
+        ob = bpy.data.objects[ob_name]
+        self.assertEqual(ob.hide_get(view_layer=view_layer), state)
+        self.assertEqual(ob.hide_render, state)
+
+    def assertObjectHidden(self, ob_name):
+        self.assertObjectVisibility(ob_name, True)
+
+    def assertObjectVisible(self, ob_name):
+        self.assertObjectVisibility(ob_name, False)
+
+    def test_import_visibility_hidden(self):
+        res = bpy.ops.wm.alembic_import(
+            filepath=str(self.testdir / "visibility-hidden.abc"),
+            as_background_job=False)
+        self.assertEqual({'FINISHED'}, res)
+
+        self.assertObjectHidden('HIDDEN')
+        self.assertObjectVisible('VISIBLE')
+
+    def test_import_visibility_deferred_parent_hidden(self):
+        res = bpy.ops.wm.alembic_import(
+            filepath=str(self.testdir / "visibility-parent-hidden-child-deferred.abc"),
+            as_background_job=False)
+        self.assertEqual({'FINISHED'}, res)
+
+        self.assertObjectHidden('HIDDEN')
+
+    def test_import_visibility_deferred_parent_visible(self):
+        res = bpy.ops.wm.alembic_import(
+            filepath=str(self.testdir / "visibility-parent-visible-child-deferred.abc"),
+            as_background_job=False)
+        self.assertEqual({'FINISHED'}, res)
+
+        self.assertObjectVisible('VISIBLE')
+
+    def test_import_visibility_visible_parent_hidden(self):
+        res = bpy.ops.wm.alembic_import(
+            filepath=str(self.testdir / "visibility-parent-hidden-child-visible.abc"),
+            as_background_job=False)
+        self.assertEqual({'FINISHED'}, res)
+
+        # Objects inherit the name of their parent Xform which is called 'HIDDEN' here
+        self.assertObjectVisible('HIDDEN')
+
+
 class AlembicImportComparisonTests(unittest.TestCase):
     @classmethod
     def setUpClass(cls):

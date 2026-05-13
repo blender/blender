@@ -324,7 +324,7 @@ void View::default_set(const float4x4 &view_mat, const float4x4 &win_mat)
   drw_get().data->default_view->sync(view_mat, win_mat);
 }
 
-std::array<float4, 6> View::frustum_planes_get(int view_id)
+std::array<float4, 6> View::frustum_planes_get(int view_id) const
 {
   return {culling_[view_id].frustum_planes.planes[0],
           culling_[view_id].frustum_planes.planes[1],
@@ -334,7 +334,7 @@ std::array<float4, 6> View::frustum_planes_get(int view_id)
           culling_[view_id].frustum_planes.planes[5]};
 }
 
-std::array<float3, 8> View::frustum_corners_get(int view_id)
+std::array<float3, 8> View::frustum_corners_get(int view_id) const
 {
   return {culling_[view_id].frustum_corners.corners[0].xyz(),
           culling_[view_id].frustum_corners.corners[1].xyz(),

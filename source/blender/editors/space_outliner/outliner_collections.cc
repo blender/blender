@@ -14,6 +14,7 @@
 
 #include "DNA_ID.h"
 #include "DNA_collection_types.h"
+#include "DNA_layer_types.h"
 #include "DNA_object_types.h"
 
 #include "BKE_collection.hh"
@@ -152,7 +153,7 @@ void ED_outliner_selected_objects_get(const bContext *C, ListBaseT<LinkData> *ob
   SpaceOutliner *space_outliner = CTX_wm_space_outliner(C);
   IDsSelectedData data = {{nullptr}};
   outliner_tree_traverse(space_outliner,
-                         &space_outliner->tree,
+                         &space_outliner->runtime->tree,
                          0,
                          TSE_SELECTED,
                          outliner_collect_selected_objects,
@@ -257,7 +258,7 @@ static wmOperatorStatus collection_new_exec(bContext *C, wmOperator *op)
     outliner_build_tree(bmain, workspace, scene, view_layer, space_outliner, region);
 
     outliner_tree_traverse(space_outliner,
-                           &space_outliner->tree,
+                           &space_outliner->runtime->tree,
                            0,
                            TSE_SELECTED,
                            collection_find_selected_to_add,
@@ -382,7 +383,7 @@ void outliner_collection_delete(
   /* We first walk over and find the Collections we actually want to delete
    * (ignoring duplicates). */
   outliner_tree_traverse(space_outliner,
-                         &space_outliner->tree,
+                         &space_outliner->runtime->tree,
                          0,
                          TSE_SELECTED,
                          collection_collect_data_to_edit,
@@ -513,7 +514,7 @@ static LayerCollection *outliner_active_layer_collection(bContext *C)
   CollectionObjectsSelectData data{};
 
   outliner_tree_traverse(space_outliner,
-                         &space_outliner->tree,
+                         &space_outliner->runtime->tree,
                          0,
                          TSE_SELECTED,
                          outliner_find_first_selected_layer_collection,
@@ -531,7 +532,7 @@ static wmOperatorStatus collection_objects_select_exec(bContext *C, wmOperator *
 
   IDsSelectedData selected_collections{};
   outliner_tree_traverse(space_outliner,
-                         &space_outliner->tree,
+                         &space_outliner->runtime->tree,
                          0,
                          TSE_SELECTED,
                          outliner_collect_selected_collections,
@@ -622,7 +623,7 @@ static TreeElement *outliner_active_collection(bContext *C)
   CollectionDuplicateData data = {};
 
   outliner_tree_traverse(space_outliner,
-                         &space_outliner->tree,
+                         &space_outliner->runtime->tree,
                          0,
                          TSE_SELECTED,
                          outliner_find_first_selected_collection,
@@ -638,7 +639,7 @@ static wmOperatorStatus collection_duplicate_exec(bContext *C, wmOperator *op)
 
   IDsSelectedData selected_collections{};
   outliner_tree_traverse(space_outliner,
-                         &space_outliner->tree,
+                         &space_outliner->runtime->tree,
                          0,
                          TSE_SELECTED,
                          outliner_collect_selected_parent_collections,
@@ -772,7 +773,7 @@ static wmOperatorStatus collection_link_exec(bContext *C, wmOperator *op)
 
   /* We first walk over and find the Collections we actually want to link (ignoring duplicates). */
   outliner_tree_traverse(space_outliner,
-                         &space_outliner->tree,
+                         &space_outliner->runtime->tree,
                          0,
                          TSE_SELECTED,
                          collection_collect_data_to_edit,
@@ -828,7 +829,7 @@ static wmOperatorStatus collection_instance_exec(bContext *C, wmOperator * /*op*
   /* We first walk over and find the Collections we actually want to instance
    * (ignoring duplicates). */
   outliner_tree_traverse(space_outliner,
-                         &space_outliner->tree,
+                         &space_outliner->runtime->tree,
                          0,
                          TSE_SELECTED,
                          collection_collect_data_to_edit,
@@ -921,7 +922,7 @@ static bool collections_view_layer_poll(bContext *C, bool clear, int flag)
   bool result = false;
 
   outliner_tree_traverse(space_outliner,
-                         &space_outliner->tree,
+                         &space_outliner->runtime->tree,
                          0,
                          TSE_SELECTED,
                          layer_collection_collect_data_to_edit,
@@ -981,12 +982,13 @@ static wmOperatorStatus collection_view_layer_exec(bContext *C, wmOperator *op)
   data.is_liboverride_allowed = true;
   data.is_liboverride_hierarchy_root_allowed = true;
   bool clear = strstr(op->idname, "clear") != nullptr;
-  int flag = strstr(op->idname, "holdout")       ? LAYER_COLLECTION_HOLDOUT :
-             strstr(op->idname, "indirect_only") ? LAYER_COLLECTION_INDIRECT_ONLY :
-                                                   LAYER_COLLECTION_EXCLUDE;
+  eLayerCollection_Flag flag = strstr(op->idname, "holdout") ? LAYER_COLLECTION_HOLDOUT :
+                               strstr(op->idname, "indirect_only") ?
+                                                               LAYER_COLLECTION_INDIRECT_ONLY :
+                                                               LAYER_COLLECTION_EXCLUDE;
 
   outliner_tree_traverse(space_outliner,
-                         &space_outliner->tree,
+                         &space_outliner->runtime->tree,
                          0,
                          TSE_SELECTED,
                          layer_collection_collect_data_to_edit,
@@ -1115,7 +1117,7 @@ static wmOperatorStatus collection_isolate_exec(bContext *C, wmOperator *op)
   data.is_liboverride_allowed = true;
   data.is_liboverride_hierarchy_root_allowed = true;
   outliner_tree_traverse(space_outliner,
-                         &space_outliner->tree,
+                         &space_outliner->runtime->tree,
                          0,
                          TSE_SELECTED,
                          layer_collection_collect_data_to_edit,
@@ -1212,7 +1214,7 @@ static wmOperatorStatus collection_visibility_exec(bContext *C, wmOperator *op)
   data.is_liboverride_hierarchy_root_allowed = true;
 
   outliner_tree_traverse(space_outliner,
-                         &space_outliner->tree,
+                         &space_outliner->runtime->tree,
                          0,
                          TSE_SELECTED,
                          layer_collection_collect_data_to_edit,
@@ -1349,7 +1351,7 @@ static wmOperatorStatus collection_flag_exec(bContext *C, wmOperator *op)
   SpaceOutliner *space_outliner = CTX_wm_space_outliner(C);
   const bool is_render = strstr(op->idname, "render");
   const bool clear = strstr(op->idname, "show") || strstr(op->idname, "enable");
-  int flag = is_render ? COLLECTION_HIDE_RENDER : COLLECTION_HIDE_VIEWPORT;
+  eCollection_Flag flag = is_render ? COLLECTION_HIDE_RENDER : COLLECTION_HIDE_VIEWPORT;
   CollectionEditData data{};
   data.scene = scene;
   data.space_outliner = space_outliner;
@@ -1359,7 +1361,7 @@ static wmOperatorStatus collection_flag_exec(bContext *C, wmOperator *op)
 
   if (has_layer_collection) {
     outliner_tree_traverse(space_outliner,
-                           &space_outliner->tree,
+                           &space_outliner->runtime->tree,
                            0,
                            TSE_SELECTED,
                            layer_collection_collect_data_to_edit,
@@ -1384,7 +1386,7 @@ static wmOperatorStatus collection_flag_exec(bContext *C, wmOperator *op)
   }
   else {
     outliner_tree_traverse(space_outliner,
-                           &space_outliner->tree,
+                           &space_outliner->runtime->tree,
                            0,
                            TSE_SELECTED,
                            collection_collect_data_to_edit,
@@ -1534,7 +1536,7 @@ static wmOperatorStatus outliner_hide_exec(bContext *C, wmOperator * /*op*/)
   data.space_outliner = space_outliner;
 
   outliner_tree_traverse(space_outliner,
-                         &space_outliner->tree,
+                         &space_outliner->runtime->tree,
                          0,
                          TSE_SELECTED,
                          outliner_hide_collect_data_to_edit,
@@ -1620,12 +1622,12 @@ static wmOperatorStatus outliner_color_tag_set_exec(bContext *C, wmOperator *op)
 {
   Scene *scene = CTX_data_scene(C);
   SpaceOutliner *space_outliner = CTX_wm_space_outliner(C);
-  const short color_tag = RNA_enum_get(op->ptr, "color");
+  const CollectionColorTag color_tag = CollectionColorTag(RNA_enum_get(op->ptr, "color"));
 
   IDsSelectedData selected{};
 
   outliner_tree_traverse(space_outliner,
-                         &space_outliner->tree,
+                         &space_outliner->runtime->tree,
                          0,
                          TSE_SELECTED,
                          outliner_collect_selected_collections,

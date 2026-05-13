@@ -134,7 +134,7 @@ void template_preview(Layout *layout,
                             });
   block_func_handle_set(block, do_preview_buttons, nullptr);
 
-  uiDefIconButS(block,
+  uiDefIconButV(block,
                 ButtonType::Grip,
                 ICON_GRIP,
                 0,
@@ -176,7 +176,7 @@ void template_preview(Layout *layout,
       PointerRNA texture_ptr = RNA_id_pointer_create(id);
 
       layout->row(true);
-      Button *but = uiDefButS(block,
+      Button *but = uiDefButV(block,
                               ButtonType::Row,
                               IFACE_("Texture"),
                               0,
@@ -189,7 +189,7 @@ void template_preview(Layout *layout,
                               "");
       button_retval_set(but, B_MATPRV);
       if (GS(parent->name) == ID_MA) {
-        but = uiDefButS(block,
+        but = uiDefButV(block,
                         ButtonType::Row,
                         IFACE_("Material"),
                         0,
@@ -203,7 +203,7 @@ void template_preview(Layout *layout,
         button_retval_set(but, B_MATPRV);
       }
       else if (GS(parent->name) == ID_LA) {
-        but = uiDefButS(block,
+        but = uiDefButV(block,
                         ButtonType::Row,
                         CTX_IFACE_(BLT_I18NCONTEXT_ID_LIGHT, "Light"),
                         0,
@@ -217,7 +217,7 @@ void template_preview(Layout *layout,
         button_retval_set(but, B_MATPRV);
       }
       else if (GS(parent->name) == ID_WO) {
-        but = uiDefButS(block,
+        but = uiDefButV(block,
                         ButtonType::Row,
                         CTX_IFACE_(BLT_I18NCONTEXT_ID_WORLD, "World"),
                         0,
@@ -231,7 +231,7 @@ void template_preview(Layout *layout,
         button_retval_set(but, B_MATPRV);
       }
       else if (GS(parent->name) == ID_LS) {
-        but = uiDefButS(block,
+        but = uiDefButV(block,
                         ButtonType::Row,
                         IFACE_("Line Style"),
                         0,
@@ -244,7 +244,7 @@ void template_preview(Layout *layout,
                         "");
         button_retval_set(but, B_MATPRV);
       }
-      but = uiDefButS(block,
+      but = uiDefButV(block,
                       ButtonType::Row,
                       IFACE_("Both"),
                       0,

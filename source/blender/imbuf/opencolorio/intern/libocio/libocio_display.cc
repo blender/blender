@@ -5,20 +5,18 @@
 #include "libocio_display.hh"
 #include "OCIO_display.hh"
 
-#if defined(WITH_OPENCOLORIO)
+#include "BLI_index_range.hh"
 
-#  include "BLI_index_range.hh"
+#include "OCIO_config.hh"
 
-#  include "OCIO_config.hh"
+#include "CLG_log.h"
 
-#  include "CLG_log.h"
+#include "../opencolorio.hh"
 
-#  include "../opencolorio.hh"
-
-#  include "error_handling.hh"
-#  include "libocio_config.hh"
-#  include "libocio_cpu_processor.hh"
-#  include "libocio_display_processor.hh"
+#include "error_handling.hh"
+#include "libocio_config.hh"
+#include "libocio_cpu_processor.hh"
+#include "libocio_display_processor.hh"
 
 namespace blender {
 
@@ -314,5 +312,3 @@ void LibOCIODisplay::clear_caches()
 
 }  // namespace ocio
 }  // namespace blender
-
-#endif

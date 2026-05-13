@@ -48,6 +48,8 @@ struct SubsurfModifierData;
 struct View3D;
 struct ViewLayer;
 
+enum ObjectType : short;
+
 template<typename CoordT> struct KDTree;
 
 void BKE_object_workob_clear(Object *workob);
@@ -108,7 +110,7 @@ ModifierData *BKE_object_active_modifier(const Object *ob);
  * which particle system to use or add in `ob_dst`, and it's placement in the stack, etc. If used
  * more than once, this function should preferably be called in stack order.
  */
-bool BKE_object_copy_modifier(
+ModifierData *BKE_object_copy_modifier(
     Main *bmain, const Scene *scene, Object *ob_dst, const Object *ob_src, const ModifierData *md);
 /**
  * Copy the whole stack of modifiers from one object into another.
@@ -164,7 +166,9 @@ int BKE_object_visibility(const Object *ob, int dag_eval_mode);
  *
  * \param bmain: The main to add the object to. May be null for #LIB_ID_CREATE_NO_MAIN behavior.
  */
-Object *BKE_object_add_only_object(Main *bmain, int type, const char *name) ATTR_RETURNS_NONNULL;
+Object *BKE_object_add_only_object(Main *bmain,
+                                   ObjectType type,
+                                   const char *name) ATTR_RETURNS_NONNULL;
 /**
  * General add: to scene, with layer from area and default name.
  *
@@ -176,16 +180,19 @@ Object *BKE_object_add_only_object(Main *bmain, int type, const char *name) ATTR
 Object *BKE_object_add(Main *bmain,
                        Scene *scene,
                        ViewLayer *view_layer,
-                       int type,
+                       ObjectType type,
                        const char *name) ATTR_NONNULL(1, 2, 3) ATTR_RETURNS_NONNULL;
 /**
  * Add a new object, using another one as a reference
  *
  * \param ob_src: object to use to determine the collections of the new object.
  */
-Object *BKE_object_add_from(
-    Main *bmain, Scene *scene, ViewLayer *view_layer, int type, const char *name, Object *ob_src)
-    ATTR_NONNULL(1, 2, 3, 6) ATTR_RETURNS_NONNULL;
+Object *BKE_object_add_from(Main *bmain,
+                            Scene *scene,
+                            ViewLayer *view_layer,
+                            ObjectType type,
+                            const char *name,
+                            Object *ob_src) ATTR_NONNULL(1, 2, 3, 6) ATTR_RETURNS_NONNULL;
 /**
  * Add a new object, but assign the given data-block as the `ob->data`
  * for the newly created object.
@@ -198,11 +205,12 @@ Object *BKE_object_add_from(
 Object *BKE_object_add_for_data(Main *bmain,
                                 const Scene *scene,
                                 ViewLayer *view_layer,
-                                int type,
+                                ObjectType type,
                                 const char *name,
                                 ID *data,
                                 bool do_id_user) ATTR_RETURNS_NONNULL;
-void *BKE_object_obdata_add_from_type(Main *bmain, int type, const char *name) ATTR_NONNULL(1);
+void *BKE_object_obdata_add_from_type(Main *bmain, ObjectType type, const char *name)
+    ATTR_NONNULL(1);
 /**
  * Return -1 on failure.
  */

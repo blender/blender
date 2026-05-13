@@ -13,7 +13,7 @@ void main()
   int2 texel_film = int2(gl_FragCoord.xy) - uniform_buf.film.offset;
   float out_depth;
 
-  if (uniform_buf.film.display_only) {
+  if (display_only) {
     out_depth = imageLoadFast(depth_img, texel_film).r;
 
     if (display_id == -1) {

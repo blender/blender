@@ -67,10 +67,8 @@ const char *imb_ext_image[] = {
     /* #IMB_FTYPE_CINEON */
     ".cin",
 #endif
-#ifdef WITH_IMAGE_OPENEXR
     /* #IMB_FTYPE_EXR */
     ".exr",
-#endif
     /* #IMB_FTYPE_PSD */
     ".psd",
     ".pdd",

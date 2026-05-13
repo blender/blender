@@ -80,8 +80,15 @@ def __export(export_settings):
     # IOR is a special case where we need to export only if some other extensions are used
     __check_ior(json, export_settings)
 
-    # Volum is a special case where we need to export only if transmission is used
+    # Volume is a special case where we need to export only if transmission is used
     __check_volume(json, export_settings)
+
+    # Iridescence is a special case where we we have multiple fields that can make the extension
+    # not exported (factor, thickness)
+    __check_iridescence(json, export_settings)
+
+    # Dispersion is a special case where we need to export only if volume is used
+    __check_dispersion(json, export_settings)
 
     __manage_extension_declaration(json, export_settings)
 
@@ -109,6 +116,112 @@ def __export(export_settings):
     return json, buffer
 
 
+def __check_iridescence(json, export_settings):
+    if 'materials' not in json.keys():
+        return
+    animation_pointer_deleted = False
+    for mat_idx, mat in enumerate(json['materials']):
+        if 'extensions' not in mat.keys():
+            continue
+        if 'KHR_materials_iridescence' not in mat['extensions'].keys():
+            continue
+
+        # Check if the factor is animated or not for this material
+        # If not animated and 0.0 => remove the entire extension, because it is not changing the shader
+        # If animated => keep the extension, but we will remove the default value
+        factor_animated = False
+        if 'KHR_materials_iridescence' in export_settings['gltf_animated_extensions'].keys() and \
+                'iridescenceFactor' in export_settings['gltf_animated_extensions']['KHR_materials_iridescence']:
+            # We need to chec for this specific material, as it seems that some material can have animated factor
+            for anim in json['animations']:
+                for channel in anim['channels']:
+                    if not channel['target']['path'] == "pointer":
+                        continue
+                    pointer = channel['target']['extensions']['KHR_animation_pointer']['pointer']
+                    if pointer == f"/materials/{mat_idx}/extensions/KHR_materials_iridescence/iridescenceFactor":
+                        factor_animated = True
+                        break
+                if factor_animated:
+                    break
+
+        # Check if the thickness is animated or not for this material
+        # If not animated and 0.0 => remove the entire extension, because it is not changing the shader
+        # If animated => keep the extension, but we will remove the default value
+        thickness_animated = False
+        if 'KHR_materials_iridescence' in export_settings['gltf_animated_extensions'].keys(
+        ) and 'iridescenceThicknessMaximum' in export_settings['gltf_animated_extensions']['KHR_materials_iridescence']:
+            # We need to chec for this specific material, as it seems that some material can have animated thickness
+            for anim in json['animations']:
+                for channel in anim['channels']:
+                    if not channel['target']['path'] == "pointer":
+                        continue
+                    pointer = channel['target']['extensions']['KHR_animation_pointer']['pointer']
+                    if pointer == f"/materials/{mat_idx}/extensions/KHR_materials_iridescence/iridescenceThicknessMaximum":
+                        thickness_animated = True
+                        break
+                if thickness_animated:
+                    break
+
+        if (not factor_animated and mat['extensions']['KHR_materials_iridescence'].get('iridescenceFactor', 0.0) == 0.0) or (
+                not thickness_animated and mat['extensions']['KHR_materials_iridescence'].get('iridescenceThicknessMaximum', 400.0) == 0.0):
+            # We can remove the entire extension, as no material animates the factor
+            # or the thickness, and default values are not changing the shader
+            del mat['extensions']['KHR_materials_iridescence']
+            # We can remove any animation pointer on this extension for this material,
+            # because it is not animating anything
+            for anim in json.get('animations', []):
+                channels_to_keep = []
+                samplers_to_keep = []
+                for channel_idx, channel in enumerate(anim['channels']):
+                    pointer_matches = (
+                        channel['target']['path'] == "pointer"
+                        and channel['target']['extensions']['KHR_animation_pointer']['pointer']
+                        .startswith(f"/materials/{mat_idx}/extensions/KHR_materials_iridescence/")
+                    )
+                    if pointer_matches:
+                        # We found an animation for this extension, but as no material animates
+                        # the factor or the thickness, and default values are not changing the
+                        # shader, we can remove this animation, as it is not animating anything
+                        animation_pointer_deleted = True
+                    else:
+                        channels_to_keep.append(channel)
+                        samplers_to_keep.append(anim['samplers'][channel_idx])
+                anim['channels'] = channels_to_keep
+                anim['samplers'] = samplers_to_keep
+            # If no more channel in this animation, we can remove the entire animation
+            json['animations'] = [anim for anim in json.get('animations', []) if len(anim['channels']) > 0]
+
+            continue
+
+    # As we may have deleted some animation pointer, we need to check if the extension is still needed
+    if animation_pointer_deleted:
+        animation_pointer_found = False
+        for anim in json.get('animations', []):
+            for channel in anim['channels']:
+                if channel['target']['path'] == "pointer":
+                    animation_pointer_found = True
+                    break
+            if animation_pointer_found:
+                break
+        if not animation_pointer_found:
+            # We have deleted all animation pointer, so we can remove the extension declaration for animation pointer
+            export_settings['gltf_need_to_keep_extension_declaration'] = [
+                e for e in export_settings['gltf_need_to_keep_extension_declaration'] if e != 'KHR_animation_pointer']
+
+    # Check if we need to keep the extension declaration
+    iridescence_found = False
+    for mat in json.get('materials', []):
+        if 'extensions' not in mat.keys():
+            continue
+        if 'KHR_materials_iridescence' not in mat['extensions'].keys():
+            continue
+        iridescence_found = True
+        break
+    if not iridescence_found:
+        export_settings['gltf_need_to_keep_extension_declaration'] = [
+            e for e in export_settings['gltf_need_to_keep_extension_declaration'] if e != 'KHR_materials_iridescence']
+
+
 def __check_ior(json, export_settings):
     if 'materials' not in json.keys():
         return
@@ -130,7 +243,7 @@ def __check_ior(json, export_settings):
 
     # Check if we need to keep the extension declaration
     ior_found = False
-    for mat in json['materials']:
+    for mat in json.get('materials', []):
         if 'extensions' not in mat.keys():
             continue
         if 'KHR_materials_ior' not in mat['extensions'].keys():
@@ -157,7 +270,7 @@ def __check_volume(json, export_settings):
 
     # Check if we need to keep the extension declaration
     volume_found = False
-    for mat in json['materials']:
+    for mat in json.get('materials', []):
         if 'extensions' not in mat.keys():
             continue
         if 'KHR_materials_volume' not in mat['extensions'].keys():
@@ -169,8 +282,71 @@ def __check_volume(json, export_settings):
             e for e in export_settings['gltf_need_to_keep_extension_declaration'] if e != 'KHR_materials_volume']
 
 
+def __check_dispersion(json, export_settings):
+    if 'materials' not in json.keys():
+        return
+    removed_materials = []
+    for idx_mat, mat in enumerate(json['materials']):
+        if 'extensions' not in mat.keys():
+            continue
+        if 'KHR_materials_dispersion' not in mat['extensions'].keys():
+            continue
+        # We keep dispersion only if volume is used
+        # And because we may have deleted some extensions, we need to check again
+        if 'KHR_materials_volume' not in mat['extensions'].keys():
+            del mat['extensions']['KHR_materials_dispersion']
+            removed_materials.append(idx_mat)
+
+    # Check if we need to keep the extension declaration
+    dispersion_found = False
+    for mat in json['materials']:
+        if 'extensions' not in mat.keys():
+            continue
+        if 'KHR_materials_dispersion' not in mat['extensions'].keys():
+            continue
+        dispersion_found = True
+        break
+    if not dispersion_found:
+        export_settings['gltf_need_to_keep_extension_declaration'] = [
+            e for e in export_settings['gltf_need_to_keep_extension_declaration'] if e != 'KHR_materials_dispersion']
+
+    # Remove animation of dispersion if dispersion was removed
+    if len(removed_materials) > 0 and 'animations' in json.keys():
+        remove_animations = []
+        for anim in json['animations']:
+            if 'channels' not in anim.keys():
+                continue
+            removed_channels = []
+            for idx_channel, channel in enumerate(anim['channels']):
+                if channel['target']['path'] != "pointer":
+                    continue
+                if 'extensions' not in channel['target'].keys():
+                    continue
+                if 'KHR_animation_pointer' not in channel['target']['extensions'].keys():
+                    continue
+                pointer = channel['target']['extensions']['KHR_animation_pointer']['pointer']
+                if not pointer.startswith("/materials/"):
+                    continue
+                tab = pointer.split("/")
+                if len(tab) < 3:
+                    continue
+                try:
+                    mat_idx = int(tab[2])
+                except ValueError:
+                    continue
+                if mat_idx in removed_materials:
+                    removed_channels.append(idx_channel)
+            for idx in reversed(removed_channels):
+                del anim['channels'][idx]
+
+            if len(anim['channels']) == 0:
+                remove_animations.append(anim)
+        for anim in reversed(remove_animations):
+            json['animations'].remove(anim)
+
+
 def __detect_animated_extensions(obj, export_settings):
-    export_settings['gltf_animated_extensions'] = []
+    export_settings['gltf_animated_extensions'] = {}
     export_settings['gltf_need_to_keep_extension_declaration'] = []
     if 'animations' not in obj.keys():
         return
@@ -183,11 +359,13 @@ def __detect_animated_extensions(obj, export_settings):
                 if "/KHR" not in pointer:
                     continue
                 tab = pointer.split("/")
-                tab = [i for i in tab if i.startswith("KHR_")]
-                if len(tab) == 0:
+                ext = [i for i in tab if i.startswith("KHR_")]
+                if len(ext) == 0:
                     continue
-                if tab[-1] not in export_settings['gltf_animated_extensions']:
-                    export_settings['gltf_animated_extensions'].append(tab[-1])
+                if ext[-1] not in export_settings['gltf_animated_extensions']:
+                    export_settings['gltf_animated_extensions'][ext[-1]] = []
+
+                export_settings['gltf_animated_extensions'][ext[-1]].append(tab[-1])
 
 
 def __manage_extension_declaration(json, export_settings):
@@ -345,13 +523,14 @@ def __should_include_json_value(key, value, export_settings):
             "KHR_texture_transform",
             "KHR_materials_emissive_strength",
             "KHR_materials_ior",
-            # "KHR_materials_iridescence",
+            "KHR_materials_iridescence",
             "KHR_materials_sheen",
             "KHR_materials_specular",
             "KHR_materials_transmission",
             "KHR_materials_volume",
             "KHR_lights_punctual",
-            "KHR_materials_anisotropy"
+            "KHR_materials_anisotropy",
+            "KHR_materials_dispersion",
         ]
 
     if value is None:
@@ -359,9 +538,10 @@ def __should_include_json_value(key, value, export_settings):
     elif __is_empty_collection(value) and key not in allowed_empty_collections:
         # Empty collection is not allowed, except if it is animated
         if key in allowed_empty_collections_if_animated:
-            if key in export_settings['gltf_animated_extensions']:
+            if key in export_settings['gltf_animated_extensions'].keys():
                 # There is an animation, so we can keep this empty collection, and store
                 # that this extension declaration needs to be kept
+                # TODO: this should be detected material by material, not globally
                 export_settings['gltf_need_to_keep_extension_declaration'].append(key)
                 return True
             else:

@@ -102,7 +102,12 @@ void main()
    * This is equivalent of calling `next_after`, but without the safety. */
   u_depth += 2;
 
-  imageAtomicMin(shadow_atlas_img, out_texel, u_depth);
+  if (uniform_buf.shadow.use_debug_cost) {
+    imageAtomicAdd(shadow_atlas_img, out_texel, 1u);
+  }
+  else {
+    imageAtomicMin(shadow_atlas_img, out_texel, u_depth);
+  }
 #endif
 
 #ifdef SHADOW_UPDATE_TBDR

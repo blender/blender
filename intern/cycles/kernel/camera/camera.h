@@ -463,7 +463,7 @@ ccl_device_inline Spectrum camera_sample(KernelGlobals kg,
     raster.y += lookup_table_read(kg, filter_uv.y, filter_table_offset, FILTER_TABLE_SIZE);
   }
   else {
-    raster += kernel_data.integrator.pixel_jitter;
+    raster += -kernel_data.integrator.pixel_jitter;
   }
 
   /* motion blur */

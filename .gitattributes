@@ -107,4 +107,5 @@
 *.car filter=lfs diff=lfs merge=lfs -text
 *.icns filter=lfs diff=lfs merge=lfs -text
 *.blob filter=lfs diff=lfs merge=lfs -text
+*.rgb filter=lfs diff=lfs merge=lfs -text
 scripts/modules/_bpy_internal/assets/remote_library_listing/*_openapi.py linguist-generated=true

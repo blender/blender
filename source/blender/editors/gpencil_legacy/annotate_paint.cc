@@ -127,7 +127,7 @@ struct tGPsdata {
   bGPDframe *gpf;
 
   /** projection-mode flags (toolsettings - eGPencil_Placement_Flags) */
-  char *align_flag;
+  eGPencil_Placement_Flags *align_flag;
 
   /** current status of painting. */
   eGPencil_PaintStatus status;
@@ -1242,7 +1242,7 @@ static void annotation_session_validatebuffer(tGPsdata *p)
       gpd->runtime.sbuffer, &gpd->runtime.sbuffer_size, &gpd->runtime.sbuffer_used, true);
 
   /* reset flags */
-  gpd->runtime.sbuffer_sflag = 0;
+  gpd->runtime.sbuffer_sflag = eGPDstroke_Flag{};
 
   /* reset inittime */
   p->inittime = 0.0;
@@ -1414,7 +1414,7 @@ static void annotation_visible_on_space(tGPsdata *p)
     }
     case SPACE_SEQ: {
       SpaceSeq *sseq = static_cast<SpaceSeq *>(area->spacedata.first);
-      sseq->flag |= SEQ_PREVIEW_SHOW_GPENCIL;
+      sseq->preview_overlay.flag |= SEQ_PREVIEW_SHOW_GPENCIL;
       break;
     }
     case SPACE_IMAGE: {
@@ -1489,7 +1489,7 @@ static void annotation_session_cleanup(tGPsdata *p)
   /* clear flags */
   gpd->runtime.sbuffer_used = 0;
   gpd->runtime.sbuffer_size = 0;
-  gpd->runtime.sbuffer_sflag = 0;
+  gpd->runtime.sbuffer_sflag = eGPDstroke_Flag{};
   p->inittime = 0.0;
 }
 
@@ -2279,11 +2279,13 @@ static wmOperatorStatus annotation_draw_invoke(bContext *C, wmOperator *op, cons
   else if (p->paintmode == GP_PAINTMODE_DRAW_STRAIGHT) {
     if (RNA_enum_get(op->ptr, "arrowstyle_start") != GP_STROKE_ARROWSTYLE_NONE) {
       p->gpd->runtime.sbuffer_sflag |= GP_STROKE_USE_ARROW_START;
-      p->gpd->runtime.arrow_start_style = RNA_enum_get(op->ptr, "arrowstyle_start");
+      p->gpd->runtime.arrow_start_style = eGPDstroke_Arrowstyle(
+          RNA_enum_get(op->ptr, "arrowstyle_start"));
     }
     if (RNA_enum_get(op->ptr, "arrowstyle_end") != GP_STROKE_ARROWSTYLE_NONE) {
       p->gpd->runtime.sbuffer_sflag |= GP_STROKE_USE_ARROW_END;
-      p->gpd->runtime.arrow_end_style = RNA_enum_get(op->ptr, "arrowstyle_end");
+      p->gpd->runtime.arrow_end_style = eGPDstroke_Arrowstyle(
+          RNA_enum_get(op->ptr, "arrowstyle_end"));
     }
   }
   else if (p->paintmode == GP_PAINTMODE_DRAW) {

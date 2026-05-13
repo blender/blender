@@ -2125,4 +2125,136 @@ bool PyC_Dict_CheckKeysAreStrings(PyObject *dict)
 
 /** \} */
 
+/* -------------------------------------------------------------------- */
+/** \name Owned MemoryView
+ *
+ * A memory view where the memory is owned.
+ * NOTE(@ideasman42): Python doesn't provide a convenient zero-copy way
+ * for owned memory to be returned from a `memoryview`.
+ *
+ * This types only purpose is to expose a `memoryview` which our own custom free.
+ * The type itself is not expected to be exposed to users.
+ * So we could switch to an alternative API if it is ever supported.
+ * \{ */
+
+#ifndef MATH_STANDALONE
+
+struct BPyMemoryViewOwned {
+  PyObject_VAR_HEAD;
+  /**
+   * Snapshot of the caller's #Py_buffer.
+   * - `info.shape` and `info.strides` point into `shape_and_stride`.
+   * - `info.obj` is always null.
+   */
+  Py_buffer info;
+  /**
+   * Flexible array of `2 * info.ndim`.
+   * Layout:
+   * - `shape_and_stride[0..ndim]`: shape.
+   * - `shape_and_stride[ndim..2 * ndim]`: strides.
+   */
+  Py_ssize_t shape_and_stride[];
+};
+
+static void bpy_memoryview_buffer_dealloc(BPyMemoryViewOwned *self)
+{
+  /* `info.buf` is asserted non-null at construction.
+   * #MEM_delete_void also accepts null defensively. */
+  MEM_delete_void(self->info.buf);
+  Py_TYPE(self)->tp_free(self);
+}
+
+static int bpy_memoryview_buffer_getbuffer(BPyMemoryViewOwned *self, Py_buffer *view, int flags)
+{
+  if (self->info.readonly && (flags & PyBUF_WRITABLE) == PyBUF_WRITABLE) {
+    PyErr_SetString(PyExc_BufferError, "BPyMemoryViewOwned: object is not writable");
+    return -1;
+  }
+  *view = self->info;
+  view->obj = Py_NewRef(reinterpret_cast<PyObject *>(self));
+  /* Honor what the caller actually requested. */
+  if ((flags & PyBUF_FORMAT) != PyBUF_FORMAT) {
+    view->format = nullptr;
+  }
+  if ((flags & PyBUF_ND) != PyBUF_ND) {
+    view->shape = nullptr;
+  }
+  if ((flags & PyBUF_STRIDES) != PyBUF_STRIDES) {
+    view->strides = nullptr;
+  }
+  return 0;
+}
+
+static PyBufferProcs bpy_memoryview_buffer_as_buffer = {
+    /*bf_getbuffer*/ reinterpret_cast<getbufferproc>(bpy_memoryview_buffer_getbuffer),
+    /*bf_releasebuffer*/ nullptr,
+};
+
+static PyTypeObject BPyMemoryViewOwned_Type = {
+    PyVarObject_HEAD_INIT(nullptr, 0)
+    /*tp_name*/ "BPyMemoryViewOwned",
+    /*tp_basicsize*/ sizeof(BPyMemoryViewOwned),
+    /*tp_itemsize*/ sizeof(Py_ssize_t),
+    /*tp_dealloc*/ reinterpret_cast<destructor>(bpy_memoryview_buffer_dealloc),
+    /*tp_vectorcall_offset*/ 0,
+    /*tp_getattr*/ nullptr,
+    /*tp_setattr*/ nullptr,
+    /*tp_as_async*/ nullptr,
+    /*tp_repr*/ nullptr,
+    /*tp_as_number*/ nullptr,
+    /*tp_as_sequence*/ nullptr,
+    /*tp_as_mapping*/ nullptr,
+    /*tp_hash*/ nullptr,
+    /*tp_call*/ nullptr,
+    /*tp_str*/ nullptr,
+    /*tp_getattro*/ nullptr,
+    /*tp_setattro*/ nullptr,
+    /*tp_as_buffer*/ &bpy_memoryview_buffer_as_buffer,
+    /* `Py_TPFLAGS_HAVE_GC` (and the matching `tp_traverse` / `tp_clear`) is not
+     * needed: the wrapper holds no Python references - `info.obj` /
+     * `info.suboffsets` / `info.internal` are explicitly nulled at construction
+     * and the buffer is plain memory. */
+    /*tp_flags*/ Py_TPFLAGS_DEFAULT,
+    /*tp_doc*/ nullptr,
+};
+
+PyObject *PyC_MemoryView_FromBufferOwned(const Py_buffer *info)
+{
+  BLI_assert(info->buf != nullptr);
+  BLI_assert(info->ndim >= 1);
+  BLI_assert(info->itemsize > 0);
+  BLI_assert(info->format != nullptr);
+  BLI_assert(info->shape != nullptr);
+  BLI_assert(info->strides != nullptr);
+
+  if (PyType_Ready(&BPyMemoryViewOwned_Type) < 0) [[unlikely]] {
+    MEM_delete_void(info->buf);
+    return nullptr;
+  }
+  BPyMemoryViewOwned *wrapper = PyObject_NewVar(
+      BPyMemoryViewOwned, &BPyMemoryViewOwned_Type, Py_ssize_t(2) * info->ndim);
+  if (wrapper == nullptr) [[unlikely]] {
+    MEM_delete_void(info->buf);
+    return nullptr;
+  }
+  wrapper->info = *info;
+  wrapper->info.obj = nullptr;
+  wrapper->info.shape = wrapper->shape_and_stride;
+  wrapper->info.strides = wrapper->shape_and_stride + info->ndim;
+  wrapper->info.suboffsets = nullptr;
+  wrapper->info.internal = nullptr;
+  const size_t dim_size = size_t(info->ndim) * sizeof(Py_ssize_t);
+  memcpy(wrapper->shape_and_stride, info->shape, dim_size);
+  memcpy(wrapper->shape_and_stride + info->ndim, info->strides, dim_size);
+  /* `wrapper` now owns `info->buf`, its `tp_dealloc` will free it. */
+
+  PyObject *mv = PyMemoryView_FromObject(reinterpret_cast<PyObject *>(wrapper));
+  Py_DECREF(wrapper);
+  return mv;
+}
+
+#endif /* !MATH_STANDALONE */
+
+/** \} */
+
 }  // namespace blender

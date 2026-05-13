@@ -408,9 +408,9 @@ static int *bm_edge_symmetry_map(BMesh *bm, uint symmetry_axis, float limit)
   uint i;
   int *edge_symmetry_map;
   const float limit_sq = square_f(limit);
-  KDTree_3d *tree;
+  KDTree<float3> *tree;
 
-  tree = kdtree_3d_new(bm->totedge);
+  tree = kdtree_new<float3>(bm->totedge);
 
   etable = MEM_new_array_uninitialized<BMEdge *>(bm->totedge, __func__);
   edge_symmetry_map = MEM_new_array_uninitialized<int>(bm->totedge, __func__);
@@ -418,12 +418,12 @@ static int *bm_edge_symmetry_map(BMesh *bm, uint symmetry_axis, float limit)
   BM_ITER_MESH_INDEX (e, &iter, bm, BM_EDGES_OF_MESH, i) {
     float co[3];
     mid_v3_v3v3(co, e->v1->co, e->v2->co);
-    kdtree_3d_insert(tree, i, co);
+    kdtree_insert<float3>(tree, i, co);
     etable[i] = e;
     edge_symmetry_map[i] = -1;
   }
 
-  kdtree_3d_balance(tree);
+  kdtree_balance<float3>(tree);
 
   sym_data.etable = etable;
   sym_data.limit_sq = limit_sq;
@@ -441,7 +441,10 @@ static int *bm_edge_symmetry_map(BMesh *bm, uint symmetry_axis, float limit)
       sub_v3_v3v3(sym_data.e_dir, sym_data.e_v2_co, sym_data.e_v1_co);
       sym_data.e_found_index = -1;
 
-      kdtree_3d_range_search_cb(tree, co, limit, bm_edge_symmetry_check_cb, &sym_data);
+      kdtree_range_search_cb<float3>(
+          tree, co, limit, [&](int index, const float3 &co, float dist_sq) {
+            return bm_edge_symmetry_check_cb(&sym_data, index, co, dist_sq);
+          });
 
       if (sym_data.e_found_index != -1) {
         const int i_other = sym_data.e_found_index;
@@ -452,7 +455,7 @@ static int *bm_edge_symmetry_map(BMesh *bm, uint symmetry_axis, float limit)
   }
 
   MEM_delete(etable);
-  kdtree_3d_free(tree);
+  kdtree_free<float3>(tree);
 
   return edge_symmetry_map;
 }

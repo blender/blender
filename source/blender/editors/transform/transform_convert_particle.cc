@@ -193,15 +193,13 @@ static void flushTransParticles(TransInfo *t)
     ParticleSystem *psys = edit->psys;
     PTCacheEditPoint *point;
     PTCacheEditKey *key;
-    TransData *td;
     float mat[4][4], imat[4][4], co[3];
     int i, k;
     const bool is_prop_edit = (t->flag & T_PROP_EDIT) != 0;
 
     /* We do transform in world space, so flush world space position
      * back to particle local space (only for hair particles). */
-    td = tc->data;
-    for (i = 0, point = edit->points; i < edit->totpoint; i++, point++, td++) {
+    for (i = 0, point = edit->points; i < edit->totpoint; i++, point++) {
       if (!(point->flag & PEP_TRANSFORM)) {
         continue;
       }

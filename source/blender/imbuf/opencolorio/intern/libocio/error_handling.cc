@@ -4,11 +4,9 @@
 
 #include "error_handling.hh"
 
-#if defined(WITH_OPENCOLORIO)
+#include "CLG_log.h"
 
-#  include "CLG_log.h"
-
-#  include "../opencolorio.hh"
+#include "../opencolorio.hh"
 
 namespace blender::ocio {
 
@@ -25,5 +23,3 @@ void report_error(const StringRefNull error)
 }
 
 }  // namespace blender::ocio
-
-#endif

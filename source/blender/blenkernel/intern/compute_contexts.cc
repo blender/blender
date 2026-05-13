@@ -152,7 +152,7 @@ ComputeContextHash RepeatZoneComputeContext::compute_hash() const
 
 void RepeatZoneComputeContext::print_current_in_line(std::ostream &stream) const
 {
-  stream << "Repeat Zone ID: " << output_node_id_;
+  stream << "Repeat Zone ID: " << output_node_id_ << ", Iteration: " << iteration_;
 }
 
 ForeachGeometryElementZoneComputeContext::ForeachGeometryElementZoneComputeContext(

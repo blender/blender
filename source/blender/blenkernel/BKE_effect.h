@@ -22,6 +22,8 @@ struct ParticleSimulationData;
 struct Scene;
 struct ViewLayer;
 
+enum ePFieldType : short;
+
 struct EffectorWeights *BKE_effector_add_weights(struct Collection *collection);
 
 /* Input to effector code */
@@ -96,7 +98,7 @@ struct EffectorRelation {
   struct PartDeflect *pd;
 };
 
-struct PartDeflect *BKE_partdeflect_new(int type);
+struct PartDeflect *BKE_partdeflect_new(ePFieldType type);
 struct PartDeflect *BKE_partdeflect_copy(const struct PartDeflect *pd_src);
 void BKE_partdeflect_free(struct PartDeflect *pd);
 

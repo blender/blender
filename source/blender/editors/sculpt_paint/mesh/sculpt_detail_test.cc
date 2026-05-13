@@ -8,6 +8,7 @@
 
 #include "sculpt_dyntopo.hh"
 
+#include "BKE_gtest_base.hh"
 #include "BKE_object_types.hh"
 
 #include "DNA_object_types.h"
@@ -20,7 +21,9 @@ constexpr float BRUSH_RADIUS = 0.5f;
 constexpr float PIXEL_RADIUS = 200;
 constexpr float PIXEL_SIZE = 100;
 
-TEST(Conversion, ConstantToBrushDetail)
+class SculptDetailConversionTest : public bke::BlenderGTestBase {};
+
+TEST_F(SculptDetailConversionTest, ConstantToBrushDetail)
 {
   bke::ObjectRuntime runtime;
   runtime.object_to_world = MatBase<float, 4, 4>::identity();
@@ -34,7 +37,7 @@ TEST(Conversion, ConstantToBrushDetail)
   const float expected = constant_to_detail_size(CONSTANT_DETAIL, ob);
   EXPECT_FLOAT_EQ(expected, converted);
 }
-TEST(Conversion, ConstantToRelativeDetail)
+TEST_F(SculptDetailConversionTest, ConstantToRelativeDetail)
 {
   bke::ObjectRuntime runtime;
   runtime.object_to_world = MatBase<float, 4, 4>::identity();

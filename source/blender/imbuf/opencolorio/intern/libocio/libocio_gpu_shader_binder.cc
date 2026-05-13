@@ -4,16 +4,14 @@
 
 #include "libocio_gpu_shader_binder.hh"
 
-#if defined(WITH_OPENCOLORIO)
+#include "GPU_texture.hh"
 
-#  include "GPU_texture.hh"
+#include "error_handling.hh"
+#include "libocio_config.hh"
+#include "libocio_display_processor.hh"
+#include "libocio_processor.hh"
 
-#  include "error_handling.hh"
-#  include "libocio_config.hh"
-#  include "libocio_display_processor.hh"
-#  include "libocio_processor.hh"
-
-#  include "../gpu_shader_binder_internal.hh"
+#include "../gpu_shader_binder_internal.hh"
 
 namespace blender::ocio {
 
@@ -269,5 +267,3 @@ void LibOCIOGPUShaderBinder::construct_scene_linear_shader(
 }
 
 }  // namespace blender::ocio
-
-#endif

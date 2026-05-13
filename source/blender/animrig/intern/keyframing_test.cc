@@ -11,6 +11,7 @@
 #include "BKE_animsys.h"
 #include "BKE_armature.hh"
 #include "BKE_fcurve.hh"
+#include "BKE_gtest_base.hh"
 #include "BKE_idtype.hh"
 #include "BKE_lib_id.hh"
 #include "BKE_main.hh"
@@ -24,18 +25,15 @@
 #include "DNA_object_types.h"
 
 #include "RNA_access.hh"
-#include "RNA_define.hh"
 #include "RNA_prototypes.hh"
 
 #include "BLI_listbase.h"
 #include "BLI_string.h"
-#include "BLI_string_utf8.h"
 
-#include "CLG_log.h"
 #include "testing/testing.h"
 
 namespace blender::animrig::tests {
-class KeyframingTest : public testing::Test {
+class KeyframingTest : public bke::BlenderGTestBase {
  public:
   Main *bmain;
 
@@ -60,23 +58,6 @@ class KeyframingTest : public testing::Test {
   PointerRNA cube_mesh_rna_pointer;
   Material *material;
   PointerRNA material_rna_pointer;
-
-  static void SetUpTestSuite()
-  {
-    /* BKE_id_free() hits a code path that uses CLOG, which crashes if not initialized properly. */
-    CLG_init();
-
-    /* To make id_can_have_animdata() and friends work, the `id_types` array needs to be set up. */
-    BKE_idtype_init();
-
-    RNA_init();
-  }
-
-  static void TearDownTestSuite()
-  {
-    CLG_exit();
-    RNA_exit();
-  }
 
   void SetUp() override
   {

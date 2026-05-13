@@ -12,6 +12,7 @@
 #include <cstdlib>
 #include <cstring>
 
+#include "DNA_anim_enums.h"
 #include "DNA_anim_types.h"
 #include "DNA_screen_types.h"
 #include "DNA_space_types.h"
@@ -473,6 +474,8 @@ static void nla_draw_strip(SpaceNla *snla,
           float x2 = strip->next ? strip->next->start : v2d->cur.xmax;
           immRectf(shdr_pos, strip->end, yminc, x2, ymaxc);
         }
+        break;
+      case NLASTRIP_EXTEND_NOTHING:
         break;
     }
 

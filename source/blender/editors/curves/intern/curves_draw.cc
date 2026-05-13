@@ -1180,11 +1180,10 @@ static void curve_draw_exec_precalc(wmOperator *op)
     float len_3d = 0.0f, len_2d = 0.0f;
     float scale_px; /* pixel to local space scale */
 
-    int i = 0;
     BLI_mempool_iternew(cdd->stroke_elem_pool, &iter);
     selem_prev = static_cast<const StrokeElem *>(BLI_mempool_iterstep(&iter));
     for (selem = static_cast<const StrokeElem *>(BLI_mempool_iterstep(&iter)); selem;
-         selem = static_cast<const StrokeElem *>(BLI_mempool_iterstep(&iter)), i++)
+         selem = static_cast<const StrokeElem *>(BLI_mempool_iterstep(&iter)))
     {
       len_3d += len_v3v3(selem->location_local, selem_prev->location_local);
       len_2d += len_v2v2(selem->mval, selem_prev->mval);

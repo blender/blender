@@ -227,7 +227,7 @@ class TestConfig:
             executable_path = env._blender_executable_from_path(pathlib.Path(executable))
             if not executable_path:
                 import sys
-                sys.stderr.write(f'Error: build {executable} not found\n')
+                sys.stderr.write(f'Error: no valid build found at {executable}\n')
                 sys.exit(1)
 
             env.set_blender_executable(executable_path)

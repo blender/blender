@@ -92,11 +92,11 @@ static void sh_node_math_declare(NodeDeclarationBuilder &b)
 
 static void math_input_defaults(bNode &node, const NodeMathOperation mode)
 {
-  bNodeSocket *socket_2 = bke::node_find_socket(node, SOCK_IN, "Value_001");
+  bNodeSocket *socket_2 = bke::node_find_socket(node, SOCK_IN, "Value_001"_ustr);
   BLI_assert(socket_2 != nullptr);
   float &value_2 = socket_2->default_value_typed<bNodeSocketValueFloat>()->value;
 
-  bNodeSocket *socket_3 = bke::node_find_socket(node, SOCK_IN, "Value_002");
+  bNodeSocket *socket_3 = bke::node_find_socket(node, SOCK_IN, "Value_002"_ustr);
   BLI_assert(socket_3 != nullptr);
   float &value_3 = socket_3->default_value_typed<bNodeSocketValueFloat>()->value;
 

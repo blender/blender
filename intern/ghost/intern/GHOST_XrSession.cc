@@ -1092,7 +1092,7 @@ void GHOST_XrSession::enablePassthrough()
   oxr_->passthrough_layer.type = XR_TYPE_COMPOSITION_LAYER_PASSTHROUGH_FB;
   oxr_->passthrough_layer.next = nullptr;
   oxr_->passthrough_layer.flags = XR_COMPOSITION_LAYER_BLEND_TEXTURE_SOURCE_ALPHA_BIT;
-  oxr_->passthrough_layer.space = nullptr;
+  oxr_->passthrough_layer.space = XR_NULL_HANDLE;
   oxr_->passthrough_layer.layerHandle = passthrough_layer_handle;
 
   oxr_->passthrough_supported = (result == XR_SUCCESS);

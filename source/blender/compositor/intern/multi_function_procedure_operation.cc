@@ -11,6 +11,7 @@
 #include "BLI_index_mask.hh"
 #include "BLI_map.hh"
 #include "BLI_math_base.hh"
+#include "BLI_math_euler.hh"
 #include "BLI_math_vector_types.hh"
 #include "BLI_string_ref.hh"
 #include "BLI_vector.hh"
@@ -92,7 +93,7 @@ void MultiFunctionProcedureOperation::execute()
       }
       else {
         output.allocate_texture(domain);
-        parameter_builder.add_uninitialized_single_output(output.cpu_data());
+        parameter_builder.add_uninitialized_single_output(output.cpu_data_for_write());
       }
     }
   }
@@ -152,6 +153,7 @@ void MultiFunctionProcedureOperation::build_procedure()
   }
 
   mf::ReturnInstruction &return_instruction = procedure_builder_.add_return();
+  procedure_.prepare_for_execution();
   mf::procedure_optimization::move_destructs_up(procedure_, return_instruction);
   BLI_assert(procedure_.validate());
 }
@@ -286,6 +288,15 @@ mf::Variable *MultiFunctionProcedureOperation::get_constant_input_variable(
     case SOCK_STRING: {
       const std::string value = input.default_value_typed<bNodeSocketValueString>()->value;
       constant_function = &procedure_.construct_function<mf::CustomMF_Constant<std::string>>(
+          value);
+      break;
+    }
+    case SOCK_ROTATION: {
+      const bNodeSocketValueRotation *rotation =
+          input.default_value_typed<bNodeSocketValueRotation>();
+      const math::EulerXYZ euler(float3(rotation->value_euler));
+      const math::Quaternion value = math::to_quaternion(euler);
+      constant_function = &procedure_.construct_function<mf::CustomMF_Constant<math::Quaternion>>(
           value);
       break;
     }

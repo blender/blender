@@ -733,7 +733,7 @@ static void block_colorpicker(const bContext * /*C*/,
 
     block_align_begin(block);
 
-    bt = uiDefButC(block,
+    bt = uiDefButV(block,
                    ButtonType::Row,
                    IFACE_("Linear"),
                    0,
@@ -754,7 +754,7 @@ static void block_colorpicker(const bContext * /*C*/,
         nullptr);
     bt->custom_data = cpicker;
 
-    bt = uiDefButC(block,
+    bt = uiDefButV(block,
                    ButtonType::Row,
                    IFACE_("Perceptual"),
                    picker_width * 0.5,
@@ -783,7 +783,7 @@ static void block_colorpicker(const bContext * /*C*/,
 
   block_align_begin(block);
 
-  bt = uiDefButC(block,
+  bt = uiDefButV(block,
                  ButtonType::Row,
                  IFACE_("RGB"),
                  0,
@@ -799,7 +799,7 @@ static void block_colorpicker(const bContext * /*C*/,
   button_func_set(bt, colorpicker_update_type_space_cb, bt, from_but);
   bt->custom_data = cpicker;
 
-  bt = uiDefButC(block,
+  bt = uiDefButV(block,
                  ButtonType::Row,
                  (U.color_picker_type == USER_CP_CIRCLE_HSL) ? IFACE_("HSL") : IFACE_("HSV"),
                  picker_width * 0.5,
@@ -854,7 +854,7 @@ static void block_colorpicker(const bContext * /*C*/,
   const auto add_hsv_perceptual_slider =
       [&](const char *str, const char *tip, const int index, const int y, const bool linear) {
         float *hsv_values = linear ? cpicker->hsv_linear_slider : cpicker->hsv_perceptual_slider;
-        bt = uiDefButF(block,
+        bt = uiDefButV(block,
                        ButtonType::NumSlider,
                        str,
                        0,
@@ -911,7 +911,7 @@ static void block_colorpicker(const bContext * /*C*/,
     /* Display RGB values */
     const auto add_rgb_perceptual_slider =
         [&](const char *str, const char *tip, const int index, const int y) {
-          bt = uiDefButF(block,
+          bt = uiDefButV(block,
                          ButtonType::NumSlider,
                          str,
                          0,

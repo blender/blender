@@ -916,7 +916,7 @@ OSLCompiler::OSLCompiler(OSL::ShadingSystem *ss, Scene *scene, Progress &progres
   background = false;
 }
 
-string OSLCompiler::id(ShaderNode *node)
+string OSLCompiler::id(const ShaderNode *node)
 {
   /* assign layer unique name based on pointer address + bump mode */
   std::stringstream stream;
@@ -928,6 +928,35 @@ string OSLCompiler::id(ShaderNode *node)
   stream << "node_" << node->type->name << "_" << node;
 
   return stream.str();
+}
+
+string_view OSLCompiler::get_shader_usage() const
+{
+  switch (current_type) {
+    case SHADER_TYPE_SURFACE:
+      return "surface";
+    case SHADER_TYPE_VOLUME:
+      return "surface";
+    case SHADER_TYPE_DISPLACEMENT:
+      return "displacement";
+    case SHADER_TYPE_BUMP:
+      return "displacement";
+  }
+  LOG_DFATAL << "Unhandled shader type " << int(current_type);
+  return "";
+}
+
+OSLCompiler::LayerParam OSLCompiler::get_output_layer_param(const string_view layer,
+                                                            const string_view param) const
+{
+  const LayerParam layer_param(layer, param);
+
+  const auto it = remapped_outputs_.find(layer_param);
+  if (it != remapped_outputs_.end()) {
+    return it->second;
+  }
+
+  return layer_param;
 }
 
 string OSLCompiler::compatible_name(ShaderNode *node, ShaderInput *input)
@@ -1065,21 +1094,7 @@ void OSLCompiler::add(ShaderNode *node, const char *name, bool isfilepath)
 
   /* Create shader of the appropriate type. OSL only distinguishes between "surface"
    * and "displacement" at the moment. */
-  if (current_type == SHADER_TYPE_SURFACE) {
-    ss->Shader(*current_group, "surface", name, id(node));
-  }
-  else if (current_type == SHADER_TYPE_VOLUME) {
-    ss->Shader(*current_group, "surface", name, id(node));
-  }
-  else if (current_type == SHADER_TYPE_DISPLACEMENT) {
-    ss->Shader(*current_group, "displacement", name, id(node));
-  }
-  else if (current_type == SHADER_TYPE_BUMP) {
-    ss->Shader(*current_group, "displacement", name, id(node));
-  }
-  else {
-    assert(0);
-  }
+  ss->Shader(*current_group, get_shader_usage(), name, id(node));
 
   /* link inputs to other nodes */
   for (ShaderInput *input : node->inputs) {
@@ -1089,12 +1104,13 @@ void OSLCompiler::add(ShaderNode *node, const char *name, bool isfilepath)
       }
 
       /* connect shaders */
-      const string id_from = id(input->link->parent);
+      const LayerParam layer_param_from = get_output_layer_param(
+          id(input->link->parent), compatible_name(input->link->parent, input->link));
       const string id_to = id(node);
-      const string param_from = compatible_name(input->link->parent, input->link);
       const string param_to = compatible_name(node, input);
 
-      ss->ConnectShaders(*current_group, id_from, param_from, id_to, param_to);
+      ss->ConnectShaders(
+          *current_group, layer_param_from.layer, layer_param_from.param, id_to, param_to);
     }
   }
 
@@ -1131,6 +1147,24 @@ void OSLCompiler::add(ShaderNode *node, const char *name, bool isfilepath)
       current_shader->has_volume_attribute_dependency = true;
     }
   }
+}
+
+void OSLCompiler::add_output_converter(const ShaderNode *node,
+                                       string_view converter_name,
+                                       string_view node_output_parameter,
+                                       string_view converter_input_parameter,
+                                       string_view converter_output_parameter,
+                                       string_view shader_output_parameter)
+{
+  const string node_id = id(node);
+  const string converter_id = node_id + "_" + string(shader_output_parameter);
+
+  ss->Shader(*current_group, get_shader_usage(), converter_name, converter_id);
+  ss->ConnectShaders(
+      *current_group, node_id, node_output_parameter, converter_id, converter_input_parameter);
+
+  remapped_outputs_.insert(pair(LayerParam(node_id, shader_output_parameter),
+                                LayerParam(converter_id, converter_output_parameter)));
 }
 
 static TypeDesc array_typedesc(const TypeDesc typedesc, const int arraylength)
@@ -1371,6 +1405,17 @@ void OSLCompiler::parameter_color_array(const char *name, const array<float3> &f
   ss->Parameter(*current_group, name, type, table.data());
 }
 
+void OSLCompiler::parameter_string_array(const char *name, const array<ustring> &a)
+{
+  if (a.empty()) {
+    return;
+  }
+
+  TypeDesc type = TypeString;
+  type.arraylen = a.size();
+  ss->Parameter(*current_group, name, type, a.data());
+}
+
 void OSLCompiler::parameter_attribute(const char *name, ustring s)
 {
   if (Attribute::name_standard(s.c_str())) {
@@ -1578,6 +1623,15 @@ bool OSLManager::need_update() const
 
 void OSLCompiler::add(ShaderNode * /*node*/, const char * /*name*/, bool /*isfilepath*/) {}
 
+void OSLCompiler::add_output_converter(const ShaderNode * /*node*/,
+                                       string_view /*converter_name*/,
+                                       string_view /*node_output_parameter*/,
+                                       string_view /*converter_input_parameter*/,
+                                       string_view /*converter_output_parameter*/,
+                                       string_view /*shader_output_parameter*/)
+{
+}
+
 void OSLCompiler::parameter(ShaderNode * /*node*/, const char * /*name*/) {}
 
 void OSLCompiler::parameter(const char * /*name*/, float /*f*/) {}
@@ -1601,6 +1655,8 @@ void OSLCompiler::parameter(const char * /*name*/, const Transform & /*tfm*/) {}
 void OSLCompiler::parameter_array(const char * /*name*/, const float /*f*/[], int /*arraylen*/) {}
 
 void OSLCompiler::parameter_color_array(const char * /*name*/, const array<float3> & /*f*/) {}
+
+void OSLCompiler::parameter_string_array(const char * /*name*/, const array<ustring> & /*a*/) {}
 
 void OSLCompiler::parameter_texture(const char * /*name*/, const ImageHandle & /*handle*/) {}
 

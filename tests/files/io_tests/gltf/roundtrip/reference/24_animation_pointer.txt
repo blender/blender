@@ -12,6 +12,7 @@ None
     "KHR_materials_transmission",
     "KHR_materials_emissive_strength",
     "KHR_materials_ior",
+    "KHR_materials_iridescence",
     "KHR_materials_volume",
     "KHR_animation_pointer"
   ],
@@ -1434,7 +1435,7 @@ None
           "target": {
             "extensions": {
               "KHR_animation_pointer": {
-                "pointer": "/materials/4/pbrMetallicRoughness/metallicFactor"
+                "pointer": "/materials/4/extensions/KHR_materials_iridescence/iridescenceIor"
               }
             },
             "path": "pointer"
@@ -1445,7 +1446,7 @@ None
           "target": {
             "extensions": {
               "KHR_animation_pointer": {
-                "pointer": "/materials/4/pbrMetallicRoughness/roughnessFactor"
+                "pointer": "/materials/4/extensions/KHR_materials_iridescence/iridescenceThicknessMaximum"
               }
             },
             "path": "pointer"
@@ -1456,7 +1457,7 @@ None
           "target": {
             "extensions": {
               "KHR_animation_pointer": {
-                "pointer": "/materials/5/extensions/KHR_materials_transmission/transmissionFactor"
+                "pointer": "/materials/4/pbrMetallicRoughness/metallicFactor"
               }
             },
             "path": "pointer"
@@ -1467,7 +1468,7 @@ None
           "target": {
             "extensions": {
               "KHR_animation_pointer": {
-                "pointer": "/materials/5/pbrMetallicRoughness/baseColorFactor"
+                "pointer": "/materials/4/pbrMetallicRoughness/roughnessFactor"
               }
             },
             "path": "pointer"
@@ -1478,7 +1479,7 @@ None
           "target": {
             "extensions": {
               "KHR_animation_pointer": {
-                "pointer": "/materials/6/extensions/KHR_materials_volume/attenuationColor"
+                "pointer": "/materials/5/extensions/KHR_materials_transmission/transmissionFactor"
               }
             },
             "path": "pointer"
@@ -1489,7 +1490,7 @@ None
           "target": {
             "extensions": {
               "KHR_animation_pointer": {
-                "pointer": "/materials/6/extensions/KHR_materials_volume/attenuationDistance"
+                "pointer": "/materials/5/pbrMetallicRoughness/baseColorFactor"
               }
             },
             "path": "pointer"
@@ -1500,7 +1501,7 @@ None
           "target": {
             "extensions": {
               "KHR_animation_pointer": {
-                "pointer": "/materials/6/extensions/KHR_materials_volume/thicknessFactor"
+                "pointer": "/materials/6/extensions/KHR_materials_volume/attenuationColor"
               }
             },
             "path": "pointer"
@@ -1511,7 +1512,7 @@ None
           "target": {
             "extensions": {
               "KHR_animation_pointer": {
-                "pointer": "/materials/6/pbrMetallicRoughness/roughnessFactor"
+                "pointer": "/materials/6/extensions/KHR_materials_volume/attenuationDistance"
               }
             },
             "path": "pointer"
@@ -1522,7 +1523,7 @@ None
           "target": {
             "extensions": {
               "KHR_animation_pointer": {
-                "pointer": "/materials/8/pbrMetallicRoughness/baseColorTexture/extensions/KHR_texture_transform/offset"
+                "pointer": "/materials/6/extensions/KHR_materials_volume/thicknessFactor"
               }
             },
             "path": "pointer"
@@ -1533,7 +1534,7 @@ None
           "target": {
             "extensions": {
               "KHR_animation_pointer": {
-                "pointer": "/materials/8/pbrMetallicRoughness/baseColorTexture/extensions/KHR_texture_transform/scale"
+                "pointer": "/materials/6/pbrMetallicRoughness/roughnessFactor"
               }
             },
             "path": "pointer"
@@ -1544,7 +1545,7 @@ None
           "target": {
             "extensions": {
               "KHR_animation_pointer": {
-                "pointer": "/materials/9/emissiveFactor"
+                "pointer": "/materials/8/pbrMetallicRoughness/baseColorTexture/extensions/KHR_texture_transform/offset"
               }
             },
             "path": "pointer"
@@ -1555,7 +1556,7 @@ None
           "target": {
             "extensions": {
               "KHR_animation_pointer": {
-                "pointer": "/materials/9/extensions/KHR_materials_emissive_strength/emissiveStrength"
+                "pointer": "/materials/8/pbrMetallicRoughness/baseColorTexture/extensions/KHR_texture_transform/scale"
               }
             },
             "path": "pointer"
@@ -1566,7 +1567,7 @@ None
           "target": {
             "extensions": {
               "KHR_animation_pointer": {
-                "pointer": "/materials/9/alphaCutoff"
+                "pointer": "/materials/9/emissiveFactor"
               }
             },
             "path": "pointer"
@@ -1577,7 +1578,7 @@ None
           "target": {
             "extensions": {
               "KHR_animation_pointer": {
-                "pointer": "/materials/10/normalTexture/scale"
+                "pointer": "/materials/9/extensions/KHR_materials_emissive_strength/emissiveStrength"
               }
             },
             "path": "pointer"
@@ -1588,7 +1589,7 @@ None
           "target": {
             "extensions": {
               "KHR_animation_pointer": {
-                "pointer": "/materials/10/pbrMetallicRoughness/baseColorTexture/extensions/KHR_texture_transform/offset"
+                "pointer": "/materials/9/alphaCutoff"
               }
             },
             "path": "pointer"
@@ -1599,7 +1600,7 @@ None
           "target": {
             "extensions": {
               "KHR_animation_pointer": {
-                "pointer": "/materials/10/pbrMetallicRoughness/baseColorTexture/extensions/KHR_texture_transform/scale"
+                "pointer": "/materials/10/normalTexture/scale"
               }
             },
             "path": "pointer"
@@ -1610,7 +1611,7 @@ None
           "target": {
             "extensions": {
               "KHR_animation_pointer": {
-                "pointer": "/materials/11/occlusionTexture/strength"
+                "pointer": "/materials/10/pbrMetallicRoughness/baseColorTexture/extensions/KHR_texture_transform/offset"
               }
             },
             "path": "pointer"
@@ -1621,7 +1622,7 @@ None
           "target": {
             "extensions": {
               "KHR_animation_pointer": {
-                "pointer": "/materials/12/pbrMetallicRoughness/baseColorFactor"
+                "pointer": "/materials/10/pbrMetallicRoughness/baseColorTexture/extensions/KHR_texture_transform/scale"
               }
             },
             "path": "pointer"
@@ -1632,7 +1633,7 @@ None
           "target": {
             "extensions": {
               "KHR_animation_pointer": {
-                "pointer": "/materials/12/pbrMetallicRoughness/metallicFactor"
+                "pointer": "/materials/11/occlusionTexture/strength"
               }
             },
             "path": "pointer"
@@ -1643,7 +1644,7 @@ None
           "target": {
             "extensions": {
               "KHR_animation_pointer": {
-                "pointer": "/materials/12/pbrMetallicRoughness/roughnessFactor"
+                "pointer": "/materials/12/pbrMetallicRoughness/baseColorFactor"
               }
             },
             "path": "pointer"
@@ -1651,6 +1652,28 @@ None
         },
         {
           "sampler": 21,
+          "target": {
+            "extensions": {
+              "KHR_animation_pointer": {
+                "pointer": "/materials/12/pbrMetallicRoughness/metallicFactor"
+              }
+            },
+            "path": "pointer"
+          }
+        },
+        {
+          "sampler": 22,
+          "target": {
+            "extensions": {
+              "KHR_animation_pointer": {
+                "pointer": "/materials/12/pbrMetallicRoughness/roughnessFactor"
+              }
+            },
+            "path": "pointer"
+          }
+        },
+        {
+          "sampler": 23,
           "target": {
             "extensions": {
               "KHR_animation_pointer": {
@@ -1772,6 +1795,16 @@ None
           "input": 175,
           "interpolation": "LINEAR",
           "output": 224
+        },
+        {
+          "input": 175,
+          "interpolation": "LINEAR",
+          "output": 225
+        },
+        {
+          "input": 175,
+          "interpolation": "LINEAR",
+          "output": 226
         }
       ]
     }
@@ -1848,6 +1881,9 @@ None
       "extensions": {
         "KHR_materials_transmission": {},
         "KHR_materials_emissive_strength": {},
+        "KHR_materials_iridescence": {
+          "iridescenceFactor": 1
+        },
         "KHR_materials_ior": {}
       },
       "name": "Iridescence",
@@ -4382,25 +4418,25 @@ None
       "bufferView": 209,
       "componentType": 5126,
       "count": 250,
-      "type": "VEC4"
+      "type": "SCALAR"
     },
     {
       "bufferView": 210,
       "componentType": 5126,
       "count": 250,
-      "type": "VEC3"
+      "type": "SCALAR"
     },
     {
       "bufferView": 211,
       "componentType": 5126,
       "count": 250,
-      "type": "SCALAR"
+      "type": "VEC4"
     },
     {
       "bufferView": 212,
       "componentType": 5126,
       "count": 250,
-      "type": "SCALAR"
+      "type": "VEC3"
     },
     {
       "bufferView": 213,
@@ -4412,31 +4448,31 @@ None
       "bufferView": 214,
       "componentType": 5126,
       "count": 250,
-      "type": "VEC2"
+      "type": "SCALAR"
     },
     {
       "bufferView": 215,
       "componentType": 5126,
       "count": 250,
-      "type": "VEC2"
+      "type": "SCALAR"
     },
     {
       "bufferView": 216,
       "componentType": 5126,
       "count": 250,
-      "type": "VEC3"
+      "type": "VEC2"
     },
     {
       "bufferView": 217,
       "componentType": 5126,
       "count": 250,
-      "type": "SCALAR"
+      "type": "VEC2"
     },
     {
       "bufferView": 218,
       "componentType": 5126,
       "count": 250,
-      "type": "SCALAR"
+      "type": "VEC3"
     },
     {
       "bufferView": 219,
@@ -4448,25 +4484,25 @@ None
       "bufferView": 220,
       "componentType": 5126,
       "count": 250,
-      "type": "VEC2"
+      "type": "SCALAR"
     },
     {
       "bufferView": 221,
       "componentType": 5126,
       "count": 250,
-      "type": "VEC2"
+      "type": "SCALAR"
     },
     {
       "bufferView": 222,
       "componentType": 5126,
       "count": 250,
-      "type": "SCALAR"
+      "type": "VEC2"
     },
     {
       "bufferView": 223,
       "componentType": 5126,
       "count": 250,
-      "type": "VEC4"
+      "type": "VEC2"
     },
     {
       "bufferView": 224,
@@ -4478,10 +4514,22 @@ None
       "bufferView": 225,
       "componentType": 5126,
       "count": 250,
-      "type": "SCALAR"
+      "type": "VEC4"
     },
     {
       "bufferView": 226,
+      "componentType": 5126,
+      "count": 250,
+      "type": "SCALAR"
+    },
+    {
+      "bufferView": 227,
+      "componentType": 5126,
+      "count": 250,
+      "type": "SCALAR"
+    },
+    {
+      "bufferView": 228,
       "componentType": 5126,
       "count": 250,
       "type": "VEC4"
@@ -5707,23 +5755,23 @@ None
     },
     {
       "buffer": 0,
-      "byteLength": 4000,
+      "byteLength": 1000,
       "byteOffset": 1168980
     },
     {
       "buffer": 0,
+      "byteLength": 1000,
+      "byteOffset": 1169980
+    },
+    {
+      "buffer": 0,
+      "byteLength": 4000,
+      "byteOffset": 1170980
+    },
+    {
+      "buffer": 0,
       "byteLength": 3000,
-      "byteOffset": 1172980
-    },
-    {
-      "buffer": 0,
-      "byteLength": 1000,
-      "byteOffset": 1175980
-    },
-    {
-      "buffer": 0,
-      "byteLength": 1000,
-      "byteOffset": 1176980
+      "byteOffset": 1174980
     },
     {
       "buffer": 0,
@@ -5732,8 +5780,13 @@ None
     },
     {
       "buffer": 0,
-      "byteLength": 2000,
+      "byteLength": 1000,
       "byteOffset": 1178980
+    },
+    {
+      "buffer": 0,
+      "byteLength": 1000,
+      "byteOffset": 1179980
     },
     {
       "buffer": 0,
@@ -5742,18 +5795,13 @@ None
     },
     {
       "buffer": 0,
-      "byteLength": 3000,
+      "byteLength": 2000,
       "byteOffset": 1182980
     },
     {
       "buffer": 0,
-      "byteLength": 1000,
-      "byteOffset": 1185980
-    },
-    {
-      "buffer": 0,
-      "byteLength": 1000,
-      "byteOffset": 1186980
+      "byteLength": 3000,
+      "byteOffset": 1184980
     },
     {
       "buffer": 0,
@@ -5762,8 +5810,13 @@ None
     },
     {
       "buffer": 0,
-      "byteLength": 2000,
+      "byteLength": 1000,
       "byteOffset": 1188980
+    },
+    {
+      "buffer": 0,
+      "byteLength": 1000,
+      "byteOffset": 1189980
     },
     {
       "buffer": 0,
@@ -5772,28 +5825,33 @@ None
     },
     {
       "buffer": 0,
-      "byteLength": 1000,
+      "byteLength": 2000,
       "byteOffset": 1192980
     },
     {
       "buffer": 0,
-      "byteLength": 4000,
-      "byteOffset": 1193980
-    },
-    {
-      "buffer": 0,
       "byteLength": 1000,
-      "byteOffset": 1197980
-    },
-    {
-      "buffer": 0,
-      "byteLength": 1000,
-      "byteOffset": 1198980
+      "byteOffset": 1194980
     },
     {
       "buffer": 0,
       "byteLength": 4000,
+      "byteOffset": 1195980
+    },
+    {
+      "buffer": 0,
+      "byteLength": 1000,
       "byteOffset": 1199980
+    },
+    {
+      "buffer": 0,
+      "byteLength": 1000,
+      "byteOffset": 1200980
+    },
+    {
+      "buffer": 0,
+      "byteLength": 4000,
+      "byteOffset": 1201980
     }
   ],
   "samplers": [
@@ -5810,7 +5868,7 @@ None
   ],
   "buffers": [
     {
-      "byteLength": 1203980,
+      "byteLength": 1205980,
       "uri": "24_animation_pointer.bin"
     }
   ]
@@ -23132,6 +23190,506 @@ None
  [1.000]
  [1.000]
  [1.000]]
+[[1.300]
+ [1.300]
+ [1.300]
+ [1.300]
+ [1.300]
+ [1.300]
+ [1.300]
+ [1.300]
+ [1.300]
+ [1.300]
+ [1.300]
+ [1.300]
+ [1.300]
+ [1.300]
+ [1.300]
+ [1.300]
+ [1.300]
+ [1.300]
+ [1.300]
+ [1.300]
+ [1.300]
+ [1.300]
+ [1.300]
+ [1.300]
+ [1.300]
+ [1.300]
+ [1.300]
+ [1.300]
+ [1.300]
+ [1.300]
+ [1.300]
+ [1.300]
+ [1.300]
+ [1.300]
+ [1.300]
+ [1.300]
+ [1.300]
+ [1.300]
+ [1.300]
+ [1.300]
+ [1.300]
+ [1.300]
+ [1.300]
+ [1.300]
+ [1.300]
+ [1.300]
+ [1.300]
+ [1.300]
+ [1.301]
+ [1.305]
+ [1.313]
+ [1.324]
+ [1.339]
+ [1.356]
+ [1.376]
+ [1.399]
+ [1.424]
+ [1.452]
+ [1.481]
+ [1.512]
+ [1.545]
+ [1.579]
+ [1.614]
+ [1.651]
+ [1.688]
+ [1.725]
+ [1.763]
+ [1.801]
+ [1.838]
+ [1.876]
+ [1.913]
+ [1.949]
+ [1.985]
+ [2.019]
+ [2.052]
+ [2.084]
+ [2.113]
+ [2.141]
+ [2.167]
+ [2.190]
+ [2.211]
+ [2.229]
+ [2.244]
+ [2.256]
+ [2.265]
+ [2.269]
+ [2.271]
+ [2.269]
+ [2.266]
+ [2.260]
+ [2.252]
+ [2.243]
+ [2.232]
+ [2.220]
+ [2.206]
+ [2.191]
+ [2.175]
+ [2.157]
+ [2.139]
+ [2.120]
+ [2.101]
+ [2.081]
+ [2.061]
+ [2.040]
+ [2.019]
+ [1.998]
+ [1.977]
+ [1.957]
+ [1.937]
+ [1.917]
+ [1.898]
+ [1.879]
+ [1.862]
+ [1.845]
+ [1.830]
+ [1.815]
+ [1.803]
+ [1.790]
+ [1.778]
+ [1.766]
+ [1.753]
+ [1.740]
+ [1.728]
+ [1.715]
+ [1.701]
+ [1.688]
+ [1.675]
+ [1.662]
+ [1.648]
+ [1.635]
+ [1.622]
+ [1.609]
+ [1.595]
+ [1.582]
+ [1.569]
+ [1.556]
+ [1.543]
+ [1.530]
+ [1.518]
+ [1.505]
+ [1.493]
+ [1.481]
+ [1.469]
+ [1.458]
+ [1.447]
+ [1.436]
+ [1.425]
+ [1.414]
+ [1.404]
+ [1.395]
+ [1.385]
+ [1.376]
+ [1.368]
+ [1.360]
+ [1.352]
+ [1.345]
+ [1.338]
+ [1.332]
+ [1.326]
+ [1.321]
+ [1.316]
+ [1.312]
+ [1.308]
+ [1.305]
+ [1.303]
+ [1.301]
+ [1.300]
+ [1.300]
+ [1.300]
+ [1.300]
+ [1.300]
+ [1.300]
+ [1.300]
+ [1.300]
+ [1.300]
+ [1.300]
+ [1.300]
+ [1.300]
+ [1.300]
+ [1.300]
+ [1.300]
+ [1.300]
+ [1.300]
+ [1.300]
+ [1.300]
+ [1.300]
+ [1.300]
+ [1.300]
+ [1.300]
+ [1.300]
+ [1.300]
+ [1.300]
+ [1.300]
+ [1.300]
+ [1.300]
+ [1.300]
+ [1.300]
+ [1.300]
+ [1.300]
+ [1.300]
+ [1.300]
+ [1.300]
+ [1.300]
+ [1.300]
+ [1.300]
+ [1.300]
+ [1.300]
+ [1.300]
+ [1.300]
+ [1.300]
+ [1.300]
+ [1.300]
+ [1.300]
+ [1.300]
+ [1.300]
+ [1.300]
+ [1.300]
+ [1.300]
+ [1.300]
+ [1.300]
+ [1.300]
+ [1.300]
+ [1.300]
+ [1.300]
+ [1.300]
+ [1.300]
+ [1.300]
+ [1.300]
+ [1.300]
+ [1.300]
+ [1.300]
+ [1.300]
+ [1.300]
+ [1.300]
+ [1.300]
+ [1.300]
+ [1.300]
+ [1.300]
+ [1.300]
+ [1.300]
+ [1.300]
+ [1.300]
+ [1.300]
+ [1.300]
+ [1.300]
+ [1.300]
+ [1.300]
+ [1.300]
+ [1.300]
+ [1.300]]
+[[400.000]
+ [400.000]
+ [400.000]
+ [400.000]
+ [400.000]
+ [400.000]
+ [400.000]
+ [400.000]
+ [400.000]
+ [400.000]
+ [400.000]
+ [400.000]
+ [400.000]
+ [400.000]
+ [400.000]
+ [400.000]
+ [400.000]
+ [400.000]
+ [400.000]
+ [400.000]
+ [400.000]
+ [400.000]
+ [400.000]
+ [400.000]
+ [400.000]
+ [400.000]
+ [400.000]
+ [400.000]
+ [400.000]
+ [400.000]
+ [400.000]
+ [400.000]
+ [400.000]
+ [400.000]
+ [400.000]
+ [400.000]
+ [400.000]
+ [400.000]
+ [400.000]
+ [400.000]
+ [400.000]
+ [400.000]
+ [400.000]
+ [400.000]
+ [400.000]
+ [400.000]
+ [400.000]
+ [400.000]
+ [400.000]
+ [400.000]
+ [400.000]
+ [400.000]
+ [400.000]
+ [400.000]
+ [400.000]
+ [400.000]
+ [400.000]
+ [400.000]
+ [400.000]
+ [400.000]
+ [400.000]
+ [400.000]
+ [400.000]
+ [400.000]
+ [400.000]
+ [400.000]
+ [400.000]
+ [400.000]
+ [400.000]
+ [400.000]
+ [400.000]
+ [400.000]
+ [400.000]
+ [400.000]
+ [400.000]
+ [400.000]
+ [400.000]
+ [400.000]
+ [400.000]
+ [400.000]
+ [400.000]
+ [400.000]
+ [400.000]
+ [400.000]
+ [400.000]
+ [400.000]
+ [400.000]
+ [400.000]
+ [400.000]
+ [400.000]
+ [400.000]
+ [400.000]
+ [400.000]
+ [400.000]
+ [400.000]
+ [400.000]
+ [400.000]
+ [400.000]
+ [400.000]
+ [400.000]
+ [400.000]
+ [400.000]
+ [400.000]
+ [400.000]
+ [400.000]
+ [400.000]
+ [400.000]
+ [400.000]
+ [400.000]
+ [400.000]
+ [400.000]
+ [400.000]
+ [400.000]
+ [400.000]
+ [400.000]
+ [400.000]
+ [400.024]
+ [400.885]
+ [403.698]
+ [408.849]
+ [415.843]
+ [424.533]
+ [434.780]
+ [446.643]
+ [459.729]
+ [473.894]
+ [489.003]
+ [505.004]
+ [521.613]
+ [538.684]
+ [556.078]
+ [573.649]
+ [591.210]
+ [608.619]
+ [625.721]
+ [642.292]
+ [658.237]
+ [673.413]
+ [687.647]
+ [700.649]
+ [712.408]
+ [722.781]
+ [731.572]
+ [738.435]
+ [743.439]
+ [746.441]
+ [747.133]
+ [743.811]
+ [736.566]
+ [725.789]
+ [711.756]
+ [694.706]
+ [675.410]
+ [654.260]
+ [631.597]
+ [607.812]
+ [583.460]
+ [558.930]
+ [534.651]
+ [511.125]
+ [488.708]
+ [467.794]
+ [448.909]
+ [432.635]
+ [419.150]
+ [408.843]
+ [402.366]
+ [400.116]
+ [400.000]
+ [400.000]
+ [400.000]
+ [400.000]
+ [400.000]
+ [400.000]
+ [400.000]
+ [400.000]
+ [400.000]
+ [400.000]
+ [400.000]
+ [400.000]
+ [400.000]
+ [400.000]
+ [400.000]
+ [400.000]
+ [400.000]
+ [400.000]
+ [400.000]
+ [400.000]
+ [400.000]
+ [400.000]
+ [400.000]
+ [400.000]
+ [400.000]
+ [400.000]
+ [400.000]
+ [400.000]
+ [400.000]
+ [400.000]
+ [400.000]
+ [400.000]
+ [400.000]
+ [400.000]
+ [400.000]
+ [400.000]
+ [400.000]
+ [400.000]
+ [400.000]
+ [400.000]
+ [400.000]
+ [400.000]
+ [400.000]
+ [400.000]
+ [400.000]
+ [400.000]
+ [400.000]
+ [400.000]
+ [400.000]
+ [400.000]
+ [400.000]
+ [400.000]
+ [400.000]
+ [400.000]
+ [400.000]
+ [400.000]
+ [400.000]
+ [400.000]
+ [400.000]
+ [400.000]
+ [400.000]
+ [400.000]
+ [400.000]
+ [400.000]
+ [400.000]
+ [400.000]
+ [400.000]
+ [400.000]
+ [400.000]
+ [400.000]
+ [400.000]
+ [400.000]
+ [400.000]
+ [400.000]
+ [400.000]
+ [400.000]
+ [400.000]
+ [400.000]
+ [400.000]
+ [400.000]
+ [400.000]
+ [400.000]]
 [[1.000]
  [1.000]
  [1.000]

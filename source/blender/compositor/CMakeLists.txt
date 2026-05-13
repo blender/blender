@@ -8,6 +8,7 @@ set(INC
   cached_resources
   derived_resources
   utilities
+  ../nodes/geometry/include
   ../gpu/intern
   ../makesrna
   ../render/intern
@@ -34,7 +35,6 @@ set(SRC
   COM_node_operation.hh
   COM_operation.hh
   COM_pixel_operation.hh
-  COM_profiler.hh
   COM_realize_on_domain_operation.hh
   COM_render_context.hh
   COM_result.hh
@@ -61,7 +61,6 @@ set(SRC
   intern/node_operation.cc
   intern/operation.cc
   intern/pixel_operation.cc
-  intern/profiler.cc
   intern/realize_on_domain_operation.cc
   intern/render_context.cc
   intern/result.cc
@@ -168,7 +167,7 @@ set(LIB
   PRIVATE bf::dna
   PRIVATE bf::intern::guardedalloc
   PRIVATE bf::intern::clog
-  PRIVATE bf::dependencies::optional::opencolorio
+  PRIVATE bf::dependencies::opencolorio
   PRIVATE bf::dependencies::optional::tbb
   PRIVATE bf::dependencies::optional::fftw3
   PRIVATE bf::dependencies::optional::openimagedenoise

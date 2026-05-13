@@ -620,6 +620,8 @@ NodeType geometry_tag_to_component(const ID *id)
         case OB_ARMATURE:
           return NodeType::EVAL_POSE;
           /* TODO(sergey): More cases here? */
+        default:
+          break;
       }
       break;
     }

@@ -1,15 +1,15 @@
-sphinx==8.2.3
+sphinx==9.1.0
 
 # Sphinx dependencies that are important
 Jinja2==3.1.6
-Pygments==2.19.2
-docutils==0.21.2
+Pygments==2.20.0
+docutils==0.22.4
 snowballstemmer==3.0.1
-requests==2.32.4
+requests==2.34.0
 
 # Only needed to match the theme used for the official documentation.
 # Without this theme, the default theme will be used.
-furo==2025.7.19
+furo==2025.12.19
 sphinx-basic-ng==1.0.0b2
 
 # Show a copy button (convenience only).

@@ -22,6 +22,9 @@ class CompositorContext : public compositor::Context {
   /* Identifies if the output of the viewer was written. */
   bool viewer_was_written_ = false;
 
+  /* True if GPU compute is supported and can be used, if false, we fallback to CPU. */
+  bool gpu_supported_ = true;
+
  public:
   CompositorContext(compositor::StaticCacheManager &cache_manager,
                     const RenderData &render_data,
@@ -42,9 +45,15 @@ class CompositorContext : public compositor::Context {
     return strip_;
   }
 
+  void set_gpu_supported(const bool supported)
+  {
+    gpu_supported_ = supported;
+  }
+
   bool use_gpu() const override
   {
-    return this->render_data_.scene->r.compositor_device == SCE_COMPOSITOR_DEVICE_GPU;
+    return gpu_supported_ &&
+           this->render_data_.scene->r.compositor_device == SCE_COMPOSITOR_DEVICE_GPU;
   }
 
   compositor::ResultPrecision get_precision() const override;

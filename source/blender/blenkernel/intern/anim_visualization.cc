@@ -37,7 +37,7 @@ void animviz_settings_init(bAnimVizSettings *avs)
   avs->path_sf = 1;   /* XXX: Take from scene instead? */
   avs->path_ef = 250; /* XXX: Take from scene instead? */
 
-  avs->path_viewflag = (MOTIONPATH_VIEW_KFRAS | MOTIONPATH_VIEW_KFNOS);
+  avs->path_viewflag = MOTIONPATH_VIEW_KFRAS | MOTIONPATH_VIEW_KFNOS;
 
   avs->path_step = 1;
 
@@ -234,7 +234,7 @@ void animviz_motionpath_blend_read_data(BlendDataReader *reader, bMotionPath *mp
   }
 
   /* relink points cache */
-  BLO_read_struct_array(reader, bMotionPathVert, mpath->length, &mpath->points);
+  BLO_read_array_and_validate_size(reader, &mpath->points, &mpath->length);
 
   mpath->points_vbo = nullptr;
   mpath->batch_line = nullptr;

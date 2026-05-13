@@ -27,12 +27,19 @@ ExternalProject_Add(external_eigen
   INSTALL_DIR ${LIBDIR}/eigen
 )
 
-# While C++ eigen is a header only library
-if(BUILD_MODE STREQUAL Release)
-  ExternalProject_Add_Step(external_eigen after_install
-    COMMAND ${CMAKE_COMMAND} -E copy_directory
-      ${LIBDIR}/eigen
-      ${HARVEST_TARGET}/eigen
-    DEPENDEES install
-  )
+if(WIN32)
+  # While C++ eigen is a header only library
+  if(BUILD_MODE STREQUAL Release)
+    ExternalProject_Add_Step(external_eigen after_install
+      COMMAND ${CMAKE_COMMAND} -E copy_directory
+        ${LIBDIR}/eigen
+        ${HARVEST_TARGET}/eigen
+      DEPENDEES install
+    )
+  endif()
+else()
+  # Eigen has files without extensions in the include directory that it needs so no *.h wildcard
+  harvest(external_eigen eigen/include eigen/include "*")
+  # Extra / at the end to ensure that harvest doesn't ignore the cmake directory
+  harvest(external_eigen eigen/share/eigen3/cmake/ eigen/share/eigen3/cmake/ "*.cmake")
 endif()

@@ -152,7 +152,7 @@ void BKE_shaderfx_init();
 void BKE_shaderfxType_panel_id(ShaderFxType type, char *r_idname);
 void BKE_shaderfx_panel_expand(ShaderFxData *fx);
 const ShaderFxTypeInfo *BKE_shaderfx_get_info(ShaderFxType type);
-ShaderFxData *BKE_shaderfx_new(int type);
+ShaderFxData *BKE_shaderfx_new(ShaderFxType type);
 void BKE_shaderfx_free_ex(ShaderFxData *fx, int flag);
 void BKE_shaderfx_free(ShaderFxData *fx);
 /**

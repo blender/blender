@@ -397,7 +397,7 @@ static void rna_def_workspace_tools(BlenderRNA *brna, PropertyRNA *cprop)
   func = RNA_def_function(
       srna, "from_space_view3d_mode", "rna_WorkSpace_tools_from_space_view3d_mode");
   RNA_def_function_ui_description(func, "");
-  parm = RNA_def_enum(func, "mode", rna_enum_context_mode_items, 0, "", "");
+  parm = RNA_def_enum(func, "mode", rna_enum_context_mode_items, 0, "", "Object mode");
   RNA_def_parameter_flags(parm, PropertyFlag(0), PARM_REQUIRED);
   RNA_def_boolean(func, "create", false, "Create", "");
   /* return type */
@@ -407,7 +407,8 @@ static void rna_def_workspace_tools(BlenderRNA *brna, PropertyRNA *cprop)
   func = RNA_def_function(
       srna, "from_space_image_mode", "rna_WorkSpace_tools_from_space_image_mode");
   RNA_def_function_ui_description(func, "");
-  parm = RNA_def_enum(func, "mode", rna_enum_space_image_mode_all_items, 0, "", "");
+  parm = RNA_def_enum(
+      func, "mode", rna_enum_space_image_mode_all_items, 0, "", "Image space mode");
   RNA_def_parameter_flags(parm, PropertyFlag(0), PARM_REQUIRED);
   RNA_def_boolean(func, "create", false, "Create", "");
   /* return type */
@@ -424,7 +425,8 @@ static void rna_def_workspace_tools(BlenderRNA *brna, PropertyRNA *cprop)
   func = RNA_def_function(
       srna, "from_space_sequencer", "rna_WorkSpace_tools_from_space_sequencer");
   RNA_def_function_ui_description(func, "");
-  parm = RNA_def_enum(func, "mode", rna_enum_space_sequencer_view_type_items, 0, "", "");
+  parm = RNA_def_enum(
+      func, "mode", rna_enum_space_sequencer_view_type_items, 0, "", "Sequencer view type");
   RNA_def_parameter_flags(parm, PropertyFlag(0), PARM_REQUIRED);
   RNA_def_boolean(func, "create", false, "Create", "");
   /* return type */
@@ -489,7 +491,7 @@ static void rna_def_workspace(BlenderRNA *brna)
   RNA_def_property_ui_text(prop, "Use UI Tags", "Filter the UI by tags");
   RNA_def_property_update(prop, 0, "rna_window_update_all");
 
-  prop = rna_def_asset_library_reference_common(
+  prop = rna_def_asset_library_ui_reference_common(
       srna, "rna_WorkSpace_asset_library_get", "rna_WorkSpace_asset_library_set");
   RNA_def_property_ui_text(prop,
                            "Asset Library",

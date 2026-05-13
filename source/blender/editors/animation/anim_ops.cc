@@ -1544,7 +1544,7 @@ static wmOperatorStatus replace_action_new_invoke(bContext *C,
  */
 static void ANIM_OT_replace_action_new(wmOperatorType *ot)
 {
-  ot->name = "Replace with new Action";
+  ot->name = "Replace with New Action";
   ot->idname = "ANIM_OT_replace_action_new";
   ot->description =
       "Swap all users of one action to a new action. This ignores the NLA and Action Constraints";

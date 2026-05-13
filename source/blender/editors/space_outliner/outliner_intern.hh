@@ -45,6 +45,8 @@ namespace bke::outliner::treehash {
 class TreeHash;
 }
 
+enum eTreeStoreElem_Flag : short;
+
 namespace ed::outliner {
 
 class AbstractTreeDisplay;
@@ -61,6 +63,8 @@ struct SpaceOutliner_Runtime {
 
   /* Hash table for tree-store elements, using `(id, type, index)` as key. */
   std::unique_ptr<treehash::TreeHash> tree_hash;
+
+  ListBaseT<ed::outliner::TreeElement> tree = {nullptr, nullptr};
 
   SpaceOutliner_Runtime() = default;
   /** Used for copying runtime data to a duplicated space. */
@@ -417,15 +421,15 @@ void outliner_do_object_operation(bContext *C,
                                   ListBaseT<TreeElement> *lb,
                                   outliner_operation_fn operation_fn);
 
-int outliner_flag_is_any_test(ListBaseT<TreeElement> *lb, short flag, int curlevel);
+int outliner_flag_is_any_test(ListBaseT<TreeElement> *lb, eTreeStoreElem_Flag flag, int curlevel);
 /**
  * Set or unset \a flag for all outliner elements in \a lb and sub-trees.
  * \return if any flag was modified.
  */
-bool outliner_flag_set(SpaceOutliner &space_outliner, short flag, short set);
-bool outliner_flag_set(ListBaseT<TreeElement> &lb, short flag, short set);
-bool outliner_flag_flip(SpaceOutliner &space_outliner, short flag);
-bool outliner_flag_flip(ListBaseT<TreeElement> &lb, short flag);
+bool outliner_flag_set(SpaceOutliner &space_outliner, eTreeStoreElem_Flag flag, short set);
+bool outliner_flag_set(ListBaseT<TreeElement> &lb, eTreeStoreElem_Flag flag, short set);
+bool outliner_flag_flip(SpaceOutliner &space_outliner, eTreeStoreElem_Flag flag);
+bool outliner_flag_flip(ListBaseT<TreeElement> &lb, eTreeStoreElem_Flag flag);
 
 void item_rename_fn(bContext *C,
                     ReportList *reports,

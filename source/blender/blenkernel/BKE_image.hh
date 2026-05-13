@@ -30,6 +30,7 @@ struct rcti;
 struct Depsgraph;
 struct ID;
 struct ImBuf;
+struct ImBufCache;
 struct MovieReader;
 struct Image;
 struct ImageFormatData;
@@ -38,7 +39,6 @@ struct ImageTile;
 struct ImbFormatOptions;
 struct Library;
 struct Main;
-struct MovieCache;
 struct Object;
 struct PartialUpdateRegister;
 struct PartialUpdateUser;
@@ -65,7 +65,7 @@ struct ImageRuntime {
    */
   Mutex cache_mutex;
 
-  MovieCache *cache = nullptr;
+  ImBufCache *cache = nullptr;
 
   /* The 2 is for the left/right stereo eyes. */
   gpu::Texture *gputexture[/*TEXTARGET_COUNT*/ 3][2] = {};
@@ -453,7 +453,7 @@ void BKE_image_merge(Main *bmain, Image *dest, Image *source);
 bool BKE_image_scale(Image *image, int width, int height, ImageUser *iuser);
 
 /**
- * Check if texture has alpha `planes == 32 || planes == 16`.
+ * Check if image might contain alpha.
  */
 bool BKE_image_has_alpha(Image *image);
 

@@ -646,7 +646,10 @@ class ASSETBROWSER_PT_filter(asset_utils.AssetBrowserPanel, Panel):
                     row.prop(filter_id, identifier, toggle=False)
 
         if use_remote_asset_libraries:
-            layout.prop(params, "show_online_assets", text="Online Assets")
+            col = layout.column()
+            col.use_property_split = True
+            col.use_property_decorate = False
+            col.prop(params, "asset_access", text="Access")
 
 
 class AssetBrowserMenu:
@@ -788,9 +791,10 @@ class ASSETBROWSER_PT_metadata(asset_utils.AssetBrowserPanel, Panel):
                 col.prop(asset.metadata, "catalog_id", text="UUID")
                 col.prop(asset.metadata, "catalog_simple_name", text="Simple Name")
 
-        row = layout.row(align=True)
-        row.prop(wm, "asset_path_dummy", text="Source", icon='CURRENT_FILE' if is_local_asset else 'NONE')
-        row.operator("asset.open_containing_blend_file", text="", icon='FILE_BLEND')
+        if not asset.is_online:
+            row = layout.row(align=True)
+            row.prop(wm, "asset_path_dummy", text="Source", icon='CURRENT_FILE' if is_local_asset else 'NONE')
+            row.operator("asset.open_containing_blend_file", text="", icon='FILE_BLEND')
 
         metadata = asset.metadata
         self.metadata_prop(layout, metadata, "description")
@@ -866,9 +870,8 @@ class ASSETBROWSER_MT_context_menu(AssetBrowserMenu, Menu):
         layout = self.layout
         st = context.space_data
         params = st.params
-        asset = context.asset
 
-        if asset and asset.is_online:
+        if bpy.ops.asset.assets_download.poll():
             layout.operator("asset.assets_download")
             layout.separator()
 

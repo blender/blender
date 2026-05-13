@@ -16,6 +16,8 @@
 GPU_SHADER_CREATE_INFO(eevee_global_ubo)
 TYPEDEF_SOURCE("eevee_uniform_shared.hh")
 UNIFORM_BUF(UNIFORM_BUF_SLOT, UniformData, uniform_buf)
+UNIFORM_BUF(PIPELINE_BUF_SLOT, PipelineInfoData, pipeline_buf)
+UNIFORM_BUF(RAYTRACE_BUF_SLOT, RayTraceData, raytrace_buf)
 GPU_SHADER_CREATE_END()
 
 GPU_SHADER_NAMED_INTERFACE_INFO(eevee_clip_plane_iface, clip_interp)

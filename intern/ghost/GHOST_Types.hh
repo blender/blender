@@ -784,12 +784,27 @@ enum GHOST_TWindowDecorationStyleFlags {
 };
 
 struct GHOST_GPUDevice {
+  /**
+   * When true: use the specified GPU.
+   * When false: fallback to saved GPU.
+   */
+  bool is_override;
+  /**
+   * When true, a missing override device causes context creation to fail instead of falling back.
+   */
+  bool fail_on_invalid_override;
   /** Index of the GPU device in the list provided by the platform. */
   int index;
   /** (PCI) Vendor ID of the GPU. */
   uint vendor_id;
   /** Device ID of the GPU provided by the vendor. */
   uint device_id;
+  /** Saved preference to fall back to when the override device is unavailable. */
+  int fallback_index;
+  /** Saved preference fallback (PCI) Vendor ID. */
+  uint fallback_vendor_id;
+  /** Saved preference fallback Device ID. */
+  uint fallback_device_id;
 };
 
 /**

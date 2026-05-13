@@ -33,7 +33,7 @@ PyDoc_STRVAR(
     "   pointed by the Interface0DIterator belongs. The normal is evaluated\n"
     "   at the pointed Interface0D.\n"
     "\n"
-    "   :arg it: An Interface0DIterator object.\n"
+    "   :param it: An Interface0DIterator object.\n"
     "   :type it: :class:`freestyle.types.Interface0DIterator`\n"
     "   :return: The 2D normal of the 1D element evaluated at the pointed\n"
     "      Interface0D.\n"

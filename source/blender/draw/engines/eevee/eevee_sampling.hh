@@ -63,6 +63,11 @@ class Sampling {
    * Accumulation sampling from sample interactive_mode_threshold to sample_count_.
    */
   static constexpr int interactive_mode_threshold = 3;
+  /**
+   * For overwriting pixel jitter sample position.
+   */
+  bool use_custom_pixel_jitter_sample_ = false;
+  float2 custom_pixel_jitter_sample_ = {};
 
   SamplingDataBuf data_ = {"SamplingDataBuf"};
 
@@ -141,6 +146,12 @@ class Sampling {
   uint64_t sample_index() const
   {
     return sample_;
+  }
+
+  /* Returns true if a custom pixel jitter sample position is set. */
+  bool use_custom_pixel_jitter_sample() const
+  {
+    return use_custom_pixel_jitter_sample_;
   }
 
   bool use_clamp_direct() const

@@ -472,8 +472,6 @@ void Instance::end_sync()
   sphere_probes.end_sync();
   planar_probes.end_sync();
 
-  uniform_data.push_update();
-
   depsgraph_last_update_ = DEG_get_update_count(depsgraph);
 }
 
@@ -527,6 +525,7 @@ void Instance::render_sample()
 {
   if (sampling.finished_viewport()) {
     DRW_submission_start();
+    uniform_data.push_update();
     film.display();
     lookdev.display();
     DRW_submission_end();
@@ -554,6 +553,8 @@ void Instance::render_sample()
     DRW_submission_start();
 
     sampling.step();
+    film.update_sample_table();
+    uniform_data.push_update();
 
     capture_view.render_world();
     lookdev.rotate_world();
@@ -914,6 +915,7 @@ void Instance::light_bake_irradiance(
     /* Sampling module needs to be initialized to computing lighting. */
     sampling.init(probe);
     sampling.step();
+    uniform_data.push_update();
 
     {
       /* Critical section. Potential gpu::Shader concurrent usage. */

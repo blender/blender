@@ -8,8 +8,15 @@
 
 #pragma once
 
+#include <Python.h>
+
 namespace blender {
 
-void BPY_rna_types_extend_capi();
+/**
+ * Extend RNA types with C-API defined methods, properties and types.
+ *
+ * \param bpy_types: The `bpy.types` module, used to populate C-API defined types.
+ */
+void BPY_rna_types_extend_capi(PyObject *bpy_types);
 
 }  // namespace blender

@@ -23,7 +23,7 @@ namespace blender {
 
 ImBuf *IMB_thumb_load_font(const char *filepath, uint x, uint y)
 {
-  ImBuf *ibuf = IMB_allocImBuf(x, y, 32, IB_byte_data | IB_metadata);
+  ImBuf *ibuf = IMB_allocImBuf(x, y, IB_byte_data | IB_metadata);
 
   /* fill with white and zero alpha */
   const float col[4] = {1.0f, 1.0f, 1.0f, 0.0f};
@@ -72,7 +72,7 @@ ImBuf *IMB_font_preview(const char *filepath,
   name_h *= scale;
 
   const int height = int(name_h * 1.8f);
-  ImBuf *ibuf = IMB_allocImBuf(width, height, 32, IB_byte_data);
+  ImBuf *ibuf = IMB_allocImBuf(width, height, IB_byte_data);
   /* fill with white and zero alpha */
   const float col[4] = {1.0f, 1.0f, 1.0f, 0.0f};
   IMB_rectfill(ibuf, col);

@@ -19,6 +19,7 @@
 
 #include "BKE_armature.hh"
 #include "BKE_constraint.h"
+#include "BKE_pose.hh"
 
 #include "DNA_action_types.h"
 #include "DNA_armature_types.h"
@@ -238,10 +239,11 @@ static void make_dmats(bPoseChannel *pchan)
 /* applies IK matrix to pchan, IK is done separated */
 /* formula: pose_mat(b) = pose_mat(b-1) * diffmat(b-1, b) * ik_mat(b) */
 /* to make this work, the diffmats have to be precalculated! Stored in chan_mat */
-static void where_is_ik_bone(bPoseChannel *pchan,
+static void where_is_ik_bone(const bke::PChanBone pchanbone,
                              float ik_mat[3][3]) /* nr = to detect if this is first bone */
 {
   float vec[3], ikmat[4][4];
+  bPoseChannel *pchan = pchanbone.pchan;
 
   copy_m4_m3(ikmat, ik_mat);
 
@@ -274,7 +276,7 @@ static void where_is_ik_bone(bPoseChannel *pchan,
   copy_v3_v3(pchan->pose_head, pchan->pose_mat[3]);
   /* calculate tail */
   copy_v3_v3(vec, pchan->pose_mat[1]);
-  mul_v3_fl(vec, pchan->bone->length);
+  mul_v3_fl(vec, pchanbone.bone->length);
   add_v3_v3v3(pchan->pose_tail, pchan->pose_head, vec);
 
   pchan->flag |= POSE_DONE;
@@ -312,7 +314,7 @@ static void execute_posetree(Depsgraph *depsgraph, Scene *scene, Object *ob, Pos
   for (a = 0; a < tree->totchannel; a++) {
     float length;
     pchan = tree->pchan[a];
-    bone = pchan->bone;
+    bone = pchan->bone_get(*ob);
 
     /* set DoF flag */
     flag = 0;
@@ -546,7 +548,7 @@ static void execute_posetree(Depsgraph *depsgraph, Scene *scene, Object *ob, Pos
         float trans[3], length;
 
         IK_GetTranslationChange(iktree[a], trans);
-        length = pchan->bone->length * len_v3(pchan->pose_mat[1]);
+        length = pchan->bone_get(*ob)->length * len_v3(pchan->pose_mat[1]);
 
         ikstretch[a] = (length == 0.0f) ? 1.0f : (trans[1] + length) / length;
       }
@@ -654,7 +656,9 @@ void iksolver_execute_tree(
 
       for (a = 0; a < tree->totchannel; a++) {
         /* sets POSE_DONE */
-        where_is_ik_bone(tree->pchan[a], tree->basis_change[a]);
+        bPoseChannel *pchan = tree->pchan[a];
+        Bone *bone = pchan->bone_get(*ob);
+        where_is_ik_bone({pchan, bone}, tree->basis_change[a]);
       }
     }
 

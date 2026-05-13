@@ -315,7 +315,7 @@ static Mesh *mesh_nurbs_displist_to_mesh(const Curve *cu, const ListBaseT<DispLi
  */
 static void mesh_copy_texture_space_from_curve_type(const Curve *cu, Mesh *mesh)
 {
-  mesh->texspace_flag = cu->texspace_flag & ~CU_TEXSPACE_FLAG_AUTO;
+  mesh->texspace_flag = eMesh_TexSpaceFlag(cu->texspace_flag & ~CU_TEXSPACE_FLAG_AUTO);
   copy_v3_v3(mesh->texspace_location, cu->texspace_location);
   copy_v3_v3(mesh->texspace_size, cu->texspace_size);
   BKE_mesh_texspace_calc(mesh);
@@ -481,7 +481,7 @@ void BKE_mesh_to_curve_nurblist(const Mesh *mesh,
         nu->pntsu = faces_num;
         nu->pntsv = 1;
         nu->orderu = 4;
-        nu->flagu = CU_NURB_ENDPOINT | (closed ? CU_NURB_CYCLIC : 0); /* endpoint */
+        nu->flagu = CU_NURB_ENDPOINT | (closed ? CU_NURB_CYCLIC : eNurbKnotFlag{}); /* endpoint */
         nu->resolu = 12;
 
         nu->bp = MEM_new_array_zeroed<BPoint>(faces_num, "bpoints");

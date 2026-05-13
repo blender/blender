@@ -906,7 +906,7 @@ static void loose_data_instantiate_obdata_process(LooseDataInstantiateContext *i
 
     const int type = BKE_object_obdata_to_type(id);
     BLI_assert(type != -1);
-    Object *ob = BKE_object_add_only_object(bmain, type, id->name + 2);
+    Object *ob = BKE_object_add_only_object(bmain, ObjectType(type), id->name + 2);
     ob->data = id;
     id_us_plus(id);
     BKE_object_materials_sync_length(bmain, ob, ob->data);

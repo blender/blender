@@ -658,7 +658,7 @@ ccl_device_intersect bool scene_intersect_local(KernelGlobals kg,
 
   return hit.hasHit();
 }
-#endif /*__BVH_LOCAL__ */
+#endif /* __BVH_LOCAL__ */
 
 #ifdef __TRANSPARENT_SHADOWS__
 ccl_device_inline void scene_intersect_shadow_all_hiprt(

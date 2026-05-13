@@ -995,7 +995,7 @@ static bool rna_Action_is_action_legacy_get(PointerRNA *ptr)
 }
 static bool rna_Action_is_action_layered_get(PointerRNA * /* ptr */)
 {
-  /*All actions are layered through versioning. */
+  /* All actions are layered through versioning. */
   return true;
 }
 
@@ -1584,7 +1584,7 @@ static void rna_def_dopesheet(BlenderRNA *brna)
   prop = RNA_def_property(srna, "show_lightprobes", PROP_BOOLEAN, PROP_NONE);
   RNA_def_property_boolean_negative_sdna(prop, nullptr, "filterflag2", ADS_FILTER_NOLIGHTPROBE);
   RNA_def_property_ui_text(
-      prop, "Display Light Probe", "Include visualization of lightprobe related animation data");
+      prop, "Display Light Probe", "Include visualization of light probe related animation data");
   RNA_def_property_ui_icon(prop, ICON_OUTLINER_OB_LIGHTPROBE, 0);
   RNA_def_property_update(prop, NC_ANIMATION | ND_ANIMCHAN | NA_EDITED, nullptr);
 
@@ -2325,7 +2325,7 @@ static void rna_def_action_group(BlenderRNA *brna)
 
   prop = RNA_def_property(srna, "use_pin", PROP_BOOLEAN, PROP_NONE);
   RNA_def_property_flag(prop, PROP_NO_DEG_UPDATE);
-  RNA_def_property_boolean_sdna(prop, nullptr, "flag", ADT_CURVES_ALWAYS_VISIBLE);
+  RNA_def_property_boolean_sdna(prop, nullptr, "flag", AGRP_CURVES_ALWAYS_VISIBLE);
   RNA_def_property_ui_text(prop, "Pin in Graph Editor", "");
   RNA_def_property_update(prop, NC_ANIMATION | ND_ANIMCHAN | NA_EDITED, nullptr);
 

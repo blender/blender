@@ -34,11 +34,7 @@ void StripModifierDataBackup::init_from_modifier(StripModifierData *smd)
 {
   blender::seq::StripModifierDataRuntime *runtime = smd->runtime;
 
-  if (ELEM(smd->type,
-           eSeqModifierType_SoundEqualizer,
-           eSeqModifierType_Pitch,
-           eSeqModifierType_Echo))
-  {
+  if (smd->is_type_sound()) {
     flag = runtime->flag;
     sound_in = runtime->last_sound_in;
     sound_out = runtime->last_sound_out;
@@ -53,11 +49,7 @@ void StripModifierDataBackup::restore_to_modifier(StripModifierData *smd)
 {
   blender::seq::StripModifierDataRuntime *runtime = smd->runtime;
 
-  if (ELEM(smd->type,
-           eSeqModifierType_SoundEqualizer,
-           eSeqModifierType_Pitch,
-           eSeqModifierType_Echo))
-  {
+  if (smd->is_type_sound()) {
     runtime->flag = flag;
     runtime->last_sound_in = sound_in;
     runtime->last_sound_out = sound_out;

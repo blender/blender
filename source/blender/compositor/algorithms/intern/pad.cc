@@ -18,7 +18,10 @@ static const char *get_shader_name(const ResultType type, const PaddingMethod pa
     case PaddingMethod::Zero:
       switch (type) {
         case ResultType::Color:
+        case ResultType::Float4:
           return "compositor_pad_zero_float4";
+        case ResultType::Float:
+          return "compositor_pad_zero_float";
         default:
           break;
       }
@@ -72,6 +75,16 @@ static void zero_pad_cpu(const Result &input,
         case ResultType::Color:
           parallel_for(output_size, [&](const int2 texel) {
             output.store_pixel(texel, input.load_pixel_zero<Color>(texel - size));
+          });
+          break;
+        case ResultType::Float4:
+          parallel_for(output_size, [&](const int2 texel) {
+            output.store_pixel(texel, input.load_pixel_zero<float4>(texel - size));
+          });
+          break;
+        case ResultType::Float:
+          parallel_for(output_size, [&](const int2 texel) {
+            output.store_pixel(texel, input.load_pixel_zero<float>(texel - size));
           });
           break;
         default:

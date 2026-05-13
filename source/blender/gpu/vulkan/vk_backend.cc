@@ -6,9 +6,12 @@
  * \ingroup gpu
  */
 
+#include <algorithm>
+#include <cstdio>
 #include <sstream>
 
 #include "BLI_path_utils.hh"
+#include "BLI_string.h"
 #include "BLI_threads.h"
 
 #include "CLG_log.h"
@@ -219,16 +222,17 @@ static Vector<StringRefNull> missing_capabilities_get(VkPhysicalDevice vk_physic
   return missing_capabilities;
 }
 
-bool VKBackend::is_supported()
+/**
+ * Disable implicit layers and only allow layers that we trust.
+ *
+ * Render doc layer is hidden behind a debug flag. There are malicious layers that impersonate
+ * RenderDoc and can crash when loaded. See #139543.
+ *
+ * Must be called before any `vkCreateInstance` so temporary Vulkan instances created during
+ * argument handling (e.g. `--gpu-device help`) don't load implicit layers either.
+ */
+static void vk_restrict_loader_layers()
 {
-  CLG_logref_init(&LOG);
-
-  /*
-   * Disable implicit layers and only allow layers that we trust.
-   *
-   * Render doc layer is hidden behind a debug flag. There are malicious layers that impersonate
-   * RenderDoc and can crash when loaded. See #139543
-   */
   std::stringstream allowed_layers;
   allowed_layers << "VK_LAYER_KHRONOS_*";
   allowed_layers << ",VK_LAYER_AMD_*";
@@ -241,6 +245,11 @@ bool VKBackend::is_supported()
   }
   BLI_setenv("VK_LOADER_LAYERS_DISABLE", "~implicit~");
   BLI_setenv("VK_LOADER_LAYERS_ALLOW", allowed_layers.str().c_str());
+}
+
+static bool vk_instance_create_for_platform_checks(VkInstance *r_instance)
+{
+  vk_restrict_loader_layers();
 
   /* Initialize an vulkan 1.2 instance. */
   VkApplicationInfo vk_application_info = {VK_STRUCTURE_TYPE_APPLICATION_INFO};
@@ -253,9 +262,18 @@ bool VKBackend::is_supported()
   VkInstanceCreateInfo vk_instance_info = {VK_STRUCTURE_TYPE_INSTANCE_CREATE_INFO};
   vk_instance_info.pApplicationInfo = &vk_application_info;
 
+  *r_instance = VK_NULL_HANDLE;
+  vkCreateInstance(&vk_instance_info, nullptr, r_instance);
+
+  return *r_instance != VK_NULL_HANDLE;
+}
+
+bool VKBackend::is_supported()
+{
+  CLG_logref_init(&LOG);
+
   VkInstance vk_instance = VK_NULL_HANDLE;
-  vkCreateInstance(&vk_instance_info, nullptr, &vk_instance);
-  if (vk_instance == VK_NULL_HANDLE) {
+  if (!vk_instance_create_for_platform_checks(&vk_instance)) {
     CLOG_ERROR(&LOG, "Unable to initialize a Vulkan 1.2 instance.");
     return false;
   }
@@ -310,6 +328,73 @@ bool VKBackend::is_supported()
              "No Vulkan device found that meets the minimum requirements. "
              "Updating GPU driver can improve compatibility.");
   return false;
+}
+
+void VKBackend::supported_devices_print(FILE *fp)
+{
+  CLG_logref_init(&LOG);
+
+  VkInstance vk_instance = VK_NULL_HANDLE;
+  if (!vk_instance_create_for_platform_checks(&vk_instance)) {
+    fprintf(fp, "Unable to initialize a Vulkan 1.2 instance.\n");
+    return;
+  }
+
+  uint32_t physical_devices_count = 0;
+  vkEnumeratePhysicalDevices(vk_instance, &physical_devices_count, nullptr);
+  Array<VkPhysicalDevice> vk_physical_devices(physical_devices_count);
+  vkEnumeratePhysicalDevices(vk_instance, &physical_devices_count, vk_physical_devices.data());
+
+  struct Row {
+    int index;
+    std::string identifier;
+    std::string name;
+  };
+  Vector<Row> rows;
+  int index = 0;
+  for (VkPhysicalDevice vk_physical_device : vk_physical_devices) {
+    if (missing_capabilities_get(vk_physical_device).is_empty() &&
+        GPU_vulkan_is_supported_driver(vk_physical_device))
+    {
+      VkPhysicalDeviceProperties vk_properties = {};
+      vkGetPhysicalDeviceProperties(vk_physical_device, &vk_properties);
+      std::stringstream identifier;
+      identifier << std::hex << vk_properties.vendorID << "/" << vk_properties.deviceID << "/"
+                 << index;
+      rows.append({index, identifier.str(), std::string(vk_properties.deviceName)});
+    }
+    index++;
+  }
+
+  if (rows.is_empty()) {
+    fprintf(fp, "  (no supported Vulkan devices found)\n");
+    vkDestroyInstance(vk_instance, nullptr);
+    return;
+  }
+
+  const char *col_index = "Index";
+  const char *col_id = "Device-ID";
+  const char *col_name = "Name";
+  size_t w_index = strlen(col_index);
+  size_t w_id = strlen(col_id);
+  for (const Row &row : rows) {
+    char buf[16];
+    w_index = std::max(w_index, BLI_snprintf_rlen(buf, sizeof(buf), "%d", row.index));
+    w_id = std::max(w_id, row.identifier.size());
+  }
+
+  fprintf(fp, "  %-*s  %-*s  %s\n", int(w_index), col_index, int(w_id), col_id, col_name);
+  for (const Row &row : rows) {
+    fprintf(fp,
+            "  %-*d  %-*s  %s\n",
+            int(w_index),
+            row.index,
+            int(w_id),
+            row.identifier.c_str(),
+            row.name.c_str());
+  }
+
+  vkDestroyInstance(vk_instance, nullptr);
 }
 
 static GPUOSType determine_os_type()
@@ -557,6 +642,15 @@ void VKBackend::detect_workarounds(VKDevice &device)
       extensions.vertex_input_dynamic_state = false;
       GCaps.texture_pool_workaround = true;
     }
+  }
+
+  /* Using the texture pool causes issues on Intel Meteor/Arrow/Alder Lake and older iGPUs.
+   * - When using the image cache, visual artifacts can be seen (#156496).
+   * - When using the texture pool without the image cache, memory leaks happen (#157777).
+   * Until the issues have been resolved, the texture pool workaround is used.
+   */
+  if (GPU_type_matches(GPU_DEVICE_INTEL | GPU_DEVICE_INTEL_UHD, GPU_OS_WIN, GPU_DRIVER_OFFICIAL)) {
+    GCaps.texture_pool_workaround = true;
   }
 #endif
 

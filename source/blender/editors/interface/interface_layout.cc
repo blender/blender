@@ -1189,7 +1189,7 @@ static Button *item_with_label(Layout *layout,
                   subtype == PROP_DIRPATH ? "BUTTONS_OT_directory_browse" :
                                             "BUTTONS_OT_file_browse",
                   wm::OpCallContext::InvokeDefault,
-                  ICON_FILEBROWSER,
+                  RNA_property_editable(ptr, prop) ? ICON_FILEBROWSER : ICON_FOLDER_REDIRECT,
                   x,
                   y,
                   UI_UNIT_X,
@@ -2751,16 +2751,20 @@ void button_configure_search(Button *but,
   }
 }
 
-void Layout::textbox(const bContext *C, PointerRNA *ptr, StringRefNull propname)
+void Layout::textbox(const bContext *C,
+                     PointerRNA *ptr,
+                     StringRefNull propname,
+                     std::optional<StringRefNull> placeholder)
 {
   TextboxState *textbox_state = textbox_ensure_state(
       CTX_wm_region(C), fmt::format("{}.{}", RNA_struct_identifier(ptr->type), propname));
-  this->textbox_with_state(ptr, propname, textbox_state);
+  this->textbox_with_state(ptr, propname, textbox_state, placeholder);
 }
 
 void Layout::textbox_with_state(PointerRNA *ptr,
                                 StringRefNull propname,
-                                TextboxState *textbox_state)
+                                TextboxState *textbox_state,
+                                std::optional<StringRefNull> placeholder)
 {
 
   Block *block = this->block();
@@ -2791,8 +2795,8 @@ void Layout::textbox_with_state(PointerRNA *ptr,
                                0,
                                0,
                                w,
-                               line_heigth * textbox_state->visible_lines + textbox_padding_top() +
-                                   textbox_padding_bottom(),
+                               line_heigth * textbox_state->visible_lines +
+                                   textbox_vertical_padding() * 2.0f,
                                ptr,
                                prop,
                                0,
@@ -2801,6 +2805,9 @@ void Layout::textbox_with_state(PointerRNA *ptr,
                                std::nullopt);
   ButtonTextBox *textbox = static_cast<ButtonTextBox *>(but);
   textbox->state = textbox_state;
+  if (placeholder) {
+    button_placeholder_set(but, *placeholder);
+  }
 
   if (RNA_property_flag(prop) & PROP_TEXTEDIT_UPDATE) {
     button_flag_enable(but, BUT_TEXTEDIT_UPDATE);

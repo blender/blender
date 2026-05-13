@@ -68,12 +68,14 @@ class CompositorEffectContext : public CompositorContext {
     using namespace compositor;
     const bNodeTree &node_group = *DEG_get_evaluated<bNodeTree>(render_data_.depsgraph,
                                                                 node_group_);
+    const bke::DataBlockComputeContext compute_context(nullptr, this->get_scene().id);
     NodeGroupOperation node_group_operation(*this,
                                             node_group,
                                             this->needed_outputs(),
                                             nullptr,
                                             node_group.active_viewer_key,
-                                            bke::NODE_INSTANCE_KEY_BASE);
+                                            bke::NODE_INSTANCE_KEY_BASE,
+                                            compute_context);
     set_output_refcount(node_group, node_group_operation);
 
     /* Map the inputs to the operation. */
@@ -127,7 +129,7 @@ static ImBuf *do_compositor_effect(const RenderData *context,
 {
   const int x = context->rectx;
   const int y = context->recty;
-  ImBuf *out = IMB_allocImBuf(x, y, 32, IB_float_data | IB_uninitialized_pixels);
+  ImBuf *out = IMB_allocImBuf(x, y, IB_float_data | IB_uninitialized_pixels);
   IMB_colormanagement_assign_float_colorspace(
       out, IMB_colormanagement_role_colorspace_name_get(COLOR_ROLE_SCENE_LINEAR));
 
@@ -140,15 +142,14 @@ static ImBuf *do_compositor_effect(const RenderData *context,
     CompositorEffectContext com_context(
         com_cache.get_cache_manager(), *context, data->node_group, src1, src2, out, fac, *strip);
 
-    const bool use_gpu = com_context.use_gpu();
-    if (use_gpu) {
-      render_begin_gpu(*context);
+    if (com_context.use_gpu()) {
+      com_context.set_gpu_supported(render_begin_gpu(*context));
     }
     com_cache.recreate_if_needed(
         com_context.use_gpu(), com_context.get_precision(), context->gpu_context);
     com_context.evaluate();
     com_context.cache_manager().reset();
-    if (use_gpu) {
+    if (com_context.use_gpu()) {
       render_end_gpu(*context);
     }
   }

@@ -18,6 +18,10 @@ class HdCyclesPlugin final : public PXR_NS::HdRendererPlugin {
 #if PXR_VERSION < 2302
   bool IsSupported() const override;
 #else
+#  if PXR_VERSION >= 2511
+  bool IsSupported(HdRendererCreateArgs const &rendererCreateArgs,
+                   std::string *reasonWhyNot = nullptr) const override;
+#  endif
   bool IsSupported(bool gpuEnabled) const override;
 #endif
 

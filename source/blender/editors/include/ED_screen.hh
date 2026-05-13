@@ -384,7 +384,7 @@ bScreen *ED_screen_state_maximized_create(bContext *C);
  *
  * \warning \a area may be freed.
  */
-ScrArea *ED_screen_state_toggle(bContext *C, wmWindow *win, ScrArea *area, short state);
+ScrArea *ED_screen_state_toggle(bContext *C, wmWindow *win, ScrArea *area, eScreen_State state);
 /**
  * Wrapper to open a temporary space either as full-screen space, or as separate window,
  * as defined by \a display_type.

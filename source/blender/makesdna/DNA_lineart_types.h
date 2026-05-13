@@ -8,6 +8,8 @@
  * \ingroup DNA
  */
 
+#include "BLI_enum_flags.hh"
+
 namespace blender {
 
 /* Notice that we need to have this file although no struct defines.
@@ -15,7 +17,7 @@ namespace blender {
  * needs to stay consistent throughout. */
 
 /** These flags are used for 1 time calculation, not stroke selection afterwards. */
-enum eLineartMainFlags {
+enum eLineartMainFlags : int {
   MOD_LINEART_INTERSECTION_AS_CONTOUR = (1 << 0),
   MOD_LINEART_EVERYTHING_AS_CONTOUR = (1 << 1),
   MOD_LINEART_ALLOW_DUPLI_OBJECTS = (1 << 2),
@@ -40,8 +42,9 @@ enum eLineartMainFlags {
   MOD_LINEART_CHAIN_PRESERVE_DETAILS = (1 << 22),
   MOD_LINEART_SHADOW_USE_SILHOUETTE = (1 << 24),
 };
+ENUM_OPERATORS(eLineartMainFlags)
 
-enum eLineartEdgeFlag {
+enum eLineartEdgeFlag : int {
   MOD_LINEART_EDGE_FLAG_EDGE_MARK = (1 << 0),
   MOD_LINEART_EDGE_FLAG_CONTOUR = (1 << 1),
   MOD_LINEART_EDGE_FLAG_CREASE = (1 << 2),
@@ -70,6 +73,7 @@ enum eLineartEdgeFlag {
   /** For discarding duplicated edge types in culling stage. */
   MOD_LINEART_EDGE_FLAG_NEXT_IS_DUPLICATION = (1 << 15),
 };
+ENUM_OPERATORS(eLineartEdgeFlag)
 
 #define MOD_LINEART_EDGE_FLAG_ALL_TYPE 0x01ff
 #define MOD_LINEART_EDGE_FLAG_INIT_TYPE 0x37 /* Without material & light contour */

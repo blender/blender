@@ -199,11 +199,19 @@ template<typename T> T SocketValueVariant::extract()
     BLI_assert(static_type_is_base_socket_type<base_type>(this->socket_type()));
     return this->extract<fn::GField>().typed<base_type>();
   }
-  else if constexpr (std::is_same_v<T, nodes::ListPtr>) {
+  else if constexpr (std::is_same_v<T, nodes::GListPtr>) {
     if (this->kind() != Kind::List) {
       return {};
     }
-    return std::move(value_.get<nodes::ListPtr>());
+    return std::move(value_.get<nodes::GListPtr>());
+  }
+  else if constexpr (nodes::is_ListPtr_v<T>) {
+    if (this->kind() != Kind::List) {
+      return {};
+    }
+    using base_type = typename T::base_type;
+    BLI_assert(static_type_is_base_socket_type<base_type>(this->socket_type()));
+    return this->extract<nodes::GListPtr>().typed<base_type>();
   }
 #ifdef WITH_OPENVDB
   else if constexpr (std::is_same_v<T, GVolumeGrid>) {
@@ -278,7 +286,7 @@ template<typename T> void SocketValueVariant::store_impl(T value)
     /* Always store #Field<T> as #GField. */
     this->store_impl<fn::GField>(std::move(value));
   }
-  else if constexpr (std::is_same_v<T, nodes::ListPtr>) {
+  else if constexpr (std::is_same_v<T, nodes::GListPtr>) {
     const CPPType &list_cpp_type = value->cpp_type();
     eNodeSocketDatatype socket_type = SOCK_CUSTOM;
     if (list_cpp_type.is<bke::SocketValueVariant>()) {
@@ -295,9 +303,13 @@ template<typename T> void SocketValueVariant::store_impl(T value)
       BLI_assert(new_socket_type);
       socket_type = *new_socket_type;
     }
-    value_.emplace<nodes::ListPtr>(std::move(value));
+    value_.emplace<nodes::GListPtr>(std::move(value));
     value_.extra.socket_type = socket_type;
     value_.extra.kind = Kind::List;
+  }
+  else if constexpr (nodes::is_ListPtr_v<T>) {
+    /* Always store #ListPtr as #GListPtr. */
+    this->store_impl<nodes::GListPtr>(std::move(value));
   }
 #ifdef WITH_OPENVDB
   else if constexpr (std::is_same_v<T, GVolumeGrid>) {
@@ -611,15 +623,16 @@ void SocketValueVariant::ensure_owns_direct_data()
     case SOCK_BUNDLE: {
       if (this->is_single()) {
         if (nodes::BundlePtr &bundle_ptr = value_.get<nodes::BundlePtr>()) {
-          if (!bundle_ptr->is_mutable()) {
-            bundle_ptr = bundle_ptr->copy();
-          }
+          bundle_ptr.ensure_mutable_inplace();
           nodes::Bundle &bundle = const_cast<nodes::Bundle &>(*bundle_ptr);
           bundle.ensure_owns_direct_data();
         }
       }
-      else if (this->is_list()) {
-        /* TODO: Handle lists before #use_geometry_nodes_lists is removed. */
+      if (this->is_list()) {
+        if (nodes::GListPtr &list_ptr = value_.get<nodes::GListPtr>()) {
+          auto &list = list_ptr.get_for_write();
+          list.ensure_owns_direct_data();
+        }
       }
       break;
     }
@@ -628,8 +641,11 @@ void SocketValueVariant::ensure_owns_direct_data()
         GeometrySet &geometry = value_.get<GeometrySet>();
         geometry.ensure_owns_direct_data();
       }
-      else if (this->is_list()) {
-        /* TODO: Handle lists before #use_geometry_nodes_lists is removed. */
+      if (this->is_list()) {
+        if (nodes::GListPtr &list_ptr = value_.get<nodes::GListPtr>()) {
+          auto &list = list_ptr.get_for_write();
+          list.ensure_owns_direct_data();
+        }
       }
       break;
     }
@@ -673,7 +689,9 @@ bool SocketValueVariant::owns_direct_data() const
         }
       }
       else if (this->is_list()) {
-        /* TODO: Handle lists before #use_geometry_nodes_lists is removed. */
+        if (const auto &list_ptr = value_.get<nodes::GListPtr>()) {
+          return list_ptr->owns_direct_data();
+        }
       }
       return true;
     }
@@ -683,7 +701,9 @@ bool SocketValueVariant::owns_direct_data() const
         return geometry.owns_direct_data();
       }
       if (this->is_list()) {
-        /* TODO: Handle lists before #use_geometry_nodes_lists is removed. */
+        if (const auto &list_ptr = value_.get<nodes::GListPtr>()) {
+          return list_ptr->owns_direct_data();
+        }
       }
       return true;
     }
@@ -752,7 +772,7 @@ void SocketValueVariant::count_memory(MemoryCounter &memory) const
       break;
     }
     case Kind::List: {
-      if (const nodes::ListPtr &list = value_.get<nodes::ListPtr>()) {
+      if (const auto &list = value_.get<nodes::GListPtr>()) {
         list->count_memory(memory);
       }
       break;
@@ -766,45 +786,51 @@ void SocketValueVariant::count_memory(MemoryCounter &memory) const
   template void SocketValueVariant::store_impl(TYPE);
 
 #ifdef WITH_OPENVDB
-#  define INSTANTIATE_SINGLE_AND_FIELD_AND_GRID(TYPE) \
+#  define INSTANTIATE_SINGLE_AND_FIELD_AND_GRID_AND_LIST(TYPE) \
     INSTANTIATE(TYPE) \
     INSTANTIATE(fn::Field<TYPE>) \
+    INSTANTIATE(nodes::ListPtr<TYPE>) \
     INSTANTIATE(VolumeGrid<TYPE>)
 #else
-#  define INSTANTIATE_SINGLE_AND_FIELD_AND_GRID(TYPE) \
+#  define INSTANTIATE_SINGLE_AND_FIELD_AND_GRID_AND_LIST(TYPE) \
     INSTANTIATE(TYPE) \
-    INSTANTIATE(fn::Field<TYPE>)
+    INSTANTIATE(fn::Field<TYPE>) \
+    INSTANTIATE(nodes::ListPtr<TYPE>)
 #endif
 
-INSTANTIATE_SINGLE_AND_FIELD_AND_GRID(int)
-INSTANTIATE_SINGLE_AND_FIELD_AND_GRID(bool)
-INSTANTIATE_SINGLE_AND_FIELD_AND_GRID(float)
-INSTANTIATE_SINGLE_AND_FIELD_AND_GRID(float3)
-INSTANTIATE_SINGLE_AND_FIELD_AND_GRID(ColorGeometry4f)
-INSTANTIATE_SINGLE_AND_FIELD_AND_GRID(math::Quaternion)
+#define INSTANTIATE_SINGLE_AND_LIST(TYPE) \
+  INSTANTIATE(TYPE) \
+  INSTANTIATE(nodes::ListPtr<TYPE>)
 
-INSTANTIATE(std::string)
+INSTANTIATE_SINGLE_AND_FIELD_AND_GRID_AND_LIST(int)
+INSTANTIATE_SINGLE_AND_FIELD_AND_GRID_AND_LIST(bool)
+INSTANTIATE_SINGLE_AND_FIELD_AND_GRID_AND_LIST(float)
+INSTANTIATE_SINGLE_AND_FIELD_AND_GRID_AND_LIST(float3)
+INSTANTIATE_SINGLE_AND_FIELD_AND_GRID_AND_LIST(ColorGeometry4f)
+INSTANTIATE_SINGLE_AND_FIELD_AND_GRID_AND_LIST(math::Quaternion)
+
+INSTANTIATE_SINGLE_AND_LIST(std::string)
 INSTANTIATE(fn::GField)
-INSTANTIATE(nodes::BundlePtr)
-INSTANTIATE(nodes::ClosurePtr)
-INSTANTIATE(nodes::ListPtr)
-INSTANTIATE(bke::GeometrySet)
+INSTANTIATE_SINGLE_AND_LIST(nodes::BundlePtr)
+INSTANTIATE_SINGLE_AND_LIST(nodes::ClosurePtr)
+INSTANTIATE(nodes::GListPtr)
+INSTANTIATE_SINGLE_AND_LIST(bke::GeometrySet)
 
-INSTANTIATE(Object *)
-INSTANTIATE(Collection *)
-INSTANTIATE(Tex *)
-INSTANTIATE(Image *)
-INSTANTIATE(Material *)
-INSTANTIATE(VFont *)
-INSTANTIATE(Scene *)
-INSTANTIATE(Text *)
-INSTANTIATE(Mask *)
-INSTANTIATE(bSound *)
+INSTANTIATE_SINGLE_AND_LIST(Object *)
+INSTANTIATE_SINGLE_AND_LIST(Collection *)
+INSTANTIATE_SINGLE_AND_LIST(Tex *)
+INSTANTIATE_SINGLE_AND_LIST(Image *)
+INSTANTIATE_SINGLE_AND_LIST(Material *)
+INSTANTIATE_SINGLE_AND_LIST(VFont *)
+INSTANTIATE_SINGLE_AND_LIST(Scene *)
+INSTANTIATE_SINGLE_AND_LIST(Text *)
+INSTANTIATE_SINGLE_AND_LIST(Mask *)
+INSTANTIATE_SINGLE_AND_LIST(bSound *)
 
-INSTANTIATE(float4x4)
+INSTANTIATE_SINGLE_AND_LIST(float4x4)
 INSTANTIATE(fn::Field<float4x4>)
 
-INSTANTIATE(nodes::MenuValue)
+INSTANTIATE_SINGLE_AND_LIST(nodes::MenuValue)
 INSTANTIATE(fn::Field<nodes::MenuValue>)
 
 #ifdef WITH_OPENVDB

@@ -957,7 +957,7 @@ ARegion *BKE_region_find_in_listbase_by_type(const ListBaseT<ARegion> *regionbas
 
 void BKE_area_copy(ScrArea *area_dst, ScrArea *area_src)
 {
-  constexpr short flag_copy = HEADER_NO_PULLDOWN;
+  constexpr eScrArea_Flag flag_copy = HEADER_NO_PULLDOWN;
 
   area_dst->spacetype = area_src->spacetype;
   area_dst->type = area_src->type;
@@ -1226,7 +1226,7 @@ bool BKE_screen_is_used(const bScreen *screen)
 
 void BKE_screen_header_alignment_reset(bScreen *screen)
 {
-  int alignment = (U.uiflag & USER_HEADER_BOTTOM) ? RGN_ALIGN_BOTTOM : RGN_ALIGN_TOP;
+  eRegion_Alignment alignment = (U.uiflag & USER_HEADER_BOTTOM) ? RGN_ALIGN_BOTTOM : RGN_ALIGN_TOP;
   for (ScrArea &area : screen->areabase) {
     for (ARegion &region : area.regionbase) {
       if (ELEM(region.regiontype, RGN_TYPE_HEADER, RGN_TYPE_TOOL_HEADER)) {
@@ -1457,7 +1457,7 @@ static void direct_link_region(BlendDataReader *reader, ARegion *region, int spa
   BLO_read_struct_list(reader, uiPreview, &region->ui_previews);
   for (uiPreview &ui_preview : region->ui_previews) {
     ui_preview.id_session_uid = MAIN_ID_SESSION_UID_UNSET;
-    ui_preview.tag = 0;
+    ui_preview.tag = uiPreviewTag{};
   }
 
   if (spacetype == SPACE_EMPTY) {
@@ -1488,7 +1488,7 @@ static void direct_link_region(BlendDataReader *reader, ARegion *region, int spa
         rv3d->smooth_timer = nullptr;
 
         rv3d->rflag &= ~(RV3D_NAVIGATING | RV3D_PAINTING);
-        rv3d->runtime_viewlock = 0;
+        rv3d->runtime_viewlock = eRegionView3D_ViewLock{};
       }
     }
     if (region->regiontype == RGN_TYPE_ASSET_SHELF) {
@@ -1508,8 +1508,8 @@ void BKE_screen_view3d_do_versions_250(View3D *v3d, ListBaseT<ARegion> *regions)
       RegionView3D *rv3d;
 
       rv3d = MEM_new<RegionView3D>("region v3d patch");
-      rv3d->persp = char(v3d->persp);
-      rv3d->view = char(v3d->view);
+      rv3d->persp = v3d->persp;
+      rv3d->view = v3d->view;
       rv3d->dist = v3d->dist;
       copy_v3_v3(rv3d->ofs, v3d->ofs);
       copy_qt_qt(rv3d->viewquat, v3d->viewquat);

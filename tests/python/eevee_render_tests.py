@@ -309,6 +309,9 @@ def main():
     elif test_dir_name.startswith('texture'):
         # Noise difference in "white noise 256pp" (Old AMD/Linux/OpenGL only, see #154515)
         report.set_fail_threshold(0.02)
+    elif test_dir_name.startswith('instancing'):
+        # Noise difference in "instance_types" on the point-clouds (Metal only, to investigate)
+        report.set_fail_threshold(0.02)
 
     ok = report.run(args.testdir, args.blender, get_arguments, batch=args.batch)
     sys.exit(not ok)

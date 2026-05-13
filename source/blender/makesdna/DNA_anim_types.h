@@ -48,9 +48,9 @@ struct FModifier {
   /** User-defined description for the modifier. */
   char name[/*MAX_NAME*/ 64] = "";
   /** Type of f-curve modifier. */
-  short type = 0;
+  eFModifier_Types type = {};
   /** Settings for the modifier. */
-  short flag = 0;
+  eFModifier_Flags flag = {};
   /**
    * Expansion state for the modifier panel and its sub-panels, stored as a bit-field
    * in depth-first order. (Maximum of `sizeof(short)` total panels).
@@ -84,11 +84,11 @@ struct FMod_Generator {
 
   /** Order of polynomial generated (i.e. 1 for linear, 2 for quadratic). */
   int poly_order = 0;
-  /** Which 'generator' to use eFMod_Generator_Modes. */
-  int mode = 0;
+  /** Which 'generator' to use. */
+  eFMod_Generator_Modes mode = {};
 
   /** Settings. */
-  int flag = 0;
+  eFMod_Generator_Flags flag = {};
 };
 
 /**
@@ -107,11 +107,8 @@ struct FMod_FunctionGenerator {
   float phase_offset = 0;
   float value_offset = 0;
 
-  /* flags */
-  /** #eFMod_Generator_Functions. */
-  int type = 0;
-  /** #eFMod_Generator_flags. */
-  int flag = 0;
+  eFMod_Generator_Functions type = {};
+  eFMod_Generator_Flags flag = {};
 };
 
 /* envelope modifier - envelope data */
@@ -144,9 +141,9 @@ struct FMod_Envelope {
 /* TODO: we can only do complete cycles. */
 struct FMod_Cycles {
   /** Extrapolation mode to use before first keyframe. */
-  short before_mode = 0;
+  eFMod_Cycling_Modes before_mode = {};
   /** Extrapolation mode to use after last keyframe. */
-  short after_mode = 0;
+  eFMod_Cycling_Modes after_mode = {};
   /** Number of 'cycles' before first keyframe to do. */
   short before_cycles = 0;
   /** Number of 'cycles' after last keyframe to do. */
@@ -158,7 +155,7 @@ struct FMod_Limits {
   /** Rect defining the min/max values. */
   rctf rect = {};
   /** Settings for limiting. */
-  int flag = 0;
+  eFMod_Limit_Flags flag = {};
   char _pad[4] = {};
 };
 
@@ -172,7 +169,7 @@ struct FMod_Noise {
   float lacunarity = 0;
 
   short depth = 0;
-  short modification = 0;
+  eFMod_Noise_Modifications modification = {};
   char legacy_noise = 0;
   char _pad[3] = {};
 };
@@ -190,7 +187,7 @@ struct FMod_Stepped {
   float end_frame = 0;
 
   /** Various settings. */
-  int flag = 0;
+  eFMod_Stepped_Flags flag = {};
 };
 
 /* stepped modifier data */
@@ -225,26 +222,25 @@ struct DriverTarget {
    */
   char pchan_name[/*MAX_NAME*/ 64] = "";
   /** Transform channel index (for #DVAR_TYPE_TRANSFORM_CHAN). */
-  short transChan = 0;
+  eDriverTarget_TransformChannels transChan = {};
 
   /** Rotation channel calculation type. */
-  char rotation_mode = 0;
+  eDriverTarget_RotationMode rotation_mode = {};
   char _pad[5] = {};
 
   /**
    * Flags for the validity of the target
    * (NOTE: these get reset every time the types change).
    */
-  short flag = 0;
-  /** Single-bit user-visible toggles (not reset on type change) from eDriverTarget_Options. */
-  short options = 0;
+  eDriverTarget_Flag flag = {};
+  /** Single-bit user-visible toggles (not reset on type change). */
+  eDriverTarget_Options options = {};
   /** Type of ID-block that this target can use. */
   int idtype = 0;
 
   /* Context-dependent property of a "Context Property" type target.
-   * The `rna_path` of this property is used as a target.
-   * This is a value of enumerator #eDriverTarget_ContextProperty. */
-  int context_property = 0;
+   * The `rna_path` of this property is used as a target. */
+  eDriverTarget_ContextProperty context_property = {};
 
   /* Fall back value to use with DTAR_OPTION_USE_FALLBACK. */
   float fallback_value = 0;
@@ -274,11 +270,11 @@ struct DriverVar {
 
   /** Number of targets actually used by this variable. */
   char num_targets = 0;
-  /** Type of driver variable (eDriverVar_Types). */
-  char type = 0;
+  /** Type of driver variable. */
+  eDriverVar_Types type = {};
 
-  /** Validation tags, etc. (eDriverVar_Flags). */
-  short flag = 0;
+  /** Validation tags, etc. */
+  eDriverVar_Flags flag = {};
   /** Result of previous evaluation. */
   float curval = 0;
 };
@@ -320,9 +316,9 @@ struct ChannelDriver {
 
   /* general settings */
   /** Type of driver. */
-  int type = 0;
+  eDriver_Types type = {};
   /** Settings of driver. */
-  int flag = 0;
+  eDriver_Flags flag = {};
 };
 
 /* F-Curves -------------------------------------- */
@@ -377,11 +373,11 @@ struct FCurve {
   /** Value stored from last time curve was evaluated (not threadsafe, debug display only!). */
   float curval = 0;
   /** User-editable settings for this curve. */
-  short flag = 0;
+  eFCurve_Flags flag = {};
   /** Value-extending mode for this curve (does not cover). */
-  short extend = 0;
+  eFCurve_Extend extend = {};
   /** Auto-handle smoothing mode. */
-  char auto_smoothing = 0;
+  eFCurve_Smoothing auto_smoothing = {};
 
   char _pad[3] = {};
 
@@ -401,8 +397,8 @@ struct FCurve {
   char *rna_path = nullptr;
 
   /* curve coloring (for editor) */
-  /** Coloring method to use (eFCurve_Coloring). */
-  int color_mode = 0;
+  /** Coloring method to use. */
+  eFCurve_Coloring color_mode = {};
   /** The last-color this curve took. */
   float color[3] = {};
 
@@ -486,17 +482,17 @@ struct NlaStrip {
   /** Strip blending length (only used when there are no F-Curves). */
   float blendin = 0, blendout = 0;
   /** Strip blending mode (layer-based mixing). */
-  short blendmode = 0;
+  eNlaStrip_Blend_Mode blendmode = {};
 
   /** Strip extrapolation mode (time-based mixing). */
-  short extendmode = 0;
+  eNlaStrip_Extrapolate_Mode extendmode = {};
   char _pad1[2] = {};
 
   /** Type of NLA strip. */
-  short type = 0;
+  eNlaStrip_Type type = {};
 
   /** Settings. */
-  int flag = 0;
+  eNlaStrip_Flag flag = {};
   char _pad2[4] = {};
 
   /* Pointer to an original NLA strip. */
@@ -532,7 +528,7 @@ struct NlaTrack {
   ListBaseT<NlaStrip> strips = {nullptr, nullptr};
 
   /** Settings for this track. */
-  int flag = 0;
+  eNlaTrack_Flag flag = {};
   /** Index of the track in the stack
    * \note not really useful, but we need a '_pad' var anyways! */
   int index = 0;
@@ -564,20 +560,20 @@ struct KS_Path {
   /** ID-type that path can be used on. */
   int idtype = 0;
 
-  /** Group naming (eKSP_Grouping). */
-  short groupmode = 0;
+  /** Group naming. */
+  eKSP_Grouping groupmode = {};
   /** Various settings, etc. */
-  short flag = 0;
+  eKSP_Settings flag = {};
 
   /** Dynamically (or statically in the case of predefined sets) path. */
   char *rna_path = nullptr;
   /** Index that path affects. */
   int array_index = 0;
 
-  /** (#eInsertKeyFlags) settings to supply insert-key() with. */
-  short keyingflag = 0;
-  /** (#eInsertKeyFlags) for each flag set, the relevant keying-flag bit overrides the default. */
-  short keyingoverride = 0;
+  /** Settings to supply insert-key() with. */
+  eInsertKeyFlags keyingflag = {};
+  /** For each flag set, the relevant keying-flag bit overrides the default. */
+  eInsertKeyFlags keyingoverride = {};
 };
 
 /* ---------------- */
@@ -612,12 +608,12 @@ struct KeyingSet {
   int active_path = 0;
 
   /** Settings for KeyingSet. */
-  short flag = 0;
+  eKS_Settings flag = {};
 
-  /** (eInsertKeyFlags) settings to supply insertkey() with. */
-  short keyingflag = 0;
-  /** (eInsertKeyFlags) for each flag set, the relevant keyingflag bit overrides the default. */
-  short keyingoverride = 0;
+  /** Settings to supply insertkey() with. */
+  eInsertKeyFlags keyingflag = {};
+  /** For each flag set, the relevant keyingflag bit overrides the default. */
+  eInsertKeyFlags keyingoverride = {};
 
   char _pad[6] = {};
 };
@@ -730,13 +726,13 @@ struct AnimData {
 
   /* settings for animation evaluation */
   /** User-defined settings. */
-  int flag = 0;
+  eAnimData_Flag flag = {};
 
   /* settings for active action evaluation (based on NLA strip settings) */
   /** Accumulation mode for active action. */
-  short act_blendmode = 0;
+  eNlaStrip_Blend_Mode act_blendmode = {};
   /** Extrapolation mode for active action. */
-  short act_extendmode = 0;
+  eNlaStrip_Extrapolate_Mode act_extendmode = {};
   /** Influence for active action. */
   float act_influence = 0;
 

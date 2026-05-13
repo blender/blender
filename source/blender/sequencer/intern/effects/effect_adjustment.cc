@@ -68,12 +68,13 @@ static ImBuf *do_adjustment(const RenderData *context,
                             ImBuf * /*ibuf2*/)
 {
   Editing *ed = context->scene->ed;
-  if (!ed || state->strips_rendering_seqbase.contains(strip)) {
+  if (!ed || state->strips_in_progress.contains(strip)) {
     return nullptr;
   }
 
-  state->strips_rendering_seqbase.add(strip);
+  state->strips_in_progress.add(strip);
   ImBuf *out = do_adjustment_impl(context, state, strip, timeline_frame);
+  state->strips_in_progress.remove(strip);
   return out;
 }
 

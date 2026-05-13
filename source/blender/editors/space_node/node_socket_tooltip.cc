@@ -20,10 +20,11 @@
 #include "DNA_collection_types.h"
 #include "DNA_material_types.h"
 
-#include "NOD_geometry_nodes_log.hh"
+#include "NOD_eval_log.hh"
 #include "NOD_menu_value.hh"
 #include "NOD_node_declaration.hh"
 #include "NOD_socket.hh"
+#include "NOD_socket_declarations.hh"
 
 #include "ED_node.hh"
 
@@ -31,7 +32,7 @@
 
 namespace blender {
 
-namespace geo_log = nodes::geo_eval_log;
+namespace eval_log = nodes::eval_log;
 
 namespace ed::space_node {
 
@@ -49,6 +50,7 @@ class SocketTooltipBuilder {
     Label,
     Description,
     Value,
+    BundleType,
     Python,
   };
 
@@ -85,6 +87,7 @@ class SocketTooltipBuilder {
     }
     this->build_tooltip_description();
     this->build_tooltip_value();
+    this->build_tooltip_expected_bundle_type();
     this->build_python();
 
     /* Extra padding at the bottom. */
@@ -186,12 +189,12 @@ class SocketTooltipBuilder {
   void build_tooltip_value()
   {
     SpaceNode *snode = CTX_wm_space_node(&C_);
-    geo_log::ContextualGeoTreeLogs geo_tree_logs;
+    eval_log::ContextualNodeTreeLogs tree_logs;
     if (snode) {
-      geo_tree_logs = geo_log::GeoNodesLog::get_contextual_tree_logs(*snode);
+      tree_logs = eval_log::NodesEvalLog::get_contextual_tree_logs(*snode);
     }
-    geo_log::GeoTreeLog *geo_tree_log = geo_tree_logs.get_main_tree_log(socket_);
-    if (geo_tree_log && this->build_tooltip_value_from_geometry_nodes_log(*geo_tree_log)) {
+    eval_log::NodeTreeLog *tree_log = tree_logs.get_main_tree_log(socket_);
+    if (tree_log && this->build_tooltip_value_from_tree_log(*tree_log)) {
       return;
     }
     const bool always_show_value = tree_.type == NTREE_GEOMETRY;
@@ -251,29 +254,29 @@ class SocketTooltipBuilder {
     this->build_tooltip_value_generic({cpp_type, socket_value});
   }
 
-  [[nodiscard]] bool build_tooltip_value_from_geometry_nodes_log(geo_log::GeoTreeLog &geo_tree_log)
+  [[nodiscard]] bool build_tooltip_value_from_tree_log(eval_log::NodeTreeLog &tree_log)
   {
     if (socket_.typeinfo->base_cpp_type == nullptr) {
       return false;
     }
-    geo_tree_log.ensure_socket_values();
+    tree_log.ensure_socket_values();
     if (socket_.is_multi_input()) {
-      return this->build_tooltip_last_value_multi_input(geo_tree_log);
+      return this->build_tooltip_last_value_multi_input(tree_log);
     }
-    geo_log::ValueLog *value_log = geo_tree_log.find_socket_value_log(socket_);
+    eval_log::ValueLog *value_log = tree_log.find_socket_value_log(socket_);
     if (!value_log) {
       return false;
     }
     this->start_block(TooltipBlockType::Value);
-    this->build_tooltip_value_geo_log(*value_log);
+    this->build_tooltip_value_eval_log(*value_log);
     return true;
   }
 
-  bool build_tooltip_last_value_multi_input(geo_log::GeoTreeLog &geo_tree_log)
+  bool build_tooltip_last_value_multi_input(eval_log::NodeTreeLog &tree_log)
   {
     const Span<const bNodeLink *> connected_links = socket_.directly_linked_links();
 
-    Vector<std::pair<int, geo_log::ValueLog *>> value_logs;
+    Vector<std::pair<int, eval_log::ValueLog *>> value_logs;
     bool all_value_logs_missing = true;
     for (const int i : connected_links.index_range()) {
       const bNodeLink &link = *connected_links[i];
@@ -284,7 +287,7 @@ class SocketTooltipBuilder {
         continue;
       }
       const bNodeSocket &from_socket = *link.fromsock;
-      geo_log::ValueLog *value_log = geo_tree_log.find_socket_value_log(from_socket);
+      eval_log::ValueLog *value_log = tree_log.find_socket_value_log(from_socket);
       value_logs.append({i, value_log});
       if (value_log) {
         all_value_logs_missing = false;
@@ -305,7 +308,7 @@ class SocketTooltipBuilder {
       indentation_++;
       BLI_SCOPED_DEFER([&]() { indentation_--; });
       if (value_log) {
-        this->build_tooltip_value_geo_log(*value_log);
+        this->build_tooltip_value_eval_log(*value_log);
       }
       else {
         this->build_tooltip_value_unknown();
@@ -315,34 +318,38 @@ class SocketTooltipBuilder {
     return true;
   }
 
-  void build_tooltip_value_geo_log(geo_log::ValueLog &value_log)
+  void build_tooltip_value_eval_log(eval_log::ValueLog &value_log)
   {
-    if (const auto *generic_value_log = dynamic_cast<const geo_log::GenericValueLog *>(&value_log))
+    if (const auto *generic_value_log = dynamic_cast<const eval_log::GenericValueLog *>(
+            &value_log))
     {
       this->build_tooltip_value_generic(generic_value_log->value);
     }
-    else if (const auto *string_value_log = dynamic_cast<const geo_log::StringLog *>(&value_log)) {
+    else if (const auto *string_value_log = dynamic_cast<const eval_log::StringLog *>(&value_log))
+    {
       this->build_tooltip_value_string_log(*string_value_log);
     }
-    else if (const auto *field_value_log = dynamic_cast<const geo_log::FieldInfoLog *>(&value_log))
+    else if (const auto *field_value_log = dynamic_cast<const eval_log::FieldInfoLog *>(
+                 &value_log))
     {
       this->build_tooltip_value_field_log(*field_value_log);
     }
-    else if (const auto *geometry_log = dynamic_cast<const geo_log::GeometryInfoLog *>(&value_log))
+    else if (const auto *geometry_log = dynamic_cast<const eval_log::GeometryInfoLog *>(
+                 &value_log))
     {
       this->build_tooltip_value_geometry_log(*geometry_log);
     }
-    else if (const auto *grid_log = dynamic_cast<const geo_log::GridInfoLog *>(&value_log)) {
+    else if (const auto *grid_log = dynamic_cast<const eval_log::GridInfoLog *>(&value_log)) {
       build_tooltip_value_grid_log(*grid_log);
     }
-    else if (const auto *bundle_log = dynamic_cast<const geo_log::BundleValueLog *>(&value_log)) {
+    else if (const auto *bundle_log = dynamic_cast<const eval_log::BundleValueLog *>(&value_log)) {
       this->build_tooltip_value_bundle_log(*bundle_log);
     }
-    else if (const auto *closure_log = dynamic_cast<const geo_log::ClosureValueLog *>(&value_log))
+    else if (const auto *closure_log = dynamic_cast<const eval_log::ClosureValueLog *>(&value_log))
     {
       this->build_tooltip_value_closure_log(*closure_log);
     }
-    else if (const auto *list_log = dynamic_cast<const geo_log::ListInfoLog *>(&value_log)) {
+    else if (const auto *list_log = dynamic_cast<const eval_log::ListInfoLog *>(&value_log)) {
       this->build_tooltip_value_list_log(*list_log);
     }
   }
@@ -548,7 +555,7 @@ class SocketTooltipBuilder {
     this->build_tooltip_value_unknown();
   }
 
-  void build_tooltip_value_string_log(const geo_log::StringLog &value_log)
+  void build_tooltip_value_string_log(const eval_log::StringLog &value_log)
   {
     std::string value_str = value_log.value;
     if (value_log.truncated) {
@@ -587,7 +594,7 @@ class SocketTooltipBuilder {
     return TIP_("Field");
   }
 
-  void build_tooltip_value_field_log(const geo_log::FieldInfoLog &value_log)
+  void build_tooltip_value_field_log(const eval_log::FieldInfoLog &value_log)
   {
     const CPPType &socket_base_cpp_type = *socket_.typeinfo->base_cpp_type;
     const Span<std::string> input_tooltips = value_log.input_tooltips;
@@ -617,7 +624,7 @@ class SocketTooltipBuilder {
     return std::string(str);
   }
 
-  void build_tooltip_value_geometry_log(const geo_log::GeometryInfoLog &geometry_log)
+  void build_tooltip_value_geometry_log(const eval_log::GeometryInfoLog &geometry_log)
   {
     Span<bke::GeometryComponent::Type> component_types = geometry_log.component_types;
     if (component_types.is_empty()) {
@@ -629,7 +636,7 @@ class SocketTooltipBuilder {
       std::string component_str;
       switch (type) {
         case bke::GeometryComponent::Type::Mesh: {
-          const geo_log::GeometryInfoLog::MeshInfo &info = *geometry_log.mesh_info;
+          const eval_log::GeometryInfoLog::MeshInfo &info = *geometry_log.mesh_info;
           component_str = fmt::format(fmt::runtime(TIP_("Mesh: {} vertices, {} edges, {} faces")),
                                       this->count_to_string(info.verts_num),
                                       this->count_to_string(info.edges_num),
@@ -637,32 +644,32 @@ class SocketTooltipBuilder {
           break;
         }
         case bke::GeometryComponent::Type::PointCloud: {
-          const geo_log::GeometryInfoLog::PointCloudInfo &info = *geometry_log.pointcloud_info;
+          const eval_log::GeometryInfoLog::PointCloudInfo &info = *geometry_log.pointcloud_info;
           component_str = fmt::format(fmt::runtime(TIP_("Point Cloud: {} points")),
                                       this->count_to_string(info.points_num));
           break;
         }
         case bke::GeometryComponent::Type::Instance: {
-          const geo_log::GeometryInfoLog::InstancesInfo &info = *geometry_log.instances_info;
+          const eval_log::GeometryInfoLog::InstancesInfo &info = *geometry_log.instances_info;
           component_str = fmt::format(fmt::runtime(TIP_("Instances: {}")),
                                       this->count_to_string(info.instances_num));
           break;
         }
         case bke::GeometryComponent::Type::Volume: {
-          const geo_log::GeometryInfoLog::VolumeInfo &info = *geometry_log.volume_info;
+          const eval_log::GeometryInfoLog::VolumeInfo &info = *geometry_log.volume_info;
           component_str = fmt::format(fmt::runtime(TIP_("Volume: {} grids")),
                                       this->count_to_string(info.grids.size()));
           break;
         }
         case bke::GeometryComponent::Type::Curve: {
-          const geo_log::GeometryInfoLog::CurveInfo &info = *geometry_log.curve_info;
+          const eval_log::GeometryInfoLog::CurveInfo &info = *geometry_log.curve_info;
           component_str = fmt::format(fmt::runtime(TIP_("Curve: {} points, {} splines")),
                                       this->count_to_string(info.points_num),
                                       this->count_to_string(info.splines_num));
           break;
         }
         case bke::GeometryComponent::Type::GreasePencil: {
-          const geo_log::GeometryInfoLog::GreasePencilInfo &info =
+          const eval_log::GeometryInfoLog::GreasePencilInfo &info =
               *geometry_log.grease_pencil_info;
           component_str = fmt::format(fmt::runtime(TIP_("Grease Pencil: {} layers")),
                                       this->count_to_string(info.layers_num));
@@ -670,7 +677,7 @@ class SocketTooltipBuilder {
         }
         case bke::GeometryComponent::Type::Edit: {
           if (geometry_log.edit_data_info.has_value()) {
-            const geo_log::GeometryInfoLog::EditDataInfo &info = *geometry_log.edit_data_info;
+            const eval_log::GeometryInfoLog::EditDataInfo &info = *geometry_log.edit_data_info;
             component_str = fmt::format(
                 fmt::runtime(TIP_("Edit: {}, {}, {}")),
                 info.has_deformed_positions ? TIP_("positions") : TIP_("no positions"),
@@ -689,7 +696,7 @@ class SocketTooltipBuilder {
     this->add_text_field_mono(TIP_("Type: Geometry Set"));
   }
 
-  void build_tooltip_value_grid_log(const geo_log::GridInfoLog &grid_log)
+  void build_tooltip_value_grid_log(const eval_log::GridInfoLog &grid_log)
   {
     std::string value_str;
     if (grid_log.is_empty) {
@@ -701,18 +708,18 @@ class SocketTooltipBuilder {
     this->build_tooltip_value_and_type_oneline(value_str, TIP_("Volume Grid"));
   }
 
-  void build_tooltip_value_bundle_log(const geo_log::BundleValueLog &bundle_log)
+  void build_tooltip_value_bundle_log(const eval_log::BundleValueLog &bundle_log)
   {
     if (bundle_log.items.is_empty()) {
       this->add_text_field_mono(TIP_("Values: None"));
     }
     else {
       this->add_text_field_mono(TIP_("Values:"));
-      Vector<geo_log::BundleValueLog::Item> sorted_items = bundle_log.items;
+      Vector<eval_log::BundleValueLog::Item> sorted_items = bundle_log.items;
       std::ranges::sort(sorted_items, [](const auto &a, const auto &b) {
         return BLI_strcasecmp_natural(a.key.c_str(), b.key.c_str()) < 0;
       });
-      for (const geo_log::BundleValueLog::Item &item : sorted_items) {
+      for (const eval_log::BundleValueLog::Item &item : sorted_items) {
         this->add_space();
         std::string type_name;
         if (const bke::bNodeSocketType *const *socket_type =
@@ -731,7 +738,7 @@ class SocketTooltipBuilder {
     this->add_text_field_mono(TIP_("Type: Bundle"));
   }
 
-  void build_tooltip_value_closure_log(const geo_log::ClosureValueLog &closure_log)
+  void build_tooltip_value_closure_log(const eval_log::ClosureValueLog &closure_log)
   {
     if (closure_log.inputs.is_empty() && closure_log.outputs.is_empty()) {
       this->add_text_field_mono(TIP_("Value: None"));
@@ -739,7 +746,7 @@ class SocketTooltipBuilder {
     else {
       if (!closure_log.inputs.is_empty()) {
         this->add_text_field_mono(TIP_("Inputs:"));
-        for (const geo_log::ClosureValueLog::Item &item : closure_log.inputs) {
+        for (const eval_log::ClosureValueLog::Item &item : closure_log.inputs) {
           this->add_space();
           const std::string type_name = TIP_(item.type->label);
           this->add_text_field_mono(fmt::format("\u2022 \"{}\" ({})\n", item.key, type_name));
@@ -748,7 +755,7 @@ class SocketTooltipBuilder {
       if (!closure_log.outputs.is_empty()) {
         this->add_space();
         this->add_text_field_mono(TIP_("Outputs:"));
-        for (const geo_log::ClosureValueLog::Item &item : closure_log.outputs) {
+        for (const eval_log::ClosureValueLog::Item &item : closure_log.outputs) {
           this->add_space();
           const std::string type_name = TIP_(item.type->label);
           this->add_text_field_mono(fmt::format("\u2022 \"{}\" ({})\n", item.key, type_name));
@@ -759,7 +766,7 @@ class SocketTooltipBuilder {
     this->add_text_field_mono(TIP_("Type: Closure"));
   }
 
-  void build_tooltip_value_list_log(const geo_log::ListInfoLog &list_log)
+  void build_tooltip_value_list_log(const eval_log::ListInfoLog &list_log)
   {
     this->add_text_field_mono(fmt::format("{}: {}", TIP_("Length"), list_log.size));
     this->add_space();
@@ -826,6 +833,51 @@ class SocketTooltipBuilder {
       return false;
     }
     return true;
+  }
+
+  void build_tooltip_expected_bundle_type()
+  {
+    if (socket_.type != SOCK_BUNDLE) {
+      return;
+    }
+    if (socket_.is_output()) {
+      return;
+    }
+    const auto *socket_decl = dynamic_cast<const nodes::decl::Bundle *>(
+        socket_.runtime->declaration);
+    if (!socket_decl) {
+      return;
+    }
+    if (!socket_decl->bundle_type) {
+      return;
+    }
+    const nodes::BundleType &bundle_type = *socket_decl->bundle_type;
+
+    if (const auto *nested_bundle_type = std::get_if<nodes::NestedBundleTypePtr>(
+            &bundle_type.type))
+    {
+      this->start_block(TooltipBlockType::BundleType);
+      this->add_text_field_mono(TIP_("Nested Bundle Types:"));
+      for (const nodes::FlatBundleTypePtr &flat_type : (*nested_bundle_type)->items()) {
+        this->add_space();
+        this->add_text_field_mono(fmt::format(" \u2022 {}", flat_type->name()));
+        indentation_++;
+        BLI_SCOPED_DEFER([&]() { indentation_--; });
+
+        for (const nodes::FlatBundleType::Item &item : flat_type->items()) {
+          this->add_text_field_mono(fmt::format(" \u2022 {}", item.name()));
+        }
+      }
+    }
+    else if (const auto *flat_bundle_type = std::get_if<nodes::FlatBundleTypePtr>(
+                 &bundle_type.type))
+    {
+      this->start_block(TooltipBlockType::BundleType);
+      this->add_text_field_mono(TIP_("Bundle Type:"));
+      for (const nodes::FlatBundleType::Item &item : (*flat_bundle_type)->items()) {
+        this->add_text_field_mono(fmt::format(" \u2022 {}", item.name()));
+      }
+    }
   }
 
   StringRef get_structure_type_tooltip(const nodes::StructureType &structure_type)

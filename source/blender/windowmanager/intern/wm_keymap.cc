@@ -761,7 +761,7 @@ static wmKeyMap *wm_keymap_patch_update(ListBaseT<wmKeyMap> *lb,
                                         wmKeyMap *addonmap,
                                         wmKeyMap *usermap)
 {
-  int expanded = 0;
+  eKeyMap_Flag expanded = eKeyMap_Flag{};
 
   /* Get previous keymap in list, we will update it in place to keep iterators valid. */
   wmKeyMap *km = WM_keymap_list_find(

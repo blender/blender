@@ -36,16 +36,16 @@ MaterialModule::MaterialModule(Instance &inst) : inst_(inst)
     /* Use 0.18 as it is close to middle gray. Middle gray is typically defined as 18% reflectance
      * of visible light and commonly used for VFX balls. */
     bNode *bsdf = bke::node_add_static_node(nullptr, *ntree, SH_NODE_BSDF_DIFFUSE);
-    bNodeSocket *base_color = bke::node_find_socket(*bsdf, SOCK_IN, "Color");
+    bNodeSocket *base_color = bke::node_find_socket(*bsdf, SOCK_IN, "Color"_ustr);
     copy_v3_fl((static_cast<bNodeSocketValueRGBA *>(base_color->default_value))->value, 0.18f);
 
     bNode *output = bke::node_add_static_node(nullptr, *ntree, SH_NODE_OUTPUT_MATERIAL);
 
     bke::node_add_link(*ntree,
                        *bsdf,
-                       *bke::node_find_socket(*bsdf, SOCK_OUT, "BSDF"),
+                       *bke::node_find_socket(*bsdf, SOCK_OUT, "BSDF"_ustr),
                        *output,
-                       *bke::node_find_socket(*output, SOCK_IN, "Surface"));
+                       *bke::node_find_socket(*output, SOCK_IN, "Surface"_ustr));
 
     bke::node_set_active(*ntree, *output);
   }
@@ -55,18 +55,18 @@ MaterialModule::MaterialModule(Instance &inst) : inst_(inst)
     metallic_mat->surface_render_method = MA_SURFACE_METHOD_FORWARD;
 
     bNode *bsdf = bke::node_add_static_node(nullptr, *ntree, SH_NODE_BSDF_GLOSSY);
-    bNodeSocket *base_color = bke::node_find_socket(*bsdf, SOCK_IN, "Color");
+    bNodeSocket *base_color = bke::node_find_socket(*bsdf, SOCK_IN, "Color"_ustr);
     copy_v3_fl((static_cast<bNodeSocketValueRGBA *>(base_color->default_value))->value, 1.0f);
-    bNodeSocket *roughness = bke::node_find_socket(*bsdf, SOCK_IN, "Roughness");
+    bNodeSocket *roughness = bke::node_find_socket(*bsdf, SOCK_IN, "Roughness"_ustr);
     (static_cast<bNodeSocketValueFloat *>(roughness->default_value))->value = 0.0f;
 
     bNode *output = bke::node_add_static_node(nullptr, *ntree, SH_NODE_OUTPUT_MATERIAL);
 
     bke::node_add_link(*ntree,
                        *bsdf,
-                       *bke::node_find_socket(*bsdf, SOCK_OUT, "BSDF"),
+                       *bke::node_find_socket(*bsdf, SOCK_OUT, "BSDF"_ustr),
                        *output,
-                       *bke::node_find_socket(*output, SOCK_IN, "Surface"));
+                       *bke::node_find_socket(*output, SOCK_IN, "Surface"_ustr));
 
     bke::node_set_active(*ntree, *output);
   }
@@ -82,7 +82,7 @@ MaterialModule::MaterialModule(Instance &inst) : inst_(inst)
 
     /* Use emission and output material to be compatible with both World and Material. */
     bNode *bsdf = bke::node_add_static_node(nullptr, *ntree, SH_NODE_EMISSION);
-    bNodeSocket *color = bke::node_find_socket(*bsdf, SOCK_IN, "Color");
+    bNodeSocket *color = bke::node_find_socket(*bsdf, SOCK_IN, "Color"_ustr);
     copy_v3_fl3(
         (static_cast<bNodeSocketValueRGBA *>(color->default_value))->value, 1.0f, 0.0f, 1.0f);
 
@@ -90,9 +90,9 @@ MaterialModule::MaterialModule(Instance &inst) : inst_(inst)
 
     bke::node_add_link(*ntree,
                        *bsdf,
-                       *bke::node_find_socket(*bsdf, SOCK_OUT, "Emission"),
+                       *bke::node_find_socket(*bsdf, SOCK_OUT, "Emission"_ustr),
                        *output,
-                       *bke::node_find_socket(*output, SOCK_IN, "Surface"));
+                       *bke::node_find_socket(*output, SOCK_IN, "Surface"_ustr));
 
     bke::node_set_active(*ntree, *output);
   }
@@ -332,7 +332,15 @@ Material &MaterialModule::material_sync(const ObjectHandle &ob_handle,
     prepass_pipe = has_motion ? MAT_PIPE_PREPASS_DEFERRED_VELOCITY : MAT_PIPE_PREPASS_DEFERRED;
   }
 
-  MaterialKey material_key(blender_mat, geometry_type, surface_pipe, ob->visibility_flag);
+  /**
+   * NOTE: Use prepass_pipe instead of surface_pipe, since surface_pipe doesn't take velocity
+   * variants into account, causing all users of the same material to use velocity or not based on
+   * the first object that was synced.
+   * Note that prepass already takes deferred vs forward into account.
+   *
+   * TODO: Find a cleaner solution.
+   */
+  MaterialKey material_key(blender_mat, geometry_type, prepass_pipe, ob->visibility_flag);
 
   Material &mat = material_map_.lookup_or_add_cb(material_key, [&]() {
     Material mat;

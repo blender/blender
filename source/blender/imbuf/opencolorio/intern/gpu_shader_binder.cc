@@ -316,6 +316,10 @@ static void gpu_display_shader_parameters_update(internal::GPUDisplayShader &dis
     data.dither = display_parameters.dither;
     do_update = true;
   }
+  if (data.opacity != display_parameters.opacity) {
+    data.opacity = display_parameters.opacity;
+    do_update = true;
+  }
   if (bool(data.use_predivide) != display_parameters.use_predivide) {
     data.use_predivide = display_parameters.use_predivide;
     do_update = true;
@@ -541,7 +545,6 @@ bool GPUShaderBinder::create_gpu_shader(
   }
 
   /* Set LUT uniforms. */
-#if defined(WITH_OPENCOLORIO)
   if (!display_shader.textures.uniforms.is_empty()) {
     /* NOTE: For simplicity, we pad everything to size of vec4 avoiding sorting and alignment
      * issues. It is unlikely that this becomes a real issue. */
@@ -607,7 +610,6 @@ bool GPUShaderBinder::create_gpu_shader(
     display_shader.textures.uniforms_buffer = GPU_uniformbuf_create_ex(
         ubo_size, ubo_data_buf.data(), "OCIO_LutParameters");
   }
-#endif
 
   display_shader.shader = GPU_shader_create_from_info(
       reinterpret_cast<GPUShaderCreateInfo *>(&info));

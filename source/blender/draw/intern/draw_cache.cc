@@ -27,6 +27,7 @@
 #include "BKE_context.hh"
 #include "BKE_mesh_wrapper.hh"
 #include "BKE_object.hh"
+#include "BKE_object_types.hh"
 #include "BKE_subdiv_modifier.hh"
 
 #include "DRW_render.hh"
@@ -537,18 +538,27 @@ void drw_batch_cache_generate_requested_evaluated_mesh_or_curve(Object *ob, Task
   const bool is_paint_mode = ELEM(
       mode, CTX_MODE_SCULPT, CTX_MODE_PAINT_TEXTURE, CTX_MODE_PAINT_VERTEX, CTX_MODE_PAINT_WEIGHT);
 
-  const bool use_hide = ((ob->type == OB_MESH) &&
-                         ((is_paint_mode && (ob == draw_ctx->obact) &&
-                           DRW_object_use_hide_faces(ob)) ||
-                          ((mode == CTX_MODE_EDIT_MESH) && (ob->mode == OB_MODE_EDIT))));
-
-  Mesh *mesh = BKE_object_get_evaluated_mesh_no_subsurf_unchecked(ob);
-  /* Try getting the mesh first and if that fails, try getting the curve data.
-   * If the curves are surfaces or have certain modifiers applied to them,
-   * they will have mesh data of the final result. */
-  if (mesh != nullptr) {
+  if (ob->type == OB_MESH) {
+    const bool use_hide = ((is_paint_mode && (ob == draw_ctx->obact) &&
+                            DRW_object_use_hide_faces(ob)) ||
+                           ((mode == CTX_MODE_EDIT_MESH) && (ob->mode == OB_MODE_EDIT)));
+    if (Mesh *mesh = BKE_object_get_evaluated_mesh_no_subsurf_unchecked(ob)) {
+      DRW_mesh_batch_cache_create_requested(
+          task_graph, *ob, DRW_mesh_get_for_drawing(*mesh), *scene, is_paint_mode, use_hide);
+    }
+  }
+  else if (Mesh *mesh = BKE_object_get_evaluated_mesh_no_subsurf_unchecked(ob)) {
+    /* Legacy curve objects can have evaluated mesh data while the original object is still a curve
+     * in edit mode (see #156971). #DRW_mesh_batch_cache_create_requested expects the object to
+     * match the mesh data and to be in object mode for non-edit mesh extraction, so use a shallow
+     * temporary mesh object for drawing. */
+    bke::ObjectRuntime tmp_runtime = *ob->runtime;
+    Object tmp_object = dna::shallow_copy(*ob);
+    tmp_object.runtime = &tmp_runtime;
+    tmp_object.mode = OB_MODE_OBJECT;
+    BKE_object_replace_data_on_shallow_copy(&tmp_object, &mesh->id);
     DRW_mesh_batch_cache_create_requested(
-        task_graph, *ob, DRW_mesh_get_for_drawing(*mesh), *scene, is_paint_mode, use_hide);
+        task_graph, tmp_object, DRW_mesh_get_for_drawing(*mesh), *scene, is_paint_mode, false);
   }
   else if (ELEM(ob->type, OB_CURVES_LEGACY, OB_FONT, OB_SURF)) {
     DRW_curve_batch_cache_create_requested(ob, scene);

@@ -138,7 +138,7 @@ class StringToImageOperation : public NodeOperation {
     }
 
     Result &output = this->get_result("Image");
-    output.wrap_external(string_image);
+    output.share_data(string_image);
   }
 
   HorizontalAlignment get_horizontal_alignment()

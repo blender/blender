@@ -21,8 +21,8 @@
 #include "BLI_string_utf8.h"
 #include "BLI_utildefines.h"
 
+#include "IMB_cache.hh"
 #include "IMB_imbuf.hh"
-#include "IMB_moviecache.hh"
 
 #include "MOV_util.hh"
 
@@ -83,7 +83,7 @@ void BKE_blender_free()
 
   BKE_callback_global_finalize();
 
-  IMB_moviecache_destruct();
+  IMB_cache_destruct();
   seq::fontmap_clear();
   MOV_exit();
 
@@ -450,7 +450,9 @@ void BKE_blender_userdef_app_template_data_swap(UserDef *userdef_a, UserDef *use
   DATA_SWAP(app_flag);
 
   /* We could add others. */
-  FLAG_SWAP(uiflag, int, USER_SAVE_PROMPT | USER_SPLASH_DISABLE | USER_SHOW_GIZMO_NAVIGATE);
+  FLAG_SWAP(uiflag,
+            eUserpref_UI_Flag,
+            USER_SAVE_PROMPT | USER_SPLASH_DISABLE | USER_SHOW_GIZMO_NAVIGATE);
 
   DATA_SWAP(ui_scale);
 

@@ -18,18 +18,7 @@
 namespace blender {
 
 #ifdef WITH_SDL
-/* SDL force defines __SSE__ and __SSE2__ flags, which generates warnings
- * because we pass those defines via command line as well. For until there's
- * proper `ifndef` added to SDL headers we ignore the redefinition warning.
- */
-#  ifdef _MSC_VER
-#    pragma warning(push)
-#    pragma warning(disable : 4005)
-#  endif
-#  include "SDL.h"
-#  ifdef _MSC_VER
-#    pragma warning(pop)
-#  endif
+#  include <SDL3/SDL.h>
 #endif
 
 static PyTypeObject BlenderAppSDLType;
@@ -52,9 +41,6 @@ static PyObject *make_sdl_info()
 {
   PyObject *sdl_info;
   int pos = 0;
-#ifdef WITH_SDL
-  SDL_version version = {0, 0, 0};
-#endif
 
   sdl_info = PyStructSequence_New(&BlenderAppSDLType);
   if (sdl_info == nullptr) {
@@ -67,14 +53,14 @@ static PyObject *make_sdl_info()
 
 #ifdef WITH_SDL
   SetObjItem(PyBool_FromLong(1));
-#  if SDL_MAJOR_VERSION >= 2
-  SDL_GetVersion(&version);
-#  else
-  SDL_VERSION(&version);
-#  endif
-
-  SetObjItem(PyC_Tuple_Pack_I32({version.major, version.minor, version.patch}));
-  SetObjItem(PyUnicode_FromFormat("%d.%d.%d", version.major, version.minor, version.patch));
+  {
+    int sdl_ver = SDL_GetVersion();
+    const int major = SDL_VERSIONNUM_MAJOR(sdl_ver);
+    const int minor = SDL_VERSIONNUM_MINOR(sdl_ver);
+    const int patch = SDL_VERSIONNUM_MICRO(sdl_ver);
+    SetObjItem(PyC_Tuple_Pack_I32({major, minor, patch}));
+    SetObjItem(PyUnicode_FromFormat("%d.%d.%d", major, minor, patch));
+  }
 
 #else /* WITH_SDL=OFF */
   SetObjItem(PyBool_FromLong(0));

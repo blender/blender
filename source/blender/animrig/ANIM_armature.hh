@@ -12,6 +12,7 @@
 
 #include "ANIM_bone_collections.hh"
 
+#include "BKE_pose.hh"
 #include "DNA_armature_types.h"
 
 namespace blender::animrig {
@@ -27,10 +28,14 @@ inline bool bone_is_visible(const bArmature *armature, const Bone *bone)
   return bone_itself_visible && ANIM_bone_in_visible_collection(armature, bone);
 }
 
+inline bool bone_is_visible(const bArmature *armature, const bke::PChanBoneConst pchanbone)
+{
+  const bool bone_itself_visible = (pchanbone.pchan->drawflag & PCHAN_DRAW_HIDDEN) == 0;
+  return bone_itself_visible && ANIM_bone_in_visible_collection(armature, pchanbone.bone);
+}
 inline bool bone_is_visible(const bArmature *armature, const bPoseChannel *pchan)
 {
-  const bool bone_itself_visible = (pchan->drawflag & PCHAN_DRAW_HIDDEN) == 0;
-  return bone_itself_visible && ANIM_bone_in_visible_collection(armature, pchan->bone);
+  return bone_is_visible(armature, {pchan, pchan->bone_get(*armature)});
 }
 
 inline bool bone_is_visible(const bArmature *armature, const EditBone *ebone)
@@ -48,6 +53,10 @@ inline bool bone_is_selected(const bArmature *armature, const Bone *bone)
   return (bone->flag & BONE_SELECTED) && bone_is_visible(armature, bone);
 }
 
+inline bool bone_is_selected(const bArmature *armature, const bke::PChanBoneConst pchanbone)
+{
+  return (pchanbone.pchan->flag & POSE_SELECTED) && bone_is_visible(armature, pchanbone);
+}
 inline bool bone_is_selected(const bArmature *armature, const bPoseChannel *pchan)
 {
   return (pchan->flag & POSE_SELECTED) && bone_is_visible(armature, pchan);
@@ -58,9 +67,13 @@ inline bool bone_is_selected(const bArmature *armature, const EditBone *ebone)
   return (ebone->flag & BONE_SELECTED) && bone_is_visible(armature, ebone);
 }
 
+inline bool bone_is_selectable(const bArmature *armature, const bke::PChanBoneConst pchanbone)
+{
+  return bone_is_visible(armature, pchanbone) && !(pchanbone.bone->flag & BONE_UNSELECTABLE);
+}
 inline bool bone_is_selectable(const bArmature *armature, const bPoseChannel *pchan)
 {
-  return bone_is_visible(armature, pchan) && !(pchan->bone->flag & BONE_UNSELECTABLE);
+  return bone_is_selectable(armature, {pchan, pchan->bone_get(*armature)});
 }
 
 inline bool bone_is_selectable(const bArmature *armature, const Bone *bone)
@@ -87,8 +100,8 @@ inline void bone_deselect(bPoseChannel *pchan)
  * Iterates all descendents of the given pose bone including the bone itself. Iterates breadth
  * first.
  */
-void pose_bone_descendent_iterator(bPose &pose,
-                                   bPoseChannel &pose_bone,
+void pose_bone_descendent_iterator(Object &pose_ob,
+                                   bPoseChannel &pchan,
                                    FunctionRef<void(bPoseChannel &child_bone)> callback);
 
 /**
@@ -96,7 +109,7 @@ void pose_bone_descendent_iterator(bPose &pose,
  * stopped if the callback returns false. Returns true if the iteration completed or false if it
  * was stopped before visiting all bones.
  */
-bool pose_bone_descendent_depth_iterator(bPose &pose,
-                                         bPoseChannel &pose_bone,
+bool pose_bone_descendent_depth_iterator(Object &pose_ob,
+                                         bPoseChannel &pchan,
                                          FunctionRef<bool(bPoseChannel &child_bone)> callback);
 }  // namespace blender::animrig

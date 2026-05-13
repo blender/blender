@@ -37,7 +37,7 @@ As well as pep8 we have additional conventions used for Blender Python scripts:
      bpy.context.scene.render.image_settings.file_format = 'PNG'
      bpy.context.scene.render.filepath = "//render_out"
 
-- pep8 also defines that lines should not exceed 79 characters,
+- pep8 also defines that lines should not exceed 79 characters;
   we have decided that this is too restrictive so it is optional per script.
 
 
@@ -48,7 +48,7 @@ Some notes to keep in mind when writing UI layouts:
 
 UI code is quite simple. Layout declarations are there to easily create a decent layout.
 The general rule here is: If you need more code for the layout declaration,
-than for the actual properties, then you are doing it wrong.
+than for the actual properties, then the approach should be reconsidered.
 
 
 .. rubric:: Example layouts:

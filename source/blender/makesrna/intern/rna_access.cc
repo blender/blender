@@ -4341,7 +4341,7 @@ eStringPropertySearchFlag RNA_property_string_search_flag(PropertyRNA *prop)
 {
   StringPropertyRNA *sprop = reinterpret_cast<StringPropertyRNA *>(rna_ensure_property(prop));
   if (prop->magic != RNA_MAGIC) {
-    return eStringPropertySearchFlag(0);
+    return eStringPropertySearchFlag{};
   }
   BLI_assert(RNA_property_type(prop) == PROP_STRING);
   if (sprop->search) {
@@ -6035,7 +6035,7 @@ static void update_idprop_int(PointerRNA &rna_ptr, PropertyRNA &rna_prop, IDProp
           &rna_ptr, &rna_prop, static_cast<int *>(idprop.data.pointer));
     }
     else {
-      idprop.type = PROP_INT;
+      idprop.type = IDP_INT;
       IDP_int_set(&idprop, RNA_property_int_get_default(&rna_ptr, &rna_prop));
     }
   };
@@ -6128,21 +6128,21 @@ static void update_idprop_int(PointerRNA &rna_ptr, PropertyRNA &rna_prop, IDProp
     case IDP_FLOAT: {
       const float value = IDP_float_get(&idprop);
       IDP_ClearProperty(&idprop);
-      idprop.type = PROP_INT;
+      idprop.type = IDP_INT;
       IDP_int_set(&idprop, int(value));
       break;
     }
     case IDP_DOUBLE: {
       const double value = IDP_double_get(&idprop);
       IDP_ClearProperty(&idprop);
-      idprop.type = PROP_INT;
+      idprop.type = IDP_INT;
       IDP_int_set(&idprop, int(value));
       break;
     }
     case IDP_BOOLEAN: {
       const bool value = IDP_bool_get(&idprop);
       IDP_ClearProperty(&idprop);
-      idprop.type = PROP_INT;
+      idprop.type = IDP_INT;
       IDP_int_set(&idprop, int(value));
       break;
     }
@@ -6439,6 +6439,8 @@ void rna_iterator_array_begin(CollectionPropertyIterator *iter,
   iter->parent = *ptr;
 
   ArrayIterator *internal;
+  /* Ensure clearing `data` doesn't prevent it from being freed. */
+  void *data_free = data;
 
   if (data == nullptr) {
     length = 0;
@@ -6456,7 +6458,7 @@ void rna_iterator_array_begin(CollectionPropertyIterator *iter,
 
   internal = &iter->internal.array;
   internal->ptr = static_cast<char *>(data);
-  internal->free_ptr = free_ptr ? data : nullptr;
+  internal->free_ptr = free_ptr ? data_free : nullptr;
   internal->endptr = (static_cast<char *>(data)) + itemsize * length;
   internal->itemsize = itemsize;
   internal->skip = skip;

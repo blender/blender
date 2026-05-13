@@ -84,7 +84,7 @@ set(LIB
   PRIVATE bf::windowmanager
 
   PRIVATE bf::dependencies::optional::alembic
-  PRIVATE bf::dependencies::optional::openexr
+  PRIVATE bf::dependencies::openexr
 )
 
 blender_add_lib(bf_io_alembic "${SRC}" "${INC}" "${INC_SYS}" "${LIB}")

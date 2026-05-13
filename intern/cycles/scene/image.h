@@ -123,6 +123,9 @@ class ImageSingle : public ImageTexture {
   bool need_metadata = true;
   bool builtin = false;
 
+  /* Number of top mip levels in the image file to discard. */
+  int miplevel_offset = 0;
+
   thread_mutex mutex;
 
   device_image *vdb_memory = nullptr;

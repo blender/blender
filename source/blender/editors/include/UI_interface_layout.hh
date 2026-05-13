@@ -661,12 +661,18 @@ struct Layout : public Item, NonCopyable, NonMovable {
    * Adds a string property item as textbox, this will let multi-line text editing, textbox state
    * will be persistent at runtime.
    */
-  void textbox(const bContext *C, PointerRNA *ptr, StringRefNull propname);
+  void textbox(const bContext *C,
+               PointerRNA *ptr,
+               StringRefNull propname,
+               std::optional<StringRefNull> placeholder = std::nullopt);
   /**
    * Adds a string property item as textbox, this will let multi-line text editing.
    * \param textbox_state: custom allocation for persistent textbox state.
    */
-  void textbox_with_state(PointerRNA *ptr, StringRefNull propname, TextboxState *textbox_state);
+  void textbox_with_state(PointerRNA *ptr,
+                          StringRefNull propname,
+                          TextboxState *textbox_state,
+                          std::optional<StringRefNull> placeholder = std::nullopt);
 
   /**
    * Adds a RNA property item, and sets a custom popover to expose its value.

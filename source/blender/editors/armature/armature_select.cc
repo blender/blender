@@ -135,7 +135,7 @@ Base *ED_armature_base_and_bone_from_select_buffer(const Span<Base *> bases,
 {
   bPoseChannel *pchan = nullptr;
   Base *base = ED_armature_base_and_pchan_from_select_buffer(bases, select_id, &pchan);
-  *r_bone = pchan ? pchan->bone : nullptr;
+  *r_bone = pchan ? pchan->bone_get(*base->object) : nullptr;
   return base;
 }
 
@@ -178,7 +178,7 @@ static void *ed_armature_pick_bone_from_selectbuffer_impl(const bool is_editmode
       if (is_editmode == false) {
         base = ED_armature_base_and_pchan_from_select_buffer(bases, hit_id, &pchan);
         if (pchan != nullptr) {
-          if (pchan->bone->flag & BONE_UNSELECTABLE) {
+          if (pchan->bone_get(*base->object)->flag & BONE_UNSELECTABLE) {
             continue;
           }
           if (findunsel) {
@@ -291,7 +291,7 @@ Bone *ED_armature_pick_bone_from_selectbuffer(const Span<Base *> bases,
 {
   bPoseChannel *pchan = ED_armature_pick_pchan_from_selectbuffer(
       bases, hit_results, hits, findunsel, do_nearest, r_base);
-  return pchan ? pchan->bone : nullptr;
+  return pchan ? pchan->bone_get(*(*r_base)->object) : nullptr;
 }
 
 /** \} */
@@ -367,7 +367,7 @@ bPoseChannel *ED_armature_pick_pchan(bContext *C, const int xy[2], bool findunse
 Bone *ED_armature_pick_bone(bContext *C, const int xy[2], bool findunsel, Base **r_base)
 {
   bPoseChannel *pchan = ED_armature_pick_pchan(C, xy, findunsel, r_base);
-  return pchan ? pchan->bone : nullptr;
+  return pchan ? pchan->bone_get(*(*r_base)->object) : nullptr;
 }
 
 /** \} */
@@ -639,7 +639,7 @@ static int selectbuffer_ret_hits_5(MutableSpan<GPUSelectResult> hit_results,
 /* does bones and points */
 /* note that BONE ROOT only gets drawn for root bones (or without IK) */
 static EditBone *get_nearest_editbonepoint(
-    ViewContext *vc, bool findunsel, bool use_cycle, Base **r_base, int *r_selmask)
+    ViewContext *vc, bool findunsel, bool use_cycle, Base **r_base, eBone_Flag *r_selmask)
 {
   GPUSelectBuffer buffer;
   struct Result {
@@ -686,7 +686,7 @@ static EditBone *get_nearest_editbonepoint(
   view3d_gpu_select_cache_begin();
 
   {
-    const eV3DSelectObjectFilter select_filter = VIEW3D_SELECT_FILTER_NOP;
+    const eV3DSelectObjectFilter select_filter = VIEW3D_SELECT_FILTER_OBJECT_MODE_LOCK_SAME_TYPE;
 
     GPUSelectStorage &storage = buffer.storage;
     rcti rect;
@@ -869,7 +869,7 @@ cache_end:
     if (result->select_id != -1) {
       *r_base = result->base;
 
-      *r_selmask = 0;
+      *r_selmask = eBone_Flag{};
       if (result->select_id & BONESEL_ROOT) {
         *r_selmask |= BONE_ROOTSEL;
       }
@@ -882,7 +882,7 @@ cache_end:
       return result->ebone;
     }
   }
-  *r_selmask = 0;
+  *r_selmask = eBone_Flag{};
   *r_base = nullptr;
   return nullptr;
 }
@@ -961,8 +961,11 @@ bool ED_armature_edit_deselect_all_visible_multi(bContext *C)
 /** \name Select Cursor Pick API
  * \{ */
 
-bool ED_armature_edit_select_pick_bone(
-    bContext *C, Base *basact, EditBone *ebone, const int selmask, const SelectPick_Params &params)
+bool ED_armature_edit_select_pick_bone(bContext *C,
+                                       Base *basact,
+                                       EditBone *ebone,
+                                       const eBone_Flag selmask,
+                                       const SelectPick_Params &params)
 {
   const Main *bmain = CTX_data_main(C);
   const Scene *scene = CTX_data_scene(C);
@@ -1139,7 +1142,7 @@ bool ED_armature_edit_select_pick(bContext *C, const int mval[2], const SelectPi
 {
   Depsgraph *depsgraph = CTX_data_ensure_evaluated_depsgraph(C);
   EditBone *nearBone = nullptr;
-  int selmask;
+  eBone_Flag selmask = eBone_Flag{};
   Base *basact = nullptr;
 
   ViewContext vc = ED_view3d_viewcontext_init(C, depsgraph);
@@ -1171,7 +1174,7 @@ static bool armature_edit_select_op_apply(bArmature *arm,
   bool is_point_done = false;
   int points_proj_tot = 0;
   BLI_assert(ebone->flag == ebone->temp.i);
-  const int ebone_flag_prev = ebone->flag;
+  const eBone_Flag ebone_flag_prev = ebone->flag;
 
   if ((is_ignore_flag & BONE_ROOTSEL) == 0) {
     points_proj_tot++;
@@ -1279,7 +1282,11 @@ bool ED_armature_edit_select_op_from_tagged(bArmature *arm, const int sel_op)
     /* Cleanup flags. */
     for (EditBone &ebone : *arm->edbo) {
       if (ebone.flag & BONE_DONE) {
-        std::swap(ebone.temp.i, ebone.flag);
+        {
+          const int tmp_i = ebone.temp.i;
+          ebone.temp.i = int(ebone.flag);
+          ebone.flag = eBone_Flag(tmp_i);
+        }
         ebone.flag |= BONE_DONE;
         if ((ebone.flag & BONE_CONNECTED) && ebone.parent) {
           if ((ebone.parent->flag & BONE_DONE) == 0) {
@@ -2171,19 +2178,19 @@ static wmOperatorStatus armature_select_mirror_exec(bContext *C, wmOperator *op)
     EditBone *ebone_mirror_act = nullptr;
 
     for (EditBone &ebone : *arm->edbo) {
-      const int flag = ED_armature_ebone_selectflag_get(&ebone);
+      const eBone_Flag flag = eBone_Flag(ED_armature_ebone_selectflag_get(&ebone));
       EBONE_PREV_FLAG_SET(&ebone, flag);
     }
 
     for (EditBone &ebone : *arm->edbo) {
       if (EBONE_SELECTABLE(arm, &ebone)) {
         EditBone *ebone_mirror;
-        int flag_new = extend ? EBONE_PREV_FLAG_GET(&ebone) : 0;
+        eBone_Flag flag_new = extend ? eBone_Flag(EBONE_PREV_FLAG_GET(&ebone)) : eBone_Flag{};
 
         if ((ebone_mirror = ED_armature_ebone_get_mirrored(arm->edbo, &ebone)) &&
             animrig::bone_is_visible(arm, ebone_mirror))
         {
-          const int flag_mirror = EBONE_PREV_FLAG_GET(ebone_mirror);
+          const eBone_Flag flag_mirror = eBone_Flag(EBONE_PREV_FLAG_GET(ebone_mirror));
           flag_new |= flag_mirror;
 
           if (&ebone == arm->act_edbone) {

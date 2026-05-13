@@ -15,7 +15,6 @@
 
 #include "DNA_ID.h"
 
-#include "IMB_allocimbuf.hh"
 #include "IMB_colormanagement.hh"
 #include "IMB_filetype.hh"
 #include "IMB_metadata.hh"
@@ -34,14 +33,16 @@ using std::unique_ptr;
 
 namespace imbuf {
 
-/* An OIIO IOProxy used during file packing to write into an in-memory #ImBuf buffer. */
-class ImBufMemWriter : public Filesystem::IOProxy {
- public:
-  ImBufMemWriter(ImBuf *ibuf) : IOProxy("", Write), ibuf_(ibuf) {}
+/* An OIIO IOProxy to write into an in-memory buffer. */
+struct MemoryBufferWriter : public Filesystem::IOProxy {
+  MemoryBufferWriter() : IOProxy("", Write)
+  {
+    buffer.reserve(80 * 1024);
+  }
 
   const char *proxytype() const override
   {
-    return "ImBufMemWriter";
+    return "MemoryBufferWriter";
   }
 
   size_t write(const void *buf, size_t size) override
@@ -55,27 +56,19 @@ class ImBufMemWriter : public Filesystem::IOProxy {
   {
     /* If buffer is too small increase it. */
     size_t end = offset + size;
-    while (end > ibuf_->encoded_buffer_size) {
-      if (!imb_enlargeencodedbufferImBuf(ibuf_)) {
-        /* Out of memory. */
-        return 0;
-      }
+    if (end > buffer.size()) {
+      buffer.resize(end);
     }
-
-    memcpy(ibuf_->encoded_buffer.data + offset, buf, size);
-
-    ibuf_->encoded_size = std::max<size_t>(end, ibuf_->encoded_size);
-
+    memcpy(buffer.data() + offset, buf, size);
     return size;
   }
 
   size_t size() const override
   {
-    return ibuf_->encoded_size;
+    return buffer.size();
   }
 
- private:
-  ImBuf *ibuf_;
+  Vector<uint8_t> buffer;
 };
 
 /* Utility to in-place expand an n-component pixel buffer into a 4-component buffer. */
@@ -112,11 +105,24 @@ static ImBuf *load_pixels(
   constexpr bool is_float = sizeof(T) > 1;
   const uint format_flag = (is_float ? IB_float_data : IB_byte_data) | IB_uninitialized_pixels;
   const uint ibuf_flags = (flags & IB_test) ? 0 : format_flag;
-  const int planes = use_all_planes ? 32 : 8 * channels;
-  ImBuf *ibuf = IMB_allocImBuf(width, height, planes, ibuf_flags);
+
+  ImColorMode color_mode = ImColorMode::RGBA;
+  if (channels == 2) {
+    color_mode = ImColorMode::BW_A;
+  }
+  else if (!use_all_planes) {
+    if (channels == 1) {
+      color_mode = ImColorMode::BW;
+    }
+    else if (channels == 3) {
+      color_mode = ImColorMode::RGB;
+    }
+  }
+  ImBuf *ibuf = IMB_allocImBuf(width, height, ibuf_flags);
   if (!ibuf) {
     return nullptr;
   }
+  ibuf->color_mode = color_mode;
 
   /* No need to load actual pixel data during the test phase. */
   if (flags & IB_test) {
@@ -188,6 +194,11 @@ static ImBuf *get_oiio_ibuf(ImageInput *in, const ReadContext &ctx, ImFileColorS
   /* Only a maximum of 4 channels are supported by ImBuf. */
   const int channels = spec.nchannels <= 4 ? spec.nchannels : 4;
   if (channels < 1) {
+    return nullptr;
+  }
+
+  if (spec.depth > 1) {
+    CLOG_ERROR(&LOG_READ, "Image has unsupported depth of %d", spec.depth);
     return nullptr;
   }
 
@@ -297,16 +308,8 @@ ImBuf *imb_oiio_read(const ReadContext &ctx,
   return get_oiio_ibuf(in.get(), ctx, r_colorspace);
 }
 
-bool imb_oiio_write(const WriteContext &ctx, const char *filepath, const ImageSpec &file_spec)
+static void oiio_write_prepare(const ImageSpec &file_spec, ImageBuf &orig_buf, ImageBuf &final_buf)
 {
-  unique_ptr<ImageOutput> out = ImageOutput::create(ctx.file_format);
-  if (!out) {
-    return false;
-  }
-
-  ImageBuf orig_buf(ctx.mem_spec, ctx.mem_start, ctx.mem_xstride, -ctx.mem_ystride, AutoStride);
-  ImageBuf final_buf{};
-
 #if OIIO_VERSION_MAJOR >= 3
   const size_t original_channels_count = orig_buf.nchannels();
 #else
@@ -335,6 +338,14 @@ bool imb_oiio_write(const WriteContext &ctx, const char *filepath, const ImageSp
                            cspan<float>(channel_values, file_spec.nchannels),
                            cspan<std::string>(channel_names, file_spec.nchannels));
   }
+  else if (file_spec.nchannels == 2 && original_channels_count >= 2) {
+    /* Gray-scale + alpha output (#ImColorMode::BW_A). The #ImBuf source replicates gray into
+     * RGB and stores alpha at index 3, so extract {gray, alpha} = {0, 3}. */
+    const int channel_order[] = {0, 3};
+    const float channel_values[] = {0.0f, 1.0f};
+    const std::string channel_names[] = {"Y", "A"};
+    ImageBufAlgo::channels(final_buf, orig_buf, 2, channel_order, channel_values, channel_names);
+  }
   else if (original_channels_count != file_spec.nchannels) {
     /* Either trim or fill new channels based on the needed channels count. */
     int channel_order[4];
@@ -357,25 +368,25 @@ bool imb_oiio_write(const WriteContext &ctx, const char *filepath, const ImageSp
   else {
     final_buf = std::move(orig_buf);
   }
+}
+
+bool imb_oiio_write(const WriteContext &ctx, const char *filepath, const ImageSpec &file_spec)
+{
+  unique_ptr<ImageOutput> out = ImageOutput::create(ctx.file_format);
+  if (!out) {
+    return false;
+  }
+
+  ImageBuf orig_buf(ctx.mem_spec, ctx.mem_start, ctx.mem_xstride, -ctx.mem_ystride, AutoStride);
+  ImageBuf final_buf{};
+
+  oiio_write_prepare(file_spec, orig_buf, final_buf);
 
   bool write_ok = false;
   bool close_ok = false;
-  if (ctx.flags & IB_mem) {
-    /* This memory proxy must remain alive until the ImageOutput is finally closed. */
-    ImBufMemWriter writer(ctx.ibuf);
-
-    imb_addencodedbufferImBuf(ctx.ibuf);
-    out->set_ioproxy(&writer);
-    if (out->open("", file_spec)) {
-      write_ok = final_buf.write(out.get());
-      close_ok = out->close();
-    }
-  }
-  else {
-    if (out->open(filepath, file_spec)) {
-      write_ok = final_buf.write(out.get());
-      close_ok = out->close();
-    }
+  if (out->open(filepath, file_spec)) {
+    write_ok = final_buf.write(out.get());
+    close_ok = out->close();
   }
 
   const bool all_ok = write_ok && close_ok;
@@ -385,6 +396,37 @@ bool imb_oiio_write(const WriteContext &ctx, const char *filepath, const ImageSp
   }
 
   return all_ok;
+}
+
+Vector<uint8_t> imb_oiio_write_buffer(const WriteContext &ctx, const ImageSpec &file_spec)
+{
+  unique_ptr<ImageOutput> out = ImageOutput::create(ctx.file_format);
+  if (!out) {
+    return {};
+  }
+
+  ImageBuf orig_buf(ctx.mem_spec, ctx.mem_start, ctx.mem_xstride, -ctx.mem_ystride, AutoStride);
+  ImageBuf final_buf{};
+
+  oiio_write_prepare(file_spec, orig_buf, final_buf);
+
+  MemoryBufferWriter writer;
+  out->set_ioproxy(&writer);
+
+  bool write_ok = false;
+  bool close_ok = false;
+  if (out->open("", file_spec)) {
+    write_ok = final_buf.write(out.get());
+    close_ok = out->close();
+  }
+  const bool all_ok = write_ok && close_ok;
+  if (!all_ok) {
+    CLOG_ERROR(&LOG_WRITE, "OpenImageIO write failed: %s", out->geterror().c_str());
+    errno = 0; /* Prevent higher level layers from calling `perror` unnecessarily. */
+    return {};
+  }
+
+  return std::move(writer.buffer);
 }
 
 WriteContext imb_create_write_context(const char *file_format,

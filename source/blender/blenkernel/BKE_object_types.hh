@@ -125,6 +125,12 @@ struct ObjectRuntime {
   PoseBackup *pose_backup = nullptr;
 
   /**
+   * Value of bArmature::runtime::bones_generation_count at the moment that the
+   * bPoseChannel::runtime::bone_index values were determined.
+   */
+  uint64_t pose_bones_generation_count = 0;
+
+  /**
    * This is a curve representation of corresponding object.
    * It created when Python calls `object.to_curve()`.
    */

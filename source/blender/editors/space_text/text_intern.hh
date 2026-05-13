@@ -49,14 +49,14 @@ void space_text_update_cursor_moved(bContext *C);
   ((st)->showlinenrs ? TXT_NUMCOL_WIDTH(st) : 0) + (TXT_BODY_LPAD * (st)->runtime->cwidth_px)
 
 #define TXT_SCROLL_WIDTH U.widget_unit
-#define TXT_SCROLL_SPACE ((int)(0.1f * U.widget_unit))
+#define TXT_SCROLL_SPACE int(0.1f * U.widget_unit)
 
 /* Space between lines, in relation to letter height. */
 #define TXT_LINE_VPAD 0.3f
 /* Space between lines. */
-#define TXT_LINE_SPACING(st) ((int)(TXT_LINE_VPAD * st->runtime->lheight_px))
+#define TXT_LINE_SPACING(st) int(TXT_LINE_VPAD * st->runtime->lheight_px)
 /* Total height of each line. */
-#define TXT_LINE_HEIGHT(st) ((int)((1.0f + TXT_LINE_VPAD) * st->runtime->lheight_px))
+#define TXT_LINE_HEIGHT(st) int((1.0f + TXT_LINE_VPAD) * st->runtime->lheight_px)
 
 #define SUGG_LIST_SIZE 7
 #define SUGG_LIST_WIDTH 20

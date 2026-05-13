@@ -366,6 +366,14 @@ static bAction *poselib_blend_init_get_action(bContext *C, wmOperator *op)
     return nullptr;
   }
 
+  if (asset->is_online()) {
+    BKE_reportf(op->reports,
+                RPT_ERROR,
+                "Pose '%s' needs downloading before it can be applied (check context menu)",
+                asset->get_name().c_str());
+    return nullptr;
+  }
+
   PoseBlendData *pbd = static_cast<PoseBlendData *>(op->customdata);
 
   pbd->temp_id_consumer = asset::temp_id_consumer_create(asset);

@@ -12,6 +12,8 @@
 #include "DNA_defs.h"
 #include "DNA_listBase.h"
 
+#include "BLI_enum_flags.hh"
+
 namespace blender {
 
 #ifndef MAX_MTEX
@@ -23,7 +25,7 @@ struct Image;
 struct bNodeTree;
 
 /* MaterialGPencilStyle->flag */
-enum eMaterialGPencilStyle_Flag {
+enum eMaterialGPencilStyle_Flag : short {
   /* Fill Texture is a pattern */
   GP_MATERIAL_FILL_PATTERN = (1 << 0),
   /* don't display color */
@@ -50,19 +52,23 @@ enum eMaterialGPencilStyle_Flag {
   GP_MATERIAL_IS_STROKE_HOLDOUT = (1 << 13),
   /* Material used as fill masking. */
   GP_MATERIAL_IS_FILL_HOLDOUT = (1 << 14),
+  /* Material use randomization. */
+  GP_MATERIAL_USE_DOTS_RANDOMIZATION = static_cast<short>(1 << 15),
 };
+ENUM_OPERATORS(eMaterialGPencilStyle_Flag)
 
-enum eMaterialGPencilStyle_Mode {
+enum eMaterialGPencilStyle_Mode : int {
   GP_MATERIAL_MODE_LINE = 0,
   GP_MATERIAL_MODE_DOT = 1,
   GP_MATERIAL_MODE_SQUARE = 2,
 };
 
-enum eMaterialLineArtFlags {
+enum eMaterialLineArtFlags : int {
   LRT_MATERIAL_MASK_ENABLED = (1 << 0),
   LRT_MATERIAL_CUSTOM_OCCLUSION_EFFECTIVENESS = (1 << 1),
   LRT_MATERIAL_CUSTOM_INTERSECTION_PRIORITY = (1 << 2),
 };
+ENUM_OPERATORS(eMaterialLineArtFlags)
 
 /* maximum number of materials per material array.
  * (on object, mesh, light, etc.). limited by
@@ -71,7 +77,7 @@ enum eMaterialLineArtFlags {
 #define MAXMAT (32767 - 1)
 
 /** #Material::flag */
-enum {
+enum eMaterial_Flag : short {
   /** For render. */
   MA_IS_USED = 1 << 0, /* UNUSED */
   /** For dope-sheet. */
@@ -83,9 +89,10 @@ enum {
    */
   MA_DS_SHOW_TEXS = 1 << 2,
 };
+ENUM_OPERATORS(eMaterial_Flag)
 
 /* ramps */
-enum {
+enum eMaterial_RampBlend : int {
   MA_RAMP_BLEND = 0,
   MA_RAMP_ADD = 1,
   MA_RAMP_MULT = 2,
@@ -108,7 +115,7 @@ enum {
 };
 
 /** #MTex::texco */
-enum {
+enum eMTex_TexCo : int {
   TEXCO_ORCO = 1 << 0,
   // TEXCO_REFL = 1 << 1, /* Deprecated. */
   // TEXCO_NORM = 1 << 2, /* Deprecated. */
@@ -129,15 +136,17 @@ enum {
   // TEXCO_STRESS = 1 << 14, /* Deprecated. */
   // TEXCO_SPEED = 1 << 15,  /* Deprecated. */
 };
+ENUM_OPERATORS(eMTex_TexCo)
 
 /** #MTex::mapto */
-enum {
+enum eMTex_MapTo : int {
   MAP_COL = 1 << 0,
   MAP_ALPHA = 1 << 7,
 };
+ENUM_OPERATORS(eMTex_MapTo)
 
 /** #Material::pr_type */
-enum ePreviewType {
+enum ePreviewType : char {
   MA_FLAT = 0,
   MA_SPHERE = 1,
   MA_CUBE = 2,
@@ -153,24 +162,25 @@ enum ePreviewType {
 };
 
 /** #Material::pr_flag */
-enum {
+enum eMaterial_PreviewFlag : short {
   MA_PREVIEW_WORLD = 1 << 0,
 };
+ENUM_OPERATORS(eMaterial_PreviewFlag)
 
 /** #Material::surface_render_method */
-enum {
+enum eMaterial_SurfaceRenderMethod : char {
   MA_SURFACE_METHOD_DEFERRED = 0,
   MA_SURFACE_METHOD_FORWARD = 1,
 };
 
 /** #Material::volume_intersection_method */
-enum {
+enum eMaterial_VolumeIntersectionMethod : char {
   MA_VOLUME_ISECT_FAST = 0,
   MA_VOLUME_ISECT_ACCURATE = 1,
 };
 
 /** #Material::blend_method */
-enum {
+enum eMaterial_BlendMethod : char {
   MA_BM_SOLID = 0,
   // MA_BM_ADD = 1, /* deprecated */
   // MA_BM_MULTIPLY = 2,  /* deprecated */
@@ -180,7 +190,7 @@ enum {
 };
 
 /** #Material::blend_flag */
-enum {
+enum eMaterial_BlendFlag : char {
   MA_BL_HIDE_BACKFACE = (1 << 0),
   MA_BL_SS_REFRACTION = (1 << 1),
   MA_BL_CULL_BACKFACE = (1 << 2),
@@ -188,11 +198,12 @@ enum {
   MA_BL_LIGHTPROBE_VOLUME_DOUBLE_SIDED = (1 << 4),
   MA_BL_CULL_BACKFACE_SHADOW = (1 << 5),
   MA_BL_TRANSPARENT_SHADOW = (1 << 6),
-  MA_BL_THICKNESS_FROM_SHADOW = (1 << 7),
+  MA_BL_THICKNESS_FROM_SHADOW = static_cast<char>(1 << 7),
 };
+ENUM_OPERATORS(eMaterial_BlendFlag)
 
 /** #Material::blend_shadow */
-enum {
+enum eMaterial_BlendShadow : char {
   MA_BS_NONE = 0,
   MA_BS_SOLID = 1,
   MA_BS_CLIP = 2,
@@ -200,26 +211,26 @@ enum {
 };
 
 /** #Material::displacement_method */
-enum {
+enum eMaterial_DisplacementMethod : char {
   MA_DISPLACEMENT_BUMP = 0,
   MA_DISPLACEMENT_DISPLACE = 1,
   MA_DISPLACEMENT_BOTH = 2,
 };
 
 /** #Material::thickness_mode */
-enum {
+enum eMaterial_ThicknessMode : char {
   MA_THICKNESS_SPHERE = 0,
   MA_THICKNESS_SLAB = 1,
 };
 
 /* Grease Pencil Stroke styles */
-enum {
+enum eMaterialGPencilStyle_StrokeStyle : short {
   GP_MATERIAL_STROKE_STYLE_SOLID = 0,
   GP_MATERIAL_STROKE_STYLE_TEXTURE = 1,
 };
 
 /* Grease Pencil Fill styles */
-enum {
+enum eMaterialGPencilStyle_FillStyle : short {
   GP_MATERIAL_FILL_STYLE_SOLID = 0,
   GP_MATERIAL_FILL_STYLE_GRADIENT = 1,
   GP_MATERIAL_FILL_STYLE_CHECKER = 2, /* DEPRECATED (only for convert old files) */
@@ -227,20 +238,20 @@ enum {
 };
 
 /* Grease Pencil Gradient Types */
-enum {
+enum eMaterialGPencilStyle_GradientType : int {
   GP_MATERIAL_GRADIENT_LINEAR = 0,
   GP_MATERIAL_GRADIENT_RADIAL = 1,
 };
 
 /* Grease Pencil Follow Drawing Modes */
-enum {
+enum eMaterialGPencilStyle_FollowMode : int {
   GP_MATERIAL_FOLLOW_PATH = 0,
   GP_MATERIAL_FOLLOW_OBJ = 1,
   GP_MATERIAL_FOLLOW_FIXED = 2,
 };
 
 /* Grease Pencil Placement Drawing Modes */
-enum eMaterialGPencilPlacementMode {
+enum eMaterialGPencilPlacementMode : int {
   GP_MATERIAL_PLACEMENT_COUNT = 0,
   GP_MATERIAL_PLACEMENT_RADIUS = 1,
   GP_MATERIAL_PLACEMENT_DENSITY = 2,
@@ -283,13 +294,13 @@ struct MaterialGPencilStyle {
   /** Secondary color used for gradients and other stuff. */
   float mix_rgba[4] = {};
   /** Settings. */
-  short flag = 0;
+  eMaterialGPencilStyle_Flag flag = {};
   /** Custom index for passes. */
   short index = 0;
   /** Style for drawing strokes (used to select shader type). */
-  short stroke_style = 0;
+  eMaterialGPencilStyle_StrokeStyle stroke_style = GP_MATERIAL_STROKE_STYLE_SOLID;
   /** Style for filling areas (used to select shader type). */
-  short fill_style = 0;
+  eMaterialGPencilStyle_FillStyle fill_style = GP_MATERIAL_FILL_STYLE_SOLID;
   /** Factor used to define shader behavior (several uses). */
   float mix_factor = 0;
   /** Angle used for gradients orientation. */
@@ -312,30 +323,40 @@ struct MaterialGPencilStyle {
   /** Pixel size for uv along the stroke. */
   float texture_pixsize = 0;
   /** Drawing mode (line or dots). */
-  int mode = 0;
+  eMaterialGPencilStyle_Mode mode = GP_MATERIAL_MODE_LINE;
 
   /** Type of gradient. */
-  int gradient_type = 0;
+  eMaterialGPencilStyle_GradientType gradient_type = GP_MATERIAL_GRADIENT_LINEAR;
 
   /** Factor used to mix texture and stroke color. */
   float mix_stroke_factor = 0;
   /** Mode used to align Dots and Boxes with stroke drawing path and object rotation */
-  int alignment_mode = 0;
+  eMaterialGPencilStyle_FollowMode alignment_mode = GP_MATERIAL_FOLLOW_PATH;
   /** Rotation for texture for Dots and Squares. */
   float alignment_rotation = 0;
-  /** #eMaterialGPencilPlacementMode Placement mode for Dots and Squares. */
-  int placement_mode = 0;
+  /** Placement mode for Dots and Squares. */
+  eMaterialGPencilPlacementMode placement_mode = GP_MATERIAL_PLACEMENT_COUNT;
   /* Number of points per segment when placement mode is `GP_MATERIAL_PLACEMENT_COUNT` */
   int placement_count = 0;
   /* Radius factor for points when placement mode is `GP_MATERIAL_PLACEMENT_RADIUS` */
   float placement_radius_spacing = 0;
   /* Point density per unit when placement mode is `GP_MATERIAL_PLACEMENT_DENSITY` */
   float placement_density = 0;
+
+  float random_size_factor = 0;
+  float random_strength_factor = 0;
+  float random_rotation_factor = 0;
+
+  float random_hue_factor = 0;
+  float random_saturation_factor = 0;
+  float random_value_factor = 0;
+
+  float random_noise_scale = 0;
+  char _pad3[4] = {};
 };
 
 struct MaterialLineArt {
-  /* eMaterialLineArtFlags */
-  int flags = 0;
+  eMaterialLineArtFlags flags = {};
 
   /* Used to filter line art occlusion edges */
   unsigned char material_mask_bits = 0;
@@ -359,9 +380,9 @@ struct Material {
   /** Animation data (must be immediately after id for utilities to use it). */
   struct AnimData *adt = nullptr;
 
-  short flag = 0;
+  eMaterial_Flag flag = {};
   /** Rendering modes for EEVEE. */
-  char surface_render_method = 0;
+  eMaterial_SurfaceRenderMethod surface_render_method = MA_SURFACE_METHOD_DEFERRED;
   char _pad1[1] = {};
 
   /* Colors from Blender Internal that we are still using. */
@@ -379,9 +400,9 @@ struct Material {
   DNA_DEPRECATED char use_nodes = 0;
 
   /** Preview render. */
-  char pr_type = MA_SPHERE;
+  ePreviewType pr_type = MA_SPHERE;
   short pr_texture = 0;
-  short pr_flag = 0;
+  eMaterial_PreviewFlag pr_flag = {};
 
   /** Index for render passes. */
   short index = 0;
@@ -403,20 +424,22 @@ struct Material {
   short tot_slots = 0;
 
   /* Displacement. */
-  char displacement_method = 0;
+  eMaterial_DisplacementMethod displacement_method = MA_DISPLACEMENT_BUMP;
 
   /* Thickness. */
-  char thickness_mode = 0;
+  eMaterial_ThicknessMode thickness_mode = MA_THICKNESS_SPHERE;
 
   /* Transparency. */
   float alpha_threshold = 0.5f;
   float refract_depth = 0;
-  char blend_method = 0;           /* TODO(fclem): Deprecate once we remove legacy EEVEE. */
-  char blend_shadow = MA_BS_SOLID; /* TODO(fclem): Deprecate once we remove legacy EEVEE. */
-  char blend_flag = MA_BL_TRANSPARENT_SHADOW;
+  eMaterial_BlendMethod blend_method =
+      MA_BM_SOLID; /* TODO(fclem): Deprecate once we remove legacy EEVEE. */
+  eMaterial_BlendShadow blend_shadow =
+      MA_BS_SOLID; /* TODO(fclem): Deprecate once we remove legacy EEVEE. */
+  eMaterial_BlendFlag blend_flag = MA_BL_TRANSPARENT_SHADOW;
 
   /* Volume. */
-  char volume_intersection_method = 0;
+  eMaterial_VolumeIntersectionMethod volume_intersection_method = MA_VOLUME_ISECT_FAST;
 
   /* Displacement. */
   float inflate_bounds = 0;

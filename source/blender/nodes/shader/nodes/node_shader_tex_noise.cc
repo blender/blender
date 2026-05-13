@@ -90,12 +90,12 @@ static void node_shader_buts_tex_noise(ui::Layout &layout, bContext * /*C*/, Poi
   }
 }
 
-static void node_shader_init_tex_noise(bNodeTree * /*ntree*/, bNode *node)
+static void node_shader_init_tex_noise(bNodeTree *node_tree, bNode *node)
 {
   NodeTexNoise *tex = MEM_new<NodeTexNoise>(__func__);
   BKE_texture_mapping_default(&tex->base.tex_mapping, TEXMAP_TYPE_POINT);
   BKE_texture_colormapping_default(&tex->base.color_mapping);
-  tex->dimensions = 3;
+  tex->dimensions = node_tree->type == NTREE_COMPOSIT ? 2 : 3;
   tex->type = SHD_NOISE_FBM;
   tex->normalize = true;
 
@@ -157,10 +157,10 @@ static int node_shader_gpu_tex_noise(GPUMaterial *mat,
 
 static void node_shader_update_tex_noise(bNodeTree *ntree, bNode *node)
 {
-  bNodeSocket *sockVector = bke::node_find_socket(*node, SOCK_IN, "Vector");
-  bNodeSocket *sockW = bke::node_find_socket(*node, SOCK_IN, "W");
-  bNodeSocket *inOffsetSock = bke::node_find_socket(*node, SOCK_IN, "Offset");
-  bNodeSocket *inGainSock = bke::node_find_socket(*node, SOCK_IN, "Gain");
+  bNodeSocket *sockVector = bke::node_find_socket(*node, SOCK_IN, "Vector"_ustr);
+  bNodeSocket *sockW = bke::node_find_socket(*node, SOCK_IN, "W"_ustr);
+  bNodeSocket *inOffsetSock = bke::node_find_socket(*node, SOCK_IN, "Offset"_ustr);
+  bNodeSocket *inGainSock = bke::node_find_socket(*node, SOCK_IN, "Gain"_ustr);
 
   const NodeTexNoise &storage = node_storage(*node);
   bke::node_set_socket_availability(*ntree, *sockVector, storage.dimensions != 1);
@@ -446,6 +446,15 @@ class NoiseFunction : public mf::MultiFunction {
     hints.allocates_array = false;
     hints.min_grain_size = 100;
     return hints;
+  }
+
+  void hash_unique(UniqueHashBytes &hash) const override
+  {
+    static constexpr int8_t id = 0;
+    hash.add(&id);
+    hash.add(dimensions_);
+    hash.add(type_);
+    hash.add(normalize_);
   }
 };
 

@@ -35,7 +35,7 @@ class CustomPropertyTypeV1(StrEnum):
     IDP_ARRAY = "IDP_ARRAY"
     IDP_GROUP = "IDP_GROUP"
     IDP_DOUBLE = "IDP_DOUBLE"
-    IDP_BOOLEAN = "IDP_BOOLEAN"
+    IDP_BOOL = "IDP_BOOL"
 
 
 @dataclass

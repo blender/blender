@@ -28,6 +28,8 @@
 #include "BLI_string.h"
 #include "BLI_utility_mixins.hh"
 
+#include "DNA_asset_types.h"
+#include "DNA_space_enums.h"
 #include "DNA_space_types.h"
 
 #include "WM_api.hh"
@@ -142,8 +144,13 @@ void AssetList::ensure_updated()
 {
   FileList *files = filelist_;
 
-  const bool show_online_assets = (U.uiflag2 & USER_UIFLAG2_SHOW_ONLINE_ASSETS) != 0;
   filelist_setlibrary(files, &library_ref_);
+
+  const bool show_online = ELEM(
+      U.asset_access, AssetAccess::OnlineAndOffline, AssetAccess::OnlyOnline);
+  const bool show_offline = ELEM(
+      U.asset_access, AssetAccess::OnlineAndOffline, AssetAccess::OnlyOffline);
+
   filelist_setfilter_options(
       files,
       true,
@@ -152,10 +159,11 @@ void AssetList::ensure_updated()
       FILE_TYPE_BLENDERLIB,
       FILTER_ID_ALL,
       true,
-      (U.uiflag2 & USER_UIFLAG2_SHOW_ONLINE_ASSETS) == 0,
+      /*filter_assets_hide_online=*/!show_online,
+      /*filter_assets_hide_offline=*/!show_offline,
       "",
       "");
-  filelist_set_asset_include_online(files, show_online_assets);
+  filelist_set_asset_include_online(files, show_online);
 }
 
 void AssetList::fetch(const bContext &C)
@@ -366,7 +374,8 @@ static std::optional<eFileSelectType> asset_library_reference_to_fileselect_type
     case ASSET_LIBRARY_ALL:
       return FILE_ASSET_LIBRARY_ALL;
     case ASSET_LIBRARY_ESSENTIALS:
-      return FILE_ASSET_LIBRARY;
+    case ASSET_LIBRARY_ONLINE_ESSENTIALS:
+      return FILE_ASSET_LIBRARY_ESSENTIALS;
     case ASSET_LIBRARY_CUSTOM: {
       const bUserAssetLibrary *user_library = BKE_preferences_asset_library_find_index(
           &U, library_reference.custom_library_index);

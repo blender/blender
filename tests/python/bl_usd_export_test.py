@@ -281,7 +281,8 @@ class USDExportTest(AbstractUSDTest):
         bpy.context.scene.frame_set(1)
 
         export_path = self.tempdir / "usd_materials_multi.usda"
-        self.export_and_validate(filepath=str(export_path), export_animation=True, evaluation_mode="RENDER")
+        self.export_and_validate(
+            filepath=str(export_path), export_animation=True, incremental_frames=1, evaluation_mode="RENDER")
 
         stage = Usd.Stage.Open(str(export_path))
 
@@ -737,7 +738,8 @@ class USDExportTest(AbstractUSDTest):
         bpy.context.scene.frame_set(1)
 
         export_path = self.tempdir / "usd_attribute_varying_test.usda"
-        self.export_and_validate(filepath=str(export_path), export_animation=True, evaluation_mode="RENDER")
+        self.export_and_validate(
+            filepath=str(export_path), export_animation=True, incremental_frames=2, evaluation_mode="RENDER")
 
         stage = Usd.Stage.Open(str(export_path))
         sparse_frames = [4.0, 5.0, 8.0, 9.0, 12.0, 13.0]

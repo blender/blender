@@ -545,6 +545,39 @@ static BMOpDefine bmo_circularize_def = {
 };
 
 /*
+ * Flatten.
+ *
+ * Flatten vertices on a best-fitting plane.
+ */
+static BMOpDefine bmo_flatten_def = {
+    /*opname*/ "flatten",
+    /*slot_types_in*/
+    {
+        /* Input geometry. */
+        {"geom", BMO_OP_SLOT_ELEMENT_BUF, {BM_VERT | BM_EDGE | BM_FACE}},
+        /* Influence factor: spans from 0.0 to 1.0. */
+        {"factor", BMO_OP_SLOT_FLT},
+        /* Plane on which vertices are flattened. */
+        {"method", BMO_OP_SLOT_INT},
+        /* View direction in object local space. */
+        {"view_normal", BMO_OP_SLOT_VEC},
+        /* Lock X axis editing. */
+        {"lock_x", BMO_OP_SLOT_BOOL},
+        /* Lock Y axis editing. */
+        {"lock_y", BMO_OP_SLOT_BOOL},
+        /* Lock Z axis editing. */
+        {"lock_z", BMO_OP_SLOT_BOOL},
+        {{'\0'}},
+    },
+    /*slot_types_out*/
+    {{{'\0'}}},
+    /*init*/ nullptr,
+    /*exec*/ bmo_flatten_exec,
+    /*type_flag*/
+    (BMO_OPTYPE_FLAG_NORMALS_CALC),
+};
+
+/*
  * Collapse Connected.
  *
  * Collapses connected vertices
@@ -2838,6 +2871,7 @@ const BMOpDefine *bmo_opdefines[] = {
     &bmo_bmesh_to_mesh_def,
     &bmo_bridge_loops_def,
     &bmo_circularize_def,
+    &bmo_flatten_def,
     &bmo_collapse_def,
     &bmo_collapse_uvs_def,
     &bmo_connect_verts_def,

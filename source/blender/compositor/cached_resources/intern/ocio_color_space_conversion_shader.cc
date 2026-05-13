@@ -28,9 +28,7 @@
 
 #include "CLG_log.h"
 
-#if defined(WITH_OPENCOLORIO)
-#  include <OpenColorIO/OpenColorIO.h>
-#endif
+#include <OpenColorIO/OpenColorIO.h>
 
 namespace blender::compositor {
 
@@ -39,8 +37,6 @@ static CLG_LogRef LOG = {"compositor.gpu"};
 /* --------------------------------------------------------------------
  * GPU Shader Creator.
  */
-
-#if defined(WITH_OPENCOLORIO)
 
 namespace OCIO = OCIO_NAMESPACE;
 using namespace blender::gpu::shader;
@@ -82,7 +78,7 @@ class GPUShaderCreator : public OCIO::GpuShaderCreator {
     return GPU_max_texture_size();
   }
 
-#  if OCIO_VERSION_HEX >= 0x02030000
+#if OCIO_VERSION_HEX >= 0x02030000
   void setAllowTexture1D(bool allowed) override
   {
     allow_texture_1D_ = allowed;
@@ -92,7 +88,7 @@ class GPUShaderCreator : public OCIO::GpuShaderCreator {
   {
     return allow_texture_1D_;
   }
-#  endif
+#endif
 
   bool addUniform(const char *name, const DoubleGetter &get_double) override
   {
@@ -154,10 +150,10 @@ class GPUShaderCreator : public OCIO::GpuShaderCreator {
   bool addUniform(const char *name,
                   const SizeGetter &get_size,
                   const VectorFloatGetter &get_vector_float
-#  if OCIO_VERSION_HEX >= 0x02050000
+#if OCIO_VERSION_HEX >= 0x02050000
                   ,
                   const uint /*maxSize*/
-#  endif
+#endif
                   ) override
   {
     /* Check if a resource exists with the same name and assert if it is the case, returning false
@@ -181,10 +177,10 @@ class GPUShaderCreator : public OCIO::GpuShaderCreator {
   bool addUniform(const char *name,
                   const SizeGetter &get_size,
                   const VectorIntGetter &get_vector_int
-#  if OCIO_VERSION_HEX >= 0x02050000
+#if OCIO_VERSION_HEX >= 0x02050000
                   ,
                   const uint /*maxSize*/
-#  endif
+#endif
                   ) override
   {
     /* Check if a resource exists with the same name and assert if it is the case, returning false
@@ -205,19 +201,19 @@ class GPUShaderCreator : public OCIO::GpuShaderCreator {
     return true;
   }
 
-#  if OCIO_VERSION_HEX >= 0x02050000
+#if OCIO_VERSION_HEX >= 0x02050000
   uint
-#  else
+#else
   void
-#  endif
+#endif
   addTexture(const char *texture_name,
              const char *sampler_name,
              uint width,
              uint height,
              TextureType channel,
-#  if OCIO_VERSION_HEX >= 0x02030000
+#if OCIO_VERSION_HEX >= 0x02030000
              OCIO::GpuShaderDesc::TextureDimensions dimensions,
-#  endif
+#endif
              OCIO::Interpolation interpolation,
              const float *values) override
   {
@@ -236,11 +232,11 @@ class GPUShaderCreator : public OCIO::GpuShaderCreator {
                                                gpu::TextureFormat::SFLOAT_32;
     const gpu::TextureFormat texture_format = Result::gpu_texture_format(base_format, precision_);
     /* A height of 1 indicates a 1D texture according to the OCIO API. */
-#  if OCIO_VERSION_HEX >= 0x02030000
+#if OCIO_VERSION_HEX >= 0x02030000
     if (dimensions == OCIO::GpuShaderDesc::TEXTURE_1D)
-#  else
+#else
     if (height == 1)
-#  endif
+#endif
     {
       texture = GPU_texture_create_1d(
           texture_name, width, 1, texture_format, GPU_TEXTURE_USAGE_SHADER_READ, values);
@@ -254,16 +250,16 @@ class GPUShaderCreator : public OCIO::GpuShaderCreator {
     GPU_texture_filter_mode(texture, interpolation != OCIO::INTERP_NEAREST);
 
     textures_.add(sampler_name, texture);
-#  if OCIO_VERSION_HEX >= 0x02050000
+#if OCIO_VERSION_HEX >= 0x02050000
     return textures_.size() - 1;
-#  endif
+#endif
   }
 
-#  if OCIO_VERSION_HEX >= 0x02050000
+#if OCIO_VERSION_HEX >= 0x02050000
   uint
-#  else
+#else
   void
-#  endif
+#endif
   add3DTexture(const char *texture_name,
                const char *sampler_name,
                uint size,
@@ -292,18 +288,18 @@ class GPUShaderCreator : public OCIO::GpuShaderCreator {
     GPU_texture_filter_mode(texture, interpolation != OCIO::INTERP_NEAREST);
 
     textures_.add(sampler_name, texture);
-#  if OCIO_VERSION_HEX >= 0x02050000
+#if OCIO_VERSION_HEX >= 0x02050000
     return textures_.size() - 1;
-#  endif
+#endif
   }
 
   /* This gets called before the finalize() method to construct the shader code. We just
    * concatenate the code except for the declarations section. That's because the ShaderCreateInfo
    * will add the declaration itself. */
   void createShaderText(const char * /*parameter_declarations*/,
-#  if OCIO_VERSION_HEX >= 0x02050000
+#if OCIO_VERSION_HEX >= 0x02050000
                         const char * /*texture_declarations*/,
-#  endif
+#endif
                         const char *helper_methods,
                         const char *function_header,
                         const char *function_body,
@@ -457,44 +453,14 @@ class GPUShaderCreator : public OCIO::GpuShaderCreator {
    * so that they can be properly unbound and freed in the unbind_shader_and_resources() method. */
   Vector<gpu::UniformBuf *> uniform_buffers_;
 
-#  if OCIO_VERSION_HEX >= 0x02030000
+#if OCIO_VERSION_HEX >= 0x02030000
   /* Allow creating 1D textures, or only use 2D textures. */
   bool allow_texture_1D_ = true;
-#  endif
+#endif
 
   /* The precision of the OCIO resources as well as the output image. */
   ResultPrecision precision_;
 };
-
-#else
-
-/* A stub implementation in case OCIO is disabled at build time. */
-class GPUShaderCreator {
- public:
-  static std::shared_ptr<GPUShaderCreator> Create(ResultPrecision /*precision*/)
-  {
-    return std::make_shared<GPUShaderCreator>();
-  }
-
-  gpu::Shader *bind_shader_and_resources()
-  {
-    return nullptr;
-  }
-
-  void unbind_shader_and_resources() {}
-
-  const char *input_sampler_name()
-  {
-    return nullptr;
-  }
-
-  const char *output_image_name()
-  {
-    return nullptr;
-  }
-};
-
-#endif
 
 /* ------------------------------------------------------------------------------------------------
  * OCIO Color Space Conversion Shader Key.
@@ -529,7 +495,6 @@ OCIOColorSpaceConversionShader::OCIOColorSpaceConversionShader(Context &context,
    * processor. */
   shader_creator_ = GPUShaderCreator::Create(context.get_precision());
 
-#if defined(WITH_OPENCOLORIO)
   /* Get a GPU processor that transforms the source color space to the target color space. */
   try {
     OCIO::ConstConfigRcPtr config = OCIO::GetCurrentConfig();
@@ -542,10 +507,6 @@ OCIOColorSpaceConversionShader::OCIOColorSpaceConversionShader(Context &context,
   catch (const OCIO::Exception &e) {
     CLOG_ERROR(&LOG, "Failed to create OpenColorIO shader: %s", e.what());
   }
-#else
-  UNUSED_VARS(source, target);
-  UNUSED_VARS(LOG);
-#endif
 }
 
 gpu::Shader *OCIOColorSpaceConversionShader::bind_shader_and_resources()
@@ -588,12 +549,8 @@ OCIOColorSpaceConversionShader &OCIOColorSpaceConversionShaderContainer::get(Con
                                                                              std::string source,
                                                                              std::string target)
 {
-#if defined(WITH_OPENCOLORIO)
   /* Use the config cache ID in the cache key in case the configuration changed at runtime. */
   std::string config_cache_id = OCIO::GetCurrentConfig()->getCacheID();
-#else
-  std::string config_cache_id;
-#endif
 
   const OCIOColorSpaceConversionShaderKey key(source, target, config_cache_id);
 
@@ -647,7 +604,6 @@ OCIOToDisplayShader::OCIOToDisplayShader(Context &context,
    * processor. */
   shader_creator_ = GPUShaderCreator::Create(context.get_precision());
 
-#if defined(WITH_OPENCOLORIO)
   /* Get a GPU processor that transforms the display_device color space to the view_transform color
    * space. */
   try {
@@ -673,9 +629,6 @@ OCIOToDisplayShader::OCIOToDisplayShader(Context &context,
   catch (const OCIO::Exception &e) {
     CLOG_ERROR(&LOG, "Failed to create OpenColorIO shader: %s", e.what());
   }
-#else
-  UNUSED_VARS(display_settings, view_settings, inverse);
-#endif
 }
 
 gpu::Shader *OCIOToDisplayShader::bind_shader_and_resources()
@@ -720,12 +673,8 @@ OCIOToDisplayShader &OCIOToDisplayShaderContainer::get(
     const ColorManagedViewSettings &view_settings,
     const bool inverse)
 {
-#if defined(WITH_OPENCOLORIO)
   /* Use the config cache ID in the cache key in case the configuration changed at runtime. */
   std::string config_cache_id = OCIO::GetCurrentConfig()->getCacheID();
-#else
-  std::string config_cache_id;
-#endif
 
   const OCIOToDisplayShaderKey key(display_settings, view_settings, inverse, config_cache_id);
 

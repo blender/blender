@@ -43,7 +43,7 @@ static void node_declare(NodeDeclarationBuilder &b)
       .description(
           "Transformation matrix containing the location, rotation and scale of the object");
   b.add_output<decl::Vector>("Location"_ustr);
-  b.add_output<decl::Rotation>("Rotation"_ustr).available(is_geometry);
+  b.add_output<decl::Rotation>("Rotation"_ustr);
   b.add_output<decl::Vector>("Scale"_ustr);
   b.add_output<decl::Geometry>("Geometry"_ustr).available(is_geometry);
 }
@@ -199,6 +199,12 @@ class ObjectInfoOperation : public NodeOperation {
       location_result.set_single_value(location);
     }
 
+    Result &rotation_result = this->get_result("Rotation");
+    if (rotation_result.should_compute()) {
+      rotation_result.allocate_single_value();
+      rotation_result.set_single_value(rotation);
+    }
+
     Result &scale_result = this->get_result("Scale");
     if (scale_result.should_compute()) {
       scale_result.allocate_single_value();
@@ -255,8 +261,7 @@ static void node_gather_link_searches(nodes::GatherLinkSearchOpParams &params)
     return;
   }
 
-  static Set<UString> skip_socket_identifiers = {
-      "As Instance"_ustr, "Rotation"_ustr, "Geometry"_ustr};
+  static Set<UString> skip_socket_identifiers = {"As Instance"_ustr, "Geometry"_ustr};
   nodes::search_filtered_link_ops_for_basic_node(params, skip_socket_identifiers);
 }
 

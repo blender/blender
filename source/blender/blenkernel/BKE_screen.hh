@@ -355,6 +355,7 @@ struct PanelType {
   char label[BKE_ST_MAXNAME];
   /** For panel tooltip. */
   const char *description;
+  int icon;
   char translation_context[BKE_ST_MAXNAME];
   /** For buttons window. */
   char context[BKE_ST_MAXNAME];

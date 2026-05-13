@@ -553,7 +553,7 @@ static void rna_def_render_engine(BlenderRNA *brna)
   func = RNA_def_function(srna, "render", nullptr);
   RNA_def_function_ui_description(func, "Render scene into an image");
   RNA_def_function_flag(func, FUNC_REGISTER_OPTIONAL | FUNC_ALLOW_WRITE);
-  parm = RNA_def_pointer(func, "depsgraph", "Depsgraph", "", "");
+  parm = RNA_def_pointer(func, "depsgraph", "Depsgraph", "", "Evaluated dependency graph");
   RNA_def_parameter_flags(parm, PropertyFlag(0), PARM_REQUIRED);
 
   func = RNA_def_function(srna, "render_frame_finish", nullptr);
@@ -564,17 +564,17 @@ static void rna_def_render_engine(BlenderRNA *brna)
   func = RNA_def_function(srna, "draw", nullptr);
   RNA_def_function_ui_description(func, "Draw render image");
   RNA_def_function_flag(func, FUNC_REGISTER_OPTIONAL);
-  parm = RNA_def_pointer(func, "context", "Context", "", "");
+  parm = RNA_def_pointer(func, "context", "Context", "", "The context");
   RNA_def_parameter_flags(parm, PropertyFlag(0), PARM_REQUIRED);
-  parm = RNA_def_pointer(func, "depsgraph", "Depsgraph", "", "");
+  parm = RNA_def_pointer(func, "depsgraph", "Depsgraph", "", "Evaluated dependency graph");
   RNA_def_parameter_flags(parm, PropertyFlag(0), PARM_REQUIRED);
 
   func = RNA_def_function(srna, "bake", nullptr);
   RNA_def_function_ui_description(func, "Bake passes");
   RNA_def_function_flag(func, FUNC_REGISTER_OPTIONAL | FUNC_ALLOW_WRITE);
-  parm = RNA_def_pointer(func, "depsgraph", "Depsgraph", "", "");
+  parm = RNA_def_pointer(func, "depsgraph", "Depsgraph", "", "Evaluated dependency graph");
   RNA_def_parameter_flags(parm, PropertyFlag(0), PARM_REQUIRED);
-  parm = RNA_def_pointer(func, "object", "Object", "", "");
+  parm = RNA_def_pointer(func, "object", "Object", "", "Object to bake");
   RNA_def_parameter_flags(parm, PropertyFlag(0), PARM_REQUIRED);
   parm = RNA_def_enum(func, "pass_type", rna_enum_bake_pass_type_items, 0, "Pass", "Pass to bake");
   RNA_def_parameter_flags(parm, PropertyFlag(0), PARM_REQUIRED);
@@ -597,17 +597,17 @@ static void rna_def_render_engine(BlenderRNA *brna)
   func = RNA_def_function(srna, "view_update", nullptr);
   RNA_def_function_ui_description(func, "Update on data changes for viewport render");
   RNA_def_function_flag(func, FUNC_REGISTER_OPTIONAL | FUNC_ALLOW_WRITE);
-  parm = RNA_def_pointer(func, "context", "Context", "", "");
+  parm = RNA_def_pointer(func, "context", "Context", "", "The context");
   RNA_def_parameter_flags(parm, PropertyFlag(0), PARM_REQUIRED);
-  parm = RNA_def_pointer(func, "depsgraph", "Depsgraph", "", "");
+  parm = RNA_def_pointer(func, "depsgraph", "Depsgraph", "", "Evaluated dependency graph");
   RNA_def_parameter_flags(parm, PropertyFlag(0), PARM_REQUIRED);
 
   func = RNA_def_function(srna, "view_draw", nullptr);
   RNA_def_function_ui_description(func, "Draw viewport render");
   RNA_def_function_flag(func, FUNC_REGISTER_OPTIONAL);
-  parm = RNA_def_pointer(func, "context", "Context", "", "");
+  parm = RNA_def_pointer(func, "context", "Context", "", "The context");
   RNA_def_parameter_flags(parm, PropertyFlag(0), PARM_REQUIRED);
-  parm = RNA_def_pointer(func, "depsgraph", "Depsgraph", "", "");
+  parm = RNA_def_pointer(func, "depsgraph", "Depsgraph", "", "Evaluated dependency graph");
   RNA_def_parameter_flags(parm, PropertyFlag(0), PARM_REQUIRED);
 
   /* shader script callbacks */
@@ -730,14 +730,14 @@ static void rna_def_render_engine(BlenderRNA *brna)
   RNA_def_parameter_flags(parm, PropertyFlag(0), PARM_REQUIRED);
 
   func = RNA_def_function(srna, "camera_shift_x", "RE_engine_get_camera_shift_x");
-  parm = RNA_def_pointer(func, "camera", "Object", "", "");
+  parm = RNA_def_pointer(func, "camera", "Object", "", "Camera object");
   RNA_def_parameter_flags(parm, PropertyFlag(0), PARM_REQUIRED);
   RNA_def_boolean(func, "use_spherical_stereo", false, "Spherical Stereo", "");
   parm = RNA_def_float(func, "shift_x", 0.0f, 0.0f, FLT_MAX, "Shift X", "", 0.0f, FLT_MAX);
   RNA_def_function_return(func, parm);
 
   func = RNA_def_function(srna, "camera_model_matrix", "RE_engine_get_camera_model_matrix");
-  parm = RNA_def_pointer(func, "camera", "Object", "", "");
+  parm = RNA_def_pointer(func, "camera", "Object", "", "Camera object");
   RNA_def_parameter_flags(parm, PropertyFlag(0), PARM_REQUIRED);
   RNA_def_boolean(func, "use_spherical_stereo", false, "Spherical Stereo", "");
   parm = RNA_def_float_matrix(func,
@@ -755,7 +755,7 @@ static void rna_def_render_engine(BlenderRNA *brna)
   RNA_def_function_output(func, parm);
 
   func = RNA_def_function(srna, "use_spherical_stereo", "RE_engine_get_spherical_stereo");
-  parm = RNA_def_pointer(func, "camera", "Object", "", "");
+  parm = RNA_def_pointer(func, "camera", "Object", "", "Camera object");
   RNA_def_parameter_flags(parm, PropertyFlag(0), PARM_REQUIRED);
   parm = RNA_def_boolean(func, "use_spherical_stereo", false, "Spherical Stereo", "");
   RNA_def_function_return(func, parm);
@@ -811,7 +811,7 @@ static void rna_def_render_engine(BlenderRNA *brna)
   RNA_def_function_ui_description(func,
                                   "Bind GLSL fragment shader that converts linear colors to "
                                   "display space colors using scene color management settings");
-  parm = RNA_def_pointer(func, "scene", "Scene", "", "");
+  parm = RNA_def_pointer(func, "scene", "Scene", "", "Scene whose color management is used");
   RNA_def_parameter_flags(parm, PropertyFlag(0), PARM_REQUIRED);
 
   func = RNA_def_function(
@@ -824,7 +824,7 @@ static void rna_def_render_engine(BlenderRNA *brna)
   RNA_def_function_ui_description(func,
                                   "Test if GLSL display space shader is supported for the "
                                   "combination of graphics card and scene settings");
-  parm = RNA_def_pointer(func, "scene", "Scene", "", "");
+  parm = RNA_def_pointer(func, "scene", "Scene", "", "Scene whose color management is used");
   RNA_def_parameter_flags(parm, PropertyFlag(0), PARM_REQUIRED);
   parm = RNA_def_boolean(func, "supported", false, "Supported", "");
   RNA_def_function_return(func, parm);
@@ -832,7 +832,7 @@ static void rna_def_render_engine(BlenderRNA *brna)
   func = RNA_def_function(srna, "get_preview_pixel_size", "engine_get_preview_pixel_size");
   RNA_def_function_ui_description(func,
                                   "Get the pixel size that should be used for preview rendering");
-  parm = RNA_def_pointer(func, "scene", "Scene", "", "");
+  parm = RNA_def_pointer(func, "scene", "Scene", "", "Scene whose preview settings are used");
   RNA_def_parameter_flags(parm, PropertyFlag(0), PARM_REQUIRED);
   parm = RNA_def_int(func, "pixel_size", 0, 1, 8, "Pixel Size", "", 1, 8);
   RNA_def_function_return(func, parm);
@@ -899,9 +899,9 @@ static void rna_def_render_engine(BlenderRNA *brna)
   func = RNA_def_function(srna, "register_pass", "RE_engine_register_pass");
   RNA_def_function_ui_description(
       func, "Register a render pass that will be part of the render with the current settings");
-  parm = RNA_def_pointer(func, "scene", "Scene", "", "");
+  parm = RNA_def_pointer(func, "scene", "Scene", "", "Scene the pass is registered for");
   RNA_def_parameter_flags(parm, PropertyFlag(0), PARM_REQUIRED);
-  parm = RNA_def_pointer(func, "view_layer", "ViewLayer", "", "");
+  parm = RNA_def_pointer(func, "view_layer", "ViewLayer", "", "View layer the pass belongs to");
   RNA_def_parameter_flags(parm, PropertyFlag(0), PARM_REQUIRED);
   parm = RNA_def_string(func, "name", nullptr, MAX_NAME, "Name", "");
   RNA_def_parameter_flags(parm, PropertyFlag(0), PARM_REQUIRED);

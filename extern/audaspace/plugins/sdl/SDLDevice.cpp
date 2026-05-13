@@ -22,104 +22,91 @@
 
 AUD_NAMESPACE_BEGIN
 
-void SDLDevice::SDL_mix(void* data, Uint8* buffer, int length)
+void SDLDevice::SDL_mix(void* userdata, SDL_AudioStream* stream, int additional_amount, int /*total_amount*/)
 {
-	SDLDevice* device = (SDLDevice*)data;
+	SDLDevice* device = (SDLDevice*)userdata;
 
 	if(!device->m_playback)
-	{
-		SDL_PauseAudio(1);
-
-		std::memset(buffer, 0, length);
-
 		return;
-	}
 
-	device->mix((data_t*)buffer, length / AUD_DEVICE_SAMPLE_SIZE(device->m_specs));
+	const int sample_size = AUD_DEVICE_SAMPLE_SIZE(device->m_specs);
+	const int num_samples = additional_amount / sample_size;
+	data_t* buffer = (data_t*)SDL_stack_alloc(Uint8, additional_amount);
+	device->mix(buffer, num_samples);
+	SDL_PutAudioStreamData(stream, buffer, additional_amount);
+	SDL_stack_free(buffer);
 }
 
 void SDLDevice::playing(bool playing)
 {
-	if(!m_playback)
-		SDL_PauseAudio(playing ? 0 : 1);
+	if(playing)
+		SDL_ResumeAudioStreamDevice(m_stream);
+	else
+		SDL_PauseAudioStreamDevice(m_stream);
 
 	m_playback = playing;
 }
 
+SDL_AudioSpec SDLDevice::sdl_audiospec_from_device_specs(const DeviceSpecs &specs)
+{
+	SDL_AudioSpec audiospec;
+
+	switch(specs.format)
+	{
+	case FORMAT_U8:
+		audiospec.format = SDL_AUDIO_U8;
+		break;
+	case FORMAT_S16:
+		audiospec.format = SDL_AUDIO_S16;
+		break;
+	case FORMAT_S32:
+		audiospec.format = SDL_AUDIO_S32;
+		break;
+	case FORMAT_FLOAT32:
+		audiospec.format = SDL_AUDIO_F32;
+		break;
+	default:
+		audiospec.format = SDL_AUDIO_F32;
+		break;
+	}
+
+	audiospec.channels = specs.channels;
+	audiospec.freq = specs.rate;
+
+	return audiospec;
+}
+
 SDLDevice::SDLDevice(DeviceSpecs specs, int buffersize) :
-	m_playback(false)
+	m_playback(false),
+	m_stream(nullptr)
 {
 	if(specs.channels == CHANNELS_INVALID)
 		specs.channels = CHANNELS_STEREO;
 	if(specs.format == FORMAT_INVALID)
 		specs.format = FORMAT_FLOAT32;
-	if(specs.rate == RATE_INVALID)
+	if(specs.rate == static_cast<SampleRate>(RATE_INVALID))
 		specs.rate = RATE_48000;
 
 	m_specs = specs;
 
-	SDL_AudioSpec format, obtained;
+	if(!SDL_InitSubSystem(SDL_INIT_AUDIO))
+		AUD_THROW(DeviceException, "Failed to initialize SDL Audio subsystem.");
 
-	format.freq = m_specs.rate;
-	switch(m_specs.format)
-	{
-	case FORMAT_U8:
-		format.format = AUDIO_U8;
-		break;
-	case FORMAT_S16:
-		format.format = AUDIO_S16SYS;
-		break;
-	case FORMAT_S32:
-		format.format = AUDIO_S32SYS;
-		break;
-	case FORMAT_FLOAT32:
-		format.format = AUDIO_F32SYS;
-		break;
-	default:
-		format.format = AUDIO_F32SYS;
-		break;
-	}
+	const SDL_AudioSpec audiospec = sdl_audiospec_from_device_specs(specs);
+	m_stream = SDL_OpenAudioDeviceStream(SDL_AUDIO_DEVICE_DEFAULT_PLAYBACK, &audiospec, SDLDevice::SDL_mix, this);
 
-	format.channels = m_specs.channels;
-	format.samples = buffersize;
-	format.callback = SDLDevice::SDL_mix;
-	format.userdata = this;
-
-	if(SDL_OpenAudio(&format, &obtained) != 0)
+	if(!m_stream)
 		AUD_THROW(DeviceException, "The audio device couldn't be opened with SDL.");
-
-	m_specs.rate = (SampleRate)obtained.freq;
-	m_specs.channels = (Channels)obtained.channels;
-
-	switch(obtained.format)
-	{
-	case AUDIO_U8:
-		m_specs.format = FORMAT_U8;
-		break;
-	case AUDIO_S16SYS:
-		m_specs.format = FORMAT_S16;
-		break;
-	case AUDIO_S32SYS:
-		m_specs.format = FORMAT_S32;
-		break;
-	case AUDIO_F32SYS:
-		m_specs.format = FORMAT_FLOAT32;
-		break;
-	default:
-		SDL_CloseAudio();
-		AUD_THROW(DeviceException, "The sample format obtained from SDL is not supported.");
-		break;
-	}
 
 	create();
 }
 
 SDLDevice::~SDLDevice()
 {
-	SDL_PauseAudio(1);
-	SDL_CloseAudio();
-
 	destroy();
+
+	SDL_DestroyAudioStream(m_stream);
+	SDL_QuitSubSystem(SDL_INIT_AUDIO);
 }
 
 class SDLDeviceFactory : public IDeviceFactory

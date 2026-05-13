@@ -51,12 +51,12 @@ void textbox_jump_line(ButtonTextBox *textbox,
  */
 Vector<StringRef> textbox_wrap_lines(ButtonTextBox *textbox);
 
+Vector<StringRef> textbox_wrap_placeholder(ButtonTextBox *textbox);
+
 float textbox_grip_height();
 
-/* Top padding for text in a textbox. */
-float textbox_padding_top();
-/* Bottom padding for text in a textbox, this includes grip height. */
-float textbox_padding_bottom();
+/* Top/Bottom padding for text in a text-box. */
+float textbox_vertical_padding();
 
 TextboxState *textbox_ensure_state(ARegion *region, StringRefNull idname);
 

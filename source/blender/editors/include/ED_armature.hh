@@ -11,6 +11,7 @@
 #include "BLI_compiler_attrs.h"
 #include "BLI_span.hh"
 
+#include "DNA_armature_types.h"
 #include "DNA_listBase.h"
 #include "DNA_windowmanager_enums.h"
 
@@ -36,6 +37,7 @@ struct bContext;
 struct bPoseChannel;
 struct wmKeyConfig;
 struct wmOperator;
+enum eAnimvizCalcRange : uint8_t;
 
 #define BONESEL_ROOT (1u << 29)
 #define BONESEL_TIP (1u << 30)
@@ -160,8 +162,11 @@ bool ED_armature_edit_deselect_all_visible_multi(bContext *C);
 /**
  * \return True when pick finds an element or the selection changed.
  */
-bool ED_armature_edit_select_pick_bone(
-    bContext *C, Base *basact, EditBone *ebone, int selmask, const SelectPick_Params &params);
+bool ED_armature_edit_select_pick_bone(bContext *C,
+                                       Base *basact,
+                                       EditBone *ebone,
+                                       eBone_Flag selmask,
+                                       const SelectPick_Params &params);
 /**
  * Bone selection picking for armature edit-mode in the view3d.
  */
@@ -251,10 +256,10 @@ void ED_armature_ebone_listbase_copy(ListBaseT<EditBone> *lb_dst,
                                      bool do_id_user);
 
 int ED_armature_ebone_selectflag_get(const EditBone *ebone);
-void ED_armature_ebone_selectflag_set(EditBone *ebone, int flag);
+void ED_armature_ebone_selectflag_set(EditBone *ebone, eBone_Flag flag);
 void ED_armature_ebone_select_set(EditBone *ebone, bool select);
-void ED_armature_ebone_selectflag_enable(EditBone *ebone, int flag);
-void ED_armature_ebone_selectflag_disable(EditBone *ebone, int flag);
+void ED_armature_ebone_selectflag_enable(EditBone *ebone, eBone_Flag flag);
+void ED_armature_ebone_selectflag_disable(EditBone *ebone, eBone_Flag flag);
 
 /* `pose_edit.cc` */
 
@@ -265,19 +270,13 @@ bool ED_object_posemode_exit(bContext *C, Object *ob);
 bool ED_object_posemode_enter_ex(Main *bmain, Object *ob);
 bool ED_object_posemode_enter(bContext *C, Object *ob);
 
-/** Corresponds to #eAnimvizCalcRange. */
-enum ePosePathCalcRange {
-  POSE_PATH_CALC_RANGE_CURRENT_FRAME,
-  POSE_PATH_CALC_RANGE_CHANGED,
-  POSE_PATH_CALC_RANGE_FULL,
-};
 /**
  * For the object with pose/action: update paths for those that have got them
  * This should selectively update paths that exist...
  *
  * To be called from various tools that do incremental updates.
  */
-void ED_pose_recalculate_paths(bContext *C, Scene *scene, Object *ob, ePosePathCalcRange range);
+void ED_pose_recalculate_paths(bContext *C, Scene *scene, Object *ob, eAnimvizCalcRange range);
 
 /* `pose_select.cc` */
 

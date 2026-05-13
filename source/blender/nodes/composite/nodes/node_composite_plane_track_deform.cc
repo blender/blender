@@ -180,11 +180,10 @@ class PlaneTrackDeformOperation : public NodeOperation {
 
     Result &output_mask = get_result("Plane");
     if (output_mask.should_compute()) {
-      output_mask.steal_data(anti_aliased_plane_mask);
+      output_mask.share_data(anti_aliased_plane_mask);
     }
-    else {
-      anti_aliased_plane_mask.release();
-    }
+
+    anti_aliased_plane_mask.release();
   }
 
   void compute_plane_gpu(const Array<float4x4> &homography_matrices,
@@ -262,11 +261,10 @@ class PlaneTrackDeformOperation : public NodeOperation {
 
     Result &output_mask = get_result("Plane");
     if (output_mask.should_compute()) {
-      output_mask.steal_data(anti_aliased_plane_mask);
+      output_mask.share_data(anti_aliased_plane_mask);
     }
-    else {
-      anti_aliased_plane_mask.release();
-    }
+
+    anti_aliased_plane_mask.release();
   }
 
   void compute_plane_cpu(const Array<float4x4> &homography_matrices, Result &plane_mask)

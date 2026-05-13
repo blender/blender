@@ -496,8 +496,6 @@ AbcMeshReader::AbcMeshReader(const AbcReaderConstructorArgs &args) : AbcObjectRe
 
   IPolyMesh ipoly_mesh(m_iobject, kWrapExisting);
   m_schema = ipoly_mesh.getSchema();
-
-  get_min_max_time(m_iobject, m_schema, m_min_time, m_max_time);
 }
 
 bool AbcMeshReader::valid() const
@@ -1015,8 +1013,6 @@ AbcSubDReader::AbcSubDReader(const AbcReaderConstructorArgs &args) : AbcObjectRe
 
   ISubD isubd_mesh(m_iobject, kWrapExisting);
   m_schema = isubd_mesh.getSchema();
-
-  get_min_max_time(m_iobject, m_schema, m_min_time, m_max_time);
 }
 
 bool AbcSubDReader::valid() const

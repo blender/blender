@@ -30,7 +30,7 @@ from collections.abc import (
 
 import bpy
 from bpy.types import (
-    Action, ActionSlot, ActionChannelbag,
+    ActionChannelbag,
     PoseBone,
 )
 
@@ -88,11 +88,18 @@ class BakeOptions:
     """Bake custom properties."""
 
 
-def action_get_channelbag_for_slot(action: Action | None, slot: ActionSlot | None) -> ActionChannelbag | None:
+def action_get_channelbag_for_slot(action, slot):
     """
     Returns the first channelbag found for the slot.
     In case there are multiple layers or strips they are iterated until a
     channelbag for that slot is found. In case no matching channelbag is found, returns None.
+
+    :param action: Action to search.
+    :type action: :class:`bpy.types.Action` | None
+    :param slot: Slot to look up.
+    :type slot: :class:`bpy.types.ActionSlot` | None
+    :return: The first matching channelbag, or None when not found or when *action* or *slot* is None.
+    :rtype: :class:`bpy.types.ActionChannelbag` | None
     """
     if not action or not slot:
         # This is just for convenience so that you can call
@@ -109,11 +116,19 @@ def action_get_channelbag_for_slot(action: Action | None, slot: ActionSlot | Non
     return None
 
 
-def action_get_first_suitable_slot(action: Action | None, target_id_type: str) -> ActionSlot | None:
-    """Return the first Slot of the given Action that's suitable for the given ID type.
+def action_get_first_suitable_slot(action, target_id_type):
+    """
+    Return the first Slot of the given Action that's suitable for the given ID type.
 
     Typically you should not need this function; when an Action is assigned to a
     data-block, just use the slot that was assigned along with it.
+
+    :param action: Action to search.
+    :type action: :class:`bpy.types.Action` | None
+    :param target_id_type: ID type identifier the slot must accept (e.g. ``'OBJECT'``).
+    :type target_id_type: str
+    :return: The first suitable slot, or None when none match or when *action* is None.
+    :rtype: :class:`bpy.types.ActionSlot` | None
     """
 
     if not action:
@@ -126,8 +141,17 @@ def action_get_first_suitable_slot(action: Action | None, target_id_type: str) -
     return None
 
 
-def action_ensure_channelbag_for_slot(action: Action, slot: ActionSlot) -> ActionChannelbag:
-    """Ensure a layer and a keyframe strip exists, then ensure that strip has a channelbag for the slot."""
+def action_ensure_channelbag_for_slot(action, slot):
+    """
+    Ensure a layer and a keyframe strip exists, then ensure that strip has a channelbag for the slot.
+
+    :param action: Action to populate.
+    :type action: :class:`bpy.types.Action`
+    :param slot: Slot to ensure a channelbag for.
+    :type slot: :class:`bpy.types.ActionSlot`
+    :return: The channelbag for *slot* in the first keyframe strip.
+    :rtype: :class:`bpy.types.ActionChannelbag`
+    """
 
     try:
         layer = action.layers[0]
@@ -142,9 +166,15 @@ def action_ensure_channelbag_for_slot(action: Action, slot: ActionSlot) -> Actio
     return strip.channelbag(slot, ensure=True)
 
 
-def animdata_get_channelbag_for_assigned_slot(anim_data: bpy.types.AnimData | None) -> ActionChannelbag | None:
-    """Return the first channelbag used in the given *anim_data* or None if there is no Action
-    + Slot combination defined."""
+def animdata_get_channelbag_for_assigned_slot(anim_data):
+    """
+    Return the first channelbag used in the given *anim_data* or None if there is no Action + Slot combination defined.
+
+    :param anim_data: Animation data to inspect.
+    :type anim_data: :class:`bpy.types.AnimData` | None
+    :return: The first channelbag for the assigned slot, or None.
+    :rtype: :class:`bpy.types.ActionChannelbag` | None
+    """
     if not anim_data:
         return None
     if not anim_data.action or not anim_data.action_slot:

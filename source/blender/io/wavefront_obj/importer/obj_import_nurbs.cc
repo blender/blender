@@ -97,7 +97,7 @@ void CurveFromGeometry::create_nurbs(Curve *curve, const OBJImportParams &import
   Nurb *nurb = static_cast<Nurb *>(curve->nurb.first);
 
   nurb->type = CU_NURBS;
-  nurb->flag = CU_3D;
+  nurb->flag = CU_SMOOTH;
   nurb->next = nurb->prev = nullptr;
   /* BKE_nurb_points_add later on will update pntsu. If this were set to total curve points,
    * we get double the total points in viewport. */
@@ -357,13 +357,13 @@ static bool detect_knot_mode_uniform(const int8_t degree,
   return true;
 }
 
-short CurveFromGeometry::detect_knot_mode(const OBJImportParams &import_params,
-                                          const int8_t degree,
-                                          const Span<int> indices,
-                                          const Span<float> knots,
-                                          const Span<int> multiplicity)
+eNurbKnotFlag CurveFromGeometry::detect_knot_mode(const OBJImportParams &import_params,
+                                                  const int8_t degree,
+                                                  const Span<int> indices,
+                                                  const Span<float> knots,
+                                                  const Span<int> multiplicity)
 {
-  short knot_mode = 0;
+  eNurbKnotFlag knot_mode = {};
 
   const bool is_clamped = detect_clamped_endpoint(degree, multiplicity);
 

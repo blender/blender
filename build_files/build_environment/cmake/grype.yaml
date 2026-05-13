@@ -1,0 +1,85 @@
+# Remarks: NotAffected / FalsePositive / Mitigated
+
+ignore:
+  # [NotAffected] issue in convert command line tool not used by blender
+  - vulnerability: CVE-2016-9675
+  # [NotAffected] issue in pygresql not used by blender
+  - vulnerability: CVE-2009-2940
+  # [NotAffected] issue in odoo not used by blender
+  - vulnerability: CVE-2020-29396
+  # [NotAffected] issue in django not used by blender
+  - vulnerability: CVE-2021-32052
+  # [NotAffected] already fixed in libexpat version used
+  - vulnerability: CVE-2009-3720
+  # [NotAffected] not used in blender and not considered a bug upstream
+  - vulnerability: CVE-2023-36632
+  # [NotAffected] not used in blender
+  - vulnerability: CVE-2023-27043
+  # [FalsePositive] fixed in 3.11.10 upstream fix gh-121285
+  - vulnerability: CVE-2024-6232
+  # [FalsePositive] fixed in 3.11.10 upstream fix gh-123067
+  - vulnerability: CVE-2024-7592
+  # [NotAffected] not a blender specific issue and pip is inherently affected by malicious packages
+  - vulnerability: CVE-2018-20225
+  # [NotAffected] issue in mutt not used by blender
+  - vulnerability: CVE-2009-1390
+  # [NotAffected] issue in mutt not used by blender
+  - vulnerability: CVE-2009-3765
+  # [NotAffected] issue in mutt not used by blender
+  - vulnerability: CVE-2009-3766
+  # [NotAffected] issue in ldap not used by blender
+  - vulnerability: CVE-2009-3767
+  # [NotAffected] issue in apache not used by blender
+  - vulnerability: CVE-2019-0190
+  # [NotAffected] issue in tiff command line tool not used by blender
+  - vulnerability: CVE-2022-2056
+  # [NotAffected] issue in tiff command line tool not used by blender
+  - vulnerability: CVE-2022-2057
+  # [NotAffected] issue in tiff command line tool not used by blender
+  - vulnerability: CVE-2022-2058
+  # [NotAffected] issue in tiff command line tool not used by blender
+  - vulnerability: CVE-2022-2519
+  # [NotAffected] issue in tiff command line tool not used by blender
+  - vulnerability: CVE-2022-2520
+  # [NotAffected] issue in tiff command line tool not used by blender
+  - vulnerability: CVE-2022-2521
+  # [NotAffected] issue in tiff command line tool not used by blender
+  - vulnerability: CVE-2022-2953
+  # [NotAffected] issue in tiff command line tool not used by blender
+  - vulnerability: CVE-2022-34526
+  # [NotAffected] issue in tiff command line tool not used by blender
+  - vulnerability: CVE-2022-3570
+  # [NotAffected] issue in tiff command line tool not used by blender
+  - vulnerability: CVE-2022-3597
+  # [NotAffected] issue in tiff command line tool not used by blender
+  - vulnerability: CVE-2022-3598
+  # [NotAffected] issue in tiff command line tool not used by blender
+  - vulnerability: CVE-2022-3599
+  # [NotAffected] issue in tiff command line tool not used by blender
+  - vulnerability: CVE-2022-3626
+  # [NotAffected] issue in tiff command line tool not used by blender
+  - vulnerability: CVE-2022-3627
+  # [NotAffected] issue in tiff command line tool not used by blender
+  - vulnerability: CVE-2023-40745
+  # [NotAffected] issue in tiff command line tool not used by blender
+  - vulnerability: CVE-2023-41175
+  # [NotAffected] not affecting blender and not considered a security issue upstream
+  - vulnerability: CVE-2016-3709
+  # [NotAffected] not affecting blender and not considered a security issue upstream
+  - vulnerability: CVE-2023-39615
+  # [NotAffected] already fixed in the libxml2 version used
+  - vulnerability: CVE-2020-7595
+  # [Mitigated] patched using upstream commit 561a9c25298e
+  - vulnerability: CVE-2021-43618
+  # [NotAffected] only affects SQLITE_ENABLE_STAT4 compile option not used by blender or python
+  - vulnerability: CVE-2022-35737
+  # [NotAffected] does not affect blender use of sqlite
+  - vulnerability: CVE-2023-7104
+  # [NotAffected] does not affect blender use of sqlite
+  - vulnerability: CVE-2024-0232
+  # [NotAffected] only affects minizip not used by blender
+  - vulnerability: CVE-2023-45853
+  # [Mitigated] patched using upstream PR 1045
+  - vulnerability: CVE-2024-50612
+  # [NotAffected] all mp3 handling in blender goes through ffmpeg
+  - vulnerability: CVE-2024-50613

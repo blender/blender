@@ -1200,8 +1200,12 @@ static void setup_app_data(bContext *C,
      * and/or needs to operate over the whole Main data-base
      * (versioning done in file reading code only operates on a per-library basis). */
     BLO_read_do_version_after_setup(bmain, nullptr, reports);
-    BLO_readfile_id_runtime_data_free_all(*bmain);
   }
+
+  /* Always clear readfile runtime data, keeping this beyond the readfile scope can have unexpected
+   * side-effects, especially on next readfile call when considering IDs from the old Main
+   * data-base, see e.g. #157387. */
+  BLO_readfile_id_runtime_data_free_all(*bmain);
 
   bmain->recovered = false;
 

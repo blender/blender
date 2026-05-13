@@ -57,7 +57,7 @@ using bke::CurvesGeometry;
 class AddOperation : public CurvesSculptStrokeOperation {
  private:
   /** Used when some data should be interpolated from existing curves. */
-  KDTree_3d *curve_roots_kdtree_ = nullptr;
+  KDTree<float3> *curve_roots_kdtree_ = nullptr;
 
   friend struct AddOperationExecutor;
 
@@ -65,7 +65,7 @@ class AddOperation : public CurvesSculptStrokeOperation {
   ~AddOperation() override
   {
     if (curve_roots_kdtree_ != nullptr) {
-      kdtree_3d_free(curve_roots_kdtree_);
+      kdtree_free<float3>(curve_roots_kdtree_);
     }
   }
 
@@ -499,13 +499,13 @@ struct AddOperationExecutor {
   void ensure_curve_roots_kdtree()
   {
     if (self_->curve_roots_kdtree_ == nullptr) {
-      self_->curve_roots_kdtree_ = kdtree_3d_new(curves_orig_->curves_num());
+      self_->curve_roots_kdtree_ = kdtree_new<float3>(curves_orig_->curves_num());
       const Span<int> offsets = curves_orig_->offsets();
       const Span<float3> positions = curves_orig_->positions();
       for (const int curve_i : curves_orig_->curves_range()) {
-        kdtree_3d_insert(self_->curve_roots_kdtree_, curve_i, positions[offsets[curve_i]]);
+        kdtree_insert<float3>(self_->curve_roots_kdtree_, curve_i, positions[offsets[curve_i]]);
       }
-      kdtree_3d_balance(self_->curve_roots_kdtree_);
+      kdtree_balance<float3>(self_->curve_roots_kdtree_);
     }
   }
 };

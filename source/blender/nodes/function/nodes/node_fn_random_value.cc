@@ -19,25 +19,45 @@ NODE_STORAGE_FUNCS(NodeRandomValue)
 static void node_declare(NodeDeclarationBuilder &b)
 {
   b.is_function_node();
-  b.add_input<decl::Vector>("Min"_ustr);
-  b.add_input<decl::Vector>("Max"_ustr).default_value({1.0f, 1.0f, 1.0f});
-  b.add_input<decl::Float>("Min"_ustr, "Min_001"_ustr);
-  b.add_input<decl::Float>("Max"_ustr, "Max_001"_ustr).default_value(1.0f);
-  b.add_input<decl::Int>("Min"_ustr, "Min_002"_ustr).min(-100000).max(100000);
-  b.add_input<decl::Int>("Max"_ustr, "Max_002"_ustr).default_value(100).min(-100000).max(100000);
-  b.add_input<decl::Float>("Probability"_ustr)
-      .min(0.0f)
-      .max(1.0f)
-      .default_value(0.5f)
-      .subtype(PROP_FACTOR)
-      .make_available([](bNode &node) { node_storage(node).data_type = CD_PROP_BOOL; });
-  b.add_input<decl::Int>("ID"_ustr).implicit_field(NODE_DEFAULT_INPUT_ID_INDEX_FIELD);
-  b.add_input<decl::Int>("Seed"_ustr).default_value(0).min(-10000).max(10000);
+  const bNode *node = b.node_or_null();
 
-  b.add_output<decl::Vector>("Value"_ustr);
-  b.add_output<decl::Float>("Value"_ustr, "Value_001"_ustr);
-  b.add_output<decl::Int>("Value"_ustr, "Value_002"_ustr);
-  b.add_output<decl::Bool>("Value"_ustr, "Value_003"_ustr);
+  if (node != nullptr) {
+    const NodeRandomValue &storage = node_storage(*node);
+    const eCustomDataType data_type = eCustomDataType(storage.data_type);
+    switch (data_type) {
+      case CD_PROP_FLOAT3:
+        b.add_input<decl::Vector>("Min"_ustr);
+        b.add_input<decl::Vector>("Max"_ustr).default_value({1.0f, 1.0f, 1.0f});
+        break;
+      case CD_PROP_FLOAT:
+        b.add_input<decl::Float>("Min"_ustr);
+        b.add_input<decl::Float>("Max"_ustr).default_value(1.0f);
+        break;
+      case CD_PROP_INT32:
+        b.add_input<decl::Int>("Min"_ustr);
+        b.add_input<decl::Int>("Max"_ustr).default_value(100);
+        break;
+      case CD_PROP_BOOL:
+        b.add_input<decl::Float>("Probability"_ustr)
+            .min(0.0f)
+            .max(1.0f)
+            .default_value(0.5f)
+            .subtype(PROP_FACTOR);
+        break;
+      default:
+        BLI_assert_unreachable();
+        break;
+    }
+  }
+
+  b.add_input<decl::Int>("ID"_ustr).implicit_field(NODE_DEFAULT_INPUT_ID_INDEX_FIELD);
+  b.add_input<decl::Int>("Seed"_ustr);
+
+  if (node != nullptr) {
+    const NodeRandomValue &storage = node_storage(*node);
+    const eCustomDataType data_type = eCustomDataType(storage.data_type);
+    b.add_output(data_type, "Value"_ustr);
+  }
 }
 
 static void node_layout(ui::Layout &layout, bContext * /*C*/, PointerRNA *ptr)
@@ -50,38 +70,6 @@ static void fn_node_random_value_init(bNodeTree * /*tree*/, bNode *node)
   NodeRandomValue *data = MEM_new<NodeRandomValue>(__func__);
   data->data_type = CD_PROP_FLOAT;
   node->storage = data;
-}
-
-static void fn_node_random_value_update(bNodeTree *ntree, bNode *node)
-{
-  const NodeRandomValue &storage = node_storage(*node);
-  const eCustomDataType data_type = eCustomDataType(storage.data_type);
-
-  bNodeSocket *sock_min_vector = static_cast<bNodeSocket *>(node->inputs.first);
-  bNodeSocket *sock_max_vector = sock_min_vector->next;
-  bNodeSocket *sock_min_float = sock_max_vector->next;
-  bNodeSocket *sock_max_float = sock_min_float->next;
-  bNodeSocket *sock_min_int = sock_max_float->next;
-  bNodeSocket *sock_max_int = sock_min_int->next;
-  bNodeSocket *sock_probability = sock_max_int->next;
-
-  bNodeSocket *sock_out_vector = static_cast<bNodeSocket *>(node->outputs.first);
-  bNodeSocket *sock_out_float = sock_out_vector->next;
-  bNodeSocket *sock_out_int = sock_out_float->next;
-  bNodeSocket *sock_out_bool = sock_out_int->next;
-
-  bke::node_set_socket_availability(*ntree, *sock_min_vector, data_type == CD_PROP_FLOAT3);
-  bke::node_set_socket_availability(*ntree, *sock_max_vector, data_type == CD_PROP_FLOAT3);
-  bke::node_set_socket_availability(*ntree, *sock_min_float, data_type == CD_PROP_FLOAT);
-  bke::node_set_socket_availability(*ntree, *sock_max_float, data_type == CD_PROP_FLOAT);
-  bke::node_set_socket_availability(*ntree, *sock_min_int, data_type == CD_PROP_INT32);
-  bke::node_set_socket_availability(*ntree, *sock_max_int, data_type == CD_PROP_INT32);
-  bke::node_set_socket_availability(*ntree, *sock_probability, data_type == CD_PROP_BOOL);
-
-  bke::node_set_socket_availability(*ntree, *sock_out_vector, data_type == CD_PROP_FLOAT3);
-  bke::node_set_socket_availability(*ntree, *sock_out_float, data_type == CD_PROP_FLOAT);
-  bke::node_set_socket_availability(*ntree, *sock_out_int, data_type == CD_PROP_INT32);
-  bke::node_set_socket_availability(*ntree, *sock_out_bool, data_type == CD_PROP_BOOL);
 }
 
 static std::optional<eCustomDataType> node_type_from_other_socket(const bNodeSocket &socket)
@@ -104,7 +92,6 @@ static std::optional<eCustomDataType> node_type_from_other_socket(const bNodeSoc
 
 static void node_gather_link_search_ops(GatherLinkSearchOpParams &params)
 {
-  const NodeDeclaration &declaration = *params.node_type().static_declaration;
   const std::optional<eCustomDataType> type = node_type_from_other_socket(params.other_socket());
   if (!type) {
     return;
@@ -122,7 +109,13 @@ static void node_gather_link_search_ops(GatherLinkSearchOpParams &params)
         params.update_and_connect_available_socket(node, "Max"_ustr);
       });
     }
-    search_link_ops_for_declarations(params, declaration.inputs.as_span().take_back(3));
+    if (*type == CD_PROP_FLOAT) {
+      params.add_item(IFACE_("Probability"), [](LinkSearchOpParams &params) {
+        bNode &node = params.add_node("FunctionNodeRandomValue"_ustr);
+        node_storage(node).data_type = CD_PROP_BOOL;
+        params.update_and_connect_available_socket(node, "Probability"_ustr);
+      });
+    }
   }
   else {
     params.add_item(IFACE_("Value"), [type](LinkSearchOpParams &params) {
@@ -212,7 +205,6 @@ static void node_register()
   ntype.enum_name_legacy = "RANDOM_VALUE";
   ntype.nclass = NODE_CLASS_CONVERTER;
   ntype.initfunc = fn_node_random_value_init;
-  ntype.updatefunc = fn_node_random_value_update;
   ntype.draw_buttons = node_layout;
   ntype.declare = node_declare;
   ntype.build_multi_function = node_build_multi_function;

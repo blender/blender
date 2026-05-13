@@ -781,7 +781,7 @@ static int rna_group_color_tag_get(PointerRNA *ptr)
 static void rna_group_color_tag_set(PointerRNA *ptr, int value)
 {
   GreasePencilLayerTreeGroup *group = static_cast<GreasePencilLayerTreeGroup *>(ptr->data);
-  group->color_tag = value;
+  group->color_tag = GroupColorTag(value);
   WM_main_add_notifier(NC_GPENCIL | ND_DATA | NA_SELECTED, nullptr);
 }
 

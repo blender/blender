@@ -262,11 +262,18 @@ string CUDADevice::compile_kernel(const string &common_cflags, const char *name,
   }
   /* Attempt to use kernel provided with Blender. */
   else if (!use_adaptive_compilation()) {
-    const string cubin = path_get(string_printf("lib/%s_sm_%d%d.cubin.zst", name, major, minor));
-    LOG_INFO << "Testing for pre-compiled kernel " << cubin << ".";
-    if (path_exists(cubin)) {
-      LOG_INFO << "Using precompiled kernel.";
-      return cubin;
+    /* Binaries within a major version are compatible, so find the closest one. */
+    int cubin_minor = minor;
+    while (cubin_minor >= 0) {
+      const string cubin = path_get(
+          string_printf("lib/%s_sm_%d%d.cubin.zst", name, major, cubin_minor));
+      LOG_INFO << "Testing for pre-compiled kernel " << cubin << ".";
+      if (path_exists(cubin)) {
+        LOG_INFO << "Using precompiled kernel.";
+        return cubin;
+      }
+
+      cubin_minor--;
     }
 
     /* The driver can JIT-compile PTX generated for older generations, so find the closest one. */

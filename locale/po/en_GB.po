@@ -1,9 +1,9 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 5.2.0 Alpha (b'b1f67602e773')\n"
+"Project-Id-Version: Blender 5.2.0 Alpha (b'8c7c45ad114e')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-04-13 10:20+0000\n"
+"POT-Creation-Date: 2026-05-11 07:23+0000\n"
 "PO-Revision-Date: 2026-02-16 18:12+0000\n"
 "Last-Translator: Deniz Jones <sdfoakes@gmail.com>\n"
 "Language-Team: English (United Kingdom) <https://translate.blender.org/projects/blender-ui/ui/en_GB/>\n"
@@ -7593,16 +7593,8 @@ msgid "ACES 1.3 sRGB"
 msgstr "ACES 1.3 sRGB"
 
 
-msgid "ACES 1.0 Output Transform for SDR D65 video, limited to Rec.709 gamut"
-msgstr "ACES 1.0 Output Transform for SDR D65 video, limited to Rec.709 gamut"
-
-
 msgid "ACES 2.0 sRGB"
 msgstr "ACES 2.0 sRGB"
-
-
-msgid "ACES 2 Output Transform for 100 nit SDR Rec709"
-msgstr "ACES 2 Output Transform for 100 nit SDR Rec709"
 
 
 msgid "ACES2065-1"
@@ -7633,10 +7625,6 @@ msgid "AgX Base sRGB"
 msgstr "AgX Base sRGB"
 
 
-msgid "AgX Base Image Encoding for sRGB Display"
-msgstr "AgX Base Image Encoding for sRGB Display"
-
-
 msgid "AgX Log"
 msgstr "AgX Log"
 
@@ -7665,16 +7653,8 @@ msgid "Filmic sRGB"
 msgstr "Filmic sRGB"
 
 
-msgid "sRGB display space with Filmic view transform"
-msgstr "sRGB display space with Filmic view transform"
-
-
 msgid "Khronos PBR Neutral sRGB"
 msgstr "Khronos PBR Neutral sRGB"
-
-
-msgid "Khronos PBR Neutral Image Encoding for sRGB Display"
-msgstr "Khronos PBR Neutral Image Encoding for sRGB Display"
 
 
 msgid "Linear CIE-XYZ D65"
@@ -11446,10 +11426,6 @@ msgstr "Include visualization of lattice related animation data"
 
 msgid "Display Light Probe"
 msgstr "Display Light Probe"
-
-
-msgid "Include visualization of lightprobe related animation data"
-msgstr "Include visualisation of lightprobe related animation data"
 
 
 msgid "Display Light"
@@ -18958,58 +18934,6 @@ msgid "Amount of smoothing to automatically apply to each stroke"
 msgstr "Amount of smoothing to automatically apply to each stroke"
 
 
-msgid "Propagation Steps"
-msgstr "Propagation Steps"
-
-
-msgid "Distance where boundary edge automasking is going to protect vertices from the fully masked edge"
-msgstr "Distance where boundary edge automasking is going to protect vertices from the fully masked edge"
-
-
-msgid "Blur Steps"
-msgstr "Blur Steps"
-
-
-msgid "The number of times the cavity mask is blurred"
-msgstr "The number of times the cavity mask is blurred"
-
-
-msgid "Cavity Curve"
-msgstr "Cavity Curve"
-
-
-msgid "Cavity Factor"
-msgstr "Cavity Factor"
-
-
-msgid "The contrast of the cavity mask"
-msgstr "The contrast of the cavity mask"
-
-
-msgid "Area Normal Falloff"
-msgstr "Area Normal Falloff"
-
-
-msgid "Extend the angular range with a falloff gradient"
-msgstr "Extend the angular range with a falloff gradient"
-
-
-msgid "Area Normal Limit"
-msgstr "Area Normal Limit"
-
-
-msgid "The range of angles that will be affected"
-msgstr "The range of angles that will be affected"
-
-
-msgid "View Normal Falloff"
-msgstr "View Normal Falloff"
-
-
-msgid "View Normal Limit"
-msgstr "View Normal Limit"
-
-
 msgctxt "Color"
 msgid "Blending Mode"
 msgstr "Blending Mode"
@@ -20631,74 +20555,6 @@ msgstr "Affect Alpha"
 
 msgid "When this is disabled, lock alpha while painting"
 msgstr "When this is disabled, lock alpha while painting"
-
-
-msgid "Mesh Boundary Auto-Masking"
-msgstr "Mesh Boundary Auto-Masking"
-
-
-msgid "Do not affect non manifold boundary edges"
-msgstr "Do not affect non manifold boundary edges"
-
-
-msgid "Face Sets Boundary Automasking"
-msgstr "Face Sets Boundary Automasking"
-
-
-msgid "Do not affect vertices that belong to a face set boundary"
-msgstr "Do not affect vertices that belong to a face set boundary"
-
-
-msgid "Cavity Mask"
-msgstr "Cavity Mask"
-
-
-msgid "Do not affect vertices on peaks, based on the surface curvature"
-msgstr "Do not affect vertices on peaks, based on the surface curvature"
-
-
-msgid "Inverted Cavity Mask"
-msgstr "Inverted Cavity Mask"
-
-
-msgid "Do not affect vertices within crevices, based on the surface curvature"
-msgstr "Do not affect vertices within crevices, based on the surface curvature"
-
-
-msgid "Custom Cavity Curve"
-msgstr "Custom Cavity Curve"
-
-
-msgid "Use custom curve"
-msgstr "Use custom curve"
-
-
-msgid "Affect only vertices that share face sets with the active vertex"
-msgstr "Affect only vertices that share face sets with the active vertex"
-
-
-msgid "Area Normal"
-msgstr "Area Normal"
-
-
-msgid "Affect only vertices with a similar normal to where the stroke starts"
-msgstr "Affect only vertices with a similar normal to where the stroke starts"
-
-
-msgid "Affect only vertices connected to the active vertex under the brush"
-msgstr "Affect only vertices connected to the active vertex under the brush"
-
-
-msgid "Affect only vertices with a normal that faces the viewer"
-msgstr "Affect only vertices with a normal that faces the viewer"
-
-
-msgid "Occlusion"
-msgstr "Occlusion"
-
-
-msgid "Only affect vertices that are not occluded by other faces (slower performance)"
-msgstr "Only affect vertices that are not occluded by other faces (slower performance)"
 
 
 msgid "Collide with objects during the simulation"
@@ -34949,6 +34805,10 @@ msgid "Placement"
 msgstr "Placement"
 
 
+msgid "Scale the noise frequency"
+msgstr "Scale the noise frequency"
+
+
 msgid "Show stroke fills of this material"
 msgstr "Show stroke fills of this material"
 
@@ -35050,128 +34910,8 @@ msgid "Editor menu containing buttons"
 msgstr "Editor menu containing buttons"
 
 
-msgid "Face Data"
-msgstr "Face Data"
-
-
-msgid "Select by Face Strength"
-msgstr "Select by Face Strength"
-
-
-msgid "Set Face Strength"
-msgstr "Set Face Strength"
-
-
-msgid "Math"
-msgstr "Maths"
-
-
-msgid "Utilities"
-msgstr "Utilities"
-
-
-msgid "Clean Up"
-msgstr "Clean Up"
-
-
-msgid "Merge"
-msgstr "Merge"
-
-
-msgid "Show/Hide"
-msgstr "Show/Hide"
-
-
-msgid "Special Characters"
-msgstr "Special Characters"
-
-
-msgid "Kerning"
-msgstr "Kerning"
-
-
-msgid "Metaball"
-msgstr "Metaball"
-
-
-msgid "Read"
-msgstr "Read"
-
-
-msgid "Sample"
-msgstr "Sample"
-
-
-msgid "Write"
-msgstr "Write"
-
-
-msgid "Names"
-msgstr "Names"
-
-
-msgid "Primitives"
-msgstr "Primitives"
-
-
-msgid "Bone Roll"
-msgstr "Bone Roll"
-
-
-msgid "Gizmo"
-msgstr "Gizmo"
-
-
-msgid "Instances"
-msgstr "Instances"
-
-
-msgid "Pivot Point"
-msgstr "Pivot Point"
-
-
 msgid "Snap"
 msgstr "Snap"
-
-
-msgid "Import"
-msgstr "Import"
-
-
-msgid "Proportional Editing Falloff"
-msgstr "Proportional Editing Falloff"
-
-
-msgid "Mask Edit"
-msgstr "Mask Edit"
-
-
-msgid "Automasking"
-msgstr "Automasking"
-
-
-msgid "Face Sets Edit"
-msgstr "Face Sets Edit"
-
-
-msgid "Vertex Group Locks"
-msgstr "Vertex Group Locks"
-
-
-msgid "Deprecated"
-msgstr "Deprecated"
-
-
-msgid "List"
-msgstr "List"
-
-
-msgid "UV"
-msgstr "UV"
-
-
-msgid "Mirror"
-msgstr "Mirror"
 
 
 msgid "UV Mapping"
@@ -35222,8 +34962,32 @@ msgid "Select Loops"
 msgstr "Select Loops"
 
 
+msgid "Math"
+msgstr "Maths"
+
+
+msgid "Utilities"
+msgstr "Utilities"
+
+
 msgid "Assign Material"
 msgstr "Assign Material"
+
+
+msgid "Metaball"
+msgstr "Metaball"
+
+
+msgid "Read"
+msgstr "Read"
+
+
+msgid "Sample"
+msgstr "Sample"
+
+
+msgid "Write"
+msgstr "Write"
 
 
 msgid "Light"
@@ -35234,6 +34998,10 @@ msgid "Light Probe"
 msgstr "Light Probe"
 
 
+msgid "Primitives"
+msgstr "Primitives"
+
+
 msgid "Add Image"
 msgstr "Add Image"
 
@@ -35242,16 +35010,20 @@ msgid "Relations"
 msgstr "Relations"
 
 
-msgid "Layout"
-msgstr "Layout"
-
-
 msgid "Rigid Body"
 msgstr "Rigid Body"
 
 
+msgid "Gizmo"
+msgstr "Gizmo"
+
+
 msgid "Apply"
 msgstr "Apply"
+
+
+msgid "Instances"
+msgstr "Instances"
 
 
 msgid "Track"
@@ -35262,12 +35034,20 @@ msgid "Quick Effects"
 msgstr "Quick Effects"
 
 
+msgid "Show/Hide"
+msgstr "Show/Hide"
+
+
+msgid "Clean Up"
+msgstr "Clean Up"
+
+
+msgid "Import"
+msgstr "Import"
+
+
 msgid "Asset"
 msgstr "Asset"
-
-
-msgid "Adjust"
-msgstr "Adjust"
 
 
 msgid "Make Single User"
@@ -35282,28 +35062,28 @@ msgid "Link/Transfer Data"
 msgstr "Link/Transfer Data"
 
 
-msgid "Keying"
-msgstr "Keying"
-
-
 msgid "Hooks"
 msgstr "Hooks"
 
 
-msgid "Tracking"
-msgstr "Tracking"
+msgid "Vertex Group Locks"
+msgstr "Vertex Group Locks"
 
 
-msgid "Render Preview"
-msgstr "Render Preview"
+msgid "Deprecated"
+msgstr "Deprecated"
 
 
 msgid "Trim/Add"
 msgstr "Trim/Add"
 
 
-msgid "Creative"
-msgstr "Creative"
+msgid "List"
+msgstr "List"
+
+
+msgid "UV"
+msgstr "UV"
 
 
 msgid "Sculpt Set Pivot"
@@ -35334,6 +35114,10 @@ msgid "Bone Collections"
 msgstr "Bone Collections"
 
 
+msgid "Names"
+msgstr "Names"
+
+
 msgid "Toggle Bone Options"
 msgstr "Toggle Bone Options"
 
@@ -35348,6 +35132,82 @@ msgstr "Disable Bone Options"
 
 msgid "Mesh Select Mode"
 msgstr "Mesh Select Mode"
+
+
+msgid "Face Data"
+msgstr "Face Data"
+
+
+msgid "Select by Face Strength"
+msgstr "Select by Face Strength"
+
+
+msgid "Set Face Strength"
+msgstr "Set Face Strength"
+
+
+msgid "Merge"
+msgstr "Merge"
+
+
+msgid "Special Characters"
+msgstr "Special Characters"
+
+
+msgid "Kerning"
+msgstr "Kerning"
+
+
+msgid "Layout"
+msgstr "Layout"
+
+
+msgid "Bone Roll"
+msgstr "Bone Roll"
+
+
+msgid "Adjust"
+msgstr "Adjust"
+
+
+msgid "Keying"
+msgstr "Keying"
+
+
+msgid "Tracking"
+msgstr "Tracking"
+
+
+msgid "Pivot Point"
+msgstr "Pivot Point"
+
+
+msgid "Proportional Editing Falloff"
+msgstr "Proportional Editing Falloff"
+
+
+msgid "Mask Edit"
+msgstr "Mask Edit"
+
+
+msgid "Automasking"
+msgstr "Automasking"
+
+
+msgid "Face Sets Edit"
+msgstr "Face Sets Edit"
+
+
+msgid "Creative"
+msgstr "Creative"
+
+
+msgid "Render Preview"
+msgstr "Render Preview"
+
+
+msgid "Mirror"
+msgstr "Mirror"
 
 
 msgid "Keyframe Insert Pie"
@@ -35946,6 +35806,126 @@ msgstr "About"
 
 msgid "Quick Setup"
 msgstr "Quick Setup"
+
+
+msgid "Propagation Steps"
+msgstr "Propagation Steps"
+
+
+msgid "Distance where boundary edge automasking is going to protect vertices from the fully masked edge"
+msgstr "Distance where boundary edge automasking is going to protect vertices from the fully masked edge"
+
+
+msgid "Blur Steps"
+msgstr "Blur Steps"
+
+
+msgid "The number of times the cavity mask is blurred"
+msgstr "The number of times the cavity mask is blurred"
+
+
+msgid "Cavity Curve"
+msgstr "Cavity Curve"
+
+
+msgid "Cavity Factor"
+msgstr "Cavity Factor"
+
+
+msgid "The contrast of the cavity mask"
+msgstr "The contrast of the cavity mask"
+
+
+msgid "Area Normal Falloff"
+msgstr "Area Normal Falloff"
+
+
+msgid "Extend the angular range with a falloff gradient"
+msgstr "Extend the angular range with a falloff gradient"
+
+
+msgid "Area Normal Limit"
+msgstr "Area Normal Limit"
+
+
+msgid "The range of angles that will be affected"
+msgstr "The range of angles that will be affected"
+
+
+msgid "Mesh Boundary Auto-Masking"
+msgstr "Mesh Boundary Auto-Masking"
+
+
+msgid "Do not affect non manifold boundary edges"
+msgstr "Do not affect non manifold boundary edges"
+
+
+msgid "Face Sets Boundary Automasking"
+msgstr "Face Sets Boundary Automasking"
+
+
+msgid "Do not affect vertices that belong to a face set boundary"
+msgstr "Do not affect vertices that belong to a face set boundary"
+
+
+msgid "Cavity Mask"
+msgstr "Cavity Mask"
+
+
+msgid "Do not affect vertices on peaks, based on the surface curvature"
+msgstr "Do not affect vertices on peaks, based on the surface curvature"
+
+
+msgid "Inverted Cavity Mask"
+msgstr "Inverted Cavity Mask"
+
+
+msgid "Do not affect vertices within crevices, based on the surface curvature"
+msgstr "Do not affect vertices within crevices, based on the surface curvature"
+
+
+msgid "Custom Cavity Curve"
+msgstr "Custom Cavity Curve"
+
+
+msgid "Use custom curve"
+msgstr "Use custom curve"
+
+
+msgid "Affect only vertices that share face sets with the active vertex"
+msgstr "Affect only vertices that share face sets with the active vertex"
+
+
+msgid "Area Normal"
+msgstr "Area Normal"
+
+
+msgid "Affect only vertices with a similar normal to where the stroke starts"
+msgstr "Affect only vertices with a similar normal to where the stroke starts"
+
+
+msgid "Affect only vertices connected to the active vertex under the brush"
+msgstr "Affect only vertices connected to the active vertex under the brush"
+
+
+msgid "Affect only vertices with a normal that faces the viewer"
+msgstr "Affect only vertices with a normal that faces the viewer"
+
+
+msgid "Occlusion"
+msgstr "Occlusion"
+
+
+msgid "Only affect vertices that are not occluded by other faces (slower performance)"
+msgstr "Only affect vertices that are not occluded by other faces (slower performance)"
+
+
+msgid "View Normal Falloff"
+msgstr "View Normal Falloff"
+
+
+msgid "View Normal Limit"
+msgstr "View Normal Limit"
 
 
 msgid "Mesh Edge"
@@ -40016,10 +39996,6 @@ msgstr "Noise Offset"
 
 msgid "Offset the noise along the strokes"
 msgstr "Offset the noise along the strokes"
-
-
-msgid "Scale the noise frequency"
-msgstr "Scale the noise frequency"
 
 
 msgid "Where to perform randomization"
@@ -52563,6 +52539,10 @@ msgid "Panel description"
 msgstr "Panel description"
 
 
+msgid "Unique identifier for this panel within this node tree"
+msgstr "Unique identifier for this panel within this node tree"
+
+
 msgid "Items in the node panel"
 msgstr "Items in the node panel"
 
@@ -52573,10 +52553,6 @@ msgstr "Panel name"
 
 msgid "Persistent Identifier"
 msgstr "Persistent Identifier"
-
-
-msgid "Unique identifier for this panel within this node tree"
-msgstr "Unique identifier for this panel within this node tree"
 
 
 msgid "Panel is selected in the interface"
@@ -53862,11 +53838,6 @@ msgstr "Import BVH"
 
 msgid "Load a SVG file"
 msgstr "Load a SVG file"
-
-
-msgctxt "Operator"
-msgid "Import SVG"
-msgstr "Import SVG"
 
 
 msgid "Load a FBX file"
@@ -56232,20 +56203,20 @@ msgid "Flip times of selected keyframes using the current frame as the mirror li
 msgstr "Flip times of selected keyframes using the current frame as the mirror line"
 
 
-msgid "By Values Over Zero Value"
-msgstr "By Values Over Zero Value"
-
-
-msgid "Flip values of selected keyframes (i.e. negative values become positive, and vice versa)"
-msgstr "Flip values of selected keyframes (i.e. negative values become positive, and vice versa)"
-
-
 msgid "By Times Over First Selected Marker"
 msgstr "By Times Over First Selected Marker"
 
 
 msgid "Flip times of selected keyframes using the first selected marker as the reference point"
 msgstr "Flip times of selected keyframes using the first selected marker as the reference point"
+
+
+msgid "By Values Over Zero Value"
+msgstr "By Values Over Zero Value"
+
+
+msgid "Flip values of selected keyframes (i.e. negative values become positive, and vice versa)"
+msgstr "Flip values of selected keyframes (i.e. negative values become positive, and vice versa)"
 
 
 msgctxt "Operator"
@@ -56444,6 +56415,15 @@ msgstr "Y Max"
 
 msgid "Y Min"
 msgstr "Y Min"
+
+
+msgctxt "Operator"
+msgid "Select by Type"
+msgstr "Select by Type"
+
+
+msgid "Extend Selection"
+msgstr "Extend Selection"
 
 
 msgctxt "Operator"
@@ -64598,20 +64578,20 @@ msgid "Defines which keys to use as slope and how much to blend towards them"
 msgstr "Defines which keys to use as slope and how much to blend towards them"
 
 
-msgid "By Values Over Cursor Value"
-msgstr "By Values Over Cursor Value"
-
-
-msgid "Flip values of selected keyframes using the cursor value (Y/Horizontal component) as the mirror line"
-msgstr "Flip values of selected keyframes using the cursor value (Y/Horizontal component) as the mirror line"
-
-
 msgid "By Times Over Zero Time"
 msgstr "By Times Over Zero Time"
 
 
 msgid "Flip times of selected keyframes, effectively reversing the order they appear in"
 msgstr "Flip times of selected keyframes, effectively reversing the order they appear in"
+
+
+msgid "By Values Over Cursor Value"
+msgstr "By Values Over Cursor Value"
+
+
+msgid "Flip values of selected keyframes using the cursor value (Y/Horizontal component) as the mirror line"
+msgstr "Flip values of selected keyframes using the cursor value (Y/Horizontal component) as the mirror line"
 
 
 msgid "Paste keys with a value offset"
@@ -71909,22 +71889,6 @@ msgid "Add a Group Input node with selected sockets to the current node editor"
 msgstr "Add a Group Input node with selected sockets to the current node editor"
 
 
-msgid "Panel Identifier"
-msgstr "Panel Identifier"
-
-
-msgid "Panel from which to add sockets to the added group input/output node"
-msgstr "Panel from which to add sockets to the added group input/output node"
-
-
-msgid "Socket Identifier"
-msgstr "Socket Identifier"
-
-
-msgid "Socket to include in the added group input/output node"
-msgstr "Socket to include in the added group input/output node"
-
-
 msgctxt "Operator"
 msgid "Add Image as Node"
 msgstr "Add Image as Node"
@@ -75650,11 +75614,6 @@ msgstr "Clear delta scale in addition to clearing the normal scale transform"
 
 msgid "Change selection of all visible objects in scene"
 msgstr "Change selection of all visible objects in scene"
-
-
-msgctxt "Operator"
-msgid "Select by Type"
-msgstr "Select by Type"
 
 
 msgid "Select all visible objects that are of a type"
@@ -80797,11 +80756,6 @@ msgid "Enable snapping"
 msgstr "Enable snapping"
 
 
-msgctxt "Operator"
-msgid "Area Options"
-msgstr "Area Options"
-
-
 msgid "Operations for splitting and merging"
 msgstr "Operations for splitting and merging"
 
@@ -85566,10 +85520,6 @@ msgid "Activate selected view item"
 msgstr "Activate selected view item"
 
 
-msgid "Extend Selection"
-msgstr "Extend Selection"
-
-
 msgid "Range Select"
 msgstr "Range Select"
 
@@ -85831,14 +85781,6 @@ msgstr "Copy selected UV vertices"
 msgctxt "Operator"
 msgid "Copy Mirrored UV Coords"
 msgstr "Copy Mirrored UV Coords"
-
-
-msgid "Copy mirror UV coordinates on the X axis based on a mirrored mesh"
-msgstr "Copy mirror UV coordinates on the X axis based on a mirrored mesh"
-
-
-msgid "Axis Direction"
-msgstr "Axis Direction"
 
 
 msgid "Tolerance for finding vertex duplicates"
@@ -86461,26 +86403,12 @@ msgid "Reveal all hidden UV vertices"
 msgstr "Reveal all hidden UV vertices"
 
 
-msgctxt "Operator"
-msgid "UV Rip"
-msgstr "UV Rip"
-
-
 msgid "Rip selected vertices or a selected region"
 msgstr "Rip selected vertices or a selected region"
 
 
-msgctxt "Operator"
-msgid "UV Rip Move"
-msgstr "UV Rip Move"
-
-
 msgid "Unstitch UVs and move the result"
 msgstr "Unstitch UVs and move the result"
-
-
-msgid "UV Rip"
-msgstr "UV Rip"
 
 
 msgctxt "Operator"
@@ -91453,6 +91381,62 @@ msgid "Panel containing UI elements"
 msgstr "Panel containing UI elements"
 
 
+msgid "Mesh Edit Mode"
+msgstr "Mesh Edit Mode"
+
+
+msgid "Measurement"
+msgstr "Measurement"
+
+
+msgid "Curve Edit Mode"
+msgstr "Curve Edit Mode"
+
+
+msgid "Curves Edit Mode"
+msgstr "Curves Edit Mode"
+
+
+msgid "Transform Orientations"
+msgstr "Transform Orientations"
+
+
+msgid "Stroke Placement"
+msgstr "Stroke Placement"
+
+
+msgid "Drawing Plane"
+msgstr "Drawing Plane"
+
+
+msgid "Guides"
+msgstr "Guides"
+
+
+msgid "Grease Pencil Options"
+msgstr "Grease Pencil Options"
+
+
+msgid "Quad View"
+msgstr "Quad View"
+
+
+msgid "Onion Skin"
+msgstr "Onion Skin"
+
+
+msgid "Stereoscopy"
+msgstr "Stereoscopy"
+
+
+msgid "Multi Frame"
+msgstr "Multi Frame"
+
+
+msgid "Auto-Masking"
+msgstr "Auto-Masking"
+
+
 msgid "glTF Variants"
 msgstr "glTF Variants"
 
@@ -91461,12 +91445,36 @@ msgid "glTF Material Variants"
 msgstr "glTF Material Variants"
 
 
+msgid "Curves Sculpt Add Curve Options"
+msgstr "Curves Sculpt Add Curve Options"
+
+
+msgid "Curves Sculpt Parameter Falloff"
+msgstr "Curves Sculpt Parameter Falloff"
+
+
+msgid "Curves Grow/Shrink Scaling"
+msgstr "Curves Grow/Shrink Scaling"
+
+
+msgid "Viewport Debug"
+msgstr "Viewport Debug"
+
+
 msgid "glTF"
 msgstr "glTF"
 
 
 msgid "glTF Animations"
 msgstr "glTF Animations"
+
+
+msgid "VR"
+msgstr "VR"
+
+
+msgid "VR Info"
+msgstr "VR Info"
 
 
 msgid "Active Tool"
@@ -91505,92 +91513,12 @@ msgid "Overlays"
 msgstr "Overlays"
 
 
-msgid "Guides"
-msgstr "Guides"
-
-
 msgid "Viewer Node"
 msgstr "Viewer Node"
 
 
 msgid "Motion Tracking"
 msgstr "Motion Tracking"
-
-
-msgid "Mesh Edit Mode"
-msgstr "Mesh Edit Mode"
-
-
-msgid "Measurement"
-msgstr "Measurement"
-
-
-msgid "Curve Edit Mode"
-msgstr "Curve Edit Mode"
-
-
-msgid "Curves Edit Mode"
-msgstr "Curves Edit Mode"
-
-
-msgid "Transform Orientations"
-msgstr "Transform Orientations"
-
-
-msgid "Stroke Placement"
-msgstr "Stroke Placement"
-
-
-msgid "Drawing Plane"
-msgstr "Drawing Plane"
-
-
-msgid "Grease Pencil Options"
-msgstr "Grease Pencil Options"
-
-
-msgid "Quad View"
-msgstr "Quad View"
-
-
-msgid "Onion Skin"
-msgstr "Onion Skin"
-
-
-msgid "Stereoscopy"
-msgstr "Stereoscopy"
-
-
-msgid "Multi Frame"
-msgstr "Multi Frame"
-
-
-msgid "Auto-Masking"
-msgstr "Auto-Masking"
-
-
-msgid "Curves Sculpt Add Curve Options"
-msgstr "Curves Sculpt Add Curve Options"
-
-
-msgid "Curves Sculpt Parameter Falloff"
-msgstr "Curves Sculpt Parameter Falloff"
-
-
-msgid "Curves Grow/Shrink Scaling"
-msgstr "Curves Grow/Shrink Scaling"
-
-
-msgid "Viewport Debug"
-msgstr "Viewport Debug"
-
-
-msgid "VR"
-msgstr "VR"
-
-
-msgid "VR Info"
-msgstr "VR Info"
 
 
 msgid "Import Settings"
@@ -95164,14 +95092,6 @@ msgid "Support storing custom bundles in a geometry in Geometry Nodes"
 msgstr "Support storing custom bundles in a geometry in Geometry Nodes"
 
 
-msgid "Geometry Nodes Lists"
-msgstr "Geometry Nodes Lists"
-
-
-msgid "Enable new list types and nodes"
-msgstr "Enable new list types and nodes"
-
-
 msgid "New Curves Tools"
 msgstr "New Curves Tools"
 
@@ -96288,34 +96208,6 @@ msgstr "Shader Compilation Workers"
 
 msgid "Number of shader compilation threads or subprocesses, clamped at the max threads supported by the CPU (requires restarting Blender for changes to take effect). A higher number increases the RAM usage while reducing compilation time. A value of 0 will use automatic configuration. (OpenGL only)"
 msgstr "Number of shader compilation threads or subprocesses, clamped at the max threads supported by the CPU (requires restarting Blender for changes to take effect). A higher number increases the RAM usage while reducing compilation time. A value of 0 will use automatic configuration. (OpenGL only)"
-
-
-msgid "Image Display Method"
-msgstr "Image Display Method"
-
-
-msgid "Method used for displaying images on the screen"
-msgstr "Method used for displaying images on the screen"
-
-
-msgid "Automatically choose method based on GPU and image"
-msgstr "Automatically choose method based on GPU and image"
-
-
-msgid "2D Texture"
-msgstr "2D Texture"
-
-
-msgid "Use CPU for display transform and display image with 2D texture"
-msgstr "Use CPU for display transform and display image with 2D texture"
-
-
-msgid "GLSL"
-msgstr "GLSL"
-
-
-msgid "Use GLSL shaders for display transform and display image with 2D texture"
-msgstr "Use GLSL shaders for display transform and display image with 2D texture"
 
 
 msgid "Is Microsoft Store Install"
@@ -102998,18 +102890,6 @@ msgid "Amount of screen sample per GI ray"
 msgstr "Amount of screen sample per GI ray"
 
 
-msgid "Far Thickness"
-msgstr "Far Thickness"
-
-
-msgid "Angular thickness of the surfaces when computing fast GI and ambient occlusion. Reduces energy loss and missing occlusion of far geometry."
-msgstr "Angular thickness of the surfaces when computing fast GI and ambient occlusion. Reduces energy loss and missing occlusion of far geometry."
-
-
-msgid "Near Thickness"
-msgstr "Near Thickness"
-
-
 msgid "Geometric thickness of the surfaces when computing fast GI and ambient occlusion. Reduces light leaking and missing contact occlusion."
 msgstr "Geometric thickness of the surfaces when computing fast GI and ambient occlusion. Reduces light leaking and missing contact occlusion."
 
@@ -108805,10 +108685,6 @@ msgstr "Strip Modifier"
 
 msgid "Modifier for sequence strip"
 msgstr "Modifier for sequence strip"
-
-
-msgid "Enable this modifier"
-msgstr "Enable this modifier"
 
 
 msgid "Mask ID used as mask input for the modifier"
@@ -119105,10 +118981,6 @@ msgid "Distribution Type"
 msgstr "Distribution Type"
 
 
-msgid "Multiplier"
-msgstr "Multiplier"
-
-
 msgid "Dicing Rate Render"
 msgstr "Dicing Rate Render"
 
@@ -119225,6 +119097,10 @@ msgid "Use GPU"
 msgstr "Use GPU"
 
 
+msgid "Multiplier"
+msgstr "Multiplier"
+
+
 msgid "Curve Subdivisions"
 msgstr "Curve Subdivisions"
 
@@ -119338,11 +119214,6 @@ msgstr "Unable to extend the scene duration, as the BVH file does not contain th
 
 msgid "Invalid target %r (must be 'ARMATURE' or 'OBJECT')"
 msgstr "Invalid target %r (must be 'ARMATURE' or 'OBJECT')"
-
-
-msgctxt "Operator"
-msgid "Scalable Vector Graphics (.svg)"
-msgstr "Scalable Vector Graphics (.svg)"
 
 
 msgid "Unable to parse XML, %s:%s for file %r"
@@ -123313,10 +123184,6 @@ msgid "Cavity (inverted)"
 msgstr "Cavity (inverted)"
 
 
-msgid "Sculpt Curves"
-msgstr "Sculpt Curves"
-
-
 msgid "Sample Bias"
 msgstr "Sample Bias"
 
@@ -124116,10 +123983,6 @@ msgid "Rays"
 msgstr "Rays"
 
 
-msgid "Thickness Near"
-msgstr "Thickness Near"
-
-
 msgid "Tracing"
 msgstr "Tracing"
 
@@ -124773,6 +124636,11 @@ msgstr "Snap"
 
 
 msgctxt "Operator"
+msgid "Jump to Selected"
+msgstr "Jump to Selected"
+
+
+msgctxt "Operator"
 msgid "Keyframe Type"
 msgstr "Keyframe Type"
 
@@ -125125,11 +124993,6 @@ msgstr "Smooth (Legacy)"
 
 
 msgctxt "Operator"
-msgid "Jump to Selected"
-msgstr "Jump to Selected"
-
-
-msgctxt "Operator"
 msgid "Easing Type"
 msgstr "Easing Type"
 
@@ -125183,11 +125046,6 @@ msgstr "Expression: {:s}"
 msgctxt "Operator"
 msgid "Zoom Region..."
 msgstr "Zoom Region..."
-
-
-msgctxt "Operator"
-msgid "Select Pinned"
-msgstr "Select Pinned"
 
 
 msgctxt "Operator"
@@ -125758,11 +125616,6 @@ msgid "Backdrop Zoom Out"
 msgstr "Backdrop Zoom Out"
 
 
-msgctxt "Operator"
-msgid "Exit Group"
-msgstr "Exit Group"
-
-
 msgid "Slot {:d}"
 msgstr "Slot {:d}"
 
@@ -125770,6 +125623,11 @@ msgstr "Slot {:d}"
 msgctxt "Operator"
 msgid "Clear Viewer"
 msgstr "Clear Viewer"
+
+
+msgctxt "Operator"
+msgid "Exit Group"
+msgstr "Exit Group"
 
 
 msgid "Types"
@@ -131118,6 +130976,18 @@ msgid "Is Tile"
 msgstr "Is Tile"
 
 
+msgid "Input grids have incompatible transforms"
+msgstr "Input grids have incompatible transforms"
+
+
+msgid "No input grid found that can determine the topology"
+msgstr "No input grid found that can determine the topology"
+
+
+msgid "Grid type not supported"
+msgstr "Grid type not supported"
+
+
 msgid "OpenVDB error: {}"
 msgstr "OpenVDB error: {}"
 
@@ -133085,10 +132955,6 @@ msgid "Data-block renamed to '%s', try again to force renaming it to '%s'"
 msgstr "Data-block renamed to '%s', try again to force renaming it to '%s'"
 
 
-msgid "Name in use. The other data-block was renamed to ‘%s’"
-msgstr "Name in use. The other data-block was renamed to ‘%s’"
-
-
 msgid "Picking a bone failed"
 msgstr "Picking a bone failed"
 
@@ -133189,10 +133055,6 @@ msgstr "%s: %s"
 
 msgid "Non-Keyboard Shortcut"
 msgstr "Non-Keyboard Shortcut"
-
-
-msgid "Pin"
-msgstr "Pin"
 
 
 msgid "Shift Left Mouse"
@@ -134165,10 +134027,6 @@ msgid "Browse Workspace to be linked"
 msgstr "Browse Workspace to be linked"
 
 
-msgid "Browse LightProbe to be linked"
-msgstr "Browse LightProbe to be linked"
-
-
 msgid "Browse Curves Data to be linked"
 msgstr "Browse Curves Data to be linked"
 
@@ -134450,10 +134308,6 @@ msgstr "Today"
 
 msgid "Yesterday"
 msgstr "Yesterday"
-
-
-msgid "Modified: {}{}{}"
-msgstr "Modified: {}{}{}"
 
 
 msgid "Anim Player"
@@ -137861,14 +137715,6 @@ msgid "Cannot activate a file selector dialog, one already open"
 msgstr "Cannot activate a file selector dialog, one already open"
 
 
-msgid "Property is not editable"
-msgstr "Property is not editable"
-
-
-msgid "Property is not editable: %s"
-msgstr "Property is not editable: %s"
-
-
 msgid "Texture Field"
 msgstr "Texture Field"
 
@@ -139185,14 +139031,6 @@ msgid "Could not add material"
 msgstr "Could not add material"
 
 
-msgid "Cannot set both socket and panel identifier"
-msgstr "Cannot set both socket and panel identifier"
-
-
-msgid "Invalid panel identifier"
-msgstr "Invalid panel identifier"
-
-
 msgid "Could not add a color node"
 msgstr "Could not add a colour node"
 
@@ -139219,14 +139057,6 @@ msgstr "Node tree type %s undefined"
 
 msgid "Adding node groups isn't supported for custom (Python defined) node trees"
 msgstr "Adding node groups isn't supported for custom (Python defined) node trees"
-
-
-msgid "Cannot drag an output socket"
-msgstr "Cannot drag an output socket"
-
-
-msgid "Cannot drag panel with no inputs"
-msgstr "Cannot drag panel with no inputs"
 
 
 msgid "Render size too large for GPU, use CPU compositor instead"
@@ -141895,10 +141725,6 @@ msgstr "Rip is not compatible with vertex sticky selection"
 
 msgid "Rip is only compatible with sync-select with vertex/edge selection"
 msgstr "Rip is only compatible with sync-select with vertex/edge selection"
-
-
-msgid "Rip failed"
-msgstr "Rip failed"
 
 
 msgid "Pinned vertices can be selected in Vertex Mode only"
@@ -145847,10 +145673,6 @@ msgstr "Cb"
 
 msgid "Cr"
 msgstr "Cr"
-
-
-msgid "Disabled, built without OpenColorIO"
-msgstr "Disabled, built without OpenColorIO"
 
 
 msgid "Convert from display to scene linear instead. Not all view transforms can be inverted exactly, and the result may not match the original scene linear image"
@@ -150194,6 +150016,10 @@ msgid "Volume to convert to a mesh"
 msgstr "Volume to convert to a mesh"
 
 
+msgid "Mask Input"
+msgstr "Mask Input"
+
+
 msgid "Warnings"
 msgstr "Warnings"
 
@@ -150248,10 +150074,6 @@ msgstr "Reference Set"
 
 msgid "Inspection index is out of range"
 msgstr "Inspection index is out of range"
-
-
-msgid "Unsupported Inputs"
-msgstr "Unsupported Inputs"
 
 
 msgid "No Output"
@@ -150384,18 +150206,6 @@ msgstr "No closure signature found"
 
 msgid "Found conflicting closure signatures"
 msgstr "Found conflicting closure signatures"
-
-
-msgid "Input grids have incompatible transforms"
-msgstr "Input grids have incompatible transforms"
-
-
-msgid "No input grid found that can determine the topology"
-msgstr "No input grid found that can determine the topology"
-
-
-msgid "Grid type not supported"
-msgstr "Grid type not supported"
 
 
 msgid "Not a shader node tree"
@@ -150724,10 +150534,6 @@ msgstr "Scale factor of the subsurface scattering radius"
 
 msgid "Index of Refraction (IOR) used for rays that enter the subsurface component"
 msgstr "Index of Refraction (IOR) used for rays that enter the subsurface component"
-
-
-msgid "Directionality of volume scattering within the subsurface medium. Zero scatters uniformly in all directions, with higher values scattering more strongly forward. For example, skin has been measured to have an anisotropy of 0.8"
-msgstr "Directionality of volume scattering within the subsurface medium. Zero scatters uniformly in all directions, with higher values scattering more strongly forward. For example, skin has been measured to have an anisotropy of 0.8"
 
 
 msgid "Adjustment to the Index of Refraction (IOR) to increase or decrease specular intensity (0.5 means no adjustment, 0 removes all reflections, 1 doubles them at normal incidence)"
@@ -151581,10 +151387,6 @@ msgid "%s: no Combined pass found in the render layer '%s'"
 msgstr "%s: no Combined pass found in the render layer '%s'"
 
 
-msgid "%s: failed to allocate clip buffer '%s'"
-msgstr "%s: failed to allocate clip buffer '%s'"
-
-
 msgid "%s: incorrect dimensions for partial copy '%s'"
 msgstr "%s: incorrect dimensions for partial copy '%s'"
 
@@ -151611,10 +151413,6 @@ msgstr "Generating strip thumbnails..."
 
 msgid "Channel %d"
 msgstr "Channel %d"
-
-
-msgid "Mask Input"
-msgstr "Mask Input"
 
 
 msgctxt "Sequence"
@@ -153743,10 +153541,6 @@ msgid "Exclude the last copy from randomization"
 msgstr "Exclude the last copy from randomization"
 
 
-msgid "The forward direction along the array shape"
-msgstr "The forward direction along the array shape"
-
-
 msgid "Merge overlapping points by their distance. (Realize Instances must be enabled)"
 msgstr "Merge overlapping points by their distance. (Realise Instances must be enabled)"
 
@@ -153869,10 +153663,6 @@ msgstr "Define the transform locally or with an object's transform"
 
 msgid "Translation accumulated for each copy"
 msgstr "Translation accumulated for each copy"
-
-
-msgid "The up direction along the array shape"
-msgstr "The up direction along the array shape"
 
 
 msgid "Invalid Distance"

@@ -27,6 +27,7 @@ void colorspace_apply_to_prim(const pxr::UsdPrim &prim);
 
 /** Convert an imported USD color to scene linear. */
 void colorspace_attr_to_scene_linear(const pxr::UsdAttribute &attr, pxr::GfVec3f &color);
+void colorspace_attr_to_scene_linear(const pxr::UsdAttribute &attr, ColorGeometry4f &color);
 
 /** Convert imported USD color array to scene linear. */
 void colorspace_attr_to_scene_linear(const pxr::UsdAttribute &attr,

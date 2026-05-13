@@ -1,65 +1,214 @@
-From 9d89d907a0cd100ee04d4c7feb44745b789c9e4f Mon Sep 17 00:00:00 2001
+From e4d9aec762ae16eef82ff65fbb7b128cf901d85a Mon Sep 17 00:00:00 2001
 From: Aleksi Sapon <aleksi.sapon@autodesk.com>
 Date: Fri, 11 Apr 2025 17:33:55 -0400
-Subject: [PATCH 1/2] build_usd.py now installs Vulkan dependencies
+Subject: [PATCH] build_usd.py now installs Vulkan dependencies
 
-https://github.com/PixarAnimationStudios/OpenUSD/pull/3603
 ---
- build_scripts/build_usd.py               | 138 ++++++++++++++++++++++-
- cmake/defaults/Packages.cmake            |  75 +++++++-----
- cmake/macros/Private.cmake               |   6 +
- cmake/modules/FindShaderC.cmake          |  41 +++++++
- cmake/modules/FindSpirvReflect.cmake     |  54 +++++++++
- pxr/imaging/hgiVulkan/CMakeLists.txt     |   4 -
- pxr/imaging/hgiVulkan/device.cpp         |  19 +++-
- pxr/imaging/hgiVulkan/diagnostic.cpp     |   2 +-
- pxr/imaging/hgiVulkan/sampler.cpp        |   5 +-
- pxr/imaging/hgiVulkan/shaderCompiler.cpp |   4 +-
- pxr/imaging/hgiVulkan/spirv_reflect.cpp  |   9 --
- pxr/imaging/hgiVulkan/spirv_reflect.h    |  15 ---
- pxr/imaging/hgiVulkan/vk_mem_alloc.cpp   |  10 --
- pxr/imaging/hgiVulkan/vk_mem_alloc.h     |  15 ---
- pxr/imaging/hgiVulkan/vulkan.h           |   6 +-
- 15 files changed, 305 insertions(+), 98 deletions(-)
+ build_scripts/build_usd.py                 | 122 ++++++++++++++++++++-
+ cmake/defaults/Packages.cmake              |  60 +++++++---
+ cmake/modules/FindShaderC.cmake            |  41 +++++++
+ pxr/imaging/hdSt/codeGen.cpp               |   5 +-
+ pxr/imaging/hgiVulkan/CMakeLists.txt       |   1 -
+ pxr/imaging/hgiVulkan/device.cpp           |  19 +++-
+ pxr/imaging/hgiVulkan/diagnostic.cpp       |   2 +-
+ pxr/imaging/hgiVulkan/resourceBindings.cpp |   6 +-
+ pxr/imaging/hgiVulkan/sampler.cpp          |   5 +-
+ pxr/imaging/hgiVulkan/vk_mem_alloc.cpp     |  10 --
+ pxr/imaging/hgiVulkan/vk_mem_alloc.h       |  15 ---
+ pxr/imaging/hgiVulkan/vulkan.h             |   6 +-
+ pxr/pxrConfig.cmake.in                     |  26 +++++
+ 13 files changed, 257 insertions(+), 61 deletions(-)
  create mode 100644 cmake/modules/FindShaderC.cmake
- create mode 100644 cmake/modules/FindSpirvReflect.cmake
  delete mode 100644 pxr/imaging/hgiVulkan/vk_mem_alloc.cpp
  delete mode 100644 pxr/imaging/hgiVulkan/vk_mem_alloc.h
 
+diff --git a/build_scripts/build_usd.py b/build_scripts/build_usd.py
+index f5a587d02ba..387c4cc973c 100644
+--- a/build_scripts/build_usd.py
++++ b/build_scripts/build_usd.py
+@@ -1661,6 +1661,86 @@ def InstallAnimX(context, force, buildArgs):
+ 
+ ANIMX = Dependency("AnimX", InstallAnimX, "include/animx.h")
+ 
++############################################################
++# Vulkan SDK components
++VULKAN_SDK_VERSION = "1.3.296.0"
++
++VULKAN_HEADERS_URL = f"https://github.com/KhronosGroup/Vulkan-Headers/archive/refs/tags/vulkan-sdk-{VULKAN_SDK_VERSION}.zip"
++def InstallVulkanHeaders(context, force, buildArgs):
++    with CurrentWorkingDirectory(DownloadURL(VULKAN_HEADERS_URL, context, force, destFileName=f'Vulkan-Headers-{VULKAN_SDK_VERSION}.zip')):
++        extraArgs = buildArgs + [
++            '-DVULKAN_HEADERS_ENABLE_INSTALL=ON',
++            '-DVULKAN_HEADERS_ENABLE_MODULE=OFF',
++            '-DVULKAN_HEADERS_ENABLE_TESTS=OFF',
++        ]
++        RunCMake(context, force, extraArgs)
++
++VULKAN_HEADERS = Dependency("Vulkan-Headers", InstallVulkanHeaders, "include/vulkan/vulkan.h")
++
++VULKAN_UTILITY_LIBRARIES_URL = f"https://github.com/KhronosGroup/Vulkan-Utility-Libraries/archive/refs/tags/vulkan-sdk-{VULKAN_SDK_VERSION}.zip"
++def InstallVulkanUtilityLibraries(context, force, buildArgs):
++    with CurrentWorkingDirectory(DownloadURL(VULKAN_UTILITY_LIBRARIES_URL, context, force, destFileName=f'Vulkan-Utility-Libraries-{VULKAN_SDK_VERSION}.zip')):
++        extraArgs = buildArgs + [
++            '-DBUILD_TESTS=OFF',
++        ]
++        RunCMake(context, force, extraArgs)
++
++VULKAN_UTILITY_LIBRARIES = Dependency("Vulkan-Utility-Libraries", InstallVulkanUtilityLibraries, "include/vulkan/vk_enum_string_helper.h")
++
++VULKAN_LOADER_URL = f"https://github.com/KhronosGroup/Vulkan-Loader/archive/refs/tags/vulkan-sdk-{VULKAN_SDK_VERSION}.zip"
++def InstallLoaderVulkan(context, force, buildArgs):
++    with CurrentWorkingDirectory(DownloadURL(VULKAN_LOADER_URL, context, force, destFileName=f'Vulkan-Loader-{VULKAN_SDK_VERSION}.zip')):
++        extraArgs = buildArgs + [
++            f'-DVULKAN_HEADERS_INSTALL_DIR={context.instDir}',
++            '-DBUILD_TESTS=OFF',
++            '-UPDATE_DEPS=ON',
++        ]
++        RunCMake(context, force, extraArgs)
++
++VULKAN_LOADER = Dependency("Vulkan-Loader", InstallLoaderVulkan, "lib/cmake/VulkanLoader/VulkanLoaderConfig.cmake")
++
++# The VulkanMemoryAllocator version should match the one used by VULKAN_SDK_VERSION
++VULKAN_MEMORY_ALLOCATOR_VERSION = "3.2.1"
++VULKAN_MEMORY_ALLOCATOR_URL = f"https://github.com/GPUOpen-LibrariesAndSDKs/VulkanMemoryAllocator/archive/refs/tags/v{VULKAN_MEMORY_ALLOCATOR_VERSION}.zip"
++def InstallVulkanMemoryAllocator(context, force, buildArgs):
++    with CurrentWorkingDirectory(DownloadURL(VULKAN_MEMORY_ALLOCATOR_URL, context, force, destFileName=f'VulkanMemoryAllocator-{VULKAN_MEMORY_ALLOCATOR_VERSION}.zip')):
++        extraArgs = buildArgs + [
++            '-DVMA_ENABLE_INSTALL=ON',
++            '-DVMA_BUILD_SAMPLES=OFF',
++            '-DVMA_BUILD_DOCUMENTATION=OFF',
++        ]
++        RunCMake(context, force, extraArgs)
++
++VULKAN_MEMORY_ALLOCATOR = Dependency("VulkanMemoryAllocator", InstallVulkanMemoryAllocator, "include/vk_mem_alloc.h")
++
++# The shaderc version should match the one used by VULKAN_SDK_VERSION
++SHADERC_VERSION = "2024.3"
++SHADERC_URL = f"https://github.com/google/shaderc/archive/refs/tags/v{SHADERC_VERSION}.zip"
++def InstallShaderC(context, force, buildArgs):
++    with CurrentWorkingDirectory(DownloadURL(SHADERC_URL, context, force, destFileName=f'shaderc-{SHADERC_VERSION}.zip')):
++        Run(f'"{sys.executable}" utils/git-sync-deps')
++        PatchFile("third_party/CMakeLists.txt", [
++            ('set( SKIP_GLSLANG_INSTALL ${SHADERC_SKIP_INSTALL} )\n',
++            'set( SKIP_GLSLANG_INSTALL ON )\n'),
++            ('set( SKIP_SPIRV_TOOLS_INSTALL ${SHADERC_SKIP_INSTALL} )\n',
++            'set( SKIP_SPIRV_TOOLS_INSTALL ON )\n'),
++            ('set( SKIP_GOOGLETEST_INSTALL ${SHADERC_SKIP_INSTALL} )\n',
++            'set( SKIP_GOOGLETEST_INSTALL ON} )\n'),
++            ('    set(GLSLANG_ENABLE_INSTALL $<NOT:${SKIP_GLSLANG_INSTALL}>)\n',
++            '    set(GLSLANG_ENABLE_INSTALL OFF)\n'),
++        ])
++        extraArgs = buildArgs + [
++            '-DSHADERC_SKIP_INSTALL=OFF',
++            '-DSHADERC_SKIP_TESTS=ON',
++            '-DSHADERC_SKIP_EXAMPLES=ON',
++            '-DSHADERC_SKIP_COPYRIGHT_CHECK=ON',
++            '-DSHADERC_ENABLE_SHARED_CRT=ON',
++            '-DSHADERC_ENABLE_WGSL_OUTPUT=OFF',
++        ]
++        RunCMake(context, force, extraArgs)
++
++SHADERC = Dependency("shaderc", InstallShaderC, "include/shaderc/shaderc.h")
++
+ 
+ ############################################################
+ # USD
+@@ -2177,6 +2257,14 @@ def InstallUSD(context, force, buildArgs):
+                       default=False, help="Enable Vulkan support")
+ subgroup.add_argument("--no-vulkan", dest="enable_vulkan", action="store_false",
+                       help="Disable Vulkan support (default)")
++group.add_argument("--use-vulkan-sdk", dest="use_vulkan_sdk", type=str,
++                   nargs='?', default=None, const='',
++                   help="Use the Vulkan SDK to build HgiVulkan, "
++                        "otherwise the necessary components will be "
++                        "installed automactically be the script. "
++                        "The argument optionally takes a path to the "
++                        "SDK root, otherwise the VULKAN_SDK environment "
++                        "variable is required to be set.")
+ 
+ group = parser.add_argument_group(title="Imaging Plugin Options")
+ subgroup = group.add_mutually_exclusive_group()
+@@ -2404,6 +2492,7 @@ def __init__(self, args):
+         self.enableVulkan = (self.buildImaging
+                               and args.enable_vulkan
+                               and not embedded)
++        self.useVuklanSDK = args.use_vulkan_sdk
+ 
+         # - USD Imaging
+         self.buildUsdImaging = (args.build_imaging == USD_IMAGING and 
+@@ -2520,6 +2609,24 @@ def ForceBuildDependency(self, dep):
+ if context.buildUsdview:
+     requiredDependencies += [PYOPENGL, PYSIDE]
+ 
++if context.enableVulkan:
++    if context.useVuklanSDK is None:
++        # We don't want to use the Vulkan SDK, we build our own components.
++        os.environ.pop('VULKAN_SDK', None)
++        requiredDependencies += [VULKAN_HEADERS, VULKAN_UTILITY_LIBRARIES,
++                                 VULKAN_LOADER, VULKAN_MEMORY_ALLOCATOR,
++                                 SHADERC]
++    elif context.useVuklanSDK == '':
++        # We use the Vulkan SDK from the environment
++        if not 'VULKAN_SDK' in os.environ:
++            PrintError("Vulkan support cannot be enabled when VULKAN_SDK "
++                       "environment variable is not set")
++            sys.exit(1)
++        context.useVuklanSDK = os.environ['VULKAN_SDK']
++    else:
++        # We use the Vulkan SDK from the command line
++        os.environ['VULKAN_SDK'] = context.useVuklanSDK
++
+ if context.buildAnimXTests:
+     requiredDependencies += [ANIMX]
+ 
+@@ -2546,12 +2653,6 @@ def ForceBuildDependency(self, dep):
+     PrintError("Windows ARM64 builds require oneTBB. Enable via the --onetbb argument")
+     sys.exit(1)
+ 
+-# Error out if user enables Vulkan support but env var VULKAN_SDK is not set.
+-if context.enableVulkan and not 'VULKAN_SDK' in os.environ:
+-    PrintError("Vulkan support cannot be enabled when VULKAN_SDK environment "
+-               "variable is not set")
+-    sys.exit(1)
+-
+ if context.targetWasm:
+     if "--no-onetbb" in sys.argv:
+         PrintError("Wasm target requires oneTBB")
+@@ -2776,6 +2877,14 @@ def _JoinVersion(v):
+       Embree support:           {buildEmbree}
+       PRMan support:            {buildPrman}
+       Vulkan support:           {enableVulkan}
++"""
++
++if context.enableVulkan and context.useVuklanSDK:
++    summaryMsg += """\
++        Vulkan SDK:             {useVuklanSDK}
++"""
++
++summaryMsg += """\
+     UsdImaging                  {buildUsdImaging}
+       usdview:                  {buildUsdview}
+     MaterialX support           {buildMaterialX}
+@@ -2866,6 +2975,7 @@ def FormatBuildArguments(buildArgs):
+     buildExamples=("On" if context.buildExamples else "Off"),
+     buildTutorials=("On" if context.buildTutorials else "Off"),
+     enableVulkan=("On" if context.enableVulkan else "Off"),
++    useVuklanSDK = context.useVuklanSDK,
+     buildTools=("On" if context.buildTools else "Off"),
+     buildUsdValidation=("On" if context.buildUsdValidation else "Off"),
+     buildAlembic=("On" if context.buildAlembic else "Off"),
 diff --git a/cmake/defaults/Packages.cmake b/cmake/defaults/Packages.cmake
-index 0112058e5..501a0e481 100644
+index 87425464620..aa8824692b9 100644
 --- a/cmake/defaults/Packages.cmake
 +++ b/cmake/defaults/Packages.cmake
-@@ -188,38 +188,56 @@ if (PXR_BUILD_IMAGING)
+@@ -199,22 +199,56 @@ if (PXR_BUILD_IMAGING)
      endif()
      if (PXR_ENABLE_VULKAN_SUPPORT)
          message(STATUS "Enabling experimental feature Vulkan support")
 -        if (EXISTS $ENV{VULKAN_SDK})
--            # Prioritize the VULKAN_SDK includes and packages before any system
--            # installed headers. This is to prevent linking against older SDKs
--            # that may be installed by the OS.
--            # XXX This is fixed in cmake 3.18+
--            include_directories(BEFORE SYSTEM $ENV{VULKAN_SDK} $ENV{VULKAN_SDK}/include $ENV{VULKAN_SDK}/lib $ENV{VULKAN_SDK}/source)
--            set(ENV{PATH} "$ENV{VULKAN_SDK}:$ENV{VULKAN_SDK}/include:$ENV{VULKAN_SDK}/lib:$ENV{VULKAN_SDK}/source:$ENV{PATH}")
--            find_package(Vulkan REQUIRED)
--            list(APPEND VULKAN_LIBS Vulkan::Vulkan)
- 
--            # Find the extra vulkan libraries we need
--            set(EXTRA_VULKAN_LIBS shaderc_combined)
--            if (WIN32 AND CMAKE_BUILD_TYPE STREQUAL "Debug")
--                set(EXTRA_VULKAN_LIBS shaderc_combinedd)
--            endif()
--            foreach(EXTRA_LIBRARY ${EXTRA_VULKAN_LIBS})
--                find_library("${EXTRA_LIBRARY}_PATH" NAMES "${EXTRA_LIBRARY}" PATHS $ENV{VULKAN_SDK}/lib)
--                list(APPEND VULKAN_LIBS "${${EXTRA_LIBRARY}_PATH}")
--            endforeach()
-+        # We use BUILD_LOCAL_INTERFACE so that the Vulkan dependencies remain
-+        # internal only. Except for the headers, which are publicly accessible
-+        # from hgiVulkan.
-+        if (DEFINED ENV{VULKAN_SDK})
-+            message(STATUS "Using Vulkan components from: \"$ENV{VULKAN_SDK}\"")
-+            set(PXR_USING_VULKAN_SDK ON) # for pxrConfig.cmake
- 
+-            find_package(Vulkan REQUIRED COMPONENTS shaderc_combined)
+-            list(APPEND VULKAN_LIBS Vulkan::Vulkan Vulkan::shaderc_combined)
+-
 -            # Find the OS specific libs we need
 -            if (UNIX AND NOT APPLE)
 -                find_package(X11 REQUIRED)
@@ -67,10 +216,18 @@ index 0112058e5..501a0e481 100644
 -            elseif (WIN32)
 -                # No extra libs required
 -            endif()
-+            # Not using usd_build.py: find from the Vulkan SDK
-+            find_package(Vulkan MODULE REQUIRED COMPONENTS shaderc_combined)
  
 -            add_definitions(-DPXR_VULKAN_SUPPORT_ENABLED)
++        # We use BUILD_LOCAL_INTERFACE so that the Vulkan dependencies remain
++        # internal only. Except for the headers, which are publicly accessible
++        # from hgiVulkan.
++        if (DEFINED ENV{VULKAN_SDK})
++            message(STATUS "Using Vulkan components from: \"$ENV{VULKAN_SDK}\"")
++            set(PXR_USING_VULKAN_SDK ON) # for pxrConfig.cmake
++
++            # Not using usd_build.py: find from the Vulkan SDK
++            find_package(Vulkan MODULE REQUIRED COMPONENTS shaderc_combined)
++
 +            list(APPEND VULKAN_LIBS Vulkan::Headers)
 +            # The SDK uniquely places the "vk_mem_alloc.h" header inside a "vma"
 +            # subdirectory. This means we would need to use "#include <vma/vk_mem_alloc.h>"
@@ -102,38 +259,21 @@ index 0112058e5..501a0e481 100644
 +
 +            find_package(ShaderC MODULE REQUIRED)
 +            list(APPEND VULKAN_LIBS $<BUILD_LOCAL_INTERFACE:shaderc_combined>)
-         endif()
++        endif()
 +
 +        # Find the OS specific libs we need
 +        if (UNIX AND NOT APPLE)
 +            find_package(X11 REQUIRED)
 +            list(APPEND VULKAN_LIBS $<BUILD_LOCAL_INTERFACE:X11::X11>)
-+        endif()
+         endif()
 +
 +        add_definitions(-DPXR_VULKAN_SUPPORT_ENABLED)
      endif()
      # --Opensubdiv
      set(OPENSUBDIV_USE_GPU ${PXR_BUILD_GPU_SUPPORT})
-diff --git a/cmake/macros/Private.cmake b/cmake/macros/Private.cmake
-index 6fe1134c1..4629e5a03 100644
---- a/cmake/macros/Private.cmake
-+++ b/cmake/macros/Private.cmake
-@@ -823,6 +823,12 @@ function(_pxr_target_link_libraries NAME)
-         list(APPEND all_libraries ${external})
- 
-         foreach(lib ${all_libraries})
-+            # Remove BUILD and INSTALL generator expressions:
-+            #     $<BUILD_LOCAL_INTERFACE:tgt> -> tgt
-+            string(REGEX REPLACE
-+                [[\$\<(BUILD|INSTALL)_[_A-Z]+\:(.+)\>]]
-+                [[\2]] lib ${lib})
-+
-             if (NOT TARGET ${lib})
-                 continue()
-             endif()
 diff --git a/cmake/modules/FindShaderC.cmake b/cmake/modules/FindShaderC.cmake
 new file mode 100644
-index 000000000..4dffb19bc
+index 00000000000..4dffb19bcc3
 --- /dev/null
 +++ b/cmake/modules/FindShaderC.cmake
 @@ -0,0 +1,41 @@
@@ -178,8 +318,28 @@ index 000000000..4dffb19bc
 +            IMPORTED_CONFIGURATIONS "${found_configurations}")
 +    endif()
 +endif()
+diff --git a/pxr/imaging/hdSt/codeGen.cpp b/pxr/imaging/hdSt/codeGen.cpp
+index c0178ec3b17..21991a22d7f 100644
+--- a/pxr/imaging/hdSt/codeGen.cpp
++++ b/pxr/imaging/hdSt/codeGen.cpp
+@@ -5324,8 +5324,8 @@ HdSt_CodeGen::_GenerateElementPrimvar()
+     // Don't need to codegen element primvars for frustum culling as they're
+     // unneeded. Including them can cause errors in Hgi backends like Vulkan, 
+     // which needs the resource layout made in HgiVulkanResourceBindings to 
+-    // match the one generated by SPIRV-Reflect in HgiVulkanGraphicsPipeline
+-    // when creating the VkPipelineLayout.
++    // match the one generated in HgiVulkanGraphicsPipeline when creating the
++    // VkPipelineLayout.
+     if (_geometricShader->IsFrustumCullingPass()) {
+         return;
+     }
+@@ -6981,4 +6981,3 @@ HdSt_CodeGen::_GetFallbackScalarSwizzleString(TfToken const &returnType,
+ }
+ 
+ PXR_NAMESPACE_CLOSE_SCOPE
+-
 diff --git a/pxr/imaging/hgiVulkan/CMakeLists.txt b/pxr/imaging/hgiVulkan/CMakeLists.txt
-index e98893d3f..772c3edb6 100644
+index e98893d3f0f..772c3edb640 100644
 --- a/pxr/imaging/hgiVulkan/CMakeLists.txt
 +++ b/pxr/imaging/hgiVulkan/CMakeLists.txt
 @@ -41,7 +41,6 @@ pxr_library(hgiVulkan
@@ -191,7 +351,7 @@ index e98893d3f..772c3edb6 100644
      PUBLIC_HEADERS
          api.h
 diff --git a/pxr/imaging/hgiVulkan/device.cpp b/pxr/imaging/hgiVulkan/device.cpp
-index a1c44143a..28fb8d91b 100644
+index a1c44143a95..28fb8d91bfc 100644
 --- a/pxr/imaging/hgiVulkan/device.cpp
 +++ b/pxr/imaging/hgiVulkan/device.cpp
 @@ -11,10 +11,12 @@
@@ -241,40 +401,54 @@ index a1c44143a..28fb8d91b 100644
      if (supportsMemExtension) {
          allocatorInfo.flags |= VMA_ALLOCATOR_CREATE_EXT_MEMORY_BUDGET_BIT;
 diff --git a/pxr/imaging/hgiVulkan/diagnostic.cpp b/pxr/imaging/hgiVulkan/diagnostic.cpp
-index fb8d756d6..455780e2c 100644
+index f2e69ba6b34..e4a6ee0601c 100644
 --- a/pxr/imaging/hgiVulkan/diagnostic.cpp
 +++ b/pxr/imaging/hgiVulkan/diagnostic.cpp
-@@ -274,4 +274,4 @@ HgiVulkanResultString(VkResult result)
+@@ -300,4 +300,4 @@ HgiVulkanResultString(VkResult result)
      return string_VkResult(result);
  }
  
 -PXR_NAMESPACE_CLOSE_SCOPE
 \ No newline at end of file
 +PXR_NAMESPACE_CLOSE_SCOPE
-diff --git a/pxr/imaging/hgiVulkan/sampler.cpp b/pxr/imaging/hgiVulkan/sampler.cpp
-index e89235cd6..01de3a85d 100644
---- a/pxr/imaging/hgiVulkan/sampler.cpp
-+++ b/pxr/imaging/hgiVulkan/sampler.cpp
-@@ -12,7 +12,8 @@
- #include "pxr/imaging/hgiVulkan/sampler.h"
- #include "pxr/imaging/hgiVulkan/diagnostic.h"
- 
--#include <float.h>
-+#include <algorithm>
-+#include <cfloat>
- 
- PXR_NAMESPACE_OPEN_SCOPE
- 
-@@ -104,4 +105,4 @@ HgiVulkanSampler::GetInflightBits()
+diff --git a/pxr/imaging/hgiVulkan/resourceBindings.cpp b/pxr/imaging/hgiVulkan/resourceBindings.cpp
+index df363d2461a..a1061a99d2f 100644
+--- a/pxr/imaging/hgiVulkan/resourceBindings.cpp
++++ b/pxr/imaging/hgiVulkan/resourceBindings.cpp
+@@ -98,8 +98,8 @@ HgiVulkanResourceBindings::HgiVulkanResourceBindings(
+     uint32_t textureBindIndexStart = 0;
+     
+     // XXX We need to overspecify the stage usage here so we can match the 
+-    // VkDescriptorSetLayout that is created with spirv-reflect for the 
+-    // graphics and compute pipelines.
++    // VkDescriptorSetLayout that is created for the graphics and compute
++    // pipelines.
+     VkShaderStageFlags const bufferShaderStageFlags =
+         HgiVulkanConversions::GetShaderStages(
+             HgiShaderStageVertex | HgiShaderStageTessellationControl |
+@@ -406,4 +406,4 @@ HgiVulkanResourceBindings::GetInflightBits()
      return _inflightBits;
  }
  
 -PXR_NAMESPACE_CLOSE_SCOPE
 \ No newline at end of file
 +PXR_NAMESPACE_CLOSE_SCOPE
+diff --git a/pxr/imaging/hgiVulkan/sampler.cpp b/pxr/imaging/hgiVulkan/sampler.cpp
+index 707cb98e6..947a7e9b4 100644
+--- a/pxr/imaging/hgiVulkan/sampler.cpp
++++ b/pxr/imaging/hgiVulkan/sampler.cpp
+@@ -13,7 +13,7 @@
+ #include "pxr/imaging/hgiVulkan/diagnostic.h"
+ 
+ #include <algorithm>
+-#include <float.h>
++#include <cfloat>
+ 
+ PXR_NAMESPACE_OPEN_SCOPE
+ 
 diff --git a/pxr/imaging/hgiVulkan/vk_mem_alloc.cpp b/pxr/imaging/hgiVulkan/vk_mem_alloc.cpp
 deleted file mode 100644
-index 8f47ddc85f..0000000000
+index 8f47ddc85f4..00000000000
 --- a/pxr/imaging/hgiVulkan/vk_mem_alloc.cpp
 +++ /dev/null
 @@ -1,10 +0,0 @@
@@ -290,7 +464,7 @@ index 8f47ddc85f..0000000000
 -#include <vma/vk_mem_alloc.h>
 diff --git a/pxr/imaging/hgiVulkan/vk_mem_alloc.h b/pxr/imaging/hgiVulkan/vk_mem_alloc.h
 deleted file mode 100644
-index 48f5fceff2..0000000000
+index 48f5fceff2e..00000000000
 --- a/pxr/imaging/hgiVulkan/vk_mem_alloc.h
 +++ /dev/null
 @@ -1,15 +0,0 @@
@@ -310,7 +484,7 @@ index 48f5fceff2..0000000000
 -
 -#endif
 diff --git a/pxr/imaging/hgiVulkan/vulkan.h b/pxr/imaging/hgiVulkan/vulkan.h
-index 2e8f59064..70b539211 100644
+index 2e8f590646c..70b539211ad 100644
 --- a/pxr/imaging/hgiVulkan/vulkan.h
 +++ b/pxr/imaging/hgiVulkan/vulkan.h
 @@ -35,7 +35,11 @@
@@ -327,7 +501,7 @@ index 2e8f59064..70b539211 100644
  // Use the default allocator (nullptr)
  inline VkAllocationCallbacks*
 diff --git a/pxr/pxrConfig.cmake.in b/pxr/pxrConfig.cmake.in
-index ae8d02c5c..7c88bb5e9 100644
+index b83cf3d7309..d59d9a5070f 100644
 --- a/pxr/pxrConfig.cmake.in
 +++ b/pxr/pxrConfig.cmake.in
 @@ -115,6 +115,32 @@ if(NOT "@PXR_WORK_IMPL_PACKAGE@" STREQUAL "")
@@ -339,7 +513,7 @@ index ae8d02c5c..7c88bb5e9 100644
 +        if(NOT DEFINED Vulkan_DIR AND NOT [[@Vulkan_DIR@]] STREQUAL "")
 +            set(Vulkan_DIR [[@Vulkan_DIR@]])
 +        endif()
-+        find_dependency(Vulkan)
++        find_dependency(Vulkan MODULE)
 +        if(Vulkan_FOUND)
 +            target_include_directories(Vulkan::Headers INTERFACE
 +                "${Vulkan_INCLUDE_DIR}/vma")
@@ -354,9 +528,9 @@ index ae8d02c5c..7c88bb5e9 100644
 +        if (NOT DEFINED VulkanMemoryAllocator_DIR AND NOT [[@VulkanMemoryAllocator_DIR@]] STREQUAL "")
 +            set(VulkanMemoryAllocator_DIR [[@VulkanMemoryAllocator_DIR@]])
 +        endif()
-+        find_dependency(VulkanHeaders)
-+        find_dependency(VulkanUtilityLibraries)
-+        find_dependency(VulkanMemoryAllocator)
++        find_dependency(VulkanHeaders CONFIG)
++        find_dependency(VulkanUtilityLibraries CONFIG)
++        find_dependency(VulkanMemoryAllocator CONFIG)
 +    endif()
 +endif()
 +

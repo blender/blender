@@ -8,6 +8,7 @@
 
 #pragma once
 
+#include "DNA_armature_types.h"
 #include "DNA_listBase.h"
 
 #include "BLI_span.hh"
@@ -56,6 +57,7 @@ void ARMATURE_OT_shortest_path_pick(wmOperatorType *ot);
 void ARMATURE_OT_delete(wmOperatorType *ot);
 void ARMATURE_OT_dissolve(wmOperatorType *ot);
 void ARMATURE_OT_duplicate(wmOperatorType *ot);
+void ARMATURE_OT_duplicate_rename(wmOperatorType *ot);
 void ARMATURE_OT_symmetrize(wmOperatorType *ot);
 void ARMATURE_OT_extrude(wmOperatorType *ot);
 void ARMATURE_OT_hide(wmOperatorType *ot);
@@ -280,7 +282,7 @@ void armature_tag_select_mirrored(bArmature *arm);
  * Helper function for tools to work on mirrored parts.
  * it leaves mirrored bones selected then too, which is a good indication of what happened.
  */
-void armature_select_mirrored_ex(bArmature *arm, int flag);
+void armature_select_mirrored_ex(bArmature *arm, eBone_Flag flag);
 void armature_select_mirrored(bArmature *arm);
 /** Only works when tagged. */
 void armature_tag_unselect(bArmature *arm);

@@ -279,7 +279,7 @@ class SocketSearchOp {
   void operator()(LinkSearchOpParams &params)
   {
     bNode &node = params.add_node("CompositorNodeGlare"_ustr);
-    bNodeSocket &type_socket = *bke::node_find_socket(node, SOCK_IN, "Type");
+    bNodeSocket &type_socket = *bke::node_find_socket(node, SOCK_IN, "Type"_ustr);
     type_socket.default_value_typed<bNodeSocketValueMenu>()->value = this->type;
     params.update_and_connect_available_socket(node, "Image"_ustr);
   }
@@ -331,7 +331,7 @@ class GlareOperation : public NodeOperation {
         this->write_highlights_output(highlights);
       }
       else {
-        highlights_output.steal_data(highlights);
+        highlights_output.share_data(highlights);
       }
     }
     highlights.release();
@@ -2216,7 +2216,7 @@ class GlareOperation : public NodeOperation {
      * while for CPU, write to the result directly. */
     float *output = this->context().use_gpu() ?
                         const_cast<float *>(highlights_buffer) :
-                        static_cast<float *>(fog_glow_result.cpu_data().data());
+                        static_cast<float *>(fog_glow_result.cpu_data_for_write().data());
 
     /* Copy the result to the output. */
     threading::parallel_for(IndexRange(image_size.y), 1, [&](const IndexRange sub_y_range) {

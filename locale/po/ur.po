@@ -1,9 +1,9 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 5.2.0 Alpha (b'b1f67602e773')\n"
+"Project-Id-Version: Blender 5.2.0 Alpha (b'8c7c45ad114e')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-04-13 10:20+0000\n"
+"POT-Creation-Date: 2026-05-11 07:23+0000\n"
 "PO-Revision-Date: 2025-07-23 15:12+0000\n"
 "Last-Translator: Anonymous <noreply@weblate.org>\n"
 "Language-Team: Urdu <https://translate.blender.org/projects/blender-ui/ui/ur/>\n"
@@ -6914,10 +6914,6 @@ msgid "AgX Base sRGB"
 msgstr "AgX ﺲﯿﺑ sRGB"
 
 
-msgid "AgX Base Image Encoding for sRGB Display"
-msgstr "sRGB ﮯﯿﻟ ﮯﮐ ﮯﻧﺎﮭﮐﺩ AgX ﮓﻧﮈﻮﮑﻧﺍ ﺞﯿﻣﺍ ﺲﯿﺑ"
-
-
 msgid "AgX Log"
 msgstr "AgX ﮒﻻ﻿"
 
@@ -6946,16 +6942,8 @@ msgid "Filmic sRGB"
 msgstr "ﯽﺑ ﯽﺟ ﺭﺁ ﺲﯾﺍ ﯽﻤﻠﻓ"
 
 
-msgid "sRGB display space with Filmic view transform"
-msgstr "ﮧﮕﺟ ﯽﮐ ﮯﻧﺎﮭﮐﺩ ﯽﺑ ﯽﺟ ﺭﺁ ﺲﯾﺍ ﮫﺗﺎﺳ ﮯﮐ ﻡﺭﺎﻔﺴﻧﺍﺮﭨ ﻮﯾﻭ ﯽﻤﻠﻓ"
-
-
 msgid "Khronos PBR Neutral sRGB"
 msgstr "Khronos PBR ﺭﺍﺪﺒﻧﺎﺟ ﺮﯿﻏ sRGB"
-
-
-msgid "Khronos PBR Neutral Image Encoding for sRGB Display"
-msgstr "Khronos PBR ﮓﻧﮈﻮﮑﻧﺍ ﺮﯾﻮﺼﺗ ﺭﺍﺪﺒﻧﺎﺟ ﺮﯿﻏ for sRGB ﮯﻠﭙﺳﮈ"
 
 
 msgid "Linear CIE-XYZ D65"
@@ -17607,58 +17595,6 @@ msgid "Amount of smoothing to automatically apply to each stroke"
 msgstr "ﺭﺍﺪﻘﻣ ﯽﮐ ﮯﻧﺮﮐ ﺭﺍﻮﻤﮨ ﮯﯿﻟ ﮯﮐ ﮯﻧﻮﮨ ﻮﮔﻻ﻿ ﺩﻮﺨﺑ ﺩﻮﺧ ﺮﭘ ﮎﻭﺮﭩﺳﺍ ﺮﮨ"
 
 
-msgid "Propagation Steps"
-msgstr "ﻞﺣﺍﺮﻣ ﮯﮐ ﻎﯿﻠﺒﺗ"
-
-
-msgid "Distance where boundary edge automasking is going to protect vertices from the fully masked edge"
-msgstr "ﯽﮔ ﮮﺮﮐ ﺖﻇﺎﻔﺣ ﯽﮐ ﮞﻮﯿﭨﻮﭼ ﮯﺳ ﮮﺭﺎﻨﮐ ﺵﻮﭘ ﺏﺎﻘﻧ ﺮﭘ ﺭﻮﻃ ﻞﻤﮑﻣ ﮓﻨﮑﺳﺎﻣﻮﭨﺁ ﺞﯾﺍ ﯼﺭﮉﻧﺅﺎﺑ ﮞﺎﮩﺟ ﮧﻠﺻﺎﻓ ﮦﻭ"
-
-
-msgid "Blur Steps"
-msgstr "ﻡﺪﻗ ﮯﻟﺪﻨﮬﺩ"
-
-
-msgid "The number of times the cavity mask is blurred"
-msgstr "ﮯﮨ ﺍﻮﮨ ﻻ﻿ﺪﻨﮬﺩ ﺭﺎﺑ ﯽﻨﺘﺟ ﮏﺳﺎﻣ ﯽﭩﯾﻮﯿﮐ"
-
-
-msgid "Cavity Curve"
-msgstr "ﻢﺧ ﯽﭨﻮﯿﮐ"
-
-
-msgid "Cavity Factor"
-msgstr "ﺮﭩﮑﯿﻓ ﯽﭨﻮﯿﮐ"
-
-
-msgid "The contrast of the cavity mask"
-msgstr "ﭧﺳﺍﺮﭩﻨﮐ ﺎﮐ ﮏﺳﺎﻣ ﯽﭩﯾﻮﯿﮐ"
-
-
-msgid "Area Normal Falloff"
-msgstr "ﻑﺁ ﻝﺎﻓ ﻞﻣﺭﺎﻧ ﺎﯾﺮﯾﺍ"
-
-
-msgid "Extend the angular range with a falloff gradient"
-msgstr "ﮟﯿﺋﺎﮬﮍﺑ ﮫﺗﺎﺳ ﮯﮐ ﭧﻨﯾﮉﯾﺮﮔ ﻑﺁ ﻝﺎﻓ ﻮﮐ ﺞﻨﯾﺭ ﮧﯾﻭﺍﺯ"
-
-
-msgid "Area Normal Limit"
-msgstr "ﺪﺣ ﯽﻣﻮﻤﻋ ﯽﮐ ﮧﺒﻗﺭ"
-
-
-msgid "The range of angles that will be affected"
-msgstr "ﯽﮔﻮﮨ ﺮﺛﺎﺘﻣ ﻮﺟ ﺪﺣ ﯽﮐ ﮞﻮﯾﻭﺍﺯ"
-
-
-msgid "View Normal Falloff"
-msgstr "ﮟﯿﮭﮑﯾﺩ ﻑﺁ ﻝﺎﻓ ﻞﻣﺭﺎﻧ"
-
-
-msgid "View Normal Limit"
-msgstr "ﮟﯿﮭﮑﯾﺩ ﺪﺣ ﯽﻣﻮﻤﻋ"
-
-
 msgid "Brush blending mode"
 msgstr "ﮈﻮﻣ ﮓﻧﮉﻨﯿﻠﺑ ﺵﺮﺑ"
 
@@ -19033,62 +18969,6 @@ msgstr "ﮟﯾﺮﮐ ﺮﺛﺎﺘﻣ ﻮﮐ ﺎﻔﻟﺍ"
 
 msgid "When this is disabled, lock alpha while painting"
 msgstr "ﮟﯾﺮﮐ ﻞﻔﻘﻣ ﻮﮐ ﺎﻔﻟﺍ ﻥﺍﺭﻭﺩ ﮯﮐ ﮓﻨﭩﻨﯿﭘ ﻮﺗ ﻮﮨ ﻝﺎﻌﻓ ﺮﯿﻏ ﮧﯾ ﺐﺟ"
-
-
-msgid "Mesh Boundary Auto-Masking"
-msgstr "ﮓﻨﮑﺳﺎﻣ ﻮﭨﺁ ﯼﺭﮉﻧﺅﺎﺑ ﺶﯿﻣ"
-
-
-msgid "Do not affect non manifold boundary edges"
-msgstr "ﮟﯾﺮﮐ ﮧﻧ ﺮﺛﺎﺘﻣ ﻮﮐ ﮞﻭﺭﺎﻨﮐ ﯼﺭﮉﻧﺅﺎﺑ ﺎﻨﮔ ﯽﺌﮐ ﺮﯿﻏ"
-
-
-msgid "Face Sets Boundary Automasking"
-msgstr "ﮯﮨ ﺎﺗﺮﮐ ﭧﯿﺳ ﯼﺭﮉﻧﺅﺎﺑ ﮓﻨﮑﺳﺎﻣ ﺭﺎﮐﺩﻮﺧ ﮦﺮﮩﭼ"
-
-
-msgid "Cavity Mask"
-msgstr "ﮏﺳﺎﻣ ﯽﭩﯾﻮﯿﮐ"
-
-
-msgid "Do not affect vertices on peaks, based on the surface curvature"
-msgstr "ﮟﯾﺮﮐ ﮧﻧ ﺮﺛﺎﺘﻣ ﻮﮐ ﮞﻮﯿﭨﻮﭼ ﺮﭘ ﮞﻮﯿﭨﻮﭼ ﺮﭘ ﺩﺎﯿﻨﺑ ﯽﮐ ﺅﺎﻤﮭﮔ ﯽﮐ ﺢﻄﺳ"
-
-
-msgid "Inverted Cavity Mask"
-msgstr "ﮏﺳﺎﻣ ﯽﭨﻮﯿﮐ ﺎﭩﻟﺍ"
-
-
-msgid "Do not affect vertices within crevices, based on the surface curvature"
-msgstr "ﮟﯾﺮﮐ ﮧﻧ ﺮﺛﺎﺘﻣ ﻮﮐ ﮞﻮﯿﭨﻮﭼ ﺭﺪﻧﺍ ﮯﮐ ﮞﻭﮌﺍﺭﺩ ،ﺮﭘ ﺩﺎﯿﻨﺑ ﯽﮐ ﺅﺎﻤﮭﮔ ﯽﮐ ﺢﻄﺳ"
-
-
-msgid "Custom Cavity Curve"
-msgstr "ﻢﺧ ﯽﭨﻮﯿﮐ ﺕﺭﻭﺮﺿ ﺐﺴﺣ"
-
-
-msgid "Use custom curve"
-msgstr "ﮟﯾﺮﮐ ﻝﺎﻤﻌﺘﺳﺍ ﻞﺑ ﺕﺭﻭﺮﺿ ﺐﺴﺣ"
-
-
-msgid "Area Normal"
-msgstr "ﻞﻣﺭﺎﻧ ﮧﻗﻼ﻿ﻋ"
-
-
-msgid "Affect only vertices with a similar normal to where the stroke starts"
-msgstr "ﮟﯾﺮﮐ ﺮﺛﺎﺘﻣ ﻮﮐ ﮞﻮﯿﭨﻮﭼ ﻑﺮﺻ ﮫﺗﺎﺳ ﮯﮐ ﻝﻮﻤﻌﻣ ﮯﺘﻠﺟ ﮯﺘﻠﻣ ﮯﺳ ﮞﺎﮨﻭ ﮯﮨ ﺎﺗﻮﮨ ﻉﻭﺮﺷ ﺞﻟﺎﻓ ﮯﺳ ﮞﺎﮩﺟ"
-
-
-msgid "Affect only vertices connected to the active vertex under the brush"
-msgstr "ﮟﯾﺮﮐ ﺮﺛﺎﺘﻣ ﻮﮐ ﮞﻮﯿﭨﻮﭼ ﮏﻠﺴﻨﻣ ﮯﺳ ﮯﻧﻮﮐ ﻝﺎﻌﻓ ﻑﺮﺻ ﮯﭽﯿﻧ ﮯﮐ ﺵﺮﺑ"
-
-
-msgid "Affect only vertices with a normal that faces the viewer"
-msgstr "ﻮﮨ ﮯﻨﻣﺎﺳ ﮯﮐ ﮯﻟﺍﻭ ﮯﻨﮭﮑﯾﺩ ﻮﺟ ﮟﯾﺮﮐ ﺮﺛﺎﺘﻣ ﻮﮐ ﯼﺩﻮﻤﻋ ﮯﺴﯾﺍ ﻑﺮﺻ"
-
-
-msgid "Occlusion"
-msgstr "ﺖﯿﻟﻮﻤﺷ"
 
 
 msgid "Collide with objects during the simulation"
@@ -32510,6 +32390,10 @@ msgid "Placement"
 msgstr "ﻦﯿﻌﺗ ﺎﮐ ﮧﮕﺟ"
 
 
+msgid "Scale the noise frequency"
+msgstr "ﮟﯾﺮﮐ ﮧﻧﺎﻤﯿﭘ ﻮﮐ ﯽﺴﻨﺋﻮﮑﯾﺮﻓ ﯽﮐ ﺭﻮﺷ"
+
+
 msgid "Show stroke fills of this material"
 msgstr "ﮟﯿﺋﺎﮭﮐﺩ ﺰﻠﻓ ﮎﻭﺮﭩﺳﺍ ﮯﮐ ﺩﺍﻮﻣ ﺱﺍ"
 
@@ -32611,124 +32495,8 @@ msgid "Editor menu containing buttons"
 msgstr "ﻮﻨﯿﻣ ﺮﭩﯾﮉﯾﺍ ﻞﻤﺘﺸﻣ ﺮﭘ ﮞﻮﻨﭩﺑ"
 
 
-msgid "Face Data"
-msgstr "ﺎﭩﯾﮈ ﺎﮐ ﮮﺮﮩﭼ"
-
-
-msgid "Select by Face Strength"
-msgstr "ﮟﯾﺮﮐ ﺐﺨﺘﻨﻣ ﮯﺳ ﻅﺎﺤﻟ ﮯﮐ ﺖﻗﺎﻃ ﯽﮐ ﮮﺮﮩﭼ"
-
-
-msgid "Set Face Strength"
-msgstr "ﮟﯾﺮﮐ ﻦﯿﻌﺗ ﺎﮐ ﺖﻗﺎﻃ ﯽﮐ ﮮﺮﮩﭼ"
-
-
-msgid "Math"
-msgstr "ﯽﺿﺎﯾﺭ"
-
-
-msgid "Utilities"
-msgstr "ﺖﯾﺩﺎﻓﺍ"
-
-
-msgid "Clean Up"
-msgstr "ﯽﺋﺎﻔﺻ"
-
-
-msgid "Merge"
-msgstr "ﺎﻧﺮﮐ ﻢﺿ"
-
-
-msgid "Show/Hide"
-msgstr "ﮟﯿﺋﺎﭙﮭﭼ/ﮟﯿﺋﺎﮭﮐﺩ"
-
-
-msgid "Special Characters"
-msgstr "ﺭﺍﺩﺮﮐ ﯽﺻﻮﺼﺧ"
-
-
-msgid "Kerning"
-msgstr "ﮓﻨﻧﺮﮐ"
-
-
-msgid "Metaball"
-msgstr "ﻝﺎﺑ ﺎﭩﯿﻣ"
-
-
-msgid "Read"
-msgstr "ﮟﯿﮬﮍﭘ"
-
-
-msgid "Sample"
-msgstr "ﮧﻧﻮﻤﻧ"
-
-
-msgid "Write"
-msgstr "ﮟﯿﮭﮑﻟ"
-
-
-msgid "Names"
-msgstr "ﻡﺎﻧ"
-
-
-msgid "Primitives"
-msgstr "ﻢﯾﺪﻗ"
-
-
-msgid "Bone Roll"
-msgstr "ﻝﻭﺭ ﻥﻮﺑ"
-
-
-msgid "Gizmo"
-msgstr "ﻮﻣﺰﯿﮔ"
-
-
-msgid "Instances"
-msgstr "ﮟﯿﻟﺎﺜﻣ"
-
-
-msgid "Pivot Point"
-msgstr "ﭧﻨﺋﺍﻮﭘ ﭦﻮﯿﭘ"
-
-
 msgid "Snap"
 msgstr "ﭗﯿﻨﺳ"
-
-
-msgid "Import"
-msgstr "ﮟﯾﺮﮐ ﺪﻣﺁﺭﺩ"
-
-
-msgid "Proportional Editing Falloff"
-msgstr "ﻑﺁ ﻝﺎﻓ ﺮﺋﺎﻔﯾﮈﻮﻣ ﺐﺳﺎﻨﺘﻣ"
-
-
-msgid "Mask Edit"
-msgstr "ﮟﯾﺮﮐ ﺮﺋﺎﻔﯾﮈﻮﻣ ﮟﯿﻣ ﮏﺳﺎﻣ"
-
-
-msgid "Automasking"
-msgstr "ﮓﻨﮑﺳﺎﻣﻮﭨﺁ"
-
-
-msgid "Face Sets Edit"
-msgstr "ﮟﯾﺮﮐ ﺮﺋﺎﻔﯾﮈﻮﻣ ﮟﯿﻣ ﭧﯿﺳ ﮯﮐ ﮮﺮﮩﭼ"
-
-
-msgid "Vertex Group Locks"
-msgstr "ﮎﻻ﻿ ﮦﻭﺮﮔ ﺲﮑﯿﭨﺭﻭ"
-
-
-msgid "Deprecated"
-msgstr "ﮦﺩﻮﺳﺮﻓ"
-
-
-msgid "UV"
-msgstr "ﯼﻭﻮﯾ"
-
-
-msgid "Mirror"
-msgstr "ﮧﻨﯿﺋﺁ"
 
 
 msgid "UV Mapping"
@@ -32779,8 +32547,32 @@ msgid "Select Loops"
 msgstr "ﮟﯾﺮﮐ ﺐﺨﺘﻨﻣ ﻮﮐ ﺲﭘﻮﻟ"
 
 
+msgid "Math"
+msgstr "ﯽﺿﺎﯾﺭ"
+
+
+msgid "Utilities"
+msgstr "ﺖﯾﺩﺎﻓﺍ"
+
+
 msgid "Assign Material"
 msgstr "ﮟﯾﺮﮐ ﺾﯾﻮﻔﺗ ﺩﺍﻮﻣ"
+
+
+msgid "Metaball"
+msgstr "ﻝﺎﺑ ﺎﭩﯿﻣ"
+
+
+msgid "Read"
+msgstr "ﮟﯿﮬﮍﭘ"
+
+
+msgid "Sample"
+msgstr "ﮧﻧﻮﻤﻧ"
+
+
+msgid "Write"
+msgstr "ﮟﯿﮭﮑﻟ"
 
 
 msgid "Light"
@@ -32791,6 +32583,10 @@ msgid "Light Probe"
 msgstr "ﺏﻭﺮﭘ ﭧﺋﻻ﻿"
 
 
+msgid "Primitives"
+msgstr "ﻢﯾﺪﻗ"
+
+
 msgid "Add Image"
 msgstr "ﮟﯾﺮﮐ ﻞﻣﺎﺷ ﺮﯾﻮﺼﺗ"
 
@@ -32799,16 +32595,20 @@ msgid "Relations"
 msgstr "ﮯﺘﺷﺭ"
 
 
-msgid "Layout"
-msgstr "ﭦﺅﺁ ﮯﻟ"
-
-
 msgid "Rigid Body"
 msgstr "ﻢﺴﺟ ﺖﺨﺳ"
 
 
+msgid "Gizmo"
+msgstr "ﻮﻣﺰﯿﮔ"
+
+
 msgid "Apply"
 msgstr "ﮟﯿﺋﺎﮕﻟ"
+
+
+msgid "Instances"
+msgstr "ﮟﯿﻟﺎﺜﻣ"
 
 
 msgid "Track"
@@ -32819,12 +32619,20 @@ msgid "Quick Effects"
 msgstr "ﺕﺍﺮﺛﺍ ﯼﺭﻮﻓ"
 
 
+msgid "Show/Hide"
+msgstr "ﮟﯿﺋﺎﭙﮭﭼ/ﮟﯿﺋﺎﮭﮐﺩ"
+
+
+msgid "Clean Up"
+msgstr "ﯽﺋﺎﻔﺻ"
+
+
+msgid "Import"
+msgstr "ﮟﯾﺮﮐ ﺪﻣﺁﺭﺩ"
+
+
 msgid "Asset"
 msgstr "ﮧﺛﺎﺛﺍ"
-
-
-msgid "Adjust"
-msgstr "ﮟﯾﺮﮐ ﭧﺴﺟﮉﯾﺍ"
 
 
 msgid "Make Single User"
@@ -32839,20 +32647,24 @@ msgid "Link/Transfer Data"
 msgstr "ﮟﯾﺮﮐ ﻞﻘﺘﻨﻣ/ﮏﻨﻟ ﻮﮐ ﺎﭩﯾﮈ"
 
 
-msgid "Keying"
-msgstr "ﮓﻨﯿﻠﮐ"
-
-
 msgid "Hooks"
 msgstr "ﮯﭩﻧﺎﮐ"
 
 
-msgid "Tracking"
-msgstr "ﮓﻨﮑﯾﺮﭨ"
+msgid "Vertex Group Locks"
+msgstr "ﮎﻻ﻿ ﮦﻭﺮﮔ ﺲﮑﯿﭨﺭﻭ"
+
+
+msgid "Deprecated"
+msgstr "ﮦﺩﻮﺳﺮﻓ"
 
 
 msgid "Trim/Add"
 msgstr "ﮟﯾﺮﮐ ﻞﻣﺎﺷ/ﻡﺮﭨ"
+
+
+msgid "UV"
+msgstr "ﯼﻭﻮﯾ"
 
 
 msgid "Sculpt Set Pivot"
@@ -32883,6 +32695,10 @@ msgid "Bone Collections"
 msgstr "ﮧﻋﻮﻤﺠﻣ ﺎﮐ ﮞﻮﯾﮉﮨ"
 
 
+msgid "Names"
+msgstr "ﻡﺎﻧ"
+
+
 msgid "Toggle Bone Options"
 msgstr "ﮟﯾﺮﮐ ﻞﮔﻮﭨ ﻮﮐ ﺕﺍﺭﺎﯿﺘﺧﺍ ﮯﮐ ﯼﮉﮨ"
 
@@ -32897,6 +32713,74 @@ msgstr "ﮟﯾﺮﮐ ﻝﺎﻌﻓ ﺮﯿﻏ ﻮﮐ ﺕﺍﺭﺎﯿﺘﺧﺍ ﮯ�
 
 msgid "Mesh Select Mode"
 msgstr "ﮈﻮﻣ ﭧﮑﯿﻠﺳ ﺶﯿﻣ"
+
+
+msgid "Face Data"
+msgstr "ﺎﭩﯾﮈ ﺎﮐ ﮮﺮﮩﭼ"
+
+
+msgid "Select by Face Strength"
+msgstr "ﮟﯾﺮﮐ ﺐﺨﺘﻨﻣ ﮯﺳ ﻅﺎﺤﻟ ﮯﮐ ﺖﻗﺎﻃ ﯽﮐ ﮮﺮﮩﭼ"
+
+
+msgid "Set Face Strength"
+msgstr "ﮟﯾﺮﮐ ﻦﯿﻌﺗ ﺎﮐ ﺖﻗﺎﻃ ﯽﮐ ﮮﺮﮩﭼ"
+
+
+msgid "Merge"
+msgstr "ﺎﻧﺮﮐ ﻢﺿ"
+
+
+msgid "Special Characters"
+msgstr "ﺭﺍﺩﺮﮐ ﯽﺻﻮﺼﺧ"
+
+
+msgid "Kerning"
+msgstr "ﮓﻨﻧﺮﮐ"
+
+
+msgid "Layout"
+msgstr "ﭦﺅﺁ ﮯﻟ"
+
+
+msgid "Bone Roll"
+msgstr "ﻝﻭﺭ ﻥﻮﺑ"
+
+
+msgid "Adjust"
+msgstr "ﮟﯾﺮﮐ ﭧﺴﺟﮉﯾﺍ"
+
+
+msgid "Keying"
+msgstr "ﮓﻨﯿﻠﮐ"
+
+
+msgid "Tracking"
+msgstr "ﮓﻨﮑﯾﺮﭨ"
+
+
+msgid "Pivot Point"
+msgstr "ﭧﻨﺋﺍﻮﭘ ﭦﻮﯿﭘ"
+
+
+msgid "Proportional Editing Falloff"
+msgstr "ﻑﺁ ﻝﺎﻓ ﺮﺋﺎﻔﯾﮈﻮﻣ ﺐﺳﺎﻨﺘﻣ"
+
+
+msgid "Mask Edit"
+msgstr "ﮟﯾﺮﮐ ﺮﺋﺎﻔﯾﮈﻮﻣ ﮟﯿﻣ ﮏﺳﺎﻣ"
+
+
+msgid "Automasking"
+msgstr "ﮓﻨﮑﺳﺎﻣﻮﭨﺁ"
+
+
+msgid "Face Sets Edit"
+msgstr "ﮟﯾﺮﮐ ﺮﺋﺎﻔﯾﮈﻮﻣ ﮟﯿﻣ ﭧﯿﺳ ﮯﮐ ﮮﺮﮩﭼ"
+
+
+msgid "Mirror"
+msgstr "ﮧﻨﯿﺋﺁ"
 
 
 msgid "Keyframe Insert Pie"
@@ -33458,6 +33342,114 @@ msgstr "ﮟﯿﻣ ﮮﺭﺎﺑ ﮯﮐ"
 
 msgid "Quick Setup"
 msgstr "ﭖﺍ ﭧﯿﺳ ﯼﺭﻮﻓ"
+
+
+msgid "Propagation Steps"
+msgstr "ﻞﺣﺍﺮﻣ ﮯﮐ ﻎﯿﻠﺒﺗ"
+
+
+msgid "Distance where boundary edge automasking is going to protect vertices from the fully masked edge"
+msgstr "ﯽﮔ ﮮﺮﮐ ﺖﻇﺎﻔﺣ ﯽﮐ ﮞﻮﯿﭨﻮﭼ ﮯﺳ ﮮﺭﺎﻨﮐ ﺵﻮﭘ ﺏﺎﻘﻧ ﺮﭘ ﺭﻮﻃ ﻞﻤﮑﻣ ﮓﻨﮑﺳﺎﻣﻮﭨﺁ ﺞﯾﺍ ﯼﺭﮉﻧﺅﺎﺑ ﮞﺎﮩﺟ ﮧﻠﺻﺎﻓ ﮦﻭ"
+
+
+msgid "Blur Steps"
+msgstr "ﻡﺪﻗ ﮯﻟﺪﻨﮬﺩ"
+
+
+msgid "The number of times the cavity mask is blurred"
+msgstr "ﮯﮨ ﺍﻮﮨ ﻻ﻿ﺪﻨﮬﺩ ﺭﺎﺑ ﯽﻨﺘﺟ ﮏﺳﺎﻣ ﯽﭩﯾﻮﯿﮐ"
+
+
+msgid "Cavity Curve"
+msgstr "ﻢﺧ ﯽﭨﻮﯿﮐ"
+
+
+msgid "Cavity Factor"
+msgstr "ﺮﭩﮑﯿﻓ ﯽﭨﻮﯿﮐ"
+
+
+msgid "The contrast of the cavity mask"
+msgstr "ﭧﺳﺍﺮﭩﻨﮐ ﺎﮐ ﮏﺳﺎﻣ ﯽﭩﯾﻮﯿﮐ"
+
+
+msgid "Area Normal Falloff"
+msgstr "ﻑﺁ ﻝﺎﻓ ﻞﻣﺭﺎﻧ ﺎﯾﺮﯾﺍ"
+
+
+msgid "Extend the angular range with a falloff gradient"
+msgstr "ﮟﯿﺋﺎﮬﮍﺑ ﮫﺗﺎﺳ ﮯﮐ ﭧﻨﯾﮉﯾﺮﮔ ﻑﺁ ﻝﺎﻓ ﻮﮐ ﺞﻨﯾﺭ ﮧﯾﻭﺍﺯ"
+
+
+msgid "Area Normal Limit"
+msgstr "ﺪﺣ ﯽﻣﻮﻤﻋ ﯽﮐ ﮧﺒﻗﺭ"
+
+
+msgid "The range of angles that will be affected"
+msgstr "ﯽﮔﻮﮨ ﺮﺛﺎﺘﻣ ﻮﺟ ﺪﺣ ﯽﮐ ﮞﻮﯾﻭﺍﺯ"
+
+
+msgid "Mesh Boundary Auto-Masking"
+msgstr "ﮓﻨﮑﺳﺎﻣ ﻮﭨﺁ ﯼﺭﮉﻧﺅﺎﺑ ﺶﯿﻣ"
+
+
+msgid "Do not affect non manifold boundary edges"
+msgstr "ﮟﯾﺮﮐ ﮧﻧ ﺮﺛﺎﺘﻣ ﻮﮐ ﮞﻭﺭﺎﻨﮐ ﯼﺭﮉﻧﺅﺎﺑ ﺎﻨﮔ ﯽﺌﮐ ﺮﯿﻏ"
+
+
+msgid "Face Sets Boundary Automasking"
+msgstr "ﮯﮨ ﺎﺗﺮﮐ ﭧﯿﺳ ﯼﺭﮉﻧﺅﺎﺑ ﮓﻨﮑﺳﺎﻣ ﺭﺎﮐﺩﻮﺧ ﮦﺮﮩﭼ"
+
+
+msgid "Cavity Mask"
+msgstr "ﮏﺳﺎﻣ ﯽﭩﯾﻮﯿﮐ"
+
+
+msgid "Do not affect vertices on peaks, based on the surface curvature"
+msgstr "ﮟﯾﺮﮐ ﮧﻧ ﺮﺛﺎﺘﻣ ﻮﮐ ﮞﻮﯿﭨﻮﭼ ﺮﭘ ﮞﻮﯿﭨﻮﭼ ﺮﭘ ﺩﺎﯿﻨﺑ ﯽﮐ ﺅﺎﻤﮭﮔ ﯽﮐ ﺢﻄﺳ"
+
+
+msgid "Inverted Cavity Mask"
+msgstr "ﮏﺳﺎﻣ ﯽﭨﻮﯿﮐ ﺎﭩﻟﺍ"
+
+
+msgid "Do not affect vertices within crevices, based on the surface curvature"
+msgstr "ﮟﯾﺮﮐ ﮧﻧ ﺮﺛﺎﺘﻣ ﻮﮐ ﮞﻮﯿﭨﻮﭼ ﺭﺪﻧﺍ ﮯﮐ ﮞﻭﮌﺍﺭﺩ ،ﺮﭘ ﺩﺎﯿﻨﺑ ﯽﮐ ﺅﺎﻤﮭﮔ ﯽﮐ ﺢﻄﺳ"
+
+
+msgid "Custom Cavity Curve"
+msgstr "ﻢﺧ ﯽﭨﻮﯿﮐ ﺕﺭﻭﺮﺿ ﺐﺴﺣ"
+
+
+msgid "Use custom curve"
+msgstr "ﮟﯾﺮﮐ ﻝﺎﻤﻌﺘﺳﺍ ﻞﺑ ﺕﺭﻭﺮﺿ ﺐﺴﺣ"
+
+
+msgid "Area Normal"
+msgstr "ﻞﻣﺭﺎﻧ ﮧﻗﻼ﻿ﻋ"
+
+
+msgid "Affect only vertices with a similar normal to where the stroke starts"
+msgstr "ﮟﯾﺮﮐ ﺮﺛﺎﺘﻣ ﻮﮐ ﮞﻮﯿﭨﻮﭼ ﻑﺮﺻ ﮫﺗﺎﺳ ﮯﮐ ﻝﻮﻤﻌﻣ ﮯﺘﻠﺟ ﮯﺘﻠﻣ ﮯﺳ ﮞﺎﮨﻭ ﮯﮨ ﺎﺗﻮﮨ ﻉﻭﺮﺷ ﺞﻟﺎﻓ ﮯﺳ ﮞﺎﮩﺟ"
+
+
+msgid "Affect only vertices connected to the active vertex under the brush"
+msgstr "ﮟﯾﺮﮐ ﺮﺛﺎﺘﻣ ﻮﮐ ﮞﻮﯿﭨﻮﭼ ﮏﻠﺴﻨﻣ ﮯﺳ ﮯﻧﻮﮐ ﻝﺎﻌﻓ ﻑﺮﺻ ﮯﭽﯿﻧ ﮯﮐ ﺵﺮﺑ"
+
+
+msgid "Affect only vertices with a normal that faces the viewer"
+msgstr "ﻮﮨ ﮯﻨﻣﺎﺳ ﮯﮐ ﮯﻟﺍﻭ ﮯﻨﮭﮑﯾﺩ ﻮﺟ ﮟﯾﺮﮐ ﺮﺛﺎﺘﻣ ﻮﮐ ﯼﺩﻮﻤﻋ ﮯﺴﯾﺍ ﻑﺮﺻ"
+
+
+msgid "Occlusion"
+msgstr "ﺖﯿﻟﻮﻤﺷ"
+
+
+msgid "View Normal Falloff"
+msgstr "ﮟﯿﮭﮑﯾﺩ ﻑﺁ ﻝﺎﻓ ﻞﻣﺭﺎﻧ"
+
+
+msgid "View Normal Limit"
+msgstr "ﮟﯿﮭﮑﯾﺩ ﺪﺣ ﯽﻣﻮﻤﻋ"
 
 
 msgid "Mesh Edge"
@@ -37440,10 +37432,6 @@ msgstr "ﭧﯿﺴﻓﺁ ﺭﻮﺷ"
 
 msgid "Offset the noise along the strokes"
 msgstr "ﮟﯾﺮﮐ ﭧﯿﺴﻓﺁ ﻮﮐ ﺭﻮﺷ ﮫﺗﺎﺳ ﮯﮐ ﮎﻭﺮﭩﺳﺍ"
-
-
-msgid "Scale the noise frequency"
-msgstr "ﮟﯾﺮﮐ ﮧﻧﺎﻤﯿﭘ ﻮﮐ ﯽﺴﻨﺋﻮﮑﯾﺮﻓ ﯽﮐ ﺭﻮﺷ"
 
 
 msgid "Where to perform randomization"
@@ -48267,6 +48255,10 @@ msgid "Panel description"
 msgstr "ﻞﯿﺼﻔﺗ ﯽﮐ ﻞﻨﯿﭘ"
 
 
+msgid "Unique identifier for this panel within this node tree"
+msgstr "ﮦﺪﻨﻨﮐ ﺖﺧﺎﻨﺷ ﺩﺮﻔﻨﻣ ﮯﯿﻟ ﮯﮐ ﻞﻨﯿﭘ ﺱﺍ ﺭﺪﻧﺍ ﮯﮐ ﯼﺮﭨ ﮈﻮﻧ ﺱﺍ"
+
+
 msgid "Items in the node panel"
 msgstr "ﺰﻤﭩﺋﺁ ﮟﯿﻣ ﻞﻨﯿﭘ ﮈﻮﻧ"
 
@@ -48277,10 +48269,6 @@ msgstr "ﻡﺎﻧ ﺎﮐ ﻞﻨﯿﭘ"
 
 msgid "Persistent Identifier"
 msgstr "ﮦﺪﻨﻨﮐ ﺖﺧﺎﻨﺷ ﻞﻘﺘﺴﻣ"
-
-
-msgid "Unique identifier for this panel within this node tree"
-msgstr "ﮦﺪﻨﻨﮐ ﺖﺧﺎﻨﺷ ﺩﺮﻔﻨﻣ ﮯﯿﻟ ﮯﮐ ﻞﻨﯿﭘ ﺱﺍ ﺭﺪﻧﺍ ﮯﮐ ﯼﺮﭨ ﮈﻮﻧ ﺱﺍ"
 
 
 msgid "Node Tree Interface Socket"
@@ -49473,11 +49461,6 @@ msgstr "BVH ﮟﯾﺮﮐ ﺪﻣﺁﺭﺩ"
 
 msgid "Load a SVG file"
 msgstr "SVG ﮟﯾﺮﮐ ﮈﻮﻟ ﻞﺋﺎﻓ"
-
-
-msgctxt "Operator"
-msgid "Import SVG"
-msgstr "SVG ﮟﯾﺮﮐ ﺪﻣﺁﺭﺩ"
 
 
 msgid "Load a FBX file"
@@ -51656,20 +51639,20 @@ msgid "Flip times of selected keyframes using the current frame as the mirror li
 msgstr "ﮟﯿﺋﺎﭩﻠﭘ ﺕﺎﻗﻭﺍ ﮯﮐ ﺰﻤﯾﺮﻓ ﯽﮐ ﺐﺨﺘﻨﻣ ﮯﺋﻮﮨ ﮯﺗﺮﮐ ﻝﺎﻤﻌﺘﺳﺍ ﺮﭘ ﺭﻮﻃ ﮯﮐ ﻦﺋﻻ﻿ ﮧﻨﯿﺋﺁ ﻮﮐ ﻢﯾﺮﻓ ﮦﺩﻮﺟﻮﻣ"
 
 
-msgid "By Values Over Zero Value"
-msgstr "ﮯﺳ ﺏﺎﺴﺣ ﮯﮐ ﮞﻭﺭﺪﻗ ﮦﺩﺎﯾﺯ ﮯﺳ ﻮﯿﻠﯾﻭ ﻭﺮﯾﺯ"
-
-
-msgid "Flip values of selected keyframes (i.e. negative values become positive, and vice versa)"
-msgstr "(ﺲﮑﻋﺮﺑ ﮯﮐ ﺱﺍ ﺭﻭﺍ ،ﮟﯿﮨ ﯽﺗﺎﺟ ﻮﮨ ﺖﺒﺜﻣ ﮟﯾﺭﺪﻗ ﯽﻔﻨﻣ ﯽﻨﻌﯾ) ﮟﯿﺋﺎﭩﻠﭘ ﮟﯾﺭﺪﻗ ﯽﮐ ﮞﻮﻤﯾﺮﻓ ﯼﺪﯿﻠﮐ ﺐﺨﺘﻨﻣ"
-
-
 msgid "By Times Over First Selected Marker"
 msgstr "ﮯﺳ ﺏﺎﺴﺣ ﮯﮐ ﺮﮐﺭﺎﻣ ﺐﺨﺘﻨﻣ ﭧﺳﺮﻓ ﺭﻭﻭﺍ ﺰﻤﺋﺎﭨ"
 
 
 msgid "Flip times of selected keyframes using the first selected marker as the reference point"
 msgstr "ﮟﯿﺋﺎﭩﻠﭘ ﺕﺎﻗﻭﺍ ﮯﮐ ﺰﻤﯾﺮﻓ ﯽﮐ ﺐﺨﺘﻨﻣ ﮯﺋﻮﮨ ﮯﺗﺮﮐ ﻝﺎﻤﻌﺘﺳﺍ ﮧﻄﻘﻧ ﮧﻟﺍﻮﺣ ﺭﻮﻄﺑ ﻮﮐ ﺮﮐﺭﺎﻣ ﮦﺩﺮﮐ ﺐﺨﺘﻨﻣ ﮯﻠﮩﭘ"
+
+
+msgid "By Values Over Zero Value"
+msgstr "ﮯﺳ ﺏﺎﺴﺣ ﮯﮐ ﮞﻭﺭﺪﻗ ﮦﺩﺎﯾﺯ ﮯﺳ ﻮﯿﻠﯾﻭ ﻭﺮﯾﺯ"
+
+
+msgid "Flip values of selected keyframes (i.e. negative values become positive, and vice versa)"
+msgstr "(ﺲﮑﻋﺮﺑ ﮯﮐ ﺱﺍ ﺭﻭﺍ ،ﮟﯿﮨ ﯽﺗﺎﺟ ﻮﮨ ﺖﺒﺜﻣ ﮟﯾﺭﺪﻗ ﯽﻔﻨﻣ ﯽﻨﻌﯾ) ﮟﯿﺋﺎﭩﻠﭘ ﮟﯾﺭﺪﻗ ﯽﮐ ﮞﻮﻤﯾﺮﻓ ﯼﺪﯿﻠﮐ ﺐﺨﺘﻨﻣ"
 
 
 msgctxt "Operator"
@@ -51868,6 +51851,11 @@ msgstr "Y Max"
 
 msgid "Y Min"
 msgstr "Y ﭧﻨﻣ"
+
+
+msgctxt "Operator"
+msgid "Select by Type"
+msgstr "ﮟﯾﺮﮐ ﺐﺨﺘﻨﻣ ﮯﺳ ﻅﺎﺤﻟ ﮯﮐ ﻢﺴﻗ"
 
 
 msgctxt "Operator"
@@ -59528,20 +59516,20 @@ msgid "Defines which keys to use as slope and how much to blend towards them"
 msgstr "ﮯﮨ ﺎﻧﻼ﻿ﻣ ﺎﻨﺘﮐ ﻑﺮﻃ ﯽﮐ ﻥﺍ ﺭﻭﺍ ﮯﮨ ﺎﻧﺮﮐ ﻝﺎﻤﻌﺘﺳﺍ ﺮﭘ ﺭﻮﻃ ﮯﮐ ﻥﺍﻮﻠﮬﮈ ﻮﮐ ﺰﯿﻨﮐ ﻦﮐ ﮧﮐ ﮯﮨ ﺎﺗﺮﮐ ﺖﺣﺎﺿﻭ ﯽﮐ ﺕﺎﺑ ﺱﺍ"
 
 
-msgid "By Values Over Cursor Value"
-msgstr "ﮯﺳ ﺏﺎﺴﺣ ﮯﮐ ﮞﻭﺭﺪﻗ ﮦﺩﺎﯾﺯ ﮯﺳ ﺭﺪﻗ ﯽﮐ ﺮﺳﺮﮐ"
-
-
-msgid "Flip values of selected keyframes using the cursor value (Y/Horizontal component) as the mirror line"
-msgstr "ﮟﯿﺋﺎﭩﻠﭘ ﻮﮐ ﺭﺍﺪﻗﺍ ﯽﮐ ﮞﻮﻤﯾﺮﻓ ﯽﮐ ﺐﺨﺘﻨﻣ ﮯﺋﻮﮨ ﮯﺗﺮﮐ ﻝﺎﻤﻌﺘﺳﺍ ﺮﭘ ﺭﻮﻃ ﮯﮐ ﺮﯿﮑﻟ ﯽﮐ ﮯﻨﯿﺋﺁ ﻮﮐ (ﻭﺰﺟ ﯽﻘﻓﺍ/Y) ﻮﯿﻠﯾﻭ ﺮﺳﺮﮐ"
-
-
 msgid "By Times Over Zero Time"
 msgstr "ﻢﺋﺎﭨ ﻭﺮﯾﺯ ﺭﻭﻭﺍ ﺰﻤﺋﺎﭨ ﮧﻌﯾﺭﺬﺑ"
 
 
 msgid "Flip times of selected keyframes, effectively reversing the order they appear in"
 msgstr "ﮟﯿﮨ ﮯﺗﻮﮨ ﺮﮨﺎﻇ ﮦﻭ ﮟﯿﻣ ﺲﺟ ﮟﯾﺮﮐ ﻞﯾﺪﺒﺗ ﻮﮐ ﺐﯿﺗﺮﺗ ﺱﺍ ﮯﺳ ﮯﻘﯾﺮﻃ ﺮﺛﺆﻣ ،ﮟﯿﺋﺎﭩﻠﭘ ﻮﮐ ﺕﺎﻗﻭﺍ ﮯﮐ ﮞﻮﻤﯾﺮﻓ ﯼﺪﯿﻠﮐ ﮦﺩﺮﮐ ﺐﺨﺘﻨﻣ"
+
+
+msgid "By Values Over Cursor Value"
+msgstr "ﮯﺳ ﺏﺎﺴﺣ ﮯﮐ ﮞﻭﺭﺪﻗ ﮦﺩﺎﯾﺯ ﮯﺳ ﺭﺪﻗ ﯽﮐ ﺮﺳﺮﮐ"
+
+
+msgid "Flip values of selected keyframes using the cursor value (Y/Horizontal component) as the mirror line"
+msgstr "ﮟﯿﺋﺎﭩﻠﭘ ﻮﮐ ﺭﺍﺪﻗﺍ ﯽﮐ ﮞﻮﻤﯾﺮﻓ ﯽﮐ ﺐﺨﺘﻨﻣ ﮯﺋﻮﮨ ﮯﺗﺮﮐ ﻝﺎﻤﻌﺘﺳﺍ ﺮﭘ ﺭﻮﻃ ﮯﮐ ﺮﯿﮑﻟ ﯽﮐ ﮯﻨﯿﺋﺁ ﻮﮐ (ﻭﺰﺟ ﯽﻘﻓﺍ/Y) ﻮﯿﻠﯾﻭ ﺮﺳﺮﮐ"
 
 
 msgid "Paste keys with a value offset"
@@ -69369,11 +69357,6 @@ msgid "Change selection of all visible objects in scene"
 msgstr "ﮟﯾﺮﮐ ﻞﯾﺪﺒﺗ ﺏﺎﺨﺘﻧﺍ ﺎﮐ ءﺎﯿﺷﺍ ﻡﺎﻤﺗ ﯽﻟﺍﻭ ﮯﻧﺁ ﺮﻈﻧ ﮟﯿﻣ ﺮﻈﻨﻣ"
 
 
-msgctxt "Operator"
-msgid "Select by Type"
-msgstr "ﮟﯾﺮﮐ ﺐﺨﺘﻨﻣ ﮯﺳ ﻅﺎﺤﻟ ﮯﮐ ﻢﺴﻗ"
-
-
 msgid "Select all visible objects that are of a type"
 msgstr "ﮟﯿﮨ ﯽﮐ ﻢﺴﻗ ﮏﯾﺍ ﻮﺟ ﮟﯾﺮﮐ ﺐﺨﺘﻨﻣ ﻮﮐ ءﺎﯿﺷﺍ ﯽﻟﺍﻭ ﮯﻧﺁ ﺮﻈﻧ ﻡﺎﻤﺗ"
 
@@ -74238,11 +74221,6 @@ msgid "Snapping"
 msgstr "ﮓﻨﭙﯿﻨﺳ"
 
 
-msgctxt "Operator"
-msgid "Area Options"
-msgstr "ﺕﺍﺭﺎﯿﺘﺧﺍ ﮯﮐ ﺎﯾﺮﯾﺍ"
-
-
 msgid "Operations for splitting and merging"
 msgstr "ﺰﻨﺸﯾﺮﭘﺁ ﮯﯿﻟ ﮯﮐ ﻡﺎﻤﻀﻧﺍ ﺭﻭﺍ ﻢﯿﺴﻘﺗ"
 
@@ -78534,14 +78512,6 @@ msgid "Copy Mirrored UV Coords"
 msgstr "ﮟﯾﺮﮐ ﯽﭘﺎﮐ ﻮﮐﺯﮈﺭﺍﻮﮑﯾﻭ ﻮﯾﮯﻟﺍﻭ ﺲﮑﻋ"
 
 
-msgid "Copy mirror UV coordinates on the X axis based on a mirrored mesh"
-msgstr "ﮟﯾﺮﮐ ﯽﭘﺎﮐ ﻮﮐ ﻁﺎﻘﻨﯾﻭ ﻮﯾﮯﮐ ﮯﻨﯿﺋﺁ ﺮﭘ ﺭﻮﺤﻣ X ﺮﭘ ﺩﺎﯿﻨﺑ ﯽﮐ ﻝﺎﺟ ﮯﻟﺍﻭ ﺲﮑﻋ"
-
-
-msgid "Axis Direction"
-msgstr "ﺖﻤﺳ ﯽﮐ ﺭﻮﺤﻣ"
-
-
 msgid "Tolerance for finding vertex duplicates"
 msgstr "ﯼﺭﺍﺩﺍﻭﺭ ﮯﯿﻟ ﮯﮐ ﮯﻧﺮﮐ ﺵﻼ﻿ﺗ ﺲﭩﯿﮑﯿﻠﭘﮈ ﺲﮑﯿﭨﺭﻭ"
 
@@ -79096,26 +79066,12 @@ msgid "Reveal all hidden UV vertices"
 msgstr "ﮟﯾﺮﮐ ﺮﮨﺎﻇ ﻮﮐ ﯼﺩﻮﻤﻌﯾﻭ ﻮﯿﮨﺪﯿﺷﻮﭘ ﻡﺎﻤﺗ"
 
 
-msgctxt "Operator"
-msgid "UV Rip"
-msgstr "ﭖﺭ  ﯼﻭﻮﯾ"
-
-
 msgid "Rip selected vertices or a selected region"
 msgstr "ﮟﯾﺩ ﺮﯿﭼ ﻮﮐ ﮧﻄﺧ ﺐﺨﺘﻨﻣ ﺎﯾ ﯼﺩﻮﻤﻋ ﺐﺨﺘﻨﻣ"
 
 
-msgctxt "Operator"
-msgid "UV Rip Move"
-msgstr "ﻭﻮﻣ ﭖﺭ ﯼﻭﻮﯾ"
-
-
 msgid "Unstitch UVs and move the result"
 msgstr "ﮟﯾﺮﮐ ﻞﻘﺘﻨﻣ ﻮﮐ ﮧﺠﯿﺘﻧ ﺭﻭﺍ ﮟﯾﺩ ﺎﭩﮨ ﻮﮐ s ﯼﻭﻮﯾ"
-
-
-msgid "UV Rip"
-msgstr "ﭖﺭ  ﯼﻭﻮﯾ"
 
 
 msgctxt "Operator"
@@ -83476,12 +83432,84 @@ msgid "Panel containing UI elements"
 msgstr "UI ﻞﻨﯿﭘ ﻞﻤﺘﺸﻣ ﺮﭘ ﺮﺻﺎﻨﻋ"
 
 
+msgid "Mesh Edit Mode"
+msgstr "ﮈﻮﻣ ﭧﯾﮉﯾﺍ ﺶﯿﻣ"
+
+
+msgid "Measurement"
+msgstr "ﺶﺋﺎﻤﯿﭘ"
+
+
+msgid "Curve Edit Mode"
+msgstr "ﮈﻮﻣ ﺎﮐ ﺮﺋﺎﻔﯾﮈﻮﻣ ﮟﯿﻣ ﻢﺧ"
+
+
+msgid "Transform Orientations"
+msgstr "ﮟﯾﺮﮐ ﻞﯾﺪﺒﺗ ﻮﮐ ﺖﯿﻔﻗﺍﻭ"
+
+
+msgid "Stroke Placement"
+msgstr "ﭧﻨﻤﺴﯿﻠﭘ ﮎﻭﺮﭩﺳﺍ"
+
+
+msgid "Drawing Plane"
+msgstr "ﻦﯿﻠﭘ ﮓﻨﺋﺍﺭﮈ"
+
+
+msgid "Guides"
+msgstr "ﺯﮉﯿﺋﺎﮔ"
+
+
+msgid "Quad View"
+msgstr "ﻮﯾﻭﺍﮍﮐﻮﭼ"
+
+
+msgid "Onion Skin"
+msgstr "ﺪﻠﺟ ﯽﮐ ﺯﺎﯿﭘ"
+
+
+msgid "Stereoscopy"
+msgstr "ﯽﭘﻮﮑﺳﻮﯾﺮﯿﭩﺳ"
+
+
+msgid "Multi Frame"
+msgstr "ﻢﯾﺮﻓ ﯽﭩﻠﻣ"
+
+
+msgid "Auto-Masking"
+msgstr "ﮓﻨﮑﺳﺎﻣ ﻮﭨﺁ"
+
+
 msgid "glTF Material Variants"
 msgstr "glTF ﮟﯿﺘﻟﺎﺣ ﻒﻠﺘﺨﻣ ﯽﮐ ﺩﺍﻮﻣ"
 
 
+msgid "Curves Sculpt Add Curve Options"
+msgstr "ﮟﯾﺮﮐ ﻞﻣﺎﺷ ﺕﺍﺭﺎﯿﺘﺧﺍ ﻢﺴﺠﻣ ﮯﮐ ﻢﺴﺠﻣ ﮟﯿﻤﺧ"
+
+
+msgid "Curves Sculpt Parameter Falloff"
+msgstr "ﻑﺁ ﻝﺎﻓ ﺮﭩﯿﻣﺍﺮﯿﭘ ﻢﺴﺠﻣ  ﮟﯿﻤﺧ"
+
+
+msgid "Curves Grow/Shrink Scaling"
+msgstr "ﺎﻧﮍﮑﺳ/ﺎﻨﮬﮍﺑ  ﮟﯿﻤﺧ"
+
+
+msgid "Viewport Debug"
+msgstr "ﮓﺒﯾﮈ ﭦﺭﻮﭘ ﻮﯾﻭ"
+
+
 msgid "glTF Animations"
 msgstr "glTF ﺮﯾﻭﺎﺼﺗ ﮎﺮﺤﺘﻣ"
+
+
+msgid "VR"
+msgstr "ﺭﺁ ﯼﻭ"
+
+
+msgid "VR Info"
+msgstr "VR ﺕﺎﻣﻮﻠﻌﻣ"
 
 
 msgid "Active Tool"
@@ -83520,84 +83548,12 @@ msgid "Overlays"
 msgstr "ﺰﯿﻟﺭﻭﻭﺍ"
 
 
-msgid "Guides"
-msgstr "ﺯﮉﯿﺋﺎﮔ"
-
-
 msgid "Viewer Node"
 msgstr "ﮈﻮﻧ ﺮﻇﺎﻧ"
 
 
 msgid "Motion Tracking"
 msgstr "ﮓﻨﮑﯾﺮﭨ ﺖﮐﺮﺣ"
-
-
-msgid "Mesh Edit Mode"
-msgstr "ﮈﻮﻣ ﭧﯾﮉﯾﺍ ﺶﯿﻣ"
-
-
-msgid "Measurement"
-msgstr "ﺶﺋﺎﻤﯿﭘ"
-
-
-msgid "Curve Edit Mode"
-msgstr "ﮈﻮﻣ ﺎﮐ ﺮﺋﺎﻔﯾﮈﻮﻣ ﮟﯿﻣ ﻢﺧ"
-
-
-msgid "Transform Orientations"
-msgstr "ﮟﯾﺮﮐ ﻞﯾﺪﺒﺗ ﻮﮐ ﺖﯿﻔﻗﺍﻭ"
-
-
-msgid "Stroke Placement"
-msgstr "ﭧﻨﻤﺴﯿﻠﭘ ﮎﻭﺮﭩﺳﺍ"
-
-
-msgid "Drawing Plane"
-msgstr "ﻦﯿﻠﭘ ﮓﻨﺋﺍﺭﮈ"
-
-
-msgid "Quad View"
-msgstr "ﻮﯾﻭﺍﮍﮐﻮﭼ"
-
-
-msgid "Onion Skin"
-msgstr "ﺪﻠﺟ ﯽﮐ ﺯﺎﯿﭘ"
-
-
-msgid "Stereoscopy"
-msgstr "ﯽﭘﻮﮑﺳﻮﯾﺮﯿﭩﺳ"
-
-
-msgid "Multi Frame"
-msgstr "ﻢﯾﺮﻓ ﯽﭩﻠﻣ"
-
-
-msgid "Auto-Masking"
-msgstr "ﮓﻨﮑﺳﺎﻣ ﻮﭨﺁ"
-
-
-msgid "Curves Sculpt Add Curve Options"
-msgstr "ﮟﯾﺮﮐ ﻞﻣﺎﺷ ﺕﺍﺭﺎﯿﺘﺧﺍ ﻢﺴﺠﻣ ﮯﮐ ﻢﺴﺠﻣ ﮟﯿﻤﺧ"
-
-
-msgid "Curves Sculpt Parameter Falloff"
-msgstr "ﻑﺁ ﻝﺎﻓ ﺮﭩﯿﻣﺍﺮﯿﭘ ﻢﺴﺠﻣ  ﮟﯿﻤﺧ"
-
-
-msgid "Curves Grow/Shrink Scaling"
-msgstr "ﺎﻧﮍﮑﺳ/ﺎﻨﮬﮍﺑ  ﮟﯿﻤﺧ"
-
-
-msgid "Viewport Debug"
-msgstr "ﮓﺒﯾﮈ ﭦﺭﻮﭘ ﻮﯾﻭ"
-
-
-msgid "VR"
-msgstr "ﺭﺁ ﯼﻭ"
-
-
-msgid "VR Info"
-msgstr "VR ﺕﺎﻣﻮﻠﻌﻣ"
 
 
 msgid "Chain Scaling"
@@ -87900,34 +87856,6 @@ msgstr "ﮟﯾﺮﮐ ﻝﺎﻤﻌﺘﺳﺍ ﺎﮐ ﺪﯾﺪﺴﭘ ﻦﮑﻟﻭ"
 
 msgid "Device"
 msgstr "ﺲﺋﺍﻮﯾﮈ"
-
-
-msgid "Image Display Method"
-msgstr "ﮧﻘﯾﺮﻃ ﺎﮐ ﮯﻧﺎﮭﮐﺩ ﯼﺮﯾﻮﺼﺗ"
-
-
-msgid "Method used for displaying images on the screen"
-msgstr "ﮧﻘﯾﺮﻃ ﻻ﻿ﺍﻭ ﮯﻧﻮﮨ ﻝﺎﻤﻌﺘﺳﺍ ﮯﯿﻟ ﮯﮐ ﮯﻧﺎﮭﮐﺩ ﺮﯾﻭﺎﺼﺗ ﺮﭘ ﻦﯾﺮﮑﺳﺍ"
-
-
-msgid "Automatically choose method based on GPU and image"
-msgstr "GPU ﮟﯾﺮﮐ ﺐﺨﺘﻨﻣ ﮧﻘﯾﺮﻃ ﮯﺳ ﮯﻘﯾﺮﻃ ﺭﺎﮐﺩﻮﺧ ﺮﭘ ﺩﺎﯿﻨﺑ ﯽﮐ ﺮﯾﻮﺼﺗ ﺭﻭﺍ"
-
-
-msgid "2D Texture"
-msgstr "2D ﭦﻭﺎﻨﺑ"
-
-
-msgid "Use CPU for display transform and display image with 2D texture"
-msgstr "ﮟﯾﺮﮐ ﮯﻧﺎﮭﮐﺩ ﺞﯿﻣﺍ ﮫﺗﺎﺳ ﮯﮐ  ﺖﺧﺎﺳ 2D ﺭﻭﺍ ﮟﯾﺮﮐ ﻝﺎﻤﻌﺘﺳﺍ CPU ﮯﯿﻟ ﮯﮐ ﻡﺭﺎﻔﺴﻧﺍﺮﭨ ﮯﻠﭙﺳﮈ"
-
-
-msgid "GLSL"
-msgstr "ﻞﯾﺍ ﺲﯾﺍ ﻞﯾﺍ ﯽﺟ"
-
-
-msgid "Use GLSL shaders for display transform and display image with 2D texture"
-msgstr "ﮟﯾﺮﮐ ﮯﻧﺎﮭﮐﺩ ﺞﯿﻣﺍ ﮫﺗﺎﺳ ﮯﮐ  ﺖﺧﺎﺳ 2D ﺭﻭﺍ ﮟﯾﺮﮐ ﻝﺎﻤﻌﺘﺳﺍ ﺎﮐ ﺯﺭﮉﯿﺷ GLSL ﮯﯿﻟ ﮯﮐ ﻡﺭﺎﻔﺴﻧﺍﺮﭨ ﮯﻠﭙﺳﮈ"
 
 
 msgid "Is Microsoft Store Install"
@@ -93618,18 +93546,6 @@ msgstr "ﺭﺎﻤﺷ ﻡﺪﻗ"
 
 msgid "Amount of screen sample per GI ray"
 msgstr "ﺭﺍﺪﻘﻣ ﯽﮐ ﮯﻧﻮﻤﻧ ﮯﮐ ﻦﯾﺮﮑﺳﺍ ﮮﺭ GI ﯽﻓ"
-
-
-msgid "Far Thickness"
-msgstr "Far ﯽﺋﺎﭨﻮﻣ"
-
-
-msgid "Angular thickness of the surfaces when computing fast GI and ambient occlusion. Reduces energy loss and missing occlusion of far geometry."
-msgstr "ﮯﮨ ﺎﺗﺮﮐ ﻢﮐ ﻮﮐ ﮯﻧﻮﮨ ﺐﺋﺎﻏ ﮯﮐ ﯼﺮﭩﯿﻣﻮﯿﺟ ﺭﻭﺩ ﺭﻭﺍ ﻥﺎﺼﻘﻧ ﮯﮐ ﯽﺋﺎﻧﺍﻮﺗ ﯽﺋﺎﭨﻮﻣ ﯽﯿﻧﻮﮐ ﯽﮐ ﮞﻮﺤﻄﺳ ﺖﻗﻭ ﮯﺗﺮﮐ ﯽﺘﻨﮔ ﯽﮐ ﭦﻭﺎﮐﺭ ﯽﻄﯿﺤﻣ ﺭﻭﺍ GI ﺭﺎﺘﻓﺭ ﺰﯿﺗ"
-
-
-msgid "Near Thickness"
-msgstr "ﯽﺋﺎﭨﻮﻣ ﺐﯾﺮﻗ"
 
 
 msgid "Geometric thickness of the surfaces when computing fast GI and ambient occlusion. Reduces light leaking and missing contact occlusion."
@@ -107807,10 +107723,6 @@ msgid "Distribution Type"
 msgstr "ﻢﺴﻗ ﯽﮐ ﻢﯿﺴﻘﺗ"
 
 
-msgid "Multiplier"
-msgstr "ﺏﺭﺎﺿ"
-
-
 msgid "Dicing Rate Render"
 msgstr "ﺭﮉﻨﯾﺭ ﭧﯾﺭ ﮓﻨﺴﺋﺍﮈ"
 
@@ -107923,6 +107835,10 @@ msgid "Use GPU"
 msgstr "GPU ﮟﯾﺮﮐ ﻝﺎﻤﻌﺘﺳﺍ"
 
 
+msgid "Multiplier"
+msgstr "ﺏﺭﺎﺿ"
+
+
 msgid "Curve Subdivisions"
 msgstr "ﻢﯿﺴﻘﺗ ﯽﻠﯾﺫ  ﻢﺧ"
 
@@ -108012,11 +107928,6 @@ msgstr "ﮯﮨ ﮟﯿﮩﻧ ﻞﻣﺎﺷ ﺩﺍﺪﻌﺗ ﯽﮐ ﮞﻮﻤﯾﺮ�
 
 msgid "Invalid target %r (must be 'ARMATURE' or 'OBJECT')"
 msgstr "(ﮯﯿﮨﺎﭼ ﺎﻧﻮﮨ 'OBJECT' ﺎﯾ ' ﺮﭽﯿﻣﺭﺁ ') r% ﻑﺪﮨ ﻂﻠﻏ"
-
-
-msgctxt "Operator"
-msgid "Scalable Vector Graphics (.svg)"
-msgstr "(svg.) ﺲﮑﻓﺍﺮﮔ ﺮﭩﮑﯾﻭ ﺮﯾﺬﭘ ﻊﯿﺳﻮﺗ"
 
 
 msgid "Unable to parse XML, %s:%s for file %r"
@@ -111184,10 +111095,6 @@ msgid "Cavity (inverted)"
 msgstr "(ﯽﭩﻟﺍ) ﺎﮩﮔ"
 
 
-msgid "Sculpt Curves"
-msgstr "Sculpt curves"
-
-
 msgid "Sample Bias"
 msgstr "ﺐﺼﻌﺗ ﮧﻧﻮﻤﻧ"
 
@@ -111965,10 +111872,6 @@ msgid "Rays"
 msgstr "ﮟﯿﻧﺮﮐ"
 
 
-msgid "Thickness Near"
-msgstr "ﺐﯾﺮﻗ ﯽﺋﺎﭨﻮﻣ"
-
-
 msgid "Tracing"
 msgstr "ﮓﻨﺴﯾﺮﭨ"
 
@@ -112581,6 +112484,11 @@ msgstr "ﭗﯿﻨﺳ"
 
 
 msgctxt "Operator"
+msgid "Jump to Selected"
+msgstr "ﮟﯿﺋﺎﺟ ﺮﭘ ﺐﺨﺘﻨﻣ"
+
+
+msgctxt "Operator"
 msgid "Keyframe Type"
 msgstr "ﻢﺴﻗ ﯽﮐ ﻢﯾﺮﻓ ﯽﮐ"
 
@@ -112921,11 +112829,6 @@ msgstr "(ﺖﺛﺍﺭﻭ) ﺭﺍﻮﻤﮨ"
 
 
 msgctxt "Operator"
-msgid "Jump to Selected"
-msgstr "ﮟﯿﺋﺎﺟ ﺮﭘ ﺐﺨﺘﻨﻣ"
-
-
-msgctxt "Operator"
 msgid "Easing Type"
 msgstr "ﻢﺴﻗ ﯽﮐ ﯽﻣﺮﻧ"
 
@@ -112967,11 +112870,6 @@ msgstr "(ﺕﺯﺎﺟﺍ ﯽﮐ ﯽﻠﯾﺪﺒﺗ) ﮟﯾﺮﮐ ﻢﺘﺧ"
 msgctxt "Operator"
 msgid "Zoom Region..."
 msgstr "...ﻦﺠﯾﺭ ﻡﻭﺯ"
-
-
-msgctxt "Operator"
-msgid "Select Pinned"
-msgstr "ﺍﻮﮨ ﺎﮕﻟ ﻦﭘ ﮟﯾﺮﮐ ﺐﺨﺘﻨﻣ"
 
 
 msgctxt "Operator"
@@ -113469,11 +113367,6 @@ msgid "Backdrop Zoom Out"
 msgstr "ﭦﺅﺁ ﻡﻭﺯ ﭖﺍﺭﮈ ﮏﯿﺑ"
 
 
-msgctxt "Operator"
-msgid "Exit Group"
-msgstr "ﮟﯿﻠﮑﻧ ﺮﮨﺎﺑ ﮯﺳ ﮦﻭﺮﮔ"
-
-
 msgid "Slot {:d}"
 msgstr "{d:} ﭦﻼ﻿ﺳ"
 
@@ -113481,6 +113374,11 @@ msgstr "{d:} ﭦﻼ﻿ﺳ"
 msgctxt "Operator"
 msgid "Clear Viewer"
 msgstr "ﺮﻇﺎﻧ ﻑﺎﺻ"
+
+
+msgctxt "Operator"
+msgid "Exit Group"
+msgstr "ﮟﯿﻠﮑﻧ ﺮﮨﺎﺑ ﮯﺳ ﮦﻭﺮﮔ"
 
 
 msgid "Types"
@@ -119672,10 +119570,6 @@ msgid "Non-Keyboard Shortcut"
 msgstr "ﭧﮐ ﭦﺭﺎﺷ ﮈﺭﻮﺑ ﯽﮐ ﺮﯿﻏ"
 
 
-msgid "Pin"
-msgstr "ﻦﭘ"
-
-
 msgid "Shift Left Mouse"
 msgstr "ﮟﯾﺮﮐ ﭧﻔﺷ ﻮﮐ ﺱﺅﺎﻣ ﮟﯿﺋﺎﺑ"
 
@@ -120386,10 +120280,6 @@ msgstr "ﮟﯾﺮﮐ ﺯﺅﺍﺮﺑ ﻮﮐ ﮞﻮﻠﺋﺎﻓ ﮯﺸﯿﮐ ﮯ�
 
 msgid "Browse Workspace to be linked"
 msgstr "ﮟﯾﺮﮐ ﺯﺅﺍﺮﺑ ﻮﮐ ﺲﯿﭙﺳﺍ ﮎﺭﻭ ﮯﯿﻟ ﮯﮐ ﮯﻧﻮﮨ ﮏﻨﻟ"
-
-
-msgid "Browse LightProbe to be linked"
-msgstr "ﮟﯾﺮﮐ ﺯﺅﺍﺮﺑ ﻮﮐ ﺏﻭﺮﭘ ﭧﺋﻻ﻿ ﮯﯿﻟ ﮯﮐ ﮯﻧﻮﮨ ﮏﻨﻟ"
 
 
 msgid "Browse Curves Data to be linked"
@@ -123293,14 +123183,6 @@ msgstr "ﺎﯿﮔ ﺎﯿﮐ ﮟﯿﮩﻧ ﻮﮔﻻ﻿ ﮯﯿﻟ ﮯﮐ ﮏﺳﺎ
 
 msgid "Cannot activate a file selector dialog, one already open"
 msgstr "ﮯﮨ ﺍﻮﮨ ﻼ﻿ﮭﮐ ﮯﺳ ﮯﻠﮩﭘ ﮏﯾﺍ ،ﺎﺘﮑﺳ ﺎﺟ ﺎﯿﮐ ﮟﯿﮩﻧ ﻮﻟﺎﭼ ﻮﮐ ﮒﻼ﻿ﯿﺋﺍﮈ ﺮﭩﮑﯿﻠﺳ ﻞﺋﺎﻓ"
-
-
-msgid "Property is not editable"
-msgstr "ﮯﮨ ﮟﯿﮩﻧ ﻦﯾﻭﺪﺗ ﻞﺑﺎﻗ ﯽﭨﺮﭘﺍﺮﭘ"
-
-
-msgid "Property is not editable: %s"
-msgstr "‬%s‪ :ﮯﮨ ﮟﯿﮩﻧ ﻦﯾﻭﺪﺗ ﻞﺑﺎﻗ ﯽﭨﺮﭘﺍﺮﭘ"
 
 
 msgid "Texture Field"
@@ -126239,10 +126121,6 @@ msgid "Skipped %d of %d island(s), geometry was too complicated to detect a matc
 msgstr "‪%d‬ ﮯﺳ ﮟﯿﻣ ﮞﻭﺮﯾﺰﺟ ‪%d‬ ﯽﮭﺗ ﮦﺪﯿﭽﯿﭘ ﺖﮩﺑ ﮯﯿﻟ ﮯﮐ ﮯﻧﺎﮕﻟ ﮧﺘﭘ ﺎﮐ ﭻﯿﻣ ﯼﺮﭩﯿﻣﻮﯿﺟ ،ﺎﯿﮔ ﺎﯾﺩ ﮌﻮﮭﭼ ﻮﮐ"
 
 
-msgid "Rip failed"
-msgstr "ﯽﺌﮔﻮﮨ ﻡﺎﮐﺎﻧ ﺮﯿﭼ"
-
-
 msgid "Pinned vertices can be selected in Vertex Mode only"
 msgstr "ﮯﮨ ﺎﺘﮑﺳ ﺎﺟ ﺎﯿﮐ ﺐﺨﺘﻨﻣ ﮟﯿﻣ ﮈﻮﻣ ﮯﻧﻮﮐ ﻑﺮﺻ ﻮﮐ ﮞﻮﯿﭨﻮﭼ ﯽﺋﻮﮨ ﯽﮐ ﻦﭘ"
 
@@ -129122,10 +129000,6 @@ msgid "Cr"
 msgstr "ﮌﻭﺮﮐ"
 
 
-msgid "Disabled, built without OpenColorIO"
-msgstr "ﺎﯿﮔ ﺎﯾﺎﻨﺑ ﺮﯿﻐﺑ ﮯﮐ OpenColorIO ،ﻝﺎﻌﻓ ﺮﯿﻏ"
-
-
 msgid "Upper Left"
 msgstr "ﮟﯿﺋﺎﺑ ﯼﺮﭘﻭﺍ"
 
@@ -131710,10 +131584,6 @@ msgid "Index of Refraction (IOR) used for rays that enter the subsurface compone
 msgstr "ﮟﯿﮨ ﯽﺗﻮﮨ ﻞﺧﺍﺩ ﮟﯿﻣ ﻭﺰﺟ ﻦﯿﻣﺯ ﺮﯾﺯ ﻮﺟ ﮯﮨ ﺎﺗﻮﮨ ﻝﺎﻤﻌﺘﺳﺍ ﮯﯿﻟ ﮯﮐ ﮞﻮﻋﺎﻌﺷ ﻥﺍ (IOR) ﻦﺸﮑﯾﺮﻔﯾﺭ ﻑﺁ ﺲﮑﯾﮉﻧﺍ"
 
 
-msgid "Directionality of volume scattering within the subsurface medium. Zero scatters uniformly in all directions, with higher values scattering more strongly forward. For example, skin has been measured to have an anisotropy of 0.8"
-msgstr "ﮯﮨ ﯽﺌﮔ ﯽﮐ ﮯﯿﻟ ﮯﮐ ﯽﭘﻭﺮﭨﻮﺴﯿﻧﺍ ﯽﮐ 0.8 ﺶﺋﺎﻤﯿﭘ ﯽﮐ ﺪﻠﺟ ،ﺮﭘ ﺭﻮﻃ ﮯﮐ ﻝﺎﺜﻣ ﮯﮨ ﯽﺗﺮﮭﮑﺑ ﮯﮔﺁ ﮯﺳ ﯽﻃﻮﺒﻀﻣ ﮦﺩﺎﯾﺯ ﮫﺗﺎﺳ ﮯﮐ ﺭﺍﺪﻗﺍ ﯽﻠﻋﺍ ،ﮯﮨ ﺎﺗﺮﮭﮑﺑ ﺮﭘ ﺭﻮﻃ ﮞﺎﺴﮑﯾ ﮟﯿﻣ ﮞﻮﺘﻤﺳ ﻡﺎﻤﺗ ﺮﻔﺻ ﺖﯿﺘﻤﺳ ﯽﮐ ﮯﻧﺮﮭﮑﺑ ﮯﮐ ﻢﺠﺣ ﺭﺪﻧﺍ ﮯﮐ ﮯﺟﺭﺩ ﮯﻧﺎﯿﻣﺭﺩ ﮯﮐ ﺢﻄﺳ ﯽﻠﯾﺫ"
-
-
 msgid "Adjustment to the Index of Refraction (IOR) to increase or decrease specular intensity (0.5 means no adjustment, 0 removes all reflections, 1 doubles them at normal incidence)"
 msgstr "(ﮯﮨ ﺎﺗﺮﮐ ﺎﻨﮔﻭﺩ ﮟﯿﮩﻧﺍ ﺮﭘ ﺕﺎﻌﻗﺍﻭ ﻡﺎﻋ 1 ،ﮯﮨ ﺎﺗﺎﭩﮨ ﻮﮐ ﺱﺎﮑﻌﻧﺍ ﻡﺎﻤﺗ 0 ،ﮟﯿﮩﻧ ﭧﻨﻤﭩﺴﺟﮉﯾﺍ ﯽﺋﻮﮐ ﺐﻠﻄﻣ ﺎﮐ 0.5) ﭧﻨﻤﭩﺴﺟﮉﯾﺍ ﮟﯿﻣ (IOR) ﻦﺸﮑﯾﺮﻔﯾﺭ ﻑﺁ ﺲﮑﯾﮉﻧﺍ ﮯﯿﻟ ﮯﮐ ﮯﻧﺮﮐ ﻢﮐ ﺎﯾ ﮯﻧﺎﮬﮍﺑ ﻮﮐ ﺕﺪﺷ ﺮﻟﻮﮑﯿﭙﺳ"
 
@@ -132389,10 +132259,6 @@ msgstr "ﻼ﻿ﻣ ﮟﯿﮩﻧﻮﯾﻭ ﻝﺎﻌﻓ ﯽﺋﻮﮐ ﮟﯿﻣ %s�
 
 msgid "%s: no Combined pass found in the render layer '%s'"
 msgstr "‪%s‬: ﺕﺮﭘ ﺭﮉﻨﯾﺭ '‪%s‬' ﻼ﻿ﻣ ﮟﯿﮩﻧ ﺱﺎﭘ ﮧﮐﺮﺘﺸﻣ ﯽﺋﻮﮐ ﮟﯿﻣ"
-
-
-msgid "%s: failed to allocate clip buffer '%s'"
-msgstr "‪%s‬: ﺮﻔﺑ ﭗﻠﮐ '‪%s‬' ﻡﺎﮐﺎﻧ ﮟﯿﻣ ﮯﻧﺮﮐ ﺺﺘﺨﻣ"
 
 
 msgid "%s: incorrect dimensions for partial copy '%s'"

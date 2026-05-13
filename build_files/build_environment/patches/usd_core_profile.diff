@@ -1,5 +1,5 @@
 diff --git a/pxr/imaging/hdSt/indirectDrawBatch.cpp b/pxr/imaging/hdSt/indirectDrawBatch.cpp
-index 2b88b2f0f..0b036ffa2 100644
+index 4d1e181cf..57a85141e 100644
 --- a/pxr/imaging/hdSt/indirectDrawBatch.cpp
 +++ b/pxr/imaging/hdSt/indirectDrawBatch.cpp
 @@ -94,11 +94,17 @@ HdSt_IndirectDrawBatch::HdSt_IndirectDrawBatch(
@@ -36,7 +36,7 @@ index 2b88b2f0f..0b036ffa2 100644
      state.BindResourcesForDrawing(renderPassState, *capabilities);
  
      HdSt_GeometricShaderSharedPtr geometricShader = state.geometricShader;
-@@ -1438,6 +1452,15 @@ HdSt_IndirectDrawBatch::_ExecuteFrustumCull(
+@@ -1441,6 +1455,15 @@ HdSt_IndirectDrawBatch::_ExecuteFrustumCull(
              cullingProgram.GetGeometricShader());
  
      Hgi * hgi = resourceRegistry->GetHgi();
@@ -66,10 +66,10 @@ index 2b4c9dafb..aad43302a 100644
  
  
 diff --git a/pxr/imaging/hdSt/renderPassState.cpp b/pxr/imaging/hdSt/renderPassState.cpp
-index 76c44980d..730502a22 100644
+index 19f47b7c9..c9f1cc236 100644
 --- a/pxr/imaging/hdSt/renderPassState.cpp
 +++ b/pxr/imaging/hdSt/renderPassState.cpp
-@@ -776,7 +776,9 @@ HdStRenderPassState::Bind(HgiCapabilities const &hgiCapabilities)
+@@ -769,7 +769,9 @@ HdStRenderPassState::Bind(HgiCapabilities const &hgiCapabilities)
          // If not using GL_MULTISAMPLE, use GL_POINT_SMOOTH to render points as 
          // circles instead of square.
          // XXX Switch points rendering to emit quad with FS that draws circle.
@@ -78,9 +78,9 @@ index 76c44980d..730502a22 100644
 +            glEnable(GL_POINT_SMOOTH);
 +        }
      }
- }
  
-@@ -820,8 +822,10 @@ HdStRenderPassState::Unbind(HgiCapabilities const &hgiCapabilities)
+     // Default to seamless cubemap sampling.
+@@ -816,8 +818,10 @@ HdStRenderPassState::Unbind(HgiCapabilities const &hgiCapabilities)
      }
  
      glEnable(GL_MULTISAMPLE);
@@ -110,10 +110,10 @@ index b53197566..605e4d7ca 100644
      size_t GetMaxUniformBlockSize() const {
          return _maxUniformBlockSize;
 diff --git a/pxr/imaging/hgiGL/blitCmds.cpp b/pxr/imaging/hgiGL/blitCmds.cpp
-index 46b2aa0fd..38e5fd4b1 100644
+index ee1ce0bd0..cf6d1cd7c 100644
 --- a/pxr/imaging/hgiGL/blitCmds.cpp
 +++ b/pxr/imaging/hgiGL/blitCmds.cpp
-@@ -119,7 +119,7 @@ HgiGLBlitCmds::_Submit(Hgi* hgi, HgiSubmitWaitType wait)
+@@ -132,7 +132,7 @@ HgiGLBlitCmds::_Submit(Hgi* hgi, HgiSubmitWaitType wait)
      // Capture OpenGL state before executing the 'ops' and restore it when this
      // function ends. We do this defensively because parts of our pipeline may
      // not set and restore all relevant gl state.
@@ -180,11 +180,24 @@ index 2ba137e95..64821ad27 100644
  };
  
  PXR_NAMESPACE_CLOSE_SCOPE
+diff --git a/pxr/imaging/hgiGL/computeCmds.cpp b/pxr/imaging/hgiGL/computeCmds.cpp
+index 7aa3b40a3..00127f158 100644
+--- a/pxr/imaging/hgiGL/computeCmds.cpp
++++ b/pxr/imaging/hgiGL/computeCmds.cpp
+@@ -156,7 +156,7 @@ HgiGLComputeCmds::_Submit(Hgi* hgi, HgiSubmitWaitType wait)
+     // Capture OpenGL state before executing the 'ops' and restore it when this
+     // function ends. We do this defensively because parts of our pipeline may
+     // not set and restore all relevant gl state.
+-    HgiGL_ScopedStateHolder openglStateGuard;
++    HgiGL_ScopedStateHolder openglStateGuard(*hgi->GetCapabilities());
+ 
+     HgiGL* hgiGL = static_cast<HgiGL*>(hgi);
+     HgiGLDevice* device = hgiGL->GetPrimaryDevice();
 diff --git a/pxr/imaging/hgiGL/graphicsCmds.cpp b/pxr/imaging/hgiGL/graphicsCmds.cpp
-index c22f2d75e..f6b724bb5 100644
+index b651963c1..f9e0a233e 100644
 --- a/pxr/imaging/hgiGL/graphicsCmds.cpp
 +++ b/pxr/imaging/hgiGL/graphicsCmds.cpp
-@@ -232,7 +232,7 @@ HgiGLGraphicsCmds::_Submit(Hgi* hgi, HgiSubmitWaitType wait)
+@@ -244,7 +244,7 @@ HgiGLGraphicsCmds::_Submit(Hgi* hgi, HgiSubmitWaitType wait)
      // Capture OpenGL state before executing the 'ops' and restore it when this
      // function ends. We do this defensively because parts of our pipeline may
      // not set and restore all relevant gl state.
@@ -194,7 +207,7 @@ index c22f2d75e..f6b724bb5 100644
      // Resolve multisample textures
      HgiGL* hgiGL = static_cast<HgiGL*>(hgi);
 diff --git a/pxr/imaging/hgiGL/graphicsPipeline.cpp b/pxr/imaging/hgiGL/graphicsPipeline.cpp
-index 9704c6e11..34148d1fa 100644
+index 22aa90067..7ddde98fb 100644
 --- a/pxr/imaging/hgiGL/graphicsPipeline.cpp
 +++ b/pxr/imaging/hgiGL/graphicsPipeline.cpp
 @@ -25,7 +25,12 @@ HgiGLGraphicsPipeline::HgiGLGraphicsPipeline(
@@ -258,7 +271,7 @@ index 9704c6e11..34148d1fa 100644
      }
  
 diff --git a/pxr/imaging/hgiGL/scopedStateHolder.cpp b/pxr/imaging/hgiGL/scopedStateHolder.cpp
-index 28e31b12e..3a339dc3b 100644
+index ea02aada6..0e80aac3b 100644
 --- a/pxr/imaging/hgiGL/scopedStateHolder.cpp
 +++ b/pxr/imaging/hgiGL/scopedStateHolder.cpp
 @@ -9,6 +9,7 @@
@@ -282,7 +295,7 @@ index 28e31b12e..3a339dc3b 100644
      , _restoreVao(0)
      , _restoreDepthTest(false)
      , _restoreDepthWriteMask(false)
-@@ -101,7 +104,9 @@ HgiGL_ScopedStateHolder::HgiGL_ScopedStateHolder()
+@@ -102,7 +105,9 @@ HgiGL_ScopedStateHolder::HgiGL_ScopedStateHolder()
      glGetBooleanv(
          GL_SAMPLE_ALPHA_TO_ONE,
          (GLboolean*)&_restoreSampleAlphaToOne);
@@ -293,7 +306,7 @@ index 28e31b12e..3a339dc3b 100644
      glGetBooleanv(GL_CULL_FACE, (GLboolean*)&_cullFace);
      glGetIntegerv(GL_CULL_FACE_MODE, &_cullMode);
      glGetIntegerv(GL_FRONT_FACE, &_frontFace);
-@@ -125,8 +130,10 @@ HgiGL_ScopedStateHolder::HgiGL_ScopedStateHolder()
+@@ -126,8 +131,10 @@ HgiGL_ScopedStateHolder::HgiGL_ScopedStateHolder()
      }
  
      glGetBooleanv(GL_MULTISAMPLE, (GLboolean*)&_restoreMultiSample);
@@ -306,7 +319,7 @@ index 28e31b12e..3a339dc3b 100644
  
      glGetIntegerv(GL_UNPACK_ALIGNMENT, &_restoreUnpackAlignment);
      glGetIntegerv(GL_PACK_ALIGNMENT, &_restorePackAlignment);
-@@ -225,7 +232,9 @@ HgiGL_ScopedStateHolder::~HgiGL_ScopedStateHolder()
+@@ -230,7 +237,9 @@ HgiGL_ScopedStateHolder::~HgiGL_ScopedStateHolder()
                 _restoreViewport[2], _restoreViewport[3]);
      glBindVertexArray(_restoreVao);
      glBindRenderbuffer(GL_RENDERBUFFER, _restoreRenderBuffer);
@@ -317,7 +330,7 @@ index 28e31b12e..3a339dc3b 100644
      if (_cullFace) {
          glEnable(GL_CULL_FACE);
      } else {
-@@ -275,16 +284,17 @@ HgiGL_ScopedStateHolder::~HgiGL_ScopedStateHolder()
+@@ -280,16 +289,18 @@ HgiGL_ScopedStateHolder::~HgiGL_ScopedStateHolder()
          glDisable(GL_MULTISAMPLE);
      }
  
@@ -326,17 +339,17 @@ index 28e31b12e..3a339dc3b 100644
 -    } else {
 -        glDisable(GL_POINT_SMOOTH);
 -    }
--
--    if (_restorePointSprite) {
--        glEnable(GL_POINT_SPRITE);
--    } else {
--        glDisable(GL_POINT_SPRITE);
 +    if (!_coreProfile) {
 +        if (_restorePointSmooth) {
 +            glEnable(GL_POINT_SMOOTH);
 +        } else {
 +            glDisable(GL_POINT_SMOOTH);
 +        }
+ 
+-    if (_restorePointSprite) {
+-        glEnable(GL_POINT_SPRITE);
+-    } else {
+-        glDisable(GL_POINT_SPRITE);
 +        if (_restorePointSprite) {
 +            glEnable(GL_POINT_SPRITE);
 +        } else {
@@ -346,7 +359,7 @@ index 28e31b12e..3a339dc3b 100644
  
      glPixelStorei(GL_UNPACK_ALIGNMENT, _restoreUnpackAlignment);
 diff --git a/pxr/imaging/hgiGL/scopedStateHolder.h b/pxr/imaging/hgiGL/scopedStateHolder.h
-index 4e76d5426..39de06111 100644
+index 3a5b5d76a..d55428a62 100644
 --- a/pxr/imaging/hgiGL/scopedStateHolder.h
 +++ b/pxr/imaging/hgiGL/scopedStateHolder.h
 @@ -15,6 +15,7 @@
