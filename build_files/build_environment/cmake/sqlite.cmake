@@ -58,7 +58,6 @@ if(UNIX)
     --enable-fts5
     --disable-shared
   )
-
   ExternalProject_Add(external_sqlite
     URL file://${PACKAGE_DIR}/${SQLITE_FILE}
     DOWNLOAD_DIR ${DOWNLOAD_DIR}
