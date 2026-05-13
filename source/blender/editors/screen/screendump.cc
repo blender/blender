@@ -128,7 +128,7 @@ static wmOperatorStatus screenshot_exec(bContext *C, wmOperator *op)
                  int2(BLI_rcti_size_x(&scd->crop) + 1, BLI_rcti_size_y(&scd->crop) + 1));
       }
 
-      if ((scd->im_format.planes == ImColorMode::BW) &&
+      if ((scd->im_format.color_mode == ImColorMode::BW) &&
           (scd->im_format.imtype != R_IMF_IMTYPE_MULTILAYER))
       {
         /* bw screenshot? - users will notice if it fails! */

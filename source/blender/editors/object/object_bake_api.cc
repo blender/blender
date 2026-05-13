@@ -382,7 +382,7 @@ static bool write_external_bake_pixels(const char *filepath,
 
   /* create a new ImBuf */
   ibuf = IMB_allocImBuf(width, height, (is_float ? IB_float_data : IB_byte_data));
-  ibuf->color_mode = im_format->planes;
+  ibuf->color_mode = im_format->color_mode;
 
   if (!ibuf) {
     return false;

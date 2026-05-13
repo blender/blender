@@ -185,7 +185,7 @@ static ImColorMode get_color_mode_for_pass(const RenderPass &render_pass)
       return ImColorMode::RGBA;
   }
 
-  /* Fall back to a commonly used default value of planes for odd-ball number of channel. */
+  /* Fall back to a commonly used default value of color_mode for odd-ball number of channel. */
   return ImColorMode::RGBA;
 }
 
@@ -1090,7 +1090,7 @@ ImBuf *RE_render_result_rect_to_ibuf(RenderResult *rr,
                                      const int view_id)
 {
   ImBuf *ibuf = IMB_allocImBuf(rr->rectx, rr->recty, 0);
-  ibuf->color_mode = imf->planes;
+  ibuf->color_mode = imf->color_mode;
   RenderView *rv = RE_RenderViewGetById(rr, view_id);
 
   /* if not exists, BKE_imbuf_write makes one */
@@ -1131,7 +1131,7 @@ ImBuf *RE_render_result_rect_to_ibuf(RenderResult *rr,
 
   /* Color -> gray-scale. */
   /* editing directly would alter the render view */
-  if (imf->planes == ImColorMode::BW && imf->imtype != R_IMF_IMTYPE_MULTILAYER &&
+  if (imf->color_mode == ImColorMode::BW && imf->imtype != R_IMF_IMTYPE_MULTILAYER &&
       !(ibuf->float_data() && !ibuf->byte_data() && ibuf->channels == 1))
   {
     ImBuf *ibuf_bw = IMB_dupImBuf(ibuf);

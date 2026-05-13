@@ -2595,7 +2595,7 @@ bool BKE_imbuf_write_as(ImBuf *ibuf,
   ImBuf ibuf_back = *ibuf;
   bool ok;
 
-  ibuf->color_mode = imf->planes;
+  ibuf->color_mode = imf->color_mode;
 
   ok = BKE_imbuf_write(ibuf, filepath, imf);
 

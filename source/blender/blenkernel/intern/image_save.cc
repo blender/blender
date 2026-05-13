@@ -129,8 +129,8 @@ bool BKE_image_save_options_init(ImageSaveOptions *opts,
     /* sanitize all settings */
 
     /* unlikely but just in case */
-    if (ELEM(opts->im_format.planes, ImColorMode::BW, ImColorMode::RGB, ImColorMode::RGBA) == 0) {
-      opts->im_format.planes = ImColorMode::RGBA;
+    if (!ELEM(opts->im_format.color_mode, ImColorMode::BW, ImColorMode::RGB, ImColorMode::RGBA)) {
+      opts->im_format.color_mode = ImColorMode::RGBA;
     }
 
     /* some formats don't use quality so fallback to scenes quality */
@@ -357,16 +357,16 @@ static bool image_save_single(ReportList *reports,
 
   if (ima->type == IMA_TYPE_R_RESULT) {
     /* enforce user setting for RGB or RGBA, but skip BW */
-    if (opts->im_format.planes == ImColorMode::RGBA) {
+    if (opts->im_format.color_mode == ImColorMode::RGBA) {
       ibuf->color_mode = ImColorMode::RGBA;
     }
-    else if (opts->im_format.planes == ImColorMode::RGB) {
+    else if (opts->im_format.color_mode == ImColorMode::RGB) {
       ibuf->color_mode = ImColorMode::RGB;
     }
   }
   else {
     /* TODO: better solution, if a 24bit image is painted onto it may contain alpha. */
-    if ((opts->im_format.planes == ImColorMode::RGBA) &&
+    if ((opts->im_format.color_mode == ImColorMode::RGBA) &&
         /* it has been painted onto */
         (ibuf->userflags & IB_BITMAPDIRTY))
     {
@@ -848,7 +848,7 @@ static void add_exr_compositing_result(ExrHandle *exr_handle,
      *
      * In case of a single required channel, we need to do RGBA to BW conversion. */
 
-    const ImColorMode color_mode = imf ? imf->planes : ImColorMode::RGBA;
+    const ImColorMode color_mode = imf ? imf->color_mode : ImColorMode::RGBA;
     if (color_mode == ImColorMode::BW) {
       float *gray_scale_output = image_exr_from_rgb_to_bw(output_buffer,
                                                           render_result->rectx,
@@ -988,7 +988,7 @@ bool BKE_image_render_write_exr(ReportList *reports,
        * First, if the required channels equal the pass channels, we add the channels as is. Or,
        * we add the RGB[A] channels if the pass is RGB[A] and we require RGB[A]. If the alpha
        * channel is required but does not exist in the pass, it will be added below. */
-      const int required_channels = imf ? int(imf->planes) / 8 : 4;
+      const int required_channels = imf ? int(imf->color_mode) / 8 : 4;
       if (required_channels == render_pass.channels ||
           (required_channels != 1 && render_pass.channels != 1))
       {

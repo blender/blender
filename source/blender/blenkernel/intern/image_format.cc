@@ -141,11 +141,11 @@ void BKE_image_format_set(ImageFormatData *imf, ID *owner_id, const char imtype)
                          (is_render ? IMA_CHAN_FLAG_BW : 0);
 
   /* ensure depth and color settings match */
-  if ((imf->planes == ImColorMode::BW) && !(chan_flag & IMA_CHAN_FLAG_BW)) {
-    imf->planes = ImColorMode::RGBA;
+  if ((imf->color_mode == ImColorMode::BW) && !(chan_flag & IMA_CHAN_FLAG_BW)) {
+    imf->color_mode = ImColorMode::RGBA;
   }
-  if ((imf->planes == ImColorMode::RGBA) && !(chan_flag & IMA_CHAN_FLAG_RGBA)) {
-    imf->planes = ImColorMode::RGB;
+  if ((imf->color_mode == ImColorMode::RGBA) && !(chan_flag & IMA_CHAN_FLAG_RGBA)) {
+    imf->color_mode = ImColorMode::RGB;
   }
 
   /* ensure usable depth */
@@ -1105,7 +1105,7 @@ void BKE_image_format_from_imbuf(ImageFormatData *im_format, const ImBuf *imbuf)
     im_format->depth = imtype_best_depth(imbuf, im_format->imtype);
   }
 
-  im_format->planes = imbuf->color_mode;
+  im_format->color_mode = imbuf->color_mode;
 }
 
 bool BKE_image_format_is_byte(const ImageFormatData *imf)

@@ -627,7 +627,7 @@ void blo_do_versions_270(FileData *fd, Library * /*lib*/, Main *bmain)
         sce.r.bake.normal_swizzle[2] = R_BAKE_POSZ;
         STRNCPY(sce.r.bake.filepath, U.renderdir);
 
-        sce.r.bake.im_format.planes = ImColorMode::RGBA;
+        sce.r.bake.im_format.color_mode = ImColorMode::RGBA;
         sce.r.bake.im_format.imtype = R_IMF_IMTYPE_PNG;
         sce.r.bake.im_format.depth = R_IMF_CHAN_DEPTH_8;
         sce.r.bake.im_format.quality = 90;
