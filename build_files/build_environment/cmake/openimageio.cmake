@@ -105,7 +105,16 @@ set(OPENIMAGEIO_EXTRA_ARGS
   -Dfmt_ROOT=${LIBDIR}/fmt
   -Dopenjph_DIR=${LIBDIR}/openjph/lib/cmake/openjph
   -DLibheif_DIR=${LIBDIR}/libheif/lib/cmake/libheif
+  -DPython3_ROOT=${LIBDIR}/python
+  -DPython3_INCLUDE_DIR=${LIBDIR}/python/include/python${PYTHON_SHORT_VERSION}/
 )
+
+if(ANDROID)
+  # Similarly to OpenColorIO, disable Python bindings for now due to them causing undefined symbols errors at link time.
+  set(OPENIMAGEIO_EXTRA_ARGS
+    -DUSE_PYTHON=OFF
+  )
+endif()
 
 if(WIN32)
   # We don't want the SOABI tags in the final filename since it gets the debug
