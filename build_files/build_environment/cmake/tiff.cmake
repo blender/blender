@@ -48,17 +48,17 @@ add_dependencies(
 if(WIN32)
   if(BUILD_MODE STREQUAL Release)
     ExternalProject_Add_Step(external_tiff after_install
-      COMMAND
-        ${CMAKE_COMMAND} -E copy
-          ${LIBDIR}/tiff/lib/tiff.lib
-          ${HARVEST_TARGET}/tiff/lib/libtiff.lib &&
-        ${CMAKE_COMMAND} -E copy_directory
-          ${LIBDIR}/tiff/include/
-          ${HARVEST_TARGET}/tiff/include/
+      COMMAND ${CMAKE_COMMAND} -E copy_directory
+        ${LIBDIR}/tiff/lib
+        ${HARVEST_TARGET}/tiff/lib
+      COMMAND ${CMAKE_COMMAND} -E copy_directory
+        ${LIBDIR}/tiff/include
+        ${HARVEST_TARGET}/tiff/include
       DEPENDEES install
     )
   endif()
 else()
   harvest(external_tiff tiff/include tiff/include "*.h")
+  harvest(external_tiff tiff/lib/cmake/tiff tiff/lib/cmake/tiff "*.cmake")
   harvest(external_tiff tiff/lib tiff/lib "*.a")
 endif()
