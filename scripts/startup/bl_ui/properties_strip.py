@@ -361,6 +361,7 @@ class STRIP_PT_effect_text_style(StripButtonsPanel, Panel):
         row.prop(strip, "use_italic", text="", icon='ITALIC')
 
         col.prop(strip, "font_size")
+        col.prop(strip, "space_line")
         col.prop(strip, "color")
 
 
