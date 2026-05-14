@@ -285,7 +285,7 @@ static void reverse_group_indices_in_groups(const OffsetIndices<int> groups,
       }
     }
   });
-  offset_indices::sort_small_groups(offsets, results);
+  offset_indices::sort_groups(offsets, results);
 }
 
 Array<int> build_corner_to_face_map(const OffsetIndices<int> faces)
@@ -314,7 +314,7 @@ GroupedSpan<int> build_vert_to_edge_map(const Span<int2> edges,
       }
     }
   });
-  offset_indices::sort_small_groups(offsets, r_indices);
+  offset_indices::sort_groups(offsets, r_indices);
   return {offsets, r_indices};
 }
 
