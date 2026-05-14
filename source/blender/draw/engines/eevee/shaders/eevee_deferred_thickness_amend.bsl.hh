@@ -9,20 +9,17 @@
 #pragma once
 
 #include "infos/eevee_common_infos.hh"
-#include "infos/eevee_light_infos.hh"
-#include "infos/eevee_shadow_infos.hh"
 
 SHADER_LIBRARY_CREATE_INFO(draw_view)
 SHADER_LIBRARY_CREATE_INFO(eevee_hiz_data)
-SHADER_LIBRARY_CREATE_INFO(eevee_shadow_data)
-SHADER_LIBRARY_CREATE_INFO(eevee_light_data)
 
 #include "draw_view_lib.glsl"
 #include "eevee_gbuffer_lib.glsl"
-#include "eevee_light_iter_lib.glsl"
+#include "eevee_light_data.bsl.hh"
+#include "eevee_light_iter.bsl.hh"
 #include "eevee_light_lib.glsl"
 #include "eevee_sampling_lib.glsl"
-#include "eevee_shadow_tracing_lib.glsl"
+#include "eevee_shadow_tracing.bsl.hh"
 #include "gpu_shader_fullscreen_lib.glsl"
 
 namespace eevee::thickness {
@@ -35,7 +32,7 @@ struct FromShadowEvalCtx {
   float weight_accum;
   float2 pcf_random;
 
-  void eval(LightData light, const bool is_directional)
+  void eval([[resource_table]] ShadowRenderData &srd, LightData light, const bool is_directional)
   {
     if (light.tilemap_index == LIGHT_NO_SHADOW) {
       return;
@@ -60,8 +57,7 @@ struct FromShadowEvalCtx {
      */
     P_offset -= texel_radius * shadow_pcf_offset(lv.L, Ng, pcf_random);
 
-    float occluder_delta = shadow_sample(
-        is_directional, shadow_atlas_tx, shadow_tilemaps_tx, light, P_offset);
+    float occluder_delta = srd.shadow_sample(is_directional, light, P_offset);
     if (occluder_delta > 0.0f) {
       float hit_distance = abs(occluder_delta);
       /* Add back the amount of offset we added to the original position.
@@ -79,26 +75,29 @@ struct FromShadowEvalCtx {
     }
   }
 
-  void eval_directional(uint /*l_idx*/, LightData light)
+  void eval_directional([[resource_table]] ShadowRenderData &srd, uint /*l_idx*/, LightData light)
   {
-    eval(light, true);
+    eval(srd, light, true);
   }
-  void eval_local(uint /*l_idx*/, LightData light)
+  void eval_local([[resource_table]] ShadowRenderData &srd, uint /*l_idx*/, LightData light)
   {
-    eval(light, false);
+    eval(srd, light, false);
   }
 };
 
 }  // namespace eevee::thickness
 
 namespace eevee {
+template void light::foreach_visible<thickness::FromShadowEvalCtx, ShadowRenderData>(
+    const LightRenderData &, float2, float, thickness::FromShadowEvalCtx &, ShadowRenderData &);
+}  // namespace eevee
+
+namespace eevee {
 
 struct ThicknessAmend {
   [[legacy_info]] ShaderCreateInfo draw_view;
   [[legacy_info]] ShaderCreateInfo eevee_sampling_data;
-  [[legacy_info]] ShaderCreateInfo eevee_shadow_data;
   [[legacy_info]] ShaderCreateInfo eevee_hiz_data;
-  [[legacy_info]] ShaderCreateInfo eevee_light_data;
 
   [[sampler(0)]] usampler2DArray gbuf_header_tx;
   [[image(0, read_write, UNORM_16_16)]] image2DArray gbuf_normal_img;
@@ -119,6 +118,8 @@ void amend_vert([[vertex_id]] const int vert_id,
 /* Early fragment test is needed to discard fragment that do not need this processing. */
 [[fragment]] [[early_fragment_tests]]
 void amend_frag([[resource_table]] ThicknessAmend &srt,
+                [[resource_table]] ShadowRenderData &srd,
+                [[resource_table]] const LightRenderData &lrd,
                 [[in]] const VertOut &v_out,
                 [[frag_coord]] const float4 frag_co)
 {
@@ -150,18 +151,7 @@ void amend_frag([[resource_table]] ThicknessAmend &srt,
       .pcf_random = pcg4d(float4(frag_co.xyz, sampling_rng_1D_get(SAMPLING_SHADOW_X))).xy,
   };
 
-  LIGHT_FOREACH_BEGIN_DIRECTIONAL (light_cull_buf, l_idx) {
-    LightData light = light_buf[l_idx];
-    ctx.eval_directional(l_idx, light);
-  }
-  LIGHT_FOREACH_END
-
-  float2 pixel = frag_co.xy;
-  LIGHT_FOREACH_BEGIN_LOCAL (light_cull_buf, light_zbin_buf, light_tile_buf, pixel, vPz, l_idx) {
-    LightData light = light_buf[l_idx];
-    ctx.eval_local(l_idx, light);
-  }
-  LIGHT_FOREACH_END
+  light::foreach_visible(lrd, frag_co.xy, vPz, ctx, srd);
 
   /* The apparent thickness of an object behind its surface considering all shadow maps
    * available. If no shadow-map has a record of the other side of the surface, do not amend

@@ -1440,6 +1440,12 @@ void func([[resource_table]] Resources &srt)
   } else {
     test;
   }
+
+  if (srt.use_color_band) [[static_branch]] {
+    if (srt.use_color_band) [[static_branch]] {
+      test;
+    }
+  }
 }
 )";
     string expect = R"(
@@ -1544,13 +1550,28 @@ void func(Resources  srt)
          {
     test;
   }
+#endif
+
+#if SRT_CONSTANT_use_color_band
+#line 38
+                                                               {
+
+#if SRT_CONSTANT_use_color_band
+#line 39
+                                                                 {
+      test;
+    }
 
 #endif
-#line 37
+#line 42
+  }
+
+#endif
+#line 43
 }
 
 #endif
-#line 38
+#line 44
 )";
     string error;
     string output = process_test_string(input, error);

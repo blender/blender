@@ -8,21 +8,22 @@
  * Evaluate shadowing using shadow map ray-tracing.
  */
 
-#include "infos/eevee_shadow_infos.hh"
 #include "infos/eevee_uniform_infos.hh"
 
 SHADER_LIBRARY_CREATE_INFO(eevee_global_ubo)
-SHADER_LIBRARY_CREATE_INFO(eevee_shadow_data)
 
 #include "draw_math_geom_lib.glsl"
 #include "draw_view_lib.glsl"
 #include "eevee_light_lib.glsl"
 #include "eevee_sampling_lib.glsl"
-#include "eevee_shadow_lib.glsl"
+#include "eevee_shadow.bsl.hh"
+#include "eevee_thickness_lib.bsl.hh"
 #include "gpu_shader_math_base_lib.glsl"
 #include "gpu_shader_math_fast_lib.glsl"
 #include "gpu_shader_math_vector_safe_lib.glsl"
 #include "gpu_shader_ray_utils_lib.glsl"
+
+namespace eevee {
 
 /* ---------------------------------------------------------------------- */
 /** \name Shadow Map Tracing loop
@@ -119,14 +120,17 @@ void shadow_map_trace_hit_check(ShadowMapTracingState &state,
  * Most of the code is wrapped into functions to avoid to debug issues inside macro code.
  */
 template<typename ShadowRayType>
-bool shadow_map_trace(ShadowRayType ray, int sample_count, float step_offset)
+bool shadow_map_trace([[resource_table]] ShadowRenderData &srd,
+                      ShadowRayType ray,
+                      int sample_count,
+                      float step_offset)
 {
   ShadowMapTracingState state = shadow_map_trace_init(sample_count, step_offset);
   for (int i = 0; (i <= sample_count) && (i <= SHADOW_MAX_STEP) && (state.hit == false); i++)
   { /* Saturate to always cover the shading point position when i == sample_count. */
     state.ray_time = square(saturate(float(i) * state.ray_step_mul + state.ray_step_bias));
 
-    ShadowTracingSample samp = shadow_map_trace_sample(state, ray);
+    ShadowTracingSample samp = shadow_map_trace_sample(srd, state, ray);
 
     shadow_map_trace_hit_check(state, samp, i == sample_count);
   }
@@ -179,14 +183,16 @@ ShadowRayDirectional shadow_ray_generate_directional(LightData light,
   return ray;
 }
 
-ShadowTracingSample shadow_map_trace_sample(ShadowMapTracingState state, ShadowRayDirectional &ray)
+ShadowTracingSample shadow_map_trace_sample([[resource_table]] ShadowRenderData &srd,
+                                            ShadowMapTracingState state,
+                                            ShadowRayDirectional &ray)
 {
   /* Ray position is ray local position with origin at light origin. */
   float3 ray_pos = ray.origin + ray.direction * state.ray_time;
 
   ShadowCoordinates coord = shadow_directional_coordinates(ray.light, ray_pos);
 
-  float depth = shadow_read_depth(shadow_atlas_tx, shadow_tilemaps_tx, coord);
+  float depth = srd.read_depth(coord);
   /* Distance from near plane. */
   float clip_near = orderedIntBitsToFloat(ray.light.clip_near);
   float3 occluder_pos = float3(ray_pos.xy, -depth - clip_near);
@@ -200,7 +206,10 @@ ShadowTracingSample shadow_map_trace_sample(ShadowMapTracingState state, ShadowR
   return samp;
 }
 
-template bool shadow_map_trace<ShadowRayDirectional>(ShadowRayDirectional, int, float);
+template bool shadow_map_trace<ShadowRayDirectional>(ShadowRenderData &,
+                                                     ShadowRayDirectional,
+                                                     int,
+                                                     float);
 
 /** \} */
 
@@ -277,14 +286,16 @@ ShadowRayPunctual shadow_ray_generate_punctual(LightData light, float2 random_2d
   return ray;
 }
 
-ShadowTracingSample shadow_map_trace_sample(ShadowMapTracingState state, ShadowRayPunctual &ray)
+ShadowTracingSample shadow_map_trace_sample([[resource_table]] ShadowRenderData &srd,
+                                            ShadowMapTracingState state,
+                                            ShadowRayPunctual &ray)
 {
   float3 receiver_pos = ray.origin + ray.direction * state.ray_time;
   int face_id = shadow_punctual_face_index_get(receiver_pos);
   float3 face_pos = shadow_punctual_local_position_to_face_local(face_id, receiver_pos);
   ShadowCoordinates coord = shadow_punctual_coordinates(ray.light, face_pos, face_id);
 
-  float radial_occluder_depth = shadow_read_depth(shadow_atlas_tx, shadow_tilemaps_tx, coord);
+  float radial_occluder_depth = srd.read_depth(coord);
   float3 occluder_pos = receiver_pos * (radial_occluder_depth / length(receiver_pos));
 
   /* Transform to ray local space. */
@@ -297,7 +308,10 @@ ShadowTracingSample shadow_map_trace_sample(ShadowMapTracingState state, ShadowR
   return samp;
 }
 
-template bool shadow_map_trace<ShadowRayPunctual>(ShadowRayPunctual, int, float);
+template bool shadow_map_trace<ShadowRayPunctual>(ShadowRenderData &,
+                                                  ShadowRayPunctual,
+                                                  int,
+                                                  float);
 
 /** \} */
 
@@ -424,7 +438,8 @@ float shadow_terminator_offset(float3 N,
  * Evaluate shadowing by casting rays toward the light direction.
  * Returns light visibility.
  */
-float shadow_eval(LightData light,
+float shadow_eval([[resource_table]] ShadowRenderData &srd,
+                  LightData light,
                   const bool is_directional,
                   const bool is_transmission,
                   bool is_translucent_with_thickness,
@@ -502,11 +517,11 @@ float shadow_eval(LightData light,
     if (is_directional) {
       ShadowRayDirectional clip_ray = shadow_ray_generate_directional(
           light, random_ray_2d, lP, texel_radius);
-      has_hit = shadow_map_trace(clip_ray, ray_step_count, random_shadow_3d.z);
+      has_hit = shadow_map_trace(srd, clip_ray, ray_step_count, random_shadow_3d.z);
     }
     else {
       ShadowRayPunctual clip_ray = shadow_ray_generate_punctual(light, random_ray_2d, lP);
-      has_hit = shadow_map_trace(clip_ray, ray_step_count, random_shadow_3d.z);
+      has_hit = shadow_map_trace(srd, clip_ray, ray_step_count, random_shadow_3d.z);
     }
 
     surface_hit += float(has_hit);
@@ -516,3 +531,5 @@ float shadow_eval(LightData light,
 }
 
 /** \} */
+
+}  // namespace eevee

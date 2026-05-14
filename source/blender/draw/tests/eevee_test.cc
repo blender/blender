@@ -1310,6 +1310,7 @@ static void test_eevee_shadow_tilemap_amend()
   pass.bind_ssbo(LIGHT_BUF_SLOT, culling_light_buf);
   pass.bind_ssbo(LIGHT_ZBIN_BUF_SLOT, culling_zbin_buf);
   pass.bind_ssbo(LIGHT_TILE_BUF_SLOT, culling_tile_buf);
+  pass.bind_ssbo("light_buf_write", culling_light_buf);
   pass.dispatch(int3(1));
   pass.barrier(GPU_BARRIER_TEXTURE_UPDATE);
 

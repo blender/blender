@@ -1009,24 +1009,15 @@ void ShaderModule::material_create_info_amend(GPUMaterial *gpumat, GPUCodegenOut
   if ((pipeline_type == MAT_PIPE_FORWARD) ||
       GPU_material_flag_get(gpumat, GPU_MATFLAG_SHADER_TO_RGBA))
   {
-    switch (closure_bin_count) {
-      case 0:
-        /* Define nothing. This will in turn define SKIP_LIGHT_EVAL. */
-        break;
-      /* These need to be separated since the strings need to be static. */
-      case 1:
-        info.define("LIGHT_CLOSURE_EVAL_COUNT", "1");
-        break;
-      case 2:
-        info.define("LIGHT_CLOSURE_EVAL_COUNT", "2");
-        break;
-      case 3:
-        info.define("LIGHT_CLOSURE_EVAL_COUNT", "3");
-        break;
-      default:
-        BLI_assert_unreachable();
-        break;
-    }
+    const int transmit_eval_count = (closure_bits &
+                                     (CLOSURE_REFRACTION | CLOSURE_TRANSLUCENT | CLOSURE_SSS)) ?
+                                        1 :
+                                        0;
+
+    info.compilation_constant(
+        gpu::shader::Type::int_t, "light_closure_eval_count_reflect", closure_bin_count);
+    info.compilation_constant(
+        gpu::shader::Type::int_t, "light_closure_eval_count_transmit", transmit_eval_count);
   }
 
   if (GPU_material_flag_get(gpumat, GPU_MATFLAG_BARYCENTRIC)) {

@@ -7,22 +7,17 @@
 
 #pragma once
 
-#include "infos/eevee_light_infos.hh"
 #include "infos/eevee_lightprobe_infos.hh"
-#include "infos/eevee_shadow_infos.hh"
 
-SHADER_LIBRARY_CREATE_INFO(eevee_light_data)
-SHADER_LIBRARY_CREATE_INFO(eevee_shadow_data)
 SHADER_LIBRARY_CREATE_INFO(eevee_lightprobe_data)
 
 #include "draw_view_lib.glsl"
 #include "eevee_colorspace_lib.bsl.hh"
-#include "eevee_defines.hh"
-#include "eevee_light_iter_lib.glsl"
+#include "eevee_light_eval.bsl.hh"
 #include "eevee_light_lib.glsl"
 #include "eevee_light_shared.hh"
 #include "eevee_lightprobe_volume_eval_lib.glsl"
-#include "eevee_shadow_lib.glsl"
+#include "eevee_shadow.bsl.hh"
 #include "eevee_volume_lib.bsl.hh"
 #include "eevee_volume_shared.hh"
 #include "gpu_shader_fullscreen_lib.glsl"
@@ -96,50 +91,6 @@ float3 volume_shadow(
   return shadow;
 }
 
-float3 volume_light_eval(const bool is_directional,
-                         float3 P,
-                         float3 V,
-                         uint l_idx,
-                         float s_anisotropy,
-                         sampler3D extinction_tx)
-{
-  LightData light = buffer_get(eevee_light_data, light_buf)[l_idx];
-  auto &shadow_atlas_tx = sampler_get(eevee_shadow_data, shadow_atlas_tx);
-  auto &shadow_tilemaps_tx = sampler_get(eevee_shadow_data, shadow_tilemaps_tx);
-
-  /* TODO(fclem): Own light list for volume without lights that have 0 volume influence. */
-  if (light.power[LIGHT_VOLUME] == 0.0f) {
-    return float3(0);
-  }
-
-  LightVector lv = light_shape_vector_get(light, is_directional, P);
-
-  float attenuation = light_attenuation_volume(light, is_directional, lv);
-  if (attenuation < LIGHT_ATTENUATION_THRESHOLD) {
-    return float3(0);
-  }
-
-  float visibility = attenuation;
-  if (light.tilemap_index != LIGHT_NO_SHADOW) {
-    float delta = shadow_sample(is_directional, shadow_atlas_tx, shadow_tilemaps_tx, light, P);
-    if (delta > 0.0f) {
-      return float3(0);
-    }
-  }
-  visibility *= volume_phase_function(-V, lv.L, s_anisotropy);
-  if (visibility < LIGHT_ATTENUATION_THRESHOLD) {
-    return float3(0);
-  }
-
-  float3 Li = volume_light(light, is_directional, lv) * visibility;
-
-  if (light.tilemap_index != LIGHT_NO_SHADOW) {
-    Li *= volume_shadow(light, is_directional, P, lv, extinction_tx);
-  }
-
-  return Li;
-}
-
 float3 volume_lightprobe_eval(float3 P, float3 V, float s_anisotropy)
 {
   SphericalHarmonicL1<float4> phase_sh = volume_phase_function_as_sh_L1(V, s_anisotropy);
@@ -157,10 +108,11 @@ struct Scatter {
   [[legacy_info]] ShaderCreateInfo draw_view;
   [[legacy_info]] ShaderCreateInfo eevee_global_ubo;
   [[legacy_info]] ShaderCreateInfo eevee_hiz_data;
-  [[legacy_info]] ShaderCreateInfo eevee_light_data;
-  [[legacy_info]] ShaderCreateInfo eevee_shadow_data;
   [[legacy_info]] ShaderCreateInfo eevee_lightprobe_data;
   [[legacy_info]] ShaderCreateInfo eevee_sampling_data;
+
+  [[resource_table]] srt_t<LightRenderData> light_data;
+  [[resource_table]] srt_t<ShadowRenderData> shadow_data;
 
   [[sampler(0)]] sampler3D scattering_history_tx;
   [[sampler(1)]] sampler3D extinction_history_tx;
@@ -170,6 +122,70 @@ struct Scatter {
   [[image(5, write, UFLOAT_11_11_10)]] image3D out_scattering_img;
   [[image(6, write, UFLOAT_11_11_10)]] image3D out_extinction_img;
 };
+
+struct LightEvalCtx {
+  float3 radiance;
+  float3 P;
+  float3 V;
+  float anisotropy;
+
+  float3 light_eval_single([[resource_table]] Scatter &srt,
+                           LightData light,
+                           const bool is_directional)
+  {
+    [[resource_table]] ShadowRenderData &srd = srt.shadow_data;
+
+    /* TODO(fclem): Own light list for volume without lights that have 0 volume influence. */
+    if (light.power[LIGHT_VOLUME] == 0.0f) {
+      return float3(0);
+    }
+
+    LightVector lv = light_shape_vector_get(light, is_directional, P);
+
+    float attenuation = light_attenuation_volume(light, is_directional, lv);
+    if (attenuation < LIGHT_ATTENUATION_THRESHOLD) {
+      return float3(0);
+    }
+
+    float visibility = attenuation;
+    if (light.tilemap_index != LIGHT_NO_SHADOW) {
+      float delta = srd.shadow_sample(is_directional, light, P);
+      if (delta > 0.0f) {
+        return float3(0);
+      }
+    }
+    visibility *= volume_phase_function(-V, lv.L, anisotropy);
+    if (visibility < LIGHT_ATTENUATION_THRESHOLD) {
+      return float3(0);
+    }
+
+    float3 Li = volume_light(light, is_directional, lv) * visibility;
+
+    if (light.tilemap_index != LIGHT_NO_SHADOW) {
+      Li *= volume_shadow(light, is_directional, P, lv, srt.extinction_tx);
+    }
+
+    return Li;
+  }
+
+  void eval_directional([[resource_table]] Scatter &srd, uint /*l_idx*/, LightData light)
+  {
+    radiance += light_eval_single(srd, light, true);
+  }
+
+  void eval_local([[resource_table]] Scatter &srd, uint /*l_idx*/, LightData light)
+  {
+    radiance += light_eval_single(srd, light, false);
+  }
+};
+}  // namespace eevee::volume
+
+namespace eevee::light {
+template void foreach_visible<volume::LightEvalCtx, volume::Scatter>(
+    const LightRenderData &, float2, float, volume::LightEvalCtx &, volume::Scatter &);
+}
+
+namespace eevee::volume {
 
 /* Step 2 : Evaluate all light scattering for each froxels.
  * Also do the temporal reprojection to fight aliasing artifacts. */
@@ -208,20 +224,18 @@ void scatter_main([[resource_table]] Scatter &srt,
 
   if (srt.use_volume_light) [[static_branch]] {
     if (reduce_max(s_scattering) > 0.0f) {
-      LIGHT_FOREACH_BEGIN_DIRECTIONAL (light_cull_buf, l_idx) {
-        direct_radiance += volume_light_eval(true, P, V, l_idx, s_anisotropy, srt.extinction_tx);
-      }
-      LIGHT_FOREACH_END
+      volume::LightEvalCtx ctx = {
+          .radiance = float3(0.0f),
+          .P = P,
+          .V = V,
+          .anisotropy = s_anisotropy,
+      };
 
       float2 pixel = ((float2(froxel.xy) + 0.5f) * uniform_buf.volumes.inv_tex_size.xy) *
                      uniform_buf.volumes.main_view_extent;
 
-      LIGHT_FOREACH_BEGIN_LOCAL (
-          light_cull_buf, light_zbin_buf, light_tile_buf, pixel, vP.z, l_idx)
-      {
-        direct_radiance += volume_light_eval(false, P, V, l_idx, s_anisotropy, srt.extinction_tx);
-      }
-      LIGHT_FOREACH_END
+      light::foreach_visible(srt.light_data, pixel, vP.z, ctx, srt);
+      direct_radiance = ctx.radiance;
     }
   }
 

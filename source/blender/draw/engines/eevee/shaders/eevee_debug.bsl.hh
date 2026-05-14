@@ -9,21 +9,17 @@
 #pragma once
 
 #include "infos/eevee_common_infos.hh"
-#include "infos/eevee_light_infos.hh"
-#include "infos/eevee_shadow_infos.hh"
 
 FRAGMENT_SHADER_CREATE_INFO(draw_view)
 FRAGMENT_SHADER_CREATE_INFO(eevee_hiz_data)
-FRAGMENT_SHADER_CREATE_INFO(eevee_light_data)
-FRAGMENT_SHADER_CREATE_INFO(eevee_shadow_data)
 
 #include "draw_view_lib.glsl"
 #include "eevee_debug_shared.hh"
 #include "eevee_defines.hh"
-#include "eevee_light_iter_lib.glsl"
+#include "eevee_light_iter.bsl.hh"
 #include "eevee_light_lib.glsl"
 #include "eevee_sampling_lib.glsl"
-#include "eevee_shadow_lib.glsl"
+#include "eevee_shadow.bsl.hh"
 #include "eevee_shadow_shared.hh"
 #include "eevee_shadow_tilemap_lib.bsl.hh"
 #include "gpu_shader_debug_gradients_lib.glsl"
@@ -44,11 +40,34 @@ struct DebugVertOut {
 
 #define default_depth -1.0f
 
+struct SearchDebugLightCtx {
+  int debug_tilemap_index;
+  uint light_index;
+
+  void eval_directional([[resource_table]] LightRenderData & /*res*/, uint l_idx, LightData light)
+  {
+    if (light.tilemap_index == debug_tilemap_index) {
+      light_index = l_idx;
+    }
+  }
+  void eval_local([[resource_table]] LightRenderData & /*res*/, uint l_idx, LightData light)
+  {
+    if (light.tilemap_index == debug_tilemap_index) {
+      light_index = l_idx;
+    }
+  }
+};
+
+template void light::foreach<SearchDebugLightCtx, LightRenderData>(const LightRenderData &,
+                                                                   SearchDebugLightCtx &,
+                                                                   LightRenderData &);
+
 struct ShadowDebug {
   [[legacy_info]] ShaderCreateInfo draw_view;
   [[legacy_info]] ShaderCreateInfo eevee_hiz_data;
-  [[legacy_info]] ShaderCreateInfo eevee_light_data;
-  [[legacy_info]] ShaderCreateInfo eevee_shadow_data;
+
+  [[resource_table]] srt_t<LightRenderData> light_data;
+  [[resource_table]] srt_t<ShadowRenderData> shadow_data;
 
   [[storage(5, read)]] ShadowTileMapData (&tilemaps_buf)[];
   [[storage(6, read)]] uint (&tiles_buf)[];
@@ -128,32 +147,23 @@ struct ShadowDebug {
 
   ShadowSamplingTile debug_tile_get(float3 P, LightData light) const
   {
+    [[resource_table]] const ShadowRenderData &srd = shadow_data;
     ShadowCoordinates coord = debug_coord_get(P, light);
-    return shadow_tile_data_get(shadow_tilemaps_tx, coord);
+    return shadow_tile_data_get(srd.shadow_tilemaps_tx, coord);
   }
 
-  LightData debug_light_get() const
+  LightData debug_light_get()
   {
-    LIGHT_FOREACH_BEGIN_LOCAL_NO_CULL(light_cull_buf, l_idx)
-    {
-      LightData light = light_buf[l_idx];
-      if (light.tilemap_index == debug_tilemap_index) {
-        return light;
-      }
-    }
-    LIGHT_FOREACH_END
+    [[resource_table]] LightRenderData &lrd = light_data;
 
-    LIGHT_FOREACH_BEGIN_DIRECTIONAL (light_cull_buf, l_idx) {
-      LightData light = light_buf[l_idx];
-      if (light.tilemap_index == debug_tilemap_index) {
-        return light;
-      }
-    }
-    LIGHT_FOREACH_END
+    SearchDebugLightCtx ctx = {
+        .debug_tilemap_index = this->debug_tilemap_index,
+        .light_index = 0,
+    };
 
-    /* TODO Assert. */
-    /* Silence compiler warning. */
-    return light_buf[0];
+    light::foreach(lrd, ctx, lrd);
+
+    return lrd.light_buf[ctx.light_index];
   }
 };
 
@@ -175,6 +185,8 @@ ShadowDebugOutput debug_tilemaps([[resource_table]] const ShadowDebug &srt,
                                  int2 texel,
                                  bool do_debug_sample_tile)
 {
+  [[resource_table]] const ShadowRenderData &srd = srt.shadow_data;
+
   /** Control the scaling of the tile-map splat. */
   constexpr int debug_tile_size_px = 4;
 
@@ -186,7 +198,7 @@ ShadowDebugOutput debug_tilemaps([[resource_table]] const ShadowDebug &srt,
       /* Debug values in the tilemap_tx. */
       uint2 tilemap_texel = shadow_tile_coord_in_atlas(uint2(px), tilemap_index);
       ShadowSamplingTile tile = shadow_sampling_tile_unpack(
-          texelFetch(shadow_tilemaps_tx, int2(tilemap_texel), 0).x);
+          texelFetch(srd.shadow_tilemaps_tx, int2(tilemap_texel), 0).x);
       /* Leave 1 px border between tile-maps. */
       if (!any(equal(texel % (SHADOW_TILEMAP_RES * debug_tile_size_px), int2(0)))) {
         return {.valid = true,
@@ -233,8 +245,10 @@ ShadowDebugOutput debug_atlas_values([[resource_table]] const ShadowDebug &srt,
                                      float3 P,
                                      LightData light)
 {
+  [[resource_table]] const ShadowRenderData &srd = srt.shadow_data;
+
   ShadowCoordinates coord = srt.debug_coord_get(P, light);
-  float depth = shadow_read_depth(shadow_atlas_tx, shadow_tilemaps_tx, coord);
+  float depth = srd.read_depth(coord);
   return {
       .valid = true,
       .color_add = float4((depth == -1) ? float3(1.0f, 0.0f, 0.0f) : float3(1.0f / depth), 0.0f) *
@@ -243,33 +257,45 @@ ShadowDebugOutput debug_atlas_values([[resource_table]] const ShadowDebug &srt,
       .depth = default_depth};
 }
 
-float debug_atomic_cost([[resource_table]] const ShadowDebug &srt, uint l_idx, float3 P)
-{
-  LightData light = light_buf[l_idx];
-  ShadowCoordinates coord = srt.debug_coord_get(P, light);
-  uint cost = floatBitsToUint(shadow_read_depth(shadow_atlas_tx, shadow_tilemaps_tx, coord));
-  return float(cost - floatBitsToUint(FLT_MAX));
-}
+struct AtomicCostCtx {
+  float3 P;
+  float cost;
 
-ShadowDebugOutput debug_atomic_cost([[resource_table]] const ShadowDebug &srt,
+  float atomic_cost([[resource_table]] const ShadowDebug &srt, LightData light)
+  {
+    [[resource_table]] const ShadowRenderData &srd = srt.shadow_data;
+
+    ShadowCoordinates coord = srt.debug_coord_get(P, light);
+    uint u_cost = floatBitsToUint(srd.read_depth(coord));
+    return float(u_cost - floatBitsToUint(FLT_MAX));
+  }
+
+  void eval_directional([[resource_table]] ShadowDebug &srt, uint /*l_idx*/, LightData light)
+  {
+    cost += atomic_cost(srt, light);
+  }
+
+  void eval_local([[resource_table]] ShadowDebug &srt, uint /*l_idx*/, LightData light)
+  {
+    cost += atomic_cost(srt, light);
+  }
+};
+
+template void light::foreach<AtomicCostCtx, ShadowDebug>(const LightRenderData &,
+                                                         AtomicCostCtx &,
+                                                         ShadowDebug &);
+
+ShadowDebugOutput debug_atomic_cost([[resource_table]] ShadowDebug &srt,
                                     float3 P,
                                     LightData /*light*/)
 {
-  float cost = 0.0f;
-  LIGHT_FOREACH_BEGIN_LOCAL_NO_CULL(light_cull_buf, l_idx)
-  {
-    cost += debug_atomic_cost(srt, l_idx, P);
-  }
-  LIGHT_FOREACH_END
+  AtomicCostCtx ctx = {.P = P, .cost = 0.0f};
 
-  LIGHT_FOREACH_BEGIN_DIRECTIONAL (light_cull_buf, l_idx) {
-    cost += debug_atomic_cost(srt, l_idx, P);
-  }
-  LIGHT_FOREACH_END
+  light::foreach(srt.light_data, ctx, srt);
 
-  cost /= 60.0f;
+  ctx.cost /= 60.0f;
   return {.valid = true,
-          .color_add = float4(heatmap_gradient(cost), 0.0f),
+          .color_add = float4(heatmap_gradient(ctx.cost), 0.0f),
           .color_mul = float4(0.0f),
           .depth = default_depth};
 }
@@ -297,7 +323,7 @@ ShadowDebugOutput debug_random_tilemap_color([[resource_table]] const ShadowDebu
 }
 
 [[fragment]]
-void debug_shadow_frag([[resource_table]] const ShadowDebug &srt,
+void debug_shadow_frag([[resource_table]] ShadowDebug &srt,
                        [[frag_coord]] const float4 frag_co,
                        [[frag_depth(greater)]] float &frag_depth,
                        [[in]] const DebugVertOut v_out,

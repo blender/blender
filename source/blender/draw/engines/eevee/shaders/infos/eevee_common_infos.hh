@@ -20,7 +20,6 @@
 #  define EEVEE_SAMPLING_DATA
 #  define MAT_CLIP_PLANE
 #  define MAT_RENDER_PASS_SUPPORT
-#  define SHADOW_READ_ATOMIC
 #endif
 
 #include "eevee_defines.hh"

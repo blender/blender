@@ -275,62 +275,71 @@ void SourceProcessor::lower_loop_unroll(Parser &parser)
 
 void SourceProcessor::lower_static_branch(Parser &parser)
 {
-  parser().foreach_match("i(..)[[A]]{..}", [&](const vector<Token> &tokens) {
-    Token if_tok = tokens[0];
-    Scope condition = tokens[1].scope();
-    Token attribute = tokens[7];
-    Scope body = tokens[10].scope();
+  do {
+    parser().foreach_match("i(..)[[A]]{..}", [&](const vector<Token> &tokens) {
+      Token if_tok = tokens[0];
+      Scope condition = tokens[1].scope();
+      Token attribute = tokens[7];
+      Scope body = tokens[10].scope();
 
-    if (attribute.str() != "static_branch") {
-      return;
-    }
-
-    if (condition.str().find("&&") != string::npos || condition.str().find("||") != string::npos) {
-      report_error(condition[0], "Expecting single condition.");
-      return;
-    }
-
-    if (condition[1].str() != "srt_access") {
-      report_error(if_tok,
-                   "Expecting compilation or specialization constant. Make sure SRT arguments "
-                   "have the [[resource_table]] attribute.");
-      return;
-    }
-
-    Token before_body = body.front().prev();
-
-    string test = "SRT_CONSTANT_" + string(condition[5].str()) + " ";
-    if (condition[7] != condition.back().prev()) {
-      test += parser.substr_range_inclusive(condition[7], condition.back().prev());
-    }
-    string directive = (if_tok.prev() == Else ? "#elif " : "#if ");
-
-    parser.insert_directive(before_body, directive + test);
-    parser.erase(if_tok, before_body);
-
-    if (body.back().next() == Else) {
-      Token else_tok = body.back().next();
-      parser.erase(else_tok);
-      if (else_tok.next() == If) {
-        /* Will be processed later. */
-        Token next_if = else_tok.next();
-        /* Ensure the rest of the if clauses also have the attribute. */
-        Scope attributes = next_if.next().scope().back().next().scope();
-        if (attributes.type() != ScopeType::Subscript ||
-            attributes.front().next().scope().str_exclusive() != "static_branch")
-        {
-          report_error(next_if, "Expecting next if statement to also be a static branch.");
-          return;
-        }
+      if (attribute.str() != "static_branch") {
         return;
       }
-      body = else_tok.next().scope();
 
-      parser.insert_directive(else_tok, "#else");
-    }
-    parser.insert_directive(body.back(), "#endif");
-  });
-  parser.apply_mutations();
+      if (condition.str().find("&&") != string::npos || condition.str().find("||") != string::npos)
+      {
+        report_error(condition[0], "Expecting single condition.");
+        return;
+      }
+
+      const int i = condition[1].str() == "!" ? 2 : 1;
+      /* TODO(fclem): Make full check of all params. */
+      const bool is_constexpr = condition[i].str() == "true" || condition[i].str() == "false";
+      const bool constexpr_val = is_constexpr ? (condition[i].str() == "true") ^ (i == 2) : false;
+
+      if (condition[1].str() != "srt_access" && !is_constexpr) {
+        report_error(if_tok,
+                     "Expecting compilation or specialization constant. Make sure SRT arguments "
+                     "have the [[resource_table]] attribute.");
+        return;
+      }
+
+      Token before_body = body.front().prev();
+
+      string test = is_constexpr ? string(constexpr_val ? "1" : "0") :
+                                   "SRT_CONSTANT_" + string(condition[5].str()) + " ";
+      if (condition[is_constexpr ? 2 : 7] != condition.back().prev()) {
+        test += parser.substr_range_inclusive(condition[is_constexpr ? 2 : 7],
+                                              condition.back().prev());
+      }
+      string directive = (if_tok.prev() == Else ? "#elif " : "#if ");
+
+      parser.insert_directive(before_body, directive + test);
+      parser.erase(if_tok, before_body);
+
+      if (body.back().next() == Else) {
+        Token else_tok = body.back().next();
+        parser.erase(else_tok);
+        if (else_tok.next() == If) {
+          /* Will be processed later. */
+          Token next_if = else_tok.next();
+          /* Ensure the rest of the if clauses also have the attribute. */
+          Scope attributes = next_if.next().scope().back().next().scope();
+          if (attributes.type() != ScopeType::Subscript ||
+              attributes.front().next().scope().str_exclusive() != "static_branch")
+          {
+            report_error(next_if, "Expecting next if statement to also be a static branch.");
+            return;
+          }
+          return;
+        }
+        body = else_tok.next().scope();
+
+        parser.insert_directive(else_tok, "#else");
+      }
+      parser.insert_directive(body.back(), "#endif");
+    });
+  } while (parser.apply_mutations());
 }
 
 }  // namespace blender::gpu::shader
