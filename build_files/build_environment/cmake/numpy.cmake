@@ -22,7 +22,7 @@ if(WIN32)
   )
   set(NUMPY_CONF ${CMAKE_BINARY_DIR}/fix_path.bat)
 else()
-  set(NUMPY_CONF export CYTHON=${LIBDIR}/python/bin/cython)
+  set(NUMPY_CONF export CYTHON=${HOST_LIBDIR}/python/bin/cython)
 endif()
 
 ExternalProject_Add(external_numpy
