@@ -148,8 +148,7 @@ static void set_single_input_from_rna_value(PointerRNA *input_props_ptr,
         float3 value_euler;
         RNA_float_get_array(input_props_ptr, "value", value_euler);
         math::Quaternion value_rotation = math::to_quaternion(math::EulerXYZ(value_euler));
-        result.set_single_value(
-            float4(value_rotation.x, value_rotation.y, value_rotation.z, value_rotation.w));
+        result.set_single_value(value_rotation);
       }
       break;
     }
