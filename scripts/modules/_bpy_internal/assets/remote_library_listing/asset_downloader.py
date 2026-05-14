@@ -539,16 +539,21 @@ class AssetReporter:
         # TODO: ping the window manager, instead of printing to the terminal.
         downloaded = http_dl.humanize_size(progress.disk_bytes_written)
         if progress.network_bytes_total is None:
-            print(f"Asset Downloader: downloaded {progress.disk_bytes_written} = {downloaded} of {http_req_descr.url}")
+            logger.debug(
+                "Asset Downloader: downloaded %d = %s of %s",
+                progress.disk_bytes_written,
+                downloaded,
+                http_req_descr.url)
         else:
             percentage = 100 * progress.network_bytes_streamed / progress.network_bytes_total
             if progress.network_bytes_streamed < progress.network_bytes_total:
                 percentage = min(99, percentage)
-            print(
-                f"Asset Downloader: downloaded {
-                    progress.disk_bytes_written} = {downloaded} ({
-                    percentage:.0f}%) of {
-                    http_req_descr.url}")
+            logger.debug(
+                "Asset Downloader: downloaded %d = %s (%.0f%%) of %s",
+                progress.disk_bytes_written, downloaded,
+                percentage,
+                http_req_descr.url,
+            )
 
     def download_finished(
         self,
