@@ -261,7 +261,11 @@ static PyObject *py_imbuf_resize(Py_ImBuf *self, PyObject *args, PyObject *kw)
   };
   PyC_StringEnum method = {method_items, FAST};
 
-  static const char *_keywords[] = {"size", "method", nullptr};
+  static const char *_keywords[] = {
+      "size",
+      "method",
+      nullptr,
+  };
   static _PyArg_Parser _parser = {
       "(ii)" /* `size` */
       "|$"   /* Optional keyword only arguments. */
@@ -310,7 +314,11 @@ static PyObject *py_imbuf_crop(Py_ImBuf *self, PyObject *args, PyObject *kw)
 
   rcti crop;
 
-  static const char *_keywords[] = {"min", "max", nullptr};
+  static const char *_keywords[] = {
+      "min",
+      "max",
+      nullptr,
+  };
   static _PyArg_Parser _parser = {
       "(II)" /* `min` */
       "(II)" /* `max` */
@@ -456,7 +464,10 @@ static PyObject *py_imbuf_convert_buffer_type(Py_ImBuf *self, PyObject *args, Py
 
   PyC_StringEnum buffer_type = {py_imbuf_buffer_mode_items, -1};
 
-  static const char *_keywords[] = {"buffer_type", nullptr};
+  static const char *_keywords[] = {
+      "buffer_type",
+      nullptr,
+  };
   static _PyArg_Parser _parser = {
       "O&" /* `buffer_type` (required) */
       ":convert_buffer_type",
@@ -1383,7 +1394,10 @@ static PyObject *M_imbuf_load(PyObject * /*self*/, PyObject *args, PyObject *kw)
 {
   PyC_UnicodeAsBytesAndSize_Data filepath_data = {nullptr};
 
-  static const char *_keywords[] = {"filepath", nullptr};
+  static const char *_keywords[] = {
+      "filepath",
+      nullptr,
+  };
   static _PyArg_Parser _parser = {
       "O&" /* `filepath` */
       ":load",
@@ -1431,7 +1445,10 @@ static PyObject *M_imbuf_load_from_buffer(PyObject * /*self*/, PyObject *args, P
 {
   PyObject *buffer_py_ob;
 
-  static const char *_keywords[] = {"buffer", nullptr};
+  static const char *_keywords[] = {
+      "buffer",
+      nullptr,
+  };
   static _PyArg_Parser _parser = {
       "O" /* `buffer` */
       ":load_from_buffer",
@@ -1492,7 +1509,11 @@ static PyObject *M_imbuf_write(PyObject * /*self*/, PyObject *args, PyObject *kw
   Py_ImBuf *py_imb;
   PyC_UnicodeAsBytesAndSize_Data filepath_data = {nullptr};
 
-  static const char *_keywords[] = {"image", "filepath", nullptr};
+  static const char *_keywords[] = {
+      "image",
+      "filepath",
+      nullptr,
+  };
   static _PyArg_Parser _parser = {
       "O!" /* `image` */
       "|$" /* Optional keyword only arguments. */
@@ -1576,12 +1597,24 @@ PyDoc_STRVAR(
     "   :type image: :class:`ImBuf`\n"
     "   :param file: A writable file-like object (e.g. :class:`io.BytesIO`).\n"
     "   :type file: :class:`BinaryIO`\n");
-static PyObject *M_imbuf_write_to_buffer(PyObject * /*self*/, PyObject *args)
+static PyObject *M_imbuf_write_to_buffer(PyObject * /*self*/, PyObject *args, PyObject *kw)
 {
   Py_ImBuf *py_imb;
   PyObject *file;
 
-  if (!PyArg_ParseTuple(args, "O!O:write_to_buffer", &Py_ImBuf_Type, &py_imb, &file)) {
+  static const char *_keywords[] = {
+      "image",
+      "file",
+      nullptr,
+  };
+  static _PyArg_Parser _parser = {
+      "O!" /* `image` */
+      "O"  /* `file` */
+      ":write_to_buffer",
+      _keywords,
+      nullptr,
+  };
+  if (!_PyArg_ParseTupleAndKeywordsFast(args, kw, &_parser, &Py_ImBuf_Type, &py_imb, &file)) {
     return nullptr;
   }
   PY_IMBUF_CHECK_OBJ(py_imb);
@@ -1623,7 +1656,10 @@ static PyObject *M_imbuf_file_type_from_buffer(PyObject * /*self*/, PyObject *ar
 {
   PyObject *buffer_py_ob;
 
-  static const char *_keywords[] = {"buffer", nullptr};
+  static const char *_keywords[] = {
+      "buffer",
+      nullptr,
+  };
   static _PyArg_Parser _parser = {
       "O" /* `buffer` */
       ":file_type_from_buffer",
@@ -1693,7 +1729,7 @@ static PyMethodDef IMB_methods[] = {
      M_imbuf_write_doc},
     {"write_to_buffer",
      reinterpret_cast<PyCFunction>(M_imbuf_write_to_buffer),
-     METH_VARARGS,
+     METH_VARARGS | METH_KEYWORDS,
      M_imbuf_write_to_buffer_doc},
     {"file_type_from_buffer",
      reinterpret_cast<PyCFunction>(M_imbuf_file_type_from_buffer),
