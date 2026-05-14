@@ -474,7 +474,8 @@ class BackgroundDownloader:
     # This assumes that RequestDescriptions are unique, and not queued up
     # multiple times simultaneously.
     DownloadDoneCallback: TypeAlias = Callable[['RequestDescription', Path], None]
-    _on_downloaded_callbacks: dict[RequestDescription, DownloadDoneCallback]
+    _on_download_done_callbacks: dict[RequestDescription,
+                                      list[DownloadDoneCallback | None]] = collections.defaultdict(list)
 
     OnCallbackErrorCallback: TypeAlias = Callable[['RequestDescription', Path, Exception], None]
     _on_callback_error: OnCallbackErrorCallback
@@ -501,7 +502,7 @@ class BackgroundDownloader:
         self.num_downloads_ok = 0
         self.num_downloads_error = 0
         self._num_pending_downloads = 0
-        self._on_downloaded_callbacks = {}
+        self._on_download_done_callbacks = {}
         self._on_callback_error = on_callback_error
 
         self._queueing_reporter = QueueingReporter()
@@ -524,7 +525,12 @@ class BackgroundDownloader:
                        ) -> RequestDescription:
         """Queue up a download of some URL to a location on disk.
 
-        Returns the RequestDescription of the queued download.
+        Returns the RequestDescription of the queued download. Note that
+        downloads are deduplicated, so if this URL was already queued, it will
+        only be downloaded once.
+
+        Any `on_download_done` callback is still registered, and all are called
+        when the download is done.
 
         The background process must be running, and its shutdown should not
         have been triggered yet.
@@ -536,16 +542,20 @@ class BackgroundDownloader:
         if self._downloader_process is None:
             raise RuntimeError("BackgroundDownloader is not started yet, cannot queue downloads")
 
-        self._num_pending_downloads += 1
-
         http_req_descr = RequestDescription(http_method=http_method, url=remote_url)
-        if on_download_done:
-            self._on_downloaded_callbacks[http_req_descr] = on_download_done
+        is_already_queued = http_req_descr in self._on_download_done_callbacks
 
-        self._connection.send(PipeMessage(
-            msgtype=PipeMsgType.QUEUE_DOWNLOAD,
-            payload=(http_req_descr, local_path),
-        ))
+        # Always append the callback, even when it's None, so that we can tell whether a download was already queued by
+        # looking at this dict.
+        self._on_download_done_callbacks[http_req_descr].append(on_download_done)
+
+        if not is_already_queued:
+            # Only queue a download once.
+            self._num_pending_downloads += 1
+            self._connection.send(PipeMessage(
+                msgtype=PipeMsgType.QUEUE_DOWNLOAD,
+                payload=(http_req_descr, local_path),
+            ))
 
         return http_req_descr
 
@@ -779,27 +789,33 @@ class BackgroundDownloader:
             return
 
         try:
-            callback = self._on_downloaded_callbacks.pop(http_req_descr)
+            callbacks = self._on_download_done_callbacks.pop(http_req_descr)
         except KeyError:
-            # Not having a callback is fine.
+            self._logger.error(
+                "download done, but it was not registered in self._on_download_done_callbacks: %s %s",
+                http_req_descr.http_method,
+                http_req_descr.url)
             return
 
-        self._logger.debug("download done, calling %s", callback.__name__)
-        try:
-            callback(http_req_descr, local_file)
-        except Exception as ex:
-            # Catch & log exceptions here, so that a callback causing trouble
-            # doesn't break the downloader itself.
-            self._logger.debug(
-                "exception while calling {!r}({!r}, {!r})".format(
-                    callback, http_req_descr, local_file))
+        valid_callbacks = (cb for cb in callbacks if cb is not None)
 
+        for callback in valid_callbacks:
+            self._logger.debug("download done, calling %s", callback.__name__)
             try:
-                self._on_callback_error(http_req_descr, local_file, ex)
-            except Exception:
-                self._logger.exception(
-                    "exception while handling an error in {!r}({!r}, {!r})".format(
+                callback(http_req_descr, local_file)
+            except Exception as ex:
+                # Catch & log exceptions here, so that a callback causing trouble
+                # doesn't break the downloader itself.
+                self._logger.debug(
+                    "exception while calling {!r}({!r}, {!r})".format(
                         callback, http_req_descr, local_file))
+
+                try:
+                    self._on_callback_error(http_req_descr, local_file, ex)
+                except Exception:
+                    self._logger.exception(
+                        "exception while handling an error in {!r}({!r}, {!r})".format(
+                            callback, http_req_descr, local_file))
 
 
 class PipeMsgType(enum.Enum):
