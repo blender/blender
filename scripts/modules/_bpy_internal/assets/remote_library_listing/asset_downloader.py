@@ -10,6 +10,7 @@ __all__ = [
     "DownloadStatus",
 ]
 
+from collections.abc import Callable
 import dataclasses
 import enum
 import logging
@@ -69,6 +70,7 @@ def download_asset_file(
             asset_library_url,
             asset_library_local_path,
             reporter=AssetReporter(asset_library_url=asset_library_url),
+            on_queue_empty_callback=on_asset_download_queue_empty,
         )
         downloader.start()
         _asset_downloaders[asset_library_url] = downloader
@@ -135,6 +137,7 @@ def download_preview(
             asset_library_url,
             asset_library_local_path,
             reporter=PreviewReporter(),
+            on_queue_empty_callback=None,
         )
         downloader.start()
         _preview_downloaders[asset_library_url] = downloader
@@ -186,6 +189,22 @@ def downloader_status(asset_library_url: str) -> DownloadStatus:
     return _asset_downloaders[asset_library_url].status
 
 
+def on_asset_download_queue_empty() -> None:
+    """Called by the asset downloader when its download queue emptied."""
+    if any_asset_downloading():
+        return
+    # TODO: ping Blender that all asset downloads are done.
+    logger.info("Asset downloader: all assets are done downloading")
+
+
+def any_asset_downloading() -> bool:
+    """Returns true if there is any downloader currently downloading assets."""
+    return any(
+        downloader.status == DownloadStatus.DOWNLOADING
+        for downloader in _asset_downloaders.values()
+    )
+
+
 class DownloadStatus(enum.Enum):
     IDLE = 'idle'
     DOWNLOADING = 'downloading'
@@ -212,6 +231,10 @@ class AssetDownloader:
     _reporter: http_dl.DownloadReporter
     _num_assets_pending: int
 
+    type QueueEmptyCallback = Callable[[], None]
+    _on_queue_empty_callback: QueueEmptyCallback | None
+    """Called when the download queue became empty."""
+
     _status: DownloadStatus
     _error_message: str
     """An error message to show to the user.
@@ -235,6 +258,7 @@ class AssetDownloader:
         local_path: Path | str,
         *,
         reporter: http_dl.DownloadReporter,
+        on_queue_empty_callback: QueueEmptyCallback | None,
     ) -> None:
         """Create a downloader for assets of a specific asset library.
 
@@ -249,6 +273,7 @@ class AssetDownloader:
         self._locator = RemoteAssetListingLocator(remote_url, local_path)
         self._num_assets_pending = 0
         self._reporter = reporter
+        self._on_queue_empty_callback = on_queue_empty_callback
 
         self._status = DownloadStatus.IDLE
         self._error_message = ""
@@ -273,8 +298,15 @@ class AssetDownloader:
             ),
             on_callback_error=self._on_callback_error,
         )
-        self._bg_downloader.add_reporter(self)
+
+        # These are called in order. Doing things this way ensures that self._reporter.download_finished() is called for
+        # every individual download, and after that our own function is called. That means that the
+        # self._on_queue_empty_callback() function is called _after_ the individual downloads.
+        #
+        # Swapping this order would mean self._on_queue_empty_callback() is called _before_ the last call to
+        # self._reporter.download_finished(), which would be confusing.
         self._bg_downloader.add_reporter(self._reporter)
+        self._bg_downloader.add_reporter(self)
 
     def __repr__(self) -> str:
         return "{!s}(remote_url={!r}, local_path={!r})".format(
@@ -330,13 +362,24 @@ class AssetDownloader:
         self._bg_downloader.cancel_download(http_req_descr)
 
     def _shutdown_if_done(self) -> None:
-        if self._num_assets_pending == 0 and (self._bg_downloader is None or self._bg_downloader.all_downloads_done):
-            # Done downloading everything, let's shut down.
+        if self._num_assets_pending > 0:
+            return
 
-            # TODO: delay this for a few minutes, so that we don't need a new
-            # background process for every asset.
-            self._status = DownloadStatus.FINISHED
-            self.shutdown()
+        is_done = self._bg_downloader is None or self._bg_downloader.all_downloads_done
+        if not is_done:
+            return
+
+        # Done downloading everything, let's shut down.
+        self._status = DownloadStatus.FINISHED
+
+        if self._on_queue_empty_callback is not None:
+            # Call the callback _after_ setting the status, so that when
+            # Blender is pinged about this, it can see it's finished.
+            self._on_queue_empty_callback()
+
+        # TODO: delay this for a few minutes, so that we don't need a new
+        # background process for every asset.
+        self.shutdown()
 
     def _on_callback_error(
             self,
