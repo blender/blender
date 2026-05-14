@@ -19,6 +19,7 @@ ExternalProject_Add(external_thorvg
       --prefix ${LIBDIR}/thorvg
       --libdir lib
       --default-library static
+      ${MESON_CROSSFILE_ARG}
       ${MESON_BUILD_TYPE}
       ${THORVG_EXTRA_OPTIONS}
       ${BUILD_DIR}/thorvg/src/external_thorvg-build
