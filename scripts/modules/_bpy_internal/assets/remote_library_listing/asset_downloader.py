@@ -68,9 +68,8 @@ def download_asset_file(
         downloader = AssetDownloader(
             asset_library_url,
             asset_library_local_path,
-            lambda x: None,  # on-update callback.
-            _asset_download_done,
-            lambda x: None,  # on-queue-empty callback.
+            on_download_done_callback=_asset_download_done,
+            on_download_progress_callback=_asset_download_progress,
         )
         downloader.start()
         _asset_downloaders[asset_library_url] = downloader
@@ -136,9 +135,8 @@ def download_preview(
         downloader = AssetDownloader(
             asset_library_url,
             asset_library_local_path,
-            lambda x: None,  # on-update callback.
-            _preview_download_done,
-            lambda x: None,  # on-queue-empty callback.
+            on_download_done_callback=_preview_download_done,
+            on_download_progress_callback=None,
         )
         downloader.start()
         _preview_downloaders[asset_library_url] = downloader
@@ -180,6 +178,26 @@ def cancel_download_all_assets() -> None:
 
     for downloader in _asset_downloaders.values():
         downloader.cancel_and_shutdown()
+
+
+def _asset_download_progress(
+    _downloader: AssetDownloader,
+    http_req_descr: http_dl.RequestDescription,
+    progress: http_dl.DownloadProgress,
+) -> None:
+    # TODO: ping the window manager, instead of printing to the terminal.
+    downloaded = http_dl.humanize_size(progress.disk_bytes_written)
+    if progress.network_bytes_total is None:
+        print(f"Asset Downloader: downloaded {progress.disk_bytes_written} = {downloaded} of {http_req_descr.url}")
+    else:
+        percentage = 100 * progress.network_bytes_streamed / progress.network_bytes_total
+        if progress.network_bytes_streamed < progress.network_bytes_total:
+            percentage = min(99, percentage)
+        print(
+            f"Asset Downloader: downloaded {
+                progress.disk_bytes_written} = {downloaded} ({
+                percentage:.0f}%) of {
+                http_req_descr.url}")
 
 
 def _asset_download_done(
@@ -244,19 +262,18 @@ class DownloadStatus(enum.Enum):
 
 
 class AssetDownloader:
+    """Downloader for asset files & their thumbnails."""
+
     _locator: RemoteAssetListingLocator
 
-    # Called for download progress
-    type OnUpdateCallback = Callable[['AssetDownloader'], None]
-    _on_update_callback: OnUpdateCallback
+    # Called for each downloaded file (asset or thumbnail) being 'done':
+    type OnDownloadDoneCallback = Callable[['AssetDownloader', http_dl.RequestDescription, Path], None]
+    _on_download_done_callback: OnDownloadDoneCallback | None
 
-    # Called when the entire queue is 'done':
-    type OnDoneCallback = Callable[['AssetDownloader'], None]
-    _on_done_callback: OnDoneCallback
-
-    # Called for each downloaded file being 'done':
-    type OnAssetDoneCallback = Callable[['AssetDownloader', http_dl.RequestDescription, Path], None]
-    _on_asset_done_callback: OnAssetDoneCallback | None
+    # Called to report the download progress.
+    type OnDownloadProgressCallback = Callable[['AssetDownloader',
+                                                http_dl.RequestDescription, http_dl.DownloadProgress], None]
+    _on_download_progress_callback: OnDownloadProgressCallback | None
 
     _bg_downloader: http_dl.BackgroundDownloader | None
     _num_assets_pending: int
@@ -282,9 +299,9 @@ class AssetDownloader:
         self,
         remote_url: str,
         local_path: Path | str,
-        on_update_callback: OnUpdateCallback,
-        on_asset_done_callback: OnAssetDoneCallback,
-        on_done_callback: OnDoneCallback,
+        *,
+        on_download_done_callback: OnDownloadDoneCallback | None,
+        on_download_progress_callback: OnDownloadProgressCallback | None,
     ) -> None:
         """Create a downloader for assets of a specific asset library.
 
@@ -292,29 +309,14 @@ class AssetDownloader:
 
         :param local_path: The directory to download the index files to.
 
-        :param on_update_callback: Called with one parameter (this
-            AssetDownloader) in short, regular intervals
-            (_DOWNLOAD_POLL_INTERVAL) while the download is ongoing, and once
-            just after the download is done.
-
-        :param on_done_callback: called with one parameter (this
-            AssetDownloader) whenever the downloader is "done".
-
-            Here "done" does not imply "successful", as cancellations, network
-            errors, or other issues can cause things to abort. In that case,
-            this function is still called.
-
-        :param on_asset_done_callback: called with one parameter (this
-            AssetDownloader) when at least one new asset finished downloading
-            and was put in its final location, ready to be picked up by the
-            asset system.
+        :param on_download_done_callback: called with one parameter (this
+            AssetDownloader) when a file finished downloading and was put
+            in its final location, ready to be picked up by the asset system.
         """
         self._locator = RemoteAssetListingLocator(remote_url, local_path)
 
-        self._on_done_callback = on_done_callback
-        self._on_update_callback = on_update_callback
-        self._on_asset_done_callback = on_asset_done_callback
-
+        self._on_download_done_callback = on_download_done_callback
+        self._on_download_progress_callback = on_download_progress_callback
         self._num_assets_pending = 0
 
         self._status = DownloadStatus.IDLE
@@ -430,17 +432,9 @@ class AssetDownloader:
         request_descr = self._bg_downloader.queue_download(
             remote_url,
             download_to_path,
-            self._on_asset_done,
             http_method=self._HTTP_METHOD,
         )
         return request_descr.url
-
-    def _on_asset_done(self,
-                       http_req_descr: http_dl.RequestDescription,
-                       local_file: Path,
-                       ) -> None:
-        if self._on_asset_done_callback:
-            self._on_asset_done_callback(self, http_req_descr, local_file)
 
     # TODO: implement this in a more useful way:
     def report(self, level: set[str], message: str) -> None:
@@ -490,7 +484,6 @@ class AssetDownloader:
             # been unregistered, so there will be no more message handling, and
             # so for all intents and purposes, the downloader is done.
             self._bg_downloader = None
-            self._on_done_callback(self)
 
     def on_timer_event(self) -> float:
         assert self._bg_downloader, "timer events should only come in while the bgdownloader is available"
@@ -515,8 +508,6 @@ class AssetDownloader:
                 self._status = DownloadStatus.DOWNLOADING
             else:
                 self._status = DownloadStatus.IDLE
-
-        self._on_update_callback(self)
 
         return self._DOWNLOAD_POLL_INTERVAL
 
@@ -579,12 +570,11 @@ class AssetDownloader:
     def download_progress(
         self,
         http_req_descr: http_dl.RequestDescription,
-        content_length_bytes: int,
-        downloaded_bytes: int,
+        progress: http_dl.DownloadProgress,
     ) -> None:
-        percentage = downloaded_bytes / content_length_bytes * 100
-        self.report({'INFO'}, "File download progress: {:.0f}%".format(percentage))
-        # logger.info("File download progress: %.0f%%", percentage)
+        if self._on_download_progress_callback is None:
+            return
+        self._on_download_progress_callback(self, http_req_descr, progress)
 
     def download_finished(
         self,
@@ -592,7 +582,8 @@ class AssetDownloader:
         local_file: Path,
     ) -> None:
         self.report({'INFO'}, "Download finished: {}".format(http_req_descr.url))
-        logger.info("Download finished: %s", http_req_descr)
+        logger.info("Download finished: %s to %s", http_req_descr, local_file)
 
-        # TODO: tell Blender the download is done.
+        if self._on_download_done_callback is not None:
+            self._on_download_done_callback(self, http_req_descr, local_file)
         self._shutdown_if_done()

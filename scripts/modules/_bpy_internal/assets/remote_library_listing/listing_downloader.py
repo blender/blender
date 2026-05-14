@@ -600,7 +600,7 @@ class RemoteAssetListingDownloader:
         logger.info("Validating %s", path_to_load)
 
         if path_to_load.stat().st_size > MAX_JSON_FILE_SIZE_MB * 1024 * 1024:
-            raise ValueError("{!s} is larger than {!d} MiB, rejecting the file to prevent memory issues".format(
+            raise ValueError("{!s} is larger than {:d} MiB, rejecting the file to prevent memory issues".format(
                 path_to_load, MAX_JSON_FILE_SIZE_MB))
 
         json_data = path_to_load.read_bytes()
@@ -767,12 +767,15 @@ class RemoteAssetListingDownloader:
     def download_progress(
         self,
         http_req_descr: http_dl.RequestDescription,
-        content_length_bytes: int,
-        downloaded_bytes: int,
+        progress: http_dl.DownloadProgress,
     ) -> None:
-        percentage = downloaded_bytes / content_length_bytes * 100
-        self.report({'INFO'}, "File download progress: {:.0f}%".format(percentage))
-        # logger.info("File download progress: %.0f%%", percentage)
+        if progress.network_bytes_total is None:
+            downloaded = http_dl.humanize_size(progress.disk_bytes_written)
+            self.report({'INFO'}, "File download progress: {!s}".format(downloaded))
+        else:
+            percentage = 100 * progress.network_bytes_streamed / progress.network_bytes_total
+            self.report({'INFO'}, "File download progress: {:.0f}%".format(percentage))
+            # logger.info("File download progress: %.0f%%", percentage)
 
     def download_finished(
         self,
