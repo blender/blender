@@ -50,6 +50,8 @@ static const PyC_StringEnumItems py_imbuf_buffer_mode_items[] = {
     {0, nullptr},
 };
 
+#define IB_BUFFER_TYPES_ALL (IB_byte_data | IB_float_data)
+
 const static char *py_imbuf_type_none = "NONE";
 
 struct Py_ImBufBuffer {
@@ -202,6 +204,16 @@ static std::optional<eImBufFlags> py_imbuf_buffer_type_or_error(const ImBuf *ibu
     PyErr_SetString(PyExc_ValueError, "ImBuf has no pixel data");
   }
   return buffer_type;
+}
+
+/**
+ * \return the flags to pass to save functions: the image's existing flags with the
+ * buffer-type bits replaced by the type matching the currently-allocated buffer.
+ */
+static eImBufFlags py_imbuf_write_flags(const ImBuf *ibuf)
+{
+  return eImBufFlags((eImBufFlags(ibuf->flags) & ~IB_BUFFER_TYPES_ALL) |
+                     (ibuf->float_data() ? IB_float_data : IB_byte_data));
 }
 
 /**
@@ -1341,7 +1353,7 @@ static PyObject *imbuf_load_impl(const char *filepath)
     return nullptr;
   }
 
-  ImBuf *ibuf = IMB_load_image_from_file_descriptor(file, IB_byte_data, filepath);
+  ImBuf *ibuf = IMB_load_image_from_file_descriptor(file, IB_BUFFER_TYPES_ALL, filepath);
 
   close(file);
 
@@ -1431,8 +1443,7 @@ static PyObject *M_imbuf_load_from_buffer(PyObject * /*self*/, PyObject *args, P
   }
 
   PyObject *result = nullptr;
-  /* TODO: should be arguments. */
-  int flags = IB_byte_data;
+  const int flags = IB_BUFFER_TYPES_ALL;
 
   /* This supports `PyBytes`, no need for a separate check. */
   if (PyObject_CheckBuffer(buffer_py_ob)) {
@@ -1456,7 +1467,7 @@ static PyObject *M_imbuf_load_from_buffer(PyObject * /*self*/, PyObject *args, P
 
 static PyObject *imbuf_write_impl(ImBuf *ibuf, const char *filepath)
 {
-  const bool ok = IMB_save_image(ibuf, filepath, IB_byte_data);
+  const bool ok = IMB_save_image(ibuf, filepath, py_imbuf_write_flags(ibuf));
   if (ok == false) {
     PyErr_Format(
         PyExc_IOError, "write: Unable to write image file (%s) '%s'", strerror(errno), filepath);
@@ -1527,13 +1538,10 @@ static PyObject *M_imbuf_write(PyObject * /*self*/, PyObject *args, PyObject *kw
  */
 static PyObject *imbuf_write_to_buffer_impl(ImBuf *ibuf, PyObject *file)
 {
-  const bool is_float = ibuf->float_data() != nullptr;
   if (ibuf->ftype == IMB_FTYPE_NONE) {
     ibuf->ftype = IMB_FTYPE_DEFAULT;
   }
-
-  Vector<uint8_t> encoded = IMB_save_image_to_buffer(ibuf,
-                                                     is_float ? IB_float_data : IB_byte_data);
+  Vector<uint8_t> encoded = IMB_save_image_to_buffer(ibuf, py_imbuf_write_flags(ibuf));
   if (encoded.is_empty()) {
     PyErr_SetString(PyExc_RuntimeError, "write_to_buffer: failed to write image to memory");
     return nullptr;
