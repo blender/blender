@@ -256,6 +256,8 @@ class TIME_PT_playback(TimelinePanelButtons, Panel):
         col.prop(screen, "use_play_spreadsheet_editors", text="Spreadsheet")
 
         col = layout.column(heading="Show")
+        if st.type == 'SEQUENCE_EDITOR':
+            col.prop(st, "show_scrubbing_region", text="Scrubbing Region")
         col.prop(scene, "show_subframe", text="Subframes")
 
         layout.separator()

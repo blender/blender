@@ -3305,6 +3305,38 @@ static void region_scale_toggle_hidden(bContext *C, RegionMoveData *rmd, bool do
   }
 }
 
+static void region_scale_apply_stack(RegionMoveData *rmd,
+                                     const wmEvent *event,
+                                     const int size_no_snap,
+                                     const float aspect)
+{
+  if (!(rmd->region->alignment & RGN_STACK_ON_PREV) && rmd->region->next &&
+      !(rmd->region->next->alignment & RGN_STACK_ON_PREV))
+  {
+    return;
+  }
+  const bool axis_x = ELEM(rmd->edge, AE_LEFT_TO_TOPRIGHT, AE_RIGHT_TO_TOPLEFT);
+  const ARegionType *art = rmd->region->runtime->type;
+  const int prefsize = axis_x ? art->prefsizex : art->prefsizey;
+  const int threshold = prefsize + (axis_x ? UI_UNIT_X : UI_UNIT_Y / 4) / aspect;
+  ARegion *target = nullptr;
+
+  if (size_no_snap > threshold && !(rmd->region->flag & RGN_FLAG_HIDDEN) && rmd->region->next &&
+      (rmd->region->next->alignment & RGN_STACK_ON_PREV))
+  {
+    target = rmd->region->next;
+  }
+  else if ((rmd->region->flag & RGN_FLAG_HIDDEN) && (rmd->region->alignment & RGN_STACK_ON_PREV)) {
+    target = rmd->region->prev;
+  }
+
+  if (target) {
+    rmd->region = target;
+    copy_v2_v2_int(rmd->orig_xy, event->xy);
+    rmd->origval = axis_x ? target->sizex : target->sizey;
+  }
+}
+
 static wmOperatorStatus region_scale_modal(bContext *C, wmOperator *op, const wmEvent *event)
 {
   RegionMoveData *rmd = static_cast<RegionMoveData *>(op->customdata);
@@ -3313,14 +3345,14 @@ static wmOperatorStatus region_scale_modal(bContext *C, wmOperator *op, const wm
   /* execute the events */
   switch (event->type) {
     case MOUSEMOVE: {
-      const float aspect = (rmd->region->v2d.flag & V2D_IS_INIT) ?
-                               (BLI_rctf_size_x(&rmd->region->v2d.cur) /
-                                (BLI_rcti_size_x(&rmd->region->v2d.mask) + 1)) :
-                               1.0f;
-      const int snap_size_threshold = (U.widget_unit * 2) / aspect;
       bool size_changed = false;
 
       if (ELEM(rmd->edge, AE_LEFT_TO_TOPRIGHT, AE_RIGHT_TO_TOPLEFT)) {
+        const float aspect_x = (rmd->region->v2d.flag & V2D_IS_INIT) ?
+                                   (BLI_rctf_size_x(&rmd->region->v2d.cur) /
+                                    (BLI_rcti_size_x(&rmd->region->v2d.mask) + 1)) :
+                                   1.0f;
+        const int snap_size_threshold_x = (U.widget_unit * 2) / aspect_x;
         delta = event->xy[0] - rmd->orig_xy[0];
         if (rmd->edge == AE_LEFT_TO_TOPRIGHT) {
           delta = -delta;
@@ -3338,7 +3370,7 @@ static wmOperatorStatus region_scale_modal(bContext *C, wmOperator *op, const wm
         if (rmd->region->runtime->type->snap_size) {
           short sizex_test = rmd->region->runtime->type->snap_size(
               rmd->region, rmd->region->sizex, 0);
-          if ((abs(rmd->region->sizex - sizex_test) < snap_size_threshold) &&
+          if ((abs(rmd->region->sizex - sizex_test) < snap_size_threshold_x) &&
               /* Don't snap to a new size if that would exceed the maximum width. */
               sizex_test <= rmd->maxsize)
           {
@@ -3347,7 +3379,7 @@ static wmOperatorStatus region_scale_modal(bContext *C, wmOperator *op, const wm
         }
         BLI_assert(rmd->region->sizex <= rmd->maxsize);
 
-        if (size_no_snap < UI_UNIT_X / aspect) {
+        if (size_no_snap < UI_UNIT_X / aspect_x) {
           rmd->region->sizex = rmd->origval;
           if (!(rmd->region->flag & RGN_FLAG_HIDDEN)) {
             region_scale_toggle_hidden(C, rmd);
@@ -3365,8 +3397,14 @@ static wmOperatorStatus region_scale_modal(bContext *C, wmOperator *op, const wm
         if (rmd->region->sizex != rmd->origval) {
           size_changed = true;
         }
+        region_scale_apply_stack(rmd, event, size_no_snap, aspect_x);
       }
       else {
+        const float aspect_y = (rmd->region->v2d.flag & V2D_IS_INIT) ?
+                                   (BLI_rctf_size_y(&rmd->region->v2d.cur) /
+                                    (BLI_rcti_size_y(&rmd->region->v2d.mask) + 1)) :
+                                   1.0f;
+        const int snap_size_threshold_y = (U.widget_unit * 2) / aspect_y;
         delta = event->xy[1] - rmd->orig_xy[1];
         if (rmd->edge == AE_BOTTOM_TO_TOPLEFT) {
           delta = -delta;
@@ -3384,7 +3422,7 @@ static wmOperatorStatus region_scale_modal(bContext *C, wmOperator *op, const wm
         if (rmd->region->runtime->type->snap_size) {
           short sizey_test = rmd->region->runtime->type->snap_size(
               rmd->region, rmd->region->sizey, 1);
-          if ((abs(rmd->region->sizey - sizey_test) < snap_size_threshold) &&
+          if ((abs(rmd->region->sizey - sizey_test) < snap_size_threshold_y) &&
               /* Don't snap to a new size if that would exceed the maximum height. */
               (sizey_test <= rmd->maxsize))
           {
@@ -3396,7 +3434,7 @@ static wmOperatorStatus region_scale_modal(bContext *C, wmOperator *op, const wm
         /* NOTE: `UI_UNIT_Y / 4` means you need to drag the footer and execute region
          * almost all the way down for it to become hidden, this is done
          * otherwise its too easy to do this by accident. */
-        if (size_no_snap < (UI_UNIT_Y / 4) / aspect) {
+        if (size_no_snap < (UI_UNIT_Y / 4) / aspect_y) {
           rmd->region->sizey = rmd->origval;
           if (!(rmd->region->flag & RGN_FLAG_HIDDEN)) {
             region_scale_toggle_hidden(C, rmd);
@@ -3414,6 +3452,8 @@ static wmOperatorStatus region_scale_modal(bContext *C, wmOperator *op, const wm
         if (rmd->region->sizey != rmd->origval) {
           size_changed = true;
         }
+
+        region_scale_apply_stack(rmd, event, size_no_snap, aspect_y);
       }
       if (size_changed && rmd->region->runtime->type->on_user_resize) {
         rmd->region->runtime->type->on_user_resize(rmd->region);
@@ -6174,6 +6214,9 @@ static bool match_region_with_redraws(const ScrArea *area,
       default:
         break;
     }
+  }
+  else if (regiontype == RGN_TYPE_SCRUBBING) {
+    return true;
   }
 
   return false;
