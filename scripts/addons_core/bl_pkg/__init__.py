@@ -485,6 +485,20 @@ def remote_asset_library_sync(
     _downloaders.append(downloader)
 
 
+def remote_asset_library_sync_cancel() -> None:
+    """Cancel all remote asset library sync operations.
+
+    This will cancel all running downloads & shut down the downloaders. Any
+    partially-downloaded listing will have to be re-downloaded to be fully
+    correct again.
+    """
+
+    # This calls the relevant _remote_asset_library_sync_done() functions as well, ensuring that each downloader is
+    # properly cleaned up. That includes removing items from _downloaders, hence the copy of that list.
+    for downloader in _downloaders[:]:
+        downloader.cancel_and_shutdown()
+
+
 def _remote_asset_library_sync_done(downloader: _RemoteAssetListingDownloader) -> None:
     """
     Called when the downloading of the remote asset listing is done.
