@@ -83,9 +83,13 @@ float4 get_color(float2 uv, float2 dx, float2 dy)
   }
   col.rgb *= col.a;
 
+  /* When `gp_interp.color_mul` is interpolated for each fragment, it might not always be
+   * exactly 1.0 in the default case. To fix this, clamp any value very close to 1.0 to 1.0. See
+   * #156278. */
+  float4 color_mul_fixed = max(step(1.0f - 1e-6f, gp_interp.color_mul), gp_interp.color_mul);
   /* Composite all other colors on top of texture color.
    * Everything is pre-multiply by `col.a` to have the stencil effect. */
-  col = col * gp_interp.color_mul + col.a * gp_interp.color_add;
+  col = col * color_mul_fixed + col.a * gp_interp.color_add;
 
   col.rgb *= gpencil_lighting();
 
