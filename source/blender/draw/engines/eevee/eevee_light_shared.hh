@@ -201,7 +201,8 @@ struct [[host_shared]] LightData {
   float lod_min;
   /* True if the light uses jittered soft shadows. */
   bool32_t shadow_jitter;
-  float _pad2;
+  /* True if the light shape should be visible to camera rays. */
+  bool32_t visible_camera;
   uint2 light_set_membership;
   /** Used by shadow sync. */
   /* TODO(fclem): this should be part of #eevee::Light struct. But for some reason it gets cleared

@@ -181,6 +181,7 @@ ShaderGroups ShaderModule::static_shaders_load(const ShaderGroups request_bits,
                                        LIGHT_CULLING_SORT,
                                        LIGHT_CULLING_TILE,
                                        LIGHT_CULLING_ZBIN,
+                                       LIGHT_SHAPE_DISPLAY,
                                        LIGHT_SHADOW_SETUP};
     request(LIGHT_CULLING_SHADERS, AS_SPAN(shader_list));
   }
@@ -449,6 +450,8 @@ const char *ShaderModule::static_shader_create_info_name_get(eShaderType shader_
       return "eevee_light_culling_tile";
     case LIGHT_CULLING_ZBIN:
       return "eevee_light_culling_zbin";
+    case LIGHT_SHAPE_DISPLAY:
+      return "eevee_light_shape_display";
     case LIGHT_SHADOW_SETUP:
       return "eevee_light_shadow_setup";
     case RAY_DENOISE_SPATIAL:
