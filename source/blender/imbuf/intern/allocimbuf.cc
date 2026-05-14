@@ -275,9 +275,7 @@ bool ImBuf::colorspace_is_data() const
   if (this->float_buffer.data) {
     return this->float_buffer.colorspace && this->float_buffer.colorspace->is_data();
   }
-  else {
-    return this->byte_buffer.colorspace && this->byte_buffer.colorspace->is_data();
-  }
+  return this->byte_buffer.colorspace && this->byte_buffer.colorspace->is_data();
 }
 
 uint8_t *IMB_steal_byte_buffer(ImBuf *ibuf)
