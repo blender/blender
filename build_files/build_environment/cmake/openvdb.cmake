@@ -45,6 +45,13 @@ set(OPENVDB_EXTRA_ARGS
   # -DLLVM_DIR=${LIBDIR}/llvm/lib/cmake/llvm
 )
 
+if(ANDROID)
+  # Similarly to other libraries, disable Python module for now.
+  list(APPEND OPENVDB_EXTRA_ARGS
+    -DOPENVDB_BUILD_PYTHON_MODULE=OFF
+  )
+endif()
+
 set(OPENVDB_PATCH
   ${PATCH_CMD} -p 1 -d
     ${BUILD_DIR}/openvdb/src/external_openvdb <
@@ -73,9 +80,16 @@ add_dependencies(
   external_zlib
   external_blosc
   external_python
-  external_numpy # Runtime dependency
   external_nanobind
 )
+
+if(NOT ANDROID)
+  # Numpy is not currently being built on Android
+  add_dependencies(
+    external_openvdb
+    external_numpy
+  )
+endif()
 
 if(WIN32)
   if(BLENDER_PLATFORM_ARM)
