@@ -89,8 +89,9 @@ if(CMAKE_CROSSCOMPILING)
   )
   if(ANDROID)
     # Android specific LLVM build flags.
+    string(REPLACE "-none-" "-" _ANDROID_TRIPLE ${ANDROID_LLVM_TRIPLE})
     list(APPEND OSL_EXTRA_ARGS
-      -DLLVM_COMPILE_FLAGS=--target=aarch64-linux-android24^^--sysroot=${CMAKE_SYSROOT}^^-stdlib=libc++
+      -DLLVM_COMPILE_FLAGS=--target=${_ANDROID_TRIPLE}^^--sysroot=${CMAKE_SYSROOT}^^-stdlib=libc++
     )
   endif()
 
@@ -129,6 +130,7 @@ if(CMAKE_CROSSCOMPILING)
   endif()
 
   unset(_LLVM_LIBRARIES)
+  unset(_ANDROID_TRIPLE)
   unset(_GENLUTS_PATHS)
   unset(_OSLC_PATHS)
 endif()
