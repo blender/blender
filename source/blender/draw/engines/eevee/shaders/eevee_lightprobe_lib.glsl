@@ -69,26 +69,26 @@ int3 lightprobe_volume_grid_cell_corner(int cell_corner_id)
   return (int3(cell_corner_id) >> int3(0, 1, 2)) & 1;
 }
 
-float lightprobe_planar_score(PlanarProbeData planar, float3 P, float3 V, float3 L)
+float lightprobe_planar_distance_score(PlanarProbeData planar, float3 P)
 {
   float3 lP = float4(P, 1.0f) * planar.world_to_object_transposed;
-  if (any(greaterThan(abs(lP), float3(1.0f)))) {
-    /* TODO: Transition in Z. Dither? */
-    return 0.0f;
-  }
-  /* Return how much the ray is lined up with the captured ray. */
-  float3 R = -reflect(V, planar.normal);
-  return saturate(dot(L, R));
+  /* TODO: Transition in Z. Dither? */
+  return float(all(lessThan(abs(lP), float3(1.0f))));
+}
+
+float lightprobe_planar_score(PlanarProbeData planar, float3 P, float3 N)
+{
+  return saturate(dot(N, planar.normal)) * lightprobe_planar_distance_score(planar, P);
 }
 
 /**
  * Return the best planar probe index for a given light direction vector and position.
  */
-int lightprobe_planar_select(float3 P, float3 V, float3 L)
+int lightprobe_planar_select(float3 P, float3 N)
 {
   const auto &planar_buf = buffer_get(eevee_lightprobe_planar_data, probe_planar_buf);
-  /* Initialize to the score of a camera ray. */
-  float best_score = saturate(dot(L, -V));
+
+  float best_score = 0.0;
   int best_index = -1;
 
   for (int index = 0; index < PLANAR_PROBE_MAX; index++) {
@@ -96,11 +96,21 @@ int lightprobe_planar_select(float3 P, float3 V, float3 L)
       /* PlanarProbeData doesn't contain any gap, exit at first item that is invalid. */
       break;
     }
-    float score = lightprobe_planar_score(planar_buf[index], P, V, L);
+    float score = lightprobe_planar_score(planar_buf[index], P, N);
     if (score > best_score) {
       best_score = score;
       best_index = index;
     }
   }
   return best_index;
+}
+
+float3 lightprobe_planar_parallax(PlanarProbeData planar, float3 P, float3 N, float3 V)
+{
+  /* Compute distorted reflection vector based on the distance to the reflected object.
+   * In other words find intersection between reflection vector and the sphere center
+   * around point_on_plane. */
+  float3 proj_ref = reflect(-V, N) * planar.parallax_distance;
+  /* Then reflect around the planar probe normal plane to get the final position on screen. */
+  return P + reflect(proj_ref, planar.normal);
 }

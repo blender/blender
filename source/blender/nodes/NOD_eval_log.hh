@@ -274,6 +274,33 @@ class ViewerNodeLog {
   const bke::GeometrySet *main_geometry() const;
 };
 
+/* Compositor image result. */
+class ImageInfoLog : public ValueLog {
+ public:
+  /* Stores compositor::Domain information. */
+  const int2 data_size;
+  const int2 display_size;
+  const int2 data_offset;
+  const float3x3 transformation;
+
+  /* Stores compositor::RealizationOptions information in a textual representation. */
+  const StringRefNull interpolation;
+  const StringRefNull extension_x;
+  const StringRefNull extension_y;
+
+  /* Stores compositor::Result.precision in a textual representation. */
+  const StringRefNull precision;
+
+  ImageInfoLog(int2 data_size,
+               int2 display_size,
+               int2 data_offset,
+               float3x3 transformation,
+               StringRefNull interpolation,
+               StringRefNull extension_x,
+               StringRefNull extension_y,
+               StringRefNull precision);
+};
+
 using Clock = std::chrono::steady_clock;
 using TimePoint = Clock::time_point;
 

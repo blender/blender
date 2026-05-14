@@ -150,7 +150,6 @@ def setup():
             if ob.name != 'Plane' and ob.type != 'LIGHT':
                 ob.hide_probe_volume = True
                 ob.hide_probe_sphere = True
-                ob.hide_probe_plane = True
 
             # Counteract the versioning from legacy EEVEE. Should be changed per file at some point.
             if not skip_subsurface_setup:
@@ -300,6 +299,9 @@ def main():
     elif test_dir_name.startswith('pointcloud'):
         # points transparent
         report.set_fail_threshold(0.06)
+    elif test_dir_name.startswith("lightprobe"):
+        # Avoid higher threshold of the light case
+        report.set_fail_threshold(0.01)
     elif test_dir_name.startswith('light_linking'):
         # Noise difference in transparent material
         report.set_fail_threshold(0.05)

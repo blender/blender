@@ -544,14 +544,6 @@ find_package(IMATH REQUIRED CONFIG)
 set(OpenEXR_ROOT ${LIBDIR}/openexr)
 find_package(OpenEXR REQUIRED CONFIG)
 
-# Try to find tiff first then complain and set static and maybe wrong paths
-windows_find_package(TIFF)
-if(NOT TIFF_FOUND)
-  warn_hardcoded_paths(libtiff)
-  set(TIFF_LIBRARY ${LIBDIR}/tiff/lib/libtiff.lib)
-  set(TIFF_INCLUDE_DIR ${LIBDIR}/tiff/include)
-endif()
-
 if(WITH_JACK)
   set(JACK_INCLUDE_DIRS
     ${LIBDIR}/jack/include/jack

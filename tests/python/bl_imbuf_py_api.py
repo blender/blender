@@ -525,7 +525,7 @@ class TestImBufPlanes(unittest.TestCase):
                         ibuf = imbuf.new(size, planes=pixel_planes)
                         ibuf.file_type = fmt.file_type
                         ibuf.quality = quality
-                        with ibuf.with_buffer('BYTE', write=True) as buf:
+                        with ibuf.with_buffer(write=True) as buf:
                             # Flatten via `cast('B')` to use 1-D slice-assignment
                             # (memoryview sub-views are not implemented).
                             flat = buf.cast('B')
@@ -545,7 +545,7 @@ class TestImBufPlanes(unittest.TestCase):
 
                         ibuf_loaded = imbuf.load(filepath)
                         self.assertEqual(ibuf_loaded.planes, pixel_planes)
-                        with ibuf_loaded.with_buffer('BYTE') as buf:
+                        with ibuf_loaded.with_buffer() as buf:
                             flat = buf.cast('B')
                             for ty in range(2):
                                 for tx in range(2):
@@ -567,7 +567,7 @@ class TestImBufPixelsBytes(unittest.TestCase):
 
     def test_read_only_by_default(self):
         ibuf = imbuf.new((2, 2))
-        with ibuf.with_buffer('BYTE') as buf:
+        with ibuf.with_buffer() as buf:
             self.assertEqual(buf.readonly, True)
             with self.assertRaises(TypeError):
                 buf[0, 0, 0] = 0xFF
@@ -575,7 +575,7 @@ class TestImBufPixelsBytes(unittest.TestCase):
 
     def test_write_mode(self):
         ibuf = imbuf.new((2, 2))
-        with ibuf.with_buffer('BYTE', write=True) as buf:
+        with ibuf.with_buffer(write=True) as buf:
             self.assertEqual(buf.readonly, False)
             buf[0, 0, 0] = 42
             self.assertEqual(buf[0, 0, 0], 42)
@@ -584,7 +584,7 @@ class TestImBufPixelsBytes(unittest.TestCase):
     def test_buffer_shape_and_size(self):
         w, h = 8, 6
         ibuf = imbuf.new((w, h))
-        with ibuf.with_buffer('BYTE') as buf:
+        with ibuf.with_buffer() as buf:
             self.assertEqual(buf.shape, (h, w, 4))
             self.assertEqual(buf.nbytes, w * h * 4)
         ibuf.free()
@@ -593,11 +593,11 @@ class TestImBufPixelsBytes(unittest.TestCase):
         ibuf = imbuf.new((2, 2))
         ibuf.free()
         with self.assertRaises(ReferenceError):
-            ibuf.with_buffer('BYTE')
+            ibuf.with_buffer()
 
     def test_exports_block_resize(self):
         ibuf = imbuf.new((4, 4))
-        with ibuf.with_buffer('BYTE') as buf:
+        with ibuf.with_buffer() as buf:
             with self.assertRaises(BufferError):
                 ibuf.resize((2, 2))
         # After context exit, resize works.
@@ -607,21 +607,21 @@ class TestImBufPixelsBytes(unittest.TestCase):
 
     def test_exports_block_crop(self):
         ibuf = imbuf.new((4, 4))
-        with ibuf.with_buffer('BYTE') as buf:
+        with ibuf.with_buffer() as buf:
             with self.assertRaises(BufferError):
                 ibuf.crop((0, 0), (1, 1))
         ibuf.free()
 
     def test_exports_block_free(self):
         ibuf = imbuf.new((4, 4))
-        with ibuf.with_buffer('BYTE') as buf:
+        with ibuf.with_buffer() as buf:
             with self.assertRaises(BufferError):
                 ibuf.free()
         ibuf.free()
 
     def test_double_enter_blocked(self):
         ibuf = imbuf.new((2, 2))
-        ctx = ibuf.with_buffer('BYTE')
+        ctx = ibuf.with_buffer()
         ctx.__enter__()
         with self.assertRaises(RuntimeError):
             ctx.__enter__()
@@ -630,7 +630,7 @@ class TestImBufPixelsBytes(unittest.TestCase):
 
     def test_reentry_after_exit(self):
         ibuf = imbuf.new((2, 2))
-        ctx = ibuf.with_buffer('BYTE', write=True)
+        ctx = ibuf.with_buffer(write=True)
         buf1 = ctx.__enter__()
         buf1[0, 0, 0] = 10
         ctx.__exit__(None, None, None)
@@ -644,7 +644,7 @@ class TestImBufPixelsRegion(unittest.TestCase):
 
     def setUp(self):
         self.ibuf = imbuf.new((8, 6))
-        with self.ibuf.with_buffer('BYTE', write=True) as buf:
+        with self.ibuf.with_buffer(write=True) as buf:
             for y in range(6):
                 for x in range(8):
                     buf[y, x, 0] = (y * 8 + x) % 256
@@ -653,57 +653,57 @@ class TestImBufPixelsRegion(unittest.TestCase):
         self.ibuf.free()
 
     def test_full_image_shape(self):
-        with self.ibuf.with_buffer('BYTE') as buf:
+        with self.ibuf.with_buffer() as buf:
             self.assertEqual(buf.ndim, 3)
             self.assertEqual(buf.shape, (6, 8, 4))
             self.assertEqual(buf.nbytes, 8 * 6 * 4)
 
     def test_region_none_full_shape(self):
-        with self.ibuf.with_buffer('BYTE', region=None) as buf:
+        with self.ibuf.with_buffer(region=None) as buf:
             self.assertEqual(buf.shape, (6, 8, 4))
 
     def test_sub_region_shape(self):
-        with self.ibuf.with_buffer('BYTE', region=((2, 1), (6, 4))) as buf:
+        with self.ibuf.with_buffer(region=((2, 1), (6, 4))) as buf:
             self.assertEqual(buf.ndim, 3)
             self.assertEqual(buf.shape, (3, 4, 4))
 
     def test_region_pixel_values(self):
-        with self.ibuf.with_buffer('BYTE', region=((2, 1), (6, 4))) as buf:
+        with self.ibuf.with_buffer(region=((2, 1), (6, 4))) as buf:
             # Pixel (2, 1) has index 1*8+2 = 10.
             self.assertEqual(buf[0, 0, 0], 10)
             # Pixel (2, 2) has index 2*8+2 = 18.
             self.assertEqual(buf[1, 0, 0], 18)
 
     def test_full_image_region_matches_no_region(self):
-        with self.ibuf.with_buffer('BYTE', region=((0, 0), (8, 6))) as buf:
+        with self.ibuf.with_buffer(region=((0, 0), (8, 6))) as buf:
             self.assertEqual(buf.shape, (6, 8, 4))
 
     def test_oversized_region_clamped_to_image(self):
-        with self.ibuf.with_buffer('BYTE', region=((-5, -5), (100, 100))) as buf:
+        with self.ibuf.with_buffer(region=((-5, -5), (100, 100))) as buf:
             self.assertEqual(buf.shape, (6, 8, 4))
 
     def test_zero_area_region(self):
         # Fully outside image bounds.
-        with self.ibuf.with_buffer('BYTE', region=((100, 100), (200, 200))) as buf:
+        with self.ibuf.with_buffer(region=((100, 100), (200, 200))) as buf:
             self.assertEqual(buf.ndim, 3)
             self.assertEqual(buf.shape[0] * buf.shape[1], 0)
 
         # Start == end (zero-size).
-        with self.ibuf.with_buffer('BYTE', region=((3, 3), (3, 3))) as buf:
+        with self.ibuf.with_buffer(region=((3, 3), (3, 3))) as buf:
             self.assertEqual(buf.shape[0] * buf.shape[1], 0)
 
     def test_inverted_region_sanitized(self):
         # Inverted region is sanitized (min/max swapped), not treated as empty.
-        with self.ibuf.with_buffer('BYTE', region=((5, 5), (2, 2))) as buf:
+        with self.ibuf.with_buffer(region=((5, 5), (2, 2))) as buf:
             self.assertEqual(buf.ndim, 3)
             self.assertEqual(buf.shape, (3, 3, 4))
 
     def test_region_write_does_not_corrupt_neighbors(self):
-        with self.ibuf.with_buffer('BYTE', write=True, region=((1, 1), (3, 3))) as buf:
+        with self.ibuf.with_buffer(write=True, region=((1, 1), (3, 3))) as buf:
             for r in range(buf.shape[0]):
                 for c in range(buf.shape[1]):
                     buf[r, c, 0] = 0xFF
-        with self.ibuf.with_buffer('BYTE') as buf:
+        with self.ibuf.with_buffer() as buf:
             # Pixel (0, 0) - outside the written region.
             self.assertEqual(buf[0, 0, 0], 0)
             # Pixel (1, 1) - inside the written region.
@@ -712,143 +712,125 @@ class TestImBufPixelsRegion(unittest.TestCase):
 
 class TestImBufPixelsFloat(unittest.TestCase):
 
-    def test_no_float_buffer_error(self):
-        ibuf = imbuf.new((2, 2))
-        with self.assertRaises(RuntimeError):
-            ibuf.with_buffer('FLOAT')
-        ibuf.free()
-
-    def test_ensure_and_access(self):
-        ibuf = imbuf.new((2, 2))
-        ibuf.ensure_buffer('FLOAT')
-        with ibuf.with_buffer('FLOAT') as buf:
+    def test_float_buffer_access(self):
+        ibuf = imbuf.new((2, 2), buffer_type='FLOAT')
+        with ibuf.with_buffer() as buf:
             self.assertEqual(buf.format, "f")
         ibuf.free()
 
     def test_float_write(self):
-        ibuf = imbuf.new((2, 2))
-        ibuf.ensure_buffer('FLOAT')
-        with ibuf.with_buffer('FLOAT', write=True) as buf:
+        ibuf = imbuf.new((2, 2), buffer_type='FLOAT')
+        with ibuf.with_buffer(write=True) as buf:
             buf[0, 0, 0] = 0.5
             self.assertAlmostEqual(buf[0, 0, 0], 0.5, places=5)
         ibuf.free()
 
 
-class TestImBufEnsureBuffers(unittest.TestCase):
+class TestImBufBufferTypeConvert(unittest.TestCase):
 
-    def test_ensure_float_from_byte(self):
+    def test_convert_byte_to_float(self):
         ibuf = imbuf.new((2, 2))
-        with ibuf.with_buffer('BYTE', write=True) as buf:
+        with ibuf.with_buffer(write=True) as buf:
             for c, v in enumerate(COLOR_BYTE):
                 buf[0, 0, c] = v
-        ibuf.ensure_buffer('FLOAT')
-        with ibuf.with_buffer('FLOAT') as buf:
+        ibuf.convert_buffer_type('FLOAT')
+        self.assertEqual(ibuf.buffer_type, 'FLOAT')
+        with ibuf.with_buffer() as buf:
             for i, expected in enumerate(COLOR_BYTE_AS_FLOAT):
                 self.assertAlmostEqual(buf[0, 0, i], expected, places=3)
         ibuf.free()
 
-    def test_ensure_byte_from_float(self):
+    def test_convert_float_to_byte(self):
         ibuf = imbuf.new((2, 2))
-        ibuf.ensure_buffer('FLOAT')
-        with ibuf.with_buffer('FLOAT', write=True) as buf:
+        ibuf.convert_buffer_type('FLOAT')
+        self.assertEqual(ibuf.buffer_type, 'FLOAT')
+        with ibuf.with_buffer(write=True) as buf:
             for i, v in enumerate(COLOR_FLOAT):
                 buf[0, 0, i] = v
-        ibuf.clear_buffer('BYTE')
-        self.assertFalse(ibuf.has_buffer('BYTE'))
-        ibuf.ensure_buffer('BYTE')
-        self.assertTrue(ibuf.has_buffer('BYTE'))
-        with ibuf.with_buffer('BYTE') as buf:
+        ibuf.convert_buffer_type('BYTE')
+        self.assertEqual(ibuf.buffer_type, 'BYTE')
+        with ibuf.with_buffer() as buf:
             for i, expected in enumerate(COLOR_FLOAT_AS_BYTE):
                 self.assertEqual(buf[0, 0, i], expected)
         ibuf.free()
 
-    def test_ensure_noop_when_present(self):
+    def test_convert_noop_when_same_type(self):
         ibuf = imbuf.new((2, 2))
-        ibuf.ensure_buffer('BYTE')
-        ibuf.ensure_buffer('FLOAT')
-        ibuf.ensure_buffer('FLOAT')
+        ibuf.convert_buffer_type('BYTE')
+        self.assertEqual(ibuf.buffer_type, 'BYTE')
         ibuf.free()
 
-    def test_ensure_blocked_while_exported(self):
+    def test_convert_blocked_while_exported(self):
         ibuf = imbuf.new((2, 2))
-        with ibuf.with_buffer('BYTE') as buf:
+        with ibuf.with_buffer() as buf:
             with self.assertRaises(BufferError):
-                ibuf.ensure_buffer('FLOAT')
+                ibuf.convert_buffer_type('FLOAT')
         ibuf.free()
 
 
-class TestImBufHasAndClearBuffer(unittest.TestCase):
+class TestImBufBufferType(unittest.TestCase):
 
-    def test_has_buffer_byte(self):
+    def test_buffer_type_default_is_byte(self):
         ibuf = imbuf.new((2, 2))
-        self.assertTrue(ibuf.has_buffer('BYTE'))
-        self.assertFalse(ibuf.has_buffer('FLOAT'))
+        self.assertEqual(ibuf.buffer_type, 'BYTE')
         ibuf.free()
 
-    def test_clear_buffer_byte(self):
-        ibuf = imbuf.new((2, 2))
-        self.assertTrue(ibuf.has_buffer('BYTE'))
-        ibuf.clear_buffer('BYTE')
-        self.assertFalse(ibuf.has_buffer('BYTE'))
+    def test_buffer_type_float_from_new(self):
+        ibuf = imbuf.new((2, 2), buffer_type='FLOAT')
+        self.assertEqual(ibuf.buffer_type, 'FLOAT')
         ibuf.free()
 
-    def test_clear_buffer_float(self):
+    def test_buffer_type_after_convert(self):
         ibuf = imbuf.new((2, 2))
-        ibuf.ensure_buffer('FLOAT')
-        self.assertTrue(ibuf.has_buffer('FLOAT'))
-        ibuf.clear_buffer('FLOAT')
-        self.assertFalse(ibuf.has_buffer('FLOAT'))
+        self.assertEqual(ibuf.buffer_type, 'BYTE')
+        ibuf.convert_buffer_type('FLOAT')
+        self.assertEqual(ibuf.buffer_type, 'FLOAT')
+        ibuf.convert_buffer_type('BYTE')
+        self.assertEqual(ibuf.buffer_type, 'BYTE')
         ibuf.free()
 
-    def test_clear_buffer_blocked_while_exported(self):
+    def test_buffer_type_is_read_only(self):
         ibuf = imbuf.new((2, 2))
-        with ibuf.with_buffer('BYTE') as buf:
-            with self.assertRaises(BufferError):
-                ibuf.clear_buffer('BYTE')
+        with self.assertRaises(AttributeError):
+            ibuf.buffer_type = 'FLOAT'
         ibuf.free()
 
-    def test_clear_already_absent(self):
+    def test_new_rejects_bogus_buffer_type(self):
+        with self.assertRaises(ValueError):
+            imbuf.new((2, 2), buffer_type='BOGUS')
+
+    def test_convert_round_trip_preserves_pixels(self):
         ibuf = imbuf.new((2, 2))
-        ibuf.clear_buffer('FLOAT')
+        with ibuf.with_buffer(write=True) as buf:
+            for c, v in enumerate(COLOR_BYTE):
+                buf[0, 0, c] = v
+        ibuf.convert_buffer_type('FLOAT')
+        ibuf.convert_buffer_type('BYTE')
+        with ibuf.with_buffer() as buf:
+            for c, v in enumerate(COLOR_BYTE):
+                # sRGB <-> linear through color management may drift by up to 2.
+                self.assertLessEqual(abs(buf[0, 0, c] - v), 2)
         ibuf.free()
 
 
-class TestImBufExitSync(unittest.TestCase):
+class TestImBufNoExitSync(unittest.TestCase):
+    # A writable `with_buffer` exit must NOT auto-sync to a shadow of the other type.
 
-    def test_byte_write_syncs_to_float(self):
+    def test_write_does_not_change_buffer_type(self):
         ibuf = imbuf.new((2, 2))
-        ibuf.ensure_buffer('FLOAT')
-        with ibuf.with_buffer('BYTE', write=True) as buf:
+        self.assertEqual(ibuf.buffer_type, 'BYTE')
+        with ibuf.with_buffer(write=True) as buf:
             for i, v in enumerate(COLOR_BYTE):
                 buf[0, 0, i] = v
-        with ibuf.with_buffer('FLOAT') as buf:
-            for i, expected in enumerate(COLOR_BYTE_AS_FLOAT):
-                self.assertAlmostEqual(buf[0, 0, i], expected, places=3)
-        ibuf.free()
+        # Type is still BYTE; no float shadow was synthesized on exit.
+        self.assertEqual(ibuf.buffer_type, 'BYTE')
 
-    def test_float_write_syncs_to_byte(self):
-        ibuf = imbuf.new((2, 2))
-        ibuf.ensure_buffer('FLOAT')
-        with ibuf.with_buffer('FLOAT', write=True) as buf:
+        ibuf.convert_buffer_type('FLOAT')
+        with ibuf.with_buffer(write=True) as buf:
             for i, v in enumerate(COLOR_FLOAT):
                 buf[0, 0, i] = v
-        with ibuf.with_buffer('BYTE') as buf:
-            for i, expected in enumerate(COLOR_FLOAT_AS_BYTE):
-                self.assertEqual(buf[0, 0, i], expected)
-        ibuf.free()
-
-    def test_read_only_does_not_sync(self):
-        ibuf = imbuf.new((2, 2))
-        ibuf.ensure_buffer('FLOAT')
-        with ibuf.with_buffer('FLOAT', write=True) as buf:
-            for i, v in enumerate(COLOR_FLOAT):
-                buf[0, 0, i] = v
-        # Read-only byte access should NOT overwrite the float buffer.
-        with ibuf.with_buffer('BYTE') as buf:
-            _ = buf[0, 0, 0]
-        with ibuf.with_buffer('FLOAT') as buf:
-            for i, expected in enumerate(COLOR_FLOAT):
-                self.assertAlmostEqual(buf[0, 0, i], expected, places=3)
+        # After write through the float buffer, type stays FLOAT.
+        self.assertEqual(ibuf.buffer_type, 'FLOAT')
         ibuf.free()
 
 

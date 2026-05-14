@@ -1911,9 +1911,11 @@ static bool do_history(const char *filepath, ReportList *reports)
   return true;
 }
 
-static void write_file_main_validate_pre(Main *bmain, ReportList *reports)
+static void write_file_main_validate_pre(Main &bmain,
+                                         const BlendFileWriteParams &params,
+                                         ReportList *reports)
 {
-  if (!bmain->lock) {
+  if (!bmain.lock) {
     return;
   }
 
@@ -1922,8 +1924,8 @@ static void write_file_main_validate_pre(Main *bmain, ReportList *reports)
         reports, RPT_DEBUG, "Checking validity of current .blend file *BEFORE* save to disk");
   }
 
-  BLO_main_validate_shapekeys(bmain, reports);
-  if (!BKE_main_namemap_validate_and_fix(*bmain)) {
+  BLO_main_validate_shapekeys(&bmain, reports);
+  if (!BKE_main_namemap_validate_and_fix(bmain)) {
     BKE_report(reports,
                RPT_ERROR,
                "Critical data corruption: Conflicts and/or otherwise invalid data-blocks names "
@@ -1931,7 +1933,27 @@ static void write_file_main_validate_pre(Main *bmain, ReportList *reports)
   }
 
   if (G.debug & G_DEBUG_IO) {
-    BLO_main_validate_libraries(bmain, reports);
+    BLO_main_validate_libraries(&bmain, reports);
+  }
+
+  if (!params.is_copypaste_buffer) {
+    bool has_clipboard_flag = false;
+    for (ID &id_iter : MainAllIDsIterator(bmain)) {
+      if (id_iter.flag & ID_FLAG_CLIPBOARD_MARK) {
+        CLOG_WARN(&LOG,
+                  "Found an ID '%s' flagged as copy/paste clipboard data while writing a regular "
+                  "blendfile, clearing the flag",
+                  id_iter.name);
+        id_iter.flag &= ~ID_FLAG_CLIPBOARD_MARK;
+        has_clipboard_flag = true;
+      }
+    }
+    if (has_clipboard_flag) {
+      BKE_report(reports,
+                 RPT_INFO,
+                 "Found IDs flagged as copy/paste clipboard data while writing a regular "
+                 "blendfile, the flag has been cleared in these IDs");
+    }
   }
 }
 
@@ -1980,7 +2002,7 @@ static bool BLO_write_file_impl(Main *mainvar,
   const eBPathForeachFlag path_list_flag = (BKE_BPATH_FOREACH_PATH_SKIP_LINKED |
                                             BKE_BPATH_FOREACH_PATH_SKIP_MULTIFILE);
 
-  write_file_main_validate_pre(mainvar, reports);
+  write_file_main_validate_pre(*mainvar, *params, reports);
 
   /* Open temporary file, so we preserve the original in case we crash. */
   SNPRINTF(tempname, "%s@", filepath);

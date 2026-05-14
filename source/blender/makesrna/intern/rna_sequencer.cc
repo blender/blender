@@ -12,11 +12,13 @@
 #include "DNA_sequence_types.h"
 
 #include "BLI_math_rotation.h"
+#include "BLI_string.h"
 #include "BLI_string_utf8_symbols.h"
 
 #include "BLT_translation.hh"
 
 #include "BKE_animsys.h"
+#include "BKE_layer.hh"
 
 #include "RNA_define.hh"
 #include "RNA_enum_types.hh"
@@ -30,6 +32,8 @@
 #include "SEQ_sound.hh"
 
 #include "WM_types.hh"
+
+#include "MEM_guardedalloc.h"
 
 namespace blender {
 
@@ -267,6 +271,90 @@ static void rna_Strip_scene_sync_update(bContext *C, PointerRNA *ptr)
   rna_Strip_invalidate_raw_update(bmain, scene, ptr);
   DEG_id_tag_update(&scene->id, ID_RECALC_AUDIO | ID_RECALC_SEQUENCER_STRIPS);
   DEG_relations_tag_update(bmain);
+}
+
+static void rna_SceneStrip_scene_set(PointerRNA *ptr, PointerRNA value, ReportList * /*reports*/)
+{
+  Strip *strip = static_cast<Strip *>(ptr->data);
+  Scene *new_scene = static_cast<Scene *>(value.data);
+
+  if (strip->scene == new_scene) {
+    return;
+  }
+
+  strip->scene = new_scene;
+
+  MEM_SAFE_DELETE(strip->scene_view_layer_name);
+  if (new_scene != nullptr) {
+    strip->scene_view_layer_name = BLI_strdup(BKE_view_layer_default_render(new_scene)->name);
+  }
+}
+
+static PointerRNA rna_SceneStrip_view_layer_get(PointerRNA *ptr)
+{
+  const Strip *strip = static_cast<const Strip *>(ptr->data);
+  Scene *scene = strip->scene;
+  if (scene == nullptr) {
+    return PointerRNA_NULL;
+  }
+  ViewLayer *view_layer = BKE_view_layer_find(scene, strip->scene_view_layer_name);
+  return RNA_pointer_create_id_subdata(scene->id, RNA_ViewLayer, view_layer);
+}
+
+/**
+ * Check whether `value` is acceptable as a view layer for a scene strip whose scene is `scene`.
+ *
+ * `value.data` may be null (represents "unset"), in which case this always returns true as long
+ * as `scene` is valid. `value.owner_id` may also be null because #ui::template_search assigns
+ * with `RNA_pointer_create_discrete(nullptr, ...)`; in that case it is implicitly accepted and
+ * only the `view_layer` identity is validated against `scene->view_layers`.
+ */
+static bool rna_SceneStrip_view_layer_is_compatible(const Scene *scene, PointerRNA value)
+{
+  if (scene == nullptr) {
+    return false;
+  }
+  if (value.owner_id != nullptr && value.owner_id != &scene->id) {
+    return false;
+  }
+  const ViewLayer *view_layer = static_cast<const ViewLayer *>(value.data);
+  if (view_layer == nullptr) {
+    return true;
+  }
+  for (const ViewLayer &vl : scene->view_layers) {
+    if (&vl == view_layer) {
+      return true;
+    }
+  }
+  return false;
+}
+
+static void rna_SceneStrip_view_layer_set(PointerRNA *ptr,
+                                          PointerRNA value,
+                                          ReportList * /*reports*/)
+{
+  Strip *strip = static_cast<Strip *>(ptr->data);
+  const ViewLayer *view_layer = static_cast<const ViewLayer *>(value.data);
+  if (strip->scene == nullptr) {
+    return;
+  }
+  if (view_layer == nullptr) {
+    MEM_delete(strip->scene_view_layer_name);
+    strip->scene_view_layer_name = BLI_strdup(BKE_view_layer_default_render(strip->scene)->name);
+    return;
+  }
+  if (!rna_SceneStrip_view_layer_is_compatible(strip->scene, value)) {
+    return;
+  }
+
+  MEM_delete(strip->scene_view_layer_name);
+  strip->scene_view_layer_name = BLI_strdup(view_layer->name);
+}
+
+static bool rna_SceneStrip_view_layer_poll(PointerRNA *ptr, PointerRNA value)
+{
+  const Strip *strip = static_cast<const Strip *>(ptr->data);
+  return rna_SceneStrip_view_layer_is_compatible(strip->scene, value);
 }
 
 static void rna_Strip_use_strip(Main *bmain, Scene * /*scene*/, PointerRNA *ptr)
@@ -3379,6 +3467,7 @@ static void rna_def_scene(BlenderRNA *brna)
 
   prop = RNA_def_property(srna, "scene", PROP_POINTER, PROP_NONE);
   RNA_def_property_flag(prop, PROP_EDITABLE | PROP_ID_SELF_CHECK | PROP_CONTEXT_UPDATE);
+  RNA_def_property_pointer_funcs(prop, nullptr, "rna_SceneStrip_scene_set", nullptr, nullptr);
   RNA_def_property_ui_text(prop, "Scene", "Scene that this strip uses");
   RNA_def_property_update(prop, NC_SCENE | ND_SEQUENCER, "rna_Strip_scene_sync_update");
 
@@ -3386,6 +3475,18 @@ static void rna_def_scene(BlenderRNA *brna)
   RNA_def_property_flag(prop, PROP_EDITABLE | PROP_CONTEXT_UPDATE);
   RNA_def_property_pointer_funcs(prop, nullptr, nullptr, nullptr, "rna_Camera_object_poll");
   RNA_def_property_ui_text(prop, "Camera Override", "Override the scene's active camera");
+  RNA_def_property_update(prop, NC_SCENE | ND_SEQUENCER, "rna_Strip_scene_sync_update");
+
+  prop = RNA_def_property(srna, "view_layer", PROP_POINTER, PROP_NONE);
+  RNA_def_property_struct_type(prop, "ViewLayer");
+  RNA_def_property_flag(prop, PROP_EDITABLE | PROP_CONTEXT_UPDATE);
+  RNA_def_property_pointer_funcs(prop,
+                                 "rna_SceneStrip_view_layer_get",
+                                 "rna_SceneStrip_view_layer_set",
+                                 nullptr,
+                                 "rna_SceneStrip_view_layer_poll");
+  RNA_def_property_ui_text(
+      prop, "View Layer", "View Layer of the scene to render (uses the default if unset)");
   RNA_def_property_update(prop, NC_SCENE | ND_SEQUENCER, "rna_Strip_scene_sync_update");
 
   prop = RNA_def_property(srna, "scene_input", PROP_ENUM, PROP_NONE);
@@ -3855,6 +3956,13 @@ static void rna_def_text(StructRNA *srna)
   RNA_def_property_ui_text(prop, "Size", "Size of the text");
   RNA_def_property_range(prop, 0.0, 2000);
   RNA_def_property_ui_range(prop, 0.0f, 2000, 10.0f, 1);
+  RNA_def_property_update(prop, NC_SCENE | ND_SEQUENCER, "rna_Strip_invalidate_raw_update");
+
+  prop = RNA_def_property(srna, "space_line", PROP_FLOAT, PROP_UNSIGNED);
+  RNA_def_property_float_sdna(prop, nullptr, "space_line");
+  RNA_def_property_ui_text(prop, "Line Spacing", "Distance between lines of text");
+  RNA_def_property_range(prop, 0.0, 50.0f);
+  RNA_def_property_ui_range(prop, 0.0f, 10.0f, 1.0f, 1);
   RNA_def_property_update(prop, NC_SCENE | ND_SEQUENCER, "rna_Strip_invalidate_raw_update");
 
   prop = RNA_def_property(srna, "color", PROP_FLOAT, PROP_COLOR_GAMMA);

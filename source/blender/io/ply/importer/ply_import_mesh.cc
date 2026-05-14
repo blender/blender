@@ -11,7 +11,7 @@
 #include "BKE_lib_id.hh"
 #include "BKE_mesh.hh"
 
-#include "GEO_mesh_merge_by_distance.hh"
+#include "GEO_mesh_merge_verts.hh"
 
 #include "BLI_color_types.hh"
 #include "BLI_math_color.h"

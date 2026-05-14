@@ -231,9 +231,6 @@ find_package(PNG REQUIRED)
 set(JPEG_ROOT ${LIBDIR}/jpeg)
 find_package(JPEG REQUIRED)
 
-set(TIFF_ROOT ${LIBDIR}/tiff)
-find_package(TIFF REQUIRED)
-
 set(fmt_ROOT ${LIBDIR}/fmt)
 find_package(fmt REQUIRED)
 

@@ -102,3 +102,12 @@ if(UNIX AND LIBDIR AND
   message(STATUS "Auto updating CMake configuration for Blender 5.0 libraries")
   unset_cache_variables("^HARU")
 endif()
+
+# Detect update to 5.2 libs
+if(DEFINED CACHE{WITH_SDL})
+  message(STATUS "Auto updating CMake configuration for Blender 5.2 libraries")
+  # Following the SDL3 migration (PR !157521), WITH_SDL was renamed to WITH_SDL_AUDIO, and WITH_SDL became an uncached
+  # variable depending on the value of WITH_SDL_AUDIO, WITH_GHOST_SDL, etc... Migrate value and unset old cache variable.
+  set(WITH_SDL_AUDIO $CACHE{WITH_SDL} CACHE BOOL "" FORCE)
+  unset(WITH_SDL CACHE)
+endif()

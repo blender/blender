@@ -22,7 +22,7 @@
 #include "DNA_meshdata_types.h"
 
 #include "DNA_object_types.h"
-#include "GEO_mesh_merge_by_distance.hh"
+#include "GEO_mesh_merge_verts.hh"
 #include "GEO_randomize.hh"
 
 #ifdef USE_WELD_DEBUG_TIME

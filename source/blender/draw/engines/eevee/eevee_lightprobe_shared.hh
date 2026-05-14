@@ -114,6 +114,11 @@ struct [[host_shared]] PlanarProbeData {
   packed_float3 normal;
   /** Layer in the planar capture textures used by this probe. */
   int layer_id;
+  /** Parallax effect for forward evaluation. */
+  float parallax_distance;
+  float _pad0;
+  float _pad1;
+  float _pad2;
 };
 
 /** Viewport Display Pass. */

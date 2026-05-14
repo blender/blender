@@ -63,8 +63,8 @@ class NodeOperation : public Operation {
   void set_needs_node_previews(const bool needed);
 
  protected:
-  /* Compute a node preview using the result returned from the get_preview_result method. */
-  void compute_preview() override;
+  /* Log the values for the inputs and outputs of the node as well as its image preview. */
+  void log_data() override;
 
   /* Returns a reference to the node that this operation represents. */
   const bNode &node() const;

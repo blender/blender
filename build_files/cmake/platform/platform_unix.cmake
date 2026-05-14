@@ -146,16 +146,6 @@ if(DEFINED fmt_DIR)
   mark_as_advanced(fmt_DIR)
 endif()
 
-# XXX Linking errors with debian static tiff :/
-# find_package_wrapper(TIFF REQUIRED)
-find_package(TIFF)
-# CMake 3.28.1 defines this, it doesn't seem to be used, hide by default in the UI.
-# NOTE(@ideasman42): this doesn't seem to be important,
-# on my system it's not-found even when the TIFF library is.
-if(DEFINED Tiff_DIR)
-  mark_as_advanced(Tiff_DIR)
-endif()
-
 if(WITH_VULKAN_BACKEND)
   if(DEFINED LIBDIR)
     # If these are missing, something went wrong (outdated LIBDIR?).

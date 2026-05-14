@@ -192,6 +192,7 @@ static void rna_def_lightprobe(BlenderRNA *brna)
 static void rna_def_lightprobe_plane(BlenderRNA *brna)
 {
   StructRNA *srna;
+  PropertyRNA *prop;
 
   srna = RNA_def_struct(brna, "LightProbePlane", "LightProbe");
   RNA_def_struct_sdna(srna, "LightProbe");
@@ -200,6 +201,15 @@ static void rna_def_lightprobe_plane(BlenderRNA *brna)
       "Planar Probe",
       "Light probe that captures incoming light from a single direction on a plane");
   RNA_def_struct_ui_icon(srna, ICON_LIGHTPROBE_PLANE);
+
+  prop = RNA_def_property(srna, "parallax_distance", PROP_FLOAT, PROP_DISTANCE);
+  RNA_def_property_float_sdna(prop, nullptr, "distpar");
+  RNA_def_property_range(prop, 0.0f, FLT_MAX);
+  RNA_def_property_ui_text(prop,
+                           "Parallax Radius",
+                           "Amount of parallax to use for reflections on Blended materials or "
+                           "Shader To RGB evaluation");
+  RNA_def_property_update(prop, NC_MATERIAL | ND_SHADING, nullptr);
 }
 
 static void rna_def_lightprobe_sphere(BlenderRNA *brna)

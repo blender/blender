@@ -420,6 +420,7 @@ void LookdevModule::sync_pass(PassSimple &pass,
   pass.bind_resources(inst_.hiz_buffer.front);
   pass.bind_resources(inst_.volume_probes);
   pass.bind_resources(inst_.sphere_probes);
+  pass.bind_resources(inst_.planar_probes);
   pass.draw(geom, res_handle, 0);
 }
 

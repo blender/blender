@@ -72,12 +72,24 @@ class PlanarProbeModule {
 
   template<typename PassType> void bind_resources(PassType &pass)
   {
-    /* Disable filter to avoid interpolation with missing background. */
-    GPUSamplerState no_filter = GPUSamplerState::default_sampler();
     pass.bind_ubo(PLANAR_PROBE_BUF_SLOT, &probe_planar_buf_);
-    pass.bind_texture(PLANAR_PROBE_RADIANCE_TEX_SLOT, &radiance_tx_, no_filter);
+    pass.bind_texture(PLANAR_PROBE_RADIANCE_TEX_SLOT, &radiance_tx_);
     pass.bind_texture(PLANAR_PROBE_DEPTH_TEX_SLOT, &depth_tx_);
   }
+
+  /** Used when updating the planar probe. Needed to avoid feedback loop. */
+  struct Dummy {
+    PlanarProbeDataBuf dummy_probe_planar_buf_ = {"probe_planar_buf"};
+    Texture dummy_radiance_tx_ = {"planar.dummy_radiance_tx"};
+    Texture dummy_depth_tx_ = {"planar.dummy_depth_tx"};
+
+    template<typename PassType> void bind_resources(PassType &pass)
+    {
+      pass.bind_ubo(PLANAR_PROBE_BUF_SLOT, dummy_probe_planar_buf_);
+      pass.bind_texture(PLANAR_PROBE_RADIANCE_TEX_SLOT, dummy_radiance_tx_);
+      pass.bind_texture(PLANAR_PROBE_DEPTH_TEX_SLOT, dummy_depth_tx_);
+    }
+  } dummy_resources;
 
   bool enabled() const
   {
