@@ -8949,7 +8949,7 @@ uint *GHOST_SystemWayland::getClipboardImage(int *r_width, int *r_height) const
       if (data) {
         /* Generate the image buffer with the received data. */
         ibuf = blender::IMB_load_image_from_memory(
-            (const uint8_t *)data, data_len, blender::IB_byte_data, "<clipboard>");
+            (const uint8_t *)data, data_len, blender::ImBufFlags::ByteData, "<clipboard>");
         free(data);
       }
     }
@@ -8964,7 +8964,7 @@ uint *GHOST_SystemWayland::getClipboardImage(int *r_width, int *r_height) const
         if (!uris.empty()) {
           const std::string_view &uri = uris.front();
           char *filepath = GHOST_URL_decode_alloc(uri.data(), uri.size());
-          ibuf = blender::IMB_load_image_from_filepath(filepath, blender::IB_byte_data);
+          ibuf = blender::IMB_load_image_from_filepath(filepath, blender::ImBufFlags::ByteData);
           free(filepath);
         }
         free(data);
@@ -9004,8 +9004,8 @@ GHOST_TSuccess GHOST_SystemWayland::putClipboardImage(uint *rgba, int width, int
       reinterpret_cast<uint8_t *>(rgba), nullptr, width, height, 32);
   ibuf->ftype = blender::IMB_FTYPE_PNG;
   ibuf->foptions.quality = 15;
-  blender::Vector<uint8_t> encoded = blender::IMB_save_image_to_buffer(ibuf,
-                                                                       blender::IB_byte_data);
+  blender::Vector<uint8_t> encoded = blender::IMB_save_image_to_buffer(
+      ibuf, blender::ImBufFlags::ByteData);
   if (encoded.is_empty()) {
     blender::IMB_freeImBuf(ibuf);
     return GHOST_kFailure;

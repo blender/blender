@@ -1587,7 +1587,8 @@ static const EnumPropertyItem *rna_ImageFormatSettings_color_depth_itemf(bContex
     return rna_enum_image_color_depth_items;
   }
   else {
-    const int depth_ok = BKE_imtype_valid_depths_with_video(imf->imtype, ptr->owner_id);
+    const eImageFormatDepth depth_ok = BKE_imtype_valid_depths_with_video(imf->imtype,
+                                                                          ptr->owner_id);
     const int is_float = ELEM(
         imf->imtype, R_IMF_IMTYPE_RADHDR, R_IMF_IMTYPE_OPENEXR, R_IMF_IMTYPE_MULTILAYER);
 
@@ -3096,9 +3097,10 @@ static void rna_FFmpegSettings_codec_update(Main * /*bmain*/, Scene * /*scene*/,
   const bool is_render = (id && GS(id->name) == ID_SCE);
   if (is_render) {
     Scene *scene = (Scene *)ptr->owner_id;
-    const int valid_depths = BKE_imtype_valid_depths_with_video(scene->r.im_format.imtype, id);
+    const eImageFormatDepth valid_depths = BKE_imtype_valid_depths_with_video(
+        scene->r.im_format.imtype, id);
     if ((scene->r.im_format.depth & valid_depths) == 0) {
-      scene->r.im_format.depth = eImageFormatDepth(BKE_imtype_first_valid_depth(valid_depths));
+      scene->r.im_format.depth = BKE_imtype_first_valid_depth(valid_depths);
     }
   }
 }

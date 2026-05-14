@@ -141,7 +141,7 @@ static void probe_video_colorspace(MovieReader *anim, char r_colorspace_name[IM_
 }
 
 MovieReader *MOV_open_file(const char *filepath,
-                           const int ib_flags,
+                           const ImBufFlags ib_flags,
                            const int streamindex,
                            const bool keep_original_colorspace,
                            char colorspace[IM_MAX_SPACE])
@@ -492,7 +492,7 @@ static int startffmpeg(MovieReader *anim)
     return -1;
   }
 
-  if (anim->ib_flags & IB_animdeinterlace) {
+  if (flag_is_set(anim->ib_flags, ImBufFlags::Deinterlace)) {
     anim->pFrameDeinterlaced->format = anim->pCodecCtx->pix_fmt;
     anim->pFrameDeinterlaced->width = anim->pCodecCtx->width;
     anim->pFrameDeinterlaced->height = anim->pCodecCtx->height;
@@ -717,7 +717,7 @@ static void ffmpeg_postprocess(MovieReader *anim, AVFrame *input, ImBuf *ibuf)
          input->data[2],
          input->data[3]);
 
-  if (anim->ib_flags & IB_animdeinterlace) {
+  if (flag_is_set(anim->ib_flags, ImBufFlags::Deinterlace)) {
     if (ffmpeg_deinterlace(anim->pFrameDeinterlaced,
                            anim->pFrame,
                            anim->pCodecCtx->pix_fmt,
@@ -1288,7 +1288,7 @@ static ImBuf *ffmpeg_fetchibuf(MovieReader *anim, int position, IMB_Timecode_Typ
     color_mode = ImColorMode::RGB;
   }
 
-  ImBuf *cur_frame_final = IMB_allocImBuf(anim->x, anim->y, 0);
+  ImBuf *cur_frame_final = IMB_allocImBuf(anim->x, anim->y, ImBufFlags::Zero);
   cur_frame_final->color_mode = color_mode;
 
   /* Allocate the storage explicitly to ensure the memory is aligned. */

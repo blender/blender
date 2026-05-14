@@ -578,7 +578,7 @@ static void prefetch_data_fn(void *custom_data, wmJobWorkerStatus * /*worker_sta
   /* The movie reader is not used to access pixel data here, so avoid internal colorspace
    * conversions that ensures typical color pipeline in Blender as they might be expensive. */
   char colorspace[/*MAX_COLORSPACE_NAME*/ 64] = "\0";
-  MovieReader *anim = openanim(job_data->path, IB_byte_data, 0, true, colorspace);
+  MovieReader *anim = openanim(job_data->path, ImBufFlags::Zero, 0, true, colorspace);
 
   if (anim != nullptr) {
     g_drop_coords.strip_length = MOV_get_duration_frames(anim, IMB_TC_NONE);

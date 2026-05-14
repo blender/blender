@@ -1253,7 +1253,7 @@ static void sequencer_add_movie_strips_single_file(bContext *C,
   BLI_path_abs(filepath_abs, BKE_main_blendfile_path(bmain));
 
   char colorspace[/*MAX_COLORSPACE_NAME*/ 64] = "\0";
-  MovieReader *probe_anim = openanim_noload(filepath_abs, IB_byte_data, 0, true, colorspace);
+  MovieReader *probe_anim = openanim_noload(filepath_abs, ImBufFlags::Zero, 0, true, colorspace);
   const int video_count = MOV_get_video_stream_count(probe_anim);
   const int sound_count = load_sound ? BKE_sound_stream_count(bmain, filepath_abs) : 0;
 

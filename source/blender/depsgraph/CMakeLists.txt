@@ -153,6 +153,7 @@ set(LIB
   PRIVATE bf::dna
   PRIVATE bf::draw
   PRIVATE bf::functions
+  PRIVATE bf::imbuf
   PRIVATE bf::intern::atomic
   PRIVATE bf::intern::clog
   PRIVATE bf::intern::guardedalloc

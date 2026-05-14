@@ -225,7 +225,10 @@ bool imb_is_a_iris(const uchar *mem, size_t size)
   return GS(mem) == IRIS_MAGIC;
 }
 
-ImBuf *imb_loadiris(const uchar *mem, size_t size, int flags, ImFileColorSpace & /*r_colorspace*/)
+ImBuf *imb_loadiris(const uchar *mem,
+                    size_t size,
+                    ImBufFlags flags,
+                    ImFileColorSpace & /*r_colorspace*/)
 {
   uint *base, *lptr = nullptr;
   float *fbase, *fptr = nullptr;
@@ -282,8 +285,8 @@ ImBuf *imb_loadiris(const uchar *mem, size_t size, int flags, ImFileColorSpace &
     color_mode = ImColorMode::RGB;
   }
 
-  if (flags & IB_test) {
-    ibuf = IMB_allocImBuf(image.xsize, image.ysize, 0);
+  if (flag_is_set(flags, ImBufFlags::Test)) {
+    ibuf = IMB_allocImBuf(image.xsize, image.ysize, ImBufFlags::Zero);
     if (ibuf) {
       ibuf->ftype = IMB_FTYPE_IRIS;
       ibuf->color_mode = color_mode;
@@ -329,7 +332,7 @@ ImBuf *imb_loadiris(const uchar *mem, size_t size, int flags, ImFileColorSpace &
 
     if (bpp == 1) {
 
-      ibuf = IMB_allocImBuf(xsize, ysize, IB_byte_data);
+      ibuf = IMB_allocImBuf(xsize, ysize, ImBufFlags::ByteData);
       if (!ibuf) {
         goto fail_rle;
       }
@@ -384,7 +387,7 @@ ImBuf *imb_loadiris(const uchar *mem, size_t size, int flags, ImFileColorSpace &
     }
     else { /* bpp == 2 */
 
-      ibuf = IMB_allocImBuf(xsize, ysize, (flags & IB_byte_data) | IB_float_data);
+      ibuf = IMB_allocImBuf(xsize, ysize, (flags & ImBufFlags::ByteData) | ImBufFlags::FloatData);
       if (!ibuf) {
         goto fail_rle;
       }
@@ -444,7 +447,7 @@ ImBuf *imb_loadiris(const uchar *mem, size_t size, int flags, ImFileColorSpace &
 
     if (bpp == 1) {
 
-      ibuf = IMB_allocImBuf(xsize, ysize, IB_byte_data);
+      ibuf = IMB_allocImBuf(xsize, ysize, ImBufFlags::ByteData);
       if (!ibuf) {
         goto fail_uncompressed;
       }
@@ -475,7 +478,7 @@ ImBuf *imb_loadiris(const uchar *mem, size_t size, int flags, ImFileColorSpace &
     }
     else { /* bpp == 2 */
 
-      ibuf = IMB_allocImBuf(xsize, ysize, (flags & IB_byte_data) | IB_float_data);
+      ibuf = IMB_allocImBuf(xsize, ysize, (flags & ImBufFlags::ByteData) | ImBufFlags::FloatData);
       if (!ibuf) {
         goto fail_uncompressed;
       }
@@ -562,7 +565,7 @@ ImBuf *imb_loadiris(const uchar *mem, size_t size, int flags, ImFileColorSpace &
       }
     }
 
-    if (flags & IB_byte_data) {
+    if (flag_is_set(flags, ImBufFlags::ByteData)) {
       IMB_byte_from_float(ibuf);
     }
   }
@@ -942,7 +945,7 @@ static int compressrow(const uchar *lbuf, uchar *rlebuf, const int z, const int 
   return optr - rlebuf;
 }
 
-bool imb_saveiris(ImBuf *ibuf, const char *filepath, int /*flags*/)
+bool imb_saveiris(ImBuf *ibuf, const char *filepath, ImBufFlags /*flags*/)
 {
   const uint limit = std::numeric_limits<ushort>::max();
   if (ibuf->x > limit || ibuf->y > limit) {

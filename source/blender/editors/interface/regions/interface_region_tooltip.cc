@@ -878,7 +878,7 @@ void tooltip_color_field_add(TooltipData &data,
   TooltipImage image_data;
   image_data.width = int(w);
   image_data.height = int(w / (has_alpha ? 4.0f : 3.0f));
-  image_data.ibuf = IMB_allocImBuf(image_data.width, image_data.height, IB_byte_data);
+  image_data.ibuf = IMB_allocImBuf(image_data.width, image_data.height, ImBufFlags::ByteData);
   image_data.border = true;
   image_data.premultiplied = false;
 

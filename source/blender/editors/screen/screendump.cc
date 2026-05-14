@@ -116,7 +116,7 @@ static wmOperatorStatus screenshot_exec(bContext *C, wmOperator *op)
       BLI_path_abs(filepath, BKE_main_blendfile_path_from_global());
 
       /* operator ensures the extension */
-      ibuf = IMB_allocImBuf(scd->dumpsx, scd->dumpsy, 0);
+      ibuf = IMB_allocImBuf(scd->dumpsx, scd->dumpsy, ImBufFlags::Zero);
       ibuf->color_mode = ImColorMode::RGB;
       ibuf->assign_byte_data(scd->dumprect);
       scd->dumprect = nullptr;

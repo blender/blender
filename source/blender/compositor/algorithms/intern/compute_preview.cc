@@ -131,7 +131,7 @@ static int2 compute_preview_size(int2 size)
 ImBuf *compute_preview(Context &context, const Result &input)
 {
   const int2 preview_size = compute_preview_size(input.domain().data_size);
-  ImBuf *image_buffer = IMB_allocImBuf(UNPACK2(preview_size), IB_byte_data);
+  ImBuf *image_buffer = IMB_allocImBuf(UNPACK2(preview_size), ImBufFlags::ByteData);
   if (context.use_gpu()) {
     compute_preview_gpu(context, input, image_buffer);
   }

@@ -211,7 +211,7 @@ static void render_layer_allocate_pass(RenderResult *rr, RenderPass *rp)
   const size_t rectsize = size_t(rr->rectx) * rr->recty * rp->channels;
   float *buffer_data = MEM_new_array_zeroed<float>(rectsize, rp->name);
 
-  rp->ibuf = IMB_allocImBuf(rr->rectx, rr->recty, 0);
+  rp->ibuf = IMB_allocImBuf(rr->rectx, rr->recty, ImBufFlags::Zero);
   rp->ibuf->color_mode = get_color_mode_for_pass(*rp);
   rp->ibuf->channels = rp->channels;
   copy_v2_v2_db(rp->ibuf->ppm, rr->ppm);
@@ -725,7 +725,7 @@ RenderResult *render_result_new_from_exr(
       rpass.recty = recty;
 
       copy_v2_v2_db(rpass.ibuf->ppm, rr->ppm);
-      rpass.ibuf->flags |= IB_has_display_window;
+      rpass.ibuf->flags |= ImBufFlags::HasDisplayWindow;
       copy_v2_v2_int(rpass.ibuf->display_size, display_size);
       copy_v2_v2_int(rpass.ibuf->display_offset, display_offset);
       copy_v2_v2_int(rpass.ibuf->data_offset, data_offset);
@@ -1089,7 +1089,7 @@ ImBuf *RE_render_result_rect_to_ibuf(RenderResult *rr,
                                      const float dither,
                                      const int view_id)
 {
-  ImBuf *ibuf = IMB_allocImBuf(rr->rectx, rr->recty, 0);
+  ImBuf *ibuf = IMB_allocImBuf(rr->rectx, rr->recty, ImBufFlags::Zero);
   ibuf->color_mode = imf->color_mode;
   RenderView *rv = RE_RenderViewGetById(rr, view_id);
 
@@ -1113,7 +1113,7 @@ ImBuf *RE_render_result_rect_to_ibuf(RenderResult *rr,
    */
   if (ibuf->byte_data()) {
     if (BKE_imtype_valid_depths(imf->imtype) &
-        (R_IMF_CHAN_DEPTH_12 | R_IMF_CHAN_DEPTH_16 | R_IMF_CHAN_DEPTH_24 | R_IMF_CHAN_DEPTH_32))
+        (R_IMF_CHAN_DEPTH_12 | R_IMF_CHAN_DEPTH_16 | R_IMF_CHAN_DEPTH_32))
     {
       if (imf->depth == R_IMF_CHAN_DEPTH_8) {
         /* Higher depth bits are supported but not needed for current file output. */
@@ -1349,7 +1349,7 @@ RenderResult *RE_DuplicateRenderResult(RenderResult *rr)
 ImBuf *RE_RenderPassEnsureImBuf(RenderPass *render_pass)
 {
   if (!render_pass->ibuf) {
-    render_pass->ibuf = IMB_allocImBuf(render_pass->rectx, render_pass->recty, 0);
+    render_pass->ibuf = IMB_allocImBuf(render_pass->rectx, render_pass->recty, ImBufFlags::Zero);
     render_pass->ibuf->color_mode = get_color_mode_for_pass(*render_pass);
     render_pass->ibuf->channels = render_pass->channels;
     assign_render_pass_ibuf_colorspace(*render_pass);
@@ -1361,7 +1361,8 @@ ImBuf *RE_RenderPassEnsureImBuf(RenderPass *render_pass)
 ImBuf *RE_RenderViewEnsureImBuf(const RenderResult *render_result, RenderView *render_view)
 {
   if (!render_view->ibuf) {
-    render_view->ibuf = IMB_allocImBuf(render_result->rectx, render_result->recty, 0);
+    render_view->ibuf = IMB_allocImBuf(
+        render_result->rectx, render_result->recty, ImBufFlags::Zero);
   }
 
   return render_view->ibuf;

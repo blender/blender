@@ -404,12 +404,12 @@ std::string cache_image_color(const float color[4])
     return file_path;
   }
 
-  ImBuf *ibuf = IMB_allocImBuf(1, 1, IB_float_data);
+  ImBuf *ibuf = IMB_allocImBuf(1, 1, ImBufFlags::FloatData);
   IMB_rectfill(ibuf, color);
   ibuf->ftype = IMB_FTYPE_OPENEXR;
   ibuf->foptions.flag = R_IMF_EXR_CODEC_RLE;
 
-  if (IMB_save_image(ibuf, file_path.c_str(), IB_float_data)) {
+  if (IMB_save_image(ibuf, file_path.c_str(), ImBufFlags::FloatData)) {
     CLOG_INFO(&LOG, "%s", file_path.c_str());
   }
   else {

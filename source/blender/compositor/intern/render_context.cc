@@ -96,7 +96,7 @@ void FileOutput::add_view(const char *view_name, const Result &data)
   else if (data.channels_count() == 3) {
     color_mode = ImColorMode::RGB;
   }
-  render_view->ibuf = IMB_allocImBuf(UNPACK2(data.domain().data_size), 0);
+  render_view->ibuf = IMB_allocImBuf(UNPACK2(data.domain().data_size), ImBufFlags::Zero);
   render_view->ibuf->color_mode = color_mode;
   IMB_alloc_float_pixels(render_view->ibuf, data.channels_count(), false);
   std::memcpy(
@@ -129,7 +129,7 @@ void FileOutput::add_pass(const char *pass_name,
   else if (render_pass->channels == 3) {
     color_mode = ImColorMode::RGB;
   }
-  render_pass->ibuf = IMB_allocImBuf(UNPACK2(data.domain().data_size), 0);
+  render_pass->ibuf = IMB_allocImBuf(UNPACK2(data.domain().data_size), ImBufFlags::Zero);
   render_pass->ibuf->color_mode = color_mode;
   IMB_alloc_float_pixels(render_pass->ibuf, data.channels_count(), false);
   std::memcpy(

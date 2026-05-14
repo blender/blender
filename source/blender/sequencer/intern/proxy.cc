@@ -240,7 +240,7 @@ ImBuf *seq_proxy_fetch(const RenderData *context, Strip *strip, int timeline_fra
       /* Sequencer takes care of colorspace conversion of the result. The input is the best to be
        * kept unchanged for the performance reasons. */
       proxy->anim = openanim(
-          filepath, IB_byte_data, 0, true, strip->data->colorspace_settings.name);
+          filepath, ImBufFlags::Zero, 0, true, strip->data->colorspace_settings.name);
     }
     if (proxy->anim == nullptr) {
       return nullptr;
@@ -265,8 +265,10 @@ ImBuf *seq_proxy_fetch(const RenderData *context, Strip *strip, int timeline_fra
      * conversion of float to scene linear that would usually be done. */
     char colorspace[IMA_MAX_SPACE];
     STRNCPY(colorspace, context->scene->sequencer_colorspace_settings.name);
-    return IMB_load_image_from_filepath(
-        filepath, IB_byte_data | IB_metadata | IB_no_colorspace_convert, colorspace);
+    return IMB_load_image_from_filepath(filepath,
+                                        ImBufFlags::ByteData | ImBufFlags::Metadata |
+                                            ImBufFlags::NoColorspaceConvert,
+                                        colorspace);
   }
 
   return nullptr;
@@ -504,7 +506,8 @@ static void seq_proxy_build_frame(const Scene *scene,
   }
   BLI_file_ensure_parent_dir_exists(filepath);
 
-  const bool ok = IMB_save_image(ibuf, filepath, save_float ? IB_float_data : IB_byte_data);
+  const bool ok = IMB_save_image(
+      ibuf, filepath, save_float ? ImBufFlags::FloatData : ImBufFlags::ByteData);
   if (ok == false) {
     perror(filepath);
   }
@@ -523,9 +526,9 @@ static ImBuf *render_image_strip_frame(const ProxyBuildContext &context,
 {
   ImBuf *ibuf = nullptr;
 
-  int flag = IB_byte_data | IB_metadata | IB_multilayer;
+  ImBufFlags flag = ImBufFlags::ByteData | ImBufFlags::Metadata | ImBufFlags::MultiLayer;
   if (strip.alpha_mode == SEQ_ALPHA_PREMUL) {
-    flag |= IB_alphamode_premul;
+    flag |= ImBufFlags::AlphaPremul;
   }
 
   if (prefix[0] == '\0') {

@@ -298,14 +298,14 @@ class Context : public compositor::Context {
     }
 
     if (!viewer_result.is_single_value()) {
-      image_buffer->flags |= IB_has_display_window;
+      image_buffer->flags |= ImBufFlags::HasDisplayWindow;
       const int2 display_offset = int2(viewer_result.domain().transformation.location());
       copy_v2_v2_int(image_buffer->display_size, viewer_result.domain().display_size);
       copy_v2_v2_int(image_buffer->display_offset, display_offset);
       copy_v2_v2_int(image_buffer->data_offset, viewer_result.domain().data_offset);
     }
     else {
-      image_buffer->flags &= ~IB_has_display_window;
+      image_buffer->flags &= ~ImBufFlags::HasDisplayWindow;
     }
 
     BKE_image_partial_update_mark_full_update(image);

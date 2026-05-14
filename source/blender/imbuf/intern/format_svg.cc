@@ -19,7 +19,7 @@
 namespace blender {
 
 ImBuf *imb_load_filepath_thumbnail_svg(const char *filepath,
-                                       const int /*flags*/,
+                                       const ImBufFlags /*flags*/,
                                        const size_t max_thumb_size,
                                        ImFileColorSpace & /*r_colorspace*/,
                                        size_t *r_width,
@@ -53,7 +53,7 @@ ImBuf *imb_load_filepath_thumbnail_svg(const char *filepath,
   const int dest_w = std::max(int(w * scale), 1);
   const int dest_h = std::max(int(h * scale), 1);
 
-  ImBuf *ibuf = IMB_allocImBuf(dest_w, dest_h, IB_byte_data);
+  ImBuf *ibuf = IMB_allocImBuf(dest_w, dest_h, ImBufFlags::ByteData);
   if (ibuf != nullptr) {
     nsvgRasterize(
         rast, image, 0, 0, scale, ibuf->byte_data_for_write(), dest_w, dest_h, dest_w * 4);

@@ -408,7 +408,7 @@ static ImBuf *alloc_imbuf_for_colorspace_transform(const ImBuf *input_ibuf)
   /* TODO(sergey): Make it a reusable function.
    * This is a common pattern used in few areas with the goal to bypass the hardcoded number of
    * channels used by IMB_allocImBuf(). */
-  ImBuf *result_ibuf = IMB_allocImBuf(input_ibuf->x, input_ibuf->y, 0);
+  ImBuf *result_ibuf = IMB_allocImBuf(input_ibuf->x, input_ibuf->y, ImBufFlags::Zero);
   result_ibuf->color_mode = input_ibuf->color_mode;
   result_ibuf->channels = input_ibuf->float_data() ? input_ibuf->channels : 4;
 
@@ -419,7 +419,7 @@ static ImBuf *alloc_imbuf_for_colorspace_transform(const ImBuf *input_ibuf)
   result_ibuf->assign_float_data(buffer);
 
   /* Transfer flags related to color space conversion from the original image buffer. */
-  result_ibuf->flags |= (input_ibuf->flags & IB_alphamode_channel_packed);
+  result_ibuf->flags |= (input_ibuf->flags & ImBufFlags::AlphaChannelPacked);
 
   if (input_ibuf->float_data()) {
     /* Simple case: copy pixels from the source image as-is, without any conversion.

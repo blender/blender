@@ -111,17 +111,8 @@ Image *image_render_end(Main &bmain, GPUOffScreen *buffer)
   GPU_matrix_pop();
 
   const int2 win_size = {GPU_offscreen_width(buffer), GPU_offscreen_height(buffer)};
-  const uint imb_flag = IB_byte_data;
-  ImBuf *ibuf = IMB_allocImBuf(win_size.x, win_size.y, imb_flag);
-  if (ibuf->float_data()) {
-    GPU_offscreen_read_color(buffer, GPU_DATA_FLOAT, ibuf->float_data_for_write());
-  }
-  else if (ibuf->byte_data()) {
-    GPU_offscreen_read_color(buffer, GPU_DATA_UBYTE, ibuf->byte_data_for_write());
-  }
-  if (ibuf->float_data() && ibuf->byte_data()) {
-    IMB_byte_from_float(ibuf);
-  }
+  ImBuf *ibuf = IMB_allocImBuf(win_size.x, win_size.y, ImBufFlags::ByteData);
+  GPU_offscreen_read_color(buffer, GPU_DATA_UBYTE, ibuf->byte_data_for_write());
 
   Image *ima = BKE_image_add_from_imbuf(&bmain, ibuf, "Grease Pencil Fill");
   ima->id.tag |= ID_TAG_DOIT;

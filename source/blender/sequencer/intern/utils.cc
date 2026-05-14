@@ -213,13 +213,14 @@ static MovieReader *open_anim_filepath(Strip *strip, const char *filepath, bool 
    * kept unchanged for the performance reasons. */
   if (openfile) {
     return openanim(filepath,
-                    IB_byte_data | ((strip->flag & SEQ_DEINTERLACE) ? IB_animdeinterlace : 0),
+                    (strip->flag & SEQ_DEINTERLACE) ? ImBufFlags::Deinterlace : ImBufFlags::Zero,
                     strip->streamindex,
                     true,
                     strip->data->colorspace_settings.name);
   }
   return openanim_noload(filepath,
-                         IB_byte_data | ((strip->flag & SEQ_DEINTERLACE) ? IB_animdeinterlace : 0),
+                         (strip->flag & SEQ_DEINTERLACE) ? ImBufFlags::Deinterlace :
+                                                           ImBufFlags::Zero,
                          strip->streamindex,
                          true,
                          strip->data->colorspace_settings.name);

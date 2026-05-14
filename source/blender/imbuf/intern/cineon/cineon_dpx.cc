@@ -21,8 +21,11 @@
 
 namespace blender {
 
-static ImBuf *imb_load_dpx_cineon(
-    const uchar *mem, size_t size, int use_cineon, int flags, ImFileColorSpace &r_colorspace)
+static ImBuf *imb_load_dpx_cineon(const uchar *mem,
+                                  size_t size,
+                                  int use_cineon,
+                                  ImBufFlags flags,
+                                  ImFileColorSpace &r_colorspace)
 {
   ImBuf *ibuf;
   LogImageFile *image;
@@ -39,13 +42,13 @@ static ImBuf *imb_load_dpx_cineon(
 
   logImageGetSize(image, &width, &height, &depth);
 
-  ibuf = IMB_allocImBuf(width, height, IB_float_data | flags);
+  ibuf = IMB_allocImBuf(width, height, ImBufFlags::FloatData | flags);
   if (ibuf == nullptr) {
     logImageClose(image);
     return nullptr;
   }
 
-  if (!(flags & IB_test)) {
+  if (!flag_is_set(flags, ImBufFlags::Test)) {
     if (logImageGetDataRGBA(image, ibuf->float_data_for_write(), 1) != 0) {
       logImageClose(image);
       IMB_freeImBuf(ibuf);
@@ -57,8 +60,8 @@ static ImBuf *imb_load_dpx_cineon(
   logImageClose(image);
   ibuf->ftype = use_cineon ? IMB_FTYPE_CINEON : IMB_FTYPE_DPX;
 
-  if (flags & IB_alphamode_detect) {
-    ibuf->flags |= IB_alphamode_premul;
+  if (flag_is_set(flags, ImBufFlags::AlphaDetect)) {
+    ibuf->flags |= ImBufFlags::AlphaPremul;
   }
 
   r_colorspace.is_hdr_float = true;
@@ -169,7 +172,7 @@ static int imb_save_dpx_cineon(ImBuf *ibuf, const char *filepath, int use_cineon
   return rvalue;
 }
 
-bool imb_save_cineon(ImBuf *buf, const char *filepath, int /*flags*/)
+bool imb_save_cineon(ImBuf *buf, const char *filepath, ImBufFlags /*flags*/)
 {
   return imb_save_dpx_cineon(buf, filepath, 1);
 }
@@ -179,7 +182,10 @@ bool imb_is_a_cineon(const uchar *mem, size_t size)
   return logImageIsCineon(mem, size);
 }
 
-ImBuf *imb_load_cineon(const uchar *mem, size_t size, int flags, ImFileColorSpace &r_colorspace)
+ImBuf *imb_load_cineon(const uchar *mem,
+                       size_t size,
+                       ImBufFlags flags,
+                       ImFileColorSpace &r_colorspace)
 {
   if (!imb_is_a_cineon(mem, size)) {
     return nullptr;

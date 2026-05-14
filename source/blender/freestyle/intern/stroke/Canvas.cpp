@@ -338,7 +338,8 @@ void Canvas::loadMap(const char *iFileName, const char *iMapName, uint iNbLevels
   qimg = &newMap;
 #endif
   /* OCIO_TODO: support different input color space */
-  blender::ImBuf *qimg = blender::IMB_load_image_from_filepath(filePath.c_str(), 0);
+  blender::ImBuf *qimg = blender::IMB_load_image_from_filepath(filePath.c_str(),
+                                                               blender::ImBufFlags::Zero);
   if (qimg == nullptr) {
     cerr << "Could not load image file " << filePath << endl;
     return;
@@ -415,7 +416,7 @@ void Canvas::loadMap(const char *iFileName, const char *iMapName, uint iNbLevels
 #endif
 
     // soc  QImage qtmp(ow, oh, QImage::Format_RGB32);
-    blender::ImBuf *qtmp = IMB_allocImBuf(ow, oh, blender::IB_byte_data);
+    blender::ImBuf *qtmp = IMB_allocImBuf(ow, oh, blender::ImBufFlags::ByteData);
 
     // int k = (1 << i);
     uchar *qtmp_byte_data = qtmp->byte_data_for_write();
@@ -432,7 +433,7 @@ void Canvas::loadMap(const char *iFileName, const char *iMapName, uint iNbLevels
     filepath << base;
     filepath << i << ".bmp";
     qtmp->ftype = blender::IMB_FTYPE_BMP;
-    IMB_save_image(qtmp, const_cast<char *>(filepath.str().c_str()), 0);
+    IMB_save_image(qtmp, const_cast<char *>(filepath.str().c_str()), blender::ImBufFlags::Zero);
   }
 
 #if 0

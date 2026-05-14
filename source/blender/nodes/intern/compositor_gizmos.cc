@@ -390,8 +390,9 @@ void box_mask_refresh(const bContext *C, wmGizmoGroup *gzgroup)
   }
 
   mask_group->state.dims = node_gizmo_safe_calc_dims(ibuf, GIZMO_NODE_DEFAULT_DIMS);
-  mask_group->state.offset = ibuf->flags & IB_has_display_window ? float2(ibuf->display_offset) :
-                                                                   float2(0.0f);
+  mask_group->state.offset = flag_is_set(ibuf->flags, ImBufFlags::HasDisplayWindow) ?
+                                 float2(ibuf->display_offset) :
+                                 float2(0.0f);
 
   RNA_float_set_array(gz->ptr, "dimensions", mask_group->state.dims);
   WM_gizmo_set_flag(gz, WM_GIZMO_HIDDEN, false);
@@ -653,8 +654,9 @@ void crop_refresh(const bContext *C, wmGizmoGroup *gzgroup)
   }
 
   crop_group->state.dims = node_gizmo_safe_calc_dims(ibuf, GIZMO_NODE_DEFAULT_DIMS);
-  crop_group->state.offset = ibuf->flags & IB_has_display_window ? float2(ibuf->display_offset) :
-                                                                   float2(0.0f);
+  crop_group->state.offset = flag_is_set(ibuf->flags, ImBufFlags::HasDisplayWindow) ?
+                                 float2(ibuf->display_offset) :
+                                 float2(0.0f);
 
   RNA_float_set_array(gz->ptr, "dimensions", crop_group->state.dims);
   WM_gizmo_set_flag(gz, WM_GIZMO_HIDDEN, false);
@@ -834,8 +836,9 @@ void glare_refresh(const bContext *C, wmGizmoGroup *gzgroup)
   }
 
   glare_group->state.dims = node_gizmo_safe_calc_dims(ibuf, GIZMO_NODE_DEFAULT_DIMS);
-  glare_group->state.offset = ibuf->flags & IB_has_display_window ? float2(ibuf->display_offset) :
-                                                                    float2(0.0f);
+  glare_group->state.offset = flag_is_set(ibuf->flags, ImBufFlags::HasDisplayWindow) ?
+                                  float2(ibuf->display_offset) :
+                                  float2(0.0f);
 
   SpaceNode *snode = find_active_node_editor(C);
   BLI_assert(snode != nullptr);
@@ -985,8 +988,9 @@ void corner_pin_refresh(const bContext *C, wmGizmoGroup *gzgroup)
   }
 
   cpin_group->state.dims = node_gizmo_safe_calc_dims(ibuf, GIZMO_NODE_DEFAULT_DIMS);
-  cpin_group->state.offset = ibuf->flags & IB_has_display_window ? float2(ibuf->display_offset) :
-                                                                   float2(0.0f);
+  cpin_group->state.offset = flag_is_set(ibuf->flags, ImBufFlags::HasDisplayWindow) ?
+                                 float2(ibuf->display_offset) :
+                                 float2(0.0f);
 
   SpaceNode *snode = find_active_node_editor(C);
   BLI_assert(snode != nullptr);
@@ -1201,8 +1205,9 @@ void split_refresh(const bContext *C, wmGizmoGroup *gzgroup)
 
   /* Larger fallback size otherwise the gizmo would be partially hidden. */
   split_group->state.dims = node_gizmo_safe_calc_dims(ibuf, float2{1000.0f, 1000.0f});
-  split_group->state.offset = ibuf->flags & IB_has_display_window ? float2(ibuf->display_offset) :
-                                                                    float2(0.0f);
+  split_group->state.offset = flag_is_set(ibuf->flags, ImBufFlags::HasDisplayWindow) ?
+                                  float2(ibuf->display_offset) :
+                                  float2(0.0f);
 
   RNA_float_set_array(gz->ptr, "dimensions", split_group->state.dims);
   WM_gizmo_set_flag(gz, WM_GIZMO_HIDDEN, false);
@@ -1376,7 +1381,7 @@ void transform_refresh(const bContext *C, wmGizmoGroup *gzgroup)
     return;
   }
 
-  transform_group->state.offset = ibuf->flags & IB_has_display_window ?
+  transform_group->state.offset = flag_is_set(ibuf->flags, ImBufFlags::HasDisplayWindow) ?
                                       float2(ibuf->display_offset) :
                                       float2(0.0f);
   const float2 dims = node_gizmo_safe_calc_dims(ibuf, GIZMO_NODE_DEFAULT_DIMS);

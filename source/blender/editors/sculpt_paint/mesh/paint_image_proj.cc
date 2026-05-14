@@ -5903,7 +5903,7 @@ static void paint_proj_stroke_ps(const bContext * /*C*/,
       img->is_data = false;
       img->is_srgb = false;
 
-      if (ibuf->colormanage_flag & IMB_COLORMANAGE_IS_DATA) {
+      if (ibuf->colorspace_is_data()) {
         img->is_data = true;
       }
       else if (ibuf->byte_data() && ibuf->byte_buffer.colorspace) {
@@ -6462,7 +6462,7 @@ static wmOperatorStatus texture_paint_image_from_view_exec(bContext *C, wmOperat
                                         region,
                                         w,
                                         h,
-                                        IB_byte_data,
+                                        ImBufFlags::ByteData,
                                         R_ALPHAPREMUL,
                                         nullptr,
                                         false,

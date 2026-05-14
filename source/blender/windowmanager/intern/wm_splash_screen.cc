@@ -148,14 +148,14 @@ static ImBuf *wm_block_splash_image(int width, int *r_height)
             U.app_template, template_directory, sizeof(template_directory)))
     {
       BLI_path_join(splash_filepath, sizeof(splash_filepath), template_directory, "splash.png");
-      ibuf = IMB_load_image_from_filepath(splash_filepath, IB_byte_data);
+      ibuf = IMB_load_image_from_filepath(splash_filepath, ImBufFlags::ByteData);
     }
   }
 
   if (ibuf == nullptr) {
     const char *custom_splash_path = BLI_getenv("BLENDER_CUSTOM_SPLASH");
     if (custom_splash_path) {
-      ibuf = IMB_load_image_from_filepath(custom_splash_path, IB_byte_data);
+      ibuf = IMB_load_image_from_filepath(custom_splash_path, ImBufFlags::ByteData);
     }
   }
 
@@ -163,7 +163,7 @@ static ImBuf *wm_block_splash_image(int width, int *r_height)
     const uchar *splash_data = reinterpret_cast<const uchar *>(datatoc_splash_png);
     size_t splash_data_size = datatoc_splash_png_size;
     ibuf = IMB_load_image_from_memory(
-        splash_data, splash_data_size, IB_byte_data, "<splash screen>");
+        splash_data, splash_data_size, ImBufFlags::ByteData, "<splash screen>");
   }
 
   if (ibuf) {
@@ -196,7 +196,7 @@ static ImBuf *wm_block_splash_banner_image(int *r_width,
 
   const char *custom_splash_path = BLI_getenv("BLENDER_CUSTOM_SPLASH_BANNER");
   if (custom_splash_path) {
-    ibuf = IMB_load_image_from_filepath(custom_splash_path, IB_byte_data);
+    ibuf = IMB_load_image_from_filepath(custom_splash_path, ImBufFlags::ByteData);
   }
 
   if (!ibuf) {

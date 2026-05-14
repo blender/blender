@@ -37,18 +37,19 @@ ImBuf *prepare_effect_imbufs(const RenderData *context,
   Scene *scene = context->scene;
   int x = context->rectx;
   int y = context->recty;
-  int base_flags = uninitialized_pixels ? IB_uninitialized_pixels : 0;
+  ImBufFlags base_flags = uninitialized_pixels ? ImBufFlags::UninitializedPixels :
+                                                 ImBufFlags::Zero;
 
   if (!ibuf1 && !ibuf2) {
     /* Hmm, global float option? */
-    out = IMB_allocImBuf(x, y, IB_byte_data | base_flags);
+    out = IMB_allocImBuf(x, y, ImBufFlags::ByteData | base_flags);
   }
   else if ((ibuf1 && ibuf1->float_data()) || (ibuf2 && ibuf2->float_data())) {
     /* if any inputs are float, output is float too */
-    out = IMB_allocImBuf(x, y, IB_float_data | base_flags);
+    out = IMB_allocImBuf(x, y, ImBufFlags::FloatData | base_flags);
   }
   else {
-    out = IMB_allocImBuf(x, y, IB_byte_data | base_flags);
+    out = IMB_allocImBuf(x, y, ImBufFlags::ByteData | base_flags);
   }
 
   if (out->float_data()) {

@@ -45,12 +45,10 @@ struct Py_ImBuf;
   "   :type buffer_type: Literal['BYTE', 'FLOAT']\n"
 
 static const PyC_StringEnumItems py_imbuf_buffer_mode_items[] = {
-    {IB_byte_data, "BYTE"},
-    {IB_float_data, "FLOAT"},
+    {int(ImBufFlags::ByteData), "BYTE"},
+    {int(ImBufFlags::FloatData), "FLOAT"},
     {0, nullptr},
 };
-
-#define IB_BUFFER_TYPES_ALL (IB_byte_data | IB_float_data)
 
 const static char *py_imbuf_type_none = "NONE";
 
@@ -183,13 +181,13 @@ static bool py_imbuf_region_sanitize(const ImBuf *ibuf, rcti *region)
  *
  * \note Float takes precedence when both are present.
  */
-static std::optional<eImBufFlags> py_imbuf_buffer_type(const ImBuf *ibuf)
+static std::optional<ImBufFlags> py_imbuf_buffer_type(const ImBuf *ibuf)
 {
   if (ibuf->float_data() != nullptr) {
-    return IB_float_data;
+    return ImBufFlags::FloatData;
   }
   if (ibuf->byte_data() != nullptr) {
-    return IB_byte_data;
+    return ImBufFlags::ByteData;
   }
   return std::nullopt;
 }
@@ -197,9 +195,9 @@ static std::optional<eImBufFlags> py_imbuf_buffer_type(const ImBuf *ibuf)
 /**
  * A version of #py_imbuf_buffer_type, that raises an exception when there is no buffer data.
  */
-static std::optional<eImBufFlags> py_imbuf_buffer_type_or_error(const ImBuf *ibuf)
+static std::optional<ImBufFlags> py_imbuf_buffer_type_or_error(const ImBuf *ibuf)
 {
-  std::optional<eImBufFlags> buffer_type = py_imbuf_buffer_type(ibuf);
+  std::optional<ImBufFlags> buffer_type = py_imbuf_buffer_type(ibuf);
   if (UNLIKELY(buffer_type == std::nullopt)) {
     PyErr_SetString(PyExc_ValueError, "ImBuf has no pixel data");
   }
@@ -208,12 +206,11 @@ static std::optional<eImBufFlags> py_imbuf_buffer_type_or_error(const ImBuf *ibu
 
 /**
  * \return the flags to pass to save functions: the image's existing flags with the
- * buffer-type bits replaced by the type matching the currently-allocated buffer.
+ * buffer-type bits matching the currently-allocated buffer.
  */
-static eImBufFlags py_imbuf_write_flags(const ImBuf *ibuf)
+static ImBufFlags py_imbuf_write_flags(const ImBuf *ibuf)
 {
-  return eImBufFlags((eImBufFlags(ibuf->flags) & ~IB_BUFFER_TYPES_ALL) |
-                     (ibuf->float_data() ? IB_float_data : IB_byte_data));
+  return ibuf->flags | (ibuf->float_data() ? ImBufFlags::FloatData : ImBufFlags::ByteData);
 }
 
 /**
@@ -222,12 +219,12 @@ static eImBufFlags py_imbuf_write_flags(const ImBuf *ibuf)
  */
 #define PY_IMBUF_CHECK_BUFFER_TYPE_OBJ(obj, buffer_type_var) \
   PY_IMBUF_CHECK_OBJ(obj); \
-  const std::optional<eImBufFlags> _buffer_type_or_none = py_imbuf_buffer_type_or_error( \
+  const std::optional<ImBufFlags> _buffer_type_or_none = py_imbuf_buffer_type_or_error( \
       (obj)->ibuf); \
   if (UNLIKELY(_buffer_type_or_none == std::nullopt)) { \
     return nullptr; \
   } \
-  const eImBufFlags buffer_type_var = *(_buffer_type_or_none)
+  const ImBufFlags buffer_type_var = *(_buffer_type_or_none)
 
 /** \} */
 
@@ -479,11 +476,11 @@ static PyObject *py_imbuf_convert_buffer_type(Py_ImBuf *self, PyObject *args, Py
   }
 
   ImBuf *ibuf = self->ibuf;
-  if (buffer_type.value_found == source_buffer_type) {
+  if (ImBufFlags(buffer_type.value_found) == source_buffer_type) {
     Py_RETURN_NONE;
   }
 
-  if (buffer_type.value_found == IB_byte_data) {
+  if (ImBufFlags(buffer_type.value_found) == ImBufFlags::ByteData) {
     IMB_byte_from_float(ibuf);
     if (UNLIKELY(ibuf->byte_data() == nullptr)) {
       PyErr_SetString(PyExc_MemoryError, "failed to allocate byte buffer");
@@ -770,7 +767,7 @@ static PyObject *py_imbuf_buffer_type_get(Py_ImBuf *self, void * /*closure*/)
 {
   PY_IMBUF_CHECK_BUFFER_TYPE_OBJ(self, buffer_type);
   return PyUnicode_FromString(
-      PyC_StringEnum_FindIDFromValue(py_imbuf_buffer_mode_items, buffer_type));
+      PyC_StringEnum_FindIDFromValue(py_imbuf_buffer_mode_items, int(buffer_type)));
 }
 
 static PyGetSetDef Py_ImBuf_getseters[] = {
@@ -964,7 +961,7 @@ static PyObject *py_imbuf_buffer_enter(Py_ImBufBuffer *self)
   }
   PY_IMBUF_CHECK_BUFFER_TYPE_OBJ(self->py_ibuf, buffer_type);
   ImBuf *ibuf = self->py_ibuf->ibuf;
-  const bool is_byte = (buffer_type == IB_byte_data);
+  const bool is_byte = (buffer_type == ImBufFlags::ByteData);
 
   const int channels = is_byte ? 4 : (ibuf->channels ? ibuf->channels : 4);
   const Py_ssize_t itemsize = is_byte ? 1 : Py_ssize_t(sizeof(float));
@@ -1302,7 +1299,7 @@ static PyObject *M_imbuf_new(PyObject * /*self*/, PyObject *args, PyObject *kw)
 {
   int size[2];
   int planes = 32;
-  PyC_StringEnum buffer_type = {py_imbuf_buffer_mode_items, IB_byte_data};
+  PyC_StringEnum buffer_type = {py_imbuf_buffer_mode_items, int(ImBufFlags::ByteData)};
   static const char *_keywords[] = {
       "size",
       "planes",
@@ -1328,7 +1325,7 @@ static PyObject *M_imbuf_new(PyObject * /*self*/, PyObject *args, PyObject *kw)
     return nullptr;
   }
 
-  const uint flags = buffer_type.value_found;
+  const ImBufFlags flags = ImBufFlags(buffer_type.value_found);
   ImColorMode color_mode = ImColorMode::RGBA;
   if (planes == 8) {
     color_mode = ImColorMode::BW;
@@ -1364,7 +1361,8 @@ static PyObject *imbuf_load_impl(const char *filepath)
     return nullptr;
   }
 
-  ImBuf *ibuf = IMB_load_image_from_file_descriptor(file, IB_BUFFER_TYPES_ALL, filepath);
+  ImBuf *ibuf = IMB_load_image_from_file_descriptor(
+      file, ImBufFlags::ByteData | ImBufFlags::FloatData, filepath);
 
   close(file);
 
@@ -1417,7 +1415,7 @@ static PyObject *M_imbuf_load(PyObject * /*self*/, PyObject *args, PyObject *kw)
 
 static PyObject *imbuf_load_from_memory_impl(const char *buffer,
                                              const size_t buffer_size,
-                                             int flags)
+                                             ImBufFlags flags)
 {
   ImBuf *ibuf = IMB_load_image_from_memory(
       reinterpret_cast<const uchar *>(buffer), buffer_size, flags, "<imbuf.load_from_buffer>");
@@ -1460,7 +1458,7 @@ static PyObject *M_imbuf_load_from_buffer(PyObject * /*self*/, PyObject *args, P
   }
 
   PyObject *result = nullptr;
-  const int flags = IB_BUFFER_TYPES_ALL;
+  const ImBufFlags flags = ImBufFlags::ByteData | ImBufFlags::FloatData;
 
   /* This supports `PyBytes`, no need for a separate check. */
   if (PyObject_CheckBuffer(buffer_py_ob)) {

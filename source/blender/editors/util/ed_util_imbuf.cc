@@ -177,8 +177,9 @@ static void image_sample_apply(bContext *C, wmOperator *op, const wmEvent *event
     return;
   }
 
-  const float2 offset = ibuf->flags & IB_has_display_window ? float2(ibuf->display_offset) :
-                                                              float2(0.0f);
+  const float2 offset = flag_is_set(ibuf->flags, ImBufFlags::HasDisplayWindow) ?
+                            float2(ibuf->display_offset) :
+                            float2(0.0f);
   int x = int(uv[0] * ibuf->x), y = int(uv[1] * ibuf->y);
 
   if (x >= offset[0] && y >= offset[1] && x < (ibuf->x + offset[0]) && y < (ibuf->y + offset[1])) {

@@ -195,7 +195,7 @@ static ImBuf *compute_linear_buffer(ImBuf *image_buffer)
 {
   /* Do not pass the flags to the allocation function to avoid buffer allocation, but assign them
    * after to retain important information like precision and alpha mode. */
-  ImBuf *linear_image_buffer = IMB_allocImBuf(image_buffer->x, image_buffer->y, 0);
+  ImBuf *linear_image_buffer = IMB_allocImBuf(image_buffer->x, image_buffer->y, ImBufFlags::Zero);
   linear_image_buffer->color_mode = image_buffer->color_mode;
   linear_image_buffer->flags = image_buffer->flags;
 
@@ -366,7 +366,7 @@ CachedImage::CachedImage(Context &context,
     buffer_result.release();
   }
 
-  if (image_buffer->flags & IB_has_display_window) {
+  if (flag_is_set(image_buffer->flags, ImBufFlags::HasDisplayWindow)) {
     this->result.domain().display_size = int2(image_buffer->display_size);
     this->result.domain().data_offset = int2(image_buffer->data_offset);
     this->result.transform(
