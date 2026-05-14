@@ -5,14 +5,13 @@
 #pragma once
 
 #include "draw_view_infos.hh"
-#include "infos/eevee_light_infos.hh"
 #include "infos/eevee_volume_resolved_infos.hh"
 
 FRAGMENT_SHADER_CREATE_INFO(draw_view)
-FRAGMENT_SHADER_CREATE_INFO(eevee_light_data)
 FRAGMENT_SHADER_CREATE_INFO(eevee_volume_lib)
 
 #include "draw_view_lib.glsl"
+#include "eevee_light_data.bsl.hh"
 #include "eevee_light_lib.glsl"
 #include "eevee_reverse_z_lib.bsl.hh"
 #include "eevee_volume_lib.bsl.hh"
@@ -24,7 +23,6 @@ namespace eevee::light {
 
 struct ShapeDisplayResources {
   [[legacy_info]] ShaderCreateInfo draw_view;
-  [[legacy_info]] ShaderCreateInfo eevee_light_data;
   [[legacy_info]] ShaderCreateInfo eevee_volume_lib;
 };
 
@@ -104,6 +102,7 @@ float2 shape_display_quad_position_get(int vertex_id)
 
 [[vertex]] [[clip_control]]
 void shape_display_vert([[resource_table]] const ShapeDisplayResources & /*srt*/,
+                        [[resource_table]] const LightRenderData &lrd,
                         [[vertex_id]] const int vertex_id,
                         [[out]] ShapeDisplayVertOut &v_out,
                         [[position]] float4 &out_position)
@@ -116,22 +115,22 @@ void shape_display_vert([[resource_table]] const ShapeDisplayResources & /*srt*/
   out_position = float4(0.0f, 0.0f, 0.0f, 1.0f);
 
   int draw_index = vertex_id / 6;
-  int visible_count = int(light_cull_buf.visible_count + light_cull_buf.sun_lights_len);
+  int visible_count = int(lrd.light_cull_buf.visible_count + lrd.light_cull_buf.sun_lights_len);
 
   if (draw_index >= visible_count) {
     return;
   }
 
   int light_index;
-  if (draw_index < int(light_cull_buf.visible_count)) {
+  if (draw_index < int(lrd.light_cull_buf.visible_count)) {
     light_index = draw_index;
   }
   else {
-    int offset = draw_index - int(light_cull_buf.visible_count);
-    light_index = int(light_cull_buf.local_lights_len) + offset;
+    int offset = draw_index - int(lrd.light_cull_buf.visible_count);
+    light_index = int(lrd.light_cull_buf.local_lights_len) + offset;
   }
 
-  LightData light = light_buf[light_index];
+  LightData light = lrd.light_buf[light_index];
   if (!light.visible_camera) {
     return;
   }
@@ -152,12 +151,13 @@ void shape_display_vert([[resource_table]] const ShapeDisplayResources & /*srt*/
 
 [[fragment]]
 void shape_display_frag([[resource_table]] const ShapeDisplayResources & /*srt*/,
+                        [[resource_table]] const LightRenderData &lrd,
                         [[frag_coord]] const float4 frag_co,
                         [[in]] const ShapeDisplayVertOut &v_out,
                         [[out]] ShapeDisplayFragOut &frag_out)
 {
   eLightType light_type = eLightType(v_out.light_type);
-  LightData light = light_buf[v_out.light_index];
+  LightData light = lrd.light_buf[v_out.light_index];
   float3 P = v_out.P;
 
   if (is_sun_light(light_type)) {
