@@ -10,11 +10,11 @@ __all__ = [
     "DownloadStatus",
 ]
 
+import dataclasses
 import enum
 import logging
 import urllib.parse
 from pathlib import Path
-from typing import Callable
 
 import bpy
 
@@ -68,8 +68,7 @@ def download_asset_file(
         downloader = AssetDownloader(
             asset_library_url,
             asset_library_local_path,
-            on_download_done_callback=_asset_download_done,
-            on_download_progress_callback=_asset_download_progress,
+            reporter=AssetReporter(asset_library_url=asset_library_url),
         )
         downloader.start()
         _asset_downloaders[asset_library_url] = downloader
@@ -135,8 +134,7 @@ def download_preview(
         downloader = AssetDownloader(
             asset_library_url,
             asset_library_local_path,
-            on_download_done_callback=_preview_download_done,
-            on_download_progress_callback=None,
+            reporter=PreviewReporter(),
         )
         downloader.start()
         _preview_downloaders[asset_library_url] = downloader
@@ -180,61 +178,6 @@ def cancel_download_all_assets() -> None:
         downloader.cancel_and_shutdown()
 
 
-def _asset_download_progress(
-    _downloader: AssetDownloader,
-    http_req_descr: http_dl.RequestDescription,
-    progress: http_dl.DownloadProgress,
-) -> None:
-    # TODO: ping the window manager, instead of printing to the terminal.
-    downloaded = http_dl.humanize_size(progress.disk_bytes_written)
-    if progress.network_bytes_total is None:
-        print(f"Asset Downloader: downloaded {progress.disk_bytes_written} = {downloaded} of {http_req_descr.url}")
-    else:
-        percentage = 100 * progress.network_bytes_streamed / progress.network_bytes_total
-        if progress.network_bytes_streamed < progress.network_bytes_total:
-            percentage = min(99, percentage)
-        print(
-            f"Asset Downloader: downloaded {
-                progress.disk_bytes_written} = {downloaded} ({
-                percentage:.0f}%) of {
-                http_req_descr.url}")
-
-
-def _asset_download_done(
-    downloader: AssetDownloader,
-    _http_req_descr: http_dl.RequestDescription,
-    _preview_local_path: Path,
-) -> None:
-    bpy.types.WindowManager.asset_library_status_ping_loaded_new_assets(downloader.remote_url)
-
-
-def _preview_download_done(
-    downloader: AssetDownloader,
-    http_req_descr: http_dl.RequestDescription,
-    preview_local_path: Path,
-) -> None:
-    # Check whether the file was actually an image.
-    assert http_req_descr.response_headers
-    content_type = http_req_descr.response_headers.get('content-type', "")
-
-    # Only check the content type if the server sends it back. Otherwise
-    # just trust that it's valid. For example, when sending a `304 Not
-    # Modified`, the server may actually skip the Content-Type header.
-    if content_type and not content_type.startswith('image/'):
-        logger.warning("Thumbnail URL %r has content type %r, expected an image",
-                       http_req_descr.url, content_type)
-        # TODO: mark as 'failed' so that this file isn't repeatedly
-        # downloaded and rejected. For now I'll just keep the file
-        # around, so that at least the time-stamping works to prevent
-        # hammering the server.
-
-    # Indicate to a future run that we just confirmed this file is still fresh.
-    preview_local_path.touch()
-
-    # Poke Blender so it knows there's a thumbnail update.
-    bpy.types.WindowManager.asset_library_status_ping_loaded_new_preview(str(preview_local_path))
-
-
 def downloader_status(asset_library_url: str) -> DownloadStatus:
     """Returns the asset downloader status.
 
@@ -265,17 +208,8 @@ class AssetDownloader:
     """Downloader for asset files & their thumbnails."""
 
     _locator: RemoteAssetListingLocator
-
-    # Called for each downloaded file (asset or thumbnail) being 'done':
-    type OnDownloadDoneCallback = Callable[['AssetDownloader', http_dl.RequestDescription, Path], None]
-    _on_download_done_callback: OnDownloadDoneCallback | None
-
-    # Called to report the download progress.
-    type OnDownloadProgressCallback = Callable[['AssetDownloader',
-                                                http_dl.RequestDescription, http_dl.DownloadProgress], None]
-    _on_download_progress_callback: OnDownloadProgressCallback | None
-
     _bg_downloader: http_dl.BackgroundDownloader | None
+    _reporter: http_dl.DownloadReporter
     _num_assets_pending: int
 
     _status: DownloadStatus
@@ -300,8 +234,7 @@ class AssetDownloader:
         remote_url: str,
         local_path: Path | str,
         *,
-        on_download_done_callback: OnDownloadDoneCallback | None,
-        on_download_progress_callback: OnDownloadProgressCallback | None,
+        reporter: http_dl.DownloadReporter,
     ) -> None:
         """Create a downloader for assets of a specific asset library.
 
@@ -314,10 +247,8 @@ class AssetDownloader:
             in its final location, ready to be picked up by the asset system.
         """
         self._locator = RemoteAssetListingLocator(remote_url, local_path)
-
-        self._on_download_done_callback = on_download_done_callback
-        self._on_download_progress_callback = on_download_progress_callback
         self._num_assets_pending = 0
+        self._reporter = reporter
 
         self._status = DownloadStatus.IDLE
         self._error_message = ""
@@ -343,6 +274,7 @@ class AssetDownloader:
             on_callback_error=self._on_callback_error,
         )
         self._bg_downloader.add_reporter(self)
+        self._bg_downloader.add_reporter(self._reporter)
 
     def __repr__(self) -> str:
         return "{!s}(remote_url={!r}, local_path={!r})".format(
@@ -527,19 +459,16 @@ class AssetDownloader:
     def error_message(self) -> str:
         return self._error_message
 
-    # Below here: CachingDownloadReporter functions:
+    # Below here: http_dl.DownloadReporter protocol functions:
 
     def download_starts(self, http_req_descr: http_dl.RequestDescription) -> None:
-        self.report({'INFO'}, "Download starting: {}".format(http_req_descr.url))
-        logger.debug("Download starting: %s", http_req_descr)
+        pass
 
     def already_downloaded(
         self,
         http_req_descr: http_dl.RequestDescription,
         local_file: Path,
     ) -> None:
-        logger.debug("Download unnecessary, file already downloaded: %s", http_req_descr.url)
-        # TODO: tell Blender this file is done.
         self._shutdown_if_done()
 
     def download_error(
@@ -549,6 +478,7 @@ class AssetDownloader:
         error: Exception,
     ) -> None:
         if isinstance(error, http_dl.DownloadCancelled):
+            # Cancelling a download should cancel all queued-up downloads.
             if self._num_assets_pending:
                 self.report({'WARNING'}, "Cancelled {} pending download".format(self._num_assets_pending))
             logger.warning("Download cancelled: %s", http_req_descr)
@@ -556,15 +486,6 @@ class AssetDownloader:
             self.shutdown()
             return
 
-        # TODO: tell Blender there was an error downloading.
-
-        # Contrary to the RemoteAssetListingDownloader, this downloader treats
-        # all downloads as independent, and thus a failure to download one
-        # should never completely shut down the downloader.
-        logger.warning("Could not download file %s: %s", http_req_descr, error)
-
-        # This could have been the last to-be-downloaded file, so better
-        # check if there's anything left to do.
         self._shutdown_if_done()
 
     def download_progress(
@@ -572,18 +493,132 @@ class AssetDownloader:
         http_req_descr: http_dl.RequestDescription,
         progress: http_dl.DownloadProgress,
     ) -> None:
-        if self._on_download_progress_callback is None:
-            return
-        self._on_download_progress_callback(self, http_req_descr, progress)
+        pass
 
     def download_finished(
         self,
         http_req_descr: http_dl.RequestDescription,
         local_file: Path,
     ) -> None:
-        self.report({'INFO'}, "Download finished: {}".format(http_req_descr.url))
-        logger.info("Download finished: %s to %s", http_req_descr, local_file)
-
-        if self._on_download_done_callback is not None:
-            self._on_download_done_callback(self, http_req_descr, local_file)
         self._shutdown_if_done()
+
+
+@dataclasses.dataclass
+class AssetReporter:
+    """Implementation of the http_dl.DownloadReporter protocol."""
+
+    asset_library_url: str
+
+    def download_starts(self, http_req_descr: http_dl.RequestDescription) -> None:
+        logger.debug("Download starting: %s", http_req_descr)
+
+    def already_downloaded(
+        self,
+        http_req_descr: http_dl.RequestDescription,
+        local_file: Path,
+    ) -> None:
+        logger.debug("Download unnecessary, file already downloaded: %s", http_req_descr.url)
+        bpy.types.WindowManager.asset_library_status_ping_loaded_new_assets(self.asset_library_url)
+
+    def download_error(
+        self,
+        http_req_descr: http_dl.RequestDescription,
+        local_file: Path,
+        error: Exception,
+    ) -> None:
+        logger.warning("Could not download file %s: %s", http_req_descr, error)
+        # TODO: tell Blender about this error.
+        # The call below is here just to make a pull request a non-functional change.
+        bpy.types.WindowManager.asset_library_status_ping_loaded_new_assets(self.asset_library_url)
+
+    def download_progress(
+        self,
+        http_req_descr: http_dl.RequestDescription,
+        progress: http_dl.DownloadProgress,
+    ) -> None:
+        # TODO: ping the window manager, instead of printing to the terminal.
+        downloaded = http_dl.humanize_size(progress.disk_bytes_written)
+        if progress.network_bytes_total is None:
+            print(f"Asset Downloader: downloaded {progress.disk_bytes_written} = {downloaded} of {http_req_descr.url}")
+        else:
+            percentage = 100 * progress.network_bytes_streamed / progress.network_bytes_total
+            if progress.network_bytes_streamed < progress.network_bytes_total:
+                percentage = min(99, percentage)
+            print(
+                f"Asset Downloader: downloaded {
+                    progress.disk_bytes_written} = {downloaded} ({
+                    percentage:.0f}%) of {
+                    http_req_descr.url}")
+
+    def download_finished(
+        self,
+        http_req_descr: http_dl.RequestDescription,
+        local_file: Path,
+    ) -> None:
+        logger.info("Download finished: %s to %s", http_req_descr, local_file)
+        bpy.types.WindowManager.asset_library_status_ping_loaded_new_assets(self.asset_library_url)
+
+
+@dataclasses.dataclass
+class PreviewReporter:
+    """Implementation of the http_dl.DownloadReporter protocol."""
+
+    def download_starts(self, http_req_descr: http_dl.RequestDescription) -> None:
+        logger.debug("Download starting: %s", http_req_descr)
+
+    def already_downloaded(
+        self,
+        http_req_descr: http_dl.RequestDescription,
+        local_file: Path,
+    ) -> None:
+        # This cannot check the content-type header (like download_finished() does), since
+        # there likely is none in a '304 Not Modified' response.
+
+        # Indicate to a future run that we just confirmed this file is still fresh.
+        local_file.touch()
+
+        # Poke Blender so it knows there's a thumbnail update. It shouldn't be necessary, but since it requested the
+        # file for downloading, it may not have been aware it already existed. Better let it know.
+        bpy.types.WindowManager.asset_library_status_ping_loaded_new_preview(str(local_file))
+
+    def download_error(
+        self,
+        http_req_descr: http_dl.RequestDescription,
+        local_file: Path,
+        error: Exception,
+    ) -> None:
+        # TODO: create an empty file in the correct `.../_thumbs/failed` directory.
+        self.download_finished(http_req_descr, local_file)
+
+    def download_progress(
+        self,
+        http_req_descr: http_dl.RequestDescription,
+        progress: http_dl.DownloadProgress,
+    ) -> None:
+        pass
+
+    def download_finished(
+        self,
+        http_req_descr: http_dl.RequestDescription,
+        local_file: Path,
+    ) -> None:
+        # Check whether the file was actually an image.
+        assert http_req_descr.response_headers
+        content_type = http_req_descr.response_headers.get('content-type', "")
+
+        # Only check the content type if the server sends it back. Otherwise
+        # just trust that it's valid. For example, when sending a `304 Not
+        # Modified`, the server may actually skip the Content-Type header.
+        if content_type and not content_type.startswith('image/'):
+            logger.warning("Thumbnail URL %r has content type %r, expected an image",
+                           http_req_descr.url, content_type)
+            # TODO: mark as 'failed' so that this file isn't repeatedly
+            # downloaded and rejected. For now I'll just keep the file
+            # around, so that at least the time-stamping works to prevent
+            # hammering the server.
+
+        # Indicate to a future run that we just confirmed this file is still fresh.
+        local_file.touch()
+
+        # Poke Blender so it knows there's a thumbnail update.
+        bpy.types.WindowManager.asset_library_status_ping_loaded_new_preview(str(local_file))
