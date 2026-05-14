@@ -124,6 +124,9 @@ int BKE_copybuffer_paste(bContext *C,
 
   copybuffer_append(lapp_context, bmain, reports);
 
+  /* When doing regular, basic pasting of IDs, clear the CLIPBOARD_MARK flag. */
+  BKE_main_id_flag_all(bmain, ID_FLAG_CLIPBOARD_MARK, false);
+
   BKE_blendfile_link_append_context_free(lapp_context);
   return num_pasted;
 }

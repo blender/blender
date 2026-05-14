@@ -746,12 +746,13 @@ enum eID_Flag : short {
    */
   ID_FLAG_LIB_OVERRIDE_RESYNC_LEFTOVER = 1 << 13,
   /**
-   * This `id` was explicitly copied as part of a clipboard copy operation.
-   * When reading the clipboard back, this can be used to check which ID's are
-   * intended to be part of the clipboard, compared with ID's that were indirectly referenced.
+   * This ID was explicitly copied as part of a clipboard copy operation.
    *
-   * While the flag is typically cleared, a saved file may have this set for some data-blocks,
-   * so it must be treated as dirty.
+   * When reading the clipboard back, this can be used to differentiate between ID's that are
+   * intended to be part of the clipboard, and ID's that are only there because they are
+   * dependencies of the copied ones.
+   *
+   * This flag should never be set for 'normal' IDs in the global Main database.
    */
   ID_FLAG_CLIPBOARD_MARK = 1 << 14,
   /**
