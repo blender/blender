@@ -36,6 +36,7 @@ const EnumPropertyItem rna_enum_tree_node_move_type_items[] = {
 #  include "BKE_context.hh"
 #  include "BKE_curves.hh"
 #  include "BKE_deform.hh"
+#  include "BKE_geometry_compare.hh"
 #  include "BKE_grease_pencil.hh"
 #  include "BKE_grease_pencil_vertex_groups.hh"
 #  include "BKE_report.hh"
@@ -722,11 +723,47 @@ static void rna_grease_pencil_layer_mask_remove(GreasePencilLayer *layer,
   WM_main_add_notifier(NC_GPENCIL | ND_DATA | NA_SELECTED, nullptr);
 }
 
+static const char *rna_GreasePencil_unit_test_compare(GreasePencil *grease_pencil_1,
+                                                      GreasePencil *grease_pencil_2,
+                                                      float threshold)
+{
+  using namespace bke::compare_geometry;
+  const std::optional<GeoMismatch> mismatch = compare_grease_pencil(
+      *grease_pencil_1, *grease_pencil_2, threshold);
+
+  if (!mismatch) {
+    return "Same";
+  }
+
+  return mismatch_to_string(mismatch.value());
+}
+
 }  // namespace blender
 
 #else
 
 namespace blender {
+
+void RNA_api_grease_pencil(StructRNA *srna)
+{
+  FunctionRNA *func;
+  PropertyRNA *parm;
+
+  func = RNA_def_function(srna, "unit_test_compare", "rna_GreasePencil_unit_test_compare");
+  RNA_def_pointer(func, "grease_pencil", "GreasePencil", "", "Grease Pencil to compare to");
+  RNA_def_float_factor(func,
+                       "threshold",
+                       FLT_EPSILON * 60,
+                       0.0f,
+                       FLT_MAX,
+                       "Threshold",
+                       "Comparison tolerance threshold",
+                       0.0f,
+                       FLT_MAX);
+  parm = RNA_def_string(
+      func, "result", "nothing", 64, "Return value", "String description of result of comparison");
+  RNA_def_function_return(func, parm);
+}
 
 void RNA_api_grease_pencil_layer_masks(StructRNA *srna)
 {
