@@ -57,9 +57,6 @@ class MultiFunctionProcedureOperation : public PixelOperation {
    * output results for each of the parameters in the procedure. Note that parameters have no
    * identifiers and are identified solely by their order. */
   Vector<std::string> parameter_identifiers_;
-  /* True if the operation operates on single values, that is, all of its inputs and outputs are
-   * single values. */
-  const bool is_single_value_;
 
  public:
   /* Build a multi-function procedure as well as an executor for it from the given pixel compile

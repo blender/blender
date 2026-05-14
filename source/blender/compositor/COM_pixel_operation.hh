@@ -100,14 +100,19 @@ class PixelOperation : public Operation {
   /* A vector set that stores all output sockets that are used as previews for nodes inside the
    * pixel operation. */
   VectorSet<const bNodeSocket *> preview_outputs_;
+  /* True if the operation operates on single values, that is, all of its inputs and outputs are
+   * single values. */
+  const bool is_single_value_;
 
  public:
   PixelOperation(Context &context,
                  PixelCompileUnit &compile_unit,
                  const Schedule &schedule,
-                 const ComputeContext &compute_context);
+                 const ComputeContext &compute_context,
+                 const bool is_single_value);
 
-  /* Log a node preview for all nodes in the pixel operations if the node requires a preview.
+  /* Log the values of all inputs and outputs of nodes inside the pixel operation as well as node
+   * previews for all nodes in the pixel operations if the node requires a preview.
    *
    * Previews are computed from results that are populated for outputs that are used to compute
    * previews even if they are internally linked, and those outputs are stored and tracked in the

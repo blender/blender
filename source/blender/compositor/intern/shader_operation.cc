@@ -48,7 +48,7 @@ ShaderOperation::ShaderOperation(Context &context,
                                  PixelCompileUnit &compile_unit,
                                  const Schedule &schedule,
                                  const ComputeContext &compute_context)
-    : PixelOperation(context, compile_unit, schedule, compute_context)
+    : PixelOperation(context, compile_unit, schedule, compute_context, false)
 {
   material_ = GPU_material_from_callbacks(
       GPU_MAT_COMPOSITOR, &construct_material, &generate_code, this);

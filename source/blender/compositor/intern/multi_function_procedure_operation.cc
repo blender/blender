@@ -51,9 +51,8 @@ MultiFunctionProcedureOperation::MultiFunctionProcedureOperation(
     const Schedule &schedule,
     const bool is_single_value,
     const ComputeContext &compute_context)
-    : PixelOperation(context, compile_unit, schedule, compute_context),
-      procedure_builder_(procedure_),
-      is_single_value_(is_single_value)
+    : PixelOperation(context, compile_unit, schedule, compute_context, is_single_value),
+      procedure_builder_(procedure_)
 {
   this->build_procedure();
   procedure_executor_ = std::make_unique<mf::ProcedureExecutor>(procedure_);

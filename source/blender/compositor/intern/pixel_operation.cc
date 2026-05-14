@@ -29,21 +29,103 @@ namespace blender::compositor {
 PixelOperation::PixelOperation(Context &context,
                                PixelCompileUnit &compile_unit,
                                const Schedule &schedule,
-                               const ComputeContext &compute_context)
+                               const ComputeContext &compute_context,
+                               const bool is_single_value)
     : Operation(context),
       compile_unit_(compile_unit),
       schedule_(schedule),
-      compute_context_(compute_context)
+      compute_context_(compute_context),
+      is_single_value_(is_single_value)
 {
+}
+
+static destruct_ptr<nodes::eval_log::ImageInfoLog> get_image_info_log(
+    LinearAllocator<> *allocator, const Domain &domain, const ResultPrecision &precision)
+{
+  return allocator->construct<nodes::eval_log::ImageInfoLog>(
+      domain.data_size,
+      domain.display_size,
+      domain.data_offset,
+      domain.transformation,
+      to_string(domain.realization_options.interpolation),
+      to_string(domain.realization_options.extension_x),
+      to_string(domain.realization_options.extension_y),
+      to_string(precision));
 }
 
 void PixelOperation::log_data()
 {
+  /* No logging for single-value pixel operations for now. */
+  if (is_single_value_) {
+    return;
+  }
+
+  nodes::eval_log::NodesEvalLog *log = this->context().nodes_evaluation_log();
+  if (!log) {
+    return;
+  }
+  nodes::eval_log::NodeTreeLogger &tree_logger = log->get_local_tree_logger(compute_context_);
+
+  const Domain domain = this->compute_domain();
+
+  /* All inputs and outputs of pixel operations operate in the same domain, so the operation domain
+   * should be logged for all. The exception is inputs that are single values, in which case, their
+   * value is simply logged. */
+  for (const bNode *node : compile_unit_) {
+    /* Log output values. */
+    for (const bNodeSocket *output_socket : node->output_sockets()) {
+      if (!is_socket_available(output_socket)) {
+        continue;
+      }
+
+      if (!output_socket->is_logically_linked()) {
+        continue;
+      }
+
+      tree_logger.output_socket_values.append(
+          *tree_logger.allocator,
+          {node->identifier,
+           output_socket->index(),
+           get_image_info_log(tree_logger.allocator, domain, this->context().get_precision())});
+    }
+
+    /* Log input values. */
+    for (const bNodeSocket *input_socket : node->input_sockets()) {
+      if (!is_socket_available(input_socket)) {
+        continue;
+      }
+
+      if (!input_socket->is_logically_linked()) {
+        continue;
+      }
+
+      /* The input is linked to a node that is inside the pixel operation, so skip it since it will
+       * inherit its value from an output that was logged above. */
+      const bNodeSocket &linked_output = *input_socket->logically_linked_sockets()[0];
+      if (compile_unit_.contains(&linked_output.owner_node())) {
+        continue;
+      }
+
+      /* Otherwise, it is linked to a node that is outside of the compile unit. If it is a single
+       * value, log that single value, if not, we log the operation domain. */
+      const std::string &input_identifier = outputs_to_declared_inputs_map_.lookup(&linked_output);
+      const Result &input = this->get_input(input_identifier);
+      if (input.is_single_value()) {
+        tree_logger.log_value(*node, *input_socket, input.single_value());
+        continue;
+      }
+
+      tree_logger.input_socket_values.append(
+          *tree_logger.allocator,
+          {node->identifier,
+           input_socket->index(),
+           get_image_info_log(tree_logger.allocator, domain, this->context().get_precision())});
+    }
+  }
+
   for (const bNodeSocket *output : preview_outputs_) {
     Result &result = this->get_result(get_output_identifier_from_output_socket(*output));
     ImBuf *preview = compositor::compute_preview(context(), result);
-    nodes::eval_log::NodeTreeLogger &tree_logger =
-        this->context().nodes_evaluation_log()->get_local_tree_logger(compute_context_);
     tree_logger.node_image_previews.append(*tree_logger.allocator,
                                            {output->owner_node().identifier, preview});
 
