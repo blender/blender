@@ -476,8 +476,7 @@ class BackgroundDownloader:
     # This assumes that RequestDescriptions are unique, and not queued up
     # multiple times simultaneously.
     DownloadDoneCallback: TypeAlias = Callable[['RequestDescription', Path], None]
-    _on_download_done_callbacks: dict[RequestDescription,
-                                      list[DownloadDoneCallback | None]] = collections.defaultdict(list)
+    _on_download_done_callbacks: dict[RequestDescription, list[DownloadDoneCallback | None]]
 
     OnCallbackErrorCallback: TypeAlias = Callable[['RequestDescription', Path, Exception], None]
     _on_callback_error: OnCallbackErrorCallback
@@ -504,7 +503,7 @@ class BackgroundDownloader:
         self.num_downloads_ok = 0
         self.num_downloads_error = 0
         self._num_pending_downloads = 0
-        self._on_download_done_callbacks = {}
+        self._on_download_done_callbacks = collections.defaultdict(list)
         self._on_callback_error = on_callback_error
 
         self._queueing_reporter = QueueingReporter()
