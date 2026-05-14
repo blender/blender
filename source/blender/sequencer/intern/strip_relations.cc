@@ -14,7 +14,9 @@
 #include "BLI_listbase.h"
 #include "BLI_math_base.h"
 #include "BLI_session_uid.h"
+#include "BLI_string.h"
 
+#include "BKE_layer.hh"
 #include "BKE_main.hh"
 #include "BKE_report.hh"
 
@@ -188,6 +190,32 @@ void relations_invalidate_scene_strips(const Main *bmain, const Scene *scene_tar
       for (Strip *strip : lookup_strips_by_scene(editing_get(&scene), scene_target)) {
         relations_invalidate_cache_raw(&scene, strip);
       }
+    }
+  }
+}
+
+void relations_update_view_layer_scene_strips(Main *bmain,
+                                              Scene *scene,
+                                              const char *old_name,
+                                              const char *new_name)
+{
+  for (Scene &scene_iter : bmain->scenes) {
+    Editing *ed = seq::editing_get(&scene_iter);
+    if (ed == nullptr) {
+      continue;
+    }
+    for (Strip *strip : seq::lookup_strips_by_scene(ed, scene)) {
+      BLI_assert(strip->scene_view_layer_name != nullptr);
+      if (!STREQ(strip->scene_view_layer_name, old_name)) {
+        continue;
+      }
+
+      MEM_delete(strip->scene_view_layer_name);
+      strip->scene_view_layer_name = new_name ?
+                                         BLI_strdup(new_name) :
+                                         BLI_strdup(
+                                             BKE_view_layer_default_render(strip->scene)->name);
+      seq::relations_invalidate_cache_raw(&scene_iter, strip);
     }
   }
 }

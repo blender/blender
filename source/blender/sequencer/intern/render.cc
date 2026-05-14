@@ -1301,6 +1301,16 @@ static ImBuf *seq_render_mask_strip(const RenderData *context, Strip *strip, flo
       context->depsgraph, context->rectx, context->recty, strip->mask, frame_index, make_float);
 }
 
+static ViewLayer *get_view_layer_for_scene_strip(Scene *scene, const Strip *strip)
+{
+  if (strip->scene_view_layer_name != nullptr) {
+    if (ViewLayer *view_layer = BKE_view_layer_find(scene, strip->scene_view_layer_name)) {
+      return view_layer;
+    }
+  }
+  return BKE_view_layer_default_render(scene);
+}
+
 static Depsgraph *get_depsgraph_for_scene_strip(Main *bmain, Scene *scene, ViewLayer *view_layer)
 {
   Depsgraph *depsgraph = scene->runtime->sequencer.depsgraph;
@@ -1378,7 +1388,7 @@ static ImBuf *seq_render_scene_strip_ex(const RenderData *context,
 #endif
   const bool have_comp = (scene->r.scemode & R_DOCOMP) && scene->compositing_node_group;
 
-  ViewLayer *view_layer = BKE_view_layer_default_render(scene);
+  ViewLayer *view_layer = get_view_layer_for_scene_strip(scene, strip);
   Depsgraph *depsgraph = get_depsgraph_for_scene_strip(context->bmain, scene, view_layer);
 
   BKE_scene_frame_set(scene, frame);
@@ -1586,7 +1596,8 @@ static ImBuf *seq_render_scene_strip(const RenderData *context,
   scene->r.subframe = orig_data.subframe;
   scene->r.mode &= orig_data.mode | ~R_NO_CAMERA_SWITCH;
 
-  Depsgraph *depsgraph = BKE_scene_get_depsgraph(scene, BKE_view_layer_default_render(scene));
+  Depsgraph *depsgraph = BKE_scene_get_depsgraph(scene,
+                                                 get_view_layer_for_scene_strip(scene, strip));
   if (is_frame_update && (depsgraph != nullptr)) {
     BKE_scene_graph_update_for_newframe(depsgraph);
   }

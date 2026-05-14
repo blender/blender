@@ -28,6 +28,7 @@
 #include "BKE_colortools.hh"
 #include "BKE_curves.hh"
 #include "BKE_idprop.hh"
+#include "BKE_layer.hh"
 #include "BKE_lib_id.hh"
 #include "BKE_main.hh"
 #include "BKE_mesh_legacy_convert.hh"
@@ -305,6 +306,24 @@ static void version_strip_modifier_show_preview_flag(Main &bmain)
   }
 }
 
+static void version_scene_strip_view_layer_name(Main &bmain)
+{
+  for (const Scene &scene : bmain.scenes) {
+    Editing *ed = seq::editing_get(&scene);
+    if (ed == nullptr) {
+      continue;
+    }
+
+    seq::foreach_strip(&ed->seqbase, [&](Strip *strip) {
+      if (strip->type != STRIP_TYPE_SCENE || strip->scene == nullptr) {
+        return true;
+      }
+      strip->scene_view_layer_name = BLI_strdup(BKE_view_layer_default_render(strip->scene)->name);
+      return true;
+    });
+  }
+}
+
 void do_versions_after_linking_520(FileData *fd, Main *bmain)
 {
   if (!MAIN_VERSION_FILE_ATLEAST(bmain, 502, 2)) {
@@ -326,6 +345,10 @@ void do_versions_after_linking_520(FileData *fd, Main *bmain)
         }
       }
     }
+  }
+
+  if (!MAIN_VERSION_FILE_ATLEAST(bmain, 502, 27)) {
+    version_scene_strip_view_layer_name(*bmain);
   }
 
   /**

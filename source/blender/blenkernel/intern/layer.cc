@@ -50,6 +50,8 @@
 #include "DEG_depsgraph_debug.hh"
 #include "DEG_depsgraph_query.hh"
 
+#include "SEQ_relations.hh"
+
 #include "DRW_engine.hh"
 
 #include "RE_engine.h"
@@ -599,6 +601,9 @@ void BKE_view_layer_rename(Main *bmain, Scene *scene, ViewLayer *view_layer, con
       }
     }
   }
+
+  /* Update any sequencer scene strips referencing this view layer by name. */
+  seq::relations_update_view_layer_scene_strips(bmain, scene, oldname, view_layer->name);
 
   /* Dependency graph uses view layer name based lookups. */
   DEG_id_tag_update(&scene->id, ID_RECALC_BASE_FLAGS);
