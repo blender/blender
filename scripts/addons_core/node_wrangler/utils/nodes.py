@@ -273,9 +273,9 @@ def nw_check_viewer_node(cls):
 
 
 def get_first_enabled_output(node):
-    for output in node.outputs:
-        if output.enabled:
-            return output
+    for output_socket in node.outputs:
+        if output_socket.enabled:
+            return output_socket
     else:
         return node.outputs[0]
 

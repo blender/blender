@@ -88,10 +88,10 @@ class NODE_OT_link_active_to_selected(Operator, NWBase):
                     if dst_name not in src_name:
                         valid = False
                     if valid:
-                        for input in node.inputs:
-                            if input.type == out.type or node.type == 'REROUTE':
-                                if replace or not input.is_linked:
-                                    connect_sockets(out, input)
+                        for input_socket in node.inputs:
+                            if input_socket.type == out.type or node.type == 'REROUTE':
+                                if replace or not input_socket.is_linked:
+                                    connect_sockets(out, input_socket)
                                     if not use_node_name and not use_outputs_names:
                                         doit = False
                                     break

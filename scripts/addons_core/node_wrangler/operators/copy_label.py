@@ -48,17 +48,17 @@ class NODE_OT_copy_label(Operator, NWBase):
         elif option == 'FROM_NODE':
             selected = [n for n in nodes if n.select]
             for node in selected:
-                for input in node.inputs:
-                    if input.links:
-                        src = input.links[0].from_node
+                for input_socket in node.inputs:
+                    if input_socket.links:
+                        src = input_socket.links[0].from_node
                         node.label = src.label
                         break
         elif option == 'FROM_SOCKET':
             selected = [n for n in nodes if n.select]
             for node in selected:
-                for input in node.inputs:
-                    if input.links:
-                        src = input.links[0].from_socket
+                for input_socket in node.inputs:
+                    if input_socket.links:
+                        src = input_socket.links[0].from_socket
                         node.label = src.name
                         break
 
