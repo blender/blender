@@ -32,6 +32,17 @@ if(UNIX AND NOT APPLE)
   )
 endif()
 
+if(ANDROID)
+  list(APPEND MATERIALX_EXTRA_ARGS
+    # We want to disable the MaterialXRenderGlsl module due to it requiring OpenGL/X11 on UNIX.
+    # It's controlled by GEN_GLSL, which (unintuitively) gets forced to ON if GEN_MSL is ON, set both to OFF in that sense.
+    -DMATERIALX_BUILD_GEN_MSL=OFF
+    -DMATERIALX_BUILD_GEN_GLSL=OFF
+    # Similarly to other libraries, disable Python module for now.
+    -DMATERIALX_BUILD_PYTHON=OFF
+  )
+endif()
+
 ExternalProject_Add(external_materialx
   URL file://${PACKAGE_DIR}/${MATERIALX_FILE}
   DOWNLOAD_DIR ${DOWNLOAD_DIR}
