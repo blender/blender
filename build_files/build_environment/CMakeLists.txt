@@ -121,7 +121,11 @@ if(NOT APPLE)
     endif()
   endif()
 endif()
-include(cmake/ispc.cmake)
+if(NOT CMAKE_CROSSCOMPILING)
+  # Only build ISPC when *not* cross-compiling, as cross-compilation will use the host built ISPC compiler instead,
+  # which is built with cross-compilation target support.
+  include(cmake/ispc.cmake)
+endif()
 include(cmake/openpgl.cmake)
 # EMBREE needs to be included after `dpcpp` as it uses it for compiling with GPU support
 if(BLENDER_PLATFORM_WINDOWS_ARM)

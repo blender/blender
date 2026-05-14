@@ -1,0 +1,28 @@
+diff --git a/cmake/GenerateBuiltins.cmake b/cmake/GenerateBuiltins.cmake
+index e20d79b8..da7f0f97 100644
+--- a/cmake/GenerateBuiltins.cmake
++++ b/cmake/GenerateBuiltins.cmake
+@@ -239,18 +239,15 @@ function (get_target_flags os arch out)
+             # -isystem/Applications/Xcode.app/Contents/Developer/Platforms/iPhoneOS.platform/Developer/SDKs/iPhoneOS.sdk/usr/include/
+             set(include -isystem${ISPC_IOS_SDK_PATH}/usr/include)
+         elseif (${os} STREQUAL "linux" OR ${os} STREQUAL "android" OR ${os} STREQUAL "freebsd")
++            set(_ndk_inc "${ISPC_ANDROID_NDK_PATH}/toolchains/llvm/prebuilt/darwin-x86_64/sysroot/usr/include")
+             if (${arch} STREQUAL "armv8a")
+-                # -isystem/Users/Shared/android-ndk-r20/sysroot/usr/include -isystem/Users/Shared/android-ndk-r20/sysroot/usr/include/arm-linux-androideabi
+-                set(include -isystem${ISPC_ANDROID_NDK_PATH}/sysroot/usr/include -isystem${ISPC_ANDROID_NDK_PATH}/sysroot/usr/include/arm-linux-androideabi)
++                set(include -isystem${_ndk_inc} -isystem${_ndk_inc}/arm-linux-androideabi)
+             elseif (${arch} STREQUAL "aarch64")
+-                # -isystem/Users/Shared/android-ndk-r20/sysroot/usr/include -isystem/Users/Shared/android-ndk-r20/sysroot/usr/include/aarch64-linux-android
+-                set(include -isystem${ISPC_ANDROID_NDK_PATH}/sysroot/usr/include -isystem${ISPC_ANDROID_NDK_PATH}/sysroot/usr/include/aarch64-linux-android)
++                set(include -isystem${_ndk_inc} -isystem${_ndk_inc}/aarch64-linux-android)
+             elseif(${arch} STREQUAL "i686")
+-                # -isystem/Users/Shared/android-ndk-r20/sysroot/usr/include -isystem/Users/Shared/android-ndk-r20/sysroot/usr/include/i686-linux-android
+-                set(include -isystem${ISPC_ANDROID_NDK_PATH}/sysroot/usr/include -isystem${ISPC_ANDROID_NDK_PATH}/sysroot/usr/include/i686-linux-android)
++                set(include -isystem${_ndk_inc} -isystem${_ndk_inc}/i686-linux-android)
+             else()
+-                # -isystem/Users/Shared/android-ndk-r20/sysroot/usr/include -isystem/Users/Shared/android-ndk-r20/sysroot/usr/include/x86_64-linux-android
+-                set(include -isystem${ISPC_ANDROID_NDK_PATH}/sysroot/usr/include -isystem${ISPC_ANDROID_NDK_PATH}/sysroot/usr/include/x86_64-linux-android)
++                set(include -isystem${_ndk_inc} -isystem${_ndk_inc}/x86_64-linux-android)
+             endif()
+         elseif (${os} STREQUAL "macos")
+             set(include -isystem${ISPC_MACOS_SDK_PATH}/usr/include)
