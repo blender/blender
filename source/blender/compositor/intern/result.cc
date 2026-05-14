@@ -16,6 +16,8 @@
 #include "BLI_math_quaternion_types.hh"
 #include "BLI_math_vector_types.hh"
 
+#include "BLT_translation.hh"
+
 #include "GPU_shader.hh"
 #include "GPU_state.hh"
 #include "GPU_texture.hh"
@@ -1167,6 +1169,19 @@ void Result::allocate_data(const int2 size,
     sharing_info_ = ImplicitSharingPtr<>(new_array);
     cpu_data_ = new_array->data.as_span();
   }
+}
+
+StringRefNull to_string(const ResultPrecision &precision)
+{
+  switch (precision) {
+    case ResultPrecision::Full:
+      return N_("Full");
+    case ResultPrecision::Half:
+      return N_("Half");
+  }
+
+  BLI_assert_unreachable();
+  return "None";
 }
 
 }  // namespace blender::compositor

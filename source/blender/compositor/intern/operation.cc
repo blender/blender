@@ -27,7 +27,7 @@ void Operation::evaluate()
 {
   this->evaluate_input_processors();
   this->execute();
-  this->compute_preview();
+  this->log_data();
   this->release_inputs();
   this->context().evaluate_operation_post();
 }
@@ -112,7 +112,7 @@ void Operation::evaluate_input_processors()
   }
 }
 
-void Operation::compute_preview() {};
+void Operation::log_data() {};
 
 void Operation::populate_result(StringRef identifier, Result result)
 {

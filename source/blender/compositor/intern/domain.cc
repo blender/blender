@@ -9,6 +9,8 @@
 #include "BLI_math_matrix_types.hh"
 #include "BLI_math_vector_types.hh"
 
+#include "BLT_translation.hh"
+
 #include "GPU_texture.hh"
 
 #include "COM_domain.hh"
@@ -105,6 +107,38 @@ bool operator==(const Domain &a, const Domain &b)
 bool operator!=(const Domain &a, const Domain &b)
 {
   return !(a == b);
+}
+
+StringRefNull to_string(const Interpolation &interpolation)
+{
+  switch (interpolation) {
+    case Interpolation::Nearest:
+      return N_("Nearest");
+    case Interpolation::Bilinear:
+      return N_("Bilinear");
+    case Interpolation::Bicubic:
+      return N_("Bicubic");
+    case Interpolation::Anisotropic:
+      return N_("Anisotropic");
+  }
+
+  BLI_assert_unreachable();
+  return "None";
+}
+
+StringRefNull to_string(const Extension &extension)
+{
+  switch (extension) {
+    case Extension::Extend:
+      return N_("Extend");
+    case Extension::Repeat:
+      return N_("Repeat");
+    case Extension::Clip:
+      return N_("Clip");
+  }
+
+  BLI_assert_unreachable();
+  return "None";
 }
 
 GPUSamplerExtendMode map_extension_mode_to_extend_mode(const Extension &mode)

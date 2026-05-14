@@ -37,7 +37,7 @@ PixelOperation::PixelOperation(Context &context,
 {
 }
 
-void PixelOperation::compute_preview()
+void PixelOperation::log_data()
 {
   for (const bNodeSocket *output : preview_outputs_) {
     Result &result = this->get_result(get_output_identifier_from_output_socket(*output));

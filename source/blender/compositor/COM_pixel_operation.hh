@@ -107,12 +107,12 @@ class PixelOperation : public Operation {
                  const Schedule &schedule,
                  const ComputeContext &compute_context);
 
-  /* Compute a node preview for all nodes in the pixel operations if the node requires a preview.
+  /* Log a node preview for all nodes in the pixel operations if the node requires a preview.
    *
    * Previews are computed from results that are populated for outputs that are used to compute
    * previews even if they are internally linked, and those outputs are stored and tracked in the
    * preview_outputs_ vector set, see the populate_results_for_node method for more information. */
-  void compute_preview() override;
+  void log_data() override;
 
   /* Get the identifier of the operation output corresponding to the given output socket. This is
    * called by the compiler to identify the operation output that provides the result for an input
