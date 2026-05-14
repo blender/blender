@@ -146,6 +146,7 @@ ImBuf *imb_loadiris(const unsigned char *mem,
                     ImBufFlags flags,
                     ImFileColorSpace &r_colorspace);
 bool imb_saveiris(ImBuf *ibuf, const char *filepath, ImBufFlags flags);
+Vector<uint8_t> imb_save_buffer_iris(ImBuf *ibuf, ImBufFlags flags);
 
 /** \} */
 
