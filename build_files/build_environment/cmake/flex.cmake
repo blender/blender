@@ -6,8 +6,6 @@ set(FLEX_EXTRA_ARGS "")
 if (ANDROID)
   set(FLEX_EXTRA_ARGS
     ${FLEX_EXTRA_ARGS}
-    --host=aarch64
-
     # Autoconf cannot execute tests while cross-compiling and fails the malloc and realloc tests,
     # this then causes it to redefine malloc/realloc to rpl_malloc/rpl_realloc which do not exist.
     # Override the ac cache variables to yes to skip these checks.

@@ -139,10 +139,20 @@ else()
     --disable-test-modules
   )
 
+  # Unlike other autoconf project, Python *requires* both --build and --host to be *explicitely* set. Even if, from
+  # the log, it can already infer the --build triplet by itself. Ask clang for the triplet to mimic the implicit
+  # autoconf behavior.
+  execute_process(
+    COMMAND /usr/bin/clang -dumpmachine
+    OUTPUT_VARIABLE BUILD_LLVM_TRIPLE
+    OUTPUT_STRIP_TRAILING_WHITESPACE
+  )
+
   if(ANDROID)
     set(PYTHON_CONFIGURE_EXTRA_ARGS
       ${PYTHON_CONFIGURE_EXTRA_ARGS}
-      --host=aarch64-linux-android
+      --build=${BUILD_LLVM_TRIPLE}
+      --host=${ANDROID_LLVM_TRIPLE}
       --with-build-python=${PYTHON_BINARY}
     )
   endif()

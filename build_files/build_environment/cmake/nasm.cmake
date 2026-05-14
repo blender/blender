@@ -3,12 +3,6 @@
 # SPDX-License-Identifier: GPL-2.0-or-later
 
 set(NASM_EXTRA_ARGS "")
-if (ANDROID)
-  set(NASM_EXTRA_ARGS
-    ${NASM_EXTRA_ARGS}
-    --host=aarch64
-  )
-endif()
 
 ExternalProject_Add(external_nasm
   URL file://${PACKAGE_DIR}/${NASM_FILE}

@@ -7,13 +7,6 @@ set(LZMA_CONFIGURATION_ARGS
   --disable-shared
 )
 
-if(ANDROID)
-  set(LZMA_CONFIGURATION_ARGS
-    ${LZMA_CONFIGURATION_ARGS}
-    --host=aarch64
-  )
-endif()
-
 ExternalProject_Add(external_lzma
   URL file://${PACKAGE_DIR}/${LZMA_FILE}
   DOWNLOAD_DIR ${DOWNLOAD_DIR}
