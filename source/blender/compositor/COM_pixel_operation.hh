@@ -100,6 +100,8 @@ class PixelOperation : public Operation {
   /* A vector set that stores all output sockets that are used as previews for nodes inside the
    * pixel operation. */
   VectorSet<const bNodeSocket *> preview_outputs_;
+  /* A vector set that stores all output sockets that will be logged to the node evaluator log. */
+  VectorSet<const bNodeSocket *> logged_outputs_;
   /* True if the operation operates on single values, that is, all of its inputs and outputs are
    * single values. */
   const bool is_single_value_;

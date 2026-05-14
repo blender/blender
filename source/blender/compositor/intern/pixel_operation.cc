@@ -55,16 +55,25 @@ static destruct_ptr<nodes::eval_log::ImageInfoLog> get_image_info_log(
 
 void PixelOperation::log_data()
 {
-  /* No logging for single-value pixel operations for now. */
-  if (is_single_value_) {
-    return;
-  }
-
   nodes::eval_log::NodesEvalLog *log = this->context().nodes_evaluation_log();
   if (!log) {
     return;
   }
   nodes::eval_log::NodeTreeLogger &tree_logger = log->get_local_tree_logger(compute_context_);
+
+  if (is_single_value_) {
+    for (const bNodeSocket *output_socket : logged_outputs_) {
+      Result &result = this->get_result(
+          this->get_output_identifier_from_output_socket(*output_socket));
+      tree_logger.log_value(output_socket->owner_node(), *output_socket, result.single_value());
+
+      /* Logged results gets as an extra reference in pixel operations as can be seen in the
+       * compute_results_reference_counts method, so release it after logging. */
+      result.release();
+    }
+
+    return;
+  }
 
   const Domain domain = this->compute_domain();
 
@@ -170,6 +179,10 @@ void PixelOperation::compute_results_reference_counts(const Schedule &schedule)
         });
 
     if (preview_outputs_.contains(item.key)) {
+      reference_count++;
+    }
+
+    if (logged_outputs_.contains(item.key)) {
       reference_count++;
     }
 
