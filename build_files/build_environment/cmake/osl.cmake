@@ -15,13 +15,8 @@ else()
   set(OSL_CMAKE_LINKER_FLAGS "-L${LIBDIR}/xml2/lib")
   set(OSL_OPENIMAGEIO_LIBRARY "${LIBDIR}/openimageio/lib/OpenImageIO${SHAREDLIBEXT};${LIBDIR}/openexr/lib/IlmImf${OPENEXR_VERSION_POSTFIX}${SHAREDLIBEXT}")
 
-  if(APPLE)
-    # Explicitly specify Homebrew path, so we don't use the old system one.
-    if(BLENDER_PLATFORM_ARM)
-      set(OSL_FLEX_BISON -DBISON_EXECUTABLE=/opt/homebrew/opt/bison/bin/bison)
-    else()
-      set(OSL_FLEX_BISON -DBISON_EXECUTABLE=/usr/local/opt/bison/bin/bison)
-    endif()
+  if("${CMAKE_HOST_SYSTEM_NAME}" STREQUAL "Darwin")
+    set(OSL_FLEX_BISON -DBISON_EXECUTABLE=/opt/homebrew/opt/bison/bin/bison)
   else()
     set(OSL_FLEX_BISON "")
   endif()
@@ -54,15 +49,88 @@ set(OSL_EXTRA_ARGS
   -DPython_ROOT=${LIBDIR}/python
   -DPython_EXECUTABLE=${PYTHON_BINARY}
   -DPython3_EXECUTABLE=${PYTHON_BINARY}
+  -DPython3_ROOT=${LIBDIR}/python
+  -DPython3_INCLUDE_DIR=${LIBDIR}/python/include/python${PYTHON_SHORT_VERSION}
   -Dlibdeflate_DIR=${LIBDIR}/deflate/lib/cmake/libdeflate
 )
 
-if(NOT (APPLE OR BLENDER_PLATFORM_WINDOWS_ARM))
+if(NOT (APPLE OR BLENDER_PLATFORM_WINDOWS_ARM OR CMAKE_CROSSCOMPILING))
   list(APPEND OSL_EXTRA_ARGS
     -DOSL_USE_OPTIX=ON
     -DCUDA_TARGET_ARCH=sm_50
     -DCUDA_TOOLKIT_ROOT_DIR=${CUDAToolkit_ROOT}
   )
+endif()
+
+set(OSL_CROSSCOMPILE_PATCH "true")  # Nullop when not cross-compiling.
+if(CMAKE_CROSSCOMPILING)
+  # There are muliple cross-compiling issues we need to fix:
+  # 1st: The base OSL FindLLVM.cmake heavily relies on llvm-config, which cannot be executed in a cross-compiled environment.
+  #      To workaround this, patch OSL to remove the LLVM find_package, and manually provide all variables by hand instead.
+  set(OSL_CROSSCOMPILE_PATCH
+    ${PATCH_CMD} -p 1 -d
+      ${BUILD_DIR}/osl/src/external_osl <
+      ${PATCH_DIR}/osl_crosscompile_llvm.diff
+  )
+
+  file(GLOB _LLVM_LIBRARIES "${LIBDIR}/llvm/lib/*.a")
+  string(REPLACE ";" "^^" _LLVM_LIBRARIES "${_LLVM_LIBRARIES}")  # Use ^^ list separators (as passed in ExternalProject)
+  list(APPEND OSL_EXTRA_ARGS
+    -DLLVM_FOUND=YES
+    -DLLVM_VERSION=${LLVM_VERSION}  # Set in versions.cmake
+    -DLLVM_INCLUDES=${LIBDIR}/llvm/include
+    -DLLVM_LIBRARIES=${_LLVM_LIBRARIES}
+    -DLLVM_LIB_DIR=${LIBDIR}/llvm/lib
+    -DLLVM_TARGETS=${LLVM_TARGETS}  # Set in llvm.cmake
+
+    # Interesting hack: We provide the LIBDIR crosscompiled LLVM static libs, but the HOST_LIBDIR LLVM_DIRECTORY for
+    #                   the clang++ executable. Magically, this works.
+    -DLLVM_DIRECTORY=${HOST_LIBDIR}/llvm
+  )
+  if(ANDROID)
+    # Android specific LLVM build flags.
+    list(APPEND OSL_EXTRA_ARGS
+      -DLLVM_COMPILE_FLAGS=--target=aarch64-linux-android24^^--sysroot=${CMAKE_SYSROOT}^^-stdlib=libc++
+    )
+  endif()
+
+  # 2nd: OSL compiles two executables which it uses at build-time: oslc (external, shipped) and genluts (internal).
+  #      As these executables cannot be launched on our host architecture, we instead fetch them from the host deps
+  #      build, and patch OSL to use the provided executables accordingly.
+  set(OSL_CROSSCOMPILE_PATCH
+    ${OSL_CROSSCOMPILE_PATCH} &&
+    ${PATCH_CMD} -p 1 -d
+      ${BUILD_DIR}/osl/src/external_osl <
+      ${PATCH_DIR}/osl_crosscompile_host_genluts.diff &&
+    ${PATCH_CMD} -p 1 -d
+      ${BUILD_DIR}/osl/src/external_osl <
+      ${PATCH_DIR}/osl_crosscompile_host_oslc.diff
+  )
+
+  set(_GENLUTS_PATH ${HOST_DEPS_BUILD_DIR}/build/osl/src/external_osl-build/bin/genluts)
+  set(_OSLC_PATH ${HOST_LIBDIR}/osl/bin/oslc)
+  if(NOT EXISTS ${_GENLUTS_PATH})
+    message(FATAL_ERROR "OSL: Couldn't find required genluts executable in host deps build at path: ${_GENLUTS_PATH}")
+  endif()
+  if(NOT EXISTS ${_OSLC_PATH})
+    message(FATAL_ERROR "OSL: Couldn't find required oslc executable in host deps build at path: ${_OSLC_PATH}")
+  endif()
+
+  list(APPEND OSL_EXTRA_ARGS
+    -DGENLUTS_EXECUTABLE=${_GENLUTS_PATH}
+    -DOSLC_EXECUTABLE=${_OSLC_PATH}
+  )
+
+  if(ANDROID)
+    # Disable Python bindings, due to it causing similar linking issue as OIIO, OCIO, etc.. (see comment in opencolorio.cmake).
+    list(APPEND OSL_EXTRA_ARGS
+      -DUSE_PYTHON=OFF
+    )
+  endif()
+
+  unset(_LLVM_LIBRARIES)
+  unset(_GENLUTS_PATHS)
+  unset(_OSLC_PATHS)
 endif()
 
 ExternalProject_Add(external_osl
@@ -82,7 +150,8 @@ ExternalProject_Add(external_osl
       ${PATCH_DIR}/osl_ptx_version.diff &&
     ${PATCH_CMD} -p 1 -d
       ${BUILD_DIR}/osl/src/external_osl <
-      ${PATCH_DIR}/osl_relative_inc_cmake.diff
+      ${PATCH_DIR}/osl_relative_inc_cmake.diff &&
+    ${OSL_CROSSCOMPILE_PATCH}
 
   CMAKE_ARGS
     -DCMAKE_INSTALL_PREFIX=${LIBDIR}/osl

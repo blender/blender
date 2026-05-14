@@ -1,0 +1,18 @@
+diff --git a/src/cmake/externalpackages.cmake b/src/cmake/externalpackages.cmake
+index 97f0b66f..d9fe20a2 100644
+--- a/src/cmake/externalpackages.cmake
++++ b/src/cmake/externalpackages.cmake
+@@ -54,13 +54,6 @@ checked_find_package (OpenImageIO REQUIRED
+ checked_find_package (pugixml REQUIRED
+                       VERSION_MIN 1.8)
+ 
+-
+-# LLVM library setup
+-checked_find_package (LLVM REQUIRED
+-                      VERSION_MIN 14.0
+-                      VERSION_MAX 22.9
+-                      PRINT LLVM_SYSTEM_LIBRARIES CLANG_LIBRARIES
+-                            LLVM_SHARED_MODE)
+ # ensure include directory is added (in case of non-standard locations
+ include_directories (BEFORE SYSTEM "${LLVM_INCLUDES}")
+ link_directories ("${LLVM_LIB_DIR}")

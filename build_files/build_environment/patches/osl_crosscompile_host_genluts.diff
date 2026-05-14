@@ -1,0 +1,19 @@
+diff --git a/src/libbsdl/bsdl.cmake b/src/libbsdl/bsdl.cmake
+index efa4271e..6f1d40e7 100644
+--- a/src/libbsdl/bsdl.cmake
++++ b/src/libbsdl/bsdl.cmake
+@@ -13,12 +13,10 @@ function(ADD_BSDL_LIBRARY NAME)
+ 
+     # LUT generation tool
+     set(BSDL_GEN_HEADERS ${CMAKE_CURRENT_BINARY_DIR}/${bsdl_SUBDIR}/geninclude)
+-    add_executable (genluts ${CMAKE_CURRENT_SOURCE_DIR}/${bsdl_SUBDIR}/src/genluts.cpp)
+-    target_link_libraries(genluts PRIVATE BSDL_BOOTSTRAP Threads::Threads)
+     file(MAKE_DIRECTORY ${BSDL_GEN_HEADERS}/BSDL/SPI)
+     file(MAKE_DIRECTORY ${BSDL_GEN_HEADERS}/BSDL/MTX)
+-    add_custom_command(TARGET genluts POST_BUILD USES_TERMINAL COMMAND $<TARGET_FILE:genluts> ${BSDL_GEN_HEADERS}/BSDL
+-                    COMMENT "Generating BSDL lookup tables ...")
++
++    add_custom_target(genluts ALL COMMAND ${GENLUTS_EXECUTABLE} ${BSDL_GEN_HEADERS}/BSDL VERBATIM USES_TERMINAL)
+ 
+     if (DEFINED bsdl_SPECTRAL_COLOR_SPACES)
+         add_executable(jakobhanika_luts ${CMAKE_CURRENT_SOURCE_DIR}/${bsdl_SUBDIR}/src/jakobhanika_luts.cpp)

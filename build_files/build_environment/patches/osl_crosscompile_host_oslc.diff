@@ -1,0 +1,16 @@
+diff --git a/src/shaders/CMakeLists.txt b/src/shaders/CMakeLists.txt
+index 9a9c4ddb..010403dc 100644
+--- a/src/shaders/CMakeLists.txt
++++ b/src/shaders/CMakeLists.txt
+@@ -28,9 +28,9 @@ macro (oslc_compile)
+     endforeach ()
+     list (APPEND oslc_args "-I${CMAKE_SOURCE_DIR}/src/shaders")
+     add_custom_command (OUTPUT ${osofile}
+-        COMMAND $<TARGET_FILE_DIR:oslc>/$<TARGET_FILE_NAME:oslc> ${oslc_args} "${oslfile}" -o "${osofile}"
++        COMMAND ${OSLC_EXECUTABLE} ${oslc_args} "${oslfile}" -o "${osofile}"
+         MAIN_DEPENDENCY ${oslfile}
+-        DEPENDS ${_shader_DEPENDS} "${stdosl_header}" oslc
++        DEPENDS ${_shader_DEPENDS} "${stdosl_header}"
+         WORKING_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}
+         COMMENT "oslc ${oslsrc_we}")
+     if (_shader_OSO_LIST)
