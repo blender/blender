@@ -10,13 +10,24 @@ set(XR_OPENXR_SDK_EXTRA_ARGS
   -DDYNAMIC_LOADER=OFF
 )
 
-if(UNIX AND NOT APPLE)
+if(UNIX AND NOT (APPLE OR ANDROID))
   list(APPEND XR_OPENXR_SDK_EXTRA_ARGS
     -DBUILD_WITH_WAYLAND_HEADERS=OFF
     -DBUILD_WITH_XCB_HEADERS=OFF
     -DBUILD_WITH_XLIB_HEADERS=ON
     -DBUILD_WITH_SYSTEM_JSONCPP=OFF
     -DCMAKE_CXX_FLAGS=-DDISABLE_STD_FILESYSTEM=1
+  )
+endif()
+
+if(ANDROID)
+  # Circumvent a bug in the OpenXR CMakeLists.txt, where CMake GNUInstallDirs path variables aren't set if ANDROID=ON and
+  # INSTALL_TO_ARCHITECTURE_PREFIXES isn't ON (which would use a prefab module install layout, which we do not want).
+  # NOTE: Fixed in OpenXR SDK 1.1.57 (see OpenXR-SDK-Source PR #573 on Github), remove on upgrade.
+  list(APPEND XR_OPENXR_SDK_EXTRA_ARGS
+    -DCMAKE_INSTALL_INCLUDEDIR=include
+    -DCMAKE_INSTALL_LIBDIR=lib
+    -DCMAKE_INSTALL_BINDIR=bin
   )
 endif()
 
