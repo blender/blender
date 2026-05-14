@@ -1053,9 +1053,7 @@ bool popup_context_menu_for_button(bContext *C, Button *but, const wmEvent *even
 
   /* Expose id specific operators in context menu when button has no operator associated. Otherwise
    * they would appear in nested context menus, see: #126006. */
-  if ((but->optype == nullptr) && (but->apply_func == nullptr) &&
-      (but->menu_create_func == nullptr))
-  {
+  if ((but->optype == nullptr) && (but->menu_create_func == nullptr)) {
     /* If the button represents an id, it can set the "id" context pointer. */
     if (ed::asset::can_mark_single_from_context(C)) {
       const ID *id = static_cast<const ID *>(CTX_data_pointer_get_type(C, "id", RNA_ID).data);
