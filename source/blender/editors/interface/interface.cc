@@ -966,7 +966,6 @@ static void but_update_old_active_from_new(Button *oldbut, Button *but)
 
   std::swap(oldbut->apply_func, but->apply_func);
 
-  std::swap(oldbut->rename_full_func, but->rename_full_func);
   std::swap(oldbut->pushed_state_func, but->pushed_state_func);
 
   /* Move tooltip from new to old. */
@@ -1026,6 +1025,13 @@ static void but_update_old_active_from_new(Button *oldbut, Button *but)
       ButtonViewItem *view_item_newbut = static_cast<ButtonViewItem *>(but);
       view_item_swap_button_pointers(*view_item_newbut->view_item, *view_item_oldbut->view_item);
       std::swap(view_item_newbut->view_item, view_item_oldbut->view_item);
+      break;
+    }
+    case ButtonType::Text: {
+      ButtonText *text_oldbut = static_cast<ButtonText *>(oldbut);
+      ButtonText *text_newbut = static_cast<ButtonText *>(but);
+      std::swap(text_oldbut->rename_func, text_newbut->rename_func);
+      std::swap(text_oldbut->rename_full_func, text_newbut->rename_full_func);
       break;
     }
     default:
@@ -3377,8 +3383,10 @@ bool button_string_set(bContext *C, Button *but, const char *str)
       if (type == PROP_STRING) {
         /* RNA string, only set it if full rename callback is not defined, otherwise just store the
          * user-defined new name to call the callback later. */
-        if (but->rename_full_func) {
-          but->rename_full_new = str;
+        ButtonText *text_button = but->type == ButtonType::Text ? static_cast<ButtonText *>(but) :
+                                                                  nullptr;
+        if (text_button && text_button->rename_full_func) {
+          text_button->rename_full_new = str;
         }
         else {
           RNA_property_string_set(&but->rnapoin, but->rnaprop, str);
@@ -4272,6 +4280,9 @@ static std::unique_ptr<Button> but_new(const ButtonType type)
   switch (type) {
     case ButtonType::TextBox:
       but = std::make_unique<ButtonTextBox>();
+      break;
+    case ButtonType::Text:
+      but = std::make_unique<ButtonText>();
       break;
     case ButtonType::Num:
       but = std::make_unique<ButtonNumber>();
@@ -5838,16 +5849,20 @@ void button_poin_menu_argN_set(Button *but,
   but->func_argN_copy_fn = func_argN_copy_fn;
 }
 
-void button_func_rename_set(Button *but, ButtonHandleRenameFunc func, void *arg1)
+void text_button_func_rename_set(
+    Button *but, std::function<void(bContext &C, StringRefNull oldname)> rename_func)
 {
-  but->rename_func = func;
-  but->rename_arg1 = arg1;
+  BLI_assert(but->type == ButtonType::Text);
+  auto *text_button = static_cast<ButtonText *>(but);
+  text_button->rename_func = std::move(rename_func);
 }
 
-void button_func_rename_full_set(Button *but,
-                                 std::function<void(std::string &new_name)> rename_full_func)
+void text_button_func_rename_full_set(Button *but,
+                                      std::function<void(StringRefNull new_name)> rename_full_fun)
 {
-  but->rename_full_func = std::move(rename_full_func);
+  BLI_assert(but->type == ButtonType::Text);
+  auto *text_button = static_cast<ButtonText *>(but);
+  text_button->rename_full_func = std::move(rename_full_fun);
 }
 
 void button_func_drawextra_set(Block *block,

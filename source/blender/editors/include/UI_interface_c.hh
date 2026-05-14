@@ -770,7 +770,6 @@ Vector<StringRef> text_clip_multiline_middle(const uiFontStyle *fstyle,
 struct SearchItems;
 
 using ButtonHandleFunc = void (*)(bContext *C, void *arg1, void *arg2);
-using ButtonHandleRenameFunc = void (*)(bContext *C, void *arg, char *origstr);
 using ButtonHandleNFunc = void (*)(bContext *C, void *argN, void *arg2);
 using ButtonHandleHoldFunc = void (*)(bContext *C, ARegion *butregion, Button *but);
 using ButtonCompleteFunc = int (*)(bContext *C, char *str, void *arg);
@@ -1932,9 +1931,10 @@ void block_funcN_set(Block *block,
                      ButtonArgNFree func_argN_free_fn = MEM_delete_void,
                      ButtonArgNCopy func_argN_copy_fn = MEM_dupalloc_void);
 
-void button_func_rename_set(Button *but, ButtonHandleRenameFunc func, void *arg1);
-void button_func_rename_full_set(Button *but,
-                                 std::function<void(std::string &new_name)> rename_full_func);
+void text_button_func_rename_set(
+    Button *but, std::function<void(bContext &C, StringRefNull oldname)> rename_func);
+void text_button_func_rename_full_set(
+    Button *but, std::function<void(StringRefNull new_name)> rename_full_func);
 void button_func_set(Button *but, ButtonHandleFunc func, void *arg1, void *arg2);
 void button_funcN_set(Button *but,
                       ButtonHandleNFunc funcN,

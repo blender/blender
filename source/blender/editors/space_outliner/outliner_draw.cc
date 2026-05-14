@@ -742,13 +742,12 @@ static void scenes__collection_set_flag_recursive_fn(bContext *C, void *poin, vo
   outliner_collection_set_flag_recursive_fn(C, nullptr, collection, propname);
 }
 
-static void namebutton_fn(bContext *C, void *tsep, char *oldname)
+static void namebutton_fn(bContext *C, TreeStoreElem *tselem, const char *oldname)
 {
   Main *bmain = CTX_data_main(C);
   SpaceOutliner *space_outliner = CTX_wm_space_outliner(C);
   wmMsgBus *mbus = CTX_wm_message_bus(C);
   BLI_mempool *ts = space_outliner->treestore;
-  TreeStoreElem *tselem = static_cast<TreeStoreElem *>(tsep);
 
   const char *undo_str = nullptr;
 
@@ -2231,7 +2230,9 @@ static void outliner_buttons(const bContext *C,
    * code (see #apply_but_undo) would not work here, as the new name is not yet applied to the
    * ID. */
   button_flag_disable(bt, ui::BUT_UNDO);
-  button_func_rename_set(bt, namebutton_fn, tselem);
+  text_button_func_rename_set(bt, [tselem](bContext &C, StringRefNull oldname) {
+    namebutton_fn(&C, tselem, oldname.c_str());
+  });
 
   /* Returns false if button got removed. */
   if (false == button_active_only(C, region, block, bt)) {

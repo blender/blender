@@ -1011,18 +1011,18 @@ static void file_draw_indicator_icons(const FileList *files,
   }
 }
 
-static void renamebutton_cb(bContext *C, void * /*arg1*/, char *oldname)
+static void renamebutton_cb(bContext &C, StringRefNull oldname)
 {
   char newname[FILE_MAX + 12];
   char orgname[FILE_MAX + 12];
   char filename[FILE_MAX + 12];
-  wmWindowManager *wm = CTX_wm_manager(C);
-  wmWindow *win = CTX_wm_window(C);
-  SpaceFile *sfile = reinterpret_cast<SpaceFile *>(CTX_wm_space_data(C));
-  ARegion *region = CTX_wm_region(C);
+  wmWindowManager *wm = CTX_wm_manager(&C);
+  wmWindow *win = CTX_wm_window(&C);
+  SpaceFile *sfile = reinterpret_cast<SpaceFile *>(CTX_wm_space_data(&C));
+  ARegion *region = CTX_wm_region(&C);
   FileSelectParams *params = ED_fileselect_get_active_params(sfile);
 
-  BLI_path_join(orgname, sizeof(orgname), params->dir, oldname);
+  BLI_path_join(orgname, sizeof(orgname), params->dir, oldname.c_str());
   STRNCPY(filename, params->renamefile);
   BLI_path_make_safe_filename(filename);
   BLI_path_join(newname, sizeof(newname), params->dir, filename);
@@ -1034,7 +1034,7 @@ static void renamebutton_cb(bContext *C, void * /*arg1*/, char *oldname)
           RPT_ERROR, "Could not rename: %s", errno ? strerror(errno) : "unknown error");
       WM_report_banner_show(wm, win);
       /* Renaming failed, reset the name for further renaming handling. */
-      STRNCPY(params->renamefile, oldname);
+      STRNCPY(params->renamefile, oldname.c_str());
     }
     else {
       /* If rename is successful, set renamefile to newly renamed entry.
@@ -1603,7 +1603,7 @@ void file_draw_list(const bContext *C, ARegion *region)
                                  float(sizeof(params->renamefile)),
                                  "");
       button_retval_set(but, 1);
-      button_func_rename_set(but, renamebutton_cb, file);
+      text_button_func_rename_set(but, renamebutton_cb);
       button_flag_enable(but, ui::BUT_NO_UTF8); /* Allow non UTF8 names. */
       button_flag_disable(but, ui::BUT_UNDO);
       if (false == button_active_only(C, region, block, but)) {

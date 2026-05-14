@@ -2271,8 +2271,10 @@ void Layout::prop(PointerRNA *ptr,
     if (is_id_name_prop) {
       Main *bmain = CTX_data_main(static_cast<bContext *>(block->evil_C));
       ID *id = ptr->owner_id;
-      button_func_rename_full_set(
-          but, [bmain, id](const std::string &new_name) { ED_id_rename(*bmain, *id, new_name); });
+      BLI_assert(type == PROP_STRING);
+      BLI_assert(!RNA_property_string_search_flag(prop));
+      text_button_func_rename_full_set(
+          but, [bmain, id](StringRefNull new_name) { ED_id_rename(*bmain, *id, new_name); });
     }
 
     if (layout->red_alert()) {

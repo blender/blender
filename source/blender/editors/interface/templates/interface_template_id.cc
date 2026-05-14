@@ -1136,8 +1136,8 @@ static void template_ID(const bContext *C,
      * ID. */
     button_flag_disable(but, BUT_UNDO);
     Main *bmain = CTX_data_main(C);
-    button_func_rename_full_set(
-        but, [bmain, id](std::string &new_name) { ED_id_rename(*bmain, *id, new_name); });
+    text_button_func_rename_full_set(
+        but, [bmain, id](StringRefNull new_name) { ED_id_rename(*bmain, *id, new_name); });
     button_func_set(but, [](bContext &C) {
       ED_undo_push(&C, CTX_N_(BLT_I18NCONTEXT_OPERATOR_DEFAULT, "Rename Data-Block"));
       WM_event_add_notifier(&C, NC_SPACE | ND_SPACE_OUTLINER, nullptr);

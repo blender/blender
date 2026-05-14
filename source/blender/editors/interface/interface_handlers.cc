@@ -527,11 +527,10 @@ struct AfterFunc {
   ButtonArgNFree func_argN_free_fn;
   /* uiButArgNCopy func_argN_copy_fn is not needed currently. */
 
-  ButtonHandleRenameFunc rename_func;
-  void *rename_arg1;
+  std::function<void(bContext &, StringRefNull)> rename_func;
   char *rename_orig;
 
-  std::function<void(std::string &new_name)> rename_full_func = nullptr;
+  std::function<void(StringRefNull)> rename_full_func;
   std::string rename_full_new;
 
   BlockHandleFunc handle_func;
@@ -920,8 +919,11 @@ static void popup_check(bContext *C, wmOperator *op)
  */
 static bool afterfunc_check(const Block *block, const Button *but)
 {
-  return (but->func || but->apply_func || but->funcN || but->rename_func ||
-          but->rename_full_func || but->optype || but->rnaprop || block->handle_func ||
+  auto *text_button = but->type == ButtonType::Text ? static_cast<const ButtonText *>(but) :
+                                                      nullptr;
+  return (but->func || but->apply_func || but->funcN ||
+          (text_button && (text_button->rename_func || text_button->rename_full_func)) ||
+          but->optype || but->rnaprop || block->handle_func ||
           (block->handle && block->handle->popup_op));
 }
 
@@ -957,13 +959,16 @@ static void apply_but_func(bContext *C, Button *but)
   after->func_argN_free_fn = but->func_argN_free_fn;
   /* but->func_argN_copy_fn is not needed for #uiAfterFunc. */
 
-  after->rename_func = but->rename_func;
-  after->rename_arg1 = but->rename_arg1;
-  after->rename_orig = but->rename_orig; /* needs free! */
+  if (but->type == ButtonType::Text) {
+    auto *text_button = static_cast<ButtonText *>(but);
 
-  after->rename_full_func = but->rename_full_func;
-  after->rename_full_new = std::move(but->rename_full_new);
-  but->rename_full_new = "";
+    after->rename_func = std::move(text_button->rename_func);
+    after->rename_orig = text_button->rename_orig; /* needs free! */
+
+    after->rename_full_func = std::move(text_button->rename_full_func);
+    after->rename_full_new = std::move(text_button->rename_full_new);
+    text_button->rename_full_new = "";
+  }
 
   after->handle_func = block->handle_func;
   after->handle_func_arg = block->handle_func_arg;
@@ -1195,7 +1200,7 @@ static void apply_but_funcs_after(bContext *C)
     }
 
     if (after.rename_func) {
-      after.rename_func(C, after.rename_arg1, after.rename_orig);
+      after.rename_func(*C, after.rename_orig);
     }
     if (after.rename_orig) {
       MEM_delete(after.rename_orig);
@@ -1321,18 +1326,20 @@ static void apply_but_TEX(bContext *C, Button *but, HandleButtonData *data)
   button_string_set(C, but, data->text_edit.edit_string);
   button_update_edited(but);
 
+  ButtonText *text_button = but->type == ButtonType::Text ? static_cast<ButtonText *>(but) :
+                                                            nullptr;
   /* only if there are afterfuncs, otherwise 'renam_orig' isn't freed */
-  if (afterfunc_check(but->block, but)) {
+  if (text_button && afterfunc_check(but->block, but)) {
     /* give butfunc a copy of the original text too.
      * feature used for bone renaming, channels, etc.
      * afterfunc frees rename_orig */
     if (data->text_edit.original_string && (but->flag & BUT_TEXTEDIT_UPDATE)) {
       /* In this case, we need to keep `original_string` available,
        * to restore real org string in case we cancel after having typed something already. */
-      but->rename_orig = BLI_strdup(data->text_edit.original_string);
+      text_button->rename_orig = BLI_strdup(data->text_edit.original_string);
     }
     else {
-      but->rename_orig = data->text_edit.original_string;
+      text_button->rename_orig = data->text_edit.original_string;
       data->text_edit.original_string = nullptr;
     }
   }
