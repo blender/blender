@@ -286,7 +286,7 @@ void PrefetchJob::free_gpu()
 
 static void seq_prefetch_update_area(PrefetchJob *pfjob)
 {
-  int cfra = pfjob->scene->r.cfra - before_playhead_frames;
+  int cfra = math::max(pfjob->scene->r.cfra - before_playhead_frames, pfjob->timeline_start);
 
   /* rebase */
   if (cfra > pfjob->cfra) {
