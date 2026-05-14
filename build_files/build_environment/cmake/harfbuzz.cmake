@@ -36,6 +36,7 @@ ExternalProject_Add(external_harfbuzz
       --prefix ${LIBDIR}/harfbuzz
       --libdir lib
       --default-library static
+      ${MESON_CROSSFILE_ARG}
       ${MESON_BUILD_TYPE}
       ${HARFBUZZ_EXTRA_OPTIONS}
       ${BUILD_DIR}/harfbuzz/src/external_harfbuzz-build

@@ -1,0 +1,15 @@
+[binaries]
+c = '@ANDROID_CC@'
+cpp = '@ANDROID_CXX@'
+ar = '@CMAKE_AR@'
+c_ld = '@CMAKE_C_COMPILER_LINKER@'
+cpp_ld = '@CMAKE_CXX_COMPILER_LINKER@'
+strip = '@CMAKE_STRIP@'
+pkg-config = 'pkg-config'
+cmake = 'cmake'
+
+[host_machine]
+system = 'android'
+cpu_family = 'aarch64'
+cpu = 'armv8'
+endian = 'little'

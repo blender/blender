@@ -23,6 +23,7 @@ ExternalProject_Add(external_fribidi
       --prefix ${LIBDIR}/fribidi
       --libdir lib
       --default-library static
+      ${MESON_CROSSFILE_ARG}
       ${MESON_BUILD_TYPE}
       ${FRIBIDI_EXTRA_OPTIONS}
       ${BUILD_DIR}/fribidi/src/external_fribidi-build

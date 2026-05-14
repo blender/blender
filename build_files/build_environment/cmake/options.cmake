@@ -34,6 +34,9 @@ else()
   set(MESON_BUILD_TYPE -Dbuildtype=release)
 endif()
 
+# A Meson cross-file may be defined for cross-compiled platforms (such as Android).
+set(MESON_CROSSFILE_ARG "")
+
 # HOST_LIBDIR is used to execute host tools while cross-compiling. Equivalent to LIBDIR for normal builds.
 set(HOST_LIBDIR ${LIBDIR})
 if(CMAKE_CROSSCOMPILING)
@@ -342,6 +345,14 @@ else()
       export RANLIB=${CMAKE_RANLIB} &&
       export STRIP=${CMAKE_STRIP}
     )
+
+    # For Meson projects, a similar cross-compilation environment is defined via a cross-file.
+    configure_file(
+      ${CMAKE_SOURCE_DIR}/cmake/android_meson_crossfile.txt.in
+      ${BUILD_DIR}/android_meson_crossfile.txt
+      @ONLY
+    )
+    set(MESON_CROSSFILE_ARG --cross-file ${BUILD_DIR}/android_meson_crossfile.txt)
   endif()
 
   set(CONFIGURE_ENV_NO_PERL ${CONFIGURE_ENV})
