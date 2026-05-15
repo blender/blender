@@ -194,7 +194,7 @@ float evaluate_quad(sampler2DArray util_tx, float3 corners[4], float3 N, float3 
  * disk_points are WS vectors from the shading point to the disk "bounding domain".
  */
 float evaluate_disk(
-    sampler2DArray util_tx, float3 N, float3 V, float3x3 Minv, float3 disk_points[3])
+    sampler2DArray util_tx, float3 N, float3 V, float3x3 Minv, float3 disk_points[4])
 {
   /* Construct orthonormal basis around N. */
   float3x3 T = detail::tangent_basis(N, V);
