@@ -333,6 +333,7 @@ else()
     string(REPLACE "-none-" "-" _android_triple ${ANDROID_LLVM_TRIPLE})
     set(ANDROID_CC ${ANDROID_TOOLCHAIN_ROOT}/bin/${_android_triple}-clang)
     set(ANDROID_CXX ${ANDROID_TOOLCHAIN_ROOT}/bin/${_android_triple}-clang++)
+    unset(_android_triple)
 
     # Override toolchain env from CMake variables set by the Android CMake toolchain file.
     set(CONFIGURE_ENV

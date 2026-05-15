@@ -73,13 +73,13 @@ if(CMAKE_CROSSCOMPILING)
       ${PATCH_DIR}/osl_crosscompile_llvm.diff
   )
 
-  file(GLOB _LLVM_LIBRARIES "${LIBDIR}/llvm/lib/*.a")
-  string(REPLACE ";" "^^" _LLVM_LIBRARIES "${_LLVM_LIBRARIES}")  # Use ^^ list separators (as passed in ExternalProject)
+  file(GLOB OSL_LLVM_LIBRARIES "${LIBDIR}/llvm/lib/*.a")
+  string(REPLACE ";" "^^" OSL_LLVM_LIBRARIES "${OSL_LLVM_LIBRARIES}")  # Use ^^ list separators (as passed in ExternalProject)
   list(APPEND OSL_EXTRA_ARGS
     -DLLVM_FOUND=YES
     -DLLVM_VERSION=${LLVM_VERSION}  # Set in versions.cmake
     -DLLVM_INCLUDES=${LIBDIR}/llvm/include
-    -DLLVM_LIBRARIES=${_LLVM_LIBRARIES}
+    -DLLVM_LIBRARIES=${OSL_LLVM_LIBRARIES}
     -DLLVM_LIB_DIR=${LIBDIR}/llvm/lib
     -DLLVM_TARGETS=${LLVM_TARGETS}  # Set in llvm.cmake
 
@@ -89,10 +89,11 @@ if(CMAKE_CROSSCOMPILING)
   )
   if(ANDROID)
     # Android specific LLVM build flags.
-    string(REPLACE "-none-" "-" _ANDROID_TRIPLE ${ANDROID_LLVM_TRIPLE})
+    string(REPLACE "-none-" "-" _android_triple ${ANDROID_LLVM_TRIPLE})
     list(APPEND OSL_EXTRA_ARGS
-      -DLLVM_COMPILE_FLAGS=--target=${_ANDROID_TRIPLE}^^--sysroot=${CMAKE_SYSROOT}^^-stdlib=libc++
+      -DLLVM_COMPILE_FLAGS=--target=${_android_triple}^^--sysroot=${CMAKE_SYSROOT}^^-stdlib=libc++
     )
+    unset(_android_triple)
   endif()
 
   # 2nd: OSL compiles two executables which it uses at build-time: oslc (external, shipped) and genluts (internal).
@@ -108,18 +109,18 @@ if(CMAKE_CROSSCOMPILING)
       ${PATCH_DIR}/osl_crosscompile_host_oslc.diff
   )
 
-  set(_GENLUTS_PATH ${HOST_DEPS_BUILD_DIR}/build/osl/src/external_osl-build/bin/genluts)
-  set(_OSLC_PATH ${HOST_LIBDIR}/osl/bin/oslc)
-  if(NOT EXISTS ${_GENLUTS_PATH})
-    message(FATAL_ERROR "OSL: Couldn't find required genluts executable in host deps build at path: ${_GENLUTS_PATH}")
+  set(OSL_GENLUTS_PATH ${HOST_DEPS_BUILD_DIR}/build/osl/src/external_osl-build/bin/genluts)
+  set(OSL_OSLC_PATH ${HOST_LIBDIR}/osl/bin/oslc)
+  if(NOT EXISTS ${OSL_GENLUTS_PATH})
+    message(FATAL_ERROR "OSL: Couldn't find required genluts executable in host deps build at path: ${OSL_GENLUTS_PATH}")
   endif()
-  if(NOT EXISTS ${_OSLC_PATH})
-    message(FATAL_ERROR "OSL: Couldn't find required oslc executable in host deps build at path: ${_OSLC_PATH}")
+  if(NOT EXISTS ${OSL_OSLC_PATH})
+    message(FATAL_ERROR "OSL: Couldn't find required oslc executable in host deps build at path: ${OSL_OSLC_PATH}")
   endif()
 
   list(APPEND OSL_EXTRA_ARGS
-    -DGENLUTS_EXECUTABLE=${_GENLUTS_PATH}
-    -DOSLC_EXECUTABLE=${_OSLC_PATH}
+    -DGENLUTS_EXECUTABLE=${OSL_GENLUTS_PATH}
+    -DOSLC_EXECUTABLE=${OSL_OSLC_PATH}
   )
 
   if(ANDROID)
@@ -128,11 +129,6 @@ if(CMAKE_CROSSCOMPILING)
       -DUSE_PYTHON=OFF
     )
   endif()
-
-  unset(_LLVM_LIBRARIES)
-  unset(_ANDROID_TRIPLE)
-  unset(_GENLUTS_PATHS)
-  unset(_OSLC_PATHS)
 endif()
 
 ExternalProject_Add(external_osl
