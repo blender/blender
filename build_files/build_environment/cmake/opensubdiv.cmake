@@ -25,6 +25,18 @@ set(OPENSUBDIV_EXTRA_ARGS
   -DTBB_DIR=${LIBDIR}/tbb/lib/cmake/tbb
 )
 
+if(ANDROID)
+  set(OPENSUBDIV_EXTRA_ARGS
+    ${OPENSUBDIV_EXTRA_ARGS}
+    -DNO_OPENGL=ON
+    # OpenSubdiv unconditionally looks for OpenGLES, which in turns will set OSD_GPU=ON, causing further
+    # errors as no GPU evaluator exists. Forcefully disable this find_package() call.
+    -DCMAKE_DISABLE_FIND_PACKAGE_OpenGLES=TRUE
+
+    -DLIBRARY_OUTPUT_PATH_ROOT=${LIBDIR}/opensubdiv
+  )
+endif()
+
 ExternalProject_Add(external_opensubdiv
   URL file://${PACKAGE_DIR}/${OPENSUBDIV_FILE}
   DOWNLOAD_DIR ${DOWNLOAD_DIR}
