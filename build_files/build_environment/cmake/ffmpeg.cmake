@@ -141,6 +141,27 @@ if(APPLE)
     --target-os=darwin
     --x86asmexe=${LIBDIR}/nasm/bin/nasm
   )
+elseif(ANDROID)
+  set(FFMPEG_EXTRA_FLAGS
+    ${FFMPEG_EXTRA_FLAGS}
+    --enable-cross-compile
+    --target-os=android
+    --arch=aarch64
+
+    --cross-prefix=${ANDROID_TOOLCHAIN_PREFIX}
+    --as=${ANDROID_CC}
+    --ar=${CMAKE_AR}
+    --ranlib=${CMAKE_RANLIB}
+    --strip=${CMAKE_STRIP}
+    --nm=${ANDROID_TOOLCHAIN_ROOT}/bin/llvm-nm
+  )
+
+  if("${CMAKE_HOST_SYSTEM_NAME}" STREQUAL "Darwin")
+    set(FFMPEG_EXTRA_FLAGS
+      ${FFMPEG_EXTRA_FLAGS}
+      --pkg-config=/opt/homebrew/bin/pkg-config
+    )
+  endif()
 elseif(UNIX)
   set(FFMPEG_EXTRA_FLAGS
     ${FFMPEG_EXTRA_FLAGS}

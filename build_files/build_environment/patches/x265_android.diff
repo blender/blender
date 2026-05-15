@@ -1,5 +1,5 @@
 diff --git a/source/CMakeLists.txt b/source/CMakeLists.txt
-index 5c6dda9e8..50ab490f4 100755
+index 5c6dda9e8..b2202a600 100755
 --- a/source/CMakeLists.txt
 +++ b/source/CMakeLists.txt
 @@ -115,7 +115,9 @@ else()
@@ -23,3 +23,18 @@ index 5c6dda9e8..50ab490f4 100755
      add_definitions(${ARM_ARGS})
      if(FPROFILE_GENERATE)
          if(INTEL_CXX)
+@@ -937,10 +942,14 @@ if(X265_LATEST_TAG OR NOT GIT_FOUND)
+     foreach(LIB ${CMAKE_CXX_IMPLICIT_LINK_LIBRARIES} ${PLATFORM_LIBS})
+         if(IS_ABSOLUTE ${LIB} AND EXISTS ${LIB})
+             list(APPEND PLIBLIST "${LIB}")
++        elseif(LIB MATCHES "^-")
++            # Already a linker flag
++            list(APPEND PLIBLIST "${LIB}")
+         else()
+             list(APPEND PLIBLIST "-l${LIB}")
+         endif()
+     endforeach()
++    list(REMOVE_DUPLICATES PLIBLIST)
+     if(PLIBLIST)
+         # blacklist of libraries that should not be in Libs.private
+         list(REMOVE_ITEM PLIBLIST "-lc" "-lpthread" "-lmingwex" "-lmingwthrd"

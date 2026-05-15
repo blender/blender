@@ -331,9 +331,11 @@ else()
     # Certain autoconf projects ./configure don't support passing a compiler + a `--target` argument as CC/CXX, work
     # around this by using the clang target-prefixed entry-point scripts shipped with the Android NDK.
     string(REPLACE "-none-" "-" _android_triple ${ANDROID_LLVM_TRIPLE})
-    set(ANDROID_CC ${ANDROID_TOOLCHAIN_ROOT}/bin/${_android_triple}-clang)
-    set(ANDROID_CXX ${ANDROID_TOOLCHAIN_ROOT}/bin/${_android_triple}-clang++)
+    set(ANDROID_TOOLCHAIN_PREFIX ${ANDROID_TOOLCHAIN_ROOT}/bin/${_android_triple}-)
     unset(_android_triple)
+
+    set(ANDROID_CC ${ANDROID_TOOLCHAIN_PREFIX}clang)
+    set(ANDROID_CXX ${ANDROID_TOOLCHAIN_PREFIX}clang++)
 
     # Set configure toolchain env with obtained compilers and CMake variables set by the Android CMake toolchain file.
     set(CONFIGURE_ENV
