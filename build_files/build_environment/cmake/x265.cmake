@@ -27,6 +27,16 @@ elseif(APPLE)
   set(X265_12_PATCH_COMMAND COMMAND ${PATCH_CMD} -p 1 -d ${BUILD_DIR}/x265_12/src/external_x265_12 < ${PATCH_DIR}/x265_apple.diff)
   set(X265_10_PATCH_COMMAND COMMAND ${PATCH_CMD} -p 1 -d ${BUILD_DIR}/x265_10/src/external_x265_10 < ${PATCH_DIR}/x265_apple.diff)
   set(X265_PATCH_COMMAND COMMAND ${PATCH_CMD} -p 1 -d ${BUILD_DIR}/x265/src/external_x265 < ${PATCH_DIR}/x265_apple.diff)
+elseif(ANDROID)
+  set(X265_COMMON_ARGS "")
+  # Patch to fix two Android cross-compilation issues:
+  # - x265 custom commands invoke ${CMAKE_CXX_COMPILER} directly, which omits the cross-compilation target option and
+  #   thus builds for the host architecture. Patch to explicitely fetch it and pass it as a --target flag.
+  # - Android libc (Bionic) ships pthread internally and thus doesn't need a separate -lpthread link argument. Patch to
+  #   remove it and avoid link error.
+  set(X265_12_PATCH_COMMAND COMMAND ${PATCH_CMD} -p 1 -d ${BUILD_DIR}/x265_12/src/external_x265_12 < ${PATCH_DIR}/x265_android.diff)
+  set(X265_10_PATCH_COMMAND COMMAND ${PATCH_CMD} -p 1 -d ${BUILD_DIR}/x265_10/src/external_x265_10 < ${PATCH_DIR}/x265_android.diff)
+  set(X265_PATCH_COMMAND COMMAND ${PATCH_CMD} -p 1 -d ${BUILD_DIR}/x265/src/external_x265 < ${PATCH_DIR}/x265_android.diff)
 else()
   set(X265_COMMON_ARGS "")
   set(X265_12_PATCH_COMMAND "")

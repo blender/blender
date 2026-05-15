@@ -1,0 +1,25 @@
+diff --git a/source/CMakeLists.txt b/source/CMakeLists.txt
+index 5c6dda9e8..50ab490f4 100755
+--- a/source/CMakeLists.txt
++++ b/source/CMakeLists.txt
+@@ -115,7 +115,9 @@ else()
+ endif()
+ 
+ if(UNIX)
+-    list(APPEND PLATFORM_LIBS pthread)
++    if(NOT ANDROID)
++        list(APPEND PLATFORM_LIBS pthread)
++    endif()
+     find_library(LIBRT rt)
+     if(LIBRT)
+         list(APPEND PLATFORM_LIBS rt)
+@@ -409,6 +411,9 @@ int main() { return 0; }")
+     if(ENABLE_PIC)
+         list(APPEND ARM_ARGS -DPIC -fPIC)
+     endif()
++    if(CMAKE_CXX_COMPILER_TARGET)
++        list(APPEND ARM_ARGS --target=${CMAKE_CXX_COMPILER_TARGET})
++    endif()
+     add_definitions(${ARM_ARGS})
+     if(FPROFILE_GENERATE)
+         if(INTEL_CXX)
