@@ -335,12 +335,12 @@ else()
     set(ANDROID_CXX ${ANDROID_TOOLCHAIN_ROOT}/bin/${_android_triple}-clang++)
     unset(_android_triple)
 
-    # Override toolchain env from CMake variables set by the Android CMake toolchain file.
+    # Set configure toolchain env with obtained compilers and CMake variables set by the Android CMake toolchain file.
     set(CONFIGURE_ENV
       ${CONFIGURE_ENV}
       export CC=${ANDROID_CC} &&
       export CXX=${ANDROID_CXX} &&
-      export AS=${CMAKE_ASM_COMPILER} &&
+      export AS=${ANDROID_CC} &&
       export AR=${CMAKE_AR} &&
       export LD=${CMAKE_C_COMPILER_LINKER} &&
       export RANLIB=${CMAKE_RANLIB} &&
