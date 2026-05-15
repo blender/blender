@@ -258,13 +258,14 @@ class CompositorModifierContext : public CompositorContext {
     properties_ptr_ = RNA_pointer_get(&ptr, "properties");
   }
 
-  ~CompositorModifierContext()
+  void free_resources()
   {
-    if (this->mask_buffer_ != nullptr) {
-      IMB_freeImBuf(this->mask_buffer_);
-    }
+    IMB_freeImBuf(this->mask_buffer_);
+    this->mask_buffer_ = nullptr;
+
     if (this->owns_mask_) {
       this->mask_.release();
+      this->owns_mask_ = false;
     }
   }
 
@@ -458,6 +459,7 @@ static void compositor_modifier_apply(ModifierApplyContext &context,
       com_mod_context.use_gpu(), com_mod_context.get_precision(), context.render_data.gpu_context);
   com_mod_context.evaluate();
   com_mod_context.cache_manager().reset();
+  com_mod_context.free_resources();
   if (com_mod_context.use_gpu()) {
     render_end_gpu(context.render_data);
   }
