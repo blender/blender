@@ -20,8 +20,8 @@ from pathlib import Path
 import bpy
 
 from _bpy_internal.http import downloader as http_dl
-from _bpy_internal.assets.remote_library_listing.listing_downloader import RemoteAssetListingLocator
-from _bpy_internal.assets.remote_library_listing import hashing
+from _bpy_internal.assets.remote_library.listing_downloader import RemoteAssetListingLocator
+from _bpy_internal.assets.remote_library import hashing
 
 logger = logging.getLogger(__name__)
 

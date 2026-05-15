@@ -179,7 +179,7 @@ static bool downloader_status_any_asset_downloading(const bContext &C)
 {
 #ifdef WITH_PYTHON
   constexpr const char *SCRIPT = R"(
-import _bpy_internal.assets.remote_library_listing.asset_downloader as asset_dl
+import _bpy_internal.assets.remote_library.asset_downloader as asset_dl
 
 _result = asset_dl.any_asset_downloading()
   )";
@@ -561,7 +561,7 @@ static bool remote_library_request_asset_download_file(const bContext &C,
    * `dst_filepath` as URL, relative to the asset library URL. */
 
   std::string script =
-      "import _bpy_internal.assets.remote_library_listing.asset_downloader as asset_dl\n"
+      "import _bpy_internal.assets.remote_library.asset_downloader as asset_dl\n"
       "from pathlib import Path\n"
       "\n"
       "asset_dl.download_asset_file(\n"
@@ -675,7 +675,7 @@ void remote_library_request_preview_download(const bContext &C,
 
   {
     std::string script =
-        "import _bpy_internal.assets.remote_library_listing.asset_downloader as asset_dl\n"
+        "import _bpy_internal.assets.remote_library.asset_downloader as asset_dl\n"
         "from pathlib import Path\n"
         "\n"
         "asset_dl.download_preview(\n"
@@ -715,7 +715,7 @@ void remote_library_cancel_all_asset_downloads(bContext &C)
 {
 #ifdef WITH_PYTHON
   constexpr const char *SCRIPT = R"(
-import _bpy_internal.assets.remote_library_listing.asset_downloader as asset_dl
+import _bpy_internal.assets.remote_library.asset_downloader as asset_dl
 
 asset_dl.cancel_download_all_assets()
   )";

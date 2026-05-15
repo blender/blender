@@ -5,15 +5,15 @@
 import sys
 import unittest
 
-from _bpy_internal.assets.remote_library_listing import json_parsing, hashing
-from _bpy_internal.assets.remote_library_listing import blender_asset_library_openapi as api_models
-from _bpy_internal.assets.remote_library_listing import cli_listing_generator_asset_finder as asset_finder
+from _bpy_internal.assets.remote_library import json_parsing, hashing
+from _bpy_internal.assets.remote_library import blender_asset_library_openapi as api_models
+from _bpy_internal.assets.remote_library import cli_listing_generator_asset_finder as asset_finder
 
 import bpy
 
 
 """
-blender -b --factory-startup --python tests/python/assets/remote_library_listing/listing_generator_test.py
+blender -b --factory-startup --python tests/python/assets/remote_library/listing_generator_test.py
 """
 
 

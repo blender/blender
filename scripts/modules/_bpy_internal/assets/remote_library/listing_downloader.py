@@ -29,12 +29,12 @@ else:
 import bpy
 
 from _bpy_internal.http import downloader as http_dl
-from _bpy_internal.assets.remote_library_listing import blender_asset_library_openapi as api_models
-from _bpy_internal.assets.remote_library_listing import listing_common
-from _bpy_internal.assets.remote_library_listing import hashing
-from _bpy_internal.assets.remote_library_listing import http_metadata
-from _bpy_internal.assets.remote_library_listing import listing_asset_catalogs
-from _bpy_internal.assets.remote_library_listing import json_parsing
+from _bpy_internal.assets.remote_library import blender_asset_library_openapi as api_models
+from _bpy_internal.assets.remote_library import listing_common
+from _bpy_internal.assets.remote_library import hashing
+from _bpy_internal.assets.remote_library import http_metadata
+from _bpy_internal.assets.remote_library import listing_asset_catalogs
+from _bpy_internal.assets.remote_library import json_parsing
 
 logger = logging.getLogger(__name__)
 
