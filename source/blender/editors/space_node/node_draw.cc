@@ -2168,7 +2168,7 @@ static void node_add_error_message_button(const TreeDrawContext &tree_draw_ctx,
                                           const rctf &rect,
                                           float &icon_offset)
 {
-  if (ntree.type == NTREE_GEOMETRY) {
+  if (ELEM(ntree.type, NTREE_GEOMETRY, NTREE_COMPOSIT)) {
     nodes::eval_log::NodeTreeLog *geo_tree_log = [&]() -> nodes::eval_log::NodeTreeLog * {
       const bNodeTreeZones *zones = node.owner_tree().zones();
       if (!zones) {

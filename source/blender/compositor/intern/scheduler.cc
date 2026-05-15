@@ -121,6 +121,13 @@ static void add_output_nodes(const Context &context,
     }
   }
 
+  /* Add Warning nodes. */
+  for (const bNode *node : node_group.nodes_by_type("GeometryNodeWarning"_ustr)) {
+    if (!node->is_muted()) {
+      node_stack.push(node);
+    }
+  }
+
   /* Add File Output nodes. */
   if (flag_is_set(needed_outputs_types, NodeGroupOutputTypes::FileOutputNode)) {
     for (const bNode *node : node_group.nodes_by_type("CompositorNodeOutputFile"_ustr)) {
