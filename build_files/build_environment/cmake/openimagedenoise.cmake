@@ -2,11 +2,14 @@
 #
 # SPDX-License-Identifier: GPL-2.0-or-later
 
+# NOTE: Fetch the ISPC compiler from the host deps, compiled with cross-compilation target support.
+set(OIDN_ISPC_EXECUTABLE ${HOST_LIBDIR}/ispc/bin/ispc)
+
 set(OIDN_EXTRA_ARGS
   -DCMAKE_BUILD_TYPE=Release
   -DOIDN_APPS=OFF
   -DTBB_ROOT=${LIBDIR}/tbb
-  -DISPC_EXECUTABLE=${LIBDIR}/ispc/bin/ispc
+  -DISPC_EXECUTABLE=${OIDN_ISPC_EXECUTABLE}
   -DOIDN_FILTER_RTLIGHTMAP=OFF
   -DPython_EXECUTABLE=${PYTHON_BINARY}
 )
@@ -14,6 +17,23 @@ if(APPLE)
   set(OIDN_EXTRA_ARGS
     ${OIDN_EXTRA_ARGS}
     -DOIDN_DEVICE_METAL=ON
+  )
+elseif(ANDROID)
+  # Compile ISPC code for Android, using the host ISPC compiler compiled with Android target support.
+  execute_process(
+    COMMAND ${OIDN_ISPC_EXECUTABLE} --help
+    OUTPUT_VARIABLE _ispc_help_out
+  )
+  if(NOT _ispc_help_out MATCHES "--target-os=[^\n]*android")
+    message(FATAL_ERROR
+      "ISPC compiler at ${OIDN_ISPC_EXECUTABLE} lacks Android OS target support. Ensure it was correctly built "
+      "with Android cross-compilation enabled, see cmake/ispc.cmake for more details.")
+  endif()
+  unset(_ispc_help_out)
+
+  set(OIDN_EXTRA_ARGS
+    ${OIDN_EXTRA_ARGS}
+    -DISPC_TARGET_OS=--target-os=android
   )
 else()
   set(OIDN_EXTRA_ARGS
@@ -87,8 +107,8 @@ endif()
 
 set(OIDN_PATCH_COMMAND
   ${PATCH_CMD} --verbose -p 1 -N -d
-  ${BUILD_DIR}/openimagedenoise/src/external_openimagedenoise <
-  ${PATCH_DIR}/oidn.diff
+    ${BUILD_DIR}/openimagedenoise/src/external_openimagedenoise <
+    ${PATCH_DIR}/oidn.diff
 )
 
 if(CMAKE_SYSTEM_NAME STREQUAL "Linux")
@@ -97,6 +117,17 @@ if(CMAKE_SYSTEM_NAME STREQUAL "Linux")
   set(OIDN_PATCH_COMMAND ${OIDN_PATCH_COMMAND} &&
     sed -i "s/(attrib\\.memoryType)/(attrib.type)/g"
     ${BUILD_DIR}/openimagedenoise/src/external_openimagedenoise/devices/hip/hip_device.cpp
+  )
+endif()
+
+if(ANDROID)
+  # Android libc (Bionic) doesn't have pthread_*affinity_np, add patch to skip thread affinity setting.
+  # Instead of being disabled, these call could also be replaced by sched_setaffinity(), but this would require more
+  # testing to ensure there's no side-effects. See: https://groups.google.com/g/android-ndk/c/bmUpRU_DA7c
+  set(OIDN_PATCH_COMMAND ${OIDN_PATCH_COMMAND} &&
+    ${PATCH_CMD} -p 1 -d
+      ${BUILD_DIR}/openimagedenoise/src/external_openimagedenoise <
+      ${PATCH_DIR}/oidn_android_thread_affinity.diff
   )
 endif()
 
@@ -121,9 +152,16 @@ unset(OIDN_PATCH_COMMAND)
 add_dependencies(
   external_openimagedenoise
   external_tbb
-  external_ispc
   external_python
 )
+
+if(NOT CMAKE_CROSSCOMPILING)
+  # When cross-compiling, ISPC isn't built as it's fetched from the host deps build.
+  add_dependencies(
+    external_openimagedenoise
+    external_ispc
+  )
+endif()
 
 if(NOT (APPLE OR WIN32 OR BLENDER_PLATFORM_ARM))
   add_dependencies(

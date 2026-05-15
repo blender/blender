@@ -124,6 +124,8 @@ else()
   else()
     set(PYTHON_CONFIGURE_ENV ${CONFIGURE_ENV})
   endif()
+
+  # HOST_LIBDIR Python, to be executed on the host machine during cross-compilation.
   set(PYTHON_BINARY ${HOST_LIBDIR}/python/bin/python${PYTHON_SHORT_VERSION})
 
   set(PYTHON_CFLAGS "${PLATFORM_CFLAGS} ")

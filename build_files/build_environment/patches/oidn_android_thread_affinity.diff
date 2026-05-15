@@ -1,0 +1,37 @@
+diff --git a/core/thread.cpp b/core/thread.cpp
+index 70abe42..14d5cb7 100644
+--- a/core/thread.cpp
++++ b/core/thread.cpp
+@@ -190,6 +190,9 @@ OIDN_NAMESPACE_BEGIN
+ 
+   void ThreadAffinity::set(int threadIndex)
+   {
++#if defined(__ANDROID__)
++    (void)threadIndex;
++#else
+     if (threadIndex < 0 || threadIndex >= (int)affinities.size())
+       return;
+ 
+@@ -206,10 +209,14 @@ OIDN_NAMESPACE_BEGIN
+     // Set the new affinity
+     if (pthread_setaffinity_np(thread, sizeof(cpu_set_t), &affinities[threadIndex]) != 0)
+       printWarning("pthread_setaffinity_np failed");
++#endif
+   }
+ 
+   void ThreadAffinity::restore(int threadIndex)
+   {
++#if defined(__ANDROID__)
++    (void)threadIndex;
++#else
+     if (threadIndex < 0 || threadIndex >= (int)affinities.size())
+       return;
+ 
+@@ -218,6 +225,7 @@ OIDN_NAMESPACE_BEGIN
+     // Restore the original affinity
+     if (pthread_setaffinity_np(thread, sizeof(cpu_set_t), &oldAffinities[threadIndex]) != 0)
+       printWarning("pthread_setaffinity_np failed");
++#endif
+   }
+ 
+   std::vector<int> ThreadAffinity::parseList(const std::string& filename)
