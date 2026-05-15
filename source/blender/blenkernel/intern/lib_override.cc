@@ -5453,6 +5453,8 @@ StringRefNull BKE_lib_override_operation_as_string(const eID_OverrideLib_Op oper
     case LIBOVERRIDE_OP_INSERT_BEFORE:
       return "Insert Before";
   }
+  BLI_assert_unreachable();
+  return "Unknown";
 }
 
 void BKE_lib_override_debug_print(IDOverrideLibrary *liboverride, const char *intro_txt)

@@ -239,7 +239,6 @@ static bool import_normals_into_temp_attribute(const ufbx_mesh *fmesh,
   }
   bke::SpanAttributeWriter<float3> normals = attributes.lookup_or_add_for_write_only_span<float3>(
       temp_custom_normals_name, bke::AttrDomain::Corner);
-  BLI_assert(fmesh->vertex_normal.indices.count == mesh->corners_num);
   BLI_assert(fmesh->vertex_normal.indices.count == normals.span.size());
   for (const int64_t i : normals.span.index_range()) {
     const int val_idx = fmesh->vertex_normal.indices[i];
