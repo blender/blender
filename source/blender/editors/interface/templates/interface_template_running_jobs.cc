@@ -8,6 +8,8 @@
 
 #include <fmt/format.h>
 
+#include "AS_remote_library.hh"
+
 #include "BKE_context.hh"
 #include "BKE_global.hh"
 #include "BKE_main.hh"
@@ -323,6 +325,25 @@ void template_running_jobs(Layout *layout, bContext *C)
       WM_operator_name_call(
           &C, "SCREEN_OT_animation_play", wm::OpCallContext::InvokeScreen, nullptr, nullptr);
     });
+  }
+
+  /* Not using the jobs system, but should be shown everywhere where jobs are shown too. */
+  if (asset_system::remote_library_has_unfinished_asset_downloads()) {
+    const char *string = IFACE_("Downloading Asset(s)");
+    const float string_width = fontstyle_string_width(UI_FSTYLE_WIDGET, string);
+
+    Button *but = uiDefIconTextBut(block,
+                                   ButtonType::But,
+                                   ICON_CANCEL,
+                                   string,
+                                   0,
+                                   0,
+                                   string_width + UI_UNIT_X * 1.5,
+                                   UI_UNIT_Y,
+                                   nullptr,
+                                   TIP_("Cancel all asset downloads"));
+    button_func_set(
+        but, [](bContext &C) { asset_system::remote_library_cancel_all_asset_downloads(C); });
   }
 }
 

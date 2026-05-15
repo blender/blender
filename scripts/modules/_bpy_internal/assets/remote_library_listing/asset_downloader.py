@@ -561,7 +561,7 @@ class AssetReporter:
         local_file: Path,
     ) -> None:
         logger.debug("Download unnecessary, file already downloaded: %s", http_req_descr.url)
-        bpy.types.WindowManager.asset_library_status_ping_loaded_new_assets(self.asset_library_url)
+        bpy.types.WindowManager.asset_library_status_ping_asset_file_done(self.asset_library_url)
 
     def download_error(
         self,
@@ -572,7 +572,7 @@ class AssetReporter:
         logger.warning("Could not download file %s: %s", http_req_descr, error)
         # TODO: tell Blender about this error.
         # The call below is here just to make a pull request a non-functional change.
-        bpy.types.WindowManager.asset_library_status_ping_loaded_new_assets(self.asset_library_url)
+        bpy.types.WindowManager.asset_library_status_ping_asset_file_done(self.asset_library_url)
 
     def download_progress(
         self,
@@ -604,7 +604,7 @@ class AssetReporter:
         local_file: Path,
     ) -> None:
         logger.info("Download finished: %s to %s", http_req_descr, local_file)
-        bpy.types.WindowManager.asset_library_status_ping_loaded_new_assets(self.asset_library_url)
+        bpy.types.WindowManager.asset_library_status_ping_asset_file_done(self.asset_library_url)
 
 
 @dataclasses.dataclass
