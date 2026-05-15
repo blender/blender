@@ -101,7 +101,7 @@ def get_gpu_devices(env) -> list:
             backend_devices, _ = env.run_in_blender(
                 get_gpu_device_backend, {'gpu_backend': backend}, ['--gpu-backend', backend])
         except TestFailure as failure:
-            logger.error("Unable to receive device list for '{backend}'", exc_info=failure)
+            logger.error(f"Unable to receive device list for '{backend}'", exc_info=failure)
         else:
             result += backend_devices.get('devices', [])
 
