@@ -29,6 +29,14 @@ void parallel_sort(RandomAccessIterator begin, RandomAccessIterator end, const C
 {
   std::sort<RandomAccessIterator, Compare>(begin, end, comp);
 }
-#endif
+template<typename Range> void parallel_sort(Range &range)
+{
+  std::sort(range.begin(), range.end());
+}
+template<typename Range, typename Compare> void parallel_sort(Range &range, const Compare &comp)
+{
+  std::sort(range.begin(), range.end(), comp);
+}
+#endif /* !WITH_TBB */
 
 }  // namespace blender
