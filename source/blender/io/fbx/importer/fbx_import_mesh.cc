@@ -232,7 +232,6 @@ static void import_colors(const ufbx_mesh *fmesh,
 }
 
 static bool import_normals_into_temp_attribute(const ufbx_mesh *fmesh,
-                                               Mesh *mesh,
                                                bke::MutableAttributeAccessor &attributes)
 {
   if (!fmesh->vertex_normal.exists) {
@@ -467,7 +466,7 @@ void import_meshes(Main &bmain,
       /* Mesh validation below can alter the mesh, so we first write custom normals
        * into a temporary custom corner domain attribute, and then re-apply that
        * data as custom normals after the validation. */
-      has_custom_normals = import_normals_into_temp_attribute(fmesh, mesh, attributes);
+      has_custom_normals = import_normals_into_temp_attribute(fmesh, attributes);
     }
     import_skin_vertex_groups(mapping, fmesh, mesh);
 
