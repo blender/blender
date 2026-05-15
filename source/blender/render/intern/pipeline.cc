@@ -2696,9 +2696,7 @@ void RE_layer_load_from_file(
         IMB_float_from_byte(ibuf);
       }
 
-      memcpy(rpass->ibuf->float_data_for_write(),
-             ibuf->float_data(),
-             sizeof(float[4]) * layer->rectx * layer->recty);
+      rpass->ibuf->float_buffer = ibuf->float_buffer;
     }
     else {
       if ((ibuf->x - x >= layer->rectx) && (ibuf->y - y >= layer->recty)) {

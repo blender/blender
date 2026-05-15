@@ -98,9 +98,18 @@ void FileOutput::add_view(const char *view_name, const Result &data)
   }
   render_view->ibuf = IMB_allocImBuf(UNPACK2(data.domain().data_size), ImBufFlags::Zero);
   render_view->ibuf->color_mode = color_mode;
-  IMB_alloc_float_pixels(render_view->ibuf, data.channels_count(), false);
-  std::memcpy(
-      render_view->ibuf->float_data_for_write(), data.cpu_data().data(), data.size_in_bytes());
+  if (data.sharing_info()) {
+    render_view->ibuf->channels = data.channels_count();
+    render_view->ibuf->float_buffer = ImBufFloatBuffer{
+        .data = static_cast<const float *>(data.cpu_data().data()),
+        .sharing_info = data.sharing_info(),
+        .colorspace = nullptr};
+  }
+  else if (data.cpu_data().data() != render_view->ibuf->float_data()) {
+    IMB_alloc_float_pixels(render_view->ibuf, data.channels_count(), false);
+    std::memcpy(
+        render_view->ibuf->float_data_for_write(), data.cpu_data().data(), data.size_in_bytes());
+  }
 }
 
 void FileOutput::add_pass(const char *pass_name,
@@ -131,9 +140,18 @@ void FileOutput::add_pass(const char *pass_name,
   }
   render_pass->ibuf = IMB_allocImBuf(UNPACK2(data.domain().data_size), ImBufFlags::Zero);
   render_pass->ibuf->color_mode = color_mode;
-  IMB_alloc_float_pixels(render_pass->ibuf, data.channels_count(), false);
-  std::memcpy(
-      render_pass->ibuf->float_data_for_write(), data.cpu_data().data(), data.size_in_bytes());
+  if (data.sharing_info()) {
+    render_pass->ibuf->channels = data.channels_count();
+    render_pass->ibuf->float_buffer = ImBufFloatBuffer{
+        .data = static_cast<const float *>(data.cpu_data().data()),
+        .sharing_info = data.sharing_info(),
+        .colorspace = nullptr};
+  }
+  else if (data.cpu_data().data() != render_pass->ibuf->float_data()) {
+    IMB_alloc_float_pixels(render_pass->ibuf, data.channels_count(), false);
+    std::memcpy(
+        render_pass->ibuf->float_data_for_write(), data.cpu_data().data(), data.size_in_bytes());
+  }
   copy_v2_v2_db(render_pass->ibuf->ppm, render_result_->ppm);
 }
 

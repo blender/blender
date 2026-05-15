@@ -1095,8 +1095,8 @@ ImBuf *RE_render_result_rect_to_ibuf(RenderResult *rr,
 
   /* if not exists, BKE_imbuf_write makes one */
   if (rv->ibuf) {
-    IMB_assign_byte_buffer(ibuf, rv->ibuf->byte_data_for_write(), IB_DO_NOT_TAKE_OWNERSHIP);
-    IMB_assign_float_buffer(ibuf, rv->ibuf->float_data_for_write(), IB_DO_NOT_TAKE_OWNERSHIP);
+    ibuf->byte_buffer = rv->ibuf->byte_buffer;
+    ibuf->float_buffer = rv->ibuf->float_buffer;
     ibuf->channels = rv->ibuf->channels;
   }
 
@@ -1116,16 +1116,14 @@ ImBuf *RE_render_result_rect_to_ibuf(RenderResult *rr,
         (R_IMF_CHAN_DEPTH_12 | R_IMF_CHAN_DEPTH_16 | R_IMF_CHAN_DEPTH_32))
     {
       if (imf->depth == R_IMF_CHAN_DEPTH_8) {
-        /* Higher depth bits are supported but not needed for current file output. */
-        IMB_assign_float_buffer(ibuf, nullptr, IB_DO_NOT_TAKE_OWNERSHIP);
+        ibuf->float_buffer = {};
       }
       else {
         IMB_float_from_byte(ibuf);
       }
     }
     else {
-      /* ensure no float buffer remained from previous frame */
-      IMB_assign_float_buffer(ibuf, nullptr, IB_DO_NOT_TAKE_OWNERSHIP);
+      ibuf->float_buffer = {};
     }
   }
 
@@ -1152,15 +1150,7 @@ void RE_render_result_rect_from_ibuf(RenderResult *rr, const ImBuf *ibuf, const 
   if (ibuf->float_data()) {
     rr->have_combined = true;
 
-    if (!rv_ibuf->float_data()) {
-      float *data = MEM_new_array_uninitialized<float>(4 * size_t(rr->rectx) * size_t(rr->recty),
-                                                       "render_seq float");
-      rv_ibuf->assign_float_data(data);
-    }
-
-    memcpy(rv_ibuf->float_data_for_write(),
-           ibuf->float_data(),
-           sizeof(float[4]) * rr->rectx * rr->recty);
+    rv_ibuf->float_buffer = ibuf->float_buffer;
 
     /* TSK! Since sequence render doesn't free the *rr render result, the old rect32
      * can hang around when sequence render has rendered a 32 bits one before */
@@ -1169,13 +1159,7 @@ void RE_render_result_rect_from_ibuf(RenderResult *rr, const ImBuf *ibuf, const 
   else if (ibuf->byte_data()) {
     rr->have_combined = true;
 
-    if (!rv_ibuf->byte_data()) {
-      uint8_t *data = MEM_new_array_uninitialized<uint8_t>(
-          4 * size_t(rr->rectx) * size_t(rr->recty), "render_seq byte");
-      rv_ibuf->assign_byte_data(data);
-    }
-
-    memcpy(rv_ibuf->byte_data_for_write(), ibuf->byte_data(), sizeof(int) * rr->rectx * rr->recty);
+    rv_ibuf->byte_buffer = ibuf->byte_buffer;
 
     /* Same things as above, old rectf can hang around from previous render. */
     IMB_free_float_pixels(rv_ibuf);

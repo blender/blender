@@ -2245,12 +2245,6 @@ static ImBuf *imbuf_ensure_editable(ImBuf *ibuf, ImBuf *colormanaged_ibuf, bool 
     return colormanaged_ibuf;
   }
 
-  /* Render pipeline is constructing image buffer itself,
-   * but it's re-using byte and float buffers from render result make copy of this buffers
-   * here sine this buffers would be transformed to other color space here. */
-  IMB_make_writable_byte_buffer(ibuf);
-  IMB_make_writable_float_buffer(ibuf);
-
   return ibuf;
 }
 

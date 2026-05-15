@@ -911,7 +911,9 @@ static void icon_verify_datatoc(IconImage *iimg)
       IMB_scale(bbuf, iimg->w, iimg->h, IMBScaleFilter::Box, false);
     }
 
-    iimg->rect = IMB_steal_byte_buffer(bbuf);
+    const size_t size_in_bytes = size_t(bbuf->x) * size_t(bbuf->y) * sizeof(uint);
+    iimg->rect = MEM_new_array_uninitialized<uchar>(size_in_bytes, __func__);
+    memcpy(iimg->rect, reinterpret_cast<const uint *>(bbuf->byte_data()), size_in_bytes);
     IMB_freeImBuf(bbuf);
   }
 }
@@ -1368,7 +1370,9 @@ PreviewImage *icon_to_preview(int icon_id)
     if (bbuf) {
       PreviewImage *prv = BKE_previewimg_create();
 
-      prv->rect[0] = reinterpret_cast<uint *>(IMB_steal_byte_buffer(bbuf));
+      const size_t size = size_t(bbuf->x) * size_t(bbuf->y);
+      prv->rect[0] = MEM_new_array_uninitialized<uint>(size, __func__);
+      memcpy(prv->rect[0], reinterpret_cast<const uint *>(bbuf->byte_data()), size * sizeof(uint));
 
       prv->w[0] = bbuf->x;
       prv->h[0] = bbuf->y;

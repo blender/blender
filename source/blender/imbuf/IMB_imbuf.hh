@@ -152,15 +152,6 @@ ImBuf *IMB_allocFromBuffer(const uint8_t *byte_buffer,
                            unsigned int channels);
 
 /**
- * Assign the content of the corresponding buffer with the given data and ownership.
- * The current content of the buffer is released corresponding to its ownership configuration.
- *
- * \note Does not modify the topology (width, height, number of channels).
- */
-void IMB_assign_byte_buffer(ImBuf *ibuf, uint8_t *buffer_data, ImBufOwnership ownership);
-void IMB_assign_float_buffer(ImBuf *ibuf, float *buffer_data, ImBufOwnership ownership);
-
-/**
  * Assign the GPU texture of the buffer to the given texture. The current GPU texture is released.
  *
  * \note Does not modify the topology (width, height, number of channels).
@@ -175,33 +166,6 @@ void IMB_assign_gpu_texture(ImBuf *ibuf, gpu::Texture *texture);
  * \warning Not thread-safe, so callee should worry about thread locks.
  */
 void IMB_ensure_host_buffer(ImBuf *ibuf);
-
-/**
- * Assign the content and the color space of the corresponding buffer the data from the given
- * buffer.
- *
- * \note Does not modify the topology (width, height, number of channels).
- *
- * \note The ownership of the data in the source buffer is ignored.
- */
-void IMB_assign_byte_buffer(ImBuf *ibuf, const ImBufByteBuffer &buffer, ImBufOwnership ownership);
-void IMB_assign_float_buffer(ImBuf *ibuf,
-                             const ImBufFloatBuffer &buffer,
-                             ImBufOwnership ownership);
-
-/**
- * Make corresponding buffers available for modification.
- * Is achieved by ensuring that the given ImBuf is the only owner of the underlying buffer data.
- */
-void IMB_make_writable_byte_buffer(ImBuf *ibuf);
-void IMB_make_writable_float_buffer(ImBuf *ibuf);
-
-/**
- * Steal the buffer data pointer: the ImBuf is no longer an owner of this data.
- * \note If the ImBuf does not own the data the behavior is undefined.
- */
-uint8_t *IMB_steal_byte_buffer(ImBuf *ibuf);
-float *IMB_steal_float_buffer(ImBuf *ibuf);
 
 /**
  * Increase reference count to imbuf

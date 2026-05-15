@@ -1519,21 +1519,13 @@ static ImBuf *seq_render_scene_strip_ex(const RenderData *context,
 
       RE_AcquireResultImage(re, &rres, view_id);
 
-      /* TODO: Share the pixel data with the original image buffer from the render result using
-       * implicit sharing. */
       if (rres.ibuf && rres.ibuf->float_data()) {
-        ibufs_arr[view_id] = IMB_allocImBuf(
-            rres.rectx, rres.recty, ImBufFlags::FloatData | ImBufFlags::UninitializedPixels);
-        memcpy(ibufs_arr[view_id]->float_data_for_write(),
-               rres.ibuf->float_data(),
-               sizeof(float[4]) * rres.rectx * rres.recty);
+        ibufs_arr[view_id] = IMB_allocImBuf(rres.rectx, rres.recty, ImBufFlags::Zero);
+        ibufs_arr[view_id]->float_buffer = rres.ibuf->float_buffer;
       }
       else if (rres.ibuf && rres.ibuf->byte_data()) {
-        ibufs_arr[view_id] = IMB_allocImBuf(
-            rres.rectx, rres.recty, ImBufFlags::ByteData | ImBufFlags::UninitializedPixels);
-        memcpy(ibufs_arr[view_id]->byte_data_for_write(),
-               rres.ibuf->byte_data(),
-               4 * rres.rectx * rres.recty);
+        ibufs_arr[view_id] = IMB_allocImBuf(rres.rectx, rres.recty, ImBufFlags::Zero);
+        ibufs_arr[view_id]->byte_buffer = rres.ibuf->byte_buffer;
       }
       else {
         ibufs_arr[view_id] = IMB_allocImBuf(rres.rectx, rres.recty, ImBufFlags::ByteData);

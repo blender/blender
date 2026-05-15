@@ -12,6 +12,8 @@
  */
 
 #include "BLI_assert.h"
+#include "BLI_implicit_sharing_ptr.hh"
+
 #include "DNA_image_enums.h"
 #include "IMB_imbuf_enums.h"
 
@@ -94,39 +96,21 @@ struct ImbFormatOptions {
 /** \name ImBuf buffer storage
  * \{ */
 
-/**
- * Specialization of an ownership whenever a bare pointer is provided to the ImBuf buffers
- * assignment API.
- */
-enum ImBufOwnership {
-  /**
-   * The ImBuf simply shares pointer with data owned by someone else, and will not perform any
-   * memory management when the ImBuf frees the buffer.
-   */
-  IB_DO_NOT_TAKE_OWNERSHIP = 0,
-
-  /**
-   * The ImBuf takes ownership of the buffer data, and will use MEM_delete() to free this memory
-   * when the ImBuf needs to free the data.
-   */
-  IB_TAKE_OWNERSHIP = 1,
-};
-
 /* Different storage specialization.
  *
  * NOTE: Avoid direct access. Use the buffer utilities from the IMB_imbuf.hh  instead
  */
 
 struct ImBufByteBuffer {
-  uint8_t *data = nullptr;
-  ImBufOwnership ownership = IB_DO_NOT_TAKE_OWNERSHIP;
+  const uint8_t *data = nullptr;
+  ImplicitSharingPtr<> sharing_info;
 
   const ColorSpace *colorspace = nullptr;
 };
 
 struct ImBufFloatBuffer {
-  float *data = nullptr;
-  ImBufOwnership ownership = IB_DO_NOT_TAKE_OWNERSHIP;
+  const float *data = nullptr;
+  ImplicitSharingPtr<> sharing_info;
 
   const ColorSpace *colorspace = nullptr;
 };
@@ -250,6 +234,10 @@ struct ImBuf {
   void assign_byte_data(uint8_t *data);
   void assign_float_data(float *data);
 
+  /** Share ownership with the implicit sharing referenced by the pointer. */
+  void assign_byte_data(const uint8_t *data, ImplicitSharingPtr<> sharing_ptr);
+  void assign_float_data(const float *data, ImplicitSharingPtr<> sharing_ptr);
+
   [[nodiscard]] bool colorspace_is_data() const;
 
   [[nodiscard]] bool can_contain_alpha() const
@@ -321,17 +309,7 @@ inline const uint8_t *ImBuf::byte_data() const
   return this->byte_buffer.data;
 }
 
-inline uint8_t *ImBuf::byte_data_for_write()
-{
-  return this->byte_buffer.data;
-}
-
 inline const float *ImBuf::float_data() const
-{
-  return this->float_buffer.data;
-}
-
-inline float *ImBuf::float_data_for_write()
 {
   return this->float_buffer.data;
 }
