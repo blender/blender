@@ -777,7 +777,13 @@ static void draw_seq_text_get_source(const Strip *strip, char *r_source, size_t 
     }
     case STRIP_TYPE_SOUND: {
       if (strip->sound != nullptr) {
-        BLI_strncpy_utf8(r_source, strip->sound->filepath, source_maxncpy);
+        if (strip->sound->packedfile != nullptr) {
+          /* The sound data has been packed, don't display the path. */
+          BLI_strncpy_utf8(r_source, "<Packed File>", source_maxncpy);
+        }
+        else {
+          BLI_strncpy_utf8(r_source, strip->sound->filepath, source_maxncpy);
+        }
       }
       break;
     }
