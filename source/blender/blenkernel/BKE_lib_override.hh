@@ -611,6 +611,11 @@ void BKE_lib_override_library_main_update(Main *bmain);
 bool BKE_lib_override_library_id_is_user_deletable(Main *bmain, ID *id);
 
 /**
+ * Return a stringified version of the given liboverride operation.
+ */
+StringRefNull BKE_lib_override_operation_as_string(const eID_OverrideLib_Op operation);
+
+/**
  * Debugging helper to show content of given liboverride data.
  */
 void BKE_lib_override_debug_print(IDOverrideLibrary *liboverride, const char *intro_txt);

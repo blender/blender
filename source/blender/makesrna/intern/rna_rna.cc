@@ -2752,7 +2752,7 @@ bool rna_property_override_apply_default(Main *bmain,
 
   const bool is_array = len_dst > 0;
   const int index = is_array ? opop->subitem_reference_index : 0;
-  const short override_op = opop->operation;
+  const eID_OverrideLib_Op override_op = opop->operation;
 
   bool ret_success = true;
 
@@ -2773,7 +2773,9 @@ bool rna_property_override_apply_default(Main *bmain,
             RNA_property_boolean_set_array(ptr_dst, prop_dst, array_a);
             break;
           default:
-            BLI_assert_msg(0, "Unsupported RNA override operation on boolean");
+            CLOG_ERROR(&LOG_COMPARE_OVERRIDE,
+                       "Unsupported '%s' RNA override operation on boolean array",
+                       BKE_lib_override_operation_as_string(override_op).c_str());
             return false;
         }
 
@@ -2789,7 +2791,9 @@ bool rna_property_override_apply_default(Main *bmain,
             RNA_PROPERTY_SET_SINGLE(boolean, ptr_dst, prop_dst, index, value);
             break;
           default:
-            BLI_assert_msg(0, "Unsupported RNA override operation on boolean");
+            CLOG_ERROR(&LOG_COMPARE_OVERRIDE,
+                       "Unsupported '%s' RNA override operation on boolean",
+                       BKE_lib_override_operation_as_string(override_op).c_str());
             return false;
         }
       }
@@ -2831,7 +2835,9 @@ bool rna_property_override_apply_default(Main *bmain,
             }
             break;
           default:
-            BLI_assert_msg(0, "Unsupported RNA override operation on integer");
+            CLOG_ERROR(&LOG_COMPARE_OVERRIDE,
+                       "Unsupported '%s' RNA override operation on integer array",
+                       BKE_lib_override_operation_as_string(override_op).c_str());
             return false;
         }
 
@@ -2869,7 +2875,9 @@ bool rna_property_override_apply_default(Main *bmain,
                                         storage_value);
             break;
           default:
-            BLI_assert_msg(0, "Unsupported RNA override operation on integer");
+            CLOG_ERROR(&LOG_COMPARE_OVERRIDE,
+                       "Unsupported '%s' RNA override operation on integer",
+                       BKE_lib_override_operation_as_string(override_op).c_str());
             return false;
         }
       }
@@ -2917,7 +2925,9 @@ bool rna_property_override_apply_default(Main *bmain,
             }
             break;
           default:
-            BLI_assert_msg(0, "Unsupported RNA override operation on float");
+            CLOG_ERROR(&LOG_COMPARE_OVERRIDE,
+                       "Unsupported '%s' RNA override operation on float array",
+                       BKE_lib_override_operation_as_string(override_op).c_str());
             return false;
         }
 
@@ -2963,7 +2973,9 @@ bool rna_property_override_apply_default(Main *bmain,
                                         storage_value);
             break;
           default:
-            BLI_assert_msg(0, "Unsupported RNA override operation on float");
+            CLOG_ERROR(&LOG_COMPARE_OVERRIDE,
+                       "Unsupported '%s' RNA override operation on float",
+                       BKE_lib_override_operation_as_string(override_op).c_str());
             return false;
         }
       }
@@ -2977,7 +2989,9 @@ bool rna_property_override_apply_default(Main *bmain,
           break;
         /* TODO: support add/sub, for bitflags? */
         default:
-          BLI_assert_msg(0, "Unsupported RNA override operation on enum");
+          CLOG_ERROR(&LOG_COMPARE_OVERRIDE,
+                     "Unsupported '%s' RNA override operation on enum",
+                     BKE_lib_override_operation_as_string(override_op).c_str());
           return false;
       }
       break;
@@ -2990,7 +3004,9 @@ bool rna_property_override_apply_default(Main *bmain,
           RNA_property_pointer_set(ptr_dst, prop_dst, value, nullptr);
           break;
         default:
-          BLI_assert_msg(0, "Unsupported RNA override operation on pointer");
+          CLOG_ERROR(&LOG_COMPARE_OVERRIDE,
+                     "Unsupported '%s' RNA override operation on pointer",
+                     BKE_lib_override_operation_as_string(override_op).c_str());
           return false;
       }
       break;
@@ -3004,7 +3020,9 @@ bool rna_property_override_apply_default(Main *bmain,
           RNA_property_string_set(ptr_dst, prop_dst, value);
           break;
         default:
-          BLI_assert_msg(0, "Unsupported RNA override operation on string");
+          CLOG_ERROR(&LOG_COMPARE_OVERRIDE,
+                     "Unsupported '%s' RNA override operation on string",
+                     BKE_lib_override_operation_as_string(override_op).c_str());
           return false;
       }
 
@@ -3087,7 +3105,9 @@ bool rna_property_override_apply_default(Main *bmain,
           break;
         }
         default:
-          BLI_assert_msg(0, "Unsupported RNA override operation on collection");
+          CLOG_ERROR(&LOG_COMPARE_OVERRIDE,
+                     "Unsupported '%s' RNA override operation on collection",
+                     BKE_lib_override_operation_as_string(override_op).c_str());
           return false;
       }
       break;
