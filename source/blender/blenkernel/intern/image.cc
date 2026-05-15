@@ -783,7 +783,7 @@ bool BKE_image_scale(Image *image, int width, int height, ImageUser *iuser)
   return (ibuf != nullptr);
 }
 
-bool BKE_image_has_opengl_texture(Image *ima)
+bool BKE_image_has_gpu_texture(Image *ima)
 {
   for (int eye = 0; eye < 2; eye++) {
     for (int i = 0; i < TEXTARGET_COUNT; i++) {

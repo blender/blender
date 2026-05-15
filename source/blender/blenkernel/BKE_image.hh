@@ -460,9 +460,9 @@ bool BKE_image_scale(Image *image, int width, int height, ImageUser *iuser);
 bool BKE_image_has_alpha(Image *image);
 
 /**
- * Check if texture has GPU texture code.
+ * Check if image has an associated GPU texture.
  */
-bool BKE_image_has_opengl_texture(Image *ima);
+bool BKE_image_has_gpu_texture(Image *ima);
 
 /**
  * Get tile index for tiled images.
