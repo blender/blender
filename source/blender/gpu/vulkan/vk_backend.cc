@@ -429,6 +429,7 @@ void VKBackend::detect_workarounds(VKDevice &device)
 
     /* Force workarounds and disable extensions. */
     workarounds.not_aligned_pixel_formats = true;
+    workarounds.no_texture_pool = true;
     extensions.shader_output_layer = false;
     extensions.shader_output_viewport_index = false;
     extensions.fragment_shader_barycentric = false;
@@ -443,6 +444,10 @@ void VKBackend::detect_workarounds(VKDevice &device)
     device.workarounds_ = workarounds;
     device.extensions_ = extensions;
     return;
+  }
+
+  if (G.debug & G_DEBUG_GPU_NO_TEXTURE_POOL) {
+    workarounds.no_texture_pool = true;
   }
 
   extensions.shader_output_layer =
@@ -558,7 +563,7 @@ void VKBackend::detect_workarounds(VKDevice &device)
    * Until the issues have been resolved, the texture pool workaround is used.
    */
   if (GPU_type_matches(GPU_DEVICE_INTEL | GPU_DEVICE_INTEL_UHD, GPU_OS_WIN, GPU_DRIVER_OFFICIAL)) {
-    GCaps.texture_pool_workaround = true;
+    workarounds.no_texture_pool = true;
   }
 #endif
 
@@ -691,7 +696,7 @@ Texture *VKBackend::texture_alloc(const char *name)
 
 TexturePool *VKBackend::texturepool_alloc()
 {
-  if (G.debug & G_DEBUG_GPU_NO_TEXTURE_POOL) {
+  if (device.workarounds_get().no_texture_pool) {
     CLOG_TRACE(&LOG, "Using texture pool \"TexturePoolImpl\".");
     return new TexturePoolImpl();
   }
