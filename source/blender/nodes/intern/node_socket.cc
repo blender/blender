@@ -22,6 +22,8 @@
 #include "BLI_string_utf8.h"
 #include "BLI_utildefines.h"
 
+#include "BKE_action.hh"
+#include "BKE_animsys.h"
 #include "BKE_geometry_set.hh"
 #include "BKE_lib_id.hh"
 #include "BKE_node.hh"
@@ -31,6 +33,7 @@
 #include "BKE_node_socket_value.hh"
 #include "BKE_node_tree_update.hh"
 
+#include "DNA_anim_types.h"
 #include "DNA_collection_types.h"
 #include "DNA_mask_types.h"
 #include "DNA_material_types.h"
@@ -60,6 +63,12 @@
 #include "SEQ_sequencer.hh"
 
 #include "WM_types.hh"
+
+#include "DEG_depsgraph.hh"
+#include "DEG_depsgraph_build.hh"
+
+#include "ANIM_action.hh"
+#include "ANIM_action_iterators.hh"
 
 namespace blender {
 
@@ -427,7 +436,105 @@ static bool hide_new_group_input_sockets(const bNode &node)
   return false;
 }
 
-static void refresh_node_sockets_and_panels(bNodeTree &ntree,
+static void refresh_node_sockets_animation_inout(Main &bmain,
+                                                 bNodeTree &ntree,
+                                                 bNode &node,
+                                                 const eNodeSocketInOut in_out,
+                                                 const Span<bNodeSocket *> old_sockets,
+                                                 const Span<bNodeSocket *> new_sockets)
+{
+  std::optional<std::pair<animrig::Action *, animrig::Slot *>> action_and_slot =
+      animrig::get_action_slot_pair(ntree.id);
+  if (!action_and_slot) {
+    return;
+  }
+  animrig::Action &action = *action_and_slot->first;
+  animrig::Slot &slot = *action_and_slot->second;
+
+  Map<UString, int> new_index_by_identifier;
+  for (const int new_i : new_sockets.index_range()) {
+    const bNodeSocket &new_socket = *new_sockets[new_i];
+    new_index_by_identifier.add_new(new_socket.identifier_ustr(), new_i);
+  }
+
+  struct IndexMove {
+    int old_i;
+    int new_i;
+  };
+  Vector<IndexMove> moved_indices;
+  Vector<int> removed_indices;
+  for (const int old_i : old_sockets.index_range()) {
+    bNodeSocket &old_socket = *old_sockets[old_i];
+    const std::optional<int> new_i = new_index_by_identifier.lookup_try(
+        old_socket.identifier_ustr());
+    if (!new_i) {
+      removed_indices.append(old_i);
+      continue;
+    }
+    if (new_i == old_i) {
+      continue;
+    }
+    moved_indices.append({old_i, *new_i});
+  }
+  if (moved_indices.is_empty() && removed_indices.is_empty()) {
+    return;
+  }
+
+  const std::string node_path = fmt::format("nodes[\"{}\"]", BLI_str_escape(node.name));
+  const StringRef inout_str = in_out == SOCK_IN ? "inputs" : "outputs";
+  bool animation_changed = false;
+
+  if (!removed_indices.is_empty()) {
+    for (const int removed_i : removed_indices) {
+      const std::string old_path = fmt::format("{}.{}[{}]", node_path, inout_str, removed_i);
+      if (BKE_animdata_fix_paths_remove(&ntree.id, old_path.c_str())) {
+        animation_changed = true;
+      }
+    }
+  }
+  if (!moved_indices.is_empty()) {
+    auto handle_rna_path = [&](char **path_ptr) {
+      const StringRef old_path = *path_ptr;
+      if (!old_path.startswith(node_path)) {
+        return;
+      }
+      for (const IndexMove &index_move : moved_indices) {
+        const std::string old_path_prefix = fmt::format(
+            "{}.{}[{}]", node_path, inout_str, index_move.old_i);
+        if (!old_path.startswith(old_path_prefix)) {
+          continue;
+        }
+        const std::string new_path = fmt::format("{}.{}[{}]{}",
+                                                 node_path,
+                                                 inout_str,
+                                                 index_move.new_i,
+                                                 old_path.substr(old_path_prefix.size()));
+        MEM_SAFE_DELETE(*path_ptr);
+        *path_ptr = BLI_strdup(new_path.c_str());
+        animation_changed = true;
+        return;
+      }
+    };
+
+    /* All index changes have to be applied in a single pass over the fcurves. Otherwise, when
+     * sockets swap their position, the same fcurve may be modified twice and ends up with its
+     * original rna path. */
+    animrig::foreach_fcurve_in_action_slot(
+        action, slot.handle, [&](FCurve &fcurve) { handle_rna_path(&fcurve.rna_path); });
+    for (FCurve &driver_fcurve : ntree.adt->drivers) {
+      handle_rna_path(&driver_fcurve.rna_path);
+    }
+  }
+
+  if (animation_changed) {
+    DEG_id_tag_update(&ntree.id, ID_RECALC_ANIMATION);
+    DEG_id_tag_update(&action.id, ID_RECALC_SYNC_TO_EVAL);
+    DEG_relations_tag_update(&bmain);
+  }
+}
+
+static void refresh_node_sockets_and_panels(Main *bmain,
+                                            bNodeTree &ntree,
                                             bNode &node,
                                             const NodeDeclaration &node_decl,
                                             const bool do_id_user)
@@ -468,15 +575,19 @@ static void refresh_node_sockets_and_panels(bNodeTree &ntree,
   VectorSet<bNodeSocket *> new_inputs;
   VectorSet<bNodeSocket *> new_outputs;
   bNodePanelState *new_panel = node.panel_states_array;
+  Vector<bNodeSocket *> remaining_old_inputs = old_inputs;
+  Vector<bNodeSocket *> remaining_old_outputs = old_outputs;
   for (const ItemDeclarationPtr &item_decl : node_decl.all_items) {
     if (const SocketDeclaration *socket_decl = dynamic_cast<const SocketDeclaration *>(
             item_decl.get()))
     {
       if (socket_decl->in_out == SOCK_IN) {
-        refresh_node_socket(ntree, node, *socket_decl, old_inputs, new_inputs, hide_new_sockets);
+        refresh_node_socket(
+            ntree, node, *socket_decl, remaining_old_inputs, new_inputs, hide_new_sockets);
       }
       else {
-        refresh_node_socket(ntree, node, *socket_decl, old_outputs, new_outputs, hide_new_sockets);
+        refresh_node_socket(
+            ntree, node, *socket_decl, remaining_old_outputs, new_outputs, hide_new_sockets);
       }
     }
     else if (const PanelDeclaration *panel_decl = dynamic_cast<const PanelDeclaration *>(
@@ -485,6 +596,13 @@ static void refresh_node_sockets_and_panels(bNodeTree &ntree,
       refresh_node_panel(*panel_decl, old_panels, *new_panel);
       ++new_panel;
     }
+  }
+
+  /* Animation rna paths use the socket index, so they need to be updated when the socket order
+   * changes. */
+  if (bmain) {
+    refresh_node_sockets_animation_inout(*bmain, ntree, node, SOCK_IN, old_inputs, new_inputs);
+    refresh_node_sockets_animation_inout(*bmain, ntree, node, SOCK_OUT, old_outputs, new_outputs);
   }
 
   /* Destroy any remaining sockets that are no longer in the declaration. */
@@ -510,21 +628,19 @@ static void refresh_node_sockets_and_panels(bNodeTree &ntree,
   }
 }
 
-static void refresh_node(bNodeTree &ntree,
-                         bNode &node,
-                         nodes::NodeDeclaration &node_decl,
-                         bool do_id_user)
+static void refresh_node(
+    Main *bmain, bNodeTree &ntree, bNode &node, nodes::NodeDeclaration &node_decl, bool do_id_user)
 {
   if (node_decl.skip_updating_sockets) {
     return;
   }
   if (!node_decl.matches(node)) {
-    refresh_node_sockets_and_panels(ntree, node, node_decl, do_id_user);
+    refresh_node_sockets_and_panels(bmain, ntree, node, node_decl, do_id_user);
   }
   bke::node_socket_declarations_update(&node);
 }
 
-void update_node_declaration_and_sockets(bNodeTree &ntree, bNode &node)
+void update_node_declaration_and_sockets(bNodeTree &ntree, bNode &node, Main *bmain)
 {
   if (node.typeinfo->declare) {
     if (node.typeinfo->static_declaration->is_context_dependent) {
@@ -534,7 +650,7 @@ void update_node_declaration_and_sockets(bNodeTree &ntree, bNode &node)
       build_node_declaration(*node.typeinfo, *node.runtime->declaration, &ntree, &node);
     }
   }
-  refresh_node(ntree, node, *node.runtime->declaration, true);
+  refresh_node(bmain, ntree, node, *node.runtime->declaration, true);
 }
 
 bool socket_type_supports_fields(const eNodeSocketDatatype socket_type)
@@ -570,7 +686,7 @@ bool socket_type_supports_grids(const eNodeSocketDatatype socket_type)
 
 }  // namespace nodes
 
-void node_verify_sockets(bNodeTree *ntree, bNode *node, bool do_id_user)
+void node_verify_sockets(Main *bmain, bNodeTree *ntree, bNode *node, bool do_id_user)
 {
   bke::bNodeType *ntype = node->typeinfo;
   if (ntype == nullptr) {
@@ -578,7 +694,7 @@ void node_verify_sockets(bNodeTree *ntree, bNode *node, bool do_id_user)
   }
   if (ntype->declare) {
     bke::node_declaration_ensure_on_outdated_node(*ntree, *node);
-    refresh_node(*ntree, *node, *node->runtime->declaration, do_id_user);
+    refresh_node(bmain, *ntree, *node, *node->runtime->declaration, do_id_user);
     return;
   }
   /* Don't try to match socket lists when there are no templates.
