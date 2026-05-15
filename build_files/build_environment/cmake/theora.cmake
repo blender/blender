@@ -8,6 +8,24 @@ else()
   set(THEORA_CONFIGURE_ENV ${CONFIGURE_ENV})
 endif()
 
+set(THEORA_EXTRA_ARGS
+  --prefix=${LIBDIR}/theora
+  --disable-shared
+  --enable-static
+  --with-pic
+  --with-ogg=${LIBDIR}/ogg
+  --with-vorbis=${LIBDIR}/vorbis
+  --disable-examples
+)
+
+if(ANDROID)
+  # Theora doesn't recognize the modern android host triplet, possibly due it using an older autoconf version.
+  # Circumvent this by setting it to a more generic aarch64 (then defaulting to aarch64-unknown-none).
+  list(APPEND THEORA_EXTRA_ARGS
+    --host=aarch64
+  )
+endif()
+
 if(NOT WIN32)
   ExternalProject_Add(external_theora
     URL file://${PACKAGE_DIR}/${THEORA_FILE}
@@ -21,14 +39,7 @@ if(NOT WIN32)
 
     CONFIGURE_COMMAND ${THEORA_CONFIGURE_ENV} &&
       cd ${BUILD_DIR}/theora/src/external_theora/ &&
-      ${CONFIGURE_COMMAND}
-        --prefix=${LIBDIR}/theora
-        --disable-shared
-        --enable-static
-        --with-pic
-        --with-ogg=${LIBDIR}/ogg
-        --with-vorbis=${LIBDIR}/vorbis
-        --disable-examples
+      ${CONFIGURE_COMMAND} ${THEORA_EXTRA_ARGS}
 
     BUILD_COMMAND ${THEORA_CONFIGURE_ENV} &&
       cd ${BUILD_DIR}/theora/src/external_theora/ &&
