@@ -39,6 +39,7 @@ ExternalProject_Add(external_rubberband
     ${CMAKE_COMMAND} -E env ${RUBBERBAND_PKG_ENV} ${MESON} setup
       --prefix ${LIBDIR}/rubberband
       --libdir lib
+      ${MESON_CROSSFILE_ARG}
       ${MESON_BUILD_TYPE}
       ${RUBBERBAND_EXTRA_OPTIONS}
       ${BUILD_DIR}/rubberband/src/external_rubberband-build
