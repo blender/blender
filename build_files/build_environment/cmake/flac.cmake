@@ -3,6 +3,16 @@
 # SPDX-License-Identifier: GPL-2.0-or-later
 
 if(NOT WIN32)
+  set(FLAC_EXTRA_ARGS "")
+
+  if(ANDROID)
+    set(FLAC_EXTRA_ARGS
+      ${FLAC_EXTRA_ARGS}
+      --with-ogg-includes=${LIBDIR}/ogg/include
+      --with-ogg-libraries=${LIBDIR}/ogg/lib
+    )
+  endif()
+
   ExternalProject_Add(external_flac
     URL file://${PACKAGE_DIR}/${FLAC_FILE}
     DOWNLOAD_DIR ${DOWNLOAD_DIR}
@@ -11,7 +21,11 @@ if(NOT WIN32)
 
     CONFIGURE_COMMAND ${CONFIGURE_ENV} &&
       cd ${BUILD_DIR}/flac/src/external_flac/ &&
-      ${CONFIGURE_COMMAND} --prefix=${LIBDIR}/flac --disable-shared --enable-static
+      ${CONFIGURE_COMMAND}
+        --prefix=${LIBDIR}/flac
+        --disable-shared
+        --enable-static
+        ${FLAC_EXTRA_ARGS}
 
     BUILD_COMMAND ${CONFIGURE_ENV} &&
       cd ${BUILD_DIR}/flac/src/external_flac/ &&
