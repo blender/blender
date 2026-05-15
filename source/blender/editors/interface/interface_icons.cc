@@ -1441,19 +1441,17 @@ static void icon_draw_rect(float x,
     immUniform1f("factor", desaturate);
   }
 
-  immDrawPixelsTexScaledFullSize(&state,
-                                 draw_x,
-                                 draw_y,
-                                 rw,
-                                 rh,
-                                 gpu::TextureFormat::UNORM_8_8_8_8,
-                                 true,
-                                 rect,
-                                 scale_x,
-                                 scale_y,
-                                 1.0f,
-                                 1.0f,
-                                 col);
+  immDrawPixels(&state,
+                draw_x,
+                draw_y,
+                rw,
+                rh,
+                gpu::TextureFormat::UNORM_8_8_8_8,
+                true,
+                rect,
+                scale_x,
+                scale_y,
+                col);
 }
 
 /* Drawing size for preview images */

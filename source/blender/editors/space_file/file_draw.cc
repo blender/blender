@@ -771,19 +771,17 @@ static void file_draw_preview(const FileDirEntry *file,
   BLI_assert_msg(preview.channels == 4, "preview images are expected to be 4 channels");
 
   IMMDrawPixelsTexState state = immDrawPixelsTexSetup(GPU_SHADER_3D_IMAGE_COLOR);
-  immDrawPixelsTexTiled_scaling(&state,
-                                float(xmin),
-                                float(ymin),
-                                preview.width,
-                                preview.height,
-                                format,
-                                true,
-                                preview.buffer.data(),
-                                scale,
-                                scale,
-                                1.0f,
-                                1.0f,
-                                document_img_col);
+  immDrawPixels(&state,
+                float(xmin),
+                float(ymin),
+                preview.width,
+                preview.height,
+                format,
+                true,
+                preview.buffer.data(),
+                scale,
+                scale,
+                document_img_col);
 
   const bool show_outline = (file->typeflag & (FILE_TYPE_IMAGE | FILE_TYPE_OBJECT_IO |
                                                FILE_TYPE_MOVIE | FILE_TYPE_BLENDER));

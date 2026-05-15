@@ -29,11 +29,11 @@ struct IMMDrawPixelsTexState {
   bool do_shader_unbind;
 };
 
-/* To be used before calling immDrawPixelsTex
+/* To be used before calling immDrawPixels
  * Default shader is GPU_SHADER_2D_IMAGE_COLOR
  * Returns a shader to be able to set uniforms */
 /**
- * To be used before calling #immDrawPixelsTex
+ * To be used before calling #immDrawPixels
  * Default shader is #GPU_SHADER_2D_IMAGE_COLOR
  * You can still set uniforms with:
  * `GPU_shader_uniform_*(shader, "name", value);`
@@ -41,12 +41,11 @@ struct IMMDrawPixelsTexState {
 IMMDrawPixelsTexState immDrawPixelsTexSetup(int builtin);
 
 /**
- * Unlike the `immDrawPixelsTexTiled` functions, this doesn't do tiled drawing, but draws into a
- * full texture.
+ * Draws pixel data on a rectangle.
  *
  * Use the currently bound shader.
  *
- * Use #immDrawPixelsTexSetup to bind the shader you want before calling #immDrawPixelsTex.
+ * Use #immDrawPixelsTexSetup to bind the shader you want before calling #immDrawPixels.
  *
  * If using a special shader double check it uses the same attributes "pos" "texCoord" and uniform
  * "image".
@@ -55,62 +54,20 @@ IMMDrawPixelsTexState immDrawPixelsTexSetup(int builtin);
  *
  * Unless `state->do_shader_unbind` is explicitly set to `false`, the shader is unbound when
  * finished.
+ *
+ * The model-view and projection matrices are assumed to define a 1-to-1 mapping to screen space.
  */
-void immDrawPixelsTexScaledFullSize(const IMMDrawPixelsTexState *state,
-                                    float x,
-                                    float y,
-                                    int img_w,
-                                    int img_h,
-                                    gpu::TextureFormat gpu_format,
-                                    bool use_filter,
-                                    const void *rect,
-                                    float scaleX,
-                                    float scaleY,
-                                    float xzoom,
-                                    float yzoom,
-                                    const float color[4]);
-
-/**
- * Uses the currently bound shader.
- * \attention Use #immDrawPixelsTexSetup before calling this function.
- *
- * If using a special shader double check it uses the same
- * attributes "pos" "texCoord" and uniform "image".
- *
- * If color is NULL then use white by default
- *
- * Unless <em>state->do_shader_unbind<em> is explicitly set to `false`, the shader is unbound when
- * finished.
- *
- * \attention This routine makes many assumptions: the `rect` data
- * is expected to be in RGBA byte or float format, and the
- * model-view and projection matrices are assumed to define a
- * 1-to-1 mapping to screen space.
- */
-void immDrawPixelsTexTiled(IMMDrawPixelsTexState *state,
-                           float x,
-                           float y,
-                           int img_w,
-                           int img_h,
-                           gpu::TextureFormat gpu_format,
-                           bool use_filter,
-                           const void *rect,
-                           float xzoom,
-                           float yzoom,
-                           const float color[4]);
-void immDrawPixelsTexTiled_scaling(IMMDrawPixelsTexState *state,
-                                   float x,
-                                   float y,
-                                   int img_w,
-                                   int img_h,
-                                   gpu::TextureFormat gpu_format,
-                                   bool use_filter,
-                                   const void *rect,
-                                   float scaleX,
-                                   float scaleY,
-                                   float xzoom,
-                                   float yzoom,
-                                   const float color[4]);
+void immDrawPixels(const IMMDrawPixelsTexState *state,
+                   float x,
+                   float y,
+                   int img_w,
+                   int img_h,
+                   gpu::TextureFormat gpu_format,
+                   bool use_filter,
+                   const void *rect,
+                   float scale_x,
+                   float scale_y,
+                   const float color[4]);
 
 /* Image buffer drawing functions, with display transform
  *

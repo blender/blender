@@ -365,17 +365,17 @@ void draw_but_IMAGE(ARegion * /*region*/,
   }
 
   IMMDrawPixelsTexState state = immDrawPixelsTexSetup(GPU_SHADER_3D_IMAGE_COLOR);
-  immDrawPixelsTexTiled(&state,
-                        float(rect->xmin),
-                        float(rect->ymin),
-                        ibuf->x,
-                        ibuf->y,
-                        gpu::TextureFormat::UNORM_8_8_8_8,
-                        false,
-                        ibuf->byte_data(),
-                        1.0f,
-                        1.0f,
-                        col);
+  immDrawPixels(&state,
+                float(rect->xmin),
+                float(rect->ymin),
+                ibuf->x,
+                ibuf->y,
+                gpu::TextureFormat::UNORM_8_8_8_8,
+                false,
+                ibuf->byte_data(),
+                1.0f,
+                1.0f,
+                col);
 
   GPU_blend(GPU_BLEND_NONE);
 
@@ -2462,17 +2462,17 @@ void draw_but_TRACKPREVIEW(ARegion *region,
       }
 
       IMMDrawPixelsTexState state = immDrawPixelsTexSetup(GPU_SHADER_3D_IMAGE_COLOR);
-      immDrawPixelsTexTiled(&state,
-                            rect.xmin,
-                            rect.ymin + 1,
-                            drawibuf->x,
-                            drawibuf->y,
-                            gpu::TextureFormat::UNORM_8_8_8_8,
-                            true,
-                            drawibuf->byte_data(),
-                            1.0f,
-                            1.0f,
-                            nullptr);
+      immDrawPixels(&state,
+                    rect.xmin,
+                    rect.ymin + 1,
+                    drawibuf->x,
+                    drawibuf->y,
+                    gpu::TextureFormat::UNORM_8_8_8_8,
+                    true,
+                    drawibuf->byte_data(),
+                    1.0f,
+                    1.0f,
+                    nullptr);
 
       /* draw cross for pixel position */
       GPU_matrix_translate_2f(rect.xmin + scopes->track_pos[0], rect.ymin + scopes->track_pos[1]);

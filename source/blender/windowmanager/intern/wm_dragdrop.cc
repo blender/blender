@@ -1229,19 +1229,17 @@ static void wm_drag_draw_icon(bContext * /*C*/, wmWindow * /*win*/, wmDrag *drag
 
     const float col[4] = {1.0f, 1.0f, 1.0f, 0.65f}; /* This blends texture. */
     IMMDrawPixelsTexState state = immDrawPixelsTexSetup(GPU_SHADER_3D_IMAGE_COLOR);
-    immDrawPixelsTexTiled_scaling(&state,
-                                  x,
-                                  y,
-                                  drag->imb->x,
-                                  drag->imb->y,
-                                  gpu::TextureFormat::UNORM_8_8_8_8,
-                                  false,
-                                  drag->imb->byte_data(),
-                                  drag->imbuf_scale,
-                                  drag->imbuf_scale,
-                                  1.0f,
-                                  1.0f,
-                                  col);
+    immDrawPixels(&state,
+                  x,
+                  y,
+                  drag->imb->x,
+                  drag->imb->y,
+                  gpu::TextureFormat::UNORM_8_8_8_8,
+                  false,
+                  drag->imb->byte_data(),
+                  drag->imbuf_scale,
+                  drag->imbuf_scale,
+                  col);
   }
   else if (drag->preview_icon_id) {
     const int size = wm_drag_preview_icon_size_get();
