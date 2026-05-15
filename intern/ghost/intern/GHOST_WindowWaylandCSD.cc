@@ -60,26 +60,6 @@ static std::optional<std::string> command_exec(const char *cmd, const size_t out
   return result.str();
 }
 
-static bool string_elem_split_by_delim(std::string_view haystack,
-                                       const char delim,
-                                       std::string_view needle)
-{
-  /* Local copy of #BLI_string_elem_split_by_delim (would be a bad level call). */
-
-  /* May be zero, returns true when an empty span exists. */
-  while (!haystack.empty()) {
-    const size_t pos = haystack.find(delim);
-    if (haystack.substr(0, pos) == needle) {
-      return true;
-    }
-    if (pos == std::string_view::npos) {
-      break;
-    }
-    haystack.remove_prefix(pos + 1);
-  }
-  return false;
-}
-
 static std::array<std::string_view, 2> string_partition(std::string_view s, const char delimiter)
 {
   std::array<std::string_view, 2> result;
@@ -215,25 +195,12 @@ void GHOST_WindowCSD_LayoutDefault(GHOST_CSD_Layout &layout)
   layout.buttons_num = i;
 }
 
-bool GHOST_WindowCSD_Check()
+bool GHOST_WindowCSD_Check(GWL_CurrentDesktopType desktop_type)
 {
-  bool result = false;
-  const char *xdg_current_desktop = [] {
-    /* Account for VSCode overriding this value (TSK!), see: #133921. */
-    const char *key = "ORIGINAL_XDG_CURRENT_DESKTOP";
-    const char *value = getenv(key);
-    return value ? value : getenv(key + 9);
-  }();
-
-  if (xdg_current_desktop) {
-    /* See the free-desktop specifications for details on `XDG_CURRENT_DESKTOP`.
-     * https://specifications.freedesktop.org/desktop-entry-spec/desktop-entry-spec-latest.html
-     */
-    if (string_elem_split_by_delim(xdg_current_desktop, ':', "GNOME")) {
-      result = true;
-    }
+  if (desktop_type == GWL_CurrentDesktopType::Gnome) {
+    return true;
   }
-  return result;
+  return false;
 }
 
 /** \} */
