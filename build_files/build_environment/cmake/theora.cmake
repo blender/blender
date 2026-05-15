@@ -9,10 +9,6 @@ else()
 endif()
 
 set(THEORA_EXTRA_ARGS
-  --prefix=${LIBDIR}/theora
-  --disable-shared
-  --enable-static
-  --with-pic
   --with-ogg=${LIBDIR}/ogg
   --with-vorbis=${LIBDIR}/vorbis
   --disable-examples
@@ -39,7 +35,12 @@ if(NOT WIN32)
 
     CONFIGURE_COMMAND ${THEORA_CONFIGURE_ENV} &&
       cd ${BUILD_DIR}/theora/src/external_theora/ &&
-      ${CONFIGURE_COMMAND} ${THEORA_EXTRA_ARGS}
+      ${CONFIGURE_COMMAND}
+        --prefix=${LIBDIR}/theora
+        --disable-shared
+        --enable-static
+        --with-pic
+        ${THEORA_EXTRA_ARGS}
 
     BUILD_COMMAND ${THEORA_CONFIGURE_ENV} &&
       cd ${BUILD_DIR}/theora/src/external_theora/ &&
