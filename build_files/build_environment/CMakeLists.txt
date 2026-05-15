@@ -188,7 +188,7 @@ if(UNIX)
   include(cmake/lzma.cmake)
 endif()
 
-if(UNIX AND NOT APPLE)
+if(UNIX AND NOT (APPLE OR ANDROID))
   include(cmake/wayland_protocols.cmake)
   # Can be removed when the build-bot upgrades to v1.20.x or newer.
   include(cmake/wayland.cmake)
