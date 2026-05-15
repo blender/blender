@@ -622,6 +622,7 @@ void BKE_pchan_bbone_deform_segment_index(bke::PChanBoneConst pchanbone,
 
 /* context.selected_pose_bones */
 #define FOREACH_PCHAN_SELECTED_IN_OBJECT_BEGIN(_ob, _pchan) \
+  BKE_pose_ensure_bone_indices((*_ob)); \
   for (bPoseChannel *_pchan = (bPoseChannel *)(_ob)->pose->chanbase.first; _pchan; \
        _pchan = _pchan->next) \
   { \
