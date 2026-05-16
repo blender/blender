@@ -61,6 +61,10 @@
 
 namespace blender {
 
+/* -------------------------------------------------------------------- */
+/** \name Grease Pencil Data Block
+ * \{ */
+
 static CLG_LogRef LOG = {"geom.gpencil"};
 
 static void greasepencil_copy_data(Main * /*bmain*/,

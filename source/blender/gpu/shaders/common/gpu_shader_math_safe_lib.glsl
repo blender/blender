@@ -8,6 +8,10 @@
 
 #include "gpu_shader_math_constants_lib.glsl"
 
+/* -------------------------------------------------------------------- */
+/** \name Safe Math Functions
+ * \{ */
+
 /**
  * Safe `a` modulo `b`.
  * If `b` equal 0 the result will be 0.

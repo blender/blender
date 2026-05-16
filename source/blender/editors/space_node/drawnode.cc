@@ -2471,6 +2471,8 @@ void node_draw_link_dragged(const bContext &C,
   node_draw_link_end_markers(link, draw_config, points, false);
 }
 
+/** \} */
+
 }  // namespace ed::space_node
 
 }  // namespace blender

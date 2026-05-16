@@ -1098,6 +1098,8 @@ PyTypeObject Py_ImBufBuffer_Type = {
     /*tp_vectorcall*/ nullptr,
 };
 
+/** \} */
+
 /* -------------------------------------------------------------------- */
 /** \name File Type, Type & Implementation
  * \{ */

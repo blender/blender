@@ -894,6 +894,8 @@ char32_t BLI_str_utf32_char_to_lower(const char32_t wc)
   return wc;
 }
 
+/** \} */
+
 /* -------------------------------------------------------------------- */
 /** \name UTF32 Text Boundary Analysis
  *

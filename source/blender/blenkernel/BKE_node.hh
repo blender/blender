@@ -1158,6 +1158,8 @@ enum class eNodeSizePreset : int8_t {
 
 void node_type_size_preset(bNodeType &ntype, eNodeSizePreset size);
 
+/** \} */
+
 /* -------------------------------------------------------------------- */
 /** \name Node Generic Functions
  * \{ */
@@ -1225,6 +1227,8 @@ inline bool bNodeType::is_type(const UString query_idname) const
   BLI_assert(node_type_find(query_idname) != nullptr);
   return this->idname == query_idname;
 }
+
+/** \} */
 
 }  // namespace bke
 

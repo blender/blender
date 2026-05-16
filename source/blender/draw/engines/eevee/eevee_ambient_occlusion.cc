@@ -102,4 +102,6 @@ void AmbientOcclusion::render_pass(View &view)
   inst_.manager->submit(render_pass_ps_, view);
 }
 
+/** \} */
+
 }  // namespace blender::eevee

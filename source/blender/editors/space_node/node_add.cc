@@ -1601,6 +1601,8 @@ void NODE_OT_add_color(wmOperatorType *ot)
       ot->srna, "has_alpha", false, "Has Alpha", "The source color contains an Alpha component");
 }
 
+/** \} */
+
 /* -------------------------------------------------------------------- */
 /** \name New Node Tree Operator
  * \{ */

@@ -318,6 +318,10 @@ namespace blender {
 
 static CLG_LogRef LOG_COMPARE_OVERRIDE = {"rna.rna_compare_override"};
 
+/* -------------------------------------------------------------------- */
+/** \name RNA Runtime Callbacks
+ * \{ */
+
 /* Struct */
 
 static void rna_Struct_identifier_get(PointerRNA *ptr, char *value)

@@ -1416,6 +1416,8 @@ void GRAPH_OT_match_slope(wmOperatorType *ot)
                        1.0f);
 }
 
+/** \} */
+
 /* -------------------------------------------------------------------- */
 /** \name Time Offset
  * \{ */
@@ -1686,6 +1688,8 @@ void GRAPH_OT_shear(wmOperatorType *ot)
                "Direction",
                "Which end of the segment to use as a reference to shear from");
 }
+
+/** \} */
 
 /* -------------------------------------------------------------------- */
 /** \name Scale Average Operator

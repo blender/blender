@@ -272,8 +272,6 @@ static const auto &array_storage_required()
   return attributes;
 }
 
-/** \} */
-
 static AttributeAccessorFunctions get_curves_accessor_functions()
 {
   AttributeAccessorFunctions fn{};

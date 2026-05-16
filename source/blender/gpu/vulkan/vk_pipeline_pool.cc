@@ -117,7 +117,7 @@ VkPipeline VKPipelineMap<VKComputeInfo>::create(const VKComputeInfo &compute_inf
   return pipeline;
 }
 
-/* \} */
+/** \} */
 
 /* -------------------------------------------------------------------- */
 /** \name Graphics pipelines
@@ -478,7 +478,7 @@ std::string VKGraphicsInfo::pipeline_info_source() const
   return result.str();
 }
 
-/* \} */
+/** \} */
 
 /* -------------------------------------------------------------------- */
 /** \name Vertex input library
@@ -518,7 +518,7 @@ VkPipeline VKPipelineMap<VKGraphicsInfo::VertexIn>::create(
   return pipeline;
 }
 
-/* \} */
+/** \} */
 
 /* -------------------------------------------------------------------- */
 /** \name Shaders library
@@ -558,7 +558,7 @@ VkPipeline VKPipelineMap<VKGraphicsInfo::Shaders>::create(
   return pipeline;
 }
 
-/* \} */
+/** \} */
 
 /* -------------------------------------------------------------------- */
 /** \name Fragment output library
@@ -599,7 +599,7 @@ VkPipeline VKPipelineMap<VKGraphicsInfo::FragmentOut>::create(
   return pipeline;
 }
 
-/* \} */
+/** \} */
 
 void VKPipelinePool::discard(VKDiscardPool &discard_pool, VkPipelineLayout vk_pipeline_layout)
 {

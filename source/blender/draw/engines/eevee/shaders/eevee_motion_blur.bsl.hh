@@ -22,6 +22,10 @@ COMPUTE_SHADER_CREATE_INFO(eevee_sampling_data)
 
 namespace eevee::motion_blur {
 
+/* -------------------------------------------------------------------- */
+/** \name Tile Indirection Buffer
+ * \{ */
+
 #define MotionTilePayload uint
 
 enum MotionStep : uchar {

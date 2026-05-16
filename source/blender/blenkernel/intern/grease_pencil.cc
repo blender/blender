@@ -4757,4 +4757,6 @@ static void write_layer_tree(GreasePencil &grease_pencil, BlendWriter *writer)
   write_layer_tree_group(writer, grease_pencil.root_group_ptr);
 }
 
+/** \} */
+
 }  // namespace blender

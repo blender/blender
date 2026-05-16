@@ -765,6 +765,10 @@ struct GHOST_InstanceVK {
 
 /** \} */
 
+/* -------------------------------------------------------------------- */
+/** \name Vulkan Instance Extensions Query
+ * \{ */
+
 /**
  * A shared device between multiple contexts.
  *

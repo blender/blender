@@ -10301,6 +10301,8 @@ void BPY_free_srna_pytype(StructRNA *srna)
   }
 }
 
+/** \} */
+
 /* -------------------------------------------------------------------- */
 /** \name RNA Class Register Method
  * \{ */

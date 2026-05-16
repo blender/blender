@@ -1038,6 +1038,8 @@ MINLINE bool compare_size_v3v3(const float v1[3], const float v2[3], const float
   return true;
 }
 
+/** \} */
+
 /* -------------------------------------------------------------------- */
 /** \name Vector Clamping
  * \{ */
@@ -1064,6 +1066,10 @@ MINLINE void clamp_v4(float vec[4], const float min, const float max)
 }
 
 /** \} */
+
+/* -------------------------------------------------------------------- */
+/** \name Geometry Utilities
+ * \{ */
 
 MINLINE float line_point_side_v2(const float l1[2], const float l2[2], const float pt[2])
 {

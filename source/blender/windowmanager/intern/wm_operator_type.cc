@@ -99,6 +99,8 @@ wmOperatorType *WM_operatortype_find(const char *idname, bool quiet)
   return nullptr;
 }
 
+/** \} */
+
 /* -------------------------------------------------------------------- */
 /** \name Operator Type Append
  * \{ */
@@ -161,6 +163,10 @@ void WM_operatortype_append_ptr(void (*opfunc)(wmOperatorType *, void *), void *
 }
 
 /** \} */
+
+/* -------------------------------------------------------------------- */
+/** \name Operator Type Removal & Property Search
+ * \{ */
 
 void WM_operatortype_remove_ptr(wmOperatorType *ot)
 {
