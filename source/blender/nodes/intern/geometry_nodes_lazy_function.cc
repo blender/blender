@@ -1398,6 +1398,23 @@ class LazyFunctionForExtractingReferenceSet : public lf::LazyFunction {
         const ClosurePtr &closure = *value.get<ClosurePtr>();
         this->gather__closure(closure, r_references);
       }
+      if (value.is_type<GeometrySet>()) {
+        const GeometrySet &geometry = *value.get<GeometrySet>();
+        this->gather__geometry(geometry, r_references);
+      }
+    }
+  }
+
+  void gather__geometry(const GeometrySet &geometry, GeometryNodesReferenceSet &r_references) const
+  {
+    this->gather__bundle(geometry.bundle_ptr(), r_references);
+    if (geometry.has_instances()) {
+      const bke::Instances &instances = *geometry.get_instances();
+      for (const bke::InstanceReference &reference : instances.references()) {
+        GeometrySet instance_geometry;
+        reference.to_geometry_set(instance_geometry);
+        this->gather__geometry(instance_geometry, r_references);
+      }
     }
   }
 
