@@ -228,9 +228,9 @@ bool BLI_ghash_haskey(const GHash *gh, const void *key) ATTR_WARN_UNUSED_RESULT;
  * Remove a random entry from \a gh, returning true
  * if a key/value pair could be removed, false otherwise.
  *
+ * \param state: Used for efficient removal.
  * \param r_key: The removed key.
  * \param r_val: The removed value.
- * \param state: Used for efficient removal.
  * \return true if there was something to pop, false if ghash was already empty.
  */
 bool BLI_ghash_pop(GHash *gh, GHashIterState *state, void **r_key, void **r_val)
@@ -404,8 +404,8 @@ bool BLI_gset_haskey(const GSet *gs, const void *key) ATTR_WARN_UNUSED_RESULT;
 /**
  * Remove a random entry from \a gs, returning true if a key could be removed, false otherwise.
  *
- * \param r_key: The removed key.
  * \param state: Used for efficient removal.
+ * \param r_key: The removed key.
  * \return true if there was something to pop, false if gset was already empty.
  */
 bool BLI_gset_pop(GSet *gs, GSetIterState *state, void **r_key) ATTR_WARN_UNUSED_RESULT

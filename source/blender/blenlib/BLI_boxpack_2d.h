@@ -33,7 +33,7 @@ struct BoxPack {
  * There is no limit to the space boxes may take, only that they will be packed
  * tightly into the lower left hand corner (0,0)
  *
- * \param box_array: a pre-allocated array of boxes.
+ * \param boxarray: a pre-allocated array of boxes.
  *      only the 'box->x' and 'box->y' are set, 'box->w' and 'box->h' are used,
  *      'box->index' is not used at all, the only reason its there
  *          is that the box array is sorted by area and programs need to be able

@@ -6583,7 +6583,8 @@ class GHOST_EventIME : public GHOST_Event {
    * Constructor.
    * \param msec: The time this event was generated.
    * \param type: The type of key event.
-   * \param key: The key code of the key.
+   * \param window: The window of the event.
+   * \param customdata: The IME event data.
    */
   GHOST_EventIME(uint64_t msec,
                  GHOST_TEventType type,

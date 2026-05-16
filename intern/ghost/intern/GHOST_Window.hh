@@ -29,7 +29,7 @@ class GHOST_Window : public GHOST_IWindow {
    * \param width: The width of the window.
    * \param height: The height of the window.
    * \param state: The state the window is initially opened with.
-   * \param wantStereoVisual: Stereo visual for quad buffered stereo.
+   * \param context_params: Context parameters such as stereo visual for quad buffered stereo.
    * \param exclusive: Use to show the window on top and ignore others (used full-screen).
    */
   GHOST_Window(uint32_t width,

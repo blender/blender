@@ -670,8 +670,8 @@ static void copy_key_float3_weighted(const int vertex_count,
 /**
  * Shapekey evaluation for data of 3 floats (Vector3).
  *
- * \param target_data: is the float array into which the result of the evaluation is written.
  * \param per_keyblock_weights: is a 2d array which gives a per KeyBlock per Vertex weight. Can be
+ * \param target_data: is the float array into which the result of the evaluation is written.
  * a nullptr.
  */
 static void key_evaluate_relative_float3(Key *key,

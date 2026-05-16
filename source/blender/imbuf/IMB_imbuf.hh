@@ -536,7 +536,6 @@ void IMB_rectfill(ImBuf *drect, const float col[4]);
  * of the rectangular area to be filled, (x2, y2) is the end point. Note that values are allowed to
  * be loosely ordered, which means that x2 is allowed to be lower than x1, as well as y2 is allowed
  * to be lower than y1. No matter the order the area between x1 and x2, and y1 and y2 is filled.
- * \param colorspace: color-space reference for display space.
  */
 void IMB_rectfill_area(
     ImBuf *ibuf, const float scene_linear_color[4], int x1, int y1, int x2, int y2);

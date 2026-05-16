@@ -171,8 +171,8 @@ static void get_parallel_lines_draw_steps(const float line_distance,
 }
 
 /**
- * \param rect_mask: Region size in pixels.
  * \param line_distance: Distance in view space (frame or value) between lines.
+ * \param rect_mask: Region size in pixels.
  */
 static void draw_parallel_lines(const float line_distance,
                                 const rctf *rect,
@@ -411,8 +411,6 @@ static void draw_vertical_scale_indicators(const ARegion *region,
 /**
  * Generates a timecode string with the time represented by `frame`.
  * The timecode formatting depends on the user preferences.
- *
- * \param user_data: has to be a `Scene *` so we can get the frames per second.
  */
 static void frame_to_time_string(
     const Scene *scene, const float frame, const float step, char *r_str, const uint str_maxncpy)

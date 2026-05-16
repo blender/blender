@@ -266,9 +266,9 @@ class GHOST_SystemWin32 : public GHOST_System {
    * \param eventType: The type of drag & drop event
    * \param draggedObjectType: The type object concerned
    * (currently array of file names, string, ?bitmap)
+   * \param window: The window on which the event occurred
    * \param mouseX: x mouse coordinate (in window coordinates)
    * \param mouseY: y mouse coordinate
-   * \param window: The window on which the event occurred
    * \return Indication whether the event was handled.
    */
   static GHOST_TSuccess pushDragDropEvent(GHOST_TEventType eventType,

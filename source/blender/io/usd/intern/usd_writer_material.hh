@@ -24,7 +24,7 @@ struct USDExportParams;
 /**
  * Create USDMaterial from Blender material.
  *
- * \param default_uv: used as the default UV set name sampled by the `primvar`
+ * \param active_uvmap_name: used as the default UV set name sampled by the `primvar`
  * reader shaders generated for image texture nodes that don't have an attached UVMap node.
  */
 pxr::UsdShadeMaterial create_usd_material(const USDExporterContext &usd_export_context,

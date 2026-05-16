@@ -472,15 +472,7 @@ struct LibQueryUnusedIDsData {
  * Valid usages here are defined as ref-counting usages, which are not towards embedded or
  * loop-back data.
  *
- * \param r_num_total: A zero-initialized array of #INDEX_ID_MAX integers. Number of IDs detected
- * as unused from given parameters, per ID type in the matching index, and as total in
- * #INDEX_ID_NULL item.
- * \param r_num_local: A zero-initialized array of #INDEX_ID_MAX integers. Number of local IDs
- * detected as unused from given parameters (but assuming \a do_local_ids is true), per ID type in
- * the matching index, and as total in #INDEX_ID_NULL item.
- * \param r_num_linked: A zero-initialized array of #INDEX_ID_MAX integers. Number of linked IDs
- * detected as unused from given parameters (but assuming \a do_linked_ids is true), per ID type in
- * the matching index, and as total in #INDEX_ID_NULL item.
+ * \param parameters: Input options and return values.
  */
 void BKE_lib_query_unused_ids_amounts(Main *bmain, LibQueryUnusedIDsData &parameters);
 /**
@@ -495,9 +487,6 @@ void BKE_lib_query_unused_ids_amounts(Main *bmain, LibQueryUnusedIDsData &parame
  * loop-back data.
  *
  * \param tag: the ID tag to use to mark the ID as unused. Should never be `0`.
- * \param r_num_tagged_total: A zero-initialized array of #INDEX_ID_MAX integers. Number of IDs
- * tagged as unused from given parameters, per ID type in the matching index, and as total in
- * #INDEX_ID_NULL item.
  */
 void BKE_lib_query_unused_ids_tag(Main *bmain, int tag, LibQueryUnusedIDsData &parameters);
 

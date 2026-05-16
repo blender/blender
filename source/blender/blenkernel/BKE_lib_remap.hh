@@ -183,11 +183,11 @@ void BKE_libblock_unlink(Main *bmain, void *idv, bool do_skip_indirect) ATTR_NON
 /**
  * Similar to libblock_remap, but only affects IDs used by given \a idv ID.
  *
- * \param old_idv: Unlike BKE_libblock_remap, can be NULL,
- * in which case all ID usages by given \a idv will be cleared.
- *
  * \param bmain: May be NULL, in which case there won't be depsgraph updates nor post-processing on
  * some ID types (like collections or objects) to ensure their runtime data is valid.
+ *
+ * \param old_idv: Unlike BKE_libblock_remap, can be NULL,
+ * in which case all ID usages by given \a idv will be cleared.
  */
 void BKE_libblock_relink_ex(Main *bmain, void *idv, void *old_idv, void *new_idv, int remap_flags)
     ATTR_NONNULL(2);

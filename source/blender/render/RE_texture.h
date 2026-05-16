@@ -38,7 +38,6 @@ bool RE_texture_evaluate(const struct MTex *mtex,
                          float r_rgba[4]) ATTR_NONNULL(1, 2, 7, 8);
 
 /**
- * \param in: Destination
  * \param tex: Texture.
  * \param out: Previous color.
  * \param fact: Texture strength.

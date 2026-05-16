@@ -3254,7 +3254,7 @@ static bool textedit_delete_selection(Button *but, TextEdit &text_edit)
 }
 
 /**
- * \param x: Screen space cursor location - #wmEvent.x
+ * \param xy: Screen space cursor location - #wmEvent.x
  *
  * \note `but->block->aspect` is used here, so drawing button style is getting scaled too.
  */

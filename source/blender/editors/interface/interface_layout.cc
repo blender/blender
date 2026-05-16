@@ -1082,7 +1082,7 @@ static void keymap_but_cb(bContext * /*C*/, void *but_v, void * /*key_v*/)
  *
  * \param w_hint: For varying width layout, this becomes the label width.
  *                Otherwise it's used to fit both items into it.
- * \param button_type: Overrides the default button type for \a prop, see #uiDefAutoButR.
+ * \param button_type_override: Overrides the default button type for \a prop, see #uiDefAutoButR.
  * \param caller_fn_name: A friendly function name of the caller for tracing keymap item warnings,
  * matching the RNA struct function name. For example `"UILayout.prop()"`.
  */

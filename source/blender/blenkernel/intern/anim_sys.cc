@@ -2259,7 +2259,7 @@ static void nlaevalchan_combine_quaternion(NlaEvalChannelSnapshot *lower_necs,
  * \param upper_necs: Can be nullptr.
  * \param upper_blendmode: Enum value in eNlaStrip_Blend_Mode.
  * \param upper_influence: Value in range [0, 1].
- * \param upper_necs: Never nullptr.
+ * \param r_blended_necs: Never nullptr.
  */
 static void nlaevalchan_blendOrcombine(NlaEvalChannelSnapshot *lower_necs,
                                        NlaEvalChannelSnapshot *upper_necs,

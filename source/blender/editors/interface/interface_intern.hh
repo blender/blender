@@ -1445,10 +1445,6 @@ void draw_preview_item(const uiFontStyle *fstyle,
 /**
  * Version of #draw_preview_item() that does not draw the menu background and item text based on
  * state. It just draws the preview and text directly.
- *
- * \param draw_as_icon: Instead of stretching the preview/icon to the available width/height, draw
- *                      it at the standard icon size. Mono-icons will draw with \a text_col or the
- *                      corresponding theme override for this type of icon.
  */
 void draw_preview_item_stateless(const uiFontStyle *fstyle,
                                  rcti *rect,
@@ -1813,7 +1809,7 @@ Vector<FCurve *> get_property_drivers(
  * \param is_array_prop: Whether `src_drivers` are drivers for the elements
  * of an array property.
  * \param dst_ptr: The RNA pointer for the destination property.
- * \param dist_prop: The destination property RNA.
+ * \param dst_prop: The destination property RNA.
  *
  * \returns The number of successfully pasted drivers.
  */

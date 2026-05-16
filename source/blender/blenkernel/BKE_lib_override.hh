@@ -129,7 +129,7 @@ bool BKE_lib_override_library_is_system_defined(const Main *bmain, const ID *id)
  * Check if given Override Property for given ID is animated (through a F-Curve in an Action, or
  * from a driver).
  *
- * \param liboverride_rna_prop: if not NULL, the RNA property matching the given path in the
+ * \param override_rna_prop: if not NULL, the RNA property matching the given path in the
  * `liboverride_prop`.
  * \param rnaprop_index: Array in the RNA property, 0 if unknown or irrelevant.
  */
@@ -398,8 +398,8 @@ bool BKE_lib_override_library_property_search_and_delete(IDOverrideLibrary *libo
  *
  * No-op if the property override cannot be found.
  *
- * \param from_rna_path: The RNA path of the property to change.
- * \param to_rna_path: The new RNA path.
+ * \param old_rna_path: The RNA path of the property to change.
+ * \param new_rna_path: The new RNA path.
  * The library override system will copy the string to its own memory;
  * the caller will retain ownership of the passed pointer.
  * \return True if the property was found (and thus changed), false if it wasn't found.

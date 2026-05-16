@@ -128,9 +128,9 @@ class FrsImage {
    *    The width of the rectangle that will actually be stored.
    *  \param sh:
    *    The height of the rectangle that will actually be stored.
-   *  \param ox:
+   *  \param x:
    *    The x-abscissa of the origin of the rectangle that will actually be stored.
-   *  \param oy:
+   *  \param y:
    *    The x-abscissa of the origin of the rectangle that will actually be stored.
    *  \param copy:
    *    If true, the array is copied, otherwise the pointer is copied

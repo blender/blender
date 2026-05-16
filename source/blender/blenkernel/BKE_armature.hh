@@ -610,7 +610,7 @@ void BKE_pchan_bbone_deform_clamp_segment_index(const Bone &bone,
  * Calculate index and blend factor for the two B-Bone segment nodes
  * affecting the specified point in object (pose) space.
  *
- * \param pchan: Pose channel.
+ * \param pchanbone: Pose channel.
  * \param co: Pose space coordinates of the point being deformed.
  * \param r_index: OUTPUT index of the first segment joint affecting the point.
  * \param r_blend_next: OUTPUT blend factor between the first and the second segment in [0..1]

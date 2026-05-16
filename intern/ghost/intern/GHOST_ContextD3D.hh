@@ -87,7 +87,7 @@ class GHOST_ContextD3D : public GHOST_Context {
    * \param interval_out: Variable to store the swap interval if it can be read.
    * \return Whether the swap interval can be read.
    */
-  GHOST_TSuccess getSwapInterval(int & /*unused*/) override
+  GHOST_TSuccess getSwapInterval(int & /*interval_out*/) override
   {
     return GHOST_kFailure;
   }

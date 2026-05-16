@@ -273,7 +273,7 @@ void BKE_defvert_normalize_lock_map(MDeformVert &dvert,
  *
  * \param dvert: the vertex weights to be normalized.
  *
- * \param subset_flags: span of bools indicating which vertex groups are
+ * \param vgroup_subset: span of bools indicating which vertex groups are
  * included vs ignored in this function. True means included, false means
  * ignored. Note that this is different than locking: locked groups are not
  * *modified*, but their weights are still accounted for in the normalization

@@ -80,14 +80,9 @@ class GHOST_IContext {
   /**
    * Acquire the current swap-chain format.
    *
-   * \param windowhandle:  GHOST window handle to a window to get the resource from.
-   * \param r_surface_format: After calling this function the VkSurfaceFormatKHR
-   *     referenced by this parameter will contain the surface format of the
-   *     surface. The format is the same as the image returned in the r_image
-   *     parameter.
-   * \param r_extent: After calling this function the VkExtent2D
-   *     referenced by this parameter will contain the size of the
-   *     frame buffer and image in pixels.
+   * \param r_swap_chain_data: After calling this function the structure
+   *     referenced by this parameter will contain the surface format and
+   *     the size of the frame buffer and image in pixels.
    */
   virtual GHOST_TSuccess getVulkanSwapChainFormat(
       GHOST_VulkanSwapChainData *r_swap_chain_data) = 0;
@@ -95,17 +90,15 @@ class GHOST_IContext {
   /**
    * Set the pre and post callbacks for vulkan swap-chain in the given context.
    *
-   * \param context: GHOST context handle of a vulkan context to
-   *     get the Vulkan handles from.
    * \param swap_buffer_draw_callback: Function pointer to be called when acquired swap buffer is
    *     released, allowing Vulkan backend to update the swap chain.
    * \param swap_buffer_acquired_callback: Function to be called at when swap buffer is acquired.
    *     Allowing Vulkan backend to update the frame-buffer. It is also called when no swap chain
    *     exists indicating that the window was minimized.
-   * \param openxr_acquire_image_callback: Function to be called when an image needs to be acquired
-   *     to be drawn to an OpenXR swap-chain.
-   * \param openxr_release_image_callback: Function to be called after an image has been drawn to
-   *     the OpenXR swap-chain.
+   * \param openxr_acquire_framebuffer_image_callback: Function to be called when an image needs to
+   *     be acquired to be drawn to an OpenXR swap-chain.
+   * \param openxr_release_framebuffer_image_callback: Function to be called after an image has
+   *     been drawn to the OpenXR swap-chain.
    */
   virtual GHOST_TSuccess setVulkanSwapBuffersCallbacks(
       std::function<void(const GHOST_VulkanSwapChainData *, bool)> swap_buffer_draw_callback,

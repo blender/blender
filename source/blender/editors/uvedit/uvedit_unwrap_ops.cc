@@ -1436,7 +1436,6 @@ static bool island_has_pins(const Scene *scene,
  *
  * \param scene: Scene containing the objects to be packed.
  * \param objects: Array of Objects to pack.
- * \param objects_len: Length of `objects` array.
  * \param bmesh_override: BMesh array aligned with `objects`.
  * Optional, when non-null this overrides object's BMesh.
  * This is needed to perform UV packing on objects that aren't in edit-mode.

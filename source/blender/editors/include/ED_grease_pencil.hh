@@ -743,7 +743,6 @@ void draw_lines(const float4x4 &transform,
 
 /**
  * Draw curves geometry.
- * \param mode: Mode of \a eMaterialGPencilStyle_Mode.
  */
 void draw_grease_pencil_strokes(const RegionView3D &rv3d,
                                 const int2 &win_size,
@@ -829,9 +828,10 @@ void free_curves_2d_bvh_data(Curves2DBVHTree &data);
  * masks.
  *
  * \param curves: Curves geometry for both target and cutter curves.
+ * \param curve_mask: Set of curves that will be intersected.
  * \param screen_space_positions: Screen space positions computed in advance.
- * \param target_curves: Set of curves that will be intersected.
- * \param intersecting_curves: Set of curves that create cuts on target curves.
+ * \param tree_data: Screen-space BVH tree of the intersecting curves.
+ * \param tree_data_range: Range of BVH elements in \a tree_data that belong to this drawing.
  * \param r_hits: True for points with at least one intersection.
  * \param r_first_intersect_factors: Smallest cut factor in the interval (optional).
  * \param r_last_intersect_factors: Largest cut factor in the interval (optional).
@@ -884,13 +884,6 @@ struct CurveSegmentsData {
  * \param curve_mask: Set of curves that will be intersected.
  * \param screen_space_positions: Screen space positions computed in advance.
  * \param tree_data: Screen-space BVH tree of the intersecting curves.
- * \param r_curve_starts: Start index for segments of each curve.
- *        Shift the curve points index range to ensure contiguous segments with cyclic curves.
- * \param r_segments_by_curve: Offsets for segments in each curve.
- * \param r_points_by_segment: Offsets for point range of each segment. Index ranges can exceed
- *        original curve range and must be wrapped around.
- * \param r_start_factors: Factor (-1..0) previous segment to prepend.
- * \param r_end_factors: Factor (0..1) of last segment to append.
  */
 CurveSegmentsData find_curve_segments(const bke::CurvesGeometry &curves,
                                       const IndexMask &curve_mask,

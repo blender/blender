@@ -92,7 +92,7 @@ class GHOST_Context : public GHOST_IContext {
    * \param interval_out: Variable to store the swap interval if it can be read.
    * \return Whether the swap interval can be read.
    */
-  virtual GHOST_TSuccess getSwapInterval(int & /*interval*/)
+  virtual GHOST_TSuccess getSwapInterval(int & /*interval_out*/)
   {
     return GHOST_kFailure;
   }

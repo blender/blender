@@ -454,7 +454,7 @@ short BKE_idtype_idfilter_to_idcode(uint64_t idfilter);
 /**
  * Return an ID code and steps the index forward 1.
  *
- * \param index: start as 0.
+ * \param idtype_index: start as 0.
  * \return the code, 0 when all codes have been returned.
  */
 short BKE_idtype_idcode_iter_step(int *idtype_index);

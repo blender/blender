@@ -100,8 +100,8 @@ template<typename T, int NumCol, int NumRow>
  *
  * Based on "Matrix Animation and Polar Decomposition", by Ken Shoemake & Tom Duff
  *
- * \param A: Input matrix which is totally effective with `t = 0.0`.
- * \param B: Input matrix which is totally effective with `t = 1.0`.
+ * \param a: Input matrix which is totally effective with `t = 0.0`.
+ * \param b: Input matrix which is totally effective with `t = 1.0`.
  * \param t: Interpolation factor.
  */
 template<typename T>
@@ -113,8 +113,8 @@ template<typename T>
  * Complete transform matrix interpolation,
  * based on polar-decomposition-based interpolation from #interpolate<T, 3, 3>.
  *
- * \param A: Input matrix which is totally effective with `t = 0.0`.
- * \param B: Input matrix which is totally effective with `t = 1.0`.
+ * \param a: Input matrix which is totally effective with `t = 0.0`.
+ * \param b: Input matrix which is totally effective with `t = 1.0`.
  * \param t: Interpolation factor.
  */
 template<typename T>
@@ -129,8 +129,8 @@ template<typename T>
  * However, it gives un-expected results even with non-uniformly scaled matrices,
  * see #46418 for an example.
  *
- * \param A: Input matrix which is totally effective with `t = 0.0`.
- * \param B: Input matrix which is totally effective with `t = 1.0`.
+ * \param a: Input matrix which is totally effective with `t = 0.0`.
+ * \param b: Input matrix which is totally effective with `t = 1.0`.
  * \param t: Interpolation factor.
  */
 template<typename T>
@@ -146,8 +146,8 @@ template<typename T>
  * However, it gives un-expected results even with non-uniformly scaled matrices,
  * see #46418 for an example.
  *
- * \param A: Input matrix which is totally effective with `t = 0.0`.
- * \param B: Input matrix which is totally effective with `t = 1.0`.
+ * \param a: Input matrix which is totally effective with `t = 0.0`.
+ * \param b: Input matrix which is totally effective with `t = 1.0`.
  * \param t: Interpolation factor.
  */
 template<typename T>

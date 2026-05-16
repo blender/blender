@@ -2414,7 +2414,7 @@ Array<TransDataEdgeSlideVert> transform_mesh_edge_slide_data_create(const TransD
        * \param curr_side_other: previous state of the #SlideTempDataMesh where the faces are
        * linked to the previous edge.
        * \param l_src: the source corner in the edge to slide.
-       * \param l_dst: the current destination corner.
+       * \param v_dst: the vertex at the current destination corner.
        */
       int find_best_dir(const SlideTempDataMesh *curr_side_other,
                         const BMFace *f_curr,

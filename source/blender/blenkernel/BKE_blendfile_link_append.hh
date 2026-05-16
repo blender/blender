@@ -312,7 +312,6 @@ enum eBlendfileLinkAppendForeachItemFlag {
  *
  * \param flag: Control which type of items to process (see
  * #eBlendfileLinkAppendForeachItemFlag enum flags).
- * \param userdata: An opaque void pointer passed to the `callback_function`.
  */
 void BKE_blendfile_link_append_context_item_foreach(
     BlendfileLinkAppendContext *lapp_context,

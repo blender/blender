@@ -975,10 +975,10 @@ void node_rebuild_id_vector(bNodeTree &node_tree);
 
 /**
  * \note keeps socket list order identical, for copying links.
- * \param dst_name: The name of the copied node. This is expected to be unique in the destination
- *   tree if provided. If not provided, the src name is used and is made unique unless
- *   allow_duplicate_names is true.
- * \param dst_identifier: Same ad dst_name, but for the identifier.
+ * \param dst_unique_name: The name of the copied node.
+ * This is expected to be unique in the destination tree if provided. If not provided,
+ * the src name is used and is made unique unless allow_duplicate_names is true.
+ * \param dst_unique_identifier: Same ad dst_name, but for the identifier.
  */
 bNode *node_copy_with_mapping(bNodeTree *dst_tree,
                               const bNode &node_src,
@@ -1088,7 +1088,7 @@ bNode *node_get_active_paint_canvas(bNodeTree &ntree);
 /**
  * \brief Does the given node supports the sub active flag.
  *
- * \param sub_active: The active flag to check. #NODE_ACTIVE_TEXTURE / #NODE_ACTIVE_PAINT_CANVAS.
+ * \param sub_activity: The active flag to check. #NODE_ACTIVE_TEXTURE / #NODE_ACTIVE_PAINT_CANVAS.
  */
 bool node_supports_active_flag(const bNode &node, int sub_activity);
 

@@ -161,7 +161,7 @@ static const char *py_imbuf_ftype_to_id_with_fallback(const eImbFileType ftype)
  *
  * \param ibuf: The image buffer (used for clamping).
  * \param region: Region to clamp in-place (inverted ranges are clamped to zero area).
- * \param r_use_region: Set to false when the region covers the entire image.
+ * \return false when the region covers the entire image.
  */
 static bool py_imbuf_region_sanitize(const ImBuf *ibuf, rcti *region)
 {

@@ -277,9 +277,9 @@ template<typename T, int S> inline IntF<T, S>::operator UIntF<T, S>() const
  * Due to the design of two's-complement numbers, this works for signed and unsigned
  * fixed-width-integer. The overflow behavior is wrap-around.
  *
- * \param T: Type for individual digits.
- * \param T2: Integer type that is twice as large as T.
- * \param S: Number of digits of type T in each fixed-width-integer.
+ * \tparam T: Type for individual digits.
+ * \tparam T2: Integer type that is twice as large as T.
+ * \tparam S: Number of digits of type T in each fixed-width-integer.
  */
 template<typename T, typename T2, int S>
 inline void generic_add(T *__restrict dst, const T *a, const T *b)
