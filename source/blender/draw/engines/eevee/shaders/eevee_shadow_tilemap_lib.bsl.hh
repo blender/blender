@@ -302,7 +302,7 @@ ShadowCoordinates shadow_directional_coordinates_at_level(LightData light, float
  */
 ShadowCoordinates shadow_directional_coordinates(LightData light, float3 lP)
 {
-  int level = shadow_directional_level(light, lP - light_position_get(light));
+  int level = shadow_directional_level(light, lP - light.position());
   return shadow_directional_coordinates_at_level(light, lP, level);
 }
 

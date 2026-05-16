@@ -68,7 +68,7 @@ struct TilemapBoundsCtx {
     float local_min = FLT_MAX;
     float local_max = -FLT_MAX;
     for (int i = 0; i < 8; i++) {
-      float z = dot(box.corners[i].xyz, -light_z_axis(light));
+      float z = dot(box.corners[i].xyz, -light.z_axis());
       local_min = min(local_min, z);
       local_max = max(local_max, z);
     }
@@ -98,7 +98,7 @@ struct TilemapBoundsCtx {
       atomicMax(srt.light_buf_write[l_index].clip_far, srt.global_max);
       /* TODO(fclem): This feel unnecessary but we currently have no indexing from
        * tile-map to lights. This is because the lights are selected by culling phase. */
-      for (int i = light.tilemap_index; i <= light_tilemap_max_get(light); i++) {
+      for (int i = light.tilemap_index; i <= light.tilemap_max_get(); i++) {
         int index = srt.tilemaps_buf[i].clip_data_index;
         atomicMin(srt.tilemaps_clip_buf[index].clip_near, srt.global_min);
         atomicMax(srt.tilemaps_clip_buf[index].clip_far, srt.global_max);

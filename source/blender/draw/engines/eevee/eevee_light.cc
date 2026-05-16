@@ -340,7 +340,7 @@ float Light::point_radiance_get()
 
 void Light::debug_draw()
 {
-  drw_debug_sphere(transform_location(this->object_to_world),
+  drw_debug_sphere(this->object_to_world.location(),
                    this->local().local.influence_radius_max,
                    float4(0.8f, 0.3f, 0.0f, 1.0f));
 }

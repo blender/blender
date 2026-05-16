@@ -56,7 +56,7 @@ void cull_main([[resource_table]] Cull &srt, [[global_invocation_id]] const uint
       light.object_to_world = srt.sunlight_buf[l_idx].object_to_world;
 
       LightSunData sun_data = light.sun();
-      sun_data.direction = transform_z_axis(srt.sunlight_buf[l_idx].object_to_world);
+      sun_data.direction = srt.sunlight_buf[l_idx].object_to_world.z_axis();
       light.sun() = sun_data;
       /* NOTE: Use the radius from UI instead of auto sun size for now. */
     }
@@ -77,12 +77,12 @@ void cull_main([[resource_table]] Cull &srt, [[global_invocation_id]] const uint
       LightSpotData spot = light.spot();
       /* Only for < ~170 degree Cone due to plane extraction precision. */
       if (spot.spot_tan < 10.0f) {
-        float3 x_axis = light_x_axis(light);
-        float3 y_axis = light_y_axis(light);
-        float3 z_axis = light_z_axis(light);
+        float3 x_axis = light.x_axis();
+        float3 y_axis = light.y_axis();
+        float3 z_axis = light.z_axis();
         Pyramid pyramid = shape_pyramid_non_oblique(
-            light_position_get(light),
-            light_position_get(light) - z_axis * spot.local.influence_radius_max,
+            light.position(),
+            light.position() - z_axis * spot.local.influence_radius_max,
             x_axis * spot.local.influence_radius_max * spot.spot_tan / spot.spot_size_inv.x,
             y_axis * spot.local.influence_radius_max * spot.spot_tan / spot.spot_size_inv.y);
         if (!intersect_view(pyramid)) {
@@ -95,7 +95,7 @@ void cull_main([[resource_table]] Cull &srt, [[global_invocation_id]] const uint
     case LIGHT_ELLIPSE:
     case LIGHT_OMNI_SPHERE:
     case LIGHT_OMNI_DISK:
-      sphere.center = light_position_get(light);
+      sphere.center = light.position();
       sphere.radius = light.local().local.influence_radius_max;
       break;
     default:
@@ -109,7 +109,7 @@ void cull_main([[resource_table]] Cull &srt, [[global_invocation_id]] const uint
   if (intersect_view(sphere)) {
     uint index = atomicAdd(srt.light_cull_buf.visible_count, 1u);
 
-    float z_dist = dot(drw_view_forward(), light_position_get(light)) -
+    float z_dist = dot(drw_view_forward(), light.position()) -
                    dot(drw_view_forward(), drw_view_position());
     srt.out_zdist_buf[index] = z_dist;
     srt.out_key_buf[index] = l_idx;
@@ -229,7 +229,7 @@ void zbin_main([[resource_table]] ZBinning &srt, [[local_invocation_id]] const u
       continue;
     }
     LightData light = srt.light_buf[index];
-    float3 P = light_position_get(light);
+    float3 P = light.position();
     /* TODO(fclem): Could have better bounds for spot and area lights. */
     float radius = light.local().local.influence_radius_max;
     float z_dist = dot(drw_view_forward(), P) - dot(drw_view_forward(), drw_view_position());
@@ -399,10 +399,10 @@ void tile_main([[resource_table]] Tile &srt, [[global_invocation_id]] const uint
     LightData light = srt.light_buf[l_idx];
 
     /* Culling in view space for precision and simplicity. */
-    float3 vP = drw_point_world_to_view(light_position_get(light));
-    float3 v_right = drw_normal_world_to_view(light_x_axis(light));
-    float3 v_up = drw_normal_world_to_view(light_y_axis(light));
-    float3 v_back = drw_normal_world_to_view(light_z_axis(light));
+    float3 vP = drw_point_world_to_view(light.position());
+    float3 v_right = drw_normal_world_to_view(light.x_axis());
+    float3 v_up = drw_normal_world_to_view(light.y_axis());
+    float3 v_back = drw_normal_world_to_view(light.z_axis());
     float radius = light.local().local.influence_radius_max;
 
     if (srt.light_cull_buf.view_is_flipped) {

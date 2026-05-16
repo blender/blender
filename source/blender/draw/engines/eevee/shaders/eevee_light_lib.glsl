@@ -30,7 +30,7 @@ LightVector light_vector_get(LightData light, const bool is_directional, float3 
     lv.dist = 1.0f;
   }
   else {
-    lv.L = light_position_get(light) - P;
+    lv.L = light.position() - P;
     float inv_distance = inversesqrt(length_squared(lv.L));
     lv.L *= inv_distance;
     lv.dist = 1.0f / inv_distance;
@@ -103,7 +103,7 @@ float light_attenuation_common(LightData light, const bool is_directional, float
     return light_spot_attenuation(light, L);
   }
   if (is_area_light(light.type)) {
-    return float(dot(L, light_z_axis(light)) > 0.0f);
+    return float(dot(L, light.z_axis()) > 0.0f);
   }
   return 1.0f;
 }
@@ -177,7 +177,7 @@ float light_point_light(LightData light, const bool is_directional, LightVector 
 
   if (is_area_light(light.type)) {
     /* Modulate by light plane orientation / solid angle. */
-    power *= saturate(dot(light_z_axis(light), lv.L));
+    power *= saturate(dot(light.z_axis(), lv.L));
   }
   return power;
 }
@@ -201,8 +201,8 @@ struct LightVertices {
 
 LightVertices light_shape_corners(LightData light, LightVector lv)
 {
-  float3 Px = light_x_axis(light);
-  float3 Py = light_y_axis(light);
+  float3 Px = light.x_axis();
+  float3 Py = light.y_axis();
 
   LightVertices vertices;
 
