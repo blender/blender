@@ -275,6 +275,15 @@ void SourceProcessor::lower_loop_unroll(Parser &parser)
 
 void SourceProcessor::lower_static_branch(Parser &parser)
 {
+
+  do {
+    /* Transform `if constexpr (...)` into `if (...) [[static_branch]]`. */
+    parser().foreach_match("iC(..)", [&](const vector<Token> &tokens) {
+      parser.erase(tokens[1]);
+      parser.insert_after(tokens[5], "[[static_branch]]");
+    });
+  } while (parser.apply_mutations());
+
   do {
     parser().foreach_match("i(..)[[A]]{..}", [&](const vector<Token> &tokens) {
       Token if_tok = tokens[0];
