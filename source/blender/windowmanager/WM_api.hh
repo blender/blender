@@ -847,9 +847,9 @@ void WM_report_banners_cancel(Main *bmain);
  * given \a reports will be empty after calling this function. The \a reports #ReportList data
  * itself is not freed or cleared though, and remains fully usable after this call.
  *
- * \params reports The #ReportList from which to move reports to the WM one, may be `nullptr`.
- * \params wm the WindowManager to add given \a reports to. If `nullptr`, the first WM of current
- * #G_MAIN will be used.
+ * \param reports: The #ReportList from which to move reports to the WM one, may be `nullptr`.
+ * \param wm: the WindowManager to add given \a reports to.
+ * If `nullptr`, the first WM of current #G_MAIN will be used.
  */
 void WM_reports_from_reports_move(wmWindowManager *wm, ReportList *reports);
 

@@ -384,7 +384,7 @@ void BKE_armature_mat_pose_to_bone_ex(Depsgraph *depsgraph,
 /**
  * Same as #BKE_object_mat3_to_rot().
  *
- * \param use_compat only applies when the `pchan` is in euler rotation mode. It then picks the
+ * \param use_compat: only applies when the `pchan` is in euler rotation mode. It then picks the
  * closest euler values relative to what the `pchan` already has.
  */
 void BKE_pchan_mat3_to_rot(bPoseChannel *pchan, const float mat[3][3], bool use_compat);

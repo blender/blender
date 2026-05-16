@@ -167,7 +167,7 @@ struct JoinEdgesState {
  *
  * A quad that is concave has higher error.
  *
- * \param v1,v2,v3,v4: The four corner coordinates of the quad.
+ * \param v1, v2, v3, v4: The four corner coordinates of the quad.
  * \return The computed error associated with the quad.
  */
 static float quad_calc_error(const float v1[3],

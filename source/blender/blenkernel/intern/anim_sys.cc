@@ -701,8 +701,8 @@ static float get_fcurve_blend_value(FCurve &fcu,
  * Apply the rotation fcurves to the `ptr` by converting them to a matrix first. This means the
  * rotation can be applied regardless of rotation mode.
  *
- * \param blend_factor LERP between the current rotation value of the ptr and the value of the
- * rotation_fcurves. A `1` means the rotation_fcurves will be applied at 100%.
+ * \param blend_factor: LERP between the current rotation value of the `ptr` and the value of the
+ * `rotation_fcurves`. A `1` means the `rotation_fcurves` will be applied at 100%.
  */
 static void blend_rotation_with_conversion(PointerRNA &ptr,
                                            const Span<FCurve *> rotation_fcurves,

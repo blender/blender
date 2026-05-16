@@ -19,11 +19,11 @@ struct PlaneIntersection {
 
 /**
  * Test intersection of a line segment with a plane defined by two tangent vectors.
- * \param pos0 First point of the line segment.
- * \param pos1 Second point of the line segment.
- * \param origin Point on the half-plane edge.
- * \param edge Edge of the half-plane.
- * \param normal Direction away from the half-plane.
+ * \param pos0: First point of the line segment.
+ * \param pos1: Second point of the line segment.
+ * \param origin: Point on the half-plane edge.
+ * \param edge: Edge of the half-plane.
+ * \param normal: Direction away from the half-plane.
  * \return Intersection if the line segment intersects the plane.
  */
 inline std::optional<PlaneIntersection> intersect_plane(const float3 &pos0,
@@ -63,10 +63,10 @@ struct SegmentClosestToRay {
 
 /**
  * Find closest point of a segment to a ray.
- * \param pos0 First point of the line segment.
- * \param pos1 Second point of the line segment.
- * \param ray_pos Origin of the ray.
- * \param ray_dir Direction of the ray.
+ * \param pos0: First point of the line segment.
+ * \param pos1: Second point of the line segment.
+ * \param ray_pos: Origin of the ray.
+ * \param ray_dir: Direction of the ray.
  * \return Closest point on the segment or null if the closest point is outside the segment.
  */
 inline SegmentClosestToRay closest_on_segment_to_ray(const float3 &pos0,

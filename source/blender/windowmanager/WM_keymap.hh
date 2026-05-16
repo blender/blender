@@ -219,8 +219,8 @@ std::optional<std::string> WM_keymap_item_raw_to_string(int8_t shift,
                                                         short type,
                                                         bool compact);
 /**
- * \param include_mask, exclude_mask:
- * Event types to include/exclude when looking up keys (#eEventType_Mask).
+ * \param include_mask: Event types to include when looking up keys (#eEventType_Mask).
+ * \param exclude_mask: Event types to exclude when looking up keys (#eEventType_Mask).
  */
 wmKeyMapItem *WM_key_event_operator(const bContext *C,
                                     const char *opname,

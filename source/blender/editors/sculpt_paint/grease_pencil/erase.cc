@@ -195,7 +195,7 @@ struct EraseOperationExecutor {
    *
    * \param squared_radius: squared radius of the brush in pixels.
    *
-   * \param r_mu0, r_mu0: (output) factor of the two intersections if they exists, otherwise (-1).
+   * \param r_mu0, r_mu1: (output) factor of the two intersections if they exists, otherwise (-1).
    *
    * \param point_side, point_after_side: (output) enum describing where the first (resp. second)
    * endpoint lies relatively to the eraser: inside, outside or at the boundary of the eraser.

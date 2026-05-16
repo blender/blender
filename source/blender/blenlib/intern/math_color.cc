@@ -192,9 +192,9 @@ void hex_to_rgb(const char *hexcol, float *r_r, float *r_g, float *r_b)
 /**
  * Parse a hex color string into RGBA float values.
  *
- * \param hexcol The hex string to parse (e.g. "#RRGGBB", "RRGGBB", "#RGB").
- * \param r_r, r_g, r_b Pointers to store the parsed RGB values (0.0 - 1.0).
- * \param r_a Pointer to store the parsed Alpha value (0.0 - 1.0). Can be NULL.
+ * \param hexcol: The hex string to parse (e.g. "#RRGGBB", "RRGGBB", "#RGB").
+ * \param r_r, r_g, r_b: Pointers to store the parsed RGB values (0.0 - 1.0).
+ * \param r_a: Pointer to store the parsed Alpha value (0.0 - 1.0). Can be NULL.
  *             If the hex string does not contain alpha, this value is NOT modified.
  * \return True if the hex string was successfully parsed, false otherwise.
  *         If false is returned, the output values are left unchanged.

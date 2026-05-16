@@ -225,17 +225,17 @@ void view2d_dot_grid_draw(const View2D *v2d,
 /**
  * Draw horizontal lines.
  *
- * \param base Defines in what distance the lines are drawn. Depending on the zoom level of the
+ * \param base: Defines in what distance the lines are drawn. Depending on the zoom level of the
  * `v2d` the distance is always a full fraction or multiple of the given base.
  */
 void view2d_draw_lines_y(const View2D *v2d, bool show_fractions, int base);
 /**
  * Draw vertical lines. Where lines are drawn is determined by the zoom factor and `base`.
  *
- * \param show_fractions If true, lines will be drawn between full values too.
- * \param draw_minor_lines If true, draw extra lines with less visual weight to further break down
+ * \param show_fractions: If true, lines will be drawn between full values too.
+ * \param draw_minor_lines: If true, draw extra lines with less visual weight to further break down
  * the view area.
- * \param base Defines in what distance the lines are drawn. Depending on the zoom level of the
+ * \param base: Defines in what distance the lines are drawn. Depending on the zoom level of the
  * `v2d` the distance is always a full fraction or multiple of the given base.
  */
 void view2d_draw_lines_x(const View2D *v2d,
@@ -264,11 +264,11 @@ void view2d_draw_scale_y(
 /**
  * Draw a text scale in either frames or seconds.
  *
- * \param display_seconds If true, the scale is interpreted as seconds and will draw a time-code.
- * \param show_fractions If true, fractional scales will be drawn when zoomed in far enough.
+ * \param display_seconds: If true, the scale is interpreted as seconds and will draw a time-code.
+ * \param show_fractions: If true, fractional scales will be drawn when zoomed in far enough.
  * Otherwise the minimum step distance is clamped to 1, meaning only whole number indicators will
  * be drawn even when zoomed in. If `display_seconds` is true, this setting will always be false.
- * \param base Defines in what distance the numbers are drawn. Depending on the zoom level of the
+ * \param base: Defines in what distance the numbers are drawn. Depending on the zoom level of the
  * `v2d` the distance is always a full fraction or multiple of the given base.
  */
 void view2d_draw_scale_x(const ARegion *region,

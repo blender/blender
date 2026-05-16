@@ -420,7 +420,7 @@ ccl_device_inline bool ray_infinite_cylinder_intersect(const float3 P,
   return valid && !t_range->is_empty();
 }
 
-/* *
+/**
  * Find the ray segment inside a single-sided cone.
  *
  * \param axis: a unit-length direction around which the cone has a circular symmetry

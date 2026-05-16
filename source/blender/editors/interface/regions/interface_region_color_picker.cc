@@ -516,8 +516,8 @@ static void colorpicker_update_type_space_cb(bContext * /*C*/, void *picker_bt1,
 
 /** Get localized tooltips for the current color picker type.
  *
- * \param r_area_tooltip Tooltip describing the color area (e.g., "Hue/Saturation").
- * \param r_slider_tooltip Tooltip describing the slider (e.g., "Lightness" or "Value").
+ * \param r_area_tooltip: Tooltip describing the color area (e.g., "Hue/Saturation").
+ * \param r_slider_tooltip: Tooltip describing the slider (e.g., "Lightness" or "Value").
  */
 static void colorpicker_tooltips(ColorPicker *cpicker,
                                  const char **r_area_tooltip,
