@@ -1522,9 +1522,11 @@ static void serialize_bake_item(const BakeItem &item,
     }
   }
   else if (const auto *primitive_state_item = dynamic_cast<const PrimitiveBakeItem *>(&item)) {
-    const eCustomDataType data_type = cpp_type_to_custom_data_type(primitive_state_item->type());
-    r_io_item.append_str("type", get_data_type_io_name(data_type));
-    auto io_data = serialize_primitive_value(data_type, primitive_state_item->value());
+    const std::optional<eCustomDataType> data_type = cpp_type_to_custom_data_type(
+        primitive_state_item->type());
+    BLI_assert(data_type);
+    r_io_item.append_str("type", get_data_type_io_name(*data_type));
+    auto io_data = serialize_primitive_value(*data_type, primitive_state_item->value());
     r_io_item.append("data", std::move(io_data));
   }
   else if (const auto *bundle_state_item = dynamic_cast<const BundleBakeItem *>(&item)) {
@@ -1552,11 +1554,13 @@ static void serialize_bake_item(const BakeItem &item,
           BLI_assert_unreachable();
         }
         else {
-          const eCustomDataType data_type = cpp_type_to_custom_data_type(list.cpp_type());
-          r_io_item.append_str("item_type", get_data_type_io_name(data_type));
+          const std::optional<eCustomDataType> data_type = cpp_type_to_custom_data_type(
+              list.cpp_type());
+          BLI_assert(data_type);
+          r_io_item.append_str("item_type", get_data_type_io_name(*data_type));
           r_io_item.append_int("num_items", list.size());
           if (const auto *single_data = std::get_if<nodes::GList::SingleData>(&list.data())) {
-            r_io_item.append("value", serialize_primitive_value(data_type, single_data->value));
+            r_io_item.append("value", serialize_primitive_value(*data_type, single_data->value));
           }
           else if (const auto *array_data = std::get_if<nodes::GList::ArrayData>(&list.data())) {
             const GSpan array_span = {list.cpp_type(), array_data->data, list.size()};
