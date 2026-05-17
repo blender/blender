@@ -9,6 +9,7 @@
 #include "BKE_instances.hh"
 #include "BKE_lib_id.hh"
 #include "BKE_mesh.h"
+#include "BKE_mesh_mapping.hh"
 #include "BKE_mesh_sample.hh"
 #include "BKE_pointcloud.hh"
 
@@ -1929,22 +1930,16 @@ class XpbdSolverStep {
     const Span<int> corner_verts = mesh.corner_verts();
     const OffsetIndices<int> faces = mesh.faces();
 
-    MultiValueMap<OrderedEdge, int> faces_by_edge;
-    for (const int face_i : faces.index_range()) {
-      const IndexRange corners = faces[face_i];
-      for (const int corner0_i : corners.index_range()) {
-        const int corner1_i = corner0_i == corners.size() - 1 ? 0 : corner0_i + 1;
-        const int v0 = corner_verts[corners[corner0_i]];
-        const int v1 = corner_verts[corners[corner1_i]];
-        faces_by_edge.add(OrderedEdge{v0, v1}, face_i);
-      }
-    }
+    Array<int> offsets;
+    Array<int> indices;
+    const GroupedSpan<int> edge_to_faces = bke::mesh::build_edge_to_face_map(
+        faces, mesh.corner_edges(), mesh.edges_num, offsets, indices);
 
     for (const int edge_i : edges.index_range()) {
       const int2 &edge = edges[edge_i];
       const int edge_v0 = edge[0];
       const int edge_v1 = edge[1];
-      const Span<int> incident_faces = faces_by_edge.lookup(OrderedEdge(edge));
+      const Span<int> incident_faces = edge_to_faces[edge_i];
       if (incident_faces.size() != 2) {
         continue;
       }
