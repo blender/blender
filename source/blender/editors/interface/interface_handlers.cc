@@ -5303,7 +5303,7 @@ static int do_but_TEXTBOX(bContext *C,
       scroll_rect.ymin += textbox_grip_height() / block->aspect;
 
       rctf grip_rect = rect;
-      grip_rect.xmin = grip_rect.xmax - button_text_padding(textbox);
+      grip_rect.xmin = grip_rect.xmax - button_text_padding(textbox) - (2.0f / block->aspect);
       grip_rect.ymax = grip_rect.ymin + textbox_grip_height() / block->aspect;
 
       /* Update mouse cursor on mouse move. */
