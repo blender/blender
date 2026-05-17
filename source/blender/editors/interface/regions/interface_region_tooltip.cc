@@ -304,18 +304,17 @@ static void tooltip_region_draw_cb(const bContext * /*C*/, ARegion *region)
 
       GPU_blend((field->image->premultiplied) ? GPU_BLEND_ALPHA_PREMULT : GPU_BLEND_ALPHA);
 
-      IMMDrawPixelsTexState state = immDrawPixelsTexSetup(GPU_SHADER_3D_IMAGE_COLOR);
-      immDrawPixels(&state,
-                    bbox.xmin,
-                    bbox.ymax,
-                    field->image->ibuf->x,
-                    field->image->ibuf->y,
-                    gpu::TextureFormat::UNORM_8_8_8_8,
-                    true,
-                    field->image->ibuf->byte_data(),
-                    float(field->image->width) / float(field->image->ibuf->x),
-                    float(field->image->height) / float(field->image->ibuf->y),
-                    (field->image->text_color) ? main_color : nullptr);
+      PixelBitmapDrawer drawer(GPU_SHADER_3D_IMAGE_COLOR);
+      drawer.draw(bbox.xmin,
+                  bbox.ymax,
+                  field->image->ibuf->x,
+                  field->image->ibuf->y,
+                  gpu::TextureFormat::UNORM_8_8_8_8,
+                  true,
+                  field->image->ibuf->byte_data(),
+                  float(field->image->width) / float(field->image->ibuf->x),
+                  float(field->image->height) / float(field->image->ibuf->y),
+                  (field->image->text_color) ? main_color : nullptr);
 
       if (field->image->border) {
         GPU_blend(GPU_BLEND_ALPHA);

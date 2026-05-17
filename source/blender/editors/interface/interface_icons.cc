@@ -1439,23 +1439,22 @@ static void icon_draw_rect(float x,
   else {
     shader = GPU_SHADER_3D_IMAGE_COLOR;
   }
-  IMMDrawPixelsTexState state = immDrawPixelsTexSetup(shader);
+  PixelBitmapDrawer drawer(shader);
 
   if (shader == GPU_SHADER_2D_IMAGE_DESATURATE_COLOR) {
     immUniform1f("factor", desaturate);
   }
 
-  immDrawPixels(&state,
-                draw_x,
-                draw_y,
-                rw,
-                rh,
-                gpu::TextureFormat::UNORM_8_8_8_8,
-                true,
-                rect,
-                scale_x,
-                scale_y,
-                col);
+  drawer.draw(draw_x,
+              draw_y,
+              rw,
+              rh,
+              gpu::TextureFormat::UNORM_8_8_8_8,
+              true,
+              rect,
+              scale_x,
+              scale_y,
+              col);
 }
 
 /* Drawing size for preview images */

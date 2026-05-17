@@ -8,6 +8,7 @@
 
 #pragma once
 
+#include "GPU_shader_builtin.hh"
 #include "GPU_texture.hh"
 
 namespace blender {
@@ -22,58 +23,61 @@ namespace gpu {
 class Shader;
 }  // namespace gpu
 
-struct IMMDrawPixelsTexState {
+/**
+ * Utility to render a quad using pixel bitmap
+ * data in system memory.
+ */
+class PixelBitmapDrawer {
   gpu::Shader *shader;
   unsigned int pos;
   unsigned int texco;
-  bool do_shader_unbind;
+
+ public:
+  /**
+   * Prepares for drawing, using one of built-in shaders
+   * (e.g. GPU_SHADER_3D_IMAGE_COLOR).
+   *
+   * Before drawing additional uniforms can be set on the shader.
+   */
+  PixelBitmapDrawer(GPUBuiltinShader builtin_shader);
+
+  /**
+   * Prepares for drawing, with shader set up by the caller.
+   * The shader is expected to use `pos` and `texCoord` attributes,
+   * and `image` texture.
+   */
+  PixelBitmapDrawer();
+
+  gpu::Shader *shader_get()
+  {
+    return shader;
+  }
+
+  /**
+   * Draws pixel data on a rectangle.
+   *
+   * The model-view and projection matrices are assumed to define a 1-to-1 mapping to screen space.
+   *
+   * If color is null, white is used.
+   */
+  void draw(float x,
+            float y,
+            int img_w,
+            int img_h,
+            gpu::TextureFormat gpu_format,
+            bool use_filter,
+            const void *rect,
+            float scale_x,
+            float scale_y,
+            const float color[4]);
+
+ private:
+  void init_vertex_attributes();
 };
 
-/* To be used before calling immDrawPixels
- * Default shader is GPU_SHADER_2D_IMAGE_COLOR
- * Returns a shader to be able to set uniforms */
 /**
- * To be used before calling #immDrawPixels
- * Default shader is #GPU_SHADER_2D_IMAGE_COLOR
- * You can still set uniforms with:
- * `GPU_shader_uniform_*(shader, "name", value);`
+ * Draw the image buffer, with the given display transform parameters.
  */
-IMMDrawPixelsTexState immDrawPixelsTexSetup(int builtin);
-
-/**
- * Draws pixel data on a rectangle.
- *
- * Use the currently bound shader.
- *
- * Use #immDrawPixelsTexSetup to bind the shader you want before calling #immDrawPixels.
- *
- * If using a special shader double check it uses the same attributes "pos" "texCoord" and uniform
- * "image".
- *
- * If color is NULL then use white by default
- *
- * Unless `state->do_shader_unbind` is explicitly set to `false`, the shader is unbound when
- * finished.
- *
- * The model-view and projection matrices are assumed to define a 1-to-1 mapping to screen space.
- */
-void immDrawPixels(const IMMDrawPixelsTexState *state,
-                   float x,
-                   float y,
-                   int img_w,
-                   int img_h,
-                   gpu::TextureFormat gpu_format,
-                   bool use_filter,
-                   const void *rect,
-                   float scale_x,
-                   float scale_y,
-                   const float color[4]);
-
-/* Image buffer drawing functions, with display transform
- *
- * The view and display settings can either be specified manually,
- * or retrieved from the context with the '_ctx' variations.*/
-
 void ED_draw_imbuf(const ImBuf *ibuf,
                    float x,
                    float y,
@@ -83,7 +87,7 @@ void ED_draw_imbuf(const ImBuf *ibuf,
                    float zoom_x,
                    float zoom_y);
 /**
- * Draw given image buffer on a screen using GLSL for display transform.
+ * Draw the image buffer, using display transform parameters from the context.
  */
 void ED_draw_imbuf_ctx(const bContext *C,
                        const ImBuf *ibuf,

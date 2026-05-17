@@ -21,40 +21,37 @@
 
 namespace blender {
 
-/* ******************************************** */
-
-static void immDrawPixelsTexSetupAttributes(IMMDrawPixelsTexState *state)
+void PixelBitmapDrawer::init_vertex_attributes()
 {
   GPUVertFormat *vert_format = immVertexFormat();
-  state->pos = GPU_vertformat_attr_add(vert_format, "pos", gpu::VertAttrType::SFLOAT_32_32);
-  state->texco = GPU_vertformat_attr_add(vert_format, "texCoord", gpu::VertAttrType::SFLOAT_32_32);
+  this->pos = GPU_vertformat_attr_add(vert_format, "pos", gpu::VertAttrType::SFLOAT_32_32);
+  this->texco = GPU_vertformat_attr_add(vert_format, "texCoord", gpu::VertAttrType::SFLOAT_32_32);
 }
 
-IMMDrawPixelsTexState immDrawPixelsTexSetup(int builtin)
+PixelBitmapDrawer::PixelBitmapDrawer() : shader(nullptr)
 {
-  IMMDrawPixelsTexState state;
-  immDrawPixelsTexSetupAttributes(&state);
-
-  state.shader = GPU_shader_get_builtin_shader(GPUBuiltinShader(builtin));
-
-  /* Shader will be unbind by immUnbindProgram in a `immDrawPixels` function. */
-  immBindBuiltinProgram(GPUBuiltinShader(builtin));
-  state.do_shader_unbind = true;
-
-  return state;
+  init_vertex_attributes();
 }
 
-void immDrawPixels(const IMMDrawPixelsTexState *state,
-                   const float x,
-                   const float y,
-                   const int img_w,
-                   const int img_h,
-                   const gpu::TextureFormat gpu_format,
-                   const bool use_filter,
-                   const void *rect,
-                   const float scale_x,
-                   const float scale_y,
-                   const float color[4])
+PixelBitmapDrawer::PixelBitmapDrawer(GPUBuiltinShader builtin_shader)
+{
+  init_vertex_attributes();
+
+  this->shader = GPU_shader_get_builtin_shader(builtin_shader);
+  /* Shader will be unbound in draw(). */
+  immBindBuiltinProgram(builtin_shader);
+}
+
+void PixelBitmapDrawer::draw(const float x,
+                             const float y,
+                             const int img_w,
+                             const int img_h,
+                             const gpu::TextureFormat gpu_format,
+                             const bool use_filter,
+                             const void *rect,
+                             const float scale_x,
+                             const float scale_y,
+                             const float color[4])
 {
   const float draw_width = img_w * scale_x;
   const float draw_height = img_h * scale_y;
@@ -93,11 +90,11 @@ void immDrawPixels(const IMMDrawPixelsTexState *state,
   /* NOTE: Shader could be null for GLSL OCIO drawing, it is fine, since
    * it does not need color. */
   static const float white[4] = {1.0f, 1.0f, 1.0f, 1.0f};
-  if (state->shader != nullptr && GPU_shader_get_uniform(state->shader, "color") != -1) {
+  if (this->shader != nullptr && GPU_shader_get_uniform(this->shader, "color") != -1) {
     immUniformColor4fv((color) ? color : white);
   }
 
-  uint pos = state->pos, texco = state->texco;
+  const uint pos = this->pos, texco = this->texco;
 
   immBegin(GPU_PRIM_TRI_FAN, 4);
   immAttr2f(texco, 0.0f, 0.0f);
@@ -113,15 +110,13 @@ void immDrawPixels(const IMMDrawPixelsTexState *state,
   immVertex2f(pos, x, y + draw_height);
   immEnd();
 
-  if (state->do_shader_unbind) {
+  if (this->shader) {
     immUnbindProgram();
   }
 
   GPU_texture_unbind(tex);
   GPU_texture_free(tex);
 }
-
-/* **** Color management helper functions for GLSL display/transform ***** */
 
 void ED_draw_imbuf(const ImBuf *ibuf,
                    float x,
@@ -139,10 +134,7 @@ void ED_draw_imbuf(const ImBuf *ibuf,
     return;
   }
 
-  IMMDrawPixelsTexState state = {nullptr};
-  /* We want GLSL state to be fully handled by OCIO. */
-  state.do_shader_unbind = false;
-  immDrawPixelsTexSetupAttributes(&state);
+  PixelBitmapDrawer drawer;
 
   const ColorSpace *colorspace = ibuf->float_data() ? ibuf->float_buffer.colorspace :
                                                       ibuf->byte_buffer.colorspace;
@@ -176,8 +168,7 @@ void ED_draw_imbuf(const ImBuf *ibuf,
   }
 
   if (format != TextureFormat::Invalid) {
-    immDrawPixels(
-        &state, x, y, ibuf->x, ibuf->y, format, use_filter, texture_data, zoom_x, zoom_y, nullptr);
+    drawer.draw(x, y, ibuf->x, ibuf->y, format, use_filter, texture_data, zoom_x, zoom_y, nullptr);
   }
 
   IMB_colormanagement_finish_glsl_draw();
