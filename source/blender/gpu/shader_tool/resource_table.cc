@@ -110,25 +110,25 @@ void SourceProcessor::lower_srt_member_access(Parser &parser)
     /* Parse both function and prototypes. */
     Scope fn_body = fn_args.next().type() == ScopeType::Function ? fn_args.next() : Scope(parser);
     /* Function arguments. */
-    fn_args.foreach_match("[[A]]c?A&A", [&](const vector<Token> toks) {
-      memher_access_mutation(toks[0].scope(), toks[7], toks[9], fn_body);
+    fn_args.foreach_match("[[..]]c?A&A", [&](const vector<Token> toks) {
+      memher_access_mutation(toks[0].scope(), toks[8], toks[10], fn_body);
     });
-    fn_args.foreach_match("[[A]]c?AA", [&](const vector<Token> toks) {
-      if (toks[2].str() == srt_attribute) {
+    fn_args.foreach_match("[[..]]c?AA", [&](const vector<Token> toks) {
+      if (toks[1].next().str() == srt_attribute) {
         parser.erase(toks[0].scope());
-        report_error(toks[8], "Shader Resource Table arguments must be references.");
+        report_error(toks[9], "Shader Resource Table arguments must be references.");
       }
     });
   });
 
   parser().foreach_scope(ScopeType::Function, [&](const Scope fn_body) {
     /* Local references. */
-    fn_body.foreach_match("[[A]]c?A&A", [&](const vector<Token> toks) {
-      memher_access_mutation(toks[0].scope(), toks[7], toks[9], toks[9].scope());
+    fn_body.foreach_match("[[..]]c?A&A", [&](const vector<Token> toks) {
+      memher_access_mutation(toks[0].scope(), toks[8], toks[10], toks[10].scope());
     });
     /* Local variables. */
-    fn_body.foreach_match("[[A]]c?AA", [&](const vector<Token> toks) {
-      memher_access_mutation(toks[0].scope(), toks[7], toks[8], toks[8].scope());
+    fn_body.foreach_match("[[..]]c?AA", [&](const vector<Token> toks) {
+      memher_access_mutation(toks[0].scope(), toks[8], toks[9], toks[9].scope());
     });
   });
 
@@ -142,11 +142,26 @@ void SourceProcessor::lower_srt_arguments(Parser &parser)
   /* SRT arguments. */
   parser().foreach_function([&](bool, Token fn_type, Token, Scope fn_args, bool, Scope fn_body) {
     string condition;
-    fn_args.foreach_match("[[A]]c?A", [&](const vector<Token> &tokens) {
-      if (tokens[2].str() != "resource_table") {
+    fn_args.foreach_match("[[..]]c?A", [&](const vector<Token> &tokens) {
+      if (tokens[1].next().str() != "resource_table") {
         return;
       }
-      condition += " && defined(CREATE_INFO_" + string(tokens[7].str()) + ")";
+      string srt_cond;
+      tokens[1].scope().foreach_attribute([&](Token attribute_name, Scope attribute_parameters) {
+        if (attribute_name.str() == "condition") {
+          srt_cond = "SRT_CONSTANT_" + string(attribute_parameters.str_exclusive());
+        }
+      });
+
+      condition += " && ";
+      if (!srt_cond.empty()) {
+        /* If condition exists, ensure the function will be available if the condition is false */
+        condition += "(!(" + srt_cond + ") ||";
+      }
+      condition += "defined(CREATE_INFO_" + string(tokens[8].str()) + ")";
+      if (!srt_cond.empty()) {
+        condition += ")";
+      }
       parser.replace(tokens[0].scope(), "");
     });
 
