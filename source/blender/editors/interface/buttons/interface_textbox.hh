@@ -22,7 +22,7 @@ namespace ui {
 
 struct ButtonTextBox;
 
-constexpr int textbox_minimum_visible_lines = 3;
+constexpr int textbox_minimum_visible_lines = 1;
 
 void textbox_add_scroll(ButtonTextBox *textbox, int step);
 

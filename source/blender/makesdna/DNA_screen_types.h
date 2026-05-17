@@ -525,7 +525,7 @@ struct uiPreview {
  * State storage for text-boxes (#ui::ButtonTextBox).
  */
 struct TextboxState {
-  int visible_lines = 0;
+  int visible_lines = 3;
   int scroll = 0;
 };
 
@@ -539,7 +539,7 @@ struct TextboxState {
 struct uiTextboxStateLink {
   struct uiTextboxStateLink *next = nullptr, *prev = nullptr;
   char *idname = nullptr;
-  TextboxState state = {};
+  TextboxState state;
 };
 
 enum GlobalAreaFlag : short {

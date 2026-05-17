@@ -841,7 +841,7 @@ struct TextVars {
   char text_legacy[512] = "";
 
   /** UI textbox state. */
-  TextboxState textbox_state = {};
+  TextboxState textbox_state;
 };
 
 #define STRIP_FONT_NOT_LOADED -2

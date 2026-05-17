@@ -2312,8 +2312,11 @@ static void widget_draw_textbox(const uiFontStyle *fstyle,
   rcti grip_rect = *button_rect;
   grip_rect.ymax = grip_rect.ymin + std::floor(textbox_grip_height() / but->block->aspect);
   grip_rect.xmin = grip_rect.xmax - text_padding - scrollbar_pad;
-  widget_draw_icon_centered(
-      ICON_GRIP_CORNER_BOTTOM_RIGHT, textbox->block->aspect, 1.0f, &grip_rect, wcol->text);
+  /* Draw grip button if there is space enough. */
+  if (BLI_rcti_isect(&grip_rect, button_rect, nullptr)) {
+    widget_draw_icon_centered(
+        ICON_GRIP_CORNER_BOTTOM_RIGHT, textbox->block->aspect, 1.0f, &grip_rect, wcol->text);
+  }
 
   if (textbox->last_total_lines <= visible_lines) {
     return;
@@ -2339,6 +2342,8 @@ static void widget_draw_textbox(const uiFontStyle *fstyle,
                   slider_rect.ymin < scroll_rect.ymin ? (scroll_rect.ymin - slider_rect.ymin) :
                                                         0;
   BLI_rcti_translate(&slider_rect, 0, pad);
+  slider_rect.ymin = std::max(slider_rect.ymin, scroll_rect.ymin);
+  slider_rect.ymax = std::min(slider_rect.ymax, scroll_rect.ymax);
   uiWidgetColors wscroll = theme::theme_get()->tui.wcol_scroll;
   if (BLI_rcti_isect(&scroll_rect, button_rect, nullptr)) {
     draw_widget_scroll(&wscroll, &scroll_rect, &slider_rect, 0);

@@ -2791,20 +2791,22 @@ void Layout::textbox_with_state(PointerRNA *ptr,
 
   int w, h;
   item_rna_size(block->curlayout, "", ICON_NONE, ptr, prop, -1, false, false, &w, &h);
-  Button *but = uiDefButR_prop(block,
-                               ButtonType::TextBox,
-                               RNA_property_ui_name(prop),
-                               0,
-                               0,
-                               w,
-                               line_heigth * textbox_state->visible_lines +
-                                   textbox_vertical_padding() * 2.0f,
-                               ptr,
-                               prop,
-                               0,
-                               0,
-                               0,
-                               std::nullopt);
+  Button *but = uiDefButR_prop(
+      block,
+      ButtonType::TextBox,
+      RNA_property_ui_name(prop),
+      0,
+      0,
+      w,
+      std::max<int>(UI_UNIT_Y,
+                    std::round(line_heigth * textbox_state->visible_lines) +
+                        (textbox_vertical_padding() * 2.0f)),
+      ptr,
+      prop,
+      0,
+      0,
+      0,
+      std::nullopt);
   ButtonTextBox *textbox = static_cast<ButtonTextBox *>(but);
   textbox->state = textbox_state;
   if (placeholder) {
