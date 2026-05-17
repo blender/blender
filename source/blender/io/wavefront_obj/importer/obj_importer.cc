@@ -206,16 +206,14 @@ static void geometry_to_blender_objects(Main *bmain,
   DEG_relations_tag_update(bmain);
 }
 
-void importer_geometry(const OBJImportParams &import_params,
-                       Vector<bke::GeometrySet> &geometries,
-                       size_t read_buffer_size)
+void importer_geometry(const OBJImportParams &import_params, Vector<bke::GeometrySet> &geometries)
 {
   /* List of geometries to be parsed from OBJ file. */
   Vector<std::unique_ptr<Geometry>> all_geometries;
   /* Container for vertex and UV vertex coordinates. */
   GlobalVertices global_vertices;
 
-  OBJParser obj_parser{import_params, read_buffer_size};
+  OBJParser obj_parser{import_params};
   obj_parser.parse(all_geometries, global_vertices);
 
   geometry_to_blender_geometry_set(import_params, all_geometries, global_vertices, geometries);
@@ -226,15 +224,7 @@ void importer_main(bContext *C, const OBJImportParams &import_params)
   Main *bmain = CTX_data_main(C);
   Scene *scene = CTX_data_scene(C);
   ViewLayer *view_layer = CTX_data_view_layer(C);
-  importer_main(bmain, scene, view_layer, import_params);
-}
 
-void importer_main(Main *bmain,
-                   Scene *scene,
-                   ViewLayer *view_layer,
-                   const OBJImportParams &import_params,
-                   size_t read_buffer_size)
-{
   /* List of geometries to be parsed from OBJ file. */
   Vector<std::unique_ptr<Geometry>> all_geometries;
   /* Container for vertex and UV vertex coordinates. */
@@ -243,7 +233,7 @@ void importer_main(Main *bmain,
   Map<std::string, std::unique_ptr<MTLMaterial>> materials;
   Map<std::string, Material *> created_materials;
 
-  OBJParser obj_parser{import_params, read_buffer_size};
+  OBJParser obj_parser{import_params};
   obj_parser.parse(all_geometries, global_vertices);
 
   /* Parse all referenced MTL files */

@@ -38,28 +38,6 @@ static bool is_whitespace(char c)
   return c <= ' ';
 }
 
-void fixup_line_continuations(char *p, char *end)
-{
-  while (true) {
-    /* Find next backslash, if any. */
-    char *backslash = std::find(p, end, '\\');
-    if (backslash == end) {
-      break;
-    }
-    /* Skip over possible white-space right after it. */
-    p = backslash + 1;
-    while (p < end && is_whitespace(*p) && *p != '\n') {
-      ++p;
-    }
-    /* If we have a newline, turn both backslash
-     * and the newline into regular spaces. */
-    if (p < end && *p == '\n') {
-      *backslash = ' ';
-      *p = ' ';
-    }
-  }
-}
-
 const char *drop_whitespace(const char *p, const char *end)
 {
   while (p < end && is_whitespace(*p)) {

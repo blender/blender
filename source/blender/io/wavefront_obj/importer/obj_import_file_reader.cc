@@ -8,11 +8,12 @@
 
 #include "BKE_report.hh"
 
-#include "BLI_fileops.hh"
+#include "BLI_fileops.h"
 #include "BLI_map.hh"
 #include "BLI_math_color.h"
 #include "BLI_math_vector.h"
 #include "BLI_math_vector_types.hh"
+#include "BLI_mmap.h"
 #include "BLI_string.h"
 #include "BLI_string_ref.hh"
 #include "BLI_vector.hh"
@@ -25,6 +26,13 @@
 
 #include <algorithm>
 #include <charconv>
+
+#include <fcntl.h>
+#ifndef WIN32
+#  include <unistd.h>
+#else
+#  include <io.h>
+#endif
 
 #include "CLG_log.h"
 
@@ -432,11 +440,10 @@ static void geom_new_object(const char *p,
       r_curr_geom, GEOM_MESH, StringRef(p, end).trim(), r_all_geometries);
 }
 
-OBJParser::OBJParser(const OBJImportParams &import_params, size_t read_buffer_size)
-    : import_params_(import_params), read_buffer_size_(read_buffer_size)
+OBJParser::OBJParser(const OBJImportParams &import_params) : import_params_(import_params)
 {
-  obj_file_ = BLI_fopen(import_params_.filepath, "rb");
-  if (!obj_file_) {
+  const int obj_file = BLI_open(import_params_.filepath, O_BINARY | O_RDONLY, 0);
+  if (obj_file == -1) {
     CLOG_ERROR(&LOG, "Cannot read from OBJ file:'%s'.", import_params_.filepath);
     BKE_reportf(import_params_.reports,
                 RPT_ERROR,
@@ -444,12 +451,22 @@ OBJParser::OBJParser(const OBJImportParams &import_params, size_t read_buffer_si
                 import_params_.filepath);
     return;
   }
+  mmap_file_ = BLI_mmap_open(obj_file);
+  close(obj_file);
+  if (mmap_file_ == nullptr) {
+    CLOG_ERROR(&LOG, "Cannot mmap OBJ file:'%s'.", import_params_.filepath);
+    BKE_reportf(import_params_.reports,
+                RPT_ERROR,
+                "OBJ Import: Cannot mmap file '%s'",
+                import_params_.filepath);
+    return;
+  }
 }
 
 OBJParser::~OBJParser()
 {
-  if (obj_file_) {
-    fclose(obj_file_);
+  if (mmap_file_ != nullptr) {
+    BLI_mmap_free(mmap_file_);
   }
 }
 
@@ -488,22 +505,79 @@ static void use_all_vertices_if_no_faces(Geometry *geom,
   }
 }
 
-size_t OBJParser::parse_string_buffer(StringRef &buffer_str,
-                                      Vector<std::unique_ptr<Geometry>> &r_all_geometries,
-                                      GlobalVertices &r_global_vertices,
-                                      Geometry *&curr_geom,
-                                      bool &state_shaded_smooth,
-                                      string &state_group_name,
-                                      int &state_group_index,
-                                      string &state_material_name,
-                                      int &state_material_index)
+/* OBJ file format supports "line continuations", which
+ * are back-slashes, optionally followed by whitespace.
+ * The line virtually extends to the next line in that case. */
+StringRef OBJParser::read_next_obj_line(StringRef &buffer)
 {
-  size_t read_lines_num = 0;
+  const char *start = buffer.begin();
+  const char *end = buffer.end();
+  const char *ptr = start;
+
+  /* Scan until newline or backslash. */
+  while (ptr < end && *ptr != '\n' && *ptr != '\\') {
+    ++ptr;
+  }
+
+  /* Common case: no backslash found, return reference to input data. */
+  if (ptr >= end || *ptr == '\n') {
+    size_t len = ptr - start;
+    buffer = StringRef(ptr < end ? ptr + 1 : ptr, end);
+    return StringRef(start, len);
+  }
+
+  /* We have backslash. Copy into line buffer, replace
+   * line continuation with space, return result. */
+
+  line_buffer_.assign(start, ptr);
+
+  while (ptr < end) {
+    char c = *ptr++;
+    if (c == '\\') {
+      /* Scan ahead, skipping whitespace until newline. */
+      const char *ahead = ptr;
+      while (ahead < end && *ahead <= ' ' && *ahead != '\n') {
+        ++ahead;
+      }
+      if (ahead < end && *ahead == '\n') {
+        /* Line continuation: replace backslash & newline with space. */
+        line_buffer_ += ' ';
+        ptr = ahead + 1; /* Continue after the newline. */
+      }
+      else {
+        /* Not a continuation: keep the backslash. */
+        line_buffer_ += c;
+      }
+    }
+    else if (c == '\n') {
+      break;
+    }
+    else {
+      line_buffer_ += c;
+    }
+  }
+
+  buffer = StringRef(ptr, end);
+  return line_buffer_;
+}
+
+void OBJParser::parse_string_buffer(StringRef &buffer_str,
+                                    Vector<std::unique_ptr<Geometry>> &r_all_geometries,
+                                    GlobalVertices &r_global_vertices,
+                                    Geometry *&curr_geom)
+{
+  /* State variables: once set, they remain the same for the remaining
+   * elements in the object. */
+  bool state_shaded_smooth = false;
+  string state_group_name;
+  int state_group_index = -1;
+  string state_material_name;
+  int state_material_index = -1;
+
   while (!buffer_str.is_empty()) {
-    StringRef line = read_next_line(buffer_str);
+    StringRef line = read_next_obj_line(buffer_str);
     const char *p = line.begin(), *end = line.end();
     p = drop_whitespace(p, end);
-    ++read_lines_num;
     if (p == end) {
       continue;
     }
@@ -619,13 +693,12 @@ size_t OBJParser::parse_string_buffer(StringRef &buffer_str,
       CLOG_WARN(&LOG, "OBJ element not recognized: '%s'", string(p, end).c_str());
     }
   }
-  return read_lines_num;
 }
 
 void OBJParser::parse(Vector<std::unique_ptr<Geometry>> &r_all_geometries,
                       GlobalVertices &r_global_vertices)
 {
-  if (!obj_file_) {
+  if (!mmap_file_) {
     return;
   }
 
@@ -636,82 +709,10 @@ void OBJParser::parse(Vector<std::unique_ptr<Geometry>> &r_all_geometries,
 
   Geometry *curr_geom = create_geometry(nullptr, GEOM_MESH, ob_name, r_all_geometries);
 
-  /* State variables: once set, they remain the same for the remaining
-   * elements in the object. */
-  bool state_shaded_smooth = false;
-  string state_group_name;
-  int state_group_index = -1;
-  string state_material_name;
-  int state_material_index = -1;
-
-  /* Read the input file in chunks. We need up to twice the possible chunk size,
-   * to possibly store remainder of the previous input line that got broken mid-chunk. */
-  Array<char> buffer(read_buffer_size_ * 2);
-
-  size_t buffer_offset = 0;
-  size_t line_number = 0;
-  while (true) {
-    /* Read a chunk of input from the file. */
-    size_t bytes_read = fread(buffer.data() + buffer_offset, 1, read_buffer_size_, obj_file_);
-    if (bytes_read == 0 && buffer_offset == 0) {
-      break; /* No more data to read. */
-    }
-
-    /* Take care of line continuations now (turn them into spaces);
-     * the rest of the parsing code does not need to worry about them anymore. */
-    fixup_line_continuations(buffer.data() + buffer_offset,
-                             buffer.data() + buffer_offset + bytes_read);
-
-    /* Ensure buffer ends in a newline. */
-    if (bytes_read < read_buffer_size_) {
-      if (bytes_read == 0 || buffer[buffer_offset + bytes_read - 1] != '\n') {
-        buffer[buffer_offset + bytes_read] = '\n';
-        bytes_read++;
-      }
-    }
-
-    size_t buffer_end = buffer_offset + bytes_read;
-    if (buffer_end == 0) {
-      break;
-    }
-
-    /* Find last newline. */
-    size_t last_nl = buffer_end;
-    while (last_nl > 0) {
-      --last_nl;
-      if (buffer[last_nl] == '\n') {
-        break;
-      }
-    }
-    if (buffer[last_nl] != '\n') {
-      /* Whole line did not fit into our read buffer. Warn and exit. */
-      CLOG_ERROR(&LOG,
-                 "OBJ file contains a line #%zu that is too long (max. length %zu)",
-                 line_number,
-                 read_buffer_size_);
-      break;
-    }
-    ++last_nl;
-
-    /* Parse the buffer (until last newline) that we have so far,
-     * line by line. */
-    StringRef buffer_str{buffer.data(), int64_t(last_nl)};
-    line_number += OBJParser::parse_string_buffer(buffer_str,
-                                                  r_all_geometries,
-                                                  r_global_vertices,
-                                                  curr_geom,
-                                                  state_shaded_smooth,
-                                                  state_group_name,
-                                                  state_group_index,
-                                                  state_material_name,
-                                                  state_material_index);
-
-    /* We might have a line that was cut in the middle by the previous buffer;
-     * copy it over for next chunk reading. */
-    size_t left_size = buffer_end - last_nl;
-    memmove(buffer.data(), buffer.data() + last_nl, left_size);
-    buffer_offset = left_size;
-  }
+  const char *file_data = static_cast<const char *>(BLI_mmap_get_pointer(mmap_file_));
+  size_t file_size = BLI_mmap_get_length(mmap_file_);
+  StringRef buffer_str{file_data, int64_t(file_size)};
+  OBJParser::parse_string_buffer(buffer_str, r_all_geometries, r_global_vertices, curr_geom);
 
   r_global_vertices.flush_mrgb_block();
   use_all_vertices_if_no_faces(curr_geom, r_all_geometries, r_global_vertices);
