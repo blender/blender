@@ -35,6 +35,7 @@ set(SRC
   keyframing.cc
   keyingsets.cc
   time_scrub_ui.cc
+  transformable.cc
 
   anim_intern.hh
   keyframes_general_intern.hh

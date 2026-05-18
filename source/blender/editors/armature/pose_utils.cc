@@ -43,6 +43,7 @@
 #include "ANIM_action_iterators.hh"
 #include "ANIM_keyframing.hh"
 #include "ANIM_keyingsets.hh"
+#include "ANIM_rna.hh"
 
 #include "armature_intern.hh"
 
@@ -144,12 +145,34 @@ static eAction_TransformFlags get_item_transform_flags_and_fcurves(Object &ob,
   /* return flags found */
   return eAction_TransformFlags(flags);
 }
+/**
+ * Stores a `PropertySnapshot` of the property with the given `property_name` in the given Vector.
+ * If the property does not exist in the `ptr` the function doesn't do anything. Also the property
+ * has to be supported by `ed::rna_property_get_as_float`.
+ */
+static void store_property_snapshot(PointerRNA &ptr,
+                                    const StringRef property_name,
+                                    Vector<PropertySnapshot> &snapshots)
+{
+
+  PropertyRNA *prop = RNA_struct_find_property(&ptr, property_name.data());
+  if (!prop) {
+    return;
+  }
+  Array<float> property_values = animrig::rna_property_get_as_float(ptr, *prop);
+  if (property_values.size() == 0) {
+    /* Unsupported property type. */
+    return;
+  }
+  snapshots.append({prop, std::move(property_values)});
+}
 
 /* helper for slide_subjects_get() -> get the relevant F-Curves per PoseChannel */
 static void fcurves_to_pchan_links_get(ListBaseT<SlideSubject> &slide_subjects,
                                        Object &ob,
                                        bPoseChannel &pchan)
 {
+  PointerRNA bone_ptr = RNA_pointer_create_discrete(&ob.id, RNA_PoseBone, &pchan);
   Vector<FCurve *> curves;
   const eAction_TransformFlags transFlags = get_item_transform_flags_and_fcurves(
       ob, pchan, curves);
@@ -172,6 +195,7 @@ static void fcurves_to_pchan_links_get(ListBaseT<SlideSubject> &slide_subjects,
 
   /* Set pchan's transform flags. */
   slide_subject->transform_flag = transFlags;
+  slide_subject->ptr = bone_ptr;
 
   copy_v3_v3(slide_subject->oldloc, pchan.loc);
   copy_v3_v3(slide_subject->oldrot, pchan.eul);
@@ -180,26 +204,39 @@ static void fcurves_to_pchan_links_get(ListBaseT<SlideSubject> &slide_subjects,
   copy_v3_v3(slide_subject->oldaxis, pchan.rotAxis);
   slide_subject->oldangle = pchan.rotAngle;
 
-  /* Store current bbone values. */
-  slide_subject->roll1 = pchan.roll1;
-  slide_subject->roll2 = pchan.roll2;
-  slide_subject->curve_in_x = pchan.curve_in_x;
-  slide_subject->curve_in_z = pchan.curve_in_z;
-  slide_subject->curve_out_x = pchan.curve_out_x;
-  slide_subject->curve_out_z = pchan.curve_out_z;
-  slide_subject->ease1 = pchan.ease1;
-  slide_subject->ease2 = pchan.ease2;
-
-  copy_v3_v3(slide_subject->scale_in, pchan.scale_in);
-  copy_v3_v3(slide_subject->scale_out, pchan.scale_out);
+  if (transFlags & ACT_TRANS_BBONE) {
+    store_property_snapshot(bone_ptr, "bbone_rollin", slide_subject->additional_properties);
+    store_property_snapshot(bone_ptr, "bbone_rollout", slide_subject->additional_properties);
+    store_property_snapshot(bone_ptr, "bbone_curveinx", slide_subject->additional_properties);
+    store_property_snapshot(bone_ptr, "bbone_curveoutx", slide_subject->additional_properties);
+    store_property_snapshot(bone_ptr, "bbone_curveinz", slide_subject->additional_properties);
+    store_property_snapshot(bone_ptr, "bbone_curveoutz", slide_subject->additional_properties);
+    store_property_snapshot(bone_ptr, "bbone_easein", slide_subject->additional_properties);
+    store_property_snapshot(bone_ptr, "bbone_easeout", slide_subject->additional_properties);
+    store_property_snapshot(bone_ptr, "bbone_scalein", slide_subject->additional_properties);
+    store_property_snapshot(bone_ptr, "bbone_scaleout", slide_subject->additional_properties);
+  }
 
   /* Make copy of custom properties. */
   if (transFlags & ACT_TRANS_PROP) {
     if (pchan.prop) {
-      slide_subject->oldprops = IDP_CopyProperty(pchan.prop);
+      for (const IDProperty &id_prop : pchan.prop->data.group) {
+        if (ELEM(id_prop.type, IDP_STRING, IDP_ID, IDP_IDPARRAY)) {
+          continue;
+        }
+        char name_escaped[MAX_IDPROP_NAME * 2];
+        BLI_str_escape(name_escaped, id_prop.name, sizeof(name_escaped));
+        std::string property_name_with_brackets = fmt::format("[\"{}\"]", name_escaped);
+        store_property_snapshot(bone_ptr, property_name_with_brackets, slide_subject->properties);
+      }
     }
     if (pchan.system_properties) {
-      slide_subject->old_system_properties = IDP_CopyProperty(pchan.system_properties);
+      for (const IDProperty &id_prop : pchan.system_properties->data.group) {
+        if (ELEM(id_prop.type, IDP_STRING, IDP_ID, IDP_IDPARRAY)) {
+          continue;
+        }
+        store_property_snapshot(bone_ptr, id_prop.name, slide_subject->system_properties);
+      }
     }
   }
 }
@@ -279,11 +316,6 @@ void slide_subjects_free(ListBaseT<SlideSubject> *slide_subjects)
   {
     pfln = slide_subject->next;
 
-    /* free custom properties */
-    if (slide_subject->oldprops) {
-      IDP_FreeProperty(slide_subject->oldprops);
-    }
-
     /* free pchan RNA Path */
     MEM_delete(slide_subject->pchan_path);
 
@@ -321,26 +353,18 @@ void slide_subjects_reset(ListBaseT<SlideSubject> *slide_subjects)
     copy_v3_v3(pchan->rotAxis, slide_subject.oldaxis);
     pchan->rotAngle = slide_subject.oldangle;
 
-    /* store current bbone values */
-    pchan->roll1 = slide_subject.roll1;
-    pchan->roll2 = slide_subject.roll2;
-    pchan->curve_in_x = slide_subject.curve_in_x;
-    pchan->curve_in_z = slide_subject.curve_in_z;
-    pchan->curve_out_x = slide_subject.curve_out_x;
-    pchan->curve_out_z = slide_subject.curve_out_z;
-    pchan->ease1 = slide_subject.ease1;
-    pchan->ease2 = slide_subject.ease2;
-
-    copy_v3_v3(pchan->scale_in, slide_subject.scale_in);
-    copy_v3_v3(pchan->scale_out, slide_subject.scale_out);
-
-    /* just overwrite values of properties from the stored copies (there should be some) */
-    if (slide_subject.oldprops) {
-      IDP_SyncGroupValues(slide_subject.pchan->prop, slide_subject.oldprops);
+    for (PropertySnapshot &extra_prop : slide_subject.additional_properties) {
+      animrig::rna_property_set_as_float(
+          slide_subject.ptr, *extra_prop.property, extra_prop.values);
     }
-    if (slide_subject.old_system_properties) {
-      IDP_SyncGroupValues(slide_subject.pchan->system_properties,
-                          slide_subject.old_system_properties);
+
+    for (PropertySnapshot &custom_prop : slide_subject.properties) {
+      animrig::rna_property_set_as_float(
+          slide_subject.ptr, *custom_prop.property, custom_prop.values);
+    }
+    for (PropertySnapshot &custom_prop : slide_subject.system_properties) {
+      animrig::rna_property_set_as_float(
+          slide_subject.ptr, *custom_prop.property, custom_prop.values);
     }
   }
 }

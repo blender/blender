@@ -68,6 +68,7 @@
 #include "ED_util.hh"
 
 #include "ANIM_fcurve.hh"
+#include "ANIM_rna.hh"
 
 #include "armature_intern.hh"
 
@@ -321,6 +322,22 @@ static void pose_slide_exit(bContext *C, wmOperator *op)
 
 /* ------------------------------------ */
 
+static bool pose_frame_range_from_id_get(const tPoseSlideOp *pso,
+                                         const ID *id,
+                                         float *prev_frame,
+                                         float *next_frame)
+{
+  for (const ObjectFrameRange &offset_range : pso->ob_data_array) {
+    if (&offset_range.ob->id == id) {
+      *prev_frame = offset_range.prev_frame;
+      *next_frame = offset_range.next_frame;
+      return true;
+    }
+  }
+  *prev_frame = *next_frame = 0.0f;
+  return false;
+}
+
 /**
  * Helper for apply() / reset() - refresh the data.
  */
@@ -469,130 +486,76 @@ static void pose_slide_apply_vec3(tPoseSlideOp *pso,
   MEM_delete(path);
 }
 
-/**
- * Helper for apply() - perform sliding for custom properties or bbone properties.
- */
-static void pose_slide_apply_props(tPoseSlideOp *pso,
-                                   SlideSubject *slide_subject,
-                                   const char prop_prefix[])
+static void pose_slide_apply_property_snapshots(tPoseSlideOp &pso,
+                                                SlideSubject &slide_subject,
+                                                const Span<PropertySnapshot> snapshots)
 {
-  int len = strlen(slide_subject->pchan_path);
-
-  /* Setup pointer RNA for resolving paths. */
-  PointerRNA ptr = RNA_pointer_create_discrete(nullptr, RNA_PoseBone, slide_subject->pchan);
-
-  /* - custom properties are just denoted using ["..."][etc.] after the end of the base path,
-   *   so just check for opening pair after the end of the path
-   * - bbone properties are similar, but they always start with a prefix "bbone_*",
-   *   so a similar method should work here for those too
-   */
-  for (FCurve *fcu : slide_subject->fcurves) {
-    const char *bPtr, *pPtr;
-
-    if (fcu->rna_path == nullptr) {
+  for (const PropertySnapshot &snapshot : snapshots) {
+    std::optional<std::string> path = RNA_path_from_ID_to_property(&slide_subject.ptr,
+                                                                   snapshot.property);
+    if (!path) {
+      BLI_assert_unreachable();
       continue;
     }
-
-    /* Do we have a match?
-     * - bPtr is the RNA Path with the standard part chopped off.
-     * - pPtr is the chunk of the path which is left over.
-     */
-    bPtr = strstr(fcu->rna_path, slide_subject->pchan_path) + len;
-    pPtr = strstr(bPtr, prop_prefix);
-
-    if (pPtr) {
-      /* Use RNA to try and get a handle on this property, then, assuming that it is just
-       * numerical, try and grab the value as a float for temp editing before setting back. */
-      PropertyRNA *prop = RNA_struct_find_property(&ptr, pPtr);
-
-      if (prop) {
-        switch (RNA_property_type(prop)) {
-          /* Continuous values that can be smoothly interpolated. */
-          case PROP_FLOAT: {
-            const bool is_array = RNA_property_array_check(prop);
-            float tval;
-            if (is_array) {
-              if (UNLIKELY(uint(fcu->array_index) >= RNA_property_array_length(&ptr, prop))) {
-                break; /* Out of range, skip. */
-              }
-              tval = RNA_property_float_get_index(&ptr, prop, fcu->array_index);
-            }
-            else {
-              tval = RNA_property_float_get(&ptr, prop);
-            }
-
-            pose_slide_apply_val(pso, fcu, slide_subject->ob, &tval);
-
-            if (is_array) {
-              RNA_property_float_set_index(&ptr, prop, fcu->array_index, tval);
-            }
-            else {
-              RNA_property_float_set(&ptr, prop, tval);
-            }
-            break;
-          }
-          case PROP_INT: {
-            const bool is_array = RNA_property_array_check(prop);
-            float tval;
-            if (is_array) {
-              if (UNLIKELY(uint(fcu->array_index) >= RNA_property_array_length(&ptr, prop))) {
-                break; /* Out of range, skip. */
-              }
-              tval = RNA_property_int_get_index(&ptr, prop, fcu->array_index);
-            }
-            else {
-              tval = RNA_property_int_get(&ptr, prop);
-            }
-
-            pose_slide_apply_val(pso, fcu, slide_subject->ob, &tval);
-
-            if (is_array) {
-              RNA_property_int_set_index(&ptr, prop, fcu->array_index, tval);
-            }
-            else {
-              RNA_property_int_set(&ptr, prop, tval);
-            }
-            break;
-          }
-
-          /* Values which can only take discrete values. */
-          case PROP_BOOLEAN: {
-            const bool is_array = RNA_property_array_check(prop);
-            float tval;
-            if (is_array) {
-              if (UNLIKELY(uint(fcu->array_index) >= RNA_property_array_length(&ptr, prop))) {
-                break; /* Out of range, skip. */
-              }
-              tval = float(RNA_property_boolean_get_index(&ptr, prop, fcu->array_index));
-            }
-            else {
-              tval = float(RNA_property_boolean_get(&ptr, prop));
-            }
-
-            pose_slide_apply_val(pso, fcu, slide_subject->ob, &tval);
-
-            /* XXX: do we need threshold clamping here? */
-            if (is_array) {
-              RNA_property_boolean_set_index(&ptr, prop, fcu->array_index, tval);
-            }
-            else {
-              RNA_property_boolean_set(&ptr, prop, tval);
-            }
-            break;
-          }
-          case PROP_ENUM: {
-            /* Don't handle this case - these don't usually represent interchangeable
-             * set of values which should be interpolated between. */
-            break;
-          }
-
-          default:
-            /* Cannot handle. */
-            // printf("Cannot Pose Slide non-numerical property\n");
-            break;
-        }
+    const float factor = ED_slider_factor_get(pso.slider);
+    Array<float> base_values = snapshot.values;
+    Array<float> next_frame_values = base_values;
+    Array<float> prev_frame_values = base_values;
+    {
+      float prev_frame, next_frame;
+      const bool success = pose_frame_range_from_id_get(
+          &pso, slide_subject.ptr.owner_id, &prev_frame, &next_frame);
+      /* All `SlideSubject`s should have a frame range. */
+      BLI_assert(success);
+      const Vector<FCurve *> fcurves = fcurves_filtered_by_path(slide_subject.fcurves,
+                                                                path.value());
+      if (fcurves.size() == 0) {
+        /* Property is not animated. */
+        continue;
+      }
+      for (const FCurve *fcurve : fcurves) {
+        prev_frame_values[fcurve->array_index] = evaluate_fcurve(fcurve, prev_frame);
+        next_frame_values[fcurve->array_index] = evaluate_fcurve(fcurve, next_frame);
       }
     }
+
+    Array<float> values;
+    switch (pso.mode) {
+      case POSESLIDE_PUSH:
+      case POSESLIDE_RELAX: {
+        /* See comment in `pose_slide_apply_linear` for the meaning of those values
+         * and push/relax. */
+        const float current_frame_factor = (pso.current_frame - pso.prev_frame) /
+                                           float(pso.next_frame - pso.prev_frame);
+        const Array<float> current_frame_breakdown = ed::property_interpolated(
+            prev_frame_values, next_frame_values, current_frame_factor);
+        const float factor_sign = pso.mode == POSESLIDE_RELAX ? 1 : -1;
+        values = ed::property_interpolated(
+            base_values, current_frame_breakdown, factor * factor_sign);
+        break;
+      }
+
+      case POSESLIDE_BREAKDOWN:
+        values = ed::property_interpolated(prev_frame_values, next_frame_values, factor);
+        break;
+
+      case POSESLIDE_BLEND: {
+        const float blend_factor = fabsf((factor - 0.5f) * 2);
+        if (factor < 0.5) {
+          values = ed::property_interpolated(base_values, prev_frame_values, blend_factor);
+        }
+        else {
+          values = ed::property_interpolated(base_values, next_frame_values, blend_factor);
+        }
+        break;
+      }
+      case POSESLIDE_BLEND_REST:
+        /* Those are handled in pose_slide_rest_pose_apply. */
+        BLI_assert_unreachable();
+        values = base_values;
+        break;
+    }
+    animrig::rna_property_set_as_float(slide_subject.ptr, *snapshot.property, values);
   }
 }
 
@@ -799,14 +762,12 @@ static void pose_slide_rest_pose_apply(bContext *C, tPoseSlideOp *pso)
     {
       /* Bbone properties - they all start a "bbone_" prefix. */
       /* TODO: Not implemented. */
-      // pose_slide_apply_props(pso, slide_subject, "bbone_");
     }
 
-    if (ELEM(pso->channels, PS_TFM_ALL, PS_TFM_PROPS) && (slide_subject.oldprops)) {
+    if (ELEM(pso->channels, PS_TFM_ALL, PS_TFM_PROPS)) {
       /* Not strictly a transform, but custom properties contribute
        * to the pose produced in many rigs (e.g. the facial rigs used in Sintel). */
       /* TODO: Not implemented. */
-      // pose_slide_apply_props(pso, slide_subject, "[\"");
     }
   }
 
@@ -881,14 +842,13 @@ static void pose_slide_apply(bContext *C, tPoseSlideOp *pso)
     if (ELEM(pso->channels, PS_TFM_ALL, PS_TFM_BBONE_SHAPE) &&
         (slide_subject.transform_flag & ACT_TRANS_BBONE))
     {
-      /* Bbone properties - they all start a "bbone_" prefix. */
-      pose_slide_apply_props(pso, &slide_subject, "bbone_");
+      pose_slide_apply_property_snapshots(
+          *pso, slide_subject, slide_subject.additional_properties);
     }
 
-    if (ELEM(pso->channels, PS_TFM_ALL, PS_TFM_PROPS) && (slide_subject.oldprops)) {
-      /* Not strictly a transform, but custom properties contribute
-       * to the pose produced in many rigs (e.g. the facial rigs used in Sintel). */
-      pose_slide_apply_props(pso, &slide_subject, "[\"");
+    if (ELEM(pso->channels, PS_TFM_ALL, PS_TFM_PROPS)) {
+      pose_slide_apply_property_snapshots(*pso, slide_subject, slide_subject.properties);
+      pose_slide_apply_property_snapshots(*pso, slide_subject, slide_subject.system_properties);
     }
   }
 

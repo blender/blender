@@ -11,6 +11,8 @@
 #include "DNA_armature_types.h"
 #include "DNA_listBase.h"
 
+#include "RNA_types.hh"
+
 #include "BLI_span.hh"
 
 namespace blender {
@@ -149,12 +151,23 @@ enum eAction_TransformFlags {
   ACT_TRANS_ALL = (ACT_TRANS_ONLY | ACT_TRANS_PROP),
 };
 
+/* Stores values of an RNA property for use at a later date. */
+struct PropertySnapshot {
+  PropertyRNA *property;
+  /* Non-float properties are also stored as float. The length of the array matches the length of
+   * the property. */
+  Array<float> values;
+};
+
 /* Temporary struct wrapping data used for pose sliding. */
 struct SlideSubject {
   SlideSubject *next, *prev;
 
   /** Object this Pose Channel belongs to. */
   Object *ob;
+
+  /* A pointer to the data represented by this link. */
+  PointerRNA ptr;
 
   /** F-Curves for this PoseChannel (wrapped with LinkData) */
   Vector<FCurve *> fcurves;
@@ -175,18 +188,14 @@ struct SlideSubject {
   float oldangle;
   float oldaxis[3];
 
-  /** old bbone values (to be restored along with the transform properties) */
-  float roll1, roll2;
-  /** (NOTE: we haven't renamed these this time, as their names are already long enough) */
-  float curve_in_x, curve_in_z;
-  float curve_out_x, curve_out_z;
-  float ease1, ease2;
-  float scale_in[3];
-  float scale_out[3];
+  /* Additional properties of the transformable to affect which are not custom properties. Bones
+   * use this to store bbone data, e.g. `bbone_rollin`. */
+  Vector<PropertySnapshot> additional_properties;
 
-  /** copy of custom properties at start of operator (to be restored before each modal step) */
-  IDProperty *oldprops;
-  IDProperty *old_system_properties;
+  /* Custom properties defined via the UI. See ID::properties. */
+  Vector<PropertySnapshot> properties;
+  /* User defined properties through addons. See ID::system_properties. */
+  Vector<PropertySnapshot> system_properties;
 };
 
 /* ----------- */
