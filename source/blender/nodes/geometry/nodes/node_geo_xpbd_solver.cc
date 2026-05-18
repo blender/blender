@@ -1346,8 +1346,8 @@ class XpbdSolverStep {
       BVHTreeRayHit hit{};
       hit.index = -1;
       hit.dist = FLT_MAX;
-      if (BLI_bvhtree_ray_cast(bvh.tree, pos, dir, 0.0f, &hit, bvh.raycast_callback, (void *)&bvh))
-      {
+      BLI_bvhtree_ray_cast(bvh.tree, pos, dir, 0.0f, &hit, bvh.raycast_callback, (void *)&bvh);
+      if (hit.index != -1) {
         const float3 dir = float3(hit.co) - pos;
         const bool is_inside = math::dot(dir, float3(hit.no)) > 0.0f;
         inside_count += is_inside ? 1 : -1;
