@@ -342,6 +342,46 @@ static void version_scene_strip_view_layer_name(Main &bmain)
   }
 }
 
+/* Compositor node trees with an image input and an image output can likely be used as strip
+ * modifiers. */
+static void enable_compositor_nodes_is_strip_modifier(Main &bmain)
+{
+  for (bNodeTree &group : bmain.nodetrees) {
+    if (group.type != NTREE_COMPOSIT) {
+      continue;
+    }
+    bool has_image_input = false;
+    bool has_image_output = false;
+    group.tree_interface.foreach_item([&](const bNodeTreeInterfaceItem &item) {
+      if (item.item_type != NODE_INTERFACE_SOCKET) {
+        /* Continue. */
+        return true;
+      }
+      const auto &socket = reinterpret_cast<const bNodeTreeInterfaceSocket &>(item);
+      if (socket.flag & NODE_INTERFACE_SOCKET_INPUT) {
+        has_image_input = has_image_input || STREQ(socket.socket_type, "NodeSocketColor");
+        /* Continue. */
+        return true;
+      }
+      if (socket.flag & NODE_INTERFACE_SOCKET_OUTPUT) {
+        has_image_output = has_image_output || STREQ(socket.socket_type, "NodeSocketColor");
+        /* Continue. */
+        return true;
+      }
+      /* Break. */
+      return false;
+    });
+
+    if (has_image_input && has_image_output) {
+      if (!group.compositor_node_asset_traits) {
+        group.compositor_node_asset_traits = MEM_new<CompositorNodeAssetTraits>(__func__);
+      }
+      group.compositor_node_asset_traits->flag |= COMPOSIT_NODE_ASSET_STRIP_MODIFIER;
+      bke::node_update_asset_metadata(group);
+    }
+  }
+}
+
 void do_versions_after_linking_520(FileData *fd, Main *bmain)
 {
   if (!MAIN_VERSION_FILE_ATLEAST(bmain, 502, 2)) {
@@ -643,6 +683,10 @@ void blo_do_versions_520(FileData * /*fd*/, Library * /*lib*/, Main *bmain)
         }
       }
     }
+  }
+
+  if (!MAIN_VERSION_FILE_ATLEAST(bmain, 502, 30)) {
+    enable_compositor_nodes_is_strip_modifier(*bmain);
   }
   /**
    * Always bump subversion in BKE_blender_version.h when adding versioning

@@ -1518,7 +1518,6 @@ class SEQUENCER_MT_modifier_add(Menu):
             self.operator_modifier_add(layout, 'SOUND_EQUALIZER')
             self.operator_modifier_add(layout, 'PITCH')
             self.operator_modifier_add(layout, 'ECHO')
-
         else:
             self.operator_modifier_add(layout, 'BRIGHT_CONTRAST')
             self.operator_modifier_add(layout, 'COLOR_BALANCE')
@@ -1528,6 +1527,7 @@ class SEQUENCER_MT_modifier_add(Menu):
             self.operator_modifier_add(layout, 'MASK')
             self.operator_modifier_add(layout, 'TONEMAP')
             self.operator_modifier_add(layout, 'WHITE_BALANCE')
+            layout.menu_contents("SEQUENCER_MT_modifier_add_root_catalogs")
 
 
 class SequencerButtonsPanel:

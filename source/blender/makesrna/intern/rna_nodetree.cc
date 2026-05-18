@@ -2147,6 +2147,34 @@ static StructRNA *rna_Node_register(Main *bmain,
   return nt->rna_ext.srna;
 }
 
+static bool compositor_node_asset_trait_flag_get(PointerRNA *ptr,
+                                                 const CompositorNodeAssetTraitFlag flag)
+{
+  const bNodeTree *ntree = ptr->data_as<bNodeTree>();
+  if (!ntree->compositor_node_asset_traits) {
+    return false;
+  }
+  return ntree->compositor_node_asset_traits->flag & flag;
+}
+static bool rna_CompositorNodeTree_is_strip_modifier_get(PointerRNA *ptr)
+{
+  return compositor_node_asset_trait_flag_get(ptr, COMPOSIT_NODE_ASSET_STRIP_MODIFIER);
+}
+static void compositor_node_asset_trait_flag_set(PointerRNA *ptr,
+                                                 const CompositorNodeAssetTraitFlag flag,
+                                                 const bool value)
+{
+  bNodeTree *ntree = ptr->data_as<bNodeTree>();
+  if (!ntree->compositor_node_asset_traits) {
+    ntree->compositor_node_asset_traits = MEM_new<CompositorNodeAssetTraits>(__func__);
+  }
+  SET_FLAG_FROM_TEST(ntree->compositor_node_asset_traits->flag, value, flag);
+}
+static void rna_CompositorNodeTree_is_strip_modifier_set(PointerRNA *ptr, bool value)
+{
+  compositor_node_asset_trait_flag_set(ptr, COMPOSIT_NODE_ASSET_STRIP_MODIFIER, value);
+}
+
 static const EnumPropertyItem *itemf_function_check(
     const EnumPropertyItem *original_item_array,
     FunctionRef<bool(const EnumPropertyItem *item)> value_supported)
@@ -9938,6 +9966,15 @@ static void rna_def_composite_nodetree(BlenderRNA *brna)
                            "Unused but kept for compatibility reasons. Use boundaries for viewer "
                            "nodes and composite backdrop");
   RNA_def_property_update(prop, NC_NODE | ND_DISPLAY, "rna_NodeTree_update");
+
+  prop = RNA_def_property(srna, "is_strip_modifier", PROP_BOOLEAN, PROP_NONE);
+  RNA_def_property_clear_flag(prop, PROP_ANIMATABLE);
+  RNA_def_property_ui_text(
+      prop, "Strip Modifier", "The node group is used as a sequencer strip modifier");
+  RNA_def_property_boolean_funcs(prop,
+                                 "rna_CompositorNodeTree_is_strip_modifier_get",
+                                 "rna_CompositorNodeTree_is_strip_modifier_set");
+  RNA_def_property_update(prop, NC_NODE | ND_DISPLAY, "rna_NodeTree_update_asset");
 }
 
 static void rna_def_shader_nodetree(BlenderRNA *brna)
