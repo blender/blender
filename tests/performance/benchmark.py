@@ -235,9 +235,10 @@ def cmd_init(env: api.TestEnvironment, argv: list):
     # Initialize benchmarks folder.
     parser = argparse.ArgumentParser()
     parser.add_argument('--build', default=False, action='store_true')
+    parser.add_argument('--blender')
     args = parser.parse_args(argv)
     env.set_log_file(env.base_dir / 'setup.log', clear=False)
-    env.init(args.build)
+    env.init(args.build, args.blender)
     env.unset_log_file()
 
 

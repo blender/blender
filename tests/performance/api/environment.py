@@ -57,7 +57,7 @@ class TestEnvironment:
 
         return self.machine
 
-    def init(self, build) -> None:
+    def init(self, build: bool, blender_bin: str) -> None:
         if not self.benchmarks_dir.exists():
             sys.stderr.write(f'Error: benchmark files directory not found at {self.benchmarks_dir}')
             sys.exit(1)
@@ -69,7 +69,7 @@ class TestEnvironment:
         if len(self.get_config_names()) == 0:
             config_dir = self.base_dir / 'default'
             print(f'Creating default configuration in {config_dir}')
-            TestConfig.write_default_config(self, config_dir)
+            TestConfig.write_default_config(self, config_dir, blender_bin)
 
         if build:
             if not self.blender_dir.exists():
