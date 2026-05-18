@@ -507,6 +507,7 @@ static void pose_slide_apply_property_snapshots(tPoseSlideOp &pso,
           &pso, slide_subject.ptr.owner_id, &prev_frame, &next_frame);
       /* All `SlideSubject`s should have a frame range. */
       BLI_assert(success);
+      UNUSED_VARS_NDEBUG(success);
       const Vector<FCurve *> fcurves = fcurves_filtered_by_path(slide_subject.fcurves,
                                                                 path.value());
       if (fcurves.size() == 0) {
