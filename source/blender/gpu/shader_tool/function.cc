@@ -209,8 +209,9 @@ void SourceProcessor::lower_entry_points(Parser &parser)
                        "[[base_instance]] must be declared as "
                        "`const int`.");
         }
-        replace_word(srt_var, "gl_BaseInstance");
-        metadata_.builtins.emplace_back(Builtin(hash("gl_BaseInstance")));
+        replace_word(srt_var, "gpu_BaseInstance");
+        metadata_.builtins.emplace_back(Builtin(hash("gpu_BaseInstance")));
+        create_info_decl += "BUILTINS(BuiltinBits::INSTANCE_ID)\n";
       }
       else if (srt_attr == "point_size" && is_entry_point) {
         if (!is_vertex_func) {
@@ -269,7 +270,7 @@ void SourceProcessor::lower_entry_points(Parser &parser)
                        "[[viewport_index]] must be declared as const reference "
                        "(aka `const int &`).");
         }
-        replace_word(srt_var, "gl_ViewportIndex");
+        replace_word(srt_var, "gpu_ViewportIndex");
         create_info_decl += "BUILTINS(BuiltinBits::VIEWPORT_INDEX)\n";
       }
       else if (srt_attr == "position" && is_entry_point) {

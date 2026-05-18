@@ -2806,11 +2806,11 @@ struct ns_VertInTfloat {
 #if defined(GPU_VERTEX_SHADER)
 #line 29
   Resources srt = Resources_ctor_();
-  gl_BaseInstance;
+  gpu_BaseInstance;
   gl_PointSize;
   gl_ClipDistance;
   gl_Layer;
-  gl_ViewportIndex;
+  gpu_ViewportIndex;
   gl_Position;
 
 #endif
@@ -2833,7 +2833,7 @@ struct ns_VertInTfloat {
 #line 48
   Resources srt = Resources_ctor_();
   gl_Layer;
-  gl_ViewportIndex;
+  gpu_ViewportIndex;
   gl_FragDepth;
   gl_FragStencilRefARB;
   gl_FragCoord;
@@ -2896,6 +2896,7 @@ GPU_SHADER_CREATE_INFO(ns_vertex_function_infos_)
 ADDITIONAL_INFO(Resources)
 ADDITIONAL_INFO(ns_VertInTfloat)
 VERTEX_OUT(ns_VertOut_t)
+BUILTINS(BuiltinBits::INSTANCE_ID)
 BUILTINS(BuiltinBits::POINT_SIZE)
 BUILTINS(BuiltinBits::LAYER)
 BUILTINS(BuiltinBits::VIEWPORT_INDEX)
