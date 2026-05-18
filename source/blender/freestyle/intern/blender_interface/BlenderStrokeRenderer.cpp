@@ -45,7 +45,6 @@
 #include "BKE_object.hh"
 #include "BKE_scene.hh"
 
-#include "BLI_ghash.h"
 #include "BLI_listbase.h"
 #include "BLI_math_color.h"
 #include "BLI_math_vector.h"

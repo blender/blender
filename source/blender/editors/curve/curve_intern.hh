@@ -21,7 +21,6 @@ struct Base;
 struct BezTriple;
 struct Curve;
 struct EditNurb;
-struct GHash;
 struct Nurb;
 struct Object;
 struct View3D;

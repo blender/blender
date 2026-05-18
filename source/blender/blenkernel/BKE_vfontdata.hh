@@ -18,7 +18,6 @@
 
 namespace blender {
 
-struct GHash;
 struct Nurb;
 struct PackedFile;
 struct VFont;

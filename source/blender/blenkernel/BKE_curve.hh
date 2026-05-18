@@ -29,7 +29,6 @@ struct BPoint;
 struct Curve;
 struct Depsgraph;
 struct DispList;
-struct GHash;
 struct Main;
 struct MDeformVert;
 struct Nurb;

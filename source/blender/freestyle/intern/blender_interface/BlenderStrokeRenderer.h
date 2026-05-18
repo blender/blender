@@ -15,7 +15,6 @@
 
 namespace blender {
 struct Depsgraph;
-struct GHash;
 struct Main;
 struct Material;
 struct Object;
