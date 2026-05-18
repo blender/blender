@@ -790,6 +790,14 @@ static bool fcurves_path_rename_fix(ID *owner_id,
      * (i.e. F-Curve is first of a bone's F-Curves;
      * hence renaming this should also trigger rename) */
     if (fcu->rna_path != old_path) {
+      /* If the path changed, make sure to update the fcurve flags to the new property type. See
+       * #157234. We assume that the property type didn't change if the path is the same. */
+      PointerRNA ptr = RNA_id_pointer_create(owner_id);
+      PointerRNA resolved_ptr;
+      PropertyRNA *resolved_prop;
+      if (RNA_path_resolve(&ptr, fcu->rna_path, &resolved_ptr, &resolved_prop)) {
+        animrig::update_autoflags_fcurve_direct(fcu, RNA_property_type(resolved_prop));
+      }
       bActionGroup *agrp = fcu->grp;
       is_changed = true;
       if (oldName != nullptr && (agrp != nullptr) && STREQ(oldName, agrp->name)) {
