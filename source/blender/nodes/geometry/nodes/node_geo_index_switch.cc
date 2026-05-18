@@ -130,6 +130,9 @@ static void node_declare(NodeDeclarationBuilder &b)
                               SOCK_MASK,
                               SOCK_SOUND));
     input.structure_type(value_structure_type);
+    if (ntree->type == NTREE_COMPOSIT) {
+      input.compositor_realization_mode(CompositorInputRealizationMode::None);
+    }
   }
 
   auto &output = b.add_output(data_type, "Output"_ustr);
