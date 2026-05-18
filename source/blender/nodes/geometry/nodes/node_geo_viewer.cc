@@ -339,8 +339,9 @@ static void log_viewer_attribute(const bNode &node, eval_log::ViewerNodeLog &r_l
     const bNodeSocket &bsocket = node.input_socket(i);
     const NodeGeometryViewerItem &item = storage.items[i];
     const bke::bNodeSocketType &type = *bsocket.typeinfo;
+    const bke::SocketValueVariant &value = r_log.items.lookup_key_as(item.identifier).value;
 
-    if (type.type == SOCK_GEOMETRY) {
+    if (type.type == SOCK_GEOMETRY && value.is_single()) {
       last_geometry_identifier = item.identifier;
       continue;
     }
@@ -355,7 +356,6 @@ static void log_viewer_attribute(const bNode &node, eval_log::ViewerNodeLog &r_l
                                        r_log.items.lookup_key_as(*last_geometry_identifier).value)
                                        .get_single_ptr();
     GeometrySet &geometry = *geometry_ptr.get<GeometrySet>();
-    const bke::SocketValueVariant &value = r_log.items.lookup_key_as(item.identifier).value;
     if (!(value.is_single() || value.is_field())) {
       continue;
     }
