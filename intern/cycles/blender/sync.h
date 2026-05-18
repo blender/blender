@@ -126,14 +126,14 @@ class BlenderSync {
                     blender::bScreen *b_screen,
                     blender::View3D *b_v3d,
                     const float motion_time = 0.0f);
-  void sync_motion(blender::RenderData &b_render,
-                   blender::Depsgraph &b_depsgraph,
-                   blender::bScreen *b_screen,
-                   blender::View3D *b_v3d,
-                   blender::RegionView3D *b_rv3d,
-                   const int width,
-                   const int height,
-                   void **python_thread_state);
+  void sync_objects_and_motion(blender::RenderData &b_render,
+                               blender::Depsgraph &b_depsgraph,
+                               blender::bScreen *b_screen,
+                               blender::View3D *b_v3d,
+                               blender::RegionView3D *b_rv3d,
+                               const int width,
+                               const int height,
+                               void **python_thread_state);
   void sync_film(blender::ViewLayer &b_view_layer,
                  blender::bScreen *b_screen,
                  blender::View3D *b_v3d);

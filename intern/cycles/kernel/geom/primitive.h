@@ -226,13 +226,20 @@ ccl_device_forceinline void primitive_motion_data_without_camera(KernelGlobals k
 
   if (is_attribute_found(desc)) {
     /* get motion info */
-    const int numverts = kernel_data_fetch(objects, sd->object).numverts;
+    const ccl_global KernelObject *kobject = &kernel_data_fetch(objects, sd->object);
+    const int numverts = kobject->numverts;
+    const int num_motion_steps = kobject->num_geom_steps;
 
 #if defined(__HAIR__) || defined(__POINTCLOUD__)
     if (is_curve_or_point) {
       *motion_pre = make_float3(primitive_surface_attribute<float4>(kg, sd, desc));
-      desc.offset += numverts;
-      *motion_post = make_float3(primitive_surface_attribute<float4>(kg, sd, desc));
+      if (num_motion_steps > 2) {
+        desc.offset += numverts;
+        *motion_post = make_float3(primitive_surface_attribute<float4>(kg, sd, desc));
+      }
+      else {
+        object_inverse_position_transform(kg, sd, motion_post);
+      }
 
       /* Curve */
       if ((sd->object_flag & SD_OBJECT_HAS_VERTEX_MOTION) == 0) {
@@ -246,8 +253,13 @@ ccl_device_forceinline void primitive_motion_data_without_camera(KernelGlobals k
     {
       /* Triangle */
       *motion_pre = triangle_attribute<float3>(kg, sd, desc);
-      desc.offset += numverts;
-      *motion_post = triangle_attribute<float3>(kg, sd, desc);
+      if (num_motion_steps > 2) {
+        desc.offset += numverts;
+        *motion_post = triangle_attribute<float3>(kg, sd, desc);
+      }
+      else {
+        object_inverse_position_transform(kg, sd, motion_post);
+      }
     }
   }
 

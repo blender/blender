@@ -120,8 +120,7 @@ void BlenderSync::sync_object_motion_init(blender::Object &b_parent,
 {
   /* Initialize motion blur for object, detecting if it's enabled and creating motion
    * steps array if so. */
-  array<Transform> motion;
-  object->set_motion(motion);
+  array<Transform> motion = object->get_motion();
 
   Geometry *geom = object->get_geometry();
   if (!geom) {
@@ -155,6 +154,9 @@ void BlenderSync::sync_object_motion_init(blender::Object &b_parent,
     for (size_t step = 0; step < motion_steps; step++) {
       motion_times.insert(object->motion_time(step));
     }
+  }
+  else {
+    object->set_motion(motion);
   }
 }
 
@@ -584,19 +586,15 @@ void BlenderSync::sync_objects(blender::Depsgraph &b_depsgraph,
   }
 }
 
-void BlenderSync::sync_motion(blender::RenderData &b_render,
-                              blender::Depsgraph &b_depsgraph,
-                              blender::bScreen *b_screen,
-                              blender::View3D *b_v3d,
-                              blender::RegionView3D *b_rv3d,
-                              const int width,
-                              const int height,
-                              void **python_thread_state)
+void BlenderSync::sync_objects_and_motion(blender::RenderData &b_render,
+                                          blender::Depsgraph &b_depsgraph,
+                                          blender::bScreen *b_screen,
+                                          blender::View3D *b_v3d,
+                                          blender::RegionView3D *b_rv3d,
+                                          const int width,
+                                          const int height,
+                                          void **python_thread_state)
 {
-  if (scene->need_motion() == Scene::MOTION_NONE) {
-    return;
-  }
-
   /* get camera object here to deal with camera switch */
   blender::Object *b_cam = get_camera_object(b_v3d, b_rv3d);
 
@@ -604,7 +602,7 @@ void BlenderSync::sync_motion(blender::RenderData &b_render,
   const float subframe_center = b_scene->r.subframe;
   float frame_center_delta = 0.0f;
 
-  if (scene->need_motion() != Scene::MOTION_PASS &&
+  if (scene->need_motion() == Scene::MOTION_BLUR &&
       scene->camera->get_motion_position() != MOTION_POSITION_CENTER)
   {
     const float shuttertime = scene->camera->get_shuttertime();
@@ -625,7 +623,20 @@ void BlenderSync::sync_motion(blender::RenderData &b_render,
     if (b_cam) {
       sync_camera_motion(b_render, b_cam, width, height, 0.0f);
     }
-    sync_objects(b_depsgraph, b_screen, b_v3d);
+  }
+
+  sync_objects(b_depsgraph, b_screen, b_v3d);
+
+  /* In the viewport, only motion between previous frame and current frame is of interest, which is
+   * kept updated separately. */
+  if (b_v3d) {
+    assert(scene->need_motion() == Scene::MOTION_NONE ||
+           scene->need_motion() == Scene::MOTION_PASS_INTERACTIVE);
+    return;
+  }
+
+  if (scene->need_motion() == Scene::MOTION_NONE) {
+    return;
   }
 
   /* Insert motion times from camera. Motion times from other objects

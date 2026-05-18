@@ -173,6 +173,56 @@ GeometryManager::GeometryManager()
 
 GeometryManager::~GeometryManager() = default;
 
+void GeometryManager::update_interactive_motion(Scene *scene)
+{
+  bool update = false;
+
+  parallel_for(blocked_range<size_t>(0, scene->geometry.size(), 32),
+               [&](const blocked_range<size_t> &r) {
+                 for (size_t i = r.begin(); i != r.end(); i++) {
+                   Geometry *geom = scene->geometry[i];
+
+                   Attribute *attr_mP = geom->attributes.find(ATTR_STD_MOTION_VERTEX_POSITION);
+                   if (attr_mP) {
+                     if (geom->is_mesh()) {
+                       Mesh *mesh = static_cast<Mesh *>(geom);
+                       if (std::memcmp(mesh->get_verts().data(),
+                                       attr_mP->data_float3(),
+                                       sizeof(float3) * mesh->num_verts()) != 0)
+                       {
+                         mesh->copy_center_to_motion_step(0);
+                         attr_mP->modified = update = true;
+                       }
+                     }
+                     else if (geom->is_hair()) {
+                       Hair *hair = static_cast<Hair *>(geom);
+                       if (std::memcmp(hair->get_curve_keys().data(),
+                                       attr_mP->data_float3(),
+                                       sizeof(float3) * hair->num_keys()) != 0)
+                       {
+                         hair->copy_center_to_motion_step(0);
+                         attr_mP->modified = update = true;
+                       }
+                     }
+                     else if (geom->is_pointcloud()) {
+                       PointCloud *pointcloud = static_cast<PointCloud *>(geom);
+                       if (std::memcmp(pointcloud->get_points().data(),
+                                       attr_mP->data_float3(),
+                                       sizeof(float3) * pointcloud->num_points()) != 0)
+                       {
+                         pointcloud->copy_center_to_motion_step(0);
+                         attr_mP->modified = update = true;
+                       }
+                     }
+                   }
+                 }
+               });
+
+  if (update) {
+    tag_update(scene, TRANSFORM_MODIFIED);
+  }
+}
+
 void GeometryManager::update_osl_globals(Device *device, Scene *scene)
 {
 #ifdef WITH_OSL

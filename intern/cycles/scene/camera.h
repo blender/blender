@@ -208,6 +208,8 @@ class Camera : public Node {
 
   void update(Scene *scene);
 
+  void update_interactive_motion();
+
   void device_update(Device *device, DeviceScene *dscene, Scene *scene);
   void device_update_volume(Device *device, DeviceScene *dscene, Scene *scene);
   void device_free(Device *device, DeviceScene *dscene, Scene *scene);

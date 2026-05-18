@@ -395,6 +395,13 @@ void Scene::device_update(Device *device_, Progress &progress)
 
   device->optimize_for_scene(this);
 
+  if (need_motion() == MOTION_PASS_INTERACTIVE) {
+    /* Swap current camera/object/vertex positions to previous positions for next frame. */
+    camera->update_interactive_motion();
+    object_manager->update_interactive_motion(this);
+    geometry_manager->update_interactive_motion(this);
+  }
+
   if (print_stats) {
     const size_t mem_used = util_guarded_get_mem_used();
     const size_t mem_peak = util_guarded_get_mem_peak();
@@ -412,17 +419,20 @@ Scene::MotionType Scene::need_motion() const
   if (integrator->get_motion_blur()) {
     return MOTION_BLUR;
   }
-  if (Pass::contains(passes, PASS_MOTION) ||
-      Pass::contains(passes, PASS_DENOISING_BACKWARD_MOTION))
+  const bool denoiser_motion = integrator->get_use_denoise() &&
+                               (integrator->get_denoiser_passes() &
+                                (DENOISER_PASS_MOTION | DENOISER_PASS_BACKWARD_MOTION)) != 0;
+  if (denoiser_motion || (Pass::contains(passes, PASS_MOTION) ||
+                          Pass::contains(passes, PASS_DENOISING_BACKWARD_MOTION)))
   {
-    return MOTION_PASS;
+    return params.background ? MOTION_PASS : MOTION_PASS_INTERACTIVE;
   }
   return MOTION_NONE;
 }
 
 float Scene::motion_shutter_time()
 {
-  if (need_motion() == Scene::MOTION_PASS) {
+  if (need_motion() == Scene::MOTION_PASS || need_motion() == Scene::MOTION_PASS_INTERACTIVE) {
     return 2.0f;
   }
   return camera->get_shuttertime();
