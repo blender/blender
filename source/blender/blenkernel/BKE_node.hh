@@ -237,6 +237,24 @@ struct NodeInsertLinkParams {
   bContext *C = nullptr;
 };
 
+/** Common node widths for easy searchability. */
+struct NodeWidth {
+  /* Generally a multiple of 20 is used because it matches the grid width.
+   * Also see #NODE_GRID_STEP_SIZE. */
+  static constexpr int _140 = 140;
+  static constexpr int _160 = 160;
+  static constexpr int _180 = 180;
+  static constexpr int _200 = 200;
+  static constexpr int _220 = 220;
+  static constexpr int _240 = 240;
+  static constexpr int _320 = 320;
+
+  static constexpr int Default = 140;
+  static constexpr int DefaultMax = 700;
+  static constexpr int DefaultMin = 100;
+  static constexpr int GroupMin = 60;
+};
+
 /**
  * \brief Defines a node type.
  *
@@ -254,7 +272,10 @@ struct bNodeType {
   /** Should usually use the idname instead, but this enum type is still exposed in Python. */
   const char *enum_name_legacy = nullptr;
 
-  float width = 0.0f, minwidth = 0.0f, maxwidth = 0.0f;
+  float default_width = NodeWidth::Default;
+  float minwidth = NodeWidth::DefaultMin;
+  float maxwidth = NodeWidth::DefaultMax;
+
   float height = 0.0f, minheight = 0.0f, maxheight = 0.0f;
   short nclass = 0;
   eNode_Flag flag = {};
@@ -1147,17 +1168,6 @@ void node_type_socket_templates(bNodeType *ntype,
                                 bNodeSocketTemplate *inputs,
                                 bNodeSocketTemplate *outputs);
 
-void node_type_size(bNodeType &ntype, int width, int minwidth, int maxwidth);
-
-enum class eNodeSizePreset : int8_t {
-  Default,
-  Small,
-  Middle,
-  Large,
-};
-
-void node_type_size_preset(bNodeType &ntype, eNodeSizePreset size);
-
 /** \} */
 
 /* -------------------------------------------------------------------- */
@@ -1241,10 +1251,5 @@ inline bool bNodeType::is_type(const UString query_idname) const
   { \
     return *static_cast<const StorageT *>(node.storage); \
   }
-
-constexpr int NODE_DEFAULT_MAX_WIDTH = 700;
-constexpr int GROUP_NODE_DEFAULT_WIDTH = 140;
-constexpr int GROUP_NODE_MAX_WIDTH = NODE_DEFAULT_MAX_WIDTH;
-constexpr int GROUP_NODE_MIN_WIDTH = 60;
 
 }  // namespace blender

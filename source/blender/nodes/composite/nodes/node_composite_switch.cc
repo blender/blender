@@ -57,7 +57,6 @@ static void node_register()
   ntype.enum_name_legacy = "SWITCH";
   ntype.nclass = NODE_CLASS_CONVERTER;
   ntype.declare = node_declare;
-  bke::node_type_size_preset(ntype, bke::eNodeSizePreset::Default);
   ntype.get_compositor_operation = get_compositor_operation;
 
   bke::node_register_type(ntype);

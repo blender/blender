@@ -825,7 +825,7 @@ static void node_register()
   bke::node_type_storage(
       ntype, "NodeKeyingData", node_free_standard_storage, node_copy_standard_storage);
   ntype.get_compositor_operation = get_compositor_operation;
-  bke::node_type_size(ntype, 155, 140, NODE_DEFAULT_MAX_WIDTH);
+  ntype.default_width = bke::NodeWidth::_160;
 
   bke::node_register_type(ntype);
 }

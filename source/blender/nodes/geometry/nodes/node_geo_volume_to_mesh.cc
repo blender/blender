@@ -222,7 +222,7 @@ static void node_register()
   ntype.declare = node_declare;
   bke::node_type_storage(
       ntype, "NodeGeometryVolumeToMesh", node_free_standard_storage, node_copy_standard_storage);
-  bke::node_type_size(ntype, 170, 120, 700);
+  ntype.default_width = bke::NodeWidth::_180;
   ntype.initfunc = node_init;
   ntype.geometry_node_execute = node_geo_exec;
   bke::node_register_type(ntype);

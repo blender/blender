@@ -914,7 +914,7 @@ static void node_register()
   ntype.enum_name_legacy = "CRYPTOMATTE_V2";
   ntype.nclass = NODE_CLASS_MATTE;
   ntype.declare = node_declare;
-  bke::node_type_size(ntype, 240, 100, 700);
+  ntype.default_width = bke::NodeWidth::_240;
   ntype.initfunc = node_init;
   ntype.initfunc_api = node_init_api;
   ntype.get_extra_info = node_extra_info;

@@ -393,7 +393,7 @@ static void node_register()
       "each hit point";
   ntype.enum_name_legacy = "RAYCAST";
   ntype.nclass = NODE_CLASS_GEOMETRY;
-  bke::node_type_size_preset(ntype, bke::eNodeSizePreset::Middle);
+  ntype.default_width = bke::NodeWidth::_160;
   ntype.initfunc = node_init;
   bke::node_type_storage(
       ntype, "NodeGeometryRaycast", node_free_standard_storage, node_copy_standard_storage);

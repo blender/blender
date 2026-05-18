@@ -400,7 +400,7 @@ void blo_do_versions_430(FileData * /*fd*/, Library * /*lib*/, Main *bmain)
   if (!MAIN_VERSION_FILE_ATLEAST(bmain, 403, 17)) {
     FOREACH_NODETREE_BEGIN (bmain, tree, id) {
       if (tree->default_group_node_width == 0) {
-        tree->default_group_node_width = GROUP_NODE_DEFAULT_WIDTH;
+        tree->default_group_node_width = bke::NodeWidth::Default;
       }
     }
     FOREACH_NODETREE_END;

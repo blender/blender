@@ -148,7 +148,7 @@ static void ntree_init_data(ID *id)
   bNodeTree *ntree = reinterpret_cast<bNodeTree *>(id);
   ntree->tree_interface.init_data();
   ntree->runtime = MEM_new<bNodeTreeRuntime>(__func__);
-  ntree->default_group_node_width = GROUP_NODE_DEFAULT_WIDTH;
+  ntree->default_group_node_width = bke::NodeWidth::Default;
   ntree_set_typeinfo(ntree, nullptr);
 }
 
@@ -2499,7 +2499,7 @@ static void node_init(const bContext *C, bNodeTree *ntree, bNode *node)
   }
 
   node->flag = NODE_SELECT | NODE_OPTIONS | (ntype->flag & ~NODE_PREVIEW);
-  node->width = ntype->width;
+  node->width = ntype->default_width;
   node->height = ntype->height;
   node->color[0] = node->color[1] = node->color[2] = 0.608; /* default theme color */
   /* initialize the node name with the node label.
@@ -4733,12 +4733,12 @@ void node_position_relative(bNode &from_node,
 
   /* Socket to plug into. */
   if (eNodeSocketInOut(to_sock.in_out) == SOCK_IN) {
-    offset_x = -(from_node.typeinfo->width + 50);
+    offset_x = -(from_node.typeinfo->default_width + 50);
     tot_sock_idx = BLI_listbase_count(&to_node.outputs);
     tot_sock_idx += BLI_findindex(&to_node.inputs, &to_sock);
   }
   else {
-    offset_x = to_node.typeinfo->width + 50;
+    offset_x = to_node.typeinfo->default_width + 50;
     tot_sock_idx = BLI_findindex(&to_node.outputs, &to_sock);
   }
 
@@ -5664,8 +5664,6 @@ NodeColorTag node_color_tag(const bNode &node)
 
 static void node_type_base_defaults(bNodeType &ntype)
 {
-  /* default size values */
-  node_type_size_preset(ntype, eNodeSizePreset::Default);
   ntype.height = 100;
   ntype.minheight = 30;
   ntype.maxheight = FLT_MAX;
@@ -5996,36 +5994,6 @@ void node_type_socket_templates(bNodeType *ntype,
       STRNCPY(ntemp->identifier, ntemp->name);
       unique_socket_template_identifier(outputs, ntemp, ntemp->identifier, '_');
     }
-  }
-}
-
-void node_type_size(bNodeType &ntype, const int width, const int minwidth, const int maxwidth)
-{
-  ntype.width = width;
-  ntype.minwidth = minwidth;
-  if (maxwidth <= minwidth) {
-    ntype.maxwidth = FLT_MAX;
-  }
-  else {
-    ntype.maxwidth = maxwidth;
-  }
-}
-
-void node_type_size_preset(bNodeType &ntype, const eNodeSizePreset size)
-{
-  switch (size) {
-    case eNodeSizePreset::Default:
-      node_type_size(ntype, 140, 100, NODE_DEFAULT_MAX_WIDTH);
-      break;
-    case eNodeSizePreset::Small:
-      node_type_size(ntype, 100, 80, NODE_DEFAULT_MAX_WIDTH);
-      break;
-    case eNodeSizePreset::Middle:
-      node_type_size(ntype, 150, 120, NODE_DEFAULT_MAX_WIDTH);
-      break;
-    case eNodeSizePreset::Large:
-      node_type_size(ntype, 240, 140, NODE_DEFAULT_MAX_WIDTH);
-      break;
   }
 }
 

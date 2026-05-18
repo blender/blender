@@ -128,7 +128,7 @@ static void node_register()
   ntype.enum_name_legacy = "EDGE_PATHS_TO_SELECTION";
   ntype.nclass = NODE_CLASS_INPUT;
   ntype.declare = node_declare;
-  bke::node_type_size(ntype, 150, 100, 300);
+  ntype.default_width = bke::NodeWidth::_160;
   ntype.geometry_node_execute = node_geo_exec;
   bke::node_register_type(ntype);
 }

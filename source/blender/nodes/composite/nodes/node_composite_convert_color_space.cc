@@ -191,12 +191,12 @@ static void node_register()
   ntype.nclass = NODE_CLASS_CONVERTER;
   ntype.declare = node_declare;
   ntype.draw_buttons = node_draw_buttons;
-  bke::node_type_size_preset(ntype, bke::eNodeSizePreset::Middle);
+  ntype.default_width = bke::NodeWidth::_160;
   ntype.initfunc = node_init;
   bke::node_type_storage(
       ntype, "NodeConvertColorSpace", node_free_standard_storage, node_copy_standard_storage);
   ntype.get_compositor_operation = get_compositor_operation;
-  bke::node_type_size(ntype, 160, 150, NODE_DEFAULT_MAX_WIDTH);
+  ntype.default_width = bke::NodeWidth::_160;
 
   bke::node_register_type(ntype);
 }

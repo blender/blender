@@ -2119,7 +2119,7 @@ static bke::bNodeType *rna_Node_register_base(Main *bmain,
   if (nt->maxheight < nt->minheight) {
     nt->maxheight = nt->minheight;
   }
-  CLAMP(nt->width, nt->minwidth, nt->maxwidth);
+  CLAMP(nt->default_width, nt->minwidth, nt->maxwidth);
   CLAMP(nt->height, nt->minheight, nt->maxheight);
 
   return nt;
@@ -9431,7 +9431,7 @@ static void rna_def_node(BlenderRNA *brna)
 
   /* type-based size properties */
   prop = RNA_def_property(srna, "bl_width_default", PROP_FLOAT, PROP_UNSIGNED);
-  RNA_def_property_float_sdna(prop, nullptr, "typeinfo->width");
+  RNA_def_property_float_sdna(prop, nullptr, "typeinfo->default_width");
   RNA_def_property_flag(prop, PROP_REGISTER_OPTIONAL);
   RNA_def_property_ui_text(prop, "Default Width", "Default width of the node when it is created");
 
@@ -9786,8 +9786,8 @@ static void rna_def_nodetree(BlenderRNA *brna)
   RNA_def_property_update(prop, NC_NODE, nullptr);
 
   prop = RNA_def_property(srna, "default_group_node_width", PROP_INT, PROP_NONE);
-  RNA_def_property_int_default(prop, GROUP_NODE_DEFAULT_WIDTH);
-  RNA_def_property_range(prop, GROUP_NODE_MIN_WIDTH, GROUP_NODE_MAX_WIDTH);
+  RNA_def_property_int_default(prop, bke::NodeWidth::Default);
+  RNA_def_property_range(prop, bke::NodeWidth::GroupMin, bke::NodeWidth::DefaultMax);
   RNA_def_property_ui_text(
       prop, "Default Group Node Width", "The width for newly created group nodes");
   RNA_def_property_update(prop, NC_NODE, nullptr);

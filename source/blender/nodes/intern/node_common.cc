@@ -599,7 +599,9 @@ void register_node_type_frame()
   ntype->initfunc = node_frame_init;
   bke::node_type_storage(
       *ntype, "NodeFrame", node_free_standard_storage, node_copy_standard_storage);
-  bke::node_type_size(*ntype, 150, 100, 0);
+  ntype->default_width = bke::NodeWidth::_160;
+  ntype->minwidth = 100;
+  ntype->maxwidth = FLT_MAX;
   ntype->flag |= NODE_BACKGROUND;
 
   bke::node_register_type(*ntype);
@@ -1123,7 +1125,6 @@ void register_node_type_group_input()
       "Expose connected data from inside a node group as inputs to its interface";
   ntype->enum_name_legacy = "GROUP_INPUT";
   ntype->nclass = NODE_CLASS_INTERFACE;
-  bke::node_type_size(*ntype, 140, 80, 400);
   ntype->declare = nodes::group_input_declare;
   ntype->insert_link = nodes::group_input_insert_link;
   ntype->draw_buttons_ex = nodes::node_group_input_layout;
@@ -1210,7 +1211,6 @@ void register_node_type_group_output()
   ntype->ui_description = "Output data from inside of a node group";
   ntype->enum_name_legacy = "GROUP_OUTPUT";
   ntype->nclass = NODE_CLASS_INTERFACE;
-  bke::node_type_size(*ntype, 140, 80, 400);
   ntype->declare = nodes::group_output_declare;
   ntype->insert_link = nodes::group_output_insert_link;
   ntype->get_extra_info = node_group_output_extra_info;

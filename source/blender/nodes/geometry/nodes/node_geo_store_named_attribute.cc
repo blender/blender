@@ -232,7 +232,6 @@ static void node_register()
                          "NodeGeometryStoreNamedAttribute",
                          node_free_standard_storage,
                          node_copy_standard_storage);
-  bke::node_type_size(ntype, 140, 100, 700);
   ntype.initfunc = node_init;
   ntype.declare = node_declare;
   ntype.gather_link_search_ops = node_gather_link_searches;

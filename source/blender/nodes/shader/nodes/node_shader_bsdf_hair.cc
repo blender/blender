@@ -71,7 +71,7 @@ void register_node_type_sh_bsdf_hair()
   ntype.gather_link_search_ops = search_link_ops_for_shader_bsdf_node;
   ntype.add_ui_poll = object_cycles_shader_nodes_poll;
   ntype.draw_buttons = file_ns::node_shader_buts_hair;
-  bke::node_type_size(ntype, 150, 60, 200);
+  ntype.default_width = bke::NodeWidth::_160;
   ntype.gpu_fn = file_ns::node_shader_gpu_bsdf_hair;
 
   bke::node_register_type(ntype);

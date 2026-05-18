@@ -35,7 +35,7 @@ static void node_register()
   ntype.ui_description = "Output a selection of a Grease Pencil layer";
   ntype.enum_name_legacy = "INPUT_NAMED_LAYER_SELECTION";
   ntype.nclass = NODE_CLASS_INPUT;
-  bke::node_type_size(ntype, 160, 140, NODE_DEFAULT_MAX_WIDTH);
+  ntype.default_width = bke::NodeWidth::_160;
   ntype.declare = node_declare;
   ntype.geometry_node_execute = node_geo_exec;
   bke::node_register_type(ntype);
