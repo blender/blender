@@ -119,7 +119,7 @@ static void rna_PoseBone_compute_bbone_handles(ID *self,
   Object *ob = id_cast<Object *>(self);
   bArmature &armature = id_cast<bArmature &>(*ob->data);
 
-  Bone *bone = pchan->bone_get(armature);
+  Bone *bone = pchan->bone_get(*ob);
   if (!bone || bone->segments <= 1) {
     BKE_reportf(reports, RPT_ERROR, "Bone '%s' is not a B-Bone!", pchan->name);
     return;
