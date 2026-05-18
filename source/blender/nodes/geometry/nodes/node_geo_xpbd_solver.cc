@@ -1153,8 +1153,8 @@ class XpbdSolverStep {
             math::cross(edge_direction_mesh,
                         math::interpolate(vert_normals[edge[0]], vert_normals[edge[1]], 0.5f)),
             edge_direction_mesh));
-        const float3 edge_normal_local = math::transform_direction(mesh_to_local,
-                                                                   edge_normal_mesh);
+        const float3 edge_normal_local = math::normalize(
+            math::transform_direction(mesh_to_local, edge_normal_mesh));
 
         /* Use geometric average as edge friction coefficient. */
         const float static_friction = math::sqrt(
