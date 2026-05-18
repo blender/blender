@@ -619,11 +619,8 @@ class USERPREF_PT_animation_timeline(AnimationPanel, CenterAlignMixIn, Panel):
     def draw_centered(self, context, layout):
         prefs = context.preferences
         view = prefs.view
-        edit = prefs.edit
 
         col = layout.column()
-        col.prop(edit, "use_negative_frames")
-
         col.prop(view, "view2d_grid_spacing_min", text="Minimum Grid Spacing")
         col.prop(view, "timecode_style")
         col.prop(view, "view_frame_type")
@@ -672,6 +669,22 @@ class USERPREF_PT_animation_fcurves(AnimationPanel, CenterAlignMixIn, Panel):
         flow.prop(edit, "use_anim_channel_group_colors")
         flow.prop(edit, "show_only_selected_curve_keyframes")
         flow.prop(edit, "use_fcurve_high_quality_drawing")
+
+
+class USERPREF_PT_animation_timeline_advanced(AnimationPanel, CenterAlignMixIn, Panel):
+    bl_label = "Advanced"
+    bl_options = {'DEFAULT_CLOSED'}
+    bl_parent_id = 'USERPREF_PT_animation_timeline'
+
+    def draw_centered(self, context, layout):
+        prefs = context.preferences
+        edit = prefs.edit
+
+        layout.prop(edit, "use_negative_frames")
+        row = layout.row(align=False)
+        row.active = edit.use_negative_frames
+        row.alignment = 'RIGHT'
+        row.label(icon="ERROR", text="Negative frames can cause issues with audio playback and exporters.")
 
 
 # -----------------------------------------------------------------------------
@@ -3168,6 +3181,7 @@ classes = (
     USERPREF_PT_animation_timeline,
     USERPREF_PT_animation_keyframes,
     USERPREF_PT_animation_fcurves,
+    USERPREF_PT_animation_timeline_advanced,
 
     USERPREF_PT_system_cycles_devices,
     USERPREF_PT_system_display_graphics,
