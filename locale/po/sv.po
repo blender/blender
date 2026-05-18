@@ -1,9 +1,9 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 5.2.0 Alpha (b'8c7c45ad114e')\n"
+"Project-Id-Version: Blender 5.2.0 Alpha (b'bc0a0ff2c0ce')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-05-11 07:23+0000\n"
+"POT-Creation-Date: 2026-05-18 11:20+0000\n"
 "PO-Revision-Date: 2026-03-17 14:12+0000\n"
 "Last-Translator: Daniel Nylander <blender@danielnylander.se>\n"
 "Language-Team: Swedish <https://translate.blender.org/projects/blender-ui/ui/sv/>\n"
@@ -1965,10 +1965,6 @@ msgstr "Visa de tillgångar som för närvarande är tillgängliga i denna Blend
 
 msgid "Essentials"
 msgstr "Grundläggande"
-
-
-msgid "Show the basic building blocks and utilities coming with Blender"
-msgstr "Visa de grundläggande byggstenarna och verktygen som medföljer Blender"
 
 
 msgid "Custom"
@@ -24398,6 +24394,10 @@ msgid "Planar Probe"
 msgstr "Planarprob"
 
 
+msgid "Parallax Radius"
+msgstr "Parallaxradie"
+
+
 msgid "Spherical Probe"
 msgstr "Sfärisk sond"
 
@@ -24412,10 +24412,6 @@ msgstr "Kontrollera hur snabbt sondens påverkan minskar"
 
 msgid "Type of influence volume"
 msgstr "Typ av inflytande volym"
-
-
-msgid "Parallax Radius"
-msgstr "Parallaxradie"
 
 
 msgid "Lowest corner of the parallax bounding box"
@@ -35034,6 +35030,10 @@ msgid "Editor menu containing buttons"
 msgstr "Redigeringsmeny med knappar"
 
 
+msgid "Mirror"
+msgstr "Spegel"
+
+
 msgid "Snap"
 msgstr "Fäst"
 
@@ -35050,12 +35050,20 @@ msgid "Viewpoint"
 msgstr "Synpunkt"
 
 
+msgid "Math"
+msgstr "Matematik"
+
+
 msgid "Navigation"
 msgstr "Navigering"
 
 
 msgid "Align View"
 msgstr "Justera vy"
+
+
+msgid "Utilities"
+msgstr "Allmännyttiga tjänster"
 
 
 msgid "Align View to Active"
@@ -35086,22 +35094,6 @@ msgid "Select Loops"
 msgstr "Välj slingor"
 
 
-msgid "Math"
-msgstr "Matematik"
-
-
-msgid "Utilities"
-msgstr "Allmännyttiga tjänster"
-
-
-msgid "Assign Material"
-msgstr "Tilldela material"
-
-
-msgid "Metaball"
-msgstr "Metaball"
-
-
 msgid "Read"
 msgstr "Läs"
 
@@ -35110,8 +35102,20 @@ msgid "Sample"
 msgstr "Exempel"
 
 
+msgid "Assign Material"
+msgstr "Tilldela material"
+
+
 msgid "Write"
 msgstr "Skriv"
+
+
+msgid "Primitives"
+msgstr "Primitiva"
+
+
+msgid "Metaball"
+msgstr "Metaball"
 
 
 msgid "Light"
@@ -35122,8 +35126,12 @@ msgid "Light Probe"
 msgstr "Ljusprob"
 
 
-msgid "Primitives"
-msgstr "Primitiva"
+msgid "Gizmo"
+msgstr "Gizmo"
+
+
+msgid "Instances"
+msgstr "Instanser"
 
 
 msgid "Add Image"
@@ -35134,24 +35142,24 @@ msgid "Relations"
 msgstr "Relationer"
 
 
+msgid "Import"
+msgstr "Importera"
+
+
 msgid "Rigid Body"
 msgstr "Stel kropp"
-
-
-msgid "Gizmo"
-msgstr "Gizmo"
 
 
 msgid "Apply"
 msgstr "Ansök"
 
 
-msgid "Instances"
-msgstr "Instanser"
-
-
 msgid "Track"
 msgstr "Spår"
+
+
+msgid "Deprecated"
+msgstr "Föråldrad"
 
 
 msgid "Quick Effects"
@@ -35166,12 +35174,12 @@ msgid "Clean Up"
 msgstr "Rensa upp"
 
 
-msgid "Import"
-msgstr "Importera"
-
-
 msgid "Asset"
 msgstr "Tillgång"
+
+
+msgid "List"
+msgstr "Lista"
 
 
 msgid "Make Single User"
@@ -35180,6 +35188,10 @@ msgstr "Gör till enskild användare"
 
 msgid "Convert"
 msgstr "Konvertera"
+
+
+msgid "UV"
+msgstr "UV"
 
 
 msgid "Link/Transfer Data"
@@ -35194,20 +35206,8 @@ msgid "Vertex Group Locks"
 msgstr "Vertex Group Lås"
 
 
-msgid "Deprecated"
-msgstr "Föråldrad"
-
-
 msgid "Trim/Add"
 msgstr "Trimma/Lägg till"
-
-
-msgid "List"
-msgstr "Lista"
-
-
-msgid "UV"
-msgstr "UV"
 
 
 msgid "Sculpt Set Pivot"
@@ -35274,6 +35274,10 @@ msgid "Merge"
 msgstr "Sammanfoga"
 
 
+msgid "Layout"
+msgstr "Layout"
+
+
 msgid "Special Characters"
 msgstr "Specialtecken"
 
@@ -35282,16 +35286,12 @@ msgid "Kerning"
 msgstr "Kerning"
 
 
-msgid "Layout"
-msgstr "Layout"
+msgid "Adjust"
+msgstr "Justera"
 
 
 msgid "Bone Roll"
 msgstr "Benrulle"
-
-
-msgid "Adjust"
-msgstr "Justera"
 
 
 msgid "Keying"
@@ -35302,8 +35302,16 @@ msgid "Tracking"
 msgstr "Spårning"
 
 
+msgid "Creative"
+msgstr "Kreativ"
+
+
 msgid "Pivot Point"
 msgstr "Pivotpunkt"
+
+
+msgid "Render Preview"
+msgstr "Förhandsgranska rendering"
 
 
 msgid "Proportional Editing Falloff"
@@ -35320,18 +35328,6 @@ msgstr "Automatisk maskering"
 
 msgid "Face Sets Edit"
 msgstr "Ansiktsuppsättningar Redigera"
-
-
-msgid "Creative"
-msgstr "Kreativ"
-
-
-msgid "Render Preview"
-msgstr "Förhandsgranska rendering"
-
-
-msgid "Mirror"
-msgstr "Spegel"
 
 
 msgid "Keyframe Insert Pie"
@@ -52255,14 +52251,6 @@ msgid "Collection of Node Sockets"
 msgstr "Samling av noduttag"
 
 
-msgid "Node Instance Hash"
-msgstr "Nodinstanshash"
-
-
-msgid "Hash table containing node instance data"
-msgstr "Hash-tabell som innehåller nodinstansdata"
-
-
 msgid "Socket Template"
 msgstr "Sockelmall"
 
@@ -57605,11 +57593,6 @@ msgid "Old Action's session uid to replace"
 msgstr "Old Action-sessionens uid att ersätta"
 
 
-msgctxt "Operator"
-msgid "Replace with new Action"
-msgstr "Ersätt med ny åtgärd"
-
-
 msgid "Swap all users of one action to a new action. This ignores the NLA and Action Constraints"
 msgstr "Byt alla användare av en åtgärd till en ny åtgärd. Detta ignorerar NLA och åtgärdsbegränsningar."
 
@@ -57775,6 +57758,10 @@ msgstr "Lägg till ben"
 
 msgid "Add a new bone located at the 3D cursor"
 msgstr "Lägg till ett nytt ben placerat vid 3D-markören"
+
+
+msgid "Axes"
+msgstr "Yxor"
 
 
 msgid "Name of the newly created bone"
@@ -58021,6 +58008,10 @@ msgstr "Flytta"
 
 msgid "Move selected items"
 msgstr "Flytta valda objekt"
+
+
+msgid "Search"
+msgstr "Sök"
 
 
 msgctxt "Operator"
@@ -83043,14 +83034,6 @@ msgid "Deselect previously selected strips after add operation completes"
 msgstr "Avmarkera tidigare markerade remsor efter att tillägget har slutförts."
 
 
-msgid "Skip Locked or Muted Channels"
-msgstr "Hoppa över låsta eller tystade kanaler"
-
-
-msgid "Add strips to muted or locked channels when adding movie strips"
-msgstr "Lägg till remsor till tystade eller låsta kanaler när du lägger till filmremsor"
-
-
 msgctxt "Operator"
 msgid "Box Blade"
 msgstr "Boxblad"
@@ -92061,6 +92044,46 @@ msgid "Panel containing UI elements"
 msgstr "Panel som innehåller UI-element"
 
 
+msgid "Selectability & Visibility"
+msgstr "Valbarhet och synlighet"
+
+
+msgid "Shadow Settings"
+msgstr "Skugginställningar"
+
+
+msgid "SSAO Settings"
+msgstr "SSAO-inställningar"
+
+
+msgid "Cavity"
+msgstr "Hålrum"
+
+
+msgid "Render Pass"
+msgstr "Renderingspass"
+
+
+msgid "Compositor"
+msgstr "Compositor"
+
+
+msgid "Overlays"
+msgstr "Överlägg"
+
+
+msgid "Guides"
+msgstr "Guider"
+
+
+msgid "Viewer Node"
+msgstr "Visningsnod"
+
+
+msgid "Motion Tracking"
+msgstr "Rörelsespårning"
+
+
 msgid "Mesh Edit Mode"
 msgstr "Redigeringsläge för nät"
 
@@ -92089,10 +92112,6 @@ msgid "Drawing Plane"
 msgstr "Ritplan"
 
 
-msgid "Guides"
-msgstr "Guider"
-
-
 msgid "Grease Pencil Options"
 msgstr "Alternativ för fettpenna"
 
@@ -92113,16 +92132,16 @@ msgid "Multi Frame"
 msgstr "Flera bildrutor"
 
 
-msgid "Auto-Masking"
-msgstr "Automatisk maskering"
-
-
 msgid "glTF Variants"
 msgstr "glTF-varianter"
 
 
 msgid "glTF Material Variants"
 msgstr "glTF-materialvarianter"
+
+
+msgid "Auto-Masking"
+msgstr "Automatisk maskering"
 
 
 msgid "Curves Sculpt Add Curve Options"
@@ -92163,42 +92182,6 @@ msgstr "Aktivt verktyg"
 
 msgid "View Lock"
 msgstr "Visa lås"
-
-
-msgid "Selectability & Visibility"
-msgstr "Valbarhet och synlighet"
-
-
-msgid "Shadow Settings"
-msgstr "Skugginställningar"
-
-
-msgid "SSAO Settings"
-msgstr "SSAO-inställningar"
-
-
-msgid "Cavity"
-msgstr "Hålrum"
-
-
-msgid "Render Pass"
-msgstr "Renderingspass"
-
-
-msgid "Compositor"
-msgstr "Compositor"
-
-
-msgid "Overlays"
-msgstr "Överlägg"
-
-
-msgid "Viewer Node"
-msgstr "Visningsnod"
-
-
-msgid "Motion Tracking"
-msgstr "Rörelsespårning"
 
 
 msgid "Import Settings"
@@ -97383,10 +97366,6 @@ msgstr "Kinesiska (traditionell) - 繁體中文"
 
 msgid "Czech - Čeština"
 msgstr "Tjeckiska - Čeština"
-
-
-msgid "Locale code: cs_CZ. Translation progress: 27%"
-msgstr "Lokalkod: cs_CZ. Översättningsförlopp: 27 %"
 
 
 msgid "Danish - Dansk"
@@ -108989,6 +108968,10 @@ msgid "Shadow Offset"
 msgstr "Skugga Offset"
 
 
+msgid "Line Spacing"
+msgstr "Radavstånd"
+
+
 msgid "Text that will be displayed"
 msgstr "Text som kommer att visas"
 
@@ -116195,10 +116178,6 @@ msgid ""
 msgstr "Öppna popup-verktygsfältet eller popup-fönstret för penselresurser När du håller ned mellanslagstangenten för att öppna verktygsfältet: • Om du trycker på en verktygsgenväg växlar du omedelbart till det verktyget. • Om du drar markören över ett verktyg och släpper den aktiveras det (som ett cirkelmeny). För Play använder du Shift-mellanslag."
 
 
-msgid "Search"
-msgstr "Sök"
-
-
 msgid "Open the operator search popup"
 msgstr "Öppna popup-fönstret för operatörssökning"
 
@@ -119866,10 +119845,6 @@ msgid "Surfaces"
 msgstr "Ytor"
 
 
-msgid "Denoising Data"
-msgstr "Brusreducering av data"
-
-
 msgid "Indexes"
 msgstr "Index"
 
@@ -119968,6 +119943,10 @@ msgstr "Viewport-studsar"
 
 msgid "Render Bounces"
 msgstr "Rendera studsar"
+
+
+msgid "Denoising Data"
+msgstr "Brusreducering av data"
 
 
 msgid "Scatter"
@@ -123093,10 +123072,6 @@ msgid "Shapes"
 msgstr "Former"
 
 
-msgid "Axes"
-msgstr "Yxor"
-
-
 msgctxt "Operator"
 msgid "Remove Unused"
 msgstr "Ta bort oanvända"
@@ -123308,10 +123283,6 @@ msgstr "Teckenavstånd"
 
 msgid "Word Spacing"
 msgstr "Ordavstånd"
-
-
-msgid "Line Spacing"
-msgstr "Radavstånd"
 
 
 msgid "Offset X"
@@ -132210,6 +132181,10 @@ msgid "color_index is invalid"
 msgstr "color_index är ogiltigt"
 
 
+msgid "Anisotropic"
+msgstr "Anisotropisk"
+
+
 msgid "Compositor node group has cyclic links."
 msgstr "Kompositornodgruppen har cykliska länkar."
 
@@ -133115,14 +133090,6 @@ msgstr "Skjutverktyg"
 
 msgid "Cancel"
 msgstr "Avbryt"
-
-
-msgid "Axis Constraint"
-msgstr "Axelbegränsning"
-
-
-msgid "Axis Only"
-msgstr "Endast Axis"
 
 
 msgid "Bone Visibility"
@@ -134987,11 +134954,6 @@ msgstr "Materialet tilldelas objektdata, som är länkat/packat och därför int
 msgctxt "Operator"
 msgid "Rename Data-Block"
 msgstr "Byt namn på datablock"
-
-
-msgctxt "Operator"
-msgid "Fake User"
-msgstr "Falska användare"
 
 
 msgid "The data-block %s is not overridable"
@@ -140339,6 +140301,14 @@ msgid "Type: List"
 msgstr "Typ: Lista"
 
 
+msgid "Extension X"
+msgstr "Förlängning X"
+
+
+msgid "Extension Y"
+msgstr "Förlängning Y"
+
+
 msgid "Index Field"
 msgstr "Indexfält"
 
@@ -144453,10 +144423,6 @@ msgid "Use Cubic B-Spline interpolation"
 msgstr "Använd kubisk B-spline-interpolering"
 
 
-msgid "Anisotropic"
-msgstr "Anisotropisk"
-
-
 msgid "Use Anisotropic interpolation"
 msgstr "Använd anisotropisk interpolering"
 
@@ -146702,14 +146668,6 @@ msgstr "Nedre vänstra hörnet"
 
 msgid "Lower Right"
 msgstr "Nedre högra hörnet"
-
-
-msgid "Extension X"
-msgstr "Förlängning X"
-
-
-msgid "Extension Y"
-msgstr "Förlängning Y"
 
 
 msgid "The extension mode applied to the X axis"
@@ -151062,6 +151020,10 @@ msgid "Volume to convert to a mesh"
 msgstr "Volym att konvertera till ett nät"
 
 
+msgid "Substeps"
+msgstr "Delsteg"
+
+
 msgid "Mask Input"
 msgstr "Maskering av inmatning"
 
@@ -155031,10 +154993,6 @@ msgid "Factor that the displacement is multiplied with"
 msgstr "Faktor som förskjutningen multipliceras med"
 
 
-msgid "Substeps"
-msgstr "Delsteg"
-
-
 msgid "Number of steps to divide the full displacement into. Fields, including normal and position, are re-evaluated before each step."
 msgstr "Antal steg som den totala förskjutningen ska delas upp i. Fält, inklusive normal och position, omvärderas före varje steg."
 
@@ -155575,346 +155533,6 @@ msgid "Selection of elements within a sphere"
 msgstr "Val av element inom en sfär"
 
 
-msgid "Attach Hair Curves to Surface"
-msgstr "Fäst hårkurvor på ytan"
-
-
-msgid "Attaches hair curves to a surface mesh"
-msgstr "Fäster hårkurvor till ett ytnät"
-
-
-msgid "Align to Surface Normal"
-msgstr "Justera efter ytans normal"
-
-
-msgid "Align the curve to the surface normal (needs a guide as reference)"
-msgstr "Rikta in kurvan mot ytans normal (kräver en referenspunkt)"
-
-
-msgid "Blend along Curve"
-msgstr "Blanda längs kurvan"
-
-
-msgid "Blend deformation along each curve from the root"
-msgstr "Blanda deformation längs varje kurva från roten"
-
-
-msgid "Sample Attachment UV"
-msgstr "Exempel på bilaga UV"
-
-
-msgid "Sample the surface UV map at the attachment point"
-msgstr "Prova ytans UV-karta vid fästpunkten"
-
-
-msgid "Snap to Surface"
-msgstr "Fäst vid yta"
-
-
-msgid "Snap the root of each curve to the closest surface point"
-msgstr "Fäst roten av varje kurva till närmaste ytpunkt."
-
-
-msgid "Surface Object to attach to (needs to have matching transforms)"
-msgstr "Ytobjekt att fästa vid (måste ha matchande transformationer)"
-
-
-msgid "Surface geometry to attach hair curves to"
-msgstr "Ytgeometri för att fästa hårkurvor på"
-
-
-msgid "Surface Input Type"
-msgstr "Ytans ingångstyp"
-
-
-msgid "Select the input type for the surface geometry."
-msgstr "Välj ingångstyp för ytgeometrin."
-
-
-msgid "Surface Normal"
-msgstr "Ytnormal"
-
-
-msgid "Surface normal at the attachment point"
-msgstr "Ytnormal vid fästpunkten"
-
-
-msgid "Surface Rest Position"
-msgstr "Ytans viloläge"
-
-
-msgid "Set the surface mesh into its rest position before attachment"
-msgstr "Ställ in ytmasken i viloläge innan du fäster den."
-
-
-msgid "Surface UV Coordinate"
-msgstr "Ytans UV-koordinat"
-
-
-msgid "Surface UV coordinates at the attachment point"
-msgstr "Ytans UV-koordinater vid fästpunkten"
-
-
-msgid "Surface UV map used for attachment"
-msgstr "Yt-UV-karta som används för fastsättning"
-
-
-msgid "Blend Hair Curves"
-msgstr "Blanda hårkurvor"
-
-
-msgid "Blends shape between multiple hair curves in a certain radius"
-msgstr "Blender ut formen mellan flera hårkurvor inom en viss radie"
-
-
-msgid "Blend Neighbors"
-msgstr "Blanda grannar"
-
-
-msgid "Amount of neighbors used for blending"
-msgstr "Antal grannar som används för blandning"
-
-
-msgid "Blend Radius"
-msgstr "Blandningsradie"
-
-
-msgid "Radius to select neighbors for blending"
-msgstr "Radie för att välja grannar för blandning"
-
-
-msgid "Factor to blend overall effect"
-msgstr "Faktor för att blanda den totala effekten"
-
-
-msgid "Preserve Length"
-msgstr "Bevara längd"
-
-
-msgid "Preserve each curve's length during deformation"
-msgstr "Bevara varje kurvas längd under deformation"
-
-
-msgid "Braid Hair Curves"
-msgstr "Flätade hårkurvor"
-
-
-msgid "Deforms existing hair curves into braids using guide curves"
-msgstr "Deformerar befintliga hårkurvor till flätor med hjälp av styrkurvor"
-
-
-msgid "Braid Start"
-msgstr "Flätans början"
-
-
-msgid "Percentage along each curve to blend deformation from the root"
-msgstr "Procentandel längs varje kurva för att blanda deformation från roten"
-
-
-msgid "Existing Guide Map"
-msgstr "Befintlig guide karta"
-
-
-msgid "Use the existing guide map attribute if available"
-msgstr "Använd det befintliga attributet för översiktskarta om det finns tillgängligt."
-
-
-msgid "Factor Max"
-msgstr "Faktor Max"
-
-
-msgid "Factor of the maximum radius of the braids"
-msgstr "Faktor för flätornas maximala radie"
-
-
-msgid "Factor Min"
-msgstr "Faktor Min"
-
-
-msgid "Factor of the minimum radius of the braids"
-msgstr "Faktor för flätornas minsta radie"
-
-
-msgid "Flare Length"
-msgstr "Facklans längd"
-
-
-msgid "Length of the flare at the end of the braid"
-msgstr "Längden på flänsen i änden av flätan"
-
-
-msgid "Flare Opening"
-msgstr "Flareöppning"
-
-
-msgid "Opening radius of the flare at the tip of the braid"
-msgstr "Öppningsradie för flänsen vid flätans spets"
-
-
-msgid "Flare Parameter"
-msgstr "Flare-parameter"
-
-
-msgid "Parameter from 0 to 1 along the flare"
-msgstr "Parameter från 0 till 1 längs facklan"
-
-
-msgid "Frequency factor of the braids"
-msgstr "Frekvensfaktorn för flätorna"
-
-
-msgid "Guide Distance"
-msgstr "Guideavstånd"
-
-
-msgid "Minimum distance between two guides for new guide map"
-msgstr "Minsta avstånd mellan två guider för ny guidekarta"
-
-
-msgid "Guide Index"
-msgstr "Guideindex"
-
-
-msgid "Guide index map that was used for the operation"
-msgstr "Guideindexkarta som användes för operationen"
-
-
-msgid "Guide index map to be used. This input has priority"
-msgstr "Guideindexkarta som ska användas. Denna inmatning har prioritet."
-
-
-msgid "Guide Map"
-msgstr "Guide Karta"
-
-
-msgid "Guide Mask"
-msgstr "Guide Mask"
-
-
-msgid "Mask for which curves are eligible to be selected as guides"
-msgstr "Mask för vilka kurvor som kan väljas som riktlinjer"
-
-
-msgid "Hair Tie"
-msgstr "Hårband"
-
-
-msgid "Geometry used for the hair tie instance (priority)"
-msgstr "Geometri som används för hårsnodden (prioritet)"
-
-
-msgid "Object used for the hair tie instance"
-msgstr "Objekt som används för hårsnodden"
-
-
-msgid "Hair Tie Input Type"
-msgstr "Hårbandets ingångstyp"
-
-
-msgid "Select the input type for the hair tie geometry."
-msgstr "Välj ingångstyp för hårsnoddsgeometrin."
-
-
-msgid "Hair Tie Scale"
-msgstr "Hårbandsskala"
-
-
-msgid "Scale of the hair tie instance"
-msgstr "Skala för hårsnodden"
-
-
-msgid "Overall radius of the braids"
-msgstr "Fläckarnas totala radie"
-
-
-msgid "Shape of the braid radius along each curve"
-msgstr "Formen på flätans radie längs varje kurva"
-
-
-msgid "Shape Asymmetry"
-msgstr "Formasymmetri"
-
-
-msgid "Asymmetry of the shape adjustment of the strand thickness"
-msgstr "Asymmetri i formjusteringen av trådens tjocklek"
-
-
-msgid "Shape Parameters"
-msgstr "Formparametrar"
-
-
-msgid "Strand Index"
-msgstr "Strandindex"
-
-
-msgid "Index of the strand within a braid that each curve belongs to"
-msgstr "Index för den tråd i en fläta som varje kurva tillhör"
-
-
-msgid "Subdivision level applied before deformation"
-msgstr "Subdivisionsnivå tillämpad före deformation"
-
-
-msgid "Thickness of each strand of hair"
-msgstr "Tjocklek på varje hårstrå"
-
-
-msgid "Thickness Shape"
-msgstr "Tjocklek Form"
-
-
-msgid "Shape adjustment of the strand thickness for the braids"
-msgstr "Formjustering av trådens tjocklek för flätorna"
-
-
-msgid "Clump Hair Curves"
-msgstr "Klumpiga hårkurvor"
-
-
-msgid "Clumps together existing hair curves using guide curves"
-msgstr "Sammanfogar befintliga hårkurvor med hjälp av styrkurvor"
-
-
-msgid "Clump Offset"
-msgstr "Klumpförskjutning"
-
-
-msgid "Offset of each clump in a random direction"
-msgstr "Förskjutning av varje klump i slumpmässig riktning"
-
-
-msgid "Distance Falloff"
-msgstr "Avståndsavtagning"
-
-
-msgid "Falloff distance for the clumping effect (0 means no falloff)"
-msgstr "Falloff-avstånd för klumpningseffekten (0 betyder ingen falloff)"
-
-
-msgid "Distance Threshold"
-msgstr "Avståndströskel"
-
-
-msgid "Distance threshold for the falloff around the guide"
-msgstr "Avståndströskel för avklingningen runt guiden"
-
-
-msgid "Random seed for the operation"
-msgstr "Slumpmässigt utsäde för operationen"
-
-
-msgid "Shape of the influence along curves (0=constant, 0.5=linear)"
-msgstr "Form på påverkan längs kurvor (0=konstant, 0,5=linjär)"
-
-
-msgid "Tip Spread"
-msgstr "Tips Spridning"
-
-
-msgid "Distance of random spread at the curve tips"
-msgstr "Avstånd för slumpmässig spridning vid kurvans spetsar"
-
-
 msgid "Create Guide Index Map"
 msgstr "Skapa guideindexkarta"
 
@@ -155927,8 +155545,24 @@ msgid "ID to group curves together for guide map creation"
 msgstr "ID för att gruppera kurvor för skapande av vägledande karta"
 
 
+msgid "Guide Distance"
+msgstr "Guideavstånd"
+
+
 msgid "Minimum distance between two guides"
 msgstr "Minsta avstånd mellan två styrningar"
+
+
+msgid "Guide Index"
+msgstr "Guideindex"
+
+
+msgid "Guide Mask"
+msgstr "Guide Mask"
+
+
+msgid "Mask for which curves are eligible to be selected as guides"
+msgstr "Mask för vilka kurvor som kan väljas som riktlinjer"
 
 
 msgid "Guide Selection"
@@ -155951,6 +155585,22 @@ msgid "Curl Start"
 msgstr "Curl Start"
 
 
+msgid "Percentage along each curve to blend deformation from the root"
+msgstr "Procentandel längs varje kurva för att blanda deformation från roten"
+
+
+msgid "Existing Guide Map"
+msgstr "Befintlig guide karta"
+
+
+msgid "Use the existing guide map attribute if available"
+msgstr "Använd det befintliga attributet för översiktskarta om det finns tillgängligt."
+
+
+msgid "Factor to blend overall effect"
+msgstr "Faktor för att blanda den totala effekten"
+
+
 msgid "Factor End"
 msgstr "Faktor Slut"
 
@@ -155967,6 +155617,22 @@ msgid "Frequency factor of the curls"
 msgstr "Frekvensfaktorn för lockarna"
 
 
+msgid "Minimum distance between two guides for new guide map"
+msgstr "Minsta avstånd mellan två guider för ny guidekarta"
+
+
+msgid "Guide index map that was used for the operation"
+msgstr "Guideindexkarta som användes för operationen"
+
+
+msgid "Guide index map to be used. This input has priority"
+msgstr "Guideindexkarta som ska användas. Denna inmatning har prioritet."
+
+
+msgid "Guide Map"
+msgstr "Guide Karta"
+
+
 msgid "Overall radius of the curls"
 msgstr "Lockarnas totala radie"
 
@@ -155977,6 +155643,10 @@ msgstr "Mängd slumpmässig förskjutning per kurva"
 
 msgid "Random Seed for the operation"
 msgstr "Slumpmässigt utsäde för operationen"
+
+
+msgid "Subdivision level applied before deformation"
+msgstr "Subdivisionsnivå tillämpad före deformation"
 
 
 msgid "Curve Info"
@@ -156131,6 +155801,358 @@ msgid "Boolean selection of curve tip points"
 msgstr "Boolesk val av kurvspetsar"
 
 
+msgid "Generate Hair Curves"
+msgstr "Skapa hårkurvor"
+
+
+msgid "Generates new hair curves on a surface mesh"
+msgstr "Genererar nya hårkurvor på ett ytnät"
+
+
+msgid "Amount of control points of the generated hair curves"
+msgstr "Antal kontrollpunkter för de genererade hårkurvorna"
+
+
+msgid "Surface density of generated hair curves"
+msgstr "Ytdensitet för genererade hårkurvor"
+
+
+msgid "Density Mask"
+msgstr "Densitetsmask"
+
+
+msgid "Factor applied on the density for curve distribution"
+msgstr "Faktor som tillämpas på densiteten för kurvfördelningen"
+
+
+msgid "Use Poisson disk distribution method to keep a minimum distance"
+msgstr "Använd Poisson-diskfördelningsmetoden för att hålla ett minimavstånd"
+
+
+msgid "Length of the generated hair curves"
+msgstr "Längden på de genererade hårkurvorna"
+
+
+msgid "Hair Material"
+msgstr "Hårmaterial"
+
+
+msgid "Material of the generated hair curves"
+msgstr "Materialet i de genererade hårkurvorna"
+
+
+msgid "Discard points based on a mask texture after distribution"
+msgstr "Kasta bort punkter baserat på en masktextur efter distribution"
+
+
+msgid "Random seed for the operation"
+msgstr "Slumpmässigt utsäde för operationen"
+
+
+msgid "Surface geometry for generation"
+msgstr "Ytgeometri för generering"
+
+
+msgid "Surface object for generation (needs matching transforms)"
+msgstr "Ytobjekt för generering (kräver matchande transformationer)"
+
+
+msgid "Surface Normal"
+msgstr "Ytnormal"
+
+
+msgid "Normal direction of the surface mesh at the attachment point"
+msgstr "Normal riktning för ytmasken vid fästpunkten"
+
+
+msgid "Surface Rest Position"
+msgstr "Ytans viloläge"
+
+
+msgid "Set the surface mesh into its rest position before attachment"
+msgstr "Ställ in ytmasken i viloläge innan du fäster den."
+
+
+msgid "Surface UV map used for attachment"
+msgstr "Yt-UV-karta som används för fastsättning"
+
+
+msgid "Viewport Amount"
+msgstr "Visningsområde"
+
+
+msgid "Factor applied on the density for the viewport"
+msgstr "Faktor som tillämpas på densiteten för visningsområdet"
+
+
+msgid "Attach Hair Curves to Surface"
+msgstr "Fäst hårkurvor på ytan"
+
+
+msgid "Attaches hair curves to a surface mesh"
+msgstr "Fäster hårkurvor till ett ytnät"
+
+
+msgid "Align to Surface Normal"
+msgstr "Justera efter ytans normal"
+
+
+msgid "Align the curve to the surface normal (needs a guide as reference)"
+msgstr "Rikta in kurvan mot ytans normal (kräver en referenspunkt)"
+
+
+msgid "Blend along Curve"
+msgstr "Blanda längs kurvan"
+
+
+msgid "Blend deformation along each curve from the root"
+msgstr "Blanda deformation längs varje kurva från roten"
+
+
+msgid "Sample Attachment UV"
+msgstr "Exempel på bilaga UV"
+
+
+msgid "Sample the surface UV map at the attachment point"
+msgstr "Prova ytans UV-karta vid fästpunkten"
+
+
+msgid "Snap to Surface"
+msgstr "Fäst vid yta"
+
+
+msgid "Snap the root of each curve to the closest surface point"
+msgstr "Fäst roten av varje kurva till närmaste ytpunkt."
+
+
+msgid "Surface Object to attach to (needs to have matching transforms)"
+msgstr "Ytobjekt att fästa vid (måste ha matchande transformationer)"
+
+
+msgid "Surface geometry to attach hair curves to"
+msgstr "Ytgeometri för att fästa hårkurvor på"
+
+
+msgid "Surface Input Type"
+msgstr "Ytans ingångstyp"
+
+
+msgid "Select the input type for the surface geometry."
+msgstr "Välj ingångstyp för ytgeometrin."
+
+
+msgid "Surface normal at the attachment point"
+msgstr "Ytnormal vid fästpunkten"
+
+
+msgid "Surface UV Coordinate"
+msgstr "Ytans UV-koordinat"
+
+
+msgid "Surface UV coordinates at the attachment point"
+msgstr "Ytans UV-koordinater vid fästpunkten"
+
+
+msgid "Blend Hair Curves"
+msgstr "Blanda hårkurvor"
+
+
+msgid "Blends shape between multiple hair curves in a certain radius"
+msgstr "Blender ut formen mellan flera hårkurvor inom en viss radie"
+
+
+msgid "Blend Neighbors"
+msgstr "Blanda grannar"
+
+
+msgid "Amount of neighbors used for blending"
+msgstr "Antal grannar som används för blandning"
+
+
+msgid "Blend Radius"
+msgstr "Blandningsradie"
+
+
+msgid "Radius to select neighbors for blending"
+msgstr "Radie för att välja grannar för blandning"
+
+
+msgid "Preserve Length"
+msgstr "Bevara längd"
+
+
+msgid "Preserve each curve's length during deformation"
+msgstr "Bevara varje kurvas längd under deformation"
+
+
+msgid "Braid Hair Curves"
+msgstr "Flätade hårkurvor"
+
+
+msgid "Deforms existing hair curves into braids using guide curves"
+msgstr "Deformerar befintliga hårkurvor till flätor med hjälp av styrkurvor"
+
+
+msgid "Braid Start"
+msgstr "Flätans början"
+
+
+msgid "Factor Max"
+msgstr "Faktor Max"
+
+
+msgid "Factor of the maximum radius of the braids"
+msgstr "Faktor för flätornas maximala radie"
+
+
+msgid "Factor Min"
+msgstr "Faktor Min"
+
+
+msgid "Factor of the minimum radius of the braids"
+msgstr "Faktor för flätornas minsta radie"
+
+
+msgid "Flare Length"
+msgstr "Facklans längd"
+
+
+msgid "Length of the flare at the end of the braid"
+msgstr "Längden på flänsen i änden av flätan"
+
+
+msgid "Flare Opening"
+msgstr "Flareöppning"
+
+
+msgid "Opening radius of the flare at the tip of the braid"
+msgstr "Öppningsradie för flänsen vid flätans spets"
+
+
+msgid "Flare Parameter"
+msgstr "Flare-parameter"
+
+
+msgid "Parameter from 0 to 1 along the flare"
+msgstr "Parameter från 0 till 1 längs facklan"
+
+
+msgid "Frequency factor of the braids"
+msgstr "Frekvensfaktorn för flätorna"
+
+
+msgid "Hair Tie"
+msgstr "Hårband"
+
+
+msgid "Geometry used for the hair tie instance (priority)"
+msgstr "Geometri som används för hårsnodden (prioritet)"
+
+
+msgid "Object used for the hair tie instance"
+msgstr "Objekt som används för hårsnodden"
+
+
+msgid "Hair Tie Input Type"
+msgstr "Hårbandets ingångstyp"
+
+
+msgid "Select the input type for the hair tie geometry."
+msgstr "Välj ingångstyp för hårsnoddsgeometrin."
+
+
+msgid "Hair Tie Scale"
+msgstr "Hårbandsskala"
+
+
+msgid "Scale of the hair tie instance"
+msgstr "Skala för hårsnodden"
+
+
+msgid "Overall radius of the braids"
+msgstr "Fläckarnas totala radie"
+
+
+msgid "Shape of the braid radius along each curve"
+msgstr "Formen på flätans radie längs varje kurva"
+
+
+msgid "Shape Asymmetry"
+msgstr "Formasymmetri"
+
+
+msgid "Asymmetry of the shape adjustment of the strand thickness"
+msgstr "Asymmetri i formjusteringen av trådens tjocklek"
+
+
+msgid "Shape Parameters"
+msgstr "Formparametrar"
+
+
+msgid "Strand Index"
+msgstr "Strandindex"
+
+
+msgid "Index of the strand within a braid that each curve belongs to"
+msgstr "Index för den tråd i en fläta som varje kurva tillhör"
+
+
+msgid "Thickness of each strand of hair"
+msgstr "Tjocklek på varje hårstrå"
+
+
+msgid "Thickness Shape"
+msgstr "Tjocklek Form"
+
+
+msgid "Shape adjustment of the strand thickness for the braids"
+msgstr "Formjustering av trådens tjocklek för flätorna"
+
+
+msgid "Clump Hair Curves"
+msgstr "Klumpiga hårkurvor"
+
+
+msgid "Clumps together existing hair curves using guide curves"
+msgstr "Sammanfogar befintliga hårkurvor med hjälp av styrkurvor"
+
+
+msgid "Clump Offset"
+msgstr "Klumpförskjutning"
+
+
+msgid "Offset of each clump in a random direction"
+msgstr "Förskjutning av varje klump i slumpmässig riktning"
+
+
+msgid "Distance Falloff"
+msgstr "Avståndsavtagning"
+
+
+msgid "Falloff distance for the clumping effect (0 means no falloff)"
+msgstr "Falloff-avstånd för klumpningseffekten (0 betyder ingen falloff)"
+
+
+msgid "Distance Threshold"
+msgstr "Avståndströskel"
+
+
+msgid "Distance threshold for the falloff around the guide"
+msgstr "Avståndströskel för avklingningen runt guiden"
+
+
+msgid "Shape of the influence along curves (0=constant, 0.5=linear)"
+msgstr "Form på påverkan längs kurvor (0=konstant, 0,5=linjär)"
+
+
+msgid "Tip Spread"
+msgstr "Tips Spridning"
+
+
+msgid "Distance of random spread at the curve tips"
+msgstr "Avstånd för slumpmässig spridning vid kurvans spetsar"
+
+
 msgid "Displace Hair Curves"
 msgstr "Förskjut hårkurvor"
 
@@ -156207,10 +156229,6 @@ msgid "Offset of the curves to round the tip"
 msgstr "Förskjutning av kurvorna för att runda spetsen"
 
 
-msgid "Viewport Amount"
-msgstr "Visningsområde"
-
-
 msgid "Percentage of amount used for the viewport"
 msgstr "Procentandel av beloppet som används för visningsområdet"
 
@@ -156233,66 +156251,6 @@ msgstr "Total avståndsfaktor för deformationen"
 
 msgid "Vector by which each point was offset during deformation"
 msgstr "Vektor med vilken varje punkt försköts under deformationen"
-
-
-msgid "Generate Hair Curves"
-msgstr "Skapa hårkurvor"
-
-
-msgid "Generates new hair curves on a surface mesh"
-msgstr "Genererar nya hårkurvor på ett ytnät"
-
-
-msgid "Amount of control points of the generated hair curves"
-msgstr "Antal kontrollpunkter för de genererade hårkurvorna"
-
-
-msgid "Surface density of generated hair curves"
-msgstr "Ytdensitet för genererade hårkurvor"
-
-
-msgid "Density Mask"
-msgstr "Densitetsmask"
-
-
-msgid "Factor applied on the density for curve distribution"
-msgstr "Faktor som tillämpas på densiteten för kurvfördelningen"
-
-
-msgid "Use Poisson disk distribution method to keep a minimum distance"
-msgstr "Använd Poisson-diskfördelningsmetoden för att hålla ett minimavstånd"
-
-
-msgid "Length of the generated hair curves"
-msgstr "Längden på de genererade hårkurvorna"
-
-
-msgid "Hair Material"
-msgstr "Hårmaterial"
-
-
-msgid "Material of the generated hair curves"
-msgstr "Materialet i de genererade hårkurvorna"
-
-
-msgid "Discard points based on a mask texture after distribution"
-msgstr "Kasta bort punkter baserat på en masktextur efter distribution"
-
-
-msgid "Surface geometry for generation"
-msgstr "Ytgeometri för generering"
-
-
-msgid "Surface object for generation (needs matching transforms)"
-msgstr "Ytobjekt för generering (kräver matchande transformationer)"
-
-
-msgid "Normal direction of the surface mesh at the attachment point"
-msgstr "Normal riktning för ytmasken vid fästpunkten"
-
-
-msgid "Factor applied on the density for the viewport"
-msgstr "Faktor som tillämpas på densiteten för visningsområdet"
 
 
 msgid "Hair Attachment Info"

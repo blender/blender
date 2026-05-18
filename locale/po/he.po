@@ -1,9 +1,9 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 5.2.0 Alpha (b'8c7c45ad114e')\n"
+"Project-Id-Version: Blender 5.2.0 Alpha (b'bc0a0ff2c0ce')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-05-11 07:23+0000\n"
+"POT-Creation-Date: 2026-05-18 11:20+0000\n"
 "PO-Revision-Date: 2026-01-20 15:20+0000\n"
 "Last-Translator: golden dragon <trmhtk2@gmail.com>\n"
 "Language-Team: Hebrew <https://translate.blender.org/projects/blender-ui/ui/he/>\n"
@@ -597,10 +597,6 @@ msgstr "הליעפ םצע"
 
 msgid "Regions for quick access to assets"
 msgstr "םיסכנל הריהמ השיגל םירוזא"
-
-
-msgid "Show the basic building blocks and utilities coming with Blender"
-msgstr "Blender םע םיעיגמש םירזעו היינבה יקולב תא גצה"
 
 
 msgid "Options"
@@ -2245,6 +2241,10 @@ msgid "Grease Pencil Color"
 msgstr "Grease Pencil יאבצ"
 
 
+msgid "Mirror"
+msgstr "הארמ"
+
+
 msgid "Apply"
 msgstr "לחה"
 
@@ -2259,10 +2259,6 @@ msgstr "האפ ינותנ"
 
 msgid "Layout"
 msgstr "הסירפ"
-
-
-msgid "Mirror"
-msgstr "הארמ"
 
 
 msgid "Proxy"

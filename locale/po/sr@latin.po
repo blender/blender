@@ -1,9 +1,9 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 5.2.0 Alpha (b'8c7c45ad114e')\n"
+"Project-Id-Version: Blender 5.2.0 Alpha (b'bc0a0ff2c0ce')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-05-11 07:23+0000\n"
+"POT-Creation-Date: 2026-05-18 11:20+0000\n"
 "PO-Revision-Date: 2025-07-23 14:56+0000\n"
 "Last-Translator: Anonymous <noreply@weblate.org>\n"
 "Language-Team: Serbian (Latin script) <https://translate.blender.org/projects/blender-ui/ui/sr_Latn/>\n"
@@ -8498,6 +8498,10 @@ msgid "Material slot name"
 msgstr "Naziv slota materijala"
 
 
+msgid "Mirror"
+msgstr "Ogledalo"
+
+
 msgid "Snap"
 msgstr "Lepljenje"
 
@@ -8508,6 +8512,10 @@ msgstr "UV Mapiranje"
 
 msgid "Local View"
 msgstr "Lokalni pogled"
+
+
+msgid "Math"
+msgstr "Matematika"
 
 
 msgid "Navigation"
@@ -8522,10 +8530,6 @@ msgid "Select Linked"
 msgstr "Izaberi povezano"
 
 
-msgid "Math"
-msgstr "Matematika"
-
-
 msgid "Metaball"
 msgstr "Meta lopta"
 
@@ -8536,6 +8540,10 @@ msgstr "Svetlost"
 
 msgid "Relations"
 msgstr "Odnosi"
+
+
+msgid "Import"
+msgstr "Uvoz"
 
 
 msgid "Rigid Body"
@@ -8558,16 +8566,12 @@ msgid "Show/Hide"
 msgstr "Prikaži/sakrij"
 
 
-msgid "Import"
-msgstr "Uvoz"
+msgid "UV"
+msgstr "UV"
 
 
 msgid "Hooks"
 msgstr "Udice"
-
-
-msgid "UV"
-msgstr "UV"
 
 
 msgid "Clear Transform"
@@ -8620,10 +8624,6 @@ msgstr "Zbirka tastera"
 
 msgid "Tracking"
 msgstr "Praćenje"
-
-
-msgid "Mirror"
-msgstr "Ogledalo"
 
 
 msgid "Basic"
@@ -11986,6 +11986,10 @@ msgid "Add Bone"
 msgstr "Dodaj kost"
 
 
+msgid "Axes"
+msgstr "Ose"
+
+
 msgid "Name of the newly created bone"
 msgstr "Ime novoformirane kosti"
 
@@ -12035,6 +12039,10 @@ msgstr "Dupliraj izabranu kost/i"
 
 msgid "Move"
 msgstr "Pomeri"
+
+
+msgid "Search"
+msgstr "Pretraga"
 
 
 msgctxt "Operator"
@@ -19062,12 +19070,12 @@ msgid "Restrict"
 msgstr "Ograniči"
 
 
-msgid "Transform Orientations"
-msgstr "Transformacija orijentacija"
-
-
 msgid "Motion Tracking"
 msgstr "Praćenje pokreta"
+
+
+msgid "Transform Orientations"
+msgstr "Transformacija orijentacija"
 
 
 msgid "Bone Constraints"
@@ -22331,10 +22339,6 @@ msgid "Operator Properties"
 msgstr "Osobine operatora"
 
 
-msgid "Search"
-msgstr "Pretraga"
-
-
 msgctxt "WindowManager"
 msgid "Window"
 msgstr "Prozor"
@@ -22710,10 +22714,6 @@ msgstr "Dodaj ograničenja kosti"
 
 msgid "Shapes"
 msgstr "Oblici"
-
-
-msgid "Axes"
-msgstr "Ose"
 
 
 msgctxt "Operator"

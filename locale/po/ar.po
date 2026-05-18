@@ -1,9 +1,9 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 5.2.0 Alpha (b'8c7c45ad114e')\n"
+"Project-Id-Version: Blender 5.2.0 Alpha (b'bc0a0ff2c0ce')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-05-11 07:23+0000\n"
+"POT-Creation-Date: 2026-05-18 11:20+0000\n"
 "PO-Revision-Date: 2025-07-23 14:53+0000\n"
 "Last-Translator: Anonymous <noreply@weblate.org>\n"
 "Language-Team: Arabic <https://translate.blender.org/projects/blender-ui/ui/ar/>\n"
@@ -15660,12 +15660,20 @@ msgid "Material slot name"
 msgstr "ﺔﻣﺎﺨﻟﺍ ﺔﺤﺘﻓ ﻢﺳﺇ"
 
 
+msgid "Mirror"
+msgstr "ﻞﺛﺎﻣ"
+
+
 msgid "Snap"
 msgstr "ﻱﺫﺎﺣ"
 
 
 msgid "UV Mapping"
 msgstr "UV ءﺎﺴﻛﺇ"
+
+
+msgid "Math"
+msgstr "ﺏﺎﺴﺣ"
 
 
 msgid "Navigation"
@@ -15696,10 +15704,6 @@ msgid "Select Linked"
 msgstr "ﺔﻄﺒﺗﺮﻤﻟﺍ ﺭﺎﺘﺧﺇ"
 
 
-msgid "Math"
-msgstr "ﺏﺎﺴﺣ"
-
-
 msgid "Metaball"
 msgstr "ﺔﻠﻋﺎﻔﺘﻣ ﺓﺮﻛ"
 
@@ -15710,6 +15714,10 @@ msgstr "ءﻮﺿ"
 
 msgid "Relations"
 msgstr "ﺕﺎﻗﻼ﻿ﻌﻟﺍ"
+
+
+msgid "Import"
+msgstr "ﺩﺭﻮﺘﺳﺇ"
 
 
 msgid "Rigid Body"
@@ -15728,20 +15736,16 @@ msgid "Quick Effects"
 msgstr "ﺔﻌﻳﺮﺳ ﺕﺍﺮﻴﺛﺄﺗ"
 
 
-msgid "Import"
-msgstr "ﺩﺭﻮﺘﺳﺇ"
-
-
 msgid "Make Single User"
 msgstr "ﻡﺪﺨﺘﺴﻤﻟﺍ ﺪﻴﺣﻭ ﻪﻠﻌﺟﺍ"
 
 
-msgid "Hooks"
-msgstr "ﺕﺎﻓﺎﻄﺧ"
-
-
 msgid "UV"
 msgstr "ﺭﻭﺎﺤﻣ"
+
+
+msgid "Hooks"
+msgstr "ﺕﺎﻓﺎﻄﺧ"
 
 
 msgid "In-Betweens"
@@ -15764,12 +15768,12 @@ msgid "Merge"
 msgstr "ﺞﻣﺩﺇ"
 
 
-msgid "Special Characters"
-msgstr "ﺔﺻﺎﺧ ﻑﺮﺣﺃ"
-
-
 msgid "Layout"
 msgstr "ﻖﻴﺴﻨﺗ"
+
+
+msgid "Special Characters"
+msgstr "ﺔﺻﺎﺧ ﻑﺮﺣﺃ"
 
 
 msgid "Bone Roll"
@@ -15786,10 +15790,6 @@ msgstr "ﺔﻘﺣﻼ﻿ﻤﻟﺍ"
 
 msgid "Proportional Editing Falloff"
 msgstr "ﻲﺒﺴﻨﻟﺍ ﺮﻳﺮﺤﺘﻟﺍ ﻲﺷﻼ﻿ﺗ"
-
-
-msgid "Mirror"
-msgstr "ﻞﺛﺎﻣ"
 
 
 msgctxt "MovieClip"
@@ -20463,6 +20463,10 @@ msgid "Add Bone"
 msgstr "ﺔﻤﻈﻋ ﻒﺿﺍ"
 
 
+msgid "Axes"
+msgstr "ﺭﻭﺎﺤﻣ"
+
+
 msgctxt "Operator"
 msgid "Recalculate Roll"
 msgstr "ﻥﻼ﻿ﻴﻤﻟﺍ ﺏﺎﺴﺣ ﺪﻋﺍ"
@@ -20517,6 +20521,10 @@ msgstr "ﺓﺭﺎﺘﺨﻤﻟﺍ ﻡﺎﻈﻌﻟﺍ ﺭﺮﻛ"
 
 msgid "Make copies of the selected bones within the same armature"
 msgstr "ﻞﻜﻴﻬﻟﺍ ﺲﻔﻧ ﻦﻤﺿ ﺓﺭﺎﺘﺨﻤﻟﺍ ﻡﺎﻈﻌﻟﺍ ﺦﺴﻧ ﻞﻌﺟﺍ"
+
+
+msgid "Search"
+msgstr "ﺚﺤﺑﺇ"
 
 
 msgctxt "Operator"
@@ -27701,16 +27709,16 @@ msgid "Palette Color"
 msgstr "ﻥﻮﻠﻟﺍ ﺔﺣﻮﻟ"
 
 
-msgid "Transform Orientations"
-msgstr "ﻝﻮﺤﺘﻟﺍ ﺕﺎﻫﺎﺠﺗﺍ"
-
-
 msgid "Render Pass"
 msgstr "ﺮﻴﻴﺼﺗ ﺮﻤﻣ"
 
 
 msgid "Motion Tracking"
 msgstr "ﺔﻛﺮﺤﻟﺍ ﺔﻘﺣﻼ﻿ﻣ"
+
+
+msgid "Transform Orientations"
+msgstr "ﻝﻮﺤﺘﻟﺍ ﺕﺎﻫﺎﺠﺗﺍ"
 
 
 msgid "Bone Constraints"
@@ -33020,10 +33028,6 @@ msgid "Operator Properties"
 msgstr "ﻞﻣﺎﻌﻟﺍ ﺹﺍﻮﺧ"
 
 
-msgid "Search"
-msgstr "ﺚﺤﺑﺇ"
-
-
 msgctxt "WindowManager"
 msgid "Window"
 msgstr "ﺓﺬﻓﺎﻨﻟﺍ"
@@ -33524,10 +33528,6 @@ msgstr "ﺭﻮﺤﻤﻟﺍ ﺔﺣﺍﺯﺇ"
 
 msgid "Shapes"
 msgstr "ﻝﺎﻜﺷﻷ﻿ﺍ"
-
-
-msgid "Axes"
-msgstr "ﺭﻭﺎﺤﻣ"
 
 
 msgid "Control Rotation"
@@ -35049,6 +35049,10 @@ msgid "Could not connect vertices"
 msgstr "ﺔﻠﺼﺘﻤﻟﺍ UV ـﻟﺍ ﻂﻘﻧ ﻦﻣ ﻞﺴﻠﺴﺗ ﺮﺘﺧﺇ"
 
 
+msgid "Anisotropic"
+msgstr "ﺱﺎﻜﻌﻧﻹ﻿ﺍ ﻞﻜﺸﺗ"
+
+
 msgid "No active object"
 msgstr "ﻝﺎﻌﻔﻟﺍ ﻦﺋﺎﻜﻟﺍ ﻞﻴﻟﺩ"
 
@@ -36497,10 +36501,6 @@ msgstr "ﻒﻠﻤﻟﺍ ﺢﺘﻓ ﻰﻠﻋ ﺭﺩﺎﻗ ﺮﻴﻏ"
 
 msgid "Unable to create socket"
 msgstr "ﺔﺤﺘﻓ ءﺎﺸﻧﺇ ﻰﻠﻋ ﺭﺩﺎﻗ ﺮﻴﻏ"
-
-
-msgid "Anisotropic"
-msgstr "ﺱﺎﻜﻌﻧﻹ﻿ﺍ ﻞﻜﺸﺗ"
 
 
 msgid "Unable to locate link in node tree"

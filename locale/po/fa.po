@@ -1,9 +1,9 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 5.2.0 Alpha (b'8c7c45ad114e')\n"
+"Project-Id-Version: Blender 5.2.0 Alpha (b'bc0a0ff2c0ce')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-05-11 07:23+0000\n"
+"POT-Creation-Date: 2026-05-18 11:20+0000\n"
 "PO-Revision-Date: 2025-11-19 06:24+0000\n"
 "Last-Translator: \"M. Amin Taheri\" <amintaheri2001@gmail.com>\n"
 "Language-Team: Persian <https://translate.blender.org/projects/blender-ui/ui/fa/>\n"
@@ -3082,6 +3082,10 @@ msgid "Mix"
 msgstr "ﻁﻮﻠﺨﻣ"
 
 
+msgid "Mirror"
+msgstr "ﻪﻨﯾﺁ"
+
+
 msgid "Math"
 msgstr "ﯽﺿﺎﯾﺭ"
 
@@ -3094,12 +3098,12 @@ msgid "Relations"
 msgstr "ﻂﺑﺍﻭﺭ"
 
 
-msgid "Apply"
-msgstr "ﻝﺎﻤﻋﺍ"
-
-
 msgid "Import"
 msgstr "ﻥﺩﺮﮐ ﺩﺭﺍﻭ"
+
+
+msgid "Apply"
+msgstr "ﻝﺎﻤﻋﺍ"
 
 
 msgid "Convert"
@@ -3120,10 +3124,6 @@ msgstr "ﯽﺑﺎﯾﺩﺭ"
 
 msgid "Pivot Point"
 msgstr "ﺶﺧﺮﭼ ﻪﻄﻘﻧ"
-
-
-msgid "Mirror"
-msgstr "ﻪﻨﯾﺁ"
 
 
 msgid "Key"
@@ -3687,6 +3687,10 @@ msgstr "ﺭﻮﯾﺍﺭﺩ ﻑﺬﺣ"
 
 msgid "Flip Names"
 msgstr "ﺎﻫ‌ﻢﺳﺍ ﯼﺯﺎﺳ‌ﻪﻨﯾﺮﻗ"
+
+
+msgid "Search"
+msgstr "ﻮﺠﺘﺴﺟ"
 
 
 msgid "(undocumented operator)"
@@ -4312,12 +4316,12 @@ msgid "Restrict"
 msgstr "ﻥﺩﺮﮐ ﺩﻭﺪﺤﻣ"
 
 
-msgid "Transform Orientations"
-msgstr "ﻞﮑﺷ ﺮﯿﯿﻐﺗ ﺖﻬﺟ"
-
-
 msgid "Motion Tracking"
 msgstr "ﺖﮐﺮﺣ ﯽﺑﺎﯾﺩﺭ"
+
+
+msgid "Transform Orientations"
+msgstr "ﻞﮑﺷ ﺮﯿﯿﻐﺗ ﺖﻬﺟ"
 
 
 msgid "Bone Constraints"
@@ -4668,10 +4672,6 @@ msgstr "ﺎﻄﺧ ﻡﺎﻐﯿﭘ"
 
 msgid "Use linear progression"
 msgstr "ﯽﻄﺧ ﺖﻓﺮﺸﯿﭘ ﺯﺍ ﻩﺩﺎﻔﺘﺳﺍ"
-
-
-msgid "Search"
-msgstr "ﻮﺠﺘﺴﺟ"
 
 
 msgctxt "WindowManager"

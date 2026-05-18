@@ -1,9 +1,9 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 5.2.0 Alpha (b'8c7c45ad114e')\n"
+"Project-Id-Version: Blender 5.2.0 Alpha (b'bc0a0ff2c0ce')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-05-11 07:23+0000\n"
+"POT-Creation-Date: 2026-05-18 11:20+0000\n"
 "PO-Revision-Date: 2026-03-27 12:12+0000\n"
 "Last-Translator: kim nahyeong <weiing0123@ajou.ac.kr>\n"
 "Language-Team: Korean <https://translate.blender.org/projects/blender-ui/ui/ko/>\n"
@@ -1967,10 +1967,6 @@ msgstr "이 Blender 세션에서 사용할 수 있는 어셋 표시"
 
 msgid "Essentials"
 msgstr "에센셜"
-
-
-msgid "Show the basic building blocks and utilities coming with Blender"
-msgstr "Blender와 함께 제공되는 기본 구성 요소와 유틸리티 어셋 표시"
 
 
 msgid "Custom"
@@ -24202,6 +24198,10 @@ msgid "Planar Probe"
 msgstr "평면 프로브"
 
 
+msgid "Parallax Radius"
+msgstr "시차 반경"
+
+
 msgid "Spherical Probe"
 msgstr "구형 프로브"
 
@@ -24216,10 +24216,6 @@ msgstr "프로브 영향이 얼마나 빨리 감소하는지 제어합니다"
 
 msgid "Type of influence volume"
 msgstr "영향 볼륨의 유형"
-
-
-msgid "Parallax Radius"
-msgstr "시차 반경"
 
 
 msgid "Lowest corner of the parallax bounding box"
@@ -34765,6 +34761,10 @@ msgid "Editor menu containing buttons"
 msgstr "버튼이 포함된 에디터 메뉴"
 
 
+msgid "Mirror"
+msgstr "미러"
+
+
 msgid "Snap"
 msgstr "스냅"
 
@@ -34781,12 +34781,20 @@ msgid "Viewpoint"
 msgstr "뷰포트"
 
 
+msgid "Math"
+msgstr "수학"
+
+
 msgid "Navigation"
 msgstr "네비게이션"
 
 
 msgid "Align View"
 msgstr "뷰를 정렬"
+
+
+msgid "Utilities"
+msgstr "유틸리티"
 
 
 msgid "Align View to Active"
@@ -34817,22 +34825,6 @@ msgid "Select Loops"
 msgstr "루프를 선택"
 
 
-msgid "Math"
-msgstr "수학"
-
-
-msgid "Utilities"
-msgstr "유틸리티"
-
-
-msgid "Assign Material"
-msgstr "머티리얼을 할당"
-
-
-msgid "Metaball"
-msgstr "메타볼"
-
-
 msgid "Read"
 msgstr "읽기"
 
@@ -34841,8 +34833,20 @@ msgid "Sample"
 msgstr "샘플"
 
 
+msgid "Assign Material"
+msgstr "머티리얼을 할당"
+
+
 msgid "Write"
 msgstr "쓰기"
+
+
+msgid "Primitives"
+msgstr "프리미티브"
+
+
+msgid "Metaball"
+msgstr "메타볼"
 
 
 msgid "Light"
@@ -34853,8 +34857,12 @@ msgid "Light Probe"
 msgstr "라이트 프로브"
 
 
-msgid "Primitives"
-msgstr "프리미티브"
+msgid "Gizmo"
+msgstr "기즈모"
+
+
+msgid "Instances"
+msgstr "인스턴스"
 
 
 msgid "Add Image"
@@ -34865,24 +34873,24 @@ msgid "Relations"
 msgstr "관계"
 
 
+msgid "Import"
+msgstr "가져오기"
+
+
 msgid "Rigid Body"
 msgstr "리지드 바디"
-
-
-msgid "Gizmo"
-msgstr "기즈모"
 
 
 msgid "Apply"
 msgstr "적용"
 
 
-msgid "Instances"
-msgstr "인스턴스"
-
-
 msgid "Track"
 msgstr "트랙"
+
+
+msgid "Deprecated"
+msgstr "사용 중단"
 
 
 msgid "Quick Effects"
@@ -34897,12 +34905,12 @@ msgid "Clean Up"
 msgstr "정리"
 
 
-msgid "Import"
-msgstr "가져오기"
-
-
 msgid "Asset"
 msgstr "에셋"
+
+
+msgid "List"
+msgstr "목록"
 
 
 msgid "Make Single User"
@@ -34911,6 +34919,10 @@ msgstr "싱글 유저를 만들기"
 
 msgid "Convert"
 msgstr "변환"
+
+
+msgid "UV"
+msgstr "UV"
 
 
 msgid "Link/Transfer Data"
@@ -34925,20 +34937,8 @@ msgid "Vertex Group Locks"
 msgstr "버텍스 그룹 잠금"
 
 
-msgid "Deprecated"
-msgstr "사용 중단"
-
-
 msgid "Trim/Add"
 msgstr "트림/추가"
-
-
-msgid "List"
-msgstr "목록"
-
-
-msgid "UV"
-msgstr "UV"
 
 
 msgid "Sculpt Set Pivot"
@@ -35005,6 +35005,10 @@ msgid "Merge"
 msgstr "병합"
 
 
+msgid "Layout"
+msgstr "레이아웃"
+
+
 msgid "Special Characters"
 msgstr "특수 문자"
 
@@ -35013,16 +35017,12 @@ msgid "Kerning"
 msgstr "자간"
 
 
-msgid "Layout"
-msgstr "레이아웃"
+msgid "Adjust"
+msgstr "조정"
 
 
 msgid "Bone Roll"
 msgstr "뼈대 롤"
-
-
-msgid "Adjust"
-msgstr "조정"
 
 
 msgid "Keying"
@@ -35033,8 +35033,16 @@ msgid "Tracking"
 msgstr "트래킹"
 
 
+msgid "Creative"
+msgstr "크리에이티브"
+
+
 msgid "Pivot Point"
 msgstr "피벗 포인트"
+
+
+msgid "Render Preview"
+msgstr "렌더링 미리보기"
 
 
 msgid "Proportional Editing Falloff"
@@ -35051,18 +35059,6 @@ msgstr "오토마스킹"
 
 msgid "Face Sets Edit"
 msgstr "페이스 세트 편집"
-
-
-msgid "Creative"
-msgstr "크리에이티브"
-
-
-msgid "Render Preview"
-msgstr "렌더링 미리보기"
-
-
-msgid "Mirror"
-msgstr "미러"
 
 
 msgid "Keyframe Insert Pie"
@@ -51726,14 +51722,6 @@ msgid "Collection of Node Sockets"
 msgstr "노드 소켓의 컬렉션"
 
 
-msgid "Node Instance Hash"
-msgstr "노드 인스턴스 해쉬"
-
-
-msgid "Hash table containing node instance data"
-msgstr "노드 인스턴스 데이터를 포함된 해쉬 테이블"
-
-
 msgid "Socket Template"
 msgstr "소켓 템플릿"
 
@@ -57003,6 +56991,10 @@ msgid "Add a new bone located at the 3D cursor"
 msgstr "3D 커서에 새 뼈대를 추가함"
 
 
+msgid "Axes"
+msgstr "축"
+
+
 msgid "Name of the newly created bone"
 msgstr "최근 만들어진 뼈대의 이름"
 
@@ -57247,6 +57239,10 @@ msgstr "이동"
 
 msgid "Move selected items"
 msgstr "선택한 항목을 이동"
+
+
+msgid "Search"
+msgstr "검색"
 
 
 msgctxt "Operator"
@@ -81630,14 +81626,6 @@ msgid "Deselect previously selected strips after add operation completes"
 msgstr "추가 작업이 완료된 후 이전에 선택한 스트립의 선택 해제"
 
 
-msgid "Skip Locked or Muted Channels"
-msgstr "잠겨 있거나 음소거된 채널 건너뛰기"
-
-
-msgid "Add strips to muted or locked channels when adding movie strips"
-msgstr "뮤비 스트립을 추가할 때 음소거되거나 잠긴 채널에 스트립 추가하기"
-
-
 msgid "Ignore Connections"
 msgstr "연결 무시"
 
@@ -90446,6 +90434,46 @@ msgid "Panel containing UI elements"
 msgstr "UI 요소가 포함된 패널"
 
 
+msgid "Selectability & Visibility"
+msgstr "선택성 및 가시성"
+
+
+msgid "Shadow Settings"
+msgstr "섀도우 설정"
+
+
+msgid "SSAO Settings"
+msgstr "SSAO 설정"
+
+
+msgid "Cavity"
+msgstr "캐비티"
+
+
+msgid "Render Pass"
+msgstr "렌더 패스"
+
+
+msgid "Compositor"
+msgstr "컴포지터"
+
+
+msgid "Overlays"
+msgstr "오버레이"
+
+
+msgid "Guides"
+msgstr "가이드"
+
+
+msgid "Viewer Node"
+msgstr "뷰어 노드"
+
+
+msgid "Motion Tracking"
+msgstr "모션 트래킹"
+
+
 msgid "Mesh Edit Mode"
 msgstr "메시 에디트 모드"
 
@@ -90474,10 +90502,6 @@ msgid "Drawing Plane"
 msgstr "드로잉 평면"
 
 
-msgid "Guides"
-msgstr "가이드"
-
-
 msgid "Grease Pencil Options"
 msgstr "그리스 펜슬 옵션"
 
@@ -90498,16 +90522,16 @@ msgid "Multi Frame"
 msgstr "다중 프레임"
 
 
-msgid "Auto-Masking"
-msgstr "자동 마스킹"
-
-
 msgid "glTF Variants"
 msgstr "glTF 변형"
 
 
 msgid "glTF Material Variants"
 msgstr "glTF 머티리얼 배리언트"
+
+
+msgid "Auto-Masking"
+msgstr "자동 마스킹"
 
 
 msgid "Curves Sculpt Add Curve Options"
@@ -90548,42 +90572,6 @@ msgstr "활성 도구"
 
 msgid "View Lock"
 msgstr "뷰 잠금"
-
-
-msgid "Selectability & Visibility"
-msgstr "선택성 및 가시성"
-
-
-msgid "Shadow Settings"
-msgstr "섀도우 설정"
-
-
-msgid "SSAO Settings"
-msgstr "SSAO 설정"
-
-
-msgid "Cavity"
-msgstr "캐비티"
-
-
-msgid "Render Pass"
-msgstr "렌더 패스"
-
-
-msgid "Compositor"
-msgstr "컴포지터"
-
-
-msgid "Overlays"
-msgstr "오버레이"
-
-
-msgid "Viewer Node"
-msgstr "뷰어 노드"
-
-
-msgid "Motion Tracking"
-msgstr "모션 트래킹"
 
 
 msgid "Import Settings"
@@ -95709,10 +95697,6 @@ msgstr "중국어(번체) - 繁體中文"
 
 msgid "Czech - Čeština"
 msgstr "체코어 - Čeština"
-
-
-msgid "Locale code: cs_CZ. Translation progress: 27%"
-msgstr "로캘 코드: cs_CZ. 번역 진행률: 27%"
 
 
 msgid "Danish - Dansk"
@@ -107073,6 +107057,10 @@ msgid "Shadow Offset"
 msgstr "쉐도우 오프셋"
 
 
+msgid "Line Spacing"
+msgstr "줄 간격"
+
+
 msgid "Text that will be displayed"
 msgstr "표시되는 텍스트"
 
@@ -114099,10 +114087,6 @@ msgstr ""
 "재생의 경우 'Shift-Space' 사용"
 
 
-msgid "Search"
-msgstr "검색"
-
-
 msgid "Open the operator search popup"
 msgstr "오퍼레이터 검색 팝업 열기"
 
@@ -117659,10 +117643,6 @@ msgid "Surfaces"
 msgstr "표면"
 
 
-msgid "Denoising Data"
-msgstr "노이즈 제거 데이터"
-
-
 msgid "Indexes"
 msgstr "인덱스"
 
@@ -117761,6 +117741,10 @@ msgstr "뷰포트 바운스"
 
 msgid "Render Bounces"
 msgstr "렌더 바운스"
+
+
+msgid "Denoising Data"
+msgstr "노이즈 제거 데이터"
 
 
 msgid "Scatter"
@@ -120720,10 +120704,6 @@ msgid "Shapes"
 msgstr "셰이프"
 
 
-msgid "Axes"
-msgstr "축"
-
-
 msgctxt "Operator"
 msgid "Remove Unused"
 msgstr "사용하지 않음 제거"
@@ -120935,10 +120915,6 @@ msgstr "문자 간격"
 
 msgid "Word Spacing"
 msgstr "단어 간격"
-
-
-msgid "Line Spacing"
-msgstr "줄 간격"
 
 
 msgid "Offset X"
@@ -129663,6 +129639,10 @@ msgid "color_index is invalid"
 msgstr "color_index가 유효하지 없음"
 
 
+msgid "Anisotropic"
+msgstr "비등방성"
+
+
 msgid "Error: Too many AOVs"
 msgstr "오차: 너무 많은 AOV"
 
@@ -130519,14 +130499,6 @@ msgstr "슬라이딩 도구"
 
 msgid "Cancel"
 msgstr "취소"
-
-
-msgid "Axis Constraint"
-msgstr "축 제약"
-
-
-msgid "Axis Only"
-msgstr "축 전용"
 
 
 msgid "Bone Visibility"
@@ -132257,11 +132229,6 @@ msgstr "연결할 ID 데이터를 찾아보기"
 msgctxt "Operator"
 msgid "Rename Data-Block"
 msgstr "데이터 블록 이름 바꾸기"
-
-
-msgctxt "Operator"
-msgid "Fake User"
-msgstr "가짜 사용자"
 
 
 msgid "The data-block %s is not overridable"
@@ -137429,6 +137396,14 @@ msgid "Type: List"
 msgstr "유형: 목록"
 
 
+msgid "Extension X"
+msgstr "확장 X"
+
+
+msgid "Extension Y"
+msgstr "확장 Y"
+
+
 msgid "Index Field"
 msgstr "인덱스 필드"
 
@@ -141449,10 +141424,6 @@ msgid "Use Cubic B-Spline interpolation"
 msgstr "입체 B-스플라인 보간을 사용함"
 
 
-msgid "Anisotropic"
-msgstr "비등방성"
-
-
 msgid "Use Anisotropic interpolation"
 msgstr "비등방성 보간 사용함"
 
@@ -143680,14 +143651,6 @@ msgstr "하단 왼쪽"
 
 msgid "Lower Right"
 msgstr "하단 오른쪽"
-
-
-msgid "Extension X"
-msgstr "확장 X"
-
-
-msgid "Extension Y"
-msgstr "확장 Y"
 
 
 msgid "The extension mode applied to the X axis"
@@ -147767,6 +147730,10 @@ msgid "Volume to convert to a mesh"
 msgstr "메시로 변환할 볼륨"
 
 
+msgid "Substeps"
+msgstr "세부 단계함"
+
+
 msgid "Mask Input"
 msgstr "마스크 입력함"
 
@@ -151596,10 +151563,6 @@ msgid "Factor that the displacement is multiplied with"
 msgstr "변위가 곱해지는 요인"
 
 
-msgid "Substeps"
-msgstr "세부 단계함"
-
-
 msgid "Number of steps to divide the full displacement into. Fields, including normal and position, are re-evaluated before each step."
 msgstr "전체 변위를 나눌 단계 수. 각 단계 전에 법선 및 위치 필드를 재평가함."
 
@@ -152136,346 +152099,6 @@ msgid "Selection of elements within a sphere"
 msgstr "구 내 요소 선택함"
 
 
-msgid "Attach Hair Curves to Surface"
-msgstr "헤어 커브를 표면에 붙임함"
-
-
-msgid "Attaches hair curves to a surface mesh"
-msgstr "헤어 커브를 표면 메시에 붙임함"
-
-
-msgid "Align to Surface Normal"
-msgstr "표면 법선에 맞춤"
-
-
-msgid "Align the curve to the surface normal (needs a guide as reference)"
-msgstr "곡선을 표면 법선에 맞춤 (참조 가이드 필요함)"
-
-
-msgid "Blend along Curve"
-msgstr "곡선 따라 블렌드"
-
-
-msgid "Blend deformation along each curve from the root"
-msgstr "각 곡선을 루트에서 따라 블렌드 변형함"
-
-
-msgid "Sample Attachment UV"
-msgstr "샘플 첨부 UV"
-
-
-msgid "Sample the surface UV map at the attachment point"
-msgstr "표면 UV 맵을 첨부 지점에서 샘플링함"
-
-
-msgid "Snap to Surface"
-msgstr "표면에 맞춤"
-
-
-msgid "Snap the root of each curve to the closest surface point"
-msgstr "각 곡선의 루트를 가장 가까운 표면 점에 맞춤"
-
-
-msgid "Surface Object to attach to (needs to have matching transforms)"
-msgstr "표면 객체에 연결함 (일치하는 변환 필요함)"
-
-
-msgid "Surface geometry to attach hair curves to"
-msgstr "헤어 커브를 부착할 표면 기하학"
-
-
-msgid "Surface Input Type"
-msgstr "표면 입력 유형"
-
-
-msgid "Select the input type for the surface geometry."
-msgstr "표면 기하학에 대한 입력 유형을 선택함"
-
-
-msgid "Surface Normal"
-msgstr "표면 법선함"
-
-
-msgid "Surface normal at the attachment point"
-msgstr "접착점의 표면 법선"
-
-
-msgid "Surface Rest Position"
-msgstr "표면 휴식 위치"
-
-
-msgid "Set the surface mesh into its rest position before attachment"
-msgstr "표면 메시를 부착 전 휴식 위치로 설정"
-
-
-msgid "Surface UV Coordinate"
-msgstr "표면 UV 좌표"
-
-
-msgid "Surface UV coordinates at the attachment point"
-msgstr "접착점의 표면 UV 좌표"
-
-
-msgid "Surface UV map used for attachment"
-msgstr "표면 UV 맵을 사용하여 부착함"
-
-
-msgid "Blend Hair Curves"
-msgstr "블렌드 헤어 커브함"
-
-
-msgid "Blends shape between multiple hair curves in a certain radius"
-msgstr "여러 머리카락 곡선 사이의 특정 반경에서 모양을 혼합함"
-
-
-msgid "Blend Neighbors"
-msgstr "블렌드 이웃함"
-
-
-msgid "Amount of neighbors used for blending"
-msgstr "이웃 개수 (블러딩에 사용)함"
-
-
-msgid "Blend Radius"
-msgstr "블렌드 반지름"
-
-
-msgid "Radius to select neighbors for blending"
-msgstr "반지름을 선택하여 블렌딩할 이웃들에 적용함"
-
-
-msgid "Factor to blend overall effect"
-msgstr "전체 효과를 혼합하기 위한 팩터"
-
-
-msgid "Preserve Length"
-msgstr "길이 보존함"
-
-
-msgid "Preserve each curve's length during deformation"
-msgstr "각 곡선의 길이를 변형 중에 유지함"
-
-
-msgid "Braid Hair Curves"
-msgstr "브레이드 헤어 커브"
-
-
-msgid "Deforms existing hair curves into braids using guide curves"
-msgstr "기존 헤어 곡선을 가이드 곡선을 사용하여 땋음으로 변형함"
-
-
-msgid "Braid Start"
-msgstr "브레이드 시작함"
-
-
-msgid "Percentage along each curve to blend deformation from the root"
-msgstr "각 곡선을 따라 루트에서 변형을 블렌딩하기 위한 백분율"
-
-
-msgid "Existing Guide Map"
-msgstr "기존 가이드 맵"
-
-
-msgid "Use the existing guide map attribute if available"
-msgstr "기존 가이드 맵 속성 사용"
-
-
-msgid "Factor Max"
-msgstr "최대 계수"
-
-
-msgid "Factor of the maximum radius of the braids"
-msgstr "브레이드 최대 반지름 계수"
-
-
-msgid "Factor Min"
-msgstr "최소 계수"
-
-
-msgid "Factor of the minimum radius of the braids"
-msgstr "브레이드 최소 반경 계수"
-
-
-msgid "Flare Length"
-msgstr "플레어 길이"
-
-
-msgid "Length of the flare at the end of the braid"
-msgstr "브레이드 끝의 플레어 길이"
-
-
-msgid "Flare Opening"
-msgstr "플레어 오프닝"
-
-
-msgid "Opening radius of the flare at the tip of the braid"
-msgstr "플레어 끝부분의 방사형 열림 반경"
-
-
-msgid "Flare Parameter"
-msgstr "플레어 매개변수"
-
-
-msgid "Parameter from 0 to 1 along the flare"
-msgstr "플레어를 따라 0에서 1까지의 매개변수"
-
-
-msgid "Frequency factor of the braids"
-msgstr "땟거리 빈도 요인"
-
-
-msgid "Guide Distance"
-msgstr "가이드 거리"
-
-
-msgid "Minimum distance between two guides for new guide map"
-msgstr "새로운 가이드 맵을 위한 두 가이드 간 최소 거리"
-
-
-msgid "Guide Index"
-msgstr "가이드 인덱스"
-
-
-msgid "Guide index map that was used for the operation"
-msgstr "작동에 사용된 가이드 인덱스 맵"
-
-
-msgid "Guide index map to be used. This input has priority"
-msgstr "사용할 가이드 인덱스 맵 (우선순위 있음)"
-
-
-msgid "Guide Map"
-msgstr "가이드 맵"
-
-
-msgid "Guide Mask"
-msgstr "가이드 마스크"
-
-
-msgid "Mask for which curves are eligible to be selected as guides"
-msgstr "가이드로 선택 가능한 곡선을 위한 마스크"
-
-
-msgid "Hair Tie"
-msgstr "헤어 타이"
-
-
-msgid "Geometry used for the hair tie instance (priority)"
-msgstr "헤어 타이 인스턴스에 사용된 기하학(우선순위)"
-
-
-msgid "Object used for the hair tie instance"
-msgstr "헤어 타이 인스턴스에 사용된 객체"
-
-
-msgid "Hair Tie Input Type"
-msgstr "헤어 타이 입력 유형"
-
-
-msgid "Select the input type for the hair tie geometry."
-msgstr "헤어 타이 기하학에 대한 입력 유형 선택"
-
-
-msgid "Hair Tie Scale"
-msgstr "헤어 타이 스케일"
-
-
-msgid "Scale of the hair tie instance"
-msgstr "헤어 타이 인스턴스의 스케일"
-
-
-msgid "Overall radius of the braids"
-msgstr "브라이스 전체 반경"
-
-
-msgid "Shape of the braid radius along each curve"
-msgstr "각 곡선에 따른 브라이스 반경 형태"
-
-
-msgid "Shape Asymmetry"
-msgstr "형태 비대칭성"
-
-
-msgid "Asymmetry of the shape adjustment of the strand thickness"
-msgstr "스트랜드 두께 조정 형태 비대칭 정도"
-
-
-msgid "Shape Parameters"
-msgstr "형태 매개변수"
-
-
-msgid "Strand Index"
-msgstr "스트랜드 인덱스"
-
-
-msgid "Index of the strand within a braid that each curve belongs to"
-msgstr "각 곡선이 속한 브라이스 내 스트랜드 인덱스"
-
-
-msgid "Subdivision level applied before deformation"
-msgstr "변형 전 적용된 세분화 수준"
-
-
-msgid "Thickness of each strand of hair"
-msgstr "각 스트랜드의 두께"
-
-
-msgid "Thickness Shape"
-msgstr "두께 형태"
-
-
-msgid "Shape adjustment of the strand thickness for the braids"
-msgstr "브레이드를 위한 스트랜드 두께 조정 형태"
-
-
-msgid "Clump Hair Curves"
-msgstr "클럼프 헤어 곡선"
-
-
-msgid "Clumps together existing hair curves using guide curves"
-msgstr "가이드 곡선을 사용한 기존 헤어 곡선 클럼프"
-
-
-msgid "Clump Offset"
-msgstr "클럼프 오프셋"
-
-
-msgid "Offset of each clump in a random direction"
-msgstr "각 클럼프의 무작위 방향 오프셋"
-
-
-msgid "Distance Falloff"
-msgstr "거리 감쇠"
-
-
-msgid "Falloff distance for the clumping effect (0 means no falloff)"
-msgstr "가이드 주변의 폴오프를 위한 거리 (0은 폴오프 없음)"
-
-
-msgid "Distance Threshold"
-msgstr "거리 임계값"
-
-
-msgid "Distance threshold for the falloff around the guide"
-msgstr "가이드 주변의 감쇠를 위한 거리 임계값"
-
-
-msgid "Random seed for the operation"
-msgstr "작동을 위한 무작위 시드"
-
-
-msgid "Shape of the influence along curves (0=constant, 0.5=linear)"
-msgstr "곡선을 따라 영향력의 형태 (0=상수, 0.5=선형)함"
-
-
-msgid "Tip Spread"
-msgstr "팁 퍼짐함"
-
-
-msgid "Distance of random spread at the curve tips"
-msgstr "곡선 끝부분에서 랜덤 확산 거리"
-
-
 msgid "Create Guide Index Map"
 msgstr "가이드 인덱스 맵 생성함"
 
@@ -152488,8 +152111,24 @@ msgid "ID to group curves together for guide map creation"
 msgstr "곡선을 함께 그룹화하여 가이드 맵 생성함"
 
 
+msgid "Guide Distance"
+msgstr "가이드 거리"
+
+
 msgid "Minimum distance between two guides"
 msgstr "두 가이드 사이의 최소 거리"
+
+
+msgid "Guide Index"
+msgstr "가이드 인덱스"
+
+
+msgid "Guide Mask"
+msgstr "가이드 마스크"
+
+
+msgid "Mask for which curves are eligible to be selected as guides"
+msgstr "가이드로 선택 가능한 곡선을 위한 마스크"
 
 
 msgid "Guide Selection"
@@ -152512,6 +152151,22 @@ msgid "Curl Start"
 msgstr "커브 시작함"
 
 
+msgid "Percentage along each curve to blend deformation from the root"
+msgstr "각 곡선을 따라 루트에서 변형을 블렌딩하기 위한 백분율"
+
+
+msgid "Existing Guide Map"
+msgstr "기존 가이드 맵"
+
+
+msgid "Use the existing guide map attribute if available"
+msgstr "기존 가이드 맵 속성 사용"
+
+
+msgid "Factor to blend overall effect"
+msgstr "전체 효과를 혼합하기 위한 팩터"
+
+
 msgid "Factor End"
 msgstr "팩터 끝임"
 
@@ -152528,6 +152183,22 @@ msgid "Frequency factor of the curls"
 msgstr "컬의 주파수 요인"
 
 
+msgid "Minimum distance between two guides for new guide map"
+msgstr "새로운 가이드 맵을 위한 두 가이드 간 최소 거리"
+
+
+msgid "Guide index map that was used for the operation"
+msgstr "작동에 사용된 가이드 인덱스 맵"
+
+
+msgid "Guide index map to be used. This input has priority"
+msgstr "사용할 가이드 인덱스 맵 (우선순위 있음)"
+
+
+msgid "Guide Map"
+msgstr "가이드 맵"
+
+
 msgid "Overall radius of the curls"
 msgstr "컬의 전체 반경"
 
@@ -152538,6 +152209,10 @@ msgstr "곡선당 랜덤 오프셋량"
 
 msgid "Random Seed for the operation"
 msgstr "랜덤 씨드를 사용함"
+
+
+msgid "Subdivision level applied before deformation"
+msgstr "변형 전 적용된 세분화 수준"
 
 
 msgid "Curve Info"
@@ -152692,6 +152367,358 @@ msgid "Boolean selection of curve tip points"
 msgstr "곡선 팁 점의 불리언 선택"
 
 
+msgid "Generate Hair Curves"
+msgstr "헤어 커브 생성함"
+
+
+msgid "Generates new hair curves on a surface mesh"
+msgstr "표면 메시에 새로운 헤어 커브 생성함"
+
+
+msgid "Amount of control points of the generated hair curves"
+msgstr "생성된 헤어 곡선의 제어점 수"
+
+
+msgid "Surface density of generated hair curves"
+msgstr "생성된 머리카락 곡선의 표면 밀도"
+
+
+msgid "Density Mask"
+msgstr "밀도 마스크"
+
+
+msgid "Factor applied on the density for curve distribution"
+msgstr "밀도에 적용된 팩터로 곡선 분포함"
+
+
+msgid "Use Poisson disk distribution method to keep a minimum distance"
+msgstr "포아송 디스크 분포 방법을 사용하여 최소 거리 유지함"
+
+
+msgid "Length of the generated hair curves"
+msgstr "생성된 헤어 커브의 길이"
+
+
+msgid "Hair Material"
+msgstr "헤어 재질"
+
+
+msgid "Material of the generated hair curves"
+msgstr "생성된 헤어 커브의 재질"
+
+
+msgid "Discard points based on a mask texture after distribution"
+msgstr "마스크 텍스처 기반 분포 후 포인트 폐기함"
+
+
+msgid "Random seed for the operation"
+msgstr "작동을 위한 무작위 시드"
+
+
+msgid "Surface geometry for generation"
+msgstr "표면 기하학 생성함"
+
+
+msgid "Surface object for generation (needs matching transforms)"
+msgstr "표면 객체 생성용 (일치하는 변환 필요함)"
+
+
+msgid "Surface Normal"
+msgstr "표면 법선함"
+
+
+msgid "Normal direction of the surface mesh at the attachment point"
+msgstr "표면 메시의 부착점에서의 법선 방향"
+
+
+msgid "Surface Rest Position"
+msgstr "표면 휴식 위치"
+
+
+msgid "Set the surface mesh into its rest position before attachment"
+msgstr "표면 메시를 부착 전 휴식 위치로 설정"
+
+
+msgid "Surface UV map used for attachment"
+msgstr "표면 UV 맵을 사용하여 부착함"
+
+
+msgid "Viewport Amount"
+msgstr "뷰포트 비율"
+
+
+msgid "Factor applied on the density for the viewport"
+msgstr "밀도에 적용된 팩터 뷰포트함"
+
+
+msgid "Attach Hair Curves to Surface"
+msgstr "헤어 커브를 표면에 붙임함"
+
+
+msgid "Attaches hair curves to a surface mesh"
+msgstr "헤어 커브를 표면 메시에 붙임함"
+
+
+msgid "Align to Surface Normal"
+msgstr "표면 법선에 맞춤"
+
+
+msgid "Align the curve to the surface normal (needs a guide as reference)"
+msgstr "곡선을 표면 법선에 맞춤 (참조 가이드 필요함)"
+
+
+msgid "Blend along Curve"
+msgstr "곡선 따라 블렌드"
+
+
+msgid "Blend deformation along each curve from the root"
+msgstr "각 곡선을 루트에서 따라 블렌드 변형함"
+
+
+msgid "Sample Attachment UV"
+msgstr "샘플 첨부 UV"
+
+
+msgid "Sample the surface UV map at the attachment point"
+msgstr "표면 UV 맵을 첨부 지점에서 샘플링함"
+
+
+msgid "Snap to Surface"
+msgstr "표면에 맞춤"
+
+
+msgid "Snap the root of each curve to the closest surface point"
+msgstr "각 곡선의 루트를 가장 가까운 표면 점에 맞춤"
+
+
+msgid "Surface Object to attach to (needs to have matching transforms)"
+msgstr "표면 객체에 연결함 (일치하는 변환 필요함)"
+
+
+msgid "Surface geometry to attach hair curves to"
+msgstr "헤어 커브를 부착할 표면 기하학"
+
+
+msgid "Surface Input Type"
+msgstr "표면 입력 유형"
+
+
+msgid "Select the input type for the surface geometry."
+msgstr "표면 기하학에 대한 입력 유형을 선택함"
+
+
+msgid "Surface normal at the attachment point"
+msgstr "접착점의 표면 법선"
+
+
+msgid "Surface UV Coordinate"
+msgstr "표면 UV 좌표"
+
+
+msgid "Surface UV coordinates at the attachment point"
+msgstr "접착점의 표면 UV 좌표"
+
+
+msgid "Blend Hair Curves"
+msgstr "블렌드 헤어 커브함"
+
+
+msgid "Blends shape between multiple hair curves in a certain radius"
+msgstr "여러 머리카락 곡선 사이의 특정 반경에서 모양을 혼합함"
+
+
+msgid "Blend Neighbors"
+msgstr "블렌드 이웃함"
+
+
+msgid "Amount of neighbors used for blending"
+msgstr "이웃 개수 (블러딩에 사용)함"
+
+
+msgid "Blend Radius"
+msgstr "블렌드 반지름"
+
+
+msgid "Radius to select neighbors for blending"
+msgstr "반지름을 선택하여 블렌딩할 이웃들에 적용함"
+
+
+msgid "Preserve Length"
+msgstr "길이 보존함"
+
+
+msgid "Preserve each curve's length during deformation"
+msgstr "각 곡선의 길이를 변형 중에 유지함"
+
+
+msgid "Braid Hair Curves"
+msgstr "브레이드 헤어 커브"
+
+
+msgid "Deforms existing hair curves into braids using guide curves"
+msgstr "기존 헤어 곡선을 가이드 곡선을 사용하여 땋음으로 변형함"
+
+
+msgid "Braid Start"
+msgstr "브레이드 시작함"
+
+
+msgid "Factor Max"
+msgstr "최대 계수"
+
+
+msgid "Factor of the maximum radius of the braids"
+msgstr "브레이드 최대 반지름 계수"
+
+
+msgid "Factor Min"
+msgstr "최소 계수"
+
+
+msgid "Factor of the minimum radius of the braids"
+msgstr "브레이드 최소 반경 계수"
+
+
+msgid "Flare Length"
+msgstr "플레어 길이"
+
+
+msgid "Length of the flare at the end of the braid"
+msgstr "브레이드 끝의 플레어 길이"
+
+
+msgid "Flare Opening"
+msgstr "플레어 오프닝"
+
+
+msgid "Opening radius of the flare at the tip of the braid"
+msgstr "플레어 끝부분의 방사형 열림 반경"
+
+
+msgid "Flare Parameter"
+msgstr "플레어 매개변수"
+
+
+msgid "Parameter from 0 to 1 along the flare"
+msgstr "플레어를 따라 0에서 1까지의 매개변수"
+
+
+msgid "Frequency factor of the braids"
+msgstr "땟거리 빈도 요인"
+
+
+msgid "Hair Tie"
+msgstr "헤어 타이"
+
+
+msgid "Geometry used for the hair tie instance (priority)"
+msgstr "헤어 타이 인스턴스에 사용된 기하학(우선순위)"
+
+
+msgid "Object used for the hair tie instance"
+msgstr "헤어 타이 인스턴스에 사용된 객체"
+
+
+msgid "Hair Tie Input Type"
+msgstr "헤어 타이 입력 유형"
+
+
+msgid "Select the input type for the hair tie geometry."
+msgstr "헤어 타이 기하학에 대한 입력 유형 선택"
+
+
+msgid "Hair Tie Scale"
+msgstr "헤어 타이 스케일"
+
+
+msgid "Scale of the hair tie instance"
+msgstr "헤어 타이 인스턴스의 스케일"
+
+
+msgid "Overall radius of the braids"
+msgstr "브라이스 전체 반경"
+
+
+msgid "Shape of the braid radius along each curve"
+msgstr "각 곡선에 따른 브라이스 반경 형태"
+
+
+msgid "Shape Asymmetry"
+msgstr "형태 비대칭성"
+
+
+msgid "Asymmetry of the shape adjustment of the strand thickness"
+msgstr "스트랜드 두께 조정 형태 비대칭 정도"
+
+
+msgid "Shape Parameters"
+msgstr "형태 매개변수"
+
+
+msgid "Strand Index"
+msgstr "스트랜드 인덱스"
+
+
+msgid "Index of the strand within a braid that each curve belongs to"
+msgstr "각 곡선이 속한 브라이스 내 스트랜드 인덱스"
+
+
+msgid "Thickness of each strand of hair"
+msgstr "각 스트랜드의 두께"
+
+
+msgid "Thickness Shape"
+msgstr "두께 형태"
+
+
+msgid "Shape adjustment of the strand thickness for the braids"
+msgstr "브레이드를 위한 스트랜드 두께 조정 형태"
+
+
+msgid "Clump Hair Curves"
+msgstr "클럼프 헤어 곡선"
+
+
+msgid "Clumps together existing hair curves using guide curves"
+msgstr "가이드 곡선을 사용한 기존 헤어 곡선 클럼프"
+
+
+msgid "Clump Offset"
+msgstr "클럼프 오프셋"
+
+
+msgid "Offset of each clump in a random direction"
+msgstr "각 클럼프의 무작위 방향 오프셋"
+
+
+msgid "Distance Falloff"
+msgstr "거리 감쇠"
+
+
+msgid "Falloff distance for the clumping effect (0 means no falloff)"
+msgstr "가이드 주변의 폴오프를 위한 거리 (0은 폴오프 없음)"
+
+
+msgid "Distance Threshold"
+msgstr "거리 임계값"
+
+
+msgid "Distance threshold for the falloff around the guide"
+msgstr "가이드 주변의 감쇠를 위한 거리 임계값"
+
+
+msgid "Shape of the influence along curves (0=constant, 0.5=linear)"
+msgstr "곡선을 따라 영향력의 형태 (0=상수, 0.5=선형)함"
+
+
+msgid "Tip Spread"
+msgstr "팁 퍼짐함"
+
+
+msgid "Distance of random spread at the curve tips"
+msgstr "곡선 끝부분에서 랜덤 확산 거리"
+
+
 msgid "Displace Hair Curves"
 msgstr "헤어 커브 디스플레이스먼트"
 
@@ -152768,10 +152795,6 @@ msgid "Offset of the curves to round the tip"
 msgstr "팁을 둥글게 하기 위한 커브 오프셋"
 
 
-msgid "Viewport Amount"
-msgstr "뷰포트 비율"
-
-
 msgid "Percentage of amount used for the viewport"
 msgstr "뷰포트에 사용되는 비율(%)"
 
@@ -152794,66 +152817,6 @@ msgstr "변형을 위한 전체 거리 요인"
 
 msgid "Vector by which each point was offset during deformation"
 msgstr "변형 중 각 점이 이동된 벡터"
-
-
-msgid "Generate Hair Curves"
-msgstr "헤어 커브 생성함"
-
-
-msgid "Generates new hair curves on a surface mesh"
-msgstr "표면 메시에 새로운 헤어 커브 생성함"
-
-
-msgid "Amount of control points of the generated hair curves"
-msgstr "생성된 헤어 곡선의 제어점 수"
-
-
-msgid "Surface density of generated hair curves"
-msgstr "생성된 머리카락 곡선의 표면 밀도"
-
-
-msgid "Density Mask"
-msgstr "밀도 마스크"
-
-
-msgid "Factor applied on the density for curve distribution"
-msgstr "밀도에 적용된 팩터로 곡선 분포함"
-
-
-msgid "Use Poisson disk distribution method to keep a minimum distance"
-msgstr "포아송 디스크 분포 방법을 사용하여 최소 거리 유지함"
-
-
-msgid "Length of the generated hair curves"
-msgstr "생성된 헤어 커브의 길이"
-
-
-msgid "Hair Material"
-msgstr "헤어 재질"
-
-
-msgid "Material of the generated hair curves"
-msgstr "생성된 헤어 커브의 재질"
-
-
-msgid "Discard points based on a mask texture after distribution"
-msgstr "마스크 텍스처 기반 분포 후 포인트 폐기함"
-
-
-msgid "Surface geometry for generation"
-msgstr "표면 기하학 생성함"
-
-
-msgid "Surface object for generation (needs matching transforms)"
-msgstr "표면 객체 생성용 (일치하는 변환 필요함)"
-
-
-msgid "Normal direction of the surface mesh at the attachment point"
-msgstr "표면 메시의 부착점에서의 법선 방향"
-
-
-msgid "Factor applied on the density for the viewport"
-msgstr "밀도에 적용된 팩터 뷰포트함"
 
 
 msgid "Hair Attachment Info"

@@ -1,9 +1,9 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 5.2.0 Alpha (b'8c7c45ad114e')\n"
+"Project-Id-Version: Blender 5.2.0 Alpha (b'bc0a0ff2c0ce')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-05-11 07:23+0000\n"
+"POT-Creation-Date: 2026-05-18 11:20+0000\n"
 "PO-Revision-Date: 2025-07-23 15:18+0000\n"
 "Last-Translator: Aras Pranckevičius <aras@nesnausk.org>\n"
 "Language-Team: Lithuanian <https://translate.blender.org/projects/blender-ui/ui/lt/>\n"
@@ -3089,6 +3089,10 @@ msgid "Dots"
 msgstr "Taškai"
 
 
+msgid "Import"
+msgstr "Importuoti"
+
+
 msgid "Apply"
 msgstr "Pritaikyti"
 
@@ -3099,10 +3103,6 @@ msgstr "Sekti"
 
 msgid "Show/Hide"
 msgstr "Rodyti/Slėpti"
-
-
-msgid "Import"
-msgstr "Importuoti"
 
 
 msgid "Layout"
@@ -3405,6 +3405,10 @@ msgstr "Atnaujinti „I18n Blender“ saugyklą"
 msgctxt "Operator"
 msgid "New Action"
 msgstr "Naujas veiksmas"
+
+
+msgid "Search"
+msgstr "Paieška"
 
 
 msgid "File Browser Mode"
@@ -4221,10 +4225,6 @@ msgstr "Ekranas"
 
 msgid "Vibration"
 msgstr "Vibracija"
-
-
-msgid "Search"
-msgstr "Paieška"
 
 
 msgctxt "WindowManager"
