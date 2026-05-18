@@ -8,12 +8,15 @@
 
 #pragma once
 
+#include <variant>
+
 #include "BLI_mutex.hh"
+#include "BLI_set.hh"
 #include "BLI_sub_frame.hh"
 
-#include "BKE_bake_items.hh"
 #include "BKE_bake_items_paths.hh"
 #include "BKE_bake_items_serialize.hh"
+#include "BKE_bake_values.hh"
 
 #include "DNA_modifier_types.h"
 
@@ -43,7 +46,7 @@ enum class CacheStatus {
  */
 struct FrameCache {
   SubFrame frame;
-  BakeState state;
+  BakeValues values;
   /**
    * Used when the baked data is loaded lazily. The meta data either has to be loaded from a file
    * or from an in-memory buffer.
@@ -56,7 +59,7 @@ struct FrameCache {
  * not used.
  */
 struct PrevCache {
-  BakeState state;
+  BakeValues values;
   SubFrame frame;
 };
 

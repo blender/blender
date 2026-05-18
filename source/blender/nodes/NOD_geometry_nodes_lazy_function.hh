@@ -33,8 +33,9 @@
 #include "BLI_math_quaternion_types.hh"
 #include "BLI_multi_value_map.hh"
 
-#include "BKE_bake_items.hh"
+#include "BKE_bake_values.hh"
 #include "BKE_node_tree_zones.hh"
+
 namespace blender {
 
 struct Depsgraph;
@@ -59,22 +60,12 @@ struct PassThrough {};
 /**
  * The input is not evaluated, instead the values provided here are output by the node.
  */
-struct OutputCopy {
+struct UseCache {
   float delta_time;
-  bke::bake::BakeStateRef state;
+  bke::bake::BakeValues values;
 };
 
-/**
- * Same as #OutputCopy, but the values can be output by move, instead of copy.
- * This can reduce the amount of unnecessary copies,
- * when the old simulation state is not needed anymore.
- */
-struct OutputMove {
-  float delta_time;
-  bke::bake::BakeState state;
-};
-
-using Behavior = std::variant<PassThrough, OutputCopy, OutputMove>;
+using Behavior = std::variant<PassThrough, UseCache>;
 
 }  // namespace sim_input
 
@@ -92,14 +83,14 @@ struct PassThrough {};
  * The new simulation state is the output of the node.
  */
 struct StoreNewState {
-  std::function<void(bke::bake::BakeState state)> store_fn;
+  std::function<void(bke::bake::BakeValues values)> store_fn;
 };
 
 /**
  * The inputs are not evaluated, instead the given cached items are output directly.
  */
 struct ReadSingle {
-  bke::bake::BakeStateRef state;
+  bke::bake::BakeValues values;
 };
 
 /**
@@ -108,8 +99,8 @@ struct ReadSingle {
 struct ReadInterpolated {
   /** Factor between 0 and 1 that determines the influence of the two simulation states. */
   float mix_factor;
-  bke::bake::BakeStateRef prev_state;
-  bke::bake::BakeStateRef next_state;
+  bke::bake::BakeValues prev_values;
+  bke::bake::BakeValues next_values;
 };
 
 /**
