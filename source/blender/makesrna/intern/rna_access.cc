@@ -4161,6 +4161,7 @@ int RNA_property_string_length(PointerRNA *ptr, PropertyRNA *prop)
    * length. Otherwise, get the 'storage length', which is typically more efficient to compute. */
   if (sprop->get_transform) {
     std::string string_final = property_string_get(ptr, prop_rna_or_id);
+    string_final = sprop->get_transform(ptr, sprop, string_final, prop_rna_or_id.is_set);
     return int(string_final.size());
   }
   return int(property_string_length_storage(ptr, prop_rna_or_id));
