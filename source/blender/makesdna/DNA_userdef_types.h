@@ -653,6 +653,13 @@ struct bUserAssetLibrary {
   short import_method = ASSET_IMPORT_PACK;  /* eAssetImportMethod */
   short flag = ASSET_LIBRARY_RELATIVE_PATH; /* eAssetLibrary_Flag */
   char _pad0[4] = {};
+
+#ifdef __cplusplus
+  bool is_enabled() const
+  {
+    return (this->flag & ASSET_LIBRARY_DISABLED) == 0;
+  }
+#endif
 };
 
 enum eUserExtensionRepo_Flag : uint8_t {
