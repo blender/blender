@@ -200,36 +200,6 @@ void AbstractViewItem::end_renaming()
   view.end_renaming();
 }
 
-static AbstractViewItem *find_item_from_rename_button(const Button &rename_but)
-{
-  /* A minimal sanity check, can't do much more here. */
-  BLI_assert(rename_but.type == ButtonType::Text && rename_but.poin);
-
-  for (Button &but : rename_but.block->buttons()) {
-    if (but.type != ButtonType::ViewItem) {
-      continue;
-    }
-
-    ButtonViewItem *view_item_but = static_cast<ButtonViewItem *>(&but);
-    AbstractViewItem *item = view_item_but->view_item;
-    const AbstractView &view = item->get_view();
-
-    if (item->is_renaming() && (view.get_rename_buffer().data() == rename_but.poin)) {
-      return item;
-    }
-  }
-
-  return nullptr;
-}
-
-static void rename_button_fn(bContext *C, void *arg, char * /*origstr*/)
-{
-  const Button *rename_but = static_cast<Button *>(arg);
-  AbstractViewItem *item = find_item_from_rename_button(*rename_but);
-  BLI_assert(item);
-  item->rename_apply(*C);
-}
-
 void AbstractViewItem::add_rename_button(Block &block)
 {
   AbstractView &view = this->get_view();
@@ -247,7 +217,9 @@ void AbstractViewItem::add_rename_button(Block &block)
 
   /* Gotta be careful with what's passed to the `arg1` here. Any view data will be freed once the
    * callback is executed. */
-  button_func_rename_set(rename_but, rename_button_fn, rename_but);
+  text_button_func_rename_set(
+      rename_but,
+      [item = this](bContext &C, StringRefNull /*oldname*/) -> void { item->rename_apply(C); });
   button_flag_disable(rename_but, BUT_UNDO);
 
   const bContext *evil_C = reinterpret_cast<bContext *>(block.evil_C);

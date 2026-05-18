@@ -11,8 +11,6 @@
 
 #pragma once
 
-#include "infos/eevee_shadow_infos.hh"
-
 #include "eevee_shadow_page_ops.bsl.hh"
 #include "eevee_shadow_tilemap_lib.bsl.hh"
 

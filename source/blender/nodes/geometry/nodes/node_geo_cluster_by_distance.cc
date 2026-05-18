@@ -134,7 +134,7 @@ class ClusterByDistanceFieldInput final : public bke::GeometryFieldInput {
           indices_by_group[group_offsets[group_i][index_in_group]] = int(i);
         },
         exec_mode::grain_size(8192));
-    offset_indices::sort_small_groups(group_offsets, indices_by_group);
+    offset_indices::sort_groups(group_offsets, indices_by_group);
 
     threading::parallel_for(
         IndexRange(groups_num),

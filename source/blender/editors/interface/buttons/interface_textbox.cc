@@ -306,7 +306,8 @@ void ButtonTextBox::line_scroll_set(int line_scroll)
 
 float textbox_vertical_padding()
 {
-  return U.pixelsize + 2.0f * UI_SCALE_FAC;
+  /* Allow aligning text buttons with single line text-box buttons. */
+  return float(UI_UNIT_Y - fontstyle_height_max(UI_FSTYLE_WIDGET)) / 2.0f;
 }
 
 TextboxState *textbox_ensure_state(ARegion *region, StringRefNull idname)
@@ -331,7 +332,7 @@ int ButtonTextBox::line_scroll() const
 
 int ButtonTextBox::visible_lines() const
 {
-  return std::max<int>(this->state->visible_lines, 3);
+  return std::max<int>(this->state->visible_lines, textbox_minimum_visible_lines);
 }
 
 }  // namespace blender::ui

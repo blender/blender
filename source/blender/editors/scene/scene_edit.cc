@@ -253,8 +253,7 @@ bool ED_scene_view_layer_delete(Main *bmain, Scene *scene, ViewLayer *layer, Rep
 
   BKE_scene_free_view_layer_depsgraph(scene, layer);
 
-  /* Clear sequencer scene strips referencing the deleted view layer. Must be called while
-   * layer->name is still valid, i.e. before BKE_view_layer_free. */
+  /* Update any sequencer scene strips referencing this view layer by name. */
   seq::relations_update_view_layer_scene_strips(bmain, scene, layer->name, nullptr);
 
   BKE_view_layer_free(layer);

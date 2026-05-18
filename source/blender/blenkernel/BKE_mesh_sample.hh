@@ -90,10 +90,10 @@ int sample_surface_points_spherical(RandomNumberGenerator &rng,
  * overhead and is not always possible. If an exact number of points is required, that has to be
  * implemented at a higher level.
  *
- * \param region_position_to_ray: Function that converts a 2D position into a 3D ray that is used
- *   to find positions on the mesh.
  * \param mesh_bvhtree: BVH tree of the triangles in the mesh. Passed in so that it does not have
  *   to be retrieved again.
+ * \param region_position_to_ray: Function that converts a 2D position into a 3D ray that is used
+ *   to find positions on the mesh.
  * \param tries_num: Number of 2d positions that are sampled. The maximum
  *   number of new samples.
  * \return The number of added points.

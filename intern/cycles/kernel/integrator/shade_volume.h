@@ -554,7 +554,8 @@ ccl_device_inline bool volume_octree_advance_shadow(KernelGlobals kg,
   return true;
 }
 
-/* Compute transmittance along the ray using
+/**
+ * Compute transmittance along the ray using
  * "Unbiased and consistent rendering using biased estimators" by Misso et. al,
  * https://cs.dartmouth.edu/~wjarosz/publications/misso22unbiased.html
  *

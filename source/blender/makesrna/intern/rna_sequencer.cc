@@ -303,11 +303,6 @@ static PointerRNA rna_SceneStrip_view_layer_get(PointerRNA *ptr)
 
 /**
  * Check whether `value` is acceptable as a view layer for a scene strip whose scene is `scene`.
- *
- * `value.data` may be null (represents "unset"), in which case this always returns true as long
- * as `scene` is valid. `value.owner_id` may also be null because #ui::template_search assigns
- * with `RNA_pointer_create_discrete(nullptr, ...)`; in that case it is implicitly accepted and
- * only the `view_layer` identity is validated against `scene->view_layers`.
  */
 static bool rna_SceneStrip_view_layer_is_compatible(const Scene *scene, PointerRNA value)
 {
@@ -319,7 +314,7 @@ static bool rna_SceneStrip_view_layer_is_compatible(const Scene *scene, PointerR
   }
   const ViewLayer *view_layer = static_cast<const ViewLayer *>(value.data);
   if (view_layer == nullptr) {
-    return true;
+    return false;
   }
   for (const ViewLayer &vl : scene->view_layers) {
     if (&vl == view_layer) {
@@ -334,16 +329,16 @@ static void rna_SceneStrip_view_layer_set(PointerRNA *ptr,
                                           ReportList * /*reports*/)
 {
   Strip *strip = static_cast<Strip *>(ptr->data);
-  const ViewLayer *view_layer = static_cast<const ViewLayer *>(value.data);
   if (strip->scene == nullptr) {
     return;
   }
+  if (!rna_SceneStrip_view_layer_is_compatible(strip->scene, value)) {
+    return;
+  }
+  const ViewLayer *view_layer = static_cast<const ViewLayer *>(value.data);
   if (view_layer == nullptr) {
     MEM_delete(strip->scene_view_layer_name);
     strip->scene_view_layer_name = BLI_strdup(BKE_view_layer_default_render(strip->scene)->name);
-    return;
-  }
-  if (!rna_SceneStrip_view_layer_is_compatible(strip->scene, value)) {
     return;
   }
 

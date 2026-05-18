@@ -251,10 +251,11 @@ static void draw_current_frame(const Scene *scene,
                                bool display_seconds,
                                const View2D *v2d,
                                const rcti *scrub_region_rect,
-                               bool display_stalk = true)
+                               bool display_stalk = true,
+                               bool clamp_playhead = false)
 {
   const float current_frame = BKE_scene_frame_get(scene);
-  const float region_x = ui::view2d_view_to_region_x(v2d, current_frame);
+  float region_x = ui::view2d_view_to_region_x(v2d, current_frame);
 
   constexpr int max_frame_string_len = 64;
   char frame_str[max_frame_string_len];
@@ -262,6 +263,12 @@ static void draw_current_frame(const Scene *scene,
 
   PlayheadDimensions dimensions = get_playhead_dimensions(
       scene, scrub_region_rect, current_frame, display_seconds);
+
+  if (clamp_playhead) {
+    region_x = math::clamp(region_x,
+                           scrub_region_rect->xmin + dimensions.text_width / 2.0f,
+                           scrub_region_rect->xmax - dimensions.text_width / 2.0f);
+  }
 
   float fg_color[4];
   ui::theme::get_color_4fv(TH_CFRAME, fg_color);
@@ -282,7 +289,8 @@ static void draw_current_frame(const Scene *scene,
 void ED_time_scrub_draw_current_frame(const ARegion *region,
                                       const Scene *scene,
                                       bool display_seconds,
-                                      bool display_stalk)
+                                      bool display_stalk,
+                                      bool clamp_playhead)
 {
   const View2D *v2d = &region->v2d;
   GPU_matrix_push_projection();
@@ -298,7 +306,8 @@ void ED_time_scrub_draw_current_frame(const ARegion *region,
     draw_playhead_ghost(ctime, scene, v2d, &scrub_region_rect, display_seconds, display_stalk);
   }
 
-  draw_current_frame(scene, display_seconds, v2d, &scrub_region_rect, display_stalk);
+  draw_current_frame(
+      scene, display_seconds, v2d, &scrub_region_rect, display_stalk, clamp_playhead);
   GPU_matrix_pop_projection();
 }
 

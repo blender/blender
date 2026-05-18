@@ -207,7 +207,8 @@ void ScreenSpaceDrawingMode::do_partial_update(
       const int texture_region_height = BLI_rcti_size_y(&gpu_texture_region_to_update);
 
       ImBuf extracted_buffer;
-      IMB_initImBuf(&extracted_buffer, texture_region_width, texture_region_height, IB_float_data);
+      IMB_initImBuf(
+          &extracted_buffer, texture_region_width, texture_region_height, ImBufFlags::FloatData);
 
       int offset = 0;
       float *float_data = extracted_buffer.float_data_for_write();
@@ -257,7 +258,7 @@ void ScreenSpaceDrawingMode::do_full_update_gpu_texture(TextureInfo &info,
   ImBuf texture_buffer;
   const int texture_width = GPU_texture_width(info.texture);
   const int texture_height = GPU_texture_height(info.texture);
-  IMB_initImBuf(&texture_buffer, texture_width, texture_height, IB_float_data);
+  IMB_initImBuf(&texture_buffer, texture_width, texture_height, ImBufFlags::FloatData);
   ImageUser tile_user = {nullptr};
   if (image_user) {
     tile_user = *image_user;

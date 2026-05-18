@@ -346,6 +346,10 @@ void SourceProcessor::parse_defines(Parser &parser)
 {
   parser().foreach_match<true>("#A", [&](const vector<Token> &tokens) {
     if (tokens[1].str() == "define") {
+      if (tokens[1].next().str().starts_with("LIGHT_STACK_SIZE_")) {
+        /* WORKAROUND: Avoid warning caused by EEVEE macro setup. */
+        return;
+      }
       metadata_.create_infos_defines.emplace_back(tokens[1].next().scope().str_with_whitespace());
     }
     if (tokens[1].str() == "undef") {

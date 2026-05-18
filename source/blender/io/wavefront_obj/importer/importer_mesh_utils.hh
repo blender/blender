@@ -24,8 +24,8 @@ namespace io::obj {
  * Given an invalid face (with holes or duplicated vertex indices),
  * turn it into possibly multiple faces that are valid.
  *
- * \param vert_coords: Polygon's vertex coordinate list.
- * \param face_vert_indices: A face's indices that index into the given vertex coordinate
+ * \param vert_positions: Polygon's vertex coordinate list.
+ * \param face_verts: A face's indices that index into the given vertex coordinate
  * list.
  *
  * \return List of faces with each element containing indices of one face. The indices

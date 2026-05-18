@@ -181,6 +181,7 @@ ShaderGroups ShaderModule::static_shaders_load(const ShaderGroups request_bits,
                                        LIGHT_CULLING_SORT,
                                        LIGHT_CULLING_TILE,
                                        LIGHT_CULLING_ZBIN,
+                                       LIGHT_SHAPE_DISPLAY,
                                        LIGHT_SHADOW_SETUP};
     request(LIGHT_CULLING_SHADERS, AS_SPAN(shader_list));
   }
@@ -449,6 +450,8 @@ const char *ShaderModule::static_shader_create_info_name_get(eShaderType shader_
       return "eevee_light_culling_tile";
     case LIGHT_CULLING_ZBIN:
       return "eevee_light_culling_zbin";
+    case LIGHT_SHAPE_DISPLAY:
+      return "eevee_light_shape_display";
     case LIGHT_SHADOW_SETUP:
       return "eevee_light_shadow_setup";
     case RAY_DENOISE_SPATIAL:
@@ -1009,24 +1012,15 @@ void ShaderModule::material_create_info_amend(GPUMaterial *gpumat, GPUCodegenOut
   if ((pipeline_type == MAT_PIPE_FORWARD) ||
       GPU_material_flag_get(gpumat, GPU_MATFLAG_SHADER_TO_RGBA))
   {
-    switch (closure_bin_count) {
-      case 0:
-        /* Define nothing. This will in turn define SKIP_LIGHT_EVAL. */
-        break;
-      /* These need to be separated since the strings need to be static. */
-      case 1:
-        info.define("LIGHT_CLOSURE_EVAL_COUNT", "1");
-        break;
-      case 2:
-        info.define("LIGHT_CLOSURE_EVAL_COUNT", "2");
-        break;
-      case 3:
-        info.define("LIGHT_CLOSURE_EVAL_COUNT", "3");
-        break;
-      default:
-        BLI_assert_unreachable();
-        break;
-    }
+    const int transmit_eval_count = (closure_bits &
+                                     (CLOSURE_REFRACTION | CLOSURE_TRANSLUCENT | CLOSURE_SSS)) ?
+                                        1 :
+                                        0;
+
+    info.compilation_constant(
+        gpu::shader::Type::int_t, "light_closure_eval_count_reflect", closure_bin_count);
+    info.compilation_constant(
+        gpu::shader::Type::int_t, "light_closure_eval_count_transmit", transmit_eval_count);
   }
 
   if (GPU_material_flag_get(gpumat, GPU_MATFLAG_BARYCENTRIC)) {

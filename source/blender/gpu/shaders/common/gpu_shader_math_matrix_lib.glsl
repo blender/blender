@@ -6,6 +6,10 @@
 
 #include "gpu_shader_compat.hh"
 
+/* -------------------------------------------------------------------- */
+/** \name Matrix Operations
+ * \{ */
+
 /**
  * Flip the matrix across its diagonal. Also flips dimensions for non square matrices.
  */

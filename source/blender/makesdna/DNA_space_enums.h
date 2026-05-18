@@ -447,6 +447,7 @@ enum eSpaceSeq_Flag : int {
   SPACE_SEQ_FLAG_UNUSED_16 = (1 << 16),
   SEQ_USE_PROXIES = (1 << 17),
   SEQ_SHOW_GRID = (1 << 18),
+  SEQ_SHOW_SCRUBBING_REGION = (1 << 19),
 };
 ENUM_OPERATORS(eSpaceSeq_Flag)
 

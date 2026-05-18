@@ -206,7 +206,7 @@ class Instance : public DrawEngine {
                                      image_buffer ? image_buffer->y : 1024.0f);
     float2 offset = float2(0.0f);
     if (image_buffer && space_->use_display_window() &&
-        (image_buffer->flags & IB_has_display_window))
+        flag_is_set(image_buffer->flags, ImBufFlags::HasDisplayWindow))
     {
       offset = float2(image_buffer->display_offset);
     }

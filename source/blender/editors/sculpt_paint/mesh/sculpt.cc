@@ -110,6 +110,10 @@ static CLG_LogRef LOG = {"sculpt"};
 
 namespace ed::sculpt_paint {
 
+/* -------------------------------------------------------------------- */
+/** \name Sculpt Brush Utilities
+ * \{ */
+
 /* TODO: This should be moved to either BKE_paint.hh or BKE_brush.hh */
 float object_space_radius_get(const ViewContext &vc,
                               const Paint &paint,

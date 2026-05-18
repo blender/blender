@@ -1273,7 +1273,7 @@ MovieReader *movie_open_proxy(MovieReader *anim, IMB_Proxy_Size preview_size)
    *
    * Also skip any colorspace conversion to the color pipeline design as it helps performance and
    * the image buffers from the proxy builder are not used anywhere else in Blender. */
-  anim->proxy_anim[i] = MOV_open_file(filepath, 0, 0, true, anim->colorspace);
+  anim->proxy_anim[i] = MOV_open_file(filepath, ImBufFlags::Zero, 0, true, anim->colorspace);
 
   anim->proxies_tried |= preview_size;
 

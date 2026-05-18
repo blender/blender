@@ -37,7 +37,7 @@ import time
 # the corresponding `.py`` file is automatically marked as 'generated' in
 # `.gitattributes`.
 YAML_PATHS = [
-    "scripts/modules/_bpy_internal/assets/remote_library_listing/blender_asset_library_openapi.yaml",
+    "scripts/modules/_bpy_internal/assets/remote_library/blender_asset_library_openapi.yaml",
 ]
 
 # Packages to install in the virtualenv. These are only necessary to run this
@@ -45,6 +45,7 @@ YAML_PATHS = [
 REQUIREMENTS = [
     "datamodel-code-generator ~= 0.53.0",
     "PyYAML ~= 6.0.2",
+    "docformatter ~= 1.7.8",
 ]
 
 # These arguments are quite likely to be used for all code generated with this
@@ -76,6 +77,9 @@ COMMON_ARGS = [
     # Remove the "generated on" timestamp from the output, so that running the
     # generator is idempotent.
     "--disable-timestamp",
+
+    "--use-inline-field-description",
+    "--use-schema-description",
 ]
 
 
@@ -124,13 +128,8 @@ def main() -> None:
     sys.stdout.flush()
 
     # Format the generated Python code.
-    print("Formatting Python files")
-    py_paths_as_str = [str(path) for path in py_paths]
-    subprocess.run(
-        ["make", "format", "PATHS={}".format(" ".join(py_paths_as_str))],
-        cwd=root_path,
-        check=True,
-    )
+    _docformatter(py_paths)
+    _make_format(root_path, py_paths)
 
     print("Done generating data model files!")
 
@@ -167,6 +166,45 @@ def _generate_datamodel(in_path: Path, in_type: str, out_path: Path) -> None:
             raise KeyboardInterrupt()
         case _:
             raise SystemExit(f"unknown result from code generation: {status}")
+
+
+def _docformatter(py_paths: list[Path]) -> None:
+    """Run 'docformatter' on generated Python files.
+
+    This is necessary because the generated docstrings are very long, and
+    'make format' doesn't automatically rewrap them.
+    """
+    from docformatter import format
+    from docformatter import configuration
+
+    print("Formatting docstrings")
+
+    argv = ["docformatter", "--in-place", *(str(path) for path in py_paths)]
+    cfg = configuration.Configurater(argv)
+    cfg.do_parse_arguments()
+
+    formatter = format.Formatter(
+        cfg.args,
+        stderror=sys.stderr,
+        stdin=sys.stdin,
+        stdout=sys.stdout,
+    )
+    result = formatter.do_format_files()
+    if result not in {format.FormatResult.ok, format.FormatResult.format_required}:
+        raise RuntimeError(f"Error {result} running docformatter")
+
+
+def _make_format(root_path: Path, py_paths: list[Path]) -> None:
+    """Run 'make format' on generated Python files."""
+
+    print("Formatting Python files")
+
+    py_paths_as_str = [str(path) for path in py_paths]
+    subprocess.run(
+        ["make", "format", "PATHS={}".format(" ".join(py_paths_as_str))],
+        cwd=root_path,
+        check=True,
+    )
 
 
 # --------- Below this point is the self-bootstrapping logic ---------

@@ -296,7 +296,7 @@ static void screen_opengl_render_doit(OGLRender *oglrender, RenderResult *rr)
     }
     else if (gpd) {
       /* If there are no strips, Grease Pencil still needs a buffer to draw on */
-      ibuf_result = IMB_allocImBuf(sizex, sizey, IB_byte_data);
+      ibuf_result = IMB_allocImBuf(sizex, sizey, ImBufFlags::ByteData);
     }
 
     if (gpd) {
@@ -346,12 +346,12 @@ static void screen_opengl_render_doit(OGLRender *oglrender, RenderResult *rr)
       ARegion *region = oglrender->region;
       ibuf_view = ED_view3d_draw_offscreen_imbuf(depsgraph,
                                                  scene,
-                                                 static_cast<eDrawType>(v3d->shading.type),
+                                                 v3d->shading.type,
                                                  v3d,
                                                  region,
                                                  sizex,
                                                  sizey,
-                                                 IB_float_data,
+                                                 ImBufFlags::FloatData,
                                                  alpha_mode,
                                                  viewname,
                                                  true,
@@ -374,7 +374,7 @@ static void screen_opengl_render_doit(OGLRender *oglrender, RenderResult *rr)
                                                         scene->camera,
                                                         sizex,
                                                         sizey,
-                                                        IB_float_data,
+                                                        ImBufFlags::FloatData,
                                                         V3D_OFSDRAW_SHOW_ANNOTATION,
                                                         alpha_mode,
                                                         viewname,
@@ -723,8 +723,9 @@ static bool screen_opengl_render_init(bContext *C, wmOperator *op)
   const bool is_animation = RNA_boolean_get(op->ptr, "animation");
   const bool is_render_keyed_only = RNA_boolean_get(op->ptr, "render_keyed_only");
   const bool is_write_still = RNA_boolean_get(op->ptr, "write_still");
-  const eImageFormatDepth color_depth = static_cast<eImageFormatDepth>(
-      (is_animation) ? eImageFormatDepth(scene->r.im_format.depth) : R_IMF_CHAN_DEPTH_32);
+  const eImageFormatDepth color_depth = is_animation ?
+                                            eImageFormatDepth(scene->r.im_format.depth) :
+                                            R_IMF_CHAN_DEPTH_32;
   char err_out[256] = "unknown";
 
   if (G.background) {

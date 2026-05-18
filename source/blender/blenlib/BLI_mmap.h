@@ -17,8 +17,6 @@ namespace blender {
 
 struct BLI_mmap_file;
 
-struct BLI_mmap_file;
-
 /* Prepares an opened file for memory-mapped IO.
  * May return NULL if the operation fails.
  * Note that this seeks to the end of the file to determine its length. */

@@ -1440,6 +1440,12 @@ void func([[resource_table]] Resources &srt)
   } else {
     test;
   }
+
+  if (srt.use_color_band) [[static_branch]] {
+    if (srt.use_color_band) [[static_branch]] {
+      test;
+    }
+  }
 }
 )";
     string expect = R"(
@@ -1544,13 +1550,28 @@ void func(Resources  srt)
          {
     test;
   }
+#endif
+
+#if SRT_CONSTANT_use_color_band
+#line 38
+                                                               {
+
+#if SRT_CONSTANT_use_color_band
+#line 39
+                                                                 {
+      test;
+    }
 
 #endif
-#line 37
+#line 42
+  }
+
+#endif
+#line 43
 }
 
 #endif
-#line 38
+#line 44
 )";
     string error;
     string output = process_test_string(input, error);
@@ -2785,11 +2806,11 @@ struct ns_VertInTfloat {
 #if defined(GPU_VERTEX_SHADER)
 #line 29
   Resources srt = Resources_ctor_();
-  gl_BaseInstance;
+  gpu_BaseInstance;
   gl_PointSize;
   gl_ClipDistance;
   gl_Layer;
-  gl_ViewportIndex;
+  gpu_ViewportIndex;
   gl_Position;
 
 #endif
@@ -2812,7 +2833,7 @@ struct ns_VertInTfloat {
 #line 48
   Resources srt = Resources_ctor_();
   gl_Layer;
-  gl_ViewportIndex;
+  gpu_ViewportIndex;
   gl_FragDepth;
   gl_FragStencilRefARB;
   gl_FragCoord;
@@ -2875,6 +2896,7 @@ GPU_SHADER_CREATE_INFO(ns_vertex_function_infos_)
 ADDITIONAL_INFO(Resources)
 ADDITIONAL_INFO(ns_VertInTfloat)
 VERTEX_OUT(ns_VertOut_t)
+BUILTINS(BuiltinBits::INSTANCE_ID)
 BUILTINS(BuiltinBits::POINT_SIZE)
 BUILTINS(BuiltinBits::LAYER)
 BUILTINS(BuiltinBits::VIEWPORT_INDEX)

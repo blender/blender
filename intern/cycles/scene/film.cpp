@@ -245,7 +245,8 @@ void Film::device_update(Device *device, DeviceScene *dscene, Scene *scene)
 
     /* Can't do motion pass if no motion vectors are available. */
     if (pass->get_type() == PASS_MOTION || pass->get_type() == PASS_MOTION_WEIGHT) {
-      if (scene->need_motion() != Scene::MOTION_PASS) {
+      const Scene::MotionType need_motion = scene->need_motion();
+      if (need_motion != Scene::MOTION_PASS && need_motion != Scene::MOTION_PASS_INTERACTIVE) {
         kfilm->pass_stride += pass->get_info().num_components;
         continue;
       }

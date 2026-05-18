@@ -381,9 +381,10 @@ bool VolumeMeshBuilder::empty_grid() const
 }
 
 /* -------------------------------------------------------------------- */
-/* Compute the average and variance of active values in a nanovdb grid, separately in all
- * dimensions. Adapted from `nanovdb/tools/GridStats.h`.
+/** \name NanoVDB Grid Statistics
  *
+ * Compute the average and variance of active values in a nanovdb grid, separately in all
+ * dimensions. Adapted from `nanovdb/tools/GridStats.h`.
  * \{ */
 
 struct Vec3Stats {

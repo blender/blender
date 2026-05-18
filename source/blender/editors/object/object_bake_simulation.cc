@@ -339,7 +339,7 @@ static void bake_geometry_nodes_startjob(void *customdata, wmJobWorkerStatus *wo
         BLI_file_ensure_parent_dir_exists(meta_path);
         bake::DiskBlobWriter blob_writer{request.path->blobs_dir, frame_file_name};
         fstream meta_file{meta_path, std::ios::out};
-        bake::serialize_bake(frame_cache.state, blob_writer, *request.blob_sharing, meta_file);
+        bake::serialize_bake(frame_cache.values, blob_writer, *request.blob_sharing, meta_file);
         written_size += blob_writer.written_size();
         written_size += meta_file.tellp();
       }
@@ -348,7 +348,7 @@ static void bake_geometry_nodes_startjob(void *customdata, wmJobWorkerStatus *wo
 
         bake::MemoryBlobWriter blob_writer{frame_file_name};
         std::ostringstream meta_file{std::ios::binary};
-        bake::serialize_bake(frame_cache.state, blob_writer, *request.blob_sharing, meta_file);
+        bake::serialize_bake(frame_cache.values, blob_writer, *request.blob_sharing, meta_file);
 
         packed_data.meta_files.append({frame_file_name + ".json", meta_file.str()});
         const Map<std::string, bake::MemoryBlobWriter::OutputStream> &blob_stream_by_name =

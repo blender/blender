@@ -432,9 +432,9 @@ int armature_bonecoll_move_to_parent(bArmature *armature,
  * The destination parameters are pointers to those components, so they can
  * be modified.  The destination array should be empty and unallocated.
  *
- * \param bcoll_array_dst,bcoll_array_dst_num: the destination BoneCollection
+ * \param bcoll_array_dst, bcoll_array_dst_num: the destination BoneCollection
  * array and array size.
- * \param bcoll_array_src,bcoll_array_src_num: the source BoneCollection array
+ * \param bcoll_array_src, bcoll_array_src_num: the source BoneCollection array
  * and array size.
  * \param do_id_user: when true, increments the user count of IDs that
  * the BoneCollections' custom properties point to, if any.

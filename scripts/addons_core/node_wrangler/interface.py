@@ -117,11 +117,11 @@ class NWMergeNodesMenu(Menu, NWBaseMenu):
     bl_label = "Merge Selected Nodes"
 
     def draw(self, context):
-        type = context.space_data.tree_type
+        tree_type = context.space_data.tree_type
         layout = self.layout
-        if type == 'ShaderNodeTree':
+        if tree_type == 'ShaderNodeTree':
             layout.menu(NWMergeShadersMenu.bl_idname, text="Use Shaders")
-        if type == 'GeometryNodeTree':
+        if tree_type == 'GeometryNodeTree':
             layout.menu(NWMergeGeometryMenu.bl_idname, text="Use Geometry Nodes")
             layout.menu(NWMergeMathMenu.bl_idname, text="Use Math Nodes")
         else:
@@ -142,9 +142,9 @@ class NWMergeGeometryMenu(Menu, NWBaseMenu):
     def draw(self, context):
         layout = self.layout
         # The boolean node + Join Geometry node
-        for type, name, description in geo_combine_operations:
+        for operation_type, name, description in geo_combine_operations:
             props = layout.operator("node.nw_merge_nodes", text=name, text_ctxt=i18n_contexts.id_nodetree)
-            props.mode = type
+            props.mode = operation_type
             props.merge_type = 'GEOMETRY'
 
 
@@ -154,10 +154,10 @@ class NWMergeShadersMenu(Menu, NWBaseMenu):
 
     def draw(self, context):
         layout = self.layout
-        for type in ('MIX', 'ADD'):
-            name = f'{type.capitalize()} Shader'
+        for operation_type in ('MIX', 'ADD'):
+            name = f'{operation_type.capitalize()} Shader'
             props = layout.operator("node.nw_merge_nodes", text=name, text_ctxt=i18n_contexts.default)
-            props.mode = type
+            props.mode = operation_type
             props.merge_type = 'SHADER'
 
 
@@ -167,9 +167,9 @@ class NWMergeMixMenu(Menu, NWBaseMenu):
 
     def draw(self, context):
         layout = self.layout
-        for type, name, description in blend_types:
+        for blend_type, name, description in blend_types:
             props = layout.operator("node.nw_merge_nodes", text=name, text_ctxt=i18n_contexts.id_nodetree)
-            props.mode = type
+            props.mode = blend_type
             props.merge_type = 'MIX'
 
 
@@ -179,9 +179,9 @@ class NWMergeMathMenu(Menu, NWBaseMenu):
 
     def draw(self, context):
         layout = self.layout
-        for type, name, description in operations:
+        for operation_type, name, description in operations:
             props = layout.operator("node.nw_merge_nodes", text=name, text_ctxt=i18n_contexts.id_nodetree)
-            props.mode = type
+            props.mode = operation_type
             props.merge_type = 'MATH'
 
 
@@ -201,13 +201,13 @@ class NWBatchChangeBlendTypeMenu(Menu, NWBaseMenu):
 
     def draw(self, context):
         layout = self.layout
-        for type, name, description in blend_types:
+        for blend_type, name, description in blend_types:
             props = layout.operator(
                 "node.nw_batch_change",
                 text=name,
                 text_ctxt=i18n_contexts.id_nodetree,
             )
-            props.blend_type = type
+            props.blend_type = blend_type
             props.operation = 'CURRENT'
 
 
@@ -217,10 +217,10 @@ class NWBatchChangeOperationMenu(Menu, NWBaseMenu):
 
     def draw(self, context):
         layout = self.layout
-        for type, name, description in operations:
+        for operation_type, name, description in operations:
             props = layout.operator("node.nw_batch_change", text=name, text_ctxt=i18n_contexts.id_nodetree)
             props.blend_type = 'CURRENT'
-            props.operation = type
+            props.operation = operation_type
 
 
 class NWCopyToSelectedMenu(Menu, NWBaseMenu):

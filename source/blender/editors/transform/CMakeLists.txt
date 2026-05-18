@@ -119,6 +119,7 @@ set(LIB
   PRIVATE bf::dna
   bf_editor_mask
   PRIVATE bf::gpu
+  PRIVATE bf::imbuf
   PRIVATE bf::intern::guardedalloc
   PRIVATE bf::nodes
   PRIVATE bf::render

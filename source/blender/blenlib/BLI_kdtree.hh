@@ -936,7 +936,7 @@ inline int kdtree_calc_duplicates_fast(const KDTree<CoordT> *tree,
  * \param has_self_index: When true, account for indices
  * in the `duplicates` array that reference themselves,
  * prioritizing them as targets before de-duplicating the remainder with each other.
- * \param deduplicate_cb: A function which receives duplicate indices,
+ * \param duplicates_cb: A function which receives duplicate indices,
  * it must choose the "target" index to keep which is returned.
  * The return value is an index in the `cluster` array (a value from `0..cluster_num`).
  * The last item in `cluster` is the index from which the search began.

@@ -31,7 +31,7 @@ void BMO_mesh_delete_oflag_context(BMesh *bm,
                                    FunctionRef<void()> prepare_fn);
 
 /**
- * \param oflag: Geometry tagged with this operator flag is deleted.
+ * \param hflag: Geometry tagged with this operator flag is deleted.
  * This flag applies to different types in some contexts, not just the type being removed.
  */
 void BM_mesh_delete_hflag_context(BMesh *bm, char hflag, int type);

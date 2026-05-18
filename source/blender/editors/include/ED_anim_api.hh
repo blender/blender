@@ -1281,8 +1281,8 @@ Depsgraph *animviz_depsgraph_build(Main *bmain,
 /**
  * Evaluated the given `depsgraph` for all targets.
  *
- * \param range determines which frames the Depsgraph is evaluated for. This can have big
- * performance implications.
+ * \param range: determines which frames the Depsgraph is evaluated for.
+ * This can have big performance implications.
  */
 void animviz_calc_motionpaths(Depsgraph *depsgraph,
                               Main *bmain,

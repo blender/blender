@@ -29,7 +29,7 @@ struct ReadContext {
   const size_t mem_size;
   const char *file_format;
   const eImbFileType file_type;
-  const int flags;
+  const ImBufFlags flags;
 
   /** Allocate and use all #ImBuf image planes even if the image has fewer. */
   bool use_all_planes = false;
@@ -44,7 +44,7 @@ struct ReadContext {
 struct WriteContext {
   const char *file_format;
   ImBuf *ibuf;
-  int flags;
+  ImBufFlags flags;
 
   uchar *mem_start;
   OIIO::stride_t mem_xstride;
@@ -60,7 +60,7 @@ bool imb_oiio_check(const uchar *mem, size_t mem_size, const char *file_format);
 /**
  * The primary method for reading data into an #ImBuf.
  *
- * During the `IB_test` phase of loading, the `colorspace` parameter will be populated
+ * During the `ImBufFlags::Test` phase of loading, the `colorspace` parameter will be populated
  * with the appropriate `colorspace` name.
  *
  * Upon return, the `r_newspec` parameter will contain image format information
@@ -96,7 +96,7 @@ Vector<uint8_t> imb_oiio_write_buffer(const WriteContext &ctx, const OIIO::Image
  */
 WriteContext imb_create_write_context(const char *file_format,
                                       ImBuf *ibuf,
-                                      int flags,
+                                      ImBufFlags flags,
                                       bool prefer_float = true);
 
 /**

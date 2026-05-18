@@ -1,9 +1,9 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 5.2.0 Alpha (b'8c7c45ad114e')\n"
+"Project-Id-Version: Blender 5.2.0 Alpha (b'bc0a0ff2c0ce')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-05-11 07:23+0000\n"
+"POT-Creation-Date: 2026-05-18 11:20+0000\n"
 "PO-Revision-Date: 2025-07-31 16:24+0000\n"
 "Last-Translator: leif larsen <linuxdk1978@gmail.com>\n"
 "Language-Team: Danish <https://translate.blender.org/projects/blender-ui/ui/da/>\n"
@@ -1610,10 +1610,6 @@ msgstr "Vis de aktiver, der i øjeblikket er tilgængelige i denne Blender-sessi
 
 msgid "Essentials"
 msgstr "Væsentlige"
-
-
-msgid "Show the basic building blocks and utilities coming with Blender"
-msgstr "Vis de grundlæggende byggeklodser og hjælpeprogrammer, der følger med Blender"
 
 
 msgid "Custom"

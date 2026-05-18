@@ -367,7 +367,7 @@ size_t BLI_path_join_array(char *__restrict dst,
  * Join multiple strings into a path, ensuring only a single path separator between each,
  * and trailing slash is kept.
  *
- * \param path: The first patch which has special treatment,
+ * The first path which has special treatment,
  * allowing `//` prefix which is kept intact unlike double-slashes which are stripped
  * from the bounds of all other paths passed in.
  * Passing in the following paths all result in the same output (`//a/b/c`):

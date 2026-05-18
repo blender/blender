@@ -63,12 +63,12 @@ class NODE_OT_link_to_output(Operator):
             output_node.location.y = active.location.y
 
         if active.outputs:
-            for i, output in enumerate(active.outputs):
-                if is_visible_socket(output):
+            for i, output_socket in enumerate(active.outputs):
+                if is_visible_socket(output_socket):
                     output_index = i
                     break
-            for i, output in enumerate(active.outputs):
-                if output.type == output_node.inputs[0].type and is_visible_socket(output):
+            for i, output_socket in enumerate(active.outputs):
+                if output_socket.type == output_node.inputs[0].type and is_visible_socket(output_socket):
                     output_index = i
                     break
 

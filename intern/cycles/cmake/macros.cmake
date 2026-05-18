@@ -103,7 +103,6 @@ function(cycles_external_libraries_append libraries)
     bf::dependencies::optional::osl
     bf::dependencies::optional::pugixml
     bf::dependencies::optional::python
-    bf::dependencies::optional::webp
     ${CMAKE_DL_LIBS}
     ${PLATFORM_LINKLIBS}
   )

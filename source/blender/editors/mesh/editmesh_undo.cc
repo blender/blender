@@ -182,6 +182,8 @@ struct UndoMesh {
   size_t undo_size;
 };
 
+/** \} */
+
 #ifdef USE_ARRAY_STORE
 
 /* -------------------------------------------------------------------- */
@@ -911,6 +913,10 @@ static UndoMesh **mesh_undostep_reference_elems_from_objects(Object **object, in
 /** \} */
 
 #endif /* USE_ARRAY_STORE */
+
+/* -------------------------------------------------------------------- */
+/** \name Undo/Redo Helper Functions
+ * \{ */
 
 /* for callbacks */
 /* undo simply makes copies of a bmesh */

@@ -27,7 +27,7 @@
 
 namespace blender::gpu::tests {
 
-#ifdef WITH_BACKEND_OPENGL
+#ifdef WITH_OPENGL_BACKEND
 
 /* Test operates on a 4x4 texture patch. */
 constexpr uint texture_size_x = 4;

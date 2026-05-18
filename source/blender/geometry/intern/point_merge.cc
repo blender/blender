@@ -51,7 +51,7 @@ PointCloud *merge_points(const PointCloud &src_points,
       },
       exec_mode::grain_size(8192));
   group_counts = {};
-  offset_indices::sort_small_groups(group_offsets, all_group_indices);
+  offset_indices::sort_groups(group_offsets, all_group_indices);
   const GroupedSpan<int> indices_by_group(group_offsets, all_group_indices);
 
   IndexMaskMemory memory;

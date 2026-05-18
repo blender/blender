@@ -31,7 +31,10 @@ bool imb_is_a_avif(const uchar *mem, size_t size)
   return imb_oiio_check(mem, size, "heif");
 }
 
-ImBuf *imb_load_avif(const uchar *mem, size_t size, int flags, ImFileColorSpace &r_colorspace)
+ImBuf *imb_load_avif(const uchar *mem,
+                     size_t size,
+                     ImBufFlags flags,
+                     ImFileColorSpace &r_colorspace)
 {
   ImageSpec config, spec;
   config.attribute("oiio:UnassociatedAlpha", 1);
@@ -100,7 +103,7 @@ static void imb_save_avif_padding_workaround_end(const uchar *buf_padded)
   MEM_delete(buf_padded);
 }
 
-static std::tuple<WriteContext, ImageSpec, bool> prepare_save_avif(ImBuf *ibuf, int flags)
+static std::tuple<WriteContext, ImageSpec, bool> prepare_save_avif(ImBuf *ibuf, ImBufFlags flags)
 {
   const int bits_per_sample = (ibuf->foptions.flag & AVIF_10BIT) ? 10 :
                               (ibuf->foptions.flag & AVIF_12BIT) ? 12 :
@@ -117,9 +120,7 @@ static std::tuple<WriteContext, ImageSpec, bool> prepare_save_avif(ImBuf *ibuf, 
   ImageSpec file_spec = imb_create_write_spec(ctx, file_channels, data_format);
 
   /* Skip if the float buffer was managed already. */
-  if (use_float &&
-      (ibuf->float_buffer.colorspace || (ibuf->colormanage_flag & IMB_COLORMANAGE_IS_DATA)))
-  {
+  if (use_float && (ibuf->float_buffer.colorspace || ibuf->colorspace_is_data())) {
     file_spec.attribute("oiio:UnassociatedAlpha", 0);
   }
   else {
@@ -132,7 +133,7 @@ static std::tuple<WriteContext, ImageSpec, bool> prepare_save_avif(ImBuf *ibuf, 
   return {ctx, file_spec, use_float};
 }
 
-bool imb_save_avif(ImBuf *ibuf, const char *filepath, int flags)
+bool imb_save_avif(ImBuf *ibuf, const char *filepath, ImBufFlags flags)
 {
   auto [ctx, file_spec, use_float] = prepare_save_avif(ibuf, flags);
   const uchar *buf_padded = nullptr;
@@ -144,7 +145,7 @@ bool imb_save_avif(ImBuf *ibuf, const char *filepath, int flags)
   return result;
 }
 
-Vector<uint8_t> imb_save_buffer_avif(ImBuf *ibuf, int flags)
+Vector<uint8_t> imb_save_buffer_avif(ImBuf *ibuf, ImBufFlags flags)
 {
   auto [ctx, file_spec, use_float] = prepare_save_avif(ibuf, flags);
   const uchar *buf_padded = nullptr;

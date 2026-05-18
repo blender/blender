@@ -218,7 +218,7 @@ struct ProjPaintImage {
   ImBuf *ibuf;
   ImagePaintPartialRedraw *partRedrawRect;
   /** Only used to build undo tiles during painting. */
-  volatile void **undoRect;
+  volatile const void **undoRect;
   /** The mask accumulation must happen on canvas, not on space screen bucket.
    * Here we store the mask rectangle. */
   ushort **maskRect;
@@ -1831,30 +1831,46 @@ static int project_paint_undo_subtiles(const TileInfo *tinf, int tx, int ty)
 
   if (generate_tile) {
     PaintTileMap *undo_tiles = ED_image_paint_tile_map_get();
-    volatile void *undorect;
+    volatile const void *undorect = nullptr;
     if (tinf->masked) {
-      undorect = ED_image_paint_tile_push(undo_tiles,
-                                          pjIma->ima,
-                                          pjIma->ibuf,
-                                          &pjIma->iuser,
-                                          tx,
-                                          ty,
-                                          &pjIma->maskRect[tile_index],
-                                          &pjIma->valid[tile_index],
-                                          true,
-                                          false);
+      if (const ImBuf *ibuf = ED_image_paint_tile_push(undo_tiles,
+                                                       pjIma->ima,
+                                                       pjIma->ibuf,
+                                                       &pjIma->iuser,
+                                                       tx,
+                                                       ty,
+                                                       &pjIma->maskRect[tile_index],
+                                                       &pjIma->valid[tile_index],
+                                                       true,
+                                                       false))
+      {
+        if (ibuf->float_data()) {
+          undorect = ibuf->float_data();
+        }
+        else {
+          undorect = ibuf->byte_data();
+        }
+      }
     }
     else {
-      undorect = ED_image_paint_tile_push(undo_tiles,
-                                          pjIma->ima,
-                                          pjIma->ibuf,
-                                          &pjIma->iuser,
-                                          tx,
-                                          ty,
-                                          nullptr,
-                                          &pjIma->valid[tile_index],
-                                          true,
-                                          false);
+      if (const ImBuf *ibuf = ED_image_paint_tile_push(undo_tiles,
+                                                       pjIma->ima,
+                                                       pjIma->ibuf,
+                                                       &pjIma->iuser,
+                                                       tx,
+                                                       ty,
+                                                       nullptr,
+                                                       &pjIma->valid[tile_index],
+                                                       true,
+                                                       false))
+      {
+        if (ibuf->float_data()) {
+          undorect = ibuf->float_data();
+        }
+        else {
+          undorect = ibuf->byte_data();
+        }
+      }
     }
 
     BKE_image_mark_dirty(pjIma->ima, pjIma->ibuf);
@@ -4371,7 +4387,7 @@ static void project_paint_build_proj_ima(ProjPaintState *ps,
     projIma->partRedrawRect = static_cast<ImagePaintPartialRedraw *>(
         BLI_memarena_alloc(arena, sizeof(ImagePaintPartialRedraw) * PROJ_BOUNDBOX_SQUARED));
     partial_redraw_array_init(projIma->partRedrawRect);
-    projIma->undoRect = static_cast<volatile void **>(BLI_memarena_alloc(arena, size));
+    projIma->undoRect = static_cast<volatile const void **>(BLI_memarena_alloc(arena, size));
     memset(static_cast<void *>(projIma->undoRect), 0, size);
     projIma->maskRect = static_cast<ushort **>(BLI_memarena_alloc(arena, size));
     memset(projIma->maskRect, 0, size);
@@ -5903,7 +5919,7 @@ static void paint_proj_stroke_ps(const bContext * /*C*/,
       img->is_data = false;
       img->is_srgb = false;
 
-      if (ibuf->colormanage_flag & IMB_COLORMANAGE_IS_DATA) {
+      if (ibuf->colorspace_is_data()) {
         img->is_data = true;
       }
       else if (ibuf->byte_data() && ibuf->byte_buffer.colorspace) {
@@ -6462,7 +6478,7 @@ static wmOperatorStatus texture_paint_image_from_view_exec(bContext *C, wmOperat
                                         region,
                                         w,
                                         h,
-                                        IB_byte_data,
+                                        ImBufFlags::ByteData,
                                         R_ALPHAPREMUL,
                                         nullptr,
                                         false,

@@ -77,6 +77,28 @@ void SourceProcessor::lower_entry_points(Parser &parser)
       return;
     }
 
+    auto parse_condition = [&](const Scope &attributes) {
+      string cond;
+      attributes.foreach_attribute([&](Token attribute_name, Scope attribute_parameters) {
+        if (attribute_name.str() == "condition") {
+          if (!cond.empty()) {
+            report_error(attribute_name, "Only one condition attribute is allowed.");
+            return;
+          }
+          attribute_parameters[1].scope().foreach_token(Word, [&](const Token tok) {
+            cond += "int " + string(tok.str()) + " = ";
+            cond += "ShaderCreateInfo::find_constant(constants, \"" + string(tok.str()) + "\"); ";
+          });
+          cond += "return " + string(attribute_parameters[1].scope().str()) + ";";
+        }
+      });
+
+      if (!cond.empty()) {
+        cond = ", [](blender::Span<CompilationConstant> constants) { " + cond + "}";
+      }
+      return cond;
+    };
+
     auto replace_word = [&](const string &replaced, const string &replacement) {
       fn_body.foreach_token(Word, [&](const Token tok) {
         if (tok.str() == replaced) {
@@ -187,8 +209,9 @@ void SourceProcessor::lower_entry_points(Parser &parser)
                        "[[base_instance]] must be declared as "
                        "`const int`.");
         }
-        replace_word(srt_var, "gl_BaseInstance");
-        metadata_.builtins.emplace_back(Builtin(hash("gl_BaseInstance")));
+        replace_word(srt_var, "gpu_BaseInstance");
+        metadata_.builtins.emplace_back(Builtin(hash("gpu_BaseInstance")));
+        create_info_decl += "BUILTINS(BuiltinBits::INSTANCE_ID)\n";
       }
       else if (srt_attr == "point_size" && is_entry_point) {
         if (!is_vertex_func) {
@@ -247,7 +270,7 @@ void SourceProcessor::lower_entry_points(Parser &parser)
                        "[[viewport_index]] must be declared as const reference "
                        "(aka `const int &`).");
         }
-        replace_word(srt_var, "gl_ViewportIndex");
+        replace_word(srt_var, "gpu_ViewportIndex");
         create_info_decl += "BUILTINS(BuiltinBits::VIEWPORT_INDEX)\n";
       }
       else if (srt_attr == "position" && is_entry_point) {
@@ -405,7 +428,14 @@ void SourceProcessor::lower_entry_points(Parser &parser)
           /* Add dummy var at start of function body. */
           parser.insert_after(fn_body.front().str_index_start(),
                               " " + srt_type + " " + srt_var + "{};");
-          create_info_decl += "ADDITIONAL_INFO(" + srt_type + ")\n";
+          string res_condition_lambda = parse_condition(attributes);
+          if (res_condition_lambda.empty()) {
+            create_info_decl += "ADDITIONAL_INFO(" + srt_type + ")\n";
+          }
+          else {
+            create_info_decl += ".additional_info_with_condition(\"" + srt_type + "\"" +
+                                res_condition_lambda + ")\n";
+          }
         }
       }
       else if (srt_attr == "frag_depth") {

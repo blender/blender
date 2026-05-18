@@ -319,7 +319,7 @@ bool BPY_run_string_exec(bContext *C, const char *imports[], const char *expr)
  *
  * Only supports bool, int, float, string, and None values.
  *
- * \param obj The Python object to convert. Should NOT be nullptr.
+ * \param py_object: The Python object to convert. Should NOT be nullptr.
  * \return IDProperty The converted property, or nullptr if the Python value was None. The caller
  * owns the pointer, and is responsible for freeing it.
  */

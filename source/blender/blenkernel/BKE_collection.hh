@@ -170,7 +170,7 @@ bool BKE_collection_delete(Main *bmain, Collection *collection, bool hierarchy);
 /**
  * Make a deep copy (aka duplicate) of the given collection and all of its children, recursively.
  *
- * \param dupflag: Controls which sub-data are also duplicated
+ * \param duplicate_flags: Controls which sub-data are also duplicated
  * (see #eDupli_ID_Flags in DNA_userdef_types.h).
  * \param duplicate_options: Additional context information about current duplicate call (e.g. if
  * it's part of a higher-level duplication or not, etc.). (see #eLibIDDuplicateFlags in

@@ -1396,7 +1396,7 @@ static inline bool fcurve_span_must_be_selected(const eAnimFilter_Flags filter_m
  *    used later to look up the ID* of the user of the slot, which in turn is
  *    used to construct a suitable F-Curve label for in the channels list.
  *
- * \param owner_id: The ID whose 'animdata->action' pointer was followed to get to
+ * \param animated_id: The ID whose 'animdata->action' pointer was followed to get to
  *    these F-Curves. This ID may be animated by a different slot than referenced by
  *    `slot_handle`, so do _not_ treat this as "the ID animated by these F-Curves".
  *

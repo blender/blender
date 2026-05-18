@@ -390,7 +390,6 @@ ScrArea *ED_screen_state_toggle(bContext *C, wmWindow *win, ScrArea *area, eScre
  * as defined by \a display_type.
  *
  * \param title: Title to set for the window, if a window is spawned.
- * \param rect_unscaled: Position & size of the window, if a window is spawned.
  */
 ScrArea *ED_screen_temp_space_open(bContext *C,
                                    const char *title,

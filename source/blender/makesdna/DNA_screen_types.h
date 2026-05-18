@@ -525,7 +525,7 @@ struct uiPreview {
  * State storage for text-boxes (#ui::ButtonTextBox).
  */
 struct TextboxState {
-  int visible_lines = 0;
+  int visible_lines = 3;
   int scroll = 0;
 };
 
@@ -539,7 +539,7 @@ struct TextboxState {
 struct uiTextboxStateLink {
   struct uiTextboxStateLink *next = nullptr, *prev = nullptr;
   char *idname = nullptr;
-  TextboxState state = {};
+  TextboxState state;
 };
 
 enum GlobalAreaFlag : short {
@@ -699,8 +699,9 @@ enum eRegion_Type : short {
   RGN_TYPE_XR = 13,
   RGN_TYPE_ASSET_SHELF = 14,
   RGN_TYPE_ASSET_SHELF_HEADER = 15,
+  RGN_TYPE_SCRUBBING = 16,
 
-#define RGN_TYPE_NUM (RGN_TYPE_ASSET_SHELF_HEADER + 1)
+#define RGN_TYPE_NUM (RGN_TYPE_SCRUBBING + 1)
 };
 
 /** Use for function args. */
@@ -708,8 +709,9 @@ enum eRegion_Type : short {
 
 /** Check for any kind of header region. */
 #define RGN_TYPE_IS_HEADER_ANY(regiontype) \
-  (((1 << (regiontype)) & ((1 << RGN_TYPE_HEADER) | 1 << (RGN_TYPE_TOOL_HEADER) | \
-                           (1 << RGN_TYPE_FOOTER) | (1 << RGN_TYPE_ASSET_SHELF_HEADER))) != 0)
+  (((1 << (regiontype)) & \
+    ((1 << RGN_TYPE_HEADER) | 1 << (RGN_TYPE_TOOL_HEADER) | (1 << RGN_TYPE_FOOTER) | \
+     (1 << RGN_TYPE_ASSET_SHELF_HEADER) | (1 << RGN_TYPE_SCRUBBING))) != 0)
 
 /** #ARegion.alignment */
 enum eRegion_Alignment : short {
@@ -735,6 +737,10 @@ enum eRegion_Alignment : short {
    * should only be set for the previous region, not this. The evaluated visibility respecting this
    * flag can be queried via #ARegion.visible */
   RGN_ALIGN_HIDE_WITH_PREV = 1 << 7,
+  /** Region scaling is handed off when reaching limits. When the previous region is at maximum
+   * size, drag-outs are forwarded to this region, and when this region is at minimum size,
+   * drag-ins are forwarded to the previous region. */
+  RGN_STACK_ON_PREV = 1 << 8,
 };
 ENUM_OPERATORS(eRegion_Alignment)
 

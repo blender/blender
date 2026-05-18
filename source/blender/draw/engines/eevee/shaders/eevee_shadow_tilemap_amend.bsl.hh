@@ -17,44 +17,30 @@
 
 #pragma once
 
-#include "draw_view_infos.hh"
-
-FRAGMENT_SHADER_CREATE_INFO(draw_view)
-
 #include "eevee_defines.hh"
-#include "eevee_light_iter_lib.glsl"
+#include "eevee_light_iter.bsl.hh"
 #include "eevee_shadow_shared.hh"
 #include "eevee_shadow_tilemap_lib.bsl.hh"
 
 namespace eevee {
 
 struct TilemapAmend {
-  [[legacy_info]] ShaderCreateInfo draw_view;
-
-  [[storage(LIGHT_CULL_BUF_SLOT, read)]] const LightCullingData &light_cull_buf;
-  [[storage(LIGHT_BUF_SLOT, read_write)]] LightData (&light_buf)[];
-  /* The call bind_resources(lights) also uses LIGHT_ZBIN_BUF_SLOT and LIGHT_TILE_BUF_SLOT. */
   [[storage(4, read)]] const ShadowTileMapData (&tilemaps_buf)[];
+  [[storage(5, read_write)]] LightData (&light_buf_write)[];
 
   [[shared]] uint tiles_local[SHADOW_TILEMAP_RES][SHADOW_TILEMAP_RES];
 
   [[image(0, read_write, UINT_32)]] uimage2D tilemaps_img;
 };
 
-[[compute, local_size(SHADOW_TILEMAP_RES, SHADOW_TILEMAP_RES)]]
-void tilemap_amend([[resource_table]] TilemapAmend &srt,
-                   [[global_invocation_id]] const uint3 global_id)
-{
-  int2 tile_co = int2(global_id.xy);
+struct AmendCtx {
+  int2 tile_co;
 
-  LIGHT_FOREACH_BEGIN_DIRECTIONAL (srt.light_cull_buf, l_idx) {
-    LightData light = srt.light_buf[l_idx];
+  void eval_directional([[resource_table]] TilemapAmend &srt, uint /*index*/, LightData light)
+  {
     /* This only works on clip-maps. Cascade have already the same LOD for every tile-maps. */
-    if (light.type != LIGHT_SUN) {
-      break;
-    }
-    if (light.tilemap_index == LIGHT_NO_SHADOW) {
-      continue;
+    if (light.tilemap_index == LIGHT_NO_SHADOW || light.type != LIGHT_SUN) {
+      return;
     }
 
     int2 base_offset_neg = light.sun().clipmap_base_offset_neg;
@@ -87,8 +73,9 @@ void tilemap_amend([[resource_table]] TilemapAmend &srt,
            * Increase with each new invalid level. */
           tile_prev.lod += 1;
 
-          /* The offset (in tile of current LOD) is equal to the offset from the bottom left corner
-           * of both LODs modulo the size of a tile of the source LOD (in tile of current LOD). */
+          /* The offset (in tile of current LOD) is equal to the offset from the bottom left
+           * corner of both LODs modulo the size of a tile of the source LOD (in tile of current
+           * LOD). */
 
           /* Offset corner to center. */
           tile_prev.lod_offset = uint2(SHADOW_TILEMAP_RES / 2) << tile_prev.lod;
@@ -114,13 +101,11 @@ void tilemap_amend([[resource_table]] TilemapAmend &srt,
       barrier();
     }
   }
-  LIGHT_FOREACH_END
 
-  LIGHT_FOREACH_BEGIN_LOCAL_NO_CULL(srt.light_cull_buf, l_idx)
+  void eval_local([[resource_table]] TilemapAmend &srt, uint index, LightData light)
   {
-    LightData light = srt.light_buf[l_idx];
     if (light.tilemap_index == LIGHT_NO_SHADOW) {
-      continue;
+      return;
     }
 
     int lod_min = 0;
@@ -133,10 +118,23 @@ void tilemap_amend([[resource_table]] TilemapAmend &srt,
       /* Override the effective lod min distance in absolute mode (negative).
        * Note that this only changes the sampling for this AA sample. */
       constexpr float projection_diagonal = 2.0f * M_SQRT2;
-      srt.light_buf[l_idx].lod_min = -(projection_diagonal / float(SHADOW_MAP_MAX_RES >> lod_min));
+      srt.light_buf_write[index].lod_min = -(projection_diagonal /
+                                             float(SHADOW_MAP_MAX_RES >> lod_min));
     }
   }
-  LIGHT_FOREACH_END
+};
+
+template void light::foreach<AmendCtx, TilemapAmend>(const LightRenderData &,
+                                                     AmendCtx &,
+                                                     TilemapAmend &);
+
+[[compute, local_size(SHADOW_TILEMAP_RES, SHADOW_TILEMAP_RES)]] void tilemap_amend(
+    [[resource_table]] TilemapAmend &srt,
+    [[resource_table]] LightRenderData &lrd,
+    [[global_invocation_id]] const uint3 global_id)
+{
+  AmendCtx ctx = {.tile_co = int2(global_id.xy)};
+  light::foreach(lrd, ctx, srt);
 }
 
 PipelineCompute shadow_tilemap_amend(tilemap_amend);

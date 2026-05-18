@@ -41,6 +41,10 @@
 
 namespace gbuffer {
 
+/* -------------------------------------------------------------------- */
+/** \name G-buffer Write
+ * \{ */
+
 using ClosurePacking = gbuffer::ClosurePacking;
 using Header = gbuffer::Header;
 

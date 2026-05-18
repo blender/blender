@@ -193,6 +193,16 @@ static bool use_gnome_confine_hack = false;
  */
 #define USE_KDE_TABLET_HIDDEN_CURSOR_HACK
 
+/**
+ * GNOME (mutter 50.1 has a regression), unlocking the cursor warps
+ * the pointer with a zero time-stamp. See bug in mutter: 4811.
+ */
+#define USE_GNOME_MOTION_MISSING_TIME_HACK
+
+#ifdef USE_GNOME_MOTION_MISSING_TIME_HACK
+static bool use_gnome_motion_missing_time_hack = false;
+#endif
+
 /** \} */
 
 /* -------------------------------------------------------------------- */
@@ -2836,6 +2846,26 @@ static char *read_file_as_buffer(const int fd, const bool nil_terminate, size_t 
   return buf;
 }
 
+static bool string_elem_split_by_delim(std::string_view haystack,
+                                       const char delim,
+                                       std::string_view needle)
+{
+  /* Local copy of #BLI_string_elem_split_by_delim (would be a bad level call). */
+
+  /* May be zero, returns true when an empty span exists. */
+  while (!haystack.empty()) {
+    const size_t pos = haystack.find(delim);
+    if (haystack.substr(0, pos) == needle) {
+      return true;
+    }
+    if (pos == std::string_view::npos) {
+      break;
+    }
+    haystack.remove_prefix(pos + 1);
+  }
+  return false;
+}
+
 /** \} */
 
 /* -------------------------------------------------------------------- */
@@ -3639,6 +3669,32 @@ static void gwl_window_csd_active_elem_button(GWL_Seat *seat,
 }
 
 #endif /* WITH_GHOST_CSD */
+
+/** \} */
+
+/* -------------------------------------------------------------------- */
+/** \name Private "Current Desktop" Detection
+ * \{ */
+
+static GWL_CurrentDesktopType ghost_wayland_current_desktop()
+{
+  const char *xdg_current_desktop = [] {
+    /* Account for VSCode overriding this value (TSK!), see: #133921. */
+    const char *key = "ORIGINAL_XDG_CURRENT_DESKTOP";
+    const char *value = getenv(key);
+    return value ? value : getenv(key + 9);
+  }();
+
+  if (xdg_current_desktop) {
+    /* See the free-desktop specifications for details on `XDG_CURRENT_DESKTOP`.
+     * https://specifications.freedesktop.org/desktop-entry-spec/desktop-entry-spec-latest.html
+     */
+    if (string_elem_split_by_delim(xdg_current_desktop, ':', "GNOME")) {
+      return GWL_CurrentDesktopType::Gnome;
+    }
+  }
+  return GWL_CurrentDesktopType::Other;
+}
 
 /** \} */
 
@@ -4474,6 +4530,16 @@ static void pointer_handle_motion(void *data,
   seat->pointer.xy[1] = surface_y;
 
   CLOG_DEBUG(LOG, "motion");
+
+#ifdef USE_GNOME_MOTION_MISSING_TIME_HACK
+  if (use_gnome_motion_missing_time_hack) {
+    if (event_ms == 0) [[unlikely]] {
+      /* Only occur when the `relative_pointer` is released, ignore
+       * because GHOST already adds a motion event. */
+      return;
+    }
+  }
+#endif
 
   gwl_pointer_handle_frame_event_add(
       &seat->pointer_events, GWL_Pointer_EventTypes::Motion, WL_SERIAL_NONE, event_ms);
@@ -6517,7 +6583,8 @@ class GHOST_EventIME : public GHOST_Event {
    * Constructor.
    * \param msec: The time this event was generated.
    * \param type: The type of key event.
-   * \param key: The key code of the key.
+   * \param window: The window of the event.
+   * \param customdata: The IME event data.
    */
   GHOST_EventIME(uint64_t msec,
                  GHOST_TEventType type,
@@ -8318,6 +8385,7 @@ GHOST_SystemWayland::GHOST_SystemWayland(const bool background)
     throw std::runtime_error("unable to connect to display!");
   }
 
+  const GWL_CurrentDesktopType current_desktop = ghost_wayland_current_desktop();
   /* This may be removed later if decorations are required, needed as part of registration. */
   display_->xdg_decor = new GWL_XDG_Decor_System;
 
@@ -8338,12 +8406,18 @@ GHOST_SystemWayland::GHOST_SystemWayland(const bool background)
     display_->registry_skip_update_all = false;
   }
 
+#ifdef USE_GNOME_MOTION_MISSING_TIME_HACK
+  if (current_desktop == GWL_CurrentDesktopType::Gnome) {
+    use_gnome_motion_missing_time_hack = true;
+  }
+#endif
+
 #ifdef WITH_GHOST_CSD
   if (use_window_frame) {
 #  ifdef USE_GHOST_CSD_FORCE
     display_->use_window_frame_csd = true;
 #  else
-    display_->use_window_frame_csd = GHOST_WindowCSD_Check();
+    display_->use_window_frame_csd = GHOST_WindowCSD_Check(current_desktop);
 #  endif
   }
   if (display_->use_window_frame_csd) {
@@ -8949,7 +9023,7 @@ uint *GHOST_SystemWayland::getClipboardImage(int *r_width, int *r_height) const
       if (data) {
         /* Generate the image buffer with the received data. */
         ibuf = blender::IMB_load_image_from_memory(
-            (const uint8_t *)data, data_len, blender::IB_byte_data, "<clipboard>");
+            (const uint8_t *)data, data_len, blender::ImBufFlags::ByteData, "<clipboard>");
         free(data);
       }
     }
@@ -8964,7 +9038,7 @@ uint *GHOST_SystemWayland::getClipboardImage(int *r_width, int *r_height) const
         if (!uris.empty()) {
           const std::string_view &uri = uris.front();
           char *filepath = GHOST_URL_decode_alloc(uri.data(), uri.size());
-          ibuf = blender::IMB_load_image_from_filepath(filepath, blender::IB_byte_data);
+          ibuf = blender::IMB_load_image_from_filepath(filepath, blender::ImBufFlags::ByteData);
           free(filepath);
         }
         free(data);
@@ -9004,8 +9078,8 @@ GHOST_TSuccess GHOST_SystemWayland::putClipboardImage(uint *rgba, int width, int
       reinterpret_cast<uint8_t *>(rgba), nullptr, width, height, 32);
   ibuf->ftype = blender::IMB_FTYPE_PNG;
   ibuf->foptions.quality = 15;
-  blender::Vector<uint8_t> encoded = blender::IMB_save_image_to_buffer(ibuf,
-                                                                       blender::IB_byte_data);
+  blender::Vector<uint8_t> encoded = blender::IMB_save_image_to_buffer(
+      ibuf, blender::ImBufFlags::ByteData);
   if (encoded.is_empty()) {
     blender::IMB_freeImBuf(ibuf);
     return GHOST_kFailure;

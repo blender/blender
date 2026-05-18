@@ -33,7 +33,7 @@ Thickness g_thickness;
 float4 closure_to_rgba_hybrid(Closure /*cl*/)
 {
   float3 radiance, transmittance;
-  forward_lighting_eval(g_thickness, gl_FragCoord.xy, radiance, transmittance);
+  eevee::forward_lighting_eval(g_thickness, gl_FragCoord.xy, radiance, transmittance);
 
   /* Reset for the next closure tree. */
   float noise = utility_tx_fetch(utility_tx, gl_FragCoord.xy, UTIL_BLUE_NOISE_LAYER).r;
@@ -72,9 +72,7 @@ struct SurfaceHybrid {
   [[legacy_info]] ShaderCreateInfo draw_view_culling;
 
   /* For closure_to_rgba. */
-  [[legacy_info]] ShaderCreateInfo eevee_light_data;
   [[legacy_info]] ShaderCreateInfo eevee_lightprobe_data;
-  [[legacy_info]] ShaderCreateInfo eevee_shadow_data;
 
   /* Everything is stored inside a two layered target, one for each format. This is to fit the
    * limitation of the number of images we can bind on a single shader. */
@@ -118,6 +116,7 @@ struct HybridFragOut {
 /* NOTE: This removes the possibility of using gl_FragDepth. */
 [[fragment]] [[early_fragment_tests]]
 void surf_hybrid([[resource_table]] SurfaceHybrid &srt,
+                 [[resource_table]] LightEvalIterator & /*lights*/,
                  [[frag_coord]] const float4 frag_co,
                  [[out]] HybridFragOut &frag_out)
 {

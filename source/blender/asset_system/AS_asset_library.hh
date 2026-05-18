@@ -298,12 +298,8 @@ std::string AS_asset_library_root_path_from_library_ref(
  * * If \a input_path is empty or doesn't have a parent path (e.g. because a .blend wasn't saved
  *   yet), there is no suitable path. The caller has to decide how to handle this case.
  *
- * \param r_library_path: The returned asset library path with a trailing slash, or an empty string
- *                        if no suitable path is found. Assumed to be a buffer of at least
- *                        #FILE_MAXDIR bytes.
- *
- * \return True if the function could find a valid, that is, a non-empty path to return in \a
- *         r_library_path.
+ * \return The returned asset library path with a trailing slash,
+ * or an empty string if no suitable path is found.
  */
 std::string AS_asset_library_find_suitable_root_path_from_path(StringRefNull input_path);
 

@@ -42,12 +42,14 @@ struct ModifierApplyContext {
                        SeqRenderState &render_state,
                        const Strip &strip,
                        const float3x3 &transform,
+                       const float3x3 &transform_comp_result,
                        const float timeline_frame,
                        ImBuf *image)
       : render_data(render_data),
         render_state(render_state),
         strip(strip),
         transform(transform),
+        transform_comp_result(transform_comp_result),
         timeline_frame(timeline_frame),
         image(image)
   {
@@ -60,6 +62,8 @@ struct ModifierApplyContext {
    * full render area pixel coordinates.This is used to sample
    * modifier masks (since masks are in full render area space). */
   const float3x3 transform;
+  /* Transformation to apply when sampling masks in compositor modifier. */
+  const float3x3 transform_comp_result;
   /* Timeline frame at which the modifiers are being applied at. */
   const float timeline_frame;
   ImBuf *const image;

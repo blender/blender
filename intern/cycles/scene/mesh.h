@@ -74,6 +74,10 @@ class Mesh : public Geometry {
     return tri;
   }
 
+  size_t num_verts() const
+  {
+    return verts.size();
+  }
   size_t num_triangles() const
   {
     return triangles.size() / 3;

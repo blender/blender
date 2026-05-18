@@ -328,10 +328,10 @@ struct Layout : public Item, NonCopyable, NonMovable {
    * The open-state of the panel is defined by an RNA property which is passed in as a pointer +
    * property name pair. This gives the caller flexibility to decide who should own the open-state.
    *
+   * \note Only layouts that span the full width of the region are supported for now.
+   *
    * \param C: The context is necessary because sometimes the panel may be forced to be open by the
    * context even of the open-property is `false`. This can happen with e.g. property search.
-   * \param layout: The `Layout` that should contain the sub-panel.
-   * Only layouts that span the full width of the region are supported for now.
    * \param open_prop_owner: Data that contains the open-property.
    * \param open_prop_name: Name of the open-property in `open_prop_owner`.
    *
@@ -633,9 +633,9 @@ struct Layout : public Item, NonCopyable, NonMovable {
    * Adds a RNA enum/pointer/string/ property item, and exposes it into the layout. Button input
    * would suggest values from the search property collection.
    * \param searchprop: Collection property in \a searchptr from where to take input values.
-   * \param results_are_suggestions: Allow inputs that not match any suggested value.
    * \param item_searchpropname: The name of the string property in the collection items to use for
    *        searching (if unset, code will use RNA_struc.
+   * \param results_are_suggestions: Allow inputs that not match any suggested value.
    */
   void prop_search(PointerRNA *ptr,
                    PropertyRNA *prop,
@@ -648,7 +648,7 @@ struct Layout : public Item, NonCopyable, NonMovable {
   /**
    * Adds a RNA enum/pointer/string/ property item, and exposes it into the layout. Button input
    * would suggest values from the search property collection, input must match a suggested value.
-   * \param searchprop: Collection property in \a searchptr from where to take input values.
+   * \param searchpropname: Collection property in \a searchptr from where to take input values.
    */
   void prop_search(PointerRNA *ptr,
                    StringRefNull propname,
@@ -947,10 +947,10 @@ bool block_apply_search_filter(Block *block, const char *search_filter);
  *
  * \param func: The callback function that gets called to get tooltip content
  * \param arg: An optional opaque pointer that gets passed to func
- * \param free_arg: An optional callback for freeing arg (can be set to e.g. MEM_delete)
  * \param copy_arg: An optional callback for duplicating arg in case button_func_tooltip_set
  * is being called on multiple buttons (can be set to e.g. MEM_dupalloc). If set to NULL, arg will
  * be passed as-is to all buttons.
+ * \param free_arg: An optional callback for freeing arg (can be set to e.g. MEM_delete)
  */
 void uiLayoutSetTooltipFunc(
     Layout *layout, ButtonToolTipFunc func, void *arg, CopyArgFunc copy_arg, FreeArgFunc free_arg);

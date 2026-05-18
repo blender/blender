@@ -150,9 +150,9 @@ void BKE_image_format_set(ImageFormatData *imf, ID *owner_id, const char imtype)
 
   /* ensure usable depth */
   {
-    const int depth_ok = BKE_imtype_valid_depths(imf->imtype);
+    const eImageFormatDepth depth_ok = BKE_imtype_valid_depths(imf->imtype);
     if ((imf->depth & depth_ok) == 0) {
-      imf->depth = eImageFormatDepth(BKE_imtype_first_valid_depth(depth_ok));
+      imf->depth = BKE_imtype_first_valid_depth(depth_ok);
     }
   }
 
@@ -430,17 +430,15 @@ eImageFormatDepth BKE_imtype_valid_depths_with_video(char imtype, const ID *owne
   return depths;
 }
 
-eImageFormatDepth BKE_imtype_first_valid_depth(const char valid_depths)
+eImageFormatDepth BKE_imtype_first_valid_depth(eImageFormatDepth valid_depths)
 {
   /* set first available depth */
   const eImageFormatDepth depth_ls[] = {
       R_IMF_CHAN_DEPTH_32,
-      R_IMF_CHAN_DEPTH_24,
       R_IMF_CHAN_DEPTH_16,
       R_IMF_CHAN_DEPTH_12,
       R_IMF_CHAN_DEPTH_10,
       R_IMF_CHAN_DEPTH_8,
-      R_IMF_CHAN_DEPTH_1,
       eImageFormatDepth(0),
   };
   for (int i = 0; depth_ls[i] != eImageFormatDepth(0); i++) {
@@ -913,14 +911,11 @@ void BKE_image_format_to_imbuf(ImBuf *ibuf, const ImageFormatData *imf)
 
 static eImageFormatDepth imtype_best_depth(const ImBuf *ibuf, const char imtype)
 {
-  const char depth_ok = BKE_imtype_valid_depths(imtype);
+  const eImageFormatDepth depth_ok = BKE_imtype_valid_depths(imtype);
 
   if (ibuf->float_data()) {
     if (depth_ok & R_IMF_CHAN_DEPTH_32) {
       return R_IMF_CHAN_DEPTH_32;
-    }
-    if (depth_ok & R_IMF_CHAN_DEPTH_24) {
-      return R_IMF_CHAN_DEPTH_24;
     }
     if (depth_ok & R_IMF_CHAN_DEPTH_16) {
       return R_IMF_CHAN_DEPTH_16;
@@ -939,9 +934,6 @@ static eImageFormatDepth imtype_best_depth(const ImBuf *ibuf, const char imtype)
   }
   if (depth_ok & R_IMF_CHAN_DEPTH_16) {
     return R_IMF_CHAN_DEPTH_16;
-  }
-  if (depth_ok & R_IMF_CHAN_DEPTH_24) {
-    return R_IMF_CHAN_DEPTH_24;
   }
   if (depth_ok & R_IMF_CHAN_DEPTH_32) {
     return R_IMF_CHAN_DEPTH_32;

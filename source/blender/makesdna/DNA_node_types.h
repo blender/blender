@@ -3055,7 +3055,7 @@ struct NodeInputString {
   DNA_DEFINE_CXX_METHODS(NodeInputString)
 
   char *string = nullptr;
-  TextboxState textbox_state = {};
+  TextboxState textbox_state;
 };
 
 struct NodeGeometryExtrudeMesh {

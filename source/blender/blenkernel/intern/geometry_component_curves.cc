@@ -315,4 +315,6 @@ std::optional<MutableAttributeAccessor> CurveComponent::attributes_for_write()
                                   curves::get_attribute_accessor_functions());
 }
 
+/** \} */
+
 }  // namespace blender::bke

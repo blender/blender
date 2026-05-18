@@ -67,6 +67,8 @@ static inline void geometry_volume_call(PassMain::Sub *pass,
   }
 }
 
+/** \} */
+
 /* -------------------------------------------------------------------- */
 /** \name Common Helpers
  * \{ */
@@ -184,8 +186,6 @@ void SyncModule::sync_common(const ObjectHandle &ob_handle,
 
   inst_.manager->extract_object_attributes(ob_handle.res_handle, ob_handle, gpu_materials);
 }
-
-/** \} */
 
 /** \} */
 

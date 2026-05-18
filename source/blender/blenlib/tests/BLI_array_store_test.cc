@@ -1152,8 +1152,9 @@ TEST(array_store, PlainTextFiles)
   testbuffer_list_free(&lb);
   BLI_array_store_destroy(bs);
 }
-#endif
 
 /** \} */
+
+#endif
 
 }  // namespace blender

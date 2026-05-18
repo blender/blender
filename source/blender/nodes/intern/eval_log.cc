@@ -413,7 +413,13 @@ void NodeTreeLogger::log_value(const bNode &node, const bNodeSocket &socket, con
     }
   }
   else {
-    log_generic_value(type, value.get());
+    if (type.is<std::string>()) {
+      const std::string &string = *value.get<std::string>();
+      store_logged_value(this->allocator->construct<StringLog>(string, *this->allocator));
+    }
+    else {
+      log_generic_value(type, value.get());
+    }
   }
 }
 

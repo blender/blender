@@ -194,7 +194,7 @@ BLI_INLINE const float *bm_face_no_get(const MeshRenderData &mr, const BMFace *e
 /* `draw_cache_extract_mesh_render_data.cc` */
 
 /**
- * \param edit_mode_active: When true, use the modifiers from the edit-data,
+ * \param is_editmode: When true, use the modifiers from the edit-data,
  * otherwise don't use modifiers as they are not from this object.
  */
 MeshRenderData mesh_render_data_create(Object &object,

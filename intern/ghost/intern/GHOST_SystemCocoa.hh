@@ -144,9 +144,9 @@ class GHOST_SystemCocoa : public GHOST_System {
    * \param eventType: The type of drag & drop event.
    * \param draggedObjectType: The type object concerned.
    * (currently array of file names, string, TIFF image).
+   * \param window: The window on which the event occurred.
    * \param mouseX: x mouse coordinate (in cocoa base window coordinates).
    * \param mouseY: y mouse coordinate.
-   * \param window: The window on which the event occurred.
    * \return Indication whether the event was handled.
    */
   GHOST_TSuccess handleDraggingEvent(GHOST_TEventType eventType,

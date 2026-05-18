@@ -701,7 +701,7 @@ static void save_setup_framebuffer(const ImBuf *ibuf,
   }
 }
 
-bool imb_save_openexr(ImBuf *ibuf, const char *filepath, int /*flags*/)
+bool imb_save_openexr(ImBuf *ibuf, const char *filepath, ImBufFlags /*flags*/)
 {
   /* Use half precision when asked for it, or if source is a
    * byte image (half precision is always enough for that case). */
@@ -732,7 +732,7 @@ bool imb_save_openexr(ImBuf *ibuf, const char *filepath, int /*flags*/)
   return true;
 }
 
-Vector<uint8_t> imb_save_buffer_openexr(ImBuf *ibuf, int /*flags*/)
+Vector<uint8_t> imb_save_buffer_openexr(ImBuf *ibuf, ImBufFlags /*flags*/)
 {
   /* Use half precision when asked for it, or if source is a
    * byte image (half precision is always enough for that case). */
@@ -2107,7 +2107,10 @@ void IMB_exr_get_display_window(ExrHandle *handle,
   get_exr_display_window(*handle->ifile, display_size, display_offset, data_offset);
 }
 
-ImBuf *imb_load_openexr(const uchar *mem, size_t size, int flags, ImFileColorSpace &r_colorspace)
+ImBuf *imb_load_openexr(const uchar *mem,
+                        size_t size,
+                        ImBufFlags flags,
+                        ImFileColorSpace &r_colorspace)
 {
   ImBuf *ibuf = nullptr;
   IMemStream *membuf = nullptr;
@@ -2137,18 +2140,20 @@ ImBuf *imb_load_openexr(const uchar *mem, size_t size, int flags, ImFileColorSpa
     is_multi = imb_exr_is_multi(*file);
 
     /* do not make an ibuf when */
-    if (is_multi && !(flags & IB_test) && !(flags & IB_multilayer)) {
+    if (is_multi && !flag_is_set(flags, ImBufFlags::Test) &&
+        !flag_is_set(flags, ImBufFlags::MultiLayer))
+    {
       CLOG_ERROR(&LOG, "Cannot process EXR multilayer file");
     }
     else {
       const bool is_alpha = exr_has_alpha(*file);
 
-      ibuf = IMB_allocImBuf(width, height, 0);
+      ibuf = IMB_allocImBuf(width, height, ImBufFlags::Zero);
       ibuf->color_mode = is_alpha ? ImColorMode::RGBA : ImColorMode::RGB;
       ibuf->foptions.flag |= exr_is_half_float(*file) ? OPENEXR_HALF : 0;
       ibuf->foptions.flag |= openexr_header_get_compression(file_header);
 
-      ibuf->flags |= IB_has_display_window;
+      ibuf->flags |= ImBufFlags::HasDisplayWindow;
       get_exr_display_window(*file, ibuf->display_size, ibuf->display_offset, ibuf->data_offset);
 
       exr_get_ppm(*file, ibuf->ppm);
@@ -2157,9 +2162,9 @@ ImBuf *imb_load_openexr(const uchar *mem, size_t size, int flags, ImFileColorSpa
 
       ibuf->ftype = IMB_FTYPE_OPENEXR;
 
-      if (!(flags & IB_test)) {
+      if (!flag_is_set(flags, ImBufFlags::Test)) {
 
-        if (flags & IB_metadata) {
+        if (flag_is_set(flags, ImBufFlags::Metadata)) {
           Header::ConstIterator iter;
 
           IMB_metadata_ensure(&ibuf->metadata);
@@ -2170,13 +2175,13 @@ ImBuf *imb_load_openexr(const uchar *mem, size_t size, int flags, ImFileColorSpa
             /* not all attributes are string attributes so we might get some NULLs here */
             if (attr) {
               IMB_metadata_set_field(ibuf->metadata, iter.name(), attr->value().c_str());
-              ibuf->flags |= IB_metadata;
+              ibuf->flags |= ImBufFlags::Metadata;
             }
           }
         }
 
-        /* Only enters with IB_multilayer flag set. */
-        if (is_multi && ((flags & IB_thumbnail) == 0)) {
+        /* Only enters with ImBufFlags::MultiLayer flag set. */
+        if (is_multi && !flag_is_set(flags, ImBufFlags::Thumbnail)) {
           /* constructs channels for reading, allocates memory in channels */
           ExrHandle *handle = imb_exr_begin_read_mem(*membuf, *file, width, height);
           if (handle) {
@@ -2286,8 +2291,8 @@ ImBuf *imb_load_openexr(const uchar *mem, size_t size, int flags, ImFileColorSpa
         delete file;
       }
 
-      if (flags & IB_alphamode_detect) {
-        ibuf->flags |= IB_alphamode_premul;
+      if (flag_is_set(flags, ImBufFlags::AlphaDetect)) {
+        ibuf->flags |= ImBufFlags::AlphaPremul;
       }
     }
     return ibuf;
@@ -2315,7 +2320,7 @@ ImBuf *imb_load_openexr(const uchar *mem, size_t size, int flags, ImFileColorSpa
 }
 
 ImBuf *imb_load_filepath_thumbnail_openexr(const char *filepath,
-                                           const int /*flags*/,
+                                           const ImBufFlags /*flags*/,
                                            const size_t max_thumb_size,
                                            ImFileColorSpace &r_colorspace,
                                            size_t *r_width,
@@ -2377,7 +2382,7 @@ ImBuf *imb_load_filepath_thumbnail_openexr(const char *filepath,
     int dest_w = std::max(int(source_w * scale_factor), 1);
     int dest_h = std::max(int(source_h * scale_factor), 1);
 
-    ibuf = IMB_allocImBuf(dest_w, dest_h, IB_float_data);
+    ibuf = IMB_allocImBuf(dest_w, dest_h, ImBufFlags::FloatData);
 
     /* A single row of source pixels. */
     Imf::Array<Imf::Rgba> pixels(source_w);

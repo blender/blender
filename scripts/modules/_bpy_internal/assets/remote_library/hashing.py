@@ -7,7 +7,7 @@ import typing
 from pathlib import Path
 
 if typing.TYPE_CHECKING:
-    from _bpy_internal.assets.remote_library_listing.blender_asset_library_openapi import URLWithHash as _URLWithHash
+    from _bpy_internal.assets.remote_library.blender_asset_library_openapi import URLWithHash as _URLWithHash
 else:
     _URLWithHash = object
 

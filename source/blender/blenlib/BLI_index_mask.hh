@@ -640,6 +640,8 @@ int64_t consolidate_index_mask_segments(MutableSpan<IndexMaskSegment> segments,
 template<int64_t N>
 void index_range_to_mask_segments(const IndexRange range, Vector<IndexMaskSegment, N> &r_segments);
 
+/** \} */
+
 /* -------------------------------------------------------------------- */
 /** \name #RawMaskIterator Inline Methods
  * \{ */
@@ -653,6 +655,8 @@ inline bool operator==(const RawMaskIterator &a, const RawMaskIterator &b)
 {
   return !(a != b);
 }
+
+/** \} */
 
 /* -------------------------------------------------------------------- */
 /** \name #IndexMaskSegment Inline Methods
@@ -679,6 +683,8 @@ inline IndexMaskSegment IndexMaskSegment::shift(const int64_t shift) const
   BLI_assert(this->is_empty() || (*this)[0] + shift >= 0);
   return IndexMaskSegment(this->offset() + shift, this->base_span());
 }
+
+/** \} */
 
 /* -------------------------------------------------------------------- */
 /** \name #IndexMask Inline Methods
@@ -1295,6 +1301,8 @@ IndexMask random_mask(const int64_t universe_size,
                       const uint32_t random_seed,
                       const float probability,
                       LinearAllocator<> &memory);
+
+/** \} */
 
 }  // namespace index_mask
 

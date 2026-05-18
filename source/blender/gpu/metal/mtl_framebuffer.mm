@@ -578,7 +578,7 @@ void MTLFrameBuffer::blit_to(GPUFrameBufferBits planes,
 /** \} */
 
 /* -------------------------------------------------------------------- */
-/** \ Private METAL implementation functions
+/** \name Private METAL implementation functions
  * \{ */
 
 void MTLFrameBuffer::mark_dirty()
@@ -785,7 +785,7 @@ void MTLFrameBuffer::apply_state()
 /** \} */
 
 /* -------------------------------------------------------------------- */
-/** \ Adding and Removing attachments
+/** \name Adding and Removing attachments
  * \{ */
 
 bool MTLFrameBuffer::add_color_attachment(gpu::MTLTexture *texture,
@@ -1227,7 +1227,7 @@ void MTLFrameBuffer::ensure_render_target_size()
 /** \} */
 
 /* -------------------------------------------------------------------- */
-/** \ Clear values and Load-store actions
+/** \name Clear values and Load-store actions
  * \{ */
 
 void MTLFrameBuffer::attachment_set_loadstore_op(GPUAttachmentType type, GPULoadStore ls)
@@ -1364,7 +1364,7 @@ bool MTLFrameBuffer::reset_clear_state()
 /** \} */
 
 /* -------------------------------------------------------------------- */
-/** \ Fetch values and Frame-buffer status
+/** \name Fetch values and Frame-buffer status
  * \{ */
 
 bool MTLFrameBuffer::has_attachment_at_slot(uint slot)
@@ -1450,7 +1450,7 @@ MTLAttachment MTLFrameBuffer::get_stencil_attachment()
 /** \} */
 
 /* -------------------------------------------------------------------- */
-/** \ METAL API Resources and Validation
+/** \name METAL API Resources and Validation
  * \{ */
 bool MTLFrameBuffer::validate_render_pass()
 {
@@ -1780,7 +1780,7 @@ MTLRenderPassDescriptor *MTLFrameBuffer::bake_render_pass_descriptor(bool load_c
 /** \} */
 
 /* -------------------------------------------------------------------- */
-/** \ Blitting
+/** \name Blitting
  * \{ */
 
 void MTLFrameBuffer::blit(uint read_slot,
@@ -1946,5 +1946,7 @@ int MTLFrameBuffer::get_default_height()
 {
   return default_height_;
 }
+
+/** \} */
 
 }  // namespace blender::gpu

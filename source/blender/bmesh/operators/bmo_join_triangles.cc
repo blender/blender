@@ -167,7 +167,7 @@ struct JoinEdgesState {
  *
  * A quad that is concave has higher error.
  *
- * \param v1,v2,v3,v4: The four corner coordinates of the quad.
+ * \param v1, v2, v3, v4: The four corner coordinates of the quad.
  * \return The computed error associated with the quad.
  */
 static float quad_calc_error(const float v1[3],
@@ -490,11 +490,9 @@ struct JoinEdgesNeighborInfo {
  * of a freshly merged quad might be seen as a neighbor of _both_ the quad edges it touches,
  * (depending on the triangulation), and might get double the improvement it deserves.
  *
- * \param merge_edges: the array to add the merge edges to
- * \param shared_loops: the array to add the shared loops to
- * \param count: the number of items currently in each array.
- * \param e: The new merge edge to add to the array, if it's not a duplicate.
- * \param l: The new shared loop to add to the array, if the edge isn't a duplicate
+ * \param neighbor_info: the collection of neighbor items to add to.
+ * \param e: The new merge edge to add, if it's not a duplicate.
+ * \param l: The new shared loop to add, if the edge isn't a duplicate.
  */
 static void add_without_duplicates(JoinEdgesNeighborInfo &neighbor_info, BMEdge *e, BMLoop *l)
 {
@@ -517,11 +515,9 @@ static void add_without_duplicates(JoinEdgesNeighborInfo &neighbor_info, BMEdge 
 }
 
 /**
- * Add the neighboring edges of a given loop to the `merge_edges` and `shared_loops` arrays.
+ * Add the neighboring edges of a given loop to the `neighbor_info` collection.
  *
- * \param merge_edges: the array of mergeable edges to add to.
- * \param shared_loops: the array to shared loops to add to.
- * \param count: the number of items currently in each array.
+ * \param neighbor_info: the collection of neighbor items to add to.
  * \param l_in_quad: The loop to add the neighboring edges of, if they check out.
  */
 static void add_neighbors(JoinEdgesNeighborInfo &neighbor_info, BMLoop *l_in_quad)

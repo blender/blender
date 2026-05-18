@@ -1615,6 +1615,8 @@ static void rna_def_grease_pencil_data(BlenderRNA *brna)
 
   /* Onion skinning. */
   rna_def_grease_pencil_onion_skinning(srna);
+
+  RNA_api_grease_pencil(srna);
 }
 
 void RNA_def_grease_pencil(BlenderRNA *brna)

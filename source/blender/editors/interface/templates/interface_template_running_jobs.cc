@@ -8,6 +8,9 @@
 
 #include <fmt/format.h>
 
+#include "AS_asset_library.hh"
+#include "AS_remote_library.hh"
+
 #include "BKE_context.hh"
 #include "BKE_global.hh"
 #include "BKE_main.hh"
@@ -194,21 +197,28 @@ void template_running_jobs(Layout *layout, bContext *C)
           continue;
         }
         const SpaceFile *sfile = static_cast<SpaceFile *>(area.spacedata.first);
-        auto tmp_cancel_fn = [sfile](bContext &C) {
-          WM_jobs_stop_all_from_owner(CTX_wm_manager(&C), sfile->files);
-        };
 
         if (WM_jobs_test(wm, sfile->files, WM_JOB_TYPE_FILESEL_READDIR)) {
           icon = ICON_FILEBROWSER;
           owner = sfile->files;
-          cancel_fn = tmp_cancel_fn;
+          cancel_fn = [sfile](bContext &C) {
+            WM_jobs_stop_all_from_owner(CTX_wm_manager(&C), sfile->files);
+          };
           break;
         }
 
         if (WM_jobs_test(wm, sfile->files, WM_JOB_TYPE_ASSET_LIBRARY_LOAD)) {
+          const bool needs_cancelling_online_assets =
+              sfile->asset_params && asset_system::is_or_contains_remote_libraries(
+                                         sfile->asset_params->asset_library_ref);
           icon = ICON_ASSET_MANAGER;
           owner = sfile->files;
-          cancel_fn = tmp_cancel_fn;
+          cancel_fn = [sfile, needs_cancelling_online_assets](bContext &C) {
+            WM_jobs_stop_all_from_owner(CTX_wm_manager(&C), sfile->files);
+            if (needs_cancelling_online_assets) {
+              asset_system::remote_library_cancel_all_listing_downloads(C);
+            }
+          };
           break;
         }
       }
@@ -323,6 +333,25 @@ void template_running_jobs(Layout *layout, bContext *C)
       WM_operator_name_call(
           &C, "SCREEN_OT_animation_play", wm::OpCallContext::InvokeScreen, nullptr, nullptr);
     });
+  }
+
+  /* Not using the jobs system, but should be shown everywhere where jobs are shown too. */
+  if (asset_system::remote_library_has_unfinished_asset_downloads()) {
+    const char *string = IFACE_("Downloading Asset(s)");
+    const float string_width = fontstyle_string_width(UI_FSTYLE_WIDGET, string);
+
+    Button *but = uiDefIconTextBut(block,
+                                   ButtonType::But,
+                                   ICON_CANCEL,
+                                   string,
+                                   0,
+                                   0,
+                                   string_width + UI_UNIT_X * 1.5,
+                                   UI_UNIT_Y,
+                                   nullptr,
+                                   TIP_("Cancel all asset downloads"));
+    button_func_set(
+        but, [](bContext &C) { asset_system::remote_library_cancel_all_asset_downloads(C); });
   }
 }
 

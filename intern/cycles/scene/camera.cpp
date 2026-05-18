@@ -361,7 +361,7 @@ void Camera::update(Scene *scene)
     have_motion = have_motion || motion[i] != matrix;
   }
 
-  if (need_motion == Scene::MOTION_PASS) {
+  if (need_motion == Scene::MOTION_PASS || need_motion == Scene::MOTION_PASS_INTERACTIVE) {
     if (have_motion) {
       kcam->motion_pass_pre = transform_inverse(motion[0]);
       kcam->motion_pass_post = transform_inverse(motion[motion.size() - 1]);
@@ -504,6 +504,20 @@ void Camera::update(Scene *scene)
   need_device_update = true;
   need_flags_update = true;
   previous_need_motion = need_motion;
+}
+
+void Camera::update_interactive_motion()
+{
+  array<Transform> motion = get_motion();
+  if (!motion.empty()) {
+    motion[0] = matrix;
+
+    /* Trigger another update if there was motion compared to previous frame, so that last viewport
+     * camera movement does not stick around. */
+    set_motion(motion);
+  }
+
+  set_fov_pre(fov);
 }
 
 void Camera::device_update(Device * /*device*/, DeviceScene *dscene, Scene *scene)

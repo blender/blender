@@ -514,7 +514,7 @@ struct MainMergeReport {
  * Since `bmain_src` is either empty or contains left-over IDs with (likely) invalid ID
  * relationships and other potential issues after the merge, it is always freed.
  *
- * \param force_merge_src_ids If not null, a set of source IDs that should always be merged, even
+ * \param force_merge_src_ids: If not null, a set of source IDs that should always be merged, even
  * if a matching destination ID could be found. Typically used to ensure that 'container IDs' for
  * complex copy/paste of ID sub-data (nodes, sequencer strips...) are always merged in destination
  * main, even if another ID with the same exact name already exists there.

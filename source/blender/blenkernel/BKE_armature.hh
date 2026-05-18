@@ -384,7 +384,7 @@ void BKE_armature_mat_pose_to_bone_ex(Depsgraph *depsgraph,
 /**
  * Same as #BKE_object_mat3_to_rot().
  *
- * \param use_compat only applies when the `pchan` is in euler rotation mode. It then picks the
+ * \param use_compat: only applies when the `pchan` is in euler rotation mode. It then picks the
  * closest euler values relative to what the `pchan` already has.
  */
 void BKE_pchan_mat3_to_rot(bPoseChannel *pchan, const float mat[3][3], bool use_compat);
@@ -610,7 +610,7 @@ void BKE_pchan_bbone_deform_clamp_segment_index(const Bone &bone,
  * Calculate index and blend factor for the two B-Bone segment nodes
  * affecting the specified point in object (pose) space.
  *
- * \param pchan: Pose channel.
+ * \param pchanbone: Pose channel.
  * \param co: Pose space coordinates of the point being deformed.
  * \param r_index: OUTPUT index of the first segment joint affecting the point.
  * \param r_blend_next: OUTPUT blend factor between the first and the second segment in [0..1]
@@ -622,6 +622,7 @@ void BKE_pchan_bbone_deform_segment_index(bke::PChanBoneConst pchanbone,
 
 /* context.selected_pose_bones */
 #define FOREACH_PCHAN_SELECTED_IN_OBJECT_BEGIN(_ob, _pchan) \
+  BKE_pose_ensure_bone_indices((*_ob)); \
   for (bPoseChannel *_pchan = (bPoseChannel *)(_ob)->pose->chanbase.first; _pchan; \
        _pchan = _pchan->next) \
   { \

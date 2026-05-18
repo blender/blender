@@ -446,10 +446,12 @@ static void node_join(BVHTree *tree, BVHNode *node)
   }
 }
 
+/** \} */
+
 #ifdef USE_PRINT_TREE
 
 /* -------------------------------------------------------------------- */
-/** \name * Debug and Information Functions
+/** \name Debug and Information Functions
  * \{ */
 
 static void bvhtree_print_tree(BVHTree *tree, BVHNode *node, int depth)
@@ -548,6 +550,10 @@ static void bvhtree_verify(BVHTree *tree)
          tree->branch_num + tree->leaf_num);
 }
 #endif /* USE_VERIFY_TREE */
+
+/* -------------------------------------------------------------------- */
+/** \name Implicit Tree Construction
+ * \{ */
 
 /* Helper data and structures to build a min-leaf generalized implicit tree
  * This code can be easily reduced

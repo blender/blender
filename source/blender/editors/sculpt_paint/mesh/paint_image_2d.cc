@@ -405,7 +405,8 @@ static ImBuf *brush_painter_imbuf_new(
   float brush_rgb[3];
 
   /* allocate image buffer */
-  ImBuf *ibuf = IMB_allocImBuf(size, size, (is_float) ? IB_float_data : IB_byte_data);
+  ImBuf *ibuf = IMB_allocImBuf(
+      size, size, (is_float) ? ImBufFlags::FloatData : ImBufFlags::ByteData);
 
   /* get brush color */
   if (brush->image_brush_type == IMAGE_PAINT_BRUSH_TYPE_DRAW) {
@@ -615,10 +616,10 @@ static void brush_painter_imbuf_partial_update(BrushPainter *painter,
 {
   BrushPainterCache *cache = &tile->cache;
   ImBuf *oldtexibuf, *ibuf;
-  int imbflag, destx, desty, srcx, srcy, w, h, x1, y1, x2, y2;
+  int destx, desty, srcx, srcy, w, h, x1, y1, x2, y2;
 
   /* create brush image buffer if it didn't exist yet */
-  imbflag = (cache->is_float) ? IB_float_data : IB_byte_data;
+  ImBufFlags imbflag = (cache->is_float) ? ImBufFlags::FloatData : ImBufFlags::ByteData;
   if (!cache->ibuf) {
     cache->ibuf = IMB_allocImBuf(diameter, diameter, imbflag);
   }
@@ -1239,7 +1240,7 @@ static void paint_2d_do_making_brush(ImagePaintState *s,
                                      int tileh)
 {
   ImBuf tmpbuf;
-  IMB_initImBuf(&tmpbuf, ED_IMAGE_UNDO_TILE_SIZE, ED_IMAGE_UNDO_TILE_SIZE, 0);
+  IMB_initImBuf(&tmpbuf, ED_IMAGE_UNDO_TILE_SIZE, ED_IMAGE_UNDO_TILE_SIZE, ImBufFlags::Zero);
 
   PaintTileMap *undo_tiles = ED_image_paint_tile_map_get();
 
@@ -1250,19 +1251,13 @@ static void paint_2d_do_making_brush(ImagePaintState *s,
       int origx = region->destx - tx * ED_IMAGE_UNDO_TILE_SIZE;
       int origy = region->desty - ty * ED_IMAGE_UNDO_TILE_SIZE;
 
+      const ImBuf *data = ED_image_paint_tile_find(
+          undo_tiles, s->image, tile->canvas, &tile->iuser, tx, ty, &mask, false);
       if (tile->canvas->float_data()) {
-        IMB_assign_float_buffer(
-            &tmpbuf,
-            static_cast<float *>(ED_image_paint_tile_find(
-                undo_tiles, s->image, tile->canvas, &tile->iuser, tx, ty, &mask, false)),
-            IB_DO_NOT_TAKE_OWNERSHIP);
+        tmpbuf.float_buffer = data->float_buffer;
       }
       else {
-        IMB_assign_byte_buffer(
-            &tmpbuf,
-            static_cast<uchar *>(ED_image_paint_tile_find(
-                undo_tiles, s->image, tile->canvas, &tile->iuser, tx, ty, &mask, false)),
-            IB_DO_NOT_TAKE_OWNERSHIP);
+        tmpbuf.byte_buffer = data->byte_buffer;
       }
 
       IMB_rectblend(tile->canvas,
@@ -1577,7 +1572,7 @@ void paint_2d_stroke(void *ps,
 
     ImBuf *ibuf = tile->canvas;
 
-    const bool is_data = ibuf->colormanage_flag & IMB_COLORMANAGE_IS_DATA;
+    const bool is_data = ibuf->colorspace_is_data();
     const bool is_float = (ibuf->float_data() != nullptr);
     const ColorSpace *byte_colorspace = (is_float || is_data) ? nullptr :
                                                                 ibuf->byte_buffer.colorspace;

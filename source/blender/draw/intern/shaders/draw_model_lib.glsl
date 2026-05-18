@@ -54,11 +54,13 @@ uint drw_custom_id()
 
 float4x4 drw_modelmat()
 {
-  return drw_matrix_buf[drw_resource_id()].model;
+  const auto &matrix_buf = buffer_get(draw_modelmat_common, drw_matrix_buf);
+  return matrix_buf[drw_resource_id()].model;
 }
 float4x4 drw_modelinv()
 {
-  return drw_matrix_buf[drw_resource_id()].model_inverse;
+  const auto &matrix_buf = buffer_get(draw_modelmat_common, drw_matrix_buf);
+  return matrix_buf[drw_resource_id()].model_inverse;
 }
 
 /**

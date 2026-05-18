@@ -80,7 +80,7 @@ void RNA_def_struct_sdna_from(StructRNA *srna, const char *structname, const cha
  * Define the struct's String property used to retrieve the name of a PointerRNA of that type.
  * Used e.g. in several UI widget displaying content of RNA collections.
  *
- * \param allow_replace If true, allow replacing an already defined struct name property.
+ * \param allow_replace: If true, allow replacing an already defined struct name property.
  */
 void RNA_def_struct_name_property(StructRNA *srna, PropertyRNA *prop, bool allow_replace = false);
 void RNA_def_struct_nested(BlenderRNA *brna, StructRNA *srna, const char *structname);

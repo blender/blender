@@ -26,6 +26,7 @@ __all__ = (
 
 import collections
 import contextlib
+import copy
 import dataclasses
 import enum
 import hashlib
@@ -251,17 +252,17 @@ class ConditionalDownloader:
 
         # Determine how many bytes are expected.
         content_length_str: str = stream.headers.get("Content-Length") or ""
+        content_length: int | None
         try:
             content_length = int(content_length_str, base=10)
         except ValueError:
-            # TODO: add support for this case.
-            raise ContentLengthUnknownError(http_req_descr) from None
+            content_length = None
 
         # Before actually downloading, check that the size is below the limit.
         # This check is just an upper limit, as when stream compression is used, the on-disk size will be larger than
         # the Content-Length header indicates. But if the compressed stream is already too large, the uncompressed data
         # will also be too large.
-        if self.max_disk_size_bytes > 0 and content_length > self.max_disk_size_bytes:
+        if content_length is not None and self.max_disk_size_bytes > 0 and content_length > self.max_disk_size_bytes:
             raise ContentLengthTooBigError(http_req_descr, self.max_disk_size_bytes, content_length)
 
         # The Content-Length header, obtained above, indicates the number of
@@ -287,30 +288,31 @@ class ConditionalDownloader:
         if not self.periodic_check(http_req_descr):
             raise DownloadCancelled(http_req_descr)
 
-        self._reporter.download_progress(http_req_descr, content_length, 0)
+        # Construct a progress instance, it'll be reused for all reporting of this download.
+        progress = DownloadProgress(
+            network_bytes_streamed=0,
+            network_bytes_total=content_length,
+            disk_bytes_written=0,
+        )
+        self._reporter.download_progress(http_req_descr, progress)
 
         # Stream the response to a file.
-        num_downloaded_bytes = 0
-        disk_bytes_written = 0
         with local_path.open("wb") as file:
             def write_and_report(chunk: bytes) -> None:
                 """Write a chunk to file, and report on the download progress."""
-                nonlocal disk_bytes_written
-                disk_bytes_written += file.write(chunk)
-
-                self._reporter.download_progress(
-                    http_req_descr, content_length, num_downloaded_bytes
-                )
-
-                if num_downloaded_bytes > content_length:
-                    raise ContentLengthError(http_req_descr, content_length, num_downloaded_bytes)
+                progress.disk_bytes_written += file.write(chunk)
+                self._reporter.download_progress(http_req_descr, progress)
 
             # Download and process chunks until there are no more left.
             while chunk := stream.raw.read(self.chunk_size):
                 if not self.periodic_check(http_req_descr):
                     raise DownloadCancelled(http_req_descr)
 
-                num_downloaded_bytes += len(chunk)
+                # Count the number of bytes streamed.
+                progress.network_bytes_streamed += len(chunk)
+                if content_length is not None and progress.network_bytes_streamed > content_length:
+                    raise ContentLengthError(http_req_descr, content_length, progress.network_bytes_streamed)
+
                 if decoder:
                     chunk = decoder.decompress(chunk)
                 write_and_report(chunk)
@@ -320,14 +322,14 @@ class ConditionalDownloader:
                 write_and_report(decoder.flush())
                 assert decoder.eof
 
-        if num_downloaded_bytes != content_length:
-            raise ContentLengthError(http_req_descr, content_length, num_downloaded_bytes)
+        if content_length is not None and progress.network_bytes_streamed != content_length:
+            raise ContentLengthError(http_req_descr, content_length, progress.network_bytes_streamed)
 
         meta = HTTPMetadata(
             request=http_req_descr,
             etag=stream.headers.get("ETag") or "",
             last_modified=stream.headers.get("Last-Modified") or "",
-            size_on_disk=disk_bytes_written,
+            size_on_disk=progress.disk_bytes_written,
         )
 
         return meta
@@ -474,7 +476,7 @@ class BackgroundDownloader:
     # This assumes that RequestDescriptions are unique, and not queued up
     # multiple times simultaneously.
     DownloadDoneCallback: TypeAlias = Callable[['RequestDescription', Path], None]
-    _on_downloaded_callbacks: dict[RequestDescription, DownloadDoneCallback]
+    _on_download_done_callbacks: dict[RequestDescription, list[DownloadDoneCallback | None]]
 
     OnCallbackErrorCallback: TypeAlias = Callable[['RequestDescription', Path, Exception], None]
     _on_callback_error: OnCallbackErrorCallback
@@ -501,7 +503,7 @@ class BackgroundDownloader:
         self.num_downloads_ok = 0
         self.num_downloads_error = 0
         self._num_pending_downloads = 0
-        self._on_downloaded_callbacks = {}
+        self._on_download_done_callbacks = collections.defaultdict(list)
         self._on_callback_error = on_callback_error
 
         self._queueing_reporter = QueueingReporter()
@@ -524,7 +526,12 @@ class BackgroundDownloader:
                        ) -> RequestDescription:
         """Queue up a download of some URL to a location on disk.
 
-        Returns the RequestDescription of the queued download.
+        Returns the RequestDescription of the queued download. Note that
+        downloads are deduplicated, so if this URL was already queued, it will
+        only be downloaded once.
+
+        Any `on_download_done` callback is still registered, and all are called
+        when the download is done.
 
         The background process must be running, and its shutdown should not
         have been triggered yet.
@@ -536,16 +543,20 @@ class BackgroundDownloader:
         if self._downloader_process is None:
             raise RuntimeError("BackgroundDownloader is not started yet, cannot queue downloads")
 
-        self._num_pending_downloads += 1
-
         http_req_descr = RequestDescription(http_method=http_method, url=remote_url)
-        if on_download_done:
-            self._on_downloaded_callbacks[http_req_descr] = on_download_done
+        is_already_queued = http_req_descr in self._on_download_done_callbacks
 
-        self._connection.send(PipeMessage(
-            msgtype=PipeMsgType.QUEUE_DOWNLOAD,
-            payload=(http_req_descr, local_path),
-        ))
+        # Always append the callback, even when it's None, so that we can tell whether a download was already queued by
+        # looking at this dict.
+        self._on_download_done_callbacks[http_req_descr].append(on_download_done)
+
+        if not is_already_queued:
+            # Only queue a download once.
+            self._num_pending_downloads += 1
+            self._connection.send(PipeMessage(
+                msgtype=PipeMsgType.QUEUE_DOWNLOAD,
+                payload=(http_req_descr, local_path),
+            ))
 
         return http_req_descr
 
@@ -737,20 +748,26 @@ class BackgroundDownloader:
     def download_progress(
         self,
         http_req_descr: RequestDescription,
-        content_length_bytes: int,
-        downloaded_bytes: int,
+        progress: DownloadProgress,
     ) -> None:
         """CachingDownloadReporter interface function.
 
         Keeps track of internal bookkeeping.
         """
-        self._logger.debug(
-            "Download progress %s: %d of %d: %.0f%%",
-            http_req_descr.url,
-            downloaded_bytes,
-            content_length_bytes,
-            downloaded_bytes / content_length_bytes * 100,
-        )
+        if progress.network_bytes_total is None:
+            self._logger.debug(
+                "Download progress %s: %d bytes",
+                http_req_descr.url,
+                progress.network_bytes_streamed,
+            )
+        else:
+            self._logger.debug(
+                "Download progress %s: %d of %d: %.0f%%",
+                http_req_descr.url,
+                progress.network_bytes_streamed,
+                progress.network_bytes_total,
+                progress.network_bytes_streamed / progress.network_bytes_total * 100,
+            )
 
     def download_finished(
         self,
@@ -779,27 +796,33 @@ class BackgroundDownloader:
             return
 
         try:
-            callback = self._on_downloaded_callbacks.pop(http_req_descr)
+            callbacks = self._on_download_done_callbacks.pop(http_req_descr)
         except KeyError:
-            # Not having a callback is fine.
+            self._logger.error(
+                "download done, but it was not registered in self._on_download_done_callbacks: %s %s",
+                http_req_descr.http_method,
+                http_req_descr.url)
             return
 
-        self._logger.debug("download done, calling %s", callback.__name__)
-        try:
-            callback(http_req_descr, local_file)
-        except Exception as ex:
-            # Catch & log exceptions here, so that a callback causing trouble
-            # doesn't break the downloader itself.
-            self._logger.debug(
-                "exception while calling {!r}({!r}, {!r})".format(
-                    callback, http_req_descr, local_file))
+        valid_callbacks = (cb for cb in callbacks if cb is not None)
 
+        for callback in valid_callbacks:
+            self._logger.debug("download done, calling %s", callback.__name__)
             try:
-                self._on_callback_error(http_req_descr, local_file, ex)
-            except Exception:
-                self._logger.exception(
-                    "exception while handling an error in {!r}({!r}, {!r})".format(
+                callback(http_req_descr, local_file)
+            except Exception as ex:
+                # Catch & log exceptions here, so that a callback causing trouble
+                # doesn't break the downloader itself.
+                self._logger.debug(
+                    "exception while calling {!r}({!r}, {!r})".format(
                         callback, http_req_descr, local_file))
+
+                try:
+                    self._on_callback_error(http_req_descr, local_file, ex)
+                except Exception:
+                    self._logger.exception(
+                        "exception while handling an error in {!r}({!r}, {!r})".format(
+                            callback, http_req_descr, local_file))
 
 
 class PipeMsgType(enum.Enum):
@@ -1082,8 +1105,7 @@ class DownloadReporter(Protocol):
     def download_progress(
         self,
         http_req_descr: RequestDescription,
-        content_length_bytes: int,
-        downloaded_bytes: int,
+        progress: DownloadProgress,
     ) -> None: ...
 
     def download_finished(
@@ -1101,9 +1123,11 @@ class _DummyReporter(DownloadReporter):
     ConditionalDownloader.
     """
 
+    @override
     def download_starts(self, http_req_descr: RequestDescription) -> None:
         pass
 
+    @override
     def already_downloaded(
         self,
         http_req_descr: RequestDescription,
@@ -1111,6 +1135,7 @@ class _DummyReporter(DownloadReporter):
     ) -> None:
         pass
 
+    @override
     def download_error(
         self,
         http_req_descr: RequestDescription,
@@ -1119,14 +1144,15 @@ class _DummyReporter(DownloadReporter):
     ) -> None:
         pass
 
+    @override
     def download_progress(
         self,
         http_req_descr: RequestDescription,
-        content_length_bytes: int,
-        downloaded_bytes: int,
+        progress: DownloadProgress,
     ) -> None:
         pass
 
+    @override
     def download_finished(
         self,
         http_req_descr: RequestDescription,
@@ -1158,9 +1184,11 @@ class QueueingReporter(DownloadReporter):
         """
         return self._queue.popleft()
 
+    @override
     def download_starts(self, http_req_descr: RequestDescription) -> None:
         self._queue_call('download_starts', http_req_descr)
 
+    @override
     def already_downloaded(
         self,
         http_req_descr: RequestDescription,
@@ -1168,6 +1196,7 @@ class QueueingReporter(DownloadReporter):
     ) -> None:
         self._queue_call('already_downloaded', http_req_descr, local_file)
 
+    @override
     def download_error(
         self,
         http_req_descr: RequestDescription,
@@ -1176,14 +1205,16 @@ class QueueingReporter(DownloadReporter):
     ) -> None:
         self._queue_call('download_error', http_req_descr, local_file, error)
 
+    @override
     def download_progress(
         self,
         http_req_descr: RequestDescription,
-        content_length_bytes: int,
-        downloaded_bytes: int,
+        progress: DownloadProgress,
     ) -> None:
-        self._queue_call('download_progress', http_req_descr, content_length_bytes, downloaded_bytes)
+        # Create a copy of the progress object, to ensure that the caller cannot later modify what we queue now.
+        self._queue_call('download_progress', http_req_descr, copy.copy(progress))
 
+    @override
     def download_finished(
         self,
         http_req_descr: RequestDescription,
@@ -1410,6 +1441,51 @@ class RequestDescription:
     @override
     def __repr__(self) -> str:
         return str(self)
+
+
+@dataclasses.dataclass
+class DownloadProgress:
+    network_bytes_streamed: int
+    """How many bytes the downloader has received.
+
+    This may be less than `disk_bytes_written` when stream compression is used.
+    """
+
+    network_bytes_total: int | None
+    """How many bytes in total are expected to be received.
+
+    This is only set when the HTTP response had a `content-type` header.
+    """
+
+    disk_bytes_written: int
+    """How many bytes have been written to disk.
+
+    When stream compression is used, this is the number of decompressed bytes.
+    Otherwise it's the same as `network_bytes_streamed`.
+    """
+
+
+def humanize_size(size_in_bytes: int) -> str:
+    """Convert a size in bytes to a more human-readable size.
+
+    At most one decimal is used.
+
+    >>> humanize_size(1)
+    '1 B'
+    >>> humanize_size(50465865728)
+    '47 GiB'
+    >>> humanize_size(5046586573)
+    '4.7 GiB'
+    """
+    units = ("B", "KiB", "MiB", "GiB", "TiB", "PiB", "EiB")
+    size = float(size_in_bytes)  # To ensure 'size' has a single type.
+    unit = "B"  # Just to ensure the name is bound.
+    for unit in units:
+        if abs(size) < 1024 or unit == units[-1]:
+            break
+        size /= 1024
+    formatted = f"{size:.1f}".rstrip("0").rstrip(".")
+    return f"{formatted} {unit}"
 
 
 class HTTPRequestDownloadError(RuntimeError):

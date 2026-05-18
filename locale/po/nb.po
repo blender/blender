@@ -1,9 +1,9 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 5.2.0 Alpha (b'8c7c45ad114e')\n"
+"Project-Id-Version: Blender 5.2.0 Alpha (b'bc0a0ff2c0ce')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-05-11 07:23+0000\n"
+"POT-Creation-Date: 2026-05-18 11:20+0000\n"
 "PO-Revision-Date: 2026-01-30 13:12+0000\n"
 "Last-Translator: Martin Hansen <martini-141@users.noreply.translate.blender.org>\n"
 "Language-Team: Norwegian Bokmål <https://translate.blender.org/projects/blender-ui/ui/nb_NO/>\n"
@@ -1963,10 +1963,6 @@ msgstr "Vis de tilgjengelige eiendelene i denne Blender-økta"
 
 msgid "Essentials"
 msgstr "Nødvendigheter"
-
-
-msgid "Show the basic building blocks and utilities coming with Blender"
-msgstr "Vis de grunnleggende byggeblokkene og verktøyene, Blender kommer med"
 
 
 msgid "Custom"
@@ -5224,6 +5220,10 @@ msgid "Down"
 msgstr "Ned"
 
 
+msgid "Search"
+msgstr "Søk"
+
+
 msgctxt "Python console"
 msgid "Language"
 msgstr "Språk"
@@ -5346,10 +5346,6 @@ msgstr "Kinesisk (tradisjonell) – 繁體中文"
 
 msgid "Czech - Čeština"
 msgstr "Tsjekkisk – Čeština"
-
-
-msgid "Locale code: cs_CZ. Translation progress: 27%"
-msgstr "Lokalkode: cs_CZ. Status på oversettelse: 27 %"
 
 
 msgid "Danish - Dansk"
@@ -5587,10 +5583,6 @@ msgstr "Lagindeks"
 
 msgid "Onion Skins"
 msgstr "Løkskall"
-
-
-msgid "Search"
-msgstr "Søk"
 
 
 msgctxt "WindowManager"

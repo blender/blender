@@ -250,7 +250,7 @@ static std::optional<float3> sample_texture_paint_color(
                                                  imbuf::interpolate_bilinear_wrap_byte(ibuf, u, v);
     rgba_uchar_to_float(rgba_f, rgba);
 
-    if ((ibuf->colormanage_flag & IMB_COLORMANAGE_IS_DATA) == 0) {
+    if (!ibuf->colorspace_is_data()) {
       IMB_colormanagement_colorspace_to_scene_linear_v3(rgba_f, ibuf->byte_buffer.colorspace);
     }
   }

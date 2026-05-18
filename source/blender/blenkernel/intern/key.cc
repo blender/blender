@@ -559,8 +559,8 @@ static char *key_block_get_data(Key *key, KeyBlock *actkb, KeyBlock *kb, char **
 /**
  * Move the point in `r_targets` along the vector of ab by a factor of `weight`.
  *
- * \param start_index points to the x value in the flat float array. Indices of +1 and +2 from this
- * are accessed.
+ * \param start_index: points to the x value in the flat float array.
+ * Indices of +1 and +2 from this are accessed.
  */
 static void add_weighted_vector(
     const int start_index, const float weight, const float *a, const float *b, float *r_target)
@@ -621,8 +621,9 @@ static void copy_key_float3(
 /**
  * Copy the shapekey data of `source` into the output array of `r_target`.
  *
- * \param weights is a float array of size `vertex_count`. It determines how much of `source` is
- * blended into the result. The base for it is the reference key. If this is passed as a nullptr,
+ * \param weights: is a float array of size `vertex_count`.
+ * It determines how much of `source` is blended into the result.
+ * The base for it is the reference key. If this is passed as a nullptr,
  * `source` is copied at full weight.
  */
 static void copy_key_float3_weighted(const int vertex_count,
@@ -669,9 +670,9 @@ static void copy_key_float3_weighted(const int vertex_count,
 /**
  * Shapekey evaluation for data of 3 floats (Vector3).
  *
- * \param target_data is the float array into which the result of the evaluation is written.
- * \param per_keyblock_weights is a 2d array which gives a per KeyBlock per Vertex weight. Can be a
- * nullptr.
+ * \param per_keyblock_weights: is a 2d array which gives a per KeyBlock per Vertex weight. Can be
+ * \param target_data: is the float array into which the result of the evaluation is written.
+ * a nullptr.
  */
 static void key_evaluate_relative_float3(Key *key,
                                          KeyBlock *active_keyblock,

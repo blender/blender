@@ -41,8 +41,8 @@ class NODE_OT_delete_unused(Operator, NWBase):
         if node.type in end_types:
             return False
 
-        for output in node.outputs:
-            if output.links:
+        for output_socket in node.outputs:
+            if output_socket.links:
                 return False
         return True
 

@@ -2886,6 +2886,8 @@ static void do_smooth_brush(const Depsgraph &depsgraph,
   pbvh.flush_bounds_to_parents();
 }
 
+/** \} */
+
 /* -------------------------------------------------------------------- */
 /** \name Brush Initialization
  * \{ */

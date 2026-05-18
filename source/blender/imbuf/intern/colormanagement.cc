@@ -524,7 +524,6 @@ void colormanage_imbuf_make_linear(ImBuf *ibuf,
   const ColorSpace *colorspace = g_config()->get_color_space(from_colorspace);
 
   if (colorspace && colorspace->is_data()) {
-    ibuf->colormanage_flag |= IMB_COLORMANAGE_IS_DATA;
     return;
   }
 
@@ -889,61 +888,33 @@ const char *IMB_colormanagement_role_colorspace_name_get(int role)
   return nullptr;
 }
 
-void IMB_colormanagement_check_is_data(ImBuf *ibuf, const char *name)
-{
-  const ColorSpace *colorspace = g_config()->get_color_space(name);
-
-  if (colorspace && colorspace->is_data()) {
-    ibuf->colormanage_flag |= IMB_COLORMANAGE_IS_DATA;
-  }
-  else {
-    ibuf->colormanage_flag &= ~IMB_COLORMANAGE_IS_DATA;
-  }
-}
-
 void IMB_colormanagement_copy_settings(ImBuf *ibuf_src, ImBuf *ibuf_dst)
 {
   IMB_colormanagement_assign_byte_colorspace(ibuf_dst,
                                              IMB_colormanagement_get_byte_colorspace(ibuf_src));
   IMB_colormanagement_assign_float_colorspace(ibuf_dst,
                                               IMB_colormanagement_get_float_colorspace(ibuf_src));
-  if (ibuf_src->flags & IB_alphamode_premul) {
-    ibuf_dst->flags |= IB_alphamode_premul;
+  if (flag_is_set(ibuf_src->flags, ImBufFlags::AlphaPremul)) {
+    ibuf_dst->flags |= ImBufFlags::AlphaPremul;
   }
-  else if (ibuf_src->flags & IB_alphamode_channel_packed) {
-    ibuf_dst->flags |= IB_alphamode_channel_packed;
+  else if (flag_is_set(ibuf_src->flags, ImBufFlags::AlphaChannelPacked)) {
+    ibuf_dst->flags |= ImBufFlags::AlphaChannelPacked;
   }
-  else if (ibuf_src->flags & IB_alphamode_ignore) {
-    ibuf_dst->flags |= IB_alphamode_ignore;
+  else if (flag_is_set(ibuf_src->flags, ImBufFlags::AlphaIgnore)) {
+    ibuf_dst->flags |= ImBufFlags::AlphaIgnore;
   }
 }
 
 void IMB_colormanagement_assign_float_colorspace(ImBuf *ibuf, const char *name)
 {
   const ColorSpace *colorspace = g_config()->get_color_space(name);
-
   ibuf->float_buffer.colorspace = colorspace;
-
-  if (colorspace && colorspace->is_data()) {
-    ibuf->colormanage_flag |= IMB_COLORMANAGE_IS_DATA;
-  }
-  else {
-    ibuf->colormanage_flag &= ~IMB_COLORMANAGE_IS_DATA;
-  }
 }
 
 void IMB_colormanagement_assign_byte_colorspace(ImBuf *ibuf, const char *name)
 {
   const ColorSpace *colorspace = g_config()->get_color_space(name);
-
   ibuf->byte_buffer.colorspace = colorspace;
-
-  if (colorspace && colorspace->is_data()) {
-    ibuf->colormanage_flag |= IMB_COLORMANAGE_IS_DATA;
-  }
-  else {
-    ibuf->colormanage_flag &= ~IMB_COLORMANAGE_IS_DATA;
-  }
 }
 
 const char *IMB_colormanagement_get_float_colorspace(const ImBuf *ibuf)
@@ -1336,7 +1307,7 @@ static void display_buffer_init_handle(DisplayBufferThread *handle,
 
   int channels = ibuf->channels;
   float dither = ibuf->dither;
-  bool is_data = (ibuf->colormanage_flag & IMB_COLORMANAGE_IS_DATA) != 0;
+  bool is_data = ibuf->colorspace_is_data();
 
   size_t offset = size_t(channels) * start_line * ibuf->x;
   size_t display_buffer_byte_offset = size_t(DISPLAY_BUFFER_CHANNELS) * start_line * ibuf->x;
@@ -2273,12 +2244,6 @@ static ImBuf *imbuf_ensure_editable(ImBuf *ibuf, ImBuf *colormanaged_ibuf, bool 
     IMB_metadata_copy(colormanaged_ibuf, ibuf);
     return colormanaged_ibuf;
   }
-
-  /* Render pipeline is constructing image buffer itself,
-   * but it's re-using byte and float buffers from render result make copy of this buffers
-   * here sine this buffers would be transformed to other color space here. */
-  IMB_make_writable_byte_buffer(ibuf);
-  IMB_make_writable_float_buffer(ibuf);
 
   return ibuf;
 }

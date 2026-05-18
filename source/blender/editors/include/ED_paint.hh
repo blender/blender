@@ -88,24 +88,24 @@ void ED_image_undo_restore(UndoStep *us);
 /** Export for ED_undo_sys. */
 void ED_image_undosys_type(UndoType *ut);
 
-void *ED_image_paint_tile_find(PaintTileMap *paint_tile_map,
-                               Image *image,
-                               ImBuf *ibuf,
-                               ImageUser *iuser,
-                               int x_tile,
-                               int y_tile,
-                               unsigned short **r_mask,
-                               bool validate);
-void *ED_image_paint_tile_push(PaintTileMap *paint_tile_map,
-                               Image *image,
-                               ImBuf *ibuf,
-                               ImageUser *iuser,
-                               int x_tile,
-                               int y_tile,
-                               unsigned short **r_mask,
-                               bool **r_valid,
-                               bool use_thread_lock,
-                               bool find_prev);
+const ImBuf *ED_image_paint_tile_find(PaintTileMap *paint_tile_map,
+                                      Image *image,
+                                      ImBuf *ibuf,
+                                      ImageUser *iuser,
+                                      int x_tile,
+                                      int y_tile,
+                                      unsigned short **r_mask,
+                                      bool validate);
+const ImBuf *ED_image_paint_tile_push(PaintTileMap *paint_tile_map,
+                                      Image *image,
+                                      ImBuf *ibuf,
+                                      ImageUser *iuser,
+                                      int x_tile,
+                                      int y_tile,
+                                      unsigned short **r_mask,
+                                      bool **r_valid,
+                                      bool use_thread_lock,
+                                      bool find_prev);
 void ED_image_paint_tile_lock_init();
 void ED_image_paint_tile_lock_end();
 

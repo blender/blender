@@ -37,12 +37,12 @@ class GHOST_DirectManipulationViewportEventHandler
  public:
   GHOST_DirectManipulationViewportEventHandler(uint16_t dpi);
 
-  /*
+  /**
    * Resets viewport and tracked touchpad state.
    */
   void resetViewport(IDirectManipulationViewport *viewport);
 
-  /* DirectManipulation callbacks. */
+  /** DirectManipulation callbacks. */
   HRESULT STDMETHODCALLTYPE OnViewportStatusChanged(IDirectManipulationViewport *viewport,
                                                     DIRECTMANIPULATION_STATUS current,
                                                     DIRECTMANIPULATION_STATUS previous) override;
@@ -65,7 +65,7 @@ class GHOST_DirectManipulationViewportEventHandler
 
 class GHOST_DirectManipulationHelper {
  public:
-  /*
+  /**
    * Creates a GHOST_DirectManipulationHelper for the provided window.
    * \param hWnd: The window receiving DirectManipulation events.
    * \param dpi: The current DPI.
@@ -76,7 +76,7 @@ class GHOST_DirectManipulationHelper {
 
   ~GHOST_DirectManipulationHelper();
 
-  /*
+  /**
    * Drives the DirectManipulation context.
    * DirectManipulation's intended use is to tie user input into DirectComposition's compositor
    * scaling and translating. We are not using DirectComposition and therefore must drive
@@ -84,19 +84,19 @@ class GHOST_DirectManipulationHelper {
    */
   void update();
 
-  /*
+  /**
    * Sets pointer in contact with the DirectManipulation context.
    * \param pointerId: ID of the pointer in contact.
    */
   void onPointerHitTest(UINT32 pointerId);
 
-  /*
+  /**
    * Updates DPI information for touchpad scaling.
    * \param dpi: The new DPI.
    */
   void setDPI(uint16_t dpi);
 
-  /*
+  /**
    * Retrieves trackpad input.
    * \return The accumulated trackpad translation and scale since last call.
    */
@@ -113,13 +113,13 @@ class GHOST_DirectManipulationHelper {
       DWORD directManipulationViewportHandlerCookie,
       bool isScrollDirectionInverted);
 
-  /*
+  /**
    * Retrieves the scroll direction from the registry.
    * \return True if scroll direction is inverted.
    */
   static bool getScrollDirectionFromReg();
 
-  /*
+  /**
    * Registers listener for registry scroll direction entry changes.
    */
   void registerScrollDirectionChangeListener();

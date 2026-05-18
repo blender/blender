@@ -159,7 +159,7 @@ Strip *add_effect_strip(Scene *scene, ListBaseT<Strip> *seqbase, LoadData *load_
  * Set directory used by image strip.
  *
  * \param strip: image strip to be changed
- * \param path: directory path
+ * \param dirpath: directory path
  */
 void add_image_set_directory(Strip *strip, const char *dirpath);
 /**

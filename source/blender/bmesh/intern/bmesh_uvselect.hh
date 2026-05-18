@@ -361,9 +361,6 @@ void BM_mesh_uvselect_flush_shared_only_deselect(BMesh *bm, int cd_loop_uv_offse
 /**
  * Mode independent UV selection/de-selection flush from UV vertices.
  *
- * \param select: When true, flush the selection state to de-selected elements,
- * otherwise perform the opposite, flushing de-selection.
- *
  * \note The caller may need to run #BM_mesh_uvselect_flush_shared_only_select afterwards.
  */
 void BM_mesh_uvselect_flush_from_loop_verts(BMesh *bm);

@@ -6,11 +6,11 @@ import sys
 import unittest
 from pathlib import Path
 
-from _bpy_internal.assets.remote_library_listing import listing_asset_catalogs
-from _bpy_internal.assets.remote_library_listing import blender_asset_library_openapi as api_models
+from _bpy_internal.assets.remote_library import listing_asset_catalogs
+from _bpy_internal.assets.remote_library import blender_asset_library_openapi as api_models
 
 """
-blender -b --factory-startup -P tests/python/assets/remote_library_listing/listing_asset_catalogs_test.py -- --outdir=/tmp
+blender -b --factory-startup -P tests/python/assets/remote_library/listing_asset_catalogs_test.py -- --outdir=/tmp
 """
 
 # CLI argument, will be set to its actual value in main() below.

@@ -73,7 +73,7 @@ pxr::TfToken build_usd_joint_path(const Bone *bone, bool allow_unicode);
  * where the paths correspond to the bones of the given armature.
  *
  * \param skel_anim: The animation whose joints attribute will be set
- * \param ob_arm: The armature object
+ * \param obj: The armature object
  * \param deform_map: A pointer to a map associating bone names with
  *                    deform bones and their parents. If the pointer
  *                    is not null, assume only deform bones are to be

@@ -645,7 +645,7 @@ void BKE_image_free_old_gputextures(Main *bmain)
     if ((ima.flag & IMA_NOCOLLECT) == 0 && ctime - ima.runtime->lastused > U.textimeout) {
       /* If it's in GL memory, deallocate and set time tag to current time
        * This gives textures a "second chance" to be used before dying. */
-      if (BKE_image_has_opengl_texture(&ima)) {
+      if (BKE_image_has_gpu_texture(&ima)) {
         BKE_image_free_gputextures(&ima);
         ima.runtime->lastused = ctime;
       }
@@ -943,7 +943,7 @@ void BKE_image_update_gputexture_delayed(
 void BKE_image_paint_set_mipmap(Main *bmain, bool mipmap)
 {
   for (Image &ima : bmain->images) {
-    if (BKE_image_has_opengl_texture(&ima)) {
+    if (BKE_image_has_gpu_texture(&ima)) {
       if (ima.runtime->gpuflag & IMA_GPU_MIPMAP_COMPLETE) {
         for (int a = 0; a < TEXTARGET_COUNT; a++) {
           if (ELEM(a, TEXTARGET_2D, TEXTARGET_2D_ARRAY)) {

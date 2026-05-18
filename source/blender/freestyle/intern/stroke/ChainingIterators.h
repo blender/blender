@@ -336,16 +336,16 @@ class ChainPredicateIterator : public ChainingIterator {
 
   /** Builds a ChainPredicateIterator from a unary predicate, a binary predicate, a starting
    *  ViewEdge and its orientation.
-   *  \param iRestrictToSelection:
-   *    Indicates whether to force the chaining to stay
-   *    within the set of selected ViewEdges or not.
-   *  \param iRestrictToUnvisited:
-   *    Indicates whether a ViewEdge that has already been chained must be ignored ot not.
    *  \param upred:
    *    The unary predicate that the next ViewEdge must satisfy.
    *  \param bpred:
    *    The binary predicate that the next ViewEdge must satisfy together with the actual pointed
    *    ViewEdge.
+   *  \param iRestrictToSelection:
+   *    Indicates whether to force the chaining to stay
+   *    within the set of selected ViewEdges or not.
+   *  \param iRestrictToUnvisited:
+   *    Indicates whether a ViewEdge that has already been chained must be ignored ot not.
    *  \param begin:
    *    The ViewEdge from where to start the iteration.
    *  \param orientation:

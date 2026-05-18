@@ -91,6 +91,9 @@ struct OnlineAssetInfo {
 
 class AssetRepresentation;
 
+/** Return true if there is any asset file (any file in an assets file set) being downloaded. */
+bool remote_library_has_unfinished_asset_downloads();
+
 struct RemoteLibraryDefinitionRef {
   StringRefNull remote_url;
   StringRefNull cache_dirpath;
@@ -107,6 +110,7 @@ struct RemoteLibraryDefinitionRef {
  * anything if a download with the library's URL is already ongoing.
  */
 void remote_library_request_download(const RemoteLibraryDefinitionRef &library_definition);
+void remote_library_cancel_all_listing_downloads(const bContext &C);
 
 void remote_library_request_asset_download(const bContext &C,
                                            const AssetRepresentation &asset,
@@ -115,6 +119,8 @@ void remote_library_request_preview_download(const bContext &C,
                                              const AssetRepresentation &asset,
                                              const StringRef dst_filepath,
                                              ReportList *reports);
+
+void remote_library_cancel_all_asset_downloads(bContext &C);
 
 /**
  * Get the absolute path to an online library's cache directory using \a library_dirname as library
@@ -202,9 +208,12 @@ class RemoteLibraryLoadingStatus {
   static void ping_still_loading(StringRef url);
   static void ping_new_pages(StringRef url);
   static void ping_new_preview(const bContext &C, StringRef preview_full_filepath);
-  static void ping_new_assets(const bContext &C, StringRef url);
+  /** Should be called when an asset file (the main .blend file or one of its dependencies)
+   * download has ended, successfully or not. */
+  static void ping_asset_file_download_done(const bContext &C, StringRef library_url);
   static void ping_metafiles_in_place(StringRef url);
   static void set_finished(StringRef url);
+  static void set_cancelled(const StringRef url);
   static void set_failure(StringRef url, std::optional<StringRefNull> failure_message);
 
   static std::optional<StringRefNull> failure_message(StringRef url);

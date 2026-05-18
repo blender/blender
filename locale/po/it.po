@@ -1,9 +1,9 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 5.2.0 Alpha (b'8c7c45ad114e')\n"
+"Project-Id-Version: Blender 5.2.0 Alpha (b'bc0a0ff2c0ce')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-05-11 07:23+0000\n"
+"POT-Creation-Date: 2026-05-18 11:20+0000\n"
 "PO-Revision-Date: 2026-05-04 00:12+0000\n"
 "Last-Translator: Alessandro Vecchio <alessandrovecchio1907@gmail.com>\n"
 "Language-Team: Italian <https://translate.blender.org/projects/blender-ui/ui/it/>\n"
@@ -1823,10 +1823,6 @@ msgstr "Mostra le risorse attualmente disponibili in questa sessione di Blender"
 
 msgid "Essentials"
 msgstr "Essenziali"
-
-
-msgid "Show the basic building blocks and utilities coming with Blender"
-msgstr "Mostra i moduli di base e le utilità fornite con Blender"
 
 
 msgid "Custom"
@@ -24526,6 +24522,10 @@ msgid "Material slot name"
 msgstr "Nome dello slot materiale"
 
 
+msgid "Mirror"
+msgstr "Specchia"
+
+
 msgid "Snap"
 msgstr "Aggancia"
 
@@ -24542,12 +24542,20 @@ msgid "Viewpoint"
 msgstr "Punto di vista"
 
 
+msgid "Math"
+msgstr "Matematica"
+
+
 msgid "Navigation"
 msgstr "Navigazione"
 
 
 msgid "Align View"
 msgstr "Allinea Vista"
+
+
+msgid "Utilities"
+msgstr "Utilità"
 
 
 msgid "Align View to Active"
@@ -24578,22 +24586,6 @@ msgid "Select Loops"
 msgstr "Seleziona Anelli"
 
 
-msgid "Math"
-msgstr "Matematica"
-
-
-msgid "Utilities"
-msgstr "Utilità"
-
-
-msgid "Assign Material"
-msgstr "Assegna Materiale"
-
-
-msgid "Metaball"
-msgstr "Metaball"
-
-
 msgid "Read"
 msgstr "Lettura"
 
@@ -24602,8 +24594,20 @@ msgid "Sample"
 msgstr "Campione"
 
 
+msgid "Assign Material"
+msgstr "Assegna Materiale"
+
+
 msgid "Write"
 msgstr "Scrittura"
+
+
+msgid "Primitives"
+msgstr "Primitive"
+
+
+msgid "Metaball"
+msgstr "Metaball"
 
 
 msgid "Light"
@@ -24614,8 +24618,8 @@ msgid "Light Probe"
 msgstr "Sensore di Luce"
 
 
-msgid "Primitives"
-msgstr "Primitive"
+msgid "Instances"
+msgstr "Istanze"
 
 
 msgid "Add Image"
@@ -24626,16 +24630,16 @@ msgid "Relations"
 msgstr "Relazioni"
 
 
+msgid "Import"
+msgstr "Importa"
+
+
 msgid "Rigid Body"
 msgstr "Corpo Rigido"
 
 
 msgid "Apply"
 msgstr "Applica"
-
-
-msgid "Instances"
-msgstr "Istanze"
 
 
 msgid "Track"
@@ -24654,10 +24658,6 @@ msgid "Clean Up"
 msgstr "Ripulisci"
 
 
-msgid "Import"
-msgstr "Importa"
-
-
 msgid "Asset"
 msgstr "Risorsa"
 
@@ -24670,6 +24670,10 @@ msgid "Convert"
 msgstr "Converti"
 
 
+msgid "UV"
+msgstr "UV"
+
+
 msgid "Link/Transfer Data"
 msgstr "Collega/Trasferisci Dati"
 
@@ -24680,10 +24684,6 @@ msgstr "Ganci"
 
 msgid "Vertex Group Locks"
 msgstr "Blocchi del Gruppo di Vertici"
-
-
-msgid "UV"
-msgstr "UV"
 
 
 msgid "Face Sets Init"
@@ -24746,6 +24746,10 @@ msgid "Merge"
 msgstr "Unisci"
 
 
+msgid "Layout"
+msgstr "Layout"
+
+
 msgid "Special Characters"
 msgstr "Caratteri Speciali"
 
@@ -24754,16 +24758,12 @@ msgid "Kerning"
 msgstr "Crenatura"
 
 
-msgid "Layout"
-msgstr "Layout"
+msgid "Adjust"
+msgstr "Regola"
 
 
 msgid "Bone Roll"
 msgstr "Rollio Osso"
-
-
-msgid "Adjust"
-msgstr "Regola"
 
 
 msgid "Keying"
@@ -24792,10 +24792,6 @@ msgstr "Automascheramento"
 
 msgid "Face Sets Edit"
 msgstr "Modifica Sets di Facce"
-
-
-msgid "Mirror"
-msgstr "Specchia"
 
 
 msgid "Keyframe Insert Pie"
@@ -34887,6 +34883,10 @@ msgid "Add Bone"
 msgstr "Aggiungi Osso"
 
 
+msgid "Axes"
+msgstr "Assi"
+
+
 msgid "Name of the newly created bone"
 msgstr "Nome del nuovo osso creato"
 
@@ -35010,6 +35010,10 @@ msgstr "Duplica Ossa Selezionate"
 
 msgid "Move"
 msgstr "Muovi"
+
+
+msgid "Search"
+msgstr "Ricerca"
 
 
 msgctxt "Operator"
@@ -50195,34 +50199,6 @@ msgid "Active Palette Color"
 msgstr "Colore Tavolozza Attivo"
 
 
-msgid "Mesh Edit Mode"
-msgstr "Modalità Modifica Mesh"
-
-
-msgid "Measurement"
-msgstr "Misurazione"
-
-
-msgid "Transform Orientations"
-msgstr "Assi (Orientamenti Trasformazione)"
-
-
-msgid "Stroke Placement"
-msgstr "Giacitura Tratto"
-
-
-msgid "Guides"
-msgstr "Guide"
-
-
-msgid "Stereoscopy"
-msgstr "Stereoscopia"
-
-
-msgid "Auto-Masking"
-msgstr "Auto-Mascheramento"
-
-
 msgid "Selectability & Visibility"
 msgstr "Selezionabilità e Visibilità"
 
@@ -50251,8 +50227,36 @@ msgid "Overlays"
 msgstr "Sovrapposizioni"
 
 
+msgid "Guides"
+msgstr "Guide"
+
+
 msgid "Motion Tracking"
 msgstr "Tracciatura Movimento"
+
+
+msgid "Mesh Edit Mode"
+msgstr "Modalità Modifica Mesh"
+
+
+msgid "Measurement"
+msgstr "Misurazione"
+
+
+msgid "Transform Orientations"
+msgstr "Assi (Orientamenti Trasformazione)"
+
+
+msgid "Stroke Placement"
+msgstr "Giacitura Tratto"
+
+
+msgid "Stereoscopy"
+msgstr "Stereoscopia"
+
+
+msgid "Auto-Masking"
+msgstr "Auto-Mascheramento"
 
 
 msgid "Chain Scaling"
@@ -59632,10 +59636,6 @@ msgid "Positional Tracking"
 msgstr "Tracciatura Posizione"
 
 
-msgid "Search"
-msgstr "Ricerca"
-
-
 msgid "Navigate"
 msgstr "Navigare"
 
@@ -60816,10 +60816,6 @@ msgstr "Offset Perno"
 
 msgid "Shapes"
 msgstr "Forme"
-
-
-msgid "Axes"
-msgstr "Assi"
 
 
 msgid "Control Rotation"
@@ -64832,6 +64828,10 @@ msgid "No edge rings found"
 msgstr "Nessuna fascia di spigoli trovata"
 
 
+msgid "Anisotropic"
+msgstr "Anisotropico"
+
+
 msgid "Baking lighting..."
 msgstr "Precalcolo illuminazione..."
 
@@ -68244,10 +68244,6 @@ msgid "Unable to create socket"
 msgstr "Impossibile creare il connettore"
 
 
-msgid "Anisotropic"
-msgstr "Anisotropico"
-
-
 msgid "Unable to locate socket '%s' in node"
 msgstr "Impossibile trovare il connettore '%s' nel nodo"
 
@@ -69761,16 +69757,16 @@ msgid "Ignore Sharpness"
 msgstr "Ignora Nitidezza"
 
 
-msgid "Hair Tie Scale"
-msgstr "Scala Elastico per Capelli"
-
-
 msgid "Minimum distance between two guides"
 msgstr "Distanza minima tra due Guide"
 
 
 msgid "Curve Root"
 msgstr "Radice Curva"
+
+
+msgid "Hair Tie Scale"
+msgstr "Scala Elastico per Capelli"
 
 
 msgid "Cumulative Offset"

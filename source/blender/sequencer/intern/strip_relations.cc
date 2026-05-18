@@ -215,7 +215,10 @@ void relations_update_view_layer_scene_strips(Main *bmain,
                                          BLI_strdup(new_name) :
                                          BLI_strdup(
                                              BKE_view_layer_default_render(strip->scene)->name);
-      seq::relations_invalidate_cache_raw(&scene_iter, strip);
+      if (new_name == nullptr) {
+        /* View layer was deleted. */
+        seq::relations_invalidate_cache_raw(&scene_iter, strip);
+      }
     }
   }
 }

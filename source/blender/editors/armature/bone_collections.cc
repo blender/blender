@@ -18,6 +18,7 @@
 #include "BLI_listbase.h"
 
 #include "BKE_action.hh"
+#include "BKE_armature.hh"
 #include "BKE_context.hh"
 #include "BKE_lib_override.hh"
 #include "BKE_library.hh"

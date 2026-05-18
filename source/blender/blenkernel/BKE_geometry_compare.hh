@@ -57,4 +57,14 @@ std::optional<GeoMismatch> compare_lattices(const Lattice &lattice1,
                                             const Lattice &lattice2,
                                             float threshold);
 
+/**
+ * \brief Checks if two Grease Pencil geometries are different, returning the type of mismatch if
+ * any.
+ *
+ * \returns The type of mismatch that was detected, if there is any.
+ */
+std::optional<GeoMismatch> compare_grease_pencil(const GreasePencil &grease_pencil_1,
+                                                 const GreasePencil &grease_pencil_2,
+                                                 float threshold);
+
 }  // namespace blender::bke::compare_geometry

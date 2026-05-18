@@ -2803,6 +2803,9 @@ static void execute_realize_grease_pencil_tasks(
     dst_attribute.finish();
   }
 }
+
+/** \} */
+
 /* -------------------------------------------------------------------- */
 /** \name Edit Data
  * \{ */

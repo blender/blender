@@ -53,6 +53,7 @@
 #include "ED_screen.hh"
 #include "ED_sequencer.hh"
 #include "ED_space_api.hh"
+#include "ED_time_scrub_ui.hh"
 #include "ED_util.hh"
 #include "ED_view3d.hh"
 
@@ -1925,6 +1926,16 @@ void sequencer_preview_region_draw(const bContext *C, ARegion *region)
   IMB_freeImBuf(reference_ibuf);
 
   preview_draw_end(C);
+}
+
+void sequencer_scrubbing_region_draw(const bContext *C, ARegion *region)
+{
+  const Scene *scene = CTX_data_sequencer_scene(C);
+  const SpaceSeq *sseq = CTX_wm_space_seq(C);
+
+  const int fps = round_db_to_int(scene->frames_per_second());
+  ED_time_scrub_draw(region, scene, !(sseq->flag & SEQ_DRAWFRAMES), true, fps);
+  ED_time_scrub_draw_current_frame(region, scene, !(sseq->flag & SEQ_DRAWFRAMES), false, true);
 }
 
 }  // namespace blender::ed::vse

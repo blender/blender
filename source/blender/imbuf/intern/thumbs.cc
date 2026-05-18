@@ -361,7 +361,7 @@ static ImBuf *thumb_create_ex(const char *file_path,
       return nullptr;
     }
     if (size == THB_FAIL) {
-      img = IMB_allocImBuf(1, 1, IB_byte_data | IB_metadata);
+      img = IMB_allocImBuf(1, 1, ImBufFlags::ByteData | ImBufFlags::Metadata);
       if (!img) {
         return nullptr;
       }
@@ -403,7 +403,7 @@ static ImBuf *thumb_create_ex(const char *file_path,
         /* Image buffer is converted from float to byte and only the latter one is used, and the
          * conversion process is aware of the float color-space. So it is possible to save some
          * compute time by keeping the original color-space for movies. */
-        anim = MOV_open_file(file_path, IB_byte_data | IB_metadata, 0, true, nullptr);
+        anim = MOV_open_file(file_path, ImBufFlags::Zero, 0, true, nullptr);
         if (anim != nullptr) {
           img = MOV_decode_frame(anim, 0, IMB_TC_NONE, IMB_PROXY_NONE);
           if (img == nullptr) {
@@ -454,7 +454,7 @@ static ImBuf *thumb_create_ex(const char *file_path,
     IMB_byte_from_float(img);
     IMB_free_float_pixels(img);
 
-    if (IMB_save_image(img, temp, IB_byte_data | IB_metadata)) {
+    if (IMB_save_image(img, temp, ImBufFlags::ByteData | ImBufFlags::Metadata)) {
 #ifndef WIN32
       chmod(temp, S_IRUSR | S_IWUSR);
 #endif
@@ -540,7 +540,7 @@ ImBuf *IMB_thumb_read(const char *file_or_lib_path, ThumbSize size)
     return nullptr;
   }
   if (thumbpath_from_uri(uri, thumb, sizeof(thumb), size)) {
-    img = IMB_load_image_from_filepath(thumb, IB_byte_data | IB_metadata);
+    img = IMB_load_image_from_filepath(thumb, ImBufFlags::ByteData | ImBufFlags::Metadata);
   }
 
   return img;
@@ -576,7 +576,8 @@ ImBuf *IMB_thumb_manage(const char *file_or_lib_path, ThumbSize size, ThumbSourc
       return nullptr;
     }
 
-    ImBuf *thumb = IMB_load_image_from_filepath(file_or_lib_path, IB_byte_data | IB_metadata);
+    ImBuf *thumb = IMB_load_image_from_filepath(file_or_lib_path,
+                                                ImBufFlags::ByteData | ImBufFlags::Metadata);
     if (!thumb) {
       return nullptr;
     }
@@ -622,7 +623,7 @@ ImBuf *IMB_thumb_manage(const char *file_or_lib_path, ThumbSize size, ThumbSourc
   if (file_attributes & FILE_ATTR_OFFLINE) {
     char thumb_path[FILE_MAX];
     if (thumbpath_from_uri(uri, thumb_path, sizeof(thumb_path), size)) {
-      return IMB_load_image_from_filepath(thumb_path, IB_byte_data | IB_metadata);
+      return IMB_load_image_from_filepath(thumb_path, ImBufFlags::ByteData | ImBufFlags::Metadata);
     }
     return nullptr;
   }
@@ -649,10 +650,10 @@ ImBuf *IMB_thumb_manage(const char *file_or_lib_path, ThumbSize size, ThumbSourc
     /* The requested path points to a generated thumbnail already (path into the thumbnail cache
      * directory). Attempt to load that, there's nothing we can recreate. */
     if (BLI_path_ncmp(file_or_lib_path, thumb_path, sizeof(thumb_path)) == 0) {
-      img = IMB_load_image_from_filepath(file_or_lib_path, IB_byte_data);
+      img = IMB_load_image_from_filepath(file_or_lib_path, ImBufFlags::ByteData);
     }
     else {
-      img = IMB_load_image_from_filepath(thumb_path, IB_byte_data | IB_metadata);
+      img = IMB_load_image_from_filepath(thumb_path, ImBufFlags::ByteData | ImBufFlags::Metadata);
       if (img) {
         bool regenerate = false;
 

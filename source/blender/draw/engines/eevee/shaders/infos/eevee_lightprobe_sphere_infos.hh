@@ -95,5 +95,3 @@ IMAGE(1, SFLOAT_16_16_16_16, write, image2DArray, out_atlas_mip_img)
 COMPUTE_SOURCE("eevee_lightprobe_sphere_convolve_comp.glsl")
 DO_STATIC_COMPILATION()
 GPU_SHADER_CREATE_END()
-
-/** \} */

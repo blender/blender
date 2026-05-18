@@ -109,8 +109,6 @@ set(SRC_GLSL_LIB
   eevee_filter_lib.glsl
   # eevee_forward_lib.glsl
   eevee_gbuffer_lib.glsl
-  eevee_light_eval_lib.glsl
-  eevee_light_iter_lib.glsl
   eevee_light_lib.glsl
   eevee_lightprobe_eval_lib.glsl
   eevee_lightprobe_lib.glsl
@@ -122,8 +120,6 @@ set(SRC_GLSL_LIB
   eevee_ray_generate_lib.glsl
   eevee_renderpass_lib.glsl
   eevee_sampling_lib.glsl
-  eevee_shadow_lib.glsl
-  eevee_shadow_tracing_lib.glsl
   eevee_subsurface_lib.glsl
   eevee_surf_lib.glsl
   # eevee_transparency_lib.glsl # Require Fragment shader include

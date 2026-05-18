@@ -117,7 +117,7 @@ bool BKE_imtype_requires_linear_float(char imtype);
 char BKE_imtype_valid_channels(char imtype);
 eImageFormatDepth BKE_imtype_valid_depths(char imtype);
 eImageFormatDepth BKE_imtype_valid_depths_with_video(char imtype, const ID *owner_id);
-eImageFormatDepth BKE_imtype_first_valid_depth(const char valid_depths);
+eImageFormatDepth BKE_imtype_first_valid_depth(eImageFormatDepth valid_depths);
 
 /**
  * String is from command line `--render-format` argument,

@@ -1318,6 +1318,8 @@ static void layerAdd_propfloat4(void *data1, const void *data2)
   vec1->w += vec2->w;
 }
 
+/** \} */
+
 /* -------------------------------------------------------------------- */
 /** \name Callbacks for (#vec3f, #CD_PROP_FLOAT3)
  * \{ */
@@ -1503,6 +1505,8 @@ static void layerInterp_propquaternion(const void **sources,
   mixer.finalize();
   *static_cast<Quaternion *>(dest) = result;
 }
+
+/** \} */
 
 /* -------------------------------------------------------------------- */
 /** \name Callbacks for (#math::Quaternion, #CD_PROP_FLOAT4X4)

@@ -99,12 +99,14 @@ static void fill_all_channels(T *pixels, int width, int height, int components, 
 
 template<typename T>
 static ImBuf *load_pixels(
-    ImageInput *in, int width, int height, int channels, int flags, bool use_all_planes)
+    ImageInput *in, int width, int height, int channels, ImBufFlags flags, bool use_all_planes)
 {
   /* Allocate the ImBuf for the image. */
   constexpr bool is_float = sizeof(T) > 1;
-  const uint format_flag = (is_float ? IB_float_data : IB_byte_data) | IB_uninitialized_pixels;
-  const uint ibuf_flags = (flags & IB_test) ? 0 : format_flag;
+  const ImBufFlags format_flag = (is_float ? ImBufFlags::FloatData : ImBufFlags::ByteData) |
+                                 ImBufFlags::UninitializedPixels;
+  const ImBufFlags ibuf_flags = flag_is_set(flags, ImBufFlags::Test) ? ImBufFlags::Zero :
+                                                                       format_flag;
 
   ImColorMode color_mode = ImColorMode::RGBA;
   if (channels == 2) {
@@ -125,7 +127,7 @@ static ImBuf *load_pixels(
   ibuf->color_mode = color_mode;
 
   /* No need to load actual pixel data during the test phase. */
-  if (flags & IB_test) {
+  if (flag_is_set(flags, ImBufFlags::Test)) {
     return ibuf;
   }
 
@@ -241,9 +243,9 @@ static ImBuf *get_oiio_ibuf(ImageInput *in, const ReadContext &ctx, ImFileColorS
     }
 
     /* Transfer metadata to the ibuf if necessary. */
-    if (ctx.flags & IB_metadata) {
+    if (flag_is_set(ctx.flags, ImBufFlags::Metadata)) {
       IMB_metadata_ensure(&ibuf->metadata);
-      ibuf->flags |= spec.extra_attribs.empty() ? 0 : IB_metadata;
+      ibuf->flags |= spec.extra_attribs.empty() ? ImBufFlags::Zero : ImBufFlags::Metadata;
 
       for (const auto &attrib : spec.extra_attribs) {
         if (attrib.name().find("ICCProfile") != string::npos) {
@@ -431,7 +433,7 @@ Vector<uint8_t> imb_oiio_write_buffer(const WriteContext &ctx, const ImageSpec &
 
 WriteContext imb_create_write_context(const char *file_format,
                                       ImBuf *ibuf,
-                                      int flags,
+                                      ImBufFlags flags,
                                       bool prefer_float)
 {
   WriteContext ctx{};

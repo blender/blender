@@ -60,34 +60,34 @@ class NODE_OT_add_reroutes(Operator, NWBase):
                 y -= 35.0
 
             reroutes_count = 0  # Will be used when aligning reroutes added to hidden nodes.
-            for out_i, output in enumerate(node.outputs):
-                if output.is_unavailable or isinstance(output, bpy.types.NodeSocketVirtual):
+            for out_i, output_socket in enumerate(node.outputs):
+                if output_socket.is_unavailable or isinstance(output_socket, bpy.types.NodeSocketVirtual):
                     continue
-                if node.type == 'R_LAYERS' and output.name != 'Alpha':
+                if node.type == 'R_LAYERS' and output_socket.name != 'Alpha':
                     # If 'R_LAYERS' check if output is used in render pass.
                     # If output is "Alpha", assume it's used. Not available in passes.
                     node_scene = node.scene
                     node_layer = node.layer
                     for rlo in rl_outputs:
                         # Check entries in global 'rl_outputs' variable.
-                        if output.name in {rlo.output_name, rlo.exr_output_name}:
+                        if output_socket.name in {rlo.output_name, rlo.exr_output_name}:
                             if not getattr(node_scene.view_layers[node_layer], rlo.render_pass):
                                 continue
                 # Output is valid when option is 'all' or when 'loose' output has no links.
                 valid = ((self.option == 'ALL') or
-                         (self.option == 'LOOSE' and not output.links) or
-                         (self.option == 'LINKED' and output.links))
+                         (self.option == 'LOOSE' and not output_socket.links) or
+                         (self.option == 'LINKED' and output_socket.links))
                 if valid:
                     # Add reroutes only if valid.
                     n = nodes.new('NodeReroute')
                     nodes.active = n
-                    for link in output.links:
+                    for link in output_socket.links:
                         connect_sockets(n.outputs[0], link.to_socket)
-                    connect_sockets(output, n.inputs[0])
+                    connect_sockets(output_socket, n.inputs[0])
                     n.location = x, y
                     new_node_reroutes.append(n)
                     post_select.append(n)
-                if valid or not output.hide:
+                if valid or not output_socket.hide:
                     # Offset reroutes for all outputs, except hidden ones.
                     reroutes_count += 1
                     y += y_offset

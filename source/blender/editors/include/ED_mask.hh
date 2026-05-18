@@ -81,8 +81,8 @@ void ED_mask_pixelspace_factor(ScrArea *area, ARegion *region, float *r_scalex, 
 void ED_mask_mouse_pos(ScrArea *area, ARegion *region, const int mval[2], float r_co[2]);
 
 /**
- * \param x/y: input, mval space.
- * \param xr/yr: output, mask point space.
+ * \param x, y: input, mval space.
+ * \param r_x, r_y: output, mask point space.
  */
 void ED_mask_point_pos(ScrArea *area, ARegion *region, float x, float y, float *r_x, float *r_y);
 void ED_mask_point_pos__reverse(

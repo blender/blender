@@ -12,7 +12,7 @@
  * Decode URL (i.e. converts `file:///a%20b/test` to `file:///a b/test`)
  *
  * \param buf_dst: Buffer for decoded URL.
- * \param buf_dst_maxlen: Size of output buffer.
+ * \param buf_dst_size: Size of output buffer.
  * \param buf_src: Input encoded buffer to be decoded.
  * \param buf_src_len: The length of `buf_src` to use.
  */

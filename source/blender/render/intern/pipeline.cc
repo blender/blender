@@ -2672,7 +2672,7 @@ void RE_layer_load_from_file(
   }
 
   /* OCIO_TODO: assume layer was saved in default color space */
-  ImBuf *ibuf = IMB_load_image_from_filepath(filepath, IB_byte_data);
+  ImBuf *ibuf = IMB_load_image_from_filepath(filepath, ImBufFlags::ByteData);
   RenderPass *rpass = nullptr;
 
   /* multi-view: since the API takes no 'view', we use the first combined pass found */
@@ -2696,9 +2696,7 @@ void RE_layer_load_from_file(
         IMB_float_from_byte(ibuf);
       }
 
-      memcpy(rpass->ibuf->float_data_for_write(),
-             ibuf->float_data(),
-             sizeof(float[4]) * layer->rectx * layer->recty);
+      rpass->ibuf->float_buffer = ibuf->float_buffer;
     }
     else {
       if ((ibuf->x - x >= layer->rectx) && (ibuf->y - y >= layer->recty)) {

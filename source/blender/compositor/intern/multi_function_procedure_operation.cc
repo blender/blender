@@ -51,9 +51,8 @@ MultiFunctionProcedureOperation::MultiFunctionProcedureOperation(
     const Schedule &schedule,
     const bool is_single_value,
     const ComputeContext &compute_context)
-    : PixelOperation(context, compile_unit, schedule, compute_context),
-      procedure_builder_(procedure_),
-      is_single_value_(is_single_value)
+    : PixelOperation(context, compile_unit, schedule, compute_context, is_single_value),
+      procedure_builder_(procedure_)
 {
   this->build_procedure();
   procedure_executor_ = std::make_unique<mf::ProcedureExecutor>(procedure_);
@@ -435,8 +434,10 @@ mf::Variable *MultiFunctionProcedureOperation::get_multi_function_input_variable
 void MultiFunctionProcedureOperation::assign_output_variables(const bNode &node,
                                                               Vector<mf::Variable *> &variables)
 {
-  const bNodeSocket *preview_output = needs_node_previews_ ? find_preview_output_socket(node) :
-                                                             nullptr;
+  const bool should_log_outputs = this->context().nodes_evaluation_log() && is_single_value_;
+  const bNodeSocket *preview_output = needs_node_previews_ && !is_single_value_ ?
+                                          find_preview_output_socket(node) :
+                                          nullptr;
 
   int available_outputs_index = 0;
   for (const bNodeSocket *output : node.output_sockets()) {
@@ -462,7 +463,11 @@ void MultiFunctionProcedureOperation::assign_output_variables(const bNode &node,
       preview_outputs_.add(output);
     }
 
-    if (is_operation_output || is_preview_output) {
+    if (should_log_outputs) {
+      logged_outputs_.add(output);
+    }
+
+    if (is_operation_output || is_preview_output || should_log_outputs) {
       this->populate_operation_result(*output, output_variable);
     }
 

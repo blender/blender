@@ -966,6 +966,8 @@ static wmOperatorStatus sequencer_slip_invoke(bContext *C, wmOperator *op, const
   /* Notify so we draw extensions immediately. */
   WM_event_add_notifier(C, NC_SCENE | ND_SEQUENCER, scene);
 
+  G.moving |= G_TRANSFORM_SEQ;
+
   return OPERATOR_RUNNING_MODAL;
 }
 
@@ -1025,6 +1027,8 @@ static void slip_cleanup(bContext *C, wmOperator *op, Scene *scene)
   ED_workspace_status_text(C, nullptr);
   DEG_id_tag_update(&scene->id, ID_RECALC_SEQUENCER_STRIPS);
   WM_event_add_notifier(C, NC_SCENE | ND_SEQUENCER, scene);
+
+  G.moving &= ~G_TRANSFORM_SEQ;
 }
 
 /* Returns clamped offset delta relative to current strip positions,

@@ -271,6 +271,34 @@ class ConditionalDownloaderTest(unittest.TestCase):
         )
 
 
+class HumanizeSizeTest(unittest.TestCase):
+    def test_humanize_size(self):
+        from _bpy_internal.http.downloader import humanize_size
+
+        self.assertEqual(humanize_size(0), "0 B")
+        self.assertEqual(humanize_size(1), "1 B")
+        self.assertEqual(humanize_size(1023), "1023 B")
+
+        self.assertEqual(humanize_size(1024), "1 KiB")
+        self.assertEqual(humanize_size(1024**2), "1 MiB")
+        self.assertEqual(humanize_size(1024**3), "1 GiB")
+        self.assertEqual(humanize_size(1024**4), "1 TiB")
+
+        self.assertEqual(humanize_size(1536), "1.5 KiB")
+        self.assertEqual(humanize_size(5046586573), "4.7 GiB")
+
+        # 47.0... GiB -> trailing zero stripped
+        self.assertEqual(humanize_size(50465865728), "47 GiB")
+
+        # Beyond the last unit should also be ok.
+        self.assertEqual(humanize_size(1024**7), "1024 EiB")
+        self.assertEqual(humanize_size(1024**8), "1048576 EiB")
+
+        # Negative values should be handled like positive values.
+        self.assertEqual(humanize_size(-1), "-1 B")
+        self.assertEqual(humanize_size(-2 * 1024**2), "-2 MiB")
+
+
 def main() -> None:
     global output_dir
 

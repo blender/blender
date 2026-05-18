@@ -82,7 +82,7 @@ class GHOST_WindowCocoa : public GHOST_Window {
   void setTitle(const char *title) override;
   /**
    * Returns the title displayed in the title bar.
-   * \param title: The title displayed in the title bar.
+   * \return The title displayed in the title bar.
    */
   std::string getTitle() const override;
 
@@ -325,7 +325,7 @@ class GHOST_EventIME : public GHOST_Event {
    * Constructor.
    * \param msec: The time this event was generated.
    * \param type: The type of key event.
-   * \param key: The key code of the key.
+   * \param customdata: custom-data, typically #GHOST_TEventImeData.
    */
   GHOST_EventIME(uint64_t msec,
                  GHOST_TEventType type,

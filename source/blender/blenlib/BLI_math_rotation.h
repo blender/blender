@@ -145,7 +145,7 @@ void rotation_between_quats_to_quat(float q[4], const float q1[4], const float q
  * Decompose a quaternion into a swing rotation (quaternion with the selected
  * axis component locked at zero), followed by a twist rotation around the axis.
  *
- * \param q: input quaternion.
+ * \param q_in: input quaternion.
  * \param axis: twist axis in [0,1,2]
  * \param r_swing: if not NULL, receives the swing quaternion.
  * \param r_twist: if not NULL, receives the twist quaternion.

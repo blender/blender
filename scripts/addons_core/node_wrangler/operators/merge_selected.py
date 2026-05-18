@@ -73,9 +73,9 @@ class NODE_OT_merge_selected(Operator, NWBase):
             return True
         if not node.outputs:
             return False
-        for output in node.outputs:
-            if output.is_linked:
-                for olink in output.links:
+        for output_socket in node.outputs:
+            if output_socket.is_linked:
+                for olink in output_socket.links:
                     if NODE_OT_merge_selected.link_creates_cycle(olink, selected_nodes, depth + 1):
                         return True
         # None of the outputs found a node in selected_nodes, so there is no cycle.
@@ -119,8 +119,8 @@ class NODE_OT_merge_selected(Operator, NWBase):
                 outputs_for_multi_input.insert(0, node.outputs[0])
         if outputs_for_multi_input != []:
             ind = socket_indices[-1]
-            for output in outputs_for_multi_input:
-                connect_sockets(output, new_node.inputs[ind])
+            for output_socket in outputs_for_multi_input:
+                connect_sockets(output_socket, new_node.inputs[ind])
         if prev_links != []:
             for link in prev_links:
                 connect_sockets(new_node.outputs[0], link.to_node.inputs[0])
@@ -181,8 +181,8 @@ class NODE_OT_merge_selected(Operator, NWBase):
 
         for i, node in enumerate(nodes):
             if node.select and node.outputs:
-                output = get_first_enabled_output(node)
-                output_type = output.type
+                output_socket = get_first_enabled_output(node)
+                output_type = output_socket.type
                 if output_type == 'BOOLEAN':
                     if merge_type == 'MATH' and mode != 'ADD':
                         merge_type = 'AUTO'

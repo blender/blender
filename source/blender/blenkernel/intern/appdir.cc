@@ -266,10 +266,10 @@ bool BKE_appdir_font_folder_default(char *dir, size_t dir_maxncpy)
  * Concatenates paths into \a targetpath,
  * returning true if result points to a directory.
  *
+ * \param check_is_dir: When false, return true even if the path doesn't exist.
  * \param path_base: Path base, never nullptr.
  * \param folder_name: First sub-directory (optional).
  * \param subfolder_name: Second sub-directory (optional).
- * \param check_is_dir: When false, return true even if the path doesn't exist.
  *
  * \note The names for optional paths only follow other usage in this file,
  * the names don't matter for this function.
@@ -861,7 +861,7 @@ std::optional<std::string> BKE_appdir_resource_path_id(const int folder_id,
  *
  * \param program_filepath: The full path and full name of the executable
  * (must be #FILE_MAX minimum)
- * \param name: The name of the executable (usually `argv[0]`) to be checked
+ * \param program_name: The name of the executable (usually `argv[0]`) to be checked
  */
 static void where_am_i(char *program_filepath,
                        const size_t program_filepath_maxncpy,

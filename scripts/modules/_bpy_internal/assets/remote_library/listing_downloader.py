@@ -29,12 +29,12 @@ else:
 import bpy
 
 from _bpy_internal.http import downloader as http_dl
-from _bpy_internal.assets.remote_library_listing import blender_asset_library_openapi as api_models
-from _bpy_internal.assets.remote_library_listing import listing_common
-from _bpy_internal.assets.remote_library_listing import hashing
-from _bpy_internal.assets.remote_library_listing import http_metadata
-from _bpy_internal.assets.remote_library_listing import listing_asset_catalogs
-from _bpy_internal.assets.remote_library_listing import json_parsing
+from _bpy_internal.assets.remote_library import blender_asset_library_openapi as api_models
+from _bpy_internal.assets.remote_library import listing_common
+from _bpy_internal.assets.remote_library import hashing
+from _bpy_internal.assets.remote_library import http_metadata
+from _bpy_internal.assets.remote_library import listing_asset_catalogs
+from _bpy_internal.assets.remote_library import json_parsing
 
 logger = logging.getLogger(__name__)
 
@@ -541,7 +541,8 @@ class RemoteAssetListingDownloader:
     def _shutdown_if_done(self) -> None:
         if self._num_asset_pages_pending == 0 and self._bg_downloader.all_downloads_done:
             # Done downloading everything, let's shut down.
-            self.shutdown(DownloadStatus.FINISHED_SUCCESSFULLY)
+            self._status = DownloadStatus.FINISHED_SUCCESSFULLY
+            self.shutdown()
 
     @staticmethod
     def _cache_bust_stamp(*, _mocked_now: _datetime | None = None) -> int:
@@ -599,7 +600,7 @@ class RemoteAssetListingDownloader:
         logger.info("Validating %s", path_to_load)
 
         if path_to_load.stat().st_size > MAX_JSON_FILE_SIZE_MB * 1024 * 1024:
-            raise ValueError("{!s} is larger than {!d} MiB, rejecting the file to prevent memory issues".format(
+            raise ValueError("{!s} is larger than {:d} MiB, rejecting the file to prevent memory issues".format(
                 path_to_load, MAX_JSON_FILE_SIZE_MB))
 
         json_data = path_to_load.read_bytes()
@@ -631,7 +632,8 @@ class RemoteAssetListingDownloader:
             "exception while handling downloaded file ({!r}, saved to {!r})".format(
                 http_req_descr, local_file))
         self.report({'ERROR'}, "Asset library index had an issue, download aborted")
-        self.shutdown(DownloadStatus.FAILED)
+        self._status = DownloadStatus.FAILED
+        self.shutdown()
 
     def _queue_download(
         self,
@@ -660,10 +662,18 @@ class RemoteAssetListingDownloader:
         if 'ERROR' in level:
             self._error_message = message
 
-    def shutdown(self, status: DownloadStatus) -> None:
-        """Stop the background downloader, update the status and call the 'done' callback."""
+    def cancel_and_shutdown(self) -> None:
+        """Cancel all downloads and shut down the background downloader."""
 
-        self._status = status
+        if self._status == DownloadStatus.LOADING:
+            self._status = DownloadStatus.FAILED
+
+        # The downloads themselves don't have to be explicitly cancelled,
+        # shutting down the downloader will do that implicitly.
+        self.shutdown()
+
+    def shutdown(self) -> None:
+        """Stop the background downloader and call the 'done' callback."""
 
         # The timer is no longer necessary, the bg_downloader.shutdown() call
         # takes care of the last queued messages.
@@ -693,7 +703,8 @@ class RemoteAssetListingDownloader:
             self._bg_downloader.update()
         except http_dl.BackgroundProcessNotRunningError:
             logger.error("Background downloader subprocess died, aborting.")
-            self.shutdown(DownloadStatus.FAILED)
+            self._status = DownloadStatus.FAILED
+            self.shutdown()
             return 0  # Deactivate the timer.
         except Exception:
             logger.exception(
@@ -744,22 +755,27 @@ class RemoteAssetListingDownloader:
             if self._num_asset_pages_pending:
                 self.report({'WARNING'}, "Cancelled {} pending download".format(self._num_asset_pages_pending))
             logger.warning("Download cancelled: %s", http_req_descr)
-            self.shutdown(DownloadStatus.FAILED)
+            self._status = DownloadStatus.FAILED
+            self.shutdown()
             return
 
         self.report({'ERROR'}, "Error downloading {}: {}".format(http_req_descr.url, error))
         logger.error("Error downloading %s: %s", http_req_descr, error)
-        self.shutdown(DownloadStatus.FAILED)
+        self._status = DownloadStatus.FAILED
+        self.shutdown()
 
     def download_progress(
         self,
         http_req_descr: http_dl.RequestDescription,
-        content_length_bytes: int,
-        downloaded_bytes: int,
+        progress: http_dl.DownloadProgress,
     ) -> None:
-        percentage = downloaded_bytes / content_length_bytes * 100
-        self.report({'INFO'}, "File download progress: {:.0f}%".format(percentage))
-        # logger.info("File download progress: %.0f%%", percentage)
+        if progress.network_bytes_total is None:
+            downloaded = http_dl.humanize_size(progress.disk_bytes_written)
+            self.report({'INFO'}, "File download progress: {!s}".format(downloaded))
+        else:
+            percentage = 100 * progress.network_bytes_streamed / progress.network_bytes_total
+            self.report({'INFO'}, "File download progress: {:.0f}%".format(percentage))
+            # logger.info("File download progress: %.0f%%", percentage)
 
     def download_finished(
         self,

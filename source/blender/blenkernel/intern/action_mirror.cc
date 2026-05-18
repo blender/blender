@@ -166,7 +166,7 @@ static void action_flip_pchan_cache_init(FCurve_KeyCache *fkc,
 }
 
 /**
- * \param fcurve_cache is used to quickly find the flipped FCurve.
+ * \param fcurve_cache: is used to quickly find the flipped FCurve.
  */
 static void action_flip_pchan(Object *ob_arm,
                               const bPoseChannel *pchan,

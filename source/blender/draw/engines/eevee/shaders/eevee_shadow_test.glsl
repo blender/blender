@@ -11,7 +11,7 @@
 
 COMPUTE_SHADER_CREATE_INFO(gpu_shader_test)
 
-#include "eevee_shadow_lib.glsl"
+#include "eevee_shadow.bsl.hh"
 
 #include "gpu_shader_math_vector_lib.glsl"
 #include "gpu_shader_test_lib.glsl"

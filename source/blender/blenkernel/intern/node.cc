@@ -2117,7 +2117,7 @@ static void ntree_blend_read_after_liblink(BlendLibReader *reader, ID *id)
       /* Don't update node groups here because they may depend on other node groups which are not
        * fully versioned yet and don't have `typeinfo` pointers set. */
       if (!node.is_group()) {
-        node_verify_sockets(ntree, &node, false);
+        node_verify_sockets(reader->main, ntree, &node, false);
       }
     }
   }
@@ -2391,7 +2391,7 @@ namespace bke {
 static void node_add_sockets_from_type(bNodeTree *ntree, bNode *node, bNodeType *ntype)
 {
   if (ntype->declare) {
-    node_verify_sockets(ntree, node, true);
+    node_verify_sockets(nullptr, ntree, node, true);
     return;
   }
   bNodeSocketTemplate *sockdef;

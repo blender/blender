@@ -152,12 +152,12 @@ int2 kernel_size_from_input_size(int2 input_size)
  * https://github.com/nvpro-samples/vk_compute_mipmaps/tree/main/nvpro_pyramid
  * It can generate 2 mipmap levels per dispatch.
  *
- * \param format is the texture format of the mipmap images.
+ * \param format: is the texture format of the mipmap images.
  *
- * \param SharedStorage is the storage class to store intermediate levels. Depending on the texture
- * format an optimal storage class can be selected.
+ * \param SharedStorage: is the storage class to store intermediate levels. Depending on the
+ * texture format an optimal storage class can be selected.
  *
- * \param InnerType the type to use for computation. Depending on the number of samples that a
+ * \param InnerType: the type to use for computation. Depending on the number of samples that a
  * texture format has a more memory efficient type can be used.
  */
 template<enum TextureWriteFormat format, typename SharedStorage, typename InnerType>

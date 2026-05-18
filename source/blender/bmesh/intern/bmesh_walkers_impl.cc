@@ -728,6 +728,8 @@ static void *bmw_IslandboundWalker_step(BMWalker *walker)
   return owalk.curloop;
 }
 
+/** \} */
+
 /* -------------------------------------------------------------------- */
 /** \name Island Walker
  *
@@ -1883,6 +1885,10 @@ static void *bmw_NonManifoldedgeWalker_step(BMWalker *walker)
 }
 
 /** \} */
+
+/* -------------------------------------------------------------------- */
+/** \name Walker Type Definitions
+ * \{ */
 
 static const BMWalker bmw_VertShellWalker_Type = {
     /*begin_htype*/ BM_VERT | BM_EDGE,

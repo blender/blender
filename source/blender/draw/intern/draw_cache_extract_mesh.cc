@@ -33,6 +33,10 @@
 
 namespace blender::draw {
 
+/* ---------------------------------------------------------------------- */
+/** \name Dependency Data
+ * \{ */
+
 static void ensure_dependency_data(MeshRenderData &mr,
                                    Span<IBOType> ibo_requests,
                                    Span<VBOType> vbo_requests,

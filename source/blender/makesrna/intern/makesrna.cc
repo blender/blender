@@ -4231,8 +4231,8 @@ static void make_bad_file(const char *file, int line)
 }
 
 /**
- * \param extern_outfile: Directory to put public headers into. Can be nullptr, in which case
- *                        everything is put into \a outfile.
+ * \param public_header_outfile: Directory to put public headers into.
+ * Can be nullptr, in which case everything is put into \a outfile.
  */
 static int rna_preprocess(const char *outfile, const char *public_header_outfile)
 {

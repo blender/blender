@@ -40,17 +40,17 @@ class NODE_OT_swap_links(Operator, NWBase):
                 n2_outputs = []
 
                 out_index = 0
-                for output in n1.outputs:
-                    if output.links:
-                        for link in output.links:
+                for output_socket in n1.outputs:
+                    if output_socket.links:
+                        for link in output_socket.links:
                             n1_outputs.append([out_index, link.to_socket])
                             links.remove(link)
                     out_index += 1
 
                 out_index = 0
-                for output in n2.outputs:
-                    if output.links:
-                        for link in output.links:
+                for output_socket in n2.outputs:
+                    if output_socket.links:
+                        for link in output_socket.links:
                             n2_outputs.append([out_index, link.to_socket])
                             links.remove(link)
                     out_index += 1

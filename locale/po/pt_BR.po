@@ -1,9 +1,9 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 5.2.0 Alpha (b'8c7c45ad114e')\n"
+"Project-Id-Version: Blender 5.2.0 Alpha (b'bc0a0ff2c0ce')\n"
 "Report-Msgid-Bugs-To: Leandro Paganelli <leandrobp@fastmail.com>\n"
-"POT-Creation-Date: 2026-05-11 07:23+0000\n"
+"POT-Creation-Date: 2026-05-18 11:20+0000\n"
 "PO-Revision-Date: 2026-04-13 10:12+0000\n"
 "Last-Translator: Gilberto Rodrigues <gilbertorodrigues@outlook.com>\n"
 "Language-Team: Portuguese (Brazil) <https://translate.blender.org/projects/blender-ui/ui/pt_BR/>\n"
@@ -1675,10 +1675,6 @@ msgstr "Mostrar os itens atualmente disponíveis nesta sessão do Blender"
 
 msgid "Essentials"
 msgstr "Essenciais"
-
-
-msgid "Show the basic building blocks and utilities coming with Blender"
-msgstr "Mostre os blocos de construção básicos e utilidades que vêm com o Blender"
 
 
 msgid "Custom"
@@ -21196,6 +21192,10 @@ msgid "Material slot name"
 msgstr "Nome do compartimento do material."
 
 
+msgid "Mirror"
+msgstr "Espelhar"
+
+
 msgid "Snap"
 msgstr "Atrair"
 
@@ -21210,6 +21210,10 @@ msgstr "Visão local"
 
 msgid "Viewpoint"
 msgstr "Ponto de visualização"
+
+
+msgid "Math"
+msgstr "Matemática"
 
 
 msgid "Navigation"
@@ -21248,10 +21252,6 @@ msgid "Select Loops"
 msgstr "Selecionar anéis"
 
 
-msgid "Math"
-msgstr "Matemática"
-
-
 msgid "Metaball"
 msgstr "Meta-esfera"
 
@@ -21264,6 +21264,10 @@ msgid "Light Probe"
 msgstr "Sonda de Luz"
 
 
+msgid "Instances"
+msgstr "Instâncias"
+
+
 msgid "Add Image"
 msgstr "Adicionar Imagem"
 
@@ -21272,16 +21276,16 @@ msgid "Relations"
 msgstr "Relações"
 
 
+msgid "Import"
+msgstr "Importar"
+
+
 msgid "Rigid Body"
 msgstr "Corpo rígido"
 
 
 msgid "Apply"
 msgstr "Aplicar"
-
-
-msgid "Instances"
-msgstr "Instâncias"
 
 
 msgid "Track"
@@ -21300,10 +21304,6 @@ msgid "Clean Up"
 msgstr "Limpeza"
 
 
-msgid "Import"
-msgstr "Importar"
-
-
 msgid "Make Single User"
 msgstr "Tornar usuário único"
 
@@ -21312,12 +21312,12 @@ msgid "Convert"
 msgstr "Converter"
 
 
-msgid "Hooks"
-msgstr "Ganchos"
-
-
 msgid "UV"
 msgstr "UV"
+
+
+msgid "Hooks"
+msgstr "Ganchos"
 
 
 msgid "Random Mask"
@@ -21364,12 +21364,12 @@ msgid "Merge"
 msgstr "Fundir"
 
 
-msgid "Special Characters"
-msgstr "Caracteres especiais"
-
-
 msgid "Layout"
 msgstr "Organizar"
+
+
+msgid "Special Characters"
+msgstr "Caracteres especiais"
 
 
 msgid "Bone Roll"
@@ -21390,10 +21390,6 @@ msgstr "Pontos de pivô"
 
 msgid "Proportional Editing Falloff"
 msgstr "Tipo de decaimento para edição proporcional"
-
-
-msgid "Mirror"
-msgstr "Espelhar"
 
 
 msgid "Basic"
@@ -28008,14 +28004,6 @@ msgid "Collection of Node Sockets"
 msgstr "Coleção de conectores de nós."
 
 
-msgid "Node Instance Hash"
-msgstr "Chave de aferição de instâncias de nós"
-
-
-msgid "Hash table containing node instance data"
-msgstr "Chave de aferição contendo dados de instâncias de nós."
-
-
 msgid "Socket Template"
 msgstr "Modelo de conector"
 
@@ -30595,6 +30583,10 @@ msgid "Add Bone"
 msgstr "Adicionar osso"
 
 
+msgid "Axes"
+msgstr "Eixos"
+
+
 msgid "Name of the newly created bone"
 msgstr "Nome do osso recentemente criado"
 
@@ -30714,6 +30706,10 @@ msgstr "Duplicar os ossos selecionados"
 
 msgid "Move"
 msgstr "Mover"
+
+
+msgid "Search"
+msgstr "Pesquisar"
 
 
 msgctxt "Operator"
@@ -48020,6 +48016,14 @@ msgid "Active Palette Color"
 msgstr "Cor ativa da paleta"
 
 
+msgid "Render Pass"
+msgstr "Passo de renderização"
+
+
+msgid "Motion Tracking"
+msgstr "Captura de movimentos"
+
+
 msgid "Transform Orientations"
 msgstr "Orientações de transformação"
 
@@ -48030,14 +48034,6 @@ msgstr "Exibição Quadrante"
 
 msgid "Stereoscopy"
 msgstr "Estereoscopia"
-
-
-msgid "Render Pass"
-msgstr "Passo de renderização"
-
-
-msgid "Motion Tracking"
-msgstr "Captura de movimentos"
 
 
 msgid "Bone Constraints"
@@ -58504,10 +58500,6 @@ msgid "Session State"
 msgstr "Estado da Sessão"
 
 
-msgid "Search"
-msgstr "Pesquisar"
-
-
 msgctxt "WindowManager"
 msgid "Window"
 msgstr "Janela"
@@ -59349,10 +59341,6 @@ msgstr "Deslocamento do pivô"
 
 msgid "Shapes"
 msgstr "Formatos"
-
-
-msgid "Axes"
-msgstr "Eixos"
 
 
 msgid "Control Rotation"
@@ -62701,6 +62689,10 @@ msgstr "Par de anéis de arestas não estão conectados."
 
 msgid "Edge-rings are not connected"
 msgstr "Anéis de arestas não estão conectados."
+
+
+msgid "Anisotropic"
+msgstr "Anisotrópico"
 
 
 msgid "NLA Strip Controls"
@@ -66595,10 +66587,6 @@ msgstr "Registrando classe de conector de nó: '%s' é muito longo, comprimento 
 
 msgid "Unable to create socket"
 msgstr "Não é possível de criar conector"
-
-
-msgid "Anisotropic"
-msgstr "Anisotrópico"
 
 
 msgid "Same input/output direction of sockets"

@@ -408,33 +408,29 @@ static ImBuf *alloc_imbuf_for_colorspace_transform(const ImBuf *input_ibuf)
   /* TODO(sergey): Make it a reusable function.
    * This is a common pattern used in few areas with the goal to bypass the hardcoded number of
    * channels used by IMB_allocImBuf(). */
-  ImBuf *result_ibuf = IMB_allocImBuf(input_ibuf->x, input_ibuf->y, 0);
+  ImBuf *result_ibuf = IMB_allocImBuf(input_ibuf->x, input_ibuf->y, ImBufFlags::Zero);
   result_ibuf->color_mode = input_ibuf->color_mode;
   result_ibuf->channels = input_ibuf->float_data() ? input_ibuf->channels : 4;
 
-  /* Allocate float buffer with the proper number of channels. */
-  const size_t num_pixels = IMB_get_pixel_count(input_ibuf);
-  float *buffer = MEM_new_array_uninitialized<float>(num_pixels * result_ibuf->channels,
-                                                     "movie hdr image");
-  result_ibuf->assign_float_data(buffer);
-
   /* Transfer flags related to color space conversion from the original image buffer. */
-  result_ibuf->flags |= (input_ibuf->flags & IB_alphamode_channel_packed);
+  result_ibuf->flags |= (input_ibuf->flags & ImBufFlags::AlphaChannelPacked);
 
   if (input_ibuf->float_data()) {
     /* Simple case: copy pixels from the source image as-is, without any conversion.
      * The result has the same colorspace as the input. */
-    memcpy(result_ibuf->float_data_for_write(),
-           input_ibuf->float_data(),
-           num_pixels * input_ibuf->channels * sizeof(float));
-    result_ibuf->float_buffer.colorspace = input_ibuf->float_buffer.colorspace;
+    result_ibuf->float_buffer = input_ibuf->float_buffer;
   }
   else {
     /* Convert byte buffer to float buffer.
      * The exact profile is not important here: it should match for the source and destination so
      * that the function only does alpha and byte->float conversions. */
     const bool predivide = IMB_alpha_affects_rgb(input_ibuf);
-    IMB_buffer_float_from_byte(buffer,
+    /* Allocate float buffer with the proper number of channels. */
+    const size_t num_pixels = IMB_get_pixel_count(input_ibuf);
+    float *buffer = MEM_new_array_uninitialized<float>(num_pixels * result_ibuf->channels,
+                                                       "movie hdr image");
+    result_ibuf->assign_float_data(buffer);
+    IMB_buffer_float_from_byte(result_ibuf->float_data_for_write(),
                                input_ibuf->byte_data(),
                                IB_PROFILE_SRGB,
                                IB_PROFILE_SRGB,

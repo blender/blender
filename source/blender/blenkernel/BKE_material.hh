@@ -211,8 +211,8 @@ void BKE_id_material_eval_ensure_default_slot(ID *id);
 
 /**
  * \param r_col: current value.
- * \param col: new value.
  * \param fac: Zero for is no change.
+ * \param col: new value.
  */
 void ramp_blend(int type, float r_col[4], float fac, const float col[4]);
 

@@ -72,6 +72,11 @@ const EnumPropertyItem rna_enum_geometry_component_type_items[] = {
      ICON_GREASEPENCIL,
      "Grease Pencil",
      "Grease Pencil component containing layers and curves data"},
+    {int(bke::GeometryComponent::Type::Volume),
+     "VOLUME",
+     ICON_VOLUME_DATA,
+     "Volume",
+     "Volume component containing volume grids"},
     {0, nullptr, 0, nullptr, nullptr},
 };
 
@@ -6805,6 +6810,13 @@ static void rna_def_space_sequencer(BlenderRNA *brna)
       prop, "rna_SequenceEditor_clamp_view_get", "rna_SequenceEditor_clamp_view_set");
   RNA_def_property_ui_text(
       prop, "Limit View to Contents", "Limit timeline height to maximum used channel slot");
+  RNA_def_property_update(prop, NC_SPACE | ND_SPACE_SEQUENCER, nullptr);
+
+  prop = RNA_def_property(srna, "show_scrubbing_region", PROP_BOOLEAN, PROP_NONE);
+  RNA_def_property_boolean_sdna(prop, nullptr, "flag", SEQ_SHOW_SCRUBBING_REGION);
+  RNA_def_property_ui_text(prop,
+                           "Show Scrubbing Region",
+                           "Region with full playback range for scrubbing in the sequencer");
   RNA_def_property_update(prop, NC_SPACE | ND_SPACE_SEQUENCER, nullptr);
 
   /* Annotations */

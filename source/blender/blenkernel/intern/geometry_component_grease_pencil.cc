@@ -116,5 +116,7 @@ std::optional<MutableAttributeAccessor> GreasePencilComponent::attributes_for_wr
   return MutableAttributeAccessor(grease_pencil, greasepencil::get_attribute_accessor_functions());
 }
 
+/** \} */
+
 }  // namespace bke
 }  // namespace blender

@@ -12,9 +12,7 @@
 #  include "draw_view_infos.hh"
 
 #  include "eevee_common_infos.hh"
-#  include "eevee_light_infos.hh"
 #  include "eevee_sampling_infos.hh"
-#  include "eevee_shadow_infos.hh"
 #  include "eevee_shadow_shared.hh"
 #  include "eevee_uniform_infos.hh"
 #  include "eevee_volume_infos.hh"

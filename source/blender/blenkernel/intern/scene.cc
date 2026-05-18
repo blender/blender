@@ -118,6 +118,10 @@
 
 namespace blender {
 
+/* -------------------------------------------------------------------- */
+/** \name Scene Data-Block
+ * \{ */
+
 using bke::CompositorRuntime;
 using bke::SceneRuntime;
 using bke::SequencerRuntime;
@@ -1642,7 +1646,7 @@ IDTypeInfo IDType_ID_SCE = {
 
 /* -------------------------------------------------------------------- */
 /** \name Scene member functions
- */
+ * \{ */
 
 double Scene::frames_per_second() const
 {

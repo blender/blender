@@ -83,6 +83,16 @@ int gwl_window_scale_buffer_size_to(const GWL_WindowScaleParams &scale_params,
 
 #define FRACTIONAL_DENOMINATOR 120
 
+/**
+ * The current desktop (Gnome, KDE etc..).
+ *
+ * \note Use this as a last resort, ideally wayland integration would *not* depend on this.
+ */
+enum class GWL_CurrentDesktopType {
+  Other = 0,
+  Gnome,
+};
+
 #ifdef WITH_GHOST_WAYLAND_DYNLOAD
 /**
  * Return true when all required WAYLAND libraries are present.

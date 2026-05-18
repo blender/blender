@@ -128,7 +128,7 @@ static ImBuf *do_compositor_effect(const RenderData *context,
 {
   const int x = context->rectx;
   const int y = context->recty;
-  ImBuf *out = IMB_allocImBuf(x, y, IB_float_data | IB_uninitialized_pixels);
+  ImBuf *out = IMB_allocImBuf(x, y, ImBufFlags::FloatData | ImBufFlags::UninitializedPixels);
   IMB_colormanagement_assign_float_colorspace(
       out, IMB_colormanagement_role_colorspace_name_get(COLOR_ROLE_SCENE_LINEAR));
 

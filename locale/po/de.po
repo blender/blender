@@ -1,9 +1,9 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 5.2.0 Alpha (b'8c7c45ad114e')\n"
+"Project-Id-Version: Blender 5.2.0 Alpha (b'bc0a0ff2c0ce')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-05-11 07:23+0000\n"
+"POT-Creation-Date: 2026-05-18 11:20+0000\n"
 "PO-Revision-Date: 2025-12-02 20:06+0000\n"
 "Last-Translator: Bastitron <bastitronhd@gmail.com>\n"
 "Language-Team: German <https://translate.blender.org/projects/blender-ui/ui/de/>\n"
@@ -18687,6 +18687,10 @@ msgid "Material slot name"
 msgstr "Materialsteckplatzname"
 
 
+msgid "Mirror"
+msgstr "Spiegeln"
+
+
 msgid "Snap"
 msgstr "Einrasten"
 
@@ -18697,6 +18701,10 @@ msgstr "Lokale Ansicht"
 
 msgid "Viewpoint"
 msgstr "Ansicht"
+
+
+msgid "Math"
+msgstr "Mathematisch"
 
 
 msgid "Navigation"
@@ -18735,18 +18743,6 @@ msgid "Select Loops"
 msgstr "Schleifen auswählen"
 
 
-msgid "Math"
-msgstr "Mathematisch"
-
-
-msgid "Assign Material"
-msgstr "Material zuweisen"
-
-
-msgid "Metaball"
-msgstr "Metaball"
-
-
 msgid "Read"
 msgstr "Lesen"
 
@@ -18755,8 +18751,20 @@ msgid "Sample"
 msgstr "Beispiel"
 
 
+msgid "Assign Material"
+msgstr "Material zuweisen"
+
+
 msgid "Write"
 msgstr "Schreiben"
+
+
+msgid "Primitives"
+msgstr "Grundkörper"
+
+
+msgid "Metaball"
+msgstr "Metaball"
 
 
 msgid "Light"
@@ -18767,8 +18775,8 @@ msgid "Light Probe"
 msgstr "Lichtsonde"
 
 
-msgid "Primitives"
-msgstr "Grundkörper"
+msgid "Instances"
+msgstr "Instanzen"
 
 
 msgid "Add Image"
@@ -18779,16 +18787,16 @@ msgid "Relations"
 msgstr "Beziehungen"
 
 
+msgid "Import"
+msgstr "Importieren"
+
+
 msgid "Rigid Body"
 msgstr "Rigid Body"
 
 
 msgid "Apply"
 msgstr "Anwenden"
-
-
-msgid "Instances"
-msgstr "Instanzen"
 
 
 msgid "Track"
@@ -18807,10 +18815,6 @@ msgid "Clean Up"
 msgstr "Aufräumen"
 
 
-msgid "Import"
-msgstr "Importieren"
-
-
 msgid "Asset"
 msgstr "Asset"
 
@@ -18823,16 +18827,16 @@ msgid "Convert"
 msgstr "Konvertieren"
 
 
+msgid "UV"
+msgstr "UV"
+
+
 msgid "Hooks"
 msgstr "Haken"
 
 
 msgid "Vertex Group Locks"
 msgstr "Punktgruppen sperren"
-
-
-msgid "UV"
-msgstr "UV"
 
 
 msgid "Random Mask"
@@ -18875,16 +18879,16 @@ msgid "Merge"
 msgstr "Zusammenführen"
 
 
+msgid "Layout"
+msgstr "Layout"
+
+
 msgid "Special Characters"
 msgstr "Sonderzeichen"
 
 
 msgid "Kerning"
 msgstr "Kerning"
-
-
-msgid "Layout"
-msgstr "Layout"
 
 
 msgid "Keying"
@@ -18905,10 +18909,6 @@ msgstr "Proportionaler Bearbeitungsabfall"
 
 msgid "Mask Edit"
 msgstr "Maskenbearbeitung"
-
-
-msgid "Mirror"
-msgstr "Spiegeln"
 
 
 msgid "Assets"
@@ -26157,6 +26157,10 @@ msgid "Add Bone"
 msgstr "Knochen hinzufügen"
 
 
+msgid "Axes"
+msgstr "Achsen"
+
+
 msgctxt "Operator"
 msgid "Recalculate Roll"
 msgstr "Rollwinkel neu berechnen"
@@ -26248,6 +26252,10 @@ msgstr "Verschieben"
 
 msgid "Move selected items"
 msgstr "Ausgewählte Elemente verschieben"
+
+
+msgid "Search"
+msgstr "Suchbereich"
 
 
 msgctxt "Operator"
@@ -38749,6 +38757,38 @@ msgid "Active Palette Color"
 msgstr "Aktive Farbpalette"
 
 
+msgid "Shadow Settings"
+msgstr "Schatteneinstellungen"
+
+
+msgid "SSAO Settings"
+msgstr "SSAO Einstellungen"
+
+
+msgid "Cavity"
+msgstr "Hohlraum"
+
+
+msgid "Render Pass"
+msgstr "Renderdurchgänge"
+
+
+msgid "Compositor"
+msgstr "Setzer"
+
+
+msgid "Overlays"
+msgstr "Überlagerungen"
+
+
+msgid "Guides"
+msgstr "Hilfslinien"
+
+
+msgid "Motion Tracking"
+msgstr "Bewegungsverfolgung"
+
+
 msgid "Mesh Edit Mode"
 msgstr "Maschenbearbeitungsmodus"
 
@@ -38767,10 +38807,6 @@ msgstr "Transformationsausrichtung"
 
 msgid "Drawing Plane"
 msgstr "Malfläche"
-
-
-msgid "Guides"
-msgstr "Hilfslinien"
 
 
 msgid "Quad View"
@@ -38799,34 +38835,6 @@ msgstr "Aktives Werkzeug"
 
 msgid "View Lock"
 msgstr "Ansicht sperren"
-
-
-msgid "Shadow Settings"
-msgstr "Schatteneinstellungen"
-
-
-msgid "SSAO Settings"
-msgstr "SSAO Einstellungen"
-
-
-msgid "Cavity"
-msgstr "Hohlraum"
-
-
-msgid "Render Pass"
-msgstr "Renderdurchgänge"
-
-
-msgid "Compositor"
-msgstr "Setzer"
-
-
-msgid "Overlays"
-msgstr "Überlagerungen"
-
-
-msgid "Motion Tracking"
-msgstr "Bewegungsverfolgung"
 
 
 msgid "Chain Scaling"
@@ -45514,6 +45522,10 @@ msgid "Outline Color"
 msgstr "Konturfarbe"
 
 
+msgid "Line Spacing"
+msgstr "Zeilenabstand"
+
+
 msgid "Blur Width"
 msgstr "Skripte filtern"
 
@@ -47759,10 +47771,6 @@ msgid "WorkSpace UI Tags"
 msgstr "Arbeitsplatz UI Tags"
 
 
-msgid "Search"
-msgstr "Suchbereich"
-
-
 msgid "Navigate"
 msgstr "Navigiere"
 
@@ -48407,10 +48415,6 @@ msgid "Surfaces"
 msgstr "Oberfläche"
 
 
-msgid "Denoising Data"
-msgstr "Rauschreduzierungsdaten"
-
-
 msgid "Indexes"
 msgstr "Kennzahlen"
 
@@ -48473,6 +48477,10 @@ msgstr "Kurvenunterteilungen"
 
 msgid "AO Factor"
 msgstr "AO Faktor"
+
+
+msgid "Denoising Data"
+msgstr "Rauschreduzierungsdaten"
 
 
 msgid "Portal"
@@ -49070,10 +49078,6 @@ msgid "Shapes"
 msgstr "Formen"
 
 
-msgid "Axes"
-msgstr "Achsen"
-
-
 msgid "Display Size X"
 msgstr "Größe X anzeigen"
 
@@ -49173,10 +49177,6 @@ msgstr "Zeichenabstand"
 
 msgid "Word Spacing"
 msgstr "Wortabstand"
-
-
-msgid "Line Spacing"
-msgstr "Zeilenabstand"
 
 
 msgid "Offset X"
@@ -53632,6 +53632,10 @@ msgid "Could not connect vertices"
 msgstr "Konnte Knoten nicht verbinden"
 
 
+msgid "Anisotropic"
+msgstr "Anisotropisch"
+
+
 msgid "Create"
 msgstr "Erstellen"
 
@@ -56762,10 +56766,6 @@ msgstr "Neuer Streifen kann nicht erzeugt werden"
 
 msgid "Unable to create socket"
 msgstr "Buchse kann nicht erstellt werden"
-
-
-msgid "Anisotropic"
-msgstr "Anisotropisch"
 
 
 msgid "Same input/output direction of sockets"

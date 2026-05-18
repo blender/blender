@@ -232,7 +232,6 @@ class CompositorModifierContext : public CompositorContext {
 
   ImBuf *image_buffer_;
   compositor::Result mask_;
-  float3x3 mask_transform_;
   ImBuf *mask_buffer_ = nullptr;
   int timeline_frame_;
   bool owns_mask_ = false;
@@ -249,22 +248,19 @@ class CompositorModifierContext : public CompositorContext {
         mask_(*this, compositor::ResultType::Color, compositor::ResultPrecision::Full),
         timeline_frame_(mod_context.timeline_frame)
   {
-    /* Masks are in screen space, whereas modifier executes in strip space. */
-    mask_transform_ = math::invert(
-        image_transform_matrix_get(mod_context.render_data.scene, &mod_context.strip));
-
     PointerRNA ptr = RNA_pointer_create_discrete(
         &mod_context.render_data.scene->id, RNA_SequencerCompositorModifierData, modifier_data);
     properties_ptr_ = RNA_pointer_get(&ptr, "properties");
   }
 
-  ~CompositorModifierContext()
+  void free_resources()
   {
-    if (this->mask_buffer_ != nullptr) {
-      IMB_freeImBuf(this->mask_buffer_);
-    }
+    IMB_freeImBuf(this->mask_buffer_);
+    this->mask_buffer_ = nullptr;
+
     if (this->owns_mask_) {
       this->mask_.release();
+      this->owns_mask_ = false;
     }
   }
 
@@ -355,7 +351,7 @@ class CompositorModifierContext : public CompositorContext {
             input_result->set_type(this->mask_.type());
             input_result->set_precision(this->mask_.precision());
             input_result->share_data(this->mask_);
-            input_result->set_transformation(this->mask_transform_);
+            input_result->set_transformation(this->mod_context_.transform_comp_result);
           }
           else {
             input_result->allocate_invalid();
@@ -458,6 +454,7 @@ static void compositor_modifier_apply(ModifierApplyContext &context,
       com_mod_context.use_gpu(), com_mod_context.get_precision(), context.render_data.gpu_context);
   com_mod_context.evaluate();
   com_mod_context.cache_manager().reset();
+  com_mod_context.free_resources();
   if (com_mod_context.use_gpu()) {
     render_end_gpu(context.render_data);
   }

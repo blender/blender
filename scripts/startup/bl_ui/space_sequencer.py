@@ -471,21 +471,21 @@ class SEQUENCER_MT_view(Menu):
             layout.separator()
             layout.menu("SEQUENCER_MT_proxy")
             layout.operator_context = 'INVOKE_DEFAULT'
-            layout.separator()
+
+        layout.separator()
+        layout.prop(st, "show_seconds")
 
         if is_sequencer_view:
-            layout.separator()
 
             layout.prop(st, "show_markers")
-            layout.prop(st, "show_seconds")
             layout.prop(st, "show_locked_time")
             layout.separator()
 
             layout.operator_context = 'INVOKE_DEFAULT'
             layout.menu("SEQUENCER_MT_navigation")
             layout.menu("SEQUENCER_MT_range")
-            layout.separator()
 
+        layout.separator()
         layout.operator("render.opengl", text="Render Still Preview", icon='RENDER_STILL').sequencer = True
         props = layout.operator("render.opengl", text="Render Sequence Preview", icon='RENDER_ANIMATION')
         props.animation = True

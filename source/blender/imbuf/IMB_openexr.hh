@@ -62,7 +62,7 @@ bool IMB_exr_begin_write(ExrHandle *handle,
 
 /**
  * For reading, set the rect buffer to write into.
- * \param passname: Full channel name including layer, pass, view and channel.
+ * \param full_name: Full channel name including layer, pass, view and channel.
  */
 bool IMB_exr_set_channel(
     ExrHandle *handle, StringRefNull full_name, int xstride, int ystride, float *rect);

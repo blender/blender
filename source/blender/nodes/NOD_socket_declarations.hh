@@ -19,6 +19,10 @@
 #include "BLI_math_euler_types.hh"
 #include "BLI_math_vector_types.hh"
 
+namespace blender::nodes {
+class ClosureSignature;
+}
+
 namespace blender::nodes::decl {
 
 class FloatBuilder;
@@ -334,6 +338,11 @@ class ClosureBuilder;
 
 class Closure : public SocketDeclaration {
  public:
+  std::unique_ptr<std::function<ClosureSignature(const bNode &)>> create_signature;
+
+  Closure();
+  ~Closure() override;
+
   static constexpr eNodeSocketDatatype static_socket_type = SOCK_CLOSURE;
 
   friend ClosureBuilder;
@@ -346,7 +355,10 @@ class Closure : public SocketDeclaration {
   bool can_connect(const bNodeSocket &socket) const override;
 };
 
-class ClosureBuilder : public SocketDeclarationBuilder<Closure> {};
+class ClosureBuilder : public SocketDeclarationBuilder<Closure> {
+ public:
+  void create_signature(std::function<ClosureSignature(const bNode &)> create_signature);
+};
 
 class IDSocketDeclaration : public SocketDeclaration {
  public:

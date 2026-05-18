@@ -169,6 +169,8 @@ void ShadingView::render()
   inst_.pipelines.forward.render(
       render_view_, rbufs.depth_tx, prepass_fb_, transparent_fb_, combined_fb_, extent_);
 
+  inst_.lights.shape_display_draw(render_view_, combined_fb_);
+
   inst_.lights.debug_draw(render_view_, combined_fb_);
   inst_.hiz_buffer.debug_draw(render_view_, combined_fb_);
   inst_.shadows.debug_draw(render_view_, combined_fb_);

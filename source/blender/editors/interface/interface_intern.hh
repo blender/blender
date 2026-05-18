@@ -245,17 +245,6 @@ struct Button : NonMovable {
   ButtonCompleteFunc autocomplete_func = nullptr;
   void *autofunc_arg = nullptr;
 
-  ButtonHandleRenameFunc rename_func = nullptr;
-  void *rename_arg1 = nullptr;
-  char *rename_orig = nullptr;
-
-  /**
-   * When defined, and the button edits a string RNA property,
-   * the new name is _not_ set at all, instead this function is called with the new name.
-   */
-  std::function<void(std::string &new_name)> rename_full_func = nullptr;
-  std::string rename_full_new;
-
   /** Run an action when holding the button down. */
   ButtonHandleHoldFunc hold_func = nullptr;
   void *hold_argN = nullptr;
@@ -370,6 +359,18 @@ struct TextWrapCache {
   float aspect = 0.0f;
   std::string text;
   Vector<StringRef> wrapped_lines;
+};
+
+/** Derived struct for #ButtonType::Text */
+struct ButtonText : public Button {
+  std::function<void(bContext &, StringRefNull)> rename_func = nullptr;
+  char *rename_orig = nullptr;
+  /**
+   * When defined, and the button edits a string RNA property,
+   * the new name is _not_ set at all, instead this function is called with the new name.
+   */
+  std::function<void(StringRefNull new_name)> rename_full_func = nullptr;
+  std::string rename_full_new;
 };
 
 /** Derived struct for #ButtonType::TextBox */
@@ -1444,10 +1445,6 @@ void draw_preview_item(const uiFontStyle *fstyle,
 /**
  * Version of #draw_preview_item() that does not draw the menu background and item text based on
  * state. It just draws the preview and text directly.
- *
- * \param draw_as_icon: Instead of stretching the preview/icon to the available width/height, draw
- *                      it at the standard icon size. Mono-icons will draw with \a text_col or the
- *                      corresponding theme override for this type of icon.
  */
 void draw_preview_item_stateless(const uiFontStyle *fstyle,
                                  rcti *rect,
@@ -1812,7 +1809,7 @@ Vector<FCurve *> get_property_drivers(
  * \param is_array_prop: Whether `src_drivers` are drivers for the elements
  * of an array property.
  * \param dst_ptr: The RNA pointer for the destination property.
- * \param dist_prop: The destination property RNA.
+ * \param dst_prop: The destination property RNA.
  *
  * \returns The number of successfully pasted drivers.
  */

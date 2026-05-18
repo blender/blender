@@ -155,8 +155,8 @@ static bool any_child_to_select(const Set<bPoseChannel *> &pose_bones, const bAr
 /**
  * Of all selected pose bones, select their parents.
  *
- * \param stop_at_root If true, selection will remain unchanged if there are no parents to select.
- * \param modify_active The active bone of an armature will be moved to the parent.
+ * \param stop_at_root: If true, selection will remain unchanged if there are no parents to select.
+ * \param modify_active: The active bone of an armature will be moved to the parent.
  */
 static bool pose_select_parents(bContext *C,
                                 const bool extend,
@@ -216,8 +216,9 @@ static Bone *get_new_active_child(Bone &parent_bone)
  * bone will be selected if any bone in its parent hierarchy is selected. If false, only bones
  * whose direct parent is selected are changed.
  *
- * \param stop_at_leaf If true, selection will remain unchanged if there are no children to select.
- * \param modify_active The active bone of an armature will be moved to the first child.
+ * \param stop_at_leaf: If true, selection will remain unchanged if there are no children to
+ * select.
+ * \param modify_active: The active bone of an armature will be moved to the first child.
  */
 static bool pose_select_children(bContext *C,
                                  const bool all,

@@ -40,7 +40,7 @@ from bpy.props import (
 # Only import submodules here when necessary for type checking.
 # At runtime, the module is imported only when it's actually used.
 if TYPE_CHECKING:
-    from _bpy_internal.assets.remote_library_listing import listing_downloader
+    from _bpy_internal.assets.remote_library import listing_downloader
 
     type _RemoteAssetListingDownloader = listing_downloader.RemoteAssetListingDownloader
 else:
@@ -452,7 +452,7 @@ def remote_asset_library_sync(
         print("  skipping {!r}, online access is not allowed,".format(asset_library_url))
         return
 
-    from _bpy_internal.assets.remote_library_listing import listing_downloader
+    from _bpy_internal.assets.remote_library import listing_downloader
 
     # Check if the download should happen at all.
     if only_if_older_than_sec and listing_downloader.is_more_recent_than(
@@ -461,7 +461,7 @@ def remote_asset_library_sync(
 
     # Only actually start downloading if no other Blender is already syncing
     # this asset library.
-    from _bpy_internal.assets.remote_library_listing import sync_mutex
+    from _bpy_internal.assets.remote_library import sync_mutex
     if not sync_mutex.mutex_lock(asset_library_local_path):
         print("  skipping {!r}, another Blender is already syncing this asset library,".format(asset_library_url))
         return
@@ -485,6 +485,20 @@ def remote_asset_library_sync(
     _downloaders.append(downloader)
 
 
+def remote_asset_library_sync_cancel() -> None:
+    """Cancel all remote asset library sync operations.
+
+    This will cancel all running downloads & shut down the downloaders. Any
+    partially-downloaded listing will have to be re-downloaded to be fully
+    correct again.
+    """
+
+    # This calls the relevant _remote_asset_library_sync_done() functions as well, ensuring that each downloader is
+    # properly cleaned up. That includes removing items from _downloaders, hence the copy of that list.
+    for downloader in _downloaders[:]:
+        downloader.cancel_and_shutdown()
+
+
 def _remote_asset_library_sync_done(downloader: _RemoteAssetListingDownloader) -> None:
     """
     Called when the downloading of the remote asset listing is done.
@@ -493,8 +507,8 @@ def _remote_asset_library_sync_done(downloader: _RemoteAssetListingDownloader) -
     or other issues can cause things to abort. In that case, this function is
     still called.
     """
-    from _bpy_internal.assets.remote_library_listing import sync_mutex
-    from _bpy_internal.assets.remote_library_listing.listing_downloader import DownloadStatus
+    from _bpy_internal.assets.remote_library import sync_mutex
+    from _bpy_internal.assets.remote_library.listing_downloader import DownloadStatus
     from bpy.types import WindowManager
 
     try:
@@ -513,7 +527,7 @@ def _remote_asset_library_sync_done(downloader: _RemoteAssetListingDownloader) -
 
 
 def _remote_asset_library_sync_update(downloader: _RemoteAssetListingDownloader) -> None:
-    from _bpy_internal.assets.remote_library_listing.listing_downloader import DownloadStatus
+    from _bpy_internal.assets.remote_library.listing_downloader import DownloadStatus
 
     # Only call `asset_library_status_ping_still_loading()` if the loading is still going on.
     if downloader.status == DownloadStatus.LOADING:
@@ -934,8 +948,8 @@ def register():
 
     cli_commands.append(bpy.utils.register_cli_command("extension", cli_extension))
 
-    from _bpy_internal.assets import remote_library_listing
-    cli_commands.append(bpy.utils.register_cli_command("asset_listing", remote_library_listing.asset_listing_main))
+    from _bpy_internal.assets import remote_library
+    cli_commands.append(bpy.utils.register_cli_command("asset_listing", remote_library.asset_listing_main))
 
     monkeypatch_install()
 

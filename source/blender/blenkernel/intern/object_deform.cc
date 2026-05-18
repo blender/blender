@@ -32,6 +32,7 @@
 #include "DNA_scene_types.h"
 
 #include "BKE_action.hh"
+#include "BKE_armature.hh"
 #include "BKE_deform.hh"
 #include "BKE_editmesh.hh"
 #include "BKE_grease_pencil_vertex_groups.hh"
@@ -603,10 +604,7 @@ bool *BKE_object_defgroup_validmap_get(Object *ob, const int defbase_tot)
       if (object && object->pose) {
         bPose *pose = object->pose;
         bArmature *armature = id_cast<bArmature *>(object->data);
-        /* TODO(Sybren): call the yet-to-be-written 'assert the bone indices are up to date'
-         * function. This way the code below can just access the armature, instead of going through
-         * the object->data pointer. */
-
+        BKE_pose_ensure_bone_indices(*object);
         for (bPoseChannel &chan : pose->chanbase) {
           void **val_p;
           if (chan.bone_get(*armature)->flag & BONE_NO_DEFORM) {

@@ -51,11 +51,11 @@ class NODE_OT_add_texture_setup(Operator, NWBase):
 
             input_index = 0
             target_input = node.inputs[0]
-            for input in node.inputs:
-                if input.enabled:
+            for input_socket in node.inputs:
+                if input_socket.enabled:
                     input_index += 1
-                    if not input.is_linked:
-                        target_input = input
+                    if not input_socket.is_linked:
+                        target_input = input_socket
                         break
             else:
                 self.report({'WARNING'}, rpt_("No free inputs for node {}").format(node.name))

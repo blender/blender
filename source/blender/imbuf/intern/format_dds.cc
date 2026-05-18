@@ -55,7 +55,10 @@ bool imb_is_a_dds(const uchar *mem, size_t size)
   return imb_oiio_check(mem, size, "dds");
 }
 
-ImBuf *imb_load_dds(const uchar *mem, size_t size, int flags, ImFileColorSpace &r_colorspace)
+ImBuf *imb_load_dds(const uchar *mem,
+                    size_t size,
+                    ImBufFlags flags,
+                    ImFileColorSpace &r_colorspace)
 {
   ImageSpec config, spec;
   ReadContext ctx{mem, size, "dds", IMB_FTYPE_DDS, flags};

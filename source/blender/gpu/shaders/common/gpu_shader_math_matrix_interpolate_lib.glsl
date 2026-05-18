@@ -14,6 +14,7 @@
 /** \name Interpolate
  * \{ */
 
+#if 0 /* TODO(@fclem): Implement */
 /**
  * Naive interpolation implementation, faster than polar decomposition
  *
@@ -21,12 +22,12 @@
  * However, it gives un-expected results even with non-uniformly scaled matrices,
  * see #46418 for an example.
  *
- * \param A: Input matrix which is totally effective with `t = 0.0`.
- * \param B: Input matrix which is totally effective with `t = 1.0`.
+ * \param a: Input matrix which is totally effective with `t = 0.0`.
+ * \param b: Input matrix which is totally effective with `t = 1.0`.
  * \param t: Interpolation factor.
  */
-/* TODO(fclem): Implement */
-// float3x3 interpolate_fast(float3x3 a, float3x3 b, float t);
+float3x3 interpolate_fast(float3x3 a, float3x3 b, float t);
+#endif
 
 /**
  * Naive transform matrix interpolation,

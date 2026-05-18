@@ -20,6 +20,7 @@
 #include "BLI_math_matrix.h"
 #include "BLI_math_rotation.h"
 #include "BLI_math_vector.h"
+#include "BLI_math_vector.hh"
 #include "BLI_string.h"
 #include "BLI_string_utf8.h"
 #include "BLI_string_utils.hh"
@@ -1851,38 +1852,102 @@ void ARMATURE_OT_extrude(wmOperatorType *ot)
 
 /* Op makes a new bone and returns it with its tip selected. */
 
+enum class BoneAlign { UP = 0, AXES = 1, CURSOR_3D = 2, VIEW_3D = 3 };
+enum class BoneSpace { OBJECT = 0, WORLD = 1 };
+
 static wmOperatorStatus armature_bone_primitive_add_exec(bContext *C, wmOperator *op)
 {
-  RegionView3D *rv3d = CTX_wm_region_view3d(C);
   Object *obedit = CTX_data_edit_object(C);
-  EditBone *bone;
-  float obmat[3][3], curs[3], viewmat[3][3], totmat[3][3], imat[3][3];
-  char name[MAXBONENAME];
 
+  invert_m4_m4(obedit->runtime->world_to_object.ptr(), obedit->object_to_world().ptr());
+  const float3x3 imat = float3x3(obedit->world_to_object());
+
+  float3x3 bone_orient_mat = float3x3::zero();
+  float3 roll_vector;
+
+  /* Apply user pref only for view aligned if the property wasn't set.*/
+  if (!RNA_property_is_set(op->ptr, RNA_struct_find_property(op->ptr, "align")) &&
+      (U.flag & USER_ADD_VIEWALIGNED))
+  {
+    RNA_enum_set(op->ptr, "align", int(BoneAlign::VIEW_3D));
+  }
+
+  const BoneAlign align = BoneAlign(RNA_enum_get(op->ptr, "align"));
+  const BoneSpace space = BoneSpace(RNA_enum_get(op->ptr, "space"));
+
+  switch (align) {
+    case BoneAlign::VIEW_3D: {
+      const RegionView3D *rv3d = CTX_wm_region_view3d(C);
+      const float3x3 view_mat = float3x3(float4x4(rv3d->viewinv));
+      bone_orient_mat = imat * view_mat;
+      roll_vector = bone_orient_mat.z_axis();
+      break;
+    }
+
+    case BoneAlign::CURSOR_3D: {
+      const Scene *scene = CTX_data_scene(C);
+      const View3DCursor &cursor = scene->cursor;
+      const float3x3 cursor_mat = cursor.matrix<float3x3>();
+      bone_orient_mat = imat * cursor_mat;
+      roll_vector = bone_orient_mat.z_axis();
+      break;
+    }
+
+    case BoneAlign::AXES: {
+      switch (space) {
+        case BoneSpace::WORLD:
+          bone_orient_mat = imat;
+          roll_vector = imat.z_axis();
+          break;
+        case BoneSpace::OBJECT:
+          /* Assumes Z=up for objects and Y=up for bones. */
+          bone_orient_mat = float3x3({1.0f, 0.0f, 0.0f}, {0.0f, 0.0f, -1.0f}, {0.0f, 1.0f, 0.0f});
+          break;
+      }
+      break;
+    }
+
+    case BoneAlign::UP: {
+      switch (space) {
+        case BoneSpace::WORLD:
+          /* Construct a matrix that points Y up, Z Forward and X left-right. */
+          bone_orient_mat = imat *
+                            float3x3({1.0f, 0.0f, 0.0f}, {0.0f, 0.0f, 1.0f}, {0.0f, -1.0f, 0.0f});
+
+          /* Set roll reference for ED_armature_ebone_roll_to_vector. */
+          roll_vector = -imat.y_axis();
+          break;
+        case BoneSpace::OBJECT:
+          bone_orient_mat = float3x3::identity();
+          break;
+      }
+      break;
+    }
+  }
+
+  char name[MAXBONENAME];
   RNA_string_get(op->ptr, "name", name);
 
-  copy_v3_v3(curs, CTX_data_scene(C)->cursor.location);
-
-  /* Get inverse point for head and orientation for tail */
-  invert_m4_m4(obedit->runtime->world_to_object.ptr(), obedit->object_to_world().ptr());
-  mul_m4_v3(obedit->world_to_object().ptr(), curs);
-
-  if (rv3d && (U.flag & USER_ADD_VIEWALIGNED)) {
-    copy_m3_m4(obmat, rv3d->viewmat);
-  }
-  else {
-    unit_m3(obmat);
-  }
-
-  copy_m3_m4(viewmat, obedit->object_to_world().ptr());
-  mul_m3_m3m3(totmat, obmat, viewmat);
-  invert_m3_m3(imat, totmat);
+  /* Get inverse point for head and orientation for tail. */
+  const float3 curs_worldspace = CTX_data_scene(C)->cursor.location;
+  const float3 curs_objectspace =
+      (obedit->world_to_object() * float4(curs_worldspace, 1.0f)).xyz();
 
   ED_armature_edit_deselect_all(obedit);
 
   /* Create a bone. */
-  bone = ED_armature_ebone_add(id_cast<bArmature *>(obedit->data), name);
+  EditBone *bone = ED_armature_ebone_add(id_cast<bArmature *>(obedit->data), name);
   ANIM_armature_bonecoll_assign_active(id_cast<bArmature *>(obedit->data), bone);
+
+  /* Scale B-Bone display width and Bone Envelope based on length. */
+  const float length = RNA_float_get(op->ptr, "length");
+  BLI_assert(length > 0.0f);
+
+  bone->xwidth = 0.1f * length;
+  bone->zwidth = 0.1f * length;
+  bone->rad_head = 0.1f * length;
+  bone->rad_tail = 0.05f * length;
+  bone->dist = 0.25f * length;
 
   bArmature *arm = id_cast<bArmature *>(obedit->data);
   if (BLI_listbase_is_empty(&bone->bone_collections) && (arm->flag & ARM_BCOLL_SOLO_ACTIVE)) {
@@ -1902,13 +1967,27 @@ static wmOperatorStatus armature_bone_primitive_add_exec(bContext *C, wmOperator
                 bcoll_ref->bcoll->name);
   }
 
-  copy_v3_v3(bone->head, curs);
+  /* Bone head to cursor position. */
+  copy_v3_v3(bone->head, curs_objectspace);
 
-  if (rv3d && (U.flag & USER_ADD_VIEWALIGNED)) {
-    add_v3_v3v3(bone->tail, bone->head, imat[1]); /* bone with unit length 1 */
+  const float3 tail_vector = bone_orient_mat * float3(0.0f, 0.0f, length);
+  add_v3_v3v3(bone->tail, bone->head, tail_vector);
+
+  const bool needs_bone_roll = (ELEM(align, BoneAlign::CURSOR_3D, BoneAlign::VIEW_3D) ||
+                                space == BoneSpace::WORLD);
+
+  if (needs_bone_roll) {
+    const float3 tail_vector_normalized = math::normalize(bone_orient_mat[1]) * length;
+    add_v3_v3v3(bone->tail, bone->head, tail_vector_normalized);
+
+    /* Compute bone roll so its local Z aligns with desired Z axis. */
+    bone->roll = ED_armature_ebone_roll_to_vector(bone, roll_vector, false);
   }
-  else {
-    add_v3_v3v3(bone->tail, bone->head, imat[2]); /* bone with unit length 1, pointing up Z */
+
+  /* Disable Deform if applicable. */
+  const bool deform = RNA_boolean_get(op->ptr, "deform");
+  if (!deform) {
+    bone->flag |= BONE_NO_DEFORM;
   }
 
   /* NOTE: notifier might evolve. */
@@ -1939,6 +2018,68 @@ void ARMATURE_OT_bone_primitive_add(wmOperatorType *ot)
                  MAXBONENAME,
                  "Name",
                  "Name of the newly created bone");
+
+  static const EnumPropertyItem space_items[] = {
+      {int(BoneSpace::OBJECT),
+       "OBJECT",
+       0,
+       "Object",
+       "The newly created bone will use Object Space co-ordinate system"},
+      {int(BoneSpace::WORLD),
+       "WORLD",
+       0,
+       "World",
+       "The newly created bone will use World Space co-ordinate system"},
+      {0, nullptr, 0, nullptr, nullptr}};
+
+  RNA_def_enum(ot->srna,
+               "space",
+               space_items,
+               int(BoneSpace::OBJECT),
+               "Space",
+               "Co-ordinate system the new bone will be created in");
+
+  static const EnumPropertyItem align_items[] = {
+      {int(BoneAlign::UP),
+       "UP",
+       0,
+       "Up",
+       "Make the bone visually point upwards so the long axis is aligned with the World/Object "
+       "positive Z axis (depending on the choice above)"},
+      {int(BoneAlign::AXES),
+       "AXES",
+       0,
+       "Axes",
+       "Align the new bone to match the axes of the World/Object (depending on the choice above)"},
+      {int(BoneAlign::CURSOR_3D),
+       "3D_CURSOR",
+       0,
+       "3D Cursor",
+       "Align new bone to match the axes of the 3D cursor"},
+      {int(BoneAlign::VIEW_3D),
+       "3D_VIEW",
+       0,
+       "Viewport",
+       "Align new bone to match the axes of the 3D viewport"},
+      {0, nullptr, 0, nullptr, nullptr}};
+
+  RNA_def_enum(ot->srna,
+               "align",
+               align_items,
+               int(BoneAlign::UP),
+               "Align",
+               "Initial orientation of the new bone");
+
+  RNA_def_float(ot->srna,
+                "length",
+                1.0f,
+                0.001f,
+                FLT_MAX,
+                "Length",
+                "Length of the new bone",
+                0.001f,
+                100.0f);
+  RNA_def_boolean(ot->srna, "deform", true, "Enable Deform", "Enable bone to deform geometry");
 }
 
 /* ********************** Subdivide *******************************/

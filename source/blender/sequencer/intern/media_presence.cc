@@ -110,6 +110,10 @@ bool media_presence_is_missing(Scene *scene, const Strip *strip)
    * block. Since it can be used by multiple strips. */
   if (strip->type == STRIP_TYPE_SOUND) {
     const bSound *sound = strip->sound;
+    if (sound->packedfile != nullptr) {
+      /* The sound file has been packed, don't look up the path. */
+      return false;
+    }
     const bool *val = presence->map_sound.lookup_ptr(sound);
     if (val != nullptr) {
       missing = *val;

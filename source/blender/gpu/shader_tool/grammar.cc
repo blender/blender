@@ -664,6 +664,8 @@ struct ScopeParser {
 
   void condition(int arg_needed, ScopeType type)
   {
+    match_if(Constexpr);
+
     open_scope(curr, type);
     match('(');
 

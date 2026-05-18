@@ -76,6 +76,7 @@ GHOST_IWindow *GHOST_SystemSDL::createWindow(const char *title,
 
     if (window->getValid()) {
       window_manager_->addWindow(window);
+      window_manager_->setActiveWindow(window);
       pushEvent(std::make_unique<GHOST_Event>(getMilliSeconds(), GHOST_kEventWindowSize, window));
     }
     else {
@@ -648,6 +649,19 @@ void GHOST_SystemSDL::processEvent(SDL_Event *sdl_event)
   }
 
   if (g_event) {
+    switch (g_event->getType()) {
+      case GHOST_kEventWindowActivate: {
+        window_manager_->setActiveWindow(g_event->getWindow());
+        break;
+      }
+      case GHOST_kEventWindowDeactivate: {
+        window_manager_->setWindowInactive(g_event->getWindow());
+        break;
+      }
+      default: {
+        break;
+      }
+    }
     pushEvent(std::move(g_event));
   }
 }

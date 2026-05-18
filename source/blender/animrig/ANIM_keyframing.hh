@@ -280,8 +280,8 @@ bool autokeyframe_pchan(bContext *C, Scene *scene, Object *ob, bPoseChannel *pch
 /**
  * Auto-keyframing feature - for poses/pose-channels
  *
- * \param targetless_ik: Has targetless ik been done on any channels?
  * \param rna_paths: Only inserts keys on those RNA paths.
+ * \param targetless_ik: Has targetless ik been done on any channels?
  *
  * \note Context may not always be available,
  * so must check before using it as it's a luxury for a few cases.

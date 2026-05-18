@@ -28,7 +28,7 @@ struct MovieProxyBuilder;
 
 /**
  * Opens a movie file for reading / playback.
- * ib_flags are `IB_` ImBuf bitmask (only IB_animdeinterlace is taken into account).
+ * From ib_flags only ImBufFlags::Deinterlace is taken into account.
  * streamindex is for multi-track movie files.
  *
  * Returned MovieReader object can be used in other playback related functions.
@@ -39,7 +39,7 @@ struct MovieProxyBuilder;
  * When done with playback, use #MOV_close to delete it.
  */
 MovieReader *MOV_open_file(const char *filepath,
-                           int ib_flags,
+                           ImBufFlags ib_flags,
                            int streamindex,
                            bool keep_original_colorspace,
                            char colorspace[IM_MAX_SPACE]);

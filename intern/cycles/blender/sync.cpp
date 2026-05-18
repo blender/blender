@@ -326,12 +326,8 @@ void BlenderSync::sync_data(blender::RenderData &b_render,
 
   geometry_synced.clear(); /* use for objects and motion sync */
 
-  if (scene->need_motion() == Scene::MOTION_NONE || scene->need_motion() == Scene::MOTION_PASS ||
-      scene->camera->get_motion_position() == MOTION_POSITION_CENTER)
-  {
-    sync_objects(b_depsgraph, b_screen, b_v3d);
-  }
-  sync_motion(b_render, b_depsgraph, b_screen, b_v3d, b_rv3d, width, height, python_thread_state);
+  sync_objects_and_motion(
+      b_render, b_depsgraph, b_screen, b_v3d, b_rv3d, width, height, python_thread_state);
 
   geometry_synced.clear();
 

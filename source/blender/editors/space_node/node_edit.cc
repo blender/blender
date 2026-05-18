@@ -379,7 +379,8 @@ namespace ed::space_node {
 /** \name Node Generic
  * \{ */
 
-static bool socket_is_occluded(const float2 &location,
+static bool socket_is_occluded(const float2 &cursor,
+                               const bNodeSocket &socket,
                                const bNode &node_the_socket_belongs_to,
                                const Span<bNode *> sorted_nodes)
 {
@@ -389,10 +390,26 @@ static bool socket_is_occluded(const float2 &location,
       return false;
     }
 
-    rctf socket_hitbox;
-    const float socket_hitbox_radius = NODE_SOCKSIZE - 0.1f * U.widget_unit;
-    BLI_rctf_init_pt_radius(&socket_hitbox, location, socket_hitbox_radius);
-    if (BLI_rctf_inside_rctf(&node->runtime->draw_bounds, &socket_hitbox)) {
+    if (BLI_rctf_isect_pt_v(&node->runtime->draw_bounds, cursor)) {
+      /* The cursor actually hovers over a node in front of the socket. */
+      return true;
+    }
+
+    /* The hitbox of the socket is larger than the socket symbol to make dragging links easier. So
+     * we check if the socket is fully occluded to prevent dragging links from behind nodes.
+     * Subtract some tolerance to avoid picking the socket when it's only barely visible.
+     */
+    const float2 &location = socket.runtime->location;
+    const float tolerance = 0.1f * U.widget_unit;
+    const float half_width = NODE_SOCKSIZE - tolerance;
+    const float half_height = node_socket_calculate_height(socket) - tolerance;
+
+    const rctf socket_bounds = {location.x - half_width,
+                                location.x + half_width,
+                                location.y - half_height,
+                                location.y + half_height};
+
+    if (BLI_rctf_inside_rctf(&node->runtime->draw_bounds, &socket_bounds)) {
       return true;
     }
   }
@@ -791,7 +808,7 @@ bNodeSocket *node_find_indicated_socket(SpaceNode &snode,
   bNodeSocket *best_socket = nullptr;
 
   auto update_best_socket = [&](bNodeSocket *socket, const float distance) {
-    if (socket_is_occluded(socket->runtime->location, socket->owner_node(), sorted_nodes)) {
+    if (socket_is_occluded(cursor, *socket, socket->owner_node(), sorted_nodes)) {
       return;
     }
     if (distance < best_distance) {
@@ -1654,6 +1671,22 @@ static wmOperatorStatus node_delete_exec(bContext *C, wmOperator * /*op*/)
 
   /* Delete paired nodes as well. */
   node_select_paired(*snode->edittree);
+
+  /* Ensure child nodes propagate upwards through nested frames, when their parent is deleted. */
+  for (bNode *node : snode->edittree->all_nodes()) {
+    if (node->flag & SELECT) {
+      /* This node can be skipped, because it will be deleted anyway. */
+      continue;
+    }
+
+    /* Set the parent of the node to the lowest frame that is not going to be deleted. */
+    for (bNode *parent = node->parent; parent; parent = parent->parent) {
+      if ((parent->flag & SELECT) == 0) {
+        node->parent = parent;
+        break;
+      }
+    }
+  }
 
   for (bNode &node : snode->edittree->nodes.items_mutable()) {
     if (node.flag & SELECT) {

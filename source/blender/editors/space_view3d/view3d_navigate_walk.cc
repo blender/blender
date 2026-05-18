@@ -459,9 +459,9 @@ static bool walk_floor_distance_get(RegionView3D *rv3d,
 }
 
 /**
- * \param ray_distance: Distance to the hit point
  * \param r_location: Location of the hit point
  * \param r_normal: Normal of the hit surface, transformed to always face the camera
+ * \param r_ray_distance: Distance to the hit point.
  */
 static bool walk_ray_cast(RegionView3D *rv3d,
                           WalkInfo *walk,

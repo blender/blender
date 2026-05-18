@@ -527,6 +527,8 @@ struct TransData : public TransDataBasic {
   short protectflag;
 };
 
+/** \} */
+
 /* -------------------------------------------------------------------- */
 /** \name Transform Types
  * \{ */

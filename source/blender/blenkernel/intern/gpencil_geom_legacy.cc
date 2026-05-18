@@ -27,6 +27,10 @@
 
 namespace blender {
 
+/* -------------------------------------------------------------------- */
+/** \name Stroke 2D Flat & UV Calculation
+ * \{ */
+
 void BKE_gpencil_stroke_2d_flat(const bGPDspoint *points,
                                 int totpoints,
                                 float (*points2d)[2],
@@ -502,5 +506,7 @@ bGPDstroke *BKE_gpencil_stroke_delete_tagged_points(bGPdata *gpd,
 
   return new_stroke;
 }
+
+/** \} */
 
 }  // namespace blender

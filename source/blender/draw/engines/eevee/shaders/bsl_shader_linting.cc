@@ -14,7 +14,10 @@
 #include "eevee_deferred_thickness_amend.bsl.hh"     /* IWYU pragma: export */
 #include "eevee_fast_gi.bsl.hh"                      /* IWYU pragma: export */
 #include "eevee_light_culling.bsl.hh"                /* IWYU pragma: export */
+#include "eevee_light_eval.bsl.hh"                   /* IWYU pragma: export */
+#include "eevee_light_iter.bsl.hh"                   /* IWYU pragma: export */
 #include "eevee_light_shadow_setup.bsl.hh"           /* IWYU pragma: export */
+#include "eevee_light_shape_display.bsl.hh"          /* IWYU pragma: export */
 #include "eevee_lightprobe_display.bsl.hh"           /* IWYU pragma: export */
 #include "eevee_ltc_lib.bsl.hh"                      /* IWYU pragma: export */
 #include "eevee_ltc_lut_lib.bsl.hh"                  /* IWYU pragma: export */
@@ -25,6 +28,7 @@
 #include "eevee_ray_trace.bsl.hh"                    /* IWYU pragma: export */
 #include "eevee_ray_types_lib.bsl.hh"                /* IWYU pragma: export */
 #include "eevee_reverse_z_lib.bsl.hh"                /* IWYU pragma: export */
+#include "eevee_shadow.bsl.hh"                       /* IWYU pragma: export */
 #include "eevee_shadow_page_allocate.bsl.hh"         /* IWYU pragma: export */
 #include "eevee_shadow_page_clear.bsl.hh"            /* IWYU pragma: export */
 #include "eevee_shadow_page_defrag.bsl.hh"           /* IWYU pragma: export */
@@ -39,6 +43,7 @@
 #include "eevee_shadow_tilemap_finalize.bsl.hh"      /* IWYU pragma: export */
 #include "eevee_shadow_tilemap_init.bsl.hh"          /* IWYU pragma: export */
 #include "eevee_shadow_tilemap_lib.bsl.hh"           /* IWYU pragma: export */
+#include "eevee_shadow_tracing.bsl.hh"               /* IWYU pragma: export */
 #include "eevee_shadow_visibility.bsl.hh"            /* IWYU pragma: export */
 #include "eevee_subsurface.bsl.hh"                   /* IWYU pragma: export */
 #include "eevee_surf_capture.bsl.hh"                 /* IWYU pragma: export */

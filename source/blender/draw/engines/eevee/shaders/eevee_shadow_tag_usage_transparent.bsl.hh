@@ -10,7 +10,7 @@
 
 #pragma once
 
-#include "infos/eevee_shadow_infos.hh"
+#include "draw_view_infos.hh"
 
 COMPUTE_SHADER_CREATE_INFO(draw_modelmat)
 
@@ -252,7 +252,18 @@ void tag_usage_frag([[resource_table]] TagUsageTransparent &srt,
     srt.step_bounding_sphere(vs_near_plane, vs_view_direction, t, t + step_size, P, step_radius);
     float3 vP = drw_point_world_to_view(P);
 
-    tag.tag_pixel(vP, P, frag_co.xy * exp2(float(srt.fb_lod)), ws_view_direction, step_radius, 0);
+    float2 pixel = frag_co.xy * exp2(float(srt.fb_lod));
+
+    [[resource_table]] LightRenderData &lrd = tag.light_data;
+
+    TagPixelCtx ctx = {
+        .P = P,
+        .V = drw_world_incident_vector(P),
+        .radius = step_radius,
+        .lod_bias = 0,
+    };
+
+    light::foreach_visible(lrd, pixel, vP.z, ctx, tag);
   }
 }
 

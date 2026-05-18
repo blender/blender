@@ -1,9 +1,9 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 5.2.0 Alpha (b'8c7c45ad114e')\n"
+"Project-Id-Version: Blender 5.2.0 Alpha (b'bc0a0ff2c0ce')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-05-11 07:23+0000\n"
+"POT-Creation-Date: 2026-05-18 11:20+0000\n"
 "PO-Revision-Date: 2025-12-01 09:17+0000\n"
 "Last-Translator: Matt Mitacek <mattmitacek@gmail.com>\n"
 "Language-Team: Czech <https://translate.blender.org/projects/blender-ui/ui/cs/>\n"
@@ -1530,10 +1530,6 @@ msgstr "Zobrazit objekty dostupné v této relaci Blenderu"
 
 msgid "Essentials"
 msgstr "Nezbytnosti"
-
-
-msgid "Show the basic building blocks and utilities coming with Blender"
-msgstr "Zobrazit základní součásti a služby dostupné v Blenderu"
 
 
 msgid "Custom"
@@ -13839,6 +13835,10 @@ msgid "Material slot name"
 msgstr "Název okénka materiálu"
 
 
+msgid "Mirror"
+msgstr "Zrcadlit"
+
+
 msgid "Snap"
 msgstr "Přichytit"
 
@@ -13851,6 +13851,10 @@ msgid "Local View"
 msgstr "Lokální pohled"
 
 
+msgid "Math"
+msgstr "Matematika"
+
+
 msgid "Navigation"
 msgstr "Navigace"
 
@@ -13859,16 +13863,12 @@ msgid "Align View"
 msgstr "Zarovnat pohled"
 
 
-msgid "Select Linked"
-msgstr "Vybrat Propojené"
-
-
-msgid "Math"
-msgstr "Matematika"
-
-
 msgid "Utilities"
 msgstr "Nástroje"
+
+
+msgid "Select Linked"
+msgstr "Vybrat Propojené"
 
 
 msgid "Assign Material"
@@ -13883,8 +13883,16 @@ msgid "Light"
 msgstr "Světlo"
 
 
+msgid "Instances"
+msgstr "Instance"
+
+
 msgid "Relations"
 msgstr "Vztahy"
+
+
+msgid "Import"
+msgstr "Importovat"
 
 
 msgid "Rigid Body"
@@ -13893,10 +13901,6 @@ msgstr "Tuhé Těleso"
 
 msgid "Apply"
 msgstr "Použít"
-
-
-msgid "Instances"
-msgstr "Instance"
 
 
 msgid "Track"
@@ -13913,10 +13917,6 @@ msgstr "Zobrazit/skrýt"
 
 msgid "Clean Up"
 msgstr "Vyčistit"
-
-
-msgid "Import"
-msgstr "Importovat"
 
 
 msgid "Make Single User"
@@ -13951,12 +13951,12 @@ msgid "Merge"
 msgstr "Sloučit"
 
 
-msgid "Special Characters"
-msgstr "Speciální Znaky"
-
-
 msgid "Layout"
 msgstr "Rozložení"
+
+
+msgid "Special Characters"
+msgstr "Speciální Znaky"
 
 
 msgid "Bone Roll"
@@ -13977,10 +13977,6 @@ msgstr "Bod pro pivot"
 
 msgid "Proportional Editing Falloff"
 msgstr "Způsob útlumu"
-
-
-msgid "Mirror"
-msgstr "Zrcadlit"
 
 
 msgid "Basic"
@@ -19253,6 +19249,10 @@ msgid "Add Bone"
 msgstr "Přidat opičku"
 
 
+msgid "Axes"
+msgstr "Osy"
+
+
 msgid "Name of the newly created bone"
 msgstr "Název pro nově vytvořenou kost"
 
@@ -19327,6 +19327,10 @@ msgstr "Přesunout"
 
 msgid "Move selected items"
 msgstr "Přesunout vybrané objekty"
+
+
+msgid "Search"
+msgstr "Hledat"
 
 
 msgctxt "Operator"
@@ -30347,42 +30351,6 @@ msgid "Restrict"
 msgstr "Omezit"
 
 
-msgid "Mesh Edit Mode"
-msgstr "Editační Režim Sítě"
-
-
-msgid "Measurement"
-msgstr "Měření"
-
-
-msgid "Curve Edit Mode"
-msgstr "Editační Režim Křivky"
-
-
-msgid "Transform Orientations"
-msgstr "Orientace transformací"
-
-
-msgid "Guides"
-msgstr "Vodítka"
-
-
-msgid "Stereoscopy"
-msgstr "Stereoskopie"
-
-
-msgid "Auto-Masking"
-msgstr "Auto-Maska"
-
-
-msgid "Active Tool"
-msgstr "Aktivní nástroj"
-
-
-msgid "View Lock"
-msgstr "Zámek zobrazení"
-
-
 msgid "Shadow Settings"
 msgstr "Nastavení Stínů"
 
@@ -30399,8 +30367,44 @@ msgid "Overlays"
 msgstr "Překrytí"
 
 
+msgid "Guides"
+msgstr "Vodítka"
+
+
 msgid "Motion Tracking"
 msgstr "Sledování Pohybu"
+
+
+msgid "Mesh Edit Mode"
+msgstr "Editační Režim Sítě"
+
+
+msgid "Measurement"
+msgstr "Měření"
+
+
+msgid "Curve Edit Mode"
+msgstr "Editační Režim Křivky"
+
+
+msgid "Transform Orientations"
+msgstr "Orientace transformací"
+
+
+msgid "Stereoscopy"
+msgstr "Stereoskopie"
+
+
+msgid "Auto-Masking"
+msgstr "Auto-Maska"
+
+
+msgid "Active Tool"
+msgstr "Aktivní nástroj"
+
+
+msgid "View Lock"
+msgstr "Zámek zobrazení"
 
 
 msgid "Chain Scaling"
@@ -35185,6 +35189,10 @@ msgid "Outline Width"
 msgstr "Šířka obrysu"
 
 
+msgid "Line Spacing"
+msgstr "Rozestup Řádků"
+
+
 msgid "Sequence strip creating a wipe transition"
 msgstr "Přidat vazbu aktivní kosti"
 
@@ -36741,10 +36749,6 @@ msgid "Operator Properties"
 msgstr "Generátory"
 
 
-msgid "Search"
-msgstr "Hledat"
-
-
 msgid "Navigate"
 msgstr "Navigovat"
 
@@ -37328,10 +37332,6 @@ msgid "Shapes"
 msgstr "Tvary"
 
 
-msgid "Axes"
-msgstr "Osy"
-
-
 msgid "Display Size X"
 msgstr "Velikost Zobrazení X"
 
@@ -37379,10 +37379,6 @@ msgstr "Rozestup Symbolů"
 
 msgid "Word Spacing"
 msgstr "Rozestup Slov"
-
-
-msgid "Line Spacing"
-msgstr "Rozestup Řádků"
 
 
 msgid "Offset X"

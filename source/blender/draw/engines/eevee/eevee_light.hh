@@ -175,6 +175,8 @@ class LightModule {
 
   /** Update light on the GPU after culling. Ran for each sample. */
   PassSimple update_ps_ = {"LightUpdate"};
+  /** Draw camera-visible light shapes. */
+  PassSimple shape_display_ps_ = {"Light.ShapeDisplay"};
 
   /** Debug Culling visualization. */
   PassSimple debug_draw_ps_ = {"LightCulling.Debug"};
@@ -192,6 +194,7 @@ class LightModule {
    */
   void set_view(View &view, const int2 extent);
 
+  void shape_display_draw(View &view, gpu::FrameBuffer *view_fb);
   void debug_draw(View &view, gpu::FrameBuffer *view_fb);
 
   template<typename PassType> void bind_resources(PassType &pass)
@@ -205,6 +208,7 @@ class LightModule {
  private:
   void culling_pass_sync();
   void update_pass_sync();
+  void shape_display_pass_sync();
   void debug_pass_sync();
 
   void add_world_sun_light(const ObjectKey &key, bool use_diffuse, bool use_glossy);

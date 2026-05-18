@@ -217,7 +217,8 @@ void add_image_init_alpha_mode(Main *bmain, Scene *scene, Strip *strip)
     /* Initialize input color space. */
     if (strip->type == STRIP_TYPE_IMAGE) {
       ibuf = IMB_load_image_from_filepath(filepath,
-                                          IB_test | IB_multilayer | IB_alphamode_detect,
+                                          ImBufFlags::Test | ImBufFlags::MultiLayer |
+                                              ImBufFlags::AlphaDetect,
                                           strip->data->colorspace_settings.name);
 
       /* Byte images are default to straight alpha, however sequencer
@@ -225,7 +226,7 @@ void add_image_init_alpha_mode(Main *bmain, Scene *scene, Strip *strip)
        */
       strip->alpha_mode = SEQ_ALPHA_STRAIGHT;
       if (ibuf) {
-        if (ibuf->flags & IB_alphamode_premul) {
+        if (flag_is_set(ibuf->flags, ImBufFlags::AlphaPremul)) {
           strip->alpha_mode = SEQ_ALPHA_PREMUL;
         }
 
@@ -262,8 +263,9 @@ Strip *add_image_strip(Main *bmain, Scene *scene, ListBaseT<Strip> *seqbase, Loa
   STRNCPY(file_path, load_data->path);
   BLI_path_abs(file_path, ID_BLEND_PATH(bmain, &scene->id));
 
-  ImBuf *ibuf = IMB_load_image_from_filepath(
-      file_path, IB_byte_data | IB_multilayer, strip->data->colorspace_settings.name);
+  ImBuf *ibuf = IMB_load_image_from_filepath(file_path,
+                                             ImBufFlags::ByteData | ImBufFlags::MultiLayer,
+                                             strip->data->colorspace_settings.name);
   if (ibuf != nullptr) {
     /* Set image resolution. Assume that all images in sequence are same size. This fields are only
      * informative. */
@@ -410,7 +412,7 @@ Strip *add_movie_strip(Main *bmain, Scene *scene, ListBaseT<Strip> *seqbase, Loa
         seq_multiview_name(scene, i, prefix, ext, filepath_view, sizeof(filepath_view));
         /* Sequencer takes care of colorspace conversion of the result. The input is the best to be
          * kept unchanged for the performance reasons. */
-        anim_arr[j] = openanim(filepath_view, IB_byte_data, 0, true, colorspace);
+        anim_arr[j] = openanim(filepath_view, ImBufFlags::Zero, 0, true, colorspace);
 
         if (anim_arr[j]) {
           seq_anim_add_suffix(scene, anim_arr[j], i);
@@ -424,7 +426,7 @@ Strip *add_movie_strip(Main *bmain, Scene *scene, ListBaseT<Strip> *seqbase, Loa
   if (is_multiview_loaded == false) {
     /* Sequencer takes care of colorspace conversion of the result. The input is the best to be
      * kept unchanged for the performance reasons. */
-    anim_arr[0] = openanim(filepath, IB_byte_data, load_data->stream_index, true, colorspace);
+    anim_arr[0] = openanim(filepath, ImBufFlags::Zero, load_data->stream_index, true, colorspace);
   }
 
   if (anim_arr[0] == nullptr && !load_data->allow_invalid_file) {
@@ -584,7 +586,7 @@ void add_reload_new_file(Main *bmain, Scene *scene, Strip *strip, const bool loc
              * to be kept unchanged for the performance reasons. */
             MovieReader *anim = openanim(
                 filepath_view,
-                IB_byte_data | ((strip->flag & SEQ_DEINTERLACE) ? IB_animdeinterlace : 0),
+                (strip->flag & SEQ_DEINTERLACE) ? ImBufFlags::Deinterlace : ImBufFlags::Zero,
                 strip->streamindex,
                 true,
                 strip->data->colorspace_settings.name);
@@ -601,12 +603,12 @@ void add_reload_new_file(Main *bmain, Scene *scene, Strip *strip, const bool loc
       if (is_multiview_loaded == false) {
         /* Sequencer takes care of colorspace conversion of the result. The input is the best to be
          * kept unchanged for the performance reasons. */
-        MovieReader *anim = openanim(
-            filepath,
-            IB_byte_data | ((strip->flag & SEQ_DEINTERLACE) ? IB_animdeinterlace : 0),
-            strip->streamindex,
-            true,
-            strip->data->colorspace_settings.name);
+        MovieReader *anim = openanim(filepath,
+                                     (strip->flag & SEQ_DEINTERLACE) ? ImBufFlags::Deinterlace :
+                                                                       ImBufFlags::Zero,
+                                     strip->streamindex,
+                                     true,
+                                     strip->data->colorspace_settings.name);
         if (anim) {
           strip->runtime->movie_readers.append(anim);
         }

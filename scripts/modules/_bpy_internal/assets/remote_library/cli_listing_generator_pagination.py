@@ -24,12 +24,17 @@ def paginate_asset_list(
     occurs when that file contains multiple assets, spread across multiple pages.
     """
 
+    # Files are sorted to ensure the generated file is stable (i.e. regenerating produces the same file, and
+    # inserting/removing files produce a small diff).
+    def file_sort_key(file: api_models.FileV1) -> str:
+        return file.path
+
     if not num_assets_per_page:
         return [api_models.AssetLibraryIndexPageV1(
             asset_count=len(assets),
             assets=assets,
             file_count=len(files),
-            files=files,
+            files=sorted(files, key=file_sort_key),
         )]
 
     pages = []
@@ -41,6 +46,8 @@ def paginate_asset_list(
         }
         file_batch = [file for file in files
                       if file.path in used_file_paths]
+        file_batch.sort(key=file_sort_key)
+
         page = api_models.AssetLibraryIndexPageV1(
             asset_count=len(asset_batch),
             assets=list(asset_batch),

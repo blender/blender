@@ -194,7 +194,7 @@ template<typename PipelineInfo> class VKPipelineMap {
    * When vk_pipeline_base is a valid pipeline handle, the pipeline base will be used to speed up
    * pipeline creation process.
    *
-   * \param compute_info:     Description of the pipeline to compile.
+   * \param pipeline_info:    Description of the pipeline to compile.
    * \param vk_pipeline_cache: Pipeline cache to use.
    * \param vk_pipeline_base: An already existing pipeline that can be used as a base when
    *                          compiling the pipeline.

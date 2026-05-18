@@ -5435,6 +5435,28 @@ bool BKE_lib_override_library_id_is_user_deletable(Main *bmain, ID *id)
   return true;
 }
 
+StringRefNull BKE_lib_override_operation_as_string(const eID_OverrideLib_Op operation)
+{
+  switch (operation) {
+    case LIBOVERRIDE_OP_NOOP:
+      return "NoOp";
+    case LIBOVERRIDE_OP_REPLACE:
+      return "Replace";
+    case LIBOVERRIDE_OP_ADD:
+      return "Add";
+    case LIBOVERRIDE_OP_SUBTRACT:
+      return "Subtract";
+    case LIBOVERRIDE_OP_MULTIPLY:
+      return "Multiply";
+    case LIBOVERRIDE_OP_INSERT_AFTER:
+      return "Insert After";
+    case LIBOVERRIDE_OP_INSERT_BEFORE:
+      return "Insert Before";
+  }
+  BLI_assert_unreachable();
+  return "Unknown";
+}
+
 void BKE_lib_override_debug_print(IDOverrideLibrary *liboverride, const char *intro_txt)
 {
   const char *line_prefix = "";
@@ -5451,7 +5473,8 @@ void BKE_lib_override_debug_print(IDOverrideLibrary *liboverride, const char *in
     std::cout << "]\n";
 
     for (IDOverrideLibraryPropertyOperation &opop : op.operations) {
-      std::cout << line_prefix << line_prefix << opop.operation << " [";
+      std::cout << line_prefix << line_prefix
+                << BKE_lib_override_operation_as_string(opop.operation) << " [";
       if (opop.tag & LIBOVERRIDE_PROP_OP_TAG_UNUSED) {
         std::cout << " UNUSED ";
       }

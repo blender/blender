@@ -1094,6 +1094,21 @@ void BlenderSync::sync_hair(BObjectInfo &b_ob_info, Hair *hair)
         free_object_to_mesh(b_ob_info, *b_mesh);
       }
     }
+
+    if (scene->need_motion() == Scene::MOTION_PASS_INTERACTIVE &&
+        hair->num_keys() == new_hair.num_keys())
+    {
+      new_hair.set_motion_steps(2);
+
+      Attribute *attr_mP = hair->attributes.find(ATTR_STD_MOTION_VERTEX_POSITION);
+      Attribute *new_attr_mP = new_hair.attributes.add(ATTR_STD_MOTION_VERTEX_POSITION);
+      if (attr_mP) {
+        new_attr_mP->set_data_from(std::move(*attr_mP));
+      }
+      else {
+        new_hair.copy_center_to_motion_step(0);
+      }
+    }
   }
 
   /* update original sockets */

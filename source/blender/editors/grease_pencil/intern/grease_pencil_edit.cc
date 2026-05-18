@@ -4571,6 +4571,8 @@ static void GREASE_PENCIL_OT_remove_fill_guides(wmOperatorType *ot)
       ot->srna, "mode", rna_mode_items, int(RemoveFillGuidesMode::AllFrames), "Mode", "");
 }
 
+/** \} */
+
 /* -------------------------------------------------------------------- */
 /** \name Outline Operator
  * \{ */

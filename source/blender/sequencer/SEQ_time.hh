@@ -22,7 +22,7 @@ namespace seq {
  * Initialize given rectangle with the Scene's timeline boundaries.
  *
  * \param scene: the Scene instance whose timeline boundaries are extracted from
- * \param rect: output parameter to be filled with timeline boundaries
+ * \param r_rect: output parameter to be filled with timeline boundaries
  */
 void timeline_init_boundbox(const Scene *scene, rctf *r_rect);
 /**
@@ -37,7 +37,7 @@ void timeline_expand_boundbox(const Scene *scene, const ListBaseT<Strip> *seqbas
  *
  * \param scene: Scene in which strips are located
  * \param seqbase: List in which strips are located
- * \param rect: data structure describing rectangle, that will be filled in by this function
+ * \param r_rect: data structure describing rectangle, that will be filled in by this function
  */
 void timeline_boundbox(const Scene *scene, const ListBaseT<Strip> *seqbase, rctf *r_rect);
 /**

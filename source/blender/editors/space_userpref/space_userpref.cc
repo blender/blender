@@ -36,7 +36,9 @@
 
 namespace blender {
 
-/* ******************** default callbacks for userpref space ***************** */
+/* -------------------------------------------------------------------- */
+/** \name Default Callbacks for User Preferences Space
+ * \{ */
 
 static SpaceLink *userpref_create(const ScrArea *area, const Scene * /*scene*/)
 {

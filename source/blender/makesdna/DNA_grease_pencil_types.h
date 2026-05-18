@@ -672,7 +672,7 @@ struct GreasePencil {
   /**
    * Moves and/or inserts duplicates of a set of frames in a \a layer.
    *
-   * \param frame_number_destination: describes all transformations that should be applied on the
+   * \param frame_number_destinations: describes all transformations that should be applied on the
    * frame keys.
    * \param duplicate_frames: the frames that should be duplicated instead of moved.
    * Keys of the map are the keys of the corresponding source frames.

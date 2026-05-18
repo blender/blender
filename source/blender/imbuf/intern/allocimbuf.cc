@@ -26,6 +26,8 @@
 #include "GPU_state.hh"
 #include "GPU_texture.hh"
 
+#include "OCIO_colorspace.hh"
+
 #include "CLG_log.h"
 
 #include "atomic_ops.h"
@@ -33,26 +35,6 @@
 namespace blender {
 
 static CLG_LogRef LOG = {"image.buffer"};
-
-/* Free the specified buffer storage, freeing memory when needed and restoring the state of the
- * buffer to its defaults. */
-template<class BufferType> static void imb_free_buffer(BufferType &buffer)
-{
-  if (buffer.data) {
-    switch (buffer.ownership) {
-      case IB_DO_NOT_TAKE_OWNERSHIP:
-        break;
-
-      case IB_TAKE_OWNERSHIP:
-        MEM_delete(buffer.data);
-        break;
-    }
-  }
-
-  /* Reset buffer to defaults. */
-  buffer.data = nullptr;
-  buffer.ownership = IB_DO_NOT_TAKE_OWNERSHIP;
-}
 
 /* Allocate pixel storage of the given buffer. The buffer owns the allocated memory.
  * Returns true of allocation succeeded, false otherwise. */
@@ -64,60 +46,51 @@ bool imb_alloc_buffer(BufferType &buffer,
                       const size_t type_size,
                       bool initialize_pixels)
 {
-  buffer.data = static_cast<decltype(BufferType::data)>(
-      imb_alloc_pixels(x, y, channels, type_size, initialize_pixels, __func__));
-  if (!buffer.data) {
+  void *data = imb_alloc_pixels(x, y, channels, type_size, initialize_pixels, __func__);
+  if (!data) {
     return false;
   }
-
-  buffer.ownership = IB_TAKE_OWNERSHIP;
-
+  buffer.data = static_cast<decltype(BufferType::data)>(data);
+  buffer.sharing_info = ImplicitSharingPtr<>(implicit_sharing::info_for_mem_free(data));
   return true;
 }
 
-/* Make the buffer available for modification.
- * Is achieved by ensuring that the buffer is the only owner of its data. */
-template<class BufferType> void imb_make_writeable_buffer(BufferType &buffer)
+uint8_t *ImBuf::byte_data_for_write()
 {
-  if (!buffer.data) {
-    return;
-  }
-
-  switch (buffer.ownership) {
-    case IB_DO_NOT_TAKE_OWNERSHIP:
-      buffer.data = MEM_dupalloc(buffer.data);
-      buffer.ownership = IB_TAKE_OWNERSHIP;
-
-    case IB_TAKE_OWNERSHIP:
-      break;
-  }
-}
-
-template<class BufferType>
-auto imb_steal_buffer_data(BufferType &buffer) -> decltype(BufferType::data)
-{
-  if (!buffer.data) {
+  if (!this->byte_buffer.data) {
     return nullptr;
   }
-
-  switch (buffer.ownership) {
-    case IB_DO_NOT_TAKE_OWNERSHIP:
-      BLI_assert_msg(false, "Unexpected behavior: stealing non-owned data pointer");
-      return nullptr;
-
-    case IB_TAKE_OWNERSHIP: {
-      decltype(BufferType::data) data = buffer.data;
-
-      buffer.data = nullptr;
-      buffer.ownership = IB_DO_NOT_TAKE_OWNERSHIP;
-
-      return data;
-    }
+  if (this->byte_buffer.sharing_info->is_mutable()) {
+    this->byte_buffer.sharing_info->tag_ensured_mutable();
   }
+  else {
+    const size_t size = size_t(this->x) * size_t(this->y) * 4;
+    uint8_t *new_data = MEM_new_array_uninitialized<uint8_t>(size, __func__);
+    std::copy_n(this->byte_buffer.data, size, new_data);
+    this->byte_buffer.data = new_data;
+    this->byte_buffer.sharing_info = ImplicitSharingPtr<>(
+        implicit_sharing::info_for_mem_free(new_data));
+  }
+  return const_cast<uint8_t *>(this->byte_buffer.data);
+}
 
-  BLI_assert_unreachable();
-
-  return nullptr;
+float *ImBuf::float_data_for_write()
+{
+  if (!this->float_buffer.data) {
+    return nullptr;
+  }
+  if (this->float_buffer.sharing_info->is_mutable()) {
+    this->float_buffer.sharing_info->tag_ensured_mutable();
+  }
+  else {
+    const size_t size = size_t(this->x) * size_t(this->y) * this->channels;
+    float *new_data = MEM_new_array_uninitialized<float>(size, __func__);
+    std::copy_n(this->float_buffer.data, size, new_data);
+    this->float_buffer.data = new_data;
+    this->float_buffer.sharing_info = ImplicitSharingPtr<>(
+        implicit_sharing::info_for_mem_free(new_data));
+  }
+  return const_cast<float *>(this->float_buffer.data);
 }
 
 void IMB_free_float_pixels(ImBuf *ibuf)
@@ -125,8 +98,7 @@ void IMB_free_float_pixels(ImBuf *ibuf)
   if (ibuf == nullptr) {
     return;
   }
-  imb_free_buffer(ibuf->float_buffer);
-  ibuf->flags &= ~IB_float_data;
+  ibuf->float_buffer = {};
 }
 
 void IMB_free_byte_pixels(ImBuf *ibuf)
@@ -134,8 +106,7 @@ void IMB_free_byte_pixels(ImBuf *ibuf)
   if (ibuf == nullptr) {
     return;
   }
-  imb_free_buffer(ibuf->byte_buffer);
-  ibuf->flags &= ~IB_byte_data;
+  ibuf->byte_buffer = {};
 }
 
 void IMB_free_all_data(ImBuf *ibuf)
@@ -229,7 +200,6 @@ bool IMB_alloc_float_pixels(ImBuf *ibuf, const uint channels, bool initialize_pi
   }
 
   ibuf->channels = channels;
-  ibuf->flags |= IB_float_data;
 
   return true;
 }
@@ -242,7 +212,7 @@ bool IMB_alloc_byte_pixels(ImBuf *ibuf, bool initialize_pixels)
     return false;
   }
 
-  imb_free_buffer(ibuf->byte_buffer);
+  ibuf->byte_buffer = {};
 
   if (!imb_alloc_buffer(
           ibuf->byte_buffer, ibuf->x, ibuf->y, 4, sizeof(uint8_t), initialize_pixels))
@@ -250,83 +220,51 @@ bool IMB_alloc_byte_pixels(ImBuf *ibuf, bool initialize_pixels)
     return false;
   }
 
-  ibuf->flags |= IB_byte_data;
-
   return true;
 }
 
 void ImBuf::assign_byte_data(uint8_t *data)
 {
-  imb_free_buffer(this->byte_buffer);
-  this->flags &= ~IB_byte_data;
+  this->byte_buffer = {};
   if (data) {
     this->byte_buffer.data = data;
-    this->byte_buffer.ownership = IB_TAKE_OWNERSHIP;
-
-    this->flags |= IB_byte_data;
+    this->byte_buffer.sharing_info = ImplicitSharingPtr<>(
+        implicit_sharing::info_for_mem_free(data));
   }
 }
 
 void ImBuf::assign_float_data(float *data)
 {
-  imb_free_buffer(this->float_buffer);
-  this->flags &= ~IB_float_data;
+  this->float_buffer = {};
   if (data) {
     this->float_buffer.data = data;
-    this->float_buffer.ownership = IB_TAKE_OWNERSHIP;
-
-    this->flags |= IB_float_data;
+    this->float_buffer.sharing_info = ImplicitSharingPtr<>(
+        implicit_sharing::info_for_mem_free(data));
   }
 }
 
-uint8_t *IMB_steal_byte_buffer(ImBuf *ibuf)
+bool ImBuf::colorspace_is_data() const
 {
-  uint8_t *data = imb_steal_buffer_data(ibuf->byte_buffer);
-  ibuf->flags &= ~IB_byte_data;
-  return data;
-}
-
-float *IMB_steal_float_buffer(ImBuf *ibuf)
-{
-  float *data = imb_steal_buffer_data(ibuf->float_buffer);
-  ibuf->flags &= ~IB_float_data;
-  return data;
-}
-
-void IMB_make_writable_byte_buffer(ImBuf *ibuf)
-{
-  imb_make_writeable_buffer(ibuf->byte_buffer);
-}
-
-void IMB_make_writable_float_buffer(ImBuf *ibuf)
-{
-  imb_make_writeable_buffer(ibuf->float_buffer);
-}
-
-void IMB_assign_byte_buffer(ImBuf *ibuf, uint8_t *buffer_data, const ImBufOwnership ownership)
-{
-  imb_free_buffer(ibuf->byte_buffer);
-  ibuf->flags &= ~IB_byte_data;
-
-  if (buffer_data) {
-    ibuf->byte_buffer.data = buffer_data;
-    ibuf->byte_buffer.ownership = ownership;
-
-    ibuf->flags |= IB_byte_data;
+  if (this->float_buffer.data) {
+    return this->float_buffer.colorspace && this->float_buffer.colorspace->is_data();
   }
+  return this->byte_buffer.colorspace && this->byte_buffer.colorspace->is_data();
 }
 
-void IMB_assign_float_buffer(ImBuf *ibuf, float *buffer_data, const ImBufOwnership ownership)
+void ImBuf::assign_byte_data(const uint8_t *data, ImplicitSharingPtr<> sharing_ptr)
 {
-  imb_free_buffer(ibuf->float_buffer);
-  ibuf->flags &= ~IB_float_data;
+  BLI_assert(data != nullptr);
+  BLI_assert(sharing_ptr.get() != nullptr);
+  this->byte_buffer.data = data;
+  this->byte_buffer.sharing_info = std::move(sharing_ptr);
+}
 
-  if (buffer_data) {
-    ibuf->float_buffer.data = buffer_data;
-    ibuf->float_buffer.ownership = ownership;
-
-    ibuf->flags |= IB_float_data;
-  }
+void ImBuf::assign_float_data(const float *data, ImplicitSharingPtr<> sharing_ptr)
+{
+  BLI_assert(data != nullptr);
+  BLI_assert(sharing_ptr.get() != nullptr);
+  this->float_buffer.data = data;
+  this->float_buffer.sharing_info = std::move(sharing_ptr);
 }
 
 void IMB_assign_gpu_texture(ImBuf *ibuf, gpu::Texture *texture)
@@ -362,22 +300,6 @@ void IMB_ensure_host_buffer(ImBuf *ibuf)
   }
 }
 
-void IMB_assign_byte_buffer(ImBuf *ibuf,
-                            const ImBufByteBuffer &buffer,
-                            const ImBufOwnership ownership)
-{
-  IMB_assign_byte_buffer(ibuf, buffer.data, ownership);
-  ibuf->byte_buffer.colorspace = buffer.colorspace;
-}
-
-void IMB_assign_float_buffer(ImBuf *ibuf,
-                             const ImBufFloatBuffer &buffer,
-                             const ImBufOwnership ownership)
-{
-  IMB_assign_float_buffer(ibuf, buffer.data, ownership);
-  ibuf->float_buffer.colorspace = buffer.colorspace;
-}
-
 ImBuf *IMB_allocFromBufferOwn(
     uint8_t *byte_buffer, float *float_buffer, uint w, uint h, uint channels)
 {
@@ -385,7 +307,7 @@ ImBuf *IMB_allocFromBufferOwn(
     return nullptr;
   }
 
-  ImBuf *ibuf = IMB_allocImBuf(w, h, 0);
+  ImBuf *ibuf = IMB_allocImBuf(w, h, ImBufFlags::Zero);
 
   ibuf->channels = channels;
 
@@ -413,7 +335,7 @@ ImBuf *IMB_allocFromBuffer(
     return nullptr;
   }
 
-  ibuf = IMB_allocImBuf(w, h, 0);
+  ibuf = IMB_allocImBuf(w, h, ImBufFlags::Zero);
 
   ibuf->channels = channels;
 
@@ -436,7 +358,7 @@ ImBuf *IMB_allocFromBuffer(
   return ibuf;
 }
 
-ImBuf *IMB_allocImBuf(uint x, uint y, uint flags)
+ImBuf *IMB_allocImBuf(uint x, uint y, ImBufFlags flags)
 {
   ImBuf *ibuf = MEM_new<ImBuf>("ImBuf_struct");
 
@@ -450,7 +372,7 @@ ImBuf *IMB_allocImBuf(uint x, uint y, uint flags)
   return ibuf;
 }
 
-bool IMB_initImBuf(ImBuf *ibuf, uint x, uint y, uint flags)
+bool IMB_initImBuf(ImBuf *ibuf, uint x, uint y, ImBufFlags flags)
 {
   *ibuf = ImBuf{};
 
@@ -463,16 +385,16 @@ bool IMB_initImBuf(ImBuf *ibuf, uint x, uint y, uint flags)
   /* IMB_DPI_DEFAULT -> pixels-per-meter. */
   ibuf->ppm[0] = ibuf->ppm[1] = IMB_DPI_DEFAULT / 0.0254;
 
-  const bool init_pixels = (flags & IB_uninitialized_pixels) == 0;
+  const bool init_pixels = !flag_is_set(flags, ImBufFlags::UninitializedPixels);
 
-  if (flags & IB_byte_data) {
-    if (IMB_alloc_byte_pixels(ibuf, init_pixels) == false) {
+  if (flag_is_set(flags, ImBufFlags::ByteData)) {
+    if (!IMB_alloc_byte_pixels(ibuf, init_pixels)) {
       return false;
     }
   }
 
-  if (flags & IB_float_data) {
-    if (IMB_alloc_float_pixels(ibuf, ibuf->channels, init_pixels) == false) {
+  if (flag_is_set(flags, ImBufFlags::FloatData)) {
+    if (!IMB_alloc_float_pixels(ibuf, ibuf->channels, init_pixels)) {
       return false;
     }
   }
@@ -489,7 +411,7 @@ ImBuf *IMB_dupImBuf(const ImBuf *ibuf1)
     return nullptr;
   }
 
-  ImBuf *ibuf2 = IMB_allocImBuf(ibuf1->x, ibuf1->y, 0);
+  ImBuf *ibuf2 = IMB_allocImBuf(ibuf1->x, ibuf1->y, ImBufFlags::Zero);
   if (ibuf2 == nullptr) {
     return nullptr;
   }
@@ -504,18 +426,8 @@ ImBuf *IMB_dupImBuf(const ImBuf *ibuf1)
   ibuf2->color_mode = ibuf1->color_mode;
   ibuf2->channels = ibuf1->channels;
   ibuf2->flags = ibuf1->flags;
-  if (const float *src_buffer = ibuf1->float_data()) {
-    IMB_alloc_float_pixels(ibuf2, ibuf1->channels, false);
-    memcpy(ibuf2->float_data_for_write(),
-           src_buffer,
-           sizeof(float) * ibuf1->channels * ibuf1->x * ibuf1->y);
-    ibuf2->float_buffer.colorspace = ibuf1->float_buffer.colorspace;
-  }
-  if (const uint8_t *src_buffer = ibuf1->byte_data()) {
-    IMB_alloc_byte_pixels(ibuf2, false);
-    memcpy(ibuf2->byte_data_for_write(), src_buffer, sizeof(uint8_t) * 4 * ibuf1->x * ibuf1->y);
-    ibuf2->byte_buffer.colorspace = ibuf1->byte_buffer.colorspace;
-  }
+  ibuf2->byte_buffer = ibuf1->byte_buffer;
+  ibuf2->float_buffer = ibuf1->float_buffer;
   /* GPU textures can not be easily copied, as it is not guaranteed that this function is called
    * from within an active GPU context. */
   ibuf2->gpu.texture = nullptr;
@@ -533,7 +445,6 @@ ImBuf *IMB_dupImBuf(const ImBuf *ibuf1)
   ibuf2->filepath = ibuf1->filepath;
   ibuf2->fileframe = ibuf1->fileframe;
   ibuf2->refcounter = 0;
-  ibuf2->colormanage_flag = ibuf1->colormanage_flag;
 
   return ibuf2;
 }

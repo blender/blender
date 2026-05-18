@@ -702,7 +702,7 @@ class NodeTreeMainUpdater {
           /* Should have been created when the node was registered. */
           BLI_assert(ntype.static_declaration != nullptr);
           if (ntype.static_declaration->is_context_dependent) {
-            nodes::update_node_declaration_and_sockets(ntree, *node);
+            nodes::update_node_declaration_and_sockets(ntree, *node, bmain_);
           }
         }
         else if (node->is_undefined()) {

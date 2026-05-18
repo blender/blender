@@ -106,10 +106,12 @@ static void node_geo_exec(GeoNodeExecParams params)
 
   geometry::foreach_real_geometry(geometry_set, [&](GeometrySet &geometry_set) {
     if (const PointCloud *pointcloud = geometry_set.get_pointcloud()) {
-      PointCloud *result = pointcloud_merge_by_distance(
-          *pointcloud, merge_distance, selection, params.get_attribute_filter("Geometry"_ustr));
-      if (result) {
-        geometry_set.replace_pointcloud(result);
+      if (mode == GEO_NODE_MERGE_BY_DISTANCE_MODE_ALL) {
+        PointCloud *result = pointcloud_merge_by_distance(
+            *pointcloud, merge_distance, selection, params.get_attribute_filter("Geometry"_ustr));
+        if (result) {
+          geometry_set.replace_pointcloud(result);
+        }
       }
     }
     if (const Mesh *mesh = geometry_set.get_mesh()) {

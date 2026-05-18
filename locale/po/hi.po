@@ -1,9 +1,9 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 5.2.0 Alpha (b'8c7c45ad114e')\n"
+"Project-Id-Version: Blender 5.2.0 Alpha (b'bc0a0ff2c0ce')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-05-11 07:23+0000\n"
+"POT-Creation-Date: 2026-05-18 11:20+0000\n"
 "PO-Revision-Date: 2025-12-04 22:18+0000\n"
 "Last-Translator: Jackson Zheng <business.jackson.zheng@gmail.com>\n"
 "Language-Team: Hindi <https://translate.blender.org/projects/blender-ui/ui/hi/>\n"
@@ -2586,6 +2586,10 @@ msgid "Placement"
 msgstr "नियोजन"
 
 
+msgid "Mirror"
+msgstr "दर्पण"
+
+
 msgid "Snap"
 msgstr "स्नैप"
 
@@ -2596,6 +2600,10 @@ msgstr "गणित"
 
 msgid "Light"
 msgstr "प्रकाश"
+
+
+msgid "Import"
+msgstr "आयात करें"
 
 
 msgid "Rigid Body"
@@ -2618,20 +2626,16 @@ msgid "Show/Hide"
 msgstr "छुपाएँ / दिखाएँ"
 
 
-msgid "Import"
-msgstr "आयात करें"
-
-
 msgid "Make Single User"
 msgstr "एकल प्रयोक्ता बनाएँ"
 
 
-msgid "Hooks"
-msgstr "खूँटी"
-
-
 msgid "UV"
 msgstr "यूवी"
+
+
+msgid "Hooks"
+msgstr "खूँटी"
 
 
 msgid "Names"
@@ -2656,10 +2660,6 @@ msgstr "हड्डी पंजी"
 
 msgid "Keying"
 msgstr "कुंजीयन"
-
-
-msgid "Mirror"
-msgstr "दर्पण"
 
 
 msgid "Basic"
@@ -3325,8 +3325,16 @@ msgid "Paste Driver"
 msgstr "चिपकाएँ यंत्र-संवादी"
 
 
+msgid "Axes"
+msgstr "अक्ष"
+
+
 msgid "Move"
 msgstr "विचलन"
+
+
+msgid "Search"
+msgstr "खोज"
 
 
 msgctxt "Operator"
@@ -4406,12 +4414,12 @@ msgid "Lock Y"
 msgstr "तालाबंदी y"
 
 
-msgid "Transform Orientations"
-msgstr "दिक् विन्यास संरचनांतरण"
-
-
 msgid "Motion Tracking"
 msgstr "गति मार्गन"
+
+
+msgid "Transform Orientations"
+msgstr "दिक् विन्यास संरचनांतरण"
 
 
 msgid "Predefined tracking camera intrinsics"
@@ -4953,10 +4961,6 @@ msgid "Relationship Lines"
 msgstr "संबंध रेखाएँ"
 
 
-msgid "Search"
-msgstr "खोज"
-
-
 msgctxt "WindowManager"
 msgid "Object Mode"
 msgstr "वस्तु रूप"
@@ -5160,10 +5164,6 @@ msgstr "पथ अनुप्राणित करें"
 
 msgid "Shapes"
 msgstr "आकृतियाँ"
-
-
-msgid "Axes"
-msgstr "अक्ष"
 
 
 msgctxt "Operator"

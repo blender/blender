@@ -225,9 +225,25 @@ void BlenderSync::sync_pointcloud(PointCloud *pointcloud, BObjectInfo &b_ob_info
                                              0.0f;
   export_pointcloud(scene, &new_pointcloud, *b_pointcloud, need_motion, motion_scale);
 
-  pointcloud->clear_non_sockets();
+  if (scene->need_motion() == Scene::MOTION_PASS_INTERACTIVE &&
+      pointcloud->num_points() == new_pointcloud.num_points())
+  {
+    new_pointcloud.set_motion_steps(2);
+
+    Attribute *attr_mP = pointcloud->attributes.find(ATTR_STD_MOTION_VERTEX_POSITION);
+    Attribute *new_attr_mP = new_pointcloud.attributes.add(ATTR_STD_MOTION_VERTEX_POSITION);
+    if (attr_mP) {
+      new_attr_mP->set_data_from(std::move(*attr_mP));
+    }
+    else {
+      new_pointcloud.copy_center_to_motion_step(0);
+    }
+  }
 
   /* Update original sockets. */
+
+  pointcloud->clear_non_sockets();
+
   for (const SocketType &socket : new_pointcloud.type->inputs) {
     /* Those sockets are updated in sync_object, so do not modify them. */
     if (socket.name == "use_motion_blur" || socket.name == "used_shaders") {

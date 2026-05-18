@@ -861,9 +861,6 @@ static void weld_poly_split_recursive(int poly_loop_len,
  * Alloc Weld Polygons and Weld Loops.
  *
  * \param remain_edge_ctx_len: Context weld edges that won't be destroyed by merging.
- * \param r_vlinks: An uninitialized buffer used to compute groups of WeldPolys attached to each
- *                  weld target vertex. It doesn't need to be passed as a parameter but this is
- *                  done to reduce allocations.
  * \return r_weld_mesh: Loop and face members will be configured here.
  */
 static void weld_poly_loop_ctx_setup_collapsed_and_split(const int remain_edge_ctx_len,

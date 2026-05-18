@@ -286,7 +286,7 @@ void PrefetchJob::free_gpu()
 
 static void seq_prefetch_update_area(PrefetchJob *pfjob)
 {
-  int cfra = pfjob->scene->r.cfra - before_playhead_frames;
+  int cfra = math::max(pfjob->scene->r.cfra - before_playhead_frames, pfjob->timeline_start);
 
   /* rebase */
   if (cfra > pfjob->cfra) {
@@ -294,13 +294,13 @@ static void seq_prefetch_update_area(PrefetchJob *pfjob)
     pfjob->cfra = cfra;
     pfjob->num_frames_prefetched -= delta;
 
-    pfjob->num_frames_prefetched = std::max(pfjob->num_frames_prefetched, 1);
+    pfjob->num_frames_prefetched = std::max(pfjob->num_frames_prefetched, 0);
   }
 
   /* reset */
   if (cfra < pfjob->cfra) {
     pfjob->cfra = cfra;
-    pfjob->num_frames_prefetched = 1;
+    pfjob->num_frames_prefetched = 0;
   }
 
   /* timeline span changes */
@@ -314,14 +314,14 @@ static void seq_prefetch_update_area(PrefetchJob *pfjob)
     /* Reset the number of prefetched frames as we need to re-evaluate which
      * frames to keep in the cache.
      */
-    pfjob->num_frames_prefetched = 1;
+    pfjob->num_frames_prefetched = 0;
   }
 
   /* cache flag changes */
   Scene *scene = pfjob->scene;
   if (pfjob->cache_flags != scene->ed->cache_flag) {
     pfjob->cache_flags = scene->ed->cache_flag;
-    pfjob->num_frames_prefetched = 1;
+    pfjob->num_frames_prefetched = 0;
   }
 }
 
@@ -634,7 +634,7 @@ static PrefetchJob *seq_prefetch_start_ex(const RenderData *context, float cfra)
 
   pfjob->cfra = math::max(int(cfra - before_playhead_frames), pfjob->timeline_start);
 
-  pfjob->num_frames_prefetched = 1;
+  pfjob->num_frames_prefetched = 0;
   pfjob->cache_flags = scene->ed->cache_flag;
 
   pfjob->waiting = false;

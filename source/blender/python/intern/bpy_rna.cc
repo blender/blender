@@ -2370,7 +2370,7 @@ static int pyrna_prop_collection_bool(BPy_PropertyRNA *self)
   (void)0
 
 /**
- * \param result: The result of calling a subscription operation on a collection (never nullptr).
+ * \param value: The result of calling a subscription operation on a collection (never nullptr).
  */
 static int pyrna_prop_collection_subscript_is_valid_or_error(const PyObject *value)
 {
@@ -10300,6 +10300,8 @@ void BPY_free_srna_pytype(StructRNA *srna)
     RNA_struct_py_type_set(srna, nullptr);
   }
 }
+
+/** \} */
 
 /* -------------------------------------------------------------------- */
 /** \name RNA Class Register Method
