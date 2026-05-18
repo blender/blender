@@ -8,6 +8,8 @@
 
 #include "RNA_enum_types.hh"
 
+#include "NOD_geometry_nodes_list.hh"
+
 #include "node_geometry_util.hh"
 
 namespace blender::nodes::node_geo_get_attribute_names_cc {
