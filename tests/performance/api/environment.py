@@ -92,7 +92,7 @@ class TestEnvironment:
 
         print('Done')
 
-    def checkout(self, git_hash: str) -> None:
+    def checkout(self, git_hash: str, update_submodules: bool = True) -> None:
         # Checkout Blender revision
         if not self.blender_dir.exists():
             sys.stderr.write('\n\nError: no build set up, run `./benchmark init --build` first\n')
@@ -102,7 +102,24 @@ class TestEnvironment:
         self.call([self.git_executable, 'reset', '--hard', 'HEAD'], self.blender_dir)
         self.call([self.git_executable, 'checkout', '--detach', git_hash], self.blender_dir)
 
-    def build(self, git_hash: str, install_dir: pathlib.Path) -> bool:
+        if update_submodules:
+            self.call([self.git_executable, 'submodule', 'update', '--recursive', '--force'], self.blender_dir)
+
+    def _submodule_key(self) -> str:
+        """
+        Return a key to identify the current submodule checkout. The key only includes checked out
+        submodules.
+
+        The key is used to determine if submodules have changed between builds. In that case the
+        CMakeCache should be reevaluated as it can point to different libraries/versions.
+        """
+        log_lines = self.call([self.git_executable, 'submodule', 'status'], self.blender_dir, silent=True)
+        # Only add submodules that are checked out
+        log_lines = [line for line in log_lines if not line.startswith("-")]
+        submodule_key = ",".join([l.split()[0] for l in log_lines])
+        return submodule_key
+
+    def build(self, git_hash: str, install_dir: pathlib.Path, update_submodules: bool = True) -> bool:
         # Build Blender revision
         if not self.build_dir.exists():
             sys.stderr.write('\n\nError: no build set up, run `./benchmark init --build` first\n')
@@ -120,13 +137,19 @@ class TestEnvironment:
         else:
             complete_txt = None
 
-        self.checkout(git_hash)
+        old_submodule_key = self._submodule_key()
+        self.checkout(git_hash, update_submodules)
+        new_submodule_key = self._submodule_key()
+        if old_submodule_key != new_submodule_key:
+            cmake_cache = self.build_dir / "CMakeCache.txt"
+            if cmake_cache.exists():
+                cmake_cache.unlink()
 
         jobs = str(multiprocessing.cpu_count())
         cmake_options = list(self.cmake_options)
         cmake_options += [f"-DCMAKE_INSTALL_PREFIX={install_dir}"]
         try:
-            self.call([self.cmake_executable, '.'] + cmake_options, self.build_dir)
+            self.call([self.cmake_executable, self.blender_dir, '.'] + cmake_options, self.build_dir)
             self.call([self.cmake_executable, '--build', '.', '-j', jobs, '--target', 'install'], self.build_dir)
             if complete_txt:
                 complete_txt.write_text(git_hash)
