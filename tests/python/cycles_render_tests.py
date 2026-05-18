@@ -224,7 +224,7 @@ def get_arguments(filepath, output_filepath, use_hwrt, osl, extra_args):
 
     args.extend(extra_args)
 
-    if subject == 'bake':
+    if subject.startswith('bake'):
         args.extend(['--python', os.path.join(basedir, "util", "render_bake.py")])
     elif subject == 'denoise_animation':
         args.extend(['--python', os.path.join(basedir, "util", "render_denoise.py")])
