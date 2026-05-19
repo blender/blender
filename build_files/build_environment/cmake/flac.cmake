@@ -3,15 +3,12 @@
 # SPDX-License-Identifier: GPL-2.0-or-later
 
 if(NOT WIN32)
-  set(FLAC_EXTRA_ARGS "")
 
-  if(ANDROID)
-    set(FLAC_EXTRA_ARGS
-      ${FLAC_EXTRA_ARGS}
-      --with-ogg-includes=${LIBDIR}/ogg/include
-      --with-ogg-libraries=${LIBDIR}/ogg/lib
-    )
-  endif()
+  set(FLAC_EXTRA_ARGS
+    ${FLAC_EXTRA_ARGS}
+    --with-ogg-includes=${LIBDIR}/ogg/include
+    --with-ogg-libraries=${LIBDIR}/ogg/lib
+  )
 
   ExternalProject_Add(external_flac
     URL file://${PACKAGE_DIR}/${FLAC_FILE}
