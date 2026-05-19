@@ -160,11 +160,12 @@ def _write_json_files(
     page_infos: list[api_models.URLWithHash] = []
     for page_index, page in enumerate(asset_index_pages):
         page_relpath = listing_common.api_versioned(f"assets-{page_index:05}.json")
-        _save_json(page, outdir_root / page_relpath)
+        page_abspath = outdir_root / page_relpath
+        _save_json(page, page_abspath)
 
         page_infos.append(api_models.URLWithHash(
             url=urllib.parse.quote(page_relpath.as_posix()),
-            hash=hashing.hash_file(page_relpath),
+            hash=hashing.hash_file(page_abspath),
         ))
 
     # Library Index file /_v1/asset-index.json:
