@@ -285,6 +285,8 @@ struct MeshCollider {
   float friction;
   float compliance;
   bool use_edge_contacts;
+  /** If true, the points are expected to stay inside of the mesh instead of being pushed out. */
+  bool is_boundary;
 };
 struct MeshColliderUsage {
   /** Index of corresponding #MeshCollider. */
@@ -892,6 +894,7 @@ class XpbdSolverStep {
       const float compliance = bundle.lookup<float>("compliance"_ustr).value_or(0.0f);
       const bool deforming = bundle.lookup<bool>("deforming"_ustr).value_or(false);
       const bool use_edge_contacts = bundle.lookup<bool>("use_edge_contacts"_ustr).value_or(false);
+      const bool is_boundary = bundle.lookup<bool>("is_boundary"_ustr).value_or(false);
       const bke::GeometrySet *prev_geometry = previous_bundle ?
                                                   previous_bundle->lookup_ptr<bke::GeometrySet>(
                                                       "geometry"_ustr) :
@@ -916,6 +919,7 @@ class XpbdSolverStep {
                                          compliance,
                                          deforming,
                                          use_edge_contacts,
+                                         is_boundary,
                                          affected_data,
                                          instance_id_stack);
     }
@@ -1066,11 +1070,13 @@ class XpbdSolverStep {
                                                                   prev_contact_pos_mesh);
 
       /* Separating axis to move self out of penetration. */
-      const float3 collision_axis = contact->is_inside ? contact_pos_local - pos_local :
-                                                         pos_local - contact_pos_local;
+      const float3 collision_axis = (pos_local - contact_pos_local) *
+                                    (contact->is_inside ? -1.0f : 1.0f) *
+                                    (collider.is_boundary ? -1.0f : 1.0f);
       const float3 valid_axis = math::normalize(math::is_zero(collision_axis, 1e-6f) ?
                                                     math::transpose(float3x3(local_to_mesh)) *
-                                                        contact->face_nor :
+                                                        contact->face_nor *
+                                                        (collider.is_boundary ? -1.0f : 1.0f) :
                                                     collision_axis);
 
       const float static_friction = this->compute_contact_friction(
@@ -1173,7 +1179,8 @@ class XpbdSolverStep {
         r_edge_contacts.positions_on_edge.append(contact_pos_local);
         r_edge_contacts.collider_motion.append(contact_pos_local - prev_contact_pos_local);
         r_edge_contacts.edge_directions.append(edge_direction_local);
-        r_edge_contacts.edge_normals.append(edge_normal_local);
+        r_edge_contacts.edge_normals.append(edge_normal_local *
+                                            (collider.is_boundary ? -1.0f : 1.0f));
         r_edge_contacts.edge_margins.append(margin_local);
         r_edge_contacts.static_frictions.append(static_friction);
         r_edge_contacts.dynamic_frictions.append(dynamic_friction);
@@ -1372,6 +1379,7 @@ class XpbdSolverStep {
                                     const float compliance,
                                     const bool deforming,
                                     const bool use_edge_contacts,
+                                    const bool is_boundary,
                                     const Span<int> affected_data,
                                     Vector<int> &instance_id_stack)
   {
@@ -1384,6 +1392,7 @@ class XpbdSolverStep {
         mesh_collider.friction = friction;
         mesh_collider.compliance = compliance;
         mesh_collider.use_edge_contacts = use_edge_contacts;
+        mesh_collider.is_boundary = is_boundary;
         mesh_collider.begin_transform = prev_transform;
         mesh_collider.end_transform = transform;
         const Mesh *prev_mesh = prev_collider_geo ? prev_collider_geo->get_mesh() : nullptr;
@@ -1451,6 +1460,7 @@ class XpbdSolverStep {
                                            compliance,
                                            deforming,
                                            use_edge_contacts,
+                                           is_boundary,
                                            affected_data,
                                            instance_id_stack);
       }
