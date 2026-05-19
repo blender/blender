@@ -15,7 +15,9 @@
 
 namespace blender {
 
-/******************************** Color Space ********************************/
+/* -------------------------------------------------------------------- */
+/** \name Color Space
+ * \{ */
 
 MINLINE void srgb_to_linearrgb_v4(float linear[4], const float srgb[4])
 {
@@ -186,6 +188,8 @@ MINLINE void cpack_cpy_3ub(unsigned char r_col[3], const unsigned int pack)
   r_col[2] = ((pack) >> 16) & 0xFF;
 }
 
+/** \} */
+
 /* -------------------------------------------------------------------- */
 /** \name sRGB/Gray-Scale Functions
  *
@@ -217,6 +221,10 @@ MINLINE unsigned char srgb_to_grayscale_byte(const unsigned char rgb[3])
 }
 
 /** \} */
+
+/* -------------------------------------------------------------------- */
+/** \name Color Compare / Pack
+ * \{ */
 
 MINLINE int compare_rgb_uchar(const unsigned char col_a[3],
                               const unsigned char col_b[3],
@@ -266,7 +274,11 @@ MINLINE void float_to_byte_dither_v3(
   b[2] = unit_float_to_uchar_clamp(dither_value + f[2]);
 }
 
-/**************** Alpha Transformations *****************/
+/** \} */
+
+/* -------------------------------------------------------------------- */
+/** \name Alpha Transformations
+ * \{ */
 
 MINLINE void premul_to_straight_v4_v4(float straight[4], const float premul[4])
 {
@@ -333,5 +345,7 @@ MINLINE void premul_float_to_straight_uchar(unsigned char *result, const float c
     result[3] = unit_float_to_uchar_clamp(color[3]);
   }
 }
+
+/** \} */
 
 }  // namespace blender

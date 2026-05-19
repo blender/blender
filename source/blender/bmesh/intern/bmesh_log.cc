@@ -117,7 +117,9 @@ struct BMLogFace {
   char hflag;
 };
 
-/************************* Get/set element IDs ************************/
+/* -------------------------------------------------------------------- */
+/** \name Get/Set Element IDs
+ * \{ */
 
 /* Get the vertex's unique ID from the log */
 static uint bm_log_vert_id_get(BMLog *log, BMVert *v)
@@ -157,7 +159,11 @@ static BMFace *bm_log_face_from_id(BMLog *log, const uint id)
   return reinterpret_cast<BMFace *>(log->id_to_elem.lookup(id));
 }
 
-/************************ BMLogVert / BMLogFace ***********************/
+/** \} */
+
+/* -------------------------------------------------------------------- */
+/** \name BMLogVert / BMLogFace
+ * \{ */
 
 /* Get a vertex's paint-mask value
  *
@@ -222,7 +228,11 @@ static BMLogFace *bm_log_face_alloc(BMLog *log, BMFace *f)
   return lf;
 }
 
-/************************ Helpers for undo/redo ***********************/
+/** \} */
+
+/* -------------------------------------------------------------------- */
+/** \name Helpers for Undo/Redo
+ * \{ */
 
 static void bm_log_verts_unmake(BMesh *bm, BMLog *log, const Map<uint, BMLogVert *, 0> &verts)
 {
@@ -329,8 +339,6 @@ static void bm_log_face_values_swap(BMLog *log, const Map<uint, BMLogFace *, 0> 
   }
 }
 
-/**********************************************************************/
-
 /* Assign unique IDs to all vertices and faces already in the BMesh */
 static void bm_log_assign_ids(BMesh *bm, BMLog *log)
 {
@@ -379,7 +387,11 @@ static void bm_log_entry_free(BMLogEntry *entry)
   BLI_assert(entry->face_pool.is_empty());
 }
 
-/***************************** Public API *****************************/
+/** \} */
+
+/* -------------------------------------------------------------------- */
+/** \name Public API
+ * \{ */
 
 BMLog *BM_log_create(BMesh *bm)
 {
@@ -809,7 +821,11 @@ void BM_log_original_vert_data(BMLog *log, BMVert *v, const float **r_co, const 
   *r_no = lv->normal;
 }
 
-/************************ Debugging and Testing ***********************/
+/** \} */
+
+/* -------------------------------------------------------------------- */
+/** \name Debugging and Testing
+ * \{ */
 
 #ifndef NDEBUG
 BMLogEntry *BM_log_current_entry(BMLog *log)
@@ -868,5 +884,7 @@ void BM_log_print_entry(BMesh *bm, BMLogEntry *entry)
   printf("}\n");
 }
 #endif
+
+/** \} */
 
 }  // namespace blender

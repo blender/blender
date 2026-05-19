@@ -2956,7 +2956,7 @@ class XpbdSolverStep {
     if (filter_local) {
       const int pos = effector_path.rfind('/');
       if (pos == StringRef::not_found) {
-        /* The effector is at the root level, so a local filter applies to everything.*/
+        /* The effector is at the root level, so a local filter applies to everything. */
         return true;
       }
       const StringRef effector_parent_path = effector_path.substr(0, pos + 1);

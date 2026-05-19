@@ -16,7 +16,9 @@
 
 namespace blender {
 
-/********************************** Covariance Matrices *********************************/
+/* -------------------------------------------------------------------- */
+/** \name Covariance Matrices
+ * \{ */
 
 struct CovarianceData {
   const float *cos_vn;
@@ -129,5 +131,7 @@ void BLI_covariance_m3_v3n(const float (*cos_v3)[3],
                          use_sample_correction,
                          reinterpret_cast<float *>(r_covmat));
 }
+
+/** \} */
 
 }  // namespace blender

@@ -32,7 +32,7 @@ void _bli_array_wrap(void *arr_v, uint arr_len, size_t arr_stride, int dir);
 #define BLI_array_wrap(arr, arr_len, dir) _bli_array_wrap(arr, arr_len, sizeof(*(arr)), dir)
 
 /**
- *In-place array permute.
+ * In-place array permute.
  * (re-arrange elements based on an array of indices).
  *
  * Access via #BLI_array_wrap

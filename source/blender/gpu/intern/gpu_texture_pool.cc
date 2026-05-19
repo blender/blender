@@ -61,7 +61,7 @@ Texture *TexturePoolImpl::acquire_texture(int2 extent,
   }
 
   /* Generate debug label name, if one isn't passed in `name`. TexturePoolImpl ignores the
-   *name argument, as returned textures do not shadow/view/abstract the underlying texture. */
+   * name argument, as returned textures do not shadow/view/abstract the underlying texture. */
   std::string name_str;
   if (G.debug & G_DEBUG_GPU) {
     name_str = fmt::format("TexFromPool_{}", pool_.size());

@@ -75,9 +75,9 @@ namespace blender {
 
 static ThreadRWMutex psys_bvhtree_rwlock = BLI_RWLOCK_INITIALIZER;
 
-/************************************************/
-/*          Reacting to system events           */
-/************************************************/
+/* -------------------------------------------------------------------- */
+/** \name Reacting to System Events
+ * \{ */
 
 static int particles_are_dynamic(ParticleSystem *psys)
 {
@@ -300,9 +300,11 @@ int psys_get_tot_child(Scene *scene, ParticleSystem *psys, const bool use_render
   return psys->totpart * psys_get_child_number(scene, psys, use_render_params);
 }
 
-/************************************************/
-/*          Distribution                        */
-/************************************************/
+/** \} */
+
+/* -------------------------------------------------------------------- */
+/** \name Distribution
+ * \{ */
 
 void psys_calc_dmcache(Object *ob, Mesh *mesh_final, Mesh *mesh_original, ParticleSystem *psys)
 {
@@ -1140,9 +1142,11 @@ static void reset_all_particles(ParticleSimulationData *sim, float dtime, float 
   }
 }
 
-/************************************************/
-/*          Particle targets                    */
-/************************************************/
+/** \} */
+
+/* -------------------------------------------------------------------- */
+/** \name Particle Targets
+ * \{ */
 
 ParticleSystem *psys_get_target_system(Object *ob, ParticleTarget *pt)
 {
@@ -1165,9 +1169,11 @@ ParticleSystem *psys_get_target_system(Object *ob, ParticleTarget *pt)
   return psys;
 }
 
-/************************************************/
-/*          Keyed particles                     */
-/************************************************/
+/** \} */
+
+/* -------------------------------------------------------------------- */
+/** \name Keyed Particles
+ * \{ */
 
 void psys_count_keyed_targets(ParticleSimulationData *sim)
 {
@@ -1272,9 +1278,11 @@ static void set_keyed_keys(ParticleSimulationData *sim)
   psys->flag |= PSYS_KEYED;
 }
 
-/************************************************/
-/*          Point Cache                         */
-/************************************************/
+/** \} */
+
+/* -------------------------------------------------------------------- */
+/** \name Point Cache
+ * \{ */
 
 void psys_make_temp_pointcache(Object *ob, ParticleSystem *psys)
 {
@@ -1310,9 +1318,11 @@ static void bvhtree_balance_isolated(void *userdata)
   BLI_bvhtree_balance(static_cast<BVHTree *>(userdata));
 }
 
-/************************************************/
-/*          Effectors                           */
-/************************************************/
+/** \} */
+
+/* -------------------------------------------------------------------- */
+/** \name Effectors
+ * \{ */
 
 static void psys_update_particle_bvhtree(ParticleSystem *psys, float cfra)
 {
@@ -1540,8 +1550,10 @@ static void integrate_particle(
   }
 }
 
+/** \} */
+
 /* -------------------------------------------------------------------- */
-/** \name SPH fluid physics
+/** \name SPH Fluid Physics
  *
  * In theory, there could be unlimited implementation of SPH simulators
  *
@@ -2211,9 +2223,9 @@ static void sph_integrate(ParticleSimulationData *sim,
 
 /** \} */
 
-/************************************************/
-/*          Basic physics                       */
-/************************************************/
+/* -------------------------------------------------------------------- */
+/** \name Basic Physics
+ * \{ */
 
 struct EfData {
   ParticleTexture ptex;
@@ -2369,15 +2381,17 @@ static void basic_rotate(ParticleSettings *part, ParticleData *pa, float dfra, f
   normalize_qt(pa->state.rot);
 }
 
-/************************************************
- * Collisions
+/** \} */
+
+/* -------------------------------------------------------------------- */
+/** \name Collisions
  *
  * The algorithm is roughly:
  *  1. Use a BVH tree to search for faces that a particle may collide with.
  *  2. Use Newton's method to find the exact time at which the collision occurs.
  *     https://en.wikipedia.org/wiki/Newton's_method
- *
- ************************************************/
+ * \{ */
+
 #define COLLISION_MIN_RADIUS 0.001f
 #define COLLISION_MIN_DISTANCE 0.0001f
 #define COLLISION_ZERO 0.00001f
@@ -3166,9 +3180,11 @@ static void collision_check(ParticleSimulationData *sim, int p, float dfra, floa
   }
 }
 
-/************************************************/
-/*          Hair                                */
-/************************************************/
+/** \} */
+
+/* -------------------------------------------------------------------- */
+/** \name Hair
+ * \{ */
 
 /**
  * Check if path cache or children need updating and do it if needed.
@@ -3686,9 +3702,11 @@ static float sync_timestep(ParticleSystem *psys, float t_frac)
   return psys->dt_frac;
 }
 
-/************************************************/
-/*          System Core                         */
-/************************************************/
+/** \} */
+
+/* -------------------------------------------------------------------- */
+/** \name System Core
+ * \{ */
 
 struct DynamicStepSolverTaskData {
   ParticleSimulationData *sim;
@@ -5064,7 +5082,11 @@ void BKE_particlesystem_reset_all(Object *object)
   }
 }
 
-/* **** Depsgraph evaluation **** */
+/** \} */
+
+/* -------------------------------------------------------------------- */
+/** \name Depsgraph Evaluation
+ * \{ */
 
 void BKE_particle_settings_eval_reset(Depsgraph *depsgraph, ParticleSettings *particle_settings)
 {
@@ -5082,5 +5104,7 @@ void BKE_particle_system_eval_init(Depsgraph *depsgraph, Object *object)
     psys->recalc |= (psys->part->id.recalc & ID_RECALC_PSYS_ALL);
   }
 }
+
+/** \} */
 
 }  // namespace blender

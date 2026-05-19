@@ -700,8 +700,10 @@ enum eRender_Flag : short {
   /** Use preview range. */
   SCER_PRV_RANGE = 1 << 0,
   SCER_LOCK_FRAME_SELECTION = 1 << 1,
-  /* If set, allows frames before the playback start frame to be played instead of snapping to the
-     start frame. */
+  /**
+   * If set, allows frames before the playback start frame to be played
+   * instead of snapping to the start frame.
+   */
   SCER_ALLOW_PREROLL = 1 << 2,
   /** Show/use sub-frames (for checking motion blur). */
   SCER_SHOW_SUBFRAME = 1 << 3,
@@ -1913,8 +1915,13 @@ enum eSnapMode : short {
   SCE_SNAP_TO_KEYS = (1 << 3),
   SCE_SNAP_TO_STRIPS = (1 << 4),
 
-  /** #ToolSettings::snap_mode and #ToolSettings::snap_node_mode and #ToolSettings.snap_uv_mode and
-     #ToolSettings::snap_mode_tools */
+  /**
+   * Used for:
+   * - #ToolSettings::snap_mode
+   * - #ToolSettings::snap_node_mode
+   * - #ToolSettings.snap_uv_mode
+   * - #ToolSettings::snap_mode_tools
+   */
   SCE_SNAP_TO_POINT = (1 << 0),
   SCE_SNAP_TO_EDGE_MIDPOINT = (1 << 1),
   SCE_SNAP_TO_EDGE_ENDPOINT = (1 << 2),

@@ -530,9 +530,9 @@ static void psys_free_path_cache_buffers(ParticleCacheKey **cache, ListBaseT<Lin
   BLI_freelistN(bufs);
 }
 
-/************************************************/
-/*          Getting stuff                       */
-/************************************************/
+/* -------------------------------------------------------------------- */
+/** \name Getting Stuff
+ * \{ */
 
 ParticleSystem *psys_get_current(Object *ob)
 {
@@ -831,9 +831,11 @@ int psys_uses_gravity(ParticleSimulationData *sim)
          sim->psys->part->effector_weights->global_gravity != 0.0f;
 }
 
-/************************************************/
-/*          Freeing stuff                       */
-/************************************************/
+/** \} */
+
+/* -------------------------------------------------------------------- */
+/** \name Freeing Stuff
+ * \{ */
 
 static void fluid_free_settings(SPHFluidSettings *fluid)
 {
@@ -1117,9 +1119,11 @@ void psys_copy_particles(ParticleSystem *psys_dst, ParticleSystem *psys_src)
   }
 }
 
-/************************************************/
-/*          Interpolation                       */
-/************************************************/
+/** \} */
+
+/* -------------------------------------------------------------------- */
+/** \name Interpolation
+ * \{ */
 
 static float interpolate_particle_value(
     float v1, float v2, float v3, float v4, const float w[4], int four)
@@ -1590,9 +1594,11 @@ static void interpolate_pathcache(ParticleCacheKey *first, float t, ParticleCach
   }
 }
 
-/************************************************/
-/*          Particles on a dm                   */
-/************************************************/
+/** \} */
+
+/* -------------------------------------------------------------------- */
+/** \name Particles on a DM
+ * \{ */
 
 void psys_interpolate_face(Mesh *mesh,
                            const float (*vert_positions)[3],
@@ -2166,9 +2172,11 @@ ParticleSystemModifierData *psys_get_modifier(Object *ob, ParticleSystem *psys)
   return nullptr;
 }
 
-/************************************************/
-/*          Particles on a shape                */
-/************************************************/
+/** \} */
+
+/* -------------------------------------------------------------------- */
+/** \name Particles on a Shape
+ * \{ */
 
 /* ready for future use */
 static void psys_particle_on_shape(int /*distr*/,
@@ -2199,9 +2207,11 @@ static void psys_particle_on_shape(int /*distr*/,
   }
 }
 
-/************************************************/
-/*          Particles on emitter                */
-/************************************************/
+/** \} */
+
+/* -------------------------------------------------------------------- */
+/** \name Particles on Emitter
+ * \{ */
 
 void psys_emitter_customdata_mask(ParticleSystem *psys, CustomData_MeshMasks *r_cddata_masks)
 {
@@ -2274,9 +2284,11 @@ void psys_particle_on_emitter(ParticleSystemModifierData *psmd,
   }
 }
 
-/************************************************/
-/*          Path Cache                          */
-/************************************************/
+/** \} */
+
+/* -------------------------------------------------------------------- */
+/** \name Path Cache
+ * \{ */
 
 void precalc_guides(ParticleSimulationData *sim, ListBaseT<EffectorCache> *effectors)
 {
@@ -3727,9 +3739,11 @@ void psys_cache_edit_paths(Depsgraph *depsgraph,
   }
 }
 
-/************************************************/
-/*          Particle Key handling               */
-/************************************************/
+/** \} */
+
+/* -------------------------------------------------------------------- */
+/** \name Particle Key Handling
+ * \{ */
 
 void copy_particle_key(ParticleKey *to, ParticleKey *from, int time)
 {
@@ -3907,9 +3921,11 @@ void psys_mat_hair_to_global(
   mul_m4_m4m4(hairmat, ob->object_to_world().ptr(), facemat);
 }
 
-/************************************************/
-/*          ParticleSettings handling           */
-/************************************************/
+/** \} */
+
+/* -------------------------------------------------------------------- */
+/** \name ParticleSettings Handling
+ * \{ */
 
 static ModifierData *object_add_or_copy_particle_system(
     Main *bmain, const Scene *scene, Object *ob, const char *name, const ParticleSystem *psys_orig)
@@ -4137,9 +4153,11 @@ void BKE_particlesettings_twist_curve_init(ParticleSettings *part)
   part->twistcurve = cumap;
 }
 
-/************************************************/
-/*          Textures                            */
-/************************************************/
+/** \} */
+
+/* -------------------------------------------------------------------- */
+/** \name Textures
+ * \{ */
 
 static int get_particle_uv(Mesh *mesh,
                            ParticleData *pa,
@@ -4461,9 +4479,11 @@ void psys_get_texture(
   CLAMP_PARTICLE_TEXTURE_POS(PAMAP_LENGTH, ptex->length);
 }
 
-/************************************************/
-/*          Particle State                      */
-/************************************************/
+/** \} */
+
+/* -------------------------------------------------------------------- */
+/** \name Particle State
+ * \{ */
 
 float psys_get_timestep(ParticleSimulationData *sim)
 {
@@ -5701,5 +5721,7 @@ void BKE_particle_system_blend_read_after_liblink(BlendLibReader * /*reader*/,
     }
   }
 }
+
+/** \} */
 
 }  // namespace blender

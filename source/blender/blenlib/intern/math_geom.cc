@@ -23,7 +23,9 @@
 
 namespace blender {
 
-/********************************** Polygons *********************************/
+/* -------------------------------------------------------------------- */
+/** \name Polygons
+ * \{ */
 
 void cross_tri_v3(float n[3], const float v1[3], const float v2[3], const float v3[3])
 {
@@ -214,7 +216,11 @@ float cotangent_tri_weight_v3(const float v1[3], const float v2[3], const float 
   return 0.0f;
 }
 
-/********************************* Planes **********************************/
+/** \} */
+
+/* -------------------------------------------------------------------- */
+/** \name Planes
+ * \{ */
 
 void plane_from_point_normal_v3(float r_plane[4], const float plane_co[3], const float plane_no[3])
 {
@@ -236,7 +242,11 @@ void plane_to_point_vector_v3_normalized(const float plane[4],
   mul_v3_v3fl(r_plane_co, r_plane_no, (-plane[3] / length));
 }
 
-/********************************* Volume **********************************/
+/** \} */
+
+/* -------------------------------------------------------------------- */
+/** \name Volume
+ * \{ */
 
 float volume_tetrahedron_v3(const float v1[3],
                             const float v2[3],
@@ -275,7 +285,11 @@ float volume_tri_tetrahedron_signed_v3(const float v1[3], const float v2[3], con
   return volume_tri_tetrahedron_signed_v3_6x(v1, v2, v3) / 6.0f;
 }
 
-/********************************* Distance **********************************/
+/** \} */
+
+/* -------------------------------------------------------------------- */
+/** \name Distance
+ * \{ */
 
 float dist_squared_to_line_v2(const float p[2], const float l1[2], const float l2[2])
 {
@@ -680,6 +694,8 @@ void aabb_get_near_far_from_plane(const float plane_no[3],
   }
 }
 
+/** \} */
+
 /* -------------------------------------------------------------------- */
 /** \name dist_squared_to_ray_to_aabb and helpers
  * \{ */
@@ -1002,6 +1018,10 @@ float dist_squared_to_projected_aabb_simple(const float projmat[4][4],
 
 /** \} */
 
+/* -------------------------------------------------------------------- */
+/** \name Distance Closest Point
+ * \{ */
+
 float dist_seg_seg_v2(const float a1[3], const float a2[3], const float b1[3], const float b2[3])
 {
   if (isect_seg_seg_v2_simple(a1, a2, b1, b2)) {
@@ -1110,7 +1130,11 @@ void closest_on_tri_to_point_v3(
   add_v3_v3(r, ac);
 }
 
-/******************************* Intersection ********************************/
+/** \} */
+
+/* -------------------------------------------------------------------- */
+/** \name Intersection
+ * \{ */
 
 int isect_seg_seg_v2_int(const int v1[2], const int v2[2], const int v3[2], const int v4[2])
 {
@@ -2476,6 +2500,8 @@ bool isect_tri_tri_v3(const float t_a0[3],
   return isect_tri_tri_v3_ex(tri_a, tri_b, r_i1, r_i2, &dummy);
 }
 
+/** \} */
+
 /* -------------------------------------------------------------------- */
 /** \name Tri-Tri Intersect 2D
  *
@@ -2653,6 +2679,10 @@ bool isect_tri_tri_v2(const float t_a0[2],
 }
 
 /** \} */
+
+/* -------------------------------------------------------------------- */
+/** \name Intersection Sphere Sweep / Ray
+ * \{ */
 
 /* Adapted from the paper by Kasper Fauerby */
 
@@ -3607,7 +3637,11 @@ bool clip_segment_v3_plane_n(const float p1[3],
   return true;
 }
 
-/****************************** Axis Utils ********************************/
+/** \} */
+
+/* -------------------------------------------------------------------- */
+/** \name Axis Utils
+ * \{ */
 
 void axis_dominant_v3_to_m3(float r_mat[3][3], const float normal[3])
 {
@@ -3642,7 +3676,11 @@ void axis_dominant_v3_to_m3_negate(float r_mat[3][3], const float normal[3])
   BLI_assert((dot_m3_v3_row_z(r_mat, normal) < BLI_ASSERT_UNIT_EPSILON) || is_zero_v3(normal));
 }
 
-/****************************** Interpolation ********************************/
+/** \} */
+
+/* -------------------------------------------------------------------- */
+/** \name Interpolation
+ * \{ */
 
 static float tri_signed_area(
     const float v1[3], const float v2[3], const float v3[3], const int i, const int j)
@@ -4093,6 +4131,8 @@ int interp_sparse_array(float *array, const int list_size, const float skipval)
   return 1;
 }
 
+/** \} */
+
 /* -------------------------------------------------------------------- */
 /** \name interp_weights_poly_v2, v3
  * \{ */
@@ -4343,6 +4383,10 @@ void interp_weights_poly_v2(float *w, float v[][2], const int n, const float co[
 #undef DIR_V2_SET
 
 /** \} */
+
+/* -------------------------------------------------------------------- */
+/** \name Interpolation Cubic / Misc
+ * \{ */
 
 void interp_cubic_v3(float x[3],
                      float v[3],
@@ -4603,7 +4647,11 @@ void interp_barycentric_tri_v3(float data[3][3], float u, float v, float res[3])
   add_v3_v3(res, vec);
 }
 
-/***************************** View & Projection *****************************/
+/** \} */
+
+/* -------------------------------------------------------------------- */
+/** \name View & Projection
+ * \{ */
 
 void orthographic_m4(float mat[4][4],
                      const float left,
@@ -5004,7 +5052,11 @@ void box_minmax_bounds_m4(float min[3], float max[3], float boundbox[2][3], floa
   copy_v3_v3(max, mx);
 }
 
-/********************************** Mapping **********************************/
+/** \} */
+
+/* -------------------------------------------------------------------- */
+/** \name Mapping
+ * \{ */
 
 static float snap_coordinate(float u)
 {
@@ -5084,7 +5136,11 @@ void map_to_plane_axis_angle_v2_v3v3fl(float r_co[2],
   copy_v2_v2(r_co, tmp);
 }
 
-/********************************* Normals **********************************/
+/** \} */
+
+/* -------------------------------------------------------------------- */
+/** \name Normals
+ * \{ */
 
 void accumulate_vertex_normals_tri_v3(float n1[3],
                                       float n2[3],
@@ -5202,7 +5258,11 @@ void accumulate_vertex_normals_poly_v3(float **vertnos,
   }
 }
 
-/********************************* Tangents **********************************/
+/** \} */
+
+/* -------------------------------------------------------------------- */
+/** \name Tangents
+ * \{ */
 
 void tangent_from_uv_v3(const float uv1[2],
                         const float uv2[2],
@@ -5246,7 +5306,11 @@ void tangent_from_uv_v3(const float uv1[2],
   }
 }
 
-/****************************** Vector Clouds ********************************/
+/** \} */
+
+/* -------------------------------------------------------------------- */
+/** \name Vector Clouds
+ * \{ */
 
 /* vector clouds */
 
@@ -5625,5 +5689,7 @@ float geodesic_distance_propagate_across_triangle(
    * point found that connects to v0 across the triangle. */
   return min_ff(dist1 + len_v3(v10), dist2 + len_v3v3(v0, v2));
 }
+
+/** \} */
 
 }  // namespace blender

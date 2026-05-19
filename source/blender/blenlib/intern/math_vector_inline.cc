@@ -13,7 +13,9 @@
 
 namespace blender {
 
-/********************************** Init *************************************/
+/* -------------------------------------------------------------------- */
+/** \name Init
+ * \{ */
 
 MINLINE void zero_v2(float r[2])
 {
@@ -250,7 +252,11 @@ MINLINE void copy_v4_fl4(float v[4], float x, float y, float z, float w)
   v[3] = w;
 }
 
-/********************************* Arithmetic ********************************/
+/** \} */
+
+/* -------------------------------------------------------------------- */
+/** \name Arithmetic
+ * \{ */
 
 MINLINE void add_v2_fl(float r[2], float f)
 {
@@ -698,7 +704,11 @@ MINLINE void add_newell_cross_v3_v3v3(float n[3], const float v_prev[3], const f
   n[2] += (v_prev[0] - v_curr[0]) * (v_prev[1] + v_curr[1]);
 }
 
-/*********************************** Length **********************************/
+/** \} */
+
+/* -------------------------------------------------------------------- */
+/** \name Length
+ * \{ */
 
 MINLINE float len_squared_v2(const float v[2])
 {
@@ -933,7 +943,11 @@ MINLINE void normal_float_to_short_v3(short out[3], const float in[3])
   out[2] = short(in[2] * 32767.0f);
 }
 
-/********************************* Comparison ********************************/
+/** \} */
+
+/* -------------------------------------------------------------------- */
+/** \name Comparison
+ * \{ */
 
 MINLINE bool is_zero_v2(const float v[2])
 {
@@ -969,6 +983,8 @@ MINLINE bool is_one_v3(const float v[3])
 {
   return (v[0] == 1.0f && v[1] == 1.0f && v[2] == 1.0f);
 }
+
+/** \} */
 
 /* -------------------------------------------------------------------- */
 /** \name Vector Comparison

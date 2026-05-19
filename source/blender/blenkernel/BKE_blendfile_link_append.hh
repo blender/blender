@@ -249,7 +249,7 @@ BlendfileLinkAppendContextItem *BKE_blendfile_link_append_context_item_add(
  * the list of items to process.
  *
  * \note #BKE_blendfile_link_append_context_library_add should never be called on the same
- *`lapp_context` after this function.
+ * `lapp_context` after this function.
  *
  * \param id_types_filter: A set of `FILTER_ID` bit-flags, the types of IDs to add to the items
  *                         list.

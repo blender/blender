@@ -24,7 +24,8 @@ namespace blender {
 #  define EPS_SATURATION 0.0005f
 #  define EPS_ALPHA 0.0005f
 
-/***************************** Color Blending ********************************
+/* -------------------------------------------------------------------- */
+/** \name Color Blending
  *
  * - byte colors are assumed to be straight alpha
  * - byte colors uses to do >>8 (same as /256) but actually should do /255,
@@ -32,7 +33,7 @@ namespace blender {
  * - divide_round_i is also used to avoid darkening due to integers always
  *   rounding down
  * - float colors are assumed to be pre-multiplied alpha
- */
+ * \{ */
 
 /* straight alpha byte blending modes */
 
@@ -1132,5 +1133,7 @@ MINLINE void blend_color_interpolate_float(float dst[4],
 #  undef EPS_ALPHA
 
 #endif /* __MATH_COLOR_BLEND_INLINE_C__ */
+
+/** \} */
 
 }  // namespace blender

@@ -22,7 +22,9 @@
 
 namespace blender {
 
-/********************************** Eigen Solvers *********************************/
+/* -------------------------------------------------------------------- */
+/** \name Eigen Solvers
+ * \{ */
 
 bool BLI_eigen_solve_selfadjoint_m3(const float m3[3][3],
                                     float r_eigen_values[3],
@@ -50,7 +52,11 @@ void BLI_svd_m3(const float m3[3][3], float r_U[3][3], float r_S[3], float r_V[3
                         reinterpret_cast<float *>(r_V));
 }
 
-/***************************** Simple Solvers ************************************/
+/** \} */
+
+/* -------------------------------------------------------------------- */
+/** \name Simple Solvers
+ * \{ */
 
 bool BLI_tridiagonal_solve(
     const float *a, const float *b, const float *c, const float *d, float *r_x, const int count)
@@ -243,5 +249,7 @@ bool BLI_newton3d_solve(Newton3D_DeltaFunc func_delta,
   copy_v3_v3(result, x);
   return success;
 }
+
+/** \} */
 
 }  // namespace blender

@@ -55,9 +55,9 @@ struct SelfColDetectData {
   bool collided;
 };
 
-/***********************************
- * Collision modifier code start
- ***********************************/
+/* -------------------------------------------------------------------- */
+/** \name Collision modifier code start
+ * \{ */
 
 void collision_move_object(CollisionModifierData *collmd,
                            const float step,
@@ -160,9 +160,7 @@ void bvhtree_update_from_mvert(BVHTree *bvhtree,
   BLI_bvhtree_update_tree(bvhtree);
 }
 
-/* ***************************
- * Collision modifier code end
- * *************************** */
+/** \} */
 
 BLI_INLINE int next_ind(int i)
 {

@@ -175,7 +175,9 @@ struct SkinOutput {
 
 static void add_poly(SkinOutput *so, BMVert *v1, BMVert *v2, BMVert *v3, BMVert *v4);
 
-/***************************** Convex Hull ****************************/
+/* -------------------------------------------------------------------- */
+/** \name Convex Hull
+ * \{ */
 
 static bool is_quad_symmetric(BMVert *quad[4], const SkinModifierData *smd)
 {
@@ -478,7 +480,11 @@ static Frame **collect_hull_frames(
   return hull_frames;
 }
 
-/**************************** Create Frames ***************************/
+/** \} */
+
+/* -------------------------------------------------------------------- */
+/** \name Create Frames
+ * \{ */
 
 static void node_frames_init(SkinNode *nf, int totframe)
 {
@@ -680,7 +686,11 @@ static SkinNode *build_frames(const Span<float3> vert_positions,
   return skin_nodes;
 }
 
-/**************************** Edge Matrices ***************************/
+/** \} */
+
+/* -------------------------------------------------------------------- */
+/** \name Edge Matrices
+ * \{ */
 
 static void calc_edge_mat(float mat[3][3], const float a[3], const float b[3])
 {
@@ -828,7 +838,11 @@ static EMat *build_edge_mats(const MVertSkin *vs,
   return emat;
 }
 
-/************************** Input Subdivision *************************/
+/** \} */
+
+/* -------------------------------------------------------------------- */
+/** \name Input Subdivision
+ * \{ */
 
 /* Returns number of edge subdivisions, taking into account the radius
  * of the endpoints and the edge length. If both endpoints are branch
@@ -1025,7 +1039,11 @@ static Mesh *subdivide_base(const Mesh *orig)
   return result;
 }
 
-/******************************* Output *******************************/
+/** \} */
+
+/* -------------------------------------------------------------------- */
+/** \name Output
+ * \{ */
 
 /* Can be either quad or triangle */
 static void add_poly(SkinOutput *so, BMVert *v1, BMVert *v2, BMVert *v3, BMVert *v4)
@@ -2033,7 +2051,11 @@ static Mesh *final_skin(SkinModifierData *smd, Mesh *mesh, eSkinErrorFlag *r_err
   return result;
 }
 
-/**************************** Skin Modifier ***************************/
+/** \} */
+
+/* -------------------------------------------------------------------- */
+/** \name Skin Modifier
+ * \{ */
 
 static void init_data(ModifierData *md)
 {
@@ -2158,5 +2180,7 @@ ModifierTypeInfo modifierType_Skin = {
     /*foreach_cache*/ nullptr,
     /*foreach_working_space_color*/ nullptr,
 };
+
+/** \} */
 
 }  // namespace blender

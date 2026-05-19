@@ -474,7 +474,9 @@ void cpack_to_rgb(uint col, float *r_r, float *r_g, float *r_b)
   *r_b = float((col >> 16) & 0xFF) * (1.0f / 255.0f);
 }
 
-/* ********************************* color transforms ********************************* */
+/* -------------------------------------------------------------------- */
+/** \name Color Transforms
+ * \{ */
 
 float srgb_to_linearrgb(float c)
 {
@@ -732,7 +734,11 @@ void linearrgb_to_srgb_v3_v3(float srgb[3], const float linear[3])
 
 #endif /* BLI_HAVE_SSE2 */
 
-/* ************************************* other ************************************************* */
+/** \} */
+
+/* -------------------------------------------------------------------- */
+/** \name Other
+ * \{ */
 
 void rgb_float_set_hue_float_offset(float rgb[3], float hue_offset)
 {
@@ -896,6 +902,8 @@ float3x3 chromatic_adaption_matrix(const float3 &from_XYZ, const float3 &to_XYZ)
   /* Assemble full transform: XYZ -> LMS -> adapted LMS -> adapted XYZ. */
   return invert(bradford) * from_scale<float3x3>(to_LMS / from_LMS) * bradford;
 }
+
+/** \} */
 
 }  // namespace math
 }  // namespace blender

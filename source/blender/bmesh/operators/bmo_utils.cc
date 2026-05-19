@@ -28,6 +28,10 @@
 
 namespace blender {
 
+/* -------------------------------------------------------------------- */
+/** \name Create Vert
+ * \{ */
+
 #define ELE_NEW 1
 
 void bmo_create_vert_exec(BMesh *bm, BMOperator *op)
@@ -39,6 +43,12 @@ void bmo_create_vert_exec(BMesh *bm, BMOperator *op)
   BMO_vert_flag_enable(bm, BM_vert_create(bm, vec, nullptr, BM_CREATE_NOP), ELE_NEW);
   BMO_slot_buffer_from_enabled_flag(bm, op, op->slots_out, "vert.out", BM_VERT, ELE_NEW);
 }
+
+/** \} */
+
+/* -------------------------------------------------------------------- */
+/** \name Transform
+ * \{ */
 
 void bmo_transform_exec(BMesh *bm, BMOperator *op)
 {
@@ -137,6 +147,12 @@ void bmo_rotate_exec(BMesh *bm, BMOperator *op)
                "use_shapekey");
 }
 
+/** \} */
+
+/* -------------------------------------------------------------------- */
+/** \name Reverse Faces
+ * \{ */
+
 void bmo_reverse_faces_exec(BMesh *bm, BMOperator *op)
 {
   const int cd_loop_mdisp_offset = CustomData_get_offset(&bm->ldata, CD_MDISPS);
@@ -149,8 +165,11 @@ void bmo_reverse_faces_exec(BMesh *bm, BMOperator *op)
   }
 }
 
-#define SEL_FLAG 1
-#define SEL_ORIG 2
+/** \} */
+
+/* -------------------------------------------------------------------- */
+/** \name Flip Quad Tessellation
+ * \{ */
 
 void bmo_flip_quad_tessellation_exec(BMesh *bm, BMOperator *op)
 {
@@ -167,6 +186,15 @@ void bmo_flip_quad_tessellation_exec(BMesh *bm, BMOperator *op)
     bm->elem_index_dirty |= BM_LOOP;
   }
 }
+
+/** \} */
+
+/* -------------------------------------------------------------------- */
+/** \name Region Extend
+ * \{ */
+
+#define SEL_FLAG 1
+#define SEL_ORIG 2
 
 static void bmo_face_flag_set_flush(BMesh *bm, BMFace *f, const short oflag, const bool value)
 {
@@ -400,6 +428,12 @@ void bmo_region_extend_exec(BMesh *bm, BMOperator *op)
   BMO_slot_buffer_from_enabled_flag(bm, op, op->slots_out, "geom.out", BM_ALL_NOLOOP, SEL_FLAG);
 }
 
+/** \} */
+
+/* -------------------------------------------------------------------- */
+/** \name Smooth Vert
+ * \{ */
+
 void bmo_smooth_vert_exec(BMesh * /*bm*/, BMOperator *op)
 {
   BMOIter siter;
@@ -474,9 +508,11 @@ void bmo_smooth_vert_exec(BMesh * /*bm*/, BMOperator *op)
   MEM_delete(cos);
 }
 
-/**************************************************************************** *
- * Cycle UVs for a face
- **************************************************************************** */
+/** \} */
+
+/* -------------------------------------------------------------------- */
+/** \name Cycle UVs for a Face
+ * \{ */
 
 void bmo_rotate_uvs_exec(BMesh *bm, BMOperator *op)
 {
@@ -540,9 +576,11 @@ void bmo_rotate_uvs_exec(BMesh *bm, BMOperator *op)
   }
 }
 
-/**************************************************************************** *
- * Reverse UVs for a face
- **************************************************************************** */
+/** \} */
+
+/* -------------------------------------------------------------------- */
+/** \name Reverse UVs for a Face
+ * \{ */
 
 static void bm_face_reverse_uvs(BMFace *f, const int cd_loop_uv_offset)
 {
@@ -577,9 +615,11 @@ void bmo_reverse_uvs_exec(BMesh *bm, BMOperator *op)
   }
 }
 
-/**************************************************************************** *
- * Cycle colors for a face
- **************************************************************************** */
+/** \} */
+
+/* -------------------------------------------------------------------- */
+/** \name Cycle Colors for a Face
+ * \{ */
 
 static void bmo_get_loop_color_ref(BMesh *bm,
                                    int index,
@@ -671,9 +711,12 @@ void bmo_rotate_colors_exec(BMesh *bm, BMOperator *op)
   }
 }
 
-/*************************************************************************** *
- * Reverse colors for a face
- *************************************************************************** */
+/** \} */
+
+/* -------------------------------------------------------------------- */
+/** \name Reverse Colors for a Face
+ * \{ */
+
 static void bm_face_reverse_colors(BMFace *f,
                                    const int cd_loop_color_offset,
                                    const eCustomDataType cd_loop_color_type)
@@ -723,5 +766,7 @@ void bmo_reverse_colors_exec(BMesh *bm, BMOperator *op)
     bm_face_reverse_colors(f, cd_loop_color_offset, *cd_loop_color_type);
   }
 }
+
+/** \} */
 
 }  // namespace blender

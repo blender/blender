@@ -198,7 +198,7 @@ class GHOST_Window : public GHOST_IWindow {
 
   /**
    * Get the drawing context associated with this window.
-   *\return Pointer to the context object.
+   * \return Pointer to the context object.
    */
   GHOST_Context *getContext();
 
