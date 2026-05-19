@@ -93,6 +93,11 @@ def _find_assets(
     should_write_thumbnails: bool,
 ) -> list[api_models.AssetV1]:
 
+    # TODO: when multiple files are supported, take the maximum of the files.
+    bl_versions = api_models.AssetBlenderVersionsV1(
+        min='.'.join(file.blender_version.split('.')[:2]),
+    )
+
     assets = []
     for datablock in datablocks:
         asset_data: bpy.types.AssetData = datablock.asset_data
@@ -117,6 +122,7 @@ def _find_assets(
             id_type=datablock.id_type,
             files=[file.path],
             thumbnail=thumbnail,
+            bl_versions=bl_versions,
             meta=_get_asset_meta(asset_data),
         )
 
