@@ -38,6 +38,7 @@ static void node_declare(NodeDeclarationBuilder &b)
   });
 
   const bNode *node = b.node_or_null();
+  const bNodeTree *tree = b.tree_or_null();
   auto &panel = b.add_panel("Interface"_ustr);
   if (node) {
     const auto &storage = node_storage(*node);
@@ -47,6 +48,8 @@ static void node_declare(NodeDeclarationBuilder &b)
       const UString identifier(
           EvaluateClosureOutputItemsAccessor::socket_identifier_for_item(item));
       auto &decl = panel.add_output(socket_type, UString(item.name), identifier);
+      decl.socket_name_ptr(
+          &tree->id, *EvaluateClosureOutputItemsAccessor::item_srna, &item, "name");
       if (item.structure_type != NodeSocketInterfaceStructureType::Auto) {
         decl.structure_type(StructureType(item.structure_type));
       }
@@ -61,6 +64,8 @@ static void node_declare(NodeDeclarationBuilder &b)
       const UString identifier(
           EvaluateClosureInputItemsAccessor::socket_identifier_for_item(item));
       auto &decl = panel.add_input(socket_type, UString(item.name), identifier);
+      decl.socket_name_ptr(
+          &tree->id, *EvaluateClosureInputItemsAccessor::item_srna, &item, "name");
       if (socket_type_supports_fields(socket_type)) {
         decl.supports_field();
       }

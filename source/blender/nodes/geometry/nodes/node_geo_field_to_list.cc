@@ -33,6 +33,7 @@ static void node_declare(NodeDeclarationBuilder &b)
       .description("The number of elements in the list");
 
   const bNode *node = b.node_or_null();
+  const bNodeTree *tree = b.tree_or_null();
   if (!node) {
     return;
   }
@@ -46,7 +47,9 @@ static void node_declare(NodeDeclarationBuilder &b)
     const std::string output_identifier = ItemsAccessor::output_socket_identifier_for_item(item);
     const UString name(item.name);
 
-    b.add_input(type, name, UString(input_identifier)).supports_field();
+    b.add_input(type, name, UString(input_identifier))
+        .supports_field()
+        .socket_name_ptr(&tree->id, *ItemsAccessor::item_srna, &item, "name");
     b.add_output(type, name, UString(output_identifier))
         .structure_type(StructureType::List)
         .align_with_previous()
