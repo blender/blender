@@ -128,6 +128,23 @@ static void rna_Main_ID_remove(Main *bmain,
                 id->name + 2);
     return;
   }
+
+  /* Volume light probes being baked cannot be removed. */
+  if (GS(id->name) == ID_OB) {
+    Object *ob = reinterpret_cast<Object *>(id);
+    if (ob->type == OB_LIGHTPROBE &&
+        (reinterpret_cast<LightProbe *>(ob->data))->type == LIGHTPROBE_TYPE_VOLUME)
+    {
+      wmWindowManager *wm = static_cast<wmWindowManager *>(bmain->wm.first);
+      if (wm && WM_jobs_test(wm, nullptr, WM_JOB_TYPE_LIGHT_BAKE)) {
+        BKE_reportf(reports,
+                    RPT_ERROR,
+                    "Cannot remove volume light probes while light probe baking is running");
+        return;
+      }
+    }
+  }
+
   if (do_unlink) {
     BKE_id_delete(bmain, id);
     id_ptr->invalidate();
