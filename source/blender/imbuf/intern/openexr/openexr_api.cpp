@@ -1205,7 +1205,7 @@ void IMB_exr_write_channels(ExrHandle *handle)
 
       if (echan.use_half_float) {
         const float *src_float = echan.rect;
-        /* Convert & clamp input floats to halfs. */
+        /* Convert & clamp input floats to half-floats. */
         threading::parallel_for(IndexRange(num_pixels), 16 * 1024, [&](IndexRange range) {
           Array<float> gathered_floats(range.size());
           int64_t i = 0;

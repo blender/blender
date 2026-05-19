@@ -223,7 +223,7 @@ static void build_multi_function_procedure_for_fields(mf::Procedure &procedure,
                     const GFieldRef output_field{field_multi_fn, param_output_index};
                     /* NOTE: This abuses the deep hash cache as a set of the fields in the tree. At
                      * the cost of either hashing this output field or building a separate set of
-                     * visisted GFieldRefs, we wouldn't have to use the cache in this way. */
+                     * visited GFieldRefs, we wouldn't have to use the cache in this way. */
                     if (!field_tree_info.deep_hashes.contains(output_field)) {
                       /* Ignored outputs don't need a variable. */
                       variables[param_index] = nullptr;

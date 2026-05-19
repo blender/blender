@@ -48,7 +48,7 @@ template<typename PoseChannelT, typename BoneT> struct PChanBoneT {
   /**
    * Default constructor for nullptr values.
    *
-   * This constructor is here to allow arrays of PChanBoneT to be preallocated.
+   * This constructor is here to allow arrays of PChanBoneT to be pre-allocated.
    */
   PChanBoneT() : pchan(nullptr), bone(nullptr) {}
 

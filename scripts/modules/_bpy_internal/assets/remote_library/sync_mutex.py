@@ -71,7 +71,7 @@ def mutex_lock(local_library_path: Path) -> bool:
     # It is not suitable here to use an 'exclusive create' ('x' option) here.
     # That will still create a race condition, with the space between creation
     # of the file and locking it. So, better to make the existence of the file
-    # meaningless, and only communicate the lock state with an actual filesystem
+    # meaningless, and only communicate the lock state with an actual file-system
     # lock.
     try:
         # Binary mode (`wb`) is required on Windows, for the locking.

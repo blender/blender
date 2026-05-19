@@ -135,7 +135,7 @@ class RuntimeToBakeValue {
   }
 
  private:
-  /** Evaluate fields on the preciding geometry if necessary. */
+  /** Evaluate fields on the preceding geometry if necessary. */
   void top_level_fields_to_attributes()
   {
     GeometrySet *prev_geo = nullptr;

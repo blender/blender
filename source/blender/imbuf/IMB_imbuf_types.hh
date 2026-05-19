@@ -185,8 +185,8 @@ struct ImBuf {
 
   /**
    * Image pixel buffer (float representation):
-   * - color space defaults to 'linear' (`rec709`).
-   * - alpha defaults to 'premul'.
+   * - color space defaults to `linear` (`rec709`).
+   * - alpha defaults to `premul`.
    * \note May need gamma correction to `sRGB` when generating 8bit representations.
    * \note Formats that support higher more than 8 but channels load as floats.
    */

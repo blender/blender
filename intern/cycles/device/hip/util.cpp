@@ -63,7 +63,7 @@ bool hipSupportsDriver()
   }
 #  else /* Linux */
   if (hip_driver_version < 60342131) {
-    /* Users get error messages about being unable to load GPU kernels on older ROCm verisons.
+    /* Users get error messages about being unable to load GPU kernels on older ROCm versions.
      * 60342131 corresponds to ROCm 6.3.0 */
     return false;
   }

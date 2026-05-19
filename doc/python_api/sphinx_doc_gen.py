@@ -1961,7 +1961,7 @@ def pyclass2sphinx(
             descr = getattr(value, key)
             if type(descr) in {BuiltinMethodType, BuiltinFunctionType}:
                 # CAPI-defined static methods already contain RST directives
-                # in their docstrings, write them directly.
+                # in their doc-strings, write them directly.
                 write_indented_lines("   ", fw, descr.__doc__ or "Undocumented", False)
                 fw("\n")
             else:

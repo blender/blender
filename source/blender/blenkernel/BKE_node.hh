@@ -237,7 +237,7 @@ struct NodeInsertLinkParams {
   bContext *C = nullptr;
 };
 
-/** Common node widths for easy searchability. */
+/** Common node widths for easy search-ability. */
 struct NodeWidth {
   /* Generally a multiple of 20 is used because it matches the grid width.
    * Also see #NODE_GRID_STEP_SIZE. */

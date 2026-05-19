@@ -310,7 +310,7 @@ class RemoteAssetListingDownloader:
             # Double-check the registration worked, see #139720 for details.
             assert bpy.app.timers.is_registered(self.on_timer_event)
 
-        # Only create a backup when the downloader & timer were created succesfully.
+        # Only create a backup when the downloader & timer were created successfully.
         self._backupper.create()
 
         # Kickstart the download process by downloading the remote asset meta file.
@@ -411,7 +411,7 @@ class RemoteAssetListingDownloader:
         self._num_asset_pages_pending = len(pages)
         for page_index, page_url_w_hash in enumerate(pages):
             # These URLs may be absolute or they may be relative. In any case,
-            # do not assume that they can be used directly as local filesystem path.
+            # do not assume that they can be used directly as local file-system path.
             local_path = listing_common.api_versioned(f"assets-{page_index:05}.json")
             download_to = self._queue_download(
                 page_url_w_hash,

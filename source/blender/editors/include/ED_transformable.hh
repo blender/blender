@@ -38,7 +38,7 @@ enum AxisMutable : int8_t {
 ENUM_OPERATORS(AxisMutable);
 
 /**
- * Interpolate the values linearly based on `factor` and returns a new Array. Asserts that boths
+ * Interpolate the values linearly based on `factor` and returns a new Array. Asserts that both
  * spans are the same length. With the factor at `0` the values will match `a`.
  */
 Array<float> property_interpolated(Span<float> a, Span<float> b, float factor);
