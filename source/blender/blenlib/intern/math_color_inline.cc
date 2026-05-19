@@ -99,27 +99,6 @@ MINLINE void linearrgb_to_srgb_predivide_v4(float srgb[4], const float linear[4]
 /* LUT accelerated conversions */
 
 extern float BLI_color_from_srgb_table[256];
-extern unsigned short BLI_color_to_srgb_table[0x10000];
-
-MINLINE unsigned short to_srgb_table_lookup(const float f)
-{
-
-  union {
-    float f;
-    unsigned short us[2];
-  } tmp;
-  tmp.f = f;
-  /* NOTE: this is endianness-sensitive. */
-  return BLI_color_to_srgb_table[tmp.us[1]];
-}
-
-MINLINE void linearrgb_to_srgb_ushort4(unsigned short srgb[4], const float linear[4])
-{
-  srgb[0] = to_srgb_table_lookup(linear[0]);
-  srgb[1] = to_srgb_table_lookup(linear[1]);
-  srgb[2] = to_srgb_table_lookup(linear[2]);
-  srgb[3] = unit_float_to_ushort_clamp(linear[3]);
-}
 
 MINLINE void srgb_to_linearrgb_uchar4(float linear[4], const unsigned char srgb[4])
 {

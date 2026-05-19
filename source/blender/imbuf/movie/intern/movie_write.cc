@@ -421,10 +421,7 @@ static ImBuf *alloc_imbuf_for_colorspace_transform(const ImBuf *input_ibuf)
     result_ibuf->float_buffer = input_ibuf->float_buffer;
   }
   else {
-    /* Convert byte buffer to float buffer.
-     * The exact profile is not important here: it should match for the source and destination so
-     * that the function only does alpha and byte->float conversions. */
-    const bool predivide = IMB_alpha_affects_rgb(input_ibuf);
+    /* Convert byte buffer to float buffer. */
     /* Allocate float buffer with the proper number of channels. */
     const size_t num_pixels = IMB_get_pixel_count(input_ibuf);
     float *buffer = MEM_new_array_uninitialized<float>(num_pixels * result_ibuf->channels,
@@ -432,9 +429,6 @@ static ImBuf *alloc_imbuf_for_colorspace_transform(const ImBuf *input_ibuf)
     result_ibuf->assign_float_data(buffer);
     IMB_buffer_float_from_byte(result_ibuf->float_data_for_write(),
                                input_ibuf->byte_data(),
-                               IB_PROFILE_SRGB,
-                               IB_PROFILE_SRGB,
-                               predivide,
                                input_ibuf->x,
                                input_ibuf->y,
                                result_ibuf->x,

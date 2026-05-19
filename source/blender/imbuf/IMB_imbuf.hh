@@ -411,100 +411,71 @@ bool IMB_alpha_affects_rgb(const ImBuf *ibuf);
 void IMB_byte_from_float(ImBuf *ibuf);
 void IMB_float_from_byte_ex(ImBuf *dst, const ImBuf *src, const rcti *region_to_update);
 void IMB_float_from_byte(ImBuf *ibuf);
-/**
- * No profile conversion.
- */
 void IMB_color_to_bw(ImBuf *ibuf);
 void IMB_saturation(ImBuf *ibuf, float sat);
 
-/* Converting pixel buffers. */
-
 /**
- * Float to byte pixels, output 4-channel RGBA.
+ * Convert float pixels to byte pixels.
+ * \param dest Destination, always 4 channel RGBA, non-premultiplied.
+ * \param src Source.
+ * \param src_channels Source channels (1, 3, 4).
+ * \param dither Amount of dithering to apply to destination.
+ * \param predivide Is source alpha premultiplied.
+ * \param width Width in pixels.
+ * \param height Height in pixels.
+ * \param stride Row stride in pixels.
  */
-void IMB_buffer_byte_from_float(unsigned char *rect_to,
-                                const float *rect_from,
-                                int channels_from,
+void IMB_buffer_byte_from_float(unsigned char *dest,
+                                const float *src,
+                                int src_channels,
                                 float dither,
-                                int profile_to,
-                                int profile_from,
                                 bool predivide,
                                 int width,
                                 int height,
-                                int stride_to,
-                                int stride_from,
+                                int stride,
                                 int start_y = 0);
 /**
- * Float to byte pixels, output 4-channel RGBA.
+ * Same as #IMB_buffer_byte_from_float, but only writes destination
+ * pixels where corresponding mask value is #FILTER_MASK_USED.
  */
-void IMB_buffer_byte_from_float_mask(unsigned char *rect_to,
-                                     const float *rect_from,
-                                     int channels_from,
+void IMB_buffer_byte_from_float_mask(unsigned char *dest,
+                                     const float *src,
+                                     int src_channels,
                                      float dither,
-                                     bool predivide,
                                      int width,
                                      int height,
-                                     int stride_to,
-                                     int stride_from,
-                                     char *mask);
+                                     const char *mask);
 /**
- * Byte to float pixels, input and output 4-channel RGBA.
+ * Convert byte pixels to float pixels.
+ * \param dest Destination, always 4 channel RGBA, non-premultiplied.
+ * \param src Source, always 4 channel RGBA, non-premultiplied.
+ * \param width Width in pixels.
+ * \param height Height in pixels.
+ * \param dest_stride Destination row stride in pixels.
+ * \param src_stride Source row stride in pixels.
  */
-void IMB_buffer_float_from_byte(float *rect_to,
-                                const unsigned char *rect_from,
-                                int profile_to,
-                                int profile_from,
-                                bool predivide,
-                                int width,
-                                int height,
-                                int stride_to,
-                                int stride_from);
+void IMB_buffer_float_from_byte(
+    float *dest, const unsigned char *src, int width, int height, int dest_stride, int src_stride);
+
 /**
- * Float to float pixels, output 4-channel RGBA.
+ * Convert 1/3/4 channel float pixels to 4 channel (RGBA) float pixels.
+ * \param dest Destination, always 4 channel.
+ * \param src Source.
+ * \param src_channels Source channels (1, 3, 4).
+ * \param width Width in pixels.
+ * \param height Height in pixels.
  */
-void IMB_buffer_float_from_float(float *rect_to,
-                                 const float *rect_from,
-                                 int channels_from,
-                                 int profile_to,
-                                 int profile_from,
-                                 bool predivide,
-                                 int width,
-                                 int height,
-                                 int stride_to,
-                                 int stride_from);
-void IMB_buffer_float_from_float_threaded(float *rect_to,
-                                          const float *rect_from,
-                                          int channels_from,
-                                          int profile_to,
-                                          int profile_from,
-                                          bool predivide,
-                                          int width,
-                                          int height,
-                                          int stride_to,
-                                          int stride_from);
+void IMB_buffer_float_rgba_from_float(
+    float *dest, const float *src, int src_channels, int width, int height);
+
 /**
- * Float to float pixels, output 4-channel RGBA.
+ * Same as #IMB_buffer_float_rgba_from_float, but only writes destination
+ * pixels where corresponding mask value is #FILTER_MASK_USED.
  */
-void IMB_buffer_float_from_float_mask(float *rect_to,
-                                      const float *rect_from,
-                                      int channels_from,
-                                      int width,
-                                      int height,
-                                      int stride_to,
-                                      int stride_from,
-                                      char *mask);
-/**
- * Byte to byte pixels, input and output 4-channel RGBA.
- */
-void IMB_buffer_byte_from_byte(unsigned char *rect_to,
-                               const unsigned char *rect_from,
-                               int profile_to,
-                               int profile_from,
-                               bool predivide,
-                               int width,
-                               int height,
-                               int stride_to,
-                               int stride_from);
+void IMB_buffer_float_rgba_from_float_mask(
+    float *dest, const float *src, int src_channels, int width, int height, const char *mask);
+
+void IMB_buffer_float_rgba_srgb_to_linear(float *buffer, int width, int height);
 
 void IMB_alpha_under_color_float(float *rect_float, int x, int y, float backcol[3]);
 void IMB_alpha_under_color_byte(unsigned char *rect, int x, int y, const float backcol[3]);

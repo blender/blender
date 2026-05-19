@@ -1432,27 +1432,16 @@ static void do_display_buffer_apply_no_processor(DisplayBufferThread *handle)
   const int height = handle->tot_line;
   if (handle->display_buffer_byte && handle->display_buffer_byte != handle->byte_buffer) {
     if (handle->byte_buffer) {
-      IMB_buffer_byte_from_byte(handle->display_buffer_byte,
-                                handle->byte_buffer,
-                                IB_PROFILE_SRGB,
-                                IB_PROFILE_SRGB,
-                                false,
-                                width,
-                                height,
-                                width,
-                                width);
+      memcpy(handle->display_buffer_byte, handle->byte_buffer, size_t(width) * height * 4);
     }
     else if (handle->buffer) {
       IMB_buffer_byte_from_float(handle->display_buffer_byte,
                                  handle->buffer,
                                  handle->channels,
                                  handle->dither,
-                                 IB_PROFILE_SRGB,
-                                 IB_PROFILE_SRGB,
                                  handle->predivide,
                                  width,
                                  height,
-                                 width,
                                  width,
                                  handle->start_line);
     }
@@ -1460,27 +1449,12 @@ static void do_display_buffer_apply_no_processor(DisplayBufferThread *handle)
 
   if (handle->display_buffer) {
     if (handle->byte_buffer) {
-      IMB_buffer_float_from_byte(handle->display_buffer,
-                                 handle->byte_buffer,
-                                 IB_PROFILE_SRGB,
-                                 IB_PROFILE_SRGB,
-                                 false,
-                                 width,
-                                 height,
-                                 width,
-                                 width);
+      IMB_buffer_float_from_byte(
+          handle->display_buffer, handle->byte_buffer, width, height, width, width);
     }
     else if (handle->buffer && handle->display_buffer != handle->buffer) {
-      IMB_buffer_float_from_float(handle->display_buffer,
-                                  handle->buffer,
-                                  handle->channels,
-                                  IB_PROFILE_SRGB,
-                                  IB_PROFILE_SRGB,
-                                  handle->predivide,
-                                  width,
-                                  height,
-                                  width,
-                                  width);
+      IMB_buffer_float_rgba_from_float(
+          handle->display_buffer, handle->buffer, handle->channels, width, height);
     }
   }
 }
@@ -1518,12 +1492,9 @@ static void do_display_buffer_apply_thread(DisplayBufferThread *handle)
                                linear_buffer,
                                channels,
                                handle->dither,
-                               IB_PROFILE_SRGB,
-                               IB_PROFILE_SRGB,
                                predivide,
                                width,
                                height,
-                               width,
                                width,
                                handle->start_line);
   }
@@ -1868,8 +1839,7 @@ void IMB_colormanagement_transform_byte_to_float(float *float_buffer,
     const size_t offset = size_t(channels) * y_range.first() * width;
     const uchar *src = byte_buffer + offset;
     float *dst = float_buffer + offset;
-    IMB_buffer_float_from_byte(
-        dst, src, IB_PROFILE_SRGB, IB_PROFILE_SRGB, false, width, y_range.size(), width, width);
+    IMB_buffer_float_from_byte(dst, src, width, y_range.size(), width, width);
     cm_processor.apply(dst, width, y_range.size(), channels, false);
     IMB_premultiply_rect_float(dst, 4, width, y_range.size());
   });
@@ -2431,17 +2401,7 @@ void IMB_colormanagement_scene_linear_to_display_buffer(
                                                      "display transform temp buffer");
   memcpy(buffer, linear_buffer, sizeof(float) * 4 * width * height);
   processor.apply(buffer, width, height, 4, true);
-  IMB_buffer_byte_from_float(display_buffer,
-                             buffer,
-                             4,
-                             0.0f,
-                             IB_PROFILE_SRGB,
-                             IB_PROFILE_SRGB,
-                             false,
-                             width,
-                             height,
-                             width,
-                             width);
+  IMB_buffer_byte_from_float(display_buffer, buffer, 4, 0.0f, false, width, height, width);
   MEM_delete(buffer);
 }
 

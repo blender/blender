@@ -597,7 +597,6 @@ bool ED_space_node_color_sample(
 
     if (const float *float_data = ibuf->float_data()) {
       fp = (float_data + (ibuf->channels) * (y * ibuf->x + x));
-      /* #IB_PROFILE_NONE is default but in fact its linear. */
       copy_v3_v3(r_col, fp);
       ret = true;
     }

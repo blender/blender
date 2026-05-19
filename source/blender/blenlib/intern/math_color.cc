@@ -760,85 +760,20 @@ void rgb_byte_set_hue_float_offset(uchar rgb[3], float hue_offset)
   rgb_float_to_uchar(rgb, rgb_float);
 }
 
-/* fast sRGB conversion
- * LUT from linear float to 16-bit short
- * based on http://mysite.verizon.net/spitzak/conversion/
- */
-
 float BLI_color_from_srgb_table[256];
-ushort BLI_color_to_srgb_table[0x10000];
-
-static ushort hipart(const float f)
-{
-  union {
-    float f;
-    ushort us[2];
-  } tmp;
-
-  tmp.f = f;
-
-  /* NOTE: this is endianness-sensitive. */
-  return tmp.us[1];
-}
-
-static float index_to_float(const ushort i)
-{
-
-  union {
-    float f;
-    ushort us[2];
-  } tmp;
-
-  /* positive and negative zeros, and all gradual underflow, turn into zero: */
-  if (i < 0x80 || (i >= 0x8000 && i < 0x8080)) {
-    return 0;
-  }
-  /* All NaN's and infinity turn into the largest possible legal float: */
-  if (i >= 0x7f80 && i < 0x8000) {
-    return FLT_MAX;
-  }
-  if (i >= 0xff80) {
-    return -FLT_MAX;
-  }
-
-  /* NOTE: this is endianness-sensitive. */
-  tmp.us[0] = 0x8000;
-  tmp.us[1] = i;
-
-  return tmp.f;
-}
 
 void BLI_init_srgb_conversion()
 {
   static bool initialized = false;
-  uint i, b;
-
   if (initialized) {
     return;
   }
   initialized = true;
 
-  /* Fill in the lookup table to convert floats to bytes: */
-  for (i = 0; i < 0x10000; i++) {
-    float f = linearrgb_to_srgb(index_to_float(ushort(i))) * 255.0f;
-    if (f <= 0) {
-      BLI_color_to_srgb_table[i] = 0;
-    }
-    else if (f < 255) {
-      BLI_color_to_srgb_table[i] = ushort(f * 0x100 + 0.5f);
-    }
-    else {
-      BLI_color_to_srgb_table[i] = 0xff00;
-    }
-  }
-
   /* Fill in the lookup table to convert bytes to float: */
-  for (b = 0; b <= 255; b++) {
+  for (int b = 0; b <= 255; b++) {
     float f = srgb_to_linearrgb(float(b) * (1.0f / 255.0f));
     BLI_color_from_srgb_table[b] = f;
-    i = hipart(f);
-    /* replace entries so byte->float->byte does not change the data: */
-    BLI_color_to_srgb_table[i] = ushort(b * 0x100);
   }
 }
 
