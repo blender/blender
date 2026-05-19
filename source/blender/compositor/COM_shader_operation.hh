@@ -64,7 +64,7 @@ class ShaderOperation : public PixelOperation {
    * inputs that are linked to the same output socket. */
   Map<const bNodeSocket *, GPUNodeLink *> output_to_material_attribute_map_;
   /* A map that associates implicit inputs to the attributes that were created for them. */
-  Map<ImplicitInput, GPUNodeLink *> implicit_input_to_material_attribute_map_;
+  Map<ImplicitInputType, GPUNodeLink *> implicit_input_to_material_attribute_map_;
 
  public:
   /* Shaders operations have a limit on how many outputs and inputs they can support. Inputs use

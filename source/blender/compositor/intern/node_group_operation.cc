@@ -189,11 +189,21 @@ void NodeGroupOperation::map_node_operation_inputs_to_their_results(const bNode 
       continue;
     }
 
-    /* Otherwise, the input is essentially unlinked. So map the input to the result of a newly
-     * created Input Single Value Operation. */
-    SingleValueNodeInputOperation *input_operation = new SingleValueNodeInputOperation(
-        this->context(), *input);
-    operations_stream_.append(std::unique_ptr<SingleValueNodeInputOperation>(input_operation));
+    const InputDescriptor input_descriptor = input_descriptor_from_input_socket(input);
+    if (!input_descriptor.implicit_input.has_value()) {
+      /* The input is unlinked with no implicit value. So map the input to the result of a newly
+       * created Input Single Value Operation. */
+      SingleValueNodeInputOperation *input_operation = new SingleValueNodeInputOperation(
+          this->context(), *input);
+      operations_stream_.append(std::unique_ptr<SingleValueNodeInputOperation>(input_operation));
+      input_operation->evaluate();
+      operation->map_input_to_result(input->identifier, &input_operation->get_result());
+      continue;
+    }
+
+    ImplicitInputOperation *input_operation = new ImplicitInputOperation(
+        this->context(), input_descriptor.implicit_input.value());
+    operations_stream_.append(std::unique_ptr<ImplicitInputOperation>(input_operation));
     input_operation->evaluate();
     operation->map_input_to_result(input->identifier, &input_operation->get_result());
   }

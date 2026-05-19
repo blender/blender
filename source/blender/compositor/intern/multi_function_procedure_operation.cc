@@ -180,7 +180,7 @@ Vector<mf::Variable *> MultiFunctionProcedureOperation::get_input_variables(
     const bNodeSocket *output = get_output_linked_to_input(*input);
     if (!output) {
       const InputDescriptor input_descriptor = input_descriptor_from_input_socket(input);
-      if (input_descriptor.implicit_input == ImplicitInput::None) {
+      if (!input_descriptor.implicit_input.has_value()) {
         /* No implicit input, so get a constant variable that holds the socket value. */
         input_variables.append(this->get_constant_input_variable(*input));
       }
@@ -345,7 +345,7 @@ mf::Variable *MultiFunctionProcedureOperation::get_implicit_input_variable(
     const bNodeSocket &input)
 {
   const InputDescriptor input_descriptor = input_descriptor_from_input_socket(&input);
-  const ImplicitInput implicit_input = input_descriptor.implicit_input;
+  const ImplicitInputType implicit_input = input_descriptor.implicit_input.value();
 
   /* An input was already declared for that implicit input, so no need to declare it again and we
    * just return its variable. */

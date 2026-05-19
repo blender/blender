@@ -16,6 +16,7 @@
 #include "COM_compile_state.hh"
 #include "COM_context.hh"
 #include "COM_domain.hh"
+#include "COM_implicit_input_operation.hh"
 #include "COM_input_descriptor.hh"
 #include "COM_node_operation.hh"
 #include "COM_pixel_operation.hh"
@@ -163,11 +164,18 @@ bool CompileState::is_pixel_node_single_value(const bNode &node)
     if (!output) {
       /* The input does not have an implicit input, so it is a single value. */
       const InputDescriptor input_descriptor = input_descriptor_from_input_socket(input);
-      if (input_descriptor.implicit_input == ImplicitInput::None) {
+      if (!input_descriptor.implicit_input.has_value()) {
         continue;
       }
 
-      /* Otherwise, it has an implicit input, which is never a single value. */
+      const std::optional<Domain> domain = ImplicitInputOperation::compute_domain(
+          context_, input_descriptor.implicit_input.value());
+      if (!domain.has_value()) {
+        /* The input has an implicit input, but it is a single value. */
+        continue;
+      }
+
+      /* Otherwise, it has an non-single-value implicit input. */
       return false;
     }
 
@@ -209,7 +217,15 @@ Domain CompileState::compute_pixel_node_domain(const bNode &node)
     if (!output) {
       /* The input does not have an implicit input, so it is a single that can't be a domain input
        * and we skip it. */
-      if (input_descriptor.implicit_input == ImplicitInput::None) {
+      if (!input_descriptor.implicit_input.has_value()) {
+        continue;
+      }
+
+      const std::optional<Domain> domain = ImplicitInputOperation::compute_domain(
+          context_, input_descriptor.implicit_input.value());
+      if (!domain.has_value()) {
+        /* The input has an implicit input, but it is a single value that can't be a domain input
+         * and we skip it. */
         continue;
       }
 
@@ -217,7 +233,7 @@ Domain CompileState::compute_pixel_node_domain(const bNode &node)
        * compositing region. Notice that the lower the domain priority value is, the higher the
        * priority is, hence the less than comparison. */
       if (input_descriptor.domain_priority < current_domain_priority) {
-        node_domain = context_.get_compositing_domain();
+        node_domain = domain.value();
         current_domain_priority = input_descriptor.domain_priority;
       }
       continue;
@@ -306,7 +322,7 @@ bool CompileState::pixel_compile_unit_has_too_many_inputs()
     return false;
   }
 
-  Set<ImplicitInput> referenced_implicit_inputs;
+  Set<ImplicitInputType> referenced_implicit_inputs;
   Set<const bNodeSocket *> referenced_output_sockets;
   int inputs_count = 0;
   for (const bNode *node : pixel_compile_unit_) {
@@ -318,13 +334,13 @@ bool CompileState::pixel_compile_unit_has_too_many_inputs()
       const bNodeSocket *output = get_output_linked_to_input(*input);
       if (!output) {
         const InputDescriptor input_descriptor = input_descriptor_from_input_socket(input);
-        if (input_descriptor.implicit_input == ImplicitInput::None) {
+        if (!input_descriptor.implicit_input.has_value()) {
           continue;
         }
 
         /* All implicit inputs of the same type share the same input, and this one was counted
          * before, so no need to count it again. */
-        if (referenced_implicit_inputs.contains(input_descriptor.implicit_input)) {
+        if (referenced_implicit_inputs.contains(input_descriptor.implicit_input.value())) {
           continue;
         }
 
@@ -333,7 +349,7 @@ bool CompileState::pixel_compile_unit_has_too_many_inputs()
           return true;
         }
 
-        referenced_implicit_inputs.add_new(input_descriptor.implicit_input);
+        referenced_implicit_inputs.add_new(input_descriptor.implicit_input.value());
         continue;
       }
 

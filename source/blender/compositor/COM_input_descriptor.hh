@@ -5,6 +5,7 @@
 #pragma once
 
 #include <cstdint>
+#include <optional>
 
 #include "COM_result.hh"
 
@@ -26,15 +27,13 @@ enum class InputRealizationMode : uint8_t {
 };
 
 /* ------------------------------------------------------------------------------------------------
- * Implicit Input
+ * Implicit Input Type
  *
- * Specifies the implicit input that should be assigned to the input if it is unlinked. See the
- * ImplicitInputOperation operation for more information on the individual types. */
-enum class ImplicitInput : uint8_t {
-  /* The input does not have an implicit input and its value should be used. */
-  None,
+ * Specifies the implicit input type that should be assigned to the input if it is unlinked. See
+ * the ImplicitInputOperation operation for more information on the individual types. */
+enum class ImplicitInputType : uint8_t {
   /* The input should have the texture coordinates of the compositing space as an input. */
-  TextureCoordinates,
+  UniformTextureCoordinates,
 };
 
 /* ------------------------------------------------------------------------------------------------
@@ -49,8 +48,8 @@ class InputDescriptor {
   ResultType type;
   /* Specify how the input should be realized. */
   InputRealizationMode realization_mode = InputRealizationMode::OperationDomain;
-  /* Specifies the type of implicit input in case the input in unlinked. */
-  ImplicitInput implicit_input = ImplicitInput::None;
+  /* If not nullopt, specifies the type of implicit input in case the input in unlinked. */
+  std::optional<ImplicitInputType> implicit_input = std::nullopt;
   /* The priority of the input for determining the operation domain. The non-single value input
    * with the highest priority will be used to infer the operation domain, the highest priority
    * being zero. See the discussion in COM_domain.hh for more information. */

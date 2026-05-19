@@ -4,9 +4,12 @@
 
 #pragma once
 
+#include <optional>
+
 #include "BLI_string_ref.hh"
 
 #include "COM_context.hh"
+#include "COM_domain.hh"
 #include "COM_input_descriptor.hh"
 #include "COM_operation.hh"
 #include "COM_result.hh"
@@ -22,16 +25,21 @@ class ImplicitInputOperation : public Operation {
   /* The identifier of the output. */
   static const StringRef output_identifier_;
   /* The type of implicit input needed. */
-  ImplicitInput implicit_input_;
+  ImplicitInputType implicit_input_;
 
  public:
-  ImplicitInputOperation(Context &context, const ImplicitInput implicit_input);
+  ImplicitInputOperation(Context &context, const ImplicitInputType implicit_input);
 
   void execute() override;
 
   /* Get a reference to the output result of the operation, this essentially calls the super
    * get_result with the output identifier of the operation. */
   Result &get_result();
+
+  /* Returns the domain of the implicit input. If the implicit input is a single value,
+   * std::nullopt is returned. */
+  static std::optional<Domain> compute_domain(const Context &context,
+                                              const ImplicitInputType implicit_input);
 };
 
 }  // namespace blender::compositor
