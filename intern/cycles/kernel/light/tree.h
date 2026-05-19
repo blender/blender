@@ -740,14 +740,14 @@ ccl_device int light_tree_root_node_index(KernelGlobals kg, const int object_rec
 /* Pick a random light from the light tree from a given shading point P, write to the picked light
  * index and the probability of picking the light. */
 template<bool in_volume_segment>
-ccl_device_noinline bool light_tree_sample(KernelGlobals kg,
-                                           const float rand,
-                                           const float3 P,
-                                           float3 N_or_D,
-                                           float t,
-                                           const int object_receiver,
-                                           const int shader_flags,
-                                           ccl_private LightSample *ls)
+ccl_device bool light_tree_sample(KernelGlobals kg,
+                                  const float rand,
+                                  const float3 P,
+                                  float3 N_or_D,
+                                  float t,
+                                  const int object_receiver,
+                                  const int shader_flags,
+                                  ccl_private LightSample *ls)
 {
   if (!kernel_data.integrator.use_direct_light) {
     return false;
