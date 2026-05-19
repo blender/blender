@@ -1089,6 +1089,749 @@ TEST_P(VKRenderGraphTestScheduler, begin_draw_copy_to_attachment_draw_end)
   EXPECT_EQ("end_rendering()", log[12]);
 }
 
+/**
+ * When dynamic rendering local read is used, subpass transitions can leave BEGIN_RENDERING
+ * nodes without matching END_RENDERING nodes (see VKFrameBuffer::subpass_transition_impl).
+ * The scheduler should handle orphaned BEGIN_RENDERING at the end of the graph gracefully.
+ */
+TEST_P(VKRenderGraphTestScheduler, begin_rendering_end_rendering_begin_rendering_draw)
+{
+  VkHandle<VkImage> image(1u);
+  VkHandle<VkImageView> image_view(2u);
+  VkHandle<VkPipelineLayout> pipeline_layout(4u);
+  VkHandle<VkPipeline> pipeline(3u);
+
+  resources.add_image(image, false);
+
+  /* First scope: proper BEGIN/DRAW/END pair. */
+  {
+    VKResourceAccessInfo access_info = {};
+    access_info.images.append(
+        {image, VK_ACCESS_COLOR_ATTACHMENT_WRITE_BIT, VK_IMAGE_ASPECT_COLOR_BIT, {}});
+    VKBeginRenderingNode::CreateInfo begin_rendering(access_info);
+    begin_rendering.node_data.color_attachments[0].sType =
+        VK_STRUCTURE_TYPE_RENDERING_ATTACHMENT_INFO_KHR;
+    begin_rendering.node_data.color_attachments[0].imageLayout = color_attachment_layout();
+    begin_rendering.node_data.color_attachments[0].imageView = image_view;
+    begin_rendering.node_data.color_attachments[0].loadOp = VK_ATTACHMENT_LOAD_OP_DONT_CARE;
+    begin_rendering.node_data.color_attachments[0].storeOp = VK_ATTACHMENT_STORE_OP_STORE;
+    begin_rendering.node_data.vk_rendering_info.sType = VK_STRUCTURE_TYPE_RENDERING_INFO;
+    begin_rendering.node_data.vk_rendering_info.colorAttachmentCount = 1;
+    begin_rendering.node_data.vk_rendering_info.layerCount = 1;
+    begin_rendering.node_data.vk_rendering_info.pColorAttachments =
+        begin_rendering.node_data.color_attachments;
+
+    render_graph->add_node(begin_rendering);
+  }
+
+  {
+    VKResourceAccessInfo access_info = {};
+    VKDrawNode::CreateInfo draw(access_info);
+    draw.node_data.first_instance = 0;
+    draw.node_data.first_vertex = 0;
+    draw.node_data.instance_count = 1;
+    draw.node_data.vertex_count = 4;
+    draw.node_data.graphics.pipeline_data.push_constants_range = IndexRange(0);
+    draw.node_data.graphics.pipeline_data.vk_descriptor_set = VK_NULL_HANDLE;
+    draw.node_data.graphics.pipeline_data.vk_pipeline = pipeline;
+    draw.node_data.graphics.pipeline_data.vk_pipeline_layout = pipeline_layout;
+    draw.node_data.graphics.viewport.viewports.append(VkViewport{});
+    draw.node_data.graphics.viewport.scissors.append(VkRect2D{});
+    render_graph->add_node(draw);
+  }
+
+  {
+    VKEndRenderingNode::CreateInfo end_rendering = {};
+    render_graph->add_node(end_rendering);
+  }
+
+  /* Second scope: BEGIN/DRAW without matching END, simulating subpass_transition_impl
+   * with VK_EXT_dynamic_rendering_local_read.
+   * Only applicable when local read is enabled - without it, orphaned BEGIN nodes
+   * indicate a real bug. */
+  if (use_dynamic_rendering_local_read) {
+    VKResourceAccessInfo access_info = {};
+    access_info.images.append(
+        {image, VK_ACCESS_COLOR_ATTACHMENT_WRITE_BIT, VK_IMAGE_ASPECT_COLOR_BIT, {}});
+    VKBeginRenderingNode::CreateInfo begin_rendering(access_info);
+    begin_rendering.node_data.color_attachments[0].sType =
+        VK_STRUCTURE_TYPE_RENDERING_ATTACHMENT_INFO_KHR;
+    begin_rendering.node_data.color_attachments[0].imageLayout = color_attachment_layout();
+    begin_rendering.node_data.color_attachments[0].imageView = image_view;
+    begin_rendering.node_data.color_attachments[0].loadOp = VK_ATTACHMENT_LOAD_OP_LOAD;
+    begin_rendering.node_data.color_attachments[0].storeOp = VK_ATTACHMENT_STORE_OP_STORE;
+    begin_rendering.node_data.vk_rendering_info.sType = VK_STRUCTURE_TYPE_RENDERING_INFO;
+    begin_rendering.node_data.vk_rendering_info.colorAttachmentCount = 1;
+    begin_rendering.node_data.vk_rendering_info.layerCount = 1;
+    begin_rendering.node_data.vk_rendering_info.pColorAttachments =
+        begin_rendering.node_data.color_attachments;
+
+    render_graph->add_node(begin_rendering);
+
+    {
+      VKResourceAccessInfo access_info = {};
+      VKDrawNode::CreateInfo draw(access_info);
+      draw.node_data.first_instance = 0;
+      draw.node_data.first_vertex = 0;
+      draw.node_data.instance_count = 1;
+      draw.node_data.vertex_count = 4;
+      draw.node_data.graphics.pipeline_data.push_constants_range = IndexRange(0);
+      draw.node_data.graphics.pipeline_data.vk_descriptor_set = VK_NULL_HANDLE;
+      draw.node_data.graphics.pipeline_data.vk_pipeline = pipeline;
+      draw.node_data.graphics.pipeline_data.vk_pipeline_layout = pipeline_layout;
+      draw.node_data.graphics.viewport.viewports.append(VkViewport{});
+      draw.node_data.graphics.viewport.scissors.append(VkRect2D{});
+      render_graph->add_node(draw);
+    }
+
+    /* Should not assert. */
+    submit(render_graph, command_buffer);
+
+    ASSERT_EQ(11, log.size());
+    EXPECT_EQ(
+        "pipeline_barrier(src_stage_mask=VK_PIPELINE_STAGE_TOP_OF_PIPE_BIT, "
+        "dst_stage_mask=VK_PIPELINE_STAGE_ALL_GRAPHICS_BIT" +
+            endl() +
+            " - image_barrier(src_access_mask=, "
+            "dst_access_mask=VK_ACCESS_COLOR_ATTACHMENT_WRITE_BIT, "
+            "old_layout=VK_IMAGE_LAYOUT_UNDEFINED, "
+            "new_layout=" +
+            color_attachment_layout_str() + ", image=0x1, subresource_range=" + endl() +
+            "    aspect_mask=VK_IMAGE_ASPECT_COLOR_BIT, base_mip_level=0, level_count=4294967295, "
+            "base_array_layer=0, layer_count=4294967295  )" +
+            endl() + ")",
+        log[0]);
+    EXPECT_EQ("begin_rendering(p_rendering_info=flags=, render_area=" + endl() +
+                  "  offset=" + endl() + "    x=0, y=0  , extent=" + endl() +
+                  "    width=0, height=0  , layer_count=1, view_mask=0, "
+                  "color_attachment_count=1, "
+                  "p_color_attachments=" +
+                  endl() + "  image_view=0x2, image_layout=" + color_attachment_layout_str() +
+                  ", "
+                  "resolve_mode=VK_RESOLVE_MODE_NONE, resolve_image_view=0, "
+                  "resolve_image_layout=VK_IMAGE_LAYOUT_UNDEFINED, "
+                  "load_op=VK_ATTACHMENT_LOAD_OP_DONT_CARE, "
+                  "store_op=VK_ATTACHMENT_STORE_OP_STORE" +
+                  endl() + ")",
+              log[1]);
+    EXPECT_EQ("set_viewport(num_viewports=1)", log[2]);
+    EXPECT_EQ("set_scissor(num_scissors=1)", log[3]);
+    EXPECT_EQ("bind_pipeline(pipeline_bind_point=VK_PIPELINE_BIND_POINT_GRAPHICS, pipeline=0x3)",
+              log[4]);
+    EXPECT_EQ("draw(vertex_count=4, instance_count=1, first_vertex=0, first_instance=0)", log[5]);
+    EXPECT_EQ("end_rendering()", log[6]);
+    EXPECT_EQ(
+        "pipeline_barrier(src_stage_mask=VK_PIPELINE_STAGE_ALL_GRAPHICS_BIT, "
+        "dst_stage_mask=VK_PIPELINE_STAGE_ALL_GRAPHICS_BIT" +
+            endl() +
+            " - image_barrier(src_access_mask=VK_ACCESS_COLOR_ATTACHMENT_WRITE_BIT, "
+            "dst_access_mask=VK_ACCESS_COLOR_ATTACHMENT_WRITE_BIT, "
+            "old_layout=" +
+            color_attachment_layout_str() +
+            ", "
+            "new_layout=" +
+            color_attachment_layout_str() + ", image=0x1, subresource_range=" + endl() +
+            "    aspect_mask=VK_IMAGE_ASPECT_COLOR_BIT, base_mip_level=0, "
+            "level_count=4294967295, "
+            "base_array_layer=0, layer_count=4294967295  )" +
+            endl() + ")",
+        log[7]);
+    /* Second rendering scope (orphaned BEGIN, no END node). Implicit end_rendering at group
+     * end. */
+    EXPECT_EQ("begin_rendering(p_rendering_info=flags=, render_area=" + endl() +
+                  "  offset=" + endl() + "    x=0, y=0  , extent=" + endl() +
+                  "    width=0, height=0  , layer_count=1, view_mask=0, "
+                  "color_attachment_count=1, "
+                  "p_color_attachments=" +
+                  endl() + "  image_view=0x2, image_layout=" + color_attachment_layout_str() +
+                  ", "
+                  "resolve_mode=VK_RESOLVE_MODE_NONE, resolve_image_view=0, "
+                  "resolve_image_layout=VK_IMAGE_LAYOUT_UNDEFINED, "
+                  "load_op=VK_ATTACHMENT_LOAD_OP_LOAD, "
+                  "store_op=VK_ATTACHMENT_STORE_OP_STORE" +
+                  endl() + ")",
+              log[8]);
+    EXPECT_EQ("draw(vertex_count=4, instance_count=1, first_vertex=0, first_instance=0)", log[9]);
+    EXPECT_EQ("end_rendering()", log[10]);
+  }
+  else {
+    /* Without local read, a second BEGIN with no matching END is a bug.
+     * Skip verification (the scheduler will assert, which is correct behavior). */
+    GTEST_SKIP() << "This test only applies when VK_EXT_dynamic_rendering_local_read is enabled";
+  }
+}
+
+/**
+ * Tests correct barrier synchronization when an image transitions from color attachment to shader
+ * storage access, then back to color attachment across two rendering scopes. Exercises the
+ * non-subresource ImageTracker path.
+ */
+TEST_P(VKRenderGraphTestScheduler, begin_draw_storage_end_begin_draw_end)
+{
+  VkHandle<VkImage> image(1u);
+  VkHandle<VkImageView> image_view(2u);
+  VkHandle<VkPipelineLayout> pipeline_layout(4u);
+  VkHandle<VkPipeline> pipeline(3u);
+
+  resources.add_image(image, false);
+
+  /* First scope: BEGIN/DRAW(storage)/END. */
+  {
+    VKResourceAccessInfo access_info = {};
+    access_info.images.append(
+        {image,
+         VK_ACCESS_COLOR_ATTACHMENT_READ_BIT | VK_ACCESS_COLOR_ATTACHMENT_WRITE_BIT,
+         VK_IMAGE_ASPECT_COLOR_BIT,
+         {}});
+    VKBeginRenderingNode::CreateInfo begin_rendering(access_info);
+    begin_rendering.node_data.color_attachments[0].sType =
+        VK_STRUCTURE_TYPE_RENDERING_ATTACHMENT_INFO_KHR;
+    begin_rendering.node_data.color_attachments[0].imageLayout = color_attachment_layout();
+    begin_rendering.node_data.color_attachments[0].imageView = image_view;
+    begin_rendering.node_data.color_attachments[0].loadOp = VK_ATTACHMENT_LOAD_OP_DONT_CARE;
+    begin_rendering.node_data.color_attachments[0].storeOp = VK_ATTACHMENT_STORE_OP_STORE;
+    begin_rendering.node_data.vk_rendering_info.sType = VK_STRUCTURE_TYPE_RENDERING_INFO;
+    begin_rendering.node_data.vk_rendering_info.colorAttachmentCount = 1;
+    begin_rendering.node_data.vk_rendering_info.layerCount = 1;
+    begin_rendering.node_data.vk_rendering_info.pColorAttachments =
+        begin_rendering.node_data.color_attachments;
+
+    render_graph->add_node(begin_rendering);
+  }
+
+  {
+    VKResourceAccessInfo access_info = {};
+    /* Image accessed as shader storage (simulates storage image binding in EEVEE gbuffer). */
+    access_info.images.append({image,
+                               VK_ACCESS_SHADER_READ_BIT | VK_ACCESS_SHADER_WRITE_BIT,
+                               VK_IMAGE_ASPECT_COLOR_BIT,
+                               {}});
+    VKDrawNode::CreateInfo draw(access_info);
+    draw.node_data.first_instance = 0;
+    draw.node_data.first_vertex = 0;
+    draw.node_data.instance_count = 1;
+    draw.node_data.vertex_count = 4;
+    draw.node_data.graphics.pipeline_data.push_constants_range = IndexRange(0);
+    draw.node_data.graphics.pipeline_data.vk_descriptor_set = VK_NULL_HANDLE;
+    draw.node_data.graphics.pipeline_data.vk_pipeline = pipeline;
+    draw.node_data.graphics.pipeline_data.vk_pipeline_layout = pipeline_layout;
+    draw.node_data.graphics.viewport.viewports.append(VkViewport{});
+    draw.node_data.graphics.viewport.scissors.append(VkRect2D{});
+    render_graph->add_node(draw);
+  }
+
+  {
+    VKEndRenderingNode::CreateInfo end_rendering = {};
+    render_graph->add_node(end_rendering);
+  }
+
+  /* Second scope: BEGIN/DRAW/END. */
+  {
+    VKResourceAccessInfo access_info = {};
+    access_info.images.append(
+        {image,
+         VK_ACCESS_COLOR_ATTACHMENT_READ_BIT | VK_ACCESS_COLOR_ATTACHMENT_WRITE_BIT,
+         VK_IMAGE_ASPECT_COLOR_BIT,
+         {}});
+    VKBeginRenderingNode::CreateInfo begin_rendering(access_info);
+    begin_rendering.node_data.color_attachments[0].sType =
+        VK_STRUCTURE_TYPE_RENDERING_ATTACHMENT_INFO_KHR;
+    begin_rendering.node_data.color_attachments[0].imageLayout = color_attachment_layout();
+    begin_rendering.node_data.color_attachments[0].imageView = image_view;
+    begin_rendering.node_data.color_attachments[0].loadOp = VK_ATTACHMENT_LOAD_OP_LOAD;
+    begin_rendering.node_data.color_attachments[0].storeOp = VK_ATTACHMENT_STORE_OP_STORE;
+    begin_rendering.node_data.vk_rendering_info.sType = VK_STRUCTURE_TYPE_RENDERING_INFO;
+    begin_rendering.node_data.vk_rendering_info.colorAttachmentCount = 1;
+    begin_rendering.node_data.vk_rendering_info.layerCount = 1;
+    begin_rendering.node_data.vk_rendering_info.pColorAttachments =
+        begin_rendering.node_data.color_attachments;
+
+    render_graph->add_node(begin_rendering);
+  }
+
+  {
+    VKResourceAccessInfo access_info = {};
+    VKDrawNode::CreateInfo draw(access_info);
+    draw.node_data.first_instance = 0;
+    draw.node_data.first_vertex = 0;
+    draw.node_data.instance_count = 1;
+    draw.node_data.vertex_count = 4;
+    draw.node_data.graphics.pipeline_data.push_constants_range = IndexRange(0);
+    draw.node_data.graphics.pipeline_data.vk_descriptor_set = VK_NULL_HANDLE;
+    draw.node_data.graphics.pipeline_data.vk_pipeline = pipeline;
+    draw.node_data.graphics.pipeline_data.vk_pipeline_layout = pipeline_layout;
+    draw.node_data.graphics.viewport.viewports.append(VkViewport{});
+    draw.node_data.graphics.viewport.scissors.append(VkRect2D{});
+    render_graph->add_node(draw);
+  }
+
+  {
+    VKEndRenderingNode::CreateInfo end_rendering = {};
+    render_graph->add_node(end_rendering);
+  }
+
+  submit(render_graph, command_buffer);
+
+  ASSERT_EQ(12, log.size());
+  /* Test the pipeline barriers have correct synchronization. */
+  EXPECT_EQ(
+      "pipeline_barrier(src_stage_mask=VK_PIPELINE_STAGE_TOP_OF_PIPE_BIT, "
+      "dst_stage_mask=VK_PIPELINE_STAGE_ALL_GRAPHICS_BIT" +
+          endl() +
+          " - image_barrier(src_access_mask=, "
+          "dst_access_mask=VK_ACCESS_COLOR_ATTACHMENT_READ_BIT, "
+          "VK_ACCESS_COLOR_ATTACHMENT_WRITE_BIT, "
+          "old_layout=VK_IMAGE_LAYOUT_UNDEFINED, "
+          "new_layout=" +
+          color_attachment_layout_str() + ", image=0x1, subresource_range=" + endl() +
+          "    aspect_mask=VK_IMAGE_ASPECT_COLOR_BIT, base_mip_level=0, level_count=4294967295, "
+          "base_array_layer=0, layer_count=4294967295  )" +
+          endl() + ")",
+      log[0]);
+  EXPECT_EQ(
+      "pipeline_barrier(src_stage_mask=VK_PIPELINE_STAGE_ALL_GRAPHICS_BIT, "
+      "dst_stage_mask=VK_PIPELINE_STAGE_ALL_GRAPHICS_BIT" +
+          endl() +
+          " - image_barrier(src_access_mask=VK_ACCESS_COLOR_ATTACHMENT_READ_BIT, "
+          "VK_ACCESS_COLOR_ATTACHMENT_WRITE_BIT, "
+          "dst_access_mask=VK_ACCESS_SHADER_READ_BIT, VK_ACCESS_SHADER_WRITE_BIT, "
+          "old_layout=" +
+          color_attachment_layout_str() +
+          ", "
+          "new_layout=VK_IMAGE_LAYOUT_GENERAL, image=0x1, subresource_range=" +
+          endl() +
+          "    aspect_mask=VK_IMAGE_ASPECT_COLOR_BIT, base_mip_level=0, level_count=4294967295, "
+          "base_array_layer=0, layer_count=4294967295  )" +
+          endl() + ")",
+      log[1]);
+  EXPECT_EQ("begin_rendering(p_rendering_info=flags=, render_area=" + endl() +
+                "  offset=" + endl() + "    x=0, y=0  , extent=" + endl() +
+                "    width=0, height=0  , layer_count=1, view_mask=0, color_attachment_count=1, "
+                "p_color_attachments=" +
+                endl() + "  image_view=0x2, image_layout=" + color_attachment_layout_str() +
+                ", "
+                "resolve_mode=VK_RESOLVE_MODE_NONE, resolve_image_view=0, "
+                "resolve_image_layout=VK_IMAGE_LAYOUT_UNDEFINED, "
+                "load_op=VK_ATTACHMENT_LOAD_OP_DONT_CARE, store_op=VK_ATTACHMENT_STORE_OP_STORE" +
+                endl() + ")",
+            log[2]);
+  EXPECT_EQ("set_viewport(num_viewports=1)", log[3]);
+  EXPECT_EQ("set_scissor(num_scissors=1)", log[4]);
+  EXPECT_EQ("bind_pipeline(pipeline_bind_point=VK_PIPELINE_BIND_POINT_GRAPHICS, pipeline=0x3)",
+            log[5]);
+  EXPECT_EQ("draw(vertex_count=4, instance_count=1, first_vertex=0, first_instance=0)", log[6]);
+  EXPECT_EQ("end_rendering()", log[7]);
+  EXPECT_EQ(
+      "pipeline_barrier(src_stage_mask=VK_PIPELINE_STAGE_ALL_GRAPHICS_BIT, "
+      "dst_stage_mask=VK_PIPELINE_STAGE_ALL_GRAPHICS_BIT" +
+          endl() +
+          " - image_barrier(src_access_mask=VK_ACCESS_SHADER_READ_BIT, "
+          "VK_ACCESS_SHADER_WRITE_BIT, "
+          "VK_ACCESS_COLOR_ATTACHMENT_WRITE_BIT, "
+          "dst_access_mask=VK_ACCESS_COLOR_ATTACHMENT_READ_BIT, "
+          "VK_ACCESS_COLOR_ATTACHMENT_WRITE_BIT, "
+          "old_layout=VK_IMAGE_LAYOUT_GENERAL, "
+          "new_layout=" +
+          color_attachment_layout_str() + ", image=0x1, subresource_range=" + endl() +
+          "    aspect_mask=VK_IMAGE_ASPECT_COLOR_BIT, base_mip_level=0, level_count=4294967295, "
+          "base_array_layer=0, layer_count=4294967295  )" +
+          endl() + ")",
+      log[8]);
+  EXPECT_EQ("begin_rendering(p_rendering_info=flags=, render_area=" + endl() +
+                "  offset=" + endl() + "    x=0, y=0  , extent=" + endl() +
+                "    width=0, height=0  , layer_count=1, view_mask=0, color_attachment_count=1, "
+                "p_color_attachments=" +
+                endl() + "  image_view=0x2, image_layout=" + color_attachment_layout_str() +
+                ", "
+                "resolve_mode=VK_RESOLVE_MODE_NONE, resolve_image_view=0, "
+                "resolve_image_layout=VK_IMAGE_LAYOUT_UNDEFINED, "
+                "load_op=VK_ATTACHMENT_LOAD_OP_LOAD, store_op=VK_ATTACHMENT_STORE_OP_STORE" +
+                endl() + ")",
+            log[9]);
+  EXPECT_EQ("draw(vertex_count=4, instance_count=1, first_vertex=0, first_instance=0)", log[10]);
+  EXPECT_EQ("end_rendering()", log[11]);
+}
+
+/**
+ * Tests barrier synchronization for storage-to-color-attachment transition with subresource
+ * tracking enabled. Verifies the suspend barrier correctly reverts from GENERAL layout and the
+ * next scope's barrier uses the correct oldLayout from the suspended state.
+ */
+TEST_P(VKRenderGraphTestScheduler, begin_draw_storage_end_begin_draw_end_subresource)
+{
+  VkHandle<VkImage> image(1u);
+  VkHandle<VkImageView> image_view(2u);
+  VkHandle<VkPipelineLayout> pipeline_layout(4u);
+  VkHandle<VkPipeline> pipeline(3u);
+
+  /* Enable subresource tracking to exercise the ImageTracker code path. */
+  resources.add_image(image, true);
+
+  /* First scope: BEGIN/DRAW(storage)/END. */
+  {
+    VKResourceAccessInfo access_info = {};
+    access_info.images.append(
+        {image,
+         VK_ACCESS_COLOR_ATTACHMENT_READ_BIT | VK_ACCESS_COLOR_ATTACHMENT_WRITE_BIT,
+         VK_IMAGE_ASPECT_COLOR_BIT,
+         {}});
+    VKBeginRenderingNode::CreateInfo begin_rendering(access_info);
+    begin_rendering.node_data.color_attachments[0].sType =
+        VK_STRUCTURE_TYPE_RENDERING_ATTACHMENT_INFO_KHR;
+    begin_rendering.node_data.color_attachments[0].imageLayout = color_attachment_layout();
+    begin_rendering.node_data.color_attachments[0].imageView = image_view;
+    begin_rendering.node_data.color_attachments[0].loadOp = VK_ATTACHMENT_LOAD_OP_DONT_CARE;
+    begin_rendering.node_data.color_attachments[0].storeOp = VK_ATTACHMENT_STORE_OP_STORE;
+    begin_rendering.node_data.vk_rendering_info.sType = VK_STRUCTURE_TYPE_RENDERING_INFO;
+    begin_rendering.node_data.vk_rendering_info.colorAttachmentCount = 1;
+    begin_rendering.node_data.vk_rendering_info.layerCount = 1;
+    begin_rendering.node_data.vk_rendering_info.pColorAttachments =
+        begin_rendering.node_data.color_attachments;
+
+    render_graph->add_node(begin_rendering);
+  }
+
+  {
+    VKResourceAccessInfo access_info = {};
+    /* Image accessed as shader storage. */
+    access_info.images.append({image,
+                               VK_ACCESS_SHADER_READ_BIT | VK_ACCESS_SHADER_WRITE_BIT,
+                               VK_IMAGE_ASPECT_COLOR_BIT,
+                               {}});
+    VKDrawNode::CreateInfo draw(access_info);
+    draw.node_data.first_instance = 0;
+    draw.node_data.first_vertex = 0;
+    draw.node_data.instance_count = 1;
+    draw.node_data.vertex_count = 4;
+    draw.node_data.graphics.pipeline_data.push_constants_range = IndexRange(0);
+    draw.node_data.graphics.pipeline_data.vk_descriptor_set = VK_NULL_HANDLE;
+    draw.node_data.graphics.pipeline_data.vk_pipeline = pipeline;
+    draw.node_data.graphics.pipeline_data.vk_pipeline_layout = pipeline_layout;
+    draw.node_data.graphics.viewport.viewports.append(VkViewport{});
+    draw.node_data.graphics.viewport.scissors.append(VkRect2D{});
+    render_graph->add_node(draw);
+  }
+
+  {
+    VKEndRenderingNode::CreateInfo end_rendering = {};
+    render_graph->add_node(end_rendering);
+  }
+
+  /* Second scope: BEGIN/DRAW/END. */
+  {
+    VKResourceAccessInfo access_info = {};
+    access_info.images.append(
+        {image,
+         VK_ACCESS_COLOR_ATTACHMENT_READ_BIT | VK_ACCESS_COLOR_ATTACHMENT_WRITE_BIT,
+         VK_IMAGE_ASPECT_COLOR_BIT,
+         {}});
+    VKBeginRenderingNode::CreateInfo begin_rendering(access_info);
+    begin_rendering.node_data.color_attachments[0].sType =
+        VK_STRUCTURE_TYPE_RENDERING_ATTACHMENT_INFO_KHR;
+    begin_rendering.node_data.color_attachments[0].imageLayout = color_attachment_layout();
+    begin_rendering.node_data.color_attachments[0].imageView = image_view;
+    begin_rendering.node_data.color_attachments[0].loadOp = VK_ATTACHMENT_LOAD_OP_LOAD;
+    begin_rendering.node_data.color_attachments[0].storeOp = VK_ATTACHMENT_STORE_OP_STORE;
+    begin_rendering.node_data.vk_rendering_info.sType = VK_STRUCTURE_TYPE_RENDERING_INFO;
+    begin_rendering.node_data.vk_rendering_info.colorAttachmentCount = 1;
+    begin_rendering.node_data.vk_rendering_info.layerCount = 1;
+    begin_rendering.node_data.vk_rendering_info.pColorAttachments =
+        begin_rendering.node_data.color_attachments;
+
+    render_graph->add_node(begin_rendering);
+  }
+
+  {
+    VKResourceAccessInfo access_info = {};
+    VKDrawNode::CreateInfo draw(access_info);
+    draw.node_data.first_instance = 0;
+    draw.node_data.first_vertex = 0;
+    draw.node_data.instance_count = 1;
+    draw.node_data.vertex_count = 4;
+    draw.node_data.graphics.pipeline_data.push_constants_range = IndexRange(0);
+    draw.node_data.graphics.pipeline_data.vk_descriptor_set = VK_NULL_HANDLE;
+    draw.node_data.graphics.pipeline_data.vk_pipeline = pipeline;
+    draw.node_data.graphics.pipeline_data.vk_pipeline_layout = pipeline_layout;
+    draw.node_data.graphics.viewport.viewports.append(VkViewport{});
+    draw.node_data.graphics.viewport.scissors.append(VkRect2D{});
+    render_graph->add_node(draw);
+  }
+
+  {
+    VKEndRenderingNode::CreateInfo end_rendering = {};
+    render_graph->add_node(end_rendering);
+  }
+
+  submit(render_graph, command_buffer);
+
+  ASSERT_EQ(13, log.size());
+  /* Initial transition: UNDEFINED -> color_attachment_layout. */
+  EXPECT_EQ(
+      "pipeline_barrier(src_stage_mask=VK_PIPELINE_STAGE_TOP_OF_PIPE_BIT, "
+      "dst_stage_mask=VK_PIPELINE_STAGE_ALL_GRAPHICS_BIT" +
+          endl() +
+          " - image_barrier(src_access_mask=, "
+          "dst_access_mask=VK_ACCESS_COLOR_ATTACHMENT_READ_BIT, "
+          "VK_ACCESS_COLOR_ATTACHMENT_WRITE_BIT, "
+          "old_layout=VK_IMAGE_LAYOUT_UNDEFINED, "
+          "new_layout=" +
+          color_attachment_layout_str() + ", image=0x1, subresource_range=" + endl() +
+          "    aspect_mask=VK_IMAGE_ASPECT_COLOR_BIT, base_mip_level=0, level_count=4294967295, "
+          "base_array_layer=0, layer_count=4294967295  )" +
+          endl() + ")",
+      log[0]);
+  /* Storage access transition: color_attachment_layout -> GENERAL, merged with access sync. */
+  EXPECT_EQ(
+      "pipeline_barrier(src_stage_mask=VK_PIPELINE_STAGE_ALL_GRAPHICS_BIT, "
+      "VK_PIPELINE_STAGE_ALL_COMMANDS_BIT, "
+      "dst_stage_mask=VK_PIPELINE_STAGE_ALL_GRAPHICS_BIT, "
+      "VK_PIPELINE_STAGE_ALL_COMMANDS_BIT" +
+          endl() +
+          " - image_barrier(src_access_mask=VK_ACCESS_TRANSFER_WRITE_BIT, "
+          "dst_access_mask=VK_ACCESS_SHADER_READ_BIT, VK_ACCESS_SHADER_WRITE_BIT, "
+          "VK_ACCESS_COLOR_ATTACHMENT_READ_BIT, VK_ACCESS_COLOR_ATTACHMENT_WRITE_BIT, "
+          "VK_ACCESS_TRANSFER_READ_BIT, VK_ACCESS_TRANSFER_WRITE_BIT, "
+          "old_layout=" +
+          color_attachment_layout_str() +
+          ", "
+          "new_layout=VK_IMAGE_LAYOUT_GENERAL, image=0x1, subresource_range=" +
+          endl() +
+          "    aspect_mask=VK_IMAGE_ASPECT_COLOR_BIT, base_mip_level=0, level_count=4294967295, "
+          "base_array_layer=0, layer_count=4294967295  )" +
+          endl() + ")",
+      log[1]);
+  EXPECT_EQ("begin_rendering(p_rendering_info=flags=, render_area=" + endl() +
+                "  offset=" + endl() + "    x=0, y=0  , extent=" + endl() +
+                "    width=0, height=0  , layer_count=1, view_mask=0, color_attachment_count=1, "
+                "p_color_attachments=" +
+                endl() + "  image_view=0x2, image_layout=" + color_attachment_layout_str() +
+                ", "
+                "resolve_mode=VK_RESOLVE_MODE_NONE, resolve_image_view=0, "
+                "resolve_image_layout=VK_IMAGE_LAYOUT_UNDEFINED, "
+                "load_op=VK_ATTACHMENT_LOAD_OP_DONT_CARE, store_op=VK_ATTACHMENT_STORE_OP_STORE" +
+                endl() + ")",
+            log[2]);
+  EXPECT_EQ("set_viewport(num_viewports=1)", log[3]);
+  EXPECT_EQ("set_scissor(num_scissors=1)", log[4]);
+  EXPECT_EQ("bind_pipeline(pipeline_bind_point=VK_PIPELINE_BIND_POINT_GRAPHICS, pipeline=0x3)",
+            log[5]);
+  EXPECT_EQ("draw(vertex_count=4, instance_count=1, first_vertex=0, first_instance=0)", log[6]);
+  EXPECT_EQ("end_rendering()", log[7]);
+  /* Suspend barrier from image_tracker.end(). Reverts GENERAL -> default layout. */
+  EXPECT_EQ(
+      "pipeline_barrier(src_stage_mask=VK_PIPELINE_STAGE_ALL_COMMANDS_BIT, "
+      "dst_stage_mask=VK_PIPELINE_STAGE_ALL_COMMANDS_BIT" +
+          endl() +
+          " - image_barrier(src_access_mask=VK_ACCESS_SHADER_READ_BIT, "
+          "VK_ACCESS_SHADER_WRITE_BIT, VK_ACCESS_COLOR_ATTACHMENT_READ_BIT, "
+          "VK_ACCESS_COLOR_ATTACHMENT_WRITE_BIT, VK_ACCESS_TRANSFER_READ_BIT, "
+          "VK_ACCESS_TRANSFER_WRITE_BIT, "
+          "dst_access_mask=VK_ACCESS_SHADER_READ_BIT, "
+          "VK_ACCESS_SHADER_WRITE_BIT, VK_ACCESS_COLOR_ATTACHMENT_READ_BIT, "
+          "VK_ACCESS_COLOR_ATTACHMENT_WRITE_BIT, VK_ACCESS_TRANSFER_READ_BIT, "
+          "VK_ACCESS_TRANSFER_WRITE_BIT, "
+          "old_layout=VK_IMAGE_LAYOUT_GENERAL, "
+          "new_layout=" +
+          color_attachment_layout_str() + ", image=0x1, subresource_range=" + endl() +
+          "    aspect_mask=VK_IMAGE_ASPECT_COLOR_BIT, base_mip_level=0, level_count=4294967295, "
+          "base_array_layer=0, layer_count=4294967295  )" +
+          endl() + ")",
+      log[8]);
+  /* Transition between scopes: same-layout access-sync barrier. Must use the default layout
+   * as oldLayout (not GENERAL) to match the actual image layout after suspend. */
+  EXPECT_EQ(
+      "pipeline_barrier(src_stage_mask=VK_PIPELINE_STAGE_ALL_GRAPHICS_BIT, "
+      "dst_stage_mask=VK_PIPELINE_STAGE_ALL_GRAPHICS_BIT" +
+          endl() +
+          " - image_barrier(src_access_mask=VK_ACCESS_SHADER_READ_BIT, "
+          "VK_ACCESS_SHADER_WRITE_BIT, VK_ACCESS_COLOR_ATTACHMENT_WRITE_BIT, "
+          "dst_access_mask=VK_ACCESS_COLOR_ATTACHMENT_READ_BIT, "
+          "VK_ACCESS_COLOR_ATTACHMENT_WRITE_BIT, "
+          "old_layout=" +
+          color_attachment_layout_str() +
+          ", "
+          "new_layout=" +
+          color_attachment_layout_str() + ", image=0x1, subresource_range=" + endl() +
+          "    aspect_mask=VK_IMAGE_ASPECT_COLOR_BIT, base_mip_level=0, level_count=4294967295, "
+          "base_array_layer=0, layer_count=4294967295  )" +
+          endl() + ")",
+      log[9]);
+  EXPECT_EQ("begin_rendering(p_rendering_info=flags=, render_area=" + endl() +
+                "  offset=" + endl() + "    x=0, y=0  , extent=" + endl() +
+                "    width=0, height=0  , layer_count=1, view_mask=0, color_attachment_count=1, "
+                "p_color_attachments=" +
+                endl() + "  image_view=0x2, image_layout=" + color_attachment_layout_str() +
+                ", "
+                "resolve_mode=VK_RESOLVE_MODE_NONE, resolve_image_view=0, "
+                "resolve_image_layout=VK_IMAGE_LAYOUT_UNDEFINED, "
+                "load_op=VK_ATTACHMENT_LOAD_OP_LOAD, store_op=VK_ATTACHMENT_STORE_OP_STORE" +
+                endl() + ")",
+            log[10]);
+  EXPECT_EQ("draw(vertex_count=4, instance_count=1, first_vertex=0, first_instance=0)", log[11]);
+  EXPECT_EQ("end_rendering()", log[12]);
+}
+
+/**
+ * Test that the after-group-loop suspend (when a rendering scope group ends without
+ * END_RENDERING) correctly syncs the resource state layout. This exercises the code path
+ * where the ImageTracker is suspended due to a non-rendering node forcing a group boundary.
+ */
+TEST_P(VKRenderGraphTestScheduler, begin_draw_storage_dispatch_begin_draw_end_subresource)
+{
+  VkHandle<VkImage> image(1u);
+  VkHandle<VkImageView> image_view(2u);
+  VkHandle<VkPipelineLayout> pipeline_layout(4u);
+  VkHandle<VkPipeline> pipeline(3u);
+  VkHandle<VkBuffer> buffer_src(5u);
+  VkHandle<VkBuffer> buffer_dst(6u);
+
+  resources.add_image(image, true);
+  resources.add_buffer(buffer_src);
+  resources.add_buffer(buffer_dst);
+
+  /* First scope: BEGIN_RENDERING + DRAW(storage) in one group.
+   * No END_RENDERING in this group, so the after-group-loop suspend fires. */
+  {
+    VKResourceAccessInfo access_info = {};
+    access_info.images.append(
+        {image,
+         VK_ACCESS_COLOR_ATTACHMENT_READ_BIT | VK_ACCESS_COLOR_ATTACHMENT_WRITE_BIT,
+         VK_IMAGE_ASPECT_COLOR_BIT,
+         {}});
+    VKBeginRenderingNode::CreateInfo begin_rendering(access_info);
+    begin_rendering.node_data.color_attachments[0].sType =
+        VK_STRUCTURE_TYPE_RENDERING_ATTACHMENT_INFO_KHR;
+    begin_rendering.node_data.color_attachments[0].imageLayout = color_attachment_layout();
+    begin_rendering.node_data.color_attachments[0].imageView = image_view;
+    begin_rendering.node_data.color_attachments[0].loadOp = VK_ATTACHMENT_LOAD_OP_DONT_CARE;
+    begin_rendering.node_data.color_attachments[0].storeOp = VK_ATTACHMENT_STORE_OP_STORE;
+    begin_rendering.node_data.vk_rendering_info.sType = VK_STRUCTURE_TYPE_RENDERING_INFO;
+    begin_rendering.node_data.vk_rendering_info.colorAttachmentCount = 1;
+    begin_rendering.node_data.vk_rendering_info.layerCount = 1;
+    begin_rendering.node_data.vk_rendering_info.pColorAttachments =
+        begin_rendering.node_data.color_attachments;
+
+    render_graph->add_node(begin_rendering);
+  }
+
+  {
+    VKResourceAccessInfo access_info = {};
+    access_info.images.append({image,
+                               VK_ACCESS_SHADER_READ_BIT | VK_ACCESS_SHADER_WRITE_BIT,
+                               VK_IMAGE_ASPECT_COLOR_BIT,
+                               {}});
+    VKDrawNode::CreateInfo draw(access_info);
+    draw.node_data.first_instance = 0;
+    draw.node_data.first_vertex = 0;
+    draw.node_data.instance_count = 1;
+    draw.node_data.vertex_count = 4;
+    draw.node_data.graphics.pipeline_data.push_constants_range = IndexRange(0);
+    draw.node_data.graphics.pipeline_data.vk_descriptor_set = VK_NULL_HANDLE;
+    draw.node_data.graphics.pipeline_data.vk_pipeline = pipeline;
+    draw.node_data.graphics.pipeline_data.vk_pipeline_layout = pipeline_layout;
+    draw.node_data.graphics.viewport.viewports.append(VkViewport{});
+    draw.node_data.graphics.viewport.scissors.append(VkRect2D{});
+    render_graph->add_node(draw);
+  }
+
+  /* Non-rendering node splits the group, triggering after-group-loop suspend. */
+  {
+    VKCopyBufferNode::CreateInfo copy_buffer = {};
+    copy_buffer.src_buffer = buffer_src;
+    copy_buffer.dst_buffer = buffer_dst;
+    render_graph->add_node(copy_buffer);
+  }
+
+  /* Second scope: BEGIN_RENDERING + DRAW + END_RENDERING in one group. */
+  {
+    VKResourceAccessInfo access_info = {};
+    access_info.images.append(
+        {image,
+         VK_ACCESS_COLOR_ATTACHMENT_READ_BIT | VK_ACCESS_COLOR_ATTACHMENT_WRITE_BIT,
+         VK_IMAGE_ASPECT_COLOR_BIT,
+         {}});
+    VKBeginRenderingNode::CreateInfo begin_rendering(access_info);
+    begin_rendering.node_data.color_attachments[0].sType =
+        VK_STRUCTURE_TYPE_RENDERING_ATTACHMENT_INFO_KHR;
+    begin_rendering.node_data.color_attachments[0].imageLayout = color_attachment_layout();
+    begin_rendering.node_data.color_attachments[0].imageView = image_view;
+    begin_rendering.node_data.color_attachments[0].loadOp = VK_ATTACHMENT_LOAD_OP_LOAD;
+    begin_rendering.node_data.color_attachments[0].storeOp = VK_ATTACHMENT_STORE_OP_STORE;
+    begin_rendering.node_data.vk_rendering_info.sType = VK_STRUCTURE_TYPE_RENDERING_INFO;
+    begin_rendering.node_data.vk_rendering_info.colorAttachmentCount = 1;
+    begin_rendering.node_data.vk_rendering_info.layerCount = 1;
+    begin_rendering.node_data.vk_rendering_info.pColorAttachments =
+        begin_rendering.node_data.color_attachments;
+
+    render_graph->add_node(begin_rendering);
+  }
+
+  {
+    VKResourceAccessInfo access_info = {};
+    access_info.images.append(
+        {image,
+         VK_ACCESS_COLOR_ATTACHMENT_READ_BIT | VK_ACCESS_COLOR_ATTACHMENT_WRITE_BIT,
+         VK_IMAGE_ASPECT_COLOR_BIT,
+         {}});
+    VKDrawNode::CreateInfo draw(access_info);
+    draw.node_data.first_instance = 0;
+    draw.node_data.first_vertex = 0;
+    draw.node_data.instance_count = 1;
+    draw.node_data.vertex_count = 4;
+    draw.node_data.graphics.pipeline_data.push_constants_range = IndexRange(0);
+    draw.node_data.graphics.pipeline_data.vk_descriptor_set = VK_NULL_HANDLE;
+    draw.node_data.graphics.pipeline_data.vk_pipeline = pipeline;
+    draw.node_data.graphics.pipeline_data.vk_pipeline_layout = pipeline_layout;
+    draw.node_data.graphics.viewport.viewports.append(VkViewport{});
+    draw.node_data.graphics.viewport.scissors.append(VkRect2D{});
+    render_graph->add_node(draw);
+  }
+
+  {
+    VKEndRenderingNode::CreateInfo end_rendering = {};
+    render_graph->add_node(end_rendering);
+  }
+
+  submit(render_graph, command_buffer);
+
+  /* Log structure (determined by scheduler topological order):
+   * [0]: copy_buffer (non-rendering, scheduled first)
+   * [1]: BEGIN_RENDERING pre-barrier (UNDEFINED -> color_attachment_layout)
+   * [2]: DRAW(storage) pre-barrier (color_attachment_layout -> GENERAL)
+   * [3]: begin_rendering
+   * [4-7]: draw commands (set_viewport, set_scissor, bind_pipeline, draw)
+   * [8]: end_rendering (after-group-loop in groups_build_commands)
+   * [9]: after-group-loop suspend barrier (GENERAL -> color_attachment_layout)
+   * [10]: second scope access barrier (color_attachment_layout -> same, for access sync)
+   * [11]: begin_rendering (second scope)
+   * [12]: draw
+   * [13]: end_rendering
+   */
+  ASSERT_EQ(14, log.size());
+  /* Log[0]: copy buffer. */
+  EXPECT_NE(log[0].find("copy_buffer"), std::string::npos);
+  /* Log[1]: initial UNDEFINED -> color_attachment_layout barrier. */
+  EXPECT_NE(log[1].find("old_layout=VK_IMAGE_LAYOUT_UNDEFINED"), std::string::npos);
+  EXPECT_NE(log[1].find("new_layout=" + color_attachment_layout_str()), std::string::npos);
+  /* Log[2]: storage access transition (color_attachment_layout -> GENERAL). */
+  EXPECT_NE(log[2].find("new_layout=VK_IMAGE_LAYOUT_GENERAL"), std::string::npos);
+  /* Log[3]: begin_rendering. */
+  EXPECT_NE(log[3].find("begin_rendering"), std::string::npos);
+  /* Log[8]: end_rendering (from after-group-loop). */
+  EXPECT_NE(log[8].find("end_rendering"), std::string::npos);
+  /* Log[9]: after-group-loop suspend barrier: GENERAL -> color_attachment_layout. */
+  EXPECT_NE(log[9].find("pipeline_barrier"), std::string::npos);
+  EXPECT_NE(log[9].find("old_layout=VK_IMAGE_LAYOUT_GENERAL"), std::string::npos);
+  EXPECT_NE(log[9].find("new_layout=" + color_attachment_layout_str()), std::string::npos);
+  /* Log[10]: second scope pre-barrier - must use color_attachment_layout (not GENERAL) as
+   * oldLayout, proving the after-group-loop sync correctly updated resource_state. */
+  EXPECT_NE(log[10].find("pipeline_barrier"), std::string::npos);
+  EXPECT_NE(log[10].find("old_layout=" + color_attachment_layout_str()), std::string::npos);
+  EXPECT_NE(log[10].find("new_layout=" + color_attachment_layout_str()), std::string::npos);
+  /* Log[13]: final end_rendering. */
+  EXPECT_NE(log[13].find("end_rendering"), std::string::npos);
+}
+
 INSTANTIATE_TEST_SUITE_P(, VKRenderGraphTestScheduler, ::testing::Values(true, false));
 
 }  // namespace blender::gpu::render_graph

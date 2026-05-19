@@ -514,6 +514,10 @@ void VKShader::init(const shader::ShaderCreateInfo &info, bool /*is_codegen_only
   interface = vk_interface;
   is_static_shader_ = info.do_static_compilation_;
   is_compute_shader_ = !info.compute_source_.is_empty() || !info.compute_source_generated.empty();
+  max_input_attachment_index_ = 0;
+  for (const ShaderCreateInfo::SubpassIn &input : info.subpass_inputs_) {
+    max_input_attachment_index_ = max_uu(max_input_attachment_index_, uint32_t(input.index));
+  }
 }
 
 VKShader::~VKShader()
@@ -1337,6 +1341,7 @@ bool VKShader::ensure_graphics_pipelines(Span<shader::PipelineState> pipeline_st
     graphics_info.shaders.has_depth = pipeline_state.depth_format_ != TextureTargetFormat::Invalid;
     graphics_info.shaders.has_stencil = pipeline_state.stencil_format_ !=
                                         TextureTargetFormat::Invalid;
+    graphics_info.shaders.max_input_attachment_index = max_input_attachment_index_;
 
     /* Disable pipeline features that are dynamic to increase cache hits. */
     if (extensions.extended_dynamic_state) {
@@ -1408,6 +1413,7 @@ VkPipeline VKShader::ensure_and_get_graphics_pipeline(
   graphics_info.shaders.specialization_constants.extend(constants_state.values);
   graphics_info.shaders.has_depth = depth_attachment_format != VK_FORMAT_UNDEFINED;
   graphics_info.shaders.has_stencil = stencil_attachment_format != VK_FORMAT_UNDEFINED;
+  graphics_info.shaders.max_input_attachment_index = max_input_attachment_index_;
   /* Cleanup state to increase cache hits. */
   if (!graphics_info.shaders.has_stencil || state_manager.state.stencil_test == GPU_STENCIL_NONE) {
     graphics_info.shaders.state.stencil_test = GPU_STENCIL_NONE;
