@@ -803,6 +803,43 @@ class ASSETBROWSER_PT_metadata(asset_utils.AssetBrowserPanel, Panel):
         self.metadata_prop(layout, metadata, "author")
 
 
+class ASSETBROWSER_PT_import(asset_utils.AssetMetaDataPanel, Panel):
+    bl_region_type = 'TOOL_PROPS'
+    bl_label = "Import"
+    bl_options = {'DEFAULT_CLOSED'}
+
+    @classmethod
+    def poll(cls, context):
+        if not asset_utils.AssetMetaDataPanel.poll(context):
+            return False
+
+        metadata = context.asset.metadata
+        is_editable = not metadata.is_property_readonly("use_preferred_import_method")
+
+        # Hide the import options when the import method cannot be edited and isn't used. Otherwise
+        # show them.
+        return is_editable or metadata.use_preferred_import_method
+
+    def draw(self, context):
+        layout = self.layout
+        metadata = context.asset.metadata
+
+        layout.use_property_split = True
+        layout.use_property_decorate = False  # No animation.
+
+        heading = "Preferred Method"
+        if metadata.is_property_readonly("use_preferred_import_method"):
+            # Don't show the checkbox when the metadata cannot be edited. We only show the preferred
+            # import method as indicator to the user in that case.
+            layout.prop(metadata, "preferred_import_method", text=heading)
+        else:
+            row = layout.row(align=True, heading=heading)
+            row.prop(metadata, "use_preferred_import_method", text="")
+            sub = row.row(align=True)
+            sub.active = metadata.use_preferred_import_method
+            sub.prop(metadata, "preferred_import_method", text="")
+
+
 class ASSETBROWSER_PT_metadata_preview(asset_utils.AssetMetaDataPanel, Panel):
     bl_label = "Preview"
 
@@ -925,6 +962,7 @@ classes = (
     ASSETBROWSER_PT_metadata_preview,
     ASSETBROWSER_PT_metadata_tags,
     ASSETBROWSER_UL_metadata_tags,
+    ASSETBROWSER_PT_import,
     ASSETBROWSER_MT_context_menu,
 )
 

@@ -501,7 +501,8 @@ enum eFileAssetImportMethod : short {
    * heavy data dependencies (e.g. the image data-blocks of a material, the mesh of an object) may
    * be reused from an earlier append. */
   FILE_ASSET_IMPORT_APPEND_REUSE = 2,
-  /** Default: Follow the preference setting for this asset library. */
+  /** Default: Follow the asset if it has a preferred import method, or otherwise, the preference
+   * setting for this asset library. */
   FILE_ASSET_IMPORT_FOLLOW_PREFS = 3,
   /**
    * Link the data-block, but also pack it in the current file to keep it working even if the

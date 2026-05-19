@@ -279,6 +279,18 @@ components:
             The catalog UUID that contains this asset. Having the UUID here
             makes it easier to create a per-blendfile .cats.txt file, if that's
             ever necessary.
+        "preferred_import_method":
+          type: string
+          description: >
+            The import method preferred by this asset. For example, base meshes for
+            sculpting can declare they should always be appended, making them
+            instantly usable for sculpting.
+
+            Supports values APPEND, APPEND_REUSE, and ASSET_IMPORT_PACK.
+
+            These are not modeled here as an enum, to aid in forward compatibility
+            of this Blender version with future import methods (it'll just ignore
+            unsupported methods, instead of rejecting the file as invalid).
         "tags":
           type: array
           items: { type: string }

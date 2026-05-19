@@ -238,6 +238,17 @@ class AssetMetadataV1:
     .cats.txt file, if that's ever necessary.
     """
 
+    preferred_import_method: str | None = None
+    """The import method preferred by this asset.
+
+    For example, base meshes for sculpting can declare they should
+    always be appended, making them instantly usable for sculpting.
+    Supports values APPEND, APPEND_REUSE, and ASSET_IMPORT_PACK. These
+    are not modeled here as an enum, to aid in forward compatibility of
+    this Blender version with future import methods (it'll just ignore
+    unsupported methods, instead of rejecting the file as invalid).
+    """
+
     tags: list[str] | None = None
     author: str | None = None
     description: str | None = None

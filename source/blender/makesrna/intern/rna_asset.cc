@@ -49,7 +49,32 @@ const EnumPropertyItem rna_enum_asset_library_type_items[] = {
     {0, nullptr, 0, nullptr, nullptr},
 };
 
-}
+/* Note that these identifiers are written to the asset index, see #asset_indexer.cc. */
+const EnumPropertyItem rna_enum_asset_import_method_items[] = {
+    {ASSET_IMPORT_LINK, "LINK", ICON_LINK_BLEND, "Link", "Import the assets as linked data-block"},
+    {ASSET_IMPORT_APPEND,
+     "APPEND",
+     ICON_APPEND_BLEND,
+     "Append",
+     "Import the assets as copied data-block, with no link to the original asset data-block"},
+    {ASSET_IMPORT_APPEND_REUSE,
+     "APPEND_REUSE",
+     ICON_APPEND_BLEND,
+     "Append (Reuse Data)",
+     "Import the assets as copied data-block while avoiding multiple copies of nested, "
+     "typically heavy data. For example the textures of a material asset, or the mesh of an "
+     "object asset, don't have to be copied every time this asset is imported. The instances of "
+     "the asset share the data instead."},
+    {ASSET_IMPORT_PACK,
+     "PACK",
+     ICON_PACKAGE,
+     "Pack",
+     "Import the asset as linked data-block, and pack it in the current file (ensures that it "
+     "remains unchanged in case the library data is modified, is not available anymore, etc.)"},
+    {0, nullptr, 0, nullptr, nullptr},
+};
+
+}  // namespace blender
 
 #ifdef RNA_RUNTIME
 
@@ -382,6 +407,42 @@ void rna_AssetMetaData_catalog_id_update(bContext *C, PointerRNA *ptr)
   asset_library->refresh_catalog_simplename(asset_data);
 }
 
+static const EnumPropertyItem *rna_AssetMetaData_preferred_import_method_itemf(
+    bContext * /*C*/, PointerRNA * /*ptr*/, PropertyRNA * /*prop*/, bool *r_free)
+{
+  EnumPropertyItem *items = nullptr;
+  int items_num = 0;
+  for (const EnumPropertyItem *item = rna_enum_asset_import_method_items; item->identifier; item++)
+  {
+    switch (eAssetImportMethod(item->value)) {
+      case ASSET_IMPORT_APPEND_REUSE: {
+        if (U.experimental.no_data_block_packing) {
+          RNA_enum_item_add(&items, &items_num, item);
+        }
+        break;
+      }
+      case ASSET_IMPORT_PACK: {
+        if (!U.experimental.no_data_block_packing) {
+          RNA_enum_item_add(&items, &items_num, item);
+        }
+        break;
+      }
+      default: {
+        RNA_enum_item_add(&items, &items_num, item);
+        break;
+      }
+    }
+  }
+  RNA_enum_item_end(&items, &items_num);
+  *r_free = true;
+  return items;
+}
+
+int rna_AssetMetaData_preferred_import_method_default(PointerRNA * /*ptr*/, PropertyRNA * /*prop*/)
+{
+  return U.experimental.no_data_block_packing ? ASSET_IMPORT_APPEND_REUSE : ASSET_IMPORT_PACK;
+}
+
 static void rna_AssetRepresentation_name_get(PointerRNA *ptr, char *value)
 {
   const AssetRepresentation *asset = static_cast<const AssetRepresentation *>(ptr->data);
@@ -628,6 +689,26 @@ static void rna_def_asset_data(BlenderRNA *brna)
                            "Catalog Simple Name",
                            "Simple name of the asset's catalog, for debugging and "
                            "data recovery purposes");
+
+  prop = RNA_def_property(srna, "use_preferred_import_method", PROP_BOOLEAN, PROP_BOOLEAN);
+  RNA_def_property_boolean_sdna(prop, nullptr, "flag", ASSETDATA_USE_OWN_IMPORT_METHOD);
+  RNA_def_property_editable_func(prop, "rna_AssetMetaData_editable");
+  RNA_def_property_ui_text(
+      prop,
+      "Use Preferred Import Method",
+      "When \"Follow Asset or Preferences\" is selected for the import "
+      "method in the Asset Browser, use the preferred import method of this asset");
+
+  prop = RNA_def_property(srna, "preferred_import_method", PROP_ENUM, PROP_NONE);
+  RNA_def_property_enum_items(prop, rna_enum_asset_import_method_items);
+  RNA_def_property_enum_funcs(
+      prop, nullptr, nullptr, "rna_AssetMetaData_preferred_import_method_itemf");
+  RNA_def_property_enum_default_func(prop, "rna_AssetMetaData_preferred_import_method_default");
+  RNA_def_property_editable_func(prop, "rna_AssetMetaData_editable");
+  RNA_def_property_ui_text(prop,
+                           "Default Import Method",
+                           /* TODO */
+                           "");
 }
 
 static void rna_def_asset_representation(BlenderRNA *brna)
