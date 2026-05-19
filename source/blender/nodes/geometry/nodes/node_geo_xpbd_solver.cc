@@ -1155,12 +1155,14 @@ class XpbdSolverStep {
          * sufficient to define a single edge normal, as long as the half-plane it defines is
          * inside both of the half-planes of the adjacent faces, i.e. between the two normal
          * directions. */
-        const float3 edge_normal_mesh = math::normalize(math::cross(
-            math::cross(edge_direction_mesh,
-                        math::interpolate(vert_normals[edge[0]], vert_normals[edge[1]], 0.5f)),
-            edge_direction_mesh));
-        const float3 edge_normal_local = math::normalize(
-            math::transform_direction(mesh_to_local, edge_normal_mesh));
+        const float3 averaged_vert_normal_mesh = math::midpoint(vert_normals[edge[0]],
+                                                                vert_normals[edge[1]]);
+        /* Transforming normal with transpose of inverse. */
+        const float3 averaged_vert_normal_local = math::transform_direction(
+            math::transpose(local_to_mesh), averaged_vert_normal_mesh);
+        const float3 edge_normal_local = math::normalize(math::cross(
+            math::cross(edge_direction_local, averaged_vert_normal_local), edge_direction_local));
+        BLI_assert(math::is_unit(math::cross(edge_direction_local, edge_normal_local)));
 
         /* Use geometric average as edge friction coefficient. */
         const float static_friction = math::sqrt(
