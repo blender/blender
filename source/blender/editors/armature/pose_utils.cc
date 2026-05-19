@@ -168,9 +168,9 @@ static void store_property_snapshot(PointerRNA &ptr,
 }
 
 /* helper for slide_subjects_get() -> get the relevant F-Curves per PoseChannel */
-static void fcurves_to_pchan_links_get(ListBaseT<SlideSubject> &slide_subjects,
-                                       Object &ob,
-                                       bPoseChannel &pchan)
+static void pchan_to_slide_subject(ListBaseT<SlideSubject> &slide_subjects,
+                                   Object &ob,
+                                   bPoseChannel &pchan)
 {
   PointerRNA bone_ptr = RNA_pointer_create_discrete(&ob.id, RNA_PoseBone, &pchan);
   Vector<FCurve *> curves;
@@ -188,8 +188,8 @@ static void fcurves_to_pchan_links_get(ListBaseT<SlideSubject> &slide_subjects,
   slide_subject->pchan = &pchan;
 
   /* Get the RNA path to this pchan - this needs to be freed! */
-  PointerRNA ptr = RNA_pointer_create_discrete(reinterpret_cast<ID *>(&ob), RNA_PoseBone, &pchan);
-  slide_subject->pchan_path = BLI_strdup(RNA_path_from_ID_to_struct(&ptr).value_or("").c_str());
+  slide_subject->pchan_path = BLI_strdup(
+      RNA_path_from_ID_to_struct(&bone_ptr).value_or("").c_str());
 
   BLI_addtail(&slide_subjects, slide_subject);
 
@@ -254,8 +254,7 @@ void slide_subjects_get(bContext *C, ListBaseT<SlideSubject> *slide_subjects)
 {
   BLI_assert(slide_subjects != nullptr);
   /* For each Pose-Channel which gets affected, get the F-Curves for that channel
-   * and set the relevant transform flags...
-   */
+   * and set the relevant transform flags... */
   Object *prev_ob, *ob_pose_armature;
 
   prev_ob = nullptr;
@@ -275,7 +274,7 @@ void slide_subjects_get(bContext *C, ListBaseT<SlideSubject> *slide_subjects)
       continue;
     }
 
-    fcurves_to_pchan_links_get(*slide_subjects, *ob_pose_armature, *pchan);
+    pchan_to_slide_subject(*slide_subjects, *ob_pose_armature, *pchan);
   }
   CTX_DATA_END;
 
@@ -300,7 +299,7 @@ void slide_subjects_get(bContext *C, ListBaseT<SlideSubject> *slide_subjects)
         continue;
       }
 
-      fcurves_to_pchan_links_get(*slide_subjects, *ob_pose_armature, *pchan);
+      pchan_to_slide_subject(*slide_subjects, *ob_pose_armature, *pchan);
     }
     CTX_DATA_END;
   }
@@ -319,7 +318,7 @@ void slide_subjects_free(ListBaseT<SlideSubject> *slide_subjects)
     /* free pchan RNA Path */
     MEM_delete(slide_subject->pchan_path);
 
-    /* We cannot use BLI_freelinkN because that casts the TransformableFCurveLink to a C-style
+    /* We cannot use BLI_freelinkN because that casts the SlideSubject to a C-style
      * struct causing MEM_delete to do a C-style delete and not deallocate the Vector. */
     BLI_remlink(slide_subjects, slide_subject);
     MEM_delete(slide_subject);
@@ -371,8 +370,8 @@ void slide_subjects_reset(ListBaseT<SlideSubject> *slide_subjects)
 
 void slide_subjects_autokey(bContext *C,
                             Scene *scene,
-                            ListBaseT<SlideSubject> *slide_subjects,
-                            float cframe)
+                            const ListBaseT<SlideSubject> *slide_subjects,
+                            const float cframe)
 {
   const Main *bmain = CTX_data_main(C);
   ViewLayer *view_layer = CTX_data_view_layer(C);

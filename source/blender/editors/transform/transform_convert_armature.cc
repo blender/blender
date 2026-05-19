@@ -1406,7 +1406,8 @@ static void autokeyframe_pose(bContext *C,
     }
 
     Vector<RNAPath> rna_paths;
-    const StringRef rotation_path = animrig::get_rotation_mode_path(eRotationModes(pchan.rotmode));
+    const StringRefNull rotation_path = animrig::get_rotation_mode_path(
+        eRotationModes(pchan.rotmode));
 
     if (animrig::is_keying_flag(scene, AUTOKEY_FLAG_INSERTNEEDED)) {
       const bool is_connected = pchan_bone->parent != nullptr &&

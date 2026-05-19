@@ -847,7 +847,7 @@ static void autokeyframe_object(bContext *C,
 {
   Vector<RNAPath> rna_paths;
   ViewLayer *view_layer = CTX_data_view_layer(C);
-  const StringRef rotation_path = animrig::get_rotation_mode_path(eRotationModes(ob->rotmode));
+  const StringRefNull rotation_path = animrig::get_rotation_mode_path(eRotationModes(ob->rotmode));
 
   if (animrig::is_keying_flag(scene, AUTOKEY_FLAG_INSERTNEEDED)) {
     const Main *bmain = CTX_data_main(C);

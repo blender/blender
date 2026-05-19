@@ -151,15 +151,14 @@ struct tPoseSlideOp {
 
   /** Sliding Mode. */
   ePoseSlide_Modes mode;
-  /** unused for now, but can later get used for storing runtime settings.... */
-  // short flag;
 
   /* Store overlay settings when invoking the operator. Bones will be temporarily hidden. */
   eView3DOverlay_Flag overlay_flag;
 
   /** Which transforms/channels are affected. */
   ePoseSlide_Channels channels;
-  /** Axis-limits for transforms. */
+  /** Axis-limits for transforms. If any flag is set, the transforms are only applied for that
+   * axis. If none are set, all axes are modified. */
   ed::AxisMutable axis_mutability;
 
   tSlider *slider;
@@ -1082,7 +1081,7 @@ static void pose_slide_toggle_channels_mode(wmOperator *op,
  */
 static bool pose_slide_toggle_axis_mutability(wmOperator *op,
                                               tPoseSlideOp *pso,
-                                              ed::AxisMutable axis)
+                                              const ed::AxisMutable axis)
 {
   /* Axis can only be set when a transform is set - it doesn't make sense otherwise */
   if (ELEM(pso->channels, PS_TFM_ALL, PS_TFM_BBONE_SHAPE, PS_TFM_PROPS)) {
@@ -1717,7 +1716,7 @@ static void propagate_curve_values(ListBaseT<SlideSubject> *slide_subjects,
 static float find_next_key(ListBaseT<SlideSubject> *slide_subjects, const float start_frame)
 {
   float target_frame = FLT_MAX;
-  for (SlideSubject &slide_subject : *slide_subjects) {
+  for (const SlideSubject &slide_subject : *slide_subjects) {
     for (const FCurve *fcu : slide_subject.fcurves) {
       if (!fcu->bezt) {
         continue;
@@ -1739,7 +1738,7 @@ static float find_next_key(ListBaseT<SlideSubject> *slide_subjects, const float 
 static float find_last_key(ListBaseT<SlideSubject> *slide_subjects)
 {
   float target_frame = FLT_MIN;
-  for (SlideSubject &slide_subject : *slide_subjects) {
+  for (const SlideSubject &slide_subject : *slide_subjects) {
     for (const FCurve *fcu : slide_subject.fcurves) {
       if (!fcu->bezt) {
         continue;
@@ -1755,7 +1754,7 @@ static void get_selected_marker_positions(Scene *scene, ListBaseT<FrameLink> *ta
 {
   ListBaseT<CfraElem> selected_markers = {nullptr, nullptr};
   ED_markers_make_cfra_list(&scene->markers, &selected_markers, true);
-  for (CfraElem &marker : selected_markers) {
+  for (const CfraElem &marker : selected_markers) {
     FrameLink *link = MEM_new_zeroed<FrameLink>("Marker Key Link");
     link->frame = marker.cfra;
     BLI_addtail(target_frames, link);
@@ -1763,18 +1762,18 @@ static void get_selected_marker_positions(Scene *scene, ListBaseT<FrameLink> *ta
   BLI_freelistN(&selected_markers);
 }
 
-static void get_keyed_frames_in_range(ListBaseT<SlideSubject> *slide_subjects,
+static void get_keyed_frames_in_range(const ListBaseT<SlideSubject> *slide_subjects,
                                       const float start_frame,
                                       const float end_frame,
                                       ListBaseT<FrameLink> *target_frames)
 {
   AnimKeylist *keylist = ED_keylist_create();
-  for (SlideSubject &slide_subject : *slide_subjects) {
+  for (const SlideSubject &slide_subject : *slide_subjects) {
     for (FCurve *fcu : slide_subject.fcurves) {
       fcurve_to_keylist(nullptr, fcu, keylist, 0, {start_frame, end_frame}, false);
     }
   }
-  for (ActKeyColumn &column : *ED_keylist_listbase(keylist)) {
+  for (const ActKeyColumn &column : *ED_keylist_listbase(keylist)) {
     if (column.cfra <= start_frame) {
       continue;
     }
@@ -1788,11 +1787,11 @@ static void get_keyed_frames_in_range(ListBaseT<SlideSubject> *slide_subjects,
   ED_keylist_free(keylist);
 }
 
-static void get_selected_frames(ListBaseT<SlideSubject> *slide_subjects,
+static void get_selected_frames(const ListBaseT<SlideSubject> *slide_subjects,
                                 ListBaseT<FrameLink> *target_frames)
 {
   AnimKeylist *keylist = ED_keylist_create();
-  for (SlideSubject &slide_subject : *slide_subjects) {
+  for (const SlideSubject &slide_subject : *slide_subjects) {
     for (FCurve *fcu : slide_subject.fcurves) {
       fcurve_to_keylist(nullptr, fcu, keylist, 0, {-FLT_MAX, FLT_MAX}, false);
     }
