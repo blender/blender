@@ -62,8 +62,9 @@ bool hipSupportsDriver()
     return false;
   }
 #  else /* Linux */
-  if (hip_driver_version < 60000000) {
-    /* Blender crashes if HIP Runtime 5 is used. */
+  if (hip_driver_version < 60342131) {
+    /* Users get error messages about being unable to load GPU kernels on older ROCm verisons.
+     * 60342131 corresponds to ROCm 6.3.0 */
     return false;
   }
 #  endif
