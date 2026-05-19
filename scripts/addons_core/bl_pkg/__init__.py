@@ -558,6 +558,28 @@ def _remote_asset_library_sync_all_periodic():
                                   only_if_older_than_sec=REMOTE_ASSET_LIBS_AUTOSYNC_PERIOD_SEC)
 
 
+def _remote_asset_library_restore_backups() -> None:
+    """Restore any remote asset library listing backup.
+
+    If at startup there is an asset library listing backup, and no other Blender
+    is actively syncing that asset library, it means that Blender quit while
+    the listing was being downloaded, and it's probably incomplete. Better to
+    restore the backup.
+    """
+    if not bpy.context.preferences.experimental.use_remote_asset_libraries:
+        return
+
+    from _bpy_internal.assets.remote_library import listing_downloader
+
+    for asset_lib in bpy.context.preferences.filepaths.asset_libraries:
+        if not asset_lib.enabled:
+            continue
+        if not asset_lib.use_remote_url:
+            continue
+
+        listing_downloader.restore_backup_if_exists_locked(asset_lib.remote_url, Path(asset_lib.path))
+
+
 # -----------------------------------------------------------------------------
 # Handlers
 
@@ -952,6 +974,8 @@ def register():
     cli_commands.append(bpy.utils.register_cli_command("asset_listing", remote_library.asset_listing_main))
 
     monkeypatch_install()
+
+    _remote_asset_library_restore_backups()
 
     if not bpy.app.background:
         if prefs.view.show_extensions_updates:

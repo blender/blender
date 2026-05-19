@@ -3,6 +3,7 @@
 # SPDX-License-Identifier: GPL-2.0-or-later
 
 from __future__ import absolute_import, annotations
+import shutil
 
 __all__ = (
     'RemoteAssetListingLocator',
@@ -104,6 +105,12 @@ class RemoteAssetListingLocator:
     def catalogs_file(self) -> Path:
         return self._local_path / "blender_assets.cats.txt"
 
+    @property
+    @functools.lru_cache()
+    def listing_backup_path(self) -> Path:
+        """Return the location used for temporary backups of the listing files."""
+        return self.local_path / "_listing_backup"
+
     def asset_download_path(self, asset_file: api_models.FileV1) -> Path:
         """Construct the absolute download path for this asset.
 
@@ -157,6 +164,7 @@ class RemoteAssetListingDownloader:
     Modified'.
     """
     _locator: RemoteAssetListingLocator
+    _backupper: RemoteAssetListingBackupper
 
     type OnUpdateCallback = Callable[['RemoteAssetListingDownloader'], None]
     _on_update_callback: OnUpdateCallback
@@ -238,6 +246,7 @@ class RemoteAssetListingDownloader:
         """
 
         self._locator = RemoteAssetListingLocator(remote_url, local_path)
+        self._backupper = RemoteAssetListingBackupper(remote_url, local_path)
 
         self._on_done_callback = on_done_callback
         self._on_update_callback = on_update_callback
@@ -300,6 +309,9 @@ class RemoteAssetListingDownloader:
             )
             # Double-check the registration worked, see #139720 for details.
             assert bpy.app.timers.is_registered(self.on_timer_event)
+
+        # Only create a backup when the downloader & timer were created succesfully.
+        self._backupper.create()
 
         # Kickstart the download process by downloading the remote asset meta file.
         top_meta_url = "{!s}?s={:d}".format(
@@ -675,6 +687,11 @@ class RemoteAssetListingDownloader:
     def shutdown(self) -> None:
         """Stop the background downloader and call the 'done' callback."""
 
+        if self._status == DownloadStatus.FINISHED_SUCCESSFULLY:
+            self._backupper.erase()
+        else:
+            self._backupper.restore()
+
         # The timer is no longer necessary, the bg_downloader.shutdown() call
         # takes care of the last queued messages.
         if bpy.app.timers.is_registered(self.on_timer_event):
@@ -786,6 +803,104 @@ class RemoteAssetListingDownloader:
         logger.info("Download finished: %s", http_req_descr)
 
 
+class RemoteAssetListingBackupper:
+    _locator: RemoteAssetListingLocator
+
+    def __init__(self, remote_url: str, local_path: Path | str) -> None:
+        self._locator = RemoteAssetListingLocator(remote_url, local_path)
+
+    def create(self) -> None:
+        """Create a backup of the asset library's current listing.
+
+        This only creates a backup if none exists already. If there is already
+        a backup, that is an indicator that a previous download didn't succeed,
+        and so the current files shouldn't be trusted to be correct; better not
+        overwrite that already-existing backup with them.
+        """
+        backup_path = self._locator.listing_backup_path
+        if backup_path.is_dir():
+            logger.debug("Asset Listing backup path already exists: %s", backup_path)
+            return
+
+        # If it exists but is not a directory, just delete it. It's not made by us.
+        backup_path.unlink(missing_ok=True)
+        backup_path.mkdir(mode=0o700, parents=True)
+
+        self._copy_files(self._locator.local_path, backup_path)
+
+    def has_backup(self) -> bool:
+        backup_path = self._locator.listing_backup_path
+        return backup_path.is_dir()
+
+    def restore_if_exists(self) -> None:
+        """Restore a backup of the asset library's listing, if it exists.
+
+        If the backup doesn't exist, this is a no-op.
+        """
+        if self.has_backup():
+            self._restore()
+
+    def restore(self) -> None:
+        """Restore a backup of the asset library's listing."""
+        if not self.has_backup():
+            logger.warning("Asset Listing backup did not exist, cannot restore: %s", backup_path)
+            return
+        self._restore()
+
+    def _restore(self) -> None:
+        backup_path = self._locator.listing_backup_path
+        logger.debug("Asset Listing: restoring from backup at %s", backup_path)
+
+        # First delete all the files from the listing, as the newly-downloaded-but-failing listing
+        # may have had new files. And it may have `.part` files, etc.
+        local_path = self._locator.local_path
+        for relpath in self._listing_direntries():
+            local_abspath = local_path / relpath
+            if local_abspath.is_dir():
+                shutil.rmtree(local_abspath)
+            else:
+                local_abspath.unlink(missing_ok=True)
+
+        # Only after the local directory has been cleaned up, put the backup back.
+        self._copy_files(backup_path, local_path)
+        self.erase()
+        logger.info("Asset Listing: restored from backup at %s", backup_path)
+
+    def erase(self) -> None:
+        """Erase the backup of the asset library's listing, if it exists."""
+
+        backup_path = self._locator.listing_backup_path
+        if not backup_path.exists():
+            return
+        shutil.rmtree(backup_path)
+
+    def _listing_direntries(self) -> list[Path]:
+        """Return the listing dirs & files that need backing up/restoring.
+
+        Returns paths relative to the local asset cache directory.
+        """
+        return [
+            Path(listing_common.ASSET_TOP_METADATA_FILENAME),
+            Path(listing_common.API_VERSIONED_SUBDIR),
+        ]
+
+    def _copy_files(self, src_path: Path, dst_path: Path) -> None:
+        """Create or restore a backup by copying from src_path to dst_path.
+
+        dst_path has to exist, it's the caller's responsibility to ensure this.
+        """
+        for relpath in self._listing_direntries():
+            src_abspath = src_path / relpath
+            if not src_abspath.exists():
+                continue
+
+            dst_abspath = dst_path / relpath
+            if src_abspath.is_dir():
+                shutil.copytree(src_abspath, dst_abspath, dirs_exist_ok=True)
+            else:
+                shutil.copy2(src_abspath, dst_abspath)
+
+
 def _sanitize_path_from_url(urlpath: PurePath | str) -> PurePosixPath:
     """Safely convert some path (assumed from a URL) to a relative path.
 
@@ -880,6 +995,34 @@ def is_more_recent_than(library_path: Path, max_age_sec: float | int) -> bool:
     # period of remote asset libraries is measured in days, we can consider it
     # "fresh" in those cases.
     return file_age_sec < max_age_sec
+
+
+def restore_backup_if_exists_locked(remote_url: str, local_path: Path) -> None:
+    """If there is a listing backup at the given path, restore it.
+
+    This uses the sync mutex to ensure this only happens when there is no other
+    Blender downloading that listing right now.
+    """
+    backupper = RemoteAssetListingBackupper(
+        remote_url=remote_url,
+        local_path=local_path,
+    )
+
+    if not backupper.has_backup():
+        # No backup exists, this is the expected case.
+        return
+
+    from . import sync_mutex
+
+    if not sync_mutex.mutex_lock(local_path):
+        # Another Blender is syncing this listing, and so the backup should not be touched by this Blender.
+        return
+
+    # Restore the backup, because its existence indicates an incomplete download.
+    try:
+        backupper.restore_if_exists()
+    finally:
+        sync_mutex.mutex_unlock(local_path)
 
 
 if __name__ == '__main__':
