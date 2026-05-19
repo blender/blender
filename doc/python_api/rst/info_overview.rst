@@ -85,14 +85,13 @@ Add-ons
 -------
 
 Some of Blender's functionality is best kept optional,
-alongside scripts loaded at startup there are add-ons which are kept in their own directory ``scripts/addons``,
-They are only loaded on startup if selected from the user preferences.
+alongside scripts loaded at startup there are add-ons which are only loaded on startup
+if enabled from the user preferences. Add-ons are typically distributed as extensions.
 
-The only difference between add-ons and built-in Python modules is that add-ons must contain a ``bl_info`` variable
-which Blender uses to read metadata such as name, author, category and project link.
-The User Preferences add-on listing uses ``bl_info`` to display information about each add-on.
-`See Add-ons <https://developer.blender.org/docs/handbook/addons/guidelines/>`__
-for details on the ``bl_info`` dictionary.
+The only difference between add-on extensions and built-in Python modules is that add-ons must include a
+``blender_manifest.toml`` which Blender uses to read metadata such as name, author, tags and project link.
+The User Preferences add-on listing uses this to display information about each add-on.
+See :ref:`Creating Extensions <blender_manual:extensions-index>` for details.
 
 
 Integration through Classes
