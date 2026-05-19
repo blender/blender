@@ -92,9 +92,10 @@ struct SurfaceForwardFragOut {
 void surf_forward([[resource_table]] SurfaceForward & /*srt*/,
                   [[resource_table]] LightEvalIterator & /*lights*/,
                   [[frag_coord]] const float4 frag_co,
-                  [[out]] SurfaceForwardFragOut &frag_out)
+                  [[out]] SurfaceForwardFragOut &frag_out,
+                  [[front_facing]] const bool front_face)
 {
-  init_globals();
+  init_globals(front_face);
 
   float noise = utility_tx_fetch(utility_tx, gl_FragCoord.xy, UTIL_BLUE_NOISE_LAYER).r;
   float closure_rand = fract(noise + sampling_rng_1D_get(SAMPLING_CLOSURE));

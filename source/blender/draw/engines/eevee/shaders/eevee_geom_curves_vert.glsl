@@ -4,7 +4,6 @@
 
 #include "infos/eevee_geom_infos.hh"
 #include "infos/eevee_nodetree_infos.hh"
-#include "infos/eevee_surf_shadow_infos.hh"
 
 VERTEX_SHADER_CREATE_INFO(eevee_nodetree)
 VERTEX_SHADER_CREATE_INFO(eevee_clip_plane)
@@ -27,7 +26,13 @@ void main()
 {
   DRW_VIEW_FROM_RESOURCE_ID;
 #ifdef MAT_SHADOW
-  shadow_viewport_layer_set(int(drw_view_id), int(render_view_buf[drw_view_id].viewport_index));
+  {
+    auto &shadow_iface = interface_get(eevee_shadow_iface_info, shadow_iface);
+    auto &render_view_buf = buffer_get(eevee::GeomShadow, render_view_buf);
+
+    shadow_iface.shadow_view_id = int(drw_view_id);
+    gpu_ViewportIndex = int(render_view_buf[drw_view_id].viewport_index);
+  }
 #endif
 
   init_interface();
@@ -52,21 +57,24 @@ void main()
   curve_interp_flat.strand_id = ws_pt.curve_id;
 
 #ifdef MAT_VELOCITY
-  /* Due to the screen space nature of the vertex positioning, we compute only the motion of curve
-   * strand, not its cylinder. Otherwise we would add the rotation velocity. */
-  int vert_idx = ws_pt.point_id;
-  float3 prv, nxt;
-  float3 pos = ls_pt.P;
-  velocity_local_pos_get(pos, vert_idx, prv, nxt);
-  /* FIXME(fclem): Evaluating before displacement avoid displacement being treated as motion but
-   * ignores motion from animated displacement. Supporting animated displacement motion vectors
-   * would require evaluating the node-tree multiple time with different node-tree UBOs evaluated
-   * at different times, but also with different attributes (maybe we could assume static attribute
-   * at least). */
-  velocity_vertex(prv, pos, nxt, motion.prev, motion.next);
+  {
+    auto &motion = interface_get(eevee_velocity_geom, motion);
+    /* Due to the screen space nature of the vertex positioning, we compute only the motion of
+     * curve strand, not its cylinder. Otherwise we would add the rotation velocity. */
+    int vert_idx = ws_pt.point_id;
+    float3 prv, nxt;
+    float3 pos = ls_pt.P;
+    velocity_local_pos_get(pos, vert_idx, prv, nxt, drw_resource_id());
+    /* FIXME(fclem): Evaluating before displacement avoid displacement being treated as motion but
+     * ignores motion from animated displacement. Supporting animated displacement motion vectors
+     * would require evaluating the node-tree multiple time with different node-tree UBOs evaluated
+     * at different times, but also with different attributes (maybe we could assume static
+     * attribute at least). */
+    velocity_vertex(prv, pos, nxt, motion.prev, motion.next, drw_resource_id(), drw_modelmat());
+  }
 #endif
 
-  init_globals();
+  init_globals(true);
   attrib_load(CurvesPoint{ws_pt.curve_id, ws_pt.point_id, ws_pt.curve_segment});
 
   interp.P += nodetree_displacement();
@@ -82,10 +90,15 @@ void main()
 #endif
 
 #ifdef MAT_SHADOW
-  float3 vs_P = drw_point_world_to_view(interp.P);
-  ShadowRenderView view = render_view_buf[drw_view_id];
-  shadow_clip.position = shadow_position_vector_get(vs_P, view);
-  shadow_clip.vector = shadow_clip_vector_get(vs_P, view.clip_distance_inv);
+  {
+    auto &shadow_clip = interface_get(eevee_shadow_iface_info, shadow_clip);
+    auto &render_view_buf = buffer_get(eevee::GeomShadow, render_view_buf);
+
+    float3 vs_P = drw_point_world_to_view(interp.P);
+    ShadowRenderView view = render_view_buf[drw_view_id];
+    shadow_clip.position = shadow_position_vector_get(vs_P, view);
+    shadow_clip.vector = shadow_clip_vector_get(vs_P, view.clip_distance_inv);
+  }
 #endif
 
   gl_Position = reverse_z::transform(drw_point_world_to_homogenous(interp.P));

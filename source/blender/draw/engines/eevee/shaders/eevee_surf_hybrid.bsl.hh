@@ -118,9 +118,10 @@ struct HybridFragOut {
 void surf_hybrid([[resource_table]] SurfaceHybrid &srt,
                  [[resource_table]] LightEvalIterator & /*lights*/,
                  [[frag_coord]] const float4 frag_co,
-                 [[out]] HybridFragOut &frag_out)
+                 [[out]] HybridFragOut &frag_out,
+                 [[front_facing]] const bool front_face)
 {
-  init_globals();
+  init_globals(front_face);
 
   float noise = utility_tx_fetch(utility_tx, frag_co.xy, UTIL_BLUE_NOISE_LAYER).r;
   float closure_rand = fract(noise + sampling_rng_1D_get(SAMPLING_CLOSURE));

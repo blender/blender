@@ -11,51 +11,54 @@
  * the destination texel.
  */
 
+#pragma once
+
 #include "infos/eevee_geom_infos.hh"
 #include "infos/eevee_nodetree_infos.hh"
-#include "infos/eevee_surf_shadow_infos.hh"
 
 FRAGMENT_SHADER_CREATE_INFO(eevee_nodetree)
 FRAGMENT_SHADER_CREATE_INFO(eevee_geom_mesh)
-FRAGMENT_SHADER_CREATE_INFO(eevee_surf_shadow_atomic)
-
-#ifdef GLSL_CPP_STUBS
-#  define MAT_SHADOW
-#endif
 
 #include "eevee_nodetree_frag_lib.glsl"
 #include "eevee_sampling_lib.glsl"
+#include "eevee_shadow_shared.hh"
 #include "eevee_shadow_tilemap_lib.bsl.hh"
 #include "eevee_surf_lib.glsl"
 
-float4 closure_to_rgba(Closure /*cl*/)
+float4 closure_to_rgba_shadow(Closure /*cl*/)
 {
   return float4(0.0f);
 }
 
-void main()
-{
-  float linear_depth = length(shadow_clip.position);
+namespace eevee {
 
-#ifdef SHADOW_UPDATE_TBDR
-  float ndc_depth = gl_FragCoord.z;
-/* We need to write to `gl_FragDepth` un-conditionally. So we cannot early exit or use discard. */
-#  define discard_result \
-    linear_depth = FLT_MAX; \
-    ndc_depth = 1.0f;
-#else
-#  define discard_result \
-    gpu_discard_fragment(); \
-    return;
-#endif
+struct SurfShadow {
+  [[legacy_info]] ShaderCreateInfo eevee_global_ubo;
+  [[legacy_info]] ShaderCreateInfo eevee_utility_texture;
+  [[legacy_info]] ShaderCreateInfo eevee_sampling_data;
+
+  [[storage(SHADOW_RENDER_MAP_BUF_SLOT,
+            read)]] const uint (&render_map_buf)[SHADOW_RENDER_MAP_SIZE];
+
+  [[image(SHADOW_ATLAS_IMG_SLOT, read_write, UINT_32)]] uimage2DArrayAtomic shadow_atlas_img;
+};
+
+[[fragment]] [[texture_atomic]]
+void surf_shadow([[resource_table]] SurfShadow &srt, [[front_facing]] const bool front_face)
+{
+  auto &shadow_iface = interface_get(eevee_shadow_iface_info, shadow_iface);
+  auto &shadow_clip = interface_get(eevee_shadow_iface_info, shadow_clip);
+
+  float linear_depth = length(shadow_clip.position);
 
   /* Clip to light shape. */
   if (dot(shadow_clip.vector, shadow_clip.vector) < 1.0f) {
-    discard_result;
+    gpu_discard_fragment();
+    return;
   }
 
 #ifdef MAT_TRANSPARENT
-  init_globals();
+  init_globals(front_face);
 
   nodetree_surface(0.0f);
 
@@ -64,11 +67,11 @@ void main()
 
   float transparency = average(g_transmittance);
   if (transparency > random_threshold) {
-    discard_result;
+    gpu_discard_fragment();
+    return;
   }
 #endif
 
-#ifdef SHADOW_UPDATE_ATOMIC_RASTER
   int2 texel_co = int2(gl_FragCoord.xy);
 
   /* Using bitwise ops is way faster than integer ops. */
@@ -78,10 +81,10 @@ void main()
   int2 tile_co = texel_co >> page_shift;
   int2 texel_page = texel_co & page_mask;
 
-  int view_index = shadow_view_id_get();
+  int view_index = shadow_iface.shadow_view_id;
 
   int render_page_index = shadow_render_page_index_get(view_index, tile_co);
-  uint page_packed = render_map_buf[render_page_index];
+  uint page_packed = srt.render_map_buf[render_page_index];
 
   int3 page = int3(shadow_page_unpack(page_packed));
   /* If the page index is invalid this page shouldn't be rendered,
@@ -103,15 +106,11 @@ void main()
   u_depth += 2;
 
   if (uniform_buf.shadow.use_debug_cost) {
-    imageAtomicAdd(shadow_atlas_img, out_texel, 1u);
+    imageAtomicAdd(srt.shadow_atlas_img, out_texel, 1u);
   }
   else {
-    imageAtomicMin(shadow_atlas_img, out_texel, u_depth);
+    imageAtomicMin(srt.shadow_atlas_img, out_texel, u_depth);
   }
-#endif
-
-#ifdef SHADOW_UPDATE_TBDR
-  gl_FragDepth = ndc_depth;
-  out_depth = linear_depth;
-#endif
 }
+
+}  // namespace eevee

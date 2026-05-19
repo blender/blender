@@ -95,9 +95,10 @@ struct DeferredFragOut {
 [[fragment]] [[early_fragment_tests]]
 void surf_deferred([[resource_table]] SurfaceDeferred &srt,
                    [[frag_coord]] const float4 frag_co,
-                   [[out]] DeferredFragOut &frag_out)
+                   [[out]] DeferredFragOut &frag_out,
+                   [[front_facing]] const bool front_face)
 {
-  init_globals();
+  init_globals(front_face);
 
   float noise = utility_tx_fetch(utility_tx, frag_co.xy, UTIL_BLUE_NOISE_LAYER).r;
   float closure_rand = fract(noise + sampling_rng_1D_get(SAMPLING_CLOSURE));

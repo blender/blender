@@ -7,9 +7,10 @@
 
 /* Store volumetric properties into the froxel textures. */
 
+#pragma once
+
 #include "infos/eevee_geom_infos.hh"
 #include "infos/eevee_nodetree_infos.hh"
-#include "infos/eevee_surf_volume_infos.hh"
 
 #ifdef GLSL_CPP_STUBS
 #  define MAT_VOLUME
@@ -17,7 +18,6 @@
 
 FRAGMENT_SHADER_CREATE_INFO(eevee_nodetree)
 FRAGMENT_SHADER_CREATE_INFO(eevee_geom_mesh)
-FRAGMENT_SHADER_CREATE_INFO(eevee_surf_volume)
 
 #include "eevee_volume_lib.bsl.hh"
 
@@ -43,6 +43,8 @@ GlobalData init_globals(float3 wP)
   surf.ray_length = distance(surf.P, drw_view_position());
   return surf;
 }
+
+namespace eevee {
 
 struct VolumeProperties {
   float3 scattering;
@@ -87,37 +89,57 @@ VolumeProperties eval_froxel(int3 froxel, float jitter)
   return prop;
 }
 
-void write_froxel(int3 froxel, VolumeProperties prop)
-{
-  float2 phase = float2(prop.anisotropy, 1.0f);
+struct SurfVolume {
+  [[legacy_info]] ShaderCreateInfo draw_modelmat_common;
+  [[legacy_info]] ShaderCreateInfo draw_view;
+  [[legacy_info]] ShaderCreateInfo eevee_global_ubo;
+  [[legacy_info]] ShaderCreateInfo eevee_sampling_data;
+  [[legacy_info]] ShaderCreateInfo eevee_utility_texture;
 
-  /* Do not add phase weight if there's no scattering. */
-  if (all(equal(prop.scattering, float3(0.0f)))) {
-    phase = float2(0.0f);
-  }
+  [[image(VOLUME_OCCUPANCY_SLOT, read, UINT_32)]] uimage3DAtomic occupancy_img;
 
-  float3 extinction = prop.scattering + prop.absorption;
+  [[image(
+      VOLUME_PROP_SCATTERING_IMG_SLOT, read_write, UFLOAT_11_11_10)]] image3D out_scattering_img;
+  [[image(
+      VOLUME_PROP_EXTINCTION_IMG_SLOT, read_write, UFLOAT_11_11_10)]] image3D out_extinction_img;
+  [[image(VOLUME_PROP_EMISSION_IMG_SLOT, read_write, UFLOAT_11_11_10)]] image3D out_emissive_img;
+  [[image(VOLUME_PROP_PHASE_IMG_SLOT, read_write, SFLOAT_16)]] image3D out_phase_img;
+  [[image(VOLUME_PROP_PHASE_WEIGHT_IMG_SLOT, read_write, SFLOAT_16)]] image3D out_phase_weight_img;
+
+  void write_froxel(int3 froxel, VolumeProperties prop)
+  {
+    float2 phase = float2(prop.anisotropy, 1.0f);
+
+    /* Do not add phase weight if there's no scattering. */
+    if (all(equal(prop.scattering, float3(0.0f)))) {
+      phase = float2(0.0f);
+    }
+
+    float3 extinction = prop.scattering + prop.absorption;
 
 #ifndef MAT_GEOM_WORLD
-  /* Additive Blending. No race condition since we have a barrier between each conflicting
-   * invocations. */
-  prop.scattering += imageLoadFast(out_scattering_img, froxel).rgb;
-  prop.emission += imageLoadFast(out_emissive_img, froxel).rgb;
-  extinction += imageLoadFast(out_extinction_img, froxel).rgb;
-  phase.x += imageLoadFast(out_phase_img, froxel).r;
-  phase.y += imageLoadFast(out_phase_weight_img, froxel).r;
+    /* Additive Blending. No race condition since we have a barrier between each conflicting
+     * invocations. */
+    prop.scattering += imageLoadFast(out_scattering_img, froxel).rgb;
+    prop.emission += imageLoadFast(out_emissive_img, froxel).rgb;
+    extinction += imageLoadFast(out_extinction_img, froxel).rgb;
+    phase.x += imageLoadFast(out_phase_img, froxel).r;
+    phase.y += imageLoadFast(out_phase_weight_img, froxel).r;
 #endif
 
-  imageStoreFast(out_scattering_img, froxel, prop.scattering.xyzz);
-  imageStoreFast(out_extinction_img, froxel, extinction.xyzz);
-  imageStoreFast(out_emissive_img, froxel, prop.emission.xyzz);
-  imageStoreFast(out_phase_img, froxel, phase.xxxx);
-  imageStoreFast(out_phase_weight_img, froxel, phase.yyyy);
-}
+    imageStoreFast(out_scattering_img, froxel, prop.scattering.xyzz);
+    imageStoreFast(out_extinction_img, froxel, extinction.xyzz);
+    imageStoreFast(out_emissive_img, froxel, prop.emission.xyzz);
+    imageStoreFast(out_phase_img, froxel, phase.xxxx);
+    imageStoreFast(out_phase_weight_img, froxel, phase.yyyy);
+  }
+};
 
-void main()
+/* Note: Only the front fragments have to be invoked. */
+[[fragment]] [[early_fragment_tests]]
+void surf_volume([[resource_table]] SurfVolume &srt, [[frag_coord]] const float4 &frag_co)
 {
-  int3 froxel = int3(int2(gl_FragCoord.xy), 0);
+  int3 froxel = int3(int2(frag_co.xy), 0);
   float offset = sampling_rng_1D_get(SAMPLING_VOLUME_W);
   float jitter = volume_froxel_jitter(froxel.xy, offset);
 
@@ -130,7 +152,7 @@ void main()
 #ifndef MAT_GEOM_WORLD
   occupancy::Bits occupancy;
   for (int j = 0; j < 8; j++) {
-    occupancy.bits[j] = imageLoad(occupancy_img, int3(froxel.xy, j)).r;
+    occupancy.bits[j] = imageLoad(srt.occupancy_img, int3(froxel.xy, j)).r;
   }
 #endif
 
@@ -139,7 +161,7 @@ void main()
     for (int i = 0; i < 32; i++) {
       froxel.z = j * 32 + i;
 
-      if (froxel.z >= imageSize(out_scattering_img).z) {
+      if (froxel.z >= imageSize(srt.out_scattering_img).z) {
         break;
       }
 
@@ -153,7 +175,9 @@ void main()
       /* Heterogeneous volumes evaluate properties at every froxel position. */
       VolumeProperties prop = eval_froxel(froxel, jitter);
 #endif
-      write_froxel(froxel, prop);
+      srt.write_froxel(froxel, prop);
     }
   }
 }
+
+}  // namespace eevee

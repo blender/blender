@@ -25,7 +25,6 @@
 #  define POINTCLOUD_SHADER
 #  define DRW_POINTCLOUD_INFO
 
-#  define SHADOW_UPDATE_ATOMIC_RASTER
 #  define MAT_TRANSPARENT
 #endif
 
@@ -39,6 +38,20 @@ SMOOTH(float3, P)
 /* World Normal. */
 SMOOTH(float3, N)
 GPU_SHADER_NAMED_INTERFACE_END(interp)
+
+GPU_SHADER_NAMED_INTERFACE_INFO(eevee_surf_shadow_iface, shadow_iface)
+FLAT(int, shadow_view_id)
+GPU_SHADER_NAMED_INTERFACE_END(shadow_iface)
+
+GPU_SHADER_NAMED_INTERFACE_INFO(eevee_surf_shadow_clipping_iface, shadow_clip)
+SMOOTH(float3, position)
+SMOOTH(float3, vector)
+GPU_SHADER_NAMED_INTERFACE_END(shadow_clip)
+
+GPU_SHADER_CREATE_INFO(eevee_shadow_iface_info)
+VERTEX_OUT(eevee_surf_shadow_iface)
+VERTEX_OUT(eevee_surf_shadow_clipping_iface)
+GPU_SHADER_CREATE_END()
 
 GPU_SHADER_CREATE_INFO(eevee_geom_mesh)
 TYPEDEF_SOURCE("eevee_defines.hh")

@@ -43,7 +43,7 @@ struct SurfaceCapture {
 [[fragment]]
 void surf_capture([[resource_table]] SurfaceCapture &srt, [[front_facing]] const bool front_face)
 {
-  init_globals();
+  init_globals(front_face);
 
   /* TODO(fclem): Remove random sampling for capture and accumulate color. */
   float closure_rand = 0.5f;

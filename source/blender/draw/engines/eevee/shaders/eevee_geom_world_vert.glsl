@@ -8,7 +8,6 @@
 
 #include "infos/eevee_geom_infos.hh"
 #include "infos/eevee_nodetree_infos.hh"
-#include "infos/eevee_surf_shadow_infos.hh"
 
 VERTEX_SHADER_CREATE_INFO(eevee_nodetree)
 VERTEX_SHADER_CREATE_INFO(eevee_geom_world)
@@ -34,12 +33,14 @@ void main()
   gl_Position = reverse_z::transform(gl_Position);
 
 #ifdef MAT_SHADOW
-  /* This shader currently does not support shadow. But the shader validation pipeline still
-   * compiles the shadow variant of this shader. Avoid linking error on Intel Windows drivers. */
-#  ifdef SHADOW_UPDATE_ATOMIC_RASTER
-  shadow_iface.shadow_view_id = 0;
-#  endif
-  shadow_clip.position = float3(0);
-  shadow_clip.vector = float3(0);
+  {
+    auto &shadow_iface = interface_get(eevee_shadow_iface_info, shadow_iface);
+    auto &shadow_clip = interface_get(eevee_shadow_iface_info, shadow_clip);
+    /* This shader currently does not support shadow. But the shader validation pipeline still
+     * compiles the shadow variant of this shader. Avoid linking error on Intel Windows drivers. */
+    shadow_iface.shadow_view_id = 0;
+    shadow_clip.position = float3(0);
+    shadow_clip.vector = float3(0);
+  }
 #endif
 }
