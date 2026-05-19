@@ -453,9 +453,6 @@ all: .FORCE
 	fi
 	@echo
 
-android: .FORCE
-	@echo "Cross-compiling for Android"
-
 debug: all
 full: all
 lite: all
