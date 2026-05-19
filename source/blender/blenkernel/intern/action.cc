@@ -1012,7 +1012,7 @@ bPoseChannel *BKE_pose_channel_active_or_first_selected(Object *ob)
   }
 
   bPoseChannel *pchan = BKE_pose_channel_active_if_bonecoll_visible(ob);
-  if (pchan && animrig::bone_is_selected(arm, pchan)) {
+  if (pchan && animrig::bone_is_selected(arm, {pchan, pchan->bone_get(*ob)})) {
     return pchan;
   }
 

@@ -806,7 +806,7 @@ static wmOperatorStatus pose_copy_exec(bContext *C, wmOperator *op)
   /* Taking off the selection flag in case bones are hidden so they are not
    * applied when pasting.  */
   for (bPoseChannel &pose_bone : ob->pose->chanbase) {
-    if (!animrig::bone_is_visible(armature, &pose_bone)) {
+    if (!animrig::bone_is_visible(armature, {&pose_bone, pose_bone.bone_get(*ob)})) {
       animrig::bone_deselect(&pose_bone);
     }
   }

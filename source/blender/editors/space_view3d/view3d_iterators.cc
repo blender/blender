@@ -867,7 +867,7 @@ void pose_foreachScreenBone(const ViewContext *vc,
   }
 
   for (bPoseChannel &pchan : pose->chanbase) {
-    if (!animrig::bone_is_visible(arm_eval, &pchan)) {
+    if (!animrig::bone_is_visible(arm_eval, {&pchan, pchan.bone_get(*vc->obact)})) {
       continue;
     }
 

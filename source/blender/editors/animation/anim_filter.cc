@@ -1039,7 +1039,7 @@ static bool skip_fcurve_selected_data(bAnimContext *ac,
           bArmature *arm = id_cast<bArmature *>(ob->data);
 
           /* Skipping - is currently hidden. */
-          if (!animrig::bone_is_visible(arm, pchan)) {
+          if (!animrig::bone_is_visible(arm, {pchan, pchan->bone_get(*ob)})) {
             return true;
           }
         }

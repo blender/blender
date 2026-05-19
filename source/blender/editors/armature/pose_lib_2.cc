@@ -153,7 +153,7 @@ static void poselib_keytag_pose(bContext *C, Scene *scene, PoseBlendData *pbd)
         return;
       }
       if (BKE_pose_backup_is_selection_relevant(pbd->pose_backup) &&
-          !animrig::bone_is_selected(armature, pchan))
+          !animrig::bone_is_selected(armature, {pchan, pchan->bone_get(*ob)}))
       {
         return;
       }

@@ -1539,7 +1539,7 @@ void transform_convert_pose_transflags_update(Object *ob, const int mode, const 
   bArmature *arm = id_cast<bArmature *>(ob->data);
 
   for (bPoseChannel &pchan : ob->pose->chanbase) {
-    if (animrig::bone_is_visible(arm, &pchan)) {
+    if (animrig::bone_is_visible(arm, {&pchan, pchan.bone_get(*ob)})) {
       if (pchan.flag & POSE_SELECTED) {
         pchan.runtime.flag |= POSE_RUNTIME_TRANSFORM;
       }

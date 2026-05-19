@@ -93,7 +93,7 @@ static Set<bPoseChannel *> get_selected_pose_bones(Object &pose_object)
   Set<bPoseChannel *> selected_pose_bones;
   bArmature *arm = id_cast<bArmature *>(pose_object.data);
   for (bPoseChannel &pchan : pose_object.pose->chanbase) {
-    if (animrig::bone_is_selected(arm, &pchan)) {
+    if (animrig::bone_is_selected(arm, {&pchan, pchan.bone_get(pose_object)})) {
       selected_pose_bones.add(&pchan);
     }
   }
@@ -524,7 +524,7 @@ bool ED_pose_deselect_all(Object *ob, int select_mode, const bool ignore_visibil
   if (select_mode == SEL_TOGGLE) {
     select_mode = SEL_SELECT;
     for (bPoseChannel &pchan : ob->pose->chanbase) {
-      if (ignore_visibility || animrig::bone_is_visible(arm, &pchan)) {
+      if (ignore_visibility || animrig::bone_is_visible(arm, {&pchan, pchan.bone_get(*ob)})) {
         if (pchan.flag & POSE_SELECTED) {
           select_mode = SEL_DESELECT;
           break;
@@ -1141,7 +1141,7 @@ static bool pose_select_siblings(bContext *C, const bool extend)
     BLI_assert(arm);
     Set<bPoseChannel *> parents_of_selected;
     for (bPoseChannel &pchan : pose_object->pose->chanbase) {
-      if (animrig::bone_is_selected(arm, &pchan)) {
+      if (animrig::bone_is_selected(arm, {&pchan, pchan.bone_get(*pose_object)})) {
         parents_of_selected.add(pchan.parent);
       }
     }
@@ -1414,7 +1414,8 @@ static wmOperatorStatus pose_select_mirror_exec(bContext *C, wmOperator *op)
     Map<bPoseChannel *, ePchan_Flag> old_selection_flags;
     for (bPoseChannel &pchan : ob->pose->chanbase) {
       /* Treat invisible bones as deselected. */
-      const int flags = animrig::bone_is_visible(arm, &pchan) ? pchan.flag : 0;
+      const int flags = animrig::bone_is_visible(arm, {&pchan, pchan.bone_get(*ob)}) ? pchan.flag :
+                                                                                       0;
 
       old_selection_flags.add_new(&pchan, ePchan_Flag(flags));
     }

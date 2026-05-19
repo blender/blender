@@ -892,6 +892,9 @@ struct bPoseChannel {
    * Get the armature bone that corresponds to this bPoseChannel.
    *
    * Prefer bone_get(object) over this function, as that performs more checks at runtime.
+   *
+   * \warning only use when you are sure bone indices are up to date.
+   * Call `BKE_pose_ensure_bone_indices` to ensure bone indices are correct.
    */
   const Bone *bone_get(const bArmature &armature) const;
   Bone *bone_get(bArmature &armature);
