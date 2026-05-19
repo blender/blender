@@ -119,7 +119,7 @@ static int calculate_grid_step(const int base,
   return distance;
 }
 
-/* Mostly the same as `calculate_grid_step, except in can divide into the 0-1 range. */
+/** Mostly the same as `calculate_grid_step`, except in can divide into the 0-1 range. */
 static float calculate_grid_step_fractions(const int base,
                                            const float pixel_width,
                                            const float view_width,

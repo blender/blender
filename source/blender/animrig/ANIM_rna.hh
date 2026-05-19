@@ -73,10 +73,9 @@ Vector<RNAPath> get_keyable_id_property_paths(const PointerRNA &ptr);
 Array<float> rna_property_get_as_float(PointerRNA &ptr, PropertyRNA &prop);
 
 /**
- * Sets the given property to the given `values. The size of values has to match the property array
- * length. In case the property is not an array, only the first index is used.
- * This is an abstraction around RNA properties to deal with them as float regardless of their
- * actual type.
+ * Sets the given property to the given `values`. The size of values has to match the property
+ * array length. In case the property is not an array, only the first index is used. This is an
+ * abstraction around RNA properties to deal with them as float regardless of their actual type.
  *
  * \note Only PROP_BOOLEAN, PROP_INT and PROP_FLOAT are supported.
  */

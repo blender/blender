@@ -126,8 +126,8 @@ void remote_library_cancel_all_asset_downloads(bContext &C);
  * Get the absolute path to an online library's cache directory using \a library_dirname as library
  * identifier.
  *
- * The path is the general cache directory (e.g. `$HOME/.cache/blender/remote-assets/) plus the \a
- * library_dirname as subdirectory.
+ * The path is the general cache directory (e.g. `$HOME/.cache/blender/remote-assets/`) plus the
+ * \a library_dirname as subdirectory.
  *
  * The resulting path will be shortened to #FILE_MAXDIR if necessary.
  */
@@ -136,7 +136,7 @@ std::string remote_library_cache_directory_path(StringRefNull library_dirname);
  * Determine the absolute path of the asset library's on-disk cache directory for downloaded files,
  * based on the library's URL.
  *
- * The path is the general cache directory (e.g. `$HOME/.cache/blender/remote-assets/) plus a
+ * The path is the general cache directory (e.g. `$HOME/.cache/blender/remote-assets/`) plus a
  * shortened MD5 hash of the remote URL to identify the library.
  *
  * This is based on the remote URL of the library, and not the library name, as the name can be

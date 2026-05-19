@@ -166,8 +166,8 @@ static bool lib_id_library_local_paths_callback(BPathForeachPathData *bpath_data
  *
  * This function can be used to remap paths in both directions. Typically, an ID comes from a
  * library and is made local (`lib_to` is then `nullptr`). But an ID can also be moved from current
- * Main into a library (`lib_from is then `nullptr`), or between two libraries (both `lib_to` and
- * `lib_from` are provided then).
+ * Main into a library (`lib_from` is then `nullptr`), or between two libraries
+ * (both `lib_to` and `lib_from` are provided then).
  *
  * \param lib_to: The library into which the id is moved to
  * (used to get the destination root* path). If `nullptr`, the current #Main::filepath is used.
