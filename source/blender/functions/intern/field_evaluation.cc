@@ -591,8 +591,16 @@ void FieldEvaluator::evaluate()
 
   Vector<GFieldRef> fields;
   fields.reserve(fields_to_evaluate_.size());
+  static constexpr bool true_value = true;
   for (const int i : fields_to_evaluate_.index_range()) {
-    fields.append(fields_to_evaluate_[i]);
+    const GField &field = fields_to_evaluate_[i];
+    if (field == selection_field_) {
+      /* Avoid evaluating the selection field again. */
+      fields.append(GFieldRef::from_constant(CPPType::get<bool>(), &true_value));
+    }
+    else {
+      fields.append(field);
+    }
   }
   evaluated_varrays_ = evaluate_fields(scope_, fields, selection_mask_, context_, dst_varrays_);
   BLI_assert(fields_to_evaluate_.size() == evaluated_varrays_.size());

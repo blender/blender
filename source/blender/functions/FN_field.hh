@@ -261,6 +261,7 @@ class GFieldRef {
   template<typename T> GFieldRef(const Field<T> &field);
   explicit GFieldRef(const FieldInput &field_input);
   explicit GFieldRef(const FieldOperation &field_multi_fn, int output_i = 0);
+  explicit GFieldRef(Variant variant);
 
   /** Get access to the underlying #Variant. */
   const Variant &variant() const;
@@ -269,6 +270,8 @@ class GFieldRef {
   const CPPType &cpp_type() const;
   const FieldInputsPtr &field_inputs() const;
   uint64_t hash() const;
+
+  static GFieldRef from_constant(const CPPType &type, const void *value);
 };
 
 /**
@@ -625,6 +628,13 @@ inline GFieldRef::GFieldRef(const FieldInput &field_input) : variant_(Input{&fie
 inline GFieldRef::GFieldRef(const FieldOperation &field_multi_fn, int output_i)
     : variant_(MultiFn{&field_multi_fn, output_i})
 {
+}
+
+inline GFieldRef::GFieldRef(Variant variant) : variant_(std::move(variant)) {}
+
+inline GFieldRef GFieldRef::from_constant(const CPPType &type, const void *value)
+{
+  return GFieldRef(Value{&type, value});
 }
 
 template<typename T>
