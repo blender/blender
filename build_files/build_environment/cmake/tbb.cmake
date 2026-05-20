@@ -14,8 +14,9 @@ set(TBB_EXTRA_ARGS
 if(ANDROID)
   set(TBB_EXTRA_ARGS
     ${TBB_EXTRA_ARGS}
-    # Android CMake Toolchain option to allow symbols with undefined versions.
+    # Allow symbols with undefined versions.
     -DANDROID_ALLOW_UNDEFINED_VERSION_SCRIPT_SYMBOLS=TRUE
+    -DCMAKE_SHARED_LINKER_FLAGS=-Wl,--undefined-version
   )
 endif()
 # TBB does not use soversion by default unlike other libs, but it's needed
