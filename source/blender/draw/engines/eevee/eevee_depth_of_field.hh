@@ -71,9 +71,11 @@ class DepthOfField {
   int3 dispatch_setup_size_ = int3(-1);
   PassSimple setup_ps_ = {"Setup"};
 
-  /** Allocated because we need mip chain. Which isn't supported by TextureFromPool. */
-  Texture reduced_coc_tx_ = {"dof_reduced_coc"};
-  Texture reduced_color_tx_ = {"dof_reduced_color"};
+  /* Reduce buffer mip chains with view texture per level. */
+  TextureFromPool reduced_coc_tx_ = {"dof_reduced_coc"};
+  TextureFromPool reduced_color_tx_ = {"dof_reduced_color"};
+  std::array<gpu::Texture *, DOF_MIP_COUNT> reduced_coc_mip_views_;
+  std::array<gpu::Texture *, DOF_MIP_COUNT> reduced_color_mip_views_;
 
   /** Stabilization (flicker attenuation) of Color and CoC output of the setup pass. */
   TextureFromPool stabilize_output_tx_ = {"dof_taa"};

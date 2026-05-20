@@ -1010,7 +1010,7 @@ void Film::write_viewport_compositor_passes()
        * all cases for now. */
       const char *pass_name = pass_names[pass_offset].c_str();
       draw::TextureFromPool &output_pass_texture = DRW_viewport_pass_texture_get(pass_name);
-      output_pass_texture.acquire(this->display_extent, GPU_texture_format(pass_texture));
+      output_pass_texture.acquire_2d(this->display_extent, GPU_texture_format(pass_texture));
 
       PassSimple write_pass_ps = {"Film.WriteViewportCompositorPass"};
       const eShaderType write_shader_type = get_write_pass_shader_type(pass_type);
@@ -1036,7 +1036,7 @@ void Film::write_viewport_compositor_passes()
 
     /* See above comment regarding the allocation extent. */
     draw::TextureFromPool &output_pass_texture = DRW_viewport_pass_texture_get(aov.name);
-    output_pass_texture.acquire(this->display_extent, GPU_texture_format(pass_texture));
+    output_pass_texture.acquire_2d(this->display_extent, GPU_texture_format(pass_texture));
 
     PassSimple write_pass_ps = {"Film.WriteViewportCompositorPass"};
     const eShaderType write_shader_type = get_aov_write_pass_shader_type(&aov);

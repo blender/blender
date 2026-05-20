@@ -479,10 +479,10 @@ class Instance : public DrawEngine {
 
     GPUAttachment id_attachment = GPU_ATTACHMENT_NONE;
     if (scene_state_.draw_object_id) {
-      resources_.object_id_tx.acquire(resolution,
-                                      gpu::TextureFormat::UINT_16,
-                                      GPU_TEXTURE_USAGE_SHADER_READ |
-                                          GPU_TEXTURE_USAGE_ATTACHMENT);
+      resources_.object_id_tx.acquire_2d(resolution,
+                                         gpu::TextureFormat::UINT_16,
+                                         GPU_TEXTURE_USAGE_SHADER_READ |
+                                             GPU_TEXTURE_USAGE_ATTACHMENT);
       id_attachment = GPU_ATTACHMENT_TEXTURE(resources_.object_id_tx);
     }
     resources_.clear_fb.ensure(GPU_ATTACHMENT_TEXTURE(resources_.depth_tx),

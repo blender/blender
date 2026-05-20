@@ -13,7 +13,7 @@
 
 namespace blender::gpu {
 
-class MTLTexturePool : public TexturePool {
+class MTLTexturePool : public TexturePoolBase {
   /* Defer deallocation enough cycles to avoid interleaved calls to different viewport render
    * functions (selection / display) causing constant allocation / deallocation (See #113024). */
   static constexpr int max_unused_cycles_ = 8;
@@ -64,13 +64,16 @@ class MTLTexturePool : public TexturePool {
   /* Output usage data to debug log. Called on `--debug-gpu` */
   void log_usage_data() const;
 
+ protected:
+  Texture *acquire_texture_impl(int3 extent,
+                                int mip_len,
+                                GPUTextureType type,
+                                TextureFormat format,
+                                eGPUTextureUsage usage = GPU_TEXTURE_USAGE_GENERAL,
+                                const char *name = nullptr) override;
+
  public:
   ~MTLTexturePool();
-
-  Texture *acquire_texture(int2 extent,
-                           TextureFormat format,
-                           eGPUTextureUsage usage = GPU_TEXTURE_USAGE_GENERAL,
-                           const char *name = nullptr) override;
 
   void release_texture(Texture *tex) override;
 

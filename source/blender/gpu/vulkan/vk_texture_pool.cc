@@ -21,10 +21,18 @@ static CLG_LogRef LOG = {"gpu.vulkan"};
 
 namespace detail {
 /* Wrap non-hardcoded arguments of VkImageCreateInfo as tuple of lvalues.
- * Keep in sync with `VKTexturePool::acquire_texture()`. */
+ * Keep in sync with `VKTexturePool::acquire_texture_impl()`. */
 constexpr auto tie(const VkImageCreateInfo &info)
 {
-  return std::tie(info.format, info.flags, info.usage, info.extent.width, info.extent.height);
+  return std::tie(info.format,
+                  info.imageType,
+                  info.flags,
+                  info.usage,
+                  info.extent.width,
+                  info.extent.height,
+                  info.extent.depth,
+                  info.arrayLayers,
+                  info.mipLevels);
 }
 }  // namespace detail
 
@@ -33,8 +41,8 @@ constexpr auto tie(const VkImageCreateInfo &info)
 template<> struct DefaultHash<VkImageCreateInfo> {
   constexpr uint64_t operator()(const VkImageCreateInfo &value) const
   {
-    const auto &[_1, _2, _3, _4, _5] = detail::tie(value);
-    return get_default_hash(_1, _2, _3, _4, _5);
+    const auto &[_1, _2, _3, _4, _5, _6, _7, _8, _9] = detail::tie(value);
+    return get_default_hash(_1, _2, _3, _4, get_default_hash(_5, _6, _7, _8, _9));
   }
 };
 
@@ -73,7 +81,9 @@ static VkImage create_and_bind_vk_image(const VKImageInfo &info, const std::stri
   BLI_assert(bind_result == VK_SUCCESS);
 
   /* Register VkImage handle as resource for synchronization. */
-  device.resources.add_aliased_image(image, false, name_str.c_str());
+  bool use_subresource_tracking = info.create_info.arrayLayers > 1 ||
+                                  info.create_info.mipLevels > 1;
+  device.resources.add_aliased_image(image, use_subresource_tracking, name_str.c_str());
 
   return image;
 }
@@ -325,20 +335,29 @@ VKTexturePool::~VKTexturePool()
   }
 }
 
-Texture *VKTexturePool::acquire_texture(int2 extent,
-                                        TextureFormat format,
-                                        eGPUTextureUsage usage,
-                                        const char *name)
+Texture *VKTexturePool::acquire_texture_impl(int3 extent,
+                                             int mip_len,
+                                             GPUTextureType type,
+                                             TextureFormat format,
+                                             eGPUTextureUsage usage,
+                                             const char *name)
 {
+  /* Determine actual mipmap depth. */
+  int mip_len_max = 1 + floorf(log2f(max_iii(extent.x, extent.y, extent.z)));
+  mip_len = min_ii(mip_len, mip_len_max);
+
   /* Initialize VKTexture return object. */
   VKTexture *texture = new VKTexture(name);
   texture->w_ = extent.x;
   texture->h_ = extent.y;
-  texture->d_ = 0;
+  texture->d_ = extent.z;
   texture->format_ = format;
   texture->format_flag_ = to_format_flag(format);
-  texture->type_ = GPU_TEXTURE_2D;
+  texture->type_ = type;
   texture->gpu_image_usage_flags_ = usage;
+  texture->mipmaps_ = mip_len;
+  texture->mip_min_ = 0;
+  texture->mip_max_ = mip_len - 1;
   /* R16G16F16 formats are typically not supported (<1%). */
   texture->device_format_ = format;
   if (texture->device_format_ == TextureFormat::SFLOAT_16_16_16) {
@@ -356,13 +375,12 @@ Texture *VKTexturePool::acquire_texture(int2 extent,
   VkImageCreateInfo create_info = {
       .sType = VK_STRUCTURE_TYPE_IMAGE_CREATE_INFO,
       .pNext = nullptr,
-      .flags = to_vk_image_create(GPU_TEXTURE_2D, to_format_flag(format), usage) |
-               VK_IMAGE_CREATE_ALIAS_BIT,
-      .imageType = VK_IMAGE_TYPE_2D,
+      .flags = to_vk_image_create(type, to_format_flag(format), usage) | VK_IMAGE_CREATE_ALIAS_BIT,
+      .imageType = to_vk_image_type(type),
       .format = to_vk_format(format),
-      .extent = {.width = uint32_t(extent.x), .height = uint32_t(extent.y), .depth = 1},
-      .mipLevels = 1,
-      .arrayLayers = 1,
+      .extent = texture->vk_extent_3d(0),
+      .mipLevels = static_cast<uint32_t>(max_ii(texture->mip_count(), 1)),
+      .arrayLayers = static_cast<uint32_t>(texture->vk_layer_count(1)),
       .samples = VK_SAMPLE_COUNT_1_BIT,
       .tiling = VK_IMAGE_TILING_OPTIMAL,
       .usage = to_vk_image_usage(usage, to_format_flag(format), false),

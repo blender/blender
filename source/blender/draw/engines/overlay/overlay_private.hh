@@ -783,18 +783,18 @@ struct Resources : public select::SelectMap {
 
     if (state.xray_enabled) {
       /* For X-ray we render the scene to a separate depth buffer. */
-      this->xray_depth_tx.acquire(render_size, gpu::TextureFormat::SFLOAT_32_DEPTH_UINT_8);
+      this->xray_depth_tx.acquire_2d(render_size, gpu::TextureFormat::SFLOAT_32_DEPTH_UINT_8);
       this->depth_target_tx.wrap(this->xray_depth_tx);
       /* TODO(fclem): Remove mandatory allocation. */
-      this->xray_depth_in_front_tx.acquire(render_size,
-                                           gpu::TextureFormat::SFLOAT_32_DEPTH_UINT_8);
+      this->xray_depth_in_front_tx.acquire_2d(render_size,
+                                              gpu::TextureFormat::SFLOAT_32_DEPTH_UINT_8);
       this->depth_target_in_front_tx.wrap(this->xray_depth_in_front_tx);
     }
     else {
       /* TODO(fclem): Remove mandatory allocation. */
       if (!this->depth_in_front_tx.is_valid()) {
-        this->depth_in_front_alloc_tx.acquire(render_size,
-                                              gpu::TextureFormat::SFLOAT_32_DEPTH_UINT_8);
+        this->depth_in_front_alloc_tx.acquire_2d(render_size,
+                                                 gpu::TextureFormat::SFLOAT_32_DEPTH_UINT_8);
         this->depth_in_front_tx.wrap(this->depth_in_front_alloc_tx);
       }
       this->depth_target_tx.wrap(this->depth_tx);
@@ -804,14 +804,14 @@ struct Resources : public select::SelectMap {
     /* TODO: Better semantics using a switch? */
     if (!this->color_overlay_tx.is_valid()) {
       /* Likely to be the selection case. Allocate dummy texture and bind only depth buffer. */
-      this->color_overlay_alloc_tx.acquire(int2(1, 1), gpu::TextureFormat::SRGBA_8_8_8_8);
-      this->color_render_alloc_tx.acquire(int2(1, 1), gpu::TextureFormat::SRGBA_8_8_8_8);
+      this->color_overlay_alloc_tx.acquire_2d(int2(1, 1), gpu::TextureFormat::SRGBA_8_8_8_8);
+      this->color_render_alloc_tx.acquire_2d(int2(1, 1), gpu::TextureFormat::SRGBA_8_8_8_8);
 
       this->color_overlay_tx.wrap(this->color_overlay_alloc_tx);
       this->color_render_tx.wrap(this->color_render_alloc_tx);
 
-      this->line_tx.acquire(int2(1, 1), gpu::TextureFormat::UNORM_8_8_8_8);
-      this->overlay_tx.acquire(int2(1, 1), gpu::TextureFormat::SRGBA_8_8_8_8);
+      this->line_tx.acquire_2d(int2(1, 1), gpu::TextureFormat::UNORM_8_8_8_8);
+      this->overlay_tx.acquire_2d(int2(1, 1), gpu::TextureFormat::SRGBA_8_8_8_8);
 
       this->overlay_fb.ensure(GPU_ATTACHMENT_TEXTURE(this->depth_target_tx));
       this->overlay_line_fb.ensure(GPU_ATTACHMENT_TEXTURE(this->depth_target_tx));
@@ -821,8 +821,8 @@ struct Resources : public select::SelectMap {
     else {
       eGPUTextureUsage usage = GPU_TEXTURE_USAGE_SHADER_READ | GPU_TEXTURE_USAGE_SHADER_WRITE |
                                GPU_TEXTURE_USAGE_ATTACHMENT;
-      this->line_tx.acquire(render_size, gpu::TextureFormat::UNORM_8_8_8_8, usage);
-      this->overlay_tx.acquire(render_size, gpu::TextureFormat::SRGBA_8_8_8_8, usage);
+      this->line_tx.acquire_2d(render_size, gpu::TextureFormat::UNORM_8_8_8_8, usage);
+      this->overlay_tx.acquire_2d(render_size, gpu::TextureFormat::SRGBA_8_8_8_8, usage);
 
       this->overlay_fb.ensure(GPU_ATTACHMENT_TEXTURE(this->depth_target_tx),
                               GPU_ATTACHMENT_TEXTURE(this->overlay_tx));
