@@ -171,6 +171,8 @@ static std::optional<ImplicitInputType> get_implicit_input(
       return std::nullopt;
     case NodeDefaultInputType::NODE_DEFAULT_INPUT_POSITION_FIELD:
       return ImplicitInputType::UniformTextureCoordinates;
+    case NodeDefaultInputType::NODE_DEFAULT_INPUT_SCENE_FRAME:
+      return ImplicitInputType::SceneFrame;
     case NodeDefaultInputType::NODE_DEFAULT_INPUT_INDEX_FIELD:
     case NodeDefaultInputType::NODE_DEFAULT_INPUT_ID_INDEX_FIELD:
     case NodeDefaultInputType::NODE_DEFAULT_INPUT_NORMAL_FIELD:

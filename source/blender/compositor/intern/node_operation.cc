@@ -160,11 +160,12 @@ void NodeOperation::log_data()
       continue;
     }
 
-    const Result &input = this->get_input(input_socket->identifier);
-    if (!input_socket->is_logically_linked()) {
+    const InputDescriptor &input_descriptor = this->get_input_descriptor(input_socket->identifier);
+    if (!input_socket->is_logically_linked() && !input_descriptor.implicit_input.has_value()) {
       continue;
     }
 
+    const Result &input = this->get_input(input_socket->identifier);
     if (input.is_single_value()) {
       tree_logger.log_value(this->node(), *input_socket, input.single_value());
       continue;

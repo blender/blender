@@ -21,6 +21,8 @@ static ResultType get_implicit_input_result_type(const ImplicitInputType implici
   switch (implicit_input) {
     case ImplicitInputType::UniformTextureCoordinates:
       return ResultType::Float2;
+    case ImplicitInputType::SceneFrame:
+      return ResultType::Int;
   }
 
   BLI_assert_unreachable();
@@ -40,10 +42,16 @@ void ImplicitInputOperation::execute()
   Result &result = this->get_result();
 
   switch (implicit_input_) {
-    case ImplicitInputType::UniformTextureCoordinates:
+    case ImplicitInputType::UniformTextureCoordinates: {
       const int2 size = this->context().get_compositing_domain().data_size;
       result.share_data(this->context().cache_manager().image_coordinates.get(
           this->context(), size, CoordinatesType::Uniform));
+      break;
+    }
+    case ImplicitInputType::SceneFrame:
+      result.allocate_single_value();
+      result.set_single_value(this->context().get_frame_number());
+      break;
   }
 }
 
@@ -58,6 +66,8 @@ std::optional<Domain> ImplicitInputOperation::compute_domain(
   switch (implicit_input) {
     case ImplicitInputType::UniformTextureCoordinates:
       return context.get_compositing_domain();
+    case ImplicitInputType::SceneFrame:
+      return std::nullopt;
   }
 
   BLI_assert_unreachable();

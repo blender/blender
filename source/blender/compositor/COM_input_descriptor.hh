@@ -34,6 +34,8 @@ enum class InputRealizationMode : uint8_t {
 enum class ImplicitInputType : uint8_t {
   /* The input should have the texture coordinates of the compositing space as an input. */
   UniformTextureCoordinates,
+  /* The input should have the scene frame as an input. */
+  SceneFrame,
 };
 
 /* ------------------------------------------------------------------------------------------------
