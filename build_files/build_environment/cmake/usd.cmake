@@ -122,6 +122,23 @@ if(NOT WIN32)
   )
 endif()
 
+set(ANDROID_PATCH_CMD true)
+if(ANDROID)
+  list(APPEND USD_EXTRA_ARGS
+    -DPXR_ENABLE_GL_SUPPORT=OFF
+    # TODO: Enabling Vulkan support would (at least) require a patch for USD to recognize the Android Vulkan Loader.
+    -DPXR_ENABLE_VULKAN_SUPPORT=OFF
+    # Android CMake Toolchain option to allow undefined Python symbols, which would then be resolved at runtime.
+    -DANDROID_ALLOW_UNDEFINED_SYMBOLS=TRUE
+  )
+
+  set(ANDROID_PATCH_CMD
+    ${PATCH_CMD} -p 1 -d
+      ${BUILD_DIR}/usd/src/external_usd
+      -i ${PATCH_DIR}/usd_android.diff
+  )
+endif()
+
 ExternalProject_Add(external_usd
   URL file://${PACKAGE_DIR}/${USD_FILE}
   DOWNLOAD_DIR ${DOWNLOAD_DIR}
@@ -163,7 +180,8 @@ ExternalProject_Add(external_usd
      -i ${PATCH_DIR}/usd_a609a89a750f1c70f5bfd61bb418d5a09eaa6585.diff &&
     ${PATCH_CMD} -p 1 -d
       ${BUILD_DIR}/usd/src/external_usd  
-     -i ${PATCH_DIR}/usd_5744a98789c934e8810058b0f21d22f344df28b0.diff
+     -i ${PATCH_DIR}/usd_5744a98789c934e8810058b0f21d22f344df28b0.diff &&
+    ${ANDROID_PATCH_CMD}
 
   CMAKE_ARGS
     -DCMAKE_INSTALL_PREFIX=${LIBDIR}/usd
@@ -181,7 +199,6 @@ add_dependencies(
   external_python
   external_openimageio
   external_materialx
-  external_vulkan_loader
   external_vulkan_headers
   external_vulkan_memory_allocator
   external_vulkan_utility_libraries
@@ -189,6 +206,14 @@ add_dependencies(
   external_spirv_reflect
   external_openvdb
 )
+
+# Android provide its own Vulkan Loader implementation.
+if(NOT ANDROID)
+  add_dependencies(
+    external_usd
+    external_vulkan_loader
+  )
+endif()
 
 # Since USD 21.11 the libraries are prefixed with "usd_",
 # i.e. "libusd_m.a" became "libusd_usd_m.a".
