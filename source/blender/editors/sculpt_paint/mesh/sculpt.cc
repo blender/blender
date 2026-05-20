@@ -7560,11 +7560,11 @@ void calc_brush_texture_factors(const SculptSession &ss,
 {
   BLI_assert(verts.size() == factors.size());
 
-  const int thread_id = BLI_task_parallel_thread_id(nullptr);
   const MTex *mtex = BKE_brush_mask_texture_get(&brush, OB_MODE_SCULPT);
   if (!mtex->tex) {
     return;
   }
+  const int thread_id = BLI_task_parallel_thread_id(nullptr);
 
   for (const int i : verts.index_range()) {
     if (factors[i] == 0.0f) {
@@ -7587,11 +7587,11 @@ void calc_brush_texture_factors(const SculptSession &ss,
 {
   BLI_assert(positions.size() == factors.size());
 
-  const int thread_id = BLI_task_parallel_thread_id(nullptr);
   const MTex *mtex = BKE_brush_mask_texture_get(&brush, OB_MODE_SCULPT);
   if (!mtex->tex) {
     return;
   }
+  const int thread_id = BLI_task_parallel_thread_id(nullptr);
 
   for (const int i : positions.index_range()) {
     if (factors[i] == 0.0f) {
