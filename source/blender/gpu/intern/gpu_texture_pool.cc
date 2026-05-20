@@ -102,6 +102,7 @@ Texture *TexturePoolImpl::acquire_texture_impl(int3 extent,
       BLI_assert_unreachable();
       break;
   }
+  UNUSED_VARS_NDEBUG(init_result);
   BLI_assert(init_result);
 
   acquired_.add(handle);
