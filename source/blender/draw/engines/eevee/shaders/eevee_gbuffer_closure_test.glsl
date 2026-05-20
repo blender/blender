@@ -30,6 +30,18 @@ gbuffer::InputClosures gbuffer_new()
   return data;
 }
 
+float3 quantize_round_to_nearest_10bit(float3 data)
+{
+  constexpr float quantization_step = 1.0f / 1023.0f;
+  return floor(saturate(data) * 1023.0f + 0.5f) * quantization_step;
+}
+
+float3 quantize_flush_to_zero_10bit(float3 data)
+{
+  constexpr float quantization_step = 1.0f / 1023.0f;
+  return floor(saturate(data) * 1023.0f) * quantization_step;
+}
+
 void main()
 {
   float3 Ng = float3(1.0f, 0.0f, 0.0f);
@@ -268,5 +280,55 @@ void main()
     EXPECT_NEAR(out_reflection.color, data_in.closure[1].color, 1e-5f);
     EXPECT_NEAR(out_reflection.N, data_in.closure[1].N, 1e-5f);
     EXPECT_NEAR(out_reflection.data.r, data_in.closure[1].data.r, 1e-5f);
+  }
+
+  TEST(eevee_gbuffer, ClosureDataDitherQuantization)
+  {
+    constexpr float quantization_step = 1.0f / 1023.0f;
+
+    float4 data = float4(0.5f, 0.25f, 0.75f, 1.0f);
+    EXPECT_NEAR(gbuffer::closure_data_dither_round_to_nearest(data, float3(0.5f)), data, 1e-7f);
+    EXPECT_NEAR(gbuffer::closure_data_dither_round_to_nearest(data, float3(0.0f)).rgb,
+                data.rgb - float3(quantization_step * 0.5f),
+                1e-7f);
+    EXPECT_EQ(gbuffer::closure_data_dither_round_to_nearest(data, float3(0.0f)).a, data.a);
+
+    EXPECT_NEAR(gbuffer::closure_data_dither_flush_to_zero(data, float3(0.0f)), data, 1e-7f);
+    EXPECT_NEAR(gbuffer::closure_data_dither_flush_to_zero(data, float3(1.0f)).rgb,
+                data.rgb + float3(quantization_step),
+                1e-7f);
+    EXPECT_EQ(gbuffer::closure_data_dither_flush_to_zero(data, float3(1.0f)).a, data.a);
+
+    float3 quantization_input = float3(100.25f, 100.75f, 100.25f) * quantization_step;
+    float3 noise = float3(0.2f, 0.2f, 0.8f);
+    EXPECT_NEAR(quantize_round_to_nearest_10bit(
+                    gbuffer::closure_data_dither_round_to_nearest(quantization_input, noise)),
+                quantize_flush_to_zero_10bit(
+                    gbuffer::closure_data_dither_flush_to_zero(quantization_input, noise)),
+                1e-7f);
+
+    quantization_input = float3(0.25f, 511.5f, 1022.75f) * quantization_step;
+    noise = float3(0.25f, 0.5f, 0.75f);
+    EXPECT_NEAR(quantize_round_to_nearest_10bit(
+                    gbuffer::closure_data_dither_round_to_nearest(quantization_input, noise)),
+                quantize_flush_to_zero_10bit(
+                    gbuffer::closure_data_dither_flush_to_zero(quantization_input, noise)),
+                1e-7f);
+
+    float3 endpoints = float3(0.0f, 1.0f, 0.0f);
+    EXPECT_NEAR(gbuffer::closure_data_dither_round_to_nearest(endpoints, float3(0.0f, 1.0f, 0.0f)),
+                endpoints,
+                1e-7f);
+    EXPECT_NEAR(gbuffer::closure_data_dither_flush_to_zero(endpoints, float3(0.0f, 1.0f, 0.0f)),
+                endpoints,
+                1e-7f);
+    EXPECT_NEAR(quantize_round_to_nearest_10bit(
+                    gbuffer::closure_data_dither_round_to_nearest(endpoints, float3(0.0f))),
+                endpoints,
+                1e-7f);
+    EXPECT_NEAR(quantize_flush_to_zero_10bit(
+                    gbuffer::closure_data_dither_flush_to_zero(endpoints, float3(0.5f))),
+                endpoints,
+                1e-7f);
   }
 }

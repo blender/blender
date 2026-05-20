@@ -23,6 +23,7 @@
 #include "infos/eevee_common_infos.hh"
 
 #include "eevee_gbuffer_lib.glsl"
+#include "eevee_sampling_lib.glsl"
 
 /* Allows to reduce shader complexity and compilation time.
  * Prefer removing the defines to let the loading lib have all cases by default. */
@@ -107,6 +108,52 @@ struct Packed {
   uint object_id;
   UsedLayerFlag used_layers;
 };
+
+/* ROP writes round to nearest. */
+float3 closure_data_dither_round_to_nearest(float3 data, float3 noise)
+{
+  constexpr float quantization_step = 1.0f / 1023.0f;
+  return saturate(data + (noise - 0.5f) * quantization_step);
+}
+
+float4 closure_data_dither_round_to_nearest(float4 data, float3 noise)
+{
+  return float4(closure_data_dither_round_to_nearest(data.rgb, noise), data.a);
+}
+
+/* Image writes to UNORM flush toward zero. */
+float3 closure_data_dither_flush_to_zero(float3 data, float3 noise)
+{
+  constexpr float quantization_step = 1.0f / 1023.0f;
+  return saturate(data + noise * quantization_step);
+}
+
+float4 closure_data_dither_flush_to_zero(float4 data, float3 noise)
+{
+  return float4(closure_data_dither_flush_to_zero(data.rgb, noise), data.a);
+}
+
+float3 closure_dither_noise(float2 texel, uint layer_id, float3 offset)
+{
+  float seed = float(layer_id) * 3.0f;
+  return interleaved_gradient_noise(texel, float3(seed, seed + 1.0f, seed + 2.0f), offset);
+}
+
+float4 closure_data_layer_dither_round_to_nearest(float4 data,
+                                                  float2 texel,
+                                                  uint layer_id,
+                                                  float3 offset)
+{
+  return closure_data_dither_round_to_nearest(data, closure_dither_noise(texel, layer_id, offset));
+}
+
+float4 closure_data_layer_dither_flush_to_zero(float4 data,
+                                               float2 texel,
+                                               uint layer_id,
+                                               float3 offset)
+{
+  return closure_data_dither_flush_to_zero(data, closure_dither_noise(texel, layer_id, offset));
+}
 
 /* Transient data used during packing. */
 struct Packer {

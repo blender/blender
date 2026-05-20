@@ -253,10 +253,13 @@ void Sampling::step()
     data_.dimensions[SAMPLING_SSS_V] = r[1];
   }
   {
-    /* Don't leave unused data undefined. */
-    data_.dimensions[SAMPLING_UNUSED_0] = 0.0f;
-    data_.dimensions[SAMPLING_UNUSED_1] = 0.0f;
-    data_.dimensions[SAMPLING_UNUSED_2] = 0.0f;
+    /* Separate sequence for G-buffer quantization dithering. */
+    double3 r, offset = {0, 0, 0};
+    uint3 primes = {11, 13, 17};
+    BLI_halton_3d(primes, offset, sample_ + 1, r);
+    data_.dimensions[SAMPLING_GBUFFER_U] = r[0];
+    data_.dimensions[SAMPLING_GBUFFER_V] = r[1];
+    data_.dimensions[SAMPLING_GBUFFER_W] = r[2];
   }
 
   for (int i : IndexRange(SAMPLING_DIMENSION_COUNT)) {

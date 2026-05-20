@@ -186,29 +186,44 @@ void surf_hybrid([[resource_table]] SurfaceHybrid &srt,
 #endif
   const bool use_object_id = use_sss || use_light_linking || use_terminator_offset;
 
+  float3 gbuffer_dither = sampling_rng_3D_get(SAMPLING_GBUFFER_U);
   gbuffer::Packed gbuf = gbuffer::pack(gbuf_data, g_data.Ng, g_data.N, g_thickness, use_object_id);
 
   /* Output header and first closure using frame-buffer attachment. */
   frag_out.gbuf_header = gbuf.header;
-  frag_out.gbuf_closure1 = gbuf.closure[0];
-  frag_out.gbuf_closure2 = gbuf.closure[1];
+  frag_out.gbuf_closure1 = gbuffer::closure_data_layer_dither_round_to_nearest(
+      gbuf.closure[0], frag_co.xy, 0u, gbuffer_dither);
+  frag_out.gbuf_closure2 = gbuffer::closure_data_layer_dither_round_to_nearest(
+      gbuf.closure[1], frag_co.xy, 1u, gbuffer_dither);
   frag_out.gbuf_normal = gbuf.normal[0];
 
   /* Output remaining closures using image store. */
 #if GBUFFER_LAYER_MAX >= 2 && !defined(GBUFFER_SIMPLE_CLOSURE_LAYOUT)
   if (flag_test(gbuf.used_layers, CLOSURE_DATA_2)) {
-    srt.write_closure_data(out_texel, 2, gbuf.closure[2]);
+    srt.write_closure_data(out_texel,
+                           2,
+                           gbuffer::closure_data_layer_dither_flush_to_zero(
+                               gbuf.closure[2], frag_co.xy, 2u, gbuffer_dither));
   }
   if (flag_test(gbuf.used_layers, CLOSURE_DATA_3)) {
-    srt.write_closure_data(out_texel, 3, gbuf.closure[3]);
+    srt.write_closure_data(out_texel,
+                           3,
+                           gbuffer::closure_data_layer_dither_flush_to_zero(
+                               gbuf.closure[3], frag_co.xy, 3u, gbuffer_dither));
   }
 #endif
 #if GBUFFER_LAYER_MAX >= 3
   if (flag_test(gbuf.used_layers, CLOSURE_DATA_4)) {
-    srt.write_closure_data(out_texel, 4, gbuf.closure[4]);
+    srt.write_closure_data(out_texel,
+                           4,
+                           gbuffer::closure_data_layer_dither_flush_to_zero(
+                               gbuf.closure[4], frag_co.xy, 4u, gbuffer_dither));
   }
   if (flag_test(gbuf.used_layers, CLOSURE_DATA_5)) {
-    srt.write_closure_data(out_texel, 5, gbuf.closure[5]);
+    srt.write_closure_data(out_texel,
+                           5,
+                           gbuffer::closure_data_layer_dither_flush_to_zero(
+                               gbuf.closure[5], frag_co.xy, 5u, gbuffer_dither));
   }
 #endif
 
