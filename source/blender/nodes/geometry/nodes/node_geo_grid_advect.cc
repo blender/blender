@@ -156,17 +156,13 @@ static void node_gather_link_search_ops(GatherLinkSearchOpParams &params)
     return;
   }
   if (params.in_out() == SOCK_IN) {
-    if (params.node_tree().typeinfo->validate_link(eNodeSocketDatatype(params.other_socket().type),
-                                                   SOCK_VECTOR))
-    {
+    if (params.node_tree().typeinfo->validate_link(params.other_socket().type, SOCK_VECTOR)) {
       params.add_item(IFACE_("Velocity"), [](LinkSearchOpParams &params) {
         bNode &node = params.add_node("GeometryNodeGridAdvect"_ustr);
         params.update_and_connect_available_socket(node, "Velocity"_ustr);
       });
     }
-    if (params.node_tree().typeinfo->validate_link(eNodeSocketDatatype(params.other_socket().type),
-                                                   SOCK_FLOAT))
-    {
+    if (params.node_tree().typeinfo->validate_link(params.other_socket().type, SOCK_FLOAT)) {
       params.add_item(IFACE_("Time Step"), [](LinkSearchOpParams &params) {
         bNode &node = params.add_node("GeometryNodeGridAdvect"_ustr);
         params.update_and_connect_available_socket(node, "Time Step"_ustr);

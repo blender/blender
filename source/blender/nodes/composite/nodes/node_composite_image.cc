@@ -50,7 +50,7 @@ static BaseSocketDeclarationBuilder &declare_existing_output(NodeDeclarationBuil
         .structure_type(StructureType::Dynamic)
         .available(output->is_available());
   }
-  return b.add_output(eNodeSocketDatatype(output->type), UString(output->name))
+  return b.add_output(output->type, UString(output->name))
       .structure_type(StructureType::Dynamic)
       .available(output->is_available());
 }

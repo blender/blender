@@ -35,7 +35,7 @@ static void node_declare(NodeDeclarationBuilder &b)
     return;
   }
   const NodeSwitch &storage = node_storage(*node);
-  const eNodeSocketDatatype socket_type = eNodeSocketDatatype(storage.input_type);
+  const eNodeSocketDatatype socket_type = storage.input_type;
 
   auto &false_decl = b.add_input(socket_type, "False"_ustr);
   auto &true_decl = b.add_input(socket_type, "True"_ustr);
@@ -136,7 +136,7 @@ class LazyFunctionForSwitchNode : public LazyFunction {
   LazyFunctionForSwitchNode(const bNode &node) : node_id_(node.identifier)
   {
     const NodeSwitch &storage = node_storage(node);
-    const eNodeSocketDatatype data_type = eNodeSocketDatatype(storage.input_type);
+    const eNodeSocketDatatype data_type = storage.input_type;
     can_be_field_ = socket_type_supports_fields(data_type);
 
     const bke::bNodeSocketType *socket_type = nullptr;

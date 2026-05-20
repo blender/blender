@@ -33,7 +33,7 @@ static void node_declare(NodeDeclarationBuilder &b)
 
   if (node != nullptr) {
     const NodeStoreBundleItem &storage = node_storage(*node);
-    const eNodeSocketDatatype socket_type = eNodeSocketDatatype(storage.socket_type);
+    const eNodeSocketDatatype socket_type = storage.socket_type;
     auto &decl = b.add_input(socket_type, "Item"_ustr);
     if (ELEM(storage.structure_type,
              NodeSocketInterfaceStructureType::Dynamic,

@@ -75,7 +75,7 @@ class SocketSearchOp {
 
 static void gather_link_searches(GatherLinkSearchOpParams &params)
 {
-  const eNodeSocketDatatype from_socket_type = eNodeSocketDatatype(params.other_socket().type);
+  const eNodeSocketDatatype from_socket_type = params.other_socket().type;
   if (!params.node_tree().typeinfo->validate_link(from_socket_type, SOCK_RGBA)) {
     return;
   }

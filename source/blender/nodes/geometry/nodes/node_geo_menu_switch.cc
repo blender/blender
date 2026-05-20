@@ -53,7 +53,7 @@ static void node_declare(nodes::NodeDeclarationBuilder &b)
     return;
   }
   const NodeMenuSwitch &storage = node_storage(*node);
-  const eNodeSocketDatatype data_type = eNodeSocketDatatype(storage.data_type);
+  const eNodeSocketDatatype data_type = storage.data_type;
   const bool supports_fields = socket_type_supports_fields(data_type) &&
                                ntree->type == NTREE_GEOMETRY;
 
@@ -165,7 +165,7 @@ static void node_copy_storage(bNodeTree * /*dst_tree*/, bNode *dst_node, const b
 
 static void node_gather_link_searches(GatherLinkSearchOpParams &params)
 {
-  const eNodeSocketDatatype data_type = eNodeSocketDatatype(params.other_socket().type);
+  const eNodeSocketDatatype data_type = params.other_socket().type;
   if (params.in_out() == SOCK_IN) {
     if (data_type == SOCK_MENU) {
       params.add_item(IFACE_("Menu"), [](LinkSearchOpParams &params) {
@@ -313,7 +313,7 @@ class LazyFunctionForMenuSwitchNode : public LazyFunction {
       : node_(node), enum_def_(node_storage(node).enum_definition)
   {
     const NodeMenuSwitch &storage = node_storage(node);
-    const eNodeSocketDatatype data_type = eNodeSocketDatatype(storage.data_type);
+    const eNodeSocketDatatype data_type = storage.data_type;
     can_be_field_ = socket_type_supports_fields(data_type);
     const bke::bNodeSocketType *socket_type = bke::node_socket_type_find_static(data_type);
     BLI_assert(socket_type != nullptr);

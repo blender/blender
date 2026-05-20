@@ -317,9 +317,7 @@ class LazyFunctionForEvaluateClosureNode : public LazyFunction {
           outputs_.append_and_get_index_as(bsocket.name, CPPType::get<bke::SocketValueVariant>()));
       indices_.inputs.output_usages.append(
           inputs_.append_and_get_index_as("Usage", CPPType::get<bool>(), lf::ValueUsage::Maybe));
-      if (bke::node_tree_reference_lifetimes::can_contain_referenced_data(
-              eNodeSocketDatatype(bsocket.type)))
-      {
+      if (bke::node_tree_reference_lifetimes::can_contain_referenced_data(bsocket.type)) {
         const int input_i = inputs_.append_and_get_index_as(
             "Reference Set",
             CPPType::get<bke::GeometryNodesReferenceSet>(),
@@ -449,9 +447,7 @@ class LazyFunctionForEvaluateClosureNode : public LazyFunction {
       const bke::bNodeSocketType *item_type = bke::node_socket_type_find_static(item.socket_type);
       if (const std::optional<int> i = signature.find_input_index(item.name)) {
         const ClosureSignature::Item &closure_item = signature.inputs[*i];
-        if (!btree_.typeinfo->validate_link(eNodeSocketDatatype(item.socket_type),
-                                            eNodeSocketDatatype(closure_item.type->type)))
-        {
+        if (!btree_.typeinfo->validate_link(item.socket_type, closure_item.type->type)) {
           tree_logger->node_warnings.append(
               *tree_logger->allocator,
               {bnode_.identifier,
@@ -494,9 +490,7 @@ class LazyFunctionForEvaluateClosureNode : public LazyFunction {
       const bke::bNodeSocketType *item_type = bke::node_socket_type_find_static(item.socket_type);
       if (const std::optional<int> i = signature.find_output_index(item.name)) {
         const ClosureSignature::Item &closure_item = signature.outputs[*i];
-        if (!btree_.typeinfo->validate_link(eNodeSocketDatatype(closure_item.type->type),
-                                            eNodeSocketDatatype(item.socket_type)))
-        {
+        if (!btree_.typeinfo->validate_link(closure_item.type->type, item.socket_type)) {
           tree_logger->node_warnings.append(
               *tree_logger->allocator,
               {bnode_.identifier,

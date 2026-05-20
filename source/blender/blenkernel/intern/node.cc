@@ -329,7 +329,7 @@ static void library_foreach_node_socket(bNodeSocket *sock, LibraryForeachIDData 
         BKE_lib_query_idpropertiesForeachIDLink_callback(prop, data);
       }));
 
-  switch (eNodeSocketDatatype(sock->type)) {
+  switch (sock->type) {
     case SOCK_OBJECT: {
       bNodeSocketValueObject &default_value = *sock->default_value_typed<bNodeSocketValueObject>();
       BKE_LIB_FOREACHID_PROCESS_IDSUPER(data, default_value.value, IDWALK_CB_USER);
@@ -1078,7 +1078,7 @@ static void write_node_socket_default_value(BlendWriter *writer, const bNodeSock
     return;
   }
 
-  switch (eNodeSocketDatatype(sock->type)) {
+  switch (sock->type) {
     case SOCK_FLOAT:
       writer->write_struct_cast<bNodeSocketValueFloat>(sock->default_value);
       break;
@@ -1218,8 +1218,7 @@ static void node_blend_write_storage(BlendWriter *writer, bNodeTree *ntree, bNod
                SOCK_ROTATION,
                SOCK_MATRIX))
       {
-        storage.data_type_legacy = *socket_type_to_custom_data_type(
-            eNodeSocketDatatype(item.socket_type));
+        storage.data_type_legacy = *socket_type_to_custom_data_type(item.socket_type);
         break;
       }
     }
@@ -1368,7 +1367,7 @@ static void ntree_blend_write(BlendWriter *writer, ID *id, const void *id_addres
  */
 static bool is_node_socket_supported(const bNodeSocket *sock)
 {
-  switch (eNodeSocketDatatype(sock->type)) {
+  switch (sock->type) {
     case SOCK_FLOAT:
     case SOCK_VECTOR:
     case SOCK_RGBA:
@@ -1545,7 +1544,7 @@ static void direct_link_node_socket_default_value(BlendDataReader *reader, bNode
       versioning_internal::MIN_BLENDFILE_VERSION_FOR_MODERN_NODE_SOCKET_DEFAULT_VALUE_READING)
   {
     /* Modern, standard DNA-typed reading of sockets default values. */
-    switch (eNodeSocketDatatype(sock->type)) {
+    switch (sock->type) {
       case SOCK_FLOAT:
         BLO_read_struct(reader, bNodeSocketValueFloat, &sock->default_value);
         break;
@@ -1624,7 +1623,7 @@ static void direct_link_node_socket_default_value(BlendDataReader *reader, bNode
       return;
     }
 
-    switch (eNodeSocketDatatype(sock->type)) {
+    switch (sock->type) {
       case SOCK_FLOAT:
         versioning_internal::direct_link_node_socket_legacy_data_version_do<
             bNodeSocketValueFloat,
@@ -1790,7 +1789,7 @@ static void direct_link_node_socket_default_value(BlendDataReader *reader, bNode
   }
 
   /* Post-reading processing. */
-  switch (eNodeSocketDatatype(sock->type)) {
+  switch (sock->type) {
     case SOCK_MENU: {
       bNodeSocketValueMenu &default_value = *sock->default_value_typed<bNodeSocketValueMenu>();
       /* Clear runtime data. */
@@ -3031,7 +3030,7 @@ static bNodeSocket *make_socket(bNodeTree *ntree,
 
 static void socket_id_user_increment(bNodeSocket *sock)
 {
-  switch (eNodeSocketDatatype(sock->type)) {
+  switch (sock->type) {
     case SOCK_OBJECT: {
       bNodeSocketValueObject &default_value = *sock->default_value_typed<bNodeSocketValueObject>();
       id_us_plus(reinterpret_cast<ID *>(default_value.value));
@@ -3114,7 +3113,7 @@ static void node_socket_free_default_value(bNodeSocket *sock, const bool do_id_u
     socket_id_user_decrement(sock);
   }
 
-  switch (eNodeSocketDatatype(sock->type)) {
+  switch (sock->type) {
     case SOCK_FLOAT:
       MEM_delete(sock->default_value_typed<bNodeSocketValueFloat>());
       break;
@@ -3193,7 +3192,7 @@ static void node_socket_free_default_value(bNodeSocket *sock, const bool do_id_u
 /** \return True if the socket had an ID default value. */
 static bool socket_id_user_decrement(bNodeSocket *sock)
 {
-  switch (eNodeSocketDatatype(sock->type)) {
+  switch (sock->type) {
     case SOCK_OBJECT: {
       bNodeSocketValueObject &default_value = *sock->default_value_typed<bNodeSocketValueObject>();
       id_us_min(reinterpret_cast<ID *>(default_value.value));
@@ -3288,7 +3287,7 @@ void node_modify_socket_type(bNodeTree &ntree,
     }
     else {
       /* Update the socket subtype when the storage isn't freed and recreated. */
-      switch (eNodeSocketDatatype(sock.type)) {
+      switch (sock.type) {
         case SOCK_FLOAT: {
           sock.default_value_typed<bNodeSocketValueFloat>()->subtype = socktype->subtype;
           break;
@@ -3385,7 +3384,7 @@ std::optional<StringRefNull> node_static_socket_type(const int type,
 {
   BLI_assert(!(dimensions.has_value() && !ELEM(type, SOCK_VECTOR, SOCK_INT_VECTOR)));
 
-  switch (eNodeSocketDatatype(type)) {
+  switch (type) {
     case SOCK_FLOAT:
       switch (PropertySubType(subtype)) {
         case PROP_UNSIGNED:
@@ -3599,7 +3598,7 @@ std::optional<StringRefNull> node_static_socket_type(const int type,
 std::optional<StringRefNull> node_static_socket_interface_type_new(
     const int type, const int subtype, const std::optional<int> dimensions)
 {
-  switch (eNodeSocketDatatype(type)) {
+  switch (type) {
     case SOCK_FLOAT:
       switch (PropertySubType(subtype)) {
         case PROP_UNSIGNED:
@@ -3812,7 +3811,7 @@ std::optional<StringRefNull> node_static_socket_interface_type_new(
 
 std::optional<StringRefNull> node_static_socket_label(const int type, const int /*subtype*/)
 {
-  switch (eNodeSocketDatatype(type)) {
+  switch (type) {
     case SOCK_FLOAT:
       return "Float";
     case SOCK_INT:
@@ -4374,7 +4373,7 @@ static void *node_static_value_storage_for(bNode &node, const bNodeSocket &socke
 
 static void *socket_value_storage(bNodeSocket &socket)
 {
-  switch (eNodeSocketDatatype(socket.type)) {
+  switch (socket.type) {
     case SOCK_BOOLEAN:
       return &socket.default_value_typed<bNodeSocketValueBoolean>()->value;
     case SOCK_INT:
@@ -4510,7 +4509,7 @@ void node_socket_move_default_value(Main & /*bmain*/,
   dst_type.move_assign(dst_buffer, dst_value);
 
   src_type.destruct(src_value);
-  if (ELEM(eNodeSocketDatatype(src.type),
+  if (ELEM(src.type,
            SOCK_COLLECTION,
            SOCK_IMAGE,
            SOCK_MATERIAL,

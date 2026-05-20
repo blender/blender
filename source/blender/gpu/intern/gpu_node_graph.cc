@@ -230,10 +230,7 @@ static GPUNodeLink *gpu_uniformbuffer_link(GPUMaterial *mat,
   GPUNodeLink *link = GPU_uniform(stack->vec);
 
   if (in_out == SOCK_IN) {
-    GPU_link(mat,
-             gpu_uniform_set_function_from_type(eNodeSocketDatatype(socket->type)),
-             link,
-             &stack->link);
+    GPU_link(mat, gpu_uniform_set_function_from_type(socket->type), link, &stack->link);
   }
 
   return link;

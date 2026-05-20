@@ -42,7 +42,7 @@ static void node_declare(NodeDeclarationBuilder &b)
 
   for (const int i : items.index_range()) {
     const GeometryNodeFieldToListItem &item = items[i];
-    const auto type = eNodeSocketDatatype(item.socket_type);
+    const eNodeSocketDatatype type = item.socket_type;
     const std::string input_identifier = ItemsAccessor::input_socket_identifier_for_item(item);
     const std::string output_identifier = ItemsAccessor::output_socket_identifier_for_item(item);
     const UString name(item.name);
@@ -80,7 +80,7 @@ static void node_layout_ex(ui::Layout &layout, bContext *C, PointerRNA *ptr)
 
 static void node_gather_link_search_ops(GatherLinkSearchOpParams &params)
 {
-  const eNodeSocketDatatype data_type = eNodeSocketDatatype(params.other_socket().type);
+  const eNodeSocketDatatype data_type = params.other_socket().type;
   if (params.in_out() == SOCK_IN) {
     if (params.node_tree().typeinfo->validate_link(data_type, SOCK_INT)) {
       params.add_item(IFACE_("Count"), [](LinkSearchOpParams &params) {
@@ -140,7 +140,7 @@ static void node_geo_exec(GeoNodeExecParams params)
   Vector<GListPtr> lists(required_items.size());
   for (const int i : required_items.index_range()) {
     const int item_i = required_items[i];
-    const auto type = eNodeSocketDatatype(items[item_i].socket_type);
+    const eNodeSocketDatatype type = items[item_i].socket_type;
     const CPPType &cpp_type = *bke::socket_type_to_geo_nodes_base_cpp_type(type);
     lists[i] = GList::create(cpp_type, GList::ArrayData::ForUninitialized(cpp_type, count), count);
   }

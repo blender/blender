@@ -109,9 +109,7 @@ static void node_gather_link_searches(GatherLinkSearchOpParams &params)
   search_link_ops_for_declarations(params, declaration.inputs.as_span().take_front(1));
 
   if (params.in_out() == SOCK_IN) {
-    if (params.node_tree().typeinfo->validate_link(eNodeSocketDatatype(params.other_socket().type),
-                                                   SOCK_FLOAT))
-    {
+    if (params.node_tree().typeinfo->validate_link(params.other_socket().type, SOCK_FLOAT)) {
       params.add_item(IFACE_("Start (Factor)"),
                       SocketSearchOp{"Start"_ustr, GEO_NODE_CURVE_SAMPLE_FACTOR});
       params.add_item(IFACE_("End (Factor)"),

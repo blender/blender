@@ -64,7 +64,7 @@ static ie::ElemVariant get_gizmo_socket_elem(const bNode &node, const bNodeSocke
       return {elem};
     }
   }
-  const eNodeSocketDatatype socket_type = eNodeSocketDatatype(socket.type);
+  const eNodeSocketDatatype socket_type = socket.type;
   if (std::optional<ie::ElemVariant> elem = ie::get_elem_variant_for_socket_type(socket_type)) {
     elem->set_all();
     return *elem;
@@ -324,8 +324,7 @@ static void foreach_active_gizmo_in_open_node_editor(
     const bNodeSocket &gizmo_input_socket = gizmo_node->input_socket(0);
     if ((gizmo_node->flag & NODE_SELECT) || (gizmo_input_socket.flag & SOCK_GIZMO_PIN)) {
       used_gizmo_inputs.add(
-          {&gizmo_input_socket,
-           *ie::get_elem_variant_for_socket_type(eNodeSocketDatatype(gizmo_input_socket.type))});
+          {&gizmo_input_socket, *ie::get_elem_variant_for_socket_type(gizmo_input_socket.type)});
     }
   }
   for (const ie::SocketElem &gizmo_input : used_gizmo_inputs) {
@@ -508,7 +507,7 @@ ie::ElemVariant get_editable_gizmo_elem(const ComputeContext &gizmo_context,
                                         const bNodeSocket &gizmo_socket)
 {
   std::optional<ie::ElemVariant> found_elem = ie::get_elem_variant_for_socket_type(
-      eNodeSocketDatatype(gizmo_socket.type));
+      gizmo_socket.type);
   BLI_assert(found_elem.has_value());
 
   ie::foreach_element_on_inverse_eval_path(

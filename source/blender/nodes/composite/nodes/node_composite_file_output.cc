@@ -81,7 +81,7 @@ static void node_declare(NodeDeclarationBuilder &b)
 
   for (const int i : IndexRange(storage.items_count)) {
     const NodeCompositorFileOutputItem &item = storage.items[i];
-    const eNodeSocketDatatype socket_type = eNodeSocketDatatype(item.socket_type);
+    const eNodeSocketDatatype socket_type = item.socket_type;
     const std::string identifier = FileOutputItemsAccessor::socket_identifier_for_item(item);
     BaseSocketDeclarationBuilder *declaration = nullptr;
     if (socket_type == SOCK_VECTOR) {
@@ -405,13 +405,13 @@ static void node_gather_link_searches(GatherLinkSearchOpParams &params)
   if (origin_socket.in_out != SOCK_OUT) {
     return;
   }
-  const eNodeSocketDatatype origin_socket_type = eNodeSocketDatatype(origin_socket.type);
+  const eNodeSocketDatatype origin_socket_type = origin_socket.type;
   if (!FileOutputItemsAccessor::supports_socket_type(origin_socket_type, NTREE_COMPOSIT)) {
     return;
   }
   params.add_item("File Output", [](LinkSearchOpParams &params) {
     bNode &node = params.add_node("CompositorNodeOutputFile"_ustr);
-    const eNodeSocketDatatype socket_type = eNodeSocketDatatype(params.socket.type);
+    const eNodeSocketDatatype socket_type = params.socket.type;
     if (socket_type == SOCK_VECTOR) {
       socket_items::add_item_with_socket_type_and_name<FileOutputItemsAccessor>(
           params.node_tree,

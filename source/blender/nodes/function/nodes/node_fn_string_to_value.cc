@@ -81,7 +81,7 @@ static void node_init(bNodeTree *, bNode *node)
 
 static void node_gather_link_searches(GatherLinkSearchOpParams &params)
 {
-  const eNodeSocketDatatype socket_type = eNodeSocketDatatype(params.other_socket().type);
+  const eNodeSocketDatatype socket_type = params.other_socket().type;
   if (params.in_out() == SOCK_IN) {
     if (socket_type == SOCK_STRING) {
       params.add_item(IFACE_("String"), [](LinkSearchOpParams &params) {

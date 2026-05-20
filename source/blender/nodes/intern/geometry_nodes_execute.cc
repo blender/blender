@@ -342,7 +342,7 @@ static MultiValueMap<bke::AttrDomain, OutputAttributeInfo> find_output_attribute
   const bNode &output_node = *tree.group_output_node();
   MultiValueMap<bke::AttrDomain, OutputAttributeInfo> outputs_by_domain;
   for (const bNodeSocket *socket : output_node.input_sockets().drop_front(1).drop_back(1)) {
-    if (!socket_type_has_attribute_toggle(eNodeSocketDatatype(socket->type))) {
+    if (!socket_type_has_attribute_toggle(socket->type)) {
       continue;
     }
     PointerRNA output_props_ptr = RNA_pointer_get(&outputs_ptr, socket->identifier);

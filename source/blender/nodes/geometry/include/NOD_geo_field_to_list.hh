@@ -57,7 +57,7 @@ struct FieldToListItemsAccessor : public socket_items::SocketItemsAccessorDefaul
 
   static eNodeSocketDatatype get_socket_type(const ItemT &item)
   {
-    return eNodeSocketDatatype(item.socket_type);
+    return item.socket_type;
   }
 
   static bool supports_socket_type(const eNodeSocketDatatype socket_type, const int /*ntree_type*/)

@@ -52,7 +52,7 @@ static void node_declare(NodeDeclarationBuilder &b)
   const NodeFunctionFormatString &storage = node_storage(*node);
   for (const int i : IndexRange(storage.items_num)) {
     const NodeFunctionFormatStringItem &item = storage.items[i];
-    const eNodeSocketDatatype socket_type = eNodeSocketDatatype(item.socket_type);
+    const eNodeSocketDatatype socket_type = item.socket_type;
     const UString name(item.name);
     const std::string identifier = FormatStringItemsAccessor::socket_identifier_for_item(item);
     b.add_input(socket_type, name, UString(identifier))
@@ -723,7 +723,7 @@ class FormatStringMultiFunction : public mf::MultiFunction {
     builder.single_input<std::string>("Format");
     for (const int i : IndexRange(storage.items_num)) {
       const NodeFunctionFormatStringItem &item = storage.items[i];
-      const eNodeSocketDatatype socket_type = eNodeSocketDatatype(item.socket_type);
+      const eNodeSocketDatatype socket_type = item.socket_type;
       const CPPType &type = *bke::socket_type_to_geo_nodes_base_cpp_type(socket_type);
       builder.single_input(item.name, type);
       input_names_.add_new(StringRef(item.name));

@@ -150,7 +150,7 @@ static void node_declare(NodeDeclarationBuilder &b)
   if (output_storage) {
     for (const int i : IndexRange(output_storage->input_items.items_num)) {
       const NodeForeachGeometryElementInputItem &item = output_storage->input_items.items[i];
-      const eNodeSocketDatatype socket_type = eNodeSocketDatatype(item.socket_type);
+      const eNodeSocketDatatype socket_type = item.socket_type;
       const UString name = item.name ? UString(item.name) : ""_ustr;
       const UString identifier(
           ForeachGeometryElementInputItemsAccessor::socket_identifier_for_item(item));
@@ -261,7 +261,7 @@ static void node_declare(NodeDeclarationBuilder &b)
     const NodeGeometryForeachGeometryElementOutput &storage = node_storage(*node);
     for (const int i : IndexRange(storage.main_items.items_num)) {
       const NodeForeachGeometryElementMainItem &item = storage.main_items.items[i];
-      const eNodeSocketDatatype socket_type = eNodeSocketDatatype(item.socket_type);
+      const eNodeSocketDatatype socket_type = item.socket_type;
       const UString name = item.name ? UString(item.name) : ""_ustr;
       const UString identifier(
           ForeachGeometryElementMainItemsAccessor::socket_identifier_for_item(item));
@@ -286,7 +286,7 @@ static void node_declare(NodeDeclarationBuilder &b)
     int previous_input_geometry_index = -1;
     for (const int i : IndexRange(storage.generation_items.items_num)) {
       const NodeForeachGeometryElementGenerationItem &item = storage.generation_items.items[i];
-      const eNodeSocketDatatype socket_type = eNodeSocketDatatype(item.socket_type);
+      const eNodeSocketDatatype socket_type = item.socket_type;
       if (socket_type == SOCK_GEOMETRY && i > 0) {
         panel.add_separator();
       }
@@ -410,7 +410,7 @@ static std::pair<bNode *, bNode *> add_foreach_zone(LinkSearchOpParams &params)
 static void node_gather_link_searches(GatherLinkSearchOpParams &params)
 {
   const bNodeSocket &other_socket = params.other_socket();
-  const eNodeSocketDatatype type = eNodeSocketDatatype(other_socket.type);
+  const eNodeSocketDatatype type = other_socket.type;
   if (type != SOCK_GEOMETRY) {
     return;
   }

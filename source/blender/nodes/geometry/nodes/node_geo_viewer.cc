@@ -266,7 +266,7 @@ static void node_declare(NodeDeclarationBuilder &b)
   const NodeGeometryViewer &storage = node_storage(*node);
   for (const int i : IndexRange(storage.items_num)) {
     const NodeGeometryViewerItem &item = storage.items[i];
-    const eNodeSocketDatatype socket_type = eNodeSocketDatatype(item.socket_type);
+    const eNodeSocketDatatype socket_type = item.socket_type;
     const UString name = item.name ? UString(item.name) : ""_ustr;
     const std::string identifier = GeoViewerItemsAccessor::socket_identifier_for_item(item);
     auto &input_decl = b.add_input(socket_type, name, UString(identifier))
@@ -299,7 +299,7 @@ static void node_layout(ui::Layout &layout, bContext * /*C*/, PointerRNA *ptr)
   bool has_potential_field_input = false;
   for (const int i : IndexRange(storage.items_num)) {
     const NodeGeometryViewerItem &item = storage.items[i];
-    const eNodeSocketDatatype socket_type = eNodeSocketDatatype(item.socket_type);
+    const eNodeSocketDatatype socket_type = item.socket_type;
     if (socket_type == SOCK_GEOMETRY) {
       has_geometry_input = true;
     }

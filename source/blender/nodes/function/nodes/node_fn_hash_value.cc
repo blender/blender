@@ -117,7 +117,7 @@ static void node_build_multi_function(NodeMultiFunctionBuilder &builder)
 
 static void node_gather_link_searches(GatherLinkSearchOpParams &params)
 {
-  eNodeSocketDatatype socket_type = eNodeSocketDatatype(params.other_socket().type);
+  eNodeSocketDatatype socket_type = params.other_socket().type;
   if (!ELEM(socket_type,
             SOCK_BOOLEAN,
             SOCK_FLOAT,

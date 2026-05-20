@@ -69,7 +69,7 @@ static BaseSocketDeclarationBuilder &declare_existing_output(NodeDeclarationBuil
         .dimensions(dimensions)
         .structure_type(StructureType::Dynamic);
   }
-  return b.add_output(eNodeSocketDatatype(output->type), output->identifier_ustr())
+  return b.add_output(output->type, output->identifier_ustr())
       .structure_type(StructureType::Dynamic);
 }
 

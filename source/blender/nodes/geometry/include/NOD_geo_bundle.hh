@@ -60,7 +60,7 @@ struct CombineBundleItemsAccessor : public socket_items::SocketItemsAccessorDefa
 
   static eNodeSocketDatatype get_socket_type(const ItemT &item)
   {
-    return eNodeSocketDatatype(item.socket_type);
+    return item.socket_type;
   }
 
   static char **get_name(ItemT &item)
@@ -136,7 +136,7 @@ struct SeparateBundleItemsAccessor : public socket_items::SocketItemsAccessorDef
 
   static eNodeSocketDatatype get_socket_type(const ItemT &item)
   {
-    return eNodeSocketDatatype(item.socket_type);
+    return item.socket_type;
   }
 
   static char **get_name(ItemT &item)

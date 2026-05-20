@@ -53,7 +53,7 @@ static void node_gather_link_searches(GatherLinkSearchOpParams &params)
   const bke::bNodeType &node_type = params.node_type();
   if (params.in_out() == SOCK_OUT) {
     const std::optional<eCustomDataType> type = bke::socket_type_to_custom_data_type(
-        eNodeSocketDatatype(params.other_socket().type));
+        params.other_socket().type);
     if (type && *type != CD_PROP_STRING) {
       /* The input and output sockets have the same name. */
       params.add_item(IFACE_("Attribute"), [node_type, type](LinkSearchOpParams &params) {
@@ -61,9 +61,7 @@ static void node_gather_link_searches(GatherLinkSearchOpParams &params)
         node_storage(node).data_type = *type;
         params.update_and_connect_available_socket(node, "Attribute"_ustr);
       });
-      if (params.node_tree().typeinfo->validate_link(
-              SOCK_BOOLEAN, eNodeSocketDatatype(params.other_socket().type)))
-      {
+      if (params.node_tree().typeinfo->validate_link(SOCK_BOOLEAN, params.other_socket().type)) {
         params.add_item(
             IFACE_("Exists"),
             [node_type](LinkSearchOpParams &params) {

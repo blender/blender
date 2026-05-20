@@ -245,7 +245,7 @@ static void node_copy_storage(bNodeTree * /*dst_tree*/, bNode *dst_node, const b
 
 static void node_gather_link_searches(GatherLinkSearchOpParams &params)
 {
-  const eNodeSocketDatatype type = eNodeSocketDatatype(params.other_socket().type);
+  const eNodeSocketDatatype type = params.other_socket().type;
   if (type == SOCK_GEOMETRY) {
     params.add_item(IFACE_("Geometry"), [](LinkSearchOpParams &params) {
       bNode &node = params.add_node("GeometryNodeCaptureAttribute"_ustr);

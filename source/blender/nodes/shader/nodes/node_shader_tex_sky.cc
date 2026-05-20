@@ -343,9 +343,7 @@ static void node_gather_link_searches(GatherLinkSearchOpParams &params)
     search_link_ops_for_declarations(params, declaration.outputs);
     return;
   }
-  if (params.node_tree().typeinfo->validate_link(eNodeSocketDatatype(params.other_socket().type),
-                                                 SOCK_FLOAT))
-  {
+  if (params.node_tree().typeinfo->validate_link(params.other_socket().type, SOCK_FLOAT)) {
     params.add_item(IFACE_("Vector"), [](LinkSearchOpParams &params) {
       bNode &node = params.add_node("ShaderNodeTexSky"_ustr);
       NodeTexSky *tex = static_cast<NodeTexSky *>(node.storage);

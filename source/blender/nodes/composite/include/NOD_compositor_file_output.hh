@@ -68,7 +68,7 @@ struct FileOutputItemsAccessor : public socket_items::SocketItemsAccessorDefault
 
   static eNodeSocketDatatype get_socket_type(const NodeCompositorFileOutputItem &item)
   {
-    return eNodeSocketDatatype(item.socket_type);
+    return item.socket_type;
   }
 
   static char **get_name(NodeCompositorFileOutputItem &item)

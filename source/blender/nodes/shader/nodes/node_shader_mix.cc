@@ -152,7 +152,7 @@ static void sh_node_mix_label(const bNodeTree * /*ntree*/,
 static int sh_node_mix_ui_class(const bNode *node)
 {
   const NodeShaderMix &storage = node_storage(*node);
-  const eNodeSocketDatatype data_type = eNodeSocketDatatype(storage.data_type);
+  const eNodeSocketDatatype data_type = storage.data_type;
 
   switch (data_type) {
     case SOCK_VECTOR:
@@ -167,7 +167,7 @@ static int sh_node_mix_ui_class(const bNode *node)
 static void sh_node_mix_update(bNodeTree *ntree, bNode *node)
 {
   const NodeShaderMix &storage = node_storage(*node);
-  const eNodeSocketDatatype data_type = eNodeSocketDatatype(storage.data_type);
+  const eNodeSocketDatatype data_type = storage.data_type;
 
   bNodeSocket *sock_factor = static_cast<bNodeSocket *>(node->inputs.first);
   bNodeSocket *sock_factor_vec = static_cast<bNodeSocket *>(sock_factor->next);
@@ -204,7 +204,7 @@ class SocketSearchOp {
 static void node_mix_gather_link_searches(GatherLinkSearchOpParams &params)
 {
   eNodeSocketDatatype type;
-  switch (eNodeSocketDatatype(params.other_socket().type)) {
+  switch (params.other_socket().type) {
     case SOCK_BOOLEAN:
     case SOCK_INT:
     case SOCK_FLOAT:
@@ -376,8 +376,7 @@ static int gpu_shader_mix(GPUMaterial *mat,
   const bool is_color_mode = storage.data_type == SOCK_RGBA;
   const bool is_vector_mode = storage.data_type == SOCK_VECTOR;
   const int blend_type = storage.blend_type;
-  const char *name = gpu_shader_get_name(
-      eNodeSocketDatatype(storage.data_type), is_non_uniform, blend_type);
+  const char *name = gpu_shader_get_name(storage.data_type, is_non_uniform, blend_type);
 
   if (name == nullptr) {
     return 0;
@@ -548,9 +547,11 @@ static const mf::MultiFunction *get_multi_function(const bNode &node)
               });
       return &fn;
     }
+    default: {
+      BLI_assert_unreachable();
+      return nullptr;
+    }
   }
-  BLI_assert_unreachable();
-  return nullptr;
 }
 
 static void sh_node_mix_build_multi_function(NodeMultiFunctionBuilder &builder)

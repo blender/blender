@@ -91,7 +91,7 @@ static void node_declare(NodeDeclarationBuilder &b)
       const auto &output_storage = *static_cast<const NodeClosureOutput *>(output_node->storage);
       for (const int i : IndexRange(output_storage.input_items.items_num)) {
         const NodeClosureInputItem &item = output_storage.input_items.items[i];
-        const eNodeSocketDatatype socket_type = eNodeSocketDatatype(item.socket_type);
+        const eNodeSocketDatatype socket_type = item.socket_type;
         const UString identifier(ClosureInputItemsAccessor::socket_identifier_for_item(item));
         auto &decl = b.add_output(socket_type, UString(item.name), identifier);
         decl.socket_name_ptr(&tree->id, *ClosureInputItemsAccessor::item_srna, &item, "name");
@@ -165,7 +165,7 @@ static void node_declare(NodeDeclarationBuilder &b)
     const NodeClosureOutput &storage = node_storage(*node);
     for (const int i : IndexRange(storage.output_items.items_num)) {
       const NodeClosureOutputItem &item = storage.output_items.items[i];
-      const eNodeSocketDatatype socket_type = eNodeSocketDatatype(item.socket_type);
+      const eNodeSocketDatatype socket_type = item.socket_type;
       const UString identifier(ClosureOutputItemsAccessor::socket_identifier_for_item(item));
       auto &decl = b.add_input(socket_type, UString(item.name), identifier).supports_field();
       decl.socket_name_ptr(&tree->id, *ClosureOutputItemsAccessor::item_srna, &item, "name");

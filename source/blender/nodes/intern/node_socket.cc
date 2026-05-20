@@ -1081,10 +1081,9 @@ static void standard_node_socket_interface_init_socket(
   /* initialize the type value */
   sock->type = sock->typeinfo->type;
 
-  node_socket_init_default_value_data(
-      eNodeSocketDatatype(sock->type), sock->typeinfo->subtype, &sock->default_value);
+  node_socket_init_default_value_data(sock->type, sock->typeinfo->subtype, &sock->default_value);
   node_socket_copy_default_value_data(
-      eNodeSocketDatatype(sock->type), sock->default_value, interface_socket->socket_data);
+      sock->type, sock->default_value, interface_socket->socket_data);
 }
 
 static void standard_node_socket_interface_from_socket(ID * /*id*/,

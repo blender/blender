@@ -200,7 +200,7 @@ static float3 get_node_output_vector(blender::bNode &b_node, const string &name)
 
 static SocketType::Type convert_socket_type(const blender::bNodeSocket &b_socket)
 {
-  switch (blender::eNodeSocketDatatype(b_socket.type)) {
+  switch (b_socket.type) {
     case blender::SOCK_FLOAT:
       return SocketType::FLOAT;
     case blender::SOCK_BOOLEAN:

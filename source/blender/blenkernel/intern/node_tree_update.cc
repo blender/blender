@@ -1496,8 +1496,8 @@ class NodeTreeMainUpdater {
         continue;
       }
       if (ntree.typeinfo->validate_link) {
-        const eNodeSocketDatatype from_type = eNodeSocketDatatype(link.fromsock->type);
-        const eNodeSocketDatatype to_type = eNodeSocketDatatype(link.tosock->type);
+        const eNodeSocketDatatype from_type = link.fromsock->type;
+        const eNodeSocketDatatype to_type = link.tosock->type;
         if (!ntree.typeinfo->validate_link(from_type, to_type)) {
           link.flag &= ~NODE_LINK_VALID;
           ntree.runtime->link_errors.add(

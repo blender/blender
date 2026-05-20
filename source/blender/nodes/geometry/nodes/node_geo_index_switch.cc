@@ -88,7 +88,7 @@ static void node_declare(NodeDeclarationBuilder &b)
     return;
   }
   const NodeIndexSwitch &storage = node_storage(*node);
-  const eNodeSocketDatatype data_type = eNodeSocketDatatype(storage.data_type);
+  const eNodeSocketDatatype data_type = storage.data_type;
   const bool supports_fields = socket_type_supports_fields(data_type) &&
                                ntree->type == NTREE_GEOMETRY;
 
@@ -205,7 +205,7 @@ static void node_gather_link_searches(GatherLinkSearchOpParams &params)
     });
   }
   else {
-    const eNodeSocketDatatype other_type = eNodeSocketDatatype(params.other_socket().type);
+    const eNodeSocketDatatype other_type = params.other_socket().type;
     if (params.node_tree().typeinfo->validate_link(other_type, SOCK_INT)) {
       params.add_item(IFACE_("Index"), [](LinkSearchOpParams &params) {
         bNode &node = params.add_node("GeometryNodeIndexSwitch"_ustr);
@@ -298,7 +298,7 @@ class LazyFunctionForIndexSwitchNode : public LazyFunction {
       : node_(node)
   {
     const NodeIndexSwitch &storage = node_storage(node);
-    const eNodeSocketDatatype data_type = eNodeSocketDatatype(storage.data_type);
+    const eNodeSocketDatatype data_type = storage.data_type;
     const bNodeSocket &index_socket = node.input_socket(0);
     const bNodeSocket &output_socket = node.output_socket(0);
     const CPPType &cpp_type = CPPType::get<SocketValueVariant>();
