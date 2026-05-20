@@ -2044,7 +2044,7 @@ ImBuf *render_give_ibuf_direct(const RenderData *context, float timeline_frame, 
 bool render_is_muted(const ListBaseT<SeqTimelineChannel> *channels, const Strip *strip)
 {
   SeqTimelineChannel *channel = channel_get_by_index(channels, strip->channel);
-  return strip->flag & SEQ_MUTE || channel_is_muted(channel);
+  return strip->flag & SEQ_MUTE || channel->is_muted();
 }
 
 /** \} */

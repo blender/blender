@@ -1934,8 +1934,8 @@ static void rna_SequenceTimelineChannel_mute_update(bContext *C, PointerRNA *ptr
 
 static int rna_SequenceTimelineChannel_number_get(PointerRNA *ptr)
 {
-  SeqTimelineChannel *channel = static_cast<SeqTimelineChannel *>(ptr->data);
-  return seq::channel_index_get(channel);
+  const SeqTimelineChannel *channel = static_cast<SeqTimelineChannel *>(ptr->data);
+  return channel->index;
 }
 
 static std::optional<std::string> rna_SeqTimelineChannel_path(const PointerRNA *ptr)
