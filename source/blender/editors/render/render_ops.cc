@@ -78,6 +78,7 @@ void ED_operatortypes_render()
 
 #ifdef WITH_CYCLES
   WM_operatortype_append(RENDER_OT_generate_texture_cache);
+  WM_operatortype_append(RENDER_OT_clear_texture_cache);
 #endif
 
   /* `render_internal.cc` */

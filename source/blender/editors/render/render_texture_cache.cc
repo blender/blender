@@ -386,6 +386,99 @@ void RENDER_OT_generate_texture_cache(wmOperatorType *ot)
 
 /** \} */
 
+/* -------------------------------------------------------------------- */
+/** \name Clear Texture Cache Operator
+ * \{ */
+
+static Set<std::string> gather_clear_tx_files(Main *bmain)
+{
+  Set<std::string> tx_files;
+
+  const bool include_sequences = true;
+  const Vector<std::pair<const Image *, std::string>> filepaths = gather_cache_filepaths(
+      bmain, include_sequences);
+
+  Set<std::string> source_filepaths;
+  for (const auto &item : filepaths) {
+    source_filepaths.add(item.second);
+  }
+
+  for (const auto &item : filepaths) {
+    BKE_image_texture_cache_filepaths_foreach(
+        item.second.c_str(), U.texture_cachedir, [&](StringRef cache_filepath) {
+          /* Defensive check just in case a tx file was referenced directly even
+           * though this should not be done. */
+          if (source_filepaths.contains(cache_filepath)) {
+            return;
+          }
+          tx_files.add(cache_filepath);
+        });
+  }
+
+  return tx_files;
+}
+
+static wmOperatorStatus clear_texture_cache_exec(bContext *C, wmOperator *op)
+{
+  Main *bmain = CTX_data_main(C);
+
+  const Set<std::string> tx_files = gather_clear_tx_files(bmain);
+
+  int deleted_num = 0;
+  for (const std::string &tx_filepath : tx_files) {
+    if (BLI_delete(tx_filepath.c_str(), false, false) == 0) {
+      deleted_num++;
+    }
+    else {
+      BKE_reportf(op->reports, RPT_ERROR, "Failed to delete tx file: %s", tx_filepath.c_str());
+    }
+  }
+
+  BKE_reportf(op->reports, RPT_INFO, "Deleted %d tx files", deleted_num);
+  return OPERATOR_FINISHED;
+}
+
+static wmOperatorStatus clear_texture_cache_invoke(bContext *C,
+                                                   wmOperator *op,
+                                                   const wmEvent * /*event*/)
+{
+  Main *bmain = CTX_data_main(C);
+  const int used_num = gather_clear_tx_files(bmain).size();
+
+  if (used_num == 0) {
+    BKE_report(op->reports, RPT_INFO, "No tx files to delete");
+    return OPERATOR_CANCELLED;
+  }
+
+  const std::string message = fmt::format(fmt::runtime(IFACE_("{} tx files to be deleted")),
+                                          used_num);
+
+  return WM_operator_confirm_ex(C,
+                                op,
+                                IFACE_("Clear Texture Cache?"),
+                                message.c_str(),
+                                IFACE_("Clear Cache"),
+                                ui::AlertIcon::Info,
+                                false);
+}
+
+void RENDER_OT_clear_texture_cache(wmOperatorType *ot)
+{
+  /* identifiers */
+  ot->name = "Clear Texture Cache";
+  ot->idname = "RENDER_OT_clear_texture_cache";
+  ot->description = "Delete Cycles texture cache files from disk";
+
+  /* API callbacks. */
+  ot->exec = clear_texture_cache_exec;
+  ot->invoke = clear_texture_cache_invoke;
+
+  /* flags */
+  ot->flag = OPTYPE_REGISTER;
+}
+
+/** \} */
+
 }  // namespace blender
 
 #endif
