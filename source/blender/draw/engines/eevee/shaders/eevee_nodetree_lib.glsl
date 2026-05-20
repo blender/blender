@@ -308,7 +308,7 @@ void raycast_eval([[maybe_unused]] float3 position,
   float thickness = raytrace_buf.thickness * thickness_jitter;
 
   float2 hit_uv = float2(0.0f);
-  uint self_id = drw_resource_id() & 0xFFFF;
+  uint self_id = drw_resource_id() & uint(0xFFFF);
 
   float result = raytrace_screen_2(drw_point_world_to_view(ws_start),
                                    drw_point_world_to_view(ws_end),

@@ -96,7 +96,7 @@ void surf_depth([[resource_table]] SurfaceDepth & /*srt*/,
 
   /* Always written, but may be optimized out by frame-buffer/subpass setup. */
   frag_out.normal.rgb = normalize(interp.N) * 0.5f + 0.5f;
-  frag_out.object_id = drw_resource_id() & 0xFFFF;
+  frag_out.object_id = drw_resource_id() & uint(0xFFFF);
 }
 
 }  // namespace eevee
