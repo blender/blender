@@ -318,7 +318,8 @@ typedef struct ThemeSpace {
 
   unsigned char hilite[4];
   unsigned char grid[4], grid_major[4];
-  char _pad5[4];
+  float grid_axis_offset;
+  // char _pad5[4];
 
   unsigned char view_overlay[4];
 
