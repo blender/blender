@@ -168,7 +168,7 @@ bool CompileState::is_pixel_node_single_value(const bNode &node)
         continue;
       }
 
-      const std::optional<Domain> domain = ImplicitInputOperation::compute_domain(
+      const std::optional<Domain> domain = ImplicitInputOperation::get_domain(
           context_, input_descriptor.implicit_input.value());
       if (!domain.has_value()) {
         /* The input has an implicit input, but it is a single value. */
@@ -221,7 +221,7 @@ Domain CompileState::compute_pixel_node_domain(const bNode &node)
         continue;
       }
 
-      const std::optional<Domain> domain = ImplicitInputOperation::compute_domain(
+      const std::optional<Domain> domain = ImplicitInputOperation::get_domain(
           context_, input_descriptor.implicit_input.value());
       if (!domain.has_value()) {
         /* The input has an implicit input, but it is a single value that can't be a domain input

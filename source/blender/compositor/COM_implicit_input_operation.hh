@@ -38,8 +38,8 @@ class ImplicitInputOperation : public Operation {
 
   /* Returns the domain of the implicit input. If the implicit input is a single value,
    * std::nullopt is returned. */
-  static std::optional<Domain> compute_domain(const Context &context,
-                                              const ImplicitInputType implicit_input);
+  static std::optional<Domain> get_domain(const Context &context,
+                                          const ImplicitInputType implicit_input);
 };
 
 }  // namespace blender::compositor
