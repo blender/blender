@@ -38,6 +38,10 @@ class ImageMetaData {
   float4 average_color = zero_float4();
   bool tile_need_conform = true;
 
+  /* File is a valid tx file, but does not necessarily have mipmaps and tiles if it's
+   * small enough not to need them. */
+  bool is_tx_file = false;
+
   /* Input NanoVDB data. */
   int64_t nanovdb_byte_size = 0;
   bool use_transform_3d = false;

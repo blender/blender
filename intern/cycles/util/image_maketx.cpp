@@ -405,7 +405,7 @@ bool resolve_tx(const string &filepath,
     out_filepath = tx_filepath;
 
     if (!texture_cache_file_outdated(filepath, tx_filepath)) {
-      if (out_metadata.oiio_load_metadata(tx_filepath) && out_metadata.has_tiles_and_mipmaps) {
+      if (out_metadata.oiio_load_metadata(tx_filepath) && out_metadata.is_tx_file) {
         return true;
       }
     }
@@ -419,9 +419,7 @@ bool resolve_tx(const string &filepath,
     const string tx_default_filepath = path_join(path_join(filedir, default_texture_cache_dir),
                                                  tx_filename);
     if (!texture_cache_file_outdated(filepath, tx_default_filepath)) {
-      if (out_metadata.oiio_load_metadata(tx_default_filepath) &&
-          out_metadata.has_tiles_and_mipmaps)
-      {
+      if (out_metadata.oiio_load_metadata(tx_default_filepath) && out_metadata.is_tx_file) {
         out_filepath = tx_default_filepath;
         return true;
       }
@@ -434,7 +432,7 @@ bool resolve_tx(const string &filepath,
 
   /* If it's already a tx, tiff or exr file, we can use it directly as well. But it's
    * preferable to use a Cycles native tx file for performance. */
-  if (out_metadata.oiio_load_metadata(filepath) && out_metadata.has_tiles_and_mipmaps) {
+  if (out_metadata.oiio_load_metadata(filepath) && out_metadata.is_tx_file) {
     out_filepath = filepath;
     return true;
   }
