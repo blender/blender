@@ -518,6 +518,9 @@ inline const CPPType &GField::cpp_type() const
         else if constexpr (is_same_any_v<T, ConstantRef, TrivialInlineConstant, OwnedConstant>) {
           return *v.type;
         }
+        else {
+          BLI_assert_unreachable_static_t(T);
+        }
       },
       this->variant_);
 }
@@ -659,6 +662,9 @@ inline const CPPType &GFieldRef::cpp_type() const
         }
         else if constexpr (std::is_same_v<T, MultiFn>) {
           return v.node->output_cpp_type(v.output_i);
+        }
+        else {
+          BLI_assert_unreachable_static_t(T);
         }
       },
       variant_);

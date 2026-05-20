@@ -79,8 +79,7 @@ static FieldTreeInfo preprocess_field_tree(Span<GFieldRef> entry_fields)
             /* Nothing to do. */
           }
           else {
-            /* Ensure all cases handled. */
-            static_assert(sizeof(T) == 0);
+            BLI_assert_unreachable_static_t(T);
           }
         },
         field_variant);
@@ -253,8 +252,7 @@ static void build_multi_function_procedure_for_fields(mf::Procedure &procedure,
               variable_by_field.add_new(field_hash, &new_variable);
             }
             else {
-              /* Ensure all cases handled. */
-              static_assert(sizeof(T) == 0);
+              BLI_assert_unreachable_static_t(T);
             }
           },
           field_variant);
@@ -366,8 +364,7 @@ Vector<GVArray> evaluate_fields(ResourceScope &scope,
             varrays[out_index] = GVArray::from_single_ref(*v.type, mask.min_array_size(), v.value);
           }
           else {
-            /* Ensure all cases handled. */
-            static_assert(sizeof(T) == 0);
+            BLI_assert_unreachable_static_t(T);
           }
         },
         field_variant);

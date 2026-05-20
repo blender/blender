@@ -1209,6 +1209,9 @@ static void node_update_basis_from_declaration(TreeDrawContext &tree_draw_ctx,
             bke::bNodePanelRuntime &panel_runtime = node.runtime->panels[node_decl.index];
             panel_runtime.content_extent->min_y = locy;
           }
+          else {
+            BLI_assert_unreachable_static_t(ItemT);
+          }
         },
         item_variant.item);
   }
