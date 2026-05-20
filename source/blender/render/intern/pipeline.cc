@@ -184,14 +184,13 @@ static bool do_write_image_or_movie(Render *re,
 /* default callbacks, set in each new render */
 static void result_rcti_nothing(void * /*arg*/, RenderResult * /*rr*/, rcti * /*rect*/) {}
 static void current_scene_nothing(void * /*arg*/, Scene * /*scene*/) {}
-static void stats_nothing(void * /*arg*/, RenderStats * /*rs*/) {}
 static void float_nothing(void * /*arg*/, float /*val*/) {}
 static bool default_break(void * /*arg*/)
 {
   return G.is_break == true;
 }
 
-static void stats_background(void * /*arg*/, RenderStats *rs)
+static void stats_update(void * /*arg*/, RenderStats *rs)
 {
   if (rs->infostr == nullptr) {
     return;
@@ -202,7 +201,9 @@ static void stats_background(void * /*arg*/, RenderStats *rs)
   static Mutex mutex;
   std::scoped_lock lock(mutex);
 
-  const bool show_info = CLOG_CHECK(&LOG, CLG_LEVEL_INFO);
+  /* Only print render process to stdout when blender is running headless, because the same
+   * progress string will be displayed on the UI. */
+  const bool show_info = G.background && CLOG_CHECK(&LOG, CLG_LEVEL_INFO);
   if (show_info) {
     CLOG_INFO(&LOG, "Fra: %d | %s", rs->cfra, rs->infostr);
     /* Flush stdout to be sure python callbacks are printing stuff after blender. */
@@ -942,12 +943,7 @@ void RE_display_init(Render *re)
   re->display->current_scene_update_cb = current_scene_nothing;
   re->display->progress_cb = float_nothing;
   re->display->test_break_cb = default_break;
-  if (G.background) {
-    re->display->stats_draw_cb = stats_background;
-  }
-  else {
-    re->display->stats_draw_cb = stats_nothing;
-  }
+  re->display->stats_draw_cb = stats_update;
 }
 
 void RE_display_ensure_gpu_context(Render *re)
