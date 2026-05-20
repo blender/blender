@@ -409,7 +409,10 @@ static wmOperatorStatus grease_pencil_sculpt_paint_invoke(bContext *C,
   OPERATOR_RETVAL_CHECK(retval);
 
   if (retval == OPERATOR_FINISHED) {
-    MEM_delete(stroke);
+    GreasePencilPaintStroke *stroke = static_cast<GreasePencilPaintStroke *>(op->customdata);
+    if (stroke) {
+      MEM_delete(stroke);
+    }
     return OPERATOR_FINISHED;
   }
 
@@ -426,6 +429,7 @@ static wmOperatorStatus grease_pencil_sculpt_paint_modal(bContext *C,
 
   if (ELEM(retval, OPERATOR_FINISHED, OPERATOR_CANCELLED)) {
     MEM_delete(stroke);
+    op->customdata = nullptr;
   }
 
   return retval;
