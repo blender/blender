@@ -2154,7 +2154,7 @@ static std::optional<std::string> rna_NodesModifierBake_path(const PointerRNA *p
   }
   const int64_t idx = nmd_bake - bakes.begin();
 
-  return fmt::format("modifiers[\"{}\"].bakes[{}]", md->name, idx);
+  return fmt::format("modifiers[\"{}\"].bakes[{}]", BLI_str_escape(md->name), idx);
 }
 
 bool rna_GreasePencilModifier_material_poll(PointerRNA *ptr, PointerRNA value)
