@@ -369,8 +369,8 @@ void Resources::update_theme_settings(const DRWContext *ctx, const State &state)
 
   /* Grid axes */
   bTheme *btheme = ui::theme::theme_get();
-  const float grid_axis_offset = btheme->space_view3d.grid_axis_offset;
-  const int grid_axis_offset_i = static_cast<int>(grid_axis_offset * 255.0f);
+  const float grid_axis_brightness = btheme->space_view3d.grid_axis_brightness;
+  const int grid_axis_offset_i = static_cast<int>((grid_axis_brightness * 2.0f - 1.0f) * 255.0f);
   ui::theme::get_color_blend_shade_4fv(
       TH_GRID, TH_AXIS_X, 0.85, grid_axis_offset_i, gb.colors.grid_axis_x);
   ui::theme::get_color_blend_shade_4fv(

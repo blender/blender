@@ -87,7 +87,6 @@ enum ThemeColorID {
 
   TH_GRID,
   TH_GRID_MAJOR,
-  TH_GRID_AXIS_OFFSET,
   TH_WIRE,
   TH_WIRE_INNER,
   TH_WIRE_EDIT,
