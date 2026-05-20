@@ -1348,6 +1348,10 @@ static wmOperatorStatus mask_from_boundary_exec(bContext *C, wmOperator *op)
 
   /* Set up automasking settings. */
   Paint scene_copy = dna::shallow_copy(sd.paint);
+  /* We don't do a deep copy of the automasking settings, we simply need a new one so that the
+   * canonical pointer isn't overwritten. */
+  MeshAutomaskingSettings automasking_settings;
+  scene_copy.mesh_automasking_settings = &automasking_settings;
 
   MaskSettingsSource src = MaskSettingsSource(RNA_enum_get(op->ptr, "settings_source"));
   switch (src) {
