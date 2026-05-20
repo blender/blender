@@ -124,9 +124,9 @@ if(CMAKE_CROSSCOMPILING)
   )
 
   if(ANDROID)
-    # Disable Python bindings, due to it causing similar linking issue as OIIO, OCIO, etc.. (see comment in opencolorio.cmake).
+    # Python bindings: Link against Android logging library to satisfy Python library requesting __android_log_write,
     list(APPEND OSL_EXTRA_ARGS
-      -DUSE_PYTHON=OFF
+      -DCMAKE_MODULE_LINKER_FLAGS=-llog
     )
   endif()
 endif()

@@ -110,9 +110,9 @@ set(OPENIMAGEIO_EXTRA_ARGS
 )
 
 if(ANDROID)
-  # Similarly to OpenColorIO, disable Python bindings for now due to them causing undefined symbols errors at link time.
   list(APPEND OPENIMAGEIO_EXTRA_ARGS
-    -DUSE_PYTHON=OFF
+    # Android CMake Toolchain option to allow undefined Python symbols during linking, to then be resolved at runtime.
+    -DANDROID_ALLOW_UNDEFINED_SYMBOLS=TRUE
   )
 endif()
 

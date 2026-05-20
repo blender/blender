@@ -15,6 +15,8 @@ set(MATERIALX_EXTRA_ARGS
   -DCMAKE_POLICY_DEFAULT_CMP0074=NEW
   -Dpybind11_ROOT=${LIBDIR}/pybind11
   -DPython_EXECUTABLE=${PYTHON_BINARY}
+  -DPython_ROOT=${LIBDIR}/python
+  -DPython_INCLUDE_DIR=${LIBDIR}/python/include/python${PYTHON_SHORT_VERSION}
 )
 
 if(WIN32)
@@ -38,8 +40,11 @@ if(ANDROID)
     # It's controlled by GEN_GLSL, which (unintuitively) gets forced to ON if GEN_MSL is ON, set both to OFF in that sense.
     -DMATERIALX_BUILD_GEN_MSL=OFF
     -DMATERIALX_BUILD_GEN_GLSL=OFF
-    # Similarly to other libraries, disable Python module for now.
-    -DMATERIALX_BUILD_PYTHON=OFF
+
+    # Python bindings: Explicitly link against the Python static Python lib, link against Android logging library to
+    #                  satisfy Python library requesting __android_log_write.
+    -DPYTHON_LIBRARY=${LIBDIR}/python/lib/libpython${PYTHON_SHORT_VERSION}.a
+    -DCMAKE_SHARED_LINKER_FLAGS=-llog
   )
 endif()
 
