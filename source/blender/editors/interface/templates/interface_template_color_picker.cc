@@ -229,10 +229,7 @@ static void template_palette_menu(bContext * /*C*/, Layout *layout, void * /*but
   RNA_enum_set(&op_ptr, "type", 4);
 }
 
-void template_palette(Layout *layout,
-                      PointerRNA *ptr,
-                      const StringRefNull propname,
-                      bool /*colors*/)
+void template_palette(Layout *layout, PointerRNA *ptr, const StringRefNull propname)
 {
   PropertyRNA *prop = RNA_struct_find_property(ptr, propname.c_str());
   Button *but = nullptr;
