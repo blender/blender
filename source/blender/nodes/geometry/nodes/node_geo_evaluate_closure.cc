@@ -57,7 +57,9 @@ static void node_declare(NodeDeclarationBuilder &b)
         decl.structure_type(StructureType::Dynamic);
       }
     }
-    panel.add_output<decl::Extend>(""_ustr, "__extend__"_ustr);
+    panel.add_output<decl::Extend>(""_ustr, "__extend__"_ustr)
+        .custom_draw(
+            socket_items::ui::draw_extend_socket_fn<EvaluateClosureOutputItemsAccessor>());
     for (const int i : IndexRange(storage.input_items.items_num)) {
       const NodeEvaluateClosureInputItem &item = storage.input_items.items[i];
       const eNodeSocketDatatype socket_type = eNodeSocketDatatype(item.socket_type);
@@ -76,7 +78,8 @@ static void node_declare(NodeDeclarationBuilder &b)
         decl.structure_type(StructureType::Dynamic);
       }
     }
-    panel.add_input<decl::Extend>(""_ustr, "__extend__"_ustr);
+    panel.add_input<decl::Extend>(""_ustr, "__extend__"_ustr)
+        .custom_draw(socket_items::ui::draw_extend_socket_fn<EvaluateClosureInputItemsAccessor>());
   }
 }
 

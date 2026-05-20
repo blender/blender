@@ -59,7 +59,9 @@ static void node_declare(NodeDeclarationBuilder &b)
       b.add_output(data_type, name, output_identifier).field_on_all().align_with_previous();
     }
   }
-  b.add_input<decl::Extend>(""_ustr, "__extend__"_ustr).structure_type(StructureType::Field);
+  b.add_input<decl::Extend>(""_ustr, "__extend__"_ustr)
+      .structure_type(StructureType::Field)
+      .custom_draw(socket_items::ui::draw_extend_socket_fn<CaptureAttributeItemsAccessor>());
   b.add_output<decl::Extend>(""_ustr, "__extend__"_ustr)
       .structure_type(StructureType::Field)
       .align_with_previous();

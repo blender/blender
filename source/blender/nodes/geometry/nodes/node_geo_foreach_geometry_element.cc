@@ -165,7 +165,10 @@ static void node_declare(NodeDeclarationBuilder &b)
     }
   }
 
-  b.add_input<decl::Extend>(""_ustr, "__extend__"_ustr).structure_type(StructureType::Dynamic);
+  b.add_input<decl::Extend>(""_ustr, "__extend__"_ustr)
+      .structure_type(StructureType::Dynamic)
+      .custom_draw(
+          socket_items::ui::draw_extend_socket_fn<ForeachGeometryElementInputItemsAccessor>());
   b.add_output<decl::Extend>(""_ustr, "__extend__"_ustr)
       .structure_type(StructureType::Dynamic)
       .align_with_previous();
@@ -272,7 +275,9 @@ static void node_declare(NodeDeclarationBuilder &b)
           .field_on({0})
           .description("Attribute on the geometry above");
     }
-    b.add_input<decl::Extend>(""_ustr, "__extend__main"_ustr);
+    b.add_input<decl::Extend>(""_ustr, "__extend__main"_ustr)
+        .custom_draw(
+            socket_items::ui::draw_extend_socket_fn<ForeachGeometryElementMainItemsAccessor>());
     b.add_output<decl::Extend>(""_ustr, "__extend__main"_ustr).align_with_previous();
 
     auto &panel = b.add_panel("Generated"_ustr);
@@ -313,7 +318,9 @@ static void node_declare(NodeDeclarationBuilder &b)
         output_decl.description("Attribute on the geometry above");
       }
     }
-    panel.add_input<decl::Extend>(""_ustr, "__extend__generation"_ustr);
+    panel.add_input<decl::Extend>(""_ustr, "__extend__generation"_ustr)
+        .custom_draw(socket_items::ui::draw_extend_socket_fn<
+                     ForeachGeometryElementGenerationItemsAccessor>());
     panel.add_output<decl::Extend>(""_ustr, "__extend__generation"_ustr).align_with_previous();
   }
 }

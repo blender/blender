@@ -96,7 +96,8 @@ static void node_declare(NodeDeclarationBuilder &b)
         .socket_name_ptr(&node_tree->id, *FileOutputItemsAccessor::item_srna, &item, "name");
   }
 
-  b.add_input<decl::Extend>(""_ustr, "__extend__"_ustr);
+  b.add_input<decl::Extend>(""_ustr, "__extend__"_ustr)
+      .custom_draw(socket_items::ui::draw_extend_socket_fn<FileOutputItemsAccessor>());
 }
 
 static void node_init(const bContext *C, PointerRNA *node_pointer)

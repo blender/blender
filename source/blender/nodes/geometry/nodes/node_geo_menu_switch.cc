@@ -127,12 +127,7 @@ static void node_declare(nodes::NodeDeclarationBuilder &b)
 
   b.add_input<decl::Extend>(""_ustr, "__extend__"_ustr)
       .structure_type(StructureType::Dynamic)
-      .custom_draw([](CustomSocketDrawParams &params) {
-        ui::Layout &layout = params.layout;
-        layout.emboss_set(ui::EmbossType::None);
-        PointerRNA op_ptr = layout.op("node.enum_definition_item_add", "", ICON_ADD);
-        RNA_int_set(&op_ptr, "node_identifier", params.node.identifier);
-      });
+      .custom_draw(socket_items::ui::draw_extend_socket_fn<MenuSwitchItemsAccessor>());
 }
 
 static void node_layout(ui::Layout &layout, bContext * /*C*/, PointerRNA *ptr)
