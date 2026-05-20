@@ -118,7 +118,9 @@ CachedMask::CachedMask(Context &context,
                                                                motion_blur_samples,
                                                                motion_blur_shutter);
 
-  this->result.allocate_texture(domain, false, ResultStorageType::CPU);
+  Result result_cpu = context.create_result(ResultType::Float);
+
+  result_cpu.allocate_texture(domain, false, ResultStorageType::CPU);
   parallel_for(domain.data_size, [&](const int2 texel) {
     /* Compute the coordinates in the [0, 1] range and add 0.5 to evaluate the mask at the
      * center of pixels. */
@@ -134,7 +136,7 @@ CachedMask::CachedMask(Context &context,
     if (srgb_to_linear) {
       mask_value = srgb_to_linearrgb(mask_value);
     }
-    this->result.store_pixel(texel, mask_value);
+    result_cpu.store_pixel(texel, mask_value);
   });
 
   for (MaskRasterHandle *handle : handles) {
@@ -142,10 +144,15 @@ CachedMask::CachedMask(Context &context,
   }
 
   if (context.use_gpu()) {
-    const Result gpu_result = this->result.upload_to_gpu(false);
-    this->result.release();
-    this->result = gpu_result;
+    Result result_gpu = result_cpu.upload_to_gpu(false);
+    this->result.share_data(result_gpu);
+    result_gpu.release();
   }
+  else {
+    this->result.share_data(result_cpu);
+  }
+
+  result_cpu.release();
 }
 
 CachedMask::~CachedMask()

@@ -328,9 +328,6 @@ class Result {
    * after constructing the result to declare the number of operations that needs it. */
   void set_reference_count(int count);
 
-  /* Increment the reference count of the result by the given count. */
-  void increment_reference_count(int count = 1);
-
   /* Decrement the reference count of the result by the given count. */
   void decrement_reference_count(int count = 1);
 

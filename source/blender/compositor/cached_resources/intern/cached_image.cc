@@ -155,23 +155,23 @@ static int get_view_index(const Context &context,
  * argument should be set, otherwise, it is ignored. The image user will have a pass index of -1 if
  * the pass/later were not found in the image for multi-layer images. */
 static ImageUser compute_image_user_for_pass(const Context &context,
-                                             const Image *image,
+                                             const Image &image,
                                              const RenderResult *render_result,
-                                             const ImageUser *image_user,
+                                             const ImageUser &image_user,
                                              const char *pass_name)
 {
-  ImageUser image_user_for_pass = *image_user;
+  ImageUser image_user_for_pass = image_user;
 
   /* Set the needed view. */
   image_user_for_pass.view = get_view_index(context, render_result, image_user_for_pass);
 
   /* Set the needed pass. */
-  if (BKE_image_is_multilayer(image)) {
+  if (BKE_image_is_multilayer(&image)) {
     image_user_for_pass.pass = get_pass_index(render_result, image_user_for_pass, pass_name);
     BKE_image_multilayer_index(const_cast<RenderResult *>(render_result), &image_user_for_pass);
   }
   else {
-    BKE_image_multiview_index(image, &image_user_for_pass);
+    BKE_image_multiview_index(&image, &image_user_for_pass);
   }
 
   return image_user_for_pass;
@@ -279,8 +279,8 @@ static ResultType get_pass_type(const RenderPass *render_pass)
 }
 
 CachedImage::CachedImage(Context &context,
-                         Image *image,
-                         ImageUser *image_user,
+                         Image &image,
+                         ImageUser &image_user,
                          const char *pass_name)
     : result(context)
 {
@@ -291,40 +291,40 @@ CachedImage::CachedImage(Context &context,
    * render result as a side effect. We also use that as a mean of validation, since we can early
    * exit if the returned image buffer is nullptr. This image buffer can be immediately released.
    * Since it carries no important information. */
-  ImBuf *initial_image_buffer = BKE_image_acquire_ibuf(image, image_user, nullptr);
-  BKE_image_release_ibuf(image, initial_image_buffer, nullptr);
+  ImBuf *initial_image_buffer = BKE_image_acquire_ibuf(&image, &image_user, nullptr);
+  BKE_image_release_ibuf(&image, initial_image_buffer, nullptr);
   if (!initial_image_buffer) {
     return;
   }
 
-  RenderResult *render_result = BKE_image_acquire_renderresult(nullptr, image);
+  RenderResult *render_result = BKE_image_acquire_renderresult(nullptr, &image);
 
   ImageUser image_user_for_pass = compute_image_user_for_pass(
       context, image, render_result, image_user, pass_name);
 
   /* Pass or layer were not found. */
-  if (BKE_image_is_multilayer(image) && image_user_for_pass.pass == -1) {
-    BKE_image_release_renderresult(nullptr, image, render_result);
+  if (BKE_image_is_multilayer(&image) && image_user_for_pass.pass == -1) {
+    BKE_image_release_renderresult(nullptr, &image, render_result);
     return;
   }
 
-  if (BKE_image_is_multilayer(image)) {
+  if (BKE_image_is_multilayer(&image)) {
     const RenderPass *render_pass = get_render_pass(render_result, image_user_for_pass);
     this->result.set_type(get_pass_type(render_pass));
   }
 
   this->populate_cryptomatte_meta_data(render_result, image_user_for_pass);
 
-  BKE_image_release_renderresult(nullptr, image, render_result);
+  BKE_image_release_renderresult(nullptr, &image, render_result);
 
-  ImBuf *image_buffer = BKE_image_acquire_ibuf(image, &image_user_for_pass, nullptr);
+  ImBuf *image_buffer = BKE_image_acquire_ibuf(&image, &image_user_for_pass, nullptr);
   ImBuf *linear_image_buffer = compute_linear_buffer(image_buffer);
 
   this->populate_meta_data(image_buffer);
 
   const bool use_half_float = linear_image_buffer->foptions.flag & OPENEXR_HALF;
   this->result.set_precision(use_half_float ? ResultPrecision::Half : ResultPrecision::Full);
-  if (!BKE_image_is_multilayer(image)) {
+  if (!BKE_image_is_multilayer(&image)) {
     this->result.set_type(float_type(linear_image_buffer->channels));
   }
 
@@ -374,7 +374,7 @@ CachedImage::CachedImage(Context &context,
   }
 
   IMB_freeImBuf(linear_image_buffer);
-  BKE_image_release_ibuf(image, image_buffer, nullptr);
+  BKE_image_release_ibuf(&image, image_buffer, nullptr);
 }
 
 void CachedImage::populate_cryptomatte_meta_data(const RenderResult *render_result,
@@ -475,45 +475,41 @@ void CachedImageContainer::reset()
   }
 }
 
-Result CachedImageContainer::get(Context &context,
-                                 Image *image,
-                                 const ImageUser *image_user,
-                                 const char *pass_name)
+Result &CachedImageContainer::get(Context &context,
+                                  Image &image,
+                                  const ImageUser &image_user,
+                                  const char *pass_name)
 {
-  if (!image || !image_user) {
-    return Result(context);
-  }
-
   /* Compute the effective frame number of the image if it was animated. */
-  ImageUser image_user_for_frame = *image_user;
-  BKE_image_user_frame_calc(image, &image_user_for_frame, context.get_frame_number());
+  ImageUser image_user_for_frame = image_user;
+  BKE_image_user_frame_calc(&image, &image_user_for_frame, context.get_frame_number());
 
   /* A view of 0 is a special value that means the current view being rendered so use the context
    * view name. For other values, just convert the view index into a string and use it as the name,
    * while this is not correct it works as the cache key and is very fast compared to reading the
    * views from file and finding out their name. */
-  const std::string view_name = image_user->view == 0 ? std::string(context.get_view_name()) :
-                                                        std::to_string(image_user->view);
+  const std::string view_name = image_user.view == 0 ? std::string(context.get_view_name()) :
+                                                       std::to_string(image_user.view);
 
-  const CachedImageKey key(image_user->layer, pass_name, view_name, image_user_for_frame.framenr);
+  const CachedImageKey key(image_user.layer, pass_name, view_name, image_user_for_frame.framenr);
 
-  const std::string library_key = image->id.lib ? image->id.lib->id.name : "";
-  const std::string id_key = std::string(image->id.name) + library_key;
+  const std::string library_key = image.id.lib ? image.id.lib->id.name : "";
+  const std::string id_key = std::string(image.id.name) + library_key;
   auto &cached_images_for_id = map_.lookup_or_add_default(id_key);
 
   /* Invalidate the cache for that image if it was changed since it was cached. */
   if (!cached_images_for_id.is_empty() &&
-      image->runtime->update_count != update_counts_.lookup(id_key))
+      image.runtime->update_count != update_counts_.lookup(id_key))
   {
     cached_images_for_id.clear();
   }
 
   auto &cached_image = *cached_images_for_id.lookup_or_add_cb(key, [&]() {
-    return std::make_unique<CachedImage>(context, image, &image_user_for_frame, pass_name);
+    return std::make_unique<CachedImage>(context, image, image_user_for_frame, pass_name);
   });
 
   /* Store the current update count to later compare to and check if the image changed. */
-  update_counts_.add_overwrite(id_key, image->runtime->update_count);
+  update_counts_.add_overwrite(id_key, image.runtime->update_count);
 
   cached_image.needed = true;
   return cached_image.result;

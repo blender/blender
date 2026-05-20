@@ -420,15 +420,17 @@ class CompositorModifierContext : public CompositorContext {
 
       const int width = context.render_data.rectx;
       const int height = context.render_data.recty;
-      this->mask_ = this->cache_manager().cached_masks.get(*this,
-                                                           smd.mask_id,
-                                                           compositor::Domain(int2(width, height)),
-                                                           1.0f,
-                                                           true,
-                                                           frame_index,
-                                                           1,
-                                                           0.0f,
-                                                           seq_space_is_srgb);
+      this->mask_.set_type(compositor::ResultType::Float);
+      this->mask_.share_data(
+          this->cache_manager().cached_masks.get(*this,
+                                                 smd.mask_id,
+                                                 compositor::Domain(int2(width, height)),
+                                                 1.0f,
+                                                 true,
+                                                 frame_index,
+                                                 1,
+                                                 0.0f,
+                                                 seq_space_is_srgb));
       this->owns_mask_ = false;
     }
   }

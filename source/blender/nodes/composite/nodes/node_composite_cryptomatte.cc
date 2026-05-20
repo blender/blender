@@ -719,7 +719,7 @@ class CryptoMatteOperation : public BaseCryptoMatteOperation {
           pass_result.release();
           return layers;
         }
-        layers.append(pass_result);
+        layers.append(std::move(pass_result));
       }
 
       /* The target view later was processed already, no need to check other view layers. */
@@ -793,8 +793,8 @@ class CryptoMatteOperation : public BaseCryptoMatteOperation {
 
     image_user_for_layer.layer = layer_index;
     for (const std::string &pass_name : pass_names) {
-      Result pass_result = context().cache_manager().cached_images.get(
-          context(), image, &image_user_for_layer, pass_name.c_str());
+      const Result &pass_result = context().cache_manager().cached_images.get(
+          context(), *image, image_user_for_layer, pass_name.c_str());
 
       /* The layers will be released by the caller, so return a wrapper around the cached image
        * instead. */
@@ -802,7 +802,7 @@ class CryptoMatteOperation : public BaseCryptoMatteOperation {
                                                           pass_result.precision());
       layer_result.share_data(pass_result);
 
-      layers.append(layer_result);
+      layers.append(std::move(layer_result));
     }
 
     return layers;
@@ -1001,7 +1001,7 @@ class LegacyCryptoMatteOperation : public BaseCryptoMatteOperation {
         continue;
       }
 
-      const Result input = get_input(input_socket->identifier);
+      const Result &input = get_input(input_socket->identifier);
       if (input.is_single_value()) {
         /* If this Cryptomatte layer is not valid, because it is not an image, then all later
          * Cryptomatte layers can't be used even if they were valid. */
@@ -1013,7 +1013,7 @@ class LegacyCryptoMatteOperation : public BaseCryptoMatteOperation {
       Result layer_result = this->context().create_result(input.type(), input.precision());
       layer_result.share_data(input);
 
-      layers.append(layer_result);
+      layers.append(std::move(layer_result));
     }
     return layers;
   }

@@ -482,14 +482,13 @@ void MultiFunctionProcedureOperation::populate_operation_result(const bNodeSocke
   const std::string output_identifier = "output" + std::to_string(output_id);
 
   const ResultType result_type = get_node_socket_result_type(&output_socket);
-  const Result result = context().create_result(result_type);
-  populate_result(output_identifier, result);
+  populate_result(output_identifier, result_type);
 
   /* Map the output socket to the identifier of the newly populated result. */
   output_sockets_to_output_identifiers_map_.add_new(&output_socket, output_identifier);
 
   /* Implicitly convert the variable type to the expected result type if needed. */
-  const mf::DataType expected_type = mf::DataType::ForSingle(result.get_cpp_type());
+  const mf::DataType expected_type = mf::DataType::ForSingle(Result::cpp_type(result_type));
   mf::Variable *converted_variable = this->convert_variable(variable, expected_type);
 
   procedure_builder_.add_output_parameter(*converted_variable);

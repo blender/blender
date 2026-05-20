@@ -114,9 +114,9 @@ void Operation::evaluate_input_processors()
 
 void Operation::log_data() {};
 
-void Operation::populate_result(StringRef identifier, Result result)
+void Operation::populate_result(StringRef identifier, const ResultType type)
 {
-  results_.add_new(identifier, result);
+  results_.add_new(identifier, this->context().create_result(type));
 }
 
 void Operation::declare_input_descriptor(StringRef identifier, InputDescriptor descriptor)

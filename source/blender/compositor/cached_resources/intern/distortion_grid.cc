@@ -184,9 +184,10 @@ DistortionGrid::DistortionGrid(Context &context,
       &movie_clip->tracking, calibration_size.x, calibration_size.y);
 
   const Domain output_domain = compute_output_domain(distortion, calibration_size, type, domain);
-  this->result.allocate_texture(output_domain, false, ResultStorageType::CPU);
+  Result distortion_grid_cpu = context.create_result(ResultType::Float2, ResultPrecision::Full);
+  distortion_grid_cpu.allocate_texture(output_domain, false, ResultStorageType::CPU);
 
-  parallel_for(this->result.domain().data_size, [&](const int2 texel) {
+  parallel_for(distortion_grid_cpu.domain().data_size, [&](const int2 texel) {
     /* We are looping over the data space, so transfer to the display space by adding the data
      * offset. Add 0.5 to distort at the pixel centers. Finally, transform to the calibration space
      * since this is what the distortion functions expect. */
@@ -215,16 +216,21 @@ DistortionGrid::DistortionGrid(Context &context,
     const float2 distorted_data_coordinates = distorted_display_coordinates -
                                               float2(domain.data_offset);
     const float2 sampling_coordinates = distorted_data_coordinates / float2(domain.data_size);
-    this->result.store_pixel(texel, sampling_coordinates);
+    distortion_grid_cpu.store_pixel(texel, sampling_coordinates);
   });
 
   BKE_tracking_distortion_free(distortion);
 
   if (context.use_gpu()) {
-    const Result gpu_result = this->result.upload_to_gpu(false);
-    this->result.release();
-    this->result = gpu_result;
+    Result distortion_grid_gpu = distortion_grid_cpu.upload_to_gpu(false);
+    this->result.share_data(distortion_grid_gpu);
+    distortion_grid_gpu.release();
   }
+  else {
+    this->result.share_data(distortion_grid_cpu);
+  }
+
+  distortion_grid_cpu.release();
 }
 
 DistortionGrid::~DistortionGrid()

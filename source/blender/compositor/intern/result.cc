@@ -879,11 +879,6 @@ void Result::set_reference_count(int count)
   reference_count_ = count;
 }
 
-void Result::increment_reference_count(int count)
-{
-  reference_count_ += count;
-}
-
 void Result::decrement_reference_count(int count)
 {
   reference_count_ -= count;

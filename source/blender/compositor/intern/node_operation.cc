@@ -33,8 +33,7 @@ NodeOperation::NodeOperation(Context &context, const bNode &node) : Operation(co
       continue;
     }
 
-    const ResultType result_type = get_node_socket_result_type(output);
-    populate_result(output->identifier, context.create_result(result_type));
+    populate_result(output->identifier, get_node_socket_result_type(output));
   }
 
   for (const bNodeSocket *input : this->node().input_sockets()) {

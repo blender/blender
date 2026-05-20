@@ -55,8 +55,7 @@ NodeGroupOperation::NodeGroupOperation(Context &context,
   }
 
   for (const bNodeTreeInterfaceSocket *output : node_group.interface_outputs()) {
-    const ResultType result_type = get_node_interface_socket_result_type(*output);
-    this->populate_result(output->identifier, context.create_result(result_type));
+    this->populate_result(output->identifier, get_node_interface_socket_result_type(*output));
   }
 }
 

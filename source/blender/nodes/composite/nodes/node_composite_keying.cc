@@ -225,8 +225,8 @@ class KeyingOperation : public NodeOperation {
      * since it is now returned as the output. */
     const float blur_size = this->get_preprocess_blur_size();
     if (blur_size == 0.0f) {
-      Result output = get_input("Image");
-      output.increment_reference_count();
+      Result output = this->context().create_result(ResultType::Color);
+      output.share_data(this->get_input("Image"));
       return output;
     }
 
@@ -486,8 +486,8 @@ class KeyingOperation : public NodeOperation {
         core_matte.get_single_value_default<float>() == 0.0f &&
         garbage_matte.get_single_value_default<float>() == 0.0f)
     {
-      Result output_matte = input_matte;
-      input_matte.increment_reference_count();
+      Result output_matte = this->context().create_result(ResultType::Float);
+      output_matte.share_data(input_matte);
       return output_matte;
     }
 
@@ -647,8 +647,8 @@ class KeyingOperation : public NodeOperation {
      * input because the caller will release it after the call, and we want to extend its life
      * since it is now returned as the output. */
     if (blur_size == 0.0f) {
-      Result output_matte = input_matte;
-      input_matte.increment_reference_count();
+      Result output_matte = this->context().create_result(ResultType::Float);
+      output_matte.share_data(input_matte);
       return output_matte;
     }
 
@@ -671,8 +671,8 @@ class KeyingOperation : public NodeOperation {
      * the input because the caller will release it after the call, and we want to extend its life
      * since it is now returned as the output. */
     if (distance == 0) {
-      Result output_matte = input_matte;
-      input_matte.increment_reference_count();
+      Result output_matte = this->context().create_result(ResultType::Float);
+      output_matte.share_data(input_matte);
       return output_matte;
     }
 
@@ -694,8 +694,8 @@ class KeyingOperation : public NodeOperation {
      * the input because the caller will release it after the call, and we want to extend its life
      * since it is now returned as the output. */
     if (distance == 0) {
-      Result output_matte = input_matte;
-      input_matte.increment_reference_count();
+      Result output_matte = this->context().create_result(ResultType::Float);
+      output_matte.share_data(input_matte);
       return output_matte;
     }
 
