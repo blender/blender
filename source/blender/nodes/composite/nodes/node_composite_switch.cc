@@ -58,6 +58,7 @@ static void node_register()
   ntype.nclass = NODE_CLASS_CONVERTER;
   ntype.declare = node_declare;
   ntype.get_compositor_operation = get_compositor_operation;
+  ntype.deprecation_notice = N_("Use Utilities \u25B8 Switch node instead");
 
   bke::node_register_type(ntype);
 }

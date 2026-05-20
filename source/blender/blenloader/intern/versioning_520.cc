@@ -22,6 +22,7 @@
 
 #include "BLI_listbase_iterator.hh"
 #include "BLI_string.h"
+#include "BLI_string_utf8.h"
 #include "BLI_string_utils.hh"
 #include "BLI_sys_types.h"
 
@@ -384,6 +385,23 @@ static void enable_compositor_nodes_is_strip_modifier(Main &bmain)
   }
 }
 
+static void versioning_replace_legacy_compositor_switch_node(bNodeTree *node_tree)
+{
+  version_node_input_socket_name(node_tree, CMP_NODE_SWITCH, "On", "True");
+  version_node_input_socket_name(node_tree, CMP_NODE_SWITCH, "Off", "False");
+  version_node_output_socket_name(node_tree, CMP_NODE_SWITCH, "Image", "Output");
+
+  for (bNode &node : node_tree->nodes) {
+    if (node.type_legacy == CMP_NODE_SWITCH) {
+      node.type_legacy = GEO_NODE_SWITCH;
+      NodeSwitch *storage = MEM_new<NodeSwitch>(__func__);
+      storage->input_type = SOCK_RGBA;
+      STRNCPY_UTF8(node.idname, "GeometryNodeSwitch");
+      node.storage = storage;
+    }
+  }
+}
+
 void do_versions_after_linking_520(FileData *fd, Main *bmain)
 {
   if (!MAIN_VERSION_FILE_ATLEAST(bmain, 502, 2)) {
@@ -698,6 +716,16 @@ void blo_do_versions_520(FileData * /*fd*/, Library * /*lib*/, Main *bmain)
       }
     }
   }
+
+  if (!MAIN_VERSION_FILE_ATLEAST(bmain, 502, 34)) {
+    FOREACH_NODETREE_BEGIN (bmain, ntree, id) {
+      if (ntree->type == NTREE_COMPOSIT) {
+        versioning_replace_legacy_compositor_switch_node(ntree);
+      }
+    }
+    FOREACH_NODETREE_END;
+  }
+
   /**
    * Always bump subversion in BKE_blender_version.h when adding versioning
    * code here, and wrap it inside a MAIN_VERSION_FILE_ATLEAST check.
