@@ -34,7 +34,12 @@ ExternalProject_Add(external_numpy
   CONFIGURE_COMMAND ""
   BUILD_IN_SOURCE 1
 
-  BUILD_COMMAND ${NUMPY_CONF} && ${PYTHON_BINARY} -m pip install --no-build-isolation .
+  # Use an explicit --prefix for cross-compilation builds, without which the library will get installed in
+  # the python_crossenv site-package instead of the proper $LIBIDR.
+  BUILD_COMMAND ${NUMPY_CONF} && ${PYTHON_CROSSENV_BINARY} -m pip install
+      --no-build-isolation
+      --prefix=${LIBDIR}/python
+      .
 
   INSTALL_COMMAND ""
 )
@@ -43,5 +48,19 @@ add_dependencies(
   external_numpy
   external_python
   external_python_site_packages
-  external_cython
 )
+
+if(NOT CMAKE_CROSSCOMPILING)
+  # Cython is a host build tool. Cross-compilation fetches it from HOST_LIBDIR, do not build while cross-compiling.
+  add_dependencies(
+    external_numpy
+    external_cython
+  )
+endif()
+
+if(CMAKE_CROSSCOMPILING)
+  add_dependencies(
+    external_numpy
+    external_python_crossenv
+  )
+endif()

@@ -26,13 +26,16 @@ ExternalProject_Add(external_zstandard
   LOG_BUILD 1
   BUILD_IN_SOURCE 1
 
+  # Use an explicit --prefix for cross-compilation builds, without which the library will get installed in
+  # the python_crossenv site-package instead of the proper $LIBIDR.
   BUILD_COMMAND
-    ${PYTHON_BINARY} setup.py
+    ${PYTHON_CROSSENV_BINARY} setup.py
       --system-zstd
       build_ext ${ZSTANDARD_BUILD_OPTION} -j${PYTHON_MAKE_THREADS}
       --include-dirs=${LIBDIR}/zstd/include
       --library-dirs=${LIBDIR}/zstd/lib
       install
+      --prefix=${LIBDIR}/python
       --old-and-unmanageable
 
   INSTALL_COMMAND ""
@@ -43,3 +46,10 @@ add_dependencies(
   external_python
   external_zstd
 )
+
+if(CMAKE_CROSSCOMPILING)
+  add_dependencies(
+    external_zstandard
+    external_python_crossenv
+  )
+endif()

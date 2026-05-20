@@ -157,6 +157,15 @@ else()
       --host=${ANDROID_LLVM_TRIPLE}
       --with-build-python=${PYTHON_BINARY}
     )
+  else()
+    # This is a particularly evil cross-compilation patch applied to the *HOST* Python for crossenv to properly emulate
+    # an Android Python environment for cross-compilation. This patch effectively removes dlopen-related logic from
+    # sys.platform == "android" specific paths to allow pip to succesfully run when cross-compiling modules for Android.
+    set(PYTHON_PATCH
+      ${PATCH_CMD} -p 1 -d
+        ${BUILD_DIR}/python/src/external_python
+        -i ${PATCH_DIR}/python_android_host_crossenv.diff
+    )
   endif()
 
   set(PYTHON_CONFIGURE_PKG_CONFIG_PATH "\

@@ -32,14 +32,17 @@ ExternalProject_Add(external_python_site_packages
   PREFIX ${BUILD_DIR}/site_packages
 
   # We do not build numpy, cython, or zstandard here as the pip builds are not reproducible.
+  # Use an explicit --prefix for cross-compilation builds, without which the library will get installed in
+  # the python_crossenv site-package instead of the proper $LIBIDR.
   INSTALL_COMMAND
     ${CMAKE_COMMAND} -E env
       PIP_CONSTRAINT=${PIP_CONSTRAINT_FILE}
-      ${PYTHON_BINARY} -m pip install --no-cache-dir ${SITE_PACKAGES_EXTRA}
+      ${PYTHON_CROSSENV_BINARY} -m pip install --no-cache-dir --prefix=${LIBDIR}/python ${SITE_PACKAGES_EXTRA}
       setuptools==${SETUPTOOLS_VERSION}
       meson-python==${MESON_PYTHON_VERSION}
       packaging==${PACKAGING_VERSION}
       pyproject-metadata==${PYPROJECT_METADATA_VERSION}
+      crossenv==${CROSSENV_VERSION}
       idna==${IDNA_VERSION}
       charset-normalizer==${CHARSET_NORMALIZER_VERSION}
       urllib3==${URLLIB3_VERSION}
@@ -61,3 +64,10 @@ add_dependencies(
   external_python_site_packages
   external_python
 )
+
+if(CMAKE_CROSSCOMPILING)
+  add_dependencies(
+    external_python_site_packages
+    external_python_crossenv
+  )
+endif()

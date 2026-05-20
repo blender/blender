@@ -486,6 +486,7 @@ set(SETUPTOOLS_SCM_VERSION 9.2.2)
 set(MESON_PYTHON_VERSION 0.18.0)
 set(PACKAGING_VERSION 25.0) # meson-python dep
 set(PYPROJECT_METADATA_VERSION 0.9.1) # meson-python dep
+set(CROSSENV_VERSION 1.6.1) # Required for cross-compilation
 # tomli-w - A lil' TOML writer (see dependency request issue #155758)
 set(TOMLI_W_VERSION 1.2.0)
 
