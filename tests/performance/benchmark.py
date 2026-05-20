@@ -366,6 +366,93 @@ def cmd_run(env: api.TestEnvironment, argv: list, update_only: bool):
     sys.exit(exit_code)
 
 
+def cmd_bisect(env: api.TestEnvironment, argv: list):
+    import datetime
+    SECONDS_PER_DAY = 86400
+
+    parser = argparse.ArgumentParser(prog='benchmark.py bisect')
+    parser.add_argument('--device', required=True,
+                        help='Device type or ID to run tests on')
+    parser.add_argument('--category', required=True,
+                        help='Test category (e.g. eevee, cycles)')
+    parser.add_argument('--test', required=True,
+                        help='Test name (supports glob patterns)')
+    parser.add_argument('--attribute', required=True,
+                        help='Performance attribute to compare (e.g. fps, time)')
+    parser.add_argument('--threshold', required=True, type=float,
+                        help='Threshold value for pass/fail decision')
+    parser.add_argument('--success', required=True, choices=['greater_than', 'less_than'],
+                        help='Whether higher or lower values are considered a success')
+    parser.add_argument('--range', required=True,
+                        help='Date range in YYYYMMDD-YYYYMMDD format')
+    parser.add_argument('--count', default=1, type=int,
+                        help='Number of benchmark runs per commit (default=1)')
+    args = parser.parse_args(argv)
+
+    if not env.build_dir.exists() or not env.blender_dir.exists():
+        sys.stderr.write('Error: benchmark build not initialized. Run "benchmark.py init --build" first.\n')
+        sys.exit(1)
+
+    try:
+        start_str, end_str = args.range.split('-')
+        start_dt = datetime.datetime.strptime(start_str, '%Y%m%d').replace(tzinfo=datetime.timezone.utc)
+        end_dt = datetime.datetime.strptime(end_str, '%Y%m%d').replace(tzinfo=datetime.timezone.utc)
+    except:
+        sys.stderr.write('Error: invalid date range format. Use YYYYMMDD-YYYYMMDD\n')
+        sys.exit(1)
+    if start_dt >= end_dt:
+        sys.stderr.write(f'Error: invalid date range {start_str} must be before {end_str}\n')
+        sys.exit(1)
+
+    collection = api.TestCollection(env, [args.test], [args.category])
+    test = collection.find(args.test, args.category)
+    if not test:
+        sys.stderr.write(f'Error: test not found: {args.category}/{args.test}\n')
+        sys.exit(1)
+
+    device_id, gpu_backend = env.resolve_device(args.device)
+
+    print(f"Device: {args.device}")
+    print(f"Category: {args.category}")
+    print(f"Test: {args.test}")
+    print()
+
+    table = api.MarkdownTable()
+    table.add_column("Remaining", width=5, alignment='RIGHT')
+    table.add_column("Commit", width=12)
+    table.add_column("Date (UTC)", width=22)
+    table.add_column("Title", width=70)
+    table.add_column(args.attribute, width=14, alignment='RIGHT')
+    table.add_column("Status", width=8)
+    table.print_header()
+
+    tested = set()
+
+    def print_status(row_values, end='\n'):
+        table.print_row([str(progress.remaining)] + row_values, end=end)
+
+    def run_commit_wrapper(commit_hash, commit_ts):
+        return api.Bisect.run_commit(
+            env, test, device_id, gpu_backend, args.count, args.attribute,
+            args.success, args.threshold, tested,
+            print_status, commit_hash, commit_ts)
+
+    # Phase 1: Daily scan
+    start_ts = int(start_dt.timestamp())
+    end_ts = int(end_dt.timestamp()) + SECONDS_PER_DAY
+
+    progress = api.bisect.BisectProgress()
+    bisect = api.bisect.Bisect(env, run_commit_wrapper, start_ts, end_ts)
+    bisect.run(progress=progress)
+
+    if bisect.first_bad is None:
+        print('\nNo regression found in the given date range.')
+        return
+
+    title = env.commit_title(bisect.first_bad)
+    print(f'\nRegression introduced by commit {bisect.first_bad}: {title}')
+
+
 def cmd_graph(argv: list):
     # Create graph from a given JSON results file.
     parser = argparse.ArgumentParser()
@@ -402,7 +489,10 @@ def main():
              '  reset [<config>] [<test>]            Clear tests results in configuration\n'
              '  status [<config>] [<test>]           List configurations and their tests\n'
              '  \n'
-             '  graph a.json b.json... -o out.html   Create graph from results in JSON files\n')
+             '  graph a.json b.json... -o out.html   Create graph from results in JSON files\n'
+             '  \n'
+             '  bisect                                Find commit that introduced a regression'
+             ' between dates\n')
 
     parser = argparse.ArgumentParser(
         description='Blender performance testing',
@@ -441,6 +531,8 @@ def main():
         cmd_run(env, argv, update_only=True)
     elif args.command == 'reset':
         cmd_reset(env, argv)
+    elif args.command == 'bisect':
+        cmd_bisect(env, argv)
     elif args.command == 'status':
         cmd_status(env, argv)
     elif args.command == 'help':
