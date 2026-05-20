@@ -206,6 +206,26 @@ void Attribute::remove_motion()
   modified = true;
 }
 
+void Attribute::set_motion_step_shared(const int step,
+                                       const void *data,
+                                       const int new_size,
+                                       ImplicitSharingInfo sharing_info)
+{
+  assert(step >= 1 && size_t(step - 1) < motion.size());
+  assert(new_size == size);
+  (void)new_size;
+
+  Buffer &buf = motion[step - 1];
+  free_step_buffer(buf, element, data_sizeof(), size);
+
+  buf.data = data;
+  assert(g_implicit_sharing_user_add_fn);
+  g_implicit_sharing_user_add_fn(sharing_info);
+  buf.sharing_info = sharing_info;
+
+  modified = true;
+}
+
 void Attribute::take_motion_from(Attribute &other)
 {
   assert(other.type == type && other.element == element && other.size == size);

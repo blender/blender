@@ -4,9 +4,13 @@
 
 #pragma once
 
+#include "scene/attribute.h"
+
 #include "util/color.h"
 #include "util/param.h"
 #include "util/types.h"
+
+#include "BKE_attribute.hh"
 
 #include "BLI_color_types.hh"
 #include "BLI_math_quaternion_types.hh"
@@ -114,5 +118,71 @@ template<> struct AttributeConverter<blender::math::Quaternion> {
     return make_float4(value.w, value.x, value.y, value.z);
   }
 };
+
+/* Add a standard attribute from a Blender attribute reader, sharing the buffer
+ * with Blender when possible. */
+template<typename BlenderT>
+bool sync_attribute_from_blender(AttributeSet &attributes,
+                                 const AttributeStandard std,
+                                 const blender::bke::AttributeReader<BlenderT> &b_reader,
+                                 const int size)
+{
+  if (!b_reader) {
+    return false;
+  }
+  using Converter = AttributeConverter<BlenderT>;
+  using CyclesT = typename Converter::CyclesT;
+
+  /* Try implicit sharing. */
+  if constexpr (Converter::layout_compatible) {
+    const blender::CommonVArrayInfo info = b_reader.varray.common_info();
+    if (info.type == blender::CommonVArrayInfo::Type::Span && b_reader.sharing_info) {
+      attributes.add_shared(std, ustring(), info.data, size, b_reader.sharing_info);
+      return true;
+    }
+  }
+
+  /* Otherwise allocate and copy. */
+  Attribute *attr = attributes.add(std);
+  CyclesT *data = attr->data_for_write<CyclesT>();
+  const blender::VArraySpan<BlenderT> src = *b_reader;
+  for (const int i : src.index_range()) {
+    data[i] = Converter::convert(src[i]);
+  }
+  return true;
+}
+
+/* Same as sync_attribute_from_blender, but for a single motion step of an
+ * existing attribute. */
+template<typename BlenderT>
+bool sync_attribute_motion_step_from_blender(
+    Attribute &attr,
+    const int motion_step,
+    const blender::bke::AttributeReader<BlenderT> &b_reader)
+{
+  if (!b_reader) {
+    return false;
+  }
+  using Converter = AttributeConverter<BlenderT>;
+  using CyclesT = typename Converter::CyclesT;
+
+  /* Try implicit sharing. */
+  if constexpr (Converter::layout_compatible) {
+    const blender::CommonVArrayInfo info = b_reader.varray.common_info();
+    if (info.type == blender::CommonVArrayInfo::Type::Span && b_reader.sharing_info) {
+      attr.set_motion_step_shared(
+          motion_step, info.data, b_reader.varray.size(), b_reader.sharing_info);
+      return true;
+    }
+  }
+
+  /* Otherwise allocate and copy. */
+  CyclesT *data = attr.data_for_write<CyclesT>(motion_step);
+  const blender::VArraySpan<BlenderT> src = *b_reader;
+  for (const int i : src.index_range()) {
+    data[i] = Converter::convert(src[i]);
+  }
+  return true;
+}
 
 CCL_NAMESPACE_END

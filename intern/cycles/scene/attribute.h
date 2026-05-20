@@ -113,6 +113,13 @@ class Attribute {
   /* Move motion steps from another attribute into this one. */
   void take_motion_from(Attribute &other);
 
+  /* Replace a single motion step's data with a buffer shared with another owner,
+   * using implicit sharing. Motion steps are 1-indexed (step 0 is the center). */
+  void set_motion_step_shared(int step,
+                              const void *data,
+                              int new_size,
+                              ImplicitSharingInfo sharing_info);
+
   size_t data_sizeof() const;
   static size_t element_size(Geometry *geom, AttributeElement element, AttributePrimitive prim);
   size_t buffer_size(Geometry *geom, AttributePrimitive prim) const;
