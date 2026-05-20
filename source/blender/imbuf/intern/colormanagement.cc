@@ -78,6 +78,14 @@ static CLG_LogRef LOG = {"color_management"};
 /** \name Global declarations
  * \{ */
 
+static void processor_transform_apply_threaded(uchar *byte_buffer,
+                                               float *float_buffer,
+                                               int width,
+                                               int height,
+                                               int channels,
+                                               ColormanageProcessor *cm_processor,
+                                               bool predivide);
+
 static bool g_config_is_custom = false;
 
 /* Lazily init inside function so it gets destructed before guardedalloc leak check. */
@@ -543,13 +551,23 @@ void colormanage_imbuf_make_linear(ImBuf *ibuf,
       }
     }
 
-    IMB_colormanagement_transform_float(ibuf->float_data_for_write(),
-                                        ibuf->x,
-                                        ibuf->y,
-                                        ibuf->channels,
-                                        from_colorspace,
-                                        to_colorspace,
-                                        predivide);
+    if (from_colorspace[0] == '\0') {
+      return;
+    }
+
+    ColormanageProcessor cm_processor = ColormanageProcessor::colorspace_processor_new(
+        from_colorspace, to_colorspace);
+    if (cm_processor.is_noop()) {
+      return;
+    }
+
+    processor_transform_apply_threaded(nullptr,
+                                       ibuf->float_data_for_write(),
+                                       ibuf->x,
+                                       ibuf->y,
+                                       ibuf->channels,
+                                       &cm_processor,
+                                       predivide);
     ibuf->float_buffer.colorspace = nullptr;
   }
 }
