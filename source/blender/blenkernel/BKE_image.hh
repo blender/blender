@@ -10,7 +10,9 @@
 #include "DNA_listBase.h"
 
 #include "BLI_compiler_attrs.h"
+#include "BLI_function_ref.hh"
 #include "BLI_mutex.hh"
+#include "BLI_string_ref.hh"
 
 #include "IMB_imbuf_enums.h"
 

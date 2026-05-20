@@ -14,7 +14,11 @@
 
 #pragma once
 
+#include <cstddef>
+
 #include "BLI_enum_flags.hh"
+#include "BLI_function_ref.hh"
+#include "BLI_string_ref.hh"
 
 namespace blender {
 
@@ -146,6 +150,15 @@ void BKE_bpath_foreach_path_main(BPathForeachPathData *bpath_data);
 bool BKE_bpath_foreach_path_fixed_process(BPathForeachPathData *bpath_data,
                                           char *path,
                                           size_t path_maxncpy);
+
+/**
+ * Run the callback on every existing file on disk matching a `<head><digits><tail>`
+ * numbered-sequence pattern derived from `abs_filepath`. If `abs_filepath` itself is not a
+ * numbered sequence, the callback is invoked once with `abs_filepath` if it exists.
+ */
+void BKE_bpath_sequence_filepaths_foreach(
+    const char *abs_filepath,
+    blender::FunctionRef<void(blender::StringRef frame_filepath)> callback);
 
 /**
  * Run the callback on a (directory + file) path, replacing the content of the two strings as
