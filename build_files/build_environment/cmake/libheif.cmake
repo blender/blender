@@ -11,8 +11,9 @@ endif()
 if(ANDROID)
   set(LIBHEIF_EXTRA_ARGS
     # Override the find root path back to ANDROID_NDK only to workaround a curious issue in tiff (transitive dep of
-    # libheif) which exports the CMath::CMath target incorrectly.
-    # Also discussed here: https://gitlab.com/libtiff/libtiff/-/work_items/625
+    # libheif) which exports the CMath::CMath target incorrectly. Also discussed here: https://gitlab.com/libtiff/libtiff/-/work_items/625
+    # It's also possible this is caused by FIND_ROOT_PATH being overriden at some point. The root-cause is still not
+    # entirely clear.
     -DCMAKE_FIND_ROOT_PATH=${ANDROID_NDK}
   )
 endif()
