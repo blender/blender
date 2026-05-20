@@ -37,6 +37,9 @@ Other Convenience Targets
                     The existence of locally build dependencies overrides the pre-built dependencies from subversion.
                     These must be manually removed from 'lib/' to go back to using the pre-compiled libraries.
 
+Cross-Compilation Targets
+   * android:       Build for Android via cross-compilation, applies to regular Blender builds and `deps` dependency builds.
+
 Project Files
    Generate project files for development environments.
 
