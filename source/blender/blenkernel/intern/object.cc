@@ -3229,7 +3229,7 @@ static void ob_parbone(const Object *ob, const Object *par, float r_mat[4][4])
   else {
     copy_m4_m4(r_mat, pchan->pose_mat);
     copy_v3_v3(vec, r_mat[1]);
-    if (ob->parent_bone_head_tail_factor != 0.0f) {
+    if (ob->parent_bone_head_tail_factor != 1.0f) {
       mul_v3_fl(vec, pchan_bone->length * ob->parent_bone_head_tail_factor);
     }
     add_v3_v3(r_mat[3], vec);
