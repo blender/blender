@@ -853,6 +853,11 @@ static void rna_asset_library_status_ping_asset_file_done(bContext *C, const cha
   RemoteLibraryLoadingStatus::ping_asset_file_download_done(*C, library_url);
 }
 
+static void rna_asset_library_status_ping_finished_download_queue(bContext *C)
+{
+  RemoteLibraryLoadingStatus::ping_download_queue_done(*C);
+}
+
 static void rna_asset_library_status_finished_loading(const char *library_url)
 {
   RemoteLibraryLoadingStatus::set_finished(library_url);
@@ -1711,6 +1716,14 @@ void RNA_api_asset_library_loading_status(StructRNA *srna)
                         "URL",
                         "The URL identifying the asset library being loaded");
   RNA_def_parameter_flags(parm, PropertyFlag(0), PARM_REQUIRED);
+
+  func = RNA_def_function(srna,
+                          "asset_library_status_ping_finished_download_queue",
+                          "rna_asset_library_status_ping_finished_download_queue");
+  RNA_def_function_ui_description(func,
+                                  "Inform the asset system that there are no more pending asset "
+                                  "file downloads for any asset library.");
+  RNA_def_function_flag(func, FUNC_NO_SELF | FUNC_USE_CONTEXT);
 
   func = RNA_def_function(
       srna, "asset_library_status_finished_loading", "rna_asset_library_status_finished_loading");
