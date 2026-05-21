@@ -1962,7 +1962,6 @@ static wmOperatorStatus uv_hide_exec(bContext *C, wmOperator *op)
   const ToolSettings *ts = scene->toolsettings;
   const bool swap = RNA_boolean_get(op->ptr, "unselected");
   const bool use_face_center = (ts->uv_selectmode == UV_SELECT_FACE);
-  const bool use_select_linked = ED_uvedit_select_island_check(ts);
 
   Vector<Object *> objects = BKE_view_layer_array_from_objects_in_edit_mode_unique_data_with_uvs(
       *bmain, scene, view_layer, nullptr);
@@ -2032,10 +2031,6 @@ static wmOperatorStatus uv_hide_exec(bContext *C, wmOperator *op)
               break;
             }
             if (UV_VERT_SEL_TEST(ts, em->bm, l, !swap) && (ts->uv_selectmode == UV_SELECT_VERT)) {
-              BM_face_select_set(em->bm, efa, false);
-              break;
-            }
-            if (use_select_linked) {
               BM_face_select_set(em->bm, efa, false);
               break;
             }
