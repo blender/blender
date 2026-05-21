@@ -13,3 +13,7 @@ system = 'android'
 cpu_family = 'aarch64'
 cpu = 'armv8'
 endian = 'little'
+
+[properties]
+# Required for building numpy, without which meson configure tries to determine it by running an executable.
+longdouble_format = 'IEEE_QUAD_LE'

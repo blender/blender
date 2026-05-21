@@ -22,7 +22,15 @@ if(WIN32)
   )
   set(NUMPY_CONF ${CMAKE_BINARY_DIR}/fix_path.bat)
 else()
-  set(NUMPY_CONF export CYTHON=${HOST_LIBDIR}/python/bin/cython)
+  set(NUMPY_CONF
+    export CYTHON=${HOST_LIBDIR}/python/bin/cython &&
+    export PATH=${HOST_LIBDIR}/python/bin:$ENV{PATH}
+  )
+endif()
+
+set(NUMPY_CROSSFILE_ARG "")
+if(ANDROID)
+  set(NUMPY_CROSSFILE_ARG "-Csetup-args=--cross-file=${BUILD_DIR}/android_meson_crossfile.txt")
 endif()
 
 ExternalProject_Add(external_numpy
@@ -39,6 +47,7 @@ ExternalProject_Add(external_numpy
   BUILD_COMMAND ${NUMPY_CONF} && ${PYTHON_CROSSENV_BINARY} -m pip install
       --no-build-isolation
       --prefix=${LIBDIR}/python
+      ${NUMPY_CROSSFILE_ARG}
       .
 
   INSTALL_COMMAND ""
