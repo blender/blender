@@ -36,6 +36,7 @@
 #include "WM_types.hh"
 
 #include "ED_anim_api.hh"
+#include "ED_anim_transformable.hh"
 #include "ED_armature.hh"
 #include "ED_keyframing.hh"
 
@@ -60,82 +61,88 @@ namespace blender {
 /* *********************************************** */
 /* FCurves <-> PoseChannels Links */
 
-static eAction_TransformFlags get_item_transform_flags_and_fcurves(Object &ob,
-                                                                   bPoseChannel &pchan,
+/**
+ * Fills the `r_curves` vector with curves used by the given `ptr`.
+ * The returned flags indicate which properties are animated.
+ */
+static eAction_TransformFlags get_item_transform_flags_and_fcurves(ID &id,
+                                                                   PointerRNA &ptr,
                                                                    Vector<FCurve *> &r_curves)
 {
-  if (!ob.adt || !ob.adt->action) {
+  AnimData *adt = BKE_animdata_from_id(&id);
+  if (!adt || !adt->action) {
     return eAction_TransformFlags(0);
   }
-  animrig::Action &action = ob.adt->action->wrap();
+  animrig::Action &action = adt->action->wrap();
 
   short flags = 0;
 
-  /* Build PointerRNA from provided data to obtain the paths to use. */
-  PointerRNA ptr = RNA_pointer_create_discrete(reinterpret_cast<ID *>(&ob), RNA_PoseBone, &pchan);
-
   /* Get the basic path to the properties of interest. */
-  const std::optional<std::string> basePath = RNA_path_from_ID_to_struct(&ptr);
-  if (!basePath) {
-    return eAction_TransformFlags(0);
+  const std::optional<std::string> path_to_struct = RNA_path_from_ID_to_struct(&ptr);
+  StringRef base_path;
+  if (RNA_struct_is_ID(ptr.type)) {
+    base_path = "";
+  }
+  else {
+    if (!path_to_struct.has_value()) {
+      BLI_assert_unreachable();
+      return eAction_TransformFlags(0);
+    }
+    base_path = path_to_struct.value();
   }
 
-  /* Search F-Curves for the given properties
-   * - we cannot use the groups, since they may not be grouped in that way...
-   */
-  animrig::foreach_fcurve_in_action_slot(action, ob.adt->slot_handle, [&](FCurve &fcurve) {
-    const char *bPtr = nullptr, *pPtr = nullptr;
-
+  animrig::foreach_fcurve_in_action_slot(action, adt->slot_handle, [&](FCurve &fcurve) {
     if (fcurve.rna_path == nullptr) {
       return;
     }
+    StringRefNull fcurve_path(fcurve.rna_path);
 
-    /* Step 1: check for matching base path */
-    bPtr = strstr(fcurve.rna_path, basePath->c_str());
-
-    if (!bPtr) {
+    if (!base_path.is_empty() && !fcurve_path.startswith(base_path)) {
       return;
     }
 
-    /* We must add `len(basePath)` bytes to the match so that we are at the end of the
-     * base path so that we don't get false positives with these strings in the names
-     */
-    bPtr += strlen(basePath->c_str());
+    StringRef property_name;
+    if (base_path.is_empty()) {
+      property_name = fcurve_path;
+    }
+    else {
+      /* Normal properties are separated by a dot, custom properties don't have that. */
+      if (fcurve_path[base_path.size()] == '.') {
+        property_name = fcurve_path.substr(base_path.size() + 1);
+      }
+      else {
+        property_name = fcurve_path.substr(base_path.size());
+      }
+    }
 
-    /* Step 2: check for some property with transforms
-     * - once a match has been found, the curve cannot possibly be any other one
-     */
-    pPtr = strstr(bPtr, "location");
-    if (pPtr) {
+    if (property_name == "location") {
       flags |= ACT_TRANS_LOC;
       r_curves.append(&fcurve);
       return;
     }
 
-    pPtr = strstr(bPtr, "scale");
-    if (pPtr) {
+    if (property_name == "scale") {
       flags |= ACT_TRANS_SCALE;
       r_curves.append(&fcurve);
       return;
     }
 
-    pPtr = strstr(bPtr, "rotation");
-    if (pPtr) {
+    if (property_name == "rotation_euler" || property_name == "rotation_quaternion" ||
+        property_name == "rotation_axis_angle")
+    {
       flags |= ACT_TRANS_ROT;
       r_curves.append(&fcurve);
       return;
     }
 
-    pPtr = strstr(bPtr, "bbone_");
-    if (pPtr) {
+    if (property_name.startswith("bbone_")) {
       flags |= ACT_TRANS_BBONE;
       r_curves.append(&fcurve);
       return;
     }
 
     /* Custom properties only. */
-    pPtr = strstr(bPtr, "[\"");
-    if (pPtr) {
+    if (property_name.startswith("[\"")) {
       flags |= ACT_TRANS_PROP;
       r_curves.append(&fcurve);
       return;
@@ -175,34 +182,30 @@ static void pchan_to_slide_subject(ListBaseT<SlideSubject> &slide_subjects,
   PointerRNA bone_ptr = RNA_pointer_create_discrete(&ob.id, RNA_PoseBone, &pchan);
   Vector<FCurve *> curves;
   const eAction_TransformFlags transFlags = get_item_transform_flags_and_fcurves(
-      ob, pchan, curves);
+      ob.id, bone_ptr, curves);
 
   if (!transFlags) {
     return;
   }
 
   SlideSubject *slide_subject = MEM_new<SlideSubject>("SlideSubject");
-
-  slide_subject->ob = &ob;
-  slide_subject->fcurves = curves;
-  slide_subject->pchan = &pchan;
-
-  /* Get the RNA path to this pchan - this needs to be freed! */
-  slide_subject->pchan_path = BLI_strdup(
-      RNA_path_from_ID_to_struct(&bone_ptr).value_or("").c_str());
-
   BLI_addtail(&slide_subjects, slide_subject);
+  slide_subject->fcurves = curves;
+
+  ed::AnimTransformable *transformable = MEM_new<ed::AnimTransformable>(
+      "transformable_pose_bone", ob, pchan);
+  slide_subject->transformable = transformable;
 
   /* Set pchan's transform flags. */
   slide_subject->transform_flag = transFlags;
-  slide_subject->ptr = bone_ptr;
 
-  copy_v3_v3(slide_subject->oldloc, pchan.loc);
-  copy_v3_v3(slide_subject->oldrot, pchan.eul);
-  copy_v3_v3(slide_subject->oldscale, pchan.scale);
-  copy_qt_qt(slide_subject->oldquat, pchan.quat);
-  copy_v3_v3(slide_subject->oldaxis, pchan.rotAxis);
-  slide_subject->oldangle = pchan.rotAngle;
+  slide_subject->old_loc = transformable->get_property(
+      ed::AnimTransformable::PropertyType::LOCATION);
+  slide_subject->old_rot = transformable->get_rotation();
+  slide_subject->old_scale = transformable->get_property(
+      ed::AnimTransformable::PropertyType::SCALE);
+
+  slide_subject->ptr = bone_ptr;
 
   if (transFlags & ACT_TRANS_BBONE) {
     store_property_snapshot(bone_ptr, "bbone_rollin", slide_subject->additional_properties);
@@ -241,7 +244,7 @@ static void pchan_to_slide_subject(ListBaseT<SlideSubject> &slide_subjects,
   }
 }
 
-Object *poseAnim_object_get(Object *ob_)
+static Object *animated_armature_ob_get(Object *ob_)
 {
   Object *ob = BKE_object_pose_armature_get(ob_);
   if (!ELEM(nullptr, ob, ob->data, ob->adt, ob->adt->action)) {
@@ -250,9 +253,8 @@ Object *poseAnim_object_get(Object *ob_)
   return nullptr;
 }
 
-void slide_subjects_get(bContext *C, ListBaseT<SlideSubject> *slide_subjects)
+static void get_pose_bones_for_slide(bContext *C, ListBaseT<SlideSubject> &slide_subjects)
 {
-  BLI_assert(slide_subjects != nullptr);
   /* For each Pose-Channel which gets affected, get the F-Curves for that channel
    * and set the relevant transform flags... */
   Object *prev_ob, *ob_pose_armature;
@@ -263,7 +265,7 @@ void slide_subjects_get(bContext *C, ListBaseT<SlideSubject> *slide_subjects)
     BLI_assert(pchan != nullptr);
     if (ob != prev_ob) {
       prev_ob = ob;
-      ob_pose_armature = poseAnim_object_get(ob);
+      ob_pose_armature = animated_armature_ob_get(ob);
     }
 
     if (ob_pose_armature == nullptr) {
@@ -274,21 +276,21 @@ void slide_subjects_get(bContext *C, ListBaseT<SlideSubject> *slide_subjects)
       continue;
     }
 
-    pchan_to_slide_subject(*slide_subjects, *ob_pose_armature, *pchan);
+    pchan_to_slide_subject(slide_subjects, *ob_pose_armature, *pchan);
   }
   CTX_DATA_END;
 
   /* If no PoseChannels were found, try a second pass, doing visible ones instead.
    * i.e. if nothing selected, do whole pose.
    */
-  if (BLI_listbase_is_empty(slide_subjects)) {
+  if (BLI_listbase_is_empty(&slide_subjects)) {
     prev_ob = nullptr;
     ob_pose_armature = nullptr;
     CTX_DATA_BEGIN_WITH_ID (C, bPoseChannel *, pchan, visible_pose_bones, Object *, ob) {
       BLI_assert(pchan != nullptr);
       if (ob != prev_ob) {
         prev_ob = ob;
-        ob_pose_armature = poseAnim_object_get(ob);
+        ob_pose_armature = animated_armature_ob_get(ob);
       }
 
       if (ob_pose_armature == nullptr) {
@@ -299,9 +301,25 @@ void slide_subjects_get(bContext *C, ListBaseT<SlideSubject> *slide_subjects)
         continue;
       }
 
-      pchan_to_slide_subject(*slide_subjects, *ob_pose_armature, *pchan);
+      pchan_to_slide_subject(slide_subjects, *ob_pose_armature, *pchan);
     }
     CTX_DATA_END;
+  }
+}
+
+void slide_subjects_get(bContext *C, ListBaseT<SlideSubject> *r_transformable_list)
+{
+  BLI_assert(r_transformable_list != nullptr);
+  const eContextObjectMode mode = CTX_data_mode_enum(C);
+  switch (mode) {
+    case CTX_MODE_POSE:
+      get_pose_bones_for_slide(C, *r_transformable_list);
+      break;
+
+    default:
+      /* Not implemented. */
+      BLI_assert_unreachable();
+      break;
   }
 }
 
@@ -315,8 +333,7 @@ void slide_subjects_free(ListBaseT<SlideSubject> *slide_subjects)
   {
     pfln = slide_subject->next;
 
-    /* free pchan RNA Path */
-    MEM_delete(slide_subject->pchan_path);
+    MEM_delete(slide_subject->transformable);
 
     /* We cannot use BLI_freelinkN because that casts the SlideSubject to a C-style
      * struct causing MEM_delete to do a C-style delete and not deallocate the Vector. */
@@ -327,12 +344,20 @@ void slide_subjects_free(ListBaseT<SlideSubject> *slide_subjects)
 
 /* ------------------------- */
 
-void slide_subjects_refresh(bContext *C, Scene * /*scene*/, Object *ob)
+void slide_subjects_refresh(bContext *C, ID *id)
 {
-  DEG_id_tag_update(&ob->id, ID_RECALC_GEOMETRY);
-  WM_event_add_notifier(C, NC_OBJECT | ND_POSE, ob);
+  DEG_id_tag_update(id, ID_RECALC_GEOMETRY);
+  switch (GS(id->name)) {
+    case ID_OB:
+      WM_event_add_notifier(C, NC_OBJECT | ND_POSE, id_cast<Object *>(id));
+      break;
+    default:
+      /* Not implemented. */
+      BLI_assert_unreachable();
+      break;
+  }
 
-  AnimData *adt = BKE_animdata_from_id(&ob->id);
+  AnimData *adt = BKE_animdata_from_id(id);
   if (adt && adt->action) {
     DEG_id_tag_update(&adt->action->id, ID_RECALC_ANIMATION_NO_FLUSH);
   }
@@ -340,17 +365,17 @@ void slide_subjects_refresh(bContext *C, Scene * /*scene*/, Object *ob)
 
 void slide_subjects_reset(ListBaseT<SlideSubject> *slide_subjects)
 {
-  /* iterate over each pose-channel affected, restoring all channels to their original values */
+  /* Iterate over each transformable affected, restoring all channels to their original values. */
   for (SlideSubject &slide_subject : *slide_subjects) {
-    bPoseChannel *pchan = slide_subject.pchan;
+    ed::AnimTransformable *transformable = slide_subject.transformable;
 
     /* just copy all the values over regardless of whether they changed or not */
-    copy_v3_v3(pchan->loc, slide_subject.oldloc);
-    copy_v3_v3(pchan->eul, slide_subject.oldrot);
-    copy_v3_v3(pchan->scale, slide_subject.oldscale);
-    copy_qt_qt(pchan->quat, slide_subject.oldquat);
-    copy_v3_v3(pchan->rotAxis, slide_subject.oldaxis);
-    pchan->rotAngle = slide_subject.oldangle;
+    transformable->set_property(ed::AnimTransformable::PropertyType::LOCATION,
+                                slide_subject.old_loc,
+                                ed::AXIS_MUTABLE_ALL);
+    transformable->set_rotation(slide_subject.old_rot);
+    transformable->set_property(
+        ed::AnimTransformable::PropertyType::SCALE, slide_subject.old_scale, ed::AXIS_MUTABLE_ALL);
 
     for (PropertySnapshot &extra_prop : slide_subject.additional_properties) {
       animrig::rna_property_set_as_float(
@@ -373,67 +398,36 @@ void slide_subjects_autokey(bContext *C,
                             const ListBaseT<SlideSubject> *slide_subjects,
                             const float cframe)
 {
-  const Main *bmain = CTX_data_main(C);
-  ViewLayer *view_layer = CTX_data_view_layer(C);
-  View3D *v3d = CTX_wm_view3d(C);
-  bool skip = true;
-
-  FOREACH_OBJECT_IN_MODE_BEGIN (bmain, scene, view_layer, v3d, OB_ARMATURE, OB_MODE_POSE, ob) {
-    ob->id.tag &= ~ID_TAG_DOIT;
-    ob = poseAnim_object_get(ob);
-
-    /* Ensure validity of the settings from the context. */
-    if (ob == nullptr) {
-      continue;
-    }
-
-    if (animrig::autokeyframe_cfra_can_key(scene, &ob->id)) {
-      ob->id.tag |= ID_TAG_DOIT;
-      skip = false;
-    }
-  }
-  FOREACH_OBJECT_IN_MODE_END;
-
-  if (skip) {
-    return;
-  }
-
-  /* Insert keyframes as necessary if auto-key-framing. */
+  /* Insert keyframes as necessary if auto-key-framing.
+   * TODO: don't use a keyingset here. Just use the keyframing code directly. */
   KeyingSet *ks = animrig::get_keyingset_for_autokeying(scene, ANIM_KS_WHOLE_CHARACTER_ID);
   Vector<PointerRNA> sources;
 
-  /* iterate over each pose-channel affected, tagging bones to be keyed */
-  /* XXX: here we already have the information about what transforms exist, though
-   * it might be easier to just overwrite all using normal mechanisms
-   */
   for (SlideSubject &slide_subject : *slide_subjects) {
-    bPoseChannel *pchan = slide_subject.pchan;
-
-    if ((slide_subject.ob->id.tag & ID_TAG_DOIT) == 0) {
+    PointerRNA &ptr = slide_subject.ptr;
+    if (!animrig::autokeyframe_cfra_can_key(scene, slide_subject.ptr.owner_id)) {
       continue;
     }
-
-    /* Add data-source override for the PoseChannel, to be used later. */
-    animrig::relative_keyingset_add_source(sources, &slide_subject.ob->id, RNA_PoseBone, pchan);
+    animrig::relative_keyingset_add_source(sources, ptr.owner_id, ptr.type, ptr.data);
   }
 
   /* insert keyframes for all relevant bones in one go */
   animrig::apply_keyingset(C, &sources, ks, animrig::ModifyKeyMode::INSERT, cframe);
 
-  /* do the bone paths
-   * - only do this if keyframes should have been added
-   * - do not calculate unless there are paths already to update...
-   */
-  FOREACH_OBJECT_IN_MODE_BEGIN (bmain, scene, view_layer, v3d, OB_ARMATURE, OB_MODE_POSE, ob) {
-    if (ob->id.tag & ID_TAG_DOIT) {
-      if (ob->pose->avs.path_bakeflag & MOTIONPATH_BAKE_HAS_PATHS) {
-        // ED_pose_clear_paths(C, ob); /* XXX for now, don't need to clear. */
-        /* TODO(sergey): Should ensure we can use more narrow update range here. */
-        ED_pose_recalculate_paths(C, scene, ob, ANIMVIZ_CALC_RANGE_FULL);
-      }
+  for (SlideSubject &slide_subject : *slide_subjects) {
+    ID *owner_id = slide_subject.transformable->owner_id();
+    if (GS(owner_id->name) != ID_OB) {
+      continue;
+    }
+    Object *ob = id_cast<Object *>(owner_id);
+    if (!ob->pose) {
+      continue;
+    }
+    if (ob->pose->avs.path_bakeflag & MOTIONPATH_BAKE_HAS_PATHS) {
+      /* TODO(sergey): Should ensure we can use more narrow update range here. */
+      ED_pose_recalculate_paths(C, scene, ob, ANIMVIZ_CALC_RANGE_FULL);
     }
   }
-  FOREACH_OBJECT_IN_MODE_END;
 }
 
 /* *********************************************** */

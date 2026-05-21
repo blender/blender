@@ -15,6 +15,8 @@
 
 #include "BLI_span.hh"
 
+#include "ED_anim_transformable.hh"
+
 namespace blender {
 
 struct Base;
@@ -163,30 +165,21 @@ struct PropertySnapshot {
 struct SlideSubject {
   SlideSubject *next, *prev;
 
-  /** Object this Pose Channel belongs to. */
-  Object *ob;
-
+  /** F-Curves for this PoseChannel (wrapped with LinkData) */
+  /** The AnimTransformable which the data is attached to */
+  ed::AnimTransformable *transformable;
   /* A pointer to the data represented by this link. */
   PointerRNA ptr;
-
-  /** F-Curves for this PoseChannel (wrapped with LinkData) */
+  /** F-Curves for this AnimTransformable. */
   Vector<FCurve *> fcurves;
   /* This is used as an optimization to only do blending on transform types that actually have
    * animation. */
   eAction_TransformFlags transform_flag;
-  /** Pose Channel which data is attached to */
-  bPoseChannel *pchan;
 
-  /** RNA Path to this Pose Channel (needs to be freed when we're done) */
-  char *pchan_path;
-
-  /** transform values at start of operator (to be restored before each modal step) */
-  float oldloc[3];
-  float oldrot[3];
-  float oldscale[3];
-  float oldquat[4];
-  float oldangle;
-  float oldaxis[3];
+  /** Transform values at start of operator (to be restored before each modal step). */
+  ed::TransformFloats old_loc;
+  ed::Rotation old_rot;
+  ed::TransformFloats old_scale;
 
   /* Additional properties of the transformable to affect which are not custom properties. Bones
    * use this to store bbone data, e.g. `bbone_rollin`. */
@@ -200,22 +193,20 @@ struct SlideSubject {
 
 /* ----------- */
 
-/** Returns a valid pose armature for this object, else returns NULL. */
-Object *poseAnim_object_get(Object *ob_);
 /**
- * Build up a list of SlideSubject. First only selected, and if that yields no result, all
- * visible.
+ * Build up a list of SlideSubject. The items put into the list depend on the mode of
+ * the context.
  */
 void slide_subjects_get(bContext *C, ListBaseT<SlideSubject> *slide_subjects);
-/** Free all slide targets. */
+/** Free all slide subjects. */
 void slide_subjects_free(ListBaseT<SlideSubject> *slide_subjects);
 
 /**
  * Helper for apply() / reset() - refresh the data.
  */
-void slide_subjects_refresh(bContext *C, Scene *scene, Object *ob);
+void slide_subjects_refresh(bContext *C, ID *id);
 /**
- * Reset changes made to current slide targets back to their stored values.
+ * Reset changes made to current slide subjects back to their stored values.
  */
 void slide_subjects_reset(ListBaseT<SlideSubject> *slide_subjects);
 /** Perform auto-key-framing after changes were made + confirmed. */

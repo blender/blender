@@ -71,6 +71,7 @@ if(WITH_GTESTS)
     anim_filter_test.cc
     keyframes_general_test.cc
     keyframes_keylist_test.cc
+    transformable_test.cc
   )
   set(TEST_INC
   )

@@ -46,6 +46,7 @@
 
 #include "BKE_context.hh"
 #include "BKE_layer.hh"
+#include "BKE_object.hh"
 #include "BKE_report.hh"
 #include "BKE_scene.hh"
 #include "BKE_unit.hh"
@@ -59,12 +60,12 @@
 
 #include "UI_interface.hh"
 
+#include "ED_anim_transformable.hh"
 #include "ED_keyframes_edit.hh"
 #include "ED_keyframes_keylist.hh"
 #include "ED_markers.hh"
 #include "ED_numinput.hh"
 #include "ED_screen.hh"
-#include "ED_transformable.hh"
 #include "ED_util.hh"
 
 #include "ANIM_fcurve.hh"
@@ -76,16 +77,6 @@ namespace blender {
 
 /* **************************************************** */
 /* A) Push & Relax, Breakdowner */
-
-/**
- * Returns true if the given property index matches the axis flag.
- */
-static bool is_axis_mutable(const int index, const ed::AxisMutable axis_flag)
-{
-  /* AxisMutable happens to be set up in such a way that X, Y and Z correspond to bits 0, 1
-   * and 2. The AXIS_MUTABLE_ALL case has all these bits set. */
-  return axis_flag & (1 << index);
-}
 
 /** Pose Sliding Modes. */
 enum ePoseSlide_Modes {
@@ -113,17 +104,16 @@ enum ePoseSlide_Channels {
 };
 
 /**
- * Stores the frame range per object. Since objects can have an NLA, the frame for looking up keys
+ * Stores the frame range per Object. Since objects can have an NLA, the frame for looking up keys
  * needs to be adjusted per object.
  */
 struct ObjectFrameRange {
-  /** Active object that Pose Info comes from. */
-  Object *ob;
+  /** The Object for which these frame values are valid. */
+  Object *object;
   /** `prev_frame`, but in local action time (for F-Curve look-ups to work). */
   float prev_frame;
   /** `next_frame`, but in local action time (for F-Curve look-ups to work). */
   float next_frame;
-  bool valid;
 };
 
 /** Temporary data shared between these operators. */
@@ -190,11 +180,7 @@ static const EnumPropertyItem prop_axis_lock_types[] = {
     {ed::AXIS_MUTABLE_ALL, "FREE", 0, "Free", "All axes are affected"},
     {ed::AXIS_MUTABLE_X, "X", 0, "X", "Only X-axis transforms are affected"},
     {ed::AXIS_MUTABLE_Y, "Y", 0, "Y", "Only Y-axis transforms are affected"},
-    {ed::AXIS_MUTABLE_Z,
-     "Z",
-     0,
-     "Z",
-     "Only Z-axis transforms are affected"}, /* TODO: Combinations? */
+    {ed::AXIS_MUTABLE_Z, "Z", 0, "Z", "Only Z-axis transforms are affected"},
     {0, nullptr, 0, nullptr, nullptr},
 };
 
@@ -244,32 +230,21 @@ static int pose_slide_init(bContext *C, wmOperator *op, ePoseSlide_Modes mode)
   /* For each Pose-Channel which gets affected, get the F-Curves for that channel
    * and set the relevant transform flags. */
   slide_subjects_get(C, &pso->slide_subjects);
-  ObjectsInModeParams params = {0};
-  params.object_mode = OB_MODE_POSE;
-  /* Explicitly setting this to false because we *do* want this to work for armature instances. */
-  params.no_dup_data = false;
-  const Main *bmain = CTX_data_main(C);
-  const Vector<Object *> objects = BKE_view_layer_array_from_objects_in_mode_params(
-      *bmain, CTX_data_scene(C), CTX_data_view_layer(C), CTX_wm_view3d(C), &params);
-  pso->ob_data_array.reinitialize(objects.size());
-
-  for (const int ob_index : objects.index_range()) {
-    ObjectFrameRange *ob_data = &pso->ob_data_array[ob_index];
-    Object *ob_iter = poseAnim_object_get(objects[ob_index]);
-
-    /* Ensure validity of the settings from the context. */
-    if (ob_iter == nullptr) {
-      continue;
-    }
-
-    ob_data->ob = ob_iter;
-    ob_data->valid = true;
-
+  Set<ID *> unique_ids;
+  for (const SlideSubject &tflink : pso->slide_subjects) {
+    unique_ids.add(tflink.ptr.owner_id);
+  }
+  pso->ob_data_array.reinitialize(unique_ids.size());
+  int i = 0;
+  for (ID *id : unique_ids) {
+    ObjectFrameRange *range_data = &pso->ob_data_array[i];
+    i++;
+    BLI_assert(GS(id->name) == ID_OB);
+    range_data->object = id_cast<Object *>(id);
+    AnimData *adt = BKE_animdata_from_id(id);
     /* Apply NLA mapping corrections so the frame look-ups work. */
-    ob_data->prev_frame = BKE_nla_tweakedit_remap(
-        ob_data->ob->adt, pso->prev_frame, NLATIME_CONVERT_UNMAP);
-    ob_data->next_frame = BKE_nla_tweakedit_remap(
-        ob_data->ob->adt, pso->next_frame, NLATIME_CONVERT_UNMAP);
+    range_data->prev_frame = BKE_nla_tweakedit_remap(adt, pso->prev_frame, NLATIME_CONVERT_UNMAP);
+    range_data->next_frame = BKE_nla_tweakedit_remap(adt, pso->next_frame, NLATIME_CONVERT_UNMAP);
   }
 
   /* Do basic initialize of RB-BST used for finding keyframes, but leave the filling of it up
@@ -321,50 +296,29 @@ static void pose_slide_exit(bContext *C, wmOperator *op)
 
 /* ------------------------------------ */
 
-static bool pose_frame_range_from_id_get(const tPoseSlideOp *pso,
-                                         const ID *id,
-                                         float *prev_frame,
-                                         float *next_frame)
-{
-  for (const ObjectFrameRange &offset_range : pso->ob_data_array) {
-    if (&offset_range.ob->id == id) {
-      *prev_frame = offset_range.prev_frame;
-      *next_frame = offset_range.next_frame;
-      return true;
-    }
-  }
-  *prev_frame = *next_frame = 0.0f;
-  return false;
-}
-
 /**
  * Helper for apply() / reset() - refresh the data.
  */
 static void pose_slide_refresh(bContext *C, tPoseSlideOp *pso)
 {
   /* Wrapper around the generic version, allowing us to add some custom stuff later still. */
-  for (ObjectFrameRange &ob_data : pso->ob_data_array) {
-    if (ob_data.valid) {
-      slide_subjects_refresh(C, pso->scene, ob_data.ob);
-    }
+  for (ObjectFrameRange &object_range : pso->ob_data_array) {
+    slide_subjects_refresh(C, &object_range.object->id);
   }
 }
 
 /**
- * Although this lookup is not ideal, we won't be dealing with a lot of objects at a given time.
- * But if it comes to that we can instead store prev/next frame in the #SlideSubject.
+ * Get the frame range for the given ID, which is NLA mapped.
  */
-static bool pose_frame_range_from_object_get(tPoseSlideOp *pso,
-                                             Object *ob,
-                                             float *prev_frame,
-                                             float *next_frame)
+static bool pose_frame_range_from_id_get(const tPoseSlideOp *pso,
+                                         const ID *id,
+                                         float *prev_frame,
+                                         float *next_frame)
 {
-  for (ObjectFrameRange &ob_data : pso->ob_data_array) {
-    Object *ob_iter = ob_data.ob;
-
-    if (ob_iter == ob) {
-      *prev_frame = ob_data.prev_frame;
-      *next_frame = ob_data.next_frame;
+  for (const ObjectFrameRange &object_range : pso->ob_data_array) {
+    if (&object_range.object->id == id) {
+      *prev_frame = object_range.prev_frame;
+      *next_frame = object_range.next_frame;
       return true;
     }
   }
@@ -372,76 +326,72 @@ static bool pose_frame_range_from_object_get(tPoseSlideOp *pso,
   return false;
 }
 
-/**
- * Helper for apply() - perform sliding for some value.
- */
-static void pose_slide_apply_val(tPoseSlideOp *pso, const FCurve *fcu, Object *ob, float *val)
+/* Apply linear blending to the values of the given `prop_type`. */
+static void pose_slide_apply_linear(tPoseSlideOp &pso,
+                                    SlideSubject &slide_subject,
+                                    const ed::AnimTransformable::PropertyType prop_type)
 {
-  float prev_frame, next_frame;
-  float prev_weight, next_weight;
-  pose_frame_range_from_object_get(pso, ob, &prev_frame, &next_frame);
 
-  const float factor = ED_slider_factor_get(pso->slider);
-  const float current_frame = float(pso->current_frame);
+  const float factor = ED_slider_factor_get(pso.slider);
+  ed::AnimTransformable *transformable = slide_subject.transformable;
+  Array<float> prev_values = transformable->get_property(prop_type);
+  Array<float> next_values = prev_values;
 
-  /* Calculate the relative weights of the endpoints. */
-  if (pso->mode == POSESLIDE_BREAKDOWN) {
-    /* Get weights from the factor control. */
-    next_weight = factor;
-    prev_weight = 1.0f - next_weight;
-  }
-  else {
-    /* - these weights are derived from the relative distance of these
-     *   poses from the current frame
-     * - they then get normalized so that they only sum up to 1
-     */
-
-    next_weight = current_frame - float(pso->prev_frame);
-    prev_weight = float(pso->next_frame) - current_frame;
-
-    const float total_weight = next_weight + prev_weight;
-    next_weight = (next_weight / total_weight);
-    prev_weight = (prev_weight / total_weight);
+  {
+    const std::string path = transformable->rna_path_to_property(prop_type);
+    const Vector<FCurve *> fcurves = fcurves_filtered_by_path(slide_subject.fcurves, path);
+    float prev_frame, next_frame;
+    pose_frame_range_from_id_get(&pso, transformable->owner_id(), &prev_frame, &next_frame);
+    for (const FCurve *fcurve : fcurves) {
+      prev_values[fcurve->array_index] = evaluate_fcurve(fcurve, prev_frame);
+      next_values[fcurve->array_index] = evaluate_fcurve(fcurve, next_frame);
+    }
   }
 
-  /* Get keyframe values for endpoint poses to blend with. */
-  /* Previous/start. */
-  const float prev_frame_y = evaluate_fcurve(fcu, prev_frame);
-  const float next_frame_y = evaluate_fcurve(fcu, next_frame);
+  /* Encodes a percentage value of where the current frame is between prev_- and next_frame. At 0
+   * it is at prev_frame. */
+  const float current_frame_factor = (pso.current_frame - pso.prev_frame) /
+                                     float(pso.next_frame - pso.prev_frame);
+  /* Note christoph: After looking at POSESLIDE_PUSH and _RELAX for a long time I finally realized
+   * what they do. They take the linear interpolation of the values based on the current frame and
+   * blend the current pose towards or away from it. The usefulness of this is likely limited and
+   * the naming could be better. Also this could be combined into a single slider. */
+  Array<float> current_frame_breakdown = ed::property_interpolated(
+      prev_values, next_values, current_frame_factor);
 
-  /* Depending on the mode, calculate the new value. */
-  switch (pso->mode) {
-    case POSESLIDE_PUSH: /* Make the current pose more pronounced. */
-    {
+  const ed::AxisMutable axis_flag = ed::AxisMutable(pso.axis_mutability);
+
+  switch (pso.mode) {
+
+    case POSESLIDE_PUSH: {
       /* Slide the pose away from the breakdown pose in the timeline */
-      (*val) -= ((prev_frame_y * prev_weight) + (next_frame_y * next_weight) - (*val)) * factor;
+      transformable->blend_property_to(prop_type, current_frame_breakdown, -factor, axis_flag);
       break;
     }
-    case POSESLIDE_RELAX: /* Make the current pose more like its surrounding ones. */
-    {
+    case POSESLIDE_RELAX: {
       /* Slide the pose towards the breakdown pose in the timeline */
-      (*val) += ((prev_frame_y * prev_weight) + (next_frame_y * next_weight) - (*val)) * factor;
+      transformable->blend_property_to(prop_type, current_frame_breakdown, factor, axis_flag);
       break;
     }
     case POSESLIDE_BREAKDOWN: /* Make the current pose slide around between the endpoints. */
     {
       /* Perform simple linear interpolation. */
-      (*val) = interpf(next_frame_y, prev_frame_y, factor);
+      Array<float> breakdown = ed::property_interpolated(prev_values, next_values, factor);
+      transformable->set_property(prop_type, breakdown, axis_flag);
       break;
     }
     case POSESLIDE_BLEND: /* Blend the current pose with the previous (<50%) or next key (>50%). */
     {
-      const float current_frame_y = evaluate_fcurve(fcu, current_frame);
-      /* Convert factor to absolute 0-1 range which is needed for `interpf`. */
+      /* Convert factor to absolute 0-1 range which is needed for `blend_property_to`. */
       const float blend_factor = fabs((factor - 0.5f) * 2);
 
       if (factor < 0.5) {
         /* Blend to previous key. */
-        (*val) = interpf(prev_frame_y, current_frame_y, blend_factor);
+        transformable->blend_property_to(prop_type, prev_values, blend_factor, axis_flag);
       }
       else {
         /* Blend to next key. */
-        (*val) = interpf(next_frame_y, current_frame_y, blend_factor);
+        transformable->blend_property_to(prop_type, next_values, blend_factor, axis_flag);
       }
 
       break;
@@ -451,38 +401,6 @@ static void pose_slide_apply_val(tPoseSlideOp *pso, const FCurve *fcu, Object *o
       break;
     }
   }
-}
-
-/**
- * Helper for apply() - perform sliding for some 3-element vector.
- */
-static void pose_slide_apply_vec3(tPoseSlideOp *pso,
-                                  SlideSubject *slide_subject,
-                                  float vec[3],
-                                  const char propName[])
-{
-  char *path = nullptr;
-
-  /* Get the path to use. */
-  path = BLI_sprintfN("%s.%s", slide_subject->pchan_path, propName);
-
-  /* Using this path, find each matching F-Curve for the variables we're interested in. */
-  const Vector<FCurve *> fcurves = fcurves_filtered_by_path(slide_subject->fcurves, path);
-  for (FCurve *fcurve : fcurves) {
-    const int idx = fcurve->array_index;
-    const ed::AxisMutable axis_flags = pso->axis_mutability;
-
-    /* Check if this F-Curve is ok given the current axis locks. */
-    BLI_assert(fcurve->array_index < 3);
-
-    if (is_axis_mutable(idx, axis_flags)) {
-      /* Just work on these channels one by one... there's no interaction between values. */
-      pose_slide_apply_val(pso, fcurve, slide_subject->ob, &vec[fcurve->array_index]);
-    }
-  }
-
-  /* Free the temp path we got. */
-  MEM_delete(path);
 }
 
 static void pose_slide_apply_property_snapshots(tPoseSlideOp &pso,
@@ -564,151 +482,74 @@ static void pose_slide_apply_property_snapshots(tPoseSlideOp &pso,
  */
 static void pose_slide_apply_quat(tPoseSlideOp *pso, SlideSubject *slide_subject)
 {
-  const FCurve *fcu_w = nullptr, *fcu_x = nullptr, *fcu_y = nullptr, *fcu_z = nullptr;
-  bPoseChannel *pchan = slide_subject->pchan;
-  char *path = nullptr;
+  ed::AnimTransformable *transformable = slide_subject->transformable;
   float prev_frame, next_frame;
 
-  if (!pose_frame_range_from_object_get(pso, slide_subject->ob, &prev_frame, &next_frame)) {
+  if (!pose_frame_range_from_id_get(pso, transformable->owner_id(), &prev_frame, &next_frame)) {
     BLI_assert_msg(0, "Invalid slide_subject data");
     return;
   }
 
-  /* Get the path to use - this should be quaternion rotations only (needs care). */
-  path = BLI_sprintfN("%s.%s", slide_subject->pchan_path, "rotation_quaternion");
+  const std::string path = transformable->rna_path_to_property(
+      ed::AnimTransformable::PropertyType::ROTATION);
 
-  /* Get the current frame number. */
   const float current_frame = float(pso->current_frame);
   const float factor = ED_slider_factor_get(pso->slider);
 
-  /* Using this path, find each matching F-Curve for the variables we're interested in. */
-  const Vector<FCurve *> fcurves = fcurves_filtered_by_path(slide_subject->fcurves, path);
-  for (FCurve *fcu : fcurves) {
-
-    /* Assign this F-Curve to one of the relevant pointers. */
-    switch (fcu->array_index) {
-      case 3: /* z */
-        fcu_z = fcu;
-        break;
-      case 2: /* y */
-        fcu_y = fcu;
-        break;
-      case 1: /* x */
-        fcu_x = fcu;
-        break;
-      case 0: /* w */
-        fcu_w = fcu;
-        break;
-    }
+  /* By using `get_rotation()` we use the current values as default in case they are not animated.
+   * Due to using spherical interpolation, the not-animated values may be modified which may not be
+   * expected by the user. Ideally this throws a warning.  */
+  ed::Rotation rot_prev_frame = transformable->get_rotation();
+  ed::Rotation rot_next_frame = rot_prev_frame;
+  Vector<FCurve *> quaternion_fcurves = fcurves_filtered_by_path(slide_subject->fcurves, path);
+  for (const FCurve *fcurve : quaternion_fcurves) {
+    rot_prev_frame.values[fcurve->array_index] = evaluate_fcurve(fcurve, prev_frame);
+    rot_next_frame.values[fcurve->array_index] = evaluate_fcurve(fcurve, next_frame);
   }
+  normalize_qt(rot_prev_frame.values.data());
+  normalize_qt(rot_next_frame.values.data());
 
-  /* Only if all channels exist, proceed. */
-  if (fcu_w && fcu_x && fcu_y && fcu_z) {
-    float quat_final[4];
+  switch (pso->mode) {
+    case POSESLIDE_PUSH:
+    case POSESLIDE_RELAX: {
+      /* Compute breakdown based on actual frame range. */
+      const float interp_factor = (current_frame - pso->prev_frame) /
+                                  float(pso->next_frame - pso->prev_frame);
+      ed::Rotation current = transformable->get_rotation();
+      ed::Rotation breakdown = ed::rotation_interpolated(
+          rot_prev_frame, rot_next_frame, interp_factor);
 
-    /* Perform blending. */
-    if (ELEM(pso->mode, POSESLIDE_BREAKDOWN, POSESLIDE_PUSH, POSESLIDE_RELAX)) {
-      float quat_prev[4], quat_next[4];
-
-      quat_prev[0] = evaluate_fcurve(fcu_w, prev_frame);
-      quat_prev[1] = evaluate_fcurve(fcu_x, prev_frame);
-      quat_prev[2] = evaluate_fcurve(fcu_y, prev_frame);
-      quat_prev[3] = evaluate_fcurve(fcu_z, prev_frame);
-
-      quat_next[0] = evaluate_fcurve(fcu_w, next_frame);
-      quat_next[1] = evaluate_fcurve(fcu_x, next_frame);
-      quat_next[2] = evaluate_fcurve(fcu_y, next_frame);
-      quat_next[3] = evaluate_fcurve(fcu_z, next_frame);
-
-      normalize_qt(quat_prev);
-      normalize_qt(quat_next);
-
-      if (pso->mode == POSESLIDE_BREAKDOWN) {
-        /* Just perform the interpolation between quat_prev and
-         * quat_next using pso->factor as a guide. */
-        interp_qt_qtqt(quat_final, quat_prev, quat_next, factor);
+      if (pso->mode == POSESLIDE_PUSH) {
+        transformable->set_rotation(breakdown);
+        transformable->blend_rotation_to(current, factor, ed::AXIS_MUTABLE_ALL);
       }
       else {
-        float quat_curr[4], quat_breakdown[4];
-
-        normalize_qt_qt(quat_curr, pchan->quat);
-
-        /* Compute breakdown based on actual frame range. */
-        const float interp_factor = (current_frame - pso->prev_frame) /
-                                    float(pso->next_frame - pso->prev_frame);
-
-        interp_qt_qtqt(quat_breakdown, quat_prev, quat_next, interp_factor);
-
-        if (pso->mode == POSESLIDE_PUSH) {
-          interp_qt_qtqt(quat_final, quat_breakdown, quat_curr, 1.0f + factor);
-        }
-        else {
-          BLI_assert(pso->mode == POSESLIDE_RELAX);
-          interp_qt_qtqt(quat_final, quat_curr, quat_breakdown, factor);
-        }
+        BLI_assert(pso->mode == POSESLIDE_RELAX);
+        transformable->set_rotation(current);
+        transformable->blend_rotation_to(breakdown, factor, ed::AXIS_MUTABLE_ALL);
       }
+      break;
     }
-    else if (pso->mode == POSESLIDE_BLEND) {
-      float quat_blend[4];
-      float quat_curr[4];
 
-      copy_qt_qt(quat_curr, pchan->quat);
+    case POSESLIDE_BREAKDOWN:
+      transformable->set_rotation(rot_prev_frame);
+      transformable->blend_rotation_to(rot_next_frame, factor, ed::AXIS_MUTABLE_ALL);
+      break;
 
-      if (factor < 0.5) {
-        quat_blend[0] = evaluate_fcurve(fcu_w, prev_frame);
-        quat_blend[1] = evaluate_fcurve(fcu_x, prev_frame);
-        quat_blend[2] = evaluate_fcurve(fcu_y, prev_frame);
-        quat_blend[3] = evaluate_fcurve(fcu_z, prev_frame);
-      }
-      else {
-        quat_blend[0] = evaluate_fcurve(fcu_w, next_frame);
-        quat_blend[1] = evaluate_fcurve(fcu_x, next_frame);
-        quat_blend[2] = evaluate_fcurve(fcu_y, next_frame);
-        quat_blend[3] = evaluate_fcurve(fcu_z, next_frame);
-      }
-
-      normalize_qt(quat_blend);
-      normalize_qt(quat_curr);
-
+    case POSESLIDE_BLEND: {
       const float blend_factor = fabs((factor - 0.5f) * 2);
-
-      interp_qt_qtqt(quat_final, quat_curr, quat_blend, blend_factor);
+      if (factor < 0.5) {
+        transformable->blend_rotation_to(rot_prev_frame, blend_factor, ed::AXIS_MUTABLE_ALL);
+      }
+      else {
+        transformable->blend_rotation_to(rot_next_frame, blend_factor, ed::AXIS_MUTABLE_ALL);
+      }
+      break;
     }
 
-    /* Apply final to the pose bone, keeping compatible for similar keyframe positions. */
-    quat_to_compatible_quat(pchan->quat, quat_final, pchan->quat);
-  }
-
-  /* Free the path now. */
-  MEM_delete(path);
-}
-
-static void pose_slide_rest_pose_apply_vec3(tPoseSlideOp *pso, float vec[3], float default_value)
-{
-  /* We only slide to the rest pose. So only use the default rest pose value. */
-  const ed::AxisMutable axis_flags = pso->axis_mutability;
-  const float factor = ED_slider_factor_get(pso->slider);
-  for (int idx = 0; idx < 3; idx++) {
-    if (is_axis_mutable(idx, axis_flags)) {
-      float diff_val = default_value - vec[idx];
-      vec[idx] += factor * diff_val;
-    }
-  }
-}
-
-static void pose_slide_rest_pose_apply_other_rot(tPoseSlideOp *pso, float vec[4], bool quat)
-{
-  /* We only slide to the rest pose. So only use the default rest pose value. */
-  float default_values[] = {1.0f, 0.0f, 0.0f, 0.0f};
-  if (!quat) {
-    /* Axis Angle */
-    default_values[0] = 0.0f;
-    default_values[2] = 1.0f;
-  }
-  const float factor = ED_slider_factor_get(pso->slider);
-  for (int idx = 0; idx < 4; idx++) {
-    float diff_val = default_values[idx] - vec[idx];
-    vec[idx] += factor * diff_val;
+    case POSESLIDE_BLEND_REST:
+      BLI_assert_unreachable();
+      break;
   }
 }
 
@@ -717,6 +558,8 @@ static void pose_slide_rest_pose_apply_other_rot(tPoseSlideOp *pso, float vec[4]
  */
 static void pose_slide_rest_pose_apply(bContext *C, tPoseSlideOp *pso)
 {
+  const ed::AxisMutable axis_flag = ed::AxisMutable(pso->axis_mutability);
+  const float slider_factor = ED_slider_factor_get(pso->slider);
   /* For each link, handle each set of transforms. */
   for (SlideSubject &slide_subject : pso->slide_subjects) {
     /* Valid transforms for each #bPoseChannel should have been noted already.
@@ -724,49 +567,36 @@ static void pose_slide_rest_pose_apply(bContext *C, tPoseSlideOp *pso)
      *   but rotations get more complicated since we may want to use quaternion blending
      *   for quaternions instead.
      */
-    bPoseChannel *pchan = slide_subject.pchan;
+    ed::AnimTransformable *transformable = slide_subject.transformable;
 
     if (ELEM(pso->channels, PS_TFM_ALL, PS_TFM_LOC) &&
         (slide_subject.transform_flag & ACT_TRANS_LOC))
     {
-      /* Calculate these for the 'location' vector, and use location curves. */
-      pose_slide_rest_pose_apply_vec3(pso, pchan->loc, 0.0f);
+      transformable->blend_property_to(
+          ed::AnimTransformable::PropertyType::LOCATION, 0.0f, slider_factor, axis_flag);
     }
 
     if (ELEM(pso->channels, PS_TFM_ALL, PS_TFM_SCALE) &&
         (slide_subject.transform_flag & ACT_TRANS_SCALE))
     {
-      /* Calculate these for the 'scale' vector, and use scale curves. */
-      pose_slide_rest_pose_apply_vec3(pso, pchan->scale, 1.0f);
+      transformable->blend_property_to(
+          ed::AnimTransformable::PropertyType::SCALE, 1.0f, slider_factor, axis_flag);
     }
 
     if (ELEM(pso->channels, PS_TFM_ALL, PS_TFM_ROT) &&
         (slide_subject.transform_flag & ACT_TRANS_ROT))
     {
-      /* Everything depends on the rotation mode. */
-      if (pchan->rotmode > 0) {
-        /* Eulers - so calculate these for the 'eul' vector, and use euler_rotation curves. */
-        pose_slide_rest_pose_apply_vec3(pso, pchan->eul, 0.0f);
-      }
-      else if (pchan->rotmode == ROT_MODE_AXISANGLE) {
-        pose_slide_rest_pose_apply_other_rot(pso, pchan->quat, false);
-      }
-      else {
-        /* Quaternions - use quaternion blending. */
-        pose_slide_rest_pose_apply_other_rot(pso, pchan->quat, true);
-      }
+      transformable->blend_rotation_to(
+          ed::identity_rotation(transformable->get_rotation_mode()), slider_factor, axis_flag);
     }
 
     if (ELEM(pso->channels, PS_TFM_ALL, PS_TFM_BBONE_SHAPE) &&
         (slide_subject.transform_flag & ACT_TRANS_BBONE))
     {
-      /* Bbone properties - they all start a "bbone_" prefix. */
       /* TODO: Not implemented. */
     }
 
     if (ELEM(pso->channels, PS_TFM_ALL, PS_TFM_PROPS)) {
-      /* Not strictly a transform, but custom properties contribute
-       * to the pose produced in many rigs (e.g. the facial rigs used in Sintel). */
       /* TODO: Not implemented. */
     }
   }
@@ -786,51 +616,44 @@ static void pose_slide_apply(bContext *C, tPoseSlideOp *pso)
     pso->prev_frame--;
     pso->next_frame++;
 
-    for (ObjectFrameRange &ob_data : pso->ob_data_array) {
-      if (!ob_data.valid) {
-        continue;
-      }
-
+    for (ObjectFrameRange &object_range : pso->ob_data_array) {
+      AnimData *adt = object_range.object->adt;
       /* Apply NLA mapping corrections so the frame look-ups work. */
-      ob_data.prev_frame = BKE_nla_tweakedit_remap(
-          ob_data.ob->adt, pso->prev_frame, NLATIME_CONVERT_UNMAP);
-      ob_data.next_frame = BKE_nla_tweakedit_remap(
-          ob_data.ob->adt, pso->next_frame, NLATIME_CONVERT_UNMAP);
+      object_range.prev_frame = BKE_nla_tweakedit_remap(
+          adt, pso->prev_frame, NLATIME_CONVERT_UNMAP);
+      object_range.next_frame = BKE_nla_tweakedit_remap(
+          adt, pso->next_frame, NLATIME_CONVERT_UNMAP);
     }
   }
 
   /* For each link, handle each set of transforms. */
   for (SlideSubject &slide_subject : pso->slide_subjects) {
-    /* Valid transforms for each #bPoseChannel should have been noted already
-     * - sliding the pose should be a straightforward exercise for location+rotation,
-     *   but rotations get more complicated since we may want to use quaternion blending
-     *   for quaternions instead...
-     */
-    bPoseChannel *pchan = slide_subject.pchan;
+    ed::AnimTransformable *transformable = slide_subject.transformable;
 
     if (ELEM(pso->channels, PS_TFM_ALL, PS_TFM_LOC) &&
         (slide_subject.transform_flag & ACT_TRANS_LOC))
     {
       /* Calculate these for the 'location' vector, and use location curves. */
-      pose_slide_apply_vec3(pso, &slide_subject, pchan->loc, "location");
+      pose_slide_apply_linear(*pso, slide_subject, ed::AnimTransformable::PropertyType::LOCATION);
     }
 
     if (ELEM(pso->channels, PS_TFM_ALL, PS_TFM_SCALE) &&
         (slide_subject.transform_flag & ACT_TRANS_SCALE))
     {
       /* Calculate these for the 'scale' vector, and use scale curves. */
-      pose_slide_apply_vec3(pso, &slide_subject, pchan->scale, "scale");
+      pose_slide_apply_linear(*pso, slide_subject, ed::AnimTransformable::PropertyType::SCALE);
     }
 
     if (ELEM(pso->channels, PS_TFM_ALL, PS_TFM_ROT) &&
         (slide_subject.transform_flag & ACT_TRANS_ROT))
     {
       /* Everything depends on the rotation mode. */
-      if (pchan->rotmode > 0) {
-        /* Eulers - so calculate these for the 'eul' vector, and use euler_rotation curves. */
-        pose_slide_apply_vec3(pso, &slide_subject, pchan->eul, "rotation_euler");
+      const eRotationModes rot_mode = transformable->get_rotation_mode();
+      if (rot_mode > 0) {
+        pose_slide_apply_linear(
+            *pso, slide_subject, ed::AnimTransformable::PropertyType::ROTATION);
       }
-      else if (pchan->rotmode == ROT_MODE_AXISANGLE) {
+      else if (rot_mode == ROT_MODE_AXISANGLE) {
         /* TODO: need to figure out how to do this! */
       }
       else {
@@ -978,7 +801,7 @@ static wmOperatorStatus pose_slide_invoke_common(bContext *C, wmOperator *op, co
   for (SlideSubject &slide_subject : pso->slide_subjects) {
     /* Do this for each F-Curve. */
     for (FCurve *fcu : slide_subject.fcurves) {
-      AnimData *adt = slide_subject.ob->adt;
+      AnimData *adt = BKE_animdata_from_id(slide_subject.transformable->owner_id());
       fcurve_to_keylist(adt, fcu, pso->keylist, 0, {-FLT_MAX, FLT_MAX}, adt != nullptr);
     }
   }
@@ -1020,13 +843,10 @@ static wmOperatorStatus pose_slide_invoke_common(bContext *C, wmOperator *op, co
   }
 
   /* Apply NLA mapping corrections so the frame look-ups work. */
-  for (ObjectFrameRange &ob_data : pso->ob_data_array) {
-    if (ob_data.valid) {
-      ob_data.prev_frame = BKE_nla_tweakedit_remap(
-          ob_data.ob->adt, pso->prev_frame, NLATIME_CONVERT_UNMAP);
-      ob_data.next_frame = BKE_nla_tweakedit_remap(
-          ob_data.ob->adt, pso->next_frame, NLATIME_CONVERT_UNMAP);
-    }
+  for (ObjectFrameRange &object_range : pso->ob_data_array) {
+    AnimData *adt = object_range.object->adt;
+    object_range.prev_frame = BKE_nla_tweakedit_remap(adt, pso->prev_frame, NLATIME_CONVERT_UNMAP);
+    object_range.next_frame = BKE_nla_tweakedit_remap(adt, pso->next_frame, NLATIME_CONVERT_UNMAP);
   }
 
   /* Initial apply for operator. */
@@ -1713,7 +1533,7 @@ static void propagate_curve_values(ListBaseT<SlideSubject> *slide_subjects,
   }
 }
 
-static float find_next_key(ListBaseT<SlideSubject> *slide_subjects, const float start_frame)
+static float find_next_key(const ListBaseT<SlideSubject> *slide_subjects, const float start_frame)
 {
   float target_frame = FLT_MAX;
   for (const SlideSubject &slide_subject : *slide_subjects) {
@@ -1735,7 +1555,7 @@ static float find_next_key(ListBaseT<SlideSubject> *slide_subjects, const float 
   return target_frame;
 }
 
-static float find_last_key(ListBaseT<SlideSubject> *slide_subjects)
+static float find_last_key(const ListBaseT<SlideSubject> *slide_subjects)
 {
   float target_frame = FLT_MIN;
   for (const SlideSubject &slide_subject : *slide_subjects) {
@@ -1811,11 +1631,7 @@ static void get_selected_frames(const ListBaseT<SlideSubject> *slide_subjects,
 
 static wmOperatorStatus pose_propagate_exec(bContext *C, wmOperator *op)
 {
-  const Main *bmain = CTX_data_main(C);
   Scene *scene = CTX_data_scene(C);
-  ViewLayer *view_layer = CTX_data_view_layer(C);
-  View3D *v3d = CTX_wm_view3d(C);
-
   ListBaseT<SlideSubject> slide_subjects = {nullptr, nullptr};
 
   const int mode = RNA_enum_get(op->ptr, "mode");
@@ -1880,14 +1696,12 @@ static wmOperatorStatus pose_propagate_exec(bContext *C, wmOperator *op)
 
   BLI_freelistN(&target_frames);
 
+  for (SlideSubject &slide_subject : slide_subjects) {
+    slide_subjects_refresh(C, slide_subject.ptr.owner_id);
+  }
+
   /* Free temp data. */
   slide_subjects_free(&slide_subjects);
-
-  /* Updates + notifiers. */
-  FOREACH_OBJECT_IN_MODE_BEGIN (bmain, scene, view_layer, v3d, OB_ARMATURE, OB_MODE_POSE, ob) {
-    slide_subjects_refresh(C, scene, ob);
-  }
-  FOREACH_OBJECT_IN_MODE_END;
 
   return OPERATOR_FINISHED;
 }
