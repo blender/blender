@@ -17,7 +17,6 @@
 #endif
 
 FRAGMENT_SHADER_CREATE_INFO(eevee_nodetree)
-FRAGMENT_SHADER_CREATE_INFO(eevee_geom_mesh)
 
 #include "eevee_volume_lib.bsl.hh"
 
@@ -53,43 +52,11 @@ struct VolumeProperties {
   float anisotropy;
 };
 
-VolumeProperties eval_froxel(int3 froxel, float jitter)
-{
-  float3 uvw = (float3(froxel) + float3(0.5f, 0.5f, 0.5f - jitter)) *
-               uniform_buf.volumes.inv_tex_size;
-
-  float3 vP = volume_jitter_to_view(uvw);
-  float3 wP = drw_point_view_to_world(vP);
-#if !defined(MAT_GEOM_CURVES) && !defined(MAT_GEOM_POINTCLOUD)
-#  ifdef GRID_ATTRIBUTES
-  g_lP = drw_point_world_to_object(wP);
-#  else
-  g_wP = wP;
-#  endif
-  /* TODO(fclem): This is very dangerous as it requires a reset for each time `attrib_load` is
-   * called. Instead, the right attribute index should be passed to attr_load_* functions. */
-  g_attr_id = 0;
-#endif
-
-  g_data = init_globals(wP);
-  attrib_load(VolumePoint{0});
-  nodetree_volume();
-
-#if defined(MAT_GEOM_VOLUME)
-  g_volume_scattering *= drw_volume.density_scale;
-  g_volume_absorption *= drw_volume.density_scale;
-  g_emission *= drw_volume.density_scale;
-#endif
-
-  VolumeProperties prop;
-  prop.scattering = g_volume_scattering;
-  prop.absorption = g_volume_absorption;
-  prop.emission = g_emission;
-  prop.anisotropy = g_volume_anisotropy;
-  return prop;
-}
-
 struct SurfVolume {
+  [[compilation_constant]] bool is_homogenous;
+  [[compilation_constant]] bool is_volume_object;
+  [[compilation_constant]] bool is_world;
+
   [[legacy_info]] ShaderCreateInfo draw_modelmat_common;
   [[legacy_info]] ShaderCreateInfo draw_view;
   [[legacy_info]] ShaderCreateInfo eevee_global_ubo;
@@ -117,15 +84,15 @@ struct SurfVolume {
 
     float3 extinction = prop.scattering + prop.absorption;
 
-#ifndef MAT_GEOM_WORLD
-    /* Additive Blending. No race condition since we have a barrier between each conflicting
-     * invocations. */
-    prop.scattering += imageLoadFast(out_scattering_img, froxel).rgb;
-    prop.emission += imageLoadFast(out_emissive_img, froxel).rgb;
-    extinction += imageLoadFast(out_extinction_img, froxel).rgb;
-    phase.x += imageLoadFast(out_phase_img, froxel).r;
-    phase.y += imageLoadFast(out_phase_weight_img, froxel).r;
-#endif
+    if (!is_world) [[static_branch]] {
+      /* Additive Blending. No race condition since we have a barrier between each conflicting
+       * invocations. */
+      prop.scattering += imageLoadFast(out_scattering_img, froxel).rgb;
+      prop.emission += imageLoadFast(out_emissive_img, froxel).rgb;
+      extinction += imageLoadFast(out_extinction_img, froxel).rgb;
+      phase.x += imageLoadFast(out_phase_img, froxel).r;
+      phase.y += imageLoadFast(out_phase_weight_img, froxel).r;
+    }
 
     imageStoreFast(out_scattering_img, froxel, prop.scattering.xyzz);
     imageStoreFast(out_extinction_img, froxel, extinction.xyzz);
@@ -133,28 +100,61 @@ struct SurfVolume {
     imageStoreFast(out_phase_img, froxel, phase.xxxx);
     imageStoreFast(out_phase_weight_img, froxel, phase.yyyy);
   }
+
+  VolumeProperties eval_froxel(int3 froxel, float jitter)
+  {
+    float3 uvw = (float3(froxel) + float3(0.5f, 0.5f, 0.5f - jitter)) *
+                 uniform_buf.volumes.inv_tex_size;
+
+    float3 vP = volume_jitter_to_view(uvw);
+    float3 wP = drw_point_view_to_world(vP);
+    float3 lP = drw_point_world_to_object(wP);
+
+    g_data = init_globals(wP);
+    attrib_load(VolumePoint{lP});
+    nodetree_volume();
+
+    if (is_volume_object) [[static_branch]] {
+      const auto &drw_volume = buffer_get(draw_volume_infos, drw_volume);
+      g_volume_scattering *= drw_volume.density_scale;
+      g_volume_absorption *= drw_volume.density_scale;
+      g_emission *= drw_volume.density_scale;
+    }
+
+    VolumeProperties prop;
+    prop.scattering = g_volume_scattering;
+    prop.absorption = g_volume_absorption;
+    prop.emission = g_emission;
+    prop.anisotropy = g_volume_anisotropy;
+    return prop;
+  }
 };
 
 /* Note: Only the front fragments have to be invoked. */
-[[fragment]] [[early_fragment_tests]]
-void surf_volume([[resource_table]] SurfVolume &srt, [[frag_coord]] const float4 &frag_co)
+[[fragment]] [[early_fragment_tests]] [[texture_atomic]]
+void surf_volume([[resource_table]] SurfVolume &srt,
+                 [[frag_coord]] const float4 frag_co,
+                 [[front_facing]] const bool /*front_face*/ /* Needed for nodes. */)
 {
   int3 froxel = int3(int2(frag_co.xy), 0);
   float offset = sampling_rng_1D_get(SAMPLING_VOLUME_W);
   float jitter = volume_froxel_jitter(froxel.xy, offset);
 
-#ifdef VOLUME_HOMOGENOUS
-  /* Homogenous volumes only evaluate properties at volume entrance and write the same values for
-   * each froxel. */
-  VolumeProperties prop = eval_froxel(froxel, jitter);
-#endif
+  VolumeProperties prop;
 
-#ifndef MAT_GEOM_WORLD
-  occupancy::Bits occupancy;
-  for (int j = 0; j < 8; j++) {
-    occupancy.bits[j] = imageLoad(srt.occupancy_img, int3(froxel.xy, j)).r;
+  if (srt.is_homogenous) [[static_branch]] {
+    /* Homogenous volumes only evaluate properties at volume entrance and write the same values for
+     * each froxel. */
+    prop = srt.eval_froxel(froxel, jitter);
   }
-#endif
+
+  occupancy::Bits occupancy;
+
+  if (!srt.is_world) [[static_branch]] {
+    for (int j = 0; j < 8; j++) {
+      occupancy.bits[j] = imageLoad(srt.occupancy_img, int3(froxel.xy, j)).r;
+    }
+  }
 
   /* Check all occupancy bits. */
   for (int j = 0; j < 8; j++) {
@@ -165,16 +165,16 @@ void surf_volume([[resource_table]] SurfVolume &srt, [[frag_coord]] const float4
         break;
       }
 
-#ifndef MAT_GEOM_WORLD
-      if (((occupancy.bits[j] >> i) & 1u) == 0) {
-        continue;
+      if (!srt.is_world) [[static_branch]] {
+        if (((occupancy.bits[j] >> i) & 1u) == 0) {
+          continue;
+        }
       }
-#endif
 
-#ifndef VOLUME_HOMOGENOUS
-      /* Heterogeneous volumes evaluate properties at every froxel position. */
-      VolumeProperties prop = eval_froxel(froxel, jitter);
-#endif
+      if (!srt.is_homogenous) [[static_branch]] {
+        /* Heterogeneous volumes evaluate properties at every froxel position. */
+        prop = srt.eval_froxel(froxel, jitter);
+      }
       srt.write_froxel(froxel, prop);
     }
   }

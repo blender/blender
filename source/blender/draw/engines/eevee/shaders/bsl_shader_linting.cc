@@ -13,6 +13,11 @@
 #include "eevee_deferred_eval.bsl.hh"                /* IWYU pragma: export */
 #include "eevee_deferred_thickness_amend.bsl.hh"     /* IWYU pragma: export */
 #include "eevee_fast_gi.bsl.hh"                      /* IWYU pragma: export */
+#include "eevee_geom_curves.bsl.hh"                  /* IWYU pragma: export */
+#include "eevee_geom_mesh.bsl.hh"                    /* IWYU pragma: export */
+#include "eevee_geom_pointcloud.bsl.hh"              /* IWYU pragma: export */
+#include "eevee_geom_volume.bsl.hh"                  /* IWYU pragma: export */
+#include "eevee_geom_world.bsl.hh"                   /* IWYU pragma: export */
 #include "eevee_light_culling.bsl.hh"                /* IWYU pragma: export */
 #include "eevee_light_eval.bsl.hh"                   /* IWYU pragma: export */
 #include "eevee_light_iter.bsl.hh"                   /* IWYU pragma: export */

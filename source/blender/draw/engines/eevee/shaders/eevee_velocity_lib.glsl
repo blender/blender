@@ -6,8 +6,6 @@
 
 #include "infos/eevee_velocity_infos.hh"
 
-SHADER_LIBRARY_CREATE_INFO(eevee_velocity_camera)
-
 #include "draw_view_lib.glsl"
 #include "gpu_shader_math_matrix_transform_lib.glsl"
 
@@ -27,11 +25,14 @@ float4 velocity_unpack(float4 data)
  */
 float4 velocity_surface(float3 P_prv, float3 P, float3 P_nxt)
 {
+  const auto &cam_prev = buffer_get(eevee_velocity_camera, camera_prev);
+  const auto &cam_curr = buffer_get(eevee_velocity_camera, camera_curr);
+  const auto &cam_next = buffer_get(eevee_velocity_camera, camera_next);
   /* NOTE: We use CameraData matrices instead of drw_view().persmat to avoid adding the TAA jitter
    * to the velocity. */
-  float2 prev_uv = project_point(camera_prev.persmat, P_prv).xy;
-  float2 curr_uv = project_point(camera_curr.persmat, P).xy;
-  float2 next_uv = project_point(camera_next.persmat, P_nxt).xy;
+  float2 prev_uv = project_point(cam_prev.persmat, P_prv).xy;
+  float2 curr_uv = project_point(cam_curr.persmat, P).xy;
+  float2 next_uv = project_point(cam_next.persmat, P_nxt).xy;
   /* Fix issue with perspective division. */
   if (any(isnan(prev_uv))) {
     prev_uv = curr_uv;
@@ -58,7 +59,7 @@ float4 velocity_background(float3 vV)
   const auto &cam_prev = buffer_get(eevee_velocity_camera, camera_prev);
   const auto &cam_curr = buffer_get(eevee_velocity_camera, camera_curr);
   const auto &cam_next = buffer_get(eevee_velocity_camera, camera_next);
-  float3 V = transform_direction(camera_curr.viewinv, vV);
+  float3 V = transform_direction(cam_curr.viewinv, vV);
   /* NOTE: We use CameraData matrices instead of drw_view().winmat to avoid adding the TAA jitter
    * to the velocity. */
   float2 prev_uv = project_point(cam_prev.winmat, transform_direction(cam_prev.viewmat, V)).xy;

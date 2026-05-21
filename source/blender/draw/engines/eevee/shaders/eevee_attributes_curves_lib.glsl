@@ -29,20 +29,19 @@ SHADER_LIBRARY_CREATE_INFO(draw_curves)
  * Per attribute scope follows loading order.
  * \{ */
 
-#ifdef OBINFO_LIB
-float3 attr_load_orco(CurvesPoint point, float4 orco, int index)
+float3 attr_load_orco(CurvesPoint point, float4 /*orco*/, int /*index*/)
 {
-  float3 lP = curves::get_curve_root_pos(point.point_id, point.curve_segment);
-  return drw_object_orco(lP);
+  /* NOTE: Doesn't support ORCO attribute. */
+  return drw_object_orco(curves::get_curve_root_pos(point.point_id, point.curve_segment));
 }
-#endif
 
 /* Return the index to use for looking up the attribute value in the sampler
  * based on the attribute scope (point or spline). */
 int curves_attribute_element_id(CurvesPoint point, int index)
 {
-  if (drw_curves.is_point_attribute[index][0] != 0u) {
-    return int(point.point_id);
+  const auto &curves_buf = buffer_get(draw_curves_infos, drw_curves);
+  if (curves_buf.is_point_attribute[index][0] != 0u) {
+    return point.point_id;
   }
   return point.curve_id;
 }

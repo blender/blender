@@ -13,9 +13,9 @@
  * World has no attributes other than orco.
  * \{ */
 
-float3 attr_load_orco(WorldPoint /*point*/, float4 /*orco*/, int /*index*/)
+float3 attr_load_orco(WorldPoint point, float4 /*orco*/, int /*index*/)
 {
-  return -g_data.N;
+  return point.lP;
 }
 float4 attr_load_tangent(WorldPoint /*point*/, float4 /*tangent*/, int /*index*/)
 {

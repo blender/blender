@@ -801,6 +801,11 @@ Shader *ShaderCompiler::compile(const shader::ShaderCreateInfo &orig_info, bool 
 
   ShaderCreateInfo specialized_info = orig_info;
 
+  /* WORKAROUND: For BSL shaders, allow to disable costly builtins programatically. */
+  if (bool(specialized_info.builtins_ & BuiltinBits::NO_VIEWPORT_INDEX)) {
+    specialized_info.builtins_ &= ~BuiltinBits::VIEWPORT_INDEX;
+  }
+
   if (!specialized_info.compilation_constants_.is_empty()) {
     auto predicate = [&](const ShaderCreateInfo::Resource &res) {
       return !res.conditions.evaluate(specialized_info.compilation_constants_);

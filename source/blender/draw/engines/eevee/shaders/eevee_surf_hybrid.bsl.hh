@@ -15,7 +15,7 @@
 #include "infos/eevee_nodetree_infos.hh"
 
 FRAGMENT_SHADER_CREATE_INFO(eevee_nodetree)
-FRAGMENT_SHADER_CREATE_INFO(eevee_geom_mesh)
+FRAGMENT_SHADER_CREATE_INFO(eevee_geom_iface_info)
 FRAGMENT_SHADER_CREATE_INFO(eevee_render_pass_out)
 FRAGMENT_SHADER_CREATE_INFO(eevee_cryptomatte_out)
 
@@ -25,7 +25,7 @@ FRAGMENT_SHADER_CREATE_INFO(eevee_cryptomatte_out)
 #include "eevee_gbuffer_write_lib.glsl"
 #include "eevee_nodetree_frag_lib.glsl"
 #include "eevee_sampling_lib.glsl"
-#include "eevee_surf_lib.glsl"
+#include "eevee_surf_common.bsl.hh"
 
 /* Global thickness because it is needed for closure_to_rgba. */
 Thickness g_thickness;
@@ -62,14 +62,15 @@ float4 closure_to_rgba_hybrid(Closure /*cl*/)
 namespace eevee {
 
 struct SurfaceHybrid {
-  /* Added at runtime because of test shaders not having `node_tree`. */
-  // [[legacy_info]] ShaderCreateInfo eevee_render_pass_out;
-  // [[legacy_info]] ShaderCreateInfo eevee_cryptomatte_out;
+  [[legacy_info]] ShaderCreateInfo eevee_render_pass_out;
+  [[legacy_info]] ShaderCreateInfo eevee_cryptomatte_out;
+
   [[legacy_info]] ShaderCreateInfo eevee_global_ubo;
   [[legacy_info]] ShaderCreateInfo eevee_utility_texture;
   [[legacy_info]] ShaderCreateInfo eevee_sampling_data;
   [[legacy_info]] ShaderCreateInfo eevee_hiz_data;
   [[legacy_info]] ShaderCreateInfo draw_view_culling;
+  [[legacy_info]] ShaderCreateInfo eevee_geom_iface_info;
 
   /* For closure_to_rgba. */
   [[legacy_info]] ShaderCreateInfo eevee_lightprobe_data;
@@ -115,7 +116,8 @@ struct HybridFragOut {
 
 /* NOTE: This removes the possibility of using gl_FragDepth. */
 [[fragment]] [[early_fragment_tests]]
-void surf_hybrid([[resource_table]] SurfaceHybrid &srt,
+void surf_hybrid([[resource_table]] PipelineConstants &pipe,
+                 [[resource_table]] SurfaceHybrid &srt,
                  [[resource_table]] LightEvalIterator & /*lights*/,
                  [[frag_coord]] const float4 frag_co,
                  [[out]] HybridFragOut &frag_out,
@@ -152,39 +154,30 @@ void surf_hybrid([[resource_table]] SurfaceHybrid &srt,
 
   int2 out_texel = int2(frag_co.xy);
 
-#ifdef MAT_SUBSURFACE
-  constexpr bool use_sss = true;
-#else
-  constexpr bool use_sss = false;
-#endif
-
-  ObjectInfos object_infos = drw_infos[drw_resource_id()];
+  ObjectInfos object_infos = drw_object_infos();
   bool use_light_linking = receiver_light_set_get(object_infos) != 0;
   bool use_terminator_offset = object_infos.shadow_terminator_normal_offset > 0.0;
 
   /* ----- Render Passes output ----- */
 
-#ifdef MAT_RENDER_PASS_SUPPORT /* Needed because node_tree isn't present in test shaders. */
   /* Some render pass can be written during the gbuffer pass. Light passes are written later. */
   if (imageSize(rp_cryptomatte_img).x > 1) {
+    const auto &nt = buffer_get(eevee_nodetree, node_tree);
     float4 cryptomatte_output = float4(
-        cryptomatte_object_buf[drw_resource_id()], node_tree.crypto_hash, 0.0f);
+        cryptomatte_object_buf[drw_resource_id()], nt.crypto_hash, 0.0f);
     imageStoreFast(rp_cryptomatte_img, out_texel, cryptomatte_output);
   }
   output_renderpass_color(uniform_buf.render_pass.emission_id, float4(g_emission, 1.0f));
-#endif
 
   /* ----- GBuffer output ----- */
 
   gbuffer::InputClosures gbuf_data;
-  gbuf_data.closure[0] = g_closure_get_resolved(0, alpha_rcp);
-#if CLOSURE_BIN_COUNT > 1
-  gbuf_data.closure[1] = g_closure_get_resolved(1, alpha_rcp);
-#endif
-#if CLOSURE_BIN_COUNT > 2
-  gbuf_data.closure[2] = g_closure_get_resolved(2, alpha_rcp);
-#endif
-  const bool use_object_id = use_sss || use_light_linking || use_terminator_offset;
+  for (int i = 0; i < 3; i++) [[unroll]] {
+    if (pipe.closure_bin_count > i) [[static_branch]] {
+      gbuf_data.closure[i] = g_closure_get_resolved(i, alpha_rcp);
+    }
+  }
+  const bool use_object_id = pipe.use_sss || use_light_linking || use_terminator_offset;
 
   float3 gbuffer_dither = sampling_rng_3D_get(SAMPLING_GBUFFER_U);
   gbuffer::Packed gbuf = gbuffer::pack(gbuf_data, g_data.Ng, g_data.N, g_thickness, use_object_id);

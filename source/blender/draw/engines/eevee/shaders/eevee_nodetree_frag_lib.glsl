@@ -13,6 +13,9 @@
 void attrib_load(WorldPoint /*domain*/) {}
 void attrib_load(VolumePoint /*domain*/) {}
 
+#ifndef NODETREE_FUNCTIONS /* Needed for linting. */
+#  define NODETREE_FUNCTIONS
+
 /* Material graph connected to the displacement output. */
 float3 nodetree_displacement()
 {
@@ -40,3 +43,5 @@ float nodetree_thickness()
 /* Replaced by define at runtime. */
 /* TODO(fclem): Find a way to pass material parameters inside the material UBO. */
 ThicknessMode thickness_mode = ThicknessMode::Slab;
+
+#endif

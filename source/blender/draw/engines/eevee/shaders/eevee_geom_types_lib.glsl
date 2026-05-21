@@ -7,7 +7,8 @@
 #include "gpu_shader_compat.hh"
 
 struct MeshVertex {
-  int _pad; /* TODO(fclem): Add explicit attribute loading for mesh. */
+  float3 lP;
+  /* TODO(fclem): Add explicit attribute loading for mesh through vertex fetch. */
 };
 
 struct PointCloudPoint {
@@ -21,9 +22,9 @@ struct CurvesPoint {
 };
 
 struct WorldPoint {
-  int _pad;
+  float3 lP;
 };
 
 struct VolumePoint {
-  int _pad; /* TODO(fclem): Add explicit attribute loading for volumes. */
+  float3 lP;
 };

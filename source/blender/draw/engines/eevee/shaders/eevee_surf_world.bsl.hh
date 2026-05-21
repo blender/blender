@@ -13,7 +13,7 @@
 #include "infos/eevee_nodetree_infos.hh"
 
 FRAGMENT_SHADER_CREATE_INFO(eevee_nodetree)
-FRAGMENT_SHADER_CREATE_INFO(eevee_geom_world)
+FRAGMENT_SHADER_CREATE_INFO(eevee_geom_iface_info)
 
 #include "draw_view_lib.glsl"
 #include "eevee_attributes_world_lib.glsl"
@@ -22,7 +22,7 @@ FRAGMENT_SHADER_CREATE_INFO(eevee_geom_world)
 #include "eevee_lightprobe_volume_eval_lib.glsl"
 #include "eevee_nodetree_frag_lib.glsl"
 #include "eevee_sampling_lib.glsl"
-#include "eevee_surf_lib.glsl"
+#include "eevee_surf_common.bsl.hh"
 
 float4 closure_to_rgba_world(Closure /*cl*/)
 {
@@ -37,10 +37,10 @@ struct SurfWorld {
   [[legacy_info]] ShaderCreateInfo eevee_volume_probe_data;
   [[legacy_info]] ShaderCreateInfo eevee_sampling_data;
   [[legacy_info]] ShaderCreateInfo eevee_utility_texture;
+  [[legacy_info]] ShaderCreateInfo eevee_geom_iface_info;
 
-  /* Optionally added depending on the material. */
-  // [[legacy_info]] ShaderCreateInfo eevee_render_pass_out;
-  // [[legacy_info]] ShaderCreateInfo eevee_cryptomatte_out;
+  [[legacy_info]] ShaderCreateInfo eevee_render_pass_out;
+  [[legacy_info]] ShaderCreateInfo eevee_cryptomatte_out;
 
   [[push_constant]] float world_opacity_fade;
   [[push_constant]] float world_background_blur;
@@ -53,6 +53,7 @@ struct SurfWorldFragOut {
 
 [[fragment]] [[early_fragment_tests]]
 void surf_world([[resource_table]] SurfWorld &srt,
+                [[frag_coord]] const float4 frag_co,
                 [[out]] SurfWorldFragOut &frag_out,
                 [[front_facing]] const bool front_face)
 {
@@ -61,7 +62,7 @@ void surf_world([[resource_table]] SurfWorld &srt,
   g_data.N = drw_normal_view_to_world(drw_view_incident_vector(interp.P));
   g_data.Ng = g_data.N;
   g_data.P = -g_data.N;
-  attrib_load(WorldPoint{0});
+  attrib_load(WorldPoint{g_data.P});
 
   nodetree_surface(0.0f);
 
@@ -86,12 +87,10 @@ void surf_world([[resource_table]] SurfWorld &srt,
   }
 
   /* Output environment pass. */
-#ifdef MAT_RENDER_PASS_SUPPORT
   float4 environment = frag_out.background;
   environment.a = 1.0f - environment.a;
   environment.rgb *= environment.a;
   output_renderpass_color(uniform_buf.render_pass.environment_id, environment);
-#endif
 
   frag_out.background = mix(
       float4(0.0f, 0.0f, 0.0f, 1.0f), frag_out.background, srt.world_opacity_fade);

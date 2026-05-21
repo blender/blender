@@ -22,21 +22,18 @@ SHADER_LIBRARY_CREATE_INFO(draw_modelmat)
  * Mesh objects attributes are loaded using vertex input attributes.
  * \{ */
 
-#ifdef OBINFO_LIB
-float3 attr_load_orco(MeshVertex vert, float4 orco, int index)
+float3 attr_load_orco(MeshVertex vert, float4 orco, int /*index*/)
 {
-#  ifdef GPU_VERTEX_SHADER
   /* We know when there is no orco layer when orco.w is 1.0 because it uses the generic vertex
    * attribute (which is [0,0,0,1]). */
   if (orco.w == 1.0f) {
     /* If the object does not have any deformation, the orco layer calculation is done on the fly
      * using the orco_madd factors. */
-    return drw_object_orco(pos);
+    return drw_object_orco(vert.lP);
   }
-#  endif
   return orco.xyz * 0.5f + 0.5f;
 }
-#endif
+
 float4 attr_load_tangent(MeshVertex /*vert*/, float4 tangent, int /*index*/)
 {
   tangent.xyz = safe_normalize(drw_normal_object_to_world(tangent.xyz));
