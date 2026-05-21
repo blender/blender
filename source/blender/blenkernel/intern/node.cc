@@ -116,11 +116,7 @@
 
 namespace blender {
 
-using nodes::FieldInferencingInterface;
-using nodes::InputSocketFieldType;
 using nodes::NodeDeclaration;
-using nodes::OutputFieldDependency;
-using nodes::OutputSocketFieldType;
 using nodes::SocketDeclaration;
 
 static CLG_LogRef LOG = {"node"};
@@ -210,10 +206,6 @@ static void ntree_copy_data(Main * /*bmain*/,
 
   ntree_dst->tree_interface.copy_data(ntree_src->tree_interface, flag);
 
-  if (ntree_src->runtime->field_inferencing_interface) {
-    dst_runtime.field_inferencing_interface = std::make_unique<FieldInferencingInterface>(
-        *ntree_src->runtime->field_inferencing_interface);
-  }
   if (ntree_src->runtime->structure_type_interface) {
     dst_runtime.structure_type_interface = std::make_unique<nodes::StructureTypeInterface>(
         *ntree_src->runtime->structure_type_interface);

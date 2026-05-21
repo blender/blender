@@ -24,8 +24,8 @@ namespace blender::nodes::decl {
 static bool field_types_are_compatible(const SocketDeclaration &input,
                                        const SocketDeclaration &output)
 {
-  if (output.output_field_dependency.field_type() == OutputSocketFieldType::FieldSource) {
-    if (input.input_field_type == InputSocketFieldType::None) {
+  if (output.structure_type == StructureType::Field) {
+    if (!ELEM(input.structure_type, StructureType::Field, StructureType::Dynamic)) {
       return false;
     }
   }

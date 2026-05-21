@@ -78,7 +78,7 @@ void NodeDeclarationBuilder::build_remaining_anonymous_attribute_relations()
       const int field_output = socket_builder->decl_base_->index;
       for (const int input_i : declaration_.inputs.index_range()) {
         SocketDeclaration &input_socket_decl = *declaration_.inputs[input_i];
-        if (input_socket_decl.input_field_type != InputSocketFieldType::None ||
+        if (ELEM(input_socket_decl.structure_type, StructureType::Field, StructureType::Dynamic) ||
             ELEM(input_socket_decl.socket_type, SOCK_BUNDLE, SOCK_CLOSURE))
         {
           relations.reference_relations.append({input_i, field_output});
@@ -542,18 +542,17 @@ const nodes::SocketDeclaration *PanelDeclaration::panel_input_decl() const
 BaseSocketDeclarationBuilder &BaseSocketDeclarationBuilder::supports_field()
 {
   BLI_assert(this->is_input());
-  decl_base_->input_field_type = InputSocketFieldType::IsSupported;
   this->structure_type(StructureType::Field);
   return *this;
 }
 
 BaseSocketDeclarationBuilder &BaseSocketDeclarationBuilder::dependent_field(
-    Vector<int> input_dependencies)
+    const Span<int> input_dependencies)
 {
   BLI_assert(this->is_output());
   this->reference_pass(input_dependencies);
-  decl_base_->output_field_dependency = OutputFieldDependency::ForPartiallyDependentField(
-      std::move(input_dependencies));
+  decl_base_->structure_type_output_dependency.variant = OutputStructureTypeDependency::Partial{
+      input_dependencies};
   this->structure_type(StructureType::Dynamic);
   return *this;
 }
@@ -697,7 +696,6 @@ BaseSocketDeclarationBuilder &BaseSocketDeclarationBuilder::field_on_all()
 BaseSocketDeclarationBuilder &BaseSocketDeclarationBuilder::field_source()
 {
   BLI_assert(this->is_output());
-  decl_base_->output_field_dependency = OutputFieldDependency::ForFieldSource();
   this->structure_type(StructureType::Field);
   return *this;
 }
@@ -708,7 +706,6 @@ BaseSocketDeclarationBuilder &BaseSocketDeclarationBuilder::implicit_field(
   BLI_assert(this->is_input());
   this->hide_value();
   this->structure_type(StructureType::Dynamic);
-  decl_base_->input_field_type = InputSocketFieldType::Implicit;
   decl_base_->default_input_type = default_input_type;
   return *this;
 }
@@ -734,7 +731,7 @@ BaseSocketDeclarationBuilder &BaseSocketDeclarationBuilder::implicit_field_on(
 BaseSocketDeclarationBuilder &BaseSocketDeclarationBuilder::dependent_field()
 {
   BLI_assert(this->is_output());
-  decl_base_->output_field_dependency = OutputFieldDependency::ForDependentField();
+  decl_base_->structure_type_output_dependency.variant = OutputStructureTypeDependency::All();
   this->structure_type(StructureType::Dynamic);
   this->reference_pass_all();
   return *this;
@@ -1033,50 +1030,6 @@ BaseSocketDeclarationBuilder &BaseSocketDeclarationBuilder::try_copy_ui_data(
   return *this;
 }
 
-OutputFieldDependency OutputFieldDependency::ForFieldSource()
-{
-  OutputFieldDependency field_dependency;
-  field_dependency.type_ = OutputSocketFieldType::FieldSource;
-  return field_dependency;
-}
-
-OutputFieldDependency OutputFieldDependency::ForDataSource()
-{
-  OutputFieldDependency field_dependency;
-  field_dependency.type_ = OutputSocketFieldType::None;
-  return field_dependency;
-}
-
-OutputFieldDependency OutputFieldDependency::ForDependentField()
-{
-  OutputFieldDependency field_dependency;
-  field_dependency.type_ = OutputSocketFieldType::DependentField;
-  return field_dependency;
-}
-
-OutputFieldDependency OutputFieldDependency::ForPartiallyDependentField(Vector<int> indices)
-{
-  OutputFieldDependency field_dependency;
-  if (indices.is_empty()) {
-    field_dependency.type_ = OutputSocketFieldType::None;
-  }
-  else {
-    field_dependency.type_ = OutputSocketFieldType::PartiallyDependent;
-    field_dependency.linked_input_indices_ = std::move(indices);
-  }
-  return field_dependency;
-}
-
-OutputSocketFieldType OutputFieldDependency::field_type() const
-{
-  return type_;
-}
-
-Span<int> OutputFieldDependency::linked_input_indices() const
-{
-  return linked_input_indices_;
-}
-
 const CompositorInputRealizationMode &SocketDeclaration::compositor_realization_mode() const
 {
   return compositor_realization_mode_;
@@ -1202,6 +1155,18 @@ bool socket_type_supports_default_input_type(const bke::bNodeSocketType &socket_
       return stype == SOCK_MATRIX;
   }
   return false;
+}
+
+bool default_input_type_is_field(const NodeDefaultInputType input_type)
+{
+  return ELEM(input_type,
+              NODE_DEFAULT_INPUT_INDEX_FIELD,
+              NODE_DEFAULT_INPUT_ID_INDEX_FIELD,
+              NODE_DEFAULT_INPUT_NORMAL_FIELD,
+              NODE_DEFAULT_INPUT_POSITION_FIELD,
+              NODE_DEFAULT_INPUT_INSTANCE_TRANSFORM_FIELD,
+              NODE_DEFAULT_INPUT_HANDLE_LEFT_FIELD,
+              NODE_DEFAULT_INPUT_HANDLE_RIGHT_FIELD);
 }
 
 void CustomSocketDrawParams::draw_standard(ui::Layout &layout,

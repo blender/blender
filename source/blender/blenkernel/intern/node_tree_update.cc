@@ -592,12 +592,6 @@ class NodeTreeMainUpdater {
       }
     }
 
-    if (ntree.type == NTREE_GEOMETRY) {
-      if (node_field_inferencing::update_field_inferencing(ntree)) {
-        result.interface_changed = true;
-      }
-    }
-
     if (ELEM(ntree.type, NTREE_GEOMETRY, NTREE_COMPOSIT)) {
       if (node_structure_type_inferencing::update_structure_type_interface(ntree)) {
         result.interface_changed = true;

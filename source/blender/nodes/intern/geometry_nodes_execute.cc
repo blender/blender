@@ -65,11 +65,10 @@ bool input_has_attribute_toggle(const bNodeTree &node_tree, const int socket_ind
   if (!typeinfo || !socket_type_has_attribute_toggle(typeinfo->type)) {
     return false;
   }
-
-  BLI_assert(node_tree.runtime->field_inferencing_interface);
-  const FieldInferencingInterface &field_interface =
-      *node_tree.runtime->field_inferencing_interface;
-  return field_interface.inputs[socket_index] != InputSocketFieldType::None;
+  BLI_assert(node_tree.runtime->structure_type_interface);
+  const StructureType structure_type =
+      node_tree.runtime->structure_type_interface->inputs[socket_index];
+  return ELEM(structure_type, StructureType::Field, StructureType::Dynamic);
 }
 
 template<typename T>
