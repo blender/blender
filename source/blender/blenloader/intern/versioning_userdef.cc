@@ -439,12 +439,6 @@ static void do_versions_theme(const UserDef *userdef, bTheme *btheme)
     btheme->space_view3d.grid_axis_brightness = U_theme_default.space_view3d.grid_axis_brightness;
   }
 
-  if (!USER_VERSION_ATLEAST(502, 33)) {
-    /* Remap the theme value from [-1,1] to [0,1]. */
-    btheme->space_view3d.grid_axis_brightness = btheme->space_view3d.grid_axis_brightness * 0.5f +
-                                                0.5f;
-  }
-
   /**
    * Always bump subversion in BKE_blender_version.h when adding versioning
    * code here, and wrap it inside a USER_VERSION_ATLEAST check.
