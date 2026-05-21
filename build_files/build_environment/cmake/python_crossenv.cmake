@@ -9,7 +9,7 @@
 set(PYTHON_CROSSENV_BINARY ${PYTHON_BINARY})
 
 if(CMAKE_CROSSCOMPILING)
-  set(PYTHON_CROSSENV_BINARY ${PYTHON_CROSSENV_DIR}/cross/bin/python${PYTHON_SHORT_VERSION})
+  set(PYTHON_CROSSENV_BINARY ${BUILD_DIR}/python_crossenv/cross/bin/python${PYTHON_SHORT_VERSION})
   # Append the target site package to the PYTHONPATH for site-packages to find each other during cross-compilation,
   # (e.g. for numpy to find meson-build). Without this, pip/setup.py only sees the (empty) local venv site-package
   # directory.
