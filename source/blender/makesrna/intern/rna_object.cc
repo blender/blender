@@ -3060,7 +3060,6 @@ static void rna_def_object(BlenderRNA *brna)
 
   prop = RNA_def_property(srna, "parent_bone_head_tail_factor", PROP_FLOAT, PROP_FACTOR);
   RNA_def_property_float_sdna(prop, nullptr, "parent_bone_head_tail_factor");
-  RNA_def_property_float_default(prop, 1.0f);
   RNA_def_property_range(prop, 0.0f, 1.0f);
   RNA_def_property_ui_range(prop, 0.0, 1.0, 1, 2);
   RNA_def_property_ui_text(prop, "Parent Bone Head/Tail", "Position along the length of bone");
