@@ -213,7 +213,7 @@ include(cmake/tracy.cmake)
 include(cmake/deps_md.cmake)
 include(cmake/cve_check.cmake)
 
-if(UNIX)
+if(UNIX AND NOT APPLE)
   # Strip all installed libraries.
   harvest_strip_all_libraries()
 endif()
