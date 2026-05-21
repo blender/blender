@@ -353,7 +353,7 @@ class BUILTIN_KSI_Available(KeyingSetInfo):
     def poll(self, context):
         # Skip checking for available channels to prevent hotkeys from
         # getting mixed up in the Insert Keyframe Menu (see #127175).
-        return bool(context.selected_objects)
+        return bool(context.selected_objects or (context.area.type == 'SEQUENCE_EDITOR' and context.selected_strips))
 
     # iterator - use callback for selected bones/objects
     iterator = keyingsets_utils.RKS_ITER_selected_item

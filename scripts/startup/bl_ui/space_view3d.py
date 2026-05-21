@@ -1272,6 +1272,7 @@ class VIEW3D_MT_transform_base:
         if context.mode == 'EDIT_MESH':
             layout.operator("mesh.circularize", text="To Circle")
             layout.operator("mesh.flatten", text="Flatten")
+            layout.operator("mesh.space_edge_loops_evenly", text="Space Edge Loops Evenly")
         layout.operator("transform.shear", text="Shear")
         layout.operator("transform.bend", text="Bend")
         layout.operator("transform.push_pull", text="Push/Pull")

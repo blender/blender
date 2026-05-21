@@ -267,7 +267,7 @@ template<typename T1, typename T2> struct DefaultHash<std::pair<T1, T2>> {
 
 /**
  * Special overload for function pointers to avoid adding const to them which causes a warning with
- * msvc.
+ * MSVC.
  */
 template<typename Ret, typename... Args> struct DefaultHash<Ret (*)(Args...)> {
   constexpr uint64_t operator()(Ret (*fn)(Args...)) const

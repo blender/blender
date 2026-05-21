@@ -56,7 +56,7 @@ struct RepeatItemsAccessor : public socket_items::SocketItemsAccessorDefaults {
 
   static eNodeSocketDatatype get_socket_type(const NodeRepeatItem &item)
   {
-    return eNodeSocketDatatype(item.socket_type);
+    return item.socket_type;
   }
 
   static char **get_name(NodeRepeatItem &item)

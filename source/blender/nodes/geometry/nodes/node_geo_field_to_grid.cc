@@ -44,14 +44,14 @@ static void node_declare(NodeDeclarationBuilder &b)
     return;
   }
   const GeometryNodeFieldToGrid &storage = node_storage(*node);
-  const eNodeSocketDatatype data_type = eNodeSocketDatatype(storage.data_type);
+  const eNodeSocketDatatype data_type = storage.data_type;
 
   b.add_input(data_type, "Topology"_ustr).structure_type(StructureType::Grid);
 
   const Span<GeometryNodeFieldToGridItem> items(storage.items, storage.items_num);
   for (const int i : items.index_range()) {
     const GeometryNodeFieldToGridItem &item = items[i];
-    const eNodeSocketDatatype data_type = eNodeSocketDatatype(item.data_type);
+    const eNodeSocketDatatype data_type = item.data_type;
     const UString name(item.name);
     const UString input_identifier(ItemsAccessor::input_socket_identifier_for_item(item));
     const UString output_identifier(ItemsAccessor::output_socket_identifier_for_item(item));
@@ -65,7 +65,9 @@ static void node_declare(NodeDeclarationBuilder &b)
         .description("Output grid with evaluated field values");
   }
 
-  b.add_input<decl::Extend>(""_ustr, "__extend__"_ustr).structure_type(StructureType::Field);
+  b.add_input<decl::Extend>(""_ustr, "__extend__"_ustr)
+      .structure_type(StructureType::Field)
+      .custom_draw(socket_items::ui::draw_extend_socket_fn<FieldToGridItemsAccessor>());
   b.add_output<decl::Extend>(""_ustr, "__extend__"_ustr)
       .structure_type(StructureType::Grid)
       .align_with_previous();
@@ -315,7 +317,7 @@ static void node_geo_exec(GeoNodeExecParams params)
   Vector<openvdb::GridBase::Ptr> output_grids(required_items.size());
   for (const int i : required_items.index_range()) {
     const int item_i = required_items[i];
-    const eNodeSocketDatatype socket_type = eNodeSocketDatatype(items[item_i].data_type);
+    const eNodeSocketDatatype socket_type = items[item_i].data_type;
     const VolumeGridType grid_type = *bke::socket_type_to_grid_type(socket_type);
     output_grids[i] = grid::create_grid_with_topology(mask_tree, transform, grid_type);
   }

@@ -80,7 +80,7 @@ Vector<float> get_rna_values(PointerRNA *ptr, PropertyRNA *prop)
   return values;
 }
 
-StringRef get_rotation_mode_path(const eRotationModes rotation_mode)
+StringRefNull get_rotation_mode_path(const eRotationModes rotation_mode)
 {
   switch (rotation_mode) {
     case ROT_MODE_QUAT:
@@ -215,6 +215,100 @@ Vector<RNAPath> get_keyable_id_property_paths(const PointerRNA &ptr)
     }
   }
   return paths;
+}
+
+Array<float> rna_property_get_as_float(PointerRNA &ptr, PropertyRNA &prop)
+{
+  const bool is_array = RNA_property_array_check(&prop);
+  Array<float> values;
+  if (is_array) {
+    values.reinitialize(RNA_property_array_length(&ptr, &prop));
+  }
+  else {
+    values.reinitialize(1);
+  }
+  switch (RNA_property_type(&prop)) {
+    case PROP_BOOLEAN:
+      if (is_array) {
+        for (const int i : values.index_range()) {
+          values[i] = RNA_property_boolean_get_index(&ptr, &prop, i);
+        }
+      }
+      else {
+        values[0] = RNA_property_boolean_get(&ptr, &prop);
+      }
+      break;
+
+    case PROP_INT:
+      if (is_array) {
+        for (const int i : values.index_range()) {
+          values[i] = RNA_property_int_get_index(&ptr, &prop, i);
+        }
+      }
+      else {
+        values[0] = RNA_property_int_get(&ptr, &prop);
+      }
+      break;
+
+    case PROP_FLOAT:
+      if (is_array) {
+        RNA_property_float_get_array(&ptr, &prop, values.data());
+      }
+      else {
+        values[0] = RNA_property_float_get(&ptr, &prop);
+      }
+      break;
+    default:
+      /* Unsupported property type. */
+      BLI_assert_unreachable();
+      return {};
+  }
+  return values;
+}
+
+void rna_property_set_as_float(PointerRNA &ptr, PropertyRNA &prop, const Span<float> values)
+{
+  const bool is_array = RNA_property_array_check(&prop);
+  if (is_array && RNA_property_array_length(&ptr, &prop) != values.size()) {
+    /* Array length has to match. */
+    BLI_assert_unreachable();
+    return;
+  }
+
+  switch (RNA_property_type(&prop)) {
+    case PROP_BOOLEAN:
+      if (is_array) {
+        for (const int i : values.index_range()) {
+          RNA_property_boolean_set_index(&ptr, &prop, i, values[i]);
+        }
+      }
+      else {
+        RNA_property_boolean_set(&ptr, &prop, values[0]);
+      }
+      break;
+    case PROP_INT:
+      if (is_array) {
+        for (const int i : values.index_range()) {
+          RNA_property_int_set_index(&ptr, &prop, i, values[i]);
+        }
+      }
+      else {
+        RNA_property_int_set(&ptr, &prop, values[0]);
+      }
+      break;
+    case PROP_FLOAT:
+      if (is_array) {
+        RNA_property_float_set_array(&ptr, &prop, values.data());
+      }
+      else {
+        RNA_property_float_set(&ptr, &prop, values[0]);
+      }
+      break;
+    default:
+      /* Unsupported property type. */
+      BLI_assert_unreachable();
+      return;
+  }
 }
 
 }  // namespace blender::animrig

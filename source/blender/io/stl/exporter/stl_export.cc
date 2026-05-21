@@ -168,7 +168,7 @@ void exporter_main(const bContext *C, const STLExportParams &export_params)
 
   ED_editors_flush_edits(bmain);
 
-  Depsgraph *depsgraph = DEG_graph_new(bmain, scene, view_layer, DAG_EVAL_RENDER);
+  Depsgraph *depsgraph = DEG_graph_new(bmain, scene, view_layer, export_params.evaluation_mode);
 
   if (export_params.collection[0]) {
     Collection *collection = reinterpret_cast<Collection *>(

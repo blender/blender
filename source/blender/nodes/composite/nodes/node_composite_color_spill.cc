@@ -205,7 +205,7 @@ static void node_register()
       ntype, "NodeColorspill", node_free_standard_storage, node_copy_standard_storage);
   ntype.gpu_fn = node_gpu_material;
   ntype.build_multi_function = node_build_multi_function;
-  bke::node_type_size(ntype, 160, 140, NODE_DEFAULT_MAX_WIDTH);
+  ntype.default_width = bke::NodeWidth::_160;
 
   bke::node_register_type(ntype);
 }

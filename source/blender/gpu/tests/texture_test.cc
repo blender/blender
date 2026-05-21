@@ -1159,7 +1159,7 @@ static void test_texture_pool()
 
   auto test_acquire =
       [&](int2 size, TextureFormat format, eGPUTextureUsage usage) -> blender::gpu::Texture * {
-    gpu::Texture *tex = pool.acquire_texture(size, format, usage);
+    gpu::Texture *tex = pool.acquire_texture_2d(size, 1, format, usage);
     EXPECT_EQ(GPU_texture_format(tex), format);
     EXPECT_EQ(GPU_texture_width(tex), size.x);
     EXPECT_EQ(GPU_texture_height(tex), size.y);

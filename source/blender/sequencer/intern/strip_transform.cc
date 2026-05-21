@@ -50,7 +50,7 @@ bool transform_is_locked(const ListBaseT<SeqTimelineChannel> *channels, const St
 {
   const SeqTimelineChannel *channel = channel_get_by_index(channels, strip->channel);
   return strip->flag & SEQ_LOCK ||
-         (channel_is_locked(channel) &&
+         (channel->is_locked() &&
           !flag_is_set(strip->runtime->flag, StripRuntimeFlag::IgnoreChannelLock));
 }
 
@@ -133,8 +133,8 @@ bool transform_seqbase_shuffle_ex(ListBaseT<Strip> *seqbasep,
 
   bool use_fallback_translation = false;
 
-  while (transform_test_overlap(evil_scene, seqbasep, test) || channel_is_muted(channel) ||
-         channel_is_locked(channel))
+  while (transform_test_overlap(evil_scene, seqbasep, test) || channel->is_muted() ||
+         channel->is_locked())
   {
     if ((channel_delta > 0) ? (test->channel + channel_delta >= MAX_CHANNELS) :
                               (test->channel + channel_delta < 1))

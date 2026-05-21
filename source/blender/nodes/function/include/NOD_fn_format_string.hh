@@ -59,7 +59,7 @@ struct FormatStringItemsAccessor : public socket_items::SocketItemsAccessorDefau
 
   static eNodeSocketDatatype get_socket_type(const NodeFunctionFormatStringItem &item)
   {
-    return eNodeSocketDatatype(item.socket_type);
+    return item.socket_type;
   }
 
   static char **get_name(NodeFunctionFormatStringItem &item)

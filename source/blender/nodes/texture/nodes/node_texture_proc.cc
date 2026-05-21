@@ -255,7 +255,7 @@ static void init(bNodeTree * /*ntree*/, bNode *node)
     ntype.enum_name_legacy = EnumNameLegacy; \
     ntype.nclass = NODE_CLASS_TEXTURE; \
     bke::node_type_socket_templates(&ntype, name##_inputs, outputs); \
-    bke::node_type_size_preset(ntype, bke::eNodeSizePreset::Middle); \
+    ntype.default_width = bke::NodeWidth::_160; \
     ntype.initfunc = init; \
     bke::node_type_storage(ntype, "Tex", node_free_standard_storage, node_copy_standard_storage); \
     ntype.exec_fn = name##_exec; \

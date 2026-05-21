@@ -82,7 +82,7 @@ class PixelOperation : public Operation {
   Map<const bNodeSocket *, std::string> outputs_to_declared_inputs_map_;
   /* A map that associates each of the needed implicit inputs with the identifiers of the inputs of
    * the operation that were declared for them. */
-  Map<ImplicitInput, std::string> implicit_inputs_to_input_identifiers_map_;
+  Map<ImplicitInputType, std::string> implicit_inputs_to_input_identifiers_map_;
   /* A map that associates the identifier of each input of the operation with the number of node
    * inputs that use it, that is, its reference count. This is needed to correct the reference
    * counts of results linked to the inputs of the operation, since the results that provide the
@@ -135,7 +135,7 @@ class PixelOperation : public Operation {
   /* Get a reference to the implicit inputs to input identifiers map of the operation. This is
    * called by the compiler to link the operations inputs with their corresponding implicit input
    * results. See implicit_inputs_to_input_identifiers_map_ for more information. */
-  Map<ImplicitInput, std::string> &get_implicit_inputs_to_input_identifiers_map();
+  Map<ImplicitInputType, std::string> &get_implicit_inputs_to_input_identifiers_map();
 
   /* Returns the internal reference count of the operation input with the given identifier. See the
    * inputs_to_reference_counts_map_ member for more information. */

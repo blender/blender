@@ -182,7 +182,7 @@ static RobustInitCaller init_caller;
  * Split(), and Two_Product() are all implemented as described in the
  * reference.  Each of these macros requires certain variables to be
  * defined in the calling routine.  The variables `bvirt`, `c`, `abig`,
- * `_i`, `_j`, `_k`, `_l`, `_m`, and `_n` are declared `INEXACT' because
+ * `_i`, `_j`, `_k`, `_l`, `_m`, and `_n` are declared `INEXACT` because
  * they store the result of an operation that may incur round-off error.
  * The input parameter `x` (or the highest numbered `x_` parameter) must
  * also be declared `INEXACT`.

@@ -193,7 +193,7 @@ ShadowDebugOutput debug_tilemaps([[resource_table]] const ShadowDebug &srt,
   int2 px = texel / debug_tile_size_px;
   int tilemap = px.x / SHADOW_TILEMAP_RES;
   int tilemap_index = light.tilemap_index + tilemap;
-  if ((px.y < SHADOW_TILEMAP_RES) && (tilemap_index <= light_tilemap_max_get(light))) {
+  if ((px.y < SHADOW_TILEMAP_RES) && (tilemap_index <= light.tilemap_max_get())) {
     if (do_debug_sample_tile) {
       /* Debug values in the tilemap_tx. */
       uint2 tilemap_texel = shadow_tile_coord_in_atlas(uint2(px), tilemap_index);

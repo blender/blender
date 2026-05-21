@@ -237,7 +237,6 @@ class SocketTooltipBuilder {
     if (socket_decl &&
         socket_decl->default_input_type != NodeDefaultInputType::NODE_DEFAULT_INPUT_VALUE)
     {
-      BLI_assert(socket_decl->input_field_type == nodes::InputSocketFieldType::Implicit);
       this->start_block(TooltipBlockType::Value);
       build_tooltip_value_implicit_default(socket_decl->default_input_type);
       return;
@@ -411,6 +410,9 @@ class SocketTooltipBuilder {
   void build_tooltip_value_int(const int value)
   {
     std::string value_str = fmt::format("{}", value);
+    if (this->is_implicit_default_input(NODE_DEFAULT_INPUT_SCENE_FRAME)) {
+      value_str += TIP_(" (Scene Frame)");
+    }
     this->build_tooltip_value_and_type_oneline(value_str, TIP_("Integer"));
   }
 
@@ -426,7 +428,16 @@ class SocketTooltipBuilder {
     else {
       value_str = fmt::format("{}", value);
     }
+    if (this->is_implicit_default_input(NODE_DEFAULT_INPUT_SCENE_FRAME)) {
+      value_str += TIP_(" (Scene Frame)");
+    }
     this->build_tooltip_value_and_type_oneline(value_str, TIP_("Float"));
+  }
+
+  bool is_implicit_default_input(const NodeDefaultInputType type) const
+  {
+    return socket_.is_input() && !socket_.is_logically_linked() && socket_.runtime->declaration &&
+           socket_.runtime->declaration->default_input_type == type;
   }
 
   void build_tooltip_value_float3(const float3 &value)
@@ -891,6 +902,10 @@ class SocketTooltipBuilder {
       case NODE_DEFAULT_INPUT_HANDLE_RIGHT_FIELD:
         this->build_tooltip_value_and_type_oneline(
             TIP_("Right Handle Field"), this->get_field_type_name(CPPType::get<float3>()));
+        break;
+      case NODE_DEFAULT_INPUT_SCENE_FRAME:
+        this->build_tooltip_value_and_type_oneline(
+            TIP_("Scene Frame"), socket_.type == SOCK_FLOAT ? TIP_("Float") : TIP_("Integer"));
         break;
     }
   }

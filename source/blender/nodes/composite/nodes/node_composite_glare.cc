@@ -14,7 +14,6 @@
 #  include <fftw3.h>
 #endif
 
-#include "BLI_array.hh"
 #include "BLI_fftw.hh"
 #include "BLI_index_range.hh"
 #include "BLI_math_angle_types.hh"
@@ -287,7 +286,7 @@ class SocketSearchOp {
 
 static void gather_link_searches(GatherLinkSearchOpParams &params)
 {
-  const eNodeSocketDatatype from_socket_type = eNodeSocketDatatype(params.other_socket().type);
+  const eNodeSocketDatatype from_socket_type = params.other_socket().type;
   if (!params.node_tree().typeinfo->validate_link(from_socket_type, SOCK_RGBA)) {
     return;
   }
@@ -1790,7 +1789,7 @@ class GlareOperation : public NodeOperation {
       return bloom_result;
     }
 
-    Array<Result> downsample_chain = compute_bloom_downsample_chain(highlights, chain_length);
+    Vector<Result> downsample_chain = compute_bloom_downsample_chain(highlights, chain_length);
 
     /* Notice that for a chain length of n, we need (n - 1) up-sampling passes. */
     const IndexRange upsample_passes_range(chain_length - 1);
@@ -1807,7 +1806,10 @@ class GlareOperation : public NodeOperation {
       input.release();
     }
 
-    return downsample_chain[0];
+    Result bloom_output = this->context().create_result(ResultType::Color);
+    bloom_output.share_data(downsample_chain[0]);
+    downsample_chain[0].release();
+    return bloom_output;
   }
 
   void compute_bloom_upsample_gpu(const Result &input, Result &output)
@@ -1881,10 +1883,13 @@ class GlareOperation : public NodeOperation {
    * expected not to exceed the binary logarithm of the smaller dimension of the given result,
    * because that would result in down-sampling passes that produce useless textures with just
    * one pixel. */
-  Array<Result> compute_bloom_downsample_chain(const Result &highlights, int chain_length)
+  Vector<Result> compute_bloom_downsample_chain(const Result &highlights, int chain_length)
   {
-    const Result downsampled_result = context().create_result(ResultType::Color);
-    Array<Result> downsample_chain(chain_length, downsampled_result);
+    Vector<Result> downsample_chain;
+    downsample_chain.reserve(chain_length);
+    for (int i = 0; i < chain_length; i++) {
+      downsample_chain.append(this->context().create_result(ResultType::Color));
+    }
 
     /* We copy the original highlights result to the first result of the chain to make the code
      * easier. */

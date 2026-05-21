@@ -32,6 +32,10 @@ class CompositorContext : public compositor::Context {
       : compositor::Context(cache_manager), render_data_(render_data), strip_(&strip)
   {
   }
+  const Main &get_main() const override
+  {
+    return *render_data_.bmain;
+  }
   const Scene &get_scene() const override
   {
     return *render_data_.scene;

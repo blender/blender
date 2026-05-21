@@ -49,7 +49,9 @@ AssetMetaData::AssetMetaData(const AssetMetaData &other)
       properties(nullptr),
       catalog_id(other.catalog_id),
       active_tag(other.active_tag),
-      tot_tags(other.tot_tags)
+      tot_tags(other.tot_tags),
+      flag(other.flag),
+      preferred_import_method(other.preferred_import_method)
 {
   if (other.properties) {
     properties = IDP_CopyProperty(other.properties);
@@ -74,7 +76,10 @@ AssetMetaData::AssetMetaData(AssetMetaData &&other)
       copyright(std::exchange(other.copyright, nullptr)),
       license(std::exchange(other.license, nullptr)),
       active_tag(other.active_tag),
-      tot_tags(other.tot_tags)
+      tot_tags(other.tot_tags),
+      flag(other.flag),
+      preferred_import_method(other.preferred_import_method)
+
 {
   STRNCPY(catalog_simple_name, other.catalog_simple_name);
   tags = other.tags;

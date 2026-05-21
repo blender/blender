@@ -975,8 +975,8 @@ template<typename T> void even_odd_coincident_polygons_need_ids_stable_test()
 
 /**
  * Single face whose vertex list traces an outer ring and an inner ring, then repeats the
- * whole sequence. Each unique boundary edge is walked twice within one face. Without
- * per-face dedup of polygon-boundary counts, the face is dropped entirely.
+ * whole sequence. Each unique boundary edge is walked twice within one face.
+ * Without per-face de-duplicate of polygon-boundary counts, the face is dropped entirely.
  */
 template<typename T> void even_odd_self_doubled_polygon_with_hole_test()
 {

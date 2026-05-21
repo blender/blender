@@ -24,6 +24,7 @@
 #include "scene/pointcloud.h"
 #include "scene/procedural.h"
 #include "scene/scene.h"
+#include "scene/scene_attributes.h"
 #include "scene/shader.h"
 #include "scene/svm.h"
 #include "scene/tables.h"
@@ -75,6 +76,7 @@ Scene ::Scene(const SceneParams &params_, Device *device)
   film = create_node<Film>();
   background = create_node<Background>();
   integrator = create_node<Integrator>();
+  scene_attribute = create_node<SceneAttributes>();
 
   ccl::Film::add_default(this);
   ccl::ShaderManager::add_default(this);
@@ -111,17 +113,20 @@ void Scene::free_memory(bool final)
     film->device_free(device, &dscene, this);
     background->device_free(device, &dscene);
     integrator->device_free(device, &dscene, true);
+    scene_attribute->device_free(device, &dscene, true);
   }
 
   if (final) {
     cameras.clear();
     integrators.clear();
+    scene_attributes.clear();
     films.clear();
     backgrounds.clear();
 
     camera = nullptr;
     dicing_camera = nullptr;
     integrator = nullptr;
+    scene_attribute = nullptr;
     film = nullptr;
     background = nullptr;
   }
@@ -261,6 +266,13 @@ void Scene::device_update(Device *device_, Progress &progress)
 
   progress.set_status("Updating Background");
   background->device_update(device, &dscene, this);
+
+  if (progress.get_cancel() || device->have_error()) {
+    return;
+  }
+
+  progress.set_status("Updating Scene Attribute");
+  scene_attribute->device_update(device, &dscene, this);
 
   if (progress.get_cancel() || device->have_error()) {
     return;
@@ -475,12 +487,12 @@ bool Scene::need_update()
 
 bool Scene::need_data_update()
 {
-  return (background->is_modified() || image_manager->need_update() ||
-          object_manager->need_update() || geometry_manager->need_update() ||
-          light_manager->need_update() || lookup_tables->need_update() ||
-          integrator->is_modified() || shader_manager->need_update() ||
-          particle_system_manager->need_update() || bake_manager->need_update() ||
-          film->is_modified() || procedural_manager->need_update());
+  return (
+      background->is_modified() || image_manager->need_update() || object_manager->need_update() ||
+      geometry_manager->need_update() || light_manager->need_update() ||
+      lookup_tables->need_update() || integrator->is_modified() || shader_manager->need_update() ||
+      particle_system_manager->need_update() || bake_manager->need_update() ||
+      film->is_modified() || procedural_manager->need_update() || scene_attribute->is_modified());
 }
 
 bool Scene::need_reset(const bool check_camera)
@@ -501,6 +513,7 @@ void Scene::reset()
 
   background->tag_update(this);
   integrator->tag_update(this, Integrator::UPDATE_ALL);
+  scene_attribute->tag_update(this, SceneAttributes::UPDATE_ALL);
   object_manager->tag_update(this, ObjectManager::UPDATE_ALL);
   geometry_manager->tag_update(this, GeometryManager::UPDATE_ALL);
   light_manager->tag_update(this, LightManager::UPDATE_ALL);
@@ -983,6 +996,15 @@ template<> Integrator *Scene::create_node<Integrator>()
   Integrator *node_ptr = node.get();
   node->set_owner(this);
   integrators.push_back(std::move(node));
+  return node_ptr;
+}
+
+template<> SceneAttributes *Scene::create_node<SceneAttributes>()
+{
+  unique_ptr<SceneAttributes> node = make_unique<SceneAttributes>();
+  SceneAttributes *node_ptr = node.get();
+  node->set_owner(this);
+  scene_attributes.push_back(std::move(node));
   return node_ptr;
 }
 

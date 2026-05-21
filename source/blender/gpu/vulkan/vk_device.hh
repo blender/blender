@@ -102,7 +102,7 @@ struct VKExtensions {
   bool vertex_input_dynamic_state = false;
 
   /**
-   *Does the device support VK_EXT_host_image_copy
+   * Does the device support VK_EXT_host_image_copy
    */
   bool host_image_copy = false;
 

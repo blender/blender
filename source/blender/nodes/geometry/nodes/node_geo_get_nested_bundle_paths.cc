@@ -5,6 +5,7 @@
 #include "NOD_geo_bundle.hh"
 #include "NOD_geometry_nodes_bundle.hh"
 #include "NOD_geometry_nodes_list.hh"
+#include "NOD_string_pattern.hh"
 
 #include "RNA_enum_types.hh"
 
@@ -39,6 +40,10 @@ static void node_declare(NodeDeclarationBuilder &b)
 {
   b.add_input<decl::Bundle>("Bundle"_ustr);
   b.add_input<decl::Menu>("Mode"_ustr).static_items(mode_items).optional_label();
+  b.add_input<decl::Menu>("Pattern Mode"_ustr)
+      .static_items(string_pattern_mode_items)
+      .optional_label()
+      .usage_by_menu("Mode"_ustr, int(Mode::BundleType));
   b.add_input<decl::String>("Bundle Type"_ustr)
       .optional_label()
       .usage_by_menu("Mode"_ustr, int(Mode::BundleType));
@@ -73,9 +78,19 @@ static void node_geo_exec(GeoNodeExecParams params)
       break;
     }
     case Mode::BundleType: {
-      const std::string bundle_type = params.extract_input<std::string>("Bundle Type"_ustr);
-      if (!bundle_type.empty()) {
-        paths = gather_bundle_paths_by_bundle_type(bundle, bundle_type);
+      const std::string type_pattern = params.extract_input<std::string>("Bundle Type"_ustr);
+      const StringPatternMode pattern_mode = params.extract_input<StringPatternMode>(
+          "Pattern Mode"_ustr);
+      std::string pattern_error;
+      std::optional<StringPattern> pattern_fn = StringPattern::from_string(
+          pattern_mode, type_pattern, pattern_error);
+      if (!pattern_fn) {
+        params.error_message_add(NodeWarningType::Error, pattern_error);
+        break;
+      }
+      if (!type_pattern.empty()) {
+        paths = gather_bundle_paths_by_bundle_type(
+            bundle, [&](const StringRef type) { return pattern_fn->match(type); });
       }
       break;
     }
@@ -102,7 +117,7 @@ static void node_register()
   ntype.nclass = NODE_CLASS_CONVERTER;
   ntype.geometry_node_execute = node_geo_exec;
   ntype.declare = node_declare;
-  bke::node_type_size(ntype, 180, 100, NODE_DEFAULT_MAX_WIDTH);
+  ntype.default_width = bke::NodeWidth::_180;
   bke::node_register_type(ntype);
 }
 NOD_REGISTER_NODE(node_register)

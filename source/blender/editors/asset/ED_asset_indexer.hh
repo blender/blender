@@ -53,6 +53,14 @@ struct RemoteListingAssetEntry : NonCopyable {
   RemoteListingAssetEntry(RemoteListingAssetEntry &&);
   RemoteListingAssetEntry &operator=(RemoteListingAssetEntry &&);
   ~RemoteListingAssetEntry();
+
+  /**
+   * Empty entries are used to skip assets when the Blender version doesn't match.
+   */
+  bool is_empty() const
+  {
+    return idcode == 0;
+  }
 };
 
 /**

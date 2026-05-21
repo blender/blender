@@ -52,9 +52,10 @@
 
 namespace blender {
 
-/**************************************
- * Modifiers functions.               *
- **************************************/
+/* -------------------------------------------------------------------- */
+/** \name Modifiers Functions
+ * \{ */
+
 static void init_data(ModifierData *md)
 {
   WeightVGEditModifierData *wmd = reinterpret_cast<WeightVGEditModifierData *>(md);
@@ -383,6 +384,8 @@ static void blend_read(BlendDataReader *reader, ModifierData *md)
     BKE_curvemapping_blend_read(reader, wmd->cmap_curve);
   }
 }
+
+/** \} */
 
 ModifierTypeInfo modifierType_WeightVGEdit = {
     /*idname*/ "VertexWeightEdit",

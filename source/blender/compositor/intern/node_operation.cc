@@ -33,8 +33,7 @@ NodeOperation::NodeOperation(Context &context, const bNode &node) : Operation(co
       continue;
     }
 
-    const ResultType result_type = get_node_socket_result_type(output);
-    populate_result(output->identifier, context.create_result(result_type));
+    populate_result(output->identifier, get_node_socket_result_type(output));
   }
 
   for (const bNodeSocket *input : this->node().input_sockets()) {
@@ -160,11 +159,12 @@ void NodeOperation::log_data()
       continue;
     }
 
-    const Result &input = this->get_input(input_socket->identifier);
-    if (!input_socket->is_logically_linked()) {
+    const InputDescriptor &input_descriptor = this->get_input_descriptor(input_socket->identifier);
+    if (!input_socket->is_logically_linked() && !input_descriptor.implicit_input.has_value()) {
       continue;
     }
 
+    const Result &input = this->get_input(input_socket->identifier);
     if (input.is_single_value()) {
       tree_logger.log_value(this->node(), *input_socket, input.single_value());
       continue;

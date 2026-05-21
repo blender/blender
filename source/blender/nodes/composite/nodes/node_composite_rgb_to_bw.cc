@@ -73,7 +73,6 @@ static void node_register()
   ntype.enum_name_legacy = "RGBTOBW";
   ntype.nclass = NODE_CLASS_CONVERTER;
   ntype.declare = node_declare;
-  bke::node_type_size_preset(ntype, bke::eNodeSizePreset::Default);
   ntype.gpu_fn = node_gpu_material;
   ntype.build_multi_function = node_build_multi_function;
 

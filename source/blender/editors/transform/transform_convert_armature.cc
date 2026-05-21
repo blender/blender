@@ -1406,7 +1406,8 @@ static void autokeyframe_pose(bContext *C,
     }
 
     Vector<RNAPath> rna_paths;
-    const StringRef rotation_path = animrig::get_rotation_mode_path(eRotationModes(pchan.rotmode));
+    const StringRefNull rotation_path = animrig::get_rotation_mode_path(
+        eRotationModes(pchan.rotmode));
 
     if (animrig::is_keying_flag(scene, AUTOKEY_FLAG_INSERTNEEDED)) {
       const bool is_connected = pchan_bone->parent != nullptr &&
@@ -1538,7 +1539,7 @@ void transform_convert_pose_transflags_update(Object *ob, const int mode, const 
   bArmature *arm = id_cast<bArmature *>(ob->data);
 
   for (bPoseChannel &pchan : ob->pose->chanbase) {
-    if (animrig::bone_is_visible(arm, &pchan)) {
+    if (animrig::bone_is_visible(arm, {&pchan, pchan.bone_get(*ob)})) {
       if (pchan.flag & POSE_SELECTED) {
         pchan.runtime.flag |= POSE_RUNTIME_TRANSFORM;
       }

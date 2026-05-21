@@ -63,6 +63,15 @@ void regiondata_blend_read_data(BlendDataReader *reader, RegionAssetShelf **shel
 void settings_blend_write(BlendWriter *writer, const AssetShelfSettings &settings);
 void settings_blend_read_data(BlendDataReader *reader, AssetShelfSettings &settings);
 
+/**
+ * Important: Must be called before #AssetShelfSettings.asset_library_reference is used. It will
+ * make sure to fall back to the "All" library if the reference refers to a deleted library. An
+ * invalid reference would make loading the asset listing fail.
+ *
+ * The library reference in \a settings will be updated and returned (for convenience).
+ */
+AssetLibraryReference &settings_ensure_valid_library_ref(AssetShelfSettings &settings);
+
 void settings_set_active_catalog(AssetShelfSettings &settings,
                                  const asset_system::AssetCatalogPath &path);
 void settings_set_all_catalog_active(AssetShelfSettings &settings);

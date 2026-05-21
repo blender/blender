@@ -26,7 +26,6 @@ struct BlenderRNA;
 struct CollectionPropertyIterator;
 struct ContainerRNA;
 struct FunctionRNA;
-struct GHash;
 struct IDOverrideLibrary;
 struct IDOverrideLibraryPropertyOperation;
 struct IDProperty;

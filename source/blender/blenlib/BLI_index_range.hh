@@ -14,6 +14,7 @@
  * I'd argue that the second loop is more readable and less error prone than the first one. That is
  * not necessarily always the case, but often it is.
  *
+ * \code{.cc}
  *  for (int64_t i = 0; i < 10; i++) {
  *    for (int64_t j = 0; j < 20; j++) {
  *       for (int64_t k = 0; k < 30; k++) {
@@ -21,17 +22,20 @@
  *  for (int64_t i : IndexRange(10)) {
  *    for (int64_t j : IndexRange(20)) {
  *      for (int64_t k : IndexRange(30)) {
+ * \endcode
  *
  * Some containers like Vector have an index_range() method. This will return the
  * IndexRange that contains all indices that can be used to access the container. This is
  * particularly useful when you want to iterate over the indices and the elements (much like
  * Python's enumerate(), just worse). Again, I think the second example here is better:
  *
+ * \code{.cc}
  *  for (int64_t i = 0; i < my_vector_with_a_long_name.size(); i++) {
  *    do_something(i, my_vector_with_a_long_name[i]);
  *
  *  for (int64_t i : my_vector_with_a_long_name.index_range()) {
  *    do_something(i, my_vector_with_a_long_name[i]);
+ * \endcode
  *
  * Ideally this could be could be even closer to Python's enumerate(). We might get that in the
  * future with newer C++ versions.

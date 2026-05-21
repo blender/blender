@@ -3,32 +3,15 @@
  * SPDX-License-Identifier: GPL-2.0-or-later */
 
 #include "BKE_instances.hh"
+
+#include "NOD_string_pattern.hh"
+
 #include "node_geometry_util.hh"
 
 #include <fmt/format.h>
 #include <fmt/ranges.h>
 
 namespace blender::nodes::node_geo_remove_attribute_cc {
-
-enum class PatternMode {
-  Exact,
-  Wildcard,
-};
-
-static const EnumPropertyItem pattern_mode_items[] = {
-    {int(PatternMode::Exact),
-     "EXACT",
-     0,
-     N_("Exact"),
-     N_("Remove the one attribute with the given name")},
-    {int(PatternMode::Wildcard),
-     "WILDCARD",
-     0,
-     N_("Wildcard"),
-     N_("Remove all attributes that match the pattern which is allowed to contain a single "
-        "wildcard (*)")},
-    {0, nullptr, 0, nullptr, nullptr},
-};
 
 static void node_declare(NodeDeclarationBuilder &b)
 {
@@ -37,17 +20,14 @@ static void node_declare(NodeDeclarationBuilder &b)
   b.add_input<decl::Geometry>("Geometry"_ustr).description("Geometry to remove attributes from");
   b.add_output<decl::Geometry>("Geometry"_ustr).propagate_all().align_with_previous();
   b.add_input<decl::Menu>("Pattern Mode"_ustr)
-      .static_items(pattern_mode_items)
+      .static_items(string_pattern_mode_items)
       .optional_label()
       .description("How the attributes to remove are chosen");
   b.add_input<decl::String>("Name"_ustr).is_attribute_name().optional_label();
 }
 
 struct RemoveAttributeParams {
-  PatternMode pattern_mode;
-  std::string pattern;
-  std::string wildcard_prefix;
-  std::string wildcard_suffix;
+  StringPattern pattern;
 
   Set<std::string> removed_attributes;
   Set<std::string> failed_attributes;
@@ -68,29 +48,23 @@ static void remove_attributes_recursive(GeometrySet &geometry_set, RemoveAttribu
      * to avoid potentially expensive unnecessary copies. */
     const GeometryComponent &read_only_component = *geometry_set.get_component(type);
     Vector<std::string> attributes_to_remove;
-    switch (params.pattern_mode) {
-      case PatternMode::Exact: {
-        if (read_only_component.attributes()->contains(params.pattern)) {
-          attributes_to_remove.append(params.pattern);
-        }
-        break;
-      }
-      case PatternMode::Wildcard: {
-        read_only_component.attributes()->foreach_attribute([&](const bke::AttributeIter &iter) {
-          const StringRef attribute_name = iter.name;
-          if (bke::attribute_name_is_anonymous(attribute_name)) {
-            return;
-          }
-          if (attribute_name.startswith(params.wildcard_prefix) &&
-              attribute_name.endswith(params.wildcard_suffix))
-          {
-            attributes_to_remove.append(attribute_name);
-          }
-        });
-
-        break;
+    if (const std::optional<StringRef> exact_pattern = params.pattern.exact_pattern()) {
+      if (read_only_component.attributes()->contains(*exact_pattern)) {
+        attributes_to_remove.append(*exact_pattern);
       }
     }
+    else {
+      read_only_component.attributes()->foreach_attribute([&](const bke::AttributeIter &iter) {
+        const StringRef attribute_name = iter.name;
+        if (bke::attribute_name_is_anonymous(attribute_name)) {
+          return;
+        }
+        if (params.pattern.match(attribute_name)) {
+          attributes_to_remove.append(attribute_name);
+        }
+      });
+    }
+
     if (attributes_to_remove.is_empty()) {
       continue;
     }
@@ -128,29 +102,16 @@ static void node_geo_exec(GeoNodeExecParams params)
     return;
   }
 
-  PatternMode pattern_mode = params.get_input<PatternMode>("Pattern Mode"_ustr);
-  if (pattern_mode == PatternMode::Wildcard) {
-    const int wildcard_count = Span(pattern.c_str(), pattern.size()).count('*');
-    if (wildcard_count == 0) {
-      pattern_mode = PatternMode::Exact;
-    }
-    else if (wildcard_count >= 2) {
-      params.error_message_add(NodeWarningType::Info,
-                               TIP_("Only one * is supported in the pattern"));
-      params.set_output("Geometry"_ustr, std::move(geometry_set));
-      return;
-    }
+  std::string pattern_error;
+  std::optional<StringPattern> pattern_fn = StringPattern::from_string(
+      params.get_input<StringPatternMode>("Pattern Mode"_ustr), pattern, pattern_error);
+  if (!pattern_fn) {
+    params.error_message_add(NodeWarningType::Error, pattern_error);
+    params.set_output("Geometry"_ustr, std::move(geometry_set));
+    return;
   }
 
-  RemoveAttributeParams removal_params;
-  removal_params.pattern_mode = pattern_mode;
-  removal_params.pattern = pattern;
-  if (pattern_mode == PatternMode::Wildcard) {
-    const int wildcard_index = pattern.find('*');
-    removal_params.wildcard_prefix = StringRef(pattern).substr(0, wildcard_index);
-    removal_params.wildcard_suffix = StringRef(pattern).substr(wildcard_index + 1);
-  }
-
+  RemoveAttributeParams removal_params{*pattern_fn};
   remove_attributes_recursive(geometry_set, removal_params);
 
   for (const StringRef attribute_name : removal_params.removed_attributes) {
@@ -167,10 +128,12 @@ static void node_geo_exec(GeoNodeExecParams params)
         fmt::join(quoted_attribute_names, ", "));
     params.error_message_add(NodeWarningType::Warning, message);
   }
-  else if (removal_params.removed_attributes.is_empty() && pattern_mode == PatternMode::Exact) {
-    const std::string message = fmt::format(fmt::runtime(TIP_("Attribute does not exist: \"{}\"")),
-                                            pattern);
-    params.error_message_add(NodeWarningType::Warning, message);
+  else if (removal_params.removed_attributes.is_empty()) {
+    if (const std::optional<StringRef> exact_pattern = removal_params.pattern.exact_pattern()) {
+      const std::string message = fmt::format(
+          fmt::runtime(TIP_("Attribute does not exist: \"{}\"")), *exact_pattern);
+      params.error_message_add(NodeWarningType::Warning, message);
+    }
   }
 
   params.set_output("Geometry"_ustr, std::move(geometry_set));
@@ -188,7 +151,7 @@ static void node_register()
   ntype.enum_name_legacy = "REMOVE_ATTRIBUTE";
   ntype.nclass = NODE_CLASS_ATTRIBUTE;
   ntype.declare = node_declare;
-  bke::node_type_size(ntype, 170, 100, 700);
+  ntype.default_width = bke::NodeWidth::_180;
   ntype.geometry_node_execute = node_geo_exec;
   bke::node_register_type(ntype);
 }

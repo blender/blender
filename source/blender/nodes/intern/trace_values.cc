@@ -46,8 +46,7 @@ static bool use_link_for_tracing(const bNodeLink &link)
   }
   const bNodeTree &tree = link.fromnode->owner_tree();
   if (tree.typeinfo->validate_link &&
-      !tree.typeinfo->validate_link(eNodeSocketDatatype(link.fromsock->type),
-                                    eNodeSocketDatatype(link.tosock->type)))
+      !tree.typeinfo->validate_link(link.fromsock->type, link.tosock->type))
   {
     return false;
   }

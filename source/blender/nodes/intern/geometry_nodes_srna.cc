@@ -144,7 +144,7 @@ static StructRNA *create_outputs_srna(const bNodeTree &tree, GeneratedTreeSrnaDa
 
   for (const bNodeTreeInterfaceSocket *output : tree.interface_outputs()) {
     const bke::bNodeSocketType *socket_type = bke::node_socket_type_find(output->socket_type);
-    if (!nodes::socket_type_supports_attributes(eNodeSocketDatatype(socket_type->type))) {
+    if (!nodes::socket_type_supports_attributes(socket_type->type)) {
       continue;
     }
 

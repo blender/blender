@@ -1236,6 +1236,10 @@ static Button *item_with_label(Layout *layout,
                                                  std::make_optional<StringRefNull>("");
     but = uiDefAutoButR(
         block, ptr, prop, index, str, icon, x, y, prop_but_width, h, button_type_override);
+    if (flag & ITEM_R_TEXT_RIGHT) {
+      but->drawflag |= BUT_TEXT_RIGHT;
+      but->drawflag &= ~BUT_TEXT_LEFT;
+    }
   }
 
   /* Highlight in red on path template validity errors. */

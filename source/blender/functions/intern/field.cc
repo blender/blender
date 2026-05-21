@@ -73,7 +73,9 @@ bool operator==(const GField &a, const GField &b)
               },
               b_ref.variant_);
         }
-        return false;
+        else {
+          BLI_assert_unreachable_static_t(T);
+        }
       },
       a_ref.variant_);
 }
@@ -96,6 +98,9 @@ uint64_t GField::hash() const
         }
         else if constexpr (is_constant_value_v<T>) {
           return v.type->hash_or_fallback(v.value, uint64_t(v.type));
+        }
+        else {
+          BLI_assert_unreachable_static_t(T);
         }
       },
       ref.variant_);
@@ -137,6 +142,9 @@ UniqueHash FieldHashDeep::ensure(const GFieldRef &field)
               for (const GField &input_field : v.node->inputs()) {
                 hash_context.add(cache.lookup(input_field));
               }
+            }
+            else {
+              BLI_assert_unreachable_static_t(T);
             }
           },
           current.variant());
@@ -340,6 +348,9 @@ GFieldRef::GFieldRef(const GField &field)
             else if constexpr (GField::is_constant_value_v<T>) {
               return Value{v.type, v.value};
             }
+            else {
+              BLI_assert_unreachable_static_t(T);
+            }
           },
           field.deref_field_ref().variant()))
 {
@@ -358,6 +369,9 @@ const FieldInputsPtr &GFieldRef::field_inputs() const
         }
         else if constexpr (std::is_same_v<T, Value>) {
           return empty_inputs;
+        }
+        else {
+          BLI_assert_unreachable_static_t(T);
         }
       },
       variant_);
@@ -388,6 +402,9 @@ bool operator==(const GFieldRef &a, const GFieldRef &b)
           }
           return false;
         }
+        else {
+          BLI_assert_unreachable_static_t(T);
+        }
       },
       a.variant());
 }
@@ -404,6 +421,9 @@ uint64_t GFieldRef::hash() const
         }
         else if constexpr (std::is_same_v<T, MultiFn>) {
           return get_default_hash(v.node, v.output_i);
+        }
+        else {
+          BLI_assert_unreachable_static_t(T);
         }
       },
       variant_);
@@ -450,6 +470,9 @@ const FieldInputsPtr &GField::field_inputs() const
         }
         else if constexpr (is_same_any_v<T, ConstantRef, TrivialInlineConstant, OwnedConstant>) {
           return empty_inputs;
+        }
+        else {
+          BLI_assert_unreachable_static_t(T);
         }
       },
       this->variant_);

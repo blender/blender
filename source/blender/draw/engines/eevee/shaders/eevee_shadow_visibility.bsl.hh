@@ -34,8 +34,6 @@ struct ViewVisibility {
   [[storage(2, read)]] const ShadowRenderView (&render_view_buf)[SHADOW_VIEW_MAX];
 
   [[push_constant]] const int resource_len;
-  [[push_constant]] const int view_len;
-  [[push_constant]] const int visibility_word_per_draw;
 
   bool shadow_linking_affects_caster(uint view_id, uint resource_id)
   {
@@ -45,15 +43,11 @@ struct ViewVisibility {
                           blocker_shadow_set_get(object_infos));
   }
 
-  void mask_visibility_bit(uint view_id)
+  void mask_visibility_bit(uint view_id, uint3 global_id)
   {
-    if (view_len > 1) {
-      uint index = gl_GlobalInvocationID.x * uint(visibility_word_per_draw) + (view_id / 32u);
-      visibility_buf[index] &= ~(1u << view_id);
-    }
-    else {
-      atomicAnd(visibility_buf[gl_WorkGroupID.x], ~(1u << gl_LocalInvocationID.x));
-    }
+    constexpr uint visibility_word_per_draw = uint(SHADOW_VIEW_MAX) / 32u;
+    uint index = global_id.x * visibility_word_per_draw + (view_id / 32u);
+    visibility_buf[index] &= ~(1u << view_id);
   }
 
   /* Returns true if visibility needs to be disabled. */
@@ -72,13 +66,14 @@ struct ViewVisibility {
 };
 
 [[compute, local_size(DRW_VISIBILITY_GROUP_SIZE)]]
-void comp_main([[resource_table]] ViewVisibility &srt)
+void comp_main([[resource_table]] ViewVisibility &srt,
+               [[global_invocation_id]] const uint3 global_id)
 {
-  if (int(gl_GlobalInvocationID.x) >= srt.resource_len) {
+  if (int(global_id.x) >= srt.resource_len) {
     return;
   }
 
-  ObjectBounds bounds = srt.bounds_buf[gl_GlobalInvocationID.x];
+  ObjectBounds bounds = srt.bounds_buf[global_id.x];
 
   if (drw_bounds_are_valid(bounds)) {
     IsectBox box = isect_box_setup(bounds.bounding_corners[0].xyz,
@@ -89,32 +84,32 @@ void comp_main([[resource_table]] ViewVisibility &srt)
     Sphere inscribed_sphere = shape_sphere(bounds.bounding_sphere.xyz,
                                            bounds._inner_sphere_radius);
 
-    for (uint view_id = 0u; view_id < uint(srt.view_len); view_id++) {
-      if (srt.non_culling_tests(view_id, gl_GlobalInvocationID.x)) {
-        srt.mask_visibility_bit(view_id);
+    for (uint view_id = 0u; view_id < uint(SHADOW_VIEW_MAX); view_id++) {
+      if (srt.non_culling_tests(view_id, global_id.x)) {
+        srt.mask_visibility_bit(view_id, global_id);
       }
       else if (drw_view_culling(view_id).bound_sphere.w == -1.0f) {
         /* View disabled. */
-        srt.mask_visibility_bit(view_id);
+        srt.mask_visibility_bit(view_id, global_id);
       }
       else if (intersect_view(inscribed_sphere, view_id) == true) {
         /* Visible. */
       }
       else if (intersect_view(bounding_sphere, view_id) == false) {
         /* Not visible. */
-        srt.mask_visibility_bit(view_id);
+        srt.mask_visibility_bit(view_id, global_id);
       }
       else if (intersect_view(box, view_id) == false) {
         /* Not visible. */
-        srt.mask_visibility_bit(view_id);
+        srt.mask_visibility_bit(view_id, global_id);
       }
     }
   }
   else {
     /* Culling is disabled, but we need to mask the bits for disabled views. */
-    for (uint view_id = 0u; view_id < uint(srt.view_len); view_id++) {
-      if (srt.non_culling_tests(view_id, gl_GlobalInvocationID.x)) {
-        srt.mask_visibility_bit(view_id);
+    for (uint view_id = 0u; view_id < uint(SHADOW_VIEW_MAX); view_id++) {
+      if (srt.non_culling_tests(view_id, global_id.x)) {
+        srt.mask_visibility_bit(view_id, global_id);
       }
     }
   }

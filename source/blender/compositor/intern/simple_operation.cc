@@ -29,9 +29,9 @@ Result &SimpleOperation::get_input()
   return Operation::get_input(input_identifier_);
 }
 
-void SimpleOperation::populate_result(Result result)
+void SimpleOperation::populate_result(const ResultType type)
 {
-  Operation::populate_result(output_identifier_, result);
+  Operation::populate_result(output_identifier_, type);
 
   /* The result of a simple operation is guaranteed to have a single user. */
   get_result().set_reference_count(1);

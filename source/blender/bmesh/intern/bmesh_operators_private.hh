@@ -82,6 +82,7 @@ void bmo_scale_exec(BMesh *bm, BMOperator *op);
 void bmo_smooth_vert_exec(BMesh *bm, BMOperator *op);
 void bmo_smooth_laplacian_vert_exec(BMesh *bm, BMOperator *op);
 void bmo_solidify_face_region_exec(BMesh *bm, BMOperator *op);
+void bmo_space_edge_loops_evenly_exec(BMesh *bm, BMOperator *op);
 void bmo_spin_exec(BMesh *bm, BMOperator *op);
 void bmo_split_edges_exec(BMesh *bm, BMOperator *op);
 void bmo_split_exec(BMesh *bm, BMOperator *op);

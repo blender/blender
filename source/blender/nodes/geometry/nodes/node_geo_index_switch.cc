@@ -15,6 +15,7 @@
 #include "NOD_socket.hh"
 #include "NOD_socket_items_blend.hh"
 #include "NOD_socket_items_ops.hh"
+#include "NOD_socket_items_ui.hh"
 #include "NOD_socket_search_link.hh"
 
 #include "RNA_enum_types.hh"
@@ -87,7 +88,7 @@ static void node_declare(NodeDeclarationBuilder &b)
     return;
   }
   const NodeIndexSwitch &storage = node_storage(*node);
-  const eNodeSocketDatatype data_type = eNodeSocketDatatype(storage.data_type);
+  const eNodeSocketDatatype data_type = storage.data_type;
   const bool supports_fields = socket_type_supports_fields(data_type) &&
                                ntree->type == NTREE_GEOMETRY;
 
@@ -148,12 +149,7 @@ static void node_declare(NodeDeclarationBuilder &b)
   output.structure_type(value_structure_type);
 
   b.add_input<decl::Extend>(""_ustr, "__extend__"_ustr)
-      .custom_draw([](CustomSocketDrawParams &params) {
-        ui::Layout &layout = params.layout;
-        layout.emboss_set(ui::EmbossType::None);
-        PointerRNA op_ptr = layout.op("node.index_switch_item_add", "", ICON_ADD);
-        RNA_int_set(&op_ptr, "node_identifier", params.node.identifier);
-      });
+      .custom_draw(socket_items::ui::draw_extend_socket_fn<IndexSwitchItemsAccessor>());
 }
 
 static void node_layout(ui::Layout &layout, bContext * /*C*/, PointerRNA *ptr)
@@ -177,22 +173,9 @@ static void node_layout_ex(ui::Layout &layout, bContext *C, PointerRNA *ptr)
   }
 }
 
-static void NODE_OT_index_switch_item_add(wmOperatorType *ot)
-{
-  socket_items::ops::add_item<IndexSwitchItemsAccessor>(
-      ot, "Add Item", __func__, "Add an item to the index switch");
-}
-
-static void NODE_OT_index_switch_item_remove(wmOperatorType *ot)
-{
-  socket_items::ops::remove_item_by_index<IndexSwitchItemsAccessor>(
-      ot, "Remove Item", __func__, "Remove an item from the index switch");
-}
-
 static void node_operators()
 {
-  WM_operatortype_append(NODE_OT_index_switch_item_add);
-  WM_operatortype_append(NODE_OT_index_switch_item_remove);
+  socket_items::ops::make_common_operators<IndexSwitchItemsAccessor>();
 }
 
 static void node_init(bNodeTree *tree, bNode *node)
@@ -222,7 +205,7 @@ static void node_gather_link_searches(GatherLinkSearchOpParams &params)
     });
   }
   else {
-    const eNodeSocketDatatype other_type = eNodeSocketDatatype(params.other_socket().type);
+    const eNodeSocketDatatype other_type = params.other_socket().type;
     if (params.node_tree().typeinfo->validate_link(other_type, SOCK_INT)) {
       params.add_item(IFACE_("Index"), [](LinkSearchOpParams &params) {
         bNode &node = params.add_node("GeometryNodeIndexSwitch"_ustr);
@@ -315,7 +298,7 @@ class LazyFunctionForIndexSwitchNode : public LazyFunction {
       : node_(node)
   {
     const NodeIndexSwitch &storage = node_storage(node);
-    const eNodeSocketDatatype data_type = eNodeSocketDatatype(storage.data_type);
+    const eNodeSocketDatatype data_type = storage.data_type;
     const bNodeSocket &index_socket = node.input_socket(0);
     const bNodeSocket &output_socket = node.output_socket(0);
     const CPPType &cpp_type = CPPType::get<SocketValueVariant>();

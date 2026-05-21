@@ -275,52 +275,32 @@ static bool write_internal_bake_pixels(Image *image,
   /* populates the ImBuf */
   if (is_clear) {
     if (is_float) {
-      IMB_buffer_float_from_float(ibuf->float_data_for_write(),
-                                  buffer,
-                                  ibuf->channels,
-                                  IB_PROFILE_LINEAR_RGB,
-                                  IB_PROFILE_LINEAR_RGB,
-                                  false,
-                                  ibuf->x,
-                                  ibuf->y,
-                                  ibuf->x,
-                                  ibuf->x);
+      IMB_buffer_float_rgba_from_float(
+          ibuf->float_data_for_write(), buffer, ibuf->channels, ibuf->x, ibuf->y);
     }
     else {
       IMB_buffer_byte_from_float(ibuf->byte_data_for_write(),
                                  buffer,
                                  ibuf->channels,
                                  ibuf->dither,
-                                 IB_PROFILE_SRGB,
-                                 IB_PROFILE_SRGB,
                                  false,
                                  ibuf->x,
                                  ibuf->y,
-                                 ibuf->x,
                                  ibuf->x);
     }
   }
   else {
     if (is_float) {
-      IMB_buffer_float_from_float_mask(ibuf->float_data_for_write(),
-                                       buffer,
-                                       ibuf->channels,
-                                       ibuf->x,
-                                       ibuf->y,
-                                       ibuf->x,
-                                       ibuf->x,
-                                       mask_buffer);
+      IMB_buffer_float_rgba_from_float_mask(
+          ibuf->float_data_for_write(), buffer, ibuf->channels, ibuf->x, ibuf->y, mask_buffer);
     }
     else {
       IMB_buffer_byte_from_float_mask(ibuf->byte_data_for_write(),
                                       buffer,
                                       ibuf->channels,
                                       ibuf->dither,
-                                      false,
                                       ibuf->x,
                                       ibuf->y,
-                                      ibuf->x,
-                                      ibuf->x,
                                       mask_buffer);
     }
   }
@@ -388,16 +368,8 @@ static bool write_external_bake_pixels(const char *filepath,
 
   /* populates the ImBuf */
   if (is_float) {
-    IMB_buffer_float_from_float(ibuf->float_data_for_write(),
-                                buffer,
-                                ibuf->channels,
-                                IB_PROFILE_LINEAR_RGB,
-                                IB_PROFILE_LINEAR_RGB,
-                                false,
-                                ibuf->x,
-                                ibuf->y,
-                                ibuf->x,
-                                ibuf->x);
+    IMB_buffer_float_rgba_from_float(
+        ibuf->float_data_for_write(), buffer, ibuf->channels, ibuf->x, ibuf->y);
   }
   else {
     if (!is_noncolor) {
@@ -416,12 +388,9 @@ static bool write_external_bake_pixels(const char *filepath,
                                buffer,
                                ibuf->channels,
                                ibuf->dither,
-                               IB_PROFILE_SRGB,
-                               IB_PROFILE_SRGB,
                                false,
                                ibuf->x,
                                ibuf->y,
-                               ibuf->x,
                                ibuf->x);
   }
 

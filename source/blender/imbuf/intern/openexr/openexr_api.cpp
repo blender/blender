@@ -920,7 +920,7 @@ void IMB_exr_add_channels(ExrHandle *handle,
                           StringRefNull colorspace,
                           size_t xstride,
                           size_t ystride,
-                          float *rect,
+                          const float *rect,
                           bool use_half_float)
 {
   /* For multipart, part name includes view since part names must be unique. */
@@ -971,7 +971,8 @@ void IMB_exr_add_channels(ExrHandle *handle,
 
     echan.xstride = xstride;
     echan.ystride = ystride;
-    echan.rect = rect + channel;
+    /* This is used for writing, the data should not be modified. ????????? */
+    echan.rect = const_cast<float *>(rect + channel);
     echan.use_half_float = use_half_float;
   }
 
@@ -1205,7 +1206,7 @@ void IMB_exr_write_channels(ExrHandle *handle)
 
       if (echan.use_half_float) {
         const float *src_float = echan.rect;
-        /* Convert & clamp input floats to halfs. */
+        /* Convert & clamp input floats to half-floats. */
         threading::parallel_for(IndexRange(num_pixels), 16 * 1024, [&](IndexRange range) {
           Array<float> gathered_floats(range.size());
           int64_t i = 0;

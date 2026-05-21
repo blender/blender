@@ -201,13 +201,14 @@ StringImage::StringImage(Context &context,
   const int total_height = line_height * lines.size();
 
   /* Fill the background with alpha since the draws function does not initialize the background. */
-  this->result.allocate_texture(int2(total_width, total_height), false, ResultStorageType::CPU);
-  parallel_for(this->result.domain().data_size,
-               [&](const int2 texel) { this->result.store_pixel(texel, 0.0f); });
+  Result result_cpu = context.create_result(ResultType::Float);
+  result_cpu.allocate_texture(int2(total_width, total_height), false, ResultStorageType::CPU);
+  parallel_for(result_cpu.domain().data_size,
+               [&](const int2 texel) { result_cpu.store_pixel(texel, 0.0f); });
 
   BLF_buffer_col(font_identifier, Color(1.0f, 1.0f, 1.0f, 1.0f));
   BLF_buffer(font_identifier,
-             static_cast<float *>(this->result.cpu_data_for_write().data()),
+             static_cast<float *>(result_cpu.cpu_data_for_write().data()),
              nullptr,
              total_width,
              total_height,
@@ -232,13 +233,18 @@ StringImage::StringImage(Context &context,
       start_offset, total_width, horizontal_alignment);
   const float vertical_offset = compute_vertical_offset(
       total_height, line_height, descender, vertical_alignment);
-  this->result.domain().transformation.location() = float2(horizontal_offset, vertical_offset);
+  result_cpu.domain().transformation.location() = float2(horizontal_offset, vertical_offset);
 
   if (context.use_gpu()) {
-    const Result gpu_result = this->result.upload_to_gpu(false);
-    this->result.release();
-    this->result = gpu_result;
+    Result result_gpu = result_cpu.upload_to_gpu(false);
+    this->result.share_data(result_gpu);
+    result_gpu.release();
   }
+  else {
+    this->result.share_data(result_cpu);
+  }
+
+  result_cpu.release();
 }
 
 StringImage::~StringImage()

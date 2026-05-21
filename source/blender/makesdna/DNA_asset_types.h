@@ -8,6 +8,8 @@
 
 #pragma once
 
+#include "BLI_enum_flags.hh"
+
 #include "DNA_defs.h"
 #include "DNA_listBase.h"
 #include "DNA_uuid_types.h"
@@ -74,6 +76,17 @@ struct AssetTag {
   char name[/*MAX_NAME*/ 64] = "";
 };
 
+enum AssetMetaDataFlag : int {
+  /**
+   * When the import method is set to "Follow Asset or Preferences", use the asset's own import
+   * method instead of the one from the library. Not used often, but for some assets there's a
+   * specific preferred import method. For example, base mesh objects may always want to use
+   * appending, so they can be edited directly and independently from previous usages.
+   */
+  ASSETDATA_USE_OWN_IMPORT_METHOD = (1 << 0),
+};
+ENUM_OPERATORS(AssetMetaDataFlag);
+
 /**
  * \brief The meta-data of an asset.
  * By creating and giving this for a data-block (#ID.asset_data), the data-block becomes an asset.
@@ -122,6 +135,12 @@ struct AssetMetaData {
   /** Store the number of tags to avoid continuous counting. Could be turned into runtime data, we
    * can always reliably reconstruct it from the list. */
   short tot_tags = 0;
+
+  AssetMetaDataFlag flag = {};
+
+  /** The import method to use when "Follow Asset or Preferences" is used and
+   * #AssetMetaDataFlag::ASSETDATA_USE_OWN_IMPORT_METHOD is set in the flags above. */
+  eAssetImportMethod preferred_import_method = ASSET_IMPORT_APPEND;
 
   char _pad[4] = {};
 

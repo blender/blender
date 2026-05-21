@@ -13,6 +13,11 @@
 #include "eevee_deferred_eval.bsl.hh"                /* IWYU pragma: export */
 #include "eevee_deferred_thickness_amend.bsl.hh"     /* IWYU pragma: export */
 #include "eevee_fast_gi.bsl.hh"                      /* IWYU pragma: export */
+#include "eevee_geom_curves.bsl.hh"                  /* IWYU pragma: export */
+#include "eevee_geom_mesh.bsl.hh"                    /* IWYU pragma: export */
+#include "eevee_geom_pointcloud.bsl.hh"              /* IWYU pragma: export */
+#include "eevee_geom_volume.bsl.hh"                  /* IWYU pragma: export */
+#include "eevee_geom_world.bsl.hh"                   /* IWYU pragma: export */
 #include "eevee_light_culling.bsl.hh"                /* IWYU pragma: export */
 #include "eevee_light_eval.bsl.hh"                   /* IWYU pragma: export */
 #include "eevee_light_iter.bsl.hh"                   /* IWYU pragma: export */
@@ -48,8 +53,13 @@
 #include "eevee_subsurface.bsl.hh"                   /* IWYU pragma: export */
 #include "eevee_surf_capture.bsl.hh"                 /* IWYU pragma: export */
 #include "eevee_surf_deferred.bsl.hh"                /* IWYU pragma: export */
+#include "eevee_surf_depth.bsl.hh"                   /* IWYU pragma: export */
 #include "eevee_surf_forward.bsl.hh"                 /* IWYU pragma: export */
 #include "eevee_surf_hybrid.bsl.hh"                  /* IWYU pragma: export */
+#include "eevee_surf_occupancy.bsl.hh"               /* IWYU pragma: export */
+#include "eevee_surf_shadow.bsl.hh"                  /* IWYU pragma: export */
+#include "eevee_surf_volume.bsl.hh"                  /* IWYU pragma: export */
+#include "eevee_surf_world.bsl.hh"                   /* IWYU pragma: export */
 #include "eevee_surfel_light.bsl.hh"                 /* IWYU pragma: export */
 #include "eevee_surfel_list.bsl.hh"                  /* IWYU pragma: export */
 #include "eevee_thickness_lib.bsl.hh"                /* IWYU pragma: export */

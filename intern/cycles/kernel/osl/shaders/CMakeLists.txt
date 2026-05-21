@@ -40,6 +40,7 @@ set(SRC_OSL
   node_hair_info.osl
   node_point_info.osl
   node_scatter_volume.osl
+  node_scene_time.osl
   node_absorption_volume.osl
   node_volume_coefficients.osl
   node_principled_volume.osl

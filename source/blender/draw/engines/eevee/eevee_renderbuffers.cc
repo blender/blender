@@ -71,22 +71,23 @@ void RenderBuffers::acquire(int2 extent)
   /* TODO(fclem): depth_tx should ideally be a texture from pool but we need stencil_view
    * which is currently unsupported by pool textures. */
   // depth_tx.acquire(extent, gpu::TextureFormat::SFLOAT_32_DEPTH_UINT_8);
-  combined_tx.acquire(extent, color_format);
+  combined_tx.acquire_2d(extent, color_format);
 
   eGPUTextureUsage usage_attachment_read_write = GPU_TEXTURE_USAGE_ATTACHMENT |
                                                  GPU_TEXTURE_USAGE_SHADER_READ |
                                                  GPU_TEXTURE_USAGE_SHADER_WRITE;
 
   /* TODO(fclem): Make vector pass allocation optional if no TAA or motion blur is needed. */
-  vector_tx.acquire(extent, vector_tx_format(), usage_attachment_read_write);
+  vector_tx.acquire_2d(extent, vector_tx_format(), usage_attachment_read_write);
   if (inst_.pipelines.has_raycast) {
-    object_id_tx.acquire(extent, gpu::TextureFormat::UINT_16, usage_attachment_read);
-    prepass_normal_tx.acquire(extent, gpu::TextureFormat::UNORM_10_10_10_2, usage_attachment_read);
+    object_id_tx.acquire_2d(extent, gpu::TextureFormat::UINT_16, usage_attachment_read);
+    prepass_normal_tx.acquire_2d(
+        extent, gpu::TextureFormat::UNORM_10_10_10_2, usage_attachment_read);
   }
   else {
     /* Still acquire them, since the passes can't conditionally bind textures. */
-    object_id_tx.acquire(int2(1), gpu::TextureFormat::UINT_16, GPU_TEXTURE_USAGE_SHADER_READ);
-    prepass_normal_tx.acquire(
+    object_id_tx.acquire_2d(int2(1), gpu::TextureFormat::UINT_16, GPU_TEXTURE_USAGE_SHADER_READ);
+    prepass_normal_tx.acquire_2d(
         int2(1), gpu::TextureFormat::UNORM_10_10_10_2, GPU_TEXTURE_USAGE_SHADER_READ);
   }
 
@@ -109,11 +110,11 @@ void RenderBuffers::acquire(int2 extent)
                               usage_attachment_read_write);
 
   const gpu::TextureFormat cryptomatte_format = gpu::TextureFormat::SFLOAT_32_32_32_32;
-  cryptomatte_tx.acquire(pass_extent(EEVEE_RENDER_PASS_CRYPTOMATTE_OBJECT |
-                                     EEVEE_RENDER_PASS_CRYPTOMATTE_ASSET |
-                                     EEVEE_RENDER_PASS_CRYPTOMATTE_MATERIAL),
-                         cryptomatte_format,
-                         GPU_TEXTURE_USAGE_SHADER_READ | GPU_TEXTURE_USAGE_SHADER_WRITE);
+  cryptomatte_tx.acquire_2d(pass_extent(EEVEE_RENDER_PASS_CRYPTOMATTE_OBJECT |
+                                        EEVEE_RENDER_PASS_CRYPTOMATTE_ASSET |
+                                        EEVEE_RENDER_PASS_CRYPTOMATTE_MATERIAL),
+                            cryptomatte_format,
+                            GPU_TEXTURE_USAGE_SHADER_READ | GPU_TEXTURE_USAGE_SHADER_WRITE);
 }
 
 void RenderBuffers::release()

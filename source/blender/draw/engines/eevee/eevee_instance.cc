@@ -12,6 +12,7 @@
 
 #include "BKE_global.hh"
 #include "BKE_object.hh"
+#include "BKE_scene.hh"
 
 #include "BLI_rect.h"
 #include "BLI_time.h"

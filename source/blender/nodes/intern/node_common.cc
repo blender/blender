@@ -50,6 +50,7 @@
 
 #include "RNA_access.hh"
 #include "RNA_enum_types.hh"
+#include "RNA_prototypes.hh"
 
 #include "UI_resources.hh"
 
@@ -548,21 +549,6 @@ void node_group_declare(NodeDeclarationBuilder &b)
 
   node_group_declare_panel_recursive(
       b, *node, *group, structure_type_by_socket, group->tree_interface.root_panel, true);
-
-  if (group->type == NTREE_GEOMETRY) {
-    group->ensure_interface_cache();
-    const Span<const bNodeTreeInterfaceSocket *> inputs = group->interface_inputs();
-    const FieldInferencingInterface &field_interface =
-        *group->runtime->field_inferencing_interface;
-    for (const int i : inputs.index_range()) {
-      SocketDeclaration &decl = *r_declaration.inputs[i];
-      decl.input_field_type = field_interface.inputs[i];
-    }
-
-    for (const int i : r_declaration.outputs.index_range()) {
-      r_declaration.outputs[i]->output_field_dependency = field_interface.outputs[i];
-    }
-  }
 }
 
 }  // namespace nodes
@@ -599,7 +585,9 @@ void register_node_type_frame()
   ntype->initfunc = node_frame_init;
   bke::node_type_storage(
       *ntype, "NodeFrame", node_free_standard_storage, node_copy_standard_storage);
-  bke::node_type_size(*ntype, 150, 100, 0);
+  ntype->default_width = bke::NodeWidth::_160;
+  ntype->minwidth = 100;
+  ntype->maxwidth = FLT_MAX;
   ntype->flag |= NODE_BACKGROUND;
 
   bke::node_register_type(*ntype);
@@ -1005,7 +993,8 @@ static void group_input_declare(NodeDeclarationBuilder &b)
            * declarations. The compromise is to not use the proper structure type in the group
            * input/output declarations and instead use a special case for the choice of socket
            * shapes. */
-          build_interface_socket_declaration(*node_tree, socket, std::nullopt, SOCK_OUT, b);
+          build_interface_socket_declaration(*node_tree, socket, std::nullopt, SOCK_OUT, b)
+              .socket_name_ptr(&node_tree->id, RNA_NodeTreeInterfaceSocket, &socket, "name");
         }
         break;
       }
@@ -1030,7 +1019,8 @@ static void group_output_declare(NodeDeclarationBuilder &b)
         const bNodeTreeInterfaceSocket &socket =
             node_interface::get_item_as<bNodeTreeInterfaceSocket>(item);
         if (socket.flag & NODE_INTERFACE_SOCKET_OUTPUT) {
-          build_interface_socket_declaration(*node_tree, socket, std::nullopt, SOCK_IN, b);
+          build_interface_socket_declaration(*node_tree, socket, std::nullopt, SOCK_IN, b)
+              .socket_name_ptr(&node_tree->id, RNA_NodeTreeInterfaceSocket, &socket, "name");
         }
         break;
       }
@@ -1123,7 +1113,6 @@ void register_node_type_group_input()
       "Expose connected data from inside a node group as inputs to its interface";
   ntype->enum_name_legacy = "GROUP_INPUT";
   ntype->nclass = NODE_CLASS_INTERFACE;
-  bke::node_type_size(*ntype, 140, 80, 400);
   ntype->declare = nodes::group_input_declare;
   ntype->insert_link = nodes::group_input_insert_link;
   ntype->draw_buttons_ex = nodes::node_group_input_layout;
@@ -1210,7 +1199,6 @@ void register_node_type_group_output()
   ntype->ui_description = "Output data from inside of a node group";
   ntype->enum_name_legacy = "GROUP_OUTPUT";
   ntype->nclass = NODE_CLASS_INTERFACE;
-  bke::node_type_size(*ntype, 140, 80, 400);
   ntype->declare = nodes::group_output_declare;
   ntype->insert_link = nodes::group_output_insert_link;
   ntype->get_extra_info = node_group_output_extra_info;

@@ -35,7 +35,6 @@ set(SRC
   intern/format_targa.cc
   intern/format_tiff.cc
   intern/imageprocess.cc
-  intern/interp.cc
   intern/metadata.cc
   intern/module.cc
   intern/readimage.cc

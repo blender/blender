@@ -223,7 +223,7 @@ static bool is_switch_node_input_needed(const bNode &node,
     return true;
   }
 
-  return (input.identifier_ustr() == "On"_ustr) == condition.value();
+  return (input.identifier_ustr() == "True"_ustr) == condition.value();
 }
 
 /* returns true if the given input of the given menu switch node in the given node group operation
@@ -287,7 +287,7 @@ static bool is_input_needed(const bNode &node,
     return node_group_operation.get_result(input.identifier).should_compute();
   }
 
-  if (node.is_type("CompositorNodeSwitch"_ustr)) {
+  if (node.is_type("GeometryNodeSwitch"_ustr)) {
     return is_switch_node_input_needed(node, input, node_group_operation);
   }
 

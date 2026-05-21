@@ -290,7 +290,7 @@ class RayTraceModule {
 
   /**
    * Update screen space thickness parameters.
-   * Needs to be called early in the frame to allow raycast node usage.
+   * Needs to be called early in the frame to allow ray-cast node usage.
    * Needs uniform_data.push_update() to be called afterward to take effect.
    */
   void thickness_parameters_setup(const float4x4 &winmat, const int2 extent);

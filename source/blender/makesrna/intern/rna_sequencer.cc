@@ -1934,8 +1934,8 @@ static void rna_SequenceTimelineChannel_mute_update(bContext *C, PointerRNA *ptr
 
 static int rna_SequenceTimelineChannel_number_get(PointerRNA *ptr)
 {
-  SeqTimelineChannel *channel = static_cast<SeqTimelineChannel *>(ptr->data);
-  return seq::channel_index_get(channel);
+  const SeqTimelineChannel *channel = static_cast<SeqTimelineChannel *>(ptr->data);
+  return channel->index;
 }
 
 static std::optional<std::string> rna_SeqTimelineChannel_path(const PointerRNA *ptr)
@@ -1979,6 +1979,12 @@ static bool rna_Compositor_node_group_poll(PointerRNA * /*ptr*/, PointerRNA valu
   const bNodeTree *node_tree = value.data_as<bNodeTree>();
   if (node_tree->type != NTREE_COMPOSIT) {
     return false;
+  }
+  if (node_tree->compositor_node_asset_traits) {
+    if ((node_tree->compositor_node_asset_traits->flag & COMPOSIT_NODE_ASSET_STRIP_MODIFIER) == 0)
+    {
+      return false;
+    }
   }
   return true;
 }

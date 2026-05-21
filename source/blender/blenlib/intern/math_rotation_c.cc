@@ -17,7 +17,9 @@
 
 namespace blender {
 
-/******************************** Quaternions ********************************/
+/* -------------------------------------------------------------------- */
+/** \name Quaternions
+ * \{ */
 
 /* used to test is a quat is not normalized (only used for debug prints) */
 #ifndef NDEBUG
@@ -611,6 +613,8 @@ float quat_split_swing_and_twist(const float q_in[4],
   return 2.0f * t;
 }
 
+/** \} */
+
 /* -------------------------------------------------------------------- */
 /** \name Quaternion Angle
  *
@@ -710,6 +714,10 @@ float angle_signed_qtqt(const float q1[4], const float q2[4])
 }
 
 /** \} */
+
+/* -------------------------------------------------------------------- */
+/** \name Quaternion Vector
+ * \{ */
 
 void vec_to_quat(float q[4], const float vec[3], short axis, const short upflag)
 {
@@ -1048,7 +1056,11 @@ void print_qt(const char *str, const float q[4])
   printf("%s: %.3f %.3f %.3f %.3f\n", str, q[0], q[1], q[2], q[3]);
 }
 
-/******************************** Axis Angle *********************************/
+/** \} */
+
+/* -------------------------------------------------------------------- */
+/** \name Axis Angle
+ * \{ */
 
 void axis_angle_normalized_to_quat(float r[4], const float axis[3], const float angle)
 {
@@ -1302,7 +1314,11 @@ void axis_angle_to_quat_single(float q[4], const char axis, const float angle)
   q[axis_index + 1] = angle_sin;
 }
 
-/****************************** Exponential Map ******************************/
+/** \} */
+
+/* -------------------------------------------------------------------- */
+/** \name Exponential Map
+ * \{ */
 
 void quat_normalized_to_expmap(float expmap[3], const float q[4])
 {
@@ -1337,7 +1353,11 @@ void expmap_to_quat(float r[4], const float expmap[3])
   }
 }
 
-/******************************** XYZ Eulers *********************************/
+/** \} */
+
+/* -------------------------------------------------------------------- */
+/** \name XYZ Eulers
+ * \{ */
 
 void eul_to_mat3(float mat[3][3], const float eul[3])
 {
@@ -1591,7 +1611,11 @@ void quat_to_compatible_eul(float eul[3], const float oldrot[3], const float qua
   mat3_normalized_to_compatible_eul(eul, oldrot, unit_mat);
 }
 
-/************************** Arbitrary Order Eulers ***************************/
+/** \} */
+
+/* -------------------------------------------------------------------- */
+/** \name Arbitrary Order Eulers
+ * \{ */
 
 /* Euler Rotation Order Code:
  * was adapted from
@@ -1957,7 +1981,11 @@ void sub_eul_euleul(float r_eul[3], float a[3], float b[3], const short order)
   quat_to_eulO(r_eul, order, quat);
 }
 
-/******************************* Dual Quaternions ****************************/
+/** \} */
+
+/* -------------------------------------------------------------------- */
+/** \name Dual Quaternions
+ * \{ */
 
 /* Conversion routines between (regular quaternion, translation) and dual quaternion.
  *
@@ -2470,5 +2498,7 @@ bool mat3_from_axis_conversion_single(int src_axis, int dst_axis, float r_mat[3]
 
   return mat3_from_axis_conversion(src_axis, src_axis_next, dst_axis, dst_axis_next, r_mat);
 }
+
+/** \} */
 
 }  // namespace blender

@@ -879,11 +879,6 @@ void Result::set_reference_count(int count)
   reference_count_ = count;
 }
 
-void Result::increment_reference_count(int count)
-{
-  reference_count_ += count;
-}
-
 void Result::decrement_reference_count(int count)
 {
   reference_count_ -= count;
@@ -1129,7 +1124,7 @@ class GPUData {
           __func__, size.x, size.y, 4, 1, format, usage, nullptr);
     }
     else if (is_from_pool) {
-      this->texture = gpu::TexturePool::get().acquire_texture(size, format, usage);
+      this->texture = gpu::TexturePool::get().acquire_texture_2d(size, 1, format, usage);
     }
     else {
       this->texture = GPU_texture_create_2d(__func__, size.x, size.y, 1, format, usage, nullptr);

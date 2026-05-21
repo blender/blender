@@ -178,6 +178,7 @@ struct MTLRenderPipelineStateDescriptor {
   MTLPixelFormat color_attachment_format[GPU_FB_MAX_COLOR_ATTACHMENT];
   MTLPixelFormat depth_attachment_format;
   MTLPixelFormat stencil_attachment_format;
+  uint8_t color_attachment_mask = 0xFF;
 
   /* Render Pipeline State affecting PSO creation. */
   bool blending_enabled;
@@ -221,6 +222,7 @@ struct MTLRenderPipelineStateDescriptor {
         (dest_rgb_blend_factor != other.dest_rgb_blend_factor) ||
         (src_alpha_blend_factor != other.src_alpha_blend_factor) ||
         (src_rgb_blend_factor != other.src_rgb_blend_factor) ||
+        (color_attachment_mask != other.color_attachment_mask) ||
         (vertex_descriptor.prim_topology_class != other.vertex_descriptor.prim_topology_class) ||
         (point_size != other.point_size))
     {
@@ -265,6 +267,7 @@ struct MTLRenderPipelineStateDescriptor {
       hash ^= uint64_t(this->dest_rgb_blend_factor) << 37;   /* Up to 18 (5 bits). */
       hash ^= uint64_t(this->src_alpha_blend_factor) << 42;  /* Up to 18 (5 bits). */
       hash ^= uint64_t(this->src_rgb_blend_factor) << 47;    /* Up to 18 (5 bits). */
+      hash ^= uint64_t(this->color_attachment_mask) << 47;   /* 8 bit bit-mask. */
 
       for (const uint c : IndexRange(GPU_FB_MAX_COLOR_ATTACHMENT)) {
         hash ^= uint64_t(this->color_attachment_format[c]) << (c + 52); /* Up to 555 (9 bits). */

@@ -11,6 +11,8 @@
 #include "BKE_mesh.hh"
 #include "BKE_mesh_mapping.hh"
 
+#include "FN_field.hh"
+
 #include "node_geometry_util.hh"
 
 namespace blender::nodes::node_geo_input_shortest_edge_paths_cc {
@@ -94,7 +96,7 @@ class ShortestEdgePathsNextVertFieldInput final : public bke::MeshFieldInput {
 
   GVArray get_varray_for_context(const Mesh &mesh,
                                  const AttrDomain domain,
-                                 const IndexMask & /*mask*/) const final
+                                 const IndexMask &mask) const final
   {
     const bke::MeshFieldContext edge_context{mesh, AttrDomain::Edge};
     fn::FieldEvaluator edge_evaluator{edge_context, mesh.edges_num};
@@ -108,14 +110,19 @@ class ShortestEdgePathsNextVertFieldInput final : public bke::MeshFieldInput {
     point_evaluator.evaluate();
     const IndexMask end_selection = point_evaluator.get_evaluated_as_mask(0);
 
-    Array<int> next_index(mesh.verts_num, -1);
-    Array<float> cost(mesh.verts_num, FLT_MAX);
-
     if (end_selection.is_empty()) {
+      if (domain == AttrDomain::Point) {
+        return fn::IndexFieldInput::get_index_varray(mask);
+      }
+
+      Array<int> next_index(mesh.verts_num);
       array_utils::fill_index_range<int>(next_index);
       return mesh.attributes().adapt_domain<int>(
           VArray<int>::from_container(std::move(next_index)), AttrDomain::Point, domain);
     }
+
+    Array<int> next_index(mesh.verts_num, -1);
+    Array<float> cost(mesh.verts_num, FLT_MAX);
 
     const Span<int2> edges = mesh.edges();
     Array<int> vert_to_edge_offset_data;
@@ -257,6 +264,7 @@ static void node_register()
   ntype.nclass = NODE_CLASS_INPUT;
   ntype.declare = node_declare;
   ntype.geometry_node_execute = node_geo_exec;
+  ntype.default_width = bke::NodeWidth::_160;
   bke::node_register_type(ntype);
 }
 NOD_REGISTER_NODE(node_register)

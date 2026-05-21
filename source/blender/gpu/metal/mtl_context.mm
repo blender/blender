@@ -1267,23 +1267,23 @@ bool MTLContext::ensure_render_pipeline_state(MTLPrimitiveType mtl_prim_type)
 
       /* Some scissor assignments exceed the bounds of the viewport due to implicitly added
        * padding to the width/height - Clamp width/height. */
-      BLI_assert(scissor.x >= 0 && scissor.x < render_fb->get_default_width());
-      BLI_assert(scissor.y >= 0 && scissor.y < render_fb->get_default_height());
-      scissor.width = (uint)min_ii(scissor.width,
-                                   max_ii(render_fb->get_default_width() - (int)(scissor.x), 0));
-      scissor.height = (uint)min_ii(scissor.height,
-                                    max_ii(render_fb->get_default_height() - (int)(scissor.y), 0));
+      BLI_assert(scissor.x >= 0 && scissor.x < render_fb->get_attachment_width());
+      BLI_assert(scissor.y >= 0 && scissor.y < render_fb->get_attachment_height());
+      scissor.width = (uint)min_ii(
+          scissor.width, max_ii(render_fb->get_attachment_width() - (int)(scissor.x), 0));
+      scissor.height = (uint)min_ii(
+          scissor.height, max_ii(render_fb->get_attachment_height() - (int)(scissor.y), 0));
       BLI_assert(scissor.width > 0 &&
-                 (scissor.x + scissor.width <= render_fb->get_default_width()));
-      BLI_assert(scissor.height > 0 && (scissor.height <= render_fb->get_default_height()));
+                 (scissor.x + scissor.width <= render_fb->get_attachment_width()));
+      BLI_assert(scissor.height > 0 && (scissor.height <= render_fb->get_attachment_height()));
     }
     else {
-      /* Scissor is disabled, reset to default size as scissor state may have been previously
+      /* Scissor is disabled, reset to attachment size as scissor state may have been previously
        * assigned on this encoder.
        * NOTE: If an attachment-less framebuffer is used, fetch specified width/height rather
-       * than active attachment width/height as provided by get_default_w/h(). */
-      uint default_w = render_fb->get_default_width();
-      uint default_h = render_fb->get_default_height();
+       * than active attachment width/height as provided by get_attachment_w/h(). */
+      uint default_w = render_fb->get_attachment_width();
+      uint default_h = render_fb->get_attachment_height();
       bool is_attachmentless = (default_w == 0) && (default_h == 0);
       scissor.x = 0;
       scissor.y = 0;

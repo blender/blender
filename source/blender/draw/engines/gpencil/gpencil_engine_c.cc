@@ -680,17 +680,17 @@ void Instance::acquire_resources()
                                                gpu::TextureFormat::SFLOAT_16_16_16_16 :
                                                gpu::TextureFormat::UNORM_10_10_10_2;
 
-  this->depth_tx.acquire(size, gpu::TextureFormat::SFLOAT_32_DEPTH_UINT_8);
-  this->color_tx.acquire(size, format_color);
-  this->reveal_tx.acquire(size, format_reveal);
+  this->depth_tx.acquire_2d(size, gpu::TextureFormat::SFLOAT_32_DEPTH_UINT_8);
+  this->color_tx.acquire_2d(size, format_color);
+  this->reveal_tx.acquire_2d(size, format_reveal);
 
   this->gpencil_fb.ensure(GPU_ATTACHMENT_TEXTURE(this->depth_tx),
                           GPU_ATTACHMENT_TEXTURE(this->color_tx),
                           GPU_ATTACHMENT_TEXTURE(this->reveal_tx));
 
   if (this->use_layer_fb) {
-    this->color_layer_tx.acquire(size, format_color);
-    this->reveal_layer_tx.acquire(size, format_reveal);
+    this->color_layer_tx.acquire_2d(size, format_color);
+    this->reveal_layer_tx.acquire_2d(size, format_reveal);
 
     this->layer_fb.ensure(GPU_ATTACHMENT_TEXTURE(this->depth_tx),
                           GPU_ATTACHMENT_TEXTURE(this->color_layer_tx),
@@ -698,8 +698,8 @@ void Instance::acquire_resources()
   }
 
   if (this->use_object_fb) {
-    this->color_object_tx.acquire(size, format_color);
-    this->reveal_object_tx.acquire(size, format_reveal);
+    this->color_object_tx.acquire_2d(size, format_color);
+    this->reveal_object_tx.acquire_2d(size, format_reveal);
 
     this->object_fb.ensure(GPU_ATTACHMENT_TEXTURE(this->depth_tx),
                            GPU_ATTACHMENT_TEXTURE(this->color_object_tx),
@@ -711,10 +711,10 @@ void Instance::acquire_resources()
     const gpu::TextureFormat mask_format = this->is_render ? gpu::TextureFormat::UNORM_16 :
                                                              gpu::TextureFormat::UNORM_8;
     /* We need an extra depth to not disturb the normal drawing. */
-    this->mask_depth_tx.acquire(size, gpu::TextureFormat::SFLOAT_32_DEPTH_UINT_8);
+    this->mask_depth_tx.acquire_2d(size, gpu::TextureFormat::SFLOAT_32_DEPTH_UINT_8);
     /* The mask_color_tx is needed for frame-buffer completeness. */
-    this->mask_color_tx.acquire(size, gpu::TextureFormat::UNORM_8);
-    this->mask_tx.acquire(size, mask_format);
+    this->mask_color_tx.acquire_2d(size, gpu::TextureFormat::UNORM_8);
+    this->mask_tx.acquire_2d(size, mask_format);
 
     this->mask_fb.ensure(GPU_ATTACHMENT_TEXTURE(this->mask_depth_tx),
                          GPU_ATTACHMENT_TEXTURE(this->mask_color_tx),
@@ -733,7 +733,7 @@ void Instance::acquire_resources()
     const int2 size = int2(draw_ctx->viewport_size_get());
     draw::TextureFromPool &grease_pencil_pass = DRW_viewport_pass_texture_get(
         RE_PASSNAME_GREASE_PENCIL);
-    grease_pencil_pass.acquire(size, gpu::TextureFormat::SFLOAT_16_16_16_16);
+    grease_pencil_pass.acquire_2d(size, gpu::TextureFormat::SFLOAT_16_16_16_16);
     this->gpencil_pass_fb.ensure(GPU_ATTACHMENT_NONE, GPU_ATTACHMENT_TEXTURE(grease_pencil_pass));
   }
 

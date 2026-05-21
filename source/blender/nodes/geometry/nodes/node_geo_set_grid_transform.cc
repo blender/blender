@@ -74,7 +74,7 @@ static void node_gather_link_search_ops(GatherLinkSearchOpParams &params)
   const StructureType structure_type = other_socket.runtime->inferred_structure_type;
   const bool is_grid = structure_type == StructureType::Grid;
   const bool is_dynamic = structure_type == StructureType::Dynamic;
-  const eNodeSocketDatatype other_type = eNodeSocketDatatype(other_socket.type);
+  const eNodeSocketDatatype other_type = other_socket.type;
 
   if (params.in_out() == SOCK_IN) {
     if (is_grid || is_dynamic) {

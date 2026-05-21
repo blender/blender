@@ -51,12 +51,17 @@ void iterate(const AssetLibraryReference &library_reference, AssetListIterFn fn)
  * \see: #storage_fetch_blocking for a blocking version.
  * \warning: Asset list reading involves an #AS_asset_library_load() call which may reload asset
  *           library data like catalogs (invalidating pointers). Refer to its warning for details.
+ * \warning: The caller is responsible for ensuring \a library_reference is valid so that it
+ *           doesn't reference a deleted asset library. Otherwise an empty list may be loaded and
+ *           there are assertions to catch the case. But it's unclear what library choice is being
+ *           shown to the user, and if that matches the empty library that will be presented.
  */
 void storage_fetch(const AssetLibraryReference *library_reference, const bContext *C);
 /**
  * Invoke asset list reading, guaranteed to execute on the same thread.
  *
- * \see #storage_fetch for an asynchronous version.
+ * \see #storage_fetch for an asynchronous version. Its warning on \a library_reference applies
+ *      here too.
  */
 void storage_fetch_blocking(const AssetLibraryReference &library_reference, const bContext &C);
 bool is_loaded(const AssetLibraryReference *library_reference);

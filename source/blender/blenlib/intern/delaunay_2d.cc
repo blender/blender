@@ -2402,7 +2402,7 @@ int add_face_constraints(CDT_state<T> *cdt_state,
           BLI_assert(face_symedge0->vert == v1);
         }
         /* Per-edge: count polygon boundaries
-         * (deduplicated per face when #USE_FACE_ORDERED_EDGE_DEDUPE`)
+         * (deduplicated per face when #USE_FACE_ORDERED_EDGE_DEDUPE)
          * for even-odd, accumulate signed winding for non-zero.
          * Mechanism documented on the maps themselves. */
         if (cdt_state->polygon_boundary_count_map || need_winding) {

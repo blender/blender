@@ -820,7 +820,7 @@ blender::Object *BlenderSync::get_camera_object(blender::View3D *b_v3d,
     return b_camera_override;
   }
 
-  if (b_v3d && b_rv3d && b_rv3d->persp == blender::RV3D_CAMOB && b_v3d->scenelock) {
+  if (b_v3d && b_rv3d && b_rv3d->persp == blender::RV3D_CAMOB && !b_v3d->scenelock) {
     return b_v3d->camera;
   }
 
@@ -939,7 +939,7 @@ static void blender_camera_from_view(BlenderCamera *bcam,
 
   if (b_rv3d->persp == blender::RV3D_CAMOB) {
     /* camera view */
-    blender::Object *b_ob = (b_v3d->scenelock) ? b_v3d->camera : b_scene.camera;
+    blender::Object *b_ob = (b_v3d->scenelock) ? b_scene.camera : b_v3d->camera;
 
     if (b_ob) {
       blender_camera_from_object(
@@ -1110,7 +1110,7 @@ static void blender_camera_border(BlenderCamera *bcam,
     return;
   }
 
-  blender::Object *b_ob = (b_v3d->scenelock) ? b_v3d->camera : b_scene.camera;
+  blender::Object *b_ob = (b_v3d->scenelock) ? b_scene.camera : b_v3d->camera;
 
   if (!b_ob) {
     return;

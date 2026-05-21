@@ -1766,7 +1766,7 @@ ID *WM_drag_get_local_ID_or_import_from_asset(const bContext *C, const wmDrag *d
 /**
  * \brief Free asset ID imported for canceled drop.
  *
- * If the asset was imported (linked/appended) using #WM_drag_get_local_ID_or_import_from_asset()`
+ * If the asset was imported (linked/appended) using #WM_drag_get_local_ID_or_import_from_asset
  * (typically via a #wmDropBox.copy() callback), we want the ID to be removed again if the drop
  * operator cancels.
  * This is for use as #wmDropBox.cancel() callback.

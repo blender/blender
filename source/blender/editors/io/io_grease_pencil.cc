@@ -222,6 +222,8 @@ void WM_OT_grease_pencil_import_svg(wmOperatorType *ot)
   ot->ui = ed::io::grease_pencil_import_svg_draw;
   ot->check = ed::io::grease_pencil_import_svg_check;
 
+  ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
+
   WM_operator_properties_filesel(ot,
                                  FILE_TYPE_FOLDER | FILE_TYPE_OBJECT_IO,
                                  FILE_BLENDER,

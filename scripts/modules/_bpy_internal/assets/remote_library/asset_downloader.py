@@ -193,8 +193,7 @@ def on_asset_download_queue_empty() -> None:
     """Called by the asset downloader when its download queue emptied."""
     if any_asset_downloading():
         return
-    # TODO: ping Blender that all asset downloads are done.
-    logger.info("Asset downloader: all assets are done downloading")
+    bpy.types.WindowManager.asset_library_status_ping_finished_download_queue()
 
 
 def any_asset_downloading() -> bool:
@@ -430,6 +429,13 @@ class AssetDownloader:
         # The downloads themselves don't have to be explicitly cancelled,
         # shutting down the downloader will do that implicitly.
         self.shutdown()
+
+        # By now there is no more queue, so just treat it as 'empty' and let Blender know no downloads will happen any
+        # more (at least not by this downloader).
+        if self._on_queue_empty_callback is not None:
+            # Call the callback _after_ setting the status, so that when
+            # Blender is pinged about this, it can see it's finished.
+            self._on_queue_empty_callback()
 
     def shutdown(self) -> None:
         """Stop the background downloader and call the 'done' callback."""

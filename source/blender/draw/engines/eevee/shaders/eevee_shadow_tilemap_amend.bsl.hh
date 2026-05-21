@@ -109,7 +109,7 @@ struct AmendCtx {
     }
 
     int lod_min = 0;
-    int tilemap_count = light_local_tilemap_count(light);
+    int tilemap_count = light.local_tilemap_count();
     for (int i = 0; i < tilemap_count; i++) {
       ShadowTileMapData tilemap = srt.tilemaps_buf[light.tilemap_index + i];
       lod_min = max(lod_min, tilemap.effective_lod_min);

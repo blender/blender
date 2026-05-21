@@ -47,7 +47,7 @@ bool operator==(const SymmetricSeparableBlurWeightsKey &a,
 
 class SymmetricSeparableBlurWeights : public CachedResource {
  public:
-  Result result;
+  Result weights;
 
   SymmetricSeparableBlurWeights(Context &context, math::FilterKernel type, float radius);
 

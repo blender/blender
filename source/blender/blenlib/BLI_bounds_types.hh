@@ -75,7 +75,6 @@ template<typename T> struct Bounds {
   bool intersects(const Bounds<T> &other) const;
   /**
    * Returns true if a line segment from \a start to \a end is inside or intersects the bounds.
-   * This matches the behavior of #BLI_rctf_isect_segment/#BLI_rcti_isect_segment.
    */
   bool intersects_segment(const T &start, const T &end) const;
 };

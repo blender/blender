@@ -2410,9 +2410,8 @@ void Channelbag::channel_group_move_to_index(bActionGroup &group, const int to_g
       this->group_array, this->group_array_num, group_index, group_index + 1, to_group_index);
   this->restore_channel_group_invariants();
 
-  /* Move the fcurves that were part of `group` (as recorded in
-   *`pre_move_group`) to their new positions (now in `group`) so that they're
-   * part of `group` again. */
+  /* Move the fcurves that were part of `group` (as recorded in `pre_move_group`)
+   * to their new positions (now in `group`) so that they're part of `group` again. */
   array_shift_range(this->fcurve_array,
                     this->fcurve_array_num,
                     pre_move_group.fcurve_range_start,

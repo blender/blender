@@ -41,6 +41,7 @@ set(SRC
   editmesh_select.cc
   editmesh_select_similar.cc
   editmesh_set_sharpness_by_angle.cc
+  editmesh_space_edge_loops_evenly.cc
   editmesh_tools.cc
   editmesh_undo.cc
   editmesh_utils.cc

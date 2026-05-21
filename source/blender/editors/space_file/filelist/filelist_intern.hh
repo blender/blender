@@ -27,7 +27,6 @@ using FileUID = uint32_t;
 struct AssetLibraryReference;
 struct FileDirEntry;
 struct FileIndexerType;
-struct GHash;
 struct ID;
 struct PreviewImage;
 struct ThreadQueue;

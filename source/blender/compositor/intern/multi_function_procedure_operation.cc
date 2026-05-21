@@ -180,7 +180,7 @@ Vector<mf::Variable *> MultiFunctionProcedureOperation::get_input_variables(
     const bNodeSocket *output = get_output_linked_to_input(*input);
     if (!output) {
       const InputDescriptor input_descriptor = input_descriptor_from_input_socket(input);
-      if (input_descriptor.implicit_input == ImplicitInput::None) {
+      if (!input_descriptor.implicit_input.has_value()) {
         /* No implicit input, so get a constant variable that holds the socket value. */
         input_variables.append(this->get_constant_input_variable(*input));
       }
@@ -345,7 +345,7 @@ mf::Variable *MultiFunctionProcedureOperation::get_implicit_input_variable(
     const bNodeSocket &input)
 {
   const InputDescriptor input_descriptor = input_descriptor_from_input_socket(&input);
-  const ImplicitInput implicit_input = input_descriptor.implicit_input;
+  const ImplicitInputType implicit_input = input_descriptor.implicit_input.value();
 
   /* An input was already declared for that implicit input, so no need to declare it again and we
    * just return its variable. */
@@ -482,14 +482,13 @@ void MultiFunctionProcedureOperation::populate_operation_result(const bNodeSocke
   const std::string output_identifier = "output" + std::to_string(output_id);
 
   const ResultType result_type = get_node_socket_result_type(&output_socket);
-  const Result result = context().create_result(result_type);
-  populate_result(output_identifier, result);
+  populate_result(output_identifier, result_type);
 
   /* Map the output socket to the identifier of the newly populated result. */
   output_sockets_to_output_identifiers_map_.add_new(&output_socket, output_identifier);
 
   /* Implicitly convert the variable type to the expected result type if needed. */
-  const mf::DataType expected_type = mf::DataType::ForSingle(result.get_cpp_type());
+  const mf::DataType expected_type = mf::DataType::ForSingle(Result::cpp_type(result_type));
   mf::Variable *converted_variable = this->convert_variable(variable, expected_type);
 
   procedure_builder_.add_output_parameter(*converted_variable);

@@ -499,12 +499,8 @@ template<typename T> inline bool Bounds<T>::intersects_segment(const T &start, c
   if (this->contains(start) || this->contains(end)) {
     return true;
   }
-  if (!this->intersects(bounds::detail::segment_bounds(start, end))) {
-    return false;
-  }
   if constexpr (std::is_integral_v<T> || std::is_floating_point_v<T>) {
-    /* In the 1-dimensional case, the bounding box check above covers the intersection check. */
-    return true;
+    return this->intersects(bounds::detail::segment_bounds(start, end));
   }
   else {
     /* Check if the segment is entering and exiting the bounds. */

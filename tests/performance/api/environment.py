@@ -48,6 +48,7 @@ class TestEnvironment:
         self.cmake_options = ['-DWITH_INTERNATIONAL=OFF', '-DWITH_BUILDINFO=OFF']
         self.log_file = None
         self.machine = None
+        self._title_cache = {}
         self._init_default_blender_executable()
         self.set_default_blender_executable()
 
@@ -57,7 +58,7 @@ class TestEnvironment:
 
         return self.machine
 
-    def init(self, build) -> None:
+    def init(self, build: bool, blender_bin: str) -> None:
         if not self.benchmarks_dir.exists():
             sys.stderr.write(f'Error: benchmark files directory not found at {self.benchmarks_dir}')
             sys.exit(1)
@@ -69,7 +70,7 @@ class TestEnvironment:
         if len(self.get_config_names()) == 0:
             config_dir = self.base_dir / 'default'
             print(f'Creating default configuration in {config_dir}')
-            TestConfig.write_default_config(self, config_dir)
+            TestConfig.write_default_config(self, config_dir, blender_bin)
 
         if build:
             if not self.blender_dir.exists():
@@ -92,7 +93,7 @@ class TestEnvironment:
 
         print('Done')
 
-    def checkout(self, git_hash: str) -> None:
+    def checkout(self, git_hash: str, update_submodules: bool = True) -> None:
         # Checkout Blender revision
         if not self.blender_dir.exists():
             sys.stderr.write('\n\nError: no build set up, run `./benchmark init --build` first\n')
@@ -102,7 +103,24 @@ class TestEnvironment:
         self.call([self.git_executable, 'reset', '--hard', 'HEAD'], self.blender_dir)
         self.call([self.git_executable, 'checkout', '--detach', git_hash], self.blender_dir)
 
-    def build(self, git_hash: str, install_dir: pathlib.Path) -> bool:
+        if update_submodules:
+            self.call([self.git_executable, 'submodule', 'update', '--recursive', '--force'], self.blender_dir)
+
+    def _submodule_key(self) -> str:
+        """
+        Return a key to identify the current submodule checkout. The key only includes checked out
+        submodules.
+
+        The key is used to determine if submodules have changed between builds. In that case the
+        CMakeCache should be reevaluated as it can point to different libraries/versions.
+        """
+        log_lines = self.call([self.git_executable, 'submodule', 'status'], self.blender_dir, silent=True)
+        # Only add submodules that are checked out
+        log_lines = [line for line in log_lines if not line.startswith("-")]
+        submodule_key = ",".join([l.split()[0] for l in log_lines])
+        return submodule_key
+
+    def build(self, git_hash: str, install_dir: pathlib.Path, update_submodules: bool = True) -> bool:
         # Build Blender revision
         if not self.build_dir.exists():
             sys.stderr.write('\n\nError: no build set up, run `./benchmark init --build` first\n')
@@ -120,13 +138,19 @@ class TestEnvironment:
         else:
             complete_txt = None
 
-        self.checkout(git_hash)
+        old_submodule_key = self._submodule_key()
+        self.checkout(git_hash, update_submodules)
+        new_submodule_key = self._submodule_key()
+        if old_submodule_key != new_submodule_key:
+            cmake_cache = self.build_dir / "CMakeCache.txt"
+            if cmake_cache.exists():
+                cmake_cache.unlink()
 
         jobs = str(multiprocessing.cpu_count())
         cmake_options = list(self.cmake_options)
         cmake_options += [f"-DCMAKE_INSTALL_PREFIX={install_dir}"]
         try:
-            self.call([self.cmake_executable, '.'] + cmake_options, self.build_dir)
+            self.call([self.cmake_executable, self.blender_dir, '.'] + cmake_options, self.build_dir)
             self.call([self.cmake_executable, '--build', '.', '-j', jobs, '--target', 'install'], self.build_dir)
             if complete_txt:
                 complete_txt.write_text(git_hash)
@@ -348,3 +372,63 @@ class TestEnvironment:
         # Get commit data for a git hash.
         lines = self.call([self.git_executable, 'log', '-n1', git_hash, '--format=%at'], self.blender_git_dir)
         return int(lines[0].strip()) if len(lines) else 0
+
+    def commits_in_window(self, after_ts: int, before_ts: int) -> list[tuple[str, int]]:
+        """List commits in a time window, oldest first.
+
+        Returns a list of ``(commit_hash, unix_timestamp)`` tuples
+        for commits reachable from ``HEAD`` whose commit date falls
+        between ``after_ts`` and ``before_ts``.
+        """
+        try:
+            lines = self.call(
+                [self.git_executable, 'log', '--first-parent', '--reverse',
+                 '--after=' + str(after_ts - 1), '--before=' + str(before_ts),
+                 '--format=%H %ct', 'HEAD'],
+                self.blender_git_dir, silent=True)
+        except:
+            return []
+        result: list[tuple[str, int]] = []
+        for line in lines:
+            line = line.strip()
+            if not line:
+                continue
+            parts = line.split()
+            if len(parts) >= 2:
+                try:
+                    result.append((parts[0][:12], int(parts[1])))
+                except:
+                    pass
+        return result
+
+    def commit_title(self, git_hash: str) -> str:
+        """Return the one-line subject of a commit, with caching."""
+        if git_hash in self._title_cache:
+            return self._title_cache[git_hash]
+        try:
+            lines = self.call(
+                [self.git_executable, 'log', '-n1', '--format=%s', git_hash],
+                self.blender_git_dir, silent=True)
+            title = lines[0].strip() if lines else ''
+        except:
+            title = ''
+        self._title_cache[git_hash] = title
+        return title
+
+    def resolve_device(self, device_str: str) -> tuple[str, str]:
+        """Resolve a device string to a device_id and gpu_backend pair."""
+        machine = self.get_machine(need_gpus=True)
+        device_id = device_str
+        gpu_backend = 'default'
+
+        for device in machine.devices:
+            if device.id == device_str or device.type == device_str:
+                device_id = device.id
+                gpu_backend = {
+                    'VULKAN': 'vulkan',
+                    'METAL': 'metal',
+                    'OPENGL': 'opengl'
+                }.get(device.type, 'default')
+                break
+
+        return device_id, gpu_backend

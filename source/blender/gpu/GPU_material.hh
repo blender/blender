@@ -96,6 +96,9 @@ enum eGPUMaterialFlag {
   /* Set if the material uses the "Is Diffuse / Glossy Ray" output of the light path node. */
   GPU_MATFLAG_IS_DIFFUSE_OR_GLOSSY_RAY_FLAG = (1 << 24),
 
+  /* Signals scene time use. */
+  GPU_MATFLAG_SCENE_TIME = (1 << 25),
+
   /* Tells the render engine the material was just compiled or updated. */
   GPU_MATFLAG_UPDATED = (1 << 29),
 };

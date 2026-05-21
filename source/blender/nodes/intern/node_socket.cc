@@ -1081,10 +1081,9 @@ static void standard_node_socket_interface_init_socket(
   /* initialize the type value */
   sock->type = sock->typeinfo->type;
 
-  node_socket_init_default_value_data(
-      eNodeSocketDatatype(sock->type), sock->typeinfo->subtype, &sock->default_value);
+  node_socket_init_default_value_data(sock->type, sock->typeinfo->subtype, &sock->default_value);
   node_socket_copy_default_value_data(
-      eNodeSocketDatatype(sock->type), sock->default_value, interface_socket->socket_data);
+      sock->type, sock->default_value, interface_socket->socket_data);
 }
 
 static void standard_node_socket_interface_from_socket(ID * /*id*/,
@@ -2180,10 +2179,13 @@ static bke::bNodeSocketType *make_socket_type_font()
                                                   StructRNA &srna,
                                                   const bNodeTreeInterfaceSocket &socket,
                                                   nodes::GeneratedTreeSrnaData &r_generated) {
+    PropertyRNA *prop = RNA_def_pointer_runtime(
+        &srna, "value", RNA_VectorFont, socket.name, socket.description);
+    set_common_sequencer_update_function(prop);
     make_common_type_prop(srna,
                           socket,
-                          nodes::compositor_nodes_input_type_items_fallback,
-                          nodes::CompositorNodesInputType::Fallback,
+                          nodes::compositor_nodes_input_type_items_value,
+                          nodes::CompositorNodesInputType::Value,
                           r_generated);
   };
   return socktype;

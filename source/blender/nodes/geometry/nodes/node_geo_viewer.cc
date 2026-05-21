@@ -36,6 +36,8 @@
 
 #include "GEO_foreach_geometry.hh"
 
+#include "DEG_depsgraph_query.hh"
+
 #include "node_geometry_util.hh"
 
 namespace blender {
@@ -79,10 +81,16 @@ static void draw_string(ui::Layout &layout, const StringRef value)
   const int max_display_length = 200;
   layout.label(value.substr(0, max_display_length), ICON_NONE);
 }
+
+static void draw_empty_data_block(ui::Layout &layout)
+{
+  layout.label(IFACE_("(None)"), ICON_NONE);
+}
+
 static void draw_data_block(ui::Layout &layout, const ID *id)
 {
   if (!id) {
-    layout.label(IFACE_("(None)"), ICON_NONE);
+    draw_empty_data_block(layout);
     return;
   }
   const int icon = ED_outliner_icon_from_id(*id);
@@ -120,7 +128,21 @@ static bool draw_gpointer(CustomSocketDrawParams &params, const GPointer value)
     return true;
   }
   if (value.is_type<Collection *>()) {
-    draw_data_block(params.layout, id_cast<const ID *>(*value.get<Collection *>()));
+    const Collection *collection = *value.get<Collection *>();
+    /* Using original collection because changing the color tag does not cause the eval copy to
+     * be updated. */
+    const Collection *orig_collection = DEG_get_original(collection);
+    if (orig_collection) {
+      const StringRefNull name = BKE_id_name(orig_collection->id);
+      int icon = ED_outliner_icon_from_id(orig_collection->id);
+      if (orig_collection->color_tag != COLLECTION_COLOR_NONE) {
+        icon = int(ICON_COLLECTION_COLOR_01) + int(orig_collection->color_tag);
+      }
+      params.layout.label(name, icon);
+    }
+    else {
+      draw_empty_data_block(params.layout);
+    }
     return true;
   }
   if (value.is_type<Image *>()) {
@@ -244,7 +266,7 @@ static void node_declare(NodeDeclarationBuilder &b)
   const NodeGeometryViewer &storage = node_storage(*node);
   for (const int i : IndexRange(storage.items_num)) {
     const NodeGeometryViewerItem &item = storage.items[i];
-    const eNodeSocketDatatype socket_type = eNodeSocketDatatype(item.socket_type);
+    const eNodeSocketDatatype socket_type = item.socket_type;
     const UString name = item.name ? UString(item.name) : ""_ustr;
     const std::string identifier = GeoViewerItemsAccessor::socket_identifier_for_item(item);
     auto &input_decl = b.add_input(socket_type, name, UString(identifier))
@@ -277,7 +299,7 @@ static void node_layout(ui::Layout &layout, bContext * /*C*/, PointerRNA *ptr)
   bool has_potential_field_input = false;
   for (const int i : IndexRange(storage.items_num)) {
     const NodeGeometryViewerItem &item = storage.items[i];
-    const eNodeSocketDatatype socket_type = eNodeSocketDatatype(item.socket_type);
+    const eNodeSocketDatatype socket_type = item.socket_type;
     if (socket_type == SOCK_GEOMETRY) {
       has_geometry_input = true;
     }

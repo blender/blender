@@ -64,6 +64,7 @@
 #include "kernel/svm/normal.h"
 #include "kernel/svm/radial_tiling.h"
 #include "kernel/svm/ramp.h"
+#include "kernel/svm/scene_time.h"
 #include "kernel/svm/sepcomb_color.h"
 #include "kernel/svm/sepcomb_vector.h"
 #include "kernel/svm/sky.h"
@@ -597,6 +598,9 @@ ccl_device void svm_eval_nodes(KernelGlobals kg,
       SVM_CASE(NODE_MIX_VECTOR_NON_UNIFORM)
       svm_node_mix_vector_non_uniform(stack,
                                       svm_node_get<SVMNodeMixVectorNonUniform>(kg, &offset));
+      break;
+      SVM_CASE(NODE_SCENE_TIME)
+      svm_node_scene_time(kg, stack, svm_node_get<SVMNodeSceneTime>(kg, &offset));
       break;
       default:
         kernel_assert(!"Unknown node type was passed to the SVM machine");

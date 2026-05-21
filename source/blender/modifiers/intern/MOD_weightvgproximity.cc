@@ -62,9 +62,9 @@ namespace blender {
 #  include "BLI_time_utildefines.h"
 #endif
 
-/**************************************
- * Util functions.                    *
- **************************************/
+/* -------------------------------------------------------------------- */
+/** \name Util functions.
+ * \{ */
 
 /* Util macro. */
 #define OUT_OF_MEMORY() (void)printf("WeightVGProximity: Out of memory.\n")
@@ -297,9 +297,12 @@ static void do_map(Object *ob,
   }
 }
 
-/**************************************
- * Modifiers functions.               *
- **************************************/
+/** \} */
+
+/* -------------------------------------------------------------------- */
+/** \name Modifiers functions.
+ * \{ */
+
 static void init_data(ModifierData *md)
 {
   WeightVGProximityModifierData *wmd = reinterpret_cast<WeightVGProximityModifierData *>(md);
@@ -716,6 +719,8 @@ static void blend_read(BlendDataReader *reader, ModifierData *md)
     BKE_curvemapping_blend_read(reader, wmd->cmap_curve);
   }
 }
+
+/** \} */
 
 ModifierTypeInfo modifierType_WeightVGProximity = {
     /*idname*/ "VertexWeightProximity",

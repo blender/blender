@@ -96,7 +96,7 @@ static void node_gather_link_search_ops(GatherLinkSearchOpParams &params)
 {
   const bNodeSocket &other_socket = params.other_socket();
   const StructureType structure_type = other_socket.runtime->inferred_structure_type;
-  const eNodeSocketDatatype other_type = eNodeSocketDatatype(other_socket.type);
+  const eNodeSocketDatatype other_type = other_socket.type;
 
   if (params.in_out() == SOCK_IN) {
     if (ELEM(structure_type, StructureType::Grid, StructureType::Dynamic)) {

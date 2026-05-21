@@ -3,16 +3,6 @@
 # SPDX-License-Identifier: GPL-2.0-or-later
 
 __all__ = (
-    "add_closure_zone",
-    "add_color_mix_node",
-    "add_foreach_geometry_element_zone",
-    "add_node_type",
-    "add_node_type_with_outputs",
-    "add_node_type_with_searchable_enum",
-    "add_node_type_with_searchable_enum_socket",
-    "add_repeat_zone",
-    "add_simulation_zone",
-    "draw_node_group_add_menu",
     "set_math_node_default_props",
     "set_int_math_node_default_props",
     "set_vector_math_node_defaults"
@@ -24,99 +14,6 @@ from bpy.app.translations import (
     pgettext_iface as iface_,
     contexts as i18n_contexts,
 )
-
-
-# NOTE: This is kept for compatibility's sake, as some scripts import node_add_menu.add_node_type.
-def add_node_type(layout, node_type, *, label=None, poll=None, search_weight=0.0, translate=True):
-    """Add a node type to a menu."""
-    return AddNodeMenu.node_operator(
-        layout,
-        node_type,
-        label=label,
-        poll=poll,
-        search_weight=search_weight,
-        translate=translate,
-    )
-
-
-def add_node_type_with_searchable_enum(context, layout, node_idname, property_name, search_weight=0.0):
-    return AddNodeMenu.node_operator_with_searchable_enum(context, layout, node_idname, property_name, search_weight)
-
-
-def add_node_type_with_searchable_enum_socket(
-        context,
-        layout,
-        node_idname,
-        socket_identifier,
-        enum_names,
-        search_weight=0.0,
-):
-    return AddNodeMenu.node_operator_with_searchable_enum_socket(
-        context, layout, node_idname, socket_identifier, enum_names, search_weight,
-    )
-
-
-def add_node_type_with_outputs(context, layout, node_type, subnames, *, label=None, search_weight=0.0):
-    return AddNodeMenu.node_operator_with_outputs(
-        context,
-        layout,
-        node_type,
-        subnames,
-        label=label,
-        search_weight=search_weight,
-    )
-
-
-def add_color_mix_node(context, layout, search_weight=0.0):
-    return AddNodeMenu.color_mix_node(context, layout, search_weight=search_weight)
-
-
-def add_empty_group(layout):
-    return AddNodeMenu.new_empty_group(layout)
-
-
-def draw_node_group_add_menu(context, layout):
-    """Add items to the layout used for interacting with node groups."""
-    return AddNodeMenu.draw_group_menu(context, layout)
-
-
-def add_simulation_zone(layout, label):
-    """Add simulation zone to a menu."""
-    props = layout.operator("node.add_simulation_zone", text=label, text_ctxt=i18n_contexts.default)
-    props.use_transform = True
-    return props
-
-
-def add_repeat_zone(layout, label):
-    props = layout.operator("node.add_repeat_zone", text=label, text_ctxt=i18n_contexts.default)
-    props.use_transform = True
-    return props
-
-
-def add_foreach_geometry_element_zone(layout, label):
-    props = layout.operator(
-        "node.add_foreach_geometry_element_zone",
-        text=label,
-        text_ctxt=i18n_contexts.default,
-    )
-    props.use_transform = True
-    return props
-
-
-def add_closure_zone(layout, label):
-    props = layout.operator(
-        "node.add_closure_zone",
-        text=label,
-        text_ctxt=i18n_contexts.default,
-    )
-    props.use_transform = True
-    return props
-
-
-def add_typed_bundle(layout):
-    props = layout.operator("node.add_typed_bundle", text="Typed Bundle", text_ctxt=i18n_contexts.default)
-    props.use_transform = True
-    return props
 
 
 def set_socket_default_value(settings, socket_identifier, socket_default_value):

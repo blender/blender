@@ -228,7 +228,6 @@ set(SRC
   intern/node_runtime.cc
   intern/node_socket_value.cc
   intern/node_tree_dot_export.cc
-  intern/node_tree_field_inferencing.cc
   intern/node_tree_interface.cc
   intern/node_tree_reference_lifetimes.cc
   intern/node_tree_structure_type_inferencing.cc

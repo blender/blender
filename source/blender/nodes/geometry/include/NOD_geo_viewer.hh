@@ -57,7 +57,7 @@ struct GeoViewerItemsAccessor : public socket_items::SocketItemsAccessorDefaults
 
   static eNodeSocketDatatype get_socket_type(const NodeGeometryViewerItem &item)
   {
-    return eNodeSocketDatatype(item.socket_type);
+    return item.socket_type;
   }
 
   static char **get_name(NodeGeometryViewerItem &item)

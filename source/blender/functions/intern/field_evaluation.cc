@@ -79,8 +79,7 @@ static FieldTreeInfo preprocess_field_tree(Span<GFieldRef> entry_fields)
             /* Nothing to do. */
           }
           else {
-            /* Ensure all cases handled. */
-            static_assert(sizeof(T) == 0);
+            BLI_assert_unreachable_static_t(T);
           }
         },
         field_variant);
@@ -223,7 +222,7 @@ static void build_multi_function_procedure_for_fields(mf::Procedure &procedure,
                     const GFieldRef output_field{field_multi_fn, param_output_index};
                     /* NOTE: This abuses the deep hash cache as a set of the fields in the tree. At
                      * the cost of either hashing this output field or building a separate set of
-                     * visisted GFieldRefs, we wouldn't have to use the cache in this way. */
+                     * visited GFieldRefs, we wouldn't have to use the cache in this way. */
                     if (!field_tree_info.deep_hashes.contains(output_field)) {
                       /* Ignored outputs don't need a variable. */
                       variables[param_index] = nullptr;
@@ -253,8 +252,7 @@ static void build_multi_function_procedure_for_fields(mf::Procedure &procedure,
               variable_by_field.add_new(field_hash, &new_variable);
             }
             else {
-              /* Ensure all cases handled. */
-              static_assert(sizeof(T) == 0);
+              BLI_assert_unreachable_static_t(T);
             }
           },
           field_variant);
@@ -366,8 +364,7 @@ Vector<GVArray> evaluate_fields(ResourceScope &scope,
             varrays[out_index] = GVArray::from_single_ref(*v.type, mask.min_array_size(), v.value);
           }
           else {
-            /* Ensure all cases handled. */
-            static_assert(sizeof(T) == 0);
+            BLI_assert_unreachable_static_t(T);
           }
         },
         field_variant);
@@ -591,8 +588,16 @@ void FieldEvaluator::evaluate()
 
   Vector<GFieldRef> fields;
   fields.reserve(fields_to_evaluate_.size());
+  static constexpr bool true_value = true;
   for (const int i : fields_to_evaluate_.index_range()) {
-    fields.append(fields_to_evaluate_[i]);
+    const GField &field = fields_to_evaluate_[i];
+    if (field == selection_field_) {
+      /* Avoid evaluating the selection field again. */
+      fields.append(GFieldRef::from_constant(CPPType::get<bool>(), &true_value));
+    }
+    else {
+      fields.append(field);
+    }
   }
   evaluated_varrays_ = evaluate_fields(scope_, fields, selection_mask_, context_, dst_varrays_);
   BLI_assert(fields_to_evaluate_.size() == evaluated_varrays_.size());

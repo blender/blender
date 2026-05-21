@@ -140,6 +140,8 @@ void sequencer_operatortypes()
 
   /* `sequencer_channels_edit.cc` */
   WM_operatortype_append(SEQUENCER_OT_rename_channel);
+
+  sequencer_strip_modifier_add_asset_register();
 }
 
 void sequencer_keymap(wmKeyConfig *keyconf)

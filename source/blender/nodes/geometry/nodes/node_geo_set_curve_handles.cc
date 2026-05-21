@@ -224,8 +224,8 @@ static void node_register()
   ntype.nclass = NODE_CLASS_GEOMETRY;
   ntype.geometry_node_execute = node_geo_exec;
   ntype.declare = node_declare;
-  ntype.minwidth = 100.0f;
   ntype.initfunc = node_init;
+  ntype.default_width = bke::NodeWidth::_160;
   bke::node_type_storage(ntype,
                          "NodeGeometrySetCurveHandlePositions",
                          node_free_standard_storage,

@@ -38,6 +38,16 @@
 
 namespace blender {
 
+static const EnumPropertyItem io_stl_export_evaluation_mode[] = {
+    {DAG_EVAL_RENDER, "DAG_EVAL_RENDER", 0, "Render", "Export objects as they appear in render"},
+    {DAG_EVAL_VIEWPORT,
+     "DAG_EVAL_VIEWPORT",
+     0,
+     "Viewport",
+     "Export objects as they appear in the viewport (Multiresolution modifiers in Sculpt Mode "
+     "will not be evaluated)"},
+    {0, nullptr, 0, nullptr, nullptr}};
+
 static wmOperatorStatus wm_stl_export_invoke(bContext *C,
                                              wmOperator *op,
                                              const wmEvent * /*event*/)
@@ -60,6 +70,7 @@ static wmOperatorStatus wm_stl_export_exec(bContext *C, wmOperator *op)
   export_params.up_axis = eIOAxis(RNA_enum_get(op->ptr, "up_axis"));
   export_params.global_scale = RNA_float_get(op->ptr, "global_scale");
   export_params.apply_modifiers = RNA_boolean_get(op->ptr, "apply_modifiers");
+  export_params.evaluation_mode = eEvaluationMode(RNA_enum_get(op->ptr, "evaluation_mode"));
   export_params.export_selected_objects = RNA_boolean_get(op->ptr, "export_selected_objects");
   export_params.use_scene_unit = RNA_boolean_get(op->ptr, "use_scene_unit");
   export_params.ascii_format = RNA_boolean_get(op->ptr, "ascii_format");
@@ -110,6 +121,7 @@ static void wm_stl_export_draw(bContext *C, wmOperator *op)
   if (ui::Layout *panel = layout.panel(C, "STL_export_geometry", false, IFACE_("Geometry"))) {
     ui::Layout &col = panel->column(false);
     col.prop(ptr, "apply_modifiers", UI_ITEM_NONE, IFACE_("Apply Modifiers"), ICON_NONE);
+    col.prop(ptr, "evaluation_mode", UI_ITEM_NONE, IFACE_("Properties"), ICON_NONE);
   }
 }
 
@@ -193,6 +205,14 @@ void WM_OT_stl_export(wmOperatorType *ot)
 
   RNA_def_boolean(
       ot->srna, "apply_modifiers", true, "Apply Modifiers", "Apply modifiers to exported meshes");
+
+  RNA_def_enum(ot->srna,
+               "evaluation_mode",
+               io_stl_export_evaluation_mode,
+               DAG_EVAL_RENDER,
+               "Object Properties",
+               "Determines properties like object visibility, modifiers etc., where they differ "
+               "for Render and Viewport");
 
   /* Only show `.stl` files by default. */
   prop = RNA_def_string(ot->srna, "filter_glob", "*.stl", 0, "Extension Filter", "");

@@ -27,14 +27,9 @@ void offset_animdata(const Scene *scene, Strip *strip, float ofs);
  * Return whether the fcurve targets the given strip.
  */
 bool fcurve_matches(const Strip &strip, const FCurve &fcurve);
-struct AnimationBackup {
-  /* `curves` and `channelbag` here represent effectively the same data (the
-   * fcurves that animate the Scene that the sequence belongs to), just for
-   * legacy and layered actions, respectively. Therefore only one or the other
-   * should ever have data stored in them, never both. */
-  ListBaseT<FCurve> curves;
-  animrig::Channelbag channelbag;
 
+struct AnimationBackup {
+  animrig::Channelbag channelbag;
   ListBaseT<FCurve> drivers;
 };
 /**

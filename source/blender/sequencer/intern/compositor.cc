@@ -70,12 +70,13 @@ void CompositorContext::create_result_from_input(compositor::Result &result, ImB
 
       /* Upload input image into a GPU texture. */
       gpu::TexturePool &pool = gpu::TexturePool::get();
-      gpu::Texture *input_tex = pool.acquire_texture(size,
-                                                     input_is_byte ?
-                                                         gpu::TextureFormat::UNORM_8_8_8_8 :
-                                                         gpu::TextureFormat::SFLOAT_32_32_32_32,
-                                                     GPU_TEXTURE_USAGE_SHADER_READ,
-                                                     "seq_comp_input");
+      gpu::Texture *input_tex = pool.acquire_texture_2d(size,
+                                                        1,
+                                                        input_is_byte ?
+                                                            gpu::TextureFormat::UNORM_8_8_8_8 :
+                                                            gpu::TextureFormat::SFLOAT_32_32_32_32,
+                                                        GPU_TEXTURE_USAGE_SHADER_READ,
+                                                        "seq_comp_input");
       if (input_tex) {
         if (input_is_byte) {
           GPU_texture_update(input_tex, GPU_DATA_UBYTE, input.byte_data());

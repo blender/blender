@@ -114,7 +114,7 @@ void register_node_type_tex_bricks()
   ntype.enum_name_legacy = "BRICKS";
   ntype.nclass = NODE_CLASS_PATTERN;
   bke::node_type_socket_templates(&ntype, inputs, outputs);
-  bke::node_type_size_preset(ntype, bke::eNodeSizePreset::Middle);
+  ntype.default_width = bke::NodeWidth::_160;
   ntype.initfunc = init;
   ntype.exec_fn = exec;
   ntype.flag |= NODE_PREVIEW;

@@ -699,7 +699,7 @@ static void node_register()
   ntype.ui_description = "Generate points spread out on the surface of a mesh";
   ntype.enum_name_legacy = "DISTRIBUTE_POINTS_ON_FACES";
   ntype.nclass = NODE_CLASS_GEOMETRY;
-  bke::node_type_size(ntype, 170, 100, 320);
+  ntype.default_width = bke::NodeWidth::_180;
   ntype.declare = node_declare;
   ntype.geometry_node_execute = node_geo_exec;
   ntype.draw_buttons = node_layout;

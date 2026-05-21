@@ -316,6 +316,7 @@ struct Material {
   bool has_transparent_shadows;
   bool has_surface;
   bool has_volume;
+  bool use_scene_time;
   MaterialPass shadow;
   MaterialPass shading;
   MaterialPass prepass;
@@ -350,6 +351,10 @@ class MaterialModule {
   int64_t queued_shaders_count = 0;
   int64_t queued_textures_count = 0;
   int64_t queued_optimize_shaders_count = 0;
+
+  bool material_time_changed = true;
+  float material_frame = 0;
+  float material_time = 0;
 
  private:
   Instance &inst_;

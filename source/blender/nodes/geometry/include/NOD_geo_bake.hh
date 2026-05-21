@@ -71,7 +71,7 @@ struct BakeItemsAccessor : public socket_items::SocketItemsAccessorDefaults {
 
   static eNodeSocketDatatype get_socket_type(const NodeGeometryBakeItem &item)
   {
-    return eNodeSocketDatatype(item.socket_type);
+    return item.socket_type;
   }
 
   static char **get_name(NodeGeometryBakeItem &item)

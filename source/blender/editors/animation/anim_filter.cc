@@ -62,7 +62,6 @@
 #include "MEM_guardedalloc.h"
 
 #include "BLI_alloca.h"
-#include "BLI_ghash.h"
 #include "BLI_listbase.h"
 #include "BLI_string.h"
 #include "BLI_utildefines.h"
@@ -1040,7 +1039,7 @@ static bool skip_fcurve_selected_data(bAnimContext *ac,
           bArmature *arm = id_cast<bArmature *>(ob->data);
 
           /* Skipping - is currently hidden. */
-          if (!animrig::bone_is_visible(arm, pchan)) {
+          if (!animrig::bone_is_visible(arm, {pchan, pchan->bone_get(*ob)})) {
             return true;
           }
         }

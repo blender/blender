@@ -203,6 +203,8 @@ static void catalog_selector_panel_draw(const bContext *C, Panel *panel)
     return;
   }
 
+  settings_ensure_valid_library_ref(shelf->settings);
+
   ui::Layout &layout = *panel->layout;
 
   library_selector_draw(C, layout, *shelf);

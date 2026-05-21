@@ -12,6 +12,8 @@
 #include "BKE_node_legacy_types.hh"
 #include "BKE_node_runtime.hh"
 
+#include "NOD_node_declaration.hh"
+
 namespace blender::nodes {
 
 void EvalDependencies::add_generic_id(ID *id)
@@ -135,6 +137,15 @@ static void add_eval_dependencies_from_socket(const bNodeSocket &socket, EvalDep
     case SOCK_SOUND: {
       if (bSound *sound = static_cast<bNodeSocketValueSound *>(socket.default_value)->value) {
         deps.add_generic_id(reinterpret_cast<ID *>(sound));
+      }
+      break;
+    }
+    case SOCK_INT:
+    case SOCK_FLOAT: {
+      if (socket.is_input() && socket.runtime->declaration &&
+          socket.runtime->declaration->default_input_type == NODE_DEFAULT_INPUT_SCENE_FRAME)
+      {
+        deps.time_dependent = true;
       }
       break;
     }

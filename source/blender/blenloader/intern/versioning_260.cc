@@ -1290,7 +1290,7 @@ static bNode *version_add_group_in_out_node(bNodeTree *ntree, const int type)
      * These are stubs for links, full typeinfo is defined later. */
     for (bNodeSocket &tree_socket : *ntree_socket_list) {
       bNodeSocket *node_socket = version_make_socket_stub(tree_socket.idname,
-                                                          eNodeSocketDatatype(tree_socket.type),
+                                                          tree_socket.type,
                                                           socket_in_out,
                                                           tree_socket.identifier,
                                                           tree_socket.name,

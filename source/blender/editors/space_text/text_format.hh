@@ -77,18 +77,19 @@ struct TextFormatType {
 
   char (*format_identifier)(const char *string);
 
-  /* Formats the specified line. If do_next is set, the process will move on to
+  /**
+   * Formats the specified line. If do_next is set, the process will move on to
    * the succeeding line if it is affected (eg. multi-line strings). Format strings
    * may contain any of the following characters:
    *
-   * It is terminated with a null-terminator `\0 followed by a continuation
+   * It is terminated with a null-terminator `\0` followed by a continuation
    * flag indicating whether the line is part of a multi-line string.
    *
-   * See: FMT_TYPE_ enums below
+   * See: `FMT_TYPE_*` enums below
    */
   void (*format_line)(SpaceText *st, TextLine *line, bool do_next);
-
-  const char **ext; /* Null terminated extensions. */
+  /** Null terminated extensions. */
+  const char **ext;
 
   /** The prefix of a single-line line comment (without trailing space). */
   const char *comment_line;

@@ -257,54 +257,6 @@ ccl_device_forceinline void fresnel_conductor_polarized(
   }
 }
 
-ccl_device_forceinline void fresnel_conductor_polarized(const float cosi,
-                                                        const float ambient_ior,
-                                                        const complex<Spectrum> conductor_ior,
-                                                        const ccl_private Spectrum F82,
-                                                        ccl_private Spectrum &r_R_s,
-                                                        ccl_private Spectrum &r_R_p,
-                                                        ccl_private complex<Spectrum> &r_phasor_s,
-                                                        ccl_private complex<Spectrum> &r_phasor_p)
-{
-  /* One component at a time to reduce GPU register pressure. */
-  complex<float> phasor23_s_x, phasor23_p_x;
-  complex<float> phasor23_s_y, phasor23_p_y;
-  complex<float> phasor23_s_z, phasor23_p_z;
-  float R_s_x, R_s_y, R_s_z, R_p_x, R_p_y, R_p_z;
-
-  fresnel_conductor_polarized(cosi,
-                              ambient_ior,
-                              {conductor_ior.re.x, conductor_ior.im.x},
-                              F82.x,
-                              R_s_x,
-                              R_p_x,
-                              &phasor23_s_x,
-                              &phasor23_p_x);
-  fresnel_conductor_polarized(cosi,
-                              ambient_ior,
-                              {conductor_ior.re.y, conductor_ior.im.y},
-                              F82.y,
-                              R_s_y,
-                              R_p_y,
-                              &phasor23_s_y,
-                              &phasor23_p_y);
-  fresnel_conductor_polarized(cosi,
-                              ambient_ior,
-                              {conductor_ior.re.z, conductor_ior.im.z},
-                              F82.z,
-                              R_s_z,
-                              R_p_z,
-                              &phasor23_s_z,
-                              &phasor23_p_z);
-
-  r_R_s = make_float3(R_s_x, R_s_y, R_s_z);
-  r_R_p = make_float3(R_p_x, R_p_y, R_p_z);
-  r_phasor_s = {make_float3(phasor23_s_x.re, phasor23_s_y.re, phasor23_s_z.re),
-                make_float3(phasor23_s_x.im, phasor23_s_y.im, phasor23_s_z.im)};
-  r_phasor_p = {make_float3(phasor23_p_x.re, phasor23_p_y.re, phasor23_p_z.re),
-                make_float3(phasor23_p_x.im, phasor23_p_y.im, phasor23_p_z.im)};
-}
-
 /* Calculates Fresnel reflectance at a dielectric-conductor interface given the relative IOR.
  */
 ccl_device Spectrum fresnel_conductor(const float cosi, const complex<Spectrum> ior)
@@ -501,75 +453,58 @@ ccl_device_inline Spectrum closure_layering_weight(const Spectrum layer_albedo,
 /**
  * Evaluate the sensitivity functions for the Fourier-space spectral integration.
  */
-ccl_device_inline complex<Spectrum> iridescence_lookup_sensitivity(KernelGlobals kg,
-                                                                   const float OPD)
+ccl_device_inline complex<float> iridescence_lookup_sensitivity_channel(KernelGlobals kg,
+                                                                        const int channel,
+                                                                        const float OPD)
 {
   /* The LUT covers 0 to 60 um. */
-  float x = M_2PI_F * OPD / 60000.0f;
+  const float x = M_2PI_F * OPD / 60000.0f;
   const int size = THIN_FILM_TABLE_SIZE;
-
-  const float3 re = make_float3(
-      lookup_table_read(kg, x, kernel_data.tables.thin_film_table + 0 * size, size),
-      lookup_table_read(kg, x, kernel_data.tables.thin_film_table + 1 * size, size),
-      lookup_table_read(kg, x, kernel_data.tables.thin_film_table + 2 * size, size));
-  const float3 im = make_float3(
-      lookup_table_read(kg, x, kernel_data.tables.thin_film_table + 3 * size, size),
-      lookup_table_read(kg, x, kernel_data.tables.thin_film_table + 4 * size, size),
-      lookup_table_read(kg, x, kernel_data.tables.thin_film_table + 5 * size, size));
-
-  return {re, im};
+  const int base = kernel_data.tables.thin_film_table;
+  return {lookup_table_read(kg, x, base + channel * size, size),
+          lookup_table_read(kg, x, base + (channel + 3) * size, size)};
 }
 
-template<typename SpectrumOrFloat>
-ccl_device_inline float3 iridescence_airy_summation(KernelGlobals kg,
-                                                    const float R12,
-                                                    const SpectrumOrFloat R23,
-                                                    const float OPD,
-                                                    const complex<SpectrumOrFloat> phasor)
+ccl_device_inline float iridescence_airy_summation_channel(KernelGlobals kg,
+                                                           const int channel,
+                                                           const float R12,
+                                                           const float R23,
+                                                           const float OPD,
+                                                           const complex<float> phasor)
 {
   const float T121 = 1.0f - R12;
-
-  const SpectrumOrFloat R123 = R12 * R23;
-  const SpectrumOrFloat r123 = sqrt(R123);
-  const SpectrumOrFloat Rs = sqr(T121) * R23 / (1.0f - R123);
+  const float R123 = R12 * R23;
+  const float r123 = sqrtf(R123);
+  const float Rs = sqr(T121) * R23 / (1.0f - R123);
 
   /* Initialize complex number for exp(i * phi)^m, equivalent to {cos(m * phi), sin(m * phi)} as
    * used in equation 10. */
-  complex<SpectrumOrFloat> accumulator = phasor;
+  complex<float> accumulator = phasor;
 
   /* Perform summation over path order differences (equation 10). */
-  Spectrum R = make_spectrum(Rs + R12); /* C0 */
-  SpectrumOrFloat Cm = (Rs - T121);
+  float R = Rs + R12; /* C0 */
+  float Cm = Rs - T121;
 
   /* Truncate after m=3, higher differences have barely any impact. */
   for (int m = 1; m < 4; m++) {
     Cm *= r123;
-    const complex<Spectrum> S = iridescence_lookup_sensitivity(kg, m * OPD);
+    const complex<float> S = iridescence_lookup_sensitivity_channel(kg, channel, m * OPD);
     R += Cm * 2.0f * (accumulator.re * S.re + accumulator.im * S.im);
     accumulator *= phasor;
   }
   return R;
 }
 
-/* Template meta-programming helper to be able to have an if-constexpr expression
- * to switch between conductive (for Spectrum) or dielectric (for float) Fresnel.
- * Essentially std::is_same<T, Spectrum>, but also works on GPU. */
-template<class T> struct fresnel_info;
-template<> struct fresnel_info<float> {
-  ccl_static_constexpr bool conductive = false;
-};
-template<> struct fresnel_info<Spectrum> {
-  ccl_static_constexpr bool conductive = true;
-};
-
-template<typename SpectrumOrFloat>
-ccl_device Spectrum fresnel_iridescence(KernelGlobals kg,
-                                        const float ambient_ior,
-                                        const FresnelThinFilm thin_film,
-                                        const complex<SpectrumOrFloat> substrate_ior,
-                                        ccl_private const Spectrum *F82,
-                                        const float cos_theta_1,
-                                        ccl_private float *r_cos_theta_3)
+template<bool conductive>
+ccl_device float fresnel_iridescence_channel(KernelGlobals kg,
+                                             const int channel,
+                                             const float ambient_ior,
+                                             const FresnelThinFilm thin_film,
+                                             const float substrate_n,
+                                             const float substrate_k,
+                                             const float F82,
+                                             const float cos_theta_1,
+                                             ccl_private float *r_cos_theta_3)
 {
   /* For films below 1nm, the wave-optic-based Airy summation approach no longer applies,
    * so blend towards the case without coating. */
@@ -587,33 +522,32 @@ ccl_device Spectrum fresnel_iridescence(KernelGlobals kg,
       cos_theta_1, film_ior / ambient_ior, &cos_theta_2, &phasor12_real);
   if (isequal(R12, one_float2())) {
     /* TIR at the top interface. */
-    return one_spectrum();
+    return 1.0f;
   }
 
   /* Compute reflection at the bottom interface (film to substrate). */
-  SpectrumOrFloat R23_s, R23_p;
-  complex<SpectrumOrFloat> phasor23_s, phasor23_p;
-  if constexpr (fresnel_info<SpectrumOrFloat>::conductive) {
+  float R23_s, R23_p;
+  complex<float> phasor23_s, phasor23_p;
+  if constexpr (conductive) {
     /* Material is a conductor. */
     fresnel_conductor_polarized(-cos_theta_2,
                                 film_ior,
-                                substrate_ior,
-                                (F82) ? *F82 : make_spectrum(-1.0f),
+                                {substrate_n, substrate_k},
+                                F82,
                                 R23_s,
                                 R23_p,
-                                phasor23_s,
-                                phasor23_p);
+                                &phasor23_s,
+                                &phasor23_p);
   }
   else {
     /* Material is a dielectric. */
     float2 phasor23_real;
     const float2 R23 = fresnel_dielectric_polarized(
-        -cos_theta_2, substrate_ior.re / film_ior, r_cos_theta_3, &phasor23_real);
-
+        -cos_theta_2, substrate_n / film_ior, r_cos_theta_3, &phasor23_real);
     if (isequal(R23, one_float2())) {
       /* TIR at the bottom interface.
        * All the Airy summation math still simplifies to 1.0 in this case. */
-      return one_spectrum();
+      return 1.0f;
     }
 
     R23_s = R23.x;
@@ -627,14 +561,14 @@ ccl_device Spectrum fresnel_iridescence(KernelGlobals kg,
 
   /* Compute full phase shifts due to reflection, as a complex number exp(i * (phi23 + phi21)).
    * This complex form avoids the atan2 and cos calls needed to directly get the phase shift. */
-  const complex<SpectrumOrFloat> phasor_s = phasor23_s * -phasor12_real.x;
-  const complex<SpectrumOrFloat> phasor_p = phasor23_p * -phasor12_real.y;
+  const complex<float> phasor_s = phasor23_s * -phasor12_real.x;
+  const float R_s = iridescence_airy_summation_channel(kg, channel, R12.x, R23_s, OPD, phasor_s);
 
   /* Perform Airy summation and average the polarizations. */
-  const Spectrum R_s = iridescence_airy_summation(kg, R12.x, R23_s, OPD, phasor_s);
-  const Spectrum R_p = iridescence_airy_summation(kg, R12.y, R23_p, OPD, phasor_p);
+  const complex<float> phasor_p = phasor23_p * -phasor12_real.y;
+  const float R_p = iridescence_airy_summation_channel(kg, channel, R12.y, R23_p, OPD, phasor_p);
 
-  return saturate(mix(R_s, R_p, 0.5f));
+  return saturatef(0.5f * (R_s + R_p));
 }
 
 CCL_NAMESPACE_END

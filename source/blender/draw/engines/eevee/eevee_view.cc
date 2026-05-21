@@ -85,7 +85,7 @@ void ShadingView::render()
   inst_.shadows.set_view(render_view_, extent_);
   inst_.volume.set_view(main_view_);
   inst_.uniform_data.data.push_update();
-  /* Need to be set early for planar probe renderding (if using raycast node) and raycast nodes in
+  /* Need to be set early for planar probe rendering (if using ray-cast node) and ray-cast nodes in
    * deferred / forward pipelines. */
   inst_.raytracing.thickness_parameters_setup(render_view_.winmat(), extent_);
   inst_.uniform_data.raytrace.push_update();
@@ -192,7 +192,7 @@ gpu::Texture *ShadingView::render_postfx(gpu::Texture *input_tx)
   if (!inst_.depth_of_field.postfx_enabled() && !inst_.motion_blur.postfx_enabled()) {
     return input_tx;
   }
-  postfx_tx_.acquire(extent_, gpu::TextureFormat::SFLOAT_16_16_16_16);
+  postfx_tx_.acquire_2d(extent_, gpu::TextureFormat::SFLOAT_16_16_16_16);
 
   /* Fix a sync bug on AMD + Mesa when volume + motion blur create artifacts
    * except if there is a clear event between them. */

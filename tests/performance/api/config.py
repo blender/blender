@@ -158,15 +158,18 @@ class TestConfig:
         return "Unknown"
 
     @staticmethod
-    def write_default_config(env, config_dir: pathlib.Path) -> None:
+    def write_default_config(env, config_dir: pathlib.Path, build_dir: str) -> None:
         config_dir.mkdir(parents=True, exist_ok=True)
 
         default_config = """devices = ['CPU']\n"""
         default_config += """tests = ['*']\n"""
         default_config += """categories = ['*']\n"""
         default_config += """builds = {\n"""
-        default_config += """    'main': '/home/user/blender-git/build/bin/blender',"""
-        default_config += """    '2.93': '/home/user/blender-2.93/blender',"""
+        if build_dir:
+            default_config += """    'main': '{}',""".format(build_dir)
+        else:
+            default_config += """    'main': '/home/user/blender-git/build/bin/blender',"""
+            default_config += """    '2.93': '/home/user/blender-2.93/blender',"""
         default_config += """}\n"""
         default_config += """revisions = {\n"""
         default_config += """}\n"""

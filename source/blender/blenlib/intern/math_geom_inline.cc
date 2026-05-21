@@ -17,7 +17,9 @@ namespace blender {
 /* A few small defines. Keep them local! */
 #define SMALL_NUMBER 1.e-8f
 
-/********************************** Polygons *********************************/
+/* -------------------------------------------------------------------- */
+/** \name Polygons
+ * \{ */
 
 MINLINE float cross_tri_v2(const float v1[2], const float v2[2], const float v3[2])
 {
@@ -166,5 +168,7 @@ MINLINE float shell_v2v2_mid_normalized_to_dist(const float a[2], const float b[
 }
 
 #undef SMALL_NUMBER
+
+/** \} */
 
 }  // namespace blender

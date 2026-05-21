@@ -7,6 +7,7 @@
 #include <cstdint>
 #include <functional>
 #include <type_traits>
+#include <variant>
 
 #include "BLI_array.hh"
 #include "BLI_map.hh"
@@ -37,27 +38,6 @@ namespace nodes {
 class NodeDeclarationBuilder;
 class PanelDeclaration;
 
-enum class InputSocketFieldType : int8_t {
-  /** The input is required to be a single value. */
-  None,
-  /** The input can be a field. */
-  IsSupported,
-  /** The input can be a field and is a field implicitly if nothing is connected. */
-  Implicit,
-};
-
-enum class OutputSocketFieldType : int8_t {
-  /** The output is always a single value. */
-  None,
-  /** The output is always a field, independent of the inputs. */
-  FieldSource,
-  /** If any input is a field, this output will be a field as well. */
-  DependentField,
-  /** If any of a subset of inputs is a field, this out will be a field as well.
-   * The subset is defined by the vector of indices. */
-  PartiallyDependent,
-};
-
 /**
  * An enum that maps to the #compositor::InputRealizationMode.
  */
@@ -65,37 +45,6 @@ enum class CompositorInputRealizationMode : int8_t {
   None,
   Transforms,
   OperationDomain,
-};
-
-/**
- * Contains information about how a node output's field state depends on inputs of the same node.
- */
-class OutputFieldDependency {
- private:
-  OutputSocketFieldType type_ = OutputSocketFieldType::None;
-  Vector<int> linked_input_indices_;
-
- public:
-  static OutputFieldDependency ForFieldSource();
-  static OutputFieldDependency ForDataSource();
-  static OutputFieldDependency ForDependentField();
-  static OutputFieldDependency ForPartiallyDependentField(Vector<int> indices);
-
-  OutputSocketFieldType field_type() const;
-  Span<int> linked_input_indices() const;
-
-  friend bool operator==(const OutputFieldDependency &a, const OutputFieldDependency &b) = default;
-};
-
-/**
- * Information about how a node interacts with fields.
- */
-struct FieldInferencingInterface {
-  Array<InputSocketFieldType> inputs;
-  Array<OutputFieldDependency> outputs;
-
-  friend bool operator==(const FieldInferencingInterface &a,
-                         const FieldInferencingInterface &b) = default;
 };
 
 struct StructureTypeInterface {
@@ -205,6 +154,15 @@ using CustomSocketLabelFn = std::function<StringRefNull(bNode node)>;
 using SocketUsageInferenceFn =
     std::function<std::optional<bool>(const socket_usage_inference::SocketUsageParams &params)>;
 
+struct OutputStructureTypeDependency {
+  struct None {};
+  struct All {};
+  struct Partial {
+    Array<int, 2> linked_inputs;
+  };
+  std::variant<None, All, Partial> variant = None();
+};
+
 /**
  * Describes a single input or output socket. This is subclassed for different socket types.
  */
@@ -242,8 +200,7 @@ class SocketDeclaration : public ItemDeclaration {
   /** Index in the list of inputs or outputs of the node. */
   int index = -1;
 
-  InputSocketFieldType input_field_type = InputSocketFieldType::None;
-  OutputFieldDependency output_field_dependency;
+  OutputStructureTypeDependency structure_type_output_dependency;
 
   StructureType structure_type = StructureType::Single;
 
@@ -393,7 +350,7 @@ class BaseSocketDeclarationBuilder {
   BaseSocketDeclarationBuilder &dependent_field();
 
   /** The output is a field if any of the inputs with indices in the given list is a field. */
-  BaseSocketDeclarationBuilder &dependent_field(Vector<int> input_dependencies);
+  BaseSocketDeclarationBuilder &dependent_field(Span<int> input_dependencies);
 
   /**
    * For outputs that combine all input fields into a new field. The output is a field even if none
@@ -758,6 +715,7 @@ using ImplicitInputValueFn = std::function<void(const bNode &node, void *r_value
 std::optional<ImplicitInputValueFn> get_implicit_input_value_fn(NodeDefaultInputType type);
 bool socket_type_supports_default_input_type(const bke::bNodeSocketType &socket_type,
                                              NodeDefaultInputType input_type);
+bool default_input_type_is_field(NodeDefaultInputType input_type);
 
 void build_node_declaration(const bke::bNodeType &typeinfo,
                             NodeDeclaration &r_declaration,

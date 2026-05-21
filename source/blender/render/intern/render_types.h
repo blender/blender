@@ -51,7 +51,8 @@ struct BaseRender {
    * highlight. */
   virtual render::TilesHighlight *get_tile_highlight() = 0;
 
-  virtual void compositor_execute(const Scene &scene,
+  virtual void compositor_execute(const Main &main,
+                                  const Scene &scene,
                                   const RenderData &render_data,
                                   const bNodeTree &node_tree,
                                   const char *view_name,
@@ -95,7 +96,8 @@ struct ViewRender : public BaseRender {
     return nullptr;
   }
 
-  void compositor_execute(const Scene & /*scene*/,
+  void compositor_execute(const Main & /*main*/,
+                          const Scene & /*scene*/,
                           const RenderData & /*render_data*/,
                           const bNodeTree & /*node_tree*/,
                           const char * /*view_name*/,
@@ -122,7 +124,8 @@ struct Render : public BaseRender {
     return &tile_highlight;
   }
 
-  void compositor_execute(const Scene &scene,
+  void compositor_execute(const Main &main,
+                          const Scene &scene,
                           const RenderData &render_data,
                           const bNodeTree &node_tree,
                           const char *view_name,

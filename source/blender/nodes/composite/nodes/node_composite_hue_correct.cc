@@ -145,7 +145,7 @@ static void node_register()
   ntype.enum_name_legacy = "HUECORRECT";
   ntype.nclass = NODE_CLASS_OP_COLOR;
   ntype.declare = node_declare;
-  bke::node_type_size(ntype, 320, 140, 500);
+  ntype.default_width = bke::NodeWidth::_320;
   ntype.initfunc = node_init;
   bke::node_type_storage(ntype, "CurveMapping", node_free_curves, node_copy_curves);
   ntype.gpu_fn = node_gpu_material;

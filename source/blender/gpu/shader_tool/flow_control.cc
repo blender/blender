@@ -306,7 +306,7 @@ void SourceProcessor::lower_static_branch(Parser &parser)
       const bool is_constexpr = condition[i].str() == "true" || condition[i].str() == "false";
       const bool constexpr_val = is_constexpr ? (condition[i].str() == "true") ^ (i == 2) : false;
 
-      if (condition[1].str() != "srt_access" && !is_constexpr) {
+      if (condition[i].str() != "srt_access" && !is_constexpr) {
         report_error(if_tok,
                      "Expecting compilation or specialization constant. Make sure SRT arguments "
                      "have the [[resource_table]] attribute.");
@@ -316,7 +316,8 @@ void SourceProcessor::lower_static_branch(Parser &parser)
       Token before_body = body.front().prev();
 
       string test = is_constexpr ? string(constexpr_val ? "1" : "0") :
-                                   "SRT_CONSTANT_" + string(condition[5].str()) + " ";
+                                   string(i == 2 ? "!" : "") + "SRT_CONSTANT_" +
+                                       string(condition[4 + i].str()) + " ";
       if (condition[is_constexpr ? 2 : 7] != condition.back().prev()) {
         test += parser.substr_range_inclusive(condition[is_constexpr ? 2 : 7],
                                               condition.back().prev());

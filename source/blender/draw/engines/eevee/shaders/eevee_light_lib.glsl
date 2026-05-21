@@ -30,7 +30,7 @@ LightVector light_vector_get(LightData light, const bool is_directional, float3 
     lv.dist = 1.0f;
   }
   else {
-    lv.L = light_position_get(light) - P;
+    lv.L = light.position() - P;
     float inv_distance = inversesqrt(length_squared(lv.L));
     lv.L *= inv_distance;
     lv.dist = 1.0f / inv_distance;
@@ -103,7 +103,7 @@ float light_attenuation_common(LightData light, const bool is_directional, float
     return light_spot_attenuation(light, L);
   }
   if (is_area_light(light.type)) {
-    return float(dot(L, light_z_axis(light)) > 0.0f);
+    return float(dot(L, light.z_axis()) > 0.0f);
   }
   return 1.0f;
 }
@@ -177,7 +177,7 @@ float light_point_light(LightData light, const bool is_directional, LightVector 
 
   if (is_area_light(light.type)) {
     /* Modulate by light plane orientation / solid angle. */
-    power *= saturate(dot(light_z_axis(light), lv.L));
+    power *= saturate(dot(light.z_axis(), lv.L));
   }
   return power;
 }
@@ -195,34 +195,30 @@ float light_sphere_disk_radius(float sphere_radius, float distance_to_sphere)
          inversesqrt(max(1e-8f, 1.0f - square(sphere_radius / distance_to_sphere)));
 }
 
-float light_ltc(
-    sampler2DArray utility_tx, LightData light, float3 N, float3 V, LightVector lv, float4 ltc_mat)
-{
-  if (is_sphere_light(light.type) && lv.dist < light.local().local.shape_radius) {
-    /* Inside the sphere light, integrate over the hemisphere. */
-    return 1.0f;
-  }
+struct LightVertices {
+  float3 v[4];
+};
 
-  float3 Px = light_x_axis(light);
-  float3 Py = light_y_axis(light);
+LightVertices light_shape_corners(LightData light, LightVector lv)
+{
+  float3 Px = light.x_axis();
+  float3 Py = light.y_axis();
+
+  LightVertices vertices;
 
   if (light.type == LIGHT_RECT) {
     LightAreaData area = light.area();
 
-    float3 corners[4];
-    corners[0] = Px * area.size.x + Py * -area.size.y;
-    corners[1] = Px * area.size.x + Py * area.size.y;
-    corners[2] = -corners[0];
-    corners[3] = -corners[1];
+    vertices.v[0] = Px * area.size.x + Py * -area.size.y;
+    vertices.v[1] = Px * area.size.x + Py * area.size.y;
+    vertices.v[2] = -vertices.v[0];
+    vertices.v[3] = -vertices.v[1];
 
     float3 L = lv.L * lv.dist;
-    corners[0] += L;
-    corners[1] += L;
-    corners[2] += L;
-    corners[3] += L;
-
-    float3x3 Minv = eevee::lut::ltc::unpack(ltc_mat);
-    return eevee::ltc::evaluate_quad(utility_tx, corners, N, V, Minv);
+    vertices.v[0] += L;
+    vertices.v[1] += L;
+    vertices.v[2] += L;
+    vertices.v[3] += L;
   }
   else {
     if (!is_area_light(light.type)) {
@@ -246,19 +242,36 @@ float light_ltc(
       size = float2(light.area().size);
     }
 
-    float3 points[3];
-    points[0] = Px * -size.x + Py * -size.y;
-    points[1] = Px * size.x + Py * -size.y;
-    points[2] = -points[0];
+    vertices.v[0] = Px * -size.x + Py * -size.y;
+    vertices.v[1] = Px * size.x + Py * -size.y;
+    vertices.v[2] = -vertices.v[0];
 
     float3 L = lv.L * lv.dist;
-    points[0] += L;
-    points[1] += L;
-    points[2] += L;
-
-    float3x3 Minv = eevee::lut::ltc::unpack(ltc_mat);
-    return eevee::ltc::evaluate_disk(utility_tx, N, V, Minv, points);
+    vertices.v[0] += L;
+    vertices.v[1] += L;
+    vertices.v[2] += L;
   }
+  return vertices;
+}
+
+float light_ltc(sampler2DArray utility_tx,
+                LightData light,
+                float3 N,
+                float3 V,
+                LightVector lv,
+                float4 ltc_mat,
+                LightVertices vertices)
+{
+  if (is_sphere_light(light.type) && lv.dist < light.local().local.shape_radius) {
+    /* Inside the sphere light, integrate over the hemisphere. */
+    return 1.0f;
+  }
+
+  float3x3 Minv = eevee::lut::ltc::unpack(ltc_mat);
+  if (light.type == LIGHT_RECT) {
+    return eevee::ltc::evaluate_quad(utility_tx, vertices.v, N, V, Minv);
+  }
+  return eevee::ltc::evaluate_disk(utility_tx, N, V, Minv, vertices.v);
 }
 
 /** \} */

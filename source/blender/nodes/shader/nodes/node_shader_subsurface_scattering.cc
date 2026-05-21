@@ -147,7 +147,7 @@ void register_node_type_sh_subsurface_scattering()
   ntype.gather_link_search_ops = search_link_ops_for_shader_bsdf_node;
   ntype.add_ui_poll = object_shader_nodes_poll;
   ntype.draw_buttons = file_ns::node_shader_buts_subsurface;
-  bke::node_type_size_preset(ntype, bke::eNodeSizePreset::Middle);
+  ntype.default_width = bke::NodeWidth::_160;
   ntype.initfunc = file_ns::node_shader_init_subsurface_scattering;
   ntype.gpu_fn = file_ns::node_shader_gpu_subsurface_scattering;
   ntype.updatefunc = file_ns::node_shader_update_subsurface_scattering;

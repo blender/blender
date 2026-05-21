@@ -135,6 +135,7 @@ static void node_register()
   ntype.declare = node_declare;
   ntype.geometry_node_execute = node_geo_exec;
   ntype.initfunc = node_init;
+  ntype.default_width = bke::NodeWidth::_160;
   bke::node_type_storage(ntype,
                          "NodeGeometryCurveSelectHandles",
                          node_free_standard_storage,

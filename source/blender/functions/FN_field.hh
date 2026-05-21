@@ -261,6 +261,7 @@ class GFieldRef {
   template<typename T> GFieldRef(const Field<T> &field);
   explicit GFieldRef(const FieldInput &field_input);
   explicit GFieldRef(const FieldOperation &field_multi_fn, int output_i = 0);
+  explicit GFieldRef(Variant variant);
 
   /** Get access to the underlying #Variant. */
   const Variant &variant() const;
@@ -269,6 +270,8 @@ class GFieldRef {
   const CPPType &cpp_type() const;
   const FieldInputsPtr &field_inputs() const;
   uint64_t hash() const;
+
+  static GFieldRef from_constant(const CPPType &type, const void *value);
 };
 
 /**
@@ -515,6 +518,9 @@ inline const CPPType &GField::cpp_type() const
         else if constexpr (is_same_any_v<T, ConstantRef, TrivialInlineConstant, OwnedConstant>) {
           return *v.type;
         }
+        else {
+          BLI_assert_unreachable_static_t(T);
+        }
       },
       this->variant_);
 }
@@ -627,6 +633,13 @@ inline GFieldRef::GFieldRef(const FieldOperation &field_multi_fn, int output_i)
 {
 }
 
+inline GFieldRef::GFieldRef(Variant variant) : variant_(std::move(variant)) {}
+
+inline GFieldRef GFieldRef::from_constant(const CPPType &type, const void *value)
+{
+  return GFieldRef(Value{&type, value});
+}
+
 template<typename T>
 inline GFieldRef::GFieldRef(const Field<T> &field) : GFieldRef(static_cast<const GField &>(field))
 {
@@ -649,6 +662,9 @@ inline const CPPType &GFieldRef::cpp_type() const
         }
         else if constexpr (std::is_same_v<T, MultiFn>) {
           return v.node->output_cpp_type(v.output_i);
+        }
+        else {
+          BLI_assert_unreachable_static_t(T);
         }
       },
       variant_);

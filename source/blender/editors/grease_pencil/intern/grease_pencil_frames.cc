@@ -485,7 +485,7 @@ static bool curves_geometry_is_equal(const bke::CurvesGeometry &curves_a,
     }
 
     if (attributes_varrays_span_data_equal(attrs_a, attrs_b)) {
-      return true;
+      continue;
     }
 
     bool attributes_are_equal = true;

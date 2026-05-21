@@ -2613,14 +2613,10 @@ static bool node_can_be_inserted_on_link(bNodeTree &tree, bNode &node, const bNo
   if (!tree.typeinfo->validate_link) {
     return true;
   }
-  if (!tree.typeinfo->validate_link(eNodeSocketDatatype(link.fromsock->type),
-                                    eNodeSocketDatatype(main_input->type)))
-  {
+  if (!tree.typeinfo->validate_link(link.fromsock->type, main_input->type)) {
     return false;
   }
-  if (!tree.typeinfo->validate_link(eNodeSocketDatatype(main_output->type),
-                                    eNodeSocketDatatype(link.tosock->type)))
-  {
+  if (!tree.typeinfo->validate_link(main_output->type, link.tosock->type)) {
     return false;
   }
   return true;
@@ -2801,14 +2797,12 @@ void node_insert_on_link_flags(Main &bmain, SpaceNode &snode, bool is_new_node)
   if (!node_to_insert->is_reroute()) {
     /* Ignore main sockets when the types don't match. */
     if (best_input != nullptr && ntree.typeinfo->validate_link != nullptr &&
-        !ntree.typeinfo->validate_link(eNodeSocketDatatype(old_link->fromsock->type),
-                                       eNodeSocketDatatype(best_input->type)))
+        !ntree.typeinfo->validate_link(old_link->fromsock->type, best_input->type))
     {
       best_input = nullptr;
     }
     if (best_output != nullptr && ntree.typeinfo->validate_link != nullptr &&
-        !ntree.typeinfo->validate_link(eNodeSocketDatatype(best_output->type),
-                                       eNodeSocketDatatype(old_link->tosock->type)))
+        !ntree.typeinfo->validate_link(best_output->type, old_link->tosock->type))
     {
       best_output = nullptr;
     }
@@ -2861,7 +2855,7 @@ void node_insert_on_link_flags(Main &bmain, SpaceNode &snode, bool is_new_node)
 
 static int get_main_socket_priority(const bNodeSocket *socket)
 {
-  switch (eNodeSocketDatatype(socket->type)) {
+  switch (socket->type) {
     case SOCK_CUSTOM:
       return 0;
     case SOCK_MENU:

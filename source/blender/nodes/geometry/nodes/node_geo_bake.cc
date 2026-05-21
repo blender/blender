@@ -66,7 +66,7 @@ static void node_declare(NodeDeclarationBuilder &b)
 
   for (const int i : IndexRange(storage.items_num)) {
     const NodeGeometryBakeItem &item = storage.items[i];
-    const eNodeSocketDatatype socket_type = eNodeSocketDatatype(item.socket_type);
+    const eNodeSocketDatatype socket_type = item.socket_type;
     const UString name(item.name);
     const UString identifier(BakeItemsAccessor::socket_identifier_for_item(item));
     auto &input_decl = b.add_input(socket_type, name, identifier)
@@ -89,7 +89,9 @@ static void node_declare(NodeDeclarationBuilder &b)
           .pass_through_input_index(input_decl.index());
     }
   }
-  b.add_input<decl::Extend>(""_ustr, "__extend__"_ustr).structure_type(StructureType::Dynamic);
+  b.add_input<decl::Extend>(""_ustr, "__extend__"_ustr)
+      .structure_type(StructureType::Dynamic)
+      .custom_draw(socket_items::ui::draw_extend_socket_fn<BakeItemsAccessor>());
   b.add_output<decl::Extend>(""_ustr, "__extend__"_ustr)
       .structure_type(StructureType::Dynamic)
       .align_with_previous();
@@ -133,7 +135,7 @@ static void draw_bake_items(const bContext *C, ui::Layout &layout, PointerRNA no
     socket_items::ui::draw_active_item_props<BakeItemsAccessor>(
         tree, node, [&](PointerRNA *item_ptr) {
           const NodeGeometryBakeItem &active_item = storage.items[storage.active_index];
-          const auto socket_type = eNodeSocketDatatype(active_item.socket_type);
+          const eNodeSocketDatatype socket_type = active_item.socket_type;
           panel->use_property_split_set(true);
           panel->use_property_decorate_set(false);
           panel->prop(item_ptr, "socket_type", UI_ITEM_NONE, std::nullopt, ICON_NONE);
@@ -356,7 +358,7 @@ class LazyFunctionForBakeNode final : public LazyFunction {
   {
     Vector<bake::BakeValues::OutputKey> keys;
     for (const NodeGeometryBakeItem &item : bake_items_) {
-      keys.append({item.identifier, eNodeSocketDatatype(item.socket_type)});
+      keys.append({item.identifier, item.socket_type});
     }
     return bake_values.to_runtime_values(keys, compute_context, data_block_map);
   }
@@ -447,7 +449,7 @@ static void node_layout_ex(ui::Layout &layout, bContext *C, PointerRNA *ptr)
 
 static void node_gather_link_searches(GatherLinkSearchOpParams &params)
 {
-  const eNodeSocketDatatype type = eNodeSocketDatatype(params.other_socket().type);
+  const eNodeSocketDatatype type = params.other_socket().type;
   if (!BakeItemsAccessor::supports_socket_type(type, params.node_tree().type)) {
     return;
   }

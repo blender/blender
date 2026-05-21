@@ -35,18 +35,29 @@ TexturePoolImpl::~TexturePoolImpl()
   }
 }
 
-Texture *TexturePoolImpl::acquire_texture(int2 extent,
-                                          TextureFormat format,
-                                          eGPUTextureUsage usage,
-                                          const char * /* name */)
+Texture *TexturePoolImpl::acquire_texture_impl(int3 extent,
+                                               int mip_len,
+                                               GPUTextureType type,
+                                               TextureFormat format,
+                                               eGPUTextureUsage usage,
+                                               const char * /* name */)
 {
+  /* Determine actual mipmap depth. */
+  int mip_len_max = 1 + floorf(log2f(max_iii(extent.x, extent.y, extent.z)));
+  mip_len = min_ii(mip_len, mip_len_max);
+
   /* Search pool for compatible available texture first. */
   int64_t match_index = -1;
   for (uint64_t i : pool_.index_range()) {
     Texture *tex = pool_[i].texture;
-    if ((GPU_texture_format(tex) == format) && (GPU_texture_width(tex) == extent.x) &&
-        (GPU_texture_height(tex) == extent.y) && (GPU_texture_usage(tex) == usage))
-    {
+
+    auto tex_args = std::tuple(tex->format_get(),
+                               tex->type_get(),
+                               tex->width_get(),
+                               tex->height_get(),
+                               tex->depth_get(),
+                               tex->mip_count());
+    if (std::tie(format, type, UNPACK3(extent), mip_len) == tex_args) {
       match_index = i;
       break;
     }
@@ -61,18 +72,42 @@ Texture *TexturePoolImpl::acquire_texture(int2 extent,
   }
 
   /* Generate debug label name, if one isn't passed in `name`. TexturePoolImpl ignores the
-   *name argument, as returned textures do not shadow/view/abstract the underlying texture. */
+   * name argument, as returned textures do not shadow/view/abstract the underlying texture. */
   std::string name_str;
   if (G.debug & G_DEBUG_GPU) {
     name_str = fmt::format("TexFromPool_{}", pool_.size());
   }
 
-  /* Otherwise, allocate a new texture as a last resort. */
-  TextureHandle handle = {
-      GPU_texture_create_2d(name_str.c_str(), UNPACK2(extent), 1, format, usage, nullptr)};
+  /* Otherwise, allocate a new texture of the specified type. */
+  TextureHandle handle = {GPUBackend::get()->texture_alloc(name_str.c_str())};
+  handle.texture->usage_set(usage | GPU_TEXTURE_USAGE_FORMAT_VIEW);
+  bool init_result = false;
+  switch (type) {
+    case GPU_TEXTURE_1D:
+    case GPU_TEXTURE_1D_ARRAY:
+      init_result = handle.texture->init_1D(extent.x, extent.y, mip_len, format);
+      break;
+    case GPU_TEXTURE_2D:
+    case GPU_TEXTURE_2D_ARRAY:
+      init_result = handle.texture->init_2D(extent.x, extent.y, extent.z, mip_len, format);
+      break;
+    case GPU_TEXTURE_3D:
+      init_result = handle.texture->init_3D(extent.x, extent.y, extent.z, mip_len, format);
+      break;
+    case GPU_TEXTURE_CUBE:
+    case GPU_TEXTURE_CUBE_ARRAY:
+      init_result = handle.texture->init_cubemap(extent.x, extent.y, mip_len, format);
+      break;
+    default:
+      BLI_assert_unreachable();
+      break;
+  }
+  UNUSED_VARS_NDEBUG(init_result);
+  BLI_assert(init_result);
+
   acquired_.add(handle);
   return handle.texture;
-}
+}  // namespace blender::gpu
 
 void TexturePoolImpl::release_texture(Texture *tex)
 {

@@ -46,7 +46,7 @@ static void node_layout(ui::Layout &layout, bContext * /*C*/, PointerRNA *ptr)
 
 static void node_gather_link_search_ops(GatherLinkSearchOpParams &params)
 {
-  const eNodeSocketDatatype other_type = eNodeSocketDatatype(params.other_socket().type);
+  const eNodeSocketDatatype other_type = params.other_socket().type;
 
   if (params.in_out() == SOCK_OUT) {
     if (ELEM(other_type, SOCK_MATRIX, SOCK_ROTATION)) {

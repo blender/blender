@@ -270,7 +270,7 @@ static int get_best_word_index_that_startswith(StringRef query,
    * itself anymore.
    *
    * E.g. the full query `T > Test` wouldn't match itself anymore if `Test` has a higher weight.
-   * That's because the `T` would be matched with the `Test`, but then `Test` can't match `Test
+   * That's because the `T` would be matched with the `Test`, but then `Test` can't match `Test`
    * anymore because that's taken up already.
    *
    * If we don't have to pick the shortest match for correctness, pick the one with the largest

@@ -12,7 +12,7 @@
 
 namespace blender::compositor {
 
-static void extract_alpha_gpu(Context &context, Result &input, Result &output)
+static void extract_alpha_gpu(Context &context, const Result &input, Result &output)
 {
   gpu::Shader *shader = context.get_shader("compositor_convert_color_to_alpha");
   GPU_shader_bind(shader);
@@ -29,7 +29,7 @@ static void extract_alpha_gpu(Context &context, Result &input, Result &output)
   output.unbind_as_image();
 }
 
-static void extract_alpha_cpu(Result &input, Result &output)
+static void extract_alpha_cpu(const Result &input, Result &output)
 {
   output.allocate_texture(input.domain());
   parallel_for(input.domain().data_size, [&](const int2 texel) {
@@ -37,7 +37,7 @@ static void extract_alpha_cpu(Result &input, Result &output)
   });
 }
 
-void extract_alpha(Context &context, Result &input, Result &output)
+void extract_alpha(Context &context, const Result &input, Result &output)
 {
   if (input.is_single_value()) {
     output.allocate_single_value();

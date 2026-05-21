@@ -174,6 +174,9 @@ void OperatorTypeData::ensure_hash()
         else if constexpr (std::is_same_v<T, LocalRef>) {
           XXH3_128bits_update(hash_state, &value.session_uid, sizeof(value.session_uid));
         }
+        else {
+          BLI_assert_unreachable_static_t(T);
+        }
       },
       this->group_ref);
   bke::idprop::hash(*this->asset_meta_data_properties, hash_state);
@@ -350,7 +353,9 @@ static const bNodeTree *get_asset_or_local_node_group(const bContext &C,
           }
           return id_cast<const bNodeTree *>(asset::asset_local_id_ensure_imported(bmain, *asset));
         }
-        return nullptr;
+        else {
+          BLI_assert_unreachable_static_t(T);
+        }
       },
       type_data.group_ref);
 }

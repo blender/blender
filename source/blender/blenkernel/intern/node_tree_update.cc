@@ -592,12 +592,6 @@ class NodeTreeMainUpdater {
       }
     }
 
-    if (ntree.type == NTREE_GEOMETRY) {
-      if (node_field_inferencing::update_field_inferencing(ntree)) {
-        result.interface_changed = true;
-      }
-    }
-
     if (ELEM(ntree.type, NTREE_GEOMETRY, NTREE_COMPOSIT)) {
       if (node_structure_type_inferencing::update_structure_type_interface(ntree)) {
         result.interface_changed = true;
@@ -1496,8 +1490,8 @@ class NodeTreeMainUpdater {
         continue;
       }
       if (ntree.typeinfo->validate_link) {
-        const eNodeSocketDatatype from_type = eNodeSocketDatatype(link.fromsock->type);
-        const eNodeSocketDatatype to_type = eNodeSocketDatatype(link.tosock->type);
+        const eNodeSocketDatatype from_type = link.fromsock->type;
+        const eNodeSocketDatatype to_type = link.tosock->type;
         if (!ntree.typeinfo->validate_link(from_type, to_type)) {
           link.flag &= ~NODE_LINK_VALID;
           ntree.runtime->link_errors.add(

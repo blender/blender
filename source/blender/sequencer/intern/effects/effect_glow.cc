@@ -169,17 +169,8 @@ static void do_glow_effect_byte(Strip *strip,
 
   threading::parallel_for(IndexRange(y), 64, [&](const IndexRange y_range) {
     size_t offset = y_range.first() * x;
-    IMB_buffer_byte_from_float(out + offset * 4,
-                               *(outbuf.data() + offset),
-                               4,
-                               0.0f,
-                               IB_PROFILE_SRGB,
-                               IB_PROFILE_SRGB,
-                               true,
-                               x,
-                               y_range.size(),
-                               x,
-                               x);
+    IMB_buffer_byte_from_float(
+        out + offset * 4, *(outbuf.data() + offset), 4, 0.0f, true, x, y_range.size(), x);
   });
 }
 

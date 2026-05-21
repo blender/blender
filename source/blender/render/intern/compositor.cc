@@ -62,6 +62,7 @@ namespace render {
 class ContextInputData {
  public:
   const Render *render;
+  const Main *main;
   const Scene *scene;
   const RenderData *render_data;
   const bNodeTree *node_tree;
@@ -70,6 +71,7 @@ class ContextInputData {
   compositor::NodeGroupOutputTypes needed_outputs;
 
   ContextInputData(const Render *render,
+                   const Main &main,
                    const Scene &scene,
                    const RenderData &render_data,
                    const bNodeTree &node_tree,
@@ -77,6 +79,7 @@ class ContextInputData {
                    compositor::RenderContext *render_context,
                    compositor::NodeGroupOutputTypes needed_outputs)
       : render(render),
+        main(&main),
         scene(&scene),
         render_data(&render_data),
         node_tree(&node_tree),
@@ -117,6 +120,11 @@ class Context : public compositor::Context {
     for (ImBuf *pass : cached_cpu_passes_) {
       IMB_freeImBuf(pass);
     }
+  }
+
+  const Main &get_main() const override
+  {
+    return *input_data_.main;
   }
 
   const Scene &get_scene() const override
@@ -795,7 +803,8 @@ class Compositor {
 
 }  // namespace render
 
-void Render::compositor_execute(const Scene &scene,
+void Render::compositor_execute(const Main &main,
+                                const Scene &scene,
                                 const RenderData &render_data,
                                 const bNodeTree &node_tree,
                                 const char *view_name,
@@ -805,7 +814,7 @@ void Render::compositor_execute(const Scene &scene,
   std::unique_lock lock(this->compositor_mutex);
 
   render::ContextInputData input_data(
-      this, scene, render_data, node_tree, view_name, render_context, needed_outputs);
+      this, main, scene, render_data, node_tree, view_name, render_context, needed_outputs);
 
   if (this->compositor && this->compositor->needs_to_be_recreated(input_data)) {
     /* Free it here and it will be recreated in the check below. */
@@ -831,6 +840,7 @@ void Render::compositor_free()
 }
 
 void RE_compositor_execute(Render &render,
+                           const Main &main,
                            const Scene &scene,
                            const RenderData &render_data,
                            const bNodeTree &node_tree,
@@ -839,7 +849,7 @@ void RE_compositor_execute(Render &render,
                            compositor::NodeGroupOutputTypes needed_outputs)
 {
   render.compositor_execute(
-      scene, render_data, node_tree, view_name, render_context, needed_outputs);
+      main, scene, render_data, node_tree, view_name, render_context, needed_outputs);
 }
 
 void RE_compositor_free(Render &render)

@@ -1079,29 +1079,91 @@ class TextureFromPool : public Texture, NonMovable {
     release();
   }
 
-  /* Always use `::release()` or `::retain()` after rendering with a texture. */
-  bool acquire(int2 extent,
-               gpu::TextureFormat format,
-               eGPUTextureUsage usage = GPU_TEXTURE_USAGE_GENERAL)
+  /**
+   * Acquire a texture with the correct properties from the pool.
+   * Always use `::release()` or `::retain()` after rendering with this texture.
+   */
+  bool acquire_1d(int extent,
+                  gpu::TextureFormat format,
+                  eGPUTextureUsage usage = GPU_TEXTURE_USAGE_GENERAL,
+                  int mip_len = 1)
   {
-    if (tx_ != nullptr) {
-      /* Ensure retained texture has the correct requested size. */
-      if (GPU_texture_width(tx_) != extent.x || GPU_texture_height(tx_) != extent.y) {
-        release();
-      }
-    }
+    return acquire_impl(extent, 0, 0, mip_len, format, usage, false, false);
+  }
 
-    if (tx_ == nullptr) {
-      pool_ = &gpu::TexturePool::get();
-      tx_ = pool_->acquire_texture(extent, format, usage, name_);
-      if (G.debug & G_DEBUG_GPU) {
-        debug_clear();
-      }
-      return true;
-    }
+  /**
+   * Acquire a texture with the correct properties from the pool.
+   * Always use `::release()` or `::retain()` after rendering with this texture.
+   */
+  bool acquire_1d_array(int extent,
+                        int layers,
+                        gpu::TextureFormat format,
+                        eGPUTextureUsage usage = GPU_TEXTURE_USAGE_GENERAL,
+                        int mip_len = 1)
+  {
+    return acquire_impl(extent, layers, 0, mip_len, format, usage, true, false);
+  }
 
-    pool_->offset_users_count(tx_, 1);
-    return false;
+  /**
+   * Acquire a texture with the correct properties from the pool.
+   * Always use `::release()` or `::retain()` after rendering with this texture.
+   */
+  bool acquire_2d(int2 extent,
+                  gpu::TextureFormat format,
+                  eGPUTextureUsage usage = GPU_TEXTURE_USAGE_GENERAL,
+                  int mip_len = 1)
+  {
+    return acquire_impl(extent.x, extent.y, 0, mip_len, format, usage, false, false);
+  }
+
+  /**
+   * Acquire a texture with the correct properties from the pool.
+   * Always use `::release()` or `::retain()` after rendering with this texture.
+   */
+  bool acquire_2d_array(int2 extent,
+                        int layers,
+                        gpu::TextureFormat format,
+                        eGPUTextureUsage usage = GPU_TEXTURE_USAGE_GENERAL,
+                        int mip_len = 1)
+  {
+    return acquire_impl(extent.x, extent.y, layers, mip_len, format, usage, true, false);
+  }
+
+  /**
+   * Acquire a texture with the correct properties from the pool.
+   * Always use `::release()` or `::retain()` after rendering with this texture.
+   */
+  bool acquire_3d(int3 extent,
+                  gpu::TextureFormat format,
+                  eGPUTextureUsage usage = GPU_TEXTURE_USAGE_GENERAL,
+                  int mip_len = 1)
+  {
+    return acquire_impl(extent.x, extent.y, extent.z, mip_len, format, usage, false, false);
+  }
+
+  /**
+   * Acquire a texture with the correct properties from the pool.
+   * Always use `::release()` or `::retain()` after rendering with this texture.
+   */
+  bool acquire_cube(int extent,
+                    gpu::TextureFormat format,
+                    eGPUTextureUsage usage = GPU_TEXTURE_USAGE_GENERAL,
+                    int mip_len = 1)
+  {
+    return acquire_impl(extent, 0, 0, mip_len, format, usage, false, true);
+  }
+
+  /**
+   * Acquire a texture with the correct properties from the pool.
+   * Always use `::release()` or `::retain()` after rendering with this texture.
+   */
+  bool acquire_cube_array(int extent,
+                          int layers,
+                          gpu::TextureFormat format,
+                          eGPUTextureUsage usage = GPU_TEXTURE_USAGE_GENERAL,
+                          int mip_len = 1)
+  {
+    return acquire_impl(extent, layers, 0, mip_len, format, usage, true, true);
   }
 
   /* Invalidate the acquired texture for this frame. Multiple releases can be done safely. */
@@ -1110,6 +1172,7 @@ class TextureFromPool : public Texture, NonMovable {
     if (tx_ == nullptr) {
       return;
     }
+    free_texture_views();
     pool_->release_texture(tx_);
     tx_ = nullptr;
     pool_ = nullptr;
@@ -1145,9 +1208,64 @@ class TextureFromPool : public Texture, NonMovable {
   bool ensure_cube(int, int, gpu::TextureFormat, eGPUTextureUsage, const float *) = delete;
   void filter_mode(bool) = delete;
   void free() = delete;
-  gpu::Texture *mip_view(int) = delete;
-  gpu::Texture *layer_view(int) = delete;
-  gpu::Texture *stencil_view() = delete;
+
+ private:
+  /* Underlying `acquire_*` forwards to the texture pool. */
+  bool acquire_impl(int w,
+                    int h,
+                    int d,
+                    int mip_len,
+                    gpu::TextureFormat format,
+                    eGPUTextureUsage usage,
+                    bool layered,
+                    bool cubemap)
+  {
+    if (tx_ != nullptr) {
+      if (GPU_texture_width(tx_) != w || GPU_texture_height(tx_) != h ||
+          GPU_texture_depth(tx_) != d)
+      {
+        release();
+      }
+      else {
+        pool_->offset_users_count(tx_, 1);
+        return false;
+      }
+    }
+
+    pool_ = &gpu::TexturePool::get();
+
+    if (h == 0) {
+      tx_ = pool_->acquire_texture_1d(w, mip_len, format, usage, name_);
+    }
+    else if (cubemap) {
+      if (layered) {
+        tx_ = pool_->acquire_texture_cube_array(w, h, mip_len, format, usage, name_);
+      }
+      else {
+        tx_ = pool_->acquire_texture_cube(w, mip_len, format, usage, name_);
+      }
+    }
+    else if (d == 0) {
+      if (layered) {
+        tx_ = pool_->acquire_texture_1d_array(w, h, mip_len, format, usage, name_);
+      }
+      else {
+        tx_ = pool_->acquire_texture_2d({w, h}, mip_len, format, usage, name_);
+      }
+    }
+    else if (layered) {
+      tx_ = pool_->acquire_texture_2d_array({w, h}, d, mip_len, format, usage, name_);
+    }
+    else {
+      tx_ = pool_->acquire_texture_3d({w, h, d}, mip_len, format, usage, name_);
+    }
+
+    if (G.debug & G_DEBUG_GPU) {
+      debug_clear();
+    }
+
+    return true;
+  }
 };
 
 class TextureRef : public Texture {

@@ -154,7 +154,7 @@ static void node_register()
   ntype.enum_name_legacy = "MESH_TO_VOLUME";
   ntype.nclass = NODE_CLASS_GEOMETRY;
   ntype.declare = node_declare;
-  bke::node_type_size(ntype, 200, 120, 700);
+  ntype.default_width = bke::NodeWidth::_200;
   ntype.initfunc = node_init;
   ntype.geometry_node_execute = node_geo_exec;
   bke::node_type_storage(

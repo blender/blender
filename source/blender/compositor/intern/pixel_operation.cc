@@ -155,7 +155,7 @@ Map<std::string, const bNodeSocket *> &PixelOperation::get_inputs_to_linked_outp
   return inputs_to_linked_outputs_map_;
 }
 
-Map<ImplicitInput, std::string> &PixelOperation::get_implicit_inputs_to_input_identifiers_map()
+Map<ImplicitInputType, std::string> &PixelOperation::get_implicit_inputs_to_input_identifiers_map()
 {
   return implicit_inputs_to_input_identifiers_map_;
 }

@@ -63,8 +63,9 @@ struct PaintRuntime : NonCopyable, NonMovable {
   float brush_rotation_sec = 0.0f;
 
   /*******************************************************************************
-   * all data below are used to communicate with cursor drawing and tex sampling *
+   * All data below are used to communicate with cursor drawing and tex sampling *
    *******************************************************************************/
+
   bool draw_anchored = false;
   int anchored_size = 0;
 

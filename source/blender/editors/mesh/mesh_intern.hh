@@ -234,6 +234,9 @@ void MESH_OT_loop_to_region(wmOperatorType *ot);
 void MESH_OT_select_by_attribute(wmOperatorType *ot);
 void MESH_OT_shortest_path_select(wmOperatorType *ot);
 
+/* *** editmesh_space_evenly.cc *** */
+void MESH_OT_space_edge_loops_evenly(wmOperatorType *ot);
+
 extern EnumPropertyItem *corner_type_items;
 
 /* *** editmesh_tools.cc *** */

@@ -379,11 +379,11 @@ const EnumPropertyItem rna_enum_fileselect_params_sort_items[] = {
     {0, nullptr, 0, nullptr, nullptr},
 };
 
-static const EnumPropertyItem rna_enum_asset_import_method_items[] = {
+static const EnumPropertyItem rna_enum_fileselect_params_asset_import_method_items[] = {
     {FILE_ASSET_IMPORT_FOLLOW_PREFS,
      "FOLLOW_PREFS",
      0,
-     "Follow Preferences",
+     "Follow Asset or Preferences",
      "Use the import method set in the Preferences for this asset library, don't override it "
      "for this Asset Browser"},
     {FILE_ASSET_IMPORT_LINK,
@@ -3946,7 +3946,9 @@ static const EnumPropertyItem *rna_FileAssetSelectParams_import_method_itemf(
 
   EnumPropertyItem *items = nullptr;
   int items_num = 0;
-  for (const EnumPropertyItem *item = rna_enum_asset_import_method_items; item->identifier; item++)
+  for (const EnumPropertyItem *item = rna_enum_fileselect_params_asset_import_method_items;
+       item->identifier;
+       item++)
   {
     if ((item->value == FILE_ASSET_IMPORT_LINK) &&
         (params->asset_library_ref.type == ASSET_LIBRARY_CUSTOM))
@@ -7877,7 +7879,7 @@ static void rna_def_fileselect_asset_params(BlenderRNA *brna)
                            "Which asset types to show/hide, when browsing an asset library");
 
   prop = RNA_def_property(srna, "import_method", PROP_ENUM, PROP_NONE);
-  RNA_def_property_enum_items(prop, rna_enum_asset_import_method_items);
+  RNA_def_property_enum_items(prop, rna_enum_fileselect_params_asset_import_method_items);
   RNA_def_property_enum_funcs(
       prop, nullptr, nullptr, "rna_FileAssetSelectParams_import_method_itemf");
   RNA_def_property_ui_text(prop, "Import Method", "Determine how the asset will be imported");

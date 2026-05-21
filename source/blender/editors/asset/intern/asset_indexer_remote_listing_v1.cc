@@ -8,6 +8,7 @@
 
 #include <fmt/format.h>
 
+#include "BLI_assert.h"
 #include "BLI_fileops.h"
 #include "BLI_path_utils.hh"
 #include "BLI_serialize.hh"
@@ -16,6 +17,7 @@
 #include "BLI_vector.hh"
 
 #include "BKE_asset.hh"
+#include "BKE_blender_version.h"
 #include "BKE_idtype.hh"
 
 #include "BLT_translation.hh"
@@ -41,11 +43,89 @@ struct AssetLibraryListingPageV1 {
                                             RemoteListingEntryProcessFn process_fn);
 };
 
+/**
+ * Parse the string as "major.minor" version, returning (major*100 + minor).
+ * This can then be compared to BLENDER_VERSION from BKE_blender_version.h.
+ */
+static std::optional<int> blender_version_from_string(const blender::StringRef str)
+{
+  const int64_t dot = str.find('.');
+  if (dot == blender::StringRef::not_found) {
+    return {};
+  }
+  int major, minor;
+  const blender::StringRef major_str = str.substr(0, dot);
+  const blender::StringRef minor_str = str.substr(dot + 1);
+  if (std::from_chars(major_str.begin(), major_str.end(), major).ec != std::errc() ||
+      std::from_chars(minor_str.begin(), minor_str.end(), minor).ec != std::errc())
+  {
+    return {};
+  }
+  if (major < 0 || minor < 0 || minor >= 100) {
+    return {};
+  }
+  return major * 100 + minor;
+}
+
+static ReadingResult<bool> blender_version_matches(const DictionaryValue &asset_dictionary)
+{
+  const DictionaryValue *bl_versions_dict = asset_dictionary.lookup_dict("bl_versions");
+  if (!bl_versions_dict) {
+    return ReadingResult<bool>::Failure(
+        N_("could not read asset Blender versions, 'bl_versions' field not set"));
+  }
+
+  /* Check the 'min' field. */
+  const std::optional<StringRef> min_opt = bl_versions_dict->lookup_str("min");
+  if (!min_opt) {
+    return ReadingResult<bool>::Failure(
+        N_("could not read asset Blender versions, 'bl_versions.min' field not set"));
+  }
+
+  const std::optional<int> bl_version_min = blender_version_from_string(*min_opt);
+  if (!bl_version_min) {
+    return ReadingResult<bool>::Failure(
+        N_("could not read asset Blender versions, 'bl_versions.min' field not in X.Y notation"));
+  }
+  if (BLENDER_VERSION < *bl_version_min) {
+    /* This Blender version is older than what the asset needs, so skip it. */
+    return ReadingResult<bool>::Success(false);
+  }
+
+  /* Check the 'until' field. */
+  const std::optional<StringRef> until_opt = bl_versions_dict->lookup_str("until");
+  if (!until_opt) {
+    /* Fine to be missing, this field is optional. If it is not there, the asset has no maximum
+     * version. */
+    return ReadingResult<bool>::Success(true);
+  }
+
+  const std::optional<int> bl_version_until = blender_version_from_string(*until_opt);
+  if (!bl_version_until) {
+    return ReadingResult<bool>::Failure(
+        N_("could not read asset Blender versions, 'bl_versions.min' field not in X.Y notation"));
+  }
+  return ReadingResult<bool>::Success(BLENDER_VERSION < *bl_version_until);
+}
+
 static ReadingResult<RemoteListingAssetEntry> listing_entry_from_asset_dictionary(
     const DictionaryValue &dictionary,
     const Map<std::string, RemoteListingFileEntry> &file_path_to_entry_map)
 {
   RemoteListingAssetEntry listing_entry{};
+
+  /* Check the min/until Blender versions first. If the current Blender doesn't match, the entire
+   * asset can be ignored. */
+  ReadingResult<bool> version_check = blender_version_matches(dictionary);
+  if (!version_check.is_success()) {
+    return ReadingResult<RemoteListingAssetEntry>::Failure(
+        std::move(version_check.failure_reason));
+  }
+  if (!*version_check) {
+    /* Return an empty entry, to indicate to the caller a successfully parsed entry that didn't
+     * yield an asset. */
+    return ReadingResult<RemoteListingAssetEntry>::Success(RemoteListingAssetEntry{});
+  }
 
   /* 'id': name of the asset. Required string. */
   const std::optional<StringRef> asset_name_opt = dictionary.lookup_str("name");
@@ -211,7 +291,11 @@ static ReadingResult<> listing_entries_from_root(const DictionaryValue &value,
       continue;
     }
 
-    RemoteListingAssetEntry &entry = *result.success_value;
+    RemoteListingAssetEntry &entry = *result;
+    if (entry.is_empty()) {
+      continue;
+    }
+
     if (!process_fn(entry)) {
       return ReadingResult<>::Cancelled();
     }

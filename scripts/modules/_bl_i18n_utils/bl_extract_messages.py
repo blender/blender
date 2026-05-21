@@ -671,12 +671,6 @@ def dump_py_messages_from_files(msgs, reports, files, settings):
             func_translate_args[sub_func_id] = pgettext_variants_args
     # Manually add functions from node_add_menu.py.
     for func_id, arg_pos in (
-            ("add_node_type", 3),
-            ("add_node_type_with_outputs", 5),
-            ("add_simulation_zone", 1),
-            ("add_repeat_zone", 1),
-            ("add_foreach_geometry_element_zone", 1),
-            ("add_closure_zone", 1),
             ("node_operator", 4),
             ("node_operator_with_outputs", 6),
             ("simulation_zone", 2),

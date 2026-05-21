@@ -8,6 +8,8 @@
 
 #include "RNA_enum_types.hh"
 
+#include "NOD_geometry_nodes_list.hh"
+
 #include "node_geometry_util.hh"
 
 namespace blender::nodes::node_geo_get_attribute_names_cc {
@@ -91,7 +93,7 @@ static void node_register()
   ntype.nclass = NODE_CLASS_ATTRIBUTE;
   ntype.geometry_node_execute = node_geo_exec;
   ntype.declare = node_declare;
-  bke::node_type_size(ntype, 160, 100, NODE_DEFAULT_MAX_WIDTH);
+  ntype.default_width = bke::NodeWidth::_160;
   blender::bke::node_register_type(ntype);
 }
 NOD_REGISTER_NODE(node_register)

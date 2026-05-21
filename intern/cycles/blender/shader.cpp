@@ -200,7 +200,7 @@ static float3 get_node_output_vector(blender::bNode &b_node, const string &name)
 
 static SocketType::Type convert_socket_type(const blender::bNodeSocket &b_socket)
 {
-  switch (blender::eNodeSocketDatatype(b_socket.type)) {
+  switch (b_socket.type) {
     case blender::SOCK_FLOAT:
       return SocketType::FLOAT;
     case blender::SOCK_BOOLEAN:
@@ -1189,6 +1189,9 @@ static ShaderNode *add_node(Scene *scene,
     raycast_add_output_attribute_sockets(raycast, b_node);
     node = raycast;
   }
+  else if (b_node.is_type("GeometryNodeInputSceneTime"_ustr)) {
+    node = graph->create_node<SceneTimeNode>();
+  }
 
   if (node) {
     node->name = b_node.name;
@@ -1634,7 +1637,9 @@ bool BlenderSync::scene_attr_needs_recalc(Shader *shader, blender::Depsgraph &b_
 
 /* Sync Materials */
 
-void BlenderSync::sync_materials(blender::Depsgraph &b_depsgraph, bool update_all)
+void BlenderSync::sync_materials(blender::Depsgraph &b_depsgraph,
+                                 bool update_all,
+                                 bool update_time)
 {
   shader_map.set_default(scene->default_surface);
 
@@ -1680,7 +1685,8 @@ void BlenderSync::sync_materials(blender::Depsgraph &b_depsgraph, bool update_al
 
     /* test if we need to sync */
     if (shader_map.add_or_update(&shader, &b_mat.id) || update_all ||
-        scene_attr_needs_recalc(shader, b_depsgraph) || aovs_changed_between_view_layers)
+        scene_attr_needs_recalc(shader, b_depsgraph) || aovs_changed_between_view_layers ||
+        (shader->has_time_dependency && update_time))
     {
       unique_ptr<ShaderGraph> graph = make_unique<ShaderGraph>();
 
@@ -1755,7 +1761,8 @@ void BlenderSync::sync_materials(blender::Depsgraph &b_depsgraph, bool update_al
 void BlenderSync::sync_world(blender::Depsgraph &b_depsgraph,
                              blender::bScreen *b_screen,
                              blender::View3D *b_v3d,
-                             bool update_all)
+                             bool update_all,
+                             bool update_time)
 {
   Background *background = scene->background;
   Integrator *integrator = scene->integrator;
@@ -1770,7 +1777,7 @@ void BlenderSync::sync_world(blender::Depsgraph &b_depsgraph,
 
   if (world_recalc || update_all || b_world != world_map ||
       viewport_parameters.shader_modified(new_viewport_parameters) ||
-      scene_attr_needs_recalc(shader, b_depsgraph))
+      scene_attr_needs_recalc(shader, b_depsgraph) || (shader->has_time_dependency && update_time))
   {
     unique_ptr<ShaderGraph> graph = make_unique<ShaderGraph>();
 
@@ -1913,7 +1920,7 @@ void BlenderSync::sync_world(blender::Depsgraph &b_depsgraph,
 
 /* Sync Lights */
 
-void BlenderSync::sync_lights(blender::Depsgraph &b_depsgraph, bool update_all)
+void BlenderSync::sync_lights(blender::Depsgraph &b_depsgraph, bool update_all, bool update_time)
 {
   shader_map.set_default(scene->default_light);
 
@@ -1935,7 +1942,8 @@ void BlenderSync::sync_lights(blender::Depsgraph &b_depsgraph, bool update_all)
 
     /* test if we need to sync */
     if (shader_map.add_or_update(&shader, &b_light.id) || update_all ||
-        scene_attr_needs_recalc(shader, b_depsgraph))
+        scene_attr_needs_recalc(shader, b_depsgraph) ||
+        (shader->has_time_dependency && update_time))
     {
       unique_ptr<ShaderGraph> graph = make_unique<ShaderGraph>();
 
@@ -1966,13 +1974,14 @@ void BlenderSync::sync_lights(blender::Depsgraph &b_depsgraph, bool update_all)
 void BlenderSync::sync_shaders(blender::Depsgraph &b_depsgraph,
                                blender::bScreen *b_screen,
                                blender::View3D *b_v3d,
-                               bool update_all)
+                               bool update_all,
+                               bool update_time)
 {
   shader_map.pre_sync();
 
-  sync_world(b_depsgraph, b_screen, b_v3d, update_all);
-  sync_lights(b_depsgraph, update_all);
-  sync_materials(b_depsgraph, update_all);
+  sync_world(b_depsgraph, b_screen, b_v3d, update_all, update_time);
+  sync_lights(b_depsgraph, update_all, update_time);
+  sync_materials(b_depsgraph, update_all, update_time);
 }
 
 CCL_NAMESPACE_END

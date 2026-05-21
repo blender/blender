@@ -288,6 +288,7 @@ class NODE_MT_gn_geometry_operations_base(node_add_menu.NodeMenu):
         self.node_operator(layout, "GeometryNodeSortElements")
         self.node_operator(layout, "GeometryNodeTransform", search_weight=1.0)
         layout.separator()
+        self.node_operator(layout, "GeometryNodeGetGeometryComponent")
         self.node_operator(layout, "GeometryNodeSeparateComponents")
         self.node_operator(layout, "GeometryNodeSeparateGeometry")
         self.node_operator(layout, "GeometryNodeSplitToInstances")
@@ -858,6 +859,7 @@ class NODE_MT_gn_utilities_list_base(node_add_menu.NodeMenu):
     def draw(self, _context):
         layout = self.layout
         self.node_operator(layout, "GeometryNodeFieldToList")
+        self.node_operator(layout, "GeometryNodeFilterList")
         self.node_operator(layout, "GeometryNodeListGetItem")
         self.node_operator(layout, "GeometryNodeListLength")
 

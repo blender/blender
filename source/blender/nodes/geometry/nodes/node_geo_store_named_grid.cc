@@ -53,7 +53,7 @@ static void search_link_ops(GatherLinkSearchOpParams &params)
       });
     }
     if (const std::optional<VolumeGridType> data_type = bke::socket_type_to_grid_type(
-            eNodeSocketDatatype(params.other_socket().type)))
+            params.other_socket().type))
     {
       params.add_item(IFACE_("Grid"), [data_type](LinkSearchOpParams &params) {
         bNode &node = params.add_node("GeometryNodeStoreNamedGrid"_ustr);

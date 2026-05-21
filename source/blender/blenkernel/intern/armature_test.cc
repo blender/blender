@@ -609,7 +609,7 @@ TEST_F(PoseBoneIndexTest, pose_rebuild_test)
   bPoseChannel *pchan_root = BKE_pose_channel_find_name(object->pose, bone_root->name);
   bPoseChannel *pchan_child1 = BKE_pose_channel_find_name(object->pose, bone_child1->name);
 
-  /* Mimick going into Armature Edit mode and deleting bone 'child2'. */
+  /* Mimic going into Armature Edit mode and deleting bone 'child2'. */
   BLI_remlink(&bone_root->childbase, bone_child2);
   MEM_delete(bone_child2);
   bone_child2 = nullptr;

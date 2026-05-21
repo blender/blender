@@ -86,6 +86,7 @@ struct VKGraphicsInfo {
     Vector<shader::SpecializationConstant::Value> specialization_constants;
     bool has_depth;
     bool has_stencil;
+    uint32_t max_input_attachment_index = 0;
 
     bool operator==(const Shaders &other) const
     {
@@ -95,7 +96,8 @@ struct VKGraphicsInfo {
              vk_pipeline_layout == other.vk_pipeline_layout && vk_topology == other.vk_topology &&
              viewport_count == other.viewport_count && state == other.state &&
              specialization_constants == other.specialization_constants &&
-             has_depth == other.has_depth && has_stencil == other.has_stencil;
+             has_depth == other.has_depth && has_stencil == other.has_stencil &&
+             max_input_attachment_index == other.max_input_attachment_index;
     }
 
     uint64_t hash() const
@@ -109,6 +111,7 @@ struct VKGraphicsInfo {
       hash = hash * 33 ^ state.data;
       hash = hash * 33 ^ specialization_constants.hash();
       hash = hash * 33 ^ (uint64_t(has_depth) << 1 | uint64_t(has_stencil));
+      hash = hash * 33 ^ uint64_t(max_input_attachment_index);
       return hash;
     }
 

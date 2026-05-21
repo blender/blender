@@ -78,6 +78,11 @@ static const EnumPropertyItem node_default_input_items[] = {
      0,
      "Right Handle",
      "The right Bézier control point handle from the context"},
+    {NODE_DEFAULT_INPUT_SCENE_FRAME,
+     "SCENE_FRAME",
+     0,
+     "Scene Frame",
+     "The current frame in the scene"},
     {0, nullptr, 0, nullptr, nullptr}};
 
 }  // namespace blender

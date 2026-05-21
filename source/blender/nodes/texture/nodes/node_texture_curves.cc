@@ -61,7 +61,7 @@ void register_node_type_tex_curve_time()
   ntype.enum_name_legacy = "CURVE_TIME";
   ntype.nclass = NODE_CLASS_INPUT;
   bke::node_type_socket_templates(&ntype, nullptr, time_outputs);
-  bke::node_type_size_preset(ntype, bke::eNodeSizePreset::Large);
+  ntype.default_width = bke::NodeWidth::_240;
   ntype.initfunc = time_init;
   bke::node_type_storage(ntype, "CurveMapping", node_free_curves, node_copy_curves);
   ntype.init_exec_fn = node_initexec_curves;
@@ -114,7 +114,7 @@ void register_node_type_tex_curve_rgb()
   ntype.enum_name_legacy = "CURVE_RGB";
   ntype.nclass = NODE_CLASS_OP_COLOR;
   bke::node_type_socket_templates(&ntype, rgb_inputs, rgb_outputs);
-  bke::node_type_size_preset(ntype, bke::eNodeSizePreset::Large);
+  ntype.default_width = bke::NodeWidth::_240;
   ntype.initfunc = rgb_init;
   bke::node_type_storage(ntype, "CurveMapping", node_free_curves, node_copy_curves);
   ntype.init_exec_fn = node_initexec_curves;

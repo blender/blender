@@ -38,7 +38,7 @@ static void node_declare(NodeDeclarationBuilder &b)
     const NodeSeparateBundle &storage = node_storage(*node);
     for (const int i : IndexRange(storage.items_num)) {
       const NodeSeparateBundleItem &item = storage.items[i];
-      const eNodeSocketDatatype socket_type = eNodeSocketDatatype(item.socket_type);
+      const eNodeSocketDatatype socket_type = item.socket_type;
       const UString name = item.name ? UString(item.name) : ""_ustr;
       const UString identifier(SeparateBundleItemsAccessor::socket_identifier_for_item(item));
       auto &decl = b.add_output(socket_type, name, identifier)
@@ -54,7 +54,8 @@ static void node_declare(NodeDeclarationBuilder &b)
       }
     }
   }
-  b.add_output<decl::Extend>(""_ustr, "__extend__"_ustr);
+  b.add_output<decl::Extend>(""_ustr, "__extend__"_ustr)
+      .custom_draw(socket_items::ui::draw_extend_socket_fn<SeparateBundleItemsAccessor>());
 }
 
 static void node_init(bNodeTree * /*tree*/, bNode *node)

@@ -129,7 +129,7 @@ static void node_register()
   ntype.declare = node_declare;
   ntype.initfunc = node_init;
   ntype.draw_buttons = node_layout;
-  bke::node_type_size(ntype, 170, 120, NODE_DEFAULT_MAX_WIDTH);
+  ntype.default_width = bke::NodeWidth::_180;
   bke::node_register_type(ntype);
 
   node_rna(ntype.rna_ext.srna);

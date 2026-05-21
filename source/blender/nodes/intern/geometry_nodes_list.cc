@@ -202,7 +202,9 @@ bool GList::owns_direct_data() const
             }
             return (*value_ptr)->owns_direct_data();
           }
-          return true;
+          else {
+            BLI_assert_unreachable_static_t(T);
+          }
         },
         values);
   }
@@ -218,7 +220,9 @@ bool GList::owns_direct_data() const
           else if constexpr (std::is_same_v<T, GPointer>) {
             return value.template get<bke::SocketValueVariant>()->owns_direct_data();
           }
-          return true;
+          else {
+            BLI_assert_unreachable_static_t(T);
+          }
         },
         values);
   }
@@ -234,7 +238,9 @@ bool GList::owns_direct_data() const
           else if constexpr (std::is_same_v<T, GPointer>) {
             return value.template get<bke::GeometrySet>()->owns_direct_data();
           }
-          return true;
+          else {
+            BLI_assert_unreachable_static_t(T);
+          }
         },
         values);
   }

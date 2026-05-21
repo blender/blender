@@ -49,7 +49,6 @@ void register_node_type_tex_at()
   ntype.enum_name_legacy = "AT";
   ntype.nclass = NODE_CLASS_DISTORT;
   bke::node_type_socket_templates(&ntype, inputs, outputs);
-  bke::node_type_size(ntype, 140, 100, 320);
   ntype.exec_fn = exec;
 
   bke::node_register_type(ntype);

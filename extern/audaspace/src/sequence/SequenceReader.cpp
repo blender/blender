@@ -161,7 +161,7 @@ void SequenceReader::read(int& length, bool& eos, sample_t* buffer)
 		frame = time * m_sequence->m_fps;
 		cfra = int(std::floor(frame));
 
-		len = int(std::ceil((cfra + 1) / m_sequence->m_fps * specs.rate)) - m_position;
+		len = int(std::ceil((cfra + 1) / m_sequence->m_fps * specs.rate)) - m_position - pos;
 		len = std::min(length - pos, len);
 		len = std::max(len, 1);
 

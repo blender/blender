@@ -43,7 +43,7 @@ struct TagUsage {
  public:
   void tag_usage_tile(LightData light, uint2 tile_co, int lod, int tilemap_index)
   {
-    if (tilemap_index > light_tilemap_max_get(light)) {
+    if (tilemap_index > light.tilemap_max_get()) {
       return;
     }
 
@@ -86,7 +86,7 @@ struct TagUsage {
     LightSunData sun = light.sun();
 
     if (radius == 0.0f) {
-      int level = shadow_directional_level(light, lP - light_position_get(light));
+      int level = shadow_directional_level(light, lP - light.position());
       level = clamp(level + lod_bias, sun.clipmap_lod_min, sun.clipmap_lod_max);
       ShadowCoordinates coord = shadow_directional_coordinates_at_level(light, lP, level);
       tag_usage_tile(light, coord.tilemap_tile, 0, coord.tilemap_index);
@@ -94,8 +94,8 @@ struct TagUsage {
     else {
       float3 start_lP = light_world_to_local_direction(light, P - V * radius);
       float3 end_lP = light_world_to_local_direction(light, P + V * radius);
-      int min_level = shadow_directional_level(light, start_lP - light_position_get(light));
-      int max_level = shadow_directional_level(light, end_lP - light_position_get(light));
+      int min_level = shadow_directional_level(light, start_lP - light.position());
+      int max_level = shadow_directional_level(light, end_lP - light.position());
       min_level = clamp(min_level + lod_bias, sun.clipmap_lod_min, sun.clipmap_lod_max);
       max_level = clamp(max_level + lod_bias, sun.clipmap_lod_min, sun.clipmap_lod_max);
 

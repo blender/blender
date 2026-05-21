@@ -215,45 +215,45 @@ struct [[host_shared]] LightData {
     union_t<struct LightAreaData> area;
     union_t<struct LightSunData> sun;
   };
+
+  float3 x_axis() const
+  {
+    return object_to_world.x_axis();
+  }
+  float3 y_axis() const
+  {
+    return object_to_world.y_axis();
+  }
+  float3 z_axis() const
+  {
+    return object_to_world.z_axis();
+  }
+  float3 position() const
+  {
+    return object_to_world.location();
+  }
+
+  int tilemap_max_get() const
+  {
+    /* This is not something we need in performance critical code. */
+    if (is_sun_light(this->type)) {
+      return this->tilemap_index + (this->sun().clipmap_lod_max - this->sun().clipmap_lod_min);
+    }
+    return this->tilemap_index + this->local().tilemaps_count - 1;
+  }
+
+  /* Return the number of tilemap needed for a local light. */
+  int local_tilemap_count() const
+  {
+    if (is_spot_light(this->type)) {
+      return (this->spot().spot_tan > tanf(EEVEE_PI / 4.0)) ? 5 : 1;
+    }
+    if (is_area_light(this->type)) {
+      return 5;
+    }
+    return 6;
+  }
 };
-
-static inline float3 light_x_axis(LightData light)
-{
-  return transform_x_axis(light.object_to_world);
-}
-static inline float3 light_y_axis(LightData light)
-{
-  return transform_y_axis(light.object_to_world);
-}
-static inline float3 light_z_axis(LightData light)
-{
-  return transform_z_axis(light.object_to_world);
-}
-static inline float3 light_position_get(LightData light)
-{
-  return transform_location(light.object_to_world);
-}
-
-static inline int light_tilemap_max_get(LightData light)
-{
-  /* This is not something we need in performance critical code. */
-  if (is_sun_light(light.type)) {
-    return light.tilemap_index + (light.sun().clipmap_lod_max - light.sun().clipmap_lod_min);
-  }
-  return light.tilemap_index + light.local().tilemaps_count - 1;
-}
-
-/* Return the number of tilemap needed for a local light. */
-static inline int light_local_tilemap_count(LightData light)
-{
-  if (is_spot_light(light.type)) {
-    return (light.spot().spot_tan > tanf(EEVEE_PI / 4.0)) ? 5 : 1;
-  }
-  if (is_area_light(light.type)) {
-    return 5;
-  }
-  return 6;
-}
 
 /* -------------------------------------------------------------------- */
 /** \name Light Culling

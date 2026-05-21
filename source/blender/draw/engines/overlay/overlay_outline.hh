@@ -243,8 +243,8 @@ class Outline : Overlay {
     int2 render_size = int2(res.depth_tx.size());
 
     eGPUTextureUsage usage = GPU_TEXTURE_USAGE_SHADER_READ | GPU_TEXTURE_USAGE_ATTACHMENT;
-    tmp_depth_tx_.acquire(render_size, gpu::TextureFormat::SFLOAT_32_DEPTH_UINT_8, usage);
-    object_id_tx_.acquire(render_size, gpu::TextureFormat::UINT_16, usage);
+    tmp_depth_tx_.acquire_2d(render_size, gpu::TextureFormat::SFLOAT_32_DEPTH_UINT_8, usage);
+    object_id_tx_.acquire_2d(render_size, gpu::TextureFormat::UINT_16, usage);
 
     prepass_fb_.ensure(GPU_ATTACHMENT_TEXTURE(tmp_depth_tx_),
                        GPU_ATTACHMENT_TEXTURE(object_id_tx_));

@@ -67,6 +67,7 @@ class ListingDownloaderTest(unittest.TestCase):
                     files=[blend_path],
                     thumbnail=api_models.URLWithHash(url="thumbs/kubus.webp", hash="12345"),
                     meta=None,
+                    bl_versions=api_models.AssetBlenderVersionsV1(min="2.0"),
                 ),
             ],
             files=[
@@ -121,6 +122,7 @@ class ListingDownloaderTest(unittest.TestCase):
                     files=[bad_path],
                     thumbnail=api_models.URLWithHash(url="thumbs/kubus.webp", hash="12345"),
                     meta=None,
+                    bl_versions=api_models.AssetBlenderVersionsV1(min="2.0"),
                 ),
             ],
             files=[

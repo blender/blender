@@ -73,7 +73,8 @@ static void node_declare(NodeDeclarationBuilder &b)
       }
     }
   }
-  panel.add_input<decl::Extend>(""_ustr, "__extend__"_ustr);
+  panel.add_input<decl::Extend>(""_ustr, "__extend__"_ustr)
+      .custom_draw(socket_items::ui::draw_extend_socket_fn<RaycastSampleAttributeItemsAccessor>());
   panel.add_output<decl::Extend>(""_ustr, "__extend__"_ustr).align_with_previous();
 }
 

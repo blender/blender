@@ -248,10 +248,13 @@ components:
             files.
         "thumbnail": { $ref: "#/components/schemas/URLWithHash" }
         "meta": { $ref: "#/components/schemas/AssetMetadataV1" }
+        "bl_versions":
+          $ref: "#/components/schemas/AssetBlenderVersionsV1"
       required:
         - "name"
         - "id_type"
         - "files"
+        - "bl_versions"
 
     AssetIDTypeV1:
       type: string
@@ -279,6 +282,18 @@ components:
             The catalog UUID that contains this asset. Having the UUID here
             makes it easier to create a per-blendfile .cats.txt file, if that's
             ever necessary.
+        "preferred_import_method":
+          type: string
+          description: >
+            The import method preferred by this asset. For example, base meshes for
+            sculpting can declare they should always be appended, making them
+            instantly usable for sculpting.
+
+            Supports values APPEND, APPEND_REUSE, and ASSET_IMPORT_PACK.
+
+            These are not modeled here as an enum, to aid in forward compatibility
+            of this Blender version with future import methods (it'll just ignore
+            unsupported methods, instead of rejecting the file as invalid).
         "tags":
           type: array
           items: { type: string }
@@ -333,6 +348,21 @@ components:
           IDP_BOOL,
         ]
 
+    AssetBlenderVersionsV1:
+      type: object
+      description: >
+        Minimum and (optionally) maximum versions of Blender that this asset should be shown in.
+        This is a half-open interval: Blender shows the asset if `min <= blender < until`.
+      properties:
+        "min":
+          type: string
+          description: Minimum version of Blender that should show this asset.
+        "until":
+          type: string
+          description: First version of Blender that should NOT show this asset.
+      required:
+        - "from"
+
     CatalogV1:
       type: object
       description: An asset catalog, which can be represented by one or more UUIDs.
@@ -372,8 +402,8 @@ components:
         "blender_version":
           type: string
           description: >
-            Version of Blender used to create this file.. Should be a semantic
-            version, which may be shortened ('3.1' matches any '3.1.x' version).
+            Version of Blender used to write this file. Only contains the major and
+            minor version, no patch version ("5.2", "6.3", etc. but not "5.2.1").
       required:
         - "path"
         - "size_in_bytes"

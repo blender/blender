@@ -251,8 +251,11 @@ ccl_device_forceinline void generalized_schlick_fresnel(
      * Principled BSDF for now, so it's fine to not support custom exponents and F90. */
     kernel_assert(fresnel->exponent < 0.0f);
     kernel_assert(fresnel->f90 == one_spectrum());
-    F = fresnel_iridescence<float>(
-        kg, 1.0f, fresnel->thin_film, {ior, 0.0f}, nullptr, cos_theta_i, r_cos_theta_t);
+    /* One channel at a time to reduce GPU register pressure. */
+    FOREACH_SPECTRUM_CHANNEL (i) {
+      GET_SPECTRUM_CHANNEL(F, i) = fresnel_iridescence_channel<false>(
+          kg, i, 1.0f, fresnel->thin_film, ior, 0.0f, -1.0f, cos_theta_i, r_cos_theta_t);
+    }
     /* Apply F0 scaling (here per-channel, since iridescence produces colored output).
      * Note that the usual approach (as used below) cannot be used here, since F may be below
      * F0_real. Therefore, use a different approach: Scale the result by (F0 / F0_real), with the
@@ -331,8 +334,19 @@ ccl_device_forceinline void microfacet_fresnel(KernelGlobals kg,
     ccl_private FresnelConductor *fresnel = (ccl_private FresnelConductor *)bsdf->fresnel;
 
     if (fresnel->thin_film.thickness > THINFILM_THICKNESS_CUTOFF) {
-      *r_reflectance = fresnel_iridescence<Spectrum>(
-          kg, 1.0f, fresnel->thin_film, fresnel->ior, nullptr, cos_theta_i, r_cos_theta_t);
+      /* One channel at a time to reduce GPU register pressure. */
+      FOREACH_SPECTRUM_CHANNEL (i) {
+        GET_SPECTRUM_CHANNEL(*r_reflectance, i) = fresnel_iridescence_channel<true>(
+            kg,
+            i,
+            1.0f,
+            fresnel->thin_film,
+            GET_SPECTRUM_CHANNEL(fresnel->ior.re, i),
+            GET_SPECTRUM_CHANNEL(fresnel->ior.im, i),
+            -1.0f,
+            cos_theta_i,
+            r_cos_theta_t);
+      }
     }
     else {
       *r_reflectance = fresnel_conductor(cos_theta_i, fresnel->ior);
@@ -348,16 +362,20 @@ ccl_device_forceinline void microfacet_fresnel(KernelGlobals kg,
 
     if (fresnel->thin_film.thickness > THINFILM_THICKNESS_CUTOFF) {
       /* Estimate n and k by reinterpreting F0 and F82 as r and g from "Artist Friendly Metallic
-       * Fresnel" by Ole Gulbrandsen. */
-      const Spectrum r = min(fresnel->f0, make_float3(0.999f));
-      const Spectrum g = fresnel_f82(1.0f / 7.0f, fresnel->f0, fresnel->b);
+       * Fresnel" by Ole Gulbrandsen.
+       * One channel at a time to reduce GPU register pressure. */
+      FOREACH_SPECTRUM_CHANNEL (i) {
+        const float f0 = GET_SPECTRUM_CHANNEL(fresnel->f0, i);
+        const float r = min(f0, 0.999f);
+        const float g = fresnel_f82(1.0f / 7.0f, f0, GET_SPECTRUM_CHANNEL(fresnel->b, i));
 
-      const Spectrum sqrt_r = sqrt(r);
-      const Spectrum n = mix((1.0f + sqrt_r) / (1.0f - sqrt_r), (1.0f - r) / (1.0f + r), g);
-      const Spectrum k = safe_sqrt((r * sqr(n + 1) - sqr(n - 1)) / (1.0f - r));
+        const float sqrt_r = sqrtf(r);
+        const float n = mix((1.0f + sqrt_r) / (1.0f - sqrt_r), (1.0f - r) / (1.0f + r), g);
+        const float k = safe_sqrtf((r * sqr(n + 1.0f) - sqr(n - 1.0f)) / (1.0f - r));
 
-      *r_reflectance = fresnel_iridescence<Spectrum>(
-          kg, 1.0f, fresnel->thin_film, {n, k}, &g, cos_theta_i, r_cos_theta_t);
+        GET_SPECTRUM_CHANNEL(*r_reflectance, i) = fresnel_iridescence_channel<true>(
+            kg, i, 1.0f, fresnel->thin_film, n, k, g, cos_theta_i, r_cos_theta_t);
+      }
     }
     else {
       *r_reflectance = fresnel_f82(cos_theta_i, fresnel->f0, fresnel->b);

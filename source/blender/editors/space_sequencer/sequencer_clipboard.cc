@@ -456,7 +456,7 @@ wmOperatorStatus sequencer_clipboard_paste_exec(bContext *C, wmOperator *op)
    * correct otherwise. */
   Main *bmain_dst = CTX_data_main(C);
   MainMergeReport merge_reports = {};
-  /* We need to ensure that the source 'clipbaord marked' main Scene is always merged into
+  /* We need to ensure that the source 'clipboard marked' main Scene is always merged into
    * destination Main, even in case there would be a name collision with an existing ID (see also
    * #158049). */
   Set<ID *> force_merge_ids = {id_cast<ID *>(scene_src)};
@@ -469,7 +469,7 @@ wmOperatorStatus sequencer_clipboard_paste_exec(bContext *C, wmOperator *op)
    * when pasted strips are renamed, pasted fcurves are renamed with them. Finally restore original
    * curves from backup.
    */
-  seq::AnimationBackup animation_backup = {{nullptr}};
+  seq::AnimationBackup animation_backup = {};
   seq::animation_backup_original(scene_dst, &animation_backup);
   bool has_animation = sequencer_paste_animation(bmain_dst, scene_dst, scene_src);
 

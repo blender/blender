@@ -117,7 +117,7 @@ static void node_register()
   ntype.ui_description = "Retrieve the position of each Bézier control point's handles";
   ntype.enum_name_legacy = "INPUT_CURVE_HANDLES";
   ntype.nclass = NODE_CLASS_INPUT;
-  bke::node_type_size_preset(ntype, bke::eNodeSizePreset::Middle);
+  ntype.default_width = bke::NodeWidth::_160;
   ntype.geometry_node_execute = node_geo_exec;
   ntype.declare = node_declare;
   bke::node_register_type(ntype);

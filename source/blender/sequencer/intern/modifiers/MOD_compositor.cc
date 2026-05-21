@@ -194,11 +194,18 @@ static void set_single_input_from_rna_value(PointerRNA *input_props_ptr,
       }
       break;
     }
+    case SOCK_FONT: {
+      const auto type = CompositorNodesInputType(RNA_enum_get(input_props_ptr, "type"));
+      if (type == CompositorNodesInputType::Value) {
+        VFont *value = RNA_pointer_get(input_props_ptr, "value").data_as<VFont>();
+        result.set_single_value(value);
+      }
+      break;
+    }
     case SOCK_IMAGE:
     case SOCK_COLLECTION:
     case SOCK_TEXTURE:
     case SOCK_MATERIAL:
-    case SOCK_FONT:
     case SOCK_SCENE:
     case SOCK_TEXT_ID:
     case SOCK_MASK:
@@ -413,15 +420,17 @@ class CompositorModifierContext : public CompositorContext {
 
       const int width = context.render_data.rectx;
       const int height = context.render_data.recty;
-      this->mask_ = this->cache_manager().cached_masks.get(*this,
-                                                           smd.mask_id,
-                                                           compositor::Domain(int2(width, height)),
-                                                           1.0f,
-                                                           true,
-                                                           frame_index,
-                                                           1,
-                                                           0.0f,
-                                                           seq_space_is_srgb);
+      this->mask_.set_type(compositor::ResultType::Float);
+      this->mask_.share_data(
+          this->cache_manager().cached_masks.get(*this,
+                                                 smd.mask_id,
+                                                 compositor::Domain(int2(width, height)),
+                                                 1.0f,
+                                                 true,
+                                                 frame_index,
+                                                 1,
+                                                 0.0f,
+                                                 seq_space_is_srgb));
       this->owns_mask_ = false;
     }
   }

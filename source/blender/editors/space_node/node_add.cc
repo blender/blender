@@ -1913,6 +1913,14 @@ static wmOperatorStatus new_compositor_sequencer_node_group_exec(bContext *C, wm
    * already have been called. */
   bNodeTree *ntree = bke::node_tree_add_tree(bmain, tree_name, "CompositorNodeTree");
   initialize_compositor_sequencer_node_group(C, *ntree, is_effect_active, effect_input_count);
+  if (!is_effect_active) {
+    /* Set the compositor asset trait `is_strip_modifier` to true. */
+    if (!ntree->compositor_node_asset_traits) {
+      ntree->compositor_node_asset_traits = MEM_new<CompositorNodeAssetTraits>(__func__);
+    }
+    ntree->compositor_node_asset_traits->flag |= COMPOSIT_NODE_ASSET_STRIP_MODIFIER;
+    bke::node_update_asset_metadata(*ntree);
+  }
   node_templateID_assign(C, ntree);
 
   if (strip != nullptr && strip->type != STRIP_TYPE_SOUND) {

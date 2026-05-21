@@ -185,8 +185,8 @@ struct ImBuf {
 
   /**
    * Image pixel buffer (float representation):
-   * - color space defaults to 'linear' (`rec709`).
-   * - alpha defaults to 'premul'.
+   * - color space defaults to `linear` (`rec709`).
+   * - alpha defaults to `premul`.
    * \note May need gamma correction to `sRGB` when generating 8bit representations.
    * \note Formats that support higher more than 8 but channels load as floats.
    */
@@ -278,19 +278,6 @@ enum {
    * or are out-dated and needs to read from the GPU texture. */
   IB_HOST_BUFFER_INVALID = (1 << 6),
 };
-
-/** \} */
-
-/* -------------------------------------------------------------------- */
-/** \name ImBuf Preset Profile Tags
- *
- * \brief Some predefined color space profiles that 8 bit imbufs can represent.
- * \{ */
-
-#define IB_PROFILE_NONE 0
-#define IB_PROFILE_LINEAR_RGB 1
-#define IB_PROFILE_SRGB 2
-#define IB_PROFILE_CUSTOM 3
 
 /** \} */
 

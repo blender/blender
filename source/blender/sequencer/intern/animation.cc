@@ -109,7 +109,7 @@ void animation_backup_original(Scene *scene, AnimationBackup *backup)
 
 void animation_restore_original(Scene *scene, AnimationBackup *backup)
 {
-  if (!BLI_listbase_is_empty(&backup->curves) || !backup->channelbag.fcurves().is_empty()) {
+  if (!backup->channelbag.fcurves().is_empty()) {
     BLI_assert(scene->adt != nullptr && scene->adt->action != nullptr);
 
     animrig::Action &action = scene->adt->action->wrap();
@@ -145,19 +145,9 @@ static void strip_animation_duplicate(Strip *strip,
     }
   }
 
-  Vector<FCurve *> fcurves = {};
-  BLI_assert_msg(BLI_listbase_is_empty(&src->curves) || src->channelbag.fcurves().is_empty(),
-                 "SeqAnimationBackup has fcurves for both legacy and layered actions, which "
-                 "should never happen.");
-  if (BLI_listbase_is_empty(&src->curves)) {
-    fcurves = animrig::fcurves_in_span_filtered(
-        src->channelbag.fcurves(),
-        [&](const FCurve &fcurve) { return fcurve_matches(*strip, fcurve); });
-  }
-  else {
-    fcurves = animrig::fcurves_in_listbase_filtered(
-        src->curves, [&](const FCurve &fcurve) { return fcurve_matches(*strip, fcurve); });
-  }
+  Vector<FCurve *> fcurves = animrig::fcurves_in_span_filtered(
+      src->channelbag.fcurves(),
+      [&](const FCurve &fcurve) { return fcurve_matches(*strip, fcurve); });
 
   for (const FCurve *fcu : fcurves) {
     FCurve *fcu_copy = BKE_fcurve_copy(fcu);
@@ -198,7 +188,7 @@ void animation_duplicate_backup_to_scene(Scene *scene, Strip *strip, AnimationBa
 {
   BLI_assert(scene != nullptr);
 
-  if (!BLI_listbase_is_empty(&backup->curves) || !backup->channelbag.fcurves().is_empty()) {
+  if (!backup->channelbag.fcurves().is_empty()) {
     BLI_assert(scene->adt != nullptr);
     BLI_assert(scene->adt->action != nullptr);
     strip_animation_duplicate(strip, scene->adt->action->wrap(), scene->adt->slot_handle, backup);

@@ -83,7 +83,7 @@ float3 lightprobe_eval_direction(LightProbeSample samp,
                                  float3 L,
                                  float perceptual_roughness)
 {
-  /* Avoid overblurring diffuse. */
+  /* Avoid over-blurring diffuse. */
   perceptual_roughness = min(0.6f, perceptual_roughness);
   float lod = sphere_probe_roughness_to_lod(perceptual_roughness);
   float3 radiance_sh = lightprobe_spherical_sample_normalized_with_parallax(samp, P, L, lod);

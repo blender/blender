@@ -153,7 +153,7 @@ void ShaderOperation::link_node_inputs(const bNode &node)
     const bNodeSocket *output = get_output_linked_to_input(*input);
     if (!output) {
       const InputDescriptor input_descriptor = input_descriptor_from_input_socket(input);
-      if (input_descriptor.implicit_input == ImplicitInput::None) {
+      if (!input_descriptor.implicit_input.has_value()) {
         /* No implicit input, so link a constant setter node for it that holds the input value. */
         this->link_node_input_constant(*input);
       }
@@ -348,7 +348,7 @@ void ShaderOperation::link_node_input_implicit(const bNodeSocket &input)
   GPUNodeStack &stack = node.get_input(input.identifier);
 
   const InputDescriptor input_descriptor = input_descriptor_from_input_socket(&input);
-  const ImplicitInput implicit_input = input_descriptor.implicit_input;
+  const ImplicitInputType implicit_input = input_descriptor.implicit_input.value();
 
   /* An input was already declared for that implicit input, so no need to declare it again and we
    * just link it. */
@@ -561,8 +561,7 @@ void ShaderOperation::populate_operation_result(const bNodeSocket &output_socket
   std::string output_identifier = "output" + std::to_string(output_id);
 
   const ResultType result_type = get_node_socket_result_type(&output_socket);
-  const Result result = context().create_result(result_type);
-  populate_result(output_identifier, result);
+  populate_result(output_identifier, result_type);
 
   /* Map the output socket to the identifier of the newly populated result. */
   output_sockets_to_output_identifiers_map_.add_new(&output_socket, output_identifier);

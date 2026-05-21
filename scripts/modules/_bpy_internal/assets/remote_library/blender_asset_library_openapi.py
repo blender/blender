@@ -73,6 +73,21 @@ class CustomPropertyTypeV1(StrEnum):
 
 
 @dataclass
+class AssetBlenderVersionsV1:
+    """Minimum and (optionally) maximum versions of Blender that this asset
+    should be shown in.
+
+    This is a half-open interval: Blender shows the asset if `min <= blender < until`.
+    """
+
+    min: str | None = None
+    """Minimum version of Blender that should show this asset."""
+
+    until: str | None = None
+    """First version of Blender that should NOT show this asset."""
+
+
+@dataclass
 class CatalogV1:
     """An asset catalog, which can be represented by one or more UUIDs."""
 
@@ -100,10 +115,10 @@ class FileV1:
     """
 
     blender_version: str
-    """Version of Blender used to create this file..
+    """Version of Blender used to write this file.
 
-    Should be a semantic version, which may be shortened ('3.1' matches
-    any '3.1.x' version).
+    Only contains the major and minor version, no patch version ("5.2",
+    "6.3", etc. but not "5.2.1").
     """
 
     url: str | None = None
@@ -220,6 +235,7 @@ class AssetV1:
     asset library's list of files.
     """
 
+    bl_versions: AssetBlenderVersionsV1
     thumbnail: URLWithHash | None = None
     meta: AssetMetadataV1 | None = None
 
@@ -236,6 +252,17 @@ class AssetMetadataV1:
 
     Having the UUID here makes it easier to create a per-blendfile
     .cats.txt file, if that's ever necessary.
+    """
+
+    preferred_import_method: str | None = None
+    """The import method preferred by this asset.
+
+    For example, base meshes for sculpting can declare they should
+    always be appended, making them instantly usable for sculpting.
+    Supports values APPEND, APPEND_REUSE, and ASSET_IMPORT_PACK. These
+    are not modeled here as an enum, to aid in forward compatibility of
+    this Blender version with future import methods (it'll just ignore
+    unsupported methods, instead of rejecting the file as invalid).
     """
 
     tags: list[str] | None = None
@@ -261,7 +288,6 @@ class CustomPropertyV1:
     should be represented as `CustomPropertiesV1` object again. Arrays
     should specify an `itemtype`.
     """
-
     name: str
     type: CustomPropertyTypeV1
     value: CustomPropertiesV1 | list[Any] | float | int | str | bool

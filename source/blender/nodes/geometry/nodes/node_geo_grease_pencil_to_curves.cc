@@ -157,7 +157,7 @@ static void node_register()
   ntype.nclass = NODE_CLASS_GEOMETRY;
   ntype.geometry_node_execute = node_geo_exec;
   ntype.declare = node_declare;
-  bke::node_type_size(ntype, 160, 100, 320);
+  ntype.default_width = bke::NodeWidth::_180;
 
   bke::node_register_type(ntype);
 }

@@ -6,8 +6,6 @@
  * \ingroup sequencer
  */
 
-#include <cstring>
-
 #include "MEM_guardedalloc.h"
 
 #include "DNA_listBase.h"
@@ -62,27 +60,6 @@ SeqTimelineChannel *channel_get_by_index(const ListBaseT<SeqTimelineChannel> *ch
                                          const int channel_index)
 {
   return static_cast<SeqTimelineChannel *>(BLI_findlink(channels, channel_index));
-}
-
-char *channel_name_get(ListBaseT<SeqTimelineChannel> *channels, const int channel_index)
-{
-  SeqTimelineChannel *channel = channel_get_by_index(channels, channel_index);
-  return channel->name;
-}
-
-int channel_index_get(const SeqTimelineChannel *channel)
-{
-  return channel->index;
-}
-
-bool channel_is_locked(const SeqTimelineChannel *channel)
-{
-  return (channel->flag & SEQ_CHANNEL_LOCK) != 0;
-}
-
-bool channel_is_muted(const SeqTimelineChannel *channel)
-{
-  return (channel->flag & SEQ_CHANNEL_MUTE) != 0;
 }
 
 ListBaseT<SeqTimelineChannel> *get_channels_by_strip(Editing *ed, const Strip *strip)

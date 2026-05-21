@@ -3269,11 +3269,44 @@ static void textedit_set_cursor_pos(Button *but, const ARegion *region, const fl
   const float aspect = but->block->aspect;
 
   float startx = but->rect.xmin;
+  float endx = but->rect.xmax;
   float starty_dummy = 0.0f;
   std::string password_str;
   /* treat 'str_last' as null terminator for str, no need to modify in-place */
   const char *str = but->editstr, *str_last;
 
+  /* Compute padding in block space. */
+  bool right_aligned = !(but->drawflag & BUT_TEXT_LEFT) && but->drawflag & BUT_TEXT_RIGHT;
+
+  if (ELEM(but->type, ButtonType::Text, ButtonType::SearchMenu)) {
+    if (but->flag & UI_HAS_ICON) {
+      startx += UI_ICON_SIZE / aspect;
+    }
+  }
+  if (!(but->drawflag & BUT_NO_TEXT_PADDING)) {
+    if (right_aligned) {
+      startx += U.pixelsize / aspect;
+      endx -= UI_TEXT_MARGIN_X * U.widget_unit / aspect;
+    }
+    else {
+      startx += UI_TEXT_MARGIN_X * U.widget_unit / aspect;
+      endx -= U.pixelsize / aspect;
+    }
+  }
+  else if (right_aligned) {
+    endx -= U.pixelsize / aspect;
+  }
+  else {
+    startx += U.pixelsize / aspect;
+  }
+
+  if (right_aligned) {
+    int width = BLF_width(fstyle.uifont_id, str + but->ofs, strlen(str + but->ofs));
+    const float align_x_ofs = endx - startx - width;
+    startx += max_ff(0.0f, align_x_ofs);
+  }
+
+  /* Transform startx to screen space. */
   block_to_window_fl(region, but->block, &startx, &starty_dummy);
 
   fontscale(&fstyle.points, aspect);
@@ -3281,16 +3314,6 @@ static void textedit_set_cursor_pos(Button *but, const ARegion *region, const fl
   fontstyle_set(&fstyle);
 
   button_text_password_hide(password_str, but, false);
-
-  if (ELEM(but->type, ButtonType::Text, ButtonType::SearchMenu)) {
-    if (but->flag & UI_HAS_ICON) {
-      startx += UI_ICON_SIZE / aspect;
-    }
-  }
-  startx -= U.pixelsize / aspect;
-  if (!(but->drawflag & BUT_NO_TEXT_PADDING)) {
-    startx += UI_TEXT_MARGIN_X * U.widget_unit / aspect;
-  }
 
   /* mouse dragged outside the widget to the left */
   if (xy.x < startx) {

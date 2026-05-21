@@ -379,6 +379,12 @@ static std::optional<eFileSelectType> asset_library_reference_to_fileselect_type
     case ASSET_LIBRARY_CUSTOM: {
       const bUserAssetLibrary *user_library = BKE_preferences_asset_library_find_index(
           &U, library_reference.custom_library_index);
+      if (!user_library) {
+        /* The caller should make sure the passed library reference is valid. */
+        BLI_assert_unreachable();
+        return std::nullopt;
+      }
+
       if (user_library->flag & ASSET_LIBRARY_USE_REMOTE_URL) {
         return FILE_ASSET_LIBRARY_REMOTE;
       }

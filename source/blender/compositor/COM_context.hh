@@ -21,6 +21,10 @@
 #include "COM_result.hh"
 #include "COM_static_cache_manager.hh"
 
+namespace blender {
+struct Main;
+}  // namespace blender
+
 namespace blender::nodes::eval_log {
 class NodesEvalLog;
 }  // namespace blender::nodes::eval_log
@@ -43,6 +47,8 @@ class Context {
 
  public:
   Context(StaticCacheManager &cache_manager);
+
+  virtual const Main &get_main() const = 0;
 
   /* Get the compositing scene. */
   virtual const Scene &get_scene() const = 0;

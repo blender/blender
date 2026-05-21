@@ -15,6 +15,9 @@
 
 #include "RNA_enum_types.hh"
 
+#include "COM_node_operation.hh"
+#include "COM_utilities.hh"
+
 #include "FN_multi_function_builder.hh"
 
 namespace blender {
@@ -26,18 +29,19 @@ NODE_STORAGE_FUNCS(NodeSwitch)
 static void node_declare(NodeDeclarationBuilder &b)
 {
   auto &switch_decl = b.add_input<decl::Bool>("Switch"_ustr);
+  const bNodeTree *node_tree = b.tree_or_null();
   const bNode *node = b.node_or_null();
-  if (!node) {
+  if (!node_tree || !node) {
     return;
   }
   const NodeSwitch &storage = node_storage(*node);
-  const eNodeSocketDatatype socket_type = eNodeSocketDatatype(storage.input_type);
+  const eNodeSocketDatatype socket_type = storage.input_type;
 
   auto &false_decl = b.add_input(socket_type, "False"_ustr);
   auto &true_decl = b.add_input(socket_type, "True"_ustr);
   auto &output_decl = b.add_output(socket_type, "Output"_ustr);
 
-  if (socket_type_supports_attributes(socket_type)) {
+  if (socket_type_supports_attributes(socket_type) && node_tree->type == NTREE_GEOMETRY) {
     switch_decl.supports_field();
     false_decl.supports_field();
     true_decl.supports_field();
@@ -50,10 +54,25 @@ static void node_declare(NodeDeclarationBuilder &b)
     output_decl.reference_pass_all();
   }
 
-  switch_decl.structure_type(StructureType::Dynamic);
-  false_decl.structure_type(StructureType::Dynamic);
-  true_decl.structure_type(StructureType::Dynamic);
-  output_decl.structure_type(StructureType::Dynamic);
+  StructureType value_structure_type = StructureType::Dynamic;
+  StructureType condition_structure_type = StructureType::Dynamic;
+
+  if (node_tree->type == NTREE_COMPOSIT) {
+    const bool is_single_compositor_type = compositor::Result::is_single_value_only_type(
+        compositor::socket_data_type_to_result_type(socket_type));
+    if (is_single_compositor_type) {
+      value_structure_type = StructureType::Single;
+    }
+    condition_structure_type = StructureType::Single;
+
+    false_decl.compositor_realization_mode(CompositorInputRealizationMode::None);
+    true_decl.compositor_realization_mode(CompositorInputRealizationMode::None);
+  }
+
+  switch_decl.structure_type(condition_structure_type);
+  false_decl.structure_type(value_structure_type);
+  true_decl.structure_type(value_structure_type);
+  output_decl.structure_type(value_structure_type);
 }
 
 static void node_layout(ui::Layout &layout, bContext * /*C*/, PointerRNA *ptr)
@@ -117,7 +136,7 @@ class LazyFunctionForSwitchNode : public LazyFunction {
   LazyFunctionForSwitchNode(const bNode &node) : node_id_(node.identifier)
   {
     const NodeSwitch &storage = node_storage(node);
-    const eNodeSocketDatatype data_type = eNodeSocketDatatype(storage.input_type);
+    const eNodeSocketDatatype data_type = storage.input_type;
     can_be_field_ = socket_type_supports_fields(data_type);
 
     const bke::bNodeSocketType *socket_type = nullptr;
@@ -232,6 +251,30 @@ class LazyFunctionForSwitchNode : public LazyFunction {
   }
 };
 
+using namespace blender::compositor;
+
+class SwitchOperation : public NodeOperation {
+ public:
+  using NodeOperation::NodeOperation;
+
+  void execute() override
+  {
+    const Result &input = this->get_input(this->get_condition() ? "True" : "False");
+    Result &output = this->get_result("Output");
+    output.share_data(input);
+  }
+
+  bool get_condition()
+  {
+    return this->get_input("Switch").get_single_value_default<bool>();
+  }
+};
+
+static NodeOperation *get_compositor_operation(Context &context, const bNode &node)
+{
+  return new SwitchOperation(context, node);
+}
+
 static const bNodeSocket *node_internally_linked_input(const bNodeTree & /*tree*/,
                                                        const bNode &node,
                                                        const bNodeSocket & /*output_socket*/)
@@ -265,7 +308,7 @@ static void register_node()
 {
   static bke::bNodeType ntype;
 
-  geo_node_type_base(&ntype, "GeometryNodeSwitch"_ustr, GEO_NODE_SWITCH);
+  geo_cmp_node_type_base(&ntype, "GeometryNodeSwitch"_ustr, GEO_NODE_SWITCH);
   ntype.ui_name = "Switch";
   ntype.ui_description = "Switch between two inputs";
   ntype.enum_name_legacy = "SWITCH";
@@ -278,6 +321,8 @@ static void register_node()
   ntype.draw_buttons = node_layout;
   ntype.ignore_inferred_input_socket_visibility = true;
   ntype.internally_linked_input = node_internally_linked_input;
+  ntype.get_compositor_operation = get_compositor_operation;
+
   bke::node_register_type(ntype);
 
   node_rna(ntype.rna_ext.srna);

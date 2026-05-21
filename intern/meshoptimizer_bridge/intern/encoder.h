@@ -9,16 +9,22 @@
 #include <stddef.h>
 
 enum encodeExpMode {
-  /* When encoding exponents, use separate values for each component (maximum quality) */
+  /** When encoding exponents, use separate values for each component (maximum quality) */
   EncodeExpSeparate,
-  /* When encoding exponents, use shared value for all components of each vector (better
-     compression) */
+  /**
+   * When encoding exponents, use shared value for all components of each vector
+   * (better compression).
+   */
   EncodeExpSharedVector,
-  /* When encoding exponents, use shared value for each component of all vectors (best compression)
+  /**
+   * When encoding exponents, use shared value for each component of all vectors
+   * (best compression).
    */
   EncodeExpSharedComponent,
-  /* When encoding exponents, use separate values for each component, but clamp to 0 (good quality
-     if very small values are not important) */
+  /**
+   * When encoding exponents, use separate values for each component, but clamp to 0 (good quality
+   * if very small values are not important).
+   */
   EncodeExpClamped,
 };
 

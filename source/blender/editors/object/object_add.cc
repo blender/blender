@@ -2484,6 +2484,25 @@ static wmOperatorStatus object_delete_exec(bContext *C, wmOperator *op)
 
   BKE_main_id_tag_all(bmain, ID_TAG_DOIT, false);
 
+  /* Cancel light probe baking when deleting a volumetric light probe. */
+  bool has_volume_lightprobe = false;
+  CTX_DATA_BEGIN (C, Object *, ob, selected_objects) {
+    if (ob->type == OB_LIGHTPROBE &&
+        id_cast<LightProbe *>(ob->data)->type == LIGHTPROBE_TYPE_VOLUME)
+    {
+      has_volume_lightprobe = true;
+      break;
+    }
+  }
+  CTX_DATA_END;
+
+  if (has_volume_lightprobe && WM_jobs_test(wm, scene, WM_JOB_TYPE_LIGHT_BAKE)) {
+    WM_jobs_stop_type(wm, scene, WM_JOB_TYPE_LIGHT_BAKE);
+    BKE_report(op->reports,
+               RPT_WARNING,
+               "Light probe baking canceled because a volume light probe was deleted");
+  }
+
   CTX_DATA_BEGIN (C, Object *, ob, selected_objects) {
     if (ob->id.tag & ID_TAG_INDIRECT) {
       /* Can this case ever happen? */

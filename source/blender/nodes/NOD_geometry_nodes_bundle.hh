@@ -153,8 +153,8 @@ enum class BundlePathsGatherFilterResult {
   Take,
 };
 
-Vector<std::string> gather_bundle_paths_by_bundle_type(const Bundle &bundle,
-                                                       StringRef type_filter);
+Vector<std::string> gather_bundle_paths_by_bundle_type(
+    const Bundle &bundle, FunctionRef<bool(StringRef type)> type_filter_fn);
 Vector<std::string> gather_bundle_paths_by_data_type(const Bundle &bundle,
                                                      eNodeSocketDatatype data_type);
 

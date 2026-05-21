@@ -12,6 +12,7 @@
 #include "DNA_pointcloud_types.h"
 
 #include "NOD_geometry_nodes_list.hh"
+#include "NOD_string_pattern.hh"
 
 #include "node_geometry_util.hh"
 
@@ -57,6 +58,9 @@ static void node_declare(NodeDeclarationBuilder &b)
     }
   }
 
+  b.add_input<decl::Menu>("Pattern Mode"_ustr)
+      .static_items(string_pattern_mode_items)
+      .optional_label();
   b.add_input<decl::String>("Names"_ustr)
       .optional_label()
       .structure_type(StructureType::List)
@@ -65,23 +69,17 @@ static void node_declare(NodeDeclarationBuilder &b)
   b.add_input<decl::Bool>("Ignore Names"_ustr).default_value(false);
 }
 
-static bool name_matches_any_pattern(const VectorSet<std::string> &patterns, const StringRef name)
+static bool name_matches_any_pattern(const Span<StringPattern> patterns, const StringRef name)
 {
-  if (patterns.contains_as(name)) {
-    return true;
-  }
-  for (const StringRef pattern : patterns) {
-    // TODO: Support wildcards similar to Remove Attribute node.
-    if (pattern.endswith("*")) {
-      if (name.startswith(pattern.drop_known_suffix("*"))) {
-        return true;
-      }
+  for (const StringPattern &pattern : patterns) {
+    if (pattern.match(name)) {
+      return true;
     }
   }
   return false;
 }
 
-static bool should_transfer(const VectorSet<std::string> &patterns,
+static bool should_transfer(const Span<StringPattern> patterns,
                             const StringRef name,
                             const bool ignore_names)
 {
@@ -96,7 +94,7 @@ static bool should_transfer(const VectorSet<std::string> &patterns,
 }
 
 static bool transfer_attributes(
-    const VectorSet<std::string> &patterns,
+    const Span<StringPattern> patterns,
     const bool ignore_names,
     const bke::AttributeAccessor &src_attributes,
     bke::MutableAttributeAccessor &dst_attributes,
@@ -237,6 +235,8 @@ static void node_geo_exec(GeoNodeExecParams params)
 {
   GeometrySet dst_geo = params.extract_input<GeometrySet>("Target"_ustr);
   GeometrySet src_geo = params.extract_input<GeometrySet>("Source"_ustr);
+  const StringPatternMode pattern_mode = params.extract_input<StringPatternMode>(
+      "Pattern Mode"_ustr);
   const GListPtr attribute_patterns_list = params.extract_input<GListPtr>("Names"_ustr);
   const bool ignore_names = params.extract_input<bool>("Ignore Names"_ustr);
 
@@ -258,19 +258,28 @@ static void node_geo_exec(GeoNodeExecParams params)
       {AttrDomain::Instance, params.extract_input<Field<int>>("Source Instance ID"_ustr)},
   };
 
-  VectorSet<std::string> patterns;
+  Vector<StringPattern> patterns;
+  bool has_error = false;
   if (attribute_patterns_list) {
     if (attribute_patterns_list->cpp_type().is<std::string>()) {
-      const VArray<std::string> values = attribute_patterns_list->typed<std::string>().varray();
-      for (const int i : values.index_range()) {
-        patterns.add(values[i]);
-      }
+      attribute_patterns_list.typed<std::string>()->foreach([&](const std::string &pattern) {
+        std::string error;
+        if (std::optional<StringPattern> pattern_fn = StringPattern::from_string(
+                pattern_mode, pattern, error))
+        {
+          patterns.append(std::move(*pattern_fn));
+        }
+        else {
+          params.error_message_add(NodeWarningType::Error, error);
+          has_error = true;
+        }
+      });
     }
   }
 
   if (patterns.is_empty()) {
     params.set_output("Target"_ustr, std::move(dst_geo));
-    params.set_output("Success"_ustr, true);
+    params.set_output("Success"_ustr, !has_error);
     return;
   }
 

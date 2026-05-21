@@ -121,8 +121,28 @@ void VKCommandBuilder::groups_extract_barriers(VKRenderGraph &render_graph,
       else if (node.type == VKNodeType::END_RENDERING) {
         /* End rendering scope. */
         BLI_assert(rendering_active);
+
+        /* Save rendering scope handle for resource state update below. */
+        const NodeHandle end_rendering_scope = rendering_scope;
         rendering_scope = 0;
         rendering_active = false;
+
+        /* The render pass storeOp writes each attachment with COLOR_ATTACHMENT_WRITE_BIT (or
+         * DEPTH_STENCIL_ATTACHMENT_WRITE_BIT). END_RENDERING has VKResourceType::NONE and
+         * declares no resource dependencies, so these implicit writes are invisible to the
+         * resource state tracker. Propagate them here so the next scope's pipeline barrier
+         * correctly synchronizes with the storeOp, avoiding WRITE_AFTER_WRITE hazards. */
+        for (const VKRenderGraphImage &link : render_graph.linked_images(end_rendering_scope)) {
+          VKResourceStateTracker::Resource &resource = render_graph.resources_.get_image_resource(
+              link.resource.handle);
+          VKResourceBarrierState &state = resource.barrier_state;
+          if (link.vk_access_flags & VK_ACCESS_COLOR_ATTACHMENT_WRITE_BIT) {
+            state.vk_access |= VK_ACCESS_COLOR_ATTACHMENT_WRITE_BIT;
+          }
+          if (link.vk_access_flags & VK_ACCESS_DEPTH_STENCIL_ATTACHMENT_WRITE_BIT) {
+            state.vk_access |= VK_ACCESS_DEPTH_STENCIL_ATTACHMENT_WRITE_BIT;
+          }
+        }
 
         /* Any specific layout changes needs to be reverted, so the global resource state tracker
          * reflects the correct state. These barriers needs to be added as node post barriers. We
@@ -131,6 +151,19 @@ void VKCommandBuilder::groups_extract_barriers(VKRenderGraph &render_graph,
         image_tracker.end(barrier, use_local_read);
         if (!barrier.is_empty()) {
           post_barriers.append(barrier);
+        }
+
+        /* After image_tracker.end() reverts tracked image layouts back to the default
+         * (COLOR_ATTACHMENT_OPTIMAL or RENDERING_LOCAL_READ_KHR), sync the global resource
+         * state tracker so subsequent barriers use the correct oldLayout. */
+        for (const VKRenderGraphImage &link : render_graph.linked_images(end_rendering_scope)) {
+          VKResourceStateTracker::Resource &resource = render_graph.resources_.get_image_resource(
+              link.resource.handle);
+          if (resource.use_subresource_tracking()) {
+            VKResourceBarrierState &state = resource.barrier_state;
+            state.image_layout = use_local_read ? VK_IMAGE_LAYOUT_RENDERING_LOCAL_READ_KHR :
+                                                  VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL;
+          }
         }
       }
 
@@ -145,6 +178,17 @@ void VKCommandBuilder::groups_extract_barriers(VKRenderGraph &render_graph,
         image_tracker.suspend(barrier, use_local_read);
         if (!barrier.is_empty()) {
           post_barriers.append(barrier);
+        }
+
+        /* Sync resource state layout after suspend reverts tracked images. */
+        for (const VKRenderGraphImage &link : render_graph.linked_images(rendering_scope)) {
+          VKResourceStateTracker::Resource &resource = render_graph.resources_.get_image_resource(
+              link.resource.handle);
+          if (resource.use_subresource_tracking()) {
+            VKResourceBarrierState &state = resource.barrier_state;
+            state.image_layout = use_local_read ? VK_IMAGE_LAYOUT_RENDERING_LOCAL_READ_KHR :
+                                                  VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL;
+          }
         }
       }
 
@@ -196,6 +240,18 @@ void VKCommandBuilder::groups_extract_barriers(VKRenderGraph &render_graph,
       if (!barrier.is_empty()) {
         post_barriers.append(barrier);
       }
+
+      /* Sync resource state layout after the tracker reverts tracked images. */
+      for (const VKRenderGraphImage &link : render_graph.linked_images(rendering_scope)) {
+        VKResourceStateTracker::Resource &resource = render_graph.resources_.get_image_resource(
+            link.resource.handle);
+        if (resource.use_subresource_tracking()) {
+          VKResourceBarrierState &state = resource.barrier_state;
+          state.image_layout = use_local_read ? VK_IMAGE_LAYOUT_RENDERING_LOCAL_READ_KHR :
+                                                VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL;
+        }
+      }
+
       rendering_active = false;
     }
 
@@ -650,6 +706,30 @@ void VKCommandBuilder::add_image_read_barriers(VKRenderGraph &render_graph,
                              resource_state.image_layout,
                              link.vk_image_layout,
                              r_barrier);
+        resource_state.image_layout = link.vk_image_layout;
+      }
+      /* Image tracker only tracks layout changes. Access flag synchronization is still needed
+       * to avoid WRITE->READ hazards between rendering scopes. See #158501. */
+      VkAccessFlags wait_access = resource_state.vk_access;
+      r_barrier.src_stage_mask |= resource_state.vk_pipeline_stages;
+      r_barrier.dst_stage_mask |= node_stages;
+      if (is_first_read) {
+        resource_state.vk_access = link.vk_access_flags;
+        resource_state.vk_pipeline_stages = node_stages;
+      }
+      else {
+        resource_state.vk_access |= link.vk_access_flags;
+        resource_state.vk_pipeline_stages |= node_stages;
+      }
+      if (wait_access != VK_ACCESS_NONE && (wait_access & ~link.vk_access_flags) != 0) {
+        add_image_barrier(resource.image.vk_image,
+                          r_barrier,
+                          wait_access,
+                          link.vk_access_flags,
+                          resource_state.image_layout,
+                          link.vk_image_layout,
+                          link.vk_image_aspect,
+                          {});
       }
       continue;
     }
@@ -712,6 +792,23 @@ void VKCommandBuilder::add_image_write_barriers(VKRenderGraph &render_graph,
                              resource_state.image_layout,
                              link.vk_image_layout,
                              r_barrier);
+        resource_state.image_layout = link.vk_image_layout;
+      }
+      /* Image tracker only tracks layout changes. Access flag synchronization is still needed
+       * to avoid READ->WRITE hazards between rendering scopes. See #158501. */
+      r_barrier.src_stage_mask |= resource_state.vk_pipeline_stages;
+      r_barrier.dst_stage_mask |= node_stages;
+      resource_state.vk_access = link.vk_access_flags;
+      resource_state.vk_pipeline_stages = node_stages;
+      if (wait_access != VK_ACCESS_NONE && (wait_access & ~link.vk_access_flags) != 0) {
+        add_image_barrier(resource.image.vk_image,
+                          r_barrier,
+                          wait_access,
+                          link.vk_access_flags,
+                          resource_state.image_layout,
+                          link.vk_image_layout,
+                          link.vk_image_aspect,
+                          {});
       }
       continue;
     }

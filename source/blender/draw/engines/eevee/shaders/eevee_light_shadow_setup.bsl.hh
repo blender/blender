@@ -340,7 +340,7 @@ void shadow_setup_main([[resource_table]] Resources &srt,
       }
     }
 
-    int tilemap_count = light_local_tilemap_count(light);
+    int tilemap_count = light.local_tilemap_count();
     for (int i = 0; i < tilemap_count; i++) {
       srt.cubeface_sync(
           light.tilemap_index + i, light.object_to_world, eCubeFace(i), position_on_light);

@@ -69,15 +69,20 @@ bool light_linking_affects_receiver(uint2 light_set_membership, uchar receiver_l
   return bitmask64_test(light_set_membership, receiver_light_set);
 }
 
-void eval_single_closure(
-    LightData light, LightVector lv, ClosureLight &cl, float3 V, float attenuation, float shadow)
+void eval_single_closure(LightData light,
+                         LightVector lv,
+                         LightVertices vertices,
+                         ClosureLight &cl,
+                         float3 V,
+                         float attenuation,
+                         float shadow)
 {
   attenuation *= power_get(light, cl.type);
   if (attenuation < 1e-30f) {
     return;
   }
   auto &util_tx = sampler_get(eevee_utility_texture, utility_tx);
-  float ltc_result = light_ltc(util_tx, light, cl.N, V, lv, cl.ltc_mat);
+  float ltc_result = light_ltc(util_tx, light, cl.N, V, lv, cl.ltc_mat, vertices);
   float3 out_radiance = light.color * ltc_result;
   float visibility = shadow * attenuation;
   cl.light_shadowed += visibility * out_radiance;
@@ -157,15 +162,19 @@ template<bool is_transmission> struct EvalCtx {
       attenuation *= M_1_PI;
     }
 
+    LightVertices light_shape_vertices = light_shape_corners(light, lv);
+
     for (uint i = 0u; i < 3; i++) [[unroll]] {
       if (is_transmission) [[static_branch]] {
         if (srt.light_closure_eval_count_transmit > i) [[static_branch]] {
-          eval_single_closure(light, lv, stack.cl[i], V, attenuation, shadow);
+          eval_single_closure(
+              light, lv, light_shape_vertices, stack.cl[i], V, attenuation, shadow);
         }
       }
       else {
         if (srt.light_closure_eval_count_reflect > i) [[static_branch]] {
-          eval_single_closure(light, lv, stack.cl[i], V, attenuation, shadow);
+          eval_single_closure(
+              light, lv, light_shape_vertices, stack.cl[i], V, attenuation, shadow);
         }
       }
     }

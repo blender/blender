@@ -26,6 +26,7 @@ const FlatBundleTypePtr &ColliderBundle::get_bundle_type()
     b.add<decl::Float>("compliance"_ustr).min(0.0f);
     b.add<decl::Bool>("deforming"_ustr).default_value(false);
     b.add<decl::Bool>("use_edge_contacts"_ustr).default_value(false);
+    b.add<decl::Bool>("is_boundary"_ustr).default_value(false);
     const FlatBundleTypePtr bundle_type = b.build();
     BundleTypeRegistry::register_type(bundle_type);
     return bundle_type;

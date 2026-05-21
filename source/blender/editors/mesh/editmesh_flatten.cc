@@ -117,7 +117,7 @@ void MESH_OT_flatten(wmOperatorType *ot)
   ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
 
   RNA_def_float_factor(
-      ot->srna, "factor", 1.0f, 0.0f, 1.0f, "Factor", "Force of the tool", 0.0f, 1.0f);
+      ot->srna, "factor", 1.0f, 0.0f, 1.0f, "Factor", "Spacing effect factor", 0.0f, 1.0f);
   RNA_def_enum(
       ot->srna, "method", prop_method_items, 0, "Method", "Plane on which vertices are flattened");
   RNA_def_boolean_array(ot->srna, "lock", 3, nullptr, "Lock", "Lock editing of the axis");

@@ -38,15 +38,18 @@ static void node_declare(NodeDeclarationBuilder &b)
   });
 
   const bNode *node = b.node_or_null();
+  const bNodeTree *tree = b.tree_or_null();
   auto &panel = b.add_panel("Interface"_ustr);
   if (node) {
     const auto &storage = node_storage(*node);
     for (const int i : IndexRange(storage.output_items.items_num)) {
       const NodeEvaluateClosureOutputItem &item = storage.output_items.items[i];
-      const eNodeSocketDatatype socket_type = eNodeSocketDatatype(item.socket_type);
+      const eNodeSocketDatatype socket_type = item.socket_type;
       const UString identifier(
           EvaluateClosureOutputItemsAccessor::socket_identifier_for_item(item));
       auto &decl = panel.add_output(socket_type, UString(item.name), identifier);
+      decl.socket_name_ptr(
+          &tree->id, *EvaluateClosureOutputItemsAccessor::item_srna, &item, "name");
       if (item.structure_type != NodeSocketInterfaceStructureType::Auto) {
         decl.structure_type(StructureType(item.structure_type));
       }
@@ -54,13 +57,17 @@ static void node_declare(NodeDeclarationBuilder &b)
         decl.structure_type(StructureType::Dynamic);
       }
     }
-    panel.add_output<decl::Extend>(""_ustr, "__extend__"_ustr);
+    panel.add_output<decl::Extend>(""_ustr, "__extend__"_ustr)
+        .custom_draw(
+            socket_items::ui::draw_extend_socket_fn<EvaluateClosureOutputItemsAccessor>());
     for (const int i : IndexRange(storage.input_items.items_num)) {
       const NodeEvaluateClosureInputItem &item = storage.input_items.items[i];
-      const eNodeSocketDatatype socket_type = eNodeSocketDatatype(item.socket_type);
+      const eNodeSocketDatatype socket_type = item.socket_type;
       const UString identifier(
           EvaluateClosureInputItemsAccessor::socket_identifier_for_item(item));
       auto &decl = panel.add_input(socket_type, UString(item.name), identifier);
+      decl.socket_name_ptr(
+          &tree->id, *EvaluateClosureInputItemsAccessor::item_srna, &item, "name");
       if (socket_type_supports_fields(socket_type)) {
         decl.supports_field();
       }
@@ -71,7 +78,8 @@ static void node_declare(NodeDeclarationBuilder &b)
         decl.structure_type(StructureType::Dynamic);
       }
     }
-    panel.add_input<decl::Extend>(""_ustr, "__extend__"_ustr);
+    panel.add_input<decl::Extend>(""_ustr, "__extend__"_ustr)
+        .custom_draw(socket_items::ui::draw_extend_socket_fn<EvaluateClosureInputItemsAccessor>());
   }
 }
 
@@ -287,8 +295,7 @@ const bNodeSocket *evaluate_closure_node_internally_linked_input(const bNodeSock
     const StringRef input_key = input_item.name;
     if (output_key == input_key) {
       if (!tree.typeinfo->validate_link ||
-          tree.typeinfo->validate_link(eNodeSocketDatatype(input_item.socket_type),
-                                       eNodeSocketDatatype(output_item.socket_type)))
+          tree.typeinfo->validate_link(input_item.socket_type, output_item.socket_type))
       {
         return &node.input_socket(i + 1);
       }

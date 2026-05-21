@@ -222,8 +222,7 @@ void add_image_init_alpha_mode(Main *bmain, Scene *scene, Strip *strip)
                                           strip->data->colorspace_settings.name);
 
       /* Byte images are default to straight alpha, however sequencer
-       * works in premul space, so mark strip to be premultiplied first.
-       */
+       * works in pre-multiply space, so mark strip to be pre-multiplied first. */
       strip->alpha_mode = SEQ_ALPHA_STRAIGHT;
       if (ibuf) {
         if (flag_is_set(ibuf->flags, ImBufFlags::AlphaPremul)) {

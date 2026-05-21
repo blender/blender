@@ -68,11 +68,11 @@ static const char *get_blur_shader(const ResultType type)
   return nullptr;
 }
 
-static Result blur_pass_gpu(Context &context,
-                            const Result &input,
-                            Result &output,
-                            const float radius,
-                            const math::FilterKernel filter_type)
+static void blur_pass_gpu(Context &context,
+                          const Result &input,
+                          Result &output,
+                          const float radius,
+                          const math::FilterKernel filter_type)
 {
   gpu::Shader *shader = context.get_shader(get_blur_shader(input.type()));
   GPU_shader_bind(shader);
@@ -100,15 +100,13 @@ static Result blur_pass_gpu(Context &context,
   input.unbind_as_texture();
   weights.unbind_as_texture();
   output.unbind_as_image();
-
-  return output;
 }
 
-static Result blur_pass_cpu(Context &context,
-                            const Result &input,
-                            Result &output,
-                            const float radius,
-                            const math::FilterKernel filter_type)
+static void blur_pass_cpu(Context &context,
+                          const Result &input,
+                          Result &output,
+                          const float radius,
+                          const math::FilterKernel filter_type)
 {
   const Result &weights = context.cache_manager().symmetric_separable_blur_weights.get(
       context, filter_type, radius);
@@ -136,20 +134,19 @@ static Result blur_pass_cpu(Context &context,
       BLI_assert_unreachable();
       break;
   }
-
-  return output;
 }
 
-static Result blur_pass(Context &context,
-                        const Result &input,
-                        Result &output,
-                        const float radius,
-                        const math::FilterKernel filter_type)
+static void blur_pass(Context &context,
+                      const Result &input,
+                      Result &output,
+                      const float radius,
+                      const math::FilterKernel filter_type)
 {
   if (context.use_gpu()) {
-    return blur_pass_gpu(context, input, output, radius, filter_type);
+    blur_pass_gpu(context, input, output, radius, filter_type);
+    return;
   }
-  return blur_pass_cpu(context, input, output, radius, filter_type);
+  blur_pass_cpu(context, input, output, radius, filter_type);
 }
 
 void symmetric_separable_blur(Context &context,

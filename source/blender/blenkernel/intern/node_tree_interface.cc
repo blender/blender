@@ -1662,6 +1662,21 @@ bNode *create_proxy_const_input_node(const eNodeSocketDatatype socket_type,
   return nullptr;
 }
 
+static bNode *create_proxy_implicit_scene_frame_node(bContext &C, bNodeTree &tree)
+{
+  if (tree.type == NTREE_COMPOSIT) {
+    bNode *node = bke::node_add_node(&C, tree, "CompositorNodeSceneTime"_ustr);
+    bke::node_find_socket(*node, SOCK_OUT, "Seconds"_ustr)->flag |= SOCK_HIDDEN;
+    return node;
+  }
+  if (tree.type == NTREE_GEOMETRY) {
+    bNode *node = bke::node_add_node(&C, tree, "GeometryNodeInputSceneTime"_ustr);
+    bke::node_find_socket(*node, SOCK_OUT, "Seconds"_ustr)->flag |= SOCK_HIDDEN;
+    return node;
+  }
+  return nullptr;
+}
+
 bNode *create_proxy_implicit_input_node(const eNodeSocketDatatype socket_type,
                                         const NodeDefaultInputType default_input,
                                         bContext &C,
@@ -1669,7 +1684,6 @@ bNode *create_proxy_implicit_input_node(const eNodeSocketDatatype socket_type,
 {
   switch (socket_type) {
     case SOCK_CUSTOM:
-    case SOCK_FLOAT:
     case SOCK_RGBA:
     case SOCK_INT_VECTOR:
     case SOCK_BOOLEAN:
@@ -1692,6 +1706,12 @@ bNode *create_proxy_implicit_input_node(const eNodeSocketDatatype socket_type,
     case SOCK_FONT:
       return nullptr;
 
+    case SOCK_FLOAT: {
+      if (default_input == NODE_DEFAULT_INPUT_SCENE_FRAME) {
+        return create_proxy_implicit_scene_frame_node(C, tree);
+      }
+      return nullptr;
+    }
     case SOCK_VECTOR:
       if (default_input == NODE_DEFAULT_INPUT_NORMAL_FIELD) {
         bNode *node = bke::node_add_node(&C, tree, "GeometryNodeInputNormal"_ustr);
@@ -1721,6 +1741,9 @@ bNode *create_proxy_implicit_input_node(const eNodeSocketDatatype socket_type,
       }
       if (default_input == NODE_DEFAULT_INPUT_ID_INDEX_FIELD) {
         return bke::node_add_node(&C, tree, "GeometryNodeInputID"_ustr);
+      }
+      if (default_input == NODE_DEFAULT_INPUT_SCENE_FRAME) {
+        return create_proxy_implicit_scene_frame_node(C, tree);
       }
       return nullptr;
 
@@ -1763,8 +1786,7 @@ bNode *create_proxy_converter_node(const eNodeSocketDatatype socket_type,
   BKE_ntree_update_after_single_tree_change(*CTX_data_main(&C), dst_tree);
 
   bNodeSocket *socket = static_cast<bNodeSocket *>(proxy_node->inputs.first);
-  node_socket_copy_default_value_data(
-      eNodeSocketDatatype(socket->type), socket->default_value, src_value);
+  node_socket_copy_default_value_data(socket->type, socket->default_value, src_value);
 
   proxy_node->flag |= NODE_COLLAPSED;
 

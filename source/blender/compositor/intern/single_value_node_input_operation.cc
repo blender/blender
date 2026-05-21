@@ -26,8 +26,7 @@ SingleValueNodeInputOperation::SingleValueNodeInputOperation(Context &context,
                                                              const bNodeSocket &input_socket)
     : Operation(context), input_socket_(input_socket)
 {
-  const ResultType result_type = get_node_socket_result_type(&input_socket);
-  this->populate_result(context.create_result(result_type));
+  this->populate_result(get_node_socket_result_type(&input_socket));
 }
 
 void SingleValueNodeInputOperation::execute()
@@ -160,9 +159,9 @@ Result &SingleValueNodeInputOperation::get_result()
   return Operation::get_result(output_identifier_);
 }
 
-void SingleValueNodeInputOperation::populate_result(Result result)
+void SingleValueNodeInputOperation::populate_result(const ResultType type)
 {
-  Operation::populate_result(output_identifier_, result);
+  Operation::populate_result(output_identifier_, type);
 }
 
 }  // namespace blender::compositor

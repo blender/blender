@@ -65,7 +65,7 @@ float3 shape_display_light_position_get(LightData light, float2 quad_pos)
   }
 
   float radius = light.local().local.shape_radius;
-  float3 center = light_position_get(light);
+  float3 center = light.position();
   float3 view_right = drw_view().viewinv[0].xyz;
   float3 view_up = drw_view().viewinv[1].xyz;
   float3 L = center - drw_view_position();
@@ -170,8 +170,7 @@ void shape_display_frag([[resource_table]] const ShapeDisplayResources & /*srt*/
     }
   }
   else {
-    if (is_area_light(light_type) && dot(drw_world_incident_vector(P), light_z_axis(light)) > 0.0f)
-    {
+    if (is_area_light(light_type) && dot(drw_world_incident_vector(P), light.z_axis()) > 0.0f) {
       gpu_discard_fragment();
       return;
     }

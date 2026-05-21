@@ -96,3 +96,25 @@ void _BLI_assert_unreachable_print(const char *file, int line, const char *funct
     BLI_assert_msg(0, "This line of code is marked to be unreachable."); \
   } \
   ((void)0)
+
+#ifdef __cplusplus
+
+/**
+ * Indicates that this line should never be reached, even at compile-time. Just doing
+ * `static_assert(false)` doesn't work in C++20 for this use-case. BLI_assert_unreachable is
+ * similar but does not catch issues at compile-time.
+ */
+#  define BLI_assert_unreachable_static() \
+    static_assert([]<bool flag = false>() { return flag; }(), \
+                  "Unreachable code path reached at compile-time!")
+
+template<class T> inline constexpr bool _bli_always_false = false;
+
+/**
+ * Like #BLI_assert_unreachable_static but allows passing in a type. This results in a more useful
+ * error message containing the type name.
+ */
+#  define BLI_assert_unreachable_static_t(T) \
+    static_assert(_bli_always_false<T>, "Unreachable code path reached at compile-time!")
+
+#endif
