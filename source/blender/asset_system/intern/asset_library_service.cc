@@ -204,6 +204,10 @@ AssetLibrary *AssetLibraryService::get_asset_library_on_disk(
     case ASSET_LIBRARY_ESSENTIALS:
       lib_uptr = std::make_unique<EssentialsAssetLibrary>();
       break;
+    case ASSET_LIBRARY_LOCAL:
+      lib_uptr = std::make_unique<OnDiskAssetLibrary>(
+          library_type, name, normalized_root_path, /*is_read_only=*/false);
+      break;
     default:
       lib_uptr = std::make_unique<OnDiskAssetLibrary>(
           library_type, name, normalized_root_path, /*is_read_only=*/true);
