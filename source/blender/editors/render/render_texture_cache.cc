@@ -43,20 +43,13 @@
 namespace blender {
 
 /* -------------------------------------------------------------------- */
-/** \name Generate Texture Cache Operator
+/** \name Texture Cache Image Gathering
  * \{ */
 
-struct GenerateTextureCacheJob {
-  Main *bmain;
-  ReportList *reports;
-};
-
-static void generate_texture_cache(Main *bmain,
-                                   ReportList *reports,
-                                   wmJobWorkerStatus *worker_status = nullptr)
+/* Gather all images referenced by shader node trees. */
+static Set<const Image *> gather_cache_images(Main *bmain)
 {
-  /* Gather images to generate for. */
-  blender::Set<const Image *> images;
+  Set<const Image *> images;
 
   FOREACH_NODETREE_BEGIN (bmain, ntree, id) {
     if (ntree->type != NTREE_SHADER) {
@@ -78,11 +71,16 @@ static void generate_texture_cache(Main *bmain,
   }
   FOREACH_NODETREE_END;
 
-  /* Gather filepaths to generate for, expanding UDIMs and sequences. */
-  blender::Set<std::pair<const Image *, std::string>> filepaths;
-  int total = 0;
+  return images;
+}
 
-  for (const Image *image : images) {
+/* Gather all source image files to the texture cache, expanding UDIM tiles and
+ * optionally image sequences. */
+static Vector<std::pair<const Image *, std::string>> gather_cache_filepaths(Main *bmain)
+{
+  Vector<std::pair<const Image *, std::string>> filepaths;
+
+  for (const Image *image : gather_cache_images(bmain)) {
     if (ELEM(image->source, IMA_SRC_MOVIE, IMA_SRC_GENERATED, IMA_SRC_VIEWER)) {
       continue;
     }
@@ -110,10 +108,7 @@ static void generate_texture_cache(Main *bmain,
           BKE_image_set_filepath_from_tile_number(
               tile_filepath, udim_pattern, tile_format, tile.tile_number);
           if (BLI_is_file(tile_filepath)) {
-            if (!CCL_has_texture_cache(image, tile_filepath, U.texture_cachedir)) {
-              filepaths.add({image, tile_filepath});
-            }
-            total++;
+            filepaths.append({image, tile_filepath});
           }
         }
         MEM_delete(udim_pattern);
@@ -128,10 +123,46 @@ static void generate_texture_cache(Main *bmain,
 
     /* Handle regular image. */
     if (BLI_is_file(filepath)) {
-      if (!CCL_has_texture_cache(image, filepath, U.texture_cachedir)) {
-        filepaths.add({image, filepath});
-      }
-      total++;
+      filepaths.append({image, filepath});
+    }
+  }
+
+  return filepaths;
+}
+
+/** \} */
+
+/* -------------------------------------------------------------------- */
+/** \name Generate Texture Cache Operator
+ * \{ */
+
+struct GenerateTextureCacheJob {
+  Main *bmain;
+  ReportList *reports;
+};
+
+static void generate_texture_cache(Main *bmain,
+                                   ReportList *reports,
+                                   wmJobWorkerStatus *worker_status = nullptr)
+{
+  const Vector<std::pair<const Image *, std::string>> filepaths = gather_cache_filepaths(bmain);
+
+  /* Determine which texture cache files need to be generated. */
+  Set<std::string> found_tx;
+  int uptodate_num = 0;
+  Vector<std::pair<const Image *, std::string>> outdated;
+  for (const auto &item : filepaths) {
+    std::string tx_filepath;
+    const bool up_to_date = CCL_resolve_texture_cache(
+        item.first, item.second.c_str(), U.texture_cachedir, tx_filepath);
+    if (tx_filepath.empty() || !found_tx.add(tx_filepath)) {
+      continue;
+    }
+    if (up_to_date) {
+      uptodate_num++;
+    }
+    else {
+      outdated.append(item);
     }
   }
 
@@ -140,12 +171,12 @@ static void generate_texture_cache(Main *bmain,
   std::atomic<int> failed_num = 0;
   std::mutex reports_mutex;
 
-  blender::threading::parallel_for_each(filepaths, [&](const auto &item) {
+  blender::threading::parallel_for_each(outdated, [&](const auto &item) {
     if (worker_status) {
       if (G.is_break || worker_status->stop) {
         return;
       }
-      worker_status->progress = (completed_num + failed_num) / float(filepaths.size());
+      worker_status->progress = (completed_num + failed_num) / float(outdated.size());
       worker_status->do_update = true;
     }
 
@@ -161,7 +192,7 @@ static void generate_texture_cache(Main *bmain,
   });
 
   /* Report stats. */
-  if (total == 0) {
+  if (found_tx.is_empty()) {
     BKE_report(reports, RPT_INFO, "No image files found to generate tx files");
   }
   else {
@@ -170,7 +201,7 @@ static void generate_texture_cache(Main *bmain,
                 "Generated %d tx files, %d failed, %d up to date",
                 completed_num.load(),
                 failed_num.load(),
-                total - int(filepaths.size()));
+                uptodate_num);
   }
 }
 
