@@ -464,6 +464,9 @@ class RuntimeToBakeValue {
 
   bool is_bakeable_single_value_type(const CPPType &type) const
   {
+    if (CPPType::get<std::string>() == type) {
+      return true;
+    }
     return cpp_type_to_custom_data_type(type).has_value();
   }
 };
