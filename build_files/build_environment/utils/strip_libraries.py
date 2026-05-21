@@ -27,10 +27,10 @@ def print_strip_lib(strip_lib: Path, prev_print_len: int) -> int:
     return len(print_str)
 
 
-def strip_libs(strip_dir: Path) -> None:
-    print(f"Stripping libraries in: {strip_dir}")
+def strip_libs(args) -> None:
+    print(f"Stripping libraries in: {args.directory}")
     prev_print_len = 0
-    for shared_lib in strip_dir.rglob("*.so*"):
+    for shared_lib in args.directory.rglob("*.so*"):
         if shared_lib.suffix == ".py":
             # Work around badly named `sycl` scripts.
             continue
@@ -40,14 +40,14 @@ def strip_libs(strip_dir: Path) -> None:
             continue
 
         prev_print_len = print_strip_lib(shared_lib, prev_print_len)
-        subprocess.check_call(["strip", "-s", "--enable-deterministic-archives", shared_lib])
-    for static_lib in strip_dir.rglob("*.a"):
+        subprocess.check_call([args.strip_cmd, "-s", "--enable-deterministic-archives", shared_lib])
+    for static_lib in args.directory.rglob("*.a"):
         if static_lib.is_symlink():
             # Don't strip symbolic-links as we don't want to strip the same library multiple times.
             continue
 
         prev_print_len = print_strip_lib(static_lib, prev_print_len)
-        subprocess.check_call(["objcopy", "--enable-deterministic-archives", static_lib])
+        subprocess.check_call([args.objcopy_cmd, "--enable-deterministic-archives", static_lib])
 
     print("\nDone stripping libraries!")
 
@@ -58,10 +58,12 @@ def main() -> None:
         formatter_class=argparse.RawTextHelpFormatter,
     )
     parser.add_argument("directory", type=Path, help="Path to the library directory to strip")
+    parser.add_argument("strip_cmd", type=Path, help="`strip` executable command / path", default="strip")
+    parser.add_argument("objcopy_cmd", type=Path, help="`objcopy` executable command / path", default="objcopy")
+
     args = parser.parse_args()
 
-    if sys.platform == "linux":
-        strip_libs(args.directory)
+    strip_libs(args)
 
 
 if __name__ == "__main__":

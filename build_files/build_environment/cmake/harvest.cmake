@@ -124,6 +124,15 @@ else()
 
   # Strip all shared/static libraries in the HARVEST_TARGET location.
   function(harvest_strip_all_libraries)
-    install(CODE "execute_process(COMMAND ${CMAKE_CURRENT_SOURCE_DIR}/utils/strip_libraries.py ${HARVEST_TARGET})")
+    if(ANDROID)
+      install(CODE "\
+      execute_process(COMMAND ${CMAKE_CURRENT_SOURCE_DIR}/utils/strip_libraries.py \n
+                      ${HARVEST_TARGET} ${ANDROID_TOOLCHAIN_ROOT}/bin/llvm-strip ${ANDROID_TOOLCHAIN_ROOT}/bin/llvm-objcopy \n
+                      COMMAND_ERROR_IS_FATAL ANY)")
+    else()
+      install(CODE "\
+        execute_process(COMMAND ${CMAKE_CURRENT_SOURCE_DIR}/utils/strip_libraries.py ${HARVEST_TARGET} \n
+                        COMMAND_ERROR_IS_FATAL ANY)")
+    endif()
   endfunction()
 endif()
