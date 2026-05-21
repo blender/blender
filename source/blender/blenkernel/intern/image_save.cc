@@ -696,6 +696,13 @@ bool BKE_image_save(
     MEM_delete(udim_pattern);
   }
 
+  if (ok) {
+    if (ima->flag & IMA_AUTOSAVE_TEMPPACK) {
+      BKE_image_free_packedfiles(ima);
+      ima->flag &= ~IMA_AUTOSAVE_TEMPPACK;
+    }
+  }
+
   if (colorspace_changed) {
     BKE_image_signal(bmain, ima, nullptr, IMA_SIGNAL_COLORMANAGE);
     BKE_image_partial_update_mark_full_update(ima);

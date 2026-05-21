@@ -2552,6 +2552,23 @@ bool ED_image_save_all_modified(const bContext *C, ReportList *reports)
   return ok;
 }
 
+void ED_image_internal_autosave_flush(const Main *bmain)
+{
+  for (Image *ima = static_cast<Image *>(bmain->images.first); ima;
+       ima = static_cast<Image *>(ima->id.next))
+  {
+    bool is_format_writable;
+
+    if (image_should_be_saved(ima, &is_format_writable)) {
+      if (BKE_image_has_packedfile(ima) || image_should_pack_during_save_all(ima) ||
+          (is_format_writable && image_has_valid_path(ima)))
+      {
+        BKE_image_autosave_memorypack(ima);
+      }
+    }
+  }
+}
+
 static bool image_save_all_modified_poll(bContext *C)
 {
   int num_files = ED_image_save_all_modified_info(CTX_data_main(C), nullptr);
@@ -2594,6 +2611,8 @@ static wmOperatorStatus image_reload_exec(bContext *C, wmOperator * /*op*/)
   if (!ima) {
     return OPERATOR_CANCELLED;
   }
+
+  BKE_image_clear_autosave(ima);
 
   /* XXX BKE_packedfile_unpack_image frees image buffers */
   ED_preview_kill_jobs(CTX_wm_manager(C), CTX_data_main(C));

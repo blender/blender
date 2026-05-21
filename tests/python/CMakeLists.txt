@@ -442,6 +442,7 @@ add_blender_test(
 add_blender_test(
   blendfile_autosave
   --python ${CMAKE_CURRENT_LIST_DIR}/bl_blendfile_autosave.py --
+  --src-test-dir ${TEST_SRC_DIR}/io_tests/blend_autosave/
   --output-dir ${TEST_OUT_DIR}/blendfile_autosave/
 )
 

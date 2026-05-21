@@ -94,6 +94,12 @@ struct ImageRuntime {
 };
 
 }  // namespace bke
+/**
+ * Clear the autosave information.
+ *
+ * \note At minimum, this should be called anytime the `packedfiles` list would be written to.
+ */
+void BKE_image_clear_autosave(Image *image);
 
 void BKE_image_free_packedfiles(Image *image);
 void BKE_image_free_views(Image *image);
@@ -438,6 +444,18 @@ void BKE_image_packfiles_from_mem(ReportList *reports, Image *ima, char *data, s
  */
 void BKE_image_packfile_ensure(
     Main *bmain, Image *image, ReportList *reports, const char *data, int data_len);
+
+/**
+ * Populate the runtime cache for an image based on the autosave information.
+ */
+void BKE_image_populate_cache_from_autosave(Image *ima);
+
+/**
+ * Pack the current buffer data as part of the autosave process.
+ *
+ * \see BKE_image_memorypack
+ */
+bool BKE_image_autosave_memorypack(Image *ima);
 
 /**
  * Prints memory statistics for images.
