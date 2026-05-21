@@ -73,15 +73,27 @@ if(CMAKE_CROSSCOMPILING)
       ${PATCH_DIR}/osl_crosscompile_llvm.diff
   )
 
-  file(GLOB OSL_LLVM_LIBRARIES "${LIBDIR}/llvm/lib/*.a")
-  string(REPLACE ";" "^^" OSL_LLVM_LIBRARIES "${OSL_LLVM_LIBRARIES}")  # Use ^^ list separators (as passed in ExternalProject)
+  # Since LLVM and OSL are both built in the same `make deps` invocation, directly using GLOB here to obtain the LLVM static
+  # libs would yield no results, as this expression would be evaluated at configure time, when LLVM hasn't been built yet.
+  # Workaround this issue by using a CMake cache script (passed via -C) to defer the GLOB to the external_osl step.
+  set(OSL_LLVM_GLOB_SCRIPT ${BUILD_DIR}/osl/llvm_libs_glob.cmake)
+  file(CONFIGURE
+    OUTPUT ${OSL_LLVM_GLOB_SCRIPT}
+    CONTENT
+[=[
+file(GLOB _osl_llvm_libs "@LIBDIR@/llvm/lib/*.a")
+set(LLVM_LIBRARIES "${_osl_llvm_libs}" CACHE STRING "" FORCE)
+]=]
+    @ONLY
+  )
+
   list(APPEND OSL_EXTRA_ARGS
     -DLLVM_FOUND=YES
     -DLLVM_VERSION=${LLVM_VERSION}  # Set in versions.cmake
     -DLLVM_INCLUDES=${LIBDIR}/llvm/include
-    -DLLVM_LIBRARIES=${OSL_LLVM_LIBRARIES}
     -DLLVM_LIB_DIR=${LIBDIR}/llvm/lib
     -DLLVM_TARGETS=${LLVM_TARGETS}  # Set in llvm.cmake
+    -C ${OSL_LLVM_GLOB_SCRIPT}
 
     # Interesting hack: We provide the LIBDIR crosscompiled LLVM static libs, but the HOST_LIBDIR LLVM_DIRECTORY for
     #                   the clang++ executable. Magically, this works.
