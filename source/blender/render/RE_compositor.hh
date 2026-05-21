@@ -15,6 +15,7 @@ enum class NodeGroupOutputTypes : uint8_t;
 
 struct bNodeTree;
 struct Render;
+struct Main;
 struct RenderData;
 struct Scene;
 
@@ -31,6 +32,7 @@ class Compositor;
 
 /* Execute compositor. */
 void RE_compositor_execute(Render &render,
+                           const Main &main,
                            const Scene &scene,
                            const RenderData &render_data,
                            const bNodeTree &node_tree,

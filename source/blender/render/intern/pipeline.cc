@@ -1281,6 +1281,7 @@ static void do_render_compositor(Render *re)
         compositor_render_context.is_animation_render = re->flag & R_ANIMATION;
         for (RenderView &rv : re->result->views) {
           RE_compositor_execute(*re,
+                                *re->main,
                                 *re->pipeline_scene_eval,
                                 re->r,
                                 *ntree,

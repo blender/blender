@@ -110,6 +110,7 @@ static void compositor_job_start(void *compositor_job_data, wmJobWorkerStatus *w
   Scene *evaluated_scene = DEG_get_evaluated_scene(compositor_runtime.preview_depsgraph);
   if (!(evaluated_scene->r.scemode & R_MULTIVIEW)) {
     RE_compositor_execute(*compositor_job->render,
+                          *compositor_job->bmain,
                           *evaluated_scene,
                           evaluated_scene->r,
                           *compositor_job->evaluated_node_tree,
@@ -123,6 +124,7 @@ static void compositor_job_start(void *compositor_job_data, wmJobWorkerStatus *w
         continue;
       }
       RE_compositor_execute(*compositor_job->render,
+                            *compositor_job->bmain,
                             *evaluated_scene,
                             evaluated_scene->r,
                             *compositor_job->evaluated_node_tree,
