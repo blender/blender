@@ -54,7 +54,7 @@ struct OnlineAssetFile {
    * Relative to the library root.
    */
   std::string path;
-  std::optional<int64_t> size_in_bytes;
+  int64_t size_in_bytes;
   /** The URL the asset should be downloaded from. */
   URLWithHash url;
 };
@@ -91,6 +91,7 @@ struct OnlineAssetInfo {
 
 class AssetRepresentation;
 
+float remote_library_total_asset_downloads_progress();
 /** Return true if there is any asset file (any file in an assets file set) being downloaded. */
 bool remote_library_has_unfinished_asset_downloads();
 
@@ -208,9 +209,16 @@ class RemoteLibraryLoadingStatus {
   static void ping_still_loading(StringRef url);
   static void ping_new_pages(StringRef url);
   static void ping_new_preview(const bContext &C, StringRef preview_full_filepath);
-  /** Should be called when an asset file (the main .blend file or one of its dependencies)
-   * download has ended, successfully or not. */
-  static void ping_asset_file_download_done(const bContext &C, StringRef library_url);
+  static void ping_asset_file_progress(StringRef absolute_file_url, int64_t size_in_bytes);
+  /** Should be called when an asset file download has completed successfully. */
+  static void ping_asset_file_download_succeeded(const bContext &C,
+                                                 StringRef library_url,
+                                                 StringRef absolute_file_url);
+  /** Should be called when an asset file download has failed. Partial progress for the file is
+   * reset to zero, since a future retry has to start from scratch. */
+  static void ping_asset_file_download_failed(const bContext &C,
+                                              StringRef library_url,
+                                              StringRef absolute_file_url);
   /** Inform the asset system that there are no more pending asset file downloads for any asset
    * library. */
   static void ping_download_queue_done(const bContext &C);

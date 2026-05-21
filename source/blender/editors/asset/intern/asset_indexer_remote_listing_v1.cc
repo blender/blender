@@ -232,11 +232,21 @@ static ReadingResult<RemoteListingFileEntry> listing_file_from_asset_dictionary(
         file_entry.local_path.c_str()));
   }
 
+  /* Size is mandatory. */
+  if (const std::optional<int64_t> size_in_bytes = dictionary.lookup_int("size_in_bytes")) {
+    file_entry.size_in_bytes = *size_in_bytes;
+  }
+  else {
+    return ReadingResult<RemoteListingFileEntry>::Failure(fmt::format(
+        N_("Error reading asset listing file entry, skipping. Reason: found a file ({:s}) without "
+           "'size_in_bytes' field"),
+        file_entry.local_path.c_str()));
+  }
+
   /* URL is optional, and defaults to the local path. That's handled in Python
    * (see `download_asset()` in `asset_downloader.py`) so here we can just use
    * an empty string to indicate "no URL". */
   file_entry.download_url.url = dictionary.lookup_str("url").value_or("");
-  file_entry.size_in_bytes = dictionary.lookup_int("size_in_bytes");
 
   return ReadingResult<RemoteListingFileEntry>::Success(std::move(file_entry));
 }
