@@ -9,6 +9,7 @@
 #pragma once
 
 #include <memory>
+#include <mutex>
 #include <optional>
 #include <utility>
 
@@ -53,10 +54,14 @@ class AssetLibraryService {
    * library may point to the same path as a custom library.
    */
   using OnDiskLibraryIdentifier = std::pair<eAssetLibraryType, std::string>;
-  /** Mapping of a (type, root path) pair to the AssetLibrary instance. */
+  /** Mapping of a (type, root path) pair to the AssetLibrary instance.
+   * Always protect access with #on_disk_libraries_mutex_ below. */
   Map<OnDiskLibraryIdentifier, std::unique_ptr<OnDiskAssetLibrary>> on_disk_libraries_;
+  mutable std::recursive_mutex on_disk_libraries_mutex_;
   using URLLibraryIdentifier = std::string;
+  /** Always protect access with #remote_libraries_mutex_ below. */
   Map<URLLibraryIdentifier, std::unique_ptr<PreferencesRemoteAssetLibrary>> remote_libraries_;
+  mutable std::recursive_mutex remote_libraries_mutex_;
   /**
    * Library without a known path, i.e. the "Current File" library if the file isn't saved yet. If
    * the file was saved, a valid path for the library can be determined and #on_disk_libraries_
