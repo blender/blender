@@ -2512,7 +2512,11 @@ static Vector<NodeExtraInfoRow> node_get_extra_info(const bContext &C,
             GEO_NODE_REPEAT_OUTPUT,
             GEO_NODE_FOREACH_GEOMETRY_ELEMENT_OUTPUT,
             NODE_EVALUATE_CLOSURE) ||
-       StringRef(node.idname).startswith("GeometryNodeImport")))
+       StringRef(node.idname).startswith("GeometryNodeImport") ||
+       node.is_type("GeometryNodeFilterList"_ustr) ||
+       node.is_type("GeometryNodeListGetItem"_ustr) ||
+       node.is_type("GeometryNodeFieldToList"_ustr) ||
+       node.is_type("GeometryNodeListLength"_ustr)))
   {
     std::optional<NodeExtraInfoRow> row = node_get_execution_time_label_row(
         tree_draw_ctx, snode, node);

@@ -93,6 +93,7 @@ set(SRC
   nodes/node_geo_field_min_and_max.cc
   nodes/node_geo_field_to_grid.cc
   nodes/node_geo_field_to_list.cc
+  nodes/node_geo_filter_list.cc
   nodes/node_geo_field_variance.cc
   nodes/node_geo_flip_faces.cc
   nodes/node_geo_foreach_geometry_element.cc
