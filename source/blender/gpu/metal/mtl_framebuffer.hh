@@ -24,6 +24,7 @@ class MTLContext;
 
 struct MTLAttachment {
   bool used = false;
+  bool ignored = false;
   gpu::MTLTexture *texture = nullptr;
   double4 clear_value;
 

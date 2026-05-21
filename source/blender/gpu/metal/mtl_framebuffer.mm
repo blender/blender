@@ -447,6 +447,11 @@ void MTLFrameBuffer::subpass_transition_impl(const GPUAttachmentState /*depth_at
       }
     }
   }
+
+  for (int i : color_attachment_states.index_range()) {
+    /* The ignored state is baked into the PSO as color mask. */
+    mtl_color_attachments_[i].ignored = (color_attachment_states[i] == GPU_ATTACHMENT_IGNORE);
+  }
 }
 
 void MTLFrameBuffer::read(GPUFrameBufferBits planes,
