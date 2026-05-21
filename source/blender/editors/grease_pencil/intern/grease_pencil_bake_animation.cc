@@ -198,9 +198,8 @@ static wmOperatorStatus bake_grease_pencil_animation_exec(bContext *C, wmOperato
     for (Object *source_object : bake_targets) {
       Object *source_object_eval = DEG_get_evaluated(&depsgraph, source_object);
       GreasePencil &source_eval_grease_pencil = *id_cast<GreasePencil *>(source_object_eval->data);
-      const float4x4 to_target = source_object_eval->object_to_world() * target_imat;
-
       for (const Layer *source_layer : source_eval_grease_pencil.layers()) {
+        const float4x4 to_target = target_imat * source_layer->to_world_space(*source_object_eval);
         std::string layer_name = fmt::format(
             "{}_{}", source_object->id.name + 2, source_layer->name());
         TreeNode *node = target.find_node_by_name(layer_name);
