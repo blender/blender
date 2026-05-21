@@ -3058,6 +3058,14 @@ static void rna_def_object(BlenderRNA *brna)
       prop, "Parent Bone", "Name of parent bone in case of a bone parenting relation");
   RNA_def_property_update(prop, NC_OBJECT | ND_DRAW, "rna_Object_dependency_update");
 
+  prop = RNA_def_property(srna, "parent_bone_head_tail_factor", PROP_FLOAT, PROP_FACTOR);
+  RNA_def_property_float_sdna(prop, nullptr, "parent_bone_head_tail_factor");
+  RNA_def_property_float_default(prop, 1.0f);
+  RNA_def_property_range(prop, 0.0f, 1.0f);
+  RNA_def_property_ui_range(prop, 0.0, 1.0, 1, 2);
+  RNA_def_property_ui_text(prop, "Parent Bone Head/Tail", "Position along the length of bone");
+  RNA_def_property_update(prop, NC_OBJECT | ND_DRAW, "rna_Object_internal_update");
+
   prop = RNA_def_property(srna, "use_parent_final_indices", PROP_BOOLEAN, PROP_NONE);
   RNA_def_property_boolean_sdna(prop, nullptr, "transflag", OB_PARENT_USE_FINAL_INDICES);
   RNA_def_property_ui_text(
