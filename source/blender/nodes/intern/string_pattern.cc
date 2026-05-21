@@ -29,12 +29,12 @@ std::optional<StringPattern> StringPattern::from_string(StringPatternMode mode,
 {
   switch (mode) {
     case StringPatternMode::Exact: {
-      return StringPattern(Exact{pattern});
+      return StringPattern(pattern, Exact{pattern});
     }
     case blender::nodes::StringPatternMode::Wildcard: {
       const int wildcard_count = Span(pattern.data(), pattern.size()).count('*');
       if (wildcard_count == 0) {
-        return StringPattern(Exact{pattern});
+        return StringPattern(pattern, Exact{pattern});
       }
       if (wildcard_count >= 2) {
         r_error = TIP_("Only one * is supported in the pattern");
@@ -43,7 +43,7 @@ std::optional<StringPattern> StringPattern::from_string(StringPatternMode mode,
       const int wildcard_index = pattern.find('*');
       const StringRef prefix = StringRef(pattern).substr(0, wildcard_index);
       const StringRef suffix = StringRef(pattern).substr(wildcard_index + 1);
-      return StringPattern(Wildcard{prefix, suffix});
+      return StringPattern(pattern, Wildcard{prefix, suffix});
     }
   }
   r_error = TIP_("Invalid pattern");

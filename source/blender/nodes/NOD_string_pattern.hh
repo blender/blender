@@ -45,9 +45,13 @@ class StringPattern {
   };
 
   using PatternVariant = std::variant<Exact, Wildcard>;
+  StringRef full_pattern_;
   PatternVariant variant_;
 
-  StringPattern(PatternVariant variant) : variant_(std::move(variant)) {}
+  StringPattern(StringRef full_pattern, PatternVariant variant)
+      : full_pattern_(full_pattern), variant_(std::move(variant))
+  {
+  }
 
  public:
   /**
@@ -68,6 +72,11 @@ class StringPattern {
       return exact->pattern;
     }
     return std::nullopt;
+  }
+
+  StringRef full_pattern() const
+  {
+    return full_pattern_;
   }
 };
 

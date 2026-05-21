@@ -803,6 +803,29 @@ class MutableAttributeAccessor : public AttributeAccessor {
     return this->add(name, domain, data_type, initializer);
   }
 
+  bool add_override(const StringRef name,
+                    const AttrDomain domain,
+                    const AttrType data_type,
+                    const AttributeInit &initializer)
+  {
+    if (name.is_empty()) {
+      return false;
+    }
+    if (!this->domain_supported(domain)) {
+      return false;
+    }
+    const std::optional<AttributeMetaData> old_meta = this->lookup_meta_data(name);
+    if (old_meta.has_value()) {
+      if (old_meta->domain == domain && old_meta->data_type == data_type) {
+        return this->assign_data(name, initializer);
+      }
+      if (!this->remove(name)) {
+        return false;
+      }
+    }
+    return this->add(name, domain, data_type, initializer);
+  }
+
   bool assign_data(const StringRef name, const AttributeInit &initializer)
   {
     BLI_assert(this->contains(name));
