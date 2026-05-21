@@ -25,18 +25,29 @@ NODE_STORAGE_FUNCS(NodeTexVoronoi)
 static void sh_node_tex_voronoi_declare(NodeDeclarationBuilder &b)
 {
   b.is_function_node();
+  const int dimensions = b.node_or_null() ? node_storage(*b.node_or_null()).dimensions : 3;
   b.add_input<decl::Vector>("Vector"_ustr)
       .hide_value()
-      .implicit_field(NODE_DEFAULT_INPUT_POSITION_FIELD);
-  b.add_input<decl::Float>("W"_ustr).min(-1000.0f).max(1000.0f).make_available([](bNode &node) {
-    /* Default to 1 instead of 4, because it is much faster. */
-    node_storage(node).dimensions = 1;
-  });
+      .implicit_field(NODE_DEFAULT_INPUT_POSITION_FIELD)
+      .available(dimensions != 1);
+  b.add_input<decl::Float>("W"_ustr)
+      .min(-1000.0f)
+      .max(1000.0f)
+      .available(dimensions == 1 || dimensions == 4)
+      .make_available([](bNode &node) {
+        /* Default to 1 instead of 4, because it is much faster. */
+        node_storage(node).dimensions = 1;
+      });
+
   b.add_input<decl::Float>("Scale"_ustr).min(-1000.0f).max(1000.0f).default_value(5.0f);
+
+  const eNodeVoronoi_Type feature = eNodeVoronoi_Type(
+      b.node_or_null() ? node_storage(*b.node_or_null()).feature : SHD_VORONOI_F1);
   b.add_input<decl::Float>("Detail"_ustr)
       .min(0.0f)
       .max(15.0f)
       .default_value(0.0f)
+      .available(feature != SHD_VORONOI_N_SPHERE_RADIUS)
       .make_available([](bNode &node) { node_storage(node).feature = SHD_VORONOI_F1; })
       .description("The number of Voronoi layers to sum");
   b.add_input<decl::Float>("Roughness"_ustr)
@@ -44,40 +55,65 @@ static void sh_node_tex_voronoi_declare(NodeDeclarationBuilder &b)
       .max(1.0f)
       .default_value(0.5f)
       .subtype(PROP_FACTOR)
+      .available(feature != SHD_VORONOI_N_SPHERE_RADIUS)
       .make_available([](bNode &node) { node_storage(node).feature = SHD_VORONOI_F1; })
       .description("The influence of a Voronoi layer relative to that of the previous layer");
   b.add_input<decl::Float>("Lacunarity"_ustr)
       .min(0.0f)
       .max(1000.0f)
       .default_value(2.0f)
+      .available(feature != SHD_VORONOI_N_SPHERE_RADIUS)
       .make_available([](bNode &node) { node_storage(node).feature = SHD_VORONOI_F1; })
       .description("The scale of a Voronoi layer relative to that of the previous layer");
+
   b.add_input<decl::Float>("Smoothness"_ustr)
       .min(0.0f)
       .max(1.0f)
       .default_value(1.0f)
       .subtype(PROP_FACTOR)
+      .available(feature == SHD_VORONOI_SMOOTH_F1)
       .make_available([](bNode &node) { node_storage(node).feature = SHD_VORONOI_SMOOTH_F1; });
+
+  const eNodeVoronoi_Dist distance_metric = eNodeVoronoi_Dist(
+      b.node_or_null() ? node_storage(*b.node_or_null()).distance : SHD_VORONOI_EUCLIDEAN);
   b.add_input<decl::Float>("Exponent"_ustr)
       .min(0.0f)
       .max(32.0f)
       .default_value(0.5f)
+      .available(distance_metric == SHD_VORONOI_MINKOWSKI && dimensions != 1 &&
+                 !ELEM(feature, SHD_VORONOI_DISTANCE_TO_EDGE, SHD_VORONOI_N_SPHERE_RADIUS))
       .make_available([](bNode &node) { node_storage(node).distance = SHD_VORONOI_MINKOWSKI; });
+
   b.add_input<decl::Float>("Randomness"_ustr)
       .min(0.0f)
       .max(1.0f)
       .default_value(1.0f)
       .subtype(PROP_FACTOR);
-  b.add_output<decl::Float>("Distance"_ustr).no_muted_links();
-  b.add_output<decl::Color>("Color"_ustr).no_muted_links();
-  b.add_output<decl::Vector>("Position"_ustr).no_muted_links();
-  b.add_output<decl::Float>("W"_ustr).no_muted_links().make_available([](bNode &node) {
-    /* Default to 1 instead of 4, because it is much faster. */
-    node_storage(node).dimensions = 1;
-  });
-  b.add_output<decl::Float>("Radius"_ustr).no_muted_links().make_available([](bNode &node) {
-    node_storage(node).feature = SHD_VORONOI_N_SPHERE_RADIUS;
-  });
+
+  b.add_output<decl::Float>("Distance"_ustr)
+      .no_muted_links()
+      .available(feature != SHD_VORONOI_N_SPHERE_RADIUS);
+  b.add_output<decl::Color>("Color"_ustr)
+      .no_muted_links()
+      .available(feature != SHD_VORONOI_DISTANCE_TO_EDGE &&
+                 feature != SHD_VORONOI_N_SPHERE_RADIUS);
+  b.add_output<decl::Vector>("Position"_ustr)
+      .no_muted_links()
+      .available(feature != SHD_VORONOI_DISTANCE_TO_EDGE &&
+                 feature != SHD_VORONOI_N_SPHERE_RADIUS && dimensions != 1);
+  b.add_output<decl::Float>("W"_ustr)
+      .no_muted_links()
+      .available(feature != SHD_VORONOI_DISTANCE_TO_EDGE &&
+                 feature != SHD_VORONOI_N_SPHERE_RADIUS && ELEM(dimensions, 1, 4))
+      .make_available([](bNode &node) {
+        /* Default to 1 instead of 4, because it is much faster. */
+        node_storage(node).dimensions = 1;
+      });
+  b.add_output<decl::Float>("Radius"_ustr)
+      .no_muted_links()
+      .available(feature == SHD_VORONOI_N_SPHERE_RADIUS)
+      .make_available(
+          [](bNode &node) { node_storage(node).feature = SHD_VORONOI_N_SPHERE_RADIUS; });
 }
 
 static void node_shader_buts_tex_voronoi(ui::Layout &layout, bContext * /*C*/, PointerRNA *ptr)
@@ -169,61 +205,6 @@ static int node_shader_gpu_tex_voronoi(GPUMaterial *mat,
   const char *name = gpu_shader_get_name(tex->feature, tex->dimensions);
 
   return GPU_stack_link(mat, node, name, in, out, GPU_constant(&metric), GPU_constant(&normalize));
-}
-
-static void node_shader_update_tex_voronoi(bNodeTree *ntree, bNode *node)
-{
-  bNodeSocket *inVectorSock = bke::node_find_socket(*node, SOCK_IN, "Vector"_ustr);
-  bNodeSocket *inWSock = bke::node_find_socket(*node, SOCK_IN, "W"_ustr);
-  bNodeSocket *inDetailSock = bke::node_find_socket(*node, SOCK_IN, "Detail"_ustr);
-  bNodeSocket *inRoughnessSock = bke::node_find_socket(*node, SOCK_IN, "Roughness"_ustr);
-  bNodeSocket *inLacunaritySock = bke::node_find_socket(*node, SOCK_IN, "Lacunarity"_ustr);
-  bNodeSocket *inSmoothnessSock = bke::node_find_socket(*node, SOCK_IN, "Smoothness"_ustr);
-  bNodeSocket *inExponentSock = bke::node_find_socket(*node, SOCK_IN, "Exponent"_ustr);
-
-  bNodeSocket *outDistanceSock = bke::node_find_socket(*node, SOCK_OUT, "Distance"_ustr);
-  bNodeSocket *outColorSock = bke::node_find_socket(*node, SOCK_OUT, "Color"_ustr);
-  bNodeSocket *outPositionSock = bke::node_find_socket(*node, SOCK_OUT, "Position"_ustr);
-  bNodeSocket *outWSock = bke::node_find_socket(*node, SOCK_OUT, "W"_ustr);
-  bNodeSocket *outRadiusSock = bke::node_find_socket(*node, SOCK_OUT, "Radius"_ustr);
-
-  const NodeTexVoronoi &storage = node_storage(*node);
-
-  bke::node_set_socket_availability(
-      *ntree, *inWSock, storage.dimensions == 1 || storage.dimensions == 4);
-  bke::node_set_socket_availability(*ntree, *inVectorSock, storage.dimensions != 1);
-  bke::node_set_socket_availability(
-      *ntree,
-      *inExponentSock,
-      storage.distance == SHD_VORONOI_MINKOWSKI && storage.dimensions != 1 &&
-          !ELEM(storage.feature, SHD_VORONOI_DISTANCE_TO_EDGE, SHD_VORONOI_N_SPHERE_RADIUS));
-  bke::node_set_socket_availability(
-      *ntree, *inDetailSock, storage.feature != SHD_VORONOI_N_SPHERE_RADIUS);
-  bke::node_set_socket_availability(
-      *ntree, *inRoughnessSock, storage.feature != SHD_VORONOI_N_SPHERE_RADIUS);
-  bke::node_set_socket_availability(
-      *ntree, *inLacunaritySock, storage.feature != SHD_VORONOI_N_SPHERE_RADIUS);
-  bke::node_set_socket_availability(
-      *ntree, *inSmoothnessSock, storage.feature == SHD_VORONOI_SMOOTH_F1);
-
-  bke::node_set_socket_availability(
-      *ntree, *outDistanceSock, storage.feature != SHD_VORONOI_N_SPHERE_RADIUS);
-  bke::node_set_socket_availability(*ntree,
-                                    *outColorSock,
-                                    storage.feature != SHD_VORONOI_DISTANCE_TO_EDGE &&
-                                        storage.feature != SHD_VORONOI_N_SPHERE_RADIUS);
-  bke::node_set_socket_availability(*ntree,
-                                    *outPositionSock,
-                                    storage.feature != SHD_VORONOI_DISTANCE_TO_EDGE &&
-                                        storage.feature != SHD_VORONOI_N_SPHERE_RADIUS &&
-                                        storage.dimensions != 1);
-  bke::node_set_socket_availability(*ntree,
-                                    *outWSock,
-                                    storage.feature != SHD_VORONOI_DISTANCE_TO_EDGE &&
-                                        storage.feature != SHD_VORONOI_N_SPHERE_RADIUS &&
-                                        ELEM(storage.dimensions, 1, 4));
-  bke::node_set_socket_availability(
-      *ntree, *outRadiusSock, storage.feature == SHD_VORONOI_N_SPHERE_RADIUS);
 }
 
 static mf::MultiFunction::ExecutionHints voronoi_execution_hints{50, false};
@@ -861,7 +842,6 @@ void register_node_type_sh_tex_voronoi()
   bke::node_type_storage(
       ntype, "NodeTexVoronoi", node_free_standard_storage, node_copy_standard_storage);
   ntype.gpu_fn = file_ns::node_shader_gpu_tex_voronoi;
-  ntype.updatefunc = file_ns::node_shader_update_tex_voronoi;
   ntype.build_multi_function = file_ns::sh_node_voronoi_build_multi_function;
   ntype.default_width = bke::NodeWidth::_160;
 

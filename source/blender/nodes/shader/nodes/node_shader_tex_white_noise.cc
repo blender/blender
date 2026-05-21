@@ -20,18 +20,23 @@ namespace nodes::node_shader_tex_white_noise_cc {
 static void sh_node_tex_white_noise_declare(NodeDeclarationBuilder &b)
 {
   b.is_function_node();
+
+  const int dimensions = b.node_or_null() ? b.node_or_null()->custom1 : 3;
   b.add_input<decl::Vector>("Vector"_ustr)
       .min(-10000.0f)
       .max(10000.0f)
-      .implicit_field(NODE_DEFAULT_INPUT_POSITION_FIELD);
+      .implicit_field(NODE_DEFAULT_INPUT_POSITION_FIELD)
+      .available(dimensions != 1);
   b.add_input<decl::Float>("W"_ustr)
       .min(-10000.0f)
       .max(10000.0f)
+      .available(dimensions == 1 || dimensions == 4)
       .make_available([](bNode &node) {
         /* Default to 1 instead of 4, because it is faster. */
         node.custom1 = 1;
       })
       .description("Value used as seed in 1D and 4D dimensions");
+
   b.add_output<decl::Float>("Value"_ustr);
   b.add_output<decl::Color>("Color"_ustr);
 }
@@ -63,15 +68,6 @@ static int gpu_shader_tex_white_noise(GPUMaterial *mat,
 {
   const char *name = gpu_shader_get_name(node->custom1);
   return GPU_stack_link(mat, node, name, in, out);
-}
-
-static void node_shader_update_tex_white_noise(bNodeTree *ntree, bNode *node)
-{
-  bNodeSocket *sockVector = bke::node_find_socket(*node, SOCK_IN, "Vector"_ustr);
-  bNodeSocket *sockW = bke::node_find_socket(*node, SOCK_IN, "W"_ustr);
-
-  bke::node_set_socket_availability(*ntree, *sockVector, node->custom1 != 1);
-  bke::node_set_socket_availability(*ntree, *sockW, node->custom1 == 1 || node->custom1 == 4);
 }
 
 class WhiteNoiseFunction : public mf::MultiFunction {
@@ -280,7 +276,6 @@ void register_node_type_sh_tex_white_noise()
   ntype.draw_buttons = file_ns::node_shader_buts_white_noise;
   ntype.initfunc = file_ns::node_shader_init_tex_white_noise;
   ntype.gpu_fn = file_ns::gpu_shader_tex_white_noise;
-  ntype.updatefunc = file_ns::node_shader_update_tex_white_noise;
   ntype.build_multi_function = file_ns::sh_node_noise_build_multi_function;
   ntype.materialx_fn = file_ns::node_shader_materialx;
 
