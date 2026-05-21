@@ -697,6 +697,7 @@ set(GLSL_SRC
   shaders/material/gpu_shader_material_rotation_to_axis_angle.glsl
   shaders/material/gpu_shader_material_rotation_to_euler.glsl
   shaders/material/gpu_shader_material_rotation_to_quaternion.glsl
+  shaders/material/gpu_shader_material_scene_time.glsl
   shaders/material/gpu_shader_material_separate_color.glsl
   shaders/material/gpu_shader_material_separate_xyz.glsl
   shaders/material/gpu_shader_material_set.glsl

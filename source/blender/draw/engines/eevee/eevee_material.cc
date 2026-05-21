@@ -13,6 +13,7 @@
 #include "BKE_material.hh"
 #include "BKE_node.hh"
 #include "BKE_node_legacy_types.hh"
+#include "BKE_scene.hh"
 
 #include "NOD_shader.h"
 
@@ -109,6 +110,17 @@ MaterialModule::~MaterialModule()
 
 void MaterialModule::begin_sync()
 {
+  float frame = BKE_scene_frame_get(inst_.scene);
+
+  Scene *scene = inst_.scene;
+  bool frame_change = assign_if_different(material_frame, frame);
+  bool time_change = assign_if_different(material_time, float(FRA2TIME(frame)));
+
+  material_time_changed = (time_change || frame_change);
+
+  inst_.uniform_data.data.scene.time = material_time;
+  inst_.uniform_data.data.scene.frame = material_frame;
+
   queued_shaders_count = 0;
   queued_textures_count = 0;
   queued_optimize_shaders_count = 0;
@@ -401,6 +413,7 @@ Material &MaterialModule::material_sync(const ObjectHandle &ob_handle,
     mat.has_transparent_shadows = blender_mat->blend_flag & MA_BL_TRANSPARENT_SHADOW &&
                                   GPU_material_flag_get(mat.shading.gpumat,
                                                         GPU_MATFLAG_TRANSPARENT);
+    mat.use_scene_time = GPU_material_flag_get(mat.shading.gpumat, GPU_MATFLAG_SCENE_TIME);
 
     return mat;
   });

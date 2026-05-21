@@ -31,6 +31,7 @@ set(SRC
   image_sky.cpp
   image_vdb.cpp
   integrator.cpp
+  scene_attributes.cpp
   light.cpp
   light_tree.cpp
   light_tree_debug.cpp

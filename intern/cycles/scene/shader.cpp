@@ -104,6 +104,7 @@ Shader::Shader() : Node(get_node_type())
   prev_volume_step_rate = 0.0f;
   has_light_path_node = false;
   has_aov_output_node = false;
+  has_time_dependency = false;
 
   emission_estimate = zero_float3();
   emission_sampling = EMISSION_SAMPLING_NONE;
@@ -568,6 +569,7 @@ void ShaderManager::device_update_pre(Device * /*device*/,
       /* Determine both properties. */
       shader->has_light_path_node = false;
       shader->has_aov_output_node = false;
+      shader->has_time_dependency = false;
       for (ShaderNode *node : shader->graph->nodes) {
         if (node->special_type == SHADER_SPECIAL_TYPE_LIGHT_PATH) {
           /* TODO: check if the light path node is linked to the volume output. */
@@ -575,6 +577,9 @@ void ShaderManager::device_update_pre(Device * /*device*/,
         }
         else if (node->special_type == SHADER_SPECIAL_TYPE_OUTPUT_AOV) {
           shader->has_aov_output_node = true;
+        }
+        else if (node->special_type == SHADER_SPECIAL_TYPE_SCENE_TIME) {
+          shader->has_time_dependency = true;
         }
       }
     }

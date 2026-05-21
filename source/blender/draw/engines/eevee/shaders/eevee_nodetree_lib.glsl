@@ -709,4 +709,10 @@ float4 attr_load_uniform(float4 /*attr*/, const uint attr_hash)
   return drw_object_attribute(attr_hash);
 }
 
+void scene_time_uniforms(float &seconds, float &frame)
+{
+  seconds = uniform_buf.scene.time;
+  frame = uniform_buf.scene.frame;
+}
+
 /** \} */

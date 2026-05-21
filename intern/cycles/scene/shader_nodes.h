@@ -1891,4 +1891,12 @@ class RaycastNode : public ShaderNode {
   unique_ptr_vector<SocketType> socket_types_;
 };
 
+class SceneTimeNode : public ShaderNode {
+ public:
+  SHADER_NODE_CLASS(SceneTimeNode)
+
+  NODE_SOCKET_API(float, seconds)
+  NODE_SOCKET_API(float, frame)
+};
+
 CCL_NAMESPACE_END

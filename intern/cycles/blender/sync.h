@@ -75,6 +75,7 @@ class BlenderSync {
   void sync_integrator(blender::ViewLayer &b_view_layer,
                        bool background,
                        const DeviceInfo &denoise_device_info);
+  void sync_scene_attributes();
   void sync_camera(const blender::RenderData &b_render,
                    const int width,
                    const int height,
@@ -120,8 +121,8 @@ class BlenderSync {
 
  private:
   /* sync */
-  void sync_lights(blender::Depsgraph &b_depsgraph, bool update_all);
-  void sync_materials(blender::Depsgraph &b_depsgraph, bool update_all);
+  void sync_lights(blender::Depsgraph &b_depsgraph, bool update_all, bool update_time);
+  void sync_materials(blender::Depsgraph &b_depsgraph, bool update_all, bool update_time);
   void sync_objects(blender::Depsgraph &b_depsgraph,
                     blender::bScreen *b_screen,
                     blender::View3D *b_v3d,
@@ -144,11 +145,13 @@ class BlenderSync {
   void sync_world(blender::Depsgraph &b_depsgraph,
                   blender::bScreen *b_screen,
                   blender::View3D *b_v3d,
-                  bool update_all);
+                  bool update_all,
+                  bool update_time);
   void sync_shaders(blender::Depsgraph &b_depsgraph,
                     blender::bScreen *b_screen,
                     blender::View3D *b_v3d,
-                    bool update_all);
+                    bool update_all,
+                    bool update_time);
   void sync_nodes(Shader *shader, blender::bNodeTree &b_ntree);
 
   bool scene_attr_needs_recalc(Shader *shader, blender::Depsgraph &b_depsgraph);
@@ -298,6 +301,8 @@ class BlenderSync {
    * If this flag is false then the data is considered to be up-to-date and will not be
    * synchronized at all. */
   bool has_updates_ = true;
+
+  float frame_last_synced = 0;
 };
 
 CCL_NAMESPACE_END

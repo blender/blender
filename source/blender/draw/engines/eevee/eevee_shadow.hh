@@ -343,7 +343,8 @@ class ShadowModule {
   /** Register a shadow caster or receiver. */
   void sync_object(const ObjectHandle &ob_handle,
                    bool is_alpha_blend,
-                   bool has_transparent_shadows);
+                   bool has_transparent_shadows,
+                   bool time_changed);
   void end_sync();
 
   void set_lights_data();

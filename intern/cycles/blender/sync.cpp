@@ -3,6 +3,7 @@
  * SPDX-License-Identifier: Apache-2.0 */
 
 #include "BKE_appdir.hh"
+#include "BKE_scene.hh"
 #include "DEG_depsgraph_query.hh"
 #include "DNA_scene_types.h"
 #include "DNA_userdef_types.h"
@@ -303,8 +304,14 @@ void BlenderSync::sync_data(blender::RenderData &b_render,
 {
   /* For auto refresh images. */
   ImageManager *image_manager = scene->image_manager.get();
-  const int frame = b_scene->r.cfra;
+  const float frame = BKE_scene_frame_get(b_scene);
+  const bool frame_update = frame_last_synced != frame;
   const bool auto_refresh_update = image_manager->set_animation_frame_update(frame);
+
+  if (frame_update) {
+    frame_last_synced = frame;
+    has_updates_ = true;
+  }
 
   if (!has_updates_ && !auto_refresh_update) {
     return;
@@ -318,10 +325,11 @@ void BlenderSync::sync_data(blender::RenderData &b_render,
    * implicit check on whether it is a background render or not. What is the nicer thing here? */
   const bool background = !b_v3d;
 
+  sync_scene_attributes();
   sync_view_layer(b_view_layer);
   sync_integrator(b_view_layer, background, denoise_device_info);
   sync_film(b_view_layer, b_screen, b_v3d);
-  sync_shaders(b_depsgraph, b_screen, b_v3d, auto_refresh_update);
+  sync_shaders(b_depsgraph, b_screen, b_v3d, auto_refresh_update, frame_update);
   sync_images();
 
   geometry_synced.clear(); /* use for objects and motion sync */
@@ -578,6 +586,20 @@ void BlenderSync::sync_integrator(blender::ViewLayer &b_view_layer,
   /* UPDATE_NONE as we don't want to tag the integrator as modified (this was done by the
    * set calls above), but we need to make sure that the dependent things are tagged. */
   integrator->tag_update(scene, Integrator::UPDATE_NONE);
+}
+
+/* Scene Attributes */
+
+void BlenderSync::sync_scene_attributes()
+{
+  SceneAttributes *scene_attribute = scene->scene_attribute;
+
+  blender::Scene *scene = b_scene;
+  float frame = BKE_scene_frame_get(b_scene);
+  float time = FRA2TIME(frame);
+
+  scene_attribute->set_time(time);
+  scene_attribute->set_frame(frame);
 }
 
 /* Film */
