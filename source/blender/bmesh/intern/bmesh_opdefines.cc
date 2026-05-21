@@ -2820,6 +2820,46 @@ static BMOpDefine bmo_convex_hull_def = {
 };
 #endif
 
+static BMO_FlagSet bmo_enum_space_edge_loops_evenly_interpolation_method[] = {
+    {SPACE_EDGE_LOOPS_EVENLY_INTERP_CUBIC, "CUBIC"},
+    {SPACE_EDGE_LOOPS_EVENLY_INTERP_LINEAR, "LINEAR"},
+    {0, nullptr},
+};
+
+/*
+ * Space Evenly.
+ *
+ * Space the vertices in a regular distribution on the loop.
+ */
+static BMOpDefine bmo_space_edge_loops_evenly_def = {
+    /*opname*/ "space_edge_loops_evenly",
+    /*slot_types_in*/
+    {
+        /* Input geometry. */
+        {"geom", BMO_OP_SLOT_ELEMENT_BUF, {BM_EDGE}},
+        /* Method used for interpolation. */
+        {"interpolation",
+         BMO_OP_SLOT_INT,
+         to_subtype_union(BMO_OP_SLOT_SUBTYPE_INT_ENUM),
+         bmo_enum_space_edge_loops_evenly_interpolation_method},
+        /* Influence factor: spans from 0.0 to 1.0. */
+        {"factor", BMO_OP_SLOT_FLT},
+        /* Lock X-axis editing. */
+        {"lock_x", BMO_OP_SLOT_BOOL},
+        /* Lock Y-axis editing. */
+        {"lock_y", BMO_OP_SLOT_BOOL},
+        /* Lock Z-axis editing. */
+        {"lock_z", BMO_OP_SLOT_BOOL},
+        {{'\0'}},
+    },
+    /*slot_types_out*/
+    {{{'\0'}}},
+    /*init*/ nullptr,
+    /*exec*/ bmo_space_edge_loops_evenly_exec,
+    /*type_flag*/
+    (BMO_OPTYPE_FLAG_NORMALS_CALC),
+};
+
 /*
  * Symmetrize.
  *
@@ -2940,6 +2980,7 @@ const BMOpDefine *bmo_opdefines[] = {
     &bmo_subdivide_edges_def,
     &bmo_subdivide_edgering_def,
     &bmo_bisect_plane_def,
+    &bmo_space_edge_loops_evenly_def,
     &bmo_symmetrize_def,
     &bmo_transform_def,
     &bmo_translate_def,
