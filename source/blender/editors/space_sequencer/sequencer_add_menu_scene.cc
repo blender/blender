@@ -180,7 +180,7 @@ static void sequencer_add_scene_draw(const bContext *C, Menu *menu)
 
   /* Show existing scenes. */
   Main *bmain = CTX_data_main(C);
-  const int scenes_len = BLI_listbase_count(&bmain->scenes);
+  const int scenes_len = bmain->scenes.count();
   if (scenes_len > 10) {
     layout.op("SEQUENCER_OT_scene_strip_add",
               IFACE_("Scene Strip..."),

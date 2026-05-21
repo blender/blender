@@ -94,7 +94,7 @@ static void lattice_free_data(ID *id)
 
   BKE_lattice_batch_cache_free(lattice);
 
-  BLI_freelistN(&lattice->vertex_group_names);
+  lattice->vertex_group_names.free_no_destruct();
 
   MEM_SAFE_DELETE(lattice->def);
   if (lattice->dvert) {

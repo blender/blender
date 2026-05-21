@@ -227,7 +227,7 @@ void BM_mesh_data_free(BMesh *bm)
   BLI_mempool_destroy(bm->looplistpool);
 #endif
 
-  BLI_freelistN(&bm->selected);
+  bm->selected.free_no_destruct();
 
   if (bm->lnor_spacearr) {
     BKE_lnor_spacearr_free(bm->lnor_spacearr);
@@ -320,7 +320,7 @@ void bmesh_edit_end(BMesh *bm, BMOpTypeFlag type_flag)
 
   if ((type_flag & BMO_OPTYPE_FLAG_SELECT_VALIDATE) == 0) {
     select_history = bm->selected;
-    BLI_listbase_clear(&bm->selected);
+    bm->selected.clear_no_delete();
   }
 
   if (type_flag & BMO_OPTYPE_FLAG_SELECT_FLUSH) {

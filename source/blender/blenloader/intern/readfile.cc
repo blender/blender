@@ -424,7 +424,7 @@ void blo_split_main(Main *bmain, const bool do_split_packed_ids)
   bmain->split_mains = std::make_shared<VectorSet<Main *>>();
   bmain->split_mains->add_new(bmain);
 
-  if (BLI_listbase_is_empty(&bmain->libraries)) {
+  if (bmain->libraries.is_empty()) {
     return;
   }
 
@@ -1357,7 +1357,7 @@ void blo_filedata_free(FileData *fd)
 {
   /* Free all BHeadN data blocks */
 #ifdef NDEBUG
-  BLI_freelistN(&fd->bhead_list);
+  fd->bhead_list.free_no_destruct();
 #else
   /* Sanity check we're not keeping memory we don't need. */
   for (BHeadN &new_bhead : fd->bhead_list.items_mutable()) {
@@ -2402,7 +2402,7 @@ static bool scene_validate_setscene__liblink(Scene *sce, const int totscene)
 static void lib_link_scenes_check_set(Main *bmain)
 {
 #ifdef USE_SETSCENE_CHECK
-  const int totscene = BLI_listbase_count(&bmain->scenes);
+  const int totscene = bmain->scenes.count();
   for (Scene &sce : bmain->scenes) {
     if (sce.flag & SCE_READFILE_LIBLINK_NEED_SETSCENE_CHECK) {
       sce.flag &= ~SCE_READFILE_LIBLINK_NEED_SETSCENE_CHECK;
@@ -2921,7 +2921,7 @@ static void read_undo_reuse_noundo_local_ids(FileData *fd)
     }
 
     ListBaseT<ID> *new_lb = which_libbase(new_bmain, id_type->id_code);
-    BLI_assert(BLI_listbase_is_empty(new_lb));
+    BLI_assert(new_lb->is_empty());
     BLI_movelisttolist(new_lb, lbarray[i]);
 
     /* Update mappings accordingly. */

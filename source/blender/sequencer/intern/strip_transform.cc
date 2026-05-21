@@ -96,7 +96,7 @@ void transform_translate_strip(Scene *evil_scene, Strip *strip, int delta)
   /* Meta strips requires their content is to be translated, and then frame range of the meta is
    * updated based on nested strips. This won't work for empty meta-strips,
    * so they can be treated as normal strip. */
-  if (strip->type == STRIP_TYPE_META && !BLI_listbase_is_empty(&strip->seqbase)) {
+  if (strip->type == STRIP_TYPE_META && !strip->seqbase.is_empty()) {
     for (Strip &strip_child : strip->seqbase) {
       transform_translate_strip(evil_scene, &strip_child, delta);
     }

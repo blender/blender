@@ -2610,7 +2610,7 @@ void BKE_id_reorder(const ListBaseT<ID> *lb, ID *id, ID *relative, bool after)
     relative_order = *id_order_get(relative);
   }
   else {
-    relative_order = (after) ? BLI_listbase_count(lb) : 0;
+    relative_order = (after) ? lb->count() : 0;
   }
 
   if (after) {

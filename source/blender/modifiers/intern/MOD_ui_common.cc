@@ -292,7 +292,7 @@ static void modifier_ops_extra_draw(bContext *C, ui::Layout *layout, void *md_v)
                     ICON_TRIA_DOWN,
                     wm::OpCallContext::InvokeDefault,
                     UI_ITEM_NONE);
-    RNA_int_set(&op_ptr, "index", BLI_listbase_count(&ob->modifiers) - 1);
+    RNA_int_set(&op_ptr, "index", ob->modifiers.count() - 1);
     row.enabled_set(md->next != nullptr);
   }
 

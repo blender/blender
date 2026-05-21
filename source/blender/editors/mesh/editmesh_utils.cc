@@ -275,7 +275,7 @@ bool EDBM_op_call_silentf(BMEditMesh *em, const char *fmt, ...)
 static int object_shapenr_basis_index_ensured(const Object *ob)
 {
   const Mesh *mesh = id_cast<const Mesh *>(ob->data);
-  if (UNLIKELY((ob->shapenr == 0) && (mesh->key && !BLI_listbase_is_empty(&mesh->key->block)))) {
+  if (UNLIKELY((ob->shapenr == 0) && (mesh->key && !mesh->key->block.is_empty()))) {
     return 1;
   }
   return ob->shapenr;

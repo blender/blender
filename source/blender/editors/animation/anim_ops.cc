@@ -250,7 +250,7 @@ static void append_marker_snap_target(Scene *scene,
                                       const float timeline_frame,
                                       Vector<SnapTarget> &r_targets)
 {
-  if (BLI_listbase_is_empty(&scene->markers)) {
+  if (scene->markers.is_empty()) {
     /* This check needs to be here because #ED_markers_find_nearest_marker_time returns the
      * current frame if there are no markers. */
     return;

@@ -88,7 +88,7 @@ static void metaball_free_data(ID *id)
 
   MEM_SAFE_DELETE(metaball->mat);
 
-  BLI_freelistN(&metaball->elems);
+  metaball->elems.free_no_destruct();
 }
 
 static void metaball_foreach_id(ID *id, LibraryForeachIDData *data)
@@ -488,7 +488,7 @@ bool BKE_mball_minmax(const MetaBall *mb, float min[3], float max[3])
     minmax_v3v3_v3(min, max, &ml.x);
   }
 
-  return (BLI_listbase_is_empty(&mb->elems) == false);
+  return (mb->elems.is_empty() == false);
 }
 
 bool BKE_mball_center_median(const MetaBall *mb, float r_cent[3])

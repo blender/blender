@@ -707,7 +707,7 @@ static void rna_userdef_asset_library_remove(bContext *C, ReportList *reports, P
   ed::asset::list::clear_all_library(C);
 
   /* Update active library index to be in range. */
-  const int count_remaining = BLI_listbase_count(&U.asset_libraries);
+  const int count_remaining = U.asset_libraries.count();
   CLAMP(U.active_asset_library, 0, count_remaining - 1);
 
   /* Trigger refresh for the Asset Browser. */

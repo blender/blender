@@ -297,7 +297,7 @@ void WM_init(bContext *C, int argc, const char **argv)
     if (wm != nullptr) {
       wm_window_ghostwindows_remove_invalid(C, wm);
     }
-    if (wm == nullptr || BLI_listbase_is_empty(&wm->windows)) {
+    if (wm == nullptr || wm->windows.is_empty()) {
       if (params_file_read_post != nullptr) {
         MEM_delete_void(static_cast<void *>(params_file_read_post));
         params_file_read_post = nullptr;
@@ -407,7 +407,7 @@ void WM_init_splash(bContext *C)
 {
   wmWindowManager *wm = CTX_wm_manager(C);
   /* NOTE(@ideasman42): this should practically never happen. */
-  if (UNLIKELY(BLI_listbase_is_empty(&wm->windows))) {
+  if (UNLIKELY(wm->windows.is_empty())) {
     return;
   }
 

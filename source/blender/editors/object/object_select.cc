@@ -662,7 +662,7 @@ static wmOperatorStatus object_select_linked_exec(bContext *C, wmOperator *op)
     changed = object_select_all_by_instance_collection(C, ob);
   }
   else if (nr == OBJECT_SELECT_LINKED_PARTICLE) {
-    if (BLI_listbase_is_empty(&ob->particlesystem)) {
+    if (ob->particlesystem.is_empty()) {
       return OPERATOR_CANCELLED;
     }
 

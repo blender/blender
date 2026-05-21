@@ -952,7 +952,7 @@ static void file_space_blend_read_data(BlendDataReader *reader, SpaceLink *sl)
    * plus, it isn't saved to files yet!
    */
   sfile->folders_prev = sfile->folders_next = nullptr;
-  BLI_listbase_clear(&sfile->folder_histories);
+  sfile->folder_histories.clear_no_delete();
   sfile->files = nullptr;
   sfile->layout = nullptr;
   sfile->op = nullptr;

@@ -1209,7 +1209,7 @@ void _bm_select_history_store_after(BMesh *bm, BMEditSelection *ese_ref, BMHeade
 
 void BM_select_history_clear(BMesh *bm)
 {
-  BLI_freelistN(&bm->selected);
+  bm->selected.free_no_destruct();
 }
 
 void BM_select_history_validate(BMesh *bm)
@@ -1275,7 +1275,7 @@ bool BM_select_history_active_get(BMesh *bm, BMEditSelection *ese)
 
 GHash *BM_select_history_map_create(BMesh *bm)
 {
-  if (BLI_listbase_is_empty(&bm->selected)) {
+  if (bm->selected.is_empty()) {
     return nullptr;
   }
 

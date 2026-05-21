@@ -926,7 +926,7 @@ void timeline_draw_cache(const SpaceAction *saction, const Object *ob, const Sce
   GPU_blend(GPU_BLEND_NONE);
   immUnbindProgram();
 
-  BLI_freelistN(&pidlist);
+  pidlist.free_no_destruct();
 }
 
 /** \} */

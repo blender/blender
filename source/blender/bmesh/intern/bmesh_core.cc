@@ -500,7 +500,7 @@ BLI_INLINE BMFace *bm_face_create__internal(BMesh *bm)
   }
 
 #ifdef USE_BMESH_HOLES
-  BLI_listbase_clear(&f->loops);
+  f->loops.clear_no_delete();
 #else
   f->l_first = nullptr;
 #endif

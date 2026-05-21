@@ -107,7 +107,7 @@ void BMW_init(BMWalker *walker,
   }
 
   walker->worklist = BLI_mempool_create(walker->structsize, 0, 128, BLI_MEMPOOL_NOP);
-  BLI_listbase_clear(&walker->states);
+  walker->states.clear_no_delete();
 }
 
 void BMW_end(BMWalker *walker)

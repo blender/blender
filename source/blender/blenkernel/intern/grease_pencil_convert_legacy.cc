@@ -646,7 +646,7 @@ static void find_used_vertex_groups(const bGPDframe &gpf,
       }
     }
   }
-  BLI_listbase_clear(&r_vertex_group_names);
+  r_vertex_group_names.clear_no_delete();
   r_indices.reinitialize(num_vertex_groups);
   int new_group_i = 0;
 
@@ -827,12 +827,12 @@ static Drawing legacy_gpencil_frame_to_grease_pencil_drawing(
   /* Find used vertex groups in this drawing. */
   ListBaseT<bDeformGroup> stroke_vertex_group_names;
   Array<int> stroke_def_nr_map;
-  const int num_vertex_groups = BLI_listbase_count(&vertex_group_names);
+  const int num_vertex_groups = vertex_group_names.count();
   find_used_vertex_groups(
       gpf, vertex_group_names, num_vertex_groups, stroke_vertex_group_names, stroke_def_nr_map);
-  BLI_assert(BLI_listbase_is_empty(&curves.vertex_group_names));
+  BLI_assert(curves.vertex_group_names.is_empty());
   curves.vertex_group_names = stroke_vertex_group_names;
-  const bool use_dverts = !BLI_listbase_is_empty(&curves.vertex_group_names);
+  const bool use_dverts = !curves.vertex_group_names.is_empty();
 
   /* Copy vertex weights and map the vertex group indices. */
   auto copy_dvert = [&](const MDeformVert &src_dvert, MDeformVert &dst_dvert) {
@@ -2794,7 +2794,7 @@ static void legacy_object_modifier_simplify(ConversionData &conversion_data,
 
 static void legacy_object_modifiers(ConversionData &conversion_data, Object &object)
 {
-  BLI_assert(BLI_listbase_is_empty(&object.modifiers));
+  BLI_assert(object.modifiers.is_empty());
 
   while (GpencilModifierData *gpd_md = static_cast<GpencilModifierData *>(
              BLI_pophead(&object.greasepencil_modifiers)))

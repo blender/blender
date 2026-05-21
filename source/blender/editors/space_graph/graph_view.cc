@@ -596,7 +596,7 @@ static wmOperatorStatus graphkeys_clear_ghostcurves_exec(bContext *C, wmOperator
   sipo = reinterpret_cast<SpaceGraph *>(ac.sl);
 
   /* If no ghost curves, don't do anything. */
-  if (BLI_listbase_is_empty(&sipo->runtime.ghost_curves)) {
+  if (sipo->runtime.ghost_curves.is_empty()) {
     return OPERATOR_CANCELLED;
   }
   /* Free ghost curves. */

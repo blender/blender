@@ -1065,7 +1065,7 @@ std::string ShaderOperation::generate_code_for_inputs(GPUMaterial *material,
   /* The attributes of the GPU material represents the inputs of the operation. */
   ListBaseT<GPUMaterialAttribute> attributes = GPU_material_attributes(material);
 
-  if (BLI_listbase_is_empty(&attributes)) {
+  if (attributes.is_empty()) {
     return "";
   }
 
@@ -1075,7 +1075,7 @@ std::string ShaderOperation::generate_code_for_inputs(GPUMaterial *material,
    * counting the sampler slot location from the number of textures in the material, since some
    * sampler slots may be reserved for things like color band textures. */
   const ListBaseT<GPUMaterialTexture> textures = GPU_material_textures(material);
-  int input_slot_location = BLI_listbase_count(&textures);
+  int input_slot_location = textures.count();
   for (GPUMaterialAttribute &attribute : attributes) {
     const InputDescriptor &input_descriptor = get_input_descriptor(attribute.name);
     shader_create_info.sampler(input_slot_location,

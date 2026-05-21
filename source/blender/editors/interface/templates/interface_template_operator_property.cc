@@ -521,7 +521,7 @@ void template_collection_exporters(Layout *layout, bContext *C)
 
   col = &layout->column(true);
   col->op("COLLECTION_OT_export_all", std::nullopt, ICON_EXPORT);
-  col->enabled_set(!BLI_listbase_is_empty(exporters));
+  col->enabled_set(!exporters->is_empty());
 
   /* Draw the active exporter. */
   CollectionExport *data = static_cast<CollectionExport *>(BLI_findlink(exporters, index));

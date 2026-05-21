@@ -1121,7 +1121,7 @@ bool BKE_appdir_app_template_has_userpref(const char *app_template)
 
 void BKE_appdir_app_templates(ListBaseT<LinkData> *templates)
 {
-  BLI_listbase_clear(templates);
+  templates->clear_no_delete();
 
   const Vector<std::string> directories = appdir_app_template_directories();
 

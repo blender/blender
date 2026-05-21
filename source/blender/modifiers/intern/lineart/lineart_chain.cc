@@ -1076,7 +1076,7 @@ void MOD_lineart_chain_discard_unused(LineartData *ld,
 
 int MOD_lineart_chain_count(const LineartEdgeChain *ec)
 {
-  return BLI_listbase_count(&ec->chain);
+  return ec->chain.count();
 }
 
 void MOD_lineart_chain_clear_picked_flag(LineartCache *lc)

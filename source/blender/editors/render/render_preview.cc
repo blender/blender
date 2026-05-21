@@ -697,7 +697,7 @@ static bool ed_preview_draw_rect(
 
   RE_AcquireResultImageViews(re, &rres);
 
-  if (!BLI_listbase_is_empty(&rres.views)) {
+  if (!rres.views.is_empty()) {
     /* material preview only needs monoscopy (view 0) */
     rv = RE_RenderViewGetById(&rres, 0);
   }

@@ -1815,7 +1815,7 @@ static bool sequencer_add_images(bContext *C, wmOperator *op, seq::LoadData &loa
   const char *blendfile_path = BKE_main_blendfile_path(bmain);
   ListBaseT<ImageFrameRange> ranges = ED_image_filesel_detect_sequences(
       blendfile_path, blendfile_path, op, false);
-  if (BLI_listbase_is_empty(&ranges)) {
+  if (ranges.is_empty()) {
     sequencer_add_free(C, op);
     return false;
   }
@@ -1824,7 +1824,7 @@ static bool sequencer_add_images(bContext *C, wmOperator *op, seq::LoadData &loa
   for (ImageFrameRange &range : ranges) {
     /* Populate `load_data` with data from `range`. */
     load_data.image.count = use_placeholders ? range.max_framenr - range.offset + 1 :
-                                               BLI_listbase_count(&range.frames);
+                                               range.frames.count();
     STRNCPY(load_data.path, range.filepath);
     BLI_path_split_file_part(load_data.path, load_data.name, sizeof(load_data.name));
 
@@ -1843,9 +1843,9 @@ static bool sequencer_add_images(bContext *C, wmOperator *op, seq::LoadData &loa
     seq_load_apply_generic_options(C, op, strip);
     load_data.start_frame += seq::transform_single_image_check(strip) ? load_data.image.length :
                                                                         load_data.image.count;
-    BLI_freelistN(&range.frames);
+    range.frames.free_no_destruct();
   }
-  BLI_freelistN(&ranges);
+  ranges.free_no_destruct();
   return true;
 }
 

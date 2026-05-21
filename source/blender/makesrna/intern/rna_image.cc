@@ -475,7 +475,7 @@ static int rna_Image_active_tile_index_get(PointerRNA *ptr)
 static void rna_Image_active_tile_index_set(PointerRNA *ptr, int value)
 {
   Image *image = static_cast<Image *>(ptr->data);
-  int num_tiles = BLI_listbase_count(&image->tiles);
+  int num_tiles = image->tiles.count();
 
   image->active_tile_index = min_ii(value, num_tiles - 1);
 }
@@ -484,7 +484,7 @@ static void rna_Image_active_tile_index_range(
     PointerRNA *ptr, int *min, int *max, int * /*softmin*/, int * /*softmax*/)
 {
   Image *image = static_cast<Image *>(ptr->data);
-  int num_tiles = BLI_listbase_count(&image->tiles);
+  int num_tiles = image->tiles.count();
 
   *min = 0;
   *max = max_ii(0, num_tiles - 1);
@@ -781,7 +781,7 @@ static int rna_render_slots_active_index_get(PointerRNA *ptr)
 static void rna_render_slots_active_index_set(PointerRNA *ptr, int value)
 {
   Image *image = id_cast<Image *>(ptr->owner_id);
-  int num_slots = BLI_listbase_count(&image->renderslots);
+  int num_slots = image->renderslots.count();
   image->render_slot = value;
   BKE_image_partial_update_mark_full_update(image);
   CLAMP(image->render_slot, 0, num_slots - 1);
@@ -792,7 +792,7 @@ static void rna_render_slots_active_index_range(
 {
   Image *image = id_cast<Image *>(ptr->owner_id);
   *min = 0;
-  *max = max_ii(0, BLI_listbase_count(&image->renderslots) - 1);
+  *max = max_ii(0, image->renderslots.count() - 1);
 }
 
 static ImageTile *rna_UDIMTile_new(Image *image, int tile_number, const char *label)

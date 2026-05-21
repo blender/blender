@@ -5856,12 +5856,12 @@ int2 block_layout_resolve(Block *block)
     MEM_delete(&root);
   }
 
-  BLI_listbase_clear(&block->layouts);
+  block->layouts.clear_no_delete();
   return block_size;
 }
 bool block_layout_needs_resolving(const Block *block)
 {
-  return !BLI_listbase_is_empty(&block->layouts);
+  return !block->layouts.is_empty();
 }
 
 const PointerRNA *Layout::context_ptr_get(const StringRef name, const StructRNA *type) const

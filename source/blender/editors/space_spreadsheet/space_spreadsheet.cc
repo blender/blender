@@ -129,7 +129,7 @@ static SpaceLink *spreadsheet_duplicate(SpaceLink *sl)
   sspreadsheet_new->runtime = MEM_new<SpaceSpreadsheet_Runtime>(__func__,
                                                                 *sspreadsheet_old->runtime);
 
-  BLI_listbase_clear(&sspreadsheet_new->row_filters);
+  sspreadsheet_new->row_filters.clear_no_delete();
   for (const SpreadsheetRowFilter &src_filter : sspreadsheet_old->row_filters) {
     SpreadsheetRowFilter *new_filter = spreadsheet_row_filter_copy(&src_filter);
     BLI_addtail(&sspreadsheet_new->row_filters, new_filter);
@@ -199,7 +199,7 @@ static void spreadsheet_main_region_init(wmWindowManager *wm, ARegion *region)
 
 ID *get_current_id(const SpaceSpreadsheet *sspreadsheet)
 {
-  if (BLI_listbase_is_empty(&sspreadsheet->geometry_id.viewer_path.path)) {
+  if (sspreadsheet->geometry_id.viewer_path.path.is_empty()) {
     return nullptr;
   }
   ViewerPathElem *root_context = static_cast<ViewerPathElem *>(

@@ -809,7 +809,7 @@ void postTrans(bContext *C, TransInfo *t)
   MEM_SAFE_DELETE(t->data_container);
   t->data_container = nullptr;
 
-  BLI_freelistN(&t->tsnap.points);
+  t->tsnap.points.free_no_destruct();
 
   if (t->spacetype == SPACE_IMAGE) {
     if (t->options & (CTX_MASK | CTX_PAINT_CURVE)) {

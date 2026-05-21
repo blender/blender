@@ -496,7 +496,7 @@ void BKE_mesh_to_curve_nurblist(const Mesh *mesh,
           bp->f1 = SELECT;
           bp->radius = bp->weight = 1.0;
         }
-        BLI_freelistN(&polyline);
+        polyline.free_no_destruct();
 
         /* add nurb to curve */
         BLI_addtail(nurblist, nu);
@@ -701,7 +701,7 @@ static void curve_to_mesh_eval_ensure(Object &object)
     bevel_runtime = *curve.bevobj->runtime;
     bevel_object.runtime = &bevel_runtime;
 
-    BLI_listbase_clear(&bevel_object.modifiers);
+    bevel_object.modifiers.clear_no_delete();
     BKE_object_runtime_reset(&bevel_object);
     curve.bevobj = &bevel_object;
   }
@@ -714,7 +714,7 @@ static void curve_to_mesh_eval_ensure(Object &object)
     taper_runtime = *curve.taperobj->runtime;
     taper_object.runtime = &taper_runtime;
 
-    BLI_listbase_clear(&taper_object.modifiers);
+    taper_object.modifiers.clear_no_delete();
     BKE_object_runtime_reset(&taper_object);
     curve.taperobj = &taper_object;
   }

@@ -146,7 +146,7 @@ static void gpencil_shaderfx_ops_extra_draw(bContext *C, ui::Layout *layout, voi
                    ICON_TRIA_DOWN,
                    wm::OpCallContext::InvokeDefault,
                    UI_ITEM_NONE);
-  RNA_int_set(&op_ptr, "index", BLI_listbase_count(&ob->shader_fx) - 1);
+  RNA_int_set(&op_ptr, "index", ob->shader_fx.count() - 1);
   if (!fx->next) {
     col->enabled_set(false);
   }

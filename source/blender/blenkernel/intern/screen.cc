@@ -85,7 +85,7 @@ static void screen_free_data(ID *id)
     BKE_area_region_free(nullptr, &region);
   }
 
-  BLI_freelistN(&screen->regionbase);
+  screen->regionbase.free_no_destruct();
 
   BKE_screen_area_map_free(AREAMAP_FROM_SCREEN(screen));
 
@@ -124,7 +124,7 @@ static void screen_copy_data(Main * /*bmain*/,
   BLI_duplicatelist(&screen_dst->vertbase, &screen_src->vertbase);
   BLI_duplicatelist(&screen_dst->edgebase, &screen_src->edgebase);
   BLI_duplicatelist(&screen_dst->areabase, &screen_src->areabase);
-  BLI_listbase_clear(&screen_dst->regionbase);
+  screen_dst->regionbase.clear_no_delete();
 
   {
     ScrVert *sv_dst = static_cast<ScrVert *>(screen_dst->vertbase.first);
@@ -149,10 +149,10 @@ static void screen_copy_data(Main * /*bmain*/,
       area_dst->v3 = area_dst->v3->newv;
       area_dst->v4 = area_dst->v4->newv;
 
-      BLI_listbase_clear(&area_dst->spacedata);
-      BLI_listbase_clear(&area_dst->regionbase);
-      BLI_listbase_clear(&area_dst->actionzones);
-      BLI_listbase_clear(&area_dst->handlers);
+      area_dst->spacedata.clear_no_delete();
+      area_dst->regionbase.clear_no_delete();
+      area_dst->actionzones.clear_no_delete();
+      area_dst->handlers.clear_no_delete();
 
       BKE_area_copy(area_dst, area_src);
     }
@@ -297,14 +297,14 @@ SpaceType::~SpaceType()
 #ifdef WITH_PYTHON
     BPY_callback_screen_free(&art);
 #endif
-    BLI_freelistN(&art.drawcalls);
+    art.drawcalls.free_no_destruct();
 
     for (PanelType &pt : art.paneltypes) {
       if (pt.rna_ext.free) {
         pt.rna_ext.free(pt.rna_ext.data);
       }
 
-      BLI_freelistN(&pt.children);
+      pt.children.free_no_destruct();
     }
 
     for (HeaderType &ht : art.headertypes) {
@@ -313,11 +313,11 @@ SpaceType::~SpaceType()
       }
     }
 
-    BLI_freelistN(&art.paneltypes);
-    BLI_freelistN(&art.headertypes);
+    art.paneltypes.free_no_destruct();
+    art.headertypes.free_no_destruct();
   }
 
-  BLI_freelistN(&this->regiontypes);
+  this->regiontypes.free_no_destruct();
 }
 
 void BKE_spacetypes_free()
@@ -402,19 +402,19 @@ void BKE_spacedata_freelist(ListBaseT<SpaceLink> *lb)
       BKE_area_region_free(st, &region);
     }
 
-    BLI_freelistN(&sl.regionbase);
+    sl.regionbase.free_no_destruct();
 
     if (st && st->free) {
       st->free(&sl);
     }
   }
 
-  BLI_freelistN(lb);
+  lb->free_no_destruct();
 }
 
 static void panel_list_copy(ListBaseT<Panel> *newlb, const ListBaseT<Panel> *lb)
 {
-  BLI_listbase_clear(newlb);
+  newlb->clear_no_delete();
 
   for (const Panel &old_panel : *lb) {
     Panel *new_panel = BKE_panel_new(old_panel.type);
@@ -424,7 +424,7 @@ static void panel_list_copy(ListBaseT<Panel> *newlb, const ListBaseT<Panel> *lb)
     new_panel->activedata = nullptr;
     new_panel->drawname = nullptr;
 
-    BLI_listbase_clear(&new_panel->layout_panel_states);
+    new_panel->layout_panel_states.clear_no_delete();
     new_panel->layout_panel_states_clock = old_panel.layout_panel_states_clock;
     for (LayoutPanelState &src_state : old_panel.layout_panel_states) {
       LayoutPanelState *new_state = MEM_new<LayoutPanelState>(__func__, src_state);
@@ -446,8 +446,8 @@ ARegion *BKE_area_region_copy(const SpaceType *st, const ARegion *region)
   dst->runtime->do_draw = region->runtime->do_draw;
 
   dst->prev = dst->next = nullptr;
-  BLI_listbase_clear(&dst->panels_category_active);
-  BLI_listbase_clear(&dst->ui_lists);
+  dst->panels_category_active.clear_no_delete();
+  dst->ui_lists.clear_no_delete();
 
   /* use optional regiondata callback */
   if (region->regiondata) {
@@ -466,11 +466,11 @@ ARegion *BKE_area_region_copy(const SpaceType *st, const ARegion *region)
 
   panel_list_copy(&dst->panels, &region->panels);
 
-  BLI_listbase_clear(&dst->ui_previews);
+  dst->ui_previews.clear_no_delete();
   BLI_duplicatelist(&dst->ui_previews, &region->ui_previews);
-  BLI_listbase_clear(&dst->view_states);
+  dst->view_states.clear_no_delete();
   BLI_duplicatelist(&dst->view_states, &region->view_states);
-  BLI_listbase_clear(&dst->textbox_states);
+  dst->textbox_states.clear_no_delete();
   for (const uiTextboxStateLink &textbox_state : region->textbox_states) {
     uiTextboxStateLink *copy = MEM_new<uiTextboxStateLink>("uiTextboxStateLink", textbox_state);
     copy->idname = BLI_strdup(textbox_state.idname);
@@ -491,7 +491,7 @@ ARegion *BKE_area_region_new()
 static void region_copylist(SpaceType *st, ListBaseT<ARegion> *lb_dst, ListBaseT<ARegion> *lb_src)
 {
   /* to be sure */
-  BLI_listbase_clear(lb_dst);
+  lb_dst->clear_no_delete();
 
   for (ARegion &region : *lb_src) {
     ARegion *region_new = BKE_area_region_copy(st, &region);
@@ -501,7 +501,7 @@ static void region_copylist(SpaceType *st, ListBaseT<ARegion> *lb_dst, ListBaseT
 
 void BKE_spacedata_copylist(ListBaseT<SpaceLink> *lb_dst, ListBaseT<SpaceLink> *lb_src)
 {
-  BLI_listbase_clear(lb_dst); /* to be sure */
+  lb_dst->clear_no_delete(); /* to be sure */
 
   for (SpaceLink &sl : *lb_src) {
     SpaceType *st = BKE_spacetype_from_id(sl.spacetype);
@@ -691,7 +691,7 @@ void BKE_area_region_panels_free(ListBaseT<Panel> *panels)
     }
     area_region_panels_free_recursive(&panel);
   }
-  BLI_listbase_clear(panels);
+  panels->clear_no_delete();
 }
 
 void BKE_area_region_free(SpaceType *st, ARegion *region)
@@ -727,11 +727,11 @@ void BKE_area_region_free(SpaceType *st, ARegion *region)
     region_free_gizmomap_callback(region->runtime->gizmo_map);
   }
 
-  BLI_freelistN(&region->ui_lists);
-  BLI_freelistN(&region->ui_previews);
-  BLI_freelistN(&region->runtime->panels_category);
-  BLI_freelistN(&region->panels_category_active);
-  BLI_freelistN(&region->view_states);
+  region->ui_lists.free_no_destruct();
+  region->ui_previews.free_no_destruct();
+  region->runtime->panels_category.free_no_destruct();
+  region->panels_category_active.free_no_destruct();
+  region->view_states.free_no_destruct();
   for (uiTextboxStateLink &textbox_state : region->textbox_states.items_mutable()) {
     BLI_remlink(&region->textbox_states, &textbox_state);
     MEM_delete(textbox_state.idname);
@@ -750,11 +750,11 @@ void BKE_screen_area_free(ScrArea *area)
   }
 
   MEM_SAFE_DELETE(area->global);
-  BLI_freelistN(&area->regionbase);
+  area->regionbase.free_no_destruct();
 
   BKE_spacedata_freelist(&area->spacedata);
 
-  BLI_freelistN(&area->actionzones);
+  area->actionzones.free_no_destruct();
 }
 
 void BKE_screen_area_map_free(ScrAreaMap *area_map)
@@ -763,9 +763,9 @@ void BKE_screen_area_map_free(ScrAreaMap *area_map)
     BKE_screen_area_free(&area);
   }
 
-  BLI_freelistN(&area_map->vertbase);
-  BLI_freelistN(&area_map->edgebase);
-  BLI_freelistN(&area_map->areabase);
+  area_map->vertbase.free_no_destruct();
+  area_map->edgebase.free_no_destruct();
+  area_map->areabase.free_no_destruct();
 }
 
 void BKE_screen_free_data(bScreen *screen)
@@ -971,7 +971,7 @@ void BKE_area_copy(ScrArea *area_dst, ScrArea *area_src)
   BKE_spacedata_copylist(&area_dst->spacedata, &area_src->spacedata);
 
   /* Regions. */
-  BLI_listbase_clear(&area_dst->regionbase);
+  area_dst->regionbase.clear_no_delete();
   /* NOTE: SPACE_EMPTY is possible on new screens. */
   SpaceType *st = BKE_spacetype_from_id(area_src->spacetype);
   for (ARegion &region_src : area_src->regionbase) {
@@ -1528,7 +1528,7 @@ static void direct_link_area(BlendDataReader *reader, ScrArea *area)
   BLO_read_struct_list(reader, SpaceLink, &(area->spacedata));
   BLO_read_struct_list(reader, ARegion, &(area->regionbase));
 
-  BLI_listbase_clear(&area->handlers);
+  area->handlers.clear_no_delete();
   area->type = nullptr; /* spacetype callbacks */
 
   area->runtime = ScrArea_Runtime{};
@@ -1587,7 +1587,7 @@ static void direct_link_area(BlendDataReader *reader, ScrArea *area)
     }
   }
 
-  BLI_listbase_clear(&area->actionzones);
+  area->actionzones.clear_no_delete();
 
   BLO_read_struct(reader, ScrVert, &area->v1);
   BLO_read_struct(reader, ScrVert, &area->v2);

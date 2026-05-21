@@ -374,7 +374,7 @@ void BlenderSession::render(blender::Depsgraph &b_depsgraph_)
   /* Compute render passes and film settings. */
   sync->sync_render_passes(*b_rlay, b_view_layer);
 
-  const int num_views = BLI_listbase_count(&b_rr->views);
+  const int num_views = b_rr->views.count();
 
   for (const auto [view_index, b_view] : b_rr->views.enumerate()) {
     b_rview_name = b_view.name;

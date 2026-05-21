@@ -338,7 +338,7 @@ void constraintTransLim(const TransInfo *t, const TransDataContainer *tc, TransD
         }
 
         /* Free targets list. */
-        BLI_freelistN(&targets);
+        targets.free_no_destruct();
       }
     }
 

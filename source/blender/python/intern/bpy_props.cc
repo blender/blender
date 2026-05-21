@@ -5929,7 +5929,7 @@ void BPY_rna_props_clear_all()
   RNA_def_property_free_pointers_set_py_data_callback(nullptr);
 
   /* Include as it's correct, in practice this should never be used again. */
-  BLI_listbase_clear(&g_bpy_prop_store_list);
+  g_bpy_prop_store_list.clear_no_delete();
 }
 
 /** \} */

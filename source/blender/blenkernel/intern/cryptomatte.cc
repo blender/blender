@@ -57,7 +57,7 @@ struct CryptomatteSession {
 
 CryptomatteSession::CryptomatteSession(const Main *bmain)
 {
-  if (!BLI_listbase_is_empty(&bmain->objects)) {
+  if (!bmain->objects.is_empty()) {
     bke::cryptomatte::CryptomatteLayer &objects = add_layer(RE_PASSNAME_CRYPTOMATTE_OBJECT);
     for (Object &object : bmain->objects) {
       objects.add_ID(object.id);
@@ -72,7 +72,7 @@ CryptomatteSession::CryptomatteSession(const Main *bmain)
       assets.add_ID(asset_object->id);
     }
   }
-  if (!BLI_listbase_is_empty(&bmain->materials)) {
+  if (!bmain->materials.is_empty()) {
     bke::cryptomatte::CryptomatteLayer &materials = add_layer(RE_PASSNAME_CRYPTOMATTE_MATERIAL);
     for (Material &material : bmain->materials) {
       materials.add_ID(material.id);
@@ -300,7 +300,7 @@ char *BKE_cryptomatte_entries_to_matte_id(NodeCryptomatte *node_storage)
 
 void BKE_cryptomatte_matte_id_to_entries(NodeCryptomatte *node_storage, const char *matte_id)
 {
-  BLI_freelistN(&node_storage->entries);
+  node_storage->entries.free_no_destruct();
 
   if (matte_id == nullptr) {
     MEM_SAFE_DELETE(node_storage->matte_id);

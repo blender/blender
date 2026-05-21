@@ -55,11 +55,11 @@ static void filelist_readjob_startjob(void *flrjv, wmJobWorkerStatus *worker_sta
 
     flrj->tmp_filelist = MEM_dupalloc(flrj->filelist);
 
-    BLI_listbase_clear(&flrj->tmp_filelist->filelist.entries);
+    flrj->tmp_filelist->filelist.entries.clear_no_delete();
     flrj->tmp_filelist->filelist.entries_num = FILEDIR_NBR_ENTRIES_UNSET;
 
     flrj->tmp_filelist->filelist_intern.filtered = nullptr;
-    BLI_listbase_clear(&flrj->tmp_filelist->filelist_intern.entries);
+    flrj->tmp_filelist->filelist_intern.entries.clear_no_delete();
     if (filelist_readjob_is_partial_read(flrj)) {
       /* Don't unset the current UID on partial read, would give duplicates otherwise. */
     }
@@ -156,7 +156,7 @@ static void filelist_readjob_free(void *flrjv)
   if (flrj->tmp_filelist) {
     /* tmp_filelist shall never ever be filtered! */
     BLI_assert(flrj->tmp_filelist->filelist.entries_num == 0);
-    BLI_assert(BLI_listbase_is_empty(&flrj->tmp_filelist->filelist.entries));
+    BLI_assert(flrj->tmp_filelist->filelist.entries.is_empty());
 
     filelist_freelib(flrj->tmp_filelist);
     filelist_free(flrj->tmp_filelist);

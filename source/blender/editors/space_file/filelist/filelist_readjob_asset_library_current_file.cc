@@ -79,7 +79,7 @@ static void filelist_readjob_main_assets(FileListReadJob *job_params,
                                          float *progress)
 {
   FileList *filelist = job_params->tmp_filelist; /* Use the thread-safe filelist queue. */
-  BLI_assert(BLI_listbase_is_empty(&filelist->filelist.entries) &&
+  BLI_assert(filelist->filelist.entries.is_empty() &&
              (filelist->filelist.entries_num == FILEDIR_NBR_ENTRIES_UNSET));
 
   filelist_readjob_load_asset_library_data(job_params, do_update);

@@ -199,7 +199,7 @@ bool check_id_has_anim_component(ID *id)
   if (adt == nullptr) {
     return false;
   }
-  return (adt->action != nullptr) || !BLI_listbase_is_empty(&adt->nla_tracks);
+  return (adt->action != nullptr) || !adt->nla_tracks.is_empty();
 }
 
 bool check_id_has_driver_component(ID *id)
@@ -208,7 +208,7 @@ bool check_id_has_driver_component(ID *id)
   if (adt == nullptr) {
     return false;
   }
-  return !BLI_listbase_is_empty(&adt->drivers);
+  return !adt->drivers.is_empty();
 }
 
 OperationCode bone_target_opcode(ID *target,
@@ -444,7 +444,7 @@ void DepsgraphRelationBuilder::add_particle_forcefield_relations(const Operation
   ListBaseT<EffectorRelation> *relations = build_effector_relations(graph_, eff->group);
 
   /* Make sure physics effects like wind are properly re-evaluating the modifier stack. */
-  if (!BLI_listbase_is_empty(relations)) {
+  if (!relations->is_empty()) {
     TimeSourceKey time_src_key;
     ComponentKey geometry_key(&object->id, NodeType::GEOMETRY);
     add_relation(
@@ -930,7 +930,7 @@ void DepsgraphRelationBuilder::build_object_layer_component_relations(Object *ob
 
 void DepsgraphRelationBuilder::build_object_modifiers(Object *object)
 {
-  if (BLI_listbase_is_empty(&object->modifiers)) {
+  if (object->modifiers.is_empty()) {
     return;
   }
 
@@ -1630,7 +1630,7 @@ void DepsgraphRelationBuilder::build_animdata_curves(ID *id)
   if (adt->action != nullptr) {
     build_action(adt->action);
   }
-  if (adt->action == nullptr && BLI_listbase_is_empty(&adt->nla_tracks)) {
+  if (adt->action == nullptr && adt->nla_tracks.is_empty()) {
     return;
   }
   /* Ensure evaluation order from entry to exit. */
@@ -1770,7 +1770,7 @@ void DepsgraphRelationBuilder::build_animdata_nlastrip_targets(ID *id,
 void DepsgraphRelationBuilder::build_animdata_drivers(ID *id)
 {
   AnimData *adt = BKE_animdata_from_id(id);
-  if (adt == nullptr || BLI_listbase_is_empty(&adt->drivers)) {
+  if (adt == nullptr || adt->drivers.is_empty()) {
     return;
   }
   ComponentKey adt_key(id, NodeType::ANIMATION);
@@ -2649,7 +2649,7 @@ void DepsgraphRelationBuilder::build_object_data_geometry(Object *object)
   }
   /* Make sure uber update is the last in the dependencies.
    * Only do it here unless there are modifiers. This avoids transitive relations. */
-  if (BLI_listbase_is_empty(&object->modifiers)) {
+  if (object->modifiers.is_empty()) {
     OperationKey obdata_ubereval_key(
         &object->id, NodeType::GEOMETRY, OperationCode::GEOMETRY_EVAL);
     add_relation(geom_init_key, obdata_ubereval_key, "Object Geometry UberEval");

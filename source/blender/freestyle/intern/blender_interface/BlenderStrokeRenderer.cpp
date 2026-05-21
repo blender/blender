@@ -177,7 +177,7 @@ BlenderStrokeRenderer::~BlenderStrokeRenderer()
   /* detach the window manager from freestyle bmain (see comments
    * in add_freestyle() for more detail)
    */
-  BLI_listbase_clear(&freestyle_bmain->wm);
+  freestyle_bmain->wm.clear_no_delete();
 
   BKE_main_free(freestyle_bmain);
 }

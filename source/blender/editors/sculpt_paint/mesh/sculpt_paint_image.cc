@@ -48,7 +48,7 @@ ImageData::~ImageData()
     return;
   }
 
-  BLI_assert(buffers.size() <= BLI_listbase_count(&image->tiles));
+  BLI_assert(buffers.size() <= image->tiles.count());
   for (ImBuf *buffer : buffers.values()) {
     BKE_image_release_ibuf(image, buffer, nullptr);
   }

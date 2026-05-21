@@ -391,7 +391,7 @@ static void wm_file_read_setup_wm_use_new(bContext *C,
   wm->runtime->defaultconf = old_wm->runtime->defaultconf;
   wm->runtime->userconf = old_wm->runtime->userconf;
 
-  BLI_listbase_clear(&old_wm->runtime->keyconfigs);
+  old_wm->runtime->keyconfigs.clear_no_delete();
   old_wm->runtime->addonconf = nullptr;
   old_wm->runtime->defaultconf = nullptr;
   old_wm->runtime->userconf = nullptr;

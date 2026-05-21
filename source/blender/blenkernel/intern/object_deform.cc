@@ -266,7 +266,7 @@ static void object_defgroup_remove_common(Object *ob, bDeformGroup *dg, const in
   }
 
   /* Remove all deform-verts. */
-  if (BLI_listbase_is_empty(defbase)) {
+  if (defbase->is_empty()) {
     if (ob->type == OB_MESH) {
       Mesh *mesh = id_cast<Mesh *>(ob->data);
       CustomData_free_layer_active(&mesh->vert_data, CD_MDEFORMVERT);
@@ -444,13 +444,13 @@ int *BKE_object_defgroup_index_map_create(Object *ob_src, Object *ob_dst, int *r
   const ListBaseT<bDeformGroup> *dst_defbase = BKE_object_defgroup_list(ob_dst);
 
   /* Build src to merged mapping of vgroup indices. */
-  if (BLI_listbase_is_empty(src_defbase) || BLI_listbase_is_empty(dst_defbase)) {
+  if (src_defbase->is_empty() || dst_defbase->is_empty()) {
     *r_map_len = 0;
     return nullptr;
   }
 
   bDeformGroup *dg_src;
-  *r_map_len = BLI_listbase_count(src_defbase);
+  *r_map_len = src_defbase->count();
   int *vgroup_index_map = MEM_new_array_uninitialized<int>(size_t(*r_map_len),
                                                            "defgroup index map create");
   bool is_vgroup_remap_needed = false;
@@ -574,7 +574,7 @@ bool *BKE_object_defgroup_validmap_get(Object *ob, const int defbase_tot)
   const ListBaseT<bDeformGroup> *defbase = BKE_object_defgroup_list(ob);
   VirtualModifierData virtual_modifier_data;
 
-  if (BLI_listbase_is_empty(defbase)) {
+  if (defbase->is_empty()) {
     return nullptr;
   }
 

@@ -1075,7 +1075,7 @@ static void paint_update_mouse_cursor(PaintCursorContext &pcontext)
 
   /* Don't set the cursor when a temporary popup is opened (e.g. a context menu, pie menu or
    * dialog), see: #137386. */
-  if (!BLI_listbase_is_empty(&pcontext.screen->regionbase) &&
+  if (!pcontext.screen->regionbase.is_empty() &&
       (BKE_screen_find_region_type(pcontext.screen, RGN_TYPE_TEMPORARY) != nullptr))
   {
     return;

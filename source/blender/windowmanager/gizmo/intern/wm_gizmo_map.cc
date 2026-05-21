@@ -202,7 +202,7 @@ static void wm_gizmomap_free_data(wmGizmoMap *gzmap)
     BLI_assert(gzgroup->parent_gzmap == gzmap);
     wm_gizmogroup_free(nullptr, gzgroup);
   }
-  BLI_assert(BLI_listbase_is_empty(&gzmap->groups));
+  BLI_assert(gzmap->groups.is_empty());
 }
 
 void wm_gizmomap_remove(wmGizmoMap *gzmap)
@@ -379,7 +379,7 @@ static void gizmomap_prepare_drawing(wmGizmoMap *gzmap,
                                      ListBaseT<wmGizmo> *draw_gizmos,
                                      const eWM_GizmoFlagMapDrawStep drawstep)
 {
-  if (!gzmap || BLI_listbase_is_empty(&gzmap->groups)) {
+  if (!gzmap || gzmap->groups.is_empty()) {
     return;
   }
 
@@ -453,7 +453,7 @@ static void gizmos_draw_list(const wmGizmoMap *gzmap,
                              ListBaseT<wmGizmo> *draw_gizmos)
 {
   /* Can be empty if we're dynamically added and removed. */
-  if ((gzmap == nullptr) || BLI_listbase_is_empty(&gzmap->groups)) {
+  if ((gzmap == nullptr) || gzmap->groups.is_empty()) {
     return;
   }
 
@@ -521,7 +521,7 @@ void WM_gizmomap_draw(wmGizmoMap *gzmap,
 
   gizmomap_prepare_drawing(gzmap, C, &draw_gizmos, drawstep);
   gizmos_draw_list(gzmap, C, &draw_gizmos);
-  BLI_assert(BLI_listbase_is_empty(&draw_gizmos));
+  BLI_assert(draw_gizmos.is_empty());
 }
 
 static void gizmo_draw_select_3d_loop(const bContext *C,

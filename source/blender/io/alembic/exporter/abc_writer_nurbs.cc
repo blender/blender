@@ -37,7 +37,7 @@ ABCNurbsWriter::ABCNurbsWriter(const ABCWriterConstructorArgs &args) : ABCAbstra
 void ABCNurbsWriter::create_alembic_objects(const HierarchyContext *context)
 {
   Curve *curve = id_cast<Curve *>(context->object->data);
-  size_t num_nurbs = BLI_listbase_count(&curve->nurb);
+  size_t num_nurbs = curve->nurb.count();
   OObject abc_parent = args_.abc_parent;
   const char *abc_parent_path = abc_parent.getFullName().c_str();
 

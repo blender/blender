@@ -1011,7 +1011,7 @@ float *BKE_key_evaluate_object_ex(Object *ob,
   Key *key = BKE_key_from_object(ob);
   KeyBlock *actkb = BKE_keyblock_from_object(ob);
 
-  if (key == nullptr || BLI_listbase_is_empty(&key->block)) {
+  if (key == nullptr || key->block.is_empty()) {
     return nullptr;
   }
 
@@ -1327,7 +1327,7 @@ KeyBlock *BKE_keyblock_add(Key *key, const char *name)
   BLI_addtail(&key->block, kb);
   kb->type = KEY_LINEAR;
 
-  const int tot = BLI_listbase_count(&key->block);
+  const int tot = key->block.count();
   if (name) {
     STRNCPY_UTF8(kb->name, name);
   }
@@ -1873,7 +1873,7 @@ std::optional<Array<bool>> BKE_keyblock_get_dependent_keys(const Key *key, const
     return std::nullopt;
   }
 
-  const int count = BLI_listbase_count(&key->block);
+  const int count = key->block.count();
 
   if (index < 0 || index >= count) {
     return std::nullopt;

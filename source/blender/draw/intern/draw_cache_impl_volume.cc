@@ -121,7 +121,7 @@ static void volume_batch_cache_clear(Volume *volume)
     MEM_SAFE_DELETE(grid.name);
     GPU_TEXTURE_FREE_SAFE(grid.texture);
   }
-  BLI_freelistN(&cache->grids);
+  cache->grids.free_no_destruct();
 
   GPU_VERTBUF_DISCARD_SAFE(cache->face_wire.pos_nor_in_order);
   GPU_BATCH_DISCARD_SAFE(cache->face_wire.batch);

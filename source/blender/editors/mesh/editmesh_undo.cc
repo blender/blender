@@ -1064,7 +1064,7 @@ static void undomesh_to_editmesh(UndoMesh *um,
   convert_params.calc_vert_normal = false;
   convert_params.active_shapekey = um->shapenr;
   BM_mesh_bm_from_me(bm, um->mesh, &convert_params);
-  BLI_freelistN(vertex_group_names);
+  vertex_group_names->free_no_destruct();
   BKE_defgroup_copy_list(vertex_group_names, &um->mesh->vertex_group_names);
   *vertex_group_active_index = um->mesh->vertex_group_active_index;
 

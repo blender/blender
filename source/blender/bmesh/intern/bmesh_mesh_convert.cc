@@ -410,7 +410,7 @@ void BM_mesh_bm_from_me(BMesh *bm, const Mesh *mesh, const BMeshFromMeshParams *
     /* Evaluated meshes can be topologically inconsistent with their shape keys.
      * Shape keys are also already integrated into the state of the evaluated
      * mesh, so considering them here would kind of apply them twice. */
-    tot_shape_keys = BLI_listbase_count(&mesh->key->block);
+    tot_shape_keys = mesh->key->block.count();
 
     /* Original meshes must never contain a shape-key custom-data layers.
      *

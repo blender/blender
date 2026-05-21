@@ -139,7 +139,7 @@ static void material_copy_data(Main *bmain,
         MEM_dupalloc(material_src->gp_style));
   }
 
-  BLI_listbase_clear(&material_dst->gpumaterial);
+  material_dst->gpumaterial.clear_no_delete();
 
   /* TODO: Duplicate Engine Settings and set runtime to nullptr. */
 }
@@ -205,7 +205,7 @@ static void material_blend_write(BlendWriter *writer, ID *id, const void *id_add
 
   /* Clean up, important in undo case to reduce false detection of changed datablocks. */
   ma->texpaintslot = nullptr;
-  BLI_listbase_clear(&ma->gpumaterial);
+  ma->gpumaterial.clear_no_delete();
 
   /* Set deprecated #use_nodes for forward compatibility. */
   ma->use_nodes = true;
@@ -239,7 +239,7 @@ static void material_blend_read_data(BlendDataReader *reader, ID *id)
   BLO_read_struct(reader, PreviewImage, &ma->preview);
   BKE_previewimg_blend_read(reader, ma->preview);
 
-  BLI_listbase_clear(&ma->gpumaterial);
+  ma->gpumaterial.clear_no_delete();
 
   BLO_read_struct(reader, MaterialGPencilStyle, &ma->gp_style);
 }

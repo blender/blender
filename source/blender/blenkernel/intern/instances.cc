@@ -74,8 +74,7 @@ MutableAttributeAccessor Instances::attributes_for_write()
 static std::unique_ptr<bke::Instances> convert_collection_to_instances(
     const Collection &collection)
 {
-  const int instances_num = BLI_listbase_count(&collection.children) +
-                            BLI_listbase_count(&collection.gobject);
+  const int instances_num = collection.children.count() + collection.gobject.count();
 
   auto instances = std::make_unique<bke::Instances>(instances_num);
 

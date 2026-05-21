@@ -393,7 +393,7 @@ static void do_versions_nodetree_multi_file_output_format_2_62_1(Scene *sce, bNo
        * checks when adding new sockets.
        * sock->storage is expected to contain path info in ntreeCompositOutputFileAddSocket.
        */
-      BLI_listbase_clear(&node.inputs);
+      node.inputs.clear_no_delete();
 
       node.storage = nimf;
 
@@ -1564,7 +1564,7 @@ void blo_do_versions_260(FileData *fd, Library * /*lib*/, Main *bmain)
           tracking->settings.object_distance = 1.0f;
         }
 
-        if (BLI_listbase_is_empty(&tracking->objects)) {
+        if (tracking->objects.is_empty()) {
           BKE_tracking_object_add(tracking, "Camera");
         }
 

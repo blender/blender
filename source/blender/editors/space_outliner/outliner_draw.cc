@@ -3486,7 +3486,7 @@ static void outliner_draw_tree_element(ui::Block *block,
           offsx += UI_UNIT_X + 4 * ufac;
         }
 
-        if (!BLI_listbase_is_empty(&collection->exporters)) {
+        if (!collection->exporters.is_empty()) {
           ui::icon_draw_alpha(
               float(startx) + offsx + 2 * ufac, float(*starty) + 2 * ufac, ICON_EXPORT, alpha_fac);
           offsx += UI_UNIT_X + 4 * ufac;
@@ -3621,7 +3621,7 @@ static void outliner_draw_hierarchy_lines_recursive(uint pos,
     short color_tag = COLLECTION_COLOR_NONE;
 
     /* Only draw hierarchy lines for expanded collections and objects with children. */
-    if (TSELEM_OPEN(tselem, space_outliner) && !BLI_listbase_is_empty(&te.subtree)) {
+    if (TSELEM_OPEN(tselem, space_outliner) && !te.subtree.is_empty()) {
       if (tselem->type == TSE_LAYER_COLLECTION) {
         draw_hierarchy_line = true;
 

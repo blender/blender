@@ -799,9 +799,9 @@ void BLI_scanfill_end(ScanFillContext *sf_ctx)
   BLI_memarena_free(sf_ctx->arena);
   sf_ctx->arena = nullptr;
 
-  BLI_listbase_clear(&sf_ctx->fillvertbase);
-  BLI_listbase_clear(&sf_ctx->filledgebase);
-  BLI_listbase_clear(&sf_ctx->fillfacebase);
+  sf_ctx->fillvertbase.clear_no_delete();
+  sf_ctx->filledgebase.clear_no_delete();
+  sf_ctx->fillfacebase.clear_no_delete();
 }
 
 void BLI_scanfill_end_arena(ScanFillContext *sf_ctx, MemArena *arena)
@@ -809,9 +809,9 @@ void BLI_scanfill_end_arena(ScanFillContext *sf_ctx, MemArena *arena)
   BLI_memarena_clear(arena);
   BLI_assert(sf_ctx->arena == arena);
 
-  BLI_listbase_clear(&sf_ctx->fillvertbase);
-  BLI_listbase_clear(&sf_ctx->filledgebase);
-  BLI_listbase_clear(&sf_ctx->fillfacebase);
+  sf_ctx->fillvertbase.clear_no_delete();
+  sf_ctx->filledgebase.clear_no_delete();
+  sf_ctx->fillfacebase.clear_no_delete();
 }
 
 uint BLI_scanfill_calc_ex(ScanFillContext *sf_ctx, const int flag, const float nor_proj[3])
@@ -1006,7 +1006,7 @@ uint BLI_scanfill_calc_ex(ScanFillContext *sf_ctx, const int flag, const float n
         }
       }
     }
-    if (BLI_listbase_is_empty(&sf_ctx->filledgebase)) {
+    if (sf_ctx->filledgebase.is_empty()) {
       // printf("All edges removed\n");
       return 0;
     }
@@ -1116,8 +1116,8 @@ uint BLI_scanfill_calc_ex(ScanFillContext *sf_ctx, const int flag, const float n
   tempve.last = sf_ctx->fillvertbase.last;
   temped.first = sf_ctx->filledgebase.first;
   temped.last = sf_ctx->filledgebase.last;
-  BLI_listbase_clear(&sf_ctx->fillvertbase);
-  BLI_listbase_clear(&sf_ctx->filledgebase);
+  sf_ctx->fillvertbase.clear_no_delete();
+  sf_ctx->filledgebase.clear_no_delete();
 
   pf = pflist;
   for (a = 0; a < poly; a++) {

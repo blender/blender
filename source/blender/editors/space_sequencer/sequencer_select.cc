@@ -775,7 +775,7 @@ static Strip *strip_select_from_preview(
     strip_select = slink_select->strip;
   }
 
-  BLI_freelistN(&strips_ordered);
+  strips_ordered.free_no_destruct();
 
   return strip_select;
 }

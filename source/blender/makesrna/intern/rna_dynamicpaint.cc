@@ -200,7 +200,7 @@ static void rna_Surface_active_point_range(
   DynamicPaintCanvasSettings *canvas = static_cast<DynamicPaintCanvasSettings *>(ptr->data);
 
   *min = 0;
-  *max = BLI_listbase_count(&canvas->surfaces) - 1;
+  *max = canvas->surfaces.count() - 1;
 }
 
 /* uvlayer */

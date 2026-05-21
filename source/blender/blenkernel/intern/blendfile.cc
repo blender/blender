@@ -596,8 +596,8 @@ static void swap_old_bmain_data_for_blendfile(ReuseOldBMainData *reuse_data, con
 
   /* NOTE: Full swapping is only supported for ID types that are assumed to be only local
    * data-blocks (like UI-like ones). Otherwise, the swapping could fail in many funny ways. */
-  BLI_assert(BLI_listbase_is_empty(old_lb) || !ID_IS_LINKED(static_cast<ID *>(old_lb->last)));
-  BLI_assert(BLI_listbase_is_empty(new_lb) || !ID_IS_LINKED(static_cast<ID *>(new_lb->last)));
+  BLI_assert(old_lb->is_empty() || !ID_IS_LINKED(static_cast<ID *>(old_lb->last)));
+  BLI_assert(new_lb->is_empty() || !ID_IS_LINKED(static_cast<ID *>(new_lb->last)));
 
   std::swap(*new_lb, *old_lb);
 

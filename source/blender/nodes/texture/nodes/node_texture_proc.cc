@@ -71,7 +71,7 @@ static void texfn(
 
 static int count_outputs(bNode *node)
 {
-  return BLI_listbase_count(&node->outputs);
+  return node->outputs.count();
 }
 
 /* Boilerplate generators */

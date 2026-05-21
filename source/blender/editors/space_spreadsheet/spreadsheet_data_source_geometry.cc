@@ -1141,7 +1141,7 @@ bke::SocketValueVariant root_display_data_get(const SpaceSpreadsheet *sspreadshe
     return {};
   }
 
-  if (BLI_listbase_is_single(&sspreadsheet->geometry_id.viewer_path.path)) {
+  if (sspreadsheet->geometry_id.viewer_path.path.is_single()) {
     return bke::SocketValueVariant::From(bke::object_get_evaluated_geometry_set(*object_eval));
   }
 

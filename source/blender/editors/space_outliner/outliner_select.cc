@@ -2177,7 +2177,7 @@ static TreeElement *outliner_walk_right(SpaceOutliner *space_outliner,
   TreeStoreElem *tselem = TREESTORE(te);
 
   /* Only walk down a level if the element is open and not toggling expand */
-  if (!toggle_all && TSELEM_OPEN(tselem, space_outliner) && !BLI_listbase_is_empty(&te->subtree)) {
+  if (!toggle_all && TSELEM_OPEN(tselem, space_outliner) && !te->subtree.is_empty()) {
     te = static_cast<TreeElement *>(te->subtree.first);
   }
   else {

@@ -330,7 +330,7 @@ void editing_free(Scene *scene, const bool do_id_user)
     seq_free_strip_recurse(scene, &strip, do_id_user);
   }
 
-  BLI_freelistN(&ed->metastack);
+  ed->metastack.free_no_destruct();
   strip_lookup_free(ed);
   media_presence_free(scene);
   thumbnail_cache_destroy(scene);
@@ -477,7 +477,7 @@ void meta_stack_set(const Scene *scene, Strip *dst)
 {
   Editing *ed = editing_get(scene);
   /* Clear metastack */
-  BLI_freelistN(&ed->metastack);
+  ed->metastack.free_no_destruct();
 
   if (dst != nullptr) {
     /* Allocate meta stack in a way, that represents meta hierarchy in timeline. */
@@ -672,22 +672,22 @@ static Strip *strip_duplicate(StripDuplicateContext &ctx,
   }
 
   if (strip_new->modifiers.first) {
-    BLI_listbase_clear(&strip_new->modifiers);
+    strip_new->modifiers.clear_no_delete();
 
     modifier_list_copy(strip_new, strip, ctx.copy_flag);
   }
   BLI_assert(modifier_persistent_uids_are_valid(*strip));
 
   if (is_strip_connected(strip)) {
-    BLI_listbase_clear(&strip_new->connections);
+    strip_new->connections.clear_no_delete();
     connections_duplicate(&strip_new->connections, &strip->connections);
   }
 
   if (strip->type == STRIP_TYPE_META) {
     strip_new->data->stripdata = nullptr;
 
-    BLI_listbase_clear(&strip_new->seqbase);
-    BLI_listbase_clear(&strip_new->channels);
+    strip_new->seqbase.clear_no_delete();
+    strip_new->channels.clear_no_delete();
     channels_duplicate(&strip_new->channels, &strip->channels);
   }
   else if (strip->type == STRIP_TYPE_SCENE) {
@@ -1194,7 +1194,7 @@ static void seq_update_sound_strips(Scene *scene, Strip *strip)
   }
 
   /* Ensure strip is playing correct sound. */
-  if (BLI_listbase_is_empty(&strip->modifiers)) {
+  if (strip->modifiers.is_empty()) {
     /* No modifiers: ensure we are playing the sound ID. However do not do this
      * if we are pitch correcting, as the proper playback handle will be assigned there.
      * Changing between original file sound and the pitch correction sound produces garbage

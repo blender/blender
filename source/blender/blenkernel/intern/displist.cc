@@ -1471,7 +1471,7 @@ static bke::GeometrySet evaluate_curve_type_object(Depsgraph *depsgraph,
   ListBaseT<DispList> dlbev = BKE_curve_bevel_make(cu);
 
   /* no bevel or extrude, and no width correction? */
-  if (BLI_listbase_is_empty(&dlbev) && cu->offset == 1.0f) {
+  if (dlbev.is_empty() && cu->offset == 1.0f) {
     curve_to_displist(cu, deformed_nurbs, for_render, r_dispbase);
   }
   else {
@@ -1487,7 +1487,7 @@ static bke::GeometrySet evaluate_curve_type_object(Depsgraph *depsgraph,
       }
 
       /* exception handling; curve without bevel or extrude, with width correction */
-      if (BLI_listbase_is_empty(&dlbev)) {
+      if (dlbev.is_empty()) {
         DispList *dl = MEM_new_zeroed<DispList>("makeDispListbev");
         dl->verts = MEM_new_array_uninitialized<float>(3 * size_t(bl->nr), "dlverts");
         BLI_addtail(r_dispbase, dl);

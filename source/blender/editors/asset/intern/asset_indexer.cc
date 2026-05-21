@@ -185,7 +185,7 @@ static void init_value_from_file_indexer_entry(DictionaryValue &result,
     result.append_str(ATTRIBUTE_ENTRIES_LICENSE, license);
   }
 
-  if (!BLI_listbase_is_empty(&asset_data.tags)) {
+  if (!asset_data.tags.is_empty()) {
     ArrayValue &tags = *result.append_array(ATTRIBUTE_ENTRIES_TAGS);
     for (AssetTag &tag : asset_data.tags) {
       tags.append_str(tag.name);

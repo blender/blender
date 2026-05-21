@@ -542,7 +542,7 @@ static void arg_py_context_backup(bContext *C, BlendePyContextStore *c_py)
 {
   c_py->wm = CTX_wm_manager(C);
   c_py->scene = CTX_data_scene(C);
-  c_py->has_win = c_py->wm && !BLI_listbase_is_empty(&c_py->wm->windows);
+  c_py->has_win = c_py->wm && !c_py->wm->windows.is_empty();
   if (c_py->has_win) {
     c_py->win = CTX_wm_window(C);
     CTX_wm_window_set(C, static_cast<wmWindow *>(c_py->wm->windows.first));
@@ -3006,7 +3006,7 @@ static const char arg_handle_load_last_file_doc[] =
     "Open the most recently opened blend file, instead of the default startup file.";
 static int arg_handle_load_last_file(int /*argc*/, const char ** /*argv*/, void *data)
 {
-  if (BLI_listbase_is_empty(&G.recent_files)) {
+  if (G.recent_files.is_empty()) {
     fprintf(stderr, "Warning: no recent files known, opening default startup file instead.\n");
     return -1;
   }

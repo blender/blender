@@ -110,7 +110,7 @@ static void rna_CacheFile_active_layer_index_range(
   CacheFile *cache_file = id_cast<CacheFile *>(ptr->owner_id);
 
   *min = 0;
-  *max = max_ii(0, BLI_listbase_count(&cache_file->layers) - 1);
+  *max = max_ii(0, cache_file->layers.count() - 1);
 }
 
 static void rna_CacheFileLayer_hidden_flag_set(PointerRNA *ptr, const bool value)

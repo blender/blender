@@ -173,14 +173,14 @@ static void do_version_area_change_space_to_space_action(ScrArea *area, const Sc
   for (ARegion &region : area->regionbase) {
     BKE_area_region_free(area->type, &region);
   }
-  BLI_freelistN(&area->regionbase);
+  area->regionbase.free_no_destruct();
 
   area->type = stype;
   area->spacetype = stype->spaceid;
 
   BLI_addhead(&area->spacedata, saction);
   area->regionbase = saction->regionbase;
-  BLI_listbase_clear(&saction->regionbase);
+  saction->regionbase.clear_no_delete();
 
   /* Different defaults for timeline */
   region_channels = BKE_area_find_region_type(area, RGN_TYPE_CHANNELS);
@@ -205,7 +205,7 @@ static void do_version_area_change_space_to_space_action(ScrArea *area, const Sc
  */
 static void do_version_workspaces_after_lib_link(Main *bmain)
 {
-  BLI_assert(BLI_listbase_is_empty(&bmain->workspaces));
+  BLI_assert(bmain->workspaces.is_empty());
 
   do_version_workspaces_create_from_screens(bmain);
 
@@ -253,7 +253,7 @@ static void do_version_workspaces_after_lib_link(Main *bmain)
 
   for (bScreen &screen : bmain->screens) {
     /* Deprecated from now on! */
-    BLI_freelistN(&screen.scene->transform_spaces);
+    screen.scene->transform_spaces.free_no_destruct();
     screen.scene = nullptr;
   }
 }
@@ -377,7 +377,7 @@ static void do_version_layers_to_collections(Main *bmain, Scene *scene)
     }
   }
 
-  BLI_freelistN(&scene->r.layers);
+  scene->r.layers.free_no_destruct();
 
   /* If render layers included overrides, or there are no render layers,
    * we also create a vanilla viewport layer. */
@@ -387,7 +387,7 @@ static void do_version_layers_to_collections(Main *bmain, Scene *scene)
 
     /* If we ported all the original render layers,
      * we don't need to make the viewport layer renderable. */
-    if (!BLI_listbase_is_single(&scene->view_layers)) {
+    if (!scene->view_layers.is_single()) {
       view_layer->flag &= ~VIEW_LAYER_RENDER;
     }
 
@@ -413,7 +413,7 @@ static void do_version_layers_to_collections(Main *bmain, Scene *scene)
     id_us_min(&base.object->id);
   }
 
-  BLI_freelistN(&scene->base);
+  scene->base.free_no_destruct();
   scene->basact = nullptr;
 }
 
@@ -2283,7 +2283,7 @@ void do_versions_after_linking_280(FileData *fd, Main *bmain)
 
             space_outliner->outlinevis = SO_VIEW_LAYER;
 
-            if (BLI_listbase_is_single(&layer->layer_collections)) {
+            if (layer->layer_collections.is_single()) {
               if (space_outliner->treestore == nullptr) {
                 space_outliner->treestore = BLI_mempool_create(
                     sizeof(TreeStoreElem), 1, 512, BLI_MEMPOOL_ALLOW_ITER);
@@ -2345,7 +2345,7 @@ void do_versions_after_linking_280(FileData *fd, Main *bmain)
         }
         BKE_freestyle_config_free(&srl.freestyleConfig, true);
       }
-      BLI_freelistN(&scene.r.layers);
+      scene.r.layers.free_no_destruct();
     }
   }
 
@@ -3849,7 +3849,7 @@ void blo_do_versions_280(FileData *fd, Library * /*lib*/, Main *bmain)
         rbw->shared->ptcaches = rbw->ptcaches;
 
         rbw->pointcache = nullptr;
-        BLI_listbase_clear(&rbw->ptcaches);
+        rbw->ptcaches.clear_no_delete();
 
         if (rbw->shared->pointcache == nullptr) {
           rbw->shared->pointcache = BKE_ptcache_add(&(rbw->shared->ptcaches));
@@ -3872,7 +3872,7 @@ void blo_do_versions_280(FileData *fd, Library * /*lib*/, Main *bmain)
         sb->shared->ptcaches = sb->ptcaches;
 
         sb->pointcache = nullptr;
-        BLI_listbase_clear(&sb->ptcaches);
+        sb->ptcaches.clear_no_delete();
       }
     }
 
@@ -4847,7 +4847,7 @@ void blo_do_versions_280(FileData *fd, Library * /*lib*/, Main *bmain)
   if (!MAIN_VERSION_FILE_ATLEAST(bmain, 280, 49)) {
     /* All tool names changed, reset to defaults. */
     for (WorkSpace &workspace : bmain->workspaces) {
-      while (!BLI_listbase_is_empty(&workspace.tools)) {
+      while (!workspace.tools.is_empty()) {
         BKE_workspace_tool_remove(&workspace, static_cast<bToolRef *>(workspace.tools.first));
       }
     }

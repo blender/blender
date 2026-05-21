@@ -1109,7 +1109,7 @@ PTCacheID BKE_ptcache_id_find(Object *ob, Scene *scene, PointCache *cache)
     }
   }
 
-  BLI_freelistN(&pidlist);
+  pidlist.free_no_destruct();
 
   return result;
 }
@@ -1803,7 +1803,7 @@ static void ptcache_extra_free(PTCacheMem *pm)
       }
     }
 
-    BLI_freelistN(&pm->extradata);
+    pm->extradata.free_no_destruct();
   }
 }
 
@@ -2615,7 +2615,7 @@ void BKE_ptcache_id_clear(PTCacheID *pid, int mode, uint cfra)
           for (; pm; pm = pm->next) {
             ptcache_mem_clear(pm);
           }
-          BLI_freelistN(&pid->cache->mem_cache);
+          pid->cache->mem_cache.free_no_destruct();
 
           if (pid->cache->cached_frames) {
             memset(pid->cache->cached_frames, 0, MEM_allocN_len(pid->cache->cached_frames));
@@ -2966,7 +2966,7 @@ void BKE_ptcache_free_mem(ListBaseT<PTCacheMem> *mem_cache)
       ptcache_mem_clear(pm);
     }
 
-    BLI_freelistN(mem_cache);
+    mem_cache->free_no_destruct();
   }
 }
 void BKE_ptcache_free(PointCache *cache)
@@ -2993,7 +2993,7 @@ static PointCache *ptcache_copy(PointCache *cache, const bool copy_data)
 
   ncache = MEM_dupalloc(cache);
 
-  BLI_listbase_clear(&ncache->mem_cache);
+  ncache->mem_cache.clear_no_delete();
 
   if (copy_data == false) {
     ncache->cached_frames = nullptr;
@@ -3034,7 +3034,7 @@ PointCache *BKE_ptcache_copy_list(ListBaseT<PointCache> *ptcaches_new,
 {
   PointCache *cache = static_cast<PointCache *>(ptcaches_old->first);
 
-  BLI_listbase_clear(ptcaches_new);
+  ptcaches_new->clear_no_delete();
 
   for (; cache; cache = cache->next) {
     BLI_addtail(ptcaches_new, ptcache_copy(cache, (flag & LIB_ID_COPY_CACHES) != 0));
@@ -3138,7 +3138,7 @@ void BKE_ptcache_bake(PTCacheBaker *baker)
             }
           }
         }
-        BLI_freelistN(&pidlist2);
+        pidlist2.free_no_destruct();
       }
 
       if (bake || cache->flag & PTCACHE_REDO_NEEDED) {
@@ -3205,7 +3205,7 @@ void BKE_ptcache_bake(PTCacheBaker *baker)
           cache->flag &= ~PTCACHE_BAKED;
         }
       }
-      BLI_freelistN(&pidlist);
+      pidlist.free_no_destruct();
     }
   }
 
@@ -3340,7 +3340,7 @@ void BKE_ptcache_bake(PTCacheBaker *baker)
           }
         }
       }
-      BLI_freelistN(&pidlist);
+      pidlist.free_no_destruct();
     }
   }
 
@@ -3824,7 +3824,7 @@ static void direct_link_pointcache(BlendDataReader *reader, PointCache *cache)
     }
   }
   else {
-    BLI_listbase_clear(&cache->mem_cache);
+    cache->mem_cache.clear_no_delete();
   }
 
   cache->flag &= ~PTCACHE_SIMULATION_VALID;

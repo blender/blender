@@ -429,7 +429,7 @@ TEST_F(IDPropertySerializeTest, convert_idp_group_from_value)
   IDProperty *id_property = convert_from_serialize_value(*value);
   ASSERT_NE(id_property, nullptr);
   EXPECT_EQ(id_property->type, IDP_GROUP);
-  EXPECT_EQ(BLI_listbase_count(&id_property->data.group), 1);
+  EXPECT_EQ(id_property->data.group.count(), 1);
 
   test_idprop(static_cast<IDProperty *>(id_property->data.group.first),
               "dimensions",

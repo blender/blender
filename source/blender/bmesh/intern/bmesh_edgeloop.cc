@@ -258,7 +258,7 @@ static bool bm_loop_path_build_step(BLI_mempool *vs_pool,
   /* `lb` is now full of freed items, overwrite. */
   *lb = lb_tmp;
 
-  return (BLI_listbase_is_empty(lb) == false);
+  return (lb->is_empty() == false);
 }
 
 bool BM_mesh_edgeloops_find_path(BMesh *bm,
@@ -520,7 +520,7 @@ BMEdgeLoopStore *BM_edgeloop_from_verts(BMVert **v_arr, const int v_arr_tot, boo
 
 void BM_edgeloop_free(BMEdgeLoopStore *el_store)
 {
-  BLI_freelistN(&el_store->verts);
+  el_store->verts.free_no_destruct();
   MEM_delete(el_store);
 }
 

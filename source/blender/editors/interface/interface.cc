@@ -1146,7 +1146,7 @@ static bool but_update_from_old_block(Block *block,
 
     but_update_old_active_from_new(oldbut, but);
 
-    if (!BLI_listbase_is_empty(&block->butstore)) {
+    if (!block->butstore.is_empty()) {
       butstore_register_update(block, oldbut, but);
     }
 
@@ -1808,7 +1808,7 @@ void button_extra_operator_icons_free(Button *but)
   for (ButtonExtraOpIcon &op_icon : but->extra_op_icons.items_mutable()) {
     but_extra_operator_icon_free(&op_icon);
   }
-  BLI_listbase_clear(&but->extra_op_icons);
+  but->extra_op_icons.clear_no_delete();
 }
 
 PointerRNA *button_extra_operator_icon_add(Button *but,
@@ -1981,7 +1981,7 @@ void block_update_from_old(const bContext *C, Block *block)
     return;
   }
 
-  if (BLI_listbase_is_empty(&block->oldblock->butstore) == false) {
+  if (block->oldblock->butstore.is_empty() == false) {
     butstore_update(block);
   }
 
@@ -3801,9 +3801,9 @@ void block_free(const bContext *C, Block *block)
 
   block_free_active_operator(block);
 
-  BLI_freelistN(&block->saferct);
-  BLI_freelistN(&block->color_pickers.list);
-  BLI_freelistN(&block->dynamic_listeners);
+  block->saferct.free_no_destruct();
+  block->color_pickers.list.free_no_destruct();
+  block->dynamic_listeners.free_no_destruct();
 
   block_free_views(block);
 

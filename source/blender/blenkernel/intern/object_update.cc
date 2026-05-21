@@ -341,7 +341,7 @@ void BKE_object_eval_transform_all(Depsgraph *depsgraph, Scene *scene, Object *o
   if (object->parent != nullptr) {
     BKE_object_eval_parent(depsgraph, object);
   }
-  if (!BLI_listbase_is_empty(&object->constraints)) {
+  if (!object->constraints.is_empty()) {
     BKE_object_eval_constraints(depsgraph, scene, object);
   }
   BKE_object_eval_uber_transform(depsgraph, object);

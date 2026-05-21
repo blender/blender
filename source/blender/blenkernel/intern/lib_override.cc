@@ -247,7 +247,7 @@ void BKE_lib_override_library_clear(IDOverrideLibrary *liboverride, const bool d
   for (IDOverrideLibraryProperty &op : liboverride->properties) {
     lib_override_library_property_clear(&op);
   }
-  BLI_freelistN(&liboverride->properties);
+  liboverride->properties.free_no_destruct();
 
   if (do_id_user) {
     id_us_min(liboverride->reference);
@@ -752,7 +752,7 @@ bool BKE_lib_override_library_create_from_tag(Main *bmain,
     }
   }
 
-  BLI_freelistN(&todo_ids);
+  todo_ids.free_no_destruct();
 
   return success;
 }
@@ -2728,7 +2728,7 @@ static bool lib_override_library_resync(Main *bmain,
             BLI_freelinkN(&op.operations, &opop);
           }
         }
-        if (BLI_listbase_is_empty(&op.operations)) {
+        if (op.operations.is_empty()) {
           BKE_lib_override_library_property_delete(id_override_new->override_library, &op);
         }
         else if (do_clear_parenting_override) {
@@ -3674,7 +3674,7 @@ static bool lib_override_library_main_resync_on_library_indirect_level(
   for (ID &id_iter : no_main_ids_list.items_mutable()) {
     BKE_id_free(bmain, &id_iter);
   }
-  BLI_listbase_clear(&no_main_ids_list);
+  no_main_ids_list.clear_no_delete();
 
   /* Just in case, should not be needed in theory, since #lib_override_library_resync should have
    * already cleared them all. */
@@ -4193,7 +4193,7 @@ void lib_override_library_property_clear(IDOverrideLibraryProperty *op)
   for (IDOverrideLibraryPropertyOperation &opop : op->operations) {
     lib_override_library_property_operation_clear(&opop);
   }
-  BLI_freelistN(&op->operations);
+  op->operations.free_no_destruct();
 }
 
 bool BKE_lib_override_library_property_rna_path_change(IDOverrideLibrary *liboverride,
@@ -4820,7 +4820,7 @@ void BKE_lib_override_library_operations_restore(Main *bmain, ID *local, int *r_
           BKE_lib_override_library_property_operation_delete(&op, &opop);
         }
       }
-      if (BLI_listbase_is_empty(&local->override_library->properties)) {
+      if (local->override_library->properties.is_empty()) {
         BKE_lib_override_library_property_delete(local->override_library, &op);
       }
       else {
@@ -5220,7 +5220,7 @@ void BKE_lib_override_library_id_unused_cleanup(ID *local)
             BKE_lib_override_library_property_operation_delete(&op, &opop);
           }
         }
-        if (BLI_listbase_is_empty(&op.operations)) {
+        if (op.operations.is_empty()) {
           BKE_lib_override_library_property_delete(local->override_library, &op);
         }
       }

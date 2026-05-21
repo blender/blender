@@ -1607,7 +1607,7 @@ static ImBuf *do_render_strip_seqbase(const RenderData *context,
 
   seqbase = get_seqbase_from_strip(strip, &channels, &offset);
 
-  if (seqbase && !BLI_listbase_is_empty(seqbase)) {
+  if (seqbase && !seqbase->is_empty()) {
 
     frame_index += offset;
 
@@ -1953,8 +1953,8 @@ ImBuf *render_give_ibuf(const RenderData *context, float timeline_frame, int cha
     return nullptr;
   }
 
-  if ((chanshown < 0) && !BLI_listbase_is_empty(&ed->metastack)) {
-    int count = BLI_listbase_count(&ed->metastack);
+  if ((chanshown < 0) && !ed->metastack.is_empty()) {
+    int count = ed->metastack.count();
     count = max_ii(count + chanshown, 0);
     MetaStack *ms = static_cast<MetaStack *>(BLI_findlink(&ed->metastack, count));
     seqbasep = &ms->old_strip->seqbase;

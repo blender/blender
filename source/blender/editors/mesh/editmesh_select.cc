@@ -6006,7 +6006,7 @@ static bool edbm_select_ungrouped_poll(bContext *C)
     if ((em->selectmode & SCE_SELECT_VERTEX) == 0) {
       CTX_wm_operator_poll_msg_set(C, "Must be in vertex selection mode");
     }
-    else if (BLI_listbase_is_empty(defbase) || cd_dvert_offset == -1) {
+    else if (defbase->is_empty() || cd_dvert_offset == -1) {
       CTX_wm_operator_poll_msg_set(C, "No weights/vertex groups on object");
     }
     else {

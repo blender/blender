@@ -154,8 +154,7 @@ static void *undoarm_from_editarm(UndoArmature *uarm, bArmature *arm)
   uarm->undo_size = 0;
   for (EditBone &ebone : uarm->ebones) {
     uarm->undo_size += sizeof(EditBone);
-    uarm->undo_size += sizeof(BoneCollectionReference) *
-                       BLI_listbase_count(&ebone.bone_collections);
+    uarm->undo_size += sizeof(BoneCollectionReference) * ebone.bone_collections.count();
   }
   /* Size of the bone collections + the size of the pointers to those
    * bone collections in the bone collection array. */

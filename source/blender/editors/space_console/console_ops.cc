@@ -178,7 +178,7 @@ static void console_scrollback_limit(SpaceConsole *sc)
 {
   int tot;
 
-  for (tot = BLI_listbase_count(&sc->scrollback); tot > U.scrollback; tot--) {
+  for (tot = sc->scrollback.count(); tot > U.scrollback; tot--) {
     console_scrollback_free(sc, static_cast<ConsoleLine *>(sc->scrollback.first));
   }
 }
@@ -211,7 +211,7 @@ static void console_lb_debug__internal(ListBaseT<ConsoleLine> *lb)
 {
   ConsoleLine *cl;
 
-  printf("%d: ", BLI_listbase_count(lb));
+  printf("%d: ", lb->count());
   for (cl = lb->first; cl; cl = cl->next) {
     printf("<%s> ", cl->line);
   }

@@ -319,7 +319,7 @@ void blo_do_versions_430(FileData * /*fd*/, Library * /*lib*/, Main *bmain)
           BKE_image_format_update_color_space_for_type(&storage->format);
         }
 
-        if (BLI_listbase_is_empty(&node.inputs)) {
+        if (node.inputs.is_empty()) {
           continue;
         }
 

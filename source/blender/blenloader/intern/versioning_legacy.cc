@@ -2234,7 +2234,7 @@ void blo_do_versions_pre250(FileData *fd, Library *lib, Main *bmain)
         BLI_addtail(&ob->particlesystem, psys);
 
         md = BKE_modifier_new(eModifierType_ParticleSystem);
-        SNPRINTF_UTF8(md->name, "ParticleSystem %i", BLI_listbase_count(&ob->particlesystem));
+        SNPRINTF_UTF8(md->name, "ParticleSystem %i", ob->particlesystem.count());
         psmd = reinterpret_cast<ParticleSystemModifierData *>(md);
         psmd->psys = psys;
         BLI_addtail(&ob->modifiers, md);

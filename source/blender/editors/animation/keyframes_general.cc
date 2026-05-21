@@ -1111,7 +1111,7 @@ bool decimate_fcurve(bAnimListElem *ale, float remove_ratio, float error_sq_max)
   for (FCurveSegment &segment : segments) {
     decimate_fcurve_segment(fcu, segment.start_index, segment.length, remove_ratio, error_sq_max);
   }
-  BLI_freelistN(&segments);
+  segments.free_no_destruct();
 
   uint old_totvert = fcu->totvert;
   fcu->bezt = nullptr;
@@ -2124,13 +2124,13 @@ eKeyPasteError paste_animedit_keys(bAnimContext *ac,
   if (!keyframe_copy_buffer || keyframe_copy_buffer->is_empty()) {
     return KEYFRAME_PASTE_NOTHING_TO_PASTE;
   }
-  if (BLI_listbase_is_empty(anim_data)) {
+  if (anim_data->is_empty()) {
     return KEYFRAME_PASTE_NOWHERE_TO_PASTE;
   }
 
   const Scene *scene = (ac->scene);
   const bool from_single = keyframe_copy_buffer->is_single_fcurve();
-  const bool to_single = BLI_listbase_is_single(anim_data);
+  const bool to_single = anim_data->is_single();
   float offset[2] = {0, 0};
 
   /* methods of offset */

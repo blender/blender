@@ -469,9 +469,9 @@ static void filelist_direntryarr_free(FileDirEntryArr *array)
     entry_next = entry->next;
     filelist_entry_free(entry);
   }
-  BLI_listbase_clear(&array->entries);
+  array->entries.clear_no_delete();
 #else
-  BLI_assert(BLI_listbase_is_empty(&array->entries));
+  BLI_assert(array->entries.is_empty());
 #endif
   array->entries_num = FILEDIR_NBR_ENTRIES_UNSET;
   array->entries_filtered_num = FILEDIR_NBR_ENTRIES_UNSET;
@@ -502,7 +502,7 @@ static void filelist_intern_free(FileList *filelist)
   for (FileListInternEntry &entry : filelist_intern->entries.items_mutable()) {
     filelist_intern_entry_free(filelist, &entry);
   }
-  BLI_listbase_clear(&filelist_intern->entries);
+  filelist_intern->entries.clear_no_delete();
 
   MEM_SAFE_DELETE(filelist_intern->filtered);
 }
@@ -831,7 +831,7 @@ void filelist_cache_clear(FileListEntryCache *cache, size_t new_size)
   for (FileDirEntry &entry : cache->cached_entries.items_mutable()) {
     filelist_entry_free(&entry);
   }
-  BLI_listbase_clear(&cache->cached_entries);
+  cache->cached_entries.clear_no_delete();
 }
 
 FileList *filelist_new(short type, const bool is_from_global_asset_list)

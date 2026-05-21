@@ -298,7 +298,7 @@ AUD_Sound sound_equalizermodifier_recreator(Strip *strip,
   SoundEqualizerModifierData *semd = (SoundEqualizerModifierData *)smd;
 
   /* No equalizer definition. */
-  if (BLI_listbase_is_empty(&semd->graphics)) {
+  if (semd->graphics.is_empty()) {
     return sound_in;
   }
 

@@ -93,7 +93,7 @@ static void rna_WorkSpace_owner_ids_remove(WorkSpace *workspace,
 
 static void rna_WorkSpace_owner_ids_clear(WorkSpace *workspace)
 {
-  BLI_freelistN(&workspace->owner_ids);
+  workspace->owner_ids.free_no_destruct();
   WM_main_add_notifier(NC_OBJECT | ND_MODIFIER | NA_REMOVED, workspace);
 }
 

@@ -159,7 +159,7 @@ static int rna_XrActionMapBinding_component_paths_length(PointerRNA *ptr)
 {
 #  ifdef WITH_XR_OPENXR
   XrActionMapBinding *amb = (XrActionMapBinding *)ptr->data;
-  return BLI_listbase_count(&amb->component_paths);
+  return amb->component_paths.count();
 #  else
   UNUSED_VARS(ptr);
   return 0;
@@ -342,7 +342,7 @@ static int rna_XrActionMapItem_user_paths_length(PointerRNA *ptr)
 {
 #  ifdef WITH_XR_OPENXR
   XrActionMapItem *ami = (XrActionMapItem *)ptr->data;
-  return BLI_listbase_count(&ami->user_paths);
+  return ami->user_paths.count();
 #  else
   UNUSED_VARS(ptr);
   return 0;
@@ -536,7 +536,7 @@ static int rna_XrActionMapItem_bindings_length(PointerRNA *ptr)
 {
 #  ifdef WITH_XR_OPENXR
   XrActionMapItem *ami = (XrActionMapItem *)ptr->data;
-  return BLI_listbase_count(&ami->bindings);
+  return ami->bindings.count();
 #  else
   UNUSED_VARS(ptr);
   return 0;
@@ -633,7 +633,7 @@ static int rna_XrActionMap_items_length(PointerRNA *ptr)
 {
 #  ifdef WITH_XR_OPENXR
   XrActionMap *actionmap = (XrActionMap *)ptr->data;
-  return BLI_listbase_count(&actionmap->items);
+  return actionmap->items.count();
 #  else
   UNUSED_VARS(ptr);
   return 0;
@@ -764,7 +764,7 @@ static bool rna_XrSessionState_action_create(bContext *C,
 {
 #  ifdef WITH_XR_OPENXR
   wmWindowManager *wm = CTX_wm_manager(C);
-  if (BLI_listbase_is_empty(&ami->user_paths)) {
+  if (ami->user_paths.is_empty()) {
     return false;
   }
 
@@ -814,8 +814,8 @@ static bool rna_XrSessionState_action_binding_create(bContext *C,
 {
 #  ifdef WITH_XR_OPENXR
   wmWindowManager *wm = CTX_wm_manager(C);
-  const int count_user_paths = BLI_listbase_count(&ami->user_paths);
-  const int count_component_paths = BLI_listbase_count(&amb->component_paths);
+  const int count_user_paths = ami->user_paths.count();
+  const int count_component_paths = amb->component_paths.count();
   if (count_user_paths < 1 || (count_user_paths != count_component_paths)) {
     return false;
   }
@@ -1121,7 +1121,7 @@ static int rna_XrSessionState_actionmaps_length(PointerRNA *ptr)
 #  ifdef WITH_XR_OPENXR
   wmXrData *xr = rna_XrSession_wm_xr_data_get(ptr);
   ListBaseT<XrActionMap> *lb = WM_xr_actionmaps_get(xr->runtime);
-  return BLI_listbase_count(lb);
+  return lb->count();
 #  else
   UNUSED_VARS(ptr);
   return 0;

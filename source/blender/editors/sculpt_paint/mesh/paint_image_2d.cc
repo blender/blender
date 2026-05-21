@@ -1633,7 +1633,7 @@ void *paint_2d_new_stroke(bContext *C, wmOperator *op, const BrushStrokeMode mod
     return nullptr;
   }
 
-  s->num_tiles = BLI_listbase_count(&s->image->tiles);
+  s->num_tiles = s->image->tiles.count();
   s->tiles = MEM_new_array<ImagePaintTile>(s->num_tiles, __func__);
   for (int i = 0; i < s->num_tiles; i++) {
     s->tiles[i].iuser = sima->iuser;

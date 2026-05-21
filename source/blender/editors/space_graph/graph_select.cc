@@ -261,12 +261,12 @@ static void get_nearest_fcurve_verts_list(bAnimContext *ac,
 static tNearestVertInfo *get_best_nearest_fcurve_vert(ListBaseT<tNearestVertInfo> *matches)
 {
   /* abort if list is empty */
-  if (BLI_listbase_is_empty(matches)) {
+  if (matches->is_empty()) {
     return nullptr;
   }
 
   /* if list only has 1 item, remove it from the list and return */
-  if (BLI_listbase_is_single(matches)) {
+  if (matches->is_single()) {
     /* need to remove from the list, otherwise it gets freed and then we can't return it */
     return static_cast<tNearestVertInfo *>(BLI_pophead(matches));
   }
@@ -334,7 +334,7 @@ static tNearestVertInfo *find_nearest_fcurve_vert(bAnimContext *ac, const int mv
   /* step 2: find the best vert */
   nvi = get_best_nearest_fcurve_vert(&matches);
 
-  BLI_freelistN(&matches);
+  matches.free_no_destruct();
 
   /* return the best vert found */
   return nvi;
@@ -1286,8 +1286,8 @@ static void columnselect_graph_keys(bAnimContext *ac, short mode)
   }
 
   /* free elements */
-  BLI_freelistN(&ked.cfra_elem_list);
-  BLI_freelistN(&ked.time_marker_list);
+  ked.cfra_elem_list.free_no_destruct();
+  ked.time_marker_list.free_no_destruct();
   ANIM_animdata_freelist(&anim_data);
 }
 
@@ -1942,8 +1942,8 @@ static wmOperatorStatus graphkeys_mselect_column(bAnimContext *ac,
 
   /* free elements */
   MEM_delete(nvi);
-  BLI_freelistN(&ked.cfra_elem_list);
-  BLI_freelistN(&ked.time_marker_list);
+  ked.cfra_elem_list.free_no_destruct();
+  ked.time_marker_list.free_no_destruct();
   ANIM_animdata_freelist(&anim_data);
 
   return run_modal ? OPERATOR_RUNNING_MODAL : OPERATOR_FINISHED;

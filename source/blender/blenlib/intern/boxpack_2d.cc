@@ -742,7 +742,7 @@ void BLI_box_pack_2d_fixedarea(ListBaseT<FixedSizeBoxPack> *boxes,
     }
   }
 
-  BLI_freelistN(&spaces);
+  spaces.free_no_destruct();
 }
 
 }  // namespace blender

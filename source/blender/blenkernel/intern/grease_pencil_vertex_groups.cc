@@ -58,7 +58,7 @@ int ensure_vertex_group(const StringRef name, ListBaseT<bDeformGroup> &vertex_gr
     bDeformGroup *defgroup = MEM_new<bDeformGroup>(__func__);
     name.copy_utf8_truncated(defgroup->name);
     BLI_addtail(&vertex_group_names, defgroup);
-    def_nr = BLI_listbase_count(&vertex_group_names) - 1;
+    def_nr = vertex_group_names.count() - 1;
     BLI_assert(def_nr >= 0);
   }
   return def_nr;
@@ -82,7 +82,7 @@ void assign_to_vertex_group_from_mask(bke::CurvesGeometry &curves,
     bDeformGroup *defgroup = MEM_new<bDeformGroup>(__func__);
     name.copy_utf8_truncated(defgroup->name);
     BLI_addtail(&vertex_group_names, defgroup);
-    def_nr = BLI_listbase_count(&vertex_group_names) - 1;
+    def_nr = vertex_group_names.count() - 1;
     BLI_assert(def_nr >= 0);
   }
 
@@ -116,7 +116,7 @@ void assign_to_vertex_group(Drawing &drawing, const StringRef name, const float 
         name.copy_utf8_truncated(defgroup->name);
 
         BLI_addtail(&vertex_group_names, defgroup);
-        def_nr = BLI_listbase_count(&vertex_group_names) - 1;
+        def_nr = vertex_group_names.count() - 1;
         BLI_assert(def_nr >= 0);
       }
 

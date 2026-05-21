@@ -535,7 +535,7 @@ static wmOperatorStatus sequencer_retiming_key_delete_invoke(bContext *C,
   Scene *scene = CTX_data_sequencer_scene(C);
   ListBaseT<TimeMarker> *markers = &scene->markers;
 
-  if (!BLI_listbase_is_empty(markers)) {
+  if (!markers->is_empty()) {
     ARegion *region = CTX_wm_region(C);
     if (region && (region->regiontype == RGN_TYPE_WINDOW)) {
       /* Bounding box of 30 pixels is used for markers shortcuts,

@@ -19,7 +19,7 @@ namespace blender {
 
 void BKE_viewer_path_init(ViewerPath *viewer_path)
 {
-  BLI_listbase_clear(&viewer_path->path);
+  viewer_path->path.clear_no_delete();
 }
 
 void BKE_viewer_path_clear(ViewerPath *viewer_path)
@@ -27,7 +27,7 @@ void BKE_viewer_path_clear(ViewerPath *viewer_path)
   for (ViewerPathElem &elem : viewer_path->path.items_mutable()) {
     BKE_viewer_path_elem_free(&elem);
   }
-  BLI_listbase_clear(&viewer_path->path);
+  viewer_path->path.clear_no_delete();
 }
 
 void BKE_viewer_path_copy(ViewerPath *dst, const ViewerPath *src)

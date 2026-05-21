@@ -214,7 +214,7 @@ gpu::UniformBuf *GPU_uniformbuf_create_ex(size_t size, const void *data, const c
 gpu::UniformBuf *GPU_uniformbuf_create_from_list(ListBaseT<LinkData> *inputs, const char *name)
 {
   /* There is no point on creating an UBO if there is no arguments. */
-  if (BLI_listbase_is_empty(inputs)) {
+  if (inputs->is_empty()) {
     return nullptr;
   }
 

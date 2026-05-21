@@ -124,7 +124,7 @@ void BLI_threadpool_init(ListBaseT<ThreadSlot> *threadbase, void *(*do_thread)(v
   int a;
 
   if (threadbase != nullptr && tot > 0) {
-    BLI_listbase_clear(threadbase);
+    threadbase->clear_no_delete();
 
     if (tot > RE_MAX_THREAD) {
       tot = RE_MAX_THREAD;
@@ -237,7 +237,7 @@ void BLI_threadpool_end(ListBaseT<ThreadSlot> *threadbase)
 
   /* Only needed if there's actually some stuff to end
    * this way we don't end up decrementing thread_levels on an empty `threadbase`. */
-  if (threadbase == nullptr || BLI_listbase_is_empty(threadbase)) {
+  if (threadbase == nullptr || threadbase->is_empty()) {
     return;
   }
 
@@ -246,7 +246,7 @@ void BLI_threadpool_end(ListBaseT<ThreadSlot> *threadbase)
       pthread_join(tslot.pthread, nullptr);
     }
   }
-  BLI_freelistN(threadbase);
+  threadbase->free_no_destruct();
 }
 
 /* System Information */

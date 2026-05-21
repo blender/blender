@@ -104,7 +104,7 @@ bool ED_wpaint_ensure_data(bContext *C,
       }
     }
   }
-  if (BLI_listbase_is_empty(defbase)) {
+  if (defbase->is_empty()) {
     BKE_object_defgroup_add(ob);
     DEG_relations_tag_update(bmain);
   }
@@ -146,7 +146,7 @@ int ED_wpaint_mirror_vgroup_ensure(Object *ob, const int vgroup_active)
     mirrdef = BKE_object_defgroup_name_index(ob, name_flip);
     if (mirrdef == -1) {
       if (BKE_object_defgroup_new(ob, name_flip)) {
-        mirrdef = BLI_listbase_count(defbase) - 1;
+        mirrdef = defbase->count() - 1;
       }
     }
 

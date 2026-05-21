@@ -1193,7 +1193,7 @@ void WM_toolsystem_update_from_context_view3d(bContext *C)
   /* Multi window support. */
   Main *bmain = CTX_data_main(C);
   wmWindowManager *wm = static_cast<wmWindowManager *>(bmain->wm.first);
-  if (!BLI_listbase_is_single(&wm->windows)) {
+  if (!wm->windows.is_single()) {
     wmWindow *win_prev = CTX_wm_window(C);
     ScrArea *area_prev = CTX_wm_area(C);
     ARegion *region_prev = CTX_wm_region(C);

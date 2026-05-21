@@ -71,7 +71,7 @@ BoneCollection *ANIM_bonecoll_new(const char *name)
 
 void ANIM_bonecoll_free(BoneCollection *bcoll, const bool do_id_user_count)
 {
-  BLI_assert_msg(BLI_listbase_is_empty(&bcoll->bones),
+  BLI_assert_msg(bcoll->bones.is_empty(),
                  "bone collection still has bones assigned to it, will cause dangling pointers in "
                  "bone runtime data");
   if (bcoll->prop) {
@@ -117,7 +117,7 @@ void ANIM_armature_runtime_free(bArmature *armature)
 {
   /* Free the bone-to-its-collections mapping. */
   ANIM_armature_foreach_bone(&armature->bonebase,
-                             [&](Bone *bone) { BLI_freelistN(&bone->runtime.collections); });
+                             [&](Bone *bone) { bone->runtime.collections.free_no_destruct(); });
 }
 
 /**
@@ -993,7 +993,7 @@ void ANIM_armature_bonecoll_reconstruct(bArmature *armature)
 {
   /* Remove all the old collection memberships. */
   for (BoneCollection *bcoll : armature->collections_span()) {
-    BLI_freelistN(&bcoll->bones);
+    bcoll->bones.free_no_destruct();
   }
 
   /* For all bones, restore their collection memberships. */
@@ -1009,7 +1009,7 @@ static bool any_bone_collection_visible(const bArmature *armature,
 {
   /* Special case: Hide bone when solo is active and it doesn't belong to any collection, see:
    * #137090. */
-  if (BLI_listbase_is_empty(collection_refs) && !(armature->flag & ARM_BCOLL_SOLO_ACTIVE)) {
+  if (collection_refs->is_empty() && !(armature->flag & ARM_BCOLL_SOLO_ACTIVE)) {
     return true;
   }
 
@@ -1418,7 +1418,7 @@ Map<BoneCollection *, BoneCollection *> ANIM_bonecoll_array_copy_no_membership(
     BoneCollection *bcoll_dst = MEM_dupalloc(bcoll_src);
 
     /* This will be rebuilt from the edit bones, so we don't need to copy it. */
-    BLI_listbase_clear(&bcoll_dst->bones);
+    bcoll_dst->bones.clear_no_delete();
 
     if (bcoll_src->prop) {
       bcoll_dst->prop = IDP_CopyProperty_ex(bcoll_src->prop,
@@ -1456,7 +1456,7 @@ void ANIM_bonecoll_array_free(BoneCollection ***bcoll_array,
      * However, during undo this is also used to free the BoneCollection
      * list on the Armature itself before copying over the undo BoneCollection
      * list, in which case this of Bone pointers may not be empty. */
-    BLI_freelistN(&bcoll->bones);
+    bcoll->bones.free_no_destruct();
 
     MEM_delete(bcoll);
   }

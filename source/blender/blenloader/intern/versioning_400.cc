@@ -439,12 +439,12 @@ static void version_motion_tracking_legacy_camera_object(MovieClip &movieclip)
 
   BLI_assert(tracking_camera_object != nullptr);
 
-  if (BLI_listbase_is_empty(&tracking_camera_object->tracks)) {
+  if (tracking_camera_object->tracks.is_empty()) {
     tracking_camera_object->tracks = tracking.tracks_legacy;
     active_tracking_object->active_track = tracking.act_track_legacy;
   }
 
-  if (BLI_listbase_is_empty(&tracking_camera_object->plane_tracks)) {
+  if (tracking_camera_object->plane_tracks.is_empty()) {
     tracking_camera_object->plane_tracks = tracking.plane_tracks_legacy;
     active_tracking_object->active_plane_track = tracking.act_plane_track_legacy;
   }
@@ -456,8 +456,8 @@ static void version_motion_tracking_legacy_camera_object(MovieClip &movieclip)
   /* Clear pointers in the legacy storage.
    * Always do it, in the case something got missed in the logic above, so that the legacy storage
    * is always ensured to be empty after load. */
-  BLI_listbase_clear(&tracking.tracks_legacy);
-  BLI_listbase_clear(&tracking.plane_tracks_legacy);
+  tracking.tracks_legacy.clear_no_delete();
+  tracking.plane_tracks_legacy.clear_no_delete();
   tracking.act_track_legacy = nullptr;
   tracking.act_plane_track_legacy = nullptr;
   tracking.reconstruction_legacy = MovieTrackingReconstruction{};
@@ -729,8 +729,8 @@ static void versioning_convert_node_tree_socket_lists_to_interface(bNodeTree *nt
 {
   bNodeTreeInterface &tree_interface = ntree->tree_interface;
 
-  const int num_inputs = BLI_listbase_count(&ntree->inputs_legacy);
-  const int num_outputs = BLI_listbase_count(&ntree->outputs_legacy);
+  const int num_inputs = ntree->inputs_legacy.count();
+  const int num_outputs = ntree->outputs_legacy.count();
   tree_interface.root_panel.items_num = num_inputs + num_outputs;
   tree_interface.root_panel.items_array = MEM_new_array_uninitialized<bNodeTreeInterfaceItem *>(
       size_t(tree_interface.root_panel.items_num), __func__);
@@ -1498,8 +1498,8 @@ void blo_do_versions_400(FileData *fd, Library * /*lib*/, Main *bmain)
       versioning_convert_node_tree_socket_lists_to_interface(ntree);
       /* Clear legacy sockets after conversion.
        * Internal data pointers have been moved or freed already. */
-      BLI_freelistN(&ntree->inputs_legacy);
-      BLI_freelistN(&ntree->outputs_legacy);
+      ntree->inputs_legacy.free_no_destruct();
+      ntree->outputs_legacy.free_no_destruct();
     }
     FOREACH_NODETREE_END;
   }
@@ -1525,8 +1525,8 @@ void blo_do_versions_400(FileData *fd, Library * /*lib*/, Main *bmain)
         MEM_delete(legacy_socket.runtime);
         MEM_delete(&legacy_socket);
       }
-      BLI_listbase_clear(&ntree->inputs_legacy);
-      BLI_listbase_clear(&ntree->outputs_legacy);
+      ntree->inputs_legacy.clear_no_delete();
+      ntree->outputs_legacy.clear_no_delete();
     }
     FOREACH_NODETREE_END;
   }

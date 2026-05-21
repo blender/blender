@@ -904,8 +904,7 @@ static void playanim_toscreen(PlayState &ps, const PlayAnimPict *picture, const 
       frame_indicator_factor = float(double(picture->frame) / double(frame_range));
     }
     else {
-      BLI_assert_msg(BLI_listbase_is_single(&ps.picsbase),
-                     "Multiple frames without a valid range!");
+      BLI_assert_msg(ps.picsbase.is_single(), "Multiple frames without a valid range!");
     }
   }
 
@@ -2275,7 +2274,7 @@ static std::optional<int> wm_main_playanim_intern(int argc, const char **argv, P
 #endif
 
 #ifdef USE_FRAME_CACHE_LIMIT
-  BLI_freelistN(&g_frame_cache.pics);
+  g_frame_cache.pics.free_no_destruct();
   g_frame_cache.pics_len = 0;
   g_frame_cache.pics_size_in_memory = 0;
 #endif

@@ -164,7 +164,7 @@ ListBaseT<ImageFrameRange> ED_image_filesel_detect_sequences(StringRefNull blend
                                                              const bool detect_udim)
 {
   ListBaseT<ImageFrameRange> ranges;
-  BLI_listbase_clear(&ranges);
+  ranges.clear_no_delete();
 
   bool was_relative = false;
   StringRefNull base_path = blendfile_path;

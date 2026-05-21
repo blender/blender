@@ -925,7 +925,7 @@ static void graph_space_blend_write(BlendWriter *writer, SpaceLink *sl)
   ListBaseT<FCurve> tmpGhosts = sipo->runtime.ghost_curves;
 
   /* temporarily disable ghost curves when saving */
-  BLI_listbase_clear(&sipo->runtime.ghost_curves);
+  sipo->runtime.ghost_curves.clear_no_delete();
 
   writer->write_struct_cast<SpaceGraph>(sl);
   if (sipo->ads) {

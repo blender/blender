@@ -286,7 +286,7 @@ static wmOperatorStatus strip_modifier_copy_exec(bContext *C, wmOperator *op)
           seq::modifier_free(smd);
           smd = smd_tmp;
         }
-        BLI_listbase_clear(&strip_iter->modifiers);
+        strip_iter->modifiers.clear_no_delete();
       }
     }
 
@@ -366,7 +366,7 @@ static wmOperatorStatus strip_modifier_duplicate_exec(bContext *C, wmOperator *o
 {
   Scene *sequencer_scene = CTX_data_sequencer_scene(C);
   Strip *active_strip = seq::select_active_get(sequencer_scene);
-  if (!active_strip || BLI_listbase_is_empty(&active_strip->modifiers)) {
+  if (!active_strip || active_strip->modifiers.is_empty()) {
     return OPERATOR_CANCELLED;
   }
 

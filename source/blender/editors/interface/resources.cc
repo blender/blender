@@ -66,7 +66,7 @@ void resources_free()
 
 void style_init_default()
 {
-  BLI_freelistN(&U.uistyles);
+  U.uistyles.free_no_destruct();
   /* gets automatically re-allocated */
   style_init();
 }

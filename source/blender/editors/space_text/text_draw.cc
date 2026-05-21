@@ -628,7 +628,7 @@ static void space_text_drawcache_init(SpaceText *st)
   DrawCache *drawcache = MEM_new_zeroed<DrawCache>("text draw cache");
 
   drawcache->winx = -1;
-  drawcache->nlines = BLI_listbase_count(&st->text->lines);
+  drawcache->nlines = st->text->lines.count();
   drawcache->text_id[0] = '\0';
 
   st->runtime->drawcache = drawcache;
@@ -680,7 +680,7 @@ static void space_text_update_drawcache(SpaceText *st, const ARegion *region)
       int lineno = 0, lines_count;
       int *fp = drawcache->line_height, *new_tail, *old_tail;
 
-      nlines = BLI_listbase_count(&txt->lines);
+      nlines = txt->lines.count();
 
       if (fp) {
         fp = static_cast<int *>(MEM_realloc_uninitialized(fp, sizeof(int) * nlines));
@@ -726,7 +726,7 @@ static void space_text_update_drawcache(SpaceText *st, const ARegion *region)
     MEM_SAFE_DELETE(drawcache->line_height);
 
     if (full_update || drawcache->update) {
-      nlines = BLI_listbase_count(&txt->lines);
+      nlines = txt->lines.count();
 
       if (st->showlinenrs) {
         st->runtime->line_number_display_digits = integer_digits_i(nlines);

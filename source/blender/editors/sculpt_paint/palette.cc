@@ -261,7 +261,7 @@ static wmOperatorStatus palette_color_add_exec(bContext *C, wmOperator * /*op*/)
   PaletteColor *color;
 
   color = BKE_palette_color_add(palette);
-  palette->active_color = BLI_listbase_count(&palette->colors) - 1;
+  palette->active_color = palette->colors.count() - 1;
 
   const Brush *brush = BKE_paint_brush_for_read(paint);
   if (brush) {
@@ -421,7 +421,7 @@ static wmOperatorStatus palette_sort_exec(bContext *C, wmOperator *op)
   PaletteColorHSV *color_array = nullptr;
   PaletteColorHSV *col_elm = nullptr;
 
-  const int totcol = BLI_listbase_count(&palette->colors);
+  const int totcol = palette->colors.count();
 
   if (totcol > 0) {
     color_array = MEM_new_array<PaletteColorHSV>(totcol, __func__);
@@ -569,7 +569,7 @@ static wmOperatorStatus palette_join_exec(bContext *C, wmOperator *op)
     return OPERATOR_CANCELLED;
   }
 
-  const int totcol = BLI_listbase_count(&palette_join->colors);
+  const int totcol = palette_join->colors.count();
 
   if (totcol > 0) {
     for (PaletteColor &color : palette_join->colors) {

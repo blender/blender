@@ -1308,7 +1308,7 @@ void blo_do_versions_userdef(UserDef *userdef)
   }
 
   if (!USER_VERSION_ATLEAST(292, 9)) {
-    if (BLI_listbase_is_empty(&userdef->asset_libraries)) {
+    if (userdef->asset_libraries.is_empty()) {
       BKE_preferences_asset_library_default_add(userdef);
     }
   }
@@ -1497,7 +1497,7 @@ void blo_do_versions_userdef(UserDef *userdef)
 
   if (!USER_VERSION_ATLEAST(402, 36)) {
     /* Reset repositories. */
-    while (!BLI_listbase_is_empty(&userdef->extension_repos)) {
+    while (!userdef->extension_repos.is_empty()) {
       BKE_preferences_extension_repo_remove(
           userdef, static_cast<bUserExtensionRepo *>(userdef->extension_repos.first));
     }

@@ -2705,7 +2705,7 @@ static void widget_draw_extra_icons(const uiWidgetColors *wcol,
 
   /* Offset of icons from the right edge. Keep in sync
    * with 'but_extra_operator_icon_mouse_over_get'. */
-  if (!BLI_listbase_is_empty(&but->extra_op_icons)) {
+  if (!but->extra_op_icons.is_empty()) {
     /* Eyeballed. */
     rect->xmax -= 0.2 * icon_size;
   }

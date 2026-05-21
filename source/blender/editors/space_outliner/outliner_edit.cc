@@ -183,7 +183,7 @@ void OUTLINER_OT_highlight_update(wmOperatorType *ot)
 void outliner_item_openclose(TreeElement *te, bool open, bool toggle_all)
 {
   /* Only allow opening elements with children. */
-  if (!(te->flag & TE_PRETEND_HAS_CHILDREN) && BLI_listbase_is_empty(&te->subtree)) {
+  if (!(te->flag & TE_PRETEND_HAS_CHILDREN) && te->subtree.is_empty()) {
     return;
   }
 
@@ -2047,7 +2047,7 @@ static void tree_element_to_path(TreeElement *te,
   }
 
   /* free temp data */
-  BLI_freelistN(&hierarchy);
+  hierarchy.free_no_destruct();
 }
 
 /** \} */
@@ -2253,7 +2253,7 @@ static KeyingSet *verify_active_keyingset(Scene *scene, short add)
   if ((add) && (ks == nullptr)) {
     ks = BKE_keyingset_add(
         &scene->keyingsets, nullptr, nullptr, KEYINGSET_ABSOLUTE, INSERTKEY_NOFLAGS);
-    scene->active_keyingset = BLI_listbase_count(&scene->keyingsets);
+    scene->active_keyingset = scene->keyingsets.count();
   }
 
   return ks;
@@ -2300,7 +2300,7 @@ static void do_outliner_keyingset_editop(SpaceOutliner *space_outliner,
            * for now, we don't supply one, and just let this use the KeyingSet name */
           BKE_keyingset_add_path(
               ks, id, nullptr, path, array_index, eKSP_Settings(flag), groupmode);
-          ks->active_path = BLI_listbase_count(&ks->paths);
+          ks->active_path = ks->paths.count();
           break;
         }
         case KEYINGSET_EDITMODE_REMOVE: {

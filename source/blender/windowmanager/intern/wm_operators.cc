@@ -417,7 +417,7 @@ static const char *wm_context_member_from_ptr(bContext *C, const PointerRNA *ptr
       }
     }
   }
-  BLI_freelistN(&lb);
+  lb.free_no_destruct();
 
   if (member_found) {
     *r_is_id = member_found_is_id;
@@ -941,7 +941,7 @@ bool WM_operator_last_properties_store(wmOperator *op)
   }
 
   if (op->properties) {
-    if (!BLI_listbase_is_empty(&op->properties->data.group)) {
+    if (!op->properties->data.group.is_empty()) {
       CLOG_DEBUG(WM_LOG_OPERATORS, "Storing properties for '%s'", op->type->idname);
     }
     op->type->last_properties = IDP_CopyProperty(op->properties);
@@ -3223,7 +3223,7 @@ static wmOperatorStatus radial_control_invoke(bContext *C, wmOperator *op, const
   /* Temporarily disable other paint cursors. */
   wmWindowManager *wm = CTX_wm_manager(C);
   rc->orig_paintcursors = wm->runtime->paintcursors;
-  BLI_listbase_clear(&wm->runtime->paintcursors);
+  wm->runtime->paintcursors.clear_no_delete();
 
   /* Add radial control paint cursor. */
   rc->cursor = WM_paint_cursor_activate(

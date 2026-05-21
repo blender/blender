@@ -244,7 +244,7 @@ static bool rna_Panel_unregister(Main *bmain, StructRNA *type)
     }
   }
 
-  BLI_freelistN(&pt->children);
+  pt->children.free_no_destruct();
   BLI_freelinkN(&art->paneltypes, pt);
 
   /* update while blender is running */

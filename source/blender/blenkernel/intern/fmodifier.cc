@@ -1210,7 +1210,7 @@ FModifier *add_fmodifier(ListBaseT<FModifier> *modifiers, int type, FCurve *owne
   BKE_fmodifier_name_set(fcm, "");
 
   /* tag modifier as "active" if no other modifiers exist in the stack yet */
-  if (BLI_listbase_is_single(modifiers)) {
+  if (modifiers->is_single()) {
     fcm->flag |= FMODIFIER_FLAG_ACTIVE;
   }
 
@@ -1266,7 +1266,7 @@ void copy_fmodifiers(ListBaseT<FModifier> *dst, const ListBaseT<FModifier> *src)
     return;
   }
 
-  BLI_listbase_clear(dst);
+  dst->clear_no_delete();
   BLI_duplicatelist(dst, src);
 
   for (fcm = static_cast<FModifier *>(dst->first), srcfcm = static_cast<FModifier *>(src->first);

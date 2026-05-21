@@ -505,7 +505,7 @@ static wmOperatorStatus pose_flip_names_exec(bContext *C, wmOperator *op)
 
     ED_armature_bones_flip_names(bmain, arm, &bones_names, do_strip_numbers);
 
-    BLI_freelistN(&bones_names);
+    bones_names.free_no_destruct();
 
     /* Since we renamed stuff... */
     DEG_id_tag_update(&ob->id, ID_RECALC_GEOMETRY);

@@ -944,10 +944,8 @@ void ED_text_to_object(bContext *C, const Text *text, const bool split_lines)
     offset[1] = 0.0f;
     offset[2] = 0.0f;
 
-    txt_add_object(C,
-                   static_cast<const TextLine *>(text->lines.first),
-                   BLI_listbase_count(&text->lines),
-                   offset);
+    txt_add_object(
+        C, static_cast<const TextLine *>(text->lines.first), text->lines.count(), offset);
   }
 
   DEG_relations_tag_update(bmain);

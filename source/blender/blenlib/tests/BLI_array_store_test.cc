@@ -75,7 +75,7 @@ static void testchunk_list_free(ListBaseT<TestChunk> *lb)
     MEM_delete_void(const_cast<void *>(tc->data));
     MEM_delete(tc);
   }
-  BLI_listbase_clear(lb);
+  lb->clear_no_delete();
 }
 
 #if 0
@@ -273,7 +273,7 @@ static void testbuffer_list_free(ListBaseT<TestBuffer> *lb)
     MEM_delete_void(const_cast<void *>(tb->data));
     MEM_delete(tb);
   }
-  BLI_listbase_clear(lb);
+  lb->clear_no_delete();
 }
 
 static void testbuffer_run_tests_single(BArrayStore *bs, ListBaseT<TestBuffer> *lb)
@@ -450,7 +450,7 @@ static void plain_text_helper(const char *words,
 {
 
   ListBaseT<TestBuffer> lb;
-  BLI_listbase_clear(&lb);
+  lb.clear_no_delete();
 
   for (int i = 0, i_prev = 0; i < words_len; i++) {
     if (ELEM(words[i], word_delim, '\0')) {
@@ -679,7 +679,7 @@ static void random_data_mutate_helper(const int items_size_min,
 {
 
   ListBaseT<TestBuffer> lb;
-  BLI_listbase_clear(&lb);
+  lb.clear_no_delete();
 
   const size_t data_min_len = items_size_min * stride;
   const size_t data_max_len = items_size_max * stride;
@@ -749,7 +749,7 @@ static void random_chunk_mutate_helper(const int chunks_per_buffer,
   /* generate random chunks */
 
   ListBaseT<TestChunk> random_chunks;
-  BLI_listbase_clear(&random_chunks);
+  random_chunks.clear_no_delete();
   random_chunk_generate(&random_chunks, chunks_per_buffer, stride, chunk_count, random_seed);
   TestChunk **chunks_array = MEM_new_array_uninitialized<TestChunk *>(size_t(chunks_per_buffer),
                                                                       __func__);
@@ -762,7 +762,7 @@ static void random_chunk_mutate_helper(const int chunks_per_buffer,
 
   /* add and re-order each time */
   ListBaseT<TestBuffer> lb;
-  BLI_listbase_clear(&lb);
+  lb.clear_no_delete();
 
   {
     RNG *rng = BLI_rng_new(random_seed);
@@ -1115,7 +1115,7 @@ static void *file_read_binary_as_mem(const char *filepath, size_t pad_bytes, siz
 TEST(array_store, PlainTextFiles)
 {
   ListBaseT<TestBuffer> lb;
-  BLI_listbase_clear(&lb);
+  lb.clear_no_delete();
   BArrayStore *bs = BLI_array_store_create(1, 128);
 
   for (int i = 0; i < 629; i++) {

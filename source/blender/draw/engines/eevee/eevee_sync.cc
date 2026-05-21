@@ -413,7 +413,7 @@ void SyncModule::sync_volume(const ObjectRef &ob_ref)
    * This mimic Cycles behavior (see #124061). */
   ListBaseT<GPUMaterialAttribute> attr_list = GPU_material_attributes(
       material.volume_material.gpumat);
-  if (BLI_listbase_is_empty(&attr_list)) {
+  if (attr_list.is_empty()) {
     return;
   }
 

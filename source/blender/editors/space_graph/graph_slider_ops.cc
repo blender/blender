@@ -120,7 +120,7 @@ static void apply_fcu_segment_function(bAnimContext *ac,
     }
 
     ale.update |= ANIM_UPDATE_DEFAULT;
-    BLI_freelistN(&segments);
+    segments.free_no_destruct();
   }
 
   ANIM_animdata_update(ac, &anim_data);
@@ -270,7 +270,7 @@ static void graph_slider_exit(bContext *C, wmOperator *op)
     MEM_delete_void(link->data);
   }
 
-  BLI_freelistN(&gso->bezt_arr_list);
+  gso->bezt_arr_list.free_no_destruct();
   MEM_delete(gso);
 
   /* Return to normal cursor and header status. */
@@ -938,7 +938,7 @@ static void ease_graph_keys(bAnimContext *ac, const float factor, const float wi
     }
 
     ale.update |= ANIM_UPDATE_DEFAULT;
-    BLI_freelistN(&segments);
+    segments.free_no_destruct();
   }
 
   ANIM_animdata_update(ac, &anim_data);
@@ -1314,7 +1314,7 @@ static void match_slope_graph_keys(bAnimContext *ac, const float factor)
     }
 
     ale.update |= ANIM_UPDATE_DEFAULT;
-    BLI_freelistN(&segments);
+    segments.free_no_destruct();
   }
 
   if (!all_segments_valid) {
@@ -1547,7 +1547,7 @@ static void shear_graph_keys(bAnimContext *ac, const float factor, tShearDirecti
     }
 
     ale.update |= ANIM_UPDATE_DEFAULT;
-    BLI_freelistN(&segments);
+    segments.free_no_destruct();
   }
 
   ANIM_animdata_update(ac, &anim_data);
@@ -1865,7 +1865,7 @@ static void gaussian_smooth_free_operator_data(void *operator_data)
     MEM_delete(segment_link.original_y_values);
   }
   MEM_delete(gauss_data->kernel);
-  BLI_freelistN(&gauss_data->segment_links);
+  gauss_data->segment_links.free_no_destruct();
   ANIM_animdata_freelist(&gauss_data->anim_data);
   MEM_delete(gauss_data);
 }
@@ -1958,7 +1958,7 @@ static void gaussian_smooth_graph_keys(bAnimContext *ac,
       MEM_delete(original_y_values);
     }
 
-    BLI_freelistN(&segments);
+    segments.free_no_destruct();
     ale.update |= ANIM_UPDATE_DEFAULT;
   }
 
@@ -2109,7 +2109,7 @@ static void btw_smooth_free_operator_data(void *operator_data)
     MEM_delete(segment_link.segment);
   }
   ED_anim_free_butterworth_coefficients(btw_data->coefficients);
-  BLI_freelistN(&btw_data->segment_links);
+  btw_data->segment_links.free_no_destruct();
   ANIM_animdata_freelist(&btw_data->anim_data);
   MEM_delete(btw_data);
 }
@@ -2224,7 +2224,7 @@ static void btw_smooth_graph_keys(bAnimContext *ac,
       MEM_delete(samples);
     }
 
-    BLI_freelistN(&segments);
+    segments.free_no_destruct();
     ale.update |= ANIM_UPDATE_DEFAULT;
   }
 
@@ -2436,7 +2436,7 @@ static void scale_from_neighbor_graph_keys(bAnimContext *ac,
     }
 
     ale.update |= ANIM_UPDATE_DEFAULT;
-    BLI_freelistN(&segments);
+    segments.free_no_destruct();
   }
 
   ANIM_animdata_update(ac, &anim_data);

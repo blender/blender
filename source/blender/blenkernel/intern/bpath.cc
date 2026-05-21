@@ -264,7 +264,7 @@ void BKE_bpath_missing_files_check(Main *bmain, ReportList *reports)
   path_data.user_data = reports;
   BKE_bpath_foreach_path_main(&path_data);
 
-  if (BLI_listbase_is_empty(&reports->list)) {
+  if (reports->list.is_empty()) {
     BKE_reportf(reports, RPT_INFO, "No missing files");
   }
 }
@@ -676,7 +676,7 @@ static bool bpath_list_restore(BPathForeachPathData *bpath_data,
 
   /* `ls->first` should never be nullptr, because the number of paths should not change.
    * If this happens, there is a bug in caller code. */
-  BLI_assert(!BLI_listbase_is_empty(path_list));
+  BLI_assert(!path_list->is_empty());
 
   PathStore *path_store = static_cast<PathStore *>(path_list->first);
   const char *filepath = path_store->filepath;
@@ -722,9 +722,9 @@ void BKE_bpath_list_free(void *path_list_handle)
   ListBaseT<PathStore> *path_list = static_cast<ListBaseT<PathStore> *>(path_list_handle);
   /* The whole list should have been consumed by #BKE_bpath_list_restore, see also comment in
    * #bpath_list_restore. */
-  BLI_assert(BLI_listbase_is_empty(path_list));
+  BLI_assert(path_list->is_empty());
 
-  BLI_freelistN(path_list);
+  path_list->free_no_destruct();
   MEM_delete(path_list);
 }
 

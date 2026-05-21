@@ -2550,7 +2550,7 @@ static wmOperatorStatus sequencer_delete_invoke(bContext *C, wmOperator *op, con
   Scene *scene = CTX_data_sequencer_scene(C);
   ListBaseT<TimeMarker> *markers = &scene->markers;
 
-  if (!BLI_listbase_is_empty(markers)) {
+  if (!markers->is_empty()) {
     ARegion *region = CTX_wm_region(C);
     if (region && (region->regiontype == RGN_TYPE_WINDOW)) {
       /* Bounding box of 30 pixels is used for markers shortcuts,
@@ -2788,7 +2788,7 @@ static wmOperatorStatus sequencer_meta_toggle_exec(bContext *C, wmOperator * /*o
   }
   else {
     /* Exit meta-strip if possible. */
-    if (BLI_listbase_is_empty(&ed->metastack)) {
+    if (ed->metastack.is_empty()) {
       return OPERATOR_CANCELLED;
     }
 
@@ -2932,7 +2932,7 @@ static wmOperatorStatus sequencer_meta_separate_exec(bContext *C, wmOperator * /
   /* Remove all selected from meta, and put in main list.
    * Strip is moved within the same edit, no need to re-generate the UID. */
   BLI_movelisttolist(ed->current_strips(), &active_strip->seqbase);
-  BLI_listbase_clear(&active_strip->seqbase);
+  active_strip->seqbase.clear_no_delete();
 
   ListBaseT<Strip> *active_seqbase = seq::active_seqbase_get(ed);
   seq::edit_flag_for_removal(scene, active_seqbase, active_strip);
@@ -3807,7 +3807,7 @@ static wmOperatorStatus sequencer_export_subtitles_exec(bContext *C, wmOperator 
     seq::foreach_strip(&ed->seqbase, strip_get_text_strip_cb, &cb_data);
   }
 
-  if (BLI_listbase_is_empty(&text_seq)) {
+  if (text_seq.is_empty()) {
     BKE_report(op->reports, RPT_ERROR, "No subtitles (text strips) to export");
     return OPERATOR_CANCELLED;
   }

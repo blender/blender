@@ -957,7 +957,7 @@ bool WeightPaintStroke::test_start(wmOperator *op, const float mouse[2])
   }
 
   /* check that multipaint groups are unlocked */
-  defbase_tot = BLI_listbase_count(&mesh.vertex_group_names);
+  defbase_tot = mesh.vertex_group_names.count();
   defbase_sel = BKE_object_defgroup_selected_get(&ob, defbase_tot, &defbase_tot_sel);
 
   if (ts.multipaint && defbase_tot_sel > 1) {

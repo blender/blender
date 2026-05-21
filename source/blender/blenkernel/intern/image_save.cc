@@ -482,7 +482,7 @@ static bool image_save_single(ReportList *reports,
   /* individual multiview images */
   else if (imf->views_format == R_IMF_VIEWS_INDIVIDUAL) {
     ImColorMode color_mode = ibuf->color_mode;
-    const int totviews = (rr ? BLI_listbase_count(&rr->views) : BLI_listbase_count(&ima->views));
+    const int totviews = (rr ? rr->views.count() : ima->views.count());
 
     if (!is_exr_rr) {
       BKE_image_release_ibuf(ima, ibuf, lock);

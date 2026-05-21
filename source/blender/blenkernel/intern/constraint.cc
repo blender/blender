@@ -2513,7 +2513,7 @@ static void armdef_free(bConstraint *con)
   bArmatureConstraint *data = static_cast<bArmatureConstraint *>(con->data);
 
   /* Target list. */
-  BLI_freelistN(&data->targets);
+  data->targets.free_no_destruct();
 }
 
 static void armdef_copy(bConstraint *con, bConstraint *srccon)
@@ -2531,7 +2531,7 @@ static int armdef_get_tars(bConstraint *con, ListBaseT<bConstraintTarget> *list)
 
     *list = data->targets;
 
-    return BLI_listbase_count(&data->targets);
+    return data->targets.count();
   }
 
   return 0;
@@ -5978,7 +5978,7 @@ void BKE_constraints_free_ex(ListBaseT<bConstraint> *list, bool do_id_user)
   }
 
   /* Free the whole list */
-  BLI_freelistN(list);
+  list->free_no_destruct();
 }
 
 void BKE_constraints_free(ListBaseT<bConstraint> *list)
@@ -6381,7 +6381,7 @@ void BKE_constraints_copy_ex(ListBaseT<bConstraint> *dst,
 {
   bConstraint *con, *srccon;
 
-  BLI_listbase_clear(dst);
+  dst->clear_no_delete();
   BLI_duplicatelist(dst, src);
 
   for (con = static_cast<bConstraint *>(dst->first),
@@ -6566,7 +6566,7 @@ bool BKE_constraint_is_nonlocal_in_liboverride(const Object *ob, const bConstrai
 
 int BKE_constraint_targets_get(bConstraint *con, ListBaseT<bConstraintTarget> *r_targets)
 {
-  BLI_listbase_clear(r_targets);
+  r_targets->clear_no_delete();
 
   const bConstraintTypeInfo *cti = BKE_constraint_typeinfo_get(con);
 

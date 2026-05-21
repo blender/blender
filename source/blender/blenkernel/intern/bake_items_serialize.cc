@@ -1135,7 +1135,7 @@ static std::shared_ptr<DictionaryValue> serialize_geometry_set(const GeometrySet
     auto io_materials = serialize_materials(mesh.runtime->bake_materials);
     io_mesh->append("materials", io_materials);
 
-    if (!BLI_listbase_is_empty(&mesh.vertex_group_names)) {
+    if (!mesh.vertex_group_names.is_empty()) {
       auto io_vertex_group_names = io_mesh->append_array("vertex_group_names");
       for (bDeformGroup &defgroup : mesh.vertex_group_names) {
         io_vertex_group_names->append_str(defgroup.name);

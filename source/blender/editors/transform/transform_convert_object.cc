@@ -948,7 +948,7 @@ static void special_aftertrans_update__object(bContext *C, TransInfo *t)
         pid.cache->flag |= PTCACHE_OUTDATED;
       }
     }
-    BLI_freelistN(&pidlist);
+    pidlist.free_no_destruct();
 
     /* Point-cache refresh. */
     if (BKE_ptcache_object_reset(t->scene, ob, PTCACHE_RESET_OUTDATED)) {

@@ -196,7 +196,7 @@ void bmo_weld_verts_exec(BMesh *bm, BMOperator *op)
   const bool use_centroid = BMO_slot_bool_get(op->slots_in, "use_centroid");
 
   /* Maintain selection history. */
-  const bool has_selected = !BLI_listbase_is_empty(&bm->selected);
+  const bool has_selected = !bm->selected.is_empty();
   const bool use_targetmap_all = has_selected;
   Map<void *, void *> targetmap_all;
 

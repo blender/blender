@@ -3970,7 +3970,7 @@ static void rna_generate_struct_register_func(BlenderRNA * /*brna*/, StructRNA *
       rna_generate_property(f, srna, func->identifier, &parm);
     }
     fprintf(f, "\t\tauto func = std::make_unique<FunctionRNA>();\n");
-    if (!BLI_listbase_is_empty(&func->cont.properties)) {
+    if (!func->cont.properties.is_empty()) {
       fprintf(f,
               "\t\tfunc->cont.properties = {&rna_%s_%s_%s, &rna_%s_%s_%s};\n",
               srna->identifier,

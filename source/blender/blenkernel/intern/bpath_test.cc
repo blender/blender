@@ -141,7 +141,7 @@ TEST_F(BPathTest, list_backup_restore)
   void *path_list_handle = BKE_bpath_list_backup(bmain, static_cast<eBPathForeachFlag>(0));
 
   ListBaseT<PathStore> *path_list = static_cast<ListBaseT<PathStore> *>(path_list_handle);
-  EXPECT_EQ(BLI_listbase_count(path_list), 2);
+  EXPECT_EQ(path_list->count(), 2);
 
   MEM_delete(text->filepath);
   text->filepath = BLI_strdup(TEXT_PATH_ABSOLUTE);
@@ -151,7 +151,7 @@ TEST_F(BPathTest, list_backup_restore)
 
   EXPECT_STREQ(text->filepath, TEXT_PATH_RELATIVE);
   EXPECT_STREQ(movie_clip->filepath, MOVIECLIP_PATH_ABSOLUTE);
-  EXPECT_EQ(BLI_listbase_count(path_list), 0);
+  EXPECT_EQ(path_list->count(), 0);
 
   BKE_bpath_list_free(path_list_handle);
 }

@@ -383,7 +383,7 @@ void scene_minimize_unused_view_layers(const Depsgraph *depsgraph,
 void scene_remove_all_bases(Scene *scene_cow)
 {
   for (ViewLayer &view_layer : scene_cow->view_layers) {
-    BLI_freelistN(&view_layer.object_bases);
+    view_layer.object_bases.free_no_destruct();
   }
 }
 

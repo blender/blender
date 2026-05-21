@@ -537,7 +537,7 @@ static wmOperatorStatus pose_visual_transform_apply_exec(bContext *C, wmOperator
   FOREACH_OBJECT_IN_MODE_BEGIN (bmain, scene, view_layer, v3d, OB_ARMATURE, OB_MODE_POSE, ob) {
     const bArmature *arm = id_cast<const bArmature *>(ob->data);
 
-    int chanbase_len = BLI_listbase_count(&ob->pose->chanbase);
+    int chanbase_len = ob->pose->chanbase.count();
     /* Storage for the calculated matrices to prevent reading from modified values.
      * NOTE: this could be avoided if children were always calculated before parents
      * however ensuring this is involved and doesn't give any significant advantage. */
@@ -1497,7 +1497,7 @@ static wmOperatorStatus pose_clear_user_transforms_exec(bContext *C, wmOperator 
       }
 
       /* was copied without constraints */
-      BLI_freelistN(&dummyPose->chanbase);
+      dummyPose->chanbase.free_no_destruct();
       MEM_delete(dummyPose);
     }
     else {

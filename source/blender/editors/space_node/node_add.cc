@@ -1826,7 +1826,7 @@ static void initialize_compositor_sequencer_node_group(const bContext *C,
                                                        int effect_input_count)
 {
   BLI_assert(ntree.type == NTREE_COMPOSIT);
-  BLI_assert(BLI_listbase_count(&ntree.nodes) == 0);
+  BLI_assert(ntree.nodes.count() == 0);
 
   if (for_effect) {
     /* Effect: Input 1, Input 2, Fader depending on input count. */

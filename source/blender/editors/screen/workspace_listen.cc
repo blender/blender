@@ -21,7 +21,7 @@ namespace blender {
  */
 static void validate_viewer_paths(bContext &C, WorkSpace &workspace)
 {
-  if (BLI_listbase_is_empty(&workspace.viewer_path.path)) {
+  if (workspace.viewer_path.path.is_empty()) {
     return;
   }
 

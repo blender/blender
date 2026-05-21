@@ -476,7 +476,7 @@ void WM_check(bContext *C)
     CTX_wm_manager_set(C, wm);
   }
 
-  if (wm == nullptr || BLI_listbase_is_empty(&wm->windows)) {
+  if (wm == nullptr || wm->windows.is_empty()) {
     return;
   }
 
@@ -514,7 +514,7 @@ void wm_clear_default_size(bContext *C)
     CTX_wm_manager_set(C, wm);
   }
 
-  if (wm == nullptr || BLI_listbase_is_empty(&wm->windows)) {
+  if (wm == nullptr || wm->windows.is_empty()) {
     return;
   }
 

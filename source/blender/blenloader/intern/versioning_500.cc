@@ -1466,7 +1466,7 @@ static void do_version_remove_lzo_and_lzma_compression(FileData *fd, Object *obj
         pid.owner_id->name + 2);
   }
 
-  BLI_freelistN(&pidlist);
+  pidlist.free_no_destruct();
 }
 
 static void do_version_convert_gp_jitter_values(Brush *brush)
@@ -1638,7 +1638,7 @@ static void do_version_file_output_node(bNode &node)
   STRNCPY(data->directory, directory);
   data->file_name = BLI_strdup_null(file_name);
 
-  data->items_count = BLI_listbase_count(&node.inputs);
+  data->items_count = node.inputs.count();
   data->items = MEM_new_array<NodeCompositorFileOutputItem>(data->items_count, __func__);
 
   for (const auto [i, input] : node.inputs.enumerate()) {
@@ -2414,7 +2414,7 @@ static void version_dynamic_viewer_node_items(bNodeTree &ntree)
       return;
     }
     NodeGeometryViewer *storage = static_cast<NodeGeometryViewer *>(node.storage);
-    const int input_sockets_num = BLI_listbase_count(&node.inputs);
+    const int input_sockets_num = node.inputs.count();
     if (input_sockets_num == storage->items_num + 1) {
       /* Make versioning idempotent. */
       continue;
@@ -2915,7 +2915,7 @@ void do_versions_after_linking_500(FileData *fd, Main *bmain)
     for (bArmature &armature : bmain->armatures) {
       AnimData *arm_adt = BKE_animdata_from_id(&armature.id);
 
-      if (!arm_adt || BLI_listbase_is_empty(&arm_adt->drivers)) {
+      if (!arm_adt || arm_adt->drivers.is_empty()) {
         continue;
       }
 

@@ -620,7 +620,7 @@ static void uhandle_free_list(ListBaseT<UndoImageHandle> *undo_handles)
     }
     MEM_delete(&uh);
   }
-  BLI_listbase_clear(undo_handles);
+  undo_handles->clear_no_delete();
 }
 
 /** \} */
@@ -764,7 +764,7 @@ static void image_undosys_step_encode_init(bContext * /*C*/, UndoStep *us_p)
   ImageUndoStep *us = reinterpret_cast<ImageUndoStep *>(us_p);
   /* dummy, memory is cleared anyway. */
   us->is_encode_init = true;
-  BLI_listbase_clear(&us->handles);
+  us->handles.clear_no_delete();
   us->paint_tile_map = MEM_new<PaintTileMap>(__func__);
 }
 

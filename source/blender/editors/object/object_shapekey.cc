@@ -543,7 +543,7 @@ static wmOperatorStatus shape_key_clear_exec(bContext *C, wmOperator * /*op*/)
   Object *ob = context_object(C);
   Key *key = BKE_key_from_object(ob);
 
-  if (!key || BLI_listbase_is_empty(&key->block)) {
+  if (!key || key->block.is_empty()) {
     return OPERATOR_CANCELLED;
   }
 
@@ -580,7 +580,7 @@ static wmOperatorStatus shape_key_retime_exec(bContext *C, wmOperator * /*op*/)
   Key *key = BKE_key_from_object(ob);
   float cfra = 0.0f;
 
-  if (!key || BLI_listbase_is_empty(&key->block)) {
+  if (!key || key->block.is_empty()) {
     return OPERATOR_CANCELLED;
   }
 
@@ -785,7 +785,7 @@ static wmOperatorStatus shape_key_lock_exec(bContext *C, wmOperator *op)
   const int action = RNA_enum_get(op->ptr, "action");
   const Key *keys = BKE_key_from_object(ob);
 
-  if (!keys || BLI_listbase_is_empty(&keys->block)) {
+  if (!keys || keys->block.is_empty()) {
     return OPERATOR_CANCELLED;
   }
 
@@ -983,7 +983,7 @@ static wmOperatorStatus shape_key_apply_to_basis_exec(bContext *C, wmOperator *o
   MutableSpan<float3> positions = mesh.vert_positions_for_write();
 
   int locked_count = 0;
-  Array<bool> keys_to_process(BLI_listbase_count(&key->block), false);
+  Array<bool> keys_to_process(key->block.count(), false);
   for (const auto [i, kb] : key->block.enumerate()) {
     if (!shape_key_is_selected(*ob, kb, i)) {
       continue;

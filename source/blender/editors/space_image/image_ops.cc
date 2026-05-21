@@ -275,7 +275,7 @@ static bool image_not_packed_poll(bContext *C)
 {
   /* Do not run 'replace' on packed images, it does not give user expected results at all. */
   Image *ima = image_from_context(C);
-  return (ima && BLI_listbase_is_empty(&ima->packedfiles));
+  return (ima && ima->packedfiles.is_empty());
 }
 
 static void image_view_all(SpaceImage *sima, ARegion *region, wmOperator *op)
@@ -1442,10 +1442,10 @@ static wmOperatorStatus image_open_exec(bContext *C, wmOperator *op)
       frame_ofs = range.offset;
     }
 
-    BLI_freelistN(&range.udim_tiles);
-    BLI_freelistN(&range.frames);
+    range.udim_tiles.free_no_destruct();
+    range.frames.free_no_destruct();
   }
-  BLI_freelistN(&ranges);
+  ranges.free_no_destruct();
 
   if (ima == nullptr) {
     return OPERATOR_CANCELLED;
@@ -2456,7 +2456,7 @@ bool ED_image_should_save_modified(const Main *bmain)
   BKE_reports_init(&reports, RPT_STORE);
 
   uint modified_images_count = ED_image_save_all_modified_info(bmain, &reports);
-  bool should_save = modified_images_count || !BLI_listbase_is_empty(&reports.list);
+  bool should_save = modified_images_count || !reports.list.is_empty();
 
   BKE_reports_free(&reports);
 
@@ -4532,7 +4532,7 @@ static bool tile_remove_poll(bContext *C)
 {
   Image *ima = CTX_data_edit_image(C);
 
-  return (ima != nullptr && ima->source == IMA_SRC_TILED && !BLI_listbase_is_single(&ima->tiles));
+  return (ima != nullptr && ima->source == IMA_SRC_TILED && !ima->tiles.is_single());
 }
 
 static wmOperatorStatus tile_remove_exec(bContext *C, wmOperator * /*op*/)
@@ -4545,7 +4545,7 @@ static wmOperatorStatus tile_remove_exec(bContext *C, wmOperator * /*op*/)
   }
 
   /* Ensure that the active index is valid. */
-  ima->active_tile_index = min_ii(ima->active_tile_index, BLI_listbase_count(&ima->tiles) - 1);
+  ima->active_tile_index = min_ii(ima->active_tile_index, ima->tiles.count() - 1);
 
   WM_event_add_notifier(C, NC_IMAGE | ND_DRAW, nullptr);
 

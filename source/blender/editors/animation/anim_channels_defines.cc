@@ -5973,7 +5973,7 @@ static void draw_setting_widget(bAnimContext *ac,
       /* Deactivate the button when there are no FCurve modifiers. */
       if (ale->datatype == ALE_FCURVE) {
         const FCurve *fcu = static_cast<const FCurve *>(ale->key_data);
-        if (BLI_listbase_is_empty(&fcu->modifiers)) {
+        if (fcu->modifiers.is_empty()) {
           button_flag_enable(but, ui::BUT_INACTIVE);
         }
       }

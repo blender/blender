@@ -118,7 +118,7 @@ static void nla_action_draw_keyframes(
 
   /* Count keys before drawing. */
   const ListBaseT<ActKeyColumn> *keys = ED_keylist_listbase(keylist);
-  uint key_len = BLI_listbase_count(keys);
+  uint key_len = keys->count();
 
   if (key_len > 0) {
     format = immVertexFormat();
@@ -193,7 +193,7 @@ static void nla_actionclip_draw_markers(
   }
   immUniformThemeColorShade(TH_STRIP_SELECT, shade);
 
-  immBeginAtMost(GPU_PRIM_LINES, BLI_listbase_count(&act->markers) * 2);
+  immBeginAtMost(GPU_PRIM_LINES, act->markers.count() * 2);
   for (TimeMarker &marker : act->markers) {
     if ((marker.frame > strip->actstart) && (marker.frame < strip->actend)) {
       float frame = nlastrip_get_frame(strip, marker.frame, NLATIME_CONVERT_MAP);
@@ -586,7 +586,7 @@ static void nla_draw_strip(SpaceNla *snla,
     const float y = (ymaxc - yminc) * 0.5f + yminc;
 
     /* up to 2 lines per strip */
-    immBeginAtMost(GPU_PRIM_LINES, 4 * BLI_listbase_count(&strip->strips));
+    immBeginAtMost(GPU_PRIM_LINES, 4 * strip->strips.count());
 
     /* only draw first-level of child-strips, but don't draw any lines on the endpoints */
     for (NlaStrip &cs : strip->strips) {
@@ -704,7 +704,7 @@ static void nla_draw_strip_frames_text(
  */
 static ListBaseT<NlaStrip> get_visible_nla_strips(NlaTrack *nlt, View2D *v2d)
 {
-  if (BLI_listbase_is_empty(&nlt->strips)) {
+  if (nlt->strips.is_empty()) {
     ListBaseT<NlaStrip> empty = {nullptr, nullptr};
     return empty;
   }

@@ -240,7 +240,7 @@ bool ED_scene_view_layer_delete(Main *bmain, Scene *scene, ViewLayer *layer, Rep
   view_layer_remove_unset_nodetrees(bmain, scene, layer);
 
   BLI_remlink(&scene->view_layers, layer);
-  BLI_assert(BLI_listbase_is_empty(&scene->view_layers) == false);
+  BLI_assert(scene->view_layers.is_empty() == false);
 
   /* Remove from windows. */
   wmWindowManager *wm = static_cast<wmWindowManager *>(bmain->wm.first);

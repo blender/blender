@@ -801,7 +801,7 @@ void ED_mask_draw_frames(
     return;
   }
 
-  uint num_lines = BLI_listbase_count(&mask_layer->splines_shapes);
+  uint num_lines = mask_layer->splines_shapes.count();
   if (num_lines == 0) {
     return;
   }

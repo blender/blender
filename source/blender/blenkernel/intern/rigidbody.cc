@@ -2028,7 +2028,7 @@ static void rigidbody_free_substep_data(ListBaseT<LinkData> *substep_targets)
     MEM_delete(data);
   }
 
-  BLI_freelistN(substep_targets);
+  substep_targets->free_no_destruct();
 }
 static void rigidbody_update_simulation_post_step(Depsgraph *depsgraph, RigidBodyWorld *rbw)
 {

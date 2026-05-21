@@ -671,7 +671,7 @@ void bmo_grid_fill_exec(BMesh *bm, BMOperator *op)
   bm_edgeloop_flag_set(estore_a, BM_ELEM_HIDDEN, false);
   bm_edgeloop_flag_set(estore_b, BM_ELEM_HIDDEN, false);
 
-  if (BLI_listbase_is_empty(&eloops_rail)) {
+  if (eloops_rail.is_empty()) {
     BMO_error_raise(bm, op, BMO_ERROR_CANCEL, "Loops are not connected by wire/boundary edges");
     goto cleanup;
   }

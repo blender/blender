@@ -1015,7 +1015,7 @@ static void copy_particle_edit(Depsgraph *depsgraph,
 
   edit->pathcache = nullptr;
   edit->mirror_cache = nullptr;
-  BLI_listbase_clear(&edit->pathcachebufs);
+  edit->pathcachebufs.clear_no_delete();
 
   edit->emitter_field = nullptr;
   edit->emitter_cosnos = nullptr;
@@ -1115,7 +1115,7 @@ static bool copy_particle_systems_to_object(const bContext *C,
   static_cast<ParticleSystem *>( \
       (single_psys_from ? single_psys_from : ob_from->particlesystem.first))
 #define PSYS_FROM_NEXT(cur) (single_psys_from ? nullptr : (cur)->next)
-  totpsys = single_psys_from ? 1 : BLI_listbase_count(&ob_from->particlesystem);
+  totpsys = single_psys_from ? 1 : ob_from->particlesystem.count();
 
   tmp_psys = MEM_new_array_uninitialized<ParticleSystem *>(totpsys,
                                                            "temporary particle system array");
@@ -1227,7 +1227,7 @@ static bool copy_particle_systems_poll(bContext *C)
   }
 
   ob = ed::object::context_active_object(C);
-  if (BLI_listbase_is_empty(&ob->particlesystem)) {
+  if (ob->particlesystem.is_empty()) {
     return false;
   }
 
@@ -1333,7 +1333,7 @@ static bool duplicate_particle_systems_poll(bContext *C)
     return false;
   }
   Object *ob = ed::object::context_active_object(C);
-  if (BLI_listbase_is_empty(&ob->particlesystem)) {
+  if (ob->particlesystem.is_empty()) {
     return false;
   }
   if (ob->mode != OB_MODE_OBJECT) {
@@ -1385,7 +1385,7 @@ static bool remove_all_particle_systems_poll(bContext *C)
     return false;
   }
   const Object *ob = ed::object::context_active_object(C);
-  if (BLI_listbase_is_empty(&ob->particlesystem)) {
+  if (ob->particlesystem.is_empty()) {
     return false;
   }
   if (ob->mode != OB_MODE_OBJECT) {

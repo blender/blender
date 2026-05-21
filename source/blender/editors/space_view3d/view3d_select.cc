@@ -1803,7 +1803,7 @@ static bool object_mouse_select_menu(bContext *C,
   }
   if (base_count == 1) {
     Base *base = (static_cast<BaseRefWithDepth *>(base_ref_list.first))->base;
-    BLI_freelistN(&base_ref_list);
+    base_ref_list.free_no_destruct();
     *r_basact = base;
     return false;
   }
@@ -1841,7 +1841,7 @@ static bool object_mouse_select_menu(bContext *C,
   WM_operator_name_call_ptr(C, ot, wm::OpCallContext::InvokeDefault, &ptr, nullptr);
   WM_operator_properties_free(&ptr);
 
-  BLI_freelistN(&base_ref_list);
+  base_ref_list.free_no_destruct();
   return true;
 }
 
@@ -2042,7 +2042,7 @@ static bool bone_mouse_select_menu(bContext *C,
     return false;
   }
   if (bone_count == 1) {
-    BLI_freelistN(&bone_ref_list);
+    bone_ref_list.free_no_destruct();
     return false;
   }
 
@@ -2089,7 +2089,7 @@ static bool bone_mouse_select_menu(bContext *C,
   WM_operator_name_call_ptr(C, ot, wm::OpCallContext::InvokeDefault, &ptr, nullptr);
   WM_operator_properties_free(&ptr);
 
-  BLI_freelistN(&bone_ref_list);
+  bone_ref_list.free_no_destruct();
   return true;
 }
 

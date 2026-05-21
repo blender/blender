@@ -2601,7 +2601,7 @@ static void rna_SpaceGraphEditor_normalize_update(bContext *C, PointerRNA * /*pt
 static bool rna_SpaceGraphEditor_has_ghost_curves_get(PointerRNA *ptr)
 {
   SpaceGraph *sipo = static_cast<SpaceGraph *>(ptr->data);
-  return (BLI_listbase_is_empty(&sipo->runtime.ghost_curves) == false);
+  return (sipo->runtime.ghost_curves.is_empty() == false);
 }
 
 static void rna_SpaceConsole_rect_update(Main * /*bmain*/, Scene * /*scene*/, PointerRNA *ptr)

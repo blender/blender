@@ -296,7 +296,7 @@ static void apply_sampled_color(Main &bMain,
     }
 
     PaletteColor *color = BKE_palette_color_add(palette);
-    palette->active_color = BLI_listbase_count(&palette->colors) - 1;
+    palette->active_color = palette->colors.count() - 1;
     BKE_palette_color_set(color, sampled_color);
   }
   else {

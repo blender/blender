@@ -1288,7 +1288,7 @@ void psys_make_temp_pointcache(Object *ob, ParticleSystem *psys)
 {
   PointCache *cache = psys->pointcache;
 
-  if (cache->flag & PTCACHE_DISK_CACHE && BLI_listbase_is_empty(&cache->mem_cache)) {
+  if (cache->flag & PTCACHE_DISK_CACHE && cache->mem_cache.is_empty()) {
     PTCacheID pid;
     BKE_ptcache_id_from_particles(&pid, ob, psys);
     cache->flag &= ~PTCACHE_DISK_CACHE;
@@ -2837,7 +2837,7 @@ static int collision_detect(ParticleData *pa,
   const int raycast_flag = BVH_RAYCAST_DEFAULT & ~BVH_RAYCAST_WATERTIGHT;
   float ray_dir[3];
 
-  if (BLI_listbase_is_empty(colliders)) {
+  if (colliders->is_empty()) {
     return 0;
   }
 

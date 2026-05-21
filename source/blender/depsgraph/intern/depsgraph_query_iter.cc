@@ -291,7 +291,7 @@ void DEGObjectIterData::transfer_from(DEGObjectIterData &other)
 
 static Object *find_object_with_preview_geometry(const ViewerPath &viewer_path)
 {
-  if (BLI_listbase_is_empty(&viewer_path.path)) {
+  if (viewer_path.path.is_empty()) {
     return nullptr;
   }
   const ViewerPathElem *elem = static_cast<const ViewerPathElem *>(viewer_path.path.first);

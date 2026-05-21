@@ -74,7 +74,7 @@ static void wm_msg_remote_io_repr(FILE *stream, const wmMsgSubscribeKey *msg_key
           "values_len=%d\n",
           m,
           m->msg.head.id,
-          BLI_listbase_count(&m->head.values));
+          m->head.values.count());
 }
 
 void WM_msgtypeinfo_init_remote_io(wmMsgTypeInfo *msgtype_info)

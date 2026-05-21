@@ -1666,7 +1666,7 @@ static wmOperatorStatus edbm_vert_connect_path_exec(bContext *C, wmOperator *op)
       failed_selection_order_len++;
     }
 
-    if (!BLI_listbase_is_empty(&selected_orig)) {
+    if (!selected_orig.is_empty()) {
       BM_select_history_clear(bm);
       bm->selected = selected_orig;
     }

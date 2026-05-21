@@ -134,7 +134,7 @@ void BKE_reports_clear(ReportList *reports)
     report = report_next;
   }
 
-  BLI_listbase_clear(&reports->list);
+  reports->list.clear_no_delete();
 }
 
 void BKE_reports_lock(ReportList *reports)

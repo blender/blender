@@ -979,7 +979,7 @@ static void rna_Action_active_pose_marker_index_range(
   bAction *act = static_cast<bAction *>(ptr->data);
 
   *min = 0;
-  *max = max_ii(0, BLI_listbase_count(&act->markers) - 1);
+  *max = max_ii(0, act->markers.count() - 1);
 }
 
 static bool rna_Action_is_empty_get(PointerRNA *ptr)

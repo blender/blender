@@ -627,7 +627,7 @@ wmOperatorStatus join_objects_exec(bContext *C, wmOperator *op)
                                        face_ranges.total_size(),
                                        corner_ranges.total_size());
   BKE_mesh_copy_parameters_for_eval(dst_mesh, active_mesh);
-  BLI_freelistN(&dst_mesh->vertex_group_names);
+  dst_mesh->vertex_group_names.free_no_destruct();
   MEM_SAFE_DELETE(dst_mesh->mat);
   dst_mesh->totcol = 0;
 

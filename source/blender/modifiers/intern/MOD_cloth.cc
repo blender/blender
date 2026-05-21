@@ -217,7 +217,7 @@ static void free_data(ModifierData *md)
     }
 
     if (md->flag & eModifierFlag_SharedCaches) {
-      BLI_listbase_clear(&clmd->ptcaches);
+      clmd->ptcaches.clear_no_delete();
     }
     else {
       BKE_ptcache_free_list(&clmd->ptcaches);

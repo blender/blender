@@ -650,7 +650,7 @@ static wmOperatorStatus override_remove_button_exec(bContext *C, wmOperator *op)
     }
     BKE_lib_override_library_property_operation_delete(oprop, opop);
     RNA_property_copy(bmain, &ptr, &src, prop, index);
-    if (BLI_listbase_is_empty(&oprop->operations)) {
+    if (oprop->operations.is_empty()) {
       BKE_lib_override_library_property_delete(id->override_library, oprop);
     }
   }

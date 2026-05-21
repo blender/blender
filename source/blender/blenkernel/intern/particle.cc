@@ -160,7 +160,7 @@ static void particle_settings_free_data(ID *id)
 
   MEM_SAFE_DELETE(particle_settings->effector_weights);
 
-  BLI_freelistN(&particle_settings->instance_weights);
+  particle_settings->instance_weights.free_no_destruct();
 
   boid_free_settings(particle_settings->boids);
   fluid_free_settings(particle_settings->fluid);
@@ -373,7 +373,7 @@ static void particle_settings_blend_read_after_liblink(BlendLibReader * /*reader
   ParticleSettings *part = reinterpret_cast<ParticleSettings *>(id);
 
   if (part->instance_weights.first && !part->instance_collection) {
-    BLI_freelistN(&part->instance_weights);
+    part->instance_weights.free_no_destruct();
   }
 }
 
@@ -527,7 +527,7 @@ static void psys_free_path_cache_buffers(ParticleCacheKey **cache, ListBaseT<Lin
   for (LinkData &buf : *bufs) {
     MEM_delete(static_cast<ParticleCacheKey *>(buf.data));
   }
-  BLI_freelistN(bufs);
+  bufs->free_no_destruct();
 }
 
 /* -------------------------------------------------------------------- */
@@ -767,7 +767,7 @@ void psys_check_group_weights(ParticleSettings *part)
   ParticleDupliWeight *dw, *tdw;
 
   if (part->ren_as != PART_DRAW_GR || !part->instance_collection) {
-    BLI_freelistN(&part->instance_weights);
+    part->instance_weights.free_no_destruct();
     return;
   }
 
@@ -1032,7 +1032,7 @@ void psys_free(Object *ob, ParticleSystem *psys)
     }
     psys->pointcache = nullptr;
 
-    BLI_freelistN(&psys->targets);
+    psys->targets.free_no_destruct();
 
     BLI_bvhtree_free(psys->bvhtree);
     kdtree_free<float3>(psys->tree);
@@ -3115,7 +3115,7 @@ static void psys_thread_create_path(ParticleTask *task,
 
     if (pa) {
       ListBaseT<ModifierData> modifiers;
-      BLI_listbase_clear(&modifiers);
+      modifiers.clear_no_delete();
 
       psys_particle_on_emitter(ctx->sim.psmd,
                                part->from,
@@ -5659,8 +5659,8 @@ void BKE_particle_system_blend_read_data(BlendDataReader *reader,
     psys.free_edit = nullptr;
     psys.pathcache = nullptr;
     psys.childcache = nullptr;
-    BLI_listbase_clear(&psys.pathcachebufs);
-    BLI_listbase_clear(&psys.childcachebufs);
+    psys.pathcachebufs.clear_no_delete();
+    psys.childcachebufs.clear_no_delete();
     psys.pdd = nullptr;
 
     if (psys.clmd) {

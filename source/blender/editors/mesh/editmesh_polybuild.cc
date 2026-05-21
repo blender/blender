@@ -93,7 +93,7 @@ static bool edbm_preselect_or_active(bContext *C, const View3D *v3d, Base **r_ba
       /* Typically only reached when attempting to use the tool during animation playback. */
       gzgroup = nullptr;
     }
-    else if (BLI_listbase_is_empty(&gzgroup->gizmos)) {
+    else if (gzgroup->gizmos.is_empty()) {
       /* If the gizmo group is drawing it *should* never be empty.
        * Even so, avoid crashing if it is - investigate if this is ever reached. */
       BLI_assert(false);

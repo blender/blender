@@ -125,7 +125,7 @@ void bone_free(bArmature *arm, EditBone *bone)
     }
   }
 
-  BLI_freelistN(&bone->bone_collections);
+  bone->bone_collections.free_no_destruct();
   BLI_freelinkN(arm->edbo, bone);
 }
 
@@ -439,7 +439,7 @@ void ED_armature_edit_transform_mirror_update(Object *obedit)
  */
 static void copy_bonecollection_membership(EditBone *eBone, const Bone *bone)
 {
-  BLI_assert(BLI_listbase_is_empty(&eBone->bone_collections));
+  BLI_assert(eBone->bone_collections.is_empty());
   BLI_duplicatelist(&eBone->bone_collections, &bone->runtime.collections);
 }
 
@@ -853,10 +853,10 @@ void ED_armature_edit_free(bArmature *arm)
         if (eBone.system_properties) {
           IDP_FreeProperty(eBone.system_properties);
         }
-        BLI_freelistN(&eBone.bone_collections);
+        eBone.bone_collections.free_no_destruct();
       }
 
-      BLI_freelistN(arm->edbo);
+      arm->edbo->free_no_destruct();
     }
     MEM_delete(arm->edbo);
     arm->edbo = nullptr;
@@ -891,19 +891,19 @@ void ED_armature_ebone_listbase_free(ListBaseT<EditBone> *lb, const bool do_id_u
       IDP_FreeProperty_ex(ebone->system_properties, do_id_user);
     }
 
-    BLI_freelistN(&ebone->bone_collections);
+    ebone->bone_collections.free_no_destruct();
 
     MEM_delete(ebone);
   }
 
-  BLI_listbase_clear(lb);
+  lb->clear_no_delete();
 }
 
 void ED_armature_ebone_listbase_copy(ListBaseT<EditBone> *lb_dst,
                                      ListBaseT<EditBone> *lb_src,
                                      const bool do_id_user)
 {
-  BLI_assert(BLI_listbase_is_empty(lb_dst));
+  BLI_assert(lb_dst->is_empty());
 
   for (EditBone &ebone_src : *lb_src) {
     EditBone *ebone_dst = MEM_dupalloc(&ebone_src);

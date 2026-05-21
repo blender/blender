@@ -808,7 +808,7 @@ bool editmode_exit_ex(Main *bmain, Scene *scene, Object *obedit, int flag)
         pid.cache->flag |= PTCACHE_OUTDATED;
       }
     }
-    BLI_freelistN(&pidlist);
+    pidlist.free_no_destruct();
 
     BKE_particlesystem_reset_all(obedit);
     BKE_ptcache_object_reset(scene, obedit, PTCACHE_RESET_OUTDATED);
@@ -2275,7 +2275,7 @@ static wmOperatorStatus move_to_collection_exec(bContext *C, wmOperator *op)
     collection = BKE_collection_add(bmain, collection, new_collection_name);
   }
 
-  Object *single_object = BLI_listbase_is_single(&objects) ?
+  Object *single_object = objects.is_single() ?
                               static_cast<Object *>(
                                   (static_cast<LinkData *>(objects.first))->data) :
                               nullptr;
@@ -2288,7 +2288,7 @@ static wmOperatorStatus move_to_collection_exec(bContext *C, wmOperator *op)
                 "%s already in %s",
                 single_object->id.name + 2,
                 BKE_collection_ui_name_get(collection));
-    BLI_freelistN(&objects);
+    objects.free_no_destruct();
     return OPERATOR_CANCELLED;
   }
 
@@ -2302,7 +2302,7 @@ static wmOperatorStatus move_to_collection_exec(bContext *C, wmOperator *op)
       BKE_collection_object_add(bmain, collection, ob);
     }
   }
-  BLI_freelistN(&objects);
+  objects.free_no_destruct();
 
   if (is_link) {
     if (single_object != nullptr) {
@@ -2354,11 +2354,11 @@ static wmOperatorStatus move_to_collection_invoke(bContext *C,
                                                   const wmEvent * /*event*/)
 {
   ListBaseT<LinkData> objects = selected_objects_get(C);
-  if (BLI_listbase_is_empty(&objects)) {
+  if (objects.is_empty()) {
     BKE_report(op->reports, RPT_ERROR, "No objects selected");
     return OPERATOR_CANCELLED;
   }
-  BLI_freelistN(&objects);
+  objects.free_no_destruct();
   PropertyRNA *prop = RNA_struct_find_property(op->ptr, "collection_uid");
   bool is_move = STREQ(op->type->idname, "OBJECT_OT_move_to_collection");
   if (!RNA_property_is_set(op->ptr, prop)) {
@@ -2419,7 +2419,7 @@ static void move_to_collection_menu_draw(Menu *menu, Collection *collection, int
 
   for (CollectionChild &child : collection->children) {
     collection = child.collection;
-    if (BLI_listbase_is_empty(&collection->children)) {
+    if (collection->children.is_empty()) {
       op_ptr = layout.op(
           ot, BKE_collection_ui_name_get(collection), ui::icon_color_from_collection(collection));
       RNA_int_set(&op_ptr, "collection_uid", collection->id.session_uid);

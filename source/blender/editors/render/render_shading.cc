@@ -1748,7 +1748,7 @@ static wmOperatorStatus render_view_add_exec(bContext *C, wmOperator * /*op*/)
   Scene *scene = CTX_data_scene(C);
 
   BKE_scene_add_render_view(scene, nullptr);
-  scene->r.actview = BLI_listbase_count(&scene->r.views) - 1;
+  scene->r.actview = scene->r.views.count() - 1;
 
   WM_event_add_notifier(C, NC_SCENE | ND_RENDER_OPTIONS, scene);
 

@@ -1775,7 +1775,7 @@ static void rna_RenderSettings_active_view_index_range(
   RenderData *rd = static_cast<RenderData *>(ptr->data);
 
   *min = 0;
-  *max = max_ii(0, BLI_listbase_count(&rd->views) - 1);
+  *max = max_ii(0, rd->views.count() - 1);
 }
 
 static PointerRNA rna_RenderSettings_active_view_get(PointerRNA *ptr)
@@ -1903,7 +1903,7 @@ static void rna_Scene_update_render_engine(Main *bmain)
 
 static bool rna_RenderSettings_multiple_engines_get(PointerRNA * /*ptr*/)
 {
-  return (BLI_listbase_count(&R_engines) > 1);
+  return (R_engines.count() > 1);
 }
 
 static bool rna_RenderSettings_use_spherical_stereo_get(PointerRNA *ptr)
@@ -2508,7 +2508,7 @@ static void rna_TimeLine_remove(Scene *scene, ReportList *reports, PointerRNA *m
 
 static void rna_TimeLine_clear(Scene *scene)
 {
-  BLI_freelistN(&scene->markers);
+  scene->markers.free_no_destruct();
 
   WM_main_add_notifier(NC_SCENE | ND_MARKERS, nullptr);
   WM_main_add_notifier(NC_ANIMATION | ND_MARKERS, nullptr);
@@ -2530,7 +2530,7 @@ static KeyingSet *rna_Scene_keying_set_new(Scene *sce,
   ks = BKE_keyingset_add(&sce->keyingsets, idname, name, KEYINGSET_ABSOLUTE, INSERTKEY_NOFLAGS);
 
   if (ks) {
-    sce->active_keyingset = BLI_listbase_count(&sce->keyingsets);
+    sce->active_keyingset = sce->keyingsets.count();
     return ks;
   }
   else {
@@ -2680,7 +2680,7 @@ void rna_FreestyleSettings_active_lineset_index_range(
   FreestyleConfig *config = static_cast<FreestyleConfig *>(ptr->data);
 
   *min = 0;
-  *max = max_ii(0, BLI_listbase_count(&config->linesets) - 1);
+  *max = max_ii(0, config->linesets.count() - 1);
 }
 
 int rna_FreestyleSettings_active_lineset_index_get(PointerRNA *ptr)
@@ -2804,7 +2804,7 @@ void rna_ViewLayer_active_aov_index_range(
   ViewLayer *view_layer = static_cast<ViewLayer *>(ptr->data);
 
   *min = 0;
-  *max = max_ii(0, BLI_listbase_count(&view_layer->aovs) - 1);
+  *max = max_ii(0, view_layer->aovs.count() - 1);
 }
 
 int rna_ViewLayer_active_aov_index_get(PointerRNA *ptr)
@@ -2826,7 +2826,7 @@ void rna_ViewLayer_active_lightgroup_index_range(
   ViewLayer *view_layer = static_cast<ViewLayer *>(ptr->data);
 
   *min = 0;
-  *max = max_ii(0, BLI_listbase_count(&view_layer->lightgroups) - 1);
+  *max = max_ii(0, view_layer->lightgroups.count() - 1);
 }
 
 int rna_ViewLayer_active_lightgroup_index_get(PointerRNA *ptr)
@@ -2937,7 +2937,7 @@ static const EnumPropertyItem *rna_TransformOrientation_impl_itemf(Scene *scene,
                                                                       &scene->transform_spaces :
                                                                       nullptr;
 
-  if (transform_orientations && (BLI_listbase_is_empty(transform_orientations) == false)) {
+  if (transform_orientations && (transform_orientations->is_empty() == false)) {
     RNA_enum_item_add_separator(&item, &totitem);
 
     for (TransformOrientation &ts : *transform_orientations) {

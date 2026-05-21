@@ -80,7 +80,7 @@ void ED_node_tree_start(ARegion *region, SpaceNode *snode, bNodeTree *ntree, ID 
   for (bNodeTreePath &path : snode->treepath.items_mutable()) {
     MEM_delete(&path);
   }
-  BLI_listbase_clear(&snode->treepath);
+  snode->treepath.clear_no_delete();
 
   if (ntree) {
     bNodeTreePath *path = MEM_new<bNodeTreePath>("node tree path");
@@ -199,7 +199,7 @@ void ED_node_tree_pop(ARegion *region, SpaceNode *snode)
 
 int ED_node_tree_depth(SpaceNode *snode)
 {
-  return BLI_listbase_count(&snode->treepath);
+  return snode->treepath.count();
 }
 
 bNodeTree *ED_node_tree_get(SpaceNode *snode, int level)
@@ -675,7 +675,7 @@ static SpaceLink *node_create(const ScrArea * /*area*/, const Scene * /*scene*/)
 static void node_free(SpaceLink *sl)
 {
   SpaceNode *snode = reinterpret_cast<SpaceNode *>(sl);
-  BLI_freelistN(&snode->treepath);
+  snode->treepath.free_no_destruct();
   MEM_delete(snode->runtime);
 }
 
@@ -1432,7 +1432,7 @@ static void node_id_remap(ID *old_id, ID *new_id, SpaceNode *snode)
     /* nasty DNA logic for SpaceNode:
      * ideally should be handled by editor code, but would be bad level call
      */
-    BLI_freelistN(&snode->treepath);
+    snode->treepath.free_no_destruct();
 
     /* XXX Untested in case new_id != nullptr... */
     snode->id = new_id;

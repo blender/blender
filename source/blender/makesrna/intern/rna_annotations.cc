@@ -209,7 +209,7 @@ static void rna_annotation_active_layer_index_range(
   bGPdata *gpd = rna_annotations(ptr);
 
   *min = 0;
-  *max = max_ii(0, BLI_listbase_count(&gpd->layers) - 1);
+  *max = max_ii(0, gpd->layers.count() - 1);
 
   *softmin = *min;
   *softmax = *max;

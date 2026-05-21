@@ -1118,7 +1118,7 @@ static wmOperatorStatus min_distance_edit_invoke(bContext *C, wmOperator *op, co
   /* Temporarily disable other paint cursors. */
   wmWindowManager *wm = CTX_wm_manager(C);
   op_data->orig_paintcursors = wm->runtime->paintcursors;
-  BLI_listbase_clear(&wm->runtime->paintcursors);
+  wm->runtime->paintcursors.clear_no_delete();
 
   /* Add minimum distance paint cursor. */
   op_data->cursor = WM_paint_cursor_activate(

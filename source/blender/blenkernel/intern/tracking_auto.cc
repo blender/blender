@@ -366,7 +366,7 @@ static void autotrack_context_init_tracks_for_clip(AutoTrackContext *context, in
   MovieClip *clip = autotrack_clip->clip;
   const MovieTrackingObject *tracking_object = BKE_tracking_object_get_active(&clip->tracking);
 
-  const int num_clip_tracks = BLI_listbase_count(&tracking_object->tracks);
+  const int num_clip_tracks = tracking_object->tracks.count();
   if (num_clip_tracks == 0) {
     return;
   }
@@ -696,7 +696,7 @@ static void autotrack_context_reduce(const void *__restrict /*userdata*/,
                                      void *__restrict chunk)
 {
   AutoTrackTLS *autotrack_tls = static_cast<AutoTrackTLS *>(chunk);
-  if (BLI_listbase_is_empty(&autotrack_tls->results)) {
+  if (autotrack_tls->results.is_empty()) {
     /* Nothing to be joined from. */
     return;
   }
@@ -712,7 +712,7 @@ bool BKE_autotrack_context_step(AutoTrackContext *context)
   }
 
   AutoTrackTLS tls;
-  BLI_listbase_clear(&tls.results);
+  tls.results.clear_no_delete();
 
   TaskParallelSettings settings;
   BLI_parallel_range_settings_defaults(&settings);
@@ -764,7 +764,7 @@ void BKE_autotrack_context_sync(AutoTrackContext *context)
 
   BLI_spin_lock(&context->spin_lock);
   ListBaseT<AutoTrackTrackingResult> results_to_sync = context->results_to_sync;
-  BLI_listbase_clear(&context->results_to_sync);
+  context->results_to_sync.clear_no_delete();
   BLI_spin_unlock(&context->spin_lock);
 
   for (AutoTrackTrackingResult &autotrack_result : results_to_sync.items_mutable()) {
@@ -892,7 +892,7 @@ void BKE_autotrack_context_free(AutoTrackContext *context)
   MEM_SAFE_DELETE(context->all_autotrack_tracks);
   MEM_SAFE_DELETE(context->autotrack_markers);
 
-  BLI_freelistN(&context->results_to_sync);
+  context->results_to_sync.free_no_destruct();
 
   BLI_spin_end(&context->spin_lock);
 

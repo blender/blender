@@ -48,8 +48,7 @@ bool action_is_layered(const bAction &dna_action)
   const animrig::Action &action = dna_action.wrap();
 
   const bool has_layered_data = action.layer_array_num > 0 || action.slot_array_num > 0;
-  const bool has_animato_data = !(BLI_listbase_is_empty(&action.curves) &&
-                                  BLI_listbase_is_empty(&action.groups));
+  const bool has_animato_data = !(action.curves.is_empty() && action.groups.is_empty());
 
   return has_layered_data || !has_animato_data;
 }
@@ -99,8 +98,8 @@ void convert_legacy_animato_action(bAction &dna_action)
   Layer &layer = action.layer_add(DATA_(legacy::DEFAULT_LEGACY_LAYER_NAME));
   animrig::Strip &strip = layer.strip_add(action, animrig::Strip::Type::Keyframe);
   Channelbag &bag = strip.data<StripKeyframeData>(action).channelbag_for_slot_ensure(slot);
-  const int fcu_count = BLI_listbase_count(&action.curves);
-  const int group_count = BLI_listbase_count(&action.groups);
+  const int fcu_count = action.curves.count();
+  const int group_count = action.groups.count();
   bag.fcurve_array = MEM_new_array_zeroed<FCurve *>(fcu_count, "Action versioning - fcurves");
   bag.fcurve_array_num = fcu_count;
   bag.group_array = MEM_new_array_zeroed<bActionGroup *>(group_count,
@@ -278,7 +277,7 @@ void action_groups_reconstruct(bAction *act)
   /* Clear out all group channels. Channels that are actually in use are
    * reconstructed below; this step is necessary to clear out unused groups. */
   for (bActionGroup &group : act->groups) {
-    BLI_listbase_clear(&group.channels);
+    group.channels.clear_no_delete();
   }
   /* Sort the channels into the group lists, destroying the act->curves list. */
   ListBaseT<FCurve> ungrouped = {nullptr, nullptr};
@@ -292,7 +291,7 @@ void action_groups_reconstruct(bAction *act)
     }
   }
   /* Recombine into the main list. */
-  BLI_listbase_clear(&act->curves);
+  act->curves.clear_no_delete();
   for (bActionGroup &group : act->groups) {
     /* Copy the list header to preserve the pointers in the group. */
     ListBase tmp = group.channels;

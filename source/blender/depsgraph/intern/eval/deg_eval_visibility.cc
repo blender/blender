@@ -61,7 +61,7 @@ void deg_evaluate_object_modifiers_mode_node_visibility(blender::Depsgraph *deps
 
   DEG_debug_print_eval(depsgraph, __func__, object->id.name, &object->id);
 
-  if (BLI_listbase_is_empty(&object->modifiers)) {
+  if (object->modifiers.is_empty()) {
     return;
   }
 

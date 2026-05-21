@@ -924,7 +924,7 @@ void DepsgraphNodeBuilder::build_object_instance_collection(Object *object, bool
 
 void DepsgraphNodeBuilder::build_object_modifiers(Object *object)
 {
-  if (BLI_listbase_is_empty(&object->modifiers)) {
+  if (object->modifiers.is_empty()) {
     return;
   }
 
@@ -1250,7 +1250,7 @@ void DepsgraphNodeBuilder::build_animdata(ID *id)
   /* Make sure ID node exists. */
   (void)add_id_node(id);
   ID *id_cow = get_cow_id(id);
-  if (adt->action != nullptr || !BLI_listbase_is_empty(&adt->nla_tracks)) {
+  if (adt->action != nullptr || !adt->nla_tracks.is_empty()) {
     OperationNode *operation_node;
     /* Explicit entry operation. */
     operation_node = add_operation_node(id, NodeType::ANIMATION, OperationCode::ANIMATION_ENTRY);

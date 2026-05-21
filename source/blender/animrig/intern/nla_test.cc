@@ -120,8 +120,8 @@ TEST_F(NLASlottedActionTest, assign_slot_to_multiple_strips)
   strip1->end = 327;
   ASSERT_TRUE(BKE_nlatrack_add_strip(track, strip1, false));
   ASSERT_TRUE(BKE_nlatrack_add_strip(track, strip2, false));
-  ASSERT_EQ(1, BLI_listbase_count(&adt->nla_tracks));
-  ASSERT_EQ(2, BLI_listbase_count(&track->strips));
+  ASSERT_EQ(1, adt->nla_tracks.count());
+  ASSERT_EQ(2, track->strips.count());
 
   nla::unassign_action(*strip1, cube->id);
   nla::unassign_action(*strip2, cube->id);

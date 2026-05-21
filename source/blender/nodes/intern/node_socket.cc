@@ -618,8 +618,8 @@ static void refresh_node_sockets_and_panels(Main *bmain,
   }
 
   /* Clear and reinsert sockets in the new order. */
-  BLI_listbase_clear(&node.inputs);
-  BLI_listbase_clear(&node.outputs);
+  node.inputs.clear_no_delete();
+  node.outputs.clear_no_delete();
   for (bNodeSocket *socket : new_inputs) {
     BLI_addtail(&node.inputs, socket);
   }

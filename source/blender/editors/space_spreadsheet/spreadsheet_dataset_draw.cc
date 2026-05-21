@@ -1402,7 +1402,7 @@ static void draw_context_panel_without_context(ui::Layout &layout)
 
 static bool viewer_path_ends_with_viewer_node(const ViewerPath &viewer_path)
 {
-  if (BLI_listbase_is_empty(&viewer_path.path)) {
+  if (viewer_path.path.is_empty()) {
     return false;
   }
   const ViewerPathElem &last_elem = *static_cast<const ViewerPathElem *>(viewer_path.path.last);

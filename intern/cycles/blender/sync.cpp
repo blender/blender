@@ -188,7 +188,7 @@ void BlenderSync::sync_recalc(blender::Depsgraph &b_depsgraph,
           }
 
           if (updated_geometry) {
-            if (!BLI_listbase_is_empty(&b_ob->particlesystem)) {
+            if (!b_ob->particlesystem.is_empty()) {
               particle_system_map.set_recalc(b_ob);
             }
           }

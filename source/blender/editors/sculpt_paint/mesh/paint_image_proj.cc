@@ -4592,7 +4592,7 @@ static void project_paint_prepare_all_faces(ProjPaintState *ps,
   }
 
   /* we have built the array, discard the linked list */
-  BLI_freelistN(&used_images);
+  used_images.free_no_destruct();
 }
 
 /* run once per stroke before projection painting */

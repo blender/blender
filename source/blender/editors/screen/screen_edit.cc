@@ -603,7 +603,7 @@ void screen_area_spacelink_add(const Scene *scene, ScrArea *area, eSpace_Type sp
   area->regionbase = slink->regionbase;
 
   BLI_addhead(&area->spacedata, slink);
-  BLI_listbase_clear(&slink->regionbase);
+  slink->regionbase.clear_no_delete();
 }
 
 /* ****************** EXPORTED API TO OTHER MODULES *************************** */

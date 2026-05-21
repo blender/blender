@@ -330,13 +330,13 @@ void GPU_uniform_attr_list_free(GPUUniformAttrList *set)
 {
   set->count = 0;
   set->hash_code = 0;
-  BLI_freelistN(&set->list);
+  set->list.free_no_destruct();
 }
 
 void gpu_node_graph_finalize_uniform_attrs(GPUNodeGraph *graph)
 {
   GPUUniformAttrList *attrs = &graph->uniform_attrs;
-  BLI_assert(attrs->count == BLI_listbase_count(&attrs->list));
+  BLI_assert(attrs->count == attrs->list.count());
 
   /* Sort the attributes by name to ensure a stable order. */
   BLI_listbase_sort(&attrs->list, uniform_attr_sort_cmp);
@@ -941,7 +941,7 @@ static void gpu_inputs_free(ListBaseT<GPUInput> *inputs)
     }
   }
 
-  BLI_freelistN(inputs);
+  inputs->free_no_destruct();
 }
 
 static void gpu_node_free(GPUNode *node)
@@ -955,7 +955,7 @@ static void gpu_node_free(GPUNode *node)
     }
   }
 
-  BLI_freelistN(&node->outputs);
+  node->outputs.free_no_destruct();
   MEM_delete(node);
 }
 
@@ -973,15 +973,15 @@ void gpu_node_graph_free_nodes(GPUNodeGraph *graph)
 
 void gpu_node_graph_free(GPUNodeGraph *graph)
 {
-  BLI_freelistN(&graph->outlink_aovs);
-  BLI_freelistN(&graph->material_functions);
-  BLI_freelistN(&graph->outlink_compositor);
+  graph->outlink_aovs.free_no_destruct();
+  graph->material_functions.free_no_destruct();
+  graph->outlink_compositor.free_no_destruct();
   gpu_node_graph_free_nodes(graph);
 
-  BLI_freelistN(&graph->textures);
-  BLI_freelistN(&graph->attributes);
+  graph->textures.free_no_destruct();
+  graph->attributes.free_no_destruct();
   GPU_uniform_attr_list_free(&graph->uniform_attrs);
-  BLI_freelistN(&graph->layer_attrs);
+  graph->layer_attrs.free_no_destruct();
 }
 
 /* Prune Unused Nodes */

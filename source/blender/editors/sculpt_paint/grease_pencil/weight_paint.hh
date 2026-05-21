@@ -172,7 +172,7 @@ class WeightPaintOperation : public GreasePencilStrokeOperation {
           }
         }
       }
-      if (BLI_listbase_is_empty(defbase)) {
+      if (defbase->is_empty()) {
         BKE_object_defgroup_add(this->object);
         object_defgroup_nr = 0;
       }

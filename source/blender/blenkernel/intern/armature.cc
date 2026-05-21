@@ -232,7 +232,7 @@ static void armature_free_data(ID *id)
   /* Free all BoneCollectionMembership objects. */
   if (armature->collection_array) {
     for (BoneCollection *bcoll : armature->collections_span()) {
-      BLI_freelistN(&bcoll->bones);
+      bcoll->bones.free_no_destruct();
       ANIM_bonecoll_free(bcoll, false);
     }
     MEM_delete(armature->collection_array);
@@ -402,7 +402,7 @@ static void armature_blend_write(BlendWriter *writer, ID *id, const void *id_add
     arm->collection_array[i]->next = nullptr;
     arm->collection_array[i + 1]->prev = nullptr;
   }
-  BLI_listbase_clear(&arm->collections_legacy);
+  arm->collections_legacy.clear_no_delete();
 
   arm->runtime = runtime_backup;
 }
@@ -447,7 +447,7 @@ static void read_bone_collections(BlendDataReader *reader, bArmature *arm)
 {
   /* Read as listbase, but convert to an array on the armature. */
   BLO_read_struct_list(reader, BoneCollection, &arm->collections_legacy);
-  arm->collection_array_num = BLI_listbase_count(&arm->collections_legacy);
+  arm->collection_array_num = arm->collections_legacy.count();
   arm->collection_array = MEM_new_array_uninitialized<BoneCollection *>(
       size_t(arm->collection_array_num), __func__);
   {
@@ -481,7 +481,7 @@ static void read_bone_collections(BlendDataReader *reader, bArmature *arm)
     arm->collection_array[i]->next = nullptr;
     arm->collection_array[i + 1]->prev = nullptr;
   }
-  BLI_listbase_clear(&arm->collections_legacy);
+  arm->collections_legacy.clear_no_delete();
 
   /* Bone collections added via an override can be edited, but ones that already exist in another
    * blend file (so on the linked Armature) should not be touched. */
@@ -606,11 +606,11 @@ void BKE_armature_bonelist_free(ListBaseT<Bone> *lb, const bool do_id_user)
     if (bone.system_properties) {
       IDP_FreeProperty_ex(bone.system_properties, do_id_user);
     }
-    BLI_freelistN(&bone.runtime.collections);
+    bone.runtime.collections.free_no_destruct();
     BKE_armature_bonelist_free(&bone.childbase, do_id_user);
   }
 
-  BLI_freelistN(lb);
+  lb->free_no_destruct();
 }
 
 void BKE_armature_editbonelist_free(ListBaseT<EditBone> *lb, const bool do_id_user)
@@ -649,7 +649,7 @@ static void copy_bonechildren(Bone *bone_dst,
   /* Clear the runtime cache of the collection relations, these will be
    * reconstructed after the entire armature duplication is done. Don't free,
    * just clear, as these pointers refer to the original and not the copy. */
-  BLI_listbase_clear(&bone_dst->runtime.collections);
+  bone_dst->runtime.collections.clear_no_delete();
 
   /* Copy this bone's list */
   BLI_duplicatelist(&bone_dst->childbase, &bone_src->childbase);
@@ -801,7 +801,7 @@ static void armature_transform_recurse(ListBaseT<Bone> *bonebase,
       bone.zwidth *= scale;
     }
 
-    if (!BLI_listbase_is_empty(&bone.childbase)) {
+    if (!bone.childbase.is_empty()) {
       float arm_mat_inv[4][4];
       invert_m4_m4(arm_mat_inv, bone.arm_mat);
       armature_transform_recurse(&bone.childbase, mat, do_props, mat3, scale, &bone, arm_mat_inv);
@@ -3482,8 +3482,8 @@ const Bone *bArmature::bone_get_indexed(const int64_t bone_index) const
 {
   /* The logic 'if runtime->bones is empty, the array needs rebuilding' is only valid when calling
    * this function implies there is at least one bone. */
-  BLI_assert(!BLI_listbase_is_empty(&this->bonebase));
-  if (BLI_listbase_is_empty(&this->bonebase)) {
+  BLI_assert(!this->bonebase.is_empty());
+  if (this->bonebase.is_empty()) {
     return nullptr;
   }
 

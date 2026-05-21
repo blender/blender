@@ -425,7 +425,7 @@ static bool use_row_filters(const SpaceSpreadsheet &sspreadsheet)
   if (!(sspreadsheet.filter_flag & SPREADSHEET_FILTER_ENABLE)) {
     return false;
   }
-  if (BLI_listbase_is_empty(&sspreadsheet.row_filters)) {
+  if (sspreadsheet.row_filters.is_empty()) {
     return false;
   }
   return true;

@@ -138,7 +138,7 @@ static void action_copy_data(Main * /*bmain*/,
   BKE_copy_time_markers(action_dst.markers, action_src.markers, flag);
 
   /* Copy F-Curves, fixing up the links as we go. */
-  BLI_listbase_clear(&action_dst.curves);
+  action_dst.curves.clear_no_delete();
 
   for (fcurve_src = static_cast<FCurve *>(action_src.curves.first); fcurve_src;
        fcurve_src = fcurve_src->next)
@@ -234,10 +234,10 @@ static void action_free_data(ID *id)
 
   /* Free legacy F-Curves & groups. */
   BKE_fcurves_free(&action.curves);
-  BLI_freelistN(&action.groups);
+  action.groups.free_no_destruct();
 
   /* Free markers & preview. */
-  BLI_freelistN(&action.markers);
+  action.markers.free_no_destruct();
   BKE_previewimg_id_free(&action.id);
 
   BLI_assert(action.is_empty());
@@ -403,7 +403,7 @@ static void action_blend_write_make_legacy_channel_groups_listbase(
     ListBaseT<bActionGroup> &listbase, const Span<bActionGroup *> channel_groups)
 {
   if (channel_groups.is_empty()) {
-    BLI_listbase_clear(&listbase);
+    listbase.clear_no_delete();
     return;
   }
 
@@ -442,7 +442,7 @@ static void action_blend_write_clear_legacy_channel_groups_listbase(
     group.channels = {nullptr, nullptr};
   }
 
-  BLI_listbase_clear(&listbase);
+  listbase.clear_no_delete();
 }
 
 /**
@@ -463,7 +463,7 @@ static void action_blend_write_make_legacy_fcurves_listbase(ListBaseT<FCurve> &l
                                                             const Span<FCurve *> fcurves)
 {
   if (fcurves.is_empty()) {
-    BLI_listbase_clear(&listbase);
+    listbase.clear_no_delete();
     return;
   }
 
@@ -485,7 +485,7 @@ static void action_blend_write_clear_legacy_fcurves_listbase(ListBaseT<FCurve> &
     fcurve.next = nullptr;
   }
 
-  BLI_listbase_clear(&listbase);
+  listbase.clear_no_delete();
 }
 
 static void action_blend_write(BlendWriter *writer, ID *id, const void *id_address)
@@ -497,10 +497,8 @@ static void action_blend_write(BlendWriter *writer, ID *id, const void *id_addre
   const bool do_write_forward_compat = !BLO_write_is_undo(writer) && action.slot_array_num > 0;
   if (do_write_forward_compat) {
     animrig::assert_baklava_phase_1_invariants(action);
-    BLI_assert_msg(BLI_listbase_is_empty(&action.curves),
-                   "Layered Action should not have legacy data");
-    BLI_assert_msg(BLI_listbase_is_empty(&action.groups),
-                   "Layered Action should not have legacy data");
+    BLI_assert_msg(action.curves.is_empty(), "Layered Action should not have legacy data");
+    BLI_assert_msg(action.groups.is_empty(), "Layered Action should not have legacy data");
 
     const animrig::Slot &first_slot = *action.slot(0);
 
@@ -682,8 +680,8 @@ static void action_blend_read_data(BlendDataReader *reader, ID *id)
 
   if (animrig::versioning::action_is_layered(action)) {
     /* Clear the forward-compatible storage (see action_blend_write_data()). */
-    BLI_listbase_clear(&action.curves);
-    BLI_listbase_clear(&action.groups);
+    action.curves.clear_no_delete();
+    action.groups.clear_no_delete();
 
     /* Layered actions should always have `idroot == 0`, but when writing an
      * action to a blend file `idroot` is typically set otherwise for forward
@@ -1398,12 +1396,12 @@ void BKE_pose_channel_free(bPoseChannel *pchan)
 
 void BKE_pose_channels_free_ex(bPose *pose, bool do_id_user)
 {
-  if (!BLI_listbase_is_empty(&pose->chanbase)) {
+  if (!pose->chanbase.is_empty()) {
     for (bPoseChannel &pchan : pose->chanbase) {
       BKE_pose_channel_free_ex(&pchan, do_id_user);
     }
 
-    BLI_freelistN(&pose->chanbase);
+    pose->chanbase.free_no_destruct();
   }
 
   BKE_pose_channels_hash_free(pose);
@@ -1423,7 +1421,7 @@ void BKE_pose_free_data_ex(bPose *pose, bool do_id_user)
 
   /* free pose-groups */
   if (pose->agroups.first) {
-    BLI_freelistN(&pose->agroups);
+    pose->agroups.free_no_destruct();
   }
 
   /* free IK solver state */
@@ -1618,7 +1616,7 @@ bActionGroup *BKE_pose_add_group(bPose *pose, const char *name)
   BLI_addtail(&pose->agroups, grp);
   BLI_uniquename(&pose->agroups, grp, name, '.', offsetof(bActionGroup, name), sizeof(grp->name));
 
-  pose->active_group = BLI_listbase_count(&pose->agroups);
+  pose->active_group = pose->agroups.count();
 
   return grp;
 }
@@ -1649,7 +1647,7 @@ void BKE_pose_remove_group(bPose *pose, bActionGroup *grp, const int index)
   /* now, remove it from the pose */
   BLI_freelinkN(&pose->agroups, grp);
   if (pose->active_group >= idx) {
-    const bool has_groups = !BLI_listbase_is_empty(&pose->agroups);
+    const bool has_groups = !pose->agroups.is_empty();
     pose->active_group--;
     if (pose->active_group == 0 && has_groups) {
       pose->active_group = 1;
@@ -1958,8 +1956,8 @@ void BKE_pose_blend_read_data(BlendDataReader *reader, ID *id_owner, bPose *pose
       animviz_motionpath_blend_read_data(reader, pchan.mpath);
     }
 
-    BLI_listbase_clear(&pchan.iktree);
-    BLI_listbase_clear(&pchan.siktree);
+    pchan.iktree.clear_no_delete();
+    pchan.siktree.clear_no_delete();
 
     /* in case this value changes in future, clamp else we get undefined behavior */
     CLAMP(pchan.rotmode, ROT_MODE_MIN, ROT_MODE_MAX);

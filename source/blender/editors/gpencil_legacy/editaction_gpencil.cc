@@ -307,7 +307,7 @@ static int gpencil_anim_copy_cfra = 0;
 void ED_gpencil_anim_copybuf_free()
 {
   BKE_gpencil_free_layers(&gpencil_anim_copybuf);
-  BLI_listbase_clear(&gpencil_anim_copybuf);
+  gpencil_anim_copybuf.clear_no_delete();
 
   gpencil_anim_copy_firstframe = 999999999;
   gpencil_anim_copy_lastframe = -999999999;
@@ -354,7 +354,7 @@ bool ED_gpencil_anim_copybuf_copy(bAnimContext *ac)
     }
 
     /* create a new layer in buffer if there were keyframes here */
-    if (BLI_listbase_is_empty(&copied_frames) == false) {
+    if (copied_frames.is_empty() == false) {
       bGPDlayer *new_layer = MEM_new<bGPDlayer>("GPCopyPasteLayer");
       BLI_addtail(&gpencil_anim_copybuf, new_layer);
 
@@ -374,7 +374,7 @@ bool ED_gpencil_anim_copybuf_copy(bAnimContext *ac)
   ANIM_animdata_freelist(&anim_data);
 
   /* report success */
-  return !BLI_listbase_is_empty(&gpencil_anim_copybuf);
+  return !gpencil_anim_copybuf.is_empty();
 }
 
 bool ED_gpencil_anim_copybuf_paste(bAnimContext *ac, const short offset_mode)
@@ -384,7 +384,7 @@ bool ED_gpencil_anim_copybuf_paste(bAnimContext *ac, const short offset_mode)
   int offset = 0;
 
   /* check if buffer is empty */
-  if (BLI_listbase_is_empty(&gpencil_anim_copybuf)) {
+  if (gpencil_anim_copybuf.is_empty()) {
     return false;
   }
 
@@ -415,7 +415,7 @@ bool ED_gpencil_anim_copybuf_paste(bAnimContext *ac, const short offset_mode)
                 ANIMFILTER_NODUPLIS | ANIMFILTER_SEL);
   ANIM_animdata_filter(
       ac, &anim_data, eAnimFilter_Flags(filter), ac->data, eAnimCont_Types(ac->datatype));
-  if (BLI_listbase_is_empty(&anim_data)) {
+  if (anim_data.is_empty()) {
     /* If no channels are selected at all, make even unselected layers "targets" for pasting. */
     filter = (ANIMFILTER_DATA_VISIBLE | ANIMFILTER_LIST_VISIBLE | ANIMFILTER_NODUPLIS |
               ANIMFILTER_FOREDIT);
@@ -473,7 +473,7 @@ bool ED_gpencil_anim_copybuf_paste(bAnimContext *ac, const short offset_mode)
         }
 
         /* if no strokes (i.e. new frame) added, free gpf */
-        if (BLI_listbase_is_empty(&gpf->strokes)) {
+        if (gpf->strokes.is_empty()) {
           BKE_gpencil_layer_frame_delete(gpld, gpf);
         }
       }
