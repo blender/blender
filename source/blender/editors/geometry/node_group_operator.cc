@@ -1897,9 +1897,9 @@ static asset::AssetItemTree build_catalog_tree(const bContext &C, const Object &
  * builtin menus. The need to define the builtin menu labels here is non-ideal. We don't have
  * any UI introspection that can do this though.
  */
-static Set<std::string> get_builtin_menus(const ObjectType object_type, const eObjectMode mode)
+static Set<StringRef> get_builtin_menus(const ObjectType object_type, const eObjectMode mode)
 {
-  Set<std::string> menus;
+  Set<StringRef> menus;
   switch (object_type) {
     case OB_CURVES:
       menus.add_new("View");
@@ -2041,8 +2041,8 @@ static void catalog_assets_draw(const bContext *C, Menu *menu)
                                      UI_ITEM_NONE);
   }
 
-  const Set<std::string> builtin_menus = get_builtin_menus(ObjectType(active_object->type),
-                                                           eObjectMode(active_object->mode));
+  const Set<StringRef> builtin_menus = get_builtin_menus(ObjectType(active_object->type),
+                                                         eObjectMode(active_object->mode));
 
   asset_system::AssetLibrary *all_library = asset::list::library_get_once_available(
       asset_system::all_library_reference());
@@ -2211,8 +2211,8 @@ void ui_template_node_operator_asset_root_items(ui::Layout &layout, const bConte
     *tree = build_catalog_tree(C, *active_object);
   }
 
-  const Set<std::string> builtin_menus = get_builtin_menus(ObjectType(active_object->type),
-                                                           eObjectMode(active_object->mode));
+  const Set<StringRef> builtin_menus = get_builtin_menus(ObjectType(active_object->type),
+                                                         eObjectMode(active_object->mode));
 
   tree->catalogs.foreach_root_item([&](const asset_system::AssetCatalogTreeItem &item) {
     if (!builtin_menus.contains_as(item.catalog_path().str())) {
