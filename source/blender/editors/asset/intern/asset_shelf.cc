@@ -567,10 +567,12 @@ void region_layout(const bContext *C, ARegion *region)
       shelf_regiondata,
       "Region-data should've been created by a previously called `region_on_poll_success()`.");
 
-  const AssetShelf *active_shelf = shelf_regiondata->active_shelf;
+  AssetShelf *active_shelf = shelf_regiondata->active_shelf;
   if (!active_shelf) {
     return;
   }
+
+  settings_ensure_valid_library_ref(active_shelf->settings);
 
   ui::Block *block = block_begin(C, region, __func__, ui::EmbossType::Emboss);
 
@@ -772,11 +774,8 @@ int context(const bContext *C, const char *member, bContextDataResult *result)
     if (!active_shelf) {
       return CTX_RESULT_NO_DATA;
     }
-
-    CTX_data_pointer_set(result,
-                         &screen->id,
-                         RNA_AssetLibraryReference,
-                         &active_shelf->settings.asset_library_reference);
+    AssetLibraryReference &library_ref = settings_ensure_valid_library_ref(active_shelf->settings);
+    CTX_data_pointer_set(result, &screen->id, RNA_AssetLibraryReference, &library_ref);
     return CTX_RESULT_OK;
   }
 

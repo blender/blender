@@ -237,6 +237,8 @@ static void popover_panel_draw(const bContext *C, Panel *panel)
     return;
   }
 
+  settings_ensure_valid_library_ref(shelf->settings);
+
   bScreen *screen = CTX_wm_screen(C);
   PointerRNA library_ref_ptr = RNA_pointer_create_discrete(
       &screen->id, RNA_AssetLibraryReference, &shelf->settings.asset_library_reference);
