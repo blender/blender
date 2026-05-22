@@ -144,7 +144,7 @@ class LazyFunctionForGeometryNode : public LazyFunction {
         node, inputs_, outputs_, own_lf_graph_info.mapping.lf_index_by_bsocket);
 
     const NodeDeclaration &node_decl = *node.declaration();
-    const rl::RelationsInNode *relations = node_decl.anonymous_attribute_relations();
+    const rl::RelationsInNode *relations = node_decl.reference_lifetime_relations();
     if (relations == nullptr) {
       return;
     }

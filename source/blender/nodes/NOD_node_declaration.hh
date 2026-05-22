@@ -278,11 +278,15 @@ class PanelDeclarationBuilder;
 
 class BaseSocketDeclarationBuilder {
  protected:
-  bool reference_pass_all_ = false;
-  bool field_on_all_ = false;
-  bool propagate_from_all_ = false;
   NodeDeclarationBuilder *node_decl_builder_ = nullptr;
   SocketDeclaration *decl_base_ = nullptr;
+
+  /* Variables which are used to add additional data to the declaration after all sockets have been
+   * added. */
+  bool propagate_all_input_references_ = false;
+  bool propagate_all_input_data_ = false;
+  bool input_reference_used_on_all_data_ = false;
+  bool output_reference_available_on_all_data_ = false;
 
   friend class NodeDeclarationBuilder;
   friend class DeclarationListBuilder;
@@ -614,7 +618,7 @@ class NodeDeclaration {
   Vector<SocketDeclaration *> inputs;
   Vector<SocketDeclaration *> outputs;
   Vector<PanelDeclaration *> panels;
-  std::unique_ptr<rl::RelationsInNode> anonymous_attribute_relations_;
+  std::unique_ptr<rl::RelationsInNode> reference_lifetime_relations_;
 
   /** Leave the sockets in place, even if they don't match the declaration. Used for dynamic
    * declarations when the information used to build the declaration is missing, but might become
@@ -642,9 +646,9 @@ class NodeDeclaration {
   bool matches(const bNode &node) const;
   Span<SocketDeclaration *> sockets(eNodeSocketInOut in_out) const;
 
-  const rl::RelationsInNode *anonymous_attribute_relations() const
+  const rl::RelationsInNode *reference_lifetime_relations() const
   {
-    return anonymous_attribute_relations_.get();
+    return reference_lifetime_relations_.get();
   }
 
   MEM_CXX_CLASS_ALLOC_FUNCS("NodeDeclaration")
@@ -696,12 +700,12 @@ class NodeDeclarationBuilder : public DeclarationListBuilder {
   void use_custom_socket_order(bool enable = true);
   void allow_any_socket_order(bool enable = true);
 
-  rl::RelationsInNode &get_anonymous_attribute_relations()
+  rl::RelationsInNode &get_reference_lifetime_relations()
   {
-    if (!declaration_.anonymous_attribute_relations_) {
-      declaration_.anonymous_attribute_relations_ = std::make_unique<rl::RelationsInNode>();
+    if (!declaration_.reference_lifetime_relations_) {
+      declaration_.reference_lifetime_relations_ = std::make_unique<rl::RelationsInNode>();
     }
-    return *declaration_.anonymous_attribute_relations_;
+    return *declaration_.reference_lifetime_relations_;
   }
 
   NodeDeclaration &declaration()

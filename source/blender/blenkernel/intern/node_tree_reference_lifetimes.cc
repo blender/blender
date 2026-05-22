@@ -221,7 +221,7 @@ static Array<const rl::RelationsInNode *> prepare_relations_by_node(const bNodeT
       }
       default: {
         if (const NodeDeclaration *node_decl = node->declaration()) {
-          node_relations = node_decl->anonymous_attribute_relations();
+          node_relations = node_decl->reference_lifetime_relations();
         }
         break;
       }

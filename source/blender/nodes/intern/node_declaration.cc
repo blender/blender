@@ -57,8 +57,8 @@ void NodeDeclarationBuilder::build_remaining_anonymous_attribute_relations()
   }
 
   for (BaseSocketDeclarationBuilder *socket_builder : input_socket_builders_) {
-    if (socket_builder->field_on_all_) {
-      rl::RelationsInNode &relations = this->get_anonymous_attribute_relations();
+    if (socket_builder->input_reference_used_on_all_data_) {
+      rl::RelationsInNode &relations = this->get_reference_lifetime_relations();
       const int reference_input = socket_builder->decl_base_->index;
       for (const int data_input : data_inputs) {
         relations.use_relations.append({reference_input, data_input});
@@ -66,15 +66,15 @@ void NodeDeclarationBuilder::build_remaining_anonymous_attribute_relations()
     }
   }
   for (BaseSocketDeclarationBuilder *socket_builder : output_socket_builders_) {
-    if (socket_builder->field_on_all_) {
-      rl::RelationsInNode &relations = this->get_anonymous_attribute_relations();
+    if (socket_builder->output_reference_available_on_all_data_) {
+      rl::RelationsInNode &relations = this->get_reference_lifetime_relations();
       const int reference_output = socket_builder->decl_base_->index;
       for (const int data_output : data_outputs) {
         relations.available_relations.append({reference_output, data_output});
       }
     }
-    if (socket_builder->reference_pass_all_) {
-      rl::RelationsInNode &relations = this->get_anonymous_attribute_relations();
+    if (socket_builder->propagate_all_input_references_) {
+      rl::RelationsInNode &relations = this->get_reference_lifetime_relations();
       const int reference_output = socket_builder->decl_base_->index;
       for (const int input_i : declaration_.inputs.index_range()) {
         SocketDeclaration &input_socket_decl = *declaration_.inputs[input_i];
@@ -85,8 +85,8 @@ void NodeDeclarationBuilder::build_remaining_anonymous_attribute_relations()
         }
       }
     }
-    if (socket_builder->propagate_from_all_) {
-      rl::RelationsInNode &relations = this->get_anonymous_attribute_relations();
+    if (socket_builder->propagate_all_input_data_) {
+      rl::RelationsInNode &relations = this->get_reference_lifetime_relations();
       const int data_output = socket_builder->decl_base_->index;
       for (const int data_input : data_inputs) {
         relations.data_propagations.append({data_input, data_output});
@@ -585,7 +585,7 @@ BaseSocketDeclarationBuilder &BaseSocketDeclarationBuilder::reference_pass(
     const Span<int> input_indices)
 {
   BLI_assert(this->is_output());
-  rl::RelationsInNode &relations = node_decl_builder_->get_anonymous_attribute_relations();
+  rl::RelationsInNode &relations = node_decl_builder_->get_reference_lifetime_relations();
   for (const int from_input : input_indices) {
     rl::ReferencePropagation relation;
     relation.from_input = from_input;
@@ -597,7 +597,7 @@ BaseSocketDeclarationBuilder &BaseSocketDeclarationBuilder::reference_pass(
 
 BaseSocketDeclarationBuilder &BaseSocketDeclarationBuilder::field_on(const Span<int> indices)
 {
-  rl::RelationsInNode &relations = node_decl_builder_->get_anonymous_attribute_relations();
+  rl::RelationsInNode &relations = node_decl_builder_->get_reference_lifetime_relations();
   if (this->is_input()) {
     this->supports_field();
     for (const int input_index : indices) {
@@ -683,11 +683,12 @@ BaseSocketDeclarationBuilder &BaseSocketDeclarationBuilder::field_on_all()
 {
   if (this->is_input()) {
     this->supports_field();
+    input_reference_used_on_all_data_ = true;
   }
   if (this->is_output()) {
     this->field_source();
+    output_reference_available_on_all_data_ = true;
   }
-  field_on_all_ = true;
   this->structure_type(StructureType::Field);
   return *this;
 }
@@ -712,8 +713,9 @@ BaseSocketDeclarationBuilder &BaseSocketDeclarationBuilder::implicit_field(
 BaseSocketDeclarationBuilder &BaseSocketDeclarationBuilder::implicit_field_on_all(
     const NodeDefaultInputType default_input_type)
 {
+  BLI_assert(this->is_input());
+  input_reference_used_on_all_data_ = true;
   this->implicit_field(default_input_type);
-  field_on_all_ = true;
   this->structure_type(StructureType::Field);
   return *this;
 }
@@ -745,13 +747,15 @@ BaseSocketDeclarationBuilder &BaseSocketDeclarationBuilder::field_source_referen
 
 BaseSocketDeclarationBuilder &BaseSocketDeclarationBuilder::reference_pass_all()
 {
-  reference_pass_all_ = true;
+  BLI_assert(this->is_output());
+  propagate_all_input_references_ = true;
   return *this;
 }
 
 BaseSocketDeclarationBuilder &BaseSocketDeclarationBuilder::propagate_all()
 {
-  propagate_from_all_ = true;
+  BLI_assert(this->is_output());
+  propagate_all_input_data_ = true;
   return *this;
 }
 
