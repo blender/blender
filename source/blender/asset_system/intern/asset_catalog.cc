@@ -315,8 +315,8 @@ void AssetCatalogService::load_from_disk(const CatalogFilePath &file_or_director
 {
   BLI_stat_t status;
   if (BLI_stat(file_or_directory_path.data(), &status) == -1) {
-    /* TODO(@sybren): throw an appropriate exception. */
-    CLOG_WARN(&LOG, "path not found: %s", file_or_directory_path.data());
+    /* It's fine if the catalogs file doesn't exist, it just means there are no catalogs. */
+    CLOG_DEBUG(&LOG, "path not found: %s", file_or_directory_path.data());
     return;
   }
 
