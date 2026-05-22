@@ -14,7 +14,6 @@
 #include "BKE_pointcloud.hh"
 
 #include "BLI_math_geom.h"
-#include "BLI_ordered_edge.hh"
 #include "BLI_stack.hh"
 #include "BLI_virtual_array_range_spans.hh"
 
