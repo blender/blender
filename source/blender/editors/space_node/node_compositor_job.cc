@@ -172,6 +172,10 @@ static void compositor_job_free(void *compositor_job_data)
 
 static bool is_compositing_possible(const Scene *scene)
 {
+  if (G.background) {
+    return false;
+  }
+
   if (G.is_rendering) {
     return false;
   }
