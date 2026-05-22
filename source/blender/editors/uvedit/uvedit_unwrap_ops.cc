@@ -67,6 +67,8 @@
 #include "ED_uvedit.hh"
 #include "ED_view3d.hh"
 
+#include "DEG_depsgraph_query.hh"
+
 #include "RNA_access.hh"
 #include "RNA_define.hh"
 
@@ -3502,6 +3504,7 @@ static wmOperatorStatus uv_from_view_exec(bContext *C, wmOperator *op)
   View3D *v3d = CTX_wm_view3d(C);
   RegionView3D *rv3d = CTX_wm_region_view3d(C);
   const Camera *camera = ED_view3d_camera_data_get(v3d, rv3d);
+  Depsgraph *depsgraph = CTX_data_ensure_evaluated_depsgraph(C);
   BMFace *efa;
   BMLoop *l;
   BMIter iter, liter;
@@ -3527,6 +3530,7 @@ static wmOperatorStatus uv_from_view_exec(bContext *C, wmOperator *op)
   }
 
   Vector<Object *> changed_objects;
+  Scene *scene_eval = const_cast<Scene *>(DEG_get_evaluated(depsgraph, scene));
 
   for (Object *obedit : objects) {
     BMEditMesh *em = BKE_editmesh_from_object(obedit);
@@ -3539,6 +3543,15 @@ static wmOperatorStatus uv_from_view_exec(bContext *C, wmOperator *op)
 
     const int cd_loop_uv_offset = CustomData_get_offset(&em->bm->ldata, CD_PROP_FLOAT2);
 
+    Array<float3> vert_positions_storage;
+    Object *obedit_eval = DEG_get_evaluated(depsgraph, obedit);
+    Span<float3> vert_positions = BKE_editmesh_vert_coords_when_deformed(
+        depsgraph, em, scene_eval, obedit_eval, vert_positions_storage);
+
+    if (!vert_positions.is_empty()) {
+      BM_mesh_elem_index_ensure(em->bm, BM_VERT);
+    }
+
     if (use_orthographic) {
       uv_map_rotation_matrix_ex(rotmat, rv3d, obedit, 90.0f, 0.0f, 1.0f, objects_pos_offset);
 
@@ -3549,7 +3562,10 @@ static wmOperatorStatus uv_from_view_exec(bContext *C, wmOperator *op)
 
         BM_ITER_ELEM (l, &liter, efa, BM_LOOPS_OF_FACE) {
           float *luv = BM_ELEM_CD_GET_FLOAT_P(l, cd_loop_uv_offset);
-          BKE_uvproject_from_view_ortho(luv, l->v->co, rotmat);
+          const float *v_co = vert_positions.is_empty() ?
+                                  l->v->co :
+                                  &vert_positions[BM_elem_index_get(l->v)].x;
+          BKE_uvproject_from_view_ortho(luv, v_co, rotmat);
         }
         changed = true;
       }
@@ -3570,7 +3586,10 @@ static wmOperatorStatus uv_from_view_exec(bContext *C, wmOperator *op)
 
           BM_ITER_ELEM (l, &liter, efa, BM_LOOPS_OF_FACE) {
             float *luv = BM_ELEM_CD_GET_FLOAT_P(l, cd_loop_uv_offset);
-            BKE_uvproject_from_camera(luv, l->v->co, uci);
+            const float *v_co = vert_positions.is_empty() ?
+                                    l->v->co :
+                                    &vert_positions[BM_elem_index_get(l->v)].x;
+            BKE_uvproject_from_camera(luv, v_co, uci);
           }
           changed = true;
         }
@@ -3588,8 +3607,10 @@ static wmOperatorStatus uv_from_view_exec(bContext *C, wmOperator *op)
 
         BM_ITER_ELEM (l, &liter, efa, BM_LOOPS_OF_FACE) {
           float *luv = BM_ELEM_CD_GET_FLOAT_P(l, cd_loop_uv_offset);
-          BKE_uvproject_from_view(
-              luv, l->v->co, rv3d->persmat, rotmat, region->winx, region->winy);
+          const float *v_co = vert_positions.is_empty() ?
+                                  l->v->co :
+                                  &vert_positions[BM_elem_index_get(l->v)].x;
+          BKE_uvproject_from_view(luv, v_co, rv3d->persmat, rotmat, region->winx, region->winy);
         }
         changed = true;
       }
