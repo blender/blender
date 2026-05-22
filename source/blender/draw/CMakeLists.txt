@@ -481,7 +481,7 @@ set(GLSL_SRC
   engines/eevee/shaders/eevee_lightprobe_sphere_bake.bsl.hh
   engines/eevee/shaders/eevee_lightprobe_sphere_lib.glsl
   engines/eevee/shaders/eevee_lightprobe_sphere_mapping_lib.glsl
-  engines/eevee/shaders/eevee_lightprobe_sphere_select_comp.glsl
+  engines/eevee/shaders/eevee_lightprobe_sphere_culling.bsl.hh
   engines/eevee/shaders/eevee_renderpass_clear.bsl.hh
   engines/eevee/shaders/eevee_renderpass_lib.glsl
   engines/eevee/shaders/eevee_sampling_lib.glsl
