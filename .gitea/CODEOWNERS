@@ -296,6 +296,10 @@ intern/meshoptimizer_bridge/*               @JulienDuroure
 source/blender/asset_system/.* @JulianEisel
 
 # --------------------------------------------------
+# Bundled Assets
+source/blender/assets/.* @zazizizou
+
+# --------------------------------------------------
 # Sculpt, Paint, Texture
 source/blender/makesdna/DNA_brush_types.h           @Sean-Kim
 source/blender/makesdna/DNA_brush_enums.h           @Sean-Kim
