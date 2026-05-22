@@ -908,6 +908,7 @@ if((WITH_CYCLES OR WITH_GPU_RENDER_TESTS) AND TEST_SRC_DIR_EXISTS)
     shadow_catcher
     sss
     texture
+    transparency
   )
 
   set(workbench_tests
