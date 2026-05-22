@@ -157,6 +157,13 @@ class AbstractView {
   void clear_search_highlight();
   void allow_multiselect_items();
   bool is_multiselect_supported() const;
+  virtual AbstractViewItem *find_active_or_visible_item() const = 0;
+  virtual AbstractViewItem *navigate_left(AbstractViewItem *from) = 0;
+  virtual AbstractViewItem *navigate_right(AbstractViewItem *from) = 0;
+  virtual AbstractViewItem *navigate_up(AbstractViewItem *from) = 0;
+  virtual AbstractViewItem *navigate_down(AbstractViewItem *from) = 0;
+
+  virtual void scroll_active_into_view(bContext *C) = 0;
 
  protected:
   AbstractView() = default;

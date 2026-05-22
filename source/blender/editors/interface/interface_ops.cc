@@ -60,6 +60,7 @@
 #include "UI_abstract_view.hh"
 #include "UI_interface.hh"
 #include "UI_interface_layout.hh"
+#include "UI_tree_view.hh"
 
 #include "interface_intern.hh"
 
@@ -2999,6 +3000,86 @@ static void UI_OT_view_item_delete(wmOperatorType *ot)
 
   ot->flag = OPTYPE_INTERNAL;
 }
+
+enum class Direction {
+  UP,
+  Down,
+  LEFT,
+  RIGHT,
+};
+
+static wmOperatorStatus ui_view_item_navigate_invoke(bContext *C,
+                                                     wmOperator *op,
+                                                     const wmEvent * /*event*/)
+{
+  ARegion &region = *CTX_wm_region(C);
+  const Direction direction = Direction(RNA_enum_get(op->ptr, "direction"));
+  AbstractView *view = get_view_focused(C);
+
+  AbstractViewItem *from = view->find_active_or_visible_item();
+  AbstractViewItem *next_item = nullptr;
+  switch (direction) {
+    case Direction::UP: {
+      next_item = view->navigate_up(from);
+      break;
+    }
+    case Direction::Down: {
+      next_item = view->navigate_down(from);
+      break;
+    }
+    case Direction::LEFT: {
+      next_item = view->navigate_left(from);
+      break;
+    }
+    case Direction::RIGHT: {
+      next_item = view->navigate_right(from);
+      break;
+    }
+  }
+
+  if (next_item) {
+    view_item_click_select(*C, next_item, *view, false, false, false);
+    view->scroll_active_into_view(C);
+  }
+
+  ED_region_tag_redraw(&region);
+  return OPERATOR_FINISHED;
+}
+
+static void UI_OT_view_item_navigate(wmOperatorType *ot)
+{
+  ot->name = "View Navigate";
+  ot->idname = "UI_OT_view_item_navigate";
+  ot->description = "Walk and select view items in given direction";
+
+  ot->invoke = ui_view_item_navigate_invoke;
+  ot->poll = view_focused_poll;
+
+  ot->flag = OPTYPE_INTERNAL;
+
+  static const EnumPropertyItem direction_enum_items[] = {
+      {int(Direction::UP), "UP", 0, "Up", "Select item above the active"},
+      {int(Direction::Down), "DOWN", 0, "Down", "Select item below the active"},
+      {int(Direction::LEFT),
+       "LEFT",
+       0,
+       "Left",
+       "Collapse or walk towards left of the active item"},
+      {int(Direction::RIGHT),
+       "RIGHT",
+       0,
+       "Right",
+       "Uncollapse or walk towards right of the active item"},
+      {0, nullptr, 0, nullptr, nullptr},
+  };
+
+  RNA_def_enum(ot->srna,
+               "direction",
+               direction_enum_items,
+               0,
+               "Navigation Direction",
+               "Direction in which to navigate and select next element.");
+}
 /** \} */
 
 /* -------------------------------------------------------------------- */
@@ -3103,6 +3184,7 @@ void operatortypes_ui()
   WM_operatortype_append(UI_OT_view_item_rename);
   WM_operatortype_append(UI_OT_view_item_select);
   WM_operatortype_append(UI_OT_view_item_delete);
+  WM_operatortype_append(UI_OT_view_item_navigate);
 
   WM_operatortype_append(UI_OT_override_add_button);
   WM_operatortype_append(UI_OT_override_remove_button);

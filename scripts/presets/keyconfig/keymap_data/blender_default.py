@@ -1074,6 +1074,14 @@ def km_user_interface(_params):
         ("ui.view_item_rename", {"type": 'F2', "value": 'PRESS'}, None),
         ("ui.view_item_delete", {"type": 'X', "value": 'PRESS'}, None),
         ("ui.view_item_delete", {"type": 'DEL', "value": 'PRESS'}, None),
+        ("ui.view_item_navigate", {"type": 'UP_ARROW', "value": 'PRESS', "repeat": True},
+         {"properties": [("direction", 'UP')]}),
+        ("ui.view_item_navigate", {"type": 'DOWN_ARROW', "value": 'PRESS', "repeat": True},
+         {"properties": [("direction", 'DOWN')]}),
+        ("ui.view_item_navigate", {"type": 'LEFT_ARROW', "value": 'PRESS', "repeat": True},
+         {"properties": [("direction", 'LEFT')]}),
+        ("ui.view_item_navigate", {"type": 'RIGHT_ARROW', "value": 'PRESS', "repeat": True},
+         {"properties": [("direction", 'RIGHT')]}),
     ])
 
     return keymap
