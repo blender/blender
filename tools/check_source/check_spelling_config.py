@@ -661,6 +661,8 @@ dict_custom = {
     "decrefing",
     "diff",
     "diffs",
+    "docstring",
+    "docstrings",
     "endian",
     "endianness",
     "env",

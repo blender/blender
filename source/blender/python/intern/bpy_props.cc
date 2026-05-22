@@ -50,7 +50,7 @@ namespace blender {
 // #define USE_ENUM_COPY_STRINGS
 
 /* -------------------------------------------------------------------- */
-/** \name Shared Enums & Doc-Strings
+/** \name Shared Enums & Docstrings
  * \{ */
 
 #define BPY_PROPDEF_OPTIONS_DOC \
@@ -3359,7 +3359,7 @@ static int bpy_prop_arg_parse_tag_defines(PyObject *o, void *p)
 /** \} */
 
 /* -------------------------------------------------------------------- */
-/** \name Shared Method Doc-Strings
+/** \name Shared Method Docstrings
  * \{ */
 
 #define BPY_PROPDEF_NAME_DOC \

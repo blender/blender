@@ -8921,7 +8921,7 @@ void BPY_update_rna_module()
 }
 
 #if 0
-/* This is a way we can access doc-strings for RNA types
+/* This is a way we can access docstrings for RNA types
  * without having the data-types in Blender. */
 PyObject *BPY_rna_doc()
 {

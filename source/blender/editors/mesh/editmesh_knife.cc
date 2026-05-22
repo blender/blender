@@ -4912,7 +4912,7 @@ void EDBM_mesh_knife(
 
     for (Object *ob : kcd->objects) {
       /* Defer freeing data until the BVH tree is finished with, see: #point_is_visible and
-       * the doc-string for #knifetool_finish_single_post. */
+       * the docstring for #knifetool_finish_single_post. */
       knifetool_finish_single_post(kcd, ob);
     }
 

@@ -100,7 +100,7 @@ def get_argspec(func, *, strip_self=True, doc=None, source=None):
         func_name = func.__name__
     except AttributeError:
         return ''
-    # From doc-string.
+    # From docstring.
     if doc is None:
         doc = get_doc(func)
     match = re.search(DEF_DOC.format(func_name), doc, RE_FLAG)

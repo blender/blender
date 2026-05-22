@@ -872,7 +872,7 @@ static int bm_to_mesh_shape_layer_index_from_kb(BMesh *bm, KeyBlock *currkey)
  * basis are typically copied into the `positions` array since it makes sense for the meshes
  * vertex coordinates to match the "Basis" key.
  * When enabled, skip this step and copy #BMVert.co directly to the mesh position.
- * See #BMeshToMeshParams.active_shapekey_to_mvert doc-string.
+ * See #BMeshToMeshParams.active_shapekey_to_mvert docstring.
  */
 static void bm_to_mesh_shape(BMesh *bm,
                              Key *key,

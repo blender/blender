@@ -586,7 +586,7 @@ enum eAnimData_Flag : int {
 };
 ENUM_OPERATORS(eAnimData_Flag);
 
-/* From: `DNA_object_types.h`, see its doc-string there. */
+/* From: `DNA_object_types.h`, see its docstring there. */
 #define SELECT 1
 
 }  // namespace blender

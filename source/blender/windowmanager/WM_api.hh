@@ -2160,7 +2160,7 @@ bool WM_cursor_test_motion_and_update(const int mval[2]) ATTR_NONNULL(1) ATTR_WA
 /**
  * Return true if this event type is a candidate for being flagged as consecutive.
  *
- * See: #WM_EVENT_IS_CONSECUTIVE doc-string.
+ * See: #WM_EVENT_IS_CONSECUTIVE docstring.
  */
 bool WM_event_consecutive_gesture_test(const wmEvent *event);
 /**

@@ -23,7 +23,7 @@
 #include "gpu_py_framebuffer.hh"
 #include "gpu_py_state.hh" /* own include */
 
-/* Doc-string Literal types. */
+/* Docstring Literal types. */
 #define PYDOC_BLEND_LITERAL \
   "Literal['NONE', 'ALPHA', 'ALPHA_PREMULT', 'ADDITIVE', " \
   "'ADDITIVE_PREMULT', 'MULTIPLY', 'SUBTRACT', 'INVERT']"

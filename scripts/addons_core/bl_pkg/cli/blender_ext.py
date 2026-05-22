@@ -1372,7 +1372,7 @@ def url_retrieve_to_data_iter(
         )
 
 
-# See `url_retrieve_to_data_iter` doc-string.
+# See `url_retrieve_to_data_iter` docstring.
 def url_retrieve_to_filepath_iter(
         url: str,
         filepath: str,
@@ -1397,7 +1397,7 @@ def url_retrieve_to_filepath_iter(
             yield len(block)
 
 
-# See `url_retrieve_to_data_iter` doc-string.
+# See `url_retrieve_to_data_iter` docstring.
 def filepath_retrieve_to_filepath_iter(
         filepath_src: str,
         filepath: str,
@@ -1442,7 +1442,7 @@ def url_retrieve_to_data_iter_or_filesystem(
         )
 
 
-# See `url_retrieve_to_data_iter` doc-string.
+# See `url_retrieve_to_data_iter` docstring.
 def url_retrieve_to_filepath_iter_or_filesystem(
         url: str,
         filepath: str,

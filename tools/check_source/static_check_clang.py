@@ -515,7 +515,7 @@ def run_checks_on_project(
 def create_parser(checkers_all: Sequence[str]) -> argparse.ArgumentParser:
     from textwrap import indent
 
-    # Create doc-string for checks.
+    # Create docstring for checks.
     checks_all_docs = []
     for checker in checkers_all:
         # `%` -> `%%` is needed for `--help` not to interpret these as formatting arguments.

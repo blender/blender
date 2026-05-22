@@ -836,7 +836,7 @@ static PyMethodDef pygpu_framebuffer__tp_methods[] = {
 #endif
 
 /* Ideally type aliases would de-duplicate:
- * `GPUTexture | dict[str, int | GPUTexture]` in this doc-string. */
+ * `GPUTexture | dict[str, int | GPUTexture]` in this docstring. */
 PyDoc_STRVAR(
     /* Wrap. */
     pygpu_framebuffer__tp_doc,

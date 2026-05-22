@@ -1056,7 +1056,7 @@ void WM_reports_from_reports_move(wmWindowManager *wm, ReportList *reports)
 
 void WM_global_report(eReportType type, const char *message)
 {
-  /* WARNING: in most cases #BKE_report should be used instead, see doc-string for details. */
+  /* WARNING: in most cases #BKE_report should be used instead, see docstring for details. */
   ReportList reports;
   BKE_reports_init(&reports, RPT_STORE | RPT_PRINT);
   BKE_report_print_level_set(&reports, RPT_WARNING);
@@ -1069,7 +1069,7 @@ void WM_global_report(eReportType type, const char *message)
 
 void WM_global_reportf(eReportType type, const char *format, ...)
 {
-  /* WARNING: in most cases #BKE_reportf should be used instead, see doc-string for details. */
+  /* WARNING: in most cases #BKE_reportf should be used instead, see docstring for details. */
 
   va_list args;
 
@@ -2024,7 +2024,7 @@ wmOperatorStatus WM_operator_call_py(bContext *C,
  *
  * Delay executing operators that depend on cursor location.
  *
- * See: #OPTYPE_DEPENDS_ON_CURSOR doc-string for more information.
+ * See: #OPTYPE_DEPENDS_ON_CURSOR docstring for more information.
  * \{ */
 
 struct OperatorWaitForInput {

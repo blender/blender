@@ -733,7 +733,7 @@ static PyGetSetDef bpy_op_fn_getsetters[] = {
      nullptr,
      bpy_op_fn_get_bl_options_doc,
      nullptr},
-    /* No doc-string, as this is standard part of the Python spec. */
+    /* No docstring, as this is standard part of the Python spec. */
     {"__doc__", reinterpret_cast<getter>(bpy_op_fn_get_doc), nullptr, nullptr, nullptr},
     {nullptr, nullptr, nullptr, nullptr, nullptr}};
 

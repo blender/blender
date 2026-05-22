@@ -8253,7 +8253,7 @@ static void global_handle_add(void *data,
   /* Initialization avoids excessive calls by calling update after all have been initialized. */
   if (added) {
     if (display->registry_skip_update_all == false) {
-      /* See doc-string for rationale on updating all on add/removal. */
+      /* See docstring for rationale on updating all on add/removal. */
       gwl_registry_entry_update_all(display, interface_slot);
     }
   }
@@ -8285,7 +8285,7 @@ static void global_handle_remove(void *data,
 
   if (removed) {
     if (display->registry_skip_update_all == false) {
-      /* See doc-string for rationale on updating all on add/removal. */
+      /* See docstring for rationale on updating all on add/removal. */
       gwl_registry_entry_update_all(display, interface_slot);
     }
   }

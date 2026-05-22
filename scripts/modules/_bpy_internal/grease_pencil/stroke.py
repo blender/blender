@@ -172,7 +172,7 @@ class GreasePencilStrokePointHandle:
 
 
 @DefAttributeGetterSetters([
-    # Property Name, Attribute Name, Type, Default Value, Doc-string.
+    # Property Name, Attribute Name, Type, Default Value, Docstring.
     ("radius", "radius", 'FLOAT', 0.01, "The radius of the point."),
     ("opacity", "opacity", 'FLOAT', 0.0, "The opacity of the point."),
     ("vertex_color", "vertex_color", 'FLOAT_COLOR', (0.0, 0.0, 0.0, 0.0),
@@ -281,7 +281,7 @@ class GreasePencilStrokePointSlice(SliceHelper):
 
 # Define the list of attributes that should be exposed as read/write properties on the class.
 @DefAttributeGetterSetters([
-    # Property Name, Attribute Name, Type, Default Value, Doc-string.
+    # Property Name, Attribute Name, Type, Default Value, Docstring.
     ("cyclic", "cyclic", 'BOOLEAN', False, "The closed state for this stroke."),
     ("material_index", "material_index", 'INT', 0,
      "The index of the material for this stroke."),

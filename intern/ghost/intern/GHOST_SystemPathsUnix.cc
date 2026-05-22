@@ -44,7 +44,7 @@ const char *GHOST_SystemPathsUnix::getSystemDir(int /*version*/, const char *ver
 }
 
 /**
- * See doc-string & code-comments for #BLI_dir_home which matches this functionality.
+ * See docstring & code-comments for #BLI_dir_home which matches this functionality.
  */
 static const char *home_dir_get()
 {

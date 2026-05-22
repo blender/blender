@@ -54,7 +54,7 @@
 
 #include "CLG_log.h"
 
-/* Doc-string Literal types. */
+/* Docstring Literal types. */
 
 #define PYDOC_INSERTKEY_OPTIONS_LITERAL \
   "Literal[" \

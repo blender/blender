@@ -136,7 +136,7 @@ struct BMEdge {
   BMVert *v1, *v2;
 
   /**
-   * The list of loops around the edge, see doc-string for #BMLoop.radial_next
+   * The list of loops around the edge, see docstring for #BMLoop.radial_next
    * for an example of using this to loop over all faces used by an edge.
    */
   struct BMLoop *l;

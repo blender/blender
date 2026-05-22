@@ -171,13 +171,13 @@ def _generate_datamodel(in_path: Path, in_type: str, out_path: Path) -> None:
 def _docformatter(py_paths: list[Path]) -> None:
     """Run 'docformatter' on generated Python files.
 
-    This is necessary because the generated doc-strings are very long, and
+    This is necessary because the generated docstrings are very long, and
     'make format' doesn't automatically re-wrap them.
     """
     from docformatter import format
     from docformatter import configuration
 
-    print("Formatting doc-strings")
+    print("Formatting docstrings")
 
     argv = ["docformatter", "--in-place", *(str(path) for path in py_paths)]
     cfg = configuration.Configurater(argv)

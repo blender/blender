@@ -1082,7 +1082,7 @@ static void background_mode_set()
    *
    * In general background mode should strive to match the behavior of running
    * Blender inside a graphical session, any exception to this should have a well
-   * justified reason and be noted in the doc-string. */
+   * justified reason and be noted in the docstring. */
 
   /* NOTE(@ideasman42): While there is no requirement for sound to be disabled in background-mode,
    * the use case for playing audio in background mode is enough of a special-case
@@ -3021,11 +3021,11 @@ static int arg_handle_load_last_file(int /*argc*/, const char ** /*argv*/, void 
 
 void main_args_setup(bContext *C, bArgs *ba, bool all)
 {
-/** Expand the doc-string from the function. */
+/** Expand the docstring from the function. */
 #  define CB(a) a##_doc, a
 /** A version of `CB` that expands an additional suffix. */
 #  define CB_EX(a, b) a##_doc_##b, a
-/** A version of `CB` that uses `all`, needed when the doc-string depends on build options. */
+/** A version of `CB` that uses `all`, needed when the docstring depends on build options. */
 #  define CB_ALL(a) (all ? a##_doc_all : a##_doc), a
 
   BuildDefs defs;
