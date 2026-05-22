@@ -156,10 +156,11 @@ class Instances {
    * Otherwise a new handle is added.
    */
   int add_reference(const InstanceReference &reference);
+  int add_reference(InstanceReference &&reference);
   /**
    * Same as above, but does not deduplicate with existing references.
    */
-  int add_new_reference(const InstanceReference &reference);
+  int add_new_reference(InstanceReference reference);
   std::optional<int> find_reference_handle(const InstanceReference &query);
 
   Span<InstanceReference> references() const;

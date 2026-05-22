@@ -73,16 +73,29 @@ class Bundle : public ImplicitSharingMixin {
   static BundlePtr create();
 
   bool add(UString key, const BundleItemValue &value);
+  bool add(UString key, BundleItemValue &&value);
   void add_new(UString key, const BundleItemValue &value);
+  void add_new(UString key, BundleItemValue &&value);
   void add_override(UString key, const BundleItemValue &value);
   bool add_path(StringRef path, const BundleItemValue &value);
   void add_path_new(StringRef path, const BundleItemValue &value);
   void add_path_override(StringRef path, const BundleItemValue &value);
 
-  template<typename T> void add(UString key, T value);
-  template<typename T> void add_override(UString key, T value);
-  template<typename T> void add_path(StringRef path, T value);
-  template<typename T> void add_path_override(StringRef path, T value);
+  template<typename T>
+    requires(!std::is_same_v<std::decay_t<T>, BundleItemValue>)
+  void add(UString key, T &&value);
+  template<typename T>
+    requires(!std::is_same_v<std::decay_t<T>, BundleItemValue>)
+  void add_new(UString key, T &&value);
+  template<typename T>
+    requires(!std::is_same_v<std::decay_t<T>, BundleItemValue>)
+  void add_override(UString key, T &&value);
+  template<typename T>
+    requires(!std::is_same_v<std::decay_t<T>, BundleItemValue>)
+  void add_path(StringRef path, T &&value);
+  template<typename T>
+    requires(!std::is_same_v<std::decay_t<T>, BundleItemValue>)
+  void add_path_override(StringRef path, T &&value);
 
   bool remove(UString key);
   bool remove_path(StringRef path);
@@ -339,6 +352,11 @@ template<typename T, typename Fn> inline void to_stored_type(T &&value, Fn &&fn)
   else if constexpr (std::is_same_v<DecayT, BundleItemInternalValue>) {
     fn(BundleItemValue{std::forward<T>(value)});
   }
+  else if constexpr (std::is_same_v<DecayT, bke::SocketValueVariant>) {
+    const eNodeSocketDatatype socket_type = value.socket_type();
+    const bke::bNodeSocketType *socket_type_info = bke::node_socket_type_find_static(socket_type);
+    fn(BundleItemValue{BundleItemSocketValue{socket_type_info, std::forward<T>(value)}});
+  }
   else if constexpr (is_valid_internal_bundle_item_type<DecayT>()) {
     const BundleItemInternalValueMixin *sharing_info = value.get();
     if (sharing_info) {
@@ -356,27 +374,47 @@ template<typename T, typename Fn> inline void to_stored_type(T &&value, Fn &&fn)
   }
 }
 
-template<typename T> inline void Bundle::add(const UString key, T value)
+template<typename T>
+  requires(!std::is_same_v<std::decay_t<T>, BundleItemValue>)
+inline void Bundle::add(const UString key, T &&value)
 {
-  to_stored_type(value, [&](const BundleItemValue &item_value) { this->add(key, item_value); });
+  to_stored_type(std::forward<T>(value),
+                 [&]<typename U>(U &&item_value) { this->add(key, std::forward<U>(item_value)); });
 }
 
-template<typename T> inline void Bundle::add_path(const StringRef path, T value)
+template<typename T>
+  requires(!std::is_same_v<std::decay_t<T>, BundleItemValue>)
+inline void Bundle::add_new(const UString key, T &&value)
 {
-  to_stored_type(value,
-                 [&](const BundleItemValue &item_value) { this->add_path(path, item_value); });
+  to_stored_type(std::forward<T>(value), [&]<typename U>(U &&item_value) {
+    this->add_new(key, std::forward<U>(item_value));
+  });
 }
 
-template<typename T> inline void Bundle::add_override(const UString key, T value)
+template<typename T>
+  requires(!std::is_same_v<std::decay_t<T>, BundleItemValue>)
+inline void Bundle::add_path(const StringRef path, T &&value)
 {
-  to_stored_type(value,
-                 [&](const BundleItemValue &item_value) { this->add_override(key, item_value); });
+  to_stored_type(std::forward<T>(value), [&]<typename U>(U &&item_value) {
+    this->add_path(path, std::forward<U>(item_value));
+  });
 }
 
-template<typename T> inline void Bundle::add_path_override(const StringRef path, T value)
+template<typename T>
+  requires(!std::is_same_v<std::decay_t<T>, BundleItemValue>)
+inline void Bundle::add_override(const UString key, T &&value)
 {
-  to_stored_type(value, [&](const BundleItemValue &item_value) {
-    this->add_path_override(path, item_value);
+  to_stored_type(std::forward<T>(value), [&]<typename U>(U &&item_value) {
+    this->add_override(key, std::forward<U>(item_value));
+  });
+}
+
+template<typename T>
+  requires(!std::is_same_v<std::decay_t<T>, BundleItemValue>)
+inline void Bundle::add_path_override(const StringRef path, T &&value)
+{
+  to_stored_type(std::forward<T>(value), [&]<typename U>(U &&item_value) {
+    this->add_path_override(path, std::forward<U>(item_value));
   });
 }
 

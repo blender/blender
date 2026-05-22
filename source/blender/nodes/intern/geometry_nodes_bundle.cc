@@ -88,6 +88,12 @@ void Bundle::add_new(const UString key, const BundleItemValue &value)
   items_.add_new_as(key, value);
 }
 
+void Bundle::add_new(UString key, BundleItemValue &&value)
+{
+  BLI_assert(is_valid_key(key.ref()));
+  items_.add_new_as(key, std::move(value));
+}
+
 void Bundle::add_override(const UString key, const BundleItemValue &value)
 {
   this->remove(key);
@@ -100,6 +106,15 @@ bool Bundle::add(const UString key, const BundleItemValue &value)
     return false;
   }
   this->add_new(key, value);
+  return true;
+}
+
+bool Bundle::add(const UString key, BundleItemValue &&value)
+{
+  if (this->contains(key)) {
+    return false;
+  }
+  this->add_new(key, std::move(value));
   return true;
 }
 

@@ -115,6 +115,11 @@ class Closure : public ImplicitSharingMixin {
     return default_input_values_[index];
   }
 
+  Span<bke::SocketValueVariant> default_input_values() const
+  {
+    return default_input_values_;
+  }
+
   Span<const bke::SocketValueVariant *> captured_values() const
   {
     return captured_values_;

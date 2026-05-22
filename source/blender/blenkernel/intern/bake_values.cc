@@ -16,6 +16,7 @@
 #include "BKE_instances.hh"
 #include "BKE_mesh_types.hh"
 #include "BKE_node.hh"
+#include "BKE_node_socket_value_iter.hh"
 #include "BKE_pointcloud.hh"
 #include "BKE_volume.hh"
 
@@ -116,8 +117,23 @@ class RuntimeToBakeValue {
 
     /* As a pre-pass, gather all directly referenced anonymous attributes, because those will be
      * kept on the geometries. */
-    for (const BakeValues::InputValue &input_value : root_values_) {
-      this->scan(input_value);
+    {
+      using namespace socket_value_visitor;
+      auto scan_field = [&](const fn::GField &field) {
+        if (const auto *attribute_field = field.get_input_if<AttributeFieldInput>()) {
+          const StringRef attribute_name = attribute_field->attribute_name();
+          if (attribute_name_is_anonymous(attribute_name)) {
+            referenced_anonymous_attributes_.lookup_or_add_cb_as(
+                attribute_name, [&]() { return this->get_next_bake_attribute_name(); });
+          }
+        }
+        return VisitParams::continue_check(true);
+      };
+      VisitParams visit_params;
+      visit_params.check_GField = scan_field;
+      for (const BakeValues::InputValue &input_value : root_values_) {
+        check_recursive(input_value.value, visit_params);
+      }
     }
 
     /* Now process all data to be stored in a bake. This involves removing data that can't be
@@ -176,101 +192,6 @@ class RuntimeToBakeValue {
           /* Replace the field with the one that was just captured. */
           input_value.value.set(AttributeFieldInput::from(attribute_name, field.cpp_type()));
         }
-      }
-    }
-  }
-
-  void scan(const BakeValues::InputValue &input_value)
-  {
-    this->scan__SocketValueVariant(input_value.value);
-  }
-
-  void scan__SocketValueVariant(const SocketValueVariant &value_variant)
-  {
-    if (value_variant.is_context_dependent_field()) {
-      const fn::GField field = value_variant.get<fn::GField>();
-      if (const auto *attribute_field = field.get_input_if<AttributeFieldInput>()) {
-        const StringRef attribute_name = attribute_field->attribute_name();
-        if (attribute_name_is_anonymous(attribute_name)) {
-          referenced_anonymous_attributes_.lookup_or_add_cb_as(
-              attribute_name, [&]() { return this->get_next_bake_attribute_name(); });
-        }
-      }
-      return;
-    }
-    if (value_variant.is_single()) {
-      const GPointer value_ptr = value_variant.get_single_ptr();
-      this->scan__GPointer(value_ptr);
-      return;
-    }
-    if (value_variant.is_list()) {
-      const nodes::GListPtr list_ptr = value_variant.get<nodes::GListPtr>();
-      if (list_ptr) {
-        this->scan__List(*list_ptr);
-      }
-    }
-  }
-
-  void scan__List(const nodes::GList &list)
-  {
-    const CPPType &list_cpp_type = list.cpp_type();
-    if (list_cpp_type.is<SocketValueVariant>()) {
-      list.typed<SocketValueVariant>().foreach([&](const SocketValueVariant &value_variant) {
-        this->scan__SocketValueVariant(value_variant);
-      });
-    }
-    else if (list_cpp_type.is<GeometrySet>()) {
-      list.typed<GeometrySet>().foreach(
-          [&](const GeometrySet &geometry) { this->scan__GeometrySet(geometry); });
-    }
-    else if (list_cpp_type.is<nodes::BundlePtr>()) {
-      list.typed<nodes::BundlePtr>().foreach([&](const nodes::BundlePtr &bundle_ptr) {
-        if (bundle_ptr) {
-          this->scan__Bundle(*bundle_ptr);
-        }
-      });
-    }
-  }
-
-  void scan__GPointer(const GPointer &value_ptr)
-  {
-    const CPPType &type = *value_ptr.type();
-    if (type.is<GeometrySet>()) {
-      const GeometrySet &geometry = *value_ptr.get<GeometrySet>();
-      this->scan__GeometrySet(geometry);
-      return;
-    }
-    if (type.is<nodes::BundlePtr>()) {
-      const nodes::BundlePtr &bundle_ptr = *value_ptr.get<nodes::BundlePtr>();
-      if (bundle_ptr) {
-        this->scan__Bundle(*bundle_ptr);
-      }
-      return;
-    }
-  }
-
-  void scan__GeometrySet(const GeometrySet &geometry)
-  {
-    if (geometry.has_bundle()) {
-      const nodes::Bundle &bundle = *geometry.bundle();
-      this->scan__Bundle(bundle);
-    }
-    if (geometry.has_instances()) {
-      const Instances &instances = *geometry.get_instances();
-      for (const bke::InstanceReference &reference : instances.references()) {
-        GeometrySet geometry;
-        reference.to_geometry_set(geometry);
-        this->scan__GeometrySet(geometry);
-      }
-    }
-  }
-
-  void scan__Bundle(const nodes::Bundle &bundle)
-  {
-    for (const auto &item : bundle.items()) {
-      if (const auto *socket_value = std::get_if<nodes::BundleItemSocketValue>(&item.value.value))
-      {
-        this->scan__SocketValueVariant(socket_value->value);
       }
     }
   }
@@ -494,7 +415,20 @@ class BakeToRuntimeValue {
 
   void scan(const SocketValueVariant &root_value)
   {
-    this->scan__SocketValueVariant(root_value);
+    using namespace socket_value_visitor;
+    auto scan_attributes = [&](const AttributeAccessor &attributes) {
+      attributes.foreach_attribute([&](const AttributeIter &iter) {
+        if (iter.name.startswith(anonymous_bake_attribute_prefix)) {
+          const AttrType attr_type = iter.data_type;
+          const CPPType &attr_cpp_type = attribute_type_to_cpp_type(attr_type);
+          this->attribute_field_types_.add(iter.name, &attr_cpp_type);
+        }
+      });
+      return VisitParams::continue_check(true);
+    };
+    VisitParams visit_params;
+    visit_params.check_AttributeAccessor = scan_attributes;
+    check_recursive(root_value, visit_params);
   }
 
   void bake_to_runtime(SocketValueVariant &root_value, const StringRef name)
@@ -503,102 +437,6 @@ class BakeToRuntimeValue {
   }
 
  private:
-  void scan__SocketValueVariant(const SocketValueVariant &value_variant)
-  {
-    if (value_variant.is_single()) {
-      const GPointer value_ptr = value_variant.get_single_ptr();
-      this->scan__GPointer(value_ptr);
-      return;
-    }
-    if (value_variant.is_list()) {
-      const nodes::GListPtr list_ptr = value_variant.get<nodes::GListPtr>();
-      if (list_ptr) {
-        const nodes::GList &list = *list_ptr;
-        this->scan__GList(list);
-      }
-    }
-  }
-
-  void scan__GPointer(const GPointer value_ptr)
-  {
-    const CPPType &type = *value_ptr.type();
-    if (type.is<GeometrySet>()) {
-      const GeometrySet &geometry = *value_ptr.get<GeometrySet>();
-      this->scan__GeometrySet(geometry);
-      return;
-    }
-    if (type.is<nodes::BundlePtr>()) {
-      const nodes::BundlePtr &bundle_ptr = *value_ptr.get<nodes::BundlePtr>();
-      if (bundle_ptr) {
-        const nodes::Bundle &bundle = *bundle_ptr.get();
-        this->scan__Bundle(bundle);
-      }
-      return;
-    }
-  }
-
-  void scan__GList(const nodes::GList &list)
-  {
-    const CPPType &list_cpp_type = list.cpp_type();
-    if (list_cpp_type.is<SocketValueVariant>()) {
-      list.typed<SocketValueVariant>().foreach([&](const SocketValueVariant &value_variant) {
-        this->scan__SocketValueVariant(value_variant);
-      });
-    }
-    else if (list_cpp_type.is<GeometrySet>()) {
-      list.typed<GeometrySet>().foreach(
-          [&](const GeometrySet &geometry) { this->scan__GeometrySet(geometry); });
-    }
-    else if (list_cpp_type.is<nodes::BundlePtr>()) {
-      list.typed<nodes::BundlePtr>().foreach([&](const nodes::BundlePtr &bundle_ptr) {
-        if (bundle_ptr) {
-          const nodes::Bundle &bundle = *bundle_ptr.get();
-          this->scan__Bundle(bundle);
-        }
-      });
-    }
-  }
-
-  void scan__GeometrySet(const GeometrySet &geometry)
-  {
-    if (geometry.has_bundle()) {
-      const nodes::BundlePtr &bundle_ptr = geometry.bundle_ptr();
-      this->scan__Bundle(*bundle_ptr);
-    }
-    if (geometry.has_instances()) {
-      const Instances &instances = *geometry.get_instances();
-      for (const bke::InstanceReference &reference : instances.references()) {
-        if (reference.type() == InstanceReference::Type::GeometrySet) {
-          const GeometrySet &geometry = reference.geometry_set();
-          this->scan__GeometrySet(geometry);
-        }
-      }
-    }
-    for (const GeometryComponent *component : geometry.get_components()) {
-      const std::optional<AttributeAccessor> attributes = component->attributes();
-      if (!attributes) {
-        continue;
-      }
-      attributes->foreach_attribute([&](const AttributeIter &iter) {
-        if (iter.name.startswith(anonymous_bake_attribute_prefix)) {
-          const AttrType attr_type = iter.data_type;
-          const CPPType &attr_cpp_type = attribute_type_to_cpp_type(attr_type);
-          this->attribute_field_types_.add(iter.name, &attr_cpp_type);
-        }
-      });
-    }
-  }
-
-  void scan__Bundle(const nodes::Bundle &bundle)
-  {
-    for (auto &&item : bundle.items()) {
-      if (const auto *socket_value = std::get_if<nodes::BundleItemSocketValue>(&item.value.value))
-      {
-        this->scan__SocketValueVariant(socket_value->value);
-      }
-    }
-  }
-
   void bake_to_runtime__SocketValueVariant(SocketValueVariant &value_variant, const StringRef name)
   {
     if (value_variant.is_context_dependent_field()) {

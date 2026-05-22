@@ -48,6 +48,7 @@
 #include "BKE_node_legacy_types.hh"
 #include "BKE_node_runtime.hh"
 #include "BKE_node_socket_value.hh"
+#include "BKE_node_socket_value_iter.hh"
 #include "BKE_node_tree_reference_lifetimes.hh"
 #include "BKE_node_tree_zones.hh"
 #include "BKE_scene.hh"
@@ -1407,49 +1408,23 @@ class LazyFunctionForExtractingReferenceSet : public lf::LazyFunction {
       return;
     }
 
+    using namespace bke::socket_value_visitor;
     GeometryNodesReferenceSet references;
-    this->gather__socket_value(*value_variant, references);
+    auto scan_field = [&](const GField &field) {
+      this->gather_references_from_field(field, references);
+      return VisitParams::continue_check(true);
+    };
+    VisitParams visit_params;
+    visit_params.check_non_editable = true;
+    visit_params.ignore_non_geometry_instances = true;
+    visit_params.check_GField = scan_field;
+    check_recursive(*value_variant, visit_params);
+
     params.set_output(0, std::move(references));
   }
 
-  void gather__socket_value(const SocketValueVariant &value_variant,
-                            GeometryNodesReferenceSet &r_references) const
-  {
-    if (value_variant.is_context_dependent_field()) {
-      const GField &field = value_variant.get<GField>();
-      this->gather__field(field, r_references);
-    }
-    if (value_variant.is_single()) {
-      const GPointer value = value_variant.get_single_ptr();
-      if (value.is_type<BundlePtr>()) {
-        const BundlePtr &bundle = *value.get<BundlePtr>();
-        this->gather__bundle(bundle, r_references);
-      }
-      if (value.is_type<ClosurePtr>()) {
-        const ClosurePtr &closure = *value.get<ClosurePtr>();
-        this->gather__closure(closure, r_references);
-      }
-      if (value.is_type<GeometrySet>()) {
-        const GeometrySet &geometry = *value.get<GeometrySet>();
-        this->gather__geometry(geometry, r_references);
-      }
-    }
-  }
-
-  void gather__geometry(const GeometrySet &geometry, GeometryNodesReferenceSet &r_references) const
-  {
-    this->gather__bundle(geometry.bundle_ptr(), r_references);
-    if (geometry.has_instances()) {
-      const bke::Instances &instances = *geometry.get_instances();
-      for (const bke::InstanceReference &reference : instances.references()) {
-        GeometrySet instance_geometry;
-        reference.to_geometry_set(instance_geometry);
-        this->gather__geometry(instance_geometry, r_references);
-      }
-    }
-  }
-
-  void gather__field(const GField &field, GeometryNodesReferenceSet &r_references) const
+  void gather_references_from_field(const GField &field,
+                                    GeometryNodesReferenceSet &r_references) const
   {
     Stack<fn::GFieldRef> fields_to_check;
     fields_to_check.push(field);
@@ -1473,28 +1448,6 @@ class LazyFunctionForExtractingReferenceSet : public lf::LazyFunction {
           }
         }
       }
-    }
-  }
-
-  void gather__bundle(const BundlePtr &bundle, GeometryNodesReferenceSet &r_references) const
-  {
-    if (!bundle) {
-      return;
-    }
-    for (const auto &[name, value] : bundle->items()) {
-      if (const auto *socket_value = std::get_if<BundleItemSocketValue>(&value.value)) {
-        this->gather__socket_value(socket_value->value, r_references);
-      }
-    }
-  }
-
-  void gather__closure(const ClosurePtr &closure, GeometryNodesReferenceSet &r_references) const
-  {
-    if (!closure) {
-      return;
-    }
-    for (const bke::SocketValueVariant *value : closure->captured_values()) {
-      this->gather__socket_value(*value, r_references);
     }
   }
 };

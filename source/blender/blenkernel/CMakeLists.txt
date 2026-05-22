@@ -227,6 +227,7 @@ set(SRC
   intern/node_enum_definition.cc
   intern/node_runtime.cc
   intern/node_socket_value.cc
+  intern/node_socket_value_iter.cc
   intern/node_tree_dot_export.cc
   intern/node_tree_interface.cc
   intern/node_tree_reference_lifetimes.cc
@@ -474,6 +475,7 @@ set(SRC
   BKE_node_runtime.hh
   BKE_node_socket_value.hh
   BKE_node_socket_value_fwd.hh
+  BKE_node_socket_value_iter.hh
   BKE_node_tree_dot_export.hh
   BKE_node_tree_interface.hh
   BKE_node_tree_interface_convert.hh
@@ -772,6 +774,7 @@ if(WITH_GTESTS)
     intern/lib_remap_test.cc
     intern/main_test.cc
     intern/nla_test.cc
+    intern/node_socket_value_iter_test.cc
     intern/path_templates_test.cc
     intern/scene_test.cc
     intern/subdiv_ccg_test.cc
