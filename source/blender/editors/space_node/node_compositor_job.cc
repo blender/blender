@@ -188,7 +188,7 @@ static bool is_compositing_possible(const Scene *scene)
   /* The render size exceeds what can be allocated as a GPU texture. */
   int width, height;
   BKE_render_resolution(&scene->r, false, &width, &height);
-  if (!GPU_is_safe_texture_size(width, height)) {
+  if (width > 8192 || height > 8192) {
     WM_global_report(RPT_ERROR, "Render size too large for GPU, use CPU compositor instead");
     return false;
   }
