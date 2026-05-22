@@ -515,7 +515,7 @@ class Octree {
 
   void printInfo(const LeafNode *leaf)
   {
-    /* Overly verbose drubbing information. */
+    /* Disable overly verbose debugging information. */
 #if 0
     printf("Edge mask: ");
     for (int i = 0; i < 12; i++) {
