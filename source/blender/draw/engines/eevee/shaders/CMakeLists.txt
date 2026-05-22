@@ -43,7 +43,6 @@ set(SRC_GLSL_FRAG
   eevee_hiz_debug_frag.glsl
   eevee_lookdev_display_frag.glsl
   eevee_occupancy_convert_frag.glsl
-  eevee_transparency_resolve_frag.glsl
 )
 
 set(SRC_GLSL_COMP
@@ -76,13 +75,9 @@ set(SRC_GLSL_COMP
   eevee_ray_generate_comp.glsl
   eevee_ray_tile_classify_comp.glsl
   eevee_ray_tile_compact_comp.glsl
-  eevee_surfel_cluster_build_comp.glsl
-  eevee_surfel_ray_comp.glsl
-  eevee_vertex_copy_comp.glsl
 )
 
 set(SRC_GLSL_LIB
-  eevee_ambient_occlusion_lib.glsl
   eevee_attributes_curves_lib.glsl
   eevee_attributes_mesh_lib.glsl
   eevee_attributes_pointcloud_lib.glsl
@@ -110,9 +105,6 @@ set(SRC_GLSL_LIB
   eevee_ray_generate_lib.glsl
   eevee_renderpass_lib.glsl
   eevee_sampling_lib.glsl
-  eevee_subsurface_lib.glsl
-  # eevee_transparency_lib.glsl # Require Fragment shader include
-  # eevee_velocity_lib.glsl # Has dependency on draw_model_lib that is hard to resolve
 )
 
 set(SRC_BSL

@@ -7,17 +7,19 @@
 #include "gpu_shader_compat.hh"
 
 /* From the paper "Hashed Alpha Testing" by Chris Wyman and Morgan McGuire. */
-float transparency_hash(float2 a)
+namespace eevee::hashed_transparency {
+
+float hash(float2 a)
 {
   return fract(1e4f * sin(17.0f * a.x + 0.1f * a.y) * (0.1f + abs(sin(13.0f * a.y + a.x))));
 }
 
-float transparency_hash_3d(float3 a)
+float hash_3d(float3 a)
 {
-  return transparency_hash(float2(transparency_hash(a.xy), a.z));
+  return hash(float2(hash(a.xy), a.z));
 }
 
-float transparency_hashed_alpha_threshold(float hash_scale, float hash_offset, float3 P)
+float alpha_threshold(float hash_scale, float hash_offset, float3 P)
 {
   /* Find the discretized derivatives of our coordinates. */
   float max_deriv = max(length(gpu_dfdx(P)), length(gpu_dfdy(P)));
@@ -29,8 +31,8 @@ float transparency_hashed_alpha_threshold(float hash_scale, float hash_offset, f
   pix_scales.y = exp2(ceil(pix_scale_log));
   /* Compute alpha thresholds at our two noise scales. */
   float2 alpha;
-  alpha.x = transparency_hash_3d(floor(pix_scales.x * P));
-  alpha.y = transparency_hash_3d(floor(pix_scales.y * P));
+  alpha.x = hash_3d(floor(pix_scales.x * P));
+  alpha.y = hash_3d(floor(pix_scales.y * P));
   /* Factor to interpolate lerp with. */
   float fac = fract(log2(pix_scale));
   /* Interpolate alpha threshold from noise at two scales. */
@@ -49,3 +51,5 @@ float transparency_hashed_alpha_threshold(float hash_scale, float hash_offset, f
   threshold = clamp(threshold, 1.0e-6f, 1.0f);
   return threshold;
 }
+
+}  // namespace eevee::hashed_transparency

@@ -36,7 +36,7 @@ VERTEX_SHADER_CREATE_INFO(draw_view)
 #include "eevee_reverse_z_lib.bsl.hh"
 #include "eevee_sampling_lib.glsl"
 #include "eevee_spherical_harmonics.bsl.hh"
-#include "eevee_utility_tx_lib.glsl"
+#include "eevee_utility_tx.bsl.hh"
 #include "gpu_shader_math_matrix_transform_lib.glsl"
 #include "gpu_shader_math_vector_compare_lib.glsl"
 #include "gpu_shader_math_vector_lib.glsl"

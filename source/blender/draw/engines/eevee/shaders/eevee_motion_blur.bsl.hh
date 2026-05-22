@@ -16,7 +16,7 @@ COMPUTE_SHADER_CREATE_INFO(eevee_sampling_data)
 #include "eevee_motion_blur_shared.hh"
 #include "eevee_reverse_z_lib.bsl.hh"
 #include "eevee_sampling_lib.glsl"
-#include "eevee_velocity_lib.glsl"
+#include "eevee_velocity.bsl.hh"
 #include "gpu_shader_math_vector_safe_lib.glsl"
 #include "gpu_shader_utildefines_lib.glsl"
 
@@ -144,7 +144,7 @@ void flatten_comp([[resource_table]] Resources<velocity_format> &srt,
   float2 render_size = float2(imageSize(srt.velocity_img).xy);
   float2 uv = (float2(texel) + 0.5f) / render_size;
   float depth = reverse_z::read(texelFetch(srt.depth_tx, texel, 0).r);
-  float4 motion = velocity_resolve(imageLoad(srt.velocity_img, texel), uv, depth);
+  float4 motion = velocity::resolve(imageLoad(srt.velocity_img, texel), uv, depth);
 #ifdef FLATTEN_RG
   /* imageLoad does not perform the swizzling like sampler does. Do it manually. */
   motion = motion.xyxy;
@@ -153,7 +153,7 @@ void flatten_comp([[resource_table]] Resources<velocity_format> &srt,
   /* Store resolved velocity to speedup the gather pass. Out of bounds writes are ignored.
    * Unfortunately, we cannot convert to pixel space here since it is also used by TAA and the
    * motion blur needs to remain optional. */
-  imageStore(srt.velocity_img, int2(global_id.xy), velocity_pack(motion));
+  imageStore(srt.velocity_img, int2(global_id.xy), velocity::pack(motion));
   /* Clip velocity to viewport bounds (in NDC space). */
   float2 line_clip;
   line_clip.x = line_unit_square_intersect_dist_safe(uv * 2.0f - 1.0f, motion.xy * 2.0f);
@@ -346,7 +346,7 @@ struct Resources {
   {
     /* We can load velocity without velocity_resolve() since we resolved during the flatten pass.
      */
-    float4 velocity = velocity_unpack(texture(velocity_tx, uv));
+    float4 velocity = velocity::unpack(texture(velocity_tx, uv));
     return velocity * float2(textureSize(velocity_tx, 0)).xyxy * motion_blur_buf.motion_scale.xxyy;
   }
 

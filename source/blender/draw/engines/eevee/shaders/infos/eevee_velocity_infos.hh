@@ -55,15 +55,4 @@ VERTEX_OUT(eevee_velocity_surface_iface)
 ADDITIONAL_INFO(eevee_velocity_camera)
 GPU_SHADER_CREATE_END()
 
-GPU_SHADER_CREATE_INFO(eevee_vertex_copy)
-COMPUTE_SOURCE("eevee_vertex_copy_comp.glsl")
-LOCAL_GROUP_SIZE(VERTEX_COPY_GROUP_SIZE)
-STORAGE_BUF(0, read, float, in_buf[])
-STORAGE_BUF(1, write, float4, out_buf[])
-PUSH_CONSTANT(int, start_offset)
-PUSH_CONSTANT(int, vertex_stride)
-PUSH_CONSTANT(int, vertex_count)
-DO_STATIC_COMPILATION()
-GPU_SHADER_CREATE_END()
-
 /** \} */

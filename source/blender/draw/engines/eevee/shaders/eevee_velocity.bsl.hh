@@ -7,14 +7,17 @@
 #include "infos/eevee_velocity_infos.hh"
 
 #include "draw_view_lib.glsl"
+#include "gpu_shader_math_base_lib.glsl"
 #include "gpu_shader_math_matrix_transform_lib.glsl"
 
-float4 velocity_pack(float4 data)
+namespace eevee::velocity {
+
+float4 pack(float4 data)
 {
   return data * 0.01f;
 }
 
-float4 velocity_unpack(float4 data)
+float4 unpack(float4 data)
 {
   return data * 100.0f;
 }
@@ -23,7 +26,7 @@ float4 velocity_unpack(float4 data)
  * Given a triple of position, compute the previous and next motion vectors.
  * Returns uv space motion vectors in pairs (motion_prev.xy, motion_next.xy).
  */
-float4 velocity_surface(float3 P_prv, float3 P, float3 P_nxt)
+float4 surface_velocity(float3 P_prv, float3 P, float3 P_nxt)
 {
   const auto &cam_prev = buffer_get(eevee_velocity_camera, camera_prev);
   const auto &cam_curr = buffer_get(eevee_velocity_camera, camera_curr);
@@ -54,7 +57,7 @@ float4 velocity_surface(float3 P_prv, float3 P, float3 P_nxt)
  * background pixels.
  * Returns uv space motion vectors in pairs (motion_prev.xy, motion_next.xy).
  */
-float4 velocity_background(float3 vV)
+float4 background_velocity(float3 vV)
 {
   const auto &cam_prev = buffer_get(eevee_velocity_camera, camera_prev);
   const auto &cam_curr = buffer_get(eevee_velocity_camera, camera_curr);
@@ -74,20 +77,20 @@ float4 velocity_background(float3 vV)
   return motion;
 }
 
-float4 velocity_resolve(float4 vector, float2 uv, float depth)
+float4 resolve(float4 vector, float2 uv, float depth)
 {
   if (vector.x == VELOCITY_INVALID) {
     bool is_background = (depth == 1.0f);
     if (is_background) {
       /* NOTE: Use view vector to avoid imprecision if camera is far from origin. */
       float3 vV = -drw_view_incident_vector(drw_point_screen_to_view(float3(uv, 1.0f)));
-      return velocity_background(vV);
+      return background_velocity(vV);
     }
     /* Static geometry. No translation in world space. */
     float3 P = drw_point_screen_to_world(float3(uv, depth));
-    return velocity_surface(P, P, P);
+    return surface_velocity(P, P, P);
   }
-  return velocity_unpack(vector);
+  return unpack(vector);
 }
 
 /**
@@ -95,18 +98,18 @@ float4 velocity_resolve(float4 vector, float2 uv, float depth)
  * motion data for performance reasons.
  * Returns motion vector in render UV space.
  */
-float4 velocity_resolve(sampler2D vector_tx, int2 texel, float depth)
+float4 resolve(sampler2D vector_tx, int2 texel, float depth)
 {
   float2 uv = (float2(texel) + 0.5f) / float2(textureSize(vector_tx, 0).xy);
   float4 vector = texelFetch(vector_tx, texel, 0);
-  return velocity_resolve(vector, uv, depth);
+  return resolve(vector, uv, depth);
 }
 
 /**
  * Given a triple of position, compute the previous and next motion vectors.
  * Returns a tuple of local space motion deltas.
  */
-void velocity_local_pos_get(
+void local_position_deltas(
     float3 lP, int vert_id, float3 &lP_prev, float3 &lP_next, uint resource_id)
 {
   const auto &indirection_buf = buffer_get(eevee_velocity_geom, velocity_indirection_buf);
@@ -129,7 +132,7 @@ void velocity_local_pos_get(
  * Returns a tuple of world space motion deltas.
  * WARNING: The returned motion_next is invalid when rendering the viewport.
  */
-void velocity_vertex(float3 lP_prev,
+void vertex_velocity(float3 lP_prev,
                      float3 lP,
                      float3 lP_next,
                      float3 &motion_prev,
@@ -150,3 +153,40 @@ void velocity_vertex(float3 lP_prev,
   motion_prev = P_prev - P;
   motion_next = P_next - P;
 }
+
+struct VertexCopy {
+  [[storage(0, read)]] const float (&in_buf)[];
+  [[storage(1, write)]] float4 (&out_buf)[];
+  [[push_constant]] const int start_offset;
+  [[push_constant]] const int vertex_stride;
+  [[push_constant]] const int vertex_count;
+};
+
+/* Buffer copy using compute shader.
+ * Allows to pad data for 16byte alignment regardless of input layout. */
+[[compute, local_size(VERTEX_COPY_GROUP_SIZE)]]
+void vertex_copy([[resource_table]] VertexCopy &srt,
+                 [[global_invocation_id]] const uint3 global_id,
+                 [[num_work_groups]] const uint3 groups_count)
+{
+  uint vert_start = uint(srt.start_offset);
+  uint vert_count = uint(srt.vertex_count);
+  uint vert_stride = uint(srt.vertex_stride);
+
+  uint vertices_per_thread = divide_ceil(vert_count, uint(VERTEX_COPY_GROUP_SIZE)) /
+                             groups_count.x;
+  uint vertex_start = min(global_id.x * vertices_per_thread, vert_count);
+  uint vertex_end = min(vertex_start + vertices_per_thread, vert_count);
+
+  for (uint vertex_id = vertex_start; vertex_id < vertex_end; vertex_id++) {
+    srt.out_buf[vert_start + vertex_id] = float4(
+        srt.in_buf[vertex_id * vert_stride + 0],
+        srt.in_buf[vertex_id * vert_stride + 1],
+        srt.in_buf[vertex_id * vert_stride + 2],
+        1.0f /* TODO(fclem): Remove padding or use it for some other data (radius?). */);
+  }
+}
+
+}  // namespace eevee::velocity
+
+PipelineCompute eevee_vertex_copy(eevee::velocity::vertex_copy);

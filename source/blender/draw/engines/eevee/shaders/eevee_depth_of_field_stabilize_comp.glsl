@@ -24,7 +24,7 @@ COMPUTE_SHADER_CREATE_INFO(eevee_depth_of_field_stabilize)
 #include "eevee_colorspace_lib.bsl.hh"
 #include "eevee_depth_of_field_lib.glsl"
 #include "eevee_reverse_z_lib.bsl.hh"
-#include "eevee_velocity_lib.glsl"
+#include "eevee_velocity.bsl.hh"
 #include "gpu_shader_math_safe_lib.glsl"
 
 struct DofSample {
@@ -216,7 +216,7 @@ float2 dof_pixel_history_motion_vector(int2 texel_sample)
   /* Convert to full resolution buffer pixel. */
   int2 velocity_texel = (texel_sample + nearest_texel) * 2;
   velocity_texel = clamp(velocity_texel, int2(0), textureSize(velocity_tx, 0).xy - 1);
-  float4 vector = velocity_resolve(velocity_tx, velocity_texel, min_depth);
+  float4 vector = eevee::velocity::resolve(velocity_tx, velocity_texel, min_depth);
   /* Transform to **half** pixel space. */
   return vector.xy * float2(textureSize(color_tx, 0));
 }

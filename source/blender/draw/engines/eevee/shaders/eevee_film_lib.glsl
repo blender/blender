@@ -17,7 +17,7 @@ SHADER_LIBRARY_CREATE_INFO(eevee_film)
 #include "eevee_colorspace_lib.bsl.hh"
 #include "eevee_cryptomatte_lib.glsl"
 #include "eevee_reverse_z_lib.bsl.hh"
-#include "eevee_velocity_lib.glsl"
+#include "eevee_velocity.bsl.hh"
 #include "gpu_shader_math_safe_lib.glsl"
 #include "gpu_shader_math_vector_lib.glsl"
 
@@ -263,7 +263,7 @@ float2 film_pixel_history_motion_vector(int2 texel_sample)
     }
   }
 
-  float4 vector = velocity_resolve(vector_tx, nearest_texel, min_depth);
+  float4 vector = eevee::velocity::resolve(vector_tx, nearest_texel, min_depth);
 
   /* Transform to pixel space. */
   vector.xy *= float2(uniform_buf.film.extent);
@@ -703,7 +703,7 @@ void film_process_data(int2 texel_film, float4 &out_color, float &out_depth)
     /* Using film weight as distance to the pixel. So the check is inverted. */
     if (film_sample.weight > film_distance) {
       float depth = reverse_z::read(texelFetch(depth_tx, film_sample.texel, 0).x);
-      float4 vector = velocity_resolve(vector_tx, film_sample.texel, depth);
+      float4 vector = eevee::velocity::resolve(vector_tx, film_sample.texel, depth);
       /* Transform to pixel space, matching Cycles format. */
       vector *= float4(float2(uniform_buf.film.render_extent),
                        float2(uniform_buf.film.render_extent));

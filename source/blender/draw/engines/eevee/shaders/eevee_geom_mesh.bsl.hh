@@ -15,7 +15,7 @@ VERTEX_SHADER_CREATE_INFO(eevee_clip_plane)
 #include "eevee_nodetree_vert_lib.glsl"
 #include "eevee_reverse_z_lib.bsl.hh"
 #include "eevee_surf_common.bsl.hh"
-#include "eevee_velocity_lib.glsl"
+#include "eevee_velocity.bsl.hh"
 
 namespace eevee {
 
@@ -63,13 +63,13 @@ struct GeomMeshVertIn {
   if (pipe.use_velocity) [[static_branch]] {
     auto &motion = interface_get(eevee_velocity_geom, motion);
     float3 prv, nxt;
-    velocity_local_pos_get(vert_in.pos, vert_id, prv, nxt, drw_resource_id());
+    velocity::local_position_deltas(vert_in.pos, vert_id, prv, nxt, drw_resource_id());
     /* FIXME(fclem): Evaluating before displacement avoid displacement being treated as motion but
      * ignores motion from animated displacement. Supporting animated displacement motion vectors
      * would require evaluating the nodetree multiple time with different nodetree UBOs evaluated
      * at different times, but also with different attributes (maybe we could assume static
      * attribute at least). */
-    velocity_vertex(
+    velocity::vertex_velocity(
         prv, vert_in.pos, nxt, motion.prev, motion.next, drw_resource_id(), drw_modelmat());
   }
 

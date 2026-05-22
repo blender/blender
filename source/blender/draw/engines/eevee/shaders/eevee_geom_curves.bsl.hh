@@ -17,7 +17,7 @@ VERTEX_SHADER_CREATE_INFO(eevee_clip_plane)
 #include "eevee_nodetree_vert_lib.glsl"
 #include "eevee_reverse_z_lib.bsl.hh"
 #include "eevee_surf_common.bsl.hh"
-#include "eevee_velocity_lib.glsl"
+#include "eevee_velocity.bsl.hh"
 
 #if defined(GPU_NVIDIA) && defined(GPU_OPENGL)
 /* WORKAROUND: Fix legacy driver compiler issue (see #148472). */
@@ -92,13 +92,14 @@ struct GeomCurve {
     int vert_idx = ws_pt.point_id;
     float3 prv, nxt;
     float3 pos = ls_pt.P;
-    velocity_local_pos_get(pos, vert_idx, prv, nxt, drw_resource_id());
+    velocity::local_position_deltas(pos, vert_idx, prv, nxt, drw_resource_id());
     /* FIXME(fclem): Evaluating before displacement avoid displacement being treated as motion but
      * ignores motion from animated displacement. Supporting animated displacement motion vectors
      * would require evaluating the node-tree multiple time with different node-tree UBOs evaluated
      * at different times, but also with different attributes (maybe we could assume static
      * attribute at least). */
-    velocity_vertex(prv, pos, nxt, motion.prev, motion.next, drw_resource_id(), drw_modelmat());
+    velocity::vertex_velocity(
+        prv, pos, nxt, motion.prev, motion.next, drw_resource_id(), drw_modelmat());
   }
 
   init_globals(true);

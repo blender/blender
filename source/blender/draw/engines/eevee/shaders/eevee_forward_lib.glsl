@@ -16,7 +16,7 @@
 #include "eevee_lightprobe_eval_lib.glsl"
 #include "eevee_nodetree_closures_lib.glsl"
 #include "eevee_reverse_z_lib.bsl.hh"
-#include "eevee_subsurface_lib.glsl"
+#include "eevee_subsurface_lib.bsl.hh"
 #include "gpu_shader_codegen_lib.glsl"
 
 #ifdef GLSL_CPP_STUBS

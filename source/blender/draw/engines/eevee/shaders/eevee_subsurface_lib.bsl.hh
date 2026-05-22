@@ -13,7 +13,7 @@
 
 #include "infos/eevee_common_infos.hh"
 
-#include "eevee_utility_tx_lib.glsl"
+#include "eevee_utility_tx.bsl.hh"
 #include "gpu_shader_utildefines_lib.glsl"
 
 float subsurface_transmittance_profile(float u)

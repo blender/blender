@@ -25,7 +25,7 @@ FRAGMENT_SHADER_CREATE_INFO(eevee_volume_probe_data)
 #include "eevee_lightprobe_eval_lib.glsl"
 #include "eevee_lightprobe_volume_eval_lib.glsl"
 #include "eevee_renderpass_lib.glsl"
-#include "eevee_subsurface_lib.glsl"
+#include "eevee_subsurface_lib.bsl.hh"
 #include "gpu_shader_codegen_lib.glsl"
 #include "gpu_shader_fullscreen_lib.glsl"
 #include "gpu_shader_shared_exponent_lib.glsl"

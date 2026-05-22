@@ -553,7 +553,7 @@ const char *ShaderModule::static_shader_create_info_name_get(eShaderType shader_
     case SURFEL_RAY:
       return "eevee_surfel_ray";
     case TRANSPARENCY_RESOLVE:
-      return "eevee_transparency_resolve";
+      return "eevee_forward_resolve";
     case VERTEX_COPY:
       return "eevee_vertex_copy";
     case VOLUME_INTEGRATION:
@@ -1328,7 +1328,7 @@ void ShaderModule::material_create_info_amend(GPUMaterial *gpumat, GPUCodegenOut
   if (pipeline_type != MAT_PIPE_VOLUME_OCCUPANCY) {
     Vector<StringRefNull> dependencies;
     if (use_ao_node) {
-      dependencies.append("eevee_ambient_occlusion_lib.glsl");
+      dependencies.append("eevee_fast_gi.bsl.hh");
     }
     dependencies.append("eevee_geom_types_lib.glsl");
     dependencies.append("eevee_nodetree_lib.glsl");
