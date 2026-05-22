@@ -13,6 +13,7 @@
 #include <Alembic/AbcGeom/INuPatch.h>
 #include <Alembic/AbcMaterial/IMaterial.h>
 
+#include "abc_keyframing.h"
 #include "abc_reader_archive.h"
 #include "abc_reader_camera.h"
 #include "abc_reader_curves.h"
@@ -580,6 +581,18 @@ static void import_file(ImportJobData *data, const char *filepath, float progres
   if (time_info.is_valid()) {
     data->min_time = std::min(data->min_time, time_info.min_time);
     data->max_time = std::max(data->max_time, time_info.max_time);
+
+    Vector<std::unique_ptr<FCurveCreationHelper>> keyframing_helpers;
+
+    for (iter = readers.begin(); iter != readers.end(); ++iter) {
+      AbcObjectReader *reader = *iter;
+
+      if (reader->valid()) {
+        reader->getKeyFramingHelpers(keyframing_helpers);
+      }
+    }
+
+    create_keyframes(data->bmain, data->scene, keyframing_helpers, time_info);
   }
 
   /* Setup parenthood. */
@@ -712,8 +725,10 @@ static void import_endjob(void *user_data)
       /* If the object is hidden, we set the base as hidden instead so that hide/unhide shortcuts
        * work and the outliner shows the right value. We also unset the flag on the object as users
        * are more likely to interact with viewport visibility from the outliner or shortcuts than
-       * in the object visibility panel. */
-      if ((ob->visibility_flag & OB_HIDE_VIEWPORT) != 0) {
+       * in the object visibility panel.
+       * We don't do this if keyframes are added for the visibility, otherwise the objects won't
+       * show up in the viewport and we cannot transfer the keyframes to the base. */
+      if ((ob->visibility_flag & OB_HIDE_VIEWPORT) != 0 && !reader->has_visibility_keyframes()) {
         base->flag |= BASE_HIDDEN;
         ob->visibility_flag &= ~OB_HIDE_VIEWPORT;
         /* Needed for the shortcut (ALT+H) to work. */

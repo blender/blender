@@ -7,10 +7,17 @@
  */
 
 #include "abc_reader_camera.h"
+#include "abc_keyframing.h"
 #include "abc_util.h"
+
+/* Silence warnings from copying deprecated fields. */
+#define DNA_DEPRECATED_ALLOW
 
 #include "DNA_camera_types.h"
 #include "DNA_object_types.h"
+
+#include "ANIM_action.hh"
+#include "ANIM_fcurve.hh"
 
 #include "BLI_math_base.h"
 
@@ -61,14 +68,14 @@ bool AbcCameraReader::accepts_object_type(
   return true;
 }
 
-void AbcCameraReader::readObjectData(Main *bmain, const ISampleSelector &sample_sel)
+static void read_camera_sample(Camera *bcam,
+                               const ICamera::schema_type &schema,
+                               const ISampleSelector &sample_sel)
 {
-  Camera *bcam = BKE_camera_add(bmain, m_data_name.c_str());
-
   CameraSample cam_sample;
-  m_schema.get(cam_sample, sample_sel);
+  schema.get(cam_sample, sample_sel);
 
-  ICompoundProperty customDataContainer = m_schema.getUserProperties();
+  ICompoundProperty customDataContainer = schema.getUserProperties();
 
   if (customDataContainer.valid() && customDataContainer.getPropertyHeader("stereoDistance") &&
       customDataContainer.getPropertyHeader("eyeSeparation"))
@@ -96,9 +103,95 @@ void AbcCameraReader::readObjectData(Main *bmain, const ISampleSelector &sample_
   bcam->clip_end = float(cam_sample.getFarClippingPlane());
   bcam->dof.focus_distance = float(cam_sample.getFocusDistance());
   bcam->dof.aperture_fstop = float(cam_sample.getFStop());
+}
 
+void AbcCameraReader::readObjectData(Main *bmain, const ISampleSelector &sample_sel)
+{
+  Camera *bcam = BKE_camera_add(bmain, m_data_name.c_str());
+  read_camera_sample(bcam, m_schema, sample_sel);
   m_object = BKE_object_add_only_object(bmain, OB_CAMERA, m_object_name.c_str());
   m_object->data = id_cast<ID *>(bcam);
+}
+
+/* The macro that needs to be passed should have arguments : (rna_name, member_accessor) */
+#define ENUMERATE_CAMERA_PROPERTIES(X) \
+  X(lens, lens) \
+  X(sensor_width, sensor_x) \
+  X(sensor_height, sensor_y) \
+  X(clip_start, clip_start) \
+  X(clip_end, clip_end) \
+  X(shift_x, shiftx) \
+  X(shift_y, shifty) \
+  X(focus_distance, dof.focus_distance) \
+  X(aperture_fstop, dof.aperture_fstop) \
+  X(interocular_distance, stereo.interocular_distance) \
+  X(convergence_distance, stereo.convergence_distance)
+
+class CameraFCurveCreationHelper : public FCurveCreationHelper {
+  Camera *camera_ = nullptr;
+  const Alembic::AbcGeom::ICameraSchema &schema_{};
+
+  /* Keep track of what has been modified to remove unnecessary fcurves at the end as Alembic
+   * seemingly does not have per property information. */
+  struct MemberModified {
+#define DECLARE_MEMBER(rna_name, member_accessor) bool rna_name = false;
+    ENUMERATE_CAMERA_PROPERTIES(DECLARE_MEMBER)
+#undef DECLARE_MEMBER
+  };
+
+  MemberModified member_modified_{};
+
+#define DECLARE_FCURVES(rna_name, member_accessor) FCurve *rna_name##_fcurve = nullptr;
+  ENUMERATE_CAMERA_PROPERTIES(DECLARE_FCURVES)
+#undef DECLARE_FCURVES
+
+ public:
+  CameraFCurveCreationHelper(Camera *camera, const Alembic::AbcGeom::ICameraSchema &schema)
+      : FCurveCreationHelper(&camera->id), camera_(camera), schema_(schema)
+  {
+  }
+
+  void create_fcurves(const int sample_count) override
+  {
+#define CREATE_FCURVE(rna_name, member_accessor) \
+  rna_name##_fcurve = create_fcurve({#rna_name, 0}, sample_count);
+    ENUMERATE_CAMERA_PROPERTIES(CREATE_FCURVE)
+#undef CREATE_FCURVE
+  }
+
+  void set_fcurves_sample(const FrameSampleInfo &sample_info) override
+  {
+    /* To detect what has been modified. */
+    Camera last_camera = *camera_;
+    read_camera_sample(camera_, schema_, sample_info.selector);
+
+#define SET_FCURVE_SAMPLE(rna_name, member_accessor) \
+  set_fcurve_sample( \
+      rna_name##_fcurve, sample_info.sample_index, sample_info.frame, camera_->member_accessor); \
+  member_modified_.rna_name |= last_camera.member_accessor != camera_->member_accessor;
+    ENUMERATE_CAMERA_PROPERTIES(SET_FCURVE_SAMPLE)
+#undef SET_FCURVE_SAMPLE
+  }
+
+  void remove_unnecessary_fcurves() override
+  {
+#define REMOVE_UNNECESSARY_FCURVE(rna_name, member_accessor) \
+  if (member_modified_.rna_name == false) { \
+    channelbag->fcurve_remove(*rna_name##_fcurve); \
+  }
+    ENUMERATE_CAMERA_PROPERTIES(REMOVE_UNNECESSARY_FCURVE)
+#undef REMOVE_UNNECESSARY_FCURVE
+  }
+};
+
+std::unique_ptr<FCurveCreationHelper> AbcCameraReader::getKeyFramingHelper()
+{
+  if (m_schema.isConstant()) {
+    return nullptr;
+  }
+
+  Camera *camera = id_cast<Camera *>(m_object->data);
+  return std::make_unique<CameraFCurveCreationHelper>(camera, m_schema);
 }
 
 }  // namespace io::alembic
