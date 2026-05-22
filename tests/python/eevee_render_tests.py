@@ -295,6 +295,16 @@ def main():
         # References are supposed to be generated on OpenGL Nvidia. Tighten the threshold for this platform.
         report.set_fail_percent(0.049)
         report.set_fail_threshold(2.0 / 255.0)
+        # Some different GPU arch have different texture sampling behavior.
+        if test_dir_name in {"image_mapping"}:
+            report.set_fail_percent(0.08)
+            report.set_fail_threshold(4.0 / 255.0)
+        elif test_dir_name in {"displacement"}:
+            report.set_fail_percent(0.11)
+            report.set_fail_threshold(5.0 / 255.0)
+        elif test_dir_name in {"texture"}:
+            report.set_fail_percent(0.14)
+            report.set_fail_threshold(6.0 / 255.0)
     elif test_dir_name.startswith('camera'):
         # camera_central_cylindrical and camera_stereo_panoramic have some platform specific small differences
         report.set_fail_percent(0.8)
