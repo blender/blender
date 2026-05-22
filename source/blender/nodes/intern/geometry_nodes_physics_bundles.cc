@@ -27,6 +27,7 @@ const FlatBundleTypePtr &ColliderBundle::get_bundle_type()
     b.add<decl::Bool>("deforming"_ustr).default_value(false);
     b.add<decl::Bool>("use_edge_contacts"_ustr).default_value(false);
     b.add<decl::Bool>("is_boundary"_ustr).default_value(false);
+    b.add<decl::Float>("error_threshold"_ustr).default_value(1e-3f).min(1e-5f);
     const FlatBundleTypePtr bundle_type = b.build();
     BundleTypeRegistry::register_type(bundle_type);
     return bundle_type;
@@ -56,6 +57,7 @@ const FlatBundleTypePtr &PinPositionBundle::get_bundle_type()
     b.add<decl::Bool>("selection"_ustr).default_value(true).supports_field();
     b.add<decl::Vector>("position"_ustr).supports_field();
     b.add<decl::Float>("compliance"_ustr).min(0.0f).supports_field();
+    b.add<decl::Float>("error_threshold"_ustr).default_value(1e-3f).min(1e-5f);
     b.add<decl::String>("was_pinned_attribute"_ustr);
     b.add<decl::String>("previous_pin_position_attribute"_ustr);
     b.add<decl::String>("lambda_attribute"_ustr);
@@ -74,6 +76,7 @@ const FlatBundleTypePtr &PinRotationBundle::get_bundle_type()
     b.add<decl::Bool>("selection"_ustr).default_value(true).supports_field();
     b.add<decl::Rotation>("rotation"_ustr).supports_field();
     b.add<decl::Float>("compliance"_ustr).min(0.0f).supports_field();
+    b.add<decl::Float>("error_threshold"_ustr).default_value(1e-2f).min(1e-5f);
     b.add<decl::String>("was_pinned_attribute"_ustr);
     b.add<decl::String>("previous_pin_rotation_attribute"_ustr);
     const FlatBundleTypePtr bundle_type = b.build();
@@ -102,6 +105,7 @@ const FlatBundleTypePtr &RodStretchShearBundle::get_bundle_type()
     add_filter(b);
     b.add<decl::Float>("rest_length"_ustr).min(0.0f).supports_field();
     b.add<decl::Float>("compliance"_ustr).default_value(1e-4f).min(0.0f);
+    b.add<decl::Float>("error_threshold"_ustr).default_value(1e-3f).min(1e-5f);
     b.add<decl::String>("lambda_position_attribute"_ustr);
     b.add<decl::String>("lambda_rotation_attribute"_ustr);
     const FlatBundleTypePtr bundle_type = b.build();
@@ -118,6 +122,7 @@ const FlatBundleTypePtr &RodBendTwistBundle::get_bundle_type()
     add_filter(b);
     b.add<decl::Rotation>("rest_bend_rotation"_ustr).supports_field();
     b.add<decl::Float>("compliance"_ustr).default_value(1e-4f).min(0.0f);
+    b.add<decl::Float>("error_threshold"_ustr).default_value(1e-2f).min(1e-5f);
     const FlatBundleTypePtr bundle_type = b.build();
     BundleTypeRegistry::register_type(bundle_type);
     return bundle_type;
@@ -132,6 +137,7 @@ const FlatBundleTypePtr &EdgeLengthConstraintBundle::get_bundle_type()
     add_filter(b);
     b.add<decl::Float>("rest_length"_ustr).min(0.0f).supports_field();
     b.add<decl::Float>("compliance"_ustr).default_value(1e-4f).min(0.0f);
+    b.add<decl::Float>("error_threshold"_ustr).default_value(1e-3f).min(1e-5f);
     const FlatBundleTypePtr bundle_type = b.build();
     BundleTypeRegistry::register_type(bundle_type);
     return bundle_type;
@@ -146,6 +152,7 @@ const FlatBundleTypePtr &CrossEdgeLengthConstraintBundle::get_bundle_type()
     add_filter(b);
     b.add<decl::Vector>("rest_position"_ustr).supports_field();
     b.add<decl::Float>("compliance"_ustr).default_value(1e-4f).min(0.0f);
+    b.add<decl::Float>("error_threshold"_ustr).default_value(1e-3f).min(1e-5f);
     const FlatBundleTypePtr bundle_type = b.build();
     BundleTypeRegistry::register_type(bundle_type);
     return bundle_type;

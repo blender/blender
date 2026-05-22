@@ -60,9 +60,32 @@ constexpr StringRefNull radius = "radius";
 
 }  // namespace attribute_names
 
+class XPBDSolverDataBundle {
+ public:
+  static constexpr StringRefNull name = "Blender.XPBDSolverData";
+  static const FlatBundleTypePtr &get_bundle_type();
+};
+
+const FlatBundleTypePtr &XPBDSolverDataBundle::get_bundle_type()
+{
+  static const FlatBundleTypePtr bundle_type = []() {
+    FlatBundleTypeBuilder b(XPBDSolverDataBundle::name);
+    b.add<decl::Float>("residual_error"_ustr)
+        .min(0.0f)
+        .description(
+            "Average remaining relative error, values smaller than one are below the constraint "
+            "threshold.");
+    const FlatBundleTypePtr bundle_type = b.build();
+    BundleTypeRegistry::register_type(bundle_type);
+    return bundle_type;
+  }();
+  return bundle_type;
+}
+
 static NestedBundleTypePtr make_world_type()
 {
   Vector<std::shared_ptr<const FlatBundleType>> types;
+  types.append(XPBDSolverDataBundle::get_bundle_type());
   types.append(DampingBundle::get_bundle_type());
   types.append(ColliderBundle::get_bundle_type());
   types.append(CollisionContactsBundle::get_bundle_type());
@@ -106,6 +129,9 @@ static void node_declare(NodeDeclarationBuilder &b)
     auto &solver_panel = b.add_panel("Solver"_ustr).default_closed(true);
     solver_panel.add_input<decl::Int>("Substeps"_ustr).default_value(10).min(1);
     solver_panel.add_input<decl::Int>("Constraint Iterations"_ustr).default_value(1).min(1);
+    solver_panel.add_input<decl::String>("Solver Path"_ustr)
+        .default_value("")
+        .description("Optional output path in the world bundle for solver data");
   }
   {
     auto &p = b.add_panel("Interpolation Range"_ustr).default_closed(true);
@@ -148,6 +174,7 @@ struct DampingConstraintUsage {
 
 struct RodStretchShearConstraint {
   std::string path;
+  float error_threshold;
   std::string lambda_pos_attr;
   std::string lambda_rot_attr;
 };
@@ -163,6 +190,7 @@ struct RodStretchShearConstraintUsage {
 
 struct RodBendTwistConstraint {
   std::string path;
+  float error_threshold;
 };
 struct RodBendTwistConstraintUsage {
   /** Index of corresponding #RodBendTwistConstraint. */
@@ -174,6 +202,7 @@ struct RodBendTwistConstraintUsage {
 
 struct PinPositionConstraint {
   std::string path;
+  float error_threshold;
   std::string lambda_attr;
 };
 struct PinPositionConstraintUsage {
@@ -196,6 +225,7 @@ struct PinPositionConstraintChunkUsage {
 
 struct PinRotationConstraint {
   std::string path;
+  float error_threshold;
 };
 struct PinRotationConstraintUsage {
   /** Index of corresponding #PinRotationConstraint. */
@@ -217,6 +247,7 @@ struct PinRotationConstraintChunkUsage {
 
 struct EdgeLengthConstraint {
   std::string path;
+  float error_threshold;
 };
 struct EdgeLengthConstraintUsage {
   /** Index of corresponding #EdgeLengthConstraint. */
@@ -231,6 +262,7 @@ struct EdgeLengthConstraintUsage {
 
 struct CrossEdgeLengthConstraint {
   std::string path;
+  float error_threshold;
 };
 struct CrossEdgeLengthConstraintUsage {
   /** Index of the corresponding #CrossEdgeLengthConstraint. */
@@ -244,6 +276,7 @@ struct CrossEdgeLengthConstraintUsage {
   xpbd::ConstraintColoring coloring;
 };
 
+float error_threshold;
 struct StaticMeshInfo {
   const Mesh *mesh;
   bke::BVHTreeFromMesh corner_tris_bvh;
@@ -273,6 +306,7 @@ struct MeshCollider {
   bool use_edge_contacts;
   /** If true, the points are expected to stay inside of the mesh instead of being pushed out. */
   bool is_boundary;
+  float error_threshold;
 };
 struct MeshColliderUsage {
   /** Index of corresponding #MeshCollider. */
@@ -428,6 +462,7 @@ struct ExternalFaceContacts {
   Vector<float> static_frictions;
   Vector<float> dynamic_frictions;
   Vector<float> compliance_terms;
+  Vector<float> error_scales;
 
   Vector<bool> active_states;
   Vector<float> lambdas_normal;
@@ -464,6 +499,7 @@ struct ExternalEdgeContacts {
   Vector<float> static_frictions;
   Vector<float> dynamic_frictions;
   Vector<float> compliance_terms;
+  Vector<float> error_scales;
 
   Vector<bool> active_states;
   Vector<float> point_mix_factors;
@@ -512,6 +548,15 @@ struct ConstraintsInfo {
 };
 
 class XpbdSolverStep {
+ public:
+  struct Result {
+    /* Average relative residual error of all constraints. The average absolute error of a specific
+     * constraint type is scaled by a threshold value, anything below the threshold is considered
+     * "solved". This allows combining constraint residuals of different types into a single value.
+     */
+    float total_residual_error;
+  };
+
  private:
   struct TLS {
     ResourceScope scope;
@@ -545,6 +590,7 @@ class XpbdSolverStep {
 
   Mutex field_evaluators_mutex_;
 
+  Result result_;
   Mutex warnings_mutex_;
   VectorSet<std::pair<NodeWarningType, std::string>> warnings_;
 
@@ -598,7 +644,7 @@ class XpbdSolverStep {
       this->create_chunk_constraints__pin_rotations(tls, chunk_i);
     });
 
-    this->do_simulation();
+    result_ = this->do_simulation();
 
     this->write_back__pin_positions();
     this->write_back__rod_stretch_shear();
@@ -609,12 +655,22 @@ class XpbdSolverStep {
     this->write_back__contacts();
   }
 
+  const Result &result() const
+  {
+    return result_;
+  }
+
   Span<std::pair<NodeWarningType, std::string>> warnings() const
   {
     return warnings_;
   }
 
  private:
+  static float error_scale_from_threshold(const float error_threshold)
+  {
+    return 1.0f / std::max(math::square(error_threshold), 1e-12f);
+  }
+
   void gather_nested_bundle_paths()
   {
     foreach_nested_bundle_item(world_,
@@ -782,6 +838,7 @@ class XpbdSolverStep {
       const bool deforming = bundle.lookup<bool>("deforming"_ustr).value_or(false);
       const bool use_edge_contacts = bundle.lookup<bool>("use_edge_contacts"_ustr).value_or(false);
       const bool is_boundary = bundle.lookup<bool>("is_boundary"_ustr).value_or(false);
+      const float error_threshold = bundle.lookup<float>("error_threshold"_ustr).value_or(1e-3f);
       const bke::GeometrySet *prev_geometry = previous_bundle ?
                                                   previous_bundle->lookup_ptr<bke::GeometrySet>(
                                                       "geometry"_ustr) :
@@ -809,6 +866,7 @@ class XpbdSolverStep {
                                          deforming,
                                          use_edge_contacts,
                                          is_boundary,
+                                         error_threshold,
                                          affected_data,
                                          instance_id_stack);
     }
@@ -983,6 +1041,7 @@ class XpbdSolverStep {
       r_face_contacts.dynamic_frictions.append(dynamic_friction);
       r_face_contacts.compliance_terms.append(
           std::max(0.0f, substep_compliance_factor_ * collider.compliance));
+      r_face_contacts.error_scales.append(error_scale_from_threshold(collider.error_threshold));
 
       const MeshContactId contact_id{collider_usage.constraint_i, point_i};
       r_face_contacts.mesh_contact_indices.add(contact_id, contact_i);
@@ -1077,6 +1136,7 @@ class XpbdSolverStep {
         r_edge_contacts.dynamic_frictions.append(dynamic_friction);
         r_edge_contacts.compliance_terms.append(
             std::max(0.0f, substep_compliance_factor_ * collider.compliance));
+        r_edge_contacts.error_scales.append(error_scale_from_threshold(collider.error_threshold));
 
         const MeshContactId contact_id{collider_usage.constraint_i, geo_contact_id};
         r_edge_contacts.mesh_contact_indices.add(contact_id, contact_i);
@@ -1271,6 +1331,7 @@ class XpbdSolverStep {
                                     const bool deforming,
                                     const bool use_edge_contacts,
                                     const bool is_boundary,
+                                    const float error_threshold,
                                     const Span<int> affected_data,
                                     Vector<int> &instance_id_stack)
   {
@@ -1284,6 +1345,7 @@ class XpbdSolverStep {
         mesh_collider.compliance = compliance;
         mesh_collider.use_edge_contacts = use_edge_contacts;
         mesh_collider.is_boundary = is_boundary;
+        mesh_collider.error_threshold = error_threshold;
         mesh_collider.begin_transform = prev_transform;
         mesh_collider.end_transform = transform;
         const Mesh *prev_mesh = prev_collider_geo ? prev_collider_geo->get_mesh() : nullptr;
@@ -1352,6 +1414,7 @@ class XpbdSolverStep {
                                            deforming,
                                            use_edge_contacts,
                                            is_boundary,
+                                           error_threshold,
                                            affected_data,
                                            instance_id_stack);
       }
@@ -1541,6 +1604,7 @@ class XpbdSolverStep {
       const Bundle &bundle = **world_.lookup_path_ptr<BundlePtr>(path);
       RodStretchShearConstraint constraint;
       constraint.path = path;
+      constraint.error_threshold = bundle.lookup<float>("error_threshold"_ustr).value_or(1e-3f);
       constraint.lambda_pos_attr =
           bundle.lookup<std::string>("lambda_position_attribute"_ustr).value_or("");
       constraint.lambda_rot_attr =
@@ -1610,6 +1674,8 @@ class XpbdSolverStep {
       if (!constraint_usage.is_valid) {
         continue;
       }
+      const RodStretchShearConstraint &constraint =
+          constraints_.rod_stretch_shear_constraints[constraint_usage.constraint_i];
       chunk_data.static_constraints.append(
           &tls.scope.construct<xpbd::RodStretchAndShearConstraintSet>(
               chunk.data_key_i,
@@ -1617,6 +1683,7 @@ class XpbdSolverStep {
               points_by_curve,
               constraint_usage.rest_lengths,
               constraint_usage.compliances.get_span_for_range(chunk.points_range),
+              error_scale_from_threshold(constraint.error_threshold),
               constraint_usage.lambdas_pos,
               constraint_usage.lambdas_rot));
     }
@@ -1663,6 +1730,7 @@ class XpbdSolverStep {
 
       RodBendTwistConstraint constraint;
       constraint.path = path;
+      constraint.error_threshold = bundle.lookup<float>("error_threshold"_ustr).value_or(1e-2f);
 
       const int constraint_i = constraints_.rod_bend_twist_constraints.append_and_get_index(
           std::move(constraint));
@@ -1717,6 +1785,8 @@ class XpbdSolverStep {
     const OffsetIndices<int> points_by_curve = curves.points_by_curve();
     for (const RodBendTwistConstraintUsage &constraint_usage : geo_data.rod_bend_twist_constraints)
     {
+      const RodBendTwistConstraint &constraint =
+          constraints_.rod_bend_twist_constraints[constraint_usage.constraint_i];
       chunk_data.static_constraints.append(
           &tls.scope.construct<xpbd::RodBendAndTwistConstraintSet>(
               chunk.data_key_i,
@@ -1724,6 +1794,7 @@ class XpbdSolverStep {
               points_by_curve,
               constraint_usage.rest_bend_rotations,
               constraint_usage.compliances.get_span_for_range(chunk.points_range),
+              error_scale_from_threshold(constraint.error_threshold),
               constraint_usage.lambdas));
     }
   }
@@ -1735,7 +1806,9 @@ class XpbdSolverStep {
     for (const StringRef path : paths) {
       const Bundle &bundle = **world_.lookup_path_ptr<BundlePtr>(path);
 
-      const int constraint_i = constraints_.edge_length_constraints.append_and_get_index({path});
+      const float error_threshold = bundle.lookup<float>("error_threshold"_ustr).value_or(1e-3f);
+      const int constraint_i = constraints_.edge_length_constraints.append_and_get_index(
+          {path, error_threshold});
 
       for (const int data_key_i : geometries_.data.index_range()) {
         const DataKey &data_key = geometries_.data_keys[data_key_i];
@@ -1744,7 +1817,9 @@ class XpbdSolverStep {
           continue;
         }
         if (this->effector_applies_to_geometry(path, bundle, data_key_i)) {
-          geo_data.edge_length_constraints.append({constraint_i});
+          EdgeLengthConstraintUsage constraint_usage;
+          constraint_usage.constraint_i = constraint_i;
+          geo_data.edge_length_constraints.append(std::move(constraint_usage));
         }
       }
     }
@@ -1779,6 +1854,7 @@ class XpbdSolverStep {
             edges,
             constraint_usage.rest_lengths,
             constraint_usage.compliances,
+            error_scale_from_threshold(constraint.error_threshold),
             constraint_usage.lambdas);
         xpbd::ConstraintColoring coloring = constraint_set.color_constraints(tls.mask_memory);
         geo_data.static_constraints.append({&constraint_set, std::move(coloring)});
@@ -1793,8 +1869,9 @@ class XpbdSolverStep {
         CrossEdgeLengthConstraintBundle::name);
     for (const StringRef path : paths) {
       const Bundle &bundle = **world_.lookup_path_ptr<BundlePtr>(path);
+      const float error_threshold = bundle.lookup<float>("error_threshold"_ustr).value_or(1e-3f);
       const int constraint_i = constraints_.cross_edge_length_constraints.append_and_get_index(
-          {path});
+          {path, error_threshold});
       for (const int data_key_i : geometries_.data.index_range()) {
         const DataKey &data_key = geometries_.data_keys[data_key_i];
         GeometryData &geo_data = *geometries_.data[data_key_i];
@@ -1802,7 +1879,9 @@ class XpbdSolverStep {
           continue;
         }
         if (this->effector_applies_to_geometry(path, bundle, data_key_i)) {
-          geo_data.cross_edge_length_constraints.append({constraint_i});
+          CrossEdgeLengthConstraintUsage constraint_usage;
+          constraint_usage.constraint_i = constraint_i;
+          geo_data.cross_edge_length_constraints.append(std::move(constraint_usage));
         }
       }
     }
@@ -1848,6 +1927,7 @@ class XpbdSolverStep {
             cross_edges,
             cross_edge_rest_lengths,
             cross_edge_compliances,
+            error_scale_from_threshold(constraint.error_threshold),
             constraint_usage.lambdas);
         xpbd::ConstraintColoring coloring = constraint_set.color_constraints(tls.mask_memory);
         geo_data.static_constraints.append({&constraint_set, std::move(coloring)});
@@ -2013,6 +2093,7 @@ class XpbdSolverStep {
       const Bundle &bundle = **world_.lookup_path_ptr<BundlePtr>(path);
       PinPositionConstraint constraint;
       constraint.path = path;
+      constraint.error_threshold = bundle.lookup<float>("error_threshold"_ustr).value_or(1e-3f);
       constraint.lambda_attr = bundle.lookup<std::string>("lambda_attribute"_ustr).value_or("");
       const int constraint_i = constraints_.pin_position_constraints.append_and_get_index(
           std::move(constraint));
@@ -2100,6 +2181,8 @@ class XpbdSolverStep {
     for (const int constraint_usage_i : geo_data.pin_position_constraints.index_range()) {
       const PinPositionConstraintUsage &constraint_usage =
           geo_data.pin_position_constraints[constraint_usage_i];
+      const PinPositionConstraint &constraint =
+          constraints_.pin_position_constraints[constraint_usage.constraint_i];
 
       /* Detect hard pinned points. */
       for (const int pin_i : constraint_usage.points.index_range()) {
@@ -2121,6 +2204,7 @@ class XpbdSolverStep {
           constraint_usage.points.slice(pin_range),
           constraint_usage.current_positions.slice(pin_range),
           constraint_usage.compliances.slice(pin_range),
+          error_scale_from_threshold(constraint.error_threshold),
           constraint_usage.lambdas.slice(pin_range)));
     }
   }
@@ -2165,6 +2249,7 @@ class XpbdSolverStep {
 
       PinRotationConstraint constraint;
       constraint.path = path;
+      constraint.error_threshold = bundle.lookup<float>("error_threshold"_ustr).value_or(1e-2f);
       const int constraint_i = constraints_.pin_rotation_constraints.append_and_get_index(
           std::move(constraint));
 
@@ -2260,6 +2345,8 @@ class XpbdSolverStep {
     for (const int constraint_usage_i : geo_data.pin_rotation_constraints.index_range()) {
       const PinRotationConstraintUsage &constraint_usage =
           geo_data.pin_rotation_constraints[constraint_usage_i];
+      const PinRotationConstraint &constraint =
+          constraints_.pin_rotation_constraints[constraint_usage.constraint_i];
 
       const IndexRange pin_range = unique_sorted_indices::find_content_range<int>(
           constraint_usage.points, chunk.points_range);
@@ -2272,16 +2359,27 @@ class XpbdSolverStep {
           constraint_usage.points.slice(pin_range),
           constraint_usage.current_rotations.slice(pin_range),
           constraint_usage.compliances.slice(pin_range),
+          error_scale_from_threshold(constraint.error_threshold),
           constraint_usage.lambdas.slice(pin_range)));
     }
   }
 
-  void do_simulation()
+  struct ResidualErrorTLS {
+    float total_error_squared = 0.0f;
+    int total_error_count = 0;
+  };
+
+  Result do_simulation()
   {
     this->prepare_solver_geometry_refs();
+    float average_error_squared = 0.0f;
 
     if (this->support_chunk_simulation()) {
+      threading::EnumerableThreadSpecific<ResidualErrorTLS> error_tls;
+
       this->parallel_for_each_chunk(1, [&](const int chunk_i) {
+        float chunk_error_squared;
+        int chunk_error_count;
         int solver_refs_i = 0;
         for (const int substep_i : IndexRange(substeps_)) {
           const SubstepInterval substep(
@@ -2293,10 +2391,12 @@ class XpbdSolverStep {
 
           const Span<xpbd::GeometryRef> solver_refs = geometries_.solver_refs[solver_refs_i];
           xpbd::ConstraintSetParams solve_params{solver_refs, sub_delta_time_};
-          xpbd::GaussSeidelUpdater updater{solver_refs};
           for ([[maybe_unused]] const int iter_i : IndexRange(constraint_iterations_)) {
+            xpbd::GaussSeidelUpdater updater{solver_refs};
             this->simulate__position_solve__single_iteration__chunk(
                 chunk_i, solve_params, updater);
+            chunk_error_squared = updater.total_error_squared();
+            chunk_error_count = updater.total_error_count();
           }
 
           this->simulate__update_velocities__chunk(chunk_i, solver_refs_i);
@@ -2304,7 +2404,22 @@ class XpbdSolverStep {
           solver_refs_i = 1 - solver_refs_i;
         }
         this->simulate__ensure_final_data_in_outputs__chunk(chunk_i);
+
+        if (chunk_error_count) {
+          error_tls.local().total_error_squared += chunk_error_squared;
+          error_tls.local().total_error_count += chunk_error_count;
+        }
       });
+
+      float total_error_squared = 0.0f;
+      int total_error_count = 0;
+      for (const ResidualErrorTLS &error : error_tls) {
+        total_error_squared += error.total_error_squared;
+        total_error_count += error.total_error_count;
+      }
+      if (total_error_count) {
+        average_error_squared = total_error_squared / total_error_count;
+      }
     }
     else {
       int solver_refs_i = 0;
@@ -2318,7 +2433,7 @@ class XpbdSolverStep {
         this->simulate__gather_dynamic_constraints(substep, solver_refs_i);
         this->simulate__reset_forces();
         for ([[maybe_unused]] const int iter_i : IndexRange(constraint_iterations_)) {
-          this->simulate__position_solve__single_iteration(solver_refs_i);
+          this->simulate__position_solve__single_iteration(solver_refs_i, average_error_squared);
         }
         this->parallel_for_each_chunk(16, [&](const int chunk_i) {
           this->simulate__update_velocities__chunk(chunk_i, solver_refs_i);
@@ -2330,6 +2445,8 @@ class XpbdSolverStep {
         solver_refs_i = 1 - solver_refs_i;
       }
     }
+
+    return Result{math::sqrt(average_error_squared)};
   }
 
   bool support_chunk_simulation() const
@@ -2505,14 +2622,18 @@ class XpbdSolverStep {
     }
   }
 
-  void simulate__position_solve__single_iteration(const int solver_refs_i)
+  void simulate__position_solve__single_iteration(const int solver_refs_i,
+                                                  float &r_average_error_squared)
   {
     const Span<xpbd::GeometryRef> solver_refs = geometries_.solver_refs[solver_refs_i];
     xpbd::ConstraintSetParams solve_params{solver_refs, sub_delta_time_};
-    xpbd::GaussSeidelUpdater updater{solver_refs};
+    threading::EnumerableThreadSpecific<ResidualErrorTLS> error_tls;
 
     this->parallel_for_each_chunk(1, [&](const int chunk_i) {
+      xpbd::GaussSeidelUpdater updater{solver_refs};
       this->simulate__position_solve__single_iteration__chunk(chunk_i, solve_params, updater);
+      error_tls.local().total_error_squared += updater.total_error_squared();
+      error_tls.local().total_error_count += updater.total_error_count();
     });
 
     for (const int data_key_i : geometries_.data_keys.index_range()) {
@@ -2522,10 +2643,23 @@ class XpbdSolverStep {
           const IndexMask &mask = constraint.coloring.colors[color_i];
           threading::parallel_for(mask.index_range(), 512, [&](const IndexRange range) {
             const IndexMask sliced_mask = mask.slice(range);
+            xpbd::GaussSeidelUpdater updater{solver_refs};
             constraint.constraint->solve_sequential(solve_params, updater, sliced_mask);
+            error_tls.local().total_error_squared += updater.total_error_squared();
+            error_tls.local().total_error_count += updater.total_error_count();
           });
         }
       }
+    }
+
+    float total_error_squared = 0.0f;
+    int total_error_count = 0;
+    for (const ResidualErrorTLS &error : error_tls) {
+      total_error_squared += error.total_error_squared;
+      total_error_count += error.total_error_count;
+    }
+    if (total_error_count) {
+      r_average_error_squared = total_error_squared / total_error_count;
     }
   }
 
@@ -2552,6 +2686,7 @@ class XpbdSolverStep {
                                                   contacts.compliance_terms,
                                                   contacts.static_frictions,
                                                   contacts.dynamic_frictions,
+                                                  contacts.error_scales,
                                                   contacts.active_states,
                                                   contacts.lambdas_normal);
       constraint.solve_sequential_all(solve_params, updater);
@@ -2569,6 +2704,7 @@ class XpbdSolverStep {
                                                   contacts.compliance_terms,
                                                   contacts.static_frictions,
                                                   contacts.dynamic_frictions,
+                                                  contacts.error_scales,
                                                   contacts.active_states,
                                                   contacts.point_mix_factors,
                                                   contacts.lambdas_normal);
@@ -3172,6 +3308,7 @@ static void node_geo_exec(GeoNodeExecParams params)
   const float4x4 simulation_to_world = params.extract_input<float4x4>("Simulation to World"_ustr);
   const float interpolation_begin = params.extract_input<float>("Begin"_ustr);
   const float interpolation_end = params.extract_input<float>("End"_ustr);
+  const std::string solver_path = params.extract_input<std::string>("Solver Path"_ustr);
 
   XpbdSolverStep step(world,
                       delta_time,
@@ -3183,6 +3320,13 @@ static void node_geo_exec(GeoNodeExecParams params)
                       simulation_to_world);
   step.do_step();
 
+  if (!solver_path.empty()) {
+    BundlePtr solver_data_ptr = Bundle::create();
+    Bundle &solver_data = solver_data_ptr.ensure_mutable_inplace();
+    solver_data.add_path(Bundle::type_item_name.string(), std::string(XPBDSolverDataBundle::name));
+    solver_data.add_path("residual_error", step.result().total_residual_error);
+    world.add_path_override(solver_path, std::move(solver_data_ptr));
+  }
   for (const std::pair<NodeWarningType, std::string> &warning : step.warnings()) {
     params.error_message_add(warning.first, warning.second);
   }

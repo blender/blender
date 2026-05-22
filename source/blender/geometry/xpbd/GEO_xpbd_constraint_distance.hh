@@ -13,6 +13,7 @@ struct DistanceConstraintResult {
   float delta_lambda = 0.0f;
   float3 offset0 = float3(0.0f);
   float3 offset1 = float3(0.0f);
+  float residual_error_squared = 0.0f;
 };
 
 inline DistanceConstraintResult evaluate_distance_constraint(const float3 &p0,
@@ -31,13 +32,14 @@ inline DistanceConstraintResult evaluate_distance_constraint(const float3 &p0,
   float length;
   const float3 normalized_dir = math::normalize_and_get_length(p_diff, length);
   const float length_diff = length - rest_distance;
+  const float error_squared = math::square(length_diff + compliance_term * lambda_prev);
   const float delta_lambda = (-length_diff - compliance_term * lambda_prev) /
                              (inv_m0 + inv_m1 + compliance_term);
 
   const float3 offset0 = -delta_lambda * inv_m0 * normalized_dir;
   const float3 offset1 = delta_lambda * inv_m1 * normalized_dir;
 
-  return {delta_lambda, offset0, offset1};
+  return {delta_lambda, offset0, offset1, error_squared};
 }
 
 class DistanceConstraintSet : public TemplatedConstraintSet<DistanceConstraintSet> {
@@ -46,6 +48,8 @@ class DistanceConstraintSet : public TemplatedConstraintSet<DistanceConstraintSe
   Span<int2> point_pairs_;
   Span<float> distances_;
   Span<float> compliances_;
+  /* Scale factor for residual error. */
+  float error_scale_;
   MutableSpan<float> lambdas_;
 
  public:
@@ -55,11 +59,13 @@ class DistanceConstraintSet : public TemplatedConstraintSet<DistanceConstraintSe
                         const Span<int2> point_pairs,
                         const Span<float> distances,
                         const Span<float> compliances,
+                        const float error_scale,
                         MutableSpan<float> lambdas)
       : TemplatedConstraintSet<DistanceConstraintSet>(point_pairs.size(), {geo_i}),
         point_pairs_(point_pairs),
         distances_(distances),
         compliances_(compliances),
+        error_scale_(error_scale),
         lambdas_(lambdas)
   {
   }
@@ -89,6 +95,7 @@ class DistanceConstraintSet : public TemplatedConstraintSet<DistanceConstraintSe
     lambdas_[constraint_i] += result.delta_lambda;
     updater.update_position(geo_i, point_i0, result.offset0);
     updater.update_position(geo_i, point_i1, result.offset1);
+    updater.add_residual_error(geo_i, result.residual_error_squared * error_scale_);
   }
 
   ConstraintColoring color_constraints(IndexMaskMemory &memory) const override

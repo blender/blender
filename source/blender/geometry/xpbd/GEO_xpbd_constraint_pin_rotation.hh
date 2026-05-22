@@ -16,6 +16,8 @@ class PinRotationConstraintSet : public TemplatedConstraintSet<PinRotationConstr
   Span<float> compliances_;
   Span<int> point_indices_;
   Span<math::Quaternion> pin_rotations_;
+  /* Scale factor for residual error. */
+  float error_scale_;
   MutableSpan<float4> lambdas_;
 
  public:
@@ -25,11 +27,13 @@ class PinRotationConstraintSet : public TemplatedConstraintSet<PinRotationConstr
                            const Span<int> point_indices,
                            const Span<math::Quaternion> pin_rotations,
                            const Span<float> compliances,
+                           const float error_scale,
                            MutableSpan<float4> lambdas)
       : TemplatedConstraintSet<PinRotationConstraintSet>(point_indices.size(), {geo_i}),
         compliances_(compliances),
         point_indices_(point_indices),
         pin_rotations_(pin_rotations),
+        error_scale_(error_scale),
         lambdas_(lambdas)
   {
   }
@@ -56,6 +60,7 @@ class PinRotationConstraintSet : public TemplatedConstraintSet<PinRotationConstr
         lambdas_[constraint_i]);
     lambdas_[constraint_i] += result.delta_lambda;
     updater.update_rotation(geo_i, point_i, result.offset0);
+    updater.add_residual_error(geo_i, result.residual_error_squared * error_scale_);
   }
 
   ConstraintColoring color_constraints(IndexMaskMemory &memory) const override

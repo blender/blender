@@ -19,10 +19,14 @@ class RodBendAndTwistConstraintSet : public TemplatedConstraintSet<RodBendAndTwi
 
   /** Indexed by point index. */
   Span<math::Quaternion> rest_rotations_;
-  MutableSpan<float4> lambdas_;
 
   /** Indexed by `point_i - first_point_i_in_constraint_set`. */
   Span<float> compliances_;
+
+  /* Scale factor for residual error. */
+  float error_scale_;
+
+  MutableSpan<float4> lambdas_;
 
  public:
   static constexpr StringRefNull debug_name = "Rod Bend and Twist";
@@ -32,13 +36,15 @@ class RodBendAndTwistConstraintSet : public TemplatedConstraintSet<RodBendAndTwi
                                const OffsetIndices<int> points_by_curve,
                                const Span<math::Quaternion> rest_rotations,
                                const Span<float> compliances,
+                               const float error_scale,
                                MutableSpan<float4> lambdas)
       : TemplatedConstraintSet<RodBendAndTwistConstraintSet>(curves_range.size(), {geo_i}),
         curves_range_(curves_range),
         points_by_curve_(points_by_curve),
         rest_rotations_(rest_rotations),
-        lambdas_(lambdas),
-        compliances_(compliances)
+        compliances_(compliances),
+        error_scale_(error_scale),
+        lambdas_(lambdas)
   {
   }
 
@@ -76,6 +82,7 @@ class RodBendAndTwistConstraintSet : public TemplatedConstraintSet<RodBendAndTwi
       lambdas_[point_i0] += result.delta_lambda;
       updater.update_rotation(geo_i, point_i0, result.offset0);
       updater.update_rotation(geo_i, point_i1, result.offset1);
+      updater.add_residual_error(geo_i, result.residual_error_squared * error_scale_);
     }
   }
 

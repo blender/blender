@@ -24,6 +24,8 @@ class CollisionFaceConstraintSet : public TemplatedConstraintSet<CollisionFaceCo
   Span<float> compliance_terms_;
   Span<float> static_frictions_;
   Span<float> dynamic_frictions_;
+  /* Scale factor for residual error. */
+  Span<float> error_scales_;
   MutableSpan<bool> active_states_;
   MutableSpan<float> lambdas_normal_;
 
@@ -40,6 +42,7 @@ class CollisionFaceConstraintSet : public TemplatedConstraintSet<CollisionFaceCo
                              const Span<float> compliance_terms,
                              const Span<float> static_frictions,
                              const Span<float> dynamic_frictions,
+                             const Span<float> error_scales,
                              MutableSpan<bool> active_states,
                              MutableSpan<float> lambdas_normal)
       : TemplatedConstraintSet<CollisionFaceConstraintSet>(points.size(), {geo_i}),
@@ -53,6 +56,7 @@ class CollisionFaceConstraintSet : public TemplatedConstraintSet<CollisionFaceCo
         compliance_terms_(compliance_terms),
         static_frictions_(static_frictions),
         dynamic_frictions_(dynamic_frictions),
+        error_scales_(error_scales),
         active_states_(active_states),
         lambdas_normal_(lambdas_normal)
   {
@@ -95,6 +99,7 @@ class CollisionFaceConstraintSet : public TemplatedConstraintSet<CollisionFaceCo
     /* Positional correction for penetration. */
     float3 offset = float3(0.0f);
     float &lambda_normal = lambdas_normal_[constraint_i];
+    const float error_squared = math::square(normal_distance + compliance_term * lambda_normal);
     const float delta_lambda_normal = -normal_distance / (inv_m + compliance_term);
     offset += delta_lambda_normal * inv_m * face_nor;
     lambda_normal += delta_lambda_normal;
@@ -113,6 +118,7 @@ class CollisionFaceConstraintSet : public TemplatedConstraintSet<CollisionFaceCo
     }
 
     updater.update_position(geo_i_, point_i, offset);
+    updater.add_residual_error(geo_i_, error_squared * error_scales_[constraint_i]);
   }
 
   ConstraintColoring color_constraints(IndexMaskMemory &memory) const override

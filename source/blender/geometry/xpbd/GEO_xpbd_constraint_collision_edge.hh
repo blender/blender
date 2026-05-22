@@ -30,6 +30,8 @@ class CollisionEdgeConstraintSet : public TemplatedConstraintSet<CollisionEdgeCo
   Span<float> compliance_terms_;
   Span<float> static_frictions_;
   Span<float> dynamic_frictions_;
+  /* Scale factor for residual error. */
+  Span<float> error_scales_;
   MutableSpan<bool> active_states_;
   MutableSpan<float> point_mix_factors_;
   MutableSpan<float> lambdas_normal_;
@@ -48,6 +50,7 @@ class CollisionEdgeConstraintSet : public TemplatedConstraintSet<CollisionEdgeCo
                              const Span<float> compliance_terms,
                              const Span<float> static_frictions,
                              const Span<float> dynamic_frictions,
+                             const Span<float> error_scales,
                              MutableSpan<bool> active_states,
                              MutableSpan<float> point_mix_factors,
                              MutableSpan<float> lambdas_normal)
@@ -63,6 +66,7 @@ class CollisionEdgeConstraintSet : public TemplatedConstraintSet<CollisionEdgeCo
         compliance_terms_(compliance_terms),
         static_frictions_(static_frictions),
         dynamic_frictions_(dynamic_frictions),
+        error_scales_(error_scales),
         active_states_(active_states),
         point_mix_factors_(point_mix_factors),
         lambdas_normal_(lambdas_normal)
@@ -150,6 +154,7 @@ class CollisionEdgeConstraintSet : public TemplatedConstraintSet<CollisionEdgeCo
     float3 offset0 = float3(0.0f);
     float3 offset1 = float3(0.0f);
     float &lambda_normal = lambdas_normal_[constraint_i];
+    const float error_squared = math::square(residual + compliance_term * lambda_normal);
     const float delta_lambda_normal = -residual / (weight0 + weight1 + compliance_term);
     offset0 += delta_lambda_normal * weight0 * gradient;
     offset1 += delta_lambda_normal * weight1 * gradient;
@@ -174,6 +179,7 @@ class CollisionEdgeConstraintSet : public TemplatedConstraintSet<CollisionEdgeCo
     is_active = true;
     updater.update_position(geo_i_, point_pair[0], offset0);
     updater.update_position(geo_i_, point_pair[1], offset1);
+    updater.add_residual_error(geo_i_, error_squared * error_scales_[constraint_i]);
   }
 
   ConstraintColoring color_constraints(IndexMaskMemory &memory) const override
