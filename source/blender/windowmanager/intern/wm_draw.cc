@@ -330,7 +330,7 @@ static void wm_software_cursor_draw_crosshair(const float system_scale, const in
    * are set by the operating-system, where the pixel information isn't easily available. */
 
   /* The cursor scaled by the "default" size. */
-  const float cursor_scale = float(WM_cursor_preferred_logical_size()) /
+  const float cursor_scale = float(WM_cursor_preferred_logical_size(false)) /
                              float(WM_CURSOR_DEFAULT_LOGICAL_SIZE);
   const float unit = max_ff(system_scale * cursor_scale, 1.0f);
   uint pos = GPU_vertformat_attr_add(immVertexFormat(), "pos", gpu::VertAttrType::SFLOAT_32_32);

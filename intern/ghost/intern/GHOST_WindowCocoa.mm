@@ -1214,11 +1214,19 @@ GHOST_TSuccess GHOST_WindowCocoa::setWindowCustomCursorShape(const uint8_t *bitm
                      bytesPerRow:(size[0] * 4)
                     bitsPerPixel:32];
 
-    const NSSize imSize = {(CGFloat)size[0], (CGFloat)size[1]};
-    NSImage *cursorImage = [[NSImage alloc] initWithSize:imSize];
-    [cursorImage addRepresentation:cursorImageRep];
+    /* The bitmap is already at HiDPI pixel resolution. NSImage/NSCursor work in points,
+     * so set the NSImage's logical size to `pixels / backingScaleFactor` to prevent
+     * AppKit from upscaling the cursor on Hi-DPI displays.
+     *
+     * Build the NSImage from a CGImage with size NSZeroSize so it initially adopts the
+     * pixel dimensions, then shrink with `setSize:` to declare the logical point size. */
+    const CGFloat scale = [window_ backingScaleFactor];
+    const NSSize imSize = {(CGFloat)size[0] / scale, (CGFloat)size[1] / scale};
+    CGImageRef cgImage = [cursorImageRep CGImage];
+    NSImage *cursorImage = [[NSImage alloc] initWithCGImage:cgImage size:NSZeroSize];
+    [cursorImage setSize:imSize];
 
-    const NSPoint hotSpotPoint = {(CGFloat)(hot_spot[0]), (CGFloat)(hot_spot[1])};
+    const NSPoint hotSpotPoint = {(CGFloat)hot_spot[0] / scale, (CGFloat)hot_spot[1] / scale};
 
     /* Foreground and background color parameter is not handled for now (10.6). */
     custom_cursor_ = [[NSCursor alloc] initWithImage:cursorImage hotSpot:hotSpotPoint];

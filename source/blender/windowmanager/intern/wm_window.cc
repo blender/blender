@@ -3071,8 +3071,18 @@ void WM_cursor_warp(wmWindow *win, int x, int y)
   win->runtime->eventstate->xy[1] = oldy;
 }
 
-uint WM_cursor_preferred_logical_size()
+uint WM_cursor_preferred_logical_size(const bool hardware_cursor)
 {
+  if (OS_MAC) {
+    if (hardware_cursor) {
+      /* On macOS 21 logical pixels is the expected "default", so follow this here.
+       *
+       * NOTE(@ideasman42): visually Blender's cursors do look bigger then the systems
+       * when set to #WM_CURSOR_DEFAULT_LOGICAL_SIZE, so use macOS's default size. */
+      return 21;
+    }
+  }
+
   return g_system->getCursorPreferredLogicalSize();
 }
 

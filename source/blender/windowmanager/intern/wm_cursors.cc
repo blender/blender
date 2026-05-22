@@ -174,15 +174,10 @@ static int wm_cursor_size(const wmWindow *win)
     return std::lround(21.0f * UI_SCALE_FAC);
   }
 
-  if (OS_MAC) {
-    /* MacOS always scales up this type of cursor for high-dpi displays. */
-    return 21;
-  }
-
   /* The DPI as a scale without the UI scale preference. */
   const float system_scale = WM_window_dpi_get_scale(win);
 
-  return std::lround(WM_cursor_preferred_logical_size() * system_scale);
+  return std::lround(WM_cursor_preferred_logical_size(true) * system_scale);
 }
 
 /**

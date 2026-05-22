@@ -607,10 +607,14 @@ void WM_cursor_warp(wmWindow *win, int x, int y);
 #define WM_CURSOR_DEFAULT_LOGICAL_SIZE 24
 
 /**
+ * \param hardware_cursor: True when this uses hardware cursor display,
+ * the hardware cursor is post-scaled on macOS (out of our control).
+ * When false, this is a software cursor and the logical size is always returned.
+ *
  * \return the preferred logical size for the cursor
  * (before DPI/Hi-DPI scaling is applied).
  */
-uint WM_cursor_preferred_logical_size();
+uint WM_cursor_preferred_logical_size(bool hardware_cursor);
 
 /* Handlers. */
 

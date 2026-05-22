@@ -843,6 +843,31 @@ GHOST_TSuccess GHOST_SystemCocoa::getCursorPosition(int32_t &x, int32_t &y) cons
   return GHOST_kSuccess;
 }
 
+/* Private CoreGraphicsSPI used to read the Accessibility cursor scale factor.
+ * Available since macOS 10.7, but not in the public headers. */
+extern "C" {
+typedef int CGSConnectionID;
+CGSConnectionID CGSMainConnectionID(void);
+CGError CGSGetCursorScale(CGSConnectionID connection, CGFloat *scale);
+}
+
+uint32_t GHOST_SystemCocoa::getCursorPreferredLogicalSize() const
+{
+  /* Apply the Accessibility pointer-size scale (1.0 .. 4.0) to a default base size.
+   *
+   * Take care, for hardware cursors this is already applied on-top of the cursor bitmap,
+   * there doesn't seem to be a way to express that the cursor data is pre-scaled.
+   * Therefor, a larger cursor will work but look blurry.
+   * Only use this for software cursors. */
+  const CGFloat default_size = 21.0;
+
+  CGFloat scale = 1.0;
+  if (CGSGetCursorScale(CGSMainConnectionID(), &scale) != kCGErrorSuccess || !(scale > 0.0)) {
+    scale = 1.0;
+  }
+  return lround(default_size * scale);
+}
+
 /**
  * \note expect Cocoa screen coordinates.
  */
