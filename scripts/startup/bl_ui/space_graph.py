@@ -221,6 +221,7 @@ class GRAPH_MT_view(Menu):
 
         layout.operator("graph.view_selected")
         layout.operator("graph.view_all")
+        layout.operator("graph.local_view")
         if context.scene.use_preview_range:
             layout.operator("anim.scene_range_frame", text="Frame Preview Range")
         else:

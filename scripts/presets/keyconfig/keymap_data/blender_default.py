@@ -1975,6 +1975,8 @@ def km_graph_editor_generic(params):
         *_template_items_hide_reveal_actions("graph.hide", "graph.reveal"),
         ("screen.space_type_set_or_cycle", {"type": 'TAB', "value": 'PRESS', "ctrl": True},
          {"properties": [("space_type", 'DOPESHEET_EDITOR')]}),
+        ("graph.local_view", {"type": 'SLASH', "value": 'PRESS'}, None),
+        ("graph.local_view", {"type": 'NUMPAD_SLASH', "value": 'PRESS'}, None),
     ])
 
     return keymap

@@ -261,8 +261,11 @@ struct SpaceGraph {
   float cursorVal = 0;
   /** Pivot point for transforms. */
   int around = 0;
-  char _pad[4] = {};
-
+  /* Only one bit is set per graph editor instance. */
+  uint16_t local_view_bit = 0;
+  char _pad1[2] = {};
+  /* Store visible region size before entering the local view. */
+  rctf local_view_visible_region_before = {};
   SpaceGraph_Runtime runtime;
 };
 
