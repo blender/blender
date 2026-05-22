@@ -192,6 +192,9 @@ static bool use_gnome_confine_hack = false;
  * See: https://bugs.kde.org/show_bug.cgi?id=461001
  */
 #define USE_KDE_TABLET_HIDDEN_CURSOR_HACK
+#ifdef USE_KDE_TABLET_HIDDEN_CURSOR_HACK
+static bool use_kde_tablet_hidden_cursor_hack = false;
+#endif
 
 /**
  * GNOME (mutter 50.1 has a regression), unlocking the cursor warps
@@ -3084,7 +3087,9 @@ static void gwl_seat_cursor_buffer_show(GWL_Seat *seat)
                                       hotspot_x,
                                       hotspot_y);
 #ifdef USE_KDE_TABLET_HIDDEN_CURSOR_HACK
-        wl_surface_commit(tablet_tool->wl.surface_cursor);
+        if (use_kde_tablet_hidden_cursor_hack) {
+          wl_surface_commit(tablet_tool->wl.surface_cursor);
+        }
 #endif
       }
     }
@@ -3691,6 +3696,9 @@ static GWL_CurrentDesktopType ghost_wayland_current_desktop()
      */
     if (string_elem_split_by_delim(xdg_current_desktop, ':', "GNOME")) {
       return GWL_CurrentDesktopType::Gnome;
+    }
+    else if (string_elem_split_by_delim(xdg_current_desktop, ':', "KDE")) {
+      return GWL_CurrentDesktopType::KDE;
     }
   }
   return GWL_CurrentDesktopType::Other;
@@ -8386,6 +8394,10 @@ GHOST_SystemWayland::GHOST_SystemWayland(const bool background)
   }
 
   const GWL_CurrentDesktopType current_desktop = ghost_wayland_current_desktop();
+  if (current_desktop == GWL_CurrentDesktopType::KDE) {
+    use_kde_tablet_hidden_cursor_hack = true;
+  }
+
   /* This may be removed later if decorations are required, needed as part of registration. */
   display_->xdg_decor = new GWL_XDG_Decor_System;
 

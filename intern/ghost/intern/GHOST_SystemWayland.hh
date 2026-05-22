@@ -91,6 +91,7 @@ int gwl_window_scale_buffer_size_to(const GWL_WindowScaleParams &scale_params,
 enum class GWL_CurrentDesktopType {
   Other = 0,
   Gnome,
+  KDE,
 };
 
 #ifdef WITH_GHOST_WAYLAND_DYNLOAD
