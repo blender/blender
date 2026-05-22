@@ -211,6 +211,7 @@ void BKE_keyblock_curve_data_set_with_mat4(Key *key,
  */
 void BKE_keyblock_data_set(Key *key, int shape_index, const void *data);
 
+void BKE_keyblock_rename(const Key *key, KeyBlock *kb, const char *newname);
 /** \} */
 
 }  // namespace blender

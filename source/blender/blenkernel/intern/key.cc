@@ -37,6 +37,7 @@
 #include "DNA_object_types.h"
 
 #include "BKE_anim_data.hh"
+#include "BKE_animsys.h"
 #include "BKE_attribute.hh"
 #include "BKE_curve.hh"
 #include "BKE_customdata.hh"
@@ -1908,4 +1909,24 @@ std::optional<Array<bool>> BKE_keyblock_get_dependent_keys(const Key *key, const
   return marked;
 }
 
+void BKE_keyblock_rename(const Key *key, KeyBlock *kb, const char *newname)
+{
+  char oldname[sizeof(kb->name)];
+
+  /* Make a copy of the old name first. */
+  STRNCPY(oldname, kb->name);
+  /* Copy the new name into the name slot. */
+  STRNCPY_UTF8(kb->name, newname);
+
+  /* Make sure the name is truly unique. */
+  BLI_uniquename(&key->block,
+                 kb,
+                 CTX_DATA_(BLT_I18NCONTEXT_ID_SHAPEKEY, "Key"),
+                 '.',
+                 offsetof(KeyBlock, name),
+                 sizeof(kb->name));
+
+  /* Fix all the animation data which may link to this. */
+  BKE_animdata_fix_paths_rename_all(nullptr, "key_blocks", oldname, kb->name);
+}
 }  // namespace blender

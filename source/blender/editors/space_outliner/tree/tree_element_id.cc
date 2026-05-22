@@ -7,6 +7,7 @@
  */
 
 #include "DNA_ID.h"
+#include "DNA_key_types.h"
 #include "DNA_space_types.h"
 
 #include "BKE_anim_data.hh"
@@ -26,6 +27,7 @@
 #include "tree_element_id_object.hh"
 #include "tree_element_id_scene.hh"
 #include "tree_element_id_texture.hh"
+#include "tree_element_shapekey.hh"
 
 #include "tree_element_id.hh"
 
@@ -65,11 +67,13 @@ std::unique_ptr<TreeElementID> TreeElementID::create_from_id(TreeElement &legacy
       return std::make_unique<TreeElementIDObject>(legacy_te, (Object &)id);
     case ID_AC:
       return std::make_unique<TreeElementIDAction>(legacy_te, (bAction &)id);
+    case ID_KE:
+      /* Shape Key is handled separately, see #TreeElementShapeKeyBase. */
+      return nullptr;
     case ID_MA:
     case ID_LT:
     case ID_LA:
     case ID_CA:
-    case ID_KE:
     case ID_SCR:
     case ID_WO:
     case ID_SPK:
