@@ -453,7 +453,7 @@ set(GLSL_SRC
   engines/eevee/shaders/eevee_lightprobe_volume_load.bsl.hh
   engines/eevee/shaders/eevee_lightprobe_lib.glsl
   engines/eevee/shaders/eevee_lightprobe_volume_eval_lib.glsl
-  engines/eevee/shaders/eevee_lookdev_copy_world_comp.glsl
+  engines/eevee/shaders/eevee_lookdev_copy_world.bsl.hh
   engines/eevee/shaders/eevee_lookdev_display_frag.glsl
   engines/eevee/shaders/eevee_lookdev_display_vert.glsl
   engines/eevee/shaders/eevee_ltc_lib.bsl.hh

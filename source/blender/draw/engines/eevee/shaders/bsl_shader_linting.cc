@@ -29,6 +29,7 @@
 #include "eevee_lightprobe_sphere_culling.bsl.hh"    /* IWYU pragma: export */
 #include "eevee_lightprobe_volume_bake.bsl.hh"       /* IWYU pragma: export */
 #include "eevee_lightprobe_volume_load.bsl.hh"       /* IWYU pragma: export */
+#include "eevee_lookdev_copy_world.bsl.hh"           /* IWYU pragma: export */
 #include "eevee_ltc_lib.bsl.hh"                      /* IWYU pragma: export */
 #include "eevee_ltc_lut_lib.bsl.hh"                  /* IWYU pragma: export */
 #include "eevee_motion_blur.bsl.hh"                  /* IWYU pragma: export */
