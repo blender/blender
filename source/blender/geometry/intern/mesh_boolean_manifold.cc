@@ -822,7 +822,7 @@ constexpr int face_group_inline = 4;
 /**
  * Return an array of length \a input_faces_num, where the i'th entry
  * is a Vector of the \a mgl triangles that derive from the i'th input
- * face (where i is an index in the concatenated input mesh face space.
+ * face (where i is an index in the concatenated input mesh face space).
  */
 static Array<Vector<int, face_group_inline>> get_face_groups(const MeshGL &mgl,
                                                              int input_faces_num)

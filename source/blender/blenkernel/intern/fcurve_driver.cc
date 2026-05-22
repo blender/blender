@@ -696,7 +696,7 @@ static float dvar_eval_transChan(const AnimationEvalContext * /*anim_eval_contex
      *     a) decompose transform matrix as required, then try to make eulers from
      *        there compatible with original values
      *     b) [NOT USED] directly use the original values (no decomposition)
-     *         - only an option for "transform space", if quality is really bad with a)
+     *         - only an option for "transform space", if quality is really bad with "a".
      */
     float quat[4];
     int channel;

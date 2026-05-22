@@ -1556,7 +1556,7 @@ void txt_insert_buf(Text *text, const char *in_buffer, int in_buffer_len)
   buffer = BLI_strdupn(in_buffer, in_buffer_len);
   in_buffer_len += txt_extended_ascii_as_utf8(&buffer);
 
-  /* Read the first line (or as close as possible */
+  /* Read the first line (or as close as possible). */
   while (buffer[i] && buffer[i] != '\n') {
     txt_add_raw_char(text, BLI_str_utf8_as_unicode_step_safe(buffer, in_buffer_len, &i));
   }

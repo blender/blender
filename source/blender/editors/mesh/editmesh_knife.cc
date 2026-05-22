@@ -2425,7 +2425,7 @@ static int get_lowest_face_tri(KnifeTool_OpData *kcd, BMFace *f)
  * Find intersection of v1-v2 with face f.
  * Only take intersections that are at least \a face_tol_sq (in screen space) away
  * from other intersection elements.
- * If v1-v2 is coplanar with f, call that "no intersection though
+ * If v1-v2 is coplanar with f, call that "no intersection" though
  * it really means "infinite number of intersections".
  * In such a case we should have gotten hits on edges or verts of the face.
  */

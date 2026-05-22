@@ -434,8 +434,7 @@ static ImBuf *ibJpegImageFromCinfo(jpeg_decompress_struct *cinfo,
         key = strchr(str, ':');
         /*
          * A little paranoid, but the file maybe
-         * is broken... and a "extra" check is better
-         * then segfault ;)
+         * is broken... and a "extra" check is better then a segfault :)
          */
         if (!key) {
           MEM_delete(str);

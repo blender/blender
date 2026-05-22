@@ -1867,7 +1867,7 @@ bool pastebuf_match_path_property(Main *bmain,
   }
 
   const char *identifier = RNA_property_identifier(prop);
-  /* NOTE: paths which end with "] will fail with this test - Animated ID Props. */
+  /* NOTE: paths which end with `"]` will fail with this test - Animated ID Props. */
   return StringRef(fcurve_to_match.rna_path).endswith(identifier);
 }
 

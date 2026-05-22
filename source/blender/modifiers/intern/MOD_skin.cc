@@ -1960,7 +1960,7 @@ static BMesh *build_skin(SkinNode *skin_nodes,
    * partially detached, first detach it fully, then find a suitable
    * existing face to merge with. (Note that we do this after
    * creating all hull faces, but before creating any other
-   * faces.
+   * faces).
    */
   skin_fix_hull_topology(so.bm, skin_nodes, verts_num);
 

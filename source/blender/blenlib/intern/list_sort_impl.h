@@ -246,7 +246,7 @@ BLI_INLINE void insert_list(struct SortInfo *si, list_node *list, unsigned int r
     }
   }
 
-  /* Will _never_ happen: so we can just devolve into quadratic ;-) */
+  /* Will _never_ happen: so we can just devolve into quadratic. */
   if (UNLIKELY(i == MAX_RANKS)) {
     i--;
   }

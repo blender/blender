@@ -1043,7 +1043,7 @@ static void renamebutton_cb(bContext &C, StringRefNull oldname)
     /* Ensure we select and scroll to the renamed file.
      * This is done even if the rename fails as we want to make sure that the file we tried to
      * rename is still selected and in view. (it can move if something added files/folders to the
-     * directory while we were renaming.
+     * directory while we were renaming).
      */
     file_params_invoke_rename_postscroll(wm, win, sfile);
     /* to make sure we show what is on disk */

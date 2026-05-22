@@ -244,7 +244,7 @@ FileData *blo_filedata_from_memfile(MemFile *memfile,
 
 /**
  * Build a #IDNameLib_Map of old main (we only care about local data here,
- * so we can do that after #blo_split_main() call.
+ * so we can do that after #blo_split_main() call).
  */
 void blo_make_old_idmap_from_main(FileData *fd, Main *bmain) ATTR_NONNULL(1, 2);
 

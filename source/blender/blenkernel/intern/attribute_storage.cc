@@ -652,7 +652,7 @@ void attribute_storage_blend_write_prepare(AttributeStorage &data,
       if (use_5_0_compatibility) {
         attribute_dna.storage_type = int8_t(AttrStorageType::Array);
         /* Convert single value storage to array storage for forward compatibility.
-         * See #AttributeArray::is_single) comment for more details. */
+         * See #AttributeArray::is_single comment for more details. */
         const CPPType &cpp_type = attribute_type_to_cpp_type(attr.data_type());
         const GPointer value(cpp_type, data->value);
         const int domain_size = get_domain_size(attr.domain());

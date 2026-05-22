@@ -907,7 +907,7 @@ static void ensure_push_constant(MTLContext &ctx,
 }
 
 /* Bind UBOs and SSBOs to an active render command encoder using the rendering state of the
- * current context -> Active shader, Bound UBOs).
+ * current context -> Active shader, Bound UBOs.
  * NOTE: `ensure_buffer_bindings` must be called after `ensure_texture_bindings` to allow
  * for binding of buffer-backed texture's data buffer and metadata. */
 template<typename CommandEncoderT>

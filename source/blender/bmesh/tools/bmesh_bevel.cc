@@ -123,7 +123,7 @@ struct EdgeHalf {
  * plane (plane_no is normal, plane_co is a point on it) via lines in a given direction (proj_dir).
  *
  * Many interesting profiles are in family of superellipses:
- *     (abs(x/a))^r + abs(y/b))^r = 1
+ *     (abs(x/a))^r + (abs(y/b))^r = 1
  * r==2 => ellipse; r==1 => line; r < 1 => concave; r > 1 => bulging out.
  * Special cases: let r==0 mean straight-inward, and r==4 mean straight outward.
  *
@@ -1599,7 +1599,7 @@ static void offset_meet(BevelParams *bp,
      * so use the average of the two, and the offset formula for angle bisector.
      * If offsets are different, we're out of luck:
      * Use the max of the two (so get consistent looking results if the same situation
-     * arises elsewhere in the object but with opposite roles for e1 and e2. */
+     * arises elsewhere in the object but with opposite roles for e1 and e2). */
     float norm_v[3];
     if (f) {
       copy_v3_v3(norm_v, f->no);

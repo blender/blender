@@ -116,10 +116,10 @@ class VKRenderGraph : public NonCopyable {
     /**
      * Map of a node_handle to an index of debug group in used_groups.
      *
-     * <source>
+     * \code{.cc}
      * int used_group_id = node_group_map[node_handle];
      * const Vector<DebugGroupNameID> &used_group = used_groups[used_group_id];
-     * </source>
+     * \endcode
      */
     Vector<DebugGroupID> node_group_map;
   } debug_;

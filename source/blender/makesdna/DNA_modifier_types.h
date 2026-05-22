@@ -775,7 +775,6 @@ struct SmoothModifierData {
 
 /** #CastModifierData.flag */
 enum CastModifierFlag : short {
-  /* And what bout (1 << 0) flag? ;) */
   MOD_CAST_INVERT_VGROUP = (1 << 0),
   MOD_CAST_X = (1 << 1),
   MOD_CAST_Y = (1 << 2),
@@ -1318,7 +1317,7 @@ struct SimpleDeformModifierData {
   /** Lock axis (for taper and stretch). */
   char axis = 0;
   /**
-   * Axis to perform the deform on (default is X, but can be overridden by origin.
+   * Axis to perform the deform on (default is X, but can be overridden by origin).
    */
   SimpleDeformModifierLockAxis deform_axis = {};
   SimpleDeformModifierFlag flag = {};

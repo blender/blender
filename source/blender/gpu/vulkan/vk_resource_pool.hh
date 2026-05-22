@@ -118,14 +118,14 @@ class VKDiscardPool {
    *
    * All moved items will receive a new timeline.
    *
-   * Function must be externally synced (
+   * Function must be externally synced:
    *
-   * <source>
+   * \code{.cc}
    * {
    *   std::scoped_lock lock(pool.mutex_get()));
    *   pool.move_data(src_pool, timeline);
    * }
-   * </source>
+   * \endcode
    */
   void move_data(VKDiscardPool &src_pool, TimelineValue timeline);
   inline Mutex &mutex_get()

@@ -2131,11 +2131,11 @@ static bool unit_distribute_negatives(char *str, const int str_maxncpy)
 
     changed = true;
 
-    /* Add '(', shift the following characters to the right to make space. */
+    /* Add `(`, shift the following characters to the right to make space. */
     memmove(remaining_str + 1, remaining_str, remaining_str_maxncpy - 2);
     *remaining_str = '(';
 
-    /* Add the ')' before the next operation or at the end.
+    /* Add the `)` before the next operation or at the end.
      * Unary operators are skipped to allow `--` to be a supported prefix. */
     remaining_str = find_next_op(str, skip_unary_op(remaining_str + 1), remaining_str_maxncpy);
     remaining_str_maxncpy = str_maxncpy - int(remaining_str - str);

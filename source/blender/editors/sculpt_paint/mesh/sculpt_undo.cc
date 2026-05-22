@@ -2414,7 +2414,7 @@ void register_type(UndoType *ut)
  *
  * Usage:
  *
- *   static int operator_exec((bContext *C, wmOperator *op) {
+ *   static int operator_exec(bContext *C, wmOperator *op) {
  *
  *      ed::sculpt_paint::undo::push_multires_mesh_begin(C, op->type->name);
  *      // Modify base mesh.

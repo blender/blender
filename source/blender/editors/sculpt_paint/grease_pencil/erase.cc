@@ -201,7 +201,8 @@ struct EraseOperationExecutor {
    * (resp. second) endpoint lies relatively to the eraser: inside,
    * outside or at the boundary of the eraser.
    *
-   * \returns total number of intersections lying inside the segment (ie whose factor is in ]0,1[).
+   * \returns total number of intersections lying inside the segment
+   * (ie whose factor is in (0, 1)).
    *
    * Note that the eraser is represented as a circle, and thus there can be only 0, 1 or 2
    * intersections with a segment.

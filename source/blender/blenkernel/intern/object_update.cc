@@ -98,7 +98,7 @@ void BKE_object_eval_constraints(Depsgraph *depsgraph, Scene *scene, Object *ob)
 
   /* evaluate constraints stack */
   /* TODO: split this into:
-   * - pre (i.e. BKE_constraints_make_evalob, per-constraint (i.e.
+   * - pre (i.e. BKE_constraints_make_evalob), per-constraint (i.e.
    * - inner body of BKE_constraints_solve),
    * - post (i.e. BKE_constraints_clear_evalob)
    *

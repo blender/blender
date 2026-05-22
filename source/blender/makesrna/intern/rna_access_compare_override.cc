@@ -308,7 +308,7 @@ bool RNA_struct_equals(Main *bmain, PointerRNA *ptr_a, PointerRNA *ptr_b, eRNACo
  * Generic RNA property diff function.
  *
  * Return value follows comparison functions convention (`0` is equal, `-1` if `prop_a` value is
- * lesser than `prop_b` one, and `1` otherwise.
+ * lesser than `prop_b` one, and `1` otherwise).
  *
  * \note When there is no equality, but no order can be determined (greater than/lesser than),
  *       1 is returned.

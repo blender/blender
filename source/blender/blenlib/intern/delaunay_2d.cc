@@ -1344,7 +1344,7 @@ inline bool dc_tri_valid(SymEdge<T> *se, SymEdge<T> *basel, SymEdge<T> *basel_sy
 }
 
 /**
- * Delaunay triangulate sites[start} to sites[end-1].
+ * Delaunay triangulate sites[start] to sites[end-1].
  * Assume sites are lexicographically sorted by coordinate.
  * Return #SymEdge of CCW convex hull at left-most point in *r_le
  * and that of right-most point of cw convex null in *r_re.
@@ -1672,7 +1672,7 @@ template<typename T> inline int tri_orient(const SymEdge<T> *t)
  * in the path we will take to insert an edge constraint.
  * Each such point will either be
  * (a) a vertex or
- * (b) a fraction lambda (0 < lambda < 1) along some #SymEdge.]
+ * (b) a fraction lambda (0 < lambda < 1) along some #SymEdge.
  *
  * In general, lambda=0 indicates case a and lambda != 0 indicates case be.
  * The 'in' edge gives the destination attachment point of a diagonal from the previous crossing,
@@ -1906,7 +1906,7 @@ bool get_next_crossing_from_vert(CDT_state<T> *cdt_state,
      * loop, check to see if the ray goes along `vcur-va`
      * or between `vcur-va` and `vcur-vb`, where va is the end of t
      * and vb is the next vertex (on the next rot edge around vcur, but
-     * should also be the next vert of triangle starting with `vcur-va`. */
+     * should also be the next vert of triangle starting with `vcur-va`). */
     if (t->face != cdt_state->cdt.outer_face && tri_orient(t) < 0) {
       BLI_assert(false); /* Shouldn't happen. */
     }
@@ -2316,7 +2316,7 @@ static uint32_t power_of_10_greater_equal_to(uint32_t x)
  * back to the original face edge (using a numbering system for those edges
  * that starts with cdt->face_edge_offset, and continues with the edges in
  * order around each face in turn. And then the next face starts at
- * cdt->face_edge_offset beyond the start for the previous face.
+ * cdt->face_edge_offset beyond the start for the previous face).
  * Return the number of faces added, which may be less than input.face.size()
  * in the case that some faces have less than 3 sides.
  */

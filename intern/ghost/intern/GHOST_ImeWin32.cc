@@ -237,7 +237,7 @@ void GHOST_ImeWin32::CompleteComposition(HWND window_handle, HIMC imm_context)
   /**
    * We have to confirm there is an ongoing composition before completing it.
    * This is for preventing some IMEs from getting confused while completing an
-   * ongoing composition even if they do not have any ongoing compositions.)
+   * ongoing composition even if they do not have any ongoing compositions.
    */
   if (is_composing_) {
     ::ImmNotifyIME(imm_context, NI_COMPOSITIONSTR, CPS_COMPLETE, 0);

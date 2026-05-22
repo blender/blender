@@ -288,7 +288,7 @@ static void build_bvh_spatial(
 
 /**
  * the LBN corner of cube (i, j, k), corresponds with location
- * (i-0.5)*size, (j-0.5)*size, (k-0.5)*size)
+ * (i-0.5)*size, (j-0.5)*size, (k-0.5)*size
  */
 
 #define HASHBIT (5)

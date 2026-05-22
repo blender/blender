@@ -757,7 +757,7 @@ enum eID_Flag : short {
   ID_FLAG_CLIPBOARD_MARK = 1 << 14,
   /**
    * Indicates that this linked ID is packed into the current .blend file. This should never be set
-   * on local ID (without)one with a null `ID::lib` pointer).
+   * on local ID (without one with a null `ID::lib` pointer).
    */
   ID_FLAG_LINKED_AND_PACKED = short(1u << 15),
 };

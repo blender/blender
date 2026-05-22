@@ -256,7 +256,7 @@ struct MLoopNorSpace {
   /** Third vector, orthogonal to #vec_lnor and #vec_ref. */
   float vec_ortho[3];
   /**
-   * Reference angle around #vec_ortho, in ]0, pi] range, between #vec_lnor and the reference edge.
+   * Reference angle around #vec_ortho, in (0, pi] range, between #vec_lnor and the reference edge.
    *
    * A 0.0 value marks that space as invalid, as it can only happen in extremely degenerate
    * geometry cases (it would mean that the default normal is perfectly aligned with the reference
@@ -264,7 +264,7 @@ struct MLoopNorSpace {
    */
   float ref_alpha;
   /**
-   * Reference angle around #vec_lnor, in ]0, 2pi] range, between the reference edge and the other
+   * Reference angle around #vec_lnor, in (0, 2pi] range, between the reference edge and the other
    * border edge of the fan.
    *
    * A 0.0 value marks that space as invalid, as it can only happen in degenerate geometry cases

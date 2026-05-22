@@ -134,7 +134,7 @@ class AssetRepresentation : NonCopyable, NonMovable {
    * directory names may also end in `.blend`, resulting in an identifier like
    * `directory.blend/Objects/filename.blend/Actions/hand/wave.blend/Actions/hi.blend`.
    * Here the file is `directory.blend/Objects/filename.blend` and the asset is an Action named
-   * `hand/wave.blend/Actions/hi.blend`)
+   * `hand/wave.blend/Actions/hi.blend`.
    */
   std::string full_library_path() const;
 

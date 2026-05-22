@@ -1498,7 +1498,7 @@ void BKE_mesh_remap_calc_loops_from_mesh(const int mode,
                 nors_src = loop_normals_src;
                 vert_to_refelem_map_src = vert_to_corner_map_src[nearest.index];
               }
-              else { /* if (mode == MREMAP_MODE_LOOP_NEAREST_POLYNOR) { */
+              else { /* `mode == MREMAP_MODE_LOOP_NEAREST_POLYNOR` */
                 nor_dst = &pnor_dst;
                 nors_src = face_normals_src;
                 vert_to_refelem_map_src = vert_to_face_map_src[nearest.index];

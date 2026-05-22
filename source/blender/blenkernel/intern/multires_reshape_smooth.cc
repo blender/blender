@@ -1219,7 +1219,7 @@ static void evaluate_final_original_point(
 {
   const MultiresReshapeContext *reshape_context = reshape_smooth_context->reshape_context;
 
-  /* Element of an original MDISPS grid) */
+  /* Element of an original MDISPS grid. */
   const ReshapeConstGridElement orig_grid_element =
       multires_reshape_orig_grid_element_for_grid_coord(reshape_context, grid_coord);
 

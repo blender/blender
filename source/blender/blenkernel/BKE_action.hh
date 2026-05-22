@@ -173,8 +173,8 @@ bool BKE_pose_is_bonecoll_visible(const bArmature *arm,
 /**
  * Find the active pose-channel for an object
  *
- * \param check_bonecoll: checks if the bone is on a visible bone collection (this might be skipped
- * (e.g. for "Show Active" from the Outliner).
+ * \param check_bonecoll: checks if the bone is on a visible bone collection
+ * (this might be skipped: e.g. for "Show Active" from the Outliner).
  * \return #bPoseChannel if found or NULL.
  * \note #Object, not #bPose is used here, as we need info (collection/active bone) from Armature.
  */

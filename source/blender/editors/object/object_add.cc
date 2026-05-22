@@ -4412,7 +4412,7 @@ static wmOperatorStatus object_convert_exec(bContext *C, wmOperator *op)
       Object *ob = base->object;
 
       /* The way object type conversion works currently (enforcing conversion of *all* objects
-       * using converted object-data, even some un-selected/hidden/another scene ones,
+       * using converted object-data, even some un-selected/hidden/another scene ones),
        * sounds totally bad to me.
        * However, changing this is more design than bug-fix, not to mention convoluted code below,
        * so that will be for later.

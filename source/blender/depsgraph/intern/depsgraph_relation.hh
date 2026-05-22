@@ -45,7 +45,7 @@ struct Relation {
 
   /* relationship attributes */
   const char *name; /* label for debugging */
-  int flag = 0;     /* Bitmask of RelationFlag) */
+  int flag = 0;     /* Bitmask of RelationFlag. */
 };
 
 }  // namespace blender::deg

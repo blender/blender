@@ -2821,7 +2821,7 @@ static Object *modifier_skin_armature_create(Depsgraph *depsgraph, Main *bmain, 
 
       /* Unless the skin root has just one adjacent edge, create
        * a fake root bone (have it going off in the Y direction
-       * (arbitrary) */
+       * (arbitrary)) */
       if (emap[v].size() > 1) {
         bone = ED_armature_ebone_add(arm, "Bone");
 

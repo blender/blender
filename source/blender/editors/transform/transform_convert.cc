@@ -1021,9 +1021,9 @@ static TransConvertTypeInfo *convert_type_get(const TransInfo *t, Object **r_obj
     return nullptr;
   }
   if (ob && (ob->mode & OB_MODE_ALL_PAINT_GPENCIL)) {
-    /* In Grease Pencil all transformations must be canceled if not Object or Edit mode (exception:
-     * Grease Pencil sculpt mode allows for paint curves which need to be able to be transformed.
-     */
+    /* In Grease Pencil all transformations must be canceled if not Object or Edit mode.
+     * Exception: Grease Pencil sculpt mode allows for paint curves
+     * which need to be able to be transformed. */
     if ((ob->mode & OB_MODE_SCULPT_GREASE_PENCIL) && (t->options & CTX_PAINT_CURVE) &&
         !ELEM(t->mode, TFM_SHEAR, TFM_SHRINKFATTEN))
     {

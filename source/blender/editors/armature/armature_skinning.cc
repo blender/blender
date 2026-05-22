@@ -335,7 +335,7 @@ static void add_verts_to_dgroups(
 
   /* create an array of pointers to the deform groups that
    * correspond to the skinnable bones (creating them
-   * as necessary. */
+   * as necessary). */
   dgrouplist = MEM_new_array_zeroed<bDeformGroup *>(numbones, "dgrouplist");
   dgroupflip = MEM_new_array_zeroed<bDeformGroup *>(numbones, "dgroupflip");
 

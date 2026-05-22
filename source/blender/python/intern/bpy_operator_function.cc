@@ -660,7 +660,7 @@ static PyObject *bpy_op_fn_idname_py(BPyOpFunction *self, PyObject * /*args*/)
 static PyObject *bpy_op_fn_get_doc_impl(BPyOpFunction *self)
 {
   /* Get operator signature using Blender format idname:
-   * `_op_as_string(self.idname())` where `idname()` returns Blender format). */
+   * `_op_as_string(self.idname())` where `idname()` returns Blender format. */
   PyObject *sig_result = bpy_op_fn_as_string(self);
 
   if (!sig_result) {

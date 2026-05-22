@@ -1221,7 +1221,7 @@ static void wm_drag_draw_icon(bContext * /*C*/, wmWindow * /*win*/, wmDrag *drag
   else if (drag->imb) {
     /* This could also get the preview image of an ID when dragging one. But the big preview icon
      * may actually not always be wanted, for example when dragging objects in the Outliner it gets
-     * in the way). So make the drag user set an image buffer explicitly (e.g. through
+     * in the way. So make the drag user set an image buffer explicitly (e.g. through
      * #button_drag_attach_image()). */
 
     x = xy[0] - (wm_drag_imbuf_icon_width_get(drag) / 2);

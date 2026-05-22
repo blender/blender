@@ -718,7 +718,7 @@ static wmOperatorStatus armature_fill_bones_exec(bContext *C, wmOperator *op)
   /* the number of joints determines how we fill:
    *  1) between joint and cursor (joint=head, cursor=tail)
    *  2) between the two joints (order is dependent on active-bone/hierarchy)
-   *  3+) error (a smarter method involving finding chains needs to be worked out
+   *  3+) error (a smarter method involving finding chains needs to be worked out)
    */
   count = points.count();
 

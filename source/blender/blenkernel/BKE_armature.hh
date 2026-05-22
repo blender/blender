@@ -49,9 +49,8 @@ struct EditBone {
   /** System-Defined Properties storage. */
   IDProperty *system_properties = nullptr;
   /**
-   * Edit-bones have a one-way link  (i.e. children refer
-   * to parents.  This is converted to a two-way link for
-   * normal bones when leaving edit-mode.
+   * Edit-bones have a one-way link  (i.e. children refer to parents).
+   * This is converted to a two-way link for normal bones when leaving edit-mode.
    */
   EditBone *parent = nullptr;
   char name[/*MAXBONENAME*/ 64] = "";

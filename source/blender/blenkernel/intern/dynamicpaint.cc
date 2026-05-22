@@ -2484,7 +2484,7 @@ static int dynamic_paint_find_neighbor_pixel(const DynamicPaintCreateUVSurfaceDa
 {
   /* NOTE: Current method only uses face edges to detect neighboring pixels.
    *       -> It doesn't always lead to the optimum pixel but is accurate enough
-   *          and faster/simpler than including possible face tip point links)
+   *          and faster/simpler than including possible face tip point links.
    */
 
   /* shift position by given n_index */

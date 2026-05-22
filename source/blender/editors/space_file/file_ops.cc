@@ -3037,7 +3037,7 @@ void file_filename_enter_handle(bContext *C, void * /*arg_unused*/, void *arg_bu
   BLI_path_make_safe_filename_ex(params->file, allow_tokens);
 
   if (matches) {
-    /* Replace the pattern (or filename that the user typed in,
+    /* Replace the pattern (or filename that the user typed in),
      * with the first selected file of the match. */
     STRNCPY(params->file, matched_file);
 

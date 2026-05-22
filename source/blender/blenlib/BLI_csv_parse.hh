@@ -63,8 +63,8 @@ struct CsvParseOptions {
    */
   char quote = '"';
   /**
-   * Characters that can be used to escape the quote character. By default, "" or \" both represent
-   * an escaped quote.
+   * Characters that can be used to escape the quote character.
+   * By default, `""` or `\"` both represent an escaped quote.
    */
   Span<char> quote_escape_chars = Span<char>(StringRef("\"\\"));
   /** Approximate number of bytes per chunk that the input is split into. */
@@ -125,7 +125,7 @@ inline std::optional<Vector<ChunkT>> parse_csv_in_chunks(
 }
 
 /**
- * Fields in a CSV file may contain escaped quote characters (e.g. "" or \").
+ * Fields in a CSV file may contain escaped quote characters (e.g. `""` or `\"`).
  * This function replaces these with just the quote character.
  * The returned string may be reference the input string if it's the same.
  * Otherwise the returned string is allocated in the given allocator.

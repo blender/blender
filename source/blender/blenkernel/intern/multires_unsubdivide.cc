@@ -1013,7 +1013,7 @@ static void multires_unsubdivide_extract_grids(MultiresUnsubdivideContext *conte
   }
 
   /* If an index in original does not exist in base (it was dissolved when creating the new base
-   * mesh, return -1. */
+   * mesh), return -1. */
   for (int i = 0; i < original_mesh->verts_num; i++) {
     orig_to_base_vmap[i] = -1;
   }

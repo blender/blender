@@ -504,7 +504,7 @@ struct BuildGpencilModifierData {
   /** Build origin control object. */
   struct Object *object = nullptr;
 
-  /** Factor of the stroke (used instead of frame evaluation. */
+  /** Factor of the stroke (used instead of frame evaluation). */
   float percentage_fac = 0.0f;
 
   /** Weight fading at the end of the stroke. */

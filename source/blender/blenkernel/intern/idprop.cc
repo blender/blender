@@ -1743,7 +1743,7 @@ static void IDP_DirectLinkProperty(IDProperty *prop, BlendDataReader *reader)
       break; /* Nothing special to do here. */
     default:
       /* Unknown IDP type, nuke it (we cannot handle unknown types everywhere in code,
-       * IDP are way too polymorphic to do it safely. */
+       * IDP are way too polymorphic to do it safely). */
       printf(
           "%s: found unknown IDProperty type %d, reset to Integer one !\n", __func__, prop->type);
       /* NOTE: we do not attempt to free unknown prop, we have no way to know how to do that! */

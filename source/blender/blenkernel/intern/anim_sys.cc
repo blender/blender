@@ -1152,7 +1152,7 @@ NlaEvalStrip *nlastrips_ctime_get_strip(ListBaseT<NlaEvalStrip> *list,
   }
 
   /* check if a valid strip was found
-   * - must not be muted (i.e. will have contribution
+   * - must not be muted (i.e. will have contribution)
    */
   if ((estrip == nullptr) || (estrip->flag & NLASTRIP_FLAG_MUTED)) {
     return nullptr;

@@ -708,7 +708,7 @@ static void p_face_restore_uvs(PFace *f)
   }
 }
 
-/* Construction (use only during construction, relies on u.key being set */
+/* Construction (use only during construction, relies on `u.key` being set). */
 
 static PVert *p_vert_add(
     ParamHandle *handle, PHashKey key, const float co[3], const float weight, PEdge *e)

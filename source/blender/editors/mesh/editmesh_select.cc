@@ -1681,7 +1681,7 @@ static void walker_select_count(BMEditMesh *em,
   {
     r_count_by_select[BM_elem_flag_test(ele, BM_ELEM_SELECT) ? 1 : 0] += 1;
 
-    /* Early exit when mixed (could be optional if needed. */
+    /* Early exit when mixed (could be optional if needed). */
     if (r_count_by_select[0] && r_count_by_select[1]) {
       r_count_by_select[0] = r_count_by_select[1] = -1;
       break;

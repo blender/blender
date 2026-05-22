@@ -307,7 +307,7 @@ bool BLI_rctf_isect_segment(const rctf *rect, const float s1[2], const float s2[
   /* both points are outside but may intersect the rect */
   float tvec1[2];
   float tvec2[2];
-  /* diagonal: [/] */
+  /* diagonal: `[/]` */
   tvec1[0] = rect->xmin;
   tvec1[1] = rect->ymin;
   tvec2[0] = rect->xmax;
@@ -316,7 +316,7 @@ bool BLI_rctf_isect_segment(const rctf *rect, const float s1[2], const float s2[
     return true;
   }
 
-  /* diagonal: [\] */
+  /* diagonal: `[\]` */
   tvec1[0] = rect->xmin;
   tvec1[1] = rect->ymax;
   tvec2[0] = rect->xmax;

@@ -1112,7 +1112,7 @@ bke::CurvesGeometry fill_strokes(const ViewContext &view_context,
   const bool uniform_zoom = true;
   const float max_zoom_factor = 5.0f;
   const float2 margin = float2(20);
-  /* Pixel scale (aka. "fill_factor, aka. "Precision") to reduce image size. */
+  /* Pixel scale (aka. "fill_factor", aka. "Precision") to reduce image size. */
   const float pixel_scale = brush.gpencil_settings->fill_factor;
   const auto [zoom, offset, image_size, image_to_region] = fit_strokes_to_view(view_context,
                                                                                boundary_layers,

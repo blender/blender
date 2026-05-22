@@ -152,10 +152,8 @@ void template_running_jobs(Layout *layout, bContext *C)
     if (WM_jobs_test(wm, &scene, WM_JOB_TYPE_OBJECT_BAKE_TEXTURE) ||
         WM_jobs_test(wm, &scene, WM_JOB_TYPE_OBJECT_BAKE))
     {
-      /* Skip bake jobs in compositor to avoid compo header displaying
-       * progress bar which is not being updated (bake jobs only need
-       * to update NC_IMAGE context.
-       */
+      /* Skip bake jobs in compositor to avoid compo header displaying progress bar
+       * which is not being updated (bake jobs only need to update NC_IMAGE context). */
       if (area->spacetype != SPACE_NODE) {
         cancel_fn = set_global_break;
         icon = ICON_IMAGE;

@@ -277,7 +277,7 @@ void BKE_lib_id_clear_library_data(Main *bmain, ID *id, const int flags)
 
   /* Internal shape key blocks inside data-blocks also stores id->lib,
    * make sure this stays in sync (note that we do not need any explicit handling for real EMBEDDED
-   * IDs here, this is down automatically in `lib_id_expand_local_cb()`. */
+   * IDs here, this is down automatically in `lib_id_expand_local_cb()`). */
   Key *key = BKE_key_from_id(id);
   if (key != nullptr) {
     BKE_lib_id_clear_library_data(bmain, &key->id, flags);
@@ -2333,7 +2333,7 @@ void BKE_library_make_local(Main *bmain,
 
     /* Special hack for groups... Thing is, since we can't instantiate them here, we need to
      * ensure they remain 'alive' (only instantiation is a real group 'user'... *sigh* See
-     * #49722. */
+     * #49722). */
     if (GS(id->name) == ID_GR && (id->tag & ID_TAG_INDIRECT) != 0) {
       id_us_ensure_real(id->newid);
     }

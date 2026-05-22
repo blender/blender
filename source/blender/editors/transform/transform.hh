@@ -827,7 +827,7 @@ struct TransInfo {
   eTFlag flag;
   /** Special modifiers, by function, not key. */
   eTModifier modifiers;
-  /** Current state (running, canceled. */
+  /** Current state (running, canceled, ...). */
   eTState state;
   /** Redraw flag. */
   eRedrawFlag redraw;

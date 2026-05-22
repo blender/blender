@@ -1242,7 +1242,7 @@ struct GWL_Seat {
      * Timer for key repeats.
      *
      * \note For as long as #USE_EVENT_BACKGROUND_THREAD is defined, any access to this
-     * (including null checks, must lock `timer_mutex` first.
+     * (including null checks), must lock `timer_mutex` first.
      */
     GHOST_ITimerTask *timer = nullptr;
   } key_repeat;
@@ -2600,7 +2600,7 @@ static int ghost_wl_display_event_pump(wl_display *wl_display)
   /* Based on SDL's `Wayland_PumpEvents`. */
   int err;
 
-  /* NOTE: Without this, interactions with window borders aren't handled}. */
+  /* NOTE: Without this, interactions with window borders aren't handled. */
   wl_display_flush(wl_display);
 
   if (wl_display_prepare_read(wl_display) == 0) {
@@ -2791,7 +2791,7 @@ static char *read_file_as_buffer(const int fd, const bool nil_terminate, size_t 
         break;
       }
       chunk->next = nullptr;
-      /* Using `read` causes issues with GNOME, see: #106040). */
+      /* Using `read` causes issues with GNOME, see: #106040. */
       const ssize_t len_chunk = read_exhaustive(fd, chunk->data, sizeof(ByteChunk::data));
       if (len_chunk <= 0) {
         if (len_chunk < 0) [[unlikely]] {

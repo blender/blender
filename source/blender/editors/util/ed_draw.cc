@@ -52,7 +52,7 @@ namespace blender {
  * The generic slider is supposed to be called during modal operations. It calculates a factor
  * value based on mouse position and draws a visual representation. In order to use it, you need to
  * store a reference to a #tSlider in your operator which you get by calling #ED_slider_create.
- * Then you need to update it during modal operations by calling #ED_slider_modal", which will
+ * Then you need to update it during modal operations by calling #ED_slider_modal, which will
  * update #tSlider.factor for you to use. To remove drawing and free the memory, call
  * #ED_slider_destroy.
  * \{ */

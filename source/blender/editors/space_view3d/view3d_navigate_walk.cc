@@ -1356,7 +1356,7 @@ static int walkApply(bContext *C, WalkInfo *walk, bool is_confirm)
       }
     }
 
-    /* Falling or jumping). */
+    /* Falling or jumping. */
     if (ELEM(walk->gravity_state, WALK_GRAVITY_STATE_ON, WALK_GRAVITY_STATE_JUMP)) {
       float ray_distance, difference = -100.0f;
       /* Delta time. */

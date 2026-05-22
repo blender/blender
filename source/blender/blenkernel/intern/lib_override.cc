@@ -3251,7 +3251,7 @@ static bool lib_override_library_main_resync_id_skip_check(ID *id,
  * Clear 'unreachable' tag of existing liboverrides if they are using another reachable liboverride
  * (typical case: Mesh object which only relationship to the rest of the liboverride hierarchy is
  * through its 'parent' pointer (i.e. rest of the hierarchy has no actual relationship to this mesh
- * object).
+ * object)).
  *
  * Logic and rational of this function are very similar to these of
  * #lib_override_hierarchy_dependencies_recursive_tag_from, but withing specific resync context.
@@ -3378,7 +3378,7 @@ static void lib_override_resync_tagging_finalize(Main *bmain,
    * The only exception being IDs only in relation with their root through a 'reversed' from
    * pointer (typical case: armature object is the hierarchy root, its child mesh object is only
    * related to it through its own 'parent' pointer, the armature one has no 'to' relationships to
-   * its deformed mesh object.
+   * its deformed mesh object).
    *
    * Remaining ones are in a limbo, typically they could have been removed or moved around in the
    * hierarchy (e.g. an object moved into another sub-collection). Tag them as needing resync,

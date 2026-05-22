@@ -793,7 +793,7 @@ void remote_library_request_asset_download(const bContext &C,
        *
        * Better to stop here, because if a dependency download couldn't be triggered, the main file
        * should not be downloaded either. Because, if that would work, we have a half-downloaded
-       * asset that Blender's asset browser doesn't know is broken). */
+       * asset that Blender's asset browser doesn't know is broken. */
       break;
     }
 

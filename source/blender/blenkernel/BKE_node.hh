@@ -889,7 +889,7 @@ void node_type_storage(bNodeType &ntype,
  *
  * FOREACH_NODETREE_BEGIN(bmain, nodetree, id) {
  *     if (nodetree->idname == "ShaderNodeTree")
- *         printf("This is a shader node tree);
+ *         printf("This is a shader node tree");
  *     if (GS(id) == ID_MA)
  *         printf(" and it's owned by a material");
  * } FOREACH_NODETREE_END;

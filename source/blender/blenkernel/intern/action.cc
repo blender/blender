@@ -845,9 +845,9 @@ const Bone *bPoseChannel::bone_get(const bArmature &armature) const
     /* This is a valid use case, as the nullptr is used to determine whether the bone exists. See
      * BKE_pose_channels_clear_with_null_bone().
      *
-     * In the future, this could be handled by another function (like `bool bone_exists(...)` while
-     * this one can then return a reference instead of a pointer. Currently that is not yet done,
-     * to keep the introduction of this function semantically close to the bPoseChannel::bone
+     * In the future, this could be handled by another function (like `bool bone_exists(...)`)
+     * while this one can then return a reference instead of a pointer. Currently that is not yet
+     * done, to keep the introduction of this function semantically close to the bPoseChannel::bone
      * pointer it replaces. */
     return nullptr;
   }

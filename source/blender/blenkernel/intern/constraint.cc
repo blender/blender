@@ -3651,7 +3651,7 @@ static void stretchto_evaluate(bConstraint *con,
         copy_v3_v3(cob->matrix[1], vec);
 
         /* Build new Z vector. */
-        /* Orthogonal to "new Y" "old X! plane. */
+        /* Orthogonal to "new Y" "old X"! plane. */
         cross_v3_v3v3(orth, xx, vec);
         normalize_v3(orth);
 
@@ -3667,7 +3667,7 @@ static void stretchto_evaluate(bConstraint *con,
         copy_v3_v3(cob->matrix[1], vec);
 
         /* Build new X vector. */
-        /* Orthogonal to "new Y" "old Z! plane. */
+        /* Orthogonal to "new Y" "old Z"! plane. */
         cross_v3_v3v3(orth, zz, vec);
         normalize_v3(orth);
 
