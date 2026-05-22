@@ -58,38 +58,38 @@ void NodeDeclarationBuilder::build_remaining_anonymous_attribute_relations()
 
   for (BaseSocketDeclarationBuilder *socket_builder : input_socket_builders_) {
     if (socket_builder->field_on_all_) {
-      aal::RelationsInNode &relations = this->get_anonymous_attribute_relations();
-      const int field_input = socket_builder->decl_base_->index;
+      rl::RelationsInNode &relations = this->get_anonymous_attribute_relations();
+      const int reference_input = socket_builder->decl_base_->index;
       for (const int data_input : data_inputs) {
-        relations.eval_relations.append({field_input, data_input});
+        relations.use_relations.append({reference_input, data_input});
       }
     }
   }
   for (BaseSocketDeclarationBuilder *socket_builder : output_socket_builders_) {
     if (socket_builder->field_on_all_) {
-      aal::RelationsInNode &relations = this->get_anonymous_attribute_relations();
-      const int field_output = socket_builder->decl_base_->index;
+      rl::RelationsInNode &relations = this->get_anonymous_attribute_relations();
+      const int reference_output = socket_builder->decl_base_->index;
       for (const int data_output : data_outputs) {
-        relations.available_relations.append({field_output, data_output});
+        relations.available_relations.append({reference_output, data_output});
       }
     }
     if (socket_builder->reference_pass_all_) {
-      aal::RelationsInNode &relations = this->get_anonymous_attribute_relations();
-      const int field_output = socket_builder->decl_base_->index;
+      rl::RelationsInNode &relations = this->get_anonymous_attribute_relations();
+      const int reference_output = socket_builder->decl_base_->index;
       for (const int input_i : declaration_.inputs.index_range()) {
         SocketDeclaration &input_socket_decl = *declaration_.inputs[input_i];
         if (ELEM(input_socket_decl.structure_type, StructureType::Field, StructureType::Dynamic) ||
             ELEM(input_socket_decl.socket_type, SOCK_BUNDLE, SOCK_CLOSURE))
         {
-          relations.reference_relations.append({input_i, field_output});
+          relations.reference_propagations.append({input_i, reference_output});
         }
       }
     }
     if (socket_builder->propagate_from_all_) {
-      aal::RelationsInNode &relations = this->get_anonymous_attribute_relations();
+      rl::RelationsInNode &relations = this->get_anonymous_attribute_relations();
       const int data_output = socket_builder->decl_base_->index;
       for (const int data_input : data_inputs) {
-        relations.propagate_relations.append({data_input, data_output});
+        relations.data_propagations.append({data_input, data_output});
       }
     }
   }
@@ -144,26 +144,25 @@ Span<SocketDeclaration *> NodeDeclaration::sockets(eNodeSocketInOut in_out) cons
   return outputs;
 }
 
-namespace anonymous_attribute_lifetime {
+namespace reference_lifetimes {
 
 std::ostream &operator<<(std::ostream &stream, const RelationsInNode &relations)
 {
-  stream << "Propagate Relations: " << relations.propagate_relations.size() << "\n";
-  for (const PropagateRelation &relation : relations.propagate_relations) {
-    stream << "  " << relation.from_geometry_input << " -> " << relation.to_geometry_output
-           << "\n";
+  stream << "Propagate Relations: " << relations.data_propagations.size() << "\n";
+  for (const DataPropagation &relation : relations.data_propagations) {
+    stream << "  " << relation.from_input << " -> " << relation.to_output << "\n";
   }
-  stream << "Reference Relations: " << relations.reference_relations.size() << "\n";
-  for (const ReferenceRelation &relation : relations.reference_relations) {
-    stream << "  " << relation.from_field_input << " -> " << relation.to_field_output << "\n";
+  stream << "Reference Relations: " << relations.reference_propagations.size() << "\n";
+  for (const ReferencePropagation &relation : relations.reference_propagations) {
+    stream << "  " << relation.from_input << " -> " << relation.to_output << "\n";
   }
-  stream << "Eval Relations: " << relations.eval_relations.size() << "\n";
-  for (const EvalRelation &relation : relations.eval_relations) {
-    stream << "  eval " << relation.field_input << " on " << relation.geometry_input << "\n";
+  stream << "Eval Relations: " << relations.use_relations.size() << "\n";
+  for (const UseRelation &relation : relations.use_relations) {
+    stream << "  eval " << relation.reference_input << " on " << relation.data_input << "\n";
   }
   stream << "Available Relations: " << relations.available_relations.size() << "\n";
   for (const AvailableRelation &relation : relations.available_relations) {
-    stream << "  " << relation.field_output << " available on " << relation.geometry_output
+    stream << "  " << relation.reference_output << " available on " << relation.data_output
            << "\n";
   }
   stream << "Available on None: " << relations.available_on_none.size() << "\n";
@@ -173,7 +172,7 @@ std::ostream &operator<<(std::ostream &stream, const RelationsInNode &relations)
   return stream;
 }
 
-}  // namespace anonymous_attribute_lifetime
+}  // namespace reference_lifetimes
 
 static void assert_valid_panels_recursive(const NodeDeclaration &node_decl,
                                           const Span<const ItemDeclaration *> items,
@@ -586,34 +585,34 @@ BaseSocketDeclarationBuilder &BaseSocketDeclarationBuilder::reference_pass(
     const Span<int> input_indices)
 {
   BLI_assert(this->is_output());
-  aal::RelationsInNode &relations = node_decl_builder_->get_anonymous_attribute_relations();
+  rl::RelationsInNode &relations = node_decl_builder_->get_anonymous_attribute_relations();
   for (const int from_input : input_indices) {
-    aal::ReferenceRelation relation;
-    relation.from_field_input = from_input;
-    relation.to_field_output = decl_base_->index;
-    relations.reference_relations.append(relation);
+    rl::ReferencePropagation relation;
+    relation.from_input = from_input;
+    relation.to_output = decl_base_->index;
+    relations.reference_propagations.append(relation);
   }
   return *this;
 }
 
 BaseSocketDeclarationBuilder &BaseSocketDeclarationBuilder::field_on(const Span<int> indices)
 {
-  aal::RelationsInNode &relations = node_decl_builder_->get_anonymous_attribute_relations();
+  rl::RelationsInNode &relations = node_decl_builder_->get_anonymous_attribute_relations();
   if (this->is_input()) {
     this->supports_field();
     for (const int input_index : indices) {
-      aal::EvalRelation relation;
-      relation.field_input = decl_base_->index;
-      relation.geometry_input = input_index;
-      relations.eval_relations.append(relation);
+      rl::UseRelation relation;
+      relation.reference_input = decl_base_->index;
+      relation.data_input = input_index;
+      relations.use_relations.append(relation);
     }
   }
   else {
     this->field_source();
     for (const int output_index : indices) {
-      aal::AvailableRelation relation;
-      relation.field_output = decl_base_->index;
-      relation.geometry_output = output_index;
+      rl::AvailableRelation relation;
+      relation.reference_output = decl_base_->index;
+      relation.data_output = output_index;
       relations.available_relations.append(relation);
     }
   }

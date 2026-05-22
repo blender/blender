@@ -39,9 +39,9 @@ struct GeneratedTreeSrnaData;
 class NodeDeclaration;
 struct GeometryNodesLazyFunctionGraphInfo;
 struct StructureTypeInterface;
-namespace anonymous_attribute_lifetime {
+namespace reference_lifetimes {
 }
-namespace aal = anonymous_attribute_lifetime;
+namespace rl = reference_lifetimes;
 namespace gizmos {
 struct TreeGizmoPropagation;
 }

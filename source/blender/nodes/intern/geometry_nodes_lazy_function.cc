@@ -144,7 +144,7 @@ class LazyFunctionForGeometryNode : public LazyFunction {
         node, inputs_, outputs_, own_lf_graph_info.mapping.lf_index_by_bsocket);
 
     const NodeDeclaration &node_decl = *node.declaration();
-    const aal::RelationsInNode *relations = node_decl.anonymous_attribute_relations();
+    const rl::RelationsInNode *relations = node_decl.anonymous_attribute_relations();
     if (relations == nullptr) {
       return;
     }
@@ -154,13 +154,13 @@ class LazyFunctionForGeometryNode : public LazyFunction {
       for (lf::Input &input : inputs_) {
         input.usage = lf::ValueUsage::Maybe;
       }
-      for (const aal::AvailableRelation &relation : relations->available_relations) {
-        is_attribute_output_bsocket_[relation.field_output] = true;
+      for (const rl::AvailableRelation &relation : relations->available_relations) {
+        is_attribute_output_bsocket_[relation.reference_output] = true;
       }
     }
     Vector<const bNodeSocket *> handled_field_outputs;
-    for (const aal::AvailableRelation &relation : relations->available_relations) {
-      const bNodeSocket &output_bsocket = node.output_socket(relation.field_output);
+    for (const rl::AvailableRelation &relation : relations->available_relations) {
+      const bNodeSocket &output_bsocket = node.output_socket(relation.reference_output);
       if (output_bsocket.is_available() && !handled_field_outputs.contains(&output_bsocket)) {
         handled_field_outputs.append(&output_bsocket);
         const int lf_index = inputs_.append_and_get_index_as("Output Used", CPPType::get<bool>());
@@ -171,8 +171,8 @@ class LazyFunctionForGeometryNode : public LazyFunction {
     }
 
     Vector<const bNodeSocket *> handled_geometry_outputs;
-    for (const aal::PropagateRelation &relation : relations->propagate_relations) {
-      const bNodeSocket &output_bsocket = node.output_socket(relation.to_geometry_output);
+    for (const rl::DataPropagation &relation : relations->data_propagations) {
+      const bNodeSocket &output_bsocket = node.output_socket(relation.to_output);
       if (output_bsocket.is_available() && !handled_geometry_outputs.contains(&output_bsocket)) {
         handled_geometry_outputs.append(&output_bsocket);
         const int lf_index = inputs_.append_and_get_index_as(
@@ -4030,10 +4030,10 @@ struct GeometryNodesLazyFunctionBuilder {
    */
   void build_root_reference_set_inputs(lf::Graph &lf_graph)
   {
-    const aal::RelationsInNode &tree_relations = reference_lifetimes_.tree_relations;
+    const rl::RelationsInNode &tree_relations = reference_lifetimes_.tree_relations;
     Vector<int> output_indices;
-    for (const aal::PropagateRelation &relation : tree_relations.propagate_relations) {
-      output_indices.append_non_duplicates(relation.to_geometry_output);
+    for (const rl::DataPropagation &relation : tree_relations.data_propagations) {
+      output_indices.append_non_duplicates(relation.to_output);
     }
 
     for (const int i : output_indices.index_range()) {
