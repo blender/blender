@@ -752,10 +752,9 @@ static bPoseChannel *pose_bone_do_paste(Object *ob,
   /* ID properties */
   if (chan->prop) {
     if (pchan->prop) {
-      /* if we have existing properties on a bone, just copy over the values of
-       * matching properties (i.e. ones which will have some impact) on to the
-       * target instead of just blinding replacing all [
-       */
+      /* If we have existing properties on a bone, just copy over the values of
+       * matching properties (i.e. ones which will have some impact) on to the target
+       * instead of just blindly replacing all. */
       IDP_SyncGroupValues(pchan->prop, chan->prop);
     }
     else {
