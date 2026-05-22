@@ -288,6 +288,12 @@ short BKE_idtype_idcode_from_name_case_insensitive(const char *idtype_name)
   return id_type != nullptr ? id_type->id_code : 0;
 }
 
+const char *BKE_idtype_name_normalize(const char *idtype_name)
+{
+  const IDTypeInfo *id_type = idtype_get_info_from_name_case_insensitive(idtype_name);
+  return id_type ? id_type->name : nullptr;
+}
+
 bool BKE_idtype_idcode_is_valid(const short idcode)
 {
   return BKE_idtype_get_info_from_idcode(idcode) != nullptr ? true : false;

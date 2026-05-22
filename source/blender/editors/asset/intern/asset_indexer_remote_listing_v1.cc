@@ -128,23 +128,28 @@ static ReadingResult<RemoteListingAssetEntry> listing_entry_from_asset_dictionar
   }
 
   /* 'id': name of the asset. Required string. */
-  const std::optional<StringRef> asset_name_opt = dictionary.lookup_str("name");
+  const std::optional<StringRefNull> asset_name_opt = dictionary.lookup_str("name");
   if (!asset_name_opt) {
     return ReadingResult<RemoteListingAssetEntry>::Failure(
         N_("could not read asset name, 'name' field not set"));
   }
-  const StringRef asset_name = *asset_name_opt;
+  const StringRefNull asset_name = *asset_name_opt;
   asset_name.copy_utf8_truncated(listing_entry.datablock_info.name);
 
   /* 'type': data-block type, must match the #IDTypeInfo.name of the given type. required string.
    */
   if (const std::optional<StringRefNull> idtype_name = dictionary.lookup_str("id_type")) {
-    listing_entry.idcode = BKE_idtype_idcode_from_name_case_insensitive(idtype_name->c_str());
-    if (!BKE_idtype_idcode_is_valid(listing_entry.idcode)) {
-      return ReadingResult<RemoteListingAssetEntry>::Failure(fmt::format(
-          N_("could not read type of asset '{:s}': 'id_type' field is not a valid type"),
-          asset_name));
+    const char *normalized_name = BKE_idtype_name_normalize(idtype_name->c_str());
+    if (!normalized_name) {
+      /* This could actually be a new asset type that's not supported by this Blender. Just
+       * silently ignore it and continue. */
+      CLOG_DEBUG(&LOG,
+                 N_("could not read type of asset '%s': 'id_type' field is not a valid type (%s)"),
+                 asset_name.c_str(),
+                 idtype_name->c_str());
+      return ReadingResult<RemoteListingAssetEntry>::Success(RemoteListingAssetEntry{});
     }
+    listing_entry.idcode = BKE_idtype_idcode_from_name(normalized_name);
   }
   else {
     return ReadingResult<RemoteListingAssetEntry>::Failure(
