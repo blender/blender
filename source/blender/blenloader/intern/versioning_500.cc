@@ -2946,7 +2946,7 @@ static void remove_in_and_out_node_panel_recursive(bNodeTreeInterfacePanel &pane
 
   Vector<bNodeTreeInterfaceItem *> new_sockets;
   for (bNodeTreeInterfaceItem *item : old_sockets) {
-    if (item->item_type == NODE_INTERFACE_PANEL) {
+    if (item->item_type == NodeTreeInterfaceItemType::Panel) {
       remove_in_and_out_node_panel_recursive(*reinterpret_cast<bNodeTreeInterfacePanel *>(item));
       continue;
     }
@@ -2957,7 +2957,7 @@ static void remove_in_and_out_node_panel_recursive(bNodeTreeInterfacePanel &pane
     }
 
     bNodeTreeInterfaceSocket *new_output = MEM_new<bNodeTreeInterfaceSocket>(__func__);
-    new_output->item.item_type = NODE_INTERFACE_SOCKET;
+    new_output->item.item_type = NodeTreeInterfaceItemType::Socket;
     new_output->name = BLI_strdup_null(socket->name);
     new_output->description = BLI_strdup_null(socket->description);
     new_output->socket_type = BLI_strdup_null(socket->socket_type);
@@ -4280,7 +4280,7 @@ void blo_do_versions_500(FileData *fd, Library * /*lib*/, Main *bmain)
     /* Enable new "Optional Label" setting for all menu sockets. This was implicit before. */
     FOREACH_NODETREE_BEGIN (bmain, tree, id) {
       tree->tree_interface.foreach_item([&](bNodeTreeInterfaceItem &item) {
-        if (item.item_type != NODE_INTERFACE_SOCKET) {
+        if (item.item_type != NodeTreeInterfaceItemType::Socket) {
           return true;
         }
         auto &socket = reinterpret_cast<bNodeTreeInterfaceSocket &>(item);

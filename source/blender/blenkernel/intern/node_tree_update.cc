@@ -2072,7 +2072,7 @@ class NodeTreeMainUpdater {
     bool changed = false;
     ntree.ensure_interface_cache();
     for (bNodeTreeInterfaceItem *item : ntree.interface_items()) {
-      if (item->item_type != NODE_INTERFACE_PANEL) {
+      if (item->item_type != NodeTreeInterfaceItemType::Panel) {
         continue;
       }
       bNodeTreeInterfacePanel *panel = reinterpret_cast<bNodeTreeInterfacePanel *>(item);

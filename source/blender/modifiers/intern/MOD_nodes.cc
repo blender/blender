@@ -403,7 +403,7 @@ static void update_panels_from_node_group(NodesModifierData &nmd)
   if (nmd.node_group && !ID_MISSING(nmd.node_group)) {
     nmd.node_group->ensure_interface_cache();
     nmd.node_group->tree_interface.foreach_item([&](const bNodeTreeInterfaceItem &item) {
-      if (item.item_type != NODE_INTERFACE_PANEL) {
+      if (item.item_type != NodeTreeInterfaceItemType::Panel) {
         return true;
       }
       interface_panels.append(reinterpret_cast<const bNodeTreeInterfacePanel *>(&item));

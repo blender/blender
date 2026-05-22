@@ -304,7 +304,7 @@ static void gather_socket_link_operations(const bContext &C,
 
     int weight = -1;
     node_tree.tree_interface.foreach_item([&](const bNodeTreeInterfaceItem &item) {
-      if (item.item_type != NODE_INTERFACE_SOCKET) {
+      if (item.item_type != NodeTreeInterfaceItemType::Socket) {
         return true;
       }
       const bNodeTreeInterfaceSocket &interface_socket =

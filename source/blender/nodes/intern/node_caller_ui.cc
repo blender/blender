@@ -22,7 +22,7 @@ static bool interface_panel_has_socket(
     FunctionRef<bool(const bNodeTreeInterfaceSocket &)> fn_input_is_visible)
 {
   for (const bNodeTreeInterfaceItem *item : interface_panel.items()) {
-    if (item->item_type == NODE_INTERFACE_SOCKET) {
+    if (item->item_type == NodeTreeInterfaceItemType::Socket) {
       const bNodeTreeInterfaceSocket &socket = *reinterpret_cast<const bNodeTreeInterfaceSocket *>(
           item);
       if (socket.flag & NODE_INTERFACE_SOCKET_HIDE_IN_MODIFIER) {
@@ -34,7 +34,7 @@ static bool interface_panel_has_socket(
         }
       }
     }
-    else if (item->item_type == NODE_INTERFACE_PANEL) {
+    else if (item->item_type == NodeTreeInterfaceItemType::Panel) {
       const auto &panel_item = *reinterpret_cast<const bNodeTreeInterfacePanel *>(item);
       if (interface_panel_has_socket(panel_item, fn_input_is_visible)) {
         return true;
@@ -49,7 +49,7 @@ static bool interface_panel_affects_output(
     FunctionRef<bool(const bNodeTreeInterfaceSocket &)> fn_input_is_active)
 {
   for (const bNodeTreeInterfaceItem *item : panel.items()) {
-    if (item->item_type == NODE_INTERFACE_SOCKET) {
+    if (item->item_type == NodeTreeInterfaceItemType::Socket) {
       const auto &socket = *reinterpret_cast<const bNodeTreeInterfaceSocket *>(item);
       if (socket.flag & NODE_INTERFACE_SOCKET_HIDE_IN_MODIFIER) {
         continue;
@@ -61,7 +61,7 @@ static bool interface_panel_affects_output(
         return true;
       }
     }
-    else if (item->item_type == NODE_INTERFACE_PANEL) {
+    else if (item->item_type == NodeTreeInterfaceItemType::Panel) {
       const auto &sub_interface_panel = *reinterpret_cast<const bNodeTreeInterfacePanel *>(item);
       if (interface_panel_affects_output(sub_interface_panel, fn_input_is_active)) {
         return true;
@@ -145,8 +145,8 @@ void draw_interface_panel_content(
 {
   for (const bNodeTreeInterfaceItem *item : interface_panel.items().drop_front(skip_first ? 1 : 0))
   {
-    switch (eNodeTreeInterfaceItemType(item->item_type)) {
-      case NODE_INTERFACE_PANEL: {
+    switch (item->item_type) {
+      case NodeTreeInterfaceItemType::Panel: {
         const auto &sub_interface_panel = *reinterpret_cast<const bNodeTreeInterfacePanel *>(item);
         draw_interface_panel_as_panel(C,
                                       layout,
@@ -157,7 +157,7 @@ void draw_interface_panel_content(
                                       fn_draw_property_for_socket);
         break;
       }
-      case NODE_INTERFACE_SOCKET: {
+      case NodeTreeInterfaceItemType::Socket: {
         const auto &interface_socket = *reinterpret_cast<const bNodeTreeInterfaceSocket *>(item);
         if (interface_socket.flag & NODE_INTERFACE_SOCKET_INPUT) {
           if (!(interface_socket.flag & NODE_INTERFACE_SOCKET_HIDE_IN_MODIFIER)) {

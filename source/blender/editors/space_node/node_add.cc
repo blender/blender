@@ -1342,8 +1342,8 @@ static void hide_unselected_sockets(bNode *node,
                                     bNodeTreeInterfaceItem *item,
                                     bool panels_with_header_unselected)
 {
-  switch (eNodeTreeInterfaceItemType(item->item_type)) {
-    case NODE_INTERFACE_SOCKET: {
+  switch (item->item_type) {
+    case NodeTreeInterfaceItemType::Socket: {
       auto *socket = reinterpret_cast<bNodeTreeInterfaceSocket *>(item);
       if (socket->flag & NODE_INTERFACE_SOCKET_INPUT &&
           !(socket->flag & NODE_INTERFACE_SOCKET_SELECT))
@@ -1353,7 +1353,7 @@ static void hide_unselected_sockets(bNode *node,
       }
       break;
     }
-    case NODE_INTERFACE_PANEL: {
+    case NodeTreeInterfaceItemType::Panel: {
       /* Only visit unselected panels. */
       auto *interface_panel = reinterpret_cast<bNodeTreeInterfacePanel *>(item);
       bool panel_selection_ignored = panels_with_header_unselected &&
@@ -1415,13 +1415,13 @@ static wmOperatorStatus node_add_group_input_node_invoke(bContext *C,
 
 static bool contains_any_selected_input(const bNodeTreeInterfaceItem &item, bool parent_selected)
 {
-  switch (eNodeTreeInterfaceItemType(item.item_type)) {
-    case NODE_INTERFACE_SOCKET: {
+  switch (item.item_type) {
+    case NodeTreeInterfaceItemType::Socket: {
       const auto &socket = reinterpret_cast<const bNodeTreeInterfaceSocket &>(item);
       return socket.flag & NODE_INTERFACE_SOCKET_INPUT &&
              (parent_selected || socket.flag & NODE_INTERFACE_SOCKET_SELECT);
     }
-    case NODE_INTERFACE_PANEL: {
+    case NodeTreeInterfaceItemType::Panel: {
       const auto &panel = reinterpret_cast<const bNodeTreeInterfacePanel &>(item);
       for (const auto *sub_item : panel.items()) {
         /* There's no need to handle the header toggle differently. */

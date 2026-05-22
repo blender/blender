@@ -674,8 +674,8 @@ static void item_copy(bNodeTreeInterfaceItem &dst,
                       const int flag,
                       UidGeneratorFn generate_uid)
 {
-  switch (eNodeTreeInterfaceItemType(dst.item_type)) {
-    case NODE_INTERFACE_SOCKET: {
+  switch (dst.item_type) {
+    case NodeTreeInterfaceItemType::Socket: {
       bNodeTreeInterfaceSocket &dst_socket = reinterpret_cast<bNodeTreeInterfaceSocket &>(dst);
       const bNodeTreeInterfaceSocket &src_socket =
           reinterpret_cast<const bNodeTreeInterfaceSocket &>(src);
@@ -695,7 +695,7 @@ static void item_copy(bNodeTreeInterfaceItem &dst,
       }
       break;
     }
-    case NODE_INTERFACE_PANEL: {
+    case NodeTreeInterfaceItemType::Panel: {
       bNodeTreeInterfacePanel &dst_panel = reinterpret_cast<bNodeTreeInterfacePanel &>(dst);
       const bNodeTreeInterfacePanel &src_panel = reinterpret_cast<const bNodeTreeInterfacePanel &>(
           src);
@@ -712,8 +712,8 @@ static void item_copy(bNodeTreeInterfaceItem &dst,
 
 static void item_free(bNodeTreeInterfaceItem &item, const bool do_id_user)
 {
-  switch (eNodeTreeInterfaceItemType(item.item_type)) {
-    case NODE_INTERFACE_SOCKET: {
+  switch (item.item_type) {
+    case NodeTreeInterfaceItemType::Socket: {
       bNodeTreeInterfaceSocket &socket = reinterpret_cast<bNodeTreeInterfaceSocket &>(item);
 
       if (socket.socket_data != nullptr) {
@@ -731,7 +731,7 @@ static void item_free(bNodeTreeInterfaceItem &item, const bool do_id_user)
       }
       break;
     }
-    case NODE_INTERFACE_PANEL: {
+    case NodeTreeInterfaceItemType::Panel: {
       bNodeTreeInterfacePanel &panel = reinterpret_cast<bNodeTreeInterfacePanel &>(item);
 
       panel.clear(do_id_user);
@@ -748,8 +748,8 @@ void item_write_struct(BlendWriter *writer, bNodeTreeInterfaceItem &item);
 
 static void item_write_data(BlendWriter *writer, bNodeTreeInterfaceItem &item)
 {
-  switch (eNodeTreeInterfaceItemType(item.item_type)) {
-    case NODE_INTERFACE_SOCKET: {
+  switch (item.item_type) {
+    case NodeTreeInterfaceItemType::Socket: {
       bNodeTreeInterfaceSocket &socket = reinterpret_cast<bNodeTreeInterfaceSocket &>(item);
       writer->write_string(socket.name);
       writer->write_string(socket.identifier);
@@ -763,7 +763,7 @@ static void item_write_data(BlendWriter *writer, bNodeTreeInterfaceItem &item)
       socket_types::socket_data_write(writer, socket);
       break;
     }
-    case NODE_INTERFACE_PANEL: {
+    case NodeTreeInterfaceItemType::Panel: {
       bNodeTreeInterfacePanel &panel = reinterpret_cast<bNodeTreeInterfacePanel &>(item);
       writer->write_string(panel.name);
       writer->write_string(panel.description);
@@ -778,8 +778,8 @@ static void item_write_data(BlendWriter *writer, bNodeTreeInterfaceItem &item)
 
 void item_write_struct(BlendWriter *writer, bNodeTreeInterfaceItem &item)
 {
-  switch (eNodeTreeInterfaceItemType(item.item_type)) {
-    case NODE_INTERFACE_SOCKET: {
+  switch (item.item_type) {
+    case NodeTreeInterfaceItemType::Socket: {
       /* Forward compatible writing of older single value only flag. To be removed in 5.0. */
       bNodeTreeInterfaceSocket &socket = get_item_as<bNodeTreeInterfaceSocket>(item);
       SET_FLAG_FROM_TEST(socket.flag,
@@ -789,7 +789,7 @@ void item_write_struct(BlendWriter *writer, bNodeTreeInterfaceItem &item)
       writer->write_struct_cast<bNodeTreeInterfaceSocket>(&item);
       break;
     }
-    case NODE_INTERFACE_PANEL: {
+    case NodeTreeInterfaceItemType::Panel: {
       writer->write_struct_cast<bNodeTreeInterfacePanel>(&item);
       break;
     }
@@ -800,8 +800,8 @@ void item_write_struct(BlendWriter *writer, bNodeTreeInterfaceItem &item)
 
 static void item_read_data(BlendDataReader *reader, bNodeTreeInterfaceItem &item)
 {
-  switch (eNodeTreeInterfaceItemType(item.item_type)) {
-    case NODE_INTERFACE_SOCKET: {
+  switch (item.item_type) {
+    case NodeTreeInterfaceItemType::Socket: {
       bNodeTreeInterfaceSocket &socket = reinterpret_cast<bNodeTreeInterfaceSocket &>(item);
       BLO_read_string(reader, &socket.name);
       BLO_read_string(reader, &socket.description);
@@ -822,7 +822,7 @@ static void item_read_data(BlendDataReader *reader, bNodeTreeInterfaceItem &item
       socket_types::socket_data_read_data(reader, socket);
       break;
     }
-    case NODE_INTERFACE_PANEL: {
+    case NodeTreeInterfaceItemType::Panel: {
       bNodeTreeInterfacePanel &panel = reinterpret_cast<bNodeTreeInterfacePanel &>(item);
       BLO_read_string(reader, &panel.name);
       BLO_read_string(reader, &panel.description);
@@ -851,8 +851,8 @@ static void item_read_data(BlendDataReader *reader, bNodeTreeInterfaceItem &item
 
 static void item_foreach_id(LibraryForeachIDData *data, bNodeTreeInterfaceItem &item)
 {
-  switch (eNodeTreeInterfaceItemType(item.item_type)) {
-    case NODE_INTERFACE_SOCKET: {
+  switch (item.item_type) {
+    case NodeTreeInterfaceItemType::Socket: {
       bNodeTreeInterfaceSocket &socket = reinterpret_cast<bNodeTreeInterfaceSocket &>(item);
 
       BKE_LIB_FOREACHID_PROCESS_FUNCTION_CALL(
@@ -863,7 +863,7 @@ static void item_foreach_id(LibraryForeachIDData *data, bNodeTreeInterfaceItem &
       socket_types::socket_data_foreach_id(data, socket);
       break;
     }
-    case NODE_INTERFACE_PANEL: {
+    case NodeTreeInterfaceItemType::Panel: {
       bNodeTreeInterfacePanel &panel = reinterpret_cast<bNodeTreeInterfacePanel &>(item);
       for (bNodeTreeInterfaceItem *item : panel.items()) {
         item_foreach_id(data, *item);
@@ -876,11 +876,11 @@ static void item_foreach_id(LibraryForeachIDData *data, bNodeTreeInterfaceItem &
 /* Move all child items to the new parent. */
 static Span<bNodeTreeInterfaceItem *> item_children(bNodeTreeInterfaceItem &item)
 {
-  switch (eNodeTreeInterfaceItemType(item.item_type)) {
-    case NODE_INTERFACE_SOCKET: {
+  switch (item.item_type) {
+    case NodeTreeInterfaceItemType::Socket: {
       return {};
     }
-    case NODE_INTERFACE_PANEL: {
+    case NodeTreeInterfaceItemType::Panel: {
       bNodeTreeInterfacePanel &panel = reinterpret_cast<bNodeTreeInterfacePanel &>(item);
       return panel.items();
     }
@@ -1107,7 +1107,7 @@ bNodeTreeInterfacePanel *bNodeTreeInterfacePanel::find_parent_recursive(
     queue.pop();
 
     for (bNodeTreeInterfaceItem *titem : parent->items()) {
-      if (titem->item_type != NODE_INTERFACE_PANEL) {
+      if (titem->item_type != NodeTreeInterfaceItemType::Panel) {
         continue;
       }
 
@@ -1134,12 +1134,16 @@ int bNodeTreeInterfacePanel::find_valid_insert_position_for_item(
                                                const bNodeTreeInterfaceItem &b) -> bool {
     /* Keep sockets above panels. */
     if (sockets_above_panels) {
-      if (a.item_type == NODE_INTERFACE_SOCKET && b.item_type == NODE_INTERFACE_PANEL) {
+      if (a.item_type == NodeTreeInterfaceItemType::Socket &&
+          b.item_type == NodeTreeInterfaceItemType::Panel)
+      {
         return true;
       }
     }
     /* Keep outputs above inputs. */
-    if (a.item_type == NODE_INTERFACE_SOCKET && b.item_type == NODE_INTERFACE_SOCKET) {
+    if (a.item_type == NodeTreeInterfaceItemType::Socket &&
+        b.item_type == NodeTreeInterfaceItemType::Socket)
+    {
       const auto &sa = reinterpret_cast<const bNodeTreeInterfaceSocket &>(a);
       const auto &sb = reinterpret_cast<const bNodeTreeInterfaceSocket &>(b);
       const bool is_output_a = sa.flag & NODE_INTERFACE_SOCKET_OUTPUT;
@@ -1286,7 +1290,7 @@ void bNodeTreeInterfacePanel::foreach_item(FunctionRef<bool(bNodeTreeInterfaceIt
         return;
       }
 
-      if (item->item_type == NODE_INTERFACE_PANEL) {
+      if (item->item_type == NodeTreeInterfaceItemType::Panel) {
         bNodeTreeInterfacePanel *panel = reinterpret_cast<bNodeTreeInterfacePanel *>(item);
         /* Reinsert remaining items. */
         if (index < current_items.size() - 1) {
@@ -1321,7 +1325,7 @@ void bNodeTreeInterfacePanel::foreach_item(
         return;
       }
 
-      if (item->item_type == NODE_INTERFACE_PANEL) {
+      if (item->item_type == NodeTreeInterfaceItemType::Panel) {
         const bNodeTreeInterfacePanel *panel = reinterpret_cast<const bNodeTreeInterfacePanel *>(
             item);
         /* Reinsert remaining items. */
@@ -1343,7 +1347,7 @@ const bNodeTreeInterfaceSocket *bNodeTreeInterfacePanel::header_toggle_socket() 
     return nullptr;
   }
   const bNodeTreeInterfaceItem *first_item = this->items().first();
-  if (first_item->item_type != NODE_INTERFACE_SOCKET) {
+  if (first_item->item_type != NodeTreeInterfaceItemType::Socket) {
     return nullptr;
   }
   const auto &socket = *reinterpret_cast<const bNodeTreeInterfaceSocket *>(first_item);
@@ -1382,7 +1386,7 @@ static bNodeTreeInterfaceSocket *make_socket(const int uid,
 
   /* Init common socket properties. */
   new_socket->identifier = BLI_sprintfN("Socket_%d", uid);
-  new_socket->item.item_type = NODE_INTERFACE_SOCKET;
+  new_socket->item.item_type = NodeTreeInterfaceItemType::Socket;
   new_socket->name = BLI_strdupn(name.data(), name.size());
   new_socket->description = description.is_empty() ?
                                 nullptr :
@@ -1807,7 +1811,7 @@ static bNodeTreeInterfacePanel *make_panel(const int uid,
   BLI_assert(!name.is_empty());
 
   bNodeTreeInterfacePanel *new_panel = MEM_new<bNodeTreeInterfacePanel>(__func__);
-  new_panel->item.item_type = NODE_INTERFACE_PANEL;
+  new_panel->item.item_type = NodeTreeInterfaceItemType::Panel;
   new_panel->name = BLI_strdupn(name.data(), name.size());
   new_panel->description = description.is_empty() ?
                                nullptr :
@@ -1898,14 +1902,14 @@ const bNodeTreeInterfaceItem *bNodeTreeInterface::active_item() const
 
 void bNodeTreeInterfaceItem::set_selected(const bool select)
 {
-  switch (eNodeTreeInterfaceItemType(this->item_type)) {
-    case NODE_INTERFACE_PANEL: {
+  switch (this->item_type) {
+    case NodeTreeInterfaceItemType::Panel: {
       bNodeTreeInterfacePanel *panel =
           blender::bke::node_interface::get_item_as<bNodeTreeInterfacePanel>(this);
       SET_FLAG_FROM_TEST(panel->flag, select, NODE_INTERFACE_PANEL_SELECT);
       break;
     }
-    case NODE_INTERFACE_SOCKET: {
+    case NodeTreeInterfaceItemType::Socket: {
       bNodeTreeInterfaceSocket *socket =
           blender::bke::node_interface::get_item_as<bNodeTreeInterfaceSocket>(this);
       SET_FLAG_FROM_TEST(socket->flag, select, NODE_INTERFACE_SOCKET_SELECT);
@@ -2104,7 +2108,7 @@ bool bNodeTreeInterface::move_item_to_parent(bNodeTreeInterfaceItem &item,
     new_parent = &this->root_panel;
   }
 
-  if (item.item_type == NODE_INTERFACE_PANEL) {
+  if (item.item_type == NodeTreeInterfaceItemType::Panel) {
     bNodeTreeInterfacePanel &src_item = reinterpret_cast<bNodeTreeInterfacePanel &>(item);
     if (src_item.contains_recursive(new_parent->item)) {
       return false;

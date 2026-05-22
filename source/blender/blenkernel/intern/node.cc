@@ -2315,7 +2315,7 @@ IDProperty *node_create_asset_meta_data_properties(const bNodeTree &node_tree)
 
   auto panels = idprop::create_group("panels");
   for (const bNodeTreeInterfaceItem *item : node_tree.interface_items()) {
-    if (item->item_type != NODE_INTERFACE_PANEL) {
+    if (item->item_type != NodeTreeInterfaceItemType::Panel) {
       continue;
     }
     const auto &panel = *reinterpret_cast<const bNodeTreeInterfacePanel *>(item);

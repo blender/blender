@@ -60,12 +60,12 @@ namespace detail {
 template<typename T> static bool item_is_type(const bNodeTreeInterfaceItem &item)
 {
   bool match = false;
-  switch (eNodeTreeInterfaceItemType(item.item_type)) {
-    case NODE_INTERFACE_SOCKET: {
+  switch (item.item_type) {
+    case NodeTreeInterfaceItemType::Socket: {
       match |= std::is_same_v<T, bNodeTreeInterfaceSocket>;
       break;
     }
-    case NODE_INTERFACE_PANEL: {
+    case NodeTreeInterfaceItemType::Panel: {
       match |= std::is_same_v<T, bNodeTreeInterfacePanel>;
       break;
     }

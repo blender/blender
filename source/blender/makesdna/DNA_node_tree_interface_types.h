@@ -33,14 +33,14 @@ struct BlendWriter;
 struct BlendDataReader;
 
 /** Type of interface item. */
-enum eNodeTreeInterfaceItemType : char {
-  NODE_INTERFACE_PANEL = 0,
-  NODE_INTERFACE_SOCKET = 1,
+enum class NodeTreeInterfaceItemType : char {
+  Panel = 0,
+  Socket = 1,
 };
 
 /** Describes a socket and all necessary details for a node declaration. */
 struct bNodeTreeInterfaceItem {
-  eNodeTreeInterfaceItemType item_type = NODE_INTERFACE_PANEL;
+  NodeTreeInterfaceItemType item_type = NodeTreeInterfaceItemType::Panel;
   char _pad[7] = {};
 
 #ifdef __cplusplus

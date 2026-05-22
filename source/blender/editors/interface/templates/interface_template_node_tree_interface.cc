@@ -331,8 +331,8 @@ class NodeTreeInterfaceView : public AbstractTreeView {
       if (item == skip_item) {
         continue;
       }
-      switch (eNodeTreeInterfaceItemType(item->item_type)) {
-        case NODE_INTERFACE_SOCKET: {
+      switch (item->item_type) {
+        case NodeTreeInterfaceItemType::Socket: {
           bNodeTreeInterfaceSocket *socket = node_interface::get_item_as<bNodeTreeInterfaceSocket>(
               item);
           NodeSocketViewItem &socket_item = parent_item.add_tree_item<NodeSocketViewItem>(
@@ -340,7 +340,7 @@ class NodeTreeInterfaceView : public AbstractTreeView {
           socket_item.uncollapse_by_default();
           break;
         }
-        case NODE_INTERFACE_PANEL: {
+        case NodeTreeInterfaceItemType::Panel: {
           bNodeTreeInterfacePanel *panel = node_interface::get_item_as<bNodeTreeInterfacePanel>(
               item);
           NodePanelViewItem &panel_item = parent_item.add_tree_item<NodePanelViewItem>(
@@ -407,15 +407,15 @@ void gather_drag_items_recursive(bNodeTreeInterfacePanel &panel,
     }
 
     bool is_selected = false;
-    switch (eNodeTreeInterfaceItemType(item->item_type)) {
-      case NODE_INTERFACE_PANEL: {
+    switch (item->item_type) {
+      case NodeTreeInterfaceItemType::Panel: {
         bNodeTreeInterfacePanel *panel = node_interface::get_item_as<bNodeTreeInterfacePanel>(
             item);
         is_selected = (panel->flag & NODE_INTERFACE_PANEL_SELECT);
         gather_drag_items_recursive(*panel, r_items, is_selected);
         break;
       }
-      case NODE_INTERFACE_SOCKET: {
+      case NodeTreeInterfaceItemType::Socket: {
         bNodeTreeInterfaceSocket *socket = node_interface::get_item_as<bNodeTreeInterfaceSocket>(
             item);
         is_selected = (socket->flag & NODE_INTERFACE_SOCKET_SELECT);
@@ -518,7 +518,7 @@ bool on_drop_interface_items(bContext *C,
   switch (drag_info.drop_location) {
     case DropLocation::Into: {
       /* Insert into target */
-      if (drop_target_item.item_type != NODE_INTERFACE_PANEL) {
+      if (drop_target_item.item_type != NodeTreeInterfaceItemType::Panel) {
         return false;
       }
       parent = node_interface::get_item_as<bNodeTreeInterfacePanel>(&drop_target_item);

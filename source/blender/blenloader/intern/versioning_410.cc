@@ -811,7 +811,7 @@ static void versioning_fix_socket_subtype_idnames(bNodeTree *ntree)
   bNodeTreeInterface &tree_interface = ntree->tree_interface;
 
   tree_interface.foreach_item([](bNodeTreeInterfaceItem &item) -> bool {
-    if (item.item_type == NODE_INTERFACE_SOCKET) {
+    if (item.item_type == NodeTreeInterfaceItemType::Socket) {
       bNodeTreeInterfaceSocket &socket = reinterpret_cast<bNodeTreeInterfaceSocket &>(item);
       StringRef corrected_socket_type = legacy_socket_idname_to_socket_type(socket.socket_type);
       if (socket.socket_type != corrected_socket_type) {
