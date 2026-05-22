@@ -30,16 +30,16 @@ static void node_declare(NodeDeclarationBuilder &b)
 
   const NodeGeometryListGetItem &storage = node_storage(*node);
   const eNodeSocketDatatype type = storage.socket_type;
+  const bool is_auto_structure_type = storage.structure_type ==
+                                      NodeSocketInterfaceStructureType::Auto;
 
-  const auto structure_type = storage.structure_type == NodeSocketInterfaceStructureType::Auto ?
-                                  StructureType::Dynamic :
-                                  StructureType(storage.structure_type);
-
-  b.add_input(type, "List"_ustr).structure_type(StructureType::List).hide_value();
-
+  auto &list = b.add_input(type, "List"_ustr).structure_type(StructureType::List).hide_value();
   b.add_input<decl::Int>("Index"_ustr).min(0).structure_type(StructureType::Dynamic);
-
-  b.add_output(type, "Value"_ustr).dependent_field({1}).structure_type(structure_type);
+  b.add_output(type, "Value"_ustr)
+      .propagate_all({list.index()})
+      .propagate_references()
+      .structure_type(is_auto_structure_type ? StructureType::Dynamic :
+                                               StructureType(storage.structure_type));
 }
 
 static void node_layout(ui::Layout &layout, bContext * /*C*/, PointerRNA *ptr)

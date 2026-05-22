@@ -24,7 +24,7 @@ static void node_declare(NodeDeclarationBuilder &b)
   b.allow_any_socket_order();
 
   b.add_input<decl::Geometry>("Target"_ustr);
-  b.add_output<decl::Geometry>("Target"_ustr).align_with_previous().propagate_all();
+  b.add_output<decl::Geometry>("Target"_ustr).align_with_previous().propagate_all_geometry();
   b.add_output<decl::String>("Transferred Names"_ustr)
       .structure_type(StructureType::List)
       .description("Attribute names that have been transferred excluding internal attributes");
@@ -39,7 +39,7 @@ static void node_declare(NodeDeclarationBuilder &b)
     sockets.append(&p.add_input<decl::Int>("Target Instance ID"_ustr));
 
     for (BaseSocketDeclarationBuilder *socket : sockets) {
-      socket->implicit_field(NODE_DEFAULT_INPUT_INDEX_FIELD);
+      socket->default_input_type(NODE_DEFAULT_INPUT_INDEX_FIELD);
       socket->structure_type(StructureType::Field);
     }
   }
@@ -55,7 +55,7 @@ static void node_declare(NodeDeclarationBuilder &b)
     sockets.append(&p.add_input<decl::Int>("Source Instance ID"_ustr));
 
     for (BaseSocketDeclarationBuilder *socket : sockets) {
-      socket->implicit_field(NODE_DEFAULT_INPUT_INDEX_FIELD);
+      socket->default_input_type(NODE_DEFAULT_INPUT_INDEX_FIELD);
       socket->structure_type(StructureType::Field);
     }
   }

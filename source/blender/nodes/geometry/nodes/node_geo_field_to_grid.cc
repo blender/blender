@@ -57,7 +57,7 @@ static void node_declare(NodeDeclarationBuilder &b)
     const UString output_identifier(ItemsAccessor::output_socket_identifier_for_item(item));
 
     b.add_input(data_type, name, input_identifier)
-        .supports_field()
+        .structure_type(StructureType::Field)
         .socket_name_ptr(&tree->id, *FieldToGridItemsAccessor::item_srna, &item, "name");
     b.add_output(data_type, name, output_identifier)
         .structure_type(StructureType::Grid)

@@ -38,24 +38,11 @@ static void node_declare(NodeDeclarationBuilder &b)
   }
   const eNodeSocketDatatype data_type = eNodeSocketDatatype(node->custom1);
 
-  auto &input_value = b.add_input(data_type, "Value"_ustr).hide_value();
-  auto &output_value = b.add_output(data_type, "Value"_ustr).align_with_previous();
-
-  if (socket_type_supports_attributes(data_type)) {
-    input_value.supports_field();
-    output_value.dependent_field().reference_pass_all();
-  }
-
-  if (bke::node_tree_reference_lifetimes::can_contain_referenced_data(data_type)) {
-    output_value.propagate_all();
-  }
-
-  if (bke::node_tree_reference_lifetimes::can_contain_reference(data_type)) {
-    output_value.reference_pass_all();
-  }
-
-  input_value.structure_type(StructureType::Dynamic);
-  output_value.structure_type(StructureType::Dynamic);
+  b.add_input(data_type, "Value"_ustr).hide_value().structure_type(StructureType::Dynamic);
+  b.add_output(data_type, "Value"_ustr)
+      .align_with_previous()
+      .inferred_structure_type()
+      .propagate_all_geometry();
 }
 
 static void node_layout(ui::Layout &layout, bContext * /*C*/, PointerRNA *ptr)

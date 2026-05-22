@@ -31,14 +31,15 @@ static void node_declare(NodeDeclarationBuilder &b)
 
   if (const bNode *node = b.node_or_null()) {
     const NodeGeometryCurveSample &storage = node_storage(*node);
-    b.add_input(eCustomDataType(storage.data_type), "Value"_ustr).hide_value().field_on_all();
+    b.add_input(eCustomDataType(storage.data_type), "Value"_ustr)
+        .hide_value()
+        .evaluated_geometry_field();
   }
 
   auto &factor = b.add_input<decl::Float>("Factor"_ustr)
                      .min(0.0f)
                      .max(1.0f)
                      .subtype(PROP_FACTOR)
-                     .supports_field()
                      .structure_type(StructureType::Dynamic)
                      .make_available([](bNode &node) {
                        node_storage(node).mode = GEO_NODE_CURVE_SAMPLE_FACTOR;
@@ -46,30 +47,38 @@ static void node_declare(NodeDeclarationBuilder &b)
   auto &length = b.add_input<decl::Float>("Length"_ustr)
                      .min(0.0f)
                      .subtype(PROP_DISTANCE)
-                     .supports_field()
                      .structure_type(StructureType::Dynamic)
                      .make_available([](bNode &node) {
                        node_storage(node).mode = GEO_NODE_CURVE_SAMPLE_LENGTH;
                      });
   auto &index = b.add_input<decl::Int>("Curve Index"_ustr)
-                    .supports_field()
                     .structure_type(StructureType::Dynamic)
                     .make_available(
                         [](bNode &node) { node_storage(node).use_all_curves = false; });
 
+  const std::array<int, 3> dynamic_inputs = {factor.index(), length.index(), index.index()};
+
   if (const bNode *node = b.node_or_null()) {
     const NodeGeometryCurveSample &storage = node_storage(*node);
     const GeometryNodeCurveSampleMode mode = GeometryNodeCurveSampleMode(storage.mode);
-    b.add_output(eCustomDataType(storage.data_type), "Value"_ustr).dependent_field({2, 3, 4});
+    b.add_output(eCustomDataType(storage.data_type), "Value"_ustr)
+        .propagate_references(dynamic_inputs)
+        .inferred_structure_type(dynamic_inputs);
 
     factor.available(mode == GEO_NODE_CURVE_SAMPLE_FACTOR);
     length.available(mode == GEO_NODE_CURVE_SAMPLE_LENGTH);
     index.available(!storage.use_all_curves);
   }
 
-  b.add_output<decl::Vector>("Position"_ustr).dependent_field({2, 3, 4});
-  b.add_output<decl::Vector>("Tangent"_ustr).dependent_field({2, 3, 4});
-  b.add_output<decl::Vector>("Normal"_ustr).dependent_field({2, 3, 4});
+  b.add_output<decl::Vector>("Position"_ustr)
+      .propagate_references(dynamic_inputs)
+      .inferred_structure_type(dynamic_inputs);
+  b.add_output<decl::Vector>("Tangent"_ustr)
+      .propagate_references(dynamic_inputs)
+      .inferred_structure_type(dynamic_inputs);
+  b.add_output<decl::Vector>("Normal"_ustr)
+      .propagate_references(dynamic_inputs)
+      .inferred_structure_type(dynamic_inputs);
 }
 
 static void node_layout(ui::Layout &layout, bContext * /*C*/, PointerRNA *ptr)

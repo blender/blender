@@ -31,27 +31,30 @@ static void node_declare(NodeDeclarationBuilder &b)
       .description("Mesh to find the closest surface point on");
   if (node != nullptr) {
     const eCustomDataType data_type = eCustomDataType(node->custom1);
-    b.add_input(data_type, "Value"_ustr).hide_value().field_on_all();
+    b.add_input(data_type, "Value"_ustr).hide_value().evaluated_geometry_field();
   }
   b.add_input<decl::Int>("Group ID"_ustr)
       .hide_value()
-      .field_on_all()
+      .evaluated_geometry_field()
       .description(
           "Splits the faces of the input mesh into groups which can be sampled individually");
-  b.add_input<decl::Vector>("Sample Position"_ustr)
-      .implicit_field(NODE_DEFAULT_INPUT_POSITION_FIELD)
-      .structure_type(StructureType::Dynamic);
-  b.add_input<decl::Int>("Sample Group ID"_ustr)
-      .hide_value()
-      .supports_field()
-      .structure_type(StructureType::Dynamic);
+  auto &sample_position = b.add_input<decl::Vector>("Sample Position"_ustr)
+                              .default_input_type(NODE_DEFAULT_INPUT_POSITION_FIELD)
+                              .structure_type(StructureType::Dynamic);
+  auto &sample_group_id = b.add_input<decl::Int>("Sample Group ID"_ustr)
+                              .hide_value()
+                              .structure_type(StructureType::Dynamic);
 
+  std::array<int, 2> dynamic_inputs = {sample_position.index(), sample_group_id.index()};
   if (node != nullptr) {
     const eCustomDataType data_type = eCustomDataType(node->custom1);
-    b.add_output(data_type, "Value"_ustr).dependent_field({3, 4});
+    b.add_output(data_type, "Value"_ustr)
+        .inferred_structure_type(dynamic_inputs)
+        .propagate_references(dynamic_inputs);
   }
   b.add_output<decl::Bool>("Is Valid"_ustr)
-      .dependent_field({3, 4})
+      .inferred_structure_type(dynamic_inputs)
+      .propagate_references(dynamic_inputs)
       .description(
           "Whether the sampling was successful. It can fail when the sampled group is empty");
 }

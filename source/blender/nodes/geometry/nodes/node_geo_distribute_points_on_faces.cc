@@ -41,7 +41,10 @@ static void node_declare(NodeDeclarationBuilder &b)
   b.add_input<decl::Geometry>("Mesh"_ustr)
       .supported_type(GeometryComponent::Type::Mesh)
       .description("Mesh on whose faces to distribute points on");
-  b.add_input<decl::Bool>("Selection"_ustr).default_value(true).hide_value().field_on_all();
+  b.add_input<decl::Bool>("Selection"_ustr)
+      .default_value(true)
+      .hide_value()
+      .evaluated_geometry_field();
   auto &distance_min = b.add_input<decl::Float>("Distance Min"_ustr)
                            .min(0.0f)
                            .subtype(PROP_DISTANCE)
@@ -55,7 +58,7 @@ static void node_declare(NodeDeclarationBuilder &b)
   auto &density = b.add_input<decl::Float>("Density"_ustr)
                       .default_value(10.0f)
                       .min(0.0f)
-                      .field_on_all()
+                      .evaluated_geometry_field()
                       .make_available(enable_random)
                       .available(false);
   auto &density_factor = b.add_input<decl::Float>("Density Factor"_ustr)
@@ -63,14 +66,14 @@ static void node_declare(NodeDeclarationBuilder &b)
                              .min(0.0f)
                              .max(1.0f)
                              .subtype(PROP_FACTOR)
-                             .field_on_all()
+                             .evaluated_geometry_field()
                              .make_available(enable_poisson)
                              .available(false);
   b.add_input<decl::Int>("Seed"_ustr);
 
-  b.add_output<decl::Geometry>("Points"_ustr).propagate_all();
-  b.add_output<decl::Vector>("Normal"_ustr).field_on_all();
-  b.add_output<decl::Rotation>("Rotation"_ustr).field_on_all();
+  b.add_output<decl::Geometry>("Points"_ustr).propagate_all_geometry();
+  b.add_output<decl::Vector>("Normal"_ustr).anonymous_attribute_output();
+  b.add_output<decl::Rotation>("Rotation"_ustr).anonymous_attribute_output();
 
   const bNode *node = b.node_or_null();
   if (node != nullptr) {

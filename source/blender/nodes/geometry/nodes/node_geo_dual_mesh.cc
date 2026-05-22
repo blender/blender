@@ -23,7 +23,7 @@ static void node_declare(NodeDeclarationBuilder &b)
   b.add_input<decl::Geometry>("Mesh"_ustr)
       .supported_type(GeometryComponent::Type::Mesh)
       .description("Mesh to compute the dual of");
-  b.add_output<decl::Geometry>("Dual Mesh"_ustr).propagate_all().align_with_previous();
+  b.add_output<decl::Geometry>("Dual Mesh"_ustr).propagate_all_geometry().align_with_previous();
   b.add_input<decl::Bool>("Keep Boundaries"_ustr)
       .default_value(false)
       .description(

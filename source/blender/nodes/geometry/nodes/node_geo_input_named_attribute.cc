@@ -28,9 +28,9 @@ static void node_declare(NodeDeclarationBuilder &b)
   if (node != nullptr) {
     const NodeGeometryInputNamedAttribute &storage = node_storage(*node);
     const eCustomDataType data_type = eCustomDataType(storage.data_type);
-    b.add_output(data_type, "Attribute"_ustr).field_source();
+    b.add_output(data_type, "Attribute"_ustr).structure_type(StructureType::Field);
   }
-  b.add_output<decl::Bool>("Exists"_ustr).field_source();
+  b.add_output<decl::Bool>("Exists"_ustr).structure_type(StructureType::Field);
 }
 
 static void node_layout(ui::Layout &layout, bContext * /*C*/, PointerRNA *ptr)

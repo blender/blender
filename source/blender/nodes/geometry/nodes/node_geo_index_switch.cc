@@ -108,7 +108,7 @@ static void node_declare(NodeDeclarationBuilder &b)
   auto &index =
       b.add_input<decl::Int>("Index"_ustr).min(0).max(std::max<int>(0, items.size() - 1));
   if (supports_fields) {
-    index.supports_field().structure_type(index_structure_type);
+    index.structure_type(index_structure_type);
   }
 
   for (const int i : items.index_range()) {
@@ -116,9 +116,6 @@ static void node_declare(NodeDeclarationBuilder &b)
     auto &input = b.add_input(data_type, UString(std::to_string(i)), UString(identifier));
     input.custom_draw(
         [index = i](CustomSocketDrawParams &params) { draw_item_socket(params, index); });
-    if (supports_fields) {
-      input.supports_field();
-    }
     /* Labels are ugly in combination with data-block pickers and are usually disabled. */
     input.optional_label(ELEM(data_type,
                               SOCK_OBJECT,
@@ -136,17 +133,10 @@ static void node_declare(NodeDeclarationBuilder &b)
     }
   }
 
-  auto &output = b.add_output(data_type, "Output"_ustr);
-  if (supports_fields) {
-    output.dependent_field().reference_pass_all();
-  }
-  if (bke::node_tree_reference_lifetimes::can_contain_referenced_data(data_type)) {
-    output.propagate_all();
-  }
-  if (bke::node_tree_reference_lifetimes::can_contain_reference(data_type)) {
-    output.reference_pass_all();
-  }
-  output.structure_type(value_structure_type);
+  b.add_output(data_type, "Output"_ustr)
+      .propagate_all()
+      .inferred_structure_type()
+      .structure_type(value_structure_type);
 
   b.add_input<decl::Extend>(""_ustr, "__extend__"_ustr)
       .custom_draw(socket_items::ui::draw_extend_socket_fn<IndexSwitchItemsAccessor>());

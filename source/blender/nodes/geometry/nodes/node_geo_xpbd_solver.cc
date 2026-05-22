@@ -109,7 +109,7 @@ static void node_declare(NodeDeclarationBuilder &b)
   static NestedBundleTypePtr world_type = make_world_type();
   b.add_input<decl::Bundle>("World"_ustr)
       .bundle_type(world_type)
-      .field_on_all()
+      .evaluated_geometry_field()
       .structure_type(StructureType::Single)
       .description("World state that is updated by the solver");
   b.add_output<decl::Bundle>("World"_ustr).pass_through_input_index(0).align_with_previous();

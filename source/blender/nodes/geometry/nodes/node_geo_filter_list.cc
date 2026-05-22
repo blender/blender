@@ -34,11 +34,11 @@ static void node_declare(NodeDeclarationBuilder &b)
       .description("A field or list representing the values that will not be removed")
       .structure_type(StructureType::Dynamic);
   b.add_output(type, "Selection"_ustr)
-      .dependent_field({1})
+      .propagate_all({0})
       .structure_type(StructureType::List)
       .align_with_previous();
   b.add_output(type, "Inverted"_ustr)
-      .dependent_field({1})
+      .propagate_all({0})
       .structure_type(StructureType::List)
       .align_with_previous();
 }

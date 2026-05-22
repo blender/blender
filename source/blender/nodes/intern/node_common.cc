@@ -443,9 +443,6 @@ static BaseSocketDeclarationBuilder &build_interface_socket_declaration(
   if (structure_type) {
     decl->structure_type(*structure_type);
   }
-  if (io_socket.default_input != NODE_DEFAULT_INPUT_VALUE) {
-    decl->hide_value();
-  }
   return *decl;
 }
 
@@ -847,7 +844,6 @@ static void node_implicit_conversion_declare(nodes::NodeDeclarationBuilder &b)
   b.add_output<nodes::decl::Custom>("Value"_ustr)
       .idname(socket_idname.c_str())
       .structure_type(nodes::StructureType::Dynamic)
-      .reference_pass_all()
       .propagate_all()
       .align_with_previous();
 }

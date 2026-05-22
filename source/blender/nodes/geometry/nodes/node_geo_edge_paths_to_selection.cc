@@ -12,9 +12,17 @@ namespace blender::nodes::node_geo_edge_paths_to_selection_cc {
 
 static void node_declare(NodeDeclarationBuilder &b)
 {
-  b.add_input<decl::Bool>("Start Vertices"_ustr).default_value(true).hide_value().supports_field();
-  b.add_input<decl::Int>("Next Vertex Index"_ustr).default_value(-1).hide_value().supports_field();
-  b.add_output<decl::Bool>("Selection"_ustr).field_source_reference_all();
+  b.add_input<decl::Bool>("Start Vertices"_ustr)
+      .default_value(true)
+      .hide_value()
+      .structure_type(StructureType::Field);
+  b.add_input<decl::Int>("Next Vertex Index"_ustr)
+      .default_value(-1)
+      .hide_value()
+      .structure_type(StructureType::Field);
+  b.add_output<decl::Bool>("Selection"_ustr)
+      .structure_type(StructureType::Field)
+      .propagate_references();
 }
 
 static void edge_paths_to_selection(const Mesh &src_mesh,

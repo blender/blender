@@ -15,15 +15,16 @@ static void node_declare(NodeDeclarationBuilder &b)
   b.add_input<decl::Int>("Start Size"_ustr)
       .min(0)
       .default_value(1)
-      .supports_field()
+      .structure_type(StructureType::Field)
       .description("The amount of points to select from the start of each spline");
   b.add_input<decl::Int>("End Size"_ustr)
       .min(0)
       .default_value(1)
-      .supports_field()
+      .structure_type(StructureType::Field)
       .description("The amount of points to select from the end of each spline");
   b.add_output<decl::Bool>("Selection"_ustr)
-      .field_source_reference_all()
+      .structure_type(StructureType::Field)
+      .propagate_references()
       .description("The selection from the start and end of the splines based on the input sizes");
 }
 

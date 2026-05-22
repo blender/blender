@@ -15,7 +15,7 @@ NODE_STORAGE_FUNCS(NodeGeometryCurveSelectHandles)
 
 static void node_declare(NodeDeclarationBuilder &b)
 {
-  b.add_output<decl::Bool>("Selection"_ustr).field_source();
+  b.add_output<decl::Bool>("Selection"_ustr).structure_type(StructureType::Field);
 }
 
 static void node_layout(ui::Layout &layout, bContext * /*C*/, PointerRNA *ptr)

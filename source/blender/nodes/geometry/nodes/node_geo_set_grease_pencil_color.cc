@@ -32,13 +32,22 @@ static void node_declare(NodeDeclarationBuilder &b)
       .supported_type(GeometryComponent::Type::GreasePencil)
       .align_with_previous()
       .description("Grease Pencil to change the color of");
-  b.add_output<decl::Geometry>("Grease Pencil"_ustr).propagate_all().align_with_previous();
-  b.add_input<decl::Bool>("Selection"_ustr).default_value(true).hide_value().field_on_all();
+  b.add_output<decl::Geometry>("Grease Pencil"_ustr)
+      .propagate_all_geometry()
+      .align_with_previous();
+  b.add_input<decl::Bool>("Selection"_ustr)
+      .default_value(true)
+      .hide_value()
+      .evaluated_geometry_field();
   b.add_input<decl::Color>("Color"_ustr)
       .default_value(ColorGeometry4f(1.0f, 1.0f, 1.0f, 1.0f))
-      .field_on_all()
+      .evaluated_geometry_field()
       .optional_label();
-  b.add_input<decl::Float>("Opacity"_ustr).default_value(1.0f).min(0.0f).max(1.0f).field_on_all();
+  b.add_input<decl::Float>("Opacity"_ustr)
+      .default_value(1.0f)
+      .min(0.0f)
+      .max(1.0f)
+      .evaluated_geometry_field();
 }
 
 static void node_layout(ui::Layout &layout, bContext * /*C*/, PointerRNA *ptr)

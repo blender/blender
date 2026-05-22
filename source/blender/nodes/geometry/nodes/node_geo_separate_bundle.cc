@@ -44,8 +44,7 @@ static void node_declare(NodeDeclarationBuilder &b)
       auto &decl = b.add_output(socket_type, name, identifier)
                        .socket_name_ptr(
                            &tree->id, *SeparateBundleItemsAccessor::item_srna, &item, "name")
-                       .propagate_all()
-                       .reference_pass_all();
+                       .propagate_all();
       if (item.structure_type != NodeSocketInterfaceStructureType::Auto) {
         decl.structure_type(StructureType(item.structure_type));
       }

@@ -13,22 +13,23 @@ namespace blender::nodes::node_geo_mesh_topology_corners_of_face_cc {
 static void node_declare(NodeDeclarationBuilder &b)
 {
   b.add_input<decl::Int>("Face Index"_ustr)
-      .implicit_field(NODE_DEFAULT_INPUT_INDEX_FIELD)
+      .default_input_type(NODE_DEFAULT_INPUT_INDEX_FIELD)
       .description("The face to retrieve data from. Defaults to the face from the context")
       .structure_type(StructureType::Field);
   b.add_input<decl::Float>("Weights"_ustr)
-      .supports_field()
+      .structure_type(StructureType::Field)
       .hide_value()
       .description("Values used to sort the face's corners. Uses indices by default");
   b.add_input<decl::Int>("Sort Index"_ustr)
-      .supports_field()
+      .structure_type(StructureType::Field)
       .description("Which of the sorted corners to output. Negative indexing is supported");
   b.add_output<decl::Int>("Corner Index"_ustr)
-      .field_source_reference_all()
+      .structure_type(StructureType::Field)
+      .propagate_references()
       .description("A corner of the face, chosen by the sort index");
   b.add_output<decl::Int>("Total"_ustr)
-      .field_source()
-      .reference_pass({0})
+      .structure_type(StructureType::Field)
+      .propagate_references({0})
       .description("The number of corners in the face");
 }
 

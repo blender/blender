@@ -74,12 +74,8 @@ static void node_declare(NodeDeclarationBuilder &b)
                                &ntree->id, *BakeItemsAccessor::item_srna, &item, "name");
     auto &output_decl = b.add_output(socket_type, name, identifier).align_with_previous();
     if (socket_type_supports_attributes(socket_type)) {
-      input_decl.supports_field();
-      if (item.flag & GEO_NODE_BAKE_ITEM_IS_ATTRIBUTE) {
-        output_decl.field_source();
-      }
-      else {
-        output_decl.dependent_field({input_decl.index()});
+      if (!(item.flag & GEO_NODE_BAKE_ITEM_IS_ATTRIBUTE)) {
+        output_decl.inferred_structure_type({input_decl.index()});
       }
     }
     input_decl.structure_type(StructureType::Dynamic);

@@ -92,20 +92,21 @@ void NodeDeclarationBuilder::build_remaining_anonymous_attribute_relations()
         relations.data_propagations.append({data_input, data_output});
       }
     }
+    if (socket_builder->propagate_all_input_data_from_geometry_) {
+      rl::RelationsInNode &relations = this->get_reference_lifetime_relations();
+      const int data_output = socket_builder->decl_base_->index;
+      for (const int i : declaration_.inputs.index_range()) {
+        if (declaration_.inputs[i]->socket_type == SOCK_GEOMETRY) {
+          relations.data_propagations.append({i, data_output});
+        }
+      }
+    }
   }
 }
 
 void NodeDeclarationBuilder::finalize()
 {
   this->build_remaining_anonymous_attribute_relations();
-  if (is_function_node_) {
-    for (SocketDeclaration *socket_decl : declaration_.inputs) {
-      socket_decl->structure_type = StructureType::Dynamic;
-    }
-    for (SocketDeclaration *socket_decl : declaration_.outputs) {
-      socket_decl->structure_type = StructureType::Dynamic;
-    }
-  }
 #ifndef NDEBUG
   declaration_.assert_valid();
 #endif
@@ -538,21 +539,81 @@ const nodes::SocketDeclaration *PanelDeclaration::panel_input_decl() const
   return nullptr;
 }
 
-BaseSocketDeclarationBuilder &BaseSocketDeclarationBuilder::supports_field()
+BaseSocketDeclarationBuilder &BaseSocketDeclarationBuilder::inferred_structure_type()
 {
-  BLI_assert(this->is_input());
-  this->structure_type(StructureType::Field);
+  BLI_assert(this->is_output());
+  decl_base_->structure_type = StructureType::Dynamic;
+  decl_base_->structure_type_output_dependency.variant = OutputStructureTypeDependency::All{};
   return *this;
 }
 
-BaseSocketDeclarationBuilder &BaseSocketDeclarationBuilder::dependent_field(
-    const Span<int> input_dependencies)
+BaseSocketDeclarationBuilder &BaseSocketDeclarationBuilder::inferred_structure_type(
+    const Span<int> input_indices)
 {
   BLI_assert(this->is_output());
-  this->reference_pass(input_dependencies);
+  decl_base_->structure_type = StructureType::Dynamic;
   decl_base_->structure_type_output_dependency.variant = OutputStructureTypeDependency::Partial{
-      input_dependencies};
-  this->structure_type(StructureType::Dynamic);
+      input_indices};
+  return *this;
+}
+
+BaseSocketDeclarationBuilder &BaseSocketDeclarationBuilder::propagate_references()
+{
+  BLI_assert(this->is_output());
+  /* The #ReferencePropagation relations are build after all sockets are known. */
+  propagate_all_input_references_ = true;
+  return *this;
+}
+
+BaseSocketDeclarationBuilder &BaseSocketDeclarationBuilder::propagate_references(
+    const Span<int> input_indices)
+{
+  BLI_assert(this->is_output());
+  rl::RelationsInNode &relations = node_decl_builder_->get_reference_lifetime_relations();
+  for (const int from_input : input_indices) {
+    rl::ReferencePropagation relation;
+    relation.from_input = from_input;
+    relation.to_output = decl_base_->index;
+    relations.reference_propagations.append(relation);
+  }
+  return *this;
+}
+
+BaseSocketDeclarationBuilder &BaseSocketDeclarationBuilder::propagate_all()
+{
+  BLI_assert(this->is_output());
+  /* The #ReferencePropagation and #DataPropagation relations are build after all sockets are
+   * known. */
+  propagate_all_input_references_ = true;
+  propagate_all_input_data_ = true;
+  return *this;
+}
+
+BaseSocketDeclarationBuilder &BaseSocketDeclarationBuilder::propagate_all_geometry()
+{
+  /* The relations are build after all sockets are known. */
+  propagate_all_input_data_from_geometry_ = true;
+  return *this;
+}
+
+BaseSocketDeclarationBuilder &BaseSocketDeclarationBuilder::propagate_all(
+    const Span<int> input_indices)
+{
+  rl::RelationsInNode &relations = node_decl_builder_->get_reference_lifetime_relations();
+  for (const int from_input : input_indices) {
+    {
+      rl::DataPropagation relation;
+      relation.from_input = from_input;
+      relation.to_output = decl_base_->index;
+      relations.data_propagations.append(relation);
+    }
+    {
+      rl::ReferencePropagation relation;
+      relation.from_input = from_input;
+      relation.to_output = decl_base_->index;
+      relations.reference_propagations.append(relation);
+    }
+  }
   return *this;
 }
 
@@ -578,45 +639,6 @@ BaseSocketDeclarationBuilder &BaseSocketDeclarationBuilder::multi_input(bool val
 BaseSocketDeclarationBuilder &BaseSocketDeclarationBuilder::compact(bool value)
 {
   decl_base_->compact = value;
-  return *this;
-}
-
-BaseSocketDeclarationBuilder &BaseSocketDeclarationBuilder::reference_pass(
-    const Span<int> input_indices)
-{
-  BLI_assert(this->is_output());
-  rl::RelationsInNode &relations = node_decl_builder_->get_reference_lifetime_relations();
-  for (const int from_input : input_indices) {
-    rl::ReferencePropagation relation;
-    relation.from_input = from_input;
-    relation.to_output = decl_base_->index;
-    relations.reference_propagations.append(relation);
-  }
-  return *this;
-}
-
-BaseSocketDeclarationBuilder &BaseSocketDeclarationBuilder::field_on(const Span<int> indices)
-{
-  rl::RelationsInNode &relations = node_decl_builder_->get_reference_lifetime_relations();
-  if (this->is_input()) {
-    this->supports_field();
-    for (const int input_index : indices) {
-      rl::UseRelation relation;
-      relation.reference_input = decl_base_->index;
-      relation.data_input = input_index;
-      relations.use_relations.append(relation);
-    }
-  }
-  else {
-    this->field_source();
-    for (const int output_index : indices) {
-      rl::AvailableRelation relation;
-      relation.reference_output = decl_base_->index;
-      relation.data_output = output_index;
-      relations.available_relations.append(relation);
-    }
-  }
-  this->structure_type(StructureType::Field);
   return *this;
 }
 
@@ -679,91 +701,51 @@ BaseSocketDeclarationBuilder &BaseSocketDeclarationBuilder::default_input_type(
   return *this;
 }
 
-BaseSocketDeclarationBuilder &BaseSocketDeclarationBuilder::field_on_all()
-{
-  if (this->is_input()) {
-    this->supports_field();
-    input_reference_used_on_all_data_ = true;
-  }
-  if (this->is_output()) {
-    this->field_source();
-    output_reference_available_on_all_data_ = true;
-  }
-  this->structure_type(StructureType::Field);
-  return *this;
-}
-
-BaseSocketDeclarationBuilder &BaseSocketDeclarationBuilder::field_source()
-{
-  BLI_assert(this->is_output());
-  this->structure_type(StructureType::Field);
-  return *this;
-}
-
-BaseSocketDeclarationBuilder &BaseSocketDeclarationBuilder::implicit_field(
-    const NodeDefaultInputType default_input_type)
+BaseSocketDeclarationBuilder &BaseSocketDeclarationBuilder::evaluated_geometry_field()
 {
   BLI_assert(this->is_input());
-  this->hide_value();
-  this->structure_type(StructureType::Dynamic);
-  decl_base_->default_input_type = default_input_type;
-  return *this;
-}
-
-BaseSocketDeclarationBuilder &BaseSocketDeclarationBuilder::implicit_field_on_all(
-    const NodeDefaultInputType default_input_type)
-{
-  BLI_assert(this->is_input());
+  /* The corresponding relations are build after all socket declarations are known. */
   input_reference_used_on_all_data_ = true;
-  this->implicit_field(default_input_type);
-  this->structure_type(StructureType::Field);
+  decl_base_->structure_type = StructureType::Field;
   return *this;
 }
 
-BaseSocketDeclarationBuilder &BaseSocketDeclarationBuilder::implicit_field_on(
-    const NodeDefaultInputType default_input_type, const Span<int> input_indices)
+BaseSocketDeclarationBuilder &BaseSocketDeclarationBuilder::evaluated_geometry_field(
+    const Span<int> geometry_input_indices)
 {
-  this->field_on(input_indices);
-  this->implicit_field(default_input_type);
-  this->structure_type(StructureType::Field);
+  BLI_assert(this->is_input());
+  rl::RelationsInNode &relations = node_decl_builder_->get_reference_lifetime_relations();
+  for (const int index : geometry_input_indices) {
+    rl::UseRelation relation;
+    relation.data_input = index;
+    relation.reference_input = decl_base_->index;
+    relations.use_relations.append(relation);
+  }
+  decl_base_->structure_type = StructureType::Field;
   return *this;
 }
 
-BaseSocketDeclarationBuilder &BaseSocketDeclarationBuilder::dependent_field()
-{
-  BLI_assert(this->is_output());
-  decl_base_->structure_type_output_dependency.variant = OutputStructureTypeDependency::All();
-  this->structure_type(StructureType::Dynamic);
-  this->reference_pass_all();
-  return *this;
-}
-
-BaseSocketDeclarationBuilder &BaseSocketDeclarationBuilder::field_source_reference_all()
-{
-  this->field_source();
-  this->reference_pass_all();
-  return *this;
-}
-
-BaseSocketDeclarationBuilder &BaseSocketDeclarationBuilder::reference_pass_all()
+BaseSocketDeclarationBuilder &BaseSocketDeclarationBuilder::anonymous_attribute_output()
 {
   BLI_assert(this->is_output());
-  propagate_all_input_references_ = true;
+  /* The corresponding relations are build after all socket declarations are known. */
+  output_reference_available_on_all_data_ = true;
+  decl_base_->structure_type = StructureType::Field;
   return *this;
 }
 
-BaseSocketDeclarationBuilder &BaseSocketDeclarationBuilder::propagate_all()
+BaseSocketDeclarationBuilder &BaseSocketDeclarationBuilder::anonymous_attribute_output(
+    const Span<int> geometry_output_indices)
 {
   BLI_assert(this->is_output());
-  propagate_all_input_data_ = true;
-  return *this;
-}
-
-BaseSocketDeclarationBuilder &BaseSocketDeclarationBuilder::propagate_all_instance_attributes()
-{
-  /* We can't distinguish between actually propagating everything or just instance attributes
-   * currently. It's still nice to be more explicit at the node declaration level. */
-  this->propagate_all();
+  rl::RelationsInNode &relations = node_decl_builder_->get_reference_lifetime_relations();
+  for (const int index : geometry_output_indices) {
+    rl::AvailableRelation relation;
+    relation.data_output = index;
+    relation.reference_output = decl_base_->index;
+    relations.available_relations.append(relation);
+  }
+  decl_base_->structure_type = StructureType::Field;
   return *this;
 }
 

@@ -68,9 +68,6 @@ static void node_declare(NodeDeclarationBuilder &b)
       auto &decl = panel.add_input(socket_type, UString(item.name), identifier);
       decl.socket_name_ptr(
           &tree->id, *EvaluateClosureInputItemsAccessor::item_srna, &item, "name");
-      if (socket_type_supports_fields(socket_type)) {
-        decl.supports_field();
-      }
       if (item.structure_type != NodeSocketInterfaceStructureType::Auto) {
         decl.structure_type(StructureType(item.structure_type));
       }

@@ -11,10 +11,10 @@ namespace blender::nodes::node_geo_tool_selection_cc {
 static void node_declare(NodeDeclarationBuilder &b)
 {
   b.add_output<decl::Bool>("Boolean"_ustr, "Selection"_ustr)
-      .field_source()
+      .structure_type(StructureType::Field)
       .description("The selection of each element as a true or false value");
   b.add_output<decl::Float>("Float"_ustr)
-      .field_source()
+      .structure_type(StructureType::Field)
       .description("The selection of each element as a floating point value");
 }
 

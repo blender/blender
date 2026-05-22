@@ -29,20 +29,27 @@ static void node_declare(NodeDeclarationBuilder &b)
       .description("Geometry to find the closest point on");
   b.add_input<decl::Int>("Group ID"_ustr)
       .hide_value()
-      .field_on_all()
+      .evaluated_geometry_field()
       .description(
           "Splits the elements of the input geometry into groups which can be sampled "
           "individually");
-  b.add_input<decl::Vector>("Sample Position"_ustr, "Source Position"_ustr)
-      .implicit_field(NODE_DEFAULT_INPUT_POSITION_FIELD);
-  b.add_input<decl::Int>("Sample Group ID"_ustr)
-      .hide_value()
-      .supports_field()
-      .structure_type(StructureType::Dynamic);
-  b.add_output<decl::Vector>("Position"_ustr).dependent_field({2, 3}).reference_pass_all();
-  b.add_output<decl::Float>("Distance"_ustr).dependent_field({2, 3}).reference_pass_all();
+  auto &sample_position = b.add_input<decl::Vector>("Sample Position"_ustr, "Source Position"_ustr)
+                              .default_input_type(NODE_DEFAULT_INPUT_POSITION_FIELD);
+  auto &sample_group_id = b.add_input<decl::Int>("Sample Group ID"_ustr)
+                              .hide_value()
+                              .structure_type(StructureType::Field)
+                              .structure_type(StructureType::Dynamic);
+
+  const std::array<int, 2> dynamic_inputs = {sample_position.index(), sample_group_id.index()};
+  b.add_output<decl::Vector>("Position"_ustr)
+      .inferred_structure_type(dynamic_inputs)
+      .propagate_references(dynamic_inputs);
+  b.add_output<decl::Float>("Distance"_ustr)
+      .inferred_structure_type(dynamic_inputs)
+      .propagate_references(dynamic_inputs);
   b.add_output<decl::Bool>("Is Valid"_ustr)
-      .dependent_field({2, 3})
+      .inferred_structure_type(dynamic_inputs)
+      .propagate_references(dynamic_inputs)
       .description(
           "Whether the sampling was successful. It can fail when the sampled group is empty");
 }

@@ -12,7 +12,7 @@ namespace blender::nodes::node_geo_input_instance_scale_cc {
 
 static void node_declare(NodeDeclarationBuilder &b)
 {
-  b.add_output<decl::Vector>("Scale"_ustr).field_source();
+  b.add_output<decl::Vector>("Scale"_ustr).structure_type(StructureType::Field);
 }
 
 class InstanceScaleFieldInput final : public bke::InstancesFieldInput {

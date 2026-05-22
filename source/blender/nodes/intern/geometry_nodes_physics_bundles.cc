@@ -54,9 +54,9 @@ const FlatBundleTypePtr &PinPositionBundle::get_bundle_type()
   static const FlatBundleTypePtr bundle_type = []() {
     FlatBundleTypeBuilder b(PinPositionBundle::name);
     add_filter(b);
-    b.add<decl::Bool>("selection"_ustr).default_value(true).supports_field();
-    b.add<decl::Vector>("position"_ustr).supports_field();
-    b.add<decl::Float>("compliance"_ustr).min(0.0f).supports_field();
+    b.add<decl::Bool>("selection"_ustr).default_value(true).structure_type(StructureType::Field);
+    b.add<decl::Vector>("position"_ustr).structure_type(StructureType::Field);
+    b.add<decl::Float>("compliance"_ustr).min(0.0f).structure_type(StructureType::Field);
     b.add<decl::Float>("error_threshold"_ustr).default_value(1e-3f).min(1e-5f);
     b.add<decl::String>("was_pinned_attribute"_ustr);
     b.add<decl::String>("previous_pin_position_attribute"_ustr);
@@ -73,9 +73,9 @@ const FlatBundleTypePtr &PinRotationBundle::get_bundle_type()
   static const FlatBundleTypePtr bundle_type = []() {
     FlatBundleTypeBuilder b(PinRotationBundle::name);
     add_filter(b);
-    b.add<decl::Bool>("selection"_ustr).default_value(true).supports_field();
-    b.add<decl::Rotation>("rotation"_ustr).supports_field();
-    b.add<decl::Float>("compliance"_ustr).min(0.0f).supports_field();
+    b.add<decl::Bool>("selection"_ustr).default_value(true).structure_type(StructureType::Field);
+    b.add<decl::Rotation>("rotation"_ustr).structure_type(StructureType::Field);
+    b.add<decl::Float>("compliance"_ustr).min(0.0f).structure_type(StructureType::Field);
     b.add<decl::Float>("error_threshold"_ustr).default_value(1e-2f).min(1e-5f);
     b.add<decl::String>("was_pinned_attribute"_ustr);
     b.add<decl::String>("previous_pin_rotation_attribute"_ustr);
@@ -103,7 +103,7 @@ const FlatBundleTypePtr &RodStretchShearBundle::get_bundle_type()
   static const FlatBundleTypePtr bundle_type = []() {
     FlatBundleTypeBuilder b(RodStretchShearBundle::name);
     add_filter(b);
-    b.add<decl::Float>("rest_length"_ustr).min(0.0f).supports_field();
+    b.add<decl::Float>("rest_length"_ustr).min(0.0f).structure_type(StructureType::Field);
     b.add<decl::Float>("compliance"_ustr).default_value(1e-4f).min(0.0f);
     b.add<decl::Float>("error_threshold"_ustr).default_value(1e-3f).min(1e-5f);
     b.add<decl::String>("lambda_position_attribute"_ustr);
@@ -120,7 +120,7 @@ const FlatBundleTypePtr &RodBendTwistBundle::get_bundle_type()
   static const FlatBundleTypePtr bundle_type = []() {
     FlatBundleTypeBuilder b(RodBendTwistBundle::name);
     add_filter(b);
-    b.add<decl::Rotation>("rest_bend_rotation"_ustr).supports_field();
+    b.add<decl::Rotation>("rest_bend_rotation"_ustr).structure_type(StructureType::Field);
     b.add<decl::Float>("compliance"_ustr).default_value(1e-4f).min(0.0f);
     b.add<decl::Float>("error_threshold"_ustr).default_value(1e-2f).min(1e-5f);
     const FlatBundleTypePtr bundle_type = b.build();
@@ -135,7 +135,7 @@ const FlatBundleTypePtr &EdgeLengthConstraintBundle::get_bundle_type()
   static const FlatBundleTypePtr bundle_type = []() {
     FlatBundleTypeBuilder b(EdgeLengthConstraintBundle::name);
     add_filter(b);
-    b.add<decl::Float>("rest_length"_ustr).min(0.0f).supports_field();
+    b.add<decl::Float>("rest_length"_ustr).min(0.0f).structure_type(StructureType::Field);
     b.add<decl::Float>("compliance"_ustr).default_value(1e-4f).min(0.0f);
     b.add<decl::Float>("error_threshold"_ustr).default_value(1e-3f).min(1e-5f);
     const FlatBundleTypePtr bundle_type = b.build();
@@ -150,7 +150,7 @@ const FlatBundleTypePtr &CrossEdgeLengthConstraintBundle::get_bundle_type()
   static const FlatBundleTypePtr bundle_type = []() {
     FlatBundleTypeBuilder b(CrossEdgeLengthConstraintBundle::name);
     add_filter(b);
-    b.add<decl::Vector>("rest_position"_ustr).supports_field();
+    b.add<decl::Vector>("rest_position"_ustr).structure_type(StructureType::Field);
     b.add<decl::Float>("compliance"_ustr).default_value(1e-4f).min(0.0f);
     b.add<decl::Float>("error_threshold"_ustr).default_value(1e-3f).min(1e-5f);
     const FlatBundleTypePtr bundle_type = b.build();

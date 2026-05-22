@@ -18,9 +18,12 @@ static void node_declare(NodeDeclarationBuilder &b)
   b.add_input<decl::Geometry>("Curves"_ustr)
       .supported_type({GeometryComponent::Type::Curve, GeometryComponent::Type::GreasePencil})
       .description("Curves to set the weight on");
-  b.add_output<decl::Geometry>("Curves"_ustr).propagate_all().align_with_previous();
-  b.add_input<decl::Bool>("Selection"_ustr).default_value(true).hide_value().field_on_all();
-  b.add_input<decl::Float>("Weight"_ustr).min(0.0f).default_value(1.0f).field_on_all();
+  b.add_output<decl::Geometry>("Curves"_ustr).propagate_all_geometry().align_with_previous();
+  b.add_input<decl::Bool>("Selection"_ustr)
+      .default_value(true)
+      .hide_value()
+      .evaluated_geometry_field();
+  b.add_input<decl::Float>("Weight"_ustr).min(0.0f).default_value(1.0f).evaluated_geometry_field();
 }
 
 static void node_geo_exec(GeoNodeExecParams params)

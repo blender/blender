@@ -60,18 +60,16 @@ static void node_declare(NodeDeclarationBuilder &b)
   b.allow_any_socket_order();
 
   b.add_output<decl::Float>("Amplitude"_ustr)
-      .reference_pass_all()
+      .propagate_references()
       .description("Sum of amplitudes of the frequencies in the given range")
       .structure_type(StructureType::Dynamic);
   b.add_input<decl::Sound>("Sound"_ustr).optional_label().description("Sound to sample");
   b.add_input<decl::Float>("Time"_ustr)
       .subtype(PROP_TIME_ABSOLUTE)
-      .supports_field()
       .structure_type(StructureType::Dynamic)
       .description("Time in seconds of the sound to sample at");
   b.add_input<decl::Bool>("All Channels"_ustr)
       .default_value(true)
-      .supports_field()
       .structure_type(StructureType::Dynamic)
       .description("Mix all channels before sampling the sound (e.g. stereo to mono)");
   b.add_input<decl::Int>("Channel"_ustr)
@@ -93,21 +91,18 @@ static void node_declare(NodeDeclarationBuilder &b)
             }
             return !*all_channels;
           })
-      .supports_field()
       .structure_type(StructureType::Dynamic)
       .description("The channel to sample unless 'All Channels' is checked");
   b.add_input<decl::Float>("Low"_ustr)
       .subtype(PROP_FREQUENCY)
       .default_value(0.0f)
       .min(0.0f)
-      .supports_field()
       .structure_type(StructureType::Dynamic)
       .description("Lower bound of the sampled frequency range");
   b.add_input<decl::Float>("High"_ustr)
       .subtype(PROP_FREQUENCY)
       .default_value(10'000.0f)
       .min(0.0f)
-      .supports_field()
       .structure_type(StructureType::Dynamic)
       .description("Upper bound of the sampled frequency range");
 

@@ -8,7 +8,7 @@ namespace blender::nodes::node_geo_input_instance_reference_cc {
 
 static void node_declare(NodeDeclarationBuilder &b)
 {
-  b.add_output<decl::Int>("Reference Index"_ustr).field_source();
+  b.add_output<decl::Int>("Reference Index"_ustr).structure_type(StructureType::Field);
 }
 
 static void node_geo_exec(GeoNodeExecParams params)

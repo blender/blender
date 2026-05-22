@@ -21,9 +21,12 @@ static void node_declare(NodeDeclarationBuilder &b)
   b.add_input<decl::Geometry>("Curves"_ustr)
       .supported_type({GeometryComponent::Type::Curve, GeometryComponent::Type::GreasePencil})
       .description("Curves to change the order of");
-  b.add_output<decl::Geometry>("Curves"_ustr).propagate_all().align_with_previous();
-  b.add_input<decl::Bool>("Selection"_ustr).default_value(true).hide_value().field_on_all();
-  b.add_input<decl::Int>("Order"_ustr).default_value(4).min(2).max(127).field_on_all();
+  b.add_output<decl::Geometry>("Curves"_ustr).propagate_all_geometry().align_with_previous();
+  b.add_input<decl::Bool>("Selection"_ustr)
+      .default_value(true)
+      .hide_value()
+      .evaluated_geometry_field();
+  b.add_input<decl::Int>("Order"_ustr).default_value(4).min(2).max(127).evaluated_geometry_field();
 }
 
 static void set_grease_pencil_order(GreasePencil &grease_pencil,

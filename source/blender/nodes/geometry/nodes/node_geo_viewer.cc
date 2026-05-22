@@ -273,7 +273,7 @@ static void node_declare(NodeDeclarationBuilder &b)
                            .socket_name_ptr(
                                &tree->id, *GeoViewerItemsAccessor::item_srna, &item, "name");
     if (socket_type_supports_attributes(socket_type)) {
-      input_decl.field_on_all();
+      input_decl.evaluated_geometry_field();
     }
     input_decl.structure_type(StructureType::Dynamic);
     input_decl.custom_draw([](CustomSocketDrawParams &params) { draw_input_socket(params); });

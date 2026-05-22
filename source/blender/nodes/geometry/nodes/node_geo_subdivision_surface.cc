@@ -30,20 +30,20 @@ static void node_declare(NodeDeclarationBuilder &b)
   b.add_input<decl::Geometry>("Mesh"_ustr)
       .supported_type(GeometryComponent::Type::Mesh)
       .description("Mesh to subdivide");
-  b.add_output<decl::Geometry>("Mesh"_ustr).propagate_all().align_with_previous();
+  b.add_output<decl::Geometry>("Mesh"_ustr).propagate_all_geometry().align_with_previous();
   b.add_input<decl::Int>("Level"_ustr).default_value(1).min(0).max(6);
   b.add_input<decl::Float>("Edge Crease"_ustr)
       .default_value(0.0f)
       .min(0.0f)
       .max(1.0f)
       .subtype(PROP_FACTOR)
-      .field_on_all();
+      .evaluated_geometry_field();
   b.add_input<decl::Float>("Vertex Crease"_ustr)
       .default_value(0.0f)
       .min(0.0f)
       .max(1.0f)
       .subtype(PROP_FACTOR)
-      .field_on_all();
+      .evaluated_geometry_field();
   b.add_input<decl::Bool>("Limit Surface"_ustr)
       .default_value(true)
       .description(

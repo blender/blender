@@ -29,8 +29,11 @@ static void node_declare(NodeDeclarationBuilder &b)
   b.add_input<decl::Geometry>("Curve"_ustr)
       .supported_type({GeometryComponent::Type::Curve, GeometryComponent::Type::GreasePencil})
       .description("Curves to shorten");
-  b.add_output<decl::Geometry>("Curve"_ustr).propagate_all().align_with_previous();
-  b.add_input<decl::Bool>("Selection"_ustr).default_value(true).hide_value().field_on_all();
+  b.add_output<decl::Geometry>("Curve"_ustr).propagate_all_geometry().align_with_previous();
+  b.add_input<decl::Bool>("Selection"_ustr)
+      .default_value(true)
+      .hide_value()
+      .evaluated_geometry_field();
   auto &start_fac = b.add_input<decl::Float>("Start"_ustr)
                         .min(0.0f)
                         .max(1.0f)
@@ -38,7 +41,7 @@ static void node_declare(NodeDeclarationBuilder &b)
                         .make_available([](bNode &node) {
                           node_storage(node).mode = GEO_NODE_CURVE_SAMPLE_FACTOR;
                         })
-                        .field_on_all();
+                        .evaluated_geometry_field();
   auto &end_fac = b.add_input<decl::Float>("End"_ustr)
                       .min(0.0f)
                       .max(1.0f)
@@ -47,14 +50,14 @@ static void node_declare(NodeDeclarationBuilder &b)
                       .make_available([](bNode &node) {
                         node_storage(node).mode = GEO_NODE_CURVE_SAMPLE_FACTOR;
                       })
-                      .field_on_all();
+                      .evaluated_geometry_field();
   auto &start_len = b.add_input<decl::Float>("Start"_ustr, "Start_001"_ustr)
                         .min(0.0f)
                         .subtype(PROP_DISTANCE)
                         .make_available([](bNode &node) {
                           node_storage(node).mode = GEO_NODE_CURVE_SAMPLE_LENGTH;
                         })
-                        .field_on_all();
+                        .evaluated_geometry_field();
   auto &end_len = b.add_input<decl::Float>("End"_ustr, "End_001"_ustr)
                       .min(0.0f)
                       .default_value(1.0f)
@@ -62,7 +65,7 @@ static void node_declare(NodeDeclarationBuilder &b)
                       .make_available([](bNode &node) {
                         node_storage(node).mode = GEO_NODE_CURVE_SAMPLE_LENGTH;
                       })
-                      .field_on_all();
+                      .evaluated_geometry_field();
 
   const bNode *node = b.node_or_null();
   if (node != nullptr) {

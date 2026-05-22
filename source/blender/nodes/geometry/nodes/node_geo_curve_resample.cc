@@ -48,8 +48,11 @@ static void node_declare(NodeDeclarationBuilder &b)
   b.add_input<decl::Geometry>("Curve"_ustr)
       .supported_type({GeometryComponent::Type::Curve, GeometryComponent::Type::GreasePencil})
       .description("Curves to resample");
-  b.add_output<decl::Geometry>("Curve"_ustr).propagate_all().align_with_previous();
-  b.add_input<decl::Bool>("Selection"_ustr).default_value(true).field_on_all().hide_value();
+  b.add_output<decl::Geometry>("Curve"_ustr).propagate_all_geometry().align_with_previous();
+  b.add_input<decl::Bool>("Selection"_ustr)
+      .default_value(true)
+      .evaluated_geometry_field()
+      .hide_value();
   b.add_input<decl::Menu>("Mode"_ustr)
       .static_items(mode_items)
       .optional_label()
@@ -58,13 +61,13 @@ static void node_declare(NodeDeclarationBuilder &b)
       .default_value(10)
       .min(1)
       .max(100000)
-      .field_on_all()
+      .evaluated_geometry_field()
       .usage_by_single_menu(GEO_NODE_CURVE_RESAMPLE_COUNT);
   b.add_input<decl::Float>("Length"_ustr)
       .default_value(0.1f)
       .min(0.01f)
       .subtype(PROP_DISTANCE)
-      .field_on_all()
+      .evaluated_geometry_field()
       .usage_by_single_menu(GEO_NODE_CURVE_RESAMPLE_LENGTH);
 }
 

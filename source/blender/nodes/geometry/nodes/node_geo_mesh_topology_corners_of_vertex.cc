@@ -13,22 +13,23 @@ namespace blender::nodes::node_geo_mesh_topology_corners_of_vertex_cc {
 static void node_declare(NodeDeclarationBuilder &b)
 {
   b.add_input<decl::Int>("Vertex Index"_ustr)
-      .implicit_field(NODE_DEFAULT_INPUT_INDEX_FIELD)
+      .default_input_type(NODE_DEFAULT_INPUT_INDEX_FIELD)
       .description("The vertex to retrieve data from. Defaults to the vertex from the context")
       .structure_type(StructureType::Field);
   b.add_input<decl::Float>("Weights"_ustr)
-      .supports_field()
+      .structure_type(StructureType::Field)
       .hide_value()
       .description("Values used to sort corners attached to the vertex. Uses indices by default");
   b.add_input<decl::Int>("Sort Index"_ustr)
-      .supports_field()
+      .structure_type(StructureType::Field)
       .description("Which of the sorted corners to output. Negative indexing is supported");
   b.add_output<decl::Int>("Corner Index"_ustr)
-      .field_source_reference_all()
+      .structure_type(StructureType::Field)
+      .propagate_references()
       .description("A corner connected to the face, chosen by the sort index");
   b.add_output<decl::Int>("Total"_ustr)
-      .field_source()
-      .reference_pass({0})
+      .structure_type(StructureType::Field)
+      .propagate_references({0})
       .description("The number of faces or corners connected to each vertex");
 }
 

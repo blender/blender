@@ -32,23 +32,26 @@ static void node_declare(NodeDeclarationBuilder &b)
       .description("Mesh whose UV map is used");
   if (node != nullptr) {
     const eCustomDataType data_type = eCustomDataType(node->custom1);
-    b.add_input(data_type, "Value"_ustr).hide_value().field_on_all();
+    b.add_input(data_type, "Value"_ustr).hide_value().evaluated_geometry_field();
   }
   b.add_input<decl::Vector>("UV Map"_ustr, "Source UV Map"_ustr)
       .hide_value()
-      .field_on_all()
+      .evaluated_geometry_field()
       .description("The mesh UV map to sample. Should not have overlapping faces");
-  b.add_input<decl::Vector>("Sample UV"_ustr)
-      .supports_field()
-      .description("The coordinates to sample within the UV map")
-      .structure_type(StructureType::Dynamic);
+  auto &sample_uv = b.add_input<decl::Vector>("Sample UV"_ustr)
+                        .description("The coordinates to sample within the UV map")
+                        .structure_type(StructureType::Dynamic);
 
+  std::array<int, 1> dynamic_inputs = {sample_uv.index()};
   if (node != nullptr) {
     const eCustomDataType data_type = eCustomDataType(node->custom1);
-    b.add_output(data_type, "Value"_ustr).dependent_field({3});
+    b.add_output(data_type, "Value"_ustr)
+        .inferred_structure_type(dynamic_inputs)
+        .propagate_references(dynamic_inputs);
   }
   b.add_output<decl::Bool>("Is Valid"_ustr)
-      .dependent_field({3})
+      .inferred_structure_type(dynamic_inputs)
+      .propagate_references(dynamic_inputs)
       .description("Whether the node could find a single face to sample at the UV coordinate");
 }
 

@@ -25,23 +25,13 @@ static void node_declare(NodeDeclarationBuilder &b)
   const bNode *node = b.node_or_null();
 
   b.add_input<decl::Bundle>("Bundle"_ustr);
-  b.add_output<decl::Bundle>("Bundle"_ustr)
-      .align_with_previous()
-      .propagate_all()
-      .reference_pass_all();
+  b.add_output<decl::Bundle>("Bundle"_ustr).align_with_previous().propagate_all();
   b.add_input<decl::String>("Path"_ustr).optional_label();
 
   if (node != nullptr) {
     const NodeStoreBundleItem &storage = node_storage(*node);
     const eNodeSocketDatatype socket_type = storage.socket_type;
     auto &decl = b.add_input(socket_type, "Item"_ustr);
-    if (ELEM(storage.structure_type,
-             NodeSocketInterfaceStructureType::Dynamic,
-             NodeSocketInterfaceStructureType::Field,
-             NodeSocketInterfaceStructureType::Auto))
-    {
-      decl.supports_field();
-    }
     if (storage.structure_type == NodeSocketInterfaceStructureType::Auto) {
       decl.structure_type(StructureType::Dynamic);
     }
