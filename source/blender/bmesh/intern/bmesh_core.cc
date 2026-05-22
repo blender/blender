@@ -941,8 +941,9 @@ void BM_face_edges_kill(BMesh *bm, BMFace *f)
     edges[i++] = l_iter->e;
   } while ((l_iter = l_iter->next) != l_first);
 
-  for (i = 0; i < f->len; i++) {
-    BM_edge_kill(bm, edges[i]);
+  /* Take care, the first iteration kills `f`. */
+  for (BMEdge *e : edges) {
+    BM_edge_kill(bm, e);
   }
 }
 
@@ -958,8 +959,9 @@ void BM_face_verts_kill(BMesh *bm, BMFace *f)
     verts[i++] = l_iter->v;
   } while ((l_iter = l_iter->next) != l_first);
 
-  for (i = 0; i < f->len; i++) {
-    BM_vert_kill(bm, verts[i]);
+  /* Take care, the first iteration kills `f`. */
+  for (BMVert *v : verts) {
+    BM_vert_kill(bm, v);
   }
 }
 
