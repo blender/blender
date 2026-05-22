@@ -69,7 +69,8 @@ static void sh_node_tex_noise_declare(NodeDeclarationBuilder &b)
           "corresponds to larger scale for higher octaves");
 
   const eNodeNoiseTexture_Type noise_type = eNodeNoiseTexture_Type(
-      b.node_or_null() ? node_storage(*b.node_or_null()).type : SHD_NOISE_FBM);
+      b.node_or_null() ? eNodeNoiseTexture_Type(node_storage(*b.node_or_null()).type) :
+                         SHD_NOISE_FBM);
   b.add_input<decl::Float>("Offset"_ustr)
       .min(-1000.0f)
       .max(1000.0f)
