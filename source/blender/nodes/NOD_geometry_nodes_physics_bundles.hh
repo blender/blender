@@ -16,12 +16,6 @@ class ColliderBundle {
   static const FlatBundleTypePtr &get_bundle_type();
 };
 
-class InfinitePlaneColliderBundle {
- public:
-  static constexpr StringRefNull name = "Blender.InfinitePlaneCollider";
-  static const FlatBundleTypePtr &get_bundle_type();
-};
-
 class CollisionContactsBundle {
  public:
   static constexpr StringRefNull name = "Blender.CollisionContacts";

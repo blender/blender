@@ -83,21 +83,6 @@ const FlatBundleTypePtr &PinRotationBundle::get_bundle_type()
   return bundle_type;
 }
 
-const FlatBundleTypePtr &InfinitePlaneColliderBundle::get_bundle_type()
-{
-  static const FlatBundleTypePtr bundle_type = []() {
-    FlatBundleTypeBuilder b(InfinitePlaneColliderBundle::name);
-    add_filter(b);
-    b.add<decl::Vector>("position"_ustr);
-    b.add<decl::Vector>("normal"_ustr).default_value(float3(0.0f, 0.0f, 1.0f));
-    b.add<decl::Float>("friction"_ustr).default_value(0.5f).min(0.0f);
-    const FlatBundleTypePtr bundle_type = b.build();
-    BundleTypeRegistry::register_type(bundle_type);
-    return bundle_type;
-  }();
-  return bundle_type;
-}
-
 const FlatBundleTypePtr &CollisionContactsBundle::get_bundle_type()
 {
   static const FlatBundleTypePtr bundle_type = []() {

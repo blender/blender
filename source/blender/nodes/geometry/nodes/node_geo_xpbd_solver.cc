@@ -64,7 +64,6 @@ static NestedBundleTypePtr make_world_type()
 {
   Vector<std::shared_ptr<const FlatBundleType>> types;
   types.append(DampingBundle::get_bundle_type());
-  types.append(InfinitePlaneColliderBundle::get_bundle_type());
   types.append(ColliderBundle::get_bundle_type());
   types.append(CollisionContactsBundle::get_bundle_type());
   types.append(RodStretchShearBundle::get_bundle_type());
@@ -245,20 +244,6 @@ struct CrossEdgeLengthConstraintUsage {
   xpbd::ConstraintColoring coloring;
 };
 
-struct InfinitePlaneCollider {
-  std::string path;
-  float3 end_position;
-  float3 end_normal;
-  float3 begin_position;
-  float3 begin_normal;
-  float margin;
-  float friction;
-};
-struct InfinitePlaneColliderUsage {
-  /** Index of corresponding #InfinitePlaneCollider. */
-  int constraint_i;
-};
-
 struct StaticMeshInfo {
   const Mesh *mesh;
   bke::BVHTreeFromMesh corner_tris_bvh;
@@ -355,7 +340,6 @@ struct GeometryData {
   Vector<PinRotationConstraintUsage> pin_rotation_constraints;
   Vector<EdgeLengthConstraintUsage> edge_length_constraints;
   Vector<CrossEdgeLengthConstraintUsage> cross_edge_length_constraints;
-  Vector<InfinitePlaneColliderUsage> infinite_plane_colliders;
   Vector<MeshColliderUsage> mesh_colliders;
   Vector<RodStretchShearConstraintUsage> rod_stretch_shear_constraints;
   Vector<RodBendTwistConstraintUsage> rod_bend_twist_constraints;
@@ -418,19 +402,6 @@ struct SubstepInterval {
   }
 };
 
-struct InfinitePlaneContactId {
-  int infinite_plane_collider_i;
-  int point_i;
-
-  uint64_t hash() const
-  {
-    return get_default_hash(this->infinite_plane_collider_i, this->point_i);
-  }
-
-  friend bool operator==(const InfinitePlaneContactId &a,
-                         const InfinitePlaneContactId &b) = default;
-};
-
 struct MeshContactId {
   int mesh_collider_i;
   int point_i;
@@ -445,7 +416,6 @@ struct MeshContactId {
 
 struct ExternalFaceContacts {
   Map<MeshContactId, int> mesh_contact_indices;
-  Map<InfinitePlaneContactId, int> infinite_plane_contact_indices;
 
   Vector<int> points;
   Vector<float> point_radii;
@@ -530,7 +500,6 @@ struct ChunkData {
 };
 
 struct ConstraintsInfo {
-  Vector<InfinitePlaneCollider> infinite_plane_colliders;
   Vector<MeshCollider> mesh_colliders;
   Vector<CollisionContacts> collision_contacts;
   Vector<DampingConstraint> damping_constraints;
@@ -610,7 +579,6 @@ class XpbdSolverStep {
     this->prepare_inverse_masses();
     this->prepare_inverse_moments_of_inertia();
 
-    this->gather_from_world__infinite_plane_colliders();
     this->gather_from_world__mesh_colliders();
     this->gather_from_world__stretch_shear_constraints();
     this->gather_from_world__bend_twist_constraints();
@@ -795,115 +763,6 @@ class XpbdSolverStep {
           data_key_i, attribute_names::radius, geo_data.domain, 0.0f);
       geo_data.prev_radii = geo_data.radii;
     });
-  }
-
-  void gather_from_world__infinite_plane_colliders()
-  {
-    const Span<std::string> paths = nested_bundle_paths_.lookup(InfinitePlaneColliderBundle::name);
-    for (const StringRef path : paths) {
-      const BundlePtr *bundle_ptr = world_.lookup_path_ptr<BundlePtr>(path);
-      if (!bundle_ptr || !*bundle_ptr) {
-        continue;
-      }
-      const Bundle &bundle = **bundle_ptr;
-      const Bundle *previous_bundle = this->get_previous_bundle(bundle);
-
-      /* Retrieve collision plane in world space. */
-      const std::optional<float3> position_wo = bundle.lookup<float3>("position"_ustr);
-      const std::optional<float3> normal_wo = bundle.lookup<float3>("normal"_ustr);
-      const float margin = bundle.lookup<float>("margin"_ustr).value_or(0.0f);
-      const float friction = bundle.lookup<float>("friction"_ustr).value_or(0.0f);
-      if (!position_wo || !normal_wo) {
-        continue;
-      }
-      const float3 prev_position_wo =
-          previous_bundle ?
-              previous_bundle->lookup<float3>("position"_ustr).value_or(*position_wo) :
-              *position_wo;
-      float3 prev_normal_wo =
-          previous_bundle ? previous_bundle->lookup<float3>("normal"_ustr).value_or(*normal_wo) :
-                            *normal_wo;
-      if (math::is_zero(prev_normal_wo)) {
-        prev_normal_wo = *normal_wo;
-      }
-      /* Convert to simulation space. */
-      const float3 position_sim = math::transform_point(world_to_simulation_, *position_wo);
-      const float3 prev_position_sim = math::transform_point(world_to_simulation_,
-                                                             prev_position_wo);
-      const float3 normal_sim = math::transform_direction(world_to_simulation_, *normal_wo);
-      const float3 prev_normal_sim = math::transform_direction(world_to_simulation_,
-                                                               prev_normal_wo);
-      if (math::is_zero(normal_sim) || math::is_zero(prev_normal_sim)) {
-        continue;
-      }
-
-      const int collider_i = constraints_.infinite_plane_colliders.append_and_get_index(
-          {path,
-           position_sim,
-           math::normalize(normal_sim),
-           prev_position_sim,
-           math::normalize(prev_normal_sim),
-           margin,
-           friction});
-      for (const int data_key_i : geometries_.data_keys.index_range()) {
-        if (this->effector_applies_to_geometry(path, bundle, data_key_i)) {
-          geometries_.data[data_key_i]->infinite_plane_colliders.append({collider_i});
-          this->ensure_friction_loaded(data_key_i);
-          this->ensure_radius_loaded(data_key_i);
-        }
-      }
-    }
-  }
-
-  void gather_contacts__infinite_plane_colliders(const int chunk_i,
-                                                 const float max_distance,
-                                                 const int solver_refs_i,
-                                                 const SubstepInterval &substep,
-                                                 const ExternalFaceContacts &prev_contacts,
-                                                 ExternalFaceContacts &r_contacts)
-  {
-    const GeometryDataChunk &chunk = geometries_.chunks[chunk_i];
-    const GeometryData &geo_data = *geometries_.data[chunk.data_key_i];
-    const Span<float3> positions =
-        geometries_.solver_refs[solver_refs_i][chunk.data_key_i].positions;
-    for (const InfinitePlaneColliderUsage &collider_usage : geo_data.infinite_plane_colliders) {
-      const InfinitePlaneCollider &collider =
-          constraints_.infinite_plane_colliders[collider_usage.constraint_i];
-      const float3 collider_position = math::interpolate(
-          collider.begin_position, collider.end_position, substep.interpolate_end);
-      const float3 collider_normal = math::interpolate(
-          collider.begin_normal, collider.end_normal, substep.interpolate_end);
-      for (const int point_i : chunk.points_range) {
-        const float3 &position = positions[point_i];
-        const float radius = math::interpolate(
-            geo_data.prev_radii[point_i], geo_data.radii[point_i], substep.interpolate_end);
-
-        const float distance = math::dot(position - collider_position, collider_normal);
-        if (distance >= max_distance + radius) {
-          continue;
-        }
-
-        const int contact_i = r_contacts.points.append_and_get_index(point_i);
-        r_contacts.point_radii.append(radius);
-        r_contacts.positions_on_face.append(position - collider_normal * distance);
-        /* Static plane does not move. */
-        r_contacts.collider_motion.append(float3(0.0f));
-        r_contacts.face_normals.append(collider_normal);
-        r_contacts.face_margins.append(collider.margin);
-        const float static_friction = this->compute_contact_friction(
-            geo_data.static_frictions[point_i], collider.friction);
-        const float dynamic_friction = this->compute_contact_friction(
-            geo_data.dynamic_frictions[point_i], collider.friction);
-        r_contacts.static_frictions.append(static_friction);
-        r_contacts.dynamic_frictions.append(dynamic_friction);
-        r_contacts.compliance_terms.append(0.0f);
-
-        const InfinitePlaneContactId contact_id{collider_usage.constraint_i, point_i};
-        r_contacts.infinite_plane_contact_indices.add(contact_id, contact_i);
-        r_contacts.init_or_preserve_state(
-            prev_contacts, prev_contacts.infinite_plane_contact_indices.lookup_try(contact_id));
-      }
-    }
   }
 
   void gather_from_world__mesh_colliders()
@@ -2600,8 +2459,6 @@ class XpbdSolverStep {
     const ExternalEdgeContacts &prev_edge_contacts = chunk_data.external_edge_contacts;
     ExternalFaceContacts new_face_contacts;
     ExternalEdgeContacts new_edge_contacts;
-    this->gather_contacts__infinite_plane_colliders(
-        chunk_i, max_distance, solver_refs_i, substep, prev_face_contacts, new_face_contacts);
     this->gather_contacts__mesh_colliders(chunk_i,
                                           max_distance,
                                           solver_refs_i,
@@ -2989,7 +2846,6 @@ class XpbdSolverStep {
   }
 
   PointCloud *write_back__plane_contacts(const IndexRange mesh_colliders_range,
-                                         const IndexRange infinite_plane_colliders_range,
                                          const OffsetIndices<int> points_by_chunk)
   {
     PointCloud *pointcloud = BKE_pointcloud_new_nomain(points_by_chunk.total_size());
@@ -3037,10 +2893,6 @@ class XpbdSolverStep {
       geometries.fill(chunk.data_key_i);
       for (const auto &item : contacts.mesh_contact_indices.items()) {
         colliders[item.value] = mesh_colliders_range[item.key.mesh_collider_i];
-        geometry_points0[item.value] = contacts.points[item.value];
-      }
-      for (const auto &item : contacts.infinite_plane_contact_indices.items()) {
-        colliders[item.value] = infinite_plane_colliders_range[item.key.infinite_plane_collider_i];
         geometry_points0[item.value] = contacts.points[item.value];
       }
 
@@ -3170,18 +3022,12 @@ class XpbdSolverStep {
       const IndexRange geometries_range = geometries_.geometry_sets.index_range();
       const IndexRange mesh_colliders_range = geometries_range.after(
           constraints_.mesh_colliders.size());
-      const IndexRange infinite_plane_colliders_range = mesh_colliders_range.after(
-          constraints_.infinite_plane_colliders.size());
       Vector<std::string> collider_paths;
-      collider_paths.reserve(geometries_range.size() + mesh_colliders_range.size() +
-                             infinite_plane_colliders_range.size());
+      collider_paths.reserve(geometries_range.size() + mesh_colliders_range.size());
       for (const GeometrySetData &geometry_set_data : geometries_.geometry_sets) {
         collider_paths.append_unchecked(geometry_set_data.path);
       }
       for (const MeshCollider &collider : constraints_.mesh_colliders) {
-        collider_paths.append_unchecked(collider.path);
-      }
-      for (const InfinitePlaneCollider &collider : constraints_.infinite_plane_colliders) {
         collider_paths.append_unchecked(collider.path);
       }
 
@@ -3208,8 +3054,8 @@ class XpbdSolverStep {
       GeometrySet plane_contacts_geometry;
       GeometrySet edge_contacts_geometry;
       if (plane_contacts_by_chunk.total_size() > 0) {
-        plane_contacts_geometry.replace_pointcloud(write_back__plane_contacts(
-            mesh_colliders_range, infinite_plane_colliders_range, plane_contacts_by_chunk));
+        plane_contacts_geometry.replace_pointcloud(
+            write_back__plane_contacts(mesh_colliders_range, plane_contacts_by_chunk));
       }
       if (edge_contacts_by_chunk.total_size() > 0) {
         edge_contacts_geometry.replace_pointcloud(
