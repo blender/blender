@@ -61,11 +61,7 @@ set(SRC_GLSL_COMP
   eevee_film_cryptomatte_post_comp.glsl
   eevee_film_pass_convert_comp.glsl
   eevee_hiz_update_comp.glsl
-  eevee_lightprobe_sphere_convolve_comp.glsl
-  eevee_lightprobe_sphere_irradiance_comp.glsl
-  eevee_lightprobe_sphere_remap_comp.glsl
   eevee_lightprobe_sphere_select_comp.glsl
-  eevee_lightprobe_sphere_sunlight_comp.glsl
 
   eevee_lookdev_copy_world_comp.glsl
   eevee_ray_generate_comp.glsl

@@ -477,14 +477,11 @@ set(GLSL_SRC
   engines/eevee/shaders/eevee_ray_trace_screen_lib.glsl
   engines/eevee/shaders/eevee_ray_types_lib.bsl.hh
   engines/eevee/shaders/eevee_reverse_z_lib.bsl.hh
-  engines/eevee/shaders/eevee_lightprobe_sphere_convolve_comp.glsl
   engines/eevee/shaders/eevee_lightprobe_sphere_eval_lib.glsl
-  engines/eevee/shaders/eevee_lightprobe_sphere_irradiance_comp.glsl
+  engines/eevee/shaders/eevee_lightprobe_sphere_bake.bsl.hh
   engines/eevee/shaders/eevee_lightprobe_sphere_lib.glsl
   engines/eevee/shaders/eevee_lightprobe_sphere_mapping_lib.glsl
-  engines/eevee/shaders/eevee_lightprobe_sphere_remap_comp.glsl
   engines/eevee/shaders/eevee_lightprobe_sphere_select_comp.glsl
-  engines/eevee/shaders/eevee_lightprobe_sphere_sunlight_comp.glsl
   engines/eevee/shaders/eevee_renderpass_clear.bsl.hh
   engines/eevee/shaders/eevee_renderpass_lib.glsl
   engines/eevee/shaders/eevee_sampling_lib.glsl
