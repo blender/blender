@@ -1180,7 +1180,14 @@ static ImBuf *paint_2d_lift_clone(ImBuf *ibuf, ImBuf *ibufb, const int *pos)
   /* NOTE: #allocImbuf returns zeroed memory, so regions outside image will
    * have zero alpha, and hence not be blended onto the image */
   int w = ibufb->x, h = ibufb->y, destx = 0, desty = 0, srcx = pos[0], srcy = pos[1];
-  ImBuf *clonebuf = IMB_allocImBuf(w, h, ibufb->flags);
+  ImBufFlags ibflags = ibufb->flags;
+  if (ibufb->byte_data()) {
+    ibflags |= ImBufFlags::ByteData;
+  }
+  if (ibufb->float_data()) {
+    ibflags |= ImBufFlags::FloatData;
+  }
+  ImBuf *clonebuf = IMB_allocImBuf(w, h, ibflags);
   clonebuf->color_mode = ibufb->color_mode;
 
   IMB_rectclip(clonebuf, ibuf, &destx, &desty, &srcx, &srcy, &w, &h);
