@@ -67,10 +67,8 @@ set(SRC_GLSL_COMP
   eevee_lightprobe_sphere_select_comp.glsl
   eevee_lightprobe_sphere_sunlight_comp.glsl
   eevee_lightprobe_volume_bounds_comp.glsl
-  eevee_lightprobe_volume_load_comp.glsl
   eevee_lightprobe_volume_offset_comp.glsl
   eevee_lightprobe_volume_ray_comp.glsl
-  eevee_lightprobe_volume_world_comp.glsl
   eevee_lookdev_copy_world_comp.glsl
   eevee_ray_generate_comp.glsl
   eevee_ray_tile_classify_comp.glsl

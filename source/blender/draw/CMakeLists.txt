@@ -451,8 +451,7 @@ set(GLSL_SRC
   engines/eevee/shaders/eevee_lightprobe_volume_bounds_comp.glsl
   engines/eevee/shaders/eevee_lightprobe_volume_ray_comp.glsl
   engines/eevee/shaders/eevee_lightprobe_volume_offset_comp.glsl
-  engines/eevee/shaders/eevee_lightprobe_volume_load_comp.glsl
-  engines/eevee/shaders/eevee_lightprobe_volume_world_comp.glsl
+  engines/eevee/shaders/eevee_lightprobe_volume_load.bsl.hh
   engines/eevee/shaders/eevee_lightprobe_lib.glsl
   engines/eevee/shaders/eevee_lightprobe_volume_eval_lib.glsl
   engines/eevee/shaders/eevee_lookdev_copy_world_comp.glsl

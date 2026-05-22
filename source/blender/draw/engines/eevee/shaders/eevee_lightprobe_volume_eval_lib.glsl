@@ -4,16 +4,6 @@
 
 #pragma once
 
-/**
- * The resources expected to be defined are:
- * - grids_infos_buf
- * - bricks_infos_buf
- * - irradiance_atlas_tx
- * Needed for sampling (not for upload):
- * - util_tx
- * - sampling_buf
- */
-
 #include "eevee_lightprobe_lib.glsl"
 #include "eevee_sampling_lib.glsl"
 #include "eevee_spherical_harmonics.bsl.hh"
@@ -49,6 +39,7 @@ float3 lightprobe_volume_grid_bias_sample_coord(VolumeProbeData grid_data,
                                                 float3 brick_lP,
                                                 float3 lNg)
 {
+  const auto &atlas_tx = sampler_get(eevee_volume_probe_data, irradiance_atlas_tx);
   /* A cell is the interpolation region between 8 texels. */
   float3 cell_lP = brick_lP - 0.5f;
   float3 cell_start = floor(cell_lP);
@@ -61,7 +52,7 @@ float3 lightprobe_volume_grid_bias_sample_coord(VolumeProbeData grid_data,
                    int3(cell_start);
   /* Visibility is stored packed 1 cell per channel. */
   vis_coord.z -= int(vis_comp);
-  float cell_visibility = texelFetch(irradiance_atlas_tx, vis_coord, 0)[vis_comp];
+  float cell_visibility = texelFetch(atlas_tx, vis_coord, 0)[vis_comp];
   int cell_visibility_bits = int(cell_visibility);
   /**
    * References:
@@ -125,15 +116,19 @@ SphericalHarmonicL1<float4> lightprobe_volume_sample_atlas(sampler3D atlas_tx, f
   return sh;
 }
 
-SphericalHarmonicL1<float4> lightprobe_volume_sample(
-    sampler3D atlas_tx, float3 P, float3 V, float3 Ng, const bool do_bias)
+/* For irradiance upload, we want to only consider lightprobe that have lower precedence than the
+ * currently uploaded one. This is what grid_index_start is for. */
+SphericalHarmonicL1<float4> lightprobe_volume_sample(sampler3D atlas_tx,
+                                                     float3 P,
+                                                     float3 V,
+                                                     float3 Ng,
+                                                     const bool do_bias,
+                                                     int grid_index_start = 0)
 {
+  const auto &grids_buf = sampler_get(eevee_volume_probe_data, grids_infos_buf);
+
   float3 lP;
   int index = -1;
-  int i = 0;
-#ifdef IRRADIANCE_GRID_UPLOAD
-  i = grid_start_index;
-#endif
 #ifdef IRRADIANCE_GRID_SAMPLING
   float random = square(pcg4d(float4(P, sampling_rng_1D_get(SAMPLING_LIGHTPROBE))).x) * 0.75f;
 #endif
@@ -144,16 +139,16 @@ SphericalHarmonicL1<float4> lightprobe_volume_sample(
  * retaining most of the benefits of unrolling. */
 #  pragma clang loop unroll_count(16)
 #endif
-  for (; i < IRRADIANCE_GRID_MAX; i++) {
+  for (int i = grid_index_start; i < IRRADIANCE_GRID_MAX; i++) {
     /* Last grid is tagged as invalid to stop the iteration. */
-    if (grids_infos_buf[i].grid_size_padded.x == -1) {
+    if (grids_buf[i].grid_size_padded.x == -1) {
       /* Sample the last grid instead. */
       index = i - 1;
       break;
     }
 
     /* If sample fall inside the grid, step out of the loop. */
-    if (lightprobe_volume_grid_local_coord(grids_infos_buf[i], P, lP)) {
+    if (lightprobe_volume_grid_local_coord(grids_buf[i], P, lP)) {
       index = i;
 #ifdef IRRADIANCE_GRID_SAMPLING
       float distance_to_border = reduce_min(
@@ -198,16 +193,19 @@ SphericalHarmonicL1<float4> lightprobe_volume_sample(
 
 SphericalHarmonicL1<float4> lightprobe_volume_world()
 {
+  const auto &atlas_tx = sampler_get(eevee_volume_probe_data, irradiance_atlas_tx);
   /* We need a 0.5 offset because of filtering. */
-  return lightprobe_volume_sample_atlas(irradiance_atlas_tx, float3(0.5001f));
+  return lightprobe_volume_sample_atlas(atlas_tx, float3(0.5001f));
 }
 
-SphericalHarmonicL1<float4> lightprobe_volume_sample(float3 P)
+SphericalHarmonicL1<float4> lightprobe_volume_sample(float3 P, int grid_index_start = 0)
 {
-  return lightprobe_volume_sample(irradiance_atlas_tx, P, float3(0), float3(0), false);
+  const auto &atlas_tx = sampler_get(eevee_volume_probe_data, irradiance_atlas_tx);
+  return lightprobe_volume_sample(atlas_tx, P, float3(0), float3(0), false, grid_index_start);
 }
 
 SphericalHarmonicL1<float4> lightprobe_volume_sample(float3 P, float3 V, float3 Ng)
 {
-  return lightprobe_volume_sample(irradiance_atlas_tx, P, V, Ng, true);
+  const auto &atlas_tx = sampler_get(eevee_volume_probe_data, irradiance_atlas_tx);
+  return lightprobe_volume_sample(atlas_tx, P, V, Ng, true);
 }
