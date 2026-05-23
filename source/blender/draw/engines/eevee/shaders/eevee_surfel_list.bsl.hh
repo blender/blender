@@ -5,12 +5,11 @@
 #pragma once
 
 #include "draw_view_infos.hh"
-#include "infos/eevee_lightprobe_infos.hh"
 
 COMPUTE_SHADER_CREATE_INFO(draw_view)
-COMPUTE_SHADER_CREATE_INFO(eevee_surfel_common)
 
 #include "draw_view_lib.glsl"
+#include "eevee_surfel.bsl.hh"
 #include "gpu_shader_index_range_lib.glsl"
 #include "gpu_shader_math_matrix_transform_lib.glsl"
 
@@ -48,7 +47,6 @@ namespace list::prepare {
 
 struct Resources {
   [[legacy_info]] ShaderCreateInfo draw_view;
-  [[legacy_info]] ShaderCreateInfo eevee_surfel_common;
 
   [[storage(0, read_write)]] int (&list_counter_buf)[];
   [[storage(6, read_write)]] SurfelListInfoData &list_info_buf;
@@ -68,21 +66,22 @@ struct Resources {
  */
 [[compute]] [[local_size(SURFEL_GROUP_SIZE)]] [[texture_atomic]]
 void prepare_comp([[resource_table]] Resources &srt,
+                  [[resource_table]] SurfelData &surfels,
                   [[global_invocation_id]] const uint3 global_id)
 {
   const int surfel_id = int(global_id.x);
-  if (surfel_id >= int(capture_info_buf.surfel_len)) {
+  if (surfel_id >= int(surfels.capture_info_buf.surfel_len)) {
     return;
   }
   float ray_distance;
   int list_id = list_index_get(
-      srt.list_info_buf.ray_grid_size, surfel_buf[surfel_id].position, ray_distance);
+      srt.list_info_buf.ray_grid_size, surfels.surfel_buf[surfel_id].position, ray_distance);
 
   atomicAdd(srt.list_counter_buf[list_id], 1);
   /* Do separate assignment to avoid reference to buffer in arguments which is tricky to cross
    * compile. */
-  surfel_buf[surfel_id].ray_distance = ray_distance;
-  surfel_buf[surfel_id].list_id = list_id;
+  surfels.surfel_buf[surfel_id].ray_distance = ray_distance;
+  surfels.surfel_buf[surfel_id].list_id = list_id;
 
   /* Clear for next step. */
   if (global_id.x == 0u) {
@@ -95,7 +94,6 @@ void prepare_comp([[resource_table]] Resources &srt,
 namespace list::prefix_sum {
 
 struct Resources {
-  [[legacy_info]] ShaderCreateInfo eevee_surfel_common;
   [[legacy_info]] ShaderCreateInfo draw_view;
   [[storage(0, read)]] const int (&list_counter_buf)[];
   [[storage(2, write)]] int (&list_range_buf)[];
@@ -128,7 +126,6 @@ void prefix_sum_comp([[resource_table]] Resources &srt)
 namespace list::flatten {
 
 struct Resources {
-  [[legacy_info]] ShaderCreateInfo eevee_surfel_common;
   [[legacy_info]] ShaderCreateInfo draw_view;
   [[storage(0, read_write)]] int (&list_counter_buf)[];
   [[storage(1, read)]] const int (&list_range_buf)[];
@@ -145,18 +142,19 @@ struct Resources {
  */
 [[compute]] [[local_size(SURFEL_GROUP_SIZE)]] [[texture_atomic]]
 void flatten_comp([[resource_table]] Resources &srt,
+                  [[resource_table]] SurfelData &surfels,
                   [[global_invocation_id]] const uint3 global_id)
 {
   const int surfel_id = int(global_id.x);
-  if (surfel_id >= int(capture_info_buf.surfel_len)) {
+  if (surfel_id >= int(surfels.capture_info_buf.surfel_len)) {
     return;
   }
 
-  int list_id = surfel_buf[surfel_id].list_id;
+  int list_id = surfels.surfel_buf[surfel_id].list_id;
   int item_id = atomicAdd(srt.list_counter_buf[list_id], -1) - 1;
   item_id += srt.list_range_buf[list_id * 2 + 0];
 
-  srt.list_item_distance_buf[item_id] = surfel_buf[surfel_id].ray_distance;
+  srt.list_item_distance_buf[item_id] = surfels.surfel_buf[surfel_id].ray_distance;
   srt.list_item_surfel_id_buf[item_id] = surfel_id;
 }
 
@@ -165,7 +163,6 @@ void flatten_comp([[resource_table]] Resources &srt,
 namespace list::sort {
 
 struct Resources {
-  [[legacy_info]] ShaderCreateInfo eevee_surfel_common;
   [[legacy_info]] ShaderCreateInfo draw_view;
   [[storage(0, read)]] const int (&list_range_buf)[];
   [[storage(1, read)]] const int (&list_item_surfel_id_buf)[];
@@ -185,15 +182,17 @@ struct Resources {
  * Dispatched as 1 thread per surfel (array elem).
  */
 [[compute]] [[local_size(SURFEL_GROUP_SIZE)]] [[texture_atomic]]
-void sort_comp([[resource_table]] Resources &srt, [[global_invocation_id]] const uint3 global_id)
+void sort_comp([[resource_table]] Resources &srt,
+               [[resource_table]] SurfelData &surfels,
+               [[global_invocation_id]] const uint3 global_id)
 {
   const int item_id = int(global_id.x);
-  if (item_id >= int(capture_info_buf.surfel_len)) {
+  if (item_id >= int(surfels.capture_info_buf.surfel_len)) {
     return;
   }
 
   int surfel_id = srt.list_item_surfel_id_buf[item_id];
-  int list_id = surfel_buf[surfel_id].list_id;
+  int list_id = surfels.surfel_buf[surfel_id].list_id;
   float ray_distance = srt.list_item_distance_buf[item_id];
 
   IndexRange list_range{srt.list_range_buf[list_id * 2 + 0], srt.list_range_buf[list_id * 2 + 1]};
@@ -213,27 +212,14 @@ void sort_comp([[resource_table]] Resources &srt, [[global_invocation_id]] const
 
   int sorted_id = list_range.start() + prefix;
   srt.sorted_surfel_id_buf[sorted_id] = surfel_id;
-  surfel_buf[surfel_id].index_in_sorted_list = sorted_id;
+  surfels.surfel_buf[surfel_id].index_in_sorted_list = sorted_id;
 }
 
 }  // namespace list::sort
 
 namespace list::build {
 
-/**
- * Return true if link from `surfel[a]` to `surfel[b]` is valid.
- * WARNING: this function is not commutative : `f(a, b) != f(b, a)`
- */
-bool is_valid_surfel_link(int a, int b)
-{
-  float3 link_vector = normalize(surfel_buf[b].position - surfel_buf[a].position);
-  float link_angle_cos = dot(surfel_buf[a].normal, link_vector);
-  bool is_coplanar = abs(link_angle_cos) < 0.05f;
-  return !is_coplanar;
-}
-
 struct Resources {
-  [[legacy_info]] ShaderCreateInfo eevee_surfel_common;
   [[legacy_info]] ShaderCreateInfo draw_view;
 
   [[storage(0, write)]] int (&list_start_buf)[];
@@ -250,7 +236,9 @@ struct Resources {
  * Dispatched as 1 thread per list.
  */
 [[compute]] [[local_size(SURFEL_GROUP_SIZE)]] [[texture_atomic]]
-void build_comp([[resource_table]] Resources &srt, [[global_invocation_id]] const uint3 global_id)
+void build_comp([[resource_table]] Resources &srt,
+                [[resource_table]] SurfelData &surfels,
+                [[global_invocation_id]] const uint3 global_id)
 {
   const int list_id = int(global_id.x);
   if (list_id >= srt.list_info_buf.list_max) {
@@ -274,8 +262,8 @@ void build_comp([[resource_table]] Resources &srt, [[global_invocation_id]] cons
     int curr = srt.sorted_surfel_id_buf[first_item];
     for (int i = first_item; i <= last_item; i++) {
       int next = (i == last_item) ? -1 : srt.sorted_surfel_id_buf[i + 1];
-      surfel_buf[curr].next = next;
-      surfel_buf[curr].prev = prev;
+      surfels.surfel_buf[curr].next = next;
+      surfels.surfel_buf[curr].prev = prev;
       prev = curr;
       curr = next;
     }
@@ -299,35 +287,35 @@ void build_comp([[resource_table]] Resources &srt, [[global_invocation_id]] cons
 
   /* Mutable `foreach`. */
   for (int i = sorted_list_first, next = -1; i > -1; i = next) {
-    next = surfel_buf[i].next;
+    next = surfels.surfel_buf[i].next;
 
-    int valid_next = surfel_buf[i].next;
-    int valid_prev = surfel_buf[i].prev;
+    int valid_next = surfels.surfel_buf[i].next;
+    int valid_prev = surfels.surfel_buf[i].prev;
 
     /* Search the list for the first valid next and previous surfel. */
     while (search_count < max_search) {
       if (valid_next == -1) {
         break;
       }
-      if (is_valid_surfel_link(i, valid_next)) {
+      if (surfels.is_valid_surfel_link(i, valid_next)) {
         break;
       }
-      valid_next = surfel_buf[valid_next].next;
+      valid_next = surfels.surfel_buf[valid_next].next;
       search_count++;
     }
     while (search_count < max_search) {
       if (valid_prev == -1) {
         break;
       }
-      if (is_valid_surfel_link(i, valid_prev)) {
+      if (surfels.is_valid_surfel_link(i, valid_prev)) {
         break;
       }
-      valid_prev = surfel_buf[valid_prev].prev;
+      valid_prev = surfels.surfel_buf[valid_prev].prev;
       search_count++;
     }
 
-    surfel_buf[i].next = valid_next;
-    surfel_buf[i].prev = valid_prev;
+    surfels.surfel_buf[i].next = valid_next;
+    surfels.surfel_buf[i].prev = valid_prev;
   }
 
 #if 0 /* For debugging the sorted list. */

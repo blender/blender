@@ -325,7 +325,6 @@ set(GLSL_SRC
   engines/eevee/shaders/infos/eevee_common_infos.hh
   engines/eevee/shaders/infos/eevee_depth_of_field_infos.hh
   engines/eevee/shaders/infos/eevee_geom_infos.hh
-  engines/eevee/shaders/infos/eevee_lightprobe_infos.hh
   engines/eevee/shaders/infos/eevee_nodetree_infos.hh
   engines/eevee/shaders/infos/eevee_sampling_infos.hh
   engines/eevee/shaders/infos/eevee_tests_infos.hh
@@ -485,6 +484,7 @@ set(GLSL_SRC
   engines/eevee/shaders/eevee_surf_shadow.bsl.hh
   engines/eevee/shaders/eevee_surf_volume.bsl.hh
   engines/eevee/shaders/eevee_surf_world.bsl.hh
+  engines/eevee/shaders/eevee_surfel.bsl.hh
   engines/eevee/shaders/eevee_surfel_cluster.bsl.hh
   engines/eevee/shaders/eevee_surfel_light.bsl.hh
   engines/eevee/shaders/eevee_surfel_list.bsl.hh

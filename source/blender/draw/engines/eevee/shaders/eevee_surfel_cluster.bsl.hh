@@ -5,9 +5,7 @@
 #pragma once
 
 #include "infos/eevee_common_infos.hh"
-#include "infos/eevee_lightprobe_infos.hh"
 
-SHADER_LIBRARY_CREATE_INFO(eevee_surfel_common)
 SHADER_LIBRARY_CREATE_INFO(draw_view)
 
 #include "eevee_surfel_list.bsl.hh"
@@ -15,8 +13,9 @@ SHADER_LIBRARY_CREATE_INFO(draw_view)
 namespace eevee::surfel {
 
 struct Resources {
-  [[legacy_info]] ShaderCreateInfo eevee_surfel_common;
   [[legacy_info]] ShaderCreateInfo draw_view;
+
+  [[resource_table]] srt_t<SurfelData> surfels_data;
 
   [[image(0, read_write, SINT_32)]] iimage3DAtomic cluster_list_img;
 };

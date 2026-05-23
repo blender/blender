@@ -4,12 +4,9 @@
 
 #pragma once
 
-#include "infos/eevee_lightprobe_infos.hh"
-
-SHADER_LIBRARY_CREATE_INFO(eevee_surfel_common)
-
 #include "draw_view_lib.glsl"
 #include "eevee_lightprobe_sphere.bsl.hh"
+#include "eevee_surfel.bsl.hh"
 #include "gpu_shader_utildefines_lib.glsl"
 
 namespace eevee::surfel {
@@ -20,30 +17,32 @@ float avg_albedo(float3 albedo)
 }
 
 struct SurfelRay {
-  [[legacy_info]] ShaderCreateInfo eevee_surfel_common;
   [[legacy_info]] ShaderCreateInfo draw_view;
 
   [[resource_table]] srt_t<LightprobeSphereRenderData> lightprobe_spheres;
+  [[resource_table]] srt_t<SurfelData> surfels_data;
 
   [[push_constant]] const int radiance_src;
   [[push_constant]] const int radiance_dst;
 
   void radiance_transfer(Surfel &surfel, float3 in_radiance, float in_visibility, float3 L)
   {
+    [[resource_table]] SurfelData &surfels = surfels_data;
+
     /* Clamped brightness. */
     float luma = max(1e-8f, reduce_max(in_radiance));
-    in_radiance *= 1.0f - max(0.0f, luma - capture_info_buf.clamp_indirect) / luma;
+    in_radiance *= 1.0f - max(0.0f, luma - surfels.capture_info_buf.clamp_indirect) / luma;
 
     float NL = dot(surfel.normal, L);
     /* Lambertian BSDF. Albedo applied later depending on which side of the surfel was hit. */
     constexpr float bsdf = M_1_PI;
     /* From "Global Illumination using Parallel Global Ray-Bundles"
      * Eq. 3: Outgoing light */
-    float transfert_fn = (M_TAU / capture_info_buf.sample_count) * bsdf * abs(NL);
+    float transfert_fn = (M_TAU / surfels.capture_info_buf.sample_count) * bsdf * abs(NL);
 
     SurfelRadiance radiance = surfel.radiance_indirect[radiance_dst];
 
-    float sample_weight = 1.0f / capture_info_buf.sample_count;
+    float sample_weight = 1.0f / surfels.capture_info_buf.sample_count;
     bool front_facing = (NL > 0.0f);
     if (front_facing) {
       /* Store radiance normalized for spherical harmonic accumulation and for visualization. */
@@ -67,6 +66,8 @@ struct SurfelRay {
 
   void radiance_transfer_surfel(Surfel &receiver, Surfel sender)
   {
+    [[resource_table]] SurfelData &surfels = surfels_data;
+
     float3 L = safe_normalize(sender.position - receiver.position);
     bool front_facing = dot(-L, sender.normal) > 0.0f;
 
@@ -81,7 +82,7 @@ struct SurfelRay {
       radiance_vis += sender_radiance_indirect.back * sender_radiance_indirect.back_weight;
     }
 
-    if (!capture_info_buf.capture_indirect) {
+    if (!surfels.capture_info_buf.capture_indirect) {
       radiance_vis.rgb = float3(0.0f);
     }
 
@@ -91,16 +92,17 @@ struct SurfelRay {
   void radiance_transfer_world(Surfel &receiver, float3 L)
   {
     [[resource_table]] const LightprobeSphereRenderData &lp_spheres = lightprobe_spheres;
+    [[resource_table]] SurfelData &surfels = surfels_data;
 
     float3 radiance = float3(0.0f);
     float visibility = 0.0f;
 
-    if (capture_info_buf.capture_world_indirect) {
-      SphereProbeUvArea atlas_coord = capture_info_buf.world_atlas_coord;
+    if (surfels.capture_info_buf.capture_world_indirect) {
+      SphereProbeUvArea atlas_coord = surfels.capture_info_buf.world_atlas_coord;
       radiance = lp_spheres.sample_probe(L, 0.0f, atlas_coord).rgb;
     }
 
-    if (capture_info_buf.capture_visibility_indirect) {
+    if (surfels.capture_info_buf.capture_visibility_indirect) {
       visibility = 1.0f;
     }
 
@@ -119,17 +121,19 @@ struct SurfelRay {
 [[compute, local_size(SURFEL_GROUP_SIZE)]]
 void ray_main([[resource_table]] SurfelRay &srt, [[global_invocation_id]] const uint3 global_id)
 {
+  [[resource_table]] SurfelData &surfels = srt.surfels_data;
+
   int surfel_index = int(global_id.x);
-  if (surfel_index >= int(capture_info_buf.surfel_len)) {
+  if (surfel_index >= int(surfels.capture_info_buf.surfel_len)) {
     return;
   }
 
-  Surfel surfel = surfel_buf[surfel_index];
+  Surfel surfel = surfels.surfel_buf[surfel_index];
 
   float3 sky_L = drw_world_incident_vector(surfel.position);
 
   if (surfel.next > -1) {
-    Surfel surfel_next = surfel_buf[surfel.next];
+    Surfel surfel_next = surfels.surfel_buf[surfel.next];
     srt.radiance_transfer_surfel(surfel, surfel_next);
   }
   else {
@@ -137,14 +141,14 @@ void ray_main([[resource_table]] SurfelRay &srt, [[global_invocation_id]] const 
   }
 
   if (surfel.prev > -1) {
-    Surfel surfel_prev = surfel_buf[surfel.prev];
+    Surfel surfel_prev = surfels.surfel_buf[surfel.prev];
     srt.radiance_transfer_surfel(surfel, surfel_prev);
   }
   else {
     srt.radiance_transfer_world(surfel, sky_L);
   }
 
-  surfel_buf[surfel_index] = surfel;
+  surfels.surfel_buf[surfel_index] = surfel;
 }
 
 }  // namespace eevee::surfel

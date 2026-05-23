@@ -10,9 +10,7 @@
 #pragma once
 
 #include "infos/eevee_common_infos.hh"
-#include "infos/eevee_lightprobe_infos.hh"
 
-SHADER_LIBRARY_CREATE_INFO(eevee_surfel_common)
 SHADER_LIBRARY_CREATE_INFO(draw_view)
 
 #include "draw_intersect_lib.glsl"
@@ -71,8 +69,9 @@ struct SceneBound {
 }
 
 struct VolumeOffset {
-  [[legacy_info]] ShaderCreateInfo eevee_surfel_common;
   [[legacy_info]] ShaderCreateInfo draw_view;
+
+  [[resource_table]] srt_t<SurfelData> surfels_data;
 
   [[storage(0, read)]] const int (&list_start_buf)[];
   [[storage(6, read)]] const SurfelListInfoData &list_info_buf;
@@ -82,14 +81,18 @@ struct VolumeOffset {
 
   int find_closest_surfel(int3 grid_coord, float3 P)
   {
+    [[resource_table]] SurfelData &surfels = surfels_data;
+
     int surfel_first = imageLoad(cluster_list_img, grid_coord).r;
-    float search_radius_sqr = square(capture_info_buf.max_virtual_offset +
-                                     capture_info_buf.min_distance_to_surface);
+    float search_radius_sqr = square(surfels.capture_info_buf.max_virtual_offset +
+                                     surfels.capture_info_buf.min_distance_to_surface);
 
     int closest_surfel = -1;
     float closest_distance_sqr = 1e10f;
-    for (int surfel_id = surfel_first; surfel_id > -1; surfel_id = surfel_buf[surfel_id].next) {
-      Surfel surfel = surfel_buf[surfel_id];
+    for (int surfel_id = surfel_first; surfel_id > -1;
+         surfel_id = surfels.surfel_buf[surfel_id].next)
+    {
+      Surfel surfel = surfels.surfel_buf[surfel_id];
 
       float3 probe_to_surfel = surfel.position - P;
       float surfel_dist_sqr = length_squared(probe_to_surfel);
@@ -108,41 +111,49 @@ struct VolumeOffset {
 
   float front_facing_offset(float surfel_distance)
   {
-    if (abs(surfel_distance) > capture_info_buf.min_distance_to_surface) {
+    [[resource_table]] SurfelData &surfels = surfels_data;
+
+    if (abs(surfel_distance) > surfels.capture_info_buf.min_distance_to_surface) {
       return 0.0f;
     }
     /* NOTE: distance can be negative. */
     return surfel_distance - ((surfel_distance > 0.0f) ?
-                                  capture_info_buf.min_distance_to_surface :
-                                  -capture_info_buf.min_distance_to_surface);
+                                  surfels.capture_info_buf.min_distance_to_surface :
+                                  -surfels.capture_info_buf.min_distance_to_surface);
   }
 
   float back_facing_offset(float surfel_distance)
   {
-    if (surfel_distance > capture_info_buf.max_virtual_offset) {
+    [[resource_table]] SurfelData &surfels = surfels_data;
+
+    if (surfel_distance > surfels.capture_info_buf.max_virtual_offset) {
       return 0.0f;
     }
     /* NOTE: distance can be negative. */
     return surfel_distance + ((surfel_distance > 0.0f) ?
-                                  capture_info_buf.min_distance_to_surface :
-                                  -capture_info_buf.min_distance_to_surface);
+                                  surfels.capture_info_buf.min_distance_to_surface :
+                                  -surfels.capture_info_buf.min_distance_to_surface);
   }
 
   float compute_offset_length(int3 grid_coord, float3 P, float3 offset_direction)
   {
+    [[resource_table]] SurfelData &surfels = surfels_data;
+
     int surfel_first = imageLoad(cluster_list_img, grid_coord).r;
-    float search_radius = max(capture_info_buf.max_virtual_offset,
-                              capture_info_buf.min_distance_to_surface);
+    float search_radius = max(surfels.capture_info_buf.max_virtual_offset,
+                              surfels.capture_info_buf.min_distance_to_surface);
     /* Scale it a bit to avoid missing surfaces. */
-    float ray_radius = capture_info_buf.surfel_radius * M_SQRT2;
+    float ray_radius = surfels.capture_info_buf.surfel_radius * M_SQRT2;
 
     /* Nearest and farthest surfels in offset direction on both sides. */
     int surfel_pos = -1;
     int surfel_neg = -1;
     float surfel_distance_pos = +1e10f;
     float surfel_distance_neg = -1e10f;
-    for (int surfel_id = surfel_first; surfel_id > -1; surfel_id = surfel_buf[surfel_id].next) {
-      Surfel surfel = surfel_buf[surfel_id];
+    for (int surfel_id = surfel_first; surfel_id > -1;
+         surfel_id = surfels.surfel_buf[surfel_id].next)
+    {
+      Surfel surfel = surfels.surfel_buf[surfel_id];
 
       float3 probe_to_surfel = surfel.position - P;
       float surf_dist_signed = dot(offset_direction, probe_to_surfel);
@@ -175,14 +186,17 @@ struct VolumeOffset {
 
     if (has_neighbor_pos && has_neighbor_neg) {
       /* If both sides have neighbors. */
-      bool is_front_facing_pos = dot(offset_direction, surfel_buf[surfel_pos].normal) < 0.0f;
-      bool is_front_facing_neg = dot(-offset_direction, surfel_buf[surfel_neg].normal) < 0.0f;
+      bool is_front_facing_pos = dot(offset_direction, surfels.surfel_buf[surfel_pos].normal) <
+                                 0.0f;
+      bool is_front_facing_neg = dot(-offset_direction, surfels.surfel_buf[surfel_neg].normal) <
+                                 0.0f;
       if (is_front_facing_pos && is_front_facing_neg) {
         /* If both sides have same facing. */
         if (is_front_facing_pos) {
           /* If both sides are front facing. */
           float distance_between_neighbors = surfel_distance_pos - surfel_distance_neg;
-          if (distance_between_neighbors < capture_info_buf.min_distance_to_surface * 2.0f) {
+          if (distance_between_neighbors < surfels.capture_info_buf.min_distance_to_surface * 2.0f)
+          {
             /* Choose the middle point. */
             return (surfel_distance_pos + surfel_distance_neg) / 2.0f;
           }
@@ -209,7 +223,7 @@ struct VolumeOffset {
       int nearest_surfel_id = has_neighbor_pos ? surfel_pos : surfel_neg;
       float surfel_distance = has_neighbor_pos ? surfel_distance_pos : surfel_distance_neg;
       bool is_front_facing = dot(has_neighbor_pos ? offset_direction : -offset_direction,
-                                 surfel_buf[nearest_surfel_id].normal) < 0.0f;
+                                 surfels.surfel_buf[nearest_surfel_id].normal) < 0.0f;
       if (is_front_facing) {
         return front_facing_offset(surfel_distance);
       }
@@ -233,15 +247,17 @@ struct VolumeOffset {
 void volume_offset([[resource_table]] VolumeOffset &srt,
                    [[global_invocation_id]] const uint3 global_id)
 {
+  [[resource_table]] SurfelData &surfels = srt.surfels_data;
+
   int3 grid_coord = int3(global_id);
 
-  if (any(greaterThanEqual(grid_coord, capture_info_buf.irradiance_grid_size))) {
+  if (any(greaterThanEqual(grid_coord, surfels.capture_info_buf.irradiance_grid_size))) {
     return;
   }
 
   float3 P = lightprobe::volume::grid_sample_position(
-      capture_info_buf.irradiance_grid_local_to_world,
-      capture_info_buf.irradiance_grid_size,
+      surfels.capture_info_buf.irradiance_grid_local_to_world,
+      surfels.capture_info_buf.irradiance_grid_size,
       grid_coord);
 
   int closest_surfel_id = srt.find_closest_surfel(grid_coord, P);
@@ -253,9 +269,9 @@ void volume_offset([[resource_table]] VolumeOffset &srt,
   /* Offset direction towards the sampling point. */
   // float3 offset_direction = safe_normalize(surfel_buf[closest_surfel_id].position - P);
   /* NOTE: Use normal direction of the surfel instead for stability reasons. */
-  float3 offset_direction = surfel_buf[closest_surfel_id].normal;
-  bool is_front_facing = dot(surfel_buf[closest_surfel_id].position - P,
-                             surfel_buf[closest_surfel_id].normal) < 0.0f;
+  float3 offset_direction = surfels.surfel_buf[closest_surfel_id].normal;
+  bool is_front_facing = dot(surfels.surfel_buf[closest_surfel_id].position - P,
+                             surfels.surfel_buf[closest_surfel_id].normal) < 0.0f;
   if (is_front_facing) {
     offset_direction = -offset_direction;
   }
@@ -268,8 +284,8 @@ void volume_offset([[resource_table]] VolumeOffset &srt,
 }
 
 struct RayCapture {
-  [[legacy_info]] ShaderCreateInfo eevee_surfel_common;
   [[resource_table]] srt_t<LightprobeSphereRenderData> lightprobe_sphere;
+  [[resource_table]] srt_t<SurfelData> surfels_data;
   [[legacy_info]] ShaderCreateInfo draw_view;
 
   [[storage(0, read)]] const int (&list_start_buf)[];
@@ -288,7 +304,10 @@ struct RayCapture {
                           float visibility,
                           SphericalHarmonicL1<float4> &sh)
   {
-    float3 lL = transform_direction(capture_info_buf.irradiance_grid_world_to_local_rotation, L);
+    [[resource_table]] SurfelData &surfels = surfels_data;
+
+    float3 lL = transform_direction(
+        surfels.capture_info_buf.irradiance_grid_world_to_local_rotation, L);
 
     /* Spherical harmonics need to be weighted by sphere area. */
     irradiance *= 4.0f * M_PI;
@@ -299,6 +318,8 @@ struct RayCapture {
 
   void irradiance_capture_surfel(Surfel surfel, float3 P, SphericalHarmonicL1<float4> &sh)
   {
+    [[resource_table]] SurfelData &surfels = surfels_data;
+
     float3 L = safe_normalize(surfel.position - P);
     bool facing = dot(-L, surfel.normal) > 0.0f;
     SurfelRadiance surfel_radiance_indirect = surfel.radiance_indirect[radiance_src];
@@ -308,7 +329,7 @@ struct RayCapture {
 
     /* Clamped brightness. */
     float luma = max(1e-8f, reduce_max(irradiance_vis.rgb));
-    irradiance_vis.rgb *= 1.0f - max(0.0f, luma - capture_info_buf.clamp_direct) / luma;
+    irradiance_vis.rgb *= 1.0f - max(0.0f, luma - surfels.capture_info_buf.clamp_direct) / luma;
 
     /* NOTE: The indirect radiance is already normalized and this is wanted, because we are not
      * integrating the same signal and we would have the SH lagging behind the surfel integration
@@ -333,20 +354,21 @@ struct RayCapture {
   void irradiance_capture_world(float3 L, SphericalHarmonicL1<float4> &sh)
   {
     [[resource_table]] const LightprobeSphereRenderData &lp_sphere = lightprobe_sphere;
+    [[resource_table]] SurfelData &surfels = surfels_data;
 
     float3 radiance = float3(0.0f);
     float visibility = 0.0f;
 
-    if (capture_info_buf.capture_world_direct) {
-      SphereProbeUvArea atlas_coord = capture_info_buf.world_atlas_coord;
+    if (surfels.capture_info_buf.capture_world_direct) {
+      SphereProbeUvArea atlas_coord = surfels.capture_info_buf.world_atlas_coord;
       radiance = lp_sphere.sample_probe(L, 0.0f, atlas_coord).rgb;
 
       /* Clamped brightness. */
       float luma = max(1e-8f, reduce_max(radiance));
-      radiance *= 1.0f - max(0.0f, luma - capture_info_buf.clamp_direct) / luma;
+      radiance *= 1.0f - max(0.0f, luma - surfels.capture_info_buf.clamp_direct) / luma;
     }
 
-    if (capture_info_buf.capture_visibility_direct) {
+    if (surfels.capture_info_buf.capture_visibility_direct) {
       visibility = 1.0f;
     }
 
@@ -367,15 +389,17 @@ struct RayCapture {
 void ray_capture([[resource_table]] RayCapture &srt,
                  [[global_invocation_id]] const uint3 global_id)
 {
+  [[resource_table]] SurfelData &surfels = srt.surfels_data;
+
   int3 grid_coord = int3(global_id);
 
-  if (any(greaterThanEqual(grid_coord, capture_info_buf.irradiance_grid_size))) {
+  if (any(greaterThanEqual(grid_coord, surfels.capture_info_buf.irradiance_grid_size))) {
     return;
   }
 
   float3 P = lightprobe::volume::grid_sample_position(
-      capture_info_buf.irradiance_grid_local_to_world,
-      capture_info_buf.irradiance_grid_size,
+      surfels.capture_info_buf.irradiance_grid_local_to_world,
+      surfels.capture_info_buf.irradiance_grid_size,
       grid_coord);
 
   /* Add virtual offset to avoid baking inside of geometry as much as possible. */
@@ -395,11 +419,11 @@ void ray_capture([[resource_table]] RayCapture &srt,
       break;
     }
     /* Reminder: List is sorted with highest value first. */
-    if (surfel_buf[surfel_next].ray_distance < irradiance_sample_ray_distance) {
+    if (surfels.surfel_buf[surfel_next].ray_distance < irradiance_sample_ray_distance) {
       break;
     }
     surfel_prev = surfel_next;
-    surfel_next = surfel_buf[surfel_next].next;
+    surfel_next = surfels.surfel_buf[surfel_next].next;
     assert(surfel_prev != surfel_next);
   }
 
@@ -413,7 +437,7 @@ void ray_capture([[resource_table]] RayCapture &srt,
   float validity = imageLoadFast(srt.validity_img, grid_coord).r;
 
   /* Un-normalize for accumulation. */
-  float weight_captured = capture_info_buf.sample_index * 2.0f;
+  float weight_captured = surfels.capture_info_buf.sample_index * 2.0f;
   sh.L0.M0 *= weight_captured;
   sh.L1.Mn1 *= weight_captured;
   sh.L1.M0 *= weight_captured;
@@ -421,7 +445,7 @@ void ray_capture([[resource_table]] RayCapture &srt,
   validity *= weight_captured;
 
   if (surfel_next > -1) {
-    Surfel surfel = surfel_buf[surfel_next];
+    Surfel surfel = surfels.surfel_buf[surfel_next];
     srt.irradiance_capture_surfel(surfel, P, sh);
     srt.validity_capture_surfel(surfel, P, validity);
 #if 0 /* For debugging the volume rays list. */
@@ -437,7 +461,7 @@ void ray_capture([[resource_table]] RayCapture &srt,
   }
 
   if (surfel_prev > -1) {
-    Surfel surfel = surfel_buf[surfel_prev];
+    Surfel surfel = surfels.surfel_buf[surfel_prev];
     srt.irradiance_capture_surfel(surfel, P, sh);
     srt.validity_capture_surfel(surfel, P, validity);
 #if 0 /* For debugging the volume rays list. */
