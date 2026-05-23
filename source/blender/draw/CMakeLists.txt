@@ -765,11 +765,11 @@ set(GLSL_SRC
 
 # These tests depend on gpu_shader_test, so they're only included when WITH_GPU_BACKEND_TESTS is enabled.
 set(GLSL_SRC_TEST
-  engines/eevee/shaders/eevee_gbuffer_closure_test.glsl
-  engines/eevee/shaders/eevee_gbuffer_normal_test.glsl
-  engines/eevee/shaders/eevee_fast_gi_test.glsl
-  engines/eevee/shaders/eevee_occupancy_test.glsl
-  engines/eevee/shaders/eevee_shadow_test.glsl
+  engines/eevee/shaders/eevee_test_gbuffer_closure.bsl.hh
+  engines/eevee/shaders/eevee_test_gbuffer_normal.bsl.hh
+  engines/eevee/shaders/eevee_test_fast_gi.bsl.hh
+  engines/eevee/shaders/eevee_test_shadow.bsl.hh
+  engines/eevee/shaders/eevee_test_occupancy.bsl.hh
 )
 
 if(WITH_GTESTS)

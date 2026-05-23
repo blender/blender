@@ -9,6 +9,8 @@
 #  line 10
 #endif
 
+#pragma once
+
 #include "infos/gpu_shader_test_infos.hh"
 
 COMPUTE_SHADER_CREATE_INFO(gpu_shader_test)

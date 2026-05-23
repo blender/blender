@@ -591,13 +591,13 @@ GPU_TEST(math_lib)
 static void test_eevee_lib()
 {
   /* TODO(fclem): Not passing currently. Need to be updated. */
-  // gpu_shader_lib_test("eevee_shadow_test.glsl", "eevee_tests_data");
-  gpu_shader_lib_test("eevee_occupancy_test.glsl");
-  gpu_shader_lib_test("eevee_fast_gi_test.glsl");
+  // gpu_shader_lib_test("eevee_shadow_test.bsl.hh", "eevee_tests_data");
+  gpu_shader_lib_test("eevee_test_occupancy.bsl.hh");
+  gpu_shader_lib_test("eevee_test_fast_gi.bsl.hh");
 #ifndef __APPLE__ /* PSOs fail to compile on Mac. Try to port them to compute shader to see if it \
                    * fixes the issue. */
-  gpu_shader_lib_test("eevee_gbuffer_normal_test.glsl", "eevee_tests_data");
-  gpu_shader_lib_test("eevee_gbuffer_closure_test.glsl", "eevee_tests_data");
+  gpu_shader_lib_test("eevee_test_gbuffer_normal.bsl.hh", "eevee_tests_data");
+  gpu_shader_lib_test("eevee_test_gbuffer_closure.bsl.hh", "eevee_tests_data");
 #endif
 }
 GPU_TEST(eevee_lib)
@@ -773,7 +773,7 @@ template<typename T> T atomicMax(threadgroup T &mem, T data) { return atomic_fet
   {
     std::string input = R"(
 #define A
-#if defined(A) && !defined ( B ) && defined A && !defined  B 
+#if defined(A) && !defined ( B ) && defined A && !defined  B
 High there!
 #endif
 )";

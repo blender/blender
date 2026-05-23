@@ -5,7 +5,11 @@
 /* Directive for resetting the line numbering so the failing tests lines can be printed.
  * This conflict with the shader compiler error logging scheme.
  * Comment out for correct compilation error line. */
-#line 9
+#if 1 /* WORKAROUND: GLSL shader compilation mutate line directives searching `#line` pattern. */
+#  line 10
+#endif
+
+#pragma once
 
 #include "infos/gpu_shader_test_infos.hh"
 
