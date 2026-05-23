@@ -15,10 +15,10 @@ static void add_filter(FlatBundleTypeBuilder &b)
   b.add<decl::Bool>("filter_local"_ustr).default_value(false);
 }
 
-const FlatBundleTypePtr &ColliderBundle::get_bundle_type()
+const FlatBundleTypePtr &MeshColliderBundle::get_bundle_type()
 {
   static const FlatBundleTypePtr bundle_type = []() {
-    FlatBundleTypeBuilder b(ColliderBundle::name);
+    FlatBundleTypeBuilder b(MeshColliderBundle::name);
     add_filter(b);
     b.add<decl::Geometry>("geometry"_ustr);
     b.add<decl::Float>("margin"_ustr).min(0.0f);

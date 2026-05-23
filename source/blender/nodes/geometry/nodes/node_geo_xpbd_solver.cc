@@ -86,7 +86,7 @@ static NestedBundleTypePtr make_world_type()
   Vector<std::shared_ptr<const FlatBundleType>> types;
   types.append(XPBDSolverDataBundle::get_bundle_type());
   types.append(DampingBundle::get_bundle_type());
-  types.append(ColliderBundle::get_bundle_type());
+  types.append(MeshColliderBundle::get_bundle_type());
   types.append(CollisionContactsBundle::get_bundle_type());
   types.append(RodStretchShearBundle::get_bundle_type());
   types.append(RodBendTwistBundle::get_bundle_type());
@@ -822,7 +822,7 @@ class XpbdSolverStep {
 
   void gather_from_world__mesh_colliders()
   {
-    const Span<std::string> paths = nested_bundle_paths_.lookup_as(ColliderBundle::name);
+    const Span<std::string> paths = nested_bundle_paths_.lookup_as(MeshColliderBundle::name);
     for (const StringRef path : paths) {
       const BundlePtr *bundle_ptr = world_.lookup_path_ptr<BundlePtr>(path);
       if (!bundle_ptr || !*bundle_ptr) {

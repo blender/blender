@@ -10,9 +10,9 @@
 
 namespace blender::nodes::physics_bundles {
 
-class ColliderBundle {
+class MeshColliderBundle {
  public:
-  static constexpr StringRefNull name = "Blender.Collider";
+  static constexpr StringRefNull name = "Blender.Collider.Mesh";
   static const FlatBundleTypePtr &get_bundle_type();
 };
 
@@ -30,37 +30,37 @@ class DampingBundle {
 
 class PinPositionBundle {
  public:
-  static constexpr StringRefNull name = "Blender.PinPositionConstraint";
+  static constexpr StringRefNull name = "Blender.Constraint.PinPosition";
   static const FlatBundleTypePtr &get_bundle_type();
 };
 
 class PinRotationBundle {
  public:
-  static constexpr StringRefNull name = "Blender.PinRotationConstraint";
+  static constexpr StringRefNull name = "Blender.Constraint.PinRotation";
   static const FlatBundleTypePtr &get_bundle_type();
 };
 
 class RodStretchShearBundle {
  public:
-  static constexpr StringRefNull name = "Blender.RodStretchShearConstraint";
+  static constexpr StringRefNull name = "Blender.Constraint.RodStretchShear";
   static const FlatBundleTypePtr &get_bundle_type();
 };
 
 class RodBendTwistBundle {
  public:
-  static constexpr StringRefNull name = "Blender.RodBendTwistConstraint";
+  static constexpr StringRefNull name = "Blender.Constraint.RodBendTwist";
   static const FlatBundleTypePtr &get_bundle_type();
 };
 
 class EdgeLengthConstraintBundle {
  public:
-  static constexpr StringRefNull name = "Blender.EdgeLengthConstraint";
+  static constexpr StringRefNull name = "Blender.Constraint.EdgeLength";
   static const FlatBundleTypePtr &get_bundle_type();
 };
 
 class CrossEdgeLengthConstraintBundle {
  public:
-  static constexpr StringRefNull name = "Blender.CrossEdgeLengthConstraint";
+  static constexpr StringRefNull name = "Blender.Constraint.CrossEdgeLength";
   static const FlatBundleTypePtr &get_bundle_type();
 };
 
