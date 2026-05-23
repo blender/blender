@@ -803,8 +803,16 @@ void SourceProcessor::parse_builtins(const string &str, const string &filename, 
  * Empty structs are useful for templating. */
 void SourceProcessor::lower_empty_struct(Parser &parser)
 {
-  parser().foreach_match(
-      "sA{};", [&](const vector<Token> &tokens) { parser.insert_after(tokens[2], "int _pad;"); });
+  parser().foreach_struct([&](Token, Scope, Token, Scope body) {
+    int decl_count = 0;
+    body.foreach_declaration(
+        [&](Scope, Token, Token, Scope, Token, Scope, Token) { decl_count += 1; });
+
+    if (decl_count == 0) {
+      parser.insert_before(body.back(), "int _pad;");
+    }
+  });
+
   parser.apply_mutations();
 }
 
