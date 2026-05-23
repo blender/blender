@@ -16,6 +16,7 @@ FRAGMENT_SHADER_CREATE_INFO(eevee_hiz_data)
 #include "draw_view_lib.glsl"
 #include "eevee_debug_shared.hh"
 #include "eevee_defines.hh"
+#include "eevee_gbuffer_read_lib.glsl"
 #include "eevee_light_iter.bsl.hh"
 #include "eevee_light_lib.glsl"
 #include "eevee_lightprobe_volume.bsl.hh"
@@ -170,7 +171,7 @@ struct ShadowDebug {
   }
 };
 
-struct ShadowDebugFragOut {
+struct DualBlendFragOut {
   [[frag_color(0), index(0)]] float4 color_add;
   [[frag_color(0), index(1)]] float4 color_mul;
 };
@@ -330,7 +331,7 @@ void debug_shadow_frag([[resource_table]] ShadowDebug &srt,
                        [[frag_coord]] const float4 frag_co,
                        [[frag_depth(greater)]] float &frag_depth,
                        [[in]] const DebugVertOut v_out,
-                       [[out]] ShadowDebugFragOut &frag_out)
+                       [[out]] DualBlendFragOut &frag_out)
 {
   /* Default to no output. */
   frag_out.color_add = float4(0.0f);
@@ -587,3 +588,104 @@ void frag_main([[resource_table]] const Resources &srt,
 
 PipelineGraphic eevee_debug_surfels(eevee::debug::surfels::vert_main,
                                     eevee::debug::surfels::frag_main);
+
+namespace eevee::debug::gbuffer {
+
+struct Resources {
+  [[legacy_info]] ShaderCreateInfo draw_view;
+  [[legacy_info]] ShaderCreateInfo eevee_gbuffer_data;
+
+  [[push_constant]] const int debug_mode;
+};
+
+[[fragment]]
+void frag_main([[resource_table]] Resources &srt,
+               [[frag_coord]] const float4 frag_co,
+               [[out]] DualBlendFragOut &frag_out)
+{
+  int2 texel = int2(frag_co.xy);
+
+  const ::gbuffer::Layers gbuf = ::gbuffer::read_layers(texel);
+
+  if (gbuf.has_no_closure()) {
+    gpu_discard_fragment();
+    return;
+  }
+
+  float shade = saturate(drw_normal_world_to_view(gbuf.surface_N()).z);
+
+  ::gbuffer::Header header = ::gbuffer::read_header(texel);
+  uint4 closure_types = (uint4(header.raw()) >> uint4(0u, 4u, 8u, 12u)) & 15u;
+  float storage_cost = reduce_add(float4(not(equal(closure_types, uint4(0u)))));
+
+  float eval_cost = 0.0f;
+  for (uchar i = 0; i < GBUFFER_LAYER_MAX; i++) {
+    switch (gbuf.layer[i].type) {
+      case CLOSURE_BSDF_DIFFUSE_ID:
+      case CLOSURE_BSDF_TRANSLUCENT_ID:
+      case CLOSURE_BSDF_MICROFACET_GGX_REFLECTION_ID:
+      case CLOSURE_BSDF_MICROFACET_GGX_REFRACTION_ID:
+        eval_cost += 1.0f;
+        break;
+      case CLOSURE_BSSRDF_BURLEY_ID:
+      case CLOSURE_BSDF_THIN_GLASS_TRANSMISSION_ID:
+        eval_cost += 2.0f;
+        break;
+      case CLOSURE_NONE_ID:
+        break;
+    }
+  }
+
+  switch (eDebugMode(srt.debug_mode)) {
+    default:
+    case DEBUG_GBUFFER_STORAGE:
+      frag_out.color_add = shade * float4(green_to_red_gradient(storage_cost / 4.0f), 0.0f);
+      break;
+    case DEBUG_GBUFFER_EVALUATION:
+      frag_out.color_add = shade * float4(green_to_red_gradient(eval_cost / 4.0f), 0.0f);
+      break;
+  }
+
+  frag_out.color_mul = float4(0.0f);
+}
+
+}  // namespace eevee::debug::gbuffer
+
+PipelineGraphic eevee_debug_gbuffer(eevee::debug_fullscreen_vert,
+                                    eevee::debug::gbuffer::frag_main);
+
+namespace eevee::debug::hiz {
+
+struct Resources {
+  [[legacy_info]] ShaderCreateInfo eevee_hiz_data;
+};
+
+/**
+ * Debug hiz down sampling pass.
+ * Output red if above any max pixels, blue otherwise.
+ */
+[[fragment]]
+void frag_main([[resource_table]] Resources &srt,
+               [[frag_coord]] const float4 frag_co,
+               [[out]] DualBlendFragOut &frag_out)
+{
+  int2 texel = int2(frag_co.xy);
+
+  float depth0 = texelFetch(hiz_tx, texel, 0).r;
+
+  float4 color = float4(0.1f, 0.1f, 1.0f, 1.0f);
+  for (int i = 1; i < HIZ_MIP_COUNT; i++) {
+    int2 lvl_texel = texel / int2(uint2(1) << uint(i));
+    lvl_texel = min(lvl_texel, textureSize(hiz_tx, i) - 1);
+    if (texelFetch(hiz_tx, lvl_texel, i).r < depth0) {
+      color = float4(1.0f, 0.1f, 0.1f, 1.0f);
+      break;
+    }
+  }
+  frag_out.color_add = float4(color.rgb, 0.0f) * 0.2f;
+  frag_out.color_mul = color;
+}
+
+}  // namespace eevee::debug::hiz
+
+PipelineGraphic eevee_hiz_debug(eevee::debug_fullscreen_vert, eevee::debug::hiz::frag_main);
