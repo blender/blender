@@ -28,7 +28,7 @@ VERTEX_SHADER_CREATE_INFO(draw_view)
 #include "draw_view_lib.glsl"
 #include "eevee_closure.bsl.hh"
 #include "eevee_colorspace_lib.bsl.hh"
-#include "eevee_filter_lib.glsl"
+#include "eevee_filter.bsl.hh"
 #include "eevee_gbuffer_read_lib.glsl"
 #include "eevee_lightprobe.bsl.hh"
 #include "eevee_ray_types_lib.bsl.hh"
@@ -473,12 +473,12 @@ struct SampleInput {
       return 0.0f;
     }
 
-    float gauss = filter_gaussian_factor(1.5f, 1.5f);
+    float gauss = filters::gaussian_factor(1.5f, 1.5f);
 
     /* TODO(fclem): Scene parameter. 100.0f is dependent on scene scale. */
-    float depth_weight = filter_planar_weight(center_N, center_P, sample_P, 100.0f);
-    float spatial_weight = filter_gaussian_weight(gauss, length_squared(float2(sample_offset)));
-    float normal_weight = filter_angle_weight(center_N, sample_N);
+    float depth_weight = filters::planar_weight(center_N, center_P, sample_P, 100.0f);
+    float spatial_weight = filters::gaussian_weight(gauss, length_squared(float2(sample_offset)));
+    float normal_weight = filters::angle_weight(center_N, sample_N);
 
     return max(1e-6f, depth_weight * spatial_weight * normal_weight);
   }
@@ -505,8 +505,8 @@ struct SampleInput {
     }
 
     /* TODO(fclem): Scene parameter. 10000.0f is dependent on scene scale. */
-    float depth_weight = filter_planar_weight(center_N, center_P, sample_P, 10000.0f);
-    float normal_weight = filter_angle_weight(center_N, sample_N);
+    float depth_weight = filters::planar_weight(center_N, center_P, sample_P, 10000.0f);
+    float normal_weight = filters::angle_weight(center_N, sample_N);
     /* Some pixels might have no correct weight (depth & normal weights being very small).
      * To avoid them have invalid energy (because of float precision),
      * we weight all valid samples by a very small amount. */

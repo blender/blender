@@ -26,7 +26,7 @@ SHADER_LIBRARY_CREATE_INFO(eevee_utility_texture)
 #include "eevee_closure.bsl.hh"
 #include "eevee_colorspace_lib.bsl.hh"
 #include "eevee_defines.hh"
-#include "eevee_filter_lib.glsl"
+#include "eevee_filter.bsl.hh"
 #include "eevee_gbuffer_read_lib.glsl"
 #include "eevee_reverse_z_lib.bsl.hh"
 #include "eevee_sampling_lib.glsl"
@@ -104,8 +104,8 @@ struct DenoiseSpatial {
     float3 sample_P = drw_point_screen_to_world(float3(sample_uv, sample_depth));
 
     /* TODO(fclem): Scene parameter. 10000.0f is dependent on scene scale. */
-    float depth_weight = filter_planar_weight(center_N, center_P, sample_P, 10000.0f);
-    float normal_weight = filter_angle_weight(center_N, sample_N);
+    float depth_weight = filters::planar_weight(center_N, center_P, sample_P, 10000.0f);
+    float normal_weight = filters::angle_weight(center_N, sample_N);
     /* Some pixels might have no correct weight (depth & normal weights being very small).
      * To avoid them have invalid energy (because of float precision),
      * we weight all valid samples by a very small amount. */
@@ -767,12 +767,12 @@ void bilateral_main([[resource_table]] DenoiseBilateral &srt,
       continue;
     }
 
-    float gauss = filter_gaussian_factor(filter_size, 1.5f);
+    float gauss = filters::gaussian_factor(filter_size, 1.5f);
 
     /* TODO(fclem): Scene parameter. 10000.0f is dependent on scene scale. */
-    float depth_weight = filter_planar_weight(center_closure.N, center_P, sample_P, 10000.0f);
-    float spatial_weight = filter_gaussian_weight(gauss, length_squared(float2(offset)));
-    float normal_weight = filter_angle_weight(center_closure.N, sample_closure.N);
+    float depth_weight = filters::planar_weight(center_closure.N, center_P, sample_P, 10000.0f);
+    float spatial_weight = filters::gaussian_weight(gauss, length_squared(float2(offset)));
+    float normal_weight = filters::angle_weight(center_closure.N, sample_closure.N);
     float weight = depth_weight * spatial_weight * normal_weight;
 
     accum_radiance += colorspace::log_from_scene_linear(radiance) * weight;

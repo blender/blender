@@ -52,7 +52,6 @@ set(SRC_GLSL_LIB
   eevee_attributes_world_lib.glsl
   eevee_depth_of_field_accumulator_lib.glsl
   eevee_depth_of_field_lib.glsl
-  eevee_filter_lib.glsl
   # eevee_forward_lib.glsl
   eevee_gbuffer_lib.glsl
   eevee_light_lib.glsl

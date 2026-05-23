@@ -400,7 +400,7 @@ set(GLSL_SRC
   engines/eevee/shaders/eevee_depth_of_field_tiles_dilate_comp.glsl
   engines/eevee/shaders/eevee_depth_of_field_tiles_flatten_comp.glsl
   engines/eevee/shaders/eevee_film.bsl.hh
-  engines/eevee/shaders/eevee_filter_lib.glsl
+  engines/eevee/shaders/eevee_filter.bsl.hh
   engines/eevee/shaders/eevee_forward_lib.glsl
   engines/eevee/shaders/eevee_forward_resolve.bsl.hh
   engines/eevee/shaders/eevee_gbuffer_lib.glsl

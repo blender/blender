@@ -11,6 +11,9 @@
 #include "gpu_shader_math_base_lib.glsl"
 #include "gpu_shader_utildefines_lib.glsl"
 
+/* Meh, filter is a reserved keyword.  */
+namespace filters {
+
 /**
  * Return the factor to filter_gaussian_weight. This is handy utility function to compute your
  * gaussian parameter in a documented manner.
@@ -24,7 +27,7 @@
  * `standard_deviation = 1.0` will cover 68% of the gaussian weight inside the 5px radius.
  * `standard_deviation = 2.0` will cover 95% of the gaussian weight inside the 5px radius.
  */
-float filter_gaussian_factor(float linear_distance, float standard_deviation)
+float gaussian_factor(float linear_distance, float standard_deviation)
 {
   /* Account for `filter_gaussian_factor` using `exp2` for speed (`exp(x) = exp2(x / log(2))`). */
   constexpr float log_2_inv = 1.442695041f;
@@ -35,7 +38,7 @@ float filter_gaussian_factor(float linear_distance, float standard_deviation)
  * Gaussian distance weighting. Allow weighting based on distance without null weight whatever the
  * distance. `factor` is supposed to be a scaling parameter given by `filter_gaussian_factor`.
  */
-float filter_gaussian_weight(float factor, float square_distance)
+float gaussian_weight(float factor, float square_distance)
 {
   /* Using exp2 since it is faster on GPU. `filter_gaussian_factor` account for that. */
   return exp2(-factor * square_distance);
@@ -44,19 +47,21 @@ float filter_gaussian_weight(float factor, float square_distance)
 /**
  * Planar distance weighting. Allow to weight based on geometric neighborhood.
  */
-float filter_planar_weight(float3 plane_N, float3 plane_P, float3 P, float scale)
+float planar_weight(float3 plane_N, float3 plane_P, float3 P, float scale)
 {
   float4 plane_eq = float4(plane_N, -dot(plane_N, plane_P));
   float plane_distance = dot(plane_eq, float4(P, 1.0f));
-  return filter_gaussian_weight(scale, square(plane_distance));
+  return gaussian_weight(scale, square(plane_distance));
 }
 
 /**
  * Angle weighting. Mostly used for normals.
  * Expects both normals to be normalized.
  */
-float filter_angle_weight(float3 center_N, float3 sample_N)
+float angle_weight(float3 center_N, float3 sample_N)
 {
   float facing_ratio = dot(center_N, sample_N);
   return saturate(pow8f(facing_ratio));
 }
+
+}  // namespace filters
