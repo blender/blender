@@ -40,6 +40,7 @@
 #include "BKE_node_runtime.hh"
 #include "BKE_report.hh"
 
+#include "SEQ_effects.hh"
 #include "SEQ_iterator.hh"
 #include "SEQ_sequencer.hh"
 
@@ -288,6 +289,24 @@ static void version_text_strip_space_line(Main &bmain)
       }
       return true;
     });
+  }
+}
+
+static void version_compositor_effect_initialized(Main &bmain)
+{
+  /* A file with compositor effects that was saved, opened in
+   * previous version and saved there, would have lost the
+   * compositor effect data since ealier versions would not
+   * write it. Ensure the effect data is not null. */
+  for (Scene &scene : bmain.scenes) {
+    if (scene.ed) {
+      seq::foreach_strip(&scene.ed->seqbase, [&](Strip *strip) {
+        if (strip->type == STRIP_TYPE_COMPOSITOR) {
+          seq::effect_ensure_initialized(strip);
+        }
+        return true;
+      });
+    }
   }
 }
 
@@ -688,6 +707,7 @@ void blo_do_versions_520(FileData * /*fd*/, Library * /*lib*/, Main *bmain)
 
   if (!MAIN_VERSION_FILE_ATLEAST(bmain, 502, 28)) {
     version_text_strip_space_line(*bmain);
+    version_compositor_effect_initialized(*bmain);
   }
 
   if (!MAIN_VERSION_FILE_ATLEAST(bmain, 502, 29)) {
