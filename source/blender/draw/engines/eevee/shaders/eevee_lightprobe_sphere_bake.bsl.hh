@@ -333,10 +333,7 @@ struct Convolve {
 
 /* Convolve Mipmap chain recursively using a increasingly large spherical gaussian filters. */
 [[compute, local_size(SPHERE_PROBE_GROUP_SIZE, SPHERE_PROBE_GROUP_SIZE)]]
-void mip_convolve([[resource_table]] Convolve &srt,
-                  [[global_invocation_id]] const uint3 global_id,
-                  [[local_invocation_id]] const uint3 local_id,
-                  [[local_invocation_index]] const uint local_index)
+void mip_convolve([[resource_table]] Convolve &srt, [[global_invocation_id]] const uint3 global_id)
 {
   SphereProbeUvArea sample_coord = reinterpret_as_atlas_coord(srt.probe_coord_packed);
   SphereProbePixelArea out_texel_area = reinterpret_as_write_coord(srt.write_coord_packed);
@@ -407,8 +404,6 @@ struct IrradianceSum {
 
 [[compute, local_size(SPHERE_PROBE_SH_GROUP_SIZE)]]
 void irradiance_sum([[resource_table]] IrradianceSum &srt,
-                    [[global_invocation_id]] const uint3 global_id,
-                    [[local_invocation_id]] const uint3 local_id,
                     [[local_invocation_index]] const uint local_index)
 {
   constexpr uint group_size = SPHERE_PROBE_SH_GROUP_SIZE;
@@ -474,8 +469,6 @@ struct SunExtraction {
 
 [[compute, local_size(SPHERE_PROBE_SH_GROUP_SIZE)]]
 void sun_extraction([[resource_table]] SunExtraction &srt,
-                    [[global_invocation_id]] const uint3 global_id,
-                    [[local_invocation_id]] const uint3 local_id,
                     [[local_invocation_index]] const uint local_index)
 {
   constexpr uint group_size = SPHERE_PROBE_SH_GROUP_SIZE;

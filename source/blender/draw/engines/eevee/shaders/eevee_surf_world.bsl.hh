@@ -51,7 +51,7 @@ struct SurfWorldFragOut {
 [[fragment]] [[early_fragment_tests]]
 void surf_world([[resource_table]] SurfWorld &srt,
                 [[resource_table]] const LightprobeRenderData &lightprobes,
-                [[frag_coord]] const float4 frag_co,
+                [[frag_coord]] const float4 /*frag_co*/,
                 [[out]] SurfWorldFragOut &frag_out,
                 [[front_facing]] const bool front_face)
 {

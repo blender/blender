@@ -78,9 +78,7 @@ struct Resources {
 
 [[compute, local_size(FILM_GROUP_SIZE, FILM_GROUP_SIZE)]]
 void sort_samples([[resource_table]] Resources &srt,
-                  [[global_invocation_id]] const uint3 global_id,
-                  [[local_invocation_id]] const uint3 local_id,
-                  [[local_invocation_index]] const uint local_index)
+                  [[global_invocation_id]] const uint3 global_id)
 {
   int2 texel = int2(global_id.xy);
 

@@ -62,8 +62,8 @@ template<> struct SurfaceDepthFragOut<true> {
 template<bool with_velocity>
 [[fragment]]
 void surf_depth([[resource_table]] PipelineConstants &pipe,
-                [[resource_table]] SurfaceDepth &srt,
-                [[frag_coord]] const float4 frag_co,
+                [[resource_table]] SurfaceDepth & /*srt*/,
+                [[frag_coord]] const float4 /*frag_co*/,
                 [[out]] SurfaceDepthFragOut<with_velocity> &frag_out,
                 [[front_facing]] const bool front_face)
 {

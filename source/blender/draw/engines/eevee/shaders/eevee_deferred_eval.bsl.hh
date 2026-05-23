@@ -65,7 +65,7 @@ struct ClearAOV {
  * AOVs for the pixel affected by the next layer using stencil test after the pre-pass.
  */
 [[fragment, early_fragment_tests]]
-void aov_clear_frag([[resource_table]] ClearAOV &srt, [[frag_coord]] const float4 frag_co)
+void aov_clear_frag([[resource_table]] ClearAOV & /*srt*/, [[frag_coord]] const float4 /*frag_co*/)
 {
   clear_aovs();
 }

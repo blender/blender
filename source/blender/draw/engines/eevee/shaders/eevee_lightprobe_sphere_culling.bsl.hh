@@ -29,9 +29,7 @@ struct Cull {
 [[compute, local_size(SPHERE_PROBE_SELECT_GROUP_SIZE)]]
 void cull([[resource_table]] Cull &srt,
           [[resource_table]] const LightprobeVolumeRenderData &volumes,
-          [[global_invocation_id]] const uint3 global_id,
-          [[local_invocation_id]] const uint3 local_id,
-          [[local_invocation_index]] const uint local_index)
+          [[global_invocation_id]] const uint3 global_id)
 {
   int idx = int(global_id.x);
   if (idx >= srt.lightprobe_sphere_count) {

@@ -40,7 +40,7 @@ struct GeomPointCloud {
     [[resource_table, condition(is_shadow_pipe)]] GeomShadow &shadow,
     [[instance_id]] const int /*inst_id*/,     /* Used by model_lib. */
     [[base_instance]] const int /*base_inst*/, /* Used by model_lib. */
-    [[vertex_id]] const int vert_id,
+    [[vertex_id]] const int /*vert_id*/,
     [[position]] float4 &out_position,
     /* Note: Removed manually if not needed. Otherwise, can generate geometry shader fallback. */
     [[viewport_index]] int &out_viewport)
