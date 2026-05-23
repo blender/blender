@@ -1,4 +1,4 @@
-/* SPDX-FileCopyrightText: 2011 Blender Authors
+/* SPDX-FileCopyrightText: 2011-2026 Blender Authors
  *
  * SPDX-License-Identifier: GPL-2.0-or-later */
 
@@ -380,15 +380,6 @@ static int rendersize_to_number(int render_size)
   return 100;
 }
 
-static int get_timecode(MovieClip *clip, int flag)
-{
-  if ((flag & MCLIP_USE_PROXY) == 0) {
-    return IMB_TC_NONE;
-  }
-
-  return clip->proxy.tc;
-}
-
 static void get_sequence_filepath(const MovieClip *clip,
                                   const int framenr,
                                   char filepath[FILE_MAX])
@@ -605,7 +596,6 @@ static ImBuf *movieclip_load_movie_file(MovieClip *clip,
                                         int flag)
 {
   ImBuf *ibuf = nullptr;
-  int tc = get_timecode(clip, flag);
   int proxy = rendersize_to_proxy(user, flag);
 
   movieclip_open_anim_file(clip);
@@ -613,7 +603,7 @@ static ImBuf *movieclip_load_movie_file(MovieClip *clip,
   if (clip->anim) {
     int fra = framenr - clip->start_frame + clip->frame_offset;
 
-    ibuf = MOV_decode_frame(clip->anim, fra, IMB_Timecode_Type(tc), IMB_Proxy_Size(proxy));
+    ibuf = MOV_decode_frame(clip->anim, fra, IMB_Proxy_Size(proxy));
   }
 
   return ibuf;
@@ -625,7 +615,7 @@ static void movieclip_calc_length(MovieClip *clip)
     movieclip_open_anim_file(clip);
 
     if (clip->anim) {
-      clip->len = MOV_get_duration_frames(clip->anim, IMB_Timecode_Type(clip->proxy.tc));
+      clip->len = MOV_get_duration_frames(clip->anim);
     }
   }
   else if (clip->source == MCLIP_SRC_SEQUENCE) {

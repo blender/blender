@@ -81,8 +81,6 @@ StripProxy *seq_strip_proxy_alloc()
 {
   StripProxy *strip_proxy = MEM_new<StripProxy>("StripProxy");
   strip_proxy->quality = 50;
-  strip_proxy->build_tc_flags = SEQ_PROXY_TC_RECORD_RUN | SEQ_PROXY_TC_RECORD_RUN_NO_GAPS;
-  strip_proxy->tc = SEQ_PROXY_TC_RECORD_RUN;
   return strip_proxy;
 }
 

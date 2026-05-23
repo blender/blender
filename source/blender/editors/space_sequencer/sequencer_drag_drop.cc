@@ -581,7 +581,7 @@ static void prefetch_data_fn(void *custom_data, wmJobWorkerStatus * /*worker_sta
   MovieReader *anim = openanim(job_data->path, ImBufFlags::Zero, 0, true, colorspace);
 
   if (anim != nullptr) {
-    g_drop_coords.strip_length = MOV_get_duration_frames(anim, IMB_TC_NONE);
+    g_drop_coords.strip_length = MOV_get_duration_frames(anim);
     g_drop_coords.playback_rate = MOV_get_fps(anim);
     const int video_streams = MOV_get_video_stream_count(anim);
     int audio_streams = 0;

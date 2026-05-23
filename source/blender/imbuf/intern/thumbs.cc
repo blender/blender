@@ -405,7 +405,7 @@ static ImBuf *thumb_create_ex(const char *file_path,
          * compute time by keeping the original color-space for movies. */
         anim = MOV_open_file(file_path, ImBufFlags::Zero, 0, true, nullptr);
         if (anim != nullptr) {
-          img = MOV_decode_frame(anim, 0, IMB_TC_NONE, IMB_PROXY_NONE);
+          img = MOV_decode_frame(anim, 0, IMB_PROXY_NONE);
           if (img == nullptr) {
             // printf("not an anim; %s\n", file_path);
           }

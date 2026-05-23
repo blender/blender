@@ -31,7 +31,7 @@
 namespace blender::ed::vse {
 
 /* -------------------------------------------------------------------- */
-/** \name Rebuild Proxy and Timecode Indices Operator
+/** \name Rebuild Proxy Operator
  * \{ */
 
 static void seq_proxy_build_job(const bContext *C, ReportList *reports)
@@ -129,9 +129,9 @@ static wmOperatorStatus sequencer_rebuild_proxy_exec(bContext *C, wmOperator * /
 void SEQUENCER_OT_rebuild_proxy(wmOperatorType *ot)
 {
   /* Identifiers. */
-  ot->name = "Rebuild Proxy and Timecode Indices";
+  ot->name = "Rebuild Proxy";
   ot->idname = "SEQUENCER_OT_rebuild_proxy";
-  ot->description = "Rebuild all selected proxies and timecode indices";
+  ot->description = "Rebuild all selected proxies";
 
   /* API callbacks. */
   ot->invoke = sequencer_rebuild_proxy_invoke;

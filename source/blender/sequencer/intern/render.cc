@@ -1,5 +1,5 @@
 /* SPDX-FileCopyrightText: 2001-2002 NaN Holding BV. All rights reserved.
- * SPDX-FileCopyrightText: 2003-2024 Blender Authors
+ * SPDX-FileCopyrightText: 2003-2026 Blender Authors
  * SPDX-FileCopyrightText: 2005-2006 Peter Schlaile <peter [at] schlaile [dot] de>
  *
  * SPDX-License-Identifier: GPL-2.0-or-later */
@@ -1006,17 +1006,7 @@ static ImBuf *seq_render_movie_strip_custom_file_proxy(const RenderData *context
 
   int frameno = round_fl_to_int(give_frame_index(context->scene, strip, timeline_frame)) +
                 strip->anim_startofs;
-  return MOV_decode_frame(proxy->anim, frameno, IMB_TC_NONE, IMB_PROXY_NONE);
-}
-
-static IMB_Timecode_Type seq_render_movie_strip_timecode_get(Strip *strip)
-{
-  bool use_timecodes = (strip->flag & SEQ_USE_PROXY) != 0;
-  if (!use_timecodes) {
-    return IMB_TC_NONE;
-  }
-  return IMB_Timecode_Type(strip->data->proxy ? IMB_Timecode_Type(strip->data->proxy->tc) :
-                                                IMB_TC_NONE);
+  return MOV_decode_frame(proxy->anim, frameno, IMB_PROXY_NONE);
 }
 
 /**
@@ -1041,10 +1031,7 @@ static ImBuf *seq_render_movie_strip_view(const RenderData *context,
       ibuf = seq_render_movie_strip_custom_file_proxy(context, strip, timeline_frame);
     }
     else {
-      ibuf = MOV_decode_frame(reader,
-                              frame_index + strip->anim_startofs,
-                              seq_render_movie_strip_timecode_get(strip),
-                              psize);
+      ibuf = MOV_decode_frame(reader, frame_index + strip->anim_startofs, psize);
     }
 
     if (ibuf != nullptr) {
@@ -1054,10 +1041,7 @@ static ImBuf *seq_render_movie_strip_view(const RenderData *context,
 
   /* Fetching for requested proxy size failed, try fetching the original instead. */
   if (ibuf == nullptr) {
-    ibuf = MOV_decode_frame(reader,
-                            frame_index + strip->anim_startofs,
-                            seq_render_movie_strip_timecode_get(strip),
-                            IMB_PROXY_NONE);
+    ibuf = MOV_decode_frame(reader, frame_index + strip->anim_startofs, IMB_PROXY_NONE);
   }
   if (ibuf == nullptr) {
     return nullptr;

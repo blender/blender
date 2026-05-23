@@ -1361,16 +1361,6 @@ static Strip *strip_get_by_proxy(Editing *ed, StripProxy *proxy)
   return data.strip;
 }
 
-static void rna_Strip_tcindex_update(Main *bmain, Scene * /*scene*/, PointerRNA *ptr)
-{
-  Scene *scene = id_cast<Scene *>(ptr->owner_id);
-  Editing *ed = seq::editing_get(scene);
-  Strip *strip = strip_get_by_proxy(ed, static_cast<StripProxy *>(ptr->data));
-
-  seq::add_reload_new_file(bmain, scene, strip, false);
-  do_strip_frame_change_update(scene, strip);
-}
-
 static void rna_StripProxy_update(Main * /*bmain*/, Scene * /*scene*/, PointerRNA *ptr)
 {
   Scene *scene = id_cast<Scene *>(ptr->owner_id);
@@ -2253,27 +2243,6 @@ static void rna_def_strip_proxy(BlenderRNA *brna)
   StructRNA *srna;
   PropertyRNA *prop;
 
-  static const EnumPropertyItem strip_tc_items[] = {
-      {SEQ_PROXY_TC_NONE,
-       "NONE",
-       0,
-       "None",
-       "Ignore generated timecodes, seek in movie stream based on calculated timestamp"},
-      {SEQ_PROXY_TC_RECORD_RUN,
-       "RECORD_RUN",
-       0,
-       "Record Run",
-       "Seek based on timestamps read from movie stream, giving the best match between scene and "
-       "movie times"},
-      {SEQ_PROXY_TC_RECORD_RUN_NO_GAPS,
-       "RECORD_RUN_NO_GAPS",
-       0,
-       "Record Run No Gaps",
-       "Effectively convert movie to an image sequence, ignoring incomplete or dropped frames, "
-       "and changes in frame rate"},
-      {0, nullptr, 0, nullptr, nullptr},
-  };
-
   srna = RNA_def_struct(brna, "StripProxy", nullptr);
   RNA_def_struct_ui_text(srna, "Strip Proxy", "Proxy parameters for a sequence strip");
   RNA_def_struct_sdna(srna, "StripProxy");
@@ -2314,20 +2283,10 @@ static void rna_def_strip_proxy(BlenderRNA *brna)
   RNA_def_property_boolean_sdna(prop, nullptr, "build_size_flags", SEQ_PROXY_IMAGE_SIZE_100);
   RNA_def_property_ui_text(prop, "100%", "Build 100% proxy resolution");
 
-  prop = RNA_def_property(srna, "build_record_run", PROP_BOOLEAN, PROP_NONE);
-  RNA_def_property_boolean_sdna(prop, nullptr, "build_tc_flags", SEQ_PROXY_TC_RECORD_RUN);
-  RNA_def_property_ui_text(prop, "Rec Run", "Build record run time code index");
-
   prop = RNA_def_property(srna, "quality", PROP_INT, PROP_UNSIGNED);
   RNA_def_property_int_sdna(prop, nullptr, "quality");
   RNA_def_property_ui_text(prop, "Quality", "Quality of proxies to build");
   RNA_def_property_ui_range(prop, 1, 100, 1, -1);
-
-  prop = RNA_def_property(srna, "timecode", PROP_ENUM, PROP_NONE);
-  RNA_def_property_enum_sdna(prop, nullptr, "tc");
-  RNA_def_property_enum_items(prop, strip_tc_items);
-  RNA_def_property_ui_text(prop, "Timecode", "Method for reading the inputs timecode");
-  RNA_def_property_update(prop, NC_SCENE | ND_SEQUENCER, "rna_Strip_tcindex_update");
 
   prop = RNA_def_property(srna, "use_proxy_custom_directory", PROP_BOOLEAN, PROP_NONE);
   RNA_def_property_boolean_sdna(prop, nullptr, "storage", SEQ_STORAGE_PROXY_CUSTOM_DIR);
@@ -3199,8 +3158,7 @@ static void rna_def_proxy(StructRNA *srna)
 
   prop = RNA_def_property(srna, "use_proxy", PROP_BOOLEAN, PROP_NONE);
   RNA_def_property_boolean_sdna(prop, nullptr, "flag", SEQ_USE_PROXY);
-  RNA_def_property_ui_text(
-      prop, "Use Proxy / Timecode", "Use a preview proxy and/or time-code index for this strip");
+  RNA_def_property_ui_text(prop, "Use Proxy", "Use a preview proxy for this strip");
   RNA_def_property_boolean_funcs(prop, nullptr, "rna_Strip_use_proxy_set");
   RNA_def_property_update(
       prop, NC_SCENE | ND_SEQUENCER, "rna_Strip_invalidate_preprocessed_update");

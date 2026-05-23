@@ -1,5 +1,5 @@
 /* SPDX-FileCopyrightText: 2001-2002 NaN Holding BV. All rights reserved.
- * SPDX-FileCopyrightText: 2003-2009 Blender Authors
+ * SPDX-FileCopyrightText: 2003-2026 Blender Authors
  * SPDX-FileCopyrightText: 2005-2006 Peter Schlaile <peter [at] schlaile [dot] de>
  *
  * SPDX-License-Identifier: GPL-2.0-or-later */
@@ -54,7 +54,6 @@ namespace blender::seq {
 struct ProxyBuildContext {
   MovieProxyBuilder *movie_proxy_builder = nullptr;
 
-  int tc_flags = 0;
   int size_flags = 0;
   int quality = 0;
   bool overwrite = false;
@@ -247,11 +246,7 @@ ImBuf *seq_proxy_fetch(const RenderData *context, Strip *strip, int timeline_fra
     }
 
     strip_open_anim_file(context->scene, strip, true);
-    MovieReader *anim = strip->runtime->movie_reader_get();
-    frameno = MOV_calc_frame_index_with_timecode(
-        anim, IMB_Timecode_Type(strip->data->proxy->tc), frameno);
-
-    return MOV_decode_frame(proxy->anim, frameno, IMB_TC_NONE, IMB_PROXY_NONE);
+    return MOV_decode_frame(proxy->anim, frameno, IMB_PROXY_NONE);
   }
 
   if (seq_proxy_get_filepath(
@@ -421,7 +416,6 @@ bool proxy_build_start(Main *bmain,
     Strip *strip_new = strip_duplicate_recursive(
         bmain, scene, scene, nullptr, strip, StripDuplicate::Selected);
 
-    context->tc_flags = strip_new->data->proxy->build_tc_flags;
     context->size_flags = strip_new->data->proxy->build_size_flags;
     context->quality = strip_new->data->proxy->quality;
     context->overwrite = (strip_new->data->proxy->build_flags & SEQ_PROXY_SKIP_EXISTING) == 0;
@@ -436,14 +430,12 @@ bool proxy_build_start(Main *bmain,
       strip_open_anim_file(scene, strip_new, true);
       anim = strip_new->runtime->movie_reader_get(i);
       if (anim) {
-        context->movie_proxy_builder = MOV_proxy_builder_start(
-            anim,
-            IMB_Timecode_Type(context->tc_flags),
-            context->size_flags,
-            context->quality,
-            context->overwrite,
-            processed_paths,
-            build_only_on_bad_performance);
+        context->movie_proxy_builder = MOV_proxy_builder_start(anim,
+                                                               context->size_flags,
+                                                               context->quality,
+                                                               context->overwrite,
+                                                               processed_paths,
+                                                               build_only_on_bad_performance);
       }
       if (!context->movie_proxy_builder) {
         MEM_delete(context);

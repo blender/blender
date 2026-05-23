@@ -1,5 +1,5 @@
 /* SPDX-FileCopyrightText: 2001-2002 NaN Holding BV. All rights reserved.
- * SPDX-FileCopyrightText: 2024-2025 Blender Authors
+ * SPDX-FileCopyrightText: 2024-2026 Blender Authors
  *
  * SPDX-License-Identifier: GPL-2.0-or-later */
 
@@ -12,7 +12,6 @@
 #include <climits>
 #include <cmath>
 #include <cstdio>
-#include <cstdlib>
 #include <sys/types.h>
 
 #include "BLI_path_utils.hh"
@@ -977,25 +976,15 @@ static int64_t ffmpeg_get_seek_pts(MovieReader *anim, int64_t pts_to_search)
 /* This gives us an estimate of which pts our requested frame will have.
  * Note that this might be off a bit in certain video files, but it should still be close enough.
  */
-static int64_t ffmpeg_get_pts_to_search(MovieReader *anim,
-                                        const MovieIndex *tc_index,
-                                        int position)
+static int64_t ffmpeg_get_pts_to_search(MovieReader *anim, int position)
 {
-  int64_t pts_to_search;
+  AVStream *v_st = anim->pFormatCtx->streams[anim->videoStream];
+  int64_t start_pts = v_st->start_time;
 
-  if (tc_index) {
-    int new_frame_index = tc_index->get_frame_index(position);
-    pts_to_search = tc_index->get_pts(new_frame_index);
-  }
-  else {
-    AVStream *v_st = anim->pFormatCtx->streams[anim->videoStream];
-    int64_t start_pts = v_st->start_time;
+  int64_t pts_to_search = round(position * ffmpeg_steps_per_frame_get(anim));
 
-    pts_to_search = round(position * ffmpeg_steps_per_frame_get(anim));
-
-    if (start_pts != AV_NOPTS_VALUE) {
-      pts_to_search += start_pts;
-    }
+  if (start_pts != AV_NOPTS_VALUE) {
+    pts_to_search += start_pts;
   }
   return pts_to_search;
 }
@@ -1147,55 +1136,30 @@ static bool ffmpeg_seek_buffers_need_flushing(MovieReader *anim, int position, i
 }
 
 /* Seek to last necessary key frame. */
-static int ffmpeg_seek_to_key_frame(MovieReader *anim,
-                                    int position,
-                                    const MovieIndex *tc_index,
-                                    int64_t pts_to_search)
+static int ffmpeg_seek_to_key_frame(MovieReader *anim, int position, int64_t pts_to_search)
 {
   int64_t seek_pos;
   int ret;
 
-  if (tc_index) {
-    /* We can use timestamps generated from our indexer to seek. */
-    int new_frame_index = tc_index->get_frame_index(position);
+  seek_pos = ffmpeg_get_seek_pts(anim, pts_to_search);
+  av_log(anim->pFormatCtx, AV_LOG_DEBUG, "Final seek seek_pos = %" PRId64 "\n", seek_pos);
 
-    uint64_t pts = tc_index->get_seek_pos_pts(new_frame_index);
-    uint64_t dts = tc_index->get_seek_pos_dts(new_frame_index);
+  AVFormatContext *format_ctx = anim->pFormatCtx;
 
-    anim->cur_key_frame_pts = timestamp_from_pts_or_dts(pts, dts);
-
-    av_log(anim->pFormatCtx, AV_LOG_DEBUG, "TC INDEX seek pts = %" PRIu64 "\n", pts);
-    av_log(anim->pFormatCtx, AV_LOG_DEBUG, "TC INDEX seek dts = %" PRIu64 "\n", dts);
-
-    av_log(anim->pFormatCtx, AV_LOG_DEBUG, "Using PTS from timecode as seek_pos\n");
-    ret = av_seek_frame(anim->pFormatCtx, anim->videoStream, pts, AVSEEK_FLAG_BACKWARD);
+  /* This used to check if the codec implemented "read_seek" or "read_seek2". However this is
+   * now hidden from us in FFMPEG 7.0. While not as accurate, usually the AVFMT_TS_DISCONT is
+   * set for formats where we need to apply the seek workaround to (like in MPEGTS). */
+  if (!(format_ctx->iformat->flags & AVFMT_TS_DISCONT)) {
+    ret = av_seek_frame(anim->pFormatCtx, anim->videoStream, seek_pos, AVSEEK_FLAG_BACKWARD);
   }
   else {
-    /* We have to manually seek with ffmpeg to get to the key frame we want to start decoding from.
-     */
-    seek_pos = ffmpeg_get_seek_pts(anim, pts_to_search);
+    ret = ffmpeg_generic_seek_workaround(anim, &seek_pos, pts_to_search);
     av_log(
-        anim->pFormatCtx, AV_LOG_DEBUG, "NO INDEX final seek seek_pos = %" PRId64 "\n", seek_pos);
+        anim->pFormatCtx, AV_LOG_DEBUG, "Adjusted final seek seek_pos = %" PRId64 "\n", seek_pos);
+  }
 
-    AVFormatContext *format_ctx = anim->pFormatCtx;
-
-    /* This used to check if the codec implemented "read_seek" or "read_seek2". However this is
-     * now hidden from us in FFMPEG 7.0. While not as accurate, usually the AVFMT_TS_DISCONT is
-     * set for formats where we need to apply the seek workaround to (like in MPEGTS). */
-    if (!(format_ctx->iformat->flags & AVFMT_TS_DISCONT)) {
-      ret = av_seek_frame(anim->pFormatCtx, anim->videoStream, seek_pos, AVSEEK_FLAG_BACKWARD);
-    }
-    else {
-      ret = ffmpeg_generic_seek_workaround(anim, &seek_pos, pts_to_search);
-      av_log(anim->pFormatCtx,
-             AV_LOG_DEBUG,
-             "Adjusted final seek seek_pos = %" PRId64 "\n",
-             seek_pos);
-    }
-
-    if (ret <= 0 && !ffmpeg_seek_buffers_need_flushing(anim, position, seek_pos)) {
-      return 0;
-    }
+  if (ret <= 0 && !ffmpeg_seek_buffers_need_flushing(anim, position, seek_pos)) {
+    return 0;
   }
 
   if (ret < 0) {
@@ -1236,7 +1200,7 @@ static bool ffmpeg_must_seek(MovieReader *anim, int position)
   return must_seek;
 }
 
-static ImBuf *ffmpeg_fetchibuf(MovieReader *anim, int position, IMB_Timecode_Type tc)
+static ImBuf *ffmpeg_fetchibuf(MovieReader *anim, int position)
 {
   if (anim == nullptr) {
     return nullptr;
@@ -1244,8 +1208,7 @@ static ImBuf *ffmpeg_fetchibuf(MovieReader *anim, int position, IMB_Timecode_Typ
 
   av_log(anim->pFormatCtx, AV_LOG_DEBUG, "FETCH: seek_pos=%d\n", position);
 
-  const MovieIndex *tc_index = movie_open_index(anim, tc);
-  int64_t pts_to_search = ffmpeg_get_pts_to_search(anim, tc_index, position);
+  int64_t pts_to_search = ffmpeg_get_pts_to_search(anim, position);
   AVStream *v_st = anim->pFormatCtx->streams[anim->videoStream];
   double frame_rate = av_q2d(v_st->r_frame_rate);
   double pts_time_base = av_q2d(v_st->time_base);
@@ -1270,7 +1233,7 @@ static ImBuf *ffmpeg_fetchibuf(MovieReader *anim, int position, IMB_Timecode_Typ
 
     if (ffmpeg_must_decode(anim, position)) {
       if (ffmpeg_must_seek(anim, position)) {
-        ffmpeg_seek_to_key_frame(anim, position, tc_index, pts_to_search);
+        ffmpeg_seek_to_key_frame(anim, position, pts_to_search);
       }
 
       ffmpeg_decode_video_frame_scan(anim, pts_to_search);
@@ -1400,11 +1363,11 @@ ImBuf *MOV_decode_preview_frame(MovieReader *anim)
   ImBuf *ibuf = nullptr;
   int position = 0;
 
-  ibuf = MOV_decode_frame(anim, 0, IMB_TC_NONE, IMB_PROXY_NONE);
+  ibuf = MOV_decode_frame(anim, 0, IMB_PROXY_NONE);
   if (ibuf) {
     IMB_freeImBuf(ibuf);
     position = anim->duration_in_frames / 2;
-    ibuf = MOV_decode_frame(anim, position, IMB_TC_NONE, IMB_PROXY_NONE);
+    ibuf = MOV_decode_frame(anim, position, IMB_PROXY_NONE);
 
     char value[128];
     IMB_metadata_ensure(&ibuf->metadata);
@@ -1433,10 +1396,7 @@ ImBuf *MOV_decode_preview_frame(MovieReader *anim)
   return ibuf;
 }
 
-ImBuf *MOV_decode_frame(MovieReader *anim,
-                        int position,
-                        IMB_Timecode_Type tc,
-                        IMB_Proxy_Size preview_size)
+ImBuf *MOV_decode_frame(MovieReader *anim, int position, IMB_Proxy_Size preview_size)
 {
   ImBuf *ibuf = nullptr;
   if (anim == nullptr) {
@@ -1459,17 +1419,14 @@ ImBuf *MOV_decode_frame(MovieReader *anim,
   }
   else {
     MovieReader *proxy = movie_open_proxy(anim, preview_size);
-
     if (proxy) {
-      position = MOV_calc_frame_index_with_timecode(anim, tc, position);
-
-      return MOV_decode_frame(proxy, position, IMB_TC_NONE, IMB_PROXY_NONE);
+      return MOV_decode_frame(proxy, position, IMB_PROXY_NONE);
     }
   }
 
 #ifdef WITH_FFMPEG
   if (anim->state == MovieReader::State::Valid) {
-    ibuf = ffmpeg_fetchibuf(anim, position, tc);
+    ibuf = ffmpeg_fetchibuf(anim, position);
     if (ibuf) {
       anim->cur_position = position;
     }
@@ -1508,18 +1465,9 @@ int MOV_get_video_stream_count(MovieReader *anim)
 #endif
 }
 
-int MOV_get_duration_frames(MovieReader *anim, IMB_Timecode_Type tc)
+int MOV_get_duration_frames(const MovieReader *anim)
 {
-  if (tc == IMB_TC_NONE) {
-    return anim->duration_in_frames;
-  }
-
-  const MovieIndex *idx = movie_open_index(anim, tc);
-  if (!idx) {
-    return anim->duration_in_frames;
-  }
-
-  return idx->get_duration();
+  return anim->duration_in_frames;
 }
 
 double MOV_get_start_offset_seconds(const MovieReader *anim)

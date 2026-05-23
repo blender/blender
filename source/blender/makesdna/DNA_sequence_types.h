@@ -93,7 +93,7 @@ enum eStripProxyStorageFlag : uint8_t {
 ENUM_OPERATORS(eStripProxyStorageFlag);
 
 /**
- * \warning has to be same as `IMB_imbuf.hh`: `IMB_PROXY_*` and `IMB_TC_*`.
+ * \warning has to be same as `IMB_imbuf.hh` `IMB_PROXY_*`.
  */
 enum eStripProxyBuildSize : uint16_t {
   SEQ_PROXY_IMAGE_SIZE_NONE = 0,
@@ -103,16 +103,6 @@ enum eStripProxyBuildSize : uint16_t {
   SEQ_PROXY_IMAGE_SIZE_100 = 1 << 3,
 };
 ENUM_OPERATORS(eStripProxyBuildSize);
-
-/**
- * \warning has to be same as `IMB_imbuf.hh`: `IMB_TC_*`.
- */
-enum eStripProxyTimeCode : uint16_t {
-  SEQ_PROXY_TC_NONE = 0,
-  SEQ_PROXY_TC_RECORD_RUN = 1 << 0,
-  SEQ_PROXY_TC_RECORD_RUN_NO_GAPS = 1 << 1,
-};
-ENUM_OPERATORS(eStripProxyTimeCode);
 
 enum eStripProxyBuildFlag : uint16_t {
   SEQ_PROXY_BUILD_FLAG_NONE = 0,
@@ -301,15 +291,13 @@ struct StripProxy {
   char filename[/*FILE_MAXFILE*/ 256] = "";
   struct MovieReader *anim = nullptr; /* Custom proxy anim file. */
 
-  short tc = 0; /* Time code in use. */
-
   short quality = 0; /* Proxy build quality. */
+
   eStripProxyBuildSize build_size_flags =
-      SEQ_PROXY_IMAGE_SIZE_NONE;                          /* which proxy sizes to build. */
-  eStripProxyTimeCode build_tc_flags = SEQ_PROXY_TC_NONE; /* which time codes to build. */
+      SEQ_PROXY_IMAGE_SIZE_NONE; /* which proxy sizes to build. */
   eStripProxyBuildFlag build_flags = SEQ_PROXY_BUILD_FLAG_NONE;
   eStripProxyStorageFlag storage = SEQ_STORAGE_PROXY_NONE;
-  char _pad[5] = {};
+  char _pad = 0;
 };
 
 struct StripData {

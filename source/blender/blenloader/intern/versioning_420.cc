@@ -705,24 +705,6 @@ static void version_refraction_depth_to_thickness_value(bNodeTree *ntree, float 
   version_socket_update_is_used(ntree);
 }
 
-static void versioning_update_timecode(short int *tc)
-{
-  /* 2 = IMB_TC_FREE_RUN, 4 = IMB_TC_INTERPOLATED_REC_DATE_FREE_RUN. */
-  if (ELEM(*tc, 2, 4)) {
-    *tc = IMB_TC_RECORD_RUN;
-  }
-}
-
-static bool strip_proxies_timecode_update(Strip *strip, void * /*user_data*/)
-{
-  if (strip->data == nullptr || strip->data->proxy == nullptr) {
-    return true;
-  }
-  StripProxy *proxy = strip->data->proxy;
-  versioning_update_timecode(&proxy->tc);
-  return true;
-}
-
 static bool strip_text_data_update(Strip *strip, void * /*user_data*/)
 {
   if (strip->type != STRIP_TYPE_TEXT || strip->effectdata == nullptr) {
@@ -1037,19 +1019,6 @@ void blo_do_versions_420(FileData *fd, Library * /*lib*/, Main *bmain)
           }
         }
       }
-    }
-  }
-
-  if (!MAIN_VERSION_FILE_ATLEAST(bmain, 402, 28)) {
-    for (Scene &scene : bmain->scenes) {
-      if (scene.ed != nullptr) {
-        seq::foreach_strip(&scene.ed->seqbase, strip_proxies_timecode_update, nullptr);
-      }
-    }
-
-    for (MovieClip &clip : bmain->movieclips) {
-      MovieClipProxy proxy = clip.proxy;
-      versioning_update_timecode(&proxy.tc);
     }
   }
 

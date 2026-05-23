@@ -550,7 +550,7 @@ static ImBuf *ibuf_from_picture(PlayAnimPict *pic)
     ibuf = pic->ibuf;
   }
   else if (pic->anim) {
-    ibuf = MOV_decode_frame(pic->anim, pic->frame, IMB_TC_NONE, IMB_PROXY_NONE);
+    ibuf = MOV_decode_frame(pic->anim, pic->frame, IMB_PROXY_NONE);
   }
   else if (pic->mem) {
     /* Use correct color-space here. */
@@ -942,13 +942,13 @@ static void build_pict_list_from_anim(ListBaseT<PlayAnimPict> &picsbase,
     return;
   }
 
-  ImBuf *ibuf = MOV_decode_frame(anim, 0, IMB_TC_NONE, IMB_PROXY_NONE);
+  ImBuf *ibuf = MOV_decode_frame(anim, 0, IMB_PROXY_NONE);
   if (ibuf) {
     playanim_toscreen_on_load(ghost_data, display_ctx, nullptr, ibuf);
     IMB_freeImBuf(ibuf);
   }
 
-  for (int pic = 0; pic < MOV_get_duration_frames(anim, IMB_TC_NONE); pic++) {
+  for (int pic = 0; pic < MOV_get_duration_frames(anim); pic++) {
     PlayAnimPict *picture = MEM_new_zeroed<PlayAnimPict>("Pict");
     picture->anim = anim;
     picture->frame = pic + frame_offset;
@@ -1939,7 +1939,7 @@ static std::optional<int> wm_main_playanim_intern(int argc, const char **argv, P
          * colorspace. Skip colorspace conversions in the movie module to improve performance. */
         MovieReader *anim = MOV_open_file(filepath, ImBufFlags::Zero, 0, true, nullptr);
         if (anim) {
-          ibuf = MOV_decode_frame(anim, 0, IMB_TC_NONE, IMB_PROXY_NONE);
+          ibuf = MOV_decode_frame(anim, 0, IMB_PROXY_NONE);
           MOV_close(anim);
           anim = nullptr;
         }
