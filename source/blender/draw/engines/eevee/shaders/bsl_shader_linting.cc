@@ -19,6 +19,7 @@
 #include "eevee_geom_pointcloud.bsl.hh"              /* IWYU pragma: export */
 #include "eevee_geom_volume.bsl.hh"                  /* IWYU pragma: export */
 #include "eevee_geom_world.bsl.hh"                   /* IWYU pragma: export */
+#include "eevee_hiz_update.bsl.hh"                   /* IWYU pragma: export */
 #include "eevee_light_culling.bsl.hh"                /* IWYU pragma: export */
 #include "eevee_light_eval.bsl.hh"                   /* IWYU pragma: export */
 #include "eevee_light_iter.bsl.hh"                   /* IWYU pragma: export */

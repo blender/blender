@@ -437,7 +437,7 @@ set(GLSL_SRC
   engines/eevee/shaders/eevee_geom_volume.bsl.hh
   engines/eevee/shaders/eevee_geom_world.bsl.hh
   engines/eevee/shaders/eevee_hiz_debug_frag.glsl
-  engines/eevee/shaders/eevee_hiz_update_comp.glsl
+  engines/eevee/shaders/eevee_hiz_update.bsl.hh
   engines/eevee/shaders/eevee_fast_gi.bsl.hh
   engines/eevee/shaders/eevee_light_culling.bsl.hh
   engines/eevee/shaders/eevee_light_shape_display.bsl.hh

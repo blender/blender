@@ -20,8 +20,10 @@
 
 /* Hierarchical Z down-sampling. */
 #define HIZ_MIP_COUNT 7
-/* NOTE: The shader is written to update 5 mipmaps using LDS. */
-#define HIZ_GROUP_SIZE 32
+/* NOTE: The shader is written to update 5 mipmaps using LDS.
+ * Each thread actually update 4 LOD_0 pixels, which means the number of MIPLVL we cover is:
+ * `(log2(HIZ_GROUP_SIZE) + 1) + LOD_0 + LAST_GROUP_LVL = HIZ_MIP_COUNT` */
+#define HIZ_GROUP_SIZE 16
 
 /* Avoid too much overhead caused by resizing the light buffers too many time. */
 #define LIGHT_CHUNK 256
