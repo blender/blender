@@ -330,7 +330,6 @@ set(GLSL_SRC
   engines/eevee/shaders/infos/eevee_hiz_infos.hh
   engines/eevee/shaders/infos/eevee_lightprobe_infos.hh
   engines/eevee/shaders/infos/eevee_lightprobe_sphere_infos.hh
-  engines/eevee/shaders/infos/eevee_lightprobe_volume_infos.hh
   engines/eevee/shaders/infos/eevee_lookdev_infos.hh
   engines/eevee/shaders/infos/eevee_material_infos.hh
   engines/eevee/shaders/infos/eevee_nodetree_infos.hh
@@ -392,10 +391,6 @@ set(GLSL_SRC
   engines/eevee/shaders/eevee_cryptomatte_sort.bsl.hh
   engines/eevee/shaders/eevee_debug.bsl.hh
   engines/eevee/shaders/eevee_debug_gbuffer_frag.glsl
-  engines/eevee/shaders/eevee_debug_surfels_vert.glsl
-  engines/eevee/shaders/eevee_debug_surfels_frag.glsl
-  engines/eevee/shaders/eevee_debug_irradiance_grid_vert.glsl
-  engines/eevee/shaders/eevee_debug_irradiance_grid_frag.glsl
   engines/eevee/shaders/eevee_deferred_eval.bsl.hh
   engines/eevee/shaders/eevee_deferred_combine.bsl.hh
   engines/eevee/shaders/eevee_deferred_thickness_amend.bsl.hh

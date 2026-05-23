@@ -4,7 +4,7 @@
 
 #pragma once
 
-#include "infos/eevee_lightprobe_volume_infos.hh"
+#include "infos/eevee_common_infos.hh"
 
 SHADER_LIBRARY_CREATE_INFO(eevee_global_ubo)
 

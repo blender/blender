@@ -23,8 +23,6 @@ set(INC_GLSL
 )
 
 set(SRC_GLSL_VERT
-  eevee_debug_irradiance_grid_vert.glsl
-  eevee_debug_surfels_vert.glsl
   eevee_depth_of_field_scatter_vert.glsl
   eevee_fullscreen_vert.glsl
   eevee_lookdev_display_vert.glsl
@@ -32,8 +30,6 @@ set(SRC_GLSL_VERT
 
 set(SRC_GLSL_FRAG
   eevee_debug_gbuffer_frag.glsl
-  eevee_debug_irradiance_grid_frag.glsl
-  eevee_debug_surfels_frag.glsl
   eevee_depth_of_field_scatter_frag.glsl
   eevee_hiz_debug_frag.glsl
   eevee_lookdev_display_frag.glsl

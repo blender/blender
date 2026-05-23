@@ -8,7 +8,8 @@
 
 #pragma once
 
-#include "infos/eevee_lightprobe_volume_infos.hh"
+#include "infos/eevee_common_infos.hh"
+#include "infos/eevee_lightprobe_infos.hh"
 
 #ifdef GLSL_CPP_STUBS
 #  define LIGHT_ITER_FORCE_NO_CULLING
