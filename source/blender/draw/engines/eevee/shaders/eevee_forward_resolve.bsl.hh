@@ -13,15 +13,14 @@
 #include "infos/eevee_common_infos.hh"
 
 SHADER_LIBRARY_CREATE_INFO(eevee_global_ubo)
-SHADER_LIBRARY_CREATE_INFO(eevee_render_pass_out)
 
+#include "eevee_renderpass.bsl.hh"
 #include "gpu_shader_fullscreen_lib.glsl"
 
 namespace eevee::forward {
 
 struct ForwardResolve {
   [[legacy_info]] ShaderCreateInfo eevee_global_ubo;
-  [[legacy_info]] ShaderCreateInfo eevee_render_pass_out;
 
   [[sampler(0)]] sampler2D transparency_r_tx;
   [[sampler(1)]] sampler2D transparency_g_tx;
@@ -42,6 +41,7 @@ struct ForwardResolveFragOut {
 
 [[fragment]]
 void resolve_frag([[resource_table]] const ForwardResolve &srt,
+                  [[resource_table]] RenderPassOutput &render_passes,
                   [[frag_coord]] const float4 frag_co,
                   [[out]] ForwardResolveFragOut &frag_out)
 {
@@ -73,11 +73,9 @@ void resolve_frag([[resource_table]] const ForwardResolve &srt,
     frag_out.radiance.a = channel_a.x;
   }
 
-  if (uniform_buf.render_pass.transparent_id != -1) {
-    imageStore(rp_color_img,
-               int3(texel, uniform_buf.render_pass.transparent_id),
-               float4(frag_out.radiance.rgb, frag_out.transmittance.a));
-  }
+  render_passes.store_color(texel,
+                            uniform_buf.render_pass.transparent_id,
+                            float4(frag_out.radiance.rgb, frag_out.transmittance.a));
 }
 
 }  // namespace eevee::forward

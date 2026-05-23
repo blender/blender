@@ -13,7 +13,6 @@
 #ifdef GLSL_CPP_STUBS
 #  define EEVEE_SAMPLING_DATA
 #  define MAT_CLIP_PLANE
-#  define MAT_RENDER_PASS_SUPPORT
 #  define MAT_TRANSPARENT
 #endif
 
@@ -55,13 +54,6 @@ GPU_SHADER_CREATE_INFO(eevee_gbuffer_data)
 SAMPLER(GBUF_HEADER_TEX_SLOT, usampler2DArray, gbuf_header_tx)
 SAMPLER(GBUF_CLOSURE_TEX_SLOT, sampler2DArray, gbuf_closure_tx)
 SAMPLER(GBUF_NORMAL_TEX_SLOT, sampler2DArray, gbuf_normal_tx)
-GPU_SHADER_CREATE_END()
-
-GPU_SHADER_CREATE_INFO(eevee_render_pass_out)
-DEFINE("MAT_RENDER_PASS_SUPPORT")
-ADDITIONAL_INFO(eevee_global_ubo)
-IMAGE_FREQ(RBUFS_COLOR_SLOT, SFLOAT_16_16_16_16, write, image2DArray, rp_color_img, PASS)
-IMAGE_FREQ(RBUFS_VALUE_SLOT, SFLOAT_16, write, image2DArray, rp_value_img, PASS)
 GPU_SHADER_CREATE_END()
 
 GPU_SHADER_CREATE_INFO(eevee_cryptomatte_out)

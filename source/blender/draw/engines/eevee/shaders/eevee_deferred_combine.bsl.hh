@@ -7,14 +7,13 @@
 #include "infos/eevee_common_infos.hh"
 
 FRAGMENT_SHADER_CREATE_INFO(eevee_gbuffer_data)
-FRAGMENT_SHADER_CREATE_INFO(eevee_render_pass_out)
 FRAGMENT_SHADER_CREATE_INFO(eevee_hiz_data)
 FRAGMENT_SHADER_CREATE_INFO(draw_view)
 
 #include "draw_view_lib.glsl"
 #include "eevee_colorspace_lib.bsl.hh"
 #include "eevee_gbuffer_read_lib.glsl"
-#include "eevee_renderpass_lib.glsl"
+#include "eevee_renderpass.bsl.hh"
 #include "gpu_shader_fullscreen_lib.glsl"
 #include "gpu_shader_shared_exponent_lib.glsl"
 
@@ -22,7 +21,6 @@ namespace eevee::deferred {
 
 struct Combine {
   [[legacy_info]] ShaderCreateInfo eevee_gbuffer_data;
-  [[legacy_info]] ShaderCreateInfo eevee_render_pass_out;
   [[legacy_info]] ShaderCreateInfo eevee_hiz_data;
   [[legacy_info]] ShaderCreateInfo draw_view;
 
@@ -103,6 +101,7 @@ struct CombineFragOut {
 /* Early fragment test is needed to avoid processing fragments background fragments. */
 [[fragment, early_fragment_tests]]
 void combine_frag([[resource_table]] Combine &srt,
+                  [[resource_table]] RenderPassOutput &render_passes,
                   [[in]] const CombineVertOut &v_out,
                   [[out]] CombineFragOut &frag_out)
 {
@@ -201,26 +200,29 @@ void combine_frag([[resource_table]] Combine &srt,
   /* Light passes. */
   if (srt.render_pass_diffuse_light_enabled) {
     float3 diffuse_light = diffuse_direct + diffuse_indirect;
-    output_renderpass_color(uniform_buf.render_pass.diffuse_color_id, float4(diffuse_color, 1.0f));
-    output_renderpass_color(uniform_buf.render_pass.diffuse_light_id, float4(diffuse_light, 1.0f));
+    render_passes.store_color(
+        texel, uniform_buf.render_pass.diffuse_color_id, float4(diffuse_color, 1.0f));
+    render_passes.store_color(
+        texel, uniform_buf.render_pass.diffuse_light_id, float4(diffuse_light, 1.0f));
   }
   if (srt.render_pass_specular_light_enabled) {
     float3 specular_light = specular_direct + specular_indirect;
-    output_renderpass_color(uniform_buf.render_pass.specular_color_id,
-                            float4(specular_color, 1.0f));
-    output_renderpass_color(uniform_buf.render_pass.specular_light_id,
-                            float4(specular_light, 1.0f));
+    render_passes.store_color(
+        texel, uniform_buf.render_pass.specular_color_id, float4(specular_color, 1.0f));
+    render_passes.store_color(
+        texel, uniform_buf.render_pass.specular_light_id, float4(specular_light, 1.0f));
   }
   if (srt.render_pass_normal_enabled) {
     float normal_len = length(average_normal);
     /* Normalize or fallback to default normal. */
     average_normal = (normal_len < 1e-5f) ? gbuf.surface_N() : (average_normal / normal_len);
-    output_renderpass_color(uniform_buf.render_pass.normal_id, float4(average_normal, 1.0f));
+    render_passes.store_color(
+        texel, uniform_buf.render_pass.normal_id, float4(average_normal, 1.0f));
   }
   if (srt.render_pass_position_enabled) {
     float depth = texelFetch(hiz_tx, texel, 0).r;
     float3 P = drw_point_screen_to_world(float3(v_out.screen_uv, depth));
-    output_renderpass_color(uniform_buf.render_pass.position_id, float4(P, 1.0f));
+    render_passes.store_color(texel, uniform_buf.render_pass.position_id, float4(P, 1.0f));
   }
 
   frag_out.combined = float4(out_direct + out_indirect, 0.0f);

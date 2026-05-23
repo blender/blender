@@ -43,7 +43,9 @@ struct SurfaceCapture {
 };
 
 [[fragment]]
-void surf_capture([[resource_table]] SurfaceCapture &srt, [[front_facing]] const bool front_face)
+void surf_capture([[resource_table]] SurfaceCapture &srt,
+                  [[frag_coord]] const float4 /*frag_co*/,
+                  [[front_facing]] const bool front_face)
 {
   init_globals(front_face);
 

@@ -36,7 +36,6 @@ struct SurfWorld {
   [[legacy_info]] ShaderCreateInfo eevee_utility_texture;
   [[legacy_info]] ShaderCreateInfo eevee_geom_iface_info;
 
-  [[legacy_info]] ShaderCreateInfo eevee_render_pass_out;
   [[legacy_info]] ShaderCreateInfo eevee_cryptomatte_out;
 
   [[push_constant]] float world_opacity_fade;
@@ -51,7 +50,8 @@ struct SurfWorldFragOut {
 [[fragment]] [[early_fragment_tests]]
 void surf_world([[resource_table]] SurfWorld &srt,
                 [[resource_table]] const LightprobeRenderData &lightprobes,
-                [[frag_coord]] const float4 /*frag_co*/,
+                [[resource_table]] RenderPassOutput &render_passes,
+                [[frag_coord]] const float4 frag_co,
                 [[out]] SurfWorldFragOut &frag_out,
                 [[front_facing]] const bool front_face)
 {
@@ -91,7 +91,7 @@ void surf_world([[resource_table]] SurfWorld &srt,
   float4 environment = frag_out.background;
   environment.a = 1.0f - environment.a;
   environment.rgb *= environment.a;
-  output_renderpass_color(uniform_buf.render_pass.environment_id, environment);
+  render_passes.store_color(int2(frag_co.xy), uniform_buf.render_pass.environment_id, environment);
 
   frag_out.background = mix(
       float4(0.0f, 0.0f, 0.0f, 1.0f), frag_out.background, srt.world_opacity_fade);

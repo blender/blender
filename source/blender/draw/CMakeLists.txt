@@ -452,7 +452,7 @@ set(GLSL_SRC
   engines/eevee/shaders/eevee_ray_types_lib.bsl.hh
   engines/eevee/shaders/eevee_reverse_z_lib.bsl.hh
   engines/eevee/shaders/eevee_renderpass_clear.bsl.hh
-  engines/eevee/shaders/eevee_renderpass_lib.glsl
+  engines/eevee/shaders/eevee_renderpass.bsl.hh
   engines/eevee/shaders/eevee_sampling_lib.glsl
   engines/eevee/shaders/eevee_shadow.bsl.hh
   engines/eevee/shaders/eevee_shadow_tracing.bsl.hh

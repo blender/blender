@@ -24,7 +24,7 @@ FRAGMENT_SHADER_CREATE_INFO(eevee_hiz_data)
 #include "eevee_gbuffer_read_lib.glsl"
 #include "eevee_light_eval.bsl.hh"
 #include "eevee_lightprobe.bsl.hh"
-#include "eevee_renderpass_lib.glsl"
+#include "eevee_renderpass.bsl.hh"
 #include "eevee_subsurface_lib.bsl.hh"
 #include "gpu_shader_codegen_lib.glsl"
 #include "gpu_shader_fullscreen_lib.glsl"
@@ -52,10 +52,6 @@ struct FragOut {
 /** \name Deferred Pipeline
  * \{ */
 
-struct ClearAOV {
-  [[legacy_info]] ShaderCreateInfo eevee_render_pass_out;
-};
-
 /**
  * Clear AOVs for secondary deferred layers.
  * The first opaque layer will always have AOV buffers cleared.
@@ -65,9 +61,10 @@ struct ClearAOV {
  * AOVs for the pixel affected by the next layer using stencil test after the pre-pass.
  */
 [[fragment, early_fragment_tests]]
-void aov_clear_frag([[resource_table]] ClearAOV & /*srt*/, [[frag_coord]] const float4 /*frag_co*/)
+void aov_clear_frag([[resource_table]] RenderPassOutput &render_passes,
+                    [[frag_coord]] const float4 frag_co)
 {
-  clear_aovs();
+  render_passes.clear_aovs(int2(frag_co.xy));
 }
 
 PipelineGraphic aov_clear(fullscreen_vert, aov_clear_frag);
@@ -83,7 +80,6 @@ struct LightEval {
   [[legacy_info]] ShaderCreateInfo eevee_utility_texture;
   [[legacy_info]] ShaderCreateInfo eevee_sampling_data;
   [[legacy_info]] ShaderCreateInfo eevee_hiz_data;
-  [[legacy_info]] ShaderCreateInfo eevee_render_pass_out;
   [[legacy_info]] ShaderCreateInfo draw_object_infos;
   [[legacy_info]] ShaderCreateInfo draw_view;
 
@@ -139,6 +135,7 @@ struct LightEval {
 void light_eval_frag([[resource_table]] LightEval &srt,
                      [[resource_table]] LightEvalIterator &lights,
                      [[resource_table]] const LightprobeRenderData &lightprobes,
+                     [[resource_table]] RenderPassOutput &render_passes,
                      [[frag_coord]] const float4 frag_co,
                      [[in]] const VertOut v_out)
 {
@@ -221,7 +218,7 @@ void light_eval_frag([[resource_table]] LightEval &srt,
       }
     }
     float3 shadows = radiance_shadowed * safe_rcp(radiance_unshadowed);
-    output_renderpass_value(srt.render_pass_shadow_id, average(shadows));
+    render_passes.store_value(texel, srt.render_pass_shadow_id, average(shadows));
   }
 
   if (srt.use_lightprobe_eval) {

@@ -21,6 +21,7 @@ SHADER_LIBRARY_CREATE_INFO(eevee_sampling_data)
 #include "eevee_light_lib.glsl"
 #include "eevee_light_shared.hh"
 #include "eevee_lightprobe_volume.bsl.hh"
+#include "eevee_renderpass.bsl.hh"
 #include "eevee_shadow.bsl.hh"
 #include "eevee_volume_lib.bsl.hh"
 #include "eevee_volume_shared.hh"
@@ -374,7 +375,6 @@ struct FragOut {
 struct Resolve {
   [[legacy_info]] ShaderCreateInfo draw_view;
   [[legacy_info]] ShaderCreateInfo eevee_global_ubo;
-  [[legacy_info]] ShaderCreateInfo eevee_render_pass_out;
   [[legacy_info]] ShaderCreateInfo eevee_hiz_data;
 };
 
@@ -389,6 +389,7 @@ void resolve_vert([[vertex_id]] const int vert_id, [[position]] float4 &out_posi
 [[fragment]]
 void resolve_frag([[resource_table]] const Resolve & /*srt*/,
                   [[resource_table]] const UnifiedVolumeData &volumes,
+                  [[resource_table]] RenderPassOutput &render_passes,
                   [[frag_coord]] const float4 frag_co,
                   [[out]] FragOut &out_frag)
 {
@@ -403,12 +404,8 @@ void resolve_frag([[resource_table]] const Resolve & /*srt*/,
   out_frag.radiance = float4(vol.scattering, 0.0f);
   out_frag.transmittance = float4(vol.transmittance, saturate(average(vol.transmittance)));
 
-  if (uniform_buf.render_pass.volume_light_id >= 0) {
-    auto &rp_color_img = image_get(eevee_render_pass_out, rp_color_img);
-    imageStoreFast(rp_color_img,
-                   int3(int2(frag_co.xy), uniform_buf.render_pass.volume_light_id),
-                   float4(vol.scattering, 1.0f));
-  }
+  render_passes.store_color(
+      int2(frag_co.xy), uniform_buf.render_pass.volume_light_id, float4(vol.scattering, 1.0f));
 }
 
 PipelineCompute scatter(scatter_main, Scatter{.use_volume_light = false});

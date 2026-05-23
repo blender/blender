@@ -16,7 +16,6 @@
 
 FRAGMENT_SHADER_CREATE_INFO(eevee_nodetree)
 FRAGMENT_SHADER_CREATE_INFO(eevee_geom_iface_info)
-FRAGMENT_SHADER_CREATE_INFO(eevee_render_pass_out)
 FRAGMENT_SHADER_CREATE_INFO(eevee_cryptomatte_out)
 
 #include "draw_curves_lib.glsl" /* IWYU pragma: export. For nodetree functions. */
@@ -76,7 +75,6 @@ float4 closure_to_rgba_hybrid(Closure /*cl*/)
 namespace eevee {
 
 struct SurfaceHybrid {
-  [[legacy_info]] ShaderCreateInfo eevee_render_pass_out;
   [[legacy_info]] ShaderCreateInfo eevee_cryptomatte_out;
 
   [[legacy_info]] ShaderCreateInfo eevee_global_ubo;
@@ -132,6 +130,7 @@ void surf_hybrid([[resource_table]] PipelineConstants &pipe,
                  [[resource_table]] LightEvalIterator & /*lights*/,
                  [[resource_table]] LightprobeRenderData & /*lightprobes*/,
                  [[resource_table]] LightprobePlaneRenderData & /*lightprobe_planes*/,
+                 [[resource_table]] RenderPassOutput &render_passes,
                  [[frag_coord]] const float4 frag_co,
                  [[out]] HybridFragOut &frag_out,
                  [[front_facing]] const bool front_face)
@@ -180,7 +179,8 @@ void surf_hybrid([[resource_table]] PipelineConstants &pipe,
         cryptomatte_object_buf[drw_resource_id()], nt.crypto_hash, 0.0f);
     imageStoreFast(rp_cryptomatte_img, out_texel, cryptomatte_output);
   }
-  output_renderpass_color(uniform_buf.render_pass.emission_id, float4(g_emission, 1.0f));
+  render_passes.store_color(
+      out_texel, uniform_buf.render_pass.emission_id, float4(g_emission, 1.0f));
 
   /* ----- GBuffer output ----- */
 
