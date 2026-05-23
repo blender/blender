@@ -49,6 +49,33 @@ struct FragOut {
 /* -------------------------------------------------------------------- */
 /** \name Deferred Pipeline
  * \{ */
+
+struct ClearAOV {
+  [[legacy_info]] ShaderCreateInfo eevee_render_pass_out;
+};
+
+/**
+ * Clear AOVs for secondary deferred layers.
+ * The first opaque layer will always have AOV buffers cleared.
+ * However the subsequent layers (e.g. refraction) have to clear the result of the first layer for
+ * all the pixels they touch. Doing it inside the material shader proved to be a bottleneck for
+ * shader compilation. To avoid the overhead, we draw a full-screen triangle that will clear the
+ * AOVs for the pixel affected by the next layer using stencil test after the pre-pass.
+ */
+[[fragment, early_fragment_tests]]
+void aov_clear_frag([[resource_table]] ClearAOV &srt, [[frag_coord]] const float4 frag_co)
+{
+  clear_aovs();
+}
+
+PipelineGraphic aov_clear(fullscreen_vert, aov_clear_frag);
+
+/** \} */
+
+/* -------------------------------------------------------------------- */
+/** \name Deferred Pipeline
+ * \{ */
+
 struct LightEval {
   [[legacy_info]] ShaderCreateInfo eevee_gbuffer_data;
   [[legacy_info]] ShaderCreateInfo eevee_utility_texture;

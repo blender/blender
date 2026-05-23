@@ -2,56 +2,109 @@
  *
  * SPDX-License-Identifier: GPL-2.0-or-later */
 
-/**
- * Combine light passes to the combined color target and apply surface colors.
- * This also fills the different render passes.
- */
+#pragma once
 
-#include "infos/eevee_deferred_infos.hh"
+#include "infos/eevee_common_infos.hh"
 
-FRAGMENT_SHADER_CREATE_INFO(eevee_deferred_combine)
+FRAGMENT_SHADER_CREATE_INFO(eevee_gbuffer_data)
+FRAGMENT_SHADER_CREATE_INFO(eevee_render_pass_out)
+FRAGMENT_SHADER_CREATE_INFO(eevee_hiz_data)
+FRAGMENT_SHADER_CREATE_INFO(draw_view)
 
 #include "draw_view_lib.glsl"
 #include "eevee_colorspace_lib.bsl.hh"
 #include "eevee_gbuffer_read_lib.glsl"
 #include "eevee_renderpass_lib.glsl"
+#include "gpu_shader_fullscreen_lib.glsl"
 #include "gpu_shader_shared_exponent_lib.glsl"
 
-float3 load_radiance_direct(int2 texel, uchar i)
-{
-  uint data = 0u;
-  switch (i) {
-    case 0:
-      data = texelFetch(direct_radiance_1_tx, texel, 0).r;
-      break;
-    case 1:
-      data = texelFetch(direct_radiance_2_tx, texel, 0).r;
-      break;
-    case 2:
-      data = texelFetch(direct_radiance_3_tx, texel, 0).r;
-      break;
-    default:
-      break;
+namespace eevee::deferred {
+
+struct Combine {
+  [[legacy_info]] ShaderCreateInfo eevee_gbuffer_data;
+  [[legacy_info]] ShaderCreateInfo eevee_render_pass_out;
+  [[legacy_info]] ShaderCreateInfo eevee_hiz_data;
+  [[legacy_info]] ShaderCreateInfo draw_view;
+
+  /* NOTE: Both light IDs have a valid specialized assignment of '-1' so only when default is
+   * present will we instead dynamically look-up ID from the uniform buffer. */
+  [[specialization_constant(false)]] bool render_pass_diffuse_light_enabled;
+  [[specialization_constant(false)]] bool render_pass_specular_light_enabled;
+  [[specialization_constant(false)]] bool render_pass_normal_enabled;
+  [[specialization_constant(false)]] bool render_pass_position_enabled;
+  [[specialization_constant(false)]] bool use_radiance_feedback;
+  [[specialization_constant(true)]] bool use_split_radiance;
+
+  /* Inputs. */
+  [[sampler(2)]] usampler2D direct_radiance_1_tx;
+  [[sampler(4)]] usampler2D direct_radiance_2_tx;
+  [[sampler(5)]] usampler2D direct_radiance_3_tx;
+  [[sampler(6)]] sampler2D indirect_radiance_1_tx;
+  [[sampler(7)]] sampler2D indirect_radiance_2_tx;
+  [[sampler(8)]] sampler2D indirect_radiance_3_tx;
+
+  [[image(5, read_write, SFLOAT_16_16_16_16)]] image2D radiance_feedback_img;
+
+  float3 load_radiance_direct(int2 texel, uchar i) const
+  {
+    uint data = 0u;
+    switch (i) {
+      case 0:
+        data = texelFetch(direct_radiance_1_tx, texel, 0).r;
+        break;
+      case 1:
+        data = texelFetch(direct_radiance_2_tx, texel, 0).r;
+        break;
+      case 2:
+        data = texelFetch(direct_radiance_3_tx, texel, 0).r;
+        break;
+      default:
+        break;
+    }
+    return rgb9e5_decode(data);
   }
-  return rgb9e5_decode(data);
+
+  float3 load_radiance_indirect(int2 texel, uchar i) const
+  {
+    switch (i) {
+      case 0:
+        return texelFetch(indirect_radiance_1_tx, texel, 0).rgb;
+      case 1:
+        return texelFetch(indirect_radiance_2_tx, texel, 0).rgb;
+      case 2:
+        return texelFetch(indirect_radiance_3_tx, texel, 0).rgb;
+      default:
+        return float3(0);
+    }
+    return float3(0);
+  }
+};
+
+struct CombineVertOut {
+  [[smooth]] float2 screen_uv;
+};
+
+[[vertex]]
+void combine_vert([[vertex_id]] const int vert_id,
+                  [[position]] float4 &out_position,
+                  [[out]] CombineVertOut &v_out)
+{
+  fullscreen_vertex(vert_id, out_position, v_out.screen_uv);
 }
 
-float3 load_radiance_indirect(int2 texel, uchar i)
-{
-  switch (i) {
-    case 0:
-      return texelFetch(indirect_radiance_1_tx, texel, 0).rgb;
-    case 1:
-      return texelFetch(indirect_radiance_2_tx, texel, 0).rgb;
-    case 2:
-      return texelFetch(indirect_radiance_3_tx, texel, 0).rgb;
-    default:
-      return float3(0);
-  }
-  return float3(0);
-}
+struct CombineFragOut {
+  [[frag_color(0)]] float4 combined;
+};
 
-void main()
+/**
+ * Combine light passes to the combined color target and apply surface colors.
+ * This also fills the different render passes.
+ */
+/* Early fragment test is needed to avoid processing fragments background fragments. */
+[[fragment, early_fragment_tests]]
+void combine_frag([[resource_table]] Combine &srt,
+                  [[in]] const CombineVertOut &v_out,
+                  [[out]] CombineFragOut &frag_out)
 {
   int2 texel = int2(gl_FragCoord.xy);
 
@@ -75,11 +128,11 @@ void main()
       continue;
     }
     uchar layer_index = bin_indices[i];
-    float3 closure_direct_light = load_radiance_direct(texel, layer_index);
+    float3 closure_direct_light = srt.load_radiance_direct(texel, layer_index);
     float3 closure_indirect_light = float3(0.0f);
 
-    if (use_split_radiance) {
-      closure_indirect_light = load_radiance_indirect(texel, layer_index);
+    if (srt.use_split_radiance) {
+      closure_indirect_light = srt.load_radiance_indirect(texel, layer_index);
     }
 
     average_normal += cl.N * reduce_add(cl.color);
@@ -116,13 +169,13 @@ void main()
     out_indirect += closure_indirect_light * cl.color;
   }
 
-  if (use_radiance_feedback) {
+  if (srt.use_radiance_feedback) {
     /* Output unmodified radiance for indirect lighting. */
-    float3 out_radiance = imageLoad(radiance_feedback_img, texel).rgb;
+    float3 out_radiance = imageLoad(srt.radiance_feedback_img, texel).rgb;
     out_radiance += out_direct + out_indirect;
     /* Prevent NaNs from propagating. */
     out_radiance = any(isnan(out_radiance)) ? float3(0.0f) : out_radiance;
-    imageStore(radiance_feedback_img, texel, float4(out_radiance, 0.0f));
+    imageStore(srt.radiance_feedback_img, texel, float4(out_radiance, 0.0f));
   }
 
   /* Light clamping. */
@@ -146,31 +199,37 @@ void main()
   specular_indirect *= uniform_buf.clamp.indirect_scale;
 
   /* Light passes. */
-  if (render_pass_diffuse_light_enabled) {
+  if (srt.render_pass_diffuse_light_enabled) {
     float3 diffuse_light = diffuse_direct + diffuse_indirect;
     output_renderpass_color(uniform_buf.render_pass.diffuse_color_id, float4(diffuse_color, 1.0f));
     output_renderpass_color(uniform_buf.render_pass.diffuse_light_id, float4(diffuse_light, 1.0f));
   }
-  if (render_pass_specular_light_enabled) {
+  if (srt.render_pass_specular_light_enabled) {
     float3 specular_light = specular_direct + specular_indirect;
     output_renderpass_color(uniform_buf.render_pass.specular_color_id,
                             float4(specular_color, 1.0f));
     output_renderpass_color(uniform_buf.render_pass.specular_light_id,
                             float4(specular_light, 1.0f));
   }
-  if (render_pass_normal_enabled) {
+  if (srt.render_pass_normal_enabled) {
     float normal_len = length(average_normal);
     /* Normalize or fallback to default normal. */
     average_normal = (normal_len < 1e-5f) ? gbuf.surface_N() : (average_normal / normal_len);
     output_renderpass_color(uniform_buf.render_pass.normal_id, float4(average_normal, 1.0f));
   }
-  if (render_pass_position_enabled) {
+  if (srt.render_pass_position_enabled) {
     float depth = texelFetch(hiz_tx, texel, 0).r;
-    float3 P = drw_point_screen_to_world(float3(screen_uv, depth));
+    float3 P = drw_point_screen_to_world(float3(v_out.screen_uv, depth));
     output_renderpass_color(uniform_buf.render_pass.position_id, float4(P, 1.0f));
   }
 
-  out_combined = float4(out_direct + out_indirect, 0.0f);
-  out_combined = any(isnan(out_combined)) ? float4(1.0f, 0.0f, 1.0f, 0.0f) : out_combined;
-  out_combined = colorspace::safe_color(out_combined);
+  frag_out.combined = float4(out_direct + out_indirect, 0.0f);
+  frag_out.combined = any(isnan(frag_out.combined)) ? float4(1.0f, 0.0f, 1.0f, 0.0f) :
+                                                      frag_out.combined;
+  frag_out.combined = colorspace::safe_color(frag_out.combined);
 }
+
+}  // namespace eevee::deferred
+
+PipelineGraphic eevee_deferred_combine(eevee::deferred::combine_vert,
+                                       eevee::deferred::combine_frag);

@@ -396,9 +396,8 @@ set(GLSL_SRC
   engines/eevee/shaders/eevee_debug_surfels_frag.glsl
   engines/eevee/shaders/eevee_debug_irradiance_grid_vert.glsl
   engines/eevee/shaders/eevee_debug_irradiance_grid_frag.glsl
-  engines/eevee/shaders/eevee_deferred_aov_clear_frag.glsl
   engines/eevee/shaders/eevee_deferred_eval.bsl.hh
-  engines/eevee/shaders/eevee_deferred_combine_frag.glsl
+  engines/eevee/shaders/eevee_deferred_combine.bsl.hh
   engines/eevee/shaders/eevee_deferred_thickness_amend.bsl.hh
   engines/eevee/shaders/eevee_deferred_tile_classify.bsl.hh
   engines/eevee/shaders/eevee_depth_of_field_accumulator_lib.glsl
