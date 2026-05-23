@@ -181,7 +181,7 @@ void SourceProcessor::lower_resource_access_functions(Parser &parser)
 {
   /* Legacy access macros. */
   parser().foreach_function([&](bool, Token fn_type, Token, Scope, bool, Scope fn_body) {
-    fn_body.foreach_match("A(A,", [&](const vector<Token> &tokens) {
+    fn_body.foreach_match("A(", [&](const vector<Token> &tokens) {
       string_view func_name = tokens[0].str();
       if (func_name != "specialization_constant_get" && func_name != "shared_variable_get" &&
           func_name != "push_constant_get" && func_name != "interface_get" &&
@@ -190,7 +190,13 @@ void SourceProcessor::lower_resource_access_functions(Parser &parser)
       {
         return;
       }
-      string info_name(tokens[2].str());
+
+      if (tokens[1].next() != Word) {
+        report_error(tokens[1].next(), "Expecting symbol name");
+        return;
+      }
+
+      string info_name(tokens[1].next().str());
       Scope scope = tokens[0].scope();
       /* We can be in expression scope. Take parent scope until we find a local scope. */
       while (scope.type() != ScopeType::Function && scope.type() != ScopeType::Local) {
