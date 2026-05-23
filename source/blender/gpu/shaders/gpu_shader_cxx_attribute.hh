@@ -84,6 +84,11 @@
 #  define point_coord maybe_unused
 #  define front_facing maybe_unused
 
+/* Fragment shader color input index for subpass input.
+ * `sampler_type` is the type of image to bind to this (e.g. usampler2DArray).
+ * It must be compatible with the framebuffer attachment type. */
+#  define subpass_input(index, sampler_type) maybe_unused
+
 /* Fragment shader output. */
 #  define frag_color(slot) maybe_unused
 /* Fragment shader output. */
@@ -99,6 +104,7 @@
 /* Graphic pipeline stage in/out. */
 #  define in maybe_unused
 #  define out maybe_unused
+#  define subpass_in maybe_unused
 
 /* Declare a dependency to a legacy create info whose name is the struct member name. */
 #  define legacy_info maybe_unused

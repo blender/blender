@@ -133,7 +133,28 @@ std::string ParsedFragOuput::serialize() const
   return ss.str();
 }
 
+std::string ParsedFragInput::serialize() const
+{
+  std::stringstream ss;
+  ss << "SUBPASS_IN(" << slot << ", " << var_type << ", " << image_type << ", " << var_name << ", "
+     << raster_order_group << ")";
+  return ss.str();
+}
+
 std::string FragmentOutputs::serialize() const
+{
+  std::stringstream ss;
+  ss << "GPU_SHADER_CREATE_INFO(" << name << ")\n";
+
+  for (const auto &res : *this) {
+    ss << res.serialize() << "\n";
+  }
+
+  ss << "GPU_SHADER_CREATE_END()\n";
+  return ss.str();
+}
+
+std::string FragmentInputs::serialize() const
 {
   std::stringstream ss;
   ss << "GPU_SHADER_CREATE_INFO(" << name << ")\n";
@@ -224,6 +245,9 @@ std::string Source::serialize_infos() const
   ss << "\n";
   for (auto frag_outputs : fragment_outputs) {
     ss << frag_outputs.serialize() << "\n";
+  }
+  for (auto frag_inputs : fragment_inputs) {
+    ss << frag_inputs.serialize() << "\n";
   }
   ss << "\n";
   for (auto iface : stage_interfaces) {

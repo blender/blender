@@ -60,10 +60,10 @@ void SourceProcessor::lint_attributes(Parser &parser)
           attr_str == "instance_index" || attr_str == "layer" ||
           attr_str == "local_invocation_id" || attr_str == "local_invocation_index" ||
           attr_str == "no_perspective" || attr_str == "num_work_groups" || attr_str == "out" ||
-          attr_str == "point_coord" || attr_str == "point_size" || attr_str == "position" ||
-          attr_str == "push_constant" || attr_str == "resource_table" || attr_str == "smooth" ||
-          attr_str == "vertex_id" || attr_str == "legacy_info" || attr_str == "vertex" ||
-          attr_str == "viewport_index" || attr_str == "work_group_id" ||
+          attr_str == "subpass_in" || attr_str == "point_coord" || attr_str == "point_size" ||
+          attr_str == "position" || attr_str == "push_constant" || attr_str == "resource_table" ||
+          attr_str == "smooth" || attr_str == "vertex_id" || attr_str == "legacy_info" ||
+          attr_str == "vertex" || attr_str == "viewport_index" || attr_str == "work_group_id" ||
           attr_str == "maybe_unused" || attr_str == "fallthrough" || attr_str == "nodiscard" ||
           attr_str == "node" || attr_str == "clip_control" || attr_str == "texture_atomic")
       {
@@ -82,7 +82,7 @@ void SourceProcessor::lint_attributes(Parser &parser)
           invalid = true;
         }
       }
-      else if (attr_str == "storage") {
+      else if (attr_str == "storage" || attr_str == "subpass_input") {
         if (attr_scope.is_invalid()) {
           report_error(attr, "This attribute requires 2 arguments");
           invalid = true;

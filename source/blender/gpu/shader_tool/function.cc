@@ -406,6 +406,18 @@ void SourceProcessor::lower_entry_points(Parser &parser)
           // create_info_decl += "VERTEX_OUT(" + srt_type + ")\n";
         }
       }
+      else if (srt_attr == "subpass_in") {
+        if (is_compute_func) {
+          report_error(attributes[1], "[[subpass_in]] is only supported in fragment functions.");
+        }
+        else if (!is_const) {
+          report_error(type, "[[subpass_in]] must be declared as const reference.");
+        }
+        else if (is_fragment_func) {
+          replace_word_and_accessor(srt_var, srt_type + "_");
+          create_info_decl += "ADDITIONAL_INFO(" + srt_type + ")\n";
+        }
+      }
       else if (srt_attr == "out") {
         if (is_compute_func) {
           report_error(attributes[1],

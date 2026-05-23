@@ -320,6 +320,7 @@ void SourceProcessor::lower_resource_table(Parser &parser)
     vertex_input,
     vertex_output,
     fragment_output,
+    fragment_input,
   };
 
   auto parse_resource = [&](Scope attributes, Token type, Token name, Scope array) {
@@ -470,6 +471,28 @@ void SourceProcessor::lower_resource_table(Parser &parser)
         return frag_out;
       };
 
+  auto parse_fragment_input =
+      [&](Token struct_name, Scope attributes, Token tok_type, Token name, Scope) {
+        metadata::ParsedFragInput frag_in{tok_type.line_number(),
+                                          string(tok_type.str()),
+                                          string(struct_name.str()) + "_" + string(name.str())};
+
+        attributes.foreach_scope(ScopeType::Attribute, [&](const Scope &attribute) {
+          string_view type = attribute[0].str();
+          if (type == "subpass_input") {
+            frag_in.slot = attribute[2].str();
+            frag_in.image_type = attribute[4].str();
+          }
+          else if (type == "raster_order_group") {
+            frag_in.raster_order_group = attribute[2].str();
+          }
+          else {
+            report_error(attributes[0], "Invalid attribute in fragment output interface");
+          }
+        });
+        return frag_in;
+      };
+
   auto is_resource_table_attribute = [](Token attr) {
     string_view type = attr.str();
     return (type == "sampler" || type == "image" || type == "uniform" || type == "storage" ||
@@ -489,6 +512,10 @@ void SourceProcessor::lower_resource_table(Parser &parser)
     string_view type = attr.str();
     return (type == "frag_color" || type == "frag_depth" || type == "frag_stencil_ref");
   };
+  auto is_fragment_input_attribute = [](Token attr) {
+    string_view type = attr.str();
+    return (type == "subpass_input");
+  };
 
   parser().foreach_struct([&](Token struct_tok, Scope, Token struct_name, Scope body) {
     SrtType srt_type = SrtType::undefined;
@@ -498,10 +525,12 @@ void SourceProcessor::lower_resource_table(Parser &parser)
     metadata::VertexInputs vertex_in;
     metadata::StageInterface vertex_out;
     metadata::FragmentOutputs fragment_out;
+    metadata::FragmentInputs fragment_in;
     srt.name = struct_name.str();
     vertex_in.name = struct_name.str();
     vertex_out.name = struct_name.str();
     fragment_out.name = struct_name.str();
+    fragment_in.name = struct_name.str();
 
     body.foreach_declaration([&](Scope attributes,
                                  Token const_tok,
@@ -526,6 +555,9 @@ void SourceProcessor::lower_resource_table(Parser &parser)
       else if (is_fragment_output_attribute(attributes[1])) {
         decl_type = SrtType::fragment_output;
       }
+      else if (is_fragment_input_attribute(attributes[1])) {
+        decl_type = SrtType::fragment_input;
+      }
       else {
         return;
       }
@@ -545,6 +577,9 @@ void SourceProcessor::lower_resource_table(Parser &parser)
             report_error(struct_name, "Structure expected to contain vertex outputs...");
             break;
           case SrtType::fragment_output:
+            report_error(struct_name, "Structure expected to contain fragment outputs...");
+            break;
+          case SrtType::fragment_input:
             report_error(struct_name, "Structure expected to contain fragment inputs...");
             break;
           case SrtType::none:
@@ -566,6 +601,9 @@ void SourceProcessor::lower_resource_table(Parser &parser)
             break;
           case SrtType::fragment_output:
             report_error(attributes[1], "...but member declared as fragment output.");
+            break;
+          case SrtType::fragment_input:
+            report_error(attributes[1], "...but member declared as fragment input.");
             break;
           case SrtType::none:
             report_error(name, "...but member declared as plain data.");
@@ -600,6 +638,11 @@ void SourceProcessor::lower_resource_table(Parser &parser)
               parse_fragment_output(struct_name, attributes, type, name, array));
           parser.erase(attributes.scope());
           break;
+        case SrtType::fragment_input:
+          fragment_in.emplace_back(
+              parse_fragment_input(struct_name, attributes, type, name, array));
+          parser.erase(attributes.scope());
+          break;
         case SrtType::undefined:
         case SrtType::none:
           break;
@@ -618,6 +661,9 @@ void SourceProcessor::lower_resource_table(Parser &parser)
         break;
       case SrtType::fragment_output:
         metadata_.fragment_outputs.emplace_back(fragment_out);
+        break;
+      case SrtType::fragment_input:
+        metadata_.fragment_inputs.emplace_back(fragment_in);
         break;
       case SrtType::undefined:
       case SrtType::none:
