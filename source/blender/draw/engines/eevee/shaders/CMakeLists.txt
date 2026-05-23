@@ -25,12 +25,10 @@ set(INC_GLSL
 set(SRC_GLSL_VERT
   eevee_depth_of_field_scatter_vert.glsl
   eevee_fullscreen_vert.glsl
-  eevee_lookdev_display_vert.glsl
 )
 
 set(SRC_GLSL_FRAG
   eevee_depth_of_field_scatter_frag.glsl
-  eevee_lookdev_display_frag.glsl
   eevee_occupancy_convert_frag.glsl
 )
 
