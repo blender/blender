@@ -2,30 +2,48 @@
  *
  * SPDX-License-Identifier: GPL-2.0-or-later */
 
-/**
- * Convert hit list to occupancy bit-field for the material pass.
- */
+#pragma once
 
-#include "infos/eevee_volume_infos.hh"
+#include "infos/eevee_common_infos.hh"
 
-FRAGMENT_SHADER_CREATE_INFO(eevee_volume_occupancy_convert)
+SHADER_LIBRARY_CREATE_INFO(eevee_global_ubo)
 
 #include "eevee_occupancy_lib.bsl.hh"
+#include "gpu_shader_fullscreen_lib.glsl"
+
+namespace eevee::volume::occupancy {
+
+struct Convert {
+  [[legacy_info]] ShaderCreateInfo eevee_global_ubo;
+
+  [[image(VOLUME_HIT_DEPTH_SLOT, read, SFLOAT_32)]] const image3D hit_depth_img;
+  [[image(VOLUME_HIT_COUNT_SLOT, read_write, UINT_32)]] uimage2D hit_count_img;
+  [[image(VOLUME_OCCUPANCY_SLOT, read_write, UINT_32)]] uimage3DAtomic occupancy_img;
+};
 
 bool is_front_face_hit(float stored_hit_depth)
 {
   return stored_hit_depth < 0.0f;
 }
 
-void main()
+[[vertex]] void convert_vert([[vertex_id]] const int vert_id, [[position]] float4 &out_position)
+{
+  fullscreen_vertex(vert_id, out_position);
+}
+
+/**
+ * Convert hit list to occupancy bit-field for the material pass.
+ */
+[[fragment, texture_atomic]]
+void convert_frag([[resource_table]] Convert &srt, [[frag_coord]] const float4 frag_co)
 {
   float hit_depths[VOLUME_HIT_DEPTH_MAX];
   float hit_ordered[VOLUME_HIT_DEPTH_MAX + 1];
   int hit_index[VOLUME_HIT_DEPTH_MAX];
 
-  int2 texel = int2(gl_FragCoord.xy);
+  int2 texel = int2(frag_co.xy);
 
-  int hit_count = int(imageLoad(hit_count_img, texel).x);
+  int hit_count = int(imageLoad(srt.hit_count_img, texel).x);
   hit_count = min(hit_count, VOLUME_HIT_DEPTH_MAX);
 
   if (hit_count == 0) {
@@ -33,10 +51,10 @@ void main()
   }
 
   /* Clear the texture for next layer / frame. */
-  imageStore(hit_count_img, texel, uint4(0));
+  imageStore(srt.hit_count_img, texel, uint4(0));
 
   for (int i = 0; i < hit_count; i++) {
-    hit_depths[i] = imageLoad(hit_depth_img, int3(texel, i)).r;
+    hit_depths[i] = imageLoad(srt.hit_depth_img, int3(texel, i)).r;
   }
 
   for (int i = 0; i < hit_count; i++) {
@@ -57,7 +75,7 @@ void main()
 #endif
 
   /* Convert to occupancy bits. */
-  occupancy::Bits occupancy = occupancy::occupancy_new();
+  ::occupancy::Bits occupancy = ::occupancy::occupancy_new();
   /* True if last interface was a volume entry. */
   /* Initialized to front facing if first hit is a backface to support camera inside the volume. */
   bool last_frontfacing = !is_front_face_hit(hit_ordered[0]);
@@ -74,8 +92,8 @@ void main()
     }
     last_frontfacing = frontfacing;
 
-    int occupancy_bit_n = occupancy::bit_index_from_depth(abs(hit_ordered[i]),
-                                                          uniform_buf.volumes.tex_size.z);
+    int occupancy_bit_n = ::occupancy::bit_index_from_depth(abs(hit_ordered[i]),
+                                                            uniform_buf.volumes.tex_size.z);
     if (last_bit == occupancy_bit_n) {
       /* We did not cross a new voxel center. Do nothing. */
       continue;
@@ -88,14 +106,19 @@ void main()
       /* occupancy::Bits is cleared by default. No need to do anything for empty regions. */
       continue;
     }
-    occupancy = occupancy::set_bits_high(occupancy, bit_start, bit_count);
+    occupancy = ::occupancy::set_bits_high(occupancy, bit_start, bit_count);
   }
 
   /* Write the occupancy bits */
-  for (int i = 0; i < imageSize(occupancy_img).z; i++) {
+  for (int i = 0; i < imageSize(srt.occupancy_img).z; i++) {
     if (occupancy.bits[i] != 0u) {
       /* NOTE: Doesn't have to be atomic but we need to blend with other method. */
-      imageAtomicOr(occupancy_img, int3(texel, i), occupancy.bits[i]);
+      imageAtomicOr(srt.occupancy_img, int3(texel, i), occupancy.bits[i]);
     }
   }
 }
+
+}  // namespace eevee::volume::occupancy
+
+PipelineGraphic eevee_volume_occupancy_convert(eevee::volume::occupancy::convert_vert,
+                                               eevee::volume::occupancy::convert_frag);

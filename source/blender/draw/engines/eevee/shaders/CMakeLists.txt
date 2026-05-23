@@ -29,7 +29,6 @@ set(SRC_GLSL_VERT
 
 set(SRC_GLSL_FRAG
   eevee_depth_of_field_scatter_frag.glsl
-  eevee_occupancy_convert_frag.glsl
 )
 
 set(SRC_GLSL_COMP
