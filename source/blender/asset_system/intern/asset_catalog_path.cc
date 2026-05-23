@@ -99,6 +99,11 @@ std::ostream &operator<<(std::ostream &stream, const AssetCatalogPath &path_to_a
   return stream;
 }
 
+AssetCatalogPath AssetCatalogPath::from_user_input(const char *path)
+{
+  return AssetCatalogPath(path).cleanup();
+}
+
 AssetCatalogPath AssetCatalogPath::cleanup() const
 {
   std::stringstream clean_components;

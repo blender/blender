@@ -233,7 +233,8 @@ static wmOperatorStatus brush_asset_save_as_exec(bContext *C, wmOperator *op)
 
   AssetMetaData &meta_data = *brush->id.asset_data;
   if (catalog_path_c[0]) {
-    const asset_system::AssetCatalogPath catalog_path(catalog_path_c);
+    const asset_system::AssetCatalogPath catalog_path =
+        asset_system::AssetCatalogPath::from_user_input(catalog_path_c);
     const asset_system::AssetCatalog &catalog = asset::library_ensure_catalogs_in_path(
         *library, catalog_path);
     BKE_asset_metadata_catalog_id_set(&meta_data, catalog.catalog_id, catalog.simple_name.c_str());
@@ -395,7 +396,8 @@ static wmOperatorStatus brush_asset_edit_metadata_exec(bContext *C, wmOperator *
   meta_data.description = RNA_string_get_alloc(op->ptr, "description", nullptr, 0, nullptr);
 
   if (catalog_path_c[0]) {
-    const asset_system::AssetCatalogPath catalog_path(catalog_path_c);
+    const asset_system::AssetCatalogPath catalog_path =
+        asset_system::AssetCatalogPath::from_user_input(catalog_path_c);
     const asset_system::AssetCatalog &catalog = asset::library_ensure_catalogs_in_path(
         library, catalog_path);
     BKE_asset_metadata_catalog_id_set(&meta_data, catalog.catalog_id, catalog.simple_name.c_str());
