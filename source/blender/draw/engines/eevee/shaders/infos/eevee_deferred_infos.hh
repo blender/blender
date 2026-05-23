@@ -17,16 +17,6 @@
 #include "eevee_defines.hh"
 #include "gpu_shader_create_info.hh"
 
-GPU_SHADER_CREATE_INFO(eevee_deferred_tile_classify)
-FRAGMENT_SOURCE("eevee_deferred_tile_classify_frag.glsl")
-TYPEDEF_SOURCE("eevee_defines.hh")
-ADDITIONAL_INFO(eevee_fullscreen)
-SUBPASS_IN(1, uint, Uint2DArray, in_gbuffer_header, DEFERRED_GBUFFER_ROG_ID)
-TYPEDEF_SOURCE("draw_shader_shared.hh")
-PUSH_CONSTANT(int, current_bit)
-DO_STATIC_COMPILATION()
-GPU_SHADER_CREATE_END()
-
 GPU_SHADER_CREATE_INFO(eevee_deferred_combine)
 /* Early fragment test is needed to avoid processing fragments background fragments. */
 EARLY_FRAGMENT_TEST(true)

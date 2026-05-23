@@ -401,7 +401,7 @@ set(GLSL_SRC
   engines/eevee/shaders/eevee_deferred_eval.bsl.hh
   engines/eevee/shaders/eevee_deferred_combine_frag.glsl
   engines/eevee/shaders/eevee_deferred_thickness_amend.bsl.hh
-  engines/eevee/shaders/eevee_deferred_tile_classify_frag.glsl
+  engines/eevee/shaders/eevee_deferred_tile_classify.bsl.hh
   engines/eevee/shaders/eevee_depth_of_field_accumulator_lib.glsl
   engines/eevee/shaders/eevee_depth_of_field_bokeh_lut_comp.glsl
   engines/eevee/shaders/eevee_depth_of_field_downsample_comp.glsl
