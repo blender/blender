@@ -4,17 +4,25 @@
 
 #pragma once
 
-/**
- * Ray generation routines for each BSDF types.
- */
+#include "infos/eevee_common_infos.hh"
+#include "infos/eevee_sampling_infos.hh"
 
-#include "eevee_bxdf_sampling_lib.glsl"
-#include "eevee_ray_types_lib.bsl.hh"
+SHADER_LIBRARY_CREATE_INFO(eevee_gbuffer_data)
+SHADER_LIBRARY_CREATE_INFO(eevee_global_ubo)
+SHADER_LIBRARY_CREATE_INFO(eevee_sampling_data)
+SHADER_LIBRARY_CREATE_INFO(draw_view)
+SHADER_LIBRARY_CREATE_INFO(eevee_utility_texture)
+
+#include "draw_view_lib.glsl"
+#include "eevee_bxdf_diffuse_lib.glsl"
+#include "eevee_bxdf_lib.glsl"
+#include "eevee_bxdf_microfacet_lib.glsl"
+#include "eevee_gbuffer_read_lib.glsl"
 #include "eevee_sampling_lib.glsl"
-#include "eevee_thickness_lib.bsl.hh"
 #include "gpu_shader_codegen_lib.glsl"
-
 #include "gpu_shader_math_matrix_construct_lib.glsl"
+
+namespace eevee {
 
 /* Returns view-space ray. */
 BsdfSample ray_generate_direction(float2 noise,
@@ -91,3 +99,64 @@ BsdfSample ray_generate_direction(float2 noise,
 
   return samp;
 }
+
+}  // namespace eevee
+
+namespace eevee::raytracing {
+
+struct RayGenerate {
+  [[specialization_constant(0)]] int closure_index;
+  [[legacy_info]] ShaderCreateInfo eevee_gbuffer_data;
+  [[legacy_info]] ShaderCreateInfo eevee_global_ubo;
+  [[legacy_info]] ShaderCreateInfo eevee_sampling_data;
+  [[legacy_info]] ShaderCreateInfo draw_view;
+  [[legacy_info]] ShaderCreateInfo eevee_utility_texture;
+  [[storage(4, read)]] const uint (&tiles_coord_buf)[];
+  [[image(0, write, SFLOAT_16_16_16_16)]] image2D out_ray_data_img;
+};
+
+/**
+ * Generate Ray direction along with other data that are then used
+ * by the next pass to trace the rays.
+ */
+[[compute, local_size(RAYTRACE_GROUP_SIZE, RAYTRACE_GROUP_SIZE)]]
+void generate_rays([[resource_table]] RayGenerate &srt,
+                   [[work_group_id]] const uint3 group_id,
+                   [[global_invocation_id]] const uint3 global_id,
+                   [[local_invocation_id]] const uint3 local_id,
+                   [[local_invocation_index]] const uint local_index)
+{
+  constexpr uint tile_size = RAYTRACE_GROUP_SIZE;
+  uint2 tile_coord = unpackUvec2x16(srt.tiles_coord_buf[group_id.x]);
+  int2 texel = int2(local_id.xy + tile_coord * tile_size);
+
+  int2 texel_fullres = texel * raytrace_buf.trace_pixel_scale + raytrace_buf.trace_pixel_offset;
+
+  gbuffer::Header gbuf_header = gbuffer::read_header(texel_fullres);
+  ClosureUndetermined closure = gbuffer::read_bin(texel_fullres, srt.closure_index);
+
+  if (closure.type == CLOSURE_NONE_ID) {
+    imageStore(srt.out_ray_data_img, texel, float4(0.0f));
+    return;
+  }
+
+  float2 uv = (float2(texel_fullres) + 0.5f) / float2(textureSize(gbuf_header_tx, 0).xy);
+  float3 P = drw_point_screen_to_world(float3(uv, 0.5f));
+  float3 V = drw_world_incident_vector(P);
+  float2 noise = utility_tx_fetch(utility_tx, float2(texel), UTIL_BLUE_NOISE_LAYER).rg;
+  noise = fract(noise + sampling_rng_2D_get(SAMPLING_RAYTRACE_U));
+
+  Thickness thickness = gbuffer::read_thickness(gbuf_header, texel_fullres);
+
+  BsdfSample samp = ray_generate_direction(noise.xy, closure, V, thickness);
+
+  /* Store inverse pdf to speedup denoising.
+   * Limit to the smallest non-0 value that the format can encode.
+   * Strangely it does not correspond to the IEEE spec. */
+  float inv_pdf = (samp.pdf == 0.0f) ? 0.0f : max(6e-8f, 1.0f / samp.pdf);
+  imageStoreFast(srt.out_ray_data_img, texel, float4(samp.direction, inv_pdf));
+}
+
+}  // namespace eevee::raytracing
+
+PipelineCompute eevee_ray_generate(eevee::raytracing::generate_rays);

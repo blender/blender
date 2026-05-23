@@ -54,10 +54,6 @@ set(SRC_GLSL_COMP
   eevee_depth_of_field_stabilize_comp.glsl
   eevee_depth_of_field_tiles_dilate_comp.glsl
   eevee_depth_of_field_tiles_flatten_comp.glsl
-
-  eevee_ray_generate_comp.glsl
-  eevee_ray_tile_classify_comp.glsl
-  eevee_ray_tile_compact_comp.glsl
 )
 
 set(SRC_GLSL_LIB
@@ -78,7 +74,6 @@ set(SRC_GLSL_LIB
   eevee_gbuffer_lib.glsl
   eevee_light_lib.glsl
   # eevee_nodetree_lib.glsl # Has dependency on draw_model_lib that is hard to resolve
-  eevee_ray_generate_lib.glsl
   eevee_renderpass_lib.glsl
   eevee_sampling_lib.glsl
 )

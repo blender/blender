@@ -4,7 +4,8 @@
 
 #pragma once
 
-#include "infos/eevee_tracing_infos.hh"
+#include "infos/eevee_common_infos.hh"
+#include "infos/eevee_sampling_infos.hh"
 
 COMPUTE_SHADER_CREATE_INFO(draw_view)
 COMPUTE_SHADER_CREATE_INFO(eevee_global_ubo)

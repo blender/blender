@@ -337,7 +337,6 @@ set(GLSL_SRC
   engines/eevee/shaders/infos/eevee_raycast_infos.hh
   engines/eevee/shaders/infos/eevee_sampling_infos.hh
   engines/eevee/shaders/infos/eevee_tests_infos.hh
-  engines/eevee/shaders/infos/eevee_tracing_infos.hh
   engines/eevee/shaders/infos/eevee_uniform_infos.hh
   engines/eevee/shaders/infos/eevee_velocity_infos.hh
   engines/eevee/shaders/infos/eevee_volume_infos.hh
@@ -466,10 +465,8 @@ set(GLSL_SRC
   engines/eevee/shaders/eevee_occupancy_lib.bsl.hh
   engines/eevee/shaders/eevee_octahedron_lib.bsl.hh
   engines/eevee/shaders/eevee_ray_denoise.bsl.hh
-  engines/eevee/shaders/eevee_ray_generate_comp.glsl
-  engines/eevee/shaders/eevee_ray_generate_lib.glsl
-  engines/eevee/shaders/eevee_ray_tile_classify_comp.glsl
-  engines/eevee/shaders/eevee_ray_tile_compact_comp.glsl
+  engines/eevee/shaders/eevee_ray_generate.bsl.hh
+  engines/eevee/shaders/eevee_ray_tile.bsl.hh
   engines/eevee/shaders/eevee_ray_trace.bsl.hh
   engines/eevee/shaders/eevee_ray_trace_screen_lib.glsl
   engines/eevee/shaders/eevee_ray_types_lib.bsl.hh

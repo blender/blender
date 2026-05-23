@@ -12,7 +12,8 @@
 
 #pragma once
 
-#include "infos/eevee_tracing_infos.hh"
+#include "infos/eevee_common_infos.hh"
+#include "infos/eevee_sampling_infos.hh"
 
 SHADER_LIBRARY_CREATE_INFO(eevee_gbuffer_data)
 SHADER_LIBRARY_CREATE_INFO(eevee_global_ubo)
