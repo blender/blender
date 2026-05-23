@@ -325,7 +325,6 @@ set(GLSL_SRC
   engines/eevee/shaders/infos/eevee_common_infos.hh
   engines/eevee/shaders/infos/eevee_deferred_infos.hh
   engines/eevee/shaders/infos/eevee_depth_of_field_infos.hh
-  engines/eevee/shaders/infos/eevee_film_infos.hh
   engines/eevee/shaders/infos/eevee_fullscreen_infos.hh
   engines/eevee/shaders/infos/eevee_geom_infos.hh
   engines/eevee/shaders/infos/eevee_hiz_infos.hh
@@ -390,7 +389,8 @@ set(GLSL_SRC
   engines/eevee/shaders/eevee_camera_lib.bsl.hh
   engines/eevee/shaders/eevee_closure_lib.glsl
   engines/eevee/shaders/eevee_colorspace_lib.bsl.hh
-  engines/eevee/shaders/eevee_cryptomatte_lib.glsl
+  engines/eevee/shaders/eevee_cryptomatte.bsl.hh
+  engines/eevee/shaders/eevee_cryptomatte_sort.bsl.hh
   engines/eevee/shaders/eevee_debug.bsl.hh
   engines/eevee/shaders/eevee_debug_gbuffer_frag.glsl
   engines/eevee/shaders/eevee_debug_surfels_vert.glsl
@@ -417,12 +417,7 @@ set(GLSL_SRC
   engines/eevee/shaders/eevee_depth_of_field_stabilize_comp.glsl
   engines/eevee/shaders/eevee_depth_of_field_tiles_dilate_comp.glsl
   engines/eevee/shaders/eevee_depth_of_field_tiles_flatten_comp.glsl
-  engines/eevee/shaders/eevee_film_copy_frag.glsl
-  engines/eevee/shaders/eevee_film_comp.glsl
-  engines/eevee/shaders/eevee_film_cryptomatte_post_comp.glsl
-  engines/eevee/shaders/eevee_film_frag.glsl
-  engines/eevee/shaders/eevee_film_lib.glsl
-  engines/eevee/shaders/eevee_film_pass_convert_comp.glsl
+  engines/eevee/shaders/eevee_film.bsl.hh
   engines/eevee/shaders/eevee_filter_lib.glsl
   engines/eevee/shaders/eevee_forward_lib.glsl
   engines/eevee/shaders/eevee_forward_resolve.bsl.hh

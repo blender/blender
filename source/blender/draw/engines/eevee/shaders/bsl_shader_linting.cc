@@ -10,9 +10,12 @@
 #include "eevee_bxdf_lut_lib.bsl.hh"                 /* IWYU pragma: export */
 #include "eevee_camera_lib.bsl.hh"                   /* IWYU pragma: export */
 #include "eevee_colorspace_lib.bsl.hh"               /* IWYU pragma: export */
+#include "eevee_cryptomatte.bsl.hh"                  /* IWYU pragma: export */
+#include "eevee_cryptomatte_sort.bsl.hh"             /* IWYU pragma: export */
 #include "eevee_deferred_eval.bsl.hh"                /* IWYU pragma: export */
 #include "eevee_deferred_thickness_amend.bsl.hh"     /* IWYU pragma: export */
 #include "eevee_fast_gi.bsl.hh"                      /* IWYU pragma: export */
+#include "eevee_film.bsl.hh"                         /* IWYU pragma: export */
 #include "eevee_forward_resolve.bsl.hh"              /* IWYU pragma: export */
 #include "eevee_geom_curves.bsl.hh"                  /* IWYU pragma: export */
 #include "eevee_geom_mesh.bsl.hh"                    /* IWYU pragma: export */

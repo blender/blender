@@ -38,8 +38,6 @@ set(SRC_GLSL_FRAG
   eevee_deferred_combine_frag.glsl
   eevee_deferred_tile_classify_frag.glsl
   eevee_depth_of_field_scatter_frag.glsl
-  eevee_film_copy_frag.glsl
-  eevee_film_frag.glsl
   eevee_hiz_debug_frag.glsl
   eevee_lookdev_display_frag.glsl
   eevee_occupancy_convert_frag.glsl
@@ -57,9 +55,6 @@ set(SRC_GLSL_COMP
   eevee_depth_of_field_stabilize_comp.glsl
   eevee_depth_of_field_tiles_dilate_comp.glsl
   eevee_depth_of_field_tiles_flatten_comp.glsl
-  eevee_film_comp.glsl
-  eevee_film_cryptomatte_post_comp.glsl
-  eevee_film_pass_convert_comp.glsl
 
   eevee_ray_generate_comp.glsl
   eevee_ray_tile_classify_comp.glsl
@@ -76,7 +71,6 @@ set(SRC_GLSL_LIB
   eevee_bxdf_lib.glsl
   eevee_bxdf_microfacet_lib.glsl
   eevee_closure_lib.glsl
-  eevee_cryptomatte_lib.glsl
   eevee_depth_of_field_accumulator_lib.glsl
   eevee_depth_of_field_lib.glsl
   eevee_film_lib.glsl
