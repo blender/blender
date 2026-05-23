@@ -24,7 +24,6 @@ set(INC_GLSL
 
 set(SRC_GLSL_VERT
   eevee_depth_of_field_scatter_vert.glsl
-  eevee_fullscreen_vert.glsl
 )
 
 set(SRC_GLSL_FRAG

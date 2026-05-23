@@ -5,7 +5,6 @@
 #pragma once
 
 #include "infos/eevee_common_infos.hh"
-#include "infos/eevee_raycast_infos.hh"
 #include "infos/eevee_uniform_infos.hh"
 
 SHADER_LIBRARY_CREATE_INFO(eevee_global_ubo)

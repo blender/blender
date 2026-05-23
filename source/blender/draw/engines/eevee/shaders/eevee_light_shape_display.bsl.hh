@@ -4,8 +4,7 @@
 
 #pragma once
 
-#include "draw_view_infos.hh"
-#include "infos/eevee_volume_resolved_infos.hh"
+#include "infos/eevee_common_infos.hh"
 
 FRAGMENT_SHADER_CREATE_INFO(draw_view)
 FRAGMENT_SHADER_CREATE_INFO(eevee_volume_lib)
@@ -17,7 +16,6 @@ FRAGMENT_SHADER_CREATE_INFO(eevee_volume_lib)
 #include "eevee_volume_lib.bsl.hh"
 #include "gpu_shader_math_base_lib.glsl"
 #include "gpu_shader_math_constants_lib.glsl"
-#include "gpu_shader_math_matrix_transform_lib.glsl"
 
 namespace eevee::light {
 

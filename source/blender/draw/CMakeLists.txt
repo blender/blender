@@ -323,23 +323,14 @@ set(GLSL_SRC
   intern/shaders/subdiv_patch_eval_infos.hh
 
   engines/eevee/shaders/infos/eevee_common_infos.hh
-  engines/eevee/shaders/infos/eevee_deferred_infos.hh
   engines/eevee/shaders/infos/eevee_depth_of_field_infos.hh
-  engines/eevee/shaders/infos/eevee_fullscreen_infos.hh
   engines/eevee/shaders/infos/eevee_geom_infos.hh
-  engines/eevee/shaders/infos/eevee_hiz_infos.hh
   engines/eevee/shaders/infos/eevee_lightprobe_infos.hh
-  engines/eevee/shaders/infos/eevee_lightprobe_sphere_infos.hh
-  engines/eevee/shaders/infos/eevee_lookdev_infos.hh
-  engines/eevee/shaders/infos/eevee_material_infos.hh
   engines/eevee/shaders/infos/eevee_nodetree_infos.hh
-  engines/eevee/shaders/infos/eevee_raycast_infos.hh
   engines/eevee/shaders/infos/eevee_sampling_infos.hh
   engines/eevee/shaders/infos/eevee_tests_infos.hh
   engines/eevee/shaders/infos/eevee_uniform_infos.hh
   engines/eevee/shaders/infos/eevee_velocity_infos.hh
-  engines/eevee/shaders/infos/eevee_volume_infos.hh
-  engines/eevee/shaders/infos/eevee_volume_resolved_infos.hh
 
   engines/image/shaders/infos/engine_image_infos.hh
 
@@ -413,7 +404,6 @@ set(GLSL_SRC
   engines/eevee/shaders/eevee_filter_lib.glsl
   engines/eevee/shaders/eevee_forward_lib.glsl
   engines/eevee/shaders/eevee_forward_resolve.bsl.hh
-  engines/eevee/shaders/eevee_fullscreen_vert.glsl
   engines/eevee/shaders/eevee_gbuffer_lib.glsl
   engines/eevee/shaders/eevee_gbuffer_read_lib.glsl
   engines/eevee/shaders/eevee_gbuffer_write_lib.glsl
