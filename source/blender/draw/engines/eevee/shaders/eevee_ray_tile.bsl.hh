@@ -9,7 +9,7 @@
 SHADER_LIBRARY_CREATE_INFO(eevee_gbuffer_data)
 SHADER_LIBRARY_CREATE_INFO(eevee_global_ubo)
 
-#include "eevee_closure_lib.glsl"
+#include "eevee_closure.bsl.hh"
 #include "eevee_gbuffer_read_lib.glsl"
 #include "gpu_shader_codegen_lib.glsl"
 #include "gpu_shader_utildefines_lib.glsl"

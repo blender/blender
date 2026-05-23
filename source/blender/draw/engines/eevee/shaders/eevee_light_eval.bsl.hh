@@ -4,14 +4,12 @@
 
 #pragma once
 
-#include "eevee_bxdf_lib.glsl"
-#include "eevee_closure_lib.glsl"
+#include "eevee_bxdf_types.bsl.hh"
 #include "eevee_light_iter.bsl.hh"
 #include "eevee_light_lib.glsl"
 #include "eevee_shadow.bsl.hh"
 #include "eevee_shadow_tracing.bsl.hh"
 #include "eevee_thickness_lib.bsl.hh"
-#include "gpu_shader_codegen_lib.glsl"
 #include "gpu_shader_utildefines_lib.glsl"
 
 #if !defined(SRT_CONSTANT_light_closure_eval_count_reflect)

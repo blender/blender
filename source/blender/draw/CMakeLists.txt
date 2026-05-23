@@ -369,14 +369,14 @@ set(GLSL_SRC
   engines/eevee/shaders/eevee_attributes_pointcloud_lib.glsl
   engines/eevee/shaders/eevee_attributes_volume_lib.glsl
   engines/eevee/shaders/eevee_attributes_world_lib.glsl
-  engines/eevee/shaders/eevee_bxdf_lib.glsl
+  engines/eevee/shaders/eevee_bxdf.bsl.hh
+  engines/eevee/shaders/eevee_bxdf_diffuse.bsl.hh
   engines/eevee/shaders/eevee_bxdf_lut.bsl.hh
   engines/eevee/shaders/eevee_bxdf_lut_lib.bsl.hh
-  engines/eevee/shaders/eevee_bxdf_microfacet_lib.glsl
-  engines/eevee/shaders/eevee_bxdf_diffuse_lib.glsl
-  engines/eevee/shaders/eevee_bxdf_sampling_lib.glsl
+  engines/eevee/shaders/eevee_bxdf_microfacet.bsl.hh
+  engines/eevee/shaders/eevee_bxdf_types.bsl.hh
   engines/eevee/shaders/eevee_camera_lib.bsl.hh
-  engines/eevee/shaders/eevee_closure_lib.glsl
+  engines/eevee/shaders/eevee_closure.bsl.hh
   engines/eevee/shaders/eevee_colorspace_lib.bsl.hh
   engines/eevee/shaders/eevee_cryptomatte.bsl.hh
   engines/eevee/shaders/eevee_cryptomatte_sort.bsl.hh

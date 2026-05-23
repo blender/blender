@@ -4,7 +4,7 @@
 
 #pragma once
 
-#include "eevee_bxdf_lib.glsl"
+#include "eevee_bxdf_types.bsl.hh"
 #include "eevee_ltc_lut_lib.bsl.hh"
 #include "eevee_thickness_lib.bsl.hh"
 #include "gpu_shader_codegen_lib.glsl"

@@ -4,8 +4,7 @@
 
 #pragma once
 
-#include "eevee_bxdf_diffuse_lib.glsl"
-#include "eevee_bxdf_microfacet_lib.glsl"
+#include "eevee_bxdf.bsl.hh"
 #include "gpu_shader_codegen_lib.glsl"
 
 /* Return the apparent roughness of a closure compared to a GGX reflection lobe. */

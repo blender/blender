@@ -12,7 +12,7 @@ COMPUTE_SHADER_CREATE_INFO(eevee_global_ubo)
 COMPUTE_SHADER_CREATE_INFO(eevee_sampling_data)
 COMPUTE_SHADER_CREATE_INFO(eevee_gbuffer_data)
 
-#include "eevee_closure_lib.glsl"
+#include "eevee_closure.bsl.hh"
 #include "eevee_colorspace_lib.bsl.hh"
 #include "eevee_gbuffer_read_lib.glsl"
 #include "eevee_lightprobe.bsl.hh"

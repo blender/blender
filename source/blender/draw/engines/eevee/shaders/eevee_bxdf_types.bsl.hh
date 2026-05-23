@@ -4,7 +4,7 @@
 
 #pragma once
 
-#include "infos/eevee_common_infos.hh"
+#include "eevee_uniform_shared.hh"
 
 /**
  * BxDF evaluation functions.

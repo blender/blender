@@ -20,7 +20,7 @@ COMPUTE_SHADER_CREATE_INFO(eevee_global_ubo)
 COMPUTE_SHADER_CREATE_INFO(eevee_utility_texture)
 COMPUTE_SHADER_CREATE_INFO(eevee_surfel_common)
 
-#include "eevee_closure_lib.glsl"
+#include "eevee_closure.bsl.hh"
 #include "eevee_light_eval.bsl.hh"
 
 namespace eevee::surfel {

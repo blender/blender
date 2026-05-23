@@ -23,7 +23,7 @@ SHADER_LIBRARY_CREATE_INFO(eevee_utility_texture)
 
 #include "draw_math_geom_lib.glsl"
 #include "draw_view_lib.glsl"
-#include "eevee_closure_lib.glsl"
+#include "eevee_closure.bsl.hh"
 #include "eevee_colorspace_lib.bsl.hh"
 #include "eevee_defines.hh"
 #include "eevee_filter_lib.glsl"

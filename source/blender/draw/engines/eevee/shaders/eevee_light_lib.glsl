@@ -5,6 +5,7 @@
 #pragma once
 
 #include "draw_math_geom_lib.glsl"
+#include "eevee_light_shared.hh"
 #include "eevee_ltc_lib.bsl.hh"
 #include "eevee_ltc_lut_lib.bsl.hh"
 

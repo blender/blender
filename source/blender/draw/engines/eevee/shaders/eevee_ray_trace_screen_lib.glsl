@@ -15,8 +15,8 @@
  */
 
 #include "draw_view_lib.glsl"
-#include "eevee_bxdf_diffuse_lib.glsl"
-#include "eevee_bxdf_microfacet_lib.glsl"
+#include "eevee_bxdf.bsl.hh"
+#include "eevee_lightprobe_shared.hh"
 #include "eevee_ray_types_lib.bsl.hh"
 #include "eevee_reverse_z_lib.bsl.hh"
 #include "eevee_thickness_lib.bsl.hh"

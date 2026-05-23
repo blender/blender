@@ -50,13 +50,8 @@ set(SRC_GLSL_LIB
   eevee_attributes_pointcloud_lib.glsl
   eevee_attributes_volume_lib.glsl
   eevee_attributes_world_lib.glsl
-  eevee_bxdf_diffuse_lib.glsl
-  eevee_bxdf_lib.glsl
-  eevee_bxdf_microfacet_lib.glsl
-  eevee_closure_lib.glsl
   eevee_depth_of_field_accumulator_lib.glsl
   eevee_depth_of_field_lib.glsl
-  eevee_film_lib.glsl
   eevee_filter_lib.glsl
   # eevee_forward_lib.glsl
   eevee_gbuffer_lib.glsl

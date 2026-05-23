@@ -26,7 +26,7 @@ VERTEX_SHADER_CREATE_INFO(eevee_hiz_data)
 VERTEX_SHADER_CREATE_INFO(draw_view)
 
 #include "draw_view_lib.glsl"
-#include "eevee_closure_lib.glsl"
+#include "eevee_closure.bsl.hh"
 #include "eevee_colorspace_lib.bsl.hh"
 #include "eevee_filter_lib.glsl"
 #include "eevee_gbuffer_read_lib.glsl"

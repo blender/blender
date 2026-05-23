@@ -14,9 +14,7 @@ SHADER_LIBRARY_CREATE_INFO(draw_view)
 SHADER_LIBRARY_CREATE_INFO(eevee_utility_texture)
 
 #include "draw_view_lib.glsl"
-#include "eevee_bxdf_diffuse_lib.glsl"
-#include "eevee_bxdf_lib.glsl"
-#include "eevee_bxdf_microfacet_lib.glsl"
+#include "eevee_bxdf.bsl.hh"
 #include "eevee_gbuffer_read_lib.glsl"
 #include "eevee_sampling_lib.glsl"
 #include "gpu_shader_codegen_lib.glsl"
