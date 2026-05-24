@@ -385,7 +385,7 @@ set(GLSL_SRC
   engines/eevee/shaders/eevee_deferred_tile_classify.bsl.hh
   engines/eevee/shaders/eevee_depth_of_field_accumulator_lib.glsl
   engines/eevee/shaders/eevee_depth_of_field_bokeh_lut.bsl.hh
-  engines/eevee/shaders/eevee_depth_of_field_filter_comp.glsl
+  engines/eevee/shaders/eevee_depth_of_field_filter.bsl.hh
   engines/eevee/shaders/eevee_depth_of_field_gather_comp.glsl
   engines/eevee/shaders/eevee_depth_of_field_hole_fill_comp.glsl
   engines/eevee/shaders/eevee_depth_of_field_lib.glsl

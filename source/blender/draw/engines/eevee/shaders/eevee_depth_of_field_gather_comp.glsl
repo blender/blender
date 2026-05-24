@@ -18,6 +18,7 @@
 #include "infos/eevee_depth_of_field_infos.hh"
 
 COMPUTE_SHADER_CREATE_INFO(eevee_depth_of_field_gather)
+COMPUTE_SHADER_CREATE_INFO(eevee_depth_of_field_lut)
 
 #include "eevee_depth_of_field_accumulator_lib.glsl"
 

@@ -104,18 +104,6 @@ ADDITIONAL_INFO(eevee_depth_of_field_gather_common)
 ADDITIONAL_INFO(eevee_depth_of_field_no_lut)
 GPU_SHADER_CREATE_END()
 
-GPU_SHADER_CREATE_INFO(eevee_depth_of_field_filter)
-DO_STATIC_COMPILATION()
-LOCAL_GROUP_SIZE(DOF_FILTER_GROUP_SIZE, DOF_FILTER_GROUP_SIZE)
-TYPEDEF_SOURCE("eevee_defines.hh")
-TYPEDEF_SOURCE("eevee_depth_of_field_shared.hh")
-SAMPLER(0, sampler2D, color_tx)
-SAMPLER(1, sampler2D, weight_tx)
-IMAGE(0, SFLOAT_16_16_16_16, write, image2D, out_color_img)
-IMAGE(1, SFLOAT_16, write, image2D, out_weight_img)
-COMPUTE_SOURCE("eevee_depth_of_field_filter_comp.glsl")
-GPU_SHADER_CREATE_END()
-
 /** \} */
 
 /* -------------------------------------------------------------------- */
