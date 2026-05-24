@@ -396,8 +396,7 @@ set(GLSL_SRC
   engines/eevee/shaders/eevee_depth_of_field_scatter_vert.glsl
   engines/eevee/shaders/eevee_depth_of_field_setup_comp.glsl
   engines/eevee/shaders/eevee_depth_of_field_stabilize_comp.glsl
-  engines/eevee/shaders/eevee_depth_of_field_tiles_dilate_comp.glsl
-  engines/eevee/shaders/eevee_depth_of_field_tiles_flatten_comp.glsl
+  engines/eevee/shaders/eevee_depth_of_field_tiles.bsl.hh
   engines/eevee/shaders/eevee_film.bsl.hh
   engines/eevee/shaders/eevee_filter.bsl.hh
   engines/eevee/shaders/eevee_forward_lib.glsl

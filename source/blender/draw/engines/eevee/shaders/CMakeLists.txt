@@ -40,8 +40,6 @@ set(SRC_GLSL_COMP
   eevee_depth_of_field_resolve_comp.glsl
   eevee_depth_of_field_setup_comp.glsl
   eevee_depth_of_field_stabilize_comp.glsl
-  eevee_depth_of_field_tiles_dilate_comp.glsl
-  eevee_depth_of_field_tiles_flatten_comp.glsl
 )
 
 set(SRC_GLSL_LIB

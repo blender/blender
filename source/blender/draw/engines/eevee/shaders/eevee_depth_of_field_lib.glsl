@@ -11,6 +11,7 @@
 #include "infos/eevee_common_infos.hh"
 
 #include "draw_view_lib.glsl"
+#include "eevee_depth_of_field_shared.hh"
 #include "gpu_shader_math_base_lib.glsl"
 #include "gpu_shader_utildefines_lib.glsl"
 

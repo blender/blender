@@ -117,49 +117,6 @@ GPU_SHADER_CREATE_END()
 /** \} */
 
 /* -------------------------------------------------------------------- */
-/** \name Circle-Of-Confusion Tiles
- * \{ */
-
-GPU_SHADER_CREATE_INFO(eevee_depth_of_field_tiles_flatten)
-DO_STATIC_COMPILATION()
-LOCAL_GROUP_SIZE(DOF_TILES_FLATTEN_GROUP_SIZE, DOF_TILES_FLATTEN_GROUP_SIZE)
-TYPEDEF_SOURCE("eevee_defines.hh")
-TYPEDEF_SOURCE("eevee_depth_of_field_shared.hh")
-ADDITIONAL_INFO(draw_view)
-SAMPLER(0, sampler2D, coc_tx)
-IMAGE(2, UFLOAT_11_11_10, write, image2D, out_tiles_fg_img)
-IMAGE(3, UFLOAT_11_11_10, write, image2D, out_tiles_bg_img)
-COMPUTE_SOURCE("eevee_depth_of_field_tiles_flatten_comp.glsl")
-GPU_SHADER_CREATE_END()
-
-GPU_SHADER_CREATE_INFO(eevee_depth_of_field_tiles_dilate)
-TYPEDEF_SOURCE("eevee_defines.hh")
-TYPEDEF_SOURCE("eevee_depth_of_field_shared.hh")
-ADDITIONAL_INFO(draw_view)
-ADDITIONAL_INFO(eevee_depth_of_field_tiles_common)
-LOCAL_GROUP_SIZE(DOF_TILES_DILATE_GROUP_SIZE, DOF_TILES_DILATE_GROUP_SIZE)
-IMAGE(2, UFLOAT_11_11_10, write, image2D, out_tiles_fg_img)
-IMAGE(3, UFLOAT_11_11_10, write, image2D, out_tiles_bg_img)
-PUSH_CONSTANT(int, ring_count)
-PUSH_CONSTANT(int, ring_width_multiplier)
-COMPUTE_SOURCE("eevee_depth_of_field_tiles_dilate_comp.glsl")
-GPU_SHADER_CREATE_END()
-
-GPU_SHADER_CREATE_INFO(eevee_depth_of_field_tiles_dilate_minabs)
-DO_STATIC_COMPILATION()
-DEFINE_VALUE("DILATE_MODE_MIN_MAX", "false")
-ADDITIONAL_INFO(eevee_depth_of_field_tiles_dilate)
-GPU_SHADER_CREATE_END()
-
-GPU_SHADER_CREATE_INFO(eevee_depth_of_field_tiles_dilate_minmax)
-DO_STATIC_COMPILATION()
-DEFINE_VALUE("DILATE_MODE_MIN_MAX", "true")
-ADDITIONAL_INFO(eevee_depth_of_field_tiles_dilate)
-GPU_SHADER_CREATE_END()
-
-/** \} */
-
-/* -------------------------------------------------------------------- */
 /** \name Variations
  * \{ */
 
