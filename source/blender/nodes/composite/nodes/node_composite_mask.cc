@@ -45,12 +45,14 @@ static void node_declare(NodeDeclarationBuilder &b)
       .description("The source where the size of the mask is retrieved");
   b.add_input<decl::Int>("Size X"_ustr)
       .default_value(256)
+      .subtype(PROP_PIXEL)
       .min(1)
       .usage_by_menu("Size Source"_ustr,
                      {CMP_NODE_MASK_FLAG_SIZE_FIXED, CMP_NODE_MASK_FLAG_SIZE_FIXED_SCENE})
       .description("The resolution of the mask along the X direction");
   b.add_input<decl::Int>("Size Y"_ustr)
       .default_value(256)
+      .subtype(PROP_PIXEL)
       .min(1)
       .usage_by_menu("Size Source"_ustr,
                      {CMP_NODE_MASK_FLAG_SIZE_FIXED, CMP_NODE_MASK_FLAG_SIZE_FIXED_SCENE})

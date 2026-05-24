@@ -25,6 +25,7 @@ static void node_declare(NodeDeclarationBuilder &b)
 
   b.add_input<decl::Int>("Size"_ustr)
       .default_value(1)
+      .subtype(PROP_PIXEL)
       .min(1)
       .description("The number of pixels that correspond to the same output pixel");
 }

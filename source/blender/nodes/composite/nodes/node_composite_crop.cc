@@ -43,11 +43,13 @@ static void node_declare(NodeDeclarationBuilder &b)
       .description("The Y position of the lower left corner of the crop region");
   b.add_input<decl::Int>("Width"_ustr)
       .default_value(1920)
+      .subtype(PROP_PIXEL)
       .min(1)
 
       .description("The width of the crop region");
   b.add_input<decl::Int>("Height"_ustr)
       .default_value(1080)
+      .subtype(PROP_PIXEL)
       .min(1)
 
       .description("The height of the crop region");

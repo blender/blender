@@ -29,6 +29,7 @@ static void node_declare(NodeDeclarationBuilder &b)
 
   b.add_input<decl::Int>("Size"_ustr)
       .default_value(0)
+      .subtype(PROP_PIXEL)
       .min(0)
       .description("The size of the inpaint in pixels");
 }
