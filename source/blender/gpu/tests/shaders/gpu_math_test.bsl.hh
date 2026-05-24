@@ -7,11 +7,11 @@
  * Comment out for correct compilation error line. */
 #line 9
 
+#pragma once
+
 #include "infos/gpu_shader_test_infos.hh"
 
-COMPUTE_SHADER_CREATE_INFO(gpu_math_test)
-
-#include "gpu_shader_test_lib.glsl"
+#include "gpu_shader_test_lib.bsl.hh"
 
 #include "gpu_shader_math_axis_angle_lib.glsl"
 #include "gpu_shader_math_euler_lib.glsl"
@@ -26,9 +26,8 @@ COMPUTE_SHADER_CREATE_INFO(gpu_math_test)
 #include "gpu_shader_math_rotation_conversion_lib.glsl"
 #include "gpu_shader_math_rotation_lib.glsl"
 
-#define TEST(a, b) if (true)
-
-void main()
+[[compute, local_size(1)]]
+void gpu_math_test_main([[resource_table]] const ShaderTestOutput & /*srt*/)
 {
   TEST(math_matrix, MatrixInverse)
   {
@@ -352,3 +351,5 @@ void main()
     EXPECT_LE(floatBitsToOrderedInt(-0.0f), floatBitsToOrderedInt(0.0f));
   }
 }
+
+PipelineCompute gpu_math_test(gpu_math_test_main);

@@ -2,23 +2,10 @@
  *
  * SPDX-License-Identifier: GPL-2.0-or-later */
 
-/* Directive for resetting the line numbering so the failing tests lines can be printed.
- * This conflict with the shader compiler error logging scheme.
- * Comment out for correct compilation error line. */
-#if 1 /* WORKAROUND: GLSL shader compilation mutate line directives searching `#line` pattern. */
-#  line 10
-#endif
-
 #pragma once
 
-#include "infos/gpu_shader_test_infos.hh"
-
-COMPUTE_SHADER_CREATE_INFO(gpu_shader_test)
-
 #include "eevee_gbuffer_write.bsl.hh"
-#include "gpu_shader_test_lib.glsl"
-
-#define TEST(a, b) if (true)
+#include "gpu_shader_test_lib.bsl.hh"
 
 gbuffer::InputClosures gbuffer_new()
 {
@@ -32,8 +19,9 @@ gbuffer::InputClosures gbuffer_new()
   return data;
 }
 
-[[compute]]
-void eevee_test_gbuffer_normal([[resource_table]] const gbuffer::PackParameters &param)
+[[compute, local_size(1)]]
+void eevee_test_gbuffer_normal_main([[resource_table]] const ShaderTestOutput & /*srt*/,
+                                    [[resource_table]] const gbuffer::PackParameters &param)
 {
   float3 Ng = float3(1.0f, 0.0f, 0.0f);
   float3 N = Ng;
@@ -212,3 +200,15 @@ void eevee_test_gbuffer_normal([[resource_table]] const gbuffer::PackParameters 
     EXPECT_NEAR(cl3.N, gbuffer::normal_unpack(data_out.normal[1]), 1e-5f);
   }
 }
+
+PipelineCompute eevee_test_gbuffer_normal(eevee_test_gbuffer_normal_main,
+                                          gbuffer::PackParameters{
+                                              .gbuffer_has_reflection = true,
+                                              .gbuffer_has_refraction = true,
+                                              .gbuffer_has_subsurface = true,
+                                              .gbuffer_has_translucent = true,
+                                              .gbuffer_reflection_colorless = false,
+                                              .gbuffer_refraction_colorless = false,
+                                              .gbuffer_layer_max = 3,
+                                              .gbuffer_simple_layout = false,
+                                          });

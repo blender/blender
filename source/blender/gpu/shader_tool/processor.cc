@@ -195,6 +195,7 @@ SourceProcessor::Result SourceProcessor::convert_bsl(metadata::Source external_s
   lower_array_initializations(parser);
   lower_scope_resolution_operators(parser);
   lower_structured_bindings(parser);
+  lower_tests(parser);
   /* Lower references. */
   lower_reference_arguments(parser);
   lower_reference_variables(parser);
@@ -1193,6 +1194,35 @@ void SourceProcessor::lint_reserved_tokens(Parser &parser)
       report_error(tok, err.c_str());
     }
   });
+}
+
+void SourceProcessor::lower_tests(Parser &parser)
+{
+  parser().foreach_function([&](bool, Token type, Token, Scope, bool, Scope fn_body) {
+    if (type.str() != "void") {
+      return;
+    }
+    /* Note: Assume any function containing tests are entry points. */
+    int test_id = 0;
+    fn_body.foreach_match("A(A,A){..}", [&](Tokens toks) {
+      if (toks[0].str() != "TEST") {
+        return;
+      }
+      Scope test_body = toks[6].scope();
+      test_body.foreach_match("A(..)", [&](Tokens toks) {
+        if (toks[0].str().starts_with("EXPECT_")) {
+          int id = test_id;
+          parser.insert_before(toks[0], "out_test[" + to_string(id) + "] = ");
+          parser.insert_after(toks[4],
+                              "; out_test[" + to_string(id) +
+                                  "].line = " + to_string(toks[0].line_number()));
+          test_id++;
+        }
+      });
+    });
+  });
+
+  parser.apply_mutations();
 }
 
 void SourceProcessor::lower_noop_keywords(Parser &parser)

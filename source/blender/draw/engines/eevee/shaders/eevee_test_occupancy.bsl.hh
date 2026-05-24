@@ -2,25 +2,13 @@
  *
  * SPDX-License-Identifier: GPL-2.0-or-later */
 
-/* Directive for resetting the line numbering so the failing tests lines can be printed.
- * This conflict with the shader compiler error logging scheme.
- * Comment out for correct compilation error line. */
-#if 1 /* WORKAROUND: GLSL shader compilation mutate line directives searching `#line` pattern. */
-#  line 10
-#endif
-
 #pragma once
 
-#include "infos/gpu_shader_test_infos.hh"
-
-COMPUTE_SHADER_CREATE_INFO(gpu_shader_test)
-
 #include "eevee_occupancy_lib.bsl.hh"
-#include "gpu_shader_test_lib.glsl"
+#include "gpu_shader_test_lib.bsl.hh"
 
-#define TEST(a, b) if (true)
-
-void main()
+[[compute, local_size(1)]]
+void eevee_test_occupancy_main([[resource_table]] const ShaderTestOutput & /*srt*/)
 {
   TEST(eevee_occupancy, Occupancy)
   {
@@ -127,3 +115,5 @@ void main()
     EXPECT_EQ(to_uint4(occup), uint4(0xFFFF0000u, 0x0000FFFFu, 0xFFFF0000u, 0u));
   }
 }
+
+PipelineCompute eevee_test_occupancy(eevee_test_occupancy_main);

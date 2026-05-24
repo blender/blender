@@ -2,26 +2,13 @@
  *
  * SPDX-License-Identifier: GPL-2.0-or-later */
 
-/* Directive for resetting the line numbering so the failing tests lines can be printed.
- * This conflict with the shader compiler error logging scheme.
- * Comment out for correct compilation error line. */
-#if 1 /* WORKAROUND: GLSL shader compilation mutate line directives searching `#line` pattern. */
-#  line 10
-#endif
-
 #pragma once
-
-#include "infos/gpu_shader_test_infos.hh"
-
-COMPUTE_SHADER_CREATE_INFO(gpu_shader_test)
 
 #include "eevee_shadow.bsl.hh"
 
 #include "gpu_shader_math_vector_lib.glsl"
-#include "gpu_shader_test_lib.glsl"
+#include "gpu_shader_test_lib.bsl.hh"
 #include "gpu_shader_utildefines_lib.glsl"
-
-#define TEST(a, b) if (true)
 
 void set_clipmap_data(LightData &light,
                       int clipmap_lod_min,
@@ -44,6 +31,7 @@ void set_clipmap_base_offset(LightData &light, int2 clipmap_base_offset)
   light.sun() = sun_data;
 }
 
+[[compute, local_size(1)]]
 void main()
 {
   TEST(eevee_shadow, DirectionalMemberSet)

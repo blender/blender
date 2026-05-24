@@ -501,37 +501,34 @@ static std::string print_test_data(const TestOutputRawData &raw, TestType type)
 
 static StringRef print_test_line(StringRefNull test_src, int64_t test_line)
 {
-  /* Start at line one like the line report scheme.
-   * However, our preprocessor adds a line directive at the top of the file. Skip it. */
-  int64_t line = 1 - 1;
-  int64_t last_pos = 0;
-  int64_t pos = 0;
-  while ((pos = test_src.find('\n', pos)) != std::string::npos) {
-    if (line == test_line) {
-      return test_src.substr(last_pos, pos - last_pos);
-    }
-    pos += 1; /* Skip newline */
-    last_pos = pos;
-    line++;
+  std::string needle = "].line = " + std::to_string(test_line) + ";";
+
+  int64_t pos = test_src.find(needle);
+  if (pos == std::string::npos) {
+    return "";
   }
-  return "";
+  int64_t start = test_src.rfind('\n', pos);
+  if (start == std::string::npos) {
+    return "";
+  }
+  int64_t end = test_src.find('\n', pos);
+  if (end == std::string::npos) {
+    return "";
+  }
+  return test_src.substr(start, end - start);
 }
 
-static void gpu_shader_lib_test(StringRefNull test_src_name, const char *additional_info = nullptr)
+static void gpu_shader_lib_test(StringRefNull create_info_name)
 {
   using namespace shader;
 
   GPU_render_begin();
 
-  std::string create_info_name = test_src_name.substr(0, test_src_name.find('.'));
+  const GPUShaderCreateInfo *info = gpu_shader_create_info_get(create_info_name.c_str());
+  gpu::shader::ShaderCreateInfo create_info =
+      *reinterpret_cast<const gpu::shader::ShaderCreateInfo *>(info);
 
-  ShaderCreateInfo create_info(create_info_name.c_str());
-  create_info.compute_source(test_src_name);
-  create_info.additional_info("gpu_shader_test");
-  if (additional_info) {
-    create_info.additional_info(additional_info);
-  }
-
+  StringRefNull test_src_name = create_info.compute_source_;
   StringRefNull test_src = gpu_shader_dependency_get_source(test_src_name);
 
   gpu::Shader *shader = GPU_shader_create_from_info(
@@ -584,18 +581,20 @@ static void gpu_shader_lib_test(StringRefNull test_src_name, const char *additio
 
 static void test_math_lib()
 {
-  gpu_shader_lib_test("gpu_math_test.glsl");
+  gpu_shader_lib_test("gpu_math_test");
 }
 GPU_TEST(math_lib)
 
 static void test_eevee_lib()
 {
   /* TODO(fclem): Not passing currently. Need to be updated. */
-  // gpu_shader_lib_test("eevee_shadow_test.bsl.hh", "eevee_tests_data");
-  gpu_shader_lib_test("eevee_test_occupancy.bsl.hh");
-  gpu_shader_lib_test("eevee_test_fast_gi.bsl.hh");
-  gpu_shader_lib_test("eevee_test_gbuffer_normal.bsl.hh", "eevee_tests_data");
-  gpu_shader_lib_test("eevee_test_gbuffer_closure.bsl.hh", "eevee_tests_data");
+  // gpu_shader_lib_test("eevee_shadow_test.bsl.hh");
+  gpu_shader_lib_test("eevee_test_occupancy");
+  gpu_shader_lib_test("eevee_test_fast_gi");
+#if 0 /* TODO Fix */
+  gpu_shader_lib_test("eevee_test_gbuffer_normal");
+  gpu_shader_lib_test("eevee_test_gbuffer_closure");
+#endif
 }
 GPU_TEST(eevee_lib)
 

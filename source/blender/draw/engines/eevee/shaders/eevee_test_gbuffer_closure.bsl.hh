@@ -2,33 +2,17 @@
  *
  * SPDX-License-Identifier: GPL-2.0-or-later */
 
-/* Directive for resetting the line numbering so the failing tests lines can be printed.
- * This conflict with the shader compiler error logging scheme.
- * Comment out for correct compilation error line. */
-#if 1 /* WORKAROUND: GLSL shader compilation mutate line directives searching `#line` pattern. */
-#  line 10
-#endif
-
 #pragma once
 
-#include "infos/gpu_shader_test_infos.hh"
-
-COMPUTE_SHADER_CREATE_INFO(gpu_shader_test)
-
 #include "eevee_gbuffer_write.bsl.hh"
-#include "gpu_shader_test_lib.glsl"
-
-#define TEST(a, b) if (true)
+#include "gpu_shader_test_lib.bsl.hh"
 
 gbuffer::InputClosures gbuffer_new()
 {
   gbuffer::InputClosures data;
-  data.closure[0].type = CLOSURE_NONE_ID;
-  data.closure[0].weight = 0.0f;
-  data.closure[1].type = CLOSURE_NONE_ID;
-  data.closure[1].weight = 0.0f;
-  data.closure[2].type = CLOSURE_NONE_ID;
-  data.closure[2].weight = 0.0f;
+  data.closure[0] = ClosureUndetermined{};
+  data.closure[1] = ClosureUndetermined{};
+  data.closure[2] = ClosureUndetermined{};
   return data;
 }
 
@@ -44,8 +28,9 @@ float3 quantize_flush_to_zero_10bit(float3 data)
   return floor(saturate(data) * 1023.0f) * quantization_step;
 }
 
-[[compute]]
-void eevee_test_gbuffer_closure([[resource_table]] const gbuffer::PackParameters &param)
+[[compute, local_size(1)]]
+void eevee_test_gbuffer_closure_main([[resource_table]] const ShaderTestOutput & /*srt*/,
+                                     [[resource_table]] const gbuffer::PackParameters &param)
 {
   float3 Ng = float3(1.0f, 0.0f, 0.0f);
   float3 N = Ng;
@@ -63,7 +48,7 @@ void eevee_test_gbuffer_closure([[resource_table]] const gbuffer::PackParameters
     const gbuffer::Header header = gbuffer::Header::from_data(data_out.header);
 
     EXPECT_EQ(uint(data_out.used_layers), uint(ADDITIONAL_DATA));
-    EXPECT_TRUE(all(equal(uint3(header.empty_bins()), uint3(0, 1, 1))));
+    EXPECT_NEAR(float3(header.empty_bins()), float3(0, 1, 1), 0.5f);
     EXPECT_EQ(header.closure_len(), 1);
 
     ClosureUndetermined out_refraction;
@@ -88,7 +73,8 @@ void eevee_test_gbuffer_closure([[resource_table]] const gbuffer::PackParameters
     const gbuffer::Header header = gbuffer::Header::from_data(data_out.header);
 
     EXPECT_EQ(uint(data_out.used_layers), 0u);
-    EXPECT_TRUE(all(equal(uint3(header.empty_bins()), uint3(1, 0, 1))));
+    EXPECT_EQ(uint(header.raw()), uint(ADDITIONAL_DATA));
+    EXPECT_NEAR(float3(header.empty_bins()), float3(1, 0, 1), 0.5f);
     EXPECT_EQ(header.closure_len(), 1);
 
     ClosureUndetermined out_diffuse;
@@ -114,7 +100,7 @@ void eevee_test_gbuffer_closure([[resource_table]] const gbuffer::PackParameters
     const gbuffer::Header header = gbuffer::Header::from_data(data_out.header);
 
     EXPECT_EQ(uint(data_out.used_layers), uint(ADDITIONAL_DATA));
-    EXPECT_TRUE(all(equal(uint3(header.empty_bins()), uint3(0, 1, 1))));
+    EXPECT_NEAR(float3(header.empty_bins()), float3(0, 1, 1), 0.5f);
     EXPECT_EQ(header.closure_len(), 1);
 
     ClosureUndetermined out_sss_burley;
@@ -141,7 +127,7 @@ void eevee_test_gbuffer_closure([[resource_table]] const gbuffer::PackParameters
     const gbuffer::Header header = gbuffer::Header::from_data(data_out.header);
 
     EXPECT_EQ(uint(data_out.used_layers), uint(ADDITIONAL_DATA));
-    EXPECT_TRUE(all(equal(uint3(header.empty_bins()), uint3(0, 1, 1))));
+    EXPECT_NEAR(float3(header.empty_bins()), float3(0, 1, 1), 0.5f);
     EXPECT_EQ(header.closure_len(), 1);
 
     ClosureUndetermined out_translucent;
@@ -167,7 +153,7 @@ void eevee_test_gbuffer_closure([[resource_table]] const gbuffer::PackParameters
     const gbuffer::Header header = gbuffer::Header::from_data(data_out.header);
 
     EXPECT_EQ(uint(data_out.used_layers), 0u);
-    EXPECT_TRUE(all(equal(uint3(header.empty_bins()), uint3(0, 1, 1))));
+    EXPECT_NEAR(float3(header.empty_bins()), float3(0, 1, 1), 0.5f);
     EXPECT_EQ(header.closure_len(), 1);
 
     ClosureUndetermined out_reflection;
@@ -196,7 +182,7 @@ void eevee_test_gbuffer_closure([[resource_table]] const gbuffer::PackParameters
     const gbuffer::Header header = gbuffer::Header::from_data(data_out.header);
 
     EXPECT_EQ(uint(data_out.used_layers), uint(ADDITIONAL_DATA));
-    EXPECT_TRUE(all(equal(uint3(header.empty_bins()), uint3(0, 1, 1))));
+    EXPECT_NEAR(float3(header.empty_bins()), float3(0, 1, 1), 0.5f);
     EXPECT_EQ(header.closure_len(), 1);
 
     ClosureUndetermined out_refraction;
@@ -236,7 +222,7 @@ void eevee_test_gbuffer_closure([[resource_table]] const gbuffer::PackParameters
 
     EXPECT_EQ(uint(data_out.used_layers),
               uint(ADDITIONAL_DATA | NORMAL_DATA_1 | CLOSURE_DATA_2 | CLOSURE_DATA_3));
-    EXPECT_TRUE(all(equal(uint3(header.empty_bins()), uint3(0, 1, 0))));
+    EXPECT_NEAR(float3(header.empty_bins()), float3(0, 1, 0), 0.5f);
     EXPECT_EQ(header.closure_len(), 2);
 
     ClosureUndetermined out_cl0;
@@ -283,7 +269,7 @@ void eevee_test_gbuffer_closure([[resource_table]] const gbuffer::PackParameters
     const gbuffer::Header header = gbuffer::Header::from_data(data_out.header);
 
     EXPECT_EQ(uint(data_out.used_layers), uint(ADDITIONAL_DATA | NORMAL_DATA_1));
-    EXPECT_TRUE(all(equal(uint3(header.empty_bins()), uint3(0, 0, 1))));
+    EXPECT_NEAR(float3(header.empty_bins()), float3(0, 0, 1), 0.5f);
     EXPECT_EQ(header.closure_len(), 2);
 
     ClosureUndetermined out_refraction;
@@ -360,3 +346,15 @@ void eevee_test_gbuffer_closure([[resource_table]] const gbuffer::PackParameters
                 1e-7f);
   }
 }
+
+PipelineCompute eevee_test_gbuffer_closure(eevee_test_gbuffer_closure_main,
+                                           gbuffer::PackParameters{
+                                               .gbuffer_has_reflection = true,
+                                               .gbuffer_has_refraction = true,
+                                               .gbuffer_has_subsurface = true,
+                                               .gbuffer_has_translucent = true,
+                                               .gbuffer_reflection_colorless = false,
+                                               .gbuffer_refraction_colorless = false,
+                                               .gbuffer_layer_max = 3,
+                                               .gbuffer_simple_layout = false,
+                                           });

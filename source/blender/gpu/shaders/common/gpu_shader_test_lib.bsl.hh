@@ -151,18 +151,16 @@ TestOutputRawData as_raw_data(float4x3 v) { WRITE_MATRIX(v); }
 TestOutputRawData as_raw_data(float4x4 v) { WRITE_MATRIX(v); }
 /* clang-format on */
 
-int g_test_id = 0;
-
 #ifdef GPU_METAL
 /* Vector comparison in MSL return a `bvec`. Collapse it like in GLSL. */
 #  define COLLAPSE_BOOL(OP) bool(all(OP))
 #else
+#  undef COLLAPSE_BOOL /* Silence warning caused by define grepping in info files. */
 #  define COLLAPSE_BOOL(OP) (OP)
 #endif
 
 #define EXPECT_OP(OP, val1, val2) \
-  out_test[g_test_id++] = test_output( \
-      as_raw_data(val1), as_raw_data(val2), COLLAPSE_BOOL(OP), int(__LINE__), to_type(val1))
+  test_output(as_raw_data(val1), as_raw_data(val2), COLLAPSE_BOOL(OP), to_type(val1))
 
 #define EXPECT_EQ(result, expect) EXPECT_OP((result) == (expect), result, expect)
 #define EXPECT_NE(result, expect) EXPECT_OP((result) != (expect), result, expect)
@@ -176,3 +174,9 @@ int g_test_id = 0;
 
 #define EXPECT_NEAR(result, expect, threshold) \
   EXPECT_OP(is_equal(result, expect, threshold), result, expect)
+
+struct ShaderTestOutput {
+  [[storage(0, write)]] TestOutput (&out_test)[];
+};
+
+#define TEST(a, b) if (true)
