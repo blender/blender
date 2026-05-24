@@ -14,7 +14,7 @@ COMPUTE_SHADER_CREATE_INFO(eevee_gbuffer_data)
 
 #include "eevee_closure.bsl.hh"
 #include "eevee_colorspace_lib.bsl.hh"
-#include "eevee_gbuffer_read_lib.glsl"
+#include "eevee_gbuffer_read.bsl.hh"
 #include "eevee_lightprobe.bsl.hh"
 #include "eevee_lightprobe_plane.bsl.hh"
 #include "eevee_ray_trace_screen_lib.glsl"

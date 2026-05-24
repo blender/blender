@@ -594,11 +594,8 @@ static void test_eevee_lib()
   // gpu_shader_lib_test("eevee_shadow_test.bsl.hh", "eevee_tests_data");
   gpu_shader_lib_test("eevee_test_occupancy.bsl.hh");
   gpu_shader_lib_test("eevee_test_fast_gi.bsl.hh");
-#ifndef __APPLE__ /* PSOs fail to compile on Mac. Try to port them to compute shader to see if it \
-                   * fixes the issue. */
   gpu_shader_lib_test("eevee_test_gbuffer_normal.bsl.hh", "eevee_tests_data");
   gpu_shader_lib_test("eevee_test_gbuffer_closure.bsl.hh", "eevee_tests_data");
-#endif
 }
 GPU_TEST(eevee_lib)
 

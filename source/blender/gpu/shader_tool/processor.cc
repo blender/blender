@@ -350,6 +350,10 @@ void SourceProcessor::parse_defines(Parser &parser)
         /* WORKAROUND: Avoid warning caused by EEVEE macro setup. */
         return;
       }
+      if (tokens[1].next().str() == "GBUFFER_LAYER_MAX") {
+        /* WORKAROUND: Avoid warning caused by EEVEE macro setup. */
+        return;
+      }
       metadata_.create_infos_defines.emplace_back(tokens[1].next().scope().str_with_whitespace());
     }
     if (tokens[1].str() == "undef") {

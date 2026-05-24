@@ -29,7 +29,7 @@ VERTEX_SHADER_CREATE_INFO(draw_view)
 #include "eevee_closure.bsl.hh"
 #include "eevee_colorspace_lib.bsl.hh"
 #include "eevee_filter.bsl.hh"
-#include "eevee_gbuffer_read_lib.glsl"
+#include "eevee_gbuffer_read.bsl.hh"
 #include "eevee_lightprobe.bsl.hh"
 #include "eevee_ray_types_lib.bsl.hh"
 #include "eevee_reverse_z_lib.bsl.hh"

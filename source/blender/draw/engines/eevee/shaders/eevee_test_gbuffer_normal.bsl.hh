@@ -15,7 +15,7 @@
 
 COMPUTE_SHADER_CREATE_INFO(gpu_shader_test)
 
-#include "eevee_gbuffer_write_lib.glsl"
+#include "eevee_gbuffer_write.bsl.hh"
 #include "gpu_shader_test_lib.glsl"
 
 #define TEST(a, b) if (true)
@@ -32,12 +32,12 @@ gbuffer::InputClosures gbuffer_new()
   return data;
 }
 
-void main()
+[[compute]]
+void eevee_test_gbuffer_normal([[resource_table]] const gbuffer::PackParameters &param)
 {
   float3 Ng = float3(1.0f, 0.0f, 0.0f);
   float3 N = Ng;
   Thickness thickness = Thickness::from(0.2f, ThicknessMode::Slab);
-  float3 surface_N = normalize(float3(0.1f, 0.2f, 0.3f));
 
   ClosureUndetermined cl1 = closure_new(CLOSURE_BSDF_DIFFUSE_ID);
   cl1.weight = 1.0f;
@@ -65,11 +65,11 @@ void main()
     data_in.closure[0] = cl1;
     data_in.closure[1] = cl1;
 
-    const gbuffer::Packed data_out = gbuffer::pack(data_in, Ng, N, thickness, false);
+    const gbuffer::Packed data_out = gbuffer::pack(param, data_in, Ng, N, thickness, false);
     const gbuffer::Header header = gbuffer::Header::from_data(data_out.header);
 
     EXPECT_EQ(uint(data_out.used_layers), 0u);
-    EXPECT_EQ(uint3(header.empty_bins()), uint3(0, 0, 1));
+    EXPECT_TRUE(all(equal(uint3(header.empty_bins()), uint3(0, 0, 1))));
     EXPECT_EQ(header.closure_len(), 2);
     EXPECT_EQ(header.tangent_space_id(0), 0u);
     EXPECT_EQ(header.tangent_space_id(1), 0u);
@@ -83,11 +83,11 @@ void main()
     data_in.closure[0] = cl1;
     data_in.closure[1] = cl2;
 
-    const gbuffer::Packed data_out = gbuffer::pack(data_in, Ng, N, thickness, false);
+    const gbuffer::Packed data_out = gbuffer::pack(param, data_in, Ng, N, thickness, false);
     const gbuffer::Header header = gbuffer::Header::from_data(data_out.header);
 
     EXPECT_EQ(uint(data_out.used_layers), uint(NORMAL_DATA_1));
-    EXPECT_EQ(uint3(header.empty_bins()), uint3(0, 0, 1));
+    EXPECT_TRUE(all(equal(uint3(header.empty_bins()), uint3(0, 0, 1))));
     EXPECT_EQ(header.closure_len(), 2);
     EXPECT_EQ(header.tangent_space_id(0), 0u);
     EXPECT_EQ(header.tangent_space_id(1), 1u);
@@ -102,11 +102,11 @@ void main()
     data_in.closure[1] = cl2;
     data_in.closure[2] = cl2;
 
-    const gbuffer::Packed data_out = gbuffer::pack(data_in, Ng, N, thickness, false);
+    const gbuffer::Packed data_out = gbuffer::pack(param, data_in, Ng, N, thickness, false);
     const gbuffer::Header header = gbuffer::Header::from_data(data_out.header);
 
     EXPECT_EQ(uint(data_out.used_layers), uint(NORMAL_DATA_1 | CLOSURE_DATA_2));
-    EXPECT_EQ(uint3(header.empty_bins()), uint3(0, 0, 0));
+    EXPECT_TRUE(all(equal(uint3(header.empty_bins()), uint3(0, 0, 0))));
     EXPECT_EQ(header.closure_len(), 3);
     EXPECT_EQ(header.tangent_space_id(0), 0u);
     EXPECT_EQ(header.tangent_space_id(1), 1u);
@@ -122,11 +122,11 @@ void main()
     data_in.closure[1] = cl1;
     data_in.closure[2] = cl2;
 
-    const gbuffer::Packed data_out = gbuffer::pack(data_in, Ng, N, thickness, false);
+    const gbuffer::Packed data_out = gbuffer::pack(param, data_in, Ng, N, thickness, false);
     const gbuffer::Header header = gbuffer::Header::from_data(data_out.header);
 
     EXPECT_EQ(uint(data_out.used_layers), uint(NORMAL_DATA_1 | CLOSURE_DATA_2));
-    EXPECT_EQ(uint3(header.empty_bins()), uint3(0, 0, 0));
+    EXPECT_TRUE(all(equal(uint3(header.empty_bins()), uint3(0, 0, 0))));
     EXPECT_EQ(header.closure_len(), 3);
     EXPECT_EQ(header.tangent_space_id(0), 0u);
     EXPECT_EQ(header.tangent_space_id(1), 1u);
@@ -142,11 +142,11 @@ void main()
     data_in.closure[1] = cl2;
     data_in.closure[2] = cl1;
 
-    const gbuffer::Packed data_out = gbuffer::pack(data_in, Ng, N, thickness, false);
+    const gbuffer::Packed data_out = gbuffer::pack(param, data_in, Ng, N, thickness, false);
     const gbuffer::Header header = gbuffer::Header::from_data(data_out.header);
 
     EXPECT_EQ(uint(data_out.used_layers), uint(NORMAL_DATA_2 | CLOSURE_DATA_2));
-    EXPECT_EQ(uint3(header.empty_bins()), uint3(0, 0, 0));
+    EXPECT_TRUE(all(equal(uint3(header.empty_bins()), uint3(0, 0, 0))));
     EXPECT_EQ(header.closure_len(), 3);
     EXPECT_EQ(header.tangent_space_id(0), 0u);
     EXPECT_EQ(header.tangent_space_id(1), 0u);
@@ -162,11 +162,11 @@ void main()
     data_in.closure[1] = cl2;
     data_in.closure[2] = cl3;
 
-    const gbuffer::Packed data_out = gbuffer::pack(data_in, Ng, N, thickness, false);
+    const gbuffer::Packed data_out = gbuffer::pack(param, data_in, Ng, N, thickness, false);
     const gbuffer::Header header = gbuffer::Header::from_data(data_out.header);
 
     EXPECT_EQ(uint(data_out.used_layers), uint(NORMAL_DATA_1 | NORMAL_DATA_2 | CLOSURE_DATA_2));
-    EXPECT_EQ(uint3(header.empty_bins()), uint3(0, 0, 0));
+    EXPECT_TRUE(all(equal(uint3(header.empty_bins()), uint3(0, 0, 0))));
     EXPECT_EQ(header.closure_len(), 3);
     EXPECT_EQ(header.tangent_space_id(0), 0u);
     EXPECT_EQ(header.tangent_space_id(1), 1u);
@@ -183,11 +183,11 @@ void main()
     data_in.closure[1] = cl_none;
     data_in.closure[2] = cl3;
 
-    const gbuffer::Packed data_out = gbuffer::pack(data_in, Ng, N, thickness, false);
+    const gbuffer::Packed data_out = gbuffer::pack(param, data_in, Ng, N, thickness, false);
     const gbuffer::Header header = gbuffer::Header::from_data(data_out.header);
 
     EXPECT_EQ(uint(data_out.used_layers), uint(NORMAL_DATA_1));
-    EXPECT_EQ(uint3(header.empty_bins()), uint3(0, 1, 0));
+    EXPECT_TRUE(all(equal(uint3(header.empty_bins()), uint3(0, 1, 0))));
     EXPECT_EQ(header.closure_len(), 2);
     EXPECT_EQ(header.tangent_space_id(0), 0u);
     EXPECT_EQ(header.tangent_space_id(1), 1u);
@@ -202,11 +202,11 @@ void main()
     data_in.closure[1] = cl_none;
     data_in.closure[2] = cl3;
 
-    const gbuffer::Packed data_out = gbuffer::pack(data_in, Ng, N, thickness, false);
+    const gbuffer::Packed data_out = gbuffer::pack(param, data_in, Ng, N, thickness, false);
     const gbuffer::Header header = gbuffer::Header::from_data(data_out.header);
 
     EXPECT_EQ(uint(data_out.used_layers), uint(0));
-    EXPECT_EQ(uint3(header.empty_bins()), uint3(1, 1, 0));
+    EXPECT_TRUE(all(equal(uint3(header.empty_bins()), uint3(1, 1, 0))));
     EXPECT_EQ(header.closure_len(), 1);
     EXPECT_EQ(header.tangent_space_id(0), 0u);
     EXPECT_NEAR(cl3.N, gbuffer::normal_unpack(data_out.normal[1]), 1e-5f);

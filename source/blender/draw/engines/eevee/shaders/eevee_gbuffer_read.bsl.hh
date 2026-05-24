@@ -20,7 +20,7 @@
  * without dealing with none-closures.
  */
 
-#include "eevee_gbuffer_lib.glsl"
+#include "eevee_gbuffer_types.bsl.hh"
 
 /* NOTE: Only specialized for the gbuffer pass. */
 #ifndef GBUFFER_LAYER_MAX

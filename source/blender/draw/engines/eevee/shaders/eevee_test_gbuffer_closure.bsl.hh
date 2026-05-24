@@ -15,7 +15,7 @@
 
 COMPUTE_SHADER_CREATE_INFO(gpu_shader_test)
 
-#include "eevee_gbuffer_write_lib.glsl"
+#include "eevee_gbuffer_write.bsl.hh"
 #include "gpu_shader_test_lib.glsl"
 
 #define TEST(a, b) if (true)
@@ -44,7 +44,8 @@ float3 quantize_flush_to_zero_10bit(float3 data)
   return floor(saturate(data) * 1023.0f) * quantization_step;
 }
 
-void main()
+[[compute]]
+void eevee_test_gbuffer_closure([[resource_table]] const gbuffer::PackParameters &param)
 {
   float3 Ng = float3(1.0f, 0.0f, 0.0f);
   float3 N = Ng;
@@ -58,11 +59,11 @@ void main()
     data_in.closure[0].color = float3(0.1f, 0.2f, 0.3f);
     data_in.closure[0].N = normalize(float3(0.2f, 0.1f, 0.3f));
 
-    const gbuffer::Packed data_out = gbuffer::pack(data_in, Ng, N, thickness, false);
+    const gbuffer::Packed data_out = gbuffer::pack(param, data_in, Ng, N, thickness, false);
     const gbuffer::Header header = gbuffer::Header::from_data(data_out.header);
 
     EXPECT_EQ(uint(data_out.used_layers), uint(ADDITIONAL_DATA));
-    EXPECT_EQ(uint3(header.empty_bins()), uint3(0, 1, 1));
+    EXPECT_TRUE(all(equal(uint3(header.empty_bins()), uint3(0, 1, 1))));
     EXPECT_EQ(header.closure_len(), 1);
 
     ClosureUndetermined out_refraction;
@@ -83,11 +84,11 @@ void main()
     data_in.closure[1].color = float3(0.1f, 0.2f, 0.3f);
     data_in.closure[1].N = normalize(float3(0.2f, 0.1f, 0.3f));
 
-    const gbuffer::Packed data_out = gbuffer::pack(data_in, Ng, N, thickness, false);
+    const gbuffer::Packed data_out = gbuffer::pack(param, data_in, Ng, N, thickness, false);
     const gbuffer::Header header = gbuffer::Header::from_data(data_out.header);
 
     EXPECT_EQ(uint(data_out.used_layers), 0u);
-    EXPECT_EQ(uint3(header.empty_bins()), uint3(1, 0, 1));
+    EXPECT_TRUE(all(equal(uint3(header.empty_bins()), uint3(1, 0, 1))));
     EXPECT_EQ(header.closure_len(), 1);
 
     ClosureUndetermined out_diffuse;
@@ -109,11 +110,11 @@ void main()
     data_in.closure[0].data.rgb = float3(0.2f, 0.3f, 0.4f);
     data_in.closure[0].N = normalize(float3(0.2f, 0.1f, 0.3f));
 
-    const gbuffer::Packed data_out = gbuffer::pack(data_in, Ng, N, thickness, false);
+    const gbuffer::Packed data_out = gbuffer::pack(param, data_in, Ng, N, thickness, false);
     const gbuffer::Header header = gbuffer::Header::from_data(data_out.header);
 
     EXPECT_EQ(uint(data_out.used_layers), uint(ADDITIONAL_DATA));
-    EXPECT_EQ(uint3(header.empty_bins()), uint3(0, 1, 1));
+    EXPECT_TRUE(all(equal(uint3(header.empty_bins()), uint3(0, 1, 1))));
     EXPECT_EQ(header.closure_len(), 1);
 
     ClosureUndetermined out_sss_burley;
@@ -136,11 +137,11 @@ void main()
     data_in.closure[0].color = float3(0.1f, 0.2f, 0.3f);
     data_in.closure[0].N = normalize(float3(0.2f, 0.1f, 0.3f));
 
-    const gbuffer::Packed data_out = gbuffer::pack(data_in, Ng, N, thickness, false);
+    const gbuffer::Packed data_out = gbuffer::pack(param, data_in, Ng, N, thickness, false);
     const gbuffer::Header header = gbuffer::Header::from_data(data_out.header);
 
     EXPECT_EQ(uint(data_out.used_layers), uint(ADDITIONAL_DATA));
-    EXPECT_EQ(uint3(header.empty_bins()), uint3(0, 1, 1));
+    EXPECT_TRUE(all(equal(uint3(header.empty_bins()), uint3(0, 1, 1))));
     EXPECT_EQ(header.closure_len(), 1);
 
     ClosureUndetermined out_translucent;
@@ -162,11 +163,11 @@ void main()
     data_in.closure[0].data.x = 0.4f;
     data_in.closure[0].N = normalize(float3(0.2f, 0.1f, 0.3f));
 
-    const gbuffer::Packed data_out = gbuffer::pack(data_in, Ng, N, thickness, false);
+    const gbuffer::Packed data_out = gbuffer::pack(param, data_in, Ng, N, thickness, false);
     const gbuffer::Header header = gbuffer::Header::from_data(data_out.header);
 
     EXPECT_EQ(uint(data_out.used_layers), 0u);
-    EXPECT_EQ(uint3(header.empty_bins()), uint3(0, 1, 1));
+    EXPECT_TRUE(all(equal(uint3(header.empty_bins()), uint3(0, 1, 1))));
     EXPECT_EQ(header.closure_len(), 1);
 
     ClosureUndetermined out_reflection;
@@ -191,11 +192,11 @@ void main()
     data_in.closure[0].data.y = 0.5f;
     data_in.closure[0].N = normalize(float3(0.2f, 0.1f, 0.3f));
 
-    const gbuffer::Packed data_out = gbuffer::pack(data_in, Ng, N, thickness, false);
+    const gbuffer::Packed data_out = gbuffer::pack(param, data_in, Ng, N, thickness, false);
     const gbuffer::Header header = gbuffer::Header::from_data(data_out.header);
 
     EXPECT_EQ(uint(data_out.used_layers), uint(ADDITIONAL_DATA));
-    EXPECT_EQ(uint3(header.empty_bins()), uint3(0, 1, 1));
+    EXPECT_TRUE(all(equal(uint3(header.empty_bins()), uint3(0, 1, 1))));
     EXPECT_EQ(header.closure_len(), 1);
 
     ClosureUndetermined out_refraction;
@@ -230,12 +231,12 @@ void main()
     data_in.closure[0] = in_cl0;
     data_in.closure[2] = in_cl1;
 
-    const gbuffer::Packed data_out = gbuffer::pack(data_in, Ng, N, thickness, false);
+    const gbuffer::Packed data_out = gbuffer::pack(param, data_in, Ng, N, thickness, false);
     const gbuffer::Header header = gbuffer::Header::from_data(data_out.header);
 
     EXPECT_EQ(uint(data_out.used_layers),
               uint(ADDITIONAL_DATA | NORMAL_DATA_1 | CLOSURE_DATA_2 | CLOSURE_DATA_3));
-    EXPECT_EQ(uint3(header.empty_bins()), uint3(0, 1, 0));
+    EXPECT_TRUE(all(equal(uint3(header.empty_bins()), uint3(0, 1, 0))));
     EXPECT_EQ(header.closure_len(), 2);
 
     ClosureUndetermined out_cl0;
@@ -278,11 +279,11 @@ void main()
     data_in.closure[1].data.x = 0.4f;
     data_in.closure[1].N = normalize(float3(0.2f, 0.3f, 0.4f));
 
-    const gbuffer::Packed data_out = gbuffer::pack(data_in, Ng, N, thickness, false);
+    const gbuffer::Packed data_out = gbuffer::pack(param, data_in, Ng, N, thickness, false);
     const gbuffer::Header header = gbuffer::Header::from_data(data_out.header);
 
     EXPECT_EQ(uint(data_out.used_layers), uint(ADDITIONAL_DATA | NORMAL_DATA_1));
-    EXPECT_EQ(uint3(header.empty_bins()), uint3(0, 0, 1));
+    EXPECT_TRUE(all(equal(uint3(header.empty_bins()), uint3(0, 0, 1))));
     EXPECT_EQ(header.closure_len(), 2);
 
     ClosureUndetermined out_refraction;
@@ -315,13 +316,13 @@ void main()
 
     float4 data = float4(0.5f, 0.25f, 0.75f, 1.0f);
     EXPECT_NEAR(gbuffer::closure_data_dither_round_to_nearest(data, float3(0.5f)), data, 1e-7f);
-    EXPECT_NEAR(gbuffer::closure_data_dither_round_to_nearest(data, float3(0.0f)).rgb,
+    EXPECT_NEAR(float3(gbuffer::closure_data_dither_round_to_nearest(data, float3(0.0f)).rgb),
                 data.rgb - float3(quantization_step * 0.5f),
                 1e-7f);
     EXPECT_EQ(gbuffer::closure_data_dither_round_to_nearest(data, float3(0.0f)).a, data.a);
 
     EXPECT_NEAR(gbuffer::closure_data_dither_flush_to_zero(data, float3(0.0f)), data, 1e-7f);
-    EXPECT_NEAR(gbuffer::closure_data_dither_flush_to_zero(data, float3(1.0f)).rgb,
+    EXPECT_NEAR(float3(gbuffer::closure_data_dither_flush_to_zero(data, float3(1.0f)).rgb),
                 data.rgb + float3(quantization_step),
                 1e-7f);
     EXPECT_EQ(gbuffer::closure_data_dither_flush_to_zero(data, float3(1.0f)).a, data.a);

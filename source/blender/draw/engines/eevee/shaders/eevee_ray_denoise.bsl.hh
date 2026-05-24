@@ -27,7 +27,7 @@ SHADER_LIBRARY_CREATE_INFO(eevee_utility_texture)
 #include "eevee_colorspace_lib.bsl.hh"
 #include "eevee_defines.hh"
 #include "eevee_filter.bsl.hh"
-#include "eevee_gbuffer_read_lib.glsl"
+#include "eevee_gbuffer_read.bsl.hh"
 #include "eevee_reverse_z_lib.bsl.hh"
 #include "eevee_sampling_lib.glsl"
 #include "gpu_shader_codegen_lib.glsl"

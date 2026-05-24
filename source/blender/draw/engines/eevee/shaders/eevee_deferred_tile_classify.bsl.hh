@@ -4,7 +4,7 @@
 
 #pragma once
 
-#include "eevee_gbuffer_lib.glsl"
+#include "eevee_gbuffer_types.bsl.hh"
 #include "gpu_shader_fullscreen_lib.glsl"
 
 namespace eevee::deferred::tiles {

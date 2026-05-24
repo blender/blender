@@ -21,7 +21,7 @@ FRAGMENT_SHADER_CREATE_INFO(eevee_hiz_data)
 
 #include "draw_view_lib.glsl"
 #include "eevee_closure.bsl.hh"
-#include "eevee_gbuffer_read_lib.glsl"
+#include "eevee_gbuffer_read.bsl.hh"
 #include "eevee_light_eval.bsl.hh"
 #include "eevee_lightprobe.bsl.hh"
 #include "eevee_renderpass.bsl.hh"

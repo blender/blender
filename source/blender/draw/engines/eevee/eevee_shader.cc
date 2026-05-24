@@ -1033,12 +1033,6 @@ void ShaderModule::material_create_info_amend(GPUMaterial *gpumat, GPUCodegenOut
   if (GPU_material_flag_get(gpumat, GPU_MATFLAG_COAT)) {
     info.define("MAT_CLEARCOAT");
   }
-  if (GPU_material_flag_get(gpumat, GPU_MATFLAG_REFLECTION_MAYBE_COLORED) == false) {
-    info.define("MAT_REFLECTION_COLORLESS");
-  }
-  if (GPU_material_flag_get(gpumat, GPU_MATFLAG_REFRACTION_MAYBE_COLORED) == false) {
-    info.define("MAT_REFRACTION_COLORLESS");
-  }
 
   info.compilation_constant(
       gpu::shader::Type::bool_t, "use_sss", GPU_material_flag_get(gpumat, GPU_MATFLAG_SUBSURFACE));
@@ -1065,23 +1059,32 @@ void ShaderModule::material_create_info_amend(GPUMaterial *gpumat, GPUCodegenOut
   info.compilation_constant(gpu::shader::Type::int_t, "closure_bin_count", closure_bin_count);
 
   if (pipeline_type == MAT_PIPE_DEFERRED) {
-    switch (closure_bin_count) {
-      /* These need to be separated since the strings need to be static. */
-      case 0:
-      case 1:
-        info.define("GBUFFER_LAYER_MAX", "1");
-        break;
-      case 2:
-        info.define("GBUFFER_LAYER_MAX", "2");
-        break;
-      case 3:
-        info.define("GBUFFER_LAYER_MAX", "3");
-        break;
-      default:
-        BLI_assert_unreachable();
-        break;
-    }
+    info.compilation_constant(gpu::shader::Type::bool_t,
+                              "gbuffer_has_reflection",
+                              GPU_material_flag_get(gpumat, GPU_MATFLAG_GLOSSY));
+    info.compilation_constant(gpu::shader::Type::bool_t,
+                              "gbuffer_has_refraction",
+                              GPU_material_flag_get(gpumat, GPU_MATFLAG_REFRACT));
+    info.compilation_constant(gpu::shader::Type::bool_t,
+                              "gbuffer_has_subsurface",
+                              GPU_material_flag_get(gpumat, GPU_MATFLAG_SUBSURFACE));
+    info.compilation_constant(gpu::shader::Type::bool_t,
+                              "gbuffer_has_translucent",
+                              GPU_material_flag_get(gpumat, GPU_MATFLAG_TRANSLUCENT));
 
+    info.compilation_constant(
+        gpu::shader::Type::bool_t,
+        "gbuffer_reflection_colorless",
+        GPU_material_flag_get(gpumat, GPU_MATFLAG_REFLECTION_MAYBE_COLORED) == false);
+    info.compilation_constant(
+        gpu::shader::Type::bool_t,
+        "gbuffer_refraction_colorless",
+        GPU_material_flag_get(gpumat, GPU_MATFLAG_REFRACTION_MAYBE_COLORED) == false);
+
+    info.compilation_constant(
+        gpu::shader::Type::int_t, "gbuffer_layer_max", max(1, closure_bin_count));
+
+    bool use_simple_layout = false;
     if (closure_bin_count == 2) {
       /* In a lot of cases, we can predict that we do not need the extra GBuffer layers. This
        * simplifies the shader code and improves compilation time (see #145347). */
@@ -1110,9 +1113,12 @@ void ShaderModule::material_create_info_amend(GPUMaterial *gpumat, GPUCodegenOut
       }
 
       if (closure_layer_count <= 2) {
-        info.define("GBUFFER_SIMPLE_CLOSURE_LAYOUT");
+        use_simple_layout = true;
       }
     }
+
+    info.compilation_constant(
+        gpu::shader::Type::bool_t, "gbuffer_simple_layout", use_simple_layout);
   }
 
   if ((pipeline_type == MAT_PIPE_FORWARD) ||

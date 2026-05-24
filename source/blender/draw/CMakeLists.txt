@@ -403,9 +403,9 @@ set(GLSL_SRC
   engines/eevee/shaders/eevee_filter.bsl.hh
   engines/eevee/shaders/eevee_forward_lib.glsl
   engines/eevee/shaders/eevee_forward_resolve.bsl.hh
-  engines/eevee/shaders/eevee_gbuffer_lib.glsl
-  engines/eevee/shaders/eevee_gbuffer_read_lib.glsl
-  engines/eevee/shaders/eevee_gbuffer_write_lib.glsl
+  engines/eevee/shaders/eevee_gbuffer_types.bsl.hh
+  engines/eevee/shaders/eevee_gbuffer_read.bsl.hh
+  engines/eevee/shaders/eevee_gbuffer_write.bsl.hh
   engines/eevee/shaders/eevee_geom_curves.bsl.hh
   engines/eevee/shaders/eevee_geom_mesh.bsl.hh
   engines/eevee/shaders/eevee_geom_pointcloud.bsl.hh
