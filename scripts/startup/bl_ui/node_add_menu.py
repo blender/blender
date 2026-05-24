@@ -261,7 +261,7 @@ class NodeMenu(Menu):
 
     @classmethod
     def typed_bundle(cls, layout, label):
-        props = layout.operator("node.add_typed_bundle", text=label, text_ctxt=i18n_contexts.default)
+        props = layout.operator(cls.typed_bundle_operator_id, text=label, text_ctxt=i18n_contexts.default)
 
         if hasattr(props, "use_transform"):
             props.use_transform = cls.use_transform
@@ -408,6 +408,7 @@ class AddNodeMenu(NodeMenu):
     main_operator_id = "node.add_node"
     zone_operator_id = "node.add_zone"
     new_empty_group_operator_id = "node.add_empty_group"
+    typed_bundle_operator_id = "node.add_typed_bundle"
 
     root_asset_menu = "NODE_MT_node_add_root_catalogs"
 
@@ -424,6 +425,7 @@ class SwapNodeMenu(NodeMenu):
     main_operator_id = "node.swap_node"
     zone_operator_id = "node.swap_zone"
     new_empty_group_operator_id = "node.swap_empty_group"
+    typed_bundle_operator_id = "node.swap_typed_bundle"
 
     root_asset_menu = "NODE_MT_node_swap_root_catalogs"
 
