@@ -197,10 +197,6 @@ void SourceProcessor::lower_resource_access_functions(Parser &parser)
         scope = scope.scope();
       }
 
-      if (func_name == "resource_table_get") {
-        info_name += "_infos_";
-      }
-
       string condition = "defined(CREATE_INFO_" + info_name + ")";
 
       if (scope.type() == ScopeType::Function) {
