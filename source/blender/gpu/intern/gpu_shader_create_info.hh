@@ -27,12 +27,6 @@
 #  include <iostream>
 #endif
 
-#if defined(GPU_SHADER)
-#  include "gpu_shader_srd_cpp.hh"
-#else
-#  include "gpu_shader_srd_info.hh"
-#endif
-
 #if !defined(GPU_SHADER)
 namespace blender {
 #endif

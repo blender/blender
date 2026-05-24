@@ -185,8 +185,6 @@ set(SRC
   intern/gpu_shader_interface.hh
   intern/gpu_shader_metadata_private.hh
   intern/gpu_shader_private.hh
-  intern/gpu_shader_srd_cpp.hh
-  intern/gpu_shader_srd_info.hh
   intern/gpu_state_private.hh
   intern/gpu_storage_buffer_private.hh
   intern/gpu_texture_pool_private.hh
