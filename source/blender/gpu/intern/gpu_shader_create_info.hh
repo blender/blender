@@ -1111,6 +1111,12 @@ struct ShaderCreateInfo {
 
   using Self = ShaderCreateInfo;
 
+  /* WORKAROUND: Avoid unused expression warning. */
+  Self &noop()
+  {
+    return *this;
+  }
+
   /* -------------------------------------------------------------------- */
   /** \name Shaders in/outs (fixed function pipeline config)
    * \{ */

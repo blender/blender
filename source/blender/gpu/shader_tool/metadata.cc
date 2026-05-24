@@ -81,6 +81,8 @@ std::string ParsedResource::serialize() const
     /* Needs to be defined on the shader declaration. */
     /* TODO(fclem): Add check that shader sets an existing compilation constant. */
     // ss << "COMPILATION_CONSTANT(" << var_type << ", " << var_name << ", " << res_value << ")";
+    /* WORKAROUND: Avoid unused expression warning.  */
+    ss << ".noop()\n";
   }
   else if (res_type == "specialization_constant") {
     ss << "SPECIALIZATION_CONSTANT(" << var_type << ", " << var_name << ", " << res_value << ")";
