@@ -32,19 +32,6 @@ GPU_SHADER_CREATE_END()
 /** \name Setup
  * \{ */
 
-GPU_SHADER_CREATE_INFO(eevee_depth_of_field_bokeh_lut)
-DO_STATIC_COMPILATION()
-LOCAL_GROUP_SIZE(DOF_BOKEH_LUT_SIZE, DOF_BOKEH_LUT_SIZE)
-TYPEDEF_SOURCE("eevee_defines.hh")
-TYPEDEF_SOURCE("eevee_depth_of_field_shared.hh")
-ADDITIONAL_INFO(draw_view)
-UNIFORM_BUF(0, DepthOfFieldData, dof_buf)
-IMAGE(0, SFLOAT_16_16, write, image2D, out_gather_lut_img)
-IMAGE(1, SFLOAT_16, write, image2D, out_scatter_lut_img)
-IMAGE(2, SFLOAT_16, write, image2D, out_resolve_lut_img)
-COMPUTE_SOURCE("eevee_depth_of_field_bokeh_lut_comp.glsl")
-GPU_SHADER_CREATE_END()
-
 GPU_SHADER_CREATE_INFO(eevee_depth_of_field_setup)
 DO_STATIC_COMPILATION()
 LOCAL_GROUP_SIZE(DOF_DEFAULT_GROUP_SIZE, DOF_DEFAULT_GROUP_SIZE)

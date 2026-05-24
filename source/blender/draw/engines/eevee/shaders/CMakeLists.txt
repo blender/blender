@@ -23,7 +23,6 @@ set(INC_GLSL
 )
 
 set(SRC_GLSL_COMP
-  eevee_depth_of_field_bokeh_lut_comp.glsl
   eevee_depth_of_field_downsample_comp.glsl
   eevee_depth_of_field_filter_comp.glsl
   eevee_depth_of_field_gather_comp.glsl
