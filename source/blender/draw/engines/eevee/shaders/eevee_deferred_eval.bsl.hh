@@ -302,24 +302,27 @@ void sphere_eval_frag([[resource_table]] SphereProbeEval & /*srt*/,
   float3 albedo_front = float3(0.0f);
   float3 albedo_back = float3(0.0f);
 
-  for (uchar i = 0; i < GBUFFER_LAYER_MAX && i < closure_count; i++) {
-    ClosureUndetermined cl = gbuf.layer_get(i);
-    switch (cl.type) {
-      case CLOSURE_BSSRDF_BURLEY_ID:
-      case CLOSURE_BSDF_DIFFUSE_ID:
-      case CLOSURE_BSDF_MICROFACET_GGX_REFLECTION_ID:
-        albedo_front += cl.color;
-        break;
-      case CLOSURE_BSDF_TRANSLUCENT_ID:
-      case CLOSURE_BSDF_MICROFACET_GGX_REFRACTION_ID:
-        albedo_back += (thickness.value() != 0.0f) ? square(cl.color) : cl.color;
-        break;
-      case CLOSURE_BSDF_THIN_GLASS_TRANSMISSION_ID:
-        albedo_back += cl.color;
-        break;
-      case CLOSURE_NONE_ID:
-        /* TODO(fclem): Assert. */
-        break;
+  /* Unroll needed for gbuf.layer access. */
+  for (int i = 0; i < 3 /* GBUFFER_LAYER_MAX */; i++) [[unroll]] {
+    if (i < closure_count) {
+      ClosureUndetermined cl = gbuf.layer[i];
+      switch (cl.type) {
+        case CLOSURE_BSSRDF_BURLEY_ID:
+        case CLOSURE_BSDF_DIFFUSE_ID:
+        case CLOSURE_BSDF_MICROFACET_GGX_REFLECTION_ID:
+          albedo_front += cl.color;
+          break;
+        case CLOSURE_BSDF_TRANSLUCENT_ID:
+        case CLOSURE_BSDF_MICROFACET_GGX_REFRACTION_ID:
+          albedo_back += (thickness.value() != 0.0f) ? square(cl.color) : cl.color;
+          break;
+        case CLOSURE_BSDF_THIN_GLASS_TRANSMISSION_ID:
+          albedo_back += cl.color;
+          break;
+        case CLOSURE_NONE_ID:
+          /* TODO(fclem): Assert. */
+          break;
+      }
     }
   }
 
@@ -421,46 +424,49 @@ void planar_eval_frag([[resource_table]] PlanarProbeEval & /*srt*/,
   cl_refract.data = float4(0.0);
   float refract_weight = 0.0;
 
-  for (uchar i = 0; i < GBUFFER_LAYER_MAX && i < closure_count; i++) {
-    ClosureUndetermined cl = gbuf.layer_get(i);
-    switch (cl.type) {
-      case CLOSURE_BSDF_MICROFACET_GGX_REFLECTION_ID: {
-        cl_reflect.color += cl.color;
-        /* Average roughness and normals. */
-        float weight = reduce_add(cl.color);
-        cl_reflect.N += cl.N * weight;
-        cl_reflect.data += cl.data * weight;
-        reflect_weight += weight;
-        break;
+  /* Unroll needed for gbuf.layer access. */
+  for (int i = 0; i < 3; i++) [[unroll]] {
+    if (i < closure_count) {
+      ClosureUndetermined cl = gbuf.layer[i];
+      switch (cl.type) {
+        case CLOSURE_BSDF_MICROFACET_GGX_REFLECTION_ID: {
+          cl_reflect.color += cl.color;
+          /* Average roughness and normals. */
+          float weight = reduce_add(cl.color);
+          cl_reflect.N += cl.N * weight;
+          cl_reflect.data += cl.data * weight;
+          reflect_weight += weight;
+          break;
+        }
+        case CLOSURE_BSSRDF_BURLEY_ID:
+        case CLOSURE_BSDF_DIFFUSE_ID:
+          albedo_front += cl.color;
+          break;
+        case CLOSURE_BSDF_TRANSLUCENT_ID:
+          albedo_back += (thickness.value() != 0.0f) ? square(cl.color) : cl.color;
+          break;
+        case CLOSURE_BSDF_MICROFACET_GGX_REFRACTION_ID: {
+          cl_refract.color += (thickness.value() != 0.0f) ? square(cl.color) : cl.color;
+          /* Average roughness and normals. */
+          float weight = reduce_add(cl.color);
+          cl_refract.N += cl.N * weight;
+          cl_refract.data += cl.data * weight;
+          refract_weight += weight;
+          break;
+        }
+        case CLOSURE_BSDF_THIN_GLASS_TRANSMISSION_ID: {
+          cl_refract.color += cl.color;
+          /* Average roughness and normals. */
+          float weight = reduce_add(cl.color);
+          cl_refract.N += cl.N * weight;
+          cl_refract.data += cl.data * weight;
+          refract_weight += weight;
+          break;
+        }
+        case CLOSURE_NONE_ID:
+          /* TODO(fclem): Assert. */
+          break;
       }
-      case CLOSURE_BSSRDF_BURLEY_ID:
-      case CLOSURE_BSDF_DIFFUSE_ID:
-        albedo_front += cl.color;
-        break;
-      case CLOSURE_BSDF_TRANSLUCENT_ID:
-        albedo_back += (thickness.value() != 0.0f) ? square(cl.color) : cl.color;
-        break;
-      case CLOSURE_BSDF_MICROFACET_GGX_REFRACTION_ID: {
-        cl_refract.color += (thickness.value() != 0.0f) ? square(cl.color) : cl.color;
-        /* Average roughness and normals. */
-        float weight = reduce_add(cl.color);
-        cl_refract.N += cl.N * weight;
-        cl_refract.data += cl.data * weight;
-        refract_weight += weight;
-        break;
-      }
-      case CLOSURE_BSDF_THIN_GLASS_TRANSMISSION_ID: {
-        cl_refract.color += cl.color;
-        /* Average roughness and normals. */
-        float weight = reduce_add(cl.color);
-        cl_refract.N += cl.N * weight;
-        cl_refract.data += cl.data * weight;
-        refract_weight += weight;
-        break;
-      }
-      case CLOSURE_NONE_ID:
-        /* TODO(fclem): Assert. */
-        break;
     }
   }
 

@@ -146,25 +146,6 @@ struct Layers {
   ClosureUndetermined layer[GBUFFER_LAYER_MAX];
   Header header;
 
-  /* TODO(fclem): Ideally, all loops that index this should be unrolled. */
-  ClosureUndetermined layer_get(uchar i) const
-  {
-    switch (i) {
-      case 0:
-        return this->layer[0];
-#if GBUFFER_LAYER_MAX > 1
-      case 1:
-        return this->layer[1];
-#endif
-#if GBUFFER_LAYER_MAX > 2
-      case 2:
-        return this->layer[2];
-#endif
-    }
-    assert(false);
-    return this->layer[0];
-  }
-
   float3 surface_N() const
   {
     return this->layer[0].N;
@@ -195,18 +176,10 @@ Layers read_layers(int2 texel)
   uint3 layer_types = layers.header.bin_types_per_layer();
   uchar closure_count = layers.header.closure_len();
 
-  layers.layer[0] = gbuffer::detail::read_layer(
-      layers.header.tangent_space_id(0), closure_count, GBufferMode(layer_types[0]), texel, 0);
-
-#if GBUFFER_LAYER_MAX > 1
-  layers.layer[1] = gbuffer::detail::read_layer(
-      layers.header.tangent_space_id(1), closure_count, GBufferMode(layer_types[1]), texel, 1);
-#endif
-
-#if GBUFFER_LAYER_MAX > 2
-  layers.layer[2] = gbuffer::detail::read_layer(
-      layers.header.tangent_space_id(2), closure_count, GBufferMode(layer_types[2]), texel, 2);
-#endif
+  for (int i = 0; i < 3 /* GBUFFER_LAYER_MAX */; i++) [[unroll]] {
+    layers.layer[i] = gbuffer::detail::read_layer(
+        layers.header.tangent_space_id(i), closure_count, GBufferMode(layer_types[i]), texel, i);
+  }
   return layers;
 }
 

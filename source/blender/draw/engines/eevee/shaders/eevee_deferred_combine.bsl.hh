@@ -121,51 +121,54 @@ void combine_frag([[resource_table]] Combine &srt,
   float3 out_indirect = float3(0.0f);
   float3 average_normal = float3(0.0f);
 
-  for (uchar i = 0; i < GBUFFER_LAYER_MAX && i < closure_count; i++) {
-    ClosureUndetermined cl = gbuf.layer_get(i);
-    if (cl.type == CLOSURE_NONE_ID) {
-      continue;
+  /* Unroll needed for gbuf.layer access. */
+  for (int i = 0; i < 3 /* GBUFFER_LAYER_MAX */; i++) [[unroll]] {
+    if (i < closure_count) {
+      ClosureUndetermined cl = gbuf.layer[i];
+      if (cl.type != CLOSURE_NONE_ID) {
+
+        uchar layer_index = bin_indices[i];
+        float3 closure_direct_light = srt.load_radiance_direct(texel, layer_index);
+        float3 closure_indirect_light = float3(0.0f);
+
+        if (srt.use_split_radiance) {
+          closure_indirect_light = srt.load_radiance_indirect(texel, layer_index);
+        }
+
+        average_normal += cl.N * reduce_add(cl.color);
+
+        switch (cl.type) {
+          case CLOSURE_BSDF_TRANSLUCENT_ID:
+          case CLOSURE_BSSRDF_BURLEY_ID:
+          case CLOSURE_BSDF_DIFFUSE_ID:
+            diffuse_color += cl.color;
+            diffuse_direct += closure_direct_light;
+            diffuse_indirect += closure_indirect_light;
+            break;
+          case CLOSURE_BSDF_MICROFACET_GGX_REFLECTION_ID:
+          case CLOSURE_BSDF_MICROFACET_GGX_REFRACTION_ID:
+          case CLOSURE_BSDF_THIN_GLASS_TRANSMISSION_ID:
+            specular_color += cl.color;
+            specular_direct += closure_direct_light;
+            specular_indirect += closure_indirect_light;
+            break;
+          case CLOSURE_NONE_ID:
+            assert(false);
+            break;
+        }
+
+        if ((cl.type == CLOSURE_BSDF_TRANSLUCENT_ID ||
+             cl.type == CLOSURE_BSDF_MICROFACET_GGX_REFRACTION_ID) &&
+            (gbuffer::read_thickness(gbuf.header, texel).value() != 0.0f))
+        {
+          /* We model two transmission event, so the surface color need to be applied twice. */
+          cl.color *= cl.color;
+        }
+
+        out_direct += closure_direct_light * cl.color;
+        out_indirect += closure_indirect_light * cl.color;
+      }
     }
-    uchar layer_index = bin_indices[i];
-    float3 closure_direct_light = srt.load_radiance_direct(texel, layer_index);
-    float3 closure_indirect_light = float3(0.0f);
-
-    if (srt.use_split_radiance) {
-      closure_indirect_light = srt.load_radiance_indirect(texel, layer_index);
-    }
-
-    average_normal += cl.N * reduce_add(cl.color);
-
-    switch (cl.type) {
-      case CLOSURE_BSDF_TRANSLUCENT_ID:
-      case CLOSURE_BSSRDF_BURLEY_ID:
-      case CLOSURE_BSDF_DIFFUSE_ID:
-        diffuse_color += cl.color;
-        diffuse_direct += closure_direct_light;
-        diffuse_indirect += closure_indirect_light;
-        break;
-      case CLOSURE_BSDF_MICROFACET_GGX_REFLECTION_ID:
-      case CLOSURE_BSDF_MICROFACET_GGX_REFRACTION_ID:
-      case CLOSURE_BSDF_THIN_GLASS_TRANSMISSION_ID:
-        specular_color += cl.color;
-        specular_direct += closure_direct_light;
-        specular_indirect += closure_indirect_light;
-        break;
-      case CLOSURE_NONE_ID:
-        assert(false);
-        break;
-    }
-
-    if ((cl.type == CLOSURE_BSDF_TRANSLUCENT_ID ||
-         cl.type == CLOSURE_BSDF_MICROFACET_GGX_REFRACTION_ID) &&
-        (gbuffer::read_thickness(gbuf.header, texel).value() != 0.0f))
-    {
-      /* We model two transmission event, so the surface color need to be applied twice. */
-      cl.color *= cl.color;
-    }
-
-    out_direct += closure_direct_light * cl.color;
-    out_indirect += closure_indirect_light * cl.color;
   }
 
   if (srt.use_radiance_feedback) {
