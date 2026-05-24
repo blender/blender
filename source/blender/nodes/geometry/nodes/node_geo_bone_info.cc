@@ -139,7 +139,8 @@ static void node_geo_exec(GeoNodeExecParams params)
   const bPoseChannel *pchan = BKE_pose_channel_find_name(object->pose, bone_name.c_str());
   if (!pchan) {
     params.set_default_remaining_outputs();
-    params.error_message_add(NodeWarningType::Error, TIP_("Bone not found"));
+    params.error_message_add(NodeWarningType::Error,
+                             fmt::format(fmt::runtime(TIP_("Bone \"{}\" not found")), bone_name));
     return;
   }
   const Bone *bone = pchan->bone_get(*object);
