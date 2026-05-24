@@ -1936,6 +1936,9 @@ static StructRNA *rna_NodesModifierProperties_refine(PointerRNA *ptr)
   if (!nmd->node_group || ID_MISSING(nmd->node_group)) {
     return RNA_NodesModifierPropertiesEmpty;
   }
+  if (!nmd->node_group->runtime->geometry_nodes_srna_data) {
+    return RNA_NodesModifierPropertiesEmpty;
+  }
   return nmd->node_group->runtime->geometry_nodes_srna_data->properties_struct;
 }
 
