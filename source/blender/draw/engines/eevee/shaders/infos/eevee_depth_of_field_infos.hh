@@ -207,47 +207,6 @@ GPU_SHADER_CREATE_END()
 /** \} */
 
 /* -------------------------------------------------------------------- */
-/** \name Scatter
- * \{ */
-
-GPU_SHADER_NAMED_INTERFACE_INFO(eevee_depth_of_field_scatter_flat_iface, interp_flat)
-/** Colors, weights, and Circle of confusion radii for the 4 pixels to scatter. */
-FLAT(float4, color_and_coc1)
-FLAT(float4, color_and_coc2)
-FLAT(float4, color_and_coc3)
-FLAT(float4, color_and_coc4)
-/** Scaling factor for the bokeh distance. */
-FLAT(float, distance_scale)
-GPU_SHADER_NAMED_INTERFACE_END(interp_flat)
-GPU_SHADER_NAMED_INTERFACE_INFO(eevee_depth_of_field_scatter_noperspective_iface,
-                                interp_noperspective)
-/** Sprite pixel position with origin at sprite center. In pixels. */
-NO_PERSPECTIVE(float2, rect_uv1)
-NO_PERSPECTIVE(float2, rect_uv2)
-NO_PERSPECTIVE(float2, rect_uv3)
-NO_PERSPECTIVE(float2, rect_uv4)
-GPU_SHADER_NAMED_INTERFACE_END(interp_noperspective)
-
-GPU_SHADER_CREATE_INFO(eevee_depth_of_field_scatter)
-DO_STATIC_COMPILATION()
-TYPEDEF_SOURCE("eevee_defines.hh")
-TYPEDEF_SOURCE("eevee_depth_of_field_shared.hh")
-ADDITIONAL_INFO(draw_view)
-SAMPLER(0, sampler2D, occlusion_tx)
-SAMPLER(1, sampler2D, bokeh_lut_tx)
-UNIFORM_BUF(0, DepthOfFieldData, dof_buf)
-STORAGE_BUF(0, read, ScatterRect, scatter_list_buf[])
-FRAGMENT_OUT(0, float4, out_color)
-PUSH_CONSTANT(bool, use_bokeh_lut)
-VERTEX_OUT(eevee_depth_of_field_scatter_flat_iface)
-VERTEX_OUT(eevee_depth_of_field_scatter_noperspective_iface)
-VERTEX_SOURCE("eevee_depth_of_field_scatter_vert.glsl")
-FRAGMENT_SOURCE("eevee_depth_of_field_scatter_frag.glsl")
-GPU_SHADER_CREATE_END()
-
-/** \} */
-
-/* -------------------------------------------------------------------- */
 /** \name Resolve
  * \{ */
 
