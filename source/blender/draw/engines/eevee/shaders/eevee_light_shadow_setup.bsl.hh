@@ -9,7 +9,7 @@
 SHADER_LIBRARY_CREATE_INFO(eevee_global_ubo)
 
 #include "eevee_light_shared.hh"
-#include "eevee_sampling_lib.glsl"
+#include "eevee_sampling_lib.bsl.hh"
 #include "eevee_shadow_shared.hh"
 #include "gpu_shader_math_fast_lib.glsl"
 #include "gpu_shader_math_matrix_construct_lib.glsl"

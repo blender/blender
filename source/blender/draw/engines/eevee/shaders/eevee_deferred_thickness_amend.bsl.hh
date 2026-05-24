@@ -17,8 +17,8 @@ SHADER_LIBRARY_CREATE_INFO(eevee_hiz_data)
 #include "eevee_gbuffer_types.bsl.hh"
 #include "eevee_light_data.bsl.hh"
 #include "eevee_light_iter.bsl.hh"
-#include "eevee_light_lib.glsl"
-#include "eevee_sampling_lib.glsl"
+#include "eevee_light_lib.bsl.hh"
+#include "eevee_sampling_lib.bsl.hh"
 #include "eevee_shadow_tracing.bsl.hh"
 #include "gpu_shader_fullscreen_lib.glsl"
 

@@ -9,7 +9,7 @@
 SHADER_LIBRARY_CREATE_INFO(eevee_global_ubo)
 
 #include "draw_view_lib.glsl"
-#include "eevee_sampling_lib.glsl"
+#include "eevee_sampling_lib.bsl.hh"
 #include "eevee_spherical_harmonics.bsl.hh"
 #include "gpu_shader_math_matrix_transform_lib.glsl"
 

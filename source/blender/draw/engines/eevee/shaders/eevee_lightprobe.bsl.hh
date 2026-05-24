@@ -7,7 +7,7 @@
 #include "eevee_closure.bsl.hh"
 #include "eevee_lightprobe_sphere.bsl.hh"
 #include "eevee_lightprobe_volume.bsl.hh"
-#include "eevee_sampling_lib.glsl"
+#include "eevee_sampling_lib.bsl.hh"
 #include "eevee_spherical_harmonics.bsl.hh"
 #include "eevee_subsurface_lib.bsl.hh"
 #include "eevee_thickness_lib.bsl.hh"

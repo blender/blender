@@ -23,7 +23,7 @@
 #include "infos/eevee_common_infos.hh"
 
 #include "eevee_gbuffer_types.bsl.hh"
-#include "eevee_sampling_lib.glsl"
+#include "eevee_sampling_lib.bsl.hh"
 
 namespace gbuffer {
 

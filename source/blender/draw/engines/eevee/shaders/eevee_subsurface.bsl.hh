@@ -15,7 +15,7 @@ COMPUTE_SHADER_CREATE_INFO(eevee_gbuffer_data)
 #include "eevee_defines.hh"
 #include "eevee_gbuffer_read.bsl.hh"
 #include "eevee_reverse_z_lib.bsl.hh"
-#include "eevee_sampling_lib.glsl"
+#include "eevee_sampling_lib.bsl.hh"
 #include "gpu_shader_codegen_lib.glsl"
 #include "gpu_shader_math_angle_lib.glsl"
 #include "gpu_shader_math_matrix_construct_lib.glsl"

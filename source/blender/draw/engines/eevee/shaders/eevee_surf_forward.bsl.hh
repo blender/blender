@@ -21,7 +21,7 @@ FRAGMENT_SHADER_CREATE_INFO(eevee_volume_lib)
 #include "eevee_forward_lib.glsl"
 #include "eevee_nodetree_frag_lib.glsl"
 #include "eevee_reverse_z_lib.bsl.hh"
-#include "eevee_sampling_lib.glsl"
+#include "eevee_sampling_lib.bsl.hh"
 #include "eevee_surf_common.bsl.hh"
 #include "eevee_volume_lib.bsl.hh"
 

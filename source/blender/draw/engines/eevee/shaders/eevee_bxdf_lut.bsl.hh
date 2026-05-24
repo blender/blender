@@ -12,7 +12,7 @@
 #include "eevee_bxdf.bsl.hh"
 #include "eevee_bxdf_lut_lib.bsl.hh"
 #include "eevee_precompute_shared.hh"
-#include "eevee_sampling_lib.glsl"
+#include "eevee_sampling_lib.bsl.hh"
 #include "eevee_subsurface_shared.hh"
 #include "gpu_shader_compat.hh"
 #include "gpu_shader_math_base_lib.glsl"

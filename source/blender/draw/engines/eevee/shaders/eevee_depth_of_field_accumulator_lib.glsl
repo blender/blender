@@ -21,7 +21,7 @@ COMPUTE_SHADER_CREATE_INFO(eevee_depth_of_field_gather)
 #include "eevee_colorspace_lib.bsl.hh"
 #include "eevee_depth_of_field_lib.glsl"
 #include "eevee_reverse_z_lib.bsl.hh"
-#include "eevee_sampling_lib.glsl"
+#include "eevee_sampling_lib.bsl.hh"
 #include "gpu_shader_debug_gradients_lib.glsl"
 #include "gpu_shader_math_angle_lib.glsl"
 #include "gpu_shader_math_matrix_construct_lib.glsl"

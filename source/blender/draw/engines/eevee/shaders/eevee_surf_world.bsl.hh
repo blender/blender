@@ -20,7 +20,7 @@ FRAGMENT_SHADER_CREATE_INFO(eevee_geom_iface_info)
 #include "eevee_colorspace_lib.bsl.hh"
 #include "eevee_lightprobe.bsl.hh"
 #include "eevee_nodetree_frag_lib.glsl"
-#include "eevee_sampling_lib.glsl"
+#include "eevee_sampling_lib.bsl.hh"
 #include "eevee_surf_common.bsl.hh"
 
 float4 closure_to_rgba_world(Closure /*cl*/)

@@ -18,7 +18,7 @@ SHADER_LIBRARY_CREATE_INFO(eevee_sampling_data)
 #include "draw_view_lib.glsl"
 #include "eevee_colorspace_lib.bsl.hh"
 #include "eevee_light_eval.bsl.hh"
-#include "eevee_light_lib.glsl"
+#include "eevee_light_lib.bsl.hh"
 #include "eevee_light_shared.hh"
 #include "eevee_lightprobe_volume.bsl.hh"
 #include "eevee_renderpass.bsl.hh"

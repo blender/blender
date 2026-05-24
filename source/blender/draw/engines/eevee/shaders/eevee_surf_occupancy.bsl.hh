@@ -38,7 +38,7 @@ FRAGMENT_SHADER_CREATE_INFO(eevee_geom_iface_info)
 FRAGMENT_SHADER_CREATE_INFO(eevee_nodetree)
 
 #include "eevee_occupancy_lib.bsl.hh"
-#include "eevee_sampling_lib.glsl"
+#include "eevee_sampling_lib.bsl.hh"
 #include "eevee_volume_lib.bsl.hh"
 
 namespace eevee {

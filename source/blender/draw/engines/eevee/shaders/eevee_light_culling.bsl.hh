@@ -12,7 +12,7 @@ SHADER_LIBRARY_CREATE_INFO(eevee_hiz_data)
 #include "draw_shape_lib.glsl"
 #include "draw_view_lib.glsl"
 #include "eevee_light_iter.bsl.hh"
-#include "eevee_light_lib.glsl"
+#include "eevee_light_lib.bsl.hh"
 #include "eevee_light_shared.hh"
 #include "gpu_shader_debug_gradients_lib.glsl"
 #include "gpu_shader_fullscreen_lib.glsl"

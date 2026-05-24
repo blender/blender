@@ -15,7 +15,7 @@ COMPUTE_SHADER_CREATE_INFO(eevee_sampling_data)
 #include "draw_math_geom_lib.glsl"
 #include "eevee_motion_blur_shared.hh"
 #include "eevee_reverse_z_lib.bsl.hh"
-#include "eevee_sampling_lib.glsl"
+#include "eevee_sampling_lib.bsl.hh"
 #include "eevee_velocity.bsl.hh"
 #include "gpu_shader_math_vector_safe_lib.glsl"
 #include "gpu_shader_utildefines_lib.glsl"

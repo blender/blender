@@ -419,7 +419,7 @@ set(GLSL_SRC
   engines/eevee/shaders/eevee_light_data.bsl.hh
   engines/eevee/shaders/eevee_light_eval.bsl.hh
   engines/eevee/shaders/eevee_light_iter.bsl.hh
-  engines/eevee/shaders/eevee_light_lib.glsl
+  engines/eevee/shaders/eevee_light_lib.bsl.hh
   engines/eevee/shaders/eevee_lightprobe.bsl.hh
   engines/eevee/shaders/eevee_lightprobe_display.bsl.hh
   engines/eevee/shaders/eevee_lightprobe_plane.bsl.hh
@@ -452,7 +452,7 @@ set(GLSL_SRC
   engines/eevee/shaders/eevee_reverse_z_lib.bsl.hh
   engines/eevee/shaders/eevee_renderpass_clear.bsl.hh
   engines/eevee/shaders/eevee_renderpass.bsl.hh
-  engines/eevee/shaders/eevee_sampling_lib.glsl
+  engines/eevee/shaders/eevee_sampling_lib.bsl.hh
   engines/eevee/shaders/eevee_shadow.bsl.hh
   engines/eevee/shaders/eevee_shadow_tracing.bsl.hh
   engines/eevee/shaders/eevee_shadow_page_allocate.bsl.hh
