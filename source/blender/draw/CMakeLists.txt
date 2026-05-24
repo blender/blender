@@ -389,7 +389,7 @@ set(GLSL_SRC
   engines/eevee/shaders/eevee_depth_of_field_gather_comp.glsl
   engines/eevee/shaders/eevee_depth_of_field_hole_fill_comp.glsl
   engines/eevee/shaders/eevee_depth_of_field_lib.glsl
-  engines/eevee/shaders/eevee_depth_of_field_resolve_comp.glsl
+  engines/eevee/shaders/eevee_depth_of_field_resolve.bsl.hh
   engines/eevee/shaders/eevee_depth_of_field_scatter.bsl.hh
   engines/eevee/shaders/eevee_depth_of_field_setup.bsl.hh
   engines/eevee/shaders/eevee_depth_of_field_tiles.bsl.hh

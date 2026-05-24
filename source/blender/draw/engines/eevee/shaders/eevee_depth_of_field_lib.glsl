@@ -23,11 +23,13 @@
 #  define DOF_SLIGHT_FOCUS_DENSITY 2
 #endif
 
-#ifdef DOF_RESOLVE_PASS
+/* WORKAROUND: Compatibility with old code. To be removed once everything is ported. */
+#ifdef SRT_CONSTANT_is_resolve
 #  define IS_RESOLVE true
 #else
 #  define IS_RESOLVE false
 #endif
+
 #ifdef DOF_FOREGROUND_PASS
 #  define IS_FOREGROUND DOF_FOREGROUND_PASS
 #else
@@ -142,13 +144,13 @@ float dof_layer_weight(float coc, const bool is_foreground)
     return saturate(-abs(coc) + dof_layer_threshold + dof_layer_offset) *
            float(is_foreground ? (coc <= 0.5f) : (coc > -0.5f));
   }
-  else {
-    coc *= 2.0f; /* Account for half pixel gather. */
-    float threshold = dof_layer_threshold -
-                      ((is_foreground) ? dof_layer_offset_fg : dof_layer_offset);
-    return saturate(((is_foreground) ? -coc : coc) - threshold);
-  }
+
+  coc *= 2.0f; /* Account for half pixel gather. */
+  float threshold = dof_layer_threshold -
+                    ((is_foreground) ? dof_layer_offset_fg : dof_layer_offset);
+  return saturate(((is_foreground) ? -coc : coc) - threshold);
 }
+
 float4 dof_layer_weight(float4 coc)
 {
   /* NOTE: Used for scatter pass which already flipped the sign correctly. */

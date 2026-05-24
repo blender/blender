@@ -59,13 +59,17 @@ GPU_SHADER_CREATE_END()
 /** \name Gather
  * \{ */
 
+GPU_SHADER_CREATE_INFO(eevee_dof_buf)
+UNIFORM_BUF(0, DepthOfFieldData, dof_buf)
+GPU_SHADER_CREATE_END()
+
 GPU_SHADER_CREATE_INFO(eevee_depth_of_field_gather_common)
 TYPEDEF_SOURCE("eevee_defines.hh")
 TYPEDEF_SOURCE("eevee_depth_of_field_shared.hh")
 ADDITIONAL_INFO(draw_view)
 ADDITIONAL_INFO(eevee_depth_of_field_tiles_common)
 ADDITIONAL_INFO(eevee_sampling_data)
-UNIFORM_BUF(0, DepthOfFieldData, dof_buf)
+ADDITIONAL_INFO(eevee_dof_buf)
 LOCAL_GROUP_SIZE(DOF_GATHER_GROUP_SIZE, DOF_GATHER_GROUP_SIZE)
 SAMPLER(0, sampler2D, color_tx)
 SAMPLER(1, sampler2D, color_bilinear_tx)
@@ -103,41 +107,5 @@ COMPUTE_SOURCE("eevee_depth_of_field_hole_fill_comp.glsl")
 ADDITIONAL_INFO(eevee_depth_of_field_gather_common)
 ADDITIONAL_INFO(eevee_depth_of_field_no_lut)
 GPU_SHADER_CREATE_END()
-
-/** \} */
-
-/* -------------------------------------------------------------------- */
-/** \name Resolve
- * \{ */
-
-GPU_SHADER_CREATE_INFO(eevee_depth_of_field_resolve)
-DEFINE_VALUE("DOF_RESOLVE_PASS", "true")
-LOCAL_GROUP_SIZE(DOF_RESOLVE_GROUP_SIZE, DOF_RESOLVE_GROUP_SIZE)
-SPECIALIZATION_CONSTANT(bool, do_debug_color, false)
-TYPEDEF_SOURCE("eevee_defines.hh")
-TYPEDEF_SOURCE("eevee_depth_of_field_shared.hh")
-ADDITIONAL_INFO(draw_view)
-ADDITIONAL_INFO(eevee_depth_of_field_tiles_common)
-ADDITIONAL_INFO(eevee_sampling_data)
-UNIFORM_BUF(0, DepthOfFieldData, dof_buf)
-SAMPLER(0, sampler2DDepth, depth_tx)
-SAMPLER(1, sampler2D, color_tx)
-SAMPLER(2, sampler2D, color_bg_tx)
-SAMPLER(3, sampler2D, color_fg_tx)
-SAMPLER(4, sampler2D, color_hole_fill_tx)
-SAMPLER(7, sampler2D, weight_bg_tx)
-SAMPLER(8, sampler2D, weight_fg_tx)
-SAMPLER(9, sampler2D, weight_hole_fill_tx)
-SAMPLER(10, sampler2D, stable_color_tx)
-IMAGE(2, SFLOAT_16_16_16_16, write, image2D, out_color_img)
-COMPUTE_SOURCE("eevee_depth_of_field_resolve_comp.glsl")
-GPU_SHADER_CREATE_END()
-
-CREATE_INFO_VARIANT(eevee_depth_of_field_resolve_lut,
-                    eevee_depth_of_field_lut,
-                    eevee_depth_of_field_resolve)
-CREATE_INFO_VARIANT(eevee_depth_of_field_resolve_no_lut,
-                    eevee_depth_of_field_no_lut,
-                    eevee_depth_of_field_resolve)
 
 /** \} */

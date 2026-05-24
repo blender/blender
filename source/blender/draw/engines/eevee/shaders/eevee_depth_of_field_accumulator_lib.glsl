@@ -13,9 +13,7 @@
 #include "infos/eevee_depth_of_field_infos.hh"
 
 SHADER_LIBRARY_CREATE_INFO(eevee_depth_of_field_lut)
-#ifdef GPU_LIBRARY_SHADER
 COMPUTE_SHADER_CREATE_INFO(eevee_depth_of_field_gather)
-#endif
 
 #include "draw_view_lib.glsl"
 #include "eevee_colorspace_lib.bsl.hh"
@@ -42,6 +40,11 @@ COMPUTE_SHADER_CREATE_INFO(eevee_depth_of_field_gather)
 #  define gather_ring_density int(3)
 #  define gather_max_density_change int(50) /* Dictates the maximum good quality blur. */
 #  define gather_density_change_ring int(1)
+#endif
+
+/* WORKAROUND: Compatibility with old code. To be removed once everything is ported. */
+#ifdef SRT_CONSTANT_use_lut
+#  define DOF_BOKEH_TEXTURE bool(SRT_CONSTANT_use_lut)
 #endif
 
 /** \} */
@@ -426,6 +429,8 @@ void dof_gather_accumulator(sampler2D color_tx,
                             float &out_weight,
                             float2 &out_occlusion)
 {
+  const auto &dof_buf = buffer_get(eevee_dof_buf, dof_buf);
+
   float2 frag_coord = float2(gl_GlobalInvocationID.xy);
   float2 noise_offset = sampling_rng_2D_get(SAMPLING_LENS_U);
   float2 noise = no_gather_random ?
@@ -594,6 +599,8 @@ void dof_slight_focus_gather(sampler2DDepth depth_tx,
                              float &out_weight,
                              float &out_center_coc)
 {
+  const auto &dof_buf = buffer_get(eevee_dof_buf, dof_buf);
+
   float2 frag_coord = float2(gl_GlobalInvocationID.xy) + 0.5f;
   float2 noise_offset = sampling_rng_2D_get(SAMPLING_LENS_U);
   float2 noise = no_gather_random ?
