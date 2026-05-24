@@ -949,16 +949,9 @@ class SocketTooltipBuilder {
             &bundle_type.type))
     {
       this->start_block(TooltipBlockType::BundleType);
-      this->add_text_field_mono(TIP_("Nested Bundle Types:"));
+      this->add_text_field_mono(TIP_("Bundle Types:"));
       for (const nodes::FlatBundleTypePtr &flat_type : (*nested_bundle_type)->items()) {
-        this->add_space();
         this->add_text_field_mono(fmt::format(" \u2022 {}", flat_type->name()));
-        indentation_++;
-        BLI_SCOPED_DEFER([&]() { indentation_--; });
-
-        for (const nodes::FlatBundleType::Item &item : flat_type->items()) {
-          this->add_text_field_mono(fmt::format(" \u2022 {}", item.name()));
-        }
       }
     }
     else if (const auto *flat_bundle_type = std::get_if<nodes::FlatBundleTypePtr>(
