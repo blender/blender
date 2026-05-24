@@ -1100,7 +1100,7 @@ static bool socket_needs_volume_grid_search(const bNode &node, const bNodeSocket
 static bool socket_needs_bundle_type_search(const bNode &node, const bNodeSocket &socket)
 {
   if (node.type_legacy == NODE_COMBINE_BUNDLE) {
-    return socket.name == nodes::Bundle::type_item_name;
+    return socket.name == nodes::Bundle::type_item_name.ustr();
   }
   if (node.is_type("NodeGetNestedBundlePaths"_ustr)) {
     return socket.name == StringRef("Bundle Type");

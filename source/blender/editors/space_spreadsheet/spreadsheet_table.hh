@@ -10,6 +10,8 @@
 
 #include "DNA_space_types.h"
 
+#include "NOD_geometry_nodes_bundle.hh"
+
 namespace blender::ed::spreadsheet {
 
 SpreadsheetTableIDGeometry *spreadsheet_table_id_new_geometry();
@@ -28,7 +30,7 @@ void spreadsheet_table_id_foreach_id(SpreadsheetTableID &table_id, LibraryForeac
 
 void spreadsheet_bundle_path_clear(SpreadsheetBundleTreeViewPath &bundle_path);
 void spreadsheet_bundle_path_init_from(
-    Span<UString> keys,
+    Span<nodes::BundleKey> keys,
     std::optional<SpreadsheetClosureInputOutput> closure_input_output,
     SpreadsheetBundleTreeViewPath &r_bundle_path);
 

@@ -403,7 +403,7 @@ static void node_geo_exec(GeoNodeExecParams params)
     if (attribute_patterns_list->cpp_type().is<std::string>()) {
       attribute_patterns_list.typed<std::string>()->foreach([&](const std::string &pattern) {
         std::string error;
-        if (std::optional<StringPattern> pattern_fn = StringPattern::from_string(
+        if (std::optional<StringPattern> pattern_fn = StringPattern::from_str(
                 pattern_mode, pattern, error))
         {
           patterns.append(std::move(*pattern_fn));

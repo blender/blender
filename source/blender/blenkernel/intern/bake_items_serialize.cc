@@ -1494,8 +1494,8 @@ template<typename T>
     if (!io_item) {
       return false;
     }
-    const std::optional<std::string> key = io_item->lookup_str("key");
-    if (!key) {
+    const std::optional<std::string> key_str = io_item->lookup_str("key");
+    if (key_str) {
       return false;
     }
     const std::optional<StringRefNull> socket_idname = io_item->lookup_str("socket_idname");
@@ -1512,7 +1512,11 @@ template<typename T>
     if (!stype) {
       return false;
     }
-    r_bundle.add(UString(*key), nodes::BundleItemSocketValue{stype, std::move(*value)});
+    std::optional<nodes::BundleKey> key = nodes::BundleKey::from_str(*key_str);
+    if (!key) {
+      return false;
+    }
+    r_bundle.add(*key, nodes::BundleItemSocketValue{stype, std::move(*value)});
   }
   return true;
 }
@@ -1525,7 +1529,7 @@ static void serialize_bundle_items(const nodes::Bundle &bundle,
   for (const auto &item : bundle.items()) {
     if (const auto *socket_value = std::get_if<nodes::BundleItemSocketValue>(&item.value.value)) {
       DictionaryValue &io_bundle_item = *r_io_items.append_dict();
-      io_bundle_item.append_str("key", item.key.string());
+      io_bundle_item.append_str("key", item.key.ustr().string());
       io_bundle_item.append_str("socket_idname", socket_value->type->idname.string());
       io::serialize::DictionaryValue &io_bundle_item_value = *io_bundle_item.append_dict("value");
       serialize_socket_value_variant(

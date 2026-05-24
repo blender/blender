@@ -673,7 +673,7 @@ class XpbdSolverStep {
   void gather_nested_bundle_paths()
   {
     foreach_nested_bundle_item(world_,
-                               [&](const Span<UString> path, const BundleItemValue &value) {
+                               [&](const Span<BundleKey> path, const BundleItemValue &value) {
                                  const BundlePtr *bundle_ptr = value.as_pointer<BundlePtr>();
                                  if (!bundle_ptr || !*bundle_ptr) {
                                    return;
@@ -830,17 +830,23 @@ class XpbdSolverStep {
       }
       const Bundle &bundle = **bundle_ptr;
       const Bundle *previous_bundle = this->get_previous_bundle(bundle);
-      const bke::GeometrySet *geometry = bundle.lookup_ptr<bke::GeometrySet>("geometry"_ustr);
-      const float margin = bundle.lookup<float>("margin"_ustr).value_or(0.0f);
-      const float friction = bundle.lookup<float>("friction"_ustr).value_or(0.0f);
-      const float compliance = bundle.lookup<float>("compliance"_ustr).value_or(0.0f);
-      const bool deforming = bundle.lookup<bool>("deforming"_ustr).value_or(false);
-      const bool use_edge_contacts = bundle.lookup<bool>("use_edge_contacts"_ustr).value_or(false);
-      const bool is_boundary = bundle.lookup<bool>("is_boundary"_ustr).value_or(false);
-      const float error_threshold = bundle.lookup<float>("error_threshold"_ustr).value_or(1e-3f);
+      const bke::GeometrySet *geometry = bundle.lookup_ptr<bke::GeometrySet>(
+          *BundleKey::from_str("geometry"));
+      const float margin = bundle.lookup<float>(*BundleKey::from_str("margin")).value_or(0.0f);
+      const float friction = bundle.lookup<float>(*BundleKey::from_str("friction")).value_or(0.0f);
+      const float compliance =
+          bundle.lookup<float>(*BundleKey::from_str("compliance")).value_or(0.0f);
+      const bool deforming =
+          bundle.lookup<bool>(*BundleKey::from_str("deforming")).value_or(false);
+      const bool use_edge_contacts =
+          bundle.lookup<bool>(*BundleKey::from_str("use_edge_contacts")).value_or(false);
+      const bool is_boundary =
+          bundle.lookup<bool>(*BundleKey::from_str("is_boundary")).value_or(false);
+      const float error_threshold =
+          bundle.lookup<float>(*BundleKey::from_str("error_threshold")).value_or(1e-3f);
       const bke::GeometrySet *prev_geometry = previous_bundle ?
                                                   previous_bundle->lookup_ptr<bke::GeometrySet>(
-                                                      "geometry"_ustr) :
+                                                      *BundleKey::from_str("geometry")) :
                                                   nullptr;
       if (!geometry) {
         continue;
@@ -1603,11 +1609,16 @@ class XpbdSolverStep {
       const Bundle &bundle = **world_.lookup_path_ptr<BundlePtr>(path);
       RodStretchShearConstraint constraint;
       constraint.path = path;
-      constraint.error_threshold = bundle.lookup<float>("error_threshold"_ustr).value_or(1e-3f);
-      constraint.lambda_pos_attr =
-          bundle.lookup<std::string>("lambda_position_attribute"_ustr).value_or("");
-      constraint.lambda_rot_attr =
-          bundle.lookup<std::string>("lambda_rotation_attribute"_ustr).value_or("");
+      constraint.error_threshold =
+          bundle.lookup<float>(*BundleKey::from_str("error_threshold")).value_or(1e-3f);
+      constraint.lambda_pos_attr = bundle
+                                       .lookup<std::string>(
+                                           *BundleKey::from_str("lambda_position_attribute"))
+                                       .value_or("");
+      constraint.lambda_rot_attr = bundle
+                                       .lookup<std::string>(
+                                           *BundleKey::from_str("lambda_rotation_attribute"))
+                                       .value_or("");
 
       const int constraint_i = constraints_.rod_stretch_shear_constraints.append_and_get_index(
           std::move(constraint));
@@ -1729,7 +1740,8 @@ class XpbdSolverStep {
 
       RodBendTwistConstraint constraint;
       constraint.path = path;
-      constraint.error_threshold = bundle.lookup<float>("error_threshold"_ustr).value_or(1e-2f);
+      constraint.error_threshold =
+          bundle.lookup<float>(*BundleKey::from_str("error_threshold")).value_or(1e-2f);
 
       const int constraint_i = constraints_.rod_bend_twist_constraints.append_and_get_index(
           std::move(constraint));
@@ -1805,7 +1817,8 @@ class XpbdSolverStep {
     for (const StringRef path : paths) {
       const Bundle &bundle = **world_.lookup_path_ptr<BundlePtr>(path);
 
-      const float error_threshold = bundle.lookup<float>("error_threshold"_ustr).value_or(1e-3f);
+      const float error_threshold =
+          bundle.lookup<float>(*BundleKey::from_str("error_threshold")).value_or(1e-3f);
       const int constraint_i = constraints_.edge_length_constraints.append_and_get_index(
           {path, error_threshold});
 
@@ -1868,7 +1881,8 @@ class XpbdSolverStep {
         CrossEdgeLengthConstraintBundle::name);
     for (const StringRef path : paths) {
       const Bundle &bundle = **world_.lookup_path_ptr<BundlePtr>(path);
-      const float error_threshold = bundle.lookup<float>("error_threshold"_ustr).value_or(1e-3f);
+      const float error_threshold =
+          bundle.lookup<float>(*BundleKey::from_str("error_threshold")).value_or(1e-3f);
       const int constraint_i = constraints_.cross_edge_length_constraints.append_and_get_index(
           {path, error_threshold});
       for (const int data_key_i : geometries_.data.index_range()) {
@@ -2092,8 +2106,10 @@ class XpbdSolverStep {
       const Bundle &bundle = **world_.lookup_path_ptr<BundlePtr>(path);
       PinPositionConstraint constraint;
       constraint.path = path;
-      constraint.error_threshold = bundle.lookup<float>("error_threshold"_ustr).value_or(1e-3f);
-      constraint.lambda_attr = bundle.lookup<std::string>("lambda_attribute"_ustr).value_or("");
+      constraint.error_threshold =
+          bundle.lookup<float>(*BundleKey::from_str("error_threshold")).value_or(1e-3f);
+      constraint.lambda_attr =
+          bundle.lookup<std::string>(*BundleKey::from_str("lambda_attribute")).value_or("");
       const int constraint_i = constraints_.pin_position_constraints.append_and_get_index(
           std::move(constraint));
 
@@ -2248,7 +2264,8 @@ class XpbdSolverStep {
 
       PinRotationConstraint constraint;
       constraint.path = path;
-      constraint.error_threshold = bundle.lookup<float>("error_threshold"_ustr).value_or(1e-2f);
+      constraint.error_threshold =
+          bundle.lookup<float>(*BundleKey::from_str("error_threshold")).value_or(1e-2f);
       const int constraint_i = constraints_.pin_rotation_constraints.append_and_get_index(
           std::move(constraint));
 
@@ -2929,7 +2946,8 @@ class XpbdSolverStep {
 
   const Bundle *get_previous_bundle(const Bundle &bundle) const
   {
-    const BundlePtr *previous_bundle_ptr = bundle.lookup_ptr<BundlePtr>("previous"_ustr);
+    const BundlePtr *previous_bundle_ptr = bundle.lookup_ptr<BundlePtr>(
+        *BundleKey::from_str("previous"));
     if (!previous_bundle_ptr || !*previous_bundle_ptr) {
       return nullptr;
     }
@@ -2944,7 +2962,8 @@ class XpbdSolverStep {
     const GeometrySetData &geo_set_data = geometries_.geometry_sets[data_key.geo_bundle_i];
     const StringRef geo_bundle_path = geo_set_data.path;
 
-    const bool filter_local = effector.lookup<bool>("filter_local"_ustr).value_or(false);
+    const bool filter_local =
+        effector.lookup<bool>(*BundleKey::from_str("filter_local")).value_or(false);
     if (filter_local) {
       const int pos = effector_path.rfind('/');
       if (pos == StringRef::not_found) {
@@ -2957,7 +2976,8 @@ class XpbdSolverStep {
       }
       return false;
     }
-    const std::string filter = effector.lookup<std::string>("filter"_ustr).value_or("");
+    const std::string filter =
+        effector.lookup<std::string>(*BundleKey::from_str("filter")).value_or("");
     const bool match = tag_filter_matches(filter, geo_set_data.tags);
     return match;
   }
@@ -3322,7 +3342,7 @@ static void node_geo_exec(GeoNodeExecParams params)
   if (!solver_path.empty()) {
     BundlePtr solver_data_ptr = Bundle::create();
     Bundle &solver_data = solver_data_ptr.ensure_mutable_inplace();
-    solver_data.add_path(Bundle::type_item_name.string(), std::string(XPBDSolverDataBundle::name));
+    solver_data.add(Bundle::type_item_name, std::string(XPBDSolverDataBundle::name));
     solver_data.add_path("residual_error", step.result().total_residual_error);
     world.add_path_override(solver_path, std::move(solver_data_ptr));
   }

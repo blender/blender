@@ -103,7 +103,7 @@ static void node_geo_exec(GeoNodeExecParams params)
   }
 
   std::string pattern_error;
-  std::optional<StringPattern> pattern_fn = StringPattern::from_string(
+  std::optional<StringPattern> pattern_fn = StringPattern::from_str(
       params.get_input<StringPatternMode>("Pattern Mode"_ustr), pattern, pattern_error);
   if (!pattern_fn) {
     params.error_message_add(NodeWarningType::Error, pattern_error);

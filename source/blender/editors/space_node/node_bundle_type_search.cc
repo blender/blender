@@ -115,7 +115,7 @@ static void bundle_type_string_search_exec(bContext *C, void *data_v, void * /*i
   if (item.socket_type != SOCK_STRING) {
     return;
   }
-  if (item.name != nodes::Bundle::type_item_name) {
+  if (item.name != nodes::Bundle::type_item_name.ustr()) {
     return;
   }
   nodes::sync_node(*C, *node, nullptr);

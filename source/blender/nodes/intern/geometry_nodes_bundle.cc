@@ -32,17 +32,18 @@ void BundleSignature::set_auto_structure_types()
   }
 }
 
-bool Bundle::is_valid_key(const StringRef key)
+bool BundleKey::is_valid_key(const StringRef key)
 {
   if (key.is_empty()) {
     return false;
   }
   if (key != key.trim()) {
-    /* Keys must not have leading or trailing white-space. This simplifies potentially using these
+    /* Keys must not have leading or trailing white-space. This simplifies potentially using
+    these
      * keys in expressions later on (or even just have a comma separated list of keys). */
     return false;
   }
-  return key.find_first_of(Bundle::forbidden_key_chars) == StringRef::not_found;
+  return key.find_first_of(BundleKey::forbidden_key_chars) == StringRef::not_found;
 }
 
 bool Bundle::is_valid_path(const StringRef path)
@@ -50,29 +51,30 @@ bool Bundle::is_valid_path(const StringRef path)
   return split_path(path).has_value();
 }
 
-std::optional<Vector<UString>> Bundle::split_path(const StringRef path)
+std::optional<Vector<BundleKey>> Bundle::split_path(const StringRef path)
 {
   if (path.is_empty()) {
     return std::nullopt;
   }
-  Vector<UString> path_elems;
+  Vector<BundleKey> path_elems;
   StringRef remaining = path;
   while (!remaining.is_empty()) {
     const int sep = remaining.find_first_of('/');
     if (sep == StringRef::not_found) {
-      const StringRef key = remaining;
-      if (!is_valid_key(key)) {
-        return std::nullopt;
+      const StringRef key_str = remaining;
+      if (const std::optional<BundleKey> key = BundleKey::from_str(key_str)) {
+        path_elems.append(*key);
       }
-      path_elems.append(UString(key));
       break;
     }
-    const StringRef key = remaining.substr(0, sep);
-    if (!is_valid_key(key)) {
+    const StringRef key_str = remaining.substr(0, sep);
+    if (const std::optional<BundleKey> key = BundleKey::from_str(key_str)) {
+      path_elems.append(*key);
+      remaining = remaining.substr(sep + 1);
+    }
+    else {
       return std::nullopt;
     }
-    path_elems.append(UString(key));
-    remaining = remaining.substr(sep + 1);
   }
   return path_elems;
 }
@@ -82,25 +84,23 @@ BundlePtr Bundle::create()
   return BundlePtr(MEM_new<Bundle>(__func__));
 }
 
-void Bundle::add_new(const UString key, const BundleItemValue &value)
+void Bundle::add_new(const BundleKey key, const BundleItemValue &value)
 {
-  BLI_assert(is_valid_key(key.ref()));
   items_.add_new_as(key, value);
 }
 
-void Bundle::add_new(UString key, BundleItemValue &&value)
+void Bundle::add_new(BundleKey key, BundleItemValue &&value)
 {
-  BLI_assert(is_valid_key(key.ref()));
   items_.add_new_as(key, std::move(value));
 }
 
-void Bundle::add_override(const UString key, const BundleItemValue &value)
+void Bundle::add_override(const BundleKey key, const BundleItemValue &value)
 {
   this->remove(key);
   this->add_new(key, value);
 }
 
-bool Bundle::add(const UString key, const BundleItemValue &value)
+bool Bundle::add(const BundleKey key, const BundleItemValue &value)
 {
   if (this->contains(key)) {
     return false;
@@ -109,7 +109,7 @@ bool Bundle::add(const UString key, const BundleItemValue &value)
   return true;
 }
 
-bool Bundle::add(const UString key, BundleItemValue &&value)
+bool Bundle::add(const BundleKey key, BundleItemValue &&value)
 {
   if (this->contains(key)) {
     return false;
@@ -129,9 +129,9 @@ static BundleItemValue create_nested_bundle_item()
 void Bundle::add_path_override(const StringRef path, const BundleItemValue &value)
 {
   BLI_assert(is_valid_path(path));
-  const Vector<UString> path_elems = *split_path(path);
+  const Vector<BundleKey> path_elems = *split_path(path);
   Bundle *current = this;
-  for (const UString path_elem : path_elems.as_span().drop_back(1)) {
+  for (const BundleKey path_elem : path_elems.as_span().drop_back(1)) {
     BundleItemValue &item = current->items_.lookup_or_add_cb_as(
         path_elem, [&]() { return create_nested_bundle_item(); });
     BundlePtr *child_bundle_ptr = item.as_pointer<BundlePtr>();
@@ -172,22 +172,20 @@ Bundle &Bundle::ensure_nested_bundle(const StringRef path)
   return new_bundle_ref;
 }
 
-const BundleItemValue *Bundle::lookup(const UString key) const
+const BundleItemValue *Bundle::lookup(const BundleKey key) const
 {
-  BLI_assert(is_valid_key(key.ref()));
   return items_.lookup_ptr_as(key);
 }
 
-BundleItemValue *Bundle::lookup(const UString key)
+BundleItemValue *Bundle::lookup(const BundleKey key)
 {
-  BLI_assert(is_valid_key(key.ref()));
   return items_.lookup_ptr_as(key);
 }
 
-const BundleItemValue *Bundle::lookup_path(const Span<UString> path) const
+const BundleItemValue *Bundle::lookup_path(const Span<BundleKey> path) const
 {
   BLI_assert(!path.is_empty());
-  const UString first_elem = path[0];
+  const BundleKey first_elem = path[0];
   const BundleItemValue *item = this->lookup(first_elem);
   if (!item) {
     return nullptr;
@@ -205,14 +203,14 @@ const BundleItemValue *Bundle::lookup_path(const Span<UString> path) const
 const BundleItemValue *Bundle::lookup_path(const StringRef path) const
 {
   BLI_assert(is_valid_path(path));
-  const Vector<UString> path_elems = *split_path(path);
+  const Vector<BundleKey> path_elems = *split_path(path);
   return this->lookup_path(path_elems);
 }
 
-BundleItemValue *Bundle::lookup_path_for_write(Span<UString> path)
+BundleItemValue *Bundle::lookup_path_for_write(Span<BundleKey> path)
 {
   BLI_assert(!path.is_empty());
-  const UString first_elem = path[0];
+  const BundleKey first_elem = path[0];
   BundleItemValue *item = this->lookup(first_elem);
   if (!item) {
     return nullptr;
@@ -234,7 +232,7 @@ BundleItemValue *Bundle::lookup_path_for_write(Span<UString> path)
 BundleItemValue *Bundle::lookup_path_for_write(StringRef path)
 {
   BLI_assert(is_valid_path(path));
-  const Vector<UString> path_elems = *split_path(path);
+  const Vector<BundleKey> path_elems = *split_path(path);
   return this->lookup_path_for_write(path_elems);
 }
 
@@ -281,20 +279,19 @@ BundlePtr Bundle::copy() const
   return copy_ptr;
 }
 
-bool Bundle::remove(const UString key)
+bool Bundle::remove(const BundleKey key)
 {
-  BLI_assert(is_valid_key(key.ref()));
   return items_.remove_as(key);
 }
 
 bool Bundle::remove_path(const StringRef path)
 {
   BLI_assert(is_valid_path(path));
-  const Vector<UString> path_elems = *split_path(path);
+  const Vector<BundleKey> path_elems = *split_path(path);
   return this->remove_path(path_elems);
 }
 
-bool Bundle::remove_path(const Span<UString> path)
+bool Bundle::remove_path(const Span<BundleKey> path)
 {
   BLI_assert(this->is_mutable());
   BLI_assert(!path.is_empty());
@@ -302,7 +299,7 @@ bool Bundle::remove_path(const Span<UString> path)
     return false;
   }
   Bundle *current = this;
-  for (const UString path_elem : path.drop_back(1)) {
+  for (const BundleKey path_elem : path.drop_back(1)) {
     BundleItemValue &item = current->items_.lookup_as(path_elem);
     BundlePtr *child_bundle_ptr = item.as_pointer<BundlePtr>();
     current = &child_bundle_ptr->ensure_mutable_inplace();
@@ -311,9 +308,8 @@ bool Bundle::remove_path(const Span<UString> path)
   return true;
 }
 
-bool Bundle::contains(const UString key) const
+bool Bundle::contains(const BundleKey key) const
 {
-  BLI_assert(is_valid_key(key.ref()));
   return items_.contains_as(key);
 }
 
@@ -322,7 +318,7 @@ bool Bundle::contains_path(const StringRef path) const
   return this->lookup_path(path) != nullptr;
 }
 
-bool Bundle::contains_path(const Span<UString> path) const
+bool Bundle::contains_path(const Span<BundleKey> path) const
 {
   return this->lookup_path(path) != nullptr;
 }
@@ -332,7 +328,7 @@ std::string Bundle::combine_path(const Span<StringRef> path)
   return fmt::format("{}", fmt::join(path, "/"));
 }
 
-std::string Bundle::combine_path(const Span<UString> path)
+std::string Bundle::combine_path(const Span<BundleKey> path)
 {
   return fmt::format("{}", fmt::join(path, "/"));
 }
@@ -453,8 +449,8 @@ std::optional<BundleSignature> LinkedBundleSignatures::get_merged_signature() co
 
 static void foreach_nested_bundle_item_recursive(
     const Bundle &bundle,
-    const FunctionRef<void(Span<UString>, const BundleItemValue &value)> fn,
-    Vector<UString> &r_path)
+    const FunctionRef<void(Span<BundleKey>, const BundleItemValue &value)> fn,
+    Vector<BundleKey> &r_path)
 {
   for (const auto &child_item : bundle.items()) {
     r_path.append(child_item.key);
@@ -474,9 +470,10 @@ static void foreach_nested_bundle_item_recursive(
 }
 
 void foreach_nested_bundle_item(
-    const Bundle &bundle, const FunctionRef<void(Span<UString>, const BundleItemValue &value)> fn)
+    const Bundle &bundle,
+    const FunctionRef<void(Span<BundleKey>, const BundleItemValue &value)> fn)
 {
-  Vector<UString> path;
+  Vector<BundleKey> path;
   foreach_nested_bundle_item_recursive(bundle, fn, path);
 }
 
@@ -484,17 +481,18 @@ Vector<std::string> gather_bundle_paths_by_bundle_type(
     const Bundle &bundle, const FunctionRef<bool(StringRef type)> type_filter_fn)
 {
   Vector<std::string> paths;
-  foreach_nested_bundle_item(bundle, [&](const Span<UString> path, const BundleItemValue &value) {
-    if (const BundlePtr *child_bundle_ptr = value.as_pointer<BundlePtr>()) {
-      if (*child_bundle_ptr) {
-        if (const std::optional<StringRef> type = (*child_bundle_ptr)->type()) {
-          if (type_filter_fn(*type)) {
-            paths.append(Bundle::combine_path(path));
+  foreach_nested_bundle_item(
+      bundle, [&](const Span<BundleKey> path, const BundleItemValue &value) {
+        if (const BundlePtr *child_bundle_ptr = value.as_pointer<BundlePtr>()) {
+          if (*child_bundle_ptr) {
+            if (const std::optional<StringRef> type = (*child_bundle_ptr)->type()) {
+              if (type_filter_fn(*type)) {
+                paths.append(Bundle::combine_path(path));
+              }
+            }
           }
         }
-      }
-    }
-  });
+      });
   return paths;
 }
 
@@ -502,13 +500,14 @@ Vector<std::string> gather_bundle_paths_by_data_type(const Bundle &bundle,
                                                      const eNodeSocketDatatype data_type)
 {
   Vector<std::string> paths;
-  foreach_nested_bundle_item(bundle, [&](const Span<UString> path, const BundleItemValue &value) {
-    if (const auto *socket_value = std::get_if<BundleItemSocketValue>(&value.value)) {
-      if (socket_value->type->type == data_type) {
-        paths.append(Bundle::combine_path(path));
-      }
-    }
-  });
+  foreach_nested_bundle_item(
+      bundle, [&](const Span<BundleKey> path, const BundleItemValue &value) {
+        if (const auto *socket_value = std::get_if<BundleItemSocketValue>(&value.value)) {
+          if (socket_value->type->type == data_type) {
+            paths.append(Bundle::combine_path(path));
+          }
+        }
+      });
   return paths;
 }
 

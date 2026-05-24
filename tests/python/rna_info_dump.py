@@ -113,7 +113,7 @@ def api_dump(use_properties=True, use_functions=True):
         sys.stderr.write("\n\nEOF\n")
     else:
         text = bpy.data.texts.new(name="api.py")
-        text.from_string(data)
+        text.from_str(data)
 
     print("END")
 

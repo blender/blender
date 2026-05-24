@@ -58,9 +58,9 @@ class StringPattern {
    * Create a new pattern. If the pattern is invalid, nullopt is returned and the error message is
    * set.
    */
-  static std::optional<StringPattern> from_string(StringPatternMode mode,
-                                                  StringRef pattern,
-                                                  std::string &r_error);
+  static std::optional<StringPattern> from_str(StringPatternMode mode,
+                                               StringRef pattern,
+                                               std::string &r_error);
 
   /** Returns true if the string matches the pattern. */
   bool match(StringRef query) const;

@@ -370,12 +370,12 @@ void NodeTreeLogger::log_value(const bNode &node, const bNodeSocket &socket, con
           if (const BundleItemSocketValue *socket_value = std::get_if<BundleItemSocketValue>(
                   &item.value.value))
           {
-            items.append({item.key, {socket_value->type}});
+            items.append({item.key.ustr(), {socket_value->type}});
           }
           if (const BundleItemInternalValue *internal_value = std::get_if<BundleItemInternalValue>(
                   &item.value.value))
           {
-            items.append({item.key, {internal_value->value->type_name()}});
+            items.append({item.key.ustr(), {internal_value->value->type_name()}});
           }
         }
       }
