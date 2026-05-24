@@ -385,16 +385,13 @@ set(GLSL_SRC
   engines/eevee/shaders/eevee_deferred_tile_classify.bsl.hh
   engines/eevee/shaders/eevee_depth_of_field_accumulator_lib.glsl
   engines/eevee/shaders/eevee_depth_of_field_bokeh_lut.bsl.hh
-  engines/eevee/shaders/eevee_depth_of_field_downsample_comp.glsl
   engines/eevee/shaders/eevee_depth_of_field_filter_comp.glsl
   engines/eevee/shaders/eevee_depth_of_field_gather_comp.glsl
   engines/eevee/shaders/eevee_depth_of_field_hole_fill_comp.glsl
   engines/eevee/shaders/eevee_depth_of_field_lib.glsl
-  engines/eevee/shaders/eevee_depth_of_field_reduce_comp.glsl
   engines/eevee/shaders/eevee_depth_of_field_resolve_comp.glsl
   engines/eevee/shaders/eevee_depth_of_field_scatter.bsl.hh
-  engines/eevee/shaders/eevee_depth_of_field_setup_comp.glsl
-  engines/eevee/shaders/eevee_depth_of_field_stabilize_comp.glsl
+  engines/eevee/shaders/eevee_depth_of_field_setup.bsl.hh
   engines/eevee/shaders/eevee_depth_of_field_tiles.bsl.hh
   engines/eevee/shaders/eevee_film.bsl.hh
   engines/eevee/shaders/eevee_filter.bsl.hh

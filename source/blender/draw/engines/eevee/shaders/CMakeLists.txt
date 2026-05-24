@@ -23,14 +23,10 @@ set(INC_GLSL
 )
 
 set(SRC_GLSL_COMP
-  eevee_depth_of_field_downsample_comp.glsl
   eevee_depth_of_field_filter_comp.glsl
   eevee_depth_of_field_gather_comp.glsl
   eevee_depth_of_field_hole_fill_comp.glsl
-  eevee_depth_of_field_reduce_comp.glsl
   eevee_depth_of_field_resolve_comp.glsl
-  eevee_depth_of_field_setup_comp.glsl
-  eevee_depth_of_field_stabilize_comp.glsl
 )
 
 set(SRC_GLSL_LIB
