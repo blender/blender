@@ -117,20 +117,6 @@ def socket_idname_to_attribute_type(idname):
     raise ValueError("Unsupported socket type")
 
 
-def modifier_attribute_name_get(modifier, identifier):
-    try:
-        return modifier[identifier + "_attribute_name"]
-    except KeyError:
-        return None
-
-
-def modifier_input_use_attribute(modifier, identifier):
-    try:
-        return modifier[identifier + "_use_attribute"] != 0
-    except KeyError:
-        return False
-
-
 def get_socket_with_identifier(sockets, identifier):
     for socket in sockets:
         if socket.identifier == identifier:
@@ -181,29 +167,17 @@ def create_wrapper_group(operator, modifier, old_group):
             continue
         identifier = input_socket.identifier
         group_node_input = get_socket_with_identifier(group_node.inputs, identifier)
-        if modifier_input_use_attribute(modifier, identifier):
+        prop = getattr(modifier.properties.inputs, identifier)
+        if hasattr(prop, "type") and prop.type == "ATTRIBUTE":
             input_node = group.nodes.new("GeometryNodeInputNamedAttribute")
             input_nodes.append(input_node)
             input_node.data_type = socket_idname_to_attribute_type(input_socket.bl_socket_idname)
-            attribute_name = modifier_attribute_name_get(modifier, identifier)
+            attribute_name = prop.attribute_name
             input_node.inputs["Name"].default_value = attribute_name
             output_socket = get_enabled_socket_with_name(input_node.outputs, "Attribute")
             group.links.new(output_socket, group_node_input)
         elif hasattr(input_socket, "default_value"):
-            # Special case for menu sockets: the modifier property is just the int
-            # value, which must be converted to the enum identifier to set the new
-            # interface default value. Use the RNA definition of the modifier property
-            # UI to get that identifier.
-            if input_socket.socket_type == 'NodeSocketMenu':
-                default_value_int = modifier[identifier]
-                menu_enum_items = modifier.id_properties_ui(identifier).as_dict()['items']
-                # Tuples have same order as in bpy.props.EnumProperty: (identifier, name, description, icon, number).
-                # In the case of an unconnected menu socket there will be one valid "DUMMY" item only.
-                if len(menu_enum_items) > 1:
-                    default_value_enum_item = next(item for item in menu_enum_items if item[4] == default_value_int)
-                    group_node_input.default_value = default_value_enum_item[0]
-            else:
-                group_node_input.default_value = modifier[identifier]
+            group_node_input.default_value = prop.value
 
     if first_geometry_input:
         group.links.new(
@@ -226,7 +200,8 @@ def create_wrapper_group(operator, modifier, old_group):
             continue
         identifier = output_socket.identifier
         group_node_output = get_socket_with_identifier(group_node.outputs, identifier)
-        attribute_name = modifier_attribute_name_get(modifier, identifier)
+
+        attribute_name = getattr(group_node_output, "attribute_name", None)
         if attribute_name:
             store_node = group.nodes.new("GeometryNodeStoreNamedAttribute")
             store_nodes.append(store_node)
