@@ -64,4 +64,11 @@ class CrossEdgeLengthConstraintBundle {
   static const FlatBundleTypePtr &get_bundle_type();
 };
 
+/* This is currently not used by built-in nodes but is used in essential assets. */
+class ForceBundle {
+ public:
+  static constexpr StringRefNull name = "Blender.Force";
+  static const FlatBundleTypePtr &get_bundle_type();
+};
+
 }  // namespace blender::nodes::physics_bundles

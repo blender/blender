@@ -160,4 +160,17 @@ const FlatBundleTypePtr &CrossEdgeLengthConstraintBundle::get_bundle_type()
   return bundle_type;
 }
 
+const FlatBundleTypePtr &ForceBundle::get_bundle_type()
+{
+  static const FlatBundleTypePtr bundle_type = []() {
+    FlatBundleTypeBuilder b(ForceBundle::name);
+    add_filter(b);
+    b.add<decl::Closure>("closure"_ustr);
+    const FlatBundleTypePtr bundle_type = b.build();
+    BundleTypeRegistry::register_type(bundle_type);
+    return bundle_type;
+  }();
+  return bundle_type;
+}
+
 }  // namespace blender::nodes::physics_bundles

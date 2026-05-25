@@ -95,6 +95,9 @@ static NestedBundleTypePtr make_world_type()
   types.append(EdgeLengthConstraintBundle::get_bundle_type());
   types.append(CrossEdgeLengthConstraintBundle::get_bundle_type());
 
+  /* Not actually used by the node but only registered here. */
+  ForceBundle::get_bundle_type();
+
   NestedBundleTypePtr world_type = std::make_shared<const NestedBundleType>(
       "Blender.XPBDSolverWorld", std::move(types));
   BundleTypeRegistry::register_type(world_type);
