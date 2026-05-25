@@ -44,10 +44,11 @@ void forward_lighting_eval(Thickness thickness,
                            float3 &transmittance)
 {
   [[resource_table]] LightEvalIterator &lights = resource_table_get(eevee::LightEvalIterator);
-  [[resource_table]] LightprobeRenderData &lightprobes = resource_table_get(
-      eevee::LightprobeRenderData);
-  [[resource_table]] LightprobePlaneRenderData &lightprobe_planes = resource_table_get(
-      eevee::LightprobePlaneRenderData);
+
+  /* clang-format off */ /* Multiline macro breaks error line counting. */
+  [[resource_table]] LightprobeRenderData &lightprobes = resource_table_get(eevee::LightprobeRenderData);
+  [[resource_table]] LightprobePlaneRenderData &lightprobe_planes = resource_table_get(eevee::LightprobePlaneRenderData);
+  /* clang-format on */
   [[resource_table]] LightEvalData &srt = lights.inner;
 
   float vPz = dot(drw_view_forward(), g_data.P) - dot(drw_view_forward(), drw_view_position());

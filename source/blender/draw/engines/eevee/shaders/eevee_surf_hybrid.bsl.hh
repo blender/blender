@@ -43,8 +43,9 @@ float4 closure_to_rgba_hybrid(Closure /*cl*/)
 
 #if defined(MAT_TRANSPARENT) && defined(MAT_SHADER_TO_RGBA)
   { /* Limit resource guard to this scope. */
-    [[resource_table]] eevee::LightprobeRenderData &lightprobes = resource_table_get(
-        eevee::LightprobeRenderData);
+    /* clang-format off */ /* Multiline macro breaks error line counting. */
+    [[resource_table]] eevee::LightprobeRenderData &lightprobes = resource_table_get(eevee::LightprobeRenderData);
+    /* clang-format on */
     [[resource_table]] eevee::LightprobeSphereRenderData &lp_spheres = lightprobes.spheres;
 
     float3 V = -drw_world_incident_vector(g_data.P);
