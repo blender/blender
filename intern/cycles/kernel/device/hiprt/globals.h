@@ -55,10 +55,6 @@ struct KernelParamsHIPRT {
 #define KERNEL_DATA_ARRAY_WRITABLE(type, name) type *name;
   KERNEL_DATA_ARRAY(int, user_instance_id)
   KERNEL_DATA_ARRAY(uint64_t, blas_ptr)
-  KERNEL_DATA_ARRAY(int2, custom_prim_info)
-  KERNEL_DATA_ARRAY(int2, custom_prim_info_offset)
-  KERNEL_DATA_ARRAY(float2, prims_time)
-  KERNEL_DATA_ARRAY(int, prim_time_offset)
 #include "kernel/data_arrays.h"
 
   /* Integrator state */

@@ -121,9 +121,7 @@ HIPRTDevice::HIPRTDevice(const DeviceInfo &info,
       transform_headers(this, "transform_headers", MEM_READ_ONLY),
       user_instance_id(this, "user_instance_id", MEM_GLOBAL),
       hiprt_blas_ptr(this, "hiprt_blas_ptr", MEM_READ_WRITE),
-      blas_ptr(this, "blas_ptr", MEM_GLOBAL),
-      custom_prim_info(this, "custom_prim_info", MEM_GLOBAL),
-      custom_prim_info_offset(this, "custom_prim_info_offset", MEM_GLOBAL)
+      blas_ptr(this, "blas_ptr", MEM_GLOBAL)
 {
   HIPContextScope scope(this);
   global_stack_buffer = {0};
@@ -164,8 +162,6 @@ HIPRTDevice::~HIPRTDevice()
   blas_ptr.free();
   instance_transform_matrix.free();
   transform_headers.free();
-  custom_prim_info_offset.free();
-  custom_prim_info.free();
 
   hiprtDestroyGlobalStackBuffer(hiprt_context, global_stack_buffer);
   hiprtDestroyFuncTable(hiprt_context, functions_table);
@@ -389,8 +385,6 @@ void HIPRTDevice::const_copy_to(const char *name, void *host, const size_t size)
   KERNEL_DATA_ARRAY(IntegratorStateGPU, integrator_state)
   KERNEL_DATA_ARRAY(int, user_instance_id)
   KERNEL_DATA_ARRAY(uint64_t, blas_ptr)
-  KERNEL_DATA_ARRAY(int2, custom_prim_info_offset)
-  KERNEL_DATA_ARRAY(int2, custom_prim_info)
 
 #  include "kernel/data_arrays.h"
 #  undef KERNEL_DATA_ARRAY
@@ -408,7 +402,6 @@ hiprtGeometryBuildInput HIPRTDevice::prepare_triangle_blas(BVHHIPRT *bvh, Mesh *
     float sum_area = 0.0f;
 
     bvh->custom_primitive_bound.alloc(num_triangles);
-    bvh->custom_prim_info.resize(num_triangles);
     for (uint j = 0; j < num_triangles; j++) {
       Mesh::Triangle t = mesh->get_triangle(j);
       BoundBox bounds = BoundBox::empty;
@@ -417,8 +410,6 @@ hiprtGeometryBuildInput HIPRTDevice::prepare_triangle_blas(BVHHIPRT *bvh, Mesh *
       }
 
       bvh->custom_primitive_bound[num_bounds] = bounds;
-      bvh->custom_prim_info[num_bounds].x = j;
-      bvh->custom_prim_info[num_bounds].y = mesh->primitive_type();
       sum_area += bounds.area();
       num_bounds++;
     }
@@ -481,14 +472,12 @@ hiprtGeometryBuildInput HIPRTDevice::prepare_curve_blas(BVHHIPRT *bvh, Hair *hai
 {
   hiprtGeometryBuildInput geom_input;
 
-  const PrimitiveType primitive_type = hair->primitive_type();
   const size_t num_curves = hair->num_curves();
   const size_t num_segments = hair->num_segments();
   const Attribute *attr_P = hair->attributes.find(ATTR_STD_POSITION);
   const Attribute *attr_R = hair->attributes.find(ATTR_STD_RADIUS);
   const bool has_motion = use_motion_blur && hair->has_motion_blur() && attr_P->has_motion();
 
-  bvh->custom_prim_info.resize(num_segments);
   bvh->custom_primitive_bound.alloc(num_segments);
 
   int num_bounds = 0;
@@ -510,9 +499,6 @@ hiprtGeometryBuildInput HIPRTDevice::prepare_curve_blas(BVHHIPRT *bvh, Hair *hai
         BoundBox bounds = BoundBox::empty;
         curve.bounds_grow(k, hair->get_position(), curve_radius, bounds);
 
-        const int type = PRIMITIVE_PACK_SEGMENT(primitive_type, k);
-        bvh->custom_prim_info[num_bounds].x = j;
-        bvh->custom_prim_info[num_bounds].y = type;
         bvh->custom_primitive_bound[num_bounds] = bounds;
         sum_area += bounds.area();
         num_bounds++;
@@ -523,9 +509,6 @@ hiprtGeometryBuildInput HIPRTDevice::prepare_curve_blas(BVHHIPRT *bvh, Hair *hai
           curve.bounds_grow(
               k, attr_P->data<packed_float3>(attr_step), attr_R->data<float>(attr_step), bounds);
         }
-        const int type = PRIMITIVE_PACK_SEGMENT(primitive_type, k);
-        bvh->custom_prim_info[num_bounds].x = j;
-        bvh->custom_prim_info[num_bounds].y = type;
         bvh->custom_primitive_bound[num_bounds] = bounds;
         sum_area += bounds.area();
         num_bounds++;
@@ -575,7 +558,6 @@ hiprtGeometryBuildInput HIPRTDevice::prepare_point_blas(BVHHIPRT *bvh, PointClou
   float sum_area = 0.0f;
 
   if (attr_P == nullptr) {
-    bvh->custom_prim_info.resize(num_points);
     bvh->custom_primitive_bound.alloc(num_points);
     for (uint j = 0; j < num_points; j++) {
       const PointCloud::Point point = pointcloud->get_point(j);
@@ -583,14 +565,11 @@ hiprtGeometryBuildInput HIPRTDevice::prepare_point_blas(BVHHIPRT *bvh, PointClou
       point.bounds_grow(points_data, radius_data, bounds);
 
       bvh->custom_primitive_bound[num_bounds] = bounds;
-      bvh->custom_prim_info[num_bounds].x = j;
-      bvh->custom_prim_info[num_bounds].y = PRIMITIVE_POINT;
       sum_area += bounds.area();
       num_bounds++;
     }
   }
   else {
-    bvh->custom_prim_info.resize(num_points);
     bvh->custom_primitive_bound.alloc(num_points);
 
     for (uint j = 0; j < num_points; j++) {
@@ -602,8 +581,6 @@ hiprtGeometryBuildInput HIPRTDevice::prepare_point_blas(BVHHIPRT *bvh, PointClou
       }
 
       bvh->custom_primitive_bound[num_bounds] = bounds;
-      bvh->custom_prim_info[num_bounds].x = j;
-      bvh->custom_prim_info[num_bounds].y = PRIMITIVE_MOTION_POINT;
       sum_area += bounds.area();
       num_bounds++;
     }
@@ -795,7 +772,7 @@ void HIPRTDevice::build_blas(BVHHIPRT *bvh, Geometry *geom, hiprtBuildOptions op
   }
 }
 
-hiprtScene HIPRTDevice::build_tlas(BVHHIPRT *bvh,
+hiprtScene HIPRTDevice::build_tlas(BVHHIPRT * /*bvh*/,
                                    const vector<Object *> &objects,
                                    hiprtBuildOptions options,
                                    bool refit)
@@ -811,9 +788,6 @@ hiprtScene HIPRTDevice::build_tlas(BVHHIPRT *bvh,
 
   array<hiprtFrameMatrix> transform_matrix;
 
-  unordered_map<Geometry *, int2> prim_info_map;
-  size_t custom_prim_offset = 0;
-
   size_t num_instances = 0;
   int blender_instance_id = 0;
 
@@ -822,7 +796,6 @@ hiprtScene HIPRTDevice::build_tlas(BVHHIPRT *bvh,
   hiprt_blas_ptr.alloc(num_object);
   blas_ptr.alloc(num_object);
   transform_headers.alloc(num_object);
-  custom_prim_info_offset.alloc(num_object);
 
   for (Object *ob : objects) {
     uint32_t mask = 0;
@@ -843,43 +816,6 @@ hiprtScene HIPRTDevice::build_tlas(BVHHIPRT *bvh,
     get_hiprt_transform(hiprt_transform_matrix.matrix, identity_matrix);
 
     if (is_valid_geometry) {
-      bool is_custom_prim = current_bvh->custom_prim_info.size() > 0;
-
-      if (is_custom_prim) {
-        unordered_map<Geometry *, int2>::iterator it = prim_info_map.find(geom);
-
-        if (prim_info_map.find(geom) != prim_info_map.end()) {
-          custom_prim_info_offset[blender_instance_id] = it->second;
-        }
-        else {
-          int offset = bvh->custom_prim_info.size();
-
-          prim_info_map[geom].x = offset;
-          prim_info_map[geom].y = custom_prim_offset;
-
-          bvh->custom_prim_info.resize(offset + current_bvh->custom_prim_info.size());
-          memcpy(bvh->custom_prim_info.data() + offset,
-                 current_bvh->custom_prim_info.data(),
-                 current_bvh->custom_prim_info.size() * sizeof(int2));
-
-          custom_prim_info_offset[blender_instance_id].x = offset;
-          custom_prim_info_offset[blender_instance_id].y = custom_prim_offset;
-
-          if (geom->is_hair()) {
-            custom_prim_offset += ((Hair *)geom)->num_curves();
-          }
-          else if (geom->is_pointcloud()) {
-            custom_prim_offset += ((PointCloud *)geom)->num_points();
-          }
-          else {
-            custom_prim_offset += ((Mesh *)geom)->num_triangles();
-          }
-        }
-      }
-      else {
-        custom_prim_info_offset[blender_instance_id] = {-1, -1};
-      }
-
       hiprtTransformHeader current_header = {0};
       current_header.frameCount = 1;
       current_header.frameIndex = transform_matrix.size();
@@ -1035,27 +971,6 @@ hiprtScene HIPRTDevice::build_tlas(BVHHIPRT *bvh,
     set_error("Failed to build TLAS");
     hiprtDestroyScene(hiprt_context, scene);
     return nullptr;
-  }
-
-  if (bvh->custom_prim_info.size()) {
-    /* TODO: reduce memory usage by avoiding copy. */
-    const size_t data_size = bvh->custom_prim_info.size();
-    int2 *custom_prim_info_data = custom_prim_info.resize(data_size);
-    if (custom_prim_info_data == nullptr) {
-      set_error("Failed to allocate host custom_prim_info_data for TLAS");
-      hiprtDestroyScene(hiprt_context, scene);
-      return nullptr;
-    }
-
-    std::copy_n(bvh->custom_prim_info.data(), data_size, custom_prim_info_data);
-
-    custom_prim_info.copy_to_device();
-    custom_prim_info_offset.copy_to_device();
-    if (custom_prim_info.device_pointer == 0 || custom_prim_info_offset.device_pointer == 0) {
-      set_error("Failed to allocate custom_prim_info_offset for TLAS");
-      hiprtDestroyScene(hiprt_context, scene);
-      return nullptr;
-    }
   }
 
   return scene;

@@ -126,13 +126,6 @@ class HIPRTDevice : public HIPDevice {
   device_vector<int> user_instance_id;
   device_vector<hiprtInstance> hiprt_blas_ptr;
   device_vector<uint64_t> blas_ptr;
-
-  /* custom_prim_info stores custom information for custom primitives for all the primitives in a
-   * scene. Primitive id that HIP RT returns is local to the geometry that was hit.
-   * custom_prim_info_offset returns the offset required to add to the primitive id to retrieve
-   * primitive info from custom_prim_info. */
-  device_vector<int2> custom_prim_info;
-  device_vector<int2> custom_prim_info_offset;
 };
 CCL_NAMESPACE_END
 
