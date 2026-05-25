@@ -2145,10 +2145,16 @@ class XpbdSolverStep {
             this->prop_attr_name(constraint.path, "compliance"),
             geo_data.domain,
             0.0f);
-        const VArray<bool> prev_selection_attr = this->lookup_attribute_optional<bool>(
-            data_key_i, this->prev_prop_attr_name(constraint.path, "selection"), geo_data.domain);
-        const VArray<float3> prev_positions_attr = this->lookup_attribute_optional<float3>(
-            data_key_i, this->prev_prop_attr_name(constraint.path, "position"), geo_data.domain);
+        VArray<bool> prev_selection_attr;
+        VArray<float3> prev_positions_attr;
+        if (sub_delta_time_ > 0.0f) {
+          prev_selection_attr = this->lookup_attribute_optional<bool>(
+              data_key_i,
+              this->prev_prop_attr_name(constraint.path, "selection"),
+              geo_data.domain);
+          prev_positions_attr = this->lookup_attribute_optional<float3>(
+              data_key_i, this->prev_prop_attr_name(constraint.path, "position"), geo_data.domain);
+        }
 
         const int pin_num = pin_selection.size();
         MutableSpan<int> points = tls.allocator.allocate_array<int>(pin_num);
@@ -2305,13 +2311,16 @@ class XpbdSolverStep {
             this->prop_attr_name(constraint.path, "compliance"),
             geo_data.domain,
             0.0f);
-        const VArray<bool> prev_selection_attr = this->lookup_attribute_optional<bool>(
-            data_key_i, this->prev_prop_attr_name(constraint.path, "selection"), geo_data.domain);
-        const VArray<math::Quaternion> prev_rotations_attr =
-            this->lookup_attribute_optional<math::Quaternion>(
-                data_key_i,
-                this->prev_prop_attr_name(constraint.path, "rotation"),
-                geo_data.domain);
+        VArray<bool> prev_selection_attr;
+        VArray<math::Quaternion> prev_rotations_attr;
+        if (sub_delta_time_ > 0.0f) {
+          prev_selection_attr = this->lookup_attribute_optional<bool>(
+              data_key_i,
+              this->prev_prop_attr_name(constraint.path, "selection"),
+              geo_data.domain);
+          prev_rotations_attr = this->lookup_attribute_optional<math::Quaternion>(
+              data_key_i, this->prev_prop_attr_name(constraint.path, "rotation"), geo_data.domain);
+        }
 
         const int pin_num = pin_selection.size();
         MutableSpan<int> points = tls.allocator.allocate_array<int>(pin_num);
