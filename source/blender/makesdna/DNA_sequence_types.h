@@ -569,7 +569,7 @@ struct SeqTimelineChannel {
   }
   bool is_muted() const
   {
-    return (this->flag & SEQ_CHANNEL_LOCK) != 0;
+    return (this->flag & SEQ_CHANNEL_MUTE) != 0;
   }
 #endif
 };
