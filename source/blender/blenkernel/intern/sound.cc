@@ -185,10 +185,12 @@ static void sound_free_data(ID *id)
     sound->packedfile = nullptr;
   }
 
-  sound_free_audio(sound);
-  sound_free_waveform(sound);
-  BLI_spin_end(&sound->runtime->spinlock);
-  MEM_delete(sound->runtime);
+  if (sound->runtime) {
+    sound_free_audio(sound);
+    sound_free_waveform(sound);
+    BLI_spin_end(&sound->runtime->spinlock);
+    MEM_delete(sound->runtime);
+  }
 }
 
 static void sound_foreach_cache(ID *id,
