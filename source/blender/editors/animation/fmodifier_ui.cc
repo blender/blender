@@ -105,23 +105,8 @@ static void fmodifier_reorder(bContext *C, Panel *panel, int new_index)
   ID *owner_id;
   PointerRNA *ptr = fmodifier_get_pointers(nullptr, panel, &owner_id);
   FModifier *fcm = static_cast<FModifier *>(ptr->data);
-  const FModifierTypeInfo *fmi = get_fmodifier_typeinfo(fcm->type);
-
-  /* Cycles modifier has to be the first, so make sure it's kept that way. */
-  if (fmi->requires_flag & FMI_REQUIRES_ORIGINAL_DATA) {
-    WM_global_report(RPT_ERROR, "Modifier requires original data");
-    return;
-  }
 
   ListBaseT<FModifier> *modifiers = fmodifier_list_space_specific(C);
-
-  /* Again, make sure we don't move a modifier before a cycles modifier. */
-  FModifier *fcm_first = static_cast<FModifier *>(modifiers->first);
-  const FModifierTypeInfo *fmi_first = get_fmodifier_typeinfo(fcm_first->type);
-  if (fmi_first->requires_flag & FMI_REQUIRES_ORIGINAL_DATA && new_index == 0) {
-    WM_global_report(RPT_ERROR, "Modifier requires original data");
-    return;
-  }
 
   int current_index = BLI_findindex(modifiers, fcm);
   BLI_assert(current_index >= 0);
@@ -134,6 +119,8 @@ static void fmodifier_reorder(bContext *C, Panel *panel, int new_index)
 
   /* Move the FModifier in the list. */
   BLI_listbase_link_move(modifiers, fcm, new_index - current_index);
+
+  BKE_fmodifier_ensure_flag(modifiers);
 
   ED_undo_push(C, "Reorder F-Curve Modifier");
 
@@ -310,6 +297,9 @@ static void fmodifier_panel_header(const bContext *C, Panel *panel)
 
   /* Checkbox for 'active' status (for now). */
   sub->prop(ptr, "active", ui::ITEM_R_ICON_ONLY, "", ICON_NONE);
+  if (fcm->flag & FMODIFIER_FLAG_DISABLED) {
+    sub->red_alert_set(true);
+  }
 
   /* Name. */
   if (fmi) {
@@ -489,9 +479,15 @@ static void cycles_panel_draw(const bContext *C, Panel *panel)
   ui::Layout &layout = *panel->layout;
 
   PointerRNA *ptr = fmodifier_get_pointers(C, panel, nullptr);
+  const FModifier *fcm = static_cast<FModifier *>(ptr->data);
 
   layout.use_property_split_set(true);
   layout.use_property_decorate_set(false);
+
+  if (fcm->flag & FMODIFIER_FLAG_DISABLED) {
+    layout.label("Modifier disabled because it is not the first modifier in the stack.",
+                 ICON_ERROR);
+  }
 
   /* Before. */
   ui::Layout *col = &layout.column(false);
@@ -872,9 +868,15 @@ static void smooth_panel_draw(const bContext *C, Panel *panel)
   ui::Layout &layout = *panel->layout;
 
   PointerRNA *ptr = fmodifier_get_pointers(C, panel, nullptr);
+  const FModifier *fcm = static_cast<FModifier *>(ptr->data);
 
   layout.use_property_split_set(true);
   layout.use_property_decorate_set(false);
+
+  if (fcm->flag & FMODIFIER_FLAG_DISABLED) {
+    layout.label("Modifier disabled because it is not the first modifier in the stack.",
+                 ICON_ERROR);
+  }
 
   ui::Layout &col = layout.column(false);
   col.prop(ptr, "sigma", UI_ITEM_NONE, std::nullopt, ICON_NONE);

@@ -245,6 +245,10 @@ void BKE_fcurve_rnapath_set(FCurve &fcu, StringRef rna_path);
 void BKE_fmodifier_name_set(FModifier *fcm, const char *name);
 
 /**
+ * Disable modifiers that requires original data and are not first in the stack.
+ */
+void BKE_fmodifier_ensure_flag(ListBaseT<FModifier> *modifiers);
+/**
  * Callback used by lib_query to walk over all ID usages
  * (mimics `foreach_id` callback of #IDTypeInfo structure).
  *

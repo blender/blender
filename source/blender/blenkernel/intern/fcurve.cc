@@ -191,6 +191,15 @@ void BKE_fmodifier_name_set(FModifier *fcm, const char *name)
                  sizeof(fcm->name));
 }
 
+void BKE_fmodifier_ensure_flag(ListBaseT<FModifier> *modifiers)
+{
+  for (FModifier &fcm : *modifiers) {
+    if (get_fmodifier_typeinfo(fcm.type)->requires_flag & FMI_REQUIRES_ORIGINAL_DATA) {
+      SET_FLAG_FROM_TEST(fcm.flag, &fcm != modifiers->first, FMODIFIER_FLAG_DISABLED);
+    }
+  }
+}
+
 void BKE_fcurve_foreach_id(FCurve *fcu, LibraryForeachIDData *data)
 {
   ChannelDriver *driver = fcu->driver;
