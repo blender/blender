@@ -208,6 +208,7 @@ string HIPDevice::compile_kernel_get_common_cflags(const uint kernel_features)
   const string source_path = path_get("source");
   const string include_path = source_path;
   string cflags = string_printf(
+      "-std=c++17 "
       "-m%d "
       "-DHIPCC "
       "-I\"%s\"",
