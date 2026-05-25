@@ -3808,11 +3808,22 @@ static bool lib_override_library_main_resync_on_library_indirect_level(
   return process_lib_level_again;
 }
 
+struct LibOverrideSortLibrariesData {
+  bool do_continue = false;
+  bool has_depth_overflows = false;
+
+  Map<Library *, Vector<std::pair<ID *, ID *>>> dependency_trace_data = {};
+
+  static constexpr int MAX_DEPENDENCY_DEPTH = 100;
+};
+
 static int lib_override_sort_libraries_func(LibraryIDLinkCallbackData *cb_data)
 {
   if (cb_data->cb_flag & IDWALK_CB_LOOPBACK) {
     return IDWALK_RET_NOP;
   }
+  LibOverrideSortLibrariesData &data = *static_cast<LibOverrideSortLibrariesData *>(
+      cb_data->user_data);
   ID *id_owner = cb_data->owner_id;
   ID *id = *cb_data->id_pointer;
   if (!id) {
@@ -3857,34 +3868,36 @@ static int lib_override_sort_libraries_func(LibraryIDLinkCallbackData *cb_data)
   }
 
   const int owner_library_indirect_level = id_owner_lib ? id_owner_lib->runtime->temp_index : 0;
-  if (owner_library_indirect_level > 100) {
-    CLOG_ERROR(&LOG_RESYNC,
-               "Levels of indirect usages of libraries is way too high, there are most likely "
-               "dependency loops, skipping further building loops (involves at least '%s' from "
-               "'%s' and '%s' from '%s')",
-               id_owner->name,
-               id_owner_lib->filepath,
-               id->name,
-               id_lib->filepath);
-    /* Ensure a library part of a dependency is not considered as a root one (i.e. it does not get
-     * a `0` temp index). */
+  auto store_depth_dependencies_info =
+      [&data, id_owner, id, owner_library_indirect_level]() -> void {
+    if (owner_library_indirect_level >= id->lib->runtime->temp_index) {
+      const int next_temp_index = owner_library_indirect_level + 1;
+      Vector<std::pair<ID *, ID *>> &user_ids = data.dependency_trace_data.lookup_or_add_default(
+          id->lib);
+      if (user_ids.size() > next_temp_index) {
+        return;
+      }
+      user_ids.resize(next_temp_index + 1, {nullptr, nullptr});
+      user_ids[next_temp_index] = {id_owner, id};
+    }
+  };
+  if (owner_library_indirect_level > LibOverrideSortLibrariesData::MAX_DEPENDENCY_DEPTH) {
+    data.has_depth_overflows = true;
+    store_depth_dependencies_info();
     if (id->lib->runtime->temp_index > 0) {
       return IDWALK_RET_NOP;
     }
   }
-  else if (owner_library_indirect_level > 90) {
-    CLOG_WARN(&LOG_RESYNC,
-              "Levels of indirect usages of libraries is suspiciously too high, there are most "
-              "likely dependency loops (involves at least '%s' from '%s' and '%s' from '%s')",
-              id_owner->name,
-              id_owner_lib->filepath,
-              id->name,
-              id_lib->filepath);
+  /* Keep track of (some of) the last dependencies leading to such high depth values. Typically 5
+   * should be more than enough to identify/have and idea of the cause. */
+  else if (owner_library_indirect_level > (LibOverrideSortLibrariesData::MAX_DEPENDENCY_DEPTH - 5))
+  {
+    store_depth_dependencies_info();
   }
 
   if (owner_library_indirect_level >= id->lib->runtime->temp_index) {
     id->lib->runtime->temp_index = owner_library_indirect_level + 1;
-    *reinterpret_cast<bool *>(cb_data->user_data) = true;
+    data.do_continue = true;
   }
 
   return IDWALK_RET_NOP;
@@ -3902,16 +3915,17 @@ static int lib_override_libraries_index_define(Main *bmain)
     /* index 0 is reserved for local data. */
     library.runtime->temp_index = 1;
   }
-  bool do_continue = true;
-  while (do_continue) {
-    do_continue = false;
+  LibOverrideSortLibrariesData sort_libs_data = {};
+  sort_libs_data.do_continue = true;
+  while (sort_libs_data.do_continue) {
+    sort_libs_data.do_continue = false;
     ID *id;
     FOREACH_MAIN_ID_BEGIN (bmain, id) {
       /* NOTE: In theory all non-liboverride IDs could be skipped here. This does not gives any
        * performances boost though, so for now keep it as is (i.e. also consider non-liboverride
        * relationships to establish libraries hierarchy). */
       BKE_library_foreach_ID_link(
-          bmain, id, lib_override_sort_libraries_func, &do_continue, IDWALK_READONLY);
+          bmain, id, lib_override_sort_libraries_func, &sort_libs_data, IDWALK_READONLY);
     }
     FOREACH_MAIN_ID_END;
   }
@@ -3919,6 +3933,34 @@ static int lib_override_libraries_index_define(Main *bmain)
   int library_indirect_level_max = 0;
   for (Library &library : bmain->libraries) {
     library_indirect_level_max = std::max(library.runtime->temp_index, library_indirect_level_max);
+    if (sort_libs_data.has_depth_overflows &&
+        sort_libs_data.dependency_trace_data.contains(&library))
+    {
+      Vector<std::pair<ID *, ID *>> &lib_user_ids = sort_libs_data.dependency_trace_data.lookup(
+          &library);
+      if (lib_user_ids.size() >= LibOverrideSortLibrariesData::MAX_DEPENDENCY_DEPTH) {
+        std::string deps_chain = "";
+        int index = -1;
+        for (auto [id_owner, id] : lib_user_ids) {
+          index++;
+          if (!(id && id_owner)) {
+            continue;
+          }
+          deps_chain += fmt::format(
+              "\tDepth level {: >3}: {: >32} | {: <32}   --->   {: >32} | {}\n",
+              index,
+              id_owner->name,
+              BKE_id_name(id_owner->lib->id),
+              id->name,
+              BKE_id_name(id->lib->id));
+        }
+        CLOG_ERROR(&LOG_RESYNC,
+                   "Levels of indirect usages of library '%s' is way too high, there are most "
+                   "likely dependency loops, skipping further building loops\n%s",
+                   library.filepath,
+                   deps_chain.c_str());
+      }
+    }
   }
   return library_indirect_level_max;
 }
