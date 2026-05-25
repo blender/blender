@@ -8,6 +8,8 @@
 
 #pragma once
 
+#include "BKE_image_gpu.hh"
+
 #include "DRW_render.hh"
 #include "overlay_base.hh"
 #include "overlay_image.hh"

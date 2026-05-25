@@ -29,6 +29,7 @@
 #  include "BKE_context.hh"
 #  include "BKE_image.hh"
 #  include "BKE_image_format.hh"
+#  include "BKE_image_gpu.hh"
 #  include "BKE_image_save.hh"
 #  include "BKE_library.hh"
 #  include "BKE_main.hh"

@@ -12,6 +12,7 @@
 #include "DNA_material_types.h"
 
 #include "BKE_image.hh"
+#include "BKE_image_gpu.hh"
 #include "BKE_material.hh"
 
 #include "BLI_math_matrix_c.hh"

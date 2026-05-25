@@ -7,6 +7,7 @@
 #include <DRW_render.hh>
 
 #include "BKE_context.hh"
+#include "BKE_image_gpu.hh"
 
 #include "GPU_capabilities.hh"
 

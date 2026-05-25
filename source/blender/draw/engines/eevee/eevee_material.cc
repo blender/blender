@@ -9,6 +9,7 @@
 #include "BLI_time.hh"
 #include "DNA_material_types.h"
 
+#include "BKE_image_gpu.hh"
 #include "BKE_lib_id.hh"
 #include "BKE_material.hh"
 #include "BKE_node.hh"

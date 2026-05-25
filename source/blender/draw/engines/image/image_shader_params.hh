@@ -17,6 +17,7 @@
 #include "IMB_imbuf_types.hh"
 
 #include "BKE_image.hh"
+#include "BKE_image_gpu.hh"
 
 #include "DRW_render.hh"
 

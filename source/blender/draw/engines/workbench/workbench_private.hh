@@ -3,6 +3,7 @@
  * SPDX-License-Identifier: GPL-2.0-or-later */
 
 #include "BKE_context.hh"
+#include "BKE_image_gpu.hh"
 
 #include "DNA_camera_types.h"
 #include "DNA_material_types.h"

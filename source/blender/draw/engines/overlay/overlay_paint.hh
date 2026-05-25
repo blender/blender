@@ -9,6 +9,7 @@
 #pragma once
 
 #include "BKE_image.hh"
+#include "BKE_image_gpu.hh"
 #include "BKE_paint.hh"
 #include "BKE_scene.hh"
 

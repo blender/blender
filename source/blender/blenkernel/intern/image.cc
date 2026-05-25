@@ -79,6 +79,7 @@
 #include "BKE_idtype.hh"
 #include "BKE_image.hh"
 #include "BKE_image_format.hh"
+#include "BKE_image_gpu.hh"
 #include "BKE_lib_id.hh"
 #include "BKE_library.hh"
 #include "BKE_main.hh"
@@ -737,6 +738,42 @@ void BKE_image_free_buffers(Image *ima)
   BKE_image_free_buffers_ex(ima, false);
 }
 
+void BKE_image_free_old_buffers(Main *bmain)
+{
+  static int lasttime = 0;
+  int ctime = int(BLI_time_now_seconds());
+
+  /*
+   * Run garbage collector once for every collecting period of time
+   * if textimeout is 0, that's the option to NOT run the collector
+   */
+  if (U.textimeout == 0 || ctime % U.texcollectrate || ctime == lasttime) {
+    return;
+  }
+
+  /* of course not! */
+  if (G.is_rendering) {
+    return;
+  }
+
+  lasttime = ctime;
+
+  for (Image &ima : bmain->images) {
+    if ((ima.flag & IMA_NOCOLLECT) == 0 && ctime - ima.runtime->lastused > U.textimeout) {
+      /* If it's in GPU memory, deallocate and set time tag to current time
+       * This gives CPU buffers a "second chance" to be used before dying. */
+      if (BKE_image_has_gpu_texture(&ima)) {
+        BKE_image_free_gputextures(&ima);
+        ima.runtime->lastused = ctime;
+      }
+      /* Otherwise, just kill the CPU buffers */
+      else {
+        BKE_image_free_buffers(&ima);
+      }
+    }
+  }
+}
+
 void BKE_image_free_data(Image *ima)
 {
   image_free_data(&ima->id);
@@ -896,18 +933,6 @@ bool BKE_image_scale(Image *image, int width, int height, ImageUser *iuser)
   BKE_image_release_ibuf(image, ibuf, lock);
 
   return (ibuf != nullptr);
-}
-
-bool BKE_image_has_gpu_texture(Image *ima)
-{
-  for (int eye = 0; eye < 2; eye++) {
-    for (int i = 0; i < TEXTARGET_COUNT; i++) {
-      if (ima->runtime->gputexture[i][eye] != nullptr) {
-        return true;
-      }
-    }
-  }
-  return false;
 }
 
 static int image_get_tile_number_from_iuser(const Image *ima, const ImageUser *iuser)

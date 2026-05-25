@@ -10,6 +10,7 @@
 #include "BLI_rect.hh"
 
 #include "BKE_image.hh"
+#include "BKE_image_gpu.hh"
 #include "BKE_lib_id.hh"
 #include "BKE_node.hh"
 #include "BKE_node_legacy_types.hh"

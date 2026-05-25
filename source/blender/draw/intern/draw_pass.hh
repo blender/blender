@@ -45,6 +45,7 @@
 #include "BLI_vector.hh"
 
 #include "BKE_image.hh"
+#include "BKE_image_gpu.hh"
 
 #include "GPU_batch.hh"
 #include "GPU_debug.hh"

@@ -19,17 +19,18 @@
 #include "DNA_image_types.h"
 #include "DNA_userdef_types.h"
 
+#include "IMB_cache.hh"
 #include "IMB_colormanagement.hh"
 #include "IMB_imbuf.hh"
 #include "IMB_imbuf_types.hh"
 
 #include "BKE_global.hh"
 #include "BKE_image.hh"
+#include "BKE_image_gpu.hh"
 #include "BKE_image_partial_update.hh"
 #include "BKE_main.hh"
 
 #include "GPU_capabilities.hh"
-#include "GPU_state.hh"
 #include "GPU_texture.hh"
 
 #include "CLG_log.h"
@@ -45,6 +46,18 @@ static void gpu_free_unused_buffers();
 static void image_free_gpu(Image *ima, const bool immediate);
 static void image_update_gputexture_ex(
     Image *ima, ImageTile *tile, ImBuf *ibuf, int x, int y, int w, int h);
+
+bool BKE_image_has_gpu_texture(Image *ima)
+{
+  for (int eye = 0; eye < 2; eye++) {
+    for (int i = 0; i < TEXTARGET_COUNT; i++) {
+      if (ima->runtime->gputexture[i][eye] != nullptr) {
+        return true;
+      }
+    }
+  }
+  return false;
+}
 
 bool BKE_image_has_gpu_texture_premultiplied_alpha(Image *image, ImBuf *ibuf)
 {
@@ -625,42 +638,6 @@ void BKE_image_free_anim_gputextures(Main *bmain)
     for (Image &ima : bmain->images) {
       if (BKE_image_is_animated(&ima)) {
         BKE_image_free_gputextures(&ima);
-      }
-    }
-  }
-}
-
-void BKE_image_free_old_gputextures(Main *bmain)
-{
-  static int64_t lasttime = 0;
-  int64_t ctime = BLI_time_now_seconds_i();
-
-  /*
-   * Run garbage collector once for every collecting period of time
-   * if textimeout is 0, that's the option to NOT run the collector
-   */
-  if (U.textimeout == 0 || ctime % U.texcollectrate || ctime == lasttime) {
-    return;
-  }
-
-  /* of course not! */
-  if (G.is_rendering) {
-    return;
-  }
-
-  lasttime = ctime;
-
-  for (Image &ima : bmain->images) {
-    if ((ima.flag & IMA_NOCOLLECT) == 0 && ctime - ima.runtime->lastused > U.textimeout) {
-      /* If it's in GL memory, deallocate and set time tag to current time
-       * This gives textures a "second chance" to be used before dying. */
-      if (BKE_image_has_gpu_texture(&ima)) {
-        BKE_image_free_gputextures(&ima);
-        ima.runtime->lastused = ctime;
-      }
-      /* Otherwise, just kill the buffers */
-      else {
-        BKE_image_free_buffers(&ima);
       }
     }
   }

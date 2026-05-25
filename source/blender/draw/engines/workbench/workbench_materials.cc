@@ -11,6 +11,7 @@
 #include "IMB_colormanagement.hh"
 
 /* get_image */
+#include "BKE_image_gpu.hh"
 #include "BKE_node_legacy_types.hh"
 #include "DNA_material_types.h"
 #include "DNA_node_types.h"
