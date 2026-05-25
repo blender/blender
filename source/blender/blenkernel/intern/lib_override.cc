@@ -2320,8 +2320,11 @@ static bool lib_override_library_resync(Main *bmain,
     BKE_view_layer_synced_ensure(*bmain, scene, view_layer);
     old_active_object = BKE_view_layer_active_object_get(view_layer);
   }
-  else {
+  else if (scene) {
     BKE_scene_view_layers_synced_ensure(*bmain, scene);
+  }
+  else {
+    BKE_main_view_layers_synced_ensure(bmain);
   }
 
   if (id_root_reference->tag & ID_TAG_MISSING) {
@@ -3812,66 +3815,78 @@ static int lib_override_sort_libraries_func(LibraryIDLinkCallbackData *cb_data)
   }
   ID *id_owner = cb_data->owner_id;
   ID *id = *cb_data->id_pointer;
-  if (id != nullptr && ID_IS_LINKED(id)) {
-    /* Archive libraries, used to store packed data, should not be processed here, as conceptually
-     * they are the same thing as the source/real library when it comes to dependency. And they can
-     * easily lead to fake cyclic dependencies, as packed IDs that depend on each other may end up
-     * in different archived libraries.
-     *
-     * Bottom line being, only consider 'real' libraries for dependencies here, the archive ones
-     * only add noise and artifacts, and do not need to be processed. */
-    auto get_real_library = [](ID *id) -> Library * {
-      if (!ID_IS_LINKED(id)) {
-        return nullptr;
-      }
-      Library *id_lib_valid = id->lib;
-      if (id_lib_valid->flag & LIBRARY_FLAG_IS_ARCHIVE) {
-        BLI_assert(ID_IS_PACKED(id));
-        BLI_assert(id_lib_valid->archive_parent_library);
-        id_lib_valid = id_lib_valid->archive_parent_library;
-      }
-      return id_lib_valid;
-    };
+  if (!id) {
+    return IDWALK_RET_NOP;
+  }
+  if (!ID_IS_LINKED(id)) {
+    if (ID_IS_LINKED(id_owner)) {
+      CLOG_ERROR(&LOG_RESYNC,
+                 "Linked id '%s' from '%s' uses local ID '%s')",
+                 id_owner->name,
+                 id_owner->lib->filepath,
+                 id->name);
+    }
+    return IDWALK_RET_NOP;
+  }
 
-    Library *id_lib = get_real_library(id);
-    BLI_assert(id_lib);
-    Library *id_owner_lib = get_real_library(id_owner);
-    if (id_lib == id_owner_lib) {
+  /* Archive libraries, used to store packed data, should not be processed here, as conceptually
+   * they are the same thing as the source/real library when it comes to dependency. And they can
+   * easily lead to fake cyclic dependencies, as packed IDs that depend on each other may end up in
+   * different archived libraries.
+   *
+   * Bottom line being, only consider 'real' libraries for dependencies here, the archive ones only
+   * add noise and artifacts, and do not need to be processed. */
+  auto get_real_library = [](ID *id) -> Library * {
+    if (!ID_IS_LINKED(id)) {
+      return nullptr;
+    }
+    Library *id_lib_valid = id->lib;
+    if (id_lib_valid->flag & LIBRARY_FLAG_IS_ARCHIVE) {
+      BLI_assert(ID_IS_PACKED(id));
+      BLI_assert(id_lib_valid->archive_parent_library);
+      id_lib_valid = id_lib_valid->archive_parent_library;
+    }
+    return id_lib_valid;
+  };
+
+  Library *id_lib = get_real_library(id);
+  BLI_assert(id_lib);
+  Library *id_owner_lib = get_real_library(id_owner);
+  if (id_lib == id_owner_lib) {
+    return IDWALK_RET_NOP;
+  }
+
+  const int owner_library_indirect_level = id_owner_lib ? id_owner_lib->runtime->temp_index : 0;
+  if (owner_library_indirect_level > 100) {
+    CLOG_ERROR(&LOG_RESYNC,
+               "Levels of indirect usages of libraries is way too high, there are most likely "
+               "dependency loops, skipping further building loops (involves at least '%s' from "
+               "'%s' and '%s' from '%s')",
+               id_owner->name,
+               id_owner_lib->filepath,
+               id->name,
+               id_lib->filepath);
+    /* Ensure a library part of a dependency is not considered as a root one (i.e. it does not get
+     * a `0` temp index). */
+    if (id->lib->runtime->temp_index > 0) {
       return IDWALK_RET_NOP;
     }
-
-    const int owner_library_indirect_level = id_owner_lib ? id_owner_lib->runtime->temp_index : 0;
-    if (owner_library_indirect_level > 100) {
-      CLOG_ERROR(&LOG_RESYNC,
-                 "Levels of indirect usages of libraries is way too high, there are most likely "
-                 "dependency loops, skipping further building loops (involves at least '%s' from "
-                 "'%s' and '%s' from '%s')",
-                 id_owner->name,
-                 id_owner_lib->filepath,
-                 id->name,
-                 id_lib->filepath);
-      /* Ensure a library part of a dependency is not considered as a root one (i.e. it does not
-       * get a `0` temp index). */
-      if (id->lib->runtime->temp_index > 0) {
-        return IDWALK_RET_NOP;
-      }
-    }
-    else if (owner_library_indirect_level > 90) {
-      CLOG_WARN(
-          &LOG_RESYNC,
-          "Levels of indirect usages of libraries is suspiciously too high, there are most likely "
-          "dependency loops (involves at least '%s' from '%s' and '%s' from '%s')",
-          id_owner->name,
-          id_owner_lib->filepath,
-          id->name,
-          id_lib->filepath);
-    }
-
-    if (owner_library_indirect_level >= id->lib->runtime->temp_index) {
-      id->lib->runtime->temp_index = owner_library_indirect_level + 1;
-      *reinterpret_cast<bool *>(cb_data->user_data) = true;
-    }
   }
+  else if (owner_library_indirect_level > 90) {
+    CLOG_WARN(&LOG_RESYNC,
+              "Levels of indirect usages of libraries is suspiciously too high, there are most "
+              "likely dependency loops (involves at least '%s' from '%s' and '%s' from '%s')",
+              id_owner->name,
+              id_owner_lib->filepath,
+              id->name,
+              id_lib->filepath);
+  }
+
+  if (owner_library_indirect_level >= id->lib->runtime->temp_index) {
+    id->lib->runtime->temp_index = owner_library_indirect_level + 1;
+    *reinterpret_cast<bool *>(cb_data->user_data) = true;
+  }
+
   return IDWALK_RET_NOP;
 }
 
@@ -3915,6 +3930,39 @@ void BKE_lib_override_library_main_resync(
     ViewLayer *view_layer,
     BlendFileReadReport *reports)
 {
+  /* Active scene may be a linked one. cannot be used to host the 'leftover' collection. */
+  if (ID_IS_LINKED(&scene->id)) {
+    Scene *new_scene = nullptr;
+    for (Scene &sce : bmain->scenes) {
+      if (ID_IS_LINKED(&sce.id)) {
+        continue;
+      }
+      new_scene = &sce;
+      break;
+    }
+    if (new_scene) {
+      view_layer = BKE_view_layer_find(new_scene, view_layer->name);
+      if (!view_layer) {
+        view_layer = static_cast<ViewLayer *>(scene->view_layers.first);
+      }
+      if (view_layer) {
+        CLOG_WARN(&LOG_RESYNC,
+                  "Provided scene '%s' is not local, using instead local scene '%s', viewlayer "
+                  "'%s' as container for the library override leftover collections and objects",
+                  BKE_id_name(scene->id),
+                  BKE_id_name(new_scene->id),
+                  view_layer->name);
+        scene = new_scene;
+      }
+    }
+  }
+  if (!view_layer || !scene) {
+    CLOG_WARN(&LOG_RESYNC,
+              "Provided scene '%s' is not usable as container for the library override leftover "
+              "collections and objects, these may not be instantiated at all",
+              BKE_id_name(scene->id));
+    scene = nullptr;
+  }
   /* We use a specific collection to gather/store all 'orphaned' override collections and objects
    * generated by re-sync-process. This avoids putting them in scene's master collection. */
 #define OVERRIDE_RESYNC_RESIDUAL_STORAGE_NAME "OVERRIDE_RESYNC_LEFTOVERS"
@@ -3927,13 +3975,16 @@ void BKE_lib_override_library_main_resync(
   }
   if (override_resync_residual_storage == nullptr) {
     override_resync_residual_storage = BKE_collection_add(
-        bmain, scene->master_collection, OVERRIDE_RESYNC_RESIDUAL_STORAGE_NAME);
+        bmain, scene ? scene->master_collection : nullptr, OVERRIDE_RESYNC_RESIDUAL_STORAGE_NAME);
     /* Hide the collection from viewport and render. */
     override_resync_residual_storage->flag |= COLLECTION_HIDE_VIEWPORT | COLLECTION_HIDE_RENDER;
   }
   /* BKE_collection_add above could have tagged the view_layer out of sync. */
-  BKE_view_layer_synced_ensure(*bmain, scene, view_layer);
-  const Object *old_active_object = BKE_view_layer_active_object_get(view_layer);
+  const Object *old_active_object = nullptr;
+  if (scene && view_layer) {
+    BKE_view_layer_synced_ensure(*bmain, scene, view_layer);
+    old_active_object = BKE_view_layer_active_object_get(view_layer);
+  }
 
   /* Necessary to improve performances, and prevent layers matching override sub-collections to be
    * lost when re-syncing the parent override collection.
@@ -3984,15 +4035,17 @@ void BKE_lib_override_library_main_resync(
   BKE_layer_collection_resync_allow(*bmain);
 
   /* Essentially ensures that potentially new overrides of new objects will be instantiated. */
-  lib_override_library_create_post_process(bmain,
-                                           scene,
-                                           view_layer,
-                                           nullptr,
-                                           nullptr,
-                                           nullptr,
-                                           override_resync_residual_storage,
-                                           old_active_object,
-                                           true);
+  if (scene && view_layer) {
+    lib_override_library_create_post_process(bmain,
+                                             scene,
+                                             view_layer,
+                                             nullptr,
+                                             nullptr,
+                                             nullptr,
+                                             override_resync_residual_storage,
+                                             old_active_object,
+                                             true);
+  }
 
   if (BKE_collection_is_empty(override_resync_residual_storage)) {
     BKE_collection_delete(bmain, override_resync_residual_storage, true);
