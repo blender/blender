@@ -428,6 +428,19 @@ Set<StringRefNull> AttributeAccessor::all_names() const
   return names;
 }
 
+/** True if there are any anonymous attributes. */
+bool AttributeAccessor::has_anonymous() const
+{
+  bool found_anonymous = false;
+  this->foreach_attribute([&](const AttributeIter &iter) {
+    if (attribute_name_is_anonymous(iter.name)) {
+      found_anonymous = true;
+      iter.stop();
+    }
+  });
+  return found_anonymous;
+}
+
 void MutableAttributeAccessor::remove_anonymous()
 {
   Vector<std::string> anonymous_ids;

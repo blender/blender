@@ -711,6 +711,9 @@ class AttributeAccessor {
    * Get a set of all attributes.
    */
   Set<StringRefNull> all_names() const;
+
+  /** True if there are any anonymous attributes. */
+  bool has_anonymous() const;
 };
 
 /**
