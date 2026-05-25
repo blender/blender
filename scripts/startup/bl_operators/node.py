@@ -397,7 +397,9 @@ class NodeSwapOperator(NodeOperator):
                         break
                 if new_socket:
                     for link in input.links[:]:
-                        tree.links.new(link.from_socket, new_socket)
+                        is_muted = link.is_muted
+                        new_link = tree.links.new(link.from_socket, new_socket)
+                        new_link.is_muted = is_muted
             else:
                 for input in old_node.inputs:
                     links = sorted(input.links, key=lambda link: link.multi_input_sort_id)
@@ -443,8 +445,12 @@ class NodeSwapOperator(NodeOperator):
                 if new_socket:
                     # Transfer reroute outputs to chosen socket.
                     for link in output.links[:]:
+                        is_muted = link.is_muted
                         is_multi_input = link.to_socket.is_multi_input
+
                         new_link = tree.links.new(new_socket, link.to_socket)
+                        new_link.is_muted = is_muted
+
                         if is_multi_input:
                             new_link.swap_multi_input_sort_id(link)
             else:
