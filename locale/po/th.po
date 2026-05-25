@@ -1,9 +1,9 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 5.2.0 Alpha (b'bc0a0ff2c0ce')\n"
+"Project-Id-Version: Blender 5.2.0 Alpha (b'24a58e1403ac')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-05-18 11:20+0000\n"
+"POT-Creation-Date: 2026-05-25 07:25+0000\n"
 "PO-Revision-Date: 2026-03-19 12:41+0000\n"
 "Last-Translator: Banditer1483 <pleum.wongvarit@gmail.com>\n"
 "Language-Team: Thai <https://translate.blender.org/projects/blender-ui/ui/th/>\n"
@@ -1708,6 +1708,10 @@ msgstr "ใบอนุญาต"
 
 msgid "The type of license this asset is distributed under. An empty license name does not necessarily indicate that this is free of licensing terms. Contact the author if any clarification is needed."
 msgstr "ประเภทของใบอนุญาตที่ใช้ในการเผยแพร่สินทรัพย์นี้ ชื่อใบอนุญาตที่ว่างเปล่าไม่ได้หมายความว่าสินทรัพย์นี้ปราศจากข้อกำหนดด้านใบอนุญาตเสมอไป โปรดติดต่อผู้สร้างหากต้องการคำชี้แจงเพิ่มเติม"
+
+
+msgid "Link"
+msgstr "เชื่อมโยง"
 
 
 msgid "Tags"
@@ -4159,10 +4163,6 @@ msgid "Show .blend files items (objects, materials, etc.)"
 msgstr "แสดงรายการในไฟล์ .blend (วัตถุ วัสดุ อื่น ๆ)"
 
 
-msgid "Link"
-msgstr "เชื่อมโยง"
-
-
 msgid "Matrix"
 msgstr "เมทริกซ์"
 
@@ -4953,10 +4953,6 @@ msgid "Viewpoint"
 msgstr "จุดของมุมมอง"
 
 
-msgid "Math"
-msgstr "คณิตศาสตร์"
-
-
 msgid "Navigation"
 msgstr "การนำทาง"
 
@@ -4973,6 +4969,10 @@ msgid "View Regions"
 msgstr "ขอบเขตมุมมอง"
 
 
+msgid "Math"
+msgstr "คณิตศาสตร์"
+
+
 msgid "Metaball"
 msgstr "เมตาบอล"
 
@@ -4985,10 +4985,6 @@ msgid "Add Image"
 msgstr "เพิ่มภาพ"
 
 
-msgid "Import"
-msgstr "นำเข้า"
-
-
 msgid "Apply"
 msgstr "นำไปใช้"
 
@@ -4997,12 +4993,16 @@ msgid "Track"
 msgstr "แทร็ค"
 
 
-msgid "UV"
-msgstr "UV"
+msgid "Import"
+msgstr "นำเข้า"
 
 
 msgid "Hooks"
 msgstr "ตะขอ"
+
+
+msgid "UV"
+msgstr "UV"
 
 
 msgid "Names"

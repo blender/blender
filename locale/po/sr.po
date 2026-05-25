@@ -1,9 +1,9 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 5.2.0 Alpha (b'bc0a0ff2c0ce')\n"
+"Project-Id-Version: Blender 5.2.0 Alpha (b'24a58e1403ac')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-05-18 11:20+0000\n"
+"POT-Creation-Date: 2026-05-25 07:25+0000\n"
 "PO-Revision-Date: 2025-07-23 15:10+0000\n"
 "Last-Translator: Anonymous <noreply@weblate.org>\n"
 "Language-Team: Serbian <https://translate.blender.org/projects/blender-ui/ui/sr/>\n"
@@ -621,6 +621,10 @@ msgstr "Активна кост"
 
 msgid "Description"
 msgstr "Опис"
+
+
+msgid "Link"
+msgstr "Веза"
 
 
 msgid "Custom"
@@ -4367,10 +4371,6 @@ msgstr "Филтрирај слике"
 
 msgid "Show image files"
 msgstr "Прикажи датотеке слика"
-
-
-msgid "Link"
-msgstr "Веза"
 
 
 msgid "Matrix"
@@ -8514,16 +8514,16 @@ msgid "Local View"
 msgstr "Локални поглед"
 
 
-msgid "Math"
-msgstr "Математика"
-
-
 msgid "Navigation"
 msgstr "Навигација"
 
 
 msgid "Align View"
 msgstr "Поравнај поглед"
+
+
+msgid "Math"
+msgstr "Математика"
 
 
 msgid "Select Linked"
@@ -8542,10 +8542,6 @@ msgid "Relations"
 msgstr "Односи"
 
 
-msgid "Import"
-msgstr "Увоз"
-
-
 msgid "Rigid Body"
 msgstr "Круто тело"
 
@@ -8562,16 +8558,20 @@ msgid "Quick Effects"
 msgstr "Брзи ефекти"
 
 
+msgid "Import"
+msgstr "Увоз"
+
+
 msgid "Show/Hide"
 msgstr "Прикажи/сакриј"
 
 
-msgid "UV"
-msgstr "UV"
-
-
 msgid "Hooks"
 msgstr "Удице"
+
+
+msgid "UV"
+msgstr "UV"
 
 
 msgid "Clear Transform"
@@ -10156,10 +10156,6 @@ msgstr "Број кадрова у остави"
 
 msgid "Lines"
 msgstr "Линије"
-
-
-msgid "Timecode"
-msgstr "Време"
 
 
 msgid "Average error of reconstruction"
@@ -13846,6 +13842,11 @@ msgstr "Скочи на претходни/наредни кључни када�
 
 msgid "Next Keyframe"
 msgstr "Следећи кључни кадар"
+
+
+msgctxt "Operator"
+msgid "Local View"
+msgstr "Локални поглед"
 
 
 msgctxt "Operator"
@@ -18511,11 +18512,6 @@ msgstr "Навигација лета"
 
 msgid "Interactively fly around the scene"
 msgstr "Интерактиван лет кроз сцену"
-
-
-msgctxt "Operator"
-msgid "Local View"
-msgstr "Локални поглед"
 
 
 msgid "Move the view"
@@ -23832,6 +23828,11 @@ msgid "Key %d"
 msgstr "Кључ %d"
 
 
+msgctxt "Key"
+msgid "Key"
+msgstr "Кључ"
+
+
 msgid "MaskLayer"
 msgstr "Слој маске"
 
@@ -25020,11 +25021,6 @@ msgstr "Модификатор вредности F-криве"
 
 msgid "Image not packed"
 msgstr "Назив слике"
-
-
-msgctxt "Key"
-msgid "Key"
-msgstr "Кључ"
 
 
 msgid "unsupported font format"

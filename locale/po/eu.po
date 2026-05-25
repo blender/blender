@@ -1,9 +1,9 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 5.2.0 Alpha (b'bc0a0ff2c0ce')\n"
+"Project-Id-Version: Blender 5.2.0 Alpha (b'24a58e1403ac')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-05-18 11:20+0000\n"
+"POT-Creation-Date: 2026-05-25 07:25+0000\n"
 "PO-Revision-Date: 2025-07-23 15:13+0000\n"
 "Last-Translator: Anonymous <noreply@weblate.org>\n"
 "Language-Team: Basque <https://translate.blender.org/projects/blender-ui/ui/eu/>\n"
@@ -247,6 +247,10 @@ msgid "File Browser"
 msgstr "Fitxategi Bilatzailea"
 
 
+msgid "Link"
+msgstr "Estekatu"
+
+
 msgid "Vector"
 msgstr "ektorea"
 
@@ -397,10 +401,6 @@ msgstr "Gorde"
 
 msgid "Environment"
 msgstr "Ingurunea"
-
-
-msgid "Link"
-msgstr "Estekatu"
 
 
 msgid "Time"
@@ -1285,6 +1285,11 @@ msgstr "Kurtsorea finkatu"
 
 
 msgctxt "Operator"
+msgid "Local View"
+msgstr "Bista Lokala"
+
+
+msgctxt "Operator"
 msgid "Grease Pencil Draw"
 msgstr "Arkatzez marraztu"
 
@@ -1621,11 +1626,6 @@ msgstr "Orria"
 msgctxt "Operator"
 msgid "Select Menu"
 msgstr "Menua Hautatu"
-
-
-msgctxt "Operator"
-msgid "Local View"
-msgstr "Bista Lokala"
 
 
 msgctxt "Operator"

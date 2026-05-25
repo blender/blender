@@ -1,9 +1,9 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 5.2.0 Alpha (b'bc0a0ff2c0ce')\n"
+"Project-Id-Version: Blender 5.2.0 Alpha (b'24a58e1403ac')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-05-18 11:20+0000\n"
+"POT-Creation-Date: 2026-05-25 07:25+0000\n"
 "PO-Revision-Date: 2025-12-02 20:06+0000\n"
 "Last-Translator: Bastitron <bastitronhd@gmail.com>\n"
 "Language-Team: German <https://translate.blender.org/projects/blender-ui/ui/de/>\n"
@@ -1302,6 +1302,18 @@ msgstr "Beschreibung"
 
 msgid "A description of the asset to be displayed for the user"
 msgstr "Eine Beschreibung des Vermögens wird für den Benutzer angezeigt"
+
+
+msgid "Link"
+msgstr "Verknüpfen"
+
+
+msgid "Append"
+msgstr "Anfügen"
+
+
+msgid "Pack"
+msgstr "Packen"
 
 
 msgid "Tags"
@@ -9952,18 +9964,6 @@ msgid "Asset Select Parameters"
 msgstr "Asset Auswahl-Parameter"
 
 
-msgid "Link"
-msgstr "Verknüpfen"
-
-
-msgid "Append"
-msgstr "Anfügen"
-
-
-msgid "Pack"
-msgstr "Packen"
-
-
 msgid "Float2 Attribute Value"
 msgstr "Float2 Eigenschaftswert"
 
@@ -13899,14 +13899,6 @@ msgstr "Bildrate"
 
 msgid "Movie File"
 msgstr "Filmdatei"
-
-
-msgid "Use Proxy / Timecode"
-msgstr "Stellvertreter / Zeitcode verwenden"
-
-
-msgid "Use a preview proxy and/or timecode index for this clip"
-msgstr "Einen Vorschaustellvertreter und/oder Zeitcodeindex für diesen Clip verwenden"
 
 
 msgid "Create proxy images in a custom directory (default is movie location)"
@@ -18703,10 +18695,6 @@ msgid "Viewpoint"
 msgstr "Ansicht"
 
 
-msgid "Math"
-msgstr "Mathematisch"
-
-
 msgid "Navigation"
 msgstr "Navigation"
 
@@ -18735,12 +18723,24 @@ msgid "Select All by Trait"
 msgstr "Alles nach Merkmal auswählen"
 
 
+msgid "Math"
+msgstr "Mathematisch"
+
+
 msgid "Select Linked"
 msgstr "Verknüpfte auswählen"
 
 
 msgid "Select Loops"
 msgstr "Schleifen auswählen"
+
+
+msgid "Assign Material"
+msgstr "Material zuweisen"
+
+
+msgid "Metaball"
+msgstr "Metaball"
 
 
 msgid "Read"
@@ -18751,20 +18751,12 @@ msgid "Sample"
 msgstr "Beispiel"
 
 
-msgid "Assign Material"
-msgstr "Material zuweisen"
-
-
 msgid "Write"
 msgstr "Schreiben"
 
 
 msgid "Primitives"
 msgstr "Grundkörper"
-
-
-msgid "Metaball"
-msgstr "Metaball"
 
 
 msgid "Light"
@@ -18775,10 +18767,6 @@ msgid "Light Probe"
 msgstr "Lichtsonde"
 
 
-msgid "Instances"
-msgstr "Instanzen"
-
-
 msgid "Add Image"
 msgstr "Bild hinzufügen"
 
@@ -18787,12 +18775,12 @@ msgid "Relations"
 msgstr "Beziehungen"
 
 
-msgid "Import"
-msgstr "Importieren"
-
-
 msgid "Rigid Body"
 msgstr "Rigid Body"
+
+
+msgid "Instances"
+msgstr "Instanzen"
 
 
 msgid "Apply"
@@ -18805,6 +18793,10 @@ msgstr "Spur"
 
 msgid "Quick Effects"
 msgstr "Schnelle Effekte"
+
+
+msgid "Import"
+msgstr "Importieren"
 
 
 msgid "Show/Hide"
@@ -18827,16 +18819,16 @@ msgid "Convert"
 msgstr "Konvertieren"
 
 
-msgid "UV"
-msgstr "UV"
-
-
 msgid "Hooks"
 msgstr "Haken"
 
 
 msgid "Vertex Group Locks"
 msgstr "Punktgruppen sperren"
+
+
+msgid "UV"
+msgstr "UV"
 
 
 msgid "Random Mask"
@@ -18879,16 +18871,16 @@ msgid "Merge"
 msgstr "Zusammenführen"
 
 
-msgid "Layout"
-msgstr "Layout"
-
-
 msgid "Special Characters"
 msgstr "Sonderzeichen"
 
 
 msgid "Kerning"
 msgstr "Kerning"
+
+
+msgid "Layout"
+msgstr "Layout"
 
 
 msgid "Keying"
@@ -22015,14 +22007,6 @@ msgstr "Erzeugt Stellvertreter mit 75% der Auflösung der originalen unverzerrte
 
 msgid "JPEG quality of proxy images"
 msgstr "JPEG Qualität des Stellvertreterbildes"
-
-
-msgid "Timecode"
-msgstr "Zeitcode"
-
-
-msgid "Record Run No Gaps"
-msgstr "Unbenutzte Knoten freigeben"
 
 
 msgid "Proxy Render Size"
@@ -26997,15 +26981,6 @@ msgstr "Vorgeladene Einzelbilder von der Festplatte für schnelleres Abspielen/V
 
 
 msgctxt "Operator"
-msgid "Rebuild Proxy and Timecode Indices"
-msgstr "Stellvertreter und Zeitcode-Indicies erneuern"
-
-
-msgid "Rebuild all selected proxies and timecode indices in the background"
-msgstr "Alle ausgwählten Stellvertreter und Zeitcode-Indecies im Hintergrund erneuern"
-
-
-msgctxt "Operator"
 msgid "Refine Markers"
 msgstr "Marker verfeinern"
 
@@ -29198,6 +29173,11 @@ msgstr "Zum vorherigen/nächsten Schlüsselbild springen"
 
 msgid "Next Keyframe"
 msgstr "Nächstes Schlüsselbild"
+
+
+msgctxt "Operator"
+msgid "Local View"
+msgstr "Lokale Ansicht"
 
 
 msgid "By Values Over Cursor Value"
@@ -37390,11 +37370,6 @@ msgid "ICO Sphere"
 msgstr "ICO Kugel"
 
 
-msgctxt "Operator"
-msgid "Local View"
-msgstr "Lokale Ansicht"
-
-
 msgid "Toggle display of selected object(s) separately and centered in view"
 msgstr "Separate Anzeige ausgewählter Objekte in Ansicht zentriert ein/aus"
 
@@ -38757,22 +38732,6 @@ msgid "Active Palette Color"
 msgstr "Aktive Farbpalette"
 
 
-msgid "Shadow Settings"
-msgstr "Schatteneinstellungen"
-
-
-msgid "SSAO Settings"
-msgstr "SSAO Einstellungen"
-
-
-msgid "Cavity"
-msgstr "Hohlraum"
-
-
-msgid "Render Pass"
-msgstr "Renderdurchgänge"
-
-
 msgid "Compositor"
 msgstr "Setzer"
 
@@ -38837,6 +38796,22 @@ msgid "View Lock"
 msgstr "Ansicht sperren"
 
 
+msgid "Shadow Settings"
+msgstr "Schatteneinstellungen"
+
+
+msgid "SSAO Settings"
+msgstr "SSAO Einstellungen"
+
+
+msgid "Cavity"
+msgstr "Hohlraum"
+
+
+msgid "Render Pass"
+msgstr "Renderdurchgänge"
+
+
 msgid "Chain Scaling"
 msgstr "Kettenskalierung"
 
@@ -38875,10 +38850,6 @@ msgstr "Marker anzeigen"
 
 msgid "Mask Display"
 msgstr "Marker anzeigen"
-
-
-msgid "Proxy/Timecode"
-msgstr "Proxy/Zeitcode"
 
 
 msgid "Stabilization"
@@ -50243,11 +50214,6 @@ msgstr "Unverzerrt bauen:"
 
 
 msgctxt "Operator"
-msgid "Build Proxy / Timecode"
-msgstr "Baue Proxy / Zeitcode"
-
-
-msgctxt "Operator"
 msgid "Build Proxy"
 msgstr "Proxy erzeugen"
 
@@ -53423,6 +53389,11 @@ msgid "Basis"
 msgstr "Basis"
 
 
+msgctxt "Key"
+msgid "Key"
+msgstr "Taste"
+
+
 msgid "AOV"
 msgstr "AOV"
 
@@ -54765,16 +54736,16 @@ msgid "No vertex selected"
 msgstr "Keine Ecke ausgewählt"
 
 
+msgid "No edges selected"
+msgstr "Keine Kante ausgewählt"
+
+
 msgid "Invalid selection order"
 msgstr "Ungültige Auswahlreihenfolge"
 
 
 msgid "Selection not supported in object mode"
 msgstr "Wird im Skulpturmodus nicht unterstützt"
-
-
-msgid "No edges selected"
-msgstr "Keine Kante ausgewählt"
 
 
 msgid "No faces filled"
@@ -56735,11 +56706,6 @@ msgid "Image not packed"
 msgstr "Bild nicht verpackt"
 
 
-msgctxt "Key"
-msgid "Key"
-msgstr "Taste"
-
-
 msgid "unable to load text"
 msgstr "Text kann nicht geladen werden"
 
@@ -57270,6 +57236,10 @@ msgid "Density Max"
 msgstr "Max. Dichte"
 
 
+msgid "Inverted"
+msgstr "Invertiert"
+
+
 msgid "Delimiter"
 msgstr "Trennzeichen"
 
@@ -57372,10 +57342,6 @@ msgstr "Treffe Entfernung"
 
 msgid "Scale Mode"
 msgstr "Skalierungsmodus"
-
-
-msgid "Inverted"
-msgstr "Invertiert"
 
 
 msgid "Strings"

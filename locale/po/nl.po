@@ -1,9 +1,9 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 5.2.0 Alpha (b'bc0a0ff2c0ce')\n"
+"Project-Id-Version: Blender 5.2.0 Alpha (b'24a58e1403ac')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-05-18 11:20+0000\n"
+"POT-Creation-Date: 2026-05-25 07:25+0000\n"
 "PO-Revision-Date: 2026-02-14 01:12+0000\n"
 "Last-Translator: Timo Hoetmer <timo@timohoetmer.nl>\n"
 "Language-Team: Dutch <https://translate.blender.org/projects/blender-ui/ui/nl/>\n"
@@ -1449,6 +1449,18 @@ msgstr "Beschrijving"
 
 msgid "The type of license this asset is distributed under. An empty license name does not necessarily indicate that this is free of licensing terms. Contact the author if any clarification is needed."
 msgstr "Het type licentie waaronder deze asset gedistribueerd wordt. Een lege licentie-naam betekent niet gelijk dat deze vrij van licentievoorwaarden is. Neem contact op met de maker als er verduidelijking nodig is."
+
+
+msgid "Link"
+msgstr "Koppel"
+
+
+msgid "Append"
+msgstr "Bijvoegen"
+
+
+msgid "Append (Reuse Data)"
+msgstr "Bijvoegen (Hergebruik Data)"
 
 
 msgid "Tags"
@@ -4544,18 +4556,6 @@ msgid "Title"
 msgstr "Titel"
 
 
-msgid "Link"
-msgstr "Koppel"
-
-
-msgid "Append"
-msgstr "Bijvoegen"
-
-
-msgid "Append (Reuse Data)"
-msgstr "Bijvoegen (Hergebruik Data)"
-
-
 msgid "Additional"
 msgstr "Aanvullende"
 
@@ -5779,16 +5779,16 @@ msgid "Relations"
 msgstr "Relaties"
 
 
-msgid "Import"
-msgstr "Importeren"
-
-
 msgid "Rigid Body"
 msgstr "Star Lichaam"
 
 
 msgid "Quick Effects"
 msgstr "Snelle Effecten"
+
+
+msgid "Import"
+msgstr "Importeren"
 
 
 msgid "Show/Hide"
@@ -7324,6 +7324,11 @@ msgstr "Verberg Curves"
 
 msgid "Next Keyframe"
 msgstr "Volgende Sleutelframe"
+
+
+msgctxt "Operator"
+msgid "Local View"
+msgstr "Lokale Scherm"
 
 
 msgctxt "Operator"
@@ -9156,11 +9161,6 @@ msgstr "Selecteer Menu"
 msgctxt "Operator"
 msgid "Fly Navigation"
 msgstr "Vlieg Navigatie"
-
-
-msgctxt "Operator"
-msgid "Local View"
-msgstr "Lokale Scherm"
 
 
 msgid "Move the view"
@@ -11763,6 +11763,11 @@ msgid "LineStyle"
 msgstr "LijnStijl"
 
 
+msgctxt "Key"
+msgid "Key"
+msgstr "Sleutel"
+
+
 msgid "lattices"
 msgstr "Roosters"
 
@@ -12129,6 +12134,10 @@ msgid "No vertex selected"
 msgstr "Geen punten geselecteerd"
 
 
+msgid "No edges selected"
+msgstr "Geen randen geselecteerd"
+
+
 msgid "Use mouse"
 msgstr "Gebruik muis"
 
@@ -12139,10 +12148,6 @@ msgstr "Gebruik draaipunt"
 
 msgid "Set and use 3D cursor"
 msgstr "Plaats en gebruik 3D cursor"
-
-
-msgid "No edges selected"
-msgstr "Geen randen geselecteerd"
 
 
 msgid "No faces filled"
@@ -12359,11 +12364,6 @@ msgstr "Pak Bestand Uit"
 
 msgid "Flame"
 msgstr "Vlam"
-
-
-msgctxt "Key"
-msgid "Key"
-msgstr "Sleutel"
 
 
 msgid "Point is not found in given spline"

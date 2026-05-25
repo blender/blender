@@ -1,9 +1,9 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 5.2.0 Alpha (b'bc0a0ff2c0ce')\n"
+"Project-Id-Version: Blender 5.2.0 Alpha (b'24a58e1403ac')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-05-18 11:20+0000\n"
+"POT-Creation-Date: 2026-05-25 07:25+0000\n"
 "PO-Revision-Date: 2026-04-06 09:16+0000\n"
 "Last-Translator: Leevi Oksanen <laavi.oksanen@gmail.com>\n"
 "Language-Team: Finnish <https://translate.blender.org/projects/blender-ui/ui/fi/>\n"
@@ -912,6 +912,10 @@ msgstr "Omistaja"
 
 msgid "Description"
 msgstr "Kuvaus"
+
+
+msgid "Default Import Method"
+msgstr "Oletustuontitapa"
 
 
 msgid "Tags"
@@ -7236,14 +7240,6 @@ msgid "UV Mapping"
 msgstr "UV-kartoittaminen"
 
 
-msgid "Math"
-msgstr "Matematiikka"
-
-
-msgid "Utilities"
-msgstr "Työkalut"
-
-
 msgid "Select More/Less"
 msgstr "Valitse enemmän/vähemmän"
 
@@ -7256,8 +7252,20 @@ msgid "Select All by Trait"
 msgstr "Valitse kaikki piirteen mukaan"
 
 
+msgid "Math"
+msgstr "Matematiikka"
+
+
 msgid "Select Loops"
 msgstr "Valitse silmukat"
+
+
+msgid "Utilities"
+msgstr "Työkalut"
+
+
+msgid "Metaball"
+msgstr "Metapallo"
 
 
 msgid "Read"
@@ -7268,10 +7276,6 @@ msgid "Write"
 msgstr "Kirjoita"
 
 
-msgid "Metaball"
-msgstr "Metapallo"
-
-
 msgid "Light"
 msgstr "Valo"
 
@@ -7280,32 +7284,32 @@ msgid "Light Probe"
 msgstr "Valoluotain"
 
 
-msgid "Instances"
-msgstr "Instanssit"
-
-
 msgid "Add Image"
 msgstr "Lisää kuva"
 
 
-msgid "Import"
-msgstr "Tuo"
+msgid "Instances"
+msgstr "Instanssit"
 
 
 msgid "Track"
 msgstr "Raide"
 
 
+msgid "Import"
+msgstr "Tuo"
+
+
 msgid "Show/Hide"
 msgstr "Näytä/Piilota"
 
 
-msgid "UV"
-msgstr "UV"
-
-
 msgid "Hooks"
 msgstr "Koukut"
+
+
+msgid "UV"
+msgstr "UV"
 
 
 msgid "Random Mask"
@@ -11401,10 +11405,6 @@ msgid "Display units in pairs (e.g. 1m 0cm)"
 msgstr "Näytä yksiköt pareina (esim. 1 m 0 cm)"
 
 
-msgid "Default Import Method"
-msgstr "Oletustuontitapa"
-
-
 msgctxt "File browser"
 msgid "Custom Directory"
 msgstr "Mukautettu Luettelo"
@@ -13641,6 +13641,11 @@ msgid "True Normal"
 msgstr "Todellinen normaali"
 
 
+msgctxt "Key"
+msgid "Key"
+msgstr "Avain"
+
+
 msgid "AOV"
 msgstr "AOV"
 
@@ -14184,12 +14189,12 @@ msgid "No vertex selected"
 msgstr "Ei valittua kärkeä"
 
 
-msgid "No selected vertex"
-msgstr "Ei valittuja kärkiä"
-
-
 msgid "No edges selected"
 msgstr "Ei valittuja reunoja"
+
+
+msgid "No selected vertex"
+msgstr "Ei valittuja kärkiä"
 
 
 msgid "No faces filled"
@@ -15123,11 +15128,6 @@ msgid "Image not packed"
 msgstr "Kuvaa ei ole pakattu"
 
 
-msgctxt "Key"
-msgid "Key"
-msgstr "Avain"
-
-
 msgid "Modify"
 msgstr "Muuta"
 
@@ -15480,6 +15480,10 @@ msgstr "Elämä"
 
 msgid "Start Position"
 msgstr "Aloitussijainti"
+
+
+msgid "Add Item"
+msgstr "Lisää esine"
 
 
 msgid "The size of the image"
@@ -15927,6 +15931,10 @@ msgid "Top"
 msgstr "Huippu"
 
 
+msgid "Inverted"
+msgstr "Käännetty"
+
+
 msgid "Main Geometry"
 msgstr "Päägeometria"
 
@@ -15965,10 +15973,6 @@ msgstr "Omistaa naapurin"
 
 msgid "Index of nearest element"
 msgstr "Lähimmän elementin indeksi"
-
-
-msgid "Add Item"
-msgstr "Lisää esine"
 
 
 msgid "The camera used for rendering the scene"
@@ -16194,10 +16198,6 @@ msgstr "Ruudukko 1"
 
 msgid "Grid 2"
 msgstr "Ruudukko 2"
-
-
-msgid "Inverted"
-msgstr "Käännetty"
 
 
 msgid "Skip"

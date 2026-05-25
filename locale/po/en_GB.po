@@ -1,9 +1,9 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 5.2.0 Alpha (b'bc0a0ff2c0ce')\n"
+"Project-Id-Version: Blender 5.2.0 Alpha (b'24a58e1403ac')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-05-18 11:20+0000\n"
+"POT-Creation-Date: 2026-05-25 07:25+0000\n"
 "PO-Revision-Date: 2026-02-16 18:12+0000\n"
 "Last-Translator: Deniz Jones <sdfoakes@gmail.com>\n"
 "Language-Team: English (United Kingdom) <https://translate.blender.org/projects/blender-ui/ui/en_GB/>\n"
@@ -1878,6 +1878,42 @@ msgstr "License"
 
 msgid "The type of license this asset is distributed under. An empty license name does not necessarily indicate that this is free of licensing terms. Contact the author if any clarification is needed."
 msgstr "The type of license this asset is distributed under. An empty license name does not necessarily indicate that this is free of licensing terms. Contact the author if any clarification is needed."
+
+
+msgid "Default Import Method"
+msgstr "Default Import Method"
+
+
+msgid "Link"
+msgstr "Link"
+
+
+msgid "Import the assets as linked data-block"
+msgstr "Import the assets as linked data-block"
+
+
+msgid "Append"
+msgstr "Append"
+
+
+msgid "Import the assets as copied data-block, with no link to the original asset data-block"
+msgstr "Import the assets as copied data-block, with no link to the original asset data-block"
+
+
+msgid "Append (Reuse Data)"
+msgstr "Append (Reuse Data)"
+
+
+msgid "Import the assets as copied data-block while avoiding multiple copies of nested, typically heavy data. For example the textures of a material asset, or the mesh of an object asset, don't have to be copied every time this asset is imported. The instances of the asset share the data instead."
+msgstr "Import the assets as copied data-block while avoiding multiple copies of nested, typically heavy data. For example the textures of a material asset, or the mesh of an object asset, don't have to be copied every time this asset is imported. The instances of the asset share the data instead."
+
+
+msgid "Pack"
+msgstr "Pack"
+
+
+msgid "Import the asset as linked data-block, and pack it in the current file (ensures that it remains unchanged in case the library data is modified, is not available anymore, etc.)"
+msgstr "Import the asset as linked data-block, and pack it in the current file (ensures that it remains unchanged in case the library data is modified, is not available anymore, etc.)"
 
 
 msgid "Tags"
@@ -15005,44 +15041,16 @@ msgid "Determine how the asset will be imported"
 msgstr "Determine how the asset will be imported"
 
 
-msgid "Follow Preferences"
-msgstr "Follow Preferences"
-
-
 msgid "Use the import method set in the Preferences for this asset library, don't override it for this Asset Browser"
 msgstr "Use the import method set in the Preferences for this asset library, don't override it for this Asset Browser"
-
-
-msgid "Link"
-msgstr "Link"
-
-
-msgid "Import the assets as linked data-block"
-msgstr "Import the assets as linked data-block"
-
-
-msgid "Append"
-msgstr "Append"
 
 
 msgid "Import the asset as copied data-block, with no link to the original asset data-block"
 msgstr "Import the asset as copied data-block, with no link to the original asset data-block"
 
 
-msgid "Append (Reuse Data)"
-msgstr "Append (Reuse Data)"
-
-
 msgid "Import the asset as copied data-block while avoiding multiple copies of nested, typically heavy data. For example the textures of a material asset, or the mesh of an object asset, don't have to be copied every time this asset is imported. The instances of the asset share the data instead"
 msgstr "Import the asset as copied data-block while avoiding multiple copies of nested, typically heavy data. For example the textures of a material asset, or the mesh of an object asset, don't have to be copied every time this asset is imported. The instances of the asset share the data instead"
-
-
-msgid "Pack"
-msgstr "Pack"
-
-
-msgid "Import the asset as linked data-block, and pack it in the current file (ensures that it remains unchanged in case the library data is modified, is not available anymore, etc.)"
-msgstr "Import the asset as linked data-block, and pack it in the current file (ensures that it remains unchanged in case the library data is modified, is not available anymore, etc.)"
 
 
 msgid "Instance Collections on Appending"
@@ -25363,14 +25371,6 @@ msgid "Movie File"
 msgstr "Movie File"
 
 
-msgid "Use Proxy / Timecode"
-msgstr "Use Proxy / Timecode"
-
-
-msgid "Use a preview proxy and/or timecode index for this clip"
-msgstr "Use a preview proxy and/or timecode index for this clip"
-
-
 msgid "Proxy Custom Directory"
 msgstr "Proxy Custom Directory"
 
@@ -25513,6 +25513,10 @@ msgstr "Compositor Node Tree"
 
 msgid "Node tree consisting of linked nodes used for compositing"
 msgstr "Node tree consisting of linked nodes used for compositing"
+
+
+msgid "Strip Modifier"
+msgstr "Strip Modifier"
 
 
 msgid "Viewer Region"
@@ -34926,20 +34930,12 @@ msgid "Viewpoint"
 msgstr "Viewpoint"
 
 
-msgid "Math"
-msgstr "Maths"
-
-
 msgid "Navigation"
 msgstr "Navigation"
 
 
 msgid "Align View"
 msgstr "Align View"
-
-
-msgid "Utilities"
-msgstr "Utilities"
 
 
 msgid "Align View to Active"
@@ -34962,12 +34958,28 @@ msgid "Select All by Trait"
 msgstr "Select All by Trait"
 
 
+msgid "Math"
+msgstr "Maths"
+
+
 msgid "Select Linked"
 msgstr "Select Linked"
 
 
 msgid "Select Loops"
 msgstr "Select Loops"
+
+
+msgid "Utilities"
+msgstr "Utilities"
+
+
+msgid "Assign Material"
+msgstr "Assign Material"
+
+
+msgid "Metaball"
+msgstr "Metaball"
 
 
 msgid "Read"
@@ -34978,20 +34990,12 @@ msgid "Sample"
 msgstr "Sample"
 
 
-msgid "Assign Material"
-msgstr "Assign Material"
-
-
 msgid "Write"
 msgstr "Write"
 
 
 msgid "Primitives"
 msgstr "Primitives"
-
-
-msgid "Metaball"
-msgstr "Metaball"
 
 
 msgid "Light"
@@ -35002,14 +35006,6 @@ msgid "Light Probe"
 msgstr "Light Probe"
 
 
-msgid "Gizmo"
-msgstr "Gizmo"
-
-
-msgid "Instances"
-msgstr "Instances"
-
-
 msgid "Add Image"
 msgstr "Add Image"
 
@@ -35018,12 +35014,16 @@ msgid "Relations"
 msgstr "Relations"
 
 
-msgid "Import"
-msgstr "Import"
-
-
 msgid "Rigid Body"
 msgstr "Rigid Body"
+
+
+msgid "Gizmo"
+msgstr "Gizmo"
+
+
+msgid "Instances"
+msgstr "Instances"
 
 
 msgid "Apply"
@@ -35034,12 +35034,12 @@ msgid "Track"
 msgstr "Track"
 
 
-msgid "Deprecated"
-msgstr "Deprecated"
-
-
 msgid "Quick Effects"
 msgstr "Quick Effects"
+
+
+msgid "Import"
+msgstr "Import"
 
 
 msgid "Show/Hide"
@@ -35054,20 +35054,12 @@ msgid "Asset"
 msgstr "Asset"
 
 
-msgid "List"
-msgstr "List"
-
-
 msgid "Make Single User"
 msgstr "Make Single User"
 
 
 msgid "Convert"
 msgstr "Convert"
-
-
-msgid "UV"
-msgstr "UV"
 
 
 msgid "Link/Transfer Data"
@@ -35078,12 +35070,24 @@ msgid "Hooks"
 msgstr "Hooks"
 
 
+msgid "Deprecated"
+msgstr "Deprecated"
+
+
 msgid "Vertex Group Locks"
 msgstr "Vertex Group Locks"
 
 
+msgid "List"
+msgstr "List"
+
+
 msgid "Trim/Add"
 msgstr "Trim/Add"
+
+
+msgid "UV"
+msgstr "UV"
 
 
 msgid "Sculpt Set Pivot"
@@ -35150,10 +35154,6 @@ msgid "Merge"
 msgstr "Merge"
 
 
-msgid "Layout"
-msgstr "Layout"
-
-
 msgid "Special Characters"
 msgstr "Special Characters"
 
@@ -35162,12 +35162,16 @@ msgid "Kerning"
 msgstr "Kerning"
 
 
-msgid "Adjust"
-msgstr "Adjust"
+msgid "Layout"
+msgstr "Layout"
 
 
 msgid "Bone Roll"
 msgstr "Bone Roll"
+
+
+msgid "Adjust"
+msgstr "Adjust"
 
 
 msgid "Keying"
@@ -35178,16 +35182,8 @@ msgid "Tracking"
 msgstr "Tracking"
 
 
-msgid "Creative"
-msgstr "Creative"
-
-
 msgid "Pivot Point"
 msgstr "Pivot Point"
-
-
-msgid "Render Preview"
-msgstr "Render Preview"
 
 
 msgid "Proportional Editing Falloff"
@@ -35202,8 +35198,16 @@ msgid "Automasking"
 msgstr "Automasking"
 
 
+msgid "Creative"
+msgstr "Creative"
+
+
 msgid "Face Sets Edit"
 msgstr "Face Sets Edit"
+
+
+msgid "Render Preview"
+msgstr "Render Preview"
 
 
 msgid "Keyframe Insert Pie"
@@ -43361,14 +43365,6 @@ msgid "Build proxy resolution 75% of the original footage dimension"
 msgstr "Build proxy resolution 75% of the original footage dimension"
 
 
-msgid "Rec Run"
-msgstr "Rec Run"
-
-
-msgid "Build record run time code index"
-msgstr "Build record run time code index"
-
-
 msgid "Build proxy resolution 100% of the original undistorted footage dimension"
 msgstr "Build proxy resolution 100% of the original undistorted footage dimension"
 
@@ -43391,30 +43387,6 @@ msgstr "Location to store the proxy files"
 
 msgid "JPEG quality of proxy images"
 msgstr "JPEG quality of proxy images"
-
-
-msgid "Timecode"
-msgstr "Timecode"
-
-
-msgid "Ignore generated timecodes, seek in movie stream based on calculated timestamp"
-msgstr "Ignore generated timecodes, seek in movie stream based on calculated timestamp"
-
-
-msgid "Record Run"
-msgstr "Record Run"
-
-
-msgid "Seek based on timestamps read from movie stream, giving the best match between scene and movie times"
-msgstr "Seek based on timestamps read from movie stream, giving the best match between scene and movie times"
-
-
-msgid "Record Run No Gaps"
-msgstr "Record Run No Gaps"
-
-
-msgid "Effectively convert movie to an image sequence, ignoring incomplete or dropped frames, and changes in frame rate"
-msgstr "Effectively convert movie to an image sequence, ignoring incomplete or dropped frames, and changes in frame rate"
 
 
 msgid "Scopes for statistical view of a movie clip"
@@ -51967,10 +51939,6 @@ msgid "Attribute Domain"
 msgstr "Attribute Domain"
 
 
-msgid "Attribute domain where the attribute is stored in the baked data"
-msgstr "Attribute domain where the attribute is stored in the baked data"
-
-
 msgid "Is Attribute"
 msgstr "Is Attribute"
 
@@ -59178,15 +59146,6 @@ msgstr "Prefetch frames from disk for faster playback/tracking"
 
 
 msgctxt "Operator"
-msgid "Rebuild Proxy and Timecode Indices"
-msgstr "Rebuild Proxy and Timecode Indices"
-
-
-msgid "Rebuild all selected proxies and timecode indices in the background"
-msgstr "Rebuild all selected proxies and timecode indices in the background"
-
-
-msgctxt "Operator"
 msgid "Refine Markers"
 msgstr "Refine Markers"
 
@@ -64559,6 +64518,11 @@ msgstr "Keys to Samples"
 
 msgid "Convert selected channels to an uneditable set of samples to save storage space"
 msgstr "Convert selected channels to an uneditable set of samples to save storage space"
+
+
+msgctxt "Operator"
+msgid "Local View"
+msgstr "Local View"
 
 
 msgctxt "Operator"
@@ -72311,18 +72275,6 @@ msgstr "Collapse"
 
 msgid "Toggle collapsing of selected nodes"
 msgstr "Toggle collapsing of selected nodes"
-
-
-msgid "Add an item to the index switch"
-msgstr "Add an item to the index switch"
-
-
-msgid "Remove an item from the index switch"
-msgstr "Remove an item from the index switch"
-
-
-msgid "Index to remove"
-msgstr "Index to remove"
 
 
 msgctxt "Operator"
@@ -83083,10 +83035,6 @@ msgid "Reassign the inputs for the effect strip"
 msgstr "Reassign the inputs for the effect strip"
 
 
-msgid "Rebuild all selected proxies and timecode indices"
-msgstr "Rebuild all selected proxies and timecode indices"
-
-
 msgctxt "Operator"
 msgid "Refresh Sequencer"
 msgstr "Refresh Sequencer"
@@ -83536,10 +83484,6 @@ msgstr "Slip strips under mouse cursor instead of all selected strips"
 msgctxt "Operator"
 msgid "Snap Strips to the Current Frame"
 msgstr "Snap Strips to the Current Frame"
-
-
-msgid "Snap strips to the current frame, using the active strip as the anchor, and the mouse cursor relative to the playhead to determine the side of the playhead to snap to"
-msgstr "Snap strips to the current frame, using the active strip as the anchor, and the mouse cursor relative to the playhead to determine the side of the playhead to snap to"
 
 
 msgid "Frame where selected strips will be snapped"
@@ -87081,11 +87025,6 @@ msgstr "Start placing the centre position"
 
 msgid "ICO Sphere"
 msgstr "ICO Sphere"
-
-
-msgctxt "Operator"
-msgid "Local View"
-msgstr "Local View"
 
 
 msgid "Toggle display of selected object(s) separately and centered in view"
@@ -91369,26 +91308,6 @@ msgid "Panel containing UI elements"
 msgstr "Panel containing UI elements"
 
 
-msgid "Selectability & Visibility"
-msgstr "Selectability & Visibility"
-
-
-msgid "Shadow Settings"
-msgstr "Shadow Settings"
-
-
-msgid "SSAO Settings"
-msgstr "SSAO Settings"
-
-
-msgid "Cavity"
-msgstr "Cavity"
-
-
-msgid "Render Pass"
-msgstr "Render Pass"
-
-
 msgid "Compositor"
 msgstr "Compositor"
 
@@ -91457,14 +91376,6 @@ msgid "Multi Frame"
 msgstr "Multi Frame"
 
 
-msgid "glTF Variants"
-msgstr "glTF Variants"
-
-
-msgid "glTF Material Variants"
-msgstr "glTF Material Variants"
-
-
 msgid "Auto-Masking"
 msgstr "Auto-Masking"
 
@@ -91485,12 +91396,12 @@ msgid "Viewport Debug"
 msgstr "Viewport Debug"
 
 
-msgid "glTF"
-msgstr "glTF"
+msgid "glTF Variants"
+msgstr "glTF Variants"
 
 
-msgid "glTF Animations"
-msgstr "glTF Animations"
+msgid "glTF Material Variants"
+msgstr "glTF Material Variants"
 
 
 msgid "VR"
@@ -91501,12 +91412,40 @@ msgid "VR Info"
 msgstr "VR Info"
 
 
+msgid "glTF"
+msgstr "glTF"
+
+
+msgid "glTF Animations"
+msgstr "glTF Animations"
+
+
 msgid "Active Tool"
 msgstr "Active Tool"
 
 
 msgid "View Lock"
 msgstr "View Lock"
+
+
+msgid "Selectability & Visibility"
+msgstr "Selectability & Visibility"
+
+
+msgid "Shadow Settings"
+msgstr "Shadow Settings"
+
+
+msgid "SSAO Settings"
+msgstr "SSAO Settings"
+
+
+msgid "Cavity"
+msgstr "Cavity"
+
+
+msgid "Render Pass"
+msgstr "Render Pass"
 
 
 msgid "Import Settings"
@@ -91580,10 +91519,6 @@ msgstr "Marker Display"
 
 msgid "Mask Display"
 msgstr "Mask Display"
-
-
-msgid "Proxy/Timecode"
-msgstr "Proxy/Timecode"
 
 
 msgid "Stabilization"
@@ -92438,8 +92373,8 @@ msgid "Sequencer Snapping"
 msgstr "Sequencer Snapping"
 
 
-msgid "Strip Proxy & Timecode"
-msgstr "Strip Proxy & Timecode"
+msgid "Strip Proxy"
+msgstr "Strip Proxy"
 
 
 msgctxt "Operator"
@@ -104210,10 +104145,6 @@ msgid "Simulation Item"
 msgstr "Simulation Item"
 
 
-msgid "Attribute domain where the attribute is stored in the simulation state"
-msgstr "Attribute domain where the attribute is stored in the simulation state"
-
-
 msgid "Soft body simulation settings for an object"
 msgstr "Soft body simulation settings for an object"
 
@@ -107888,10 +107819,6 @@ msgid "Convert input to float data"
 msgstr "Convert input to float data"
 
 
-msgid "Use a preview proxy and/or time-code index for this strip"
-msgstr "Use a preview proxy and/or time-code index for this strip"
-
-
 msgid "Reverse Frames"
 msgstr "Reverse Frames"
 
@@ -108667,10 +108594,6 @@ msgid "Collection of StripElement"
 msgstr "Collection of StripElement"
 
 
-msgid "Strip Modifier"
-msgstr "Strip Modifier"
-
-
 msgid "Modifier for sequence strip"
 msgstr "Modifier for sequence strip"
 
@@ -108950,10 +108873,6 @@ msgid "The active strip modifier in the list"
 msgstr "The active strip modifier in the list"
 
 
-msgid "Strip Proxy"
-msgstr "Strip Proxy"
-
-
 msgid "Proxy parameters for a sequence strip"
 msgstr "Proxy parameters for a sequence strip"
 
@@ -108980,10 +108899,6 @@ msgstr "Location of custom proxy file"
 
 msgid "Quality of proxies to build"
 msgstr "Quality of proxies to build"
-
-
-msgid "Method for reading the inputs timecode"
-msgstr "Method for reading the inputs timecode"
 
 
 msgid "Overwrite existing proxy files when building"
@@ -112667,20 +112582,8 @@ msgid "Enable the asset library"
 msgstr "Enable the asset library"
 
 
-msgid "Default Import Method"
-msgstr "Default Import Method"
-
-
 msgid "Determine how the asset will be imported, unless overridden by the Asset Browser"
 msgstr "Determine how the asset will be imported, unless overridden by the Asset Browser"
-
-
-msgid "Import the assets as copied data-block, with no link to the original asset data-block"
-msgstr "Import the assets as copied data-block, with no link to the original asset data-block"
-
-
-msgid "Import the assets as copied data-block while avoiding multiple copies of nested, typically heavy data. For example the textures of a material asset, or the mesh of an object asset, don't have to be copied every time this asset is imported. The instances of the asset share the data instead."
-msgstr "Import the assets as copied data-block while avoiding multiple copies of nested, typically heavy data. For example the textures of a material asset, or the mesh of an object asset, don't have to be copied every time this asset is imported. The instances of the asset share the data instead."
 
 
 msgid "Path to a directory with .blend files to use as an asset library"
@@ -124280,11 +124183,6 @@ msgstr "Build Undistorted:"
 
 
 msgctxt "Operator"
-msgid "Build Proxy / Timecode"
-msgstr "Build Proxy / Timecode"
-
-
-msgctxt "Operator"
 msgid "Build Proxy"
 msgstr "Build Proxy"
 
@@ -124426,10 +124324,6 @@ msgstr "Tracks for Stabilization"
 
 msgid "Tracks for Location"
 msgstr "Tracks for Location"
-
-
-msgid "Timecode Index"
-msgstr "Timecode Index"
 
 
 msgctxt "Operator"
@@ -130207,6 +130101,11 @@ msgid "shape_keys"
 msgstr "shape_keys"
 
 
+msgctxt "Key"
+msgid "Key"
+msgstr "Key"
+
+
 msgid "lattices"
 msgstr "lattices"
 
@@ -134743,6 +134642,10 @@ msgid "No vertex group among the selected vertices"
 msgstr "No vertex group among the selected vertices"
 
 
+msgid "No edges selected"
+msgstr "No edges selected"
+
+
 msgid "Use mouse"
 msgstr "Use mouse"
 
@@ -134801,10 +134704,6 @@ msgstr "Active mesh does not have shape keys"
 
 msgid "Selection not supported in object mode"
 msgstr "Selection not supported in object mode"
-
-
-msgid "No edges selected"
-msgstr "No edges selected"
 
 
 msgid "No faces filled"
@@ -143220,11 +143119,6 @@ msgid "Failed to load image texture '%s'"
 msgstr "Failed to load image texture '%s'"
 
 
-msgctxt "Key"
-msgid "Key"
-msgstr "Key"
-
-
 msgid "ViewLayer '%s' does not contain object '%s'"
 msgstr "ViewLayer '%s' does not contain object '%s'"
 
@@ -145208,6 +145102,10 @@ msgstr "Replace Original"
 
 msgid "Crease Edges"
 msgstr "Crease Edges"
+
+
+msgid "Add Item"
+msgstr "Add Item"
 
 
 msgid "Not a compositor node tree"
@@ -147901,6 +147799,10 @@ msgid "The expected squared deviation from the mean for each group"
 msgstr "The expected squared deviation from the mean for each group"
 
 
+msgid "Inverted"
+msgstr "Inverted"
+
+
 msgid "Mesh to flip faces of"
 msgstr "Mesh to flip faces of"
 
@@ -148008,6 +147910,10 @@ msgstr "Removing the bundle from the geometry can be beneficial to avoid unneces
 
 msgid "Volume to take a named grid out of"
 msgstr "Volume to take a named grid out of"
+
+
+msgid "Pattern Mode"
+msgstr "Pattern Mode"
 
 
 msgid "If true, the gizmo is displayed in screen space. Otherwise it's in object space"
@@ -148316,10 +148222,6 @@ msgstr "Has Neighbour"
 
 msgid "Index of nearest element"
 msgstr "Index of nearest element"
-
-
-msgid "Add Item"
-msgstr "Add Item"
 
 
 msgid "The camera used for rendering the scene"
@@ -149328,32 +149230,12 @@ msgid "Number of levels of nested instances to realize for each top-level instan
 msgstr "Number of levels of nested instances to realise for each top-level instance"
 
 
-msgid "Only one * is supported in the pattern"
-msgstr "Only one * is supported in the pattern"
-
-
 msgid "Cannot remove built-in attributes: {}"
 msgstr "Cannot remove built-in attributes: {}"
 
 
 msgid "Attribute does not exist: \"{}\""
 msgstr "Attribute does not exist: \"{}\""
-
-
-msgid "Remove the one attribute with the given name"
-msgstr "Remove the one attribute with the given name"
-
-
-msgid "Wildcard"
-msgstr "Wildcard"
-
-
-msgid "Remove all attributes that match the pattern which is allowed to contain a single wildcard (*)"
-msgstr "Remove all attributes that match the pattern which is allowed to contain a single wildcard (*)"
-
-
-msgid "Pattern Mode"
-msgstr "Pattern Mode"
 
 
 msgid "Geometry to remove attributes from"
@@ -149503,10 +149385,6 @@ msgstr "Conversion not supported when separating bundle"
 
 msgid "Geometry to split into separate components"
 msgstr "Geometry to split into separate components"
-
-
-msgid "Inverted"
-msgstr "Inverted"
 
 
 msgid "Geometry to split into two parts"
@@ -150117,6 +149995,22 @@ msgstr "Menu value has to be a constant value"
 
 msgid " (Deprecated)"
 msgstr " (Deprecated)"
+
+
+msgid "Only one * is supported in the pattern"
+msgstr "Only one * is supported in the pattern"
+
+
+msgid "Remove the one attribute with the given name"
+msgstr "Remove the one attribute with the given name"
+
+
+msgid "Wildcard"
+msgstr "Wildcard"
+
+
+msgid "Remove all attributes that match the pattern which is allowed to contain a single wildcard (*)"
+msgstr "Remove all attributes that match the pattern which is allowed to contain a single wildcard (*)"
 
 
 msgid "Update based on linked bundle signature"

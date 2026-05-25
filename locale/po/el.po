@@ -1,9 +1,9 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 5.2.0 Alpha (b'bc0a0ff2c0ce')\n"
+"Project-Id-Version: Blender 5.2.0 Alpha (b'24a58e1403ac')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-05-18 11:20+0000\n"
+"POT-Creation-Date: 2026-05-25 07:25+0000\n"
 "PO-Revision-Date: 2025-07-23 15:19+0000\n"
 "Last-Translator: Anonymous <noreply@weblate.org>\n"
 "Language-Team: Greek <https://translate.blender.org/projects/blender-ui/ui/el/>\n"
@@ -85,6 +85,14 @@ msgstr "Κενό"
 
 msgid "Active Bone"
 msgstr "Ενεργό Οστό"
+
+
+msgid "Link"
+msgstr "Σύνδεση"
+
+
+msgid "Append"
+msgstr "Συγχώνευση"
 
 
 msgid "Point"
@@ -311,14 +319,6 @@ msgid "Save"
 msgstr "Αποθήκευση"
 
 
-msgid "Link"
-msgstr "Σύνδεση"
-
-
-msgid "Append"
-msgstr "Συγχώνευση"
-
-
 msgid "End"
 msgstr "Τέλος"
 
@@ -543,10 +543,6 @@ msgid "Light"
 msgstr "Φως"
 
 
-msgid "Import"
-msgstr "Εισαγωγή"
-
-
 msgid "Rigid Body"
 msgstr "Rigid Body"
 
@@ -557,6 +553,10 @@ msgstr "Εφαρμογή"
 
 msgid "Track"
 msgstr "Ανίχνευση"
+
+
+msgid "Import"
+msgstr "Εισαγωγή"
 
 
 msgid "Make Single User"

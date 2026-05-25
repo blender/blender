@@ -1,9 +1,9 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 5.2.0 Alpha (b'bc0a0ff2c0ce')\n"
+"Project-Id-Version: Blender 5.2.0 Alpha (b'24a58e1403ac')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-05-18 11:20+0000\n"
+"POT-Creation-Date: 2026-05-25 07:25+0000\n"
 "PO-Revision-Date: 2025-07-23 15:31+0000\n"
 "Last-Translator: VertexSelection <amacsizk2021@gmail.com>\n"
 "Language-Team: Turkish <https://translate.blender.org/projects/blender-ui/ui/tr/>\n"
@@ -1636,6 +1636,30 @@ msgstr "Lisans"
 
 msgid "The type of license this asset is distributed under. An empty license name does not necessarily indicate that this is free of licensing terms. Contact the author if any clarification is needed."
 msgstr "Bu varlığın dağıtıldığı lisans türü. Boş bir lisans adı, bunun lisanslama şartlarından muaf olduğu anlamına gelmez. Herhangi bir açıklamaya ihtiyaç duyulması halinde yazarla iletişime geçin."
+
+
+msgid "Default Import Method"
+msgstr "Varsayılan İçe Aktarma Yöntemi"
+
+
+msgid "Link"
+msgstr "Bağlantı"
+
+
+msgid "Import the assets as linked data-block"
+msgstr "Varlıkları bağlantılı veri bloğu olarak içe aktarın"
+
+
+msgid "Append"
+msgstr "İliştir"
+
+
+msgid "Append (Reuse Data)"
+msgstr "İliştir (Veriyi Yeniden Kullan)"
+
+
+msgid "Pack"
+msgstr "Ambalaj"
 
 
 msgid "Tags"
@@ -12171,30 +12195,6 @@ msgid "Determine how the asset will be imported"
 msgstr "Varlığın nasıl içe aktarılacağını belirleyin"
 
 
-msgid "Follow Preferences"
-msgstr "Tercihleri İzle"
-
-
-msgid "Link"
-msgstr "Bağlantı"
-
-
-msgid "Import the assets as linked data-block"
-msgstr "Varlıkları bağlantılı veri bloğu olarak içe aktarın"
-
-
-msgid "Append"
-msgstr "İliştir"
-
-
-msgid "Append (Reuse Data)"
-msgstr "İliştir (Veriyi Yeniden Kullan)"
-
-
-msgid "Pack"
-msgstr "Ambalaj"
-
-
 msgid "Float2 Attribute Value"
 msgstr "Float2 Nitelik Değeri"
 
@@ -20384,14 +20384,6 @@ msgstr "Klip nereden geliyor"
 
 msgid "Movie File"
 msgstr "Film Dosyası"
-
-
-msgid "Use Proxy / Timecode"
-msgstr "Proxy / Zaman Kodu Kullan"
-
-
-msgid "Use a preview proxy and/or timecode index for this clip"
-msgstr "Bu klip için bir önizleme proxy'si ve/veya zaman kodu dizini kullanın"
 
 
 msgid "Proxy Custom Directory"
@@ -28811,20 +28803,12 @@ msgid "Viewpoint"
 msgstr "Bakış açısı"
 
 
-msgid "Math"
-msgstr "Matematik"
-
-
 msgid "Navigation"
 msgstr "Navigasyon"
 
 
 msgid "Align View"
 msgstr "Görünümü hizala"
-
-
-msgid "Utilities"
-msgstr "Kamu hizmetleri"
 
 
 msgid "Align View to Active"
@@ -28847,12 +28831,28 @@ msgid "Select All by Trait"
 msgstr "Özelliğe Göre Tümünü Seç"
 
 
+msgid "Math"
+msgstr "Matematik"
+
+
 msgid "Select Linked"
 msgstr "Bağlantılıyı Seç"
 
 
 msgid "Select Loops"
 msgstr "Döngüleri Seç"
+
+
+msgid "Utilities"
+msgstr "Kamu hizmetleri"
+
+
+msgid "Assign Material"
+msgstr "Malzeme Atamak"
+
+
+msgid "Metaball"
+msgstr "Metabol"
 
 
 msgid "Read"
@@ -28863,20 +28863,12 @@ msgid "Sample"
 msgstr "Örnek"
 
 
-msgid "Assign Material"
-msgstr "Malzeme Atamak"
-
-
 msgid "Write"
 msgstr "Yazmak"
 
 
 msgid "Primitives"
 msgstr "İlkel"
-
-
-msgid "Metaball"
-msgstr "Metabol"
 
 
 msgid "Light"
@@ -28887,10 +28879,6 @@ msgid "Light Probe"
 msgstr "Işık Sondası"
 
 
-msgid "Instances"
-msgstr "Örnekler"
-
-
 msgid "Add Image"
 msgstr "Resim Ekle"
 
@@ -28899,12 +28887,12 @@ msgid "Relations"
 msgstr "İlişkiler"
 
 
-msgid "Import"
-msgstr "İçe Aktar"
-
-
 msgid "Rigid Body"
 msgstr "Sert Gövde"
+
+
+msgid "Instances"
+msgstr "Örnekler"
 
 
 msgid "Apply"
@@ -28915,12 +28903,12 @@ msgid "Track"
 msgstr "İzlemek"
 
 
-msgid "Deprecated"
-msgstr "Kullanım dışı bırakıldı"
-
-
 msgid "Quick Effects"
 msgstr "Hızlı Etkiler"
+
+
+msgid "Import"
+msgstr "İçe Aktar"
 
 
 msgid "Show/Hide"
@@ -28943,10 +28931,6 @@ msgid "Convert"
 msgstr "Çevir"
 
 
-msgid "UV"
-msgstr "UV"
-
-
 msgid "Link/Transfer Data"
 msgstr "Veriyi Bağlantıla/Aktar"
 
@@ -28955,12 +28939,20 @@ msgid "Hooks"
 msgstr "Kancalar"
 
 
+msgid "Deprecated"
+msgstr "Kullanım dışı bırakıldı"
+
+
 msgid "Vertex Group Locks"
 msgstr "Vertex Grup Kilitleri"
 
 
 msgid "Trim/Add"
 msgstr "Kırp/Ekle"
+
+
+msgid "UV"
+msgstr "UV"
 
 
 msgid "Sculpt Set Pivot"
@@ -29027,10 +29019,6 @@ msgid "Merge"
 msgstr "Birleştir"
 
 
-msgid "Layout"
-msgstr "Yerleşim"
-
-
 msgid "Special Characters"
 msgstr "Özel Karakterler"
 
@@ -29039,12 +29027,16 @@ msgid "Kerning"
 msgstr "Harf aralığı"
 
 
-msgid "Adjust"
-msgstr "Ayarlamak"
+msgid "Layout"
+msgstr "Yerleşim"
 
 
 msgid "Bone Roll"
 msgstr "Kemik Rulosu"
+
+
+msgid "Adjust"
+msgstr "Ayarlamak"
 
 
 msgid "Keying"
@@ -36259,14 +36251,6 @@ msgid "Build proxy resolution 75% of the original footage dimension"
 msgstr "Orijinal görüntü boyutunun %75'i oranında proxy çözünürlüğü oluşturun"
 
 
-msgid "Rec Run"
-msgstr "Rekreasyon Koşusu"
-
-
-msgid "Build record run time code index"
-msgstr "Kayıt çalışma zamanı kod dizini oluşturun"
-
-
 msgid "Build proxy resolution 100% of the original undistorted footage dimension"
 msgstr "Orijinal bozulmamış görüntü boyutunun %100'ü oranında proxy çözünürlüğü oluşturun"
 
@@ -36289,18 +36273,6 @@ msgstr "Proxy dosyalarının depolanacağı konum"
 
 msgid "JPEG quality of proxy images"
 msgstr "Proxy görüntülerinin JPEG kalitesi"
-
-
-msgid "Timecode"
-msgstr "Zaman kodu"
-
-
-msgid "Record Run"
-msgstr "Rekor Koşusu"
-
-
-msgid "Record Run No Gaps"
-msgstr "Rekor Koşusu Boşluk Yok"
 
 
 msgid "Scopes for statistical view of a movie clip"
@@ -42492,10 +42464,6 @@ msgid "Attribute Domain"
 msgstr "Öznitelik Alanı"
 
 
-msgid "Attribute domain where the attribute is stored in the baked data"
-msgstr "Niteliğin pişmiş verilerde depolandığı nitelik alanı"
-
-
 msgid "Bake item is an attribute stored on a geometry"
 msgstr "Pişirme öğesi bir geometride depolanan bir niteliktir"
 
@@ -48644,15 +48612,6 @@ msgstr "Daha hızlı oynatma/izleme için diskten kareleri önceden alın"
 
 
 msgctxt "Operator"
-msgid "Rebuild Proxy and Timecode Indices"
-msgstr "Proxy ve Zaman Kodu Endekslerini Yeniden Oluştur"
-
-
-msgid "Rebuild all selected proxies and timecode indices in the background"
-msgstr "Arka planda seçili tüm proxy'leri ve zaman kodu dizinlerini yeniden oluştur"
-
-
-msgctxt "Operator"
 msgid "Refine Markers"
 msgstr "İşaretleyicileri İyileştir"
 
@@ -53275,6 +53234,11 @@ msgstr "Sonraki Anahtar Kare"
 msgctxt "Operator"
 msgid "Keys to Samples"
 msgstr "Örneklerin Anahtarları"
+
+
+msgctxt "Operator"
+msgid "Local View"
+msgstr "Yerel Görünüm"
 
 
 msgctxt "Operator"
@@ -59863,14 +59827,6 @@ msgstr "Kullanılmayan düğüm soketi görüntüsünü değiştir"
 msgctxt "Operator"
 msgid "Collapse"
 msgstr "Yıkılmak"
-
-
-msgid "Remove an item from the index switch"
-msgstr "Bir öğeyi indeks anahtarından kaldır"
-
-
-msgid "Index to remove"
-msgstr "Kaldırılacak dizin"
 
 
 msgctxt "Operator"
@@ -72208,11 +72164,6 @@ msgid "ICO Sphere"
 msgstr "ICO Küresi"
 
 
-msgctxt "Operator"
-msgid "Local View"
-msgstr "Yerel Görünüm"
-
-
 msgid "Toggle display of selected object(s) separately and centered in view"
 msgstr "Seçili nesnenin/nesnelerin ayrı ayrı ve görünümde ortalanmış olarak görüntülenmesini değiştir"
 
@@ -75598,26 +75549,6 @@ msgid "Panel containing UI elements"
 msgstr "UI öğelerini içeren panel"
 
 
-msgid "Selectability & Visibility"
-msgstr "Seçilebilirlik ve Görünürlük"
-
-
-msgid "Shadow Settings"
-msgstr "Gölge Ayarları"
-
-
-msgid "SSAO Settings"
-msgstr "SSAO Ayarları"
-
-
-msgid "Cavity"
-msgstr "Boşluk"
-
-
-msgid "Render Pass"
-msgstr "Render Geçişi"
-
-
 msgid "Compositor"
 msgstr "Dizgici"
 
@@ -75678,14 +75609,6 @@ msgid "Multi Frame"
 msgstr "Çoklu Çerçeve"
 
 
-msgid "glTF Variants"
-msgstr "glTF Çeşitleri"
-
-
-msgid "glTF Material Variants"
-msgstr "glTF Malzeme Varyantları"
-
-
 msgid "Auto-Masking"
 msgstr "Otomatik Maskeleme"
 
@@ -75706,6 +75629,14 @@ msgid "Viewport Debug"
 msgstr "Görüş Alanı Hata Ayıklaması"
 
 
+msgid "glTF Variants"
+msgstr "glTF Çeşitleri"
+
+
+msgid "glTF Material Variants"
+msgstr "glTF Malzeme Varyantları"
+
+
 msgid "VR"
 msgstr "Sanal Gerçeklik"
 
@@ -75720,6 +75651,26 @@ msgstr "Etkin Araç"
 
 msgid "View Lock"
 msgstr "Görünüm Kilidi"
+
+
+msgid "Selectability & Visibility"
+msgstr "Seçilebilirlik ve Görünürlük"
+
+
+msgid "Shadow Settings"
+msgstr "Gölge Ayarları"
+
+
+msgid "SSAO Settings"
+msgstr "SSAO Ayarları"
+
+
+msgid "Cavity"
+msgstr "Boşluk"
+
+
+msgid "Render Pass"
+msgstr "Render Geçişi"
 
 
 msgid "Chain Scaling"
@@ -75784,10 +75735,6 @@ msgstr "İşaretleyici Ekranı"
 
 msgid "Mask Display"
 msgstr "Maske Gösterimi"
-
-
-msgid "Proxy/Timecode"
-msgstr "Proxy/Zaman Kodu"
 
 
 msgid "Stabilization"
@@ -76545,10 +76492,6 @@ msgstr "Dalga formları"
 
 msgid "Sequencer Snapping"
 msgstr "Dizici Yakalama"
-
-
-msgid "Strip Proxy & Timecode"
-msgstr "Proxy ve Zaman Kodunu Kaldır"
 
 
 msgctxt "Operator"
@@ -85771,10 +85714,6 @@ msgid "Simulation Item"
 msgstr "Benzetim Ögesi"
 
 
-msgid "Attribute domain where the attribute is stored in the simulation state"
-msgstr "Özniteliğin simülasyon durumunda depolandığı öznitelik alanı"
-
-
 msgid "Soft body simulation settings for an object"
 msgstr "Bir nesne için yumuşak gövde simülasyon ayarları"
 
@@ -88937,10 +88876,6 @@ msgid "Convert input to float data"
 msgstr "Girişi kayan noktalı verilere dönüştür"
 
 
-msgid "Use a preview proxy and/or time-code index for this strip"
-msgstr "Bu şerit için bir önizleme proxy'si ve/veya zaman kodu dizini kullanın"
-
-
 msgid "Reverse Frames"
 msgstr "Ters Çerçeveler"
 
@@ -89726,10 +89661,6 @@ msgstr "Özel proxy dosyasının konumu"
 
 msgid "Quality of proxies to build"
 msgstr "Oluşturulacak proxy kalitesi"
-
-
-msgid "Method for reading the inputs timecode"
-msgstr "Giriş zaman kodunu okuma yöntemi"
 
 
 msgid "Overwrite existing proxy files when building"
@@ -92864,10 +92795,6 @@ msgstr "Çiftler halinde teşhir üniteleri (örn. 1m 0cm)"
 
 msgid "Settings to define a reusable library for Asset Browsers to use"
 msgstr "Varlık Tarayıcılarının kullanması için yeniden kullanılabilir bir kitaplık tanımlamaya yönelik ayarlar"
-
-
-msgid "Default Import Method"
-msgstr "Varsayılan İçe Aktarma Yöntemi"
 
 
 msgid "Use relative path when linking assets from this asset library"
@@ -102170,11 +102097,6 @@ msgstr "Bozulmamış Yapı:"
 
 
 msgctxt "Operator"
-msgid "Build Proxy / Timecode"
-msgstr "Proxy / Zaman Kodu Oluştur"
-
-
-msgctxt "Operator"
 msgid "Build Proxy"
 msgstr "Proxy Oluştur"
 
@@ -102312,10 +102234,6 @@ msgstr "Stabilizasyon için Raylar"
 
 msgid "Tracks for Location"
 msgstr "Konum için Parçalar"
-
-
-msgid "Timecode Index"
-msgstr "Zaman Kodu İndeksi"
 
 
 msgctxt "Operator"
@@ -107250,6 +107168,11 @@ msgid "Key %d"
 msgstr "Anahtar %d"
 
 
+msgctxt "Key"
+msgid "Key"
+msgstr "Anahtar"
+
+
 msgid "AOV"
 msgstr "AOV"
 
@@ -110242,6 +110165,10 @@ msgid "No vertex group among the selected vertices"
 msgstr "Seçilen köşeler arasında köşe grubu yok"
 
 
+msgid "No edges selected"
+msgstr "Hiçbir kenar seçilmediHiçbir kenar seçilmedi"
+
+
 msgid "Invalid selection order"
 msgstr "Geçersiz seçim sırası"
 
@@ -110268,10 +110195,6 @@ msgstr "Aktif ağın şekil anahtarları yok"
 
 msgid "Selection not supported in object mode"
 msgstr "Nesne modunda seçim desteklenmiyor"
-
-
-msgid "No edges selected"
-msgstr "Hiçbir kenar seçilmediHiçbir kenar seçilmedi"
 
 
 msgid "No faces filled"
@@ -115926,11 +115849,6 @@ msgid "Failed to load image texture '%s'"
 msgstr "'%s' görüntü dokusu yüklenemedi"
 
 
-msgctxt "Key"
-msgid "Key"
-msgstr "Anahtar"
-
-
 msgid "ViewLayer '%s' does not contain object '%s'"
 msgstr "Görünüm Katmanı '%s', '%s' nesnesini içermiyor"
 
@@ -117466,6 +117384,10 @@ msgid "Crease Edges"
 msgstr "Kenarları Kırın"
 
 
+msgid "Add Item"
+msgstr "Öğe Ekle"
+
+
 msgid "Not a compositor node tree"
 msgstr "Bir kompozitör düğüm ağacı değil"
 
@@ -118480,6 +118402,10 @@ msgid "Top"
 msgstr "Tepe"
 
 
+msgid "Inverted"
+msgstr "Ters Çevrilmiş"
+
+
 msgid "Input Fields"
 msgstr "Giriş Alanları"
 
@@ -118510,6 +118436,10 @@ msgstr "Yukarıdaki geometrideki öznitelik"
 
 msgid "Result of joining generated geometries from each iteration"
 msgstr "Her yinelemeden üretilen geometrilerin birleştirilmesinin sonucu"
+
+
+msgid "Pattern Mode"
+msgstr "Desen Modu"
 
 
 msgid "Layers as Instances"
@@ -118578,10 +118508,6 @@ msgstr "Komşusu Var"
 
 msgid "Index of nearest element"
 msgstr "En yakın elemanın indeksi"
-
-
-msgid "Add Item"
-msgstr "Öğe Ekle"
 
 
 msgid "The camera used for rendering the scene"
@@ -119247,20 +119173,12 @@ msgid "Which top-level instances to realize"
 msgstr "Hangi üst düzey örneklerin gerçekleştirileceği"
 
 
-msgid "Only one * is supported in the pattern"
-msgstr "Desende yalnızca bir * destekleniyor"
-
-
 msgid "Cannot remove built-in attributes: {}"
 msgstr "Yerleşik öznitelikler kaldırılamıyor: {}"
 
 
 msgid "Attribute does not exist: \"{}\""
 msgstr "Öznitelik mevcut değil: \"{}\""
-
-
-msgid "Pattern Mode"
-msgstr "Desen Modu"
 
 
 msgid "How the attributes to remove are chosen"
@@ -119317,10 +119235,6 @@ msgstr "Izgara 1"
 
 msgid "Grid 2"
 msgstr "Izgara 2"
-
-
-msgid "Inverted"
-msgstr "Ters Çevrilmiş"
 
 
 msgid "The parts of the geometry that go into the first output"
@@ -119521,6 +119435,10 @@ msgstr "Tanımsız Düğüm Ağacı Türü"
 
 msgid " (Deprecated)"
 msgstr " (Kullanımdan kaldırıldı)"
+
+
+msgid "Only one * is supported in the pattern"
+msgstr "Desende yalnızca bir * destekleniyor"
 
 
 msgid "Not a shader node tree"

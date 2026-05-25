@@ -1,9 +1,9 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 5.2.0 Alpha (b'bc0a0ff2c0ce')\n"
+"Project-Id-Version: Blender 5.2.0 Alpha (b'24a58e1403ac')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-05-18 11:20+0000\n"
+"POT-Creation-Date: 2026-05-25 07:25+0000\n"
 "PO-Revision-Date: 2026-05-10 15:12+0000\n"
 "Last-Translator: 居樂行 <oscilloscope9705@gmail.com>\n"
 "Language-Team: Chinese (Traditional Han script) <https://translate.blender.org/projects/blender-ui/ui/zh_Hant/>\n"
@@ -1866,6 +1866,22 @@ msgstr "授權條款"
 
 msgid "The type of license this asset is distributed under. An empty license name does not necessarily indicate that this is free of licensing terms. Contact the author if any clarification is needed."
 msgstr "這個素材散布時使用的授權條款類型。授權條款名稱空白不代表素材不受授權條款限制。需要說明時請聯繫作者。"
+
+
+msgid "Link"
+msgstr "連結"
+
+
+msgid "Append"
+msgstr "附加"
+
+
+msgid "Append (Reuse Data)"
+msgstr "附加 (重複利用資料)"
+
+
+msgid "Pack"
+msgstr "打包"
 
 
 msgid "Tags"
@@ -12706,26 +12722,6 @@ msgid "Import Method"
 msgstr "匯入方法"
 
 
-msgid "Follow Preferences"
-msgstr "跟隨偏好設定"
-
-
-msgid "Link"
-msgstr "連結"
-
-
-msgid "Append"
-msgstr "附加"
-
-
-msgid "Append (Reuse Data)"
-msgstr "附加 (重複利用資料)"
-
-
-msgid "Pack"
-msgstr "打包"
-
-
 msgid "2D vector"
 msgstr "2D 向量"
 
@@ -19199,14 +19195,6 @@ msgid "Movie File"
 msgstr "影片檔"
 
 
-msgid "Use Proxy / Timecode"
-msgstr "使用代理 / 時間碼"
-
-
-msgid "Use a preview proxy and/or timecode index for this clip"
-msgstr "為此剪輯使用預覽代理與/或時間碼索引"
-
-
 msgid "Proxy Custom Directory"
 msgstr "代理自訂目錄"
 
@@ -19313,6 +19301,10 @@ msgstr "合成器節點樹"
 
 msgid "Node tree consisting of linked nodes used for compositing"
 msgstr "由連結的節點組成的節點樹，用於合成"
+
+
+msgid "Strip Modifier"
+msgstr "片段修改器"
 
 
 msgid "Viewer Region"
@@ -26520,20 +26512,12 @@ msgid "Viewpoint"
 msgstr "視點"
 
 
-msgid "Math"
-msgstr "數學公式"
-
-
 msgid "Navigation"
 msgstr "導覽"
 
 
 msgid "Align View"
 msgstr "對齊檢視"
-
-
-msgid "Utilities"
-msgstr "效用"
 
 
 msgid "Align View to Active"
@@ -26556,12 +26540,28 @@ msgid "Select All by Trait"
 msgstr "依特徵全選"
 
 
+msgid "Math"
+msgstr "數學公式"
+
+
 msgid "Select Linked"
 msgstr "選取連結項"
 
 
 msgid "Select Loops"
 msgstr "選取迴圈"
+
+
+msgid "Utilities"
+msgstr "效用"
+
+
+msgid "Assign Material"
+msgstr "指派材質"
+
+
+msgid "Metaball"
+msgstr "變幻球"
 
 
 msgid "Read"
@@ -26572,20 +26572,12 @@ msgid "Sample"
 msgstr "取樣"
 
 
-msgid "Assign Material"
-msgstr "指派材質"
-
-
 msgid "Write"
 msgstr "寫入"
 
 
 msgid "Primitives"
 msgstr "原形"
-
-
-msgid "Metaball"
-msgstr "變幻球"
 
 
 msgid "Light"
@@ -26596,14 +26588,6 @@ msgid "Light Probe"
 msgstr "燈光採樣器"
 
 
-msgid "Gizmo"
-msgstr "操縱器"
-
-
-msgid "Instances"
-msgstr "實例化"
-
-
 msgid "Add Image"
 msgstr "新增影像"
 
@@ -26612,12 +26596,16 @@ msgid "Relations"
 msgstr "關係"
 
 
-msgid "Import"
-msgstr "匯入"
-
-
 msgid "Rigid Body"
 msgstr "剛體"
+
+
+msgid "Gizmo"
+msgstr "操縱器"
+
+
+msgid "Instances"
+msgstr "實例化"
 
 
 msgid "Apply"
@@ -26628,12 +26616,12 @@ msgid "Track"
 msgstr "追蹤"
 
 
-msgid "Deprecated"
-msgstr "已棄用"
-
-
 msgid "Quick Effects"
 msgstr "快速效果"
+
+
+msgid "Import"
+msgstr "匯入"
 
 
 msgid "Show/Hide"
@@ -26648,20 +26636,12 @@ msgid "Asset"
 msgstr "素材"
 
 
-msgid "List"
-msgstr "列表"
-
-
 msgid "Make Single User"
 msgstr "製作單一使用者"
 
 
 msgid "Convert"
 msgstr "轉換"
-
-
-msgid "UV"
-msgstr "UV"
 
 
 msgid "Link/Transfer Data"
@@ -26672,12 +26652,24 @@ msgid "Hooks"
 msgstr "鉤"
 
 
+msgid "Deprecated"
+msgstr "已棄用"
+
+
 msgid "Vertex Group Locks"
 msgstr "頂點群組鎖定"
 
 
+msgid "List"
+msgstr "列表"
+
+
 msgid "Trim/Add"
 msgstr "修剪/增加"
+
+
+msgid "UV"
+msgstr "UV"
 
 
 msgid "Sculpt Set Pivot"
@@ -26740,10 +26732,6 @@ msgid "Merge"
 msgstr "合併"
 
 
-msgid "Layout"
-msgstr "配置"
-
-
 msgid "Special Characters"
 msgstr "特殊字元"
 
@@ -26752,12 +26740,16 @@ msgid "Kerning"
 msgstr "字間微調"
 
 
-msgid "Adjust"
-msgstr "調整"
+msgid "Layout"
+msgstr "配置"
 
 
 msgid "Bone Roll"
 msgstr "骨骼滾動"
+
+
+msgid "Adjust"
+msgstr "調整"
 
 
 msgid "Keying"
@@ -26768,16 +26760,8 @@ msgid "Tracking"
 msgstr "跟蹤"
 
 
-msgid "Creative"
-msgstr "創意"
-
-
 msgid "Pivot Point"
 msgstr "樞紐點"
-
-
-msgid "Render Preview"
-msgstr "算繪預覽"
 
 
 msgid "Proportional Editing Falloff"
@@ -26792,8 +26776,16 @@ msgid "Automasking"
 msgstr "自動遮罩"
 
 
+msgid "Creative"
+msgstr "創意"
+
+
 msgid "Face Sets Edit"
 msgstr "面集編輯"
+
+
+msgid "Render Preview"
+msgstr "算繪預覽"
 
 
 msgid "Keyframe Insert Pie"
@@ -32064,14 +32056,6 @@ msgid "Build proxy resolution 75% of the original footage dimension"
 msgstr "原始連續鏡頭維度的建置代理解析度 75%"
 
 
-msgid "Rec Run"
-msgstr "錄製運行"
-
-
-msgid "Build record run time code index"
-msgstr "建置錄製運行時間碼索引"
-
-
 msgid "Build proxy resolution 100% of the original undistorted footage dimension"
 msgstr "原始未扭曲連續鏡頭維度的建置代理解析度 100%"
 
@@ -32094,18 +32078,6 @@ msgstr "儲藏代理檔案的位置"
 
 msgid "JPEG quality of proxy images"
 msgstr "代理影像的 JPEG 品質"
-
-
-msgid "Timecode"
-msgstr "時間碼"
-
-
-msgid "Record Run"
-msgstr "錄製執行"
-
-
-msgid "Record Run No Gaps"
-msgstr "紀錄執行無間隔"
 
 
 msgid "Scopes for statistical view of a movie clip"
@@ -41324,15 +41296,6 @@ msgstr "從磁碟預取影格可加快回放或追蹤的速度"
 
 
 msgctxt "Operator"
-msgid "Rebuild Proxy and Timecode Indices"
-msgstr "重建代理與時間碼索引"
-
-
-msgid "Rebuild all selected proxies and timecode indices in the background"
-msgstr "於背景重建所有選取的代理與時間碼索引"
-
-
-msgctxt "Operator"
 msgid "Refine Markers"
 msgstr "精修標記"
 
@@ -44716,6 +44679,11 @@ msgstr "下一關鍵影格"
 msgctxt "Operator"
 msgid "Keys to Samples"
 msgstr "鍵轉採樣"
+
+
+msgctxt "Operator"
+msgid "Local View"
+msgstr "區域檢視"
 
 
 msgctxt "Operator"
@@ -49632,10 +49600,6 @@ msgstr "切換顯示節點上未用的接口"
 msgctxt "Operator"
 msgid "Collapse"
 msgstr "收起"
-
-
-msgid "Index to remove"
-msgstr "要移除的索引"
 
 
 msgctxt "Operator"
@@ -58938,11 +58902,6 @@ msgid "ICO Sphere"
 msgstr "Ico 球體"
 
 
-msgctxt "Operator"
-msgid "Local View"
-msgstr "區域檢視"
-
-
 msgid "Toggle display of selected object(s) separately and centered in view"
 msgstr "分別切換所選物體的顯示，並置中在檢視中"
 
@@ -61421,22 +61380,6 @@ msgid "Palette Splines"
 msgstr "調色盤雲型線"
 
 
-msgid "Shadow Settings"
-msgstr "陰影設定"
-
-
-msgid "SSAO Settings"
-msgstr "SSAO 設定"
-
-
-msgid "Cavity"
-msgstr "坑腔"
-
-
-msgid "Render Pass"
-msgstr "算繪通道"
-
-
 msgid "Compositor"
 msgstr "合成器"
 
@@ -61505,14 +61448,6 @@ msgid "Multi Frame"
 msgstr "多重畫框"
 
 
-msgid "glTF Variants"
-msgstr "glTF 變體"
-
-
-msgid "glTF Material Variants"
-msgstr "glTF 材質變體"
-
-
 msgid "Auto-Masking"
 msgstr "自動遮罩"
 
@@ -61521,12 +61456,12 @@ msgid "Viewport Debug"
 msgstr "視圖除錯"
 
 
-msgid "glTF"
-msgstr "glTF"
+msgid "glTF Variants"
+msgstr "glTF 變體"
 
 
-msgid "glTF Animations"
-msgstr "glTF 動畫"
+msgid "glTF Material Variants"
+msgstr "glTF 材質變體"
 
 
 msgid "VR"
@@ -61537,12 +61472,36 @@ msgid "VR Info"
 msgstr "VR 資訊"
 
 
+msgid "glTF"
+msgstr "glTF"
+
+
+msgid "glTF Animations"
+msgstr "glTF 動畫"
+
+
 msgid "Active Tool"
 msgstr "作用中工具"
 
 
 msgid "View Lock"
 msgstr "視圖鎖定"
+
+
+msgid "Shadow Settings"
+msgstr "陰影設定"
+
+
+msgid "SSAO Settings"
+msgstr "SSAO 設定"
+
+
+msgid "Cavity"
+msgstr "坑腔"
+
+
+msgid "Render Pass"
+msgstr "算繪通道"
 
 
 msgid "Import Settings"
@@ -61616,10 +61575,6 @@ msgstr "標記顯示"
 
 msgid "Mask Display"
 msgstr "遮罩顯示"
-
-
-msgid "Proxy/Timecode"
-msgstr "代理 / 時間碼"
 
 
 msgid "Stabilization"
@@ -62419,6 +62374,10 @@ msgstr "波形"
 
 msgid "Sequencer Snapping"
 msgstr "序段編輯器吸附"
+
+
+msgid "Strip Proxy"
+msgstr "片段代理"
 
 
 msgctxt "Operator"
@@ -73133,10 +73092,6 @@ msgid "Collection of StripElement"
 msgstr "片段元素的集盒"
 
 
-msgid "Strip Modifier"
-msgstr "片段修改器"
-
-
 msgid "Modifier for sequence strip"
 msgstr "序段片段的修改器"
 
@@ -73293,10 +73248,6 @@ msgstr "白值"
 
 msgid "Collection of strip modifiers"
 msgstr "片段修改器的集盒"
-
-
-msgid "Strip Proxy"
-msgstr "片段代理"
 
 
 msgid "Proxy parameters for a sequence strip"
@@ -82484,11 +82435,6 @@ msgstr "建置除去扭曲："
 
 
 msgctxt "Operator"
-msgid "Build Proxy / Timecode"
-msgstr "建置代理 / 時間碼"
-
-
-msgctxt "Operator"
 msgid "Build Proxy"
 msgstr "重建代理"
 
@@ -82586,10 +82532,6 @@ msgstr "作用中平面軌道"
 
 msgid "Tracks for Location"
 msgstr "用於位置的軌道"
-
-
-msgid "Timecode Index"
-msgstr "時間碼索引"
 
 
 msgctxt "Operator"
@@ -87178,6 +87120,11 @@ msgid "shape_keys"
 msgstr "外形鍵"
 
 
+msgctxt "Key"
+msgid "Key"
+msgstr "按鍵"
+
+
 msgid "lattices"
 msgstr "晶格"
 
@@ -89762,6 +89709,10 @@ msgid "No vertex selected"
 msgstr "無選取的頂點"
 
 
+msgid "No edges selected"
+msgstr "無選取的邊線"
+
+
 msgid "Use mouse"
 msgstr "使用滑鼠"
 
@@ -89784,10 +89735,6 @@ msgstr "無選取的頂點"
 
 msgid "Selection not supported in object mode"
 msgstr "物體模式中未支援選取"
-
-
-msgid "No edges selected"
-msgstr "無選取的邊線"
 
 
 msgid "No faces filled"
@@ -93647,11 +93594,6 @@ msgid "Image '%s' does not have any image data"
 msgstr "影像「%s」沒有任何影像資料"
 
 
-msgctxt "Key"
-msgid "Key"
-msgstr "按鍵"
-
-
 msgid "ViewLayer '%s' does not contain object '%s'"
 msgstr "檢視層「%s」不包含物體「%s」"
 
@@ -94762,6 +94704,10 @@ msgid "Crease Edges"
 msgstr "皺摺邊線"
 
 
+msgid "Add Item"
+msgstr "新增項目"
+
+
 msgid "Not a compositor node tree"
 msgstr "不是合成器節點樹"
 
@@ -95496,10 +95442,6 @@ msgid "Object has no pose"
 msgstr "物件無姿態"
 
 
-msgid "Bone not found"
-msgstr "找不到骨骼"
-
-
 msgid "Unknown Boolean error"
 msgstr "未知布林錯誤"
 
@@ -95753,6 +95695,10 @@ msgid "Top"
 msgstr "頂"
 
 
+msgid "Inverted"
+msgstr "反轉"
+
+
 msgid "Input Fields"
 msgstr "輸入場域"
 
@@ -95771,6 +95717,10 @@ msgstr "遺失幾何"
 
 msgid "Element"
 msgstr "元素"
+
+
+msgid "Pattern Mode"
+msgstr "樣式模式"
 
 
 msgid "Runge-Kutta 3"
@@ -95847,10 +95797,6 @@ msgstr "STL 檔案的路徑"
 
 msgid "Has Neighbor"
 msgstr "有相鄰"
-
-
-msgid "Add Item"
-msgstr "新增項目"
 
 
 msgctxt "Mesh"
@@ -96160,14 +96106,6 @@ msgid "Realize All"
 msgstr "現實化全部"
 
 
-msgid "Wildcard"
-msgstr "萬用字元"
-
-
-msgid "Pattern Mode"
-msgstr "樣式模式"
-
-
 msgid "Repeat Items"
 msgstr "重複項目"
 
@@ -96207,10 +96145,6 @@ msgstr "格線 1"
 
 msgid "Grid 2"
 msgstr "格線 2"
-
-
-msgid "Inverted"
-msgstr "反轉"
 
 
 msgid "Remove Custom"
@@ -96381,6 +96315,10 @@ msgstr "未定義的節點樹類型"
 msgctxt "Color"
 msgid "Unknown"
 msgstr "未知"
+
+
+msgid "Wildcard"
+msgstr "萬用字元"
 
 
 msgid "Add Inputs"

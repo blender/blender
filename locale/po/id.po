@@ -1,9 +1,9 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 5.2.0 Alpha (b'bc0a0ff2c0ce')\n"
+"Project-Id-Version: Blender 5.2.0 Alpha (b'24a58e1403ac')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-05-18 11:20+0000\n"
+"POT-Creation-Date: 2026-05-25 07:25+0000\n"
 "PO-Revision-Date: 2025-12-23 20:36+0000\n"
 "Last-Translator: \"Adriel Y.\" <mixnblend@users.noreply.translate.blender.org>\n"
 "Language-Team: Indonesian <https://translate.blender.org/projects/blender-ui/ui/id/>\n"
@@ -1784,6 +1784,14 @@ msgstr "Lisensi"
 
 msgid "The type of license this asset is distributed under. An empty license name does not necessarily indicate that this is free of licensing terms. Contact the author if any clarification is needed."
 msgstr "Jenis lisensi yang digunakan untuk mendistribusikan aset ini. Nama lisensi yang kosong tidak selalu menunjukkan bahwa aset ini bebas dari ketentuan lisensi. Hubungi pembuat jika ada klarifikasi yang diperlukan."
+
+
+msgid "Link"
+msgstr "Tautan"
+
+
+msgid "Append"
+msgstr "Tambahkan (Append)"
 
 
 msgid "Tags"
@@ -10464,14 +10472,6 @@ msgid "Library Browser"
 msgstr "Peramban Perpustakaan"
 
 
-msgid "Link"
-msgstr "Tautan"
-
-
-msgid "Append"
-msgstr "Tambahkan (Append)"
-
-
 msgid "Matrix"
 msgstr "Matriks"
 
@@ -15644,24 +15644,20 @@ msgid "Snap"
 msgstr "Jepret"
 
 
-msgid "Math"
-msgstr "Matematika"
-
-
 msgid "Navigation"
 msgstr "Navigasi"
 
 
-msgid "Utilities"
-msgstr "Utilitas"
+msgid "Math"
+msgstr "Matematika"
 
 
 msgid "Select Linked"
 msgstr "Seleksi yang Terhubung"
 
 
-msgid "Sample"
-msgstr "Sampel"
+msgid "Utilities"
+msgstr "Utilitas"
 
 
 msgid "Assign Material"
@@ -15672,12 +15668,20 @@ msgid "Metaball"
 msgstr "Metabola"
 
 
+msgid "Sample"
+msgstr "Sampel"
+
+
 msgid "Light"
 msgstr "Cahaya"
 
 
 msgid "Light Probe"
 msgstr "Probe Cahaya"
+
+
+msgid "Add Image"
+msgstr "Tambah Gambar"
 
 
 msgid "Gizmo"
@@ -15688,14 +15692,6 @@ msgid "Instances"
 msgstr "Contoh-contoh"
 
 
-msgid "Add Image"
-msgstr "Tambah Gambar"
-
-
-msgid "Import"
-msgstr "Impor"
-
-
 msgid "Apply"
 msgstr "Tetapkan"
 
@@ -15704,16 +15700,20 @@ msgid "Track"
 msgstr "Lacak"
 
 
+msgid "Import"
+msgstr "Impor"
+
+
 msgid "Asset"
 msgstr "Aset"
 
 
-msgid "UV"
-msgstr "UV"
-
-
 msgid "Hooks"
 msgstr "Kait"
+
+
+msgid "UV"
+msgstr "UV"
 
 
 msgid "Names"
@@ -17255,14 +17255,6 @@ msgid "Build proxy resolution 75% of the original footage dimension"
 msgstr "Bangun proxy resolusi 75% dimensi rekaman asli"
 
 
-msgid "Rec Run"
-msgstr "Lari Rec"
-
-
-msgid "Build record run time code index"
-msgstr "Bangun indeks kode waktu lari rekam"
-
-
 msgid "Build proxy resolution 100% of the original undistorted footage dimension"
 msgstr "Bangun proxy resolusi 100% dimensi rekaman tidak terdistorsi asli"
 
@@ -17285,10 +17277,6 @@ msgstr "Lokasi menyimpan dokumen proxy"
 
 msgid "JPEG quality of proxy images"
 msgstr "Kualitas JPEG gambar proxy"
-
-
-msgid "Record Run"
-msgstr "Rekam Lari"
 
 
 msgid "Movie Clip User"
@@ -20658,6 +20646,11 @@ msgstr "Saluran-saluran Aktif di Kursor"
 msgctxt "Operator"
 msgid "Jump to Keyframe"
 msgstr "Lompat ke Keyframe"
+
+
+msgctxt "Operator"
+msgid "Local View"
+msgstr "Pandangan Lokal"
 
 
 msgctxt "Operator"
@@ -24832,11 +24825,6 @@ msgstr "Mencocokkan permukaan normal"
 
 msgid "Surface Project"
 msgstr "Proyek Permukaan"
-
-
-msgctxt "Operator"
-msgid "Local View"
-msgstr "Pandangan Lokal"
 
 
 msgid "Frame Selected"
@@ -29695,10 +29683,6 @@ msgid "Set Y Axis"
 msgstr "Set Axis Y"
 
 
-msgid "Timecode Index"
-msgstr "Indeks Kodewaktu"
-
-
 msgctxt "Operator"
 msgid "Zoom to Fit"
 msgstr "Diperbesar sampai Cukup"
@@ -31182,6 +31166,11 @@ msgid "Basis"
 msgstr "Basis"
 
 
+msgctxt "Key"
+msgid "Key"
+msgstr "Kunci"
+
+
 msgid "materials"
 msgstr "bahan-bahan"
 
@@ -31877,12 +31866,12 @@ msgid "No vertex group among the selected vertices"
 msgstr "Tidak ada kelompok simpul di antara simpul yang terpilih"
 
 
-msgid "Invalid selection order"
-msgstr "Urutan seleksi yang tidak valid"
-
-
 msgid "No edges selected"
 msgstr "Tidak ada tepi yang terseleksi"
+
+
+msgid "Invalid selection order"
+msgstr "Urutan seleksi yang tidak valid"
 
 
 msgid "No faces filled"
@@ -32788,11 +32777,6 @@ msgid "Failed to load image texture '%s'"
 msgstr "Gagal memuat tekstur gambar '%s'"
 
 
-msgctxt "Key"
-msgid "Key"
-msgstr "Kunci"
-
-
 msgid "Failed to add the color modifier"
 msgstr "Gagal menambahkan pengubah warna"
 
@@ -33221,6 +33205,10 @@ msgid "The highest value in each group"
 msgstr "Nilai tertinggi di setiap kelompok"
 
 
+msgid "Inverted"
+msgstr "Terbalik"
+
+
 msgid "Input Fields"
 msgstr "Fields Masukan"
 
@@ -33348,10 +33336,6 @@ msgstr "Dimana contoh-contoh level-atas yang perlu disadari"
 
 msgid "Scale Mode"
 msgstr "Mode Skala"
-
-
-msgid "Inverted"
-msgstr "Terbalik"
 
 
 msgid "Skip"

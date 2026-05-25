@@ -1,9 +1,9 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 5.2.0 Alpha (b'bc0a0ff2c0ce')\n"
+"Project-Id-Version: Blender 5.2.0 Alpha (b'24a58e1403ac')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-05-18 11:20+0000\n"
+"POT-Creation-Date: 2026-05-25 07:25+0000\n"
 "PO-Revision-Date: 2025-12-01 09:17+0000\n"
 "Last-Translator: Matt Mitacek <mattmitacek@gmail.com>\n"
 "Language-Team: Czech <https://translate.blender.org/projects/blender-ui/ui/cs/>\n"
@@ -1445,6 +1445,18 @@ msgstr "Popis objektu, který se zobrazí uživateli"
 
 msgid "License"
 msgstr "Licence"
+
+
+msgid "Link"
+msgstr "Připojit"
+
+
+msgid "Append"
+msgstr "Připojit"
+
+
+msgid "Pack"
+msgstr "Zabalit"
 
 
 msgid "Tags"
@@ -7668,18 +7680,6 @@ msgid "Show text files"
 msgstr "Ukáže textové soubory"
 
 
-msgid "Link"
-msgstr "Připojit"
-
-
-msgid "Append"
-msgstr "Připojit"
-
-
-msgid "Pack"
-msgstr "Zabalit"
-
-
 msgid "2D vector"
 msgstr "2D vektor"
 
@@ -10226,10 +10226,6 @@ msgstr "Snímková frekvence"
 
 msgid "Movie File"
 msgstr "Přidat action strip"
-
-
-msgid "Use Proxy / Timecode"
-msgstr "Editační mód"
 
 
 msgid "Proxy Custom Directory"
@@ -13851,10 +13847,6 @@ msgid "Local View"
 msgstr "Lokální pohled"
 
 
-msgid "Math"
-msgstr "Matematika"
-
-
 msgid "Navigation"
 msgstr "Navigace"
 
@@ -13863,12 +13855,16 @@ msgid "Align View"
 msgstr "Zarovnat pohled"
 
 
-msgid "Utilities"
-msgstr "Nástroje"
+msgid "Math"
+msgstr "Matematika"
 
 
 msgid "Select Linked"
 msgstr "Vybrat Propojené"
+
+
+msgid "Utilities"
+msgstr "Nástroje"
 
 
 msgid "Assign Material"
@@ -13883,20 +13879,16 @@ msgid "Light"
 msgstr "Světlo"
 
 
-msgid "Instances"
-msgstr "Instance"
-
-
 msgid "Relations"
 msgstr "Vztahy"
 
 
-msgid "Import"
-msgstr "Importovat"
-
-
 msgid "Rigid Body"
 msgstr "Tuhé Těleso"
+
+
+msgid "Instances"
+msgstr "Instance"
 
 
 msgid "Apply"
@@ -13909,6 +13901,10 @@ msgstr "Sledování"
 
 msgid "Quick Effects"
 msgstr "Rychlé Efekty"
+
+
+msgid "Import"
+msgstr "Importovat"
 
 
 msgid "Show/Hide"
@@ -13951,12 +13947,12 @@ msgid "Merge"
 msgstr "Sloučit"
 
 
-msgid "Layout"
-msgstr "Rozložení"
-
-
 msgid "Special Characters"
 msgstr "Speciální Znaky"
+
+
+msgid "Layout"
+msgstr "Rozložení"
 
 
 msgid "Bone Roll"
@@ -16266,18 +16262,6 @@ msgstr "Normály směrem ven"
 
 msgid "Proxy parameters for a movie clip"
 msgstr "První frame animace"
-
-
-msgid "Rec Run"
-msgstr "Otevřít naposledy použité"
-
-
-msgid "Timecode"
-msgstr "Editační mód"
-
-
-msgid "Record Run No Gaps"
-msgstr "Volný"
 
 
 msgid "Movie Clip User"
@@ -20028,11 +20012,6 @@ msgid "Paste Tracks"
 msgstr "Vytvořit sledování"
 
 
-msgctxt "Operator"
-msgid "Rebuild Proxy and Timecode Indices"
-msgstr "Editační mód"
-
-
 msgid "Backwards"
 msgstr "Pozpátku"
 
@@ -21905,6 +21884,11 @@ msgstr "Předchozí klíč"
 
 msgid "Next Keyframe"
 msgstr "Další klíč"
+
+
+msgctxt "Operator"
+msgid "Local View"
+msgstr "Lokální pohled"
 
 
 msgid "Flip times of selected keyframes, effectively reversing the order they appear in"
@@ -29270,11 +29254,6 @@ msgid "Interactively fly around the scene"
 msgstr "Insteraktivní přelet nad scénou"
 
 
-msgctxt "Operator"
-msgid "Local View"
-msgstr "Lokální pohled"
-
-
 msgid "Toggle display of selected object(s) separately and centered in view"
 msgstr "Přepíná celkové zobrazené scény a částečné zobrazení vybraného(-ých) objektu(-ů)"
 
@@ -30351,18 +30330,6 @@ msgid "Restrict"
 msgstr "Omezit"
 
 
-msgid "Shadow Settings"
-msgstr "Nastavení Stínů"
-
-
-msgid "SSAO Settings"
-msgstr "Nastavení SSAO"
-
-
-msgid "Cavity"
-msgstr "Dutina"
-
-
 msgid "Overlays"
 msgstr "Překrytí"
 
@@ -30407,6 +30374,18 @@ msgid "View Lock"
 msgstr "Zámek zobrazení"
 
 
+msgid "Shadow Settings"
+msgstr "Nastavení Stínů"
+
+
+msgid "SSAO Settings"
+msgstr "Nastavení SSAO"
+
+
+msgid "Cavity"
+msgstr "Dutina"
+
+
 msgid "Chain Scaling"
 msgstr "Změna měřítka řetězu"
 
@@ -30441,10 +30420,6 @@ msgstr "Zobrazení klipu"
 
 msgid "Footage Settings"
 msgstr "Nastavení záběrů"
-
-
-msgid "Proxy/Timecode"
-msgstr "Proxy/Timecode"
 
 
 msgid "Stabilization"
@@ -40223,6 +40198,11 @@ msgid "True Normal"
 msgstr "Dle normály"
 
 
+msgctxt "Key"
+msgid "Key"
+msgstr "Klíč"
+
+
 msgid "ParticleSettings"
 msgstr "NastaveníČástic"
 
@@ -41160,6 +41140,10 @@ msgid "No vertex selected"
 msgstr "Nebyl vybrán žádný vrchol"
 
 
+msgid "No edges selected"
+msgstr "Nebyly vybrány žádné hrany"
+
+
 msgid "Could not find any selected edges that can be rotated"
 msgstr "Nebyly vybrány žádné hrany, které lze otočit"
 
@@ -41170,10 +41154,6 @@ msgstr "Žádný vybraný vrchol"
 
 msgid "Selection not supported in object mode"
 msgstr "Výběr není v objektovém režimu podporován"
-
-
-msgid "No edges selected"
-msgstr "Nebyly vybrány žádné hrany"
 
 
 msgid "No active vertex group"
@@ -42452,11 +42432,6 @@ msgstr "Automaticky vkládat klíče objektu a Action Ipo křivky"
 
 msgid "Image not packed"
 msgstr "Název obrázku"
-
-
-msgctxt "Key"
-msgid "Key"
-msgstr "Klíč"
 
 
 msgid "Geometry modifier '%s' could not be removed"

@@ -1,9 +1,9 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 5.2.0 Alpha (b'bc0a0ff2c0ce')\n"
+"Project-Id-Version: Blender 5.2.0 Alpha (b'24a58e1403ac')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-05-18 11:20+0000\n"
+"POT-Creation-Date: 2026-05-25 07:25+0000\n"
 "PO-Revision-Date: 2025-07-23 15:34+0000\n"
 "Last-Translator: Just Adam <adam.abbas2009@gmail.com>\n"
 "Language-Team: Bulgarian <https://translate.blender.org/projects/blender-ui/ui/bg/>\n"
@@ -154,6 +154,18 @@ msgstr "Възлов Редактор"
 
 msgid "Author"
 msgstr "Автор"
+
+
+msgid "Link"
+msgstr "Връзка"
+
+
+msgid "Append"
+msgstr "Добави"
+
+
+msgid "Pack"
+msgstr "Пакетирай"
 
 
 msgid "Custom"
@@ -812,18 +824,6 @@ msgid "Sort"
 msgstr "Сортирай"
 
 
-msgid "Link"
-msgstr "Връзка"
-
-
-msgid "Append"
-msgstr "Добави"
-
-
-msgid "Pack"
-msgstr "Пакетирай"
-
-
 msgid "End"
 msgstr "Край"
 
@@ -1156,16 +1156,16 @@ msgid "Light"
 msgstr "Светлина"
 
 
-msgid "Import"
-msgstr "Внеси"
-
-
 msgid "Rigid Body"
 msgstr "Твърдо тяло"
 
 
 msgid "Apply"
 msgstr "Прилагане"
+
+
+msgid "Import"
+msgstr "Внеси"
 
 
 msgid "Make Single User"

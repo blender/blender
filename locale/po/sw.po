@@ -1,9 +1,9 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 5.2.0 Alpha (b'bc0a0ff2c0ce')\n"
+"Project-Id-Version: Blender 5.2.0 Alpha (b'24a58e1403ac')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-05-18 11:20+0000\n"
+"POT-Creation-Date: 2026-05-25 07:25+0000\n"
 "PO-Revision-Date: 2025-11-14 10:59+0000\n"
 "Last-Translator: Isaac Gicheha <shwaky3@gmail.com>\n"
 "Language-Team: Swahili <https://translate.blender.org/projects/blender-ui/ui/sw/>\n"
@@ -1508,6 +1508,30 @@ msgstr "Maelezo ya kipengee kitakachoonyeshwa kwa mtumiaji"
 
 msgid "License"
 msgstr "Leseni"
+
+
+msgid "Default Import Method"
+msgstr "Njia Chaguomsingi ya Kuingiza"
+
+
+msgid "Link"
+msgstr "Kiungo"
+
+
+msgid "Import the assets as linked data-block"
+msgstr "Ingiza mali kama kizuizi cha data kilichounganishwa"
+
+
+msgid "Append"
+msgstr "Nyongeza"
+
+
+msgid "Import the assets as copied data-block, with no link to the original asset data-block"
+msgstr "Ingiza mali kama kizuizi cha data kilichonakiliwa, bila kiunga cha kizuizi cha data cha mali asili."
+
+
+msgid "Append (Reuse Data)"
+msgstr "Weka (Tumia Tena Data)"
 
 
 msgid "Tags"
@@ -12485,28 +12509,8 @@ msgid "Determine how the asset will be imported"
 msgstr "Amua jinsi mali itaingizwa"
 
 
-msgid "Follow Preferences"
-msgstr "Fuata Mapendeleo"
-
-
 msgid "Use the import method set in the Preferences for this asset library, don't override it for this Asset Browser"
 msgstr "Tumia mbinu ya kuingiza iliyowekwa katika Mapendeleo ya maktaba hii ya kipengee, usiifute kwa Kivinjari hiki cha Mali."
-
-
-msgid "Link"
-msgstr "Kiungo"
-
-
-msgid "Import the assets as linked data-block"
-msgstr "Ingiza mali kama kizuizi cha data kilichounganishwa"
-
-
-msgid "Append"
-msgstr "Nyongeza"
-
-
-msgid "Append (Reuse Data)"
-msgstr "Weka (Tumia Tena Data)"
 
 
 msgid "Float2 Attribute Value"
@@ -20779,14 +20783,6 @@ msgid "Movie File"
 msgstr "Faili ya Filamu"
 
 
-msgid "Use Proxy / Timecode"
-msgstr "Tumia Wakala / Msimbo wa saa"
-
-
-msgid "Use a preview proxy and/or timecode index for this clip"
-msgstr "Tumia onyesho la kukagua proksi na/au faharasa ya msimbo wa saa kwa klipu hii"
-
-
 msgid "Proxy Custom Directory"
 msgstr "Saraka Maalum ya Wakala"
 
@@ -28274,20 +28270,24 @@ msgid "Snap"
 msgstr "Picha"
 
 
+msgid "Navigation"
+msgstr "Urambazaji"
+
+
 msgid "Math"
 msgstr "Hisabati"
 
 
-msgid "Navigation"
-msgstr "Urambazaji"
+msgid "Select Linked"
+msgstr "Chagua Imeunganishwa"
 
 
 msgid "Utilities"
 msgstr "Huduma"
 
 
-msgid "Select Linked"
-msgstr "Chagua Imeunganishwa"
+msgid "Metaball"
+msgstr "Mpira wa miguu"
 
 
 msgid "Read"
@@ -28306,10 +28306,6 @@ msgid "Primitives"
 msgstr "Watu wa kwanza"
 
 
-msgid "Metaball"
-msgstr "Mpira wa miguu"
-
-
 msgid "Light"
 msgstr "Mwanga"
 
@@ -28322,16 +28318,12 @@ msgid "Instances"
 msgstr "Matukio"
 
 
-msgid "Import"
-msgstr "Ingiza"
-
-
 msgid "Apply"
 msgstr "Tumia"
 
 
-msgid "Deprecated"
-msgstr "Imeacha kutumika"
+msgid "Import"
+msgstr "Ingiza"
 
 
 msgid "Show/Hide"
@@ -28344,6 +28336,10 @@ msgstr "Safisha"
 
 msgid "Asset"
 msgstr "Mali"
+
+
+msgid "Deprecated"
+msgstr "Imeacha kutumika"
 
 
 msgid "Bone Collections"
@@ -35560,10 +35556,6 @@ msgid "Build proxy resolution 75% of the original footage dimension"
 msgstr "Jenga azimio la seva mbadala 75% ya kipimo asili cha picha"
 
 
-msgid "Build record run time code index"
-msgstr "Jenga faharisi ya msimbo wa wakati wa kukimbia"
-
-
 msgid "Build proxy resolution 100% of the original undistorted footage dimension"
 msgstr "Jenga azimio la wakala 100% ya mwelekeo wa picha asilia ambao haujapotoshwa"
 
@@ -35586,18 +35578,6 @@ msgstr "Mahali pa kuhifadhi faili za seva mbadala"
 
 msgid "JPEG quality of proxy images"
 msgstr "Ubora wa JPEG wa picha za seva mbadala"
-
-
-msgid "Timecode"
-msgstr "Msimbo wa saa"
-
-
-msgid "Record Run"
-msgstr "Uendeshaji wa Rekodi"
-
-
-msgid "Record Run No Gaps"
-msgstr "Rekodi Usifanye Mapengo"
 
 
 msgid "Scopes for statistical view of a movie clip"
@@ -41412,10 +41392,6 @@ msgid "Attribute Domain"
 msgstr "Kikoa cha Sifa"
 
 
-msgid "Attribute domain where the attribute is stored in the baked data"
-msgstr "Kikoa cha sifa ambapo sifa huhifadhiwa kwenye data iliyooka"
-
-
 msgid "Is Attribute"
 msgstr "Je, Sifa"
 
@@ -46957,15 +46933,6 @@ msgstr "Leta fremu kutoka kwa diski kwa uchezaji/kufuatilia kwa haraka"
 
 
 msgctxt "Operator"
-msgid "Rebuild Proxy and Timecode Indices"
-msgstr "Jenga Upya Wakala na Fahirisi za Msimbo wa Muda"
-
-
-msgid "Rebuild all selected proxies and timecode indices in the background"
-msgstr "Unda upya proksi zote zilizochaguliwa na fahirisi za msimbo wa saa nyuma"
-
-
-msgctxt "Operator"
 msgid "Refine Markers"
 msgstr "Safisha Alama"
 
@@ -51692,6 +51659,11 @@ msgstr "Funguo za Sampuli"
 
 msgid "Convert selected channels to an uneditable set of samples to save storage space"
 msgstr "Badilisha chaneli zilizochaguliwa kuwa seti isiyoweza kuhaririwa ya sampuli ili kuhifadhi nafasi ya kuhifadhi"
+
+
+msgctxt "Operator"
+msgid "Local View"
+msgstr "Taswira ya Ndani"
 
 
 msgctxt "Operator"
@@ -57961,10 +57933,6 @@ msgstr "Geuza onyesho la tundu la nodi ambalo halijatumika"
 msgctxt "Operator"
 msgid "Collapse"
 msgstr "Kunja"
-
-
-msgid "Remove an item from the index switch"
-msgstr "Ondoa kipengee kutoka kwa swichi ya faharasa"
 
 
 msgctxt "Operator"
@@ -69412,11 +69380,6 @@ msgid "Start placing the center position"
 msgstr "Anza kuweka nafasi ya katikati"
 
 
-msgctxt "Operator"
-msgid "Local View"
-msgstr "Taswira ya Ndani"
-
-
 msgid "Toggle display of selected object(s) separately and centered in view"
 msgstr "Geuza onyesho la kitu/vitu vilivyochaguliwa kando na kuweka katikati katika mwonekano"
 
@@ -72582,18 +72545,6 @@ msgid "Panel containing UI elements"
 msgstr "Paneli iliyo na vipengele vya UI"
 
 
-msgid "Selectability & Visibility"
-msgstr "Uteuzi"
-
-
-msgid "Shadow Settings"
-msgstr "Mipangilio ya Kivuli"
-
-
-msgid "SSAO Settings"
-msgstr "Mipangilio ya SSAO"
-
-
 msgid "Compositor"
 msgstr "Mtunzi"
 
@@ -72656,6 +72607,18 @@ msgstr "Utatuzi wa kituo cha kutazama"
 
 msgid "View Lock"
 msgstr "Kufuli ya Tazama"
+
+
+msgid "Selectability & Visibility"
+msgstr "Uteuzi"
+
+
+msgid "Shadow Settings"
+msgstr "Mipangilio ya Kivuli"
+
+
+msgid "SSAO Settings"
+msgstr "Mipangilio ya SSAO"
 
 
 msgid "Motion Blur"
@@ -81119,10 +81082,6 @@ msgid "Simulation Item"
 msgstr "Kipengee cha Kuiga"
 
 
-msgid "Attribute domain where the attribute is stored in the simulation state"
-msgstr "Kikoa cha sifa ambapo sifa huhifadhiwa katika hali ya kuiga"
-
-
 msgid "Soft body simulation settings for an object"
 msgstr "Mipangilio laini ya kuiga mwili kwa kitu"
 
@@ -84082,10 +84041,6 @@ msgid "Convert input to float data"
 msgstr "Badilisha ingizo ili data ya kuelea"
 
 
-msgid "Use a preview proxy and/or time-code index for this strip"
-msgstr "Tumia proksi ya kukagua na/au faharasa ya msimbo wa saa kwa ukanda huu"
-
-
 msgid "Reverse Frames"
 msgstr "Fremu za Nyuma"
 
@@ -84836,10 +84791,6 @@ msgstr "Mahali pa faili maalum ya wakala"
 
 msgid "Quality of proxies to build"
 msgstr "Ubora wa proksi za kujenga"
-
-
-msgid "Method for reading the inputs timecode"
-msgstr "Njia ya kusoma nambari ya saa ya pembejeo"
 
 
 msgid "Overwrite existing proxy files when building"
@@ -87658,16 +87609,8 @@ msgid "Settings to define a reusable library for Asset Browsers to use"
 msgstr "Mipangilio ya kufafanua maktaba inayoweza kutumika tena kwa Vivinjari vya Mali ya kutumia"
 
 
-msgid "Default Import Method"
-msgstr "Njia Chaguomsingi ya Kuingiza"
-
-
 msgid "Determine how the asset will be imported, unless overridden by the Asset Browser"
 msgstr "Amua jinsi mali itakavyoletwa, isipokuwa ikiwa imebatilishwa na Kivinjari cha Mali."
-
-
-msgid "Import the assets as copied data-block, with no link to the original asset data-block"
-msgstr "Ingiza mali kama kizuizi cha data kilichonakiliwa, bila kiunga cha kizuizi cha data cha mali asili."
 
 
 msgid "Path to a directory with .blend files to use as an asset library"
@@ -95079,11 +95022,6 @@ msgstr "Jenga Isiyopotoshwa:"
 
 
 msgctxt "Operator"
-msgid "Build Proxy / Timecode"
-msgstr "Jenga Wakala / Msimbo wa saa"
-
-
-msgctxt "Operator"
 msgid "Build Proxy"
 msgstr "Jenga Wakala"
 
@@ -95207,10 +95145,6 @@ msgstr "Nyimbo za Kuimarisha"
 
 msgid "Tracks for Location"
 msgstr "Nyimbo za Mahali"
-
-
-msgid "Timecode Index"
-msgstr "Kielezo cha Msimbo wa Muda"
 
 
 msgctxt "Operator"
@@ -99348,6 +99282,11 @@ msgid "shape_keys"
 msgstr "funguo_za_umbo"
 
 
+msgctxt "Key"
+msgid "Key"
+msgstr "Ufunguo"
+
+
 msgid "lattices"
 msgstr "lati"
 
@@ -102014,6 +101953,10 @@ msgid "No vertex group among the selected vertices"
 msgstr "Hakuna kikundi cha kipeo kati ya vipeo vilivyochaguliwa"
 
 
+msgid "No edges selected"
+msgstr "Hakuna kingo zilizochaguliwa"
+
+
 msgid "Invalid selection order"
 msgstr "Agizo batili la uteuzi"
 
@@ -102040,10 +101983,6 @@ msgstr "Mesh inayotumika haina funguo za umbo"
 
 msgid "Selection not supported in object mode"
 msgstr "Uteuzi hautumiki katika modi ya kitu"
-
-
-msgid "No edges selected"
-msgstr "Hakuna kingo zilizochaguliwa"
 
 
 msgid "No faces filled"
@@ -107395,11 +107334,6 @@ msgid "Failed to load image texture '%s'"
 msgstr "Imeshindwa kupakia muundo wa picha '%s'"
 
 
-msgctxt "Key"
-msgid "Key"
-msgstr "Ufunguo"
-
-
 msgid "ViewLayer '%s' does not contain object '%s'"
 msgstr "TazamaLayer '%s' haina kitu '%s'"
 
@@ -109607,6 +109541,10 @@ msgid "Top"
 msgstr "Juu"
 
 
+msgid "Inverted"
+msgstr "Imegeuzwa"
+
+
 msgid "Values larger than the threshold are inside the generated mesh"
 msgstr "Thamani kubwa kuliko kizingiti ziko ndani ya wavu uliozalishwa"
 
@@ -110419,10 +110357,6 @@ msgstr "Asili ya kuongeza kwa kila kipengele."
 
 msgid "Direction in which to scale the element"
 msgstr "Mwelekeo wa kuongeza kipengele"
-
-
-msgid "Inverted"
-msgstr "Imegeuzwa"
 
 
 msgid "The parts of the geometry that go into the first output"

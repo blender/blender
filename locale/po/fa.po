@@ -1,9 +1,9 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 5.2.0 Alpha (b'bc0a0ff2c0ce')\n"
+"Project-Id-Version: Blender 5.2.0 Alpha (b'24a58e1403ac')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-05-18 11:20+0000\n"
+"POT-Creation-Date: 2026-05-25 07:25+0000\n"
 "PO-Revision-Date: 2025-11-19 06:24+0000\n"
 "Last-Translator: \"M. Amin Taheri\" <amintaheri2001@gmail.com>\n"
 "Language-Team: Persian <https://translate.blender.org/projects/blender-ui/ui/fa/>\n"
@@ -1138,6 +1138,18 @@ msgstr "ﺎﻨﻬﭘ"
 
 msgid "Area width"
 msgstr "ﻪﻘﻄﻨﻣ ﯼﺎﻨﻬﭘ"
+
+
+msgid "Link"
+msgstr "ﺪﻧﻮﯿﭘ"
+
+
+msgid "Append"
+msgstr "ﻥﺩﻭﺰﻓﺍ"
+
+
+msgid "Pack"
+msgstr "ﻪﺘﺴﺑ"
 
 
 msgid "Full Path"
@@ -2305,18 +2317,6 @@ msgid "Operator"
 msgstr "ﻞﻣﺎﻋ"
 
 
-msgid "Link"
-msgstr "ﺪﻧﻮﯿﭘ"
-
-
-msgid "Append"
-msgstr "ﻥﺩﻭﺰﻓﺍ"
-
-
-msgid "Pack"
-msgstr "ﻪﺘﺴﺑ"
-
-
 msgid "Matrix"
 msgstr "ﺲﯾﺮﺗﺎﻣ"
 
@@ -3098,12 +3098,12 @@ msgid "Relations"
 msgstr "ﻂﺑﺍﻭﺭ"
 
 
-msgid "Import"
-msgstr "ﻥﺩﺮﮐ ﺩﺭﺍﻭ"
-
-
 msgid "Apply"
 msgstr "ﻝﺎﻤﻋﺍ"
+
+
+msgid "Import"
+msgstr "ﻥﺩﺮﮐ ﺩﺭﺍﻭ"
 
 
 msgid "Convert"

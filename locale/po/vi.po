@@ -1,10 +1,10 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 5.2.0 Alpha (b'bc0a0ff2c0ce')\n"
+"Project-Id-Version: Blender 5.2.0 Alpha (b'24a58e1403ac')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-05-18 11:20+0000\n"
-"PO-Revision-Date: 2026-05-17 06:12+0000\n"
+"POT-Creation-Date: 2026-05-25 07:25+0000\n"
+"PO-Revision-Date: 2026-05-24 00:12+0000\n"
 "Last-Translator: Hoang Duy Tran <hoangduytran1960@googlemail.com>\n"
 "Language-Team: Vietnamese <https://translate.blender.org/projects/blender-ui/ui/vi/>\n"
 "Language: vi\n"
@@ -1914,6 +1914,42 @@ msgstr "Giấy Phép"
 
 msgid "The type of license this asset is distributed under. An empty license name does not necessarily indicate that this is free of licensing terms. Contact the author if any clarification is needed."
 msgstr "Thể loại giấy phép mà tài sản này vốn dùng khi phân phối. Giấy phép trống rỗng không nhất thiết biểu thị rằng cái này là miễn phí, không có điều khoản cấp phép. Xin liên hệ với tác giả nếu cần làm rõ vấn đề."
+
+
+msgid "Default Import Method"
+msgstr "Phương Pháp Nhập Khẩu Mặc Định"
+
+
+msgid "Link"
+msgstr "Kết Nối"
+
+
+msgid "Import the assets as linked data-block"
+msgstr "Nhập khẩu tài sản dưới dạng khối dữ liệu kết nối"
+
+
+msgid "Append"
+msgstr "Bổ Sung"
+
+
+msgid "Import the assets as copied data-block, with no link to the original asset data-block"
+msgstr "Nhập khẩu tài sản tựa khối dữ liệu sao chép, không có liên kết gì với khối dữ liệu tài sản ban đầu cả"
+
+
+msgid "Append (Reuse Data)"
+msgstr "Bổ Sung (Tái Dụng Dữ Liệu)"
+
+
+msgid "Import the assets as copied data-block while avoiding multiple copies of nested, typically heavy data. For example the textures of a material asset, or the mesh of an object asset, don't have to be copied every time this asset is imported. The instances of the asset share the data instead."
+msgstr "Nhập khẩu tài sản dưới dạng khối dữ liệu sao chép, để tránh né tình trạng nhiều bản sao dữ liệu lồng nhau, thường là các dữ liệu nặng nề. Ví dụ, chất liệu của một tài sản nguyên vật liệu, hoặc khung lưới của một tài sản đối tượng, thì không cần phải sao chép mỗi khi nhập khẩu tài sản này. Thay vào đó, các thực thể của tài sản sẽ dùng chung dữ liệu."
+
+
+msgid "Pack"
+msgstr "Đóng Gói"
+
+
+msgid "Import the asset as linked data-block, and pack it in the current file (ensures that it remains unchanged in case the library data is modified, is not available anymore, etc.)"
+msgstr "Nhập khẩu tài sản dưới dạng khối dữ liệu liên kết và đóng gói nó vào trong tập tin hiện tại (hòng đảm bảo rằng nó không thay đổi trong trường hợp dữ liệu thư viện bị sửa đổi, không còn khả dụng nữa, v.v.)"
 
 
 msgid "Tags"
@@ -15199,44 +15235,16 @@ msgid "Determine how the asset will be imported"
 msgstr "Xác định phương pháp nhập khẩu tài sản"
 
 
-msgid "Follow Preferences"
-msgstr "Theo Cài Đặt Sở Thích"
-
-
 msgid "Use the import method set in the Preferences for this asset library, don't override it for this Asset Browser"
 msgstr "Sử dụng phương thức nhập khẩu cài đặt trong Cài Đặt Sở Thích cho thư viện tài sản này, không vượt quyền phương thức nhập khẩu cho Trình Duyệt Thảo Tài Sản này"
-
-
-msgid "Link"
-msgstr "Kết Nối"
-
-
-msgid "Import the assets as linked data-block"
-msgstr "Nhập khẩu tài sản dưới dạng khối dữ liệu kết nối"
-
-
-msgid "Append"
-msgstr "Bổ Sung"
 
 
 msgid "Import the asset as copied data-block, with no link to the original asset data-block"
 msgstr "Nhập khẩu tài sản tựa khối dữ liệu sao chép, không có liên kết gì với khối dữ liệu tài sản ban đầu cả"
 
 
-msgid "Append (Reuse Data)"
-msgstr "Bổ Sung (Tái Dụng Dữ Liệu)"
-
-
 msgid "Import the asset as copied data-block while avoiding multiple copies of nested, typically heavy data. For example the textures of a material asset, or the mesh of an object asset, don't have to be copied every time this asset is imported. The instances of the asset share the data instead"
 msgstr "Nhập khẩu tài sản dưới dạng khối dữ liệu sao chép, trong khi tránh né tình trạng nhiều bản sao dữ liệu lồng nhau, thường là các dữ liệu nặng nề. Ví dụ: chất liệu của một tài sản vật liệu, hoặc khung lưới của một tài sản đối tượng, không cần phải sao chép mỗi khi tài sản này được nhập khẩu. Thay vào đó, các thực thể của tài sản chia sẻ (dùng chung) một dữ liệu"
-
-
-msgid "Pack"
-msgstr "Đóng Gói"
-
-
-msgid "Import the asset as linked data-block, and pack it in the current file (ensures that it remains unchanged in case the library data is modified, is not available anymore, etc.)"
-msgstr "Nhập khẩu tài sản dưới dạng khối dữ liệu liên kết và đóng gói nó vào trong tập tin hiện tại (hòng đảm bảo rằng nó không thay đổi trong trường hợp dữ liệu thư viện bị sửa đổi, không còn khả dụng nữa, v.v.)"
 
 
 msgid "Instance Collections on Appending"
@@ -22439,7 +22447,7 @@ msgstr "Hộp Văn Bản đang Hoạt Động"
 
 
 msgid "Horizontal Alignment"
-msgstr "Căn Chỉnh Chiều Ngang"
+msgstr "Căn Chỉnh theo Chiều Ngang"
 
 
 msgid "Text horizontal alignment from the object or text box center"
@@ -22475,7 +22483,7 @@ msgstr "Căn chỉnh về cả bên trái và phải, với phân khoảng các 
 
 
 msgid "Vertical Alignment"
-msgstr "Căn Chỉnh Chiều Dọc"
+msgstr "Căn Chỉnh theo Chiều Dọc"
 
 
 msgid "Text vertical alignment from the object center"
@@ -25625,14 +25633,6 @@ msgid "Movie File"
 msgstr "Tập Tin Phim"
 
 
-msgid "Use Proxy / Timecode"
-msgstr "Dùng Đại Diện / Mã Thời Gian"
-
-
-msgid "Use a preview proxy and/or timecode index for this clip"
-msgstr "Sử dụng một xem trước đại diện và/hoặc chỉ số mã thời gian cho đoạn phim này"
-
-
 msgid "Proxy Custom Directory"
 msgstr "Thư Mục Đại Diện Tùy Chọn"
 
@@ -25775,6 +25775,10 @@ msgstr "Cây Nút Tổng Hợp"
 
 msgid "Node tree consisting of linked nodes used for compositing"
 msgstr "Cây nút bao gồm các nút đã kết nối, dùng cho quá trình tổng hợp"
+
+
+msgid "Strip Modifier"
+msgstr "Bộ Điều Chỉnh Dải"
 
 
 msgid "Viewer Region"
@@ -35147,20 +35151,12 @@ msgid "Viewpoint"
 msgstr "Điểm Nhìn"
 
 
-msgid "Math"
-msgstr "Toán"
-
-
 msgid "Navigation"
 msgstr "Điều Hướng"
 
 
 msgid "Align View"
 msgstr "Căn Chỉnh Góc Nhìn"
-
-
-msgid "Utilities"
-msgstr "Thường Trình"
 
 
 msgid "Align View to Active"
@@ -35183,12 +35179,28 @@ msgid "Select All by Trait"
 msgstr "Chọn Toàn Bộ theo Đặc Điểm"
 
 
+msgid "Math"
+msgstr "Toán"
+
+
 msgid "Select Linked"
 msgstr "Chọn cái Kết Nối"
 
 
 msgid "Select Loops"
 msgstr "Chọn Vòng Mạch"
+
+
+msgid "Utilities"
+msgstr "Thường Trình"
+
+
+msgid "Assign Material"
+msgstr "Ấn Định Nguyên Vật Liệu"
+
+
+msgid "Metaball"
+msgstr "Siêu Cầu"
 
 
 msgid "Read"
@@ -35199,20 +35211,12 @@ msgid "Sample"
 msgstr "Lấy Mẫu Vật"
 
 
-msgid "Assign Material"
-msgstr "Ấn Định Nguyên Vật Liệu"
-
-
 msgid "Write"
 msgstr "Viết"
 
 
 msgid "Primitives"
 msgstr "Hình Cơ Bản"
-
-
-msgid "Metaball"
-msgstr "Siêu Cầu"
 
 
 msgid "Light"
@@ -35223,14 +35227,6 @@ msgid "Light Probe"
 msgstr "Đầu Dò Ánh Sáng"
 
 
-msgid "Gizmo"
-msgstr "Dụng Cụ"
-
-
-msgid "Instances"
-msgstr "Thực Thể"
-
-
 msgid "Add Image"
 msgstr "Thêm Hình Ảnh"
 
@@ -35239,12 +35235,16 @@ msgid "Relations"
 msgstr "Mối Quan Hệ"
 
 
-msgid "Import"
-msgstr "Nhập Khẩu"
-
-
 msgid "Rigid Body"
 msgstr "Thân Cứng"
+
+
+msgid "Gizmo"
+msgstr "Dụng Cụ"
+
+
+msgid "Instances"
+msgstr "Thực Thể"
 
 
 msgid "Apply"
@@ -35255,12 +35255,12 @@ msgid "Track"
 msgstr "Giám Sát"
 
 
-msgid "Deprecated"
-msgstr "Lỗi Thời"
-
-
 msgid "Quick Effects"
 msgstr "Hiệu Ứng Nhanh"
+
+
+msgid "Import"
+msgstr "Nhập Khẩu"
 
 
 msgid "Show/Hide"
@@ -35275,20 +35275,12 @@ msgid "Asset"
 msgstr "Tài Sản"
 
 
-msgid "List"
-msgstr "Nâng"
-
-
 msgid "Make Single User"
 msgstr "Biến Thành Đơn Người Dùng"
 
 
 msgid "Convert"
 msgstr "Chuyển Đổi"
-
-
-msgid "UV"
-msgstr "UV"
 
 
 msgid "Link/Transfer Data"
@@ -35299,8 +35291,16 @@ msgid "Hooks"
 msgstr "Móc"
 
 
+msgid "Deprecated"
+msgstr "Lỗi Thời"
+
+
 msgid "Vertex Group Locks"
 msgstr "Khóa của Nhóm Điểm Đỉnh"
+
+
+msgid "List"
+msgstr "Nâng"
 
 
 msgid "Trim/Add"
@@ -35309,6 +35309,10 @@ msgstr "Cắt Xén/Thêm"
 
 msgid "Add Primitive"
 msgstr "Thêm Hình Cơ Bản"
+
+
+msgid "UV"
+msgstr "UV"
 
 
 msgid "Sculpt Set Pivot"
@@ -35375,10 +35379,6 @@ msgid "Merge"
 msgstr "Hợp Nhất"
 
 
-msgid "Layout"
-msgstr "Bố Trí"
-
-
 msgid "Special Characters"
 msgstr "Các Ký Tự Đặc Biệt"
 
@@ -35387,12 +35387,16 @@ msgid "Kerning"
 msgstr "Tinh Chỉnh Khoảng Cách Ký Tự"
 
 
-msgid "Adjust"
-msgstr "Điều Chỉnh"
+msgid "Layout"
+msgstr "Bố Trí"
 
 
 msgid "Bone Roll"
 msgstr "Lăn Xương"
+
+
+msgid "Adjust"
+msgstr "Điều Chỉnh"
 
 
 msgid "Keying"
@@ -35403,16 +35407,8 @@ msgid "Tracking"
 msgstr "Giám Sát"
 
 
-msgid "Creative"
-msgstr "Kiến Tạo"
-
-
 msgid "Pivot Point"
 msgstr "Điểm Tựa"
-
-
-msgid "Render Preview"
-msgstr "Góc Nhìn Kết Xuất"
 
 
 msgid "Proportional Editing Falloff"
@@ -35427,8 +35423,16 @@ msgid "Automasking"
 msgstr "Tự Động Chắn Lọc"
 
 
+msgid "Creative"
+msgstr "Kiến Tạo"
+
+
 msgid "Face Sets Edit"
 msgstr "Biên Soạn các Tập Hợp Mặt"
+
+
+msgid "Render Preview"
+msgstr "Góc Nhìn Kết Xuất"
 
 
 msgid "Keyframe Insert Pie"
@@ -35473,7 +35477,7 @@ msgstr "Sắp Đặt về Dấu Mốc"
 
 
 msgid "Plane Track Image Specials"
-msgstr "Chức Năng Đặc Biệt của Hình Ảnh Giám Sát Bình Diện"
+msgstr "Chức Năng Đặc Biệt về Hình Ảnh Giám Sát Bình Diện"
 
 
 msgid "Proxy"
@@ -35493,11 +35497,11 @@ msgstr "Giải Nghiệm"
 
 
 msgid "Translation Track Specials"
-msgstr "Những Đặc Biệt của Giám Sát Dịch Chuyển"
+msgstr "Chức Năng Đặc Biệt của Giám Sát Dịch Chuyển"
 
 
 msgid "Rotation Track Specials"
-msgstr "Những Đặc Biệt của Giám Sát Xoay Chiều"
+msgstr "Chức Năng Đặc Biệt của Giám Sát Xoay Chiều"
 
 
 msgid "Track Motion"
@@ -35522,7 +35526,7 @@ msgstr "Thu-Phóng"
 
 
 msgid "Collection Specials"
-msgstr "Thao Tác Đặc Biệt về Bộ Sưu Tập"
+msgstr "Chức Năng Đặc Biệt về Bộ Sưu Tập"
 
 
 msgid "Console"
@@ -35542,7 +35546,7 @@ msgstr "Chức Năng Đặc Biệt về Thuộc Tính"
 
 
 msgid "Rigify Color Sets Specials"
-msgstr "Rigify các Bộ Màu Đặc Biệt"
+msgstr "Các Bộ Màu Đặc Biệt của Rigify"
 
 
 msgid "Cache"
@@ -35562,11 +35566,11 @@ msgstr "Dấu Mốc"
 
 
 msgid "Bookmarks Specials"
-msgstr "Những Đặc Biệt về Dấu Trang"
+msgstr "Chức Năng Đặc Biệt về Dấu Trang"
 
 
 msgid "Recent Items Specials"
-msgstr "Những Đặc Biệt về các Mục Gần Đây"
+msgstr "Chức Năng Đặc Biệt về các Mục Gần Đây"
 
 
 msgid "Files"
@@ -35600,7 +35604,7 @@ msgstr "Thêm Màn Chắn"
 
 
 msgid "Material Specials"
-msgstr "Những Đặc Biệt về Nguyên Vật Liệu"
+msgstr "Chức Năng về Nguyên Vật Liệu"
 
 
 msgid "Move to Layer"
@@ -35642,7 +35646,7 @@ msgstr "Chức Năng Đặc Biệt về Thuộc Tính Màu"
 
 
 msgid "Shape Key Specials"
-msgstr "Những Đặc Biệt của Hình Mẫu"
+msgstr "Chức Năng Đặc Biệt về Hình Mẫu"
 
 
 msgid "Shape Key context menu"
@@ -35650,7 +35654,7 @@ msgstr "Trình đơn ngữ cảnh của Hình Mẫu"
 
 
 msgid "Vertex Group Specials"
-msgstr "Những Đặc Biệt của Nhóm Điểm Đỉnh"
+msgstr "Chức Năng Đặc Biệt về Nhóm Điểm Đỉnh"
 
 
 msgid "Strip"
@@ -35672,11 +35676,11 @@ msgstr "Nút"
 
 
 msgid "Node Color Specials"
-msgstr "Những Đặc Biệt về Màu Nút"
+msgstr "Chức Năng Đặc Biệt về Màu Nút"
 
 
 msgid "Node Tree Interface Specials"
-msgstr "Những Đặc Biệt về Giao Diện Cây Nút"
+msgstr "Chức Năng Đặc Biệt về Giao Diện Cây Nút"
 
 
 msgid "New Item"
@@ -35753,7 +35757,7 @@ msgstr "Trao Đổi"
 
 
 msgid "Light Linking Specials"
-msgstr "Những Đặc Biệt về Liên Kết Ánh Sáng"
+msgstr "Chức Năng Đặc Biệt về Liên Kết Ánh Sáng"
 
 
 msgid "Add Modifier"
@@ -35769,7 +35773,7 @@ msgstr "Vật Lý"
 
 
 msgid "Shadow Linking Specials"
-msgstr "Những Đặc Biệt về Liên Kết Bóng Tối"
+msgstr "Chức Năng Đặc Biệt về Liên Kết Bóng Tối"
 
 
 msgid "ID Data"
@@ -35777,7 +35781,7 @@ msgstr "Dữ Liệu ID"
 
 
 msgid "Particle Specials"
-msgstr "Những Đặc Biệt của Hệ Thống Hạt"
+msgstr "Chức Năng Đặc Biệt của Hệ Thống Hạt"
 
 
 msgid "Choose Selection Set"
@@ -35785,7 +35789,7 @@ msgstr "Chọn Bộ Lựa Chọn"
 
 
 msgid "Selection Sets Specials"
-msgstr "Các Đặc Biệt của Bộ Lựa Chọn"
+msgstr "Chức Năng Đặc Biệt về Bộ Lựa Chọn"
 
 
 msgid "Select Selection Set"
@@ -35797,7 +35801,7 @@ msgstr "Cấu Hình về Tần Số Khung Hình"
 
 
 msgid "Lineset Specials"
-msgstr "Những Đặc Biệt của Bộ Đường Nét"
+msgstr "Chức Năng Đặc Biệt của Bộ Đường Nét"
 
 
 msgid "Pixel Density Presets"
@@ -35862,7 +35866,7 @@ msgstr "Tính Lại Thời Gian"
 
 
 msgid "Texture Specials"
-msgstr "Những Đặc Biệt của Chất Liệu"
+msgstr "Chức Năng Đặc Biệt của Chất Liệu"
 
 
 msgid "Text to 3D Object"
@@ -35986,7 +35990,7 @@ msgstr "Lưu & Nạp"
 
 
 msgid "Brush Specials"
-msgstr "Những Đặc Biệt về Đầu Bút"
+msgstr "Chức Năng Đặc Biệt về Đầu Bút"
 
 
 msgctxt "Operator"
@@ -43644,14 +43648,6 @@ msgid "Build proxy resolution 75% of the original footage dimension"
 msgstr "Xây dựng đại diện với độ phân giải bằng 75% kích thước của đoạn phim gốc"
 
 
-msgid "Rec Run"
-msgstr "Quá Trình Thu"
-
-
-msgid "Build record run time code index"
-msgstr "Dựng chỉ số mã thời gian theo quá trình thu"
-
-
 msgid "Build proxy resolution 100% of the original undistorted footage dimension"
 msgstr "Xây dựng đại diện với độ phân giải bằng 100% kích thước nguyên thủy của đoạn phim gốc"
 
@@ -43674,30 +43670,6 @@ msgstr "Vị trí để lưu giữ các tập tin đại diện"
 
 msgid "JPEG quality of proxy images"
 msgstr "Chất lượng JPEG của hình ảnh đại diện"
-
-
-msgid "Timecode"
-msgstr "Mã Thời Gian"
-
-
-msgid "Ignore generated timecodes, seek in movie stream based on calculated timestamp"
-msgstr "Bỏ qua mã thời gian sinh tạo, lùng tìm trong luồng phim dựa trên dấu thời gian đã tính toán"
-
-
-msgid "Record Run"
-msgstr "Quá Trình Thu"
-
-
-msgid "Seek based on timestamps read from movie stream, giving the best match between scene and movie times"
-msgstr "Lùng tìm dựa trên dấu thời gian đọc từ luồng phim ra, cung cấp sự xứng khớp tốt nhất giữa thời gian cảnh và phim"
-
-
-msgid "Record Run No Gaps"
-msgstr "Quá Trình Thu Không Cách Trống"
-
-
-msgid "Effectively convert movie to an image sequence, ignoring incomplete or dropped frames, and changes in frame rate"
-msgstr "Hệ quả như chuyển đổi phim thành một trình tự hình ảnh, bỏ qua các khung hình ghi không đầy đủ hoặc bị bỏ rơi mất, và các thay đổi về tốc độ khung hình"
 
 
 msgid "Scopes for statistical view of a movie clip"
@@ -52381,10 +52353,6 @@ msgid "Attribute Domain"
 msgstr "Phạm Vi Thuộc tính"
 
 
-msgid "Attribute domain where the attribute is stored in the baked data"
-msgstr "Phạm vi thuộc tính nơi thuộc tính được lưu trữ trong dữ liệu nướng"
-
-
 msgid "Is Attribute"
 msgstr "Là Thuộc Tính"
 
@@ -59835,15 +59803,6 @@ msgstr "Nạp sẵn các khung hình từ đĩa để chơi/giám sát được 
 
 
 msgctxt "Operator"
-msgid "Rebuild Proxy and Timecode Indices"
-msgstr "Tái Xây Dựng Chỉ Số của Đại Diện và Mã Thời Gian"
-
-
-msgid "Rebuild all selected proxies and timecode indices in the background"
-msgstr "Tái xây dựng toàn bộ các chỉ số của đại diện và mã thời gian được chọn ngầm ở sau nền"
-
-
-msgctxt "Operator"
 msgid "Refine Markers"
 msgstr "Tinh Chỉnh Dấu Mốc"
 
@@ -65238,6 +65197,11 @@ msgstr "Khóa sang Mẫu Vật"
 
 msgid "Convert selected channels to an uneditable set of samples to save storage space"
 msgstr "Chuyển đổi các kênh đã chọn thành một tập hợp mẫu vật bất khả chỉnh sửa để tiết kiệm dung lượng lưu trữ"
+
+
+msgctxt "Operator"
+msgid "Local View"
+msgstr "Góc Nhìn Cục Bộ"
 
 
 msgctxt "Operator"
@@ -73299,18 +73263,6 @@ msgstr "Thu Lại"
 
 msgid "Toggle collapsing of selected nodes"
 msgstr "Bật/tắt giải hoạt các nút đã chọn"
-
-
-msgid "Add an item to the index switch"
-msgstr "Thêm một mục vào chuyển đổi chỉ số"
-
-
-msgid "Remove an item from the index switch"
-msgstr "Xóa một mục khỏi đổi chỉ số"
-
-
-msgid "Index to remove"
-msgstr "Chỉ số để xóa"
 
 
 msgctxt "Operator"
@@ -84235,10 +84187,6 @@ msgid "Reassign the inputs for the effect strip"
 msgstr "Đổi nguồn của dãy hiệu ứng"
 
 
-msgid "Rebuild all selected proxies and timecode indices"
-msgstr "Tái dựng toàn bộ các chỉ số của đại diện và mã thời gian được chọn"
-
-
 msgctxt "Operator"
 msgid "Refresh Sequencer"
 msgstr "Vẽ Lại Trình Phối Hình"
@@ -84688,10 +84636,6 @@ msgstr "Trượt đẩy các dải dưới con trỏ chuột thay vì toàn bộ
 msgctxt "Operator"
 msgid "Snap Strips to the Current Frame"
 msgstr "Bắt Dính các Dải vào Khung Hình Hiện Tại"
-
-
-msgid "Snap strips to the current frame, using the active strip as the anchor, and the mouse cursor relative to the playhead to determine the side of the playhead to snap to"
-msgstr "Bắt dính các dải vào khung hình hiện tại, sử dụng dải đang được chọn làm điểm neo đậu, và vị trí con trỏ chuột tương đối với đầu phát, để xác định phía nào của đầu phát sẽ được bắt dính vào"
 
 
 msgid "Frame where selected strips will be snapped"
@@ -88350,11 +88294,6 @@ msgstr "Khởi đầu đặt xuống vị trí trung tâm"
 
 msgid "ICO Sphere"
 msgstr "Hình Cầu Đa Diện Đều"
-
-
-msgctxt "Operator"
-msgid "Local View"
-msgstr "Góc Nhìn Cục Bộ"
 
 
 msgid "Toggle display of selected object(s) separately and centered in view"
@@ -92646,26 +92585,6 @@ msgid "Panel containing UI elements"
 msgstr "Bảng có chứa các phần tử Giao Diện Người Dùng (UI)"
 
 
-msgid "Selectability & Visibility"
-msgstr "Khả Năng Lựa Chọn & Tính Hữu Hình"
-
-
-msgid "Shadow Settings"
-msgstr "Sắp Đặt về Bóng Tối"
-
-
-msgid "SSAO Settings"
-msgstr "Sắp Đặt về SSAO"
-
-
-msgid "Cavity"
-msgstr "Khe Hốc"
-
-
-msgid "Render Pass"
-msgstr "Lượt Kết Xuất"
-
-
 msgid "Compositor"
 msgstr "Trình Tổng Hợp"
 
@@ -92734,14 +92653,6 @@ msgid "Multi Frame"
 msgstr "Đa Khung Hình"
 
 
-msgid "glTF Variants"
-msgstr "Biến Thể glTF"
-
-
-msgid "glTF Material Variants"
-msgstr "Biến Thể Nguyên Vật Liệu glTF"
-
-
 msgid "Auto-Masking"
 msgstr "Tự Động Chắn Lọc"
 
@@ -92762,8 +92673,12 @@ msgid "Viewport Debug"
 msgstr "Hiệu Chỉnh Lỗi Cổng Nhìn"
 
 
-msgid "glTF Animations"
-msgstr "Hoạt Họa glTF"
+msgid "glTF Variants"
+msgstr "Biến Thể glTF"
+
+
+msgid "glTF Material Variants"
+msgstr "Biến Thể Nguyên Vật Liệu glTF"
 
 
 msgid "VR"
@@ -92774,12 +92689,36 @@ msgid "VR Info"
 msgstr "Thông Tin VR"
 
 
+msgid "glTF Animations"
+msgstr "Hoạt Họa glTF"
+
+
 msgid "Active Tool"
 msgstr "Công Cụ đang Hoạt Động"
 
 
 msgid "View Lock"
 msgstr "Khóa Góc Nhìn"
+
+
+msgid "Selectability & Visibility"
+msgstr "Khả Năng Lựa Chọn & Tính Hữu Hình"
+
+
+msgid "Shadow Settings"
+msgstr "Sắp Đặt về Bóng Tối"
+
+
+msgid "SSAO Settings"
+msgstr "Sắp Đặt về SSAO"
+
+
+msgid "Cavity"
+msgstr "Khe Hốc"
+
+
+msgid "Render Pass"
+msgstr "Lượt Kết Xuất"
 
 
 msgid "Import Settings"
@@ -92853,10 +92792,6 @@ msgstr "Hiển Thị Dấu Mốc"
 
 msgid "Mask Display"
 msgstr "Hiển Thị Màn Chắn Lọc"
-
-
-msgid "Proxy/Timecode"
-msgstr "Đại Diện/Mã Thời Gian"
 
 
 msgid "Stabilization"
@@ -93719,8 +93654,8 @@ msgid "Sequencer Snapping"
 msgstr "Bắt Dính Trình Phối Hình"
 
 
-msgid "Strip Proxy & Timecode"
-msgstr "Đại Diện & Mã Thời Gian của Dải"
+msgid "Strip Proxy"
+msgstr "Đại Diện Dải"
 
 
 msgctxt "Operator"
@@ -98075,10 +98010,6 @@ msgid "French - Français"
 msgstr "Tiếng Pháp (Français)"
 
 
-msgid "Locale code: fr_FR. Translation progress: 100%"
-msgstr "Mã ngôn ngữ: ru_RU. Tiến độ dịch thuật: 100%"
-
-
 msgid "Georgian - ქართული"
 msgstr "Tiếng Gruzia (ქართული)"
 
@@ -98149,10 +98080,6 @@ msgstr "Tiếng Nhật (日本語)"
 
 msgid "Korean - 한국어"
 msgstr "Tiếng Hàn Quốc (한국어)"
-
-
-msgid "Locale code: ko_KR. Translation progress: 96%"
-msgstr "Mã ngôn ngữ: không_KR. Tiến độ dịch thuật: 96%"
 
 
 msgid "Kyrgyz - Кыргыз тили"
@@ -98231,10 +98158,6 @@ msgid "Russian - Русский"
 msgstr "Tiếng Nga (Русский)"
 
 
-msgid "Locale code: ru_RU. Translation progress: 100%"
-msgstr "Mã ngôn ngữ: ru_RU. Tiến độ dịch thuật: 100%"
-
-
 msgid "Serbian (Cyrillic) - Српски"
 msgstr "Tiếng Serbia (Chữ Kirin) - Српски"
 
@@ -98275,24 +98198,12 @@ msgid "Swahili - Kiswahili"
 msgstr "Tiếng Swahili (Kiswahili)"
 
 
-msgid "Locale code: sw. Translation progress: 71%"
-msgstr "Mã ngôn ngữ: sw. Tiến độ dịch thuật: 71%"
-
-
 msgid "Swedish - Svenska"
 msgstr "Tiếng Thụy Điển (Svenska)"
 
 
-msgid "Locale code: sv_SE. Translation progress: 98%"
-msgstr "Mã ngôn ngữ: sv_SE. Tiến độ dịch thuật: 99%"
-
-
 msgid "Tamil - தமிழ்"
 msgstr "Tiếng Tamil (தமிழ்)"
-
-
-msgid "Locale code: ta. Translation progress: 98%"
-msgstr "Mã ngôn ngữ: ta. Tiến độ dịch thuật: 99%"
 
 
 msgid "Thai - ภาษาไทย"
@@ -98307,16 +98218,8 @@ msgid "Turkish - Türkçe"
 msgstr "Tiếng Thổ Nhĩ Kỳ (Türkçe)"
 
 
-msgid "Locale code: tr_TR. Translation progress: 77%"
-msgstr "Mã ngôn ngữ: tr_TR. Tiến độ dịch thuật 77%"
-
-
 msgid "Ukrainian - Українська"
 msgstr "Tiếng Ukraina (Українська)"
-
-
-msgid "Locale code: uk_UA. Translation progress: 56%"
-msgstr "Mã ngôn ngữ: uk_UA. Tiến độ dịch thuật 56%"
 
 
 msgid "Urdu - وُدرُا"
@@ -101343,7 +101246,7 @@ msgstr "Cài đặt mặc định cho thanh trượt Mí Mắt Đi Theo (X và Z
 
 
 msgid "Split Eyelid Follow Slider"
-msgstr "Tách Rời Mí Mắt Theo Thanh Trượt"
+msgstr "Thanh Trượt Theo Dõi Mí Mắt Tách Riêng"
 
 
 msgid "Create separate eyelid follow influence sliders for X and Z"
@@ -105727,10 +105630,6 @@ msgid "Simulation Item"
 msgstr "Mục Mô Phỏng"
 
 
-msgid "Attribute domain where the attribute is stored in the simulation state"
-msgstr "Phạm vi thuộc tính nơi thuộc tính vốn được lưu trữ ở trong trạng thái mô phỏng"
-
-
 msgid "Soft body simulation settings for an object"
 msgstr "Sắp đặt mô phỏng thân mềm cho một đối tượng"
 
@@ -109449,10 +109348,6 @@ msgid "Convert input to float data"
 msgstr "Đổi dữ liệu cung cấp thành dữ liệu số thực (float)"
 
 
-msgid "Use a preview proxy and/or time-code index for this strip"
-msgstr "Dùng đại diện xem trước và/hoặc chỉ số mã thời gian cho đoạn phim này"
-
-
 msgid "Reverse Frames"
 msgstr "Đảo Ngược các Khung Hình"
 
@@ -110236,10 +110131,6 @@ msgid "Collection of StripElement"
 msgstr "Bộ Sưu Tập Phần Tử Dải"
 
 
-msgid "Strip Modifier"
-msgstr "Bộ Điều Chỉnh Dải"
-
-
 msgid "Modifier for sequence strip"
 msgstr "Bộ điều chỉnh cho dải trình tự"
 
@@ -110533,10 +110424,6 @@ msgid "The active strip modifier in the list"
 msgstr "Bộ điều chỉnh đang hoạt động trong bảng danh sách"
 
 
-msgid "Strip Proxy"
-msgstr "Đại Diện Dải"
-
-
 msgid "Proxy parameters for a sequence strip"
 msgstr "Các tham số của bản đại diện cho một dải trình tự"
 
@@ -110563,10 +110450,6 @@ msgstr "Vị trí của tập tin đại diện tùy chọn"
 
 msgid "Quality of proxies to build"
 msgstr "Chất lượng của các bản đại diện sẽ xây dựng"
-
-
-msgid "Method for reading the inputs timecode"
-msgstr "Phương pháp để đọc mã thời gian của đầu vào"
 
 
 msgid "Overwrite existing proxy files when building"
@@ -114294,20 +114177,8 @@ msgid "Enable the asset library"
 msgstr "Bật thư viện tài sản"
 
 
-msgid "Default Import Method"
-msgstr "Phương Pháp Nhập Khẩu Mặc Định"
-
-
 msgid "Determine how the asset will be imported, unless overridden by the Asset Browser"
 msgstr "Xác định phương pháp tài sản sẽ được nhập khẩu, trừ khi bị vượt quyền bởi Trình Duyệt Thảo Tài Sản"
-
-
-msgid "Import the assets as copied data-block, with no link to the original asset data-block"
-msgstr "Nhập khẩu tài sản tựa khối dữ liệu sao chép, không có liên kết gì với khối dữ liệu tài sản ban đầu cả"
-
-
-msgid "Import the assets as copied data-block while avoiding multiple copies of nested, typically heavy data. For example the textures of a material asset, or the mesh of an object asset, don't have to be copied every time this asset is imported. The instances of the asset share the data instead."
-msgstr "Nhập khẩu tài sản dưới dạng khối dữ liệu sao chép, để tránh né tình trạng nhiều bản sao dữ liệu lồng nhau, thường là các dữ liệu nặng nề. Ví dụ, chất liệu của một tài sản nguyên vật liệu, hoặc khung lưới của một tài sản đối tượng, thì không cần phải sao chép mỗi khi nhập khẩu tài sản này. Thay vào đó, các thực thể của tài sản sẽ dùng chung dữ liệu."
 
 
 msgid "Path to a directory with .blend files to use as an asset library"
@@ -122177,7 +122048,7 @@ msgstr "Thi Hành Tập Lệnh"
 
 msgctxt "Operator"
 msgid "Add sample"
-msgstr "Thêm mẫu vật"
+msgstr "Thêm mẫu"
 
 
 msgid "Unified select/active colors"
@@ -123762,10 +123633,6 @@ msgstr "Khả Dụng"
 msgctxt "Operator"
 msgid "Rotation"
 msgstr "Xoay Chiều"
-
-
-msgid "Typed Bundle"
-msgstr "Kiểu: Gói"
 
 
 msgid "New Group"
@@ -126015,11 +125882,6 @@ msgstr "Xây Dựng từ bản Chưa Biến Dạng:"
 
 
 msgctxt "Operator"
-msgid "Build Proxy / Timecode"
-msgstr "Kiến Tạo Đại Diện / Mã Thời Gian"
-
-
-msgctxt "Operator"
 msgid "Build Proxy"
 msgstr "Kiến Tạo Đại Diện"
 
@@ -126161,10 +126023,6 @@ msgstr "Giám Sát cho sự Ổn Định Hóa"
 
 msgid "Tracks for Location"
 msgstr "Giám Sát cho Vị Trí"
-
-
-msgid "Timecode Index"
-msgstr "Chỉ Số của Mã Thời Gian"
 
 
 msgid "No active movie clip"
@@ -132122,6 +131980,11 @@ msgid "shape_keys"
 msgstr "Dạng Mẫu"
 
 
+msgctxt "Key"
+msgid "Key"
+msgstr "Khóa"
+
+
 msgid "lattices"
 msgstr "Lưới Rào"
 
@@ -134191,10 +134054,6 @@ msgstr "Không thể đọc danh sách tài nguyên cho '%s', xin vui lòng xem 
 
 msgid "could not read asset name, 'name' field not set"
 msgstr "Không thể đọc tên tài sản, trường 'name' (tên) chưa được thiết lập"
-
-
-msgid "could not read type of asset '{:s}': 'id_type' field is not a valid type"
-msgstr "Không thể đọc kiểu tài sản '{:s}': trường 'id_type' (kiểu ID) không phải là kiểu hợp lệ"
 
 
 msgid "could not read type of asset '{:s}', 'type' field not set"
@@ -136853,6 +136712,10 @@ msgid "No vertex group among the selected vertices"
 msgstr "Không có nhóm điểm đỉnh nào trong số các điểm đỉnh đã chọn cả"
 
 
+msgid "No edges selected"
+msgstr "Không có cạnh nào được chọn cả"
+
+
 msgid "Use mouse"
 msgstr "Sử dụng chuột"
 
@@ -136911,10 +136774,6 @@ msgstr "Khung lưới đang hoạt động không có hình mẫu (shape keys)"
 
 msgid "Selection not supported in object mode"
 msgstr "Chọn lựa trong chế độ đối tượng chưa được hỗ trợ"
-
-
-msgid "No edges selected"
-msgstr "Không có cạnh nào được chọn cả"
 
 
 msgid "No faces filled"
@@ -145551,11 +145410,6 @@ msgid "Failed to load image texture '%s'"
 msgstr "Thất bại trong quá trình nạp hình ảnh chất liệu '%s'"
 
 
-msgctxt "Key"
-msgid "Key"
-msgstr "Khóa"
-
-
 msgid "ViewLayer '%s' does not contain object '%s'"
 msgstr "Tầng góc nhìn '%s' không có chứa đối tượng '%s' (đối tượng không nằm trong tầng góc nhìn)"
 
@@ -147553,6 +147407,10 @@ msgid "Crease Edges"
 msgstr "Miết Nếp Gấp của Cạnh"
 
 
+msgid "Add Item"
+msgstr "Thêm Mục"
+
+
 msgid "Not a compositor node tree"
 msgstr "Không phải là cây nút tổng hợp"
 
@@ -149349,10 +149207,6 @@ msgid "Cannot access object's transforms because it's not evaluated yet. This ca
 msgstr "Không thể truy cập các biến hóa của đối tượng vì nó chưa được tính toán. Điều này có thể xảy ra khi có một phụ thuộc tuần hoàn (lặp vòng)"
 
 
-msgid "Bone not found"
-msgstr "Không tìm thấy xương"
-
-
 msgid "Armature object to retrieve the bone information from"
 msgstr "Đối tượng khung rối để lấy thông tin xương từ đó ra"
 
@@ -150308,6 +150162,10 @@ msgid "The expected squared deviation from the mean for each group"
 msgstr "Giá trị kỳ vọng của bình phương độ lệch so với trung bình trong mỗi nhóm"
 
 
+msgid "Inverted"
+msgstr "Đảo Nghịch"
+
+
 msgid "Mesh to flip faces of"
 msgstr "Khung lưới để đảo lật các mặt"
 
@@ -150419,6 +150277,10 @@ msgstr "Việc loại bỏ gói khỏi hình học có thể giúp tránh việc
 
 msgid "Volume to take a named grid out of"
 msgstr "Khối thể tích để lấy khung lưới đồ thị được đặt tên ra"
+
+
+msgid "Pattern Mode"
+msgstr "Chế Độ Mẫu"
 
 
 msgid "Bundle Type"
@@ -150723,10 +150585,6 @@ msgstr "Có Hàng Xóm"
 
 msgid "Index of nearest element"
 msgstr "Chỉ số của phần tử gần nhất"
-
-
-msgid "Add Item"
-msgstr "Thêm Mục"
 
 
 msgid "The camera used for rendering the scene"
@@ -151739,32 +151597,12 @@ msgid "Number of levels of nested instances to realize for each top-level instan
 msgstr "Số lượng cấp độ thực thể lồng nhau cần hiện thực hóa cho mỗi thực thể ở cấp cao nhất"
 
 
-msgid "Only one * is supported in the pattern"
-msgstr "Duy một dấu ngôi sao * là được hỗ trợ trong mẫu mà thôi"
-
-
 msgid "Cannot remove built-in attributes: {}"
 msgstr "Không thể xóa các thuộc tính tích hợp: {}"
 
 
 msgid "Attribute does not exist: \"{}\""
 msgstr "Thuộc tính không tồn tại: \"{}\""
-
-
-msgid "Remove the one attribute with the given name"
-msgstr "Xóa một thuộc tính với cái tên đã được cung cấp"
-
-
-msgid "Wildcard"
-msgstr "Dùng Ký Tự Đại Diện"
-
-
-msgid "Remove all attributes that match the pattern which is allowed to contain a single wildcard (*)"
-msgstr "Xóa toàn bộ các thuộc tính xứng khớp với mẫu biểu thức so sánh nào đó, và mẫu đó vốn cho phép chứa một ký tự ngôi sao đại diện (*)"
-
-
-msgid "Pattern Mode"
-msgstr "Chế Độ Mẫu"
 
 
 msgid "Geometry to remove attributes from"
@@ -151922,10 +151760,6 @@ msgstr "Không hỗ trợ chuyển đổi khi tách biệt gói"
 
 msgid "Geometry to split into separate components"
 msgstr "Hình học để tách phân thành các thành phần riêng biệt"
-
-
-msgid "Inverted"
-msgstr "Đảo Nghịch"
 
 
 msgid "Geometry to split into two parts"
@@ -152614,6 +152448,22 @@ msgstr "Giá trị trong trình đơn phải là một giá trị cố định"
 
 msgid " (Deprecated)"
 msgstr " (Đã Lỗi Thời)"
+
+
+msgid "Only one * is supported in the pattern"
+msgstr "Duy một dấu ngôi sao * là được hỗ trợ trong mẫu mà thôi"
+
+
+msgid "Remove the one attribute with the given name"
+msgstr "Xóa một thuộc tính với cái tên đã được cung cấp"
+
+
+msgid "Wildcard"
+msgstr "Dùng Ký Tự Đại Diện"
+
+
+msgid "Remove all attributes that match the pattern which is allowed to contain a single wildcard (*)"
+msgstr "Xóa toàn bộ các thuộc tính xứng khớp với mẫu biểu thức so sánh nào đó, và mẫu đó vốn cho phép chứa một ký tự ngôi sao đại diện (*)"
 
 
 msgid "Update based on linked bundle signature"

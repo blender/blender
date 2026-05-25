@@ -1,9 +1,9 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 5.2.0 Alpha (b'bc0a0ff2c0ce')\n"
+"Project-Id-Version: Blender 5.2.0 Alpha (b'24a58e1403ac')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-05-18 11:20+0000\n"
+"POT-Creation-Date: 2026-05-25 07:25+0000\n"
 "PO-Revision-Date: 2026-05-04 00:12+0000\n"
 "Last-Translator: Alessandro Vecchio <alessandrovecchio1907@gmail.com>\n"
 "Language-Team: Italian <https://translate.blender.org/projects/blender-ui/ui/it/>\n"
@@ -1734,6 +1734,18 @@ msgstr "Licenza"
 
 msgid "The type of license this asset is distributed under. An empty license name does not necessarily indicate that this is free of licensing terms. Contact the author if any clarification is needed."
 msgstr "Il tipo di licenza con cui è distribuito questo asset. Un nome di licenza vuoto non indica necessariamente che questo sia privo di termini di licenza. Contatta l'autore se hai bisogno di chiarimenti."
+
+
+msgid "Link"
+msgstr "Collegamento"
+
+
+msgid "Append"
+msgstr "Incorpora"
+
+
+msgid "Pack"
+msgstr "Comprimi"
 
 
 msgid "Tags"
@@ -12307,22 +12319,6 @@ msgid "Filter Asset Types"
 msgstr "Filtra per Tipi di Risorse"
 
 
-msgid "Follow Preferences"
-msgstr "Segui le Preferenze"
-
-
-msgid "Link"
-msgstr "Collegamento"
-
-
-msgid "Append"
-msgstr "Incorpora"
-
-
-msgid "Pack"
-msgstr "Comprimi"
-
-
 msgid "Float2 Attribute Value"
 msgstr "Valore dell'Attributo Float2"
 
@@ -17781,10 +17777,6 @@ msgstr "Freq. Fotogrammi"
 
 msgid "Movie File"
 msgstr "File Filmato"
-
-
-msgid "Use Proxy / Timecode"
-msgstr "Utilizza Proxy / Timecode"
 
 
 msgid "Proxy Custom Directory"
@@ -24542,20 +24534,12 @@ msgid "Viewpoint"
 msgstr "Punto di vista"
 
 
-msgid "Math"
-msgstr "Matematica"
-
-
 msgid "Navigation"
 msgstr "Navigazione"
 
 
 msgid "Align View"
 msgstr "Allinea Vista"
-
-
-msgid "Utilities"
-msgstr "Utilità"
 
 
 msgid "Align View to Active"
@@ -24578,12 +24562,28 @@ msgid "Select All by Trait"
 msgstr "Seleziona Tutto per Caratteristica"
 
 
+msgid "Math"
+msgstr "Matematica"
+
+
 msgid "Select Linked"
 msgstr "Seleziona Collegati"
 
 
 msgid "Select Loops"
 msgstr "Seleziona Anelli"
+
+
+msgid "Utilities"
+msgstr "Utilità"
+
+
+msgid "Assign Material"
+msgstr "Assegna Materiale"
+
+
+msgid "Metaball"
+msgstr "Metaball"
 
 
 msgid "Read"
@@ -24594,20 +24594,12 @@ msgid "Sample"
 msgstr "Campione"
 
 
-msgid "Assign Material"
-msgstr "Assegna Materiale"
-
-
 msgid "Write"
 msgstr "Scrittura"
 
 
 msgid "Primitives"
 msgstr "Primitive"
-
-
-msgid "Metaball"
-msgstr "Metaball"
 
 
 msgid "Light"
@@ -24618,10 +24610,6 @@ msgid "Light Probe"
 msgstr "Sensore di Luce"
 
 
-msgid "Instances"
-msgstr "Istanze"
-
-
 msgid "Add Image"
 msgstr "Aggiungi Immagine"
 
@@ -24630,12 +24618,12 @@ msgid "Relations"
 msgstr "Relazioni"
 
 
-msgid "Import"
-msgstr "Importa"
-
-
 msgid "Rigid Body"
 msgstr "Corpo Rigido"
+
+
+msgid "Instances"
+msgstr "Istanze"
 
 
 msgid "Apply"
@@ -24648,6 +24636,10 @@ msgstr "Traccia"
 
 msgid "Quick Effects"
 msgstr "Effetti Veloci"
+
+
+msgid "Import"
+msgstr "Importa"
 
 
 msgid "Show/Hide"
@@ -24670,10 +24662,6 @@ msgid "Convert"
 msgstr "Converti"
 
 
-msgid "UV"
-msgstr "UV"
-
-
 msgid "Link/Transfer Data"
 msgstr "Collega/Trasferisci Dati"
 
@@ -24684,6 +24672,10 @@ msgstr "Ganci"
 
 msgid "Vertex Group Locks"
 msgstr "Blocchi del Gruppo di Vertici"
+
+
+msgid "UV"
+msgstr "UV"
 
 
 msgid "Face Sets Init"
@@ -24746,10 +24738,6 @@ msgid "Merge"
 msgstr "Unisci"
 
 
-msgid "Layout"
-msgstr "Layout"
-
-
 msgid "Special Characters"
 msgstr "Caratteri Speciali"
 
@@ -24758,12 +24746,16 @@ msgid "Kerning"
 msgstr "Crenatura"
 
 
-msgid "Adjust"
-msgstr "Regola"
+msgid "Layout"
+msgstr "Layout"
 
 
 msgid "Bone Roll"
 msgstr "Rollio Osso"
+
+
+msgid "Adjust"
+msgstr "Regola"
 
 
 msgid "Keying"
@@ -29974,14 +29966,6 @@ msgstr "Posizione per memorizzare i file proxy"
 
 msgid "JPEG quality of proxy images"
 msgstr "Qualità JPEG dell'immagine proxy"
-
-
-msgid "Timecode"
-msgstr "Timecode"
-
-
-msgid "Record Run"
-msgstr "Avvia Registrazione"
 
 
 msgid "Scopes for statistical view of a movie clip"
@@ -35881,15 +35865,6 @@ msgstr "Pre-Carica i fotogrammi dal disco per una visualizzazione/tracciamento p
 
 
 msgctxt "Operator"
-msgid "Rebuild Proxy and Timecode Indices"
-msgstr "Ricostruisci Proxy e Indici Timecode"
-
-
-msgid "Rebuild all selected proxies and timecode indices in the background"
-msgstr "Ricostruisce tutti i proxies e gli indici del timecode selezionati in background"
-
-
-msgctxt "Operator"
 msgid "Refine Markers"
 msgstr "Affina Marcatori"
 
@@ -38293,6 +38268,11 @@ msgstr "Salta a keyframe precedente/successivo"
 
 msgid "Next Keyframe"
 msgstr "Keyframe Successivo"
+
+
+msgctxt "Operator"
+msgid "Local View"
+msgstr "Vista Locale"
 
 
 msgid "Flip times of selected keyframes, effectively reversing the order they appear in"
@@ -48658,11 +48638,6 @@ msgid "ICO Sphere"
 msgstr "ICO Sfera"
 
 
-msgctxt "Operator"
-msgid "Local View"
-msgstr "Vista Locale"
-
-
 msgid "Toggle display of selected object(s) separately and centered in view"
 msgstr "Commuta la visualizzazione degli oggetti selezionati separatamente e centrati nella vista"
 
@@ -50199,26 +50174,6 @@ msgid "Active Palette Color"
 msgstr "Colore Tavolozza Attivo"
 
 
-msgid "Selectability & Visibility"
-msgstr "Selezionabilità e Visibilità"
-
-
-msgid "Shadow Settings"
-msgstr "Impostazioni Ombra"
-
-
-msgid "SSAO Settings"
-msgstr "Impostazioni SSAO"
-
-
-msgid "Cavity"
-msgstr "Cavità"
-
-
-msgid "Render Pass"
-msgstr "Passaggi Render"
-
-
 msgid "Compositor"
 msgstr "Compositore"
 
@@ -50259,6 +50214,26 @@ msgid "Auto-Masking"
 msgstr "Auto-Mascheramento"
 
 
+msgid "Selectability & Visibility"
+msgstr "Selezionabilità e Visibilità"
+
+
+msgid "Shadow Settings"
+msgstr "Impostazioni Ombra"
+
+
+msgid "SSAO Settings"
+msgstr "Impostazioni SSAO"
+
+
+msgid "Cavity"
+msgstr "Cavità"
+
+
+msgid "Render Pass"
+msgstr "Passaggi Render"
+
+
 msgid "Chain Scaling"
 msgstr "Scalatura a Catena"
 
@@ -50293,10 +50268,6 @@ msgstr "Visualizzazione Marcatori"
 
 msgid "Mask Display"
 msgstr "Visualizzazione Maschera"
-
-
-msgid "Proxy/Timecode"
-msgstr "Proxy/Timecode"
 
 
 msgid "Stabilization"
@@ -61711,11 +61682,6 @@ msgstr "Costruisci Non Distorto:"
 
 
 msgctxt "Operator"
-msgid "Build Proxy / Timecode"
-msgstr "Costruisci Proxy / Timecode"
-
-
-msgctxt "Operator"
 msgid "Build Proxy"
 msgstr "Crea Proxy"
 
@@ -61787,10 +61753,6 @@ msgstr "Nessuna traccia attiva"
 
 msgid "No active plane track"
 msgstr "Nessun plane track attivo"
-
-
-msgid "Timecode Index"
-msgstr "indice del Timecode"
 
 
 msgctxt "Operator"
@@ -64604,6 +64566,11 @@ msgid "Key %d"
 msgstr "Chiave %d"
 
 
+msgctxt "Key"
+msgid "Key"
+msgstr "Chiave"
+
+
 msgid "lattices"
 msgstr "reticoli"
 
@@ -65930,16 +65897,16 @@ msgid "No vertex selected"
 msgstr "Nessun vertice selezionato"
 
 
+msgid "No edges selected"
+msgstr "Nessuno spigolo selezionato"
+
+
 msgid "Invalid selection order"
 msgstr "Ordine di selezione non valido"
 
 
 msgid "Selection not supported in object mode"
 msgstr "Selezione non supportata in modalità oggetto"
-
-
-msgid "No edges selected"
-msgstr "Nessuno spigolo selezionato"
 
 
 msgid "No faces filled"
@@ -68155,11 +68122,6 @@ msgid "Image '%s' does not have any image data"
 msgstr "L'immagine '%s' non contiene dati immagine"
 
 
-msgctxt "Key"
-msgid "Key"
-msgstr "Chiave"
-
-
 msgid "Failed to add the color modifier"
 msgstr "Impossibile aggiungere il modificatore colore"
 
@@ -68761,6 +68723,14 @@ msgid "Density Max"
 msgstr "Densità Max"
 
 
+msgid "Inverted"
+msgstr "Invertito"
+
+
+msgid "Pattern Mode"
+msgstr "Modalitá Pattern"
+
+
 msgid "Max X"
 msgstr "Max X"
 
@@ -68877,16 +68847,8 @@ msgid "Ray Length"
 msgstr "Lunghezza Raggio"
 
 
-msgid "Pattern Mode"
-msgstr "Modalitá Pattern"
-
-
 msgid "Scale Mode"
 msgstr "Modalità Scala"
-
-
-msgid "Inverted"
-msgstr "Invertito"
 
 
 msgid "Remove Custom"

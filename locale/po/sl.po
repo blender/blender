@@ -1,9 +1,9 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 5.2.0 Alpha (b'bc0a0ff2c0ce')\n"
+"Project-Id-Version: Blender 5.2.0 Alpha (b'24a58e1403ac')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-05-18 11:20+0000\n"
+"POT-Creation-Date: 2026-05-25 07:25+0000\n"
 "PO-Revision-Date: 2026-05-16 22:12+0000\n"
 "Last-Translator: Gorazd Gorup <gorupgorazd@gmail.com>\n"
 "Language-Team: Slovenian <https://translate.blender.org/projects/blender-ui/ui/sl/>\n"
@@ -1922,6 +1922,34 @@ msgstr "Licenca"
 
 msgid "The type of license this asset is distributed under. An empty license name does not necessarily indicate that this is free of licensing terms. Contact the author if any clarification is needed."
 msgstr "Vrsta licence, po kateri naj se sredstvo deli naprej. Prazno polje ne pomeni nujno, da sredstvo ni zaščiteno z licenco. Če kaj ni jasno, stopite v stik z avtorjem."
+
+
+msgid "Link"
+msgstr "Poveži"
+
+
+msgid "Import the assets as linked data-block"
+msgstr "Uvozi sredstva kot povezane podatkovne bloke"
+
+
+msgid "Append"
+msgstr "Pripni"
+
+
+msgid "Import the assets as copied data-block, with no link to the original asset data-block"
+msgstr "Uvozi sredstva kot kopirane podatkovne bloke. Povezava z originalom se ne ohrani"
+
+
+msgid "Append (Reuse Data)"
+msgstr "Pripni (deli podatke)"
+
+
+msgid "Import the assets as copied data-block while avoiding multiple copies of nested, typically heavy data. For example the textures of a material asset, or the mesh of an object asset, don't have to be copied every time this asset is imported. The instances of the asset share the data instead."
+msgstr "Uvozi sredstva kot kopirane podatkovne bloke, pri čemer se izogiba večkratnemu kopiranju gnezdenih, pogosto obsežnih podatkov. Na primer, tekstur materialnega sredstva ali mrežne geometrije objektnega sredstva ni treba kopirati vsakič, ko sredstvo uvozimo. Namesto tega si primerki tega sredstva podatke med seboj delijo."
+
+
+msgid "Pack"
+msgstr "Zapakiraj"
 
 
 msgid "Tags"
@@ -15079,36 +15107,12 @@ msgid "Determine how the asset will be imported"
 msgstr "Določi, kako bo sredstvo uvoženo"
 
 
-msgid "Follow Preferences"
-msgstr "Upoštevaj nastavitve"
-
-
-msgid "Link"
-msgstr "Poveži"
-
-
-msgid "Import the assets as linked data-block"
-msgstr "Uvozi sredstva kot povezane podatkovne bloke"
-
-
-msgid "Append"
-msgstr "Pripni"
-
-
 msgid "Import the asset as copied data-block, with no link to the original asset data-block"
 msgstr "Uvozi sredstvo kot kopirani podatkovni blok. Povezava z originalom se ne ohrani"
 
 
-msgid "Append (Reuse Data)"
-msgstr "Pripni (deli podatke)"
-
-
 msgid "Import the asset as copied data-block while avoiding multiple copies of nested, typically heavy data. For example the textures of a material asset, or the mesh of an object asset, don't have to be copied every time this asset is imported. The instances of the asset share the data instead"
 msgstr "Uvozi sredstvo kot kopirani podatkovni blok, pri čemer se izogiba večkratnemu kopiranju gnezdenih, pogosto obsežnih podatkov. Na primer, tekstur materialnega sredstva ali mrežne geometrije objektnega sredstva ni treba kopirati vsakič, ko sredstvo uvozimo. Namesto tega si primerki tega sredstva podatke med seboj delijo"
-
-
-msgid "Pack"
-msgstr "Zapakiraj"
 
 
 msgid "Instance Collections on Appending"
@@ -21005,6 +21009,10 @@ msgid "View Center"
 msgstr "Središče pogleda"
 
 
+msgid "Strip Modifier"
+msgstr "Modifikator traku"
+
+
 msgid "Viewer Region"
 msgstr "Področje 3D pogleda"
 
@@ -26248,20 +26256,12 @@ msgid "Viewpoint"
 msgstr "Gledišče"
 
 
-msgid "Math"
-msgstr "Matematika"
-
-
 msgid "Navigation"
 msgstr "Navigacija"
 
 
 msgid "Align View"
 msgstr "Poravnava pogleda"
-
-
-msgid "Utilities"
-msgstr "Pripomočki"
 
 
 msgid "Align View to Active"
@@ -26284,12 +26284,28 @@ msgid "Select All by Trait"
 msgstr "Izberi vse po značilnosti"
 
 
+msgid "Math"
+msgstr "Matematika"
+
+
 msgid "Select Linked"
 msgstr "Izberi povezano"
 
 
 msgid "Select Loops"
 msgstr "Izberi zanke"
+
+
+msgid "Utilities"
+msgstr "Pripomočki"
+
+
+msgid "Assign Material"
+msgstr "Dodeli material"
+
+
+msgid "Metaball"
+msgstr "Metažoga"
 
 
 msgid "Read"
@@ -26300,20 +26316,12 @@ msgid "Sample"
 msgstr "Vzorčenje"
 
 
-msgid "Assign Material"
-msgstr "Dodeli material"
-
-
 msgid "Write"
 msgstr "Zapiši"
 
 
 msgid "Primitives"
 msgstr "Primitivi"
-
-
-msgid "Metaball"
-msgstr "Metažoga"
 
 
 msgid "Light"
@@ -26324,14 +26332,6 @@ msgid "Light Probe"
 msgstr "Svetlobna sonda"
 
 
-msgid "Gizmo"
-msgstr "Manipulator"
-
-
-msgid "Instances"
-msgstr "Primerki"
-
-
 msgid "Add Image"
 msgstr "Dodaj sliko"
 
@@ -26340,12 +26340,16 @@ msgid "Relations"
 msgstr "Razmerja"
 
 
-msgid "Import"
-msgstr "Uvozi"
-
-
 msgid "Rigid Body"
 msgstr "Togo telo"
+
+
+msgid "Gizmo"
+msgstr "Manipulator"
+
+
+msgid "Instances"
+msgstr "Primerki"
 
 
 msgid "Apply"
@@ -26356,12 +26360,12 @@ msgid "Track"
 msgstr "Obriši"
 
 
-msgid "Deprecated"
-msgstr "Zastarelo"
-
-
 msgid "Quick Effects"
 msgstr "Učinki na hitro"
+
+
+msgid "Import"
+msgstr "Uvozi"
 
 
 msgid "Show/Hide"
@@ -26376,20 +26380,12 @@ msgid "Asset"
 msgstr "Sredstvo"
 
 
-msgid "List"
-msgstr "Seznam"
-
-
 msgid "Make Single User"
 msgstr "Naredi edinstveno uporabniku"
 
 
 msgid "Convert"
 msgstr "Pretvori"
-
-
-msgid "UV"
-msgstr "UV"
 
 
 msgid "Link/Transfer Data"
@@ -26400,12 +26396,24 @@ msgid "Hooks"
 msgstr "Kavlji"
 
 
+msgid "Deprecated"
+msgstr "Zastarelo"
+
+
+msgid "List"
+msgstr "Seznam"
+
+
 msgid "Trim/Add"
 msgstr "Poreži / dodaj"
 
 
 msgid "Add Primitive"
 msgstr "Dodaj primitiv"
+
+
+msgid "UV"
+msgstr "UV"
 
 
 msgid "Random Mask"
@@ -26448,10 +26456,6 @@ msgid "Merge"
 msgstr "Združi"
 
 
-msgid "Layout"
-msgstr "Ureditev"
-
-
 msgid "Special Characters"
 msgstr "Posebni znaki"
 
@@ -26460,12 +26464,16 @@ msgid "Kerning"
 msgstr "Spodsekavanje"
 
 
-msgid "Adjust"
-msgstr "Prilagoditev"
+msgid "Layout"
+msgstr "Ureditev"
 
 
 msgid "Bone Roll"
 msgstr "Zasukaj kost"
+
+
+msgid "Adjust"
+msgstr "Prilagoditev"
 
 
 msgid "Keying"
@@ -26476,16 +26484,8 @@ msgid "Tracking"
 msgstr "Sledenje"
 
 
-msgid "Creative"
-msgstr "Ustvarjanje"
-
-
 msgid "Pivot Point"
 msgstr "Osišče"
-
-
-msgid "Render Preview"
-msgstr "Predogled upodobitve"
 
 
 msgid "Proportional Editing Falloff"
@@ -26498,6 +26498,14 @@ msgstr "Urejanje maske"
 
 msgid "Automasking"
 msgstr "Samodejno maskiranje"
+
+
+msgid "Creative"
+msgstr "Ustvarjanje"
+
+
+msgid "Render Preview"
+msgstr "Predogled upodobitve"
 
 
 msgid "Animals"
@@ -29911,18 +29919,6 @@ msgstr "Črte"
 
 msgid "Custom Colors"
 msgstr "Barve po meri"
-
-
-msgid "Rec Run"
-msgstr "Posneto trajanje"
-
-
-msgid "Timecode"
-msgstr "Časovna koda"
-
-
-msgid "Record Run"
-msgstr "Števec snemanja"
 
 
 msgid "Proxy Render Size"
@@ -37406,11 +37402,6 @@ msgstr "Vnaprej prevzemi okvirje"
 
 
 msgctxt "Operator"
-msgid "Rebuild Proxy and Timecode Indices"
-msgstr "Prenovi namestnike in indekse časovnih kod"
-
-
-msgctxt "Operator"
 msgid "Refine Markers"
 msgstr "Izboljšaj oznake"
 
@@ -39487,6 +39478,11 @@ msgstr "Skrij krivulje"
 
 msgid "Next Keyframe"
 msgstr "Naslednji ključni okvir"
+
+
+msgctxt "Operator"
+msgid "Local View"
+msgstr "Krajevni pogled"
 
 
 msgctxt "Operator"
@@ -48016,11 +48012,6 @@ msgid "ICO Sphere"
 msgstr "Ikosfera"
 
 
-msgctxt "Operator"
-msgid "Local View"
-msgstr "Krajevni pogled"
-
-
 msgid "Toggle display of selected object(s) separately and centered in view"
 msgstr "Preklopi prikaz izbranih objektov ločeno in v središču pogleda"
 
@@ -50387,26 +50378,6 @@ msgid "Panel containing UI elements"
 msgstr "Plošča, ki vsebuje elemente uporabniškega vmesnika"
 
 
-msgid "Selectability & Visibility"
-msgstr "Izbirljivost in vidnost"
-
-
-msgid "Shadow Settings"
-msgstr "Nastavitve senc"
-
-
-msgid "SSAO Settings"
-msgstr "Nastavitve SSAO"
-
-
-msgid "Cavity"
-msgstr "Relief"
-
-
-msgid "Render Pass"
-msgstr "Obhod upodabljanja"
-
-
 msgid "Compositor"
 msgstr "Stavitelj slik"
 
@@ -50483,14 +50454,6 @@ msgid "Viewport Debug"
 msgstr "Razhroščevanje 3D pogleda"
 
 
-msgid "glTF"
-msgstr "glTF"
-
-
-msgid "glTF Animations"
-msgstr "Animacije glTF"
-
-
 msgid "VR"
 msgstr "VR"
 
@@ -50499,12 +50462,40 @@ msgid "VR Info"
 msgstr "Informacije VR"
 
 
+msgid "glTF"
+msgstr "glTF"
+
+
+msgid "glTF Animations"
+msgstr "Animacije glTF"
+
+
 msgid "Active Tool"
 msgstr "Aktivno orodje"
 
 
 msgid "View Lock"
 msgstr "Zaklep pogleda"
+
+
+msgid "Selectability & Visibility"
+msgstr "Izbirljivost in vidnost"
+
+
+msgid "Shadow Settings"
+msgstr "Nastavitve senc"
+
+
+msgid "SSAO Settings"
+msgstr "Nastavitve SSAO"
+
+
+msgid "Cavity"
+msgstr "Relief"
+
+
+msgid "Render Pass"
+msgstr "Obhod upodabljanja"
 
 
 msgid "Import Settings"
@@ -50578,10 +50569,6 @@ msgstr "Prikaz oznak"
 
 msgid "Mask Display"
 msgstr "Prikaz maske"
-
-
-msgid "Proxy/Timecode"
-msgstr "Namestnik / časovna koda"
 
 
 msgid "Stabilization"
@@ -51394,10 +51381,6 @@ msgstr "Oscilogrami"
 
 msgid "Sequencer Snapping"
 msgstr "Pritrditev v sekvenčniku"
-
-
-msgid "Strip Proxy & Timecode"
-msgstr "Namestnik in časovna koda traku"
 
 
 msgctxt "Operator"
@@ -58358,10 +58341,6 @@ msgid "Collection of StripElement"
 msgstr "Zbirka elementov trakov"
 
 
-msgid "Strip Modifier"
-msgstr "Modifikator traku"
-
-
 msgid "Mask Time"
 msgstr "Čas maske"
 
@@ -59742,14 +59721,6 @@ msgstr "Časovna enota"
 
 msgid "Separate Units"
 msgstr "Ločene enote"
-
-
-msgid "Import the assets as copied data-block, with no link to the original asset data-block"
-msgstr "Uvozi sredstva kot kopirane podatkovne bloke. Povezava z originalom se ne ohrani"
-
-
-msgid "Import the assets as copied data-block while avoiding multiple copies of nested, typically heavy data. For example the textures of a material asset, or the mesh of an object asset, don't have to be copied every time this asset is imported. The instances of the asset share the data instead."
-msgstr "Uvozi sredstva kot kopirane podatkovne bloke, pri čemer se izogiba večkratnemu kopiranju gnezdenih, pogosto obsežnih podatkov. Na primer, tekstur materialnega sredstva ali mrežne geometrije objektnega sredstva ni treba kopirati vsakič, ko sredstvo uvozimo. Namesto tega si primerki tega sredstva podatke med seboj delijo."
 
 
 msgid "Use Remote"
@@ -65899,11 +65870,6 @@ msgstr "Iz nepopačenega:"
 
 
 msgctxt "Operator"
-msgid "Build Proxy / Timecode"
-msgstr "Izdelaj namestnik / časovno kodo"
-
-
-msgctxt "Operator"
 msgid "Build Proxy"
 msgstr "Zgradi namestnik"
 
@@ -66040,10 +66006,6 @@ msgstr "Obrisi za stabilizacijo"
 
 msgid "Tracks for Location"
 msgstr "Obrisi za lego"
-
-
-msgid "Timecode Index"
-msgstr "Indeks časovne kode"
 
 
 msgid "No active movie clip"
@@ -71537,6 +71499,11 @@ msgid "shape_keys"
 msgstr "oblikovni_ključi"
 
 
+msgctxt "Key"
+msgid "Key"
+msgstr "Ključ"
+
+
 msgid "lattices"
 msgstr "Kontrolne rešetke"
 
@@ -74617,6 +74584,10 @@ msgid "No vertex group among the selected vertices"
 msgstr "Med izbranimi oglišči ni nobene skupine oglišč"
 
 
+msgid "No edges selected"
+msgstr "Noben rob ni bil izbran"
+
+
 msgid "Use mouse"
 msgstr "Uporabi miško"
 
@@ -74635,10 +74606,6 @@ msgstr "Neveljavno zaporedje izbire"
 
 msgid "No selected vertex"
 msgstr "Ni izbranega oglišča"
-
-
-msgid "No edges selected"
-msgstr "Noben rob ni bil izbran"
 
 
 msgid "No faces filled"
@@ -77723,11 +77690,6 @@ msgid "Mask not found in layer"
 msgstr "V plasti ne najdem maske"
 
 
-msgctxt "Key"
-msgid "Key"
-msgstr "Ključ"
-
-
 msgid "Modify"
 msgstr "Spremeni"
 
@@ -78568,6 +78530,10 @@ msgid "Crease Edges"
 msgstr "Pregibaj robove"
 
 
+msgid "Add Item"
+msgstr "Dodaj element"
+
+
 msgid "To Premultiplied"
 msgstr "V vnaprej množeno"
 
@@ -79274,10 +79240,6 @@ msgid "Object is not an armature"
 msgstr "Objekt ni skelet"
 
 
-msgid "Bone not found"
-msgstr "Ne najdem kosti"
-
-
 msgid "Original length of the bone"
 msgstr "Izvirna dolžina kosti"
 
@@ -79493,6 +79455,10 @@ msgid "Top"
 msgstr "Vrh"
 
 
+msgid "Inverted"
+msgstr "Obrnjeno"
+
+
 msgid "Main Geometry"
 msgstr "Glavna geometrija"
 
@@ -79516,6 +79482,10 @@ msgstr "__extend__generation"
 
 msgid "Element"
 msgstr "Element"
+
+
+msgid "Pattern Mode"
+msgstr "Način primerjave"
 
 
 msgid "Bundle Type"
@@ -79596,10 +79566,6 @@ msgstr "Pot do datoteke OpenVDB"
 
 msgid "Has Neighbor"
 msgstr "Ima soseda"
-
-
-msgid "Add Item"
-msgstr "Dodaj element"
 
 
 msgctxt "Mesh"
@@ -79864,14 +79830,6 @@ msgid "Realize All"
 msgstr "Vse udejanji"
 
 
-msgid "Wildcard"
-msgstr "Nadomestni znak"
-
-
-msgid "Pattern Mode"
-msgstr "Način primerjave"
-
-
 msgid "Repeat Items"
 msgstr "Ponavljani elementi"
 
@@ -79915,10 +79873,6 @@ msgstr "Regularna mreža 1"
 
 msgid "Grid 2"
 msgstr "Regularna mreža 2"
-
-
-msgid "Inverted"
-msgstr "Obrnjeno"
 
 
 msgid "Remove Custom"
@@ -80099,6 +80053,10 @@ msgstr "Neznano"
 
 msgid " (Deprecated)"
 msgstr " (zastarelo)"
+
+
+msgid "Wildcard"
+msgstr "Nadomestni znak"
 
 
 msgid "Add Inputs"

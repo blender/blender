@@ -1,9 +1,9 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 5.2.0 Alpha (b'bc0a0ff2c0ce')\n"
+"Project-Id-Version: Blender 5.2.0 Alpha (b'24a58e1403ac')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-05-18 11:20+0000\n"
+"POT-Creation-Date: 2026-05-25 07:25+0000\n"
 "PO-Revision-Date: 2026-04-13 10:12+0000\n"
 "Last-Translator: Dominic Iastrebschi <domjotebit@gmail.com>\n"
 "Language-Team: Romanian <https://translate.blender.org/projects/blender-ui/ui/ro/>\n"
@@ -1054,6 +1054,10 @@ msgid "Armatures active edit bone"
 msgstr "Osul activ de editare a Armăturii"
 
 
+msgid "Link"
+msgstr "Legătură"
+
+
 msgid "Options"
 msgstr "Opțiuni"
 
@@ -1951,10 +1955,6 @@ msgstr "Salvare"
 
 msgid "Operator"
 msgstr "Operator"
-
-
-msgid "Link"
-msgstr "Legătură"
 
 
 msgid "End"

@@ -1,9 +1,9 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 5.2.0 Alpha (b'bc0a0ff2c0ce')\n"
+"Project-Id-Version: Blender 5.2.0 Alpha (b'24a58e1403ac')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-05-18 11:20+0000\n"
+"POT-Creation-Date: 2026-05-25 07:25+0000\n"
 "PO-Revision-Date: 2025-07-23 14:56+0000\n"
 "Last-Translator: Anonymous <noreply@weblate.org>\n"
 "Language-Team: Serbian (Latin script) <https://translate.blender.org/projects/blender-ui/ui/sr_Latn/>\n"
@@ -621,6 +621,10 @@ msgstr "Aktivna kost"
 
 msgid "Description"
 msgstr "Opis"
+
+
+msgid "Link"
+msgstr "Veza"
 
 
 msgid "Custom"
@@ -4367,10 +4371,6 @@ msgstr "Filtriraj slike"
 
 msgid "Show image files"
 msgstr "Prikaži datoteke slika"
-
-
-msgid "Link"
-msgstr "Veza"
 
 
 msgid "Matrix"
@@ -8514,16 +8514,16 @@ msgid "Local View"
 msgstr "Lokalni pogled"
 
 
-msgid "Math"
-msgstr "Matematika"
-
-
 msgid "Navigation"
 msgstr "Navigacija"
 
 
 msgid "Align View"
 msgstr "Poravnaj pogled"
+
+
+msgid "Math"
+msgstr "Matematika"
 
 
 msgid "Select Linked"
@@ -8542,10 +8542,6 @@ msgid "Relations"
 msgstr "Odnosi"
 
 
-msgid "Import"
-msgstr "Uvoz"
-
-
 msgid "Rigid Body"
 msgstr "Kruto telo"
 
@@ -8562,16 +8558,20 @@ msgid "Quick Effects"
 msgstr "Brzi efekti"
 
 
+msgid "Import"
+msgstr "Uvoz"
+
+
 msgid "Show/Hide"
 msgstr "Prikaži/sakrij"
 
 
-msgid "UV"
-msgstr "UV"
-
-
 msgid "Hooks"
 msgstr "Udice"
+
+
+msgid "UV"
+msgstr "UV"
 
 
 msgid "Clear Transform"
@@ -10156,10 +10156,6 @@ msgstr "Broj kadrova u ostavi"
 
 msgid "Lines"
 msgstr "Linije"
-
-
-msgid "Timecode"
-msgstr "Vreme"
 
 
 msgid "Average error of reconstruction"
@@ -13846,6 +13842,11 @@ msgstr "Skoči na prethodni/naredni ključni kadar"
 
 msgid "Next Keyframe"
 msgstr "Sledeći ključni kadar"
+
+
+msgctxt "Operator"
+msgid "Local View"
+msgstr "Lokalni pogled"
 
 
 msgctxt "Operator"
@@ -18511,11 +18512,6 @@ msgstr "Navigacija leta"
 
 msgid "Interactively fly around the scene"
 msgstr "Interaktivan let kroz scenu"
-
-
-msgctxt "Operator"
-msgid "Local View"
-msgstr "Lokalni pogled"
 
 
 msgid "Move the view"
@@ -23832,6 +23828,11 @@ msgid "Key %d"
 msgstr "Ključ %d"
 
 
+msgctxt "Key"
+msgid "Key"
+msgstr "Ključ"
+
+
 msgid "MaskLayer"
 msgstr "Sloj maske"
 
@@ -25020,11 +25021,6 @@ msgstr "Modifikator vrednosti F-krive"
 
 msgid "Image not packed"
 msgstr "Naziv slike"
-
-
-msgctxt "Key"
-msgid "Key"
-msgstr "Ključ"
 
 
 msgid "unsupported font format"

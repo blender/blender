@@ -1,9 +1,9 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 5.2.0 Alpha (b'bc0a0ff2c0ce')\n"
+"Project-Id-Version: Blender 5.2.0 Alpha (b'24a58e1403ac')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-05-18 11:20+0000\n"
+"POT-Creation-Date: 2026-05-25 07:25+0000\n"
 "PO-Revision-Date: 2025-12-04 22:18+0000\n"
 "Last-Translator: Jackson Zheng <business.jackson.zheng@gmail.com>\n"
 "Language-Team: Hindi <https://translate.blender.org/projects/blender-ui/ui/hi/>\n"
@@ -370,6 +370,10 @@ msgstr "क्षेत्र चौड़ाई"
 
 msgid "X Position"
 msgstr "स्थिति x"
+
+
+msgid "Link"
+msgstr "संयुक्त"
 
 
 msgid "Brushes"
@@ -1459,10 +1463,6 @@ msgstr "छवि संचिकाएँ दिखाएँ"
 
 msgid "Filter Text"
 msgstr "निस्पादक पाठ"
-
-
-msgid "Link"
-msgstr "संयुक्त"
 
 
 msgid "End"
@@ -2602,10 +2602,6 @@ msgid "Light"
 msgstr "प्रकाश"
 
 
-msgid "Import"
-msgstr "आयात करें"
-
-
 msgid "Rigid Body"
 msgstr "कठोर-पदार्थ"
 
@@ -2622,6 +2618,10 @@ msgid "Quick Effects"
 msgstr "त्वरित प्रभाव"
 
 
+msgid "Import"
+msgstr "आयात करें"
+
+
 msgid "Show/Hide"
 msgstr "छुपाएँ / दिखाएँ"
 
@@ -2630,12 +2630,12 @@ msgid "Make Single User"
 msgstr "एकल प्रयोक्ता बनाएँ"
 
 
-msgid "UV"
-msgstr "यूवी"
-
-
 msgid "Hooks"
 msgstr "खूँटी"
+
+
+msgid "UV"
+msgstr "यूवी"
 
 
 msgid "Names"
@@ -5670,6 +5670,11 @@ msgid "Key %d"
 msgstr "कुंजी %d"
 
 
+msgctxt "Key"
+msgid "Key"
+msgstr "कुंजी"
+
+
 msgid "No new files have been packed"
 msgstr "कोई संचिकाएँ संकुल नहीं की गईं"
 
@@ -6433,11 +6438,6 @@ msgstr "लेखन के लिए संचिका को नहीं ख
 
 msgid "Flame"
 msgstr "लौ"
-
-
-msgctxt "Key"
-msgid "Key"
-msgstr "कुंजी"
 
 
 msgid "Soften"

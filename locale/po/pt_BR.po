@@ -1,9 +1,9 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 5.2.0 Alpha (b'bc0a0ff2c0ce')\n"
+"Project-Id-Version: Blender 5.2.0 Alpha (b'24a58e1403ac')\n"
 "Report-Msgid-Bugs-To: Leandro Paganelli <leandrobp@fastmail.com>\n"
-"POT-Creation-Date: 2026-05-18 11:20+0000\n"
+"POT-Creation-Date: 2026-05-25 07:25+0000\n"
 "PO-Revision-Date: 2026-04-13 10:12+0000\n"
 "Last-Translator: Gilberto Rodrigues <gilbertorodrigues@outlook.com>\n"
 "Language-Team: Portuguese (Brazil) <https://translate.blender.org/projects/blender-ui/ui/pt_BR/>\n"
@@ -1599,6 +1599,14 @@ msgstr "Descrição"
 
 msgid "A description of the asset to be displayed for the user"
 msgstr "Uma descrição do ativo a ser exibido para o usuário"
+
+
+msgid "Link"
+msgstr "Vincular"
+
+
+msgid "Append"
+msgstr "Anexar"
 
 
 msgid "Tags"
@@ -10202,14 +10210,6 @@ msgid "Library Browser"
 msgstr "Navegador de bibliotecas"
 
 
-msgid "Link"
-msgstr "Vincular"
-
-
-msgid "Append"
-msgstr "Anexar"
-
-
 msgid "Matrix"
 msgstr "Matriz"
 
@@ -14608,14 +14608,6 @@ msgstr "De onde o clipe veio."
 
 msgid "Movie File"
 msgstr "Arquivo de filme"
-
-
-msgid "Use Proxy / Timecode"
-msgstr "Usar aproximação e códigos de tempo"
-
-
-msgid "Use a preview proxy and/or timecode index for this clip"
-msgstr "Usa uma aproximação para previsão e / ou índice de códigos de tempo para este clipe."
 
 
 msgid "Proxy Custom Directory"
@@ -21212,10 +21204,6 @@ msgid "Viewpoint"
 msgstr "Ponto de visualização"
 
 
-msgid "Math"
-msgstr "Matemática"
-
-
 msgid "Navigation"
 msgstr "Navegação"
 
@@ -21244,6 +21232,10 @@ msgid "Select All by Trait"
 msgstr "Selecionar todos por características..."
 
 
+msgid "Math"
+msgstr "Matemática"
+
+
 msgid "Select Linked"
 msgstr "Selecionar vinculados(as)"
 
@@ -21264,10 +21256,6 @@ msgid "Light Probe"
 msgstr "Sonda de Luz"
 
 
-msgid "Instances"
-msgstr "Instâncias"
-
-
 msgid "Add Image"
 msgstr "Adicionar Imagem"
 
@@ -21276,12 +21264,12 @@ msgid "Relations"
 msgstr "Relações"
 
 
-msgid "Import"
-msgstr "Importar"
-
-
 msgid "Rigid Body"
 msgstr "Corpo rígido"
+
+
+msgid "Instances"
+msgstr "Instâncias"
 
 
 msgid "Apply"
@@ -21294,6 +21282,10 @@ msgstr "Rastrear"
 
 msgid "Quick Effects"
 msgstr "Efeitos instantâneos"
+
+
+msgid "Import"
+msgstr "Importar"
 
 
 msgid "Show/Hide"
@@ -21312,12 +21304,12 @@ msgid "Convert"
 msgstr "Converter"
 
 
-msgid "UV"
-msgstr "UV"
-
-
 msgid "Hooks"
 msgstr "Ganchos"
+
+
+msgid "UV"
+msgstr "UV"
 
 
 msgid "Random Mask"
@@ -21364,12 +21356,12 @@ msgid "Merge"
 msgstr "Fundir"
 
 
-msgid "Layout"
-msgstr "Organizar"
-
-
 msgid "Special Characters"
 msgstr "Caracteres especiais"
+
+
+msgid "Layout"
+msgstr "Organizar"
 
 
 msgid "Bone Roll"
@@ -25494,14 +25486,6 @@ msgid "Build proxy resolution 75% of the original footage dimension"
 msgstr "Constrói uma aproximação com resolução de 75% da dimensão da filmagem original."
 
 
-msgid "Rec Run"
-msgstr "Gravar durante execução"
-
-
-msgid "Build record run time code index"
-msgstr "Constrói uma gravação do índice de código de funcionamento."
-
-
 msgid "Build proxy resolution 100% of the original undistorted footage dimension"
 msgstr "Constrói uma aproximação com 100% da resolução da dimensão original da filmagem sem distorção."
 
@@ -25524,18 +25508,6 @@ msgstr "Localização para guardar os arquivos de aproximação."
 
 msgid "JPEG quality of proxy images"
 msgstr "Qualidade JPEG para imagens aproximadas."
-
-
-msgid "Timecode"
-msgstr "Código de tempo"
-
-
-msgid "Record Run"
-msgstr "Gravar execução"
-
-
-msgid "Record Run No Gaps"
-msgstr "Gravar execução sem espaços"
 
 
 msgid "Scopes for statistical view of a movie clip"
@@ -31758,15 +31730,6 @@ msgstr "Carrega previamente os quadros a partir do disco para rastreamentos ou r
 
 
 msgctxt "Operator"
-msgid "Rebuild Proxy and Timecode Indices"
-msgstr "Reconstruir índices de aproximações e código de tempo"
-
-
-msgid "Rebuild all selected proxies and timecode indices in the background"
-msgstr "Reconstrói todas as aproximações selecionadas e os índices de código de tempo em plano de fundo."
-
-
-msgctxt "Operator"
 msgid "Refine Markers"
 msgstr "Refinar marcadores"
 
@@ -34549,6 +34512,11 @@ msgstr "Salta para o quadro-chave anterior ou posterior."
 
 msgid "Next Keyframe"
 msgstr "Próximo quadro-chave"
+
+
+msgctxt "Operator"
+msgid "Local View"
+msgstr "Visao local"
 
 
 msgid "Flip times of selected keyframes, effectively reversing the order they appear in"
@@ -46218,11 +46186,6 @@ msgid "Add Primitive Object"
 msgstr "Adicionar Objeto Primitivo"
 
 
-msgctxt "Operator"
-msgid "Local View"
-msgstr "Visao local"
-
-
 msgid "Toggle display of selected object(s) separately and centered in view"
 msgstr "Alterna para uma visualização dos objetos selecionados em separado e centralizados na visualização."
 
@@ -48016,10 +47979,6 @@ msgid "Active Palette Color"
 msgstr "Cor ativa da paleta"
 
 
-msgid "Render Pass"
-msgstr "Passo de renderização"
-
-
 msgid "Motion Tracking"
 msgstr "Captura de movimentos"
 
@@ -48034,6 +47993,10 @@ msgstr "Exibição Quadrante"
 
 msgid "Stereoscopy"
 msgstr "Estereoscopia"
+
+
+msgid "Render Pass"
+msgstr "Passo de renderização"
 
 
 msgid "Bone Constraints"
@@ -48066,10 +48029,6 @@ msgstr "Mostrador de marcadores"
 
 msgid "Mask Display"
 msgstr "Mostrador de máscara"
-
-
-msgid "Proxy/Timecode"
-msgstr "Aproximações e códigos de tempo"
 
 
 msgid "Stabilization"
@@ -56287,10 +56246,6 @@ msgid "Location of custom proxy file"
 msgstr "Localização do arquivo de aproximação personalizado."
 
 
-msgid "Method for reading the inputs timecode"
-msgstr "O método para a leitura das entradas dos códigos de tempo."
-
-
 msgid "Overwrite existing proxy files when building"
 msgstr "Sobrescreve os arquivos existentes das aproximações durante as construções."
 
@@ -59932,11 +59887,6 @@ msgstr "Construir sem distorção:"
 
 
 msgctxt "Operator"
-msgid "Build Proxy / Timecode"
-msgstr "Construir aproximação e códigos de tempo"
-
-
-msgctxt "Operator"
 msgid "Build Proxy"
 msgstr "Construir aproximação"
 
@@ -62426,6 +62376,11 @@ msgid "Key %d"
 msgstr "Chave %d"
 
 
+msgctxt "Key"
+msgid "Key"
+msgstr "Chave"
+
+
 msgid "MaskLayer"
 msgstr "Camada de máscara"
 
@@ -63810,6 +63765,10 @@ msgid "No weights/vertex groups on object"
 msgstr "Sem grupos de vértices ou grupos de pesos de influência no objeto."
 
 
+msgid "No edges selected"
+msgstr "Sem arestas selecionadas."
+
+
 msgid "Invalid selection order"
 msgstr "Ordem de seleção invalida."
 
@@ -63824,10 +63783,6 @@ msgstr "Não é possível encontrar quaisquer arestas selecionadas que possam se
 
 msgid "Selection not supported in object mode"
 msgstr "Seleção não suportada dentro do modo de objetos."
-
-
-msgid "No edges selected"
-msgstr "Sem arestas selecionadas."
 
 
 msgid "No faces filled"
@@ -66462,11 +66417,6 @@ msgstr "Imagem '%s' não pode ser salva em '%s'."
 
 msgid "Image '%s' does not have any image data"
 msgstr "Imagem '%s' não possui quaisquer dados de imagem."
-
-
-msgctxt "Key"
-msgid "Key"
-msgstr "Chave"
 
 
 msgid "Failed to add the color modifier"
