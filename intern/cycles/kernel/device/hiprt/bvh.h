@@ -102,14 +102,6 @@ ccl_device_inline bool curve_custom_intersect(const hiprtRay &ray,
 
   const float ray_time = payload->ray_time;
 
-  if ((key_value & PRIMITIVE_MOTION) && kernel_data.bvh.use_bvh_steps) {
-    const int time_offset = kernel_data_fetch(prim_time_offset, object_id);
-    const float2 prims_time = kernel_data_fetch(prims_time, hit.primID + time_offset);
-    if (ray_time < prims_time.x || ray_time > prims_time.y) {
-      return false;
-    }
-  }
-
   Intersection isect;
   const bool b_hit = curve_intersect(kg,
                                      &isect,
@@ -278,14 +270,6 @@ ccl_device_inline bool point_custom_intersect(const hiprtRay &ray,
   }
 
   const float ray_time = payload->ray_time;
-
-  if ((primitive_type & PRIMITIVE_MOTION_POINT) && kernel_data.bvh.use_bvh_steps) {
-    const int time_offset = kernel_data_fetch(prim_time_offset, object_id);
-    const float2 prims_time = kernel_data_fetch(prims_time, hit.primID + time_offset);
-    if (ray_time < prims_time.x || ray_time > prims_time.y) {
-      return false;
-    }
-  }
 
   Intersection isect;
   const bool b_hit = point_intersect(kg,

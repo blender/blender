@@ -133,11 +133,6 @@ class HIPRTDevice : public HIPDevice {
    * primitive info from custom_prim_info. */
   device_vector<int2> custom_prim_info;
   device_vector<int2> custom_prim_info_offset;
-
-  /* prims_time stores primitive time for geometries with motion blur.
-   * prim_time_offset returns the offset to add to primitive id to retrieve primitive time. */
-  device_vector<float2> prims_time;
-  device_vector<int> prim_time_offset;
 };
 CCL_NAMESPACE_END
 

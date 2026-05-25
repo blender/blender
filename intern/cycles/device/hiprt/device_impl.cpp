@@ -123,9 +123,7 @@ HIPRTDevice::HIPRTDevice(const DeviceInfo &info,
       hiprt_blas_ptr(this, "hiprt_blas_ptr", MEM_READ_WRITE),
       blas_ptr(this, "blas_ptr", MEM_GLOBAL),
       custom_prim_info(this, "custom_prim_info", MEM_GLOBAL),
-      custom_prim_info_offset(this, "custom_prim_info_offset", MEM_GLOBAL),
-      prims_time(this, "prims_time", MEM_GLOBAL),
-      prim_time_offset(this, "prim_time_offset", MEM_GLOBAL)
+      custom_prim_info_offset(this, "custom_prim_info_offset", MEM_GLOBAL)
 {
   HIPContextScope scope(this);
   global_stack_buffer = {0};
@@ -168,8 +166,6 @@ HIPRTDevice::~HIPRTDevice()
   transform_headers.free();
   custom_prim_info_offset.free();
   custom_prim_info.free();
-  prim_time_offset.free();
-  prims_time.free();
 
   hiprtDestroyGlobalStackBuffer(hiprt_context, global_stack_buffer);
   hiprtDestroyFuncTable(hiprt_context, functions_table);
@@ -395,8 +391,6 @@ void HIPRTDevice::const_copy_to(const char *name, void *host, const size_t size)
   KERNEL_DATA_ARRAY(uint64_t, blas_ptr)
   KERNEL_DATA_ARRAY(int2, custom_prim_info_offset)
   KERNEL_DATA_ARRAY(int2, custom_prim_info)
-  KERNEL_DATA_ARRAY(int, prim_time_offset)
-  KERNEL_DATA_ARRAY(float2, prims_time)
 
 #  include "kernel/data_arrays.h"
 #  undef KERNEL_DATA_ARRAY
@@ -408,70 +402,25 @@ hiprtGeometryBuildInput HIPRTDevice::prepare_triangle_blas(BVHHIPRT *bvh, Mesh *
   geom_input.geomType = Triangle;
 
   if (use_motion_blur && mesh->has_motion_blur()) {
-
     const Attribute *attr_P = mesh->attributes.find(ATTR_STD_POSITION);
-    const size_t num_steps = mesh->get_motion_steps();
     const size_t num_triangles = mesh->num_triangles();
     int num_bounds = 0;
     float sum_area = 0.0f;
 
-    if (bvh->params.num_motion_triangle_steps == 0 || bvh->params.use_spatial_split) {
-      bvh->custom_primitive_bound.alloc(num_triangles);
-      bvh->custom_prim_info.resize(num_triangles);
-      for (uint j = 0; j < num_triangles; j++) {
-        Mesh::Triangle t = mesh->get_triangle(j);
-        BoundBox bounds = BoundBox::empty;
-        for (int attr_step = 0; attr_step < attr_P->num_motion_steps(); attr_step++) {
-          t.bounds_grow(attr_P->data<packed_float3>(attr_step), bounds);
-        }
-
-        bvh->custom_primitive_bound[num_bounds] = bounds;
-        bvh->custom_prim_info[num_bounds].x = j;
-        bvh->custom_prim_info[num_bounds].y = mesh->primitive_type();
-        sum_area += bounds.area();
-        num_bounds++;
+    bvh->custom_primitive_bound.alloc(num_triangles);
+    bvh->custom_prim_info.resize(num_triangles);
+    for (uint j = 0; j < num_triangles; j++) {
+      Mesh::Triangle t = mesh->get_triangle(j);
+      BoundBox bounds = BoundBox::empty;
+      for (int attr_step = 0; attr_step < attr_P->num_motion_steps(); attr_step++) {
+        t.bounds_grow(attr_P->data<packed_float3>(attr_step), bounds);
       }
-    }
-    else {
-      const int num_bvh_steps = bvh->params.num_motion_triangle_steps * 2 + 1;
-      const float num_bvh_steps_inv_1 = 1.0f / (num_bvh_steps - 1);
 
-      bvh->custom_primitive_bound.alloc(num_triangles * num_bvh_steps);
-      bvh->custom_prim_info.resize(num_triangles * num_bvh_steps);
-      bvh->prims_time.resize(num_triangles * num_bvh_steps);
-
-      for (uint j = 0; j < num_triangles; j++) {
-        Mesh::Triangle t = mesh->get_triangle(j);
-        float3 prev_verts[3];
-        t.motion_verts(attr_P, num_steps, 0.0f, prev_verts);
-        BoundBox prev_bounds = BoundBox::empty;
-        prev_bounds.grow(prev_verts[0]);
-        prev_bounds.grow(prev_verts[1]);
-        prev_bounds.grow(prev_verts[2]);
-
-        for (int bvh_step = 1; bvh_step < num_bvh_steps; ++bvh_step) {
-          const float curr_time = (float)(bvh_step)*num_bvh_steps_inv_1;
-          float3 curr_verts[3];
-          t.motion_verts(attr_P, num_steps, curr_time, curr_verts);
-          BoundBox curr_bounds = BoundBox::empty;
-          curr_bounds.grow(curr_verts[0]);
-          curr_bounds.grow(curr_verts[1]);
-          curr_bounds.grow(curr_verts[2]);
-          BoundBox bounds = prev_bounds;
-          bounds.grow(curr_bounds);
-
-          const float prev_time = (float)(bvh_step - 1) * num_bvh_steps_inv_1;
-          bvh->custom_primitive_bound[num_bounds] = bounds;
-          bvh->custom_prim_info[num_bounds].x = j;
-          bvh->custom_prim_info[num_bounds].y = mesh->primitive_type();
-          bvh->prims_time[num_bounds].x = curr_time;
-          bvh->prims_time[num_bounds].y = prev_time;
-          sum_area += bounds.area();
-          num_bounds++;
-
-          prev_bounds = curr_bounds;
-        }
-      }
+      bvh->custom_primitive_bound[num_bounds] = bounds;
+      bvh->custom_prim_info[num_bounds].x = j;
+      bvh->custom_prim_info[num_bounds].y = mesh->primitive_type();
+      sum_area += bounds.area();
+      num_bounds++;
     }
 
     const float union_area = mesh->bounds.area();
@@ -539,16 +488,8 @@ hiprtGeometryBuildInput HIPRTDevice::prepare_curve_blas(BVHHIPRT *bvh, Hair *hai
   const Attribute *attr_R = hair->attributes.find(ATTR_STD_RADIUS);
   const bool has_motion = use_motion_blur && hair->has_motion_blur() && attr_P->has_motion();
 
-  if (!has_motion || bvh->params.num_motion_curve_steps == 0) {
-    bvh->custom_prim_info.resize(num_segments);
-    bvh->custom_primitive_bound.alloc(num_segments);
-  }
-  else {
-    size_t num_boxes = bvh->params.num_motion_curve_steps * 2 * num_segments;
-    bvh->custom_prim_info.resize(num_boxes);
-    bvh->prims_time.resize(num_boxes);
-    bvh->custom_primitive_bound.alloc(num_boxes);
-  }
+  bvh->custom_prim_info.resize(num_segments);
+  bvh->custom_primitive_bound.alloc(num_segments);
 
   int num_bounds = 0;
   float sum_area = 0.0f;
@@ -577,54 +518,17 @@ hiprtGeometryBuildInput HIPRTDevice::prepare_curve_blas(BVHHIPRT *bvh, Hair *hai
         num_bounds++;
       }
       else {
-        const size_t num_steps = hair->get_motion_steps();
-
-        if (bvh->params.num_motion_curve_steps == 0 || bvh->params.use_spatial_split) {
-          BoundBox bounds = BoundBox::empty;
-          for (int attr_step = 0; attr_step < attr_P->num_motion_steps(); attr_step++) {
-            curve.bounds_grow(
-                k, attr_P->data<packed_float3>(attr_step), attr_R->data<float>(attr_step), bounds);
-          }
-          const int type = PRIMITIVE_PACK_SEGMENT(primitive_type, k);
-          bvh->custom_prim_info[num_bounds].x = j;
-          bvh->custom_prim_info[num_bounds].y = type;
-          bvh->custom_primitive_bound[num_bounds] = bounds;
-          sum_area += bounds.area();
-          num_bounds++;
+        BoundBox bounds = BoundBox::empty;
+        for (int attr_step = 0; attr_step < attr_P->num_motion_steps(); attr_step++) {
+          curve.bounds_grow(
+              k, attr_P->data<packed_float3>(attr_step), attr_R->data<float>(attr_step), bounds);
         }
-        else {
-          const int num_bvh_steps = bvh->params.num_motion_curve_steps * 2 + 1;
-          const float num_bvh_steps_inv_1 = 1.0f / (num_bvh_steps - 1);
-
-          float4 prev_keys[4];
-          curve.cardinal_motion_keys(
-              attr_P, attr_R, num_steps, 0.0f, k - 1, k, k + 1, k + 2, prev_keys);
-          BoundBox prev_bounds = BoundBox::empty;
-          curve.bounds_grow(prev_keys, prev_bounds);
-
-          for (int bvh_step = 1; bvh_step < num_bvh_steps; ++bvh_step) {
-            const float curr_time = (float)(bvh_step)*num_bvh_steps_inv_1;
-            float4 curr_keys[4];
-            curve.cardinal_motion_keys(
-                attr_P, attr_R, num_steps, curr_time, k - 1, k, k + 1, k + 2, curr_keys);
-            BoundBox curr_bounds = BoundBox::empty;
-            curve.bounds_grow(curr_keys, curr_bounds);
-            BoundBox bounds = prev_bounds;
-            bounds.grow(curr_bounds);
-
-            const float prev_time = (float)(bvh_step - 1) * num_bvh_steps_inv_1;
-            const int packed_type = PRIMITIVE_PACK_SEGMENT(primitive_type, k);
-            bvh->custom_prim_info[num_bounds].x = j;
-            bvh->custom_prim_info[num_bounds].y = packed_type;  // k
-            bvh->custom_primitive_bound[num_bounds] = bounds;
-            bvh->prims_time[num_bounds].x = prev_time;
-            bvh->prims_time[num_bounds].y = curr_time;
-            sum_area += bounds.area();
-            num_bounds++;
-
-            prev_bounds = curr_bounds;
-          }
-        }
+        const int type = PRIMITIVE_PACK_SEGMENT(primitive_type, k);
+        bvh->custom_prim_info[num_bounds].x = j;
+        bvh->custom_prim_info[num_bounds].y = type;
+        bvh->custom_primitive_bound[num_bounds] = bounds;
+        sum_area += bounds.area();
+        num_bounds++;
       }
     }
   }
@@ -666,7 +570,6 @@ hiprtGeometryBuildInput HIPRTDevice::prepare_point_blas(BVHHIPRT *bvh, PointClou
   const packed_float3 *points_data = pointcloud->get_position();
   const float *radius_data = pointcloud->get_radius();
   const size_t num_points = pointcloud->num_points();
-  const bool has_motion_radius = attr_R && attr_R->has_motion();
 
   int num_bounds = 0;
   float sum_area = 0.0f;
@@ -686,7 +589,7 @@ hiprtGeometryBuildInput HIPRTDevice::prepare_point_blas(BVHHIPRT *bvh, PointClou
       num_bounds++;
     }
   }
-  else if (bvh->params.num_motion_point_steps == 0 || bvh->params.use_spatial_split) {
+  else {
     bvh->custom_prim_info.resize(num_points);
     bvh->custom_primitive_bound.alloc(num_points);
 
@@ -703,46 +606,6 @@ hiprtGeometryBuildInput HIPRTDevice::prepare_point_blas(BVHHIPRT *bvh, PointClou
       bvh->custom_prim_info[num_bounds].y = PRIMITIVE_MOTION_POINT;
       sum_area += bounds.area();
       num_bounds++;
-    }
-  }
-  else {
-    const int num_bvh_steps = bvh->params.num_motion_point_steps * 2 + 1;
-    const float num_bvh_steps_inv_1 = 1.0f / (num_bvh_steps - 1);
-
-    bvh->custom_prim_info.resize(num_points * num_bvh_steps);
-    bvh->custom_primitive_bound.alloc(num_points * num_bvh_steps);
-    bvh->prims_time.resize(num_points * num_bvh_steps);
-
-    const Attribute *attr_R_motion = has_motion_radius ? attr_R : nullptr;
-
-    for (uint j = 0; j < num_points; j++) {
-      const PointCloud::Point point = pointcloud->get_point(j);
-      const size_t num_steps = pointcloud->get_motion_steps();
-
-      float4 prev_key = point.motion_key(radius_data, attr_P, attr_R_motion, num_steps, 0.0f, j);
-      BoundBox prev_bounds = BoundBox::empty;
-      point.bounds_grow(prev_key, prev_bounds);
-
-      for (int bvh_step = 1; bvh_step < num_bvh_steps; ++bvh_step) {
-        const float curr_time = (float)(bvh_step)*num_bvh_steps_inv_1;
-        float4 curr_key = point.motion_key(
-            radius_data, attr_P, attr_R_motion, num_steps, curr_time, j);
-        BoundBox curr_bounds = BoundBox::empty;
-        point.bounds_grow(curr_key, curr_bounds);
-        BoundBox bounds = prev_bounds;
-        bounds.grow(curr_bounds);
-
-        const float prev_time = (float)(bvh_step - 1) * num_bvh_steps_inv_1;
-        bvh->custom_primitive_bound[num_bounds] = bounds;
-        bvh->custom_prim_info[num_bounds].x = j;
-        bvh->custom_prim_info[num_bounds].y = PRIMITIVE_MOTION_POINT;
-        bvh->prims_time[num_bounds].x = prev_time;
-        bvh->prims_time[num_bounds].y = curr_time;
-        sum_area += bounds.area();
-        num_bounds++;
-
-        prev_bounds = curr_bounds;
-      }
     }
   }
 
@@ -951,8 +814,6 @@ hiprtScene HIPRTDevice::build_tlas(BVHHIPRT *bvh,
   unordered_map<Geometry *, int2> prim_info_map;
   size_t custom_prim_offset = 0;
 
-  unordered_map<Geometry *, int> prim_time_map;
-
   size_t num_instances = 0;
   int blender_instance_id = 0;
 
@@ -962,7 +823,6 @@ hiprtScene HIPRTDevice::build_tlas(BVHHIPRT *bvh,
   blas_ptr.alloc(num_object);
   transform_headers.alloc(num_object);
   custom_prim_info_offset.alloc(num_object);
-  prim_time_offset.alloc(num_object);
 
   for (Object *ob : objects) {
     uint32_t mask = 0;
@@ -986,19 +846,10 @@ hiprtScene HIPRTDevice::build_tlas(BVHHIPRT *bvh,
       bool is_custom_prim = current_bvh->custom_prim_info.size() > 0;
 
       if (is_custom_prim) {
-
-        bool has_motion_blur = current_bvh->prims_time.size() > 0;
-
         unordered_map<Geometry *, int2>::iterator it = prim_info_map.find(geom);
 
         if (prim_info_map.find(geom) != prim_info_map.end()) {
-
           custom_prim_info_offset[blender_instance_id] = it->second;
-
-          if (has_motion_blur) {
-
-            prim_time_offset[blender_instance_id] = prim_time_map[geom];
-          }
         }
         else {
           int offset = bvh->custom_prim_info.size();
@@ -1022,21 +873,6 @@ hiprtScene HIPRTDevice::build_tlas(BVHHIPRT *bvh,
           }
           else {
             custom_prim_offset += ((Mesh *)geom)->num_triangles();
-          }
-
-          if (has_motion_blur) {
-            int time_offset = bvh->prims_time.size();
-            prim_time_map[geom] = time_offset;
-
-            bvh->prims_time.resize(time_offset + current_bvh->prims_time.size());
-            memcpy(bvh->prims_time.data() + time_offset,
-                   current_bvh->prims_time.data(),
-                   current_bvh->prims_time.size() * sizeof(float2));
-
-            prim_time_offset[blender_instance_id] = time_offset;
-          }
-          else {
-            prim_time_offset[blender_instance_id] = -1;
           }
         }
       }
@@ -1217,28 +1053,6 @@ hiprtScene HIPRTDevice::build_tlas(BVHHIPRT *bvh,
     custom_prim_info_offset.copy_to_device();
     if (custom_prim_info.device_pointer == 0 || custom_prim_info_offset.device_pointer == 0) {
       set_error("Failed to allocate custom_prim_info_offset for TLAS");
-      hiprtDestroyScene(hiprt_context, scene);
-      return nullptr;
-    }
-  }
-
-  if (bvh->prims_time.size()) {
-    /* TODO: reduce memory usage by avoiding copy. */
-    const size_t data_size = bvh->prims_time.size();
-    float2 *prims_time_data = prims_time.resize(data_size);
-    if (prims_time_data == nullptr) {
-      set_error("Failed to allocate host prims_time for TLAS");
-      hiprtDestroyScene(hiprt_context, scene);
-      return nullptr;
-    }
-
-    std::copy_n(bvh->prims_time.data(), data_size, prims_time_data);
-
-    prims_time.copy_to_device();
-    prim_time_offset.copy_to_device();
-
-    if (prim_time_offset.device_pointer == 0 || prims_time.device_pointer == 0) {
-      set_error("Failed to allocate prims_time for TLAS");
       hiprtDestroyScene(hiprt_context, scene);
       return nullptr;
     }
