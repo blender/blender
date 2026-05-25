@@ -9,7 +9,7 @@
 SHADER_LIBRARY_CREATE_INFO(eevee_surfel_common)
 
 #include "draw_view_lib.glsl"
-#include "eevee_lightprobe_sphere_lib.glsl"
+#include "eevee_lightprobe_sphere.bsl.hh"
 #include "gpu_shader_utildefines_lib.glsl"
 
 namespace eevee::surfel {
@@ -21,8 +21,9 @@ float avg_albedo(float3 albedo)
 
 struct SurfelRay {
   [[legacy_info]] ShaderCreateInfo eevee_surfel_common;
-  [[legacy_info]] ShaderCreateInfo eevee_lightprobe_sphere_data;
   [[legacy_info]] ShaderCreateInfo draw_view;
+
+  [[resource_table]] srt_t<LightprobeSphereRenderData> lightprobe_spheres;
 
   [[push_constant]] const int radiance_src;
   [[push_constant]] const int radiance_dst;
@@ -89,12 +90,14 @@ struct SurfelRay {
 
   void radiance_transfer_world(Surfel &receiver, float3 L)
   {
+    [[resource_table]] const LightprobeSphereRenderData &lp_spheres = lightprobe_spheres;
+
     float3 radiance = float3(0.0f);
     float visibility = 0.0f;
 
     if (capture_info_buf.capture_world_indirect) {
       SphereProbeUvArea atlas_coord = capture_info_buf.world_atlas_coord;
-      radiance = lightprobe_spheres_sample(L, 0.0f, atlas_coord).rgb;
+      radiance = lp_spheres.sample_probe(L, 0.0f, atlas_coord).rgb;
     }
 
     if (capture_info_buf.capture_visibility_indirect) {

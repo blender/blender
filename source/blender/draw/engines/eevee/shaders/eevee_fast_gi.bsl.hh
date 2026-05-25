@@ -23,7 +23,6 @@ VERTEX_SHADER_CREATE_INFO(eevee_sampling_data)
 VERTEX_SHADER_CREATE_INFO(eevee_utility_texture)
 VERTEX_SHADER_CREATE_INFO(eevee_global_ubo)
 VERTEX_SHADER_CREATE_INFO(eevee_hiz_data)
-VERTEX_SHADER_CREATE_INFO(eevee_lightprobe_sphere_data)
 VERTEX_SHADER_CREATE_INFO(draw_view)
 
 #include "draw_view_lib.glsl"
@@ -31,14 +30,13 @@ VERTEX_SHADER_CREATE_INFO(draw_view)
 #include "eevee_colorspace_lib.bsl.hh"
 #include "eevee_filter_lib.glsl"
 #include "eevee_gbuffer_read_lib.glsl"
-#include "eevee_lightprobe_eval_lib.glsl"
+#include "eevee_lightprobe.bsl.hh"
 #include "eevee_ray_types_lib.bsl.hh"
 #include "eevee_reverse_z_lib.bsl.hh"
 #include "eevee_sampling_lib.glsl"
 #include "eevee_spherical_harmonics.bsl.hh"
 #include "eevee_utility_tx.bsl.hh"
 #include "gpu_shader_math_matrix_transform_lib.glsl"
-#include "gpu_shader_math_vector_compare_lib.glsl"
 #include "gpu_shader_math_vector_lib.glsl"
 #include "gpu_shader_utildefines_lib.glsl"
 
@@ -886,7 +884,6 @@ struct Resolve {
   [[legacy_info]] ShaderCreateInfo eevee_global_ubo;
   [[legacy_info]] ShaderCreateInfo eevee_gbuffer_data;
   [[legacy_info]] ShaderCreateInfo eevee_sampling_data;
-  [[legacy_info]] ShaderCreateInfo eevee_lightprobe_data;
   [[legacy_info]] ShaderCreateInfo draw_view;
 
   [[image(3, read_write, RAYTRACE_RADIANCE_FORMAT)]] image2D closure0_img;
@@ -900,7 +897,8 @@ void resolve([[work_group_id]] const uint3 group_id,
              [[local_invocation_id]] const uint3 local_id,
              [[resource_table]] const Tiles &tiles,
              [[resource_table]] const SampleInput &sh_in,
-             [[resource_table]] Resolve &srt)
+             [[resource_table]] Resolve &srt,
+             [[resource_table]] const LightprobeRenderData &lightprobes)
 {
   constexpr uint tile_size = RAYTRACE_GROUP_SIZE;
   uint2 tile_coord = unpackUvec2x16(tiles.tiles_coord_buf[group_id.x]);
@@ -964,7 +962,7 @@ void resolve([[work_group_id]] const uint3 group_id,
   float3 Ng = center_N;
   float3 V = drw_world_incident_vector(P);
 
-  LightProbeSample samp = lightprobe_load(float2(texel_fullres), P, Ng, V);
+  LightProbeSample samp = lightprobes.load(float2(texel_fullres), P, Ng, V);
 
   float clamp_indirect = uniform_buf.clamp.surface_indirect;
   samp.volume_irradiance = spherical_harmonics::clamp_energy(samp.volume_irradiance,

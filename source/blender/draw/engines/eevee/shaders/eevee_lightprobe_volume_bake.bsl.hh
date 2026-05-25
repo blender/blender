@@ -12,12 +12,11 @@
 #include "infos/eevee_lightprobe_volume_infos.hh"
 
 SHADER_LIBRARY_CREATE_INFO(eevee_surfel_common)
-SHADER_LIBRARY_CREATE_INFO(eevee_lightprobe_sphere_data)
 SHADER_LIBRARY_CREATE_INFO(draw_view)
 
 #include "draw_intersect_lib.glsl"
-#include "eevee_lightprobe_lib.glsl"
-#include "eevee_lightprobe_sphere_lib.glsl"
+#include "eevee_lightprobe_sphere.bsl.hh"
+#include "eevee_lightprobe_volume.bsl.hh"
 #include "eevee_spherical_harmonics.bsl.hh"
 #include "eevee_surfel_list.bsl.hh"
 #include "gpu_shader_math_base_lib.glsl"
@@ -239,7 +238,7 @@ void volume_offset([[resource_table]] VolumeOffset &srt,
     return;
   }
 
-  float3 P = lightprobe_volume_grid_sample_position(
+  float3 P = lightprobe::volume::grid_sample_position(
       capture_info_buf.irradiance_grid_local_to_world,
       capture_info_buf.irradiance_grid_size,
       grid_coord);
@@ -269,7 +268,7 @@ void volume_offset([[resource_table]] VolumeOffset &srt,
 
 struct RayCapture {
   [[legacy_info]] ShaderCreateInfo eevee_surfel_common;
-  [[legacy_info]] ShaderCreateInfo eevee_lightprobe_sphere_data;
+  [[resource_table]] srt_t<LightprobeSphereRenderData> lightprobe_sphere;
   [[legacy_info]] ShaderCreateInfo draw_view;
 
   [[storage(0, read)]] const int (&list_start_buf)[];
@@ -332,12 +331,14 @@ struct RayCapture {
 
   void irradiance_capture_world(float3 L, SphericalHarmonicL1<float4> &sh)
   {
+    [[resource_table]] const LightprobeSphereRenderData &lp_sphere = lightprobe_sphere;
+
     float3 radiance = float3(0.0f);
     float visibility = 0.0f;
 
     if (capture_info_buf.capture_world_direct) {
       SphereProbeUvArea atlas_coord = capture_info_buf.world_atlas_coord;
-      radiance = lightprobe_spheres_sample(L, 0.0f, atlas_coord).rgb;
+      radiance = lp_sphere.sample_probe(L, 0.0f, atlas_coord).rgb;
 
       /* Clamped brightness. */
       float luma = max(1e-8f, reduce_max(radiance));
@@ -371,7 +372,7 @@ void ray_capture([[resource_table]] RayCapture &srt,
     return;
   }
 
-  float3 P = lightprobe_volume_grid_sample_position(
+  float3 P = lightprobe::volume::grid_sample_position(
       capture_info_buf.irradiance_grid_local_to_world,
       capture_info_buf.irradiance_grid_size,
       grid_coord);

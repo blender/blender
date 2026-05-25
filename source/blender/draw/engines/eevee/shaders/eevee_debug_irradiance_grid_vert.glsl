@@ -7,7 +7,7 @@
 VERTEX_SHADER_CREATE_INFO(eevee_debug_irradiance_grid)
 
 #include "draw_view_lib.glsl"
-#include "eevee_lightprobe_lib.glsl"
+#include "eevee_lightprobe_volume.bsl.hh"
 #include "gpu_shader_math_vector_compare_lib.glsl"
 
 void main()
@@ -28,7 +28,8 @@ void main()
   grid_sample.y = (sample_id / grid_resolution.x) % grid_resolution.y;
   grid_sample.z = (sample_id / (grid_resolution.x * grid_resolution.y));
 
-  float3 P = lightprobe_volume_grid_sample_position(grid_mat, grid_resolution, grid_sample);
+  float3 P = eevee::lightprobe::volume::grid_sample_position(
+      grid_mat, grid_resolution, grid_sample);
 
   float4 debug_data = texelFetch(debug_data_tx, grid_sample, 0);
   if (debug_mode == DEBUG_IRRADIANCE_CACHE_VALIDITY) {

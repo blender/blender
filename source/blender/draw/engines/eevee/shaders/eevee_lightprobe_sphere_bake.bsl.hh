@@ -10,8 +10,7 @@ SHADER_LIBRARY_CREATE_INFO(eevee_global_ubo)
 
 #include "eevee_colorspace_lib.bsl.hh"
 #include "eevee_light_shared.hh"
-#include "eevee_lightprobe_shared.hh"
-#include "eevee_lightprobe_sphere_mapping_lib.glsl"
+#include "eevee_lightprobe_sphere.bsl.hh"
 #include "eevee_sampling_lib.glsl"
 #include "eevee_spherical_harmonics.bsl.hh"
 #include "gpu_shader_math_base_lib.glsl"
@@ -89,10 +88,10 @@ float octahedral_texel_solid_angle(int2 local_texel, SphereProbePixelArea write_
   texel_corner_v01 = clamp(texel_corner_v01, float2(0.0f), float2(half_size - 1));
   texel_corner_v11 = clamp(texel_corner_v11, float2(0.0f), float2(half_size - 1));
   /* Convert to point on sphere. */
-  float3 v00 = sphere_probe_texel_to_direction(texel_corner_v00, write_co);
-  float3 v10 = sphere_probe_texel_to_direction(texel_corner_v10, write_co);
-  float3 v01 = sphere_probe_texel_to_direction(texel_corner_v01, write_co);
-  float3 v11 = sphere_probe_texel_to_direction(texel_corner_v11, write_co);
+  float3 v00 = texel_to_direction(texel_corner_v00, write_co);
+  float3 v10 = texel_to_direction(texel_corner_v10, write_co);
+  float3 v01 = texel_to_direction(texel_corner_v01, write_co);
+  float3 v11 = texel_to_direction(texel_corner_v11, write_co);
   /* The solid angle functions expect normalized vectors. */
   v00 = normalize(v00);
   v10 = normalize(v10);
@@ -130,7 +129,7 @@ void remap_cubemap_to_octahedral([[resource_table]] Remap &srt,
   int2 local_texel = int2(global_id.xy);
 
   float2 wrapped_uv;
-  float3 direction = sphere_probe_texel_to_direction(float2(local_texel), write_coord, wrapped_uv);
+  float3 direction = texel_to_direction(float2(local_texel), write_coord, wrapped_uv);
   float4 radiance_and_transmittance = texture(srt.cubemap_tx, direction);
   float3 radiance = radiance_and_transmittance.xyz;
 
@@ -139,7 +138,7 @@ void remap_cubemap_to_octahedral([[resource_table]] Remap &srt,
   /* Composite world into reflection probes. */
   bool is_world = all(equal(srt.probe_coord_packed, srt.world_coord_packed));
   if (!is_world && opacity != 1.0f) {
-    float2 biased_uv = sphere_probe_miplvl_scale_bias(0.0f, world_coord, saturate(wrapped_uv));
+    float2 biased_uv = miplvl_scale_bias(0.0f, world_coord, saturate(wrapped_uv));
     float2 world_uv = biased_uv * world_coord.scale + world_coord.offset;
     float4 world_radiance = textureLod(srt.atlas_tx, float3(world_uv, world_coord.layer), 0.0f);
     radiance.rgb = mix(world_radiance.rgb, radiance.rgb, opacity);
@@ -236,8 +235,7 @@ void remap_cubemap_to_octahedral([[resource_table]] Remap &srt,
       int2 max_group_texel = local_texel + int2(SPHERE_PROBE_REMAP_GROUP_SIZE);
       /* Min direction is the local direction since this is only ran by thread 0. */
       float3 min_direction = normalize(direction);
-      float3 max_direction = normalize(
-          sphere_probe_texel_to_direction(float2(max_group_texel), write_coord));
+      float3 max_direction = normalize(texel_to_direction(float2(max_group_texel), write_coord));
       float3 L = normalize(min_direction + max_direction);
       /* Convert radiance to spherical harmonics. */
       SphericalHarmonicL1<float4> sh = {};
@@ -352,8 +350,8 @@ void mip_convolve([[resource_table]] Convolve &srt,
   }
 
   /* From mip to linear roughness (same as UI). */
-  float prev_mip_roughness = sphere_probe_lod_to_roughness(float(srt.read_lod));
-  float curr_mip_roughness = sphere_probe_lod_to_roughness(float(srt.read_lod + 1));
+  float prev_mip_roughness = lod_to_roughness(float(srt.read_lod));
+  float curr_mip_roughness = lod_to_roughness(float(srt.read_lod + 1));
   /* In order to reduce the sample count, we sample the content of previous mip level.
    * But this one has already been convolved. So we have to derive the equivalent roughness
    * that produces the same result. */
@@ -362,7 +360,7 @@ void mip_convolve([[resource_table]] Convolve &srt,
   float mip_roughness_clamped = max(mip_roughness, BSDF_ROUGHNESS_THRESHOLD);
   float cone_cos = cone_cosine_from_roughness(mip_roughness_clamped);
 
-  float3 out_direction = sphere_probe_texel_to_direction(float2(out_local_texel), out_texel_area);
+  float3 out_direction = texel_to_direction(float2(out_local_texel), out_texel_area);
   out_direction = normalize(out_direction);
 
   float3x3 basis = tangent_basis(out_direction);
@@ -378,7 +376,7 @@ void mip_convolve([[resource_table]] Convolve &srt,
     float3 in_direction = basis * sample_uniform_cone(rand, cone_cos);
 
 #ifndef ALWAYS_SAMPLE_CUBEMAP
-    float2 in_uv = sphere_probe_direction_to_uv(in_direction, float(srt.read_lod), sample_coord);
+    float2 in_uv = direction_to_uv(in_direction, float(srt.read_lod), sample_coord);
     float4 radiance = texture(srt.in_atlas_mip_tx, float3(in_uv, sample_coord.layer));
 #else /* For reference and debugging. */
     float4 radiance = texture(cubemap_tx, in_direction);

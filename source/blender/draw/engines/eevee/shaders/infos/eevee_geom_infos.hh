@@ -26,6 +26,7 @@
 #  define DRW_POINTCLOUD_INFO
 
 #  define MAT_TRANSPARENT
+#  define MAT_SHADER_TO_RGBA
 #endif
 
 #include "eevee_defines.hh"

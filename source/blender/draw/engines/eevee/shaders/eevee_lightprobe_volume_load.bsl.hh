@@ -8,8 +8,7 @@
 
 SHADER_LIBRARY_CREATE_INFO(eevee_global_ubo)
 
-#include "eevee_lightprobe_lib.glsl"
-#include "eevee_lightprobe_volume_eval_lib.glsl"
+#include "eevee_lightprobe_volume.bsl.hh"
 #include "eevee_spherical_harmonics.bsl.hh"
 #include "gpu_shader_math_base_lib.glsl"
 #include "gpu_shader_math_matrix_normalize_lib.glsl"
@@ -30,8 +29,6 @@ struct AtlasStore {
 struct LoadGrid {
   [[legacy_info]] ShaderCreateInfo eevee_global_ubo;
 
-  [[storage(0, read)]] const uint (&bricks_infos_buf)[];
-
   [[push_constant]] const float4x4 grid_local_to_world;
   [[push_constant]] const int grid_index;
   [[push_constant]] const int grid_start_index;
@@ -40,18 +37,15 @@ struct LoadGrid {
   [[push_constant]] const float dilation_radius;
   [[push_constant]] const float grid_intensity_factor;
 
-  [[uniform(0)]] const VolumeProbeData (&grids_infos_buf)[IRRADIANCE_GRID_MAX];
-
   [[sampler(0)]] sampler3D irradiance_a_tx;
   [[sampler(1)]] sampler3D irradiance_b_tx;
   [[sampler(2)]] sampler3D irradiance_c_tx;
   [[sampler(3)]] sampler3D irradiance_d_tx;
   [[sampler(4)]] sampler3D visibility_a_tx;
   [[sampler(5)]] sampler3D visibility_b_tx;
-  [[sampler(6)]] sampler3D visibility_c_tx;
-  [[sampler(7)]] sampler3D visibility_d_tx;
+  [[sampler(7)]] sampler3D visibility_c_tx;
+  [[sampler(8)]] sampler3D visibility_d_tx;
 
-  [[sampler(8)]] sampler3D irradiance_atlas_tx;
   [[sampler(9)]] sampler3D validity_tx;
 
   SphericalHarmonicL1<float4> irradiance_load(int3 input_coord) const
@@ -83,14 +77,15 @@ struct LoadGrid {
                          IRRADIANCE_GRID_BRICK_SIZE,
                          IRRADIANCE_GRID_BRICK_SIZE)]]
 void load_grid([[resource_table]] const LoadGrid &srt,
+               [[resource_table]] const LightprobeVolumeRenderData &lvd,
                [[resource_table]] AtlasStore &atlas,
                [[global_invocation_id]] const uint3 global_id,
                [[work_group_id]] const uint3 group_id,
                [[local_invocation_id]] const uint3 local_id,
                [[local_invocation_index]] const uint local_index)
 {
-  int brick_index = lightprobe_volume_grid_brick_index_get(srt.grids_infos_buf[srt.grid_index],
-                                                           int3(group_id));
+  int brick_index = lightprobe::volume::grid_brick_index_get(lvd.grids_infos_buf[srt.grid_index],
+                                                             int3(group_id));
 
   int3 grid_size = textureSize(srt.irradiance_a_tx, 0);
   /* Brick coordinate in the source grid. */
@@ -105,7 +100,7 @@ void load_grid([[resource_table]] const LoadGrid &srt,
   bool is_padding_voxel = !all(equal(texel_coord, input_coord));
 
   /* Brick coordinate in the destination atlas. */
-  IrradianceBrick brick = irradiance_brick_unpack(srt.bricks_infos_buf[brick_index]);
+  IrradianceBrick brick = irradiance_brick_unpack(lvd.bricks_infos_buf[brick_index]);
   int2 output_coord = int2(brick.atlas_coord);
 
   SphericalHarmonicL1<float4> sh_local;
@@ -152,7 +147,7 @@ void load_grid([[resource_table]] const LoadGrid &srt,
 
   /* Rotate Spherical Harmonic into world space. */
   float3x3 grid_to_world_rot = normalize(
-      to_float3x3(srt.grids_infos_buf[srt.grid_index].world_to_grid_transposed));
+      to_float3x3(lvd.grids_infos_buf[srt.grid_index].world_to_grid_transposed));
   sh_local = spherical_harmonics::rotate(grid_to_world_rot, sh_local);
 
   SphericalHarmonicL1<float4> sh_visibility;
@@ -161,10 +156,11 @@ void load_grid([[resource_table]] const LoadGrid &srt,
   sh_visibility.L1.M0 = sh_local.L1.M0.aaaa;
   sh_visibility.L1.Mp1 = sh_local.L1.Mp1.aaaa;
 
-  float3 P = lightprobe_volume_grid_sample_position(
+  float3 P = lightprobe::volume::grid_sample_position(
       srt.grid_local_to_world, grid_size, input_coord);
 
-  SphericalHarmonicL1<float4> sh_distant = lightprobe_volume_sample(P, srt.grid_start_index);
+  SphericalHarmonicL1<float4> sh_distant = lvd.sample_probe_no_dithered_no_biases(
+      P, srt.grid_start_index);
 
   if (is_padding_voxel) {
     /* Padding voxels just contain the distant lighting. */
@@ -192,7 +188,7 @@ void load_grid([[resource_table]] const LoadGrid &srt,
     /* Encode validity of each samples in the grid cell. */
     for (int cell = 0; cell < 4; cell++) [[unroll]] {
       for (int i = 0; i < 8; i++) {
-        int3 sample_position = lightprobe_volume_grid_cell_corner(i);
+        int3 sample_position = lightprobe::volume::grid_cell_corner(i);
         int3 coord_texel = texel_coord + int3(0, 0, cell) + sample_position;
         int3 coord_input = clamp(coord_texel, int3(0), grid_size - 1);
         float validity = texelFetch(srt.validity_tx, coord_input, 0).r;
@@ -211,12 +207,9 @@ void load_grid([[resource_table]] const LoadGrid &srt,
 struct LoadWorld {
   [[legacy_info]] ShaderCreateInfo eevee_global_ubo;
 
-  [[storage(0, read)]] const uint (&bricks_infos_buf)[];
   [[storage(1, read)]] const SphereProbeHarmonic &harmonic_buf;
 
   [[push_constant]] const int grid_index;
-
-  [[uniform(0)]] const VolumeProbeData (&grids_infos_buf)[IRRADIANCE_GRID_MAX];
 };
 
 /**
@@ -228,15 +221,16 @@ struct LoadWorld {
                          IRRADIANCE_GRID_BRICK_SIZE,
                          IRRADIANCE_GRID_BRICK_SIZE)]]
 void load_world([[resource_table]] const LoadWorld &srt,
+                [[resource_table]] const LightprobeVolumeRenderData &lvd,
                 [[resource_table]] AtlasStore &atlas,
                 [[global_invocation_id]] const uint3 global_id,
                 [[local_invocation_id]] const uint3 local_id,
                 [[local_invocation_index]] const uint local_index)
 {
-  int brick_index = srt.grids_infos_buf[srt.grid_index].brick_offset;
+  int brick_index = lvd.grids_infos_buf[srt.grid_index].brick_offset;
 
   /* Brick coordinate in the destination atlas. */
-  IrradianceBrick brick = irradiance_brick_unpack(srt.bricks_infos_buf[brick_index]);
+  IrradianceBrick brick = irradiance_brick_unpack(lvd.bricks_infos_buf[brick_index]);
   int2 output_coord = int2(brick.atlas_coord);
 
   SphericalHarmonicL1<float4> sh;

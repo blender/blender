@@ -24,9 +24,12 @@
 #include "eevee_light_iter.bsl.hh"                   /* IWYU pragma: export */
 #include "eevee_light_shadow_setup.bsl.hh"           /* IWYU pragma: export */
 #include "eevee_light_shape_display.bsl.hh"          /* IWYU pragma: export */
+#include "eevee_lightprobe.bsl.hh"                   /* IWYU pragma: export */
 #include "eevee_lightprobe_display.bsl.hh"           /* IWYU pragma: export */
+#include "eevee_lightprobe_sphere.bsl.hh"            /* IWYU pragma: export */
 #include "eevee_lightprobe_sphere_bake.bsl.hh"       /* IWYU pragma: export */
 #include "eevee_lightprobe_sphere_culling.bsl.hh"    /* IWYU pragma: export */
+#include "eevee_lightprobe_volume.bsl.hh"            /* IWYU pragma: export */
 #include "eevee_lightprobe_volume_bake.bsl.hh"       /* IWYU pragma: export */
 #include "eevee_lightprobe_volume_load.bsl.hh"       /* IWYU pragma: export */
 #include "eevee_lookdev_copy_world.bsl.hh"           /* IWYU pragma: export */

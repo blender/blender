@@ -11,8 +11,6 @@
 
 #include "infos/eevee_sampling_infos.hh"
 
-SHADER_LIBRARY_CREATE_INFO(eevee_sampling_data)
-
 #include "gpu_shader_math_base_lib.glsl"
 #include "gpu_shader_math_constants_lib.glsl"
 #include "gpu_shader_math_safe_lib.glsl"
@@ -25,26 +23,23 @@ SHADER_LIBRARY_CREATE_INFO(eevee_sampling_data)
  * You might want to couple it with a noise function.
  * \{ */
 
-#ifdef EEVEE_SAMPLING_DATA
-
-float sampling_rng_1D_get(const eSamplingDimension dimension)
+float sampling_rng_1D_get(const eSamplingDimension dim)
 {
-  return sampling_buf.dimensions[dimension];
+  const auto &buf = buffer_get(eevee_sampling_data, sampling_buf);
+  return buf.dimensions[dim];
 }
 
-float2 sampling_rng_2D_get(const eSamplingDimension dimension)
+float2 sampling_rng_2D_get(const eSamplingDimension dim)
 {
-  return float2(sampling_buf.dimensions[dimension], sampling_buf.dimensions[dimension + 1u]);
+  const auto &buf = buffer_get(eevee_sampling_data, sampling_buf);
+  return float2(buf.dimensions[dim], buf.dimensions[dim + 1u]);
 }
 
-float3 sampling_rng_3D_get(const eSamplingDimension dimension)
+float3 sampling_rng_3D_get(const eSamplingDimension dim)
 {
-  return float3(sampling_buf.dimensions[dimension],
-                sampling_buf.dimensions[dimension + 1u],
-                sampling_buf.dimensions[dimension + 2u]);
+  const auto &buf = buffer_get(eevee_sampling_data, sampling_buf);
+  return float3(buf.dimensions[dim], buf.dimensions[dim + 1u], buf.dimensions[dim + 2u]);
 }
-
-#endif
 
 /** \} */
 

@@ -32,28 +32,42 @@ Thickness g_thickness;
 
 float4 closure_to_rgba_hybrid(Closure /*cl*/)
 {
+  const float2 frag_co = gl_FragCoord.xy;
+
   float3 radiance, transmittance;
-  eevee::forward_lighting_eval(g_thickness, gl_FragCoord.xy, radiance, transmittance);
+  eevee::forward_lighting_eval(g_thickness, frag_co, radiance, transmittance);
 
   /* Reset for the next closure tree. */
-  float noise = utility_tx_fetch(utility_tx, gl_FragCoord.xy, UTIL_BLUE_NOISE_LAYER).r;
+  float noise = utility_tx_fetch(utility_tx, frag_co, UTIL_BLUE_NOISE_LAYER).r;
   float closure_rand = fract(noise + sampling_rng_1D_get(SAMPLING_CLOSURE));
   closure_weights_reset(closure_rand);
 
 #if defined(MAT_TRANSPARENT) && defined(MAT_SHADER_TO_RGBA)
-  float3 V = -drw_world_incident_vector(g_data.P);
-  LightProbeSample samp = lightprobe_load(gl_FragCoord.xy, g_data.P, g_data.Ng, V);
-  float3 radiance_behind = lightprobe_spherical_sample_normalized_with_parallax(
-      samp, g_data.P, V, 0.0);
+  { /* Limit resource guard to this scope. */
+    [[resource_table]] eevee::LightprobeRenderData &lightprobes = resource_table_get(
+        eevee::LightprobeRenderData);
+    [[resource_table]] eevee::LightprobeSphereRenderData &lp_spheres = lightprobes.spheres;
+
+    float3 V = -drw_world_incident_vector(g_data.P);
+    eevee::LightProbeSample samp = lightprobes.load(frag_co.xy, g_data.P, g_data.Ng, V);
+    float3 radiance_behind = lp_spheres.spherical_sample_normalized_with_parallax(
+        samp, g_data.P, V, 0.0);
 
 #  ifndef MAT_FIRST_LAYER
-  int2 texel = int2(gl_FragCoord.xy);
-  if (texelFetchExtend(hiz_prev_tx, texel, 0).x != 1.0f) {
-    radiance_behind = texelFetch(previous_layer_radiance_tx, texel, 0).xyz;
-  }
+    { /* Limit resource guard to this scope. */
+      int2 texel = int2(frag_co.xy);
+
+      const auto &prev_hiz_tx = sampler_get(eevee_hiz_prev_data, hiz_prev_tx);
+      const auto &prev_radiance_tx = sampler_get(eevee_previous_layer_radiance,
+                                                 previous_layer_radiance_tx);
+      if (texelFetchExtend(prev_hiz_tx, texel, 0).x != 1.0f) {
+        radiance_behind = texelFetch(prev_radiance_tx, texel, 0).xyz;
+      }
+    }
 #  endif
 
-  radiance += radiance_behind * saturate(transmittance);
+    radiance += radiance_behind * saturate(transmittance);
+  }
 #endif
 
   return float4(radiance, saturate(1.0f - average(transmittance)));
@@ -71,9 +85,6 @@ struct SurfaceHybrid {
   [[legacy_info]] ShaderCreateInfo eevee_hiz_data;
   [[legacy_info]] ShaderCreateInfo draw_view_culling;
   [[legacy_info]] ShaderCreateInfo eevee_geom_iface_info;
-
-  /* For closure_to_rgba. */
-  [[legacy_info]] ShaderCreateInfo eevee_lightprobe_data;
 
   /* Everything is stored inside a two layered target, one for each format. This is to fit the
    * limitation of the number of images we can bind on a single shader. */
@@ -119,6 +130,8 @@ struct HybridFragOut {
 void surf_hybrid([[resource_table]] PipelineConstants &pipe,
                  [[resource_table]] SurfaceHybrid &srt,
                  [[resource_table]] LightEvalIterator & /*lights*/,
+                 [[resource_table]] LightprobeRenderData & /*lightprobes*/,
+                 [[resource_table]] LightprobePlaneRenderData & /*lightprobe_planes*/,
                  [[frag_coord]] const float4 frag_co,
                  [[out]] HybridFragOut &frag_out,
                  [[front_facing]] const bool front_face)

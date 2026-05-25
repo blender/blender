@@ -446,13 +446,15 @@ set(GLSL_SRC
   engines/eevee/shaders/eevee_light_eval.bsl.hh
   engines/eevee/shaders/eevee_light_iter.bsl.hh
   engines/eevee/shaders/eevee_light_lib.glsl
+  engines/eevee/shaders/eevee_lightprobe.bsl.hh
   engines/eevee/shaders/eevee_lightprobe_display.bsl.hh
-  engines/eevee/shaders/eevee_lightprobe_eval_lib.glsl
+  engines/eevee/shaders/eevee_lightprobe_plane.bsl.hh
+  engines/eevee/shaders/eevee_lightprobe_sphere.bsl.hh
+  engines/eevee/shaders/eevee_lightprobe_sphere_bake.bsl.hh
+  engines/eevee/shaders/eevee_lightprobe_sphere_culling.bsl.hh
+  engines/eevee/shaders/eevee_lightprobe_volume.bsl.hh
   engines/eevee/shaders/eevee_lightprobe_volume_bake.bsl.hh
-
   engines/eevee/shaders/eevee_lightprobe_volume_load.bsl.hh
-  engines/eevee/shaders/eevee_lightprobe_lib.glsl
-  engines/eevee/shaders/eevee_lightprobe_volume_eval_lib.glsl
   engines/eevee/shaders/eevee_lookdev_copy_world.bsl.hh
   engines/eevee/shaders/eevee_lookdev_display_frag.glsl
   engines/eevee/shaders/eevee_lookdev_display_vert.glsl
@@ -477,11 +479,6 @@ set(GLSL_SRC
   engines/eevee/shaders/eevee_ray_trace_screen_lib.glsl
   engines/eevee/shaders/eevee_ray_types_lib.bsl.hh
   engines/eevee/shaders/eevee_reverse_z_lib.bsl.hh
-  engines/eevee/shaders/eevee_lightprobe_sphere_eval_lib.glsl
-  engines/eevee/shaders/eevee_lightprobe_sphere_bake.bsl.hh
-  engines/eevee/shaders/eevee_lightprobe_sphere_lib.glsl
-  engines/eevee/shaders/eevee_lightprobe_sphere_mapping_lib.glsl
-  engines/eevee/shaders/eevee_lightprobe_sphere_culling.bsl.hh
   engines/eevee/shaders/eevee_renderpass_clear.bsl.hh
   engines/eevee/shaders/eevee_renderpass_lib.glsl
   engines/eevee/shaders/eevee_sampling_lib.glsl

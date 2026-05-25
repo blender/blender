@@ -10,13 +10,12 @@ COMPUTE_SHADER_CREATE_INFO(draw_view)
 COMPUTE_SHADER_CREATE_INFO(eevee_global_ubo)
 COMPUTE_SHADER_CREATE_INFO(eevee_sampling_data)
 COMPUTE_SHADER_CREATE_INFO(eevee_gbuffer_data)
-COMPUTE_SHADER_CREATE_INFO(eevee_lightprobe_data)
-COMPUTE_SHADER_CREATE_INFO(eevee_lightprobe_planar_data)
 
 #include "eevee_closure_lib.glsl"
 #include "eevee_colorspace_lib.bsl.hh"
 #include "eevee_gbuffer_read_lib.glsl"
-#include "eevee_lightprobe_eval_lib.glsl"
+#include "eevee_lightprobe.bsl.hh"
+#include "eevee_lightprobe_plane.bsl.hh"
 #include "eevee_ray_trace_screen_lib.glsl"
 #include "eevee_reverse_z_lib.bsl.hh"
 #include "eevee_sampling_lib.glsl"
@@ -32,7 +31,6 @@ struct Resources {
   [[legacy_info]] ShaderCreateInfo eevee_gbuffer_data;
   [[legacy_info]] ShaderCreateInfo draw_view;
   [[legacy_info]] ShaderCreateInfo eevee_hiz_data;
-  [[legacy_info]] ShaderCreateInfo eevee_lightprobe_data;
 
   [[specialization_constant(0)]] int closure_index;
   [[specialization_constant(true)]] bool trace_refraction;
@@ -56,7 +54,9 @@ struct Resources {
 [[compute,
   local_size(RAYTRACE_GROUP_SIZE, RAYTRACE_GROUP_SIZE),
   metal_max_total_threads_per_threadgroup(400)]]
-void trace([[resource_table]] Resources &srt, [[local_invocation_id]] const uint3 local_id)
+void trace([[resource_table]] Resources &srt,
+           [[resource_table]] const LightprobeRenderData &lightprobes,
+           [[local_invocation_id]] const uint3 local_id)
 {
   constexpr uint tile_size = RAYTRACE_GROUP_SIZE;
   uint2 tile_coord = unpackUvec2x16(srt.tiles_coord_buf[gl_WorkGroupID.x]);
@@ -184,12 +184,12 @@ void trace([[resource_table]] Resources &srt, [[local_invocation_id]] const uint
      * direction over many rays. */
     float3 Ng = ray.direction;
     /* Fall back to nearest light-probe. */
-    LightProbeSample samp = lightprobe_load(float2(texel), ray.origin, Ng, V);
+    LightProbeSample samp = lightprobes.load(float2(texel), ray.origin, Ng, V);
     /* Clamp SH to have parity with forward evaluation. */
     float clamp_indirect = uniform_buf.clamp.surface_indirect;
     samp.volume_irradiance = spherical_harmonics::clamp_energy(samp.volume_irradiance,
                                                                clamp_indirect);
-    radiance = lightprobe_eval_direction(samp, ray.origin, ray.direction, roughness);
+    radiance = lightprobes.eval_direction(samp, ray.origin, ray.direction, roughness);
     /* Set point really far for correct reprojection of background. */
     hit.time = 10000.0f;
   }
@@ -209,8 +209,6 @@ struct Resources {
   [[legacy_info]] ShaderCreateInfo eevee_global_ubo;
   [[legacy_info]] ShaderCreateInfo eevee_sampling_data;
   [[legacy_info]] ShaderCreateInfo eevee_gbuffer_data;
-  [[legacy_info]] ShaderCreateInfo eevee_lightprobe_data;
-  [[legacy_info]] ShaderCreateInfo eevee_lightprobe_planar_data;
 
   [[specialization_constant(0)]] int closure_index;
 
@@ -231,6 +229,8 @@ struct Resources {
  */
 [[compute, local_size(RAYTRACE_GROUP_SIZE, RAYTRACE_GROUP_SIZE)]]
 void trace([[resource_table]] Resources &srt,
+           [[resource_table]] const LightprobeRenderData &lightprobes,
+           [[resource_table]] const LightprobePlaneRenderData &lightprobe_planes,
            [[work_group_id]] const uint3 group_id,
            [[local_invocation_id]] const uint3 local_id)
 {
@@ -274,12 +274,12 @@ void trace([[resource_table]] Resources &srt,
   float3 P = drw_point_screen_to_world(float3(uv, depth));
   float3 V = drw_world_incident_vector(P);
 
-  int planar_id = lightprobe_planar_select(P, ray_data_im.xyz);
+  int planar_id = lightprobe_planes.select_probe(P, ray_data_im.xyz);
   if (planar_id == -1) {
     return;
   }
 
-  PlanarProbeData planar = probe_planar_buf[planar_id];
+  PlanarProbeData planar = lightprobe_planes.probe_planar_buf[planar_id];
 
   /* Tag the ray data so that screen trace will not try to evaluate it and override the result. */
   imageStoreFast(srt.ray_data_img, texel, float4(ray_data_im.xyz, -ray_data_im.w));
@@ -304,12 +304,16 @@ void trace([[resource_table]] Resources &srt,
   ray_view.max_time = 1000.0f;
 
   ScreenTraceHitData hit = raytrace_planar(
-      raytrace_buf, planar_depth_tx, planar, rand_trace, ray_view);
+      raytrace_buf, lightprobe_planes.planar_depth_tx, planar, rand_trace, ray_view);
 
   if (hit.valid) {
     /* Evaluate radiance at hit-point. */
-    radiance = raytrace_sample_screen(
-        planar_radiance_tx, raytrace_buf, hit, roughness, hit.ss_hit_P.xy, planar_id);
+    radiance = raytrace_sample_screen(lightprobe_planes.planar_radiance_tx,
+                                      raytrace_buf,
+                                      hit,
+                                      roughness,
+                                      hit.ss_hit_P.xy,
+                                      planar_id);
   }
   else {
     /* Using ray direction as geometric normal to bias the sampling position.
@@ -317,8 +321,8 @@ void trace([[resource_table]] Resources &srt,
      * direction over many rays. */
     float3 Ng = ray.direction;
     /* Fall back to nearest light-probe. */
-    LightProbeSample samp = lightprobe_load(float2(texel), P, Ng, V);
-    radiance = lightprobe_eval_direction(samp, P, ray.direction, roughness);
+    LightProbeSample samp = lightprobes.load(float2(texel), P, Ng, V);
+    radiance = lightprobes.eval_direction(samp, P, ray.direction, roughness);
     /* Set point really far for correct reprojection of background. */
     hit.time = 10000.0f;
   }
@@ -338,7 +342,6 @@ struct Resources {
   [[legacy_info]] ShaderCreateInfo eevee_global_ubo;
   [[legacy_info]] ShaderCreateInfo draw_view;
   [[legacy_info]] ShaderCreateInfo eevee_sampling_data;
-  [[legacy_info]] ShaderCreateInfo eevee_lightprobe_data;
 
   [[specialization_constant(0)]] int closure_index;
 
@@ -356,6 +359,7 @@ struct Resources {
  */
 [[compute, local_size(RAYTRACE_GROUP_SIZE, RAYTRACE_GROUP_SIZE)]]
 void trace([[resource_table]] Resources &srt,
+           [[resource_table]] const LightprobeRenderData &lightprobes,
            [[work_group_id]] const uint3 group_id,
            [[local_invocation_id]] const uint3 local_id)
 {
@@ -408,13 +412,13 @@ void trace([[resource_table]] Resources &srt,
    * This is faster than loading the gbuffer again and averages between reflected and normal
    * direction over many rays. */
   float3 Ng = ray.direction;
-  LightProbeSample samp = lightprobe_load(float2(texel), ray.origin, Ng, V);
+  LightProbeSample samp = lightprobes.load(float2(texel), ray.origin, Ng, V);
   /* Clamp SH to have parity with forward evaluation. */
   float clamp_indirect = uniform_buf.clamp.surface_indirect;
   samp.volume_irradiance = spherical_harmonics::clamp_energy(samp.volume_irradiance,
                                                              clamp_indirect);
 
-  float3 radiance = lightprobe_eval_direction(samp, ray.origin, ray.direction, roughness);
+  float3 radiance = lightprobes.eval_direction(samp, ray.origin, ray.direction, roughness);
   /* Set point really far for correct reprojection of background. */
   float hit_time = 1000.0f;
 

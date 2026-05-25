@@ -16,14 +16,12 @@ FRAGMENT_SHADER_CREATE_INFO(eevee_gbuffer_data)
 FRAGMENT_SHADER_CREATE_INFO(eevee_utility_texture)
 FRAGMENT_SHADER_CREATE_INFO(eevee_sampling_data)
 FRAGMENT_SHADER_CREATE_INFO(eevee_hiz_data)
-FRAGMENT_SHADER_CREATE_INFO(eevee_volume_probe_data)
 
 #include "draw_view_lib.glsl"
 #include "eevee_closure_lib.glsl"
 #include "eevee_gbuffer_read_lib.glsl"
 #include "eevee_light_eval.bsl.hh"
-#include "eevee_lightprobe_eval_lib.glsl"
-#include "eevee_lightprobe_volume_eval_lib.glsl"
+#include "eevee_lightprobe.bsl.hh"
 #include "eevee_renderpass_lib.glsl"
 #include "eevee_subsurface_lib.bsl.hh"
 #include "gpu_shader_codegen_lib.glsl"
@@ -56,7 +54,6 @@ struct LightEval {
   [[legacy_info]] ShaderCreateInfo eevee_utility_texture;
   [[legacy_info]] ShaderCreateInfo eevee_sampling_data;
   [[legacy_info]] ShaderCreateInfo eevee_hiz_data;
-  [[legacy_info]] ShaderCreateInfo eevee_lightprobe_data;
   [[legacy_info]] ShaderCreateInfo eevee_render_pass_out;
   [[legacy_info]] ShaderCreateInfo draw_object_infos;
   [[legacy_info]] ShaderCreateInfo draw_view;
@@ -112,6 +109,7 @@ struct LightEval {
 [[fragment, early_fragment_tests]]
 void light_eval_frag([[resource_table]] LightEval &srt,
                      [[resource_table]] LightEvalIterator &lights,
+                     [[resource_table]] const LightprobeRenderData &lightprobes,
                      [[frag_coord]] const float4 frag_co,
                      [[in]] const VertOut v_out)
 {
@@ -198,7 +196,7 @@ void light_eval_frag([[resource_table]] LightEval &srt,
   }
 
   if (srt.use_lightprobe_eval) {
-    LightProbeSample samp = lightprobe_load(gl_FragCoord.xy, P, Ng, V);
+    LightProbeSample samp = lightprobes.load(frag_co.xy, P, Ng, V);
 
     float clamp_indirect = uniform_buf.clamp.surface_indirect;
     samp.volume_irradiance = spherical_harmonics::clamp_energy(samp.volume_irradiance,
@@ -209,7 +207,7 @@ void light_eval_frag([[resource_table]] LightEval &srt,
     for (uint i = 0u; i < 3; i++) [[unroll]] {
       if (lrt.light_closure_eval_count_reflect > i) [[static_branch]] {
         if (i < closure_count) {
-          float3 indirect_light = lightprobe_eval(samp, gbuf.layer[i], P, V, thickness);
+          float3 indirect_light = lightprobes.eval(samp, gbuf.layer[i], P, V, thickness);
           float3 direct_light = ctx.stack.cl[i].light_shadowed;
           if (srt.use_split_indirect) {
             srt.write_radiance_indirect(bin_indices[i], texel, indirect_light);
@@ -249,7 +247,6 @@ struct SphereProbeEval {
   [[legacy_info]] ShaderCreateInfo eevee_utility_texture;
   [[legacy_info]] ShaderCreateInfo eevee_sampling_data;
   [[legacy_info]] ShaderCreateInfo eevee_hiz_data;
-  [[legacy_info]] ShaderCreateInfo eevee_volume_probe_data;
 };
 
 /* Sphere probe evaluate everything as diffuse since they can only rely on volume light-probes
@@ -257,6 +254,7 @@ struct SphereProbeEval {
 [[fragment, early_fragment_tests]]
 void sphere_eval_frag([[resource_table]] SphereProbeEval & /*srt*/,
                       [[resource_table]] LightEvalIterator &lights,
+                      [[resource_table]] const LightprobeVolumeRenderData &lightprobes,
                       [[frag_coord]] const float4 frag_co,
                       [[in]] const VertOut v_out,
                       [[out]] FragOut &frag_out)
@@ -343,7 +341,7 @@ void sphere_eval_frag([[resource_table]] SphereProbeEval & /*srt*/,
 
   /* Indirect light. */
   /* Can only load irradiance to avoid dependency loop with the reflection probe. */
-  SphericalHarmonicL1<float4> sh = lightprobe_volume_sample(P, V, Ng);
+  SphericalHarmonicL1<float4> sh = lightprobes.sample_probe(P, V, Ng);
 
   radiance_front += sh.evaluate_lambert(Ng).rgb;
   /* TODO(fclem): Correct transmission eval. */
@@ -361,13 +359,13 @@ struct PlanarProbeEval {
   [[legacy_info]] ShaderCreateInfo eevee_gbuffer_data;
   [[legacy_info]] ShaderCreateInfo eevee_utility_texture;
   [[legacy_info]] ShaderCreateInfo eevee_sampling_data;
-  [[legacy_info]] ShaderCreateInfo eevee_lightprobe_data;
   [[legacy_info]] ShaderCreateInfo eevee_hiz_data;
 };
 
 [[fragment, early_fragment_tests]]
 void planar_eval_frag([[resource_table]] PlanarProbeEval & /*srt*/,
                       [[resource_table]] LightEvalIterator &lights,
+                      [[resource_table]] const LightprobeRenderData &lightprobes,
                       [[frag_coord]] const float4 frag_co,
                       [[in]] const VertOut v_out,
                       [[out]] FragOut &frag_out)
@@ -497,13 +495,14 @@ void planar_eval_frag([[resource_table]] PlanarProbeEval & /*srt*/,
   float3 radiance_refract = ctx_tr.stack.cl[1].light_shadowed;
 
   /* Indirect light. */
-  SphericalHarmonicL1<float4> sh = lightprobe_volume_sample(P, V, Ng);
-  LightProbeSample samp = lightprobe_load(gl_FragCoord.xy, P, Ng, V);
+  [[resource_table]] const LightprobeVolumeRenderData &lp_volumes = lightprobes.volumes;
+  SphericalHarmonicL1<float4> sh = lp_volumes.sample_probe(P, V, Ng);
+  LightProbeSample samp = lightprobes.load(frag_co.xy, P, Ng, V);
 
   radiance_front += sh.evaluate_lambert(Ng).rgb;
   radiance_back += sh.evaluate_lambert(-Ng).rgb;
-  radiance_reflect += lightprobe_eval(samp, cl_reflect, P, V, thickness);
-  radiance_refract += lightprobe_eval(samp, cl_refract, P, V, thickness);
+  radiance_reflect += lightprobes.eval(samp, cl_reflect, P, V, thickness);
+  radiance_refract += lightprobes.eval(samp, cl_refract, P, V, thickness);
 
   /* Note: planar probes use transmittance and not alpha for transparency. */
   frag_out.radiance = float4(0.0f);

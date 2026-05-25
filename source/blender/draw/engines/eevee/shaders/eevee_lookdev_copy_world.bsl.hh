@@ -4,7 +4,8 @@
 
 #pragma once
 
-#include "eevee_lightprobe_sphere_mapping_lib.glsl"
+#include "eevee_light_shared.hh"
+#include "eevee_lightprobe_sphere.bsl.hh"
 #include "eevee_spherical_harmonics.bsl.hh"
 
 namespace eevee::lookdev {
@@ -35,11 +36,12 @@ struct CopyWorld {
                       SphereProbePixelArea write_coord,
                       float3x3 rotation_mat)
   {
-    float3 rotated_ws_direction = sphere_probe_texel_to_direction(float2(texel), write_coord);
+    float3 rotated_ws_direction = lightprobe::sphere::texel_to_direction(float2(texel),
+                                                                         write_coord);
     /* Multiplying with the inverse (which is also the transposed given the rotation matrix is
      * orthonormal) as we want the reversed transform. */
     float3 original_ws_direction = transpose(rotation_mat) * rotated_ws_direction;
-    float2 uv = sphere_probe_direction_to_uv(original_ws_direction, float(mip), read_coord);
+    float2 uv = lightprobe::sphere::direction_to_uv(original_ws_direction, float(mip), read_coord);
     return textureLod(in_sphere_tx, float3(uv, read_coord.layer), float(mip));
   }
 };

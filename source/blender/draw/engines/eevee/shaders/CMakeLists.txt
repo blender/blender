@@ -85,12 +85,6 @@ set(SRC_GLSL_LIB
   # eevee_forward_lib.glsl
   eevee_gbuffer_lib.glsl
   eevee_light_lib.glsl
-  eevee_lightprobe_eval_lib.glsl
-  eevee_lightprobe_lib.glsl
-  eevee_lightprobe_sphere_eval_lib.glsl
-  eevee_lightprobe_sphere_lib.glsl
-  eevee_lightprobe_sphere_mapping_lib.glsl
-  eevee_lightprobe_volume_eval_lib.glsl
   # eevee_nodetree_lib.glsl # Has dependency on draw_model_lib that is hard to resolve
   eevee_ray_generate_lib.glsl
   eevee_renderpass_lib.glsl
