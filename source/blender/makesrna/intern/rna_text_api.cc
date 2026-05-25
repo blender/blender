@@ -80,7 +80,7 @@ void RNA_api_text(StructRNA *srna)
   parm = RNA_def_string(func, "text", "Text", 0, "", "New text for this data-block");
   RNA_def_parameter_flags(parm, PropertyFlag(0), PARM_REQUIRED);
 
-  func = RNA_def_function(srna, "from_str", "rna_Text_from_string");
+  func = RNA_def_function(srna, "from_string", "rna_Text_from_string");
   RNA_def_function_ui_description(func, "Replace text with this string.");
   parm = RNA_def_string(func, "text", "Text", 0, "", "");
   RNA_def_parameter_flags(parm, PropertyFlag(0), PARM_REQUIRED);
