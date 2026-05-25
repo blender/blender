@@ -180,7 +180,23 @@ class ConditionalDownloader:
             return
 
         # Move the downloaded file to the final filename.
-        os.replace(temp_path, local_path)
+        try:
+            os.replace(temp_path, local_path)
+        except OSError as ex:
+            # It's not really good form to both log and raise an exception, but in the
+            # log we can include the URL as well, providing some more information.
+            logger.error(
+                "after downloading %s %s, error renaming %s to %s: %s",
+                http_req_descr.http_method,
+                http_req_descr.url,
+                temp_path,
+                local_path,
+                ex)
+            # temp_path is in the same directory as local_path, so shorten the error
+            # message a bit by just using their filenames.
+            raise OSError(
+                "renaming downloaded file from {!s} to {!s} in {!s}: {!s}".format(
+                    temp_path.name, local_path.name, local_path.parent, ex)) from None
 
         self.metadata_provider.save(http_req_descr_with_headers, http_meta)
 
