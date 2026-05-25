@@ -131,11 +131,11 @@ ResultType get_node_interface_socket_result_type(const bNodeTreeInterfaceSocket 
   return socket_data_type_to_result_type(socket_type);
 }
 
-bool is_output_linked_to_node_conditioned(const bNodeSocket &output,
-                                          FunctionRef<bool(const bNode &)> condition)
+bool is_output_linked_to_input_conditioned(const bNodeSocket &output,
+                                           FunctionRef<bool(const bNodeSocket &)> condition)
 {
   for (const bNodeSocket *input : output.logically_linked_sockets()) {
-    if (condition(input->owner_node())) {
+    if (condition(*input)) {
       return true;
     }
   }
