@@ -9621,7 +9621,6 @@ static void button_activate_exit(
       PopupBlockHandle *menu;
 
       menu = block->handle;
-      menu->butretval = data->retval;
       menu->menuretval = (data->cancel) ? RETURN_CANCEL : RETURN_OK;
     }
   }
@@ -12114,7 +12113,6 @@ static int handle_menu_return_submenu(bContext *C, const wmEvent *event, PopupBl
     if ((submenu->menuretval & RETURN_OK) || (submenu->menuretval & RETURN_CANCEL)) {
       if (!(block->flag & BLOCK_KEEP_OPEN)) {
         menu->menuretval = submenu->menuretval;
-        menu->butretval = data->retval;
       }
     }
 
