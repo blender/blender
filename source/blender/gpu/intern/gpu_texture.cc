@@ -142,6 +142,7 @@ bool Texture::init_view(Texture *src,
                         bool cube_as_array,
                         bool use_stencil)
 {
+  is_texture_view_ = true;
   w_ = src->w_;
   h_ = src->h_;
   d_ = src->d_;
@@ -1005,6 +1006,11 @@ bool GPU_texture_has_signed_format(const gpu::Texture *texture)
 bool GPU_texture_is_cube(const gpu::Texture *texture)
 {
   return (texture->type_get() & GPU_TEXTURE_CUBE) != 0;
+}
+
+bool GPU_texture_is_view(const gpu::Texture *texture)
+{
+  return texture->is_texture_view();
 }
 
 bool GPU_texture_is_array(const gpu::Texture *texture)

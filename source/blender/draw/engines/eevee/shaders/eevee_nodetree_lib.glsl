@@ -293,6 +293,12 @@ void raycast_eval([[maybe_unused]] float3 position,
   direction = normalize(direction);
 
 #if defined(MAT_RAYCAST)
+  if (!pipeline_buf.can_raycast) {
+    /* We can't raycast on prepass for raycast visibile objects.
+     * We use a UBO property to avoid compiling more shader variants. */
+    return;
+  }
+
   float3 ws_start = position;
   float3 ws_end = position + direction * max_distance;
   if (!clip_ray(
@@ -323,7 +329,7 @@ void raycast_eval([[maybe_unused]] float3 position,
   float result = raytrace_screen_2(drw_point_world_to_view(ws_start),
                                    drw_point_world_to_view(ws_end),
                                    drw_normal_world_to_view(direction),
-                                   hiz_tx,
+                                   raycast_depth_tx,
                                    raytrace_buf,
                                    64,
                                    jitter,

@@ -144,14 +144,46 @@ class ShadowPipeline {
  * Helper class for handling prepasses in Forward and Deferred pipelines.
  * \{ */
 
-class Prepass : public PassMain {
-  PassMain::Sub *prepass_subpasses[2 /*double sided*/][2 /*moving*/][2 /*write id*/] = {
-      {{nullptr}}};
+class Prepass {
+  Instance &inst_;
+
+  PassMain pass_{"Prepass"};
+  PassMain::Sub *subs_[2 /*hide from raycast*/][2 /*double sided*/][2 /*moving*/][2 /*write id*/] =
+      {{{{nullptr}}}};
+  PassMain::Sub *setup_subs_[2 /*hide from raycast*/][2 /*double sided*/][2 /*moving*/]
+                            [2 /*write id*/] = {{{{nullptr}}}};
+
+  DRWState common_state_{};
+  bool supports_motion_vectors_ = false;
+
+  /* These are never read in practice,
+   * only needed for GPU API correctness without extra shader variants. */
+  Texture dummy_raycast_depth_tx_{"prepass.dummy_raycast_depth_tx_"};
+  Texture dummy_raycast_id_tx_{"prepass.dummy_raycast_id_tx_"};
+  Texture dummy_raycast_normal_tx_{"prepass.dummy_raycast_normal_tx_"};
+
+  /* Copies of UniformDataModule::pipeline with can_raycast overridden.
+   * Needed so we can render the whole Prepass in a single PassMain. */
+  draw::UniformBuffer<PipelineInfoData> pipeline_buf_copy_{"prepass.pipeline_buf"};
+  draw::UniformBuffer<PipelineInfoData> pipeline_buf_copy_hide_from_raycast_{
+      "prepass.pipeline_buf_hide_from_raycast"};
+  gpu::Texture *fb_depth_tx_;
 
  public:
-  Prepass(const char *name) : PassMain(name) {};
-  void setup_subpasses(DRWState common_state);
-  PassMain::Sub *add(blender::Material *blender_mat, GPUMaterial *gpumat, bool has_motion);
+  Prepass(Instance &inst) : inst_(inst) {};
+
+  void init(DRWState extra_state = DRW_STATE_NO_DRAW,
+            bool supports_motion_vectors = true,
+            FunctionRef<void(PassMain &pass)> pass_setup_cb = {});
+
+  PassMain::Sub *add(blender::Material *blender_mat,
+                     GPUMaterial *gpumat,
+                     bool has_motion,
+                     bool hide_from_raycast);
+
+  void end_sync();
+
+  void render(View &view, gpu::Texture *fb_depth_tx, bool can_raycast);
 };
 
 /** \} */
@@ -166,7 +198,7 @@ class ForwardPipeline {
  private:
   Instance &inst_;
 
-  Prepass prepass_ps_ = {"Prepass"};
+  Prepass prepass_{inst_};
 
   PassMain opaque_ps_ = {"Shading"};
   PassMain::Sub *opaque_subpasses_[2 /*Raycast*/][2 /*Double-Sided*/] = {{nullptr}};
@@ -241,11 +273,15 @@ class ForwardPipeline {
  * \{ */
 
 struct DeferredLayerBase {
-  Prepass prepass_ps_ = {"Prepass"};
+  Prepass prepass_;
+
+  PassSimple clear_aovs_ps_{"Clear AOVs"};
 
   PassMain gbuffer_ps_ = {"Shading"};
   PassMain::Sub *gbuffer_subpasses_[2 /*Hybrid*/][2 /*Raycast*/][2 /*Double-Sided*/] = {
       {{nullptr}}};
+
+  DeferredLayerBase(Instance &inst) : prepass_(inst) {};
 
   PassMain::Sub *get_gbuffer_subpass(blender::Material *blender_mat, GPUMaterial *gpumat)
   {
@@ -372,7 +408,7 @@ class DeferredLayer : DeferredLayerBase {
   bool use_clamp_indirect_ = false;
 
  public:
-  DeferredLayer(Instance &inst) : inst_(inst)
+  DeferredLayer(Instance &inst) : DeferredLayerBase(inst), inst_(inst)
   {
     float4 data(0.0f);
     dummy_black.ensure_2d(gpu::TextureFormat::RAYTRACE_RADIANCE_FORMAT,
@@ -384,7 +420,10 @@ class DeferredLayer : DeferredLayerBase {
   void begin_sync();
   void end_sync(bool is_first_pass, bool is_last_pass, bool next_layer_has_transmission);
 
-  PassMain::Sub *prepass_add(blender::Material *blender_mat, GPUMaterial *gpumat, bool has_motion);
+  PassMain::Sub *prepass_add(blender::Material *blender_mat,
+                             GPUMaterial *gpumat,
+                             bool has_motion,
+                             bool hide_from_raycast);
   PassMain::Sub *material_add(blender::Material *blender_mat, GPUMaterial *gpumat);
 
   bool is_empty() const
@@ -432,7 +471,10 @@ class DeferredPipeline {
   void begin_sync();
   void end_sync();
 
-  PassMain::Sub *prepass_add(blender::Material *blender_mat, GPUMaterial *gpumat, bool has_motion);
+  PassMain::Sub *prepass_add(blender::Material *blender_mat,
+                             GPUMaterial *gpumat,
+                             bool has_motion,
+                             bool hide_from_raycast);
   PassMain::Sub *material_add(blender::Material *blender_mat, GPUMaterial *gpumat);
 
   void render(View &main_view,
@@ -602,7 +644,7 @@ class DeferredProbePipeline {
   Texture dummy_black = {"dummy_black"};
 
  public:
-  DeferredProbePipeline(Instance &inst) : inst_(inst)
+  DeferredProbePipeline(Instance &inst) : inst_(inst), opaque_layer_(inst)
   {
     float4 data(0.0f);
     dummy_black.ensure_2d(
@@ -613,7 +655,9 @@ class DeferredProbePipeline {
   void begin_sync();
   void end_sync();
 
-  PassMain::Sub *prepass_add(blender::Material *blender_mat, GPUMaterial *gpumat);
+  PassMain::Sub *prepass_add(blender::Material *blender_mat,
+                             GPUMaterial *gpumat,
+                             bool hide_from_raycast);
   PassMain::Sub *material_add(blender::Material *blender_mat, GPUMaterial *gpumat);
 
   void render(View &view,
@@ -657,7 +701,7 @@ class PlanarProbePipeline : DeferredLayerBase {
   Texture dummy_black_ = {"dummy_black"};
 
  public:
-  PlanarProbePipeline(Instance &inst) : inst_(inst)
+  PlanarProbePipeline(Instance &inst) : DeferredLayerBase(inst), inst_(inst)
   {
     float4 data(0.0f);
     dummy_black_.ensure_2d(
@@ -668,7 +712,9 @@ class PlanarProbePipeline : DeferredLayerBase {
   void begin_sync();
   void end_sync();
 
-  PassMain::Sub *prepass_add(blender::Material *blender_mat, GPUMaterial *gpumat);
+  PassMain::Sub *prepass_add(blender::Material *blender_mat,
+                             GPUMaterial *gpumat,
+                             bool hide_from_raycast);
   PassMain::Sub *material_add(blender::Material *blender_mat, GPUMaterial *gpumat);
 
   void render(View &view,
@@ -821,6 +867,7 @@ class PipelineModule {
   void begin_sync()
   {
     data.ray_type = RAY_TYPE_CAMERA;
+    data.can_raycast = true;
     probe.begin_sync();
     planar.begin_sync();
     deferred.begin_sync();
@@ -849,11 +896,12 @@ class PipelineModule {
     if (GPU_material_flag_get(gpumat, GPU_MATFLAG_RAYCAST)) {
       has_raycast = true;
     }
+    const bool hide_from_raycast = ob->visibility_flag & OB_HIDE_RAYCAST;
 
     if (probe_capture == MAT_PROBE_REFLECTION) {
       switch (pipeline_type) {
         case MAT_PIPE_PREPASS_DEFERRED:
-          return probe.prepass_add(blender_mat, gpumat);
+          return probe.prepass_add(blender_mat, gpumat, hide_from_raycast);
         case MAT_PIPE_DEFERRED:
           return probe.material_add(blender_mat, gpumat);
         default:
@@ -864,7 +912,7 @@ class PipelineModule {
     if (probe_capture == MAT_PROBE_PLANAR) {
       switch (pipeline_type) {
         case MAT_PIPE_PREPASS_PLANAR:
-          return planar.prepass_add(blender_mat, gpumat);
+          return planar.prepass_add(blender_mat, gpumat, hide_from_raycast);
         case MAT_PIPE_DEFERRED:
           return planar.material_add(blender_mat, gpumat);
         default:
@@ -875,7 +923,7 @@ class PipelineModule {
 
     switch (pipeline_type) {
       case MAT_PIPE_PREPASS_DEFERRED:
-        return deferred.prepass_add(blender_mat, gpumat, false);
+        return deferred.prepass_add(blender_mat, gpumat, false, hide_from_raycast);
       case MAT_PIPE_PREPASS_FORWARD:
         return forward.prepass_opaque_add(blender_mat, gpumat, false);
       case MAT_PIPE_PREPASS_OVERLAP:
@@ -883,7 +931,7 @@ class PipelineModule {
         return nullptr;
 
       case MAT_PIPE_PREPASS_DEFERRED_VELOCITY:
-        return deferred.prepass_add(blender_mat, gpumat, true);
+        return deferred.prepass_add(blender_mat, gpumat, true, hide_from_raycast);
       case MAT_PIPE_PREPASS_FORWARD_VELOCITY:
         return forward.prepass_opaque_add(blender_mat, gpumat, true);
 

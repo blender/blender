@@ -12,6 +12,7 @@
 
 GPU_SHADER_CREATE_INFO(eevee_raycast)
 DEFINE("MAT_RAYCAST")
+SAMPLER(RAYCAST_DEPTH_TEX_SLOT, sampler2D, raycast_depth_tx)
 SAMPLER(OBJECT_ID_TEX_SLOT, usampler2D, object_id_tx)
 SAMPLER(PREPASS_NORMAL_TEX_SLOT, sampler2D, prepass_normal_tx)
 GPU_SHADER_CREATE_END()

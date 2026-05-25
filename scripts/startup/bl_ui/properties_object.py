@@ -434,6 +434,7 @@ class OBJECT_PT_visibility(ObjectButtonsPanel, Panel):
                 col = layout.column(heading="Ray Visibility")
                 col.prop(ob, "visible_camera", text="Camera", toggle=False)
                 col.prop(ob, "visible_shadow", text="Shadow", toggle=False)
+                col.prop(ob, "visible_raycast", text="Raycast", toggle=False)
 
             if ob.type in {'LIGHT'}:
                 layout.separator()
