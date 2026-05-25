@@ -5385,7 +5385,7 @@ static int do_but_TEXTBOX(bContext *C,
             C, textbox, textbox->editstr ? BUTTON_STATE_TEXT_EDITING : BUTTON_STATE_HIGHLIGHT);
         return WM_UI_HANDLER_BREAK;
       }
-      else if (event->type == MOUSEMOVE) {
+      if (event->type == MOUSEMOVE) {
         int mx = event->xy[0];
         int my = event->xy[1];
         window_to_block(data->region, block, &mx, &my);
@@ -5409,7 +5409,7 @@ static int do_but_TEXTBOX(bContext *C,
             C, textbox, textbox->editstr ? BUTTON_STATE_TEXT_EDITING : BUTTON_STATE_HIGHLIGHT);
         return WM_UI_HANDLER_BREAK;
       }
-      else if (event->type == MOUSEMOVE) {
+      if (event->type == MOUSEMOVE) {
         int visible_lines = data->origvalue +
                             ((data->dragstarty - event->xy[1]) /
                              (fontstyle_height_max(UI_FSTYLE_WIDGET) / block->aspect));
@@ -5493,7 +5493,7 @@ static int do_but_TOG(bContext *C, Button *but, HandleButtonData *data, const wm
         button_activate_state(C, but, BUTTON_STATE_EXIT);
         return WM_UI_HANDLER_BREAK;
       }
-      else if (but->type == ButtonType::Row) {
+      if (but->type == ButtonType::Row) {
         /* Support Ctrl-Wheel to cycle values on expanded enum rows. */
         int type = event->type;
         int val = event->val;
