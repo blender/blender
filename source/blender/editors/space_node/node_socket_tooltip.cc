@@ -858,6 +858,11 @@ class SocketTooltipBuilder {
 
     this->add_space();
 
+    if (this->is_implicit_default_input(NODE_DEFAULT_INPUT_UNIFORM_IMAGE_COORDINATES)) {
+      this->add_text_field_mono(TIP_("Implicit Value: Uniform Image Coordinates"));
+      this->add_space();
+    }
+
     this->add_text_field_mono(TIP_("Type: Image"));
   }
 
@@ -906,6 +911,10 @@ class SocketTooltipBuilder {
       case NODE_DEFAULT_INPUT_SCENE_FRAME:
         this->build_tooltip_value_and_type_oneline(
             TIP_("Scene Frame"), socket_.type == SOCK_FLOAT ? TIP_("Float") : TIP_("Integer"));
+        break;
+      case NODE_DEFAULT_INPUT_UNIFORM_IMAGE_COORDINATES:
+        this->build_tooltip_value_and_type_oneline(TIP_("Uniform Image Coordinates"),
+                                                   TIP_("2D Float Vector"));
         break;
     }
   }

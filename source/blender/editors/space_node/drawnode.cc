@@ -1574,7 +1574,9 @@ static void std_node_socket_interface_draw(ID *id,
   col = &layout->column(false);
 
   const bNodeTree *node_tree = reinterpret_cast<const bNodeTree *>(id);
-  if (interface_socket->flag & NODE_INTERFACE_SOCKET_INPUT && node_tree->type == NTREE_GEOMETRY) {
+  if (interface_socket->flag & NODE_INTERFACE_SOCKET_INPUT &&
+      ELEM(node_tree->type, NTREE_GEOMETRY, NTREE_COMPOSIT))
+  {
     if (ELEM(type, SOCK_INT, SOCK_FLOAT, SOCK_VECTOR, SOCK_MATRIX)) {
       col->prop(&ptr, "default_input", DEFAULT_FLAGS, std::nullopt, ICON_NONE);
     }

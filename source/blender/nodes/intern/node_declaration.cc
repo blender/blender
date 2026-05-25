@@ -1115,6 +1115,8 @@ std::optional<ImplicitInputValueFn> get_implicit_input_value_fn(const NodeDefaul
       return std::make_optional(implicit_field_inputs::handle_right);
     case NODE_DEFAULT_INPUT_SCENE_FRAME:
       return std::nullopt;
+    case NODE_DEFAULT_INPUT_UNIFORM_IMAGE_COORDINATES:
+      return std::nullopt;
   }
   return std::nullopt;
 }
@@ -1138,6 +1140,30 @@ bool socket_type_supports_default_input_type(const bke::bNodeSocketType &socket_
       return stype == SOCK_VECTOR;
     case NODE_DEFAULT_INPUT_INSTANCE_TRANSFORM_FIELD:
       return stype == SOCK_MATRIX;
+    case NODE_DEFAULT_INPUT_UNIFORM_IMAGE_COORDINATES:
+      return stype == SOCK_VECTOR;
+  }
+  return false;
+}
+
+bool node_tree_type_supports_default_input_type(eNodeTree_Type node_tree_type,
+                                                NodeDefaultInputType input_type)
+{
+  switch (input_type) {
+    case NODE_DEFAULT_INPUT_VALUE:
+      return true;
+    case NODE_DEFAULT_INPUT_ID_INDEX_FIELD:
+    case NODE_DEFAULT_INPUT_INDEX_FIELD:
+    case NODE_DEFAULT_INPUT_NORMAL_FIELD:
+    case NODE_DEFAULT_INPUT_POSITION_FIELD:
+    case NODE_DEFAULT_INPUT_HANDLE_LEFT_FIELD:
+    case NODE_DEFAULT_INPUT_HANDLE_RIGHT_FIELD:
+    case NODE_DEFAULT_INPUT_INSTANCE_TRANSFORM_FIELD:
+      return node_tree_type == NTREE_GEOMETRY;
+    case NODE_DEFAULT_INPUT_SCENE_FRAME:
+      return ELEM(node_tree_type, NTREE_COMPOSIT, NTREE_GEOMETRY);
+    case NODE_DEFAULT_INPUT_UNIFORM_IMAGE_COORDINATES:
+      return node_tree_type == NTREE_COMPOSIT;
   }
   return false;
 }

@@ -83,6 +83,11 @@ static const EnumPropertyItem node_default_input_items[] = {
      0,
      "Scene Frame",
      "The current frame in the scene"},
+    {NODE_DEFAULT_INPUT_UNIFORM_IMAGE_COORDINATES,
+     "UNIFORM_IMAGE_COORDINATES",
+     0,
+     "Uniform Image Coordinates",
+     "The uniform image coordinates of the compositing space"},
     {0, nullptr, 0, nullptr, nullptr}};
 
 }  // namespace blender
@@ -646,16 +651,16 @@ static const EnumPropertyItem *rna_NodeTreeInterfaceSocket_default_input_itemf(
   int items_count = 0;
 
   for (const EnumPropertyItem *item = node_default_input_items; item->identifier; item++) {
-    if (item->value == NODE_DEFAULT_INPUT_VALUE) {
-      RNA_enum_item_add(&items, &items_count, item);
+    const NodeDefaultInputType type = NodeDefaultInputType(item->value);
+    if (!nodes::socket_type_supports_default_input_type(*stype, type)) {
+      continue;
     }
-    else if (ntree->type == NTREE_GEOMETRY) {
-      if (nodes::socket_type_supports_default_input_type(*stype,
-                                                         NodeDefaultInputType(item->value)))
-      {
-        RNA_enum_item_add(&items, &items_count, item);
-      }
+
+    if (!nodes::node_tree_type_supports_default_input_type(ntree->type, type)) {
+      continue;
     }
+
+    RNA_enum_item_add(&items, &items_count, item);
   }
 
   RNA_enum_item_end(&items, &items_count);

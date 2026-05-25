@@ -27,9 +27,14 @@ static void sh_node_tex_noise_declare(NodeDeclarationBuilder &b)
   b.is_function_node();
 
   const int dimensions = b.node_or_null() ? node_storage(*b.node_or_null()).dimensions : 3;
+  const bool is_compositor = b.tree_or_null() && b.tree_or_null()->type == NTREE_COMPOSIT;
+  const NodeDefaultInputType default_input_type =
+      is_compositor ? NODE_DEFAULT_INPUT_UNIFORM_IMAGE_COORDINATES :
+                      NODE_DEFAULT_INPUT_POSITION_FIELD;
   b.add_input<decl::Vector>("Vector"_ustr)
-      .default_input_type(NODE_DEFAULT_INPUT_POSITION_FIELD)
+      .default_input_type(default_input_type)
       .available(dimensions != 1);
+
   b.add_input<decl::Float>("W"_ustr)
       .min(-1000.0f)
       .max(1000.0f)

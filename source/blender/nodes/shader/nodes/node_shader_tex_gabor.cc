@@ -25,11 +25,17 @@ NODE_STORAGE_FUNCS(NodeTexGabor)
 static void sh_node_tex_gabor_declare(NodeDeclarationBuilder &b)
 {
   b.is_function_node();
+
+  const bool is_compositor = b.tree_or_null() && b.tree_or_null()->type == NTREE_COMPOSIT;
+  const NodeDefaultInputType default_input_type =
+      is_compositor ? NODE_DEFAULT_INPUT_UNIFORM_IMAGE_COORDINATES :
+                      NODE_DEFAULT_INPUT_POSITION_FIELD;
   b.add_input<decl::Vector>("Vector"_ustr)
-      .default_input_type(NODE_DEFAULT_INPUT_POSITION_FIELD)
+      .default_input_type(default_input_type)
       .description(
           "The coordinates at which Gabor noise will be evaluated. The Z component is ignored in "
           "the 2D case");
+
   b.add_input<decl::Float>("Scale"_ustr)
       .default_value(5.0f)
       .description("The scale of the Gabor noise");
