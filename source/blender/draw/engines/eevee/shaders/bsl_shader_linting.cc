@@ -18,6 +18,7 @@
 #include "eevee_deferred_tile_classify.bsl.hh"       /* IWYU pragma: export */
 #include "eevee_depth_of_field_bokeh_lut.bsl.hh"     /* IWYU pragma: export */
 #include "eevee_depth_of_field_filter.bsl.hh"        /* IWYU pragma: export */
+#include "eevee_depth_of_field_gather.bsl.hh"        /* IWYU pragma: export */
 #include "eevee_depth_of_field_resolve.bsl.hh"       /* IWYU pragma: export */
 #include "eevee_depth_of_field_scatter.bsl.hh"       /* IWYU pragma: export */
 #include "eevee_depth_of_field_setup.bsl.hh"         /* IWYU pragma: export */

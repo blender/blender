@@ -10,7 +10,7 @@
  */
 #pragma once
 
-#include "eevee_depth_of_field_lib.glsl"
+#include "eevee_depth_of_field_lib.bsl.hh"
 #include "gpu_shader_math_vector_reduce_lib.glsl"
 #include "gpu_shader_math_vector_safe_lib.glsl"
 

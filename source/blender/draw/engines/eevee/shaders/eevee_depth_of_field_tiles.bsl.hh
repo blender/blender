@@ -4,7 +4,7 @@
 
 #pragma once
 
-#include "eevee_depth_of_field_lib.glsl"
+#include "eevee_depth_of_field_lib.bsl.hh"
 
 namespace eevee::dof {
 

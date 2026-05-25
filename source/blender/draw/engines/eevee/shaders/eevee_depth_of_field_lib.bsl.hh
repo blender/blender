@@ -23,18 +23,6 @@
 #  define DOF_SLIGHT_FOCUS_DENSITY 2
 #endif
 
-/* WORKAROUND: Compatibility with old code. To be removed once everything is ported. */
-#ifdef SRT_CONSTANT_is_resolve
-#  define IS_RESOLVE true
-#else
-#  define IS_RESOLVE false
-#endif
-
-#ifdef DOF_FOREGROUND_PASS
-#  define IS_FOREGROUND DOF_FOREGROUND_PASS
-#else
-#  define IS_FOREGROUND false
-#endif
 /* Debug options */
 #define debug_gather_perf false
 #define debug_scatter_perf false
@@ -137,10 +125,10 @@ float dof_coc_from_depth(DepthOfFieldData dof_data, float2 uv, float depth)
 /** \name Gather & Scatter Weighting
  * \{ */
 
-float dof_layer_weight(float coc, const bool is_foreground)
+float dof_layer_weight(float coc, const bool is_foreground, const bool is_resolve)
 {
   /* NOTE: These are full-resolution pixel CoC value. */
-  if (IS_RESOLVE) {
+  if (is_resolve) {
     return saturate(-abs(coc) + dof_layer_threshold + dof_layer_offset) *
            float(is_foreground ? (coc <= 0.5f) : (coc > -0.5f));
   }
@@ -251,10 +239,13 @@ void dof_coc_tile_pack(CocTile tile, float3 &out_fg, float3 &out_bg)
     imageStore(tiles_bg_img_, texel_out_, out_bg.xyzz); \
   }
 
-bool dof_do_fast_gather(float max_absolute_coc, float min_absolute_coc, const bool is_foreground)
+bool dof_do_fast_gather(float max_absolute_coc,
+                        float min_absolute_coc,
+                        const bool is_foreground,
+                        const bool is_resolve)
 {
-  float min_weight = dof_layer_weight((is_foreground) ? -min_absolute_coc : min_absolute_coc,
-                                      is_foreground);
+  float min_weight = dof_layer_weight(
+      (is_foreground) ? -min_absolute_coc : min_absolute_coc, is_foreground, is_resolve);
   if (min_weight < 1.0f) {
     return false;
   }
@@ -278,19 +269,19 @@ struct CocTilePrediction {
  * Using the tile CoC infos, predict which convolutions are required and the ones that can be
  * skipped.
  */
-CocTilePrediction dof_coc_tile_prediction_get(CocTile tile)
+CocTilePrediction dof_coc_tile_prediction_get(CocTile tile, const bool is_resolve)
 {
   /* Based on tile value, predict what pass we need to load. */
   CocTilePrediction predict;
 
   predict.do_foreground = (-tile.fg_min_coc > dof_layer_threshold - dof_layer_offset_fg);
   bool fg_fully_opaque = predict.do_foreground &&
-                         dof_do_fast_gather(-tile.fg_min_coc, -tile.fg_max_coc, true);
+                         dof_do_fast_gather(-tile.fg_min_coc, -tile.fg_max_coc, true, is_resolve);
   predict.do_background = !fg_fully_opaque &&
                           (tile.bg_max_coc > dof_layer_threshold - dof_layer_offset);
 #if 0 /* Unused. */
   bool bg_fully_opaque = predict.do_background &&
-                         dof_do_fast_gather(-tile.bg_max_coc, tile.bg_min_coc, false);
+                         dof_do_fast_gather(-tile.bg_max_coc, tile.bg_min_coc, false, is_resolve);
 #endif
   predict.do_hole_fill = !fg_fully_opaque && -tile.fg_min_coc > 0.0f;
   predict.do_focus = !fg_fully_opaque;

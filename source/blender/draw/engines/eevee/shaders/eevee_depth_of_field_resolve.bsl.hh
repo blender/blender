@@ -13,18 +13,16 @@
 
 #pragma once
 
-#include "eevee_depth_of_field_accumulator_lib.glsl"
+#include "eevee_depth_of_field_accumulator.bsl.hh"
 #include "eevee_depth_of_field_tiles.bsl.hh"
 
 namespace eevee::dof::resolve {
 
 struct Resources {
   [[legacy_info]] ShaderCreateInfo draw_view;
-  [[legacy_info]] ShaderCreateInfo eevee_depth_of_field_tiles_common;
-  [[legacy_info]] ShaderCreateInfo eevee_dof_buf;
   [[legacy_info]] ShaderCreateInfo eevee_sampling_data;
 
-  [[compilation_constant]] const bool is_resolve; /* WORKAROUND: To remove. */
+  [[resource_table]] srt_t<Accumulator> accumulator;
 
   [[specialization_constant(false)]] const bool do_debug_color;
 
@@ -40,9 +38,6 @@ struct Resources {
 
   [[image(2, write, SFLOAT_16_16_16_16)]] image2D out_color_img;
 
-  [[compilation_constant]] const bool use_lut;
-  [[sampler(5), condition(use_lut)]] sampler2D bokeh_lut_tx;
-
   [[shared]] uint shared_max_slight_focus_abs_coc;
 
   /**
@@ -50,6 +45,8 @@ struct Resources {
    */
   float slight_focus_coc_tile_get(float2 frag_coord, uint local_index)
   {
+    [[resource_table]] const Accumulator &accum = accumulator;
+
     float local_abs_max = 0.0f;
     /* Sample in a cross (X) pattern. This covers all pixels over the whole tile, as long as
      * dof_max_slight_focus_radius is less than the group size. */
@@ -57,8 +54,8 @@ struct Resources {
       float2 sample_uv = (frag_coord + quad_offsets[i] * 2.0f * dof_max_slight_focus_radius) /
                          float2(textureSize(color_tx, 0));
       float depth = reverse_z::read(textureLod(depth_tx, sample_uv, 0.0f).r);
-      float coc = dof_coc_from_depth(dof_buf, sample_uv, depth);
-      coc = clamp(coc, -dof_buf.coc_abs_max, dof_buf.coc_abs_max);
+      float coc = dof_coc_from_depth(accum.dof_buf, sample_uv, depth);
+      coc = clamp(coc, -accum.dof_buf.coc_abs_max, accum.dof_buf.coc_abs_max);
       if (abs(coc) < dof_max_slight_focus_radius) {
         local_abs_max = max(local_abs_max, abs(coc));
       }
@@ -124,11 +121,13 @@ void comp_main([[resource_table]] Resources &srt,
                [[global_invocation_id]] const uint3 global_id,
                [[local_invocation_index]] const uint local_index)
 {
+  [[resource_table]] Accumulator &accum = srt.accumulator;
+
   float2 frag_coord = float2(global_id.xy) + 0.5f;
   int2 tile_co = int2(frag_coord / float(DOF_TILES_SIZE * 2));
 
   CocTile coc_tile = dof_coc_tile_load(tiles.in_tiles_fg_img, tiles.in_tiles_bg_img, tile_co);
-  CocTilePrediction prediction = dof_coc_tile_prediction_get(coc_tile);
+  CocTilePrediction prediction = dof_coc_tile_prediction_get(coc_tile, true);
 
   float2 uv = frag_coord / float2(textureSize(srt.color_tx, 0));
   float2 uv_halfres = (frag_coord * 0.5f) / float2(textureSize(srt.color_bg_tx, 0));
@@ -144,7 +143,7 @@ void comp_main([[resource_table]] Resources &srt,
 
   if (prediction.do_focus) {
     float depth = reverse_z::read(textureLod(srt.depth_tx, uv, 0.0f).r);
-    float center_coc = (dof_coc_from_depth(buffer_get(eevee_dof_buf, dof_buf), uv, depth));
+    float center_coc = (dof_coc_from_depth(accum.dof_buf, uv, depth));
     prediction.do_focus = abs(center_coc) <= 0.5f;
   }
 
@@ -189,23 +188,25 @@ void comp_main([[resource_table]] Resources &srt,
 
   if (!no_slight_focus_pass && prediction.do_slight_focus) {
     float center_coc;
-    if (srt.use_lut) [[static_branch]] {
-      dof_slight_focus_gather(srt.depth_tx,
-                              srt.color_tx,
-                              srt.bokeh_lut_tx,
-                              slight_focus_max_coc,
-                              layer_color,
-                              layer_weight,
-                              center_coc);
+    if (accum.use_lut) [[static_branch]] {
+      accum.dof_slight_focus_gather(float2(global_id.xy) + 0.5f,
+                                    srt.depth_tx,
+                                    srt.color_tx,
+                                    accum.bokeh_lut_tx,
+                                    slight_focus_max_coc,
+                                    layer_color,
+                                    layer_weight,
+                                    center_coc);
     }
     else {
-      dof_slight_focus_gather(srt.depth_tx,
-                              srt.color_tx,
-                              srt.color_tx, /* Dummy. */
-                              slight_focus_max_coc,
-                              layer_color,
-                              layer_weight,
-                              center_coc);
+      accum.dof_slight_focus_gather(float2(global_id.xy) + 0.5f,
+                                    srt.depth_tx,
+                                    srt.color_tx,
+                                    srt.color_tx, /* Dummy. */
+                                    slight_focus_max_coc,
+                                    layer_color,
+                                    layer_weight,
+                                    center_coc);
     }
 
     if (srt.do_debug_color) {
@@ -256,13 +257,17 @@ void comp_main([[resource_table]] Resources &srt,
 
 #ifndef GLSL_CPP_STUBS
 PipelineCompute eevee_depth_of_field_resolve_lut(eevee::dof::resolve::comp_main,
-                                                 eevee::dof::resolve::Resources{
-                                                     .use_lut = true,
+                                                 eevee::dof::Accumulator{
+                                                     .is_hole_fill = false,
                                                      .is_resolve = true,
+                                                     .is_foreground = false,
+                                                     .use_lut = true,
                                                  });
 PipelineCompute eevee_depth_of_field_resolve_no_lut(eevee::dof::resolve::comp_main,
-                                                    eevee::dof::resolve::Resources{
-                                                        .use_lut = false,
+                                                    eevee::dof::Accumulator{
+                                                        .is_hole_fill = false,
                                                         .is_resolve = true,
+                                                        .is_foreground = false,
+                                                        .use_lut = false,
                                                     });
 #endif

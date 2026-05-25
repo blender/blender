@@ -22,10 +22,6 @@ set(INC_GLSL
   ../../gpencil
 )
 
-set(SRC_GLSL_COMP
-  eevee_depth_of_field_gather_comp.glsl
-  eevee_depth_of_field_hole_fill_comp.glsl
-)
 
 set(SRC_GLSL_LIB
   eevee_attributes_curves_lib.glsl
@@ -33,8 +29,6 @@ set(SRC_GLSL_LIB
   eevee_attributes_pointcloud_lib.glsl
   eevee_attributes_volume_lib.glsl
   eevee_attributes_world_lib.glsl
-  eevee_depth_of_field_accumulator_lib.glsl
-  eevee_depth_of_field_lib.glsl
   # eevee_forward_lib.glsl
   # eevee_nodetree_lib.glsl # Has dependency on draw_model_lib that is hard to resolve
 )
@@ -48,7 +42,6 @@ if(WITH_GPU_SHADER_CPP_COMPILATION)
   # TODO Remove
   add_definitions(-DUSE_GPU_SHADER_CREATE_INFO)
 
-  compile_sources_as_cpp(eevee_cpp_shaders_comp "${SRC_GLSL_COMP}" "GPU_COMPUTE_SHADER")
   compile_sources_as_cpp(eevee_cpp_shaders_bsl  "${SRC_BSL}" "")
   # Only enable to make sure they compile on their own.
   # Otherwise it creates a warning about `pragma once`.

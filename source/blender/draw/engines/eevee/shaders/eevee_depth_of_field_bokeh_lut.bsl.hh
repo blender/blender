@@ -11,7 +11,7 @@
  */
 #pragma once
 
-#include "eevee_depth_of_field_lib.glsl"
+#include "eevee_depth_of_field_lib.bsl.hh"
 #include "gpu_shader_math_constants_lib.glsl"
 #include "gpu_shader_math_safe_lib.glsl"
 
