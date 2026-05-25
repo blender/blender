@@ -472,6 +472,8 @@ Vector<GVArray> evaluate_fields(ResourceScope &scope,
       }
       /* Still have to copy over the data in the destination provided by the caller. */
       if (dst_varray.is_span()) {
+        computed_varray.type().default_construct_indices(dst_varray.get_internal_span().data(),
+                                                         mask);
         array_utils::copy(computed_varray,
                           mask,
                           dst_varray.get_internal_span().take_front(mask.min_array_size()));

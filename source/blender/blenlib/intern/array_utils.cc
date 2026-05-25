@@ -20,12 +20,12 @@ void copy(const GVArray &src, GMutableSpan dst, const exec_mode::Mode mode)
   BLI_assert(src.type() == dst.type());
   BLI_assert(src.size() == dst.size());
   if (!mode.is_parallel) {
-    src.materialize_to_uninitialized(src.index_range(), dst.data());
+    src.materialize(src.index_range(), dst.data());
   }
   else {
     const int64_t grain_size = calc_copy_grain_size(mode, src.type().size);
     threading::parallel_for(src.index_range(), grain_size, [&](const IndexRange range) {
-      src.materialize_to_uninitialized(range, dst.data());
+      src.materialize(range, dst.data());
     });
   }
 }
@@ -39,12 +39,12 @@ void copy(const GVArray &src,
   BLI_assert(src.size() >= selection.min_array_size());
   BLI_assert(dst.size() >= selection.min_array_size());
   if (!mode.is_parallel) {
-    src.materialize_to_uninitialized(selection, dst.data());
+    src.materialize(selection, dst.data());
   }
   else {
     const int64_t grain_size = calc_copy_grain_size(mode, src.type().size);
     threading::parallel_for(selection.index_range(), grain_size, [&](const IndexRange range) {
-      src.materialize_to_uninitialized(selection.slice(range), dst.data());
+      src.materialize(selection.slice(range), dst.data());
     });
   }
 }
@@ -57,12 +57,12 @@ void gather(const GVArray &src,
   BLI_assert(src.type() == dst.type());
   BLI_assert(indices.size() == dst.size());
   if (!mode.is_parallel) {
-    src.materialize_compressed_to_uninitialized(indices, dst.data());
+    src.materialize_compressed(indices, dst.data());
   }
   else {
     const int64_t grain_size = calc_copy_grain_size(mode, src.type().size);
     threading::parallel_for(indices.index_range(), grain_size, [&](const IndexRange range) {
-      src.materialize_compressed_to_uninitialized(indices.slice(range), dst.slice(range).data());
+      src.materialize_compressed(indices.slice(range), dst.slice(range).data());
     });
   }
 }

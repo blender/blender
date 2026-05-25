@@ -106,7 +106,7 @@ static GListPtr filter_list(const GListPtr &list, const IndexMask &mask)
   return std::visit(
       [&]<typename T>(const T &src_data) {
         if constexpr (std::is_same_v<T, GList::ArrayData>) {
-          GArray<> dst_data(list_type, mask.size(), NoInitialization());
+          GArray<> dst_data(list_type, mask.size());
           array_utils::gather(GSpan(list_type, src_data.data, list->size()), mask, dst_data);
           return GList::from_garray(std::move(dst_data));
         }

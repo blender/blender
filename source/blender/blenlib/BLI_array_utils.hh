@@ -54,12 +54,12 @@ inline void copy(const VArray<T> &src, MutableSpan<T> dst, const Mode mode = {})
 {
   BLI_assert(src.size() == dst.size());
   if constexpr (!mode.is_parallel) {
-    src.materialize_compressed_to_uninitialized(dst.index_range(), dst);
+    src.materialize_compressed(dst.index_range(), dst);
   }
   else {
     const int64_t grain_size = calc_copy_grain_size(mode, sizeof(T));
     threading::parallel_for(src.index_range(), grain_size, [&](const IndexRange range) {
-      src.materialize_to_uninitialized(range, dst);
+      src.materialize(range, dst);
     });
   }
 }
@@ -190,12 +190,12 @@ inline void gather(const VArray<T> &src,
 {
   BLI_assert(indices.size() >= dst.size());
   if constexpr (!mode.is_parallel) {
-    src.materialize_compressed_to_uninitialized(indices, dst);
+    src.materialize_compressed(indices, dst);
   }
   else {
     const int64_t grain_size = calc_copy_grain_size(mode, sizeof(T));
     threading::parallel_for(indices.index_range(), grain_size, [&](const IndexRange range) {
-      src.materialize_compressed_to_uninitialized(indices.slice(range), dst.slice(range));
+      src.materialize_compressed(indices.slice(range), dst.slice(range));
     });
   }
 }
