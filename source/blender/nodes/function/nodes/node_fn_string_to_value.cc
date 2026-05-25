@@ -43,6 +43,11 @@ static const mf::MultiFunction *get_multi_function(const bNode &bnode)
   static auto str_to_float_fn = mf::build::SI1_SO2<std::string, float, int>(
       "String to Value", [](const std::string &s, float &value, int &length) -> void {
         const auto result = fast_float::from_chars(s.data(), s.data() + s.size(), value);
+        if (result.ec != std::errc()) {
+          value = 0.0f;
+          length = 0;
+          return;
+        }
         length = BLI_strnlen_utf8(s.data(), result.ptr - s.data());
       });
 
@@ -54,6 +59,11 @@ static const mf::MultiFunction *get_multi_function(const bNode &bnode)
           return;
         }
         const auto result = std::from_chars(s.data(), s.data() + s.size(), value, base);
+        if (result.ec != std::errc()) {
+          value = 0;
+          length = 0;
+          return;
+        }
         length = BLI_strnlen_utf8(s.data(), result.ptr - s.data());
       });
 
