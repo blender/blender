@@ -644,7 +644,6 @@ void wm_event_do_notifiers(bContext *C)
       }
 
       if (notifier_refreshes_node_group_operators(*note)) {
-        ed::geometry::clear_operator_asset_trees();
         ed::geometry::register_node_group_operators(*C);
       }
 

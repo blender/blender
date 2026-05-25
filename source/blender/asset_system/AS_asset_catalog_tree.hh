@@ -68,6 +68,7 @@ class AssetCatalogTreeItem {
   /** Iterate over children calling \a callback for each of them, but do not recurse into their
    * children. */
   void foreach_child(ItemIterFn callback) const;
+  void foreach_item(ItemIterFn callback) const;
 
  private:
   static void foreach_item_recursive(const ChildMap &children_, ItemIterFn callback);
