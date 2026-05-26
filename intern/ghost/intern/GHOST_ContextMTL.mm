@@ -286,8 +286,10 @@ void GHOST_ContextMTL::metalInit()
                       texture2d<float> t [[texture(0)]]) {
 
         /* Final blit should ensure alpha is 1.0. This resolves
-         * rendering artifacts for blitting of final back-buffer. */
+         * rendering artifacts for blitting of final back-buffer.
+         * Also clamp the RGB values to avoid artifacts. */
         float4 out_tex = t.sample(s, v.texCoord);
+        out_tex.rgb = min(out_tex.rgb, 16384.0);
         out_tex.a = 1.0;
         return out_tex;
       }
