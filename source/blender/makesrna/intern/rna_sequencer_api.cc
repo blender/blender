@@ -767,10 +767,16 @@ void RNA_api_strip(StructRNA *srna)
   parm = RNA_def_int(
       func, "frame", 0, INT_MIN, INT_MAX, "", "Frame where to split the strip", INT_MIN, INT_MAX);
   RNA_def_parameter_flags(parm, PropertyFlag(0), PARM_REQUIRED);
-  parm = RNA_def_enum(func, "split_method", strip_split_method_items, 0, "", "");
+  parm = RNA_def_enum(func,
+                      "split_method",
+                      strip_split_method_items,
+                      0,
+                      "Split Method",
+                      "The type of split operation to perform on strips");
   RNA_def_parameter_flags(parm, PROP_NEVER_NULL, PARM_REQUIRED);
   parm = RNA_def_boolean(
       func, "ignore_connections", false, "", "Don't propagate split to connected strips");
+
   /* Return type. */
   parm = RNA_def_pointer(func, "sequence", "Strip", "", "Right side Strip");
   RNA_def_function_return(func, parm);
@@ -812,8 +818,15 @@ void RNA_api_strip_retiming_keys(BlenderRNA *brna)
 
   FunctionRNA *func = RNA_def_function(srna, "add", "rna_Strip_retiming_keys_add");
   RNA_def_function_flag(func, FUNC_USE_REPORTS | FUNC_USE_SELF_ID);
-  RNA_def_int(
-      func, "timeline_frame", 0, -MAXFRAME, MAXFRAME, "Timeline Frame", "", -MAXFRAME, MAXFRAME);
+  RNA_def_int(func,
+              "timeline_frame",
+              0,
+              -MAXFRAME,
+              MAXFRAME,
+              "Timeline Frame",
+              "Where to add the retiming key in the timeline",
+              -MAXFRAME,
+              MAXFRAME);
   RNA_def_function_ui_description(func, "Add retiming key");
   /* return type */
   PropertyRNA *parm = RNA_def_pointer(func, "retiming_key", "RetimingKey", "", "New RetimingKey");
@@ -1001,7 +1014,7 @@ void RNA_api_strips(StructRNA *srna, const bool metastrip)
                       rna_enum_strip_scale_method_items,
                       SEQ_USE_ORIGINAL_SIZE,
                       "Image Fit Method",
-                      nullptr);
+                      "Mode for fitting the image to the canvas");
   /* return type */
   parm = RNA_def_pointer(func, "sequence", "Strip", "", "New Strip");
   RNA_def_function_return(func, parm);
@@ -1038,7 +1051,7 @@ void RNA_api_strips(StructRNA *srna, const bool metastrip)
                       rna_enum_strip_scale_method_items,
                       SEQ_USE_ORIGINAL_SIZE,
                       "Image Fit Method",
-                      nullptr);
+                      "Mode for fitting the image to the canvas");
   /* return type */
   parm = RNA_def_pointer(func, "sequence", "Strip", "", "New Strip");
   RNA_def_function_return(func, parm);

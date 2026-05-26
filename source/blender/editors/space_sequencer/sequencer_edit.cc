@@ -3027,7 +3027,9 @@ void SEQUENCER_OT_strip_jump(wmOperatorType *ot)
   /* Identifiers. */
   ot->name = "Jump to Strip";
   ot->idname = "SEQUENCER_OT_strip_jump";
-  ot->description = "Move frame to next or previous edit point";
+  ot->description =
+      "Move playhead to the next or previous edit point, which may be a strip handle or its "
+      "center";
 
   /* API callbacks. */
   ot->exec = sequencer_strip_jump_exec;
@@ -3037,8 +3039,16 @@ void SEQUENCER_OT_strip_jump(wmOperatorType *ot)
   ot->flag = OPTYPE_UNDO;
 
   /* Properties. */
-  RNA_def_boolean(ot->srna, "next", true, "Next Strip", "");
-  RNA_def_boolean(ot->srna, "center", true, "Use Strip Center", "");
+  RNA_def_boolean(ot->srna,
+                  "next",
+                  true,
+                  "Next Strip",
+                  "Jump to the next handle or center, else the previous");
+  RNA_def_boolean(ot->srna,
+                  "center",
+                  true,
+                  "Use Strip Center",
+                  "Jump to the center of the strip rather than its handles");
 }
 
 /** \} */
@@ -3708,7 +3718,8 @@ void SEQUENCER_OT_change_scene(wmOperatorType *ot)
   ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
 
   /* Properties. */
-  prop = RNA_def_enum(ot->srna, "scene", rna_enum_dummy_NULL_items, 0, "Scene", "");
+  prop = RNA_def_enum(
+      ot->srna, "scene", rna_enum_dummy_NULL_items, 0, "Scene", "Scene to assign to the strip");
   RNA_def_enum_funcs(prop, RNA_scene_without_sequencer_scene_itemf);
   RNA_def_property_flag(prop, PROP_ENUM_NO_TRANSLATE);
   ot->prop = prop;
@@ -4191,7 +4202,12 @@ void SEQUENCER_OT_strip_color_tag_set(wmOperatorType *ot)
   /* Flags. */
   ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
 
-  RNA_def_enum(ot->srna, "color", rna_enum_strip_color_items, STRIP_COLOR_NONE, "Color Tag", "");
+  RNA_def_enum(ot->srna,
+               "color",
+               rna_enum_strip_color_items,
+               STRIP_COLOR_NONE,
+               "Color Tag",
+               "Color used to tag strips for organizing them in the timeline");
 }
 
 /** \} */

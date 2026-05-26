@@ -3516,8 +3516,8 @@ static void rna_def_movie(BlenderRNA *brna)
   parm = RNA_def_boolean(func,
                          "can_produce_frames",
                          false,
-                         "True if the strip can produce frames, False otherwise",
-                         "");
+                         "Can Produce Frames",
+                         "True if the strip can produce frames, False otherwise");
   RNA_def_function_return(func, parm);
 
   /* metadata */
