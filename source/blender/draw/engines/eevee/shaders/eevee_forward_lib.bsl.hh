@@ -46,7 +46,7 @@ void forward_lighting_eval(Thickness thickness,
                            float3 &transmittance)
 {
   [[resource_table]] LightEvalIterator &lights = resource_table_get(eevee::LightEvalIterator);
-
+  [[resource_table]] UtilityTexture &util_tx = resource_table_get(UtilityTexture);
   /* clang-format off */ /* Multiline macro breaks error line counting. */
   [[resource_table]] LightprobeRenderData &lightprobes = resource_table_get(eevee::LightprobeRenderData);
   [[resource_table]] LightprobePlaneRenderData &lightprobe_planes = resource_table_get(eevee::LightprobePlaneRenderData);
@@ -60,7 +60,7 @@ void forward_lighting_eval(Thickness thickness,
   for (uint i = 0u; i < 3; i++) [[unroll]] {
     if (srt.light_closure_eval_count_reflect > i) [[static_branch]] {
       ClosureUndetermined cl = g_closure_get(uchar(i));
-      ctx.stack.cl[i] = closure_light_new(cl, V);
+      ctx.stack.cl[i] = closure_light_new(util_tx, cl, V);
     }
   }
 
@@ -87,7 +87,7 @@ void forward_lighting_eval(Thickness thickness,
     if (closure_has_transmission(cl_transmit.type) || cl_transmit.type == CLOSURE_BSSRDF_BURLEY_ID)
     {
       light::EvalCtx<true> ctx_tr = light::init_from_reflect_ctx(ctx);
-      ctx_tr.stack.cl[0] = closure_light_new(cl_transmit, V, thickness);
+      ctx_tr.stack.cl[0] = closure_light_new(util_tx, cl_transmit, V, thickness);
 
       /* NOTE: Only evaluates `stack.cl[0]`. */
       lights.eval_transmission(ctx_tr, vPz);
@@ -95,8 +95,8 @@ void forward_lighting_eval(Thickness thickness,
       if (cl_transmit.type == CLOSURE_BSSRDF_BURLEY_ID) {
 #if defined(GLSL_CPP_STUBS) || defined(MAT_SUBSURFACE)
         /* Apply transmission profile onto transmitted light and sum with reflected light. */
-        float3 sss_profile = subsurface_transmission(to_closure_subsurface(cl_transmit).sss_radius,
-                                                     thickness.value());
+        float3 sss_profile = subsurface_transmission(
+            util_tx, to_closure_subsurface(cl_transmit).sss_radius, thickness.value());
         ctx.stack.cl[0].light_shadowed += ctx_tr.stack.cl[0].light_shadowed * sss_profile;
         ctx.stack.cl[0].light_unshadowed += ctx_tr.stack.cl[0].light_unshadowed * sss_profile;
 #endif

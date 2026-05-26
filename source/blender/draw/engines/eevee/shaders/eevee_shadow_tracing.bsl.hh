@@ -459,8 +459,8 @@ float shadow_eval([[resource_table]] ShadowRenderData &srd,
 
   if (srd.shadow_random) [[static_branch]] {
     [[resource_table]] const Sampling sampling = srd.sampling;
-    auto &util_tx = sampler_get(eevee_utility_texture, utility_tx);
-    float3 blue_noise_3d = utility_tx_fetch(util_tx, frag_co, UTIL_BLUE_NOISE_LAYER).rgb;
+    [[resource_table]] const UtilityTexture util_tx = srd.util_tx;
+    float3 blue_noise_3d = util_tx.fetch(frag_co, UTIL_BLUE_NOISE_LAYER).rgb;
     random_shadow_3d = fract(blue_noise_3d + sampling.rng_3D_get(SAMPLING_SHADOW_U));
     random_pcf_2d = fract(blue_noise_3d.xy + sampling.rng_2D_get(SAMPLING_SHADOW_X));
   }

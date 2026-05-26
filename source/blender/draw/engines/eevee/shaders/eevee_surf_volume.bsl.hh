@@ -60,7 +60,6 @@ struct SurfVolume {
   [[legacy_info]] ShaderCreateInfo draw_modelmat_common;
   [[legacy_info]] ShaderCreateInfo draw_view;
   [[legacy_info]] ShaderCreateInfo eevee_global_ubo;
-  [[legacy_info]] ShaderCreateInfo eevee_utility_texture;
 
   [[image(VOLUME_OCCUPANCY_SLOT, read, UINT_32)]] uimage3DAtomic occupancy_img;
 
@@ -133,6 +132,7 @@ struct SurfVolume {
 [[fragment]] [[early_fragment_tests]] [[texture_atomic]]
 void surf_volume([[resource_table]] SurfVolume &srt,
                  [[resource_table]] const Sampling &sampling,
+                 [[resource_table]] const UtilityTexture & /*util_tx*/,
                  [[frag_coord]] const float4 frag_co,
                  [[front_facing]] const bool /*front_face*/ /* Needed for nodes. */)
 {

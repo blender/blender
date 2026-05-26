@@ -18,10 +18,12 @@ float2 lut_coords_get(float cos_theta, float roughness)
 /**
  * Sample a packed ltc matrix from the LUT
  */
-packed_float4 sample_utility_tx(sampler2DArray util_tx, float cos_theta, float roughness)
+packed_float4 sample_utility_tx([[resource_table]] const UtilityTexture &util_tx,
+                                float cos_theta,
+                                float roughness)
 {
   const float2 coords = lut_coords_get(cos_theta, roughness);
-  return utility_tx_sample_lut(util_tx, coords, UTIL_LTC_MAT_LAYER);
+  return util_tx.sample_lut(coords, UTIL_LTC_MAT_LAYER);
 }
 
 /**

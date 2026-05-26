@@ -4,10 +4,6 @@
 
 #pragma once
 
-#include "infos/eevee_common_infos.hh"
-
-SHADER_LIBRARY_CREATE_INFO(eevee_utility_texture)
-
 #include "eevee_bxdf_types.bsl.hh"
 #include "eevee_ltc_lut_lib.bsl.hh"
 #include "eevee_thickness_lib.bsl.hh"
@@ -416,10 +412,10 @@ Ray bxdf_ggx_ray_amend_transmission(ClosureUndetermined cl, float3 V, Ray ray, T
   return ray;
 }
 
-ClosureLight bxdf_ggx_light_reflection(ClosureReflection cl, float3 V)
+ClosureLight bxdf_ggx_light_reflection([[resource_table]] const UtilityTexture &util_tx,
+                                       ClosureReflection cl,
+                                       float3 V)
 {
-  auto &util_tx = sampler_get(eevee_utility_texture, utility_tx);
-
   float cos_theta = dot(cl.N, V);
 
   ClosureLight light;
@@ -429,10 +425,11 @@ ClosureLight bxdf_ggx_light_reflection(ClosureReflection cl, float3 V)
   return light;
 }
 
-ClosureLight bxdf_ggx_light_transmission(ClosureRefraction cl, float3 V, Thickness thickness)
+ClosureLight bxdf_ggx_light_transmission([[resource_table]] const UtilityTexture &util_tx,
+                                         ClosureRefraction cl,
+                                         float3 V,
+                                         Thickness thickness)
 {
-  auto &util_tx = sampler_get(eevee_utility_texture, utility_tx);
-
   float perceptual_roughness = bxdf_ggx_perceived_roughness_transmission(cl.roughness, cl.ior);
 
   if (thickness.value() != 0.0f) {
@@ -452,11 +449,11 @@ ClosureLight bxdf_ggx_light_transmission(ClosureRefraction cl, float3 V, Thickne
   return light;
 }
 
-ClosureLight bxdf_ggx_light_thin_glass_transmission(ClosureThinRefraction cl, float3 V)
+ClosureLight bxdf_ggx_light_thin_glass_transmission(
+    [[resource_table]] const UtilityTexture &util_tx, ClosureThinRefraction cl, float3 V)
 {
   float cos_theta = dot(cl.N, V);
   ClosureLight light;
-  auto &util_tx = sampler_get(eevee_utility_texture, utility_tx);
   light.ltc_mat = eevee::lut::ltc::sample_utility_tx(util_tx, cos_theta, cl.roughness);
   light.N = -cl.N;
   light.type = LIGHT_TRANSMISSION;

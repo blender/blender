@@ -13,7 +13,6 @@
 
 FRAGMENT_SHADER_CREATE_INFO(draw_view)
 FRAGMENT_SHADER_CREATE_INFO(draw_object_infos)
-FRAGMENT_SHADER_CREATE_INFO(eevee_utility_texture)
 
 #include "draw_view_lib.glsl"
 #include "eevee_closure.bsl.hh"
@@ -73,7 +72,6 @@ PipelineGraphic aov_clear(fullscreen_vert, aov_clear_frag);
  * \{ */
 
 struct LightEval {
-  [[legacy_info]] ShaderCreateInfo eevee_utility_texture;
   [[legacy_info]] ShaderCreateInfo draw_object_infos;
   [[legacy_info]] ShaderCreateInfo draw_view;
 
@@ -130,6 +128,7 @@ void light_eval_frag([[resource_table]] LightEval &srt,
                      [[resource_table]] LightEvalIterator &lights,
                      [[resource_table]] const LightprobeRenderData &lightprobes,
                      [[resource_table]] const HiZ &hiz,
+                     [[resource_table]] const UtilityTexture &util_tx,
                      [[resource_table]] const gbuffer::Reader &reader,
                      [[resource_table]] RenderPassOutput &render_passes,
                      [[frag_coord]] const float4 frag_co,
@@ -157,7 +156,7 @@ void light_eval_frag([[resource_table]] LightEval &srt,
   /* Unroll light stack array assignments to avoid non-constant indexing. */
   for (uint i = 0u; i < 3; i++) [[unroll]] {
     if (lrt.light_closure_eval_count_reflect > i) [[static_branch]] {
-      ctx.stack.cl[i] = closure_light_new(gbuf.layer[i], V);
+      ctx.stack.cl[i] = closure_light_new(util_tx, gbuf.layer[i], V);
     }
   }
 
@@ -185,15 +184,15 @@ void light_eval_frag([[resource_table]] LightEval &srt,
     light::EvalCtx<true> ctx_tr = light::init_from_reflect_ctx(ctx);
 
     ClosureUndetermined cl_transmit = gbuf.layer[0];
-    ctx_tr.stack.cl[0] = closure_light_new(cl_transmit, V, thickness);
+    ctx_tr.stack.cl[0] = closure_light_new(util_tx, cl_transmit, V, thickness);
 
     /* NOTE: Only evaluates `stack.cl[0]`. */
     lights.eval_transmission(ctx_tr, vPz);
 
     if (cl_transmit.type == CLOSURE_BSSRDF_BURLEY_ID) {
       /* Apply transmission profile onto transmitted light and sum with reflected light. */
-      float3 sss_profile = subsurface_transmission(to_closure_subsurface(cl_transmit).sss_radius,
-                                                   thickness.value());
+      float3 sss_profile = subsurface_transmission(
+          util_tx, to_closure_subsurface(cl_transmit).sss_radius, thickness.value());
       ctx.stack.cl[0].light_shadowed += ctx_tr.stack.cl[0].light_shadowed * sss_profile;
       ctx.stack.cl[0].light_unshadowed += ctx_tr.stack.cl[0].light_unshadowed * sss_profile;
     }
@@ -266,7 +265,6 @@ void light_eval_frag([[resource_table]] LightEval &srt,
 struct SphereProbeEval {
   [[legacy_info]] ShaderCreateInfo draw_view;
   [[legacy_info]] ShaderCreateInfo draw_object_infos;
-  [[legacy_info]] ShaderCreateInfo eevee_utility_texture;
 };
 
 /* Sphere probe evaluate everything as diffuse since they can only rely on volume light-probes
@@ -277,6 +275,7 @@ void sphere_eval_frag([[resource_table]] SphereProbeEval & /*srt*/,
                       [[resource_table]] const Sampling &sampling,
                       [[resource_table]] const LightprobeVolumeRenderData &lightprobes,
                       [[resource_table]] const HiZ &hiz,
+                      [[resource_table]] const UtilityTexture &util_tx,
                       [[resource_table]] const gbuffer::Reader &reader,
                       [[frag_coord]] const float4 frag_co,
                       [[in]] const VertOut v_out,
@@ -354,14 +353,14 @@ void sphere_eval_frag([[resource_table]] SphereProbeEval & /*srt*/,
   }
 
   /* Direct light. */
-  ctx.stack.cl[0] = closure_light_new(cl, V);
+  ctx.stack.cl[0] = closure_light_new(util_tx, cl, V);
   lights.eval_reflection(ctx, vPz);
 
   float3 radiance_front = ctx.stack.cl[0].light_shadowed;
 
   light::EvalCtx<true> ctx_tr = light::init_from_reflect_ctx(ctx);
 
-  ctx_tr.stack.cl[0] = closure_light_new(cl_transmit, V, thickness);
+  ctx_tr.stack.cl[0] = closure_light_new(util_tx, cl_transmit, V, thickness);
   lights.eval_transmission(ctx_tr, vPz);
 
   float3 radiance_back = ctx_tr.stack.cl[0].light_shadowed;
@@ -383,7 +382,6 @@ struct PlanarProbeEval {
 
   [[legacy_info]] ShaderCreateInfo draw_view;
   [[legacy_info]] ShaderCreateInfo draw_object_infos;
-  [[legacy_info]] ShaderCreateInfo eevee_utility_texture;
 };
 
 [[fragment, early_fragment_tests]]
@@ -392,6 +390,7 @@ void planar_eval_frag([[resource_table]] PlanarProbeEval & /*srt*/,
                       [[resource_table]] const LightprobeRenderData &lightprobes,
                       [[resource_table]] const Sampling &sampling,
                       [[resource_table]] const HiZ &hiz,
+                      [[resource_table]] const UtilityTexture &util_tx,
                       [[resource_table]] const gbuffer::Reader &reader,
                       [[frag_coord]] const float4 frag_co,
                       [[in]] const VertOut v_out,
@@ -510,16 +509,16 @@ void planar_eval_frag([[resource_table]] PlanarProbeEval & /*srt*/,
   }
 
   /* Direct light. */
-  ctx.stack.cl[0] = closure_light_new(cl, V);
-  ctx.stack.cl[1] = closure_light_new(cl_reflect, V);
+  ctx.stack.cl[0] = closure_light_new(util_tx, cl, V);
+  ctx.stack.cl[1] = closure_light_new(util_tx, cl_reflect, V);
   lights.eval_reflection(ctx, vPz);
 
   float3 radiance_front = ctx.stack.cl[0].light_shadowed;
   float3 radiance_reflect = ctx.stack.cl[1].light_shadowed;
 
   light::EvalCtx<true> ctx_tr = light::init_from_reflect_ctx(ctx);
-  ctx_tr.stack.cl[0] = closure_light_new(cl_transmit, V, thickness);
-  ctx_tr.stack.cl[1] = closure_light_new(cl_refract, V, thickness);
+  ctx_tr.stack.cl[0] = closure_light_new(util_tx, cl_transmit, V, thickness);
+  ctx_tr.stack.cl[1] = closure_light_new(util_tx, cl_refract, V, thickness);
   lights.eval_transmission(ctx_tr, vPz);
 
   float3 radiance_back = ctx_tr.stack.cl[0].light_shadowed;

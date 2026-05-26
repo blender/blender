@@ -102,7 +102,8 @@ LightProbeRay bxdf_lightprobe_ray(ClosureUndetermined cl,
   return ray;
 }
 
-ClosureLight closure_light_new_ex(ClosureUndetermined cl,
+ClosureLight closure_light_new_ex([[resource_table]] const UtilityTexture &util_tx,
+                                  ClosureUndetermined cl,
                                   float3 V,
                                   Thickness thickness,
                                   const bool is_transmission)
@@ -118,10 +119,11 @@ ClosureLight closure_light_new_ex(ClosureUndetermined cl,
         cl_light = bxdf_translucent_light(cl, V, Thickness::zero());
         break;
       case CLOSURE_BSDF_MICROFACET_GGX_REFRACTION_ID:
-        cl_light = bxdf_ggx_light_transmission(to_closure_refraction(cl), V, thickness);
+        cl_light = bxdf_ggx_light_transmission(util_tx, to_closure_refraction(cl), V, thickness);
         break;
       case CLOSURE_BSDF_THIN_GLASS_TRANSMISSION_ID:
-        cl_light = bxdf_ggx_light_thin_glass_transmission(to_closure_thin_refraction(cl), V);
+        cl_light = bxdf_ggx_light_thin_glass_transmission(
+            util_tx, to_closure_thin_refraction(cl), V);
         break;
       case CLOSURE_BSDF_TRANSLUCENT_ID:
       /* Defaults to avoid UB. */
@@ -136,7 +138,7 @@ ClosureLight closure_light_new_ex(ClosureUndetermined cl,
     /* Reflection. */
     switch (cl.type) {
       case CLOSURE_BSDF_MICROFACET_GGX_REFLECTION_ID:
-        cl_light = bxdf_ggx_light_reflection(to_closure_reflection(cl), V);
+        cl_light = bxdf_ggx_light_reflection(util_tx, to_closure_reflection(cl), V);
         break;
       case CLOSURE_BSSRDF_BURLEY_ID:
       case CLOSURE_BSDF_DIFFUSE_ID:
@@ -154,12 +156,17 @@ ClosureLight closure_light_new_ex(ClosureUndetermined cl,
   return cl_light;
 }
 
-ClosureLight closure_light_new(ClosureUndetermined cl, float3 V, Thickness thickness)
+ClosureLight closure_light_new([[resource_table]] const UtilityTexture &util_tx,
+                               ClosureUndetermined cl,
+                               float3 V,
+                               Thickness thickness)
 {
-  return closure_light_new_ex(cl, V, thickness, true);
+  return closure_light_new_ex(util_tx, cl, V, thickness, true);
 }
 
-ClosureLight closure_light_new(ClosureUndetermined cl, float3 V)
+ClosureLight closure_light_new([[resource_table]] const UtilityTexture &util_tx,
+                               ClosureUndetermined cl,
+                               float3 V)
 {
-  return closure_light_new_ex(cl, V, Thickness::zero(), false);
+  return closure_light_new_ex(util_tx, cl, V, Thickness::zero(), false);
 }

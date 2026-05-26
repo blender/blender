@@ -4,43 +4,46 @@
 
 #pragma once
 
-#include "infos/eevee_common_infos.hh"
-
+#include "eevee_defines.hh"
 #include "gpu_shader_compat.hh"
 
-/* Fetch texel. Wrapping if above range. */
-float4 utility_tx_fetch(sampler2DArray util_tx, float2 texel, float layer)
-{
-  return texelFetch(util_tx, int3(int2(texel) % UTIL_TEX_SIZE, int(layer)), 0);
-}
+struct UtilityTexture {
+  [[sampler(RBUFS_UTILITY_TEX_SLOT)]] sampler2DArray utility_tx;
 
-/* Sample at uv position. Filtered & Wrapping enabled. */
-float4 utility_tx_sample(sampler2DArray util_tx, float2 uv, float layer)
-{
-  return textureLod(util_tx, float3(uv, layer), 0.0);
-}
+  /* Fetch texel. Repeat extend mode if above range. */
+  float4 fetch(float2 texel, float layer) const
+  {
+    return texelFetch(utility_tx, int3(int2(texel) % UTIL_TEX_SIZE, int(layer)), 0);
+  }
 
-/* Sample at uv position but with scale and bias so that uv space bounds lie on texel centers. */
-float4 utility_tx_sample_lut(sampler2DArray util_tx, float2 uv, float layer)
-{
-  /* Scale and bias coordinates, for correct filtered lookup. */
-  uv = uv * UTIL_TEX_UV_SCALE + UTIL_TEX_UV_BIAS;
-  return textureLod(util_tx, float3(uv, layer), 0.0f);
-}
+  /* Sample at uv position. Filtered & extend mode enabled. */
+  float4 sample_extend(float2 uv, float layer) const
+  {
+    return textureLod(utility_tx, float3(uv, layer), 0.0f);
+  }
 
-/* Sample GGX BSDF LUT. */
-float4 utility_tx_sample_bsdf_lut(sampler2DArray util_tx, float2 uv, float layer)
-{
-  /* Scale and bias coordinates, for correct filtered lookup. */
-  uv = uv * UTIL_TEX_UV_SCALE + UTIL_TEX_UV_BIAS;
-  layer = layer * UTIL_BSDF_LAYER_COUNT + UTIL_BSDF_LAYER;
+  /* Sample at uv position but with scale and bias so that uv space bounds lie on texel centers. */
+  float4 sample_lut(float2 uv, float layer) const
+  {
+    /* Scale and bias coordinates, for correct filtered lookup. */
+    uv = uv * UTIL_TEX_UV_SCALE + UTIL_TEX_UV_BIAS;
+    return textureLod(utility_tx, float3(uv, layer), 0.0f);
+  }
 
-  float layer_floored;
-  float interp = modf(layer, layer_floored);
+  /* Sample GGX BSDF LUT. */
+  float4 sample_bsdf_lut(float2 uv, float layer) const
+  {
+    /* Scale and bias coordinates, for correct filtered lookup. */
+    uv = uv * UTIL_TEX_UV_SCALE + UTIL_TEX_UV_BIAS;
+    layer = layer * UTIL_BSDF_LAYER_COUNT + UTIL_BSDF_LAYER;
 
-  float4 tex_low = textureLod(util_tx, float3(uv, layer_floored), 0.0f);
-  float4 tex_high = textureLod(util_tx, float3(uv, layer_floored + 1.0f), 0.0f);
+    float layer_floored;
+    float interp = modf(layer, layer_floored);
 
-  /* Manual trilinear interpolation. */
-  return mix(tex_low, tex_high, interp);
-}
+    float4 tex_low = textureLod(utility_tx, float3(uv, layer_floored), 0.0f);
+    float4 tex_high = textureLod(utility_tx, float3(uv, layer_floored + 1.0f), 0.0f);
+
+    /* Manual trilinear interpolation. */
+    return mix(tex_low, tex_high, interp);
+  }
+};

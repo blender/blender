@@ -39,6 +39,7 @@ namespace eevee {
 
 struct LightEvalData {
   [[resource_table]] srt_t<ShadowRenderData> shadow_data;
+  [[resource_table]] srt_t<UtilityTexture> utility_tx;
 
   [[compilation_constant]] int light_closure_eval_count_reflect;
   [[compilation_constant]] int light_closure_eval_count_transmit;
@@ -67,7 +68,8 @@ bool light_linking_affects_receiver(uint2 light_set_membership, uchar receiver_l
   return bitmask64_test(light_set_membership, receiver_light_set);
 }
 
-void eval_single_closure(LightData light,
+void eval_single_closure(sampler2DArray util_tx,
+                         LightData light,
                          LightVector lv,
                          LightVertices vertices,
                          ClosureLight &cl,
@@ -79,7 +81,6 @@ void eval_single_closure(LightData light,
   if (attenuation < 1e-30f) {
     return;
   }
-  auto &util_tx = sampler_get(eevee_utility_texture, utility_tx);
   float ltc_result = light_ltc(util_tx, light, cl.N, V, lv, cl.ltc_mat, vertices);
   float3 out_radiance = light.color * ltc_result;
   float visibility = shadow * attenuation;
@@ -164,17 +165,20 @@ template<bool is_transmission> struct EvalCtx {
 
     LightVertices light_shape_vertices = light_shape_corners(light, lv);
 
+    [[resource_table]] const UtilityTexture &util = srt.utility_tx;
+    const auto &util_tx = util.utility_tx;
+
     for (uint i = 0u; i < 3; i++) [[unroll]] {
       if (is_transmission) [[static_branch]] {
         if (srt.light_closure_eval_count_transmit > i) [[static_branch]] {
           eval_single_closure(
-              light, lv, light_shape_vertices, stack.cl[i], V, attenuation, shadow);
+              util_tx, light, lv, light_shape_vertices, stack.cl[i], V, attenuation, shadow);
         }
       }
       else {
         if (srt.light_closure_eval_count_reflect > i) [[static_branch]] {
           eval_single_closure(
-              light, lv, light_shape_vertices, stack.cl[i], V, attenuation, shadow);
+              util_tx, light, lv, light_shape_vertices, stack.cl[i], V, attenuation, shadow);
         }
       }
     }

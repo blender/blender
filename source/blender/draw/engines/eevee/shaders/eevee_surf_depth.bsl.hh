@@ -20,6 +20,7 @@ FRAGMENT_SHADER_CREATE_INFO(eevee_geom_iface_info)
 #include "eevee_sampling_lib.bsl.hh"
 #include "eevee_surf_common.bsl.hh"
 #include "eevee_transparency.bsl.hh"
+#include "eevee_utility_tx.bsl.hh"
 #include "eevee_velocity.bsl.hh"
 
 float4 closure_to_rgba_depth(Closure /*cl*/)
@@ -38,7 +39,6 @@ namespace eevee {
 
 struct SurfaceDepth {
   [[legacy_info]] ShaderCreateInfo eevee_global_ubo;
-  [[legacy_info]] ShaderCreateInfo eevee_utility_texture;
   [[legacy_info]] ShaderCreateInfo eevee_geom_iface_info;
 };
 
@@ -63,6 +63,7 @@ template<bool with_velocity>
 void surf_depth([[resource_table]] PipelineConstants &pipe,
                 [[resource_table]] SurfaceDepth & /*srt*/,
                 [[resource_table]] const Sampling &sampling,
+                [[resource_table]] const UtilityTexture & /*util_tx*/,
                 [[frag_coord]] const float4 /*frag_co*/,
                 [[out]] SurfaceDepthFragOut<with_velocity> &frag_out,
                 [[front_facing]] const bool front_face)
@@ -115,12 +116,14 @@ void surf_depth([[resource_table]] PipelineConstants &pipe,
 template void surf_depth<true>(PipelineConstants &,
                                SurfaceDepth &,
                                const Sampling &,
+                               const UtilityTexture &,
                                const float4,
                                SurfaceDepthFragOut<true> &,
                                const bool);
 template void surf_depth<false>(PipelineConstants &,
                                 SurfaceDepth &,
                                 const Sampling &,
+                                const UtilityTexture &,
                                 const float4,
                                 SurfaceDepthFragOut<false> &,
                                 const bool);

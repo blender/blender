@@ -16,7 +16,6 @@
 
 COMPUTE_SHADER_CREATE_INFO(draw_view)
 COMPUTE_SHADER_CREATE_INFO(eevee_global_ubo)
-COMPUTE_SHADER_CREATE_INFO(eevee_utility_texture)
 
 #include "eevee_closure.bsl.hh"
 #include "eevee_light_eval.bsl.hh"
@@ -27,7 +26,6 @@ namespace eevee::surfel {
 struct EvalLight {
   [[legacy_info]] ShaderCreateInfo draw_view;
   [[legacy_info]] ShaderCreateInfo eevee_global_ubo;
-  [[legacy_info]] ShaderCreateInfo eevee_utility_texture;
 
   /* WORKAROUND: Disables culling in lighting evaluation function. */
   [[compilation_constant]] bool light_iter_force_no_culling;
@@ -38,6 +36,7 @@ struct EvalLight {
 [[compute, local_size(SURFEL_GROUP_SIZE)]]
 void eval_light([[resource_table]] EvalLight & /*srt*/,
                 [[resource_table]] LightEvalIterator &lights,
+                [[resource_table]] const UtilityTexture &util_tx,
                 [[resource_table]] SurfelData &surfels,
                 [[global_invocation_id]] const uint3 global_id)
 {
@@ -67,7 +66,7 @@ void eval_light([[resource_table]] EvalLight & /*srt*/,
   ClosureUndetermined cl_reflect;
   cl_reflect.N = surfel.normal;
   cl_reflect.type = CLOSURE_BSDF_DIFFUSE_ID;
-  ctx.stack.cl[0] = closure_light_new(cl_reflect, V);
+  ctx.stack.cl[0] = closure_light_new(util_tx, cl_reflect, V);
   lights.eval_reflection(ctx, 1.0f);
 
   if (surfels.capture_info_buf.capture_indirect) {
@@ -78,7 +77,7 @@ void eval_light([[resource_table]] EvalLight & /*srt*/,
   ClosureUndetermined cl_transmit;
   cl_transmit.N = -surfel.normal;
   cl_transmit.type = CLOSURE_BSDF_DIFFUSE_ID;
-  ctx.stack.cl[0] = closure_light_new(cl_transmit, -V);
+  ctx.stack.cl[0] = closure_light_new(util_tx, cl_transmit, -V);
 
   ctx.Ng = -Ng;
   ctx.V = -V;

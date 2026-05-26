@@ -17,7 +17,6 @@
 
 #include "infos/eevee_common_infos.hh"
 
-VERTEX_SHADER_CREATE_INFO(eevee_utility_texture)
 VERTEX_SHADER_CREATE_INFO(eevee_global_ubo)
 VERTEX_SHADER_CREATE_INFO(draw_view)
 
@@ -732,7 +731,6 @@ struct Constants {
 
 struct Scan {
   [[legacy_info]] ShaderCreateInfo eevee_global_ubo;
-  [[legacy_info]] ShaderCreateInfo eevee_utility_texture;
   [[legacy_info]] ShaderCreateInfo draw_view;
 
   [[sampler(0)]] const sampler2D screen_radiance_tx;
@@ -746,6 +744,7 @@ void scan([[work_group_id]] const uint3 group_id,
           [[resource_table]] Scan &srt,
           [[resource_table]] const Tiles &tiles,
           [[resource_table]] const Sampling &sampling,
+          [[resource_table]] const UtilityTexture &util_tx,
           [[resource_table]] const HiZ &hiz,
           [[resource_table]] const gbuffer::Reader &reader,
           [[resource_table]] SampleOutput &sh_out,
@@ -781,7 +780,7 @@ void scan([[work_group_id]] const uint3 group_id,
   float3 vP = drw_point_screen_to_view(float3(uv, depth));
   float3 vN = texelFetch(srt.screen_normal_tx, texel, 0).rgb * 2.0f - 1.0f;
 
-  float4 noise = utility_tx_fetch(utility_tx, float2(texel), UTIL_BLUE_NOISE_LAYER);
+  float4 noise = util_tx.fetch(float2(texel), UTIL_BLUE_NOISE_LAYER);
   noise = fract(noise + sampling.rng_3D_get(SAMPLING_AO_U).xyzx);
 
   SphericalHarmonicL1<float4> result = eevee::fast_gi::eval<SphericalHarmonicL1<float4>>(
@@ -1053,7 +1052,6 @@ PipelineCompute fast_gi_resolve(fast_gi::resolve);
  * \{ */
 
 struct AOPass {
-  [[legacy_info]] ShaderCreateInfo eevee_utility_texture;
   [[legacy_info]] ShaderCreateInfo draw_view;
 
   [[image(0, read, SFLOAT_16_16_16_16)]] image2DArray in_normal_img;
@@ -1071,6 +1069,7 @@ struct AOPass {
 [[compute]] [[local_size(AMBIENT_OCCLUSION_PASS_TILE_SIZE, AMBIENT_OCCLUSION_PASS_TILE_SIZE)]]
 void occlusion_pass([[global_invocation_id]] const uint3 global_id,
                     [[resource_table]] const Sampling &sampling,
+                    [[resource_table]] const UtilityTexture &util_tx,
                     [[resource_table]] const HiZ &hiz,
                     [[resource_table]] AOPass &srt)
 {
@@ -1093,8 +1092,7 @@ void occlusion_pass([[global_invocation_id]] const uint3 global_id,
   float3 N = imageLoad(srt.in_normal_img, int3(texel, srt.in_normal_img_layer_index)).xyz;
   float3 vN = drw_normal_world_to_view(N);
 
-  auto &lut_tx = sampler_get(eevee_utility_texture, utility_tx);
-  float4 noise = utility_tx_fetch(lut_tx, float2(texel), UTIL_BLUE_NOISE_LAYER);
+  float4 noise = util_tx.fetch(float2(texel), UTIL_BLUE_NOISE_LAYER);
   noise = fract(noise + sampling.rng_3D_get(SAMPLING_AO_U).xyzx);
 
   float result = eevee::fast_gi::eval<float>(raytrace_buf.fast_gi_thickness,

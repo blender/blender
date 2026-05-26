@@ -32,7 +32,6 @@ namespace eevee {
 
 struct SurfaceCapture {
   [[legacy_info]] ShaderCreateInfo eevee_global_ubo;
-  [[legacy_info]] ShaderCreateInfo eevee_utility_texture;
   [[legacy_info]] ShaderCreateInfo eevee_geom_iface_info;
   [[legacy_info]] ShaderCreateInfo draw_object_infos;
 
@@ -45,6 +44,7 @@ struct SurfaceCapture {
 [[fragment]]
 void surf_capture([[resource_table]] SurfaceCapture &srt,
                   [[frag_coord]] const float4 /*frag_co*/,
+                  [[resource_table]] const UtilityTexture & /*util_tx*/,
                   [[front_facing]] const bool front_face)
 {
   init_globals(front_face);

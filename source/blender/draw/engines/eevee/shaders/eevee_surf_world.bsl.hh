@@ -32,7 +32,6 @@ namespace eevee {
 
 struct SurfWorld {
   [[legacy_info]] ShaderCreateInfo eevee_global_ubo;
-  [[legacy_info]] ShaderCreateInfo eevee_utility_texture;
   [[legacy_info]] ShaderCreateInfo eevee_geom_iface_info;
 
   [[push_constant]] float world_opacity_fade;
@@ -48,6 +47,7 @@ struct SurfWorldFragOut {
 void surf_world([[resource_table]] SurfWorld &srt,
                 [[resource_table]] const LightprobeRenderData &lightprobes,
                 [[resource_table]] RenderPassOutput &render_passes,
+                [[resource_table]] const UtilityTexture & /*util_tx*/,
                 [[frag_coord]] const float4 frag_co,
                 [[out]] SurfWorldFragOut &frag_out,
                 [[front_facing]] const bool front_face)

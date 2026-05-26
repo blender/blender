@@ -34,7 +34,6 @@ namespace eevee {
 
 struct SurfShadow {
   [[legacy_info]] ShaderCreateInfo eevee_global_ubo;
-  [[legacy_info]] ShaderCreateInfo eevee_utility_texture;
   [[legacy_info]] ShaderCreateInfo eevee_geom_iface_info;
 
   [[storage(SHADOW_RENDER_MAP_BUF_SLOT,
@@ -47,6 +46,7 @@ struct SurfShadow {
 void surf_shadow([[resource_table]] PipelineConstants &pipe,
                  [[resource_table]] SurfShadow &srt,
                  [[resource_table]] const Sampling &sampling,
+                 [[resource_table]] const UtilityTexture & /*util_tx*/,
                  [[front_facing]] const bool front_face,
                  [[frag_coord]] const float4 frag_co)
 {

@@ -54,13 +54,14 @@ struct LightprobeRenderData {
   }
 
   /* TODO: Port that inside a BSSDF file. */
-  float3 eval(LightProbeSample samp,
+  float3 eval([[resource_table]] const UtilityTexture &util_tx,
+              LightProbeSample samp,
               ClosureSubsurface cl,
               float3 /*P*/,
               float3 /*V*/,
               Thickness thickness) const
   {
-    float3 sss_profile = subsurface_transmission(cl.sss_radius, thickness.value());
+    float3 sss_profile = subsurface_transmission(util_tx, cl.sss_radius, thickness.value());
     float3 radiance_sh = samp.volume_irradiance.evaluate_lambert(cl.N).rgb;
     radiance_sh += samp.volume_irradiance.evaluate_lambert(-cl.N).rgb * sss_profile;
     return radiance_sh;

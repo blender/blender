@@ -23,10 +23,6 @@
 /** \name Common
  * \{ */
 
-GPU_SHADER_CREATE_INFO(eevee_utility_texture)
-SAMPLER(RBUFS_UTILITY_TEX_SLOT, sampler2DArray, utility_tx)
-GPU_SHADER_CREATE_END()
-
 GPU_SHADER_CREATE_INFO(eevee_raycast)
 DEFINE("MAT_RAYCAST")
 SAMPLER(RAYCAST_DEPTH_TEX_SLOT, sampler2D, raycast_depth_tx)

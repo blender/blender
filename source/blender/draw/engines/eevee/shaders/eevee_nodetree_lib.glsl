@@ -8,7 +8,6 @@
 #include "infos/eevee_uniform_infos.hh"
 
 SHADER_LIBRARY_CREATE_INFO(eevee_global_ubo)
-SHADER_LIBRARY_CREATE_INFO(eevee_utility_texture)
 
 #include "draw_intersect_lib.glsl"
 #include "draw_model_lib.glsl"
@@ -246,6 +245,7 @@ float ambient_occlusion_eval([[maybe_unused]] float3 normal,
   FRAGMENT_SHADER_CREATE_INFO(draw_view);
 
   [[resource_table]] const eevee::Sampling &samp = resource_table_get(eevee::Sampling);
+  [[resource_table]] const UtilityTexture &util_tx = resource_table_get(UtilityTexture);
   [[resource_table]] const eevee::HiZ &hiz = resource_table_get(eevee::HiZ);
   [[maybe_unused]] const auto &hiz_tx = hiz.hiz_tx;
   [[maybe_unused]] const auto &raytrace_buf = buffer_get(eevee_global_ubo, raytrace_buf);
@@ -259,7 +259,7 @@ float ambient_occlusion_eval([[maybe_unused]] float3 normal,
     float3 vN = drw_normal_world_to_view(normal);
 
     int2 texel = int2(gl_FragCoord.xy);
-    float4 noise = utility_tx_fetch(utility_tx, float2(texel), UTIL_BLUE_NOISE_LAYER);
+    float4 noise = util_tx.fetch(float2(texel), UTIL_BLUE_NOISE_LAYER);
     noise = fract(noise + samp.rng_3D_get(SAMPLING_AO_U).xyzx);
 
     float result = eevee::fast_gi::eval<float>(raytrace_buf.fast_gi_thickness,
@@ -443,9 +443,9 @@ void brdf_f82_tint_lut(float3 F0,
                        bool do_multiscatter,
                        float3 &reflectance)
 {
-  auto &utility_tx = sampler_get(eevee_utility_texture, utility_tx);
+  [[resource_table]] const UtilityTexture util_tx = resource_table_get(UtilityTexture);
   eevee::lut::GGXBrdfData lut = eevee::lut::GGXBrdfData::sample_utility_tx(
-      utility_tx, cos_theta, roughness);
+      util_tx, cos_theta, roughness);
 
   reflectance = do_multiscatter ? F_brdf_multi_scatter(F0, float3(1.0f), lut) :
                                   F_brdf_single_scatter(F0, float3(1.0f), lut);
@@ -477,7 +477,7 @@ void bsdf_lut(float3 F0,
               float3 &reflectance,
               float3 &transmittance)
 {
-  auto &utility_tx = sampler_get(eevee_utility_texture, utility_tx);
+  [[resource_table]] const UtilityTexture util_tx = resource_table_get(UtilityTexture);
   if (ior == 1.0f) {
     reflectance = float3(0.0f);
     transmittance = transmission_tint;
@@ -497,16 +497,16 @@ void bsdf_lut(float3 F0,
     }
 
     eevee::lut::GGXBrdfData brdf_lut = eevee::lut::GGXBrdfData::sample_utility_tx(
-        utility_tx, cos_theta, roughness);
+        util_tx, cos_theta, roughness);
     eevee::lut::GGXBtdfGt1Data btdf_lut = eevee::lut::GGXBtdfGt1Data::sample_utility_tx(
-        utility_tx, cos_theta, roughness, f0);
+        util_tx, cos_theta, roughness, f0);
 
     lut.scale = brdf_lut.scale;
     lut.bias = brdf_lut.bias;
     lut.transmission_factor = btdf_lut.transmission_factor;
   }
   else {
-    lut = eevee::lut::GGXBsdfData::sample_utility_tx(utility_tx, cos_theta, roughness, ior);
+    lut = eevee::lut::GGXBsdfData::sample_utility_tx(util_tx, cos_theta, roughness, ior);
   }
 
   reflectance = F_brdf_single_scatter(F0, F90, lut);

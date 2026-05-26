@@ -16,7 +16,6 @@
 
 SHADER_LIBRARY_CREATE_INFO(eevee_global_ubo)
 SHADER_LIBRARY_CREATE_INFO(draw_view)
-SHADER_LIBRARY_CREATE_INFO(eevee_utility_texture)
 
 #include "draw_math_geom_lib.glsl"
 #include "draw_view_lib.glsl"
@@ -57,7 +56,6 @@ struct TileBuffer {
 struct DenoiseSpatial {
   [[legacy_info]] ShaderCreateInfo eevee_global_ubo;
   [[legacy_info]] ShaderCreateInfo draw_view;
-  [[legacy_info]] ShaderCreateInfo eevee_utility_texture;
 
   [[specialization_constant(2)]] int raytrace_resolution_scale;
   [[specialization_constant(false)]] bool skip_denoise;
@@ -144,6 +142,7 @@ void transmission_thickness_amend_closure(ClosureUndetermined &cl, float3 &V, Th
 void spatial_main([[resource_table]] DenoiseSpatial &srt,
                   [[resource_table]] const gbuffer::Reader &reader,
                   [[resource_table]] const Sampling &sampling,
+                  [[resource_table]] const UtilityTexture &util_tx,
                   [[work_group_id]] const uint3 work_group,
                   [[local_invocation_id]] const uint3 local_id)
 {
@@ -241,7 +240,7 @@ void spatial_main([[resource_table]] DenoiseSpatial &srt,
     return;
   }
 
-  float2 noise = utility_tx_fetch(utility_tx, float2(texel_fullres), UTIL_BLUE_NOISE_LAYER).ba;
+  float2 noise = util_tx.fetch(float2(texel_fullres), UTIL_BLUE_NOISE_LAYER).ba;
   noise = fract(noise + sampling.rng_1D_get(SAMPLING_CLOSURE));
 
   int2 center_sample_texel = texel_nearest;
