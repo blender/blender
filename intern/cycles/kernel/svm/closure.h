@@ -140,46 +140,19 @@ ccl_device
       float3 N = stack_load_float3_default(stack, data.normal_offset, sd->N);
       N = safe_normalize_fallback(N, sd->N);
 
-      const Spectrum base_color = rgb_to_spectrum(
-          max(stack_load(stack, data.base_color), zero_float3()));
-      const Spectrum clamped_base_color = min(base_color, one_spectrum());
-      const float ior = fmaxf(stack_load(stack, data.ior), 1e-5f);
-      const float roughness = saturatef(stack_load(stack, data.roughness));
-      const float alpha = saturatef(stack_load(stack, data.alpha));
-      const float3 valid_reflection_N = maybe_ensure_valid_specular_reflection(sd, N);
-      const float anisotropic = saturatef(stack_load(stack, data.anisotropic));
-
-      const bool thin_wall = stack_load(stack, data.thin_wall);
-
       /* We're ignoring closure_weight here since it's always 1 for the Principled BSDF, so there's
        * no point in setting it. */
       Spectrum weight = make_spectrum(mix_weight);
 
-      float alpha_x = sqr(roughness);
-      float alpha_y = sqr(roughness);
-      float3 T = zero_float3();
-      if (anisotropic > 0.0f && stack_valid(data.tangent_offset)) {
-        T = stack_load_float3(stack, data.tangent_offset);
-        const float aspect = sqrtf(1.0f - anisotropic * 0.9f);
-        alpha_x /= aspect;
-        alpha_y *= aspect;
-        const float anisotropic_rotation = stack_load(stack, data.anisotropic_rotation);
-        if (anisotropic_rotation != 0.0f) {
-          T = rotate_around_axis(T, N, anisotropic_rotation * M_2PI_F);
-        }
-      }
-
 #ifdef __CAUSTICS_TRICKS__
       const bool reflective_caustics = (kernel_data.integrator.caustics_reflective ||
                                         (ray_visibility & PATH_RAY_VISIBILITY_DIFFUSE) == 0);
-      const bool refractive_caustics = (kernel_data.integrator.caustics_refractive ||
-                                        (ray_visibility & PATH_RAY_VISIBILITY_DIFFUSE) == 0);
 #else
       const bool reflective_caustics = true;
-      const bool refractive_caustics = true;
 #endif
 
       /* Before any actual shader components, apply transparency. */
+      const float alpha = saturatef(stack_load(stack, data.alpha));
       if (alpha < 1.0f) {
         bsdf_transparent_setup(sd, weight * (1.0f - alpha), path_flag);
         weight *= alpha;
@@ -285,6 +258,14 @@ ccl_device
 
       IF_KERNEL_NODES_FEATURE(BSDF)
       {
+        const Spectrum base_color = rgb_to_spectrum(
+            max(stack_load(stack, data.base_color), zero_float3()));
+        const Spectrum clamped_base_color = min(base_color, one_spectrum());
+        const float ior = fmaxf(stack_load(stack, data.ior), 1e-5f);
+        const float roughness = saturatef(stack_load(stack, data.roughness));
+        const float3 valid_reflection_N = maybe_ensure_valid_specular_reflection(sd, N);
+        const float anisotropic = saturatef(stack_load(stack, data.anisotropic));
+
         const ClosureType distribution = data.distribution;
         const Spectrum specular_tint = rgb_to_spectrum(
             max(stack_load(stack, data.specular_tint), zero_float3()));
@@ -292,6 +273,20 @@ ccl_device
         const float thinfilm_ior = (thinfilm_thickness > THINFILM_THICKNESS_CUTOFF) ?
                                        fmaxf(stack_load(stack, data.thin_film_ior), 1e-5f) :
                                        0.0f;
+
+        float alpha_x = sqr(roughness);
+        float alpha_y = sqr(roughness);
+        float3 T = zero_float3();
+        if (anisotropic > 0.0f && stack_valid(data.tangent_offset)) {
+          T = stack_load_float3(stack, data.tangent_offset);
+          const float aspect = sqrtf(1.0f - anisotropic * 0.9f);
+          alpha_x /= aspect;
+          alpha_y *= aspect;
+          const float anisotropic_rotation = stack_load(stack, data.anisotropic_rotation);
+          if (anisotropic_rotation != 0.0f) {
+            T = rotate_around_axis(T, N, anisotropic_rotation * M_2PI_F);
+          }
+        }
 
         /* Metallic component */
         const float metallic = saturatef(stack_load(stack, data.metallic));
@@ -327,6 +322,14 @@ ccl_device
           /* Attenuate other components */
           weight *= (1.0f - metallic);
         }
+
+#ifdef __CAUSTICS_TRICKS__
+        const bool refractive_caustics = (kernel_data.integrator.caustics_refractive ||
+                                          (ray_visibility & PATH_RAY_VISIBILITY_DIFFUSE) == 0);
+#else
+        const bool refractive_caustics = true;
+#endif
+        const bool thin_wall = stack_load(stack, data.thin_wall);
 
         /* Transmission component */
         const float transmission_weight = saturatef(stack_load(stack, data.transmission_weight));
@@ -484,14 +487,6 @@ ccl_device
         else {
           bsdf_oren_nayar_setup(sd, N, diffuse_weight, diffuse_roughness, base_color);
         }
-      }
-      else {
-        (void)clamped_base_color;
-        (void)ior;
-        (void)valid_reflection_N;
-        (void)alpha_x;
-        (void)alpha_y;
-        (void)refractive_caustics;
       }
 
       break;
