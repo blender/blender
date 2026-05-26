@@ -11,7 +11,6 @@
 #endif
 
 #ifdef GLSL_CPP_STUBS
-#  define MAT_CLIP_PLANE
 #  define MAT_TRANSPARENT
 #  define MAT_RAYCAST
 #endif
