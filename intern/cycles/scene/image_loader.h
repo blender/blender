@@ -4,6 +4,8 @@
 
 #pragma once
 
+#include <atomic>
+
 #include "util/param.h"
 #include "util/string.h"
 #include "util/types_image.h"
@@ -20,6 +22,10 @@ struct ImageLoaderParams {
   string texture_cache_path;
   ustring colorspace;
   ImageAlphaType alpha_type;
+
+  /* Error reporting. */
+  std::atomic<int> &load_failure_num;
+  std::atomic<int> &tx_failure_num;
 };
 
 /* Image loader base class, that can be subclassed to load image data

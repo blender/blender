@@ -636,11 +636,11 @@ static bool write_buf_tx(std::unique_ptr<ImageOutput> &out,
   clamp_half_tx(buf, out_format);
   OIIO::ImageBuf &write_buf = (compress_as_srgb) ? srgb_buf : buf;
   if (!out->open(out_filepath, out_spec, mode)) {
-    LOG_ERROR << "Could not open \"" << out_filepath << "\" : " << out->geterror();
+    LOG_WARNING << "Could not open \"" << out_filepath << "\" : " << out->geterror();
     return false;
   }
   if (!write_buf.write(out.get())) {
-    LOG_ERROR << "Write failed: " << write_buf.geterror();
+    LOG_WARNING << "Write failed: " << write_buf.geterror();
     out->close();
     return false;
   }
@@ -703,7 +703,7 @@ static bool write_mipmap_tx(std::unique_ptr<ImageOutput> &out,
   }
 
   if (!out->close()) {
-    LOG_ERROR << "Error writing \"" << out_filepath << "\" : " << out->geterror();
+    LOG_WARNING << "Error writing \"" << out_filepath << "\" : " << out->geterror();
     return false;
   }
 
@@ -846,7 +846,7 @@ static bool make_tx(const string &filepath,
      * incomplete files in case of failure. */
     std::string rename_err;
     if (!OIIO::Filesystem::rename(tmp_filepath, out_filepath, rename_err)) {
-      LOG_ERROR << "Could not rename file: " << rename_err;
+      LOG_WARNING << "Could not rename file: " << rename_err;
       ok = false;
     }
   }

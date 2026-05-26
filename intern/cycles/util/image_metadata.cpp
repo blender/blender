@@ -350,17 +350,17 @@ bool ImageMetaData::oiio_load_metadata(OIIO::string_view filepath, OIIO::ImageSp
 {
   /* Perform preliminary checks, with meaningful logging. */
   if (!OIIO::Filesystem::exists(filepath)) {
-    LOG_ERROR << "Image file " << filepath << " does not exist.";
+    LOG_WARNING << "Image file " << filepath << " does not exist.";
     return false;
   }
   if (OIIO::Filesystem::is_directory(filepath)) {
-    LOG_ERROR << "Image file " << filepath << " is a directory, cannot use as image.";
+    LOG_WARNING << "Image file " << filepath << " is a directory, cannot use as image.";
     return false;
   }
 
   std::unique_ptr<ImageInput> in(ImageInput::create(filepath));
   if (!in) {
-    LOG_ERROR << "Image file " << filepath << " failed to load.";
+    LOG_WARNING << "Image file " << filepath << " failed to load.";
     return false;
   }
 
@@ -371,12 +371,12 @@ bool ImageMetaData::oiio_load_metadata(OIIO::string_view filepath, OIIO::ImageSp
   config.attribute("oiio:UnassociatedAlpha", 1);
 
   if (!in->open(filepath, spec, config)) {
-    LOG_ERROR << "Image file " << filepath << " failed to open.";
+    LOG_WARNING << "Image file " << filepath << " failed to open.";
     return false;
   }
 
   if (spec.depth > 1) {
-    LOG_ERROR << "Image file " << filepath << " has unsupported depth of " << spec.depth;
+    LOG_WARNING << "Image file " << filepath << " has unsupported depth of " << spec.depth;
     return false;
   }
 
@@ -717,7 +717,7 @@ bool ImageMetaData::oiio_load_pixels(OIIO::string_view filepath,
   }
 
   if (spec.depth > 1) {
-    LOG_ERROR << "Image file " << filepath << " has unsupported depth " << spec.depth;
+    LOG_WARNING << "Image file " << filepath << " has unsupported depth " << spec.depth;
     return false;
   }
 
