@@ -278,7 +278,6 @@ struct CrossEdgeLengthConstraintUsage {
   xpbd::ConstraintColoring coloring;
 };
 
-float error_threshold;
 struct StaticMeshInfo {
   const Mesh *mesh;
   bke::BVHTreeFromMesh corner_tris_bvh;
@@ -2966,7 +2965,7 @@ class XpbdSolverStep {
     return &**previous_bundle_ptr;
   }
 
-  bool effector_applies_to_geometry(const StringRef effector_path,
+  bool effector_applies_to_geometry([[maybe_unused]] const StringRef effector_path,
                                     const Bundle &effector,
                                     const int data_key_i) const
   {
@@ -2974,20 +2973,6 @@ class XpbdSolverStep {
     const GeometrySetData &geo_set_data = geometries_.geometry_sets[data_key.geo_bundle_i];
     const StringRef geo_bundle_path = geo_set_data.path;
 
-    const bool filter_local =
-        effector.lookup<bool>(*BundleKey::from_str("filter_local")).value_or(false);
-    if (filter_local) {
-      const int pos = effector_path.rfind('/');
-      if (pos == StringRef::not_found) {
-        /* The effector is at the root level, so a local filter applies to everything. */
-        return true;
-      }
-      const StringRef effector_parent_path = effector_path.substr(0, pos + 1);
-      if (geo_bundle_path.startswith(effector_parent_path)) {
-        return true;
-      }
-      return false;
-    }
     const std::string filter =
         effector.lookup<std::string>(*BundleKey::from_str("filter")).value_or("");
     const bool match = tag_filter_matches(filter, geo_set_data.tags);
