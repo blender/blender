@@ -1461,8 +1461,6 @@ static void recalcData_pose(TransInfo *t)
     }
   }
   else {
-    Set<Object *> motionpath_updates;
-
     FOREACH_TRANS_DATA_CONTAINER (t, tc) {
       Object *ob = tc->poseobj;
       bPose *pose = ob->pose;
@@ -1492,10 +1490,6 @@ static void recalcData_pose(TransInfo *t)
 
         animrecord_check_state(t, &ob->id);
         autokeyframe_pose(t->context, t->scene, ob, targetless_ik, t->mode, t->data_len_all > 1);
-      }
-
-      if (motionpath_need_update_pose(t->scene, ob)) {
-        motionpath_updates.add(ob);
       }
 
       DEG_id_tag_update(&ob->id, ID_RECALC_GEOMETRY);

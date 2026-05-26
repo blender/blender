@@ -862,8 +862,6 @@ static void autokeyframe_object(bContext *C,
 
 static void recalcData_objects(TransInfo *t)
 {
-  bool motionpath_update = false;
-
   if (t->state != TRANS_CANCEL) {
     transform_snap_project_individual_apply(t);
   }
@@ -888,7 +886,7 @@ static void recalcData_objects(TransInfo *t)
         autokeyframe_object(t->context, t->scene, ob, t->mode, t->data_len_all > 1);
       }
 
-      motionpath_update |= motionpath_need_update_object(t->scene, ob);
+      motionpath_need_update_object(t->scene, ob);
 
       /* Sets recalc flags fully, instead of flushing existing ones
        * otherwise proxies don't function correctly. */
