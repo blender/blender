@@ -34,10 +34,10 @@ static void node_declare(NodeDeclarationBuilder &b)
           "Splits the elements of the input geometry into groups which can be sampled "
           "individually");
   auto &sample_position = b.add_input<decl::Vector>("Sample Position"_ustr, "Source Position"_ustr)
-                              .default_input_type(NODE_DEFAULT_INPUT_POSITION_FIELD);
+                              .default_input_type(NODE_DEFAULT_INPUT_POSITION_FIELD)
+                              .structure_type(StructureType::Dynamic);
   auto &sample_group_id = b.add_input<decl::Int>("Sample Group ID"_ustr)
                               .hide_value()
-                              .structure_type(StructureType::Field)
                               .structure_type(StructureType::Dynamic);
 
   const std::array<int, 2> dynamic_inputs = {sample_position.index(), sample_group_id.index()};
