@@ -1152,7 +1152,7 @@ bool BKE_collection_contains_geometry_recursive(const Collection *collection)
     if (col_ob.ob->visibility_flag & OB_HIDE_RENDER) {
       continue;
     }
-    if (OB_TYPE_IS_GEOMETRY(col_ob.ob->type)) {
+    if (DEG_object_has_geometry_component(col_ob.ob)) {
       return true;
     }
   }

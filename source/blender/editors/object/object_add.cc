@@ -3208,31 +3208,12 @@ static Object *get_object_for_conversion(Base &base, ObjectConversionInfo &info,
   return base.object;
 }
 
-static Object *convert_mesh_to_curves_legacy(Base &base,
-                                             ObjectConversionInfo &info,
-                                             Base **r_new_base)
-{
-  Object *ob = base.object;
-  ob->flag |= OB_DONE;
-  Object *newob = get_object_for_conversion(base, info, r_new_base);
-
-  BKE_mesh_to_curve(info.bmain, info.depsgraph, info.scene, newob);
-
-  if (newob->type == OB_CURVES_LEGACY) {
-    BKE_object_free_modifiers(newob, 0); /* after derivedmesh calls! */
-    if (newob->rigidbody_object != nullptr) {
-      ED_rigidbody_object_remove(info.bmain, info.scene, newob);
-    }
-  }
-
-  return newob;
-}
-
 static Object *convert_curves_component_to_curves(Base &base,
                                                   ObjectConversionInfo &info,
                                                   Base **r_new_base)
 {
-  Object *ob = base.object, *newob = nullptr;
+  Object *ob = base.object;
+  Object *newob = nullptr;
   ob->flag |= OB_DONE;
 
   Object *ob_eval = DEG_get_evaluated(info.depsgraph, ob);
@@ -3251,6 +3232,7 @@ static Object *convert_curves_component_to_curves(Base &base,
     newob->type = OB_CURVES;
 
     new_curves->geometry.wrap() = curves_eval->geometry.wrap();
+    new_curves->geometry.wrap().attributes_for_write().remove_anonymous();
     BKE_object_material_from_eval_data(info.bmain, newob, &curves_eval->id);
 
     BKE_object_free_derived_caches(newob);
@@ -3261,6 +3243,168 @@ static Object *convert_curves_component_to_curves(Base &base,
                 RPT_WARNING,
                 "Object '%s' has no evaluated Curve or Grease Pencil data",
                 ob->id.name + 2);
+  }
+
+  return newob;
+}
+
+static Object *convert_pointcloud_component_to_pointcloud(Base &base,
+                                                          ObjectConversionInfo &info,
+                                                          Base **r_new_base)
+{
+  Object *ob = base.object;
+  Object *newob = nullptr;
+  ob->flag |= OB_DONE;
+
+  Object *ob_eval = DEG_get_evaluated(info.depsgraph, ob);
+  bke::GeometrySet geometry;
+  if (ob_eval->runtime->geometry_set_eval != nullptr) {
+    geometry = *ob_eval->runtime->geometry_set_eval;
+  }
+
+  if (geometry.has_pointcloud()) {
+    newob = get_object_for_conversion(base, info, r_new_base);
+
+    const PointCloud *pointcloud_eval = geometry.get_pointcloud();
+    PointCloud *new_pointcloud = BKE_id_new<PointCloud>(info.bmain, newob->id.name + 2);
+
+    newob->data = id_cast<ID *>(new_pointcloud);
+    newob->type = OB_POINTCLOUD;
+
+    BKE_pointcloud_nomain_to_pointcloud(BKE_pointcloud_copy_for_eval(pointcloud_eval),
+                                        new_pointcloud);
+
+    new_pointcloud->attributes_for_write().remove_anonymous();
+
+    BKE_object_free_derived_caches(newob);
+    BKE_object_free_modifiers(newob, 0);
+  }
+  else {
+    BKE_reportf(info.reports,
+                RPT_WARNING,
+                "Object '%s' has no evaluated Point Cloud data",
+                ob->id.name + 2);
+  }
+
+  return newob;
+}
+
+static Object *convert_mesh_component_to_mesh(Base &base,
+                                              ObjectConversionInfo &info,
+                                              Base **r_new_base)
+{
+  Object *ob = base.object;
+  Object *newob = nullptr;
+  ob->flag |= OB_DONE;
+
+  Object *ob_eval = DEG_get_evaluated(info.depsgraph, ob);
+  bke::GeometrySet geometry;
+  if (ob_eval->runtime->geometry_set_eval != nullptr) {
+    geometry = *ob_eval->runtime->geometry_set_eval;
+  }
+
+  if (geometry.has_mesh()) {
+    newob = get_object_for_conversion(base, info, r_new_base);
+
+    const Mesh *mesh_eval = geometry.get_mesh();
+    Mesh *new_mesh = BKE_id_new<Mesh>(info.bmain, newob->id.name + 2);
+
+    newob->data = id_cast<ID *>(new_mesh);
+    newob->type = OB_MESH;
+
+    BKE_mesh_nomain_to_mesh(BKE_mesh_copy_for_eval(*mesh_eval), new_mesh, newob);
+    new_mesh->attributes_for_write().remove_anonymous();
+
+    BKE_object_material_from_eval_data(info.bmain, newob, &mesh_eval->id);
+
+    BKE_object_free_derived_caches(newob);
+    BKE_object_free_modifiers(newob, 0);
+  }
+  else {
+    BKE_reportf(
+        info.reports, RPT_WARNING, "Object '%s' has no evaluated Mesh data", ob->id.name + 2);
+  }
+
+  return newob;
+}
+
+static Object *convert_grease_pencil_component_to_grease_pencil(Base &base,
+                                                                ObjectConversionInfo &info,
+                                                                Base **r_new_base)
+{
+  Object *ob = base.object;
+  Object *newob = nullptr;
+  ob->flag |= OB_DONE;
+
+  Object *ob_eval = DEG_get_evaluated(info.depsgraph, ob);
+  bke::GeometrySet geometry;
+  if (ob_eval->runtime->geometry_set_eval != nullptr) {
+    geometry = *ob_eval->runtime->geometry_set_eval;
+  }
+
+  if (geometry.has_grease_pencil()) {
+    newob = get_object_for_conversion(base, info, r_new_base);
+
+    const GreasePencil *grease_pencil_eval = geometry.get_grease_pencil();
+    GreasePencil *new_grease_pencil = BKE_id_new<GreasePencil>(info.bmain, newob->id.name + 2);
+
+    newob->data = id_cast<ID *>(new_grease_pencil);
+    newob->type = OB_GREASE_PENCIL;
+
+    BKE_grease_pencil_nomain_to_grease_pencil(BKE_grease_pencil_copy_for_eval(grease_pencil_eval),
+                                              new_grease_pencil);
+
+    new_grease_pencil->attributes_for_write().remove_anonymous();
+
+    BKE_object_material_from_eval_data(info.bmain, newob, &grease_pencil_eval->id);
+
+    BKE_object_free_derived_caches(newob);
+    BKE_object_free_modifiers(newob, 0);
+  }
+  else {
+    BKE_reportf(info.reports,
+                RPT_WARNING,
+                "Object '%s' has no evaluated Grease Pencil data",
+                ob->id.name + 2);
+  }
+
+  return newob;
+}
+
+static Object *convert_empty(Base &base,
+                             const ObjectType target,
+                             ObjectConversionInfo &info,
+                             Base **r_new_base)
+{
+  switch (target) {
+    case OB_CURVES:
+      return convert_curves_component_to_curves(base, info, r_new_base);
+    case OB_POINTCLOUD:
+      return convert_pointcloud_component_to_pointcloud(base, info, r_new_base);
+    case OB_MESH:
+      return convert_mesh_component_to_mesh(base, info, r_new_base);
+    case OB_GREASE_PENCIL:
+      return convert_grease_pencil_component_to_grease_pencil(base, info, r_new_base);
+    default:
+      return nullptr;
+  }
+}
+
+static Object *convert_mesh_to_curves_legacy(Base &base,
+                                             ObjectConversionInfo &info,
+                                             Base **r_new_base)
+{
+  Object *ob = base.object;
+  ob->flag |= OB_DONE;
+  Object *newob = get_object_for_conversion(base, info, r_new_base);
+
+  BKE_mesh_to_curve(info.bmain, info.depsgraph, info.scene, newob);
+
+  if (newob->type == OB_CURVES_LEGACY) {
+    BKE_object_free_modifiers(newob, 0); /* after derivedmesh calls! */
+    if (newob->rigidbody_object != nullptr) {
+      ED_rigidbody_object_remove(info.bmain, info.scene, newob);
+    }
   }
 
   return newob;
@@ -4445,7 +4589,7 @@ static wmOperatorStatus object_convert_exec(bContext *C, wmOperator *op)
     Base *base = static_cast<Base *>(ptr.data), *new_base = nullptr;
     Object *ob = base->object;
 
-    if (ob->flag & OB_DONE || !IS_TAGGED(ob->data)) {
+    if (ob->flag & OB_DONE || (ob->data && !IS_TAGGED(ob->data))) {
       if (ob->type != target) {
         base->flag &= ~BASE_SELECTED;
         ob->flag &= ~OB_SELECT;
@@ -4463,6 +4607,9 @@ static wmOperatorStatus object_convert_exec(bContext *C, wmOperator *op)
     else {
       const ObjectType target_type = ObjectType(target);
       switch (ob->type) {
+        case OB_EMPTY:
+          newob = convert_empty(*base, target_type, info, &new_base);
+          break;
         case OB_MESH:
           newob = convert_mesh(*base, target_type, info, &new_base);
           break;
@@ -4515,7 +4662,9 @@ static wmOperatorStatus object_convert_exec(bContext *C, wmOperator *op)
        * It is not enough to tag only geometry and rely on the curve parenting relations because
        * this relation is lost when curve is converted to mesh. */
       DEG_id_tag_update(&ob->id, ID_RECALC_GEOMETRY | ID_RECALC_TRANSFORM);
-      ob->data->tag &= ~ID_TAG_DOIT; /* flag not to convert this datablock again */
+      if (ob->data) {
+        ob->data->tag &= ~ID_TAG_DOIT; /* flag not to convert this datablock again */
+      }
     }
   }
 

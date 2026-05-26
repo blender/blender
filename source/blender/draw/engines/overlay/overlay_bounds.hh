@@ -67,9 +67,11 @@ class Bounds : Overlay {
   {
     const Object *ob = ob_ref.object;
     const bool from_dupli = is_from_dupli_or_set(ob);
-    const bool has_bounds =
-        !ELEM(ob->type, OB_LAMP, OB_CAMERA, OB_EMPTY, OB_SPEAKER, OB_LIGHTPROBE) &&
-        (ob->type != OB_MBALL || BKE_mball_is_basis(ob));
+    const bool empty_with_geometry = (ob->type == OB_EMPTY) && ob->runtime->geometry_set_eval &&
+                                     !ob->runtime->geometry_set_eval->is_empty();
+    const bool has_bounds = (!ELEM(ob->type, OB_LAMP, OB_CAMERA, OB_SPEAKER, OB_LIGHTPROBE) &&
+                             (ob->type != OB_MBALL || BKE_mball_is_basis(ob))) ||
+                            empty_with_geometry;
     const bool show_extras = !from_dupli && state.show_extras();
 
     /* Ignore `show_extras` when the objects draw-type is already bound-box,

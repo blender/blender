@@ -1451,6 +1451,10 @@ bool BKE_object_support_modifier_type_check(const Object *ob, int modifier_type)
     return false;
   }
 
+  /* Empties only support geometry nodes modifiers. */
+  if (ob->type == OB_EMPTY) {
+    return modifier_type == eModifierType_Nodes;
+  }
   if (ELEM(ob->type, OB_POINTCLOUD, OB_CURVES)) {
     return ELEM(modifier_type, eModifierType_Nodes, eModifierType_MeshSequenceCache);
   }

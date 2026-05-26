@@ -125,6 +125,13 @@ class Empties : Overlay {
       image_sync(ob_ref, select_id, manager, res, state, call_buffers_.image_buf);
       return;
     }
+    /* Only draw the empty overlay if the evaluated geometry set is empty. Since we draw overlays
+     * for e.g. generated geometry, it is redundant to draw the empty overlay here. */
+    if (ob_ref.object->runtime->geometry_set_eval &&
+        !ob_ref.object->runtime->geometry_set_eval->is_empty())
+    {
+      return;
+    }
     object_sync(select_id,
                 ob_ref.object->object_to_world(),
                 ob_ref.object->empty_drawsize,

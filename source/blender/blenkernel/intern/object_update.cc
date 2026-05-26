@@ -29,6 +29,7 @@
 #include "BKE_layer.hh"
 #include "BKE_mball.hh"
 #include "BKE_mesh.hh"
+#include "BKE_modifier.hh"
 #include "BKE_object.hh"
 #include "BKE_particle.h"
 #include "BKE_pointcache.h"
@@ -126,12 +127,56 @@ void BKE_object_eval_transform_final(Depsgraph *depsgraph, Object *ob)
   ob->runtime->last_update_transform = DEG_get_update_count(depsgraph);
 }
 
+static void empty_object_apply_modifiers(Depsgraph *depsgraph,
+                                         Scene *scene,
+                                         Object *object,
+                                         bke::GeometrySet &geometry_set)
+{
+  const bool use_render = (DEG_get_mode(depsgraph) == DAG_EVAL_RENDER);
+  const int required_mode = use_render ? eModifierMode_Render : eModifierMode_Realtime;
+  ModifierApplyFlag apply_flag = use_render ? MOD_APPLY_RENDER : MOD_APPLY_USECACHE;
+  const ModifierEvalContext mectx = {depsgraph, object, apply_flag};
+
+  BKE_modifiers_clear_errors(object);
+
+  VirtualModifierData virtual_modifier_data;
+  ModifierData *md = BKE_modifiers_get_virtual_modifierlist(object, &virtual_modifier_data);
+
+  /* Evaluate modifiers. */
+  for (; md; md = md->next) {
+    const ModifierTypeInfo *mti = BKE_modifier_get_info(ModifierType(md->type));
+
+    if (!BKE_modifier_is_enabled(scene, md, required_mode)) {
+      continue;
+    }
+
+    if (mti->modify_geometry_set) {
+      mti->modify_geometry_set(md, &mectx, &geometry_set);
+    }
+  }
+}
+
+static void empty_object_update(Depsgraph *depsgraph, Scene *scene, Object *object)
+{
+  BKE_object_free_derived_caches(object);
+
+  /* Evaluate modifiers. */
+  bke::GeometrySet geometry_set;
+  empty_object_apply_modifiers(depsgraph, scene, object, geometry_set);
+
+  object->runtime->geometry_set_eval = new bke::GeometrySet(std::move(geometry_set));
+}
+
 void BKE_object_handle_data_update(Depsgraph *depsgraph, Scene *scene, Object *ob)
 {
   DEG_debug_print_eval(depsgraph, __func__, ob->id.name, ob);
 
   /* includes all keys and modifiers */
   switch (ob->type) {
+    case OB_EMPTY: {
+      empty_object_update(depsgraph, scene, ob);
+      break;
+    }
     case OB_MESH: {
       CustomData_MeshMasks cddata_masks = scene->customdata_mask;
       CustomData_MeshMasks_update(&cddata_masks, &CD_MASK_BAREMESH);

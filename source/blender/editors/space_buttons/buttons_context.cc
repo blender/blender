@@ -300,6 +300,7 @@ static bool buttons_context_path_modifier(ButsContextPath *path)
     Object *ob = static_cast<Object *>(path->ptr[path->len - 1].data);
 
     if (ELEM(ob->type,
+             OB_EMPTY,
              OB_MESH,
              OB_CURVES_LEGACY,
              OB_FONT,

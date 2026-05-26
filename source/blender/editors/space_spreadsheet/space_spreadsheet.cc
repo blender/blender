@@ -314,6 +314,7 @@ Object *spreadsheet_get_object_eval(const SpaceSpreadsheet *sspreadsheet,
   }
   Object *object_orig = id_cast<Object *>(used_id);
   if (!ELEM(object_orig->type,
+            OB_EMPTY,
             OB_MESH,
             OB_POINTCLOUD,
             OB_VOLUME,
