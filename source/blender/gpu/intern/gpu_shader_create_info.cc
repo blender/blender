@@ -634,20 +634,6 @@ void ShaderCreateInfo::validate_vertex_attributes(const ShaderCreateInfo *other_
 
 using namespace blender::gpu::shader;
 
-#ifdef _MSC_VER
-/* Disable optimization for this function with MSVC. It does not like the fact
- * shaders info are declared in the same function (same basic block or not does
- * not change anything).
- * Since it is just a function called to register shaders (once),
- * the fact it's optimized or not does not matter, it's not on any hot
- * code path. */
-#  pragma optimize("", off)
-#endif
-void gpu_shader_create_info_init()
-{
-  g_create_infos = new CreateInfoDictionary();
-  g_interfaces = new InterfaceDictionary();
-
 #define GPU_SHADER_NAMED_INTERFACE_INFO(_interface, _inst_name) \
   StageInterfaceInfo *ptr_##_interface = new StageInterfaceInfo(#_interface, #_inst_name); \
   StageInterfaceInfo &_interface = *ptr_##_interface; \
@@ -670,20 +656,65 @@ void gpu_shader_create_info_init()
 #define GPU_SHADER_INTERFACE_END() ;
 #define GPU_SHADER_CREATE_END() ;
 
+#ifdef _MSC_VER
+/* Disable optimization for this function with MSVC. It does not like the fact
+ * shaders info are declared in the same function (same basic block or not does
+ * not change anything).
+ * Since it is just a function called to register shaders (once),
+ * the fact it's optimized or not does not matter, it's not on any hot
+ * code path. */
+#  pragma optimize("", off)
+#endif
+
+/* Split functions to avoid stack overflow on windows. */
+static void init_compositor_infos()
+{
 /* Declare, register and construct the infos. */
 #include "glsl_compositor_infos_list.hh"
+}
+
+static void init_draw_infos()
+{
+/* Declare, register and construct the infos. */
 #include "glsl_draw_infos_list.hh"
-#include "glsl_gpu_infos_list.hh"
-#include "glsl_ocio_infos_list.hh"
-#ifdef WITH_OPENSUBDIV
-#  include "glsl_osd_infos_list.hh"
-#endif
 
   if (GPU_stencil_clasify_buffer_workaround()) {
     /* WORKAROUND: Adding a dummy buffer that isn't used fixes a bug inside the Qualcomm driver. */
     eevee_deferred_tile_classify.storage_buf(
         12, Qualifier::read_write, "uint", "dummy_workaround_buf[]");
   }
+}
+
+static void init_gpu_infos()
+{
+/* Declare, register and construct the infos. */
+#include "glsl_gpu_infos_list.hh"
+}
+
+static void init_ocio_infos()
+{
+/* Declare, register and construct the infos. */
+#include "glsl_ocio_infos_list.hh"
+}
+
+static void init_osd_infos()
+{
+/* Declare, register and construct the infos. */
+#ifdef WITH_OPENSUBDIV
+#  include "glsl_osd_infos_list.hh"
+#endif
+}
+
+void gpu_shader_create_info_init()
+{
+  g_create_infos = new CreateInfoDictionary();
+  g_interfaces = new InterfaceDictionary();
+
+  init_compositor_infos();
+  init_draw_infos();
+  init_gpu_infos();
+  init_ocio_infos();
+  init_osd_infos();
 
   for (ShaderCreateInfo *info : g_create_infos->values()) {
     info->is_generated_ = false;
