@@ -394,6 +394,9 @@ def __gather_gltf(exporter, export_settings):
         gltf2_io_draco_compression_extension.encode_scene_primitives(scenes, export_settings)
         exporter.add_draco_extension()
 
+    if export_settings['gltf_meshopt_compression']:
+        exporter.add_meshopt_extension()
+
     export_user_extensions('gather_gltf_hook', export_settings, active_scene_idx, scenes, animations)
 
     for idx, scene in enumerate(scenes):

@@ -7,7 +7,7 @@ bl_info = {
     # This is now displayed as the maintainer, so show the foundation.
     # "author": "Julien Duroure, Scurest, Norbert Nopper, Urs Hanselmann, Moritz Becher, Benjamin Schmithüsen, Jim Eckerlein", # Original Authors
     'author': "Blender Foundation, Khronos Group",
-    "version": (5, 2, 26),
+    "version": (5, 2, 27),
     'blender': (5, 2, 0),
     'location': 'File > Import-Export',
     'description': 'Import-Export as glTF 2.0',
@@ -160,10 +160,20 @@ def get_format_items(scene, context):
 def is_draco_available():
     # Initialize on first use
     if not hasattr(is_draco_available, "draco_exists"):
-        from .io.com import draco as gltf2_io_draco_compression_extension
-        is_draco_available.draco_exists = gltf2_io_draco_compression_extension.dll_exists()
+        from .io.com import library as gltf2_compression_extension
+        is_draco_available.draco_exists = gltf2_compression_extension.dll_exists('bf_intern_draco_bridge', 'Draco')
 
     return is_draco_available.draco_exists
+
+
+def is_meshopt_available():
+    # Initialize on first use
+    if not hasattr(is_meshopt_available, "meshopt_exists"):
+        from .io.com import library as gltf2_compression_extension
+        is_meshopt_available.meshopt_exists = gltf2_compression_extension.dll_exists(
+            'bf_intern_meshopt_bridge', 'MeshOptimizer')
+
+    return is_meshopt_available.meshopt_exists
 
 
 def set_debug_log():
@@ -427,6 +437,26 @@ class ExportGLTF2_Base(ConvertGLTF2_Base):
         name='Geometry Nodes Instances (Experimental)',
         description='Export Geometry nodes instance meshes',
         default=False
+    )
+
+    export_meshopt_compression_enable: BoolProperty(
+        name='Meshopt Compression',
+        description='Compress mesh using Meshopt',
+        default=False
+    )
+
+    export_meshopt_extension: EnumProperty(
+        name='Meshopt Extension',
+        items=(
+            ('EXT_meshopt_compression',
+             'EXT_meshopt_compression',
+             'Use EXT_meshopt_compression extension for mesh compression'),
+            ('KHR_meshopt_compression',
+             'KHR_meshopt_compression',
+             'Use KHR_meshopt_compression extension for mesh compression'),
+        ),
+        description='Extension to use for meshopt compression',
+        default='EXT_meshopt_compression',
     )
 
     export_draco_mesh_compression_enable: BoolProperty(
@@ -1150,6 +1180,13 @@ class ExportGLTF2_Base(ConvertGLTF2_Base):
         else:
             export_settings['gltf_draco_mesh_compression'] = False
 
+        if is_meshopt_available():
+            export_settings['gltf_meshopt_compression'] = self.export_meshopt_compression_enable
+            export_settings['gltf_meshopt_extension'] = self.export_meshopt_extension
+        else:
+            export_settings['gltf_meshopt_compression'] = False
+            export_settings['gltf_meshopt_extension'] = self.export_meshopt_extension
+
         export_settings['gltf_gn_mesh'] = self.export_gn_mesh
 
         export_settings['gltf_materials'] = self.export_materials
@@ -1473,6 +1510,8 @@ def export_panel_data(layout, operator):
 
         if is_draco_available():
             export_panel_data_compression(body, operator)
+        if is_meshopt_available():
+            export_panel_data_meshopt_compression(body, operator)
 
 
 def export_panel_data_scene_graph(layout, operator):
@@ -1628,7 +1667,7 @@ def export_panel_data_compression(layout, operator):
     header, body = layout.panel("GLTF_export_data_compression", default_closed=True)
     header.use_property_split = False
     header.prop(operator, "export_draco_mesh_compression_enable", text="")
-    header.label(text="Compression")
+    header.label(text="Draco Compression")
     if body:
         body.active = operator.export_draco_mesh_compression_enable
 
@@ -1640,6 +1679,18 @@ def export_panel_data_compression(layout, operator):
         col.prop(operator, 'export_draco_texcoord_quantization', text="Tex Coord")
         col.prop(operator, 'export_draco_color_quantization', text="Color")
         col.prop(operator, 'export_draco_generic_quantization', text="Generic")
+
+# TODO: Make sure we can't enable both Draco and Meshopt at the same time
+
+
+def export_panel_data_meshopt_compression(layout, operator):
+    header, body = layout.panel("GLTF_export_data_meshopt_compression", default_closed=True)
+    header.use_property_split = False
+    header.prop(operator, "export_meshopt_compression_enable", text="")
+    header.label(text="Meshopt Compression")
+    if body:
+        body.active = operator.export_meshopt_compression_enable
+        body.prop(operator, 'export_meshopt_extension')
 
 
 def export_panel_animation(layout, operator):

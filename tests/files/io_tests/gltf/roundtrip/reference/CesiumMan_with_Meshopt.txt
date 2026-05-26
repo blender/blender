@@ -1,0 +1,7 @@
+None
+None
+None
+KHR_meshopt_compression
+KHR_texture_transform
+buffer 0 with extension fallback True
+buffer 1 with extension fallback False

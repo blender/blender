@@ -7,12 +7,11 @@ import sys
 from pathlib import Path
 
 
-def dll_path() -> Path:
+def dll_path(lib_name, lib_display_name) -> Path:
     """
     Get the library path, that should be at addon root
     :return: library path.
     """
-    lib_name = 'bf_intern_draco_bridge'
     library_name = {
         'win32': '{}.dll'.format(lib_name),
         'linux': 'lib{}.so'.format(lib_name),
@@ -24,22 +23,21 @@ def dll_path() -> Path:
         return Path(os.path.join(path, library_name))
 
     if library_name is None:
-        print('WARNING', 'Unsupported platform {}, Draco mesh compression is unavailable'.format(sys.platform))
+        print('WARNING', 'Unsupported platform {}, {} is unavailable'.format(sys.platform, lib_display_name))
 
 
-def dll_exists(quiet=False) -> bool:
+def dll_exists(lib_name, lib_display_name) -> bool:
     """
     Checks whether the DLL path exists.
     :return: True if the DLL exists.
     """
-    path = dll_path()
+    path = dll_path(lib_name, lib_display_name)
     exists = path.exists() and path.is_file()
-    if quiet is False:
-        if exists:
-            print('INFO', 'Draco mesh compression is available, use library at %s' % dll_path().absolute())
-        else:
-            print(
-                'ERROR',
-                'Draco mesh compression is not available because library could not be found at %s' %
-                dll_path().absolute())
+    if exists:
+        print('INFO', '{} is available, use library at %s'.format(lib_display_name) % path.absolute())
+    else:
+        print(
+            'ERROR',
+            '{} is not available because library could not be found at %s'.format(lib_display_name) %
+            path.absolute())
     return exists

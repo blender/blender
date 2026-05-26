@@ -6,7 +6,7 @@ from ctypes import *
 
 from ...io.com.gltf2_io import BufferView
 from ...io.imp.gltf2_io_binary import BinaryData
-from ...io.com.draco import dll_path
+from ...io.com.library import dll_path
 
 
 def decode_primitive(gltf, prim):
@@ -16,7 +16,7 @@ def decode_primitive(gltf, prim):
     """
 
     # Load DLL and setup function signatures.
-    dll = cdll.LoadLibrary(str(dll_path().resolve()))
+    dll = cdll.LoadLibrary(str(dll_path('bf_intern_draco_bridge', 'Draco').resolve()))
 
     dll.decoderCreate.restype = c_void_p
     dll.decoderCreate.argtypes = []

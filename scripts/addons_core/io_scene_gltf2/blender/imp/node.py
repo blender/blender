@@ -219,7 +219,7 @@ class BlenderNode():
                 editbone.length = vnode.bone_length / max(blender_arma.scale)
             else:
                 editbone.length = vnode.bone_length
-            editbone.align_roll(arma_mat @ Vector((0, 0, 1)) - editbone.head)
+            editbone.align_roll((arma_mat @ Vector((0, 0, 1)) - editbone.head).normalized())
 
             if isinstance(id, int):
                 pynode = gltf.data.nodes[id]

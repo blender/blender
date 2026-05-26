@@ -139,6 +139,7 @@ def __gather_skins(blender_primitive, export_settings):
                     joints[:, idx] = 0.0
 
         joint = array_to_accessor(
+            "JOINTS",
             joints,
             export_settings,
             component_type,
@@ -161,6 +162,7 @@ def __gather_skins(blender_primitive, export_settings):
         weight_arrs[s] /= weight_total
 
         weight = array_to_accessor(
+            "WEIGHTS",
             weight_arrs[s],
             export_settings,
             component_type=gltf2_io_constants.ComponentType.Float,
@@ -242,6 +244,7 @@ def __gather_attribute(blender_primitive, attribute, export_settings):
 
         return {
             attribute: array_to_accessor(
+                attribute,
                 data['data'],
                 export_settings,
                 component_type=data['component_type'],
