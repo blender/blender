@@ -7,7 +7,7 @@
 #include "draw_object_infos_infos.hh"
 
 #include "draw_object_infos_lib.glsl"
-#include "eevee_geom_types_lib.glsl"
+#include "eevee_geom_types_lib.bsl.hh"
 
 /* -------------------------------------------------------------------- */
 /** \name Volume

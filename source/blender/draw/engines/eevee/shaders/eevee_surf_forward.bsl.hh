@@ -18,7 +18,7 @@ FRAGMENT_SHADER_CREATE_INFO(eevee_volume_lib)
 
 #include "draw_curves_lib.glsl" /* IWYU pragma: export. For nodetree functions. */
 #include "draw_view_lib.glsl"   /* IWYU pragma: export. For nodetree functions. */
-#include "eevee_forward_lib.glsl"
+#include "eevee_forward_lib.bsl.hh"
 #include "eevee_nodetree_frag_lib.glsl"
 #include "eevee_reverse_z_lib.bsl.hh"
 #include "eevee_sampling_lib.bsl.hh"

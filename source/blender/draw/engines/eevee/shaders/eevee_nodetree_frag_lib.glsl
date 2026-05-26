@@ -6,7 +6,7 @@
 /* This file must replaced at runtime. The following content is only a possible implementation. */
 #pragma runtime_generated
 
-#include "eevee_geom_types_lib.glsl"
+#include "eevee_geom_types_lib.bsl.hh"
 #include "eevee_nodetree_lib.glsl"
 
 /* Loading of the attributes into GlobalData. */
