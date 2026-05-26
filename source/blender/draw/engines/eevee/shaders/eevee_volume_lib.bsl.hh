@@ -26,14 +26,6 @@ struct UnifiedVolumeProperties {
   [[image(VOLUME_PROP_PHASE_WEIGHT_IMG_SLOT, read, SFLOAT_16)]] image3D in_phase_weight_img;
 };
 
-struct UnifiedVolumeData {
-  [[legacy_info]] ShaderCreateInfo eevee_global_ubo;
-  [[legacy_info]] ShaderCreateInfo draw_view;
-
-  [[sampler(VOLUME_TRANSMITTANCE_TEX_SLOT)]] sampler3D transmittance_tx;
-  [[sampler(VOLUME_SCATTERING_TEX_SLOT)]] sampler3D scattering_tx;
-};
-
 /* Per froxel jitter to break slices and flickering.
  * Wrapped so that changing it is easier. */
 float volume_froxel_jitter(int2 froxel, float offset)
@@ -203,20 +195,26 @@ struct VolumeResolveSample {
   float3 scattering;
 };
 
-VolumeResolveSample volume_resolve(float3 ndc_P,
-                                   sampler3D transmittance_tx,
-                                   sampler3D scattering_tx)
-{
-  float3 coord = volume_screen_to_resolve(ndc_P);
+struct UnifiedVolumeData {
+  [[legacy_info]] ShaderCreateInfo eevee_global_ubo;
+  [[legacy_info]] ShaderCreateInfo draw_view;
 
-  /* Volumes objects have the same aliasing problems has shadow maps.
-   * To fix this we need a quantization bias (the size of a step in Z) and a slope bias
-   * (multiplied by the size of a froxel in 2D). */
-  coord.z -= uniform_buf.volumes.inv_tex_size.z;
-  /* TODO(fclem): Slope bias. */
+  [[sampler(VOLUME_TRANSMITTANCE_TEX_SLOT)]] sampler3D volume_transmittance_tx;
+  [[sampler(VOLUME_SCATTERING_TEX_SLOT)]] sampler3D volume_scattering_tx;
 
-  VolumeResolveSample volume;
-  volume.scattering = texture(scattering_tx, coord).rgb;
-  volume.transmittance = texture(transmittance_tx, coord).rgb;
-  return volume;
-}
+  VolumeResolveSample resolve(float3 ndc_P) const
+  {
+    float3 coord = volume_screen_to_resolve(ndc_P);
+
+    /* Volumes objects have the same aliasing problems has shadow maps.
+     * To fix this we need a quantization bias (the size of a step in Z) and a slope bias
+     * (multiplied by the size of a froxel in 2D). */
+    coord.z -= uniform_buf.volumes.inv_tex_size.z;
+    /* TODO(fclem): Slope bias. */
+
+    VolumeResolveSample volume;
+    volume.scattering = texture(volume_scattering_tx, coord).rgb;
+    volume.transmittance = texture(volume_transmittance_tx, coord).rgb;
+    return volume;
+  }
+};

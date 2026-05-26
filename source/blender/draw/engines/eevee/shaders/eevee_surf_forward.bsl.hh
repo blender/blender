@@ -14,7 +14,6 @@
 
 FRAGMENT_SHADER_CREATE_INFO(eevee_nodetree)
 FRAGMENT_SHADER_CREATE_INFO(eevee_geom_iface_info)
-FRAGMENT_SHADER_CREATE_INFO(eevee_volume_lib)
 
 #include "draw_curves_lib.glsl" /* IWYU pragma: export. For nodetree functions. */
 #include "draw_view_lib.glsl"   /* IWYU pragma: export. For nodetree functions. */
@@ -80,7 +79,6 @@ struct SurfaceForward {
   [[legacy_info]] ShaderCreateInfo eevee_global_ubo;
   [[legacy_info]] ShaderCreateInfo eevee_utility_texture;
   [[legacy_info]] ShaderCreateInfo eevee_hiz_data;
-  [[legacy_info]] ShaderCreateInfo eevee_volume_lib;
   [[legacy_info]] ShaderCreateInfo eevee_geom_iface_info;
 
   [[legacy_info]] ShaderCreateInfo draw_view_culling;
@@ -107,6 +105,7 @@ void surf_forward([[resource_table]] PipelineConstants & /*pipe*/,
                   [[resource_table]] LightEvalIterator & /*lights*/,
                   [[resource_table]] LightprobeRenderData & /*lightprobes*/,
                   [[resource_table]] LightprobePlaneRenderData & /*lightprobe_planes*/,
+                  [[resource_table]] const UnifiedVolumeData &volumes,
                   [[resource_table]] const Sampling &sampling,
                   [[frag_coord]] const float4 frag_co,
                   [[out]] SurfaceForwardFragOut &frag_out,
@@ -128,8 +127,7 @@ void surf_forward([[resource_table]] PipelineConstants & /*pipe*/,
 
   /* Volumetric resolve and compositing. */
   float2 uvs = gl_FragCoord.xy * uniform_buf.volumes.main_view_extent_inv;
-  VolumeResolveSample vol = volume_resolve(
-      float3(uvs, reverse_z::read(frag_co.z)), volume_transmittance_tx, volume_scattering_tx);
+  VolumeResolveSample vol = volumes.resolve(float3(uvs, reverse_z::read(frag_co.z)));
   /* Removes the part of the volume scattering that has
    * already been added to the destination pixels by the opaque resolve.
    * Since we do that using the blending pipeline we need to account for material transmittance. */

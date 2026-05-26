@@ -41,15 +41,6 @@ GPU_SHADER_CREATE_INFO(eevee_utility_texture)
 SAMPLER(RBUFS_UTILITY_TEX_SLOT, sampler2DArray, utility_tx)
 GPU_SHADER_CREATE_END()
 
-GPU_SHADER_CREATE_INFO(eevee_volume_properties_data)
-ADDITIONAL_INFO(eevee_global_ubo)
-IMAGE(VOLUME_PROP_SCATTERING_IMG_SLOT, UFLOAT_11_11_10, read, image3D, in_scattering_img)
-IMAGE(VOLUME_PROP_EXTINCTION_IMG_SLOT, UFLOAT_11_11_10, read, image3D, in_extinction_img)
-IMAGE(VOLUME_PROP_EMISSION_IMG_SLOT, UFLOAT_11_11_10, read, image3D, in_emission_img)
-IMAGE(VOLUME_PROP_PHASE_IMG_SLOT, SFLOAT_16, read, image3D, in_phase_img)
-IMAGE(VOLUME_PROP_PHASE_WEIGHT_IMG_SLOT, SFLOAT_16, read, image3D, in_phase_weight_img)
-GPU_SHADER_CREATE_END()
-
 GPU_SHADER_CREATE_INFO(eevee_gbuffer_data)
 SAMPLER(GBUF_HEADER_TEX_SLOT, usampler2DArray, gbuf_header_tx)
 SAMPLER(GBUF_CLOSURE_TEX_SLOT, sampler2DArray, gbuf_closure_tx)
@@ -66,15 +57,6 @@ DEFINE("MAT_RAYCAST")
 SAMPLER(RAYCAST_DEPTH_TEX_SLOT, sampler2D, raycast_depth_tx)
 SAMPLER(OBJECT_ID_TEX_SLOT, usampler2D, object_id_tx)
 SAMPLER(PREPASS_NORMAL_TEX_SLOT, sampler2D, prepass_normal_tx)
-GPU_SHADER_CREATE_END()
-
-/* Used for shaders that need the final accumulated volume transmittance and scattering. */
-GPU_SHADER_CREATE_INFO(eevee_volume_lib)
-TYPEDEF_SOURCE("eevee_defines.hh")
-ADDITIONAL_INFO(eevee_global_ubo)
-ADDITIONAL_INFO(draw_view)
-SAMPLER(VOLUME_SCATTERING_TEX_SLOT, sampler3D, volume_scattering_tx)
-SAMPLER(VOLUME_TRANSMITTANCE_TEX_SLOT, sampler3D, volume_transmittance_tx)
 GPU_SHADER_CREATE_END()
 
 /** \} */

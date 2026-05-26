@@ -398,8 +398,7 @@ void resolve_frag([[resource_table]] const Resolve & /*srt*/,
   float2 uvs = frag_co.xy * uniform_buf.volumes.main_view_extent_inv;
   float scene_depth = texelFetch(hiz_tx, int2(frag_co.xy), 0).r;
 
-  VolumeResolveSample vol = volume_resolve(
-      float3(uvs, scene_depth), volumes.transmittance_tx, volumes.scattering_tx);
+  VolumeResolveSample vol = volumes.resolve(float3(uvs, scene_depth));
 
   out_frag.radiance = float4(vol.scattering, 0.0f);
   out_frag.transmittance = float4(vol.transmittance, saturate(average(vol.transmittance)));
