@@ -14,7 +14,6 @@
 
 #include "infos/eevee_common_infos.hh"
 
-SHADER_LIBRARY_CREATE_INFO(eevee_gbuffer_data)
 SHADER_LIBRARY_CREATE_INFO(eevee_global_ubo)
 SHADER_LIBRARY_CREATE_INFO(draw_view)
 SHADER_LIBRARY_CREATE_INFO(eevee_utility_texture)
@@ -56,7 +55,6 @@ struct TileBuffer {
 };
 
 struct DenoiseSpatial {
-  [[legacy_info]] ShaderCreateInfo eevee_gbuffer_data;
   [[legacy_info]] ShaderCreateInfo eevee_global_ubo;
   [[legacy_info]] ShaderCreateInfo draw_view;
   [[legacy_info]] ShaderCreateInfo eevee_utility_texture;
@@ -89,7 +87,10 @@ struct DenoiseSpatial {
   }
 
   /* Used for bilateral sampling. */
-  float sample_weight_get(float3 center_N, float3 center_P, int2 sample_texel) const
+  float sample_weight_get([[resource_table]] const gbuffer::Reader &reader,
+                          float3 center_N,
+                          float3 center_P,
+                          int2 sample_texel) const
   {
     int2 sample_texel_fullres = sample_texel * raytrace_buf.trace_pixel_scale +
                                 raytrace_buf.trace_pixel_offset;
@@ -97,7 +98,7 @@ struct DenoiseSpatial {
     float sample_depth = texelFetch(depth_tx, sample_texel_fullres, 0).r;
 
     float2 sample_uv = float2(sample_texel_fullres) * raytrace_buf.full_resolution_inv;
-    float3 sample_N = gbuffer::read_bin(sample_texel_fullres, closure_index).N;
+    float3 sample_N = reader.read_bin(sample_texel_fullres, closure_index).N;
     float3 sample_P = drw_point_screen_to_world(float3(sample_uv, sample_depth));
 
     /* TODO(fclem): Scene parameter. 10000.0f is dependent on scene scale. */
@@ -141,6 +142,7 @@ void transmission_thickness_amend_closure(ClosureUndetermined &cl, float3 &V, Th
   /* Metal: Provide compiler with hint to tune per-thread resource allocation. */
   metal_max_total_threads_per_threadgroup(316)]]
 void spatial_main([[resource_table]] DenoiseSpatial &srt,
+                  [[resource_table]] const gbuffer::Reader &reader,
                   [[resource_table]] const Sampling &sampling,
                   [[work_group_id]] const uint3 work_group,
                   [[local_invocation_id]] const uint3 local_id)
@@ -167,16 +169,16 @@ void spatial_main([[resource_table]] DenoiseSpatial &srt,
     /* Simple bilateral upsampling without any denoising. */
     float center_depth = texelFetch(srt.depth_tx, texel_fullres, 0).r;
     float2 center_uv = float2(texel_fullres) * raytrace_buf.full_resolution_inv;
-    float3 center_N = gbuffer::read_bin(texel_fullres, srt.closure_index).N;
+    float3 center_N = reader.read_bin(texel_fullres, srt.closure_index).N;
     float3 center_P = drw_point_screen_to_world(float3(center_uv, center_depth));
 
     float4 bilinear_weights = bilinear_weights_from_subpixel_coord(bilinear_co);
 
     float4 bilateral_weights = float4(
-        srt.sample_weight_get(center_N, center_P, texel_nearest + int2(0, 1)),
-        srt.sample_weight_get(center_N, center_P, texel_nearest + int2(1, 1)),
-        srt.sample_weight_get(center_N, center_P, texel_nearest + int2(1, 0)),
-        srt.sample_weight_get(center_N, center_P, texel_nearest + int2(0, 0)));
+        srt.sample_weight_get(reader, center_N, center_P, texel_nearest + int2(0, 1)),
+        srt.sample_weight_get(reader, center_N, center_P, texel_nearest + int2(1, 1)),
+        srt.sample_weight_get(reader, center_N, center_P, texel_nearest + int2(1, 0)),
+        srt.sample_weight_get(reader, center_N, center_P, texel_nearest + int2(0, 0)));
 
     float4 ray_pdf_inv = float4(imageLoad(srt.ray_data_img, texel_nearest + int2(0, 1)).w,
                                 imageLoad(srt.ray_data_img, texel_nearest + int2(1, 1)).w,
@@ -223,16 +225,16 @@ void spatial_main([[resource_table]] DenoiseSpatial &srt,
       if (tile_is_unused) {
         int2 texel_fullres_neighbor = texel_fullres + int2(x, y) * int(tile_size);
 
-        if (in_texture_range(texel_fullres, gbuf_header_tx)) {
+        if (in_texture_range(texel_fullres, reader.gbuf_header_tx)) {
           srt.invalid_pixel_write(texel_fullres_neighbor);
         }
       }
     }
   }
 
-  gbuffer::Header gbuf_header = gbuffer::read_header(texel_fullres);
+  gbuffer::Header gbuf_header = reader.read_header(texel_fullres);
 
-  ClosureUndetermined closure = gbuffer::read_bin(texel_fullres, srt.closure_index);
+  ClosureUndetermined closure = reader.read_bin(texel_fullres, srt.closure_index);
 
   if (closure.type == CLOSURE_NONE_ID) {
     srt.invalid_pixel_write(texel_fullres);
@@ -261,7 +263,7 @@ void spatial_main([[resource_table]] DenoiseSpatial &srt,
   float3 P = drw_point_view_to_world(vs_P);
   float3 V = drw_world_incident_vector(P);
 
-  Thickness thickness = gbuffer::read_thickness(gbuf_header, texel_fullres);
+  Thickness thickness = reader.read_thickness(gbuf_header, texel_fullres);
   if (thickness.value() != 0.0f) {
     transmission_thickness_amend_closure(closure, V, thickness);
   }
@@ -654,7 +656,6 @@ void temporal_main([[resource_table]] DenoiseTemporal &srt,
 }
 
 struct DenoiseBilateral {
-  [[legacy_info]] ShaderCreateInfo eevee_gbuffer_data;
   [[legacy_info]] ShaderCreateInfo eevee_global_ubo;
   [[legacy_info]] ShaderCreateInfo draw_view;
 
@@ -683,6 +684,7 @@ struct DenoiseBilateral {
 [[compute, local_size(RAYTRACE_GROUP_SIZE, RAYTRACE_GROUP_SIZE)]]
 void bilateral_main([[resource_table]] DenoiseBilateral &srt,
                     [[resource_table]] const Sampling &sampling,
+                    [[resource_table]] const gbuffer::Reader &reader,
                     [[work_group_id]] const uint3 work_group,
                     [[local_invocation_id]] const uint3 local_id)
 {
@@ -696,7 +698,7 @@ void bilateral_main([[resource_table]] DenoiseBilateral &srt,
   float center_depth = reverse_z::read(texelFetch(srt.depth_tx, texel_fullres, 0).r);
   float3 center_P = drw_point_screen_to_world(float3(center_uv, center_depth));
 
-  ClosureUndetermined center_closure = gbuffer::read_bin(texel_fullres, srt.closure_index);
+  ClosureUndetermined center_closure = reader.read_bin(texel_fullres, srt.closure_index);
 
   if (center_closure.type == CLOSURE_NONE_ID) {
     /* Output nothing. This shouldn't even be loaded. */
@@ -759,7 +761,7 @@ void bilateral_main([[resource_table]] DenoiseBilateral &srt,
       continue;
     }
 
-    ClosureUndetermined sample_closure = gbuffer::read_bin(sample_texel, srt.closure_index);
+    ClosureUndetermined sample_closure = reader.read_bin(sample_texel, srt.closure_index);
 
     if (sample_closure.type == CLOSURE_NONE_ID) {
       continue;

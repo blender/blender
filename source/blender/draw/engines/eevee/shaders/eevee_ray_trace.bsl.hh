@@ -8,7 +8,6 @@
 
 COMPUTE_SHADER_CREATE_INFO(draw_view)
 COMPUTE_SHADER_CREATE_INFO(eevee_global_ubo)
-COMPUTE_SHADER_CREATE_INFO(eevee_gbuffer_data)
 
 #include "eevee_closure.bsl.hh"
 #include "eevee_colorspace_lib.bsl.hh"
@@ -26,7 +25,6 @@ namespace screen {
 
 struct Resources {
   [[legacy_info]] ShaderCreateInfo eevee_global_ubo;
-  [[legacy_info]] ShaderCreateInfo eevee_gbuffer_data;
   [[legacy_info]] ShaderCreateInfo draw_view;
 
   [[specialization_constant(0)]] int closure_index;
@@ -54,6 +52,7 @@ struct Resources {
 void trace([[resource_table]] Resources &srt,
            [[resource_table]] const LightprobeRenderData &lightprobes,
            [[resource_table]] const Sampling &sampling,
+           [[resource_table]] const gbuffer::Reader &reader,
            [[local_invocation_id]] const uint3 local_id)
 {
   constexpr uint tile_size = RAYTRACE_GROUP_SIZE;
@@ -85,7 +84,7 @@ void trace([[resource_table]] Resources &srt,
 
   int2 texel_fullres = texel * raytrace_buf.trace_pixel_scale + raytrace_buf.trace_pixel_offset;
 
-  gbuffer::Header gbuf_header = gbuffer::read_header(texel_fullres);
+  gbuffer::Header gbuf_header = reader.read_header(texel_fullres);
   ClosureType closure_type = gbuffer::mode_to_closure_type(
       gbuf_header.bin_type(srt.closure_index));
 
@@ -100,9 +99,9 @@ void trace([[resource_table]] Resources &srt,
 
   /* Only closure 0 can be a transmission closure. */
   if (srt.closure_index == 0) {
-    const Thickness thickness = gbuffer::read_thickness(gbuf_header, texel_fullres);
+    const Thickness thickness = reader.read_thickness(gbuf_header, texel_fullres);
     if (thickness.value() != 0.0f) {
-      ClosureUndetermined cl = gbuffer::read_bin(texel_fullres, srt.closure_index);
+      ClosureUndetermined cl = reader.read_bin(texel_fullres, srt.closure_index);
       ray = raytrace_thickness_ray_amend(ray, cl, V, thickness);
     }
   }
@@ -111,7 +110,7 @@ void trace([[resource_table]] Resources &srt,
   float noise_offset = sampling.rng_1D_get(SAMPLING_RAYTRACE_W);
   float rand_trace = interleaved_gradient_noise(float2(texel), 5.0f, noise_offset);
 
-  ClosureUndetermined cl = gbuffer::read_bin(texel_fullres, srt.closure_index);
+  ClosureUndetermined cl = reader.read_bin(texel_fullres, srt.closure_index);
   float roughness = closure_apparent_roughness_get(cl);
 
   /* Transform the ray into view-space. */
@@ -205,7 +204,6 @@ namespace planar {
 struct Resources {
   [[legacy_info]] ShaderCreateInfo draw_view;
   [[legacy_info]] ShaderCreateInfo eevee_global_ubo;
-  [[legacy_info]] ShaderCreateInfo eevee_gbuffer_data;
 
   [[specialization_constant(0)]] int closure_index;
 
@@ -229,6 +227,7 @@ void trace([[resource_table]] Resources &srt,
            [[resource_table]] const LightprobeRenderData &lightprobes,
            [[resource_table]] const LightprobePlaneRenderData &lightprobe_planes,
            [[resource_table]] const Sampling &sampling,
+           [[resource_table]] const gbuffer::Reader &reader,
            [[work_group_id]] const uint3 group_id,
            [[local_invocation_id]] const uint3 local_id)
 {
@@ -254,7 +253,7 @@ void trace([[resource_table]] Resources &srt,
 
   int2 texel_fullres = texel * raytrace_buf.trace_pixel_scale + raytrace_buf.trace_pixel_offset;
 
-  gbuffer::Header gbuf_header = gbuffer::read_header(texel_fullres);
+  gbuffer::Header gbuf_header = reader.read_header(texel_fullres);
   ClosureType closure_type = gbuffer::mode_to_closure_type(
       gbuf_header.bin_type(srt.closure_index));
 
@@ -263,7 +262,7 @@ void trace([[resource_table]] Resources &srt,
     return;
   }
 
-  ClosureUndetermined cl = gbuffer::read_bin(texel_fullres, srt.closure_index);
+  ClosureUndetermined cl = reader.read_bin(texel_fullres, srt.closure_index);
   float roughness = closure_apparent_roughness_get(cl);
 
   float depth = reverse_z::read(texelFetch(srt.depth_tx, texel_fullres, 0).r);
@@ -336,7 +335,6 @@ void trace([[resource_table]] Resources &srt,
 namespace fallback {
 
 struct Resources {
-  [[legacy_info]] ShaderCreateInfo eevee_gbuffer_data;
   [[legacy_info]] ShaderCreateInfo eevee_global_ubo;
   [[legacy_info]] ShaderCreateInfo draw_view;
 
@@ -357,6 +355,7 @@ struct Resources {
 [[compute, local_size(RAYTRACE_GROUP_SIZE, RAYTRACE_GROUP_SIZE)]]
 void trace([[resource_table]] Resources &srt,
            [[resource_table]] const LightprobeRenderData &lightprobes,
+           [[resource_table]] const gbuffer::Reader &reader,
            [[work_group_id]] const uint3 group_id,
            [[local_invocation_id]] const uint3 local_id)
 {
@@ -372,7 +371,7 @@ void trace([[resource_table]] Resources &srt,
     return;
   }
 
-  ClosureUndetermined cl = gbuffer::read_bin(texel_fullres, srt.closure_index);
+  ClosureUndetermined cl = reader.read_bin(texel_fullres, srt.closure_index);
   float roughness = closure_apparent_roughness_get(cl);
 
   float depth = reverse_z::read(texelFetch(srt.depth_tx, texel_fullres, 0).r);
@@ -397,10 +396,10 @@ void trace([[resource_table]] Resources &srt,
 
   /* Only closure 0 can be a transmission closure. */
   if (srt.closure_index == 0) {
-    const gbuffer::Header gbuf_header = gbuffer::read_header(texel_fullres);
-    const Thickness thickness = gbuffer::read_thickness(gbuf_header, texel_fullres);
+    const gbuffer::Header gbuf_header = reader.read_header(texel_fullres);
+    const Thickness thickness = reader.read_thickness(gbuf_header, texel_fullres);
     if (thickness.value() != 0.0f) {
-      ClosureUndetermined cl = gbuffer::read_bin(texel_fullres, srt.closure_index);
+      ClosureUndetermined cl = reader.read_bin(texel_fullres, srt.closure_index);
       ray = raytrace_thickness_ray_amend(ray, cl, V, thickness);
     }
   }

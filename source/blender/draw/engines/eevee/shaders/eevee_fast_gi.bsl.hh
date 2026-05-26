@@ -17,7 +17,6 @@
 
 #include "infos/eevee_common_infos.hh"
 
-VERTEX_SHADER_CREATE_INFO(eevee_gbuffer_data)
 VERTEX_SHADER_CREATE_INFO(eevee_utility_texture)
 VERTEX_SHADER_CREATE_INFO(eevee_global_ubo)
 VERTEX_SHADER_CREATE_INFO(draw_view)
@@ -563,7 +562,6 @@ struct Tiles {
 
 struct Setup {
   [[legacy_info]] ShaderCreateInfo eevee_global_ubo;
-  [[legacy_info]] ShaderCreateInfo eevee_gbuffer_data;
   [[legacy_info]] ShaderCreateInfo draw_view;
 
   [[sampler(0)]] const sampler2DDepth depth_tx;
@@ -584,6 +582,7 @@ struct Setup {
 [[compute, local_size(RAYTRACE_GROUP_SIZE, RAYTRACE_GROUP_SIZE)]]
 void setup([[global_invocation_id]] const uint3 global_id,
            [[local_invocation_id]] const uint3 local_id,
+           [[resource_table]] const gbuffer::Reader &reader,
            [[resource_table]] Setup &srt)
 {
   int2 texel = int2(global_id.xy);
@@ -591,11 +590,11 @@ void setup([[global_invocation_id]] const uint3 global_id,
                        raytrace_buf.fast_gi_resolution_bias;
 
   /* Avoid loading texels outside texture range. */
-  int2 extent = textureSize(gbuf_header_tx, 0).xy;
+  int2 extent = textureSize(reader.gbuf_header_tx, 0).xy;
   texel_fullres = min(texel_fullres, extent - 1);
 
   /* Load Gbuffer. */
-  const gbuffer::Layers gbuf = gbuffer::read_layers(texel_fullres);
+  const gbuffer::Layers gbuf = reader.read_layers(texel_fullres);
 
   /* Tag processed pixel in the normal buffer for denoising speed. */
   bool is_processed = !gbuf.header.is_empty();
@@ -732,7 +731,6 @@ struct Constants {
 };
 
 struct Scan {
-  [[legacy_info]] ShaderCreateInfo eevee_gbuffer_data;
   [[legacy_info]] ShaderCreateInfo eevee_global_ubo;
   [[legacy_info]] ShaderCreateInfo eevee_utility_texture;
   [[legacy_info]] ShaderCreateInfo draw_view;
@@ -749,6 +747,7 @@ void scan([[work_group_id]] const uint3 group_id,
           [[resource_table]] const Tiles &tiles,
           [[resource_table]] const Sampling &sampling,
           [[resource_table]] const HiZ &hiz,
+          [[resource_table]] const gbuffer::Reader &reader,
           [[resource_table]] SampleOutput &sh_out,
           [[resource_table]] Constants &constants)
 {
@@ -760,14 +759,14 @@ void scan([[work_group_id]] const uint3 group_id,
                        raytrace_buf.fast_gi_resolution_bias;
 
   /* Avoid tracing the outside border if dispatch is too big. */
-  int2 extent = textureSize(gbuf_header_tx, 0).xy;
+  int2 extent = textureSize(reader.gbuf_header_tx, 0).xy;
 
   /* Avoid loading texels outside texture range.
    * This can happen even after the check above in non-power-of-2 textures. */
   texel_fullres = min(texel_fullres, extent - 1);
 
   /* Do not trace where nothing was rendered. */
-  if (texelFetch(gbuf_header_tx, int3(texel_fullres, 0), 0).r == 0u) {
+  if (texelFetch(reader.gbuf_header_tx, int3(texel_fullres, 0), 0).r == 0u) {
 #if 0 /* This is not needed as the next stage doesn't do bilinear filtering. */
     imageStore(fast_gi_radiance_0_img, texel, float4(0.0f));
     imageStore(fast_gi_radiance_1_img, texel, float4(0.0f));
@@ -879,7 +878,6 @@ void denoise([[work_group_id]] const uint3 group_id,
 
 struct Resolve {
   [[legacy_info]] ShaderCreateInfo eevee_global_ubo;
-  [[legacy_info]] ShaderCreateInfo eevee_gbuffer_data;
   [[legacy_info]] ShaderCreateInfo draw_view;
 
   [[image(3, read_write, RAYTRACE_RADIANCE_FORMAT)]] image2D closure0_img;
@@ -894,6 +892,7 @@ void resolve([[work_group_id]] const uint3 group_id,
              [[resource_table]] const Tiles &tiles,
              [[resource_table]] const SampleInput &sh_in,
              [[resource_table]] Resolve &srt,
+             [[resource_table]] const gbuffer::Reader &reader,
              [[resource_table]] const LightprobeRenderData &lightprobes)
 {
   constexpr uint tile_size = RAYTRACE_GROUP_SIZE;
@@ -903,12 +902,12 @@ void resolve([[work_group_id]] const uint3 group_id,
   int2 texel = max(int2(0), texel_fullres - raytrace_buf.fast_gi_resolution_bias) /
                raytrace_buf.fast_gi_resolution_scale;
 
-  int2 extent = textureSize(gbuf_header_tx, 0).xy;
+  int2 extent = textureSize(reader.gbuf_header_tx, 0).xy;
   if (any(greaterThanEqual(texel_fullres, extent))) {
     return;
   }
 
-  const gbuffer::Layers gbuf = gbuffer::read_layers(texel_fullres);
+  const gbuffer::Layers gbuf = reader.read_layers(texel_fullres);
 
   if (gbuf.header.is_empty()) {
     return;
@@ -966,7 +965,7 @@ void resolve([[work_group_id]] const uint3 group_id,
 
   const uchar closure_count = gbuf.header.closure_len();
   const uint3 bin_indices = gbuf.header.bin_index_per_layer();
-  const Thickness thickness = gbuffer::read_thickness(gbuf.header, texel_fullres);
+  const Thickness thickness = reader.read_thickness(gbuf.header, texel_fullres);
 
   /* Unroll needed for gbuf.layer access. */
   for (int i = 0; i < 3 /* GBUFFER_LAYER_MAX */; i++) [[unroll]] {

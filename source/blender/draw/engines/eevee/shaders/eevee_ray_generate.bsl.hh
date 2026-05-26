@@ -6,7 +6,6 @@
 
 #include "infos/eevee_common_infos.hh"
 
-SHADER_LIBRARY_CREATE_INFO(eevee_gbuffer_data)
 SHADER_LIBRARY_CREATE_INFO(eevee_global_ubo)
 SHADER_LIBRARY_CREATE_INFO(draw_view)
 SHADER_LIBRARY_CREATE_INFO(eevee_utility_texture)
@@ -102,7 +101,6 @@ namespace eevee::raytracing {
 
 struct RayGenerate {
   [[specialization_constant(0)]] int closure_index;
-  [[legacy_info]] ShaderCreateInfo eevee_gbuffer_data;
   [[legacy_info]] ShaderCreateInfo eevee_global_ubo;
   [[legacy_info]] ShaderCreateInfo draw_view;
   [[legacy_info]] ShaderCreateInfo eevee_utility_texture;
@@ -117,6 +115,7 @@ struct RayGenerate {
 [[compute, local_size(RAYTRACE_GROUP_SIZE, RAYTRACE_GROUP_SIZE)]]
 void generate_rays([[resource_table]] RayGenerate &srt,
                    [[resource_table]] const Sampling &sampling,
+                   [[resource_table]] const gbuffer::Reader &reader,
                    [[work_group_id]] const uint3 group_id,
                    [[local_invocation_id]] const uint3 local_id)
 {
@@ -126,21 +125,21 @@ void generate_rays([[resource_table]] RayGenerate &srt,
 
   int2 texel_fullres = texel * raytrace_buf.trace_pixel_scale + raytrace_buf.trace_pixel_offset;
 
-  gbuffer::Header gbuf_header = gbuffer::read_header(texel_fullres);
-  ClosureUndetermined closure = gbuffer::read_bin(texel_fullres, srt.closure_index);
+  gbuffer::Header gbuf_header = reader.read_header(texel_fullres);
+  ClosureUndetermined closure = reader.read_bin(texel_fullres, srt.closure_index);
 
   if (closure.type == CLOSURE_NONE_ID) {
     imageStore(srt.out_ray_data_img, texel, float4(0.0f));
     return;
   }
 
-  float2 uv = (float2(texel_fullres) + 0.5f) / float2(textureSize(gbuf_header_tx, 0).xy);
+  float2 uv = (float2(texel_fullres) + 0.5f) / float2(textureSize(reader.gbuf_header_tx, 0).xy);
   float3 P = drw_point_screen_to_world(float3(uv, 0.5f));
   float3 V = drw_world_incident_vector(P);
   float2 noise = utility_tx_fetch(utility_tx, float2(texel), UTIL_BLUE_NOISE_LAYER).rg;
   noise = fract(noise + sampling.rng_2D_get(SAMPLING_RAYTRACE_U));
 
-  Thickness thickness = gbuffer::read_thickness(gbuf_header, texel_fullres);
+  Thickness thickness = reader.read_thickness(gbuf_header, texel_fullres);
 
   BsdfSample samp = ray_generate_direction(noise.xy, closure, V, thickness);
 

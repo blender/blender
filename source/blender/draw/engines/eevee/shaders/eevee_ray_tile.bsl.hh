@@ -6,7 +6,6 @@
 
 #include "infos/eevee_common_infos.hh"
 
-SHADER_LIBRARY_CREATE_INFO(eevee_gbuffer_data)
 SHADER_LIBRARY_CREATE_INFO(eevee_global_ubo)
 
 #include "eevee_closure.bsl.hh"
@@ -22,7 +21,6 @@ namespace eevee::raytracing {
 #endif
 
 struct TileClassify {
-  [[legacy_info]] ShaderCreateInfo eevee_gbuffer_data;
   [[legacy_info]] ShaderCreateInfo eevee_global_ubo;
 
   [[image(0, write, RAYTRACE_TILEMASK_FORMAT)]] uimage2DArray tile_raytrace_denoise_img;
@@ -46,6 +44,7 @@ float ray_roughness_factor(RayTraceData raytrace, float roughness)
  */
 [[compute, local_size(RAYTRACE_GROUP_SIZE, RAYTRACE_GROUP_SIZE)]]
 void tile_classify([[resource_table]] TileClassify &srt,
+                   [[resource_table]] const gbuffer::Reader &reader,
                    [[work_group_id]] const uint3 group_id,
                    [[global_invocation_id]] const uint3 global_id,
                    [[local_invocation_index]] const uint local_index)
@@ -62,13 +61,13 @@ void tile_classify([[resource_table]] TileClassify &srt,
 
   int2 texel = int2(global_id.xy);
 
-  bool valid_texel = in_texture_range(texel, gbuf_header_tx);
+  bool valid_texel = in_texture_range(texel, reader.gbuf_header_tx);
 
   if (valid_texel) {
-    gbuffer::Header header = gbuffer::read_header(texel);
+    gbuffer::Header header = reader.read_header(texel);
 
     for (uchar i = 0; i < GBUFFER_LAYER_MAX; i++) {
-      ClosureUndetermined cl = gbuffer::read_bin(header, texel, i);
+      ClosureUndetermined cl = reader.read_bin(header, texel, i);
       if (cl.type == CLOSURE_NONE_ID) {
         continue;
       }

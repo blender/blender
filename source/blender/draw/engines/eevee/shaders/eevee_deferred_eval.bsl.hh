@@ -13,7 +13,6 @@
 
 FRAGMENT_SHADER_CREATE_INFO(draw_view)
 FRAGMENT_SHADER_CREATE_INFO(draw_object_infos)
-FRAGMENT_SHADER_CREATE_INFO(eevee_gbuffer_data)
 FRAGMENT_SHADER_CREATE_INFO(eevee_utility_texture)
 
 #include "draw_view_lib.glsl"
@@ -74,7 +73,6 @@ PipelineGraphic aov_clear(fullscreen_vert, aov_clear_frag);
  * \{ */
 
 struct LightEval {
-  [[legacy_info]] ShaderCreateInfo eevee_gbuffer_data;
   [[legacy_info]] ShaderCreateInfo eevee_utility_texture;
   [[legacy_info]] ShaderCreateInfo draw_object_infos;
   [[legacy_info]] ShaderCreateInfo draw_view;
@@ -132,6 +130,7 @@ void light_eval_frag([[resource_table]] LightEval &srt,
                      [[resource_table]] LightEvalIterator &lights,
                      [[resource_table]] const LightprobeRenderData &lightprobes,
                      [[resource_table]] const HiZ &hiz,
+                     [[resource_table]] const gbuffer::Reader &reader,
                      [[resource_table]] RenderPassOutput &render_passes,
                      [[frag_coord]] const float4 frag_co,
                      [[in]] const VertOut v_out)
@@ -145,8 +144,8 @@ void light_eval_frag([[resource_table]] LightEval &srt,
   constexpr float bias = 2.4e-7f;
 
   const float depth = texelFetch(hiz.hiz_tx, texel, 0).r - bias;
-  const gbuffer::Layers gbuf = gbuffer::read_layers(texel);
-  const Thickness thickness = gbuffer::read_thickness(gbuf.header, texel);
+  const gbuffer::Layers gbuf = reader.read_layers(texel);
+  const Thickness thickness = reader.read_thickness(gbuf.header, texel);
   const uchar closure_count = gbuf.header.closure_len();
 
   const float3 P = drw_point_screen_to_world(float3(v_out.screen_uv, depth));
@@ -171,7 +170,7 @@ void light_eval_frag([[resource_table]] LightEval &srt,
   ctx.terminator_normal_offset = 0.0f;
   ctx.terminator_geometry_offset = 0.0f;
   if (gbuf.header.use_object_id()) {
-    uint object_id = gbuffer::read_object_id(texel);
+    uint object_id = reader.read_object_id(texel);
     ObjectInfos object_infos = drw_infos[object_id];
     ctx.receiver_light_set = receiver_light_set_get(object_infos);
     ctx.terminator_normal_offset = object_infos.shadow_terminator_normal_offset;
@@ -267,7 +266,6 @@ void light_eval_frag([[resource_table]] LightEval &srt,
 struct SphereProbeEval {
   [[legacy_info]] ShaderCreateInfo draw_view;
   [[legacy_info]] ShaderCreateInfo draw_object_infos;
-  [[legacy_info]] ShaderCreateInfo eevee_gbuffer_data;
   [[legacy_info]] ShaderCreateInfo eevee_utility_texture;
 };
 
@@ -279,6 +277,7 @@ void sphere_eval_frag([[resource_table]] SphereProbeEval & /*srt*/,
                       [[resource_table]] const Sampling &sampling,
                       [[resource_table]] const LightprobeVolumeRenderData &lightprobes,
                       [[resource_table]] const HiZ &hiz,
+                      [[resource_table]] const gbuffer::Reader &reader,
                       [[frag_coord]] const float4 frag_co,
                       [[in]] const VertOut v_out,
                       [[out]] FragOut &frag_out)
@@ -287,7 +286,7 @@ void sphere_eval_frag([[resource_table]] SphereProbeEval & /*srt*/,
 
   float depth = texelFetch(hiz.hiz_tx, texel, 0).r;
 
-  const gbuffer::Layers gbuf = gbuffer::read_layers(texel);
+  const gbuffer::Layers gbuf = reader.read_layers(texel);
 
   if (gbuf.has_no_closure()) {
     frag_out.radiance = float4(0.0f);
@@ -295,7 +294,7 @@ void sphere_eval_frag([[resource_table]] SphereProbeEval & /*srt*/,
   }
 
   const uchar closure_count = gbuf.header.closure_len();
-  const Thickness thickness = gbuffer::read_thickness(gbuf.header, texel);
+  const Thickness thickness = reader.read_thickness(gbuf.header, texel);
 
   float3 albedo_front = float3(0.0f);
   float3 albedo_back = float3(0.0f);
@@ -347,7 +346,7 @@ void sphere_eval_frag([[resource_table]] SphereProbeEval & /*srt*/,
   ctx.terminator_normal_offset = 0.0f;
   ctx.terminator_geometry_offset = 0.0f;
   if (gbuf.header.use_object_id()) {
-    uint object_id = gbuffer::read_object_id(texel);
+    uint object_id = reader.read_object_id(texel);
     ObjectInfos object_infos = drw_infos[object_id];
     ctx.receiver_light_set = receiver_light_set_get(object_infos);
     ctx.terminator_normal_offset = object_infos.shadow_terminator_normal_offset;
@@ -384,7 +383,6 @@ struct PlanarProbeEval {
 
   [[legacy_info]] ShaderCreateInfo draw_view;
   [[legacy_info]] ShaderCreateInfo draw_object_infos;
-  [[legacy_info]] ShaderCreateInfo eevee_gbuffer_data;
   [[legacy_info]] ShaderCreateInfo eevee_utility_texture;
 };
 
@@ -394,6 +392,7 @@ void planar_eval_frag([[resource_table]] PlanarProbeEval & /*srt*/,
                       [[resource_table]] const LightprobeRenderData &lightprobes,
                       [[resource_table]] const Sampling &sampling,
                       [[resource_table]] const HiZ &hiz,
+                      [[resource_table]] const gbuffer::Reader &reader,
                       [[frag_coord]] const float4 frag_co,
                       [[in]] const VertOut v_out,
                       [[out]] FragOut &frag_out)
@@ -402,9 +401,9 @@ void planar_eval_frag([[resource_table]] PlanarProbeEval & /*srt*/,
 
   float depth = texelFetch(hiz.hiz_tx, texel, 0).r;
 
-  const gbuffer::Layers gbuf = gbuffer::read_layers(texel);
+  const gbuffer::Layers gbuf = reader.read_layers(texel);
   const uchar closure_count = gbuf.header.closure_len();
-  const Thickness thickness = gbuffer::read_thickness(gbuf.header, texel);
+  const Thickness thickness = reader.read_thickness(gbuf.header, texel);
 
   float3 albedo_front = float3(0.0f);
   float3 albedo_back = float3(0.0f);
@@ -503,7 +502,7 @@ void planar_eval_frag([[resource_table]] PlanarProbeEval & /*srt*/,
   ctx.terminator_normal_offset = 0.0f;
   ctx.terminator_geometry_offset = 0.0f;
   if (gbuf.header.use_object_id()) {
-    uint object_id = gbuffer::read_object_id(texel);
+    uint object_id = reader.read_object_id(texel);
     ObjectInfos object_infos = drw_infos[object_id];
     ctx.receiver_light_set = receiver_light_set_get(object_infos);
     ctx.terminator_normal_offset = object_infos.shadow_terminator_normal_offset;

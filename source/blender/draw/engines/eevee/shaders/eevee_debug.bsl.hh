@@ -595,19 +595,19 @@ namespace eevee::debug::gbuffer {
 
 struct Resources {
   [[legacy_info]] ShaderCreateInfo draw_view;
-  [[legacy_info]] ShaderCreateInfo eevee_gbuffer_data;
 
   [[push_constant]] const int debug_mode;
 };
 
 [[fragment]]
 void frag_main([[resource_table]] Resources &srt,
+               [[resource_table]] const ::gbuffer::Reader &reader,
                [[frag_coord]] const float4 frag_co,
                [[out]] DualBlendFragOut &frag_out)
 {
   int2 texel = int2(frag_co.xy);
 
-  const ::gbuffer::Layers gbuf = ::gbuffer::read_layers(texel);
+  const ::gbuffer::Layers gbuf = reader.read_layers(texel);
 
   if (gbuf.has_no_closure()) {
     gpu_discard_fragment();
@@ -616,7 +616,7 @@ void frag_main([[resource_table]] Resources &srt,
 
   float shade = saturate(drw_normal_world_to_view(gbuf.surface_N()).z);
 
-  ::gbuffer::Header header = ::gbuffer::read_header(texel);
+  ::gbuffer::Header header = reader.read_header(texel);
   uint4 closure_types = (uint4(header.raw()) >> uint4(0u, 4u, 8u, 12u)) & 15u;
   float storage_cost = reduce_add(float4(not(equal(closure_types, uint4(0u)))));
 
