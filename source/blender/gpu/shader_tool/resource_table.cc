@@ -98,7 +98,7 @@ void SourceProcessor::lower_srt_member_access(Parser &parser)
     string srt_var(var.str());
 
     body_scope.foreach_match("A.A", [&](const vector<Token> toks) {
-      if (toks[0].str() != srt_var) {
+      if (toks[0].str() != srt_var || toks[0].prev() == '.') {
         return;
       }
       parser.replace(
