@@ -107,7 +107,7 @@ void VKContext::sync_backbuffer()
       GCaps.hdr_viewport_support = (swap_chain_format_.format == VK_FORMAT_R16G16B16A16_SFLOAT) &&
                                    ELEM(swap_chain_format_.colorSpace,
                                         VK_COLOR_SPACE_EXTENDED_SRGB_LINEAR_EXT,
-                                        VK_COLOR_SPACE_SRGB_NONLINEAR_KHR);
+                                        VK_COLOR_SPACE_PASS_THROUGH_EXT);
     }
   }
 }
