@@ -102,10 +102,11 @@ void combine_frag([[resource_table]] Combine &srt,
                   [[resource_table]] const Uniform &uni,
                   [[resource_table]] const HiZ &hiz,
                   [[resource_table]] const ::gbuffer::Reader &reader,
+                  [[frag_coord]] const float4 frag_co,
                   [[in]] const CombineVertOut &v_out,
                   [[out]] CombineFragOut &frag_out)
 {
-  int2 texel = int2(gl_FragCoord.xy);
+  int2 texel = int2(frag_co.xy);
 
   const gbuffer::Layers gbuf = reader.read_layers(texel);
   const uchar closure_count = gbuf.header.closure_len();

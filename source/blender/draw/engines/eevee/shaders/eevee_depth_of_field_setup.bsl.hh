@@ -38,9 +38,7 @@ struct Resources {
 };
 
 [[compute, local_size(DOF_DEFAULT_GROUP_SIZE, DOF_DEFAULT_GROUP_SIZE)]]
-void comp_main([[resource_table]] Resources &srt,
-               [[global_invocation_id]] const uint3 global_id,
-               [[local_invocation_id]] const uint3 local_id)
+void comp_main([[resource_table]] Resources &srt, [[global_invocation_id]] const uint3 global_id)
 {
   float2 fullres_texel_size = 1.0f / float2(textureSize(srt.color_tx, 0).xy);
   /* Center uv around the 4 full-resolution pixels. */

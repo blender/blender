@@ -152,9 +152,9 @@ struct Convolve {
     cached_depth[texel.y][texel.x] = reverse_z::read(texture(depth_tx, local_uv).r);
   }
 
-  bool cache_sample(uint2 texel, SubSurfaceSample &samp) const
+  bool cache_sample(uint2 texel, uint3 group_id, SubSurfaceSample &samp) const
   {
-    uint2 tile_coord = unpackUvec2x16(tiles_coord_buf[gl_WorkGroupID.x]);
+    uint2 tile_coord = unpackUvec2x16(tiles_coord_buf[group_id.x]);
     /* This can underflow and allow us to only do one upper bound check. */
     texel -= tile_coord * SUBSURFACE_GROUP_SIZE;
     if (any(greaterThanEqual(texel, uint2(SUBSURFACE_GROUP_SIZE)))) {
@@ -166,11 +166,11 @@ struct Convolve {
     return true;
   }
 
-  SubSurfaceSample sample_neighborhood(float2 sample_uv) const
+  SubSurfaceSample sample_neighborhood(float2 sample_uv, uint3 group_id) const
   {
     SubSurfaceSample samp;
     uint2 sample_texel = uint2(sample_uv * float2(textureSize(depth_tx, 0)));
-    if (cache_sample(sample_texel, samp)) {
+    if (cache_sample(sample_texel, group_id, samp)) {
       return samp;
     }
     samp.depth = reverse_z::read(texture(depth_tx, sample_uv).r);
@@ -239,7 +239,7 @@ void convolve_main([[resource_table]] Convolve &srt,
     float2 sample_uv = center_uv + sample_space * srt.subsurface_buf.samples[i].xy;
     float pdf_inv = srt.subsurface_buf.samples[i].z;
 
-    SubSurfaceSample samp = srt.sample_neighborhood(sample_uv);
+    SubSurfaceSample samp = srt.sample_neighborhood(sample_uv, group_id);
     /* Reject radiance from other surfaces. Avoids light leak between objects. */
     if (samp.sss_id != object_id) {
       continue;

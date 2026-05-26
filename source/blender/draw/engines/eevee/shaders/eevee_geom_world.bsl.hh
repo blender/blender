@@ -31,7 +31,7 @@ struct GeomWorld {
 };
 
 [[vertex]] [[clip_control]] void geom_world([[resource_table]] const GeomWorld & /*srt*/,
-                                            [[resource_table]] const Uniform &uni,
+                                            [[resource_table]] const Uniform & /*uni*/,
                                             [[vertex_id]] const int vert_id,
                                             [[position]] float4 &out_position)
 {

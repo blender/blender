@@ -53,10 +53,11 @@ void trace([[resource_table]] Resources &srt,
            [[resource_table]] const Uniform &uni,
            [[resource_table]] const Sampling &sampling,
            [[resource_table]] const gbuffer::Reader &reader,
+           [[work_group_id]] const uint3 group_id,
            [[local_invocation_id]] const uint3 local_id)
 {
   constexpr uint tile_size = RAYTRACE_GROUP_SIZE;
-  uint2 tile_coord = unpackUvec2x16(srt.tiles_coord_buf[gl_WorkGroupID.x]);
+  uint2 tile_coord = unpackUvec2x16(srt.tiles_coord_buf[group_id.x]);
   int2 texel = int2(local_id.xy + tile_coord * tile_size);
 
   /* Check whether texel is out of bounds for all cases, so we can utilize fast

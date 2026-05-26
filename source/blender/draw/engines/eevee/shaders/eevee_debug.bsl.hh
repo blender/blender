@@ -553,15 +553,16 @@ float3 debug_random_color(int v)
 
 [[fragment]]
 void frag_main([[resource_table]] const Resources &srt,
+               [[front_facing]] const bool front_face,
                [[in]] const VertOut &v_out,
                [[out]] FragOut &frag_out)
 {
   Surfel surfel = srt.surfels_buf[v_out.surfel_index];
 
   float4 radiance_vis = float4(0.0f);
-  radiance_vis += gl_FrontFacing ? surfel.radiance_direct.front : surfel.radiance_direct.back;
-  radiance_vis += gl_FrontFacing ? surfel.radiance_indirect[1].front :
-                                   surfel.radiance_indirect[1].back;
+  radiance_vis += front_face ? surfel.radiance_direct.front : surfel.radiance_direct.back;
+  radiance_vis += front_face ? surfel.radiance_indirect[1].front :
+                               surfel.radiance_indirect[1].back;
 
   switch (eDebugMode(srt.debug_mode)) {
     default:

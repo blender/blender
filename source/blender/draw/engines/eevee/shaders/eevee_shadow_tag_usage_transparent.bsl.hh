@@ -145,6 +145,7 @@ float nextafter(float value)
 [[vertex]]
 void tag_usage_vert([[resource_table]] TagUsageTransparent &srt,
                     [[resource_table]] TagUsage & /*tag*/,
+                    [[vertex_id]] [[maybe_unused]] const int vert_id,
                     [[in]] const VertIn &v_in,
                     [[out]] VertOut &v_out,
                     [[position]] float4 &out_position)
@@ -192,7 +193,7 @@ void tag_usage_vert([[resource_table]] TagUsageTransparent &srt,
   out_position = drw_point_world_to_homogenous(v_out.P);
 
 #if 0
-  if (gl_VertexID == 0) {
+  if (vert_id == 0) {
     Box debug_box = shape_box(
         ls_conservative_min,
         ls_conservative_min + (ls_conservative_max - ls_conservative_min) * float3(1, 0, 0),

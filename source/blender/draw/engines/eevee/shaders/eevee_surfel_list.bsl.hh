@@ -107,9 +107,10 @@ struct Resources {
  * Dispatched as 1 thread per surfel list.
  */
 [[compute]] [[local_size(SURFEL_GROUP_SIZE)]] [[texture_atomic]]
-void prefix_sum_comp([[resource_table]] Resources &srt)
+void prefix_sum_comp([[resource_table]] Resources &srt,
+                     [[global_invocation_id]] const uint3 global_id)
 {
-  const int list_id = int(gl_GlobalInvocationID.x);
+  const int list_id = int(global_id.x);
   if (list_id >= srt.list_info_buf.list_max) {
     return;
   }

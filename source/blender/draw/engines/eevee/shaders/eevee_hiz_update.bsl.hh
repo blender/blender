@@ -168,12 +168,12 @@ void update_main([[resource_table]] Update &srt,
   /* Reset for next dispatch. */
   srt.finished_tile_counter = 0u;
 
-  int2 iter = divide_ceil(imageSize(srt.out_mip_5), int2(gl_WorkGroupSize.xy * 2u));
+  int2 iter = divide_ceil(imageSize(srt.out_mip_5), int2(HIZ_GROUP_SIZE * 2u));
   int2 image_border = imageSize(srt.out_mip_5) - 1;
   for (int y = 0; y < iter.y; y++) {
     for (int x = 0; x < iter.x; x++) {
       /* Load result of the other work groups. */
-      kernel_origin = int2(gl_WorkGroupSize.xy) * int2(x, y);
+      kernel_origin = int2(HIZ_GROUP_SIZE) * int2(x, y);
       src_px = int2(kernel_origin + local_px) * 2;
       float4 samp;
       samp.x = imageLoadFast(srt.out_mip_5, min(src_px + int2(0, 1), image_border)).x;

@@ -47,9 +47,7 @@ struct Resources {
 void comp_main([[resource_table]] Resources &srt,
                [[resource_table]] Gather &gather,
                [[resource_table]] const Tiles &tiles,
-               [[global_invocation_id]] const uint3 global_id,
-               [[local_invocation_id]] const uint3 local_id,
-               [[local_invocation_index]] const uint local_index)
+               [[global_invocation_id]] const uint3 global_id)
 {
   [[resource_table]] Accumulator &accum = gather.accumulator;
 
@@ -151,9 +149,7 @@ namespace hole_fill {
 [[compute, local_size(DOF_GATHER_GROUP_SIZE, DOF_GATHER_GROUP_SIZE)]]
 void comp_main([[resource_table]] Gather &gather,
                [[resource_table]] const Tiles &tiles,
-               [[global_invocation_id]] const uint3 global_id,
-               [[local_invocation_id]] const uint3 local_id,
-               [[local_invocation_index]] const uint local_index)
+               [[global_invocation_id]] const uint3 global_id)
 {
   [[resource_table]] Accumulator &accum = gather.accumulator;
 

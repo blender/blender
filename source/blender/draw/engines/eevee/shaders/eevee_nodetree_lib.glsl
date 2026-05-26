@@ -242,10 +242,12 @@ float ambient_occlusion_eval([[maybe_unused]] float3 normal,
 {
   FRAGMENT_SHADER_CREATE_INFO(draw_view);
 
-  [[resource_table]] const eevee::Sampling &samp = resource_table_get(eevee::Sampling);
-  [[resource_table]] const UtilityTexture &util_tx = resource_table_get(UtilityTexture);
-  [[resource_table]] const eevee::HiZ &hiz = resource_table_get(eevee::HiZ);
-  [[resource_table]] const eevee::Uniform &uni = resource_table_get(eevee::Uniform);
+  /* clang-format off */ /* Multiline macros would break line count. */
+  [[resource_table]] [[maybe_unused]] const eevee::Sampling &samp = resource_table_get(eevee::Sampling);
+  [[resource_table]] [[maybe_unused]] const UtilityTexture &util_tx = resource_table_get(UtilityTexture);
+  [[resource_table]] [[maybe_unused]] const eevee::HiZ &hiz = resource_table_get(eevee::HiZ);
+  [[resource_table]] [[maybe_unused]] const eevee::Uniform &uni = resource_table_get(eevee::Uniform);
+  /* clang-format on */
 
   {
 #if defined(GPU_FRAGMENT_SHADER) && defined(MAT_AMBIENT_OCCLUSION) && !defined(MAT_DEPTH) && \

@@ -210,7 +210,7 @@ struct ZBinning {
 [[compute, local_size(CULLING_ZBIN_GROUP_SIZE)]]
 void zbin_main([[resource_table]] ZBinning &srt, [[local_invocation_id]] const uint3 local_id)
 {
-  constexpr uint zbin_iter = CULLING_ZBIN_COUNT / gl_WorkGroupSize.x;
+  constexpr uint zbin_iter = CULLING_ZBIN_COUNT / CULLING_ZBIN_GROUP_SIZE;
   const uint zbin_local = local_id.x * zbin_iter;
 
   for (uint i = 0u, l = zbin_local; i < zbin_iter; i++, l++) {
@@ -219,9 +219,9 @@ void zbin_main([[resource_table]] ZBinning &srt, [[local_invocation_id]] const u
   }
   barrier();
 
-  uint light_iter = divide_ceil(srt.light_cull_buf.visible_count, gl_WorkGroupSize.x);
+  uint light_iter = divide_ceil(srt.light_cull_buf.visible_count, uint(CULLING_ZBIN_GROUP_SIZE));
   for (uint i = 0u; i < light_iter; i++) {
-    uint index = i * gl_WorkGroupSize.x + local_id.x;
+    uint index = i * CULLING_ZBIN_GROUP_SIZE + local_id.x;
     if (index >= srt.light_cull_buf.visible_count) {
       continue;
     }

@@ -416,7 +416,7 @@ void irradiance_sum([[resource_table]] IrradianceSum &srt,
   uint valid_data_len = uint(srt.probe_remap_dispatch_size.x * srt.probe_remap_dispatch_size.y);
   constexpr uint iter_count = uint(SPHERE_PROBE_MAX_HARMONIC) / group_size;
   for (uint i = 0; i < iter_count; i++) {
-    uint index = gl_WorkGroupSize.x * i + local_index;
+    uint index = SPHERE_PROBE_SH_GROUP_SIZE * i + local_index;
     if (index >= valid_data_len) {
       break;
     }

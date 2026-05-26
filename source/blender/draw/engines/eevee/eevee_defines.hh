@@ -209,19 +209,6 @@
 #define UTIL_DISK_INTEGRAL_LAYER UTIL_SSS_TRANSMITTANCE_PROFILE_LAYER
 #define UTIL_DISK_INTEGRAL_COMP 3
 
-/* Could be somewhere else. */
-#ifdef GPU_SHADER
-#  if defined(GPU_FRAGMENT_SHADER)
-#    define UTIL_TEXEL float2(gl_FragCoord.xy)
-#  elif defined(GPU_COMPUTE_SHADER)
-#    define UTIL_TEXEL float2(gl_GlobalInvocationID.xy)
-#  elif defined(GPU_VERTEX_SHADER)
-#    define UTIL_TEXEL float2(gl_VertexID, 0)
-#  elif defined(GPU_LIBRARY_SHADER)
-#    define UTIL_TEXEL float2(0)
-#  endif
-#endif
-
 #define PREPASS_FRAG_OUT_NORMAL 0
 #define PREPASS_FRAG_OUT_OB_ID 1
 #define PREPASS_FRAG_OUT_VELOCITY 2
