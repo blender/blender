@@ -7331,19 +7331,9 @@ std::string RNA_property_as_string(
       }
       break;
     case PROP_STRING: {
-      char *buf_esc;
-      char *buf;
-      int length;
-
-      length = RNA_property_string_length(ptr, prop);
-      buf = MEM_new_array_uninitialized<char>(size_t(length) + 1, "RNA_property_as_string");
-      buf_esc = MEM_new_array_uninitialized<char>(size_t(length) * 2 + 1,
-                                                  "RNA_property_as_string esc");
-      RNA_property_string_get(ptr, prop, buf);
-      BLI_str_escape(buf_esc, buf, length * 2 + 1);
-      MEM_delete(buf);
-      ss << fmt::format("\"{}\"", buf_esc);
-      MEM_delete(buf_esc);
+      const std::string str_value = RNA_property_string_get(ptr, prop);
+      const std::string escaped = BLI_str_escape(str_value.c_str());
+      ss << fmt::format("\"{}\"", escaped.c_str());
       break;
     }
     case PROP_ENUM: {
