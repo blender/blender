@@ -334,7 +334,7 @@ static short summary_keyframes_loop(KeyframeEditData *ked,
   }
 
   /* get F-Curves to take keyframes from */
-  filter = ANIMFILTER_DATA_VISIBLE;
+  filter = ANIMFILTER_DATA_VISIBLE | ANIMFILTER_NODUPLIS;
   ANIM_animdata_filter(
       ac, &anim_data, eAnimFilter_Flags(filter), ac->data, eAnimCont_Types(ac->datatype));
 
