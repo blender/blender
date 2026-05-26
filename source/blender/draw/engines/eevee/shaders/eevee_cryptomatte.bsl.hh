@@ -23,6 +23,23 @@ float4 false_color(float hash)
 
 namespace eevee {
 
+struct CryptomatteOutput {
+  /* Buffer containing per object cryptomatte hash.
+   * Indexed by `resource_id`. */
+  [[storage(CRYPTOMATTE_BUF_SLOT, read)]] const float2 (&cryptomatte_object_buf)[];
+
+  [[image(RBUFS_CRYPTOMATTE_SLOT, write, SFLOAT_32_32_32_32)]] image2D rp_cryptomatte_img;
+
+  void store(int2 texel, float material_hash, uint resource_id)
+  {
+    if (imageSize(rp_cryptomatte_img).x > 1) {
+      imageStoreFast(rp_cryptomatte_img,
+                     texel,
+                     float4(cryptomatte_object_buf[resource_id], material_hash, 0.0f));
+    }
+  }
+};
+
 struct Cryptomatte {
   [[image(7, read_write, SFLOAT_32_32_32_32)]] image2DArray cryptomatte_img;
 

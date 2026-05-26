@@ -14,10 +14,10 @@
 #include "infos/eevee_nodetree_infos.hh"
 
 FRAGMENT_SHADER_CREATE_INFO(eevee_nodetree)
-FRAGMENT_SHADER_CREATE_INFO(eevee_cryptomatte_out)
 
 #include "draw_curves_lib.glsl" /* IWYU pragma: export. For nodetree functions. */
 #include "draw_view_lib.glsl"   /* IWYU pragma: export. For nodetree functions. */
+#include "eevee_cryptomatte.bsl.hh"
 #include "eevee_gbuffer_write.bsl.hh"
 #include "eevee_nodetree_frag_lib.glsl"
 #include "eevee_sampling_lib.bsl.hh"
@@ -43,8 +43,6 @@ float4 closure_to_rgba(Closure /*cl*/)
 namespace eevee {
 
 struct SurfaceDeferred {
-  [[legacy_info]] ShaderCreateInfo eevee_cryptomatte_out;
-
   [[legacy_info]] ShaderCreateInfo eevee_global_ubo;
   [[legacy_info]] ShaderCreateInfo eevee_utility_texture;
   [[legacy_info]] ShaderCreateInfo draw_view_culling;
@@ -95,6 +93,7 @@ void surf_deferred([[resource_table]] PipelineConstants &pipe,
                    [[resource_table]] SurfaceDeferred &srt,
                    [[resource_table]] gbuffer::PackParameters &gbuf_params,
                    [[resource_table]] RenderPassOutput &render_passes,
+                   [[resource_table]] CryptomatteOutput &cryptomatte,
                    [[resource_table]] const Sampling &sampling,
                    [[frag_coord]] const float4 frag_co,
                    [[out]] DeferredFragOut &frag_out,
@@ -138,14 +137,12 @@ void surf_deferred([[resource_table]] PipelineConstants &pipe,
   /* ----- Render Passes output ----- */
 
   /* Some render pass can be written during the gbuffer pass. Light passes are written later. */
-  if (imageSize(rp_cryptomatte_img).x > 1) {
+  {
     const auto &nt = buffer_get(eevee_nodetree, node_tree);
-    float4 cryptomatte_output = float4(
-        cryptomatte_object_buf[drw_resource_id()], nt.crypto_hash, 0.0f);
-    imageStoreFast(rp_cryptomatte_img, out_texel, cryptomatte_output);
+    cryptomatte.store(out_texel, nt.crypto_hash, drw_resource_id());
+    render_passes.store_color(
+        out_texel, uniform_buf.render_pass.emission_id, float4(g_emission, 1.0f));
   }
-  render_passes.store_color(
-      out_texel, uniform_buf.render_pass.emission_id, float4(g_emission, 1.0f));
 
   /* ----- GBuffer output ----- */
 

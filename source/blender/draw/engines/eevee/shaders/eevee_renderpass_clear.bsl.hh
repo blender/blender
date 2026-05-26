@@ -11,16 +11,12 @@
 #include "infos/eevee_common_infos.hh"
 
 FRAGMENT_SHADER_CREATE_INFO(eevee_global_ubo)
-FRAGMENT_SHADER_CREATE_INFO(eevee_cryptomatte_out)
 
+#include "eevee_cryptomatte.bsl.hh"
 #include "eevee_renderpass.bsl.hh"
 #include "gpu_shader_fullscreen_lib.glsl"
 
 namespace eevee {
-
-struct RenderPassClear {
-  [[legacy_info]] ShaderCreateInfo eevee_cryptomatte_out;
-};
 
 struct RenderPassClearFragOut {
   [[frag_color(0)]] float4 background;
@@ -33,7 +29,7 @@ void renderpass_clear_vert([[vertex_id]] const int vert_id, [[position]] float4 
 }
 
 [[fragment]]
-void renderpass_clear_frag([[resource_table]] RenderPassClear & /*srt*/,
+void renderpass_clear_frag([[resource_table]] CryptomatteOutput &cryptomatte,
                            [[resource_table]] RenderPassOutput &render_passes,
                            [[frag_coord]] const float4 frag_co,
                            [[out]] RenderPassClearFragOut &frag_out)
@@ -56,7 +52,7 @@ void renderpass_clear_frag([[resource_table]] RenderPassClear & /*srt*/,
   render_passes.store_value(texel, uniform_buf.render_pass.shadow_id, 1.0f);
   /** NOTE: AO is done on its own pass. */
 
-  imageStoreFast(rp_cryptomatte_img, texel, float4(0.0f));
+  imageStoreFast(cryptomatte.rp_cryptomatte_img, texel, float4(0.0f));
 }
 
 PipelineGraphic renderpass_clear(renderpass_clear_vert, renderpass_clear_frag);

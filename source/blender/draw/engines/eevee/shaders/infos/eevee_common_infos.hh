@@ -27,11 +27,6 @@ GPU_SHADER_CREATE_INFO(eevee_utility_texture)
 SAMPLER(RBUFS_UTILITY_TEX_SLOT, sampler2DArray, utility_tx)
 GPU_SHADER_CREATE_END()
 
-GPU_SHADER_CREATE_INFO(eevee_cryptomatte_out)
-STORAGE_BUF(CRYPTOMATTE_BUF_SLOT, read, float2, cryptomatte_object_buf[])
-IMAGE_FREQ(RBUFS_CRYPTOMATTE_SLOT, SFLOAT_32_32_32_32, write, image2D, rp_cryptomatte_img, PASS)
-GPU_SHADER_CREATE_END()
-
 GPU_SHADER_CREATE_INFO(eevee_raycast)
 DEFINE("MAT_RAYCAST")
 SAMPLER(RAYCAST_DEPTH_TEX_SLOT, sampler2D, raycast_depth_tx)
