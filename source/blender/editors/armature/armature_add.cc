@@ -1985,8 +1985,8 @@ static wmOperatorStatus armature_bone_primitive_add_exec(bContext *C, wmOperator
   }
 
   /* Disable Deform if applicable. */
-  const bool deform = RNA_boolean_get(op->ptr, "deform");
-  if (!deform) {
+  const bool use_deform = RNA_boolean_get(op->ptr, "use_deform");
+  if (!use_deform) {
     bone->flag |= BONE_NO_DEFORM;
   }
 
@@ -2079,7 +2079,7 @@ void ARMATURE_OT_bone_primitive_add(wmOperatorType *ot)
                 "Length of the new bone",
                 0.001f,
                 100.0f);
-  RNA_def_boolean(ot->srna, "deform", true, "Enable Deform", "Enable bone to deform geometry");
+  RNA_def_boolean(ot->srna, "use_deform", true, "Deform", "Enable bone to deform geometry");
 }
 
 /* ********************** Subdivide *******************************/
