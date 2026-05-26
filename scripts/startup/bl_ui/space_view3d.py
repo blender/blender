@@ -9089,7 +9089,7 @@ class TOPBAR_PT_grease_pencil_vertex_color(Panel):
         row = layout.row(align=True)
         row.template_ID(paint, "palette", new="palette.new")
         if paint.palette:
-            layout.template_palette(paint, "palette", color=True)
+            layout.template_palette(paint, "palette")
 
         gp_settings = brush.gpencil_settings
         if brush.gpencil_brush_type in {'DRAW', 'FILL'}:

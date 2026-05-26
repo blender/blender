@@ -2455,7 +2455,7 @@ class _defs_grease_pencil_paint:
                 row = col.row(align=True)
                 row.template_ID(settings, "palette", new="palette.new")
                 if settings.palette:
-                    col.template_palette(settings, "palette", color=True)
+                    col.template_palette(settings, "palette")
 
         return dict(
             idname="builtin.eyedropper",
