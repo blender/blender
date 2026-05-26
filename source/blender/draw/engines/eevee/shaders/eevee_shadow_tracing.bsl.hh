@@ -16,7 +16,6 @@
 #include "eevee_thickness_lib.bsl.hh"
 #include "eevee_uniform.bsl.hh"
 #include "gpu_shader_math_base_lib.glsl"
-#include "gpu_shader_math_fast_lib.glsl"
 #include "gpu_shader_math_vector_safe_lib.glsl"
 #include "gpu_shader_ray_utils_lib.glsl"
 

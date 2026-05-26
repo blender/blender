@@ -8,8 +8,6 @@
 
 #pragma once
 
-#include "infos/eevee_common_infos.hh"
-
 #include "eevee_cryptomatte.bsl.hh"
 #include "eevee_renderpass.bsl.hh"
 #include "gpu_shader_fullscreen_lib.glsl"

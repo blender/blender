@@ -4,8 +4,6 @@
 
 #pragma once
 
-#include "infos/eevee_common_infos.hh"
-
 #include "draw_view_lib.glsl"
 #include "eevee_camera_shared.hh"
 #include "eevee_defines.hh"

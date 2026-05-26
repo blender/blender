@@ -9,6 +9,7 @@
 #include "eevee_sampling_lib.bsl.hh"
 #include "eevee_spherical_harmonics.bsl.hh"
 #include "gpu_shader_math_base_lib.glsl"
+#include "gpu_shader_math_vector_lib.glsl"
 #include "gpu_shader_utildefines_lib.glsl"
 
 namespace eevee::lightprobe::volume {

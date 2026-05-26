@@ -6,7 +6,6 @@
 
 #include "draw_math_geom_lib.glsl"
 #include "draw_view_lib.glsl"
-#include "gpu_shader_math_matrix_transform_lib.glsl"
 #include "gpu_shader_math_safe_lib.glsl"
 #include "gpu_shader_ray_lib.glsl"
 

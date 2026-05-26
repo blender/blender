@@ -9,7 +9,7 @@
 #pragma once
 
 #include "draw_object_infos_infos.hh"
-#include "infos/eevee_common_infos.hh"
+#include "draw_view_infos.hh"
 
 FRAGMENT_SHADER_CREATE_INFO(draw_view)
 FRAGMENT_SHADER_CREATE_INFO(draw_object_infos)

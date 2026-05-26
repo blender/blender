@@ -6,13 +6,9 @@
 
 /**
  * Various utilities related to object subsurface light transport.
- *
- * Required resources:
- * - utility_tx
  */
 
-#include "infos/eevee_common_infos.hh"
-
+#include "eevee_subsurface_shared.hh"
 #include "eevee_utility_tx.bsl.hh"
 #include "gpu_shader_utildefines_lib.glsl"
 

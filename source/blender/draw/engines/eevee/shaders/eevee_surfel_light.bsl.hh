@@ -8,7 +8,7 @@
 
 #pragma once
 
-#include "infos/eevee_common_infos.hh"
+#include "draw_view_infos.hh"
 
 #ifdef GLSL_CPP_STUBS
 #  define LIGHT_ITER_FORCE_NO_CULLING

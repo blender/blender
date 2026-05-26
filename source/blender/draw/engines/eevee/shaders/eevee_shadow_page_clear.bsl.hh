@@ -6,7 +6,7 @@
 
 #include "eevee_defines.hh"
 #include "eevee_shadow_shared.hh"
-#include "gpu_shader_utildefines_lib.glsl"
+#include "gpu_shader_utildefines_lib.glsl" /* IWYU pragma: export FLT_MAX */
 
 namespace eevee::shadow {
 

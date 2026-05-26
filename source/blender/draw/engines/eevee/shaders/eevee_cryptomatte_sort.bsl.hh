@@ -5,8 +5,6 @@
 #pragma once
 
 #include "eevee_uniform.bsl.hh"
-#include "infos/eevee_common_infos.hh"
-
 #include "gpu_shader_math_base_lib.glsl"
 
 namespace eevee::cryptomatte {

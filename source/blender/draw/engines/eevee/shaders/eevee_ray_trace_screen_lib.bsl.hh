@@ -22,6 +22,7 @@
 #include "eevee_thickness_lib.bsl.hh"
 #include "gpu_shader_codegen_lib.glsl"
 #include "gpu_shader_math_fast_lib.glsl"
+#include "gpu_shader_math_matrix_transform_lib.glsl"
 
 /* Inputs expected to be in view-space. */
 void raytrace_clip_ray_to_near_plane(Ray &ray)

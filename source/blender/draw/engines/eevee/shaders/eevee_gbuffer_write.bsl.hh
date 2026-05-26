@@ -20,8 +20,6 @@
  * without dealing with none-closures.
  */
 
-#include "infos/eevee_common_infos.hh"
-
 #include "eevee_gbuffer_types.bsl.hh"
 #include "eevee_sampling_lib.bsl.hh"
 

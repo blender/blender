@@ -4,8 +4,6 @@
 
 #pragma once
 
-#include "infos/eevee_common_infos.hh"
-
 #include "draw_shape_lib.glsl"
 #include "eevee_light_shared.hh"
 #include "eevee_shadow_shared.hh"

@@ -8,13 +8,13 @@
 
 #pragma once
 
-#include "eevee_hiz.bsl.hh"
-#include "infos/eevee_common_infos.hh"
+#include "draw_view_infos.hh"
 
 SHADER_LIBRARY_CREATE_INFO(draw_view)
 
 #include "draw_view_lib.glsl"
 #include "eevee_gbuffer_types.bsl.hh"
+#include "eevee_hiz.bsl.hh"
 #include "eevee_light_data.bsl.hh"
 #include "eevee_light_iter.bsl.hh"
 #include "eevee_light_lib.bsl.hh"

@@ -10,7 +10,6 @@
  * One is for the half-resolution gather passes and the other one for slight in focus regions.
  */
 
-#include "draw_view_lib.glsl"
 #include "eevee_colorspace_lib.bsl.hh"
 #include "eevee_depth_of_field_lib.bsl.hh"
 #include "eevee_reverse_z_lib.bsl.hh"

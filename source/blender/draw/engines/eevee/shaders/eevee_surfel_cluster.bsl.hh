@@ -4,7 +4,7 @@
 
 #pragma once
 
-#include "infos/eevee_common_infos.hh"
+#include "draw_view_infos.hh"
 
 SHADER_LIBRARY_CREATE_INFO(draw_view)
 

@@ -10,8 +10,7 @@
 
 #pragma once
 
-#include "eevee_hiz.bsl.hh"
-#include "infos/eevee_common_infos.hh"
+#include "draw_view_infos.hh"
 
 COMPUTE_SHADER_CREATE_INFO(draw_view)
 COMPUTE_SHADER_CREATE_INFO(draw_view_culling)
@@ -19,6 +18,7 @@ COMPUTE_SHADER_CREATE_INFO(draw_resource_id_varying)
 
 #include "draw_view_lib.glsl"
 #include "eevee_defines.hh"
+#include "eevee_hiz.bsl.hh"
 #include "eevee_light_iter.bsl.hh"
 #include "eevee_light_lib.bsl.hh"
 #include "eevee_lightprobe_shared.hh"

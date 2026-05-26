@@ -7,14 +7,14 @@
 
 #pragma once
 
-#include "eevee_hiz.bsl.hh"
-#include "infos/eevee_common_infos.hh"
+#include "draw_view_infos.hh"
 
 SHADER_LIBRARY_CREATE_INFO(draw_view)
 
 #include "draw_view_lib.glsl"
 #include "eevee_colorspace_lib.bsl.hh"
-#include "eevee_light_eval.bsl.hh"
+#include "eevee_hiz.bsl.hh"
+#include "eevee_light_eval.bsl.hh" /* IWYU pragma: export */
 #include "eevee_light_lib.bsl.hh"
 #include "eevee_light_shared.hh"
 #include "eevee_lightprobe_volume.bsl.hh"

@@ -4,8 +4,6 @@
 
 #pragma once
 
-#include "infos/eevee_common_infos.hh"
-
 #include "draw_intersect_lib.glsl"
 #include "draw_shape_lib.glsl"
 #include "draw_view_lib.glsl"

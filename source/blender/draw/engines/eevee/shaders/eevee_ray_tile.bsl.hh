@@ -4,6 +4,7 @@
 
 #pragma once
 
+#include "draw_shader_shared.hh"
 #include "eevee_closure.bsl.hh"
 #include "eevee_gbuffer_read.bsl.hh"
 #include "eevee_uniform.bsl.hh"

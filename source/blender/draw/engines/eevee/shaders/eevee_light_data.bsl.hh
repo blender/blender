@@ -7,7 +7,6 @@
 #include "gpu_shader_compat.hh"
 
 #include "eevee_light_shared.hh"
-#include "eevee_shadow_shared.hh"
 
 namespace eevee {
 
