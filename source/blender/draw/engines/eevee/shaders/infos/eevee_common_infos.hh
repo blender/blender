@@ -78,3 +78,25 @@ SAMPLER(VOLUME_TRANSMITTANCE_TEX_SLOT, sampler3D, volume_transmittance_tx)
 GPU_SHADER_CREATE_END()
 
 /** \} */
+
+/* -------------------------------------------------------------------- */
+/** \name Surface Velocity
+ *
+ * Combined with the depth pre-pass shader.
+ * Outputs the view motion vectors for animated objects.
+ * \{ */
+
+/* Pass world space deltas to the fragment shader.
+ * This is to make sure that the resulting motion vectors are valid even with displacement.
+ * WARNING: The next value is invalid when rendering the viewport. */
+GPU_SHADER_NAMED_INTERFACE_INFO(eevee_velocity_surface_iface, motion)
+SMOOTH(float3, prev)
+SMOOTH(float3, next)
+GPU_SHADER_NAMED_INTERFACE_END(motion)
+
+/* WORKAROUND: Until we get condition support for interfaces. */
+GPU_SHADER_CREATE_INFO(eevee_velocity_iface_info)
+VERTEX_OUT(eevee_velocity_surface_iface)
+GPU_SHADER_CREATE_END()
+
+/** \} */

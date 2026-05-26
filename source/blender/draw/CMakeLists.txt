@@ -327,7 +327,6 @@ set(GLSL_SRC
   engines/eevee/shaders/infos/eevee_nodetree_infos.hh
   engines/eevee/shaders/infos/eevee_sampling_infos.hh
   engines/eevee/shaders/infos/eevee_uniform_infos.hh
-  engines/eevee/shaders/infos/eevee_velocity_infos.hh
 
   engines/image/shaders/infos/engine_image_infos.hh
 

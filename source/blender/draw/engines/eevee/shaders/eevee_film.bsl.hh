@@ -9,10 +9,8 @@
  */
 
 #include "infos/eevee_common_infos.hh"
-#include "infos/eevee_velocity_infos.hh"
 
 SHADER_LIBRARY_CREATE_INFO(eevee_global_ubo)
-SHADER_LIBRARY_CREATE_INFO(eevee_velocity_camera)
 SHADER_LIBRARY_CREATE_INFO(draw_view)
 
 #include "draw_math_geom_lib.glsl"
@@ -86,8 +84,9 @@ float patch_float_for_16f_storage(float value)
 
 struct Film {
   [[legacy_info]] ShaderCreateInfo eevee_global_ubo;
-  [[legacy_info]] ShaderCreateInfo eevee_velocity_camera;
   [[legacy_info]] ShaderCreateInfo draw_view;
+
+  [[resource_table]] srt_t<CameraVelocity> camera;
 
   [[specialization_constant(1)]] uint enabled_categories;
   [[specialization_constant(9)]] int samples_len;
@@ -308,6 +307,8 @@ struct Film {
   /* Returns motion in pixel space to retrieve the pixel history. */
   float2 pixel_history_motion_vector(int2 texel_sample)
   {
+    [[resource_table]] const CameraVelocity &cam_vel = this->camera;
+
     /**
      * Dilate velocity by using the nearest pixel in a cross pattern.
      * "High Quality Temporal Supersampling" by Brian Karis at SIGGRAPH 2014 (Slide 27)
@@ -324,7 +325,7 @@ struct Film {
       }
     }
 
-    float4 vector = eevee::velocity::resolve(vector_tx, nearest_texel, min_depth);
+    float4 vector = cam_vel.resolve(vector_tx, nearest_texel, min_depth);
 
     /* Transform to pixel space. */
     vector.xy *= float2(uniform_buf.film.extent);
@@ -752,8 +753,10 @@ struct Film {
 
       /* Using film weight as distance to the pixel. So the check is inverted. */
       if (film_sample.weight > film_distance) {
+        [[resource_table]] const CameraVelocity &cam_vel = this->camera;
+
         float depth = reverse_z::read(texelFetch(depth_tx, film_sample.texel, 0).x);
-        float4 vector = eevee::velocity::resolve(vector_tx, film_sample.texel, depth);
+        float4 vector = cam_vel.resolve(vector_tx, film_sample.texel, depth);
         /* Transform to pixel space, matching Cycles format. */
         vector *= float4(float2(uniform_buf.film.render_extent),
                          float2(uniform_buf.film.render_extent));

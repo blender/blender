@@ -86,19 +86,22 @@ struct GeomCurve {
   curve_interp_flat.strand_id = ws_pt.curve_id;
 
   if (pipe.use_velocity) [[static_branch]] {
-    auto &motion = interface_get(eevee_velocity_geom, motion);
+    /* clang-format off */ /* Multiline define messes up line index. */
+    [[resource_table]] const GeometryVelocity &geo_vel = resource_table_get(eevee::GeometryVelocity);
+    /* clang-format on */
+    auto &motion = interface_get(eevee_velocity_iface_info, motion);
     /* Due to the screen space nature of the vertex positioning, we compute only the motion of
      * curve strand, not its cylinder. Otherwise we would add the rotation velocity. */
     int vert_idx = ws_pt.point_id;
     float3 prv, nxt;
     float3 pos = ls_pt.P;
-    velocity::local_position_deltas(pos, vert_idx, prv, nxt, drw_resource_id());
+    geo_vel.local_position_deltas(pos, vert_idx, prv, nxt, drw_resource_id());
     /* FIXME(fclem): Evaluating before displacement avoid displacement being treated as motion but
      * ignores motion from animated displacement. Supporting animated displacement motion vectors
      * would require evaluating the node-tree multiple time with different node-tree UBOs evaluated
      * at different times, but also with different attributes (maybe we could assume static
      * attribute at least). */
-    velocity::vertex_velocity(
+    geo_vel.vertex_velocity(
         prv, pos, nxt, motion.prev, motion.next, drw_resource_id(), drw_modelmat());
   }
 

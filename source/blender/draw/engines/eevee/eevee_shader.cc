@@ -742,7 +742,7 @@ static SlotAllocator add_pipeline_create_info(gpu::shader::ShaderCreateInfo &inf
         case MAT_PIPE_PREPASS_FORWARD_VELOCITY:
         case MAT_PIPE_PREPASS_DEFERRED_VELOCITY:
           pipeline_info_name = "eevee_surf_depthTtrue_infos_";
-          additional_info_name = "eevee_velocity_geom";
+          additional_info_name = "eevee_GeometryVelocity";
           info.name_ += "_depth_velocity";
           info.compilation_constant(gpu::shader::Type::bool_t, "use_velocity", true);
           info.define("MAT_DEPTH");

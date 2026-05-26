@@ -96,8 +96,12 @@ void surf_depth([[resource_table]] PipelineConstants &pipe,
 
   if constexpr (with_velocity) {
     if (pipe.use_velocity) [[static_branch]] {
-      const auto &motion = interface_get(eevee_velocity_geom, motion);
-      frag_out.velocity = velocity::surface_velocity(
+      /* clang-format off */ /* Multiline define messes up line index. */
+      [[resource_table]] const GeometryVelocity &geo_vel = resource_table_get(eevee::GeometryVelocity);
+      /* clang-format on */
+      [[resource_table]] const CameraVelocity &cam_vel = geo_vel.camera;
+      const auto &motion = interface_get(eevee_velocity_iface_info, motion);
+      frag_out.velocity = cam_vel.surface_velocity(
           interp.P + motion.prev, interp.P, interp.P + motion.next);
       frag_out.velocity = velocity::pack(frag_out.velocity);
     }

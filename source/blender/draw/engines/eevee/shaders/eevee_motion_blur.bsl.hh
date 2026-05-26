@@ -6,10 +6,8 @@
 
 #include "infos/eevee_common_infos.hh"
 #include "infos/eevee_sampling_infos.hh"
-#include "infos/eevee_velocity_infos.hh"
 
 COMPUTE_SHADER_CREATE_INFO(draw_view)
-COMPUTE_SHADER_CREATE_INFO(eevee_velocity_camera)
 COMPUTE_SHADER_CREATE_INFO(eevee_sampling_data)
 
 #include "draw_math_geom_lib.glsl"
@@ -80,7 +78,8 @@ namespace flatten {
 
 template<enum TextureWriteFormat velocity_format> struct Resources {
   [[legacy_info]] ShaderCreateInfo draw_view;
-  [[legacy_info]] ShaderCreateInfo eevee_velocity_camera;
+
+  [[resource_table]] srt_t<CameraVelocity> camera;
 
   [[uniform(0)]] const MotionBlurData &motion_blur_buf;
   [[sampler(0)]] sampler2DDepth depth_tx;
@@ -128,6 +127,8 @@ void flatten_comp([[resource_table]] Resources<velocity_format> &srt,
                   [[local_invocation_id]] const uint3 local_id,
                   [[local_invocation_index]] const uint local_index)
 {
+  [[resource_table]] const CameraVelocity &cam_vel = srt.camera;
+
   if (local_index == 0u) {
     srt.payload_prev = 0u;
     srt.payload_next = 0u;
@@ -144,7 +145,7 @@ void flatten_comp([[resource_table]] Resources<velocity_format> &srt,
   float2 render_size = float2(imageSize(srt.velocity_img).xy);
   float2 uv = (float2(texel) + 0.5f) / render_size;
   float depth = reverse_z::read(texelFetch(srt.depth_tx, texel, 0).r);
-  float4 motion = velocity::resolve(imageLoad(srt.velocity_img, texel), uv, depth);
+  float4 motion = cam_vel.resolve(imageLoad(srt.velocity_img, texel), uv, depth);
 #ifdef FLATTEN_RG
   /* imageLoad does not perform the swizzling like sampler does. Do it manually. */
   motion = motion.xyxy;
