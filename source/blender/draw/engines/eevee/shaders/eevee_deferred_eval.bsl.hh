@@ -168,6 +168,7 @@ void light_eval_frag([[resource_table]] LightEval &srt,
   ctx.P = P;
   ctx.Ng = Ng;
   ctx.V = V;
+  ctx.texel = frag_co.xy;
   ctx.thickness = thickness;
   ctx.receiver_light_set = 0;
   ctx.terminator_normal_offset = 0.0f;
@@ -182,7 +183,7 @@ void light_eval_frag([[resource_table]] LightEval &srt,
 
   /* TODO(fclem): If transmission (no SSS) is present, we could reduce LIGHT_CLOSURE_EVAL_COUNT
    * by 1 for this evaluation and skip evaluating the transmission closure twice. */
-  lights.eval_reflection(ctx, frag_co.xy, vPz);
+  lights.eval_reflection(ctx, vPz);
 
   if (srt.use_transmission) {
     light::EvalCtx<true> ctx_tr = light::init_from_reflect_ctx(ctx);
@@ -191,7 +192,7 @@ void light_eval_frag([[resource_table]] LightEval &srt,
     ctx_tr.stack.cl[0] = closure_light_new(cl_transmit, V, thickness);
 
     /* NOTE: Only evaluates `stack.cl[0]`. */
-    lights.eval_transmission(ctx_tr, frag_co.xy, vPz);
+    lights.eval_transmission(ctx_tr, vPz);
 
     if (cl_transmit.type == CLOSURE_BSSRDF_BURLEY_ID) {
       /* Apply transmission profile onto transmitted light and sum with reflected light. */
@@ -343,6 +344,7 @@ void sphere_eval_frag([[resource_table]] SphereProbeEval & /*srt*/,
   ctx.P = P;
   ctx.Ng = Ng;
   ctx.V = V;
+  ctx.texel = frag_co.xy;
   ctx.thickness = thickness;
   ctx.receiver_light_set = 0;
   ctx.terminator_normal_offset = 0.0f;
@@ -357,14 +359,14 @@ void sphere_eval_frag([[resource_table]] SphereProbeEval & /*srt*/,
 
   /* Direct light. */
   ctx.stack.cl[0] = closure_light_new(cl, V);
-  lights.eval_reflection(ctx, frag_co.xy, vPz);
+  lights.eval_reflection(ctx, vPz);
 
   float3 radiance_front = ctx.stack.cl[0].light_shadowed;
 
   light::EvalCtx<true> ctx_tr = light::init_from_reflect_ctx(ctx);
 
   ctx_tr.stack.cl[0] = closure_light_new(cl_transmit, V, thickness);
-  lights.eval_transmission(ctx_tr, frag_co.xy, vPz);
+  lights.eval_transmission(ctx_tr, vPz);
 
   float3 radiance_back = ctx_tr.stack.cl[0].light_shadowed;
 
@@ -498,6 +500,7 @@ void planar_eval_frag([[resource_table]] PlanarProbeEval & /*srt*/,
   ctx.P = P;
   ctx.Ng = Ng;
   ctx.V = V;
+  ctx.texel = frag_co.xy;
   ctx.thickness = thickness;
   ctx.receiver_light_set = 0;
   ctx.terminator_normal_offset = 0.0f;
@@ -513,7 +516,7 @@ void planar_eval_frag([[resource_table]] PlanarProbeEval & /*srt*/,
   /* Direct light. */
   ctx.stack.cl[0] = closure_light_new(cl, V);
   ctx.stack.cl[1] = closure_light_new(cl_reflect, V);
-  lights.eval_reflection(ctx, frag_co.xy, vPz);
+  lights.eval_reflection(ctx, vPz);
 
   float3 radiance_front = ctx.stack.cl[0].light_shadowed;
   float3 radiance_reflect = ctx.stack.cl[1].light_shadowed;
@@ -521,7 +524,7 @@ void planar_eval_frag([[resource_table]] PlanarProbeEval & /*srt*/,
   light::EvalCtx<true> ctx_tr = light::init_from_reflect_ctx(ctx);
   ctx_tr.stack.cl[0] = closure_light_new(cl_transmit, V, thickness);
   ctx_tr.stack.cl[1] = closure_light_new(cl_refract, V, thickness);
-  lights.eval_transmission(ctx_tr, frag_co.xy, vPz);
+  lights.eval_transmission(ctx_tr, vPz);
 
   float3 radiance_back = ctx_tr.stack.cl[0].light_shadowed;
   float3 radiance_refract = ctx_tr.stack.cl[1].light_shadowed;
