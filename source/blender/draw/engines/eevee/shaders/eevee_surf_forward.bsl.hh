@@ -30,6 +30,8 @@ Thickness g_thickness_forward;
 
 float4 closure_to_rgba_forward(Closure /*cl_unused*/)
 {
+  [[resource_table]] const eevee::Sampling &sampling = resource_table_get(eevee::Sampling);
+
   const float2 frag_co = gl_FragCoord.xy;
 
   float3 radiance, transmittance;
@@ -37,7 +39,7 @@ float4 closure_to_rgba_forward(Closure /*cl_unused*/)
 
   /* Reset for the next closure tree. */
   float noise = utility_tx_fetch(utility_tx, frag_co, UTIL_BLUE_NOISE_LAYER).r;
-  float closure_rand = fract(noise + sampling_rng_1D_get(SAMPLING_CLOSURE));
+  float closure_rand = fract(noise + sampling.rng_1D_get(SAMPLING_CLOSURE));
   closure_weights_reset(closure_rand);
 
 #if defined(MAT_TRANSPARENT) && defined(MAT_SHADER_TO_RGBA)
@@ -77,7 +79,6 @@ namespace eevee {
 struct SurfaceForward {
   [[legacy_info]] ShaderCreateInfo eevee_global_ubo;
   [[legacy_info]] ShaderCreateInfo eevee_utility_texture;
-  [[legacy_info]] ShaderCreateInfo eevee_sampling_data;
   [[legacy_info]] ShaderCreateInfo eevee_hiz_data;
   [[legacy_info]] ShaderCreateInfo eevee_volume_lib;
   [[legacy_info]] ShaderCreateInfo eevee_geom_iface_info;
@@ -106,6 +107,7 @@ void surf_forward([[resource_table]] PipelineConstants & /*pipe*/,
                   [[resource_table]] LightEvalIterator & /*lights*/,
                   [[resource_table]] LightprobeRenderData & /*lightprobes*/,
                   [[resource_table]] LightprobePlaneRenderData & /*lightprobe_planes*/,
+                  [[resource_table]] const Sampling &sampling,
                   [[frag_coord]] const float4 frag_co,
                   [[out]] SurfaceForwardFragOut &frag_out,
                   [[front_facing]] const bool front_face)
@@ -113,7 +115,7 @@ void surf_forward([[resource_table]] PipelineConstants & /*pipe*/,
   init_globals(front_face);
 
   float noise = utility_tx_fetch(utility_tx, gl_FragCoord.xy, UTIL_BLUE_NOISE_LAYER).r;
-  float closure_rand = fract(noise + sampling_rng_1D_get(SAMPLING_CLOSURE));
+  float closure_rand = fract(noise + sampling.rng_1D_get(SAMPLING_CLOSURE));
 
   fragment_displacement();
 

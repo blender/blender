@@ -11,7 +11,6 @@ namespace eevee::dof {
 
 struct Gather {
   [[legacy_info]] ShaderCreateInfo draw_view;
-  [[legacy_info]] ShaderCreateInfo eevee_sampling_data;
 
   [[resource_table]] srt_t<Accumulator> accumulator;
 

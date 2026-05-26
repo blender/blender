@@ -14,7 +14,6 @@ SHADER_LIBRARY_CREATE_INFO(eevee_global_ubo)
 namespace eevee::lightprobe::sphere {
 
 struct Cull {
-  [[legacy_info]] ShaderCreateInfo eevee_sampling_data;
   [[legacy_info]] ShaderCreateInfo eevee_global_ubo;
 
   [[storage(0, read_write)]] SphereProbeData (&lightprobe_sphere_buf)[SPHERE_PROBE_MAX];

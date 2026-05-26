@@ -24,7 +24,6 @@ int shadow_directional_coverage_get(int level)
 }
 
 struct Resources {
-  [[legacy_info]] ShaderCreateInfo eevee_sampling_data;
   [[legacy_info]] ShaderCreateInfo eevee_global_ubo;
   [[storage(0, read)]] const LightCullingData &light_cull_buf;
   [[storage(1, read_write)]] LightData (&light_buf)[];
@@ -265,6 +264,7 @@ struct Resources {
 
 [[compute, local_size(CULLING_SELECT_GROUP_SIZE)]]
 void shadow_setup_main([[resource_table]] Resources &srt,
+                       [[resource_table]] const Sampling &sampling,
                        [[global_invocation_id]] const uint3 global_id)
 {
 
@@ -294,7 +294,7 @@ void shadow_setup_main([[resource_table]] Resources &srt,
       float shape_angle = atan_fast(light.sun().shape_radius);
 
       /* Reverse to that first sample is straight up. */
-      float2 rand = 1.0f - sampling_rng_2D_get(SAMPLING_SHADOW_I);
+      float2 rand = 1.0f - sampling.rng_2D_get(SAMPLING_SHADOW_I);
       float3 shadow_direction = sample_uniform_cone(rand, cos(shape_angle));
 
       shadow_direction = transform_direction(light.object_to_world, shadow_direction);
@@ -321,7 +321,7 @@ void shadow_setup_main([[resource_table]] Resources &srt,
     float3 position_on_light = float3(0.0f);
 
     if (light.shadow_jitter && uniform_buf.shadow.use_jitter) {
-      float3 rand = sampling_rng_3D_get(SAMPLING_SHADOW_I);
+      float3 rand = sampling.rng_3D_get(SAMPLING_SHADOW_I);
 
       if (is_area_light(light.type)) {
         float2 point_on_unit_shape = (light.type == LIGHT_RECT) ? rand.xy * 2.0f - 1.0f :

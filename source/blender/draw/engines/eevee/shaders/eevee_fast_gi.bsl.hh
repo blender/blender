@@ -16,10 +16,8 @@
 #pragma once
 
 #include "infos/eevee_common_infos.hh"
-#include "infos/eevee_sampling_infos.hh"
 
 VERTEX_SHADER_CREATE_INFO(eevee_gbuffer_data)
-VERTEX_SHADER_CREATE_INFO(eevee_sampling_data)
 VERTEX_SHADER_CREATE_INFO(eevee_utility_texture)
 VERTEX_SHADER_CREATE_INFO(eevee_global_ubo)
 VERTEX_SHADER_CREATE_INFO(eevee_hiz_data)
@@ -735,7 +733,6 @@ struct Constants {
 
 struct Scan {
   [[legacy_info]] ShaderCreateInfo eevee_gbuffer_data;
-  [[legacy_info]] ShaderCreateInfo eevee_sampling_data;
   [[legacy_info]] ShaderCreateInfo eevee_global_ubo;
   [[legacy_info]] ShaderCreateInfo eevee_utility_texture;
   [[legacy_info]] ShaderCreateInfo eevee_hiz_data;
@@ -751,6 +748,7 @@ void scan([[work_group_id]] const uint3 group_id,
           [[local_invocation_id]] const uint3 local_id,
           [[resource_table]] Scan &srt,
           [[resource_table]] const Tiles &tiles,
+          [[resource_table]] const Sampling &sampling,
           [[resource_table]] SampleOutput &sh_out,
           [[resource_table]] Constants &constants)
 {
@@ -785,7 +783,7 @@ void scan([[work_group_id]] const uint3 group_id,
   float3 vN = texelFetch(srt.screen_normal_tx, texel, 0).rgb * 2.0f - 1.0f;
 
   float4 noise = utility_tx_fetch(utility_tx, float2(texel), UTIL_BLUE_NOISE_LAYER);
-  noise = fract(noise + sampling_rng_3D_get(SAMPLING_AO_U).xyzx);
+  noise = fract(noise + sampling.rng_3D_get(SAMPLING_AO_U).xyzx);
 
   SphericalHarmonicL1<float4> result = eevee::fast_gi::eval<SphericalHarmonicL1<float4>>(
       raytrace_buf.fast_gi_thickness,
@@ -813,7 +811,6 @@ void scan([[work_group_id]] const uint3 group_id,
  * \{ */
 
 struct Denoise {
-  [[legacy_info]] ShaderCreateInfo eevee_sampling_data;
   [[legacy_info]] ShaderCreateInfo eevee_hiz_data;
   [[legacy_info]] ShaderCreateInfo draw_view;
 };
@@ -883,7 +880,6 @@ void denoise([[work_group_id]] const uint3 group_id,
 struct Resolve {
   [[legacy_info]] ShaderCreateInfo eevee_global_ubo;
   [[legacy_info]] ShaderCreateInfo eevee_gbuffer_data;
-  [[legacy_info]] ShaderCreateInfo eevee_sampling_data;
   [[legacy_info]] ShaderCreateInfo draw_view;
 
   [[image(3, read_write, RAYTRACE_RADIANCE_FORMAT)]] image2D closure0_img;
@@ -1058,7 +1054,6 @@ PipelineCompute fast_gi_resolve(fast_gi::resolve);
  * \{ */
 
 struct AOPass {
-  [[legacy_info]] ShaderCreateInfo eevee_sampling_data;
   [[legacy_info]] ShaderCreateInfo eevee_utility_texture;
   [[legacy_info]] ShaderCreateInfo eevee_hiz_data;
   [[legacy_info]] ShaderCreateInfo draw_view;
@@ -1076,7 +1071,9 @@ struct AOPass {
 };
 
 [[compute]] [[local_size(AMBIENT_OCCLUSION_PASS_TILE_SIZE, AMBIENT_OCCLUSION_PASS_TILE_SIZE)]]
-void occlusion_pass([[global_invocation_id]] const uint3 global_id, [[resource_table]] AOPass &srt)
+void occlusion_pass([[global_invocation_id]] const uint3 global_id,
+                    [[resource_table]] const Sampling &sampling,
+                    [[resource_table]] AOPass &srt)
 {
   int2 texel = int2(global_id.xy);
   int2 extent = imageSize(srt.in_normal_img).xy;
@@ -1099,7 +1096,7 @@ void occlusion_pass([[global_invocation_id]] const uint3 global_id, [[resource_t
 
   auto &lut_tx = sampler_get(eevee_utility_texture, utility_tx);
   float4 noise = utility_tx_fetch(lut_tx, float2(texel), UTIL_BLUE_NOISE_LAYER);
-  noise = fract(noise + sampling_rng_3D_get(SAMPLING_AO_U).xyzx);
+  noise = fract(noise + sampling.rng_3D_get(SAMPLING_AO_U).xyzx);
 
   float result = eevee::fast_gi::eval<float>(raytrace_buf.fast_gi_thickness,
                                              hiz_tx,

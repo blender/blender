@@ -18,6 +18,7 @@ namespace eevee {
 struct LightprobeRenderData {
   [[resource_table]] srt_t<LightprobeSphereRenderData> spheres;
   [[resource_table]] srt_t<LightprobeVolumeRenderData> volumes;
+  [[resource_table]] srt_t<Sampling> sampling;
 
   /**
    * Return cached light-probe data at P.
@@ -25,14 +26,15 @@ struct LightprobeRenderData {
    */
   LightProbeSample load(float2 screen_texel, float3 P, float3 Ng, float3 V) const
   {
+    [[resource_table]] const Sampling samp = sampling;
     [[resource_table]] const LightprobeVolumeRenderData &lp_volumes = volumes;
     [[resource_table]] const LightprobeSphereRenderData &lp_spheres = spheres;
 
     float noise = interleaved_gradient_noise(screen_texel, 0.0f, 0.0f);
-    noise = fract(noise + sampling_rng_1D_get(SAMPLING_LIGHTPROBE));
+    noise = fract(noise + samp.rng_1D_get(SAMPLING_LIGHTPROBE));
 
     LightProbeSample result;
-    result.volume_irradiance = lp_volumes.sample_probe(P, V, Ng);
+    result.volume_irradiance = lp_volumes.sample_probe(samp, P, V, Ng);
     result.spherical_id = lp_spheres.select_probe(P, noise);
     return result;
   }

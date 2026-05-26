@@ -96,7 +96,6 @@ namespace eevee {
 
 struct ThicknessAmend {
   [[legacy_info]] ShaderCreateInfo draw_view;
-  [[legacy_info]] ShaderCreateInfo eevee_sampling_data;
   [[legacy_info]] ShaderCreateInfo eevee_hiz_data;
 
   [[sampler(0)]] usampler2DArray gbuf_header_tx;
@@ -142,13 +141,15 @@ void amend_frag([[resource_table]] ThicknessAmend &srt,
     return;
   }
 
+  [[resource_table]] const Sampling &sampling = srd.sampling;
+
   thickness::FromShadowEvalCtx ctx = {
       .P = P,
       .Ng = Ng,
       .gbuffer_thickness = gbuffer_thickness,
       .thickness_accum = 0.0f,
       .weight_accum = 0.0f,
-      .pcf_random = pcg4d(float4(frag_co.xyz, sampling_rng_1D_get(SAMPLING_SHADOW_X))).xy,
+      .pcf_random = pcg4d(float4(frag_co.xyz, sampling.rng_1D_get(SAMPLING_SHADOW_X))).xy,
   };
 
   light::foreach_visible(lrd, frag_co.xy, vPz, ctx, srd);
@@ -168,6 +169,8 @@ void amend_frag([[resource_table]] ThicknessAmend &srt,
   }
 }
 
-PipelineGraphic deferred_thickness_amend(amend_vert, amend_frag);
+PipelineGraphic deferred_thickness_amend(amend_vert,
+                                         amend_frag,
+                                         eevee::ShadowRenderData{.shadow_random = true});
 
 }  // namespace eevee

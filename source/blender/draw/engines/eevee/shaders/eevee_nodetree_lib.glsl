@@ -243,34 +243,44 @@ float ambient_occlusion_eval([[maybe_unused]] float3 normal,
                              [[maybe_unused]] const float inverted,
                              [[maybe_unused]] const float sample_count)
 {
+  FRAGMENT_SHADER_CREATE_INFO(draw_view);
+
+  [[resource_table]] const eevee::Sampling &samp = resource_table_get(eevee::Sampling);
+  [[maybe_unused]] const auto &hiz_tx = sampler_get(eevee_hiz_data, hiz_tx);
+  [[maybe_unused]] const auto &raytrace_buf = buffer_get(eevee_hiz_data, raytrace_buf);
+  [[maybe_unused]] const auto &uniform_buf = buffer_get(eevee_global_ubo, uniform_buf);
+
+  {
 #if defined(GPU_FRAGMENT_SHADER) && defined(MAT_AMBIENT_OCCLUSION) && !defined(MAT_DEPTH) && \
     !defined(MAT_SHADOW)
-  float3 vP = drw_point_world_to_view(g_data.P);
-  float3 vN = drw_normal_world_to_view(normal);
 
-  int2 texel = int2(gl_FragCoord.xy);
-  float4 noise = utility_tx_fetch(utility_tx, float2(texel), UTIL_BLUE_NOISE_LAYER);
-  noise = fract(noise + sampling_rng_3D_get(SAMPLING_AO_U).xyzx);
+    float3 vP = drw_point_world_to_view(g_data.P);
+    float3 vN = drw_normal_world_to_view(normal);
 
-  float result = eevee::fast_gi::eval<float>(raytrace_buf.fast_gi_thickness,
-                                             hiz_tx,
-                                             hiz_tx /* Dummy. */,
-                                             hiz_tx /* Dummy. */,
-                                             vP,
-                                             vN,
-                                             noise,
-                                             uniform_buf.ao.pixel_size,
-                                             max_distance,
-                                             uniform_buf.ao.angle_bias,
-                                             2,
-                                             int(sample_count / 2.0f),
-                                             inverted != 0.0f,
-                                             true);
+    int2 texel = int2(gl_FragCoord.xy);
+    float4 noise = utility_tx_fetch(utility_tx, float2(texel), UTIL_BLUE_NOISE_LAYER);
+    noise = fract(noise + samp.rng_3D_get(SAMPLING_AO_U).xyzx);
 
-  return saturate(result);
+    float result = eevee::fast_gi::eval<float>(raytrace_buf.fast_gi_thickness,
+                                               hiz_tx,
+                                               hiz_tx /* Dummy. */,
+                                               hiz_tx /* Dummy. */,
+                                               vP,
+                                               vN,
+                                               noise,
+                                               uniform_buf.ao.pixel_size,
+                                               max_distance,
+                                               uniform_buf.ao.angle_bias,
+                                               2,
+                                               int(sample_count / 2.0f),
+                                               inverted != 0.0f,
+                                               true);
+
+    return saturate(result);
 #else
-  return 1.0f;
+    return 1.0f;
 #endif
+  }
 }
 
 void raycast_eval([[maybe_unused]] float3 position,
@@ -315,34 +325,39 @@ void raycast_eval([[maybe_unused]] float3 position,
     ws_start += direction * offset_delta;
   }
 
-  float noise_offset = sampling_rng_1D_get(SAMPLING_RAYTRACE_W);
-  float jitter = interleaved_gradient_noise(gl_FragCoord.xy, 1.0f, noise_offset);
-  float thickness_noise_offset = sampling_rng_1D_get(SAMPLING_RAYTRACE_X);
-  float thickness_jitter =
-      interleaved_gradient_noise(gl_FragCoord.xy, 1.0f, thickness_noise_offset) * 0.5f + 0.5f;
-  float thickness = raytrace_buf.thickness * thickness_jitter;
+  {
+    FRAGMENT_SHADER_CREATE_INFO(draw_view);
 
-  float2 hit_uv = float2(0.0f);
-  uint self_id = drw_resource_id() & uint(0xFFFF);
+    [[resource_table]] const eevee::Sampling &samp = resource_table_get(eevee::Sampling);
+    const auto &raycast_depth_tx = sampler_get(eevee_raycast, raycast_depth_tx);
+    const auto &prepass_normal_tx = sampler_get(eevee_raycast, prepass_normal_tx);
+    const auto &object_id_tx = sampler_get(eevee_raycast, object_id_tx);
 
-  float result = raytrace_screen_2(drw_point_world_to_view(ws_start),
-                                   drw_point_world_to_view(ws_end),
-                                   drw_normal_world_to_view(direction),
-                                   raycast_depth_tx,
-                                   raytrace_buf,
-                                   64,
-                                   jitter,
-                                   object_id_tx,
-                                   self_only ? self_id : 0,
-                                   hit_uv);
-  if (result >= 0.0f) {
-    is_hit = true;
-    hit_position = ws_start + direction * result;
-    hit_distance = distance(position, hit_position);
-    hit_normal = normalize(texture(prepass_normal_tx, hit_uv).xyz * 2.0f - 1.0f);
-    int2 hit_texel = int2(hit_uv * float2(textureSize(object_id_tx, 0)));
-    uint hit_id = texelFetch(object_id_tx, hit_texel, 0).x;
-    self_hit = self_only || (hit_id == self_id);
+    float noise_offset = samp.rng_1D_get(SAMPLING_RAYTRACE_W);
+    float jitter = interleaved_gradient_noise(gl_FragCoord.xy, 1.0f, noise_offset);
+
+    float2 hit_uv = float2(0.0f);
+    uint self_id = drw_resource_id() & uint(0xFFFF);
+
+    float result = raytrace_screen_2(drw_point_world_to_view(ws_start),
+                                     drw_point_world_to_view(ws_end),
+                                     drw_normal_world_to_view(direction),
+                                     raycast_depth_tx,
+                                     raytrace_buf,
+                                     64,
+                                     jitter,
+                                     object_id_tx,
+                                     self_only ? self_id : 0,
+                                     hit_uv);
+    if (result >= 0.0f) {
+      is_hit = true;
+      hit_position = ws_start + direction * result;
+      hit_distance = distance(position, hit_position);
+      hit_normal = normalize(texture(prepass_normal_tx, hit_uv).xyz * 2.0f - 1.0f);
+      int2 hit_texel = int2(hit_uv * float2(textureSize(object_id_tx, 0)));
+      uint hit_id = texelFetch(object_id_tx, hit_texel, 0).x;
+      self_hit = self_only || (hit_id == self_id);
+    }
   }
 #endif
 }

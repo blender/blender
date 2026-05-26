@@ -66,6 +66,8 @@ struct Accumulator {
 
   [[uniform(0)]] const DepthOfFieldData &dof_buf;
 
+  [[resource_table]] srt_t<Sampling> sampling;
+
   /** \} */
 
   /* -------------------------------------------------------------------- */
@@ -438,7 +440,9 @@ struct Accumulator {
                               float &out_weight,
                               float2 &out_occlusion)
   {
-    float2 noise_offset = sampling_rng_2D_get(SAMPLING_LENS_U);
+    [[resource_table]] const Sampling &samp = sampling;
+
+    float2 noise_offset = samp.rng_2D_get(SAMPLING_LENS_U);
     float2 noise = no_gather_random ?
                        float2(0.0f, 0.0f) :
                        float2(interleaved_gradient_noise(frag_coord, 0, noise_offset.x),
@@ -606,7 +610,8 @@ struct Accumulator {
                                float &out_weight,
                                float &out_center_coc)
   {
-    float2 noise_offset = sampling_rng_2D_get(SAMPLING_LENS_U);
+    [[resource_table]] const Sampling &samp = sampling;
+    float2 noise_offset = samp.rng_2D_get(SAMPLING_LENS_U);
     float2 noise = no_gather_random ?
                        float2(0.0f) :
                        float2(interleaved_gradient_noise(frag_coord, 3, noise_offset.x),

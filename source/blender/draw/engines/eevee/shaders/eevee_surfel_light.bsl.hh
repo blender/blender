@@ -95,7 +95,9 @@ void eval_light([[resource_table]] EvalLight & /*srt*/,
 PipelineCompute eevee_surfel_light(eevee::surfel::eval_light,
                                    eevee::surfel::EvalLight{
                                        .light_iter_force_no_culling = true,
-                                       .shadow_no_random = true,
+                                   },
+                                   eevee::ShadowRenderData{
+                                       .shadow_random = false,
                                    },
                                    eevee::LightEvalData{
                                        .light_closure_eval_count_reflect = 1,

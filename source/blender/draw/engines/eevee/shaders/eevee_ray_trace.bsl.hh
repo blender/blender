@@ -5,11 +5,9 @@
 #pragma once
 
 #include "infos/eevee_common_infos.hh"
-#include "infos/eevee_sampling_infos.hh"
 
 COMPUTE_SHADER_CREATE_INFO(draw_view)
 COMPUTE_SHADER_CREATE_INFO(eevee_global_ubo)
-COMPUTE_SHADER_CREATE_INFO(eevee_sampling_data)
 COMPUTE_SHADER_CREATE_INFO(eevee_gbuffer_data)
 
 #include "eevee_closure.bsl.hh"
@@ -28,7 +26,6 @@ namespace screen {
 
 struct Resources {
   [[legacy_info]] ShaderCreateInfo eevee_global_ubo;
-  [[legacy_info]] ShaderCreateInfo eevee_sampling_data;
   [[legacy_info]] ShaderCreateInfo eevee_gbuffer_data;
   [[legacy_info]] ShaderCreateInfo draw_view;
   [[legacy_info]] ShaderCreateInfo eevee_hiz_data;
@@ -57,6 +54,7 @@ struct Resources {
   metal_max_total_threads_per_threadgroup(400)]]
 void trace([[resource_table]] Resources &srt,
            [[resource_table]] const LightprobeRenderData &lightprobes,
+           [[resource_table]] const Sampling &sampling,
            [[local_invocation_id]] const uint3 local_id)
 {
   constexpr uint tile_size = RAYTRACE_GROUP_SIZE;
@@ -111,7 +109,7 @@ void trace([[resource_table]] Resources &srt,
   }
 
   float3 radiance = float3(0.0f);
-  float noise_offset = sampling_rng_1D_get(SAMPLING_RAYTRACE_W);
+  float noise_offset = sampling.rng_1D_get(SAMPLING_RAYTRACE_W);
   float rand_trace = interleaved_gradient_noise(float2(texel), 5.0f, noise_offset);
 
   ClosureUndetermined cl = gbuffer::read_bin(texel_fullres, srt.closure_index);
@@ -208,7 +206,6 @@ namespace planar {
 struct Resources {
   [[legacy_info]] ShaderCreateInfo draw_view;
   [[legacy_info]] ShaderCreateInfo eevee_global_ubo;
-  [[legacy_info]] ShaderCreateInfo eevee_sampling_data;
   [[legacy_info]] ShaderCreateInfo eevee_gbuffer_data;
 
   [[specialization_constant(0)]] int closure_index;
@@ -232,6 +229,7 @@ struct Resources {
 void trace([[resource_table]] Resources &srt,
            [[resource_table]] const LightprobeRenderData &lightprobes,
            [[resource_table]] const LightprobePlaneRenderData &lightprobe_planes,
+           [[resource_table]] const Sampling &sampling,
            [[work_group_id]] const uint3 group_id,
            [[local_invocation_id]] const uint3 local_id)
 {
@@ -290,7 +288,7 @@ void trace([[resource_table]] Resources &srt,
   ray.direction = ray_data_im.xyz;
 
   float3 radiance = float3(0.0f);
-  float noise_offset = sampling_rng_1D_get(SAMPLING_RAYTRACE_W);
+  float noise_offset = sampling.rng_1D_get(SAMPLING_RAYTRACE_W);
   float rand_trace = interleaved_gradient_noise(float2(texel), 5.0f, noise_offset);
 
   /* TODO(fclem): Take IOR into account in the roughness LOD bias. */
@@ -342,7 +340,6 @@ struct Resources {
   [[legacy_info]] ShaderCreateInfo eevee_gbuffer_data;
   [[legacy_info]] ShaderCreateInfo eevee_global_ubo;
   [[legacy_info]] ShaderCreateInfo draw_view;
-  [[legacy_info]] ShaderCreateInfo eevee_sampling_data;
 
   [[specialization_constant(0)]] int closure_index;
 

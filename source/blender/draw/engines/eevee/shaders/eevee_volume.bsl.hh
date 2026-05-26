@@ -8,12 +8,10 @@
 #pragma once
 
 #include "infos/eevee_common_infos.hh"
-#include "infos/eevee_sampling_infos.hh"
 
 SHADER_LIBRARY_CREATE_INFO(draw_view)
 SHADER_LIBRARY_CREATE_INFO(eevee_global_ubo)
 SHADER_LIBRARY_CREATE_INFO(eevee_hiz_data)
-SHADER_LIBRARY_CREATE_INFO(eevee_sampling_data)
 
 #include "draw_view_lib.glsl"
 #include "eevee_colorspace_lib.bsl.hh"
@@ -102,7 +100,6 @@ struct Scatter {
   [[legacy_info]] ShaderCreateInfo draw_view;
   [[legacy_info]] ShaderCreateInfo eevee_global_ubo;
   [[legacy_info]] ShaderCreateInfo eevee_hiz_data;
-  [[legacy_info]] ShaderCreateInfo eevee_sampling_data;
 
   [[resource_table]] srt_t<LightRenderData> light_data;
   [[resource_table]] srt_t<ShadowRenderData> shadow_data;
@@ -116,12 +113,15 @@ struct Scatter {
   [[image(5, write, UFLOAT_11_11_10)]] image3D out_scattering_img;
   [[image(6, write, UFLOAT_11_11_10)]] image3D out_extinction_img;
 
-  float3 volume_lightprobe_eval(float3 P, float3 V, float s_anisotropy)
+  float3 volume_lightprobe_eval([[resource_table]] const Sampling &sampling,
+                                float3 P,
+                                float3 V,
+                                float s_anisotropy)
   {
     [[resource_table]] const LightprobeVolumeRenderData &volume_data = lightprobe_volume_data;
 
     SphericalHarmonicL1<float4> phase_sh = volume_phase_function_as_sh_L1(V, s_anisotropy);
-    SphericalHarmonicL1<float4> volume_radiance_sh = volume_data.sample_probe_no_bias(P);
+    SphericalHarmonicL1<float4> volume_radiance_sh = volume_data.sample_probe_no_bias(sampling, P);
 
     float clamp_indirect = uniform_buf.clamp.volume_indirect;
     volume_radiance_sh = spherical_harmonics::clamp_energy(volume_radiance_sh, clamp_indirect);
@@ -199,6 +199,7 @@ namespace eevee::volume {
  * Also do the temporal reprojection to fight aliasing artifacts. */
 [[compute, local_size(VOLUME_GROUP_SIZE, VOLUME_GROUP_SIZE, VOLUME_GROUP_SIZE)]]
 void scatter_main([[resource_table]] Scatter &srt,
+                  [[resource_table]] const Sampling &sampling,
                   [[resource_table]] UnifiedVolumeProperties &props,
                   [[global_invocation_id]] const uint3 global_id)
 {
@@ -214,7 +215,7 @@ void scatter_main([[resource_table]] Scatter &srt,
 
   float3 s_scattering = imageLoadFast(props.in_scattering_img, froxel).rgb;
 
-  float offset = sampling_rng_1D_get(SAMPLING_VOLUME_W);
+  float offset = sampling.rng_1D_get(SAMPLING_VOLUME_W);
   float jitter = volume_froxel_jitter(froxel.xy, offset);
   float3 uvw = (float3(froxel) + float3(0.5f, 0.5f, 0.5f - jitter)) *
                uniform_buf.volumes.inv_tex_size;
@@ -247,7 +248,7 @@ void scatter_main([[resource_table]] Scatter &srt,
     }
   }
 
-  float3 indirect_radiance = srt.volume_lightprobe_eval(P, V, s_anisotropy).xyz;
+  float3 indirect_radiance = srt.volume_lightprobe_eval(sampling, P, V, s_anisotropy).xyz;
 
   direct_radiance *= s_scattering;
   indirect_radiance *= s_scattering;
@@ -285,7 +286,6 @@ void scatter_main([[resource_table]] Scatter &srt,
 struct Integrate {
   [[legacy_info]] ShaderCreateInfo draw_view;
   [[legacy_info]] ShaderCreateInfo eevee_global_ubo;
-  [[legacy_info]] ShaderCreateInfo eevee_sampling_data;
 
   [[sampler(0)]] sampler3D in_scattering_tx;
   [[sampler(1)]] sampler3D in_extinction_tx;

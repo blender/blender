@@ -9,8 +9,7 @@
  * Also contains some sample mapping functions.
  */
 
-#include "infos/eevee_sampling_infos.hh"
-
+#include "eevee_sampling_shared.hh"
 #include "gpu_shader_math_base_lib.glsl"
 #include "gpu_shader_math_constants_lib.glsl"
 #include "gpu_shader_math_safe_lib.glsl"
@@ -23,23 +22,30 @@
  * You might want to couple it with a noise function.
  * \{ */
 
-float sampling_rng_1D_get(const eSamplingDimension dim)
-{
-  const auto &buf = buffer_get(eevee_sampling_data, sampling_buf);
-  return buf.dimensions[dim];
-}
+namespace eevee {
 
-float2 sampling_rng_2D_get(const eSamplingDimension dim)
-{
-  const auto &buf = buffer_get(eevee_sampling_data, sampling_buf);
-  return float2(buf.dimensions[dim], buf.dimensions[dim + 1u]);
-}
+struct Sampling {
+  [[storage(SAMPLING_BUF_SLOT, read)]] const SamplingData &sampling_buf;
 
-float3 sampling_rng_3D_get(const eSamplingDimension dim)
-{
-  const auto &buf = buffer_get(eevee_sampling_data, sampling_buf);
-  return float3(buf.dimensions[dim], buf.dimensions[dim + 1u], buf.dimensions[dim + 2u]);
-}
+  float rng_1D_get(const eSamplingDimension dim) const
+  {
+    return sampling_buf.dimensions[dim];
+  }
+
+  float2 rng_2D_get(const eSamplingDimension dim) const
+  {
+    return float2(sampling_buf.dimensions[dim], sampling_buf.dimensions[dim + 1u]);
+  }
+
+  float3 rng_3D_get(const eSamplingDimension dim) const
+  {
+    return float3(sampling_buf.dimensions[dim],
+                  sampling_buf.dimensions[dim + 1u],
+                  sampling_buf.dimensions[dim + 2u]);
+  }
+};
+
+}  // namespace eevee
 
 /** \} */
 

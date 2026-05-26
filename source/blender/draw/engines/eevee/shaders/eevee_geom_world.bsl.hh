@@ -15,6 +15,7 @@ VERTEX_SHADER_CREATE_INFO(eevee_nodetree)
 
 #include "draw_view_lib.glsl"
 #include "eevee_reverse_z_lib.bsl.hh"
+#include "eevee_sampling_shared.hh" /* TODO(fclem): Remove. Needed becaused of fragment shader. */
 
 namespace eevee {
 

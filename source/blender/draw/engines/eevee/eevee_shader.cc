@@ -1133,6 +1133,7 @@ void ShaderModule::material_create_info_amend(GPUMaterial *gpumat, GPUCodegenOut
         gpu::shader::Type::int_t, "light_closure_eval_count_reflect", closure_bin_count);
     info.compilation_constant(
         gpu::shader::Type::int_t, "light_closure_eval_count_transmit", transmit_eval_count);
+    info.compilation_constant(gpu::shader::Type::bool_t, "shadow_random", true);
   }
 
   if (GPU_material_flag_get(gpumat, GPU_MATFLAG_BARYCENTRIC)) {

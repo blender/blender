@@ -326,7 +326,6 @@ void tag_usage_surfel([[resource_table]] TagUsageSurfel &srt,
 }
 
 struct TagUsageVolume {
-  [[legacy_info]] ShaderCreateInfo eevee_sampling_data;
   [[legacy_info]] ShaderCreateInfo eevee_hiz_data;
 };
 
@@ -338,6 +337,7 @@ void tag_usage_volume([[resource_table]] TagUsageVolume & /*srt*/,
                       [[resource_table]] UnifiedVolumeProperties &volume,
                       [[resource_table]] TagUsage &tag,
                       [[resource_table]] SurfelCapture & /*capture*/,
+                      [[resource_table]] const Sampling &sampling,
                       [[global_invocation_id]] const uint3 global_id)
 {
   [[resource_table]] LightRenderData &lrd = tag.light_data;
@@ -355,7 +355,7 @@ void tag_usage_volume([[resource_table]] TagUsageVolume & /*srt*/,
     return;
   }
 
-  float offset = sampling_rng_1D_get(SAMPLING_VOLUME_W);
+  float offset = sampling.rng_1D_get(SAMPLING_VOLUME_W);
   float jitter = interleaved_gradient_noise(float2(froxel.xy), 0.0f, offset);
 
   float3 uvw = (float3(froxel) + float3(0.5f, 0.5f, jitter)) * uniform_buf.volumes.inv_tex_size;

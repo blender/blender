@@ -26,13 +26,15 @@ FRAGMENT_SHADER_CREATE_INFO(eevee_cryptomatte_out)
 
 float4 closure_to_rgba(Closure /*cl*/)
 {
+  [[resource_table]] const eevee::Sampling &sampling = resource_table_get(eevee::Sampling);
+
   float4 out_color;
   out_color.rgb = g_emission;
   out_color.a = saturate(1.0f - average(g_transmittance));
 
   /* Reset for the next closure tree. */
   float noise = utility_tx_fetch(utility_tx, gl_FragCoord.xy, UTIL_BLUE_NOISE_LAYER).r;
-  float closure_rand = fract(noise + sampling_rng_1D_get(SAMPLING_CLOSURE));
+  float closure_rand = fract(noise + sampling.rng_1D_get(SAMPLING_CLOSURE));
   closure_weights_reset(closure_rand);
 
   return out_color;
@@ -45,7 +47,6 @@ struct SurfaceDeferred {
 
   [[legacy_info]] ShaderCreateInfo eevee_global_ubo;
   [[legacy_info]] ShaderCreateInfo eevee_utility_texture;
-  [[legacy_info]] ShaderCreateInfo eevee_sampling_data;
   [[legacy_info]] ShaderCreateInfo eevee_hiz_data;
   [[legacy_info]] ShaderCreateInfo draw_view_culling;
   [[legacy_info]] ShaderCreateInfo eevee_geom_iface_info;
@@ -95,6 +96,7 @@ void surf_deferred([[resource_table]] PipelineConstants &pipe,
                    [[resource_table]] SurfaceDeferred &srt,
                    [[resource_table]] gbuffer::PackParameters &gbuf_params,
                    [[resource_table]] RenderPassOutput &render_passes,
+                   [[resource_table]] const Sampling &sampling,
                    [[frag_coord]] const float4 frag_co,
                    [[out]] DeferredFragOut &frag_out,
                    [[front_facing]] const bool front_face)
@@ -102,7 +104,7 @@ void surf_deferred([[resource_table]] PipelineConstants &pipe,
   init_globals(front_face);
 
   float noise = utility_tx_fetch(utility_tx, frag_co.xy, UTIL_BLUE_NOISE_LAYER).r;
-  float closure_rand = fract(noise + sampling_rng_1D_get(SAMPLING_CLOSURE));
+  float closure_rand = fract(noise + sampling.rng_1D_get(SAMPLING_CLOSURE));
 
   fragment_displacement();
 
@@ -156,7 +158,7 @@ void surf_deferred([[resource_table]] PipelineConstants &pipe,
   }
   const bool use_object_id = pipe.use_sss || use_light_linking || use_terminator_offset;
 
-  float3 gbuffer_dither = sampling_rng_3D_get(SAMPLING_GBUFFER_U);
+  float3 gbuffer_dither = sampling.rng_3D_get(SAMPLING_GBUFFER_U);
   gbuffer::Packed gbuf = gbuffer::pack(
       gbuf_params, gbuf_data, g_data.Ng, g_data.N, thickness, use_object_id);
 

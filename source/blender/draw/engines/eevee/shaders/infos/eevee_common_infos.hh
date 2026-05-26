@@ -11,9 +11,9 @@
 #endif
 
 #ifdef GLSL_CPP_STUBS
-#  define EEVEE_SAMPLING_DATA
 #  define MAT_CLIP_PLANE
 #  define MAT_TRANSPARENT
+#  define MAT_RAYCAST
 #endif
 
 #include "eevee_defines.hh"

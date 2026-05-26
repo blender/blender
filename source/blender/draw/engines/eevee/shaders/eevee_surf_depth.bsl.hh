@@ -38,7 +38,6 @@ namespace eevee {
 
 struct SurfaceDepth {
   [[legacy_info]] ShaderCreateInfo eevee_global_ubo;
-  [[legacy_info]] ShaderCreateInfo eevee_sampling_data;
   [[legacy_info]] ShaderCreateInfo eevee_utility_texture;
   [[legacy_info]] ShaderCreateInfo eevee_geom_iface_info;
 };
@@ -63,6 +62,7 @@ template<bool with_velocity>
 [[fragment]]
 void surf_depth([[resource_table]] PipelineConstants &pipe,
                 [[resource_table]] SurfaceDepth & /*srt*/,
+                [[resource_table]] const Sampling &sampling,
                 [[frag_coord]] const float4 /*frag_co*/,
                 [[out]] SurfaceDepthFragOut<with_velocity> &frag_out,
                 [[front_facing]] const bool front_face)
@@ -72,7 +72,7 @@ void surf_depth([[resource_table]] PipelineConstants &pipe,
 
     nodetree_surface(0.0f);
 
-    float noise_offset = sampling_rng_1D_get(SAMPLING_TRANSPARENCY);
+    float noise_offset = sampling.rng_1D_get(SAMPLING_TRANSPARENCY);
     float threshold = hashed_transparency::alpha_threshold(
         pipeline_buf.alpha_hash_scale, noise_offset, g_data.P);
 
@@ -112,9 +112,17 @@ void surf_depth([[resource_table]] PipelineConstants &pipe,
   frag_out.object_id = drw_resource_id() & uint(0xFFFF);
 }
 
-template void surf_depth<true>(
-    PipelineConstants &, SurfaceDepth &, const float4, SurfaceDepthFragOut<true> &, const bool);
-template void surf_depth<false>(
-    PipelineConstants &, SurfaceDepth &, const float4, SurfaceDepthFragOut<false> &, const bool);
+template void surf_depth<true>(PipelineConstants &,
+                               SurfaceDepth &,
+                               const Sampling &,
+                               const float4,
+                               SurfaceDepthFragOut<true> &,
+                               const bool);
+template void surf_depth<false>(PipelineConstants &,
+                                SurfaceDepth &,
+                                const Sampling &,
+                                const float4,
+                                SurfaceDepthFragOut<false> &,
+                                const bool);
 
 }  // namespace eevee

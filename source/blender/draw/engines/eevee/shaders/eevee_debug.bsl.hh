@@ -381,7 +381,9 @@ void debug_shadow_frag([[resource_table]] ShadowDebug &srt,
 
 }  // namespace eevee
 
-PipelineGraphic eevee_shadow_debug(eevee::debug_fullscreen_vert, eevee::debug_shadow_frag);
+PipelineGraphic eevee_shadow_debug(eevee::debug_fullscreen_vert,
+                                   eevee::debug_shadow_frag,
+                                   eevee::ShadowRenderData{.shadow_random = false});
 
 namespace eevee::debug::irradiance_grid {
 

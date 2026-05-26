@@ -13,11 +13,9 @@
 #pragma once
 
 #include "infos/eevee_common_infos.hh"
-#include "infos/eevee_sampling_infos.hh"
 
 SHADER_LIBRARY_CREATE_INFO(eevee_gbuffer_data)
 SHADER_LIBRARY_CREATE_INFO(eevee_global_ubo)
-SHADER_LIBRARY_CREATE_INFO(eevee_sampling_data)
 SHADER_LIBRARY_CREATE_INFO(draw_view)
 SHADER_LIBRARY_CREATE_INFO(eevee_utility_texture)
 
@@ -60,7 +58,6 @@ struct TileBuffer {
 struct DenoiseSpatial {
   [[legacy_info]] ShaderCreateInfo eevee_gbuffer_data;
   [[legacy_info]] ShaderCreateInfo eevee_global_ubo;
-  [[legacy_info]] ShaderCreateInfo eevee_sampling_data;
   [[legacy_info]] ShaderCreateInfo draw_view;
   [[legacy_info]] ShaderCreateInfo eevee_utility_texture;
 
@@ -144,6 +141,7 @@ void transmission_thickness_amend_closure(ClosureUndetermined &cl, float3 &V, Th
   /* Metal: Provide compiler with hint to tune per-thread resource allocation. */
   metal_max_total_threads_per_threadgroup(316)]]
 void spatial_main([[resource_table]] DenoiseSpatial &srt,
+                  [[resource_table]] const Sampling &sampling,
                   [[work_group_id]] const uint3 work_group,
                   [[local_invocation_id]] const uint3 local_id)
 {
@@ -242,7 +240,7 @@ void spatial_main([[resource_table]] DenoiseSpatial &srt,
   }
 
   float2 noise = utility_tx_fetch(utility_tx, float2(texel_fullres), UTIL_BLUE_NOISE_LAYER).ba;
-  noise = fract(noise + sampling_rng_1D_get(SAMPLING_CLOSURE));
+  noise = fract(noise + sampling.rng_1D_get(SAMPLING_CLOSURE));
 
   int2 center_sample_texel = texel_nearest;
   if (srt.raytrace_resolution_scale != 1) {
@@ -658,7 +656,6 @@ void temporal_main([[resource_table]] DenoiseTemporal &srt,
 struct DenoiseBilateral {
   [[legacy_info]] ShaderCreateInfo eevee_gbuffer_data;
   [[legacy_info]] ShaderCreateInfo eevee_global_ubo;
-  [[legacy_info]] ShaderCreateInfo eevee_sampling_data;
   [[legacy_info]] ShaderCreateInfo draw_view;
 
   [[sampler(1)]] sampler2DDepth depth_tx;
@@ -685,6 +682,7 @@ struct DenoiseBilateral {
  */
 [[compute, local_size(RAYTRACE_GROUP_SIZE, RAYTRACE_GROUP_SIZE)]]
 void bilateral_main([[resource_table]] DenoiseBilateral &srt,
+                    [[resource_table]] const Sampling &sampling,
                     [[work_group_id]] const uint3 work_group,
                     [[local_invocation_id]] const uint3 local_id)
 {
@@ -726,7 +724,7 @@ void bilateral_main([[resource_table]] DenoiseBilateral &srt,
 
   float2 noise = interleaved_gradient_noise(
       float2(texel_fullres) + 0.5f, float2(3, 5), float2(0.0f));
-  noise += sampling_rng_2D_get(SAMPLING_RAYTRACE_W);
+  noise += sampling.rng_2D_get(SAMPLING_RAYTRACE_W);
 
   /* In order to remove more fireflies, "tone-map" the color samples during the accumulation. */
   float3 accum_radiance = colorspace::log_from_scene_linear(in_radiance);

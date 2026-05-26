@@ -35,7 +35,6 @@ namespace eevee {
 struct SurfShadow {
   [[legacy_info]] ShaderCreateInfo eevee_global_ubo;
   [[legacy_info]] ShaderCreateInfo eevee_utility_texture;
-  [[legacy_info]] ShaderCreateInfo eevee_sampling_data;
   [[legacy_info]] ShaderCreateInfo eevee_geom_iface_info;
 
   [[storage(SHADOW_RENDER_MAP_BUF_SLOT,
@@ -47,6 +46,7 @@ struct SurfShadow {
 [[fragment]] [[texture_atomic]]
 void surf_shadow([[resource_table]] PipelineConstants &pipe,
                  [[resource_table]] SurfShadow &srt,
+                 [[resource_table]] const Sampling &sampling,
                  [[front_facing]] const bool front_face,
                  [[frag_coord]] const float4 frag_co)
 {
@@ -66,7 +66,7 @@ void surf_shadow([[resource_table]] PipelineConstants &pipe,
 
     nodetree_surface(0.0f);
 
-    float noise_offset = sampling_rng_1D_get(SAMPLING_TRANSPARENCY);
+    float noise_offset = sampling.rng_1D_get(SAMPLING_TRANSPARENCY);
     float random_threshold = pcg4d(float4(g_data.P, noise_offset)).x;
 
     float transparency = average(g_transmittance);

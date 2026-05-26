@@ -10,13 +10,11 @@
 
 #include "draw_object_infos_infos.hh"
 #include "infos/eevee_common_infos.hh"
-#include "infos/eevee_sampling_infos.hh"
 
 FRAGMENT_SHADER_CREATE_INFO(draw_view)
 FRAGMENT_SHADER_CREATE_INFO(draw_object_infos)
 FRAGMENT_SHADER_CREATE_INFO(eevee_gbuffer_data)
 FRAGMENT_SHADER_CREATE_INFO(eevee_utility_texture)
-FRAGMENT_SHADER_CREATE_INFO(eevee_sampling_data)
 FRAGMENT_SHADER_CREATE_INFO(eevee_hiz_data)
 
 #include "draw_view_lib.glsl"
@@ -78,7 +76,6 @@ PipelineGraphic aov_clear(fullscreen_vert, aov_clear_frag);
 struct LightEval {
   [[legacy_info]] ShaderCreateInfo eevee_gbuffer_data;
   [[legacy_info]] ShaderCreateInfo eevee_utility_texture;
-  [[legacy_info]] ShaderCreateInfo eevee_sampling_data;
   [[legacy_info]] ShaderCreateInfo eevee_hiz_data;
   [[legacy_info]] ShaderCreateInfo draw_object_infos;
   [[legacy_info]] ShaderCreateInfo draw_view;
@@ -272,7 +269,6 @@ struct SphereProbeEval {
   [[legacy_info]] ShaderCreateInfo draw_object_infos;
   [[legacy_info]] ShaderCreateInfo eevee_gbuffer_data;
   [[legacy_info]] ShaderCreateInfo eevee_utility_texture;
-  [[legacy_info]] ShaderCreateInfo eevee_sampling_data;
   [[legacy_info]] ShaderCreateInfo eevee_hiz_data;
 };
 
@@ -281,6 +277,7 @@ struct SphereProbeEval {
 [[fragment, early_fragment_tests]]
 void sphere_eval_frag([[resource_table]] SphereProbeEval & /*srt*/,
                       [[resource_table]] LightEvalIterator &lights,
+                      [[resource_table]] const Sampling &sampling,
                       [[resource_table]] const LightprobeVolumeRenderData &lightprobes,
                       [[frag_coord]] const float4 frag_co,
                       [[in]] const VertOut v_out,
@@ -372,7 +369,7 @@ void sphere_eval_frag([[resource_table]] SphereProbeEval & /*srt*/,
 
   /* Indirect light. */
   /* Can only load irradiance to avoid dependency loop with the reflection probe. */
-  SphericalHarmonicL1<float4> sh = lightprobes.sample_probe(P, V, Ng);
+  SphericalHarmonicL1<float4> sh = lightprobes.sample_probe(sampling, P, V, Ng);
 
   radiance_front += sh.evaluate_lambert(Ng).rgb;
   /* TODO(fclem): Correct transmission eval. */
@@ -389,7 +386,6 @@ struct PlanarProbeEval {
   [[legacy_info]] ShaderCreateInfo draw_object_infos;
   [[legacy_info]] ShaderCreateInfo eevee_gbuffer_data;
   [[legacy_info]] ShaderCreateInfo eevee_utility_texture;
-  [[legacy_info]] ShaderCreateInfo eevee_sampling_data;
   [[legacy_info]] ShaderCreateInfo eevee_hiz_data;
 };
 
@@ -397,6 +393,7 @@ struct PlanarProbeEval {
 void planar_eval_frag([[resource_table]] PlanarProbeEval & /*srt*/,
                       [[resource_table]] LightEvalIterator &lights,
                       [[resource_table]] const LightprobeRenderData &lightprobes,
+                      [[resource_table]] const Sampling &sampling,
                       [[frag_coord]] const float4 frag_co,
                       [[in]] const VertOut v_out,
                       [[out]] FragOut &frag_out)
@@ -531,7 +528,7 @@ void planar_eval_frag([[resource_table]] PlanarProbeEval & /*srt*/,
 
   /* Indirect light. */
   [[resource_table]] const LightprobeVolumeRenderData &lp_volumes = lightprobes.volumes;
-  SphericalHarmonicL1<float4> sh = lp_volumes.sample_probe(P, V, Ng);
+  SphericalHarmonicL1<float4> sh = lp_volumes.sample_probe(sampling, P, V, Ng);
   LightProbeSample samp = lightprobes.load(frag_co.xy, P, Ng, V);
 
   radiance_front += sh.evaluate_lambert(Ng).rgb;
@@ -554,24 +551,36 @@ PipelineGraphic light_single(fullscreen_vert,
                              LightEvalData{
                                  .light_closure_eval_count_reflect = 1,
                                  .light_closure_eval_count_transmit = 1,
+                             },
+                             ShadowRenderData{
+                                 .shadow_random = true,
                              });
 PipelineGraphic light_double(fullscreen_vert,
                              light_eval_frag,
                              LightEvalData{
                                  .light_closure_eval_count_reflect = 2,
                                  .light_closure_eval_count_transmit = 1,
+                             },
+                             ShadowRenderData{
+                                 .shadow_random = true,
                              });
 PipelineGraphic light_triple(fullscreen_vert,
                              light_eval_frag,
                              LightEvalData{
                                  .light_closure_eval_count_reflect = 3,
                                  .light_closure_eval_count_transmit = 1,
+                             },
+                             ShadowRenderData{
+                                 .shadow_random = true,
                              });
 PipelineGraphic sphere_eval(fullscreen_vert,
                             sphere_eval_frag,
                             LightEvalData{
                                 .light_closure_eval_count_reflect = 1,
                                 .light_closure_eval_count_transmit = 1,
+                            },
+                            ShadowRenderData{
+                                .shadow_random = true,
                             });
 PipelineGraphic planar_eval(fullscreen_vert,
                             planar_eval_frag,
@@ -581,6 +590,9 @@ PipelineGraphic planar_eval(fullscreen_vert,
                             LightEvalData{
                                 .light_closure_eval_count_reflect = 2,
                                 .light_closure_eval_count_transmit = 2,
+                            },
+                            ShadowRenderData{
+                                .shadow_random = true,
                             });
 
 }  // namespace eevee::deferred

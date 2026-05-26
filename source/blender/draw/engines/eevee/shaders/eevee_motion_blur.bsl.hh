@@ -5,10 +5,8 @@
 #pragma once
 
 #include "infos/eevee_common_infos.hh"
-#include "infos/eevee_sampling_infos.hh"
 
 COMPUTE_SHADER_CREATE_INFO(draw_view)
-COMPUTE_SHADER_CREATE_INFO(eevee_sampling_data)
 
 #include "draw_math_geom_lib.glsl"
 #include "eevee_motion_blur_shared.hh"
@@ -332,7 +330,6 @@ struct Accumulator {
 
 struct Resources {
   [[legacy_info]] ShaderCreateInfo draw_view;
-  [[legacy_info]] ShaderCreateInfo eevee_sampling_data;
 
   [[uniform(0)]] const MotionBlurData &motion_blur_buf;
   [[sampler(0)]] sampler2DDepth depth_tx;
@@ -481,6 +478,7 @@ struct Resources {
  */
 [[compute, local_size(MOTION_BLUR_GROUP_SIZE, MOTION_BLUR_GROUP_SIZE)]]
 void gather_comp([[resource_table]] Resources &srt,
+                 [[resource_table]] const Sampling &sampling,
                  [[resource_table]] const TileBuf &tiles,
                  [[global_invocation_id]] const uint3 global_id)
 {
@@ -498,7 +496,7 @@ void gather_comp([[resource_table]] Resources &srt,
 
   float4 center_color = textureLod(srt.in_color_tx, uv, 0.0f);
 
-  float noise_offset = sampling_rng_1D_get(SAMPLING_TIME);
+  float noise_offset = sampling.rng_1D_get(SAMPLING_TIME);
   /** TODO(fclem) Blue noise. */
   float2 rand = float2(interleaved_gradient_noise(float2(global_id.xy), 0, noise_offset),
                        interleaved_gradient_noise(float2(global_id.xy), 1, noise_offset));

@@ -4,6 +4,7 @@
 
 #pragma once
 
+#include "eevee_sampling_lib.bsl.hh"
 #include "eevee_shadow_tilemap_lib.bsl.hh"
 #include "gpu_shader_utildefines_lib.glsl"
 
@@ -13,6 +14,10 @@ namespace eevee {
 struct ShadowRenderData {
   [[sampler(SHADOW_ATLAS_TEX_SLOT)]] usampler2DArrayAtomic shadow_atlas_tx;
   [[sampler(SHADOW_TILEMAPS_TEX_SLOT)]] usampler2D shadow_tilemaps_tx;
+
+  [[compilation_constant]] bool shadow_random;
+
+  [[resource_table, condition(shadow_random)]] srt_t<Sampling> sampling;
 
   float read_depth(ShadowCoordinates coord) const
   {

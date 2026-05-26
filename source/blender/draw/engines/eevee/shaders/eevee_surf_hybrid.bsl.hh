@@ -31,6 +31,7 @@ Thickness g_thickness;
 
 float4 closure_to_rgba_hybrid(Closure /*cl*/)
 {
+  [[resource_table]] const eevee::Sampling &sampling = resource_table_get(eevee::Sampling);
   const float2 frag_co = gl_FragCoord.xy;
 
   float3 radiance, transmittance;
@@ -38,7 +39,7 @@ float4 closure_to_rgba_hybrid(Closure /*cl*/)
 
   /* Reset for the next closure tree. */
   float noise = utility_tx_fetch(utility_tx, frag_co, UTIL_BLUE_NOISE_LAYER).r;
-  float closure_rand = fract(noise + sampling_rng_1D_get(SAMPLING_CLOSURE));
+  float closure_rand = fract(noise + sampling.rng_1D_get(SAMPLING_CLOSURE));
   closure_weights_reset(closure_rand);
 
 #if defined(MAT_TRANSPARENT) && defined(MAT_SHADER_TO_RGBA)
@@ -80,7 +81,6 @@ struct SurfaceHybrid {
 
   [[legacy_info]] ShaderCreateInfo eevee_global_ubo;
   [[legacy_info]] ShaderCreateInfo eevee_utility_texture;
-  [[legacy_info]] ShaderCreateInfo eevee_sampling_data;
   [[legacy_info]] ShaderCreateInfo eevee_hiz_data;
   [[legacy_info]] ShaderCreateInfo draw_view_culling;
   [[legacy_info]] ShaderCreateInfo eevee_geom_iface_info;
@@ -133,6 +133,7 @@ void surf_hybrid([[resource_table]] PipelineConstants &pipe,
                  [[resource_table]] LightprobeRenderData & /*lightprobes*/,
                  [[resource_table]] LightprobePlaneRenderData & /*lightprobe_planes*/,
                  [[resource_table]] RenderPassOutput &render_passes,
+                 [[resource_table]] const Sampling &sampling,
                  [[frag_coord]] const float4 frag_co,
                  [[out]] HybridFragOut &frag_out,
                  [[front_facing]] const bool front_face)
@@ -140,7 +141,7 @@ void surf_hybrid([[resource_table]] PipelineConstants &pipe,
   init_globals(front_face);
 
   float noise = utility_tx_fetch(utility_tx, frag_co.xy, UTIL_BLUE_NOISE_LAYER).r;
-  float closure_rand = fract(noise + sampling_rng_1D_get(SAMPLING_CLOSURE));
+  float closure_rand = fract(noise + sampling.rng_1D_get(SAMPLING_CLOSURE));
 
   g_thickness = Thickness::from(nodetree_thickness(), thickness_mode);
 
@@ -194,7 +195,7 @@ void surf_hybrid([[resource_table]] PipelineConstants &pipe,
   }
   const bool use_object_id = pipe.use_sss || use_light_linking || use_terminator_offset;
 
-  float3 gbuffer_dither = sampling_rng_3D_get(SAMPLING_GBUFFER_U);
+  float3 gbuffer_dither = sampling.rng_3D_get(SAMPLING_GBUFFER_U);
   gbuffer::Packed gbuf = gbuffer::pack(
       gbuf_params, gbuf_data, g_data.Ng, g_data.N, g_thickness, use_object_id);
 
