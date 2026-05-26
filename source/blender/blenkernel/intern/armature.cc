@@ -2560,6 +2560,29 @@ void BKE_pchan_protected_location_set(bPoseChannel *pchan, const float location[
   }
 }
 
+void BKE_pchan_protected_rotation_set(bPoseChannel *pchan, const float mat[3][3])
+{
+  switch (pchan->rotmode) {
+    case ROT_MODE_QUAT: {
+      float quat[4];
+      mat3_to_quat(quat, mat);
+      BKE_pchan_protected_rotation_quaternion_set(pchan, quat);
+      break;
+    }
+    case ROT_MODE_AXISANGLE:
+      float angle, axis[3];
+      mat3_to_axis_angle(axis, &angle, mat);
+      BKE_pchan_protected_rotation_axisangle_set(pchan, axis, angle);
+      break;
+
+    default:
+      float euler[3];
+      mat3_to_compatible_eulO(euler, pchan->eul, pchan->rotmode, mat);
+      BKE_pchan_protected_rotation_euler_set(pchan, euler);
+      break;
+  }
+}
+
 void BKE_pchan_protected_scale_set(bPoseChannel *pchan, const float scale[3])
 {
   if ((pchan->protectflag & OB_LOCK_SCALEX) == 0) {
