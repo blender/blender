@@ -15,7 +15,6 @@
 #endif
 
 COMPUTE_SHADER_CREATE_INFO(draw_view)
-COMPUTE_SHADER_CREATE_INFO(eevee_global_ubo)
 
 #include "eevee_closure.bsl.hh"
 #include "eevee_light_eval.bsl.hh"
@@ -25,7 +24,6 @@ namespace eevee::surfel {
 
 struct EvalLight {
   [[legacy_info]] ShaderCreateInfo draw_view;
-  [[legacy_info]] ShaderCreateInfo eevee_global_ubo;
 
   /* WORKAROUND: Disables culling in lighting evaluation function. */
   [[compilation_constant]] bool light_iter_force_no_culling;

@@ -6,16 +6,13 @@
 
 #include "infos/eevee_common_infos.hh"
 
-SHADER_LIBRARY_CREATE_INFO(eevee_global_ubo)
-
 #include "eevee_lightprobe_sphere.bsl.hh"
 #include "eevee_lightprobe_volume.bsl.hh"
+#include "eevee_uniform.bsl.hh"
 
 namespace eevee::lightprobe::sphere {
 
 struct Cull {
-  [[legacy_info]] ShaderCreateInfo eevee_global_ubo;
-
   [[storage(0, read_write)]] SphereProbeData (&lightprobe_sphere_buf)[SPHERE_PROBE_MAX];
 
   [[push_constant]] const int lightprobe_sphere_count;
@@ -27,6 +24,7 @@ struct Cull {
  */
 [[compute, local_size(SPHERE_PROBE_SELECT_GROUP_SIZE)]]
 void cull([[resource_table]] Cull &srt,
+          [[resource_table]] const Uniform &uni,
           [[resource_table]] const LightprobeVolumeRenderData &volumes,
           [[global_invocation_id]] const uint3 global_id)
 {
@@ -44,7 +42,7 @@ void cull([[resource_table]] Cull &srt,
     sh = volumes.sample_probe_no_dithered_no_biases(probe_center);
   }
 
-  float clamp_indirect_sh = uniform_buf.clamp.surface_indirect;
+  float clamp_indirect_sh = uni.uniform_buf.clamp.surface_indirect;
   sh = spherical_harmonics::clamp_energy(sh, clamp_indirect_sh);
 
   srt.lightprobe_sphere_buf[idx].low_freq_light = lightprobe::sphere::extract_low_freq_lighting(

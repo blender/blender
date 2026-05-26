@@ -149,6 +149,7 @@ void shape_display_vert([[resource_table]] const ShapeDisplayResources & /*srt*/
 void shape_display_frag([[resource_table]] const ShapeDisplayResources & /*srt*/,
                         [[resource_table]] const LightRenderData &lrd,
                         [[resource_table]] const UnifiedVolumeData &volumes,
+                        [[resource_table]] const Uniform &uni,
                         [[frag_coord]] const float4 frag_co,
                         [[in]] const ShapeDisplayVertOut &v_out,
                         [[out]] ShapeDisplayFragOut &frag_out)
@@ -181,7 +182,7 @@ void shape_display_frag([[resource_table]] const ShapeDisplayResources & /*srt*/
 
   float depth = reverse_z::read(frag_co.z);
 
-  float2 uvs = frag_co.xy * uniform_buf.volumes.main_view_extent_inv;
+  float2 uvs = frag_co.xy * uni.uniform_buf.volumes.main_view_extent_inv;
   float3 radiance = v_out.radiance;
   if (is_spot_light(light_type)) {
     radiance *= light_spot_attenuation(light, -drw_world_incident_vector(P));

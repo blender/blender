@@ -34,6 +34,8 @@ struct TagUsageTransparent {
   [[legacy_info]] ShaderCreateInfo draw_resource_id_varying;
   [[legacy_info]] ShaderCreateInfo draw_modelmat;
 
+  [[resource_table]] srt_t<Uniform> uniforms;
+
   [[storage(4, read)]] const ObjectBounds (&bounds_buf)[];
 
   [[push_constant]] const int2 fb_resolution;
@@ -67,7 +69,9 @@ struct TagUsageTransparent {
 
   float pixel_size_at(float linear_depth)
   {
-    float pixel_size = uniform_buf.shadow.film_pixel_radius;
+    [[resource_table]] const Uniform &uni = uniforms;
+
+    float pixel_size = uni.uniform_buf.shadow.film_pixel_radius;
     bool is_persp = (drw_view().winmat[3][3] == 0.0f);
     if (is_persp) {
       pixel_size *= max(0.01f, linear_depth);
@@ -109,9 +113,11 @@ struct TagUsageTransparent {
    * to ensure the tiles needed by all LOD0 pixels get tagged */
   void inflate_bounds(float3 ls_center, float3 &P, float3 &lP)
   {
+    [[resource_table]] const Uniform &uni = uniforms;
+
     float3 vP = drw_point_world_to_view(P);
 
-    float inflate_scale = uniform_buf.shadow.film_pixel_radius * exp2(float(fb_lod));
+    float inflate_scale = uni.uniform_buf.shadow.film_pixel_radius * exp2(float(fb_lod));
     if (drw_view_is_perspective()) {
       inflate_scale *= -vP.z;
     }

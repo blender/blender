@@ -10,17 +10,12 @@
 
 #pragma once
 
-#include "infos/eevee_common_infos.hh"
-
-SHADER_LIBRARY_CREATE_INFO(eevee_global_ubo)
-
 #include "eevee_renderpass.bsl.hh"
 #include "gpu_shader_fullscreen_lib.glsl"
 
 namespace eevee::forward {
 
 struct ForwardResolve {
-  [[legacy_info]] ShaderCreateInfo eevee_global_ubo;
 
   [[sampler(0)]] sampler2D transparency_r_tx;
   [[sampler(1)]] sampler2D transparency_g_tx;
@@ -41,13 +36,14 @@ struct ForwardResolveFragOut {
 
 [[fragment]]
 void resolve_frag([[resource_table]] const ForwardResolve &srt,
+                  [[resource_table]] const eevee::Uniform &uni,
                   [[resource_table]] RenderPassOutput &render_passes,
                   [[frag_coord]] const float4 frag_co,
                   [[out]] ForwardResolveFragOut &frag_out)
 {
   int2 texel = int2(frag_co.xy);
 
-  if (pipeline_buf.use_monochromatic_transmittance) {
+  if (uni.pipeline_buf.use_monochromatic_transmittance) {
     float4 data = texelFetch(srt.transparency_r_tx, texel, 0);
     frag_out.radiance = float4(data.rgb, 0.0f);
     frag_out.transmittance = data.aaaa;
@@ -74,7 +70,7 @@ void resolve_frag([[resource_table]] const ForwardResolve &srt,
   }
 
   render_passes.store_color(texel,
-                            uniform_buf.render_pass.transparent_id,
+                            uni.uniform_buf.render_pass.transparent_id,
                             float4(frag_out.radiance.rgb, frag_out.transmittance.a));
 }
 

@@ -7,7 +7,6 @@
 #  include "gpu_shader_compat.hh"
 
 #  include "draw_view_infos.hh"
-#  include "eevee_uniform_infos.hh"
 #endif
 
 #ifdef GLSL_CPP_STUBS

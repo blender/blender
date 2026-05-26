@@ -38,6 +38,7 @@ struct GeomPointCloud {
 [[vertex]] [[clip_control]] void geom_pointcloud(
     [[resource_table]] const PipelineConstants &pipe,
     [[resource_table]] const GeomPointCloud & /*srt*/,
+    [[resource_table]] const Uniform &uni,
     [[resource_table, condition(is_shadow_pipe)]] GeomShadow &shadow,
     [[instance_id]] const int /*inst_id*/,     /* Used by model_lib. */
     [[base_instance]] const int /*base_inst*/, /* Used by model_lib. */
@@ -101,7 +102,7 @@ struct GeomPointCloud {
         prv, lP, nxt, motion.prev, motion.next, drw_resource_id(), drw_modelmat());
   }
 
-  init_globals(true);
+  init_globals(uni, true);
   attrib_load(PointCloudPoint{ws_pt.point_id});
 
   interp.P += nodetree_displacement();

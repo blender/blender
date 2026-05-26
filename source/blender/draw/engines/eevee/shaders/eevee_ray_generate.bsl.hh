@@ -6,13 +6,13 @@
 
 #include "infos/eevee_common_infos.hh"
 
-SHADER_LIBRARY_CREATE_INFO(eevee_global_ubo)
 SHADER_LIBRARY_CREATE_INFO(draw_view)
 
 #include "draw_view_lib.glsl"
 #include "eevee_bxdf.bsl.hh"
 #include "eevee_gbuffer_read.bsl.hh"
 #include "eevee_sampling_lib.bsl.hh"
+#include "eevee_uniform.bsl.hh"
 #include "gpu_shader_codegen_lib.glsl"
 #include "gpu_shader_math_matrix_construct_lib.glsl"
 
@@ -100,7 +100,6 @@ namespace eevee::raytracing {
 
 struct RayGenerate {
   [[specialization_constant(0)]] int closure_index;
-  [[legacy_info]] ShaderCreateInfo eevee_global_ubo;
   [[legacy_info]] ShaderCreateInfo draw_view;
   [[storage(4, read)]] const uint (&tiles_coord_buf)[];
   [[image(0, write, SFLOAT_16_16_16_16)]] image2D out_ray_data_img;
@@ -112,6 +111,7 @@ struct RayGenerate {
  */
 [[compute, local_size(RAYTRACE_GROUP_SIZE, RAYTRACE_GROUP_SIZE)]]
 void generate_rays([[resource_table]] RayGenerate &srt,
+                   [[resource_table]] const Uniform &uni,
                    [[resource_table]] const Sampling &sampling,
                    [[resource_table]] const UtilityTexture &util_tx,
                    [[resource_table]] const gbuffer::Reader &reader,
@@ -122,7 +122,8 @@ void generate_rays([[resource_table]] RayGenerate &srt,
   uint2 tile_coord = unpackUvec2x16(srt.tiles_coord_buf[group_id.x]);
   int2 texel = int2(local_id.xy + tile_coord * tile_size);
 
-  int2 texel_fullres = texel * raytrace_buf.trace_pixel_scale + raytrace_buf.trace_pixel_offset;
+  int2 texel_fullres = texel * uni.raytrace_buf.trace_pixel_scale +
+                       uni.raytrace_buf.trace_pixel_offset;
 
   gbuffer::Header gbuf_header = reader.read_header(texel_fullres);
   ClosureUndetermined closure = reader.read_bin(texel_fullres, srt.closure_index);

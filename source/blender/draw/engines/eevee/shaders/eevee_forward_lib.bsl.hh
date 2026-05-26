@@ -47,6 +47,7 @@ void forward_lighting_eval(Thickness thickness,
 {
   [[resource_table]] LightEvalIterator &lights = resource_table_get(eevee::LightEvalIterator);
   [[resource_table]] UtilityTexture &util_tx = resource_table_get(UtilityTexture);
+  [[resource_table]] const Uniform &uni = resource_table_get(eevee::Uniform);
   /* clang-format off */ /* Multiline macro breaks error line counting. */
   [[resource_table]] LightprobeRenderData &lightprobes = resource_table_get(eevee::LightprobeRenderData);
   [[resource_table]] LightprobePlaneRenderData &lightprobe_planes = resource_table_get(eevee::LightprobePlaneRenderData);
@@ -110,7 +111,7 @@ void forward_lighting_eval(Thickness thickness,
 
   LightProbeSample samp = lightprobes.load(frag_co, g_data.P, g_data.Ng, V);
 
-  float clamp_indirect_sh = uniform_buf.clamp.surface_indirect;
+  float clamp_indirect_sh = uni.uniform_buf.clamp.surface_indirect;
   samp.volume_irradiance = spherical_harmonics::clamp_energy(samp.volume_irradiance,
                                                              clamp_indirect_sh);
 
@@ -187,14 +188,14 @@ void forward_lighting_eval(Thickness thickness,
     }
   }
   /* Light clamping. */
-  float clamp_direct = uniform_buf.clamp.surface_direct;
-  float clamp_indirect = uniform_buf.clamp.surface_indirect;
+  float clamp_direct = uni.uniform_buf.clamp.surface_direct;
+  float clamp_indirect = uni.uniform_buf.clamp.surface_indirect;
 
   radiance_direct = colorspace::brightness_clamp_max(radiance_direct, clamp_direct);
   radiance_indirect = colorspace::brightness_clamp_max(radiance_indirect, clamp_indirect);
 
-  radiance_direct *= uniform_buf.clamp.direct_scale;
-  radiance_indirect *= uniform_buf.clamp.indirect_scale;
+  radiance_direct *= uni.uniform_buf.clamp.direct_scale;
+  radiance_indirect *= uni.uniform_buf.clamp.indirect_scale;
 
   radiance = radiance_direct + radiance_indirect + g_emission;
 

@@ -34,11 +34,11 @@ namespace eevee::shadow::usage {
 struct TagUsage {
   [[legacy_info]] ShaderCreateInfo draw_view;
   [[legacy_info]] ShaderCreateInfo draw_view_culling;
-  [[legacy_info]] ShaderCreateInfo eevee_global_ubo;
 
   [[resource_table]] srt_t<LightRenderData> light_data;
   [[resource_table]] srt_t<TileMaps> tilemaps;
   [[resource_table]] srt_t<Tiles> tiles;
+  [[resource_table]] srt_t<Uniform> uniforms;
 
  public:
   void tag_usage_tile(LightData light, uint2 tile_co, int lod, int tilemap_index)
@@ -117,6 +117,7 @@ struct TagUsage {
   void tag_usage_tilemap_punctual(uint l_idx, float3 P, float radius, int lod_bias)
   {
     [[resource_table]] LightRenderData &lrd = light_data;
+    [[resource_table]] const Uniform &uni = uniforms;
 
     LightData light = lrd.light_buf[l_idx];
 
@@ -150,7 +151,7 @@ struct TagUsage {
                                     lP,
                                     drw_view_is_perspective(),
                                     drw_view_z_distance(P),
-                                    uniform_buf.shadow.film_pixel_radius);
+                                    uni.uniform_buf.shadow.film_pixel_radius);
     lod = clamp(lod + lod_bias, 0, SHADOW_TILEMAP_LOD);
 
     if (radius == 0) {
@@ -331,6 +332,7 @@ void tag_usage_surfel([[resource_table]] TagUsageSurfel &srt,
 void tag_usage_volume([[resource_table]] UnifiedVolumeProperties &volume,
                       [[resource_table]] TagUsage &tag,
                       [[resource_table]] SurfelCapture & /*capture*/,
+                      [[resource_table]] const Uniform &uni,
                       [[resource_table]] const Sampling &sampling,
                       [[resource_table]] const HiZ &hiz,
                       [[global_invocation_id]] const uint3 global_id)
@@ -339,7 +341,7 @@ void tag_usage_volume([[resource_table]] UnifiedVolumeProperties &volume,
 
   int3 froxel = int3(global_id);
 
-  if (any(greaterThanEqual(froxel, uniform_buf.volumes.tex_size))) {
+  if (any(greaterThanEqual(froxel, uni.uniform_buf.volumes.tex_size))) {
     return;
   }
 
@@ -353,20 +355,21 @@ void tag_usage_volume([[resource_table]] UnifiedVolumeProperties &volume,
   float offset = sampling.rng_1D_get(SAMPLING_VOLUME_W);
   float jitter = interleaved_gradient_noise(float2(froxel.xy), 0.0f, offset);
 
-  float3 uvw = (float3(froxel) + float3(0.5f, 0.5f, jitter)) * uniform_buf.volumes.inv_tex_size;
-  float3 ss_P = volume_resolve_to_screen(uvw);
+  float3 uvw = (float3(froxel) + float3(0.5f, 0.5f, jitter)) *
+               uni.uniform_buf.volumes.inv_tex_size;
+  float3 ss_P = volume_resolve_to_screen(uni, uvw);
   float3 vP = drw_point_screen_to_view(float3(ss_P.xy, ss_P.z));
   float3 P = drw_point_view_to_world(vP);
 
-  float depth = texelFetch(hiz.hiz_tx, froxel.xy, uniform_buf.volumes.tile_size_lod).r;
+  float depth = texelFetch(hiz.hiz_tx, froxel.xy, uni.uniform_buf.volumes.tile_size_lod).r;
   if (depth < ss_P.z) {
     return;
   }
 
-  float2 pixel = ((float2(froxel.xy) + 0.5f) * uniform_buf.volumes.inv_tex_size.xy) *
-                 uniform_buf.volumes.main_view_extent;
+  float2 pixel = ((float2(froxel.xy) + 0.5f) * uni.uniform_buf.volumes.inv_tex_size.xy) *
+                 uni.uniform_buf.volumes.main_view_extent;
 
-  int bias = uniform_buf.volumes.tile_size_lod;
+  int bias = uni.uniform_buf.volumes.tile_size_lod;
 
   TagPixelCtx ctx = {
       .P = P,

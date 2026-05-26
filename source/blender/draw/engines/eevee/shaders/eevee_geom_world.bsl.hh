@@ -14,8 +14,10 @@
 VERTEX_SHADER_CREATE_INFO(eevee_nodetree)
 
 #include "draw_view_lib.glsl"
+#include "eevee_lightprobe_shared.hh" /* TODO(fclem): Remove. Needed becaused of fragment shader. */
 #include "eevee_reverse_z_lib.bsl.hh"
 #include "eevee_sampling_shared.hh" /* TODO(fclem): Remove. Needed becaused of fragment shader. */
+#include "eevee_uniform.bsl.hh"
 
 namespace eevee {
 
@@ -29,6 +31,7 @@ struct GeomWorld {
 };
 
 [[vertex]] [[clip_control]] void geom_world([[resource_table]] const GeomWorld & /*srt*/,
+                                            [[resource_table]] const Uniform &uni,
                                             [[vertex_id]] const int vert_id,
                                             [[position]] float4 &out_position)
 {

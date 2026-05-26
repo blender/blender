@@ -10,7 +10,6 @@
 
 #include "infos/eevee_common_infos.hh"
 
-SHADER_LIBRARY_CREATE_INFO(eevee_global_ubo)
 SHADER_LIBRARY_CREATE_INFO(draw_view)
 
 #include "draw_math_geom_lib.glsl"
@@ -18,6 +17,7 @@ SHADER_LIBRARY_CREATE_INFO(draw_view)
 #include "eevee_colorspace_lib.bsl.hh"
 #include "eevee_cryptomatte.bsl.hh"
 #include "eevee_reverse_z_lib.bsl.hh"
+#include "eevee_uniform.bsl.hh"
 #include "eevee_velocity.bsl.hh"
 #include "gpu_shader_fullscreen_lib.glsl"
 #include "gpu_shader_math_safe_lib.glsl"
@@ -59,11 +59,11 @@ float4 texelfetch_as_YCoCg_opacity(sampler2D tx, int2 texel)
 }
 
 /* Returns a weight based on Luma to reduce the flickering introduced by high energy pixels. */
-float luma_weight(float luma)
+float luma_weight([[resource_table]] const Uniform &uni, float luma)
 {
   /* Slide 20 of "High Quality Temporal Supersampling" by Brian Karis at SIGGRAPH 2014. */
   /* To preserve more details in dark areas, we use a bigger bias. */
-  return 1.0f / (4.0f + luma * uniform_buf.film.exposure_scale);
+  return 1.0f / (4.0f + luma * uni.uniform_buf.film.exposure_scale);
 }
 
 /**
@@ -83,7 +83,6 @@ float patch_float_for_16f_storage(float value)
 }
 
 struct Film {
-  [[legacy_info]] ShaderCreateInfo eevee_global_ubo;
   [[legacy_info]] ShaderCreateInfo draw_view;
 
   [[resource_table]] srt_t<CameraVelocity> camera;
@@ -117,6 +116,7 @@ struct Film {
   [[image(6, read_write, SFLOAT_16)]] image2DArray value_accum_img;
 
   [[resource_table]] srt_t<Cryptomatte> cryptomatte;
+  [[resource_table]] srt_t<Uniform> uniforms;
 
   /* -------------------------------------------------------------------- */
   /** \name Filter
@@ -124,20 +124,22 @@ struct Film {
 
   FilmSample sample_get(int sample_n, int2 texel_film)
   {
+    [[resource_table]] const Uniform &uni = this->uniforms;
+
 #ifdef PANORAMIC
     /* TODO(fclem): Panoramic projection will be more complex. The samples will have to be retrieve
      * at runtime, maybe by scanning a whole region. Offset and weight will have to be computed by
      * reprojecting the incoming pixel data into film pixel space. */
 #else
 
-    FilmSample film_sample = uniform_buf.film.samples[sample_n];
+    FilmSample film_sample = uni.uniform_buf.film.samples[sample_n];
 
     if (scaling_factor > 1) {
       /* We are working in the render pixel region on the film. We use film pixel units. */
 
       float2 film_coord = 0.5f + float2(texel_film % scaling_factor);
       /* Sample position inside the render pixel region. */
-      float2 jittered_sample_coord = (0.5f - uniform_buf.film.subpixel_offset) *
+      float2 jittered_sample_coord = (0.5f - uni.uniform_buf.film.subpixel_offset) *
                                      float(scaling_factor);
       /* Offset the film samples to always sample the 4 nearest neighbors in the render target.
        * `film_sample.texel` is set to visit all 4 neighbors in [0..1] region. */
@@ -147,17 +149,18 @@ struct Film {
       jittered_sample_coord += float2(film_sample.texel * scaling_factor);
 
       float sample_dist_sqr = length_squared(jittered_sample_coord - film_coord);
-      film_sample.weight = film_filter_weight(uniform_buf.film.filter_radius, sample_dist_sqr);
+      film_sample.weight = film_filter_weight(uni.uniform_buf.film.filter_radius, sample_dist_sqr);
       /* Ensure a minimum weight for each sample to avoid missing data at 4x or 8x up-scaling. */
       film_sample.weight = max(film_sample.weight, 1e-8f);
     }
 
-    film_sample.texel += (texel_film / scaling_factor) + uniform_buf.film.overscan;
+    film_sample.texel += (texel_film / scaling_factor) + uni.uniform_buf.film.overscan;
 
 #endif /* PANORAMIC */
 
     /* Use extend on borders. */
-    film_sample.texel = clamp(film_sample.texel, int2(0, 0), uniform_buf.film.render_extent - 1);
+    film_sample.texel = clamp(
+        film_sample.texel, int2(0, 0), uni.uniform_buf.film.render_extent - 1);
 
     return film_sample;
   }
@@ -165,6 +168,7 @@ struct Film {
   /* Returns the combined weights of all samples affecting this film pixel. */
   float weight_accumulation(int2 texel_film)
   {
+    [[resource_table]] const Uniform &uni = this->uniforms;
     /* TODO(fclem): Reference implementation, also needed for panoramic cameras. */
     if (scaling_factor > 1) {
       float weight = 0.0f;
@@ -173,7 +177,7 @@ struct Film {
       }
       return weight;
     }
-    return uniform_buf.film.samples_weight_total;
+    return uni.uniform_buf.film.samples_weight_total;
   }
 
   void sample_accum(FilmSample samp, int pass_id, int layer, sampler2DArray tex, float4 &accum)
@@ -194,7 +198,8 @@ struct Film {
 
   void sample_accum_mist(FilmSample samp, float &accum)
   {
-    if (uniform_buf.film.mist_id == -1) {
+    [[resource_table]] const Uniform &uni = this->uniforms;
+    if (uni.uniform_buf.film.mist_id == -1) {
       return;
     }
     float depth = reverse_z::read(texelFetch(depth_tx, samp.texel, 0).x);
@@ -203,21 +208,22 @@ struct Film {
     bool is_persp = drw_view().winmat[3][3] == 0.0f;
     float mist = (is_persp) ? length(vP) : abs(vP.z);
     /* Remap to 0..1 range. */
-    mist = saturate(mist * uniform_buf.film.mist_scale + uniform_buf.film.mist_bias);
+    mist = saturate(mist * uni.uniform_buf.film.mist_scale + uni.uniform_buf.film.mist_bias);
     /* Falloff. */
-    mist = pow(mist, uniform_buf.film.mist_exponent);
+    mist = pow(mist, uni.uniform_buf.film.mist_exponent);
     accum += mist * samp.weight;
   }
 
   void sample_accum_combined(FilmSample samp, float4 &accum, float &weight_accum)
   {
+    [[resource_table]] const Uniform &uni = this->uniforms;
     if (combined_id == -1) {
       return;
     }
     float4 color = texelfetch_as_YCoCg_opacity(combined_tx, samp.texel);
 
     /* Weight by luma to remove fireflies. */
-    float weight = luma_weight(color.x) * samp.weight;
+    float weight = luma_weight(uni, color.x) * samp.weight;
 
     accum += color * weight;
     weight_accum += weight;
@@ -253,6 +259,7 @@ struct Film {
     }
 
     [[resource_table]] Cryptomatte &crypto = this->cryptomatte;
+    [[resource_table]] const Uniform &uni = this->uniforms;
 
     /* x = hash, y = accumulated weight. Only keep track of 4 highest weighted samples. */
     float2 crypto_samples[4] = float2_array(
@@ -265,12 +272,12 @@ struct Film {
     for (int i = 0; i < 4; i++) {
       crypto.store_film_sample(dst,
                                pass_id,
-                               uniform_buf.film.cryptomatte_samples_len,
+                               uni.uniform_buf.film.cryptomatte_samples_len,
                                crypto_samples[i],
                                display_color);
     }
 
-    if (uniform_buf.film.display_storage_type == PASS_STORAGE_CRYPTOMATTE) {
+    if (uni.uniform_buf.film.display_storage_type == PASS_STORAGE_CRYPTOMATTE) {
       out_color = display_color;
     }
   }
@@ -284,10 +291,11 @@ struct Film {
   /* Returns the distance used to store nearest interpolation data. */
   float distance_load(int2 texel)
   {
+    [[resource_table]] const Uniform &uni = this->uniforms;
     /* Repeat texture coordinates as the weight can be optimized to a small portion of the film. */
     texel = texel % imageSize(in_weight_img).xy;
 
-    if (!uniform_buf.film.use_history || use_reprojection) {
+    if (!uni.uniform_buf.film.use_history || use_reprojection) {
       return 0.0f;
     }
     return imageLoadFast(in_weight_img, int3(texel, FILM_WEIGHT_LAYER_DISTANCE)).x;
@@ -295,10 +303,11 @@ struct Film {
 
   float weight_load(int2 texel)
   {
+    [[resource_table]] const Uniform &uni = this->uniforms;
     /* Repeat texture coordinates as the weight can be optimized to a small portion of the film. */
     texel = texel % imageSize(in_weight_img).xy;
 
-    if (!uniform_buf.film.use_history || use_reprojection) {
+    if (!uni.uniform_buf.film.use_history || use_reprojection) {
       return 0.0f;
     }
     return imageLoadFast(in_weight_img, int3(texel, FILM_WEIGHT_LAYER_ACCUMULATION)).x;
@@ -308,6 +317,7 @@ struct Film {
   float2 pixel_history_motion_vector(int2 texel_sample)
   {
     [[resource_table]] const CameraVelocity &cam_vel = this->camera;
+    [[resource_table]] const Uniform &uni = this->uniforms;
 
     /**
      * Dilate velocity by using the nearest pixel in a cross pattern.
@@ -328,7 +338,7 @@ struct Film {
     float4 vector = cam_vel.resolve(vector_tx, nearest_texel, min_depth);
 
     /* Transform to pixel space. */
-    vector.xy *= float2(uniform_buf.film.extent);
+    vector.xy *= float2(uni.uniform_buf.film.extent);
 
     return vector.xy;
   }
@@ -355,6 +365,8 @@ struct Film {
    * \a texel is sample position with subpixel accuracy. */
   float4 sample_catmull_rom(sampler2D color_tx, float2 input_texel)
   {
+    [[resource_table]] const Uniform &uni = this->uniforms;
+
     float2 center_texel;
     float2 inter_texel = modf(input_texel, center_texel);
     float2 weights[4];
@@ -382,9 +394,9 @@ struct Film {
 
     /* Slide 92. */
     float2 weight_12 = weights[1] + weights[2];
-    float2 uv_12 = (center_texel + weights[2] / weight_12) * uniform_buf.film.extent_inv;
-    float2 uv_0 = (center_texel - 1.0f) * uniform_buf.film.extent_inv;
-    float2 uv_3 = (center_texel + 2.0f) * uniform_buf.film.extent_inv;
+    float2 uv_12 = (center_texel + weights[2] / weight_12) * uni.uniform_buf.film.extent_inv;
+    float2 uv_0 = (center_texel - 1.0f) * uni.uniform_buf.film.extent_inv;
+    float2 uv_3 = (center_texel + 2.0f) * uni.uniform_buf.film.extent_inv;
 
     float4 color;
     float4 weight_cross = weight_12.xyyx * float4(weights[0].yx, weights[3].xy);
@@ -500,6 +512,7 @@ struct Film {
   float history_blend_factor(
       float velocity, float2 texel, float luma_min, float luma_max, float luma_history)
   {
+    [[resource_table]] const Uniform &uni = this->uniforms;
     /* 5% of incoming color by default. */
     float blend = 0.05f;
     /* Blend less history if the pixel has substantial velocity. */
@@ -516,12 +529,12 @@ struct Film {
     blend *= saturate(distance_to_luma_clip * 4.0f + 0.1f);
     /* Discard out of view history. */
     if (any(lessThan(texel, float2(0))) ||
-        any(greaterThanEqual(texel, float2(uniform_buf.film.extent))))
+        any(greaterThanEqual(texel, float2(uni.uniform_buf.film.extent))))
     {
       blend = 1.0f;
     }
     /* Discard history if invalid. */
-    if (uniform_buf.film.use_history == false) {
+    if (uni.uniform_buf.film.use_history == false) {
       blend = 1.0f;
     }
     return blend;
@@ -549,6 +562,8 @@ struct Film {
     if (combined_id == -1) {
       return;
     }
+
+    [[resource_table]] const Uniform &uni = this->uniforms;
 
     float4 color_src, color_dst;
     float weight_src, weight_dst;
@@ -581,8 +596,8 @@ struct Film {
       color_dst = amend_combined_history(min_color, max_color, color_dst, color_src);
 
       /* Luma weighted blend to avoid flickering. */
-      weight_dst = luma_weight(color_dst.x) * (1.0f - blend);
-      weight_src = luma_weight(color_src.x) * (blend);
+      weight_dst = luma_weight(uni, color_dst.x) * (1.0f - blend);
+      weight_src = luma_weight(uni, color_src.x) * (blend);
     }
     else {
       /* Everything is static. Use render accumulation. */
@@ -590,7 +605,7 @@ struct Film {
       color_dst.rgb = colorspace::YCoCg_from_scene_linear(color_dst.rgb);
 
       /* Luma weighted blend to avoid flickering. */
-      weight_dst = luma_weight(color_dst.x) * dst.weight;
+      weight_dst = luma_weight(uni, color_dst.x) * dst.weight;
       weight_src = color_weight;
     }
     /* Weighted blend. */
@@ -691,7 +706,8 @@ struct Film {
 
   void store_depth(int2 texel_film, float value, float &out_depth)
   {
-    if (uniform_buf.film.depth_id == -1) {
+    [[resource_table]] const Uniform &uni = this->uniforms;
+    if (uni.uniform_buf.film.depth_id == -1) {
       return;
     }
 
@@ -715,6 +731,7 @@ struct Film {
   /** NOTE: out_depth is scene linear depth from the camera origin. */
   void process_render_sample(int2 texel_film, float4 &out_color, float &out_depth)
   {
+    [[resource_table]] const Uniform &uni = this->uniforms;
     out_color = float4(0.0f);
     out_depth = 0.0f;
 
@@ -758,21 +775,21 @@ struct Film {
         float depth = reverse_z::read(texelFetch(depth_tx, film_sample.texel, 0).x);
         float4 vector = cam_vel.resolve(vector_tx, film_sample.texel, depth);
         /* Transform to pixel space, matching Cycles format. */
-        vector *= float4(float2(uniform_buf.film.render_extent),
-                         float2(uniform_buf.film.render_extent));
+        vector *= float4(float2(uni.uniform_buf.film.render_extent),
+                         float2(uni.uniform_buf.film.render_extent));
 
         store_depth(texel_film, depth, out_depth);
         if (normal_id != -1) {
           float4 normal = texelFetch(
-              rp_color_tx, int3(film_sample.texel, uniform_buf.render_pass.normal_id), 0);
+              rp_color_tx, int3(film_sample.texel, uni.uniform_buf.render_pass.normal_id), 0);
           store_data(texel_film, normal_id, normal, out_color);
         }
-        if (uniform_buf.film.position_id != -1) {
+        if (uni.uniform_buf.film.position_id != -1) {
           float4 position = texelFetch(
-              rp_color_tx, int3(film_sample.texel, uniform_buf.render_pass.position_id), 0);
-          store_data(texel_film, uniform_buf.film.position_id, position, out_color);
+              rp_color_tx, int3(film_sample.texel, uni.uniform_buf.render_pass.position_id), 0);
+          store_data(texel_film, uni.uniform_buf.film.position_id, position, out_color);
         }
-        store_data(texel_film, uniform_buf.film.vector_id, vector, out_color);
+        store_data(texel_film, uni.uniform_buf.film.vector_id, vector, out_color);
         store_distance(texel_film, film_sample.weight);
       }
       else {
@@ -783,9 +800,9 @@ struct Film {
         else if (display_id == normal_id) {
           out_color = imageLoadFast(color_accum_img, int3(texel_film, display_id));
         }
-        else if (display_id == uniform_buf.film.position_id) {
+        else if (display_id == uni.uniform_buf.film.position_id) {
           out_color = imageLoadFast(color_accum_img,
-                                    int3(texel_film, uniform_buf.film.position_id));
+                                    int3(texel_film, uni.uniform_buf.film.position_id));
         }
       }
     }
@@ -799,30 +816,30 @@ struct Film {
       for (int i = 0; i < samples_len; i++) {
         FilmSample src = sample_get(i, texel_film);
         sample_accum(src,
-                     uniform_buf.film.diffuse_light_id,
-                     uniform_buf.render_pass.diffuse_light_id,
+                     uni.uniform_buf.film.diffuse_light_id,
+                     uni.uniform_buf.render_pass.diffuse_light_id,
                      rp_color_tx,
                      diffuse_light_accum);
         sample_accum(src,
-                     uniform_buf.film.specular_light_id,
-                     uniform_buf.render_pass.specular_light_id,
+                     uni.uniform_buf.film.specular_light_id,
+                     uni.uniform_buf.render_pass.specular_light_id,
                      rp_color_tx,
                      specular_light_accum);
         sample_accum(src,
-                     uniform_buf.film.volume_light_id,
-                     uniform_buf.render_pass.volume_light_id,
+                     uni.uniform_buf.film.volume_light_id,
+                     uni.uniform_buf.render_pass.volume_light_id,
                      rp_color_tx,
                      volume_light_accum);
         sample_accum(src,
-                     uniform_buf.film.emission_id,
-                     uniform_buf.render_pass.emission_id,
+                     uni.uniform_buf.film.emission_id,
+                     uni.uniform_buf.render_pass.emission_id,
                      rp_color_tx,
                      emission_accum);
       }
-      store_color(dst, uniform_buf.film.diffuse_light_id, diffuse_light_accum, out_color);
-      store_color(dst, uniform_buf.film.specular_light_id, specular_light_accum, out_color);
-      store_color(dst, uniform_buf.film.volume_light_id, volume_light_accum, out_color);
-      store_color(dst, uniform_buf.film.emission_id, emission_accum, out_color);
+      store_color(dst, uni.uniform_buf.film.diffuse_light_id, diffuse_light_accum, out_color);
+      store_color(dst, uni.uniform_buf.film.specular_light_id, specular_light_accum, out_color);
+      store_color(dst, uni.uniform_buf.film.volume_light_id, volume_light_accum, out_color);
+      store_color(dst, uni.uniform_buf.film.emission_id, emission_accum, out_color);
     }
 
     if (flag_test(enabled_categories, PASS_CATEGORY_COLOR_2)) {
@@ -836,28 +853,28 @@ struct Film {
       for (int i = 0; i < samples_len; i++) {
         FilmSample src = sample_get(i, texel_film);
         sample_accum(src,
-                     uniform_buf.film.diffuse_color_id,
-                     uniform_buf.render_pass.diffuse_color_id,
+                     uni.uniform_buf.film.diffuse_color_id,
+                     uni.uniform_buf.render_pass.diffuse_color_id,
                      rp_color_tx,
                      diffuse_color_accum);
         sample_accum(src,
-                     uniform_buf.film.specular_color_id,
-                     uniform_buf.render_pass.specular_color_id,
+                     uni.uniform_buf.film.specular_color_id,
+                     uni.uniform_buf.render_pass.specular_color_id,
                      rp_color_tx,
                      specular_color_accum);
         sample_accum(src,
-                     uniform_buf.film.environment_id,
-                     uniform_buf.render_pass.environment_id,
+                     uni.uniform_buf.film.environment_id,
+                     uni.uniform_buf.render_pass.environment_id,
                      rp_color_tx,
                      environment_accum);
         sample_accum(src,
-                     uniform_buf.film.shadow_id,
-                     uniform_buf.render_pass.shadow_id,
+                     uni.uniform_buf.film.shadow_id,
+                     uni.uniform_buf.render_pass.shadow_id,
                      rp_value_tx,
                      shadow_accum);
         sample_accum(src,
-                     uniform_buf.film.ambient_occlusion_id,
-                     uniform_buf.render_pass.ambient_occlusion_id,
+                     uni.uniform_buf.film.ambient_occlusion_id,
+                     uni.uniform_buf.render_pass.ambient_occlusion_id,
                      rp_value_tx,
                      ao_accum);
         sample_accum_mist(src, mist_accum);
@@ -866,12 +883,12 @@ struct Film {
       float4 shadow_accum_color = float4(float3(shadow_accum), weight_accum);
       float4 ao_accum_color = float4(float3(ao_accum), weight_accum);
 
-      store_color(dst, uniform_buf.film.diffuse_color_id, diffuse_color_accum, out_color);
-      store_color(dst, uniform_buf.film.specular_color_id, specular_color_accum, out_color);
-      store_color(dst, uniform_buf.film.environment_id, environment_accum, out_color);
-      store_color(dst, uniform_buf.film.shadow_id, shadow_accum_color, out_color);
-      store_color(dst, uniform_buf.film.ambient_occlusion_id, ao_accum_color, out_color);
-      store_value(dst, uniform_buf.film.mist_id, mist_accum, out_color);
+      store_color(dst, uni.uniform_buf.film.diffuse_color_id, diffuse_color_accum, out_color);
+      store_color(dst, uni.uniform_buf.film.specular_color_id, specular_color_accum, out_color);
+      store_color(dst, uni.uniform_buf.film.environment_id, environment_accum, out_color);
+      store_color(dst, uni.uniform_buf.film.shadow_id, shadow_accum_color, out_color);
+      store_color(dst, uni.uniform_buf.film.ambient_occlusion_id, ao_accum_color, out_color);
+      store_value(dst, uni.uniform_buf.film.mist_id, mist_accum, out_color);
     }
 
     if (flag_test(enabled_categories, PASS_CATEGORY_COLOR_3)) {
@@ -880,54 +897,56 @@ struct Film {
       for (int i = 0; i < samples_len; i++) {
         FilmSample src = sample_get(i, texel_film);
         sample_accum(src,
-                     uniform_buf.film.transparent_id,
-                     uniform_buf.render_pass.transparent_id,
+                     uni.uniform_buf.film.transparent_id,
+                     uni.uniform_buf.render_pass.transparent_id,
                      rp_color_tx,
                      transparent_accum);
       }
       /* Alpha stores transmittance for transparent pass. */
       transparent_accum.a = weight_accum - transparent_accum.a;
 
-      store_color(dst, uniform_buf.film.transparent_id, transparent_accum, out_color);
+      store_color(dst, uni.uniform_buf.film.transparent_id, transparent_accum, out_color);
     }
 
     if (flag_test(enabled_categories, PASS_CATEGORY_AOV)) {
-      for (int aov = 0; aov < uniform_buf.film.aov_color_len; aov++) {
+      for (int aov = 0; aov < uni.uniform_buf.film.aov_color_len; aov++) {
         float4 aov_accum = float4(0.0f);
 
         for (int i = 0; i < samples_len; i++) {
           FilmSample src = sample_get(i, texel_film);
-          sample_accum(src, 0, uniform_buf.render_pass.color_len + aov, rp_color_tx, aov_accum);
+          sample_accum(
+              src, 0, uni.uniform_buf.render_pass.color_len + aov, rp_color_tx, aov_accum);
         }
-        store_color(dst, uniform_buf.film.aov_color_id + aov, aov_accum, out_color, false);
+        store_color(dst, uni.uniform_buf.film.aov_color_id + aov, aov_accum, out_color, false);
       }
 
-      for (int aov = 0; aov < uniform_buf.film.aov_value_len; aov++) {
+      for (int aov = 0; aov < uni.uniform_buf.film.aov_value_len; aov++) {
         float aov_accum = 0.0f;
 
         for (int i = 0; i < samples_len; i++) {
           FilmSample src = sample_get(i, texel_film);
-          sample_accum(src, 0, uniform_buf.render_pass.value_len + aov, rp_value_tx, aov_accum);
+          sample_accum(
+              src, 0, uni.uniform_buf.render_pass.value_len + aov, rp_value_tx, aov_accum);
         }
-        store_value(dst, uniform_buf.film.aov_value_id + aov, aov_accum, out_color);
+        store_value(dst, uni.uniform_buf.film.aov_value_id + aov, aov_accum, out_color);
       }
     }
 
     if (flag_test(enabled_categories, PASS_CATEGORY_CRYPTOMATTE)) {
-      if (uniform_buf.film.cryptomatte_samples_len != 0) {
+      if (uni.uniform_buf.film.cryptomatte_samples_len != 0) {
         [[resource_table]] Cryptomatte &crypto = this->cryptomatte;
 
         /* Cryptomatte passes cannot be cleared by a weighted store like other passes. */
-        if (!uniform_buf.film.use_history || use_reprojection) {
+        if (!uni.uniform_buf.film.use_history || use_reprojection) {
           crypto.clear_samples(dst);
         }
 
         cryptomatte_layer_accum_and_store(
-            dst, texel_film, uniform_buf.film.cryptomatte_object_id, 0, out_color);
+            dst, texel_film, uni.uniform_buf.film.cryptomatte_object_id, 0, out_color);
         cryptomatte_layer_accum_and_store(
-            dst, texel_film, uniform_buf.film.cryptomatte_asset_id, 1, out_color);
+            dst, texel_film, uni.uniform_buf.film.cryptomatte_asset_id, 1, out_color);
         cryptomatte_layer_accum_and_store(
-            dst, texel_film, uniform_buf.film.cryptomatte_material_id, 2, out_color);
+            dst, texel_film, uni.uniform_buf.film.cryptomatte_material_id, 2, out_color);
       }
     }
   }
@@ -952,13 +971,14 @@ struct FilmDisplay {
 [[fragment]]
 void accumulate_or_display_frag([[resource_table]] const FilmDisplay &srt,
                                 [[resource_table]] Film &film,
+                                [[resource_table]] const Uniform &uni,
                                 [[out]] FilmFragOut &frag_out,
                                 [[frag_coord]] const float4 frag_co,
                                 [[frag_depth(any)]] float out_depth)
 {
   [[resource_table]] Cryptomatte &cryptomatte = film.cryptomatte;
 
-  int2 texel_film = int2(frag_co.xy) - uniform_buf.film.offset;
+  int2 texel_film = int2(frag_co.xy) - uni.uniform_buf.film.offset;
 
   if (srt.display_only) {
     out_depth = imageLoadFast(film.depth_img, texel_film).r;
@@ -966,12 +986,12 @@ void accumulate_or_display_frag([[resource_table]] const FilmDisplay &srt,
     if (film.display_id == -1) {
       frag_out.color = texelFetch(film.in_combined_tx, texel_film, 0);
     }
-    else if (uniform_buf.film.display_storage_type == PASS_STORAGE_VALUE) {
+    else if (uni.uniform_buf.film.display_storage_type == PASS_STORAGE_VALUE) {
       frag_out.color.rgb =
           imageLoadFast(film.value_accum_img, int3(texel_film, film.display_id)).rrr;
       frag_out.color.a = 1.0f;
     }
-    else if (uniform_buf.film.display_storage_type == PASS_STORAGE_COLOR) {
+    else if (uni.uniform_buf.film.display_storage_type == PASS_STORAGE_COLOR) {
       frag_out.color = imageLoadFast(film.color_accum_img, int3(texel_film, film.display_id));
     }
     else /* PASS_STORAGE_CRYPTOMATTE */ {
@@ -998,6 +1018,7 @@ void accumulate_or_display_frag([[resource_table]] const FilmDisplay &srt,
 [[fragment]]
 void display_frag([[resource_table]] Film &film,
                   [[out]] FilmFragOut &frag_out,
+                  [[resource_table]] const Uniform &uni,
                   [[frag_coord]] const float4 frag_co,
                   [[frag_depth(any)]] float out_depth)
 {
@@ -1008,11 +1029,11 @@ void display_frag([[resource_table]] Film &film,
   if (film.display_id == -1) {
     frag_out.color = texelFetch(film.in_combined_tx, texel, 0);
   }
-  else if (uniform_buf.film.display_storage_type == PASS_STORAGE_VALUE) {
+  else if (uni.uniform_buf.film.display_storage_type == PASS_STORAGE_VALUE) {
     frag_out.color.rgb = imageLoadFast(film.value_accum_img, int3(texel, film.display_id)).rrr;
     frag_out.color.a = 1.0f;
   }
-  else if (uniform_buf.film.display_storage_type == PASS_STORAGE_COLOR) {
+  else if (uni.uniform_buf.film.display_storage_type == PASS_STORAGE_COLOR) {
     frag_out.color = imageLoadFast(film.color_accum_img, int3(texel, film.display_id));
   }
   else /* PASS_STORAGE_CRYPTOMATTE */ {
@@ -1028,14 +1049,16 @@ void display_frag([[resource_table]] Film &film,
 
 /* Accumulate sample result. */
 [[compute, local_size(FILM_GROUP_SIZE, FILM_GROUP_SIZE)]]
-void accumulate_comp([[resource_table]] Film &film, [[global_invocation_id]] const uint3 global_id)
+void accumulate_comp([[resource_table]] Film &film,
+                     [[resource_table]] const Uniform &uni,
+                     [[global_invocation_id]] const uint3 global_id)
 {
   int2 texel_film = int2(global_id.xy);
   /* Not used. */
   float4 out_color;
   float out_depth;
 
-  if (any(greaterThanEqual(texel_film, uniform_buf.film.extent))) {
+  if (any(greaterThanEqual(texel_film, uni.uniform_buf.film.extent))) {
     return;
   }
 

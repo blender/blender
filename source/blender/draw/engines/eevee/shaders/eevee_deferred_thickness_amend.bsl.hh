@@ -34,6 +34,8 @@ struct FromShadowEvalCtx {
 
   void eval([[resource_table]] ShadowRenderData &srd, LightData light, const bool is_directional)
   {
+    [[resource_table]] const Uniform &uni = srd.uniforms;
+
     if (light.tilemap_index == LIGHT_NO_SHADOW) {
       return;
     }
@@ -46,7 +48,7 @@ struct FromShadowEvalCtx {
       return;
     }
 
-    float texel_radius = shadow_texel_radius_at_position(light, is_directional, P);
+    float texel_radius = shadow_texel_radius_at_position(uni, light, is_directional, P);
 
     float3 P_offset = P;
     /* Invert all biases to get value inside the surface.
@@ -118,6 +120,7 @@ void amend_vert([[vertex_id]] const int vert_id,
 void amend_frag([[resource_table]] ThicknessAmend &srt,
                 [[resource_table]] ShadowRenderData &srd,
                 [[resource_table]] const LightRenderData &lrd,
+                [[resource_table]] const Uniform &uni,
                 [[resource_table]] const HiZ &hiz,
                 [[in]] const VertOut &v_out,
                 [[frag_coord]] const float4 frag_co)
@@ -134,7 +137,7 @@ void amend_frag([[resource_table]] ThicknessAmend &srt,
 
   const float3 Ng = gbuffer::normal_unpack(imageLoad(srt.gbuf_normal_img, int3(texel, 0)).rg);
 
-  uchar data_layer = pipeline_buf.gbuffer_additional_data_layer_id;
+  uchar data_layer = uni.pipeline_buf.gbuffer_additional_data_layer_id;
   float2 data_packed = imageLoad(srt.gbuf_normal_img, int3(texel, int(data_layer))).rg;
   Thickness gbuffer_thickness = gbuffer::thickness_unpack(data_packed.x);
   if (gbuffer_thickness.value() == 0.0f) {

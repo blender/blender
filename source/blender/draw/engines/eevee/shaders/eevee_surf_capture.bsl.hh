@@ -31,7 +31,6 @@ float4 closure_to_rgba_capture(Closure /*cl*/)
 namespace eevee {
 
 struct SurfaceCapture {
-  [[legacy_info]] ShaderCreateInfo eevee_global_ubo;
   [[legacy_info]] ShaderCreateInfo eevee_geom_iface_info;
   [[legacy_info]] ShaderCreateInfo draw_object_infos;
 
@@ -43,11 +42,12 @@ struct SurfaceCapture {
 
 [[fragment]]
 void surf_capture([[resource_table]] SurfaceCapture &srt,
-                  [[frag_coord]] const float4 /*frag_co*/,
+                  [[resource_table]] const Uniform &uni,
                   [[resource_table]] const UtilityTexture & /*util_tx*/,
+                  [[frag_coord]] const float4 /*frag_co*/,
                   [[front_facing]] const bool front_face)
 {
-  init_globals(front_face);
+  init_globals(uni, front_face);
 
   /* TODO(fclem): Remove random sampling for capture and accumulate color. */
   float closure_rand = 0.5f;

@@ -25,14 +25,10 @@ namespace eevee {
 
 /* CurrentLayerHiZ. */
 struct HiZ {
-  [[legacy_info]] ShaderCreateInfo eevee_global_ubo;
-
   [[sampler(HIZ_TEX_SLOT)]] sampler2D hiz_tx;
 };
 
 struct PreviousLayerHiZ {
-  [[legacy_info]] ShaderCreateInfo eevee_global_ubo;
-
   [[sampler(HIZ_PREVIOUS_LAYER_TEX_SLOT)]] sampler2D hiz_prev_tx;
 };
 

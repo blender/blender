@@ -37,6 +37,7 @@ struct GeomMeshVertIn {
 [[vertex]] [[clip_control]] void geom_mesh(
     [[resource_table]] const PipelineConstants &pipe,
     [[resource_table]] const GeomMesh & /*srt*/,
+    [[resource_table]] const Uniform &uni,
     [[resource_table, condition(is_shadow_pipe)]] const GeomShadow &shadow,
     [[in]] const GeomMeshVertIn &vert_in,
     [[instance_id]] const int /*inst_id*/,     /* Used by model_lib. */
@@ -77,7 +78,7 @@ struct GeomMeshVertIn {
         prv, vert_in.pos, nxt, motion.prev, motion.next, drw_resource_id(), drw_modelmat());
   }
 
-  init_globals(true);
+  init_globals(uni, true);
   attrib_load(MeshVertex{vert_in.pos});
 
   interp.P += nodetree_displacement();

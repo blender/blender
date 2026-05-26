@@ -124,6 +124,7 @@
 #include "eevee_surfel_ray.bsl.hh"                   /* IWYU pragma: export */
 #include "eevee_thickness_lib.bsl.hh"                /* IWYU pragma: export */
 #include "eevee_transparency.bsl.hh"                 /* IWYU pragma: export */
+#include "eevee_uniform.bsl.hh"                      /* IWYU pragma: export */
 #include "eevee_utility_tx.bsl.hh"                   /* IWYU pragma: export */
 #include "eevee_velocity.bsl.hh"                     /* IWYU pragma: export */
 #include "eevee_volume.bsl.hh"                       /* IWYU pragma: export */

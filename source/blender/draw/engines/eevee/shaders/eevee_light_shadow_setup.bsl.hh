@@ -4,13 +4,10 @@
 
 #pragma once
 
-#include "infos/eevee_uniform_infos.hh"
-
-SHADER_LIBRARY_CREATE_INFO(eevee_global_ubo)
-
 #include "eevee_light_shared.hh"
 #include "eevee_sampling_lib.bsl.hh"
 #include "eevee_shadow_shared.hh"
+#include "eevee_uniform.bsl.hh"
 #include "gpu_shader_math_fast_lib.glsl"
 #include "gpu_shader_math_matrix_construct_lib.glsl"
 #include "gpu_shader_math_matrix_lib.glsl"
@@ -24,11 +21,12 @@ int shadow_directional_coverage_get(int level)
 }
 
 struct Resources {
-  [[legacy_info]] ShaderCreateInfo eevee_global_ubo;
   [[storage(0, read)]] const LightCullingData &light_cull_buf;
   [[storage(1, read_write)]] LightData (&light_buf)[];
   [[storage(2, read_write)]] ShadowTileMapData (&tilemaps_buf)[];
   [[storage(3, read_write)]] ShadowTileMapClip (&tilemaps_clip_buf)[];
+
+  [[resource_table]] srt_t<Uniform> uniforms;
 
   void orthographic_sync(int tilemap_id,
                          Transform object_to_world,
@@ -88,15 +86,17 @@ struct Resources {
 
   void cascade_sync(LightData &light)
   {
+    [[resource_table]] const Uniform &uni = uniforms;
+
     int level_min = light.sun().clipmap_lod_min;
     int level_max = light.sun().clipmap_lod_max;
     int level_range = level_max - level_min;
     int level_len = level_range + 1;
 
-    float3 ws_camera_position = uniform_buf.camera.viewinv[3].xyz;
-    float3 ws_camera_forward = uniform_buf.camera.viewinv[2].xyz;
-    float camera_clip_near = uniform_buf.camera.clip_near;
-    float camera_clip_far = uniform_buf.camera.clip_far;
+    float3 ws_camera_position = uni.uniform_buf.camera.viewinv[3].xyz;
+    float3 ws_camera_forward = uni.uniform_buf.camera.viewinv[2].xyz;
+    float camera_clip_near = uni.uniform_buf.camera.clip_near;
+    float camera_clip_far = uni.uniform_buf.camera.clip_far;
 
     /* All tile-maps use the first level size. */
     float level_size = shadow_directional_coverage_get(level_min);
@@ -151,7 +151,9 @@ struct Resources {
 
   void clipmap_sync(LightData &light)
   {
-    float3 ws_camera_position = uniform_buf.camera.viewinv[3].xyz;
+    [[resource_table]] const Uniform &uni = uniforms;
+
+    float3 ws_camera_position = uni.uniform_buf.camera.viewinv[3].xyz;
     float3 ls_camera_position = transform_direction_transposed(light.object_to_world,
                                                                ws_camera_position);
 
@@ -264,6 +266,7 @@ struct Resources {
 
 [[compute, local_size(CULLING_SELECT_GROUP_SIZE)]]
 void shadow_setup_main([[resource_table]] Resources &srt,
+                       [[resource_table]] const Uniform &uni,
                        [[resource_table]] const Sampling &sampling,
                        [[global_invocation_id]] const uint3 global_id)
 {
@@ -289,7 +292,7 @@ void shadow_setup_main([[resource_table]] Resources &srt,
   if (is_sun_light(light.type)) {
     /* Distant lights. */
 
-    if (light.shadow_jitter && uniform_buf.shadow.use_jitter) {
+    if (light.shadow_jitter && uni.uniform_buf.shadow.use_jitter) {
       /* TODO(fclem): Remove atan here. We only need the cosine of the angle. */
       float shape_angle = atan_fast(light.sun().shape_radius);
 
@@ -320,7 +323,7 @@ void shadow_setup_main([[resource_table]] Resources &srt,
     /* Local lights. */
     float3 position_on_light = float3(0.0f);
 
-    if (light.shadow_jitter && uniform_buf.shadow.use_jitter) {
+    if (light.shadow_jitter && uni.uniform_buf.shadow.use_jitter) {
       float3 rand = sampling.rng_3D_get(SAMPLING_SHADOW_I);
 
       if (is_area_light(light.type)) {

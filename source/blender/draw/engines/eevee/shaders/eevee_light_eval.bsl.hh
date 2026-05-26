@@ -105,6 +105,7 @@ template<bool is_transmission> struct EvalCtx {
                          const bool is_directional)
   {
     [[resource_table]] ShadowRenderData &srd = srt.shadow_data;
+    [[resource_table]] Uniform &uni = srd.uniforms;
 
     if (!light_linking_affects_receiver(light.light_set_membership, receiver_light_set)) {
       return;
@@ -114,8 +115,8 @@ template<bool is_transmission> struct EvalCtx {
     int ray_count = shadow_ray_count;
     int ray_step_count = shadow_ray_step_count;
 #else
-    int ray_count = uniform_buf.shadow.ray_count;
-    int ray_step_count = uniform_buf.shadow.step_count;
+    int ray_count = uni.uniform_buf.shadow.ray_count;
+    int ray_step_count = uni.uniform_buf.shadow.step_count;
 #endif
 
     LightVector lv = light_vector_get(light, is_directional, P);

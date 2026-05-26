@@ -6,11 +6,11 @@
 
 #include "infos/eevee_geom_infos.hh"
 
-#include "infos/eevee_uniform_infos.hh"
-
-SHADER_LIBRARY_CREATE_INFO(eevee_global_ubo)
-
 #include "draw_view_lib.glsl"
+#include "eevee_lightprobe_shared.hh" /* IWYU pragma: export: Needed for resource declaration. */
+#include "eevee_sampling_shared.hh"   /* IWYU pragma: export: Needed for resource declaration. */
+#include "eevee_shadow_shared.hh"
+#include "eevee_uniform.bsl.hh"
 #include "gpu_shader_codegen_lib.glsl"
 #include "gpu_shader_math_base_lib.glsl"
 #include "gpu_shader_math_vector_safe_lib.glsl"
@@ -18,8 +18,6 @@ SHADER_LIBRARY_CREATE_INFO(eevee_global_ubo)
 namespace eevee {
 
 struct PipelineConstants {
-  [[legacy_info]] ShaderCreateInfo eevee_global_ubo; /* Silence a warning. */
-
   [[compilation_constant]] bool use_velocity;
   [[compilation_constant]] bool use_transparency;
   [[compilation_constant]] bool use_clip_plane;
@@ -78,7 +76,7 @@ void init_globals_curves()
 #endif
 }
 
-void init_globals(bool front_face)
+void init_globals([[resource_table]] const eevee::Uniform &uni, bool front_face)
 {
   auto &interp = interface_get(eevee_geom_iface_info, interp);
   /* Default values. */
@@ -94,7 +92,7 @@ void init_globals(bool front_face)
 #elif defined(MAT_CAPTURE)
   g_data.ray_type = RAY_TYPE_DIFFUSE;
 #else
-  g_data.ray_type = pipeline_buf.ray_type;
+  g_data.ray_type = uni.pipeline_buf.ray_type;
 #endif
   g_data.ray_depth = 0.0f;
   g_data.ray_length = distance(g_data.P, drw_view_position());
@@ -105,7 +103,7 @@ void init_globals(bool front_face)
   g_data.Ni = (front_face) ? g_data.Ni : -g_data.Ni;
 #ifdef GPU_FRAGMENT_SHADER
   g_data.Ng = safe_normalize(cross(gpu_dfdx(g_data.P), gpu_dfdy(g_data.P)));
-  if (pipeline_buf.is_main_view_inverted) {
+  if (uni.pipeline_buf.is_main_view_inverted) {
     g_data.Ng = -g_data.Ng;
   }
 #endif

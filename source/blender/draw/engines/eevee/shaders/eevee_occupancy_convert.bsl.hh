@@ -6,15 +6,13 @@
 
 #include "infos/eevee_common_infos.hh"
 
-SHADER_LIBRARY_CREATE_INFO(eevee_global_ubo)
-
 #include "eevee_occupancy_lib.bsl.hh"
+#include "eevee_uniform.bsl.hh"
 #include "gpu_shader_fullscreen_lib.glsl"
 
 namespace eevee::volume::occupancy {
 
 struct Convert {
-  [[legacy_info]] ShaderCreateInfo eevee_global_ubo;
 
   [[image(VOLUME_HIT_DEPTH_SLOT, read, SFLOAT_32)]] const image3D hit_depth_img;
   [[image(VOLUME_HIT_COUNT_SLOT, read_write, UINT_32)]] uimage2D hit_count_img;
@@ -35,7 +33,9 @@ bool is_front_face_hit(float stored_hit_depth)
  * Convert hit list to occupancy bit-field for the material pass.
  */
 [[fragment, texture_atomic]]
-void convert_frag([[resource_table]] Convert &srt, [[frag_coord]] const float4 frag_co)
+void convert_frag([[resource_table]] Convert &srt,
+                  [[resource_table]] const Uniform &uni,
+                  [[frag_coord]] const float4 frag_co)
 {
   float hit_depths[VOLUME_HIT_DEPTH_MAX];
   float hit_ordered[VOLUME_HIT_DEPTH_MAX + 1];
@@ -93,7 +93,7 @@ void convert_frag([[resource_table]] Convert &srt, [[frag_coord]] const float4 f
     last_frontfacing = frontfacing;
 
     int occupancy_bit_n = ::occupancy::bit_index_from_depth(abs(hit_ordered[i]),
-                                                            uniform_buf.volumes.tex_size.z);
+                                                            uni.uniform_buf.volumes.tex_size.z);
     if (last_bit == occupancy_bit_n) {
       /* We did not cross a new voxel center. Do nothing. */
       continue;

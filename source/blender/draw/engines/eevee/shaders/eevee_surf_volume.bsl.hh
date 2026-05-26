@@ -59,7 +59,6 @@ struct SurfVolume {
 
   [[legacy_info]] ShaderCreateInfo draw_modelmat_common;
   [[legacy_info]] ShaderCreateInfo draw_view;
-  [[legacy_info]] ShaderCreateInfo eevee_global_ubo;
 
   [[image(VOLUME_OCCUPANCY_SLOT, read, UINT_32)]] uimage3DAtomic occupancy_img;
 
@@ -99,12 +98,12 @@ struct SurfVolume {
     imageStoreFast(out_phase_weight_img, froxel, phase.yyyy);
   }
 
-  VolumeProperties eval_froxel(int3 froxel, float jitter)
+  VolumeProperties eval_froxel([[resource_table]] const Uniform &uni, int3 froxel, float jitter)
   {
     float3 uvw = (float3(froxel) + float3(0.5f, 0.5f, 0.5f - jitter)) *
-                 uniform_buf.volumes.inv_tex_size;
+                 uni.uniform_buf.volumes.inv_tex_size;
 
-    float3 vP = volume_jitter_to_view(uvw);
+    float3 vP = volume_jitter_to_view(uni, uvw);
     float3 wP = drw_point_view_to_world(vP);
     float3 lP = drw_point_world_to_object(wP);
 
@@ -131,6 +130,7 @@ struct SurfVolume {
 /* Note: Only the front fragments have to be invoked. */
 [[fragment]] [[early_fragment_tests]] [[texture_atomic]]
 void surf_volume([[resource_table]] SurfVolume &srt,
+                 [[resource_table]] const Uniform &uni,
                  [[resource_table]] const Sampling &sampling,
                  [[resource_table]] const UtilityTexture & /*util_tx*/,
                  [[frag_coord]] const float4 frag_co,
@@ -145,7 +145,7 @@ void surf_volume([[resource_table]] SurfVolume &srt,
   if (srt.is_homogenous) [[static_branch]] {
     /* Homogenous volumes only evaluate properties at volume entrance and write the same values for
      * each froxel. */
-    prop = srt.eval_froxel(froxel, jitter);
+    prop = srt.eval_froxel(uni, froxel, jitter);
   }
 
   occupancy::Bits occupancy;
@@ -173,7 +173,7 @@ void surf_volume([[resource_table]] SurfVolume &srt,
 
       if (!srt.is_homogenous) [[static_branch]] {
         /* Heterogeneous volumes evaluate properties at every froxel position. */
-        prop = srt.eval_froxel(froxel, jitter);
+        prop = srt.eval_froxel(uni, froxel, jitter);
       }
       srt.write_froxel(froxel, prop);
     }

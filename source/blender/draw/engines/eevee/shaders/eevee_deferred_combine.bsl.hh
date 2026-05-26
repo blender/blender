@@ -6,7 +6,6 @@
 
 #include "infos/eevee_common_infos.hh"
 
-FRAGMENT_SHADER_CREATE_INFO(eevee_global_ubo)
 FRAGMENT_SHADER_CREATE_INFO(draw_view)
 
 #include "draw_view_lib.glsl"
@@ -20,7 +19,6 @@ FRAGMENT_SHADER_CREATE_INFO(draw_view)
 namespace eevee::deferred {
 
 struct Combine {
-  [[legacy_info]] ShaderCreateInfo eevee_global_ubo;
   [[legacy_info]] ShaderCreateInfo draw_view;
 
   /* NOTE: Both light IDs have a valid specialized assignment of '-1' so only when default is
@@ -101,6 +99,7 @@ struct CombineFragOut {
 [[fragment, early_fragment_tests]]
 void combine_frag([[resource_table]] Combine &srt,
                   [[resource_table]] RenderPassOutput &render_passes,
+                  [[resource_table]] const Uniform &uni,
                   [[resource_table]] const HiZ &hiz,
                   [[resource_table]] const ::gbuffer::Reader &reader,
                   [[in]] const CombineVertOut &v_out,
@@ -182,13 +181,13 @@ void combine_frag([[resource_table]] Combine &srt,
   }
 
   /* Light clamping. */
-  float clamp_direct = uniform_buf.clamp.surface_direct;
-  float clamp_indirect = uniform_buf.clamp.surface_indirect;
+  float clamp_direct = uni.uniform_buf.clamp.surface_direct;
+  float clamp_indirect = uni.uniform_buf.clamp.surface_indirect;
   out_direct = colorspace::brightness_clamp_max(out_direct, clamp_direct);
   out_indirect = colorspace::brightness_clamp_max(out_indirect, clamp_indirect);
   /* Apply contribution scaling after clamping (compositing-equivalent). */
-  out_direct *= uniform_buf.clamp.direct_scale;
-  out_indirect *= uniform_buf.clamp.indirect_scale;
+  out_direct *= uni.uniform_buf.clamp.direct_scale;
+  out_indirect *= uni.uniform_buf.clamp.indirect_scale;
 
   /* TODO(@fclem): Shouldn't we clamp these relative the main clamp? */
   diffuse_direct = colorspace::brightness_clamp_max(diffuse_direct, clamp_direct);
@@ -196,37 +195,37 @@ void combine_frag([[resource_table]] Combine &srt,
   specular_direct = colorspace::brightness_clamp_max(specular_direct, clamp_direct);
   specular_indirect = colorspace::brightness_clamp_max(specular_indirect, clamp_indirect);
 
-  diffuse_direct *= uniform_buf.clamp.direct_scale;
-  diffuse_indirect *= uniform_buf.clamp.indirect_scale;
-  specular_direct *= uniform_buf.clamp.direct_scale;
-  specular_indirect *= uniform_buf.clamp.indirect_scale;
+  diffuse_direct *= uni.uniform_buf.clamp.direct_scale;
+  diffuse_indirect *= uni.uniform_buf.clamp.indirect_scale;
+  specular_direct *= uni.uniform_buf.clamp.direct_scale;
+  specular_indirect *= uni.uniform_buf.clamp.indirect_scale;
 
   /* Light passes. */
   if (srt.render_pass_diffuse_light_enabled) {
     float3 diffuse_light = diffuse_direct + diffuse_indirect;
     render_passes.store_color(
-        texel, uniform_buf.render_pass.diffuse_color_id, float4(diffuse_color, 1.0f));
+        texel, uni.uniform_buf.render_pass.diffuse_color_id, float4(diffuse_color, 1.0f));
     render_passes.store_color(
-        texel, uniform_buf.render_pass.diffuse_light_id, float4(diffuse_light, 1.0f));
+        texel, uni.uniform_buf.render_pass.diffuse_light_id, float4(diffuse_light, 1.0f));
   }
   if (srt.render_pass_specular_light_enabled) {
     float3 specular_light = specular_direct + specular_indirect;
     render_passes.store_color(
-        texel, uniform_buf.render_pass.specular_color_id, float4(specular_color, 1.0f));
+        texel, uni.uniform_buf.render_pass.specular_color_id, float4(specular_color, 1.0f));
     render_passes.store_color(
-        texel, uniform_buf.render_pass.specular_light_id, float4(specular_light, 1.0f));
+        texel, uni.uniform_buf.render_pass.specular_light_id, float4(specular_light, 1.0f));
   }
   if (srt.render_pass_normal_enabled) {
     float normal_len = length(average_normal);
     /* Normalize or fallback to default normal. */
     average_normal = (normal_len < 1e-5f) ? gbuf.surface_N() : (average_normal / normal_len);
     render_passes.store_color(
-        texel, uniform_buf.render_pass.normal_id, float4(average_normal, 1.0f));
+        texel, uni.uniform_buf.render_pass.normal_id, float4(average_normal, 1.0f));
   }
   if (srt.render_pass_position_enabled) {
     float depth = texelFetch(hiz.hiz_tx, texel, 0).r;
     float3 P = drw_point_screen_to_world(float3(v_out.screen_uv, depth));
-    render_passes.store_color(texel, uniform_buf.render_pass.position_id, float4(P, 1.0f));
+    render_passes.store_color(texel, uni.uniform_buf.render_pass.position_id, float4(P, 1.0f));
   }
 
   frag_out.combined = float4(out_direct + out_indirect, 0.0f);

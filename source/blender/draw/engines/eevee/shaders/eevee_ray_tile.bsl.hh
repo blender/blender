@@ -4,12 +4,9 @@
 
 #pragma once
 
-#include "infos/eevee_common_infos.hh"
-
-SHADER_LIBRARY_CREATE_INFO(eevee_global_ubo)
-
 #include "eevee_closure.bsl.hh"
 #include "eevee_gbuffer_read.bsl.hh"
+#include "eevee_uniform.bsl.hh"
 #include "gpu_shader_codegen_lib.glsl"
 #include "gpu_shader_utildefines_lib.glsl"
 
@@ -21,7 +18,6 @@ namespace eevee::raytracing {
 #endif
 
 struct TileClassify {
-  [[legacy_info]] ShaderCreateInfo eevee_global_ubo;
 
   [[image(0, write, RAYTRACE_TILEMASK_FORMAT)]] uimage2DArray tile_raytrace_denoise_img;
   [[image(1, write, RAYTRACE_TILEMASK_FORMAT)]] uimage2DArray tile_raytrace_tracing_img;
@@ -44,6 +40,7 @@ float ray_roughness_factor(RayTraceData raytrace, float roughness)
  */
 [[compute, local_size(RAYTRACE_GROUP_SIZE, RAYTRACE_GROUP_SIZE)]]
 void tile_classify([[resource_table]] TileClassify &srt,
+                   [[resource_table]] const Uniform &uni,
                    [[resource_table]] const gbuffer::Reader &reader,
                    [[work_group_id]] const uint3 group_id,
                    [[global_invocation_id]] const uint3 global_id,
@@ -72,7 +69,7 @@ void tile_classify([[resource_table]] TileClassify &srt,
         continue;
       }
       float roughness = closure_apparent_roughness_get(cl);
-      float ray_roughness_fac = ray_roughness_factor(raytrace_buf, roughness);
+      float ray_roughness_fac = ray_roughness_factor(uni.raytrace_buf, roughness);
 
       /* We don't care about race condition here. */
       if (ray_roughness_fac > 0.0f) {
@@ -88,7 +85,7 @@ void tile_classify([[resource_table]] TileClassify &srt,
 
   if (local_index == 0u) {
     int2 denoise_tile_co = int2(group_id.xy);
-    int2 tracing_tile_co = denoise_tile_co / raytrace_buf.trace_pixel_scale;
+    int2 tracing_tile_co = denoise_tile_co / uni.raytrace_buf.trace_pixel_scale;
 
     for (int i = 0; i < GBUFFER_LAYER_MAX; i++) {
       if (srt.tile_contains_ray_tracing[i] > 0) {
@@ -98,7 +95,7 @@ void tile_classify([[resource_table]] TileClassify &srt,
     }
 
     if (srt.tile_contains_fast_gi_scan > 0) {
-      int2 tracing_tile_co = denoise_tile_co / raytrace_buf.fast_gi_resolution_scale;
+      int2 tracing_tile_co = denoise_tile_co / uni.raytrace_buf.fast_gi_resolution_scale;
       imageStoreFast(srt.tile_fast_gi_denoise_img, int3(denoise_tile_co, 0), uint4(1));
       imageStoreFast(srt.tile_fast_gi_tracing_img, int3(tracing_tile_co, 0), uint4(1));
     }
@@ -108,8 +105,6 @@ void tile_classify([[resource_table]] TileClassify &srt,
 struct TileCompact {
   [[specialization_constant(0)]] int closure_index;
   [[specialization_constant(2)]] int resolution_scale;
-
-  [[legacy_info]] ShaderCreateInfo eevee_global_ubo;
 
   [[storage(0, read_write)]] DispatchCommand &raytrace_tracing_dispatch_buf;
   [[storage(1, read_write)]] DispatchCommand &raytrace_denoise_dispatch_buf;

@@ -7,7 +7,6 @@
 #include "infos/eevee_common_infos.hh"
 
 COMPUTE_SHADER_CREATE_INFO(draw_view)
-COMPUTE_SHADER_CREATE_INFO(eevee_global_ubo)
 
 #include "eevee_closure.bsl.hh"
 #include "eevee_colorspace_lib.bsl.hh"
@@ -18,13 +17,13 @@ COMPUTE_SHADER_CREATE_INFO(eevee_global_ubo)
 #include "eevee_reverse_z_lib.bsl.hh"
 #include "eevee_sampling_lib.bsl.hh"
 #include "eevee_spherical_harmonics.bsl.hh"
+#include "eevee_uniform.bsl.hh"
 
 namespace eevee::raytrace {
 
 namespace screen {
 
 struct Resources {
-  [[legacy_info]] ShaderCreateInfo eevee_global_ubo;
   [[legacy_info]] ShaderCreateInfo draw_view;
 
   [[specialization_constant(0)]] int closure_index;
@@ -51,6 +50,7 @@ struct Resources {
   metal_max_total_threads_per_threadgroup(400)]]
 void trace([[resource_table]] Resources &srt,
            [[resource_table]] const LightprobeRenderData &lightprobes,
+           [[resource_table]] const Uniform &uni,
            [[resource_table]] const Sampling &sampling,
            [[resource_table]] const gbuffer::Reader &reader,
            [[local_invocation_id]] const uint3 local_id)
@@ -82,14 +82,15 @@ void trace([[resource_table]] Resources &srt,
     return;
   }
 
-  int2 texel_fullres = texel * raytrace_buf.trace_pixel_scale + raytrace_buf.trace_pixel_offset;
+  int2 texel_fullres = texel * uni.raytrace_buf.trace_pixel_scale +
+                       uni.raytrace_buf.trace_pixel_offset;
 
   gbuffer::Header gbuf_header = reader.read_header(texel_fullres);
   ClosureType closure_type = gbuffer::mode_to_closure_type(
       gbuf_header.bin_type(srt.closure_index));
 
   float depth = reverse_z::read(texelFetch(srt.depth_tx, texel_fullres, 0).r);
-  float2 uv = (float2(texel_fullres) + 0.5f) * raytrace_buf.full_resolution_inv;
+  float2 uv = (float2(texel_fullres) + 0.5f) * uni.raytrace_buf.full_resolution_inv;
 
   float3 P = drw_point_screen_to_world(float3(uv, depth));
   float3 V = drw_world_incident_vector(P);
@@ -127,8 +128,8 @@ void trace([[resource_table]] Resources &srt,
    * index. Another idea is to put both HiZ buffer in the same texture and dynamically access one
    * or the other. But that might also impact performance. */
   if (!closure_has_transmission(closure_type)) {
-    hit = raytrace_screen(raytrace_buf,
-                          uniform_buf.hiz,
+    hit = raytrace_screen(uni.raytrace_buf,
+                          uni.uniform_buf.hiz,
                           srt.hiz_front_tx,
                           rand_trace,
                           roughness,
@@ -138,7 +139,7 @@ void trace([[resource_table]] Resources &srt,
     if (hit.valid) {
       float3 hit_P = transform_point(drw_view().viewinv, hit.v_hit_P);
       /* TODO(@fclem): Split matrix multiply for precision. */
-      float2 history_ndc_hit_P = project_point(raytrace_buf.history_persmat, hit_P).xy;
+      float2 history_ndc_hit_P = project_point(uni.raytrace_buf.history_persmat, hit_P).xy;
       /* Make sure to tag hits that _were_ out of view as no hit. Otherwise the history is sampled
        * with clamp to border mode, which can introduce too much energy if the border pixels are
        * bright. */
@@ -148,20 +149,20 @@ void trace([[resource_table]] Resources &srt,
 
       /* Fetch radiance at hit-point. */
       radiance = raytrace_sample_screen(
-          srt.radiance_front_tx, raytrace_buf, hit, roughness, history_ss_hit_P);
+          srt.radiance_front_tx, uni.raytrace_buf, hit, roughness, history_ss_hit_P);
 
       if (hit.hit_backface) {
-        radiance *= raytrace_buf.backface_hit_scale;
+        radiance *= uni.raytrace_buf.backface_hit_scale;
 
-        if (!raytrace_buf.use_backface_hit) {
+        if (!uni.raytrace_buf.use_backface_hit) {
           hit.valid = false;
         }
       }
     }
   }
   else if (srt.trace_refraction) {
-    hit = raytrace_screen(raytrace_buf,
-                          uniform_buf.hiz,
+    hit = raytrace_screen(uni.raytrace_buf,
+                          uni.uniform_buf.hiz,
                           srt.hiz_back_tx,
                           rand_trace,
                           roughness,
@@ -171,7 +172,7 @@ void trace([[resource_table]] Resources &srt,
     if (hit.valid) {
       /* Fetch radiance at hit-point. */
       radiance = raytrace_sample_screen(
-          srt.radiance_back_tx, raytrace_buf, hit, roughness, hit.ss_hit_P.xy);
+          srt.radiance_back_tx, uni.raytrace_buf, hit, roughness, hit.ss_hit_P.xy);
     }
   }
 
@@ -183,7 +184,7 @@ void trace([[resource_table]] Resources &srt,
     /* Fall back to nearest light-probe. */
     LightProbeSample samp = lightprobes.load(float2(texel), ray.origin, Ng, V);
     /* Clamp SH to have parity with forward evaluation. */
-    float clamp_indirect = uniform_buf.clamp.surface_indirect;
+    float clamp_indirect = uni.uniform_buf.clamp.surface_indirect;
     samp.volume_irradiance = spherical_harmonics::clamp_energy(samp.volume_irradiance,
                                                                clamp_indirect);
     radiance = lightprobes.eval_direction(samp, ray.origin, ray.direction, roughness);
@@ -191,7 +192,7 @@ void trace([[resource_table]] Resources &srt,
     hit.time = 10000.0f;
   }
 
-  radiance = colorspace::brightness_clamp_max(radiance, uniform_buf.clamp.surface_indirect);
+  radiance = colorspace::brightness_clamp_max(radiance, uni.uniform_buf.clamp.surface_indirect);
 
   imageStoreFast(srt.ray_time_img, texel, float4(hit.time));
   imageStoreFast(srt.ray_radiance_img, texel, float4(radiance, 0.0f));
@@ -203,7 +204,6 @@ namespace planar {
 
 struct Resources {
   [[legacy_info]] ShaderCreateInfo draw_view;
-  [[legacy_info]] ShaderCreateInfo eevee_global_ubo;
 
   [[specialization_constant(0)]] int closure_index;
 
@@ -226,6 +226,7 @@ struct Resources {
 void trace([[resource_table]] Resources &srt,
            [[resource_table]] const LightprobeRenderData &lightprobes,
            [[resource_table]] const LightprobePlaneRenderData &lightprobe_planes,
+           [[resource_table]] const Uniform &uni,
            [[resource_table]] const Sampling &sampling,
            [[resource_table]] const gbuffer::Reader &reader,
            [[work_group_id]] const uint3 group_id,
@@ -251,7 +252,8 @@ void trace([[resource_table]] Resources &srt,
     return;
   }
 
-  int2 texel_fullres = texel * raytrace_buf.trace_pixel_scale + raytrace_buf.trace_pixel_offset;
+  int2 texel_fullres = texel * uni.raytrace_buf.trace_pixel_scale +
+                       uni.raytrace_buf.trace_pixel_offset;
 
   gbuffer::Header gbuf_header = reader.read_header(texel_fullres);
   ClosureType closure_type = gbuffer::mode_to_closure_type(
@@ -266,7 +268,7 @@ void trace([[resource_table]] Resources &srt,
   float roughness = closure_apparent_roughness_get(cl);
 
   float depth = reverse_z::read(texelFetch(srt.depth_tx, texel_fullres, 0).r);
-  float2 uv = (float2(texel_fullres) + 0.5f) * raytrace_buf.full_resolution_inv;
+  float2 uv = (float2(texel_fullres) + 0.5f) * uni.raytrace_buf.full_resolution_inv;
 
   float3 P = drw_point_screen_to_world(float3(uv, depth));
   float3 V = drw_world_incident_vector(P);
@@ -301,12 +303,12 @@ void trace([[resource_table]] Resources &srt,
   ray_view.max_time = 1000.0f;
 
   ScreenTraceHitData hit = raytrace_planar(
-      raytrace_buf, lightprobe_planes.planar_depth_tx, planar, rand_trace, ray_view);
+      uni.raytrace_buf, lightprobe_planes.planar_depth_tx, planar, rand_trace, ray_view);
 
   if (hit.valid) {
     /* Evaluate radiance at hit-point. */
     radiance = raytrace_sample_screen(lightprobe_planes.planar_radiance_tx,
-                                      raytrace_buf,
+                                      uni.raytrace_buf,
                                       hit,
                                       roughness,
                                       hit.ss_hit_P.xy,
@@ -324,7 +326,7 @@ void trace([[resource_table]] Resources &srt,
     hit.time = 10000.0f;
   }
 
-  radiance = colorspace::brightness_clamp_max(radiance, uniform_buf.clamp.surface_indirect);
+  radiance = colorspace::brightness_clamp_max(radiance, uni.uniform_buf.clamp.surface_indirect);
 
   imageStoreFast(srt.ray_time_img, texel, float4(hit.time));
   imageStoreFast(srt.ray_radiance_img, texel, float4(radiance, 0.0f));
@@ -335,7 +337,6 @@ void trace([[resource_table]] Resources &srt,
 namespace fallback {
 
 struct Resources {
-  [[legacy_info]] ShaderCreateInfo eevee_global_ubo;
   [[legacy_info]] ShaderCreateInfo draw_view;
 
   [[specialization_constant(0)]] int closure_index;
@@ -356,6 +357,7 @@ struct Resources {
 void trace([[resource_table]] Resources &srt,
            [[resource_table]] const LightprobeRenderData &lightprobes,
            [[resource_table]] const gbuffer::Reader &reader,
+           [[resource_table]] const Uniform &uni,
            [[work_group_id]] const uint3 group_id,
            [[local_invocation_id]] const uint3 local_id)
 {
@@ -363,7 +365,8 @@ void trace([[resource_table]] Resources &srt,
   uint2 tile_coord = unpackUvec2x16(srt.tiles_coord_buf[group_id.x]);
   int2 texel = int2(local_id.xy + tile_coord * tile_size);
 
-  int2 texel_fullres = texel * raytrace_buf.trace_pixel_scale + raytrace_buf.trace_pixel_offset;
+  int2 texel_fullres = texel * uni.raytrace_buf.trace_pixel_scale +
+                       uni.raytrace_buf.trace_pixel_offset;
 
   /* Check if texel is out of bounds,
    * so we can utilize fast texture functions and early-out if not. */
@@ -375,7 +378,7 @@ void trace([[resource_table]] Resources &srt,
   float roughness = closure_apparent_roughness_get(cl);
 
   float depth = reverse_z::read(texelFetch(srt.depth_tx, texel_fullres, 0).r);
-  float2 uv = (float2(texel_fullres) + 0.5f) * raytrace_buf.full_resolution_inv;
+  float2 uv = (float2(texel_fullres) + 0.5f) * uni.raytrace_buf.full_resolution_inv;
 
   float4 ray_data_im = imageLoadFast(srt.ray_data_img, texel);
   float ray_pdf_inv = ray_data_im.w;
@@ -410,7 +413,7 @@ void trace([[resource_table]] Resources &srt,
   float3 Ng = ray.direction;
   LightProbeSample samp = lightprobes.load(float2(texel), ray.origin, Ng, V);
   /* Clamp SH to have parity with forward evaluation. */
-  float clamp_indirect = uniform_buf.clamp.surface_indirect;
+  float clamp_indirect = uni.uniform_buf.clamp.surface_indirect;
   samp.volume_irradiance = spherical_harmonics::clamp_energy(samp.volume_irradiance,
                                                              clamp_indirect);
 
@@ -418,7 +421,7 @@ void trace([[resource_table]] Resources &srt,
   /* Set point really far for correct reprojection of background. */
   float hit_time = 1000.0f;
 
-  radiance = colorspace::brightness_clamp_max(radiance, uniform_buf.clamp.surface_indirect);
+  radiance = colorspace::brightness_clamp_max(radiance, uni.uniform_buf.clamp.surface_indirect);
 
   imageStoreFast(srt.ray_time_img, texel, float4(hit_time));
   imageStoreFast(srt.ray_radiance_img, texel, float4(radiance, 0.0f));

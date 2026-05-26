@@ -58,9 +58,10 @@ struct FragOut {
  */
 [[fragment, early_fragment_tests]]
 void aov_clear_frag([[resource_table]] RenderPassOutput &render_passes,
+                    [[resource_table]] Uniform &uni,
                     [[frag_coord]] const float4 frag_co)
 {
-  render_passes.clear_aovs(int2(frag_co.xy));
+  render_passes.clear_aovs(uni, int2(frag_co.xy));
 }
 
 PipelineGraphic aov_clear(fullscreen_vert, aov_clear_frag);
@@ -126,6 +127,7 @@ struct LightEval {
 [[fragment, early_fragment_tests]]
 void light_eval_frag([[resource_table]] LightEval &srt,
                      [[resource_table]] LightEvalIterator &lights,
+                     [[resource_table]] const Uniform &uni,
                      [[resource_table]] const LightprobeRenderData &lightprobes,
                      [[resource_table]] const HiZ &hiz,
                      [[resource_table]] const UtilityTexture &util_tx,
@@ -220,7 +222,7 @@ void light_eval_frag([[resource_table]] LightEval &srt,
   if (srt.use_lightprobe_eval) {
     LightProbeSample samp = lightprobes.load(frag_co.xy, P, Ng, V);
 
-    float clamp_indirect = uniform_buf.clamp.surface_indirect;
+    float clamp_indirect = uni.uniform_buf.clamp.surface_indirect;
     samp.volume_irradiance = spherical_harmonics::clamp_energy(samp.volume_irradiance,
                                                                clamp_indirect);
 

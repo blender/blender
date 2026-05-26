@@ -12,9 +12,7 @@
 #  include "draw_view_infos.hh"
 
 #  include "eevee_common_infos.hh"
-#  include "eevee_lightprobe_shared.hh"
-#  include "eevee_shadow_shared.hh"
-#  include "eevee_uniform_infos.hh"
+#  include "eevee_uniform_shared.hh"
 #endif
 
 #ifdef GLSL_CPP_STUBS
@@ -91,4 +89,15 @@ GPU_SHADER_CREATE_END()
 /* WORKAROUND: Until we remove global accesses to the interface. */
 GPU_SHADER_CREATE_INFO(eevee_geom_iface_info)
 VERTEX_OUT(eevee_surf_iface)
+GPU_SHADER_CREATE_END()
+
+GPU_SHADER_NAMED_INTERFACE_INFO(eevee_clip_plane_iface, clip_interp)
+SMOOTH(float, clip_distance)
+GPU_SHADER_NAMED_INTERFACE_END(clip_interp)
+
+/* WORKAROUND: Until we remove global accesses to the interface. */
+GPU_SHADER_CREATE_INFO(eevee_clip_plane)
+VERTEX_OUT(eevee_clip_plane_iface)
+TYPEDEF_SOURCE("eevee_uniform_shared.hh")
+UNIFORM_BUF(CLIP_PLANE_BUF, ClipPlaneData, clip_plane)
 GPU_SHADER_CREATE_END()

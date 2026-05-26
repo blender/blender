@@ -6,8 +6,6 @@
 
 #include "infos/eevee_common_infos.hh"
 
-SHADER_LIBRARY_CREATE_INFO(eevee_global_ubo)
-
 #include "eevee_lightprobe_volume.bsl.hh"
 #include "eevee_spherical_harmonics.bsl.hh"
 #include "gpu_shader_math_base_lib.glsl"
@@ -27,8 +25,6 @@ struct AtlasStore {
 };
 
 struct LoadGrid {
-  [[legacy_info]] ShaderCreateInfo eevee_global_ubo;
-
   [[push_constant]] const float4x4 grid_local_to_world;
   [[push_constant]] const int grid_index;
   [[push_constant]] const int grid_start_index;
@@ -203,8 +199,6 @@ void load_grid([[resource_table]] const LoadGrid &srt,
 }
 
 struct LoadWorld {
-  [[legacy_info]] ShaderCreateInfo eevee_global_ubo;
-
   [[storage(1, read)]] const SphereProbeHarmonic &harmonic_buf;
 
   [[push_constant]] const int grid_index;

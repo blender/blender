@@ -7,7 +7,6 @@
 #include "infos/eevee_common_infos.hh"
 
 COMPUTE_SHADER_CREATE_INFO(draw_view)
-COMPUTE_SHADER_CREATE_INFO(eevee_global_ubo)
 
 #include "draw_shader_shared.hh"
 #include "draw_view_lib.glsl"
@@ -15,6 +14,7 @@ COMPUTE_SHADER_CREATE_INFO(eevee_global_ubo)
 #include "eevee_gbuffer_read.bsl.hh"
 #include "eevee_reverse_z_lib.bsl.hh"
 #include "eevee_sampling_lib.bsl.hh"
+#include "eevee_subsurface_shared.hh"
 #include "gpu_shader_codegen_lib.glsl"
 #include "gpu_shader_math_angle_lib.glsl"
 #include "gpu_shader_math_matrix_construct_lib.glsl"
@@ -129,7 +129,6 @@ struct SubSurfaceSample {
 
 struct Convolve {
   [[legacy_info]] ShaderCreateInfo draw_view;
-  [[legacy_info]] ShaderCreateInfo eevee_global_ubo;
 
   [[sampler(2)]] sampler2D radiance_tx;
   [[sampler(3)]] sampler2DDepth depth_tx;

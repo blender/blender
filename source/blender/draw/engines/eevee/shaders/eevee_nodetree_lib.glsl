@@ -4,10 +4,8 @@
 
 #pragma once
 
+#include "eevee_uniform.bsl.hh"
 #include "infos/eevee_common_infos.hh"
-#include "infos/eevee_uniform_infos.hh"
-
-SHADER_LIBRARY_CREATE_INFO(eevee_global_ubo)
 
 #include "draw_intersect_lib.glsl"
 #include "draw_model_lib.glsl"
@@ -247,9 +245,7 @@ float ambient_occlusion_eval([[maybe_unused]] float3 normal,
   [[resource_table]] const eevee::Sampling &samp = resource_table_get(eevee::Sampling);
   [[resource_table]] const UtilityTexture &util_tx = resource_table_get(UtilityTexture);
   [[resource_table]] const eevee::HiZ &hiz = resource_table_get(eevee::HiZ);
-  [[maybe_unused]] const auto &hiz_tx = hiz.hiz_tx;
-  [[maybe_unused]] const auto &raytrace_buf = buffer_get(eevee_global_ubo, raytrace_buf);
-  [[maybe_unused]] const auto &uniform_buf = buffer_get(eevee_global_ubo, uniform_buf);
+  [[resource_table]] const eevee::Uniform &uni = resource_table_get(eevee::Uniform);
 
   {
 #if defined(GPU_FRAGMENT_SHADER) && defined(MAT_AMBIENT_OCCLUSION) && !defined(MAT_DEPTH) && \
@@ -262,16 +258,17 @@ float ambient_occlusion_eval([[maybe_unused]] float3 normal,
     float4 noise = util_tx.fetch(float2(texel), UTIL_BLUE_NOISE_LAYER);
     noise = fract(noise + samp.rng_3D_get(SAMPLING_AO_U).xyzx);
 
-    float result = eevee::fast_gi::eval<float>(raytrace_buf.fast_gi_thickness,
-                                               hiz_tx,
-                                               hiz_tx /* Dummy. */,
-                                               hiz_tx /* Dummy. */,
+    float result = eevee::fast_gi::eval<float>(uni,
+                                               uni.raytrace_buf.fast_gi_thickness,
+                                               hiz.hiz_tx,
+                                               hiz.hiz_tx /* Dummy. */,
+                                               hiz.hiz_tx /* Dummy. */,
                                                vP,
                                                vN,
                                                noise,
-                                               uniform_buf.ao.pixel_size,
+                                               uni.uniform_buf.ao.pixel_size,
                                                max_distance,
-                                               uniform_buf.ao.angle_bias,
+                                               uni.uniform_buf.ao.angle_bias,
                                                2,
                                                int(sample_count / 2.0f),
                                                inverted != 0.0f,
@@ -294,6 +291,8 @@ void raycast_eval([[maybe_unused]] float3 position,
                   float3 &hit_position,
                   float3 &hit_normal)
 {
+  [[resource_table]] const eevee::Uniform &uni = resource_table_get(eevee::Uniform);
+
   is_hit = false;
   self_hit = false;
   hit_distance = max_distance;
@@ -303,7 +302,7 @@ void raycast_eval([[maybe_unused]] float3 position,
   direction = normalize(direction);
 
 #if defined(MAT_RAYCAST)
-  if (!pipeline_buf.can_raycast) {
+  if (!uni.pipeline_buf.can_raycast) {
     /* We can't raycast on prepass for raycast visibile objects.
      * We use a UBO property to avoid compiling more shader variants. */
     return;
@@ -344,7 +343,7 @@ void raycast_eval([[maybe_unused]] float3 position,
                                      drw_point_world_to_view(ws_end),
                                      drw_normal_world_to_view(direction),
                                      raycast_depth_tx,
-                                     raytrace_buf,
+                                     uni.raytrace_buf,
                                      64,
                                      jitter,
                                      object_id_tx,
@@ -625,6 +624,7 @@ float3 coordinate_camera(float3 P)
 
 float3 coordinate_screen(float3 P)
 {
+  [[resource_table]] const eevee::Uniform &uni = resource_table_get(eevee::Uniform);
   float3 window = float3(0.0f);
   if (false /* Probe. */) {
     /* Unsupported. It would make the probe camera-dependent. */
@@ -637,7 +637,7 @@ float3 coordinate_screen(float3 P)
     /* TODO(fclem): Actual camera transform. */
     window.xy = drw_point_world_to_screen(P).xy;
 #endif
-    window.xy = window.xy * uniform_buf.camera.uv_scale + uniform_buf.camera.uv_bias;
+    window.xy = window.xy * uni.uniform_buf.camera.uv_scale + uni.uniform_buf.camera.uv_bias;
   }
   return window;
 }
@@ -671,7 +671,8 @@ float3 coordinate_incoming(float3 P)
 
 float texture_lod_bias_get()
 {
-  return uniform_buf.film.texture_lod_bias;
+  [[resource_table]] const eevee::Uniform &uni = resource_table_get(eevee::Uniform);
+  return uni.uniform_buf.film.texture_lod_bias;
 }
 
 /**
@@ -682,7 +683,8 @@ float texture_lod_bias_get()
  */
 float derivative_scale_get()
 {
-  return 1.0f / float(uniform_buf.film.scaling_factor);
+  [[resource_table]] const eevee::Uniform &uni = resource_table_get(eevee::Uniform);
+  return 1.0f / float(uni.uniform_buf.film.scaling_factor);
 }
 
 /** \} */
@@ -742,8 +744,10 @@ float4 attr_load_uniform(float4 /*attr*/, const uint attr_hash)
 
 void scene_time_uniforms(float &seconds, float &frame)
 {
-  seconds = uniform_buf.scene.time;
-  frame = uniform_buf.scene.frame;
+  [[resource_table]] const eevee::Uniform &uni = resource_table_get(eevee::Uniform);
+
+  seconds = uni.uniform_buf.scene.time;
+  frame = uni.uniform_buf.scene.frame;
 }
 
 /** \} */

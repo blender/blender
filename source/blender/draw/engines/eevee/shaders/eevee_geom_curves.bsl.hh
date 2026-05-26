@@ -4,7 +4,6 @@
 
 #pragma once
 
-#include "draw_view_infos.hh"
 #include "infos/eevee_geom_infos.hh"
 #include "infos/eevee_nodetree_infos.hh"
 
@@ -13,10 +12,12 @@ VERTEX_SHADER_CREATE_INFO(eevee_clip_plane)
 
 #include "draw_curves_lib.glsl"
 #include "draw_model_lib.glsl"
+#include "draw_view_infos.hh"
 #include "eevee_attributes_curves_lib.glsl"
 #include "eevee_nodetree_vert_lib.glsl"
 #include "eevee_reverse_z_lib.bsl.hh"
 #include "eevee_sampling_shared.hh" /* TODO(fclem): Remove. Needed becaused of fragment shader. */
+#include "eevee_shadow_shared.hh"
 #include "eevee_surf_common.bsl.hh"
 #include "eevee_velocity.bsl.hh"
 
@@ -43,6 +44,7 @@ struct GeomCurve {
 [[vertex]] [[clip_control]] void geom_curves(
     [[resource_table]] const PipelineConstants &pipe,
     [[resource_table]] const GeomCurve & /*srt*/,
+    [[resource_table]] const Uniform &uni,
     [[resource_table, condition(is_shadow_pipe)]] GeomShadow &shadow,
     [[instance_id]] const int /*inst_id*/,     /* Used by model_lib. */
     [[base_instance]] const int /*base_inst*/, /* Used by model_lib. */
@@ -106,7 +108,7 @@ struct GeomCurve {
         prv, pos, nxt, motion.prev, motion.next, drw_resource_id(), drw_modelmat());
   }
 
-  init_globals(true);
+  init_globals(uni, true);
   attrib_load(CurvesPoint{ws_pt.curve_id, ws_pt.point_id, ws_pt.curve_segment});
 
   interp.P += nodetree_displacement();

@@ -14,6 +14,7 @@ VERTEX_SHADER_CREATE_INFO(eevee_nodetree)
 #include "eevee_reverse_z_lib.bsl.hh"
 #include "eevee_sampling_shared.hh" /* TODO(fclem): Remove. Needed becaused of fragment shader. */
 #include "eevee_surf_common.bsl.hh"
+#include "eevee_uniform.bsl.hh"
 
 namespace eevee {
 
@@ -33,6 +34,7 @@ struct GeomVolumeIn {
 
 [[vertex]] [[clip_control]] void geom_volume(
     [[resource_table]] const GeomVolume & /*srt*/,
+    [[resource_table]] const Uniform &uni,
     [[in]] const GeomVolumeIn &vert_in,
     [[instance_id]] const int /*inst_id*/,     /* Used by model_lib. */
     [[base_instance]] const int /*base_inst*/, /* Used by model_lib. */

@@ -10,8 +10,6 @@
 
 #include "infos/eevee_common_infos.hh"
 
-FRAGMENT_SHADER_CREATE_INFO(eevee_global_ubo)
-
 #include "eevee_cryptomatte.bsl.hh"
 #include "eevee_renderpass.bsl.hh"
 #include "gpu_shader_fullscreen_lib.glsl"
@@ -31,6 +29,7 @@ void renderpass_clear_vert([[vertex_id]] const int vert_id, [[position]] float4 
 [[fragment]]
 void renderpass_clear_frag([[resource_table]] CryptomatteOutput &cryptomatte,
                            [[resource_table]] RenderPassOutput &render_passes,
+                           [[resource_table]] const Uniform &uni,
                            [[frag_coord]] const float4 frag_co,
                            [[out]] RenderPassClearFragOut &frag_out)
 {
@@ -39,17 +38,17 @@ void renderpass_clear_frag([[resource_table]] CryptomatteOutput &cryptomatte,
   frag_out.background = float4(0.0f);
 
   /* Clear Render Buffers. */
-  render_passes.clear_aovs(texel);
+  render_passes.clear_aovs(uni, texel);
   float4 clear_color = float4(0.0f, 0.0f, 0.0f, 1.0f);
-  render_passes.store_color(texel, uniform_buf.render_pass.environment_id, clear_color);
-  render_passes.store_color(texel, uniform_buf.render_pass.normal_id, clear_color);
-  render_passes.store_color(texel, uniform_buf.render_pass.position_id, clear_color);
-  render_passes.store_color(texel, uniform_buf.render_pass.diffuse_light_id, clear_color);
-  render_passes.store_color(texel, uniform_buf.render_pass.specular_light_id, clear_color);
-  render_passes.store_color(texel, uniform_buf.render_pass.diffuse_color_id, clear_color);
-  render_passes.store_color(texel, uniform_buf.render_pass.specular_color_id, clear_color);
-  render_passes.store_color(texel, uniform_buf.render_pass.emission_id, clear_color);
-  render_passes.store_value(texel, uniform_buf.render_pass.shadow_id, 1.0f);
+  render_passes.store_color(texel, uni.uniform_buf.render_pass.environment_id, clear_color);
+  render_passes.store_color(texel, uni.uniform_buf.render_pass.normal_id, clear_color);
+  render_passes.store_color(texel, uni.uniform_buf.render_pass.position_id, clear_color);
+  render_passes.store_color(texel, uni.uniform_buf.render_pass.diffuse_light_id, clear_color);
+  render_passes.store_color(texel, uni.uniform_buf.render_pass.specular_light_id, clear_color);
+  render_passes.store_color(texel, uni.uniform_buf.render_pass.diffuse_color_id, clear_color);
+  render_passes.store_color(texel, uni.uniform_buf.render_pass.specular_color_id, clear_color);
+  render_passes.store_color(texel, uni.uniform_buf.render_pass.emission_id, clear_color);
+  render_passes.store_value(texel, uni.uniform_buf.render_pass.shadow_id, 1.0f);
   /** NOTE: AO is done on its own pass. */
 
   imageStoreFast(cryptomatte.rp_cryptomatte_img, texel, float4(0.0f));

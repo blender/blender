@@ -31,7 +31,6 @@ float4 closure_to_rgba_world(Closure /*cl*/)
 namespace eevee {
 
 struct SurfWorld {
-  [[legacy_info]] ShaderCreateInfo eevee_global_ubo;
   [[legacy_info]] ShaderCreateInfo eevee_geom_iface_info;
 
   [[push_constant]] float world_opacity_fade;
@@ -47,12 +46,13 @@ struct SurfWorldFragOut {
 void surf_world([[resource_table]] SurfWorld &srt,
                 [[resource_table]] const LightprobeRenderData &lightprobes,
                 [[resource_table]] RenderPassOutput &render_passes,
+                [[resource_table]] const Uniform &uni,
                 [[resource_table]] const UtilityTexture & /*util_tx*/,
                 [[frag_coord]] const float4 frag_co,
                 [[out]] SurfWorldFragOut &frag_out,
                 [[front_facing]] const bool front_face)
 {
-  init_globals(front_face);
+  init_globals(uni, front_face);
   /* View position is passed to keep accuracy. */
   g_data.N = drw_normal_view_to_world(drw_view_incident_vector(interp.P));
   g_data.Ng = g_data.N;
@@ -88,7 +88,8 @@ void surf_world([[resource_table]] SurfWorld &srt,
   float4 environment = frag_out.background;
   environment.a = 1.0f - environment.a;
   environment.rgb *= environment.a;
-  render_passes.store_color(int2(frag_co.xy), uniform_buf.render_pass.environment_id, environment);
+  render_passes.store_color(
+      int2(frag_co.xy), uni.uniform_buf.render_pass.environment_id, environment);
 
   frag_out.background = mix(
       float4(0.0f, 0.0f, 0.0f, 1.0f), frag_out.background, srt.world_opacity_fade);
