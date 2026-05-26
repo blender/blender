@@ -425,13 +425,11 @@ hiprtGeometryBuildInput HIPRTDevice::prepare_triangle_blas(BVHHIPRT *bvh, Mesh *
           t.bounds_grow(attr_P->data<packed_float3>(attr_step), bounds);
         }
 
-        if (bounds.valid()) {
-          bvh->custom_primitive_bound[num_bounds] = bounds;
-          bvh->custom_prim_info[num_bounds].x = j;
-          bvh->custom_prim_info[num_bounds].y = mesh->primitive_type();
-          sum_area += bounds.area();
-          num_bounds++;
-        }
+        bvh->custom_primitive_bound[num_bounds] = bounds;
+        bvh->custom_prim_info[num_bounds].x = j;
+        bvh->custom_prim_info[num_bounds].y = mesh->primitive_type();
+        sum_area += bounds.area();
+        num_bounds++;
       }
     }
     else {
@@ -461,16 +459,16 @@ hiprtGeometryBuildInput HIPRTDevice::prepare_triangle_blas(BVHHIPRT *bvh, Mesh *
           curr_bounds.grow(curr_verts[2]);
           BoundBox bounds = prev_bounds;
           bounds.grow(curr_bounds);
-          if (bounds.valid()) {
-            const float prev_time = (float)(bvh_step - 1) * num_bvh_steps_inv_1;
-            bvh->custom_primitive_bound[num_bounds] = bounds;
-            bvh->custom_prim_info[num_bounds].x = j;
-            bvh->custom_prim_info[num_bounds].y = mesh->primitive_type();
-            bvh->prims_time[num_bounds].x = curr_time;
-            bvh->prims_time[num_bounds].y = prev_time;
-            sum_area += bounds.area();
-            num_bounds++;
-          }
+
+          const float prev_time = (float)(bvh_step - 1) * num_bvh_steps_inv_1;
+          bvh->custom_primitive_bound[num_bounds] = bounds;
+          bvh->custom_prim_info[num_bounds].x = j;
+          bvh->custom_prim_info[num_bounds].y = mesh->primitive_type();
+          bvh->prims_time[num_bounds].x = curr_time;
+          bvh->prims_time[num_bounds].y = prev_time;
+          sum_area += bounds.area();
+          num_bounds++;
+
           prev_bounds = curr_bounds;
         }
       }
@@ -568,25 +566,15 @@ hiprtGeometryBuildInput HIPRTDevice::prepare_curve_blas(BVHHIPRT *bvh, Hair *hai
         current_keys[2] = curve_keys[first_key + k + 1];
         current_keys[3] = curve_keys[min(first_key + k + 2, first_key + curve.num_keys - 1)];
 
-        if (current_keys[0].x == current_keys[1].x && current_keys[1].x == current_keys[2].x &&
-            current_keys[2].x == current_keys[3].x && current_keys[0].y == current_keys[1].y &&
-            current_keys[1].y == current_keys[2].y && current_keys[2].y == current_keys[3].y &&
-            current_keys[0].z == current_keys[1].z && current_keys[1].z == current_keys[2].z &&
-            current_keys[2].z == current_keys[3].z)
-        {
-          continue;
-        }
-
         BoundBox bounds = BoundBox::empty;
         curve.bounds_grow(k, hair->get_position(), curve_radius, bounds);
-        if (bounds.valid()) {
-          int type = PRIMITIVE_PACK_SEGMENT(primitive_type, k);
-          bvh->custom_prim_info[num_bounds].x = j;
-          bvh->custom_prim_info[num_bounds].y = type;
-          bvh->custom_primitive_bound[num_bounds] = bounds;
-          sum_area += bounds.area();
-          num_bounds++;
-        }
+
+        const int type = PRIMITIVE_PACK_SEGMENT(primitive_type, k);
+        bvh->custom_prim_info[num_bounds].x = j;
+        bvh->custom_prim_info[num_bounds].y = type;
+        bvh->custom_primitive_bound[num_bounds] = bounds;
+        sum_area += bounds.area();
+        num_bounds++;
       }
       else {
         const size_t num_steps = hair->get_motion_steps();
@@ -597,14 +585,12 @@ hiprtGeometryBuildInput HIPRTDevice::prepare_curve_blas(BVHHIPRT *bvh, Hair *hai
             curve.bounds_grow(
                 k, attr_P->data<packed_float3>(attr_step), attr_R->data<float>(attr_step), bounds);
           }
-          if (bounds.valid()) {
-            int type = PRIMITIVE_PACK_SEGMENT(primitive_type, k);
-            bvh->custom_prim_info[num_bounds].x = j;
-            bvh->custom_prim_info[num_bounds].y = type;
-            bvh->custom_primitive_bound[num_bounds] = bounds;
-            sum_area += bounds.area();
-            num_bounds++;
-          }
+          const int type = PRIMITIVE_PACK_SEGMENT(primitive_type, k);
+          bvh->custom_prim_info[num_bounds].x = j;
+          bvh->custom_prim_info[num_bounds].y = type;
+          bvh->custom_primitive_bound[num_bounds] = bounds;
+          sum_area += bounds.area();
+          num_bounds++;
         }
         else {
           const int num_bvh_steps = bvh->params.num_motion_curve_steps * 2 + 1;
@@ -625,17 +611,17 @@ hiprtGeometryBuildInput HIPRTDevice::prepare_curve_blas(BVHHIPRT *bvh, Hair *hai
             curve.bounds_grow(curr_keys, curr_bounds);
             BoundBox bounds = prev_bounds;
             bounds.grow(curr_bounds);
-            if (bounds.valid()) {
-              const float prev_time = (float)(bvh_step - 1) * num_bvh_steps_inv_1;
-              int packed_type = PRIMITIVE_PACK_SEGMENT(primitive_type, k);
-              bvh->custom_prim_info[num_bounds].x = j;
-              bvh->custom_prim_info[num_bounds].y = packed_type;  // k
-              bvh->custom_primitive_bound[num_bounds] = bounds;
-              bvh->prims_time[num_bounds].x = prev_time;
-              bvh->prims_time[num_bounds].y = curr_time;
-              sum_area += bounds.area();
-              num_bounds++;
-            }
+
+            const float prev_time = (float)(bvh_step - 1) * num_bvh_steps_inv_1;
+            const int packed_type = PRIMITIVE_PACK_SEGMENT(primitive_type, k);
+            bvh->custom_prim_info[num_bounds].x = j;
+            bvh->custom_prim_info[num_bounds].y = packed_type;  // k
+            bvh->custom_primitive_bound[num_bounds] = bounds;
+            bvh->prims_time[num_bounds].x = prev_time;
+            bvh->prims_time[num_bounds].y = curr_time;
+            sum_area += bounds.area();
+            num_bounds++;
+
             prev_bounds = curr_bounds;
           }
         }
@@ -692,13 +678,12 @@ hiprtGeometryBuildInput HIPRTDevice::prepare_point_blas(BVHHIPRT *bvh, PointClou
       const PointCloud::Point point = pointcloud->get_point(j);
       BoundBox bounds = BoundBox::empty;
       point.bounds_grow(points_data, radius_data, bounds);
-      if (bounds.valid()) {
-        bvh->custom_primitive_bound[num_bounds] = bounds;
-        bvh->custom_prim_info[num_bounds].x = j;
-        bvh->custom_prim_info[num_bounds].y = PRIMITIVE_POINT;
-        sum_area += bounds.area();
-        num_bounds++;
-      }
+
+      bvh->custom_primitive_bound[num_bounds] = bounds;
+      bvh->custom_prim_info[num_bounds].x = j;
+      bvh->custom_prim_info[num_bounds].y = PRIMITIVE_POINT;
+      sum_area += bounds.area();
+      num_bounds++;
     }
   }
   else if (bvh->params.num_motion_point_steps == 0 || bvh->params.use_spatial_split) {
@@ -712,13 +697,12 @@ hiprtGeometryBuildInput HIPRTDevice::prepare_point_blas(BVHHIPRT *bvh, PointClou
         point.bounds_grow(
             attr_P->data<packed_float3>(attr_step), attr_R->data<float>(attr_step), bounds);
       }
-      if (bounds.valid()) {
-        bvh->custom_primitive_bound[num_bounds] = bounds;
-        bvh->custom_prim_info[num_bounds].x = j;
-        bvh->custom_prim_info[num_bounds].y = PRIMITIVE_MOTION_POINT;
-        sum_area += bounds.area();
-        num_bounds++;
-      }
+
+      bvh->custom_primitive_bound[num_bounds] = bounds;
+      bvh->custom_prim_info[num_bounds].x = j;
+      bvh->custom_prim_info[num_bounds].y = PRIMITIVE_MOTION_POINT;
+      sum_area += bounds.area();
+      num_bounds++;
     }
   }
   else {
@@ -747,16 +731,16 @@ hiprtGeometryBuildInput HIPRTDevice::prepare_point_blas(BVHHIPRT *bvh, PointClou
         point.bounds_grow(curr_key, curr_bounds);
         BoundBox bounds = prev_bounds;
         bounds.grow(curr_bounds);
-        if (bounds.valid()) {
-          const float prev_time = (float)(bvh_step - 1) * num_bvh_steps_inv_1;
-          bvh->custom_primitive_bound[num_bounds] = bounds;
-          bvh->custom_prim_info[num_bounds].x = j;
-          bvh->custom_prim_info[num_bounds].y = PRIMITIVE_MOTION_POINT;
-          bvh->prims_time[num_bounds].x = prev_time;
-          bvh->prims_time[num_bounds].y = curr_time;
-          sum_area += bounds.area();
-          num_bounds++;
-        }
+
+        const float prev_time = (float)(bvh_step - 1) * num_bvh_steps_inv_1;
+        bvh->custom_primitive_bound[num_bounds] = bounds;
+        bvh->custom_prim_info[num_bounds].x = j;
+        bvh->custom_prim_info[num_bounds].y = PRIMITIVE_MOTION_POINT;
+        bvh->prims_time[num_bounds].x = prev_time;
+        bvh->prims_time[num_bounds].y = curr_time;
+        sum_area += bounds.area();
+        num_bounds++;
+
         prev_bounds = curr_bounds;
       }
     }
