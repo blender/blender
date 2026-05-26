@@ -416,7 +416,7 @@ static void node_geo_exec(GeoNodeExecParams params)
     }
   }
 
-  if (patterns.is_empty()) {
+  if (patterns.is_empty() && !exclude_names) {
     params.set_output("Target"_ustr, std::move(dst_geo));
     params.set_output("Transferred Names"_ustr, GList::from_container(Array<std::string>()));
     return;
