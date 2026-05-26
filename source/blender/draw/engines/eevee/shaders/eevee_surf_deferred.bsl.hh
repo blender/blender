@@ -47,7 +47,6 @@ struct SurfaceDeferred {
 
   [[legacy_info]] ShaderCreateInfo eevee_global_ubo;
   [[legacy_info]] ShaderCreateInfo eevee_utility_texture;
-  [[legacy_info]] ShaderCreateInfo eevee_hiz_data;
   [[legacy_info]] ShaderCreateInfo draw_view_culling;
   [[legacy_info]] ShaderCreateInfo eevee_geom_iface_info;
 

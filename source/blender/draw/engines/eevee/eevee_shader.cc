@@ -1005,8 +1005,8 @@ void ShaderModule::material_create_info_amend(GPUMaterial *gpumat, GPUCodegenOut
       GPU_material_flag_get(gpumat, GPU_MATFLAG_SHADER_TO_RGBA) &&
       GPU_material_flag_get(gpumat, GPU_MATFLAG_TRANSPARENT))
   {
-    info.additional_info("eevee_hiz_prev_data");
-    info.additional_info("eevee_previous_layer_radiance");
+    info.additional_info("eevee_PreviousLayerHiZ");
+    info.additional_info("eevee_PreviousLayerRadiance");
   }
 
   SlotAllocator slots = add_pipeline_create_info(
@@ -1336,6 +1336,7 @@ void ShaderModule::material_create_info_amend(GPUMaterial *gpumat, GPUCodegenOut
     Vector<StringRefNull> dependencies;
     if (use_ao_node) {
       dependencies.append("eevee_fast_gi.bsl.hh");
+      info.additional_info("eevee_HiZ");
     }
     dependencies.append("eevee_geom_types_lib.bsl.hh");
     dependencies.append("eevee_nodetree_lib.glsl");

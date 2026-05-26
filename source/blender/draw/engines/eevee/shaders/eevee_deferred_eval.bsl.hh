@@ -15,11 +15,11 @@ FRAGMENT_SHADER_CREATE_INFO(draw_view)
 FRAGMENT_SHADER_CREATE_INFO(draw_object_infos)
 FRAGMENT_SHADER_CREATE_INFO(eevee_gbuffer_data)
 FRAGMENT_SHADER_CREATE_INFO(eevee_utility_texture)
-FRAGMENT_SHADER_CREATE_INFO(eevee_hiz_data)
 
 #include "draw_view_lib.glsl"
 #include "eevee_closure.bsl.hh"
 #include "eevee_gbuffer_read.bsl.hh"
+#include "eevee_hiz.bsl.hh"
 #include "eevee_light_eval.bsl.hh"
 #include "eevee_lightprobe.bsl.hh"
 #include "eevee_renderpass.bsl.hh"
@@ -76,7 +76,6 @@ PipelineGraphic aov_clear(fullscreen_vert, aov_clear_frag);
 struct LightEval {
   [[legacy_info]] ShaderCreateInfo eevee_gbuffer_data;
   [[legacy_info]] ShaderCreateInfo eevee_utility_texture;
-  [[legacy_info]] ShaderCreateInfo eevee_hiz_data;
   [[legacy_info]] ShaderCreateInfo draw_object_infos;
   [[legacy_info]] ShaderCreateInfo draw_view;
 
@@ -132,6 +131,7 @@ struct LightEval {
 void light_eval_frag([[resource_table]] LightEval &srt,
                      [[resource_table]] LightEvalIterator &lights,
                      [[resource_table]] const LightprobeRenderData &lightprobes,
+                     [[resource_table]] const HiZ &hiz,
                      [[resource_table]] RenderPassOutput &render_passes,
                      [[frag_coord]] const float4 frag_co,
                      [[in]] const VertOut v_out)
@@ -144,7 +144,7 @@ void light_eval_frag([[resource_table]] LightEval &srt,
    * Constant is taken from https://www.terathon.com/gdc07_lengyel.pdf. */
   constexpr float bias = 2.4e-7f;
 
-  const float depth = texelFetch(hiz_tx, texel, 0).r - bias;
+  const float depth = texelFetch(hiz.hiz_tx, texel, 0).r - bias;
   const gbuffer::Layers gbuf = gbuffer::read_layers(texel);
   const Thickness thickness = gbuffer::read_thickness(gbuf.header, texel);
   const uchar closure_count = gbuf.header.closure_len();
@@ -269,7 +269,6 @@ struct SphereProbeEval {
   [[legacy_info]] ShaderCreateInfo draw_object_infos;
   [[legacy_info]] ShaderCreateInfo eevee_gbuffer_data;
   [[legacy_info]] ShaderCreateInfo eevee_utility_texture;
-  [[legacy_info]] ShaderCreateInfo eevee_hiz_data;
 };
 
 /* Sphere probe evaluate everything as diffuse since they can only rely on volume light-probes
@@ -279,13 +278,14 @@ void sphere_eval_frag([[resource_table]] SphereProbeEval & /*srt*/,
                       [[resource_table]] LightEvalIterator &lights,
                       [[resource_table]] const Sampling &sampling,
                       [[resource_table]] const LightprobeVolumeRenderData &lightprobes,
+                      [[resource_table]] const HiZ &hiz,
                       [[frag_coord]] const float4 frag_co,
                       [[in]] const VertOut v_out,
                       [[out]] FragOut &frag_out)
 {
   int2 texel = int2(frag_co.xy);
 
-  float depth = texelFetch(hiz_tx, texel, 0).r;
+  float depth = texelFetch(hiz.hiz_tx, texel, 0).r;
 
   const gbuffer::Layers gbuf = gbuffer::read_layers(texel);
 
@@ -386,7 +386,6 @@ struct PlanarProbeEval {
   [[legacy_info]] ShaderCreateInfo draw_object_infos;
   [[legacy_info]] ShaderCreateInfo eevee_gbuffer_data;
   [[legacy_info]] ShaderCreateInfo eevee_utility_texture;
-  [[legacy_info]] ShaderCreateInfo eevee_hiz_data;
 };
 
 [[fragment, early_fragment_tests]]
@@ -394,13 +393,14 @@ void planar_eval_frag([[resource_table]] PlanarProbeEval & /*srt*/,
                       [[resource_table]] LightEvalIterator &lights,
                       [[resource_table]] const LightprobeRenderData &lightprobes,
                       [[resource_table]] const Sampling &sampling,
+                      [[resource_table]] const HiZ &hiz,
                       [[frag_coord]] const float4 frag_co,
                       [[in]] const VertOut v_out,
                       [[out]] FragOut &frag_out)
 {
   int2 texel = int2(frag_co.xy);
 
-  float depth = texelFetch(hiz_tx, texel, 0).r;
+  float depth = texelFetch(hiz.hiz_tx, texel, 0).r;
 
   const gbuffer::Layers gbuf = gbuffer::read_layers(texel);
   const uchar closure_count = gbuf.header.closure_len();

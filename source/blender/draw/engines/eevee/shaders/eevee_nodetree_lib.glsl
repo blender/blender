@@ -9,13 +9,13 @@
 
 SHADER_LIBRARY_CREATE_INFO(eevee_global_ubo)
 SHADER_LIBRARY_CREATE_INFO(eevee_utility_texture)
-SHADER_LIBRARY_CREATE_INFO(eevee_hiz_data)
 
 #include "draw_intersect_lib.glsl"
 #include "draw_model_lib.glsl"
 #include "draw_object_infos_lib.glsl"
 #include "draw_view_lib.glsl"
 #include "eevee_bxdf_lut_lib.bsl.hh"
+#include "eevee_hiz.bsl.hh"
 #include "eevee_nodetree_closures_lib.glsl"
 #include "eevee_ray_trace_screen_lib.bsl.hh"
 #include "eevee_renderpass.bsl.hh"
@@ -246,8 +246,9 @@ float ambient_occlusion_eval([[maybe_unused]] float3 normal,
   FRAGMENT_SHADER_CREATE_INFO(draw_view);
 
   [[resource_table]] const eevee::Sampling &samp = resource_table_get(eevee::Sampling);
-  [[maybe_unused]] const auto &hiz_tx = sampler_get(eevee_hiz_data, hiz_tx);
-  [[maybe_unused]] const auto &raytrace_buf = buffer_get(eevee_hiz_data, raytrace_buf);
+  [[resource_table]] const eevee::HiZ &hiz = resource_table_get(eevee::HiZ);
+  [[maybe_unused]] const auto &hiz_tx = hiz.hiz_tx;
+  [[maybe_unused]] const auto &raytrace_buf = buffer_get(eevee_global_ubo, raytrace_buf);
   [[maybe_unused]] const auto &uniform_buf = buffer_get(eevee_global_ubo, uniform_buf);
 
   {

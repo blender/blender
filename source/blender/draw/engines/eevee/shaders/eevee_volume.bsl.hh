@@ -7,11 +7,11 @@
 
 #pragma once
 
+#include "eevee_hiz.bsl.hh"
 #include "infos/eevee_common_infos.hh"
 
 SHADER_LIBRARY_CREATE_INFO(draw_view)
 SHADER_LIBRARY_CREATE_INFO(eevee_global_ubo)
-SHADER_LIBRARY_CREATE_INFO(eevee_hiz_data)
 
 #include "draw_view_lib.glsl"
 #include "eevee_colorspace_lib.bsl.hh"
@@ -99,7 +99,6 @@ struct Scatter {
 
   [[legacy_info]] ShaderCreateInfo draw_view;
   [[legacy_info]] ShaderCreateInfo eevee_global_ubo;
-  [[legacy_info]] ShaderCreateInfo eevee_hiz_data;
 
   [[resource_table]] srt_t<LightRenderData> light_data;
   [[resource_table]] srt_t<ShadowRenderData> shadow_data;
@@ -375,7 +374,6 @@ struct FragOut {
 struct Resolve {
   [[legacy_info]] ShaderCreateInfo draw_view;
   [[legacy_info]] ShaderCreateInfo eevee_global_ubo;
-  [[legacy_info]] ShaderCreateInfo eevee_hiz_data;
 };
 
 [[vertex]]
@@ -390,13 +388,12 @@ void resolve_vert([[vertex_id]] const int vert_id, [[position]] float4 &out_posi
 void resolve_frag([[resource_table]] const Resolve & /*srt*/,
                   [[resource_table]] const UnifiedVolumeData &volumes,
                   [[resource_table]] RenderPassOutput &render_passes,
+                  [[resource_table]] const HiZ &hiz,
                   [[frag_coord]] const float4 frag_co,
                   [[out]] FragOut &out_frag)
 {
-  auto &hiz_tx = sampler_get(eevee_hiz_data, hiz_tx);
-
   float2 uvs = frag_co.xy * uniform_buf.volumes.main_view_extent_inv;
-  float scene_depth = texelFetch(hiz_tx, int2(frag_co.xy), 0).r;
+  float scene_depth = texelFetch(hiz.hiz_tx, int2(frag_co.xy), 0).r;
 
   VolumeResolveSample vol = volumes.resolve(float3(uvs, scene_depth));
 

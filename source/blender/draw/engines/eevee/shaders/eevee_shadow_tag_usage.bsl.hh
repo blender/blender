@@ -10,11 +10,11 @@
 
 #pragma once
 
+#include "eevee_hiz.bsl.hh"
 #include "infos/eevee_common_infos.hh"
 
 COMPUTE_SHADER_CREATE_INFO(draw_view)
 COMPUTE_SHADER_CREATE_INFO(draw_view_culling)
-COMPUTE_SHADER_CREATE_INFO(eevee_hiz_data)
 COMPUTE_SHADER_CREATE_INFO(draw_resource_id_varying)
 
 #include "draw_view_lib.glsl"
@@ -248,8 +248,6 @@ template void light::foreach<shadow::usage::TagSurfelCtx, shadow::usage::TagUsag
 namespace eevee::shadow::usage {
 
 struct TagUsageOpaque {
-  [[legacy_info]] ShaderCreateInfo eevee_hiz_data;
-
   [[push_constant]] int2 input_depth_extent;
 };
 
@@ -259,6 +257,7 @@ struct TagUsageOpaque {
  */
 [[compute, local_size(SHADOW_DEPTH_SCAN_GROUP_SIZE, SHADOW_DEPTH_SCAN_GROUP_SIZE)]]
 void tag_usage_opaque([[resource_table]] TagUsageOpaque &srt,
+                      [[resource_table]] const HiZ &hiz,
                       [[resource_table]] TagUsage &tag,
                       [[global_invocation_id]] const uint3 global_id)
 {
@@ -271,7 +270,7 @@ void tag_usage_opaque([[resource_table]] TagUsageOpaque &srt,
     return;
   }
 
-  float depth = texelFetch(hiz_tx, texel, 0).r;
+  float depth = texelFetch(hiz.hiz_tx, texel, 0).r;
   if (depth == 1.0f) {
     return;
   }
@@ -325,19 +324,15 @@ void tag_usage_surfel([[resource_table]] TagUsageSurfel &srt,
   light::foreach(lrd, ctx, tag);
 }
 
-struct TagUsageVolume {
-  [[legacy_info]] ShaderCreateInfo eevee_hiz_data;
-};
-
 /**
  * This pass scans all volume froxels and tags tiles needed for shadowing.
  */
 [[compute, local_size(VOLUME_GROUP_SIZE, VOLUME_GROUP_SIZE, VOLUME_GROUP_SIZE)]]
-void tag_usage_volume([[resource_table]] TagUsageVolume & /*srt*/,
-                      [[resource_table]] UnifiedVolumeProperties &volume,
+void tag_usage_volume([[resource_table]] UnifiedVolumeProperties &volume,
                       [[resource_table]] TagUsage &tag,
                       [[resource_table]] SurfelCapture & /*capture*/,
                       [[resource_table]] const Sampling &sampling,
+                      [[resource_table]] const HiZ &hiz,
                       [[global_invocation_id]] const uint3 global_id)
 {
   [[resource_table]] LightRenderData &lrd = tag.light_data;
@@ -363,7 +358,7 @@ void tag_usage_volume([[resource_table]] TagUsageVolume & /*srt*/,
   float3 vP = drw_point_screen_to_view(float3(ss_P.xy, ss_P.z));
   float3 P = drw_point_view_to_world(vP);
 
-  float depth = texelFetch(hiz_tx, froxel.xy, uniform_buf.volumes.tile_size_lod).r;
+  float depth = texelFetch(hiz.hiz_tx, froxel.xy, uniform_buf.volumes.tile_size_lod).r;
   if (depth < ss_P.z) {
     return;
   }

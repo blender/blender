@@ -6,11 +6,10 @@
 
 #include "infos/eevee_common_infos.hh"
 
-SHADER_LIBRARY_CREATE_INFO(eevee_hiz_data)
-
 #include "draw_intersect_lib.glsl"
 #include "draw_shape_lib.glsl"
 #include "draw_view_lib.glsl"
+#include "eevee_hiz.bsl.hh"
 #include "eevee_light_iter.bsl.hh"
 #include "eevee_light_lib.bsl.hh"
 #include "eevee_light_shared.hh"
@@ -467,7 +466,6 @@ struct DebugFragOut {
 
 struct Debug {
   [[legacy_info]] ShaderCreateInfo draw_view;
-  [[legacy_info]] ShaderCreateInfo eevee_hiz_data;
 };
 
 [[vertex]]
@@ -531,13 +529,14 @@ namespace eevee::light::culling {
 [[fragment]]
 void debug_frag([[resource_table]] Debug & /*srt*/,
                 [[resource_table]] LightRenderData &lrd,
+                [[resource_table]] const HiZ &hiz,
                 [[frag_coord]] const float4 frag_co,
                 [[in]] const DebugVertOut &v_out,
                 [[out]] DebugFragOut &frag_out)
 {
   int2 texel = int2(frag_co.xy);
 
-  float depth = texelFetch(hiz_tx, texel, 0).r;
+  float depth = texelFetch(hiz.hiz_tx, texel, 0).r;
   float vP_z = drw_depth_screen_to_view(depth);
   float3 P = drw_point_screen_to_world(float3(v_out.screen_uv, depth));
 

@@ -32,7 +32,6 @@ struct VertOut {
 
 struct TagUsageTransparent {
   [[legacy_info]] ShaderCreateInfo draw_resource_id_varying;
-  [[legacy_info]] ShaderCreateInfo eevee_hiz_data;
   [[legacy_info]] ShaderCreateInfo draw_modelmat;
 
   [[storage(4, read)]] const ObjectBounds (&bounds_buf)[];
@@ -204,12 +203,13 @@ void tag_usage_vert([[resource_table]] TagUsageTransparent &srt,
 [[fragment]]
 void tag_usage_frag([[resource_table]] TagUsageTransparent &srt,
                     [[resource_table]] TagUsage &tag,
+                    [[resource_table]] const HiZ &hiz,
                     [[in]] const VertOut interp,
                     [[frag_coord]] const float4 frag_co)
 {
   float2 screen_uv = frag_co.xy / float2(srt.fb_resolution);
 
-  float opaque_depth = texelFetch(hiz_tx, int2(frag_co.xy), srt.fb_lod).r;
+  float opaque_depth = texelFetch(hiz.hiz_tx, int2(frag_co.xy), srt.fb_lod).r;
   float3 ws_opaque = drw_point_screen_to_world(float3(screen_uv, opaque_depth));
 
   float3 ws_near_plane = drw_point_screen_to_world(float3(screen_uv, 0.0f));

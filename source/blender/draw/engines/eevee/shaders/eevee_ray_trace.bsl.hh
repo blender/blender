@@ -28,7 +28,6 @@ struct Resources {
   [[legacy_info]] ShaderCreateInfo eevee_global_ubo;
   [[legacy_info]] ShaderCreateInfo eevee_gbuffer_data;
   [[legacy_info]] ShaderCreateInfo draw_view;
-  [[legacy_info]] ShaderCreateInfo eevee_hiz_data;
 
   [[specialization_constant(0)]] int closure_index;
   [[specialization_constant(true)]] bool trace_refraction;

@@ -7,12 +7,13 @@
 #include "infos/eevee_common_infos.hh"
 
 FRAGMENT_SHADER_CREATE_INFO(eevee_gbuffer_data)
-FRAGMENT_SHADER_CREATE_INFO(eevee_hiz_data)
+FRAGMENT_SHADER_CREATE_INFO(eevee_global_ubo)
 FRAGMENT_SHADER_CREATE_INFO(draw_view)
 
 #include "draw_view_lib.glsl"
 #include "eevee_colorspace_lib.bsl.hh"
 #include "eevee_gbuffer_read.bsl.hh"
+#include "eevee_hiz.bsl.hh"
 #include "eevee_renderpass.bsl.hh"
 #include "gpu_shader_fullscreen_lib.glsl"
 #include "gpu_shader_shared_exponent_lib.glsl"
@@ -21,7 +22,7 @@ namespace eevee::deferred {
 
 struct Combine {
   [[legacy_info]] ShaderCreateInfo eevee_gbuffer_data;
-  [[legacy_info]] ShaderCreateInfo eevee_hiz_data;
+  [[legacy_info]] ShaderCreateInfo eevee_global_ubo;
   [[legacy_info]] ShaderCreateInfo draw_view;
 
   /* NOTE: Both light IDs have a valid specialized assignment of '-1' so only when default is
@@ -102,6 +103,7 @@ struct CombineFragOut {
 [[fragment, early_fragment_tests]]
 void combine_frag([[resource_table]] Combine &srt,
                   [[resource_table]] RenderPassOutput &render_passes,
+                  [[resource_table]] const HiZ &hiz,
                   [[in]] const CombineVertOut &v_out,
                   [[out]] CombineFragOut &frag_out)
 {
@@ -223,7 +225,7 @@ void combine_frag([[resource_table]] Combine &srt,
         texel, uniform_buf.render_pass.normal_id, float4(average_normal, 1.0f));
   }
   if (srt.render_pass_position_enabled) {
-    float depth = texelFetch(hiz_tx, texel, 0).r;
+    float depth = texelFetch(hiz.hiz_tx, texel, 0).r;
     float3 P = drw_point_screen_to_world(float3(v_out.screen_uv, depth));
     render_passes.store_color(texel, uniform_buf.render_pass.position_id, float4(P, 1.0f));
   }

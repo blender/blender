@@ -8,10 +8,10 @@
 
 #pragma once
 
+#include "eevee_hiz.bsl.hh"
 #include "infos/eevee_common_infos.hh"
 
 SHADER_LIBRARY_CREATE_INFO(draw_view)
-SHADER_LIBRARY_CREATE_INFO(eevee_hiz_data)
 
 #include "draw_view_lib.glsl"
 #include "eevee_gbuffer_types.bsl.hh"
@@ -96,7 +96,6 @@ namespace eevee {
 
 struct ThicknessAmend {
   [[legacy_info]] ShaderCreateInfo draw_view;
-  [[legacy_info]] ShaderCreateInfo eevee_hiz_data;
 
   [[sampler(0)]] usampler2DArray gbuf_header_tx;
   [[image(0, read_write, UNORM_16_16)]] image2DArray gbuf_normal_img;
@@ -119,6 +118,7 @@ void amend_vert([[vertex_id]] const int vert_id,
 void amend_frag([[resource_table]] ThicknessAmend &srt,
                 [[resource_table]] ShadowRenderData &srd,
                 [[resource_table]] const LightRenderData &lrd,
+                [[resource_table]] const HiZ &hiz,
                 [[in]] const VertOut &v_out,
                 [[frag_coord]] const float4 frag_co)
 {
@@ -127,7 +127,7 @@ void amend_frag([[resource_table]] ThicknessAmend &srt,
   /* Bias the shading point position because of depth buffer precision.
    * Constant is taken from https://www.terathon.com/gdc07_lengyel.pdf. */
   constexpr float bias = 2.4e-7f;
-  const float depth = texelFetch(hiz_tx, texel, 0).r - bias;
+  const float depth = texelFetch(hiz.hiz_tx, texel, 0).r - bias;
 
   const float3 P = drw_point_screen_to_world(float3(v_out.uv, depth));
   const float vPz = dot(drw_view_forward(), P) - dot(drw_view_forward(), drw_view_position());

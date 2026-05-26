@@ -56,12 +56,15 @@ float4 closure_to_rgba_forward(Closure /*cl_unused*/)
 
 #  ifndef MAT_FIRST_LAYER
     { /* Limit resource guard to this scope. */
+      /* Multiline macro breaks error line counting. */
+      /* clang-format off */
+      [[resource_table]] const eevee::PreviousLayerHiZ &prev_hiz = resource_table_get(eevee::PreviousLayerHiZ);
+      [[resource_table]] const eevee::PreviousLayerRadiance &prev_radiance = resource_table_get(eevee::PreviousLayerRadiance);
+      /* clang-format on */
+
       int2 texel = int2(frag_co);
-      const auto &prev_hiz_tx = sampler_get(eevee_hiz_prev_data, hiz_prev_tx);
-      const auto &prev_radiance_tx = sampler_get(eevee_previous_layer_radiance,
-                                                 previous_layer_radiance_tx);
-      if (texelFetchExtend(prev_hiz_tx, texel, 0).x != 1.0f) {
-        radiance_behind = texelFetch(prev_radiance_tx, texel, 0).xyz;
+      if (texelFetchExtend(prev_hiz.hiz_prev_tx, texel, 0).x != 1.0f) {
+        radiance_behind = texelFetch(prev_radiance.previous_layer_radiance_tx, texel, 0).xyz;
       }
     }
 #  endif
@@ -78,7 +81,6 @@ namespace eevee {
 struct SurfaceForward {
   [[legacy_info]] ShaderCreateInfo eevee_global_ubo;
   [[legacy_info]] ShaderCreateInfo eevee_utility_texture;
-  [[legacy_info]] ShaderCreateInfo eevee_hiz_data;
   [[legacy_info]] ShaderCreateInfo eevee_geom_iface_info;
 
   [[legacy_info]] ShaderCreateInfo draw_view_culling;
