@@ -47,7 +47,7 @@ struct ViewVisibility {
   {
     constexpr uint visibility_word_per_draw = uint(SHADOW_VIEW_MAX) / 32u;
     uint index = global_id.x * visibility_word_per_draw + (view_id / 32u);
-    visibility_buf[index] &= ~(1u << view_id);
+    visibility_buf[index] &= ~(1u << (view_id & 31u));
   }
 
   /* Returns true if visibility needs to be disabled. */
