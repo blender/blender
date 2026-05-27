@@ -634,7 +634,7 @@ bool MetalDeviceQueue::enqueue(DeviceKernel kernel,
             if (IntegratorQueueCounter *queue_counter = (IntegratorQueueCounter *)
                                                             it.first->host_pointer)
             {
-              for (int i = 0; i < DEVICE_KERNEL_INTEGRATOR_NUM; i++) {
+              for (int i = 0; i < DEVICE_GPU_KERNEL_INTEGRATOR_NUM; i++) {
                 printf("%s%d", i == 0 ? "" : ",", queue_counter->num_queued[i]);
               }
             }
@@ -816,7 +816,7 @@ void MetalDeviceQueue::prepare_resources(DeviceKernel /*kernel*/)
 
 id<MTLComputeCommandEncoder> MetalDeviceQueue::get_compute_encoder(DeviceKernel kernel)
 {
-  bool concurrent = int(kernel) < int(DEVICE_KERNEL_INTEGRATOR_NUM);
+  bool concurrent = int(kernel) < int(DEVICE_GPU_KERNEL_INTEGRATOR_NUM);
 
   if (profiling_enabled_) {
     /* Close the current encoder to ensure we're able to capture per-encoder timing data. */

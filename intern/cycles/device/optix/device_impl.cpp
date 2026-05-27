@@ -547,10 +547,10 @@ bool OptiXDevice::load_kernels(const uint kernel_features)
   }
 
   if (kernel_features & KERNEL_FEATURE_MNEE) {
-    group_descs[PG_RGEN_SHADE_SURFACE_MNEE].kind = OPTIX_PROGRAM_GROUP_KIND_RAYGEN;
-    group_descs[PG_RGEN_SHADE_SURFACE_MNEE].raygen.module = optix_module;
-    group_descs[PG_RGEN_SHADE_SURFACE_MNEE].raygen.entryFunctionName =
-        "__raygen__kernel_optix_integrator_shade_surface_mnee";
+    group_descs[PG_RGEN_INTERSECT_MNEE].kind = OPTIX_PROGRAM_GROUP_KIND_RAYGEN;
+    group_descs[PG_RGEN_INTERSECT_MNEE].raygen.module = optix_module;
+    group_descs[PG_RGEN_INTERSECT_MNEE].raygen.entryFunctionName =
+        "__raygen__kernel_optix_integrator_intersect_mnee";
   }
 
   /* OSL uses direct callables to execute, so shading needs to be done in OptiX if OSL is used. */
@@ -705,7 +705,7 @@ bool OptiXDevice::load_kernels(const uint kernel_features)
       pipeline_groups.push_back(groups[PG_CALL_SVM_BEVEL]);
     }
     if (kernel_features & KERNEL_FEATURE_MNEE) {
-      pipeline_groups.push_back(groups[PG_RGEN_SHADE_SURFACE_MNEE]);
+      pipeline_groups.push_back(groups[PG_RGEN_INTERSECT_MNEE]);
     }
     pipeline_groups.push_back(groups[PG_MISS]);
     pipeline_groups.push_back(groups[PG_HITD]);
@@ -757,7 +757,7 @@ bool OptiXDevice::load_kernels(const uint kernel_features)
 
     /* Combine ray generation and trace continuation stack size. */
     const unsigned int css = std::max(stack_size[PG_RGEN_SHADE_SURFACE_RAYTRACE].cssRG,
-                                      stack_size[PG_RGEN_SHADE_SURFACE_MNEE].cssRG) +
+                                      stack_size[PG_RGEN_INTERSECT_MNEE].cssRG) +
                              link_options.maxTraceDepth * trace_css;
     const unsigned int dss = std::max(stack_size[PG_CALL_SVM_AO].dssDC,
                                       stack_size[PG_CALL_SVM_BEVEL].dssDC);
@@ -1063,7 +1063,7 @@ bool OptiXDevice::load_osl_kernels()
     pipeline_groups.push_back(groups[PG_RGEN_SHADE_SURFACE_RAYTRACE]);
     pipeline_groups.push_back(groups[PG_CALL_SVM_AO]);
     pipeline_groups.push_back(groups[PG_CALL_SVM_BEVEL]);
-    pipeline_groups.push_back(groups[PG_RGEN_SHADE_SURFACE_MNEE]);
+    pipeline_groups.push_back(groups[PG_RGEN_INTERSECT_MNEE]);
     pipeline_groups.push_back(groups[PG_RGEN_SHADE_VOLUME]);
     pipeline_groups.push_back(groups[PG_RGEN_SHADE_SHADOW]);
     pipeline_groups.push_back(groups[PG_RGEN_SHADE_DEDICATED_LIGHT]);
@@ -1103,7 +1103,7 @@ bool OptiXDevice::load_osl_kernels()
     }
 
     const unsigned int css = std::max(stack_size[PG_RGEN_SHADE_SURFACE_RAYTRACE].cssRG,
-                                      stack_size[PG_RGEN_SHADE_SURFACE_MNEE].cssRG);
+                                      stack_size[PG_RGEN_INTERSECT_MNEE].cssRG);
     unsigned int dss = std::max(stack_size[PG_CALL_SVM_AO].dssDC,
                                 stack_size[PG_CALL_SVM_BEVEL].dssDC);
     for (unsigned int i = 0; i < osl_stack_size.size(); ++i) {

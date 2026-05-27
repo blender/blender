@@ -98,7 +98,7 @@ struct IntegratorStateCPU {
  * Keep track of which kernels are queued to be executed next in the path
  * for GPU rendering. */
 struct IntegratorQueueCounter {
-  int num_queued[DEVICE_KERNEL_INTEGRATOR_NUM];
+  int num_queued[DEVICE_GPU_KERNEL_INTEGRATOR_NUM];
   int cache_miss;
 };
 
@@ -197,7 +197,7 @@ struct IntegratorStateGPU {
   ccl_global IntegratorQueueCounter *queue_counter;
 
   /* Count number of kernels queued for specific shaders. */
-  ccl_global int *sort_key_counter[DEVICE_KERNEL_INTEGRATOR_NUM];
+  ccl_global int *sort_key_counter[DEVICE_GPU_KERNEL_INTEGRATOR_NUM];
 
   /* Index of shadow path which will be used by a next shadow path. */
   ccl_global int *next_shadow_path_index;

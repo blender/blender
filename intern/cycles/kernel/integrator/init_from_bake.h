@@ -324,8 +324,7 @@ ccl_device bool integrator_init_from_bake(KernelGlobals kg,
     const bool use_raytrace_kernel = (shader_flags & SD_HAS_RAYTRACE);
 
     if (use_caustics) {
-      integrator_path_init_sorted(
-          kg, state, DEVICE_KERNEL_INTEGRATOR_SHADE_SURFACE_MNEE, shader_index);
+      integrator_path_init(state, DEVICE_KERNEL_INTEGRATOR_INTERSECT_MNEE);
     }
     else if (use_raytrace_kernel) {
       integrator_path_init_sorted(

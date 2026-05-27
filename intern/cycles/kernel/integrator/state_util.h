@@ -8,6 +8,8 @@
 
 #include "kernel/integrator/state.h"
 
+#include "kernel/light/common.h"
+
 #include "kernel/sample/lcg.h"
 
 #include "kernel/util/differential.h"
@@ -309,6 +311,149 @@ ccl_device_forceinline void integrator_state_read_shadow_isect(
   isect->t = INTEGRATOR_STATE_ARRAY(state, shadow_isect, index, t);
 }
 
+/* MNEE state.
+ *
+ * This is packed into the shadow_state to avoid increasing overall path state size. */
+
+#ifdef __MNEE__
+
+ccl_device_forceinline IntegratorShadowState
+integrator_state_get_mnee_shadow_state(ConstIntegratorState state)
+{
+#  ifdef __KERNEL_GPU__
+  return IntegratorShadowState(INTEGRATOR_STATE(state, path, mnee_shadow_state));
+#  else
+  return &(((IntegratorStateCPU *)state)->shadow);
+#  endif
+}
+
+#  ifdef __KERNEL_GPU__
+/* The MNEE shadow slot stores a reference to its owning main path so shadow path
+ * sorting can maintain the correct index. */
+ccl_device_forceinline void integrator_state_write_mnee_shadow_owner(
+    IntegratorShadowState shadow_state, IntegratorState state)
+{
+  INTEGRATOR_STATE_ARRAY_WRITE(shadow_state, shadow_isect, 2, prim) = (int)state;
+}
+
+ccl_device_forceinline IntegratorState
+integrator_state_read_mnee_shadow_owner(ConstIntegratorShadowState shadow_state)
+{
+  return IntegratorState(INTEGRATOR_STATE_ARRAY(shadow_state, shadow_isect, 2, prim));
+}
+#  endif
+
+ccl_device_forceinline void integrator_state_write_mnee(IntegratorState state,
+                                                        IntegratorShadowState shadow_state,
+                                                        const ccl_private LightSample *ls,
+                                                        const ccl_private Ray *ray,
+                                                        const int mnee_vertex_count,
+                                                        const Spectrum mnee_throughput,
+                                                        const float3 mnee_wo)
+{
+  static_assert(INTEGRATOR_SHADOW_ISECT_SIZE >= 2);
+
+#  ifdef __KERNEL_GPU__
+  INTEGRATOR_STATE_WRITE(state, path, mnee_shadow_state) = (int)shadow_state;
+  integrator_state_write_mnee_shadow_owner(shadow_state, state);
+#  endif
+
+  /* Light sample. */
+  INTEGRATOR_STATE_ARRAY_WRITE(shadow_state, shadow_isect, 0, t) = ls->P.x;
+  INTEGRATOR_STATE_ARRAY_WRITE(shadow_state, shadow_isect, 0, u) = ls->P.y;
+  INTEGRATOR_STATE_ARRAY_WRITE(shadow_state, shadow_isect, 0, v) = ls->P.z;
+  /* When the integrate_surface_direct_light() reads the MNEE state it should read mnee_wo as the
+   * light sample direction. */
+  INTEGRATOR_STATE_ARRAY_WRITE(shadow_state, shadow_isect, 1, t) = mnee_wo.x;
+  INTEGRATOR_STATE_ARRAY_WRITE(shadow_state, shadow_isect, 1, u) = mnee_wo.y;
+  INTEGRATOR_STATE_ARRAY_WRITE(shadow_state, shadow_isect, 1, v) = mnee_wo.z;
+  INTEGRATOR_STATE_WRITE(shadow_state, shadow_ray, tmin) = ls->t;
+  INTEGRATOR_STATE_WRITE(shadow_state, shadow_ray, tmax) = ls->pdf;
+  INTEGRATOR_STATE_WRITE(shadow_state, shadow_ray, time) = ls->eval_fac;
+  INTEGRATOR_STATE_WRITE(shadow_state, shadow_ray, self_light_object) = ls->object;
+  INTEGRATOR_STATE_WRITE(shadow_state, shadow_ray, self_light_prim) = ls->prim;
+  INTEGRATOR_STATE_ARRAY_WRITE(shadow_state, shadow_isect, 0, object) = ls->shader;
+  INTEGRATOR_STATE_ARRAY_WRITE(shadow_state, shadow_isect, 0, prim) = ls->group + 1;
+  INTEGRATOR_STATE_ARRAY_WRITE(shadow_state, shadow_isect, 0, type) = (int)ls->type;
+
+  /* Ray. */
+  INTEGRATOR_STATE_ARRAY_WRITE(shadow_state, shadow_isect, 1, prim) = mnee_vertex_count;
+  INTEGRATOR_STATE_WRITE(shadow_state, shadow_path, throughput) = mnee_throughput;
+  /* The ray direction becomes the original light sample's direction for the shadow ray tracing. */
+  INTEGRATOR_STATE_WRITE(shadow_state, shadow_ray, D) = ls->D;
+  INTEGRATOR_STATE_WRITE(shadow_state, shadow_ray, P) = ray->P;
+  INTEGRATOR_STATE_WRITE(shadow_state, shadow_ray, dP) = ray->dP;
+  INTEGRATOR_STATE_ARRAY_WRITE(shadow_state, shadow_isect, 1, object) = ray->self.object;
+  INTEGRATOR_STATE_ARRAY_WRITE(shadow_state, shadow_isect, 1, type) = ray->self.prim;
+
+  INTEGRATOR_STATE_WRITE(state, path, mnee) |= PATH_MNEE_SAMPLED;
+}
+
+ccl_device_forceinline void integrator_state_read_mnee(ConstIntegratorState state,
+                                                       ccl_private LightSample *ls,
+                                                       ccl_private int *mnee_vertex_count)
+{
+  static_assert(INTEGRATOR_SHADOW_ISECT_SIZE >= 2);
+
+  ConstIntegratorShadowState shadow_state = integrator_state_get_mnee_shadow_state(state);
+
+  ls->P = make_float3(INTEGRATOR_STATE_ARRAY(shadow_state, shadow_isect, 0, t),
+                      INTEGRATOR_STATE_ARRAY(shadow_state, shadow_isect, 0, u),
+                      INTEGRATOR_STATE_ARRAY(shadow_state, shadow_isect, 0, v));
+  ls->D = make_float3(INTEGRATOR_STATE_ARRAY(shadow_state, shadow_isect, 1, t),
+                      INTEGRATOR_STATE_ARRAY(shadow_state, shadow_isect, 1, u),
+                      INTEGRATOR_STATE_ARRAY(shadow_state, shadow_isect, 1, v));
+  ls->t = INTEGRATOR_STATE(shadow_state, shadow_ray, tmin);
+  ls->pdf = INTEGRATOR_STATE(shadow_state, shadow_ray, tmax);
+  ls->eval_fac = INTEGRATOR_STATE(shadow_state, shadow_ray, time);
+  ls->object = INTEGRATOR_STATE(shadow_state, shadow_ray, self_light_object);
+  ls->prim = INTEGRATOR_STATE(shadow_state, shadow_ray, self_light_prim);
+  ls->shader = INTEGRATOR_STATE_ARRAY(shadow_state, shadow_isect, 0, object);
+  ls->group = INTEGRATOR_STATE_ARRAY(shadow_state, shadow_isect, 0, prim) - 1;
+  ls->type = (LightType)INTEGRATOR_STATE_ARRAY(shadow_state, shadow_isect, 0, type);
+  ls->pdf_selection = 0.0f;
+  ls->emitter_id = EMITTER_NONE;
+
+  *mnee_vertex_count = INTEGRATOR_STATE_ARRAY(shadow_state, shadow_isect, 1, prim);
+}
+
+ccl_device_forceinline void integrator_state_read_mnee_ray(ConstIntegratorState state,
+                                                           const ccl_private LightSample *ls,
+                                                           ccl_private Ray *ray)
+{
+  static_assert(INTEGRATOR_SHADOW_ISECT_SIZE >= 2);
+
+  ConstIntegratorShadowState shadow_state = integrator_state_get_mnee_shadow_state(state);
+
+  ray->P = INTEGRATOR_STATE(shadow_state, shadow_ray, P);
+  if (ls->t == FLT_MAX) {
+    /* Distant light. */
+    ray->D = INTEGRATOR_STATE(shadow_state, shadow_ray, D);
+    ray->tmax = ls->t;
+  }
+  else {
+    /* Other lights. */
+    ray->D = ls->P - ray->P;
+    ray->D = safe_normalize_len(ray->D, &ray->tmax);
+  }
+  ray->tmin = ((ls->shader & SHADER_CAST_SHADOW) == 0) ? FLT_MAX : 0.0f;
+  ray->time = INTEGRATOR_STATE(state, ray, time);
+  ray->dP = INTEGRATOR_STATE(shadow_state, shadow_ray, dP);
+  ray->dD = differential_zero_compact();
+  ray->self.object = INTEGRATOR_STATE_ARRAY(shadow_state, shadow_isect, 1, object);
+  ray->self.prim = INTEGRATOR_STATE_ARRAY(shadow_state, shadow_isect, 1, type);
+  ray->self.light_object = ls->object;
+  ray->self.light_prim = ls->prim;
+}
+
+ccl_device_forceinline Spectrum integrator_state_read_mnee_throughput(ConstIntegratorState state)
+{
+  ConstIntegratorShadowState shadow_state = integrator_state_get_mnee_shadow_state(state);
+  return INTEGRATOR_STATE(shadow_state, shadow_path, throughput);
+}
+
+#endif /* __MNEE__ */
+
 #if defined(__KERNEL_GPU__)
 ccl_device_inline void integrator_state_copy_only(KernelGlobals kg,
                                                   ConstIntegratorState to_state,
@@ -376,6 +521,13 @@ ccl_device_inline void integrator_state_move(KernelGlobals kg,
   integrator_state_copy_only(kg, to_state, state);
 
   INTEGRATOR_STATE_WRITE(state, path, queued_kernel) = 0;
+
+#  ifdef __MNEE__
+  if (INTEGRATOR_STATE(to_state, path, mnee) & PATH_MNEE_SAMPLED) {
+    const IntegratorShadowState slot = INTEGRATOR_STATE(to_state, path, mnee_shadow_state);
+    integrator_state_write_mnee_shadow_owner(slot, to_state);
+  }
+#  endif
 }
 
 ccl_device_inline void integrator_shadow_state_copy_only(KernelGlobals kg,
@@ -444,6 +596,15 @@ ccl_device_inline void integrator_shadow_state_move(KernelGlobals kg,
   integrator_shadow_state_copy_only(kg, to_state, state);
 
   INTEGRATOR_STATE_WRITE(state, shadow_path, queued_kernel) = 0;
+
+#  ifdef __MNEE__
+  if (INTEGRATOR_STATE(to_state, shadow_path, queued_kernel) ==
+      DEVICE_KERNEL_INTEGRATOR_SHADOW_PATH_MNEE_PENDING)
+  {
+    const IntegratorState main_state = integrator_state_read_mnee_shadow_owner(to_state);
+    INTEGRATOR_STATE_WRITE(main_state, path, mnee_shadow_state) = (int)to_state;
+  }
+#  endif
 }
 
 #endif

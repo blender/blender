@@ -250,8 +250,8 @@ bool ShaderCache::should_load_kernel(DeviceKernel device_kernel,
     return false;
   }
 
-  if (device_kernel == DEVICE_KERNEL_INTEGRATOR_MEGAKERNEL) {
-    /* Skip megakernel. */
+  if (!device_kernel_has_gpu_function(device_kernel)) {
+    /* Skip megakernel and other markers without a GPU function. */
     return false;
   }
 
@@ -262,9 +262,9 @@ bool ShaderCache::should_load_kernel(DeviceKernel device_kernel,
     }
   }
 
-  if (device_kernel == DEVICE_KERNEL_INTEGRATOR_SHADE_SURFACE_MNEE) {
+  if (device_kernel == DEVICE_KERNEL_INTEGRATOR_INTERSECT_MNEE) {
     if ((device->kernel_features & KERNEL_FEATURE_MNEE) == 0) {
-      /* Skip shade_surface_mnee kernel if the scene doesn't require it. */
+      /* Skip the MNEE kernel if the scene doesn't require it. */
       return false;
     }
   }

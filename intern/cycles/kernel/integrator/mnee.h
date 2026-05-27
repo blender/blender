@@ -796,13 +796,15 @@ ccl_device_inline ShaderEvalResult mnee_path_contribution(KernelGlobals kg,
                                                           const bool light_fixed_direction,
                                                           const int vertex_count,
                                                           ccl_private ManifoldVertex *vertices,
-                                                          ccl_private BsdfEval *throughput)
+                                                          ccl_private Spectrum *throughput,
+                                                          ccl_private float3 *r_receiver_wo)
 {
   float wo_len;
   float3 wo = normalize_len(vertices[0].p - sd->P, &wo_len);
 
-  /* Initialize throughput and evaluate receiver bsdf * |n.wo|. */
-  surface_shader_bsdf_eval(kg, state, sd, wo, throughput, ls->shader);
+  /* Initialize throughput. */
+  *r_receiver_wo = wo;
+  *throughput = one_spectrum();
 
   /* Update light sample with new position / direction and keep pdf in vertex area measure. */
   const uint32_t path_flag = INTEGRATOR_STATE(state, path, flag);
@@ -831,7 +833,7 @@ ccl_device_inline ShaderEvalResult mnee_path_contribution(KernelGlobals kg,
 
     return SHADER_EVAL_CACHE_MISS;
   }
-  bsdf_eval_mul(throughput, ls->eval_fac / ls->pdf);
+  *throughput *= ls->eval_fac / ls->pdf;
 
   /* Generalized geometry term. */
   float dh_dx;
@@ -842,12 +844,12 @@ ccl_device_inline ShaderEvalResult mnee_path_contribution(KernelGlobals kg,
     return SHADER_EVAL_EMPTY;
   }
 
-  /* Receiver bsdf eval above already contains |n.wo|. */
+  /* Receiver bsdf eval in shade_surface already contains |n.wo|. */
   const float dw0_dx1 = fabsf(dot(wo, vertices[0].n)) / sqr(wo_len);
 
   /* Clamp since it has a tendency to be unstable. */
   const float G = fminf(dw0_dx1 * dx1_dxlight, 2.f);
-  bsdf_eval_mul(throughput, G);
+  *throughput *= G;
 
   /* Specular reflectance. */
 
@@ -930,7 +932,7 @@ ccl_device_inline ShaderEvalResult mnee_path_contribution(KernelGlobals kg,
      * divided by corresponding sampled pdf:
      * fr(vi)_do / pdf_dh(vi) x |do/dh| x |n.wo / n.h| */
     const Spectrum bsdf_contribution = mnee_eval_bsdf_contribution(kg, v.bsdf, wi, wo);
-    bsdf_eval_mul(throughput, bsdf_contribution);
+    *throughput *= bsdf_contribution;
   }
 
   /* Restore original state path bounce info. */
@@ -948,7 +950,8 @@ ccl_device_inline ShaderEvalResult kernel_path_mnee_sample(KernelGlobals kg,
                                                            ccl_private ShaderData *sd_mnee,
                                                            const ccl_private RNGState *rng_state,
                                                            ccl_private LightSample *ls,
-                                                           ccl_private BsdfEval *throughput,
+                                                           ccl_private Spectrum *throughput,
+                                                           ccl_private float3 *r_receiver_wo,
                                                            ccl_private int &r_vertex_count)
 {
   /*
@@ -1109,8 +1112,16 @@ ccl_device_inline ShaderEvalResult kernel_path_mnee_sample(KernelGlobals kg,
    * each interface. */
   if (mnee_newton_solver(kg, sd, sd_mnee, ls, light_fixed_direction, vertex_count, vertices)) {
     /* 3. If a solution exists, calculate contribution of the corresponding path */
-    ShaderEvalResult result = mnee_path_contribution(
-        kg, state, sd, sd_mnee, ls, light_fixed_direction, vertex_count, vertices, throughput);
+    ShaderEvalResult result = mnee_path_contribution(kg,
+                                                     state,
+                                                     sd,
+                                                     sd_mnee,
+                                                     ls,
+                                                     light_fixed_direction,
+                                                     vertex_count,
+                                                     vertices,
+                                                     throughput,
+                                                     r_receiver_wo);
     /* TODO: Cache misses are not handled correctly.
      * - PATH_MNEE_VALID flag is not handled properly
      * - AOVs and other passes have already been written at this point
