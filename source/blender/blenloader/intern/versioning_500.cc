@@ -2620,13 +2620,13 @@ static void sequencer_substitute_transform_effects(Scene *scene)
       float2 offset(tv->xIni, tv->yIni);
       if (tv->percent == 1) {
         float2 scene_resolution(scene->r.xsch, scene->r.ysch);
-        offset *= scene_resolution;
+        offset *= scene_resolution / 100;
       }
       transform->xofs += offset.x;
       transform->yofs += offset.y;
       transform->scale_x *= tv->ScalexIni;
       transform->scale_y *= tv->ScaleyIni;
-      transform->rotation += tv->rotIni;
+      transform->rotation += DEG2RADF(tv->rotIni);
       seq::effect_free(strip);
       strip->type = STRIP_TYPE_GAUSSIAN_BLUR;
       seq::effect_ensure_initialized(strip);
