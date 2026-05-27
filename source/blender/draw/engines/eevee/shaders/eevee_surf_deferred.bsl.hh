@@ -147,6 +147,10 @@ void surf_deferred([[resource_table]] PipelineConstants &pipe,
   /* ----- GBuffer output ----- */
 
   gbuffer::InputClosures gbuf_data;
+  /* Make sure we we do not read uninitialized data (see #159161). */
+  if (pipe.closure_bin_count == 0) [[static_branch]] {
+    gbuf_data.closure[0] = ClosureUndetermined{};
+  }
   for (int i = 0; i < 3; i++) [[unroll]] {
     if (pipe.closure_bin_count > i) [[static_branch]] {
       gbuf_data.closure[i] = g_closure_get_resolved(i, alpha_rcp);
