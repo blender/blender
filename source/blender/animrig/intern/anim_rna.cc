@@ -80,6 +80,13 @@ Vector<float> get_rna_values(PointerRNA *ptr, PropertyRNA *prop)
   return values;
 }
 
+std::string get_pose_bone_rna_path(const bPoseChannel &pose_bone)
+{
+  char name_esc[sizeof(pose_bone.name) * 2];
+  BLI_str_escape(name_esc, pose_bone.name, sizeof(name_esc));
+  return fmt::format("pose.bones[\"{}\"]", name_esc);
+}
+
 StringRefNull get_rotation_mode_path(const eRotationModes rotation_mode)
 {
   switch (rotation_mode) {
