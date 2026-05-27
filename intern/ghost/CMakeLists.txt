@@ -420,11 +420,6 @@ elseif(WITH_GHOST_X11 OR WITH_GHOST_WAYLAND)
     )
   endif()
 
-  if(NOT WITH_INSTALL_PORTABLE)
-    add_definitions(-DPREFIX="${CMAKE_INSTALL_PREFIX}")
-  endif()
-
-
 elseif(WIN32)
   # # Warnings as errors, this is too strict!
   # if(MSVC)
