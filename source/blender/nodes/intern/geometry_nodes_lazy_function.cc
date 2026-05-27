@@ -829,6 +829,22 @@ class LazyFunctionForImplicitSceneFrame : public LazyFunction {
   }
 };
 
+class LazyFunctionForImplicitSelfObject : public LazyFunction {
+ public:
+  LazyFunctionForImplicitSelfObject()
+  {
+    debug_name_ = "Self Object";
+    outputs_.append({"Self Object", CPPType::get<SocketValueVariant>()});
+  }
+
+  void execute_impl(lf::Params &params, const lf::Context &context) const override
+  {
+    const GeoNodesUserData &user_data = *static_cast<const GeoNodesUserData *>(context.user_data);
+    const Object *self_object = user_data.call_data->self_object();
+    params.set_output(0, SocketValueVariant::From(const_cast<Object *>(self_object)));
+  }
+};
+
 /**
  * The viewer node does not have outputs. Instead it is executed because the executor knows that it
  * has side effects. The side effect is that the inputs to the viewer are logged.
@@ -3966,6 +3982,12 @@ struct GeometryNodesLazyFunctionBuilder {
       else if (input_bsocket.type == SOCK_FLOAT) {
         static LazyFunctionForImplicitSceneFrame<float> scene_frame_float;
         lazy_function = &scene_frame_float;
+      }
+    }
+    else if (socket_decl->default_input_type == NODE_DEFAULT_INPUT_SELF_OBJECT) {
+      if (input_bsocket.type == SOCK_OBJECT) {
+        static LazyFunctionForImplicitSelfObject self_object;
+        lazy_function = &self_object;
       }
     }
     if (!lazy_function) {

@@ -88,6 +88,11 @@ static const EnumPropertyItem node_default_input_items[] = {
      0,
      "Uniform Image Coordinates",
      "The uniform image coordinates of the compositing space"},
+    {NODE_DEFAULT_INPUT_SELF_OBJECT,
+     "SELF_OBJECT",
+     0,
+     "Self Object",
+     "The object that contains the geometry nodes modifier currently being executed"},
     {0, nullptr, 0, nullptr, nullptr}};
 
 }  // namespace blender
