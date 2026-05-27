@@ -755,7 +755,7 @@ class NODE_OT_add_typed_bundle(NodeAddOperator, bpy.types.Operator):
         return {"FINISHED"}
 
 
-class NODE_OT_swap_typed_bundle(NodeAddOperator, bpy.types.Operator):
+class NODE_OT_swap_typed_bundle(NodeSwapOperator, bpy.types.Operator):
     bl_idname = "node.swap_typed_bundle"
     bl_label = "Swap Typed Bundle"
     bl_description = "Swap existing node with a Combine Bundle node with a type input"
