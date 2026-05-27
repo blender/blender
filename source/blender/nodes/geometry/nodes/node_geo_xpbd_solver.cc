@@ -2973,7 +2973,6 @@ class XpbdSolverStep {
   {
     const DataKey &data_key = geometries_.data_keys[data_key_i];
     const GeometrySetData &geo_set_data = geometries_.geometry_sets[data_key.geo_bundle_i];
-    const StringRef geo_bundle_path = geo_set_data.path;
 
     const std::string filter =
         effector.lookup<std::string>(*BundleKey::from_str("filter")).value_or("");
