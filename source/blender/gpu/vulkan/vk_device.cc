@@ -326,6 +326,7 @@ shader::GeneratedSource VKDevice::extensions_define(StringRefNull stage_define) 
     ss << "#define gpu_BaseInstance (gl_BaseInstanceARB)\n";
   }
   ss << "#define GPU_ARB_clip_control\n";
+  ss << "#define GPU_ARB_derivative_control\n";
 
   ss << "#define gl_VertexID gl_VertexIndex\n";
   ss << "#define gpu_InstanceIndex (gl_InstanceIndex)\n";

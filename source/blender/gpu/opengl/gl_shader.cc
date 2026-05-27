@@ -1146,6 +1146,10 @@ static StringRefNull glsl_patch_fragment_get()
     if (GLContext::framebuffer_fetch_support) {
       ss << "#extension GL_EXT_shader_framebuffer_fetch: enable\n";
     }
+    if (GLContext::derivative_control_support) {
+      ss << "#extension GL_ARB_derivative_control: enable\n";
+      ss << "#define GPU_ARB_derivative_control\n";
+    }
     if (GPU_stencil_export_support()) {
       ss << "#extension GL_ARB_shader_stencil_export: enable\n";
       ss << "#define GPU_ARB_shader_stencil_export\n";
