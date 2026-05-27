@@ -851,13 +851,12 @@ struct UserDef_Experimental {
   char use_extended_asset_browser = 0;
   char use_sculpt_texture_paint = 0;
   char use_shader_node_previews = 0;
-  char use_geometry_bundle = 0;
   /* As a temporary exception to the above sanitation rules, this flag is always ON. The work to
    * actually remove this flag is tracked in #158903. */
   char use_remote_asset_libraries = 1;
   char use_collection_importer = 0;
   char use_geometry_nodes_hair_dynamics = 0;
-  char _pad[2] = {};
+  char _pad[3] = {};
 };
 
 #define USER_EXPERIMENTAL_TEST(userdef, member) (((userdef)->experimental).member)

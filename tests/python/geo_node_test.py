@@ -10,13 +10,6 @@ import bpy
 sys.path.append(os.path.dirname(os.path.realpath(__file__)))
 from modules.mesh_test import BlendFileTest
 
-if "bake_anonymous_attribute_reference" in bpy.data.filepath:
-    if bpy.app.version_cycle == "alpha":
-        bpy.context.preferences.experimental.use_geometry_bundle = True
-    else:
-        print("Skipped because bundles and closures are still experimental.")
-        sys.exit(0)
-
 geo_node_test = BlendFileTest("test_object", "expected_object", threshold=1e-4)
 result = geo_node_test.run_test()
 
