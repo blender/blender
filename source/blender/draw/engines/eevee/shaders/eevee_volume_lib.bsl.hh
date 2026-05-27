@@ -51,7 +51,7 @@ float view_z_to_volume_z(float depth, float near, float far, float distribution)
 {
   if (drw_view_is_perspective()) {
     /* Exponential distribution. */
-    return distribution * log2(depth * far + near);
+    return distribution * log2(max(1e-8, depth * far + near));
   }
   else {
     /* Linear distribution. */
