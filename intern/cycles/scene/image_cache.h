@@ -198,7 +198,6 @@ class ImageCache {
                            ImageDataType type,
                            InterpolationType interpolation,
                            const int tile_size_padded,
-                           const bool for_cpu_cache_miss,
                            KernelTileDescriptor &r_tile_descriptor);
   void free_tile(const KernelTileDescriptor tile);
 

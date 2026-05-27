@@ -348,7 +348,6 @@ device_image &ImageCache::alloc_tile(Device &device,
                                      ImageDataType type,
                                      InterpolationType interpolation,
                                      const int tile_size_padded,
-                                     const bool for_cpu_cache_miss,
                                      KernelTileDescriptor &r_tile_descriptor)
 {
   thread_scoped_lock device_lock(device_mutex);
@@ -412,17 +411,10 @@ device_image &ImageCache::alloc_tile(Device &device,
     img->copy_to_device();
     deferred_updates.erase(img);
   }
-  else if (for_cpu_cache_miss) {
-    if (device.info.type == DEVICE_MULTI) {
-      /* For CPU cache miss we don't need to update anything for CPU rendering but
-       * other GPUs will need an update the next time they load requested tiles. */
-      deferred_gpu_updates.insert(img);
-    }
-  }
-  else {
-    /* For GPU cache miss, we defer to copy all tiles packed in the same image together. */
-    deferred_updates.insert(img);
-  }
+
+  /* Note: deferred update insertion is delayed until after the tile pixels
+   * have been copied, so another device will not finalize its update before
+   * pixels are in device memory. */
 
   /* Mark tile as occupied and compute descriptor. */
   img->occupancy |= (uint64_t(1) << tile_offset);
@@ -572,7 +564,7 @@ KernelTileDescriptor ImageCache::load_tile(Device &device,
   KernelTileDescriptor tile_descriptor;
 
   device_image &mem = alloc_tile(
-      device, metadata.type, interpolation, tile_size_padded, for_cpu_cache_miss, tile_descriptor);
+      device, metadata.type, interpolation, tile_size_padded, tile_descriptor);
 
   const size_t pixel_bytes = mem.data_elements * datatype_size(mem.data_type);
   const size_t x_stride = pixel_bytes;
@@ -606,6 +598,19 @@ KernelTileDescriptor ImageCache::load_tile(Device &device,
   }
 
   if (ok) {
+    /* Mark image for deferred GPU update, after pixels have been loaded to all devices. */
+    if (!device.has_unified_image_memory()) {
+      const thread_scoped_lock device_lock(device_mutex);
+      if (for_cpu_cache_miss) {
+        if (device.info.type == DEVICE_MULTI) {
+          deferred_gpu_updates.insert(&mem);
+        }
+      }
+      else {
+        deferred_updates.insert(&mem);
+      }
+    }
+
     stats.load_tile(bit_index);
   }
 
@@ -934,8 +939,9 @@ void ImageCache::copy_to_device(DeviceScene &dscene, DeviceQueue &queue)
 
 void ImageCache::copy_images_to_device(const bool for_cpu_cache_miss)
 {
-  /* For CPU cache miss we skip deferred updates that were only meant for the GPU,
-   * to avoid repeated copies to the GPU. */
+  /* For CPU cache miss we skip deferred updates that were only meant for the GPU. CPU cache
+   * misses are resolved immediately for each tile, in every thread. So it would be inefficient
+   * to copy data to the GPU every time. */
   thread_scoped_lock device_lock(device_mutex);
   if (!for_cpu_cache_miss) {
     deferred_updates.merge(deferred_gpu_updates);
