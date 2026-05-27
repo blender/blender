@@ -534,6 +534,22 @@ static void vicon_strip_color_draw_library_data_indirect(
                UI_NO_ICON_OVERLAY_TEXT);
 }
 
+static void vicon_strip_color_draw_package_indirect(
+    float x, float y, float w, float /*h*/, float alpha, const uchar * /*mono_rgba[4]*/)
+{
+  const float aspect = float(ICON_DEFAULT_WIDTH) / w;
+
+  icon_draw_ex(x,
+               y,
+               ICON_PACKAGE,
+               aspect,
+               ICON_INDIRECT_DATA_ALPHA * alpha,
+               0.0f,
+               nullptr,
+               false,
+               UI_NO_ICON_OVERLAY_TEXT);
+}
+
 static void vicon_strip_color_draw_library_data_override_noneditable(
     float x, float y, float w, float /*h*/, float alpha, const uchar * /*mono_rgba[4]*/)
 {
@@ -980,6 +996,7 @@ static void init_internal_icons()
   def_internal_vicon(ICON_LIBRARY_DATA_INDIRECT, vicon_strip_color_draw_library_data_indirect);
   def_internal_vicon(ICON_LIBRARY_DATA_OVERRIDE_NONEDITABLE,
                      vicon_strip_color_draw_library_data_override_noneditable);
+  def_internal_vicon(ICON_PACKAGE_INDIRECT, vicon_strip_color_draw_package_indirect);
 
   def_internal_vicon(ICON_LAYERGROUP_COLOR_01, vicon_layergroup_color_draw_01);
   def_internal_vicon(ICON_LAYERGROUP_COLOR_02, vicon_layergroup_color_draw_02);
@@ -1968,6 +1985,9 @@ int icon_from_library(const ID *id)
 {
   if (ID_IS_LINKED(id)) {
     if (ID_IS_PACKED(id)) {
+      if (id->tag & ID_TAG_INDIRECT) {
+        return ICON_PACKAGE_INDIRECT;
+      }
       return ICON_PACKAGE;
     }
     if (id->tag & ID_TAG_MISSING) {
