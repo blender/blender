@@ -1059,17 +1059,17 @@ TextVarsRuntime *text_effect_calc_runtime(const Strip *strip, int font, const in
   return runtime;
 }
 
-static ImBuf *do_text_effect(const RenderData *context,
-                             SeqRenderState * /*state*/,
-                             Strip *strip,
-                             float /*timeline_frame*/,
-                             float /*fac*/,
-                             ImBuf * /*ibuf1*/,
-                             ImBuf * /*ibuf2*/)
+static SeqResult do_text_effect(const RenderData *context,
+                                SeqRenderState * /*state*/,
+                                Strip *strip,
+                                float /*timeline_frame*/,
+                                float /*fac*/,
+                                const SeqResult & /*ibuf1*/,
+                                const SeqResult & /*ibuf2*/)
 {
   /* NOTE: text rasterization only fills in part of output image,
    * need to clear it. */
-  ImBuf *out = prepare_effect_imbufs(context, nullptr, nullptr, false);
+  SeqResult out = prepare_effect_imbufs(context, {}, {}, false);
   TextVars *data = static_cast<TextVars *>(strip->effectdata);
 
   const FontFlags font_flags = ((data->flag & SEQ_TEXT_BOLD) ? BLF_BOLD : BLF_NONE) |
@@ -1085,31 +1085,36 @@ static ImBuf *do_text_effect(const RenderData *context,
     MEM_delete(data->runtime);
   }
 
-  TextVarsRuntime *runtime = text_effect_calc_runtime(strip, font, {out->x, out->y});
+  TextVarsRuntime *runtime = text_effect_calc_runtime(strip, font, {out.image->x, out.image->y});
   data->runtime = runtime;
 
-  rcti outline_rect = draw_text_outline(context, data, runtime, out);
-  BLF_buffer(
-      font, nullptr, out->byte_data_for_write(), out->x, out->y, 4, out->byte_buffer.colorspace);
+  rcti outline_rect = draw_text_outline(context, data, runtime, out.image);
+  BLF_buffer(font,
+             nullptr,
+             out.image->byte_data_for_write(),
+             out.image->x,
+             out.image->y,
+             4,
+             out.image->byte_buffer.colorspace);
   text_draw(data->text_ptr, runtime, data->color);
   BLF_buffer(font, nullptr, nullptr, 0, 0, 4, nullptr);
   BLF_disable(font, font_flags);
 
   /* Draw shadow. */
   if (data->flag & SEQ_TEXT_SHADOW) {
-    draw_text_shadow(context, data, runtime->line_height, outline_rect, out);
+    draw_text_shadow(context, data, runtime->line_height, outline_rect, out.image);
   }
 
   /* Draw box under text. */
   if (data->flag & SEQ_TEXT_BOX) {
-    if (out->byte_data()) {
-      const int margin = data->box_margin * out->x;
+    if (out.image->byte_data()) {
+      const int margin = data->box_margin * out.image->x;
       const int minx = runtime->text_boundbox.xmin - margin;
       const int maxx = runtime->text_boundbox.xmax + margin;
       const int miny = runtime->text_boundbox.ymin - margin;
       const int maxy = runtime->text_boundbox.ymax + margin;
       float corner_radius = data->box_roundness * (maxy - miny) / 2.0f;
-      fill_rect_alpha_under(out, data->box_color, minx, miny, maxx, maxy, corner_radius);
+      fill_rect_alpha_under(out.image, data->box_color, minx, miny, maxx, maxy, corner_radius);
     }
   }
 

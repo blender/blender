@@ -6,6 +6,7 @@ set(INC
   PUBLIC .
   intern
   ../compositor
+  ../compositor/algorithms
   ../compositor/cached_resources
   ../compositor/derived_resources
   ../editors/include

@@ -23,33 +23,30 @@ static StripEarlyOut early_out_multicam(const Strip * /*strip*/, float /*fac*/)
   return StripEarlyOut::NoInput;
 }
 
-static ImBuf *do_multicam(const RenderData *context,
-                          SeqRenderState *state,
-                          Strip *strip,
-                          float timeline_frame,
-                          float /*fac*/,
-                          ImBuf * /*ibuf1*/,
-                          ImBuf * /*ibuf2*/)
+static SeqResult do_multicam(const RenderData *context,
+                             SeqRenderState *state,
+                             Strip *strip,
+                             float timeline_frame,
+                             float /*fac*/,
+                             const SeqResult & /*ibuf1*/,
+                             const SeqResult & /*ibuf2*/)
 {
-  ImBuf *out;
-  Editing *ed;
-
   if (strip->multicam_source == 0 || strip->multicam_source >= strip->channel) {
-    return nullptr;
+    return {};
   }
 
-  ed = context->scene->ed;
+  Editing *ed = context->scene->ed;
   if (!ed || state->strips_in_progress.contains(strip)) {
-    return nullptr;
+    return {};
   }
   ListBaseT<Strip> *seqbasep = get_seqbase_by_strip(context->scene, strip);
   ListBaseT<SeqTimelineChannel> *channels = get_channels_by_strip(ed, strip);
   if (!seqbasep) {
-    return nullptr;
+    return {};
   }
 
   state->strips_in_progress.add(strip);
-  out = seq_render_give_ibuf_seqbase(
+  SeqResult out = seq_render_give_ibuf_seqbase(
       context, state, timeline_frame, strip->multicam_source, channels, seqbasep);
   state->strips_in_progress.remove(strip);
 

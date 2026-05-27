@@ -205,35 +205,37 @@ static void do_wipe_effect(
   });
 }
 
-static ImBuf *do_wipe_effect(const RenderData *context,
-                             SeqRenderState * /*state*/,
-                             Strip *strip,
-                             float /*timeline_frame*/,
-                             float fac,
-                             ImBuf *ibuf1,
-                             ImBuf *ibuf2)
+static SeqResult do_wipe_effect(const RenderData *context,
+                                SeqRenderState * /*state*/,
+                                Strip *strip,
+                                float /*timeline_frame*/,
+                                float fac,
+                                const SeqResult &ibuf1,
+                                const SeqResult &ibuf2)
 {
-  ImBuf *out = prepare_effect_imbufs(context, ibuf1, ibuf2);
+  SeqResult out = prepare_effect_imbufs(context, ibuf1, ibuf2);
 
-  if (out->float_data()) {
+  if (out.image->float_data()) {
     do_wipe_effect(strip,
                    fac,
                    context->rectx,
                    context->recty,
-                   ibuf1->float_data(),
-                   ibuf2->float_data(),
-                   out->float_data_for_write());
+                   ibuf1.image->float_data(),
+                   ibuf2.image->float_data(),
+                   out.image->float_data_for_write());
   }
   else {
     do_wipe_effect(strip,
                    fac,
                    context->rectx,
                    context->recty,
-                   ibuf1->byte_data(),
-                   ibuf2->byte_data(),
-                   out->byte_data_for_write());
+                   ibuf1.image->byte_data(),
+                   ibuf2.image->byte_data(),
+                   out.image->byte_data_for_write());
   }
 
+  out.is_opaque_before_transform = !ibuf1.image->can_contain_alpha() &&
+                                   !ibuf2.image->can_contain_alpha();
   return out;
 }
 

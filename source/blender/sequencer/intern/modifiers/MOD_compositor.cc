@@ -394,8 +394,11 @@ class CompositorModifierContext : public CompositorContext {
   {
     const StripModifierData &smd = this->modifier_data_->modifier;
     if (smd.mask_input_type == STRIP_MASK_INPUT_STRIP && smd.mask_strip) {
-      this->mask_buffer_ = seq_render_strip(
-          &context.render_data, &context.render_state, smd.mask_strip, timeline_frame);
+      this->mask_buffer_ = seq_render_strip(&context.render_data,
+                                            &context.render_state,
+                                            smd.mask_strip,
+                                            timeline_frame)
+                               .image;
       if (this->mask_buffer_ != nullptr) {
         this->create_result_from_input(this->mask_, *this->mask_buffer_);
         this->owns_mask_ = true;

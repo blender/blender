@@ -28,52 +28,53 @@
 
 namespace blender::seq {
 
-ImBuf *prepare_effect_imbufs(const RenderData *context,
-                             ImBuf *ibuf1,
-                             ImBuf *ibuf2,
-                             bool uninitialized_pixels)
+SeqResult prepare_effect_imbufs(const RenderData *context,
+                                const SeqResult &ibuf1,
+                                const SeqResult &ibuf2,
+                                bool uninitialized_pixels)
 {
-  ImBuf *out;
+  SeqResult out;
   Scene *scene = context->scene;
   int x = context->rectx;
   int y = context->recty;
   ImBufFlags base_flags = uninitialized_pixels ? ImBufFlags::UninitializedPixels :
                                                  ImBufFlags::Zero;
 
-  if (!ibuf1 && !ibuf2) {
-    /* Hmm, global float option? */
-    out = IMB_allocImBuf(x, y, ImBufFlags::ByteData | base_flags);
+  if (!ibuf1.is_valid() && !ibuf2.is_valid()) {
+    out.image = IMB_allocImBuf(x, y, ImBufFlags::ByteData | base_flags);
   }
-  else if ((ibuf1 && ibuf1->float_data()) || (ibuf2 && ibuf2->float_data())) {
+  else if ((ibuf1.is_valid() && ibuf1.image->float_data()) ||
+           (ibuf2.is_valid() && ibuf2.image->float_data()))
+  {
     /* if any inputs are float, output is float too */
-    out = IMB_allocImBuf(x, y, ImBufFlags::FloatData | base_flags);
+    out.image = IMB_allocImBuf(x, y, ImBufFlags::FloatData | base_flags);
   }
   else {
-    out = IMB_allocImBuf(x, y, ImBufFlags::ByteData | base_flags);
+    out.image = IMB_allocImBuf(x, y, ImBufFlags::ByteData | base_flags);
   }
 
-  if (out->float_data()) {
-    if (ibuf1) {
-      ensure_ibuf_is_sequencer_space(scene, ibuf1, true);
+  if (out.image->float_data()) {
+    if (ibuf1.is_valid()) {
+      ensure_ibuf_is_sequencer_space(scene, ibuf1.image, true);
     }
-    if (ibuf2) {
-      ensure_ibuf_is_sequencer_space(scene, ibuf2, true);
+    if (ibuf2.is_valid()) {
+      ensure_ibuf_is_sequencer_space(scene, ibuf2.image, true);
     }
-    IMB_colormanagement_assign_float_colorspace(out, scene->sequencer_colorspace_settings.name);
+    IMB_colormanagement_assign_float_colorspace(out.image,
+                                                scene->sequencer_colorspace_settings.name);
   }
   else {
-    if (ibuf1 && !ibuf1->byte_data()) {
-      IMB_byte_from_float(ibuf1);
+    if (ibuf1.is_valid() && !ibuf1.image->byte_data()) {
+      IMB_byte_from_float(ibuf1.image);
     }
-
-    if (ibuf2 && !ibuf2->byte_data()) {
-      IMB_byte_from_float(ibuf2);
+    if (ibuf2.is_valid() && !ibuf2.image->byte_data()) {
+      IMB_byte_from_float(ibuf2.image);
     }
   }
 
   /* If effect only affecting a single channel, forward input's metadata to the output. */
-  if (ibuf1 != nullptr && ibuf1 == ibuf2) {
-    IMB_metadata_copy(out, ibuf1);
+  if (ibuf1.is_valid() && ibuf1.image == ibuf2.image) {
+    IMB_metadata_copy(out.image, ibuf1.image);
   }
 
   return out;

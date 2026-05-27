@@ -36,52 +36,34 @@ static StripEarlyOut early_out_color(const Strip * /*strip*/, float /*fac*/)
   return StripEarlyOut::NoInput;
 }
 
-static ImBuf *do_solid_color(const RenderData *context,
-                             SeqRenderState * /*state*/,
-                             Strip *strip,
-                             float /*timeline_frame*/,
-                             float /*fac*/,
-                             ImBuf *ibuf1,
-                             ImBuf *ibuf2)
+static SeqResult do_solid_color(const RenderData *context,
+                                SeqRenderState * /*state*/,
+                                Strip *strip,
+                                float /*timeline_frame*/,
+                                float /*fac*/,
+                                const SeqResult & /*ibuf1*/,
+                                const SeqResult & /*ibuf2*/)
 {
-  ImBuf *out = prepare_effect_imbufs(context, ibuf1, ibuf2);
+  SeqResult out = prepare_effect_imbufs(context, {}, {});
 
   SolidColorVars *cv = static_cast<SolidColorVars *>(strip->effectdata);
 
-  uchar *byte_data = out->byte_data_for_write();
-  float *float_data = out->float_data_for_write();
-  threading::parallel_for(IndexRange(out->y), 64, [&](const IndexRange y_range) {
-    if (byte_data) {
-      /* Byte image. */
-      uchar color[4];
-      rgb_float_to_uchar(color, cv->col);
-      color[3] = 255;
+  uchar color[4];
+  rgb_float_to_uchar(color, cv->col);
+  color[3] = 255;
 
-      uchar *dst = byte_data + y_range.first() * out->x * 4;
-      uchar *dst_end = dst + y_range.size() * out->x * 4;
-      while (dst < dst_end) {
-        memcpy(dst, color, sizeof(color));
-        dst += 4;
-      }
-    }
-    else {
-      /* Float image. */
-      float color[4];
-      color[0] = cv->col[0];
-      color[1] = cv->col[1];
-      color[2] = cv->col[2];
-      color[3] = 1.0f;
-
-      float *dst = float_data + y_range.first() * out->x * 4;
-      float *dst_end = dst + y_range.size() * out->x * 4;
-      while (dst < dst_end) {
-        memcpy(dst, color, sizeof(color));
-        dst += 4;
-      }
+  uchar *byte_data = out.image->byte_data_for_write();
+  threading::parallel_for(IndexRange(out.image->y), 64, [&](const IndexRange y_range) {
+    uchar *dst = byte_data + y_range.first() * out.image->x * 4;
+    uchar *dst_end = dst + y_range.size() * out.image->x * 4;
+    while (dst < dst_end) {
+      memcpy(dst, color, sizeof(color));
+      dst += 4;
     }
   });
 
-  out->color_mode = ImColorMode::RGB;
+  out.image->color_mode = ImColorMode::RGB;
+  out.is_opaque_before_transform = true;
 
   return out;
 }

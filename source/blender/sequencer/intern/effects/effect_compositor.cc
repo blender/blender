@@ -118,28 +118,37 @@ class CompositorEffectContext : public CompositorContext {
   }
 };
 
-static ImBuf *do_compositor_effect(const RenderData *context,
-                                   SeqRenderState * /*state*/,
-                                   Strip *strip,
-                                   float /*timeline_frame*/,
-                                   float fac,
-                                   ImBuf *src1,
-                                   ImBuf *src2)
+static SeqResult do_compositor_effect(const RenderData *context,
+                                      SeqRenderState * /*state*/,
+                                      Strip *strip,
+                                      float /*timeline_frame*/,
+                                      float fac,
+                                      const SeqResult &src1,
+                                      const SeqResult &src2)
 {
   const int x = context->rectx;
   const int y = context->recty;
-  ImBuf *out = IMB_allocImBuf(x, y, ImBufFlags::FloatData | ImBufFlags::UninitializedPixels);
+  SeqResult out;
+  out.image = IMB_allocImBuf(x, y, ImBufFlags::FloatData | ImBufFlags::UninitializedPixels);
   IMB_colormanagement_assign_float_colorspace(
-      out, IMB_colormanagement_role_colorspace_name_get(COLOR_ROLE_SCENE_LINEAR));
+      out.image, IMB_colormanagement_role_colorspace_name_get(COLOR_ROLE_SCENE_LINEAR));
 
   CompositorEffectVars *data = static_cast<CompositorEffectVars *>(strip->effectdata);
   if (!data || !data->node_group) {
-    IMB_rectfill(out, float4(0, 0, 0, 1));
+    IMB_rectfill(out.image, float4(0, 0, 0, 1));
+    out.image->color_mode = ImColorMode::RGB;
+    out.is_opaque_before_transform = true;
   }
   else {
     CompositorCache &com_cache = context->scene->ed->runtime->ensure_compositor_cache();
-    CompositorEffectContext com_context(
-        com_cache.get_cache_manager(), *context, data->node_group, src1, src2, out, fac, *strip);
+    CompositorEffectContext com_context(com_cache.get_cache_manager(),
+                                        *context,
+                                        data->node_group,
+                                        src1.image,
+                                        src2.image,
+                                        out.image,
+                                        fac,
+                                        *strip);
 
     if (com_context.use_gpu()) {
       com_context.set_gpu_supported(render_begin_gpu(*context));
@@ -151,6 +160,7 @@ static ImBuf *do_compositor_effect(const RenderData *context,
     if (com_context.use_gpu()) {
       render_end_gpu(*context);
     }
+    out.is_opaque_before_transform = !out.image->can_contain_alpha();
   }
   return out;
 }

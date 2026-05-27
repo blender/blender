@@ -172,26 +172,30 @@ static float speed_effect_interpolation_ratio_get(Scene *scene,
   return target_frame - floor(target_frame);
 }
 
-static ImBuf *do_speed_effect(const RenderData *context,
-                              SeqRenderState *state,
-                              Strip *strip,
-                              float timeline_frame,
-                              float fac,
-                              ImBuf *ibuf1,
-                              ImBuf *ibuf2)
+static SeqResult do_speed_effect(const RenderData *context,
+                                 SeqRenderState *state,
+                                 Strip *strip,
+                                 float timeline_frame,
+                                 float fac,
+                                 const SeqResult &ibuf1,
+                                 const SeqResult &ibuf2)
 {
+  SeqResult out;
+
   const SpeedControlVars *s = static_cast<SpeedControlVars *>(strip->effectdata);
   EffectHandle cross_effect = effect_handle_get(STRIP_TYPE_CROSS);
 
   if (s->flags & SEQ_SPEED_USE_INTERPOLATION) {
     fac = speed_effect_interpolation_ratio_get(context->scene, strip, timeline_frame);
     /* Current frame is ibuf1, next frame is ibuf2. */
-    ImBuf *out = cross_effect.execute(context, state, nullptr, timeline_frame, fac, ibuf1, ibuf2);
+    out = cross_effect.execute(context, state, nullptr, timeline_frame, fac, ibuf1, ibuf2);
     return out;
   }
 
   /* No interpolation. */
-  return IMB_dupImBuf(ibuf1);
+  out.image = IMB_dupImBuf(ibuf1.image);
+  out.is_opaque_before_transform = !ibuf1.image->can_contain_alpha();
+  return out;
 }
 
 void speed_effect_get_handle(EffectHandle &rval)

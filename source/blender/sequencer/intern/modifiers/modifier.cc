@@ -353,8 +353,11 @@ ImBuf *modifier_render_mask_input(const ModifierApplyContext &context,
 
   if (smd.mask_input_type == STRIP_MASK_INPUT_STRIP) {
     if (smd.mask_strip) {
-      mask = seq_render_strip(
-          &context.render_data, &context.render_state, smd.mask_strip, context.timeline_frame);
+      mask = seq_render_strip(&context.render_data,
+                              &context.render_state,
+                              smd.mask_strip,
+                              context.timeline_frame)
+                 .image;
     }
   }
   else if (smd.mask_input_type == STRIP_MASK_INPUT_ID) {

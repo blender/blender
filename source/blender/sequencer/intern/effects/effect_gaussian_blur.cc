@@ -128,13 +128,13 @@ static void gaussian_blur_y(const Span<float> gaussian,
   }
 }
 
-static ImBuf *do_gaussian_blur_effect(const RenderData *context,
-                                      SeqRenderState * /*state*/,
-                                      Strip *strip,
-                                      float /*timeline_frame*/,
-                                      float /*fac*/,
-                                      ImBuf *ibuf1,
-                                      ImBuf * /*ibuf2*/)
+static SeqResult do_gaussian_blur_effect(const RenderData *context,
+                                         SeqRenderState * /*state*/,
+                                         Strip *strip,
+                                         float /*timeline_frame*/,
+                                         float /*fac*/,
+                                         const SeqResult &ibuf1,
+                                         const SeqResult & /*ibuf2*/)
 {
   /* Create blur kernel weights. */
   const GaussianBlurVars *data = static_cast<const GaussianBlurVars *>(strip->effectdata);
@@ -150,10 +150,10 @@ static ImBuf *do_gaussian_blur_effect(const RenderData *context,
 
   const int width = context->rectx;
   const int height = context->recty;
-  const bool is_float = ibuf1->float_data();
+  const bool is_float = ibuf1.image->float_data();
 
   /* Horizontal blur: create output, blur ibuf1 into it. */
-  ImBuf *out = prepare_effect_imbufs(context, ibuf1, nullptr);
+  SeqResult out = prepare_effect_imbufs(context, ibuf1, {});
   threading::parallel_for(IndexRange(context->recty), 32, [&](const IndexRange y_range) {
     const int y_first = y_range.first();
     const int y_size = y_range.size();
@@ -164,8 +164,8 @@ static ImBuf *do_gaussian_blur_effect(const RenderData *context,
                       width,
                       y_size,
                       height,
-                      ibuf1->float_data(),
-                      out->float_data_for_write());
+                      ibuf1.image->float_data(),
+                      out.image->float_data_for_write());
     }
     else {
       gaussian_blur_x(gaussian_x,
@@ -174,14 +174,14 @@ static ImBuf *do_gaussian_blur_effect(const RenderData *context,
                       width,
                       y_size,
                       height,
-                      ibuf1->byte_data(),
-                      out->byte_data_for_write());
+                      ibuf1.image->byte_data(),
+                      out.image->byte_data_for_write());
     }
   });
 
   /* Vertical blur: create output, blur previous output into it. */
-  ibuf1 = out;
-  out = prepare_effect_imbufs(context, ibuf1, nullptr);
+  SeqResult vin = out;
+  out = prepare_effect_imbufs(context, vin, {});
   threading::parallel_for(IndexRange(context->recty), 32, [&](const IndexRange y_range) {
     const int y_first = y_range.first();
     const int y_size = y_range.size();
@@ -192,8 +192,8 @@ static ImBuf *do_gaussian_blur_effect(const RenderData *context,
                       width,
                       y_size,
                       height,
-                      ibuf1->float_data(),
-                      out->float_data_for_write());
+                      vin.image->float_data(),
+                      out.image->float_data_for_write());
     }
     else {
       gaussian_blur_y(gaussian_y,
@@ -202,13 +202,13 @@ static ImBuf *do_gaussian_blur_effect(const RenderData *context,
                       width,
                       y_size,
                       height,
-                      ibuf1->byte_data(),
-                      out->byte_data_for_write());
+                      vin.image->byte_data(),
+                      out.image->byte_data_for_write());
     }
   });
 
   /* Free the first output. */
-  IMB_freeImBuf(ibuf1);
+  IMB_freeImBuf(vin.image);
 
   return out;
 }

@@ -23,12 +23,12 @@ static StripEarlyOut early_out_adjustment(const Strip * /*strip*/, float /*fac*/
   return StripEarlyOut::NoInput;
 }
 
-static ImBuf *do_adjustment_impl(const RenderData *context,
-                                 SeqRenderState *state,
-                                 Strip *strip,
-                                 float timeline_frame)
+static SeqResult do_adjustment_impl(const RenderData *context,
+                                    SeqRenderState *state,
+                                    Strip *strip,
+                                    float timeline_frame)
 {
-  ImBuf *i = nullptr;
+  SeqResult out;
   Editing *ed = context->scene->ed;
 
   ListBaseT<Strip> *seqbasep = get_seqbase_by_strip(context->scene, strip);
@@ -41,7 +41,7 @@ static ImBuf *do_adjustment_impl(const RenderData *context,
       timeline_frame, strip->left_handle(), strip->right_handle(context->scene) - 1);
 
   if (strip->channel > 1) {
-    i = seq_render_give_ibuf_seqbase(
+    out = seq_render_give_ibuf_seqbase(
         context, state, timeline_frame, strip->channel - 1, channels, seqbasep);
   }
 
@@ -49,31 +49,31 @@ static ImBuf *do_adjustment_impl(const RenderData *context,
    * that it is possible to group a bunch of adjustment strips into
    * a meta-strip and have that work on everything below the meta-strip. */
 
-  if (!i) {
+  if (!out.is_valid()) {
     Strip *meta = lookup_meta_by_strip(ed, strip);
     if (meta) {
-      i = do_adjustment_impl(context, state, meta, timeline_frame);
+      out = do_adjustment_impl(context, state, meta, timeline_frame);
     }
   }
 
-  return i;
+  return out;
 }
 
-static ImBuf *do_adjustment(const RenderData *context,
-                            SeqRenderState *state,
-                            Strip *strip,
-                            float timeline_frame,
-                            float /*fac*/,
-                            ImBuf * /*ibuf1*/,
-                            ImBuf * /*ibuf2*/)
+static SeqResult do_adjustment(const RenderData *context,
+                               SeqRenderState *state,
+                               Strip *strip,
+                               float timeline_frame,
+                               float /*fac*/,
+                               const SeqResult & /*ibuf1*/,
+                               const SeqResult & /*ibuf2*/)
 {
   Editing *ed = context->scene->ed;
   if (!ed || state->strips_in_progress.contains(strip)) {
-    return nullptr;
+    return {};
   }
 
   state->strips_in_progress.add(strip);
-  ImBuf *out = do_adjustment_impl(context, state, strip, timeline_frame);
+  SeqResult out = do_adjustment_impl(context, state, strip, timeline_frame);
   state->strips_in_progress.remove(strip);
   return out;
 }
