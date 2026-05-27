@@ -1495,7 +1495,7 @@ template<typename T>
       return false;
     }
     const std::optional<std::string> key_str = io_item->lookup_str("key");
-    if (key_str) {
+    if (!key_str) {
       return false;
     }
     const std::optional<StringRefNull> socket_idname = io_item->lookup_str("socket_idname");

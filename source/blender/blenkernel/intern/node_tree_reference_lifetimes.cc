@@ -56,7 +56,7 @@ std::ostream &operator<<(std::ostream &stream, const ReferenceSetInfo &info)
 
 static bool socket_may_have_reference(const bNodeSocket &socket)
 {
-  return socket.may_be_field() || ELEM(socket.type, SOCK_BUNDLE, SOCK_CLOSURE);
+  return socket.may_be_field() || ELEM(socket.type, SOCK_BUNDLE, SOCK_CLOSURE, SOCK_GEOMETRY);
 }
 
 static bool or_into_each_other_masked(MutableBoundedBitSpan a,
@@ -84,7 +84,7 @@ static bool or_into_each_other(MutableBoundedBitSpan a, MutableBoundedBitSpan b)
 bool can_contain_reference(const eNodeSocketDatatype socket_type)
 {
   return nodes::socket_type_supports_fields(socket_type) ||
-         ELEM(socket_type, SOCK_BUNDLE, SOCK_CLOSURE);
+         ELEM(socket_type, SOCK_GEOMETRY, SOCK_BUNDLE, SOCK_CLOSURE);
 }
 
 bool can_contain_referenced_data(const eNodeSocketDatatype socket_type)
