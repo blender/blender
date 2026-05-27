@@ -179,7 +179,10 @@ void ImageCache::free_tiled_image(DeviceScene &dscene, const KernelImageTexture 
     if (kernel_tile_descriptor_loaded(descriptors[i])) {
       free_tile(descriptors[i]);
     }
+    descriptors[i] = KERNEL_TILE_LOAD_NONE;
   }
+
+  dscene.image_texture_tile_descriptors.tag_modified();
 
   /* Clear eviction statistics bits for this image's tile descriptor range. */
   const size_t begin = size_t(tex.tile_descriptor_offset) + size_t(tex.tile_levels);
