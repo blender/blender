@@ -300,7 +300,7 @@ static int make(const char *input_file_name, const char *output_file_name)
         return EXIT_FAILURE;
       }
       l = l.substr(msgid_plural_len);
-      msg.id += "\0"; /* separator of singular and plural */
+      msg.id += "\0"; /* separator of singular and plural */  // NOLINT
       is_plural = true;
     }
     else if (l.startswith(msgid_kw)) {
@@ -330,7 +330,7 @@ static int make(const char *input_file_name, const char *output_file_name)
         }
         l = l.substr(close_bracket_idx + 1);
         if (!msg.str.empty()) {
-          msg.str += "\0"; /* Separator of the various plural forms. */
+          msg.str += "\0"; /* Separator of the various plural forms. */  // NOLINT
         }
       }
       else {
