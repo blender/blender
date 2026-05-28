@@ -149,33 +149,31 @@ class LazyFunctionForGeometryNode : public LazyFunction {
     if (relations == nullptr) {
       return;
     }
-    if (!relations->available_relations.is_empty()) {
+    bool has_anonymous_attribute_output = false;
+    for (const int output_i : node_decl.outputs.index_range()) {
+      const SocketDeclaration *socket_decl = node_decl.outputs[output_i];
+      if (socket_decl->is_anonymous_attribute_output) {
+        const bNodeSocket &output = node.output_socket(output_i);
+        has_anonymous_attribute_output = true;
+        is_attribute_output_bsocket_[output_i] = true;
+        const int lf_index = inputs_.append_and_get_index_as("Output Used", CPPType::get<bool>());
+        own_lf_graph_info.mapping
+            .lf_input_index_for_output_bsocket_usage[output.index_in_all_outputs()] = lf_index;
+      }
+    }
+    if (has_anonymous_attribute_output) {
       /* Inputs are only used when an output is used that is not just outputting an anonymous
        * attribute field. */
       for (lf::Input &input : inputs_) {
         input.usage = lf::ValueUsage::Maybe;
       }
-      for (const rl::AvailableRelation &relation : relations->available_relations) {
-        is_attribute_output_bsocket_[relation.reference_output] = true;
-      }
-    }
-    Vector<const bNodeSocket *> handled_field_outputs;
-    for (const rl::AvailableRelation &relation : relations->available_relations) {
-      const bNodeSocket &output_bsocket = node.output_socket(relation.reference_output);
-      if (output_bsocket.is_available() && !handled_field_outputs.contains(&output_bsocket)) {
-        handled_field_outputs.append(&output_bsocket);
-        const int lf_index = inputs_.append_and_get_index_as("Output Used", CPPType::get<bool>());
-        own_lf_graph_info.mapping
-            .lf_input_index_for_output_bsocket_usage[output_bsocket.index_in_all_outputs()] =
-            lf_index;
-      }
     }
 
-    Vector<const bNodeSocket *> handled_geometry_outputs;
+    Vector<const bNodeSocket *> handled_data_outputs;
     for (const rl::DataPropagation &relation : relations->data_propagations) {
       const bNodeSocket &output_bsocket = node.output_socket(relation.to_output);
-      if (output_bsocket.is_available() && !handled_geometry_outputs.contains(&output_bsocket)) {
-        handled_geometry_outputs.append(&output_bsocket);
+      if (output_bsocket.is_available() && !handled_data_outputs.contains(&output_bsocket)) {
+        handled_data_outputs.append(&output_bsocket);
         const int lf_index = inputs_.append_and_get_index_as(
             "Propagate to Output", CPPType::get<GeometryNodesReferenceSet>());
         own_lf_graph_info.mapping

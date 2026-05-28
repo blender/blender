@@ -198,6 +198,7 @@ class SocketDeclaration : public ItemDeclaration {
   bool is_panel_toggle = false;
   bool is_layer_name = false;
   bool is_volume_grid_name = false;
+  bool is_anonymous_attribute_output = false;
 
   /** Index in the list of inputs or outputs of the node. */
   int index = -1;

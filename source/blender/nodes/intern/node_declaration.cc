@@ -729,6 +729,7 @@ BaseSocketDeclarationBuilder &BaseSocketDeclarationBuilder::evaluated_geometry_f
 BaseSocketDeclarationBuilder &BaseSocketDeclarationBuilder::anonymous_attribute_output()
 {
   BLI_assert(this->is_output());
+  decl_base_->is_anonymous_attribute_output = true;
   /* The corresponding relations are build after all socket declarations are known. */
   output_reference_available_on_all_data_ = true;
   decl_base_->structure_type = StructureType::Field;
@@ -739,6 +740,7 @@ BaseSocketDeclarationBuilder &BaseSocketDeclarationBuilder::anonymous_attribute_
     const Span<int> geometry_output_indices)
 {
   BLI_assert(this->is_output());
+  decl_base_->is_anonymous_attribute_output = true;
   rl::RelationsInNode &relations = node_decl_builder_->get_reference_lifetime_relations();
   for (const int index : geometry_output_indices) {
     rl::AvailableRelation relation;
