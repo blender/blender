@@ -564,7 +564,8 @@ static void prefetch_data_fn(void *custom_data, wmJobWorkerStatus * /*worker_sta
         g_drop_coords.num_channels = audio_streams;
         g_drop_coords.num_audio = g_drop_coords.num_channels;
       }
-      catch (aud::Exception &) {
+      catch (aud::Exception &ex) {
+        (void)ex;
       }
       /* The playback rate is defined by the scene. This will be computed later in
        * #update_overlay_strip_position_data, when we know the scene from the context. So set it to
@@ -592,7 +593,8 @@ static void prefetch_data_fn(void *custom_data, wmJobWorkerStatus * /*worker_sta
     try {
       audio_streams = int(aud::FileManager::queryStreams(job_data->path).size());
     }
-    catch (aud::Exception &) {
+    catch (aud::Exception &ex) {
+      (void)ex;
     }
 #endif
     g_drop_coords.num_channels = video_streams + audio_streams;

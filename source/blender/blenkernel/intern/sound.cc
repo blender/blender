@@ -731,7 +731,8 @@ static void sound_load_audio(Main *bmain, bSound *sound, bool free_waveform)
     try {
       runtime->cache = AUD_Sound(new aud::StreamBuffer(runtime->handle));
     }
-    catch (aud::Exception &) {
+    catch (aud::Exception &ex) {
+      (void)ex;
     }
   }
 
@@ -1637,7 +1638,8 @@ SoundInfo bke::sound_info_get(AUD_Sound sound)
       res.length = reader->getLength() / float(specs.rate);
     }
   }
-  catch (aud::Exception &) {
+  catch (aud::Exception &ex) {
+    (void)ex;
   }
   return res;
 }
@@ -1668,7 +1670,8 @@ AUD_Device bke::sound_device_init(const char *device,
       return AUD_Device(device);
     }
   }
-  catch (Exception &) {
+  catch (Exception &ex) {
+    (void)ex;
   }
   return nullptr;
 }
@@ -1686,7 +1689,8 @@ AUD_Handle bke::sound_device_play(AUD_Device device, AUD_Sound sound)
   try {
     return device->play(sound, true);
   }
-  catch (aud::Exception &) {
+  catch (aud::Exception &ex) {
+    (void)ex;
   }
   return nullptr;
 }
@@ -1729,7 +1733,8 @@ AUD_Handle bke::sound_pause_after(AUD_Handle handle, double seconds)
       return handle2;
     }
   }
-  catch (aud::Exception &) {
+  catch (aud::Exception &ex) {
+    (void)ex;
   }
   return nullptr;
 }
