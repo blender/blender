@@ -185,7 +185,7 @@ static bool samples_have_same_topology(const SampleType &sample, const SampleTyp
   /* Otherwise check the curve vertex counts. */
   if (memcmp(per_curve_vertices_count->get(),
              ceil_per_curve_vertices_count->get(),
-             per_curve_vertices_count->size() * sizeof(int)))
+             per_curve_vertices_count->size() * sizeof(int)) != 0)
   {
     return false;
   }
