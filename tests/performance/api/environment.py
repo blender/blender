@@ -17,6 +17,7 @@ from collections.abc import (
     Callable,
 )
 
+from .common import normalize_device_id
 from .config import TestConfig
 from .device import TestMachine
 
@@ -421,8 +422,9 @@ class TestEnvironment:
         device_id = device_str
         gpu_backend = 'default'
 
+        sanitized_str = normalize_device_id(device_str)
         for device in machine.devices:
-            if device.id == device_str or device.type == device_str:
+            if normalize_device_id(device.id) == sanitized_str or device.type == device_str:
                 device_id = device.id
                 gpu_backend = {
                     'VULKAN': 'vulkan',

@@ -331,6 +331,9 @@ void GLBackend::platform_init()
            version,
            GPU_ARCHITECTURE_IMR);
 
+  GPG.devices.append(
+      {.identifier = "OPENGL", .index = 0, .vendor_id = 0, .device_id = 0, .name = renderer});
+
   GPG.device_uuid.reinitialize(0);
   GPG.device_luid.reinitialize(0);
   GPG.device_luid_node_mask = 0;

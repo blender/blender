@@ -8,6 +8,7 @@ import pathlib
 
 from dataclasses import dataclass, field
 
+from .common import normalize_device_id
 from .test import TestCollection
 
 
@@ -96,7 +97,7 @@ class TestQueue:
             rows = {}
 
             for entry in entries:
-                key = (entry.device_id, entry.category, entry.test)
+                key = (normalize_device_id(entry.device_id), entry.category, entry.test)
                 if key in rows:
                     rows[key].append(entry)
                 else:
@@ -105,12 +106,13 @@ class TestQueue:
             return [value for _, value in sorted(rows.items())]
 
     def find(self, revision: str, test: str, category: str, device_id: str) -> dict:
+        sanitized = normalize_device_id(device_id)
         for entry in self.entries:
             if (
                 entry.revision == revision and
                 entry.test == test and
                 entry.category == category and
-                entry.device_id == device_id
+                normalize_device_id(entry.device_id) == sanitized
             ):
                 return entry
 
@@ -207,7 +209,8 @@ class TestConfig:
         self.devices = []
         for device in machine.devices:
             for device_filter in device_filters:
-                if fnmatch.fnmatch(device.id, device_filter):
+                if fnmatch.fnmatch(device.id, device_filter) or \
+                   fnmatch.fnmatch(normalize_device_id(device.id), normalize_device_id(device_filter)):
                     self.devices.append(device)
                     break
 
@@ -245,7 +248,7 @@ class TestConfig:
         devices = set()
         for entry in entries:
             categories.add(entry.category)
-            devices.add(entry.device_type)
+            devices.add(entry.device_id)
         self.queue.has_multiple_categories = len(categories) > 1
         self.queue.has_multiple_devices = len(devices) > 1
 

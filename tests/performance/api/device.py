@@ -75,8 +75,20 @@ def get_gpu_device_backend(args: dict) -> dict:
             result.append({'type': gpu_backend, 'name': gpu_backend})
         prefs.system.gpu_backend = original_gpu_backend
     else:
-        if gpu.platform.backend_type_get() == args['gpu_backend'].upper():
-            result.append({'type': gpu.platform.backend_type_get(), 'name': gpu.platform.renderer_get()})
+        backend_type = gpu.platform.backend_type_get()
+        if backend_type != args['gpu_backend'].upper():
+            return {'devices': []}
+
+        try:
+            devices = gpu.platform.devices_get()
+        except (AttributeError, RuntimeError):
+            devices = []
+
+        if devices:
+            for device in devices:
+                result.append({'type': backend_type, 'name': device.name, 'index': device.index})
+        else:
+            result.append({'type': backend_type, 'name': gpu.platform.renderer_get()})
 
     return {'devices': result}
 
