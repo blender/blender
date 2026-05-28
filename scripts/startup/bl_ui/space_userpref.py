@@ -1097,11 +1097,6 @@ class USERPREF_PT_theme_user_interface(ThemePanel, CenterAlignMixIn, Panel):
     bl_label = "User Interface"
     bl_options = {'DEFAULT_CLOSED'}
 
-    def draw_header(self, _context):
-        layout = self.layout
-
-        layout.label(icon='WORKSPACE')
-
     def draw(self, context):
         pass
 
@@ -1237,7 +1232,7 @@ class USERPREF_PT_theme_interface_state(ThemePanel, CenterAlignMixIn, Panel):
 
 
 class USERPREF_PT_theme_interface_styles(ThemePanel, CenterAlignMixIn, Panel):
-    bl_label = "Styles"
+    bl_label = "Editor & Widgets"
     bl_options = {'DEFAULT_CLOSED'}
     bl_parent_id = "USERPREF_PT_theme_user_interface"
 
@@ -1252,27 +1247,21 @@ class USERPREF_PT_theme_interface_styles(ThemePanel, CenterAlignMixIn, Panel):
         col.prop(ui, "editor_outline")
         col.prop(ui, "editor_outline_active")
 
-        col = flow.column()
-        col.prop(ui, "widget_text_cursor")
-
         col = flow.column(align=True)
-        col.prop(ui, "icon_alpha")
-        col.prop(ui, "icon_saturation", text="Saturation")
-
-        flow.separator()
+        col.prop(ui, "menu_shadow_fac", text="Panel/Menu Shadow")
+        col.prop(ui, "menu_shadow_width", text="Shadow Width")
 
         col = flow.column()
         col.prop(ui, "widget_emboss")
 
-        col = flow.column(align=True)
-        col.prop(ui, "menu_shadow_fac")
-        col.prop(ui, "menu_shadow_width", text="Shadow Width")
+        col = flow.column()
+        col.prop(ui, "widget_text_cursor")
 
 
 class USERPREF_PT_theme_interface_transparent_checker(ThemePanel, CenterAlignMixIn, Panel):
     bl_label = "Transparent Checkerboard"
     bl_options = {'DEFAULT_CLOSED'}
-    bl_parent_id = "USERPREF_PT_theme_user_interface"
+    bl_parent_id = "USERPREF_PT_theme_interface_styles"
 
     def draw_centered(self, context, layout):
         theme = context.preferences.themes[0]
@@ -1289,7 +1278,7 @@ class USERPREF_PT_theme_interface_transparent_checker(ThemePanel, CenterAlignMix
 
 
 class USERPREF_PT_theme_interface_gizmos(ThemePanel, CenterAlignMixIn, Panel):
-    bl_label = "Axis & Gizmo Colors"
+    bl_label = "Axes & Gizmos"
     bl_options = {'DEFAULT_CLOSED'}
     bl_parent_id = "USERPREF_PT_theme_user_interface"
 
@@ -1297,7 +1286,7 @@ class USERPREF_PT_theme_interface_gizmos(ThemePanel, CenterAlignMixIn, Panel):
         theme = context.preferences.themes[0]
         ui = theme.user_interface
 
-        flow = layout.grid_flow(row_major=False, columns=0, even_columns=True, even_rows=True, align=False)
+        flow = layout.grid_flow(row_major=False, columns=0, even_columns=True, even_rows=False, align=False)
 
         col = flow.column(align=True)
         col.prop(ui, "axis_x", text="Axis X")
@@ -1305,18 +1294,20 @@ class USERPREF_PT_theme_interface_gizmos(ThemePanel, CenterAlignMixIn, Panel):
         col.prop(ui, "axis_z", text="Z")
         col.prop(ui, "axis_w", text="W")
 
-        col = flow.column()
+        col = flow.column(align=True)
         col.prop(ui, "gizmo_primary")
         col.prop(ui, "gizmo_secondary", text="Secondary")
-        col.prop(ui, "gizmo_view_align", text="View Align")
 
-        col = flow.column()
+        col = flow.column(align=True)
         col.prop(ui, "gizmo_a")
         col.prop(ui, "gizmo_b", text="B")
 
+        col = flow.column()
+        col.prop(ui, "gizmo_view_align", text="View Align")
+
 
 class USERPREF_PT_theme_interface_icons(ThemePanel, CenterAlignMixIn, Panel):
-    bl_label = "Icon Colors"
+    bl_label = "Icons"
     bl_options = {'DEFAULT_CLOSED'}
     bl_parent_id = "USERPREF_PT_theme_user_interface"
 
@@ -1335,11 +1326,14 @@ class USERPREF_PT_theme_interface_icons(ThemePanel, CenterAlignMixIn, Panel):
         flow.prop(ui, "icon_folder")
         flow.prop(ui, "icon_autokey")
         flow.prop(ui, "icon_border_intensity")
+        flow.prop(ui, "icon_alpha")
+        flow.prop(ui, "icon_saturation", text="Toolbar Saturation")
 
 
 class USERPREF_PT_theme_text_style(ThemePanel, CenterAlignMixIn, Panel):
     bl_label = "Text Style"
     bl_options = {'DEFAULT_CLOSED'}
+    bl_parent_id = "USERPREF_PT_theme_user_interface"
 
     @staticmethod
     def _ui_font_style(layout, font_style):
@@ -1359,11 +1353,6 @@ class USERPREF_PT_theme_text_style(ThemePanel, CenterAlignMixIn, Panel):
         col.prop(font_style, "shadow_alpha", text="Alpha")
         col.prop(font_style, "shadow_value", text="Brightness")
 
-    def draw_header(self, _context):
-        layout = self.layout
-
-        layout.label(icon='FONTPREVIEW')
-
     def draw_centered(self, context, layout):
         style = context.preferences.ui_styles[0]
 
@@ -1381,14 +1370,18 @@ class USERPREF_PT_theme_text_style(ThemePanel, CenterAlignMixIn, Panel):
         self._ui_font_style(layout, style.tooltip)
 
 
+class USERPREF_PT_theme_color_sets(ThemePanel, Panel):
+    bl_label = "Color Sets"
+    bl_options = {'DEFAULT_CLOSED'}
+
+    def draw(self, _context):
+        pass
+
+
 class USERPREF_PT_theme_bone_color_sets(ThemePanel, CenterAlignMixIn, Panel):
     bl_label = "Bone Color Sets"
     bl_options = {'DEFAULT_CLOSED'}
-
-    def draw_header(self, _context):
-        layout = self.layout
-
-        layout.label(icon='COLOR')
+    bl_parent_id = "USERPREF_PT_theme_color_sets"
 
     def draw_centered(self, context, layout):
         theme = context.preferences.themes[0]
@@ -1409,11 +1402,7 @@ class USERPREF_PT_theme_bone_color_sets(ThemePanel, CenterAlignMixIn, Panel):
 class USERPREF_PT_theme_collection_colors(ThemePanel, CenterAlignMixIn, Panel):
     bl_label = "Collection Colors"
     bl_options = {'DEFAULT_CLOSED'}
-
-    def draw_header(self, _context):
-        layout = self.layout
-
-        layout.label(icon='GROUP')
+    bl_parent_id = "USERPREF_PT_theme_color_sets"
 
     def draw_centered(self, context, layout):
         theme = context.preferences.themes[0]
@@ -1426,13 +1415,9 @@ class USERPREF_PT_theme_collection_colors(ThemePanel, CenterAlignMixIn, Panel):
 
 
 class USERPREF_PT_theme_strip_colors(ThemePanel, CenterAlignMixIn, Panel):
-    bl_label = "Strip Color Tags"
+    bl_label = "Sequencer Strip Color Tags"
     bl_options = {'DEFAULT_CLOSED'}
-
-    def draw_header(self, _context):
-        layout = self.layout
-
-        layout.label(icon='SEQ_STRIP_DUPLICATE')
+    bl_parent_id = "USERPREF_PT_theme_color_sets"
 
     def draw_centered(self, context, layout):
         theme = context.preferences.themes[0]
@@ -3192,12 +3177,13 @@ classes = (
     USERPREF_MT_interface_theme_presets,
     USERPREF_PT_theme,
     USERPREF_PT_theme_interface_panel,
-    USERPREF_PT_theme_interface_gizmos,
-    USERPREF_PT_theme_interface_icons,
     USERPREF_PT_theme_interface_state,
+    USERPREF_PT_theme_interface_icons,
+    USERPREF_PT_theme_text_style,
+    USERPREF_PT_theme_interface_gizmos,
     USERPREF_PT_theme_interface_styles,
     USERPREF_PT_theme_interface_transparent_checker,
-    USERPREF_PT_theme_text_style,
+    USERPREF_PT_theme_color_sets,
     USERPREF_PT_theme_bone_color_sets,
     USERPREF_PT_theme_collection_colors,
     USERPREF_PT_theme_strip_colors,
