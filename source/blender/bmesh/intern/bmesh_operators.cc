@@ -1605,7 +1605,12 @@ static int BMO_opcode_from_opname_check(const char *opname)
   return i;
 }
 
-bool BMO_op_vinitf(BMesh *bm, BMOperator *op, const int flag, const char *_fmt, va_list vlist)
+bool BMO_op_vinitf(BMesh *bm,
+                   BMOperator *op,
+                   const int flag,
+                   const char *_fmt,
+                   va_list vlist  // NOLINT
+)
 {
   //  BMOpDefine *def;
   char *opname, *ofmt, *fmt;

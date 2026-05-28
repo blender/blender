@@ -1770,7 +1770,7 @@ void what_does_obaction(Object *ob,
                         bPose *pose,
                         bAction *act,
                         const int32_t action_slot_handle,
-                        char groupname[],
+                        const char groupname[],
                         const AnimationEvalContext *anim_eval_context)
 {
   using namespace blender::animrig;

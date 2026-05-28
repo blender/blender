@@ -1247,7 +1247,7 @@ double BKE_sound_sync_scene(Scene *scene)
 }
 
 static int sound_read(
-    AUD_Sound sound, float *buffer, int length, int samples_per_second, bool *interrupt)
+    AUD_Sound sound, float *buffer, int length, int samples_per_second, const bool *interrupt)
 {
   using namespace aud;
   DeviceSpecs specs;

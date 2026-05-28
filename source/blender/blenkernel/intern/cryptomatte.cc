@@ -613,7 +613,7 @@ StringRef CryptomatteStampDataCallbackData::extract_layer_hash(StringRefNull key
 
 void CryptomatteStampDataCallbackData::extract_layer_names(void *_data,
                                                            const char *propname,
-                                                           char *propvalue,
+                                                           char *propvalue,  // NOLINT
                                                            int /*propvalue_maxncpy*/)
 {
   CryptomatteStampDataCallbackData *data = static_cast<CryptomatteStampDataCallbackData *>(_data);
@@ -631,7 +631,7 @@ void CryptomatteStampDataCallbackData::extract_layer_names(void *_data,
 
 void CryptomatteStampDataCallbackData::extract_layer_manifest(void *_data,
                                                               const char *propname,
-                                                              char *propvalue,
+                                                              char *propvalue,  // NOLINT
                                                               int /*propvalue_maxncpy*/)
 {
   CryptomatteStampDataCallbackData *data = static_cast<CryptomatteStampDataCallbackData *>(_data);

@@ -570,7 +570,7 @@ static void openexr_header_metadata_colorspace(Header *header, const ImBuf *ibuf
 
 static void openexr_header_metadata_callback(void *data,
                                              const char *propname,
-                                             char *prop,
+                                             char *prop,  // NOLINT
                                              int /*len*/)
 {
   Header *header = (Header *)data;

@@ -41,7 +41,7 @@ using RemoteLibraryLoadingStatus = asset_system::RemoteLibraryLoadingStatus;
 static void filelist_readjob_remote_asset_library_index_read(
     FileListReadJob *job_params,
     RemoteLibraryRequest &request,
-    bool *stop,
+    const bool *stop,
     bool *do_update,
     float * /*progress*/,
     Map<StringRef, asset_system::AssetRepresentation *> &already_downloaded_assets)

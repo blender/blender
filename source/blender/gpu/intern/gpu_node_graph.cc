@@ -783,7 +783,8 @@ static bool gpu_stack_link_v(GPUMaterial *material,
                              const char *name,
                              GPUNodeStack *in,
                              GPUNodeStack *out,
-                             va_list params)
+                             va_list params  // NOLINT
+)
 {
   GPUNodeGraph *graph = gpu_material_node_graph(material);
   GPUNode *node;
