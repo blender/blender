@@ -34,6 +34,13 @@ pxr::UsdShadeMaterial create_usd_material(const USDExporterContext &usd_export_c
                                           ReportList *reports);
 
 /**
+ * Create a viewport UsdPreviewSurface material from a Blender material.
+ */
+void create_usd_viewport_material(const USDExporterContext &usd_export_context,
+                                  const Material *material,
+                                  const pxr::UsdShadeMaterial &usd_material);
+
+/**
  * Returns a USDPreviewSurface token name for a given Blender shader Socket name,
  * or an empty TfToken if the input name is not found in the map.
  */
