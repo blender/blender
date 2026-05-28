@@ -518,7 +518,7 @@ static int rna_AssetRepresentation_full_path_length(PointerRNA *ptr)
 static bool rna_AssetRepresentation_is_online_get(PointerRNA *ptr)
 {
   const AssetRepresentation *asset = static_cast<const AssetRepresentation *>(ptr->data);
-  return asset->is_online();
+  return asset->is_online_only();
 }
 
 const EnumPropertyItem *rna_asset_library_ui_reference_itemf(bContext * /*C*/,

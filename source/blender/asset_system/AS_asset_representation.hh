@@ -24,6 +24,8 @@
 #include "DNA_ID_enums.h"
 #include "DNA_asset_types.h"
 
+#include "AS_asset_file_status.hh"
+
 namespace blender {
 
 struct AssetMetaData;
@@ -55,7 +57,25 @@ class AssetRepresentation : NonCopyable, NonMovable {
     std::unique_ptr<AssetMetaData> metadata_ = nullptr;
     PreviewImage *preview_ = nullptr;
 
-    /** Set if this is an online asset only. */
+    /**
+     * Status of this asset's file(s) compared to the remote listing.
+     * Only meaningful for assets from a remote library that have been checked against the listing.
+     * For online-only assets (#online_info_ is set), the status is stored there instead.
+     *
+     * \see #AssetRepresentation::remote_file_status()
+     * \see #AssetRepresentation::remote_file_status_set()
+     */
+    RemoteAssetFileStatus remote_file_status_ = RemoteAssetFileStatus::UNSET;
+
+    /**
+     * Set if this is an online asset only.
+     *
+     * Note that this can also be set on online assets when their files have been downloaded
+     * locally. To distinguish between 'pure online' (so no file) and other cases, use the
+     * file_status_ field above.
+     *
+     * \see #AssetRepresentation::is_online_only()
+     */
     std::unique_ptr<OnlineAssetInfo> online_info_;
   };
   std::variant<ExternalAsset, ID *> asset_;
@@ -139,7 +159,7 @@ class AssetRepresentation : NonCopyable, NonMovable {
   std::string full_library_path() const;
 
   /**
-   * For online assets (see #is_online()), the files that make up this asset.
+   * For online assets (see #is_online_only()), the files that make up this asset.
    *
    * Will return an empty span if this is not an online asset.
    */
@@ -149,13 +169,14 @@ class AssetRepresentation : NonCopyable, NonMovable {
    */
   std::optional<int64_t> online_asset_files_combined_size_in_bytes() const;
   /**
-   * For online assets (see #is_online()), the URL the asset's preview should be requested from.
+   * For online assets (see #is_online_only()), the URL the asset's preview should be requested
+   * from.
    *
    * Will return an empty value if this is not an online asset.
    */
   std::optional<StringRefNull> online_asset_preview_url() const;
   /**
-   * For online assets (see #is_online()), the hash of the asset's preview.
+   * For online assets (see #is_online_only()), the hash of the asset's preview.
    *
    * Will return an empty value if this is not an online asset.
    */
@@ -189,8 +210,16 @@ class AssetRepresentation : NonCopyable, NonMovable {
   ID *local_id() const;
   /** Returns if this asset is stored inside this current file, and as such fully editable. */
   bool is_local_id() const;
-  /** The asset is stored online, not on disk. */
-  bool is_online() const;
+  /**
+   * The asset is purely stored online, there is no local file on disk for this.
+   *
+   * Regardless of what this function returns, there may be 'online info' (information from a
+   * remote asset listing) available, even when the file is on disk and this function returns
+   * `false`.
+   *
+   * \see #remote_file_status()
+   */
+  bool is_online_only() const;
   /**
    * Returns whether the asset is stored in a probably-editable .asset.blend file.
    *
@@ -205,6 +234,29 @@ class AssetRepresentation : NonCopyable, NonMovable {
    * `bke::asset_edit_id_is_editable(asset_id)` and `bke::asset_edit_id_is_writable(asset_id)`.
    */
   bool is_potentially_editable_asset_blend() const;
+
+  /**
+   * Status of this asset's on-disk file(s) compared to the remote listing.
+   * Returns #AssetFileStatus::UNSET if the asset has not been checked against a listing.
+   * For on-disk assets this reflects the status stamped after listing comparison.
+   * For online-only assets this reflects the status from #OnlineAssetInfo.
+   */
+  RemoteAssetFileStatus remote_file_status() const;
+  /** Set the file status for on-disk assets. No-op for online-only assets. */
+  void remote_file_status_set(RemoteAssetFileStatus status);
+  /**
+   * Store the remote listing's online info on an on-disk asset so it can be re-downloaded.
+   * Replaces any previously set online info.
+   */
+  void online_info_set(OnlineAssetInfo info);
+
+  /**
+   * Return whether this asset requires (re-)downloading before it can be used.
+   *
+   * True for online-only assets (#is_online_only()) and for on-disk assets whose files no longer
+   * match the remote listing (e.g. #AssetFileStatus::NO_MATCH).
+   */
+  bool needs_download() const;
 
   AssetLibrary &owner_asset_library() const;
 };

@@ -16,6 +16,8 @@
 #include "BLI_string_ref.hh"
 #include "BLI_vector.hh"
 
+#include "AS_asset_file_status.hh"
+
 namespace blender {
 struct bContext;
 struct bUserAssetLibrary;
@@ -213,12 +215,14 @@ class RemoteLibraryLoadingStatus {
   /** Should be called when an asset file download has completed successfully. */
   static void ping_asset_file_download_succeeded(const bContext &C,
                                                  StringRef library_url,
-                                                 StringRef absolute_file_url);
+                                                 StringRef absolute_file_url,
+                                                 StringRef local_file_abspath);
   /** Should be called when an asset file download has failed. Partial progress for the file is
    * reset to zero, since a future retry has to start from scratch. */
   static void ping_asset_file_download_failed(const bContext &C,
                                               StringRef library_url,
-                                              StringRef absolute_file_url);
+                                              StringRef absolute_file_url,
+                                              StringRef local_file_abspath);
   /** Inform the asset system that there are no more pending asset file downloads for any asset
    * library. */
   static void ping_download_queue_done(const bContext &C);

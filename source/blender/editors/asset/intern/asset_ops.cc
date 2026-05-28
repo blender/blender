@@ -1572,16 +1572,16 @@ static bool assets_download_poll(bContext *C)
     return false;
   }
 
-  const bool has_online_asset = [&]() {
+  const bool has_downloadable_asset = [&]() {
     for (const asset_system::AssetRepresentation *asset : assets) {
-      if (asset->is_online()) {
+      if (asset->needs_download()) {
         return true;
       }
     }
     return false;
   }();
 
-  if (!has_online_asset) {
+  if (!has_downloadable_asset) {
     CTX_wm_operator_poll_msg_set(C, "None of the selected assets requires downloading");
     return false;
   }
@@ -1594,7 +1594,7 @@ static wmOperatorStatus assets_download_exec(bContext *C, wmOperator *op)
   const Vector<const asset_system::AssetRepresentation *> assets = selected_or_active_assets(C);
 
   for (const asset_system::AssetRepresentation *asset : assets) {
-    if (asset->is_online()) {
+    if (asset->needs_download()) {
       asset_system::remote_library_request_asset_download(*C, *asset, op->reports);
     }
   }

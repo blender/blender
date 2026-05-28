@@ -77,7 +77,9 @@ void clear(const AssetLibraryReference *library_reference, const bContext *C);
  * reload is necessary.
  */
 void clear_all_library(const bContext *C);
-void on_remote_assets_downloaded(wmWindowManager &wm, StringRef library_url);
+void on_remote_assets_downloaded(wmWindowManager &wm,
+                                 StringRef library_url,
+                                 StringRef downloaded_file_abspath);
 /**
  * Returns if the given asset library in global asset list storage.
  */

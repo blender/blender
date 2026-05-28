@@ -88,7 +88,7 @@ struct FileListReadJob {
 
   Map<std::string, std::unique_ptr<RemoteLibraryRequest>> remote_library_requests;
 
-  std::optional<std::function<void(const asset_system::AssetRepresentation &)>> on_asset_added =
+  std::optional<std::function<void(asset_system::AssetRepresentation &)>> on_asset_added =
       std::nullopt;
 
   /** Shallow copy of #filelist for thread-safe access.

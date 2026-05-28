@@ -51,6 +51,7 @@ AssetRepresentation::AssetRepresentation(StringRef relative_asset_path,
           id_type,
           std::move(metadata),
           nullptr,
+          RemoteAssetFileStatus::UNSET,
           std::make_unique<OnlineAssetInfo>(std::move(online_info))})
 {
 }
@@ -91,7 +92,9 @@ void AssetRepresentation::ensure_previewable(const bContext &C, ReportList *repo
     return;
   }
 
-  if (extern_asset.online_info_) {
+  /* Only use the remote thumbnail when there is no asset file on disk. Otherwise use the on-disk
+   * file. */
+  if (this->is_online_only()) {
     if (!extern_asset.online_info_->preview_url) {
       return;
     }
@@ -184,15 +187,17 @@ std::string AssetRepresentation::full_library_path() const
 
 Span<OnlineAssetFile> AssetRepresentation::online_asset_files() const
 {
-  if (!this->is_online()) {
+  const ExternalAsset *extern_asset = std::get_if<ExternalAsset>(&asset_);
+  if (!extern_asset || !extern_asset->online_info_) {
     return {};
   }
-  return std::get<ExternalAsset>(asset_).online_info_->files;
+  return extern_asset->online_info_->files;
 }
 
 std::optional<int64_t> AssetRepresentation::online_asset_files_combined_size_in_bytes() const
 {
-  if (!this->is_online()) {
+  const ExternalAsset *extern_asset = std::get_if<ExternalAsset>(&asset_);
+  if (!extern_asset || !extern_asset->online_info_) {
     return {};
   }
   int64_t size = 0;
@@ -204,7 +209,7 @@ std::optional<int64_t> AssetRepresentation::online_asset_files_combined_size_in_
 
 std::optional<StringRefNull> AssetRepresentation::online_asset_preview_url() const
 {
-  if (!this->is_online()) {
+  if (!this->is_online_only()) {
     return {};
   }
   std::optional<URLWithHash> &url_with_hash =
@@ -217,7 +222,7 @@ std::optional<StringRefNull> AssetRepresentation::online_asset_preview_url() con
 
 std::optional<StringRefNull> AssetRepresentation::online_asset_preview_hash() const
 {
-  if (!this->is_online()) {
+  if (!this->is_online_only()) {
     return {};
   }
   std::optional<URLWithHash> &url_with_hash =
@@ -230,10 +235,14 @@ std::optional<StringRefNull> AssetRepresentation::online_asset_preview_hash() co
 
 void AssetRepresentation::online_asset_mark_downloaded()
 {
-  if (!this->is_online()) {
+  ExternalAsset *extern_asset = std::get_if<ExternalAsset>(&asset_);
+  if (!extern_asset) {
     return;
   }
-  std::get<ExternalAsset>(asset_).online_info_ = nullptr;
+  /* Since it was just downloaded, let's assume the file matches the listed hash. If not, the
+   * next refresh will show the correct status.
+   * TODO: ensure that the file status is actually checked, instead of just making assumptions. */
+  extern_asset->remote_file_status_ = RemoteAssetFileStatus::MATCH;
 }
 
 std::optional<eAssetImportMethod> AssetRepresentation::get_import_method() const
@@ -268,12 +277,22 @@ bool AssetRepresentation::is_local_id() const
   return std::holds_alternative<ID *>(asset_);
 }
 
-bool AssetRepresentation::is_online() const
+bool AssetRepresentation::is_online_only() const
 {
-  if (const ExternalAsset *extern_asset = std::get_if<ExternalAsset>(&asset_)) {
-    return extern_asset->online_info_ != nullptr;
+  const ExternalAsset *extern_asset = std::get_if<ExternalAsset>(&asset_);
+  if (!extern_asset || !extern_asset->online_info_) {
+    return false;
   }
-  return false;
+  /* An asset is considered 'online' if there is no file on disk for it.
+   *
+   * About also allowinmg UNSET: This function is (indirectly) called from all kinds of
+   * places, like `get_node_tools_type_data()` in `node_group_operators.cc` to figure out which
+   * node tools are available. Since that happens on startup, the actual on-disk file status may
+   * not have been checked yet. Until that time, just assume that having `online_info_` means "it
+   * is online". */
+  return ELEM(extern_asset->remote_file_status_,
+              RemoteAssetFileStatus::NOT_ON_DISK,
+              RemoteAssetFileStatus::UNSET);
 }
 
 bool AssetRepresentation::is_potentially_editable_asset_blend() const
@@ -284,6 +303,38 @@ bool AssetRepresentation::is_potentially_editable_asset_blend() const
 
   std::string lib_path = this->full_library_path();
   return StringRef(lib_path).endswith(BLENDER_ASSET_FILE_SUFFIX);
+}
+
+RemoteAssetFileStatus AssetRepresentation::remote_file_status() const
+{
+  const ExternalAsset *extern_asset = std::get_if<ExternalAsset>(&asset_);
+  if (!extern_asset) {
+    return RemoteAssetFileStatus::UNSET;
+  }
+  return extern_asset->remote_file_status_;
+}
+
+void AssetRepresentation::online_info_set(OnlineAssetInfo info)
+{
+  ExternalAsset *extern_asset = std::get_if<ExternalAsset>(&asset_);
+  if (!extern_asset) {
+    return;
+  }
+  extern_asset->online_info_ = std::make_unique<OnlineAssetInfo>(std::move(info));
+}
+
+void AssetRepresentation::remote_file_status_set(const RemoteAssetFileStatus status)
+{
+  ExternalAsset *extern_asset = std::get_if<ExternalAsset>(&asset_);
+  if (!extern_asset) {
+    return;
+  }
+  extern_asset->remote_file_status_ = status;
+}
+
+bool AssetRepresentation::needs_download() const
+{
+  return this->is_online_only() || this->remote_file_status() == RemoteAssetFileStatus::NO_MATCH;
 }
 
 AssetLibrary &AssetRepresentation::owner_asset_library() const

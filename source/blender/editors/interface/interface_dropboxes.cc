@@ -167,7 +167,7 @@ static void prefetch_assets(bContext &C, wmDrag &drag)
   BLI_assert(drag.type == WM_DRAG_ASSET);
   wmDragAsset *asset_drag = static_cast<wmDragAsset *>(drag.poin);
 
-  if (!asset_drag->asset->is_online()) {
+  if (!asset_drag->asset->is_online_only()) {
     return;
   }
 

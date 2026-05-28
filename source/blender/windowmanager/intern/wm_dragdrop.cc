@@ -573,7 +573,7 @@ static bool drag_global_poll(const bContext *C,
                              std::string *r_disabled_info)
 {
   if (wmDragAsset *asset_data = WM_drag_get_asset_data(drag, 0)) {
-    if (asset_data->asset->is_online()) {
+    if (asset_data->asset->is_online_only()) {
       *r_status_info = RPT_("Downloading asset...");
       return false;
     }

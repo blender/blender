@@ -74,7 +74,7 @@ static wmOperatorStatus brush_asset_activate_exec(bContext *C, wmOperator *op)
     BKE_reportf(op->reports, RPT_ERROR, "Asset '%s' is not a brush", asset->get_name().c_str());
     return OPERATOR_CANCELLED;
   }
-  if (asset->is_online()) {
+  if (asset->is_online_only()) {
     BKE_reportf(op->reports,
                 RPT_ERROR,
                 "Brush '%s' needs downloading before it can be used (check context menu)",

@@ -3564,7 +3564,7 @@ static eHandlerActionFlag wm_handlers_do_intern(bContext *C,
                 }
 
                 if (wmDragAsset *asset_data = WM_drag_get_asset_data(&drag, 0)) {
-                  if (asset_data->asset->is_online()) {
+                  if (asset_data->asset->is_online_only()) {
                     BKE_reportf(CTX_wm_reports(C),
                                 RPT_ERROR,
                                 "Asset '%s' is still downloading",

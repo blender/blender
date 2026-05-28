@@ -577,7 +577,8 @@ class AssetReporter:
         error: Exception,
     ) -> None:
         logger.warning("Could not download file %s: %s", http_req_descr, error)
-        bpy.types.WindowManager.asset_library_status_ping_asset_file_failed(self.asset_library_url, http_req_descr.url)
+        bpy.types.WindowManager.asset_library_status_ping_asset_file_failed(
+            self.asset_library_url, http_req_descr.url, str(local_file))
 
     def download_progress(
         self,
@@ -594,7 +595,7 @@ class AssetReporter:
     ) -> None:
         logger.info("Download finished: %s to %s", http_req_descr, local_file)
         bpy.types.WindowManager.asset_library_status_ping_asset_file_succeeded(
-            self.asset_library_url, http_req_descr.url)
+            self.asset_library_url, http_req_descr.url, str(local_file))
 
 
 @dataclasses.dataclass

@@ -283,10 +283,16 @@ void AssetViewItem::build_grid_tile(const bContext &C, ui::Layout &layout) const
   overlay_row.alignment_set(ui::LayoutAlign::Right);
 
   const bool is_highlighted = this->is_selected() || this->is_active() || this->is_hovered();
-  if (asset_.is_online() && is_highlighted) {
+  if (asset_.is_online_only() && is_highlighted) {
     ui::Button *online_icon = uiItemL_ex(&overlay_row, "", ICON_INTERNET, false, false);
     button_label_alpha_factor_set(online_icon, 0.6f);
     button_label_draw_icon_border_set(online_icon, true);
+  }
+  else if (asset_.needs_download()) {
+    ui::Button *needs_download_icon = uiItemL_ex(
+        &overlay_row, "", ICON_WARNING_LARGE, false, false);
+    button_label_alpha_factor_set(needs_download_icon, 0.6f);
+    button_label_draw_icon_border_set(needs_download_icon, true);
   }
 }
 
@@ -297,7 +303,7 @@ void AssetViewItem::build_context_menu(bContext &C, ui::Layout &column) const
 
   bool has_items = false;
 
-  if (asset_.is_online()) {
+  if (asset_.needs_download()) {
     column.op("asset.assets_download", IFACE_("Download Asset"), ICON_NONE);
     has_items = true;
   }

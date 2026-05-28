@@ -856,17 +856,20 @@ static void rna_asset_library_status_ping_asset_file_progress(const char *absolu
 
 static void rna_asset_library_status_ping_asset_file_succeeded(bContext *C,
                                                                const char *library_url,
-                                                               const char *absolute_file_url)
+                                                               const char *absolute_file_url,
+                                                               const char *local_file_abspath)
 {
   RemoteLibraryLoadingStatus::ping_asset_file_download_succeeded(
-      *C, library_url, absolute_file_url);
+      *C, library_url, absolute_file_url, local_file_abspath);
 }
 
 static void rna_asset_library_status_ping_asset_file_failed(bContext *C,
                                                             const char *library_url,
-                                                            const char *absolute_file_url)
+                                                            const char *absolute_file_url,
+                                                            const char *local_file_abspath)
 {
-  RemoteLibraryLoadingStatus::ping_asset_file_download_failed(*C, library_url, absolute_file_url);
+  RemoteLibraryLoadingStatus::ping_asset_file_download_failed(
+      *C, library_url, absolute_file_url, local_file_abspath);
 }
 
 static void rna_asset_library_status_ping_finished_download_queue(bContext *C)
@@ -1764,6 +1767,13 @@ void RNA_api_asset_library_loading_status(StructRNA *srna)
                         "URL",
                         "The absolute URL this file was downloaded from");
   RNA_def_parameter_flags(parm, PropertyFlag(0), PARM_REQUIRED);
+  parm = RNA_def_string(func,
+                        "local_file_abspath",
+                        nullptr,
+                        0,
+                        "Local Path",
+                        "The absolute path this file was downloaded to");
+  RNA_def_parameter_flags(parm, PropertyFlag(0), PARM_REQUIRED);
 
   func = RNA_def_function(srna,
                           "asset_library_status_ping_asset_file_failed",
@@ -1785,6 +1795,13 @@ void RNA_api_asset_library_loading_status(StructRNA *srna)
                         0,
                         "URL",
                         "The absolute URL this file was downloaded from");
+  RNA_def_parameter_flags(parm, PropertyFlag(0), PARM_REQUIRED);
+  parm = RNA_def_string(func,
+                        "local_file_abspath",
+                        nullptr,
+                        0,
+                        "Local Path",
+                        "The absolute path this file was supposed to be downloaded to");
   RNA_def_parameter_flags(parm, PropertyFlag(0), PARM_REQUIRED);
 
   func = RNA_def_function(srna,

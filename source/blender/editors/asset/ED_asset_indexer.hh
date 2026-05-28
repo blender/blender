@@ -14,6 +14,7 @@
 #include "BLI_function_ref.hh"
 #include "BLI_utility_mixins.hh"
 
+#include "AS_asset_file_status.hh"
 #include "AS_remote_library.hh"
 
 #include "ED_file_indexer.hh"
@@ -47,6 +48,10 @@ struct RemoteListingAssetEntry : NonCopyable {
   BLODataBlockInfo datablock_info = {};
   short idcode = 0;
 
+  /** The status of the asset's on-disk file(s). */
+  asset_system::RemoteAssetFileStatus remote_file_status =
+      asset_system::RemoteAssetFileStatus::UNSET;
+
   asset_system::OnlineAssetInfo online_info;
 
   RemoteListingAssetEntry() = default;
@@ -73,6 +78,15 @@ struct RemoteListingFileEntry : NonCopyable {
   std::string local_path;
   asset_system::URLWithHash download_url;
   int64_t size_in_bytes;
+
+  /**
+   * Status of the file on disk, compared to the information in the fields above.
+   *
+   * \see asset_system::OnlineAssetInfo::file_status for the per-asset status that may be more
+   * convenient to use.
+   *
+   * \see blender::ed::asset::index::FileStatusChecker. */
+  std::optional<asset_system::RemoteAssetFileStatus> file_status;
 };
 
 using RemoteListingEntryProcessFn = FunctionRef<bool(RemoteListingAssetEntry &)>;

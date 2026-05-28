@@ -1005,6 +1005,20 @@ static void file_draw_indicator_icons(const FileList *files,
                          UI_NO_ICON_OVERLAY_TEXT);
       }
     }
+    else if (file->asset &&
+             file->asset->remote_file_status() == asset_system::RemoteAssetFileStatus::NO_MATCH)
+    {
+      /* This on-disk asset no longer matches the asset listing it was downloaded from. */
+      ui::icon_draw_ex(icon_x,
+                       icon_y,
+                       ICON_WARNING_LARGE,
+                       1.0f / UI_SCALE_FAC,
+                       0.6f,
+                       0.0f,
+                       light,
+                       true,
+                       UI_NO_ICON_OVERLAY_TEXT);
+    }
   }
 }
 

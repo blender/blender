@@ -65,8 +65,8 @@ void filelist_setfilter_options(FileList *filelist,
  * The given indexer allocation should be handled by the caller or defined statically.
  */
 void filelist_setindexer(FileList *filelist, const FileIndexerType *indexer);
-void filelist_remote_asset_library_refresh_online_assets_status(const FileList *filelist,
-                                                                StringRef remote_url);
+void filelist_remote_asset_library_refresh_online_assets_status(
+    const FileList *filelist, StringRef remote_url, StringRef absolute_downloaded_file);
 void filelist_set_asset_include_online(FileList *filelist, bool show_online_assets);
 /**
  * \param catalog_id: The catalog that should be filtered by if \a catalog_visibility is
