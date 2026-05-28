@@ -242,11 +242,13 @@ void ShadowPipeline::render(View &view)
 
 void Prepass::init(DRWState extra_state,
                    bool supports_motion_vectors,
+                   bool supports_raycast_visibility,
                    FunctionRef<void(PassMain &pass)> pass_setup_cb)
 {
   common_state_ = DRW_STATE_WRITE_DEPTH | DRW_STATE_CLIP_CONTROL_UNIT_RANGE |
                   inst_.film.depth.test_state | extra_state;
   supports_motion_vectors_ = supports_motion_vectors;
+  supports_raycast_visibility_ = supports_raycast_visibility;
 
   pass_.init();
   /* Common resources. */
@@ -276,11 +278,15 @@ void Prepass::init(DRWState extra_state,
           PassMain::Sub *&sub = subs_[hide_from_raycast][double_sided][moving][write_id];
           PassMain::Sub *&setup_sub =
               setup_subs_[hide_from_raycast][double_sided][moving][write_id];
-          if ((hide_from_raycast && write_id) || (!supports_motion_vectors && moving)) {
+          if ((hide_from_raycast && write_id) || (!supports_motion_vectors && moving) ||
+              (!supports_raycast_visibility && !hide_from_raycast))
+          {
             /* Never needed.
              * Object IDs are only used for checking raycast self-hits.
              * If the pipeline doesn't support motion vectors, Prepass::add should always be called
-             * with has_motion == false. */
+             * with has_motion == false.
+             * If the pipeline doesn't support raycast visibility, Prepass::add should always be
+             * called with hide_from_raycast == true. */
             sub = nullptr;
             setup_sub = nullptr;
             continue;
@@ -356,13 +362,15 @@ void Prepass::end_sync()
     }
   }
 
-  /* First Subpass. */
-  setup_subs_[false][false][false][false]->bind_ubo(PIPELINE_BUF_SLOT, &pipeline_buf_copy_);
+  if (supports_raycast_visibility_) {
+    /* First Raycast-visible Subpass. */
+    setup_subs_[false][false][false][false]->bind_ubo(PIPELINE_BUF_SLOT, &pipeline_buf_copy_);
+  }
   /* First HideFromRaycast Subpass. */
   setup_subs_[true][false][false][false]->bind_ubo(PIPELINE_BUF_SLOT,
                                                    &pipeline_buf_copy_hide_from_raycast_);
 
-  if (has_raycast) {
+  if (has_raycast && supports_raycast_visibility_) {
     setup_subs_[true][false][false][false]->texture_copy(&fb_depth_tx_,
                                                          &inst_.render_buffers.raycast_depth_tx);
   }
@@ -399,7 +407,7 @@ void ForwardPipeline::sync()
   has_colored_transparency_ = false;
   has_holdout_ = false;
 
-  prepass_.init();
+  prepass_.init({}, true, false);
 
   {
     opaque_ps_.init();
@@ -772,9 +780,10 @@ void DeferredLayer::begin_sync()
   bool alpha_hash_subpixel_scale = !inst_.is_viewport() || !inst_.velocity.camera_has_motion();
   inst_.pipelines.data.alpha_hash_scale = alpha_hash_subpixel_scale ? 0.1f : 1.0f;
 
-  prepass_.init(DRW_STATE_WRITE_STENCIL | DRW_STATE_STENCIL_ALWAYS, true, [](PassMain &pass) {
-    pass.state_stencil(0xFFu, 0u, 0xFFu);
-  });
+  prepass_.init(DRW_STATE_WRITE_STENCIL | DRW_STATE_STENCIL_ALWAYS,
+                true,
+                true,
+                [](PassMain &pass) { pass.state_stencil(0xFFu, 0u, 0xFFu); });
 
   {
     gpu::Shader *sh = inst_.shaders.static_shader_get(DEFERRED_AOV_CLEAR);
@@ -1587,7 +1596,7 @@ void DeferredProbePipeline::render(View &view,
 
 void PlanarProbePipeline::begin_sync()
 {
-  prepass_.init(DRW_STATE_NO_DRAW, false, [&](PassMain &pass) {
+  prepass_.init(DRW_STATE_NO_DRAW, false, true, [&](PassMain &pass) {
     pass.bind_ubo(CLIP_PLANE_BUF, inst_.planar_probes.world_clip_buf_);
   });
 

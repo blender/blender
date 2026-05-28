@@ -155,6 +155,7 @@ class Prepass {
 
   DRWState common_state_{};
   bool supports_motion_vectors_ = false;
+  bool supports_raycast_visibility_ = false;
 
   /* These are never read in practice,
    * only needed for GPU API correctness without extra shader variants. */
@@ -174,6 +175,7 @@ class Prepass {
 
   void init(DRWState extra_state = DRW_STATE_NO_DRAW,
             bool supports_motion_vectors = true,
+            bool supports_raycast_visibility = true,
             FunctionRef<void(PassMain &pass)> pass_setup_cb = {});
 
   PassMain::Sub *add(blender::Material *blender_mat,
