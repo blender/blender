@@ -165,7 +165,9 @@ static void node_layout_ex(ui::Layout &layout, bContext *C, PointerRNA *ptr)
 
 static void node_operators()
 {
-  socket_items::ops::make_common_operators<IndexSwitchItemsAccessor>();
+  socket_items::ops::make_add_item_operator<IndexSwitchItemsAccessor>();
+  socket_items::ops::make_remove_item_by_index_operator<IndexSwitchItemsAccessor>();
+  socket_items::ops::make_move_item_operator<IndexSwitchItemsAccessor>();
 }
 
 static void node_init(bNodeTree *tree, bNode *node)
