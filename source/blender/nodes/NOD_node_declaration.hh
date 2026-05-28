@@ -339,6 +339,13 @@ class BaseSocketDeclarationBuilder {
   BaseSocketDeclarationBuilder &anonymous_attribute_output();
   BaseSocketDeclarationBuilder &anonymous_attribute_output(Span<int> geometry_output_indices);
 
+  /**
+   * The output might reference data (anonymous attributes) on other outputs that does not exist on
+   * the inputs already. Use the more specific #anonymous_attribute_output() if applicable.
+   */
+  BaseSocketDeclarationBuilder &references_other_outputs();
+  BaseSocketDeclarationBuilder &references_other_outputs(Span<int> output_indices);
+
   /** The output has a dynamic structure type which is automatically inferred from inputs. */
   BaseSocketDeclarationBuilder &inferred_structure_type();
   BaseSocketDeclarationBuilder &inferred_structure_type(Span<int> input_indices);

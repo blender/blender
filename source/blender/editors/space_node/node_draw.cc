@@ -2513,6 +2513,7 @@ static Vector<NodeExtraInfoRow> node_get_extra_info(const bContext &C,
             GEO_NODE_FOREACH_GEOMETRY_ELEMENT_OUTPUT,
             NODE_EVALUATE_CLOSURE) ||
        StringRef(node.idname).startswith("GeometryNodeImport") ||
+       node.is_type("GeometryNodeClosureToList"_ustr) ||
        node.is_type("GeometryNodeFilterList"_ustr) ||
        node.is_type("GeometryNodeListGetItem"_ustr) ||
        node.is_type("GeometryNodeFieldToList"_ustr) ||

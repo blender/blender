@@ -3776,6 +3776,22 @@ struct GeometryNodeFieldToList {
   int active_index = 0;
 };
 
+struct GeometryNodeClosureToListItem {
+  eNodeSocketDatatype socket_type = SOCK_FLOAT;
+  NodeSocketInterfaceStructureType structure_type = NodeSocketInterfaceStructureType::Auto;
+  char _pad[1] = {};
+  int identifier = 0;
+  char *name = nullptr;
+};
+
+struct GeometryNodeClosureToList {
+  char _pad[4] = {};
+  int next_identifier = 0;
+  GeometryNodeClosureToListItem *items = nullptr;
+  int items_num = 0;
+  int active_index = 0;
+};
+
 struct NodeGeometryDistributePointsInVolume {
   DNA_DEFINE_CXX_METHODS(NodeGeometryDistributePointsInVolume)
 

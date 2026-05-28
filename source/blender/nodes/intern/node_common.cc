@@ -41,6 +41,7 @@
 #include "NOD_common.hh"
 #include "NOD_composite.hh"
 #include "NOD_geometry_exec.hh"
+#include "NOD_geometry_nodes_closure_signature.hh"
 #include "NOD_node_declaration.hh"
 #include "NOD_node_extra_info.hh"
 #include "NOD_register.hh"

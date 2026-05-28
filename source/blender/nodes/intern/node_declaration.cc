@@ -2,6 +2,7 @@
  *
  * SPDX-License-Identifier: GPL-2.0-or-later */
 
+#include "NOD_geometry_nodes_closure_signature.hh"
 #include "NOD_node_declaration.hh"
 #include "NOD_socket_declarations.hh"
 #include "NOD_socket_declarations_geometry.hh"
@@ -730,8 +731,7 @@ BaseSocketDeclarationBuilder &BaseSocketDeclarationBuilder::anonymous_attribute_
 {
   BLI_assert(this->is_output());
   decl_base_->is_anonymous_attribute_output = true;
-  /* The corresponding relations are build after all socket declarations are known. */
-  output_reference_available_on_all_data_ = true;
+  this->references_other_outputs();
   decl_base_->structure_type = StructureType::Field;
   return *this;
 }
@@ -741,14 +741,30 @@ BaseSocketDeclarationBuilder &BaseSocketDeclarationBuilder::anonymous_attribute_
 {
   BLI_assert(this->is_output());
   decl_base_->is_anonymous_attribute_output = true;
+  this->references_other_outputs(geometry_output_indices);
+  decl_base_->structure_type = StructureType::Field;
+  return *this;
+}
+
+BaseSocketDeclarationBuilder &BaseSocketDeclarationBuilder::references_other_outputs()
+{
+  BLI_assert(this->is_output());
+  /* The corresponding relations are build after all socket declarations are known. */
+  output_reference_available_on_all_data_ = true;
+  return *this;
+}
+
+BaseSocketDeclarationBuilder &BaseSocketDeclarationBuilder::references_other_outputs(
+    const Span<int> output_indices)
+{
+  BLI_assert(this->is_output());
   rl::RelationsInNode &relations = node_decl_builder_->get_reference_lifetime_relations();
-  for (const int index : geometry_output_indices) {
+  for (const int index : output_indices) {
     rl::AvailableRelation relation;
     relation.data_output = index;
     relation.reference_output = decl_base_->index;
     relations.available_relations.append(relation);
   }
-  decl_base_->structure_type = StructureType::Field;
   return *this;
 }
 

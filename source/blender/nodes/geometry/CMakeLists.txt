@@ -38,6 +38,7 @@ set(SRC
   nodes/node_geo_boolean.cc
   nodes/node_geo_bounding_box.cc
   nodes/node_geo_camera_info.cc
+  nodes/node_geo_closure_to_list.cc
   nodes/node_geo_closure.cc
   nodes/node_geo_cluster_by_connected.cc
   nodes/node_geo_cluster_by_distance.cc
@@ -300,6 +301,7 @@ set(SRC
   include/NOD_geo_bundle.hh
   include/NOD_geo_capture_attribute.hh
   include/NOD_geo_closure.hh
+  include/NOD_geo_closure_to_list.hh
   include/NOD_geo_field_to_grid.hh
   include/NOD_geo_field_to_list.hh
   include/NOD_geo_foreach_geometry_element.hh

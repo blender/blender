@@ -649,6 +649,7 @@ static const EnumPropertyItem node_cryptomatte_layer_name_items[] = {
 #  include "NOD_geo_bundle.hh"
 #  include "NOD_geo_capture_attribute.hh"
 #  include "NOD_geo_closure.hh"
+#  include "NOD_geo_closure_to_list.hh"
 #  include "NOD_geo_field_to_grid.hh"
 #  include "NOD_geo_field_to_list.hh"
 #  include "NOD_geo_foreach_geometry_element.hh"
@@ -683,6 +684,7 @@ using nodes::BakeItemsAccessor;
 using nodes::CaptureAttributeItemsAccessor;
 using nodes::ClosureInputItemsAccessor;
 using nodes::ClosureOutputItemsAccessor;
+using nodes::ClosureToListItemsAccessor;
 using nodes::CombineBundleItemsAccessor;
 using nodes::EvaluateClosureInputItemsAccessor;
 using nodes::EvaluateClosureOutputItemsAccessor;
@@ -3874,6 +3876,69 @@ static const EnumPropertyItem *rna_Node_ItemArray_structure_type_itemf(bContext 
   const ItemT &item = *static_cast<const ItemT *>(ptr->data);
   const eNodeSocketDatatype socket_type = Accessor::get_socket_type(item);
   return rna_NodeSocket_structure_type_item_filter(ntree, socket_type, r_free);
+}
+
+/** Similar to #rna_NodeSocket_structure_type_item_filter. */
+static const EnumPropertyItem *rna_GeometryNodeClosureToListItem_structure_type_itemf(
+    bContext * /*C*/, PointerRNA *ptr, PropertyRNA * /*prop*/, bool *r_free)
+{
+  const bNodeTree *ntree = reinterpret_cast<const bNodeTree *>(ptr->owner_id);
+  const auto &item = *static_cast<const GeometryNodeClosureToListItem *>(ptr->data);
+  const auto socket_type = eNodeSocketDatatype(item.socket_type);
+
+  if (!ntree) {
+    return rna_enum_dummy_NULL_items;
+  }
+  const bool is_geometry_nodes = ntree->type == NTREE_GEOMETRY;
+  const bool supports_fields = is_geometry_nodes &&
+                               nodes::socket_type_supports_fields(socket_type);
+  const bool supports_grids = is_geometry_nodes && nodes::socket_type_supports_grids(socket_type);
+  /* Lists of lists are sort of arbitrarily not supported yet. */
+  const bool supports_lists = false;
+
+  *r_free = true;
+  EnumPropertyItem *items = nullptr;
+  int items_count = 0;
+
+  for (const EnumPropertyItem *item = rna_enum_node_socket_structure_type_items; item->identifier;
+       item++)
+  {
+    switch (NodeSocketInterfaceStructureType(item->value)) {
+      case NodeSocketInterfaceStructureType::Single: {
+        RNA_enum_item_add(&items, &items_count, item);
+        break;
+      }
+      case NodeSocketInterfaceStructureType::Auto: {
+        break;
+      }
+      case NodeSocketInterfaceStructureType::Dynamic: {
+        if (supports_fields || supports_grids) {
+          RNA_enum_item_add(&items, &items_count, item);
+        }
+        break;
+      }
+      case NodeSocketInterfaceStructureType::Field: {
+        if (supports_fields) {
+          RNA_enum_item_add(&items, &items_count, item);
+        }
+        break;
+      }
+      case NodeSocketInterfaceStructureType::Grid: {
+        if (supports_grids) {
+          RNA_enum_item_add(&items, &items_count, item);
+        }
+        break;
+      }
+      case NodeSocketInterfaceStructureType::List: {
+        if (supports_lists) {
+          RNA_enum_item_add(&items, &items_count, item);
+        }
+        break;
+      }
+    }
+  }
+  RNA_enum_item_end(&items, &items_count);
+  return items;
 }
 
 static IndexSwitchItem *rna_NodeIndexSwitchItems_new(ID *id, bNode *node, Main *bmain)
@@ -8500,6 +8565,71 @@ static void rna_def_geo_field_to_grid_items(BlenderRNA *brna)
       srna, "GeometryNodeFieldToGridItem", "FieldToGridItemsAccessor");
 }
 
+static void rna_def_geo_closure_to_list_item(BlenderRNA *brna)
+{
+  PropertyRNA *prop;
+
+  StructRNA *srna = RNA_def_struct(brna, "GeometryNodeClosureToListItem", nullptr);
+  RNA_def_struct_ui_text(srna, "Closure to List Item", "");
+  RNA_def_struct_sdna(srna, "GeometryNodeClosureToListItem");
+
+  rna_def_node_item_array_socket_item_common(srna, "ClosureToListItemsAccessor", true);
+
+  prop = RNA_def_property(srna, "structure_type", PROP_ENUM, PROP_NONE);
+  RNA_def_property_enum_items(prop, rna_enum_node_socket_structure_type_items);
+  RNA_def_property_enum_funcs(
+      prop, nullptr, nullptr, "rna_GeometryNodeClosureToListItem_structure_type_itemf");
+
+  prop = RNA_def_property(srna, "identifier", PROP_INT, PROP_NONE);
+  RNA_def_property_clear_flag(prop, PROP_EDITABLE);
+}
+
+static void rna_def_geo_closure_to_list_items(BlenderRNA *brna)
+{
+  StructRNA *srna = RNA_def_struct(brna, "GeometryNodeClosureToListItems", nullptr);
+  RNA_def_struct_ui_text(srna, "Items", "Collection of closure to list items");
+  RNA_def_struct_sdna(srna, "bNode");
+
+  rna_def_node_item_array_new_with_socket_and_name(
+      srna, "GeometryNodeClosureToListItem", "ClosureToListItemsAccessor");
+  rna_def_node_item_array_common_functions(
+      srna, "GeometryNodeClosureToListItem", "ClosureToListItemsAccessor");
+}
+
+static void def_geo_closure_to_list(BlenderRNA *brna, StructRNA *srna)
+{
+  PropertyRNA *prop;
+
+  rna_def_geo_closure_to_list_item(brna);
+  rna_def_geo_closure_to_list_items(brna);
+
+  RNA_def_struct_sdna_from(srna, "GeometryNodeClosureToList", "storage");
+
+  prop = RNA_def_property(srna, "list_items", PROP_COLLECTION, PROP_NONE);
+  RNA_def_property_collection_sdna(prop, nullptr, "items", "items_num");
+  RNA_def_property_struct_type(prop, "GeometryNodeClosureToListItem");
+  RNA_def_property_ui_text(prop, "Items", "");
+  RNA_def_property_srna(prop, "GeometryNodeClosureToListItems");
+
+  prop = RNA_def_property(srna, "active_index", PROP_INT, PROP_UNSIGNED);
+  RNA_def_property_int_sdna(prop, nullptr, "active_index");
+  RNA_def_property_ui_text(prop, "Active Item Index", "Index of the active item");
+  RNA_def_property_clear_flag(prop, PROP_ANIMATABLE);
+  RNA_def_property_flag(prop, PROP_NO_DEG_UPDATE);
+  RNA_def_property_update(prop, NC_NODE, nullptr);
+
+  prop = RNA_def_property(srna, "active_item", PROP_POINTER, PROP_NONE);
+  RNA_def_property_struct_type(prop, "RepeatItem");
+  RNA_def_property_pointer_funcs(prop,
+                                 "rna_Node_ItemArray_active_get<ClosureToListItemsAccessor>",
+                                 "rna_Node_ItemArray_active_set<ClosureToListItemsAccessor>",
+                                 nullptr,
+                                 nullptr);
+  RNA_def_property_flag(prop, PROP_EDITABLE | PROP_NO_DEG_UPDATE);
+  RNA_def_property_ui_text(prop, "Active Item Index", "Index of the active item");
+  RNA_def_property_update(prop, NC_NODE, nullptr);
+}
+
 static void def_geo_field_to_grid(BlenderRNA *brna, StructRNA *srna)
 {
   PropertyRNA *prop;
@@ -10497,6 +10627,7 @@ static void rna_def_nodes(BlenderRNA *brna)
   define("GeometryNode", "GeometryNodeBoundBox");
   define("GeometryNode", "GeometryNodeCameraInfo");
   define("GeometryNode", "GeometryNodeCaptureAttribute", rna_def_geo_capture_attribute);
+  define("GeometryNode", "GeometryNodeClosureToList", def_geo_closure_to_list);
   define("GeometryNode", "GeometryNodeClusterByConnected");
   define("GeometryNode", "GeometryNodeClusterByDistance");
   define("GeometryNode", "GeometryNodeCollectionChildren");
