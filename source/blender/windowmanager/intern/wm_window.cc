@@ -39,6 +39,7 @@
 #include "BLI_listbase.h"
 #include "BLI_math_vector.h"
 #include "BLI_path_utils.hh"
+#include "BLI_profile.hh"
 #include "BLI_rect.h"
 #include "BLI_string.h"
 #include "BLI_string_utf8.h"
@@ -2195,6 +2196,7 @@ static bool wm_window_timers_process(const bContext *C, int *sleep_us_p)
 
 void wm_window_events_process(const bContext *C)
 {
+  BLI_profile_scope(ProfileCategory::Core);
   BLI_assert(BLI_thread_is_main());
   GPU_render_begin();
 
