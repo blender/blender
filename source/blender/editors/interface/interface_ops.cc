@@ -3000,6 +3000,14 @@ static void UI_OT_view_item_delete(wmOperatorType *ot)
 
   ot->flag = OPTYPE_INTERNAL;
 }
+/** \} */
+
+/* -------------------------------------------------------------------- */
+/** \name UI View Item Navigate Operator
+ *
+ * Operator for navigating in view with arrow keys.
+ *
+ * \{ */
 
 enum class Direction {
   UP,
