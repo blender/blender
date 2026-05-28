@@ -103,7 +103,7 @@ struct GeomPointCloud {
   }
 
   init_globals(uni, true);
-  attrib_load(PointCloudPoint{ws_pt.point_id});
+  attrib_load(PointCloudPoint{ls_pt.P, ws_pt.point_id});
 
   interp.P += nodetree_displacement();
 

@@ -12,6 +12,7 @@ struct MeshVertex {
 };
 
 struct PointCloudPoint {
+  float3 lP;
   int point_id;
 };
 
