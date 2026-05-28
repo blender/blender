@@ -202,8 +202,8 @@ principled_bsdf_emission(KernelGlobals kg,
   }
 
   /* Emission (attenuated by sheen and coat) */
-  const float3 emission = rgb_to_spectrum(stack_load(stack, data.emission_color)) *
-                          stack_load(stack, data.emission_strength);
+  const Spectrum emission = rgb_to_spectrum(stack_load(stack, data.emission_color)) *
+                            stack_load(stack, data.emission_strength);
   if (!is_zero(emission)) {
     emission_setup(sd, rgb_to_spectrum(emission) * weight);
   }
