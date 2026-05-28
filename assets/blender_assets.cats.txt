@@ -43,6 +43,7 @@ f57862b2-0845-4ce7-a860-ce343dee67b9:Brushes/Mesh Texture Paint/Utilities:Brushe
 6ecdfe44-a0d7-40b9-8518-b92c97a1b4f2:Generate:Generate
 a7b80fd1-5de6-4c15-9049-52f25f4376de:Geometry:Geometry
 463e71f0-6db1-41af-bc96-6f875196aac7:Geometry/Operations:Geometry-Operations
+9cff2dd6-c78b-41b3-a00e-32f116e1d95a:Geometry/Sample:Geometry-Sample
 5fa1e91c-e798-4051-8e4d-5d47f76f789b:Geometry/Selection:Geometry-Selection
 f14d3c5d-8223-4e8c-b3b3-cbce81e4b3ee:Hair:Hair
 87cbaad7-ae4e-404c-9b6b-4fe60ecc39dc:Hair/Deformation:Hair-Deformation
@@ -57,4 +58,5 @@ b6bb38bb-bfe1-4a12-b2bc-fc87d060864f:Mesh/Read:Mesh-Read
 9e98eca8-e987-44d3-88a1-6633d0a8ad82:Normals:Normals
 df62a3e8-fc21-457b-9415-89f89af431ac:Simulation:Simulation
 b8945cf7-3045-4675-aae3-0b0eba853415:Utilities:Utilities
+373286bf-39ea-4988-bbb0-cf334c19cf6b:Utilities/Field:Utilities-Field
 8c0273f0-3645-449f-9d95-c4f17fb910db:Utilities/Vector:Utilities-Vector
