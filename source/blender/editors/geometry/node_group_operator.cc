@@ -90,9 +90,7 @@
 
 #include <fmt/format.h>
 
-namespace blender {
-
-namespace ed::geometry {
+namespace blender::ed::geometry {
 
 using asset_system::AssetRepresentation;
 
@@ -2146,5 +2144,4 @@ void ui_template_node_operator_asset_root_items(ui::Layout &layout, const bConte
 
 /** \} */
 
-}  // namespace ed::geometry
-}  // namespace blender
+}  // namespace blender::ed::geometry
