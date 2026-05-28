@@ -25,6 +25,7 @@
 #include "BKE_editmesh.hh"
 #include "BKE_grease_pencil.h"
 #include "BKE_grease_pencil.hh"
+#include "BKE_instances.hh"
 #include "BKE_lattice.hh"
 #include "BKE_layer.hh"
 #include "BKE_mball.hh"
@@ -160,8 +161,16 @@ static void empty_object_update(Depsgraph *depsgraph, Scene *scene, Object *obje
 {
   BKE_object_free_derived_caches(object);
 
-  /* Evaluate modifiers. */
   bke::GeometrySet geometry_set;
+  /* If the empty is instancing a collection, create an input geometry set of this collection. */
+  if (object->instance_collection != nullptr) {
+    Collection &collection = *object->instance_collection;
+    auto instances = std::make_unique<bke::Instances>(1);
+    instances->reference_handles_for_write().first() = instances->add_reference(collection);
+    instances->transforms_for_write().first() = float4x4::identity();
+    geometry_set = bke::GeometrySet::from_instances(std::move(instances));
+  }
+  /* Evaluate modifiers. */
   empty_object_apply_modifiers(depsgraph, scene, object, geometry_set);
 
   object->runtime->geometry_set_eval = new bke::GeometrySet(std::move(geometry_set));
