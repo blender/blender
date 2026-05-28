@@ -864,7 +864,7 @@ CombinedKeyingResult insert_keyframes(Main *bmain,
     CombinedKeyingResult result;
 
     const std::optional<StringRefNull> this_rna_path_channel_group =
-        channel_group.has_value() ? *channel_group :
+        channel_group.has_value() ? channel_group :
                                     default_channel_group_for_path(&ptr, *rna_path_id_to_prop);
 
     result = insert_key_layered_action(bmain,
