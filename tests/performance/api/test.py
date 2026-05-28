@@ -38,6 +38,23 @@ class Test:
         """
         return True
 
+    @staticmethod
+    def blender_gpu_arguments(device_id: str, gpu_backend: str) -> list:
+        """
+        Return GPU arguments for blender.
+
+        Always includes --gpu-backend and optional include --gpu-device when device_id isn't
+        default (0 or missing).
+        """
+        args = ['--gpu-backend', gpu_backend]
+        if '_' in device_id:
+            parts = device_id.rsplit('_', 1)
+            device_index = int(parts[1])
+            # Only specify --gpu-device for non-zero indices. Older builds could not support it.
+            if device_index > 0:
+                args += ['--gpu-device', str(device_index)]
+        return args
+
     @abc.abstractmethod
     def run(self, env, device_id: str, gpu_backend: str) -> dict:
         """

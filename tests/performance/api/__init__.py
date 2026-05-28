@@ -2,6 +2,7 @@
 #
 # SPDX-License-Identifier: Apache-2.0
 
+from .common import normalize_device_id
 from .environment import TestFailure, TestEnvironment
 from .device import TestDevice, TestMachine
 from .config import TestEntry, TestQueue, TestConfig
