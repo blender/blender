@@ -1769,16 +1769,23 @@ void SourceProcessor::lower_reference_variables(Parser &parser)
 
       string definition = parser.substr_range_inclusive(assignment[1], assignment.back());
 
+      bool error = false;
       /* Replace declaration. */
       parser.erase(decl_start, decl_end);
       /* Replace all occurrences with definition. */
       name.scope().foreach_token(Word, [&](const Token token) {
         /* Do not match member access or function calls. */
-        if (token.prev() == '.' || token.next() == '(') {
+        if (error || token.prev() == '.' || token.next() == '(') {
           return;
         }
         if (token.str_index_start() > decl_end.str_index_last() && token.str() == name.str()) {
-          parser.replace(token, definition);
+          if (token.prev() == '&' && token.next() == '=') {
+            report_error(token, "Local reference shadowing is not allowed.");
+            error = true;
+          }
+          else {
+            parser.replace(token, definition);
+          }
         }
       });
     });
