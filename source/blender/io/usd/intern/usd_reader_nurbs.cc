@@ -19,6 +19,8 @@
 #include <pxr/usd/usdGeom/curves.h>
 #include <pxr/usd/usdGeom/primvarsAPI.h>
 
+#include <algorithm>
+
 #include "CLG_log.h"
 
 namespace blender {
@@ -334,7 +336,7 @@ void USDNurbsReader::read_curve_sample(Curves *curves_id, const pxr::UsdTimeCode
         blender_points_range, usd_points_by_curve[curve_i]);
 
     const int copy_size = std::min(
-        usd_points.size(), std::min(blender_points_range.size(), usd_points_range_de_dup.size()));
+        {usd_points.size(), blender_points_range.size(), usd_points_range_de_dup.size()});
     curves_positions.slice(blender_points_range.start(), copy_size)
         .copy_from(usd_points.slice(usd_points_range_de_dup.start(), copy_size));
     /* Fill any missing items with a default value. */
