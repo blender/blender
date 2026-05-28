@@ -1071,13 +1071,13 @@ void Controller::displayDensityCurves(int x, int y)
   // build the density/nbLevels curves for each orientation
   for (i = 0; i < nbCurves; ++i) {
     for (j = 0; j < nbPoints; ++j) {
-      curves[i].push_back(Vec3r(j, svm->readSteerableViewMapPixel(i, j, x, y), 0));
+      curves[i].emplace_back(j, svm->readSteerableViewMapPixel(i, j, x, y), 0);
     }
   }
   // build the density/nbOrientations curves for each level
   for (i = 0; i < nbPoints; ++i) {
     for (j = 0; j < nbCurves; ++j) {
-      curvesDirection[i].push_back(Vec3r(j, svm->readSteerableViewMapPixel(j, i, x, y), 0));
+      curvesDirection[i].emplace_back(j, svm->readSteerableViewMapPixel(j, i, x, y), 0);
     }
   }
 
