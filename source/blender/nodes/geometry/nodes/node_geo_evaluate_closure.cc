@@ -14,6 +14,7 @@
 #include "NOD_sync_sockets.hh"
 
 #include "BKE_idprop.hh"
+#include "BKE_node_tree_reference_lifetimes.hh"
 
 #include "BLO_read_write.hh"
 
@@ -25,6 +26,44 @@ namespace blender {
 namespace nodes::node_geo_evaluate_closure_cc {
 
 NODE_STORAGE_FUNCS(NodeEvaluateClosure)
+
+static void create_all_reference_lifetime_relations(NodeDeclarationBuilder &b)
+{
+  using bke::node_tree_reference_lifetimes::can_contain_reference;
+  using bke::node_tree_reference_lifetimes::can_contain_referenced_data;
+  rl::RelationsInNode &relations = b.get_reference_lifetime_relations();
+  const NodeDeclaration &node_decl = b.declaration();
+  for (const SocketDeclaration *input : node_decl.inputs) {
+    if (can_contain_reference(input->socket_type)) {
+      for (const SocketDeclaration *other_input : node_decl.inputs) {
+        if (can_contain_referenced_data(other_input->socket_type)) {
+          relations.use_relations.append({input->index, other_input->index});
+        }
+      }
+      for (const SocketDeclaration *output : node_decl.outputs) {
+        if (can_contain_reference(output->socket_type)) {
+          relations.reference_propagations.append({input->index, output->index});
+        }
+      }
+    }
+    if (can_contain_referenced_data(input->socket_type)) {
+      for (const SocketDeclaration *output : node_decl.outputs) {
+        if (can_contain_referenced_data(output->socket_type)) {
+          relations.data_propagations.append({input->index, output->index});
+        }
+      }
+    }
+  }
+  for (const SocketDeclaration *output : node_decl.outputs) {
+    if (can_contain_reference(output->socket_type)) {
+      for (const SocketDeclaration *other_output : node_decl.outputs) {
+        if (can_contain_referenced_data(other_output->socket_type)) {
+          relations.available_relations.append({output->index, other_output->index});
+        }
+      }
+    }
+  }
+}
 
 static void node_declare(NodeDeclarationBuilder &b)
 {
@@ -77,6 +116,10 @@ static void node_declare(NodeDeclarationBuilder &b)
     }
     panel.add_input<decl::Extend>(""_ustr, "__extend__"_ustr)
         .custom_draw(socket_items::ui::draw_extend_socket_fn<EvaluateClosureInputItemsAccessor>());
+
+    /* This creates all possible reference lifetime relations because the closure could do
+     * anything. */
+    create_all_reference_lifetime_relations(b);
   }
 }
 

@@ -294,27 +294,6 @@ static Vector<ReferenceSetInfo> find_reference_sets(
       }
     }
   }
-  /* Each output of the Evaluate Closure node may reference data in any other output. We can't know
-   * exactly what references what here. */
-  for (const bNode *node : tree.nodes_by_type("NodeEvaluateClosure"_ustr)) {
-    const auto &storage = *static_cast<NodeEvaluateClosure *>(node->storage);
-    Vector<const bNodeSocket *> reference_outputs;
-    for (const int i : IndexRange(storage.output_items.items_num)) {
-      const NodeEvaluateClosureOutputItem &item = storage.output_items.items[i];
-      if (can_contain_referenced_data(item.socket_type)) {
-        reference_outputs.append(&node->output_socket(i));
-      }
-    }
-    if (!reference_outputs.is_empty()) {
-      for (const int i : IndexRange(storage.output_items.items_num)) {
-        const NodeEvaluateClosureOutputItem &item = storage.output_items.items[i];
-        if (can_contain_reference(item.socket_type)) {
-          reference_sets.append({ReferenceSetType::LocalReferenceSet, &node->output_socket(i)});
-          reference_sets.last().potential_data_origins.extend(reference_outputs);
-        }
-      }
-    }
-  }
 
   const bNodeTreeZones *zones = tree.zones();
   if (!zones) {
@@ -836,28 +815,6 @@ static bool pass_right_to_left(const bNodeTree &tree,
           const int out_index = body_output_socket.index_in_tree();
           needs_extra_pass |= or_into_each_other(r_required_data_by_socket[in_index],
                                                  r_required_data_by_socket[out_index]);
-        }
-        break;
-      }
-      case NODE_EVALUATE_CLOSURE: {
-        /* Data referenced by the closure is required on all the other inputs. */
-        const bNodeSocket &closure_socket = node->input_socket(0);
-        BitVector<> required_data_on_inputs =
-            potential_reference_by_socket[closure_socket.index_in_tree()];
-        /* Data required on outputs is also required on inputs. */
-        for (const bNodeSocket *socket : node->output_sockets()) {
-          required_data_on_inputs |= r_required_data_by_socket[socket->index_in_tree()];
-        }
-        /* References available on inputs are also required on the data inputs because they may be
-         * used by the closure. */
-        for (const bNodeSocket *socket : node->input_sockets()) {
-          if (can_contain_reference(socket->type)) {
-            required_data_on_inputs |= potential_reference_by_socket[socket->index_in_tree()];
-          }
-        }
-        for (const bNodeSocket *socket : node->input_sockets()) {
-          const int dst_index = socket->index_in_tree();
-          r_required_data_by_socket[dst_index] |= required_data_on_inputs;
         }
         break;
       }
