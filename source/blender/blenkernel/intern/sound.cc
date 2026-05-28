@@ -805,8 +805,8 @@ void BKE_sound_create_scene(Scene *scene)
   aud::Specs specs;
   specs.channels = aud::CHANNELS_STEREO;
   specs.rate = aud::RATE_48000;
-  audio.sound_scene = AUD_Sequence(
-      new aud::Sequence(specs, scene->frames_per_second(), scene->audio.flag & AUDIO_MUTE));
+  audio.sound_scene = std::make_shared<aud::Sequence>(
+      specs, scene->frames_per_second(), scene->audio.flag & AUDIO_MUTE);
   audio.sound_scene->setSpeedOfSound(scene->audio.speed_of_sound);
   audio.sound_scene->setDopplerFactor(scene->audio.doppler_factor);
   audio.sound_scene->setDistanceModel(aud::DistanceModel(scene->audio.distance_model));

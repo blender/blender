@@ -346,8 +346,8 @@ AUD_Sound sound_equalizermodifier_recreator(Strip *strip,
     return smd->runtime->last_sound_out;
   }
 
-  std::shared_ptr<aud::Buffer> aud_buf = std::shared_ptr<aud::Buffer>(
-      new aud::Buffer(sizeof(float) * SOUND_EQUALIZER_SIZE_DEFINITION));
+  std::shared_ptr<aud::Buffer> aud_buf = std::make_shared<aud::Buffer>(
+      sizeof(float) * SOUND_EQUALIZER_SIZE_DEFINITION);
   std::memcpy(aud_buf->getBuffer(), buf, sizeof(float) * SOUND_EQUALIZER_SIZE_DEFINITION);
   AUD_Sound sound_out = AUD_Sound(new aud::Equalizer(sound_in,
                                                      aud_buf,
