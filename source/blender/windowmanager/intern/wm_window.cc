@@ -2716,7 +2716,7 @@ static char *wm_clipboard_text_get_ex(bool selection,
   }
 
   /* Always convert from `\r\n` to `\n`. */
-  char *newbuf = MEM_new_array_uninitialized<char>(size_t(buf_len + 1), __func__);
+  char *newbuf = MEM_new_array_uninitialized<char>(size_t(buf_len) + 1, __func__);
   char *p2 = newbuf;
 
   if (firstline) {

@@ -1711,7 +1711,7 @@ void BKE_fcurve_delete_keys(FCurve &fcu, uint2 index_range)
 BezTriple *BKE_bezier_array_merge(
     const BezTriple *a, const int size_a, const BezTriple *b, const int size_b, int *r_merged_size)
 {
-  BezTriple *large_array = MEM_new_array_zeroed<BezTriple>(size_t(size_a + size_b), "beztriple");
+  BezTriple *large_array = MEM_new_array_zeroed<BezTriple>(size_t(size_a) + size_b, "beztriple");
 
   int iterator_a = 0;
   int iterator_b = 0;

@@ -488,7 +488,7 @@ static void bm_grid_fill(BMesh *bm,
   ListBaseT<LinkData> *lb_rail_a = BM_edgeloop_verts_get(estore_rail_a);
   ListBaseT<LinkData> *lb_rail_b = BM_edgeloop_verts_get(estore_rail_b);
 
-  BMVert **v_grid = MEM_new_array_zeroed<BMVert *>(size_t(xtot * ytot), __func__);
+  BMVert **v_grid = MEM_new_array_zeroed<BMVert *>(size_t(xtot) * ytot, __func__);
   /**
    * <pre>
    *           estore_b

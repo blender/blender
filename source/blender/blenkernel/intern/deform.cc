@@ -842,7 +842,7 @@ MDeformWeight *BKE_defvert_ensure_index(MDeformVert *dvert, const int defgroup)
     return dw_new;
   }
 
-  dw_new = MEM_new_array_uninitialized<MDeformWeight>(size_t(dvert->totweight + 1), __func__);
+  dw_new = MEM_new_array_uninitialized<MDeformWeight>(size_t(dvert->totweight) + 1, __func__);
   if (dvert->dw) {
     memcpy(dw_new, dvert->dw, sizeof(MDeformWeight) * dvert->totweight);
     MEM_delete(dvert->dw);
@@ -870,7 +870,7 @@ void BKE_defvert_add_index_notest(MDeformVert *dvert, const int defgroup, const 
     return;
   }
 
-  dw_new = MEM_new_array_zeroed<MDeformWeight>(size_t(dvert->totweight + 1), __func__);
+  dw_new = MEM_new_array_zeroed<MDeformWeight>(size_t(dvert->totweight) + 1, __func__);
   if (dvert->dw) {
     memcpy(dw_new, dvert->dw, sizeof(MDeformWeight) * dvert->totweight);
     MEM_delete(dvert->dw);
