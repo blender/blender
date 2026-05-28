@@ -75,8 +75,6 @@ BLOCKLIST_METAL = [
     "image.blend",
     # Blocked due to subtle differences in DOF
     "osl_camera_advanced.blend",
-    # Blocked due to volume occupancy being broken
-    "texture_coordinate_object.blend",
 ]
 
 BLOCKLIST_VULKAN = [
@@ -316,16 +314,22 @@ def main():
             report.set_fail_percent(0.14)
             report.set_fail_threshold(6.0 / 255.0)
     elif test_dir_name.startswith('camera'):
-        # camera_central_cylindrical and camera_stereo_panoramic have some platform specific small differences
-        report.set_fail_percent(0.8)
+        # camera_stereo_panoramic have some platform specific small differences
+        report.set_fail_percent(0.14)
         report.set_fail_threshold(6.0 / 255.0)
     elif test_dir_name.startswith('image_colorspace'):
         # image_log has hot pixels that result in platform differences.
         report.set_fail_percent(0.15)
     elif test_dir_name.startswith('displacement'):
-        # Real & bump displacement use hardware derivatives which results in platform differences.
-        report.set_fail_percent(0.38)
+        # Raster difference across hardware (subdiv geometry).
+        report.set_fail_percent(0.1)
         report.set_fail_threshold(7.0 / 255.0)
+        if args.gpu_backend == "metal":
+            # Difference in shadows in true_displacement_image and vector_displacement_tangent.
+            report.set_fail_percent(0.21)
+        elif "ATI" in gpu_vendor or "AMD" in gpu_vendor:
+            # Difference in bump_normal_texture likely caused by different derivatives.
+            report.set_fail_percent(0.29)
     elif test_dir_name.startswith('transparency'):
         # Dithered transparency uses platform dependent noise pattern.
         report.set_fail_percent(0.22)
