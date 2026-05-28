@@ -2034,8 +2034,7 @@ void ViewMapBuilder::FindOccludee(
     face->RetrieveVertexList(faceVertices);
   }
 
-  return FindOccludee(
-      fe, iGrid, epsilon, oaPolygon, timestamp, u, A, origin, edgeDir, faceVertices);
+  FindOccludee(fe, iGrid, epsilon, oaPolygon, timestamp, u, A, origin, edgeDir, faceVertices);
 }
 
 int ViewMapBuilder::ComputeRayCastingVisibility(FEdge *fe,
