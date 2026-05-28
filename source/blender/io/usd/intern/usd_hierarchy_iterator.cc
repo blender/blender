@@ -60,6 +60,7 @@ bool USDHierarchyIterator::mark_as_weak_export(const Object *object) const
     case OB_MESH:
     case OB_MBALL:
     case OB_FONT:
+    case OB_SURF:
       return !params_.export_meshes;
     case OB_CAMERA:
       return !params_.export_cameras;
@@ -284,6 +285,9 @@ AbstractHierarchyWriter *USDHierarchyIterator::create_data_writer(const Hierarch
 
   switch (context->object->type) {
     case OB_MESH:
+    case OB_SURF:
+      /* NURBS surfaces are tessellated to a mesh during depsgraph evaluation,
+       * so they can be written through the standard mesh writer. */
       if (usd_export_context.export_params.export_meshes) {
         if (params_.use_instancing && use_point_instancing) {
           USDExporterContext mesh_context = create_point_instancer_context(context,
@@ -381,7 +385,6 @@ AbstractHierarchyWriter *USDHierarchyIterator::create_data_writer(const Hierarch
       break;
 
     case OB_EMPTY:
-    case OB_SURF:
     case OB_SPEAKER:
     case OB_LIGHTPROBE:
     case OB_LATTICE:
