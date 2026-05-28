@@ -130,6 +130,18 @@ class VKBuffer : public NonCopyable {
    */
   VkDeviceMemory export_memory_get(size_t &memory_size);
 
+  /**
+   * Flush the mapped memory after writing to it on the host. Only has an effect if the memory is
+   * not host coherent.
+   */
+  void flush_mapped_memory();
+
+  /**
+   * Invalidates the mapped memory after writing to it on the device. Only has an effect if the
+   * memory is not host coherent.
+   */
+  void invalidate_mapped_memory();
+
  private:
   /** Check if this buffer is mapped. */
   bool map();

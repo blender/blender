@@ -235,6 +235,20 @@ VkDeviceMemory VKBuffer::export_memory_get(size_t &memory_size)
   return info.deviceMemory;
 }
 
+void VKBuffer::flush_mapped_memory()
+{
+  const VKDevice &device = VKBackend::get().device;
+  VmaAllocator allocator = device.mem_allocator_get();
+  vmaFlushAllocation(allocator, allocation_, 0, size_in_bytes_);
+}
+
+void VKBuffer::invalidate_mapped_memory()
+{
+  const VKDevice &device = VKBackend::get().device;
+  VmaAllocator allocator = device.mem_allocator_get();
+  vmaInvalidateAllocation(allocator, allocation_, 0, size_in_bytes_);
+}
+
 bool VKBuffer::free()
 {
   if (is_mapped()) {
