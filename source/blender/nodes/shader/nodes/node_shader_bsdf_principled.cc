@@ -13,6 +13,8 @@
 
 #include "BKE_node_runtime.hh"
 
+#include "NOD_socket_usage_inference.hh"
+
 namespace blender {
 
 namespace nodes::node_shader_bsdf_principled_cc {
@@ -115,7 +117,8 @@ static void node_declare(NodeDeclarationBuilder &b)
       .min(0.0f)
       .max(100.0f)
       .short_label("Radius")
-      .description("Scattering radius per color channel (RGB), multiplied with Scale");
+      .description("Scattering radius per color channel (RGB), multiplied with Scale")
+      .usage_by_bool("Thin Wall"_ustr, false);
 #define SOCK_SUBSURFACE_RADIUS_ID 10
   sss.add_input<decl::Float>("Subsurface Scale"_ustr)
       .default_value(0.05f)
@@ -123,7 +126,8 @@ static void node_declare(NodeDeclarationBuilder &b)
       .max(10.0f)
       .subtype(PROP_DISTANCE)
       .short_label("Scale")
-      .description("Scale factor of the subsurface scattering radius");
+      .description("Scale factor of the subsurface scattering radius")
+      .usage_by_bool("Thin Wall"_ustr, false);
 #define SOCK_SUBSURFACE_SCALE_ID 11
   sss.add_input<decl::Float>("Subsurface IOR"_ustr)
       .default_value(1.4f)
@@ -145,7 +149,12 @@ static void node_declare(NodeDeclarationBuilder &b)
           "Zero scatters uniformly in all directions, positive values scatter more in the forward "
           "direction, and negative values scatter more backwards. "
           "For example, skin has been measured to have an anisotropy of 0.8")
-      .make_available([](bNode &node) { node.custom2 = SHD_SUBSURFACE_RANDOM_WALK; });
+      .make_available([](bNode &node) { node.custom2 = SHD_SUBSURFACE_RANDOM_WALK; })
+      .usage_inference(
+          [](const socket_usage_inference::SocketUsageParams &params) -> std::optional<bool> {
+            return params.bool_input_may_be("Thin Wall"_ustr, true) ||
+                   params.node.custom2 != SHD_SUBSURFACE_BURLEY;
+          });
 #define SOCK_SUBSURFACE_ANISOTROPY_ID 13
 
   /* Panel for Specular settings. */
