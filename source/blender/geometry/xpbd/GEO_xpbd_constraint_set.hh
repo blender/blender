@@ -41,7 +41,7 @@ class ConstraintSet {
                                 GaussSeidelUpdater &updater,
                                 const IndexMask &mask) = 0;
   virtual void reset_forces() = 0;
-  virtual ConstraintColoring color_constraints(IndexMaskMemory &memory) const = 0;
+  virtual ConstraintColoring color_constraints(LinearAllocator<> &memory) const = 0;
 
   void solve_sequential_all(const ConstraintSetParams &params, GaussSeidelUpdater &updater)
   {

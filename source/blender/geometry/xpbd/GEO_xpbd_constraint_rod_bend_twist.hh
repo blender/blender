@@ -86,7 +86,7 @@ class RodBendAndTwistConstraintSet : public TemplatedConstraintSet<RodBendAndTwi
     }
   }
 
-  ConstraintColoring color_constraints(IndexMaskMemory & /*memory*/) const override
+  ConstraintColoring color_constraints(LinearAllocator<> & /*memory*/) const override
   {
     return color_constraints__all_independent(constraints_num_);
   }

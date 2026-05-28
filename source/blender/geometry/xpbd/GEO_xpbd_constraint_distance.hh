@@ -98,7 +98,7 @@ class DistanceConstraintSet : public TemplatedConstraintSet<DistanceConstraintSe
     updater.add_residual_error(geo_i, result.residual_error_squared * error_scale_);
   }
 
-  ConstraintColoring color_constraints(IndexMaskMemory &memory) const override
+  ConstraintColoring color_constraints(LinearAllocator<> &memory) const override
   {
     return color_constraints__binary(point_pairs_, memory);
   }

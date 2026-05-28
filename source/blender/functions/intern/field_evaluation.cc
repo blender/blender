@@ -535,7 +535,7 @@ static IndexMask index_mask_from_selection(const IndexMask full_mask,
                                            const VArray<bool> &selection,
                                            ResourceScope &scope)
 {
-  return IndexMask::from_bools(full_mask, selection, scope.construct<IndexMaskMemory>());
+  return IndexMask::from_bools(full_mask, selection, scope.allocator());
 }
 
 int FieldEvaluator::add_with_destination(GField field, GVMutableArray dst)

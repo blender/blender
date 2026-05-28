@@ -121,7 +121,7 @@ class CollisionFaceConstraintSet : public TemplatedConstraintSet<CollisionFaceCo
     updater.add_residual_error(geo_i_, error_squared * error_scales_[constraint_i]);
   }
 
-  ConstraintColoring color_constraints(IndexMaskMemory &memory) const override
+  ConstraintColoring color_constraints(LinearAllocator<> &memory) const override
   {
     return color_constraints__unary(points_, memory);
   }

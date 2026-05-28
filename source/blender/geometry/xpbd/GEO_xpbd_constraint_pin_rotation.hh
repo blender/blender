@@ -63,7 +63,7 @@ class PinRotationConstraintSet : public TemplatedConstraintSet<PinRotationConstr
     updater.add_residual_error(geo_i, result.residual_error_squared * error_scale_);
   }
 
-  ConstraintColoring color_constraints(IndexMaskMemory &memory) const override
+  ConstraintColoring color_constraints(LinearAllocator<> &memory) const override
   {
     return color_constraints__unary(point_indices_, memory);
   }
