@@ -216,15 +216,15 @@ static inline uint shadow_page_pack(uint3 page)
 static inline uint3 shadow_page_unpack(uint data)
 {
   uint3 page;
-  BLI_STATIC_ASSERT(SHADOW_PAGE_PER_ROW <= 8 && SHADOW_PAGE_PER_COL <= 8 &&
-                        SHADOW_PAGE_MAX_LAYER <= 128,
-                    "Update page packing")
+  /* clang-format off */ /* Multiline macros breaks shader error lines. */
+  BLI_STATIC_ASSERT(SHADOW_PAGE_PER_ROW <= 8 && SHADOW_PAGE_PER_COL <= 8 && SHADOW_PAGE_MAX_LAYER <= 128, "Update page packing")
+  /* clang-format on */
   page.x = (data >> 0u) & 7u;
   page.y = (data >> 3u) & 7u;
   page.z = (data >> 6u) & 127u;
-  BLI_STATIC_ASSERT(SHADOW_MAX_PAGE ==
-                        (SHADOW_PAGE_PER_ROW * SHADOW_PAGE_PER_COL * SHADOW_PAGE_MAX_LAYER),
-                    "Update page packing")
+  /* clang-format off */ /* Multiline macros breaks shader error lines. */
+  BLI_STATIC_ASSERT(SHADOW_MAX_PAGE == (SHADOW_PAGE_PER_ROW * SHADOW_PAGE_PER_COL * SHADOW_PAGE_MAX_LAYER), "Update page packing")
+  /* clang-format on */
   return page;
 }
 
