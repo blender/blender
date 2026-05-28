@@ -15,6 +15,7 @@
 
 #include "BLI_math_geom.h"
 #include "BLI_stack.hh"
+#include "BLI_string_utf8.h"
 #include "BLI_virtual_array_range_spans.hh"
 
 #include "DNA_curves_types.h"
@@ -3351,6 +3352,15 @@ static void node_geo_exec(GeoNodeExecParams params)
   params.set_output("World"_ustr, std::move(world_ptr));
 }
 
+static void node_label(const bNodeTree * /*ntree*/,
+                       const bNode * /*node*/,
+                       char *label,
+                       const int label_maxncpy)
+{
+  BLI_strncpy_utf8(
+      label, CTX_IFACE_(BLT_I18NCONTEXT_ID_NODETREE, "XPBD Solver (Experimental)"), label_maxncpy);
+}
+
 static void node_register()
 {
   static blender::bke::bNodeType ntype;
@@ -3361,7 +3371,8 @@ static void node_register()
   ntype.nclass = NODE_CLASS_GEOMETRY;
   ntype.geometry_node_execute = node_geo_exec;
   ntype.declare = node_declare;
-  ntype.default_width = bke::NodeWidth::_160;
+  ntype.default_width = bke::NodeWidth::_200;
+  ntype.labelfunc = node_label;
   blender::bke::node_register_type(ntype);
 }
 NOD_REGISTER_NODE(node_register)
