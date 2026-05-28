@@ -148,8 +148,7 @@ int active_update_and_get(bContext *C, Object &ob, const float mval[2])
     return face_set_none_id;
   }
 
-  CursorGeometryInfo gi;
-  if (!cursor_geometry_info_update(C, &gi, mval, false)) {
+  if (!cursor_geometry_info_update(C, mval, false)) {
     return face_set_none_id;
   }
 
@@ -1119,10 +1118,9 @@ static wmOperatorStatus change_visibility_invoke(bContext *C, wmOperator *op, co
 
   /* Update the active vertex and face set using the cursor position to avoid relying on the paint
    * cursor updates. */
-  CursorGeometryInfo cgi;
   const float mval_fl[2] = {float(event->mval[0]), float(event->mval[1])};
   vert_random_access_ensure(ob);
-  cursor_geometry_info_update(C, &cgi, mval_fl, false);
+  cursor_geometry_info_update(C, mval_fl, false);
 
   const int active_face_set = active_face_set_get(ob);
   RNA_int_set(op->ptr, "active_face_set", active_face_set);
@@ -1597,9 +1595,8 @@ static wmOperatorStatus edit_op_invoke(bContext *C, wmOperator *op, const wmEven
 
   /* Update the current active face set and Vertex as the operator can be used directly from the
    * tool without brush cursor. */
-  CursorGeometryInfo cgi;
   const float mval_fl[2] = {float(event->mval[0]), float(event->mval[1])};
-  if (!cursor_geometry_info_update(C, &cgi, mval_fl, false)) {
+  if (!cursor_geometry_info_update(C, mval_fl, false)) {
     /* The cursor is not over the mesh. Cancel to avoid editing the last updated face set ID. */
     return OPERATOR_CANCELLED;
   }

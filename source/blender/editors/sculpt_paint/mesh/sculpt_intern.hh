@@ -542,28 +542,24 @@ struct ActiveElementInfo {
 std::optional<ActiveElementInfo> active_element_info_get(ViewContext &vc, const float2 &mval);
 
 struct CursorGeometryInfo {
-  float3 location;
-  float3 normal;
+  float3 location = float3(0);
+  float3 normal = float3(0);
 };
 
 /**
  * Gets the normal, location and active vertex location of the geometry under the cursor. This also
  * updates the active vertex and cursor related data of the SculptSession using the mouse position
- *
- * TODO: This should be updated to return `std::optional<CursorGeometryInfo>`
  */
-bool cursor_geometry_info_update(bContext *C,
-                                 CursorGeometryInfo *out,
-                                 const float2 &mval,
-                                 bool use_sampled_normal);
-bool cursor_geometry_info_update(Depsgraph &depsgraph,
-                                 const Paint &paint,
-                                 const Sculpt *sd,
-                                 ViewContext &vc,
-                                 const Base *base,
-                                 CursorGeometryInfo *out,
-                                 const float2 &mval,
-                                 bool use_sampled_normal);
+std::optional<CursorGeometryInfo> cursor_geometry_info_update(bContext *C,
+                                                              const float2 &mval,
+                                                              bool use_sampled_normal);
+std::optional<CursorGeometryInfo> cursor_geometry_info_update(Depsgraph &depsgraph,
+                                                              const Paint &paint,
+                                                              const Sculpt *sd,
+                                                              ViewContext &vc,
+                                                              const Base *base,
+                                                              const float2 &mval,
+                                                              bool use_sampled_normal);
 
 void geometry_preview_lines_update(Depsgraph &depsgraph,
                                    Object &object,

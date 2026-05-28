@@ -2202,8 +2202,7 @@ static void update_for_vert(bContext *C, Object &ob, const std::optional<int> ve
 static std::optional<int> target_vert_update_and_get(bContext *C, Object &ob, const float mval[2])
 {
   SculptSession &ss = *ob.runtime->sculpt_session;
-  CursorGeometryInfo cgi;
-  if (cursor_geometry_info_update(C, &cgi, mval, false)) {
+  if (cursor_geometry_info_update(C, mval, false)) {
     return ss.active_vert_index();
   }
   return std::nullopt;

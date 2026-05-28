@@ -2529,8 +2529,7 @@ static wmOperatorStatus sculpt_mesh_filter_start(bContext *C, wmOperator *op)
   if (use_automasking) {
     /* Update the active face set manually as the paint cursor is not enabled when using the
      * Mesh Filter Tool. */
-    CursorGeometryInfo cgi;
-    cursor_geometry_info_update(C, &cgi, mval_fl, false);
+    cursor_geometry_info_update(C, mval_fl, false);
   }
 
   vert_random_access_ensure(ob);

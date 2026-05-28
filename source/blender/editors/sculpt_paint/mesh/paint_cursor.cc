@@ -154,7 +154,6 @@ void mesh_cursor_update_and_init(PaintCursorContext &pcontext)
   Brush &brush = *pcontext.brush;
   bke::PaintRuntime &paint_runtime = *pcontext.paint->runtime;
   ViewContext &vc = pcontext.vc;
-  CursorGeometryInfo gi;
 
   const float2 mval_fl = {
       float(pcontext.mval.x - pcontext.region->winrct.xmin),
@@ -170,17 +169,19 @@ void mesh_cursor_update_and_init(PaintCursorContext &pcontext)
   vert_random_access_ensure(*vc.obact);
   pcontext.prev_active_vert_index = ss.active_vert_index();
   if (!paint_runtime.stroke_active) {
-    pcontext.is_cursor_over_mesh = cursor_geometry_info_update(
+    const std::optional<CursorGeometryInfo> gi = cursor_geometry_info_update(
         *pcontext.depsgraph,
         *pcontext.paint,
         pcontext.sd,
         pcontext.vc,
         pcontext.base,
-        &gi,
         mval_fl,
         (pcontext.brush->falloff_shape == PAINT_FALLOFF_SHAPE_SPHERE));
-    pcontext.location = gi.location;
-    pcontext.normal = gi.normal;
+
+    pcontext.is_cursor_over_mesh = gi.has_value();
+    const CursorGeometryInfo info = gi.value_or(CursorGeometryInfo{});
+    pcontext.location = info.location;
+    pcontext.normal = info.normal;
   }
   else {
     pcontext.is_cursor_over_mesh = paint_runtime.last_hit;

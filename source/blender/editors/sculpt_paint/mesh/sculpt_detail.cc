@@ -216,11 +216,9 @@ static bool sample_detail_voxel(bContext *C, ViewContext *vc, const int mval[2])
   const bke::AttributeAccessor attributes = mesh.attributes();
   const VArraySpan hide_poly = *attributes.lookup<bool>(".hide_poly", bke::AttrDomain::Face);
 
-  CursorGeometryInfo cgi;
-
   /* Update the active vertex. */
   const float mval_fl[2] = {float(mval[0]), float(mval[1])};
-  if (!cursor_geometry_info_update(C, &cgi, mval_fl, false)) {
+  if (!cursor_geometry_info_update(C, mval_fl, false)) {
     return false;
   }
   BKE_sculpt_update_object_for_edit(depsgraph, &ob, false);

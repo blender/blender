@@ -756,14 +756,15 @@ static void initialize_cursor_info(bContext &C,
   int mval[2];
   RNA_int_get_array(op.ptr, "location", mval);
 
-  CursorGeometryInfo cgi;
   const float mval_fl[2] = {float(mval[0]), float(mval[1])};
 
   TrimOperation *trim_operation = reinterpret_cast<TrimOperation *>(gesture_data.operation);
-  trim_operation->initial_hit = cursor_geometry_info_update(&C, &cgi, mval_fl, false);
+  const std::optional<CursorGeometryInfo> cgi = cursor_geometry_info_update(&C, mval_fl, false);
+
+  trim_operation->initial_hit = cgi.has_value();
   if (trim_operation->initial_hit) {
-    copy_v3_v3(trim_operation->initial_location, cgi.location);
-    copy_v3_v3(trim_operation->initial_normal, cgi.normal);
+    copy_v3_v3(trim_operation->initial_location, cgi->location);
+    copy_v3_v3(trim_operation->initial_normal, cgi->normal);
   }
 }
 
