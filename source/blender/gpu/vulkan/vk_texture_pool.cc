@@ -296,6 +296,11 @@ void VKTexturePool::AllocationHandle::alloc(VkMemoryRequirements requirements)
       .priority = 1.0f,
   };
 
+  if (G.debug & G_DEBUG_GPU) {
+    create_info.flags |= VMA_ALLOCATION_CREATE_USER_DATA_COPY_STRING_BIT;
+    create_info.pUserData = (void *)__func__;
+  }
+
   VkResult result = vmaAllocateMemory(
       device.mem_allocator_get(), &requirements, &create_info, &allocation, &allocation_info);
   UNUSED_VARS_NDEBUG(result);

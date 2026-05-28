@@ -115,8 +115,9 @@ void VKIndexBuffer::allocate()
                      VK_BUFFER_USAGE_TRANSFER_DST_BIT | VK_BUFFER_USAGE_TRANSFER_SRC_BIT,
                  VMA_MEMORY_USAGE_AUTO,
                  VmaAllocationCreateFlags(0),
-                 0.8f);
-  debug::object_label(buffer_.vk_handle(), "IndexBuffer");
+                 0.8f,
+                 false,
+                 "IndexBuffer");
 }
 
 const VKBuffer &VKIndexBuffer::buffer_get() const

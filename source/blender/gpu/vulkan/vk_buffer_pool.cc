@@ -38,7 +38,9 @@ VKBufferWithOffset VKBufferPool::append(Span<uint8_t> data)
                        vk_buffer_usage_,
                        vma_memory_usage_,
                        vma_allocation_create_flags_,
-                       priority_);
+                       priority_,
+                       false,
+                       name_.c_str());
     debug::object_label(new_buffer->vk_handle(), name_);
     buffers_.append(std::move(new_buffer));
     buffer_offset_ = 0;
