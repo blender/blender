@@ -18,6 +18,8 @@
  * \see https://github.com/wolfpld/tracy/releases/latest/download/tracy.pdf
  */
 
+#include <cstdint>
+
 #ifdef WITH_TRACY
 #  include <tracy/Tracy.hpp>
 #endif
