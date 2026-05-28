@@ -636,25 +636,52 @@ struct ExtensionData {
  * \param boundary_layers: Layers that are purely for boundaries, regular strokes are not rendered.
  * \param src_drawings: Drawings to include as boundary strokes.
  * \param invert: Construct boundary around empty areas instead.
- * \param alpha_threshold: Render transparent stroke where opacity is below the threshold.
+ * \param opacity_threshold: Render transparent stroke where opacity is below the threshold.
  * \param fill_point: Point from which to start the bucket fill.
  * \param fit_method: View fitting method to include all strokes.
- * \param stroke_material_index: Material index to use for the new strokes.
  * \param keep_images: Keep the image data block after generating curves.
  */
-bke::CurvesGeometry fill_strokes(const ViewContext &view_context,
-                                 const Brush &brush,
-                                 const Scene &scene,
-                                 const bke::greasepencil::Layer &layer,
-                                 const VArray<bool> &boundary_layers,
-                                 Span<DrawingInfo> src_drawings,
-                                 bool invert,
-                                 const std::optional<float> alpha_threshold,
-                                 const float2 &fill_point,
-                                 const ExtensionData &extensions,
-                                 FillToolFitMethod fit_method,
-                                 int stroke_material_index,
-                                 bool keep_images);
+bke::CurvesGeometry pixel_fill_strokes(const ViewContext &view_context,
+                                       const Brush &brush,
+                                       const Scene &scene,
+                                       const bke::greasepencil::Layer &layer,
+                                       const VArray<bool> &boundary_layers,
+                                       const Span<DrawingInfo> src_drawings,
+                                       bool invert,
+                                       const std::optional<float> opacity_threshold,
+                                       const float2 &fill_point,
+                                       const ExtensionData &extensions,
+                                       FillToolFitMethod fit_method,
+                                       bool keep_images);
+
+/**
+ * Fill tool for generating strokes in empty areas.
+ *
+ * This uses delaunay triangulation to compute exact fill geometry.
+ *
+ * This is based on "Delaunay painting: Perceptual image colouring from raster contours with gaps."
+ * (Parakkat, Amal Dev, Pooran Memari, and Marie-Paule Cani)
+ *
+ * Will return `nullopt` when unable to fill.
+ *
+ * \param layer: The layer containing the new stroke, used for projecting the geometry.
+ * \param boundary_layers: Layers that are purely for boundaries, regular strokes are skipped.
+ * \param src_drawings: Drawings to include as boundary strokes.
+ * \param invert: Construct boundary around empty areas instead.
+ * \param opacity_threshold: Skip transparent stroke where opacity is below the threshold.
+ * \param gap_factor: Automatically detect gaps using edge ratio.
+ * \param fill_points: Points from which to start each bucket fill.
+ */
+std::optional<bke::CurvesGeometry> delaunay_fill_strokes(const ViewContext &view_context,
+                                                         const Scene &scene,
+                                                         const bke::greasepencil::Layer &layer,
+                                                         const VArray<bool> &boundary_layers,
+                                                         const Span<DrawingInfo> src_drawings,
+                                                         bool invert,
+                                                         std::optional<float> opacity_threshold,
+                                                         bool internal_gaps,
+                                                         float gap_factor,
+                                                         const GroupedSpan<float2> &fill_points);
 
 namespace image_render {
 

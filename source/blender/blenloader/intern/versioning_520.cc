@@ -780,6 +780,15 @@ void blo_do_versions_520(FileData * /*fd*/, Library * /*lib*/, Main *bmain)
     version_text_strip_abs_space_line(*bmain);
   }
 
+  if (!MAIN_VERSION_FILE_ATLEAST(bmain, 502, 38)) {
+    for (Brush &brush : bmain->brushes) {
+      if (brush.gpencil_settings != nullptr) {
+        brush.gpencil_settings->fill_gap_factor = 0.4f;
+        brush.gpencil_settings->flag |= GP_BRUSH_FILL_INTERNAL_GAPS;
+      }
+    }
+  }
+
   /**
    * Always bump subversion in BKE_blender_version.h when adding versioning
    * code here, and wrap it inside a MAIN_VERSION_FILE_ATLEAST check.

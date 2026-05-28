@@ -1924,6 +1924,14 @@ class VIEW3D_PT_tools_grease_pencil_v3_brush_fill_advanced(View3DPanel, Panel):
         if brush is None:
             return
 
+        col.prop(gp_settings, "fill_solver")
+        col.separator()
+
+        if gp_settings.fill_solver == 'DELAUNAY':
+            row = col.row(align=True)
+            row.prop(brush, "use_locked_size", expand=True)
+            col.separator()
+
         row = col.row(align=True)
         row.prop(gp_settings, "fill_draw_mode", text="Boundary", text_ctxt=i18n_contexts.id_gpencil)
         row.prop(
@@ -1937,8 +1945,9 @@ class VIEW3D_PT_tools_grease_pencil_v3_brush_fill_advanced(View3DPanel, Panel):
         row = col.row(align=True)
         row.prop(gp_settings, "fill_layer_mode", text="Layers")
 
-        col.separator()
-        col.prop(gp_settings, "fill_simplify_level", text="Simplify")
+        if gp_settings.fill_solver == 'PIXEL':
+            col.separator()
+            col.prop(gp_settings, "fill_simplify_level", text="Simplify")
         if gp_settings.fill_draw_mode != 'STROKE':
             col = layout.column(align=False, heading="Ignore Transparent")
             col.use_property_decorate = False
@@ -1950,8 +1959,9 @@ class VIEW3D_PT_tools_grease_pencil_v3_brush_fill_advanced(View3DPanel, Panel):
             sub.prop(gp_settings, "fill_threshold", text="")
 
         col.separator()
-        row = col.row(align=True)
-        row.prop(gp_settings, "use_fill_limit")
+        if gp_settings.fill_solver == 'PIXEL':
+            row = col.row(align=True)
+            row.prop(gp_settings, "use_fill_limit")
         row = col.row(align=True)
         row.prop(gp_settings, "use_auto_remove_fill_guides")
 
@@ -2311,15 +2321,20 @@ class VIEW3D_PT_tools_grease_pencil_v3_brush_gap_closure(View3DPanel, Panel):
 
         col = layout.column()
 
-        col.prop(gp_settings, "extend_stroke_factor", text="Size")
-        row = col.row(align=True)
-        row.prop(gp_settings, "fill_extend_mode", text="Mode")
-        row = col.row(align=True)
-        row.prop(gp_settings, "show_fill_extend", text="Visual Aids")
-
-        if gp_settings.fill_extend_mode == 'EXTEND':
+        if brush.gpencil_settings.fill_solver == 'PIXEL':
+            col.prop(gp_settings, "extend_stroke_factor", text="Size")
             row = col.row(align=True)
-            row.prop(gp_settings, "use_collide_strokes")
+            row.prop(gp_settings, "fill_extend_mode", text="Mode")
+            row = col.row(align=True)
+            row.prop(gp_settings, "show_fill_extend", text="Visual Aids")
+
+            if gp_settings.fill_extend_mode == 'EXTEND':
+                row = col.row(align=True)
+                row.prop(gp_settings, "use_collide_strokes")
+        else:
+            col.prop(gp_settings, "fill_internal_gaps")
+            if gp_settings.fill_internal_gaps:
+                col.prop(gp_settings, "fill_gap_factor", text="Detection Factor")
 
 
 classes = (
