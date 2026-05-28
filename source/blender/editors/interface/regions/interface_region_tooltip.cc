@@ -1784,22 +1784,6 @@ ARegion *tooltip_create_from_gizmo(bContext *C, wmGizmo *gz)
   return tooltip_create_with_data(C, std::move(data), init_position, nullptr);
 }
 
-ARegion *tooltip_create_from_panel_category(bContext *C,
-                                            const std::string &category_name,
-                                            const int x,
-                                            const int y)
-{
-  std::unique_ptr<TooltipData> data = std::make_unique<TooltipData>();
-  tooltip_text_field_add(*data, category_name, {}, TIP_STYLE_HEADER, TIP_LC_VALUE, false);
-  const float init_position[2] = {float(x) + 61.0f * UI_SCALE_FAC,
-                                  float(y) + 32.0f * UI_SCALE_FAC};
-  const rcti overlap_rect_fl = {x - int(25.0f * UI_SCALE_FAC),
-                                x + int(28.0f * UI_SCALE_FAC),
-                                y - int(31.0f * UI_SCALE_FAC),
-                                y + int(round(20.7f * UI_SCALE_FAC))};
-  return tooltip_create_with_data(C, std::move(data), init_position, &overlap_rect_fl);
-}
-
 static void tooltip_from_image(Image &ima, TooltipData &data)
 {
   if (ima.filepath[0]) {

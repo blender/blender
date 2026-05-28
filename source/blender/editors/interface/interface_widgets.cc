@@ -2361,6 +2361,29 @@ static void widget_draw_textbox(const uiFontStyle *fstyle,
   }
 }
 
+static void widget_draw_vertical_text(const uiFontStyle *fstyle,
+                                      const uiWidgetColors *wcol,
+                                      const Button *but,
+                                      const rcti *rect)
+{
+  fontstyle_set(fstyle);
+  BLF_enable(fstyle->uifont_id, BLF_ROTATION);
+  const bool down = but->text_direction == TextDirection::Down;
+  BLF_rotation(fstyle->uifont_id, !down ? M_PI_2 : -M_PI_2);
+  BLF_color4ubv(fstyle->uifont_id, wcol->text);
+  const float width = BLF_width(fstyle->uifont_id, but->drawstr.c_str(), but->drawstr.size());
+  const float height = BLF_ascender(fstyle->uifont_id) + BLF_descender(fstyle->uifont_id);
+  const int xofs = ceil(0.5f * (BLI_rcti_size_x(rect) - height)) * (down ? 1 : -1);
+  const int yofs = (BLI_rcti_size_y(rect) - width) / 2 * (down ? 1 : -1);
+  BLF_position(fstyle->uifont_id,
+               (down ? rect->xmin : rect->xmax) + xofs,
+               (down ? rect->ymax : rect->ymin) - yofs,
+               0.0f);
+  BLF_draw(fstyle->uifont_id, but->drawstr.c_str(), but->drawstr.size());
+
+  BLF_disable(fstyle->uifont_id, BLF_ROTATION);
+}
+
 static void widget_draw_text(const uiFontStyle *fstyle,
                              const uiWidgetColors *wcol,
                              Button *but,
@@ -2932,6 +2955,9 @@ static void widget_draw_text_icon(const uiFontStyle *fstyle,
   /* Textbox wraps content in lines, skip clipping text.  */
   if (but->type == ButtonType::TextBox) {
   }
+  else if (but->text_direction != TextDirection::Default) {
+    /* Do not clip vertical text.  */
+  }
   else if (but->editstr && but->pos >= 0) {
     /* clip but->drawstr to fit in available space */
     text_clip_cursor(fstyle, but, rect);
@@ -2953,7 +2979,10 @@ static void widget_draw_text_icon(const uiFontStyle *fstyle,
   }
 
   /* Always draw text for text-button cursor. */
-  if (but->type != ButtonType::TextBox) {
+  if (ELEM(but->text_direction, TextDirection::Down, TextDirection::Up)) {
+    widget_draw_vertical_text(fstyle, wcol, but, rect);
+  }
+  else if (but->type != ButtonType::TextBox) {
     widget_draw_text(fstyle, wcol, but, rect);
   }
   else {
@@ -5344,7 +5373,7 @@ static int widget_roundbox_set(Button *but, rcti *rect)
   /* alignment */
   if ((but->drawflag & BUT_ALIGN) && but->type != ButtonType::Pulldown) {
 
-    /* popup_block_position has this correction too, keep in sync */
+    /* popup_block_position and #widget_roundbox_set has this correction too, keep in sync */
     if (but->drawflag & (BUT_ALIGN_TOP | BUT_ALIGN_STITCH_TOP)) {
       rect->ymax += U.pixelsize;
     }
