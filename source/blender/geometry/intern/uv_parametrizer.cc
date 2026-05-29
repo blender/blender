@@ -4013,6 +4013,7 @@ void uv_parametrizer_face_add(ParamHandle *phandle,
       if (permute.size() == 3) {
         break;
       }
+      i--;
     }
     if (permute.size() != nverts) {
       const int pm = int(permute.size());
