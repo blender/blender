@@ -226,16 +226,73 @@ AbstractViewItem *AbstractGridView::navigate_down(AbstractViewItem *from)
   return next_item ? next_item : from;
 }
 
+IndexRange AbstractGridView::get_visible_range(
+    const View2D &v2d, const AbstractGridViewItem *force_visible_item) const
+{
+  BLI_assert(v2d.flag & V2D_IS_INIT);
+
+  int first_idx_in_view = 0;
+
+  const float scroll_ofs_y = std::abs(v2d.cur.ymax - v2d.tot.ymax);
+  if (!IS_EQF(scroll_ofs_y, 0)) {
+    const int scrolled_away_rows = int(scroll_ofs_y) / style_.tile_height;
+
+    first_idx_in_view = scrolled_away_rows * cols_per_row_;
+  }
+
+  const int view_height = BLI_rcti_size_y(&v2d.mask);
+  const int count_rows_in_view = std::max(view_height / style_.tile_height, 1);
+  const int max_items_in_view = (count_rows_in_view + 1) * cols_per_row_;
+  BLI_assert(max_items_in_view > 0);
+
+  IndexRange visible_items(first_idx_in_view, max_items_in_view);
+
+  /* Ensure #visible_items contains #force_visible_item, adjust if necessary. */
+  if (force_visible_item && force_visible_item->is_filtered_visible()) {
+    if (std::optional<int> item_idx = find_filtered_item_index(*force_visible_item)) {
+      if (!visible_items.contains(*item_idx)) {
+        /* Move range so the first row contains #force_visible_item. */
+        return IndexRange((item_idx == 0) ? 0 : *item_idx % cols_per_row_, max_items_in_view);
+      }
+    }
+  }
+
+  return visible_items;
+}
+
 void AbstractGridView::scroll_active_into_view(bContext *C)
 {
+  int index = 0;
   this->foreach_filtered_item([&](AbstractViewItem &item) {
     if (item.is_active()) {
       Button *but = reinterpret_cast<Button *>(item.view_item_button());
       ARegion *region = CTX_wm_region(C);
-      if (but && region) {
+
+      if (but) {
         but_ensure_in_view(C, region, but);
+        return;
+      }
+
+      View2D &v2d = region->v2d;
+
+      const IndexRange &visible_range = this->get_visible_range(v2d, nullptr);
+      const int first_idx_in_view = visible_range.first();
+      const int last_idx_in_view = visible_range.last();
+
+      if (index < first_idx_in_view) {
+        const int target_row = index / cols_per_row_;
+        const int cur_height = BLI_rctf_size_y(&v2d.cur);
+        v2d.cur.ymax = v2d.tot.ymax - target_row * style_.tile_height;
+        v2d.cur.ymin = v2d.cur.ymax - cur_height;
+      }
+      else if (index >= last_idx_in_view) {
+        const int target_row = (index / cols_per_row_) + 1;
+        const int cur_height = BLI_rctf_size_y(&v2d.cur);
+        v2d.cur.ymin = v2d.tot.ymax - target_row * style_.tile_height;
+        v2d.cur.ymax = v2d.cur.ymin + cur_height;
       }
     }
+    index++;
   });
 }
 
@@ -347,42 +404,8 @@ BuildOnlyVisibleButtonsHelper::BuildOnlyVisibleButtonsHelper(
     : grid_view_(grid_view), style_(grid_view.get_style()), cols_per_row_(cols_per_row)
 {
   if (v2d.flag & V2D_IS_INIT && grid_view.get_item_count_filtered()) {
-    visible_items_range_ = this->get_visible_range(v2d, force_visible_item);
+    visible_items_range_ = this->grid_view_.get_visible_range(v2d, force_visible_item);
   }
-}
-
-IndexRange BuildOnlyVisibleButtonsHelper::get_visible_range(
-    const View2D &v2d, const AbstractGridViewItem *force_visible_item) const
-{
-  BLI_assert(v2d.flag & V2D_IS_INIT);
-
-  int first_idx_in_view = 0;
-
-  const float scroll_ofs_y = std::abs(v2d.cur.ymax - v2d.tot.ymax);
-  if (!IS_EQF(scroll_ofs_y, 0)) {
-    const int scrolled_away_rows = int(scroll_ofs_y) / style_.tile_height;
-
-    first_idx_in_view = scrolled_away_rows * cols_per_row_;
-  }
-
-  const int view_height = BLI_rcti_size_y(&v2d.mask);
-  const int count_rows_in_view = std::max(view_height / style_.tile_height, 1);
-  const int max_items_in_view = (count_rows_in_view + 1) * cols_per_row_;
-  BLI_assert(max_items_in_view > 0);
-
-  IndexRange visible_items(first_idx_in_view, max_items_in_view);
-
-  /* Ensure #visible_items contains #force_visible_item, adjust if necessary. */
-  if (force_visible_item && force_visible_item->is_filtered_visible()) {
-    if (std::optional<int> item_idx = find_filtered_item_index(*force_visible_item)) {
-      if (!visible_items.contains(*item_idx)) {
-        /* Move range so the first row contains #force_visible_item. */
-        return IndexRange((item_idx == 0) ? 0 : *item_idx % cols_per_row_, max_items_in_view);
-      }
-    }
-  }
-
-  return visible_items;
 }
 
 bool BuildOnlyVisibleButtonsHelper::is_item_visible(const int item_idx) const
