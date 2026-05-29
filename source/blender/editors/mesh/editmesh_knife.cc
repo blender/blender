@@ -3432,8 +3432,8 @@ static bool knife_snap_angle_screen(const KnifeTool_OpData *kcd,
                                     float3 &r_cage,
                                     float &r_angle)
 {
-  const float3 &vec_x = kcd->vc.rv3d->viewinv[0];
-  const float3 &vec_z = kcd->vc.rv3d->viewinv[2];
+  const float3 vec_x = kcd->vc.rv3d->viewinv[0];
+  const float3 vec_z = kcd->vc.rv3d->viewinv[2];
   return knife_snap_angle_impl(kcd, vec_x, vec_z, ray_orig, ray_dir, r_cage, r_angle);
 }
 
