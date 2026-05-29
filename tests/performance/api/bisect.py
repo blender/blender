@@ -242,13 +242,14 @@ class Bisect:
             return None, 'skip'
         tested.add(commit_hash)
 
-        title = env.commit_title(commit_hash)[:70]
-        on_progress([commit_hash, date_str(commit_ts), title, '', 'building'], end='\r')
+        title = f'`{env.commit_title(commit_hash)[:70].replace('`', '\'')}`'
+        commit_hash_str = f'`{commit_hash}`'
+        on_progress([commit_hash_str, date_str(commit_ts), title, '', 'building'], end='\r')
 
         install_dir = env.install_dir
         ok = env.build(commit_hash, install_dir)
         if not ok:
-            on_progress([commit_hash, date_str(commit_ts), title, 'error', 'FAIL (build)'])
+            on_progress([commit_hash_str, date_str(commit_ts), title, 'error', 'FAIL (build)'])
             return None, 'build_error'
 
         env.set_blender_executable(install_dir, {})
@@ -257,16 +258,16 @@ class Bisect:
         try:
             for run_idx in range(count):
                 run_status = 'running' if count == 1 else f'run [{run_idx + 1}/{count}]'
-                on_progress([commit_hash, date_str(commit_ts), title, '', run_status], end='\r')
+                on_progress([commit_hash_str, date_str(commit_ts), title, '', run_status], end='\r')
                 output = test.run(env, device_id, gpu_backend)
                 if not output or attribute not in output:
                     env.set_default_blender_executable()
-                    on_progress([commit_hash, date_str(commit_ts), title, 'error', 'run'])
+                    on_progress([commit_hash_str, date_str(commit_ts), title, 'error', 'run'])
                     return None, 'no_output'
                 values.append(output[attribute])
         except Exception as e:
             env.set_default_blender_executable()
-            on_progress([commit_hash, date_str(commit_ts), title, 'error', str(e)[:30]])
+            on_progress([commit_hash_str, date_str(commit_ts), title, 'error', str(e)[:30]])
             return None, 'run_error'
 
         env.set_default_blender_executable()
@@ -274,7 +275,7 @@ class Bisect:
 
         good = passes_threshold(avg, success, threshold)
         status = 'PASS' if good else 'FAIL'
-        on_progress([commit_hash, date_str(commit_ts), title, f'{avg:.4f}', status])
+        on_progress([commit_hash_str, date_str(commit_ts), title, f'{avg:.4f}', status])
         return avg, 'pass' if good else 'fail'
 
     @staticmethod

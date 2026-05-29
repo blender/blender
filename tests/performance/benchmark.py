@@ -420,9 +420,9 @@ def cmd_bisect(env: api.TestEnvironment, argv: list):
 
     table = api.MarkdownTable()
     table.add_column("Remaining", width=5, alignment='RIGHT')
-    table.add_column("Commit", width=12)
+    table.add_column("Commit", width=14)
     table.add_column("Date (UTC)", width=22)
-    table.add_column("Title", width=70)
+    table.add_column("Title", width=72)
     table.add_column(args.attribute, width=14, alignment='RIGHT')
     table.add_column("Status", width=8)
     table.print_header()
@@ -452,8 +452,8 @@ def cmd_bisect(env: api.TestEnvironment, argv: list):
         print('\nNo regression found in the given date range.')
         return
 
-    title = env.commit_title(bisect.first_bad)
-    print(f'\nRegression introduced by commit {bisect.first_bad}: {title}')
+    title = env.commit_title(bisect.first_bad).replace('`', '\'')
+    print(f'\nRegression introduced by commit `{bisect.first_bad}`: `{title}`')
 
 
 def cmd_graph(argv: list):
