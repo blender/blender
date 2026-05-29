@@ -153,8 +153,43 @@ class ASSET_OT_open_containing_blend_file(Operator):
         self._process = subprocess.Popen(cli_args)
 
 
+class ASSET_OT_browse_containing_blend_file(Operator):
+    """Open the system's file browser with the blend file that contains the active asset"""
+
+    bl_idname = "asset.browse_containing_blend_file"
+    bl_label = "Open File Location"
+    bl_options = {'REGISTER'}
+
+    @classmethod
+    def poll(cls, context):
+        asset = getattr(context, "asset", None)
+
+        if not asset:
+            cls.poll_message_set("No asset selected")
+            return False
+        if asset.local_id and not bpy.data.filepath:
+            cls.poll_message_set("Asset local to the current file, which is not saved anywhere")
+            return False
+        if asset.is_online:
+            cls.poll_message_set("Selected asset is stored online")
+            return False
+        return True
+
+    def execute(self, context):
+        from pathlib import Path
+
+        asset = context.asset
+
+        if asset.local_id:
+            asset_path = Path(bpy.data.filepath)
+        else:
+            asset_path = Path(asset.full_library_path)
+        return bpy.ops.wm.path_open(filepath=str(asset_path.parent))
+
+
 classes = (
     ASSET_OT_tag_add,
     ASSET_OT_tag_remove,
     ASSET_OT_open_containing_blend_file,
+    ASSET_OT_browse_containing_blend_file,
 )

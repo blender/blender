@@ -936,6 +936,7 @@ class ASSETBROWSER_MT_context_menu(AssetBrowserMenu, Menu):
         layout.separator()
 
         layout.operator("asset.open_containing_blend_file", icon='FILE_BLEND')
+        layout.operator("asset.browse_containing_blend_file")
 
         layout.separator()
 
