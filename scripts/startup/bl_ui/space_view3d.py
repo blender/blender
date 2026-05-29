@@ -3480,7 +3480,7 @@ class VIEW3D_MT_make_links(Menu):
 
         if len(bpy.data.scenes) > 10:
             layout.operator_context = 'INVOKE_REGION_WIN'
-            layout.operator("object.make_links_scene", text="Link Objects to Scene...", icon='OUTLINER_OB_EMPTY')
+            layout.operator("object.make_links_scene", text="Link Objects to Scene...")
         else:
             layout.operator_context = 'EXEC_REGION_WIN'
             layout.operator_menu_enum("object.make_links_scene", "scene", text="Link Objects to Scene")
