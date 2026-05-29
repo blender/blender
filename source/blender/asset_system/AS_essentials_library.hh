@@ -27,6 +27,12 @@ StringRefNull online_essentials_url();
  */
 bool is_online_essentials_url(StringRef url);
 
+/**
+ * Check if the given absolute directory path is the online essentials cache path. If the path ends
+ * in a trailing slash, that's stripped before comparing.
+ */
+bool is_online_essentials_dirpath(StringRef dirpath);
+
 /** Returns false for catalogs that are based on disabled experimental features. */
 bool skip_experimental_asset_catalog(const UUID &catalog_id);
 

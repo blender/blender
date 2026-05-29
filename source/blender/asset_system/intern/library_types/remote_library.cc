@@ -47,6 +47,7 @@
 #include "AS_asset_representation.hh"
 #include "AS_essentials_library.hh"
 #include "AS_remote_library.hh"
+
 #include "remote_library.hh"
 
 static CLG_LogRef LOG = {"assets.remote_library"};
@@ -73,6 +74,11 @@ RemoteAssetLibrary::RemoteAssetLibrary(const eAssetLibraryType library_type,
     : AssetLibrary(library_type, is_read_only, name, root_path), remote_url_(remote_url)
 {
   may_override_import_method_ = false;
+}
+
+void RemoteAssetLibrary::force_remote_listing_download() const
+{
+  remote_library_request_download(RemoteLibraryDefinitionRef{remote_url_, root_path()});
 }
 
 std::optional<eAssetImportMethod> RemoteAssetLibrary::import_method() const
@@ -599,7 +605,7 @@ void remote_library_request_download(const RemoteLibraryDefinitionRef &library_d
   }
 
   BLI_assert_msg(!is_online_essentials_url(library_definition.remote_url) ||
-                     library_definition.cache_dirpath == online_essentials_cache_directory_path(),
+                     is_online_essentials_dirpath(library_definition.cache_dirpath),
                  "The online essentials library must be downloaded to "
                  "online_essentials_cache_directory_path()");
 

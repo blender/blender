@@ -243,6 +243,11 @@ void AssetLibrary::foreach_loaded(FunctionRef<void(AssetLibrary &)> fn,
   service->foreach_loaded_asset_library(fn, include_all_library);
 }
 
+void AssetLibrary::force_remote_listing_download() const
+{
+  /* Default implementation is a no-op. */
+}
+
 bool AssetLibrary::use_relative_paths() const
 {
   return true;

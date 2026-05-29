@@ -51,6 +51,7 @@
 #include "IMB_imbuf.hh"
 #include "IMB_thumbs.hh"
 
+#include "RNA_types.hh"
 #include "WM_api.hh"
 
 #include "DNA_space_types.h"
@@ -445,14 +446,156 @@ static bool asset_library_refresh_poll(bContext *C)
          list::has_asset_browser_storage_for_library(library, C);
 }
 
-static wmOperatorStatus asset_library_refresh_exec(bContext *C, wmOperator * /*unused*/)
+static void do_asset_library_refresh(bContext *C)
 {
   const AssetLibraryReference *library = CTX_wm_asset_library_ref(C);
   /* Handles both global asset list storage and asset browsers. */
   list::clear(library, C);
   WM_event_add_notifier(C, NC_ASSET | ND_ASSET_LIST_READING, nullptr);
+}
+
+struct AssetLibraryAndRef {
+  const asset_system::AssetLibrary *library;
+  AssetLibraryReference reference;
+};
+
+/**
+ * Get the AssetLibrary and its AssetLibraryReference from the context.
+ *
+ * This abstracts away the various null pointers and empty optionals that can occur, and maps them
+ * all to a single optional.
+ */
+static std::optional<AssetLibraryAndRef> asset_library_from_context(bContext *C)
+{
+  /* Find the asset library, depending on where we were invoked from. */
+  if (ED_operator_asset_browsing_active(C)) {
+    const asset_system::AssetLibrary *asset_lib = ED_fileselect_active_asset_library_get(
+        CTX_wm_space_file(C));
+    if (!asset_lib) {
+      return {};
+    }
+    const std::optional<AssetLibraryReference> library_ref = asset_lib->library_reference();
+    if (!library_ref) {
+      return {};
+    }
+
+    return {{asset_lib, *library_ref}};
+  }
+
+  const AssetLibraryReference *library_ref = CTX_wm_asset_library_ref(C);
+  if (!library_ref) {
+    return {};
+  }
+  const asset_system::AssetLibrary *asset_lib = ed::asset::list::library_get_once_available(
+      *library_ref);
+  if (!asset_lib) {
+    return {};
+  }
+
+  return {{asset_lib, *library_ref}};
+}
+
+static wmOperatorStatus asset_library_reload_listing_exec(bContext *C, wmOperator *op)
+{
+  /* This is also checked in the poll function, but this exec function is also called from the
+   * generic asset_library_fresh_exec() function, where it is not. */
+  if ((G.f & G_FLAG_INTERNET_ALLOW) == 0) {
+    BKE_report(op->reports, RPT_ERROR, "Online access is disabled in the Preferences");
+    return OPERATOR_CANCELLED;
+  }
+
+  /* Find the asset library, depending on where we were invoked from. */
+  const std::optional<AssetLibraryAndRef> asset_lib_and_ref = asset_library_from_context(C);
+  if (!asset_lib_and_ref ||
+      !asset_system::is_or_contains_remote_libraries(asset_lib_and_ref->reference))
+  {
+    BKE_report(
+        op->reports, RPT_ERROR, "This asset library does not have a remote listing to download");
+    return OPERATOR_CANCELLED;
+  }
+
+  /* Re-download the asset listing on shift-click. */
+  asset_lib_and_ref->library->force_remote_listing_download();
+
+  /* Always end with a regular refresh, as a "forced refresh" like this should be an additional
+   * thing on top of regular refreshing (otherwise it would be weird to use the refresh button for
+   * this). */
+  do_asset_library_refresh(C);
 
   return OPERATOR_FINISHED;
+}
+
+static bool asset_library_reload_listing_poll(bContext *C)
+{
+  const std::optional<AssetLibraryAndRef> asset_lib_and_ref = asset_library_from_context(C);
+  if (!asset_lib_and_ref ||
+      !asset_system::is_or_contains_remote_libraries(asset_lib_and_ref->reference))
+  {
+    CTX_wm_operator_poll_msg_set(C, "This is not a remote library");
+    return false;
+  }
+
+  /* Check the flag after checking for the remote library to have an online component. Because if
+   * there is not, then enabling the online access in the prefs isn't going to do anything. */
+  if ((G.f & G_FLAG_INTERNET_ALLOW) == 0) {
+    CTX_wm_operator_poll_msg_set(C, "Online access is disabled in the Preferences");
+    return false;
+  }
+
+  return true;
+}
+
+static void ASSET_OT_library_reload_listing(wmOperatorType *ot)
+{
+  /* identifiers */
+  ot->name = "Reload Remote Asset Library Listing";
+  ot->description =
+      "Re-download the asset listing of a remote library. Only supported when the active "
+      "asset library is remote or has a remote component (the Essentials library)";
+  ot->idname = "ASSET_OT_library_reload_listing";
+
+  /* API callbacks. */
+  ot->exec = asset_library_reload_listing_exec;
+  ot->poll = asset_library_reload_listing_poll;
+}
+
+static wmOperatorStatus asset_library_refresh_exec(bContext *C, wmOperator *op)
+{
+  if (RNA_boolean_get(op->ptr, "use_remote_listing")) {
+    /* Delegate to the ASSET_OT_library_reload_listing operator. */
+    return asset_library_reload_listing_exec(C, op);
+  }
+
+  /* Just a plain refresh of the asset browser. */
+  do_asset_library_refresh(C);
+  return OPERATOR_FINISHED;
+}
+
+static wmOperatorStatus asset_library_refresh_invoke(bContext *C,
+                                                     wmOperator *op,
+                                                     const wmEvent *event)
+{
+  if (event->modifier & KM_SHIFT && RNA_boolean_get(op->ptr, "use_shift_for_remote_listing")) {
+    RNA_boolean_set(op->ptr, "use_remote_listing", true);
+  }
+  return asset_library_refresh_exec(C, op);
+}
+
+static std::string asset_library_refresh_get_description(bContext * /*C*/,
+                                                         wmOperatorType *ot,
+                                                         PointerRNA *ptr)
+{
+  if (RNA_boolean_get(ptr, "use_remote_listing")) {
+    return "Re-download the asset listing of a remote library. Only supported when the active "
+           "asset library is remote or has a remote component (the Essentials library)";
+  }
+
+  if (RNA_boolean_get(ptr, "use_shift_for_remote_listing")) {
+    return "Reread assets and asset catalogs from the asset library on disk.\n"
+           "Shift-click: re-download the asset listing of a remote library";
+  }
+
+  return ot->description;
 }
 
 static void ASSET_OT_library_refresh(wmOperatorType *ot)
@@ -463,8 +606,28 @@ static void ASSET_OT_library_refresh(wmOperatorType *ot)
   ot->idname = "ASSET_OT_library_refresh";
 
   /* API callbacks. */
+  ot->invoke = asset_library_refresh_invoke;
   ot->exec = asset_library_refresh_exec;
   ot->poll = asset_library_refresh_poll;
+  ot->get_description = asset_library_refresh_get_description;
+
+  PropertyRNA *prop;
+  prop = RNA_def_boolean(
+      ot->srna,
+      "use_remote_listing",
+      false,
+      "Remote Listing",
+      "Re-download the asset listing of a remote library. Only supported when the active asset "
+      "library is remote or has a remote component (the Essentials library)");
+  RNA_def_property_flag(prop, PROP_SKIP_SAVE);
+
+  prop = RNA_def_boolean(ot->srna,
+                         "use_shift_for_remote_listing",
+                         false,
+                         "Use Shift for Remote Listing",
+                         "When this operator is invoked and the Shift key is pressed, download "
+                         "the remote asset library listing");
+  RNA_def_property_flag(prop, PROP_SKIP_SAVE | PROP_HIDDEN);
 }
 
 /* -------------------------------------------------------------------- */
@@ -1632,6 +1795,7 @@ void operatortypes_asset()
   WM_operatortype_append(ASSET_OT_bundle_install);
 
   WM_operatortype_append(ASSET_OT_library_refresh);
+  WM_operatortype_append(ASSET_OT_library_reload_listing);
 
   WM_operatortype_append(ASSET_OT_screenshot_preview);
 

@@ -10,6 +10,7 @@
 
 #include "BKE_appdir.hh"
 
+#include "BLI_path_utils.hh"
 #include "BLI_string_ref.hh"
 
 #include "CLG_log.h"
@@ -34,6 +35,12 @@ EssentialsAssetLibrary::EssentialsAssetLibrary()
                          utils::normalize_directory_path(essentials_directory_path()),
                          /*is_read_only=*/true)
 {
+}
+
+void EssentialsAssetLibrary::force_remote_listing_download() const
+{
+  remote_library_request_download(RemoteLibraryDefinitionRef{
+      online_essentials_url(), online_essentials_cache_directory_path()});
 }
 
 std::optional<AssetLibraryReference> EssentialsAssetLibrary::library_reference() const
@@ -157,6 +164,19 @@ bool is_online_essentials_url(const StringRef url)
   }
 
   return url == OnlineEssentialsLibrary::URL;
+}
+
+bool is_online_essentials_dirpath(StringRef dirpath)
+{
+  if (dirpath.is_empty()) {
+    return false;
+  }
+  if (dirpath.endswith(SEP_STR)) {
+    dirpath = dirpath.drop_known_suffix(SEP_STR);
+  }
+  BLI_assert(!online_essentials_cache_directory_path().endswith(SEP_STR));
+
+  return dirpath == online_essentials_cache_directory_path();
 }
 
 OnlineEssentialsLibrary::OnlineEssentialsLibrary()

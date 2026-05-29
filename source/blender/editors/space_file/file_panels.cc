@@ -258,7 +258,8 @@ static void file_panel_asset_catalog_buttons_draw(const bContext *C, Panel *pane
     CTX_free(mutable_ctx);
   }
   else {
-    row.op("ASSET_OT_library_refresh", "", ICON_FILE_REFRESH);
+    PointerRNA ptr = row.op("ASSET_OT_library_refresh", "", ICON_FILE_REFRESH);
+    RNA_boolean_set(&ptr, "use_shift_for_remote_listing", true);
   }
 
   col.separator();

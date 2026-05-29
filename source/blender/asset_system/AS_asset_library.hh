@@ -132,6 +132,18 @@ class AssetLibrary {
   static void foreach_loaded(FunctionRef<void(AssetLibrary &)> fn, bool include_all_library);
 
   /**
+   * (Re-)download the remote listing for this library.
+   *
+   * This only has an effect for asset libraries that are themselves a remote library, or contain
+   * one (such as the "Essentials" library if it includes online essentials, or the "All" if there
+   * are any remote libraries included).
+   *
+   * The "Allow Online Access" option will be enforced internally, but probably some check to give
+   * a user message should be done at a higher levl.
+   */
+  virtual void force_remote_listing_download() const;
+
+  /**
    * Get the #AssetLibraryReference referencing this library. This can fail for custom libraries,
    * which have too look up their #bUserAssetLibrary. It will not return a value for values that
    * were loaded directly through a path.

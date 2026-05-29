@@ -11,6 +11,8 @@
 /* For getting the experimental flag for remote library support. */
 #include "DNA_userdef_types.h"
 
+#include "AS_remote_library.hh"
+
 #include "all_library.hh"
 
 #include "CLG_log.h"
@@ -25,6 +27,19 @@ AllAssetLibrary::AllAssetLibrary()
     : AssetLibrary(ASSET_LIBRARY_ALL,
                    /*is_read_only=*/true)
 {
+}
+
+void AllAssetLibrary::force_remote_listing_download() const
+{
+  /* This includes the online essentials as a separate library, if loaded. */
+  AssetLibrary::foreach_loaded(
+      [&](AssetLibrary &nested) {
+        const std::optional<StringRefNull> url = nested.remote_url();
+        if (url.has_value()) {
+          remote_library_request_download(RemoteLibraryDefinitionRef{*url, nested.root_path()});
+        }
+      },
+      /*include_all_library=*/false);
 }
 
 std::optional<AssetLibraryReference> AllAssetLibrary::library_reference() const
