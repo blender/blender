@@ -3940,7 +3940,7 @@ static int lib_override_libraries_index_define(Main *bmain)
       Vector<std::pair<ID *, ID *>> &lib_user_ids = sort_libs_data.dependency_trace_data.lookup(
           &library);
       if (lib_user_ids.size() >= LibOverrideSortLibrariesData::MAX_DEPENDENCY_DEPTH) {
-        std::string deps_chain = "";
+        std::string deps_chain;
         int index = -1;
         for (auto [id_owner, id] : lib_user_ids) {
           index++;
