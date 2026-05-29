@@ -4820,7 +4820,13 @@ void projmat_dimensions(const float winmat[4][4],
     *r_bottom = near * ((winmat[2][1] - 1.0f) / winmat[1][1]);
     *r_top = near * ((winmat[2][1] + 1.0f) / winmat[1][1]);
     *r_near = near;
-    *r_far = winmat[3][2] / (winmat[2][2] + 1.0f);
+    if (winmat[2][2] == -1.0f) {
+      /* Case of infinite projection matrix. Assume large clip end. */
+      *r_far = near + 1e9f;
+    }
+    else {
+      *r_far = winmat[3][2] / (winmat[2][2] + 1.0f);
+    }
   }
   else {
     *r_left = (-winmat[3][0] - 1.0f) / winmat[0][0];
