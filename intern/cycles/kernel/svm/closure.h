@@ -119,9 +119,9 @@ principled_bsdf_emission(KernelGlobals kg,
   if (sheen_weight > CLOSURE_WEIGHT_CUTOFF) {
     const float3 sheen_tint = max(stack_load(stack, data.sheen_tint), zero_float3());
     const float sheen_roughness = saturatef(stack_load(stack, data.sheen_roughness));
-
-    ccl_private SheenBsdf *bsdf = (ccl_private SheenBsdf *)bsdf_alloc(
-        sd, sizeof(SheenBsdf), sheen_weight * rgb_to_spectrum(sheen_tint) * weight);
+    SheenBsdf sheen;
+    ccl_private SheenBsdf *bsdf = bsdf_alloc_maybe_emission(
+        sd, &sheen, path_flag, sheen_weight * rgb_to_spectrum(sheen_tint) * weight);
 
     if (bsdf) {
       const float3 coat_normal = safe_normalize_fallback(
@@ -153,8 +153,9 @@ principled_bsdf_emission(KernelGlobals kg,
         stack_load_float3_default(stack, data.coat_normal_offset, N), sd->N);
     const float3 valid_coat_normal = maybe_ensure_valid_specular_reflection(sd, coat_normal);
     if (reflective_caustics) {
-      ccl_private MicrofacetBsdf *bsdf = (ccl_private MicrofacetBsdf *)bsdf_alloc(
-          sd, sizeof(MicrofacetBsdf), coat_weight * weight);
+      MicrofacetBsdf coat;
+      ccl_private MicrofacetBsdf *bsdf = bsdf_alloc_maybe_emission(
+          sd, &coat, path_flag, coat_weight * weight);
 
       if (bsdf) {
         bsdf->N = valid_coat_normal;
