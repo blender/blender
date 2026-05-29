@@ -109,7 +109,7 @@ Mesh *BKE_multires_create_mesh(Depsgraph *depsgraph, Object *object, MultiresMod
   modifier_ctx.object = object_eval;
   modifier_ctx.flag = MOD_APPLY_USECACHE | MOD_APPLY_IGNORE_SIMPLIFY;
 
-  const ModifierTypeInfo *mti = BKE_modifier_get_info(ModifierType(mmd->modifier.type));
+  const ModifierTypeInfo *mti = BKE_modifier_get_info(mmd->modifier.type);
   Mesh *result = mti->modify_mesh(&mmd->modifier, &modifier_ctx, deformed_mesh);
 
   if (result == deformed_mesh) {
@@ -148,7 +148,7 @@ Array<float3> BKE_multires_create_deformed_base_mesh_vert_coords(Depsgraph *deps
   Array<float3> deformed_verts(base_mesh->vert_positions());
 
   for (ModifierData *md = first_md; md != nullptr; md = md->next) {
-    const ModifierTypeInfo *mti = BKE_modifier_get_info(ModifierType(md->type));
+    const ModifierTypeInfo *mti = BKE_modifier_get_info(md->type);
     if (md == &mmd->modifier) {
       break;
     }

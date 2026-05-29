@@ -1099,9 +1099,7 @@ static float wpaint_get_active_weight(const MDeformVert &dv, const WeightPaintIn
 static void precompute_weight_values(
     Object &ob, const Brush &brush, WPaintData &wpd, WeightPaintInfo &wpi, Mesh &mesh)
 {
-  if (wpd.precomputed_weight_ready &&
-      !vwpaint::brush_use_accumulate_ex(brush, eObjectMode(ob.mode)))
-  {
+  if (wpd.precomputed_weight_ready && !vwpaint::brush_use_accumulate_ex(brush, ob.mode)) {
     return;
   }
 

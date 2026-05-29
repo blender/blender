@@ -234,7 +234,7 @@ static void buttons_texture_modifier_foreach(void *user_data,
     }
   }
   else {
-    const ModifierTypeInfo *modifier_type = BKE_modifier_get_info(ModifierType(md->type));
+    const ModifierTypeInfo *modifier_type = BKE_modifier_get_info(md->type);
 
     buttons_texture_user_property_add(
         users, &ob->id, *ptr, texture_prop, N_("Modifiers"), modifier_type->icon, md->name);

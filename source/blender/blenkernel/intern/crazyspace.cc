@@ -246,7 +246,7 @@ int BKE_crazyspace_get_first_deform_matrices_editbmesh(Depsgraph *depsgraph,
    * modifiers with on cage editing that are enabled and support computing
    * deform matrices */
   for (i = 0; md && i <= cageIndex; i++, md = md->next) {
-    const ModifierTypeInfo *mti = BKE_modifier_get_info(static_cast<ModifierType>(md->type));
+    const ModifierTypeInfo *mti = BKE_modifier_get_info(md->type);
 
     if (!bke::editbmesh_modifier_is_enabled(scene, ob, md, mesh != nullptr)) {
       continue;
@@ -314,13 +314,13 @@ static bool crazyspace_modifier_supports_deform_matrices(ModifierData *md)
   if (ELEM(md->type, eModifierType_Subsurf, eModifierType_Multires)) {
     return true;
   }
-  const ModifierTypeInfo *mti = BKE_modifier_get_info(static_cast<ModifierType>(md->type));
+  const ModifierTypeInfo *mti = BKE_modifier_get_info(md->type);
   return (mti->type == ModifierTypeType::OnlyDeform);
 }
 
 static bool crazyspace_modifier_supports_deform(ModifierData *md)
 {
-  const ModifierTypeInfo *mti = BKE_modifier_get_info(static_cast<ModifierType>(md->type));
+  const ModifierTypeInfo *mti = BKE_modifier_get_info(md->type);
   return (mti->type == ModifierTypeType::OnlyDeform);
 }
 
@@ -362,7 +362,7 @@ int BKE_sculpt_get_first_deform_matrices(Depsgraph *depsgraph,
     }
 
     if (crazyspace_modifier_supports_deform_matrices(md)) {
-      const ModifierTypeInfo *mti = BKE_modifier_get_info(static_cast<ModifierType>(md->type));
+      const ModifierTypeInfo *mti = BKE_modifier_get_info(md->type);
       if (deformmats.is_empty()) {
         /* NOTE: Evaluated object is re-set to its original un-deformed state. */
         Mesh *mesh = id_cast<Mesh *>(object_eval.data);
@@ -440,7 +440,7 @@ void BKE_crazyspace_build_sculpt(Depsgraph *depsgraph,
       }
 
       if (crazyspace_modifier_supports_deform(md)) {
-        const ModifierTypeInfo *mti = BKE_modifier_get_info(static_cast<ModifierType>(md->type));
+        const ModifierTypeInfo *mti = BKE_modifier_get_info(md->type);
 
         /* skip leading modifiers which have been already
          * handled in sculpt_get_first_deform_matrices */

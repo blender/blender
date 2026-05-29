@@ -1405,7 +1405,7 @@ static wmOperatorStatus particle_system_remove_all_exec(bContext *C, wmOperator 
     return OPERATOR_CANCELLED;
   }
 
-  const eObjectMode mode_orig = eObjectMode(ob->mode);
+  const eObjectMode mode_orig = ob->mode;
   for (ParticleSystem &psys : ob->particlesystem.items_mutable()) {
     object_remove_particle_system(bmain, scene, ob, &psys);
   }

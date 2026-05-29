@@ -2707,8 +2707,7 @@ static bool ed_object_select_pick(bContext *C,
 
   /* The next object's base to make active. */
   Base *basact = nullptr;
-  const eObjectMode object_mode = oldbasact ? static_cast<eObjectMode>(oldbasact->object->mode) :
-                                              OB_MODE_OBJECT;
+  const eObjectMode object_mode = oldbasact ? oldbasact->object->mode : OB_MODE_OBJECT;
   /* For the most part this is equivalent to `(object_mode & OB_MODE_POSE) != 0`
    * however this logic should also run with weight-paint + pose selection.
    * Without this, selection in weight-paint mode can de-select armatures which isn't useful,

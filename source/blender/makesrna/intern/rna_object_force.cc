@@ -176,7 +176,7 @@ static std::optional<std::string> rna_PointCache_path(const PointerRNA *ptr)
 
   ModifierData *md;
   for (md = static_cast<ModifierData *>(ob->modifiers.first); md; md = md->next) {
-    const ModifierTypeInfo *mti = BKE_modifier_get_info(ModifierType(md->type));
+    const ModifierTypeInfo *mti = BKE_modifier_get_info(md->type);
 
     if (!(mti->flags & eModifierTypeFlag_UsesPointCache)) {
       continue;

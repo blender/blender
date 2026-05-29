@@ -748,7 +748,7 @@ int WM_toolsystem_mode_from_spacetype(
       Object *obact = BKE_view_layer_active_object_get(view_layer);
       if (obact != nullptr) {
         Object *obedit = OBEDIT_FROM_OBACT(obact);
-        mode = CTX_data_mode_enum_ex(obedit, obact, eObjectMode(obact->mode));
+        mode = CTX_data_mode_enum_ex(obedit, obact, obact->mode);
       }
       else {
         mode = CTX_MODE_OBJECT;

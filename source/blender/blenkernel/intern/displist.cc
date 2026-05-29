@@ -859,7 +859,7 @@ static ModifierData *curve_get_tessellate_point(const Scene *scene,
 
   ModifierData *pretessellatePoint = nullptr;
   for (; md; md = md->next) {
-    const ModifierTypeInfo *mti = BKE_modifier_get_info(ModifierType(md->type));
+    const ModifierTypeInfo *mti = BKE_modifier_get_info(md->type);
 
     if (!BKE_modifier_is_enabled(scene, md, required_mode)) {
       continue;
@@ -940,7 +940,7 @@ void BKE_curve_calc_modifiers_pre(Depsgraph *depsgraph,
     for (ModifierData *md = BKE_modifiers_get_virtual_modifierlist(ob, &virtual_modifier_data); md;
          md = md->next)
     {
-      const ModifierTypeInfo *mti = BKE_modifier_get_info(ModifierType(md->type));
+      const ModifierTypeInfo *mti = BKE_modifier_get_info(md->type);
 
       if (!BKE_modifier_is_enabled(scene, md, required_mode)) {
         continue;
@@ -1061,7 +1061,7 @@ static bke::GeometrySet curve_calc_modifiers_post(Depsgraph *depsgraph,
   }
 
   for (; md; md = md->next) {
-    const ModifierTypeInfo *mti = BKE_modifier_get_info(ModifierType(md->type));
+    const ModifierTypeInfo *mti = BKE_modifier_get_info(md->type);
     if (!BKE_modifier_is_enabled(scene, md, required_mode)) {
       continue;
     }

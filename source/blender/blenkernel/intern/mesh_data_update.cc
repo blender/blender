@@ -209,7 +209,7 @@ static Mesh *modifier_modify_mesh_and_geometry_set(ModifierData *md,
                                                    GeometrySet &geometry_set)
 {
   Mesh *mesh_output = nullptr;
-  const ModifierTypeInfo *mti = BKE_modifier_get_info(ModifierType(md->type));
+  const ModifierTypeInfo *mti = BKE_modifier_get_info(md->type);
   if (mti->modify_geometry_set == nullptr) {
     mesh_output = BKE_modifier_modify_mesh(md, &mectx, input_mesh);
   }
@@ -345,7 +345,7 @@ static void mesh_calc_modifiers(Depsgraph &depsgraph,
   /* Apply all leading deform modifiers. */
   if (use_deform) {
     for (; md; md = md->next, md_datamask = md_datamask->next) {
-      const ModifierTypeInfo *mti = BKE_modifier_get_info(ModifierType(md->type));
+      const ModifierTypeInfo *mti = BKE_modifier_get_info(md->type);
 
       if (!BKE_modifier_is_enabled(&scene, md, required_mode)) {
         continue;
@@ -385,7 +385,7 @@ static void mesh_calc_modifiers(Depsgraph &depsgraph,
   /* Apply all remaining constructive and deforming modifiers. */
   bool have_non_onlydeform_modifiers_applied = false;
   for (; md; md = md->next, md_datamask = md_datamask->next) {
-    const ModifierTypeInfo *mti = BKE_modifier_get_info(ModifierType(md->type));
+    const ModifierTypeInfo *mti = BKE_modifier_get_info(md->type);
 
     if (!BKE_modifier_is_enabled(&scene, md, required_mode)) {
       continue;
@@ -700,7 +700,7 @@ bool editbmesh_modifier_is_enabled(const Scene *scene,
                                    ModifierData *md,
                                    bool has_prev_mesh)
 {
-  const ModifierTypeInfo *mti = BKE_modifier_get_info(ModifierType(md->type));
+  const ModifierTypeInfo *mti = BKE_modifier_get_info(md->type);
   const int required_mode = eModifierMode_Realtime | eModifierMode_Editmode;
 
   if (!BKE_modifier_is_enabled(scene, md, required_mode)) {
@@ -800,7 +800,7 @@ static void editbmesh_calc_modifiers(Depsgraph &depsgraph,
 
   bool non_deform_modifier_applied = false;
   for (int i = 0; md; i++, md = md->next, md_datamask = md_datamask->next) {
-    const ModifierTypeInfo *mti = BKE_modifier_get_info(ModifierType(md->type));
+    const ModifierTypeInfo *mti = BKE_modifier_get_info(md->type);
     if (!editbmesh_modifier_is_enabled(&scene, &ob, md, non_deform_modifier_applied)) {
       continue;
     }

@@ -656,7 +656,7 @@ static void object_foreach_cache(ID *id,
 {
   Object *ob = reinterpret_cast<Object *>(id);
   for (ModifierData &md : ob->modifiers) {
-    if (const ModifierTypeInfo *info = BKE_modifier_get_info(ModifierType(md.type))) {
+    if (const ModifierTypeInfo *info = BKE_modifier_get_info(md.type)) {
       if (info->foreach_cache) {
         info->foreach_cache(ob, &md, [&](const IDCacheKey &cache_key, void **cache_p, uint flags) {
           function_callback(id, &cache_key, cache_p, flags, user_data);
@@ -681,7 +681,7 @@ static void object_foreach_working_space_color(ID *id,
   }
 
   for (ModifierData &md : ob->modifiers) {
-    const ModifierTypeInfo *mti = BKE_modifier_get_info(ModifierType(md.type));
+    const ModifierTypeInfo *mti = BKE_modifier_get_info(md.type);
     if (mti && mti->foreach_working_space_color) {
       mti->foreach_working_space_color(&md, fn);
     }
@@ -1526,8 +1526,8 @@ ModifierData *BKE_object_copy_modifier(Main *bmain,
                                        const Object *ob_src,
                                        const ModifierData *md_src)
 {
-  const ModifierTypeInfo *mti = BKE_modifier_get_info(ModifierType(md_src->type));
-  if (!object_modifier_type_copy_check(ModifierType(md_src->type))) {
+  const ModifierTypeInfo *mti = BKE_modifier_get_info(md_src->type);
+  if (!object_modifier_type_copy_check(md_src->type)) {
     /* We never allow copying those modifiers here. */
     return nullptr;
   }
@@ -1535,7 +1535,7 @@ ModifierData *BKE_object_copy_modifier(Main *bmain,
     return nullptr;
   }
   if (mti->flags & eModifierTypeFlag_Single) {
-    if (BKE_modifiers_findby_type(ob_dst, ModifierType(md_src->type)) != nullptr) {
+    if (BKE_modifiers_findby_type(ob_dst, md_src->type) != nullptr) {
       return nullptr;
     }
   }
@@ -1638,7 +1638,7 @@ bool BKE_object_modifier_stack_copy(Object *ob_dst,
   }
 
   for (ModifierData &md_src : ob_src->modifiers) {
-    if (!do_copy_all && !object_modifier_type_copy_check(ModifierType(md_src.type))) {
+    if (!do_copy_all && !object_modifier_type_copy_check(md_src.type)) {
       continue;
     }
     if (!BKE_object_support_modifier_type_check(ob_dst, md_src.type)) {
@@ -4270,7 +4270,7 @@ void BKE_object_sculpt_data_create(Object *ob)
 {
   BLI_assert((ob->runtime->sculpt_session == nullptr) && (ob->mode & OB_MODE_ALL_SCULPT));
   ob->runtime->sculpt_session = MEM_new<SculptSession>(__func__);
-  ob->runtime->sculpt_session->mode_type = eObjectMode(ob->mode);
+  ob->runtime->sculpt_session->mode_type = ob->mode;
 }
 
 bool BKE_object_obdata_texspace_get(Object *ob,
@@ -4982,7 +4982,7 @@ int BKE_object_is_deform_modified(Scene *scene, Object *ob)
        md && (flag != (eModifierMode_Render | eModifierMode_Realtime));
        md = md->next)
   {
-    const ModifierTypeInfo *mti = BKE_modifier_get_info(ModifierType(md->type));
+    const ModifierTypeInfo *mti = BKE_modifier_get_info(md->type);
     bool can_deform = mti->type == ModifierTypeType::OnlyDeform || is_modifier_animated;
 
     if (!can_deform) {

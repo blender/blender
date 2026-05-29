@@ -894,7 +894,7 @@ static wmOperatorStatus run_node_group_exec(bContext *C, wmOperator *op)
   if (!active_object) {
     return OPERATOR_CANCELLED;
   }
-  const eObjectMode mode = eObjectMode(active_object->mode);
+  const eObjectMode mode = active_object->mode;
 
   const bNodeTree *node_tree_orig = get_node_group(*C, *op->type, op->reports);
   if (!node_tree_orig) {
@@ -1874,7 +1874,7 @@ static GeometryNodeAssetTraitFlag asset_flag_for_context(const ObjectType type,
 
 GeometryNodeAssetTraitFlag asset_flag_for_context(const Object &active_object)
 {
-  return asset_flag_for_context(ObjectType(active_object.type), eObjectMode(active_object.mode));
+  return asset_flag_for_context(active_object.type, active_object.mode);
 }
 
 /**
@@ -2028,8 +2028,7 @@ static void catalog_assets_draw(const bContext *C, Menu *menu)
     layout.op(ot, std::nullopt, ICON_NONE, wm::OpCallContext::InvokeRegionWin, UI_ITEM_NONE);
   }
 
-  const Set<StringRef> builtin_menus = get_builtin_menus(ObjectType(active_object->type),
-                                                         eObjectMode(active_object->mode));
+  const Set<StringRef> builtin_menus = get_builtin_menus(active_object->type, active_object->mode);
 
   for (const std::unique_ptr<RegistrationData::TypeTreeItem> &child : node->children) {
     if (!menu_operators_poll(*C, *child)) {
@@ -2128,8 +2127,7 @@ void ui_template_node_operator_asset_root_items(ui::Layout &layout, const bConte
     return;
   }
   const RegistrationData &data = get_registration_data();
-  const Set<StringRef> builtin_menus = get_builtin_menus(ObjectType(active_object->type),
-                                                         eObjectMode(active_object->mode));
+  const Set<StringRef> builtin_menus = get_builtin_menus(active_object->type, active_object->mode);
   for (const std::unique_ptr<RegistrationData::TypeTreeItem> &root : data.menu_path_tree_roots) {
     if (builtin_menus.contains_as(root->name)) {
       continue;

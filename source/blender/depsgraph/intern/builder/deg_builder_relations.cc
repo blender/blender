@@ -960,7 +960,7 @@ void DepsgraphRelationBuilder::build_object_modifiers(Object *object)
     /* Relation for the modifier stack chain. */
     add_relation(previous_key, modifier_key, "Modifier");
 
-    const ModifierTypeInfo *mti = BKE_modifier_get_info(ModifierType(modifier.type));
+    const ModifierTypeInfo *mti = BKE_modifier_get_info(modifier.type);
     if (mti->update_depsgraph) {
       const BuilderStack::ScopedEntry stack_entry = stack_.trace(modifier);
 

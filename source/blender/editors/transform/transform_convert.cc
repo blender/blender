@@ -816,7 +816,7 @@ static void init_TransDataContainers(TransInfo *t, Object *obact, Span<Object *>
     return;
   }
 
-  const eObjectMode object_mode = eObjectMode(obact ? obact->mode : OB_MODE_OBJECT);
+  const eObjectMode object_mode = obact ? obact->mode : OB_MODE_OBJECT;
   const short object_type = obact ? obact->type : -1;
 
   if ((object_mode & OB_MODE_EDIT) ||

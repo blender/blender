@@ -1484,7 +1484,7 @@ enum eContextObjectMode CTX_data_mode_enum(const bContext *C)
 {
   Object *obedit = CTX_data_edit_object(C);
   Object *obact = obedit ? nullptr : CTX_data_active_object(C);
-  return CTX_data_mode_enum_ex(obedit, obact, obact ? eObjectMode(obact->mode) : OB_MODE_OBJECT);
+  return CTX_data_mode_enum_ex(obedit, obact, obact ? obact->mode : OB_MODE_OBJECT);
 }
 
 /**

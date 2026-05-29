@@ -423,10 +423,10 @@ static bool object_modifier_check_move_before(ReportList *reports,
     if (md->flag & eModifierFlag_PinLast && !(md_prev->flag & eModifierFlag_PinLast)) {
       return false;
     }
-    const ModifierTypeInfo *mti = BKE_modifier_get_info(ModifierType(md->type));
+    const ModifierTypeInfo *mti = BKE_modifier_get_info(md->type);
 
     if (mti->type != ModifierTypeType::OnlyDeform) {
-      const ModifierTypeInfo *nmti = BKE_modifier_get_info(ModifierType(md_prev->type));
+      const ModifierTypeInfo *nmti = BKE_modifier_get_info(md_prev->type);
 
       if (nmti->flags & eModifierTypeFlag_RequiresOriginalData) {
         BKE_report(reports, error_type, "Cannot move above a modifier requiring original data");
@@ -461,10 +461,10 @@ static bool object_modifier_check_move_after(ReportList *reports,
     if (md_next->flag & eModifierFlag_PinLast && !(md->flag & eModifierFlag_PinLast)) {
       return false;
     }
-    const ModifierTypeInfo *mti = BKE_modifier_get_info(ModifierType(md->type));
+    const ModifierTypeInfo *mti = BKE_modifier_get_info(md->type);
 
     if (mti->flags & eModifierTypeFlag_RequiresOriginalData) {
-      const ModifierTypeInfo *nmti = BKE_modifier_get_info(ModifierType(md_next->type));
+      const ModifierTypeInfo *nmti = BKE_modifier_get_info(md_next->type);
 
       if (nmti->type != ModifierTypeType::OnlyDeform) {
         BKE_report(reports, error_type, "Cannot move beyond a non-deforming modifier");
@@ -575,7 +575,7 @@ ModifierData *modifier_copy_to_object(Main *bmain,
                                       Object *ob_dst,
                                       ReportList *reports)
 {
-  const ModifierTypeInfo *mti = BKE_modifier_get_info(ModifierType(md->type));
+  const ModifierTypeInfo *mti = BKE_modifier_get_info(md->type);
 
   BLI_assert(ob_src != ob_dst);
 
@@ -590,7 +590,7 @@ ModifierData *modifier_copy_to_object(Main *bmain,
   }
 
   if (mti->flags & eModifierTypeFlag_Single) {
-    if (BKE_modifiers_findby_type(ob_dst, ModifierType(md->type))) {
+    if (BKE_modifiers_findby_type(ob_dst, md->type)) {
       BKE_reportf(reports,
                   RPT_WARNING,
                   "Modifier can only be added once to object '%s'",
@@ -778,7 +778,7 @@ static Mesh *create_applied_mesh_for_modifier(Depsgraph *depsgraph,
   Mesh *mesh = ob_eval->runtime->data_orig ?
                    reinterpret_cast<Mesh *>(ob_eval->runtime->data_orig) :
                    reinterpret_cast<Mesh *>(ob_eval->data);
-  const ModifierTypeInfo *mti = BKE_modifier_get_info(ModifierType(md_eval->type));
+  const ModifierTypeInfo *mti = BKE_modifier_get_info(md_eval->type);
   const ModifierEvalContext mectx = {depsgraph, ob_eval, MOD_APPLY_TO_ORIGINAL};
 
   if (!(md_eval->mode & eModifierMode_Realtime)) {
@@ -812,7 +812,7 @@ static Mesh *create_applied_mesh_for_modifier(Depsgraph *depsgraph,
         continue;
       }
       /* All virtual modifiers are deform modifiers. */
-      const ModifierTypeInfo *mti_virt = BKE_modifier_get_info(ModifierType(md_eval_virt->type));
+      const ModifierTypeInfo *mti_virt = BKE_modifier_get_info(md_eval_virt->type);
       BLI_assert(mti_virt->type == ModifierTypeType::OnlyDeform);
       if (mti_virt->type != ModifierTypeType::OnlyDeform) {
         continue;
@@ -865,7 +865,7 @@ static bool modifier_apply_shape(Main *bmain,
                                  Object *ob,
                                  ModifierData *md_eval)
 {
-  const ModifierTypeInfo *mti = BKE_modifier_get_info(ModifierType(md_eval->type));
+  const ModifierTypeInfo *mti = BKE_modifier_get_info(md_eval->type);
 
   if (mti->is_disabled && mti->is_disabled(scene, md_eval, false)) {
     BKE_report(reports, RPT_ERROR, "Modifier is disabled, skipping apply");
@@ -931,7 +931,7 @@ static bool apply_grease_pencil_for_modifier(Depsgraph *depsgraph,
 {
   using namespace bke;
   using namespace bke::greasepencil;
-  const ModifierTypeInfo *mti = BKE_modifier_get_info(ModifierType(md_eval->type));
+  const ModifierTypeInfo *mti = BKE_modifier_get_info(md_eval->type);
   Object *ob_eval = DEG_get_evaluated(depsgraph, ob);
   GreasePencil *grease_pencil_for_eval = ob_eval->runtime->data_orig ?
                                              reinterpret_cast<GreasePencil *>(
@@ -975,7 +975,7 @@ static bool apply_grease_pencil_for_modifier_all_keyframes(Depsgraph *depsgraph,
   using namespace bke::greasepencil;
   Main *bmain = DEG_get_bmain(depsgraph);
 
-  const ModifierTypeInfo *mti = BKE_modifier_get_info(ModifierType(md->type));
+  const ModifierTypeInfo *mti = BKE_modifier_get_info(md->type);
 
   WM_cursor_wait(true);
 
@@ -1053,7 +1053,7 @@ static bool modifier_apply_obdata(ReportList *reports,
                                   ModifierData *md_eval,
                                   const bool do_all_keyframes)
 {
-  const ModifierTypeInfo *mti = BKE_modifier_get_info(ModifierType(md_eval->type));
+  const ModifierTypeInfo *mti = BKE_modifier_get_info(md_eval->type);
 
   if (mti->is_disabled && mti->is_disabled(scene, md_eval, false)) {
     BKE_report(reports, RPT_ERROR, "Modifier is disabled, skipping apply");
@@ -2012,7 +2012,7 @@ static wmOperatorStatus modifier_apply_exec_ex(bContext *C,
       continue;
     }
 
-    const ModifierTypeInfo *mti = BKE_modifier_get_info(ModifierType(md->type));
+    const ModifierTypeInfo *mti = BKE_modifier_get_info(md->type);
 
     if (do_single_user && ID_REAL_USERS(ob->data) > 1) {
       single_obdata_user_make(bmain, scene, ob);

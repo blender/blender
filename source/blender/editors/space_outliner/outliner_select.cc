@@ -163,7 +163,7 @@ static void do_outliner_item_mode_toggle_generic(bContext *C,
                                                  const TreeViewContext &tvc,
                                                  Base *base)
 {
-  const eObjectMode active_mode = eObjectMode(tvc.obact->mode);
+  const eObjectMode active_mode = tvc.obact->mode;
   ED_undo_group_begin(C);
 
   if (object::mode_set(C, OB_MODE_OBJECT)) {
@@ -333,7 +333,7 @@ static void tree_element_object_activate(bContext *C,
   if (scene->toolsettings->object_flag & SCE_OBJECT_MODE_LOCK) {
     if (base != nullptr) {
       Object *obact = BKE_view_layer_active_object_get(view_layer);
-      const eObjectMode object_mode = obact ? eObjectMode(obact->mode) : OB_MODE_OBJECT;
+      const eObjectMode object_mode = obact ? obact->mode : OB_MODE_OBJECT;
       if (base && !BKE_object_is_mode_compat(base->object, object_mode)) {
         if (object_mode == OB_MODE_OBJECT) {
           Depsgraph *depsgraph = CTX_data_ensure_evaluated_depsgraph(C);
@@ -1370,7 +1370,7 @@ static void outliner_set_properties_tab(bContext *C, TreeElement *te, TreeStoreE
         if (tselem->type != TSE_MODIFIER_BASE) {
           ModifierData *md = static_cast<ModifierData *>(te->directdata);
 
-          switch (ModifierType(md->type)) {
+          switch (md->type) {
             case eModifierType_ParticleSystem:
               context = BCONTEXT_PARTICLE;
               break;

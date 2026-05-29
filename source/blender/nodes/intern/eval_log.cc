@@ -521,7 +521,7 @@ void NodeTreeLog::ensure_node_warnings(
       NodeWarningPropagation propagation = NODE_WARNING_PROPAGATION_ALL;
       if (tree) {
         if (const bNode *node = tree->node_by_id(warning.node_id)) {
-          propagation = NodeWarningPropagation(node->warning_propagation);
+          propagation = node->warning_propagation;
         }
       }
       this->nodes.lookup_or_add_default(warning.node_id).warnings.add(warning.warning);
@@ -540,7 +540,7 @@ void NodeTreeLog::ensure_node_warnings(
     const std::optional<int32_t> &caller_node_id = first_child_logger.parent_node_id;
     if (tree && caller_node_id) {
       if (const bNode *caller_node = tree->node_by_id(*caller_node_id)) {
-        propagation = NodeWarningPropagation(caller_node->warning_propagation);
+        propagation = caller_node->warning_propagation;
       }
     }
     child_log.ensure_node_warnings(orig_tree_by_session_uid);

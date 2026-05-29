@@ -5035,7 +5035,7 @@ void BKE_particlesystem_id_loop(ParticleSystem *psys, ParticleSystemIDFunc func,
   func(psys, reinterpret_cast<ID **>(&psys->parent), userdata, IDWALK_CB_NOP);
 
   if (psys->clmd != nullptr) {
-    const ModifierTypeInfo *mti = BKE_modifier_get_info(ModifierType(psys->clmd->modifier.type));
+    const ModifierTypeInfo *mti = BKE_modifier_get_info(psys->clmd->modifier.type);
 
     if (mti->foreach_ID_link != nullptr) {
       ParticleSystemIDLoopForModifier data{};

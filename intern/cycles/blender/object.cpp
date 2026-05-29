@@ -69,7 +69,7 @@ bool BlenderSync::object_is_geometry(BObjectInfo &b_ob_info)
     return false;
   }
 
-  const blender::ObjectType type = blender::ObjectType(b_ob_info.iter_object->type);
+  const blender::ObjectType type = b_ob_info.iter_object->type;
 
   if (type == blender::OB_VOLUME || type == blender::OB_CURVES || type == blender::OB_POINTCLOUD ||
       type == blender::OB_LAMP)
@@ -83,7 +83,7 @@ bool BlenderSync::object_is_geometry(BObjectInfo &b_ob_info)
 
 bool BlenderSync::object_can_have_geometry(blender::Object &b_ob)
 {
-  const blender::ObjectType type = blender::ObjectType(b_ob.type);
+  const blender::ObjectType type = b_ob.type;
   switch (type) {
     case blender::OB_MESH:
     case blender::OB_CURVES_LEGACY:

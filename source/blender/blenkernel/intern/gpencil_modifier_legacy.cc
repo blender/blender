@@ -43,7 +43,7 @@ static bool gpencil_modifier_type_valid(const int type)
  */
 static void gpencil_modifier_free_data(GpencilModifierData *md)
 {
-  switch (GpencilModifierType(md->type)) {
+  switch (md->type) {
     case eGpencilModifierType_Noise: {
       NoiseGpencilModifierData *gpmd = reinterpret_cast<NoiseGpencilModifierData *>(md);
 
@@ -167,7 +167,7 @@ static void gpencil_modifier_foreach_ID_link(GpencilModifierData *md,
                                              GreasePencilIDWalkFunc walk,
                                              void *user_data)
 {
-  switch (GpencilModifierType(md->type)) {
+  switch (md->type) {
     case eGpencilModifierType_None: {
       break;
     }

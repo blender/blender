@@ -902,7 +902,7 @@ static void rna_UVProject_projectors_begin(CollectionPropertyIterator *iter, Poi
 static StructRNA *rna_Modifier_refine(PointerRNA *ptr)
 {
   ModifierData *md = static_cast<ModifierData *>(ptr->data);
-  const ModifierTypeInfo *modifier_type = BKE_modifier_get_info(ModifierType(md->type));
+  const ModifierTypeInfo *modifier_type = BKE_modifier_get_info(md->type);
   if (modifier_type != nullptr) {
     return *modifier_type->srna;
   }

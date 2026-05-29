@@ -462,7 +462,7 @@ void sync_active_scene_and_time_with_scene_strip(bContext &C)
   if (prev_obact) {
     Object *obact = CTX_data_active_object(&C);
     if (obact && prev_obact->type == obact->type) {
-      object::mode_set(&C, eObjectMode(prev_obact->mode));
+      object::mode_set(&C, prev_obact->mode);
     }
   }
 

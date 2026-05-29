@@ -1830,9 +1830,9 @@ bool rna_Object_modifiers_override_apply(Main *bmain,
      * modifier).
      *
      * Try to handle this by finding already existing one here. */
-    const ModifierTypeInfo *mti = BKE_modifier_get_info(ModifierType(mod_src->type));
+    const ModifierTypeInfo *mti = BKE_modifier_get_info(mod_src->type);
     if (mti->flags & eModifierTypeFlag_Single) {
-      mod_dst = BKE_modifiers_findby_type(ob_dst, ModifierType(mod_src->type));
+      mod_dst = BKE_modifiers_findby_type(ob_dst, mod_src->type);
     }
 
     if (mod_dst == nullptr) {

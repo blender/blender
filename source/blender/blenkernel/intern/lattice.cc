@@ -534,7 +534,7 @@ void BKE_lattice_modifiers_calc(Depsgraph *depsgraph, Scene *scene, Object *ob)
   const ModifierEvalContext mectx = {depsgraph, ob, ModifierApplyFlag(0)};
 
   for (; md; md = md->next) {
-    const ModifierTypeInfo *mti = BKE_modifier_get_info(ModifierType(md->type));
+    const ModifierTypeInfo *mti = BKE_modifier_get_info(md->type);
 
     if (!(mti->flags & eModifierTypeFlag_AcceptsVertexCosOnly)) {
       continue;

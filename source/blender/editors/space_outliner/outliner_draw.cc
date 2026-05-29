@@ -2774,8 +2774,7 @@ TreeElementIcon tree_element_get_icon(TreeStoreElem *tselem, TreeElement *te)
         data.drag_id = tselem->id;
 
         ModifierData *md = static_cast<ModifierData *>(BLI_findlink(&ob->modifiers, tselem->nr));
-        if (const ModifierTypeInfo *modifier_type = BKE_modifier_get_info(ModifierType(md->type)))
-        {
+        if (const ModifierTypeInfo *modifier_type = BKE_modifier_get_info(md->type)) {
           data.icon = modifier_type->icon;
         }
         else {

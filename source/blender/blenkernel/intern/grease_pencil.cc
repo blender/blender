@@ -2436,10 +2436,10 @@ static void grease_pencil_evaluate_modifiers(Depsgraph *depsgraph,
    * for the current frame, so we run the time offset modifiers before all the other ones. */
   ModifierData *tmd = md;
   for (; tmd; tmd = tmd->next) {
-    const ModifierTypeInfo *mti = BKE_modifier_get_info(ModifierType(tmd->type));
+    const ModifierTypeInfo *mti = BKE_modifier_get_info(tmd->type);
 
     if (!BKE_modifier_is_enabled(scene, tmd, required_mode) ||
-        ModifierType(tmd->type) != eModifierType_GreasePencilTime)
+        tmd->type != eModifierType_GreasePencilTime)
     {
       continue;
     }
@@ -2453,10 +2453,10 @@ static void grease_pencil_evaluate_modifiers(Depsgraph *depsgraph,
 
   /* Evaluate drawing modifiers. */
   for (; md; md = md->next) {
-    const ModifierTypeInfo *mti = BKE_modifier_get_info(ModifierType(md->type));
+    const ModifierTypeInfo *mti = BKE_modifier_get_info(md->type);
 
     if (!BKE_modifier_is_enabled(scene, md, required_mode) ||
-        ModifierType(md->type) == eModifierType_GreasePencilTime)
+        md->type == eModifierType_GreasePencilTime)
     {
       continue;
     }
