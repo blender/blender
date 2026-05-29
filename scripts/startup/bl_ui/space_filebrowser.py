@@ -920,7 +920,7 @@ class ASSETBROWSER_MT_context_menu(AssetBrowserMenu, Menu):
         params = st.params
 
         if bpy.ops.asset.assets_download.poll():
-            layout.operator("asset.assets_download")
+            layout.operator("asset.assets_download", icon='DOWNLOAD')
             layout.separator()
 
         layout.operator("asset.library_refresh", icon='FILE_REFRESH')

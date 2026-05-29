@@ -304,7 +304,7 @@ void AssetViewItem::build_context_menu(bContext &C, ui::Layout &column) const
   bool has_items = false;
 
   if (asset_.needs_download()) {
-    column.op("asset.assets_download", IFACE_("Download Asset"), ICON_NONE);
+    column.op("asset.assets_download", IFACE_("Download Asset"), ICON_DOWNLOAD);
     has_items = true;
   }
 

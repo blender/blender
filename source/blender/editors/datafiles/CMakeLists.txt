@@ -324,6 +324,7 @@ if(WITH_BLENDER)
       documents
       dot
       downarrow_hlt
+      download
       driver
       driver_distance
       driver_rotational_difference
