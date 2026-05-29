@@ -909,6 +909,7 @@ void DeferredLayer::end_sync(bool is_first_pass,
         sub.bind_resources(inst_.hiz_buffer.front);
         sub.bind_resources(inst_.uniform_data);
         sub.bind_resources(inst_.sampling);
+        sub.bind_texture("utility_tx", &inst_.pipelines.utility_tx);
         sub.bind_texture("gbuf_header_tx", &inst_.gbuffer.header_tx);
         sub.bind_image("gbuf_normal_img", &inst_.gbuffer.normal_tx);
         sub.state_set(DRW_STATE_WRITE_STENCIL | DRW_STATE_STENCIL_EQUAL);
