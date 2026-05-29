@@ -8,6 +8,7 @@
 
 #include "BLI_math_base.h"
 #include "BLI_math_matrix.hh"
+#include "BLI_profile.hh"
 
 #include "BLT_translation.hh"
 
@@ -55,6 +56,7 @@ struct MaskApplyOp {
 
 static void maskmodifier_apply(ModifierApplyContext &context, StripModifierData *smd)
 {
+  BLI_profile_scope_with_name("SeqModMask", ProfileCategory::Draw);
   ImBuf *mask = modifier_render_mask_input(context, *smd);
   if (mask != nullptr && (mask->byte_data() != nullptr || mask->float_data() != nullptr)) {
     ensure_ibuf_is_sequencer_space(context.render_data.scene, context.image, false);

@@ -20,6 +20,7 @@
 #include "BLI_math_geom.h"
 #include "BLI_math_matrix.hh"
 #include "BLI_path_utils.hh"
+#include "BLI_profile.hh"
 #include "BLI_rect.h"
 #include "BLI_task.hh"
 
@@ -579,6 +580,8 @@ static SeqResult input_preprocess(const RenderData *context,
                                   const SeqResult &input,
                                   const bool is_proxy_image)
 {
+  BLI_profile_scope_with_name("SeqPreprocess", ProfileCategory::Draw);
+
   BLI_assert(input.is_valid());
 
   SeqResult result = input;
@@ -589,6 +592,7 @@ static SeqResult input_preprocess(const RenderData *context,
   if ((strip->flag & SEQ_DEINTERLACE) &&
       !ELEM(strip->type, STRIP_TYPE_MOVIE, STRIP_TYPE_MOVIECLIP))
   {
+    BLI_profile_scope_with_name("SeqStripDeinterlace", ProfileCategory::Draw);
     result.image = IMB_makeSingleUser(result.image);
     IMB_filtery(result.image);
   }
@@ -596,12 +600,14 @@ static SeqResult input_preprocess(const RenderData *context,
   const bool make_float = strip->flag & SEQ_MAKE_FLOAT;
 
   if (strip->sat != 1.0f) {
+    BLI_profile_scope_with_name("SeqStripSaturation", ProfileCategory::Draw);
     result.image = IMB_makeSingleUser(result.image);
     ensure_ibuf_is_sequencer_space(scene, result.image, make_float);
     IMB_saturation(result.image, strip->sat);
   }
 
   if (make_float) {
+    BLI_profile_scope_with_name("SeqStripMakeFloat", ProfileCategory::Draw);
     if (!result.image->float_data()) {
       result.image = IMB_makeSingleUser(result.image);
       ensure_ibuf_is_sequencer_space(scene, result.image, true);
@@ -617,6 +623,7 @@ static SeqResult input_preprocess(const RenderData *context,
   }
 
   if (mul != 1.0f) {
+    BLI_profile_scope_with_name("SeqStripMultiply", ProfileCategory::Draw);
     result.image = IMB_makeSingleUser(result.image);
     ensure_ibuf_is_sequencer_space(scene, result.image, make_float);
     const bool multiply_alpha = (strip->flag & SEQ_MULTIPLY_ALPHA);
@@ -658,6 +665,8 @@ static SeqResult input_preprocess(const RenderData *context,
       context->rectx != result.image->x || context->recty != result.image->y ||
       modifier_translation != float2(0, 0))
   {
+    BLI_profile_scope_with_name("SeqStripTransform", ProfileCategory::Draw);
+
     const int x = context->rectx;
     const int y = context->recty;
     ImBuf *transformed_ibuf = IMB_allocImBuf(
@@ -689,11 +698,13 @@ static SeqResult input_preprocess(const RenderData *context,
   }
 
   if (strip->flag & SEQ_FLIPX) {
+    BLI_profile_scope_with_name("SeqStripFlipX", ProfileCategory::Draw);
     result.image = IMB_makeSingleUser(result.image);
     IMB_flipx(result.image);
   }
 
   if (strip->flag & SEQ_FLIPY) {
+    BLI_profile_scope_with_name("SeqStripFlipY", ProfileCategory::Draw);
     result.image = IMB_makeSingleUser(result.image);
     IMB_flipy(result.image);
   }
@@ -736,6 +747,8 @@ static SeqResult seq_render_effect_strip_impl(const RenderData *context,
                                               Strip *strip,
                                               float timeline_frame)
 {
+  BLI_profile_scope_with_name("SeqRenderFx", ProfileCategory::Draw);
+
   Scene *scene = context->scene;
   EffectHandle sh = strip_effect_handle_get(strip);
   SeqResult ibuf[2] = {};
@@ -916,6 +929,8 @@ static ImBuf *seq_render_image_strip(const RenderData *context,
                                      int timeline_frame,
                                      bool *r_is_proxy_image)
 {
+  BLI_profile_scope_with_name("SeqRenderImage", ProfileCategory::Draw);
+
   char filepath[FILE_MAX];
   const char *ext = nullptr;
   char prefix[FILE_MAX];
@@ -1056,6 +1071,8 @@ static ImBuf *seq_render_movie_strip(const RenderData *context,
                                      float timeline_frame,
                                      bool *r_is_proxy_image)
 {
+  BLI_profile_scope_with_name("SeqRenderMovie", ProfileCategory::Draw);
+
   /* Load all the videos. */
   strip_open_anim_file(context->scene, strip, false);
 
@@ -1138,6 +1155,8 @@ static ImBuf *seq_render_movieclip_strip(const RenderData *context,
                                          float frame_index,
                                          bool *r_is_proxy_image)
 {
+  BLI_profile_scope_with_name("SeqRenderMovieClip", ProfileCategory::Draw);
+
   ImBuf *ibuf = nullptr;
   MovieClipUser user = {};
   IMB_Proxy_Size psize = rendersize_to_proxysize(context->preview_render_size);
@@ -1259,6 +1278,8 @@ ImBuf *seq_render_mask(Depsgraph *depsgraph,
 
 static ImBuf *seq_render_mask_strip(const RenderData *context, Strip *strip, float frame_index)
 {
+  BLI_profile_scope_with_name("SeqRenderMask", ProfileCategory::Draw);
+
   bool make_float = (strip->flag & SEQ_MAKE_FLOAT) != 0;
 
   return seq_render_mask(
@@ -1503,6 +1524,8 @@ static SeqResult seq_render_scene_strip(const RenderData *context,
                                         float frame_index,
                                         float timeline_frame)
 {
+  BLI_profile_scope_with_name("SeqRenderScene", ProfileCategory::Draw);
+
   SeqResult out;
   if (strip->scene == nullptr) {
     out.image = create_missing_media_image(context, context->rectx, context->recty);
@@ -1671,6 +1694,8 @@ SeqResult seq_render_strip(const RenderData *context,
                            Strip *strip,
                            float timeline_frame)
 {
+  BLI_profile_scope_with_name("SeqRenderStrip", ProfileCategory::Draw);
+
   bool use_preprocess = false;
   bool is_proxy_image = false;
 
@@ -1781,6 +1806,7 @@ static SeqResult seq_render_strip_stack(const RenderData *context,
                                         float timeline_frame,
                                         int chanshown)
 {
+  BLI_profile_scope_with_name("SeqRenderStrips", ProfileCategory::Draw);
   Vector<Strip *> strips = query_rendered_strips_sorted(
       context->scene, channels, seqbasep, timeline_frame, chanshown);
   if (strips.is_empty()) {

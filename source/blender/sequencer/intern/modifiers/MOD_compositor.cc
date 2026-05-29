@@ -7,6 +7,7 @@
  */
 
 #include "BLI_math_rotation.hh"
+#include "BLI_profile.hh"
 
 #include "BLT_translation.hh"
 
@@ -384,7 +385,10 @@ class CompositorModifierContext : public CompositorContext {
       inputs.append(std::unique_ptr<Result>(input_result));
     }
 
-    node_group_operation.evaluate();
+    {
+      BLI_profile_scope_with_name("SeqCompositorEvaluate", ProfileCategory::Draw);
+      node_group_operation.evaluate();
+    }
     this->write_outputs(node_group, node_group_operation, *this->image_buffer_);
   }
 
@@ -392,6 +396,7 @@ class CompositorModifierContext : public CompositorContext {
    * path we do a more efficient approach than rendering into a full ImBuf. */
   void render_mask_input(const ModifierApplyContext &context, int timeline_frame)
   {
+    BLI_profile_scope_with_name("SeqRenderMaskInput", ProfileCategory::Draw);
     const StripModifierData &smd = this->modifier_data_->modifier;
     if (smd.mask_input_type == STRIP_MASK_INPUT_STRIP && smd.mask_strip) {
       this->mask_buffer_ = seq_render_strip(&context.render_data,
@@ -449,6 +454,7 @@ static void compositor_modifier_init_data(StripModifierData *strip_modifier_data
 static void compositor_modifier_apply(ModifierApplyContext &context,
                                       StripModifierData *strip_modifier_data)
 {
+  BLI_profile_scope_with_name("SeqModCompositor", ProfileCategory::Draw);
   SequencerCompositorModifierData *modifier_data =
       reinterpret_cast<SequencerCompositorModifierData *>(strip_modifier_data);
   if (!modifier_data->node_group) {

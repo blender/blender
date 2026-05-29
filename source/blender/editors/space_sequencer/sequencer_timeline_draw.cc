@@ -13,6 +13,7 @@
 #include "BLI_math_color.h"
 #include "BLI_math_vector.h"
 #include "BLI_path_utils.hh"
+#include "BLI_profile.hh"
 #include "BLI_string_utf8.h"
 #include "BLI_string_utils.hh"
 #include "BLI_task.hh"
@@ -454,6 +455,8 @@ static void draw_seq_waveform_overlay(const TimelineDrawContext &ctx,
   if (!seq_draw_waveforms_poll(ctx.sseq, strip_ctx.strip) || strip_ctx.strip_is_too_small) {
     return;
   }
+
+  BLI_profile_scope_with_name("SeqTimelineWaveform", ProfileCategory::Draw);
 
   const View2D *v2d = ctx.v2d;
   Scene *scene = ctx.scene;
@@ -1133,6 +1136,8 @@ static void draw_seq_fcurve_overlay(const TimelineDrawContext &ctx,
     return;
   }
 
+  BLI_profile_scope_with_name("SeqTimelineFCurve", ProfileCategory::Draw);
+
   const int eval_step = max_ii(1, floor(ctx.pixelx));
   uchar color[4] = {0, 0, 0, 38};
 
@@ -1547,6 +1552,8 @@ static void draw_seq_strips(const TimelineDrawContext &ctx,
     return;
   }
 
+  BLI_profile_scope_with_name("SeqTimelineStrips", ProfileCategory::Draw);
+
   ui::view2d_view_ortho(ctx.v2d);
 
   /* Draw parts of strips below thumbnails. */
@@ -1878,6 +1885,8 @@ static void draw_timeline_post_view_callbacks(const TimelineDrawContext &ctx)
 
 void draw_timeline_seq(const bContext *C, const ARegion *region)
 {
+  BLI_profile_scope_with_name("SeqTimelineDraw", ProfileCategory::Draw);
+
   SeqQuadsBatch quads_batch;
   TimelineDrawContext ctx = timeline_draw_context_get(C, &quads_batch);
   StripsDrawBatch strips_batch(ctx.v2d);

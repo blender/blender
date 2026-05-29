@@ -9,6 +9,7 @@
 #include "BKE_context.hh"
 
 #include "BLI_array.hh"
+#include "BLI_profile.hh"
 
 #include "IMB_imbuf.hh"
 
@@ -417,6 +418,8 @@ void draw_strip_thumbnails(const TimelineDrawContext &ctx,
   if ((ctx.sseq->flag & SEQ_SHOW_OVERLAY) == 0 || !show_thumbnails) {
     return;
   }
+
+  BLI_profile_scope_with_name("SeqTimelineThumbs", ProfileCategory::Draw);
 
   /* Gather information for all thumbnails. */
   Vector<SeqThumbInfo> thumbs;

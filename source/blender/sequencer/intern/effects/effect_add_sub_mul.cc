@@ -6,6 +6,8 @@
  * \ingroup sequencer
  */
 
+#include "BLI_profile.hh"
+
 #include "DNA_sequence_types.h"
 
 #include "IMB_imbuf.hh"
@@ -54,6 +56,7 @@ static SeqResult do_add_effect(const RenderData *context,
                                const SeqResult &src1,
                                const SeqResult &src2)
 {
+  BLI_profile_scope_with_name("SeqFxAdd", ProfileCategory::Draw);
   SeqResult dst = prepare_effect_imbufs(context, src1, src2);
   AddEffectOp op;
   op.factor = fac;
@@ -101,6 +104,7 @@ static SeqResult do_sub_effect(const RenderData *context,
                                const SeqResult &src1,
                                const SeqResult &src2)
 {
+  BLI_profile_scope_with_name("SeqFxSub", ProfileCategory::Draw);
   SeqResult dst = prepare_effect_imbufs(context, src1, src2);
   SubEffectOp op;
   op.factor = fac;
@@ -148,6 +152,7 @@ static SeqResult do_mul_effect(const RenderData *context,
                                const SeqResult &src1,
                                const SeqResult &src2)
 {
+  BLI_profile_scope_with_name("SeqFxMul", ProfileCategory::Draw);
   SeqResult dst = prepare_effect_imbufs(context, src1, src2);
   MulEffectOp op;
   op.factor = fac;

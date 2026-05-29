@@ -24,6 +24,8 @@
 #  include <tracy/Tracy.hpp>
 #endif
 
+#include <cstdint>
+
 namespace blender {
 /**
  * Set of category colors, chosen with color-blindness in mind.
