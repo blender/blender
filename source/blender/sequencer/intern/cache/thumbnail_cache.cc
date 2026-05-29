@@ -603,6 +603,7 @@ void thumbnail_cache_maintain_capacity(Scene *scene)
           if (item.value.frames[i].used_at < cache->logical_time_ - 100) {
             IMB_freeImBuf(item.value.frames[i].thumb);
             item.value.frames.remove_and_reorder(i);
+            i--;
           }
         }
       }
