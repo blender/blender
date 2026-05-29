@@ -835,9 +835,9 @@ static void rna_Object_dup_collection_set(PointerRNA *ptr,
 
   /* Must not let this be set if the object belongs in this group already,
    * thus causing a cycle/infinite-recursion leading to crashes on load #25298. */
-  if (BKE_collection_has_object_recursive(grp, ob) == 0) {
+  if (BKE_collection_has_object_recursive_instanced(grp, ob) == 0) {
     if (ob->type == OB_EMPTY) {
-      id_us_min(&ob->instance_collection->id);
+      id_us_min(id_cast<ID *>(ob->instance_collection));
       ob->instance_collection = grp;
       id_us_plus(&ob->instance_collection->id);
     }
@@ -846,11 +846,10 @@ static void rna_Object_dup_collection_set(PointerRNA *ptr,
     }
   }
   else {
-    BKE_report(
-        nullptr,
-        RPT_ERROR,
-        "Cannot set instance-collection as object belongs in collection being instanced, thus "
-        "causing a cycle");
+    BKE_report(nullptr,
+               RPT_ERROR,
+               "Cannot set instance-collection as object belongs (directly or indirectly) in "
+               "collection being instanced, thus causing a dependency cycle");
   }
 }
 
