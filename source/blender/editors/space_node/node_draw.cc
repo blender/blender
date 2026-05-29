@@ -2823,7 +2823,8 @@ static void node_header_custom_tooltip(const bNodeTree &ntree, const bNode &node
         const std::string description = node.typeinfo->ui_description_fn ?
                                             TIP_(node.typeinfo->ui_description_fn(node)) :
                                             TIP_(node.typeinfo->ui_description);
-        if (!description.empty()) {
+        const bool have_description = !description.empty();
+        if (have_description) {
           tooltip_text_field_add(
               data, std::move(description), "", ui::TIP_STYLE_NORMAL, ui::TIP_LC_NORMAL);
         }
@@ -2837,7 +2838,7 @@ static void node_header_custom_tooltip(const bNodeTree &ntree, const bNode &node
                                  "",
                                  ui::TIP_STYLE_MONO,
                                  ui::TIP_LC_DIMMED,
-                                 !description.empty());
+                                 have_description);
         }
       });
 }
