@@ -39,6 +39,7 @@ static std::string format_unit_value(float value, PropertySubType subtype, Layou
                            RNA_TRANSLATION_PREC_DEFAULT,
                            RNA_SUBTYPE_UNIT_VALUE(unit_type),
                            *unit,
+                           true,
                            true);
   return std::string(new_str);
 }

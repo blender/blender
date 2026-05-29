@@ -9,6 +9,7 @@
 #pragma once
 
 #include <functional>
+#include <optional>
 #include <ranges>
 
 #include "BLI_compiler_attrs.h"
@@ -919,6 +920,11 @@ Button *button_drag_multi_edit_get(Button *but);
  * Get the hint that describes the expected value when empty.
  */
 const char *button_placeholder_get(Button *but);
+
+/**
+ * Get the unit hint shown after the text while editing.
+ */
+std::optional<StringRef> button_edit_unit_hint_get(const Button &but);
 
 void def_but_icon(Button *but, int icon, int flag);
 /**

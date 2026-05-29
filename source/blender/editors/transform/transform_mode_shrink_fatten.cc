@@ -122,7 +122,7 @@ static void applyShrinkFatten(TransInfo *t)
       char unit_str[64];
       const int precision = t->modifiers & MOD_PRECISION ? 6 : 4;
       BKE_unit_value_as_string_scaled(
-          unit_str, sizeof(unit_str), distance, precision * -1, B_UNIT_LENGTH, unit, true);
+          unit_str, sizeof(unit_str), distance, precision * -1, B_UNIT_LENGTH, unit, true, true);
       fmt::format_to(fmt::appender(str), "{}", BLI_string_pad_number_sign(unit_str).c_str());
     }
     else {
