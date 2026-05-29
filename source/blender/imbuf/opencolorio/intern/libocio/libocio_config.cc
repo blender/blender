@@ -68,7 +68,7 @@ LibOCIOConfig::LibOCIOConfig(const OCIO_NAMESPACE::ConstConfigRcPtr &ocio_config
   initialize_displays();
 }
 
-LibOCIOConfig::~LibOCIOConfig() {}
+LibOCIOConfig::~LibOCIOConfig() = default;
 
 void LibOCIOConfig::initialize_active_color_spaces()
 {
