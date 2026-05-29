@@ -527,6 +527,11 @@ void gather_comp([[resource_table]] Resources &srt,
 #if 1 /* Own addition. Not present in reference implementation. */
   /* Avoid division by 0.0. */
   float w = 1.0f / (50.0f * float(gather_sample_count) * 4.0f);
+  /* Restore background crispiness if there are large motions around. */
+  bool no_motion = length(center_motion.xy) + length(center_motion.zw) < 0.5;
+  if (accum.weight.x < 1.0 && no_motion) {
+    w = 1.0f;
+  }
   accum.bg += center_color * w;
   accum.weight.x += w;
   /* NOTE: In Jimenez's presentation, they used center sample.
