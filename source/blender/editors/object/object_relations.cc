@@ -1443,7 +1443,7 @@ static wmOperatorStatus make_links_scene_exec(bContext *C, wmOperator *op)
   }
 
   if (scene_to == CTX_data_scene(C)) {
-    BKE_report(op->reports, RPT_ERROR, "Object is already linked to this scene");
+    BKE_report(op->reports, RPT_ERROR, "Cannot link objects into the same scene");
     return OPERATOR_CANCELLED;
   }
 
