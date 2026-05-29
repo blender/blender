@@ -137,7 +137,7 @@ bool imb_save_avif(ImBuf *ibuf, const char *filepath, ImBufFlags flags)
 {
   auto [ctx, file_spec, use_float] = prepare_save_avif(ibuf, flags);
   const uchar *buf_padded = nullptr;
-  if (OIIO_VERSION_LESS(3, 2, 0)) {
+  if (OIIO_VERSION_LESS(3, 1, 12)) {
     buf_padded = imb_save_avif_padding_workaround_begin(ibuf, ctx, use_float);
   }
   bool result = imb_oiio_write(ctx, filepath, file_spec);
@@ -149,7 +149,7 @@ Vector<uint8_t> imb_save_buffer_avif(ImBuf *ibuf, ImBufFlags flags)
 {
   auto [ctx, file_spec, use_float] = prepare_save_avif(ibuf, flags);
   const uchar *buf_padded = nullptr;
-  if (OIIO_VERSION_LESS(3, 2, 0)) {
+  if (OIIO_VERSION_LESS(3, 1, 12)) {
     buf_padded = imb_save_avif_padding_workaround_begin(ibuf, ctx, use_float);
   }
   Vector<uint8_t> result = imb_oiio_write_buffer(ctx, file_spec);
