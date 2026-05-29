@@ -51,8 +51,6 @@ static const char *STUDIOLIGHT_MATCAP_FOLDER = "studiolights" SEP_STR "matcap" S
 static const char *STUDIOLIGHT_WORLD_DEFAULT = "forest.exr";
 static const char *STUDIOLIGHT_MATCAP_DEFAULT = "basic_1.exr";
 
-static CLG_LogRef LOG = {"bke.studiolight"};
-
 /* ITER MACRO */
 
 /**

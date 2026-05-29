@@ -50,7 +50,7 @@
 
 #include "remote_library.hh"
 
-static CLG_LogRef LOG = {"assets.remote_library"};
+static CLG_LogRef LOG = {"asset.remote_library"};
 
 namespace blender::asset_system {
 
