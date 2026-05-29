@@ -1515,7 +1515,7 @@ void panel_category_tabs_draw_all(const bContext *C,
   const bool too_narrow = BLI_rcti_size_x(&region->winrct) <=
                           int(UI_PANEL_CATEGORY_MIN_WIDTH * UI_SCALE_FAC / aspect);
   /* #widget_roundbox_set has this correction, keep in sync. */
-  const int align_pad = !region->overlap ? px : 0;
+  const int align_pad = (!region->overlap && !is_left) ? px : 0;
   /* Same for all tabs. */
   const int rct_xmin = is_left ? (v2d->mask.xmin + 3) :
                                  (v2d->mask.xmax - category_tabs_width + align_pad);
@@ -1558,10 +1558,9 @@ void panel_category_tabs_draw_all(const bContext *C,
     const char *category_id = pc_dyn.idname;
     const char *category_id_draw = IFACE_(category_id);
     const int category_width = round_fl_to_int(
-        compact ? 10.5 * UI_SCALE_FAC * zoom :
-                  BLF_width(fontid, category_id_draw, BLF_DRAW_STR_DUMMY_MAX));
+        compact ? 0 : BLF_width(fontid, category_id_draw, BLF_DRAW_STR_DUMMY_MAX));
 
-    const int h = category_width + tab_v_pad_text * 2;
+    const int h = compact ? w + align_pad : category_width + tab_v_pad_text * 2;
 
     if (compact && pc_dyn.icon != ICON_NONE) {
       button = uiDefIconButR_prop(
