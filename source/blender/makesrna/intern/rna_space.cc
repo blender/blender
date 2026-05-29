@@ -27,6 +27,7 @@
 #include "BLI_sys_types.h"
 
 #include "DNA_action_types.h"
+#include "DNA_camera_types.h"
 #include "DNA_layer_types.h"
 #include "DNA_mask_types.h"
 #include "DNA_object_types.h"
@@ -6506,6 +6507,63 @@ static void rna_def_space_sequencer_preview_overlay(BlenderRNA *brna)
       prop, "Center-Cut Safe Areas", "Show safe areas to fit content in a different aspect ratio");
   RNA_def_property_update(prop, NC_SPACE | ND_SPACE_SEQUENCER, nullptr);
 
+  /* Composition Guides */
+  prop = RNA_def_property(srna, "show_composition_center", PROP_BOOLEAN, PROP_NONE);
+  RNA_def_property_boolean_sdna(
+      prop, nullptr, "preview_overlay.composition_guide_flags", COMPOSITION_GUIDES_CENTER);
+  RNA_def_property_ui_text(prop, "Center", "Display center composition guide");
+  RNA_def_property_update(prop, NC_SPACE | ND_SPACE_SEQUENCER, nullptr);
+
+  prop = RNA_def_property(srna, "show_composition_center_diagonal", PROP_BOOLEAN, PROP_NONE);
+  RNA_def_property_boolean_sdna(
+      prop, nullptr, "preview_overlay.composition_guide_flags", COMPOSITION_GUIDES_CENTER_DIAG);
+  RNA_def_property_ui_text(prop, "Center Diagonal", "Display diagonal center composition guide");
+  RNA_def_property_update(prop, NC_SPACE | ND_SPACE_SEQUENCER, nullptr);
+
+  prop = RNA_def_property(srna, "show_composition_thirds", PROP_BOOLEAN, PROP_NONE);
+  RNA_def_property_boolean_sdna(
+      prop, nullptr, "preview_overlay.composition_guide_flags", COMPOSITION_GUIDES_THIRDS);
+  RNA_def_property_ui_text(prop, "Thirds", "Display rule of thirds composition guide");
+  RNA_def_property_update(prop, NC_SPACE | ND_SPACE_SEQUENCER, nullptr);
+
+  prop = RNA_def_property(srna, "show_composition_golden", PROP_BOOLEAN, PROP_NONE);
+  RNA_def_property_boolean_sdna(
+      prop, nullptr, "preview_overlay.composition_guide_flags", COMPOSITION_GUIDES_GOLDEN);
+  RNA_def_property_ui_text(prop, "Golden Ratio", "Display golden ratio composition guide");
+  RNA_def_property_update(prop, NC_SPACE | ND_SPACE_SEQUENCER, nullptr);
+
+  prop = RNA_def_property(srna, "show_composition_golden_tria_a", PROP_BOOLEAN, PROP_NONE);
+  RNA_def_property_boolean_sdna(
+      prop, nullptr, "preview_overlay.composition_guide_flags", COMPOSITION_GUIDES_GOLDEN_TRI_A);
+  RNA_def_property_ui_text(
+      prop, "Golden Triangle A", "Display golden triangle A composition guide");
+  RNA_def_property_update(prop, NC_SPACE | ND_SPACE_SEQUENCER, nullptr);
+
+  prop = RNA_def_property(srna, "show_composition_golden_tria_b", PROP_BOOLEAN, PROP_NONE);
+  RNA_def_property_boolean_sdna(
+      prop, nullptr, "preview_overlay.composition_guide_flags", COMPOSITION_GUIDES_GOLDEN_TRI_B);
+  RNA_def_property_ui_text(
+      prop, "Golden Triangle B", "Display golden triangle B composition guide");
+  RNA_def_property_update(prop, NC_SPACE | ND_SPACE_SEQUENCER, nullptr);
+
+  prop = RNA_def_property(srna, "show_composition_harmony_tri_a", PROP_BOOLEAN, PROP_NONE);
+  RNA_def_property_boolean_sdna(
+      prop, nullptr, "preview_overlay.composition_guide_flags", COMPOSITION_GUIDES_HARMONY_TRI_A);
+  RNA_def_property_ui_text(prop, "Harmonious Triangle A", "Display harmony A composition guide");
+  RNA_def_property_update(prop, NC_SPACE | ND_SPACE_SEQUENCER, nullptr);
+
+  prop = RNA_def_property(srna, "show_composition_harmony_tri_b", PROP_BOOLEAN, PROP_NONE);
+  RNA_def_property_boolean_sdna(
+      prop, nullptr, "preview_overlay.composition_guide_flags", COMPOSITION_GUIDES_HARMONY_TRI_B);
+  RNA_def_property_ui_text(prop, "Harmonious Triangle B", "Display harmony B composition guide");
+  RNA_def_property_update(prop, NC_SPACE | ND_SPACE_SEQUENCER, nullptr);
+
+  prop = RNA_def_property(srna, "composition_guide_color", PROP_FLOAT, PROP_COLOR);
+  RNA_def_property_float_sdna(prop, nullptr, "preview_overlay.composition_guide_color");
+  RNA_def_property_ui_text(
+      prop, "Composition Guide Color", "Color and alpha for compositional guide overlays");
+  RNA_def_property_update(prop, NC_SPACE | ND_SPACE_SEQUENCER, nullptr);
+
   prop = RNA_def_property(srna, "show_metadata", PROP_BOOLEAN, PROP_NONE);
   RNA_def_property_boolean_sdna(prop, nullptr, "preview_overlay.flag", SEQ_PREVIEW_SHOW_METADATA);
   RNA_def_property_ui_text(prop, "Show Metadata", "Show metadata of first visible strip");
@@ -6525,6 +6583,13 @@ static void rna_def_space_sequencer_preview_overlay(BlenderRNA *brna)
   prop = RNA_def_property(srna, "show_cursor", PROP_BOOLEAN, PROP_NONE);
   RNA_def_property_boolean_sdna(prop, nullptr, "preview_overlay.flag", SEQ_PREVIEW_SHOW_2D_CURSOR);
   RNA_def_property_ui_text(prop, "2D Cursor", "");
+  RNA_def_property_update(prop, NC_SPACE | ND_SPACE_SEQUENCER, nullptr);
+
+  prop = RNA_def_property(srna, "show_composition_guides", PROP_BOOLEAN, PROP_NONE);
+  RNA_def_property_boolean_sdna(
+      prop, nullptr, "preview_overlay.flag", SEQ_PREVIEW_SHOW_COMPOSITION_GUIDES);
+  RNA_def_property_ui_text(
+      prop, "Composition Guides", "Display composition guides over the preview");
   RNA_def_property_update(prop, NC_SPACE | ND_SPACE_SEQUENCER, nullptr);
 }
 

@@ -303,9 +303,14 @@ struct SpaceNla {
 /** \name Sequence Editor
  * \{ */
 
+enum eCompositionGuideFlags : short;
 struct SequencerPreviewOverlay {
   eSpaceSeq_SequencerPreviewOverlay_Flag flag = {};
-  char _pad0[4] = {};
+  eCompositionGuideFlags composition_guide_flags = {};
+  char _pad[2] = {};
+
+  /* Compositional guide overlay color */
+  float composition_guide_color[4] = {0.5f, 0.5f, 0.5f, 1.0f};
 };
 
 struct SequencerTimelineOverlay {

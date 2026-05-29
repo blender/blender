@@ -47,18 +47,18 @@ enum eCamera_CustomMode : int {
   CAM_CUSTOM_SHADER_EXTERNAL = 1,
 };
 
-/* dtx */
-enum eCamera_DrawExtraFlag : char {
-  CAM_DTX_CENTER = (1 << 0),
-  CAM_DTX_CENTER_DIAG = (1 << 1),
-  CAM_DTX_THIRDS = (1 << 2),
-  CAM_DTX_GOLDEN = (1 << 3),
-  CAM_DTX_GOLDEN_TRI_A = (1 << 4),
-  CAM_DTX_GOLDEN_TRI_B = (1 << 5),
-  CAM_DTX_HARMONY_TRI_A = (1 << 6),
-  CAM_DTX_HARMONY_TRI_B = (1 << 7),
+/* Composition Guides */
+enum eCompositionGuideFlags : short {
+  COMPOSITION_GUIDES_CENTER = (1 << 0),
+  COMPOSITION_GUIDES_CENTER_DIAG = (1 << 1),
+  COMPOSITION_GUIDES_THIRDS = (1 << 2),
+  COMPOSITION_GUIDES_GOLDEN = (1 << 3),
+  COMPOSITION_GUIDES_GOLDEN_TRI_A = (1 << 4),
+  COMPOSITION_GUIDES_GOLDEN_TRI_B = (1 << 5),
+  COMPOSITION_GUIDES_HARMONY_TRI_A = (1 << 6),
+  COMPOSITION_GUIDES_HARMONY_TRI_B = (1 << 7),
 };
-ENUM_OPERATORS(eCamera_DrawExtraFlag)
+ENUM_OPERATORS(eCompositionGuideFlags)
 
 /* flag */
 enum eCamera_Flag : short {
@@ -209,9 +209,11 @@ struct Camera {
 
   /** CAM_PERSP, CAM_ORTHO, CAM_PANO or CAM_CUSTOM. */
   eCamera_Type type = {};
-  /** Draw type extra. */
-  eCamera_DrawExtraFlag dtx = {};
+  char _pad0[1] = {};
+  /** Composition Guide Flags. */
+  eCompositionGuideFlags composition_guide_flags = {};
   eCamera_Flag flag = CAM_SHOWPASSEPARTOUT;
+  char _pad1[2] = {};
   float passepartalpha = 0.5f;
   float clip_start = 0.1f, clip_end = 1000.0f;
   float lens = 50.0f, ortho_scale = 6.0, drawsize = 1.0f;
@@ -221,7 +223,7 @@ struct Camera {
 
   eCamera_SensorFit sensor_fit = {};
   eCamera_PanoType panorama_type = CAM_PANORAMA_FISHEYE_EQUISOLID;
-  char _pad[2] = {};
+  char _pad2[6] = {};
 
   /* Fish-eye properties. */
   float fisheye_fov = M_PI;
@@ -240,7 +242,7 @@ struct Camera {
   float central_cylindrical_range_v_min = -1.0f;
   float central_cylindrical_range_v_max = 1.0f;
   float central_cylindrical_radius = 1.0f;
-  float _pad2 = {};
+  float _pad3 = {};
 
   /* Custom Camera properties. */
   struct Text *custom_shader = nullptr;
@@ -250,7 +252,7 @@ struct Camera {
   char custom_bytecode_hash[64] = "";
   char *custom_bytecode = nullptr;
   eCamera_CustomMode custom_mode = {};
-  int _pad3 = {};
+  int _pad4 = {};
 
   DNA_DEPRECATED struct Object *dof_ob = nullptr;
   DNA_DEPRECATED struct GPUDOFSettings gpu_dof;

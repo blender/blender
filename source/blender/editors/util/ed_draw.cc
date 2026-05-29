@@ -27,6 +27,8 @@
 
 #include "BLF_api.hh"
 
+#include "DNA_camera_types.h"
+
 #include "IMB_imbuf_types.hh"
 #include "IMB_metadata.hh"
 
@@ -1106,6 +1108,154 @@ void ED_region_image_metadata_draw(
 
   GPU_matrix_pop();
 }
+
+/* -------------------------------------------------------------------- */
+/** \name Composition Guides
+ * \{ */
+
+#define M_GOLDEN_RATIO_CONJUGATE 0.618033988749895f
+
+static void drawviewborder_grid3(uint shdr_pos, rctf rect, float fac)
+{
+  float x3, y3, x4, y4;
+
+  x3 = rect.xmin + fac * (rect.xmax - rect.xmin);
+  y3 = rect.ymin + fac * (rect.ymax - rect.ymin);
+  x4 = rect.xmin + (1.0f - fac) * (rect.xmax - rect.xmin);
+  y4 = rect.ymin + (1.0f - fac) * (rect.ymax - rect.ymin);
+
+  immBegin(GPU_PRIM_LINES, 8);
+
+  immVertex2f(shdr_pos, rect.xmin, y3);
+  immVertex2f(shdr_pos, rect.xmax, y3);
+
+  immVertex2f(shdr_pos, rect.xmin, y4);
+  immVertex2f(shdr_pos, rect.xmax, y4);
+
+  immVertex2f(shdr_pos, x3, rect.ymin);
+  immVertex2f(shdr_pos, x3, rect.ymax);
+
+  immVertex2f(shdr_pos, x4, rect.ymin);
+  immVertex2f(shdr_pos, x4, rect.ymax);
+
+  immEnd();
+}
+
+/** harmonious triangle */
+static void drawviewborder_triangle(uint shdr_pos, rctf rect, const bool golden, const char dir)
+{
+  float ofs;
+  float w = rect.xmax - rect.xmin;
+  float h = rect.ymax - rect.ymin;
+
+  immBegin(GPU_PRIM_LINES, 6);
+
+  if (w > h) {
+    if (golden) {
+      ofs = w * (1.0f - M_GOLDEN_RATIO_CONJUGATE);
+    }
+    else {
+      ofs = h * (h / w);
+    }
+    if (dir == 'B') {
+      std::swap(rect.ymin, rect.ymax);
+    }
+
+    immVertex2f(shdr_pos, rect.xmin, rect.ymin);
+    immVertex2f(shdr_pos, rect.xmax, rect.ymax);
+
+    immVertex2f(shdr_pos, rect.xmax, rect.ymin);
+    immVertex2f(shdr_pos, rect.xmin + (w - ofs), rect.ymax);
+
+    immVertex2f(shdr_pos, rect.xmin, rect.ymax);
+    immVertex2f(shdr_pos, rect.xmin + ofs, rect.ymin);
+  }
+  else {
+    if (golden) {
+      ofs = h * (1.0f - M_GOLDEN_RATIO_CONJUGATE);
+    }
+    else {
+      ofs = w * (w / h);
+    }
+    if (dir == 'B') {
+      std::swap(rect.xmin, rect.xmax);
+    }
+
+    immVertex2f(shdr_pos, rect.xmin, rect.ymin);
+    immVertex2f(shdr_pos, rect.xmax, rect.ymax);
+
+    immVertex2f(shdr_pos, rect.xmax, rect.ymin);
+    immVertex2f(shdr_pos, rect.xmin, rect.ymin + ofs);
+
+    immVertex2f(shdr_pos, rect.xmin, rect.ymax);
+    immVertex2f(shdr_pos, rect.xmax, rect.ymin + (h - ofs));
+  }
+
+  immEnd();
+}
+
+void ED_draw_composition_guides(uint shdr_pos,
+                                eCompositionGuideFlags flag,
+                                const rctf *rect,
+                                const float color[4])
+{
+  immUniformColor4fv(color);
+
+  if (flag & COMPOSITION_GUIDES_CENTER) {
+    float xmid, ymid;
+
+    xmid = rect->xmin + 0.5f * (rect->xmax - rect->xmin);
+    ymid = rect->ymin + 0.5f * (rect->ymax - rect->ymin);
+
+    immBegin(GPU_PRIM_LINES, 4);
+
+    immVertex2f(shdr_pos, rect->xmin, ymid);
+    immVertex2f(shdr_pos, rect->xmax, ymid);
+
+    immVertex2f(shdr_pos, xmid, rect->ymin);
+    immVertex2f(shdr_pos, xmid, rect->ymax);
+
+    immEnd();
+  }
+
+  if (flag & COMPOSITION_GUIDES_CENTER_DIAG) {
+    immBegin(GPU_PRIM_LINES, 4);
+
+    immVertex2f(shdr_pos, rect->xmin, rect->ymin);
+    immVertex2f(shdr_pos, rect->xmax, rect->ymax);
+
+    immVertex2f(shdr_pos, rect->xmin, rect->ymax);
+    immVertex2f(shdr_pos, rect->xmax, rect->ymin);
+
+    immEnd();
+  }
+
+  if (flag & COMPOSITION_GUIDES_THIRDS) {
+    drawviewborder_grid3(shdr_pos, *rect, 1.0f / 3.0f);
+  }
+
+  if (flag & COMPOSITION_GUIDES_GOLDEN) {
+    drawviewborder_grid3(shdr_pos, *rect, 1.0f - M_GOLDEN_RATIO_CONJUGATE);
+  }
+
+  if (flag & COMPOSITION_GUIDES_GOLDEN_TRI_A) {
+    drawviewborder_triangle(shdr_pos, *rect, false, 'A');
+  }
+
+  if (flag & COMPOSITION_GUIDES_GOLDEN_TRI_B) {
+    drawviewborder_triangle(shdr_pos, *rect, false, 'B');
+  }
+
+  if (flag & COMPOSITION_GUIDES_HARMONY_TRI_A) {
+    drawviewborder_triangle(shdr_pos, *rect, true, 'A');
+  }
+
+  if (flag & COMPOSITION_GUIDES_HARMONY_TRI_B) {
+    drawviewborder_triangle(shdr_pos, *rect, true, 'B');
+  }
+}
+
+/** \} */
 
 #undef MAX_METADATA_STR
 

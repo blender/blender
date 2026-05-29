@@ -145,6 +145,14 @@ void ED_slider_unit_set(tSlider *slider, const char *unit);
  * To clear, set to an empty string. */
 void ED_slider_property_label_set(tSlider *slider, const char *property_label);
 
+/* Composition Guides */
+enum eCompositionGuideFlags : short;
+
+void ED_draw_composition_guides(uint shdr_pos,
+                                eCompositionGuideFlags flag,
+                                const rctf *rect,
+                                const float color[4]);
+
 /* ************** XXX OLD CRUFT WARNING ************* */
 
 /**
