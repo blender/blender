@@ -62,8 +62,8 @@ namespace Freestyle {
 
 Controller::Controller()
 {
-  const string sep(Config::DIR_SEP);
 #if 0
+  const string sep(Config::DIR_SEP);
   const string filename = Config::Path::getInstance()->getHomeDir() + sep + Config::OPTIONS_DIR +
                           sep + Config::OPTIONS_CURRENT_DIRS_FILE;
   _current_dirs = new ConfigIO(filename, Config::APPLICATION_NAME + "CurrentDirs", true);

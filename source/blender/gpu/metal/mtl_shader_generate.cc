@@ -997,7 +997,6 @@ static void generate_vertex_out(GeneratedStreams &generated,
                                 const ShaderStage stage)
 {
   std::string out_class_local = get_stage_out_class_name(ShaderStage::VERTEX, info);
-  std::string out_class = get_stage_class_name(ShaderStage::VERTEX) + ("::" + out_class_local);
 
   StringRefNull const_qual = (stage == ShaderStage::FRAGMENT) ? "const " : "";
   StringRefNull mem_scope = "thread ";
@@ -1187,7 +1186,6 @@ static void generate_fragment_out(GeneratedStreams &generated, const ShaderCreat
 {
   constexpr ShaderStage stage = ShaderStage::FRAGMENT;
   StringRefNull out_class_local = get_stage_out_class_name(stage, info);
-  std::string out_class = get_stage_class_name(stage) + ("::" + out_class_local);
 
   std::string builtins_decl = generate_fragment_builtins(generated, info);
 
