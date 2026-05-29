@@ -100,7 +100,8 @@ static int PyKDTree__tp_init(PyKDTree *self, PyObject *args, PyObject *kwargs)
   self->obj = kdtree_new<float3>(maxsize);
   self->maxsize = maxsize;
   self->count = 0;
-  self->count_balance = 0;
+  /* Initialize `uint-max` to avoid crashes on unbalanced trees. */
+  self->count_balance = uint(-1);
 
   return 0;
 }
