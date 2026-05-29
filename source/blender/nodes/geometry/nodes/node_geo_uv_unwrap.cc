@@ -154,11 +154,11 @@ static VArray<float3> construct_uv_gvarray(const Mesh &mesh,
     slim_options.iterations = iterations_;
     slim_options.no_flip = no_flip_;
     slim_options.skip_init = false;
-    uv_parametrizer_slim_solve(handle, &slim_options, nullptr, nullptr);
+    uv_parametrizer_slim_solve(handle, &slim_options, false, nullptr, nullptr);
   }
   else {
     geometry::uv_parametrizer_lscm_begin(
-        handle, false, method == GEO_NODE_UV_UNWRAP_METHOD_ANGLE_BASED);
+        handle, false, method == GEO_NODE_UV_UNWRAP_METHOD_ANGLE_BASED, false);
     geometry::uv_parametrizer_lscm_solve(handle, nullptr, nullptr);
     geometry::uv_parametrizer_lscm_end(handle);
   }
