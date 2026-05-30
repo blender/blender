@@ -206,7 +206,7 @@ principled_bsdf_emission(KernelGlobals kg,
   const Spectrum emission = rgb_to_spectrum(stack_load(stack, data.emission_color)) *
                             stack_load(stack, data.emission_strength);
   if (!is_zero(emission)) {
-    emission_setup(sd, rgb_to_spectrum(emission) * weight);
+    emission_setup(sd, emission * weight);
   }
 
   return weight;
