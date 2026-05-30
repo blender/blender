@@ -10734,6 +10734,7 @@ static void rna_def_nodes(BlenderRNA *brna)
   define("GeometryNode", "GeometryNodeImportCSV");
   define("GeometryNode", "GeometryNodeImportOBJ");
   define("GeometryNode", "GeometryNodeImportPLY");
+  define("GeometryNode", "GeometryNodeImportSPZ");
   define("GeometryNode", "GeometryNodeImportSTL");
   define("GeometryNode", "GeometryNodeImportText");
   define("GeometryNode", "GeometryNodeImportVDB");

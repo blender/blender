@@ -457,6 +457,7 @@ option(WITH_IO_PLY "Enable PLY 3D file format support (*.ply)" ON)
 option(WITH_IO_STL "Enable STL 3D file format support (*.stl)" ON)
 option(WITH_IO_FBX "Enable FBX 3D file format support (*.fbx)" ON)
 option(WITH_IO_GREASE_PENCIL "Enable Grease Pencil file format IO (*.svg, *.pdf)" ON)
+option(WITH_IO_SPZ "Enable SPZ compressed 3D gaussian splats file format support (*.spz)" ON)
 
 # Sound output
 option(WITH_SDL_AUDIO "Enable SDL audio support" OFF)

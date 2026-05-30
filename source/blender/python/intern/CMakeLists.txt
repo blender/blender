@@ -299,6 +299,10 @@ if(WITH_IO_PLY)
   add_definitions(-DWITH_IO_PLY)
 endif()
 
+if(WITH_IO_SPZ)
+  add_definitions(-DWITH_IO_SPZ)
+endif()
+
 if(WITH_IO_STL)
   add_definitions(-DWITH_IO_STL)
 endif()

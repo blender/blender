@@ -23,6 +23,7 @@
 #include "io_grease_pencil.hh"
 #include "io_obj.hh"
 #include "io_ply_ops.hh"
+#include "io_spz_ops.hh"
 #include "io_stl_ops.hh"
 
 namespace blender {
@@ -73,6 +74,11 @@ void ED_operatortypes_io()
   WM_operatortype_append(WM_OT_stl_import);
   WM_operatortype_append(WM_OT_stl_export);
   ed::io::stl_file_handler_add();
+#endif
+
+#ifdef WITH_IO_SPZ
+  WM_operatortype_append(WM_OT_spz_import);
+  ed::io::spz_file_handler_add();
 #endif
 
 #ifdef WITH_IO_FBX

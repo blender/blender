@@ -16,6 +16,7 @@ namespace blender {
 struct bContext;
 struct Mesh;
 struct Main;
+struct PointCloud;
 struct Scene;
 struct ViewLayer;
 
@@ -24,6 +25,7 @@ namespace io::ply {
 class PlyReadBuffer;
 
 Mesh *import_mesh(const PLYImportParams &import_params);
+PointCloud *import_point_cloud(const PLYImportParams &import_params);
 
 /* Main import function used from within Blender. */
 void importer_main(bContext *C, const PLYImportParams &import_params);

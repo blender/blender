@@ -26,6 +26,7 @@ set(SRC
   importer/ply_import.cc
   importer/ply_import_buffer.cc
   importer/ply_import_data.cc
+  importer/ply_import_gsplat.cc
   importer/ply_import_mesh.cc
   IO_ply.cc
 
@@ -39,6 +40,7 @@ set(SRC
   importer/ply_import.hh
   importer/ply_import_buffer.hh
   importer/ply_import_data.hh
+  importer/ply_import_gsplat.hh
   importer/ply_import_mesh.hh
   IO_ply.hh
 

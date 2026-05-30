@@ -1059,7 +1059,8 @@ static bool node_import_file_drop_poll(bContext *C, wmDrag *drag, const wmEvent 
   const Span<std::string> paths = WM_drag_get_paths(drag);
   for (const StringRef path : paths) {
     if (path.endswith(".csv") || path.endswith(".obj") || path.endswith(".ply") ||
-        path.endswith(".stl") || path.endswith(".txt") || path.endswith(".vdb"))
+        path.endswith(".spz") || path.endswith(".stl") || path.endswith(".txt") ||
+        path.endswith(".vdb"))
     {
       return true;
     }

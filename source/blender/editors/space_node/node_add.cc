@@ -1253,6 +1253,9 @@ static wmOperatorStatus node_add_import_node_exec(bContext *C, wmOperator *op)
     else if (path.endswith(".ply")) {
       node = add_node(*C, "GeometryNodeImportPLY"_ustr, snode->runtime->cursor);
     }
+    else if (path.endswith(".spz")) {
+      node = add_node(*C, "GeometryNodeImportSPZ"_ustr, snode->runtime->cursor);
+    }
     else if (path.endswith(".stl")) {
       node = add_node(*C, "GeometryNodeImportSTL"_ustr, snode->runtime->cursor);
     }
