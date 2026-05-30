@@ -1076,17 +1076,17 @@ static void export_hair_curves_motion(Hair *hair,
         for (const int i : points.index_range()) {
           const int point = points[i];
 
-          if (point < num_keys) {
+          if (num_motion_keys < num_keys) {
             const float4 cv = curve_point_as_float4(b_positions, b_radius, point);
             mP[num_motion_keys] = make_float3(cv);
             mR[num_motion_keys] = cv.w;
-            num_motion_keys++;
 
             if (!have_motion) {
-              float4 curve_key = make_float4(hair->get_position()[point]);
-              curve_key.w = hair->get_radius()[point];
+              float4 curve_key = make_float4(hair->get_position()[num_motion_keys]);
+              curve_key.w = hair->get_radius()[num_motion_keys];
               have_motion = !(cv == curve_key);
             }
+            num_motion_keys++;
           }
         }
       }
