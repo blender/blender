@@ -403,7 +403,13 @@ device_image &ImageCache::alloc_tile(Device &device,
 
     stats.add_tiled_bytes(img->memory_size());
 
-    images_first_free[key] = std::min(size_t(image_info_id), images_first_free[key]);
+    auto it_first_free = images_first_free.find(key);
+    if (it_first_free == images_first_free.end()) {
+      images_first_free[key] = size_t(image_info_id);
+    }
+    else {
+      it_first_free->second = std::min(size_t(image_info_id), it_first_free->second);
+    }
   }
 
   if (alloc_image && device.has_unified_memory()) {
@@ -454,7 +460,13 @@ void ImageCache::free_tile(const KernelTileDescriptor tile)
   /* Reconstruct key to update first_free map. */
   const DeviceImageKey key = img->key();
 
-  images_first_free[key] = std::min(size_t(image_info_id), images_first_free[key]);
+  auto it_first_free = images_first_free.find(key);
+  if (it_first_free == images_first_free.end()) {
+    images_first_free[key] = size_t(image_info_id);
+  }
+  else {
+    it_first_free->second = std::min(size_t(image_info_id), it_first_free->second);
+  }
 
   if (img->occupancy == 0) {
     /* All tiles free, remove the device image entirely. */
