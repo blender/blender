@@ -325,6 +325,7 @@ if(WITH_BLENDER)
       dot
       downarrow_hlt
       download
+      download_done
       driver
       driver_distance
       driver_rotational_difference
