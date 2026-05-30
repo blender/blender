@@ -345,10 +345,16 @@ static void generate_texture_cache_ui(bContext * /*C*/, wmOperator *op)
   ui::Layout &layout = *op->layout;
   const GenerateTextureCacheUI *data = static_cast<GenerateTextureCacheUI *>(op->customdata);
 
-  if (data->sequence_generate_num > 0) {
-    const std::string label = fmt::format(
-        fmt::runtime(IFACE_("Include {} image sequence tx files")), data->sequence_generate_num);
-    layout.prop(op->ptr, "generate_sequences", UI_ITEM_NONE, label, ICON_NONE);
+  if (data) {
+    if (data->sequence_generate_num > 0) {
+      const std::string label = fmt::format(
+          fmt::runtime(IFACE_("Include {} image sequence tx files")), data->sequence_generate_num);
+      layout.prop(op->ptr, "generate_sequences", UI_ITEM_NONE, label, ICON_NONE);
+    }
+  }
+  else {
+    /* Show unconditionally outside the confirmation dialog, like a redo panel. */
+    layout.prop(op->ptr, "generate_sequences", UI_ITEM_NONE, nullptr, ICON_NONE);
   }
 }
 
