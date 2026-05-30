@@ -795,7 +795,7 @@ hiprtBuildFlags HIPRTDevice::select_blas_build_flags(BVHHIPRT *bvh,
   get_device_memory_info(total_mem, free_mem);
 
   size_t hq_scratch_size = 0;
-  hiprtBuildOptions hq_options;
+  hiprtBuildOptions hq_options = {};
   hq_options.buildFlags = hiprtBuildFlagBitPreferHighQualityBuild;
   hiprtError rt_err = hiprtGetGeometryBuildTemporaryBufferSize(
       hiprt_context, geom_input, hq_options, hq_scratch_size);
