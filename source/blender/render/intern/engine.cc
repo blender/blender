@@ -863,8 +863,10 @@ static bool possibly_using_gpu_compositor(const Render *re)
     return false;
   }
 
+  /* Note a secondary Render instance from a Render Layers node has a null pipeline scene,
+   * but no compositing is performed for it so we can return false. */
   const Scene *scene = re->pipeline_scene_eval;
-  return (scene->compositing_node_group && (scene->r.scemode & R_DOCOMP));
+  return scene && scene->compositing_node_group && (scene->r.scemode & R_DOCOMP);
 }
 
 static void engine_render_view_layer(Render *re,
