@@ -9991,14 +9991,11 @@ static wmOperatorStatus edbm_mod_weighted_strength_exec(bContext *C, wmOperator 
     }
     else {
       BM_ITER_MESH (f, &fiter, bm, BM_FACES_OF_MESH) {
+        if (BM_elem_flag_test(f, BM_ELEM_HIDDEN)) {
+          continue;
+        }
         const int *strength = static_cast<int *>(BM_ELEM_CD_GET_VOID_P(f, cd_prop_int_offset));
-        if (*strength == face_strength) {
-          BM_face_select_set(bm, f, true);
-          BM_select_history_store(bm, f);
-        }
-        else {
-          BM_face_select_set(bm, f, false);
-        }
+        BM_face_select_set(bm, f, *strength == face_strength);
       }
     }
 
