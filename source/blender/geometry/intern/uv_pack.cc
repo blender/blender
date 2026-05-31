@@ -1624,6 +1624,14 @@ static int64_t pack_island_xatlas(const Span<std::unique_ptr<UVAABBIsland>> isla
   int i = 0;
   bool placed_can_rotate = true;
 
+  /* Bound the number of times the search area may be enlarged
+   * (see #Occupancy::increase_scale). See #159462 for an example
+   * where even faces of a cube hang, although degenerate UV's may cause the same problem.
+   *
+   * TODO(@ideasman42): investigate how other XATLAS implementation handle this,
+   * as this just avoids hanging, ideally these cases wouldn't perform so poorly. */
+  int increase_scale_remaining = 32;
+
   /* The following `while` loop is setting up a three-way race:
    * `for (scan_line = 0; scan_line < bitmap_radix; scan_line++)`
    * `for (i : island_indices.index_range())`
@@ -1709,6 +1717,11 @@ static int64_t pack_island_xatlas(const Span<std::unique_ptr<UVAABBIsland>> isla
       }
 
       /* Enlarge search parameters. */
+      if (increase_scale_remaining-- == 0) {
+        /* Unable to pack within a reasonable number of enlargements, give up and keep the layout
+         * from the previous packers (left untouched in `r_phis`). */
+        return 0;
+      }
       scan_line = 0;
       occupancy.increase_scale();
       traced_islands = 0; /* Will trigger a re-trace of previously solved islands. */
