@@ -117,9 +117,8 @@ class SampleIndexFunction : public mf::MultiFunction {
     const GList::DataVariant &data = list_->data();
     if (const auto *array_data = std::get_if<nodes::GList::ArrayData>(&data)) {
       const GSpan src(list_->cpp_type(), array_data->data, list_->size());
-      valid_indices.foreach_index([&](const int i, const int mask) {
-        list_->cpp_type().copy_construct(src[indices[i]], dst[mask]);
-      });
+      valid_indices.foreach_index(
+          [&](const int i) { list_->cpp_type().copy_construct(src[indices[i]], dst[i]); });
     }
     else if (const auto *single_data = std::get_if<nodes::GList::SingleData>(&data)) {
       list_->cpp_type().fill_construct_indices(single_data->value, dst.data(), valid_indices);
