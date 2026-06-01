@@ -1264,6 +1264,14 @@ void BKE_object_material_remap(Object *ob, const uint *remap)
   else if (ob->type == OB_GREASE_PENCIL) {
     BKE_grease_pencil_material_remap(id_cast<GreasePencil *>(ob->data), remap, ob->totcol);
   }
+  else if (ob->type == OB_VOLUME) {
+    /* Material support doesn't store "indices".
+     * The way "baked" materials are stored means they store ID's and don't need remapping. */
+  }
+  else if (ob->type == OB_MBALL) {
+    /* While meta-balls have a material array, they only use the first material slot
+     * (no support for mixing materials). */
+  }
   else {
     /* add support for this object data! */
     BLI_assert(matar == nullptr);
