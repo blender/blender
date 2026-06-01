@@ -256,15 +256,16 @@ bool BPY_string_compile_check(const char *expr)
     return true;
   }
   PyGILState_STATE gilstate = PyGILState_Ensure();
+  bool success = false;
   if (PyObject *retval = Py_CompileString(expr, "<expression>", Py_eval_input)) {
     Py_DECREF(retval);
-    return true;
+    success = true;
   }
   else {
     PyErr_Clear();
   }
   PyGILState_Release(gilstate);
-  return false;
+  return success;
 }
 
 /**
