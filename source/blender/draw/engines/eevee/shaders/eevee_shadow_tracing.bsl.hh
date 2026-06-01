@@ -240,13 +240,11 @@ ShadowRayPunctual shadow_ray_generate_punctual(LightData light, float2 random_2d
    * issue might reappear at different zoom level. */
   shape_radius = max(0.00002f, shape_radius);
 
-  float3 direction;
+  float3 point_on_light_shape;
   if (is_area_light(light.type)) {
     random_2d *= light.area().size * light.area().shadow_scale;
 
-    float3 point_on_light_shape = float3(random_2d, 0.0f);
-
-    direction = point_on_light_shape - lP;
+    point_on_light_shape = float3(random_2d, 0.0f);
   }
   else {
     float dist;
@@ -260,10 +258,16 @@ ShadowRayPunctual shadow_ray_generate_punctual(LightData light, float2 random_2d
     }
     random_2d *= shape_radius;
 
-    float3 point_on_light_shape = right * random_2d.x + up * random_2d.y;
-
-    direction = point_on_light_shape - lP;
+    point_on_light_shape = right * random_2d.x + up * random_2d.y;
   }
+
+  /* Avoid numerical issue when random point is exactly on the light center. */
+  if (length_squared(point_on_light_shape) < 1e-8f) {
+    point_on_light_shape = float3(1e-6f);
+  }
+
+  float3 direction = point_on_light_shape - lP;
+
   float3 shadow_position = light.local().local.shadow_position;
   /* Clip the ray to not cross the near plane.
    * Avoid traces that starts on tiles that have not been queried, creating noise. */
