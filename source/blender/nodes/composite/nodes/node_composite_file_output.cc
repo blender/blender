@@ -277,7 +277,7 @@ static void output_paths_layout(ui::Layout &layout,
   const std::string file_name = storage.file_name ? storage.file_name : "";
   const Scene &scene = *CTX_data_scene(context);
 
-  if (bool(scene.r.scemode & R_MULTIVIEW) && format.views_format == R_IMF_VIEWS_MULTIVIEW) {
+  if (bool(scene.r.scemode & R_MULTIVIEW) && format.views_format == R_IMF_VIEWS_INDIVIDUAL) {
     for (SceneRenderView &view : scene.r.views) {
       if (!BKE_scene_multiview_is_render_view_active(&scene.r, &view)) {
         continue;
