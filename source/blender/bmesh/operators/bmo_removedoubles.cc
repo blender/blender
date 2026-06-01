@@ -194,13 +194,15 @@ void bmo_weld_verts_exec(BMesh *bm, BMOperator *op)
   BMFace *f;
   BMOpSlot *slot_targetmap = BMO_slot_get(op->slots_in, "targetmap");
   const bool use_centroid = BMO_slot_bool_get(op->slots_in, "use_centroid");
+  const bool average_vert_data = BMO_slot_bool_get(op->slots_in, "average_vert_data") ||
+                                 use_centroid;
 
   /* Maintain selection history. */
   const bool has_selected = !bm->selected.is_empty();
   const bool use_targetmap_all = has_selected;
   Map<void *, void *> targetmap_all;
 
-  /* Used when use_centroid is true. */
+  /* Used when use_centroid or average_vert_data is true. */
   MultiValueMap<BMVert *, BMVert *> clusters;
 
   /* Mark merge verts for deletion. */
@@ -221,7 +223,7 @@ void bmo_weld_verts_exec(BMesh *bm, BMOperator *op)
     }
 
     /* Group vertices by their survivor. */
-    if (use_centroid && LIKELY(v_dst != v)) {
+    if (average_vert_data && LIKELY(v_dst != v)) {
       clusters.add(v_dst, v);
     }
   }
@@ -243,6 +245,21 @@ void bmo_weld_verts_exec(BMesh *bm, BMOperator *op)
 
       mul_v3_fl(centroid, 1.0f / float(count));
       copy_v3_v3(v_dst->co, centroid);
+    }
+  }
+
+  if (average_vert_data) {
+    for (const auto &item : clusters.items()) {
+      BMVert *v_dst = item.key;
+      Span<BMVert *> merged_verts = item.value;
+
+      Array<const void *> src_blocks(merged_verts.size() + 1);
+      src_blocks[0] = v_dst->head.data;
+      for (const int i : merged_verts.index_range()) {
+        src_blocks[i + 1] = merged_verts[i]->head.data;
+      }
+      CustomData_bmesh_interp(
+          &bm->vdata, src_blocks.data(), nullptr, src_blocks.size(), v_dst->head.data);
     }
   }
 
@@ -356,21 +373,21 @@ void bmo_pointmerge_facedata_exec(BMesh *bm, BMOperator *op)
 {
   BMOIter siter;
   BMIter iter;
-  BMVert *v, *vert_snap;
+  BMVert *v, *vert_target;
   BMLoop *l, *l_first = nullptr;
   float fac;
   int i, tot;
 
-  vert_snap = static_cast<BMVert *>(
-      BMO_slot_buffer_get_single(BMO_slot_get(op->slots_in, "vert_snap")));
-  tot = BM_vert_face_count(vert_snap);
+  vert_target = static_cast<BMVert *>(
+      BMO_slot_buffer_get_single(BMO_slot_get(op->slots_in, "vert_target")));
+  tot = BM_vert_face_count(vert_target);
 
   if (!tot) {
     return;
   }
 
   fac = 1.0f / tot;
-  BM_ITER_ELEM (l, &iter, vert_snap, BM_LOOPS_OF_VERT) {
+  BM_ITER_ELEM (l, &iter, vert_target, BM_LOOPS_OF_VERT) {
     if (l_first == nullptr) {
       l_first = l;
     }
@@ -447,7 +464,7 @@ void bmo_pointmerge_exec(BMesh *bm, BMOperator *op)
 {
   BMOperator weldop;
   BMOIter siter;
-  BMVert *v, *vert_snap = nullptr;
+  BMVert *v, *vert_target = nullptr;
   float vec[3];
   BMOpSlot *slot_targetmap;
 
@@ -458,14 +475,23 @@ void bmo_pointmerge_exec(BMesh *bm, BMOperator *op)
 
   slot_targetmap = BMO_slot_get(weldop.slots_in, "targetmap");
 
+  vert_target = static_cast<BMVert *>(
+      BMO_slot_buffer_get_single(BMO_slot_get(op->slots_in, "vert_target")));
+
+  const bool is_explicit_snap = vert_target != nullptr;
+
   BMO_ITER (v, &siter, op->slots_in, "verts", BM_VERT) {
-    if (!vert_snap) {
-      vert_snap = v;
-      copy_v3_v3(vert_snap->co, vec);
+    if (!vert_target) {
+      vert_target = v;
+      copy_v3_v3(vert_target->co, vec);
     }
-    else {
-      BMO_slot_map_elem_insert(&weldop, slot_targetmap, v, vert_snap);
+    else if (v != vert_target) {
+      BMO_slot_map_elem_insert(&weldop, slot_targetmap, v, vert_target);
     }
+  }
+
+  if (!is_explicit_snap) {
+    BMO_slot_bool_set(weldop.slots_in, "average_vert_data", true);
   }
 
   BMO_op_exec(bm, &weldop);

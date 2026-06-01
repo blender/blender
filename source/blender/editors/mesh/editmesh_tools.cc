@@ -3412,13 +3412,18 @@ static bool merge_firstlast(BMEditMesh *em,
 
   if (use_uvmerge) {
     if (!EDBM_op_callf(
-            em, wmop, "pointmerge_facedata verts=%hv vert_snap=%e", BM_ELEM_SELECT, mergevert))
+            em, wmop, "pointmerge_facedata verts=%hv vert_target=%e", BM_ELEM_SELECT, mergevert))
     {
       return false;
     }
   }
 
-  if (!EDBM_op_callf(em, wmop, "pointmerge verts=%hv merge_co=%v", BM_ELEM_SELECT, mergevert->co))
+  if (!EDBM_op_callf(em,
+                     wmop,
+                     "pointmerge verts=%hv merge_co=%v vert_target=%e",
+                     BM_ELEM_SELECT,
+                     mergevert->co,
+                     mergevert))
   {
     return false;
   }
