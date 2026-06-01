@@ -1378,11 +1378,12 @@ class XpbdSolverStep {
         if (prev_instances) {
           const Span<float4x4> prev_instance_transforms = prev_instances->transforms();
           const Span<int> prev_instance_ids = prev_instances->unique_ids();
+          const Span<int> prev_handles = prev_instances->reference_handles();
           const Span<bke::InstanceReference> prev_references = prev_instances->references();
           for (const int i : prev_instance_transforms.index_range()) {
             const int prev_instance_id = prev_instance_ids[i];
             const float4x4 &prev_instance_transform = prev_instance_transforms[i];
-            const bke::InstanceReference &prev_reference = prev_references[i];
+            const bke::InstanceReference &prev_reference = prev_references[prev_handles[i]];
             prev_instance_by_id.add(prev_instance_id, {&prev_instance_transform, &prev_reference});
           }
         }
