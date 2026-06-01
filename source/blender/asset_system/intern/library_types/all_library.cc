@@ -83,12 +83,14 @@ void AllAssetLibrary::rebuild_catalogs_from_nested(const bool reload_nested_cata
                            existing.path.c_str());
               }
               else {
-                CLOG_ERROR(&LOG,
-                           "multiple definitions of catalog %s with differing paths (%s vs. %s), "
-                           "ignoring second one",
-                           existing.catalog_id.str().c_str(),
-                           existing.path.c_str(),
-                           to_be_ignored.path.c_str());
+                /* This is bound to happen at some point, for example with the Online Essentials
+                 * catalogs diverging from this Blender version's bundled Essentials catalogs. */
+                CLOG_INFO(&LOG,
+                          "multiple definitions of catalog %s with differing paths (%s vs. %s), "
+                          "ignoring second one",
+                          existing.catalog_id.str().c_str(),
+                          existing.path.c_str(),
+                          to_be_ignored.path.c_str());
               }
             });
       },
