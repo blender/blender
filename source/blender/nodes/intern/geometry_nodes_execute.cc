@@ -149,9 +149,11 @@ static bke::SocketValueVariant init_socket_cpp_value(const GeoNodesCallData *cal
       const GeometryNodesInputType type = get_effective_input_type(
           input_props_ptr, ntree, io_socket);
       if (type == GeometryNodesInputType::Value) {
-        float3 value;
+        /* Vector can have variable length. Use a large enough value to read all components.
+         * Zero initialize to in case length is below 3. */
+        float4 value = float4(0.0f);
         RNA_float_get_array(input_props_ptr, "value", value);
-        return bke::SocketValueVariant(value);
+        return bke::SocketValueVariant(float3(value));
       }
       if (type == GeometryNodesInputType::Attribute) {
         if (std::optional<bke::SocketValueVariant> value = load_attribute_field_input<float3>(
