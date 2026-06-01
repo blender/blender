@@ -1033,6 +1033,11 @@ static wmOperatorStatus view_layer_add_exec(bContext *C, wmOperator *op)
   const Main *bmain = CTX_data_main(C);
   Scene *scene = CTX_data_scene(C);
 
+  /* Only make the view layer active if the windows scene matches the context. */
+  if (scene != WM_window_get_active_scene(win)) {
+    win = nullptr;
+  }
+
   ViewLayer *view_layer_current = win ? WM_window_get_active_view_layer(win) : nullptr;
   int type = RNA_enum_get(op->ptr, "type");
   /* Copy requires a source. */
