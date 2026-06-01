@@ -90,7 +90,8 @@ class TestEnvironment:
                 print(f'Exists {self.build_dir}')
 
             print("Building")
-            self.build()
+            git_hash = self.resolve_git_hash('HEAD')
+            self.build(git_hash, self.install_dir)
 
         print('Done')
 
