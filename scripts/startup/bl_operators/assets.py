@@ -95,6 +95,11 @@ class ASSET_OT_open_containing_blend_file(Operator):
         if asset.is_online:
             cls.poll_message_set("Selected asset is stored online")
             return False
+        if not asset.owner_asset_library.is_editable:
+            cls.poll_message_set(
+                "The asset library this asset belongs to is not editable"
+            )
+            return False
         # This could become a built-in query, for now this is good enough.
         if asset.full_library_path.endswith(".asset.blend"):
             cls.poll_message_set(
