@@ -468,9 +468,15 @@ void planar_eval_frag([[resource_table]] PlanarProbeEval & /*srt*/,
     cl_reflect.data *= inv_weight;
   }
   {
-    float inv_weight = safe_rcp(refract_weight);
-    cl_refract.N *= inv_weight;
-    cl_refract.data *= inv_weight;
+    if (refract_weight > 0.0f) {
+      float inv_weight = 1.0f / refract_weight;
+      cl_refract.N *= inv_weight;
+      cl_refract.data *= inv_weight;
+    }
+    else { /* This is needed in order to avoid NaN during the lighting evaluation. */
+      cl_refract.N = float3(1.0f, 0.0f, 0.0f);
+      cl_refract.data.y = 1.0f;
+    }
   }
 
   const ViewMatrices view = views.get(0);
