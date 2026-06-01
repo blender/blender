@@ -163,7 +163,7 @@ static void node_geo_exec(GeoNodeExecParams params)
       return;
     }
     IndexMaskMemory memory;
-    output_lists(params, list, IndexMask::from_bools(values, memory));
+    output_lists(params, list, IndexMask::from_bools(IndexRange(list->size()), values, memory));
   }
   else {
     params.error_message_add(NodeWarningType::Warning,
