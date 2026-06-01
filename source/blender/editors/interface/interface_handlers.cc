@@ -1255,7 +1255,7 @@ static void apply_but_BUT(bContext *C, Button *but, HandleButtonData *data)
 
 static void apply_but_BUTM(bContext *C, Button *but, HandleButtonData *data)
 {
-  button_value_set(but, but->hardmin);
+  button_value_set(but, double(but->retval));
   apply_but_func(C, but);
 
   data->retval = but->retval;

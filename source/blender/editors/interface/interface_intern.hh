@@ -211,7 +211,13 @@ struct Button : NonMovable {
   /** When non-zero, this is the key used to activate a menu items (`a-z` always lower case). */
   uchar menu_key = 0;
 
-  short retval = 0, strwidth = 0, alignnr = 0;
+  /**
+   * Stores argument values for #Block::handle_func as well as enum values for
+   * #ButtonType::ButMenu.
+   */
+  int retval = 0;
+  short strwidth = 0;
+  short alignnr = 0;
   int ofs = 0, pos = 0, selsta = 0, selend = 0;
 
   /**

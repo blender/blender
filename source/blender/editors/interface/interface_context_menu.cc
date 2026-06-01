@@ -92,7 +92,7 @@ static IDProperty *shortcut_property_from_rna_for_enum(bContext *C,
 
   const char *identifier = nullptr;
   RNA_property_enum_identifier(
-      C, &but_parent->rnapoin, but_parent->rnaprop, int(but->hardmin), &identifier);
+      C, &but_parent->rnapoin, but_parent->rnaprop, but->retval, &identifier);
 
   if (identifier == nullptr) {
     /* Return early when valid identifier is not found for the button representing enum value. */

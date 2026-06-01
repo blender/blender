@@ -1571,6 +1571,7 @@ Button *uiDefIconTextButO_ptr(Block *block,
                               short height,
                               std::optional<StringRef> tip);
 
+void button_enum_prop_value_set(Button *but, int retval);
 void button_retval_set(Button *but, int retval);
 
 void button_operator_set(Button *but,
