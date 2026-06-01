@@ -363,9 +363,7 @@ ccl_device
       const float transmission_weight = saturatef(stack_load(stack, data.transmission_weight));
       if (transmission_weight > CLOSURE_WEIGHT_CUTOFF) {
         if (reflective_caustics || refractive_caustics) {
-          const bool backfacing = !thin_wall && (sd->flag & SD_BACKFACING);
-          const FresnelThinFilm thinfilm = {thinfilm_thickness,
-                                            backfacing ? thinfilm_ior / ior : thinfilm_ior};
+          FresnelThinFilm thinfilm = {thinfilm_thickness, thinfilm_ior};
 
           if (thin_wall) {
             Spectrum reflectance, transmittance;
@@ -392,11 +390,15 @@ ccl_device
                                     nullptr;
 
             if (bsdf && fresnel) {
+              const bool backfacing = (sd->flag & SD_BACKFACING);
               bsdf->N = valid_reflection_N;
               bsdf->T = zero_float3();
 
               bsdf->alpha_x = bsdf->alpha_y = sqr(roughness);
               bsdf->ior = backfacing ? 1.0f / ior : ior;
+              if (backfacing) {
+                adjust_thin_film_ior_at_backface(thinfilm.ior, bsdf->ior);
+              }
 
               *fresnel = generalized_schlick_setup(ior,
                                                    reflective_caustics,
