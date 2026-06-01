@@ -104,7 +104,7 @@ static void screen_copy_data(Main * /*bmain*/,
                              std::optional<Library *> owner_library,
                              ID *id_dst,
                              const ID *id_src,
-                             int /*flag*/)
+                             int flag)
 {
   /* Workspaces should always be local data currently. */
   BLI_assert(!owner_library || owner_library == nullptr);
@@ -161,6 +161,18 @@ static void screen_copy_data(Main * /*bmain*/,
   /* Cleanup: reset temp data. */
   for (ScrVert &sv_src : screen_src->vertbase) {
     sv_src.newv = nullptr;
+  }
+
+  screen_dst->active_region = nullptr;
+  screen_dst->animtimer = nullptr;
+  screen_dst->context = nullptr;
+  screen_dst->tool_tip = nullptr;
+
+  if ((flag & LIB_ID_COPY_NO_PREVIEW) == 0) {
+    BKE_previewimg_id_copy(&screen_dst->id, &screen_src->id);
+  }
+  else {
+    screen_dst->preview = nullptr;
   }
 }
 
