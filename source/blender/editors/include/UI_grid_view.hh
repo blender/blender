@@ -130,7 +130,7 @@ class AbstractGridView : public AbstractView {
   AbstractViewItem *navigate_up(AbstractViewItem *from) override;
   AbstractViewItem *navigate_down(AbstractViewItem *from) override;
 
-  void scroll_active_into_view(bContext *C) override;
+  void scroll_active_into_view(bContext *C, bool scroll_active_to_center = false) override;
 
   IndexRange get_visible_range(const View2D &v2d,
                                const AbstractGridViewItem *force_visible_item) const;
