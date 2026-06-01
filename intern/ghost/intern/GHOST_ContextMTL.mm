@@ -324,20 +324,6 @@ void GHOST_ContextMTL::metalInit()
           "GHOST_ContextMTL::metalInit: newRenderPipelineStateWithDescriptor:error: failed!");
     }
 
-    /* Create a render pipeline to composite things rendered with Metal on top
-     * of the frame-buffer contents. Uses the same vertex and fragment shader
-     * as the blit above, but with alpha blending enabled. */
-    desc.label = @"Metal Overlay";
-    desc.colorAttachments[0].blendingEnabled = YES;
-    desc.colorAttachments[0].sourceRGBBlendFactor = MTLBlendFactorSourceAlpha;
-    desc.colorAttachments[0].destinationRGBBlendFactor = MTLBlendFactorOneMinusSourceAlpha;
-
-    if (error) {
-      ghost_fatal_error_dialog(
-          "GHOST_ContextMTL::metalInit: newRenderPipelineStateWithDescriptor:error: failed (when "
-          "creating the Metal overlay pipeline)!");
-    }
-
     [desc.fragmentFunction release];
     [desc.vertexFunction release];
   }
