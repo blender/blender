@@ -242,7 +242,8 @@ class Bisect:
             return None, 'skip'
         tested.add(commit_hash)
 
-        title = f'`{env.commit_title(commit_hash)[:70].replace('`', '\'')}`'
+        title = env.commit_title(commit_hash)[:70].replace('`', '\'')
+        title = f'`{title}`'
         commit_hash_str = f'`{commit_hash}`'
         on_progress([commit_hash_str, date_str(commit_ts), title, '', 'building'], end='\r')
 
