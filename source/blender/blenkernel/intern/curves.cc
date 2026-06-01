@@ -43,6 +43,8 @@
 
 #include "BLO_read_write.hh"
 
+#include "NOD_geometry_nodes_bundle.hh"
+
 namespace blender {
 
 static const char *ATTR_POSITION = "position";
@@ -188,6 +190,20 @@ Curves *BKE_curves_copy_for_eval(const Curves *curves_src)
       BKE_id_copy_ex(nullptr, &curves_src->id, nullptr, LIB_ID_COPY_LOCALIZE));
 }
 
+static void store_surface(const Curves &curves_id, bke::GeometrySet &geometry_set)
+{
+  if (!curves_id.surface) {
+    return;
+  }
+  if (!curves_id.surface_uv_map) {
+    return;
+  }
+  nodes::Bundle &bundle = geometry_set.bundle_for_write();
+  bundle.add(*nodes::BundleKey::from_ustr("surface_object"_ustr), curves_id.surface);
+  bundle.add(*nodes::BundleKey::from_ustr("surface_uv_map_name"_ustr),
+             std::string(curves_id.surface_uv_map));
+}
+
 static void curves_evaluate_modifiers(Depsgraph *depsgraph,
                                       Scene *scene,
                                       Object *object,
@@ -242,6 +258,7 @@ void BKE_curves_data_update(Depsgraph *depsgraph, Scene *scene, Object *object)
     edit_component.curves_edit_hints_ = std::make_unique<CurvesEditHints>(
         *id_cast<const Curves *>(DEG_get_original(object)->data));
   }
+  store_surface(*curves, geometry_set);
   curves_evaluate_modifiers(depsgraph, scene, object, geometry_set);
 
   /* Assign evaluated object. */

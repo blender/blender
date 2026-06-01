@@ -182,13 +182,6 @@ static void update_depsgraph(ModifierData *md, const ModifierUpdateDepsgraphCont
   /* Create dependencies to data-blocks referenced by the settings in the modifier. */
   find_dependencies_from_settings(*nmd, eval_deps);
 
-  if (ctx->object->type == OB_CURVES) {
-    Curves *curves_id = id_cast<Curves *>(ctx->object->data);
-    if (curves_id->surface != nullptr) {
-      eval_deps.add_object(curves_id->surface);
-    }
-  }
-
   for (const NodesModifierBake &bake : Span(nmd->bakes, nmd->bakes_num)) {
     for (const NodesModifierDataBlock &data_block : Span(bake.data_blocks, bake.data_blocks_num)) {
       if (data_block.id) {

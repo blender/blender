@@ -2836,8 +2836,11 @@ void DepsgraphRelationBuilder::build_object_data_geometry_datablock(ID *obdata)
       if (curves_id->surface != nullptr) {
         build_object(curves_id->surface);
 
-        /* The relations between the surface and the curves are handled as part of the modifier
-         * stack building. */
+        ComponentKey surface_geometry_key(&curves_id->surface->id, NodeType::GEOMETRY);
+        add_relation(surface_geometry_key, obdata_geom_eval_key, "Curves Object Surface");
+
+        ComponentKey surface_transform_key(&curves_id->surface->id, NodeType::TRANSFORM);
+        add_relation(surface_transform_key, obdata_geom_eval_key, "Curves Object Surface");
       }
       break;
     }
