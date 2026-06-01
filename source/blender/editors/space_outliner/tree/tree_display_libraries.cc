@@ -156,7 +156,10 @@ TreeElement *TreeDisplayLibraries::add_library_contents(Main &mainvar,
 
         for (ID *id : List<ID>(lbarray[a])) {
           if (library_id_filter_poll(lib, id)) {
-            add_element(&ten->subtree, id, nullptr, ten, TSE_SOME_ID, 0);
+            /* Shape Key isn't treated as ID in outliner, see #TreeElementShapeKeyBase. */
+            const eTreeStoreElemType type = GS(id->name) == ID_KE ? TSE_SHAPE_KEY_BASE :
+                                                                    TSE_SOME_ID;
+            add_element(&ten->subtree, id, nullptr, ten, type, 0);
           }
         }
       }
