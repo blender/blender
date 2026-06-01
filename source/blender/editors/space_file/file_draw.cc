@@ -915,7 +915,7 @@ static void file_draw_indicator_icons(const FileList *files,
                                       const float preview_icon_aspect,
                                       const int file_type_icon,
                                       const bool has_special_file_image,
-                                      const eDirEntry_SelectFlag selflag)
+                                      const eDirEntry_SelectFlag /*selflag*/)
 {
   const bool is_offline = (file->attributes & FILE_ATTR_OFFLINE);
   const bool is_link = (file->attributes & FILE_ATTR_ANY_LINK);
@@ -993,17 +993,15 @@ static void file_draw_indicator_icons(const FileList *files,
                        UI_NO_ICON_OVERLAY_TEXT);
     }
     else if ((file->typeflag & FILE_TYPE_ASSET_ONLINE) != 0) {
-      if (selflag & (FILE_SEL_HIGHLIGHTED | FILE_SEL_SELECTED)) {
-        ui::icon_draw_ex(icon_x,
-                         icon_y,
-                         ICON_INTERNET,
-                         1.0f / UI_SCALE_FAC,
-                         0.6f,
-                         0.0f,
-                         light,
-                         true,
-                         UI_NO_ICON_OVERLAY_TEXT);
-      }
+      ui::icon_draw_ex(icon_x,
+                       icon_y,
+                       ICON_INTERNET,
+                       1.0f / UI_SCALE_FAC,
+                       0.6f,
+                       0.0f,
+                       light,
+                       true,
+                       UI_NO_ICON_OVERLAY_TEXT);
     }
     else if (file->asset &&
              file->asset->remote_file_status() == asset_system::RemoteAssetFileStatus::NO_MATCH)

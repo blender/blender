@@ -282,8 +282,7 @@ void AssetViewItem::build_grid_tile(const bContext &C, ui::Layout &layout) const
   ui::Layout &overlay_row = overlap.row(true);
   overlay_row.alignment_set(ui::LayoutAlign::Right);
 
-  const bool is_highlighted = this->is_selected() || this->is_active() || this->is_hovered();
-  if (asset_.is_online_only() && is_highlighted) {
+  if (asset_.is_online_only()) {
     ui::Button *online_icon = uiItemL_ex(&overlay_row, "", ICON_INTERNET, false, false);
     button_label_alpha_factor_set(online_icon, 0.6f);
     button_label_draw_icon_border_set(online_icon, true);
