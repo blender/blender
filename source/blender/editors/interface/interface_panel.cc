@@ -1565,7 +1565,6 @@ void panel_category_tabs_draw_all(const bContext *C,
     if (compact && pc_dyn.icon != ICON_NONE) {
       button = uiDefIconButR_prop(
           block, ButtonType::Tab, pc_dyn.icon, 0, 0, w, h, &ptr, prop, -1, 0, i, nullptr);
-      button_flag_enable(button, BUT_ICON_PREVIEW);
     }
     else {
       std::string title = category_id_draw;
