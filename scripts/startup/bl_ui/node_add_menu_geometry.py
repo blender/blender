@@ -666,6 +666,9 @@ class NODE_MT_gn_utilities_text_base(node_add_menu.NodeMenu):
         self.node_operator(layout, "FunctionNodeReplaceString")
         self.node_operator(layout, "FunctionNodeReverseString")
         self.node_operator(layout, "FunctionNodeSliceString")
+        self.node_operator_with_searchable_enum_socket(
+            context, layout, "FunctionNodeSetStringCase", "Case", ["Uppercase", "Lowercase"],
+        )
         self.node_operator(layout, "FunctionNodeSplitString")
         self.node_operator(layout, "FunctionNodeTrimString")
         layout.separator()
