@@ -663,7 +663,9 @@ static bNode *node_group_make_from_node_declaration(bContext &C,
   bNodeTree *wrapper_group = bke::node_tree_add_tree(
       &bmain, bke::node_label(ntree, src_node), ntree.idname);
   wrapper_group->color_tag = int(bke::node_color_tag(src_node));
-  wrapper_group->default_group_node_width = src_node.width;
+  if (!src_node.is_reroute()) {
+    wrapper_group->default_group_node_width = src_node.width;
+  }
 
   NodeSetInterfaceParams params;
   /* Hidden sockets are exposed but hidden on the group node instance. */
@@ -689,7 +691,10 @@ static bNode *node_group_make_from_node_declaration(bContext &C,
 
   /* Position node exactly where the old node was. */
   gnode->parent = src_node.parent;
-  gnode->width = std::max<float>(src_node.width, bke::NodeWidth::GroupMin);
+
+  if (!src_node.is_reroute()) {
+    gnode->width = std::max<float>(src_node.width, bke::NodeWidth::GroupMin);
+  }
   copy_v2_v2(gnode->location, src_node.location);
 
   BKE_main_ensure_invariants(bmain);
