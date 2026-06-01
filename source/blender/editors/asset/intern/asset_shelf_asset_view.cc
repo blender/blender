@@ -138,7 +138,9 @@ void AssetView::build_items()
      * add a #bl_click_operator for repeated execution on every click. So far it seems like every
      * asset shelf use case works with activating on every click though. */
     item.always_reactivate_on_click();
-    if (shelf_.type->flag & ASSET_SHELF_TYPE_FLAG_ACTIVATE_FOR_CONTEXT_MENU) {
+    if (shelf_.type->flag & ASSET_SHELF_TYPE_FLAG_ACTIVATE_FOR_CONTEXT_MENU &&
+        !asset.is_online_only())
+    {
       item.activate_for_context_menu_set();
     }
 
