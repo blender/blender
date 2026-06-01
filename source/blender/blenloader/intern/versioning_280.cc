@@ -3116,9 +3116,9 @@ void blo_do_versions_280(FileData *fd, Library * /*lib*/, Main *bmain)
     if (flag_is_set(error, eNTreeDoVersionErrors::NTREE_DOVERSION_NEED_OUTPUT)) {
       BKE_report(fd->reports != nullptr ? fd->reports->reports : nullptr,
                  RPT_ERROR,
-                 "Eevee material conversion problem. Error in console");
+                 "EEVEE material conversion problem. Error in console");
       printf(
-          "You need to connect Principled and Eevee Specular shader nodes to new material "
+          "You need to connect Principled and EEVEE Specular shader nodes to new material "
           "output "
           "nodes.\n");
     }
@@ -3126,7 +3126,7 @@ void blo_do_versions_280(FileData *fd, Library * /*lib*/, Main *bmain)
     if (flag_is_set(error, eNTreeDoVersionErrors::NTREE_DOVERSION_TRANSPARENCY_EMISSION)) {
       BKE_report(fd->reports != nullptr ? fd->reports->reports : nullptr,
                  RPT_ERROR,
-                 "Eevee material conversion problem. Error in console");
+                 "EEVEE material conversion problem. Error in console");
       printf(
           "You need to combine transparency and emission shaders to the converted Principled "
           "shader nodes.\n");

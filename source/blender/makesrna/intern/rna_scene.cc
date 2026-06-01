@@ -8841,7 +8841,7 @@ void RNA_def_scene(BlenderRNA *brna)
        "INFINITE",
        0,
        "Infinite",
-       "After the last frame, jump back to the first and keep playing, inifinitely"},
+       "After the last frame, jump back to the first and keep playing, infinitely"},
       {SCE_LOOP_MODE_STOP_END_FRAME,
        "STOP_END_FRAME",
        0,
