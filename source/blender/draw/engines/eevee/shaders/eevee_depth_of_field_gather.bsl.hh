@@ -10,8 +10,6 @@
 namespace eevee::dof {
 
 struct Gather {
-  [[legacy_info]] ShaderCreateInfo draw_view;
-
   [[resource_table]] srt_t<Accumulator> accumulator;
 
   [[sampler(0)]] sampler2D color_tx;

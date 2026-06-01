@@ -4,7 +4,8 @@
 
 #pragma once
 
-#include "draw_view_lib.glsl"
+#include "draw_shader_shared.hh"
+#include "draw_view.bsl.hh"
 #include "eevee_lightprobe_sphere.bsl.hh"
 #include "eevee_surfel.bsl.hh"
 #include "gpu_shader_utildefines_lib.glsl"
@@ -17,8 +18,6 @@ float avg_albedo(float3 albedo)
 }
 
 struct SurfelRay {
-  [[legacy_info]] ShaderCreateInfo draw_view;
-
   [[resource_table]] srt_t<LightprobeSphereRenderData> lightprobe_spheres;
   [[resource_table]] srt_t<SurfelData> surfels_data;
 
@@ -119,7 +118,9 @@ struct SurfelRay {
  * Dispatched as 1 thread per surfel.
  */
 [[compute, local_size(SURFEL_GROUP_SIZE)]]
-void ray_main([[resource_table]] SurfelRay &srt, [[global_invocation_id]] const uint3 global_id)
+void ray_main([[resource_table]] SurfelRay &srt,
+              [[resource_table]] const draw::View &views,
+              [[global_invocation_id]] const uint3 global_id)
 {
   [[resource_table]] SurfelData &surfels = srt.surfels_data;
 
@@ -128,9 +129,10 @@ void ray_main([[resource_table]] SurfelRay &srt, [[global_invocation_id]] const 
     return;
   }
 
+  const ViewMatrices view = views.get(0);
   Surfel surfel = surfels.surfel_buf[surfel_index];
 
-  float3 sky_L = drw_world_incident_vector(surfel.position);
+  float3 sky_L = view.world_incident_vector(surfel.position);
 
   if (surfel.next > -1) {
     Surfel surfel_next = surfels.surfel_buf[surfel.next];

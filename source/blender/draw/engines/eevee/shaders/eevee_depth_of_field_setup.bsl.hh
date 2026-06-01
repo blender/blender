@@ -26,8 +26,6 @@ namespace eevee::dof::setup {
 namespace setup {
 
 struct Resources {
-  [[legacy_info]] ShaderCreateInfo draw_view;
-
   [[uniform(0)]] const DepthOfFieldData &dof_buf;
 
   [[sampler(0)]] sampler2D color_tx;
@@ -38,7 +36,9 @@ struct Resources {
 };
 
 [[compute, local_size(DOF_DEFAULT_GROUP_SIZE, DOF_DEFAULT_GROUP_SIZE)]]
-void comp_main([[resource_table]] Resources &srt, [[global_invocation_id]] const uint3 global_id)
+void comp_main([[resource_table]] Resources &srt,
+               [[resource_table]] const draw::View &views,
+               [[global_invocation_id]] const uint3 global_id)
 {
   float2 fullres_texel_size = 1.0f / float2(textureSize(srt.color_tx, 0).xy);
   /* Center uv around the 4 full-resolution pixels. */
@@ -51,7 +51,7 @@ void comp_main([[resource_table]] Resources &srt, [[global_invocation_id]] const
     float depth = reverse_z::read(textureLod(srt.depth_tx, sample_uv, 0.0f).r);
     /* NOTE: We use samplers without filtering. */
     colors[i] = colorspace::safe_color(textureLod(srt.color_tx, sample_uv, 0.0f));
-    cocs[i] = dof_coc_from_depth(srt.dof_buf, sample_uv, depth);
+    cocs[i] = dof_coc_from_depth(views, srt.dof_buf, sample_uv, depth);
   }
 
   cocs = clamp(cocs, -srt.dof_buf.coc_abs_max, srt.dof_buf.coc_abs_max);
@@ -115,9 +115,8 @@ float bilateral_weight(float reference_coc, float sample_coc)
 }
 
 struct Resources {
-  [[legacy_info]] ShaderCreateInfo draw_view;
-
   [[resource_table]] srt_t<CameraVelocity> camera;
+  [[resource_table]] srt_t<draw::View> views;
 
   [[push_constant]] const bool u_use_history;
 
@@ -296,7 +295,7 @@ struct Resources {
     /* Convert to full resolution buffer pixel. */
     int2 velocity_texel = (texel_sample + nearest_texel) * 2;
     velocity_texel = clamp(velocity_texel, int2(0), textureSize(velocity_tx, 0).xy - 1);
-    float4 vector = cam_vel.resolve(velocity_tx, velocity_texel, min_depth);
+    float4 vector = cam_vel.resolve(views, velocity_tx, velocity_texel, min_depth);
     /* Transform to **half** pixel space. */
     return vector.xy * float2(textureSize(color_tx, 0));
   }
@@ -474,7 +473,6 @@ void comp_main([[resource_table]] Resources &srt,
 namespace downsample {
 
 struct Resources {
-  [[legacy_info]] ShaderCreateInfo draw_view;
   [[sampler(0)]] sampler2D color_tx;
   [[sampler(1)]] sampler2D coc_tx;
   [[image(0, write, SFLOAT_16_16_16_16)]] image2D out_color_img;
@@ -525,8 +523,6 @@ float fast_luma(float3 color)
 }
 
 struct Resources {
-  [[legacy_info]] ShaderCreateInfo draw_view;
-
   [[storage(0, write)]] ScatterRect (&scatter_fg_list_buf)[];
   [[storage(1, write)]] ScatterRect (&scatter_bg_list_buf)[];
 

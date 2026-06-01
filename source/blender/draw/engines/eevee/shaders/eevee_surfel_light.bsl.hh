@@ -8,14 +8,6 @@
 
 #pragma once
 
-#include "draw_view_infos.hh"
-
-#ifdef GLSL_CPP_STUBS
-#  define LIGHT_ITER_FORCE_NO_CULLING
-#endif
-
-COMPUTE_SHADER_CREATE_INFO(draw_view)
-
 #include "eevee_closure.bsl.hh"
 #include "eevee_light_eval.bsl.hh"
 #include "eevee_surfel.bsl.hh"
@@ -23,8 +15,6 @@ COMPUTE_SHADER_CREATE_INFO(draw_view)
 namespace eevee::surfel {
 
 struct EvalLight {
-  [[legacy_info]] ShaderCreateInfo draw_view;
-
   /* WORKAROUND: Disables culling in lighting evaluation function. */
   [[compilation_constant]] bool light_iter_force_no_culling;
   /* WORKAROUND: Disables random jitter on shadow raytracing. */

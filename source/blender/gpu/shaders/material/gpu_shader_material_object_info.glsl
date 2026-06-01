@@ -11,8 +11,8 @@ void node_object_info(float mat_index,
                       float &material_index,
                       float &random)
 {
-  location = drw_modelmat()[3].xyz;
-  ObjectInfos info = drw_object_infos();
+  location = object_matrices_get().model[3].xyz;
+  ObjectInfos info = object_infos_get();
   color = info.ob_color;
   alpha = info.ob_color.a;
   object_index = info.index;

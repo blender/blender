@@ -324,6 +324,3 @@ float3 dF_impl(float3 v)
       g_derivative_flag = 0; \
     }
 #endif
-
-/* TODO(fclem): Remove. */
-#define CODEGEN_LIB

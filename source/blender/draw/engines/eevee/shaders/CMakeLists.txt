@@ -29,7 +29,6 @@ set(SRC_GLSL_LIB
   eevee_attributes_pointcloud_lib.glsl
   eevee_attributes_volume_lib.glsl
   eevee_attributes_world_lib.glsl
-  # eevee_nodetree_lib.glsl # Has dependency on draw_model_lib that is hard to resolve
 )
 
 set(SRC_BSL

@@ -13,7 +13,8 @@
 
 VERTEX_SHADER_CREATE_INFO(eevee_nodetree)
 
-#include "draw_view_lib.glsl"
+#include "draw_model.bsl.hh"
+#include "draw_view.bsl.hh"
 #include "eevee_lightprobe_shared.hh" /* TODO(fclem): Remove. Needed becaused of fragment shader. */
 #include "eevee_reverse_z_lib.bsl.hh"
 #include "eevee_sampling_shared.hh" /* TODO(fclem): Remove. Needed becaused of fragment shader. */
@@ -22,24 +23,20 @@ VERTEX_SHADER_CREATE_INFO(eevee_nodetree)
 namespace eevee {
 
 struct GeomWorld {
-  [[legacy_info]] ShaderCreateInfo draw_modelmat;
-  [[legacy_info]] ShaderCreateInfo draw_object_infos;
-  [[legacy_info]] ShaderCreateInfo draw_resource_id_varying;
-  [[legacy_info]] ShaderCreateInfo draw_view;
-
   [[legacy_info]] ShaderCreateInfo eevee_geom_iface_info;
 };
 
 [[vertex]] [[clip_control]] void geom_world([[resource_table]] const GeomWorld & /*srt*/,
                                             [[resource_table]] const Uniform & /*uni*/,
+                                            [[resource_table]] const draw::View &views,
+                                            [[resource_table]] const draw::Model & /*models*/,
                                             [[vertex_id]] const int vert_id,
                                             [[position]] float4 &out_position)
 {
-  auto &resource_iface = interface_get(draw_resource_id_varying, drw_ResourceID_iface);
-  /* (W)Intel drivers require all varying iface to be written to inside the Vertex shader. */
-  resource_iface.resource_id = 0u;
-
   auto &interp = interface_get(eevee_geom_iface_info, interp);
+  auto &interp_flat = interface_get(eevee_geom_iface_info, interp_flat);
+  /* (W)Intel drivers require all varying iface to be written to inside the Vertex shader. */
+  interp_flat.resource_id_raw = 0u;
 
   /* Full-screen triangle. */
   int v = vert_id % 3;
@@ -48,7 +45,7 @@ struct GeomWorld {
   out_position = float4(x, y, 1.0f, 1.0f);
 
   /* Pass view position to keep accuracy. */
-  interp.P = drw_point_ndc_to_view(out_position.xyz);
+  interp.P = views.get(0).point_ndc_to_view(out_position.xyz);
   interp.N = float3(1);
 
   out_position = reverse_z::transform(out_position);

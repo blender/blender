@@ -4,12 +4,7 @@
 
 #pragma once
 
-#include "draw_view_infos.hh"
-
-COMPUTE_SHADER_CREATE_INFO(draw_view)
-
-#include "draw_shader_shared.hh"
-#include "draw_view_lib.glsl"
+#include "draw_view.bsl.hh"
 #include "eevee_defines.hh"
 #include "eevee_gbuffer_read.bsl.hh"
 #include "eevee_reverse_z_lib.bsl.hh"
@@ -31,8 +26,6 @@ namespace eevee::subsurface {
  * \{ */
 
 struct Setup {
-  [[legacy_info]] ShaderCreateInfo draw_view;
-
   [[shared]] uint &has_visible_sss;
 
   [[sampler(2)]] sampler2DDepth depth_tx;
@@ -48,6 +41,7 @@ struct Setup {
 
 [[compute, local_size(SUBSURFACE_GROUP_SIZE, SUBSURFACE_GROUP_SIZE)]]
 void setup_main([[resource_table]] Setup &srt,
+                [[resource_table]] const draw::View &views,
                 [[resource_table]] const gbuffer::Reader &reader,
                 [[work_group_id]] const uint3 group_id,
                 [[global_invocation_id]] const uint3 global_thread_id,
@@ -61,6 +55,7 @@ void setup_main([[resource_table]] Setup &srt,
 
   barrier();
 
+  const ViewMatrices view = views.get(0);
   const gbuffer::Layers gbuf = reader.read_layers(texel);
 
   ClosureUndetermined cl = gbuf.layer[0];
@@ -79,9 +74,9 @@ void setup_main([[resource_table]] Setup &srt,
 
     float depth = reverse_z::read(texelFetch(srt.depth_tx, texel, 0).r);
     /* TODO(fclem): Check if this simplifies. */
-    float vPz = drw_depth_screen_to_view(depth);
-    float homogenous_coord = drw_view().winmat[2][3] * vPz + drw_view().winmat[3][3];
-    float sample_scale = drw_view().winmat[0][0] * (0.5f * max_radius / homogenous_coord);
+    float vPz = view.depth_screen_to_view(depth);
+    float homogenous_coord = view.winmat[2][3] * vPz + view.winmat[3][3];
+    float sample_scale = view.winmat[0][0] * (0.5f * max_radius / homogenous_coord);
     float pixel_footprint = sample_scale * float(textureSize(reader.gbuf_header_tx, 0).x);
     if (pixel_footprint > 1.0f) {
       /* Race condition doesn't matter here. */
@@ -128,8 +123,6 @@ struct SubSurfaceSample {
 };
 
 struct Convolve {
-  [[legacy_info]] ShaderCreateInfo draw_view;
-
   [[sampler(2)]] sampler2D radiance_tx;
   [[sampler(3)]] sampler2DDepth depth_tx;
   [[sampler(4)]] usampler2D object_id_tx;
@@ -182,6 +175,7 @@ struct Convolve {
 
 [[compute, local_size(SUBSURFACE_GROUP_SIZE, SUBSURFACE_GROUP_SIZE)]]
 void convolve_main([[resource_table]] Convolve &srt,
+                   [[resource_table]] const draw::View &views,
                    [[resource_table]] const gbuffer::Reader &reader,
                    [[work_group_id]] const uint3 group_id,
                    [[local_invocation_id]] const uint3 local_thread_id)
@@ -195,8 +189,10 @@ void convolve_main([[resource_table]] Convolve &srt,
   srt.cache_populate(center_uv, local_thread_id.xy);
   barrier();
 
+  const ViewMatrices view = views.get(0);
+
   float depth = reverse_z::read(texelFetch(srt.depth_tx, texel, 0).r);
-  float3 vP = drw_point_screen_to_view(float3(center_uv, depth));
+  float3 vP = view.point_screen_to_view(float3(center_uv, depth));
 
   const gbuffer::Layers gbuf = reader.read_layers(texel);
   if (gbuf.layer[0].type != CLOSURE_BSSRDF_BURLEY_ID) {
@@ -208,8 +204,8 @@ void convolve_main([[resource_table]] Convolve &srt,
   const ClosureSubsurface closure = to_closure_subsurface(gbuf.layer[0]);
   float max_radius = reduce_max(closure.sss_radius);
 
-  float homogenous_coord = drw_view().winmat[2][3] * vP.z + drw_view().winmat[3][3];
-  float2 sample_scale = float2(drw_view().winmat[0][0], drw_view().winmat[1][1]) *
+  float homogenous_coord = view.winmat[2][3] * vP.z + view.winmat[3][3];
+  float2 sample_scale = float2(view.winmat[0][0], view.winmat[1][1]) *
                         (0.5f * max_radius / homogenous_coord);
 
   float pixel_footprint = sample_scale.x * textureSize(srt.depth_tx, 0).x;
@@ -245,7 +241,7 @@ void convolve_main([[resource_table]] Convolve &srt,
       continue;
     }
     /* Slide 34. */
-    float3 sample_vP = drw_point_screen_to_view(float3(sample_uv, samp.depth));
+    float3 sample_vP = view.point_screen_to_view(float3(sample_uv, samp.depth));
     float r = distance(sample_vP, vP);
     float3 weight = burley_eval(d, r) * pdf_inv;
 

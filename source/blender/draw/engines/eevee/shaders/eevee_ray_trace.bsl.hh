@@ -4,10 +4,7 @@
 
 #pragma once
 
-#include "infos/eevee_common_infos.hh"
-
-COMPUTE_SHADER_CREATE_INFO(draw_view)
-
+#include "draw_view.bsl.hh"
 #include "eevee_closure.bsl.hh"
 #include "eevee_colorspace_lib.bsl.hh"
 #include "eevee_gbuffer_read.bsl.hh"
@@ -24,8 +21,6 @@ namespace eevee::raytrace {
 namespace screen {
 
 struct Resources {
-  [[legacy_info]] ShaderCreateInfo draw_view;
-
   [[specialization_constant(0)]] int closure_index;
   [[specialization_constant(true)]] bool trace_refraction;
 
@@ -51,6 +46,7 @@ struct Resources {
 void trace([[resource_table]] Resources &srt,
            [[resource_table]] const LightprobeRenderData &lightprobes,
            [[resource_table]] const Uniform &uni,
+           [[resource_table]] const draw::View &views,
            [[resource_table]] const Sampling &sampling,
            [[resource_table]] const gbuffer::Reader &reader,
            [[work_group_id]] const uint3 group_id,
@@ -83,6 +79,8 @@ void trace([[resource_table]] Resources &srt,
     return;
   }
 
+  const ViewMatrices view = views.get(0);
+
   int2 texel_fullres = texel * uni.raytrace_buf.trace_pixel_scale +
                        uni.raytrace_buf.trace_pixel_offset;
 
@@ -93,8 +91,8 @@ void trace([[resource_table]] Resources &srt,
   float depth = reverse_z::read(texelFetch(srt.depth_tx, texel_fullres, 0).r);
   float2 uv = (float2(texel_fullres) + 0.5f) * uni.raytrace_buf.full_resolution_inv;
 
-  float3 P = drw_point_screen_to_world(float3(uv, depth));
-  float3 V = drw_world_incident_vector(P);
+  float3 P = view.point_screen_to_world(float3(uv, depth));
+  float3 V = view.world_incident_vector(P);
   Ray ray;
   ray.origin = P;
   ray.direction = ray_data_im.xyz;
@@ -117,8 +115,8 @@ void trace([[resource_table]] Resources &srt,
 
   /* Transform the ray into view-space. */
   Ray ray_view;
-  ray_view.origin = transform_point(drw_view().viewmat, ray.origin);
-  ray_view.direction = transform_direction(drw_view().viewmat, ray.direction);
+  ray_view.origin = transform_point(view.viewmat, ray.origin);
+  ray_view.direction = transform_direction(view.viewmat, ray.direction);
   /* Extend the ray to cover the whole view. */
   ray_view.max_time = 1000.0f;
 
@@ -129,7 +127,8 @@ void trace([[resource_table]] Resources &srt,
    * index. Another idea is to put both HiZ buffer in the same texture and dynamically access one
    * or the other. But that might also impact performance. */
   if (!closure_has_transmission(closure_type)) {
-    hit = raytrace_screen(uni.raytrace_buf,
+    hit = raytrace_screen(view,
+                          uni.raytrace_buf,
                           uni.uniform_buf.hiz,
                           srt.hiz_front_tx,
                           rand_trace,
@@ -138,7 +137,7 @@ void trace([[resource_table]] Resources &srt,
                           ray_view);
 
     if (hit.valid) {
-      float3 hit_P = transform_point(drw_view().viewinv, hit.v_hit_P);
+      float3 hit_P = transform_point(view.viewinv, hit.v_hit_P);
       /* TODO(@fclem): Split matrix multiply for precision. */
       float2 history_ndc_hit_P = project_point(uni.raytrace_buf.history_persmat, hit_P).xy;
       /* Make sure to tag hits that _were_ out of view as no hit. Otherwise the history is sampled
@@ -150,7 +149,7 @@ void trace([[resource_table]] Resources &srt,
 
       /* Fetch radiance at hit-point. */
       radiance = raytrace_sample_screen(
-          srt.radiance_front_tx, uni.raytrace_buf, hit, roughness, history_ss_hit_P);
+          view, srt.radiance_front_tx, uni.raytrace_buf, hit, roughness, history_ss_hit_P);
 
       if (hit.hit_backface) {
         radiance *= uni.raytrace_buf.backface_hit_scale;
@@ -162,7 +161,8 @@ void trace([[resource_table]] Resources &srt,
     }
   }
   else if (srt.trace_refraction) {
-    hit = raytrace_screen(uni.raytrace_buf,
+    hit = raytrace_screen(view,
+                          uni.raytrace_buf,
                           uni.uniform_buf.hiz,
                           srt.hiz_back_tx,
                           rand_trace,
@@ -173,7 +173,7 @@ void trace([[resource_table]] Resources &srt,
     if (hit.valid) {
       /* Fetch radiance at hit-point. */
       radiance = raytrace_sample_screen(
-          srt.radiance_back_tx, uni.raytrace_buf, hit, roughness, hit.ss_hit_P.xy);
+          view, srt.radiance_back_tx, uni.raytrace_buf, hit, roughness, hit.ss_hit_P.xy);
     }
   }
 
@@ -204,8 +204,6 @@ void trace([[resource_table]] Resources &srt,
 namespace planar {
 
 struct Resources {
-  [[legacy_info]] ShaderCreateInfo draw_view;
-
   [[specialization_constant(0)]] int closure_index;
 
   [[storage(5, read)]] const uint (&tiles_coord_buf)[];
@@ -228,6 +226,7 @@ void trace([[resource_table]] Resources &srt,
            [[resource_table]] const LightprobeRenderData &lightprobes,
            [[resource_table]] const LightprobePlaneRenderData &lightprobe_planes,
            [[resource_table]] const Uniform &uni,
+           [[resource_table]] const draw::View &views,
            [[resource_table]] const Sampling &sampling,
            [[resource_table]] const gbuffer::Reader &reader,
            [[work_group_id]] const uint3 group_id,
@@ -265,14 +264,16 @@ void trace([[resource_table]] Resources &srt,
     return;
   }
 
+  const ViewMatrices view = views.get(0);
+
   ClosureUndetermined cl = reader.read_bin(texel_fullres, srt.closure_index);
   float roughness = closure_apparent_roughness_get(cl);
 
   float depth = reverse_z::read(texelFetch(srt.depth_tx, texel_fullres, 0).r);
   float2 uv = (float2(texel_fullres) + 0.5f) * uni.raytrace_buf.full_resolution_inv;
 
-  float3 P = drw_point_screen_to_world(float3(uv, depth));
-  float3 V = drw_world_incident_vector(P);
+  float3 P = view.point_screen_to_world(float3(uv, depth));
+  float3 V = view.world_incident_vector(P);
 
   int planar_id = lightprobe_planes.select_probe(P, ray_data_im.xyz);
   if (planar_id == -1) {
@@ -304,11 +305,12 @@ void trace([[resource_table]] Resources &srt,
   ray_view.max_time = 1000.0f;
 
   ScreenTraceHitData hit = raytrace_planar(
-      uni.raytrace_buf, lightprobe_planes.planar_depth_tx, planar, rand_trace, ray_view);
+      view, uni.raytrace_buf, lightprobe_planes.planar_depth_tx, planar, rand_trace, ray_view);
 
   if (hit.valid) {
     /* Evaluate radiance at hit-point. */
-    radiance = raytrace_sample_screen(lightprobe_planes.planar_radiance_tx,
+    radiance = raytrace_sample_screen(view,
+                                      lightprobe_planes.planar_radiance_tx,
                                       uni.raytrace_buf,
                                       hit,
                                       roughness,
@@ -338,8 +340,6 @@ void trace([[resource_table]] Resources &srt,
 namespace fallback {
 
 struct Resources {
-  [[legacy_info]] ShaderCreateInfo draw_view;
-
   [[specialization_constant(0)]] int closure_index;
 
   [[storage(5, read)]] const uint (&tiles_coord_buf)[];
@@ -359,6 +359,7 @@ void trace([[resource_table]] Resources &srt,
            [[resource_table]] const LightprobeRenderData &lightprobes,
            [[resource_table]] const gbuffer::Reader &reader,
            [[resource_table]] const Uniform &uni,
+           [[resource_table]] const draw::View &views,
            [[work_group_id]] const uint3 group_id,
            [[local_invocation_id]] const uint3 local_id)
 {
@@ -391,8 +392,10 @@ void trace([[resource_table]] Resources &srt,
     return;
   }
 
-  float3 P = drw_point_screen_to_world(float3(uv, depth));
-  float3 V = drw_world_incident_vector(P);
+  const ViewMatrices view = views.get(0);
+
+  float3 P = view.point_screen_to_world(float3(uv, depth));
+  float3 V = view.world_incident_vector(P);
 
   Ray ray;
   ray.origin = P;

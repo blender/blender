@@ -4,7 +4,7 @@
 
 #pragma once
 
-#include "draw_view_lib.glsl"
+#include "draw_view.bsl.hh"
 #include "eevee_camera_shared.hh"
 #include "eevee_defines.hh"
 #include "eevee_velocity_shared.hh"
@@ -116,17 +116,21 @@ struct CameraVelocity {
     return motion;
   }
 
-  float4 resolve(float4 vector, float2 uv, float depth) const
+  float4 resolve([[resource_table]] const draw::View &views,
+                 float4 vector,
+                 float2 uv,
+                 float depth) const
   {
+    const ViewMatrices view = views.get(0);
     if (vector.x == VELOCITY_INVALID) {
       bool is_background = (depth == 1.0f);
       if (is_background) {
         /* NOTE: Use view vector to avoid imprecision if camera is far from origin. */
-        float3 vV = -drw_view_incident_vector(drw_point_screen_to_view(float3(uv, 1.0f)));
+        float3 vV = -view.view_incident_vector(view.point_screen_to_view(float3(uv, 1.0f)));
         return background_velocity(vV);
       }
       /* Static geometry. No translation in world space. */
-      float3 P = drw_point_screen_to_world(float3(uv, depth));
+      float3 P = view.point_screen_to_world(float3(uv, depth));
       return surface_velocity(P, P, P);
     }
     return velocity::unpack(vector);
@@ -137,11 +141,14 @@ struct CameraVelocity {
    * motion data for performance reasons.
    * Returns motion vector in render UV space.
    */
-  float4 resolve(sampler2D vector_tx, int2 texel, float depth) const
+  float4 resolve([[resource_table]] const draw::View &views,
+                 sampler2D vector_tx,
+                 int2 texel,
+                 float depth) const
   {
     float2 uv = (float2(texel) + 0.5f) / float2(textureSize(vector_tx, 0).xy);
     float4 vector = texelFetch(vector_tx, texel, 0);
-    return resolve(vector, uv, depth);
+    return resolve(views, vector, uv, depth);
   }
 };
 

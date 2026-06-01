@@ -4,11 +4,6 @@
 
 #pragma once
 
-#include "draw_view_infos.hh"
-
-FRAGMENT_SHADER_CREATE_INFO(draw_view)
-
-#include "draw_view_lib.glsl"
 #include "eevee_light_data.bsl.hh"
 #include "eevee_light_lib.bsl.hh"
 #include "eevee_reverse_z_lib.bsl.hh"
@@ -17,10 +12,6 @@ FRAGMENT_SHADER_CREATE_INFO(draw_view)
 #include "gpu_shader_math_constants_lib.glsl"
 
 namespace eevee::light {
-
-struct ShapeDisplayResources {
-  [[legacy_info]] ShaderCreateInfo draw_view;
-};
 
 struct ShapeDisplayVertOut {
   [[smooth]] float2 lP;
@@ -54,7 +45,7 @@ float shape_display_light_radiance_get(LightData light)
   return 1.0f / max(M_PI * area, 1e-20f);
 }
 
-float3 shape_display_light_position_get(LightData light, float2 quad_pos)
+float3 shape_display_light_position_get(const ViewMatrices view, LightData light, float2 quad_pos)
 {
   if (is_area_light(light.type)) {
     return transform_point(light.object_to_world, float3(quad_pos * light.area().size, 0.0f));
@@ -62,9 +53,9 @@ float3 shape_display_light_position_get(LightData light, float2 quad_pos)
 
   float radius = light.local().local.shape_radius;
   float3 center = light.position();
-  float3 view_right = drw_view().viewinv[0].xyz;
-  float3 view_up = drw_view().viewinv[1].xyz;
-  float3 L = center - drw_view_position();
+  float3 view_right = view.viewinv[0].xyz;
+  float3 view_up = view.viewinv[1].xyz;
+  float3 L = center - view.position();
   float dist = length(L);
   if (dist > 1e-8f) {
     L /= dist;
@@ -76,16 +67,16 @@ float3 shape_display_light_position_get(LightData light, float2 quad_pos)
       radius = light_sphere_disk_radius(radius, dist);
     }
     else {
-      radius = drw_view_far();
+      radius = view.far();
     }
   }
 
   return center + (view_right * quad_pos.x + view_up * quad_pos.y) * radius;
 }
 
-float3 shape_display_far_plane_position_get(float2 ndc_pos)
+float3 shape_display_far_plane_position_get(const ViewMatrices view, float2 ndc_pos)
 {
-  return drw_point_ndc_to_world(float3(ndc_pos, 1.0f));
+  return view.point_ndc_to_world(float3(ndc_pos, 1.0f));
 }
 
 float2 shape_display_quad_position_get(int vertex_id)
@@ -97,7 +88,7 @@ float2 shape_display_quad_position_get(int vertex_id)
 }
 
 [[vertex]] [[clip_control]]
-void shape_display_vert([[resource_table]] const ShapeDisplayResources & /*srt*/,
+void shape_display_vert([[resource_table]] const draw::View &views,
                         [[resource_table]] const LightRenderData &lrd,
                         [[vertex_id]] const int vertex_id,
                         [[out]] ShapeDisplayVertOut &v_out,
@@ -135,18 +126,19 @@ void shape_display_vert([[resource_table]] const ShapeDisplayResources & /*srt*/
   v_out.light_index = light_index;
   v_out.radiance = light.color * shape_display_light_radiance_get(light);
 
+  const ViewMatrices view = views.get(0);
   if (is_sun_light(light.type)) {
-    v_out.P = shape_display_far_plane_position_get(v_out.lP);
+    v_out.P = shape_display_far_plane_position_get(view, v_out.lP);
     out_position = reverse_z::transform(float4(v_out.lP, 1.0f, 1.0f));
     return;
   }
 
-  v_out.P = shape_display_light_position_get(light, v_out.lP);
-  out_position = reverse_z::transform(drw_point_world_to_homogenous(v_out.P));
+  v_out.P = shape_display_light_position_get(view, light, v_out.lP);
+  out_position = reverse_z::transform(view.point_world_to_homogenous(v_out.P));
 }
 
 [[fragment]]
-void shape_display_frag([[resource_table]] const ShapeDisplayResources & /*srt*/,
+void shape_display_frag([[resource_table]] const draw::View &views,
                         [[resource_table]] const LightRenderData &lrd,
                         [[resource_table]] const UnifiedVolumeData &volumes,
                         [[resource_table]] const Uniform &uni,
@@ -158,17 +150,19 @@ void shape_display_frag([[resource_table]] const ShapeDisplayResources & /*srt*/
   LightData light = lrd.light_buf[v_out.light_index];
   float3 P = v_out.P;
 
+  const ViewMatrices view = views.get(0);
+  float3 V = view.world_incident_vector(P);
+
   if (is_sun_light(light_type)) {
-    float3 V = -drw_world_incident_vector(P);
     float3 sun_direction = light.sun().direction;
     float sun_cos = cos_from_tan(light.sun().shape_radius);
-    if (dot(V, sun_direction) < sun_cos) {
+    if (dot(-V, sun_direction) < sun_cos) {
       gpu_discard_fragment();
       return;
     }
   }
   else {
-    if (is_area_light(light_type) && dot(drw_world_incident_vector(P), light.z_axis()) > 0.0f) {
+    if (is_area_light(light_type) && dot(V, light.z_axis()) > 0.0f) {
       gpu_discard_fragment();
       return;
     }
@@ -185,7 +179,7 @@ void shape_display_frag([[resource_table]] const ShapeDisplayResources & /*srt*/
   float2 uvs = frag_co.xy * uni.uniform_buf.volumes.main_view_extent_inv;
   float3 radiance = v_out.radiance;
   if (is_spot_light(light_type)) {
-    radiance *= light_spot_attenuation(light, -drw_world_incident_vector(P));
+    radiance *= light_spot_attenuation(light, -V);
   }
 
   VolumeResolveSample vol = volumes.resolve(float3(uvs, depth));

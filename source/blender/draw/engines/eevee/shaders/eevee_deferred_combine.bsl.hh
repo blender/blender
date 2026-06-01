@@ -4,11 +4,7 @@
 
 #pragma once
 
-#include "draw_view_infos.hh"
-
-FRAGMENT_SHADER_CREATE_INFO(draw_view)
-
-#include "draw_view_lib.glsl"
+#include "draw_view.bsl.hh"
 #include "eevee_colorspace_lib.bsl.hh"
 #include "eevee_gbuffer_read.bsl.hh"
 #include "eevee_hiz.bsl.hh"
@@ -19,8 +15,6 @@ FRAGMENT_SHADER_CREATE_INFO(draw_view)
 namespace eevee::deferred {
 
 struct Combine {
-  [[legacy_info]] ShaderCreateInfo draw_view;
-
   /* NOTE: Both light IDs have a valid specialized assignment of '-1' so only when default is
    * present will we instead dynamically look-up ID from the uniform buffer. */
   [[specialization_constant(false)]] bool render_pass_diffuse_light_enabled;
@@ -99,6 +93,7 @@ struct CombineFragOut {
 [[fragment, early_fragment_tests]]
 void combine_frag([[resource_table]] Combine &srt,
                   [[resource_table]] RenderPassOutput &render_passes,
+                  [[resource_table]] const draw::View &views,
                   [[resource_table]] const Uniform &uni,
                   [[resource_table]] const HiZ &hiz,
                   [[resource_table]] const ::gbuffer::Reader &reader,
@@ -224,8 +219,9 @@ void combine_frag([[resource_table]] Combine &srt,
         texel, uni.uniform_buf.render_pass.normal_id, float4(average_normal, 1.0f));
   }
   if (srt.render_pass_position_enabled) {
+    const ViewMatrices view = views.get(0);
     float depth = texelFetch(hiz.hiz_tx, texel, 0).r;
-    float3 P = drw_point_screen_to_world(float3(v_out.screen_uv, depth));
+    float3 P = view.point_screen_to_world(float3(v_out.screen_uv, depth));
     render_passes.store_color(texel, uni.uniform_buf.render_pass.position_id, float4(P, 1.0f));
   }
 

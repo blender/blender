@@ -37,6 +37,10 @@ SMOOTH(float3, P)
 SMOOTH(float3, N)
 GPU_SHADER_NAMED_INTERFACE_END(interp)
 
+GPU_SHADER_NAMED_INTERFACE_INFO(eevee_surf_flat_iface, interp_flat)
+FLAT(uint, resource_id_raw)
+GPU_SHADER_NAMED_INTERFACE_END(interp_flat)
+
 GPU_SHADER_NAMED_INTERFACE_INFO(eevee_surf_shadow_iface, shadow_iface)
 FLAT(int, shadow_view_id)
 GPU_SHADER_NAMED_INTERFACE_END(shadow_iface)
@@ -89,6 +93,7 @@ GPU_SHADER_CREATE_END()
 /* WORKAROUND: Until we remove global accesses to the interface. */
 GPU_SHADER_CREATE_INFO(eevee_geom_iface_info)
 VERTEX_OUT(eevee_surf_iface)
+VERTEX_OUT(eevee_surf_flat_iface)
 GPU_SHADER_CREATE_END()
 
 GPU_SHADER_NAMED_INTERFACE_INFO(eevee_clip_plane_iface, clip_interp)

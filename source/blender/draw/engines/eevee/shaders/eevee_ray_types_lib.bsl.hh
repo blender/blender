@@ -5,7 +5,7 @@
 #pragma once
 
 #include "draw_math_geom_lib.glsl"
-#include "draw_view_lib.glsl"
+#include "draw_shader_shared.hh"
 #include "gpu_shader_math_safe_lib.glsl"
 #include "gpu_shader_ray_lib.glsl"
 
@@ -70,10 +70,10 @@ struct ScreenSpaceRay {
     return ray;
   }
 
-  static ScreenSpaceRay create(Ray ray, float2 pixel_size)
+  static ScreenSpaceRay create(ViewMatrices view, Ray ray, float2 pixel_size)
   {
-    float4 start = drw_point_view_to_homogenous(ray.origin);
-    float4 end = drw_point_view_to_homogenous(ray.origin + ray.direction * ray.max_time);
+    float4 start = view.point_view_to_homogenous(ray.origin);
+    float4 end = view.point_view_to_homogenous(ray.origin + ray.direction * ray.max_time);
 
     return ScreenSpaceRay::from_start_end(start, end, pixel_size);
   }

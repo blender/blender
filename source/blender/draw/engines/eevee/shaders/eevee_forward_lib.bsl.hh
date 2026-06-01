@@ -10,9 +10,9 @@
  * This is used by alpha blended materials and materials using Shader to RGB nodes.
  */
 
-#include "draw_object_infos_infos.hh"
+#include "infos/eevee_geom_infos.hh"
 
-#include "draw_model_lib.glsl"
+#include "draw_model.bsl.hh"
 #include "eevee_colorspace_lib.bsl.hh"
 #include "eevee_light_eval.bsl.hh"
 #include "eevee_lightprobe.bsl.hh"
@@ -40,7 +40,9 @@
 
 namespace eevee {
 
-void forward_lighting_eval(Thickness thickness,
+void forward_lighting_eval(const ViewMatrices view,
+                           uint resource_id,
+                           Thickness thickness,
                            float2 frag_co,
                            float3 &radiance,
                            float3 &transmittance)
@@ -53,9 +55,10 @@ void forward_lighting_eval(Thickness thickness,
   [[resource_table]] LightprobePlaneRenderData &lightprobe_planes = resource_table_get(eevee::LightprobePlaneRenderData);
   /* clang-format on */
   [[resource_table]] LightEvalData &srt = lights.inner;
+  [[resource_table]] draw::Infos &infos = resource_table_get(draw::Infos);
 
-  float vPz = dot(drw_view_forward(), g_data.P) - dot(drw_view_forward(), drw_view_position());
-  float3 V = drw_world_incident_vector(g_data.P);
+  float vPz = dot(view.forward(), g_data.P) - dot(view.forward(), view.position());
+  float3 V = view.world_incident_vector(g_data.P);
 
   light::EvalCtx<false> ctx;
   for (uint i = 0u; i < 3; i++) [[unroll]] {
@@ -71,12 +74,9 @@ void forward_lighting_eval(Thickness thickness,
   ctx.texel = frag_co;
   ctx.thickness = thickness;
 
-  /* TODO(fclem): If transmission (no SSS) is present, we could reduce light_closure_eval_count
-   * by 1 for this evaluation and skip evaluating the transmission closure twice. */
-  const auto &infos_buf = buffer_get(draw_object_infos, drw_infos);
   /* TODO(fclem): If transmission (no SSS) is present, we could reduce LIGHT_CLOSURE_EVAL_COUNT
    * by 1 for this evaluation and skip evaluating the transmission closure twice. */
-  ObjectInfos object_infos = infos_buf[drw_resource_id()];
+  ObjectInfos object_infos = infos.get(resource_id);
   ctx.receiver_light_set = receiver_light_set_get(object_infos);
   ctx.terminator_normal_offset = object_infos.shadow_terminator_normal_offset;
   ctx.terminator_geometry_offset = object_infos.shadow_terminator_geometry_offset;
@@ -138,10 +138,10 @@ void forward_lighting_eval(Thickness thickness,
       float3 P_reflected = lightprobe::plane::parallax(
           lightprobe_planes.probe_planar_buf[planar_id], g_data.P, average_N, V);
 
-      float2 ndc_P_reflected = drw_point_world_to_ndc(P_reflected).xy;
+      float2 ndc_P_reflected = view.point_world_to_ndc(P_reflected).xy;
       /* Planar probes are rendered upside down. */
       ndc_P_reflected.y = -ndc_P_reflected.y;
-      float2 texel = drw_ndc_to_screen(ndc_P_reflected);
+      float2 texel = view.ndc_to_screen(ndc_P_reflected);
 
       planar_probe_radiance =
           textureLod(lightprobe_planes.planar_radiance_tx, float3(texel, planar_id), 0.0).rgb;

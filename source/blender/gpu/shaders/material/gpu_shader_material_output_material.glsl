@@ -25,10 +25,12 @@ void node_output_material_displacement(float3 displacement, float3 &out_displace
 [[node]]
 void node_output_material_thickness(float thickness, float &out_thickness)
 {
+  const ObjectMatrices obj = object_matrices_get();
+
   float3 ob_scale;
-  ob_scale.x = length(drw_modelmat()[0].xyz);
-  ob_scale.y = length(drw_modelmat()[1].xyz);
-  ob_scale.z = length(drw_modelmat()[2].xyz);
+  ob_scale.x = length(obj.model[0].xyz);
+  ob_scale.y = length(obj.model[1].xyz);
+  ob_scale.z = length(obj.model[2].xyz);
 
   float3 thickness_vec = abs(max(thickness, 0.0f) * ob_scale);
   /* Contrary to displacement we need to output a scalar quantity.

@@ -7,8 +7,8 @@
 #pragma runtime_generated
 
 #include "eevee_geom_types_lib.bsl.hh"
-#include "eevee_nodetree_lib.glsl"
-#include "eevee_nodetree_type_lib.glsl"
+/* Note: Only included if there is a nodetree eval in the vertex shader. */
+#include "eevee_nodetree_lib.bsl.hh"
 
 /* Loading of the attributes into GlobalData. */
 void attrib_load(MeshVertex /*domain*/) {}

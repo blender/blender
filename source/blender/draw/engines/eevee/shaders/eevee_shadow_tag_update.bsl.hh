@@ -23,7 +23,6 @@
 namespace eevee::shadow {
 
 struct TagUpdate {
-  [[legacy_info]] ShaderCreateInfo draw_view;
   [[legacy_info]] ShaderCreateInfo draw_view_culling;
 
   [[push_constant]] int tilemap_count;

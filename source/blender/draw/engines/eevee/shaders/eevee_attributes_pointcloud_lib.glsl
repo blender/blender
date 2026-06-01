@@ -4,24 +4,9 @@
 
 #pragma once
 
-#include "draw_object_infos_infos.hh"
-
-#ifdef GPU_LIBRARY_SHADER
-#  define POINTCLOUD_SHADER
-#  define DRW_POINTCLOUD_INFO
-#endif
-
-SHADER_LIBRARY_CREATE_INFO(draw_modelmat)
-SHADER_LIBRARY_CREATE_INFO(draw_pointcloud)
-
-#include "draw_model_lib.glsl"
-#include "draw_object_infos_lib.glsl"
 #include "draw_pointcloud_lib.glsl"
 #include "eevee_geom_types_lib.bsl.hh"
 #include "gpu_shader_codegen_lib.glsl"
-
-#include "gpu_shader_math_matrix_transform_lib.glsl"
-#include "gpu_shader_math_vector_lib.glsl"
 
 /* -------------------------------------------------------------------- */
 /** \name Point Cloud
@@ -32,7 +17,7 @@ SHADER_LIBRARY_CREATE_INFO(draw_pointcloud)
 float3 attr_load_orco(PointCloudPoint point, float4 /*orco*/, int /*index*/)
 {
   /* NOTE: Doesn't support ORCO attribute. */
-  return drw_object_orco(point.lP);
+  return point.orco_default;
 }
 float4 attr_load_tangent(PointCloudPoint point, samplerBuffer cd_buf, int /*index*/)
 {

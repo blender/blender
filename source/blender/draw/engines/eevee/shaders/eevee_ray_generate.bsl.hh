@@ -4,11 +4,7 @@
 
 #pragma once
 
-#include "infos/eevee_common_infos.hh"
-
-SHADER_LIBRARY_CREATE_INFO(draw_view)
-
-#include "draw_view_lib.glsl"
+#include "draw_view.bsl.hh"
 #include "eevee_bxdf.bsl.hh"
 #include "eevee_gbuffer_read.bsl.hh"
 #include "eevee_sampling_lib.bsl.hh"
@@ -100,7 +96,7 @@ namespace eevee::raytracing {
 
 struct RayGenerate {
   [[specialization_constant(0)]] int closure_index;
-  [[legacy_info]] ShaderCreateInfo draw_view;
+
   [[storage(4, read)]] const uint (&tiles_coord_buf)[];
   [[image(0, write, SFLOAT_16_16_16_16)]] image2D out_ray_data_img;
 };
@@ -114,6 +110,7 @@ void generate_rays([[resource_table]] RayGenerate &srt,
                    [[resource_table]] const Uniform &uni,
                    [[resource_table]] const Sampling &sampling,
                    [[resource_table]] const UtilityTexture &util_tx,
+                   [[resource_table]] const draw::View &views,
                    [[resource_table]] const gbuffer::Reader &reader,
                    [[work_group_id]] const uint3 group_id,
                    [[local_invocation_id]] const uint3 local_id)
@@ -133,9 +130,11 @@ void generate_rays([[resource_table]] RayGenerate &srt,
     return;
   }
 
+  const ViewMatrices view = views.get(0);
+
   float2 uv = (float2(texel_fullres) + 0.5f) / float2(textureSize(reader.gbuf_header_tx, 0).xy);
-  float3 P = drw_point_screen_to_world(float3(uv, 0.5f));
-  float3 V = drw_world_incident_vector(P);
+  float3 P = view.point_screen_to_world(float3(uv, 0.5f));
+  float3 V = view.world_incident_vector(P);
   float2 noise = util_tx.fetch(float2(texel), UTIL_BLUE_NOISE_LAYER).rg;
   noise = fract(noise + sampling.rng_2D_get(SAMPLING_RAYTRACE_U));
 

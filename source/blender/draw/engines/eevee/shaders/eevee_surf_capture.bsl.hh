@@ -17,7 +17,6 @@ FRAGMENT_SHADER_CREATE_INFO(eevee_nodetree)
 FRAGMENT_SHADER_CREATE_INFO(eevee_geom_iface_info)
 
 #include "draw_curves_lib.glsl" /* IWYU pragma: export. For nodetree functions. */
-#include "draw_view_lib.glsl"   /* IWYU pragma: export. For nodetree functions. */
 #include "eevee_lightprobe_shared.hh"
 #include "eevee_nodetree_frag_lib.glsl"
 #include "eevee_surf_common.bsl.hh"
@@ -32,7 +31,6 @@ namespace eevee {
 
 struct SurfaceCapture {
   [[legacy_info]] ShaderCreateInfo eevee_geom_iface_info;
-  [[legacy_info]] ShaderCreateInfo draw_object_infos;
 
   [[storage(SURFEL_BUF_SLOT, write)]] Surfel (&surfel_buf)[];
   [[storage(CAPTURE_BUF_SLOT, read_write)]] CaptureInfoData &capture_info_buf;
@@ -43,11 +41,14 @@ struct SurfaceCapture {
 [[fragment]]
 void surf_capture([[resource_table]] SurfaceCapture &srt,
                   [[resource_table]] const Uniform &uni,
+                  [[resource_table]] const draw::View &views,
                   [[resource_table]] const UtilityTexture & /*util_tx*/,
                   [[frag_coord]] const float4 /*frag_co*/,
                   [[front_facing]] const bool front_face)
 {
-  init_globals(uni, front_face);
+  const ViewMatrices view = views.get(0);
+
+  init_globals(uni, view, front_face);
 
   /* TODO(fclem): Remove random sampling for capture and accumulate color. */
   float closure_rand = 0.5f;
@@ -71,12 +72,12 @@ void surf_capture([[resource_table]] SurfaceCapture &srt,
 
   if (srt.capture_info_buf.do_surfel_count) {
     /* Generate a surfel only once. This check allow cases where no axis is dominant. */
-    float3 vNg = drw_normal_world_to_view(g_data.Ng);
+    float3 vNg = views.get(0).normal_world_to_view(g_data.Ng);
     bool is_surface_view_aligned = dominant_axis(vNg) == 2;
     if (is_surface_view_aligned) {
       uint surfel_id = atomicAdd(srt.capture_info_buf.surfel_len, 1u);
       if (srt.capture_info_buf.do_surfel_output) {
-        ObjectInfos object_infos = drw_object_infos();
+        ObjectInfos object_infos = object_infos_get();
         srt.surfel_buf[surfel_id].position = g_data.P;
         srt.surfel_buf[surfel_id].normal = front_face ? g_data.Ng : -g_data.Ng;
         srt.surfel_buf[surfel_id].albedo_front = albedo;

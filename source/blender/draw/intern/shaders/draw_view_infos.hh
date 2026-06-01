@@ -43,12 +43,12 @@ DEFINE("RESOURCE_ID_VARYING")
 GPU_SHADER_CREATE_END()
 
 GPU_SHADER_CREATE_INFO(draw_resource_id)
-STORAGE_BUF(DRW_RESOURCE_ID_SLOT, read, uint, resource_id_buf[])
+STORAGE_BUF(DRW_RESOURCE_ID_SLOT, read, uint, res_id_buf[])
 GPU_SHADER_CREATE_END()
 
 GPU_SHADER_CREATE_INFO(draw_resource_with_custom_id)
 DEFINE("WITH_CUSTOM_IDS")
-STORAGE_BUF(DRW_RESOURCE_ID_SLOT, read, uint2, resource_id_buf[])
+STORAGE_BUF(DRW_RESOURCE_ID_SLOT, read, uint2, res_id_with_custom_id_buf[])
 GPU_SHADER_CREATE_END()
 
 /** \} */
@@ -80,13 +80,13 @@ GPU_SHADER_CREATE_END()
  * \{ */
 
 GPU_SHADER_CREATE_INFO(draw_view)
-UNIFORM_BUF_FREQ(DRW_VIEW_UBO_SLOT, ViewMatrices, drw_view_buf[DRW_VIEW_LEN], PASS)
+UNIFORM_BUF_FREQ(DRW_VIEW_UBO_SLOT, ViewMatrices, view_buf[64], PASS)
 DEFINE("DRAW_VIEW_CREATE_INFO")
 TYPEDEF_SOURCE("draw_shader_shared.hh")
 GPU_SHADER_CREATE_END()
 
 GPU_SHADER_CREATE_INFO(draw_view_culling)
-UNIFORM_BUF(DRW_VIEW_CULLING_UBO_SLOT, ViewCullingData, drw_view_culling_buf[DRW_VIEW_LEN])
+UNIFORM_BUF(DRW_VIEW_CULLING_UBO_SLOT, ViewCullingData, drw_view_culling_buf[64])
 DEFINE("DRW_VIEW_CULLING_INFO")
 TYPEDEF_SOURCE("draw_shader_shared.hh")
 GPU_SHADER_CREATE_END()

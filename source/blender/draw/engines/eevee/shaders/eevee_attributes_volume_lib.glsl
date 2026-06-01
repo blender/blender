@@ -4,10 +4,8 @@
 
 #pragma once
 
-#include "draw_object_infos_infos.hh"
-
-#include "draw_object_infos_lib.glsl"
 #include "eevee_geom_types_lib.bsl.hh"
+#include "gpu_shader_codegen_lib.glsl"
 
 /* -------------------------------------------------------------------- */
 /** \name Volume
@@ -25,7 +23,7 @@ float3 grid_coordinates(float3 lP, int index)
 float3 attr_load_orco(VolumePoint point, sampler3D /*tex*/, int /*index*/)
 {
   /* NOTE: Doesn't support ORCO attribute. */
-  return drw_object_orco(point.lP);
+  return point.orco_default;
 }
 float4 attr_load_tangent(VolumePoint /*point*/, sampler3D /*tex*/, int /*index*/)
 {

@@ -10,13 +10,12 @@
 
 #pragma once
 
-#include "draw_object_infos_infos.hh"
+#include "draw_view_infos.hh"
 
-COMPUTE_SHADER_CREATE_INFO(draw_view)
 COMPUTE_SHADER_CREATE_INFO(draw_view_culling)
-COMPUTE_SHADER_CREATE_INFO(draw_object_infos)
 
 #include "draw_intersect_lib.glsl"
+#include "draw_model.bsl.hh"
 #include "gpu_shader_utildefines_lib.glsl"
 
 #include "eevee_defines.hh"
@@ -25,9 +24,9 @@ COMPUTE_SHADER_CREATE_INFO(draw_object_infos)
 namespace eevee::shadow {
 
 struct ViewVisibility {
-  [[legacy_info]] ShaderCreateInfo draw_view;
   [[legacy_info]] ShaderCreateInfo draw_view_culling;
-  [[legacy_info]] ShaderCreateInfo draw_object_infos;
+
+  [[resource_table]] srt_t<draw::Infos> infos_;
 
   [[storage(0, read)]] const ObjectBounds (&bounds_buf)[];
   [[storage(1, read_write)]] uint (&visibility_buf)[];
@@ -37,8 +36,8 @@ struct ViewVisibility {
 
   bool shadow_linking_affects_caster(uint view_id, uint resource_id)
   {
-    const auto &infos_buf = buffer_get(draw_object_infos, drw_infos);
-    ObjectInfos object_infos = infos_buf[resource_id];
+    [[resource_table]] draw::Infos infos = infos_;
+    ObjectInfos object_infos = infos.get(resource_id);
     return bitmask64_test(render_view_buf[view_id].shadow_set_membership,
                           blocker_shadow_set_get(object_infos));
   }

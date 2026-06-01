@@ -33,8 +33,6 @@ struct TilesWrite {
 namespace tile_flatten {
 
 struct Resources {
-  [[legacy_info]] ShaderCreateInfo draw_view;
-
   [[sampler(0)]] sampler2D coc_tx;
 
   /**
@@ -118,8 +116,6 @@ void comp_main([[resource_table]] Resources &srt,
 namespace tile_dilate {
 
 struct Resources {
-  [[legacy_info]] ShaderCreateInfo draw_view;
-
   [[compilation_constant]] const bool dilate_mode_min_max;
 
   [[push_constant]] const int ring_count;

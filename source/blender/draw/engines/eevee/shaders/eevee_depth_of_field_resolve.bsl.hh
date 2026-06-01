@@ -19,9 +19,8 @@
 namespace eevee::dof::resolve {
 
 struct Resources {
-  [[legacy_info]] ShaderCreateInfo draw_view;
-
   [[resource_table]] srt_t<Accumulator> accumulator;
+  [[resource_table]] srt_t<draw::View> views;
 
   [[specialization_constant(false)]] const bool do_debug_color;
 
@@ -53,7 +52,7 @@ struct Resources {
       float2 sample_uv = (frag_coord + quad_offsets[i] * 2.0f * dof_max_slight_focus_radius) /
                          float2(textureSize(color_tx, 0));
       float depth = reverse_z::read(textureLod(depth_tx, sample_uv, 0.0f).r);
-      float coc = dof_coc_from_depth(accum.dof_buf, sample_uv, depth);
+      float coc = dof_coc_from_depth(views, accum.dof_buf, sample_uv, depth);
       coc = clamp(coc, -accum.dof_buf.coc_abs_max, accum.dof_buf.coc_abs_max);
       if (abs(coc) < dof_max_slight_focus_radius) {
         local_abs_max = max(local_abs_max, abs(coc));
@@ -116,6 +115,7 @@ struct Resources {
 
 [[compute, local_size(DOF_RESOLVE_GROUP_SIZE, DOF_RESOLVE_GROUP_SIZE)]]
 void comp_main([[resource_table]] Resources &srt,
+               [[resource_table]] const draw::View &views,
                [[resource_table]] Tiles &tiles,
                [[global_invocation_id]] const uint3 global_id,
                [[local_invocation_index]] const uint local_index)
@@ -142,7 +142,7 @@ void comp_main([[resource_table]] Resources &srt,
 
   if (prediction.do_focus) {
     float depth = reverse_z::read(textureLod(srt.depth_tx, uv, 0.0f).r);
-    float center_coc = (dof_coc_from_depth(accum.dof_buf, uv, depth));
+    float center_coc = dof_coc_from_depth(views, accum.dof_buf, uv, depth);
     prediction.do_focus = abs(center_coc) <= 0.5f;
   }
 

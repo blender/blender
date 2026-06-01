@@ -34,8 +34,6 @@ struct VertOut {
 };
 
 struct Resources {
-  [[legacy_info]] ShaderCreateInfo draw_view;
-
   [[storage(0, read)]] const ScatterRect (&scatter_list_buf)[];
 
   [[push_constant]] const bool use_bokeh_lut;

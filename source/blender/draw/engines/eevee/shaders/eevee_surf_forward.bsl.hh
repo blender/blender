@@ -16,7 +16,7 @@ FRAGMENT_SHADER_CREATE_INFO(eevee_nodetree)
 FRAGMENT_SHADER_CREATE_INFO(eevee_geom_iface_info)
 
 #include "draw_curves_lib.glsl" /* IWYU pragma: export. For nodetree functions. */
-#include "draw_view_lib.glsl"   /* IWYU pragma: export. For nodetree functions. */
+#include "draw_view.bsl.hh"
 #include "eevee_forward_lib.bsl.hh"
 #include "eevee_nodetree_frag_lib.glsl"
 #include "eevee_reverse_z_lib.bsl.hh"
@@ -29,13 +29,18 @@ Thickness g_thickness_forward;
 
 float4 closure_to_rgba_forward(Closure /*cl_unused*/)
 {
+  [[resource_table]] const draw::View &views = resource_table_get(draw::View);
   [[resource_table]] const eevee::Sampling &sampling = resource_table_get(eevee::Sampling);
   [[resource_table]] const UtilityTexture &util_tx = resource_table_get(UtilityTexture);
+  auto &interp_flat = interface_get(eevee_geom_iface_info, interp_flat);
+  draw::ID id{interp_flat.resource_id_raw};
+  const uint resource_id = id.resource_id<1>();
 
   const float2 frag_co = gl_FragCoord.xy;
 
   float3 radiance, transmittance;
-  eevee::forward_lighting_eval(g_thickness_forward, frag_co, radiance, transmittance);
+  eevee::forward_lighting_eval(
+      views.get(0), resource_id, g_thickness_forward, frag_co, radiance, transmittance);
 
   /* Reset for the next closure tree. */
   float noise = util_tx.fetch(frag_co, UTIL_BLUE_NOISE_LAYER).r;
@@ -50,7 +55,7 @@ float4 closure_to_rgba_forward(Closure /*cl_unused*/)
     /* clang-format on */
     [[resource_table]] eevee::LightprobeSphereRenderData &lp_spheres = lightprobes.spheres;
 
-    float3 V = -drw_world_incident_vector(g_data.P);
+    float3 V = -views.get(0).world_incident_vector(g_data.P);
     eevee::LightProbeSample samp = lightprobes.load(frag_co, g_data.P, g_data.Ng, V);
     float3 radiance_behind = lp_spheres.spherical_sample_normalized_with_parallax(
         samp, g_data.P, V, 0.0);
@@ -106,6 +111,9 @@ void surf_forward([[resource_table]] PipelineConstants & /*pipe*/,
                   [[resource_table]] LightEvalIterator & /*lights*/,
                   [[resource_table]] LightprobeRenderData & /*lightprobes*/,
                   [[resource_table]] LightprobePlaneRenderData & /*lightprobe_planes*/,
+                  [[resource_table]] const draw::View &views,
+                  [[resource_table]] const draw::Model &models,
+                  [[resource_table]] const draw::Infos & /*infos*/,
                   [[resource_table]] const UnifiedVolumeData &volumes,
                   [[resource_table]] const Uniform &uni,
                   [[resource_table]] const Sampling &sampling,
@@ -114,7 +122,13 @@ void surf_forward([[resource_table]] PipelineConstants & /*pipe*/,
                   [[out]] SurfaceForwardFragOut &frag_out,
                   [[front_facing]] const bool front_face)
 {
-  init_globals(uni, front_face);
+  auto &interp_flat = interface_get(eevee_geom_iface_info, interp_flat);
+  draw::ID id{interp_flat.resource_id_raw};
+  const uint resource_id = id.resource_id<1>();
+
+  const ViewMatrices view = views.get(0);
+
+  init_globals(uni, view, front_face);
 
   float noise = util_tx.fetch(gl_FragCoord.xy, UTIL_BLUE_NOISE_LAYER).r;
   float closure_rand = fract(noise + sampling.rng_1D_get(SAMPLING_CLOSURE));
@@ -126,7 +140,8 @@ void surf_forward([[resource_table]] PipelineConstants & /*pipe*/,
   nodetree_surface(closure_rand);
 
   float3 radiance, transmittance;
-  eevee::forward_lighting_eval(g_thickness_forward, gl_FragCoord.xy, radiance, transmittance);
+  eevee::forward_lighting_eval(
+      view, resource_id, g_thickness_forward, gl_FragCoord.xy, radiance, transmittance);
 
   /* Volumetric resolve and compositing. */
   float2 uvs = gl_FragCoord.xy * uni.uniform_buf.volumes.main_view_extent_inv;
@@ -137,7 +152,7 @@ void surf_forward([[resource_table]] PipelineConstants & /*pipe*/,
   vol.scattering -= vol.scattering * g_transmittance;
   radiance = radiance * vol.transmittance + vol.scattering;
 
-  eObjectInfoFlag ob_flag = drw_object_infos().flag;
+  eObjectInfoFlag ob_flag = object_infos_get().flag;
   if (flag_test(ob_flag, OBJECT_HOLDOUT)) {
     g_holdout = 1.0f - average(g_transmittance);
     radiance *= 0.0f;

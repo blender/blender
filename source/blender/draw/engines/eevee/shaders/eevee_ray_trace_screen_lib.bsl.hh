@@ -14,7 +14,6 @@
  * Many modifications were made for our own usage.
  */
 
-#include "draw_view_lib.glsl"
 #include "eevee_bxdf.bsl.hh"
 #include "eevee_lightprobe_shared.hh"
 #include "eevee_ray_types_lib.bsl.hh"
@@ -25,9 +24,9 @@
 #include "gpu_shader_math_matrix_transform_lib.glsl"
 
 /* Inputs expected to be in view-space. */
-void raytrace_clip_ray_to_near_plane(Ray &ray)
+void raytrace_clip_ray_to_near_plane(ViewMatrices view, Ray &ray)
 {
-  float near_dist = drw_view_near();
+  float near_dist = view.near();
   if ((ray.origin.z + ray.direction.z * ray.max_time) > near_dist) {
     ray.max_time = abs((near_dist - ray.origin.z) / ray.direction.z);
   }
@@ -59,7 +58,8 @@ struct ScreenTraceHitData {
  *
  * \return True if there is a valid intersection.
  */
-ScreenTraceHitData raytrace_screen(RayTraceData rt_data,
+ScreenTraceHitData raytrace_screen(ViewMatrices view,
+                                   RayTraceData rt_data,
                                    HiZData hiz_data,
                                    sampler2D hiz_tx,
                                    float stride_rand,
@@ -68,18 +68,18 @@ ScreenTraceHitData raytrace_screen(RayTraceData rt_data,
                                    Ray ray)
 {
   /* Clip to near plane for perspective view where there is a singularity at the camera origin. */
-  if (drw_view().winmat[3][3] == 0.0f) {
-    raytrace_clip_ray_to_near_plane(ray);
+  if (view.winmat[3][3] == 0.0f) {
+    raytrace_clip_ray_to_near_plane(view, ray);
   }
 
   /* NOTE: The 2.0 factor here is because we are applying it in NDC space. */
-  ScreenSpaceRay ssray = ScreenSpaceRay::create(ray, 2.0f * rt_data.full_resolution_inv);
+  ScreenSpaceRay ssray = ScreenSpaceRay::create(view, ray, 2.0f * rt_data.full_resolution_inv);
 
   /* Avoid no iteration. */
   if (!allow_self_intersection && ssray.max_time < 1.1f) {
     /* Still output the clipped ray. */
     float3 hit_ssP = ssray.origin.xyz + ssray.direction.xyz * ssray.max_time;
-    float3 hit_P = drw_point_screen_to_world(float3(hit_ssP.xy, saturate(hit_ssP.z)));
+    float3 hit_P = view.point_screen_to_world(float3(hit_ssP.xy, saturate(hit_ssP.z)));
     ray.direction = hit_P - ray.origin;
 
     ScreenTraceHitData no_hit;
@@ -91,7 +91,7 @@ ScreenTraceHitData raytrace_screen(RayTraceData rt_data,
   ssray.max_time = max(1.1f, ssray.max_time);
 
   float prev_delta = 0.0f, prev_time = 0.0f;
-  float depth_sample = drw_depth_view_to_screen(ray.origin.z);
+  float depth_sample = view.depth_view_to_screen(ray.origin.z);
   float delta = depth_sample - ssray.origin.z;
 
   float lod_fac = saturate(sqrt_fast(roughness) * 2.0f - 0.4f);
@@ -116,7 +116,7 @@ ScreenTraceHitData raytrace_screen(RayTraceData rt_data,
     float3 ss_ray_P = ssray.screen_position_at(time);
     depth_sample = textureLod(hiz_tx, ss_ray_P.xy * hiz_data.uv_scale, floor(lod)).r;
 
-    float sample_view_Z = drw_depth_screen_to_view(depth_sample);
+    float sample_view_Z = view.depth_screen_to_view(depth_sample);
     float sample_ndc_min_thickness = rt_data.ray_thickness.pixel_depth_thickness_at(sample_view_Z);
 
     delta = depth_sample - ss_ray_P.z;
@@ -134,7 +134,7 @@ ScreenTraceHitData raytrace_screen(RayTraceData rt_data,
   /* We can only hit a backface if the ray was under the surface. */
   result.hit_backface = prev_delta < 0.0f;
   result.ss_hit_P = ssray.origin.xyz + ssray.direction.xyz * time;
-  result.v_hit_P = drw_point_screen_to_view(result.ss_hit_P);
+  result.v_hit_P = view.point_screen_to_view(result.ss_hit_P);
   /* Convert to world space ray time. */
   result.time = length(result.v_hit_P - ray.origin) / length(ray.direction);
   /* Update the validity as ss_hit_P can point to a background sample. */
@@ -144,15 +144,16 @@ ScreenTraceHitData raytrace_screen(RayTraceData rt_data,
   return result;
 }
 
-ScreenTraceHitData raytrace_planar(RayTraceData rt_data,
+ScreenTraceHitData raytrace_planar(ViewMatrices view,
+                                   RayTraceData rt_data,
                                    sampler2DArrayDepth planar_depth_tx,
                                    PlanarProbeData planar,
                                    float stride_rand,
                                    Ray ray)
 {
   /* Clip to near plane for perspective view where there is a singularity at the camera origin. */
-  if (drw_view().winmat[3][3] == 0.0f) {
-    raytrace_clip_ray_to_near_plane(ray);
+  if (view.winmat[3][3] == 0.0f) {
+    raytrace_clip_ray_to_near_plane(view, ray);
   }
 
   float2 inv_texture_size = 1.0f / float2(textureSize(planar_depth_tx, 0).xy);
@@ -198,7 +199,7 @@ ScreenTraceHitData raytrace_planar(RayTraceData rt_data,
       textureLod(planar_depth_tx, float3(result.ss_hit_P.xy, planar.layer_id), 0.0f).r != 0.0;
 
   /* NOTE: v_hit_P is in planar reflected view space. */
-  result.v_hit_P = project_point(planar.wininv, drw_screen_to_ndc(result.ss_hit_P));
+  result.v_hit_P = project_point(planar.wininv, view.screen_to_ndc(result.ss_hit_P));
   /* Convert to world space ray time. */
   result.time = length(result.v_hit_P - ray.origin) / length(ray.direction);
   return result;
@@ -278,7 +279,8 @@ bool clip_ray(float3 &start,
  * Expects vs_origin and vs_end to be already clipped to the view frustum (see clip_ray above).
  * Returns the hit distance, or -1 if no hit was found.
  */
-float raytrace_screen_2(const float3 vs_origin,
+float raytrace_screen_2(ViewMatrices view,
+                        const float3 vs_origin,
                         const float3 vs_end,
                         const float3 vs_direction,
                         sampler2D depth_tx,
@@ -291,8 +293,8 @@ float raytrace_screen_2(const float3 vs_origin,
 {
   /* Convert ray start and end into NDC for correct interpolation. */
   float3 start, end;
-  start.xyz = drw_point_view_to_screen(vs_origin);
-  end.xyz = drw_point_view_to_screen(vs_end);
+  start.xyz = view.point_view_to_screen(vs_origin);
+  end.xyz = view.point_view_to_screen(vs_end);
 
   const float2 extent = float2(textureSize(ob_id_tx, 0).xy);
   const float2 texel_to_uv = (float2(1.0f) / extent);
@@ -341,7 +343,7 @@ float raytrace_screen_2(const float3 vs_origin,
     const float hit_min_z = min(hit_depth_point, hit_depth_linear);
     const float hit_max_z = max(hit_depth_point, hit_depth_linear);
 
-    const float sample_view_Z = drw_depth_screen_to_view(hit_depth_point);
+    const float sample_view_Z = view.depth_screen_to_view(hit_depth_point);
     const float sample_ndc_min_thickness = rt_data.ray_thickness.pixel_depth_thickness_at(
         sample_view_Z);
 
@@ -362,7 +364,7 @@ float raytrace_screen_2(const float3 vs_origin,
     if (hit) {
       r_hit_uv = step.xy;
       /* We have a hit. Compute the distance. */
-      const float3 vs_hit_point = drw_point_screen_to_view(float3(step.xy, hit_depth_point));
+      const float3 vs_hit_point = view.point_screen_to_view(float3(step.xy, hit_depth_point));
       /* Hit point projection along the ray. */
       return dot(vs_hit_point - vs_origin, vs_direction);
     }
@@ -376,7 +378,8 @@ float raytrace_screen_2(const float3 vs_origin,
  * Sample the given full-screen frame-buffer at the given hit location.
  * Does a small contact aware blur on incoming radiance.
  */
-float3 raytrace_sample_screen(sampler2D radiance_tx,
+float3 raytrace_sample_screen(ViewMatrices view,
+                              sampler2D radiance_tx,
                               RayTraceData raytrace,
                               ScreenTraceHitData hit,
                               float roughness,
@@ -387,8 +390,8 @@ float3 raytrace_sample_screen(sampler2D radiance_tx,
   float shading_cone_tangent = saturate(roughness * 0.05);
   float vs_footprint = shading_cone_tangent * hit.time;
   /* Convert from view space cone to screen space. */
-  float4 hs_hit_P = drw_view().winmat * float4(hit.v_hit_P, 1.0f);
-  float ndc_footprint = (vs_footprint * drw_view().winmat[0][0]) / hs_hit_P.w;
+  float4 hs_hit_P = view.winmat * float4(hit.v_hit_P, 1.0f);
+  float ndc_footprint = (vs_footprint * view.winmat[0][0]) / hs_hit_P.w;
   float pixel_footprint = ndc_footprint * raytrace.full_resolution.x;
 
   float3 radiance;
@@ -416,7 +419,8 @@ float3 raytrace_sample_screen(sampler2D radiance_tx,
  * Sample the given full-screen frame-buffer at the given hit location.
  * Does a small contact aware blur on incoming radiance.
  */
-float3 raytrace_sample_screen(sampler2DArray radiance_tx,
+float3 raytrace_sample_screen(ViewMatrices view,
+                              sampler2DArray radiance_tx,
                               RayTraceData raytrace,
                               ScreenTraceHitData hit,
                               float roughness,
@@ -428,8 +432,8 @@ float3 raytrace_sample_screen(sampler2DArray radiance_tx,
   float shading_cone_tangent = saturate(roughness * 0.05);
   float vs_footprint = shading_cone_tangent * hit.time;
   /* Convert from view space cone to screen space. */
-  float4 hs_hit_P = drw_view().winmat * float4(hit.v_hit_P, 1.0f);
-  float ndc_footprint = (vs_footprint * drw_view().winmat[0][0]) / hs_hit_P.w;
+  float4 hs_hit_P = view.winmat * float4(hit.v_hit_P, 1.0f);
+  float ndc_footprint = (vs_footprint * view.winmat[0][0]) / hs_hit_P.w;
   float pixel_footprint = ndc_footprint * raytrace.full_resolution.x;
 
   float3 radiance;

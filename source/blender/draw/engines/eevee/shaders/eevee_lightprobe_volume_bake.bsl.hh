@@ -9,10 +9,6 @@
  */
 #pragma once
 
-#include "infos/eevee_common_infos.hh"
-
-SHADER_LIBRARY_CREATE_INFO(draw_view)
-
 #include "draw_intersect_lib.glsl"
 #include "eevee_lightprobe_sphere.bsl.hh"
 #include "eevee_lightprobe_volume.bsl.hh"
@@ -69,8 +65,6 @@ struct SceneBound {
 }
 
 struct VolumeOffset {
-  [[legacy_info]] ShaderCreateInfo draw_view;
-
   [[resource_table]] srt_t<SurfelData> surfels_data;
 
   [[storage(0, read)]] const int (&list_start_buf)[];
@@ -286,7 +280,6 @@ void volume_offset([[resource_table]] VolumeOffset &srt,
 struct RayCapture {
   [[resource_table]] srt_t<LightprobeSphereRenderData> lightprobe_sphere;
   [[resource_table]] srt_t<SurfelData> surfels_data;
-  [[legacy_info]] ShaderCreateInfo draw_view;
 
   [[storage(0, read)]] const int (&list_start_buf)[];
   [[storage(6, read)]] const SurfelListInfoData &list_info_buf;
@@ -387,6 +380,7 @@ struct RayCapture {
                          IRRADIANCE_GRID_GROUP_SIZE,
                          IRRADIANCE_GRID_GROUP_SIZE)]]
 void ray_capture([[resource_table]] RayCapture &srt,
+                 [[resource_table]] const draw::View &views,
                  [[global_invocation_id]] const uint3 global_id)
 {
   [[resource_table]] SurfelData &surfels = srt.surfels_data;
@@ -396,6 +390,8 @@ void ray_capture([[resource_table]] RayCapture &srt,
   if (any(greaterThanEqual(grid_coord, surfels.capture_info_buf.irradiance_grid_size))) {
     return;
   }
+
+  const ViewMatrices view = views.get(0);
 
   float3 P = lightprobe::volume::grid_sample_position(
       surfels.capture_info_buf.irradiance_grid_local_to_world,
@@ -408,7 +404,7 @@ void ray_capture([[resource_table]] RayCapture &srt,
   /* Project to get ray linked list. */
   float irradiance_sample_ray_distance;
   int list_index = eevee::surfel::list_index_get(
-      srt.list_info_buf.ray_grid_size, P, irradiance_sample_ray_distance);
+      view, srt.list_info_buf.ray_grid_size, P, irradiance_sample_ray_distance);
 
   /* Walk the ray to get which surfels the irradiance sample is between. */
   int surfel_prev = -1;
@@ -427,7 +423,7 @@ void ray_capture([[resource_table]] RayCapture &srt,
     assert(surfel_prev != surfel_next);
   }
 
-  float3 sky_L = drw_world_incident_vector(P);
+  float3 sky_L = view.world_incident_vector(P);
 
   SphericalHarmonicL1<float4> sh;
   sh.L0.M0 = imageLoadFast(srt.irradiance_L0_img, grid_coord);

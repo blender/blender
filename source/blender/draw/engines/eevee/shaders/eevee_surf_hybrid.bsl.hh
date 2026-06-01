@@ -19,7 +19,6 @@ FRAGMENT_SHADER_CREATE_INFO(eevee_nodetree)
 FRAGMENT_SHADER_CREATE_INFO(eevee_geom_iface_info)
 
 #include "draw_curves_lib.glsl" /* IWYU pragma: export. For nodetree functions. */
-#include "draw_view_lib.glsl"   /* IWYU pragma: export. For nodetree functions. */
 #include "eevee_forward_lib.bsl.hh"
 #include "eevee_gbuffer_write.bsl.hh"
 #include "eevee_nodetree_frag_lib.glsl"
@@ -31,12 +30,17 @@ Thickness g_thickness;
 
 float4 closure_to_rgba_hybrid(Closure /*cl*/)
 {
+  [[resource_table]] const draw::View &views = resource_table_get(draw::View);
   [[resource_table]] const eevee::Sampling &sampling = resource_table_get(eevee::Sampling);
   [[resource_table]] const UtilityTexture &util_tx = resource_table_get(UtilityTexture);
+  auto &interp_flat = interface_get(eevee_geom_iface_info, interp_flat);
+  draw::ID id{interp_flat.resource_id_raw};
+  const uint resource_id = id.resource_id<1>();
   const float2 frag_co = gl_FragCoord.xy;
 
   float3 radiance, transmittance;
-  eevee::forward_lighting_eval(g_thickness, frag_co, radiance, transmittance);
+  eevee::forward_lighting_eval(
+      views.get(0), resource_id, g_thickness, frag_co, radiance, transmittance);
 
   /* Reset for the next closure tree. */
   float noise = util_tx.fetch(frag_co, UTIL_BLUE_NOISE_LAYER).r;
@@ -50,7 +54,7 @@ float4 closure_to_rgba_hybrid(Closure /*cl*/)
     /* clang-format on */
     [[resource_table]] eevee::LightprobeSphereRenderData &lp_spheres = lightprobes.spheres;
 
-    float3 V = -drw_world_incident_vector(g_data.P);
+    float3 V = -views.get(0).world_incident_vector(g_data.P);
     eevee::LightProbeSample samp = lightprobes.load(frag_co.xy, g_data.P, g_data.Ng, V);
     float3 radiance_behind = lp_spheres.spherical_sample_normalized_with_parallax(
         samp, g_data.P, V, 0.0);
@@ -132,6 +136,8 @@ void surf_hybrid([[resource_table]] PipelineConstants &pipe,
                  [[resource_table]] LightprobePlaneRenderData & /*lightprobe_planes*/,
                  [[resource_table]] CryptomatteOutput &cryptomatte,
                  [[resource_table]] RenderPassOutput &render_passes,
+                 [[resource_table]] const draw::View &views,
+                 [[resource_table]] const draw::Infos & /*infos*/,
                  [[resource_table]] const Uniform &uni,
                  [[resource_table]] const Sampling &sampling,
                  [[resource_table]] const UtilityTexture &util_tx,
@@ -139,7 +145,13 @@ void surf_hybrid([[resource_table]] PipelineConstants &pipe,
                  [[out]] HybridFragOut &frag_out,
                  [[front_facing]] const bool front_face)
 {
-  init_globals(uni, front_face);
+  auto &interp_flat = interface_get(eevee_geom_iface_info, interp_flat);
+  draw::ID id{interp_flat.resource_id_raw};
+  const uint resource_id = id.resource_id<1>();
+
+  const ViewMatrices view = views.get(0);
+
+  init_globals(uni, view, front_face);
 
   float noise = util_tx.fetch(frag_co.xy, UTIL_BLUE_NOISE_LAYER).r;
   float closure_rand = fract(noise + sampling.rng_1D_get(SAMPLING_CLOSURE));
@@ -157,7 +169,7 @@ void surf_hybrid([[resource_table]] PipelineConstants &pipe,
   float alpha_rcp = safe_rcp(alpha);
 
   /* Object holdout. */
-  eObjectInfoFlag ob_flag = drw_object_infos().flag;
+  eObjectInfoFlag ob_flag = object_infos_get().flag;
   if (flag_test(ob_flag, OBJECT_HOLDOUT)) {
     /* alpha is set from rejected pixels / dithering. */
     g_holdout = 1.0f;
@@ -170,7 +182,7 @@ void surf_hybrid([[resource_table]] PipelineConstants &pipe,
 
   int2 out_texel = int2(frag_co.xy);
 
-  ObjectInfos object_infos = drw_object_infos();
+  ObjectInfos object_infos = object_infos_get();
   bool use_light_linking = receiver_light_set_get(object_infos) != 0;
   bool use_terminator_offset = object_infos.shadow_terminator_normal_offset > 0.0;
 
@@ -179,7 +191,7 @@ void surf_hybrid([[resource_table]] PipelineConstants &pipe,
   /* Some render pass can be written during the gbuffer pass. Light passes are written later. */
   {
     const auto &nt = buffer_get(eevee_nodetree, node_tree);
-    cryptomatte.store(out_texel, nt.crypto_hash, drw_resource_id());
+    cryptomatte.store(out_texel, nt.crypto_hash, resource_id);
     render_passes.store_color(
         out_texel, uni.uniform_buf.render_pass.emission_id, float4(g_emission, 1.0f));
   }
@@ -257,7 +269,7 @@ void surf_hybrid([[resource_table]] PipelineConstants &pipe,
 #endif
 
   if (flag_test(gbuf.used_layers, OBJECT_ID)) {
-    srt.write_header_data(out_texel, 1, drw_resource_id());
+    srt.write_header_data(out_texel, 1, resource_id);
   }
 
   /* ----- Radiance output ----- */

@@ -4,17 +4,11 @@
 
 #pragma once
 
-#include "draw_view_infos.hh"
-
-SHADER_LIBRARY_CREATE_INFO(draw_view)
-
 #include "eevee_surfel_list.bsl.hh"
 
 namespace eevee::surfel {
 
 struct Resources {
-  [[legacy_info]] ShaderCreateInfo draw_view;
-
   [[image(0, read_write, SINT_32)]] iimage3DAtomic cluster_list_img;
 };
 

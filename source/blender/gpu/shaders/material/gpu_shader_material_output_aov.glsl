@@ -12,7 +12,7 @@ void node_output_aov(float4 color, float value, float hash, Closure &dummy)
              value,
              floatBitsToUint(hash),
              g_holdout,
-             drw_object_infos().flag);
+             object_infos_get().flag);
 #  else
   output_aov(int2(gl_FragCoord.xy), color, value, floatBitsToUint(hash), 0.0f, 0u);
 #  endif

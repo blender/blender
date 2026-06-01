@@ -8,11 +8,7 @@
  */
 #pragma once
 
-#include "draw_view_infos.hh"
-
-FRAGMENT_SHADER_CREATE_INFO(draw_view)
-
-#include "draw_view_lib.glsl"
+#include "draw_view.bsl.hh"
 #include "eevee_debug_shared.hh"
 #include "eevee_defines.hh"
 #include "eevee_gbuffer_read.bsl.hh"
@@ -67,8 +63,6 @@ template void light::foreach<SearchDebugLightCtx, LightRenderData>(const LightRe
                                                                    LightRenderData &);
 
 struct ShadowDebug {
-  [[legacy_info]] ShaderCreateInfo draw_view;
-
   [[resource_table]] srt_t<LightRenderData> light_data;
   [[resource_table]] srt_t<ShadowRenderData> shadow_data;
 
@@ -327,6 +321,7 @@ ShadowDebugOutput debug_random_tilemap_color([[resource_table]] const ShadowDebu
 
 [[fragment]]
 void debug_shadow_frag([[resource_table]] ShadowDebug &srt,
+                       [[resource_table]] const draw::View &views,
                        [[frag_coord]] const float4 frag_co,
                        [[frag_depth(greater)]] float &frag_depth,
                        [[resource_table]] const HiZ &hiz,
@@ -337,8 +332,10 @@ void debug_shadow_frag([[resource_table]] ShadowDebug &srt,
   frag_out.color_add = float4(0.0f);
   frag_out.color_mul = float4(1.0f);
 
+  const ViewMatrices view = views.get(0);
+
   float depth = texelFetch(hiz.hiz_tx, int2(frag_co.xy), 0).r;
-  float3 P = drw_point_screen_to_world(float3(v_out.screen_uv, depth));
+  float3 P = view.point_screen_to_world(float3(v_out.screen_uv, depth));
 
   const LightData light = srt.debug_light_get();
 
@@ -396,8 +393,6 @@ struct FragOut {
 };
 
 struct Resources {
-  [[legacy_info]] ShaderCreateInfo draw_view;
-
   [[push_constant]] const float4x4 grid_mat;
   [[push_constant]] const int debug_mode;
   [[push_constant]] const float debug_value;
@@ -406,6 +401,7 @@ struct Resources {
 };
 
 [[vertex, clip_control]] void vert_main([[resource_table]] const Resources &srt,
+                                        [[resource_table]] const draw::View &views,
                                         [[vertex_id]] const int vert_id,
                                         [[position]] float4 &out_position,
                                         [[point_size]] float &out_point_size,
@@ -458,7 +454,9 @@ struct Resources {
     }
   }
 
-  out_position = drw_point_world_to_homogenous(P);
+  const ViewMatrices view = views.get(0);
+
+  out_position = view.point_world_to_homogenous(P);
   out_position.z -= 2.5e-5f;
   out_point_size = 3.0f;
 }
@@ -486,8 +484,6 @@ struct FragOut {
 };
 
 struct Resources {
-  [[legacy_info]] ShaderCreateInfo draw_view;
-
   [[storage(0, read)]] const Surfel (&surfels_buf)[];
 
   [[push_constant]] const float debug_surfel_radius;
@@ -496,6 +492,7 @@ struct Resources {
 
 [[vertex, clip_control]]
 void vert_main([[resource_table]] const Resources &srt,
+               [[resource_table]] const draw::View &views,
                [[vertex_id]] const int vert_id,
                [[instance_id]] const int inst_id,
                [[position]] float4 &out_position,
@@ -541,7 +538,9 @@ void vert_main([[resource_table]] const Resources &srt,
 
   v_out.P = (model_matrix * float4(lP, 1)).xyz;
 
-  out_position = reverse_z::transform(drw_point_world_to_homogenous(v_out.P));
+  const ViewMatrices view = views.get(0);
+
+  out_position = reverse_z::transform(view.point_world_to_homogenous(v_out.P));
   out_position.z += 2.5e-5f;
 }
 
@@ -595,13 +594,12 @@ PipelineGraphic eevee_debug_surfels(eevee::debug::surfels::vert_main,
 namespace eevee::debug::gbuffer {
 
 struct Resources {
-  [[legacy_info]] ShaderCreateInfo draw_view;
-
   [[push_constant]] const int debug_mode;
 };
 
 [[fragment]]
 void frag_main([[resource_table]] Resources &srt,
+               [[resource_table]] const draw::View &views,
                [[resource_table]] const ::gbuffer::Reader &reader,
                [[frag_coord]] const float4 frag_co,
                [[out]] DualBlendFragOut &frag_out)
@@ -615,7 +613,9 @@ void frag_main([[resource_table]] Resources &srt,
     return;
   }
 
-  float shade = saturate(drw_normal_world_to_view(gbuf.surface_N()).z);
+  const ViewMatrices view = views.get(0);
+
+  float shade = saturate(view.normal_world_to_view(gbuf.surface_N()).z);
 
   ::gbuffer::Header header = reader.read_header(texel);
   uint4 closure_types = (uint4(header.raw()) >> uint4(0u, 4u, 8u, 12u)) & 15u;

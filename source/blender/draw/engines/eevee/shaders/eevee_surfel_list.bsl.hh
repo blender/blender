@@ -4,11 +4,7 @@
 
 #pragma once
 
-#include "draw_view_infos.hh"
-
-COMPUTE_SHADER_CREATE_INFO(draw_view)
-
-#include "draw_view_lib.glsl"
+#include "draw_view.bsl.hh"
 #include "eevee_surfel.bsl.hh"
 #include "gpu_shader_index_range_lib.glsl"
 #include "gpu_shader_math_matrix_transform_lib.glsl"
@@ -20,9 +16,9 @@ namespace eevee::surfel {
  * It will clamp any coordinate outside valid bounds to nearest list.
  * Also return the surfel sorting value as `r_ray_distance`.
  */
-int list_index_get(int2 ray_grid_size, float3 P, float &r_ray_distance)
+int list_index_get(const ViewMatrices view, int2 ray_grid_size, float3 P, float &r_ray_distance)
 {
-  float3 ssP = drw_point_world_to_screen(P);
+  float3 ssP = view.point_world_to_screen(P);
   r_ray_distance = -ssP.z;
   int2 ray_coord_on_grid = int2(ssP.xy * float2(ray_grid_size));
   ray_coord_on_grid = clamp(ray_coord_on_grid, int2(0), ray_grid_size - 1);
@@ -46,8 +42,6 @@ int3 cluster_index_get(int3 cluster_grid_size, float4x4 irradiance_grid_world_to
 namespace list::prepare {
 
 struct Resources {
-  [[legacy_info]] ShaderCreateInfo draw_view;
-
   [[storage(0, read_write)]] int (&list_counter_buf)[];
   [[storage(6, read_write)]] SurfelListInfoData &list_info_buf;
 };
@@ -66,6 +60,7 @@ struct Resources {
  */
 [[compute]] [[local_size(SURFEL_GROUP_SIZE)]] [[texture_atomic]]
 void prepare_comp([[resource_table]] Resources &srt,
+                  [[resource_table]] const draw::View &views,
                   [[resource_table]] SurfelData &surfels,
                   [[global_invocation_id]] const uint3 global_id)
 {
@@ -73,9 +68,11 @@ void prepare_comp([[resource_table]] Resources &srt,
   if (surfel_id >= int(surfels.capture_info_buf.surfel_len)) {
     return;
   }
+  const ViewMatrices view = views.get(0);
+
   float ray_distance;
   int list_id = list_index_get(
-      srt.list_info_buf.ray_grid_size, surfels.surfel_buf[surfel_id].position, ray_distance);
+      view, srt.list_info_buf.ray_grid_size, surfels.surfel_buf[surfel_id].position, ray_distance);
 
   atomicAdd(srt.list_counter_buf[list_id], 1);
   /* Do separate assignment to avoid reference to buffer in arguments which is tricky to cross
@@ -94,7 +91,6 @@ void prepare_comp([[resource_table]] Resources &srt,
 namespace list::prefix_sum {
 
 struct Resources {
-  [[legacy_info]] ShaderCreateInfo draw_view;
   [[storage(0, read)]] const int (&list_counter_buf)[];
   [[storage(2, write)]] int (&list_range_buf)[];
   [[storage(6, read_write)]] SurfelListInfoData &list_info_buf;
@@ -127,7 +123,6 @@ void prefix_sum_comp([[resource_table]] Resources &srt,
 namespace list::flatten {
 
 struct Resources {
-  [[legacy_info]] ShaderCreateInfo draw_view;
   [[storage(0, read_write)]] int (&list_counter_buf)[];
   [[storage(1, read)]] const int (&list_range_buf)[];
   [[storage(2, write)]] float (&list_item_distance_buf)[];
@@ -164,7 +159,6 @@ void flatten_comp([[resource_table]] Resources &srt,
 namespace list::sort {
 
 struct Resources {
-  [[legacy_info]] ShaderCreateInfo draw_view;
   [[storage(0, read)]] const int (&list_range_buf)[];
   [[storage(1, read)]] const int (&list_item_surfel_id_buf)[];
   [[storage(2, read)]] const float (&list_item_distance_buf)[];
@@ -221,8 +215,6 @@ void sort_comp([[resource_table]] Resources &srt,
 namespace list::build {
 
 struct Resources {
-  [[legacy_info]] ShaderCreateInfo draw_view;
-
   [[storage(0, write)]] int (&list_start_buf)[];
   [[storage(1, read)]] const int (&list_range_buf)[];
   [[storage(3, read)]] const int (&sorted_surfel_id_buf)[];

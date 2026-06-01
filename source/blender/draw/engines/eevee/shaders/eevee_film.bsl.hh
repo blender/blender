@@ -8,12 +8,7 @@
  * Film accumulation utils functions.
  */
 
-#include "infos/eevee_common_infos.hh"
-
-SHADER_LIBRARY_CREATE_INFO(draw_view)
-
 #include "draw_math_geom_lib.glsl"
-#include "draw_view_lib.glsl"
 #include "eevee_colorspace_lib.bsl.hh"
 #include "eevee_cryptomatte.bsl.hh"
 #include "eevee_reverse_z_lib.bsl.hh"
@@ -26,13 +21,13 @@ SHADER_LIBRARY_CREATE_INFO(draw_view)
 namespace eevee::film {
 
 /* Return scene linear Z depth from the camera or radial depth for panoramic cameras. */
-float depth_convert_to_scene(float depth)
+float depth_convert_to_scene(const ViewMatrices view, float depth)
 {
   if (false /* Panoramic. */) {
     /* TODO */
     return 1.0f;
   }
-  return -drw_depth_screen_to_view(depth);
+  return -view.depth_screen_to_view(depth);
 }
 
 float display_depth_amend(float depth)
@@ -83,9 +78,8 @@ float patch_float_for_16f_storage(float value)
 }
 
 struct Film {
-  [[legacy_info]] ShaderCreateInfo draw_view;
-
   [[resource_table]] srt_t<CameraVelocity> camera;
+  [[resource_table]] srt_t<draw::View> views_;
 
   [[specialization_constant(1)]] uint enabled_categories;
   [[specialization_constant(9)]] int samples_len;
@@ -199,13 +193,16 @@ struct Film {
   void sample_accum_mist(FilmSample samp, float &accum)
   {
     [[resource_table]] const Uniform &uni = this->uniforms;
+    [[resource_table]] const draw::View &views = this->views_;
+
     if (uni.uniform_buf.film.mist_id == -1) {
       return;
     }
+    const ViewMatrices view = views.get(0);
     float depth = reverse_z::read(texelFetch(depth_tx, samp.texel, 0).x);
     float2 uv = (float2(samp.texel) + 0.5f) / float2(textureSize(depth_tx, 0).xy);
-    float3 vP = drw_point_screen_to_view(float3(uv, depth));
-    bool is_persp = drw_view().winmat[3][3] == 0.0f;
+    float3 vP = view.point_screen_to_view(float3(uv, depth));
+    bool is_persp = view.winmat[3][3] == 0.0f;
     float mist = (is_persp) ? length(vP) : abs(vP.z);
     /* Remap to 0..1 range. */
     mist = saturate(mist * uni.uniform_buf.film.mist_scale + uni.uniform_buf.film.mist_bias);
@@ -335,7 +332,7 @@ struct Film {
       }
     }
 
-    float4 vector = cam_vel.resolve(vector_tx, nearest_texel, min_depth);
+    float4 vector = cam_vel.resolve(views_, vector_tx, nearest_texel, min_depth);
 
     /* Transform to pixel space. */
     vector.xy *= float2(uni.uniform_buf.film.extent);
@@ -707,11 +704,13 @@ struct Film {
   void store_depth(int2 texel_film, float value, float &out_depth)
   {
     [[resource_table]] const Uniform &uni = this->uniforms;
+    [[resource_table]] const draw::View &views = this->views_;
+
     if (uni.uniform_buf.film.depth_id == -1) {
       return;
     }
 
-    out_depth = depth_convert_to_scene(value);
+    out_depth = depth_convert_to_scene(views.get(0), value);
 
     imageStoreFast(depth_img, texel_film, float4(out_depth));
   }
@@ -773,7 +772,7 @@ struct Film {
         [[resource_table]] const CameraVelocity &cam_vel = this->camera;
 
         float depth = reverse_z::read(texelFetch(depth_tx, film_sample.texel, 0).x);
-        float4 vector = cam_vel.resolve(vector_tx, film_sample.texel, depth);
+        float4 vector = cam_vel.resolve(views_, vector_tx, film_sample.texel, depth);
         /* Transform to pixel space, matching Cycles format. */
         vector *= float4(float2(uni.uniform_buf.film.render_extent),
                          float2(uni.uniform_buf.film.render_extent));
@@ -972,6 +971,7 @@ struct FilmDisplay {
 void accumulate_or_display_frag([[resource_table]] const FilmDisplay &srt,
                                 [[resource_table]] Film &film,
                                 [[resource_table]] const Uniform &uni,
+                                [[resource_table]] const draw::View &views,
                                 [[out]] FilmFragOut &frag_out,
                                 [[frag_coord]] const float4 frag_co,
                                 [[frag_depth(any)]] float out_depth)
@@ -1003,7 +1003,7 @@ void accumulate_or_display_frag([[resource_table]] const FilmDisplay &srt,
     film.process_render_sample(texel_film, frag_out.color, out_depth);
   }
 
-  out_depth = drw_depth_view_to_screen(-out_depth);
+  out_depth = views.get(0).depth_view_to_screen(-out_depth);
 
   out_depth = display_depth_amend(out_depth);
 }
@@ -1019,6 +1019,7 @@ void accumulate_or_display_frag([[resource_table]] const FilmDisplay &srt,
 void display_frag([[resource_table]] Film &film,
                   [[out]] FilmFragOut &frag_out,
                   [[resource_table]] const Uniform &uni,
+                  [[resource_table]] const draw::View &views,
                   [[frag_coord]] const float4 frag_co,
                   [[frag_depth(any)]] float out_depth)
 {
@@ -1042,7 +1043,7 @@ void display_frag([[resource_table]] Film &film,
   }
 
   out_depth = imageLoadFast(film.depth_img, texel).r;
-  out_depth = drw_depth_view_to_screen(-out_depth);
+  out_depth = views.get(0).depth_view_to_screen(-out_depth);
   out_depth += 2.4e-7f * 4.0f + gpu_fwidth(out_depth);
   out_depth = saturate(out_depth);
 }

@@ -9,7 +9,7 @@
  */
 
 #include "draw_math_geom_lib.glsl"
-#include "draw_view_lib.glsl"
+#include "draw_view.bsl.hh"
 #include "eevee_light_lib.bsl.hh"
 #include "eevee_sampling_lib.bsl.hh"
 #include "eevee_shadow.bsl.hh"
@@ -345,6 +345,7 @@ float3 shadow_pcf_offset(float3 L, float3 Ng, float2 random)
  * density) estimate value.
  */
 float shadow_texel_radius_at_position([[resource_table]] const Uniform &uni,
+                                      [[resource_table]] const draw::View &views,
                                       LightData light,
                                       const bool is_directional,
                                       float3 P)
@@ -373,13 +374,15 @@ float shadow_texel_radius_at_position([[resource_table]] const Uniform &uni,
     }
   }
   else {
+    const ViewMatrices view = views.get(0);
+
     float3 lP = light_world_to_local_point(light, P);
     lP -= light.local().local.shadow_position;
     /* Simplification of `exp2(shadow_punctual_level_fractional)`. */
     scale = shadow_punctual_pixel_ratio(light,
                                         lP,
-                                        drw_view_is_perspective(),
-                                        drw_view_z_distance(P),
+                                        view.is_perspective(),
+                                        view.z_distance(P),
                                         uni.uniform_buf.shadow.film_pixel_radius);
     /* This gives the size of pixels at Z = 1. */
     scale = 1.0f / scale;
@@ -457,6 +460,7 @@ float shadow_eval([[resource_table]] ShadowRenderData &srd,
   float2 random_pcf_2d = float2(0.0f);
 
   [[resource_table]] const Uniform &uni = srd.uniforms;
+  [[resource_table]] const draw::View &views = srd.views;
 
   if (srd.shadow_random) [[static_branch]] {
     [[resource_table]] const Sampling sampling = srd.sampling;
@@ -483,7 +487,7 @@ float shadow_eval([[resource_table]] ShadowRenderData &srd,
   float3 N_bias = (is_transmission && !is_facing_light) ? reflect(Ng, L) : Ng;
 
   /* Shadow map texel radius at the receiver position. */
-  float texel_radius = shadow_texel_radius_at_position(uni, light, is_directional, P);
+  float texel_radius = shadow_texel_radius_at_position(uni, views, light, is_directional, P);
 
   if (is_transmission && !is_facing_light) {
     /* Ideally, we should bias using the chosen ray direction. In practice, this conflict with our

@@ -16,7 +16,7 @@
 FRAGMENT_SHADER_CREATE_INFO(eevee_nodetree)
 
 #include "draw_curves_lib.glsl" /* IWYU pragma: export. For nodetree functions. */
-#include "draw_view_lib.glsl"   /* IWYU pragma: export. For nodetree functions. */
+#include "draw_view.bsl.hh"     /* IWYU pragma: export. For nodetree functions. */
 #include "eevee_cryptomatte.bsl.hh"
 #include "eevee_gbuffer_write.bsl.hh"
 #include "eevee_nodetree_frag_lib.glsl"
@@ -92,6 +92,8 @@ void surf_deferred([[resource_table]] PipelineConstants &pipe,
                    [[resource_table]] gbuffer::PackParameters &gbuf_params,
                    [[resource_table]] RenderPassOutput &render_passes,
                    [[resource_table]] CryptomatteOutput &cryptomatte,
+                   [[resource_table]] const draw::Infos &infos,
+                   [[resource_table]] const draw::View &views,
                    [[resource_table]] const Uniform &uni,
                    [[resource_table]] const Sampling &sampling,
                    [[resource_table]] const UtilityTexture &util_tx,
@@ -99,7 +101,13 @@ void surf_deferred([[resource_table]] PipelineConstants &pipe,
                    [[out]] DeferredFragOut &frag_out,
                    [[front_facing]] const bool front_face)
 {
-  init_globals(uni, front_face);
+  auto &interp_flat = interface_get(eevee_geom_iface_info, interp_flat);
+  draw::ID id{interp_flat.resource_id_raw};
+  const uint resource_id = id.resource_id<1>();
+
+  const ViewMatrices view = views.get(0);
+
+  init_globals(uni, view, front_face);
 
   float noise = util_tx.fetch(frag_co.xy, UTIL_BLUE_NOISE_LAYER).r;
   float closure_rand = fract(noise + sampling.rng_1D_get(SAMPLING_CLOSURE));
@@ -117,7 +125,7 @@ void surf_deferred([[resource_table]] PipelineConstants &pipe,
   float alpha_rcp = safe_rcp(alpha);
 
   /* Object holdout. */
-  eObjectInfoFlag ob_flag = drw_object_infos().flag;
+  eObjectInfoFlag ob_flag = object_infos_get().flag;
   if (flag_test(ob_flag, OBJECT_HOLDOUT)) {
     /* alpha is set from rejected pixels / dithering. */
     g_holdout = 1.0f;
@@ -130,7 +138,7 @@ void surf_deferred([[resource_table]] PipelineConstants &pipe,
 
   int2 out_texel = int2(frag_co.xy);
 
-  ObjectInfos object_infos = drw_object_infos();
+  ObjectInfos object_infos = infos.get(resource_id);
   bool use_light_linking = receiver_light_set_get(object_infos) != 0;
   bool use_terminator_offset = object_infos.shadow_terminator_normal_offset > 0.0;
 
@@ -139,7 +147,7 @@ void surf_deferred([[resource_table]] PipelineConstants &pipe,
   /* Some render pass can be written during the gbuffer pass. Light passes are written later. */
   {
     const auto &nt = buffer_get(eevee_nodetree, node_tree);
-    cryptomatte.store(out_texel, nt.crypto_hash, drw_resource_id());
+    cryptomatte.store(out_texel, nt.crypto_hash, resource_id);
     render_passes.store_color(
         out_texel, uni.uniform_buf.render_pass.emission_id, float4(g_emission, 1.0f));
   }
@@ -217,7 +225,7 @@ void surf_deferred([[resource_table]] PipelineConstants &pipe,
 #endif
 
   if (flag_test(gbuf.used_layers, OBJECT_ID)) {
-    srt.write_header_data(out_texel, 1, drw_resource_id());
+    srt.write_header_data(out_texel, 1, resource_id);
   }
 
   /* ----- Radiance output ----- */

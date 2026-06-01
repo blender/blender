@@ -8,7 +8,7 @@
  * Depth of Field utils.
  */
 
-#include "draw_view_lib.glsl"
+#include "draw_view.bsl.hh"
 #include "eevee_depth_of_field_shared.hh"
 #include "gpu_shader_math_base_lib.glsl"
 #include "gpu_shader_utildefines_lib.glsl"
@@ -105,14 +105,19 @@ float4 dof_bilateral_color_weights(float4 colors[4])
 }
 
 /* Returns signed Circle of confusion radius (in pixel) based on depth buffer value [0..1]. */
-float dof_coc_from_depth(DepthOfFieldData dof_data, float2 uv, float depth)
+float dof_coc_from_depth([[resource_table]] const draw::View &views,
+                         DepthOfFieldData dof_data,
+                         float2 uv,
+                         float depth)
 {
+  const ViewMatrices view = views.get(0);
+
   if (is_panoramic(dof_data.camera_type)) {
     /* Use radial depth. */
-    depth = -length(drw_point_screen_to_view(float3(uv, depth)));
+    depth = -length(view.point_screen_to_view(float3(uv, depth)));
   }
   else {
-    depth = drw_depth_screen_to_view(depth);
+    depth = view.depth_screen_to_view(depth);
   }
   return coc_radius_from_camera_depth(dof_data, depth);
 }

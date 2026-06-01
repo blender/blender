@@ -26,7 +26,7 @@ FRAGMENT_SHADER_CREATE_INFO(eevee_nodetree)
 #include "eevee_occupancy_lib.bsl.hh"
 #include "eevee_sampling_lib.bsl.hh"
 
-GlobalData init_globals(float3 wP)
+GlobalData init_globals(const ViewMatrices view, float3 wP)
 {
   GlobalData surf;
   surf.P = wP;
@@ -39,7 +39,7 @@ GlobalData init_globals(float3 wP)
   surf.barycentric_dists = float3(0.0f);
   surf.ray_type = RAY_TYPE_CAMERA;
   surf.ray_depth = 0.0f;
-  surf.ray_length = distance(surf.P, drw_view_position());
+  surf.ray_length = distance(surf.P, view.position());
   return surf;
 }
 
@@ -58,7 +58,7 @@ struct SurfVolume {
   [[compilation_constant]] bool is_world;
 
   [[legacy_info]] ShaderCreateInfo draw_modelmat_common;
-  [[legacy_info]] ShaderCreateInfo draw_view;
+  [[legacy_info]] ShaderCreateInfo eevee_geom_iface_info;
 
   [[image(VOLUME_OCCUPANCY_SLOT, read, UINT_32)]] uimage3DAtomic occupancy_img;
 
@@ -98,17 +98,24 @@ struct SurfVolume {
     imageStoreFast(out_phase_weight_img, froxel, phase.yyyy);
   }
 
-  VolumeProperties eval_froxel([[resource_table]] const Uniform &uni, int3 froxel, float jitter)
+  VolumeProperties eval_froxel([[resource_table]] const Uniform &uni,
+                               const ViewMatrices view,
+                               const ObjectMatrices obj,
+                               const ObjectInfos ob_infos,
+                               int3 froxel,
+                               float jitter)
   {
     float3 uvw = (float3(froxel) + float3(0.5f, 0.5f, 0.5f - jitter)) *
                  uni.uniform_buf.volumes.inv_tex_size;
 
-    float3 vP = volume_jitter_to_view(uni, uvw);
-    float3 wP = drw_point_view_to_world(vP);
-    float3 lP = drw_point_world_to_object(wP);
+    float3 vP = volume_jitter_to_view(uni, view, uvw);
+    float3 wP = view.point_view_to_world(vP);
+    float3 lP = obj.point_world_to_object(wP);
+    /* Compute Original Coordinate (ORCO). */
+    float3 lP_orco = lP * ob_infos.orco_mul + ob_infos.orco_add;
 
-    g_data = init_globals(wP);
-    attrib_load(VolumePoint{lP});
+    g_data = init_globals(view, wP);
+    attrib_load(VolumePoint{lP, lP_orco});
     nodetree_volume();
 
     if (is_volume_object) [[static_branch]] {
@@ -131,6 +138,9 @@ struct SurfVolume {
 [[fragment]] [[early_fragment_tests]] [[texture_atomic]]
 void surf_volume([[resource_table]] SurfVolume &srt,
                  [[resource_table]] const Uniform &uni,
+                 [[resource_table]] const draw::Model &models,
+                 [[resource_table]] const draw::View &views,
+                 [[resource_table]] const draw::Infos &infos,
                  [[resource_table]] const Sampling &sampling,
                  [[resource_table]] const UtilityTexture & /*util_tx*/,
                  [[frag_coord]] const float4 frag_co,
@@ -140,12 +150,19 @@ void surf_volume([[resource_table]] SurfVolume &srt,
   float offset = sampling.rng_1D_get(SAMPLING_VOLUME_W);
   float jitter = volume_froxel_jitter(froxel.xy, offset);
 
+  auto &interp_flat = interface_get(eevee_geom_iface_info, interp_flat);
+  draw::ID id{interp_flat.resource_id_raw};
+  const uint resource_id = id.resource_id<1>();
+  const ObjectMatrices obj = models.get(resource_id);
+  const ObjectInfos ob_infos = infos.get(resource_id);
+  const ViewMatrices view = views.get(0);
+
   VolumeProperties prop;
 
   if (srt.is_homogenous) [[static_branch]] {
     /* Homogenous volumes only evaluate properties at volume entrance and write the same values for
      * each froxel. */
-    prop = srt.eval_froxel(uni, froxel, jitter);
+    prop = srt.eval_froxel(uni, view, obj, ob_infos, froxel, jitter);
   }
 
   occupancy::Bits occupancy;
@@ -173,7 +190,7 @@ void surf_volume([[resource_table]] SurfVolume &srt,
 
       if (!srt.is_homogenous) [[static_branch]] {
         /* Heterogeneous volumes evaluate properties at every froxel position. */
-        prop = srt.eval_froxel(uni, froxel, jitter);
+        prop = srt.eval_froxel(uni, view, obj, ob_infos, froxel, jitter);
       }
       srt.write_froxel(froxel, prop);
     }

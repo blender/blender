@@ -18,8 +18,6 @@
 namespace eevee::dof::bokeh_lut {
 
 struct Resources {
-  [[legacy_info]] ShaderCreateInfo draw_view;
-
   [[uniform(0)]] const DepthOfFieldData &dof_buf;
 
   [[image(0, write, SFLOAT_16_16)]] image2D out_gather_lut_img;

@@ -12,7 +12,7 @@ struct View {
   [[uniform(DRW_VIEW_UBO_SLOT)]] const ViewMatrices view_buf[64];
 
   /* `view_id` should be the result of `draw::ID::view_id()` or manually indexed view. */
-  ViewMatrices get(uint view_id)
+  ViewMatrices get(uint view_id) const
   {
     return view_buf[view_id];
   }

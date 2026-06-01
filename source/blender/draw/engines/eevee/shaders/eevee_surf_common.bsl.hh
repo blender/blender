@@ -6,7 +6,6 @@
 
 #include "infos/eevee_geom_infos.hh"
 
-#include "draw_view_lib.glsl"
 #include "eevee_lightprobe_shared.hh" /* IWYU pragma: export: Needed for resource declaration. */
 #include "eevee_sampling_shared.hh"   /* IWYU pragma: export: Needed for resource declaration. */
 #include "eevee_shadow_shared.hh"
@@ -16,15 +15,6 @@
 #include "gpu_shader_math_vector_safe_lib.glsl"
 
 namespace eevee {
-
-struct PipelineConstants {
-  [[compilation_constant]] bool use_velocity;
-  [[compilation_constant]] bool use_transparency;
-  [[compilation_constant]] bool use_clip_plane;
-  [[compilation_constant]] bool use_sss;
-  [[compilation_constant]] bool is_shadow_pipe;
-  [[compilation_constant]] int closure_bin_count;
-};
 
 struct GeomShadow {
   [[storage(SHADOW_RENDER_VIEW_BUF_SLOT,
@@ -51,7 +41,7 @@ void init_globals_mesh()
 #endif
 }
 
-void init_globals_curves()
+void init_globals_curves(const ViewMatrices view)
 {
   auto &interp = interface_get(eevee_geom_iface_info, interp);
   auto &curve_interp = interface_get(eevee_geom_curves_iface_info, curve_interp);
@@ -62,7 +52,7 @@ void init_globals_curves()
   g_data.N = g_data.Ni = normalize(interp.N * sin_theta + curve_interp.binormal * cos_theta);
 
   /* Costly, but follows cycles per pixel tangent space (not following curve shape). */
-  float3 V = drw_world_incident_vector(g_data.P);
+  float3 V = view.world_incident_vector(g_data.P);
   g_data.curve_T = -curve_interp.tangent;
   g_data.curve_B = cross(V, g_data.curve_T);
   g_data.curve_N = safe_normalize(cross(g_data.curve_T, g_data.curve_B));
@@ -76,7 +66,9 @@ void init_globals_curves()
 #endif
 }
 
-void init_globals([[resource_table]] const eevee::Uniform &uni, bool front_face)
+void init_globals([[resource_table]] const eevee::Uniform &uni,
+                  const ViewMatrices view,
+                  bool front_face)
 {
   auto &interp = interface_get(eevee_geom_iface_info, interp);
   /* Default values. */
@@ -95,7 +87,7 @@ void init_globals([[resource_table]] const eevee::Uniform &uni, bool front_face)
   g_data.ray_type = uni.pipeline_buf.ray_type;
 #endif
   g_data.ray_depth = 0.0f;
-  g_data.ray_length = distance(g_data.P, drw_view_position());
+  g_data.ray_length = distance(g_data.P, view.position());
   g_data.barycentric_coords = float2(0.0f);
   g_data.barycentric_dists = float3(0.0f);
 
@@ -111,18 +103,19 @@ void init_globals([[resource_table]] const eevee::Uniform &uni, bool front_face)
 #if defined(MAT_GEOM_MESH)
   init_globals_mesh();
 #elif defined(MAT_GEOM_CURVES)
-  init_globals_curves();
+  init_globals_curves(view);
 #endif
 }
 
 /* Avoid some compiler issue with non set interface parameters. */
-void init_interface()
+void init_interface([[maybe_unused]] uint resource_id_raw)
 {
 #ifdef GPU_VERTEX_SHADER
   auto &interp = interface_get(eevee_geom_iface_info, interp);
+  auto &interp_flat = interface_get(eevee_geom_iface_info, interp_flat);
   interp.P = float3(0.0f);
   interp.N = float3(0.0f);
-  drw_ResourceID_iface.resource_id = drw_resource_id_raw();
+  interp_flat.resource_id_raw = resource_id_raw;
 #endif
 }
 

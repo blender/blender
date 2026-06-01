@@ -4,10 +4,6 @@
 
 #pragma once
 
-#include "infos/eevee_common_infos.hh"
-
-COMPUTE_SHADER_CREATE_INFO(draw_view)
-
 #include "draw_math_geom_lib.glsl"
 #include "eevee_motion_blur_shared.hh"
 #include "eevee_reverse_z_lib.bsl.hh"
@@ -75,8 +71,6 @@ struct TileBuf {
 namespace flatten {
 
 template<enum TextureWriteFormat velocity_format> struct Resources {
-  [[legacy_info]] ShaderCreateInfo draw_view;
-
   [[resource_table]] srt_t<CameraVelocity> camera;
 
   [[uniform(0)]] const MotionBlurData &motion_blur_buf;
@@ -120,6 +114,7 @@ uint2 unpack_payload(uint payload)
 template<enum TextureWriteFormat velocity_format>
 [[compute, local_size(MOTION_BLUR_GROUP_SIZE, MOTION_BLUR_GROUP_SIZE)]]
 void flatten_comp([[resource_table]] Resources<velocity_format> &srt,
+                  [[resource_table]] const draw::View &views,
                   [[work_group_id]] const uint3 group_id,
                   [[global_invocation_id]] const uint3 global_id,
                   [[local_invocation_id]] const uint3 local_id,
@@ -143,7 +138,7 @@ void flatten_comp([[resource_table]] Resources<velocity_format> &srt,
   float2 render_size = float2(imageSize(srt.velocity_img).xy);
   float2 uv = (float2(texel) + 0.5f) / render_size;
   float depth = reverse_z::read(texelFetch(srt.depth_tx, texel, 0).r);
-  float4 motion = cam_vel.resolve(imageLoad(srt.velocity_img, texel), uv, depth);
+  float4 motion = cam_vel.resolve(views, imageLoad(srt.velocity_img, texel), uv, depth);
 #ifdef FLATTEN_RG
   /* imageLoad does not perform the swizzling like sampler does. Do it manually. */
   motion = motion.xyxy;
@@ -195,10 +190,18 @@ void flatten_comp([[resource_table]] Resources<velocity_format> &srt,
   }
 }
 
-template void flatten_comp<SFLOAT_16_16>(
-    Resources<SFLOAT_16_16> &, const uint3, const uint3, const uint3, const uint);
-template void flatten_comp<SFLOAT_16_16_16_16>(
-    Resources<SFLOAT_16_16_16_16> &, const uint3, const uint3, const uint3, const uint);
+template void flatten_comp<SFLOAT_16_16>(Resources<SFLOAT_16_16> &,
+                                         const draw::View &,
+                                         const uint3,
+                                         const uint3,
+                                         const uint3,
+                                         const uint);
+template void flatten_comp<SFLOAT_16_16_16_16>(Resources<SFLOAT_16_16_16_16> &,
+                                               const draw::View &,
+                                               const uint3,
+                                               const uint3,
+                                               const uint3,
+                                               const uint);
 
 }  // namespace flatten
 
@@ -329,8 +332,6 @@ struct Accumulator {
 };
 
 struct Resources {
-  [[legacy_info]] ShaderCreateInfo draw_view;
-
   [[uniform(0)]] const MotionBlurData &motion_blur_buf;
   [[sampler(0)]] sampler2DDepth depth_tx;
   [[sampler(1)]] sampler2D velocity_tx;
@@ -385,7 +386,8 @@ struct Resources {
     return depth_weight * spread_weight;
   }
 
-  void gather_sample(float2 screen_uv,
+  void gather_sample(ViewMatrices view,
+                     float2 screen_uv,
                      float center_depth,
                      float center_motion_len,
                      float2 offset,
@@ -400,7 +402,7 @@ struct Resources {
     float sample_depth = reverse_z::read(textureLod(depth_tx, sample_uv, 0.0f).r);
     float4 sample_color = textureLod(in_color_tx, sample_uv, 0.0f);
 
-    sample_depth = drw_depth_screen_to_view(sample_depth);
+    sample_depth = view.depth_screen_to_view(sample_depth);
 
     float3 weights;
     weights.xy = sample_weights(
@@ -413,7 +415,8 @@ struct Resources {
     accum.weight += weights;
   }
 
-  void gather_blur(float2 screen_uv,
+  void gather_blur(ViewMatrices view,
+                   float2 screen_uv,
                    float2 center_motion,
                    float center_depth,
                    float2 max_motion,
@@ -438,7 +441,8 @@ struct Resources {
     int i;
     float t, inc = 1.0f / float(gather_sample_count);
     for (i = 0, t = ofs * inc; i < gather_sample_count; i++, t += inc) {
-      gather_sample(screen_uv,
+      gather_sample(view,
+                    screen_uv,
                     center_depth,
                     center_motion_len,
                     max_motion * t,
@@ -455,7 +459,8 @@ struct Resources {
       /* Also sample in center motion direction.
        * Allow recovering motion where there is conflicting
        * motion between foreground and background. */
-      gather_sample(screen_uv,
+      gather_sample(view,
+                    screen_uv,
                     center_depth,
                     center_motion_len,
                     center_motion * t,
@@ -479,6 +484,7 @@ struct Resources {
 [[compute, local_size(MOTION_BLUR_GROUP_SIZE, MOTION_BLUR_GROUP_SIZE)]]
 void gather_comp([[resource_table]] Resources &srt,
                  [[resource_table]] const Sampling &sampling,
+                 [[resource_table]] const draw::View &views,
                  [[resource_table]] const TileBuf &tiles,
                  [[global_invocation_id]] const uint3 global_id)
 {
@@ -489,9 +495,11 @@ void gather_comp([[resource_table]] Resources &srt,
     return;
   }
 
+  const ViewMatrices view = views.get(0);
+
   /* Data of the center pixel of the gather (target). */
   float center_depth = reverse_z::read(texelFetch(srt.depth_tx, texel, 0).r);
-  center_depth = drw_depth_screen_to_view(center_depth);
+  center_depth = view.depth_screen_to_view(center_depth);
   float4 center_motion = srt.motion_blur_sample_velocity(uv);
 
   float4 center_color = textureLod(srt.in_color_tx, uv, 0.0f);
@@ -520,9 +528,9 @@ void gather_comp([[resource_table]] Resources &srt,
   accum.bg = float4(0.0f);
   accum.fg = float4(0.0f);
   /* First linear gather. time = [T - delta, T] */
-  srt.gather_blur(uv, center_motion.xy, center_depth, max_motion.xy, rand.y, false, accum);
+  srt.gather_blur(view, uv, center_motion.xy, center_depth, max_motion.xy, rand.y, false, accum);
   /* Second linear gather. time = [T, T + delta] */
-  srt.gather_blur(uv, center_motion.zw, center_depth, max_motion.zw, rand.y, true, accum);
+  srt.gather_blur(view, uv, center_motion.zw, center_depth, max_motion.zw, rand.y, true, accum);
 
 #if 1 /* Own addition. Not present in reference implementation. */
   /* Avoid division by 0.0. */
