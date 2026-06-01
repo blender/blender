@@ -437,81 +437,84 @@ static void unlink_object_fn(bContext *C,
                              TreeStoreElem *tsep,
                              TreeStoreElem *tselem)
 {
-  if (tsep && tsep->id) {
+  if (!tsep || !TSE_IS_REAL_ID(tsep)) {
+    BKE_reportf(reports,
+                RPT_WARNING,
+                "Cannot unlink object '%s'. It's not clear which collection or scene it should be "
+                "unlinked from, there's no collection or scene as parent in the Outliner tree",
+                tselem->id->name + 2);
+    return;
+  }
 
-    if (!TSE_IS_REAL_ID(tsep)) {
-      return;
-    }
-    Main *bmain = CTX_data_main(C);
-    Object *ob = id_cast<Object *>(tselem->id);
-    const eSpaceOutliner_Mode outliner_mode = eSpaceOutliner_Mode(
-        CTX_wm_space_outliner(C)->outlinevis);
+  Main *bmain = CTX_data_main(C);
+  Object *ob = id_cast<Object *>(tselem->id);
+  const eSpaceOutliner_Mode outliner_mode = eSpaceOutliner_Mode(
+      CTX_wm_space_outliner(C)->outlinevis);
 
-    if (GS(tsep->id->name) == ID_OB) {
-      /* Parented objects need to find which collection to unlink from. */
-      TreeElement *te_parent = te->parent;
-      while (tsep && GS(tsep->id->name) == ID_OB) {
-        if (!ID_IS_EDITABLE(tsep->id)) {
-          BKE_reportf(reports,
-                      RPT_WARNING,
-                      "Cannot unlink object '%s' parented to another linked object '%s'",
-                      ob->id.name + 2,
-                      tsep->id->name + 2);
-          return;
-        }
-        te_parent = te_parent->parent;
-        tsep = te_parent ? TREESTORE(te_parent) : nullptr;
-      }
-    }
-
-    if (tsep && tsep->id) {
-      if (!ID_IS_EDITABLE(tsep->id) || ID_IS_OVERRIDE_LIBRARY(tsep->id)) {
+  if (GS(tsep->id->name) == ID_OB) {
+    /* Parented objects need to find which collection to unlink from. */
+    TreeElement *te_parent = te->parent;
+    while (tsep && GS(tsep->id->name) == ID_OB) {
+      if (!ID_IS_EDITABLE(tsep->id)) {
         BKE_reportf(reports,
                     RPT_WARNING,
-                    "Cannot unlink object '%s' from linked collection or scene '%s'",
+                    "Cannot unlink object '%s' parented to another linked object '%s'",
                     ob->id.name + 2,
                     tsep->id->name + 2);
         return;
       }
-      switch (GS(tsep->id->name)) {
-        case ID_GR: {
-          Collection *parent = id_cast<Collection *>(tsep->id);
+      te_parent = te_parent->parent;
+      tsep = te_parent ? TREESTORE(te_parent) : nullptr;
+    }
+  }
+
+  if (tsep && tsep->id) {
+    if (!ID_IS_EDITABLE(tsep->id) || ID_IS_OVERRIDE_LIBRARY(tsep->id)) {
+      BKE_reportf(reports,
+                  RPT_WARNING,
+                  "Cannot unlink object '%s' from linked collection or scene '%s'",
+                  ob->id.name + 2,
+                  tsep->id->name + 2);
+      return;
+    }
+    switch (GS(tsep->id->name)) {
+      case ID_GR: {
+        Collection *parent = id_cast<Collection *>(tsep->id);
+        BKE_collection_object_remove(bmain, parent, ob, true);
+        DEG_id_tag_update(&parent->id, ID_RECALC_SYNC_TO_EVAL);
+        break;
+      }
+      case ID_SCE: {
+        Scene *scene = reinterpret_cast<Scene *>(tsep->id);
+        /* In Scene view, remove the object from all collections in the scene. */
+        if (outliner_mode == SO_SCENES) {
+          FOREACH_SCENE_COLLECTION_BEGIN (scene, collection) {
+            if (BKE_collection_has_object(collection, ob)) {
+              BKE_collection_object_remove(bmain, collection, ob, true);
+              DEG_id_tag_update(&collection->id, ID_RECALC_HIERARCHY);
+              DEG_id_tag_update(&collection->id, ID_RECALC_SYNC_TO_EVAL);
+            }
+          }
+          FOREACH_SCENE_COLLECTION_END;
+        }
+        /* Otherwise, remove the object from the scene's main collection. */
+        else {
+          Collection *parent = scene->master_collection;
           BKE_collection_object_remove(bmain, parent, ob, true);
           DEG_id_tag_update(&parent->id, ID_RECALC_SYNC_TO_EVAL);
-          break;
         }
-        case ID_SCE: {
-          Scene *scene = reinterpret_cast<Scene *>(tsep->id);
-          /* In Scene view, remove the object from all collections in the scene. */
-          if (outliner_mode == SO_SCENES) {
-            FOREACH_SCENE_COLLECTION_BEGIN (scene, collection) {
-              if (BKE_collection_has_object(collection, ob)) {
-                BKE_collection_object_remove(bmain, collection, ob, true);
-                DEG_id_tag_update(&collection->id, ID_RECALC_HIERARCHY);
-                DEG_id_tag_update(&collection->id, ID_RECALC_SYNC_TO_EVAL);
-              }
-            }
-            FOREACH_SCENE_COLLECTION_END;
-          }
-          /* Otherwise, remove the object from the scene's main collection. */
-          else {
-            Collection *parent = scene->master_collection;
-            BKE_collection_object_remove(bmain, parent, ob, true);
-            DEG_id_tag_update(&parent->id, ID_RECALC_SYNC_TO_EVAL);
-          }
-          break;
-        }
-        default: {
-          /* Un-handled case, should never be reached. */
-          BLI_assert_unreachable();
-          return;
-        }
+        break;
       }
-      /* NOTE: Cannot risk tagging the object here, as it may have been deleted if its last usage
-       * was removed by above code. */
-      DEG_id_tag_update(tsep->id, ID_RECALC_HIERARCHY);
-      DEG_relations_tag_update(bmain);
+      default: {
+        /* Un-handled case, should never be reached. */
+        BLI_assert_unreachable();
+        return;
+      }
     }
+    /* NOTE: Cannot risk tagging the object here, as it may have been deleted if its last usage
+     * was removed by above code. */
+    DEG_id_tag_update(tsep->id, ID_RECALC_HIERARCHY);
+    DEG_relations_tag_update(bmain);
   }
 }
 
