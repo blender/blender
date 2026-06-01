@@ -389,6 +389,9 @@ def main():
         # Failure can be subtle, tighten threshold
         report.set_fail_percent(0.04)
         report.set_fail_threshold(2.0 / 255.0)
+        if args.gpu_backend == "metal":
+            # subd_motion_blur has some differences in bump on M1.
+            report.set_fail_percent(0.06)
     elif test_dir_name.startswith('lightprobe') and args.gpu_backend == "metal":
         # Some shadow difference, to be investigated
         report.set_fail_percent(0.09)
