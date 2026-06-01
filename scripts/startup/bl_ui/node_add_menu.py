@@ -337,6 +337,8 @@ class NodeMenu(Menu):
                 continue
             if group.bl_idname != node_tree.bl_idname:
                 continue
+            if group.is_library_indirect:
+                continue
             if not show_hidden:
                 if group.name.startswith('.'):
                     continue
