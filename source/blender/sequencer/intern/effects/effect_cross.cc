@@ -6,11 +6,11 @@
  * \ingroup sequencer
  */
 
-#include "BLI_profile.hh"
-
 #include "DNA_sequence_types.h"
 
 #include "IMB_imbuf.hh"
+
+#include "PRF_profile.hh"
 
 #include "SEQ_render.hh"
 
@@ -54,7 +54,7 @@ static SeqResult do_cross_effect(const RenderData *context,
                                  const SeqResult &src1,
                                  const SeqResult &src2)
 {
-  BLI_profile_scope_with_name("SeqFxCross", ProfileCategory::Draw);
+  PRF_scope_with_name("SeqFxCross", ProfileCategory::Draw);
   SeqResult dst = prepare_effect_imbufs(context, src1, src2);
   CrossEffectOp op;
   op.factor = fac;
@@ -111,7 +111,7 @@ static SeqResult do_gammacross_effect(const RenderData *context,
                                       const SeqResult &src1,
                                       const SeqResult &src2)
 {
-  BLI_profile_scope_with_name("SeqFxGammaCross", ProfileCategory::Draw);
+  PRF_scope_with_name("SeqFxGammaCross", ProfileCategory::Draw);
   SeqResult dst = prepare_effect_imbufs(context, src1, src2);
   GammaCrossEffectOp op;
   op.factor = fac;

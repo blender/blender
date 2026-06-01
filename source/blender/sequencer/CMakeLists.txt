@@ -131,6 +131,7 @@ set(LIB
   PRIVATE bf::intern::atomic
   PRIVATE bf::intern::clog
   PRIVATE bf::intern::guardedalloc
+  PRIVATE bf::intern::profile
   PRIVATE bf::nodes
   PRIVATE bf::render
   PRIVATE bf::windowmanager

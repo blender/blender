@@ -13,7 +13,6 @@
 #include "BLI_math_color.h"
 #include "BLI_math_vector.h"
 #include "BLI_path_utils.hh"
-#include "BLI_profile.hh"
 #include "BLI_string_utf8.h"
 #include "BLI_string_utils.hh"
 #include "BLI_task.hh"
@@ -44,6 +43,8 @@
 #include "GPU_immediate.hh"
 #include "GPU_matrix.hh"
 #include "GPU_state.hh"
+
+#include "PRF_profile.hh"
 
 #include "RNA_prototypes.hh"
 
@@ -456,7 +457,7 @@ static void draw_seq_waveform_overlay(const TimelineDrawContext &ctx,
     return;
   }
 
-  BLI_profile_scope_with_name("SeqTimelineWaveform", ProfileCategory::Draw);
+  PRF_scope_with_name("SeqTimelineWaveform", ProfileCategory::Draw);
 
   const View2D *v2d = ctx.v2d;
   Scene *scene = ctx.scene;
@@ -1136,7 +1137,7 @@ static void draw_seq_fcurve_overlay(const TimelineDrawContext &ctx,
     return;
   }
 
-  BLI_profile_scope_with_name("SeqTimelineFCurve", ProfileCategory::Draw);
+  PRF_scope_with_name("SeqTimelineFCurve", ProfileCategory::Draw);
 
   const int eval_step = max_ii(1, floor(ctx.pixelx));
   uchar color[4] = {0, 0, 0, 38};
@@ -1552,7 +1553,7 @@ static void draw_seq_strips(const TimelineDrawContext &ctx,
     return;
   }
 
-  BLI_profile_scope_with_name("SeqTimelineStrips", ProfileCategory::Draw);
+  PRF_scope_with_name("SeqTimelineStrips", ProfileCategory::Draw);
 
   ui::view2d_view_ortho(ctx.v2d);
 
@@ -1885,7 +1886,7 @@ static void draw_timeline_post_view_callbacks(const TimelineDrawContext &ctx)
 
 void draw_timeline_seq(const bContext *C, const ARegion *region)
 {
-  BLI_profile_scope_with_name("SeqTimelineDraw", ProfileCategory::Draw);
+  PRF_scope_with_name("SeqTimelineDraw", ProfileCategory::Draw);
 
   SeqQuadsBatch quads_batch;
   TimelineDrawContext ctx = timeline_draw_context_get(C, &quads_batch);

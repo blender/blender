@@ -7,7 +7,6 @@
  */
 
 #include "BLI_math_color.h"
-#include "BLI_profile.hh"
 
 #include "BKE_colortools.hh"
 
@@ -15,6 +14,8 @@
 
 #include "DNA_curve_enums.h"
 #include "DNA_sequence_types.h"
+
+#include "PRF_profile.hh"
 
 #include "SEQ_modifier.hh"
 #include "SEQ_render.hh"
@@ -109,7 +110,7 @@ struct HueCorrectApplyOp {
 
 static void hue_correct_apply(ModifierApplyContext &context, StripModifierData *smd)
 {
-  BLI_profile_scope_with_name("SeqModHueCorrect", ProfileCategory::Draw);
+  PRF_scope_with_name("SeqModHueCorrect", ProfileCategory::Draw);
   ensure_ibuf_is_sequencer_space(context.render_data.scene, context.image, false);
   ImBuf *mask = modifier_render_mask_input(context, *smd);
 

@@ -17,7 +17,6 @@
 #include "BLI_math_matrix_types.hh"
 #include "BLI_math_rotation.h"
 #include "BLI_math_vector_types.hh"
-#include "BLI_profile.hh"
 #include "BLI_rect.h"
 #include "BLI_utildefines.h"
 #include "BLI_vector.hh"
@@ -38,6 +37,8 @@
 #include "IMB_imbuf_types.hh"
 
 #include "OCIO_scope.hh"
+
+#include "PRF_profile.hh"
 
 #include "GPU_compute.hh"
 #include "GPU_debug.hh"
@@ -926,7 +927,7 @@ static void update_gpu_scopes(const ImBuf *input_ibuf,
                               Scene *scene,
                               int timeline_frame)
 {
-  BLI_profile_scope_with_name("SeqUpdateGPUScopes", ProfileCategory::Draw);
+  PRF_scope_with_name("SeqUpdateGPUScopes", ProfileCategory::Draw);
   BLI_assert(input_ibuf && input_texture);
 
   /* Display space GPU texture is already calculated. */
@@ -1004,7 +1005,7 @@ static void update_cpu_scopes(const SpaceSeq &space_sequencer,
     return;
   }
 
-  BLI_profile_scope_with_name("SeqUpdateCPUScopes", ProfileCategory::Draw);
+  PRF_scope_with_name("SeqUpdateCPUScopes", ProfileCategory::Draw);
 
   scopes.cleanup();
   if (space_sequencer.mainb == SEQ_DRAW_IMG_HISTOGRAM) {
@@ -1547,7 +1548,7 @@ static int get_reference_frame_offset(const Editing &editing, const RenderData &
  * If channel configuration is incompatible with the texture nullptr is returned. */
 static gpu::Texture *create_texture(const ImBuf &ibuf)
 {
-  BLI_profile_scope_with_name("SeqPreviewCreateTexture", ProfileCategory::Draw);
+  PRF_scope_with_name("SeqPreviewCreateTexture", ProfileCategory::Draw);
   const eGPUTextureUsage texture_usage = GPU_TEXTURE_USAGE_SHADER_READ |
                                          GPU_TEXTURE_USAGE_ATTACHMENT;
 
@@ -1839,7 +1840,7 @@ void sequencer_preview_region_draw(const bContext *C, ARegion *region)
     return;
   }
 
-  BLI_profile_scope_with_name("SeqPreviewDraw", ProfileCategory::Draw);
+  PRF_scope_with_name("SeqPreviewDraw", ProfileCategory::Draw);
 
   const Editing &editing = *scene->ed;
   const RenderData &render_data = scene->r;

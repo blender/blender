@@ -8,12 +8,12 @@
 
 #include "BKE_fcurve.hh"
 
-#include "BLI_profile.hh"
-
 #include "DNA_scene_types.h"
 #include "DNA_sequence_types.h"
 
 #include "IMB_imbuf.hh"
+
+#include "PRF_profile.hh"
 
 #include "RNA_prototypes.hh"
 
@@ -182,7 +182,7 @@ static SeqResult do_speed_effect(const RenderData *context,
                                  const SeqResult &ibuf1,
                                  const SeqResult &ibuf2)
 {
-  BLI_profile_scope_with_name("SeqFxSpeed", ProfileCategory::Draw);
+  PRF_scope_with_name("SeqFxSpeed", ProfileCategory::Draw);
   SeqResult out;
 
   const SpeedControlVars *s = static_cast<SpeedControlVars *>(strip->effectdata);

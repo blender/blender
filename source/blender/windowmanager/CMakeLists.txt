@@ -105,6 +105,7 @@ set(LIB
   PRIVATE bf::imbuf::movie
   PRIVATE bf::intern::clog
   PRIVATE bf::intern::guardedalloc
+  PRIVATE bf::intern::profile
   PRIVATE bf::animrig
   PRIVATE bf::nodes
   PRIVATE bf::render

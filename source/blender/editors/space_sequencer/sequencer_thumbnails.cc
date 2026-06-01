@@ -9,7 +9,6 @@
 #include "BKE_context.hh"
 
 #include "BLI_array.hh"
-#include "BLI_profile.hh"
 
 #include "IMB_imbuf.hh"
 
@@ -25,6 +24,8 @@
 #include "GPU_uniform_buffer.hh"
 
 #include "IMB_colormanagement.hh"
+
+#include "PRF_profile.hh"
 
 #include "SEQ_thumbnail_cache.hh"
 
@@ -419,7 +420,7 @@ void draw_strip_thumbnails(const TimelineDrawContext &ctx,
     return;
   }
 
-  BLI_profile_scope_with_name("SeqTimelineThumbs", ProfileCategory::Draw);
+  PRF_scope_with_name("SeqTimelineThumbs", ProfileCategory::Draw);
 
   /* Gather information for all thumbnails. */
   Vector<SeqThumbInfo> thumbs;

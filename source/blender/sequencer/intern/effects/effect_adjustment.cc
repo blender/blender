@@ -6,7 +6,7 @@
  * \ingroup sequencer
  */
 
-#include "BLI_profile.hh"
+#include "PRF_profile.hh"
 
 #include "DNA_sequence_types.h"
 
@@ -69,7 +69,7 @@ static SeqResult do_adjustment(const RenderData *context,
                                const SeqResult & /*ibuf1*/,
                                const SeqResult & /*ibuf2*/)
 {
-  BLI_profile_scope_with_name("SeqFxAdjustment", ProfileCategory::Draw);
+  PRF_scope_with_name("SeqFxAdjustment", ProfileCategory::Draw);
   Editing *ed = context->scene->ed;
   if (!ed || state->strips_in_progress.contains(strip)) {
     return {};

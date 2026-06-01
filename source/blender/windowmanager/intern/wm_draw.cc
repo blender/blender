@@ -27,7 +27,6 @@
 #include "BLI_math_matrix.h"
 #include "BLI_math_vector.h"
 #include "BLI_math_vector_types.hh"
-#include "BLI_profile.hh"
 #include "BLI_rect.h"
 #include "BLI_utildefines.h"
 
@@ -56,6 +55,8 @@
 #include "GPU_state.hh"
 #include "GPU_texture.hh"
 #include "GPU_viewport.hh"
+
+#include "PRF_profile.hh"
 
 #include "RE_engine.h"
 
@@ -1234,7 +1235,7 @@ static void wm_draw_window_onscreen(bContext *C, wmWindow *win, int view)
 
 static void wm_draw_window(bContext *C, wmWindow *win)
 {
-  BLI_profile_scope(ProfileCategory::Draw);
+  PRF_scope(ProfileCategory::Draw);
   GPU_context_begin_frame(static_cast<GPUContext *>(win->runtime->gpuctx));
 
   bScreen *screen = WM_window_get_active_screen(win);
@@ -1640,7 +1641,7 @@ void WM_paint_cursor_tag_redraw(wmWindow *win, ARegion * /*region*/)
 
 void wm_draw_update(bContext *C)
 {
-  BLI_profile_scope(ProfileCategory::Draw);
+  PRF_scope(ProfileCategory::Draw);
 
   Main *bmain = CTX_data_main(C);
   wmWindowManager *wm = CTX_wm_manager(C);
@@ -1677,7 +1678,7 @@ void wm_draw_update(bContext *C)
     CTX_wm_window_set(C, &win);
 
     if (wm_draw_update_test_window(bmain, C, &win)) {
-      BLI_profile_frame_mark_start("Window Drawing"_ustr);
+      PRF_frame_mark_start("Window Drawing"_ustr);
       /* Sets context window+screen. */
       wm_window_make_drawable(wm, &win);
       wm_window_swap_buffer_acquire(&win);
@@ -1689,7 +1690,7 @@ void wm_draw_update(bContext *C)
       wm_draw_update_clear_window(C, &win);
 
       wm_window_swap_buffer_release(&win);
-      BLI_profile_frame_mark_end("Window Drawing"_ustr);
+      PRF_frame_mark_end("Window Drawing"_ustr);
     }
   }
 

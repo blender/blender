@@ -64,6 +64,7 @@ set(LIB
   PRIVATE bf::imbuf::opencolorio
   PRIVATE bf::intern::atomic
   PRIVATE bf::intern::guardedalloc
+  PRIVATE bf::intern::profile
   PRIVATE bf::animrig
   PRIVATE bf::sequencer
   PRIVATE bf::windowmanager

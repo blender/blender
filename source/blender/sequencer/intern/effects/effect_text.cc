@@ -19,7 +19,6 @@
 #include "BLI_math_vector.h"
 #include "BLI_math_vector.hh"
 #include "BLI_path_utils.hh"
-#include "BLI_profile.hh"
 #include "BLI_rect.h"
 #include "BLI_string.h"
 #include "BLI_string_utf8.h"
@@ -35,6 +34,8 @@
 #include "DNA_vfont_types.h"
 
 #include "IMB_imbuf_types.hh"
+
+#include "PRF_profile.hh"
 
 #include "SEQ_effects.hh"
 #include "SEQ_proxy.hh"
@@ -1077,7 +1078,7 @@ static SeqResult do_text_effect(const RenderData *context,
                                 const SeqResult & /*ibuf1*/,
                                 const SeqResult & /*ibuf2*/)
 {
-  BLI_profile_scope_with_name("SeqFxText", ProfileCategory::Draw);
+  PRF_scope_with_name("SeqFxText", ProfileCategory::Draw);
   /* NOTE: text rasterization only fills in part of output image,
    * need to clear it. */
   SeqResult out = prepare_effect_imbufs(context, {}, {}, false);

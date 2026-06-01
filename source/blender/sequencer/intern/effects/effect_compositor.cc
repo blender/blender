@@ -8,8 +8,6 @@
 
 #include "BKE_node_runtime.hh"
 
-#include "BLI_profile.hh"
-
 #include "COM_domain.hh"
 
 #include "DEG_depsgraph_query.hh"
@@ -18,6 +16,8 @@
 
 #include "IMB_colormanagement.hh"
 #include "IMB_imbuf.hh"
+
+#include "PRF_profile.hh"
 
 #include "SEQ_sequencer.hh"
 
@@ -128,7 +128,7 @@ static SeqResult do_compositor_effect(const RenderData *context,
                                       const SeqResult &src1,
                                       const SeqResult &src2)
 {
-  BLI_profile_scope_with_name("SeqFxCompositor", ProfileCategory::Draw);
+  PRF_scope_with_name("SeqFxCompositor", ProfileCategory::Draw);
   const int x = context->rectx;
   const int y = context->recty;
   SeqResult out;

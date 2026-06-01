@@ -7,7 +7,6 @@
  */
 
 #include "BLI_math_vector.hh"
-#include "BLI_profile.hh"
 #include "BLI_task.hh"
 
 #include "DNA_scene_types.h"
@@ -15,6 +14,8 @@
 
 #include "IMB_colormanagement.hh"
 #include "IMB_imbuf.hh"
+
+#include "PRF_profile.hh"
 
 #include "SEQ_render.hh"
 
@@ -206,7 +207,7 @@ static SeqResult do_glow_effect(const RenderData *context,
                                 const SeqResult &ibuf1,
                                 const SeqResult & /*ibuf2*/)
 {
-  BLI_profile_scope_with_name("SeqFxGlow", ProfileCategory::Draw);
+  PRF_scope_with_name("SeqFxGlow", ProfileCategory::Draw);
   SeqResult out = prepare_effect_imbufs(context, ibuf1, {});
 
   int render_size = 100 * context->rectx / context->scene->r.xsch;
