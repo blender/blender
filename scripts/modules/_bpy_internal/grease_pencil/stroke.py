@@ -174,7 +174,7 @@ class GreasePencilStrokePointHandle:
 @DefAttributeGetterSetters([
     # Property Name, Attribute Name, Type, Default Value, Docstring.
     ("radius", "radius", 'FLOAT', 0.01, "The radius of the point."),
-    ("opacity", "opacity", 'FLOAT', 0.0, "The opacity of the point."),
+    ("opacity", "opacity", 'FLOAT', 1.0, "The opacity of the point."),
     ("vertex_color", "vertex_color", 'FLOAT_COLOR', (0.0, 0.0, 0.0, 0.0),
      "The color for this point. The alpha value is used as a mix factor with the base color of the stroke."),
     ("rotation", "rotation", 'FLOAT', 0.0,
@@ -293,7 +293,7 @@ class GreasePencilStrokePointSlice(SliceHelper):
     ("end_cap", "end_cap", 'INT8', 0, "The type of end cap of this stroke."),
     ("aspect_ratio", "aspect_ratio", 'FLOAT', 1.0,
      "The aspect ratio (x/y) used for textures. "),
-    ("fill_opacity", "fill_opacity", 'FLOAT', 0.0, "The opacity of the fill."),
+    ("fill_opacity", "fill_opacity", 'FLOAT', 1.0, "The opacity of the fill."),
     ("fill_color", "fill_color", 'FLOAT_COLOR',
      (0.0, 0.0, 0.0, 0.0), "The color of the fill."),
     ("time_start", "init_time", 'FLOAT', 0.0,
