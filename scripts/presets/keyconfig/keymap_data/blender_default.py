@@ -1083,6 +1083,7 @@ def km_user_interface(_params):
         ("ui.view_item_navigate", {"type": 'RIGHT_ARROW', "value": 'PRESS', "repeat": True},
          {"properties": [("direction", 'RIGHT')]}),
         ("ui.view_item_focus", {"type": 'NUMPAD_PERIOD', "value": 'PRESS'}, None),
+        ("ui.view_item_focus", {"type": 'BUTTON4MOUSE', "value": 'PRESS'}, None),
     ])
 
     return keymap
