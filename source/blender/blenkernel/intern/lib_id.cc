@@ -2079,6 +2079,96 @@ void BKE_main_id_refcount_recompute(Main *bmain, const bool do_linked_only)
   FOREACH_MAIN_ID_END;
 }
 
+static int id_indirect_linked_update_fn(LibraryIDLinkCallbackData *cb_data)
+{
+  ID *self_id = cb_data->self_id;
+  ID **id_pointer = cb_data->id_pointer;
+  ID *id = *id_pointer;
+  const LibraryForeachIDCallbackFlag cb_flag = cb_data->cb_flag;
+
+  if (!id) {
+    return IDWALK_RET_NOP;
+  }
+  if (!ID_IS_LINKED(id)) {
+    return IDWALK_RET_NOP;
+  }
+  BLI_assert((cb_flag & IDWALK_CB_INDIRECT_USAGE) == 0);
+  if (self_id->tag & ID_TAG_RUNTIME) {
+    return IDWALK_RET_NOP;
+  }
+  if (cb_flag & IDWALK_CB_WRITEFILE_IGNORE) {
+    /* Do not consider these ID usages (typically, from the Outliner e.g.) as making the ID
+     * directly linked. */
+    return IDWALK_RET_NOP;
+  }
+  if (!BKE_idtype_idcode_is_linkable(GS(id->name))) {
+    /* Usages of unlinkable IDs (aka ShapeKeys and some UI IDs) should never cause them to
+     * be considered as directly linked. This can often happen e.g. from UI data (the
+     * Outliner will have links to most IDs).
+     */
+    return IDWALK_RET_NOP;
+  }
+  if (cb_flag & IDWALK_CB_DIRECT_WEAK_LINK) {
+    id_lib_indirect_weak_link(id);
+  }
+  else {
+    id_lib_extern(id);
+  }
+  return IDWALK_RET_NOP;
+}
+
+void BKE_main_id_indirect_linked_update(Main &bmain, std::optional<Span<ID *>> local_ids)
+{
+  for (ID &id : MainAllIDsIterator(bmain)) {
+    if (ID_IS_LINKED(&id) && BKE_idtype_idcode_is_linkable(GS(id.name))) {
+      if (USER_DEVELOPER_TOOL_TEST(&U, use_all_linked_data_direct)) {
+        /* Forces all linked data to be considered as directly linked.
+         * FIXME: Workaround some BAT tool limitations for Heist production, should be removed
+         * asap afterward. */
+        id_lib_extern(&id);
+      }
+      else if (GS(id.name) == ID_SCE) {
+        /* For scenes, do not force them into 'indirectly linked' status.
+         * The main reason is that scenes typically have no users, so most linked scene would be
+         * systematically 'lost' on file save.
+         *
+         * While this change re-introduces the 'no-more-used data laying around in files for
+         * ever' issue when it comes to scenes, this solution seems to be the most sensible one
+         * for the time being, considering that:
+         *   - Scene are a top-level container.
+         *   - Linked scenes are typically explicitly linked by the user.
+         *   - Cases where scenes would be indirectly linked by other data (e.g. when linking a
+         *     collection or material) can be considered at the very least as not following sane
+         *     practice in data dependencies.
+         *   - There are typically not hundreds of scenes in a file, and they are always very
+         *     easily discoverable and browsable from the main UI. */
+      }
+      else {
+        id.tag |= ID_TAG_INDIRECT;
+        id.tag &= ~ID_TAG_EXTERN;
+      }
+    }
+  }
+
+  const LibraryForeachIDFlag foreach_id_flag = IDWALK_READONLY | IDWALK_INCLUDE_UI;
+  if (local_ids.has_value()) {
+    for (ID *id : *local_ids) {
+      BLI_assert(!ID_IS_LINKED(id));
+      BKE_library_foreach_ID_link(
+          &bmain, id, id_indirect_linked_update_fn, nullptr, foreach_id_flag);
+    }
+  }
+  else {
+    for (ID &id : MainAllIDsIterator(bmain)) {
+      if (ID_IS_LINKED(&id)) {
+        continue;
+      }
+      BKE_library_foreach_ID_link(
+          &bmain, &id, id_indirect_linked_update_fn, nullptr, foreach_id_flag);
+    }
+  }
+}
+
 static void library_make_local_copying_check(ID *id,
                                              Set<ID *> &loop_tags,
                                              MainIDRelations *id_relations,

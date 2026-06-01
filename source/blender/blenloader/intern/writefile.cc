@@ -1558,48 +1558,6 @@ BLO_Write_IDBuffer::BLO_Write_IDBuffer(ID &id, BlendWriter *writer)
 {
 }
 
-/* Helper callback for checking linked IDs used by given ID (assumed local), to ensure directly
- * linked data is tagged accordingly. */
-static int write_id_direct_linked_data_process_cb(LibraryIDLinkCallbackData *cb_data)
-{
-  ID *self_id = cb_data->self_id;
-  ID *id = *cb_data->id_pointer;
-  const LibraryForeachIDCallbackFlag cb_flag = cb_data->cb_flag;
-
-  if (id == nullptr || !ID_IS_LINKED(id)) {
-    return IDWALK_RET_NOP;
-  }
-  BLI_assert(!ID_IS_LINKED(self_id));
-  BLI_assert((cb_flag & IDWALK_CB_INDIRECT_USAGE) == 0);
-
-  if (self_id->tag & ID_TAG_RUNTIME) {
-    return IDWALK_RET_NOP;
-  }
-
-  if (cb_flag & IDWALK_CB_WRITEFILE_IGNORE) {
-    /* Do not consider these ID usages (typically, from the Outliner e.g.) as making the ID
-     * directly linked. */
-    return IDWALK_RET_NOP;
-  }
-
-  if (!BKE_idtype_idcode_is_linkable(GS(id->name))) {
-    /* Usages of unlinkable IDs (aka ShapeKeys and some UI IDs) should never cause them to be
-     * considered as directly linked. This can often happen e.g. from UI data (the Outliner will
-     * have links to most IDs).
-     */
-    return IDWALK_RET_NOP;
-  }
-
-  if (cb_flag & IDWALK_CB_DIRECT_WEAK_LINK) {
-    id_lib_indirect_weak_link(id);
-  }
-  else {
-    id_lib_extern(id);
-  }
-
-  return IDWALK_RET_NOP;
-}
-
 static std::string get_blend_file_header()
 {
   if (SYSTEM_SUPPORTS_WRITING_FILE_VERSION_1 &&
@@ -1762,43 +1720,6 @@ static bool write_file_handle(Main *mainvar,
 
   prepare_stable_data_block_ids(*wd, *mainvar);
 
-  /* Clear 'directly linked' flag for all linked data, these are not necessarily valid/up-to-date
-   * info, they will be re-generated while write code is processing local IDs below. */
-  if (!wd->use_memfile) {
-    ID *id_iter;
-    FOREACH_MAIN_ID_BEGIN (mainvar, id_iter) {
-      if (ID_IS_LINKED(id_iter) && BKE_idtype_idcode_is_linkable(GS(id_iter->name))) {
-        if (USER_DEVELOPER_TOOL_TEST(&U, use_all_linked_data_direct)) {
-          /* Forces all linked data to be considered as directly linked.
-           * FIXME: Workaround some BAT tool limitations for Heist production, should be removed
-           * asap afterward. */
-          id_lib_extern(id_iter);
-        }
-        else if (GS(id_iter->name) == ID_SCE) {
-          /* For scenes, do not force them into 'indirectly linked' status.
-           * The main reason is that scenes typically have no users, so most linked scene would be
-           * systematically 'lost' on file save.
-           *
-           * While this change re-introduces the 'no-more-used data laying around in files for
-           * ever' issue when it comes to scenes, this solution seems to be the most sensible one
-           * for the time being, considering that:
-           *   - Scene are a top-level container.
-           *   - Linked scenes are typically explicitly linked by the user.
-           *   - Cases where scenes would be indirectly linked by other data (e.g. when linking a
-           *     collection or material) can be considered at the very least as not following sane
-           *     practice in data dependencies.
-           *   - There are typically not hundreds of scenes in a file, and they are always very
-           *     easily discoverable and browsable from the main UI. */
-        }
-        else {
-          id_iter->tag |= ID_TAG_INDIRECT;
-          id_iter->tag &= ~ID_TAG_EXTERN;
-        }
-      }
-    }
-    FOREACH_MAIN_ID_END;
-  }
-
   /* Recompute all ID user-counts if requested. Allows to avoid skipping writing of IDs wrongly
    * detected as unused due to invalid user-count. */
   if (!wd->use_memfile) {
@@ -1820,14 +1741,7 @@ static bool write_file_handle(Main *mainvar,
   Vector<ID *> local_ids_to_write = gather_local_ids_to_write(mainvar, is_undo);
 
   if (!is_undo) {
-    /* If not writing undo data, properly set directly linked IDs as `ID_TAG_EXTERN`. */
-    for (ID *id : local_ids_to_write) {
-      BKE_library_foreach_ID_link(mainvar,
-                                  id,
-                                  write_id_direct_linked_data_process_cb,
-                                  nullptr,
-                                  IDWALK_READONLY | IDWALK_INCLUDE_UI);
-    }
+    BKE_main_id_indirect_linked_update(*mainvar, local_ids_to_write);
 
     /* Forcefully ensure we know about all needed override operations. */
     for (ID *id : local_ids_to_write) {
