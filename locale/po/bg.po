@@ -1,9 +1,9 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 5.2.0 Alpha (b'24a58e1403ac')\n"
+"Project-Id-Version: Blender 5.2.0 Alpha (b'8764d33c658b')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-05-25 07:25+0000\n"
+"POT-Creation-Date: 2026-06-01 07:36+0000\n"
 "PO-Revision-Date: 2025-07-23 15:34+0000\n"
 "Last-Translator: Just Adam <adam.abbas2009@gmail.com>\n"
 "Language-Team: Bulgarian <https://translate.blender.org/projects/blender-ui/ui/bg/>\n"
@@ -888,6 +888,10 @@ msgid "Grid"
 msgstr "Мрежа"
 
 
+msgid "Dynamic"
+msgstr "Динамика"
+
+
 msgid "Region Type"
 msgstr "Тип на Региона"
 
@@ -906,10 +910,6 @@ msgstr "Слоеве"
 
 msgid "Box"
 msgstr "Кутия"
-
-
-msgid "Dynamic"
-msgstr "Динамика"
 
 
 msgid "Draw"
@@ -1160,12 +1160,12 @@ msgid "Rigid Body"
 msgstr "Твърдо тяло"
 
 
-msgid "Apply"
-msgstr "Прилагане"
-
-
 msgid "Import"
 msgstr "Внеси"
+
+
+msgid "Apply"
+msgstr "Прилагане"
 
 
 msgid "Make Single User"
@@ -2227,6 +2227,11 @@ msgid "Animated"
 msgstr "Анимирани"
 
 
+msgctxt "Operator"
+msgid "Clear"
+msgstr "Изчистване"
+
+
 msgid "Author:"
 msgstr "Автор:"
 
@@ -2241,11 +2246,6 @@ msgstr "Python API Справка"
 
 msgid "Passepartout"
 msgstr "Зона на видимост"
-
-
-msgctxt "Operator"
-msgid "Clear"
-msgstr "Изчистване"
 
 
 msgid "Date"

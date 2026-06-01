@@ -1,9 +1,9 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 5.2.0 Alpha (b'24a58e1403ac')\n"
+"Project-Id-Version: Blender 5.2.0 Alpha (b'8764d33c658b')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-05-25 07:25+0000\n"
+"POT-Creation-Date: 2026-06-01 07:36+0000\n"
 "PO-Revision-Date: 2026-04-06 09:16+0000\n"
 "Last-Translator: Leevi Oksanen <laavi.oksanen@gmail.com>\n"
 "Language-Team: Finnish <https://translate.blender.org/projects/blender-ui/ui/fi/>\n"
@@ -3018,6 +3018,10 @@ msgstr "Yksinkertaista"
 
 msgid "Number of simplify steps (large values reduce fill accuracy)"
 msgstr "Yksinkertaistusaskelien määrä (suuret arvot vähentävät täytön tarkkuutta)"
+
+
+msgid "Pixel"
+msgstr "Pikseli"
 
 
 msgid "Input Samples"
@@ -6818,10 +6822,6 @@ msgid "Particle Settings"
 msgstr "Partikkeliasetukset"
 
 
-msgid "Pixel"
-msgstr "Pikseli"
-
-
 msgid "Global X"
 msgstr "Globaali X"
 
@@ -7240,8 +7240,16 @@ msgid "UV Mapping"
 msgstr "UV-kartoittaminen"
 
 
+msgid "Math"
+msgstr "Matematiikka"
+
+
 msgid "Select More/Less"
 msgstr "Valitse enemmän/vähemmän"
+
+
+msgid "Utilities"
+msgstr "Työkalut"
 
 
 msgid "Select Similar"
@@ -7252,20 +7260,8 @@ msgid "Select All by Trait"
 msgstr "Valitse kaikki piirteen mukaan"
 
 
-msgid "Math"
-msgstr "Matematiikka"
-
-
 msgid "Select Loops"
 msgstr "Valitse silmukat"
-
-
-msgid "Utilities"
-msgstr "Työkalut"
-
-
-msgid "Metaball"
-msgstr "Metapallo"
 
 
 msgid "Read"
@@ -7276,6 +7272,10 @@ msgid "Write"
 msgstr "Kirjoita"
 
 
+msgid "Metaball"
+msgstr "Metapallo"
+
+
 msgid "Light"
 msgstr "Valo"
 
@@ -7284,20 +7284,20 @@ msgid "Light Probe"
 msgstr "Valoluotain"
 
 
-msgid "Add Image"
-msgstr "Lisää kuva"
-
-
 msgid "Instances"
 msgstr "Instanssit"
 
 
-msgid "Track"
-msgstr "Raide"
+msgid "Add Image"
+msgstr "Lisää kuva"
 
 
 msgid "Import"
 msgstr "Tuo"
+
+
+msgid "Track"
+msgstr "Raide"
 
 
 msgid "Show/Hide"
@@ -7322,6 +7322,10 @@ msgstr "Nimet"
 
 msgid "Mesh Select Mode"
 msgstr "Muodon valintatila"
+
+
+msgid "Linked"
+msgstr "Linkitetyt"
 
 
 msgid "Basic"
@@ -9385,10 +9389,6 @@ msgstr "Piilota pistoke"
 
 msgid "Hide Value"
 msgstr "Piilota arvo"
-
-
-msgid "Linked"
-msgstr "Linkitetyt"
 
 
 msgid "True if the socket is connected"
@@ -12154,6 +12154,11 @@ msgid "Object Index"
 msgstr "Objekti-indeksi"
 
 
+msgctxt "Operator"
+msgid "Clear"
+msgstr "Siivoa"
+
+
 msgid "Viewports"
 msgstr "Näkymät"
 
@@ -12662,11 +12667,6 @@ msgstr "Muutos:"
 
 msgid "Spline:"
 msgstr "Splini:"
-
-
-msgctxt "Operator"
-msgid "Clear"
-msgstr "Siivoa"
 
 
 msgid "Animation:"

@@ -1,9 +1,9 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 5.2.0 Alpha (b'24a58e1403ac')\n"
+"Project-Id-Version: Blender 5.2.0 Alpha (b'8764d33c658b')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-05-25 07:25+0000\n"
+"POT-Creation-Date: 2026-06-01 07:36+0000\n"
 "PO-Revision-Date: 2026-05-04 00:12+0000\n"
 "Last-Translator: Alessandro Vecchio <alessandrovecchio1907@gmail.com>\n"
 "Language-Team: Italian <https://translate.blender.org/projects/blender-ui/ui/it/>\n"
@@ -5221,6 +5221,10 @@ msgstr "Semplifica"
 
 msgid "Number of simplify steps (large values reduce fill accuracy)"
 msgstr "Numero di passaggi di semplificazione (valori elevati riducono la precisione di riempimento)"
+
+
+msgid "Pixel"
+msgstr "Pixel"
 
 
 msgid "Threshold to consider color transparent for filling"
@@ -13403,6 +13407,14 @@ msgid "Use Curve"
 msgstr "Utilizza Curva"
 
 
+msgid "Dynamic"
+msgstr "Dinamica"
+
+
+msgid "Single"
+msgstr "Singolo"
+
+
 msgid "Items"
 msgstr "Elementi"
 
@@ -14380,10 +14392,6 @@ msgstr "Locale"
 
 msgid "Global"
 msgstr "Globale"
-
-
-msgid "Dynamic"
-msgstr "Dinamica"
 
 
 msgid "Color Type"
@@ -18607,10 +18615,6 @@ msgstr "Gradi"
 
 msgid "How many degrees path has to curve to make another render segment"
 msgstr "Di quanti gradi deve curvare il percorso per fare un altro segmento di render"
-
-
-msgid "Pixel"
-msgstr "Pixel"
 
 
 msgid "How many pixels path has to cover to make another render segment"
@@ -24550,8 +24554,16 @@ msgid "View Regions"
 msgstr "Regione Vista"
 
 
+msgid "Math"
+msgstr "Matematica"
+
+
 msgid "Select More/Less"
 msgstr "Seleziona Più/Meno"
+
+
+msgid "Utilities"
+msgstr "Utilità"
 
 
 msgid "Select Similar"
@@ -24562,10 +24574,6 @@ msgid "Select All by Trait"
 msgstr "Seleziona Tutto per Caratteristica"
 
 
-msgid "Math"
-msgstr "Matematica"
-
-
 msgid "Select Linked"
 msgstr "Seleziona Collegati"
 
@@ -24574,16 +24582,8 @@ msgid "Select Loops"
 msgstr "Seleziona Anelli"
 
 
-msgid "Utilities"
-msgstr "Utilità"
-
-
 msgid "Assign Material"
 msgstr "Assegna Materiale"
-
-
-msgid "Metaball"
-msgstr "Metaball"
 
 
 msgid "Read"
@@ -24602,12 +24602,20 @@ msgid "Primitives"
 msgstr "Primitive"
 
 
+msgid "Metaball"
+msgstr "Metaball"
+
+
 msgid "Light"
 msgstr "Luce"
 
 
 msgid "Light Probe"
 msgstr "Sensore di Luce"
+
+
+msgid "Instances"
+msgstr "Istanze"
 
 
 msgid "Add Image"
@@ -24622,8 +24630,8 @@ msgid "Rigid Body"
 msgstr "Corpo Rigido"
 
 
-msgid "Instances"
-msgstr "Istanze"
+msgid "Import"
+msgstr "Importa"
 
 
 msgid "Apply"
@@ -24636,10 +24644,6 @@ msgstr "Traccia"
 
 msgid "Quick Effects"
 msgstr "Effetti Veloci"
-
-
-msgid "Import"
-msgstr "Importa"
 
 
 msgid "Show/Hide"
@@ -24670,12 +24674,12 @@ msgid "Hooks"
 msgstr "Ganci"
 
 
-msgid "Vertex Group Locks"
-msgstr "Blocchi del Gruppo di Vertici"
-
-
 msgid "UV"
 msgstr "UV"
+
+
+msgid "Vertex Group Locks"
+msgstr "Blocchi del Gruppo di Vertici"
 
 
 msgid "Face Sets Init"
@@ -24738,16 +24742,20 @@ msgid "Merge"
 msgstr "Unisci"
 
 
+msgid "Linked"
+msgstr "Collegato"
+
+
+msgid "Layout"
+msgstr "Layout"
+
+
 msgid "Special Characters"
 msgstr "Caratteri Speciali"
 
 
 msgid "Kerning"
 msgstr "Crenatura"
-
-
-msgid "Layout"
-msgstr "Layout"
 
 
 msgid "Bone Roll"
@@ -31736,10 +31744,6 @@ msgid "Join Geometry"
 msgstr "Unisci Geometria"
 
 
-msgid "Single"
-msgstr "Singolo"
-
-
 msgid "Material Selection"
 msgstr "Selezione Materiale"
 
@@ -32867,10 +32871,6 @@ msgstr "Nascondi il connettore"
 
 msgid "Hide Value"
 msgstr "Nascondi Valore"
-
-
-msgid "Linked"
-msgstr "Collegato"
 
 
 msgid "True if the socket is connected"
@@ -38884,10 +38884,6 @@ msgstr "Apri Immagine"
 
 msgid "Open image"
 msgstr "Apri immagine"
-
-
-msgid "Use relative path"
-msgstr "Utilizza percorso relativo"
 
 
 msgctxt "Operator"
@@ -50174,6 +50170,26 @@ msgid "Active Palette Color"
 msgstr "Colore Tavolozza Attivo"
 
 
+msgid "Selectability & Visibility"
+msgstr "Selezionabilità e Visibilità"
+
+
+msgid "Shadow Settings"
+msgstr "Impostazioni Ombra"
+
+
+msgid "SSAO Settings"
+msgstr "Impostazioni SSAO"
+
+
+msgid "Cavity"
+msgstr "Cavità"
+
+
+msgid "Render Pass"
+msgstr "Passaggi Render"
+
+
 msgid "Compositor"
 msgstr "Compositore"
 
@@ -50212,26 +50228,6 @@ msgstr "Stereoscopia"
 
 msgid "Auto-Masking"
 msgstr "Auto-Mascheramento"
-
-
-msgid "Selectability & Visibility"
-msgstr "Selezionabilità e Visibilità"
-
-
-msgid "Shadow Settings"
-msgstr "Impostazioni Ombra"
-
-
-msgid "SSAO Settings"
-msgstr "Impostazioni SSAO"
-
-
-msgid "Cavity"
-msgstr "Cavità"
-
-
-msgid "Render Pass"
-msgstr "Passaggi Render"
 
 
 msgid "Chain Scaling"
@@ -50910,20 +50906,8 @@ msgid "Theme Space"
 msgstr "Tema Spazio"
 
 
-msgid "Axis & Gizmo Colors"
-msgstr "Colori Assi & Gizmo"
-
-
-msgid "Icon Colors"
-msgstr "Colori Icone"
-
-
 msgid "Shaded"
 msgstr "Ombreggiato"
-
-
-msgid "Styles"
-msgstr "Stili"
 
 
 msgid "Menu Item"
@@ -52038,6 +52022,10 @@ msgstr "Sistema e OpenGL"
 
 msgid "Graphics driver and operating system settings"
 msgstr "Impostazioni per driver grafici e sistemi operativi"
+
+
+msgid "Styles"
+msgstr "Stili"
 
 
 msgid "Sort the recently searched items at the top"
@@ -60158,6 +60146,11 @@ msgid "Roughness Threshold"
 msgstr "Soglia Rugosità"
 
 
+msgctxt "Operator"
+msgid "Clear"
+msgstr "Cancella"
+
+
 msgid "Surfaces"
 msgstr "Superfici"
 
@@ -61122,11 +61115,6 @@ msgstr "Trasforma:"
 
 msgid "Spline:"
 msgstr "Spline:"
-
-
-msgctxt "Operator"
-msgid "Clear"
-msgstr "Cancella"
 
 
 msgid "Animation:"

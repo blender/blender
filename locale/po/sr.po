@@ -1,9 +1,9 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 5.2.0 Alpha (b'24a58e1403ac')\n"
+"Project-Id-Version: Blender 5.2.0 Alpha (b'8764d33c658b')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-05-25 07:25+0000\n"
+"POT-Creation-Date: 2026-06-01 07:36+0000\n"
 "PO-Revision-Date: 2025-07-23 15:10+0000\n"
 "Last-Translator: Anonymous <noreply@weblate.org>\n"
 "Language-Team: Serbian <https://translate.blender.org/projects/blender-ui/ui/sr/>\n"
@@ -1520,6 +1520,10 @@ msgstr "Прецизност"
 
 msgid "Simplify"
 msgstr "Поједностављивање"
+
+
+msgid "Pixel"
+msgstr "Пиксел"
 
 
 msgid "Input Samples"
@@ -4757,6 +4761,10 @@ msgid "Grid"
 msgstr "Мрежа"
 
 
+msgid "Dynamic"
+msgstr "Динамичко"
+
+
 msgid "Items"
 msgstr "Ставке"
 
@@ -4935,10 +4943,6 @@ msgstr "Локално"
 
 msgid "Global"
 msgstr "Глобално"
-
-
-msgid "Dynamic"
-msgstr "Динамичко"
 
 
 msgid "Add Color"
@@ -6585,10 +6589,6 @@ msgstr "Подешавање честица"
 
 msgid "Degrees"
 msgstr "Степени"
-
-
-msgid "Pixel"
-msgstr "Пиксел"
 
 
 msgid "Angular Velocity"
@@ -8546,6 +8546,10 @@ msgid "Rigid Body"
 msgstr "Круто тело"
 
 
+msgid "Import"
+msgstr "Увоз"
+
+
 msgid "Apply"
 msgstr "Примени"
 
@@ -8556,10 +8560,6 @@ msgstr "Стаза"
 
 msgid "Quick Effects"
 msgstr "Брзи ефекти"
-
-
-msgid "Import"
-msgstr "Увоз"
 
 
 msgid "Show/Hide"
@@ -8608,6 +8608,10 @@ msgstr "Мод избора мреже"
 
 msgid "Merge"
 msgstr "Сједини"
+
+
+msgid "Linked"
+msgstr "Повезано"
 
 
 msgid "Special Characters"
@@ -11092,10 +11096,6 @@ msgstr "Сакри утичнице"
 
 msgid "Hide Value"
 msgstr "Сакриј вредност"
-
-
-msgid "Linked"
-msgstr "Повезано"
 
 
 msgid "Is Output"
@@ -19298,10 +19298,6 @@ msgid "Shaded"
 msgstr "Сенчено"
 
 
-msgid "Styles"
-msgstr "Стилови"
-
-
 msgid "User Interface"
 msgstr "Корисничко окружење"
 
@@ -19759,6 +19755,10 @@ msgstr "Стандардна акција за средњи тастер миш�
 
 msgid "System & OpenGL"
 msgstr "Систем и OpenGL"
+
+
+msgid "Styles"
+msgstr "Стилови"
 
 
 msgid "View & Controls"
@@ -22564,6 +22564,11 @@ msgid "Object Index"
 msgstr "Индекс објекта"
 
 
+msgctxt "Operator"
+msgid "Clear"
+msgstr "Очисти"
+
+
 msgid "No output node"
 msgstr "Без излазног чвора"
 
@@ -22785,11 +22790,6 @@ msgstr "Родитељ:"
 
 msgid "Transform:"
 msgstr "Трансформација:"
-
-
-msgctxt "Operator"
-msgid "Clear"
-msgstr "Очисти"
 
 
 msgid "Date"

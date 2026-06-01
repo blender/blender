@@ -1,9 +1,9 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 5.2.0 Alpha (b'24a58e1403ac')\n"
+"Project-Id-Version: Blender 5.2.0 Alpha (b'8764d33c658b')\n"
 "Report-Msgid-Bugs-To: Leandro Paganelli <leandrobp@fastmail.com>\n"
-"POT-Creation-Date: 2026-05-25 07:25+0000\n"
+"POT-Creation-Date: 2026-06-01 07:36+0000\n"
 "PO-Revision-Date: 2026-04-13 10:12+0000\n"
 "Last-Translator: Gilberto Rodrigues <gilbertorodrigues@outlook.com>\n"
 "Language-Team: Portuguese (Brazil) <https://translate.blender.org/projects/blender-ui/ui/pt_BR/>\n"
@@ -4027,6 +4027,10 @@ msgstr "Tudo Abaixo"
 
 msgid "Simplify"
 msgstr "Simplificar"
+
+
+msgid "Pixel"
+msgstr "Pixeis"
 
 
 msgid "Input Samples"
@@ -11230,6 +11234,14 @@ msgid "Use Falloff"
 msgstr "Usar decaimento"
 
 
+msgid "Dynamic"
+msgstr "Dinâmico"
+
+
+msgid "Single"
+msgstr "Único"
+
+
 msgid "Items"
 msgstr "Itens"
 
@@ -11654,10 +11666,6 @@ msgstr "Local"
 
 msgid "Global"
 msgstr "Global"
-
-
-msgid "Dynamic"
-msgstr "Dinâmico"
 
 
 msgid "Crease Brush Pinch Factor"
@@ -15267,10 +15275,6 @@ msgstr "Graus"
 
 msgid "How many degrees path has to curve to make another render segment"
 msgstr "Define quantos graus o caminho tem de se curvar para que seja feito outro segmento de renderização."
-
-
-msgid "Pixel"
-msgstr "Pixeis"
 
 
 msgid "How many pixels path has to cover to make another render segment"
@@ -21220,6 +21224,10 @@ msgid "View Regions"
 msgstr "Visualizar Regiões"
 
 
+msgid "Math"
+msgstr "Matemática"
+
+
 msgid "Select More/Less"
 msgstr "Selecionar mais ou menos"
 
@@ -21230,10 +21238,6 @@ msgstr "Selecionar por similaridades"
 
 msgid "Select All by Trait"
 msgstr "Selecionar todos por características..."
-
-
-msgid "Math"
-msgstr "Matemática"
 
 
 msgid "Select Linked"
@@ -21256,6 +21260,10 @@ msgid "Light Probe"
 msgstr "Sonda de Luz"
 
 
+msgid "Instances"
+msgstr "Instâncias"
+
+
 msgid "Add Image"
 msgstr "Adicionar Imagem"
 
@@ -21268,8 +21276,8 @@ msgid "Rigid Body"
 msgstr "Corpo rígido"
 
 
-msgid "Instances"
-msgstr "Instâncias"
+msgid "Import"
+msgstr "Importar"
 
 
 msgid "Apply"
@@ -21282,10 +21290,6 @@ msgstr "Rastrear"
 
 msgid "Quick Effects"
 msgstr "Efeitos instantâneos"
-
-
-msgid "Import"
-msgstr "Importar"
 
 
 msgid "Show/Hide"
@@ -21356,12 +21360,16 @@ msgid "Merge"
 msgstr "Fundir"
 
 
-msgid "Special Characters"
-msgstr "Caracteres especiais"
+msgid "Linked"
+msgstr "Vinculando"
 
 
 msgid "Layout"
 msgstr "Organizar"
+
+
+msgid "Special Characters"
+msgstr "Caracteres especiais"
 
 
 msgid "Bone Roll"
@@ -27222,10 +27230,6 @@ msgid "Is Viewport"
 msgstr "É Janela e Exibição"
 
 
-msgid "Single"
-msgstr "Único"
-
-
 msgid "Fill Type"
 msgstr "Tipo de preenchimento"
 
@@ -28070,10 +28074,6 @@ msgstr "Ocultar o valor de entrada do conector."
 
 msgid "Unique identifier for mapping sockets"
 msgstr "Identificador único para mapeamento de conectores."
-
-
-msgid "Linked"
-msgstr "Vinculando"
 
 
 msgid "True if the socket is connected"
@@ -47979,6 +47979,10 @@ msgid "Active Palette Color"
 msgstr "Cor ativa da paleta"
 
 
+msgid "Render Pass"
+msgstr "Passo de renderização"
+
+
 msgid "Motion Tracking"
 msgstr "Captura de movimentos"
 
@@ -47993,10 +47997,6 @@ msgstr "Exibição Quadrante"
 
 msgid "Stereoscopy"
 msgstr "Estereoscopia"
-
-
-msgid "Render Pass"
-msgstr "Passo de renderização"
 
 
 msgid "Bone Constraints"
@@ -48545,10 +48545,6 @@ msgstr "Tema - Espaços"
 
 msgid "Shaded"
 msgstr "Sombreamento"
-
-
-msgid "Styles"
-msgstr "Estilos"
 
 
 msgid "Pie Menu"
@@ -49867,6 +49863,10 @@ msgstr "Sistema e OpenGL"
 
 msgid "Graphics driver and operating system settings"
 msgstr "Configurações de controlador gráfico e sistema operacional."
+
+
+msgid "Styles"
+msgstr "Estilos"
 
 
 msgid "Save on Exit"
@@ -58934,6 +58934,11 @@ msgid "Roughness Threshold"
 msgstr "Ajuste de rugosidade"
 
 
+msgctxt "Operator"
+msgid "Clear"
+msgstr "Limpar"
+
+
 msgid "Indexes"
 msgstr "Índices"
 
@@ -59489,11 +59494,6 @@ msgstr "Parente:"
 
 msgid "Transform:"
 msgstr "Transformações:"
-
-
-msgctxt "Operator"
-msgid "Clear"
-msgstr "Limpar"
 
 
 msgctxt "Operator"

@@ -1,9 +1,9 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 5.2.0 Alpha (b'24a58e1403ac')\n"
+"Project-Id-Version: Blender 5.2.0 Alpha (b'8764d33c658b')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-05-25 07:25+0000\n"
+"POT-Creation-Date: 2026-06-01 07:36+0000\n"
 "PO-Revision-Date: 2025-07-23 15:31+0000\n"
 "Last-Translator: VertexSelection <amacsizk2021@gmail.com>\n"
 "Language-Team: Turkish <https://translate.blender.org/projects/blender-ui/ui/tr/>\n"
@@ -5223,6 +5223,10 @@ msgstr "Yalınlaştır"
 
 msgid "Number of simplify steps (large values reduce fill accuracy)"
 msgstr "Basitleştirme adımlarının sayısı (büyük değerler doldurma doğruluğunu azaltır)"
+
+
+msgid "Pixel"
+msgstr "Piksel"
 
 
 msgid "Threshold to consider color transparent for filling"
@@ -14256,6 +14260,14 @@ msgid "Use curve to define primitive stroke thickness"
 msgstr "İlkel vuruş kalınlığını tanımlamak için eğriyi kullanın"
 
 
+msgid "Dynamic"
+msgstr "Dinamik"
+
+
+msgid "Single"
+msgstr "Bekar"
+
+
 msgid "Items"
 msgstr "Öğeler"
 
@@ -15504,10 +15516,6 @@ msgstr "Global"
 
 msgid "Simulates the entire mesh"
 msgstr "Tüm ağı simüle eder"
-
-
-msgid "Dynamic"
-msgstr "Dinamik"
 
 
 msgid "The active simulation area moves with the brush"
@@ -21511,10 +21519,6 @@ msgstr "Etkin Örnek Nesne Dizini"
 
 msgid "Degrees"
 msgstr "Dereceler"
-
-
-msgid "Pixel"
-msgstr "Piksel"
 
 
 msgid "Angular Velocity"
@@ -28819,8 +28823,16 @@ msgid "View Regions"
 msgstr "Bölgeleri Görüntüle"
 
 
+msgid "Math"
+msgstr "Matematik"
+
+
 msgid "Select More/Less"
 msgstr "Daha Fazla/Daha Az Seç"
+
+
+msgid "Utilities"
+msgstr "Kamu hizmetleri"
 
 
 msgid "Select Similar"
@@ -28831,10 +28843,6 @@ msgid "Select All by Trait"
 msgstr "Özelliğe Göre Tümünü Seç"
 
 
-msgid "Math"
-msgstr "Matematik"
-
-
 msgid "Select Linked"
 msgstr "Bağlantılıyı Seç"
 
@@ -28843,16 +28851,8 @@ msgid "Select Loops"
 msgstr "Döngüleri Seç"
 
 
-msgid "Utilities"
-msgstr "Kamu hizmetleri"
-
-
 msgid "Assign Material"
 msgstr "Malzeme Atamak"
-
-
-msgid "Metaball"
-msgstr "Metabol"
 
 
 msgid "Read"
@@ -28871,12 +28871,20 @@ msgid "Primitives"
 msgstr "İlkel"
 
 
+msgid "Metaball"
+msgstr "Metabol"
+
+
 msgid "Light"
 msgstr "Işık"
 
 
 msgid "Light Probe"
 msgstr "Işık Sondası"
+
+
+msgid "Instances"
+msgstr "Örnekler"
 
 
 msgid "Add Image"
@@ -28891,8 +28899,8 @@ msgid "Rigid Body"
 msgstr "Sert Gövde"
 
 
-msgid "Instances"
-msgstr "Örnekler"
+msgid "Import"
+msgstr "İçe Aktar"
 
 
 msgid "Apply"
@@ -28907,12 +28915,12 @@ msgid "Quick Effects"
 msgstr "Hızlı Etkiler"
 
 
-msgid "Import"
-msgstr "İçe Aktar"
-
-
 msgid "Show/Hide"
 msgstr "Göster/Gizle"
+
+
+msgid "Deprecated"
+msgstr "Kullanım dışı bırakıldı"
 
 
 msgid "Clean Up"
@@ -28939,8 +28947,8 @@ msgid "Hooks"
 msgstr "Kancalar"
 
 
-msgid "Deprecated"
-msgstr "Kullanım dışı bırakıldı"
+msgid "UV"
+msgstr "UV"
 
 
 msgid "Vertex Group Locks"
@@ -28949,10 +28957,6 @@ msgstr "Vertex Grup Kilitleri"
 
 msgid "Trim/Add"
 msgstr "Kırp/Ekle"
-
-
-msgid "UV"
-msgstr "UV"
 
 
 msgid "Sculpt Set Pivot"
@@ -29019,16 +29023,20 @@ msgid "Merge"
 msgstr "Birleştir"
 
 
+msgid "Linked"
+msgstr "Bağlantılı"
+
+
+msgid "Layout"
+msgstr "Yerleşim"
+
+
 msgid "Special Characters"
 msgstr "Özel Karakterler"
 
 
 msgid "Kerning"
 msgstr "Harf aralığı"
-
-
-msgid "Layout"
-msgstr "Yerleşim"
 
 
 msgid "Bone Roll"
@@ -39712,10 +39720,6 @@ msgid "Merge separately generated geometries into a single one"
 msgstr "Ayrı ayrı oluşturulan geometrileri tek bir geometride birleştirin"
 
 
-msgid "Single"
-msgstr "Bekar"
-
-
 msgid "Material Selection"
 msgstr "Malzeme Seçimi"
 
@@ -42648,10 +42652,6 @@ msgid "Unique identifier for mapping sockets"
 msgstr "Soketleri eşlemek için benzersiz tanımlayıcı"
 
 
-msgid "Linked"
-msgstr "Bağlantılı"
-
-
 msgid "True if the socket is connected"
 msgstr "Soket bağlıysa doğrudur"
 
@@ -43494,6 +43494,11 @@ msgstr "Koleksiyon Referanslarını Doğrula"
 msgctxt "Operator"
 msgid "Assign Action"
 msgstr "Eylemi atayın"
+
+
+msgctxt "Operator"
+msgid "Open File Location"
+msgstr "Dosya Konumunu Aç"
 
 
 msgid "Open the blend file that contains the active asset"
@@ -55285,18 +55290,6 @@ msgstr "UDIM'leri algıla"
 
 msgid "Detect selected UDIM files and load all matching tiles"
 msgstr "Seçili UDIM dosyalarını algıla ve eşleşen tüm döşemeleri yükle"
-
-
-msgid "Use relative path"
-msgstr "Bağıl yolu kullan"
-
-
-msgid "Use sequence detection"
-msgstr "Sıra algılamayı kullan"
-
-
-msgid "Use UDIM detection"
-msgstr "UDIM algılamayı kullan"
 
 
 msgctxt "Operator"
@@ -75549,6 +75542,34 @@ msgid "Panel containing UI elements"
 msgstr "UI öğelerini içeren panel"
 
 
+msgid "Active Tool"
+msgstr "Etkin Araç"
+
+
+msgid "View Lock"
+msgstr "Görünüm Kilidi"
+
+
+msgid "Selectability & Visibility"
+msgstr "Seçilebilirlik ve Görünürlük"
+
+
+msgid "Shadow Settings"
+msgstr "Gölge Ayarları"
+
+
+msgid "SSAO Settings"
+msgstr "SSAO Ayarları"
+
+
+msgid "Cavity"
+msgstr "Boşluk"
+
+
+msgid "Render Pass"
+msgstr "Render Geçişi"
+
+
 msgid "Compositor"
 msgstr "Dizgici"
 
@@ -75643,34 +75664,6 @@ msgstr "Sanal Gerçeklik"
 
 msgid "VR Info"
 msgstr "VR Bilgisi"
-
-
-msgid "Active Tool"
-msgstr "Etkin Araç"
-
-
-msgid "View Lock"
-msgstr "Görünüm Kilidi"
-
-
-msgid "Selectability & Visibility"
-msgstr "Seçilebilirlik ve Görünürlük"
-
-
-msgid "Shadow Settings"
-msgstr "Gölge Ayarları"
-
-
-msgid "SSAO Settings"
-msgstr "SSAO Ayarları"
-
-
-msgid "Cavity"
-msgstr "Boşluk"
-
-
-msgid "Render Pass"
-msgstr "Render Geçişi"
 
 
 msgid "Chain Scaling"
@@ -76712,20 +76705,8 @@ msgid "Image/UV Editor"
 msgstr "Görsel/UV Düzenleyicisi"
 
 
-msgid "Axis & Gizmo Colors"
-msgstr "Eksen ve Gizmo Renkleri"
-
-
-msgid "Icon Colors"
-msgstr "Simge Renkleri"
-
-
 msgid "Shaded"
 msgstr "Gölgeli"
-
-
-msgid "Styles"
-msgstr "Stiller"
 
 
 msgid "Transparent Checkerboard"
@@ -76774,10 +76755,6 @@ msgstr "Tab"
 
 msgid "Toolbar Item"
 msgstr "Araç Çubuğu Ögesi"
-
-
-msgid "Strip Color Tags"
-msgstr "Şerit Renkli Etiketler"
 
 
 msgid "Text Style"
@@ -78369,6 +78346,10 @@ msgstr "Sistem ve OpenGL"
 
 msgid "Graphics driver and operating system settings"
 msgstr "Grafik sürücüsü ve işletim sistemi ayarları"
+
+
+msgid "Styles"
+msgstr "Stiller"
 
 
 msgid "Save on Exit"
@@ -97978,6 +97959,11 @@ msgid "Roughness Threshold"
 msgstr "Pürüzlülük Eşiği"
 
 
+msgctxt "Operator"
+msgid "Clear"
+msgstr "Temizlemek"
+
+
 msgid "Surfaces"
 msgstr "Yüzeyler"
 
@@ -100859,11 +100845,6 @@ msgstr "Eğri:"
 
 msgid "Parenting:"
 msgstr "Ebeveynlik:"
-
-
-msgctxt "Operator"
-msgid "Clear"
-msgstr "Temizlemek"
 
 
 msgid "Animation:"
@@ -104414,12 +104395,12 @@ msgid "Axis X"
 msgstr "Eksen X"
 
 
-msgid "View Align"
-msgstr "Görünüm Hizala"
-
-
 msgid "B"
 msgstr "B"
+
+
+msgid "View Align"
+msgstr "Görünüm Hizala"
 
 
 msgid "Shadow Offset X"
@@ -109107,11 +109088,6 @@ msgstr "Tekliyi Seçilene Kopyala"
 msgctxt "Operator"
 msgid "Copy Full Data Path"
 msgstr "Tam Veri Yolunu Kopyala"
-
-
-msgctxt "Operator"
-msgid "Open File Location"
-msgstr "Dosya Konumunu Aç"
 
 
 msgctxt "Operator"
@@ -114881,10 +114857,6 @@ msgstr "UV Tepe Noktası"
 
 msgid "Pinned vertices can be selected in Vertex Mode only"
 msgstr "Sabitlenmiş köşeler yalnızca Köşe Modunda seçilebilir"
-
-
-msgid "Could not initialize stitching on any selected object"
-msgstr "Herhangi bir seçili nesne üzerinde dikiş başlatılamadı"
 
 
 msgid "Minimize Stretch. Blend %.2f"

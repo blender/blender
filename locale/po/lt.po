@@ -1,9 +1,9 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 5.2.0 Alpha (b'24a58e1403ac')\n"
+"Project-Id-Version: Blender 5.2.0 Alpha (b'8764d33c658b')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-05-25 07:25+0000\n"
+"POT-Creation-Date: 2026-06-01 07:36+0000\n"
 "PO-Revision-Date: 2025-07-23 15:18+0000\n"
 "Last-Translator: Aras Pranckevičius <aras@nesnausk.org>\n"
 "Language-Team: Lithuanian <https://translate.blender.org/projects/blender-ui/ui/lt/>\n"
@@ -1267,6 +1267,10 @@ msgstr "Visi sluoksniai po aktyviu"
 
 msgid "Simplify"
 msgstr "Supaprastinti"
+
+
+msgid "Pixel"
+msgstr "Pikselis"
 
 
 msgid "Hardness"
@@ -2683,10 +2687,6 @@ msgid "Degrees"
 msgstr "Laipsniai"
 
 
-msgid "Pixel"
-msgstr "Pikselis"
-
-
 msgid "RK4"
 msgstr "„RK4“"
 
@@ -3089,16 +3089,16 @@ msgid "Dots"
 msgstr "Taškai"
 
 
+msgid "Import"
+msgstr "Importuoti"
+
+
 msgid "Apply"
 msgstr "Pritaikyti"
 
 
 msgid "Track"
 msgstr "Sekti"
-
-
-msgid "Import"
-msgstr "Importuoti"
 
 
 msgid "Show/Hide"

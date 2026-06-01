@@ -1,9 +1,9 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 5.2.0 Alpha (b'24a58e1403ac')\n"
+"Project-Id-Version: Blender 5.2.0 Alpha (b'8764d33c658b')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-05-25 07:25+0000\n"
+"POT-Creation-Date: 2026-06-01 07:36+0000\n"
 "PO-Revision-Date: 2025-12-23 20:36+0000\n"
 "Last-Translator: \"Adriel Y.\" <mixnblend@users.noreply.translate.blender.org>\n"
 "Language-Team: Indonesian <https://translate.blender.org/projects/blender-ui/ui/id/>\n"
@@ -11289,6 +11289,14 @@ msgid "Use curve to define primitive stroke thickness"
 msgstr "Gunakan kurva untuk mendefinisikan ketebalan sapuan"
 
 
+msgid "Dynamic"
+msgstr "Dinamik"
+
+
+msgid "Single"
+msgstr "Tunggal"
+
+
 msgid "Items"
 msgstr "Item"
 
@@ -11830,10 +11838,6 @@ msgstr "Lokal"
 
 msgid "Global"
 msgstr "Global"
-
-
-msgid "Dynamic"
-msgstr "Dinamik"
 
 
 msgid "Color Type"
@@ -15652,24 +15656,24 @@ msgid "Math"
 msgstr "Matematika"
 
 
-msgid "Select Linked"
-msgstr "Seleksi yang Terhubung"
-
-
 msgid "Utilities"
 msgstr "Utilitas"
+
+
+msgid "Select Linked"
+msgstr "Seleksi yang Terhubung"
 
 
 msgid "Assign Material"
 msgstr "Tugaskan Bahan"
 
 
-msgid "Metaball"
-msgstr "Metabola"
-
-
 msgid "Sample"
 msgstr "Sampel"
+
+
+msgid "Metaball"
+msgstr "Metabola"
 
 
 msgid "Light"
@@ -15680,10 +15684,6 @@ msgid "Light Probe"
 msgstr "Probe Cahaya"
 
 
-msgid "Add Image"
-msgstr "Tambah Gambar"
-
-
 msgid "Gizmo"
 msgstr "Gizmo"
 
@@ -15692,16 +15692,20 @@ msgid "Instances"
 msgstr "Contoh-contoh"
 
 
+msgid "Add Image"
+msgstr "Tambah Gambar"
+
+
+msgid "Import"
+msgstr "Impor"
+
+
 msgid "Apply"
 msgstr "Tetapkan"
 
 
 msgid "Track"
 msgstr "Lacak"
-
-
-msgid "Import"
-msgstr "Impor"
 
 
 msgid "Asset"
@@ -15722,6 +15726,10 @@ msgstr "Nama"
 
 msgid "Merge"
 msgstr "Menggabungkan"
+
+
+msgid "Linked"
+msgstr "Terkoleksi"
 
 
 msgid "Layout"
@@ -18455,10 +18463,6 @@ msgid "Is Viewport"
 msgstr "Adalah Jendela Tampilan"
 
 
-msgid "Single"
-msgstr "Tunggal"
-
-
 msgid "Active Item"
 msgstr "Item Aktif"
 
@@ -18858,10 +18862,6 @@ msgstr "Grid Volume"
 
 msgid "Hide Value"
 msgstr "Sembunyikan Nilai"
-
-
-msgid "Linked"
-msgstr "Terkoleksi"
 
 
 msgid "Multi Input"
@@ -25899,14 +25899,6 @@ msgid "Image/UV Editor"
 msgstr "Editor Gambar/UV"
 
 
-msgid "Axis & Gizmo Colors"
-msgstr "Warna-warna Sumbu & Gizmo"
-
-
-msgid "Icon Colors"
-msgstr "Warna Icon"
-
-
 msgid "Shaded"
 msgstr "Berbayang"
 
@@ -28444,6 +28436,11 @@ msgid "Refractive"
 msgstr "Refraktif"
 
 
+msgctxt "Operator"
+msgid "Clear"
+msgstr "Kosongkan"
+
+
 msgid "Surfaces"
 msgstr "Permukaan"
 
@@ -29124,11 +29121,6 @@ msgstr "Transformasi:"
 
 msgid "Parenting:"
 msgstr "Pengindukan:"
-
-
-msgctxt "Operator"
-msgid "Clear"
-msgstr "Kosongkan"
 
 
 msgid "Animation:"

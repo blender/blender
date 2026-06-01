@@ -1,9 +1,9 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 5.2.0 Alpha (b'24a58e1403ac')\n"
+"Project-Id-Version: Blender 5.2.0 Alpha (b'8764d33c658b')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-05-25 07:25+0000\n"
+"POT-Creation-Date: 2026-06-01 07:36+0000\n"
 "PO-Revision-Date: 2026-02-14 01:12+0000\n"
 "Last-Translator: Timo Hoetmer <timo@timohoetmer.nl>\n"
 "Language-Team: Dutch <https://translate.blender.org/projects/blender-ui/ui/nl/>\n"
@@ -4748,6 +4748,10 @@ msgid "Top (X-Y)"
 msgstr "Bovenkant (X-Y)"
 
 
+msgid "Dynamic"
+msgstr "Dynamisch"
+
+
 msgid "Show Value"
 msgstr "Toon Waarde"
 
@@ -4854,10 +4858,6 @@ msgstr "Lokaal"
 
 msgid "Global"
 msgstr "Globaal"
-
-
-msgid "Dynamic"
-msgstr "Dynamisch"
 
 
 msgid "Color Type"
@@ -5783,12 +5783,12 @@ msgid "Rigid Body"
 msgstr "Star Lichaam"
 
 
-msgid "Quick Effects"
-msgstr "Snelle Effecten"
-
-
 msgid "Import"
 msgstr "Importeren"
+
+
+msgid "Quick Effects"
+msgstr "Snelle Effecten"
 
 
 msgid "Show/Hide"
@@ -5809,6 +5809,10 @@ msgstr "Maak Transformatie Leeg"
 
 msgid "Names"
 msgstr "Namen"
+
+
+msgid "Linked"
+msgstr "Gekoppeld"
 
 
 msgid "Layout"
@@ -6272,10 +6276,6 @@ msgstr "Verberg Waarde"
 
 msgid "Hide the socket input value"
 msgstr "Verberg de aansluiting invoer waarde"
-
-
-msgid "Linked"
-msgstr "Gekoppeld"
 
 
 msgid "Is Output"

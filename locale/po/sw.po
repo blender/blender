@@ -1,9 +1,9 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 5.2.0 Alpha (b'24a58e1403ac')\n"
+"Project-Id-Version: Blender 5.2.0 Alpha (b'8764d33c658b')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-05-25 07:25+0000\n"
+"POT-Creation-Date: 2026-06-01 07:36+0000\n"
 "PO-Revision-Date: 2025-11-14 10:59+0000\n"
 "Last-Translator: Isaac Gicheha <shwaky3@gmail.com>\n"
 "Language-Team: Swahili <https://translate.blender.org/projects/blender-ui/ui/sw/>\n"
@@ -14614,6 +14614,14 @@ msgid "Use curve to define primitive stroke thickness"
 msgstr "Tumia curve kufafanua unene wa kiharusi cha awali"
 
 
+msgid "Dynamic"
+msgstr "Nguvu"
+
+
+msgid "Single"
+msgstr "Sijaoa"
+
+
 msgid "Items"
 msgstr "Vipengee"
 
@@ -15787,10 +15795,6 @@ msgstr "Ulimwenguni"
 
 msgid "Simulates the entire mesh"
 msgstr "Huiga matundu yote"
-
-
-msgid "Dynamic"
-msgstr "Nguvu"
 
 
 msgid "The active simulation area moves with the brush"
@@ -28278,16 +28282,12 @@ msgid "Math"
 msgstr "Hisabati"
 
 
-msgid "Select Linked"
-msgstr "Chagua Imeunganishwa"
-
-
 msgid "Utilities"
 msgstr "Huduma"
 
 
-msgid "Metaball"
-msgstr "Mpira wa miguu"
+msgid "Select Linked"
+msgstr "Chagua Imeunganishwa"
 
 
 msgid "Read"
@@ -28306,6 +28306,10 @@ msgid "Primitives"
 msgstr "Watu wa kwanza"
 
 
+msgid "Metaball"
+msgstr "Mpira wa miguu"
+
+
 msgid "Light"
 msgstr "Mwanga"
 
@@ -28318,16 +28322,20 @@ msgid "Instances"
 msgstr "Matukio"
 
 
-msgid "Apply"
-msgstr "Tumia"
-
-
 msgid "Import"
 msgstr "Ingiza"
 
 
+msgid "Apply"
+msgstr "Tumia"
+
+
 msgid "Show/Hide"
 msgstr "Onyesha/Ficha"
+
+
+msgid "Deprecated"
+msgstr "Imeacha kutumika"
 
 
 msgid "Clean Up"
@@ -28338,16 +28346,16 @@ msgid "Asset"
 msgstr "Mali"
 
 
-msgid "Deprecated"
-msgstr "Imeacha kutumika"
-
-
 msgid "Bone Collections"
 msgstr "Mikusanyo ya Mifupa"
 
 
 msgid "Merge"
 msgstr "Unganisha"
+
+
+msgid "Linked"
+msgstr "Imeunganishwa"
 
 
 msgid "Layout"
@@ -38663,10 +38671,6 @@ msgid "Merge separately generated geometries into a single one"
 msgstr "Unganisha jiometri zinazozalishwa tofauti kuwa moja"
 
 
-msgid "Single"
-msgstr "Sijaoa"
-
-
 msgid "Material Selection"
 msgstr "Uteuzi wa Nyenzo"
 
@@ -41578,10 +41582,6 @@ msgstr "Ficha thamani ya kuingiza tundu"
 
 msgid "Unique identifier for mapping sockets"
 msgstr "Kitambulisho cha kipekee cha soketi za kuchora ramani"
-
-
-msgid "Linked"
-msgstr "Imeunganishwa"
 
 
 msgid "True if the socket is connected"
@@ -72545,6 +72545,22 @@ msgid "Panel containing UI elements"
 msgstr "Paneli iliyo na vipengele vya UI"
 
 
+msgid "View Lock"
+msgstr "Kufuli ya Tazama"
+
+
+msgid "Selectability & Visibility"
+msgstr "Uteuzi"
+
+
+msgid "Shadow Settings"
+msgstr "Mipangilio ya Kivuli"
+
+
+msgid "SSAO Settings"
+msgstr "Mipangilio ya SSAO"
+
+
 msgid "Compositor"
 msgstr "Mtunzi"
 
@@ -72603,22 +72619,6 @@ msgstr "Curves Sculpt Parameta Falloff"
 
 msgid "Viewport Debug"
 msgstr "Utatuzi wa kituo cha kutazama"
-
-
-msgid "View Lock"
-msgstr "Kufuli ya Tazama"
-
-
-msgid "Selectability & Visibility"
-msgstr "Uteuzi"
-
-
-msgid "Shadow Settings"
-msgstr "Mipangilio ya Kivuli"
-
-
-msgid "SSAO Settings"
-msgstr "Mipangilio ya SSAO"
 
 
 msgid "Motion Blur"
@@ -92004,6 +92004,11 @@ msgid "Roughness Threshold"
 msgstr "Kizingiti cha Ukali"
 
 
+msgctxt "Operator"
+msgid "Clear"
+msgstr "Wazi"
+
+
 msgid "Surfaces"
 msgstr "Nyuso"
 
@@ -93893,11 +93898,6 @@ msgstr "Msururu:"
 
 msgid "Parenting:"
 msgstr "Malezi:"
-
-
-msgctxt "Operator"
-msgid "Clear"
-msgstr "Wazi"
 
 
 msgid "Animation:"
@@ -106464,10 +106464,6 @@ msgid "Pinned vertices can be selected in Vertex Mode only"
 msgstr "Vipeo vilivyobandikwa vinaweza kuchaguliwa katika Hali ya Kipeo pekee"
 
 
-msgid "Could not initialize stitching on any selected object"
-msgstr "Haikuweza kuanzisha kushona kwa kitu chochote kilichochaguliwa"
-
-
 msgid "Press + and -, or scroll wheel to set blending"
 msgstr "Bonyeza na -, au tembeza gurudumu ili kuweka uchanganyaji"
 
@@ -107636,10 +107632,6 @@ msgstr "Inaweza tu kugawa data iliyotathminiwa kwa kitu kilichotathminiwa, au da
 
 msgid "Only empty objects support collection instances"
 msgstr "Vipengee tupu pekee vinasaidia matukio ya mkusanyiko"
-
-
-msgid "Cannot set instance-collection as object belongs in collection being instanced, thus causing a cycle"
-msgstr "Haiwezi kuweka mkusanyiko wa mfano kama kitu ni cha mkusanyo kikionyeshwa, na hivyo kusababisha mzunguko"
 
 
 msgid "VertexGroup.add(): cannot be called while object is in edit mode"

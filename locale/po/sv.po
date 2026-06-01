@@ -1,9 +1,9 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 5.2.0 Alpha (b'24a58e1403ac')\n"
+"Project-Id-Version: Blender 5.2.0 Alpha (b'8764d33c658b')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-05-25 07:25+0000\n"
+"POT-Creation-Date: 2026-06-01 07:36+0000\n"
 "PO-Revision-Date: 2026-03-17 14:12+0000\n"
 "Last-Translator: Daniel Nylander <blender@danielnylander.se>\n"
 "Language-Team: Swedish <https://translate.blender.org/projects/blender-ui/ui/sv/>\n"
@@ -5942,6 +5942,18 @@ msgstr "Förenkla"
 
 msgid "Number of simplify steps (large values reduce fill accuracy)"
 msgstr "Antal förenklingssteg (stora värden minskar fyllningsnoggrannheten)"
+
+
+msgid "Fill Solver"
+msgstr "Fyll i lösaren"
+
+
+msgid "Delaunay"
+msgstr "Delaunay"
+
+
+msgid "Pixel"
+msgstr "Pixel"
 
 
 msgid "Threshold to consider color transparent for filling"
@@ -17490,12 +17502,48 @@ msgid "Use curve to define primitive stroke thickness"
 msgstr "Använd kurva för att definiera primitiv strecktjocklek"
 
 
-msgid "Field to Grid Item"
-msgstr "Fält till nätverksobjekt"
+msgid "Automatically detect a good structure type based on how the socket is used"
+msgstr "Automatiskt upptäcka en bra strukturtyp baserat på hur uttaget används"
+
+
+msgid "Dynamic"
+msgstr "Dynamisk"
+
+
+msgid "Socket can work with different kinds of structures"
+msgstr "Sockeln kan fungera med olika typer av strukturer"
+
+
+msgid "Socket expects a field"
+msgstr "Socket förväntar sig ett fält"
+
+
+msgid "Socket expects a grid"
+msgstr "Socket förväntar sig ett rutnät"
+
+
+msgid "List"
+msgstr "Lista"
+
+
+msgid "Socket expects a list"
+msgstr "Socket förväntar sig en lista"
+
+
+msgid "Single"
+msgstr "Singel"
+
+
+msgid "Socket expects a single value"
+msgstr "Socket förväntar sig ett enda värde"
 
 
 msgid "Items"
 msgstr "Artiklar"
+
+
+msgid "Field to Grid Item"
+msgstr "Fält till nätverksobjekt"
 
 
 msgid "Collection of field to grid items"
@@ -19346,10 +19394,6 @@ msgstr "Globalt"
 
 msgid "Simulates the entire mesh"
 msgstr "Simulerar hela nätet"
-
-
-msgid "Dynamic"
-msgstr "Dynamisk"
 
 
 msgid "The active simulation area moves with the brush"
@@ -22032,10 +22076,6 @@ msgid "Overlapping curves with the same winding direction are filled as a union"
 msgstr "Överlappande kurvor med samma lindningsriktning fylls som en union."
 
 
-msgid "Fill Solver"
-msgstr "Fyll i lösaren"
-
-
 msgid "Triangulation solver for filling 2D curves"
 msgstr "Trianguleringslösare för att fylla 2D-kurvor"
 
@@ -22046,10 +22086,6 @@ msgstr "Svepande linje"
 
 msgid "Fast without support for self-intersection"
 msgstr "Snabb utan stöd för självkorsning"
-
-
-msgid "Delaunay"
-msgstr "Delaunay"
 
 
 msgid "Constrained Delaunay Triangulation (CDT), robust with support for self-intersections"
@@ -26796,10 +26832,6 @@ msgstr "Grader"
 
 msgid "How many degrees path has to curve to make another render segment"
 msgstr "Hur många grader banan måste krökas för att skapa ett nytt renderingssegment"
-
-
-msgid "Pixel"
-msgstr "Pixel"
 
 
 msgid "How many pixels path has to cover to make another render segment"
@@ -35034,6 +35066,10 @@ msgid "Editor menu containing buttons"
 msgstr "Redigeringsmeny med knappar"
 
 
+msgid "Render Preview"
+msgstr "Förhandsgranska rendering"
+
+
 msgid "Mirror"
 msgstr "Spegel"
 
@@ -35070,8 +35106,16 @@ msgid "View Regions"
 msgstr "Visa regioner"
 
 
+msgid "Math"
+msgstr "Matematik"
+
+
 msgid "Select More/Less"
 msgstr "Välj Mer/Mindre"
+
+
+msgid "Utilities"
+msgstr "Allmännyttiga tjänster"
 
 
 msgid "Select Similar"
@@ -35082,10 +35126,6 @@ msgid "Select All by Trait"
 msgstr "Välj alla efter egenskap"
 
 
-msgid "Math"
-msgstr "Matematik"
-
-
 msgid "Select Linked"
 msgstr "Välj länkad"
 
@@ -35094,16 +35134,8 @@ msgid "Select Loops"
 msgstr "Välj slingor"
 
 
-msgid "Utilities"
-msgstr "Allmännyttiga tjänster"
-
-
 msgid "Assign Material"
 msgstr "Tilldela material"
-
-
-msgid "Metaball"
-msgstr "Metaball"
 
 
 msgid "Read"
@@ -35122,12 +35154,24 @@ msgid "Primitives"
 msgstr "Primitiva"
 
 
+msgid "Metaball"
+msgstr "Metaball"
+
+
 msgid "Light"
 msgstr "Ljus"
 
 
 msgid "Light Probe"
 msgstr "Ljusprob"
+
+
+msgid "Gizmo"
+msgstr "Gizmo"
+
+
+msgid "Instances"
+msgstr "Instanser"
 
 
 msgid "Add Image"
@@ -35142,12 +35186,8 @@ msgid "Rigid Body"
 msgstr "Stel kropp"
 
 
-msgid "Gizmo"
-msgstr "Gizmo"
-
-
-msgid "Instances"
-msgstr "Instanser"
+msgid "Import"
+msgstr "Importera"
 
 
 msgid "Apply"
@@ -35162,12 +35202,12 @@ msgid "Quick Effects"
 msgstr "Snabba effekter"
 
 
-msgid "Import"
-msgstr "Importera"
-
-
 msgid "Show/Hide"
 msgstr "Visa/Dölj"
+
+
+msgid "Deprecated"
+msgstr "Föråldrad"
 
 
 msgid "Clean Up"
@@ -35194,24 +35234,16 @@ msgid "Hooks"
 msgstr "Krokar"
 
 
-msgid "Deprecated"
-msgstr "Föråldrad"
+msgid "UV"
+msgstr "UV"
 
 
 msgid "Vertex Group Locks"
 msgstr "Vertex Group Lås"
 
 
-msgid "List"
-msgstr "Lista"
-
-
 msgid "Trim/Add"
 msgstr "Trimma/Lägg till"
-
-
-msgid "UV"
-msgstr "UV"
 
 
 msgid "Sculpt Set Pivot"
@@ -35278,16 +35310,20 @@ msgid "Merge"
 msgstr "Sammanfoga"
 
 
+msgid "Linked"
+msgstr "Länkad"
+
+
+msgid "Layout"
+msgstr "Layout"
+
+
 msgid "Special Characters"
 msgstr "Specialtecken"
 
 
 msgid "Kerning"
 msgstr "Kerning"
-
-
-msgid "Layout"
-msgstr "Layout"
 
 
 msgid "Bone Roll"
@@ -35306,6 +35342,10 @@ msgid "Tracking"
 msgstr "Spårning"
 
 
+msgid "Creative"
+msgstr "Kreativ"
+
+
 msgid "Pivot Point"
 msgstr "Pivotpunkt"
 
@@ -35322,16 +35362,8 @@ msgid "Automasking"
 msgstr "Automatisk maskering"
 
 
-msgid "Creative"
-msgstr "Kreativ"
-
-
 msgid "Face Sets Edit"
 msgstr "Ansiktsuppsättningar Redigera"
-
-
-msgid "Render Preview"
-msgstr "Förhandsgranska rendering"
 
 
 msgid "Keyframe Insert Pie"
@@ -47117,6 +47149,10 @@ msgid "Which domain to store the data in"
 msgstr "Vilken domän data ska lagras i"
 
 
+msgid "Create a list of values"
+msgstr "Skapa en lista med värden"
+
+
 msgid "Collection Info"
 msgstr "Samlingsinformation"
 
@@ -47671,10 +47707,6 @@ msgstr "Datatyp för topologiraster"
 
 msgid "Field to List"
 msgstr "Fält till lista"
-
-
-msgid "Create a list of values"
-msgstr "Skapa en lista med värden"
 
 
 msgid "Field Variance"
@@ -48374,34 +48406,6 @@ msgstr "Strukturtyp"
 
 msgid "What kind of higher order types are expected to flow through this socket"
 msgstr "Vilka typer av högre ordning förväntas flöda genom detta uttag"
-
-
-msgid "Automatically detect a good structure type based on how the socket is used"
-msgstr "Automatiskt upptäcka en bra strukturtyp baserat på hur uttaget används"
-
-
-msgid "Socket can work with different kinds of structures"
-msgstr "Sockeln kan fungera med olika typer av strukturer"
-
-
-msgid "Socket expects a field"
-msgstr "Socket förväntar sig ett fält"
-
-
-msgid "Socket expects a grid"
-msgstr "Socket förväntar sig ett rutnät"
-
-
-msgid "Socket expects a list"
-msgstr "Socket förväntar sig en lista"
-
-
-msgid "Single"
-msgstr "Singel"
-
-
-msgid "Socket expects a single value"
-msgstr "Socket förväntar sig ett enda värde"
 
 
 msgid "List Length"
@@ -52411,10 +52415,6 @@ msgid "Socket is grayed out because it has been detected to not have any effect 
 msgstr "Sockeln är gråmarkerad eftersom den har upptäckts inte ha någon effekt på utgången."
 
 
-msgid "Linked"
-msgstr "Länkad"
-
-
 msgid "True if the socket is connected"
 msgstr "Sant om uttaget är anslutet"
 
@@ -53538,6 +53538,11 @@ msgstr "Validera samlingsreferenser"
 msgctxt "Operator"
 msgid "Assign Action"
 msgstr "Tilldela åtgärd"
+
+
+msgctxt "Operator"
+msgid "Open File Location"
+msgstr "Öppna filens plats"
 
 
 msgid "Open the blend file that contains the active asset"
@@ -67618,18 +67623,6 @@ msgstr "Upptäck UDIM:er"
 
 msgid "Detect selected UDIM files and load all matching tiles"
 msgstr "Detektera valda UDIM-filer och ladda alla matchande rutor"
-
-
-msgid "Use relative path"
-msgstr "Använd relativ sökväg"
-
-
-msgid "Use sequence detection"
-msgstr "Använd sekvensdetektering"
-
-
-msgid "Use UDIM detection"
-msgstr "Använd UDIM-detektering"
 
 
 msgctxt "Operator"
@@ -84146,10 +84139,6 @@ msgid "Jump to Strip"
 msgstr "Gå till serien"
 
 
-msgid "Move frame to next or previous edit point"
-msgstr "Flytta bildrutan till nästa eller föregående redigeringspunkt"
-
-
 msgid "Use Strip Center"
 msgstr "Använd Strip Center"
 
@@ -91983,6 +91972,34 @@ msgid "Panel containing UI elements"
 msgstr "Panel som innehåller UI-element"
 
 
+msgid "Active Tool"
+msgstr "Aktivt verktyg"
+
+
+msgid "View Lock"
+msgstr "Visa lås"
+
+
+msgid "Selectability & Visibility"
+msgstr "Valbarhet och synlighet"
+
+
+msgid "Shadow Settings"
+msgstr "Skugginställningar"
+
+
+msgid "SSAO Settings"
+msgstr "SSAO-inställningar"
+
+
+msgid "Cavity"
+msgstr "Hålrum"
+
+
+msgid "Render Pass"
+msgstr "Renderingspass"
+
+
 msgid "Compositor"
 msgstr "Compositor"
 
@@ -92093,34 +92110,6 @@ msgstr "glTF"
 
 msgid "glTF Animations"
 msgstr "glTF-animationer"
-
-
-msgid "Active Tool"
-msgstr "Aktivt verktyg"
-
-
-msgid "View Lock"
-msgstr "Visa lås"
-
-
-msgid "Selectability & Visibility"
-msgstr "Valbarhet och synlighet"
-
-
-msgid "Shadow Settings"
-msgstr "Skugginställningar"
-
-
-msgid "SSAO Settings"
-msgstr "SSAO-inställningar"
-
-
-msgid "Cavity"
-msgstr "Hålrum"
-
-
-msgid "Render Pass"
-msgstr "Renderingspass"
 
 
 msgid "Import Settings"
@@ -93320,20 +93309,8 @@ msgid "Image/UV Editor"
 msgstr "Bild-/UV-redigerare"
 
 
-msgid "Axis & Gizmo Colors"
-msgstr "Axis & Gizmo-färger"
-
-
-msgid "Icon Colors"
-msgstr "Ikonfärger"
-
-
 msgid "Shaded"
 msgstr "Skuggad"
-
-
-msgid "Styles"
-msgstr "Stilar"
 
 
 msgid "Transparent Checkerboard"
@@ -93390,10 +93367,6 @@ msgstr "Skrubbning / Markörer"
 
 msgid "Toolbar / Sidebar"
 msgstr "Verktygsfält / Sidopanel"
-
-
-msgid "Strip Color Tags"
-msgstr "Färgmärken för remsor"
 
 
 msgid "Text Style"
@@ -95117,6 +95090,10 @@ msgid "Graphics driver and operating system settings"
 msgstr "Grafikdrivrutin och operativsysteminställningar"
 
 
+msgid "Styles"
+msgstr "Stilar"
+
+
 msgid "Save on Exit"
 msgstr "Spara vid avslutning"
 
@@ -95688,14 +95665,6 @@ msgstr "Tillägg Debug"
 
 msgid "Extra debugging information & developer support utilities for extensions"
 msgstr "Extra felsökningsinformation och verktyg för utvecklarsupport för tillägg"
-
-
-msgid "Bundle in Geometry"
-msgstr "Bundle i geometri"
-
-
-msgid "Support storing custom bundles in a geometry in Geometry Nodes"
-msgstr "Stöd för lagring av anpassade buntar i en geometri i Geometry Nodes"
 
 
 msgid "New Curves Tools"
@@ -119744,6 +119713,11 @@ msgid "Roughness Threshold"
 msgstr "Grovhetströskel"
 
 
+msgctxt "Operator"
+msgid "Clear"
+msgstr "Tydligt"
+
+
 msgid "Surfaces"
 msgstr "Ytor"
 
@@ -123667,11 +123641,6 @@ msgstr "Spline:"
 
 msgid "Parenting:"
 msgstr "Föräldraskap:"
-
-
-msgctxt "Operator"
-msgid "Clear"
-msgstr "Tydligt"
 
 
 msgid "Animation:"
@@ -127716,12 +127685,12 @@ msgid "Axis X"
 msgstr "Axel X"
 
 
-msgid "View Align"
-msgstr "Visa Justera"
-
-
 msgid "B"
 msgstr "B"
+
+
+msgid "View Align"
+msgstr "Visa Justera"
 
 
 msgctxt "Text"
@@ -132540,10 +132509,6 @@ msgid "B"
 msgstr "B"
 
 
-msgid "Modifier requires original data"
-msgstr "Modifieraren kräver originaldata"
-
-
 msgctxt "Operator"
 msgid "Reorder F-Curve Modifier"
 msgstr "Omordna F-kurvmodifierare"
@@ -133484,10 +133449,6 @@ msgid "Duplicates: {}"
 msgstr "Duplikater: {}"
 
 
-msgid "Missing node tool identifier ({})"
-msgstr "Saknad nodverktygsidentifierare ({})"
-
-
 msgid "Unassigned Node Tools"
 msgstr "Otilldelade nodverktyg"
 
@@ -134019,11 +133980,6 @@ msgstr "Kopiera enstaka till valda"
 msgctxt "Operator"
 msgid "Copy Full Data Path"
 msgstr "Kopiera hela datavägen"
-
-
-msgctxt "Operator"
-msgid "Open File Location"
-msgstr "Öppna filens plats"
 
 
 msgctxt "Operator"
@@ -142595,10 +142551,6 @@ msgid "Midpoints"
 msgstr "Mittpunkter"
 
 
-msgid "Could not initialize stitching on any selected object"
-msgstr "Det gick inte att initiera sammanfogning på något valt objekt."
-
-
 msgid "Stitching only works with less than %i objects selected (%i selected)"
 msgstr "Sömmar fungerar endast med färre än %i objekt markerade (%i markerat)"
 
@@ -144458,10 +144410,6 @@ msgstr "Kan endast tilldela utvärderade data till utvärderade objekt, eller or
 
 msgid "Only empty objects support collection instances"
 msgstr "Endast tomma objekt stöder insamlingsinstanser"
-
-
-msgid "Cannot set instance-collection as object belongs in collection being instanced, thus causing a cycle"
-msgstr "Kan inte ställa in instanssamling eftersom objektet tillhör samlingen som instansieras, vilket orsakar en cykel."
 
 
 msgid "VertexGroup.add(): cannot be called while object is in edit mode"
@@ -147981,6 +147929,10 @@ msgid "Closure"
 msgstr "Stängning"
 
 
+msgid "The number of elements in the list"
+msgstr "Antalet element i listan"
+
+
 msgid "Collection contains current object"
 msgstr "Samlingen innehåller aktuella objekt"
 
@@ -148791,10 +148743,6 @@ msgid "Output grid with evaluated field values"
 msgstr "Utgångsrutnät med utvärderade fältvärden"
 
 
-msgid "The number of elements in the list"
-msgstr "Antalet element i listan"
-
-
 msgid "Output list with evaluated field values"
 msgstr "Utdata med utvärderade fältvärden"
 
@@ -148910,10 +148858,6 @@ msgstr "Varje ingångsgeometri omvandlas till en separat instans."
 
 msgid "Cannot get internal value from bundle"
 msgstr "Kan inte hämta internt värde från paketet"
-
-
-msgid "The experimental option for this node is disabled"
-msgstr "Det experimentella alternativet för denna nod är inaktiverat."
 
 
 msgid "Geometry to get the bundle of"

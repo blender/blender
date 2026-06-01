@@ -1,9 +1,9 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 5.2.0 Alpha (b'24a58e1403ac')\n"
+"Project-Id-Version: Blender 5.2.0 Alpha (b'8764d33c658b')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-05-25 07:25+0000\n"
+"POT-Creation-Date: 2026-06-01 07:36+0000\n"
 "PO-Revision-Date: 2026-03-19 19:12+0000\n"
 "Last-Translator: Tamás Máté <royalpython132@gmail.com>\n"
 "Language-Team: Hungarian <https://translate.blender.org/projects/blender-ui/ui/hu/>\n"
@@ -3998,6 +3998,10 @@ msgid "General properties for Grease Pencil stroke sculpting tools"
 msgstr "A zsírkréta vonású szobrászeszközök általános tulajdonságai"
 
 
+msgid "Dynamic"
+msgstr "Dinamikus"
+
+
 msgid "Window"
 msgstr "Ablak"
 
@@ -4112,10 +4116,6 @@ msgstr "Lokális"
 
 msgid "Global"
 msgstr "Globális"
-
-
-msgid "Dynamic"
-msgstr "Dinamikus"
 
 
 msgid "Falloff Curve"
@@ -6642,16 +6642,16 @@ msgid "Rigid Body"
 msgstr "Szilárd test"
 
 
+msgid "Import"
+msgstr "Importálás"
+
+
 msgid "Apply"
 msgstr "Elfogadás"
 
 
 msgid "Track"
 msgstr "Nyom"
-
-
-msgid "Import"
-msgstr "Importálás"
 
 
 msgid "Show/Hide"
@@ -12784,12 +12784,12 @@ msgid "Detail Size"
 msgstr "Részlet mérete"
 
 
-msgid "Motion Tracking"
-msgstr "Mozgáskövetés"
-
-
 msgid "Render Pass"
 msgstr "Render vezeték"
+
+
+msgid "Motion Tracking"
+msgstr "Mozgáskövetés"
 
 
 msgid "Chain Scaling"
@@ -12914,10 +12914,6 @@ msgstr "Python szkriptek automatikus futtatása"
 
 msgid "Bone Color Sets"
 msgstr "Csont színkészletek"
-
-
-msgid "Axis & Gizmo Colors"
-msgstr "Tengelyek & kütyük színei"
 
 
 msgid "Shaded"
@@ -15115,6 +15111,11 @@ msgstr "Objektum index"
 
 
 msgctxt "Operator"
+msgid "Clear"
+msgstr "Törlés"
+
+
+msgctxt "Operator"
 msgid "Assign"
 msgstr "Hozzárendelés"
 
@@ -15358,11 +15359,6 @@ msgstr "Áthelyezés:"
 
 msgid "Spline:"
 msgstr "Spline:"
-
-
-msgctxt "Operator"
-msgid "Clear"
-msgstr "Törlés"
 
 
 msgid "Animation:"

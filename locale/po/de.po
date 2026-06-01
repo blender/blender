@@ -1,9 +1,9 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 5.2.0 Alpha (b'24a58e1403ac')\n"
+"Project-Id-Version: Blender 5.2.0 Alpha (b'8764d33c658b')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-05-25 07:25+0000\n"
+"POT-Creation-Date: 2026-06-01 07:36+0000\n"
 "PO-Revision-Date: 2025-12-02 20:06+0000\n"
 "Last-Translator: Bastitron <bastitronhd@gmail.com>\n"
 "Language-Team: German <https://translate.blender.org/projects/blender-ui/ui/de/>\n"
@@ -4062,6 +4062,10 @@ msgstr "Vereinfachen"
 
 msgid "Number of simplify steps (large values reduce fill accuracy)"
 msgstr "Anzahl von Vereinfachungsschritten (große Werte reduzieren die Füllgenauigkeit)"
+
+
+msgid "Pixel"
+msgstr "Pixel"
 
 
 msgid "Threshold to consider color transparent for filling"
@@ -11016,6 +11020,14 @@ msgid "Use Curve"
 msgstr "Kurve verwenden"
 
 
+msgid "Dynamic"
+msgstr "Dynamisch"
+
+
+msgid "Single"
+msgstr "Einzelner"
+
+
 msgid "Items"
 msgstr "Gegenstände"
 
@@ -11621,10 +11633,6 @@ msgstr "Lokal"
 
 msgid "Global"
 msgstr "Global"
-
-
-msgid "Dynamic"
-msgstr "Dynamisch"
 
 
 msgid "Color Type"
@@ -14537,10 +14545,6 @@ msgstr "Aktiver Objektinstanz-Index"
 
 msgid "Degrees"
 msgstr "Grad"
-
-
-msgid "Pixel"
-msgstr "Pixel"
 
 
 msgid "Angular Velocity"
@@ -18711,6 +18715,10 @@ msgid "View Regions"
 msgstr "Vierfenster Ansicht"
 
 
+msgid "Math"
+msgstr "Mathematisch"
+
+
 msgid "Select More/Less"
 msgstr "Mehr/weniger anzeigen"
 
@@ -18723,10 +18731,6 @@ msgid "Select All by Trait"
 msgstr "Alles nach Merkmal auswählen"
 
 
-msgid "Math"
-msgstr "Mathematisch"
-
-
 msgid "Select Linked"
 msgstr "Verknüpfte auswählen"
 
@@ -18737,10 +18741,6 @@ msgstr "Schleifen auswählen"
 
 msgid "Assign Material"
 msgstr "Material zuweisen"
-
-
-msgid "Metaball"
-msgstr "Metaball"
 
 
 msgid "Read"
@@ -18759,12 +18759,20 @@ msgid "Primitives"
 msgstr "Grundkörper"
 
 
+msgid "Metaball"
+msgstr "Metaball"
+
+
 msgid "Light"
 msgstr "Licht"
 
 
 msgid "Light Probe"
 msgstr "Lichtsonde"
+
+
+msgid "Instances"
+msgstr "Instanzen"
 
 
 msgid "Add Image"
@@ -18779,8 +18787,8 @@ msgid "Rigid Body"
 msgstr "Rigid Body"
 
 
-msgid "Instances"
-msgstr "Instanzen"
+msgid "Import"
+msgstr "Importieren"
 
 
 msgid "Apply"
@@ -18793,10 +18801,6 @@ msgstr "Spur"
 
 msgid "Quick Effects"
 msgstr "Schnelle Effekte"
-
-
-msgid "Import"
-msgstr "Importieren"
 
 
 msgid "Show/Hide"
@@ -18823,12 +18827,12 @@ msgid "Hooks"
 msgstr "Haken"
 
 
-msgid "Vertex Group Locks"
-msgstr "Punktgruppen sperren"
-
-
 msgid "UV"
 msgstr "UV"
+
+
+msgid "Vertex Group Locks"
+msgstr "Punktgruppen sperren"
 
 
 msgid "Random Mask"
@@ -18871,16 +18875,20 @@ msgid "Merge"
 msgstr "Zusammenführen"
 
 
+msgid "Linked"
+msgstr "Verknüpft"
+
+
+msgid "Layout"
+msgstr "Layout"
+
+
 msgid "Special Characters"
 msgstr "Sonderzeichen"
 
 
 msgid "Kerning"
 msgstr "Kerning"
-
-
-msgid "Layout"
-msgstr "Layout"
 
 
 msgid "Keying"
@@ -23447,10 +23455,6 @@ msgid "Join Geometry"
 msgstr "Geometrie verbinden"
 
 
-msgid "Single"
-msgstr "Einzelner"
-
-
 msgid "Material Selection"
 msgstr "Materialauswahl"
 
@@ -24429,10 +24433,6 @@ msgstr "Typ der Gruppenbuchse"
 
 msgid "Hide Value"
 msgstr "Wert verbergen"
-
-
-msgid "Linked"
-msgstr "Verknüpft"
 
 
 msgid "Is Output"
@@ -38732,6 +38732,30 @@ msgid "Active Palette Color"
 msgstr "Aktive Farbpalette"
 
 
+msgid "Active Tool"
+msgstr "Aktives Werkzeug"
+
+
+msgid "View Lock"
+msgstr "Ansicht sperren"
+
+
+msgid "Shadow Settings"
+msgstr "Schatteneinstellungen"
+
+
+msgid "SSAO Settings"
+msgstr "SSAO Einstellungen"
+
+
+msgid "Cavity"
+msgstr "Hohlraum"
+
+
+msgid "Render Pass"
+msgstr "Renderdurchgänge"
+
+
 msgid "Compositor"
 msgstr "Setzer"
 
@@ -38786,30 +38810,6 @@ msgstr "Automatisches Maskieren"
 
 msgid "VR"
 msgstr "VR"
-
-
-msgid "Active Tool"
-msgstr "Aktives Werkzeug"
-
-
-msgid "View Lock"
-msgstr "Ansicht sperren"
-
-
-msgid "Shadow Settings"
-msgstr "Schatteneinstellungen"
-
-
-msgid "SSAO Settings"
-msgstr "SSAO Einstellungen"
-
-
-msgid "Cavity"
-msgstr "Hohlraum"
-
-
-msgid "Render Pass"
-msgstr "Renderdurchgänge"
 
 
 msgid "Chain Scaling"
@@ -39488,20 +39488,8 @@ msgid "Collection Colors"
 msgstr "Farbsammlung"
 
 
-msgid "Axis & Gizmo Colors"
-msgstr "Achsen- & Gizmofarben"
-
-
-msgid "Icon Colors"
-msgstr "Symbolfarbe"
-
-
 msgid "Shaded"
 msgstr "Schattiert"
-
-
-msgid "Styles"
-msgstr "Stile"
 
 
 msgid "Menu Item"
@@ -40461,6 +40449,10 @@ msgstr "Bearbeitungsmethoden"
 
 msgid "System & OpenGL"
 msgstr "System & OpenGL"
+
+
+msgid "Styles"
+msgstr "Stile"
 
 
 msgid "Save on Exit"
@@ -48382,6 +48374,11 @@ msgid "Refractive"
 msgstr "Lichtbrechend"
 
 
+msgctxt "Operator"
+msgid "Clear"
+msgstr "Entfernen"
+
+
 msgid "Surfaces"
 msgstr "Oberfläche"
 
@@ -49412,11 +49409,6 @@ msgstr "Spline:"
 
 msgid "Parenting:"
 msgstr "Kindbeziehung:"
-
-
-msgctxt "Operator"
-msgid "Clear"
-msgstr "Entfernen"
 
 
 msgid "Animation:"

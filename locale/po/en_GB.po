@@ -1,9 +1,9 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 5.2.0 Alpha (b'24a58e1403ac')\n"
+"Project-Id-Version: Blender 5.2.0 Alpha (b'8764d33c658b')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-05-25 07:25+0000\n"
+"POT-Creation-Date: 2026-06-01 07:36+0000\n"
 "PO-Revision-Date: 2026-02-16 18:12+0000\n"
 "Last-Translator: Deniz Jones <sdfoakes@gmail.com>\n"
 "Language-Team: English (United Kingdom) <https://translate.blender.org/projects/blender-ui/ui/en_GB/>\n"
@@ -5940,6 +5940,10 @@ msgstr "Simplify"
 
 msgid "Number of simplify steps (large values reduce fill accuracy)"
 msgstr "Number of simplify steps (large values reduce fill accuracy)"
+
+
+msgid "Pixel"
+msgstr "Pixel"
 
 
 msgid "Threshold to consider color transparent for filling"
@@ -17449,12 +17453,48 @@ msgid "Use curve to define primitive stroke thickness"
 msgstr "Use curve to define primitive stroke thickness"
 
 
-msgid "Field to Grid Item"
-msgstr "Field to Grid Item"
+msgid "Automatically detect a good structure type based on how the socket is used"
+msgstr "Automatically detect a good structure type based on how the socket is used"
+
+
+msgid "Dynamic"
+msgstr "Dynamic"
+
+
+msgid "Socket can work with different kinds of structures"
+msgstr "Socket can work with different kinds of structures"
+
+
+msgid "Socket expects a field"
+msgstr "Socket expects a field"
+
+
+msgid "Socket expects a grid"
+msgstr "Socket expects a grid"
+
+
+msgid "List"
+msgstr "List"
+
+
+msgid "Socket expects a list"
+msgstr "Socket expects a list"
+
+
+msgid "Single"
+msgstr "Single"
+
+
+msgid "Socket expects a single value"
+msgstr "Socket expects a single value"
 
 
 msgid "Items"
 msgstr "Items"
+
+
+msgid "Field to Grid Item"
+msgstr "Field to Grid Item"
 
 
 msgid "Collection of field to grid items"
@@ -19275,10 +19315,6 @@ msgstr "Global"
 
 msgid "Simulates the entire mesh"
 msgstr "Simulates the entire mesh"
-
-
-msgid "Dynamic"
-msgstr "Dynamic"
 
 
 msgid "The active simulation area moves with the brush"
@@ -26688,10 +26724,6 @@ msgstr "Degrees"
 
 msgid "How many degrees path has to curve to make another render segment"
 msgstr "How many degrees path has to curve to make another render segment"
-
-
-msgid "Pixel"
-msgstr "Pixel"
 
 
 msgid "How many pixels path has to cover to make another render segment"
@@ -34910,6 +34942,10 @@ msgid "Editor menu containing buttons"
 msgstr "Editor menu containing buttons"
 
 
+msgid "Render Preview"
+msgstr "Render Preview"
+
+
 msgid "Mirror"
 msgstr "Mirror"
 
@@ -34946,8 +34982,16 @@ msgid "View Regions"
 msgstr "View Regions"
 
 
+msgid "Math"
+msgstr "Maths"
+
+
 msgid "Select More/Less"
 msgstr "Select More/Less"
+
+
+msgid "Utilities"
+msgstr "Utilities"
 
 
 msgid "Select Similar"
@@ -34958,10 +35002,6 @@ msgid "Select All by Trait"
 msgstr "Select All by Trait"
 
 
-msgid "Math"
-msgstr "Maths"
-
-
 msgid "Select Linked"
 msgstr "Select Linked"
 
@@ -34970,16 +35010,8 @@ msgid "Select Loops"
 msgstr "Select Loops"
 
 
-msgid "Utilities"
-msgstr "Utilities"
-
-
 msgid "Assign Material"
 msgstr "Assign Material"
-
-
-msgid "Metaball"
-msgstr "Metaball"
 
 
 msgid "Read"
@@ -34998,12 +35030,24 @@ msgid "Primitives"
 msgstr "Primitives"
 
 
+msgid "Metaball"
+msgstr "Metaball"
+
+
 msgid "Light"
 msgstr "Light"
 
 
 msgid "Light Probe"
 msgstr "Light Probe"
+
+
+msgid "Gizmo"
+msgstr "Gizmo"
+
+
+msgid "Instances"
+msgstr "Instances"
 
 
 msgid "Add Image"
@@ -35018,12 +35062,8 @@ msgid "Rigid Body"
 msgstr "Rigid Body"
 
 
-msgid "Gizmo"
-msgstr "Gizmo"
-
-
-msgid "Instances"
-msgstr "Instances"
+msgid "Import"
+msgstr "Import"
 
 
 msgid "Apply"
@@ -35038,12 +35078,12 @@ msgid "Quick Effects"
 msgstr "Quick Effects"
 
 
-msgid "Import"
-msgstr "Import"
-
-
 msgid "Show/Hide"
 msgstr "Show/Hide"
+
+
+msgid "Deprecated"
+msgstr "Deprecated"
 
 
 msgid "Clean Up"
@@ -35070,24 +35110,16 @@ msgid "Hooks"
 msgstr "Hooks"
 
 
-msgid "Deprecated"
-msgstr "Deprecated"
+msgid "UV"
+msgstr "UV"
 
 
 msgid "Vertex Group Locks"
 msgstr "Vertex Group Locks"
 
 
-msgid "List"
-msgstr "List"
-
-
 msgid "Trim/Add"
 msgstr "Trim/Add"
-
-
-msgid "UV"
-msgstr "UV"
 
 
 msgid "Sculpt Set Pivot"
@@ -35154,16 +35186,20 @@ msgid "Merge"
 msgstr "Merge"
 
 
+msgid "Linked"
+msgstr "Linked"
+
+
+msgid "Layout"
+msgstr "Layout"
+
+
 msgid "Special Characters"
 msgstr "Special Characters"
 
 
 msgid "Kerning"
 msgstr "Kerning"
-
-
-msgid "Layout"
-msgstr "Layout"
 
 
 msgid "Bone Roll"
@@ -35182,6 +35218,10 @@ msgid "Tracking"
 msgstr "Tracking"
 
 
+msgid "Creative"
+msgstr "Creative"
+
+
 msgid "Pivot Point"
 msgstr "Pivot Point"
 
@@ -35198,16 +35238,8 @@ msgid "Automasking"
 msgstr "Automasking"
 
 
-msgid "Creative"
-msgstr "Creative"
-
-
 msgid "Face Sets Edit"
 msgstr "Face Sets Edit"
-
-
-msgid "Render Preview"
-msgstr "Render Preview"
 
 
 msgid "Keyframe Insert Pie"
@@ -46937,6 +46969,10 @@ msgid "Which domain to store the data in"
 msgstr "Which domain to store the data in"
 
 
+msgid "Create a list of values"
+msgstr "Create a list of values"
+
+
 msgid "Collection Info"
 msgstr "Collection Info"
 
@@ -47487,10 +47523,6 @@ msgstr "Create new grids by evaluating new values on an existing volume grid top
 
 msgid "Data type for topology grid"
 msgstr "Data type for topology grid"
-
-
-msgid "Create a list of values"
-msgstr "Create a list of values"
 
 
 msgid "Field Variance"
@@ -48176,34 +48208,6 @@ msgstr "Structure Type"
 
 msgid "What kind of higher order types are expected to flow through this socket"
 msgstr "What kind of higher order types are expected to flow through this socket"
-
-
-msgid "Automatically detect a good structure type based on how the socket is used"
-msgstr "Automatically detect a good structure type based on how the socket is used"
-
-
-msgid "Socket can work with different kinds of structures"
-msgstr "Socket can work with different kinds of structures"
-
-
-msgid "Socket expects a field"
-msgstr "Socket expects a field"
-
-
-msgid "Socket expects a grid"
-msgstr "Socket expects a grid"
-
-
-msgid "Socket expects a list"
-msgstr "Socket expects a list"
-
-
-msgid "Single"
-msgstr "Single"
-
-
-msgid "Socket expects a single value"
-msgstr "Socket expects a single value"
 
 
 msgid "List Length"
@@ -52207,10 +52211,6 @@ msgid "Socket is grayed out because it has been detected to not have any effect 
 msgstr "Socket is greyed out because it has been detected to not have any effect on the output"
 
 
-msgid "Linked"
-msgstr "Linked"
-
-
 msgid "True if the socket is connected"
 msgstr "True if the socket is connected"
 
@@ -53226,6 +53226,11 @@ msgstr "Validate Collection References"
 msgctxt "Operator"
 msgid "Assign Action"
 msgstr "Assign Action"
+
+
+msgctxt "Operator"
+msgid "Open File Location"
+msgstr "Open File Location"
 
 
 msgid "Open the blend file that contains the active asset"
@@ -67187,18 +67192,6 @@ msgstr "Detect UDIMs"
 
 msgid "Detect selected UDIM files and load all matching tiles"
 msgstr "Detect selected UDIM files and load all matching tiles"
-
-
-msgid "Use relative path"
-msgstr "Use relative path"
-
-
-msgid "Use sequence detection"
-msgstr "Use sequence detection"
-
-
-msgid "Use UDIM detection"
-msgstr "Use UDIM detection"
 
 
 msgctxt "Operator"
@@ -91308,6 +91301,34 @@ msgid "Panel containing UI elements"
 msgstr "Panel containing UI elements"
 
 
+msgid "Active Tool"
+msgstr "Active Tool"
+
+
+msgid "View Lock"
+msgstr "View Lock"
+
+
+msgid "Selectability & Visibility"
+msgstr "Selectability & Visibility"
+
+
+msgid "Shadow Settings"
+msgstr "Shadow Settings"
+
+
+msgid "SSAO Settings"
+msgstr "SSAO Settings"
+
+
+msgid "Cavity"
+msgstr "Cavity"
+
+
+msgid "Render Pass"
+msgstr "Render Pass"
+
+
 msgid "Compositor"
 msgstr "Compositor"
 
@@ -91418,34 +91439,6 @@ msgstr "glTF"
 
 msgid "glTF Animations"
 msgstr "glTF Animations"
-
-
-msgid "Active Tool"
-msgstr "Active Tool"
-
-
-msgid "View Lock"
-msgstr "View Lock"
-
-
-msgid "Selectability & Visibility"
-msgstr "Selectability & Visibility"
-
-
-msgid "Shadow Settings"
-msgstr "Shadow Settings"
-
-
-msgid "SSAO Settings"
-msgstr "SSAO Settings"
-
-
-msgid "Cavity"
-msgstr "Cavity"
-
-
-msgid "Render Pass"
-msgstr "Render Pass"
 
 
 msgid "Import Settings"
@@ -92637,20 +92630,8 @@ msgid "Image/UV Editor"
 msgstr "Image/UV Editor"
 
 
-msgid "Axis & Gizmo Colors"
-msgstr "Axis & Gizmo Colours"
-
-
-msgid "Icon Colors"
-msgstr "Icon Colours"
-
-
 msgid "Shaded"
 msgstr "Shaded"
-
-
-msgid "Styles"
-msgstr "Styles"
 
 
 msgid "Transparent Checkerboard"
@@ -92707,10 +92688,6 @@ msgstr "Scrubbing / Markers"
 
 msgid "Toolbar / Sidebar"
 msgstr "Toolbar / Sidebar"
-
-
-msgid "Strip Color Tags"
-msgstr "Strip Colour Tags"
 
 
 msgid "Text Style"
@@ -94434,6 +94411,10 @@ msgid "Graphics driver and operating system settings"
 msgstr "Graphics driver and operating system settings"
 
 
+msgid "Styles"
+msgstr "Styles"
+
+
 msgid "Save on Exit"
 msgstr "Save on Exit"
 
@@ -95005,14 +94986,6 @@ msgstr "Extensions Debug"
 
 msgid "Extra debugging information & developer support utilities for extensions"
 msgstr "Extra debugging information & developer support utilities for extensions"
-
-
-msgid "Bundle in Geometry"
-msgstr "Bundle in Geometry"
-
-
-msgid "Support storing custom bundles in a geometry in Geometry Nodes"
-msgstr "Support storing custom bundles in a geometry in Geometry Nodes"
 
 
 msgid "New Curves Tools"
@@ -118900,6 +118873,11 @@ msgid "Roughness Threshold"
 msgstr "Roughness Threshold"
 
 
+msgctxt "Operator"
+msgid "Clear"
+msgstr "Clear"
+
+
 msgid "Surfaces"
 msgstr "Surfaces"
 
@@ -122817,11 +122795,6 @@ msgstr "Spline:"
 
 msgid "Parenting:"
 msgstr "Parenting:"
-
-
-msgctxt "Operator"
-msgid "Clear"
-msgstr "Clear"
 
 
 msgid "Animation:"
@@ -126858,12 +126831,12 @@ msgid "Axis X"
 msgstr "Axis X"
 
 
-msgid "View Align"
-msgstr "View Align"
-
-
 msgid "B"
 msgstr "B"
+
+
+msgid "View Align"
+msgstr "View Align"
 
 
 msgctxt "Text"
@@ -131630,10 +131603,6 @@ msgid "B"
 msgstr "B"
 
 
-msgid "Modifier requires original data"
-msgstr "Modifier requires original data"
-
-
 msgctxt "Operator"
 msgid "Reorder F-Curve Modifier"
 msgstr "Reorder F-Curve Modifier"
@@ -132566,10 +132535,6 @@ msgid "Operator is already registered"
 msgstr "Operator is already registered"
 
 
-msgid "Missing node tool identifier ({})"
-msgstr "Missing node tool identifier ({})"
-
-
 msgid "Unassigned Node Tools"
 msgstr "Unassigned Node Tools"
 
@@ -133103,11 +133068,6 @@ msgstr "Copy Single to Selected"
 msgctxt "Operator"
 msgid "Copy Full Data Path"
 msgstr "Copy Full Data Path"
-
-
-msgctxt "Operator"
-msgid "Open File Location"
-msgstr "Open File Location"
 
 
 msgctxt "Operator"
@@ -141617,10 +141577,6 @@ msgid "Midpoints"
 msgstr "Midpoints"
 
 
-msgid "Could not initialize stitching on any selected object"
-msgstr "Could not initialise stitching on any selected object"
-
-
 msgid "Stitching only works with less than %i objects selected (%i selected)"
 msgstr "Stitching only works with less than %i objects selected (%i selected)"
 
@@ -143478,10 +143434,6 @@ msgstr "Can only assign evaluated data to evaluated object, or original data to 
 
 msgid "Only empty objects support collection instances"
 msgstr "Only empty objects support collection instances"
-
-
-msgid "Cannot set instance-collection as object belongs in collection being instanced, thus causing a cycle"
-msgstr "Cannot set instance-collection as object belongs in collection being instanced, thus causing a cycle"
 
 
 msgid "VertexGroup.add(): cannot be called while object is in edit mode"
@@ -146985,6 +146937,10 @@ msgid "Closure"
 msgstr "Closure"
 
 
+msgid "The number of elements in the list"
+msgstr "The number of elements in the list"
+
+
 msgid "Collection contains current object"
 msgstr "Collection contains current object"
 
@@ -147783,10 +147739,6 @@ msgid "Output grid with evaluated field values"
 msgstr "Output grid with evaluated field values"
 
 
-msgid "The number of elements in the list"
-msgstr "The number of elements in the list"
-
-
 msgid "The values the standard deviation and variance will be calculated from"
 msgstr "The values the standard deviation and variance will be calculated from"
 
@@ -147898,10 +147850,6 @@ msgstr "Each input geometry is turned into a separate instance"
 
 msgid "Cannot get internal value from bundle"
 msgstr "Cannot get internal value from bundle"
-
-
-msgid "The experimental option for this node is disabled"
-msgstr "The experimental option for this node is disabled"
 
 
 msgid "Removing the bundle from the geometry can be beneficial to avoid unnecessary data copies"

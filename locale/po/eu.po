@@ -1,9 +1,9 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 5.2.0 Alpha (b'24a58e1403ac')\n"
+"Project-Id-Version: Blender 5.2.0 Alpha (b'8764d33c658b')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-05-25 07:25+0000\n"
+"POT-Creation-Date: 2026-06-01 07:36+0000\n"
 "PO-Revision-Date: 2025-07-23 15:13+0000\n"
 "Last-Translator: Anonymous <noreply@weblate.org>\n"
 "Language-Team: Basque <https://translate.blender.org/projects/blender-ui/ui/eu/>\n"
@@ -1799,6 +1799,11 @@ msgid "Report a Bug"
 msgstr "Akats baten berri eman"
 
 
+msgctxt "Operator"
+msgid "Clear"
+msgstr "Garbitu"
+
+
 msgid "3D View"
 msgstr "3D Bista"
 
@@ -1819,11 +1824,6 @@ msgstr "Xehetasuna"
 
 msgid "Priority"
 msgstr "Lehentasuna"
-
-
-msgctxt "Operator"
-msgid "Clear"
-msgstr "Garbitu"
 
 
 msgid "Lower"

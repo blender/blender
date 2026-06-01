@@ -1,11 +1,11 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 5.2.0 Alpha (b'24a58e1403ac')\n"
+"Project-Id-Version: Blender 5.2.0 Alpha (b'8764d33c658b')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-05-25 07:25+0000\n"
-"PO-Revision-Date: 2026-05-10 15:12+0000\n"
-"Last-Translator: 居樂行 <oscilloscope9705@gmail.com>\n"
+"POT-Creation-Date: 2026-06-01 07:36+0000\n"
+"PO-Revision-Date: 2026-05-30 09:12+0000\n"
+"Last-Translator: Ye Gui <ziweidao@foxmail.com>\n"
 "Language-Team: Chinese (Traditional Han script) <https://translate.blender.org/projects/blender-ui/ui/zh_Hant/>\n"
 "Language: zh_HANT\n"
 "MIME-Version: 1.0\n"
@@ -5339,6 +5339,10 @@ msgstr "簡化"
 
 msgid "Number of simplify steps (large values reduce fill accuracy)"
 msgstr "簡化步驟次數 (數量大會降低填充精確度)"
+
+
+msgid "Pixel"
+msgstr "像素"
 
 
 msgid "Threshold to consider color transparent for filling"
@@ -14213,12 +14217,24 @@ msgid "Use Curve"
 msgstr "使用曲線"
 
 
-msgid "Field to Grid Item"
-msgstr "場轉格線項目"
+msgid "Dynamic"
+msgstr "動態"
+
+
+msgid "List"
+msgstr "列表"
+
+
+msgid "Single"
+msgstr "單一"
 
 
 msgid "Items"
 msgstr "項目"
+
+
+msgid "Field to Grid Item"
+msgstr "場轉格線項目"
 
 
 msgctxt "Operator"
@@ -15231,10 +15247,6 @@ msgstr "區域"
 
 msgid "Global"
 msgstr "全域"
-
-
-msgid "Dynamic"
-msgstr "動態"
 
 
 msgid "Color Type"
@@ -20012,10 +20024,6 @@ msgstr "度"
 
 msgid "How many degrees path has to curve to make another render segment"
 msgstr "路徑必須彎曲多少度來產生另一個算繪分段"
-
-
-msgid "Pixel"
-msgstr "像素"
 
 
 msgid "How many pixels path has to cover to make another render segment"
@@ -26492,6 +26500,10 @@ msgid "Material slot name"
 msgstr "材質槽名稱"
 
 
+msgid "Render Preview"
+msgstr "算繪預覽"
+
+
 msgid "Mirror"
 msgstr "鏡像"
 
@@ -26528,8 +26540,16 @@ msgid "View Regions"
 msgstr "檢視範圍"
 
 
+msgid "Math"
+msgstr "數學公式"
+
+
 msgid "Select More/Less"
 msgstr "選取更多/更少"
+
+
+msgid "Utilities"
+msgstr "效用"
 
 
 msgid "Select Similar"
@@ -26540,10 +26560,6 @@ msgid "Select All by Trait"
 msgstr "依特徵全選"
 
 
-msgid "Math"
-msgstr "數學公式"
-
-
 msgid "Select Linked"
 msgstr "選取連結項"
 
@@ -26552,16 +26568,8 @@ msgid "Select Loops"
 msgstr "選取迴圈"
 
 
-msgid "Utilities"
-msgstr "效用"
-
-
 msgid "Assign Material"
 msgstr "指派材質"
-
-
-msgid "Metaball"
-msgstr "變幻球"
 
 
 msgid "Read"
@@ -26580,12 +26588,24 @@ msgid "Primitives"
 msgstr "原形"
 
 
+msgid "Metaball"
+msgstr "變幻球"
+
+
 msgid "Light"
 msgstr "燈光"
 
 
 msgid "Light Probe"
 msgstr "燈光採樣器"
+
+
+msgid "Gizmo"
+msgstr "操縱器"
+
+
+msgid "Instances"
+msgstr "實例化"
 
 
 msgid "Add Image"
@@ -26600,12 +26620,8 @@ msgid "Rigid Body"
 msgstr "剛體"
 
 
-msgid "Gizmo"
-msgstr "操縱器"
-
-
-msgid "Instances"
-msgstr "實例化"
+msgid "Import"
+msgstr "匯入"
 
 
 msgid "Apply"
@@ -26620,12 +26636,12 @@ msgid "Quick Effects"
 msgstr "快速效果"
 
 
-msgid "Import"
-msgstr "匯入"
-
-
 msgid "Show/Hide"
 msgstr "顯示/隱藏"
+
+
+msgid "Deprecated"
+msgstr "已棄用"
 
 
 msgid "Clean Up"
@@ -26652,24 +26668,16 @@ msgid "Hooks"
 msgstr "鉤"
 
 
-msgid "Deprecated"
-msgstr "已棄用"
+msgid "UV"
+msgstr "UV"
 
 
 msgid "Vertex Group Locks"
 msgstr "頂點群組鎖定"
 
 
-msgid "List"
-msgstr "列表"
-
-
 msgid "Trim/Add"
 msgstr "修剪/增加"
-
-
-msgid "UV"
-msgstr "UV"
 
 
 msgid "Sculpt Set Pivot"
@@ -26732,16 +26740,20 @@ msgid "Merge"
 msgstr "合併"
 
 
+msgid "Linked"
+msgstr "已連結"
+
+
+msgid "Layout"
+msgstr "配置"
+
+
 msgid "Special Characters"
 msgstr "特殊字元"
 
 
 msgid "Kerning"
 msgstr "字間微調"
-
-
-msgid "Layout"
-msgstr "配置"
 
 
 msgid "Bone Roll"
@@ -26760,6 +26772,10 @@ msgid "Tracking"
 msgstr "跟蹤"
 
 
+msgid "Creative"
+msgstr "創意"
+
+
 msgid "Pivot Point"
 msgstr "樞紐點"
 
@@ -26776,16 +26792,8 @@ msgid "Automasking"
 msgstr "自動遮罩"
 
 
-msgid "Creative"
-msgstr "創意"
-
-
 msgid "Face Sets Edit"
 msgstr "面集編輯"
-
-
-msgid "Render Preview"
-msgstr "算繪預覽"
 
 
 msgid "Keyframe Insert Pie"
@@ -27107,6 +27115,11 @@ msgstr "序段編輯器"
 
 msgid "Sequencer Preview"
 msgstr "序段預覽"
+
+
+msgctxt "Operator"
+msgid "Retiming"
+msgstr "重定時"
 
 
 msgid "Select Channel"
@@ -34605,10 +34618,6 @@ msgid "Structure Type"
 msgstr "結構類型"
 
 
-msgid "Single"
-msgstr "單一"
-
-
 msgid "List Length"
 msgstr "列表長度"
 
@@ -36683,10 +36692,6 @@ msgid "Inactive"
 msgstr "非作用中"
 
 
-msgid "Linked"
-msgstr "已連結"
-
-
 msgid "True if the socket is connected"
 msgstr "如果接口有連接則為真"
 
@@ -37276,6 +37281,11 @@ msgstr "加入/移除 UI 列"
 msgctxt "Operator"
 msgid "Assign Action"
 msgstr "指派動作"
+
+
+msgctxt "Operator"
+msgid "Open File Location"
+msgstr "開啟檔案位置"
 
 
 msgctxt "Operator"
@@ -45995,14 +46005,6 @@ msgstr "偵測序段"
 
 msgid "Detect UDIMs"
 msgstr "偵測 UDIM"
-
-
-msgid "Use relative path"
-msgstr "使用相對路徑"
-
-
-msgid "Use UDIM detection"
-msgstr "使用 UDIM 偵測"
 
 
 msgctxt "Operator"
@@ -61380,6 +61382,30 @@ msgid "Palette Splines"
 msgstr "調色盤雲型線"
 
 
+msgid "Active Tool"
+msgstr "作用中工具"
+
+
+msgid "View Lock"
+msgstr "視圖鎖定"
+
+
+msgid "Shadow Settings"
+msgstr "陰影設定"
+
+
+msgid "SSAO Settings"
+msgstr "SSAO 設定"
+
+
+msgid "Cavity"
+msgstr "坑腔"
+
+
+msgid "Render Pass"
+msgstr "算繪通道"
+
+
 msgid "Compositor"
 msgstr "合成器"
 
@@ -61478,30 +61504,6 @@ msgstr "glTF"
 
 msgid "glTF Animations"
 msgstr "glTF 動畫"
-
-
-msgid "Active Tool"
-msgstr "作用中工具"
-
-
-msgid "View Lock"
-msgstr "視圖鎖定"
-
-
-msgid "Shadow Settings"
-msgstr "陰影設定"
-
-
-msgid "SSAO Settings"
-msgstr "SSAO 設定"
-
-
-msgid "Cavity"
-msgstr "坑腔"
-
-
-msgid "Render Pass"
-msgstr "算繪通道"
 
 
 msgid "Import Settings"
@@ -62628,20 +62630,8 @@ msgid "Image/UV Editor"
 msgstr "影像/UV編輯器"
 
 
-msgid "Axis & Gizmo Colors"
-msgstr "軸和操縱器色彩"
-
-
-msgid "Icon Colors"
-msgstr "圖示色彩"
-
-
 msgid "Shaded"
 msgstr "著色"
-
-
-msgid "Styles"
-msgstr "樣式"
 
 
 msgid "Transparent Checkerboard"
@@ -62698,10 +62688,6 @@ msgstr "刷動 / 標記"
 
 msgid "Toolbar / Sidebar"
 msgstr "工具列 / 側欄"
-
-
-msgid "Strip Color Tags"
-msgstr "片段色彩標籤"
 
 
 msgid "Text Style"
@@ -64191,6 +64177,10 @@ msgstr "系統與 OpenGL"
 
 msgid "Graphics driver and operating system settings"
 msgstr "顯示卡驅動程式與作業系統設定"
+
+
+msgid "Styles"
+msgstr "樣式"
 
 
 msgid "Save on Exit"
@@ -77579,6 +77569,11 @@ msgstr "旋轉"
 
 
 msgctxt "WindowManager"
+msgid "Scale"
+msgstr "縮放"
+
+
+msgctxt "WindowManager"
 msgid "Change Radius"
 msgstr "更改半徑"
 
@@ -79092,6 +79087,11 @@ msgstr "滾動快門"
 
 msgid "Roughness Threshold"
 msgstr "粗糙度閾值"
+
+
+msgctxt "Operator"
+msgid "Clear"
+msgstr "清除"
 
 
 msgid "Surfaces"
@@ -81295,11 +81295,6 @@ msgstr "雲形線："
 
 msgid "Parenting:"
 msgstr "親子關係："
-
-
-msgctxt "Operator"
-msgid "Clear"
-msgstr "清除"
 
 
 msgid "Animation:"
@@ -84627,12 +84622,12 @@ msgid "Axis X"
 msgstr "座標軸 X"
 
 
-msgid "View Align"
-msgstr "檢視對齊"
-
-
 msgid "B"
 msgstr "B"
+
+
+msgid "View Align"
+msgstr "檢視對齊"
 
 
 msgctxt "Text"
@@ -88618,11 +88613,6 @@ msgstr "全部重設回預設值"
 msgctxt "Operator"
 msgid "Reset Single to Default Value"
 msgstr "重設單項回預設值"
-
-
-msgctxt "Operator"
-msgid "Open File Location"
-msgstr "開啟檔案位置"
 
 
 msgctxt "Operator"
@@ -93799,10 +93789,6 @@ msgid "Unable to locate socket '%s' in node"
 msgstr "無法定位節點中的「%s」接口"
 
 
-msgid "Cannot set instance-collection as object belongs in collection being instanced, thus causing a cycle"
-msgstr "無法將實例集盒設定為物體，因物體所屬集盒正被作為實例而導致循環"
-
-
 msgid "VertexGroup.add(): cannot be called while object is in edit mode"
 msgstr "VertexGroup.add()：無法在物體處於編輯模式時呼叫"
 
@@ -95576,6 +95562,11 @@ msgstr "起始半徑"
 
 msgid "End Radius"
 msgstr "結束半徑"
+
+
+msgctxt "NodeTree"
+msgid "Rotations"
+msgstr "圈數"
 
 
 msgid "Inner Radius"
@@ -98013,6 +98004,11 @@ msgstr "使用者介面"
 
 
 msgctxt "Preferences"
+msgid "Accessibility"
+msgstr "無障礙"
+
+
+msgctxt "Preferences"
 msgid "Colorful"
 msgstr "多彩"
 
@@ -98158,6 +98154,10 @@ msgstr "結合球形"
 
 msgid "Theta"
 msgstr "Theta"
+
+
+msgid "Saturation "
+msgstr "飽和度 "
 
 
 msgid "Retime"

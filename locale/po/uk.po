@@ -1,9 +1,9 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 5.2.0 Alpha (b'24a58e1403ac')\n"
+"Project-Id-Version: Blender 5.2.0 Alpha (b'8764d33c658b')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-05-25 07:25+0000\n"
+"POT-Creation-Date: 2026-06-01 07:36+0000\n"
 "PO-Revision-Date: 2025-07-23 15:08+0000\n"
 "Last-Translator: Bartosz <gang65@poczta.onet.pl>\n"
 "Language-Team: Ukrainian <https://translate.blender.org/projects/blender-ui/ui/uk/>\n"
@@ -3997,6 +3997,10 @@ msgstr "Спрощення"
 
 msgid "Number of simplify steps (large values reduce fill accuracy)"
 msgstr "Кількість кроків спрощення (більші значення зменшують точність заповнення)"
+
+
+msgid "Pixel"
+msgstr "Піксель"
 
 
 msgid "Threshold to consider color transparent for filling"
@@ -13755,6 +13759,14 @@ msgid "Use curve to define primitive stroke thickness"
 msgstr "Використати криву для визначення товщини штриха примітива"
 
 
+msgid "Dynamic"
+msgstr "Динамічно"
+
+
+msgid "Single"
+msgstr "Один"
+
+
 msgid "Items"
 msgstr "Елементи"
 
@@ -14692,10 +14704,6 @@ msgstr "Глобально"
 
 msgid "Simulates the entire mesh"
 msgstr "Симулює всю сіть"
-
-
-msgid "Dynamic"
-msgstr "Динамічно"
 
 
 msgid "The active simulation area moves with the brush"
@@ -19771,10 +19779,6 @@ msgstr "Градуси"
 
 msgid "How many degrees path has to curve to make another render segment"
 msgstr "Величина викривлення у градусах, потрібна для створення ще одного сегменту рендера"
-
-
-msgid "Pixel"
-msgstr "Піксель"
 
 
 msgid "How many pixels path has to cover to make another render segment"
@@ -26319,8 +26323,16 @@ msgid "View Regions"
 msgstr "Регіони Огляду"
 
 
+msgid "Math"
+msgstr "Математика"
+
+
 msgid "Select More/Less"
 msgstr "Вибрати більше/менше"
+
+
+msgid "Utilities"
+msgstr "Утиліти"
 
 
 msgid "Select Similar"
@@ -26331,10 +26343,6 @@ msgid "Select All by Trait"
 msgstr "Вибрати все за рисою"
 
 
-msgid "Math"
-msgstr "Математика"
-
-
 msgid "Select Linked"
 msgstr "Виділити пов'язане"
 
@@ -26343,16 +26351,8 @@ msgid "Select Loops"
 msgstr "Виділити петлі"
 
 
-msgid "Utilities"
-msgstr "Утиліти"
-
-
 msgid "Assign Material"
 msgstr "Призначити Матеріал"
-
-
-msgid "Metaball"
-msgstr "Метакуля"
 
 
 msgid "Sample"
@@ -26361,6 +26361,10 @@ msgstr "Вибірка"
 
 msgid "Primitives"
 msgstr "Примітиви"
+
+
+msgid "Metaball"
+msgstr "Метакуля"
 
 
 msgid "Light"
@@ -26383,6 +26387,10 @@ msgid "Rigid Body"
 msgstr "Тверде тіло"
 
 
+msgid "Import"
+msgstr "Імпортувати"
+
+
 msgid "Apply"
 msgstr "Застосувати"
 
@@ -26393,10 +26401,6 @@ msgstr "Стеження"
 
 msgid "Quick Effects"
 msgstr "Швидкі ефекти"
-
-
-msgid "Import"
-msgstr "Імпортувати"
 
 
 msgid "Show/Hide"
@@ -26427,12 +26431,12 @@ msgid "Hooks"
 msgstr "Гачки"
 
 
-msgid "Vertex Group Locks"
-msgstr "Блокування Груп Вершин"
-
-
 msgid "UV"
 msgstr "UV"
+
+
+msgid "Vertex Group Locks"
+msgstr "Блокування Груп Вершин"
 
 
 msgid "Sculpt Set Pivot"
@@ -26491,16 +26495,20 @@ msgid "Merge"
 msgstr "Об'єднання"
 
 
+msgid "Linked"
+msgstr "Пов'язане"
+
+
+msgid "Layout"
+msgstr "Розстановка"
+
+
 msgid "Special Characters"
 msgstr "Спеціальні символи"
 
 
 msgid "Kerning"
 msgstr "Кернінг"
-
-
-msgid "Layout"
-msgstr "Розстановка"
 
 
 msgid "Bone Roll"
@@ -34381,10 +34389,6 @@ msgid "Join Geometry"
 msgstr "Сполучення Геометрії"
 
 
-msgid "Single"
-msgstr "Один"
-
-
 msgid "Fill Type"
 msgstr "Тип заповнення"
 
@@ -35832,10 +35836,6 @@ msgstr "Сховати ввідне значення роз'єму"
 
 msgid "Unique identifier for mapping sockets"
 msgstr "Унікальний ідентифікатор для розкладки роз'ємів"
-
-
-msgid "Linked"
-msgstr "Пов'язане"
 
 
 msgid "True if the socket is connected"
@@ -60609,6 +60609,30 @@ msgid "Panel containing UI elements"
 msgstr "Панель, що містить елементи Інтерфейсу Користувача"
 
 
+msgid "Active Tool"
+msgstr "Активний Засіб"
+
+
+msgid "View Lock"
+msgstr "Блокувати Огляд"
+
+
+msgid "Shadow Settings"
+msgstr "Устави Тіні"
+
+
+msgid "SSAO Settings"
+msgstr "Устави Загороди Оточення Простору Екрану"
+
+
+msgid "Cavity"
+msgstr "Порожнинність"
+
+
+msgid "Render Pass"
+msgstr "Прохід Рендера"
+
+
 msgid "Overlays"
 msgstr "Накладки"
 
@@ -60667,30 +60691,6 @@ msgstr "Авто-Маскування"
 
 msgid "VR"
 msgstr "ВР"
-
-
-msgid "Active Tool"
-msgstr "Активний Засіб"
-
-
-msgid "View Lock"
-msgstr "Блокувати Огляд"
-
-
-msgid "Shadow Settings"
-msgstr "Устави Тіні"
-
-
-msgid "SSAO Settings"
-msgstr "Устави Загороди Оточення Простору Екрану"
-
-
-msgid "Cavity"
-msgstr "Порожнинність"
-
-
-msgid "Render Pass"
-msgstr "Прохід Рендера"
 
 
 msgid "Chain Scaling"
@@ -61539,20 +61539,8 @@ msgid "Collection Colors"
 msgstr "Кольори Колекцій"
 
 
-msgid "Axis & Gizmo Colors"
-msgstr "Кольори Осей і Гізмо"
-
-
-msgid "Icon Colors"
-msgstr "Кольори Іконок"
-
-
 msgid "Shaded"
 msgstr "Відтінено"
-
-
-msgid "Styles"
-msgstr "Стилі"
 
 
 msgid "Transparent Checkerboard"
@@ -63051,6 +63039,10 @@ msgstr "Система та OpenGL"
 
 msgid "Graphics driver and operating system settings"
 msgstr "Параметри графічного драйвера та операційної системи"
+
+
+msgid "Styles"
+msgstr "Стилі"
 
 
 msgid "Save on Exit"
@@ -76024,6 +76016,11 @@ msgid "Roughness Threshold"
 msgstr "Поріг Шорсткості"
 
 
+msgctxt "Operator"
+msgid "Clear"
+msgstr "Зчищення"
+
+
 msgid "Surfaces"
 msgstr "Поверхні"
 
@@ -77123,11 +77120,6 @@ msgstr "Сплайн:"
 
 msgid "Parenting:"
 msgstr "Приріднювання:"
-
-
-msgctxt "Operator"
-msgid "Clear"
-msgstr "Зчищення"
 
 
 msgid "Animation:"

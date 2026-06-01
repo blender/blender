@@ -1,9 +1,9 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 5.2.0 Alpha (b'24a58e1403ac')\n"
+"Project-Id-Version: Blender 5.2.0 Alpha (b'8764d33c658b')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-05-25 07:25+0000\n"
+"POT-Creation-Date: 2026-06-01 07:36+0000\n"
 "PO-Revision-Date: 2025-12-01 09:17+0000\n"
 "Last-Translator: Matt Mitacek <mattmitacek@gmail.com>\n"
 "Language-Team: Czech <https://translate.blender.org/projects/blender-ui/ui/cs/>\n"
@@ -3474,6 +3474,10 @@ msgstr "Zjednodušit"
 
 msgid "Number of simplify steps (large values reduce fill accuracy)"
 msgstr "Počet kroků zjednodušení (velké hodnoty snižují přesnost výplně)"
+
+
+msgid "Pixel"
+msgstr "Pixely"
 
 
 msgid "Threshold to consider color transparent for filling"
@@ -8168,6 +8172,14 @@ msgid "Use Snapping"
 msgstr "Použít Přychitávání"
 
 
+msgid "Dynamic"
+msgstr "Dynamický"
+
+
+msgid "Single"
+msgstr "Úhel"
+
+
 msgctxt "Operator"
 msgid "Gizmo"
 msgstr "Gizmo"
@@ -8477,10 +8489,6 @@ msgstr "Globální"
 
 msgid "Simulates the entire mesh"
 msgstr "Simuluje celou síť"
-
-
-msgid "Dynamic"
-msgstr "Dynamický"
 
 
 msgid "Paint with a single color"
@@ -10732,10 +10740,6 @@ msgstr "Zobrazit a vybrat klíče"
 
 msgid "Degrees"
 msgstr "Stupňě"
-
-
-msgid "Pixel"
-msgstr "Pixely"
 
 
 msgid "Angular Velocity"
@@ -13859,12 +13863,12 @@ msgid "Math"
 msgstr "Matematika"
 
 
-msgid "Select Linked"
-msgstr "Vybrat Propojené"
-
-
 msgid "Utilities"
 msgstr "Nástroje"
+
+
+msgid "Select Linked"
+msgstr "Vybrat Propojené"
 
 
 msgid "Assign Material"
@@ -13879,6 +13883,10 @@ msgid "Light"
 msgstr "Světlo"
 
 
+msgid "Instances"
+msgstr "Instance"
+
+
 msgid "Relations"
 msgstr "Vztahy"
 
@@ -13887,8 +13895,8 @@ msgid "Rigid Body"
 msgstr "Tuhé Těleso"
 
 
-msgid "Instances"
-msgstr "Instance"
+msgid "Import"
+msgstr "Importovat"
 
 
 msgid "Apply"
@@ -13901,10 +13909,6 @@ msgstr "Sledování"
 
 msgid "Quick Effects"
 msgstr "Rychlé Efekty"
-
-
-msgid "Import"
-msgstr "Importovat"
 
 
 msgid "Show/Hide"
@@ -13947,12 +13951,16 @@ msgid "Merge"
 msgstr "Sloučit"
 
 
-msgid "Special Characters"
-msgstr "Speciální Znaky"
+msgid "Linked"
+msgstr "Propojené"
 
 
 msgid "Layout"
 msgstr "Rozložení"
+
+
+msgid "Special Characters"
+msgstr "Speciální Znaky"
 
 
 msgid "Bone Roll"
@@ -17116,10 +17124,6 @@ msgid "Join Geometry"
 msgstr "Spojit Geometrii"
 
 
-msgid "Single"
-msgstr "Úhel"
-
-
 msgid "Fill Type"
 msgstr "Fill Type"
 
@@ -17703,10 +17707,6 @@ msgstr "Diamant"
 
 msgid "Hide the socket"
 msgstr "Označit vrstvu"
-
-
-msgid "Linked"
-msgstr "Propojené"
 
 
 msgid "Socket name"
@@ -30330,6 +30330,26 @@ msgid "Restrict"
 msgstr "Omezit"
 
 
+msgid "Active Tool"
+msgstr "Aktivní nástroj"
+
+
+msgid "View Lock"
+msgstr "Zámek zobrazení"
+
+
+msgid "Shadow Settings"
+msgstr "Nastavení Stínů"
+
+
+msgid "SSAO Settings"
+msgstr "Nastavení SSAO"
+
+
+msgid "Cavity"
+msgstr "Dutina"
+
+
 msgid "Overlays"
 msgstr "Překrytí"
 
@@ -30364,26 +30384,6 @@ msgstr "Stereoskopie"
 
 msgid "Auto-Masking"
 msgstr "Auto-Maska"
-
-
-msgid "Active Tool"
-msgstr "Aktivní nástroj"
-
-
-msgid "View Lock"
-msgstr "Zámek zobrazení"
-
-
-msgid "Shadow Settings"
-msgstr "Nastavení Stínů"
-
-
-msgid "SSAO Settings"
-msgstr "Nastavení SSAO"
-
-
-msgid "Cavity"
-msgstr "Dutina"
 
 
 msgid "Chain Scaling"
@@ -31044,10 +31044,6 @@ msgstr "Barvy kolekce"
 
 msgid "Shaded"
 msgstr "Stínovaný"
-
-
-msgid "Styles"
-msgstr "Styly"
 
 
 msgid "Menu Item"
@@ -31988,6 +31984,10 @@ msgstr "Přidat vazbu aktivní kosti"
 
 msgid "System & OpenGL"
 msgstr "Systém & OpenGL"
+
+
+msgid "Styles"
+msgstr "Styly"
 
 
 msgid "View & Controls"
@@ -37008,6 +37008,11 @@ msgid "Roughness Threshold"
 msgstr "Práh Průhlednosti"
 
 
+msgctxt "Operator"
+msgid "Clear"
+msgstr "Vyčistit"
+
+
 msgid "Surfaces"
 msgstr "Povrchy"
 
@@ -37495,11 +37500,6 @@ msgstr "Rodič:"
 
 msgid "Transform:"
 msgstr "Transformace:"
-
-
-msgctxt "Operator"
-msgid "Clear"
-msgstr "Vyčistit"
 
 
 msgid "Animation:"
