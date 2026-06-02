@@ -212,8 +212,7 @@ void slide_subjects_reset(ListBaseT<SlideSubject> *slide_subjects);
 /** Perform auto-key-framing after changes were made + confirmed. */
 void slide_subjects_autokey(bContext *C,
                             Scene *scene,
-                            const ListBaseT<SlideSubject> *slide_subjects,
-                            float cframe);
+                            const ListBaseT<SlideSubject> *slide_subjects);
 
 /** \} */
 

@@ -1281,10 +1281,10 @@ static bool has_pose_motion_paths(Object *ob)
   return ob->pose && (ob->pose->avs.path_bakeflag & MOTIONPATH_BAKE_HAS_PATHS) != 0;
 }
 
-static void motion_paths_recalc(bContext *C,
-                                Scene *scene,
-                                const eAnimvizCalcRange range,
-                                const Span<Object *> objects)
+void motion_paths_recalc(bContext *C,
+                         Scene *scene,
+                         const eAnimvizCalcRange range,
+                         const Span<Object *> objects)
 {
   BLI_assert(C != nullptr);
   Main *bmain = CTX_data_main(C);

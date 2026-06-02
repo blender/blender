@@ -104,7 +104,8 @@ class AnimTransformable {
   /* There has to be a constructor for every struct supported. */
   /* Constructor for pose bones. */
   AnimTransformable(Object &owner_id, bPoseChannel &pchan);
-  /* TODO (christoph): Add object support. */
+  /* Constructor for Objects. */
+  explicit AnimTransformable(Object &object);
 
   Type type() const
   {
