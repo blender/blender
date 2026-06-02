@@ -532,6 +532,18 @@ struct bNodeTreeType {
   std::string ui_description;
   int ui_icon = 0;
 
+  /**
+   * When set, menus will ignore this path prefix to determine where assets and catalogs are
+   * placed in the hierarchy. For example, setting this to "My Nodes" means a "My Nodes/Utils"
+   * catalog path will be treated as if it was just "Utils". This way the catalog hierarchy can
+   * still have some high level categorization, without affecting menus.
+   *
+   * Note that multiple path segments can be defined to skip multiple parents, for example
+   * "Nodes/Geometry Nodes" to treat assets and catalogs under "Nodes/Geometry Nodes" as root
+   * level.
+   */
+  std::optional<std::string> asset_catalog_path_prefix;
+
   /* callbacks */
   /* Iteration over all node classes. */
   void (*foreach_nodeclass)(void *calldata, bNodeClassCallback func) = nullptr;

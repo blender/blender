@@ -66,6 +66,7 @@ set(LIB
   PRIVATE bf::intern::guardedalloc
   PRIVATE bf::intern::profile
   PRIVATE bf::animrig
+  PRIVATE bf::nodes
   PRIVATE bf::sequencer
   PRIVATE bf::windowmanager
   PRIVATE bf::dependencies::optional::audaspace

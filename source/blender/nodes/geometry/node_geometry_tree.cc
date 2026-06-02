@@ -151,6 +151,7 @@ void register_node_tree_type_geo()
   tt->ui_name = N_("Geometry Node Editor");
   tt->ui_icon = ICON_GEOMETRY_NODES;
   tt->ui_description = N_("Advanced geometry editing and tools creation using nodes");
+  tt->asset_catalog_path_prefix = "Geometry Nodes";
   tt->rna_ext.srna = RNA_GeometryNodeTree;
   tt->update = geometry_node_tree_update;
   tt->get_from_context = geometry_node_tree_get_from_context;

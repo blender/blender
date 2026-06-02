@@ -142,6 +142,9 @@ void register_node_tree_type_tex()
   tt->ui_name = N_("Texture Node Editor");
   tt->ui_icon = ICON_NODE_TEXTURE; /* Defined in `drawnode.cc`. */
   tt->ui_description = N_("Edit textures using nodes");
+  /* Don't define this yet since we don't know which exact catalog name to use yet. Otherwise this
+   * has to be kept for compatibility. */
+  // tt->asset_catalog_path_prefix = "Textures";
 
   tt->foreach_nodeclass = foreach_nodeclass;
   tt->update = update;
