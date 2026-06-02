@@ -436,7 +436,6 @@ set(LIB
   PRIVATE bf::dependencies::optional::gmp
   PRIVATE bf::dependencies::optional::fftw3
   PUBLIC bf::dependencies::openimageio
-  PUBLIC bf::dependencies::optional::tracy_client
 )
 
 if(NOT WITH_PYTHON_MODULE)

@@ -22,3 +22,5 @@ target_include_directories(bf_intern_profile INTERFACE .)
 add_library(bf::intern::profile ALIAS bf_intern_profile)
 target_sources(bf_intern_profile PRIVATE ${SRC})
 blender_source_group(bf_intern_profile ${SRC})
+
+target_link_libraries(bf_intern_profile INTERFACE bf::dependencies::optional::tracy_client)
