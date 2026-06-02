@@ -104,6 +104,7 @@ class MetalDispatchPipeline {
 
   int pipeline_id = -1;
 
+  MetalDevice *metal_device = nullptr;
   MetalPipelineType pso_type;
   id<MTLComputePipelineState> pipeline = nil;
   int num_threads_per_block = 0;

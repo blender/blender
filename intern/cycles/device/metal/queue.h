@@ -56,7 +56,7 @@ class MetalDeviceQueue : public DeviceQueue {
   void update_capture(DeviceKernel kernel);
   void begin_capture();
   void end_capture();
-  void prepare_resources(DeviceKernel kernel);
+  void prepare_resources();
 
   id<MTLComputeCommandEncoder> get_compute_encoder(DeviceKernel kernel);
   id<MTLBlitCommandEncoder> get_blit_encoder();

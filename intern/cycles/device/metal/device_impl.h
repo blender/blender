@@ -53,7 +53,20 @@ class MetalDevice : public Device {
 
   API_AVAILABLE(macos(11.0))
   id<MTLAccelerationStructure> accel_struct = nil;
-  /* --------------------------------------------------- */
+
+  /* Residency sets -----------------------------------*/
+  void prepare_residency();
+  void metal_mem_alloc(id<MTLResource> allocation);
+  void metal_mem_free(id<MTLResource> allocation);
+
+  bool mtlResidencySet_enabled = false;
+#  if defined(MAC_OS_VERSION_15_0)
+  API_AVAILABLE(macos(15.0), ios(18.0))
+  id<MTLResidencySet> mtlResidencySet = nil;
+  bool mtlResidencySet_dirty = false;
+  /* Guards mtlResidencySet mutations (may be reached from multiple threads). */
+  std::mutex mtlResidencySet_mutex;
+#  endif
 
   uint kernel_features = 0;
   bool using_nanovdb = false;
