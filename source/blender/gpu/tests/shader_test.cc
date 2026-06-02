@@ -591,10 +591,11 @@ static void test_eevee_lib()
   // gpu_shader_lib_test("eevee_shadow_test.bsl.hh");
   gpu_shader_lib_test("eevee_test_occupancy");
   gpu_shader_lib_test("eevee_test_fast_gi");
-#if 0 /* TODO Fix */
-  gpu_shader_lib_test("eevee_test_gbuffer_normal");
-  gpu_shader_lib_test("eevee_test_gbuffer_closure");
-#endif
+  /* Disabled on mac because of a buffer reuse bug. Seems to be fixed on Tahoe. */
+  if (!GPU_type_matches(GPU_DEVICE_APPLE, GPU_OS_MAC, GPU_DRIVER_ANY)) {
+    gpu_shader_lib_test("eevee_test_gbuffer_normal");
+    gpu_shader_lib_test("eevee_test_gbuffer_closure");
+  }
 }
 GPU_TEST(eevee_lib)
 

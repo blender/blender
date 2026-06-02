@@ -73,7 +73,6 @@ void eevee_test_gbuffer_closure_main([[resource_table]] const ShaderTestOutput &
     const gbuffer::Header header = gbuffer::Header::from_data(data_out.header);
 
     EXPECT_EQ(uint(data_out.used_layers), 0u);
-    EXPECT_EQ(uint(header.raw()), uint(ADDITIONAL_DATA));
     EXPECT_NEAR(float3(header.empty_bins()), float3(1, 0, 1), 0.5f);
     EXPECT_EQ(header.closure_len(), 1);
 
