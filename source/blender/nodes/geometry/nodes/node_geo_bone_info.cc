@@ -37,6 +37,7 @@ static void node_declare(NodeDeclarationBuilder &b)
   b.add_output<decl::Matrix>("Rest Pose"_ustr)
       .description("Original transform of the bone in armature space, defined in edit mode");
   b.add_output<decl::Float>("Rest Length"_ustr).description("Original length of the bone");
+  b.add_output<decl::Bool>("Exists"_ustr).description("Whether the bone exists in the armature");
 }
 
 static void node_layout(ui::Layout &layout, bContext * /*C*/, PointerRNA *ptr)
@@ -139,8 +140,11 @@ static void node_geo_exec(GeoNodeExecParams params)
   const bPoseChannel *pchan = BKE_pose_channel_find_name(object->pose, bone_name.c_str());
   if (!pchan) {
     params.set_default_remaining_outputs();
-    params.error_message_add(NodeWarningType::Error,
-                             fmt::format(fmt::runtime(TIP_("Bone \"{}\" not found")), bone_name));
+    if (!params.output_is_required("Exists"_ustr)) {
+      params.error_message_add(
+          NodeWarningType::Error,
+          fmt::format(fmt::runtime(TIP_("Bone \"{}\" not found")), bone_name));
+    }
     return;
   }
   const Bone *bone = pchan->bone_get(*object);
@@ -162,6 +166,7 @@ static void node_geo_exec(GeoNodeExecParams params)
   params.set_output("Transform Pose"_ustr, transform_pose);
   params.set_output("Rest Pose"_ustr, rest_pose);
   params.set_output("Rest Length"_ustr, bone->length);
+  params.set_output("Exists"_ustr, true);
 }
 
 static void node_rna(StructRNA *srna)
