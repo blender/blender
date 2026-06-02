@@ -45,6 +45,7 @@
 #include "GEO_set_curve_type.hh"
 #include "GEO_simplify_curves.hh"
 #include "GEO_smooth_curves.hh"
+#include "GEO_subdivide_curves.hh"
 
 #include "WM_api.hh"
 #include "WM_types.hh"
@@ -1327,6 +1328,22 @@ static void smooth_stroke(bke::greasepencil::Drawing &drawing,
   }
 }
 
+static void subdivide_stroke(bke::greasepencil::Drawing &drawing,
+                             const float subdivisions,
+                             const int active_curve)
+{
+  bke::CurvesGeometry &curves = drawing.strokes_for_write();
+  const IndexRange stroke = IndexRange::from_single(active_curve);
+  const OffsetIndices<int> points_by_curve = curves.points_by_curve();
+
+  Array<int> use_cuts(curves.points_num(), 0);
+
+  use_cuts.as_mutable_span().slice(points_by_curve[active_curve]).fill(subdivisions);
+  const VArray<int> cuts = VArray<int>::from_span(use_cuts.as_span());
+
+  curves = geometry::subdivide_curves(curves, stroke, cuts);
+}
+
 static void simplify_stroke(bke::greasepencil::Drawing &drawing,
                             const float epsilon,
                             const int active_curve)
@@ -1733,6 +1750,9 @@ void PaintOperation::on_stroke_done(const bContext &C)
   trim_end_points(drawing, 1e-5f, on_back, active_curve);
 
   if (do_post_processing) {
+    if (settings->draw_subdivide > 0 && settings->simplify_px == 0.0f) {
+      subdivide_stroke(drawing, settings->draw_subdivide, active_curve);
+    }
     if (settings->draw_smoothfac > 0.0f && settings->draw_smoothlvl > 0) {
       smooth_stroke(drawing, settings->draw_smoothfac, settings->draw_smoothlvl, active_curve);
     }
