@@ -624,6 +624,9 @@ class SocketTooltipBuilder {
     if (base_type.is<float4x4>()) {
       return TIP_("Matrix Field");
     }
+    if (base_type.is<nodes::MenuValue>()) {
+      return TIP_("Menu Field");
+    }
     BLI_assert_unreachable();
     return TIP_("Field");
   }
