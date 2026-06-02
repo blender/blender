@@ -516,7 +516,7 @@ void RNA_def_property_deprecated(PropertyRNA *prop,
                                  short removal_version);
 
 /**
- * The values hare are a little confusing:
+ * The values here are a little confusing:
  *
  * \param step: Used as the value to increase/decrease when clicking on number buttons,
  * as well as scaling mouse input for click-dragging number buttons.
