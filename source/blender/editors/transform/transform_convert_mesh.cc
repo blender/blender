@@ -1919,6 +1919,9 @@ static void mesh_partial_types_calc(TransInfo *t, PartialTypeState *r_partial_st
       break;
     }
     case TFM_RESIZE: {
+      /* Ensure zero (or small) scale calculates normals, see: #159460. */
+      const float zero_resize_threshold_all = 1e-6f;
+
       partial_for_looptris = PARTIAL_TYPE_GROUP;
       partial_for_normals = PARTIAL_TYPE_GROUP;
       /* Non-uniform scale needs to recalculate all normals
@@ -1926,6 +1929,12 @@ static void mesh_partial_types_calc(TransInfo *t, PartialTypeState *r_partial_st
        * Uniform negative scale can keep normals as-is since the faces are flipped,
        * normals remain unchanged. */
       if ((t->con.mode & CON_APPLY) ||
+          /* NOTE(@ideasman42): negative values always recalculate, this is intentional
+           * although it switches between negative and positive uniform scales could be
+           * detected (minor optimization, not so important). */
+          ((t->values_final[0] <= zero_resize_threshold_all) ||
+           (t->values_final[1] <= zero_resize_threshold_all) ||
+           (t->values_final[2] <= zero_resize_threshold_all)) ||
           (t->values_final[0] != t->values_final[1] || t->values_final[0] != t->values_final[2]))
       {
         partial_for_normals = PARTIAL_TYPE_ALL;
