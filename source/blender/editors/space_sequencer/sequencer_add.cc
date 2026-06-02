@@ -2042,6 +2042,11 @@ static wmOperatorStatus sequencer_add_effect_strip_exec(bContext *C, wmOperator 
   if (strip->type == STRIP_TYPE_COLOR) {
     SolidColorVars *colvars = static_cast<SolidColorVars *>(strip->effectdata);
     RNA_float_get_array(op->ptr, "color", colvars->col);
+    colvars->width = RNA_struct_property_is_set(op->ptr, "width") ? RNA_int_get(op->ptr, "width") :
+                                                                    scene->r.xsch;
+    colvars->height = RNA_struct_property_is_set(op->ptr, "height") ?
+                          RNA_int_get(op->ptr, "height") :
+                          scene->r.ysch;
   }
   else if (strip->type == STRIP_TYPE_TEXT) {
     TextVars *textvars = static_cast<TextVars *>(strip->effectdata);
@@ -2111,7 +2116,7 @@ static bool sequencer_add_effect_strip_poll_property(const bContext *C,
       return false;
     }
   }
-  if ((type != STRIP_TYPE_COLOR) && STREQ(prop_id, "color")) {
+  if (type != STRIP_TYPE_COLOR && STR_ELEM(prop_id, "color", "width", "height")) {
     return false;
   }
 
@@ -2200,7 +2205,19 @@ void SEQUENCER_OT_effect_strip_add(wmOperatorType *ot)
                       "Sequencer effect type");
   RNA_def_property_translation_context(prop, BLT_I18NCONTEXT_ID_SEQUENCE);
   sequencer_generic_props__internal(ot, SEQPROP_STARTFRAME | SEQPROP_LENGTH | SEQPROP_MOVE);
-  /* Only used when strip is of the Color type. */
+
+  /* The following properties are only used when strip is of the Color type. */
+  RNA_def_int(
+      ot->srna, "width", 0, 1, INT_MAX, "Width", "Width of the color strip in pixels", 1, INT_MAX);
+  RNA_def_int(ot->srna,
+              "height",
+              0,
+              1,
+              SHRT_MAX,
+              "Height",
+              "Height of the color strip in pixels",
+              1,
+              SHRT_MAX);
   prop = RNA_def_float_color(ot->srna,
                              "color",
                              3,

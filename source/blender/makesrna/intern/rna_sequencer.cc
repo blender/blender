@@ -2057,6 +2057,18 @@ static PointerRNA rna_SequencerCompositorModifierProperties_get(PointerRNA *ptr)
       ptr->owner_id, RNA_SequencerCompositorModifierProperties, cmd);
 }
 
+static int rna_ColorStrip_width_default(PointerRNA *ptr, PropertyRNA * /*prop*/)
+{
+  const Scene *scene = id_cast<Scene *>(ptr->owner_id);
+  return scene->r.xsch;
+}
+
+static int rna_ColorStrip_height_default(PointerRNA *ptr, PropertyRNA * /*prop*/)
+{
+  const Scene *scene = id_cast<Scene *>(ptr->owner_id);
+  return scene->r.ysch;
+}
+
 }  // namespace blender
 
 #else
@@ -3798,6 +3810,20 @@ static void rna_def_solid_color(StructRNA *srna)
   prop = RNA_def_property(srna, "color", PROP_FLOAT, PROP_COLOR_GAMMA);
   RNA_def_property_float_sdna(prop, nullptr, "col");
   RNA_def_property_ui_text(prop, "Color", "Effect Strip color");
+  RNA_def_property_update(prop, NC_SCENE | ND_SEQUENCER, "rna_Strip_invalidate_raw_update");
+
+  prop = RNA_def_property(srna, "width", PROP_INT, PROP_PIXEL);
+  RNA_def_property_int_sdna(prop, nullptr, "width");
+  RNA_def_property_range(prop, 1, INT_MAX);
+  RNA_def_property_int_default_func(prop, "rna_ColorStrip_width_default");
+  RNA_def_property_ui_text(prop, "Width", "Width of the color strip in pixels");
+  RNA_def_property_update(prop, NC_SCENE | ND_SEQUENCER, "rna_Strip_invalidate_raw_update");
+
+  prop = RNA_def_property(srna, "height", PROP_INT, PROP_PIXEL);
+  RNA_def_property_int_sdna(prop, nullptr, "height");
+  RNA_def_property_range(prop, 1, INT_MAX);
+  RNA_def_property_int_default_func(prop, "rna_ColorStrip_height_default");
+  RNA_def_property_ui_text(prop, "Height", "Height of the color strip in pixels");
   RNA_def_property_update(prop, NC_SCENE | ND_SEQUENCER, "rna_Strip_invalidate_raw_update");
 }
 

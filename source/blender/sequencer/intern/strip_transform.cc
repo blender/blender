@@ -621,6 +621,11 @@ float2 image_transform_raw_size_get(const Scene *scene, const Strip *strip)
     }
   }
 
+  if (strip->type == STRIP_TYPE_COLOR) {
+    const SolidColorVars *data = static_cast<const SolidColorVars *>(strip->effectdata);
+    return {float(data->width), float(data->height)};
+  }
+
   if (strip->type == STRIP_TYPE_TEXT) {
     TextVars *data = static_cast<TextVars *>(strip->effectdata);
     std::scoped_lock runtime_lock(text_runtime_mutex_get());

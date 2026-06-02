@@ -1014,6 +1014,11 @@ class STRIP_PT_adjust_transform(StripButtonsPanel, Panel):
         col.prop(strip.transform, "offset_x", text="Position X")
         col.prop(strip.transform, "offset_y", text="Y")
 
+        if strip.type == 'COLOR':
+            col = layout.column(align=True)
+            col.prop(strip, "width", text="Width")
+            col.prop(strip, "height", text="Height")
+
         col = layout.column(align=True)
         col.prop(strip.transform, "scale_x", text="Scale X")
         col.prop(strip.transform, "scale_y", text="Y")
