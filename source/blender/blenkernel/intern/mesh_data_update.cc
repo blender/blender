@@ -418,8 +418,12 @@ static void mesh_calc_modifiers(Depsgraph &depsgraph,
         unsupported = true;
       }
 
-      if (scene.toolsettings->sculpt->flags & SCULPT_ONLY_DEFORM) {
-        unsupported |= (mti->type != ModifierTypeType::OnlyDeform);
+      /* While rare, it's possible for a sculpt object to be loaded into a scene
+       * that doesn't have sculpt tool-settings initialized, see #159457. */
+      if (Sculpt *sculpt = scene.toolsettings->sculpt) {
+        if (sculpt->flags & SCULPT_ONLY_DEFORM) {
+          unsupported |= (mti->type != ModifierTypeType::OnlyDeform);
+        }
       }
 
       unsupported |= multires_applied;
