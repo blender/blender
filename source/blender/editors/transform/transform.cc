@@ -637,7 +637,7 @@ static bool transform_modal_item_poll(const wmOperator *op, int value)
     }
     case TFM_MODAL_ADD_SNAP:
     case TFM_MODAL_REMOVE_SNAP: {
-      if (t->spacetype != SPACE_VIEW3D) {
+      if (!ELEM(t->spacetype, SPACE_VIEW3D, SPACE_IMAGE)) {
         return false;
       }
       if (value == TFM_MODAL_ADD_SNAP) {
