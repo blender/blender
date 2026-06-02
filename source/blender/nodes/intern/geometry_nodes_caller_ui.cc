@@ -450,7 +450,7 @@ static void add_attribute_search_or_value_buttons(
     layout.label("", ICON_BLANK1);
   }
   else {
-    const char *name = IFACE_(socket_name.c_str());
+    const StringRef name = IFACE_(socket_name);
     prop_row->prop(socket_props_ptr, "value", UI_ITEM_NONE, name, ICON_NONE);
     layout.decorator(socket_props_ptr, "value", -1);
   }
@@ -678,7 +678,7 @@ static void draw_warnings(const bContext *C,
   const int num_infos = count_by_type.lookup_default(NodeWarningType::Info, 0);
   const std::string panel_name = get_node_warning_panel_name(num_errors, num_warnings, num_infos);
   ui::PanelLayout panel = layout.panel_prop(C, md_ptr, "open_warnings_panel");
-  panel.header->label(panel_name.c_str(), ICON_NONE);
+  panel.header->label(panel_name, ICON_NONE);
   if (!panel.body) {
     return;
   }
@@ -754,10 +754,7 @@ static void draw_property_for_output_socket(DrawGroupInputsContext &ctx,
 
 static void draw_output_attributes_panel(DrawGroupInputsContext &ctx, ui::Layout &layout)
 {
-  if (!ctx.tree) {
-    return;
-  }
-  const Span<const bNodeTreeInterfaceSocket *> interface_outputs = ctx.tree->interface_outputs();
+    const Span<const bNodeTreeInterfaceSocket *> interface_outputs = ctx.tree->interface_outputs();
   for (const int i : interface_outputs.index_range()) {
     const bNodeTreeInterfaceSocket &socket = *interface_outputs[i];
     const bke::bNodeSocketType *typeinfo = socket.socket_typeinfo();
