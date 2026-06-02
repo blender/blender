@@ -1164,6 +1164,7 @@ static bool modifier_apply_obdata(ReportList *reports,
 
     bke::GeometrySet geometry_set = bke::GeometrySet::from_curves(
         &curves, bke::GeometryOwnershipType::ReadOnly);
+    bke::curves_store_surface_in_geometry_bundle(*depsgraph, curves, geometry_set);
 
     ModifierEvalContext mectx = {depsgraph, ob, MOD_APPLY_TO_ORIGINAL};
     mti->modify_geometry_set(md_eval, &mectx, &geometry_set);

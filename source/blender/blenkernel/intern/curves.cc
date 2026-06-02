@@ -190,20 +190,6 @@ Curves *BKE_curves_copy_for_eval(const Curves *curves_src)
       BKE_id_copy_ex(nullptr, &curves_src->id, nullptr, LIB_ID_COPY_LOCALIZE));
 }
 
-static void store_surface(const Curves &curves_id, bke::GeometrySet &geometry_set)
-{
-  if (!curves_id.surface) {
-    return;
-  }
-  if (!curves_id.surface_uv_map) {
-    return;
-  }
-  nodes::Bundle &bundle = geometry_set.bundle_for_write();
-  bundle.add(*nodes::BundleKey::from_ustr("surface_object"_ustr), curves_id.surface);
-  bundle.add(*nodes::BundleKey::from_ustr("surface_uv_map_name"_ustr),
-             std::string(curves_id.surface_uv_map));
-}
-
 static void curves_evaluate_modifiers(Depsgraph *depsgraph,
                                       Scene *scene,
                                       Object *object,
@@ -258,7 +244,7 @@ void BKE_curves_data_update(Depsgraph *depsgraph, Scene *scene, Object *object)
     edit_component.curves_edit_hints_ = std::make_unique<CurvesEditHints>(
         *id_cast<const Curves *>(DEG_get_original(object)->data));
   }
-  store_surface(*curves, geometry_set);
+  bke::curves_store_surface_in_geometry_bundle(*depsgraph, *curves, geometry_set);
   curves_evaluate_modifiers(depsgraph, scene, object, geometry_set);
 
   /* Assign evaluated object. */
@@ -335,6 +321,23 @@ void curves_copy_parameters(const Curves &src, Curves &dst)
     dst.surface_uv_map = BLI_strdup(src.surface_uv_map);
   }
   dst.surface_collision_distance = src.surface_collision_distance;
+}
+
+void curves_store_surface_in_geometry_bundle(const Depsgraph &depsgraph,
+                                             const Curves &curves_id,
+                                             GeometrySet &geometry_set)
+{
+  if (!curves_id.surface) {
+    return;
+  }
+  if (!curves_id.surface_uv_map) {
+    return;
+  }
+  nodes::Bundle &bundle = geometry_set.bundle_for_write();
+  bundle.add(*nodes::BundleKey::from_ustr("surface_object"_ustr),
+             DEG_get_evaluated(&depsgraph, curves_id.surface));
+  bundle.add(*nodes::BundleKey::from_ustr("surface_uv_map_name"_ustr),
+             std::string(curves_id.surface_uv_map));
 }
 
 CurvesSurfaceTransforms::CurvesSurfaceTransforms(const Object &curves_ob, const Object *surface_ob)

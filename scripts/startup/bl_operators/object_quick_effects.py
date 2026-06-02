@@ -170,8 +170,6 @@ class QuickFur(ObjectModeOperator, Operator):
 
             generate_modifier = curves_object.modifiers.new(name=data_("Generate"), type='NODES')
             generate_modifier.node_group = node_groups.generate
-            generate_modifier.properties.inputs.Input_2.value = mesh_object
-            generate_modifier.properties.inputs.Input_18.attribute_name = curves.surface_uv_map
             generate_modifier.properties.inputs.Input_12.value = True
             generate_modifier.properties.inputs.Input_20.value = self.length
             generate_modifier.properties.inputs.Input_22.value = material
@@ -183,8 +181,6 @@ class QuickFur(ObjectModeOperator, Operator):
 
             interpolate_modifier = curves_object.modifiers.new(name=data_("Interpolate Hair Curves"), type='NODES')
             interpolate_modifier.node_group = node_groups.interpolate
-            interpolate_modifier.properties.inputs.Input_2.value = mesh_object
-            interpolate_modifier.properties.inputs.Input_18.attribute_name = curves.surface_uv_map
             interpolate_modifier.properties.inputs.Input_12.value = True
             interpolate_modifier.properties.inputs.Input_15.value = density
             interpolate_modifier.properties.inputs.Input_17.value = self.view_percentage
