@@ -1239,6 +1239,7 @@ static void text_edit_draw(const bContext *C)
   GPU_blend(GPU_BLEND_ALPHA);
   immBindBuiltinProgram(GPU_SHADER_3D_UNIFORM_COLOR);
 
+  std::scoped_lock runtime_lock(seq::text_runtime_mutex_get());
   text_selection_draw(C, strip, pos);
   text_edit_draw_cursor(C, strip, pos);
 

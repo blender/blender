@@ -10,6 +10,8 @@
 
 #include "DNA_sequence_types.h"
 
+#include "BLF_api.hh"
+
 #include "BLI_math_matrix.hh"
 #include "BLI_math_vector.hh"
 #include "BLI_string.h"
@@ -145,6 +147,13 @@ static bool text_has_selection(const TextVars *data)
   return !strip_text_selection_range_get(data).is_empty();
 }
 
+static void text_runtime_update(TextVars &text)
+{
+  std::scoped_lock runtime_lock(seq::text_runtime_mutex_get());
+  seq::text_effect_update_runtime(nullptr, text, text.runtime->image_size);
+  BLF_disable(text.runtime->font, BLF_BOLD | BLF_ITALIC);
+}
+
 static void delete_selected_text(TextVars *data)
 {
   if (!text_has_selection(data)) {
@@ -170,6 +179,8 @@ static void delete_selected_text(TextVars *data)
   const int2 sel_start = strip_text_cursor_offset_to_position(runtime, sel_range.first());
   data->cursor_offset = cursor_position_to_offset(runtime, sel_start);
   text_selection_cancel(data);
+
+  text_runtime_update(*data);
 }
 
 static void text_editing_update(const bContext *C)
@@ -248,7 +259,7 @@ void SEQUENCER_OT_text_deselect_all(wmOperatorType *ot)
 /** \name Copy Text
  * \{ */
 
-static void text_edit_copy(const TextVars *data)
+static void text_edit_copy(TextVars *data)
 {
   const seq::TextVarsRuntime *runtime = data->runtime;
   const IndexRange selection_range = strip_text_selection_range_get(data);
@@ -267,12 +278,14 @@ static void text_edit_copy(const TextVars *data)
   buf[len] = 0;
   WM_clipboard_text_set(buf, false);
   MEM_delete(buf);
+
+  text_runtime_update(*data);
 }
 
 static wmOperatorStatus sequencer_text_edit_copy_exec(bContext *C, wmOperator * /*op*/)
 {
   const Strip *strip = seq::select_active_get(CTX_data_sequencer_scene(C));
-  const TextVars *data = static_cast<TextVars *>(strip->effectdata);
+  TextVars *data = static_cast<TextVars *>(strip->effectdata);
 
   if (!text_has_selection(data)) {
     return OPERATOR_CANCELLED;
@@ -372,6 +385,8 @@ static wmOperatorStatus sequencer_text_edit_paste_exec(bContext *C, wmOperator *
   data->cursor_offset += BLI_strlen_utf8(buf);
 
   MEM_delete(buf);
+
+  text_runtime_update(*data);
   text_editing_update(C);
   return OPERATOR_FINISHED;
 }
@@ -674,6 +689,7 @@ static wmOperatorStatus sequencer_text_delete_exec(bContext *C, wmOperator *op)
     data->cursor_offset -= 1;
   }
 
+  text_runtime_update(*data);
   text_editing_update(C);
   return OPERATOR_FINISHED;
 }
@@ -710,14 +726,14 @@ void SEQUENCER_OT_text_delete(wmOperatorType *ot)
 static bool text_insert(TextVars *data, const char *buf, const size_t buf_len)
 {
   BLI_assert(strlen(buf) == buf_len);
-  const seq::TextVarsRuntime *runtime = data->runtime;
 
   delete_selected_text(data);
 
   size_t needed_size = data->text_len_bytes + buf_len + 1;
   char *new_text = MEM_new_array_uninitialized<char>(needed_size, "text");
 
-  const seq::CharInfo cur_char = character_at_cursor_offset_get(runtime, data->cursor_offset);
+  const seq::CharInfo cur_char = character_at_cursor_offset_get(data->runtime,
+                                                                data->cursor_offset);
   BLI_assert(cur_char.offset >= 0 && cur_char.offset <= data->text_len_bytes);
   std::memcpy(new_text, data->text_ptr, cur_char.offset);
   std::memcpy(new_text + cur_char.offset, buf, buf_len);
@@ -729,6 +745,8 @@ static bool text_insert(TextVars *data, const char *buf, const size_t buf_len)
   data->text_ptr = new_text;
 
   data->cursor_offset += 1;
+
+  text_runtime_update(*data);
   return true;
 }
 
