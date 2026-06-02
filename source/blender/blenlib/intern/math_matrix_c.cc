@@ -16,6 +16,7 @@
 #  include "eigen_capi.h"
 #endif
 
+#include <algorithm>
 #include <cstring>
 
 #include "BLI_strict_flags.h" /* IWYU pragma: keep. Keep last. */
@@ -1978,7 +1979,7 @@ void mat4_to_size(float size[3], const float M[4][4])
 
 float mat4_to_size_max_axis(const float M[4][4])
 {
-  return sqrtf(max_fff(len_squared_v3(M[0]), len_squared_v3(M[1]), len_squared_v3(M[2])));
+  return sqrtf(std::max({len_squared_v3(M[0]), len_squared_v3(M[1]), len_squared_v3(M[2])}));
 }
 
 void mat4_to_size_fix_shear(float size[3], const float M[4][4])

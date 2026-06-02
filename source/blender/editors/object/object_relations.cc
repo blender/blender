@@ -822,7 +822,7 @@ static void parent_set_vert_find(KDTree<float3> *tree, Object *child, int vert_p
     vert_par[1] = nearest[1].index;
     vert_par[2] = nearest[2].index;
 
-    BLI_assert(min_iii(UNPACK3(vert_par)) >= 0);
+    BLI_assert(std::min({UNPACK3(vert_par)}) >= 0);
   }
   else {
     vert_par[0] = kdtree_find_nearest<float3>(tree, co_find, nullptr);

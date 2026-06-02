@@ -826,10 +826,10 @@ static int calculate_bezt_draw_resolution(BezTriple *bezt,
                                points_per_pixel);
   /* Include the handles in the resolution calculation to cover the case where keys have the same
    * y-value, but their handles are offset to create an arc. */
-  const float min_y = min_ffff(
-      bezt->vec[1][1], bezt->vec[2][1], prevbezt->vec[1][1], prevbezt->vec[0][1]);
-  const float max_y = max_ffff(
-      bezt->vec[1][1], bezt->vec[2][1], prevbezt->vec[1][1], prevbezt->vec[0][1]);
+  const float min_y = std::min(
+      {bezt->vec[1][1], bezt->vec[2][1], prevbezt->vec[1][1], prevbezt->vec[0][1]});
+  const float max_y = std::max(
+      {bezt->vec[1][1], bezt->vec[2][1], prevbezt->vec[1][1], prevbezt->vec[0][1]});
   const int resolution_y = int(((max_y - min_y) * pixels_per_unit[1]) * points_per_pixel);
 
   /* Using a simple sum instead of calculating the diagonal. This gives a slightly higher
@@ -993,10 +993,10 @@ static void expand_key_bounds(const BezTriple *left_key, const BezTriple *right_
   bounds.xmax = right_key->vec[1][0];
   if (left_key->ipo == BEZT_IPO_BEZ) {
     /* Respect handles of bezier keys. */
-    bounds.ymin = min_ffff(
-        bounds.ymin, right_key->vec[1][1], right_key->vec[0][1], left_key->vec[2][1]);
-    bounds.ymax = max_ffff(
-        bounds.ymax, right_key->vec[1][1], right_key->vec[0][1], left_key->vec[2][1]);
+    bounds.ymin = std::min(
+        {bounds.ymin, right_key->vec[1][1], right_key->vec[0][1], left_key->vec[2][1]});
+    bounds.ymax = std::max(
+        {bounds.ymax, right_key->vec[1][1], right_key->vec[0][1], left_key->vec[2][1]});
   }
   else {
     bounds.ymax = max_ff(bounds.ymax, right_key->vec[1][1]);

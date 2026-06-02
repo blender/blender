@@ -1225,7 +1225,7 @@ void gpu::MTLTexture::ensure_mipmaps(int miplvl)
   /* Clamp level to maximum. */
   int effective_h = (type_ == GPU_TEXTURE_1D_ARRAY) ? 0 : h_;
   int effective_d = (type_ != GPU_TEXTURE_3D) ? 0 : d_;
-  int max_dimension = max_iii(w_, effective_h, effective_d);
+  int max_dimension = std::max({w_, effective_h, effective_d});
   int max_miplvl = floor(log2(max_dimension));
   miplvl = min_ii(max_miplvl, miplvl);
 

@@ -480,7 +480,7 @@ class LensDistortionOperation : public NodeOperation {
   float compute_scale()
   {
     const float3 distortion = compute_chromatic_distortion() / DISTORTION_SCALE;
-    const float maximum_distortion = max_fff(distortion[0], distortion[1], distortion[2]);
+    const float maximum_distortion = std::max({distortion[0], distortion[1], distortion[2]});
 
     if (get_is_fit() && (maximum_distortion > 0.0f)) {
       return 1.0f / (1.0f + 2.0f * maximum_distortion);

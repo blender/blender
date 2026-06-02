@@ -4336,7 +4336,7 @@ static wmOperatorStatus cube_project_exec(bContext *C, wmOperator *op)
     if (bounds_buf) {
       float dims[3];
       sub_v3_v3v3(dims, bounds[1], bounds[0]);
-      cube_size = max_fff(UNPACK3(dims));
+      cube_size = std::max({UNPACK3(dims)});
       if (ob_index == 0) {
         /* This doesn't fit well with, multiple objects. */
         RNA_property_float_set(op->ptr, prop_cube_size, cube_size);

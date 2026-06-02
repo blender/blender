@@ -339,7 +339,7 @@ static int position_tail_on_spline(bSplineIKConstraint *ik_data,
   /* Calculate the intersection point using the secant root finding method */
   float x0 = 0.0f, x1 = 1.0f;
   float x0_point[3], x1_point[3], start_p[3];
-  float epsilon = max_fff(1.0f, len_v3(head_pos), len_v3(bp->vec)) * FLT_EPSILON;
+  float epsilon = std::max({1.0f, len_v3(head_pos), len_v3(bp->vec)}) * FLT_EPSILON;
 
   if (prev_seg_idx == bp_idx - 1) {
     /* The intersection lies inside the same segment as the last point.

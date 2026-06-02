@@ -281,7 +281,7 @@ static void get_seq_strip_thumbnails(const View2D *v2d,
     return;
   }
 
-  int first_drawable_frame = max_iii(strip.left_handle, strip.strip->start, v2d->cur.xmin);
+  int first_drawable_frame = std::max({strip.left_handle, strip.strip->start, v2d->cur.xmin});
   /* Calculate how many thumbnails should we skip over to get to the first visible thumbnail. */
   float aligned_frame_offset = int((first_drawable_frame - strip.strip->start) / thumb_width) *
                                thumb_width;

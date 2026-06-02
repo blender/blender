@@ -964,7 +964,7 @@ void Instance::light_bake_irradiance(
       /* Batch ray cast. Avoids too much overhead of the context switch. */
       int sample_count_in_batch = ceilf(time_budget_ms / max(0.1f, time_per_sample_ms_smooth));
       /* Avoid batching too many rays, keep system responsive in case of bad values. */
-      sample_count_in_batch = min_iii(32, sample_count_in_batch, remaining_samples);
+      sample_count_in_batch = std::min({32, sample_count_in_batch, remaining_samples});
 
       CLOG_INFO(&Instance::log, "IrradianceBake: Casting %d rays.", sample_count_in_batch);
 

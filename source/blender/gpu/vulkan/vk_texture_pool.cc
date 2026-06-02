@@ -348,7 +348,7 @@ Texture *VKTexturePool::acquire_texture_impl(int3 extent,
                                              const char *name)
 {
   /* Determine actual mipmap depth. */
-  int mip_len_max = 1 + floorf(log2f(max_iii(extent.x, extent.y, extent.z)));
+  int mip_len_max = 1 + floorf(log2f(std::max({extent.x, extent.y, extent.z})));
   mip_len = min_ii(mip_len, mip_len_max);
 
   /* Initialize VKTexture return object. */

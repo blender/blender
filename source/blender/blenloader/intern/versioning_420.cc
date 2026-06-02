@@ -1043,9 +1043,9 @@ void blo_do_versions_420(FileData *fd, Library * /*lib*/, Main *bmain)
       /* Guess a somewhat correct density given the resolution. But very low resolution need
        * a decent enough density to work. */
       lightprobe.grid_surfel_density = max_ii(20,
-                                              2 * max_iii(lightprobe.grid_resolution_x,
-                                                          lightprobe.grid_resolution_y,
-                                                          lightprobe.grid_resolution_z));
+                                              2 * std::max({lightprobe.grid_resolution_x,
+                                                            lightprobe.grid_resolution_y,
+                                                            lightprobe.grid_resolution_z}));
     }
   }
 

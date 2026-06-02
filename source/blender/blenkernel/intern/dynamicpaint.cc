@@ -632,7 +632,8 @@ static void boundInsert(Bounds3D *b, const float point[3])
 static float getSurfaceDimension(PaintSurfaceData *sData)
 {
   Bounds3D *mb = &sData->bData->mesh_bounds;
-  return max_fff((mb->max[0] - mb->min[0]), (mb->max[1] - mb->min[1]), (mb->max[2] - mb->min[2]));
+  return std::max(
+      {(mb->max[0] - mb->min[0]), (mb->max[1] - mb->min[1]), (mb->max[2] - mb->min[2])});
 }
 
 static void freeGrid(PaintSurfaceData *data)
@@ -778,7 +779,7 @@ static void surfaceGenerateGrid(DynamicPaintSurface *surface)
     sub_v3_v3v3(dim, grid->grid_bounds.max, grid->grid_bounds.min);
     copy_v3_v3(td, dim);
     copy_v3_v3(bData->dim, dim);
-    min_dim = max_fff(td[0], td[1], td[2]) / 1000.0f;
+    min_dim = std::max({td[0], td[1], td[2]}) / 1000.0f;
 
     /* deactivate zero axes */
     for (i = 0; i < 3; i++) {
@@ -788,7 +789,7 @@ static void surfaceGenerateGrid(DynamicPaintSurface *surface)
       }
     }
 
-    if (axis == 0 || max_fff(td[0], td[1], td[2]) < 0.0001f) {
+    if (axis == 0 || std::max({td[0], td[1], td[2]}) < 0.0001f) {
       MEM_delete(bData->grid);
       bData->grid = nullptr;
       return;
@@ -5234,7 +5235,7 @@ static int dynamicPaint_prepareEffectStep(Depsgraph *depsgraph,
     shrink_speed = surface->shrink_speed;
   }
 
-  fastest_effect = max_fff(spread_speed, shrink_speed, average_force);
+  fastest_effect = std::max({spread_speed, shrink_speed, float(average_force)});
   avg_dist = bData->average_dist * double(CANVAS_REL_SIZE) / double(getSurfaceDimension(sData));
 
   steps = int(ceilf(1.5f * EFF_MOVEMENT_PER_FRAME * fastest_effect / avg_dist * timescale));
@@ -5275,7 +5276,7 @@ static void dynamic_paint_effect_spread_cb(void *__restrict userdata,
     const PaintPoint *pPoint_prev = &prevPoint[n_target[n_idx]];
     const float speed_scale = (bNeighs[n_idx].dist < eff_scale) ? 1.0f :
                                                                   eff_scale / bNeighs[n_idx].dist;
-    const float color_mix = min_fff(pPoint_prev->wetness, pPoint->wetness, 1.0f) * 0.25f *
+    const float color_mix = std::min({pPoint_prev->wetness, pPoint->wetness, 1.0f}) * 0.25f *
                             surface->color_spread_speed;
 
     /* do color mixing */

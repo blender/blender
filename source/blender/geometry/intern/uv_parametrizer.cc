@@ -3262,7 +3262,7 @@ static bool p_chart_lscm_solve(ParamHandle *handle, PChart *chart)
     double sina2 = sin(a2);
     double sina3 = sin(a3);
 
-    const double sinmax = max_ddd(sina1, sina2, sina3);
+    const double sinmax = std::max({sina1, sina2, sina3});
 
     /* Shift vertices to find most stable order. */
     if (sina3 != sinmax) {

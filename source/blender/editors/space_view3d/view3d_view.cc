@@ -934,7 +934,7 @@ static bool view3d_localview_init(const Depsgraph *depsgraph,
     }
 
     sub_v3_v3v3(box, max, min);
-    size = max_fff(box[0], box[1], box[2]);
+    size = std::max({box[0], box[1], box[2]});
   }
 
   if (changed == false) {

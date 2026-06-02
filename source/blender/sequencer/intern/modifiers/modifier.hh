@@ -132,7 +132,7 @@ struct MaskSamplerDirectFloat {
   }
   float load_mask_min()
   {
-    float r = min_fff(this->ptr[0], this->ptr[1], this->ptr[2]);
+    float r = std::min({this->ptr[0], this->ptr[1], this->ptr[2]});
     this->ptr += 4;
     return r;
   }
@@ -163,7 +163,7 @@ struct MaskSamplerDirectByte {
   }
   float load_mask_min()
   {
-    float r = float(min_iii(this->ptr[0], this->ptr[1], this->ptr[2])) * (1.0f / 255.0f);
+    float r = float(std::min({this->ptr[0], this->ptr[1], this->ptr[2]})) * (1.0f / 255.0f);
     this->ptr += 4;
     return r;
   }
@@ -206,7 +206,7 @@ struct MaskSamplerTransformedFloat {
     float4 m;
     math::interpolate_bilinear_border_fl(
         this->mask->float_data(), m, this->mask->x, this->mask->y, 4, uv.x, uv.y);
-    float r = min_fff(m.x, m.y, m.z);
+    float r = std::min({m.x, m.y, m.z});
     this->cur_x++;
     return r;
   }
@@ -252,7 +252,7 @@ struct MaskSamplerTransformedByte {
     float2 uv = this->cur_uv_row + this->cur_x * this->add_x - 0.5f;
     uchar4 m = math::interpolate_bilinear_border_byte(
         this->mask->byte_data(), this->mask->x, this->mask->y, uv.x, uv.y);
-    float r = float(min_iii(m.x, m.y, m.z)) * (1.0f / 255.0f);
+    float r = float(std::min({m.x, m.y, m.z})) * (1.0f / 255.0f);
     this->cur_x++;
     return r;
   }

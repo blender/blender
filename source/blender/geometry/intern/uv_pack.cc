@@ -1188,7 +1188,7 @@ static float signed_distance_fat_triangle(const float2 probe,
   const float dist01_ssq = dist_signed_squared_to_edge(probe, uv0, uv1);
   const float dist12_ssq = dist_signed_squared_to_edge(probe, uv1, uv2);
   const float dist20_ssq = dist_signed_squared_to_edge(probe, uv2, uv0);
-  float result_ssq = max_fff(dist01_ssq, dist12_ssq, dist20_ssq);
+  float result_ssq = std::max({dist01_ssq, dist12_ssq, dist20_ssq});
   if (result_ssq < 0.0f) {
     return -sqrtf(-result_ssq);
   }
@@ -1206,10 +1206,10 @@ float Occupancy::trace_triangle(const float2 &uv0,
                                 const float margin,
                                 const bool write) const
 {
-  const float x0 = min_fff(uv0.x, uv1.x, uv2.x);
-  const float y0 = min_fff(uv0.y, uv1.y, uv2.y);
-  const float x1 = max_fff(uv0.x, uv1.x, uv2.x);
-  const float y1 = max_fff(uv0.y, uv1.y, uv2.y);
+  const float x0 = std::min({uv0.x, uv1.x, uv2.x});
+  const float y0 = std::min({uv0.y, uv1.y, uv2.y});
+  const float x1 = std::max({uv0.x, uv1.x, uv2.x});
+  const float y1 = std::max({uv0.y, uv1.y, uv2.y});
   float spread = write ? margin * 2 : 0.0f;
   int ix0 = std::max(int(floorf((x0 - spread) * bitmap_scale_reciprocal)), 0);
   int iy0 = std::max(int(floorf((y0 - spread) * bitmap_scale_reciprocal)), 0);

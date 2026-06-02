@@ -349,7 +349,7 @@ float closest_seg_seg_v2(float r_closest_a[2],
   const float dist_sq3 = len_squared_v2v2(p3, b1);
   const float dist_sq4 = len_squared_v2v2(p4, b2);
 
-  const float min_dist_sq = min_ffff(dist_sq1, dist_sq2, dist_sq3, dist_sq4);
+  const float min_dist_sq = std::min({dist_sq1, dist_sq2, dist_sq3, dist_sq4});
   if (min_dist_sq == dist_sq1) {
     copy_v2_v2(r_closest_a, a1);
     copy_v2_v2(r_closest_b, p1);
@@ -1031,7 +1031,7 @@ float dist_seg_seg_v2(const float a1[3], const float a2[3], const float b1[3], c
   const float d2 = dist_squared_to_line_segment_v2(a2, b1, b2);
   const float d3 = dist_squared_to_line_segment_v2(b1, a1, a2);
   const float d4 = dist_squared_to_line_segment_v2(b2, a1, a2);
-  return sqrtf(min_ffff(d1, d2, d3, d4));
+  return sqrtf(std::min({d1, d2, d3, d4}));
 }
 
 void closest_on_tri_to_point_v3(

@@ -93,7 +93,7 @@ bool Texture::init_3D(int w, int h, int d, int mip_len, TextureFormat format)
   w_ = w;
   h_ = h;
   d_ = d;
-  int mip_len_max = 1 + floorf(log2f(max_iii(w, h, d)));
+  int mip_len_max = 1 + floorf(log2f(std::max({w, h, d})));
   mipmaps_ = min_ii(mip_len, mip_len_max);
   format_ = format;
   format_flag_ = to_format_flag(format);

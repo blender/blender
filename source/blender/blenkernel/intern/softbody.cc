@@ -1033,12 +1033,12 @@ static int sb_detect_face_pointCached(const float face_v1[3],
   float facedist, outerfacethickness, tune = 10.0f;
   int a, deflected = 0;
 
-  aabbmin[0] = min_fff(face_v1[0], face_v2[0], face_v3[0]);
-  aabbmin[1] = min_fff(face_v1[1], face_v2[1], face_v3[1]);
-  aabbmin[2] = min_fff(face_v1[2], face_v2[2], face_v3[2]);
-  aabbmax[0] = max_fff(face_v1[0], face_v2[0], face_v3[0]);
-  aabbmax[1] = max_fff(face_v1[1], face_v2[1], face_v3[1]);
-  aabbmax[2] = max_fff(face_v1[2], face_v2[2], face_v3[2]);
+  aabbmin[0] = std::min({face_v1[0], face_v2[0], face_v3[0]});
+  aabbmin[1] = std::min({face_v1[1], face_v2[1], face_v3[1]});
+  aabbmin[2] = std::min({face_v1[2], face_v2[2], face_v3[2]});
+  aabbmax[0] = std::max({face_v1[0], face_v2[0], face_v3[0]});
+  aabbmax[1] = std::max({face_v1[1], face_v2[1], face_v3[1]});
+  aabbmax[2] = std::max({face_v1[2], face_v2[2], face_v3[2]});
 
   /* calculate face normal once again SIGH */
   sub_v3_v3v3(edge1, face_v1, face_v2);
@@ -1122,12 +1122,12 @@ static int sb_detect_face_collisionCached(const float face_v1[3],
   float t, tune = 10.0f;
   int a, deflected = 0;
 
-  aabbmin[0] = min_fff(face_v1[0], face_v2[0], face_v3[0]);
-  aabbmin[1] = min_fff(face_v1[1], face_v2[1], face_v3[1]);
-  aabbmin[2] = min_fff(face_v1[2], face_v2[2], face_v3[2]);
-  aabbmax[0] = max_fff(face_v1[0], face_v2[0], face_v3[0]);
-  aabbmax[1] = max_fff(face_v1[1], face_v2[1], face_v3[1]);
-  aabbmax[2] = max_fff(face_v1[2], face_v2[2], face_v3[2]);
+  aabbmin[0] = std::min({face_v1[0], face_v2[0], face_v3[0]});
+  aabbmin[1] = std::min({face_v1[1], face_v2[1], face_v3[1]});
+  aabbmin[2] = std::min({face_v1[2], face_v2[2], face_v3[2]});
+  aabbmax[0] = std::max({face_v1[0], face_v2[0], face_v3[0]});
+  aabbmax[1] = std::max({face_v1[1], face_v2[1], face_v3[1]});
+  aabbmax[2] = std::max({face_v1[2], face_v2[2], face_v3[2]});
 
   for (const auto &item : vertexowner->soft->scratch->colliderhash->items()) {
     Object *ob = item.key;

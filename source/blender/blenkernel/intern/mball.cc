@@ -235,7 +235,7 @@ float2 BKE_mball_element_display_radius_calc_with_stiffness(const MetaElem *ml)
     /* Without this additional size, the cube can't be selected in solid mode.
      * Use the minimum size so this doesn't become too large because of one large axis.
      * See: #136396. */
-    const float offset = min_fff(ml->expx, ml->expy, ml->expz) * M_SQRT2;
+    const float offset = std::min({ml->expx, ml->expy, ml->expz}) * M_SQRT2;
     radius_stiffness[0] += offset;
     radius_stiffness[1] += offset;
   }
@@ -245,7 +245,7 @@ float BKE_mball_element_display_radius_calc(const MetaElem *ml)
 {
   float radius = ml->rad;
   if (ml->type == MB_CUBE) {
-    const float offset = min_fff(ml->expx, ml->expy, ml->expz) * M_SQRT2;
+    const float offset = std::min({ml->expx, ml->expy, ml->expz}) * M_SQRT2;
     radius += offset;
   }
   return radius;

@@ -535,7 +535,7 @@ static void knifetool_draw_angle(const KnifeTool_OpData *kcd,
     const float px_scale =
         3.0f * inverse_average_scale *
         (ED_view3d_pixel_size_no_ui_scale(rv3d, mid) *
-         min_fff(arc_size, len_v2v2(start_ss, mid_ss) / 2.0f, len_v2v2(end_ss, mid_ss) / 2.0f));
+         std::min({arc_size, len_v2v2(start_ss, mid_ss) / 2.0f, len_v2v2(end_ss, mid_ss) / 2.0f}));
 
     sub_v3_v3v3(dir_a, start, mid);
     sub_v3_v3v3(dir_b, end, mid);

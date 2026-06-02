@@ -103,21 +103,12 @@ MINLINE float cube_f(float a);
 
 MINLINE float min_ff(float a, float b);
 MINLINE float max_ff(float a, float b);
-MINLINE float min_fff(float a, float b, float c);
-MINLINE float max_fff(float a, float b, float c);
-MINLINE float min_ffff(float a, float b, float c, float d);
-MINLINE float max_ffff(float a, float b, float c, float d);
 
 MINLINE double min_dd(double a, double b);
 MINLINE double max_dd(double a, double b);
-MINLINE double max_ddd(double a, double b, double c);
 
 MINLINE int min_ii(int a, int b);
 MINLINE int max_ii(int a, int b);
-MINLINE int min_iii(int a, int b, int c);
-MINLINE int max_iii(int a, int b, int c);
-MINLINE int min_iiii(int a, int b, int c, int d);
-MINLINE int max_iiii(int a, int b, int c, int d);
 
 MINLINE uint min_uu(uint a, uint b);
 MINLINE uint max_uu(uint a, uint b);

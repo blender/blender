@@ -566,7 +566,7 @@ void BKE_rigidbody_calc_volume(Object *ob, float *r_vol)
   }
   else if (rbo->shape == RB_SHAPE_SPHERE) {
     /* take radius to the largest dimension to try and encompass everything */
-    radius = max_fff(size[0], size[1], size[2]) * 0.5f;
+    radius = std::max({size[0], size[1], size[2]}) * 0.5f;
   }
 
   /* Calculate volume as appropriate. */

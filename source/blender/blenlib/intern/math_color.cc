@@ -324,8 +324,8 @@ void rgb_to_hsv_v(const float rgb[3], float r_hsv[3])
 
 void rgb_to_hsl(float r, float g, float b, float *r_h, float *r_s, float *r_l)
 {
-  const float cmax = max_fff(r, g, b);
-  const float cmin = min_fff(r, g, b);
+  const float cmax = std::max({r, g, b});
+  const float cmin = std::min({r, g, b});
   float h, s, l = min_ff(1.0f, (cmax + cmin) / 2.0f);
 
   if (cmax == cmin) {
