@@ -3645,24 +3645,32 @@ struct GeometryNodesLazyFunctionBuilder {
 
   void build_menu_switch_node(const bNode &bnode, BuildGraphParams &graph_params)
   {
-    std::unique_ptr<LazyFunction> lazy_function = get_menu_switch_node_lazy_function(
-        bnode, *lf_graph_info_);
-    lf::FunctionNode &lf_node = graph_params.lf_graph.add_function(*lazy_function);
-    scope_.add(std::move(lazy_function));
+    const NodeMenuSwitch &storage = *static_cast<NodeMenuSwitch *>(bnode.storage);
 
-    int input_index = 0;
-    for (const bNodeSocket *bsocket : bnode.input_sockets().drop_back(1)) {
-      if (bsocket->is_available()) {
-        this->add_to_socket_map(graph_params, *bsocket, lf_node.input(input_index));
-        input_index++;
-      }
+    /* The menu-switch node uses separate lazy-functions for the main output and all the boolean
+     * outputs. This leads to better lazy evaluation in some cases because the boolean outputs more
+     * obviously only depend on the menu input (and not on all the value inputs). */
+    std::unique_ptr<LazyFunction> value_fn = get_menu_switch_node_lazy_function(bnode,
+                                                                                *lf_graph_info_);
+    std::unique_ptr<LazyFunction> bools_fn = get_menu_switch_node_boolean_outputs_lazy_function(
+        bnode, *lf_graph_info_);
+
+    lf::FunctionNode &lf_value_node = graph_params.lf_graph.add_function(*value_fn);
+    lf::FunctionNode &lf_bools_node = graph_params.lf_graph.add_function(*bools_fn);
+    scope_.add(std::move(value_fn));
+    scope_.add(std::move(bools_fn));
+
+    for (const int i : bnode.input_sockets().index_range().drop_back(1)) {
+      const bNodeSocket &bsocket = bnode.input_socket(i);
+      this->add_to_socket_map(graph_params, bsocket, lf_value_node.input(i));
     }
-    int output_index = 0;
-    for (const bNodeSocket *bsocket : bnode.output_sockets()) {
-      if (bsocket->is_available()) {
-        this->add_to_socket_map(graph_params, *bsocket, lf_node.output(output_index));
-        output_index++;
-      }
+    this->add_to_socket_map(graph_params, bnode.input_socket(0), lf_bools_node.input(0));
+
+    this->add_to_socket_map(graph_params, bnode.output_socket(0), lf_value_node.output(0));
+
+    for (const int i : IndexRange(storage.enum_definition.items_num)) {
+      const bNodeSocket &bsocket = bnode.output_socket(i + 1);
+      this->add_to_socket_map(graph_params, bsocket, lf_bools_node.output(i));
     }
 
     this->build_menu_switch_node_socket_usage(bnode, graph_params);
