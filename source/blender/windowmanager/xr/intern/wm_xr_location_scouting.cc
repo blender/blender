@@ -58,8 +58,6 @@ bool wm_xr_location_scouting_is_captures_empty(Scene *scene)
   PropertyRNA *captures_prop = RNA_struct_find_property(&scene_ptr, "vr_captures");
 
   if (captures_prop == nullptr) {
-    /* Capture collection wasn't found, VR add-on is probably not loaded. Shouldn't be possible. */
-    BLI_assert_unreachable();
     return true;
   }
 
@@ -86,6 +84,7 @@ std::optional<XrLocationScoutingCapture> wm_xr_location_scouting_get_active_capt
 
   PointerRNA scene_ptr = RNA_id_pointer_create(&scene->id);
   PropertyRNA *captures_prop = RNA_struct_find_property(&scene_ptr, "vr_captures");
+  BLI_assert(captures_prop != nullptr);
 
   PropertyRNA *idx_prop = RNA_struct_find_property(&scene_ptr, "vr_captures_selected");
   const int capture_idx = RNA_property_int_get(&scene_ptr, idx_prop);
