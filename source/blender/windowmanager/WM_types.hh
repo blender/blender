@@ -590,6 +590,8 @@ struct wmNotifier {
 /* Changes in theme preferences that affects UI text drawing. */
 #define ND_UI_FONT (1 << 16)
 
+#define ND_UI_LANG (2 << 16)
+
 /* Subtype, 256 entries too. */
 #define NOTE_SUBTYPE 0x0000FF00
 

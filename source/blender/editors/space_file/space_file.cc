@@ -380,7 +380,7 @@ static void file_listener(const wmSpaceTypeListenerParams *listener_params)
   /* context changes */
   switch (wmn->category) {
     case NC_UI:
-      if (sfile) {
+      if (wmn->data == ND_UI_LANG && sfile) {
         filelist_tag_force_reset(sfile->files);
       }
       break;
