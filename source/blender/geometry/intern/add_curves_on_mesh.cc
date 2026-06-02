@@ -63,6 +63,7 @@ static void find_curve_neighbors(const Span<float3> root_positions,
                                  Vector<int> &index_data,
                                  Vector<float> &weight_data)
 {
+  PRF_scope(ProfileCategory::Default);
   const int tot_added_curves = root_positions.size();
   Array<NeighborCurves> neighbors_per_curve(tot_added_curves);
   threading::parallel_for(IndexRange(tot_added_curves), 128, [&](const IndexRange range) {
@@ -111,6 +112,7 @@ static void calc_position_without_interpolation(CurvesGeometry &curves,
                                                 const Span<float3> new_normals_su,
                                                 const float4x4 &surface_to_curves_normal_mat)
 {
+  PRF_scope(ProfileCategory::Default);
   const int added_curves_num = root_positions_cu.size();
   const OffsetIndices points_by_curve = curves.points_by_curve();
   MutableSpan<float3> positions_cu = curves.positions_for_write();
@@ -143,6 +145,7 @@ static void calc_position_with_interpolation(CurvesGeometry &curves,
                                              const ReverseUVSampler &reverse_uv_sampler,
                                              const Span<float3> corner_normals_su)
 {
+  PRF_scope(ProfileCategory::Default);
   MutableSpan<float3> positions_cu = curves.positions_for_write();
   const int added_curves_num = root_positions_cu.size();
 
@@ -320,6 +323,7 @@ static void calc_radius_with_interpolation(CurvesGeometry &curves,
 AddCurvesOnMeshOutputs add_curves_on_mesh(CurvesGeometry &curves,
                                           const AddCurvesOnMeshInputs &inputs)
 {
+  PRF_scope(ProfileCategory::Default);
   AddCurvesOnMeshOutputs outputs;
 
   const bool use_interpolation = inputs.interpolate_length || inputs.interpolate_point_count ||

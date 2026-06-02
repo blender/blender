@@ -649,6 +649,7 @@ static void calculate_evaluated_offsets(const CurvesGeometry &curves,
                                         MutableSpan<int> offsets,
                                         MutableSpan<int> all_bezier_offsets)
 {
+  PRF_scope(ProfileCategory::Default);
   const OffsetIndices points_by_curve = curves.points_by_curve();
   const VArray<int8_t> types = curves.curve_types();
   const VArray<int> resolution = curves.resolution();
@@ -763,6 +764,7 @@ void CurvesGeometry::ensure_nurbs_basis_cache() const
 {
   const CurvesGeometryRuntime &runtime = *this->runtime;
   runtime.nurbs_basis_cache.ensure([&](Vector<curves::nurbs::BasisCache> &r_data) {
+    PRF_scope_with_name("CurvesGeometry::ensure_nurbs_basis_cache", ProfileCategory::Default);
     IndexMaskMemory memory;
     const IndexMask nurbs_mask = this->indices_for_curve_type(CURVE_TYPE_NURBS, memory);
     if (nurbs_mask.is_empty()) {
@@ -833,6 +835,7 @@ Span<float3> CurvesGeometry::evaluated_positions() const
   }
   this->ensure_nurbs_basis_cache();
   runtime.evaluated_position_cache.ensure([&](Vector<float3> &r_data) {
+    PRF_scope_with_name("CurvesGeometry::evaluated_positions", ProfileCategory::Default);
     r_data.resize(this->evaluated_points_num());
     MutableSpan<float3> evaluated_positions = r_data;
 
@@ -915,6 +918,7 @@ Span<float3> CurvesGeometry::evaluated_tangents() const
 {
   const CurvesGeometryRuntime &runtime = *this->runtime;
   runtime.evaluated_tangent_cache.ensure([&](Vector<float3> &r_data) {
+    PRF_scope_with_name("CurvesGeometry::evaluated_tangents", ProfileCategory::Default);
     const OffsetIndices<int> evaluated_points_by_curve = this->evaluated_points_by_curve();
     const Span<float3> evaluated_positions = this->evaluated_positions();
     const VArray<bool> cyclic = this->cyclic();
@@ -1163,6 +1167,7 @@ void CurvesGeometry::interpolate_to_evaluated(const GSpan src, GMutableSpan dst)
       this->nurbs_weights(),
   };
   const OffsetIndices evaluated_points_by_curve = this->evaluated_points_by_curve();
+  PRF_scope_with_name("CurvesGeometry::interpolate_to_evaluated", ProfileCategory::Default);
 
   threading::parallel_for(this->curves_range(), 512, [&](IndexRange curves_range) {
     for (const int curve_index : curves_range) {
@@ -1178,6 +1183,7 @@ void CurvesGeometry::ensure_evaluated_lengths() const
 {
   const CurvesGeometryRuntime &runtime = *this->runtime;
   runtime.evaluated_length_cache.ensure([&](Vector<float> &r_data) {
+    PRF_scope_with_name("CurvesGeometry::ensure_evaluated_lengths", ProfileCategory::Default);
     /* Use an extra length value for the final cyclic segment for a consistent size
      * (see comment on #evaluated_length_cache). */
     const int total_num = this->evaluated_points_num() + this->curves_num();
@@ -1838,6 +1844,7 @@ void adapt_curve_domain_point_to_curve_impl(const CurvesGeometry &curves,
 static GVArray adapt_curve_domain_point_to_curve(const CurvesGeometry &curves,
                                                  const GVArray &varray)
 {
+  PRF_scope(ProfileCategory::Default);
   GVArray new_varray;
   attribute_math::to_static_type(varray.type(), [&]<typename T>() {
     if constexpr (!std::is_void_v<attribute_math::DefaultMixer<T>>) {
@@ -1861,6 +1868,7 @@ static void adapt_curve_domain_curve_to_point_impl(const CurvesGeometry &curves,
                                                    const VArray<T> &old_values,
                                                    MutableSpan<T> r_values)
 {
+  PRF_scope(ProfileCategory::Default);
   const OffsetIndices points_by_curve = curves.points_by_curve();
   for (const int i_curve : IndexRange(curves.curves_num())) {
     r_values.slice(points_by_curve[i_curve]).fill(old_values[i_curve]);
@@ -1870,6 +1878,7 @@ static void adapt_curve_domain_curve_to_point_impl(const CurvesGeometry &curves,
 static GVArray adapt_curve_domain_curve_to_point(const CurvesGeometry &curves,
                                                  const GVArray &varray)
 {
+  PRF_scope(ProfileCategory::Default);
   GVArray new_varray;
   attribute_math::to_static_type(varray.type(), [&]<typename T>() {
     Array<T> values(curves.points_num());

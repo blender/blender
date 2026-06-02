@@ -23,6 +23,8 @@
 #include "BLI_math_vector_types.hh"
 #include "BLI_span.hh"
 
+#include "PRF_profile.hh"
+
 #include "BLT_translation.hh"
 
 #include "FN_field.hh"
@@ -629,6 +631,7 @@ void gather_attributes(const AttributeAccessor src_attributes,
                        const IndexMask &selection,
                        MutableAttributeAccessor dst_attributes)
 {
+  PRF_scope(ProfileCategory::Default);
   const int src_size = src_attributes.domain_size(src_domain);
   src_attributes.foreach_attribute([&](const AttributeIter &iter) {
     if (iter.domain != src_domain) {
@@ -669,6 +672,7 @@ void gather_attributes(const AttributeAccessor src_attributes,
                        const Span<int> indices,
                        MutableAttributeAccessor dst_attributes)
 {
+  PRF_scope(ProfileCategory::Default);
   if (array_utils::indices_are_range(indices, IndexRange(src_attributes.domain_size(src_domain))))
   {
     copy_attributes(src_attributes, src_domain, dst_domain, attribute_filter, dst_attributes);
@@ -710,6 +714,7 @@ void gather_attributes_group_to_group(const AttributeAccessor src_attributes,
                                       const IndexMask &selection,
                                       MutableAttributeAccessor dst_attributes)
 {
+  PRF_scope(ProfileCategory::Default);
   if (selection.size() == src_offsets.size()) {
     if (src_attributes.domain_size(src_domain) == dst_attributes.domain_size(src_domain)) {
       /* When all groups are selected and the domains are the same size, all values are copied,
@@ -752,6 +757,7 @@ void gather_attributes_to_groups(const AttributeAccessor src_attributes,
                                  const IndexMask &src_selection,
                                  MutableAttributeAccessor dst_attributes)
 {
+  PRF_scope(ProfileCategory::Default);
   src_attributes.foreach_attribute([&](const AttributeIter &iter) {
     if (iter.domain != src_domain) {
       return;
@@ -784,6 +790,7 @@ void copy_attributes(const AttributeAccessor src_attributes,
                      const AttributeFilter &attribute_filter,
                      MutableAttributeAccessor dst_attributes)
 {
+  PRF_scope(ProfileCategory::Default);
   BLI_assert(src_attributes.domain_size(src_domain) == dst_attributes.domain_size(dst_domain));
   gather_attributes(src_attributes,
                     src_domain,
@@ -814,6 +821,7 @@ void copy_attributes_group_to_group(const AttributeAccessor src_attributes,
                                     const IndexMask &selection,
                                     MutableAttributeAccessor dst_attributes)
 {
+  PRF_scope(ProfileCategory::Default);
   if (selection.is_empty()) {
     return;
   }
@@ -858,6 +866,7 @@ void fill_attribute_range_default(MutableAttributeAccessor attributes,
                                   const AttributeFilter &attribute_filter,
                                   const IndexRange range)
 {
+  PRF_scope(ProfileCategory::Default);
   /* While it is valid to call this function for any valid range which can be placed in target
    * domain, it is computationally costly to perform this loop. This check is COW elision and not
    * just loop skip. */
@@ -894,6 +903,7 @@ void fill_attribute_range_default(MutableAttributeAccessor attributes,
 void transform_custom_normal_attribute(const float4x4 &transform,
                                        MutableAttributeAccessor &attributes)
 {
+  PRF_scope(ProfileCategory::Default);
   const GAttributeReader normals = attributes.lookup("custom_normal");
   if (!normals) {
     return;

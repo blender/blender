@@ -13,6 +13,8 @@
 #include "BLI_string_utils.hh"
 #include "BLI_vector_set.hh"
 
+#include "PRF_profile.hh"
+
 #include "BLT_translation.hh"
 
 #include "BLO_read_write.hh"
@@ -375,6 +377,7 @@ void AttributeStorage::rename(const Map<Attribute *, StringRef> &renames)
 
 void AttributeStorage::resize(const AttrDomain domain, const int64_t new_size)
 {
+  PRF_scope_with_name("AttributeStorage::resize", ProfileCategory::Default);
   for (Attribute &attr : *this) {
     if (attr.domain() != domain) {
       continue;

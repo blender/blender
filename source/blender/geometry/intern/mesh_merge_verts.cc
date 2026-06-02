@@ -1232,6 +1232,7 @@ static void weld_mesh_context_create(const Mesh &mesh,
                                      const bool get_doubles,
                                      WeldMesh *r_weld_mesh)
 {
+  PRF_scope(ProfileCategory::Default);
   const Span<int2> edges = mesh.edges();
   const OffsetIndices faces = mesh.faces();
   const Span<int> corner_verts = mesh.corner_verts();
@@ -1350,6 +1351,7 @@ static void merge_customdata_all(Span<int> dest_map,
                                  Vector<int> &r_src_index_data,
                                  Array<int> &r_final_map)
 {
+  PRF_scope(ProfileCategory::Default);
   const int source_size = dest_map.size();
   r_src_index_offsets.reserve(dest_size + 1);
   r_src_index_data.reserve(source_size);
@@ -1508,6 +1510,7 @@ static Mesh *create_merged_mesh(const Mesh &mesh,
                                 const int removed_vertex_count,
                                 const bool do_mix_data)
 {
+  PRF_scope(ProfileCategory::Default);
 #ifdef USE_WELD_DEBUG_TIME
   SCOPED_TIMER(__func__);
 #endif

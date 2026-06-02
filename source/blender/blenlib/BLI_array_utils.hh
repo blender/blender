@@ -19,6 +19,8 @@
 #include "BLI_task.hh"
 #include "BLI_virtual_array.hh"
 
+#include "PRF_profile.hh"
+
 namespace blender::array_utils {
 
 constexpr int64_t calc_copy_grain_size(const exec_mode::Tag auto mode, const int64_t type_size)
@@ -188,6 +190,7 @@ inline void gather(const VArray<T> &src,
                    MutableSpan<T> dst,
                    const Mode mode = {})
 {
+  PRF_scope_with_name("array_utils::gather", ProfileCategory::Default);
   BLI_assert(indices.size() >= dst.size());
   if constexpr (!mode.is_parallel) {
     src.materialize_compressed(indices, dst);
@@ -210,6 +213,7 @@ inline void gather(const Span<T> src,
                    MutableSpan<T> dst,
                    const Mode mode = {})
 {
+  PRF_scope_with_name("array_utils::gather", ProfileCategory::Default);
   BLI_assert(indices.size() >= dst.size());
   dst_mask.foreach_index_optimized<int64_t>([&](const int64_t i) { dst[i] = src[indices[i]]; },
                                             exec_mode_tag_for_copy(mode, sizeof(T)));
@@ -237,6 +241,7 @@ inline void gather(const VArray<T> &src,
                    MutableSpan<T> dst,
                    const Mode mode = {})
 {
+  PRF_scope_with_name("array_utils::gather", ProfileCategory::Default);
   BLI_assert(indices.size() >= dst_mask.min_array_size());
   const CommonVArrayInfo info = src.common_info();
   switch (info.type) {

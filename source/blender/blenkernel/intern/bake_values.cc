@@ -109,6 +109,7 @@ class RuntimeToBakeValue {
 
   void convert()
   {
+    PRF_scope_with_name("RuntimeToBakeValue::convert", ProfileCategory::Default);
     for (BakeValues::InputValue &input_value : root_values_) {
       input_value.value.ensure_owns_direct_data();
     }

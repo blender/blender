@@ -1900,6 +1900,7 @@ void serialize_bake(const BakeValues &bake_values,
                     BlobWriteSharing &blob_sharing,
                     std::ostream &r_stream)
 {
+  PRF_scope(ProfileCategory::Default);
   io::serialize::DictionaryValue io_root;
   io_root.append_int("version", bake_file_version);
   io::serialize::DictionaryValue &io_items = *io_root.append_dict("items");
@@ -1916,6 +1917,7 @@ std::optional<BakeValues> deserialize_bake(std::istream &stream,
                                            const BlobReader &blob_reader,
                                            const BlobReadSharing &blob_sharing)
 {
+  PRF_scope(ProfileCategory::Default);
   JsonFormatter formatter;
   std::unique_ptr<io::serialize::Value> io_root_value;
   try {

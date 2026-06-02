@@ -11,12 +11,15 @@
 #include "BLI_array_utils.hh"
 #include "BLI_threads.h"
 
+#include "PRF_profile.hh"
+
 #include "atomic_ops.h"
 
 namespace blender::array_utils {
 
 void copy(const GVArray &src, GMutableSpan dst, const exec_mode::Mode mode)
 {
+  PRF_scope_with_name("array_utils::copy", ProfileCategory::Default);
   BLI_assert(src.type() == dst.type());
   BLI_assert(src.size() == dst.size());
   if (!mode.is_parallel) {
@@ -35,6 +38,7 @@ void copy(const GVArray &src,
           GMutableSpan dst,
           const exec_mode::Mode mode)
 {
+  PRF_scope_with_name("array_utils::copy", ProfileCategory::Default);
   BLI_assert(src.type() == dst.type());
   BLI_assert(src.size() >= selection.min_array_size());
   BLI_assert(dst.size() >= selection.min_array_size());
@@ -54,6 +58,7 @@ void gather(const GVArray &src,
             GMutableSpan dst,
             const exec_mode::Mode mode)
 {
+  PRF_scope_with_name("array_utils::gather", ProfileCategory::Default);
   BLI_assert(src.type() == dst.type());
   BLI_assert(indices.size() == dst.size());
   if (!mode.is_parallel) {
@@ -89,6 +94,7 @@ void copy_group_to_group(const OffsetIndices<int> src_offsets,
 
 void count_indices(const Span<int> indices, MutableSpan<int> counts)
 {
+  PRF_scope_with_name("array_utils::count_indices", ProfileCategory::Default);
   if (indices.size() < 8192 || BLI_system_thread_count() < 4) {
     for (const int i : indices) {
       counts[i]++;
@@ -105,6 +111,7 @@ void count_indices(const Span<int> indices, MutableSpan<int> counts)
 
 void invert_booleans(MutableSpan<bool> span)
 {
+  PRF_scope_with_name("array_utils::invert_booleans", ProfileCategory::Default);
   threading::parallel_for(span.index_range(), 4096, [&](IndexRange range) {
     for (const int i : range) {
       span[i] = !span[i];
@@ -114,6 +121,7 @@ void invert_booleans(MutableSpan<bool> span)
 
 void invert_booleans(MutableSpan<bool> span, const IndexMask &mask)
 {
+  PRF_scope_with_name("array_utils::invert_booleans", ProfileCategory::Default);
   mask.foreach_index_optimized<int64_t>([&](const int64_t i) { span[i] = !span[i]; });
 }
 
@@ -133,6 +141,7 @@ BooleanMix booleans_mix_calc(const VArray<bool> &varray, const IndexRange range_
   if (varray.is_empty()) {
     return BooleanMix::None;
   }
+  PRF_scope_with_name("array_utils::booleans_mix_calc", ProfileCategory::Default);
   const CommonVArrayInfo info = varray.common_info();
   if (info.type == CommonVArrayInfo::Type::Single) {
     return *static_cast<const bool *>(info.data) ? BooleanMix::AllTrue : BooleanMix::AllFalse;
@@ -181,6 +190,7 @@ int64_t count_booleans(const VArray<bool> &varray, const IndexMask &mask)
   if (varray.is_empty() || mask.is_empty()) {
     return 0;
   }
+  PRF_scope_with_name("array_utils::count_booleans", ProfileCategory::Default);
   /* Check if mask is full. */
   if (varray.size() == mask.size()) {
     const CommonVArrayInfo info = varray.common_info();
@@ -228,6 +238,7 @@ int64_t count_booleans(const VArray<bool> &varray, const IndexMask &mask)
 
 bool contains(const VArray<bool> &varray, const IndexMask &indices_to_check, const bool value)
 {
+  PRF_scope_with_name("array_utils::contains", ProfileCategory::Default);
   const CommonVArrayInfo info = varray.common_info();
   if (info.type == CommonVArrayInfo::Type::Single) {
     return *static_cast<const bool *>(info.data) == value;
@@ -288,6 +299,7 @@ IndexMask indices_non_negative(const IndexMask &universe,
                                const Span<int> values,
                                LinearAllocator<> &memory)
 {
+  PRF_scope_with_name("array_utils::indices_non_negative", ProfileCategory::Default);
   return IndexMask::from_predicate(
       universe, memory, [&](const int i) { return values[i] >= 0; }, exec_mode::grain_size(4096));
 }
@@ -297,6 +309,7 @@ IndexMask indices_in_range(const IndexMask &universe,
                            const IndexRange range,
                            LinearAllocator<> &memory)
 {
+  PRF_scope_with_name("array_utils::indices_in_range", ProfileCategory::Default);
   return IndexMask::from_predicate(
       universe,
       memory,
@@ -314,6 +327,7 @@ bool indices_are_range(Span<int> indices, IndexRange range)
   if (indices.size() != range.size()) {
     return false;
   }
+  PRF_scope_with_name("array_utils::indices_are_range", ProfileCategory::Default);
   return threading::parallel_reduce(
       range.index_range(),
       4096,

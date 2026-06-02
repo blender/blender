@@ -586,6 +586,7 @@ set(LIB
   PRIVATE bf::imbuf::movie
   PRIVATE bf::imbuf::opencolorio
   PRIVATE bf::intern::clog
+  PUBLIC bf::intern::profile
   bf_intern_ghost
   PRIVATE bf::intern::guardedalloc
   PUBLIC bf::intern::optional::openvdb  # Contains intern-openvdb items in public headers

@@ -18,6 +18,8 @@
 #include "BLI_stack.hh"
 #include "BLI_vector.hh"
 
+#include "PRF_profile.hh"
+
 #include <algorithm>
 
 namespace blender {
@@ -180,6 +182,7 @@ static uint kdtree_balance(KDTreeNode<CoordT> *nodes, uint nodes_len, uint axis,
 
 template<typename CoordT> inline void kdtree_balance(KDTree<CoordT> *tree)
 {
+  PRF_scope(ProfileCategory::Default);
   if (tree->root != detail::kd_node_root_is_init) {
     for (uint i = 0; i < tree->nodes_len; i++) {
       tree->nodes[i].left = detail::kd_node_unset;
@@ -722,6 +725,7 @@ inline int kdtree_calc_duplicates_fast(const KDTree<CoordT> *tree,
                                        const bool use_index_order,
                                        int *duplicates)
 {
+  PRF_scope(ProfileCategory::Default);
   int found = 0;
 
   detail::DeDuplicateParams<CoordT> p = {};
