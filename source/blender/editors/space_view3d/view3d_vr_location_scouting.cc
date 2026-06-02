@@ -31,6 +31,8 @@
 #  include "wm_xr.hh"
 #endif
 
+#include "view3d_intern.hh"
+
 namespace blender {
 
 /* -------------------------------------------------------------------- */
