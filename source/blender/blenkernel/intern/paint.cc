@@ -1987,7 +1987,7 @@ static bool paint_rake_rotation_active(const Brush &brush)
 bool paint_calculate_rake_rotation(Paint &paint,
                                    const Brush &brush,
                                    const float mouse_pos[2],
-                                   const PaintMode paint_mode,
+                                   const PaintMode /*paint_mode*/,
                                    bool stroke_has_started)
 {
   bke::PaintRuntime &paint_runtime = *paint.runtime;
