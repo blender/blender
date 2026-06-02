@@ -1921,7 +1921,7 @@ class CyclesPreferences(bpy.types.AddonPreferences):
                     col.label(text=rpt_("with Windows driver version %s or newer") % driver_version,
                               icon='BLANK1', translate=False)
                 elif sys.platform.startswith("linux"):
-                    driver_version = "XX.XX.34666.3"
+                    driver_version = "XX.XX.37435.3"
                     col.label(
                         text=self._format_device_name(
                             rpt_("Requires Intel(R) Arc(TM) GPUs or newer Intel(R) Graphics")),

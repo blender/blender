@@ -1159,6 +1159,9 @@ set(PARALLEL_HASHMAP_COPYRIGHT "Copyright (c) 2019, Gregory Popovitch - greg7mdp
 # compiler, the versions used are taken from the following location
 # https://github.com/intel/intel-graphics-compiler/releases
 
+# Note: After every upgrade of the IGC version, the minimal Intel Linux driver version must be increased,
+# see the comment around lowest_supported_driver_version_neo constant in
+# intern\cycles\device\oneapi\device_impl.cpp
 set(IGC_VERSION 2.30.1)
 set(IGC_URI https://github.com/intel/intel-graphics-compiler/archive/refs/tags/v${IGC_VERSION}.tar.gz)
 set(IGC_HASH 4e5f46b20ec5c055f3cbfed16cfa9739b67f0d05786d736f3d10b09b11b171a3)

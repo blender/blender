@@ -1384,7 +1384,15 @@ static const int lowest_supported_driver_version_win = 1018306;
  * This information is returned by `ocloc query OCL_DRIVER_VERSION`. */
 static const int lowest_supported_driver_version_neo = 35716;
 #  else
-static const int lowest_supported_driver_version_neo = 34666;
+/* For Linux, according to Blender version file
+ * build_files\build_environment\cmake\versions.cmake we
+ * at the moment are using Intel Graphics Compiler v2.30.1.
+ * According to the Intel Linux Driver releases page:
+ * https://github.com/intel/compute-runtime/releases the first driver
+ * which supports this IGC version is 26.09.37435.1, which you can
+ * confirm by checking "Additional components revisions used in build"
+ * section. Thus, this version is our minimal one. */
+static const int lowest_supported_driver_version_neo = 37435;
 #  endif
 
 int parse_driver_build_version(const sycl::device &device)
