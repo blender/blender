@@ -1117,7 +1117,7 @@ ccl_device void osl_closure_subsurface_bssrdf_setup(
     const ccl_private SubsurfaceBSSRDFClosure *closure,
     float3 * /*layer_albedo*/)
 {
-  ccl_private Bssrdf *bssrdf = bssrdf_alloc(sd, rgb_to_spectrum(weight));
+  ccl_private Bssrdf *bssrdf = bssrdf_alloc(sd, rgb_to_spectrum(closure->albedo * weight));
   if (!bssrdf) {
     return;
   }

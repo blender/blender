@@ -77,6 +77,7 @@ void node_bsdf_principled(float4 base_color,
                           float thin_film_thickness,
                           float thin_film_ior,
                           const float do_multiscatter,
+                          const float subsurface_random_walk_radius_scale,
                           Closure &result)
 {
   /* Match cycles. */
@@ -295,7 +296,9 @@ void node_bsdf_principled(float4 base_color,
     else {
       ClosureSubsurface sss_data;
       sss_data.N = N;
-      sss_data.sss_radius = max(subsurface_radius * subsurface_scale, float3(0.0f));
+      sss_data.sss_radius = max(subsurface_radius * subsurface_scale *
+                                    subsurface_random_walk_radius_scale,
+                                float3(0.0f));
       /* Subsurface Scattering materials behave unpredictably with values greater than 1.0 in
        * Cycles. So it's clamped there and we clamp here for consistency with Cycles. */
       sss_data.color = (subsurface_weight * weight) * clamped_base_color.rgb * coat_tint.rgb;
