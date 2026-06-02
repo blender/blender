@@ -131,19 +131,17 @@ static void location_scouting_review_draw_status(bContext *C, wmOperator *op)
   status.item(IFACE_("Add Marker"), ICON_NONE);
 }
 
-bool vr_location_scouting_capture_review_poll(bContext *C)
+static bool vr_location_scouting_capture_review_poll(bContext *C)
 {
   return !wm_xr_location_scouting_is_captures_empty(CTX_data_scene(C)) &&
          ED_operator_region_view3d_active(C);
 }
 
-/* The capture review property is stored on the WM, registered by the VR Python add-on. */
+/* The capture review running property is stored on the WM, registered by the Python VR add-on. */
 static bool vr_location_scouting_capture_review_get_running_state(bContext *C)
 {
   PointerRNA wm_ptr = RNA_id_pointer_create(&CTX_wm_manager(C)->id);
   PropertyRNA *state_prop = RNA_struct_find_property(&wm_ptr, "vr_capture_review_running");
-
-  /* Property wasn't found, VR add-on is probably not loaded. Shouldn't be possible. */
   BLI_assert(state_prop != nullptr);
 
   return RNA_property_boolean_get(&wm_ptr, state_prop);
@@ -153,8 +151,6 @@ static void vr_location_scouting_capture_review_set_running_state(bContext *C, c
 {
   PointerRNA wm_ptr = RNA_id_pointer_create(&CTX_wm_manager(C)->id);
   PropertyRNA *state_prop = RNA_struct_find_property(&wm_ptr, "vr_capture_review_running");
-
-  /* Property wasn't found, VR add-on is probably not loaded. Shouldn't be possible. */
   BLI_assert(state_prop != nullptr);
 
   RNA_property_boolean_set(&wm_ptr, state_prop, state);
