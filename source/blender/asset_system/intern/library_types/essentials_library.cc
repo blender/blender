@@ -122,7 +122,7 @@ StringRefNull essentials_directory_path()
   return path;
 }
 
-bool skip_experimental_asset_catalog(const UUID &catalog_id)
+bool skip_experimental_asset_catalog(const UUID & /*catalog_id*/)
 {
   /* Return true when the catalog_id should be rejected based on experimental features:
    *
@@ -132,11 +132,6 @@ bool skip_experimental_asset_catalog(const UUID &catalog_id)
    * }
    */
 
-  /* Enable catalog for hair dynamics only if the feature is enabled. */
-  const UUID UUID_hair_dynamics("df62a3e8-fc21-457b-9415-89f89af431ac");
-  if (!U.experimental.use_geometry_nodes_hair_dynamics && catalog_id == UUID_hair_dynamics) {
-    return true;
-  }
   return false;
 }
 

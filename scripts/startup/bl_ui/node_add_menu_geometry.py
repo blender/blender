@@ -648,8 +648,7 @@ class NODE_MT_gn_simulation_base(node_add_menu.NodeMenu):
         layout = self.layout
         self.simulation_zone(layout, label="Simulation")
         layout.separator()
-        if context.preferences.experimental.use_geometry_nodes_hair_dynamics:
-            self.node_operator(layout, "GeometryNodeXPBDSolver")
+        self.node_operator(layout, "GeometryNodeXPBDSolver")
 
         self.draw_assets_for_catalog(layout, self.bl_label)
 
@@ -679,8 +678,7 @@ class NODE_MT_gn_utilities_text_base(node_add_menu.NodeMenu):
         self.node_operator(layout, "FunctionNodeValueToString")
         layout.separator()
         self.node_operator(layout, "FunctionNodeInputSpecialCharacters")
-        if context.preferences.experimental.use_geometry_nodes_hair_dynamics:
-            self.node_operator(layout, "GeometryNodeTagFilter")
+        self.node_operator(layout, "GeometryNodeTagFilter")
 
         self.draw_assets_for_catalog(layout, self.menu_path)
 
@@ -829,12 +827,10 @@ class NODE_MT_category_utilities_bundle_base(node_add_menu.NodeMenu):
         self.node_operator(layout, "NodeCombineBundle")
         self.node_operator(layout, "NodeSeparateBundle")
         self.node_operator(layout, "NodeGetBundleItem")
-        if context.preferences.experimental.use_geometry_nodes_hair_dynamics:
-            self.node_operator(layout, "NodeGetNestedBundlePaths")
+        self.node_operator(layout, "NodeGetNestedBundlePaths")
         self.node_operator(layout, "NodeStoreBundleItem")
         self.node_operator(layout, "NodeJoinBundle")
-        if context.preferences.experimental.use_geometry_nodes_hair_dynamics:
-            self.typed_bundle(layout, label="Typed Bundle")
+        self.typed_bundle(layout, label="Typed Bundle")
 
         self.draw_assets_for_catalog(layout, self.menu_path)
 

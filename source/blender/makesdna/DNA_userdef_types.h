@@ -855,8 +855,7 @@ struct UserDef_Experimental {
    * actually remove this flag is tracked in #158903. */
   char use_remote_asset_libraries = 1;
   char use_collection_importer = 0;
-  char use_geometry_nodes_hair_dynamics = 0;
-  char _pad[3] = {};
+  char _pad[4] = {};
 };
 
 #define USER_EXPERIMENTAL_TEST(userdef, member) (((userdef)->experimental).member)
