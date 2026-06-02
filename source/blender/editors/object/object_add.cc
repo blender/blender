@@ -69,6 +69,7 @@
 #include "BKE_effect.h"
 #include "BKE_geometry_set.hh"
 #include "BKE_geometry_set_instances.hh"
+#include "BKE_global.hh"
 #include "BKE_grease_pencil.hh"
 #include "BKE_key.hh"
 #include "BKE_lattice.hh"
@@ -115,6 +116,8 @@
 #include "WM_types.hh"
 
 #include "ED_armature.hh"
+#include "ED_asset.hh"
+#include "ED_asset_menu_utils.hh"
 #include "ED_curve.hh"
 #include "ED_curves.hh"
 #include "ED_gpencil_legacy.hh"
@@ -131,6 +134,10 @@
 #include "ED_select_utils.hh"
 #include "ED_transform.hh"
 #include "ED_view3d.hh"
+
+#include "MOD_nodes.hh"
+
+#include "AS_asset_library.hh"
 
 #include "ANIM_bone_collections.hh"
 
@@ -2320,6 +2327,67 @@ void OBJECT_OT_curves_random_add(wmOperatorType *ot)
   add_generic_props(ot, false);
 }
 
+static NodesModifierData *add_essential_asset_modifier(bContext &C,
+                                                       Object &object,
+                                                       const StringRefNull path,
+                                                       ReportList *reports)
+{
+  Scene &scene = *CTX_data_scene(&C);
+  Main &bmain = *CTX_data_main(&C);
+
+  if (ID_IS_LINKED(&object)) {
+    return nullptr;
+  }
+
+  AssetWeakReference asset_weak_ref{};
+  asset_weak_ref.asset_library_type = ASSET_LIBRARY_ESSENTIALS;
+  asset_weak_ref.relative_asset_identifier = BLI_strdup(path.c_str());
+  if (G.background) {
+    /* For testing purposes, make sure assets are loaded (this make take too long to do
+     * automatically during user interaction). */
+    asset::list::storage_fetch_blocking(asset_system::all_library_reference(), C);
+  }
+  const asset_system::AssetRepresentation *asset_representation = asset::find_asset_from_weak_ref(
+      C, asset_weak_ref, reports);
+  if (!asset_representation) {
+    return nullptr;
+  }
+  ID *asset_id = asset::asset_local_id_ensure_imported(bmain, *asset_representation);
+  if (!asset_id) {
+    return nullptr;
+  }
+  if (GS(asset_id->name) != ID_NT) {
+    return nullptr;
+  }
+  bNodeTree *node_group = id_cast<bNodeTree *>(asset_id);
+  NodesModifierData *nmd = reinterpret_cast<NodesModifierData *>(
+      modifier_add(reports, &bmain, &scene, &object, BKE_id_name(*asset_id), eModifierType_Nodes));
+  nmd->node_group = node_group;
+  id_us_plus(&node_group->id);
+  nmd->flag |= NODES_MODIFIER_HIDE_DATABLOCK_SELECTOR;
+  BKE_modifier_unique_name(&object.modifiers, &nmd->modifier);
+  MOD_nodes_update_interface(&object, nmd);
+  DEG_id_tag_update(&object.id, ID_RECALC_GEOMETRY);
+  return nmd;
+}
+
+static bool has_capture_rest_geometry_modifier(const Object *object)
+{
+  for (const ModifierData &md : object->modifiers) {
+    if (md.type != eModifierType_Nodes) {
+      continue;
+    }
+    const auto &nmd = reinterpret_cast<const NodesModifierData &>(md);
+    if (!nmd.node_group) {
+      continue;
+    }
+    if (StringRef(BKE_id_name(nmd.node_group->id)) == "Capture Rest Geometry") {
+      return true;
+    }
+  }
+  return false;
+}
+
 static wmOperatorStatus object_curves_empty_hair_add_exec(bContext *C, wmOperator *op)
 {
   Scene *scene = CTX_data_scene(C);
@@ -2347,7 +2415,36 @@ static wmOperatorStatus object_curves_empty_hair_add_exec(bContext *C, wmOperato
     curves_id->surface_uv_map = BLI_strdupn(uv_name.data(), uv_name.size());
   }
 
-  if (!U.experimental.use_geometry_nodes_hair_dynamics) {
+  if (U.experimental.use_geometry_nodes_hair_dynamics) {
+    if (!has_capture_rest_geometry_modifier(surface_ob)) {
+      if (!add_essential_asset_modifier(
+              *C,
+              *surface_ob,
+              "nodes/geometry_nodes_essentials.blend/NodeTree/Capture Rest Geometry",
+              op->reports))
+      {
+        if (ID_IS_LINKED(surface_ob)) {
+          BKE_reportf(op->reports,
+                      RPT_ERROR,
+                      "Can't add \"Capture Rest Geometry\" modifier to linked \"%s\" object",
+                      BKE_id_name(surface_ob->id));
+        }
+        else {
+          BKE_reportf(op->reports,
+                      RPT_ERROR,
+                      "Can't add \"Capture Rest Geometry\" modifier to \"%s\" object",
+                      BKE_id_name(surface_ob->id));
+        }
+      }
+    }
+    NodesModifierData *dynamics_modifier = add_essential_asset_modifier(
+        *C,
+        *curves_ob,
+        "nodes/geometry_nodes_dynamics_assets.blend/NodeTree/Hair Dynamics",
+        op->reports);
+    dynamics_modifier->modifier.flag |= eModifierFlag_PinLast;
+  }
+  else {
     ed::curves::ensure_surface_deformation_node_exists(*C, *curves_ob);
   }
 

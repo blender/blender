@@ -20,7 +20,7 @@ const FlatBundleTypePtr &MeshColliderBundle::get_bundle_type()
     FlatBundleTypeBuilder b(MeshColliderBundle::name);
     add_filter(b);
     b.add<decl::Geometry>("geometry"_ustr);
-    b.add<decl::Float>("margin"_ustr).min(0.0f);
+    b.add<decl::Float>("margin"_ustr).min(0.0f).subtype(PROP_DISTANCE);
     b.add<decl::Float>("friction"_ustr).min(0.0f);
     b.add<decl::Float>("compliance"_ustr).min(0.0f);
     b.add<decl::Bool>("deforming"_ustr).default_value(false);
