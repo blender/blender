@@ -7627,7 +7627,7 @@ def km_3d_view_tool_measure(params):
 
 def km_3d_view_tool_pose_breakdowner(params):
     return (
-        "3D View Tool: Pose, Breakdowner",
+        "3D View Tool: Breakdowner",
         {"space_type": 'VIEW_3D', "region_type": 'WINDOW'},
         {"items": [
             ("pose.breakdown", {**params.tool_maybe_tweak_event, **params.tool_modifier}, None),
@@ -7637,7 +7637,7 @@ def km_3d_view_tool_pose_breakdowner(params):
 
 def km_3d_view_tool_pose_push(params):
     return (
-        "3D View Tool: Pose, Push",
+        "3D View Tool: Push",
         {"space_type": 'VIEW_3D', "region_type": 'WINDOW'},
         {"items": [
             ("pose.push", {**params.tool_maybe_tweak_event, **params.tool_modifier}, None),
@@ -7647,7 +7647,7 @@ def km_3d_view_tool_pose_push(params):
 
 def km_3d_view_tool_pose_relax(params):
     return (
-        "3D View Tool: Pose, Relax",
+        "3D View Tool: Relax",
         {"space_type": 'VIEW_3D', "region_type": 'WINDOW'},
         {"items": [
             ("pose.relax", {**params.tool_maybe_tweak_event, **params.tool_modifier}, None),
