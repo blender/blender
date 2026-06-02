@@ -42,6 +42,11 @@
 #include "bmesh.hh"
 #include "bmesh_tools.hh"
 
+// #define DEBUG_TIME
+#ifdef DEBUG_TIME
+#  include "BLI_timeit.hh"
+#endif
+
 namespace blender {
 
 static void init_data(ModifierData *md)
@@ -108,6 +113,10 @@ static Mesh *modify_mesh(ModifierData *md, const ModifierEvalContext *ctx, Mesh 
   if (mesh->verts_num == 0) {
     return mesh;
   }
+#ifdef DEBUG_TIME
+  printf("BEVEL MODIFIER starts\n");
+  const timeit::TimePoint start_time = timeit::Clock::now();
+#endif
   Mesh *result;
   BMesh *bm;
   BMIter iter;
@@ -221,6 +230,11 @@ static Mesh *modify_mesh(ModifierData *md, const ModifierEvalContext *ctx, Mesh 
     }
   }
 
+#ifdef DEBUG_TIME
+  const timeit::TimePoint bmeshes_made_time = timeit::Clock::now();
+  const float t1_ms = (bmeshes_made_time - start_time).count() / 1.0e6f;
+  printf("BEVEL MODIFIER bmeshes made, %.1f ms\n", t1_ms);
+#endif
   BM_mesh_bevel(bm,
                 value,
                 offset_type,
@@ -246,6 +260,12 @@ static Mesh *modify_mesh(ModifierData *md, const ModifierEvalContext *ctx, Mesh 
                 bweight_offset_vert,
                 bweight_offset_edge);
 
+#ifdef DEBUG_TIME
+  const timeit::TimePoint bevel_time = timeit::Clock::now();
+  const float t2_ms = (bevel_time - bmeshes_made_time).count() / 1.0e6f;
+  printf("BEVEL MODIFIER bevel, %.1f ms\n", t2_ms);
+#endif
+
   result = BKE_mesh_from_bmesh_for_eval_nomain(bm, nullptr, mesh);
 
   /* Make sure we never allocated these. */
@@ -260,6 +280,14 @@ static Mesh *modify_mesh(ModifierData *md, const ModifierEvalContext *ctx, Mesh 
   if (edge_weight_converted) {
     result->attributes_for_write().remove(edge_weight_name);
   }
+
+#ifdef DEBUG_TIME
+  const timeit::TimePoint end_time = timeit::Clock::now();
+  const float t3_ms = (end_time - bevel_time).count() / 1.0e6f;
+  const float t4_ms = (end_time - start_time).count() / 1.0e6f;
+  printf("BEVEL MODIFIER back to mesh, %.1f ms\n", t3_ms);
+  printf("BEVEL MODIFIER total, %.1f ms\n", t4_ms);
+#endif
 
   geometry::debug_randomize_mesh_order(result);
 

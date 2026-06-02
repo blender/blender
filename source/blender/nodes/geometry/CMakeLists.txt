@@ -185,6 +185,7 @@ set(SRC
   nodes/node_geo_merge_by_distance.cc
   nodes/node_geo_merge_layers.cc
   nodes/node_geo_merge_points.cc
+  nodes/node_geo_mesh_bevel.cc
   nodes/node_geo_mesh_face_group_boundaries.cc
   nodes/node_geo_mesh_primitive_circle.cc
   nodes/node_geo_mesh_primitive_cone.cc

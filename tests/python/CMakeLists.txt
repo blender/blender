@@ -1249,6 +1249,7 @@ if(TEST_SRC_DIR_EXISTS)
     repeat_zone
     mesh_primitives
     mesh
+    mesh/bevel
     mesh/extrude
     mesh/split_edges
     mesh/triangulate

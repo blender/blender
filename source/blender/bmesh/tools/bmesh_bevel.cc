@@ -426,8 +426,325 @@ struct BevelParams {
 
 // #pragma GCC diagnostic ignored "-Wpadded"
 
-/* Only for debugging, this file shouldn't be in blender repository. */
-// #include "bevdebug.c"
+/* -------------------------------------------------------------------- */
+/** \name Debug printing utilities
+ * \{ */
+
+// #define BEVEL_DEBUG
+#ifdef BEVEL_DEBUG
+
+namespace debug {
+
+/* Ensures vert, edge, and face indices are up to date so that #vi, #ei, and #fi
+ * return readable sequential values.  Call this once before any dump function. */
+[[maybe_unused]] static void ensure_indices(BMesh *bm)
+{
+  BM_mesh_elem_index_ensure(bm, BM_VERT | BM_EDGE | BM_FACE);
+}
+
+/* Prints a float3 array as "(x,y,z)" with no trailing newline. */
+[[maybe_unused]] static void print_float3(const float v[3])
+{
+  fmt::print("({},{},{})", v[0], v[1], v[2]);
+}
+
+/* Returns the index of a #BMVert, or -1 if null. */
+[[maybe_unused]] static int vi(const BMVert *v)
+{
+  return v ? BM_elem_index_get(v) : -1;
+}
+
+/* Returns the index of a #BMEdge, or -1 if null. */
+[[maybe_unused]] static int ei(const BMEdge *e)
+{
+  return e ? BM_elem_index_get(e) : -1;
+}
+
+/* Returns the index of a #BMFace, or -1 if null. */
+[[maybe_unused]] static int fi(const BMFace *f)
+{
+  return f ? BM_elem_index_get(f) : -1;
+}
+
+/* Returns a human-readable name for a #MeshKind value. */
+[[maybe_unused]] static const char *mesh_kind_name(MeshKind kind)
+{
+  switch (kind) {
+    case M_NONE:
+      return "NONE";
+    case M_POLY:
+      return "POLY";
+    case M_ADJ:
+      return "ADJ";
+    case M_TRI_FAN:
+      return "TRI_FAN";
+    case M_CUTOFF:
+      return "CUTOFF";
+    default:
+      return "?";
+  }
+}
+
+/* Prints a single #Profile's key parameters. */
+[[maybe_unused]] static void dump_profile(const Profile &prof)
+{
+  fmt::print("  Profile: super_r={} height={} special_params={}\n",
+             prof.super_r,
+             prof.height,
+             prof.special_params);
+  fmt::print("    start=");
+  print_float3(prof.start);
+  fmt::print(" middle=");
+  print_float3(prof.middle);
+  fmt::print(" end=");
+  print_float3(prof.end);
+  fmt::println("");
+  fmt::print("    plane_no=");
+  print_float3(prof.plane_no);
+  fmt::print(" plane_co=");
+  print_float3(prof.plane_co);
+  fmt::print(" proj_dir=");
+  print_float3(prof.proj_dir);
+  fmt::println("");
+}
+
+/* Prints a single #EdgeHalf's fields.
+ * BMesh elements are identified by their index (retrieved with #BM_elem_index_get). */
+[[maybe_unused]] static void dump_edge_half(const EdgeHalf &eh, const int index)
+{
+  fmt::println(
+      "  EdgeHalf[{}]: e={} fprev={} fnext={}", index, ei(eh.e), fi(eh.fprev), fi(eh.fnext));
+  fmt::println("    offset_l={} offset_r={} offset_l_spec={} offset_r_spec={}",
+               eh.offset_l,
+               eh.offset_r,
+               eh.offset_l_spec,
+               eh.offset_r_spec);
+  fmt::println("    is_bev={} is_rev={} is_seam={} visited_rpo={}",
+               eh.is_bev,
+               eh.is_rev,
+               eh.is_seam,
+               eh.visited_rpo);
+  fmt::println("    leftv={} rightv={}",
+               eh.leftv ? eh.leftv->index : -1,
+               eh.rightv ? eh.rightv->index : -1);
+}
+
+/* Prints a single #BoundVert's fields.
+ * BMesh elements are identified by their index (retrieved with #BM_elem_index_get). */
+[[maybe_unused]] static void dump_bound_vert(const BoundVert &bndv)
+{
+  fmt::print("  BoundVert[{}]: co=", bndv.index);
+  print_float3(bndv.nv.co);
+  fmt::println("");
+  fmt::println("    efirst={} elast={} eon={} ebev={}",
+               bndv.efirst ? ei(bndv.efirst->e) : -1,
+               bndv.elast ? ei(bndv.elast->e) : -1,
+               bndv.eon ? ei(bndv.eon->e) : -1,
+               bndv.ebev ? ei(bndv.ebev->e) : -1);
+  fmt::println(
+      "    sinratio={} any_seam={} visited={}", bndv.sinratio, bndv.any_seam, bndv.visited);
+  fmt::println("    is_arc_start={} is_patch_start={} is_profile_start={}",
+               bndv.is_arc_start,
+               bndv.is_patch_start,
+               bndv.is_profile_start);
+  fmt::println("    seam_len={} sharp_len={}", bndv.seam_len, bndv.sharp_len);
+  dump_profile(bndv.profile);
+}
+
+/* Prints a #VMesh and all its #BoundVert chain. */
+[[maybe_unused]] static void dump_vmesh(const VMesh &vm)
+{
+  fmt::println(
+      "  VMesh: count={} seg={} mesh_kind={}", vm.count, vm.seg, mesh_kind_name(vm.mesh_kind));
+  if (vm.boundstart == nullptr) {
+    fmt::println("  (no boundverts)");
+    return;
+  }
+  /* Walk the circular linked list of BoundVerts. */
+  const BoundVert *bndv = vm.boundstart;
+  do {
+    dump_bound_vert(*bndv);
+    bndv = bndv->next;
+  } while (bndv != vm.boundstart);
+
+  /* Print the NewVert grid if it has been allocated. */
+  if (vm.mesh != nullptr) {
+    const int n = vm.count;
+    const int ns = vm.seg;
+    const int ns2 = ns / 2;
+    /* Non-const pointer needed by mesh_vert (accessor is not const-qualified). */
+    VMesh *vmp = const_cast<VMesh *>(&vm);
+    fmt::println("  NewVerts (i, j, k) for 0<=i<{} 0<=j<={} 0<=k<{}:", n, ns2, ns);
+    for (int i = 0; i < n; i++) {
+      for (int j = 0; j <= ns2; j++) {
+        fmt::print("    ({},{}): ", i, j);
+        for (int k = 0; k < ns; k++) {
+          const int nj = ns / 2 + 1;
+          const int nk = ns + 1;
+          const NewVert *nv = &vmp->mesh[i * nj * nk + j * nk + k];
+          fmt::print("({},({:.3f},{:.3f},{:.3f})) ",
+                     nv->v ? BM_elem_index_get(nv->v) : -1,
+                     nv->co[0],
+                     nv->co[1],
+                     nv->co[2]);
+        }
+        fmt::println("");
+      }
+    }
+  }
+}
+
+/* Dumps a full #BevVert, including its #EdgeHalf array, wire edges, and #VMesh.
+ * BMesh elements are identified by their index (retrieved with #BM_elem_index_get). */
+[[maybe_unused]] static void dump_bev_vert(const BevVert &bv)
+{
+  fmt::println("BevVert: v={} edgecount={} selcount={} wirecount={}",
+               vi(bv.v),
+               bv.edgecount,
+               bv.selcount,
+               bv.wirecount);
+  fmt::println("  offset={} any_seam={} visited={}", bv.offset, bv.any_seam, bv.visited);
+
+  /* Print the EdgeHalf array. */
+  fmt::println("  edges ({}):", bv.edgecount);
+  for (int i = 0; i < bv.edgecount; i++) {
+    dump_edge_half(bv.edges[i], i);
+  }
+
+  /* Print wire edges. */
+  if (bv.wirecount > 0) {
+    fmt::print("  wire_edges:");
+    for (int i = 0; i < bv.wirecount; i++) {
+      if (i % 10 == 0) {
+        fmt::print("\n[{}] ", i);
+      }
+      fmt::print("{} ", ei(bv.wire_edges[i]));
+    }
+    fmt::println("");
+  }
+
+  /* Print the VMesh if present. */
+  if (bv.vmesh) {
+    dump_vmesh(*bv.vmesh);
+  }
+  else {
+    fmt::println("  (no vmesh)");
+  }
+}
+
+/**
+ * Dumps the edge-strip quads associated with `bv` that were created by
+ * #bevel_build_edge_polygons.
+ *
+ * For each beveled #EdgeHalf of `bv`, uses `leftv->index` as the boundary row `i`
+ * in the #VMesh, then for each segment k walks successive boundary vertex pairs
+ * (i,0,k) and (i,0,k+1) to identify the adjacent edge-polygon face.  Since there is
+ * no direct face list, we scan all edges of the BMesh and look for an edge between
+ * the two consecutive boundary ring verts; the adjacent F_EDGE face (the one that is
+ * NOT an original face) is then dumped.
+ */
+[[maybe_unused]] static void dump_edge_polygons(const BevVert &bv)
+{
+  const VMesh *vm = bv.vmesh;
+  if (!vm) {
+    return;
+  }
+  const int ns = vm->seg;
+  VMesh *vmp = const_cast<VMesh *>(vm);
+  /* Non-const pointer needed by mesh_vert. */
+
+  fmt::println("  Edge polygons for bv={}:", vi(bv.v));
+
+  for (int eidx = 0; eidx < bv.edgecount; eidx++) {
+    const EdgeHalf &eh = bv.edges[eidx];
+    if (!eh.is_bev || !eh.leftv) {
+      continue;
+    }
+    const int i = eh.leftv->index;
+    fmt::println("    EdgeHalf[{}] e={} i={}:", eidx, ei(eh.e), i);
+
+    for (int k = 0; k < ns; k++) {
+      /* The two consecutive boundary ring verts on this endpoint. */
+      const int nj = ns / 2 + 1;
+      const int nk = ns + 1;
+      const NewVert *nv_a = &vmp->mesh[i * nj * nk + 0 * nk + k];
+      const NewVert *nv_b = &vmp->mesh[i * nj * nk + 0 * nk + (k + 1)];
+      BMVert *va = nv_a->v;
+      BMVert *vb = nv_b->v;
+      if (!va || !vb) {
+        continue;
+      }
+      /* Find the BMEdge connecting va and vb. */
+      BMEdge *bme = BM_edge_exists(va, vb);
+      if (!bme) {
+        fmt::println("      k={} va={} vb={}: no edge found", k, vi(va), vi(vb));
+        continue;
+      }
+      /* Walk the radial faces of this edge to find the F_EDGE face
+       * (the one that is not an original input face, i.e., not fprev/fnext). */
+      BMFace *f_edge = nullptr;
+      BMLoop *l = bme->l;
+      if (l) {
+        BMLoop *l_start = l;
+        do {
+          /* Pick the face that shares neither fprev nor fnext with eh. */
+          BMFace *f = l->f;
+          if (f != eh.fprev && f != eh.fnext) {
+            f_edge = f;
+            break;
+          }
+          l = l->radial_next;
+        } while (l != l_start);
+      }
+      if (!f_edge) {
+        /* If not found by exclusion, just pick any radial face. */
+        f_edge = bme->l ? bme->l->f : nullptr;
+      }
+      if (!f_edge) {
+        fmt::println("      k={} va={} vb={}: no face found", k, vi(va), vi(vb));
+        continue;
+      }
+      /* Dump the face corners. */
+      fmt::print("      k={} face={} corners:", k, fi(f_edge));
+      BMIter liter;
+      BMLoop *l_dump;
+      BM_ITER_ELEM (l_dump, &liter, f_edge, BM_LOOPS_OF_FACE) {
+        fmt::print(" [v={} e={}]", vi(l_dump->v), ei(l_dump->e));
+      }
+      fmt::println("");
+    }
+  }
+}
+
+/**
+ * Dumps the rebuilt face `f` that replaced an original mesh face.
+ * Prints the face index and each loop's vertex index, edge index, and vertex coordinates.
+ */
+[[maybe_unused]] static void dump_rebuilt_face(BMFace *f)
+{
+  if (!f) {
+    fmt::println("  dump_rebuilt_face: face is null");
+    return;
+  }
+  fmt::print("  Rebuilt face={} ({} verts):", fi(f), f->len);
+  BMIter liter;
+  BMLoop *l;
+  BM_ITER_ELEM (l, &liter, f, BM_LOOPS_OF_FACE) {
+    fmt::print(" [v={} e={} co=({:.3f},{:.3f},{:.3f})]",
+               vi(l->v),
+               ei(l->e),
+               l->v->co[0],
+               l->v->co[1],
+               l->v->co[2]);
+  }
+  fmt::println("");
+}
+
+} /* namespace debug */
+
+#endif /* BEVEL_DEBUG */
+
+/** \} */
 
 /* Use the unused _BM_ELEM_TAG_ALT flag to flag the 'long' loops (parallel to beveled edge)
  * of edge-polygons. */
@@ -6798,7 +7115,10 @@ static BevVert *bevel_vert_construct(BMesh *bm, BevelParams *bp, BMVert *v)
 }
 
 /* Face f has at least one beveled vertex. Rebuild f. */
-static bool bev_rebuild_polygon(BMesh *bm, BevelParams *bp, BMFace *f)
+static bool bev_rebuild_polygon(BMesh *bm,
+                                BevelParams *bp,
+                                BMFace *f,
+                                BMFace **r_new_face = nullptr)
 {
   bool do_rebuild = false;
   Vector<BMVert *, BM_DEFAULT_NGON_STACK_SIZE> vv;
@@ -6968,6 +7288,9 @@ static bool bev_rebuild_polygon(BMesh *bm, BevelParams *bp, BMFace *f)
 
     /* Don't select newly or return created boundary faces. */
     if (f_new) {
+      if (r_new_face) {
+        *r_new_face = f_new;
+      }
       record_face_kind(bp, f_new, F_RECON);
       BM_elem_flag_disable(f_new, BM_ELEM_TAG);
       /* Also don't want new edges that aren't part of a new bevel face. */
@@ -6997,7 +7320,8 @@ static bool bev_rebuild_polygon(BMesh *bm, BevelParams *bp, BMFace *f)
 static void bevel_rebuild_existing_polygons(BMesh *bm,
                                             BevelParams *bp,
                                             BMVert *v,
-                                            Set<BMFace *> &rebuilt_orig_faces)
+                                            Set<BMFace *> &rebuilt_orig_faces,
+                                            BMFace **r_rebuilt_face_0 = nullptr)
 {
   BMIter iter;
   BMFace *f;
@@ -7006,8 +7330,12 @@ static void bevel_rebuild_existing_polygons(BMesh *bm,
      * a check against `rebuilt_orig_faces` container - previous calls to
      * `bevel_rebuild_existing_polygons` could have already rebuilt faces touching vertex `v`. */
     if (!rebuilt_orig_faces.contains(f)) {
-      if (bev_rebuild_polygon(bm, bp, f)) {
+      BMFace *new_face = nullptr;
+      if (bev_rebuild_polygon(bm, bp, f, &new_face)) {
         rebuilt_orig_faces.add(f);
+        if (r_rebuilt_face_0 && BM_elem_index_get(f) == 0) {
+          *r_rebuilt_face_0 = new_face;
+        }
       }
     }
   }
