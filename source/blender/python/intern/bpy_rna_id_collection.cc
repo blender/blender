@@ -518,7 +518,7 @@ struct IDFilePathForeachData {
   /**
    * Python callback function for visiting each path.
    *
-   * `def visit_path_fn(owner_id: bpy.types.ID, path: str) -> str | None`
+   * `def visit_path_fn(owner_id: bpy.types.ID, path: str, meta: BlendDataPathMeta) -> str | None`
    *
    * If the function returns a string, the path is replaced with the return
    * value.
@@ -552,12 +552,6 @@ const EnumPropertyItem rna_enum_file_path_foreach_flag_items[] = {
      0,
      "Skip Packed",
      "Skip paths when their matching data is packed"},
-    {BKE_BPATH_FOREACH_PATH_RESOLVE_TOKEN,
-     "RESOLVE_TOKEN",
-     0,
-     "Resolve Token",
-     "Resolve tokens within a virtual filepath to a single, concrete, filepath. Currently only "
-     "used for UDIM tiles"},
     {BKE_BPATH_TRAVERSE_SKIP_WEAK_REFERENCES,
      "SKIP_WEAK_REFERENCES",
      0,
@@ -577,8 +571,170 @@ const EnumPropertyItem rna_enum_file_path_foreach_flag_items[] = {
      0,
      "Reload Edited",
      "Reload data when the path is edited"},
+    {BKE_BPATH_FOREACH_PATH_RESOLVE_TOKEN,
+     "RESOLVE_TOKEN",
+     0,
+     "Resolve Tokens",
+     "Resolve tokens within a virtual filepath to a single, concrete, filepath. Currently only "
+     "used for UDIM tiles"},
+    {BKE_BPATH_FOREACH_PATH_EXPAND_TOKENS,
+     "EXPAND_TOKENS",
+     0,
+     "Expand Tokens",
+     "Expand template tokens in virtual file paths and invoke the callback once for each "
+     "concrete file. Currently only used for UDIM tiles"},
+    {BKE_BPATH_FOREACH_PATH_EXPAND_SEQUENCES,
+     "EXPAND_SEQUENCES",
+     0,
+     "Expand Sequences",
+     "Expand image and volume sequences, invoking the callback once per file on disk"},
+    {BKE_BPATH_FOREACH_PATH_EXPAND_CACHES,
+     "EXPAND_CACHES",
+     0,
+     "Expand Caches",
+     "Visit cache files, like texture cache files associated with images"},
     {0, nullptr, 0, nullptr, nullptr},
 };
+
+/* Metadata for path visited by `file_path_foreach.
+ *
+ * In the future it may be useful to extend this:
+ *  - Is the path intended to reference a directory or a file.
+ *  - Does the path support templates.
+ *  - Is the path referring to input or output (the render output, or file output nodes). */
+
+struct BPy_FilePathMeta {
+  PyObject_HEAD
+  bool is_expanded;
+  bool is_cache;
+  bool is_readonly;
+};
+
+PyDoc_STRVAR(
+    /* Wrap. */
+    bpy_file_path_meta_is_expanded_doc,
+    "True when the path was expanded from a UDIM tile or sequence frame. These paths can not be "
+    "edited.\n"
+    "\n"
+    ":type: bool\n");
+static PyObject *bpy_file_path_meta_get_is_expanded(BPy_FilePathMeta *self, void * /*closure*/)
+{
+  return PyBool_FromLong(self->is_expanded);
+}
+
+PyDoc_STRVAR(
+    /* Wrap. */
+    bpy_file_path_meta_is_cache_doc,
+    "True when the path is a cache file, like the image texture cache. These paths can not be "
+    "edited.\n"
+    "\n"
+    ":type: bool\n");
+static PyObject *bpy_file_path_meta_get_is_cache(BPy_FilePathMeta *self, void * /*closure*/)
+{
+  return PyBool_FromLong(self->is_cache);
+}
+
+PyDoc_STRVAR(
+    /* Wrap. */
+    bpy_file_path_meta_is_readonly_doc,
+    "True when the path is read-only and can not be edited.\n"
+    "\n"
+    ":type: bool\n");
+static PyObject *bpy_file_path_meta_get_is_readonly(BPy_FilePathMeta *self, void * /*closure*/)
+{
+  return PyBool_FromLong(self->is_readonly);
+}
+
+static PyGetSetDef bpy_file_path_meta_getset[] = {
+    {"is_expanded",
+     reinterpret_cast<getter>(bpy_file_path_meta_get_is_expanded),
+     nullptr,
+     bpy_file_path_meta_is_expanded_doc,
+     nullptr},
+    {"is_cache",
+     reinterpret_cast<getter>(bpy_file_path_meta_get_is_cache),
+     nullptr,
+     bpy_file_path_meta_is_cache_doc,
+     nullptr},
+    {"is_readonly",
+     reinterpret_cast<getter>(bpy_file_path_meta_get_is_readonly),
+     nullptr,
+     bpy_file_path_meta_is_readonly_doc,
+     nullptr},
+    {nullptr},
+};
+
+static void bpy_file_path_meta_dealloc(BPy_FilePathMeta *self)
+{
+  Py_TYPE(self)->tp_free(reinterpret_cast<PyObject *>(self));
+}
+
+PyDoc_STRVAR(
+    /* Wrap. */
+    bpy_file_path_meta_doc,
+    "Metadata about a file path visited by :class:`bpy.types.BlendData.file_path_foreach`.\n");
+static PyTypeObject BPyFilePathMeta_Type = {
+    /*ob_base*/ PyVarObject_HEAD_INIT(nullptr, 0)
+    /*tp_name*/ "BlendDataPathMeta",
+    /*tp_basicsize*/ sizeof(BPy_FilePathMeta),
+    /*tp_itemsize*/ 0,
+    /*tp_dealloc*/ reinterpret_cast<destructor>(bpy_file_path_meta_dealloc),
+    /*tp_vectorcall_offset*/ 0,
+    /*tp_getattr*/ nullptr,
+    /*tp_setattr*/ nullptr,
+    /*tp_as_async*/ nullptr,
+    /*tp_repr*/ nullptr,
+    /*tp_as_number*/ nullptr,
+    /*tp_as_sequence*/ nullptr,
+    /*tp_as_mapping*/ nullptr,
+    /*tp_hash*/ nullptr,
+    /*tp_call*/ nullptr,
+    /*tp_str*/ nullptr,
+    /*tp_getattro*/ nullptr,
+    /*tp_setattro*/ nullptr,
+    /*tp_as_buffer*/ nullptr,
+    /*tp_flags*/ Py_TPFLAGS_DEFAULT,
+    /*tp_doc*/ bpy_file_path_meta_doc,
+    /*tp_traverse*/ nullptr,
+    /*tp_clear*/ nullptr,
+    /*tp_richcompare*/ nullptr,
+    /*tp_weaklistoffset*/ 0,
+    /*tp_iter*/ nullptr,
+    /*tp_iternext*/ nullptr,
+    /*tp_methods*/ nullptr,
+    /*tp_members*/ nullptr,
+    /*tp_getset*/ bpy_file_path_meta_getset,
+    /*tp_base*/ nullptr,
+    /*tp_dict*/ nullptr,
+    /*tp_descr_get*/ nullptr,
+    /*tp_descr_set*/ nullptr,
+    /*tp_dictoffset*/ 0,
+    /*tp_init*/ nullptr,
+    /*tp_alloc*/ nullptr,
+    /* Prevent users from creating instances directly. */
+    /*tp_new*/ nullptr,
+};
+
+PyObject *BPyInit_blend_data_path_meta_type()
+{
+  if (PyType_Ready(&BPyFilePathMeta_Type) < 0) {
+    return nullptr;
+  }
+  return reinterpret_cast<PyObject *>(&BPyFilePathMeta_Type);
+}
+
+static PyObject *bpy_file_path_meta_CreatePyObject(const BPathForeachPathData *bpath_data)
+{
+  BPy_FilePathMeta *self = reinterpret_cast<BPy_FilePathMeta *>(
+      BPyFilePathMeta_Type.tp_alloc(&BPyFilePathMeta_Type, 0));
+  if (self == nullptr) {
+    return nullptr;
+  }
+  self->is_expanded = bpath_data->is_expanded;
+  self->is_cache = bpath_data->is_cache;
+  self->is_readonly = bpath_data->is_readonly;
+  return reinterpret_cast<PyObject *>(self);
+}
 
 static bool foreach_id_file_path_foreach_callback(BPathForeachPathData *bpath_data,
                                                   char *path_dst,
@@ -604,14 +760,8 @@ static bool foreach_id_file_path_foreach_callback(BPathForeachPathData *bpath_da
   PyObject *py_owner_id = pyrna_struct_CreatePyObject(&id_ptr);
   /* args[1]: */
   PyObject *py_path_src = PyUnicode_FromString(path_src);
-  /* args[2]: currently-unused parameter for passing metadata of the path to the Python function.
-   * This is intended pass info like:
-   *  - Is the path intended to reference a directory or a file.
-   *  - Does the path support templates.
-   *  - Is the path referring to input or output (the render output, or file output nodes).
-   * Even though this is not implemented currently, the parameter is already added so that the
-   * eventual implementation is not an API-breaking change. */
-  PyObject *py_path_meta = Py_NewRef(Py_None);
+  /* args[2]: */
+  PyObject *py_path_meta = bpy_file_path_meta_CreatePyObject(bpath_data);
   PyTuple_SET_ITEMS(args, py_owner_id, py_path_src, py_path_meta);
 
   /* Call the Python callback function. */
@@ -644,13 +794,31 @@ static bool foreach_id_file_path_foreach_callback(BPathForeachPathData *bpath_da
     return false;
   }
 
-  /* Copy the returned string back into the path. */
   Py_ssize_t replacement_path_length = 0;
   PyObject *value_coerce = nullptr;
   const char *replacement_path = PyC_UnicodeAsBytesAndSize(
       result, &replacement_path_length, &value_coerce);
 
-  /* BLI_strncpy wants buffer size, but PyC_UnicodeAsBytesAndSize reports string
+  /* Path was unchanged, treat as not edited. */
+  if (STREQ(replacement_path, path_src)) {
+    Py_XDECREF(value_coerce);
+    Py_DECREF(result);
+    return false;
+  }
+
+  if (bpath_data->is_readonly) {
+    PyErr_Format(PyExc_RuntimeError,
+                 "visit_path_fn() changed a read-only path \"%s\" for owner_id=\"%s\"",
+                 path_src,
+                 bpath_data->owner_id->name);
+    data.seen_error = true;
+    Py_XDECREF(value_coerce);
+    Py_DECREF(result);
+    return false;
+  }
+
+  /* Copy the returned string back into the path.
+   * BLI_strncpy wants buffer size, but PyC_UnicodeAsBytesAndSize reports string
    * length, hence the +1. */
   BLI_strncpy(
       path_dst, replacement_path, std::min(path_dst_maxncpy, size_t(replacement_path_length + 1)));
@@ -673,9 +841,11 @@ PyDoc_STRVAR(
     ":class:`bpy.types.KeyingSetPath.id_type`.\n"
     "\n"
     "   :param visit_path_fn: function that takes three parameters: the data-block, a file path, "
-    "and a placeholder for future use. The function should return either ``None`` or a ``str``. "
-    "In the latter case, the visited file path will be replaced with the returned string.\n"
-    "   :type visit_path_fn: Callable[[:class:`bpy.types.ID`, str, Any], str|None]\n"
+    "and a :class:`bpy.types.BlendDataPathMeta` metadata object. "
+    "The function should return either ``None`` or a ``str``. In the latter case, the visited "
+    "file path will be replaced with the returned string.\n"
+    "   :type visit_path_fn: Callable[[:class:`bpy.types.ID`, str, "
+    ":class:`bpy.types.BlendDataPathMeta`], str|None]\n"
     "   :param subset: When given, only these data-blocks and their used file paths "
     "will be visited.\n"
     "   :type subset: set[str] | None\n"

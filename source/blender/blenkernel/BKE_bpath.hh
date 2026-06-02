@@ -78,6 +78,22 @@ enum eBPathForeachFlag {
    * \note Only used by Image #IDType currently.
    */
   BKE_BPATH_FOREACH_PATH_RELOAD_EDITED = (1 << 9),
+  /**
+   * Expand template tokens in virtual file paths to all matching concrete paths, invoking the
+   * callback once per expanded path. Currently only used for UDIM tiles. These paths can not
+   * be edited.
+   */
+  BKE_BPATH_FOREACH_PATH_EXPAND_TOKENS = (1 << 10),
+  /**
+   * Expand image sequences and similar multi-file resources to all individual file paths on disk,
+   * invoking the callback once per file. These paths can not be edited.
+   */
+  BKE_BPATH_FOREACH_PATH_EXPAND_SEQUENCES = (1 << 11),
+  /**
+   * Visit cache files, for example texture cache files associated with images. These paths can
+   * not be edited.
+   */
+  BKE_BPATH_FOREACH_PATH_EXPAND_CACHES = (1 << 12),
 };
 ENUM_OPERATORS(eBPathForeachFlag)
 
@@ -124,6 +140,21 @@ struct BPathForeachPathData {
    * IDTypeInfo callbacks are responsible to set this boolean if they modified one or more paths.
    */
   bool is_path_modified;
+
+  /**
+   * Set while visiting a path expanded from a UDIM tile or sequence frame.
+   * These paths can not be edited.
+   */
+  bool is_expanded;
+  /**
+   * Set while visiting a cache file path, like a texture cache file.
+   * These paths can not be edited.
+   */
+  bool is_cache;
+  /**
+   * Set while visiting a read-only path that callbacks can not edit.
+   */
+  bool is_readonly;
 };
 
 /** Run `bpath_data.callback_function` on all paths contained in `id`. */
@@ -150,6 +181,13 @@ void BKE_bpath_foreach_path_main(BPathForeachPathData *bpath_data);
 bool BKE_bpath_foreach_path_fixed_process(BPathForeachPathData *bpath_data,
                                           char *path,
                                           size_t path_maxncpy);
+
+/**
+ * Run the callback on a read-only path, any edits will be discarded.
+ *
+ * \param path: A fixed, FILE_MAX-sized char buffer.
+ */
+void BKE_bpath_foreach_path_readonly_process(BPathForeachPathData *bpath_data, const char *path);
 
 /**
  * Run the callback on every existing file on disk matching a `<head><digits><tail>`

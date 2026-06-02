@@ -224,6 +224,28 @@ static void volume_foreach_path(ID *id, BPathForeachPathData *bpath_data)
     return;
   }
 
+  if (volume->is_sequence && (bpath_data->flag & BKE_BPATH_FOREACH_PATH_EXPAND_SEQUENCES) != 0 &&
+      volume->filepath[0] != '\0')
+  {
+    char abs_filepath[FILE_MAX];
+    STRNCPY(abs_filepath, volume->filepath);
+    if (bpath_data->absolute_base_path) {
+      BLI_path_abs(abs_filepath, bpath_data->absolute_base_path);
+    }
+    else {
+      BLI_path_abs(abs_filepath, ID_BLEND_PATH(bpath_data->bmain, &volume->id));
+    }
+
+    bpath_data->is_expanded = true;
+    BKE_bpath_sequence_filepaths_foreach(abs_filepath, [&](StringRef frame_filepath) {
+      char frame_path[FILE_MAX];
+      frame_filepath.copy_utf8_truncated(frame_path);
+      BKE_bpath_foreach_path_readonly_process(bpath_data, frame_path);
+    });
+    bpath_data->is_expanded = false;
+    return;
+  }
+
   BKE_bpath_foreach_path_fixed_process(bpath_data, volume->filepath, sizeof(volume->filepath));
 }
 

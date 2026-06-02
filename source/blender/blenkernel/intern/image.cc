@@ -265,6 +265,34 @@ static void image_foreach_cache(ID *id,
   }
 }
 
+static void image_foreach_texture_cache_path(BPathForeachPathData *bpath_data,
+                                             const char *source_filepath_abs,
+                                             const char *cache_dir)
+{
+  bpath_data->is_cache = true;
+  bpath_data->is_expanded = true;
+  BKE_image_texture_cache_filepaths_foreach(
+      source_filepath_abs, cache_dir, [&](StringRef cache_filepath) {
+        char cache_path[FILE_MAX];
+        cache_filepath.copy_utf8_truncated(cache_path);
+        BKE_bpath_foreach_path_readonly_process(bpath_data, cache_path);
+      });
+  bpath_data->is_expanded = false;
+  bpath_data->is_cache = false;
+}
+
+static void image_foreach_expanded_path(BPathForeachPathData *bpath_data,
+                                        const char *expanded_path,
+                                        const eBPathForeachFlag flag)
+{
+  bpath_data->is_expanded = true;
+  BKE_bpath_foreach_path_readonly_process(bpath_data, expanded_path);
+  if (flag & BKE_BPATH_FOREACH_PATH_EXPAND_CACHES) {
+    image_foreach_texture_cache_path(bpath_data, expanded_path, U.texture_cachedir);
+  }
+  bpath_data->is_expanded = false;
+}
+
 static void image_foreach_path(ID *id, BPathForeachPathData *bpath_data)
 {
   Image *ima = id_cast<Image *>(id);
@@ -280,6 +308,43 @@ static void image_foreach_path(ID *id, BPathForeachPathData *bpath_data)
   if (!ELEM(ima->source, IMA_SRC_FILE, IMA_SRC_MOVIE, IMA_SRC_SEQUENCE, IMA_SRC_TILED) ||
       ima->filepath[0] == '\0')
   {
+    return;
+  }
+
+  char abs_filepath[FILE_MAX];
+  STRNCPY(abs_filepath, ima->filepath);
+  if (bpath_data->absolute_base_path) {
+    BLI_path_abs(abs_filepath, bpath_data->absolute_base_path);
+  }
+  else {
+    BLI_path_abs(abs_filepath, ID_BLEND_PATH(bpath_data->bmain, &ima->id));
+  }
+
+  if (ima->source == IMA_SRC_TILED && (flag & BKE_BPATH_FOREACH_PATH_EXPAND_TOKENS)) {
+    /* Expand all UDIM tiles. */
+    eUDIM_TILE_FORMAT tile_format;
+    char *udim_pattern = BKE_image_get_tile_strformat(abs_filepath, &tile_format);
+    if (tile_format != UDIM_TILE_FORMAT_NONE) {
+      for (const ImageTile &tile : ima->tiles) {
+        char tile_filepath[FILE_MAX];
+        BKE_image_set_filepath_from_tile_number(
+            tile_filepath, udim_pattern, tile_format, tile.tile_number);
+        if (BLI_is_file(tile_filepath)) {
+          image_foreach_expanded_path(bpath_data, tile_filepath, flag);
+        }
+      }
+    }
+    MEM_SAFE_DELETE(udim_pattern);
+    return;
+  }
+
+  if (ima->source == IMA_SRC_SEQUENCE && (flag & BKE_BPATH_FOREACH_PATH_EXPAND_SEQUENCES)) {
+    /* Expand all image sequence frames. */
+    BKE_bpath_sequence_filepaths_foreach(abs_filepath, [&](StringRef frame_filepath) {
+      char frame_path[FILE_MAX];
+      frame_filepath.copy_utf8_truncated(frame_path);
+      image_foreach_expanded_path(bpath_data, frame_path, flag);
+    });
     return;
   }
 
@@ -311,6 +376,13 @@ static void image_foreach_path(ID *id, BPathForeachPathData *bpath_data)
   else {
     result = BKE_bpath_foreach_path_fixed_process(
         bpath_data, ima->filepath, sizeof(ima->filepath));
+  }
+
+  /* Also emit the cache file paths for the (non-expanded) source path. */
+  if ((flag & BKE_BPATH_FOREACH_PATH_EXPAND_CACHES) &&
+      !ELEM(ima->source, IMA_SRC_MOVIE, IMA_SRC_SEQUENCE, IMA_SRC_TILED))
+  {
+    image_foreach_texture_cache_path(bpath_data, abs_filepath, U.texture_cachedir);
   }
 
   if (result) {
