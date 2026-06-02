@@ -121,7 +121,7 @@ static void node_declare(NodeDeclarationBuilder &b)
       .usage_by_bool("Thin Wall"_ustr, false);
 #define SOCK_SUBSURFACE_RADIUS_ID 10
   sss.add_input<decl::Float>("Subsurface Scale"_ustr)
-      .default_value(0.05f)
+      .default_value(0.005f)
       .min(0.0f)
       .max(10.0f)
       .subtype(PROP_DISTANCE)
@@ -371,6 +371,15 @@ static int node_shader_gpu_bsdf_principled(GPUMaterial *mat,
   bool use_coat = in[SOCK_COAT_WEIGHT_ID].socket_not_zero();
   bool use_translucent = use_subsurf && in[SOCK_THIN_WALL_ID].socket_not_zero();
 
+  /* EEVEE's subsurface closure still uses the legacy approximation where the radius is scaled by
+   * 1/(4pi) (e.g., SHD_SUBSURFACE_RANDOM_WALK_LEGACY) */
+  GPUNodeLink *subsurface_random_walk_radius_scale = nullptr;
+  float random_walk_scale = 1.0f;
+  if (node->custom2 == SHD_SUBSURFACE_RANDOM_WALK) {
+    random_walk_scale = 4.0f * M_PI;
+  }
+  subsurface_random_walk_radius_scale = GPU_constant(&random_walk_scale);
+
   eGPUMaterialFlag flag = GPU_MATFLAG_GLOSSY;
   if (use_diffuse) {
     flag |= GPU_MATFLAG_DIFFUSE;
@@ -427,8 +436,13 @@ static int node_shader_gpu_bsdf_principled(GPUMaterial *mat,
 
   float use_multi_scatter = (node->custom1 == SHD_GLOSSY_MULTI_GGX) ? 1.0f : 0.0f;
 
-  return GPU_stack_link(
-      mat, node, "node_bsdf_principled", in, out, GPU_constant(&use_multi_scatter));
+  return GPU_stack_link(mat,
+                        node,
+                        "node_bsdf_principled",
+                        in,
+                        out,
+                        GPU_constant(&use_multi_scatter),
+                        subsurface_random_walk_radius_scale);
 }
 
 static void node_shader_update_principled(bNodeTree *ntree, bNode *node)

@@ -820,6 +820,9 @@ void BLO_update_defaults_startup_blend(Main *bmain, const char *app_template)
           *version_cycles_node_socket_float_value(emission_strength) = 0.0f;
           bNodeSocket *ior = bke::node_find_socket(*node, SOCK_IN, "IOR"_ustr);
           *version_cycles_node_socket_float_value(ior) = 1.5f;
+          bNodeSocket *subsurface_scale = bke::node_find_socket(
+              *node, SOCK_IN, "Subsurface Scale"_ustr);
+          *version_cycles_node_socket_float_value(subsurface_scale) = 0.005f;
 
           node->custom1 = SHD_GLOSSY_MULTI_GGX;
           node->custom2 = SHD_SUBSURFACE_RANDOM_WALK;
