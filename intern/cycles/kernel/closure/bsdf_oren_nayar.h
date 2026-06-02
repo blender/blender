@@ -211,7 +211,7 @@ ccl_device_inline void bsdf_thin_subsurface_setup(ccl_private ShaderData *sd,
       bsdf->type = CLOSURE_BSDF_ROUGH_TRANSLUCENT_ID;
       bsdf->N = -N;
       bsdf->param = param;
-      sd->flag |= SD_BSDF | SD_BSDF_HAS_EVAL;
+      sd->flag |= SD_BSDF | SD_BSDF_HAS_EVAL | SD_BSDF_HAS_TRANSMISSION;
     }
   }
 }
