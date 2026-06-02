@@ -6709,6 +6709,28 @@ def km_view3d_dolly_modal(_params):
     return keymap
 
 
+def km_view3d_location_scouting_capture_review_modal(_params):
+    items = []
+    keymap = (
+        "View3D VR Location Scouting Capture Review Modal",
+        {"space_type": 'EMPTY', "region_type": 'WINDOW', "modal": True},
+        {"items": items},
+    )
+
+    items.extend([
+        ("EXIT", {"type": 'ESC', "value": 'PRESS', "any": True}, None),
+        ("EXIT", {"type": 'RIGHTMOUSE', "value": 'PRESS', "any": True}, None),
+
+        ("PREVIOUS", {"type": 'UP_ARROW', "value": 'PRESS'}, None),
+        ("NEXT", {"type": 'DOWN_ARROW', "value": 'PRESS'}, None),
+
+        ("ADD_CAMERA", {"type": 'C', "value": 'PRESS'}, None),
+        ("ADD_MARKER", {"type": 'M', "value": 'PRESS'}, None),
+    ])
+
+    return keymap
+
+
 def km_paint_stroke_modal(_params):
     items = []
     keymap = (
@@ -9064,6 +9086,7 @@ def generate_keymaps(params=None):
         km_view3d_move_modal(params),
         km_view3d_zoom_modal(params),
         km_view3d_dolly_modal(params),
+        km_view3d_location_scouting_capture_review_modal(params),
         km_paint_stroke_modal(params),
         km_sculpt_expand_modal(params),
         km_sculpt_mesh_filter_modal_map(params),

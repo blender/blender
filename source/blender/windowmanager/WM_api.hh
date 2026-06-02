@@ -78,6 +78,7 @@ struct wmNDOFMotionData;
 #ifdef WITH_XR_OPENXR
 struct wmXrRuntimeData;
 struct wmXrSessionState;
+struct wmXrViewfinderState;
 #endif
 
 namespace bke::id {
@@ -2277,17 +2278,27 @@ bool WM_xr_session_exists(const wmXrData *xr);
  * Check if the session is running, according to the OpenXR definition.
  */
 bool WM_xr_session_is_ready(const wmXrData *xr);
+
 wmXrSessionState *WM_xr_session_state_handle_get(const wmXrData *xr);
+wmXrViewfinderState *WM_xr_session_state_viewfinder_handle_get(const wmXrData *xr);
 
 bContext *WM_xr_session_context_get(const wmXrData *xr);
 bContext *WM_xr_session_context_ensure(wmXrData *xr, const wmWindowManager *wm);
 
 void WM_xr_session_base_pose_reset(wmXrData *xr);
+void WM_xr_session_state_navigation_reset(wmXrSessionState *state);
+void WM_xr_session_state_viewfinder_reset(wmXrSessionState *state);
+
+void WM_xr_session_state_vignette_activate(wmXrData *xr);
+void WM_xr_session_state_vignette_update(wmXrSessionState *state);
+
 bool WM_xr_session_state_viewer_pose_location_get(const wmXrData *xr, float r_location[3]);
 bool WM_xr_session_state_viewer_pose_rotation_get(const wmXrData *xr, float r_rotation[4]);
 bool WM_xr_session_state_viewer_pose_matrix_info_get(const wmXrData *xr,
                                                      float r_viewmat[4][4],
                                                      float *r_focal_len);
+bool WM_xr_session_state_viewer_scale_get(const wmXrData *xr, float *r_scale);
+
 bool WM_xr_session_state_controller_grip_location_get(const wmXrData *xr,
                                                       unsigned int subaction_idx,
                                                       float r_location[3]);
@@ -2300,16 +2311,52 @@ bool WM_xr_session_state_controller_aim_location_get(const wmXrData *xr,
 bool WM_xr_session_state_controller_aim_rotation_get(const wmXrData *xr,
                                                      unsigned int subaction_idx,
                                                      float r_rotation[4]);
+
 bool WM_xr_session_state_nav_location_get(const wmXrData *xr, float r_location[3]);
 void WM_xr_session_state_nav_location_set(wmXrData *xr, const float location[3]);
 bool WM_xr_session_state_nav_rotation_get(const wmXrData *xr, float r_rotation[4]);
 void WM_xr_session_state_nav_rotation_set(wmXrData *xr, const float rotation[4]);
 bool WM_xr_session_state_nav_scale_get(const wmXrData *xr, float *r_scale);
 void WM_xr_session_state_nav_scale_set(wmXrData *xr, float scale);
-bool WM_xr_session_state_viewer_scale_get(const wmXrData *xr, float *r_scale);
-void WM_xr_session_state_navigation_reset(wmXrSessionState *state);
-void WM_xr_session_state_vignette_activate(wmXrData *xr);
-void WM_xr_session_state_vignette_update(wmXrSessionState *state);
+
+bool WM_xr_session_state_viewfinder_location_get(const wmXrData *xr, float r_location[3]);
+bool WM_xr_session_state_viewfinder_orientation_get(const wmXrData *xr, float r_rotation[4]);
+
+void WM_xr_session_state_viewfinder_trigger_flash(wmXrData *xr);
+void WM_xr_session_state_viewfinder_trigger_focus_indicator(wmXrData *xr, bool hit_success);
+void WM_xr_session_state_viewfinder_reset_view_smoothing(wmXrData *xr);
+
+bool WM_xr_session_state_viewfinder_capture_dof_enabled_get(const wmXrData *xr,
+                                                            bool *r_dof_enabled);
+void WM_xr_session_state_viewfinder_capture_dof_enabled_set(wmXrData *xr, bool dof_enabled);
+bool WM_xr_session_state_viewfinder_capture_lens_focal_get(const wmXrData *xr,
+                                                           float *r_lens_focal);
+void WM_xr_session_state_viewfinder_capture_lens_focal_set(wmXrData *xr, float lens_focal);
+bool WM_xr_session_state_viewfinder_capture_dof_distance_get(const wmXrData *xr,
+                                                             float *r_dof_distance);
+void WM_xr_session_state_viewfinder_capture_dof_distance_set(wmXrData *xr, float dof_distance);
+bool WM_xr_session_state_viewfinder_capture_dof_fstop_get(const wmXrData *xr, float *r_dof_fstop);
+void WM_xr_session_state_viewfinder_capture_dof_fstop_set(wmXrData *xr, float dof_fstop);
+
+bool WM_xr_session_state_viewfinder_playback_show_active_capture_in_space_enabled_get(
+    const wmXrData *xr, bool *r_enabled);
+void WM_xr_session_state_viewfinder_playback_show_active_capture_in_space_enabled_set(
+    wmXrData *xr, bool enabled);
+
+bool WM_xr_session_state_viewfinder_active_mode_get(const wmXrData *xr, eXrViewfinderMode *r_mode);
+void WM_xr_session_state_viewfinder_active_mode_set(wmXrData *xr, eXrViewfinderMode mode);
+bool WM_xr_session_state_viewfinder_active_action_live_get(const wmXrData *xr,
+                                                           eXrViewfinderLiveAction *r_action);
+void WM_xr_session_state_viewfinder_active_action_live_set(wmXrData *xr,
+                                                           eXrViewfinderLiveAction action);
+bool WM_xr_session_state_viewfinder_active_action_playback_get(
+    const wmXrData *xr, eXrViewfinderPlaybackAction *r_action);
+void WM_xr_session_state_viewfinder_active_action_playback_set(wmXrData *xr,
+                                                               eXrViewfinderPlaybackAction action);
+bool WM_xr_session_state_viewfinder_active_action_confirm_get(
+    const wmXrData *xr, eXrViewfinderConfirmAction *r_action);
+void WM_xr_session_state_viewfinder_active_action_confirm_set(wmXrData *xr,
+                                                              eXrViewfinderConfirmAction action);
 
 ARegionType *WM_xr_surface_controller_region_type_get();
 

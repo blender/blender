@@ -8,6 +8,7 @@ set(INC
   gizmo/intern
   ../compositor
   ../editors/include
+  ../editors/interface
   ../gpu
   ../makesrna
   ../../../intern/memutil
@@ -196,6 +197,7 @@ if(WITH_XR_OPENXR)
     xr/intern/wm_xr_action.cc
     xr/intern/wm_xr_actionmap.cc
     xr/intern/wm_xr_draw.cc
+    xr/intern/wm_xr_location_scouting.cc
     xr/intern/wm_xr_operators.cc
     xr/intern/wm_xr_session.cc
 
