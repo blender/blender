@@ -1746,10 +1746,10 @@ static void menu_block_set_keymaps(const bContext *C, Block *block)
 
 void button_override_flag(Main *bmain, Button *but)
 {
-  const uint override_status = RNA_property_override_library_status(
+  const eRNAOverrideStatus override_status = RNA_property_override_library_status(
       bmain, &but->rnapoin, but->rnaprop, but->rnaindex);
 
-  if (override_status & RNA_OVERRIDE_STATUS_OVERRIDDEN) {
+  if (flag_is_set(override_status, eRNAOverrideStatus::LibOverridden)) {
     but->flag |= BUT_OVERRIDDEN;
   }
   else {
