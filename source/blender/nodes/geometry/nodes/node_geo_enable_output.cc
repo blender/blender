@@ -42,7 +42,7 @@ static void node_declare(NodeDeclarationBuilder &b)
   b.add_output(data_type, "Value"_ustr)
       .align_with_previous()
       .inferred_structure_type()
-      .propagate_all_geometry();
+      .propagate_all();
 }
 
 static void node_layout(ui::Layout &layout, bContext * /*C*/, PointerRNA *ptr)
