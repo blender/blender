@@ -108,7 +108,7 @@ uint64_t GField::hash() const
 
 UniqueHash FieldHashDeep::ensure(const GFieldRef &field)
 {
-  if (const UniqueHash *cached = cache.lookup_ptr(field)) {
+  if (const UniqueHash *cached = this->cache.lookup_ptr(field)) {
     return *cached;
   }
 
@@ -122,7 +122,7 @@ UniqueHash FieldHashDeep::ensure(const GFieldRef &field)
   stack.push(field);
   while (!stack.is_empty()) {
     GFieldRef current = stack.pop();
-    if (cache.contains(current)) {
+    if (this->cache.contains(current)) {
       continue;
     }
     if (visited.contains(current)) {
@@ -140,7 +140,7 @@ UniqueHash FieldHashDeep::ensure(const GFieldRef &field)
               v.node->multi_function().hash_unique(hash_context);
               hash_context.add(v.output_i);
               for (const GField &input_field : v.node->inputs()) {
-                hash_context.add(cache.lookup(input_field));
+                hash_context.add(this->cache.lookup(input_field));
               }
             }
             else {
@@ -153,7 +153,7 @@ UniqueHash FieldHashDeep::ensure(const GFieldRef &field)
       const XXH128_hash_t xxhash = XXH3_128bits(bytes.data(), bytes.size());
       static_assert(sizeof(UniqueHash) == sizeof(xxhash));
       memcpy(static_cast<void *>(&hash), &xxhash, sizeof(xxhash));
-      cache.add_new(current, hash);
+      this->cache.add_new(current, hash);
       continue;
     }
     visited.add(current);
@@ -165,7 +165,7 @@ UniqueHash FieldHashDeep::ensure(const GFieldRef &field)
     }
   }
 
-  return cache.lookup(field);
+  return this->cache.lookup(field);
 }
 
 const FieldInputsPtr &FieldInput::field_inputs() const
