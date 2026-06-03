@@ -215,9 +215,16 @@ bool RNA_property_comparable(PointerRNA * /*ptr*/, PropertyRNA *prop)
 
 static bool rna_property_override_operation_apply(Main *bmain,
                                                   RNAPropertyOverrideApplyContext &rnaapply_ctx);
+static void rna_property_override_collection_subitem_lookup(
+    RNAPropertyOverrideApplyContext &rnaapply_ctx);
 
-bool RNA_property_copy(
-    Main *bmain, PointerRNA *ptr, PointerRNA *fromptr, PropertyRNA *prop, int index)
+bool RNA_property_copy(Main *bmain,
+                       PointerRNA *ptr,
+                       PointerRNA *fromptr,
+                       PropertyRNA *prop,
+                       int index,
+                       IDOverrideLibraryProperty *removed_oprop,
+                       IDOverrideLibraryPropertyOperation *removed_opop)
 {
   if (!RNA_property_editable(ptr, prop)) {
     return false;
@@ -234,6 +241,23 @@ bool RNA_property_copy(
   rnaapply_ctx.prop_dst = prop;
   rnaapply_ctx.prop_src = prop;
   rnaapply_ctx.liboverride_operation = &opop;
+
+  rnaapply_ctx.liboverride_removed_property = removed_oprop;
+  rnaapply_ctx.liboverride_removed_operation = removed_opop;
+  if (removed_opop) {
+    /* Note that here, when removing a liboverride operation, the reference data is copied into the
+     * override one, which is the opposite from regular liboverride apply process (where
+     * liboverride data is copied into the reference data). hence the inversion of local and
+     * reference subitem identification info below. */
+    opop.subitem_local_id = removed_opop->subitem_reference_id;
+    opop.subitem_reference_id = removed_opop->subitem_local_id;
+    opop.subitem_local_index = removed_opop->subitem_reference_index;
+    opop.subitem_reference_index = removed_opop->subitem_local_index;
+    opop.subitem_local_name = removed_opop->subitem_reference_name;
+    opop.subitem_reference_name = removed_opop->subitem_local_name;
+  }
+
+  rna_property_override_collection_subitem_lookup(rnaapply_ctx);
 
   return rna_property_override_operation_apply(bmain, rnaapply_ctx);
 }

@@ -192,6 +192,13 @@ StringRefNull TreeElementOverridesProperty::get_warning() const
   return {};
 }
 
+IDOverrideLibraryProperty *TreeElementOverridesProperty::get_override_property_from_id(
+    ID &id) const
+{
+  BLI_assert(ID_IS_OVERRIDE_LIBRARY_REAL(&id));
+  return BKE_lib_override_library_property_find(id.override_library, this->rna_path.c_str());
+}
+
 /** \} */
 
 /* -------------------------------------------------------------------- */
@@ -261,6 +268,23 @@ std::optional<BIFIconID> TreeElementOverridesPropertyOperation::get_icon() const
   }
 
   return {};
+}
+
+short TreeElementOverridesPropertyOperation::get_operation_type() const
+{
+  return operation_->operation;
+}
+
+IDOverrideLibraryPropertyOperation *TreeElementOverridesPropertyOperation::
+    get_override_operation_from_id(ID &id, IDOverrideLibraryProperty &override_property) const
+{
+  BLI_assert(ID_IS_OVERRIDE_LIBRARY_REAL(&id));
+  for (IDOverrideLibraryPropertyOperation &opop : override_property.operations) {
+    if (*operation_ == opop) {
+      return &opop;
+    }
+  }
+  return nullptr;
 }
 
 std::optional<PointerRNA> TreeElementOverridesPropertyOperation::get_collection_ptr() const
@@ -449,7 +473,8 @@ void OverrideRNAPathTreeBuilder::ensure_entire_collection(
                                                     index++);
     }
     else {
-      current_te = &ensure_label_element_for_ptr(te_to_expand, coll_item_path, itemptr, index);
+      /* NOTE: Do not generate entries for collection items which are not affected by liboverride,
+       * this is more disturbing than useful. */
     }
 
     MEM_delete(coll_item_path);

@@ -259,6 +259,10 @@ struct IDOverrideLibraryPropertyOperation {
    * same name. */
   struct ID *subitem_reference_id = nullptr;
   struct ID *subitem_local_id = nullptr;
+
+#ifdef __cplusplus
+  bool operator==(const IDOverrideLibraryPropertyOperation &b) const;
+#endif
 };
 
 /* IDOverrideLibrary->flag */
