@@ -1501,9 +1501,10 @@ static Vector<Object *> lightprobe_cache_irradiance_volume_subset_get(bContext *
       break;
     }
     case LIGHTCACHE_SUBSET_ACTIVE: {
-      Object *active_ob = CTX_data_active_object(C);
-      if (is_irradiance_volume(active_ob)) {
-        irradiance_volume_setup(active_ob);
+      if (Object *active_ob = CTX_data_active_object(C)) {
+        if (is_irradiance_volume(active_ob)) {
+          irradiance_volume_setup(active_ob);
+        }
       }
       break;
     }
