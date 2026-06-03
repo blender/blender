@@ -411,6 +411,10 @@ static bool applyFaceProject(TransInfo *t,
                              TransData *td,
                              TransDataExtension *td_ext)
 {
+  if (t->spacetype != SPACE_VIEW3D) [[unlikely]] {
+    return false;
+  }
+
   float iloc[3], loc[3], no[3];
   float mval_fl[2];
 

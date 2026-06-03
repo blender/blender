@@ -314,13 +314,18 @@ void projectIntViewEx(TransInfo *t, const float vec[3], int adr[2], const eV3DPr
       adr[1] = vec[1];
     }
     else {
-      float v[2];
-
-      v[0] = vec[0] / t->aspect[0];
-      v[1] = vec[1] / t->aspect[1];
-
-      ui::view2d_view_to_region(
-          static_cast<const View2D *>(t->view), v[0], v[1], &adr[0], &adr[1]);
+      if (t->view) {
+        const float v[2] = {
+            vec[0] / t->aspect[0],
+            vec[1] / t->aspect[1],
+        };
+        ui::view2d_view_to_region(
+            static_cast<const View2D *>(t->view), v[0], v[1], &adr[0], &adr[1]);
+      }
+      else {
+        adr[0] = 0;
+        adr[1] = 0;
+      }
     }
   }
   else if (t->spacetype == SPACE_ACTION) {
@@ -335,7 +340,7 @@ void projectIntViewEx(TransInfo *t, const float vec[3], int adr[2], const eV3DPr
     }
     else
 #endif
-    {
+    if (t->view) {
       ui::view2d_view_to_region(static_cast<View2D *>(t->view), vec[0], vec[1], &out[0], &out[1]);
     }
 
@@ -344,15 +349,17 @@ void projectIntViewEx(TransInfo *t, const float vec[3], int adr[2], const eV3DPr
   }
   else if (ELEM(t->spacetype, SPACE_GRAPH, SPACE_NLA)) {
     int out[2] = {0, 0};
-
-    ui::view2d_view_to_region(static_cast<View2D *>(t->view), vec[0], vec[1], &out[0], &out[1]);
+    if (t->view) {
+      ui::view2d_view_to_region(static_cast<View2D *>(t->view), vec[0], vec[1], &out[0], &out[1]);
+    }
     adr[0] = out[0];
     adr[1] = out[1];
   }
   else if (t->spacetype == SPACE_SEQ) { /* XXX not tested yet, but should work. */
     int out[2] = {0, 0};
-
-    ui::view2d_view_to_region(static_cast<View2D *>(t->view), vec[0], vec[1], &out[0], &out[1]);
+    if (t->view) {
+      ui::view2d_view_to_region(static_cast<View2D *>(t->view), vec[0], vec[1], &out[0], &out[1]);
+    }
     adr[0] = out[0];
     adr[1] = out[1];
   }
@@ -381,20 +388,31 @@ void projectIntViewEx(TransInfo *t, const float vec[3], int adr[2], const eV3DPr
       }
     }
     else if (t->options & CTX_MOVIECLIP) {
-      float v[2];
-
-      v[0] = vec[0] / t->aspect[0];
-      v[1] = vec[1] / t->aspect[1];
-
-      ui::view2d_view_to_region(
-          static_cast<const View2D *>(t->view), v[0], v[1], &adr[0], &adr[1]);
+      if (t->view) {
+        const float v[2] = {
+            vec[0] / t->aspect[0],
+            vec[1] / t->aspect[1],
+        };
+        ui::view2d_view_to_region(
+            static_cast<const View2D *>(t->view), v[0], v[1], &adr[0], &adr[1]);
+      }
+      else {
+        adr[0] = 0;
+        adr[1] = 0;
+      }
     }
     else {
       BLI_assert(0);
     }
   }
   else if (t->spacetype == SPACE_NODE) {
-    ui::view2d_view_to_region(static_cast<View2D *>(t->view), vec[0], vec[1], &adr[0], &adr[1]);
+    if (t->view) {
+      ui::view2d_view_to_region(static_cast<View2D *>(t->view), vec[0], vec[1], &adr[0], &adr[1]);
+    }
+    else {
+      adr[0] = 0;
+      adr[1] = 0;
+    }
   }
 }
 void projectIntView(TransInfo *t, const float vec[3], int adr[2])
