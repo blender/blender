@@ -579,11 +579,12 @@ static void change_frame_apply(bContext *C, wmOperator *op, const bool always_up
     scene->r.cfra = round_fl_to_int(frame);
     scene->r.subframe = 0.0f;
   }
-  bScreen *screen = ED_screen_animation_playing(CTX_wm_manager(C));
-  if (screen->animtimer) {
-    wmTimer *wt = screen->animtimer;
-    ScreenAnimData *sad = static_cast<ScreenAnimData *>(wt->customdata);
-    BKE_scene_frame_clamp_for_playback(scene, (sad->flag & ANIMPLAY_FLAG_REVERSE) == 0);
+  if (bScreen *screen = ED_screen_animation_playing(CTX_wm_manager(C))) {
+    if (screen->animtimer) {
+      wmTimer *wt = screen->animtimer;
+      ScreenAnimData *sad = static_cast<ScreenAnimData *>(wt->customdata);
+      BKE_scene_frame_clamp_for_playback(scene, (sad->flag & ANIMPLAY_FLAG_REVERSE) == 0);
+    }
   }
   FRAMENUMBER_MIN_CLAMP(scene->r.cfra);
 
