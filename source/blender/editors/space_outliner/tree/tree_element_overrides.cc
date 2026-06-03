@@ -238,7 +238,10 @@ TreeElementOverridesPropertyOperation::TreeElementOverridesPropertyOperation(
 
 StringRefNull TreeElementOverridesPropertyOperation::get_override_operation_label() const
 {
-  switch (operation_->operation) {
+  if (operation_->label) {
+    return operation_->label;
+  }
+  switch (eID_OverrideLib_Op(operation_->operation)) {
     case LIBOVERRIDE_OP_INSERT_AFTER:
     case LIBOVERRIDE_OP_INSERT_BEFORE:
       return RPT_("Added through override");
@@ -255,10 +258,18 @@ StringRefNull TreeElementOverridesPropertyOperation::get_override_operation_labe
       return RPT_("Subtractive override");
     case LIBOVERRIDE_OP_MULTIPLY:
       return RPT_("Multiplicative override");
-    default:
-      BLI_assert_unreachable();
-      return {};
+    case LIBOVERRIDE_OP_CUSTOM:
+      return RPT_("Custom override");
   }
+  return RPT_("Unknown override");
+}
+
+StringRefNull TreeElementOverridesPropertyOperation::get_override_operation_tooltip() const
+{
+  if (operation_->tooltip) {
+    return operation_->tooltip;
+  }
+  return {};
 }
 
 std::optional<BIFIconID> TreeElementOverridesPropertyOperation::get_icon() const

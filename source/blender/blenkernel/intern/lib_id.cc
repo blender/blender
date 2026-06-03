@@ -2764,6 +2764,12 @@ void BKE_id_blend_write(BlendWriter *writer, ID *id)
         if (opop.subitem_local_name) {
           writer->write_string(opop.subitem_local_name);
         }
+        if (opop.label) {
+          writer->write_string(opop.label);
+        }
+        if (opop.tooltip) {
+          writer->write_string(opop.tooltip);
+        }
       }
     }
   }

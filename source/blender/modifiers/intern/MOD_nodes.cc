@@ -2106,24 +2106,7 @@ static void copy_data(const ModifierData *md, ModifierData *target, const int fl
           }
         }
       }
-      if (bake.packed) {
-        bake.packed = MEM_dupalloc(bake.packed);
-        const auto copy_bake_files_inplace = [](NodesModifierBakeFile **bake_files,
-                                                const int bake_files_num) {
-          if (!*bake_files) {
-            return;
-          }
-          *bake_files = MEM_dupalloc(*bake_files);
-          for (NodesModifierBakeFile &bake_file : MutableSpan{*bake_files, bake_files_num}) {
-            bake_file.name = BLI_strdup_null(bake_file.name);
-            if (bake_file.packed_file) {
-              bake_file.packed_file = BKE_packedfile_duplicate(bake_file.packed_file);
-            }
-          }
-        };
-        copy_bake_files_inplace(&bake.packed->meta_files, bake.packed->meta_files_num);
-        copy_bake_files_inplace(&bake.packed->blob_files, bake.packed->blob_files_num);
-      }
+      nodes_modifier_packed_bake_copy(bake, nmd->bakes[i]);
     }
   }
 
@@ -2144,6 +2127,32 @@ static void copy_data(const ModifierData *md, ModifierData *target, const int fl
     /* Clear the bake path when duplicating. */
     tnmd->bake_directory = nullptr;
   }
+}
+
+void nodes_modifier_packed_bake_copy(NodesModifierBake &bake_dst,
+                                     const NodesModifierBake &bake_src)
+{
+  BLI_assert(ELEM(bake_dst.packed, bake_src.packed, nullptr));
+  if (!bake_src.packed) {
+    return;
+  }
+
+  bake_dst.packed = MEM_dupalloc(bake_src.packed);
+  const auto copy_bake_files_inplace = [](NodesModifierBakeFile **bake_files,
+                                          const int bake_files_num) {
+    if (!*bake_files) {
+      return;
+    }
+    *bake_files = MEM_dupalloc(*bake_files);
+    for (NodesModifierBakeFile &bake_file : MutableSpan{*bake_files, bake_files_num}) {
+      bake_file.name = BLI_strdup_null(bake_file.name);
+      if (bake_file.packed_file) {
+        bake_file.packed_file = BKE_packedfile_duplicate(bake_file.packed_file);
+      }
+    }
+  };
+  copy_bake_files_inplace(&bake_dst.packed->meta_files, bake_dst.packed->meta_files_num);
+  copy_bake_files_inplace(&bake_dst.packed->blob_files, bake_dst.packed->blob_files_num);
 }
 
 void nodes_modifier_packed_bake_free(NodesModifierPackedBake *packed_bake)

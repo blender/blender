@@ -181,21 +181,35 @@ struct IDProperty {
 /* IDOverrideLibraryPropertyOperation->operation. */
 enum eID_OverrideLib_Op : short {
   /* Basic operations. */
-  LIBOVERRIDE_OP_NOOP = 0, /* Special value, forbids any overriding. */
+  /** Special value, forbids any overriding. */
+  LIBOVERRIDE_OP_NOOP = 0,
 
-  LIBOVERRIDE_OP_REPLACE = 1, /* Fully replace local value by reference one. */
+  /** Fully replace local value by reference one. */
+  LIBOVERRIDE_OP_REPLACE = 1,
 
   /* Numeric-only operations. */
-  LIBOVERRIDE_OP_ADD = 101, /* Add local value to reference one. */
-  /* Subtract local value from reference one (needed due to unsigned values etc.). */
+  /** Add local value to reference one. */
+  LIBOVERRIDE_OP_ADD = 101,
+  /** Subtract local value from reference one (needed due to unsigned values etc.). */
   LIBOVERRIDE_OP_SUBTRACT = 102,
-  /* Multiply reference value by local one (more useful than diff for scales and the like). */
+  /** Multiply reference value by local one (more useful than diff for scales and the like). */
   LIBOVERRIDE_OP_MULTIPLY = 103,
 
   /* Collection-only operations. */
-  LIBOVERRIDE_OP_INSERT_AFTER = 201,  /* Insert after given reference's subitem. */
-  LIBOVERRIDE_OP_INSERT_BEFORE = 202, /* Insert before given reference's subitem. */
+  /** Insert after given reference's subitem. */
+  LIBOVERRIDE_OP_INSERT_AFTER = 201,
+  /** Insert before given reference's subitem. */
+  LIBOVERRIDE_OP_INSERT_BEFORE = 202,
   /* We can add more if needed (move, delete, ...). */
+
+  /**
+   * Custom operation, generic liboverride code does not handle these, and expect all custom
+   * handling callbacks to be defined on properties when they have this type of operations.
+   */
+  /* Note: Currently there is no dedicated 'extra data' for these custom operations.
+   * If needs arise, the padding in `IDOverrideLibraryPropertyOperation` could be used for some
+   * custom data... */
+  LIBOVERRIDE_OP_CUSTOM = 255,
 };
 
 /* IDOverrideLibraryPropertyOperation->flag. */
@@ -259,6 +273,21 @@ struct IDOverrideLibraryPropertyOperation {
    * same name. */
   struct ID *subitem_reference_id = nullptr;
   struct ID *subitem_local_id = nullptr;
+
+  /**
+   * A UI-only label to represent that operation.
+   *
+   * Typically used for collection items, when the `subitem_reference_name`/`subitem_local_name`
+   * are not available or not usable from a UI PoV.
+   * See e.g. its usage by `rna_NodesModifierBake_override_diff` for geonodes packed bakes items.
+   */
+  char *label = nullptr;
+  /**
+   * A UI-only longer tooltip to represent that operation.
+   *
+   * Same as `label` above, but for usage in tooltips and other longer text representations.
+   */
+  char *tooltip = nullptr;
 
 #ifdef __cplusplus
   bool operator==(const IDOverrideLibraryPropertyOperation &b) const;

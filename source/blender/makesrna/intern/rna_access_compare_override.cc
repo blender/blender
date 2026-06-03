@@ -226,8 +226,12 @@ bool RNA_property_copy(Main *bmain,
                        IDOverrideLibraryProperty *removed_oprop,
                        IDOverrideLibraryPropertyOperation *removed_opop)
 {
-  if (!RNA_property_editable(ptr, prop)) {
-    return false;
+  /* Ignore editable state if this is removing a liboverride, and the removed operation is a
+   * custom one. Apply callback of the property is expected to know what to do then. */
+  if (!removed_opop || removed_opop->operation != LIBOVERRIDE_OP_CUSTOM) {
+    if (!RNA_property_editable(ptr, prop)) {
+      return false;
+    }
   }
 
   IDOverrideLibraryPropertyOperation opop{};

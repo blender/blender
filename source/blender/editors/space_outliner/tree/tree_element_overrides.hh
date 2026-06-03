@@ -92,6 +92,11 @@ class TreeElementOverridesPropertyOperation final : public TreeElementOverridesP
    * editing widget based on the affected RNA property instead.
    */
   StringRefNull get_override_operation_label() const;
+  /**
+   * Return a longer string to display as tooltip in the right column of the properties mode.
+   */
+  StringRefNull get_override_operation_tooltip() const;
+
   std::optional<BIFIconID> get_icon() const override;
 
   /** Return liboverride operation type (#eID_OverrideLib_Op). */
