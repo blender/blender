@@ -461,6 +461,9 @@ void BMO_pop(BMesh *bm);
 /** Executes an operator. */
 bool BMO_op_callf(BMesh *bm, int flag, const char *fmt, ...);
 
+/** A `va_list` version of #BMO_op_callf. */
+bool BMO_op_vcallf(BMesh *bm, int flag, const char *fmt, va_list list);
+
 /**
  * Initializes, but doesn't execute an operator.  this is so you can
  * gain access to the outputs of the operator.  note that you have

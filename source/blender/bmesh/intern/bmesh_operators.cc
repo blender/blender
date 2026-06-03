@@ -1880,23 +1880,28 @@ bool BMO_op_initf(BMesh *bm, BMOperator *op, const int flag, const char *fmt, ..
   return true;
 }
 
-bool BMO_op_callf(BMesh *bm, const int flag, const char *fmt, ...)
+bool BMO_op_vcallf(BMesh *bm, const int flag, const char *fmt, va_list list)
 {
-  va_list list;
   BMOperator op;
 
-  va_start(list, fmt);
   if (!BMO_op_vinitf(bm, &op, flag, fmt, list)) {
     printf("%s: failed, format is:\n    \"%s\"\n", __func__, fmt);
-    va_end(list);
     return false;
   }
 
   BMO_op_exec(bm, &op);
   BMO_op_finish(bm, &op);
 
-  va_end(list);
   return true;
+}
+
+bool BMO_op_callf(BMesh *bm, const int flag, const char *fmt, ...)
+{
+  va_list list;
+  va_start(list, fmt);
+  const bool result = BMO_op_vcallf(bm, flag, fmt, list);
+  va_end(list);
+  return result;
 }
 
 }  // namespace blender

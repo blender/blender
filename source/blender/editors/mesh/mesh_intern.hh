@@ -10,6 +10,8 @@
 
 #pragma once
 
+#include <cstdarg>
+
 #include "BLI_span.hh"
 #include "BLI_sys_types.h"
 
@@ -50,6 +52,13 @@ bool EDBM_op_call_and_selectf(BMEditMesh *em,
                               bool select_extend,
                               const char *fmt,
                               ...);
+/** A `va_list` version of #EDBM_op_call_and_selectf. */
+bool EDBM_op_vcall_and_selectf(BMEditMesh *em,
+                               wmOperator *op,
+                               const char *select_slot_out,
+                               bool select_extend,
+                               const char *fmt,
+                               va_list list);
 /**
  * Same as above, but doesn't report errors.
  */

@@ -199,22 +199,18 @@ bool EDBM_op_callf(BMEditMesh *em, wmOperator *op, const char *fmt, ...)
   return EDBM_op_finish(em, &bmop, op, true);
 }
 
-bool EDBM_op_call_and_selectf(BMEditMesh *em,
-                              wmOperator *op,
-                              const char *select_slot_out,
-                              const bool select_extend,
-                              const char *fmt,
-                              ...)
+bool EDBM_op_vcall_and_selectf(BMEditMesh *em,
+                               wmOperator *op,
+                               const char *select_slot_out,
+                               const bool select_extend,
+                               const char *fmt,
+                               va_list list)
 {
   BMesh *bm = em->bm;
   BMOperator bmop;
-  va_list list;
-
-  va_start(list, fmt);
 
   if (!BMO_op_vinitf(bm, &bmop, BMO_FLAG_DEFAULTS, fmt, list)) {
     BKE_reportf(op->reports, RPT_ERROR, "Parse error in %s", __func__);
-    va_end(list);
     return false;
   }
 
@@ -231,8 +227,21 @@ bool EDBM_op_call_and_selectf(BMEditMesh *em,
   BMO_slot_buffer_hflag_enable(
       em->bm, bmop.slots_out, select_slot_out, hflag, BM_ELEM_SELECT, true);
 
-  va_end(list);
   return EDBM_op_finish(em, &bmop, op, true);
+}
+
+bool EDBM_op_call_and_selectf(BMEditMesh *em,
+                              wmOperator *op,
+                              const char *select_slot_out,
+                              const bool select_extend,
+                              const char *fmt,
+                              ...)
+{
+  va_list list;
+  va_start(list, fmt);
+  const bool result = EDBM_op_vcall_and_selectf(em, op, select_slot_out, select_extend, fmt, list);
+  va_end(list);
+  return result;
 }
 
 bool EDBM_op_call_silentf(BMEditMesh *em, const char *fmt, ...)
