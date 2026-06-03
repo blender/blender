@@ -873,7 +873,7 @@ static bool shape_key_make_basis_poll(bContext *C)
 
 static wmOperatorStatus shape_key_make_basis_exec(bContext *C, wmOperator * /*op*/)
 {
-  Object *ob = CTX_data_active_object(C);
+  Object *ob = context_object(C);
   Key *key = BKE_key_from_object(ob);
   KeyBlock *old_basis_key = static_cast<KeyBlock *>(key->block.first);
 
@@ -974,7 +974,7 @@ static void add_arrays(const MutableSpan<float3> a, const Span<float3> b)
 static wmOperatorStatus shape_key_apply_to_basis_exec(bContext *C, wmOperator *op)
 {
   Main *bmain = CTX_data_main(C);
-  Object *ob = CTX_data_active_object(C);
+  Object *ob = context_object(C);
   Key *key = BKE_key_from_object(ob);
   KeyBlock *basis_key = static_cast<KeyBlock *>(key->block.first);
   MutableSpan<float3> basis_data(static_cast<float3 *>(basis_key->data), basis_key->totelem);
