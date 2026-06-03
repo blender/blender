@@ -510,6 +510,10 @@ static wmOperatorStatus file_box_select_exec(bContext *C, wmOperator *op)
   rcti rect;
   FileSelect ret;
 
+  if (sfile->files == nullptr || sfile->layout == nullptr) {
+    return OPERATOR_CANCELLED;
+  }
+
   WM_operator_properties_border_to_rcti(op, &rect);
 
   const eSelectOp sel_op = eSelectOp(RNA_enum_get(op->ptr, "mode"));
@@ -589,6 +593,9 @@ static wmOperatorStatus file_select_exec(bContext *C, wmOperator *op)
   mval[1] = RNA_int_get(op->ptr, "mouse_y");
   rect = file_select_mval_to_select_rect(mval);
 
+  if (sfile->layout == nullptr) {
+    return OPERATOR_CANCELLED;
+  }
   if (!ED_fileselect_layout_is_inside_pt(sfile->layout, &region->v2d, rect.xmin, rect.ymin)) {
     return OPERATOR_CANCELLED | OPERATOR_PASS_THROUGH;
   }
@@ -975,6 +982,11 @@ static wmOperatorStatus file_select_all_exec(bContext *C, wmOperator *op)
   SpaceFile *sfile = CTX_wm_space_file(C);
   FileSelectParams *params = ED_fileselect_get_active_params(sfile);
   FileSelection sel;
+
+  if (sfile->files == nullptr || params == nullptr) {
+    return OPERATOR_CANCELLED;
+  }
+
   const int numfiles = filelist_files_ensure(sfile->files);
   int action = RNA_enum_get(op->ptr, "action");
 
@@ -1051,8 +1063,13 @@ void FILE_OT_select_all(wmOperatorType *ot)
 static wmOperatorStatus file_view_selected_exec(bContext *C, wmOperator * /*op*/)
 {
   SpaceFile *sfile = CTX_wm_space_file(C);
-  FileSelection sel = file_current_selection_range_get(sfile->files);
   FileSelectParams *params = ED_fileselect_get_active_params(sfile);
+
+  if (sfile->files == nullptr || params == nullptr) {
+    return OPERATOR_CANCELLED;
+  }
+
+  FileSelection sel = file_current_selection_range_get(sfile->files);
 
   if (sel.first == -1 && sel.last == -1 && params->active_file == -1) {
     /* Nothing was selected. */
