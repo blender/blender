@@ -839,7 +839,7 @@ OSLNode *OSLShaderManager::osl_node(ShaderGraph *graph,
           if (metadata.name == "widget" && metadata.sdefault[0] == "null") {
             socket_flags |= SocketType::LINK_OSL_INITIALIZER;
           }
-          else if (metadata.name == "defaultgeomprop") {
+          else if (metadata.name == "mtlx_defaultgeomprop") {
             /* the following match up to MaterialX default geometry properties
              * that we use to help set socket flags to the corresponding
              * geometry link equivalents. */
