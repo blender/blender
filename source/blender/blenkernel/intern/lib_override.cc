@@ -4583,6 +4583,23 @@ void BKE_lib_override_library_property_operation_delete(
   BLI_freelinkN(&liboverride_property->operations, liboverride_property_operation);
 }
 
+bool IDOverrideLibraryPropertyOperation::operator==(
+    const IDOverrideLibraryPropertyOperation &b) const
+{
+  return (
+      (this->operation == b.operation) && (this->flag == b.flag) &&
+      (this->subitem_reference_id == b.subitem_reference_id) &&
+      (this->subitem_local_id == b.subitem_local_id) &&
+      (this->subitem_reference_index == b.subitem_reference_index) &&
+      (this->subitem_local_index == b.subitem_local_index) &&
+      ((!this->subitem_reference_name && !b.subitem_reference_name) ||
+       (this->subitem_reference_name && b.subitem_reference_name &&
+        StringRefNull(this->subitem_reference_name) == StringRefNull(b.subitem_reference_name))) &&
+      ((!this->subitem_local_name && !b.subitem_local_name) ||
+       (this->subitem_local_name && b.subitem_local_name &&
+        StringRefNull(this->subitem_local_name) == StringRefNull(b.subitem_local_name))));
+}
+
 bool BKE_lib_override_library_property_operation_operands_validate(
     IDOverrideLibraryPropertyOperation *liboverride_property_operation,
     PointerRNA *ptr_dst,
