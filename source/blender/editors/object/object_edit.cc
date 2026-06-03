@@ -1226,7 +1226,7 @@ void check_force_modifiers(Main *bmain, Scene *scene, Object *object)
 
 static wmOperatorStatus forcefield_toggle_exec(bContext *C, wmOperator * /*op*/)
 {
-  Object *ob = CTX_data_active_object(C);
+  Object *ob = ed::object::context_active_object(C);
 
   if (ob->pd == nullptr) {
     ob->pd = BKE_partdeflect_new(PFIELD_FORCE);
@@ -1348,11 +1348,7 @@ static wmOperatorStatus object_calculate_paths_invoke(bContext *C,
                                                       wmOperator *op,
                                                       const wmEvent * /*event*/)
 {
-  Object *ob = CTX_data_active_object(C);
-
-  if (ob == nullptr) {
-    return OPERATOR_CANCELLED;
-  }
+  Object *ob = ed::object::context_active_object(C);
 
   /* set default settings from existing/stored settings */
   {
