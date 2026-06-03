@@ -761,7 +761,7 @@ static void init_proportional_edit(TransInfo *t)
       /* Already calculated by #uv_set_connectivity_distance. */
     }
     else if (t->data_type == &TransConvertType_Curve) {
-      BLI_assert(t->obedit_type == OB_CURVES_LEGACY);
+      BLI_assert(ELEM(t->obedit_type, OB_CURVES_LEGACY, OB_SURF));
       if (t->flag & T_PROP_CONNECTED) {
         /* Already calculated by #calc_distanceCurveVerts. */
       }
