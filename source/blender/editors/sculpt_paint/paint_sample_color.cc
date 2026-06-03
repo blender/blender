@@ -30,6 +30,7 @@
 #include "BKE_bvhutils.hh"
 #include "BKE_context.hh"
 #include "BKE_customdata.hh"
+#include "BKE_global.hh"
 #include "BKE_image.hh"
 #include "BKE_layer.hh"
 #include "BKE_material.hh"
@@ -563,6 +564,10 @@ static wmOperatorStatus sample_color_modal(bContext *C, wmOperator *op, const wm
 
 static bool sample_color_poll(bContext *C)
 {
+  /* Requires a window with pixel-data. */
+  if (G.background) {
+    return false;
+  }
   return (image_paint_poll_ignore_tool(C) || vertex_paint_poll_ignore_tool(C) ||
           sculpt_mode_poll(C) || ed::greasepencil::grease_pencil_painting_poll(C) ||
           ed::greasepencil::grease_pencil_vertex_painting_poll(C));
