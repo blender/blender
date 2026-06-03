@@ -3832,6 +3832,9 @@ static void do_versions_after_linking(FileData *fd, Main *main)
   if (!main->is_read_invalid) {
     do_versions_after_linking_520(fd, main);
   }
+  if (!main->is_read_invalid) {
+    do_versions_after_linking_530(fd, main);
+  }
 
   main->is_locked_for_linking = false;
 }
