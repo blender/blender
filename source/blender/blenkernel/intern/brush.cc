@@ -47,6 +47,8 @@
 #include "IMB_imbuf.hh"
 #include "IMB_imbuf_types.hh"
 
+#include "PRF_profile.hh"
+
 #include "RE_texture.h" /* RE_texture_evaluate */
 
 #include "BLO_read_write.hh"
@@ -1479,6 +1481,7 @@ void BKE_brush_calc_curve_factors(const eBrushCurvePreset preset,
                                   const float brush_radius,
                                   const MutableSpan<float> factors)
 {
+  PRF_scope(ProfileCategory::Editor);
   BLI_assert(factors.size() == distances.size());
 
   const float radius_rcp = math::rcp(brush_radius);

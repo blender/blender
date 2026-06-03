@@ -56,6 +56,8 @@
 #include "GPU_state.hh"
 #include "GPU_texture.hh"
 
+#include "PRF_profile.hh"
+
 #include "UI_resources.hh"
 
 #include "paint_intern.hh"
@@ -871,6 +873,7 @@ BLI_INLINE void draw_bezier_handle_lines(uint pos, const float sel_col[4], BezTr
 
 static void paint_draw_curve_cursor(Brush *brush, ViewContext *vc)
 {
+  PRF_scope(ProfileCategory::Draw);
   GPU_matrix_push();
   GPU_matrix_translate_2f(vc->region->winrct.xmin, vc->region->winrct.ymin);
 
@@ -974,6 +977,7 @@ static bool paint_cursor_context_init(bContext *C,
                                       const float2 &tilt,
                                       PaintCursorContext &pcontext)
 {
+  PRF_scope(ProfileCategory::Editor);
   ARegion *region = CTX_wm_region(C);
   if (region && region->regiontype != RGN_TYPE_WINDOW) {
     return false;
@@ -1115,6 +1119,7 @@ static void paint_draw_2D_view_brush_cursor_default(PaintCursorContext &pcontext
 
 static void paint_draw_2D_view_brush_cursor(PaintCursorContext &pcontext)
 {
+  PRF_scope(ProfileCategory::Draw);
   switch (pcontext.mode) {
     case PaintMode::GPencil:
     case PaintMode::VertexGPencil:
@@ -1127,6 +1132,7 @@ static void paint_draw_2D_view_brush_cursor(PaintCursorContext &pcontext)
 
 static void paint_draw_legacy_3D_view_brush_cursor(PaintCursorContext &pcontext)
 {
+  PRF_scope(ProfileCategory::Draw);
   GPU_line_width(1.0f);
   immUniformColor3fvAlpha(pcontext.outline_col, pcontext.outline_alpha);
   imm_draw_circle_wire_3d(
@@ -1192,6 +1198,7 @@ static bool paint_cursor_is_brush_cursor_enabled(const PaintCursorContext &pcont
 
 static void paint_cursor_update_rake_rotation(PaintCursorContext &pcontext)
 {
+  PRF_scope(ProfileCategory::Editor);
   /* Don't calculate rake angles while a stroke is active because the rake variables are global
    * and we may get interference with the stroke itself.
    * For line strokes, such interference is visible. */
@@ -1204,6 +1211,7 @@ static void paint_cursor_update_rake_rotation(PaintCursorContext &pcontext)
 
 static void paint_cursor_check_and_draw_alpha_overlays(PaintCursorContext &pcontext)
 {
+  PRF_scope(ProfileCategory::Draw);
   pcontext.alpha_overlay_drawn = pcontext.is_brush_active &&
                                  paint_draw_alpha_overlay(pcontext.paint,
                                                           pcontext.brush,
@@ -1254,6 +1262,7 @@ static void paint_cursor_restore_drawing_state()
 
 static void paint_draw_cursor(bContext *C, const int2 &xy, const float2 &tilt, void * /*unused*/)
 {
+  PRF_scope(ProfileCategory::Default);
   PaintCursorContext pcontext;
   if (!paint_cursor_context_init(C, xy, tilt, pcontext)) {
     return;

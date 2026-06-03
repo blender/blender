@@ -27,6 +27,8 @@
 #include "GPU_matrix.hh"
 #include "GPU_state.hh"
 
+#include "PRF_profile.hh"
+
 #include "WM_api.hh"
 
 #include "sculpt_boundary.hh"
@@ -148,6 +150,7 @@ static void brush_unprojected_size_update(Paint &paint,
 
 void mesh_cursor_update_and_init(PaintCursorContext &pcontext)
 {
+  PRF_scope(ProfileCategory::Editor);
   BLI_assert(pcontext.ss != nullptr);
 
   SculptSession &ss = *pcontext.ss;
@@ -245,6 +248,7 @@ static void geometry_preview_lines_draw(const Depsgraph &depsgraph,
 
 void mesh_cursor_active_draw(PaintCursorContext &pcontext)
 {
+  PRF_scope(ProfileCategory::Draw);
   BLI_assert(pcontext.ss != nullptr);
 
   SculptSession &ss = *pcontext.ss;
@@ -762,6 +766,7 @@ static void cursor_space_overlays_draw(const PaintCursorContext &pcontext)
 
 void mesh_cursor_inactive_draw(PaintCursorContext &pcontext)
 {
+  PRF_scope(ProfileCategory::Draw);
   if (!pcontext.is_cursor_over_mesh) {
     inactive_cursor_draw(pcontext);
     return;

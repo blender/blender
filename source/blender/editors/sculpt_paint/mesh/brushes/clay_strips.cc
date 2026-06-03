@@ -35,6 +35,8 @@
 #include "BLI_math_vector.hh"
 #include "BLI_task.hh"
 
+#include "PRF_profile.hh"
+
 #include "editors/sculpt_paint/mesh/mesh_brush_common.hh"
 #include "editors/sculpt_paint/mesh/sculpt_automask.hh"
 #include "editors/sculpt_paint/mesh/sculpt_intern.hh"
@@ -64,6 +66,7 @@ static void calc_local_positions(const Span<float3> vert_positions,
                                  const MutableSpan<float2> xy_positions,
                                  const MutableSpan<float> z_positions)
 {
+  PRF_scope(ProfileCategory::Editor);
   BLI_assert(xy_positions.size() == verts.size());
   BLI_assert(z_positions.size() == verts.size());
 
@@ -80,6 +83,7 @@ static void calc_local_positions(const Span<float3> positions,
                                  const MutableSpan<float2> xy_positions,
                                  const MutableSpan<float> z_positions)
 {
+  PRF_scope(ProfileCategory::Editor);
   BLI_assert(xy_positions.size() == positions.size());
   BLI_assert(z_positions.size() == positions.size());
 
@@ -99,6 +103,7 @@ static void calc_local_positions(const Span<float3> positions,
  */
 static void apply_z_axis_factors(const Span<float> z_positions, const MutableSpan<float> factors)
 {
+  PRF_scope(ProfileCategory::Editor);
   BLI_assert(factors.size() == z_positions.size());
 
   for (const int i : factors.index_range()) {
@@ -117,6 +122,7 @@ static void apply_plane_trim_factors(const Brush &brush,
                                      const Span<float> z_positions,
                                      const MutableSpan<float> factors)
 {
+  PRF_scope(ProfileCategory::Editor);
   BLI_assert(factors.size() == z_positions.size());
 
   const bool use_plane_trim = brush.flag & BRUSH_PLANE_TRIM;
@@ -305,6 +311,7 @@ void do_clay_strips_brush(const Depsgraph &depsgraph,
                           const float3 &plane_normal,
                           const float3 &plane_center)
 {
+  PRF_scope(ProfileCategory::Editor);
   SculptSession &ss = *object.runtime->sculpt_session;
   const Brush &brush = *BKE_paint_brush_for_read(&sd.paint);
   bke::pbvh::Tree &pbvh = *bke::object::pbvh_get(object);

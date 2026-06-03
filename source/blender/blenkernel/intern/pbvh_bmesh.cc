@@ -20,6 +20,8 @@
 #include "BKE_global.hh"
 #include "BKE_paint_bvh.hh"
 
+#include "PRF_profile.hh"
+
 #include "bmesh.hh"
 #include "pbvh_intern.hh"
 
@@ -2105,6 +2107,7 @@ static void pbvh_bmesh_create_nodes_fast_recursive(Vector<BMeshNode> &nodes,
 
 Tree Tree::from_bmesh(BMesh &bm)
 {
+  PRF_scope(ProfileCategory::Core);
   Tree pbvh(Type::BMesh);
   if (bm.totface == 0) {
     return pbvh;

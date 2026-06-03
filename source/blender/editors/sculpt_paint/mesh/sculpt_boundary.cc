@@ -3307,6 +3307,7 @@ void do_boundary_brush(const Depsgraph &depsgraph,
                        Object &ob,
                        const IndexMask &node_mask)
 {
+  PRF_scope(ProfileCategory::Editor);
   SculptSession &ss = *ob.runtime->sculpt_session;
   bke::pbvh::Tree &pbvh = *bke::object::pbvh_get(ob);
   const Brush &brush = *BKE_paint_brush_for_read(&sd.paint);
@@ -3433,6 +3434,7 @@ std::unique_ptr<SculptBoundary> data_init_mesh(const Depsgraph &depsgraph,
                                                const int initial_vert,
                                                const float radius)
 {
+  PRF_scope(ProfileCategory::Editor);
   SculptSession &ss = *object.runtime->sculpt_session;
 
   boundary::ensure_boundary_info(object);
@@ -3514,6 +3516,7 @@ std::unique_ptr<SculptBoundary> data_init_grids(Object &object,
                                                 const SubdivCCGCoord initial_vert,
                                                 const float radius)
 {
+  PRF_scope(ProfileCategory::Editor);
   SculptSession &ss = *object.runtime->sculpt_session;
 
   boundary::ensure_boundary_info(object);
@@ -3579,6 +3582,7 @@ std::unique_ptr<SculptBoundary> data_init_bmesh(Object &object,
                                                 BMVert *initial_vert,
                                                 const float radius)
 {
+  PRF_scope(ProfileCategory::Editor);
   SculptSession &ss = *object.runtime->sculpt_session;
 
   vert_random_access_ensure(object);

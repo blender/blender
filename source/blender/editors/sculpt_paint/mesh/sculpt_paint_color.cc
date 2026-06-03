@@ -46,6 +46,7 @@ static void calc_local_positions(const float4x4 &mat,
                                  const Span<float3> positions,
                                  const MutableSpan<float3> local_positions)
 {
+  PRF_scope(ProfileCategory::Editor);
   for (const int i : verts.index_range()) {
     local_positions[i] = math::transform_point(mat, positions[verts[i]]);
   }
@@ -171,6 +172,7 @@ void swap_gathered_colors(const Span<int> indices,
                           GMutableSpan color_attribute,
                           MutableSpan<float4> r_colors)
 {
+  PRF_scope(ProfileCategory::Editor);
   to_static_color_type(color_attribute.type(), [&](auto dummy) {
     using T = decltype(dummy);
     T *colors_typed = static_cast<T *>(color_attribute.data());
@@ -203,6 +205,7 @@ void gather_colors_vert(const OffsetIndices<int> faces,
                         const Span<int> verts,
                         const MutableSpan<float4> r_colors)
 {
+  PRF_scope(ProfileCategory::Editor);
   if (color_domain == bke::AttrDomain::Point) {
     gather_colors(color_attribute, verts, r_colors);
   }
@@ -525,6 +528,7 @@ static void do_sample_wet_paint_task(const Depsgraph &depsgraph,
                                      ColorPaintLocalData &tls,
                                      SampleWetPaintData &swptd)
 {
+  PRF_scope(ProfileCategory::Editor);
   const SculptSession &ss = *object.runtime->sculpt_session;
   const StrokeCache &cache = *ss.cache;
   const float radius = cache.radius * brush.wet_paint_radius_factor;
@@ -567,6 +571,7 @@ void do_paint_brush(const Depsgraph &depsgraph,
     SCULPT_do_paint_brush_image(depsgraph, sd, ob, texnode_mask);
     return;
   }
+  PRF_scope(ProfileCategory::Editor);
 
   const Brush &brush = *BKE_paint_brush_for_read(&sd.paint);
   SculptSession &ss = *ob.runtime->sculpt_session;
@@ -852,6 +857,7 @@ void do_smear_brush(const Depsgraph &depsgraph,
                     Object &ob,
                     const IndexMask &node_mask)
 {
+  PRF_scope(ProfileCategory::Editor);
   const Brush &brush = *BKE_paint_brush_for_read(&sd.paint);
   SculptSession &ss = *ob.runtime->sculpt_session;
   bke::pbvh::Tree &pbvh = *bke::object::pbvh_get(ob);
@@ -929,6 +935,7 @@ void do_blur_brush(const Depsgraph &depsgraph,
                    Object &ob,
                    const IndexMask &node_mask)
 {
+  PRF_scope(ProfileCategory::Editor);
   const Brush &brush = *BKE_paint_brush_for_read(&sd.paint);
   SculptSession &ss = *ob.runtime->sculpt_session;
   bke::pbvh::Tree &pbvh = *bke::object::pbvh_get(ob);

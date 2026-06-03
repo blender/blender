@@ -18,6 +18,8 @@
 #include "BKE_image_wrappers.hh"
 #include "BKE_paint.hh"
 
+#include "PRF_profile.hh"
+
 #include "pbvh_intern.hh"
 #include "pbvh_pixels_copy.hh"
 #include "pbvh_uv_islands.hh"
@@ -423,6 +425,7 @@ void mark_image_dirty(bke::pbvh::Node & /*node*/,
                       Image &image,
                       Map<image::TileNumber, ImBuf *> &buffers)
 {
+  PRF_scope(ProfileCategory::Editor);
   if (pixel_node.flags.dirty) {
     for (UDIMTilePixels &tile : pixel_node.tiles) {
       std::optional<image::ImageTileWrapper> image_tile = find_image_tile(image, tile.tile_number);
@@ -448,6 +451,7 @@ namespace bke::pbvh {
 
 void build_pixels(const Depsgraph &depsgraph, Object &object, Image &image, ImageUser &image_user)
 {
+  PRF_scope(ProfileCategory::Editor);
   Tree &pbvh = *object::pbvh_get(object);
   pixels::update_pixels(depsgraph, object, pbvh, image, image_user);
 }

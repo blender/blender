@@ -45,6 +45,7 @@ BLI_NOINLINE static void calc_silhouette_factors(const StrokeCache &cache,
                                                  const Span<float3> normals,
                                                  const MutableSpan<float> factors)
 {
+  PRF_scope(ProfileCategory::Editor);
   BLI_assert(normals.size() == factors.size());
 
   const float sign = math::sign(math::dot(cache.initial_normal_symm, cache.grab_delta_symm));
@@ -169,6 +170,7 @@ void do_grab_brush(const Depsgraph &depsgraph,
                    Object &object,
                    const IndexMask &node_mask)
 {
+  PRF_scope(ProfileCategory::Editor);
   const SculptSession &ss = *object.runtime->sculpt_session;
   bke::pbvh::Tree &pbvh = *bke::object::pbvh_get(object);
   const Brush &brush = *BKE_paint_brush_for_read(&sd.paint);

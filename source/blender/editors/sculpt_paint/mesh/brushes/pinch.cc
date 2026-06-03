@@ -41,6 +41,7 @@ BLI_NOINLINE static void calc_translations(const Span<float3> positions,
                                            const std::array<float3, 2> &stroke_xz,
                                            const MutableSpan<float3> translations)
 {
+  PRF_scope(ProfileCategory::Editor);
   BLI_assert(positions.size() == translations.size());
 
   for (const int i : positions.index_range()) {
@@ -175,6 +176,7 @@ void do_pinch_brush(const Depsgraph &depsgraph,
                     Object &object,
                     const IndexMask &node_mask)
 {
+  PRF_scope(ProfileCategory::Editor);
   const SculptSession &ss = *object.runtime->sculpt_session;
   bke::pbvh::Tree &pbvh = *bke::object::pbvh_get(object);
   const Brush &brush = *BKE_paint_brush_for_read(&sd.paint);
