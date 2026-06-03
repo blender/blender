@@ -2163,7 +2163,8 @@ void FONT_OT_select_word(wmOperatorType *ot)
 
 static wmOperatorStatus textbox_add_exec(bContext *C, wmOperator * /*op*/)
 {
-  Object *obedit = CTX_data_active_object(C);
+  Object *obedit = ed::object::context_active_object(C);
+
   Curve *cu = id_cast<Curve *>(obedit->data);
   int i;
 
@@ -2204,7 +2205,7 @@ void FONT_OT_textbox_add(wmOperatorType *ot)
 
 static wmOperatorStatus textbox_remove_exec(bContext *C, wmOperator *op)
 {
-  Object *obedit = CTX_data_active_object(C);
+  Object *obedit = ed::object::context_active_object(C);
   Curve *cu = id_cast<Curve *>(obedit->data);
   int i;
   int index = RNA_int_get(op->ptr, "index");
