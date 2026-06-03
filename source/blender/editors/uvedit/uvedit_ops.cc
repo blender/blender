@@ -411,7 +411,7 @@ static void UV_OT_move_on_axis(wmOperatorType *ot)
 
   /* API callbacks. */
   ot->exec = uv_move_on_axis_exec;
-  ot->poll = ED_operator_uvedit;
+  ot->poll = ED_operator_uvedit_space_image;
 
   /* properties */
   RNA_def_enum(ot->srna, "type", shift_items, int(UVMoveType::Udim), "Type", "Move Type");
