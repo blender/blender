@@ -24,9 +24,9 @@ namespace blender {
 /** Blender patch version for bug-fix releases. */
 #define BLENDER_VERSION_PATCH 0
 /** Blender release cycle stage: alpha/beta/rc/release. */
-#define BLENDER_VERSION_CYCLE alpha
+#define BLENDER_VERSION_CYCLE beta
 /** Blender release type suffix. LTS or blank. */
-#define BLENDER_VERSION_SUFFIX
+#define BLENDER_VERSION_SUFFIX LTS
 
 /* Blender file format version. */
 #define BLENDER_FILE_VERSION BLENDER_VERSION
