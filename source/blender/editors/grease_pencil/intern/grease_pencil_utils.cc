@@ -1199,9 +1199,14 @@ IndexMask retrieve_visible_bezier_points(Object &object,
   return IndexMask::from_ranges(curves.points_by_curve(), visible_bezier_strokes, memory);
 }
 
+eHandleDisplay view3d_handle_type_or_default(const View3D *v3d)
+{
+  return v3d ? v3d->overlay.handle_display : CURVE_HANDLE_SELECTED;
+}
+
 IndexMask retrieve_visible_bezier_handle_strokes(Object &object,
                                                  const bke::greasepencil::Drawing &drawing,
-                                                 const int handle_display,
+                                                 const eHandleDisplay handle_display,
                                                  IndexMaskMemory &memory)
 {
   if (handle_display == CURVE_HANDLE_NONE) {
@@ -1258,7 +1263,7 @@ IndexMask retrieve_visible_fills(Object &object,
 IndexMask retrieve_visible_bezier_handle_points(Object &object,
                                                 const bke::greasepencil::Drawing &drawing,
                                                 const int layer_index,
-                                                const int handle_display,
+                                                const eHandleDisplay handle_display,
                                                 IndexMaskMemory &memory)
 {
   if (handle_display == CURVE_HANDLE_NONE) {
@@ -1303,7 +1308,7 @@ IndexMask retrieve_visible_bezier_handle_elements(Object &object,
                                                   const bke::greasepencil::Drawing &drawing,
                                                   const int layer_index,
                                                   const bke::AttrDomain selection_domain,
-                                                  const int handle_display,
+                                                  const eHandleDisplay handle_display,
                                                   IndexMaskMemory &memory)
 {
   if (selection_domain == bke::AttrDomain::Curve) {
@@ -1377,8 +1382,8 @@ IndexMask retrieve_editable_and_selected_elements(Object &object,
 
 IndexMask retrieve_editable_and_all_selected_points(Object &object,
                                                     const bke::greasepencil::Drawing &drawing,
-                                                    int layer_index,
-                                                    int handle_display,
+                                                    const int layer_index,
+                                                    const eHandleDisplay handle_display,
                                                     IndexMaskMemory &memory)
 {
   const bke::CurvesGeometry &curves = drawing.strokes();

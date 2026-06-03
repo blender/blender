@@ -700,6 +700,7 @@ static wmOperatorStatus grease_pencil_dissolve_exec(bContext *C, wmOperator *op)
   const Scene *scene = CTX_data_scene(C);
   Object *object = CTX_data_active_object(C);
   View3D *v3d = CTX_wm_view3d(C);
+  const eHandleDisplay handle_display = view3d_handle_type_or_default(v3d);
   GreasePencil &grease_pencil = *id_cast<GreasePencil *>(object->data);
 
   const DissolveMode mode = DissolveMode(RNA_enum_get(op->ptr, "type"));
@@ -714,7 +715,7 @@ static wmOperatorStatus grease_pencil_dissolve_exec(bContext *C, wmOperator *op)
 
     IndexMaskMemory memory;
     const IndexMask points = ed::greasepencil::retrieve_editable_and_all_selected_points(
-        *object, info.drawing, info.layer_index, v3d->overlay.handle_display, memory);
+        *object, info.drawing, info.layer_index, handle_display, memory);
     if (points.is_empty()) {
       return;
     }
@@ -1605,6 +1606,7 @@ static wmOperatorStatus grease_pencil_duplicate_exec(bContext *C, wmOperator * /
   const Scene *scene = CTX_data_scene(C);
   Object *object = CTX_data_active_object(C);
   View3D *v3d = CTX_wm_view3d(C);
+  const eHandleDisplay handle_display = view3d_handle_type_or_default(v3d);
   GreasePencil &grease_pencil = *id_cast<GreasePencil *>(object->data);
 
   const bke::AttrDomain selection_domain = ED_grease_pencil_edit_selection_domain_get(
@@ -1627,7 +1629,7 @@ static wmOperatorStatus grease_pencil_duplicate_exec(bContext *C, wmOperator * /
     }
     else if (selection_domain == bke::AttrDomain::Point) {
       const IndexMask points = ed::greasepencil::retrieve_editable_and_all_selected_points(
-          *object, info.drawing, info.layer_index, v3d->overlay.handle_display, memory);
+          *object, info.drawing, info.layer_index, handle_display, memory);
       if (points.is_empty()) {
         return;
       }
@@ -1734,6 +1736,7 @@ static wmOperatorStatus gpencil_stroke_subdivide_exec(bContext *C, wmOperator *o
   const Scene *scene = CTX_data_scene(C);
   Object *object = CTX_data_active_object(C);
   View3D *v3d = CTX_wm_view3d(C);
+  const eHandleDisplay handle_display = view3d_handle_type_or_default(v3d);
   GreasePencil &grease_pencil = *id_cast<GreasePencil *>(object->data);
   const bke::AttrDomain selection_domain = ED_grease_pencil_edit_selection_domain_get(
       scene->toolsettings);
@@ -1771,7 +1774,7 @@ static wmOperatorStatus gpencil_stroke_subdivide_exec(bContext *C, wmOperator *o
         if (selection[point_i]) {
           return true;
         }
-        if (v3d->overlay.handle_display == CURVE_HANDLE_NONE) {
+        if (handle_display == CURVE_HANDLE_NONE) {
           return false;
         }
         if (curve_types[curve_i] == CURVE_TYPE_BEZIER) {
@@ -3286,6 +3289,8 @@ static wmOperatorStatus grease_pencil_extrude_exec(bContext *C, wmOperator * /*o
   const Scene *scene = CTX_data_scene(C);
   Object *object = CTX_data_active_object(C);
   View3D *v3d = CTX_wm_view3d(C);
+  const eHandleDisplay handle_display = view3d_handle_type_or_default(v3d);
+
   GreasePencil &grease_pencil = *id_cast<GreasePencil *>(object->data);
 
   std::atomic<bool> changed = false;
@@ -3294,7 +3299,7 @@ static wmOperatorStatus grease_pencil_extrude_exec(bContext *C, wmOperator * /*o
     IndexMaskMemory memory;
     const IndexMask points_to_extrude =
         ed::greasepencil::retrieve_editable_and_all_selected_points(
-            *object, info.drawing, info.layer_index, v3d->overlay.handle_display, memory);
+            *object, info.drawing, info.layer_index, handle_display, memory);
     if (points_to_extrude.is_empty()) {
       return;
     }
@@ -4955,6 +4960,7 @@ static wmOperatorStatus grease_pencil_set_corner_type_exec(bContext *C, wmOperat
   const Scene *scene = CTX_data_scene(C);
   Object *object = CTX_data_active_object(C);
   View3D *v3d = CTX_wm_view3d(C);
+  const eHandleDisplay handle_display = view3d_handle_type_or_default(v3d);
   GreasePencil &grease_pencil = *id_cast<GreasePencil *>(object->data);
 
   const CornerType corner_type = CornerType(RNA_enum_get(op->ptr, "corner_type"));
@@ -4978,7 +4984,7 @@ static wmOperatorStatus grease_pencil_set_corner_type_exec(bContext *C, wmOperat
   threading::parallel_for_each(drawings, [&](const MutableDrawingInfo &info) {
     IndexMaskMemory memory;
     const IndexMask selection = ed::greasepencil::retrieve_editable_and_all_selected_points(
-        *object, info.drawing, info.layer_index, v3d->overlay.handle_display, memory);
+        *object, info.drawing, info.layer_index, handle_display, memory);
     if (selection.is_empty()) {
       return;
     }

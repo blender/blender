@@ -590,7 +590,7 @@ void insert_selected_values(Object *object,
                             const MutableDrawingInfo &info,
                             const bke::AttrDomain domain,
                             const StringRef name,
-                            const int handle_display,
+                            const eHandleDisplay handle_display,
                             Set<T> &r_value_set)
 {
   T default_value;
@@ -641,7 +641,7 @@ static void select_similar_by_value(Scene *scene,
                                     GreasePencil &grease_pencil,
                                     const bke::AttrDomain selection_domain,
                                     const StringRef name,
-                                    const int handle_display,
+                                    const eHandleDisplay handle_display,
                                     float threshold,
                                     DistanceFn distance_fn)
 {
@@ -735,7 +735,7 @@ static wmOperatorStatus select_similar_exec(bContext *C, wmOperator *op)
   GreasePencil &grease_pencil = *id_cast<GreasePencil *>(object->data);
   bke::AttrDomain selection_domain = ED_grease_pencil_selection_domain_get(scene->toolsettings,
                                                                            object);
-  const int handle_display = v3d->overlay.handle_display;
+  const eHandleDisplay handle_display = ed::greasepencil::view3d_handle_type_or_default(v3d);
 
   switch (mode) {
     case SelectSimilarMode::LAYER:
