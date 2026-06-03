@@ -2874,7 +2874,8 @@ static wmOperatorStatus skin_armature_create_exec(bContext *C, wmOperator *op)
   if (arm_md) {
     skin_md = edit_modifier_property_get(op, ob, eModifierType_Skin);
     BLI_insertlinkafter(&ob->modifiers, skin_md, arm_md);
-    BKE_modifiers_persistent_uid_init(*arm_ob, arm_md->modifier);
+    BKE_modifier_unique_name(&ob->modifiers, &arm_md->modifier);
+    BKE_modifiers_persistent_uid_init(*ob, arm_md->modifier);
 
     arm_md->object = arm_ob;
     arm_md->deformflag = ARM_DEF_VGROUP | ARM_DEF_QUATERNION;
