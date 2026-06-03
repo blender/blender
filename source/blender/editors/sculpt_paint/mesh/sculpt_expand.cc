@@ -2520,11 +2520,13 @@ static void sculpt_expand_status(bContext *C, wmOperator *op, Cache *expand_cach
   status.opmodal(IFACE_("Geodesic Step"), op->type, SCULPT_EXPAND_MODAL_RECURSION_STEP_GEODESIC);
   status.opmodal(IFACE_("Topology Step"), op->type, SCULPT_EXPAND_MODAL_RECURSION_STEP_TOPOLOGY);
 
-  const MTex *mask_tex = BKE_brush_mask_texture_get(expand_cache->brush, OB_MODE_SCULPT);
-  if (mask_tex->tex) {
-    status.opmodal({}, op->type, SCULPT_EXPAND_MODAL_TEXTURE_DISTORTION_INCREASE);
-    status.opmodal(
-        IFACE_("Texture Distortion"), op->type, SCULPT_EXPAND_MODAL_TEXTURE_DISTORTION_DECREASE);
+  if (expand_cache->brush) {
+    const MTex *mask_tex = BKE_brush_mask_texture_get(expand_cache->brush, OB_MODE_SCULPT);
+    if (mask_tex->tex) {
+      status.opmodal({}, op->type, SCULPT_EXPAND_MODAL_TEXTURE_DISTORTION_INCREASE);
+      status.opmodal(
+          IFACE_("Texture Distortion"), op->type, SCULPT_EXPAND_MODAL_TEXTURE_DISTORTION_DECREASE);
+    }
   }
 }
 
@@ -2568,6 +2570,9 @@ static wmOperatorStatus sculpt_expand_modal(bContext *C, wmOperator *op, const w
         break;
       }
       case SCULPT_EXPAND_MODAL_BRUSH_GRADIENT_TOGGLE: {
+        if (!expand_cache.brush) {
+          break;
+        }
         expand_cache.brush_gradient = !expand_cache.brush_gradient;
         if (expand_cache.brush_gradient) {
           expand_cache.falloff_gradient = true;
@@ -2672,6 +2677,9 @@ static wmOperatorStatus sculpt_expand_modal(bContext *C, wmOperator *op, const w
         break;
       }
       case SCULPT_EXPAND_MODAL_TEXTURE_DISTORTION_INCREASE: {
+        if (!expand_cache.brush) {
+          break;
+        }
         if (expand_cache.texture_distortion_strength == 0.0f) {
           const MTex *mask_tex = BKE_brush_mask_texture_get(expand_cache.brush, OB_MODE_SCULPT);
           if (mask_tex->tex == nullptr) {
@@ -2819,13 +2827,20 @@ static void cache_initial_config_set(bContext *C, wmOperator *op, Cache &expand_
   const Sculpt &sd = *CTX_data_tool_settings(C)->sculpt;
   expand_cache.paint = paint;
   expand_cache.brush = BKE_paint_brush_for_read(&sd.paint);
-  BKE_curvemapping_init(expand_cache.brush->curve_distance_falloff);
-  copy_v4_fl(expand_cache.fill_color, 1.0f);
-  copy_v3_v3(expand_cache.fill_color, BKE_brush_color_get(paint, expand_cache.brush));
+
+  if (expand_cache.brush) {
+    BKE_curvemapping_init(expand_cache.brush->curve_distance_falloff);
+    copy_v3_v3(expand_cache.fill_color, BKE_brush_color_get(paint, expand_cache.brush));
+    expand_cache.fill_color[3] = 1.0f;
+    expand_cache.blend_mode = expand_cache.brush->blend;
+  }
+  else {
+    copy_v4_fl(expand_cache.fill_color, 1.0f);
+    expand_cache.blend_mode = IMB_BLEND_MIX;
+  }
 
   expand_cache.scene = CTX_data_scene(C);
   expand_cache.texture_distortion_strength = 0.0f;
-  expand_cache.blend_mode = expand_cache.brush->blend;
 }
 
 /**

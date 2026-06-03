@@ -499,6 +499,9 @@ static wmOperatorStatus weight_paint_set_exec(bContext *C, wmOperator *op)
   Object *obact = CTX_data_active_object(C);
   ToolSettings *ts = CTX_data_tool_settings(C);
   Brush *brush = BKE_paint_brush(&ts->wpaint->paint);
+  if (brush == nullptr) {
+    return OPERATOR_CANCELLED;
+  }
   float vgroup_weight = BKE_brush_weight_get(&ts->wpaint->paint, brush);
 
   if (ED_wpaint_ensure_data(C, op->reports, WPAINT_ENSURE_MIRROR, nullptr) == false) {
