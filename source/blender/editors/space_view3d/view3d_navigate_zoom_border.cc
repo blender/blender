@@ -14,6 +14,7 @@
 #include "BLI_rect.h"
 
 #include "BKE_context.hh"
+#include "BKE_global.hh"
 #include "BKE_report.hh"
 
 #include "WM_api.hh"
@@ -187,6 +188,15 @@ static wmOperatorStatus view3d_zoom_border_exec(bContext *C, wmOperator *op)
   return OPERATOR_FINISHED;
 }
 
+static bool view3d_zoom_border_poll(bContext *C)
+{
+  /* Depends on reading depth from the GPU. */
+  if (G.background) {
+    return false;
+  }
+  return view3d_zoom_or_dolly_poll(C);
+}
+
 void VIEW3D_OT_zoom_border(wmOperatorType *ot)
 {
   /* identifiers */
@@ -200,7 +210,7 @@ void VIEW3D_OT_zoom_border(wmOperatorType *ot)
   ot->modal = WM_gesture_box_modal;
   ot->cancel = WM_gesture_box_cancel;
 
-  ot->poll = view3d_zoom_or_dolly_poll;
+  ot->poll = view3d_zoom_border_poll;
 
   /* flags */
   ot->flag = 0;
