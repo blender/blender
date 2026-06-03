@@ -4,8 +4,13 @@
 
 #pragma once
 
+#include <optional>
+
+#include "BLI_array.hh"
+#include "BLI_index_mask.hh"
 #include "BLI_multi_value_map.hh"
 #include "BLI_span.hh"
+#include "BLI_virtual_array.hh"
 
 #include "BKE_attribute.hh"
 #include "BKE_curves.hh"
@@ -41,5 +46,10 @@ bke::GeometryComponentPtr reordered_component(const bke::GeometryComponent &src_
                                               Span<int> old_by_new_map,
                                               bke::AttrDomain domain,
                                               const bke::AttributeFilter &attribute_filter);
+
+std::optional<Array<int>> sort_indices_by_weights(int domain_size,
+                                                  const IndexMask &mask,
+                                                  const VArray<int> &group_id,
+                                                  const VArray<float> &weight);
 
 };  // namespace blender::geometry

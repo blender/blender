@@ -15,7 +15,13 @@
 
 #include "BLI_array.hh"
 #include "BLI_array_utils.hh"
+#include "BLI_index_mask.hh"
 #include "BLI_multi_value_map.hh"
+#include "BLI_offset_indices.hh"
+#include "BLI_sort.hh"
+#include "BLI_task.hh"
+#include "BLI_vector_set.hh"
+#include "BLI_virtual_array.hh"
 
 #include "DNA_curves_types.h"
 #include "DNA_mesh_types.h"
@@ -423,6 +429,117 @@ bke::GeometryComponentPtr reordered_component(const bke::GeometryComponent &src_
 
   BLI_assert_unreachable();
   return {};
+}
+
+template<typename T, typename Func>
+static void parallel_transform(MutableSpan<T> values, const int64_t grain_size, const Func &func)
+{
+  threading::parallel_for(values.index_range(), grain_size, [&](const IndexRange range) {
+    MutableSpan<T> values_range = values.slice(range);
+    std::transform(values_range.begin(), values_range.end(), values_range.begin(), func);
+  });
+}
+
+static void grouped_sort(const OffsetIndices<int> offsets,
+                         const Span<float> weights,
+                         MutableSpan<int> indices)
+{
+  const auto comparator = [&](const int index_a, const int index_b) {
+    const float weight_a = weights[index_a];
+    const float weight_b = weights[index_b];
+    if (UNLIKELY(weight_a == weight_b)) {
+      return index_a < index_b;
+    }
+    return weight_a < weight_b;
+  };
+
+  threading::parallel_for(offsets.index_range(), 250, [&](const IndexRange range) {
+    for (const int group_index : range) {
+      MutableSpan<int> group = indices.slice(offsets[group_index]);
+      parallel_sort(group.begin(), group.end(), comparator);
+    }
+  });
+}
+
+static void find_points_by_group_index(const Span<int> indices,
+                                       MutableSpan<int> r_offsets,
+                                       MutableSpan<int> r_indices)
+{
+  const OffsetIndices offsets = offset_indices::build_reverse_offsets(indices, r_offsets);
+  offset_indices::reverse_indices_in_groups(indices, offsets, r_indices, false);
+}
+
+static int identifiers_to_indices(MutableSpan<int> r_identifiers_to_indices)
+{
+  const VectorSet<int> deduplicated_identifiers(r_identifiers_to_indices);
+  parallel_transform(r_identifiers_to_indices, 2048, [&](const int identifier) {
+    return deduplicated_identifiers.index_of(identifier);
+  });
+
+  Array<int> indices(deduplicated_identifiers.size());
+  array_utils::fill_index_range<int>(indices);
+  parallel_sort(indices.begin(), indices.end(), [&](const int index_a, const int index_b) {
+    return deduplicated_identifiers[index_a] < deduplicated_identifiers[index_b];
+  });
+  Array<int> permutation = invert_permutation(indices);
+  parallel_transform(
+      r_identifiers_to_indices, 4096, [&](const int index) { return permutation[index]; });
+  return deduplicated_identifiers.size();
+}
+
+std::optional<Array<int>> sort_indices_by_weights(const int domain_size,
+                                                  const IndexMask &mask,
+                                                  const VArray<int> &group_id,
+                                                  const VArray<float> &weight)
+{
+  if (group_id.is_single() && weight.is_single()) {
+    return std::nullopt;
+  }
+  if (mask.is_empty()) {
+    return std::nullopt;
+  }
+
+  Array<int> gathered_indices(mask.size());
+
+  if (group_id.is_single()) {
+    mask.to_indices<int>(gathered_indices);
+    Array<float> weight_values(domain_size);
+    array_utils::copy(weight, mask, weight_values.as_mutable_span());
+    grouped_sort(Span({0, int(mask.size())}), weight_values, gathered_indices);
+  }
+  else {
+    Array<int> gathered_group_id(mask.size());
+    array_utils::gather(group_id, mask, gathered_group_id.as_mutable_span());
+    const int total_groups = identifiers_to_indices(gathered_group_id);
+    Array<int> offsets_to_sort(total_groups + 1, 0);
+    find_points_by_group_index(gathered_group_id, offsets_to_sort, gathered_indices);
+    if (!weight.is_single()) {
+      Array<float> weight_values(mask.size());
+      array_utils::gather(weight, mask, weight_values.as_mutable_span());
+      grouped_sort(offsets_to_sort.as_span(), weight_values, gathered_indices);
+    }
+    parallel_transform<int>(gathered_indices, 2048, [&](const int pos) { return mask[pos]; });
+  }
+
+  if (array_utils::indices_are_range(gathered_indices, IndexRange(domain_size))) {
+    return std::nullopt;
+  }
+
+  if (mask.size() == domain_size) {
+    return gathered_indices;
+  }
+
+  IndexMaskMemory memory;
+  const IndexMask unselected = mask.complement(IndexRange(domain_size), memory);
+  Array<int> indices(domain_size);
+  array_utils::scatter<int>(gathered_indices, mask, indices);
+  array_utils::fill_index_range<int>(unselected, indices);
+
+  if (array_utils::indices_are_range(indices, indices.index_range())) {
+    return std::nullopt;
+  }
+
+  return indices;
 }
 
 }  // namespace blender::geometry

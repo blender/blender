@@ -269,6 +269,7 @@ set(SRC
   nodes/node_geo_set_spline_resolution.cc
   nodes/node_geo_simulation.cc
   nodes/node_geo_sort_elements.cc
+  nodes/node_geo_sort_list.cc
   nodes/node_geo_split_to_instances.cc
   nodes/node_geo_store_bundle_item.cc
   nodes/node_geo_store_named_attribute.cc

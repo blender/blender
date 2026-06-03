@@ -7,10 +7,7 @@
 #include "BKE_attribute.hh"
 #include "BKE_instances.hh"
 
-#include "BLI_array_utils.hh"
 #include "BLI_index_mask.hh"
-#include "BLI_sort.hh"
-#include "BLI_task.hh"
 
 #include "GEO_foreach_geometry.hh"
 #include "GEO_reorder.hh"
@@ -51,75 +48,6 @@ static void node_init(bNodeTree * /*tree*/, bNode *node)
   node->custom1 = int(bke::AttrDomain::Point);
 }
 
-static void grouped_sort(const OffsetIndices<int> offsets,
-                         const Span<float> weights,
-                         MutableSpan<int> indices)
-{
-  const auto comparator = [&](const int index_a, const int index_b) {
-    const float weight_a = weights[index_a];
-    const float weight_b = weights[index_b];
-    if (UNLIKELY(weight_a == weight_b)) {
-      /* Approach to make it stable. */
-      return index_a < index_b;
-    }
-    return weight_a < weight_b;
-  };
-
-  threading::parallel_for(offsets.index_range(), 250, [&](const IndexRange range) {
-    for (const int group_index : range) {
-      MutableSpan<int> group = indices.slice(offsets[group_index]);
-      parallel_sort(group.begin(), group.end(), comparator);
-    }
-  });
-}
-
-static void find_points_by_group_index(const Span<int> indices,
-                                       MutableSpan<int> r_offsets,
-                                       MutableSpan<int> r_indices)
-{
-  const OffsetIndices offsets = offset_indices::build_reverse_offsets(indices, r_offsets);
-  /* Sorting is implemented by the caller. */
-  offset_indices::reverse_indices_in_groups(indices, offsets, r_indices, false);
-}
-
-template<typename T, typename Func>
-static void parallel_transform(MutableSpan<T> values, const int64_t grain_size, const Func &func)
-{
-  threading::parallel_for(values.index_range(), grain_size, [&](const IndexRange range) {
-    MutableSpan<T> values_range = values.slice(range);
-    std::transform(values_range.begin(), values_range.end(), values_range.begin(), func);
-  });
-}
-
-static Array<int> invert_permutation(const Span<int> permutation)
-{
-  Array<int> data(permutation.size());
-  threading::parallel_for(permutation.index_range(), 2048, [&](const IndexRange range) {
-    for (const int64_t i : range) {
-      data[permutation[i]] = i;
-    }
-  });
-  return data;
-}
-
-static int identifiers_to_indices(MutableSpan<int> r_identifiers_to_indices)
-{
-  const VectorSet<int> deduplicated_identifiers(r_identifiers_to_indices);
-  parallel_transform(r_identifiers_to_indices, 2048, [&](const int identifier) {
-    return deduplicated_identifiers.index_of(identifier);
-  });
-
-  Array<int> indices(deduplicated_identifiers.size());
-  array_utils::fill_index_range<int>(indices);
-  parallel_sort(indices.begin(), indices.end(), [&](const int index_a, const int index_b) {
-    return deduplicated_identifiers[index_a] < deduplicated_identifiers[index_b];
-  });
-  Array<int> permutation = invert_permutation(indices);
-  parallel_transform(
-      r_identifiers_to_indices, 4096, [&](const int index) { return permutation[index]; });
-  return deduplicated_identifiers.size();
-}
-
 static std::optional<Array<int>> sorted_indices(const fn::FieldContext &field_context,
                                                 const int domain_size,
                                                 const Field<bool> selection_field,
@@ -139,56 +67,7 @@ static std::optional<Array<int>> sorted_indices(const fn::FieldContext &field_co
   const VArray<int> group_id = evaluator.get_evaluated<int>(0);
   const VArray<float> weight = evaluator.get_evaluated<float>(1);
 
-  if (group_id.is_single() && weight.is_single()) {
-    return std::nullopt;
-  }
-  if (mask.is_empty()) {
-    return std::nullopt;
-  }
-
-  Array<int> gathered_indices(mask.size());
-
-  if (group_id.is_single()) {
-    mask.to_indices<int>(gathered_indices);
-    Array<float> weight_span(domain_size);
-    array_utils::copy(weight, mask, weight_span.as_mutable_span());
-    grouped_sort(Span({0, int(mask.size())}), weight_span, gathered_indices);
-  }
-  else {
-    Array<int> gathered_group_id(mask.size());
-    array_utils::gather(group_id, mask, gathered_group_id.as_mutable_span());
-    const int total_groups = identifiers_to_indices(gathered_group_id);
-    Array<int> offsets_to_sort(total_groups + 1, 0);
-    find_points_by_group_index(gathered_group_id, offsets_to_sort, gathered_indices);
-    if (!weight.is_single()) {
-      Array<float> weight_span(mask.size());
-      array_utils::gather(weight, mask, weight_span.as_mutable_span());
-      grouped_sort(offsets_to_sort.as_span(), weight_span, gathered_indices);
-    }
-    parallel_transform<int>(gathered_indices, 2048, [&](const int pos) { return mask[pos]; });
-  }
-
-  if (array_utils::indices_are_range(gathered_indices, IndexRange(domain_size))) {
-    return std::nullopt;
-  }
-
-  if (mask.size() == domain_size) {
-    return gathered_indices;
-  }
-
-  IndexMaskMemory memory;
-  const IndexMask unselected = mask.complement(IndexRange(domain_size), memory);
-
-  Array<int> indices(domain_size);
-
-  array_utils::scatter<int>(gathered_indices, mask, indices);
-  array_utils::fill_index_range<int>(unselected, indices);
-
-  if (array_utils::indices_are_range(indices, indices.index_range())) {
-    return std::nullopt;
-  }
-
-  return indices;
+  return geometry::sort_indices_by_weights(domain_size, mask, group_id, weight);
 }
 
 static void node_geo_exec(GeoNodeExecParams params)
