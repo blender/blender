@@ -2056,6 +2056,11 @@ void SEQUENCER_OT_split(wmOperatorType *ot)
 /** \name Box Blade Operator
  * \{ */
 
+static bool sequencer_box_blade_poll(bContext *C)
+{
+  return sequencer_edit_poll(C) && sequencer_view_strips_poll(C);
+}
+
 static wmOperatorStatus sequencer_box_blade_exec(bContext *C, wmOperator *op)
 {
   Main *bmain = CTX_data_main(C);
@@ -2273,7 +2278,7 @@ void SEQUENCER_OT_box_blade(wmOperatorType *ot)
   ot->invoke = WM_gesture_box_invoke;
   ot->exec = sequencer_box_blade_exec;
   ot->modal = sequencer_box_blade_modal;
-  ot->poll = sequencer_edit_poll;
+  ot->poll = sequencer_box_blade_poll;
   ot->ui = sequencer_box_blade_ui;
 
   /* Flags. */

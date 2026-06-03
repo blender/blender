@@ -1077,7 +1077,7 @@ static void ANIM_OT_previewrange_set(wmOperatorType *ot)
   ot->modal = WM_gesture_box_modal;
   ot->cancel = WM_gesture_box_cancel;
 
-  ot->poll = ED_operator_animview_active;
+  ot->poll = ED_operator_region_animview_active;
 
   /* flags */
   ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
@@ -1200,8 +1200,6 @@ static wmOperatorStatus scene_range_frame_exec(bContext *C, wmOperator * /*op*/)
     return OPERATOR_CANCELLED;
   }
   ARegion *region = CTX_wm_region(C);
-  BLI_assert(region);
-
   View2D &v2d = region->v2d;
   const ScenePlaybackRange playback_range = BKE_scene_get_playback_range(scene);
   v2d.cur.xmin = playback_range.start_frame;
@@ -1224,7 +1222,7 @@ static void ANIM_OT_scene_range_frame(wmOperatorType *ot)
       "account if it is active";
 
   ot->exec = scene_range_frame_exec;
-  ot->poll = ED_operator_animview_active;
+  ot->poll = ED_operator_region_animview_active;
 
   ot->flag = OPTYPE_REGISTER;
 }

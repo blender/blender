@@ -460,7 +460,7 @@ void ACTION_OT_view_all(wmOperatorType *ot)
 
   /* API callbacks. */
   ot->exec = actkeys_viewall_exec;
-  ot->poll = ED_operator_action_active;
+  ot->poll = ED_operator_region_action_active;
 
   /* flags */
   ot->flag = 0;
@@ -475,7 +475,7 @@ void ACTION_OT_view_selected(wmOperatorType *ot)
 
   /* API callbacks. */
   ot->exec = actkeys_viewsel_exec;
-  ot->poll = ED_operator_action_active;
+  ot->poll = ED_operator_region_action_active;
 
   /* flags */
   ot->flag = 0;

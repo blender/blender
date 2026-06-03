@@ -230,6 +230,10 @@ static bool operator_markers_region_active(bContext *C)
     return false;
   }
 
+  if (ui::view2d_fromcontext(C) == nullptr) {
+    return false;
+  }
+
   switch (area->spacetype) {
     case SPACE_ACTION: {
       SpaceAction *saction = static_cast<SpaceAction *>(area->spacedata.first);

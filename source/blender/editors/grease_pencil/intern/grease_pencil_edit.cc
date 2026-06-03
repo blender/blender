@@ -4620,8 +4620,9 @@ static wmOperatorStatus grease_pencil_outline_exec(bContext *C, wmOperator *op)
   float4x4 viewinv = float4x4::identity();
   switch (mode) {
     case OutlineMode::View: {
-      RegionView3D *rv3d = CTX_wm_region_view3d(C);
-      viewinv = float4x4(rv3d->viewmat);
+      if (RegionView3D *rv3d = CTX_wm_region_view3d(C)) {
+        viewinv = float4x4(rv3d->viewmat);
+      }
       break;
     }
     case OutlineMode::Front:

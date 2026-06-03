@@ -330,6 +330,19 @@ bool ED_operator_animview_active(bContext *C)
   return false;
 }
 
+bool ED_operator_region_animview_active(bContext *C)
+{
+  if (!ED_operator_animview_active(C)) {
+    return false;
+  }
+  const ARegion *region = CTX_wm_region(C);
+  if (!(region && region->regiontype == RGN_TYPE_WINDOW)) {
+    CTX_wm_operator_poll_msg_set(C, "Expected a timeline/animation region");
+    return false;
+  }
+  return true;
+}
+
 bool ED_operator_outliner_active(bContext *C)
 {
   return ed_spacetype_test(C, SPACE_OUTLINER);
@@ -367,6 +380,20 @@ bool ED_operator_file_active(bContext *C)
   return ed_spacetype_test(C, SPACE_FILE);
 }
 
+bool ED_operator_region_file_active(bContext *C)
+{
+  if (!ED_operator_file_active(C)) {
+    CTX_wm_operator_poll_msg_set(C, "Expected an active File Browser");
+    return false;
+  }
+  const ARegion *region = CTX_wm_region(C);
+  if (!(region && region->regiontype == RGN_TYPE_WINDOW)) {
+    CTX_wm_operator_poll_msg_set(C, "Expected a File Browser region");
+    return false;
+  }
+  return true;
+}
+
 bool ED_operator_file_browsing_active(bContext *C)
 {
   if (ed_spacetype_test(C, SPACE_FILE)) {
@@ -391,6 +418,20 @@ bool ED_operator_spreadsheet_active(bContext *C)
 bool ED_operator_action_active(bContext *C)
 {
   return ed_spacetype_test(C, SPACE_ACTION);
+}
+
+bool ED_operator_region_action_active(bContext *C)
+{
+  if (!ED_operator_action_active(C)) {
+    CTX_wm_operator_poll_msg_set(C, "Expected an active Dope Sheet");
+    return false;
+  }
+  const ARegion *region = CTX_wm_region(C);
+  if (!(region && region->regiontype == RGN_TYPE_WINDOW)) {
+    CTX_wm_operator_poll_msg_set(C, "Expected a Dope Sheet region");
+    return false;
+  }
+  return true;
 }
 
 bool ED_operator_buttons_active(bContext *C)

@@ -1878,7 +1878,7 @@ static wmOperatorStatus armature_bone_primitive_add_exec(bContext *C, wmOperator
   switch (align) {
     case BoneAlign::VIEW_3D: {
       const RegionView3D *rv3d = CTX_wm_region_view3d(C);
-      const float3x3 view_mat = float3x3(float4x4(rv3d->viewinv));
+      const float3x3 view_mat = rv3d ? float3x3(float4x4(rv3d->viewinv)) : float3x3::identity();
       bone_orient_mat = imat * view_mat;
       roll_vector = bone_orient_mat.z_axis();
       break;

@@ -584,10 +584,6 @@ static wmOperatorStatus file_select_exec(bContext *C, wmOperator *op)
   const bool pass_through = RNA_boolean_get(op->ptr, "pass_through");
   bool wait_to_deselect_others = RNA_boolean_get(op->ptr, "wait_to_deselect_others");
 
-  if (region->regiontype != RGN_TYPE_WINDOW) {
-    return OPERATOR_CANCELLED;
-  }
-
   int mval[2];
   mval[0] = RNA_int_get(op->ptr, "mouse_x");
   mval[1] = RNA_int_get(op->ptr, "mouse_y");
@@ -667,7 +663,7 @@ void FILE_OT_select(wmOperatorType *ot)
   ot->exec = file_select_exec;
   ot->modal = WM_generic_select_modal;
   /* Operator works for file or asset browsing */
-  ot->poll = ED_operator_file_active;
+  ot->poll = ED_operator_region_file_active;
 
   /* properties */
   WM_operator_properties_generic_select(ot);

@@ -54,7 +54,7 @@ struct VertSlideData {
   {
     ARegion *region = t->region;
 
-    if (UNLIKELY(region == nullptr)) {
+    if (region == nullptr) [[unlikely]] {
       this->win_half = {1.0f, 1.0f};
       this->proj_mat = float4x4::identity();
       return;
