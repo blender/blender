@@ -317,21 +317,9 @@ void wm_xr_viewfinder_render_view(wmXrData *xr_data)
   wmXrSessionState *state = &xr_data->runtime->session_state;
   XrSessionSettings *settings = &xr_data->session_settings;
 
-  /* Use a simple 800x800 square texture for now. Using a resolution that isn't too high not only
-   * helps with performance but also increases the displayed overlay line width. Eventually make
-   * dynamic. */
-  constexpr float viewfinder_resolution = 800;
-  if (state->viewfinder.framebuffer == nullptr) {
-    char err_out[256] = "unknown";
-    state->viewfinder.framebuffer = GPU_offscreen_create(viewfinder_resolution,
-                                                         viewfinder_resolution,
-                                                         true,
-                                                         gpu::TextureFormat::UNORM_8_8_8_8,
-                                                         GPU_TEXTURE_USAGE_SHADER_READ,
-                                                         false,
-                                                         err_out);
+  if (!settings->viewfinder_enabled) {
+    return;
   }
-  static GPUViewport *gpu_viewport = GPU_viewport_create();
 
   float viewfinder_render_viewmat[4][4] = {};
 
@@ -434,8 +422,8 @@ void wm_xr_viewfinder_render_view(wmXrData *xr_data)
                                   settings->shading.type,
                                   settings->object_type_exclude_viewport,
                                   settings->object_type_exclude_select,
-                                  viewfinder_resolution,
-                                  viewfinder_resolution,
+                                  blender::wmXrViewfinderState::view_resolution,
+                                  blender::wmXrViewfinderState::view_resolution,
                                   viewfinder_draw_flags,
                                   viewfinder_render_viewmat,
                                   viewfinder_winmat,
@@ -448,8 +436,8 @@ void wm_xr_viewfinder_render_view(wmXrData *xr_data)
                                   nullptr,
                                   true,
                                   &viewfinder_cam_ob,
-                                  state->viewfinder.framebuffer,
-                                  gpu_viewport);
+                                  state->viewfinder.offscreen,
+                                  state->viewfinder.viewport);
 }
 
 /* -------------------------------------------------------------------- */
@@ -955,7 +943,7 @@ static void wm_xr_viewfinder_ui_draw_view_texture(const bContext *C,
   }
 
   /* Obtain the Viewfinder view texture we computed in #wm_xr_draw_view. */
-  gpu::Texture *view_tex = GPU_offscreen_color_texture(state->viewfinder.framebuffer);
+  gpu::Texture *view_tex = GPU_offscreen_color_texture(state->viewfinder.offscreen);
 
   constexpr rctf tex_uv = {0.0f, 1.0f, 0.0f, 1.0f};
   constexpr float tex_color[4] = {1.0f, 1.0f, 1.0f, 1.0f};

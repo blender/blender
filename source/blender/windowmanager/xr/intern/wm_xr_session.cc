@@ -107,11 +107,18 @@ static void wm_xr_session_controller_data_free(wmXrSessionState *state)
   }
 }
 
+static void wm_xr_session_viewfinder_data_free(wmXrSessionState *state)
+{
+  BKE_id_free(nullptr, id_cast<ID *>(state->viewfinder.render_cam_data_id));
+  GPU_TEXTURE_FREE_SAFE(state->viewfinder.backside_logo_texture);
+  GPU_offscreen_free(state->viewfinder.offscreen);
+  GPU_viewport_free(state->viewfinder.viewport);
+}
+
 void wm_xr_session_data_free(wmXrSessionState *state)
 {
   wm_xr_session_controller_data_free(state);
-  BKE_id_free(nullptr, id_cast<ID *>(state->viewfinder.render_cam_data_id));
-  GPU_TEXTURE_FREE_SAFE(state->viewfinder.backside_logo_texture);
+  wm_xr_session_viewfinder_data_free(state);
 }
 
 static void wm_xr_session_exit_cb(void *customdata)
@@ -897,6 +904,21 @@ void WM_xr_session_state_viewfinder_reset(wmXrSessionState *state)
           "viewfinder_backside_logo", ibuf, false, true, true);
       IMB_freeImBuf(ibuf);
     }
+  }
+
+  /* Create the offscreen framebuffer and viewport used to draw the Viewfinder view texture. */
+  if (state->viewfinder.offscreen == nullptr) {
+    state->viewfinder.offscreen = GPU_offscreen_create(
+        blender::wmXrViewfinderState::view_resolution,
+        blender::wmXrViewfinderState::view_resolution,
+        true,
+        gpu::TextureFormat::UNORM_8_8_8_8,
+        GPU_TEXTURE_USAGE_SHADER_READ,
+        false,
+        nullptr);
+  }
+  if (state->viewfinder.viewport == nullptr) {
+    state->viewfinder.viewport = GPU_viewport_create();
   }
 
   /* Capture settings. */

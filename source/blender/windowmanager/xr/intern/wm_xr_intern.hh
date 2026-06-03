@@ -41,7 +41,8 @@ struct wmXrViewfinderState {
   float capture_position[3];
   float capture_orientation_quat[4];
 
-  GPUOffScreen *framebuffer;
+  GPUOffScreen *offscreen;
+  GPUViewport *viewport;
   gpu::Texture *backside_logo_texture;
 
   Camera *render_cam_data_id;
@@ -66,6 +67,11 @@ struct wmXrViewfinderState {
   eXrViewfinderLiveAction active_action_live;
   eXrViewfinderPlaybackAction active_action_playback;
   eXrViewfinderConfirmAction active_action_confirm;
+
+  /* Constants. */
+  /* Using a Viewfinder view resolution that isn't too high helps with performances, and
+   * also increases the displayed overlay line width. */
+  static constexpr int view_resolution = 800;
 };
 
 struct wmXrSessionState {
