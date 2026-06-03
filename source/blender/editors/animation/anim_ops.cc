@@ -563,8 +563,11 @@ static void change_frame_apply(bContext *C, wmOperator *op, const bool always_up
   const float old_subframe = scene->r.subframe;
 
   if (do_snap) {
-    FrameChangeModalData *op_data = static_cast<FrameChangeModalData *>(op->customdata);
-    frame = apply_frame_snap(C, *op_data, frame);
+    /* Only valid when running modally, unlikely it's null
+     * but nothing prevents `snap` being enabled when running non-modally. */
+    if (FrameChangeModalData *op_data = static_cast<FrameChangeModalData *>(op->customdata)) {
+      frame = apply_frame_snap(C, *op_data, frame);
+    }
   }
 
   /* set the new frame number */
