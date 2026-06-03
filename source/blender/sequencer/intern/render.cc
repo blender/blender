@@ -377,7 +377,7 @@ static bool seq_input_have_to_preprocess(const Strip *strip)
 }
 
 /**
- * Effect, mask and scene in strip input strips are rendered in preview resolution.
+ * Effect (except color), mask and scene in strip input strips are rendered in preview resolution.
  * They are already down-scaled. #input_preprocess() does not expect this to happen.
  * Other strip types are rendered with original media resolution, unless proxies are
  * enabled for them. With proxies `is_proxy_image` will be set correctly to true.
@@ -387,7 +387,8 @@ static bool seq_need_scale_to_render_size(const Strip *strip, bool is_proxy_imag
   if (is_proxy_image) {
     return false;
   }
-  if (strip->is_effect() || strip->type == STRIP_TYPE_MASK || strip->type == STRIP_TYPE_META ||
+  if ((strip->is_effect() && strip->type != STRIP_TYPE_COLOR) || strip->type == STRIP_TYPE_MASK ||
+      strip->type == STRIP_TYPE_META ||
       (strip->type == STRIP_TYPE_SCENE && ((strip->flag & SEQ_SCENE_STRIPS) != 0)))
   {
     return false;
@@ -664,7 +665,7 @@ static SeqResult input_preprocess(const RenderData *context,
 
   if (sequencer_use_crop(strip) || sequencer_use_transform(strip) ||
       context->rectx != result.image->x || context->recty != result.image->y ||
-      modifier_translation != float2(0, 0))
+      (strip->is_effect() && image_scale_factor != 1.0f) || modifier_translation != float2(0, 0))
   {
     PRF_scope_with_name("SeqStripTransform", ProfileCategory::Draw);
 
