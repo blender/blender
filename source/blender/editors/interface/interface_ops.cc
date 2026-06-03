@@ -650,16 +650,16 @@ static wmOperatorStatus override_remove_button_exec(bContext *C, wmOperator *op)
         }
       }
     }
+    RNA_property_copy(bmain, &ptr, &src, prop, index, oprop, opop);
     BKE_lib_override_library_property_operation_delete(oprop, opop);
-    RNA_property_copy(bmain, &ptr, &src, prop, index);
     if (oprop->operations.is_empty()) {
       BKE_lib_override_library_property_delete(id->override_library, oprop);
     }
   }
   else {
     /* Just remove whole generic override operation of this property. */
+    RNA_property_copy(bmain, &ptr, &src, prop, -1, oprop);
     BKE_lib_override_library_property_delete(id->override_library, oprop);
-    RNA_property_copy(bmain, &ptr, &src, prop, -1);
   }
 
   /* Outliner e.g. has to be aware of this change. */
