@@ -203,12 +203,16 @@ static int wm_xr_viewfinder_get_active_action_idx(const wmXrSessionState *state)
 bool wm_xr_viewfinder_operator_event_match_hand(bContext *C, const wmEvent *event)
 {
   XrSessionSettings *settings = &CTX_wm_manager(C)->xr.session_settings;
-  wmXrActionData *actiondata = static_cast<wmXrActionData *>(event->customdata);
 
   if (!settings->viewfinder_enabled) {
     return false;
   }
 
+  if (event->custom != EVT_DATA_XR) {
+    return false;
+  }
+
+  wmXrActionData *actiondata = static_cast<wmXrActionData *>(event->customdata);
   return STREQ(actiondata->user_path, wm_xr_viewfinder_get_hand_user_path(settings));
 }
 
