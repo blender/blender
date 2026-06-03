@@ -545,6 +545,27 @@ bool ED_operator_object_active_editable(bContext *C)
   return ED_operator_object_active_editable_ex(C, ob);
 }
 
+bool ED_operator_object_active_only_from_view_layer(bContext *C)
+{
+  Main &bmain = *CTX_data_main(C);
+  Scene *scene = CTX_data_scene(C);
+  ViewLayer *view_layer = CTX_data_view_layer(C);
+  BKE_view_layer_synced_ensure(bmain, scene, view_layer);
+  Object *obact = BKE_view_layer_active_object_get(view_layer);
+  return (obact != nullptr);
+}
+
+bool ED_operator_object_active_from_view_layer(bContext *C)
+{
+  Main &bmain = *CTX_data_main(C);
+  Scene *scene = CTX_data_scene(C);
+  ViewLayer *view_layer = CTX_data_view_layer(C);
+  BKE_view_layer_synced_ensure(bmain, scene, view_layer);
+  Object *obact = BKE_view_layer_active_object_get(view_layer);
+  return (obact != nullptr);
+  return ((obact != nullptr) && !ed_object_hidden(obact));
+}
+
 bool ED_operator_object_active_local_editable_ex(bContext *C, const Object *ob)
 {
   return ED_operator_object_active_editable_ex(C, ob) && !ID_IS_OVERRIDE_LIBRARY(ob);

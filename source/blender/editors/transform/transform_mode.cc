@@ -22,6 +22,7 @@
 
 #include "BKE_constraint.h"
 #include "BKE_context.hh"
+#include "BKE_layer.hh"
 
 #include "BLT_translation.hh"
 
@@ -39,7 +40,8 @@ namespace blender::ed::transform {
 eTfmMode transform_mode_really_used(bContext *C, eTfmMode mode)
 {
   if (mode == TFM_BONESIZE) {
-    Object *ob = CTX_data_active_object(C);
+    const ViewLayer *view_layer = CTX_data_view_layer(C);
+    const Object *ob = BKE_view_layer_active_object_get(view_layer);
     BLI_assert(ob);
     if (ob->type != OB_ARMATURE) {
       return TFM_RESIZE;

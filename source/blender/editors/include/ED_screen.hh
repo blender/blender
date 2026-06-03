@@ -626,6 +626,11 @@ bool ED_operator_object_active_only(bContext *C);
 bool ED_operator_object_active(bContext *C);
 bool ED_operator_object_active_editable_ex(bContext *C, const Object *ob);
 bool ED_operator_object_active_editable(bContext *C);
+
+/** Use in cases where it's essential the object is the active object in the current view layer. */
+bool ED_operator_object_active_only_from_view_layer(bContext *C);
+bool ED_operator_object_active_from_view_layer(bContext *C);
+
 /**
  * Object must be editable and fully local (i.e. not an override).
  */
