@@ -17,7 +17,7 @@ void mask_visibility_bit(uint view_id)
 {
   if (view_len > 1) {
     uint index = gl_GlobalInvocationID.x * uint(visibility_word_per_draw) + (view_id / 32u);
-    visibility_buf[index] &= ~(1u << view_id);
+    visibility_buf[index] &= ~(1u << (view_id & 31u));
   }
   else {
     atomicAnd(visibility_buf[gl_WorkGroupID.x], ~(1u << gl_LocalInvocationID.x));

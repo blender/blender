@@ -611,7 +611,7 @@ VkClearColorValue to_vk_clear_color_value(const eGPUDataFormat format, const dou
 {
   VkClearColorValue result = {{0.0f}};
   switch (format) {
-    /* All float-like formats (i.e. everything except literal int/uint go
+    /* All float-like formats (i.e. everything except literal int/uint) go
      * into VkClearColorValue float color fields. */
     case GPU_DATA_FLOAT:
     case GPU_DATA_HALF_FLOAT:

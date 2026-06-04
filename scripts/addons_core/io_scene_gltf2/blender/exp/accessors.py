@@ -6,6 +6,7 @@ import numpy as np
 
 from ...io.com import gltf2_io
 from ...io.com import constants as gltf2_io_constants
+from ...io.exp.meshopt import MeshoptEncoder
 from ...io.exp import binary_data as gltf2_io_binary_data
 from .cache import cached
 
@@ -17,7 +18,9 @@ def gather_accessor(buffer_view: gltf2_io_binary_data.BinaryData,
                     max,
                     min,
                     type: gltf2_io_constants.DataType,
+                    normalized,
                     export_settings) -> gltf2_io.Accessor:
+
     return gltf2_io.Accessor(
         buffer_view=buffer_view,
         byte_offset=None,
@@ -28,13 +31,14 @@ def gather_accessor(buffer_view: gltf2_io_binary_data.BinaryData,
         max=list(max) if max is not None else None,
         min=list(min) if min is not None else None,
         name=None,
-        normalized=None,
+        normalized=normalized,
         sparse=None,
         type=type
     )
 
 
 def array_to_accessor(
+        attribute_name,
         array,
         export_settings,
         component_type,
@@ -47,10 +51,47 @@ def array_to_accessor(
     # Not trying to check if sparse is better
     if sparse_type is None:
 
-        buffer_view = gltf2_io_binary_data.BinaryData(
-            array.tobytes(),
-            gltf2_io_constants.BufferViewTarget.ARRAY_BUFFER,
-        )
+        if export_settings['gltf_meshopt_compression'] and attribute_name is not None:
+
+            if attribute_name in ['POSITION', 'NORMAL']:
+                byteStride = 12  # 3 components * 4 bytes per component for float32
+            elif attribute_name == 'TANGENT':
+                byteStride = 16  # 4 components * 4 bytes per component for float32
+            elif attribute_name.startswith('TEXCOORD_'):
+                byteStride = 8  # 2 components * 4 bytes per component for float32
+            elif attribute_name == "JOINTS":
+                byteStride = 8 if component_type == gltf2_io_constants.ComponentType.UnsignedShort else 4
+            elif attribute_name == 'WEIGHTS':
+                if component_type == gltf2_io_constants.ComponentType.UnsignedByte:
+                    byteStride = 4  # 4 components * 1 byte per component for uint8, because of mesh_quantization
+                else:
+                    byteStride = 16  # Float 5126
+            else:
+                # fallback to uncompressed byte stride, should be correct for non-quantized attributes
+                byteStride = len(array[:1].tobytes())
+
+            compressed_data, filter = MeshoptEncoder.encode_attribute(
+                attribute_name, array, byteStride, export_settings)
+            buffer_view = gltf2_io_binary_data.BinaryData(
+                array.tobytes(),
+                gltf2_io_constants.BufferViewTarget.ARRAY_BUFFER,
+            )
+
+            buffer_view.set_extension(export_settings['gltf_meshopt_extension'], {
+                'buffer': compressed_data,  # to be filled in later by the exporter, use data in placeholder for now
+                'byteOffset': None,  # to be filled in later by the exporter
+                'byteStride': byteStride,
+                'byteLength': len(compressed_data),
+                'count': len(array),
+                'mode': 'ATTRIBUTES',
+                'filter': filter
+            })
+
+        else:
+            buffer_view = gltf2_io_binary_data.BinaryData(
+                array.tobytes(),
+                gltf2_io_constants.BufferViewTarget.ARRAY_BUFFER,
+            )
 
         amax = None
         amin = None
@@ -100,6 +141,27 @@ def array_to_accessor(
         amax = np.amax(array, axis=0).tolist()
         amin = np.amin(array, axis=0).tolist()
 
+    if export_settings['gltf_meshopt_compression'] and attribute_name is not None and buffer_view is not None:
+
+        if attribute_name in ['SK_POSITION', 'SK_NORMAL', 'SK_TANGENT']:
+            byteStride = 12  # 3 components * 4 bytes per component for float32
+        else:
+            # fallback to uncompressed byte stride, should be correct for non-quantized attributes
+            byteStride = len(array[:1].tobytes())
+
+        compressed_data, filter = MeshoptEncoder.encode_attribute(
+            attribute_name, array, byteStride, export_settings)
+
+        buffer_view.set_extension(export_settings['gltf_meshopt_extension'], {
+            'buffer': compressed_data,  # to be filled in later by the exporter, use data in placeholder for now
+            'byteOffset': None,  # to be filled in later by the exporter
+            'byteStride': byteStride,
+            'byteLength': len(compressed_data),
+            'count': len(array),
+            'mode': 'ATTRIBUTES',
+            'filter': filter
+        })
+
     return gltf2_io.Accessor(
         buffer_view=buffer_view,
         byte_offset=None,
@@ -110,7 +172,7 @@ def array_to_accessor(
         max=amax,
         min=amin,
         name=None,
-        normalized=None,
+        normalized=normalized,
         sparse=sparse,
         type=data_type,
     )

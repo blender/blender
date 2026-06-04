@@ -1188,16 +1188,6 @@ FModifier *add_fmodifier(ListBaseT<FModifier> *modifiers, int type, FCurve *owne
     return nullptr;
   }
 
-  /* special checks for whether modifier can be added */
-  if ((modifiers->first) && (fmi->requires_flag & FMI_REQUIRES_ORIGINAL_DATA)) {
-    /* Modifiers requiring original data must be first in stack, so for now, don't add if it can't
-     * be. */
-    /* TODO: perhaps there is some better way, but for now, */
-    CLOG_ERROR(
-        &LOG, "Cannot add '%s' modifier to F-Curve, as it can only be first in stack.", fmi->name);
-    return nullptr;
-  }
-
   /* add modifier itself */
   fcm = MEM_new<FModifier>("F-Curve Modifier");
   fcm->type = eFModifier_Types(type);
@@ -1206,11 +1196,13 @@ FModifier *add_fmodifier(ListBaseT<FModifier> *modifiers, int type, FCurve *owne
   fcm->influence = 1.0f;
   BLI_addtail(modifiers, fcm);
 
+  BKE_fmodifier_ensure_flag(modifiers);
+
   /* Set modifier name and make sure it is unique. */
   BKE_fmodifier_name_set(fcm, "");
 
   /* tag modifier as "active" if no other modifiers exist in the stack yet */
-  if (BLI_listbase_is_single(modifiers)) {
+  if (modifiers->is_single()) {
     fcm->flag |= FMODIFIER_FLAG_ACTIVE;
   }
 
@@ -1266,7 +1258,7 @@ void copy_fmodifiers(ListBaseT<FModifier> *dst, const ListBaseT<FModifier> *src)
     return;
   }
 
-  BLI_listbase_clear(dst);
+  dst->clear_no_delete();
   BLI_duplicatelist(dst, src);
 
   for (fcm = static_cast<FModifier *>(dst->first), srcfcm = static_cast<FModifier *>(src->first);
@@ -1317,6 +1309,7 @@ bool remove_fmodifier(ListBaseT<FModifier> *modifiers, FModifier *fcm)
       BKE_fcurve_handles_recalc(*update_fcu);
     }
 
+    BKE_fmodifier_ensure_flag(modifiers);
     return true;
   }
 

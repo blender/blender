@@ -75,6 +75,29 @@
 
 namespace blender {
 
+static bool pose_slide_poll(bContext *C)
+{
+  Object *obact = CTX_data_active_object(C);
+  if (!obact) {
+    return false;
+  }
+  const eContextObjectMode mode = CTX_data_mode_enum(C);
+  if (mode == CTX_MODE_OBJECT) {
+    return true;
+  }
+
+  if (!(obact->mode & OB_MODE_EDIT)) {
+    Object *obpose = BKE_object_pose_armature_get(obact);
+    if (obpose != nullptr) {
+      if ((obact == obpose) || (obact->mode & OB_MODE_ALL_WEIGHT_PAINT)) {
+        return true;
+      }
+    }
+  }
+
+  return false;
+}
+
 /* **************************************************** */
 /* A) Push & Relax, Breakdowner */
 
@@ -685,7 +708,7 @@ static void pose_slide_apply(bContext *C, tPoseSlideOp *pso)
 static void pose_slide_autoKeyframe(bContext *C, tPoseSlideOp *pso)
 {
   /* Wrapper around the generic call. */
-  slide_subjects_autokey(C, pso->scene, &pso->slide_subjects, float(pso->current_frame));
+  slide_subjects_autokey(C, pso->scene, &pso->slide_subjects);
 }
 
 /**
@@ -1247,7 +1270,7 @@ void POSE_OT_push(wmOperatorType *ot)
   ot->invoke = pose_slide_push_invoke;
   ot->modal = pose_slide_modal;
   ot->cancel = pose_slide_cancel;
-  ot->poll = ED_operator_posemode;
+  ot->poll = pose_slide_poll;
 
   /* flags */
   ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO | OPTYPE_BLOCKING | OPTYPE_GRAB_CURSOR_X;
@@ -1304,7 +1327,7 @@ void POSE_OT_relax(wmOperatorType *ot)
   ot->invoke = pose_slide_relax_invoke;
   ot->modal = pose_slide_modal;
   ot->cancel = pose_slide_cancel;
-  ot->poll = ED_operator_posemode;
+  ot->poll = pose_slide_poll;
 
   /* flags */
   ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO | OPTYPE_BLOCKING | OPTYPE_GRAB_CURSOR_X;
@@ -1366,7 +1389,7 @@ void POSE_OT_blend_with_rest(wmOperatorType *ot)
   ot->invoke = pose_slide_blend_rest_invoke;
   ot->modal = pose_slide_modal;
   ot->cancel = pose_slide_cancel;
-  ot->poll = ED_operator_posemode;
+  ot->poll = pose_slide_poll;
 
   /* flags */
   ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO | OPTYPE_BLOCKING | OPTYPE_GRAB_CURSOR_X;
@@ -1425,7 +1448,7 @@ void POSE_OT_breakdown(wmOperatorType *ot)
   ot->invoke = pose_slide_breakdown_invoke;
   ot->modal = pose_slide_modal;
   ot->cancel = pose_slide_cancel;
-  ot->poll = ED_operator_posemode;
+  ot->poll = pose_slide_poll;
 
   /* flags */
   ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO | OPTYPE_BLOCKING | OPTYPE_GRAB_CURSOR_X;
@@ -1477,7 +1500,7 @@ void POSE_OT_blend_to_neighbors(wmOperatorType *ot)
   ot->invoke = pose_slide_blend_to_neighbors_invoke;
   ot->modal = pose_slide_modal;
   ot->cancel = pose_slide_cancel;
-  ot->poll = ED_operator_posemode;
+  ot->poll = pose_slide_poll;
 
   /* Flags. */
   ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO | OPTYPE_BLOCKING | OPTYPE_GRAB_CURSOR_X;
@@ -1579,7 +1602,7 @@ static void get_selected_marker_positions(Scene *scene, ListBaseT<FrameLink> *ta
     link->frame = marker.cfra;
     BLI_addtail(target_frames, link);
   }
-  BLI_freelistN(&selected_markers);
+  selected_markers.free_no_destruct();
 }
 
 static void get_keyed_frames_in_range(const ListBaseT<SlideSubject> *slide_subjects,
@@ -1639,7 +1662,7 @@ static wmOperatorStatus pose_propagate_exec(bContext *C, wmOperator *op)
   /* Isolate F-Curves related to the selected bones. */
   slide_subjects_get(C, &slide_subjects);
 
-  if (BLI_listbase_is_empty(&slide_subjects)) {
+  if (slide_subjects.is_empty()) {
     /* There is a change the reason the list is empty is
      * that there is no valid object to propagate poses for.
      * This is very unlikely though, so we focus on the most likely issue. */
@@ -1694,7 +1717,7 @@ static wmOperatorStatus pose_propagate_exec(bContext *C, wmOperator *op)
     }
   }
 
-  BLI_freelistN(&target_frames);
+  target_frames.free_no_destruct();
 
   for (SlideSubject &slide_subject : slide_subjects) {
     slide_subjects_refresh(C, slide_subject.ptr.owner_id);

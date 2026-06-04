@@ -280,7 +280,8 @@ static wmOperatorStatus create_pose_asset_local(bContext *C,
    * Just being defensive here. */
   BLI_assert(library);
   if (catalog_path_c[0] && library) {
-    const asset_system::AssetCatalogPath catalog_path(catalog_path_c);
+    const asset_system::AssetCatalogPath catalog_path =
+        asset_system::AssetCatalogPath::from_user_input(catalog_path_c);
     asset_system::AssetCatalog &catalog = asset::library_ensure_catalogs_in_path(*library,
                                                                                  catalog_path);
     BKE_asset_metadata_catalog_id_set(&meta_data, catalog.catalog_id, catalog.simple_name.c_str());
@@ -341,7 +342,8 @@ static wmOperatorStatus create_pose_asset_user_library(bContext *C,
 
   AssetMetaData &meta_data = *pose_action.id.asset_data;
   if (catalog_path_c[0]) {
-    const asset_system::AssetCatalogPath catalog_path(catalog_path_c);
+    const asset_system::AssetCatalogPath catalog_path =
+        asset_system::AssetCatalogPath::from_user_input(catalog_path_c);
     const asset_system::AssetCatalog &catalog = asset::library_ensure_catalogs_in_path(
         *library, catalog_path);
     BKE_asset_metadata_catalog_id_set(&meta_data, catalog.catalog_id, catalog.simple_name.c_str());

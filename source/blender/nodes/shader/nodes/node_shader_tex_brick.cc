@@ -24,10 +24,16 @@ namespace nodes::node_shader_tex_brick_cc {
 static void sh_node_tex_brick_declare(NodeDeclarationBuilder &b)
 {
   b.is_function_node();
+
+  const bool is_compositor = b.tree_or_null() && b.tree_or_null()->type == NTREE_COMPOSIT;
+  const NodeDefaultInputType default_input_type =
+      is_compositor ? NODE_DEFAULT_INPUT_UNIFORM_IMAGE_COORDINATES :
+                      NODE_DEFAULT_INPUT_POSITION_FIELD;
   b.add_input<decl::Vector>("Vector"_ustr)
       .min(-10000.0f)
       .max(10000.0f)
-      .implicit_field(NODE_DEFAULT_INPUT_POSITION_FIELD);
+      .default_input_type(default_input_type);
+
   b.add_input<decl::Color>("Color1"_ustr)
       .default_value({0.8f, 0.8f, 0.8f, 1.0f})
       .description("Color of the first reference brick");

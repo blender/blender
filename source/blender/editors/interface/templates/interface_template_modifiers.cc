@@ -27,7 +27,7 @@ namespace blender::ui {
 static void modifier_panel_id(void *md_link, char *r_name)
 {
   ModifierData *md = static_cast<ModifierData *>(md_link);
-  BKE_modifier_type_panel_id(ModifierType(md->type), r_name);
+  BKE_modifier_type_panel_id(md->type, r_name);
 }
 
 void template_modifiers(Layout * /*layout*/, bContext *C)
@@ -42,7 +42,7 @@ void template_modifiers(Layout * /*layout*/, bContext *C)
   if (!panels_match) {
     panels_free_instanced(C, region);
     for (ModifierData &md : *modifiers) {
-      const ModifierTypeInfo *mti = BKE_modifier_get_info(ModifierType(md.type));
+      const ModifierTypeInfo *mti = BKE_modifier_get_info(md.type);
       if (mti->panel_register == nullptr) {
         continue;
       }
@@ -61,7 +61,7 @@ void template_modifiers(Layout * /*layout*/, bContext *C)
     /* Assuming there's only one group of instanced panels, update the custom data pointers. */
     Panel *panel = static_cast<Panel *>(region->panels.first);
     for (ModifierData &md : *modifiers) {
-      const ModifierTypeInfo *mti = BKE_modifier_get_info(ModifierType(md.type));
+      const ModifierTypeInfo *mti = BKE_modifier_get_info(md.type);
       if (mti->panel_register == nullptr) {
         continue;
       }

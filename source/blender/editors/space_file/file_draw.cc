@@ -915,7 +915,7 @@ static void file_draw_indicator_icons(const FileList *files,
                                       const float preview_icon_aspect,
                                       const int file_type_icon,
                                       const bool has_special_file_image,
-                                      const eDirEntry_SelectFlag selflag)
+                                      const eDirEntry_SelectFlag /*selflag*/)
 {
   const bool is_offline = (file->attributes & FILE_ATTR_OFFLINE);
   const bool is_link = (file->attributes & FILE_ATTR_ANY_LINK);
@@ -993,17 +993,29 @@ static void file_draw_indicator_icons(const FileList *files,
                        UI_NO_ICON_OVERLAY_TEXT);
     }
     else if ((file->typeflag & FILE_TYPE_ASSET_ONLINE) != 0) {
-      if (selflag & (FILE_SEL_HIGHLIGHTED | FILE_SEL_SELECTED)) {
-        ui::icon_draw_ex(icon_x,
-                         icon_y,
-                         ICON_INTERNET,
-                         1.0f / UI_SCALE_FAC,
-                         0.6f,
-                         0.0f,
-                         light,
-                         true,
-                         UI_NO_ICON_OVERLAY_TEXT);
-      }
+      ui::icon_draw_ex(icon_x,
+                       icon_y,
+                       ICON_INTERNET,
+                       1.0f / UI_SCALE_FAC,
+                       0.6f,
+                       0.0f,
+                       light,
+                       true,
+                       UI_NO_ICON_OVERLAY_TEXT);
+    }
+    else if (file->asset &&
+             file->asset->remote_file_status() == asset_system::RemoteAssetFileStatus::NO_MATCH)
+    {
+      /* This on-disk asset no longer matches the asset listing it was downloaded from. */
+      ui::icon_draw_ex(icon_x,
+                       icon_y,
+                       ICON_WARNING_LARGE,
+                       1.0f / UI_SCALE_FAC,
+                       0.6f,
+                       0.0f,
+                       light,
+                       true,
+                       UI_NO_ICON_OVERLAY_TEXT);
     }
   }
 }
@@ -1043,7 +1055,7 @@ static void renamebutton_cb(bContext &C, StringRefNull oldname)
     /* Ensure we select and scroll to the renamed file.
      * This is done even if the rename fails as we want to make sure that the file we tried to
      * rename is still selected and in view. (it can move if something added files/folders to the
-     * directory while we were renaming.
+     * directory while we were renaming).
      */
     file_params_invoke_rename_postscroll(wm, win, sfile);
     /* to make sure we show what is on disk */

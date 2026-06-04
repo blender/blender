@@ -1,9 +1,9 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 5.2.0 Alpha (b'bc0a0ff2c0ce')\n"
+"Project-Id-Version: Blender 5.2.0 Alpha (b'8764d33c658b')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-05-18 11:20+0000\n"
+"POT-Creation-Date: 2026-06-01 07:36+0000\n"
 "PO-Revision-Date: 2026-03-17 14:12+0000\n"
 "Last-Translator: Daniel Nylander <blender@danielnylander.se>\n"
 "Language-Team: Swedish <https://translate.blender.org/projects/blender-ui/ui/sv/>\n"
@@ -1876,6 +1876,42 @@ msgstr "Licens"
 
 msgid "The type of license this asset is distributed under. An empty license name does not necessarily indicate that this is free of licensing terms. Contact the author if any clarification is needed."
 msgstr "Den typ av licens som denna tillgång distribueras under. Ett tomt licensnamn innebär inte nödvändigtvis att det inte finns några licensvillkor. Kontakta upphovsmannen om du behöver någon förtydligande."
+
+
+msgid "Default Import Method"
+msgstr "Standardimportmetod"
+
+
+msgid "Link"
+msgstr "Länk"
+
+
+msgid "Import the assets as linked data-block"
+msgstr "Importera tillgångarna som länkade datablock"
+
+
+msgid "Append"
+msgstr "Lägg till"
+
+
+msgid "Import the assets as copied data-block, with no link to the original asset data-block"
+msgstr "Importera tillgångarna som kopierade datablock, utan länk till det ursprungliga tillgångsdatablocket."
+
+
+msgid "Append (Reuse Data)"
+msgstr "Lägg till (återanvänd data)"
+
+
+msgid "Import the assets as copied data-block while avoiding multiple copies of nested, typically heavy data. For example the textures of a material asset, or the mesh of an object asset, don't have to be copied every time this asset is imported. The instances of the asset share the data instead."
+msgstr "Importera tillgångarna som kopierade datablock och undvik samtidigt flera kopior av inbäddade, vanligtvis tunga data. Till exempel behöver texturerna för en materialtillgång eller nätet för en objekttillgång inte kopieras varje gång denna tillgång importeras. Istället delar instanserna av tillgången data."
+
+
+msgid "Pack"
+msgstr "Paket"
+
+
+msgid "Import the asset as linked data-block, and pack it in the current file (ensures that it remains unchanged in case the library data is modified, is not available anymore, etc.)"
+msgstr "Importera tillgången som länkad datablock och packa den i den aktuella filen (säkerställer att den förblir oförändrad om biblioteksdata modifieras, inte längre är tillgänglig etc.)."
 
 
 msgid "Tags"
@@ -5906,6 +5942,18 @@ msgstr "Förenkla"
 
 msgid "Number of simplify steps (large values reduce fill accuracy)"
 msgstr "Antal förenklingssteg (stora värden minskar fyllningsnoggrannheten)"
+
+
+msgid "Fill Solver"
+msgstr "Fyll i lösaren"
+
+
+msgid "Delaunay"
+msgstr "Delaunay"
+
+
+msgid "Pixel"
+msgstr "Pixel"
 
 
 msgid "Threshold to consider color transparent for filling"
@@ -15046,44 +15094,16 @@ msgid "Determine how the asset will be imported"
 msgstr "Bestäm hur tillgången ska importeras"
 
 
-msgid "Follow Preferences"
-msgstr "Följ inställningar"
-
-
 msgid "Use the import method set in the Preferences for this asset library, don't override it for this Asset Browser"
 msgstr "Använd importmetoden som är inställd i inställningarna för detta tillgångsbibliotek, åsidosätt den inte för denna tillgångsbläddraren."
-
-
-msgid "Link"
-msgstr "Länk"
-
-
-msgid "Import the assets as linked data-block"
-msgstr "Importera tillgångarna som länkade datablock"
-
-
-msgid "Append"
-msgstr "Lägg till"
 
 
 msgid "Import the asset as copied data-block, with no link to the original asset data-block"
 msgstr "Importera tillgången som kopierat datablock, utan länk till det ursprungliga datablocket för tillgången."
 
 
-msgid "Append (Reuse Data)"
-msgstr "Lägg till (återanvänd data)"
-
-
 msgid "Import the asset as copied data-block while avoiding multiple copies of nested, typically heavy data. For example the textures of a material asset, or the mesh of an object asset, don't have to be copied every time this asset is imported. The instances of the asset share the data instead"
 msgstr "Importera tillgången som kopierad datablock och undvik samtidigt flera kopior av inbäddade, vanligtvis tunga data. Till exempel behöver texturerna för en materialtillgång eller nätet för en objekttillgång inte kopieras varje gång denna tillgång importeras. Istället delar instanserna av tillgången data."
-
-
-msgid "Pack"
-msgstr "Paket"
-
-
-msgid "Import the asset as linked data-block, and pack it in the current file (ensures that it remains unchanged in case the library data is modified, is not available anymore, etc.)"
-msgstr "Importera tillgången som länkad datablock och packa den i den aktuella filen (säkerställer att den förblir oförändrad om biblioteksdata modifieras, inte längre är tillgänglig etc.)."
 
 
 msgid "Instance Collections on Appending"
@@ -17482,12 +17502,48 @@ msgid "Use curve to define primitive stroke thickness"
 msgstr "Använd kurva för att definiera primitiv strecktjocklek"
 
 
-msgid "Field to Grid Item"
-msgstr "Fält till nätverksobjekt"
+msgid "Automatically detect a good structure type based on how the socket is used"
+msgstr "Automatiskt upptäcka en bra strukturtyp baserat på hur uttaget används"
+
+
+msgid "Dynamic"
+msgstr "Dynamisk"
+
+
+msgid "Socket can work with different kinds of structures"
+msgstr "Sockeln kan fungera med olika typer av strukturer"
+
+
+msgid "Socket expects a field"
+msgstr "Socket förväntar sig ett fält"
+
+
+msgid "Socket expects a grid"
+msgstr "Socket förväntar sig ett rutnät"
+
+
+msgid "List"
+msgstr "Lista"
+
+
+msgid "Socket expects a list"
+msgstr "Socket förväntar sig en lista"
+
+
+msgid "Single"
+msgstr "Singel"
+
+
+msgid "Socket expects a single value"
+msgstr "Socket förväntar sig ett enda värde"
 
 
 msgid "Items"
 msgstr "Artiklar"
+
+
+msgid "Field to Grid Item"
+msgstr "Fält till nätverksobjekt"
 
 
 msgid "Collection of field to grid items"
@@ -19338,10 +19394,6 @@ msgstr "Globalt"
 
 msgid "Simulates the entire mesh"
 msgstr "Simulerar hela nätet"
-
-
-msgid "Dynamic"
-msgstr "Dynamisk"
 
 
 msgid "The active simulation area moves with the brush"
@@ -22024,10 +22076,6 @@ msgid "Overlapping curves with the same winding direction are filled as a union"
 msgstr "Överlappande kurvor med samma lindningsriktning fylls som en union."
 
 
-msgid "Fill Solver"
-msgstr "Fyll i lösaren"
-
-
 msgid "Triangulation solver for filling 2D curves"
 msgstr "Trianguleringslösare för att fylla 2D-kurvor"
 
@@ -22038,10 +22086,6 @@ msgstr "Svepande linje"
 
 msgid "Fast without support for self-intersection"
 msgstr "Snabb utan stöd för självkorsning"
-
-
-msgid "Delaunay"
-msgstr "Delaunay"
 
 
 msgid "Constrained Delaunay Triangulation (CDT), robust with support for self-intersections"
@@ -25475,14 +25519,6 @@ msgid "Movie File"
 msgstr "Filmfil"
 
 
-msgid "Use Proxy / Timecode"
-msgstr "Använd proxy/tidskod"
-
-
-msgid "Use a preview proxy and/or timecode index for this clip"
-msgstr "Använd en förhandsgranskningsproxy och/eller tidskodindex för detta klipp"
-
-
 msgid "Proxy Custom Directory"
 msgstr "Anpassad proxy-katalog"
 
@@ -25625,6 +25661,10 @@ msgstr "Compositorsnodträd"
 
 msgid "Node tree consisting of linked nodes used for compositing"
 msgstr "Nodträd bestående av länkade noder som används för komposition"
+
+
+msgid "Strip Modifier"
+msgstr "Stripmodifierare"
 
 
 msgid "Viewer Region"
@@ -26792,10 +26832,6 @@ msgstr "Grader"
 
 msgid "How many degrees path has to curve to make another render segment"
 msgstr "Hur många grader banan måste krökas för att skapa ett nytt renderingssegment"
-
-
-msgid "Pixel"
-msgstr "Pixel"
 
 
 msgid "How many pixels path has to cover to make another render segment"
@@ -35030,6 +35066,10 @@ msgid "Editor menu containing buttons"
 msgstr "Redigeringsmeny med knappar"
 
 
+msgid "Render Preview"
+msgstr "Förhandsgranska rendering"
+
+
 msgid "Mirror"
 msgstr "Spegel"
 
@@ -35050,20 +35090,12 @@ msgid "Viewpoint"
 msgstr "Synpunkt"
 
 
-msgid "Math"
-msgstr "Matematik"
-
-
 msgid "Navigation"
 msgstr "Navigering"
 
 
 msgid "Align View"
 msgstr "Justera vy"
-
-
-msgid "Utilities"
-msgstr "Allmännyttiga tjänster"
 
 
 msgid "Align View to Active"
@@ -35074,8 +35106,16 @@ msgid "View Regions"
 msgstr "Visa regioner"
 
 
+msgid "Math"
+msgstr "Matematik"
+
+
 msgid "Select More/Less"
 msgstr "Välj Mer/Mindre"
+
+
+msgid "Utilities"
+msgstr "Allmännyttiga tjänster"
 
 
 msgid "Select Similar"
@@ -35094,16 +35134,16 @@ msgid "Select Loops"
 msgstr "Välj slingor"
 
 
+msgid "Assign Material"
+msgstr "Tilldela material"
+
+
 msgid "Read"
 msgstr "Läs"
 
 
 msgid "Sample"
 msgstr "Exempel"
-
-
-msgid "Assign Material"
-msgstr "Tilldela material"
 
 
 msgid "Write"
@@ -35142,12 +35182,12 @@ msgid "Relations"
 msgstr "Relationer"
 
 
-msgid "Import"
-msgstr "Importera"
-
-
 msgid "Rigid Body"
 msgstr "Stel kropp"
+
+
+msgid "Import"
+msgstr "Importera"
 
 
 msgid "Apply"
@@ -35158,16 +35198,16 @@ msgid "Track"
 msgstr "Spår"
 
 
-msgid "Deprecated"
-msgstr "Föråldrad"
-
-
 msgid "Quick Effects"
 msgstr "Snabba effekter"
 
 
 msgid "Show/Hide"
 msgstr "Visa/Dölj"
+
+
+msgid "Deprecated"
+msgstr "Föråldrad"
 
 
 msgid "Clean Up"
@@ -35178,10 +35218,6 @@ msgid "Asset"
 msgstr "Tillgång"
 
 
-msgid "List"
-msgstr "Lista"
-
-
 msgid "Make Single User"
 msgstr "Gör till enskild användare"
 
@@ -35190,16 +35226,16 @@ msgid "Convert"
 msgstr "Konvertera"
 
 
-msgid "UV"
-msgstr "UV"
-
-
 msgid "Link/Transfer Data"
 msgstr "Länk/överför data"
 
 
 msgid "Hooks"
 msgstr "Krokar"
+
+
+msgid "UV"
+msgstr "UV"
 
 
 msgid "Vertex Group Locks"
@@ -35274,6 +35310,10 @@ msgid "Merge"
 msgstr "Sammanfoga"
 
 
+msgid "Linked"
+msgstr "Länkad"
+
+
 msgid "Layout"
 msgstr "Layout"
 
@@ -35286,12 +35326,12 @@ msgid "Kerning"
 msgstr "Kerning"
 
 
-msgid "Adjust"
-msgstr "Justera"
-
-
 msgid "Bone Roll"
 msgstr "Benrulle"
+
+
+msgid "Adjust"
+msgstr "Justera"
 
 
 msgid "Keying"
@@ -35308,10 +35348,6 @@ msgstr "Kreativ"
 
 msgid "Pivot Point"
 msgstr "Pivotpunkt"
-
-
-msgid "Render Preview"
-msgstr "Förhandsgranska rendering"
 
 
 msgid "Proportional Editing Falloff"
@@ -43533,14 +43569,6 @@ msgid "Build proxy resolution 75% of the original footage dimension"
 msgstr "Bygg proxyupplösning 75% of den ursprungliga filmens dimension"
 
 
-msgid "Rec Run"
-msgstr "Rec Run"
-
-
-msgid "Build record run time code index"
-msgstr "Skapa index för rekordkörningstidskod"
-
-
 msgid "Build proxy resolution 100% of the original undistorted footage dimension"
 msgstr "Bygg proxyupplösning 100% of den ursprungliga oförvrängda filmens dimension"
 
@@ -43563,30 +43591,6 @@ msgstr "Position för lagring av proxyfilerna"
 
 msgid "JPEG quality of proxy images"
 msgstr "JPEG-kvalitet på proxybilder"
-
-
-msgid "Timecode"
-msgstr "Tidskod"
-
-
-msgid "Ignore generated timecodes, seek in movie stream based on calculated timestamp"
-msgstr "Ignorera genererade tidskoder, sök i filmströmmen baserat på beräknad tidsstämpel"
-
-
-msgid "Record Run"
-msgstr "Rekordkörning"
-
-
-msgid "Seek based on timestamps read from movie stream, giving the best match between scene and movie times"
-msgstr "Sök baserat på tidsstämplar som läses från filmströmmen, vilket ger den bästa matchningen mellan scen- och filmtider."
-
-
-msgid "Record Run No Gaps"
-msgstr "Rekordkörning utan luckor"
-
-
-msgid "Effectively convert movie to an image sequence, ignoring incomplete or dropped frames, and changes in frame rate"
-msgstr "Konvertera effektivt film till en bildsekvens, ignorera ofullständiga eller borttagna bildrutor och ändringar i bildfrekvensen."
 
 
 msgid "Scopes for statistical view of a movie clip"
@@ -47145,6 +47149,10 @@ msgid "Which domain to store the data in"
 msgstr "Vilken domän data ska lagras i"
 
 
+msgid "Create a list of values"
+msgstr "Skapa en lista med värden"
+
+
 msgid "Collection Info"
 msgstr "Samlingsinformation"
 
@@ -47699,10 +47707,6 @@ msgstr "Datatyp för topologiraster"
 
 msgid "Field to List"
 msgstr "Fält till lista"
-
-
-msgid "Create a list of values"
-msgstr "Skapa en lista med värden"
 
 
 msgid "Field Variance"
@@ -48402,34 +48406,6 @@ msgstr "Strukturtyp"
 
 msgid "What kind of higher order types are expected to flow through this socket"
 msgstr "Vilka typer av högre ordning förväntas flöda genom detta uttag"
-
-
-msgid "Automatically detect a good structure type based on how the socket is used"
-msgstr "Automatiskt upptäcka en bra strukturtyp baserat på hur uttaget används"
-
-
-msgid "Socket can work with different kinds of structures"
-msgstr "Sockeln kan fungera med olika typer av strukturer"
-
-
-msgid "Socket expects a field"
-msgstr "Socket förväntar sig ett fält"
-
-
-msgid "Socket expects a grid"
-msgstr "Socket förväntar sig ett rutnät"
-
-
-msgid "Socket expects a list"
-msgstr "Socket förväntar sig en lista"
-
-
-msgid "Single"
-msgstr "Singel"
-
-
-msgid "Socket expects a single value"
-msgstr "Socket förväntar sig ett enda värde"
 
 
 msgid "List Length"
@@ -52171,10 +52147,6 @@ msgid "Attribute Domain"
 msgstr "Attributdomän"
 
 
-msgid "Attribute domain where the attribute is stored in the baked data"
-msgstr "Attributdomän där attributet lagras i den bakade datan"
-
-
 msgid "Is Attribute"
 msgstr "Är attribut"
 
@@ -52441,10 +52413,6 @@ msgstr "Inaktiv"
 
 msgid "Socket is grayed out because it has been detected to not have any effect on the output"
 msgstr "Sockeln är gråmarkerad eftersom den har upptäckts inte ha någon effekt på utgången."
-
-
-msgid "Linked"
-msgstr "Länkad"
 
 
 msgid "True if the socket is connected"
@@ -53570,6 +53538,11 @@ msgstr "Validera samlingsreferenser"
 msgctxt "Operator"
 msgid "Assign Action"
 msgstr "Tilldela åtgärd"
+
+
+msgctxt "Operator"
+msgid "Open File Location"
+msgstr "Öppna filens plats"
 
 
 msgid "Open the blend file that contains the active asset"
@@ -59532,15 +59505,6 @@ msgstr "Förhämta bildrutor från disken för snabbare uppspelning/spårning"
 
 
 msgctxt "Operator"
-msgid "Rebuild Proxy and Timecode Indices"
-msgstr "Återuppbygg proxy- och tidskodindex"
-
-
-msgid "Rebuild all selected proxies and timecode indices in the background"
-msgstr "Återuppbygg alla valda proxyservrar och tidskodindex i bakgrunden"
-
-
-msgctxt "Operator"
 msgid "Refine Markers"
 msgstr "Förfina markörer"
 
@@ -64942,6 +64906,11 @@ msgstr "Konvertera valda kanaler till en icke-redigerbar uppsättning samplingar
 
 
 msgctxt "Operator"
+msgid "Local View"
+msgstr "Lokal vy"
+
+
+msgctxt "Operator"
 msgid "Match Slope"
 msgstr "Matcha lutning"
 
@@ -67654,18 +67623,6 @@ msgstr "Upptäck UDIM:er"
 
 msgid "Detect selected UDIM files and load all matching tiles"
 msgstr "Detektera valda UDIM-filer och ladda alla matchande rutor"
-
-
-msgid "Use relative path"
-msgstr "Använd relativ sökväg"
-
-
-msgid "Use sequence detection"
-msgstr "Använd sekvensdetektering"
-
-
-msgid "Use UDIM detection"
-msgstr "Använd UDIM-detektering"
 
 
 msgctxt "Operator"
@@ -72826,18 +72783,6 @@ msgstr "Kollaps"
 
 msgid "Toggle collapsing of selected nodes"
 msgstr "Växla mellan att dölja och visa valda noder"
-
-
-msgid "Add an item to the index switch"
-msgstr "Lägg till ett objekt i indexomkopplaren"
-
-
-msgid "Remove an item from the index switch"
-msgstr "Ta bort ett objekt från indexomkopplaren"
-
-
-msgid "Index to remove"
-msgstr "Index att ta bort"
 
 
 msgctxt "Operator"
@@ -83673,10 +83618,6 @@ msgid "Reassign the inputs for the effect strip"
 msgstr "Omfördela ingångarna för effektremsan"
 
 
-msgid "Rebuild all selected proxies and timecode indices"
-msgstr "Återuppbygg alla valda proxyservrar och tidskodindex"
-
-
 msgctxt "Operator"
 msgid "Refresh Sequencer"
 msgstr "Uppdatera sekvenserare"
@@ -84128,10 +84069,6 @@ msgid "Snap Strips to the Current Frame"
 msgstr "Fäst remsorna i den aktuella bildrutan"
 
 
-msgid "Snap strips to the current frame, using the active strip as the anchor, and the mouse cursor relative to the playhead to determine the side of the playhead to snap to"
-msgstr "Fäst remsorna till den aktuella bildrutan med den aktiva remsan som förankring och muspekaren i förhållande till uppspelningshuvudet för att bestämma vilken sida av uppspelningshuvudet som remsan ska fästas vid."
-
-
 msgid "Frame where selected strips will be snapped"
 msgstr "Bildruta där valda remsor kommer att snäppas fast"
 
@@ -84200,10 +84137,6 @@ msgstr "Färg 09"
 msgctxt "Operator"
 msgid "Jump to Strip"
 msgstr "Gå till serien"
-
-
-msgid "Move frame to next or previous edit point"
-msgstr "Flytta bildrutan till nästa eller föregående redigeringspunkt"
 
 
 msgid "Use Strip Center"
@@ -87754,11 +87687,6 @@ msgstr "Börja placera mittpositionen"
 
 msgid "ICO Sphere"
 msgstr "ICO-sfären"
-
-
-msgctxt "Operator"
-msgid "Local View"
-msgstr "Lokal vy"
 
 
 msgid "Toggle display of selected object(s) separately and centered in view"
@@ -92044,6 +91972,14 @@ msgid "Panel containing UI elements"
 msgstr "Panel som innehåller UI-element"
 
 
+msgid "Active Tool"
+msgstr "Aktivt verktyg"
+
+
+msgid "View Lock"
+msgstr "Visa lås"
+
+
 msgid "Selectability & Visibility"
 msgstr "Valbarhet och synlighet"
 
@@ -92132,14 +92068,6 @@ msgid "Multi Frame"
 msgstr "Flera bildrutor"
 
 
-msgid "glTF Variants"
-msgstr "glTF-varianter"
-
-
-msgid "glTF Material Variants"
-msgstr "glTF-materialvarianter"
-
-
 msgid "Auto-Masking"
 msgstr "Automatisk maskering"
 
@@ -92160,12 +92088,12 @@ msgid "Viewport Debug"
 msgstr "Fönsterdebugging"
 
 
-msgid "glTF"
-msgstr "glTF"
+msgid "glTF Variants"
+msgstr "glTF-varianter"
 
 
-msgid "glTF Animations"
-msgstr "glTF-animationer"
+msgid "glTF Material Variants"
+msgstr "glTF-materialvarianter"
 
 
 msgid "VR"
@@ -92176,12 +92104,12 @@ msgid "VR Info"
 msgstr "VR-information"
 
 
-msgid "Active Tool"
-msgstr "Aktivt verktyg"
+msgid "glTF"
+msgstr "glTF"
 
 
-msgid "View Lock"
-msgstr "Visa lås"
+msgid "glTF Animations"
+msgstr "glTF-animationer"
 
 
 msgid "Import Settings"
@@ -92255,10 +92183,6 @@ msgstr "Markörvisning"
 
 msgid "Mask Display"
 msgstr "Maskdisplay"
-
-
-msgid "Proxy/Timecode"
-msgstr "Proxy/tidskod"
 
 
 msgid "Stabilization"
@@ -93113,8 +93037,8 @@ msgid "Sequencer Snapping"
 msgstr "Sekvenserare Snapping"
 
 
-msgid "Strip Proxy & Timecode"
-msgstr "Strip Proxy & Tidskod"
+msgid "Strip Proxy"
+msgstr "Strip-proxy"
 
 
 msgctxt "Operator"
@@ -93385,20 +93309,8 @@ msgid "Image/UV Editor"
 msgstr "Bild-/UV-redigerare"
 
 
-msgid "Axis & Gizmo Colors"
-msgstr "Axis & Gizmo-färger"
-
-
-msgid "Icon Colors"
-msgstr "Ikonfärger"
-
-
 msgid "Shaded"
 msgstr "Skuggad"
-
-
-msgid "Styles"
-msgstr "Stilar"
 
 
 msgid "Transparent Checkerboard"
@@ -93455,10 +93367,6 @@ msgstr "Skrubbning / Markörer"
 
 msgid "Toolbar / Sidebar"
 msgstr "Verktygsfält / Sidopanel"
-
-
-msgid "Strip Color Tags"
-msgstr "Färgmärken för remsor"
 
 
 msgid "Text Style"
@@ -95182,6 +95090,10 @@ msgid "Graphics driver and operating system settings"
 msgstr "Grafikdrivrutin och operativsysteminställningar"
 
 
+msgid "Styles"
+msgstr "Stilar"
+
+
 msgid "Save on Exit"
 msgstr "Spara vid avslutning"
 
@@ -95753,14 +95665,6 @@ msgstr "Tillägg Debug"
 
 msgid "Extra debugging information & developer support utilities for extensions"
 msgstr "Extra felsökningsinformation och verktyg för utvecklarsupport för tillägg"
-
-
-msgid "Bundle in Geometry"
-msgstr "Bundle i geometri"
-
-
-msgid "Support storing custom bundles in a geometry in Geometry Nodes"
-msgstr "Stöd för lagring av anpassade buntar i en geometri i Geometry Nodes"
 
 
 msgid "New Curves Tools"
@@ -104926,10 +104830,6 @@ msgid "Simulation Item"
 msgstr "Simuleringsobjekt"
 
 
-msgid "Attribute domain where the attribute is stored in the simulation state"
-msgstr "Attributdomän där attributet lagras i simuleringsstatus"
-
-
 msgid "Soft body simulation settings for an object"
 msgstr "Inställningar för mjuk kroppssimulering för ett objekt"
 
@@ -108640,10 +108540,6 @@ msgid "Convert input to float data"
 msgstr "Konvertera indata till flytande data"
 
 
-msgid "Use a preview proxy and/or time-code index for this strip"
-msgstr "Använd en förhandsgranskningsproxy och/eller tidskodindex för denna remsa."
-
-
 msgid "Reverse Frames"
 msgstr "Omvända bildrutor"
 
@@ -109419,10 +109315,6 @@ msgid "Collection of StripElement"
 msgstr "Samling av StripElement"
 
 
-msgid "Strip Modifier"
-msgstr "Stripmodifierare"
-
-
 msgid "Modifier for sequence strip"
 msgstr "Modifierare för sekvensremsa"
 
@@ -109712,10 +109604,6 @@ msgid "The active strip modifier in the list"
 msgstr "Den aktiva remsa-modifieraren i listan"
 
 
-msgid "Strip Proxy"
-msgstr "Strip-proxy"
-
-
 msgid "Proxy parameters for a sequence strip"
 msgstr "Proxyparametrar för en sekvensremsa"
 
@@ -109742,10 +109630,6 @@ msgstr "Position för anpassad proxyfil"
 
 msgid "Quality of proxies to build"
 msgstr "Kvaliteten på proxyservrar att bygga"
-
-
-msgid "Method for reading the inputs timecode"
-msgstr "Metod för att läsa in tidskoden"
 
 
 msgid "Overwrite existing proxy files when building"
@@ -113457,20 +113341,8 @@ msgid "Enable the asset library"
 msgstr "Aktivera tillgångsbiblioteket"
 
 
-msgid "Default Import Method"
-msgstr "Standardimportmetod"
-
-
 msgid "Determine how the asset will be imported, unless overridden by the Asset Browser"
 msgstr "Bestäm hur tillgången ska importeras, om inte annat anges i tillgångsbläddraren."
-
-
-msgid "Import the assets as copied data-block, with no link to the original asset data-block"
-msgstr "Importera tillgångarna som kopierade datablock, utan länk till det ursprungliga tillgångsdatablocket."
-
-
-msgid "Import the assets as copied data-block while avoiding multiple copies of nested, typically heavy data. For example the textures of a material asset, or the mesh of an object asset, don't have to be copied every time this asset is imported. The instances of the asset share the data instead."
-msgstr "Importera tillgångarna som kopierade datablock och undvik samtidigt flera kopior av inbäddade, vanligtvis tunga data. Till exempel behöver texturerna för en materialtillgång eller nätet för en objekttillgång inte kopieras varje gång denna tillgång importeras. Istället delar instanserna av tillgången data."
 
 
 msgid "Path to a directory with .blend files to use as an asset library"
@@ -119841,6 +119713,11 @@ msgid "Roughness Threshold"
 msgstr "Grovhetströskel"
 
 
+msgctxt "Operator"
+msgid "Clear"
+msgstr "Tydligt"
+
+
 msgid "Surfaces"
 msgstr "Ytor"
 
@@ -123766,11 +123643,6 @@ msgid "Parenting:"
 msgstr "Föräldraskap:"
 
 
-msgctxt "Operator"
-msgid "Clear"
-msgstr "Tydligt"
-
-
 msgid "Animation:"
 msgstr "Animering:"
 
@@ -125134,11 +125006,6 @@ msgstr "Bygg utan förvrängning:"
 
 
 msgctxt "Operator"
-msgid "Build Proxy / Timecode"
-msgstr "Bygg proxy / tidskod"
-
-
-msgctxt "Operator"
 msgid "Build Proxy"
 msgstr "Bygg proxy"
 
@@ -125280,10 +125147,6 @@ msgstr "Spår för stabilisering"
 
 msgid "Tracks for Location"
 msgstr "Spår för plats"
-
-
-msgid "Timecode Index"
-msgstr "Tidskodindex"
 
 
 msgid "No active movie clip"
@@ -127822,12 +127685,12 @@ msgid "Axis X"
 msgstr "Axel X"
 
 
-msgid "View Align"
-msgstr "Visa Justera"
-
-
 msgid "B"
 msgstr "B"
+
+
+msgid "View Align"
+msgstr "Visa Justera"
 
 
 msgctxt "Text"
@@ -131104,6 +130967,11 @@ msgid "shape_keys"
 msgstr "formnycklar"
 
 
+msgctxt "Key"
+msgid "Key"
+msgstr "Nyckel"
+
+
 msgid "lattices"
 msgstr "galler"
 
@@ -132641,10 +132509,6 @@ msgid "B"
 msgstr "B"
 
 
-msgid "Modifier requires original data"
-msgstr "Modifieraren kräver originaldata"
-
-
 msgctxt "Operator"
 msgid "Reorder F-Curve Modifier"
 msgstr "Omordna F-kurvmodifierare"
@@ -133585,10 +133449,6 @@ msgid "Duplicates: {}"
 msgstr "Duplikater: {}"
 
 
-msgid "Missing node tool identifier ({})"
-msgstr "Saknad nodverktygsidentifierare ({})"
-
-
 msgid "Unassigned Node Tools"
 msgstr "Otilldelade nodverktyg"
 
@@ -134120,11 +133980,6 @@ msgstr "Kopiera enstaka till valda"
 msgctxt "Operator"
 msgid "Copy Full Data Path"
 msgstr "Kopiera hela datavägen"
-
-
-msgctxt "Operator"
-msgid "Open File Location"
-msgstr "Öppna filens plats"
 
 
 msgctxt "Operator"
@@ -135697,6 +135552,10 @@ msgid "No vertex group among the selected vertices"
 msgstr "Ingen vertexgrupp bland de valda vertexerna"
 
 
+msgid "No edges selected"
+msgstr "Inga kanter valda"
+
+
 msgid "Use mouse"
 msgstr "Använd musen"
 
@@ -135755,10 +135614,6 @@ msgstr "Aktivt nät har inga formnycklar"
 
 msgid "Selection not supported in object mode"
 msgstr "Val stöds inte i objektläge"
-
-
-msgid "No edges selected"
-msgstr "Inga kanter valda"
 
 
 msgid "No faces filled"
@@ -142696,10 +142551,6 @@ msgid "Midpoints"
 msgstr "Mittpunkter"
 
 
-msgid "Could not initialize stitching on any selected object"
-msgstr "Det gick inte att initiera sammanfogning på något valt objekt."
-
-
 msgid "Stitching only works with less than %i objects selected (%i selected)"
 msgstr "Sömmar fungerar endast med färre än %i objekt markerade (%i markerat)"
 
@@ -144202,11 +144053,6 @@ msgid "Failed to load image texture '%s'"
 msgstr "Det gick inte att ladda bildtexturen '%s'"
 
 
-msgctxt "Key"
-msgid "Key"
-msgstr "Nyckel"
-
-
 msgid "ViewLayer '%s' does not contain object '%s'"
 msgstr "Vylager '%s' innehåller inte objektet '%s'"
 
@@ -144564,10 +144410,6 @@ msgstr "Kan endast tilldela utvärderade data till utvärderade objekt, eller or
 
 msgid "Only empty objects support collection instances"
 msgstr "Endast tomma objekt stöder insamlingsinstanser"
-
-
-msgid "Cannot set instance-collection as object belongs in collection being instanced, thus causing a cycle"
-msgstr "Kan inte ställa in instanssamling eftersom objektet tillhör samlingen som instansieras, vilket orsakar en cykel."
 
 
 msgid "VertexGroup.add(): cannot be called while object is in edit mode"
@@ -146188,6 +146030,10 @@ msgstr "Ersätt original"
 
 msgid "Crease Edges"
 msgstr "Vikkanter"
+
+
+msgid "Add Item"
+msgstr "Lägg till artikel"
 
 
 msgid "Not a compositor node tree"
@@ -147970,10 +147816,6 @@ msgid "Cannot access object's transforms because it's not evaluated yet. This ca
 msgstr "Kan inte komma åt objektets transformationer eftersom det ännu inte har utvärderats. Detta kan inträffa när det förekommer en beroendecykel."
 
 
-msgid "Bone not found"
-msgstr "Ben hittades inte"
-
-
 msgid "Armature object to retrieve the bone information from"
 msgstr "Armature-objekt för att hämta beninformationen från"
 
@@ -148085,6 +147927,10 @@ msgstr "Ortografisk kameraskala (liknar zoom)"
 msgctxt "NodeTree"
 msgid "Closure"
 msgstr "Stängning"
+
+
+msgid "The number of elements in the list"
+msgstr "Antalet element i listan"
 
 
 msgid "Collection contains current object"
@@ -148897,10 +148743,6 @@ msgid "Output grid with evaluated field values"
 msgstr "Utgångsrutnät med utvärderade fältvärden"
 
 
-msgid "The number of elements in the list"
-msgstr "Antalet element i listan"
-
-
 msgid "Output list with evaluated field values"
 msgstr "Utdata med utvärderade fältvärden"
 
@@ -148915,6 +148757,10 @@ msgstr "Kvadratroten av variansen för varje grupp"
 
 msgid "The expected squared deviation from the mean for each group"
 msgstr "Den förväntade kvadratiska avvikelsen från medelvärdet för varje grupp"
+
+
+msgid "Inverted"
+msgstr "Inverterad"
 
 
 msgid "Mesh to flip faces of"
@@ -149014,10 +148860,6 @@ msgid "Cannot get internal value from bundle"
 msgstr "Kan inte hämta internt värde från paketet"
 
 
-msgid "The experimental option for this node is disabled"
-msgstr "Det experimentella alternativet för denna nod är inaktiverat."
-
-
 msgid "Geometry to get the bundle of"
 msgstr "Geometri för att få buntet av"
 
@@ -149028,6 +148870,10 @@ msgstr "Att ta bort paketet från geometrin kan vara fördelaktigt för att undv
 
 msgid "Volume to take a named grid out of"
 msgstr "Volym för att ta bort ett namngivet rutnät"
+
+
+msgid "Pattern Mode"
+msgstr "Mönsterläge"
 
 
 msgid "If true, the gizmo is displayed in screen space. Otherwise it's in object space"
@@ -149344,10 +149190,6 @@ msgstr "Har granne"
 
 msgid "Index of nearest element"
 msgstr "Index för närmaste element"
-
-
-msgid "Add Item"
-msgstr "Lägg till artikel"
 
 
 msgid "The camera used for rendering the scene"
@@ -150356,32 +150198,12 @@ msgid "Number of levels of nested instances to realize for each top-level instan
 msgstr "Antal nivåer av kapslade instanser som ska realiseras för varje instans på högsta nivå"
 
 
-msgid "Only one * is supported in the pattern"
-msgstr "Endast ett * stöds i mönstret."
-
-
 msgid "Cannot remove built-in attributes: {}"
 msgstr "Kan inte ta bort inbyggda attribut: {}"
 
 
 msgid "Attribute does not exist: \"{}\""
 msgstr "Attributet finns inte: \"{}\""
-
-
-msgid "Remove the one attribute with the given name"
-msgstr "Ta bort det enda attributet med det angivna namnet"
-
-
-msgid "Wildcard"
-msgstr "Jokertecken"
-
-
-msgid "Remove all attributes that match the pattern which is allowed to contain a single wildcard (*)"
-msgstr "Ta bort alla attribut som matchar mönstret som får innehålla ett enda jokertecken (*)."
-
-
-msgid "Pattern Mode"
-msgstr "Mönsterläge"
 
 
 msgid "Geometry to remove attributes from"
@@ -150531,10 +150353,6 @@ msgstr "Konvertering stöds inte vid separering av buntar"
 
 msgid "Geometry to split into separate components"
 msgstr "Geometri för att dela upp i separata komponenter"
-
-
-msgid "Inverted"
-msgstr "Inverterad"
 
 
 msgid "Geometry to split into two parts"
@@ -151163,6 +150981,22 @@ msgstr "Menyvärdet måste vara ett konstant värde."
 
 msgid " (Deprecated)"
 msgstr " (Föråldrad)"
+
+
+msgid "Only one * is supported in the pattern"
+msgstr "Endast ett * stöds i mönstret."
+
+
+msgid "Remove the one attribute with the given name"
+msgstr "Ta bort det enda attributet med det angivna namnet"
+
+
+msgid "Wildcard"
+msgstr "Jokertecken"
+
+
+msgid "Remove all attributes that match the pattern which is allowed to contain a single wildcard (*)"
+msgstr "Ta bort alla attribut som matchar mönstret som får innehålla ett enda jokertecken (*)."
 
 
 msgid "Update based on linked bundle signature"

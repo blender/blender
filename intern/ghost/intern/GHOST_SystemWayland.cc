@@ -192,6 +192,9 @@ static bool use_gnome_confine_hack = false;
  * See: https://bugs.kde.org/show_bug.cgi?id=461001
  */
 #define USE_KDE_TABLET_HIDDEN_CURSOR_HACK
+#ifdef USE_KDE_TABLET_HIDDEN_CURSOR_HACK
+static bool use_kde_tablet_hidden_cursor_hack = false;
+#endif
 
 /**
  * GNOME (mutter 50.1 has a regression), unlocking the cursor warps
@@ -1239,7 +1242,7 @@ struct GWL_Seat {
      * Timer for key repeats.
      *
      * \note For as long as #USE_EVENT_BACKGROUND_THREAD is defined, any access to this
-     * (including null checks, must lock `timer_mutex` first.
+     * (including null checks), must lock `timer_mutex` first.
      */
     GHOST_ITimerTask *timer = nullptr;
   } key_repeat;
@@ -2597,7 +2600,7 @@ static int ghost_wl_display_event_pump(wl_display *wl_display)
   /* Based on SDL's `Wayland_PumpEvents`. */
   int err;
 
-  /* NOTE: Without this, interactions with window borders aren't handled}. */
+  /* NOTE: Without this, interactions with window borders aren't handled. */
   wl_display_flush(wl_display);
 
   if (wl_display_prepare_read(wl_display) == 0) {
@@ -2788,7 +2791,7 @@ static char *read_file_as_buffer(const int fd, const bool nil_terminate, size_t 
         break;
       }
       chunk->next = nullptr;
-      /* Using `read` causes issues with GNOME, see: #106040). */
+      /* Using `read` causes issues with GNOME, see: #106040. */
       const ssize_t len_chunk = read_exhaustive(fd, chunk->data, sizeof(ByteChunk::data));
       if (len_chunk <= 0) {
         if (len_chunk < 0) [[unlikely]] {
@@ -3084,7 +3087,9 @@ static void gwl_seat_cursor_buffer_show(GWL_Seat *seat)
                                       hotspot_x,
                                       hotspot_y);
 #ifdef USE_KDE_TABLET_HIDDEN_CURSOR_HACK
-        wl_surface_commit(tablet_tool->wl.surface_cursor);
+        if (use_kde_tablet_hidden_cursor_hack) {
+          wl_surface_commit(tablet_tool->wl.surface_cursor);
+        }
 #endif
       }
     }
@@ -3691,6 +3696,9 @@ static GWL_CurrentDesktopType ghost_wayland_current_desktop()
      */
     if (string_elem_split_by_delim(xdg_current_desktop, ':', "GNOME")) {
       return GWL_CurrentDesktopType::Gnome;
+    }
+    else if (string_elem_split_by_delim(xdg_current_desktop, ':', "KDE")) {
+      return GWL_CurrentDesktopType::KDE;
     }
   }
   return GWL_CurrentDesktopType::Other;
@@ -8253,7 +8261,7 @@ static void global_handle_add(void *data,
   /* Initialization avoids excessive calls by calling update after all have been initialized. */
   if (added) {
     if (display->registry_skip_update_all == false) {
-      /* See doc-string for rationale on updating all on add/removal. */
+      /* See docstring for rationale on updating all on add/removal. */
       gwl_registry_entry_update_all(display, interface_slot);
     }
   }
@@ -8285,7 +8293,7 @@ static void global_handle_remove(void *data,
 
   if (removed) {
     if (display->registry_skip_update_all == false) {
-      /* See doc-string for rationale on updating all on add/removal. */
+      /* See docstring for rationale on updating all on add/removal. */
       gwl_registry_entry_update_all(display, interface_slot);
     }
   }
@@ -8386,6 +8394,10 @@ GHOST_SystemWayland::GHOST_SystemWayland(const bool background)
   }
 
   const GWL_CurrentDesktopType current_desktop = ghost_wayland_current_desktop();
+  if (current_desktop == GWL_CurrentDesktopType::KDE) {
+    use_kde_tablet_hidden_cursor_hack = true;
+  }
+
   /* This may be removed later if decorations are required, needed as part of registration. */
   display_->xdg_decor = new GWL_XDG_Decor_System;
 

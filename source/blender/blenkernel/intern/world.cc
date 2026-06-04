@@ -112,7 +112,7 @@ static void world_copy_data(Main *bmain,
     }
   }
 
-  BLI_listbase_clear(&wrld_dst->gpumaterial);
+  wrld_dst->gpumaterial.clear_no_delete();
 
   if ((flag & LIB_ID_COPY_NO_PREVIEW) == 0) {
     BKE_previewimg_id_copy(&wrld_dst->id, &wrld_src->id);
@@ -150,7 +150,7 @@ static void world_blend_write(BlendWriter *writer, ID *id, const void *id_addres
 
   /* Clean up runtime data, important in undo case to reduce false detection of changed
    * datablocks. */
-  BLI_listbase_clear(&wrld->gpumaterial);
+  wrld->gpumaterial.clear_no_delete();
   wrld->last_update = 0;
 
   /* Set deprecated #use_nodes for forward compatibility. */
@@ -181,7 +181,7 @@ static void world_blend_read_data(BlendDataReader *reader, ID *id)
 
   BLO_read_struct(reader, PreviewImage, &wrld->preview);
   BKE_previewimg_blend_read(reader, wrld->preview);
-  BLI_listbase_clear(&wrld->gpumaterial);
+  wrld->gpumaterial.clear_no_delete();
 
   BLO_read_struct(reader, LightgroupMembership, &wrld->lightgroup);
 }

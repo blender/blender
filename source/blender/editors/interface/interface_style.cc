@@ -33,9 +33,7 @@
 #  include "BLI_math_base.h" /* M_PI */
 #endif
 
-namespace blender {
-
-namespace ui {
+namespace blender::ui {
 
 static CLG_LogRef LOG = {"ui.font"};
 
@@ -612,5 +610,4 @@ void fontstyle_set(const uiFontStyle *fs)
   fontstyle_set_ex(fs, UI_SCALE_FAC);
 }
 
-}  // namespace ui
-}  // namespace blender
+}  // namespace blender::ui

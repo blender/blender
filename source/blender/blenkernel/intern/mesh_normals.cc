@@ -182,6 +182,7 @@ void normals_calc_faces(const Span<float3> positions,
                         const Span<int> corner_verts,
                         MutableSpan<float3> face_normals)
 {
+  PRF_scope(ProfileCategory::Default);
   BLI_assert(faces.size() == face_normals.size());
   threading::parallel_for(faces.index_range(), 1024, [&](const IndexRange range) {
     for (const int i : range) {
@@ -197,6 +198,7 @@ void normals_calc_verts(const Span<float3> vert_positions,
                         const Span<float3> face_normals,
                         MutableSpan<float3> vert_normals)
 {
+  PRF_scope(ProfileCategory::Default);
   const Span<float3> positions = vert_positions;
   threading::parallel_for(positions.index_range(), 1024, [&](const IndexRange range) {
     for (const int vert : range) {
@@ -230,6 +232,7 @@ static void mix_normals_corner_to_vert(const Span<float3> vert_positions,
                                        const Span<float3> corner_normals,
                                        MutableSpan<float3> vert_normals)
 {
+  PRF_scope(ProfileCategory::Default);
   const Span<float3> positions = vert_positions;
   threading::parallel_for(positions.index_range(), 1024, [&](const IndexRange range) {
     for (const int vert : range) {
@@ -262,6 +265,7 @@ static void mix_normals_vert_to_face(const OffsetIndices<int> faces,
                                      const Span<float3> vert_normals,
                                      MutableSpan<float3> face_normals)
 {
+  PRF_scope(ProfileCategory::Default);
   threading::parallel_for(faces.index_range(), 1024, [&](const IndexRange range) {
     for (const int face : range) {
       float3 sum(0);
@@ -277,6 +281,7 @@ static void mix_normals_corner_to_face(const OffsetIndices<int> faces,
                                        const Span<float3> corner_normals,
                                        MutableSpan<float3> face_normals)
 {
+  PRF_scope(ProfileCategory::Default);
   threading::parallel_for(faces.index_range(), 1024, [&](const IndexRange range) {
     for (const int face : range) {
       const Span<float3> face_corner_normals = corner_normals.slice(faces[face]);
@@ -1243,6 +1248,7 @@ void normals_calc_corners(const Span<float3> vert_positions,
                           CornerNormalSpaceArray *r_fan_spaces,
                           MutableSpan<float3> r_corner_normals)
 {
+  PRF_scope(ProfileCategory::Default);
   BLI_assert(corner_verts.size() == corner_edges.size());
   BLI_assert(custom_normals.is_empty() || corner_verts.size() == custom_normals.size());
   BLI_assert(corner_verts.size() == r_corner_normals.size());

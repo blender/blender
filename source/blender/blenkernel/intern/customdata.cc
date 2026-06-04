@@ -41,6 +41,8 @@
 #include "BLI_string_utils.hh"
 #include "BLI_utildefines.h"
 
+#include "PRF_profile.hh"
+
 #ifndef NDEBUG
 #  include "BLI_dynstr.h"
 #endif
@@ -2435,6 +2437,7 @@ void CustomData_realloc(CustomData *data,
                         const int new_size,
                         const eCDAllocType alloctype)
 {
+  PRF_scope(ProfileCategory::Default);
   BLI_assert(new_size >= 0);
   for (int i = 0; i < data->totlayer; i++) {
     CustomDataLayer *layer = &data->layers[i];

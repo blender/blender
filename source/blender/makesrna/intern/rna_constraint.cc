@@ -656,7 +656,7 @@ static void rna_ArmatureConstraint_target_clear(ID *id, bConstraint *con, Main *
 {
   bArmatureConstraint *acon = static_cast<bArmatureConstraint *>(con->data);
 
-  BLI_freelistN(&acon->targets);
+  acon->targets.free_no_destruct();
 
   ed::object::constraint_dependency_tag_update(bmain, id_cast<Object *>(id), con);
 }

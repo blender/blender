@@ -102,7 +102,7 @@ struct ReferenceLifetimesInfo {
   /**
    * Relations used for group nodes that use this group.
    */
-  nodes::aal::RelationsInNode tree_relations;
+  nodes::rl::RelationsInNode tree_relations;
 };
 
 bool analyse_reference_lifetimes(bNodeTree &tree);

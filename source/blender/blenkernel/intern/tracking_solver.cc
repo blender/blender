@@ -335,7 +335,7 @@ MovieReconstructContext *BKE_tracking_reconstruction_context_new(
   MovieReconstructContext *context = MEM_new_zeroed<MovieReconstructContext>(
       "MovieReconstructContext data");
   const float aspy = 1.0f / tracking->camera.pixel_aspect;
-  const int num_tracks = BLI_listbase_count(&tracking_object->tracks);
+  const int num_tracks = tracking_object->tracks.count();
   int sfra = INT_MAX, efra = INT_MIN;
 
   STRNCPY_UTF8(context->object_name, tracking_object->name);

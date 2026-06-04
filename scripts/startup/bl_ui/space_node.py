@@ -1202,6 +1202,10 @@ class NODE_AST_compositor(bpy.types.AssetShelf):
             "Combine Spherical",
             "Separate Cylindrical",
             "Separate Spherical",
+            "3D to Screen Space",
+            "Screen to 3D Space",
+            "Project with Depth",
+            "Transform and Project",
         }
 
         compositor_essentials_path = Path(os.path.join(

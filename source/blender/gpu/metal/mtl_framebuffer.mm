@@ -1513,7 +1513,7 @@ MTLRenderPassDescriptor *MTLFrameBuffer::bake_render_pass_descriptor(bool load_c
     descriptor_dirty_[MTL_FB_CONFIG_CUSTOM] = true;
   }
 
-  /* If we need to populate descriptor" */
+  /* If we need to populate descriptor */
   /* Select config based on FrameBuffer state:
    * [0] {MTL_FB_CONFIG_CLEAR} = Clear config -- we have a pending clear so should perform our
    * configured clear.

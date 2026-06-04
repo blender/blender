@@ -65,7 +65,7 @@ static void node_declare(NodeDeclarationBuilder &b)
                         .description("Minimum density of a voxel to contain a grid point")
                         .make_available(
                             [](bNode &node) { node.custom1 = int16_t(DistributeMode::Grid); });
-  b.add_output<decl::Geometry>("Points"_ustr).propagate_all();
+  b.add_output<decl::Geometry>("Points"_ustr).propagate_all_geometry();
 
   const bNode *node = b.node_or_null();
   if (node != nullptr) {

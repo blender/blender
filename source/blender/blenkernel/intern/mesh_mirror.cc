@@ -169,7 +169,7 @@ Mesh *BKE_mesh_mirror_apply_mirror_on_axis_for_modifier(MirrorModifierData *mmd,
           len_squared_v3(ob->object_to_world().ptr()[2]),
       };
       /* Scale to avoid precision loss with extreme values. */
-      const float ob_scale_max = max_fff(UNPACK3(ob_scale));
+      const float ob_scale_max = std::max({UNPACK3(ob_scale)});
       if (LIKELY(ob_scale_max != 0.0f)) {
         mul_v3_fl(ob_scale, 1.0f / ob_scale_max);
         mul_v3_v3(plane_no, ob_scale);

@@ -109,6 +109,8 @@ def finalize():
 
 def make_lib():
     bpy.ops.wm.read_factory_settings()
+    scene = bpy.data.scenes["Scene"]
+    scene.name = "Scene_lib"
 
     # datablock pointer to the Camera object
     bpy.data.objects["Cube"].prop = bpy.data.objects['Camera']
@@ -132,13 +134,11 @@ def make_lib():
 
     # nodes
     tree = bpy.data.node_groups.new("Compositor Nodes", "CompositorNodeTree")
-    bpy.data.scenes["Scene"].compositing_node_group = tree
+    scene.compositing_node_group = tree
     rlayers = tree.nodes.new(type="CompositorNodeRLayers")
     sys_idprops = rlayers.bl_system_properties_get(do_create=True)
     sys_idprops["prop"] = bpy.data.objects['Camera']
 
-    # rename scene and save
-    bpy.data.scenes["Scene"].name = "Scene_lib"
     bpy.ops.wm.save_as_mainfile(filepath=lib_path)
 
 

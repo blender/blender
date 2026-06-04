@@ -535,7 +535,7 @@ static void loose_data_instantiate_object_base_instance_init(Main *bmain,
 }
 
 /* Tag obdata that actually need to be instantiated (those referenced by an object do not, since
- * the object will be instantiated instead if needed. */
+ * the object will be instantiated instead if needed). */
 static void loose_data_instantiate_obdata_preprocess(
     LooseDataInstantiateContext *instantiate_context)
 {
@@ -1127,7 +1127,8 @@ static int foreach_libblock_append_add_dependencies_callback(LibraryIDLinkCallba
       static_cast<BlendfileLinkAppendContextCallBack *>(cb_data->user_data);
 
   /* NOTE: In append case, all dependencies are needed in the items list, to cover potential
-   * complex cases (e.g. linked data from another library referencing other IDs from the  */
+   * complex cases (e.g. linked data from another library referencing other IDs from the main
+   * appended library). */
 
   BlendfileLinkAppendContextItem *item = data->lapp_context->new_id_to_item.lookup_default(
       id, nullptr);

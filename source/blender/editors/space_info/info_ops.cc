@@ -331,8 +331,13 @@ static wmOperatorStatus unpack_item_exec(bContext *C, wmOperator *op)
   Main *bmain = CTX_data_main(C);
   ID *id;
   char idname[MAX_ID_NAME - 2];
-  int type = RNA_int_get(op->ptr, "id_type");
+  const short type = RNA_int_get(op->ptr, "id_type");
   ePF_FileStatus method = ePF_FileStatus(RNA_enum_get(op->ptr, "method"));
+
+  /* Ideally this would be an enum, since it's not - use the list lookup as a type check. */
+  if (which_libbase(bmain, type) == nullptr) [[unlikely]] {
+    return OPERATOR_CANCELLED;
+  }
 
   RNA_string_get(op->ptr, "id_name", idname);
   id = BKE_libblock_find_name(bmain, type, idname);

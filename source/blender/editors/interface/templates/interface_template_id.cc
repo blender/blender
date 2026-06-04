@@ -770,6 +770,7 @@ static void template_ui_make_local(bContext &C, TemplateID &template_ui)
 
       /* Reassign to get proper updates/notifiers. */
       idptr = RNA_property_pointer_get(&template_ui.ptr, template_ui.prop);
+      undo_push_label = CTX_N_(BLT_I18NCONTEXT_OPERATOR_DEFAULT, "Make Local");
     }
   }
   if (undo_push_label) {
@@ -785,7 +786,7 @@ static void template_ui_override(bContext &C, TemplateID &template_ui)
   PointerRNA idptr = RNA_property_pointer_get(&template_ui.ptr, template_ui.prop);
   ID *id = static_cast<ID *>(idptr.data);
 
-  const char *undo_push_label;
+  const char *undo_push_label = nullptr;
 
   if (!(id && ID_IS_OVERRIDE_LIBRARY(id))) {
     return;
@@ -801,7 +802,10 @@ static void template_ui_override(bContext &C, TemplateID &template_ui)
     RNA_property_pointer_set(&template_ui.ptr, template_ui.prop, idptr, nullptr);
     RNA_property_update(&C, &template_ui.ptr, template_ui.prop);
 
-    ED_undo_push(&C, CTX_N_(BLT_I18NCONTEXT_OPERATOR_DEFAULT, "Make Local"));
+    undo_push_label = CTX_N_(BLT_I18NCONTEXT_OPERATOR_DEFAULT, "Make Local");
+  }
+  if (undo_push_label != nullptr) {
+    ED_undo_push(&C, undo_push_label);
     WM_event_add_notifier(&C, NC_SPACE | ND_SPACE_OUTLINER, nullptr);
   }
 }

@@ -20,8 +20,10 @@
 
 /* Hierarchical Z down-sampling. */
 #define HIZ_MIP_COUNT 7
-/* NOTE: The shader is written to update 5 mipmaps using LDS. */
-#define HIZ_GROUP_SIZE 32
+/* NOTE: The shader is written to update 5 mipmaps using LDS.
+ * Each thread actually update 4 LOD_0 pixels, which means the number of MIPLVL we cover is:
+ * `(log2(HIZ_GROUP_SIZE) + 1) + LOD_0 + LAST_GROUP_LVL = HIZ_MIP_COUNT` */
+#define HIZ_GROUP_SIZE 16
 
 /* Avoid too much overhead caused by resizing the light buffers too many time. */
 #define LIGHT_CHUNK 256
@@ -207,19 +209,6 @@
 #define UTIL_DISK_INTEGRAL_LAYER UTIL_SSS_TRANSMITTANCE_PROFILE_LAYER
 #define UTIL_DISK_INTEGRAL_COMP 3
 
-/* Could be somewhere else. */
-#ifdef GPU_SHADER
-#  if defined(GPU_FRAGMENT_SHADER)
-#    define UTIL_TEXEL float2(gl_FragCoord.xy)
-#  elif defined(GPU_COMPUTE_SHADER)
-#    define UTIL_TEXEL float2(gl_GlobalInvocationID.xy)
-#  elif defined(GPU_VERTEX_SHADER)
-#    define UTIL_TEXEL float2(gl_VertexID, 0)
-#  elif defined(GPU_LIBRARY_SHADER)
-#    define UTIL_TEXEL float2(0)
-#  endif
-#endif
-
 #define PREPASS_FRAG_OUT_NORMAL 0
 #define PREPASS_FRAG_OUT_OB_ID 1
 #define PREPASS_FRAG_OUT_VELOCITY 2
@@ -240,15 +229,16 @@
 #define VOLUME_TRANSMITTANCE_TEX_SLOT 9
 #define HIZ_PREVIOUS_LAYER_TEX_SLOT 10
 #define RADIANCE_PREVIOUS_LAYER_TEX_SLOT 11
-#define OBJECT_ID_TEX_SLOT 12
-#define PREPASS_NORMAL_TEX_SLOT 13
+#define RAYCAST_DEPTH_TEX_SLOT 12
+#define OBJECT_ID_TEX_SLOT 13
+#define PREPASS_NORMAL_TEX_SLOT 14
 /* Currently only used by ray-tracing, but might become used by forward too. */
-#define PLANAR_PROBE_DEPTH_TEX_SLOT 14
-#define PLANAR_PROBE_RADIANCE_TEX_SLOT 15
+#define PLANAR_PROBE_DEPTH_TEX_SLOT 15
+#define PLANAR_PROBE_RADIANCE_TEX_SLOT 16
 
-#define GBUF_CLOSURE_TEX_SLOT 16
-#define GBUF_NORMAL_TEX_SLOT 17
-#define GBUF_HEADER_TEX_SLOT 18
+#define GBUF_CLOSURE_TEX_SLOT 17
+#define GBUF_NORMAL_TEX_SLOT 18
+#define GBUF_HEADER_TEX_SLOT 19
 
 /* Images. */
 #define RBUFS_COLOR_SLOT 0

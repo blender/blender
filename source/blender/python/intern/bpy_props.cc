@@ -50,7 +50,7 @@ namespace blender {
 // #define USE_ENUM_COPY_STRINGS
 
 /* -------------------------------------------------------------------- */
-/** \name Shared Enums & Doc-Strings
+/** \name Shared Enums & Docstrings
  * \{ */
 
 #define BPY_PROPDEF_OPTIONS_DOC \
@@ -3359,7 +3359,7 @@ static int bpy_prop_arg_parse_tag_defines(PyObject *o, void *p)
 /** \} */
 
 /* -------------------------------------------------------------------- */
-/** \name Shared Method Doc-Strings
+/** \name Shared Method Docstrings
  * \{ */
 
 #define BPY_PROPDEF_NAME_DOC \
@@ -5929,7 +5929,7 @@ void BPY_rna_props_clear_all()
   RNA_def_property_free_pointers_set_py_data_callback(nullptr);
 
   /* Include as it's correct, in practice this should never be used again. */
-  BLI_listbase_clear(&g_bpy_prop_store_list);
+  g_bpy_prop_store_list.clear_no_delete();
 }
 
 /** \} */

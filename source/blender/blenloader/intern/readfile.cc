@@ -173,7 +173,7 @@ namespace blender {
  *
  * \note Still a weak point is the new-address function, that doesn't solve reading from
  * multiple files at the same time.
- * (added remark: oh, i thought that was solved? will look at that... (ton).
+ * (added remark: oh, i thought that was solved? will look at that... (ton)).
  */
 
 /**
@@ -424,7 +424,7 @@ void blo_split_main(Main *bmain, const bool do_split_packed_ids)
   bmain->split_mains = std::make_shared<VectorSet<Main *>>();
   bmain->split_mains->add_new(bmain);
 
-  if (BLI_listbase_is_empty(&bmain->libraries)) {
+  if (bmain->libraries.is_empty()) {
     return;
   }
 
@@ -1357,7 +1357,7 @@ void blo_filedata_free(FileData *fd)
 {
   /* Free all BHeadN data blocks */
 #ifdef NDEBUG
-  BLI_freelistN(&fd->bhead_list);
+  fd->bhead_list.free_no_destruct();
 #else
   /* Sanity check we're not keeping memory we don't need. */
   for (BHeadN &new_bhead : fd->bhead_list.items_mutable()) {
@@ -1522,9 +1522,7 @@ static FileData *change_ID_link_filedata_get(Main *bmain, FileData *basefd)
   if (bmain->curlib) {
     return bmain->curlib->runtime->filedata;
   }
-  else {
-    return basefd;
-  }
+  return basefd;
 }
 
 static void change_link_placeholder_to_real_ID_pointer(FileData *basefd, void *old, void *newp)
@@ -2016,6 +2014,8 @@ static void direct_link_id_override_property(BlendDataReader *reader,
   for (IDOverrideLibraryPropertyOperation &opop : op->operations) {
     BLO_read_string(reader, &opop.subitem_reference_name);
     BLO_read_string(reader, &opop.subitem_local_name);
+    BLO_read_string(reader, &opop.label);
+    BLO_read_string(reader, &opop.tooltip);
 
     opop.tag = {}; /* Runtime only. */
   }
@@ -2402,7 +2402,7 @@ static bool scene_validate_setscene__liblink(Scene *sce, const int totscene)
 static void lib_link_scenes_check_set(Main *bmain)
 {
 #ifdef USE_SETSCENE_CHECK
-  const int totscene = BLI_listbase_count(&bmain->scenes);
+  const int totscene = bmain->scenes.count();
   for (Scene &sce : bmain->scenes) {
     if (sce.flag & SCE_READFILE_LIBLINK_NEED_SETSCENE_CHECK) {
       sce.flag &= ~SCE_READFILE_LIBLINK_NEED_SETSCENE_CHECK;
@@ -2921,7 +2921,7 @@ static void read_undo_reuse_noundo_local_ids(FileData *fd)
     }
 
     ListBaseT<ID> *new_lb = which_libbase(new_bmain, id_type->id_code);
-    BLI_assert(BLI_listbase_is_empty(new_lb));
+    BLI_assert(new_lb->is_empty());
     BLI_movelisttolist(new_lb, lbarray[i]);
 
     /* Update mappings accordingly. */
@@ -3761,6 +3761,9 @@ static void do_versions(FileData *fd, Library *lib, Main *main)
   if (!main->is_read_invalid) {
     blo_do_versions_520(fd, lib, main);
   }
+  if (!main->is_read_invalid) {
+    blo_do_versions_530(fd, lib, main);
+  }
 
   /* WATCH IT!!!: pointers from libdata have not been converted yet here! */
   /* WATCH IT 2!: #UserDef struct init see #do_versions_userdef() above! */
@@ -3828,6 +3831,9 @@ static void do_versions_after_linking(FileData *fd, Main *main)
   }
   if (!main->is_read_invalid) {
     do_versions_after_linking_520(fd, main);
+  }
+  if (!main->is_read_invalid) {
+    do_versions_after_linking_530(fd, main);
   }
 
   main->is_locked_for_linking = false;
@@ -4526,6 +4532,8 @@ BlendFileData *blo_read_file_internal(FileData *fd, const char *filepath)
 
       /* Update invariants after re-generating overrides. */
       BKE_main_ensure_invariants(*bfd->main);
+
+      BKE_main_id_indirect_linked_update(*bfd->main);
 
       fd->reports->duration.lib_overrides = BLI_time_now_seconds() -
                                             fd->reports->duration.lib_overrides;

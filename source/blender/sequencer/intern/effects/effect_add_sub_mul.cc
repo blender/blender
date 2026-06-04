@@ -10,6 +10,8 @@
 
 #include "IMB_imbuf.hh"
 
+#include "PRF_profile.hh"
+
 #include "SEQ_render.hh"
 
 #include "effects.hh"
@@ -46,18 +48,21 @@ struct AddEffectOp {
   float factor;
 };
 
-static ImBuf *do_add_effect(const RenderData *context,
-                            SeqRenderState * /*state*/,
-                            Strip * /*strip*/,
-                            float /*timeline_frame*/,
-                            float fac,
-                            ImBuf *src1,
-                            ImBuf *src2)
+static SeqResult do_add_effect(const RenderData *context,
+                               SeqRenderState * /*state*/,
+                               Strip * /*strip*/,
+                               float /*timeline_frame*/,
+                               float fac,
+                               const SeqResult &src1,
+                               const SeqResult &src2)
 {
-  ImBuf *dst = prepare_effect_imbufs(context, src1, src2);
+  PRF_scope_with_name("SeqFxAdd", ProfileCategory::Draw);
+  SeqResult dst = prepare_effect_imbufs(context, src1, src2);
   AddEffectOp op;
   op.factor = fac;
-  apply_effect_op(op, src1, src2, dst);
+  apply_effect_op(op, src1.image, src2.image, dst.image);
+  /* Destination uses alpha from src1 */
+  dst.is_opaque_before_transform = !src1.image->can_contain_alpha();
   return dst;
 }
 
@@ -91,18 +96,21 @@ struct SubEffectOp {
   float factor;
 };
 
-static ImBuf *do_sub_effect(const RenderData *context,
-                            SeqRenderState * /*state*/,
-                            Strip * /*strip*/,
-                            float /*timeline_frame*/,
-                            float fac,
-                            ImBuf *src1,
-                            ImBuf *src2)
+static SeqResult do_sub_effect(const RenderData *context,
+                               SeqRenderState * /*state*/,
+                               Strip * /*strip*/,
+                               float /*timeline_frame*/,
+                               float fac,
+                               const SeqResult &src1,
+                               const SeqResult &src2)
 {
-  ImBuf *dst = prepare_effect_imbufs(context, src1, src2);
+  PRF_scope_with_name("SeqFxSub", ProfileCategory::Draw);
+  SeqResult dst = prepare_effect_imbufs(context, src1, src2);
   SubEffectOp op;
   op.factor = fac;
-  apply_effect_op(op, src1, src2, dst);
+  apply_effect_op(op, src1.image, src2.image, dst.image);
+  /* Destination uses alpha from src1 */
+  dst.is_opaque_before_transform = !src1.image->can_contain_alpha();
   return dst;
 }
 
@@ -136,18 +144,19 @@ struct MulEffectOp {
   float factor;
 };
 
-static ImBuf *do_mul_effect(const RenderData *context,
-                            SeqRenderState * /*state*/,
-                            Strip * /*strip*/,
-                            float /*timeline_frame*/,
-                            float fac,
-                            ImBuf *src1,
-                            ImBuf *src2)
+static SeqResult do_mul_effect(const RenderData *context,
+                               SeqRenderState * /*state*/,
+                               Strip * /*strip*/,
+                               float /*timeline_frame*/,
+                               float fac,
+                               const SeqResult &src1,
+                               const SeqResult &src2)
 {
-  ImBuf *dst = prepare_effect_imbufs(context, src1, src2);
+  PRF_scope_with_name("SeqFxMul", ProfileCategory::Draw);
+  SeqResult dst = prepare_effect_imbufs(context, src1, src2);
   MulEffectOp op;
   op.factor = fac;
-  apply_effect_op(op, src1, src2, dst);
+  apply_effect_op(op, src1.image, src2.image, dst.image);
   return dst;
 }
 

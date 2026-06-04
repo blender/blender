@@ -157,7 +157,7 @@ void settings_clear_enabled_catalogs(AssetShelf &shelf)
   ListBaseT<AssetCatalogPathLink> *enabled_catalog_paths = get_enabled_catalog_path_list(shelf);
   if (enabled_catalog_paths) {
     BKE_asset_catalog_path_list_free(*enabled_catalog_paths);
-    BLI_assert(BLI_listbase_is_empty(enabled_catalog_paths));
+    BLI_assert(enabled_catalog_paths->is_empty());
   }
 }
 

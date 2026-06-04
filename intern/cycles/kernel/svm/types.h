@@ -14,6 +14,12 @@ CCL_NAMESPACE_BEGIN
 /* Stack offset type. Stack offsets are in the range [0, SVM_STACK_SIZE]. */
 using SVMStackOffset = uint8_t;
 
+/* Store int value and stack offset. */
+struct SVMInputInt {
+  int value;
+  SVMStackOffset offset;
+};
+
 /* Encodes a node float input, as either float value or a stack offset
  * encoded in a NaN bit pattern. */
 struct SVMInputFloat {
@@ -463,6 +469,7 @@ enum ClosureType : uint {
   /* Diffuse */
   CLOSURE_BSDF_DIFFUSE_ID,
   CLOSURE_BSDF_OREN_NAYAR_ID,
+  CLOSURE_BSDF_ROUGH_TRANSLUCENT_ID,
   CLOSURE_BSDF_BURLEY_ID,
   CLOSURE_BSDF_DIFFUSE_RAMP_ID,
   CLOSURE_BSDF_SHEEN_ID,
@@ -484,6 +491,7 @@ enum ClosureType : uint {
   /* Transmission */
   CLOSURE_BSDF_MICROFACET_BECKMANN_REFRACTION_ID,
   CLOSURE_BSDF_MICROFACET_GGX_REFRACTION_ID,
+  CLOSURE_BSDF_THIN_GLASS_TRANSMISSION_ID,
   CLOSURE_BSDF_HAIR_TRANSMISSION_ID,
 
   /* Glass */
@@ -541,7 +549,7 @@ static_assert(NBUILTIN_CLOSURES < 256, "Too many Closure types (need to change S
 #define CLOSURE_IS_BSDF_MICROFACET(type) \
   ((type >= CLOSURE_BSDF_MICROFACET_GGX_ID && type <= CLOSURE_BSDF_ASHIKHMIN_SHIRLEY_ID) || \
    (type >= CLOSURE_BSDF_MICROFACET_BECKMANN_REFRACTION_ID && \
-    type <= CLOSURE_BSDF_MICROFACET_GGX_REFRACTION_ID) || \
+    type <= CLOSURE_BSDF_THIN_GLASS_TRANSMISSION_ID) || \
    (type >= CLOSURE_BSDF_MICROFACET_BECKMANN_GLASS_ID && \
     type <= CLOSURE_BSDF_MICROFACET_MULTI_GGX_GLASS_ID))
 #define CLOSURE_IS_BSDF_OR_BSSRDF(type) \

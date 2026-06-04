@@ -305,7 +305,7 @@ void BKE_tracking_refine_marker(MovieClip *clip,
   float *search_area, *mask = nullptr;
   int frame_width, frame_height;
   int search_area_height, search_area_width;
-  MovieClipFlag clip_flag = MovieClipFlag(clip->flag & MCLIP_TIMECODE_FLAGS);
+  MovieClipFlag clip_flag = MovieClipFlag(clip->flag & MCLIP_PROXY_FLAGS);
   int reference_framenr;
   MovieClipUser user = {};
   double dst_pixel_x[5], dst_pixel_y[5];

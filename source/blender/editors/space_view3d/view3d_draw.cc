@@ -57,6 +57,7 @@
 #include "ED_info.hh"
 #include "ED_scene.hh"
 #include "ED_screen.hh"
+#include "ED_util.hh"
 #include "ED_view3d_offscreen.hh"
 #include "ED_viewer_path.hh"
 
@@ -90,8 +91,6 @@
 #include "view3d_intern.hh" /* own include */
 
 namespace blender {
-
-#define M_GOLDEN_RATIO_CONJUGATE 0.618033988749895f
 
 #define VIEW3D_OVERLAY_LINEHEIGHT (ui::style_get()->widget.points * UI_SCALE_FAC * 1.6f)
 
@@ -250,13 +249,14 @@ static bool view3d_stereo3d_active(wmWindow *win,
   return true;
 }
 
-/* setup the view and win matrices for the multiview cameras
+/**
+ * Setup the view and win matrices for the multiview cameras.
  *
- * unlike view3d_stereo3d_setup_offscreen, when view3d_stereo3d_setup is called
+ * Unlike #view3d_stereo3d_setup_offscreen, when view3d_stereo3d_setup is called
  * we have no winmatrix (i.e., projection matrix) defined at that time.
- * Since the camera and the camera shift are needed for the winmat calculation
- * we do a small hack to replace it temporarily so we don't need to change the
- * view3d)main_region_setup_view() code to account for that.
+ * Since the camera and the camera shift are needed for the `winmat` calculation
+ * we do a small hack to replace it temporarily so we don't need to change the view3d
+ * #main_region_setup_view() code to account for that.
  */
 static void view3d_stereo3d_setup(
     Depsgraph *depsgraph, Scene *scene, View3D *v3d, ARegion *region, const rcti *rect)
@@ -455,86 +455,6 @@ void ED_view3d_calc_camera_border(const Scene *scene,
   view3d_camera_border(scene, depsgraph, region, v3d, rv3d, r_viewborder, no_shift, false);
 }
 
-static void drawviewborder_grid3(uint shdr_pos, float x1, float x2, float y1, float y2, float fac)
-{
-  float x3, y3, x4, y4;
-
-  x3 = x1 + fac * (x2 - x1);
-  y3 = y1 + fac * (y2 - y1);
-  x4 = x1 + (1.0f - fac) * (x2 - x1);
-  y4 = y1 + (1.0f - fac) * (y2 - y1);
-
-  immBegin(GPU_PRIM_LINES, 8);
-
-  immVertex2f(shdr_pos, x1, y3);
-  immVertex2f(shdr_pos, x2, y3);
-
-  immVertex2f(shdr_pos, x1, y4);
-  immVertex2f(shdr_pos, x2, y4);
-
-  immVertex2f(shdr_pos, x3, y1);
-  immVertex2f(shdr_pos, x3, y2);
-
-  immVertex2f(shdr_pos, x4, y1);
-  immVertex2f(shdr_pos, x4, y2);
-
-  immEnd();
-}
-
-/* harmonious triangle */
-static void drawviewborder_triangle(
-    uint shdr_pos, float x1, float x2, float y1, float y2, const char golden, const char dir)
-{
-  float ofs;
-  float w = x2 - x1;
-  float h = y2 - y1;
-
-  immBegin(GPU_PRIM_LINES, 6);
-
-  if (w > h) {
-    if (golden) {
-      ofs = w * (1.0f - M_GOLDEN_RATIO_CONJUGATE);
-    }
-    else {
-      ofs = h * (h / w);
-    }
-    if (dir == 'B') {
-      std::swap(y1, y2);
-    }
-
-    immVertex2f(shdr_pos, x1, y1);
-    immVertex2f(shdr_pos, x2, y2);
-
-    immVertex2f(shdr_pos, x2, y1);
-    immVertex2f(shdr_pos, x1 + (w - ofs), y2);
-
-    immVertex2f(shdr_pos, x1, y2);
-    immVertex2f(shdr_pos, x1 + ofs, y1);
-  }
-  else {
-    if (golden) {
-      ofs = h * (1.0f - M_GOLDEN_RATIO_CONJUGATE);
-    }
-    else {
-      ofs = w * (w / h);
-    }
-    if (dir == 'B') {
-      std::swap(x1, x2);
-    }
-
-    immVertex2f(shdr_pos, x1, y1);
-    immVertex2f(shdr_pos, x2, y2);
-
-    immVertex2f(shdr_pos, x2, y1);
-    immVertex2f(shdr_pos, x1, y1 + ofs);
-
-    immVertex2f(shdr_pos, x1, y2);
-    immVertex2f(shdr_pos, x2, y1 + (h - ofs));
-  }
-
-  immEnd();
-}
-
 static void drawviewborder(Scene *scene, Depsgraph *depsgraph, ARegion *region, View3D *v3d)
 {
   float x1, x2, y1, y2;
@@ -667,60 +587,9 @@ static void drawviewborder(Scene *scene, Depsgraph *depsgraph, ARegion *region, 
   /* safety border */
   if (ca && (v3d->flag2 & V3D_SHOW_CAMERA_GUIDES)) {
     GPU_blend(GPU_BLEND_ALPHA);
-    immUniformColor4fv(ca->composition_guide_color);
 
-    if (ca->dtx & CAM_DTX_CENTER) {
-      float x3, y3;
-
-      x3 = x1 + 0.5f * (x2 - x1);
-      y3 = y1 + 0.5f * (y2 - y1);
-
-      immBegin(GPU_PRIM_LINES, 4);
-
-      immVertex2f(shdr_pos, x1, y3);
-      immVertex2f(shdr_pos, x2, y3);
-
-      immVertex2f(shdr_pos, x3, y1);
-      immVertex2f(shdr_pos, x3, y2);
-
-      immEnd();
-    }
-
-    if (ca->dtx & CAM_DTX_CENTER_DIAG) {
-      immBegin(GPU_PRIM_LINES, 4);
-
-      immVertex2f(shdr_pos, x1, y1);
-      immVertex2f(shdr_pos, x2, y2);
-
-      immVertex2f(shdr_pos, x1, y2);
-      immVertex2f(shdr_pos, x2, y1);
-
-      immEnd();
-    }
-
-    if (ca->dtx & CAM_DTX_THIRDS) {
-      drawviewborder_grid3(shdr_pos, x1, x2, y1, y2, 1.0f / 3.0f);
-    }
-
-    if (ca->dtx & CAM_DTX_GOLDEN) {
-      drawviewborder_grid3(shdr_pos, x1, x2, y1, y2, 1.0f - M_GOLDEN_RATIO_CONJUGATE);
-    }
-
-    if (ca->dtx & CAM_DTX_GOLDEN_TRI_A) {
-      drawviewborder_triangle(shdr_pos, x1, x2, y1, y2, 0, 'A');
-    }
-
-    if (ca->dtx & CAM_DTX_GOLDEN_TRI_B) {
-      drawviewborder_triangle(shdr_pos, x1, x2, y1, y2, 0, 'B');
-    }
-
-    if (ca->dtx & CAM_DTX_HARMONY_TRI_A) {
-      drawviewborder_triangle(shdr_pos, x1, x2, y1, y2, 1, 'A');
-    }
-
-    if (ca->dtx & CAM_DTX_HARMONY_TRI_B) {
-      drawviewborder_triangle(shdr_pos, x1, x2, y1, y2, 1, 'B');
-    }
+    ED_draw_composition_guides(
+        shdr_pos, ca->composition_guide_flags, &viewborder, ca->composition_guide_color);
 
     if (ca->flag & CAM_SHOW_SAFE_MARGINS) {
       rctf margins_rect{};
@@ -1503,7 +1372,7 @@ static void draw_selected_name(const Main &bmain,
   }
 
   if (v3d->flag2 & V3D_SHOW_VIEWER) {
-    if (!BLI_listbase_is_empty(&v3d->viewer_path.path)) {
+    if (!v3d->viewer_path.path.is_empty()) {
       info_array[i++] = IFACE_(" (Viewer)");
     }
   }
@@ -1953,7 +1822,7 @@ void ED_view3d_draw_offscreen(Depsgraph *depsgraph,
   region->winrct = orig.region_winrct;
 
   /* Optionally do _not_ restore rv3d matrices (e.g. they are used/stored in the ImBuff for
-   * reprojection, see texture_paint_image_from_view_exec(). */
+   * reprojection, see texture_paint_image_from_view_exec()). */
   if (restore_rv3d_mats) {
     ED_view3d_mats_rv3d_restore(static_cast<RegionView3D *>(region->regiondata), orig.rv3d_mats);
   }
@@ -1987,6 +1856,7 @@ void ED_view3d_draw_offscreen_simple(Depsgraph *depsgraph,
                                      bool draw_background,
                                      const char *viewname,
                                      const bool do_color_management,
+                                     Object *camera_override,
                                      GPUOffScreen *ofs,
                                      GPUViewport *viewport)
 {
@@ -2058,7 +1928,14 @@ void ED_view3d_draw_offscreen_simple(Depsgraph *depsgraph,
   v3d.object_type_exclude_viewport = object_type_exclude_viewport_override;
   v3d.object_type_exclude_select = object_type_exclude_select_override;
 
-  rv3d.persp = RV3D_PERSP;
+  if (camera_override != nullptr) {
+    /* Override the active View3D camera and force camera perspective. */
+    rv3d.persp = RV3D_CAMOB;
+    v3d.camera = camera_override;
+  }
+  else {
+    rv3d.persp = RV3D_PERSP;
+  }
   v3d.clip_start = clip_start;
   v3d.clip_end = clip_end;
   /* Actually not used since we pass in the projection matrix. */

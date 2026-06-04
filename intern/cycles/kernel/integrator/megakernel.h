@@ -6,6 +6,7 @@
 
 #include "kernel/integrator/intersect_closest.h"
 #include "kernel/integrator/intersect_dedicated_light.h"
+#include "kernel/integrator/intersect_mnee.h"
 #include "kernel/integrator/intersect_shadow.h"
 #include "kernel/integrator/intersect_subsurface.h"
 #include "kernel/integrator/intersect_volume_stack.h"
@@ -32,18 +33,21 @@ ccl_device void integrator_megakernel(KernelGlobals kg,
       switch (shadow_queued_kernel) {
         case DEVICE_KERNEL_INTEGRATOR_INTERSECT_SHADOW:
           integrator_intersect_shadow(kg, &state->shadow);
-          break;
+          continue;
         case DEVICE_KERNEL_INTEGRATOR_SHADE_SHADOW:
           integrator_shade_shadow(kg, &state->shadow, render_buffer);
-          break;
+          continue;
         case DEVICE_KERNEL_INTEGRATOR_SHADE_LIGHT_NEE:
           integrator_shade_light_nee(kg, &state->shadow, render_buffer);
+          continue;
+        case DEVICE_KERNEL_INTEGRATOR_SHADOW_PATH_MNEE_PENDING:
+          /* Not a real kernel, only a state to keep it alive until
+           * shade_surface uses this shadow path. */
           break;
         default:
           kernel_assert(0);
           break;
       }
-      continue;
     }
 
     /* Handle any AO paths before we potentially create more AO paths. */
@@ -85,9 +89,6 @@ ccl_device void integrator_megakernel(KernelGlobals kg,
         case DEVICE_KERNEL_INTEGRATOR_SHADE_SURFACE_RAYTRACE:
           integrator_shade_surface_raytrace(kg, state, render_buffer);
           break;
-        case DEVICE_KERNEL_INTEGRATOR_SHADE_SURFACE_MNEE:
-          integrator_shade_surface_mnee(kg, state, render_buffer);
-          break;
         case DEVICE_KERNEL_INTEGRATOR_SHADE_LIGHT_FORWARD:
           integrator_shade_light_forward(kg, state, render_buffer);
           break;
@@ -102,6 +103,9 @@ ccl_device void integrator_megakernel(KernelGlobals kg,
           break;
         case DEVICE_KERNEL_INTEGRATOR_INTERSECT_DEDICATED_LIGHT:
           integrator_intersect_dedicated_light(kg, state);
+          break;
+        case DEVICE_KERNEL_INTEGRATOR_INTERSECT_MNEE:
+          integrator_intersect_mnee(kg, state);
           break;
         default:
           kernel_assert(0);

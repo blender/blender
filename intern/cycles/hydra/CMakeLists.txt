@@ -21,7 +21,6 @@ set(LIB
 cycles_external_libraries_append(LIB)
 
 set(SRC_HD_CYCLES_HEADERS
-  attribute.h
   camera.h
   config.h
   curves.h
@@ -40,11 +39,11 @@ set(SRC_HD_CYCLES_HEADERS
   render_delegate.h
   render_pass.h
   session.h
+  util.h
   volume.h
 )
 
 set(SRC_HD_CYCLES
-  attribute.cpp
   curves.cpp
   camera.cpp
   field.cpp
@@ -61,6 +60,7 @@ set(SRC_HD_CYCLES
   render_delegate.cpp
   render_pass.cpp
   session.cpp
+  util.cpp
   volume.cpp
 )
 

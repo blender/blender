@@ -4,28 +4,39 @@
 
 #pragma once
 
-#include <pxr/imaging/hdx/freeCameraSceneDelegate.h>
+#include <pxr/base/gf/camera.h>
+#include <pxr/imaging/hd/renderIndex.h>
+#include <pxr/imaging/hd/retainedSceneIndex.h>
+#include <pxr/imaging/hdx/freeCameraPrimDataSource.h>
 
 namespace blender {
 
 struct Camera;
-struct ID;
 struct Scene;
 
 namespace io::hydra {
 
-class CameraDelegate : public pxr::HdxFreeCameraSceneDelegate {
+/* Camera prim conforming to HdCameraSchema and HdXformSchema through a retained
+ * scene index. */
+
+class BlenderCameraIDPropertiesDataSource;
+
+class CameraDelegate {
  public:
-  CameraDelegate(pxr::HdRenderIndex *render_index, pxr::SdfPath const &delegate_id);
-  ~CameraDelegate() override = default;
+  CameraDelegate(pxr::HdRenderIndex *render_index, pxr::SdfPath const &camera_id);
 
   void sync(const Scene *scene);
-  void update(const ID *camera);
-
-  pxr::VtValue GetCameraParamValue(pxr::SdfPath const &id, pxr::TfToken const &key) override;
+  void SetCamera(pxr::GfCamera const &camera);
+  pxr::SdfPath const &GetCameraId() const
+  {
+    return camera_id_;
+  }
 
  private:
-  const Camera *camera_{nullptr};
+  pxr::HdRetainedSceneIndexRefPtr camera_scene_index_;
+  pxr::SdfPath camera_id_;
+  pxr::HdxFreeCameraPrimDataSource::Handle free_camera_ds_;
+  std::shared_ptr<BlenderCameraIDPropertiesDataSource> id_properties_ds_;
 };
 
 }  // namespace io::hydra

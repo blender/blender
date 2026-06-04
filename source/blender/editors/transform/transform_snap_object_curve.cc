@@ -23,7 +23,7 @@ eSnapMode snapCurve(SnapObjectContext *sctx, const Object *ob_eval, const float4
 {
   bool has_snap = false;
 
-  /* Only vertex snapping mode (eg control points and handles) supported for now). */
+  /* Only vertex snapping mode (eg control points and handles) supported for now. */
   if ((sctx->runtime.snap_to_flag & SCE_SNAP_TO_POINT) == 0) {
     return SCE_SNAP_TO_NONE;
   }

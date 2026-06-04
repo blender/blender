@@ -629,8 +629,8 @@ static StringRefNull colormanage_find_matching_view_name(const ocio::Display *di
     return "Standard";
   }
 
-  /* Try to find a similar name, so that we can match e.g. "ACES 2.0" and "ACES 2.0 - HDR
-   * 1000 when switching between SDR and HDR displays. */
+  /* Try to find a similar name, so that we can match e.g. "ACES 2.0" and "ACES 2.0 - HDR 1000"
+   * when switching between SDR and HDR displays. */
   for (const int view_index : IndexRange(display->get_num_views())) {
     const ocio::View *view = display->get_view_by_index(view_index);
     if (view->name().startswith(view_name) || view_name.startswith(view->name())) {
@@ -3650,7 +3650,7 @@ bool IMB_colormanagement_setup_glsl_draw_from_space(
   const float exposure = applied_view_settings->exposure;
   const float gamma = applied_view_settings->gamma;
 
-  /* TODO)sergey): Use designated initializer. */
+  /* TODO(@sergey): Use designated initializer. */
   ocio::GPUDisplayParameters display_parameters;
   display_parameters.from_colorspace = from_colorspace ? from_colorspace->name().c_str() :
                                                          global_role_scene_linear;
@@ -3734,7 +3734,7 @@ void IMB_colormanagement_finish_glsl_draw()
  * \{ */
 
 /* Calculate color in range 800..12000 using an approximation
- * a/x+bx+c for R and G and ((at + b)t + c)t + d) for B
+ * a/x+bx+c for R and G and ((at + b)t + c)t + d for B
  *
  * The result of this can be negative to support gamut wider than
  * than rec.709, just needs to be clamped. */

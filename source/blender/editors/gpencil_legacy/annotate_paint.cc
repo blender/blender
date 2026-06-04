@@ -219,9 +219,7 @@ static bool annotation_draw_poll(bContext *C)
     if (ED_annotation_data_get_pointers(C, nullptr) != nullptr) {
       return true;
     }
-    else {
-      CTX_wm_operator_poll_msg_set(C, "Failed to find Annotation data to draw into");
-    }
+    CTX_wm_operator_poll_msg_set(C, "Failed to find Annotation data to draw into");
   }
   else {
     CTX_wm_operator_poll_msg_set(C, "Active region not set");

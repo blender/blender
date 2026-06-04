@@ -52,7 +52,7 @@ void Geometry::compute_bvh(Device *device,
     /* Ensure all visibility bits are set at the geometry level BVH. In
      * the object level BVH is where actual visibility is tested. */
     object.set_is_shadow_catcher(true);
-    object.set_visibility(~0);
+    object.set_visibility(PATH_RAY_VISIBILITY_ALL);
 
     object.set_geometry(this);
 

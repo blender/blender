@@ -321,7 +321,7 @@ static void drw_mesh_weight_state_extract(
   memset(wstate, 0, sizeof(*wstate));
 
   wstate->defgroup_active = mesh.vertex_group_active_index - 1;
-  wstate->defgroup_len = BLI_listbase_count(&mesh.vertex_group_names);
+  wstate->defgroup_len = mesh.vertex_group_names.count();
 
   wstate->alert_mode = ts.weightuser;
 

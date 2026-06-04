@@ -126,7 +126,7 @@ void template_uilist_flags(Layout *layout, const bContext *C, PointerRNA *filept
   col->op("cachefile.layer_remove", "", ICON_REMOVE);
 
   CacheFile *file = static_cast<CacheFile *>(fileptr->data);
-  if (BLI_listbase_count(&file->layers) > 1) {
+  if (file->layers.count() > 1) {
     col->separator(1.0f);
     col->op("cachefile.layer_move", "", ICON_TRIA_UP);
     col->op("cachefile.layer_move", "", ICON_TRIA_DOWN);

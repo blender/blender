@@ -145,7 +145,7 @@
  * then spit out a new one; this allows operators to be chained together.
  *
  * \note Element buffers may have elements of different types within the same buffer
- * (this is supported by the API.
+ * (this is supported by the API).
  * \section bm_fname Function Naming Conventions
  *
  * These conventions should be used throughout the bmesh module.

@@ -214,7 +214,7 @@ void lineart_matrix_ortho_44d(double (*mProjection)[4],
 void lineart_count_and_print_render_buffer_memory(LineartData *ld)
 {
   size_t total = 0;
-  size_t count_this = BLI_listbase_count(&ld->render_data_pool.pools);
+  size_t count_this = ld->render_data_pool.pools.count();
   size_t sum_this = LRT_MEMORY_POOL_1MB * count_this;
 
   printf("LANPR Memory allocated %zu Standalone nodes, total %zu Bytes.\n", count_this, sum_this);

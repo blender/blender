@@ -15,6 +15,7 @@
 #include "BLI_math_vector.hh"
 #include "BLI_offset_indices.hh"
 #include "BLI_task.hh"
+#include "PRF_profile.hh"
 
 namespace blender::geometry {
 
@@ -177,6 +178,7 @@ static void finish_rows(const Span<int> all_ys,
 ReverseUVSampler::ReverseUVSampler(const Span<float2> uv_map, const Span<int3> corner_tris)
     : uv_map_(uv_map), corner_tris_(corner_tris), lookup_grid_(std::make_unique<LookupGrid>())
 {
+  PRF_scope(ProfileCategory::Default);
   /* A lower resolution means that there will be fewer cells and more triangles in each cell. Fewer
    * cells make construction faster, but more triangles per cell make lookup slower. This value
    * needs to be determined experimentally. */
@@ -301,6 +303,7 @@ ReverseUVSampler::~ReverseUVSampler() = default;
 void ReverseUVSampler::sample_many(const Span<float2> query_uvs,
                                    MutableSpan<Result> r_results) const
 {
+  PRF_scope_with_name("ReverseUVSampler::sample_many", ProfileCategory::Default);
   BLI_assert(query_uvs.size() == r_results.size());
   threading::parallel_for(query_uvs.index_range(), 256, [&](const IndexRange range) {
     for (const int i : range) {

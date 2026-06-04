@@ -532,7 +532,7 @@ ccl_device_intersect bool scene_intersect(KernelGlobals kg,
   Instance_Stack instance_stack;
 
   hiprtHit hit;
-  if (visibility & PATH_RAY_SHADOW_OPAQUE) {
+  if (visibility & PATH_RAY_VISIBILITY_SHADOW_OPAQUE) {
     hiprtSceneTraversalAnyHitCustomStack traversal((hiprtScene)kernel_data.device_bvh,
                                                    ray_hip,
                                                    stack,

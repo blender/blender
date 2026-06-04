@@ -29,7 +29,7 @@ class GaussianFilter {
   float _sigma;
   float *_mask;
   int _bound;
-  /* the real mask size (must be odd)(the size of the mask we store is:
+  /* The real mask size (must be odd), the size of the mask we store is:
    * `((_maskSize+1)/2)*((_maskSize+1)/2))`. */
   int _maskSize;
   int _storedMaskSize;  // (_maskSize+1)/2)

@@ -72,6 +72,9 @@ class AbcSubDReader final : public AbcObjectReader {
                      const AbcReadGeometryParams &read_params,
                      const char **r_err_str) override;
 
+  bool topology_changed(const Mesh *existing_mesh,
+                        const Alembic::Abc::ISampleSelector &sample_sel) override;
+
  private:
   struct Mesh *read_mesh(struct Mesh *existing_mesh,
                          const Alembic::Abc::ISampleSelector &sample_sel,

@@ -169,6 +169,14 @@ class GHOST_SystemCocoa : public GHOST_System {
   GHOST_TSuccess getCursorPosition(int32_t &x, int32_t &y) const override;
 
   /**
+   * \return the size of the cursor in logical pixels (before Hi-DPI scaling is applied).
+   *
+   * \warning On macOS the logical cursor size is *always* applied on top of hardware cursors,
+   * this should only be used for software-cursor display.
+   */
+  uint32_t getCursorPreferredLogicalSize() const override;
+
+  /**
    * Updates the location of the cursor (location in screen coordinates).
    * \param x: The x-coordinate of the cursor.
    * \param y: The y-coordinate of the cursor.

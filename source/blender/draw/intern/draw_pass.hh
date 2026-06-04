@@ -441,6 +441,11 @@ class PassBase {
   void specialize_constant(gpu::Shader *shader, const char *name, const uint *data);
   void specialize_constant(gpu::Shader *shader, const char *name, const bool *data);
 
+  void texture_copy(gpu::Texture *src, gpu::Texture *dst);
+  void texture_copy(gpu::Texture **src, gpu::Texture **dst);
+  void texture_copy(gpu::Texture **src, gpu::Texture *dst);
+  void texture_copy(gpu::Texture *src, gpu::Texture **dst);
+
   /**
    * Custom resource binding.
    * Syntactic sugar to avoid calling `resources.bind_resources(pass)` which is semantically less
@@ -647,7 +652,8 @@ template<class T> inline command::Undetermined &PassBase<T>::create_command(comm
            Type::Dispatch,
            Type::DispatchIndirect,
            Type::Draw,
-           Type::DrawIndirect))
+           Type::DrawIndirect,
+           Type::TextureCopy))
   {
     is_empty_ = false;
   }
@@ -815,6 +821,8 @@ template<class T> void PassBase<T>::submit(command::RecordingState &state) const
       case command::Type::StencilSet:
         commands_[header.index].stencil_set.execute();
         break;
+      case command::Type::TextureCopy:
+        commands_[header.index].texture_copy.execute();
     }
   }
 
@@ -1635,6 +1643,33 @@ inline void PassBase<T>::specialize_constant(gpu::Shader *shader,
 {
   create_command(Type::SpecializeConstant).specialize_constant = {
       shader, GPU_shader_get_constant(shader, constant_name), constant_value};
+}
+
+/** \} */
+
+/* -------------------------------------------------------------------- */
+/** \name Resource bind Implementation
+ * \{ */
+
+template<class T> inline void PassBase<T>::texture_copy(gpu::Texture *src, gpu::Texture *dst)
+{
+  create_command(Type::TextureCopy).texture_copy = {
+      .src = src, .dst = dst, .src_is_ref = false, .dst_is_ref = false};
+}
+template<class T> inline void PassBase<T>::texture_copy(gpu::Texture **src, gpu::Texture **dst)
+{
+  create_command(Type::TextureCopy).texture_copy = {
+      .src_ref = src, .dst_ref = dst, .src_is_ref = true, .dst_is_ref = true};
+}
+template<class T> inline void PassBase<T>::texture_copy(gpu::Texture **src, gpu::Texture *dst)
+{
+  create_command(Type::TextureCopy).texture_copy = {
+      .src_ref = src, .dst = dst, .src_is_ref = true, .dst_is_ref = false};
+}
+template<class T> inline void PassBase<T>::texture_copy(gpu::Texture *src, gpu::Texture **dst)
+{
+  create_command(Type::TextureCopy).texture_copy = {
+      .src = src, .dst_ref = dst, .src_is_ref = false, .dst_is_ref = true};
 }
 
 /** \} */

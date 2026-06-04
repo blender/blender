@@ -697,6 +697,18 @@ void BLF_boundbox_foreach_glyph(
   }
 }
 
+void BLF_info_foreach_glyph(
+    int fontid,
+    const char *str,
+    size_t str_len,
+    FunctionRef<void(int index, size_t byte_offset, int byte_len, int advance_x)> callback)
+{
+  FontBLF *font = blf_get(fontid);
+  if (font != nullptr) {
+    blf_font_info_foreach_glyph(font, str, str_len, callback);
+  }
+}
+
 size_t BLF_str_offset_from_cursor_position(int fontid,
                                            const char *str,
                                            size_t str_len,

@@ -2,270 +2,68 @@
  *
  * SPDX-License-Identifier: GPL-2.0-or-later */
 
-#include <pxr/base/gf/vec2f.h>
-#include <pxr/base/tf/token.h>
-#include <pxr/imaging/hd/tokens.h>
+#include "mesh.hh"
 
-#include "BLI_array_utils.hh"
-#include "BLI_string.h"
+#include <pxr/imaging/hd/materialBindingSchema.h>
+#include <pxr/imaging/hd/materialBindingsSchema.h>
+#include <pxr/imaging/hd/meshSchema.h>
+#include <pxr/imaging/hd/meshTopologySchema.h>
+#include <pxr/imaging/hd/overlayContainerDataSource.h>
+#include <pxr/imaging/hd/primvarSchema.h>
+#include <pxr/imaging/hd/primvarsSchema.h>
+#include <pxr/imaging/hd/retainedDataSource.h>
+#include <pxr/imaging/hd/tokens.h>
+#include <pxr/imaging/hd/visibilitySchema.h>
+#include <pxr/imaging/hd/xformSchema.h>
+#include <pxr/imaging/pxOsd/tokens.h>
+
+#include "BLI_index_mask.hh"
+#include "BLI_task.hh"
 #include "BLI_vector_set.hh"
 
 #include "BKE_attribute.hh"
 #include "BKE_material.hh"
 #include "BKE_mesh.hh"
+#include "BKE_object.hh"
 
-#include "hydra_scene_delegate.hh"
-#include "mesh.hh"
+#include "DNA_mesh_types.h"
+#include "DNA_object_types.h"
+
+#include "populate_context.hh"
+#include "util.hh"
 
 namespace blender::io::hydra {
 
-namespace usdtokens {
-static const pxr::TfToken st("st", pxr::TfToken::Immortal);
-}
+static const pxr::TfToken usd_st_token("st", pxr::TfToken::Immortal);
 
-MeshData::MeshData(HydraSceneDelegate *scene_delegate,
-                   const Object *object,
-                   pxr::SdfPath const &prim_id)
-    : ObjectData(scene_delegate, object, prim_id)
-{
-}
+/* One per-material-slot submesh worth of geometry. */
+struct SubMesh {
+  pxr::VtIntArray face_vertex_counts;
+  pxr::VtIntArray face_vertex_indices;
+  pxr::VtVec3fArray points;
+  pxr::VtVec3fArray normals;
+  pxr::VtVec2fArray uvs;
+  int mat_index = 0;
+};
 
-void MeshData::init()
-{
-  ID_LOGN("");
-
-  Object *object = id_cast<Object *>(const_cast<ID *>(id));
-  Mesh *mesh = BKE_object_to_mesh(nullptr, object, false);
-  if (mesh) {
-    write_submeshes(mesh);
-  }
-  BKE_object_to_mesh_clear(object);
-
-  write_transform();
-  write_materials();
-}
-
-void MeshData::insert()
-{
-  ID_LOGN("");
-  update_prims();
-}
-
-void MeshData::remove()
-{
-  ID_LOG("");
-  submeshes_.clear();
-  update_prims();
-}
-
-void MeshData::update()
-{
-  Object *object = id_cast<Object *>(const_cast<ID *>(id));
-  if ((id->recalc & ID_RECALC_GEOMETRY) || (object->data->recalc & ID_RECALC_GEOMETRY)) {
-    init();
-    update_prims();
-    return;
-  }
-
-  pxr::HdDirtyBits bits = pxr::HdChangeTracker::Clean;
-  if (id->recalc & ID_RECALC_SHADING) {
-    write_materials();
-    bits |= pxr::HdChangeTracker::DirtyMaterialId | pxr::HdChangeTracker::DirtyDoubleSided;
-  }
-  if (id->recalc & ID_RECALC_TRANSFORM) {
-    write_transform();
-    bits |= pxr::HdChangeTracker::DirtyTransform;
-  }
-
-  if (bits == pxr::HdChangeTracker::Clean) {
-    return;
-  }
-
-  for (int i = 0; i < submeshes_.size(); ++i) {
-    scene_delegate_->GetRenderIndex().GetChangeTracker().MarkRprimDirty(submesh_prim_id(i), bits);
-    ID_LOGN("%d", i);
-  }
-}
-
-pxr::VtValue MeshData::get_data(pxr::TfToken const & /*key*/) const
-{
-  return pxr::VtValue();
-}
-
-pxr::VtValue MeshData::get_data(pxr::SdfPath const &id, pxr::TfToken const &key) const
-{
-  if (key == pxr::HdTokens->normals) {
-    return pxr::VtValue(submesh(id).normals);
-  }
-  if (key == usdtokens::st) {
-    return pxr::VtValue(submesh(id).uvs);
-  }
-  if (key == pxr::HdTokens->points) {
-    return pxr::VtValue(submesh(id).vertices);
-  }
-
-  return get_data(key);
-}
-
-void MeshData::available_materials(Set<pxr::SdfPath> &paths) const
-{
-  for (const auto &sm : submeshes_) {
-    if (sm.mat_data && !sm.mat_data->prim_id.IsEmpty()) {
-      paths.add(sm.mat_data->prim_id);
-    }
-  }
-}
-
-pxr::HdMeshTopology MeshData::topology(pxr::SdfPath const &id) const
-{
-  const SubMesh &sm = submesh(id);
-  return pxr::HdMeshTopology(pxr::PxOsdOpenSubdivTokens->none,
-                             pxr::HdTokens->rightHanded,
-                             sm.face_vertex_counts,
-                             sm.face_vertex_indices);
-}
-
-pxr::HdPrimvarDescriptorVector MeshData::primvar_descriptors(
-    pxr::HdInterpolation interpolation) const
-{
-  pxr::HdPrimvarDescriptorVector primvars;
-  if (interpolation == pxr::HdInterpolationVertex) {
-    primvars.emplace_back(pxr::HdTokens->points, interpolation, pxr::HdPrimvarRoleTokens->point);
-  }
-  else if (interpolation == pxr::HdInterpolationFaceVarying) {
-    if (!submeshes_[0].normals.empty()) {
-      primvars.emplace_back(
-          pxr::HdTokens->normals, interpolation, pxr::HdPrimvarRoleTokens->normal);
-    }
-    if (!submeshes_[0].uvs.empty()) {
-      primvars.emplace_back(
-          usdtokens::st, interpolation, pxr::HdPrimvarRoleTokens->textureCoordinate);
-    }
-  }
-  return primvars;
-}
-
-MaterialData *MeshData::get_material_data(pxr::SdfPath const &id) const
-{
-  return submesh(id).mat_data;
-}
-
-void MeshData::update_double_sided(MaterialData *mat_data)
-{
-  for (int i = 0; i < submeshes_.size(); ++i) {
-    if (submeshes_[i].mat_data == mat_data) {
-      scene_delegate_->GetRenderIndex().GetChangeTracker().MarkRprimDirty(
-          submesh_prim_id(i),
-          pxr::HdChangeTracker::DirtyDoubleSided | pxr::HdChangeTracker::DirtyCullStyle);
-      ID_LOGN("%d", i);
-    }
-  }
-}
-
-pxr::SdfPathVector MeshData::submesh_paths() const
-{
-  pxr::SdfPathVector ret;
-  for (int i = 0; i < submeshes_.size(); ++i) {
-    ret.push_back(submesh_prim_id(i));
-  }
-  return ret;
-}
-
-void MeshData::write_materials()
-{
-  const Object *object = id_cast<const Object *>(id);
-  for (int i = 0; i < submeshes_.size(); ++i) {
-    SubMesh &m = submeshes_[i];
-    const Material *mat = BKE_object_material_get_eval(const_cast<Object *>(object),
-                                                       m.mat_index + 1);
-    m.mat_data = get_or_create_material(mat);
-  }
-}
-
-pxr::SdfPath MeshData::submesh_prim_id(int index) const
-{
-  char name[16];
-  SNPRINTF(name, "SM_%04d", index);
-  return prim_id.AppendElementString(name);
-}
-
-const MeshData::SubMesh &MeshData::submesh(pxr::SdfPath const &id) const
-{
-  int index;
-  sscanf(id.GetName().c_str(), "SM_%d", &index);
-  return submeshes_[index];
-}
-
-/**
- * #VtArray::resize() does value initialization of every new value, which ends up being `memset`
- * for the trivial attribute types we deal with here. This is unnecessary since every item is
- * initialized via copy from a Blender mesh here anyway. This specializes the resize call to skip
- * initialization.
- */
-template<typename T> static void resize_uninitialized(pxr::VtArray<T> &array, const int new_size)
-{
-  static_assert(std::is_trivial_v<T>);
-  array.resize(new_size, [](auto /*begin*/, auto /*end*/) {});
-}
-
-static std::pair<bke::MeshNormalDomain, Span<float3>> get_mesh_normals(const Mesh &mesh)
-{
-  switch (mesh.normals_domain()) {
-    case bke::MeshNormalDomain::Face:
-      return {bke::MeshNormalDomain::Face, mesh.face_normals()};
-    case bke::MeshNormalDomain::Point:
-      return {bke::MeshNormalDomain::Point, mesh.vert_normals()};
-    case bke::MeshNormalDomain::Corner:
-      return {bke::MeshNormalDomain::Corner, mesh.corner_normals()};
-  }
-  BLI_assert_unreachable();
-  return {};
-}
-
-template<typename T>
-void gather_vert_data(const Span<int> verts,
-                      const bool copy_all_verts,
-                      const Span<T> src_data,
-                      MutableSpan<T> dst_data)
-{
-  if (copy_all_verts) {
-    array_utils::copy(src_data, dst_data);
-  }
-  else {
-    array_utils::gather(src_data, verts, dst_data);
-  }
-}
-
-template<typename T>
-void gather_corner_data(const Span<int3> corner_tris,
-                        const IndexMask &triangles,
-                        const Span<T> src_data,
-                        MutableSpan<T> dst_data)
-{
-  triangles.foreach_index_optimized<int>(
-      [&](const int src, const int dst) {
-        const int3 &tri = corner_tris[src];
-        dst_data[dst * 3 + 0] = src_data[tri[0]];
-        dst_data[dst * 3 + 1] = src_data[tri[1]];
-        dst_data[dst * 3 + 2] = src_data[tri[2]];
-      },
-      exec_mode::grain_size(4096));
-}
-
+/* Build a single submesh from the given subset of triangles for a material.
+ * Vertex indices are remapped to a contiguous range covering only the vertices
+ * used by the subset, since Storm warns about indices into unused vertices. */
 static void copy_submesh(const Mesh &mesh,
                          const Span<float3> vert_positions,
                          const Span<int> corner_verts,
                          const Span<int3> corner_tris,
                          const Span<int> tri_faces,
-                         const std::pair<bke::MeshNormalDomain, Span<float3>> normals,
+                         const Span<float3> face_normals,
+                         const Span<float3> vert_normals,
+                         const Span<float3> corner_normals,
+                         const bke::MeshNormalDomain normals_domain,
                          const Span<float2> uv_map,
                          const IndexMask &triangles,
-                         MeshData::SubMesh &sm)
+                         SubMesh &sm)
 {
   resize_uninitialized(sm.face_vertex_indices, triangles.size() * 3);
 
-  /* If all triangles are part of this submesh and there are no loose vertices that shouldn't be
-   * copied (Hydra will warn about this), vertex index compression can be completely skipped. */
   const bool copy_all_verts = triangles.size() == corner_tris.size() &&
                               mesh.verts_no_face().is_empty();
 
@@ -279,8 +77,6 @@ static void copy_submesh(const Mesh &mesh,
     dst_verts_num = vert_positions.size();
   }
   else {
-    /* Compress vertex indices to be contiguous so it's only necessary to copy values
-     * for vertices actually used by the subset of triangles. */
     verts.reserve(triangles.size());
     triangles.foreach_index([&](const int src, const int dst) {
       const int3 &tri = corner_tris[src];
@@ -291,127 +87,315 @@ static void copy_submesh(const Mesh &mesh,
     dst_verts_num = verts.size();
   }
 
-  resize_uninitialized(sm.vertices, dst_verts_num);
-  gather_vert_data(verts,
-                   copy_all_verts,
-                   vert_positions,
-                   MutableSpan(sm.vertices.data(), sm.vertices.size()).cast<float3>());
+  resize_uninitialized(sm.points, dst_verts_num);
+  if (copy_all_verts) {
+    for (const int i : vert_positions.index_range()) {
+      const float3 &v = vert_positions[i];
+      sm.points[i] = pxr::GfVec3f(v.x, v.y, v.z);
+    }
+  }
+  else {
+    for (const int i : verts.index_range()) {
+      const float3 &v = vert_positions[verts[i]];
+      sm.points[i] = pxr::GfVec3f(v.x, v.y, v.z);
+    }
+  }
 
   resize_uninitialized(sm.face_vertex_counts, triangles.size());
   std::fill(sm.face_vertex_counts.begin(), sm.face_vertex_counts.end(), 3);
 
-  const Span<float3> src_normals = normals.second;
+  /* Per-corner normals. */
   resize_uninitialized(sm.normals, triangles.size() * 3);
-  MutableSpan dst_normals = MutableSpan(sm.normals.data(), sm.normals.size()).cast<float3>();
-  switch (normals.first) {
+  switch (normals_domain) {
     case bke::MeshNormalDomain::Face:
-      triangles.foreach_index(
-          [&](const int src, const int dst) {
-            std::fill_n(&dst_normals[dst * 3], 3, src_normals[tri_faces[src]]);
-          },
-          exec_mode::grain_size(1024));
+      triangles.foreach_index([&](const int src, const int dst) {
+        const float3 &n = face_normals[tri_faces[src]];
+        for (int c = 0; c < 3; c++) {
+          sm.normals[dst * 3 + c] = pxr::GfVec3f(n.x, n.y, n.z);
+        }
+      });
       break;
     case bke::MeshNormalDomain::Point:
-      triangles.foreach_index(
-          [&](const int src, const int dst) {
-            const int3 &tri = corner_tris[src];
-            dst_normals[dst * 3 + 0] = src_normals[corner_verts[tri[0]]];
-            dst_normals[dst * 3 + 1] = src_normals[corner_verts[tri[1]]];
-            dst_normals[dst * 3 + 2] = src_normals[corner_verts[tri[2]]];
-          },
-          exec_mode::grain_size(1024));
+      triangles.foreach_index([&](const int src, const int dst) {
+        const int3 &tri = corner_tris[src];
+        for (int c = 0; c < 3; c++) {
+          const float3 &n = vert_normals[corner_verts[tri[c]]];
+          sm.normals[dst * 3 + c] = pxr::GfVec3f(n.x, n.y, n.z);
+        }
+      });
       break;
     case bke::MeshNormalDomain::Corner:
-      gather_corner_data(corner_tris, triangles, src_normals, dst_normals);
+      triangles.foreach_index([&](const int src, const int dst) {
+        const int3 &tri = corner_tris[src];
+        for (int c = 0; c < 3; c++) {
+          const float3 &n = corner_normals[tri[c]];
+          sm.normals[dst * 3 + c] = pxr::GfVec3f(n.x, n.y, n.z);
+        }
+      });
       break;
   }
 
   if (!uv_map.is_empty()) {
     resize_uninitialized(sm.uvs, triangles.size() * 3);
-    gather_corner_data(
-        corner_tris, triangles, uv_map, MutableSpan(sm.uvs.data(), sm.uvs.size()).cast<float2>());
+    triangles.foreach_index([&](const int src, const int dst) {
+      const int3 &tri = corner_tris[src];
+      for (int c = 0; c < 3; c++) {
+        const float2 &uv = uv_map[tri[c]];
+        sm.uvs[dst * 3 + c] = pxr::GfVec2f(uv.x, uv.y);
+      }
+    });
   }
 }
 
-void MeshData::write_submeshes(const Mesh *mesh)
+static Vector<SubMesh> build_submeshes(const Object *object, const Mesh &mesh)
 {
-  const int mat_count = BKE_object_material_count_eval(reinterpret_cast<const Object *>(id));
-  submeshes_.reinitialize(mat_count > 0 ? mat_count : 1);
-  for (const int i : submeshes_.index_range()) {
-    submeshes_[i].mat_index = i;
+  const int mat_count = BKE_object_material_count_eval(object);
+  Vector<SubMesh> submeshes(mat_count > 0 ? mat_count : 1);
+  for (const int i : submeshes.index_range()) {
+    submeshes[i].mat_index = i;
   }
 
-  const Span<float3> vert_positions = mesh->vert_positions();
-  const Span<int> corner_verts = mesh->corner_verts();
-  const Span<int3> corner_tris = mesh->corner_tris();
-  const Span<int> tri_faces = mesh->corner_tri_faces();
-  const std::pair<bke::MeshNormalDomain, Span<float3>> normals = get_mesh_normals(*mesh);
-  const bke::AttributeAccessor attributes = mesh->attributes();
-  const StringRef active_uv = mesh->active_uv_map_name();
-  const VArraySpan uv_map = *attributes.lookup<float2>(active_uv, bke::AttrDomain::Corner);
-  const VArraySpan material_indices = *attributes.lookup<int>("material_index",
-                                                              bke::AttrDomain::Face);
+  const Span<float3> vert_positions = mesh.vert_positions();
+  const Span<int> corner_verts = mesh.corner_verts();
+  const Span<int3> corner_tris = mesh.corner_tris();
+  const Span<int> tri_faces = mesh.corner_tri_faces();
+  const bke::AttributeAccessor attributes = mesh.attributes();
+  const StringRef active_uv = mesh.active_uv_map_name();
+  const VArraySpan<float2> uv_map = *attributes.lookup<float2>(active_uv, bke::AttrDomain::Corner);
+  const VArraySpan<int> material_indices = *attributes.lookup<int>("material_index",
+                                                                   bke::AttrDomain::Face);
+
+  const bke::MeshNormalDomain normals_domain = mesh.normals_domain();
+  const Span<float3> face_normals = (normals_domain == bke::MeshNormalDomain::Face) ?
+                                        mesh.face_normals() :
+                                        Span<float3>();
+  const Span<float3> vert_normals = (normals_domain == bke::MeshNormalDomain::Point) ?
+                                        mesh.vert_normals() :
+                                        Span<float3>();
+  const Span<float3> corner_normals = (normals_domain == bke::MeshNormalDomain::Corner) ?
+                                          mesh.corner_normals() :
+                                          Span<float3>();
 
   if (material_indices.is_empty()) {
-    copy_submesh(*mesh,
+    copy_submesh(mesh,
                  vert_positions,
                  corner_verts,
                  corner_tris,
                  tri_faces,
-                 normals,
+                 face_normals,
+                 vert_normals,
+                 corner_normals,
+                 normals_domain,
                  uv_map,
                  corner_tris.index_range(),
-                 submeshes_.first());
-    return;
+                 submeshes.first());
+  }
+  else {
+    IndexMaskMemory memory;
+    Array<IndexMask> triangles_by_material(submeshes.size());
+    const int max_index = std::max(mat_count - 1, 0);
+    IndexMask::from_groups<int>(
+        corner_tris.index_range(),
+        memory,
+        [&](const int i) { return std::clamp(material_indices[tri_faces[i]], 0, max_index); },
+        triangles_by_material);
+
+    threading::parallel_for(submeshes.index_range(), 1, [&](const IndexRange range) {
+      for (const int i : range) {
+        copy_submesh(mesh,
+                     vert_positions,
+                     corner_verts,
+                     corner_tris,
+                     tri_faces,
+                     face_normals,
+                     vert_normals,
+                     corner_normals,
+                     normals_domain,
+                     uv_map,
+                     triangles_by_material[i],
+                     submeshes[i]);
+      }
+    });
   }
 
-  IndexMaskMemory memory;
-  Array<IndexMask> triangles_by_material(submeshes_.size());
-  const int max_index = std::max(mat_count - 1, 0);
-  IndexMask::from_groups<int>(
-      corner_tris.index_range(),
-      memory,
-      [&](const int i) { return std::clamp(material_indices[tri_faces[i]], 0, max_index); },
-      triangles_by_material);
+  /* Remove submeshes without faces. */
+  submeshes.remove_if([](const SubMesh &submesh) { return submesh.face_vertex_counts.empty(); });
 
-  threading::parallel_for(submeshes_.index_range(), 1, [&](const IndexRange range) {
-    for (const int i : range) {
-      copy_submesh(*mesh,
-                   vert_positions,
-                   corner_verts,
-                   corner_tris,
-                   tri_faces,
-                   normals,
-                   uv_map,
-                   triangles_by_material[i],
-                   submeshes_[i]);
-    }
-  });
-
-  /* Remove submeshes without faces */
-  submeshes_.remove_if([](const SubMesh &submesh) { return submesh.face_vertex_counts.empty(); });
+  return submeshes;
 }
 
-void MeshData::update_prims()
+/* Build the geometry-only schema sources for one submesh. */
+static EmittedGeometryPrim build_submesh_geometry(const SubMesh &sm,
+                                                  const pxr::SdfPath &material_path,
+                                                  const bool double_sided)
 {
-  auto &render_index = scene_delegate_->GetRenderIndex();
-  int i;
-  for (i = 0; i < submeshes_.size(); ++i) {
-    pxr::SdfPath p = submesh_prim_id(i);
-    if (i < submeshes_count_) {
-      render_index.GetChangeTracker().MarkRprimDirty(p, pxr::HdChangeTracker::AllDirty);
-      ID_LOGN("Update %d", i);
-    }
-    else {
-      render_index.InsertRprim(pxr::HdPrimTypeTokens->mesh, scene_delegate_, p);
-      ID_LOGN("Insert %d", i);
-    }
+  EmittedGeometryPrim out;
+  out.schema_token = pxr::HdMeshSchema::GetSchemaToken();
+  /* Topology. */
+  pxr::HdContainerDataSourceHandle topology =
+      pxr::HdMeshTopologySchema::Builder()
+          .SetFaceVertexCounts(
+              pxr::HdRetainedTypedSampledDataSource<pxr::VtIntArray>::New(sm.face_vertex_counts))
+          .SetFaceVertexIndices(
+              pxr::HdRetainedTypedSampledDataSource<pxr::VtIntArray>::New(sm.face_vertex_indices))
+          .SetOrientation(pxr::HdMeshTopologySchema::BuildOrientationDataSource(
+              pxr::HdMeshTopologySchemaTokens->rightHanded))
+          .Build();
+
+  out.geometry =
+      pxr::HdMeshSchema::Builder()
+          .SetTopology(topology)
+          .SetSubdivisionScheme(pxr::HdRetainedTypedSampledDataSource<pxr::TfToken>::New(
+              pxr::PxOsdOpenSubdivTokens->none))
+          .SetDoubleSided(pxr::HdRetainedTypedSampledDataSource<bool>::New(double_sided))
+          .Build();
+
+  /* Primvars. */
+  HdContainerBuilder primvars;
+
+  primvars.add(
+      pxr::HdPrimvarsSchemaTokens->points,
+      pxr::HdPrimvarSchema::Builder()
+          .SetPrimvarValue(
+              pxr::HdRetainedTypedSampledDataSource<pxr::VtVec3fArray>::New(sm.points))
+          .SetInterpolation(pxr::HdPrimvarSchema::BuildInterpolationDataSource(
+              pxr::HdPrimvarSchemaTokens->vertex))
+          .SetRole(pxr::HdPrimvarSchema::BuildRoleDataSource(pxr::HdPrimvarSchemaTokens->point))
+          .Build());
+
+  if (!sm.normals.empty()) {
+    primvars.add(
+        pxr::HdPrimvarsSchemaTokens->normals,
+        pxr::HdPrimvarSchema::Builder()
+            .SetPrimvarValue(
+                pxr::HdRetainedTypedSampledDataSource<pxr::VtVec3fArray>::New(sm.normals))
+            .SetInterpolation(pxr::HdPrimvarSchema::BuildInterpolationDataSource(
+                pxr::HdPrimvarSchemaTokens->faceVarying))
+            .SetRole(pxr::HdPrimvarSchema::BuildRoleDataSource(pxr::HdPrimvarSchemaTokens->normal))
+            .Build());
   }
-  for (; i < submeshes_count_; ++i) {
-    render_index.RemoveRprim(submesh_prim_id(i));
-    ID_LOG("Remove %d", i);
+
+  if (!sm.uvs.empty()) {
+    primvars.add(
+        usd_st_token,
+        pxr::HdPrimvarSchema::Builder()
+            .SetPrimvarValue(pxr::HdRetainedTypedSampledDataSource<pxr::VtVec2fArray>::New(sm.uvs))
+            .SetInterpolation(pxr::HdPrimvarSchema::BuildInterpolationDataSource(
+                pxr::HdPrimvarSchemaTokens->faceVarying))
+            .SetRole(pxr::HdPrimvarSchema::BuildRoleDataSource(
+                pxr::HdPrimvarSchemaTokens->textureCoordinate))
+            .Build());
   }
-  submeshes_count_ = submeshes_.size();
+
+  out.primvars = primvars.build();
+
+  /* Material binding. */
+  if (!material_path.IsEmpty()) {
+    pxr::HdContainerDataSourceHandle binding =
+        pxr::HdMaterialBindingSchema::Builder()
+            .SetPath(pxr::HdRetainedTypedSampledDataSource<pxr::SdfPath>::New(material_path))
+            .Build();
+    out.bindings = pxr::HdRetainedContainerDataSource::New(
+        pxr::HdMaterialBindingsSchemaTokens->allPurpose, binding);
+  }
+  return out;
+}
+
+static const EmittedGeometry &get_or_build_emitted_mesh(PopulateContext &ctx,
+                                                        const BObjectInfo &info,
+                                                        const EmittedGeometryKey &key)
+{
+  ctx.used_emitted_geometry.add(key);
+
+  /* Record geometry set to object mapping to handle updates. */
+  if (!info.is_real_object_data() && info.object_data) {
+    ctx.instance_geometries_by_object.lookup_or_add_default(info.real_object)
+        .append_non_duplicates(info.object_data);
+    ctx.used_instance_sources.add(info.real_object);
+  }
+
+  /* Already built in this populate? */
+  if (EmittedGeometry *cached = ctx.emitted_geometry.lookup_ptr(key)) {
+    for (const Material *mat : cached->materials) {
+      ctx.get_or_create_material(mat);
+    }
+    return *cached;
+  }
+
+  EmittedGeometry &entry = ctx.emitted_geometry.lookup_or_add_default(key);
+
+  /* Get proper mesh to use. */
+  Mesh *mesh = nullptr;
+  bool needs_clear = false;
+  if (info.is_real_object_data()) {
+    mesh = BKE_object_to_mesh(nullptr, info.real_object, false);
+    needs_clear = (mesh != nullptr);
+  }
+  else if (info.object_data && GS(info.object_data->name) == ID_ME) {
+    mesh = id_cast<Mesh *>(info.object_data);
+  }
+  if (!mesh) {
+    return entry;
+  }
+
+  /* Build and emit submesh per material. */
+  const Vector<SubMesh> submeshes = build_submeshes(info.real_object, *mesh);
+  if (needs_clear) {
+    BKE_object_to_mesh_clear(info.real_object);
+  }
+
+  entry.prims.reserve(submeshes.size());
+  entry.materials.reserve(submeshes.size());
+  for (const SubMesh &sm : submeshes) {
+    const Material *material = BKE_object_material_get_eval(info.real_object, sm.mat_index + 1);
+    const EmittedMaterial *mat_entry = ctx.get_or_create_material(material);
+    const pxr::SdfPath material_path = mat_entry ? mat_entry->path : pxr::SdfPath();
+    const bool double_sided = mat_entry ? mat_entry->double_sided : true;
+
+    entry.prims.append(build_submesh_geometry(sm, material_path, double_sided));
+    entry.materials.append(material);
+  }
+
+  return entry;
+}
+
+void emit_mesh_object(PopulateContext &ctx, const BObjectInfo &info, EmittedObject &emitted)
+{
+  const EmittedGeometryKey key = ctx.emitted_geometry_key(info, pxr::HdPrimTypeTokens->mesh);
+  const EmittedGeometry &cached = get_or_build_emitted_mesh(ctx, info, key);
+  emitted.geometry_keys.append_non_duplicates(key);
+  for (const Material *m : cached.materials) {
+    emitted.materials.append_non_duplicates(m);
+  }
+
+  Object *object = info.iter_object;
+  const pxr::GfMatrix4d transform = gf_matrix_from_transform(object->object_to_world().ptr());
+
+  for (const int sm_index : cached.prims.index_range()) {
+    const pxr::SdfPath path = ctx.submesh_prim_id(object, sm_index);
+    pxr::HdContainerDataSourceHandle prim_ds = compose_gprim_data_source(
+        cached.prims[sm_index], transform, true);
+    ctx.emit_object_prim(emitted, path, pxr::HdPrimTypeTokens->mesh, prim_ds);
+  }
+}
+
+void emit_mesh_proto(PopulateContext &ctx, const BObjectInfo &info)
+{
+  const EmittedGeometryKey key = ctx.emitted_geometry_key(info, pxr::HdPrimTypeTokens->mesh);
+  const EmittedGeometry &cached = get_or_build_emitted_mesh(ctx, info, key);
+
+  Object *source = info.real_object;
+  const pxr::HdContainerDataSourceHandle instanced_by_ds = ctx.proto_instanced_by(source);
+
+  for (const int sm_index : cached.prims.index_range()) {
+    const pxr::SdfPath proto_path = ctx.instancer_proto_submesh(source, sm_index);
+    pxr::HdContainerDataSourceHandle prim_ds = compose_gprim_data_source(
+        cached.prims[sm_index], pxr::GfMatrix4d(1.0), true, instanced_by_ds);
+
+    ctx.emit_prim(proto_path, pxr::HdPrimTypeTokens->mesh, prim_ds);
+    ctx.all_proto_paths.append(proto_path);
+    ctx.per_proto_indices.append(pxr::VtIntArray());
+  }
 }
 
 }  // namespace blender::io::hydra

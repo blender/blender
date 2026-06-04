@@ -390,7 +390,7 @@ static void snode_autoconnect(bContext &C,
     bNode *node_fr = sorted_nodes[i];
     bNode *node_to = sorted_nodes[i + 1];
     /* Corner case: input/output node aligned the wrong way around (#47729). */
-    if (BLI_listbase_is_empty(&node_to->inputs) || BLI_listbase_is_empty(&node_fr->outputs)) {
+    if (node_to->inputs.is_empty() || node_fr->outputs.is_empty()) {
       std::swap(node_fr, node_to);
     }
 

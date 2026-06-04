@@ -226,7 +226,7 @@ re_ignore_elems_generic_single_backtick: tuple[str, ...] = (
 )
 
 re_ignore_elems_generic_double_backtick: tuple[str, ...] = (
-    # Double back-ticks are used for doc-strings for literals:
+    # Double back-ticks are used for docstrings for literals:
     # (`expr a+b`)
     r"[\s\(\[\{]\`\`[^\n`]+\`\`",
 )
@@ -270,7 +270,7 @@ re_ignore_map: dict[tuple[LangType, TokenType], re.Pattern[str]] = {
         *re_ignore_elems_generic_expressions,
         *re_ignore_elems_generic_single_backtick,
     )),
-    # Only Python uses the doc-string type.
+    # Only Python uses the docstring type.
     (LangType.PYTHON, TokenType.DOCSTRING): re_compile_from_sequence((
         *re_ignore_elems_generic_url_email_tags,
         *re_ignore_elems_generic_expressions,

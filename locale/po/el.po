@@ -1,9 +1,9 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 5.2.0 Alpha (b'bc0a0ff2c0ce')\n"
+"Project-Id-Version: Blender 5.2.0 Alpha (b'8764d33c658b')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-05-18 11:20+0000\n"
+"POT-Creation-Date: 2026-06-01 07:36+0000\n"
 "PO-Revision-Date: 2025-07-23 15:19+0000\n"
 "Last-Translator: Anonymous <noreply@weblate.org>\n"
 "Language-Team: Greek <https://translate.blender.org/projects/blender-ui/ui/el/>\n"
@@ -85,6 +85,14 @@ msgstr "Κενό"
 
 msgid "Active Bone"
 msgstr "Ενεργό Οστό"
+
+
+msgid "Link"
+msgstr "Σύνδεση"
+
+
+msgid "Append"
+msgstr "Συγχώνευση"
 
 
 msgid "Point"
@@ -311,14 +319,6 @@ msgid "Save"
 msgstr "Αποθήκευση"
 
 
-msgid "Link"
-msgstr "Σύνδεση"
-
-
-msgid "Append"
-msgstr "Συγχώνευση"
-
-
 msgid "End"
 msgstr "Τέλος"
 
@@ -351,6 +351,10 @@ msgid "Grid"
 msgstr "Πλέγμα"
 
 
+msgid "Dynamic"
+msgstr "Δυναμικό"
+
+
 msgid "Repeat"
 msgstr "Repeat"
 
@@ -365,10 +369,6 @@ msgstr "Μπλε"
 
 msgid "Library"
 msgstr "Βιβλιοθήκη"
-
-
-msgid "Dynamic"
-msgstr "Δυναμικό"
 
 
 msgid "Draw"
@@ -543,12 +543,12 @@ msgid "Light"
 msgstr "Φως"
 
 
-msgid "Import"
-msgstr "Εισαγωγή"
-
-
 msgid "Rigid Body"
 msgstr "Rigid Body"
+
+
+msgid "Import"
+msgstr "Εισαγωγή"
 
 
 msgid "Apply"
@@ -565,6 +565,10 @@ msgstr "Ορισμός Ενός Χρήστη"
 
 msgid "Merge"
 msgstr "Συγχώνευση"
+
+
+msgid "Linked"
+msgstr "Συνδεδεμένο/α"
 
 
 msgid "Cache"
@@ -654,10 +658,6 @@ msgstr "Nor"
 
 msgid "Bake"
 msgstr "Φτιάξε"
-
-
-msgid "Linked"
-msgstr "Συνδεδεμένο/α"
 
 
 msgid "Shadow"
@@ -981,17 +981,17 @@ msgid "Viewport Shading"
 msgstr "Σκίαση Παραθύρου Οπτικής"
 
 
+msgctxt "Operator"
+msgid "Clear"
+msgstr "Καθαρισμός"
+
+
 msgid "Torus"
 msgstr "Δαχτυλίδι"
 
 
 msgid "Assign"
 msgstr "Ανάθεση"
-
-
-msgctxt "Operator"
-msgid "Clear"
-msgstr "Καθαρισμός"
 
 
 msgid "Cancel"

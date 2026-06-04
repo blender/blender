@@ -175,7 +175,7 @@ void BKE_main_clear(Main &bmain)
 
 #endif
     }
-    BLI_listbase_clear(lb);
+    lb->clear_no_delete();
   }
 
   if (bmain.relations) {
@@ -611,7 +611,8 @@ static int main_relations_create_idlink_cb(LibraryIDLinkCallbackData *cb_data)
     {
       MainIDRelationsEntry *entry = bmain_relations->relations_from_pointers->lookup_or_add_cb(
           self_id, [&]() {
-            auto *entry = MEM_new_zeroed<MainIDRelationsEntry>(__func__);
+            auto *entry = MEM_new_zeroed<MainIDRelationsEntry>(
+                "main_relations_create_idlink_cb entry");
             entry->session_uid = self_id->session_uid;
             return entry;
           });
@@ -630,7 +631,8 @@ static int main_relations_create_idlink_cb(LibraryIDLinkCallbackData *cb_data)
     if (*id_pointer != nullptr) {
       MainIDRelationsEntry *entry = bmain_relations->relations_from_pointers->lookup_or_add_cb(
           *id_pointer, [&]() {
-            auto *entry = MEM_new_zeroed<MainIDRelationsEntry>(__func__);
+            auto *entry = MEM_new_zeroed<MainIDRelationsEntry>(
+                "main_relations_create_idlink_cb entry");
             entry->session_uid = (*id_pointer)->session_uid;
             return entry;
           });
@@ -672,7 +674,7 @@ void BKE_main_relations_create(Main *bmain, const short flag)
     /* Ensure all IDs do have an entry, even if they are not connected to any other. */
     MainIDRelationsEntry *entry = bmain->relations->relations_from_pointers->lookup_or_add_cb(
         id, [&]() {
-          auto *entry = MEM_new_zeroed<MainIDRelationsEntry>(__func__);
+          auto *entry = MEM_new_zeroed<MainIDRelationsEntry>("BKE_main_relations_create entry");
           entry->session_uid = id->session_uid;
           return entry;
         });
@@ -1169,7 +1171,7 @@ MainAllIDsIterator &MainAllIDsIterator::operator++()
     /* Listbase pointers from lbarray_ can be nullptr when no data was provided (default
      * constructor case). */
     ListBaseT<ID> *lb_ids = lbarray_[size_t(curr_lbarray_index_)];
-    if (lb_ids && !BLI_listbase_is_empty(lb_ids)) {
+    if (lb_ids && !lb_ids->is_empty()) {
       curr_id_ = static_cast<ID *>(lb_ids->first);
       return *this;
     }
@@ -1201,7 +1203,7 @@ MainAllIDsIterator &MainAllIDsIterator::operator--()
     /* Listbase pointers from lbarray_ can be nullptr when no data was provided (default
      * constructor case). */
     ListBaseT<ID> *lb_ids = lbarray_[size_t(curr_lbarray_index_)];
-    if (lb_ids && !BLI_listbase_is_empty(lb_ids)) {
+    if (lb_ids && !lb_ids->is_empty()) {
       curr_id_ = static_cast<ID *>(lb_ids->last);
       return *this;
     }
@@ -1219,7 +1221,7 @@ int64_t MainAllIDsIterator::size() const
     if (!lb_ids) {
       continue;
     }
-    size += BLI_listbase_count(lb_ids);
+    size += lb_ids->count();
   }
   return size;
 }

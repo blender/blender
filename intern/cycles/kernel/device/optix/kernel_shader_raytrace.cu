@@ -7,6 +7,7 @@
 
 #include "kernel/device/optix/kernel.cu"
 
+#include "kernel/integrator/intersect_mnee.h"
 #include "kernel/integrator/shade_surface.h"
 
 extern "C" __global__ void __raygen__kernel_optix_integrator_shade_surface_raytrace()
@@ -18,11 +19,11 @@ extern "C" __global__ void __raygen__kernel_optix_integrator_shade_surface_raytr
   integrator_shade_surface_raytrace(nullptr, path_index, kernel_params.render_buffer);
 }
 
-extern "C" __global__ void __raygen__kernel_optix_integrator_shade_surface_mnee()
+extern "C" __global__ void __raygen__kernel_optix_integrator_intersect_mnee()
 {
   const int global_index = optixGetLaunchIndex().x;
   const int path_index = (kernel_params.path_index_array) ?
                              kernel_params.path_index_array[global_index] :
                              global_index;
-  integrator_shade_surface_mnee(nullptr, path_index, kernel_params.render_buffer);
+  integrator_intersect_mnee(nullptr, path_index);
 }

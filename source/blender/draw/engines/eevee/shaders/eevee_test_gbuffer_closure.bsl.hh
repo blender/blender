@@ -1,0 +1,359 @@
+/* SPDX-FileCopyrightText: 2023 Blender Authors
+ *
+ * SPDX-License-Identifier: GPL-2.0-or-later */
+
+#pragma once
+
+#include "eevee_gbuffer_write.bsl.hh"
+#include "gpu_shader_test_lib.bsl.hh"
+
+gbuffer::InputClosures gbuffer_new()
+{
+  gbuffer::InputClosures data;
+  data.closure[0] = ClosureUndetermined{};
+  data.closure[1] = ClosureUndetermined{};
+  data.closure[2] = ClosureUndetermined{};
+  return data;
+}
+
+float3 quantize_round_to_nearest_10bit(float3 data)
+{
+  constexpr float quantization_step = 1.0f / 1023.0f;
+  return floor(saturate(data) * 1023.0f + 0.5f) * quantization_step;
+}
+
+float3 quantize_flush_to_zero_10bit(float3 data)
+{
+  constexpr float quantization_step = 1.0f / 1023.0f;
+  return floor(saturate(data) * 1023.0f) * quantization_step;
+}
+
+[[compute, local_size(1)]]
+void eevee_test_gbuffer_closure_main([[resource_table]] const ShaderTestOutput & /*srt*/,
+                                     [[resource_table]] const gbuffer::PackParameters &param)
+{
+  float3 Ng = float3(1.0f, 0.0f, 0.0f);
+  float3 N = Ng;
+  Thickness thickness = Thickness::from(0.2f, ThicknessMode::Slab);
+
+  TEST(eevee_gbuffer, ClosureThinRefraction)
+  {
+    gbuffer::InputClosures data_in = gbuffer_new();
+    data_in.closure[0].type = CLOSURE_BSDF_THIN_GLASS_TRANSMISSION_ID;
+    data_in.closure[0].weight = 1.0f;
+    data_in.closure[0].color = float3(0.1f, 0.2f, 0.3f);
+    data_in.closure[0].N = normalize(float3(0.2f, 0.1f, 0.3f));
+
+    const gbuffer::Packed data_out = gbuffer::pack(param, data_in, Ng, N, thickness, false);
+    const gbuffer::Header header = gbuffer::Header::from_data(data_out.header);
+
+    EXPECT_EQ(uint(data_out.used_layers), uint(ADDITIONAL_DATA));
+    EXPECT_NEAR(float3(header.empty_bins()), float3(0, 1, 1), 0.5f);
+    EXPECT_EQ(header.closure_len(), 1);
+
+    ClosureUndetermined out_refraction;
+    out_refraction.type = gbuffer::mode_to_closure_type(header.bin_type(0));
+    out_refraction.color = gbuffer::closure_color_unpack(data_out.closure[0]);
+    out_refraction.N = gbuffer::normal_unpack(data_out.normal[0]);
+
+    EXPECT_EQ(out_refraction.type, CLOSURE_BSDF_THIN_GLASS_TRANSMISSION_ID);
+    EXPECT_NEAR(out_refraction.color, data_in.closure[0].color, 1e-5f);
+    EXPECT_NEAR(out_refraction.N, data_in.closure[0].N, 1e-5f);
+  }
+
+  TEST(eevee_gbuffer, ClosureDiffuse)
+  {
+    gbuffer::InputClosures data_in = gbuffer_new();
+    data_in.closure[1].type = CLOSURE_BSDF_DIFFUSE_ID;
+    data_in.closure[1].weight = 1.0f;
+    data_in.closure[1].color = float3(0.1f, 0.2f, 0.3f);
+    data_in.closure[1].N = normalize(float3(0.2f, 0.1f, 0.3f));
+
+    const gbuffer::Packed data_out = gbuffer::pack(param, data_in, Ng, N, thickness, false);
+    const gbuffer::Header header = gbuffer::Header::from_data(data_out.header);
+
+    EXPECT_EQ(uint(data_out.used_layers), 0u);
+    EXPECT_NEAR(float3(header.empty_bins()), float3(1, 0, 1), 0.5f);
+    EXPECT_EQ(header.closure_len(), 1);
+
+    ClosureUndetermined out_diffuse;
+    out_diffuse.type = gbuffer::mode_to_closure_type(header.bin_type(1));
+    out_diffuse.color = gbuffer::closure_color_unpack(data_out.closure[0]);
+    out_diffuse.N = gbuffer::normal_unpack(data_out.normal[0]);
+
+    EXPECT_EQ(out_diffuse.type, CLOSURE_BSDF_DIFFUSE_ID);
+    EXPECT_NEAR(out_diffuse.color, data_in.closure[1].color, 1e-5f);
+    EXPECT_NEAR(out_diffuse.N, data_in.closure[1].N, 1e-5f);
+  }
+
+  TEST(eevee_gbuffer, ClosureSubsurface)
+  {
+    gbuffer::InputClosures data_in = gbuffer_new();
+    data_in.closure[0].type = CLOSURE_BSSRDF_BURLEY_ID;
+    data_in.closure[0].weight = 1.0f;
+    data_in.closure[0].color = float3(0.1f, 0.2f, 0.3f);
+    data_in.closure[0].data.rgb = float3(0.2f, 0.3f, 0.4f);
+    data_in.closure[0].N = normalize(float3(0.2f, 0.1f, 0.3f));
+
+    const gbuffer::Packed data_out = gbuffer::pack(param, data_in, Ng, N, thickness, false);
+    const gbuffer::Header header = gbuffer::Header::from_data(data_out.header);
+
+    EXPECT_EQ(uint(data_out.used_layers), uint(ADDITIONAL_DATA));
+    EXPECT_NEAR(float3(header.empty_bins()), float3(0, 1, 1), 0.5f);
+    EXPECT_EQ(header.closure_len(), 1);
+
+    ClosureUndetermined out_sss_burley;
+    out_sss_burley.type = gbuffer::mode_to_closure_type(header.bin_type(0));
+    out_sss_burley.color = gbuffer::closure_color_unpack(data_out.closure[0]);
+    out_sss_burley.N = gbuffer::normal_unpack(data_out.normal[0]);
+    gbuffer::Subsurface::unpack_additional(out_sss_burley, data_out.closure[1]);
+
+    EXPECT_EQ(out_sss_burley.type, CLOSURE_BSSRDF_BURLEY_ID);
+    EXPECT_NEAR(out_sss_burley.color, data_in.closure[0].color, 1e-5f);
+    EXPECT_NEAR(out_sss_burley.N, data_in.closure[0].N, 1e-5f);
+    EXPECT_NEAR(out_sss_burley.data.rgb, data_in.closure[0].data.rgb, 1e-5f);
+  }
+
+  TEST(eevee_gbuffer, ClosureTranslucent)
+  {
+    gbuffer::InputClosures data_in = gbuffer_new();
+    data_in.closure[0].type = CLOSURE_BSDF_TRANSLUCENT_ID;
+    data_in.closure[0].weight = 1.0f;
+    data_in.closure[0].color = float3(0.1f, 0.2f, 0.3f);
+    data_in.closure[0].N = normalize(float3(0.2f, 0.1f, 0.3f));
+
+    const gbuffer::Packed data_out = gbuffer::pack(param, data_in, Ng, N, thickness, false);
+    const gbuffer::Header header = gbuffer::Header::from_data(data_out.header);
+
+    EXPECT_EQ(uint(data_out.used_layers), uint(ADDITIONAL_DATA));
+    EXPECT_NEAR(float3(header.empty_bins()), float3(0, 1, 1), 0.5f);
+    EXPECT_EQ(header.closure_len(), 1);
+
+    ClosureUndetermined out_translucent;
+    out_translucent.type = gbuffer::mode_to_closure_type(header.bin_type(0));
+    out_translucent.color = gbuffer::closure_color_unpack(data_out.closure[0]);
+    out_translucent.N = gbuffer::normal_unpack(data_out.normal[0]);
+
+    EXPECT_EQ(out_translucent.type, CLOSURE_BSDF_TRANSLUCENT_ID);
+    EXPECT_NEAR(out_translucent.color, data_in.closure[0].color, 1e-5f);
+    EXPECT_NEAR(out_translucent.N, data_in.closure[0].N, 1e-5f);
+  }
+
+  TEST(eevee_gbuffer, ClosureReflection)
+  {
+    gbuffer::InputClosures data_in = gbuffer_new();
+    data_in.closure[0].type = CLOSURE_BSDF_MICROFACET_GGX_REFLECTION_ID;
+    data_in.closure[0].weight = 1.0f;
+    data_in.closure[0].color = float3(0.1f, 0.2f, 0.3f);
+    data_in.closure[0].data.x = 0.4f;
+    data_in.closure[0].N = normalize(float3(0.2f, 0.1f, 0.3f));
+
+    const gbuffer::Packed data_out = gbuffer::pack(param, data_in, Ng, N, thickness, false);
+    const gbuffer::Header header = gbuffer::Header::from_data(data_out.header);
+
+    EXPECT_EQ(uint(data_out.used_layers), 0u);
+    EXPECT_NEAR(float3(header.empty_bins()), float3(0, 1, 1), 0.5f);
+    EXPECT_EQ(header.closure_len(), 1);
+
+    ClosureUndetermined out_reflection;
+    out_reflection.type = gbuffer::mode_to_closure_type(header.bin_type(0));
+    out_reflection.color = gbuffer::closure_color_unpack(data_out.closure[0]);
+    out_reflection.N = gbuffer::normal_unpack(data_out.normal[0]);
+    gbuffer::Reflection::unpack_additional(out_reflection, data_out.closure[1]);
+
+    EXPECT_EQ(out_reflection.type, CLOSURE_BSDF_MICROFACET_GGX_REFLECTION_ID);
+    EXPECT_NEAR(out_reflection.color, data_in.closure[0].color, 1e-5f);
+    EXPECT_NEAR(out_reflection.N, data_in.closure[0].N, 1e-5f);
+    EXPECT_NEAR(out_reflection.data.r, data_in.closure[0].data.r, 1e-5f);
+  }
+
+  TEST(eevee_gbuffer, ClosureRefraction)
+  {
+    gbuffer::InputClosures data_in = gbuffer_new();
+    data_in.closure[0].type = CLOSURE_BSDF_MICROFACET_GGX_REFRACTION_ID;
+    data_in.closure[0].weight = 1.0f;
+    data_in.closure[0].color = float3(0.1f, 0.2f, 0.3f);
+    data_in.closure[0].data.x = 0.4f;
+    data_in.closure[0].data.y = 0.5f;
+    data_in.closure[0].N = normalize(float3(0.2f, 0.1f, 0.3f));
+
+    const gbuffer::Packed data_out = gbuffer::pack(param, data_in, Ng, N, thickness, false);
+    const gbuffer::Header header = gbuffer::Header::from_data(data_out.header);
+
+    EXPECT_EQ(uint(data_out.used_layers), uint(ADDITIONAL_DATA));
+    EXPECT_NEAR(float3(header.empty_bins()), float3(0, 1, 1), 0.5f);
+    EXPECT_EQ(header.closure_len(), 1);
+
+    ClosureUndetermined out_refraction;
+    out_refraction.type = gbuffer::mode_to_closure_type(header.bin_type(0));
+    out_refraction.color = gbuffer::closure_color_unpack(data_out.closure[0]);
+    out_refraction.N = gbuffer::normal_unpack(data_out.normal[0]);
+    gbuffer::Refraction::unpack_additional(out_refraction, data_out.closure[1]);
+
+    EXPECT_EQ(out_refraction.type, CLOSURE_BSDF_MICROFACET_GGX_REFRACTION_ID);
+    EXPECT_NEAR(out_refraction.color, data_in.closure[0].color, 1e-5f);
+    EXPECT_NEAR(out_refraction.N, data_in.closure[0].N, 1e-5f);
+    EXPECT_NEAR(out_refraction.data.r, data_in.closure[0].data.r, 1e-5f);
+    EXPECT_NEAR(out_refraction.data.g, data_in.closure[0].data.g, 1e-5f);
+  }
+
+  TEST(eevee_gbuffer, ClosureCombination)
+  {
+    ClosureUndetermined in_cl0 = closure_new(CLOSURE_BSDF_MICROFACET_GGX_REFRACTION_ID);
+    in_cl0.weight = 1.0f;
+    in_cl0.color = float3(0.1f, 0.2f, 0.3f);
+    in_cl0.data.x = 0.4f;
+    in_cl0.data.y = 0.5f;
+    in_cl0.N = normalize(float3(0.2f, 0.1f, 0.3f));
+
+    ClosureUndetermined in_cl1 = closure_new(CLOSURE_BSDF_MICROFACET_GGX_REFLECTION_ID);
+    in_cl1.weight = 1.0f;
+    in_cl1.color = float3(0.4f, 0.5f, 0.6f);
+    in_cl1.data.x = 0.6f;
+    in_cl1.N = normalize(float3(0.2f, 0.3f, 0.4f));
+
+    gbuffer::InputClosures data_in = gbuffer_new();
+    data_in.closure[0] = in_cl0;
+    data_in.closure[2] = in_cl1;
+
+    const gbuffer::Packed data_out = gbuffer::pack(param, data_in, Ng, N, thickness, false);
+    const gbuffer::Header header = gbuffer::Header::from_data(data_out.header);
+
+    EXPECT_EQ(uint(data_out.used_layers),
+              uint(ADDITIONAL_DATA | NORMAL_DATA_1 | CLOSURE_DATA_2 | CLOSURE_DATA_3));
+    EXPECT_NEAR(float3(header.empty_bins()), float3(0, 1, 0), 0.5f);
+    EXPECT_EQ(header.closure_len(), 2);
+
+    ClosureUndetermined out_cl0;
+    out_cl0.type = gbuffer::mode_to_closure_type(header.bin_type(0));
+    out_cl0.color = gbuffer::closure_color_unpack(data_out.closure[0]);
+    out_cl0.N = gbuffer::normal_unpack(data_out.normal[0]);
+    gbuffer::Refraction::unpack_additional(out_cl0, data_out.closure[2]);
+
+    ClosureUndetermined out_cl1;
+    out_cl1.type = gbuffer::mode_to_closure_type(header.bin_type(2));
+    out_cl1.color = gbuffer::closure_color_unpack(data_out.closure[1]);
+    out_cl1.N = gbuffer::normal_unpack(data_out.normal[1]);
+    gbuffer::Reflection::unpack_additional(out_cl1, data_out.closure[3]);
+
+    EXPECT_EQ(out_cl0.type, CLOSURE_BSDF_MICROFACET_GGX_REFRACTION_ID);
+    EXPECT_NEAR(out_cl0.color, in_cl0.color, 1e-5f);
+    EXPECT_NEAR(out_cl0.N, in_cl0.N, 1e-5f);
+    EXPECT_NEAR(out_cl0.data.r, in_cl0.data.r, 1e-5f);
+    EXPECT_NEAR(out_cl0.data.g, in_cl0.data.g, 1e-5f);
+
+    EXPECT_EQ(out_cl1.type, CLOSURE_BSDF_MICROFACET_GGX_REFLECTION_ID);
+    EXPECT_NEAR(out_cl1.color, in_cl1.color, 1e-5f);
+    EXPECT_NEAR(out_cl1.N, in_cl1.N, 1e-5f);
+    EXPECT_NEAR(out_cl1.data.r, in_cl1.data.r, 1e-5f);
+  }
+
+  TEST(eevee_gbuffer, ClosureColorless)
+  {
+    gbuffer::InputClosures data_in = gbuffer_new();
+    data_in.closure[0].type = CLOSURE_BSDF_MICROFACET_GGX_REFRACTION_ID;
+    data_in.closure[0].weight = 1.0f;
+    data_in.closure[0].color = float3(0.1f, 0.1f, 0.1f);
+    data_in.closure[0].data.x = 0.4f;
+    data_in.closure[0].data.y = 0.5f;
+    data_in.closure[0].N = normalize(float3(0.2f, 0.1f, 0.3f));
+
+    data_in.closure[1].type = CLOSURE_BSDF_MICROFACET_GGX_REFLECTION_ID;
+    data_in.closure[1].weight = 1.0f;
+    data_in.closure[1].color = float3(0.1f, 0.1f, 0.1f);
+    data_in.closure[1].data.x = 0.4f;
+    data_in.closure[1].N = normalize(float3(0.2f, 0.3f, 0.4f));
+
+    const gbuffer::Packed data_out = gbuffer::pack(param, data_in, Ng, N, thickness, false);
+    const gbuffer::Header header = gbuffer::Header::from_data(data_out.header);
+
+    EXPECT_EQ(uint(data_out.used_layers), uint(ADDITIONAL_DATA | NORMAL_DATA_1));
+    EXPECT_NEAR(float3(header.empty_bins()), float3(0, 0, 1), 0.5f);
+    EXPECT_EQ(header.closure_len(), 2);
+
+    ClosureUndetermined out_refraction;
+    out_refraction.type = gbuffer::mode_to_closure_type(header.bin_type(0));
+    out_refraction.color = gbuffer::closure_color_unpack(data_out.closure[0]);
+    out_refraction.N = gbuffer::normal_unpack(data_out.normal[0]);
+    gbuffer::RefractionColorless::unpack_additional(out_refraction, data_out.closure[0]);
+
+    ClosureUndetermined out_reflection;
+    out_reflection.type = gbuffer::mode_to_closure_type(header.bin_type(1));
+    out_reflection.color = gbuffer::closure_color_unpack(data_out.closure[1]);
+    out_reflection.N = gbuffer::normal_unpack(data_out.normal[1]);
+    gbuffer::ReflectionColorless::unpack_additional(out_reflection, data_out.closure[1]);
+
+    EXPECT_EQ(out_refraction.type, CLOSURE_BSDF_MICROFACET_GGX_REFRACTION_ID);
+    EXPECT_NEAR(out_refraction.color, data_in.closure[0].color, 1e-5f);
+    EXPECT_NEAR(out_refraction.N, data_in.closure[0].N, 1e-5f);
+    EXPECT_NEAR(out_refraction.data.r, data_in.closure[0].data.r, 1e-5f);
+    EXPECT_NEAR(out_refraction.data.g, data_in.closure[0].data.g, 1e-5f);
+
+    EXPECT_EQ(out_reflection.type, CLOSURE_BSDF_MICROFACET_GGX_REFLECTION_ID);
+    EXPECT_NEAR(out_reflection.color, data_in.closure[1].color, 1e-5f);
+    EXPECT_NEAR(out_reflection.N, data_in.closure[1].N, 1e-5f);
+    EXPECT_NEAR(out_reflection.data.r, data_in.closure[1].data.r, 1e-5f);
+  }
+
+  TEST(eevee_gbuffer, ClosureDataDitherQuantization)
+  {
+    constexpr float quantization_step = 1.0f / 1023.0f;
+
+    float4 data = float4(0.5f, 0.25f, 0.75f, 1.0f);
+    EXPECT_NEAR(gbuffer::closure_data_dither_round_to_nearest(data, float3(0.5f)), data, 1e-7f);
+    EXPECT_NEAR(float3(gbuffer::closure_data_dither_round_to_nearest(data, float3(0.0f)).rgb),
+                data.rgb - float3(quantization_step * 0.5f),
+                1e-7f);
+    EXPECT_EQ(gbuffer::closure_data_dither_round_to_nearest(data, float3(0.0f)).a, data.a);
+
+    EXPECT_NEAR(gbuffer::closure_data_dither_flush_to_zero(data, float3(0.0f)), data, 1e-7f);
+    EXPECT_NEAR(float3(gbuffer::closure_data_dither_flush_to_zero(data, float3(1.0f)).rgb),
+                data.rgb + float3(quantization_step),
+                1e-7f);
+    EXPECT_EQ(gbuffer::closure_data_dither_flush_to_zero(data, float3(1.0f)).a, data.a);
+
+    float3 quantization_input = float3(100.25f, 100.75f, 100.25f) * quantization_step;
+    float3 noise = float3(0.2f, 0.2f, 0.8f);
+    EXPECT_NEAR(quantize_round_to_nearest_10bit(
+                    gbuffer::closure_data_dither_round_to_nearest(quantization_input, noise)),
+                quantize_flush_to_zero_10bit(
+                    gbuffer::closure_data_dither_flush_to_zero(quantization_input, noise)),
+                1e-7f);
+
+    quantization_input = float3(0.25f, 511.5f, 1022.75f) * quantization_step;
+    noise = float3(0.25f, 0.5f, 0.75f);
+    EXPECT_NEAR(quantize_round_to_nearest_10bit(
+                    gbuffer::closure_data_dither_round_to_nearest(quantization_input, noise)),
+                quantize_flush_to_zero_10bit(
+                    gbuffer::closure_data_dither_flush_to_zero(quantization_input, noise)),
+                1e-7f);
+
+    float3 endpoints = float3(0.0f, 1.0f, 0.0f);
+    EXPECT_NEAR(gbuffer::closure_data_dither_round_to_nearest(endpoints, float3(0.0f, 1.0f, 0.0f)),
+                endpoints,
+                1e-7f);
+    EXPECT_NEAR(gbuffer::closure_data_dither_flush_to_zero(endpoints, float3(0.0f, 1.0f, 0.0f)),
+                endpoints,
+                1e-7f);
+    EXPECT_NEAR(quantize_round_to_nearest_10bit(
+                    gbuffer::closure_data_dither_round_to_nearest(endpoints, float3(0.0f))),
+                endpoints,
+                1e-7f);
+    EXPECT_NEAR(quantize_flush_to_zero_10bit(
+                    gbuffer::closure_data_dither_flush_to_zero(endpoints, float3(0.5f))),
+                endpoints,
+                1e-7f);
+  }
+}
+
+PipelineCompute eevee_test_gbuffer_closure(eevee_test_gbuffer_closure_main,
+                                           gbuffer::PackParameters{
+                                               .gbuffer_has_reflection = true,
+                                               .gbuffer_has_refraction = true,
+                                               .gbuffer_has_subsurface = true,
+                                               .gbuffer_has_translucent = true,
+                                               .gbuffer_reflection_colorless = false,
+                                               .gbuffer_refraction_colorless = false,
+                                               .gbuffer_layer_max = 3,
+                                               .gbuffer_simple_layout = false,
+                                           });

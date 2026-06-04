@@ -41,9 +41,12 @@ static void node_declare(NodeDeclarationBuilder &b)
       .description(
           "Geometry to evaluate the given fields and store the resulting attributes on. All "
           "geometry types except volumes are supported");
-  b.add_output<decl::Geometry>("Geometry"_ustr).propagate_all().align_with_previous();
-  b.add_input<decl::Bool>("Selection"_ustr).default_value(true).hide_value().field_on_all();
-  b.add_output<decl::Bool>("Selection"_ustr).field_on_all().align_with_previous();
+  b.add_output<decl::Geometry>("Geometry"_ustr).propagate_all_geometry().align_with_previous();
+  b.add_input<decl::Bool>("Selection"_ustr)
+      .default_value(true)
+      .hide_value()
+      .evaluated_geometry_field();
+  b.add_output<decl::Bool>("Selection"_ustr).anonymous_attribute_output().align_with_previous();
   if (node != nullptr) {
     const NodeGeometryAttributeCapture &storage = node_storage(*node);
     for (const NodeGeometryAttributeCaptureItem &item :
@@ -56,9 +59,11 @@ static void node_declare(NodeDeclarationBuilder &b)
       const UString output_identifier(
           CaptureAttributeItemsAccessor::output_socket_identifier_for_item(item));
       b.add_input(data_type, name, input_identifier)
-          .field_on_all()
+          .evaluated_geometry_field()
           .socket_name_ptr(&tree->id, *CaptureAttributeItemsAccessor::item_srna, &item, "name");
-      b.add_output(data_type, name, output_identifier).field_on_all().align_with_previous();
+      b.add_output(data_type, name, output_identifier)
+          .anonymous_attribute_output()
+          .align_with_previous();
     }
   }
   b.add_input<decl::Extend>(""_ustr, "__extend__"_ustr)

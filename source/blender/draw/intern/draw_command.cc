@@ -354,6 +354,29 @@ void StencilSet::execute() const
   GPU_stencil_reference_set(reference);
 }
 
+void TextureCopy::execute() const
+{
+  gpu::Texture *exec_src = src_is_ref ? *src_ref : src;
+  gpu::Texture *exec_dst = dst_is_ref ? *dst_ref : dst;
+
+  if (!GPU_texture_is_view(exec_src) && !GPU_texture_is_view(exec_dst)) {
+    GPU_texture_copy(exec_dst, exec_src);
+    return;
+  }
+
+  /* WORKAROUND: There are some issues with copies involving texture views.
+   * Needed for the EEVEE Prepass depth copy. */
+  /* TODO(@pragma37): This path should be removed in 5.3 once #158607 lands. */
+  BLI_assert(GPU_texture_has_depth_format(exec_src));
+  gpu::FrameBuffer *src_fb = GPU_framebuffer_create("TextureCopy-tmp-src");
+  gpu::FrameBuffer *dst_fb = GPU_framebuffer_create("TextureCopy-tmp-dst");
+  GPU_framebuffer_ensure_config(&src_fb, {GPU_ATTACHMENT_TEXTURE(exec_src)});
+  GPU_framebuffer_ensure_config(&dst_fb, {GPU_ATTACHMENT_TEXTURE(exec_dst)});
+  GPU_framebuffer_blit(src_fb, 0, dst_fb, 0, GPUFrameBufferBits::GPU_DEPTH_BIT);
+  GPU_framebuffer_free(src_fb);
+  GPU_framebuffer_free(dst_fb);
+}
+
 /** \} */
 
 /* -------------------------------------------------------------------- */
@@ -687,6 +710,11 @@ std::string StencilSet::serialize() const
   ss << ".stencil_set(write_mask=0b" << std::bitset<8>(write_mask) << ", reference=0b"
      << std::bitset<8>(reference) << ", compare_mask=0b" << std::bitset<8>(compare_mask) << ")";
   return ss.str();
+}
+
+std::string TextureCopy::serialize() const
+{
+  return ".texture_copy()";
 }
 
 /** \} */

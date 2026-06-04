@@ -60,6 +60,7 @@ static void node_declare(NodeDeclarationBuilder &b)
   b.add_input<decl::Vector>("Size"_ustr)
       .dimensions(2)
       .default_value({0.0f, 0.0f})
+      .subtype(PROP_PIXEL)
       .min(0.0f)
       .structure_type(StructureType::Dynamic);
   b.add_input<decl::Menu>("Type"_ustr)

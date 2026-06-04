@@ -45,7 +45,7 @@ static void wm_xr_error_handler(const GHOST_XrError *error)
 {
   wmXrErrorHandlerData *handler_data = static_cast<wmXrErrorHandlerData *>(error->customdata);
   wmWindowManager *wm = handler_data->wm;
-  wmWindow *xr_root_win = CTX_wm_window(wm->xr.runtime->b_context);
+  wmWindow *xr_root_win = wm->xr.runtime ? CTX_wm_window(wm->xr.runtime->b_context) : nullptr;
 
   BKE_reports_clear(&wm->runtime->reports);
   WM_global_report(RPT_ERROR, error->user_message);

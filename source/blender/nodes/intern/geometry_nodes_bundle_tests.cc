@@ -22,10 +22,10 @@ TEST_F(BundleTest, AddItems)
 {
   BundlePtr bundle_ptr = Bundle::create();
   Bundle &bundle = const_cast<Bundle &>(*bundle_ptr);
-  bundle.add("a"_ustr, 3);
+  bundle.add(*BundleKey::from_str("a"), 3);
   EXPECT_EQ(bundle.size(), 1);
-  EXPECT_TRUE(bundle.contains("a"_ustr));
-  EXPECT_EQ(bundle.lookup<int>("a"_ustr), 3);
+  EXPECT_TRUE(bundle.contains(*BundleKey::from_str("a")));
+  EXPECT_EQ(bundle.lookup<int>(*BundleKey::from_str("a")), 3);
 }
 
 TEST_F(BundleTest, AddLookupPath)
@@ -91,7 +91,7 @@ TEST_F(BundleTest, EnsureNestedBundle)
   BundlePtr bundle_ptr = Bundle::create();
   Bundle &bundle = bundle_ptr.ensure_mutable_inplace();
   Bundle &nested_bundle = bundle.ensure_nested_bundle("a/b/c");
-  nested_bundle.add("test"_ustr, 4);
+  nested_bundle.add(*BundleKey::from_str("test"), 4);
   const std::optional<int> value = bundle.lookup_path<int>("a/b/c/test");
   EXPECT_EQ(value, 4);
 }

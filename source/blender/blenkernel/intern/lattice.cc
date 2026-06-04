@@ -94,7 +94,7 @@ static void lattice_free_data(ID *id)
 
   BKE_lattice_batch_cache_free(lattice);
 
-  BLI_freelistN(&lattice->vertex_group_names);
+  lattice->vertex_group_names.free_no_destruct();
 
   MEM_SAFE_DELETE(lattice->def);
   if (lattice->dvert) {
@@ -534,7 +534,7 @@ void BKE_lattice_modifiers_calc(Depsgraph *depsgraph, Scene *scene, Object *ob)
   const ModifierEvalContext mectx = {depsgraph, ob, ModifierApplyFlag(0)};
 
   for (; md; md = md->next) {
-    const ModifierTypeInfo *mti = BKE_modifier_get_info(ModifierType(md->type));
+    const ModifierTypeInfo *mti = BKE_modifier_get_info(md->type);
 
     if (!(mti->flags & eModifierTypeFlag_AcceptsVertexCosOnly)) {
       continue;

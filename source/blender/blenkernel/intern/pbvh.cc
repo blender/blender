@@ -34,17 +34,13 @@
 
 #include "DEG_depsgraph_query.hh"
 
+#include "PRF_profile.hh"
+
 #include "bmesh.hh"
 
 #include "pbvh_intern.hh"
 
 namespace blender {
-
-// #define DEBUG_BUILD_TIME
-
-#ifdef DEBUG_BUILD_TIME
-#  include "BLI_timeit.hh"
-#endif
 
 namespace bke::pbvh {
 
@@ -85,9 +81,7 @@ BLI_NOINLINE static void build_mesh_leaf_nodes(const int verts_num,
                                                const Span<int> corner_verts,
                                                MutableSpan<MeshNode> nodes)
 {
-#ifdef DEBUG_BUILD_TIME
-  SCOPED_TIMER_AVERAGED(__func__);
-#endif
+  PRF_scope(ProfileCategory::Core);
   Array<Array<int>> verts_per_node(nodes.size(), NoInitialization());
   threading::parallel_for(nodes.index_range(), 8, [&](const IndexRange range) {
     Set<int> verts;
@@ -153,6 +147,7 @@ static void build_nodes_recursive_mesh(const Span<int> material_indices,
                                        MutableSpan<int> faces,
                                        Vector<MeshNode> &nodes)
 {
+  PRF_scope(ProfileCategory::Core);
   BLI_assert(parent_index >= -1);
 
   MeshNode &node = nodes[node_index];
@@ -225,9 +220,7 @@ static void build_nodes_recursive_mesh(const Span<int> material_indices,
 
 Tree Tree::from_spatially_organized_mesh(const Mesh &mesh)
 {
-#ifdef DEBUG_BUILD_TIME
-  SCOPED_TIMER_AVERAGED(__func__);
-#endif
+  PRF_scope(ProfileCategory::Core);
 
   Tree pbvh(Type::Mesh);
   const Span<float3> vert_positions = mesh.vert_positions();
@@ -308,9 +301,7 @@ Tree Tree::from_spatially_organized_mesh(const Mesh &mesh)
 
 Tree Tree::from_mesh(const Mesh &mesh)
 {
-#ifdef DEBUG_BUILD_TIME
-  SCOPED_TIMER_AVERAGED(__func__);
-#endif
+  PRF_scope(ProfileCategory::Core);
   if (mesh.runtime->spatial_groups) {
     return from_spatially_organized_mesh(mesh);
   }
@@ -352,9 +343,6 @@ Tree Tree::from_mesh(const Mesh &mesh)
   Vector<MeshNode> &nodes = std::get<Vector<MeshNode>>(pbvh.nodes_);
   nodes.resize(1);
   {
-#ifdef DEBUG_BUILD_TIME
-    SCOPED_TIMER_AVERAGED("build_nodes_recursive_mesh");
-#endif
     build_nodes_recursive_mesh(
         material_index, leaf_limit, 0, -1, bounds, face_centers, 0, pbvh.prim_indices_, nodes);
   }
@@ -389,6 +377,7 @@ static void build_nodes_recursive_grids(const Span<int> material_indices,
                                         MutableSpan<int> faces,
                                         Vector<GridsNode> &nodes)
 {
+  PRF_scope(ProfileCategory::Core);
   BLI_assert(parent_index >= -1);
 
   GridsNode &node = nodes[node_index];
@@ -473,9 +462,7 @@ static Bounds<float3> calc_face_grid_bounds(const OffsetIndices<int> faces,
 
 Tree Tree::from_grids(const Mesh &base_mesh, const SubdivCCG &subdiv_ccg)
 {
-#ifdef DEBUG_BUILD_TIME
-  SCOPED_TIMER_AVERAGED(__func__);
-#endif
+  PRF_scope(ProfileCategory::Core);
   Tree pbvh(Type::Grids);
   const OffsetIndices faces = base_mesh.faces();
   if (faces.is_empty()) {
@@ -519,9 +506,6 @@ Tree Tree::from_grids(const Mesh &base_mesh, const SubdivCCG &subdiv_ccg)
   Vector<GridsNode> &nodes = std::get<Vector<GridsNode>>(pbvh.nodes_);
   nodes.resize(1);
   {
-#ifdef DEBUG_BUILD_TIME
-    SCOPED_TIMER_AVERAGED("build_nodes_recursive_grids");
-#endif
     build_nodes_recursive_grids(
         material_index, leaf_limit, 0, -1, bounds, face_centers, 0, face_indices, nodes);
   }
@@ -1225,6 +1209,7 @@ static void update_normals_mesh(Object &object_orig,
 
 void Tree::update_normals(Object &object_orig, Object &object_eval)
 {
+  PRF_scope(ProfileCategory::Core);
   IndexMaskMemory memory;
   const IndexMask nodes_to_update = IndexMask::from_bits(normals_dirty_, memory);
 
@@ -1383,6 +1368,7 @@ void Tree::update_bounds_bmesh(const BMesh & /*bm*/)
 
 void Tree::update_bounds(const Depsgraph &depsgraph, const Object &object)
 {
+  PRF_scope(ProfileCategory::Core);
   switch (this->type()) {
     case Type::Mesh: {
       const Span<float3> positions = bke::pbvh::vert_positions_eval(depsgraph, object);
@@ -1578,6 +1564,7 @@ static void update_visibility_bmesh(const MutableSpan<BMeshNode> nodes, const In
 
 void Tree::update_visibility(const Object &object)
 {
+  PRF_scope(ProfileCategory::Core);
   IndexMaskMemory memory;
   const IndexMask node_mask = IndexMask::from_bits(visibility_dirty_, memory);
   if (node_mask.is_empty()) {
@@ -1786,6 +1773,7 @@ void raycast(Tree &pbvh,
              const float3 &ray_normal,
              bool original)
 {
+  PRF_scope(ProfileCategory::Core);
   RaycastData rcd;
 
   isect_ray_aabb_v3_precalc(&rcd.ray, ray_start, ray_normal);

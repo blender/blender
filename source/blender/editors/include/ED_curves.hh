@@ -332,7 +332,7 @@ IndexMask retrieve_selected_curves(const Curves &curves_id, LinearAllocator<> &m
 
 /**
  * Find points that are selected (a selection factor greater than zero),
- * or points in curves with a selection factor greater than zero).
+ * or points in curves with a selection factor greater than zero.
  */
 IndexMask retrieve_selected_points(const bke::CurvesGeometry &curves, LinearAllocator<> &memory);
 IndexMask retrieve_selected_points(const Curves &curves_id, LinearAllocator<> &memory);

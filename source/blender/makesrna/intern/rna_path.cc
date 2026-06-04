@@ -165,7 +165,7 @@ static char *rna_path_token_in_brackets(const char **path,
   char *buf = (len + 1 < fixedlen) ? fixedbuf :
                                      MEM_new_array_uninitialized<char>(size_t(len) + 1, __func__);
 
-  /* Copy string, taking into account escaped ']' */
+  /* Copy string, taking into account escaped `]`. */
   if (quoted) {
     BLI_str_unescape(buf, *path, len);
     /* +1 to step over the last quote. */

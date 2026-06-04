@@ -17,7 +17,7 @@ namespace blender {
 extern struct PyC_StringEnumItems bpygpu_primtype_items[];
 extern struct PyC_StringEnumItems bpygpu_dataformat_items[];
 
-/* Doc-string Literal types for shared enums. */
+/* Docstring Literal types for shared enums. */
 
 #define PYDOC_PRIMTYPE_LITERAL \
   "Literal[" \

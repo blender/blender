@@ -115,7 +115,7 @@ class Relations : Overlay {
     }
 
     /* Drawing the constraint lines */
-    if (!BLI_listbase_is_empty(&ob->constraints)) {
+    if (!ob->constraints.is_empty()) {
       Scene *scene = const_cast<Scene *>(state.scene);
       bConstraintOb *cob = BKE_constraints_make_evalob(
           state.depsgraph, scene, ob, nullptr, CONSTRAINT_OBTYPE_OBJECT);

@@ -45,21 +45,21 @@ static void node_declare(NodeDeclarationBuilder &b)
   b.add_output<decl::Geometry>("Points"_ustr)
       .description("A point for each active voxel or tile in the grid");
   b.add_output(data_type, "Value"_ustr)
-      .field_on_all()
+      .anonymous_attribute_output()
       .description("The grid's value at each voxel");
 
   auto &panel = b.add_panel("Voxel Index"_ustr).default_closed(true);
-  panel.add_output<decl::Int>("X"_ustr).field_on_all().description(
+  panel.add_output<decl::Int>("X"_ustr).anonymous_attribute_output().description(
       "X coordinate of the voxel in index space, or the minimum X coordinate of a tile");
-  panel.add_output<decl::Int>("Y"_ustr).field_on_all().description(
+  panel.add_output<decl::Int>("Y"_ustr).anonymous_attribute_output().description(
       "Y coordinate of the voxel in index space, or the minimum Y coordinate of a tile");
-  panel.add_output<decl::Int>("Z"_ustr).field_on_all().description(
+  panel.add_output<decl::Int>("Z"_ustr).anonymous_attribute_output().description(
       "Z coordinate of the voxel in index space, or the minimum Z coordinate of a tile");
   panel.add_output<decl::Bool>("Is Tile"_ustr)
-      .field_on_all()
+      .anonymous_attribute_output()
       .description("The point represents a tile (multiple voxels) rather than a single voxel");
   panel.add_output<decl::Int>("Extent"_ustr)
-      .field_on_all()
+      .anonymous_attribute_output()
       .description(
           "The size of the tile or voxel. For individual voxels this is 1, for tiles this "
           "represents "

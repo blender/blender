@@ -122,7 +122,7 @@ void BPY_context_update(bContext *C)
  * Wrap `bpy_context_set` & `bpy_context_set_allow_null`.
  *
  * \param allow_null_context: Ideally we would phase this out,
- * however some code uses a null context, see: `bpy_context_set_allow_null` doc-string for details.
+ * however some code uses a null context, see: `bpy_context_set_allow_null` docstring for details.
  */
 static void bpy_context_set_ex(bContext *C,
                                PyGILState_STATE *gilstate,

@@ -547,6 +547,7 @@ void OUTLINER_OT_object_operation(wmOperatorType *ot);
 void OUTLINER_OT_lib_operation(wmOperatorType *ot);
 void OUTLINER_OT_liboverride_operation(wmOperatorType *ot);
 void OUTLINER_OT_liboverride_troubleshoot_operation(wmOperatorType *ot);
+void OUTLINER_OT_liboverride_property_remove(wmOperatorType *ot);
 void OUTLINER_OT_id_operation(wmOperatorType *ot);
 void OUTLINER_OT_id_remap(wmOperatorType *ot);
 void OUTLINER_OT_id_copy(wmOperatorType *ot);

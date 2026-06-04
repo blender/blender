@@ -24,11 +24,18 @@ static void node_declare(NodeDeclarationBuilder &b)
 {
   b.add_input<decl::Image>("Image"_ustr).optional_label();
   b.add_input<decl::Vector>("Vector"_ustr)
-      .implicit_field(NODE_DEFAULT_INPUT_POSITION_FIELD)
+      .structure_type(StructureType::Dynamic)
+      .default_input_type(NODE_DEFAULT_INPUT_POSITION_FIELD)
       .description("Texture coordinates from 0 to 1");
   b.add_input<decl::Int>("Frame"_ustr).min(0).max(MAXFRAMEF);
-  b.add_output<decl::Color>("Color"_ustr).no_muted_links().dependent_field().reference_pass_all();
-  b.add_output<decl::Float>("Alpha"_ustr).no_muted_links().dependent_field().reference_pass_all();
+  b.add_output<decl::Color>("Color"_ustr)
+      .no_muted_links()
+      .inferred_structure_type()
+      .propagate_references();
+  b.add_output<decl::Float>("Alpha"_ustr)
+      .no_muted_links()
+      .inferred_structure_type()
+      .propagate_references();
 }
 
 static void node_layout(ui::Layout &layout, bContext * /*C*/, PointerRNA *ptr)

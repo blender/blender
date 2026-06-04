@@ -491,7 +491,7 @@ void TokenBuffer::tokenize(const CharClass char_class_table[128])
    * This is done in order to avoid allocation and check inside the hot loop. */
   reserve(str_.size());
 
-  if (str_.size() == 0) {
+  if (str_.empty()) {
     size_ = 0;
     types_[0] = EndOfFile;
     return;

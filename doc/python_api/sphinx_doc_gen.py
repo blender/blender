@@ -251,7 +251,7 @@ GLOBAL: Global
 # Mutable State
 
 class State:
-    # Non-fatal issues (e.g. C-API `PyGetSetDef` doc-string problems) increment
+    # Non-fatal issues (e.g. C-API `PyGetSetDef` docstring problems) increment
     # this counter. `main()` returns non-zero when it ends up greater than zero.
     error_count: int = 0
 
@@ -925,9 +925,9 @@ def undocumented_message(module_name: str, type_name: str | None, identifier: st
 def example_extract_docstring(filepath: Path | str) -> tuple[str, int, bool]:
     """
     Return (text, line_no, line_no_has_content) where:
-    - ``text`` is the doc-string text.
-    - ``line_no`` is the line the doc-string text ends.
-    - ``line_no_has_content`` when False, this file only contains a doc-string.
+    - ``text`` is the docstring text.
+    - ``line_no`` is the line the docstring text ends.
+    - ``line_no_has_content`` when False, this file only contains a docstring.
       There is no need to include the remainder.
     """
     with open(filepath, "r", encoding="utf-8") as fh:
@@ -983,7 +983,7 @@ def write_example_ref_impl(ident: str, fw: WriteFn, example_id: str, ext: str) -
 
     fw("\n")
 
-    # Some files only contain a doc-string.
+    # Some files only contain a docstring.
     if line_no_has_content:
         fw("{:s}.. literalinclude:: {:s}\n".format(ident, filepath))
         if line_no > 0:
@@ -1192,7 +1192,7 @@ def py_descr2sphinx(
         else:
             if not doc:
                 print(
-                    "C-API PyGetSetDef {:s}.{:s}.{:s} has empty/missing doc-string".format(
+                    "C-API PyGetSetDef {:s}.{:s}.{:s} has empty/missing docstring".format(
                         module_name, type_name, identifier,
                     ),
                     file=sys.stderr,
@@ -1200,7 +1200,7 @@ def py_descr2sphinx(
                 State.error_count += 1
             elif ":type:" not in doc:
                 print(
-                    "C-API PyGetSetDef {:s}.{:s}.{:s} doc-string is missing ':type:'".format(
+                    "C-API PyGetSetDef {:s}.{:s}.{:s} docstring is missing ':type:'".format(
                         module_name, type_name, identifier,
                     ),
                     file=sys.stderr,
@@ -1244,7 +1244,7 @@ def py_c_func2sphinx(
     C/C++ defined function to Sphinx.
     """
 
-    # Dump the doc-string, assume its formatted correctly.
+    # Dump the docstring, assume its formatted correctly.
     if py_func.__doc__:
         write_indented_lines(ident, fw, py_func.__doc__, False)
         fw("\n")
@@ -1457,7 +1457,7 @@ def pymodule2sphinx(
         # Both the same at the moment but to be future proof.
         elif value_type in {types.BuiltinMethodType, types.BuiltinFunctionType}:
             # NOTE: can't get args from these, so dump the string as is
-            # this means any module used like this must have fully formatted doc-strings.
+            # this means any module used like this must have fully formatted docstrings.
             py_c_func2sphinx("", fw, module_name, None, attribute, value, is_class=False)
         elif value_type == type:
             classes.append((attribute, value))
@@ -1961,7 +1961,7 @@ def pyclass2sphinx(
             descr = getattr(value, key)
             if type(descr) in {BuiltinMethodType, BuiltinFunctionType}:
                 # CAPI-defined static methods already contain RST directives
-                # in their doc-strings, write them directly.
+                # in their docstrings, write them directly.
                 write_indented_lines("   ", fw, descr.__doc__ or "Undocumented", False)
                 fw("\n")
             else:
@@ -3531,7 +3531,7 @@ SetupData = dict[str, list[tuple[list[object], list[object]]]]
 # Avoid adding too many changes here.
 def setup_blender() -> SetupData:
     # Remove handlers since the functions get included
-    # in the doc-string and don't have meaningful names.
+    # in the docstring and don't have meaningful names.
     lists_to_restore: list[tuple[list[object], list[object]]] = []
     for var in bpy.app.handlers:
         if isinstance(var, list):

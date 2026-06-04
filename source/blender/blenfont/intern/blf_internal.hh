@@ -169,6 +169,12 @@ void blf_font_boundbox_foreach_glyph(
     bool (*user_fn)(const char *str, size_t str_step_ofs, const rcti *bounds, void *user_data),
     void *user_data);
 
+void blf_font_info_foreach_glyph(
+    FontBLF *font,
+    const char *str,
+    size_t str_len,
+    FunctionRef<void(int index, size_t byte_offset, int byte_len, int advance_x)> callback);
+
 size_t blf_str_offset_from_cursor_position(FontBLF *font,
                                            const char *str,
                                            size_t str_len,

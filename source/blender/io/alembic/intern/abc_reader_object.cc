@@ -8,12 +8,15 @@
 
 #include "abc_reader_object.h"
 #include "abc_axis_conversion.h"
+#include "abc_keyframing.h"
 #include "abc_util.h"
 
 #include "DNA_cachefile_types.h"
 #include "DNA_constraint_types.h"
 #include "DNA_modifier_types.h"
 #include "DNA_object_types.h"
+
+#include "ANIM_fcurve.hh"
 
 #include "BKE_constraint.h"
 #include "BKE_lib_id.hh"
@@ -169,6 +172,92 @@ bool AbcObjectReader::topology_changed(const Mesh * /*existing_mesh*/,
   return false;
 }
 
+class VisibilityFCurveCreationHelper : public FCurveCreationHelper {
+  IObject vis_object_{};
+  IVisibilityProperty vis_prop_{};
+
+  FCurve *viewport_fcurve = nullptr;
+  FCurve *render_fcurve = nullptr;
+
+ public:
+  VisibilityFCurveCreationHelper(Object *object,
+                                 const IObject &vis_object,
+                                 const IVisibilityProperty &vis_prop)
+      : FCurveCreationHelper(&object->id), vis_object_(vis_object), vis_prop_(vis_prop)
+  {
+  }
+
+  void create_fcurves(const int sample_count) override
+  {
+    viewport_fcurve = create_fcurve({"hide_viewport", 0}, sample_count);
+    render_fcurve = create_fcurve({"hide_render", 0}, sample_count);
+  }
+
+  void set_fcurves_sample(const FrameSampleInfo &sample_info) override
+  {
+    ObjectVisibility vis = ObjectVisibility(vis_prop_.getValue(sample_info.selector));
+
+    if (vis == Alembic::AbcGeom::kVisibilityDeferred) {
+      IObject parent = vis_object_.getParent();
+
+      while (parent) {
+        const IVisibilityProperty &parent_vis_prop(
+            Alembic::AbcGeom::GetVisibilityProperty(parent));
+        if (parent_vis_prop) {
+          vis = ObjectVisibility(parent_vis_prop.getValue(sample_info.selector));
+          if (vis != Alembic::AbcGeom::kVisibilityDeferred) {
+            break;
+          }
+        }
+
+        parent = parent.getParent();
+      }
+    }
+
+    const float hidden = (vis == ObjectVisibility::kVisibilityHidden) ? 1.0f : 0.0f;
+    set_fcurve_sample(viewport_fcurve, sample_info.sample_index, sample_info.frame, hidden);
+    set_fcurve_sample(render_fcurve, sample_info.sample_index, sample_info.frame, hidden);
+  }
+};
+
+void AbcObjectReader::getKeyFramingHelpers(
+    Vector<std::unique_ptr<FCurveCreationHelper>> &keyframing_helpers)
+{
+  /* Check if we have animated visibility. */
+  IObject vis_object = m_iobject;
+  ObjectVisibility vis = Alembic::AbcGeom::kVisibilityDeferred;
+  while (vis_object) {
+    IVisibilityProperty vis_prop = Alembic::AbcGeom::GetVisibilityProperty(vis_object);
+    if (vis_prop) {
+      if (!vis_prop.isConstant()) {
+        std::unique_ptr<FCurveCreationHelper> helper =
+            std::make_unique<VisibilityFCurveCreationHelper>(m_object, vis_object, vis_prop);
+        keyframing_helpers.append(std::move(helper));
+        m_has_visibility_keyframes = true;
+        break;
+      }
+
+      vis = ObjectVisibility(vis_prop.getValue(ISampleSelector()));
+      if (vis != Alembic::AbcGeom::kVisibilityDeferred) {
+        break;
+      }
+    }
+
+    vis_object = vis_object.getParent();
+  }
+
+  /* Helper for the object data. */
+  std::unique_ptr<FCurveCreationHelper> specific_helper = getKeyFramingHelper();
+  if (specific_helper) {
+    keyframing_helpers.append(std::move(specific_helper));
+  }
+}
+
+std::unique_ptr<FCurveCreationHelper> AbcObjectReader::getKeyFramingHelper()
+{
+  return nullptr;
+}
+
 void AbcObjectReader::setupObjectTransform(const chrono_t time)
 {
   bool is_constant = false;
@@ -299,6 +388,9 @@ void AbcObjectReader::readVisibility()
   while (vis_object) {
     IVisibilityProperty vis_prop = Alembic::AbcGeom::GetVisibilityProperty(vis_object);
     if (vis_prop) {
+      if (!vis_prop.isConstant()) {
+        return;
+      }
       vis = ObjectVisibility(vis_prop.getValue(ISampleSelector()));
       if (vis != Alembic::AbcGeom::kVisibilityDeferred) {
         break;

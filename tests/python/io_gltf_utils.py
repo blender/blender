@@ -13,6 +13,24 @@ from enum import IntEnum
 sys.path.append(str(pathlib.Path(__file__).parent.absolute()))
 
 
+def is_meshopt_compare(json_):
+    """Check if we need to avoid full comparison of the data"""
+    if 'extensionsUsed' in json_:
+        if 'KHR_meshopt_compression' in json_['extensionsUsed']:
+            return True
+        if 'EXT_meshopt_compression' in json_['extensionsUsed']:
+            return True
+    return False
+
+
+def is_draco_compare(json_):
+    """Check if we need to avoid full comparison of the data"""
+    if 'extensionsUsed' in json_:
+        if 'KHR_draco_mesh_compression' in json_['extensionsUsed']:
+            return True
+    return False
+
+
 def gltf_generate_descr(output_datafile: pathlib.Path) -> str:
     gltf = glTFDataExtractor(output_datafile)
     gltf.load()
@@ -38,7 +56,27 @@ def gltf_generate_descr(output_datafile: pathlib.Path) -> str:
             return [round_floats(x) for x in o]
         return o
 
-    text += json.dumps(round_floats(gltf.json), indent=2, ensure_ascii=False)
+    if is_meshopt_compare(gltf.json):
+        # Avoid comparing data when meshopt compression is used, as it can lead to
+        # small differences that are not relevant.
+        # Simple comparison : check the extensions, and that there are 2 buffers
+        for extension_used in sorted(gltf.json['extensionsUsed']):
+            text += extension_used + "\n"
+        for idx, buffer in enumerate(gltf.json.get('buffers', [])):
+            text += f"buffer {idx} with extension fallback {
+                buffer.get(
+                    'extensions', {}).get(
+                    'KHR_meshopt_compression', {}).get(
+                    'fallback', False)}\n"
+
+    elif is_draco_compare(gltf.json):
+        # Avoid comparing data when draco compression is used, as it can lead to
+        # small differences that are not relevant.
+        # Simple comparison : check the extensions
+        for extension_used in gltf.json['extensionsUsed']:
+            text += extension_used + "\n"
+    else:
+        text += json.dumps(round_floats(gltf.json), indent=2, ensure_ascii=False)
     for accessor in gltf.accessors_data:
         text += accessor + "\n"
     return text
@@ -70,6 +108,10 @@ class glTFDataExtractor:
         else:
             # glTF + bin + textures
             self.json = glTFDataExtractor.load_json(content)
+
+            # Let's ignore buffers and binary data when the file has meshopt compression
+            if is_meshopt_compare(self.json) or is_draco_compare(self.json):
+                return
 
             # Get buffers
             for buffer in self.json.get('buffers', []):

@@ -10,14 +10,15 @@
 #include <pxr/imaging/hd/driver.h>
 #include <pxr/imaging/hd/engine.h>
 #include <pxr/imaging/hd/pluginRenderDelegateUniqueHandle.h>
+#include <pxr/imaging/hd/retainedSceneIndex.h>
 #include <pxr/imaging/hgi/hgi.h>
 #include <pxr/usd/usd/stage.h>
 #include <pxr/usdImaging/usdImaging/delegate.h>
 
 #include "hydra/camera_delegate.hh"
-#include "hydra/hydra_scene_delegate.hh"
+#include "hydra/scene_index.hh"
 #include "hydra/settings.hh"
-#include "hydra/usd_scene_delegate.hh"
+#include "hydra/usd_scene_index.hh"
 
 #include "light_tasks_delegate.hh"
 #include "render_task_delegate.hh"
@@ -48,9 +49,11 @@ class Engine {
   std::unique_ptr<pxr::HdRenderIndex> render_index_;
 
   std::unique_ptr<io::hydra::CameraDelegate> free_camera_delegate_;
-  std::unique_ptr<io::hydra::HydraSceneDelegate> hydra_scene_delegate_;
-  std::unique_ptr<io::hydra::USDSceneDelegate> usd_scene_delegate_;
+  std::unique_ptr<io::hydra::HydraSceneIndex> hydra_scene_index_;
+  pxr::SdfPath hydra_scene_index_path_;
+  std::unique_ptr<io::hydra::USDSceneIndex> usd_scene_delegate_;
 
+  pxr::HdRetainedSceneIndexRefPtr task_scene_index_;
   std::unique_ptr<RenderTaskDelegate> render_task_delegate_;
   std::unique_ptr<LightTasksDelegate> light_tasks_delegate_;
   std::unique_ptr<pxr::HdEngine> engine_;

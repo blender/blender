@@ -42,7 +42,7 @@ ccl_device_inline float wireframe(KernelGlobals kg,
       motion_triangle_vertices(kg, sd->object, sd->prim, sd->time, Co);
     }
     else {
-      triangle_vertices(kg, sd->prim, Co);
+      triangle_vertices(kg, sd->object, sd->prim, Co);
     }
 
     if (!(sd->object_flag & SD_OBJECT_TRANSFORM_APPLIED)) {

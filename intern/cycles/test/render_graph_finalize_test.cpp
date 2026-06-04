@@ -1292,13 +1292,25 @@ template<class T> void init_test_curve(array<T> &buffer, T start, T end, const i
   }
 }
 
+void init_test_curve(array<packed_float3> &buffer,
+                     const float3 start,
+                     const float3 end,
+                     const int steps)
+{
+  buffer.resize(steps);
+
+  for (int i = 0; i < steps; i++) {
+    buffer[i] = mix(start, end, float(i) / (steps - 1));
+  }
+}
+
 /*
  * Tests:
  *  - Folding of RGB Curves with all constant inputs.
  */
 TEST_F(RenderGraph, constant_fold_rgb_curves)
 {
-  array<float3> curve;
+  array<packed_float3> curve;
   init_test_curve(curve, make_float3(0.0f, 0.25f, 1.0f), make_float3(1.0f, 0.75f, 0.0f), 257);
 
   builder
@@ -1321,7 +1333,7 @@ TEST_F(RenderGraph, constant_fold_rgb_curves)
  */
 TEST_F(RenderGraph, constant_fold_rgb_curves_fac_0)
 {
-  array<float3> curve;
+  array<packed_float3> curve;
   init_test_curve(curve, make_float3(0.0f, 0.25f, 1.0f), make_float3(1.0f, 0.75f, 0.0f), 257);
 
   builder.add_attribute("Attribute")
@@ -1344,7 +1356,7 @@ TEST_F(RenderGraph, constant_fold_rgb_curves_fac_0)
  */
 TEST_F(RenderGraph, constant_fold_rgb_curves_fac_0_const)
 {
-  array<float3> curve;
+  array<packed_float3> curve;
   init_test_curve(curve, make_float3(0.0f, 0.25f, 1.0f), make_float3(1.0f, 0.75f, 0.0f), 257);
 
   builder
@@ -1367,7 +1379,7 @@ TEST_F(RenderGraph, constant_fold_rgb_curves_fac_0_const)
  */
 TEST_F(RenderGraph, constant_fold_vector_curves)
 {
-  array<float3> curve;
+  array<packed_float3> curve;
   init_test_curve(curve, make_float3(0.0f, 0.25f, 1.0f), make_float3(1.0f, 0.75f, 0.0f), 257);
 
   builder
@@ -1390,7 +1402,7 @@ TEST_F(RenderGraph, constant_fold_vector_curves)
  */
 TEST_F(RenderGraph, constant_fold_vector_curves_fac_0)
 {
-  array<float3> curve;
+  array<packed_float3> curve;
   init_test_curve(curve, make_float3(0.0f, 0.25f, 1.0f), make_float3(1.0f, 0.75f, 0.0f), 257);
 
   builder.add_attribute("Attribute")
@@ -1413,7 +1425,7 @@ TEST_F(RenderGraph, constant_fold_vector_curves_fac_0)
  */
 TEST_F(RenderGraph, constant_fold_rgb_ramp)
 {
-  array<float3> curve;
+  array<packed_float3> curve;
   array<float> alpha;
   init_test_curve(curve, make_float3(0.0f, 0.25f, 0.5f), make_float3(0.25f, 0.5f, 0.75f), 9);
   init_test_curve(alpha, 0.75f, 1.0f, 9);
@@ -1441,7 +1453,7 @@ TEST_F(RenderGraph, constant_fold_rgb_ramp)
  */
 TEST_F(RenderGraph, constant_fold_rgb_ramp_flat)
 {
-  array<float3> curve;
+  array<packed_float3> curve;
   array<float> alpha;
   init_test_curve(curve, make_float3(0.0f, 0.25f, 0.5f), make_float3(0.25f, 0.5f, 0.75f), 9);
   init_test_curve(alpha, 0.75f, 1.0f, 9);

@@ -558,11 +558,11 @@ void BKE_curveprofile_activate_nearest_point(CurveProfile *profile, const int i_
       pts[idx].flag |= PROF_ACTIVE;
       return;
     }
-    else if (pts[idx].flag & PROF_H1_SELECT) {
+    if (pts[idx].flag & PROF_H1_SELECT) {
       pts[idx].flag |= PROF_H1_ACTIVE;
       return;
     }
-    else if (pts[idx].flag & PROF_H2_SELECT) {
+    if (pts[idx].flag & PROF_H2_SELECT) {
       pts[idx].flag |= PROF_H2_ACTIVE;
       return;
     }
@@ -1088,26 +1088,26 @@ CurveProfilePoint *BKE_curveprofile_active_get(CurveProfile *profile)
   return active_pt;
 }
 
-float *BKE_curveprofile_active_location_get(CurveProfilePoint *pt)
+float *BKE_curveprofile_active_location_get(CurveProfilePoint *point)
 {
-  if (pt->flag & PROF_ACTIVE) {
-    return &pt->x;
+  if (point->flag & PROF_ACTIVE) {
+    return &point->x;
   }
-  else if (pt->flag & PROF_H1_ACTIVE) {
-    return &pt->h1_loc[0];
+  if (point->flag & PROF_H1_ACTIVE) {
+    return &point->h1_loc[0];
   }
-  else if (pt->flag & PROF_H2_ACTIVE) {
-    return &pt->h2_loc[0];
+  if (point->flag & PROF_H2_ACTIVE) {
+    return &point->h2_loc[0];
   }
   /* If no active point or handles, return the selected location. */
-  else if (pt->flag & PROF_SELECT) {
-    return &pt->x;
+  if (point->flag & PROF_SELECT) {
+    return &point->x;
   }
-  else if (pt->flag & PROF_H1_SELECT) {
-    return &pt->h1_loc[0];
+  if (point->flag & PROF_H1_SELECT) {
+    return &point->h1_loc[0];
   }
-  else if (pt->flag & PROF_H2_SELECT) {
-    return &pt->h2_loc[0];
+  if (point->flag & PROF_H2_SELECT) {
+    return &point->h2_loc[0];
   }
 
   /* Either the input point itself or its handle should be labeled as active. */

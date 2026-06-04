@@ -220,7 +220,7 @@ class TestBlendFilePathForeach(TestHelper):
         # Store the pre-modification value, as its use of (back)slashes is platform-dependent.
         image_filepath_before = str(bpy.data.images['pack.png'].filepath)
 
-        def visit_path_fn(owner_id: bpy.types.ID, path: str, _meta: None) -> str | None:
+        def visit_path_fn(owner_id: bpy.types.ID, path: str, _meta) -> str | None:
             return "//{}-rewritten.blend".format(owner_id.name)
         bpy.data.file_path_foreach(visit_path_fn)
 
@@ -239,7 +239,7 @@ class TestBlendFilePathForeach(TestHelper):
         class CustomException(Exception):
             pass
 
-        def visit_path_fn(_owner_id: bpy.types.ID, _path: str, meta: None) -> str | None:
+        def visit_path_fn(_owner_id: bpy.types.ID, _path: str, _meta) -> str | None:
             raise CustomException("arg0", 1, "arg2")
 
         try:
@@ -250,14 +250,98 @@ class TestBlendFilePathForeach(TestHelper):
             self.fail("Expected exception not thrown")
 
     def test_meta_parameter(self) -> None:
-        def visit_path_fn(_owner_id: bpy.types.ID, _path: str, meta: None) -> str | None:
-            # This is proven to work by the `test_exception_passing()` test above.
-            self.assertIsNone(
-                meta,
-                "The meta parameter is expected to be None; this test is expected to fail "
-                "once the metadata feature is actually getting implemented, and should then "
-                "be replaced with a proper test.")
+        """The meta argument should be a BlendDataPathMeta."""
+
+        def visit_path_fn(_owner_id: bpy.types.ID, _path: str, meta) -> str | None:
+            self.assertFalse(meta.is_expanded)
+            self.assertFalse(meta.is_cache)
+            self.assertFalse(meta.is_readonly)
+
         bpy.data.file_path_foreach(visit_path_fn)
+
+    def test_expand_and_texture_caches(self) -> None:
+        """Expand UDIM tiles, sequence frames and tx files."""
+        import tempfile
+
+        def make_png(path: Path) -> None:
+            img = bpy.data.images.new(
+                name=f"__tmp_{path.stem}", width=4, height=4, alpha=True)
+            img.pixels = [0.5, 0.5, 0.5, 1.0] * (4 * 4)
+            img.filepath_raw = str(path)
+            img.file_format = "PNG"
+            img.save()
+            bpy.data.images.remove(img)
+
+        with tempfile.TemporaryDirectory(prefix="bl_path_foreach_") as tmp_str:
+            tmp = Path(tmp_str)
+
+            # Make test image files and dummy tx tiles.
+            tile_1001 = tmp / "udim.1001.png"
+            tile_1002 = tmp / "udim.1002.png"
+            make_png(tile_1001)
+            make_png(tile_1002)
+
+            frame_001 = tmp / "seq_001.png"
+            frame_002 = tmp / "seq_002.png"
+            make_png(frame_001)
+            make_png(frame_002)
+
+            individual = tmp / "individual.png"
+            make_png(individual)
+
+            cache_dir = tmp / "blender_tx"
+            cache_dir.mkdir()
+            hex32 = "0123456789ABCDEF0123456789ABCDEF"
+            tx_tile_1001 = cache_dir / f"udim.1001.png.1-{hex32}.tx"
+            tx_tile_1001.write_bytes(b"fake-tx")
+            tx_frame_001 = cache_dir / f"seq_001.png.1-{hex32}.tx"
+            tx_frame_001.write_bytes(b"fake-tx")
+            tx_individual = cache_dir / f"individual.png.1-{hex32}.tx"
+            tx_individual.write_bytes(b"fake-tx")
+
+            # Empty scene save next to images.
+            bpy.ops.wm.read_factory_settings(use_empty=True)
+            blend_path = tmp / "scene.blend"
+            bpy.ops.wm.save_as_mainfile(filepath=str(blend_path))
+
+            # Load images
+            udim_img = bpy.data.images.load(str(tmp / "udim.<UDIM>.png"))
+            udim_img.source = "TILED"
+            seq_img = bpy.data.images.load(str(frame_001))
+            seq_img.source = "SEQUENCE"
+            bpy.data.images.load(str(individual))
+
+            # Check expected paths are visited.
+            visited: dict[Path, tuple[bool, bool]] = {}
+
+            def visit(owner_id: bpy.types.ID, path: str, meta) -> None:
+                abspath = Path(str(bpy.path.abspath(path, library=owner_id.library))).resolve()
+                visited[abspath] = (meta.is_expanded, meta.is_cache)
+
+            bpy.data.file_path_foreach(
+                visit,
+                flags={
+                    "SKIP_PACKED",
+                    "SKIP_WEAK_REFERENCES",
+                    "EXPAND_TOKENS",
+                    "EXPAND_SEQUENCES",
+                    "EXPAND_CACHES",
+                },
+            )
+
+            for tile in (tile_1001, tile_1002):
+                self.assertEqual((True, False), visited.get(tile.resolve()),
+                                 f"missing UDIM tile {tile.name}")
+            for frame in (frame_001, frame_002):
+                self.assertEqual((True, False), visited.get(frame.resolve()),
+                                 f"missing sequence frame {frame.name}")
+            self.assertEqual((False, False), visited.get(individual.resolve()),
+                             "missing individual image path")
+            self.assertEqual((True, True), visited.get(tx_individual.resolve()),
+                             "missing individual image texture cache")
+            for tx in (tx_tile_1001, tx_frame_001):
+                self.assertEqual((True, True), visited.get(tx.resolve()),
+                                 f"missing texture cache {tx.name}")
 
     @staticmethod
     def _file_path_foreach(
@@ -271,7 +355,7 @@ class TestBlendFilePathForeach(TestHelper):
         """
         visisted_paths: set[tuple[bpy.types.ID, Path]] = set()
 
-        def visit_path_fn(owner_id: bpy.types.ID, path: str, _meta: None) -> str | None:
+        def visit_path_fn(owner_id: bpy.types.ID, path: str, _meta) -> str | None:
             abspath = Path(str(bpy.path.abspath(path, library=owner_id.library)))
             visisted_paths.add((owner_id, abspath))
 

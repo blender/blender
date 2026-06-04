@@ -49,7 +49,8 @@ class VKBuffer : public NonCopyable {
               VmaMemoryUsage vma_memory_usage,
               VmaAllocationCreateFlags vma_allocation_flags,
               float priority,
-              bool export_memory = false);
+              bool export_memory = false,
+              const char *debug_name = "VKBuffer");
   void clear(VKContext &context, uint32_t clear_value);
   void update_immediately(const void *data) const;
   void update_sub_immediately(size_t start_offset, size_t data_size, const void *data) const;
@@ -128,6 +129,18 @@ class VKBuffer : public NonCopyable {
    * Get allocated device memory.
    */
   VkDeviceMemory export_memory_get(size_t &memory_size);
+
+  /**
+   * Flush the mapped memory after writing to it on the host. Only has an effect if the memory is
+   * not host coherent.
+   */
+  void flush_mapped_memory();
+
+  /**
+   * Invalidates the mapped memory after writing to it on the device. Only has an effect if the
+   * memory is not host coherent.
+   */
+  void invalidate_mapped_memory();
 
  private:
   /** Check if this buffer is mapped. */

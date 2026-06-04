@@ -5280,9 +5280,9 @@ bool Layout::use_property_decorate() const
   return flag_is_set(flag_, ItemInternalFlag::PropDecorate);
 }
 
-void Layout::use_property_decorate_set(bool is_sep)
+void Layout::use_property_decorate_set(bool is_decorate)
 {
-  SET_FLAG_FROM_TEST(flag_, is_sep, ItemInternalFlag::PropDecorate);
+  SET_FLAG_FROM_TEST(flag_, is_decorate, ItemInternalFlag::PropDecorate);
 }
 
 Panel *Layout::root_panel() const
@@ -5856,12 +5856,12 @@ int2 block_layout_resolve(Block *block)
     MEM_delete(&root);
   }
 
-  BLI_listbase_clear(&block->layouts);
+  block->layouts.clear_no_delete();
   return block_size;
 }
 bool block_layout_needs_resolving(const Block *block)
 {
-  return !BLI_listbase_is_empty(&block->layouts);
+  return !block->layouts.is_empty();
 }
 
 const PointerRNA *Layout::context_ptr_get(const StringRef name, const StructRNA *type) const

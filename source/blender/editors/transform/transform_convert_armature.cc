@@ -1241,7 +1241,11 @@ static void pose_transform_mirror_update(TransInfo *t, TransDataContainer *tc, O
     if (pid) {
       mul_m4_m4m4(pchan_mtx_final, pid->offset_mtx, pchan_mtx_final);
     }
-    BKE_pchan_apply_mat4(pchan, pchan_mtx_final, false);
+    float loc[3], rot[3][3], scale[3];
+    mat4_to_loc_rot_size(loc, rot, scale, pchan_mtx_final);
+    BKE_pchan_protected_location_set(pchan, loc);
+    BKE_pchan_protected_rotation_set(pchan, rot);
+    BKE_pchan_protected_scale_set(pchan, scale);
 
     /* Set flag to let auto key-frame know to key-frame the mirrored bone. */
     pchan_bone->flag |= BONE_TRANSFORM_MIRROR;
@@ -1457,8 +1461,6 @@ static void recalcData_pose(TransInfo *t)
     }
   }
   else {
-    Set<Object *> motionpath_updates;
-
     FOREACH_TRANS_DATA_CONTAINER (t, tc) {
       Object *ob = tc->poseobj;
       bPose *pose = ob->pose;
@@ -1490,16 +1492,7 @@ static void recalcData_pose(TransInfo *t)
         autokeyframe_pose(t->context, t->scene, ob, targetless_ik, t->mode, t->data_len_all > 1);
       }
 
-      if (motionpath_need_update_pose(t->scene, ob)) {
-        motionpath_updates.add(ob);
-      }
-
       DEG_id_tag_update(&ob->id, ID_RECALC_GEOMETRY);
-    }
-
-    /* Update motion paths once for all transformed bones in an object. */
-    for (Object *ob : motionpath_updates) {
-      ED_pose_recalculate_paths(t->context, t->scene, ob, ANIMVIZ_CALC_RANGE_CURRENT_FRAME);
     }
   }
 }
@@ -1757,12 +1750,11 @@ static void special_aftertrans_update__pose(bContext *C, TransInfo *t)
         motionpath_updates.add(ob);
       }
     }
-
-    /* Update motion paths once for all transformed bones in an object. */
-    for (Object *ob : motionpath_updates) {
-      const eAnimvizCalcRange range = canceled ? ANIMVIZ_CALC_RANGE_CURRENT_FRAME :
-                                                 ANIMVIZ_CALC_RANGE_CHANGED;
-      ED_pose_recalculate_paths(C, t->scene, ob, range);
+    if (!canceled) {
+      /* Update motion paths once for all transformed bones in an object. */
+      for (Object *ob : motionpath_updates) {
+        ED_pose_recalculate_paths(C, t->scene, ob, ANIMVIZ_CALC_RANGE_CHANGED);
+      }
     }
   }
 }

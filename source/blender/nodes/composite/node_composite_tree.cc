@@ -172,6 +172,7 @@ void register_node_tree_type_cmp()
   tt->ui_name = N_("Compositor");
   tt->ui_icon = ICON_NODE_COMPOSITING;
   tt->ui_description = N_("Create effects and post-process renders, images, and the 3D Viewport");
+  tt->asset_catalog_path_prefix = "Compositing";
 
   tt->foreach_nodeclass = foreach_nodeclass;
   tt->update = update;

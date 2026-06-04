@@ -126,7 +126,7 @@ bNode &version_node_add_empty(bNodeTree &ntree, const char *idname);
  * See also #bNodeType for more details.
  */
 bNode &version_node_add_unknown(bNodeTree &ntree,
-                                bke::bNodeType &node_type,
+                                bke::bNodeType &ntype,
                                 const char *idname,
                                 const int16_t legacy_type,
                                 const std::string &ui_name,

@@ -46,9 +46,7 @@ static bool object_camera_custom_update_poll(bContext *C)
   if (cam->custom_mode == CAM_CUSTOM_SHADER_EXTERNAL) {
     return cam->custom_filepath[0] != '\0';
   }
-  else {
-    return cam->custom_shader != nullptr;
-  }
+  return cam->custom_shader != nullptr;
 }
 
 static wmOperatorStatus object_camera_custom_update_exec(bContext *C, wmOperator *op)

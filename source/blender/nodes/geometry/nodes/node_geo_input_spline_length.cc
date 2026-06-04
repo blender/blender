@@ -10,8 +10,8 @@ namespace blender::nodes::node_geo_input_spline_length_cc {
 
 static void node_declare(NodeDeclarationBuilder &b)
 {
-  b.add_output<decl::Float>("Length"_ustr).field_source();
-  b.add_output<decl::Int>("Point Count"_ustr).field_source();
+  b.add_output<decl::Float>("Length"_ustr).structure_type(StructureType::Field);
+  b.add_output<decl::Int>("Point Count"_ustr).structure_type(StructureType::Field);
 }
 
 /* --------------------------------------------------------------------

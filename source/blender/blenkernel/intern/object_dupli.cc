@@ -1453,7 +1453,7 @@ static void make_duplis_particle_system(const DupliContext *ctx, ParticleSystem 
 
       const ListBaseT<Base> dup_collection_objects = BKE_collection_object_cache_get(
           part->instance_collection);
-      if (BLI_listbase_is_empty(&dup_collection_objects)) {
+      if (dup_collection_objects.is_empty()) {
         return;
       }
 

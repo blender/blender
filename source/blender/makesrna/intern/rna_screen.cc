@@ -314,7 +314,7 @@ static PointerRNA rna_Region_data_get(PointerRNA *ptr)
 
 static int rna_region_has_panel_categories(const ARegion *region)
 {
-  return !BLI_listbase_is_empty(&region->runtime->panels_category);
+  return !region->runtime->panels_category.is_empty();
 }
 
 static int rna_Region_active_panel_category_editable_get(const PointerRNA *ptr,

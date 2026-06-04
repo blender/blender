@@ -32,6 +32,12 @@ import random
 # TODO: support this via command line arguments.
 USE_ATTRSET = False
 
+# Ensure the undo stack is available, even in background mode.
+USE_UNDO_STACK = False
+
+# Run operators with randomized arguments.
+USE_OPERATOR_ARGS = True
+
 STATE = {
     "counter": 0,
 }
@@ -84,6 +90,7 @@ def run_op(
         op,
         area_type=None,
         region_type=None,
+        op_args=None,
 ):
     op_id = op.idname_py()
 
@@ -91,13 +98,15 @@ def run_op(
     STATE["counter"] += 1
     sys.stdout.flush()  # in case of crash
 
+    op_kwargs = op_args if op_args is not None else {}
+
     with context.temp_override(**temp_override_default_kwargs(context, area_type, region_type)):
         for mode in {
                 'EXEC_DEFAULT',
                 'INVOKE_DEFAULT',
         }:
             try:
-                op(mode)
+                op(mode, **op_kwargs)
             except Exception:
                 # import traceback
                 # traceback.print_exc()
@@ -267,6 +276,54 @@ def ctx_object_paint_texture():
 
 
 # END UTILS TO EXPORT.
+
+
+def generate_operator_args(operator, rng):
+    # Return a dictionary of randomized arguments for `operator`.
+    kwargs = {}
+    for prop in operator.get_rna_type().properties:
+        if prop.identifier == "rna_type":
+            continue
+        if prop.is_readonly:
+            continue
+        # Randomly omit arguments too (50% chance).
+        if rng.random() < 0.5:
+            continue
+        if prop.type == 'BOOLEAN':
+            if prop.is_array:
+                # Only support 1D arrays.
+                if prop.array_dimensions[1] != 0:
+                    continue
+                kwargs[prop.identifier] = [rng.choice((False, True)) for _ in range(prop.array_length)]
+            else:
+                kwargs[prop.identifier] = rng.choice((False, True))
+        elif prop.type == 'INT':
+            if prop.is_array:
+                # Only support 1D arrays.
+                if prop.array_dimensions[1] != 0:
+                    continue
+                kwargs[prop.identifier] = [
+                    rng.randint(prop.soft_min, prop.soft_max) for _ in range(prop.array_length)
+                ]
+            else:
+                kwargs[prop.identifier] = rng.randint(prop.soft_min, prop.soft_max)
+        elif prop.type == 'FLOAT':
+            if prop.is_array:
+                # Only support 1D arrays.
+                if prop.array_dimensions[1] != 0:
+                    continue
+                kwargs[prop.identifier] = [
+                    rng.uniform(prop.soft_min, prop.soft_max) for _ in range(prop.array_length)
+                ]
+            else:
+                kwargs[prop.identifier] = rng.uniform(prop.soft_min, prop.soft_max)
+        elif prop.type == 'ENUM':
+            enum_items = prop.enum_items
+            if not enum_items:
+                continue
+            identifier = rng.choice([item.identifier for item in enum_items])
+            kwargs[prop.identifier] = {identifier} if prop.is_enum_flag else identifier
+    return kwargs
 
 
 operator_pattern_exclude = (
@@ -683,14 +740,20 @@ def run_ops(
                 if not op.poll():
                     continue
 
+            if USE_OPERATOR_ARGS:
+                op_args = generate_operator_args(op, random)
+            else:
+                op_args = {}
+
             if log_fn is not None:
-                log_fn("run_op(context, bpy.ops.{:s}, {!r}, {!r})\n".format(
+                log_fn("run_op(context, bpy.ops.{:s}, {!r}, {!r}, {!r})\n".format(
                     op_id,
                     area_type,
                     region_type,
+                    op_args,
                 ))
 
-            run_op(context, op, area_type, region_type)
+            run_op(context, op, area_type, region_type, op_args)
 
 
 def bpy_check_type_duplicates():
@@ -726,6 +789,11 @@ def run_all(
 ):
     if log_fn is not None:
         log_fn(
+            # Disable AUTOPEP8:
+            # - It's slow on large logs.
+            # - Any line wrapping makes automated bisecting more difficult.
+            "# autopep8: off\n"
+            "\n"
             "import bpy\n"
             "import sys\n"
             "from bpy import context\n"
@@ -742,9 +810,7 @@ def run_all(
             ))
             log_fn("\n")
 
-    # TODO: investigate having an undo stack in background mode.
-    undo_stack_ensure = False
-    if undo_stack_ensure:
+    if USE_UNDO_STACK:
         import bpy
         if bpy.app.background:
             bpy.ops.ed.undo_push()
@@ -862,7 +928,10 @@ def parse_create():
             "When set, write a Python script to this destination.\n"
             "This can be used to replay events that crash more conveniently.\n"
             "\n"
-            "To reply the script fun Blender, appending the arguments: --python FILEPATH"
+            "To replay the script run Blender, appending the arguments: --python FILEPATH\n"
+            "\n"
+            "See the bl_run_operators_isolate.py script to automate\n"
+            "narrowing down the cause of an error.\n"
         ),
     )
 

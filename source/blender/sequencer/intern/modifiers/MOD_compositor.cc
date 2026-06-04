@@ -33,6 +33,8 @@
 #include "NOD_compositor_nodes_caller_ui.hh"
 #include "NOD_compositor_nodes_srna.hh"
 
+#include "PRF_profile.hh"
+
 #include "SEQ_modifier.hh"
 #include "SEQ_select.hh"
 #include "SEQ_sequencer.hh"
@@ -226,7 +228,7 @@ static std::optional<int> get_socket_dimension(const bNodeTreeInterfaceSocket *s
   if (socket_type == SOCK_VECTOR) {
     return static_cast<bNodeSocketValueVector *>(socket->socket_data)->dimensions;
   }
-  else if (socket_type == SOCK_INT_VECTOR) {
+  if (socket_type == SOCK_INT_VECTOR) {
     return static_cast<bNodeSocketValueIntVector *>(socket->socket_data)->dimensions;
   }
   return {};
@@ -384,7 +386,10 @@ class CompositorModifierContext : public CompositorContext {
       inputs.append(std::unique_ptr<Result>(input_result));
     }
 
-    node_group_operation.evaluate();
+    {
+      PRF_scope_with_name("SeqCompositorEvaluate", ProfileCategory::Draw);
+      node_group_operation.evaluate();
+    }
     this->write_outputs(node_group, node_group_operation, *this->image_buffer_);
   }
 
@@ -392,10 +397,14 @@ class CompositorModifierContext : public CompositorContext {
    * path we do a more efficient approach than rendering into a full ImBuf. */
   void render_mask_input(const ModifierApplyContext &context, int timeline_frame)
   {
+    PRF_scope_with_name("SeqRenderMaskInput", ProfileCategory::Draw);
     const StripModifierData &smd = this->modifier_data_->modifier;
     if (smd.mask_input_type == STRIP_MASK_INPUT_STRIP && smd.mask_strip) {
-      this->mask_buffer_ = seq_render_strip(
-          &context.render_data, &context.render_state, smd.mask_strip, timeline_frame);
+      this->mask_buffer_ = seq_render_strip(&context.render_data,
+                                            &context.render_state,
+                                            smd.mask_strip,
+                                            timeline_frame)
+                               .image;
       if (this->mask_buffer_ != nullptr) {
         this->create_result_from_input(this->mask_, *this->mask_buffer_);
         this->owns_mask_ = true;
@@ -446,6 +455,7 @@ static void compositor_modifier_init_data(StripModifierData *strip_modifier_data
 static void compositor_modifier_apply(ModifierApplyContext &context,
                                       StripModifierData *strip_modifier_data)
 {
+  PRF_scope_with_name("SeqModCompositor", ProfileCategory::Draw);
   SequencerCompositorModifierData *modifier_data =
       reinterpret_cast<SequencerCompositorModifierData *>(strip_modifier_data);
   if (!modifier_data->node_group) {

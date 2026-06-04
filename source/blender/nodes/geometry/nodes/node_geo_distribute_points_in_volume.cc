@@ -74,7 +74,7 @@ static void node_declare(NodeDeclarationBuilder &b)
       .max(FLT_MAX)
       .description("Minimum density of a volume cell to contain a grid point")
       .usage_by_single_menu(GEO_NODE_DISTRIBUTE_POINTS_IN_VOLUME_DENSITY_GRID);
-  b.add_output<decl::Geometry>("Points"_ustr).propagate_all();
+  b.add_output<decl::Geometry>("Points"_ustr).propagate_all_geometry();
 }
 
 static void node_init(bNodeTree * /*tree*/, bNode *node)

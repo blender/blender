@@ -138,7 +138,9 @@ void AssetView::build_items()
      * add a #bl_click_operator for repeated execution on every click. So far it seems like every
      * asset shelf use case works with activating on every click though. */
     item.always_reactivate_on_click();
-    if (shelf_.type->flag & ASSET_SHELF_TYPE_FLAG_ACTIVATE_FOR_CONTEXT_MENU) {
+    if (shelf_.type->flag & ASSET_SHELF_TYPE_FLAG_ACTIVATE_FOR_CONTEXT_MENU &&
+        !asset.is_online_only())
+    {
       item.activate_for_context_menu_set();
     }
 
@@ -282,11 +284,16 @@ void AssetViewItem::build_grid_tile(const bContext &C, ui::Layout &layout) const
   ui::Layout &overlay_row = overlap.row(true);
   overlay_row.alignment_set(ui::LayoutAlign::Right);
 
-  const bool is_highlighted = this->is_selected() || this->is_active() || this->is_hovered();
-  if (asset_.is_online() && is_highlighted) {
+  if (asset_.is_online_only()) {
     ui::Button *online_icon = uiItemL_ex(&overlay_row, "", ICON_INTERNET, false, false);
     button_label_alpha_factor_set(online_icon, 0.6f);
     button_label_draw_icon_border_set(online_icon, true);
+  }
+  else if (asset_.needs_download()) {
+    ui::Button *needs_download_icon = uiItemL_ex(
+        &overlay_row, "", ICON_WARNING_LARGE, false, false);
+    button_label_alpha_factor_set(needs_download_icon, 0.6f);
+    button_label_draw_icon_border_set(needs_download_icon, true);
   }
 }
 
@@ -297,8 +304,8 @@ void AssetViewItem::build_context_menu(bContext &C, ui::Layout &column) const
 
   bool has_items = false;
 
-  if (asset_.is_online()) {
-    column.op("asset.assets_download", IFACE_("Download Asset"), ICON_NONE);
+  if (asset_.needs_download()) {
+    column.op("asset.assets_download", IFACE_("Download Asset"), ICON_DOWNLOAD);
     has_items = true;
   }
 

@@ -1681,7 +1681,7 @@ static void walker_select_count(BMEditMesh *em,
   {
     r_count_by_select[BM_elem_flag_test(ele, BM_ELEM_SELECT) ? 1 : 0] += 1;
 
-    /* Early exit when mixed (could be optional if needed. */
+    /* Early exit when mixed (could be optional if needed). */
     if (r_count_by_select[0] && r_count_by_select[1]) {
       r_count_by_select[0] = r_count_by_select[1] = -1;
       break;
@@ -6006,7 +6006,7 @@ static bool edbm_select_ungrouped_poll(bContext *C)
     if ((em->selectmode & SCE_SELECT_VERTEX) == 0) {
       CTX_wm_operator_poll_msg_set(C, "Must be in vertex selection mode");
     }
-    else if (BLI_listbase_is_empty(defbase) || cd_dvert_offset == -1) {
+    else if (defbase->is_empty() || cd_dvert_offset == -1) {
       CTX_wm_operator_poll_msg_set(C, "No weights/vertex groups on object");
     }
     else {

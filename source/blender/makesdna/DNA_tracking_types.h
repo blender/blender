@@ -250,7 +250,7 @@ struct MovieTrackingMarker {
   float pattern_corners[4][2] = {};
 
   /* positions of left-bottom and right-top corners of search area (in unified 0..1 units,
-   * relative to marker->pos
+   * relative to marker->pos)
    */
   float search_min[2] = {}, search_max[2] = {};
 
@@ -274,7 +274,7 @@ struct MovieTrackingTrack {
   float pat_min_legacy[2] = {}, pat_max_legacy[2] = {};
 
   /* positions of left-bottom and right-top corners of search area (in unified 0..1 units,
-   * relative to marker->pos
+   * relative to marker->pos)
    * moved to marker since affine tracking implementation
    */
   float search_min_legacy[2] = {}, search_max_legacy[2] = {};

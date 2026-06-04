@@ -273,6 +273,11 @@ bool CPUDevice::has_unified_memory() const
   return true;
 }
 
+bool CPUDevice::has_unified_image_memory() const
+{
+  return true;
+}
+
 void CPUDevice::build_bvh(BVH *bvh, Progress &progress, bool refit)
 {
 #ifdef WITH_EMBREE

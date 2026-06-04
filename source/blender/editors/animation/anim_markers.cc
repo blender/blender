@@ -160,7 +160,7 @@ int ED_markers_post_apply_transform(
 
 TimeMarker *ED_markers_find_nearest_marker(ListBaseT<TimeMarker> *markers, const float frame)
 {
-  if (markers == nullptr || BLI_listbase_is_empty(markers)) {
+  if (markers == nullptr || markers->is_empty()) {
     return nullptr;
   }
 
@@ -230,6 +230,10 @@ static bool operator_markers_region_active(bContext *C)
     return false;
   }
 
+  if (ui::view2d_fromcontext(C) == nullptr) {
+    return false;
+  }
+
   switch (area->spacetype) {
     case SPACE_ACTION: {
       SpaceAction *saction = static_cast<SpaceAction *>(area->spacedata.first);
@@ -267,7 +271,7 @@ static TimeMarker *region_position_is_over_marker(const View2D *v2d,
                                                   ListBaseT<TimeMarker> *markers,
                                                   float region_x)
 {
-  if (markers == nullptr || BLI_listbase_is_empty(markers)) {
+  if (markers == nullptr || markers->is_empty()) {
     return nullptr;
   }
 
@@ -648,7 +652,7 @@ void ED_markers_draw(const bContext *C, int flag)
   const bool is_sequencer = CTX_wm_space_seq(C) != nullptr;
   ListBaseT<TimeMarker> *markers = is_sequencer ? ED_sequencer_context_get_markers(C) :
                                                   ED_context_get_markers(C);
-  if (markers == nullptr || BLI_listbase_is_empty(markers)) {
+  if (markers == nullptr || markers->is_empty()) {
     return;
   }
 
@@ -735,7 +739,7 @@ void ED_markers_draw(const bContext *C, int flag)
     marker.flag &= ~ELEVATED;
   }
 
-  BLI_freelistN(&sorted_markers);
+  sorted_markers.free_no_destruct();
 
   GPU_matrix_pop();
 }

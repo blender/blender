@@ -7,6 +7,7 @@
 #include "BLI_enumerable_thread_specific.hh"
 #include "BLI_index_mask.hh"
 #include "BLI_listbase.h"
+#include "PRF_profile.hh"
 
 #include "BKE_attribute.hh"
 #include "BKE_deform.hh"
@@ -127,6 +128,7 @@ std::optional<Mesh *> mesh_copy_selection(const Mesh &src_mesh,
                                           const bke::AttrDomain selection_domain,
                                           const bke::AttributeFilter &attribute_filter)
 {
+  PRF_scope(ProfileCategory::Default);
   const Span<int2> src_edges = src_mesh.edges();
   const OffsetIndices src_faces = src_mesh.faces();
   const Span<int> src_corner_verts = src_mesh.corner_verts();

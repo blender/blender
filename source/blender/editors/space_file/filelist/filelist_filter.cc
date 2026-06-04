@@ -189,7 +189,7 @@ bool is_filtered_asset(FileListInternEntry *file, FileListFilter *filter)
     return false;
   }
 
-  const bool is_online = asset->is_online();
+  const bool is_online = asset->is_online_only();
   if (((filter->flags & FLF_ASSETS_HIDE_ONLINE) != 0) && is_online) {
     return false;
   }

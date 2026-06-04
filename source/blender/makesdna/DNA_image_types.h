@@ -68,6 +68,8 @@ enum eImage_Flag : int {
   IMA_USE_VIEWS = (1 << 14),
   IMA_FLAG_UNUSED_15 = (1 << 15), /* cleared */
   IMA_FLAG_UNUSED_16 = (1 << 16), /* cleared */
+  /** Indicates that the image has autosave information */
+  IMA_AUTOSAVE_TEMPPACK = (1 << 17),
 };
 ENUM_OPERATORS(eImage_Flag)
 
@@ -238,6 +240,8 @@ struct Image {
   DNA_DEPRECATED struct PackedFile *packedfile = nullptr;
   ListBaseT<ImagePackedFile> packedfiles = {nullptr, nullptr};
   struct PreviewImage *preview = nullptr;
+
+  ListBaseT<ImagePackedFile> autosave_packedfiles = {nullptr, nullptr};
 
   char _pad3[4] = {};
 

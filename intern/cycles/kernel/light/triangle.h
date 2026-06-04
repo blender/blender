@@ -29,7 +29,7 @@ ccl_device_inline bool triangle_world_space_vertices(
     has_motion = true;
   }
   else {
-    triangle_vertices(kg, prim, V);
+    triangle_vertices(kg, object, prim, V);
   }
 
   if (!(object_flag & SD_OBJECT_TRANSFORM_APPLIED)) {
@@ -317,7 +317,7 @@ ccl_device_forceinline bool triangle_light_tree_parameters(
   cos_theta_u = FLT_MAX;
 
   float3 vertices[3];
-  triangle_vertices(kg, kemitter->triangle.id, vertices);
+  triangle_vertices(kg, kemitter->object_id, kemitter->triangle.id, vertices);
 
   bool shape_above_surface = false;
   for (int i = 0; i < 3; i++) {

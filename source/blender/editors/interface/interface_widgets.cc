@@ -11,6 +11,7 @@
 #include <cstdlib>
 #include <cstring>
 #include <list>
+#include <optional>
 
 #include "DNA_brush_types.h"
 #include "DNA_node_types.h"
@@ -64,6 +65,8 @@ namespace blender::ui {
 
 /* icons are 80% of height of button (16 pixels inside 20 height) */
 #define ICON_SIZE_FROM_BUTRECT(rect) (0.8f * BLI_rcti_size_y(rect))
+/* Used e.g. by placeholders and unit hint completion. */
+#define UI_INPUT_HINT_ALPHA 0.33f
 
 /* visual types for drawing */
 /* for time being separated from functional types */
@@ -2067,7 +2070,7 @@ static void widget_draw_textbox(const uiFontStyle *fstyle,
   int selsta = but->selsta, selend = but->selend;
 #ifdef WITH_INPUT_IME
   /* If is IME compositing, move the cursor. */
-  if (ime_data && ime_data->composite.size() && ime_data->cursor_pos != -1) {
+  if (ime_data && !ime_data->composite.empty() && ime_data->cursor_pos != -1) {
     but_pos += ime_data->cursor_pos;
     /* Translate selection if the IME composite string is inserted before the selection. */
     if (selsta != selend) {
@@ -2301,7 +2304,7 @@ static void widget_draw_textbox(const uiFontStyle *fstyle,
   if (textbox->wrap_cache->text.empty() && textbox->placeholder) {
     draw_lines = textbox_wrap_placeholder(textbox);
     style.shadow = 0;
-    col[3] *= 0.33f;
+    col[3] *= UI_INPUT_HINT_ALPHA;
   }
   for (const StringRef line : draw_lines.as_span().slice_safe(scroll, visible_lines)) {
     if (rect.xmin > button_rect->xmax - scrollbar_pad - text_padding) {
@@ -2361,6 +2364,29 @@ static void widget_draw_textbox(const uiFontStyle *fstyle,
   }
 }
 
+static void widget_draw_vertical_text(const uiFontStyle *fstyle,
+                                      const uiWidgetColors *wcol,
+                                      const Button *but,
+                                      const rcti *rect)
+{
+  fontstyle_set(fstyle);
+  BLF_enable(fstyle->uifont_id, BLF_ROTATION);
+  const bool down = but->text_direction == TextDirection::Down;
+  BLF_rotation(fstyle->uifont_id, !down ? M_PI_2 : -M_PI_2);
+  BLF_color4ubv(fstyle->uifont_id, wcol->text);
+  const float width = BLF_width(fstyle->uifont_id, but->drawstr.c_str(), but->drawstr.size());
+  const float height = BLF_ascender(fstyle->uifont_id) + BLF_descender(fstyle->uifont_id);
+  const int xofs = ceil(0.5f * (BLI_rcti_size_x(rect) - height)) * (down ? 1 : -1);
+  const int yofs = (BLI_rcti_size_y(rect) - width) / 2 * (down ? 1 : -1);
+  BLF_position(fstyle->uifont_id,
+               (down ? rect->xmin : rect->xmax) + xofs,
+               (down ? rect->ymax : rect->ymin) - yofs,
+               0.0f);
+  BLF_draw(fstyle->uifont_id, but->drawstr.c_str(), but->drawstr.size());
+
+  BLF_disable(fstyle->uifont_id, BLF_ROTATION);
+}
+
 static void widget_draw_text(const uiFontStyle *fstyle,
                              const uiWidgetColors *wcol,
                              Button *but,
@@ -2371,6 +2397,7 @@ static void widget_draw_text(const uiFontStyle *fstyle,
   const char *drawstr_right = nullptr;
   bool use_right_only = false;
   const char *indeterminate_str = UI_VALUE_INDETERMINATE_CHAR;
+  std::optional<StringRef> unit_hint = button_edit_unit_hint_get(*but);
 
 #ifdef WITH_INPUT_IME
   const wmIMEData *ime_data;
@@ -2395,6 +2422,7 @@ static void widget_draw_text(const uiFontStyle *fstyle,
     Button *but_edit = button_drag_multi_edit_get(but);
     if (but_edit) {
       drawstr = but_edit->editstr;
+      unit_hint = button_edit_unit_hint_get(*but_edit);
       align = UI_STYLE_TEXT_LEFT;
     }
   }
@@ -2408,7 +2436,7 @@ static void widget_draw_text(const uiFontStyle *fstyle,
       /* FIXME: IME is modifying `const char *drawstr`! */
       ime_data = button_ime_data_get(but);
 
-      if (ime_data && ime_data->composite.size()) {
+      if (ime_data && !ime_data->composite.empty()) {
         /* insert composite string into cursor pos */
         char tmp_drawstr[UI_MAX_DRAW_STR];
         STRNCPY(tmp_drawstr, drawstr);
@@ -2499,7 +2527,7 @@ static void widget_draw_text(const uiFontStyle *fstyle,
 
 #ifdef WITH_INPUT_IME
     /* If is IME compositing, move the cursor. */
-    if (ime_data && ime_data->composite.size() && ime_data->cursor_pos != -1) {
+    if (ime_data && !ime_data->composite.empty() && ime_data->cursor_pos != -1) {
       but_pos_ofs += ime_data->cursor_pos;
     }
 #endif
@@ -2548,7 +2576,7 @@ static void widget_draw_text(const uiFontStyle *fstyle,
     if (ime_reposition_window) {
       button_ime_reposition(but, ime_win_x, ime_win_y, false);
     }
-    if (ime_data && ime_data->composite.size()) {
+    if (ime_data && !ime_data->composite.empty()) {
       /* Composite underline. */
       widget_draw_text_ime_underline(fstyle, wcol, but, rect, ime_data, drawstr);
     }
@@ -2662,6 +2690,33 @@ static void widget_draw_text(const uiFontStyle *fstyle,
           }
         }
       }
+
+      if (unit_hint && drawstr[0] != '\0') {
+        rcti text_bounds;
+        BLF_boundbox(fstyle->uifont_id, drawstr + but->ofs, drawlen, &text_bounds);
+
+        /* Draw unit hint with 33% opacity. */
+        uiFontStyle style = *fstyle;
+        style.shadow = 0;
+        uchar col[4];
+        copy_v4_v4_uchar(col, wcol->text);
+        col[3] *= UI_INPUT_HINT_ALPHA;
+
+        rcti unit_hint_rect;
+        unit_hint_rect.xmin = rect->xmin + text_bounds.xmax;
+        unit_hint_rect.ymin = rect->ymin;
+        unit_hint_rect.xmax = rect->xmax;
+        unit_hint_rect.ymax = rect->ymax;
+        fontstyle_draw_ex(&style,
+                          &unit_hint_rect,
+                          unit_hint->data(),
+                          unit_hint->size(),
+                          col,
+                          &params,
+                          nullptr,
+                          nullptr,
+                          nullptr);
+      }
     }
   }
 
@@ -2675,7 +2730,7 @@ static void widget_draw_text(const uiFontStyle *fstyle,
       style.shadow = 0;
       uchar col[4];
       copy_v4_v4_uchar(col, wcol->text);
-      col[3] *= 0.33f;
+      col[3] *= UI_INPUT_HINT_ALPHA;
       fontstyle_draw_ex(
           &style, rect, placeholder, strlen(placeholder), col, &params, nullptr, nullptr, nullptr);
     }
@@ -2705,7 +2760,7 @@ static void widget_draw_extra_icons(const uiWidgetColors *wcol,
 
   /* Offset of icons from the right edge. Keep in sync
    * with 'but_extra_operator_icon_mouse_over_get'. */
-  if (!BLI_listbase_is_empty(&but->extra_op_icons)) {
+  if (!but->extra_op_icons.is_empty()) {
     /* Eyeballed. */
     rect->xmax -= 0.2 * icon_size;
   }
@@ -2932,6 +2987,9 @@ static void widget_draw_text_icon(const uiFontStyle *fstyle,
   /* Textbox wraps content in lines, skip clipping text.  */
   if (but->type == ButtonType::TextBox) {
   }
+  else if (but->text_direction != TextDirection::Default) {
+    /* Do not clip vertical text.  */
+  }
   else if (but->editstr && but->pos >= 0) {
     /* clip but->drawstr to fit in available space */
     text_clip_cursor(fstyle, but, rect);
@@ -2953,7 +3011,10 @@ static void widget_draw_text_icon(const uiFontStyle *fstyle,
   }
 
   /* Always draw text for text-button cursor. */
-  if (but->type != ButtonType::TextBox) {
+  if (ELEM(but->text_direction, TextDirection::Down, TextDirection::Up)) {
+    widget_draw_vertical_text(fstyle, wcol, but, rect);
+  }
+  else if (but->type != ButtonType::TextBox) {
     widget_draw_text(fstyle, wcol, but, rect);
   }
   else {
@@ -3087,13 +3148,20 @@ static void widget_state(WidgetType *wt, const WidgetStateInfo *state, EmbossTyp
 
   if (state->but_flag & BUT_REDALERT) {
     if (wt->draw && emboss != EmbossType::None) {
-      theme::get_color_3ubv(TH_REDALERT, wt->wcol.inner);
+      uchar red[4];
+      theme::get_color_3ubv(TH_REDALERT, red);
+
+      /* Outline uses a mix to emphasize it a bit. */
+      color_blend_v3_v3(wt->wcol.outline, red, 0.6f);
+      /* Darken the alert for the inner color. */
+      color_mul_hsl_v3(red, 1.0f, 1.0f, 0.6f);
+      copy_v3_v3_uchar(wt->wcol.inner, red);
     }
     else {
       uchar red[4];
       theme::get_color_3ubv(TH_REDALERT, red);
       color_mul_hsl_v3(red, 1.0f, 1.5f, 1.5f);
-      color_blend_v3_v3(wt->wcol.text, red, 0.5f);
+      color_blend_v3_v3(wt->wcol.text, red, 0.6f);
     }
   }
 
@@ -4948,7 +5016,7 @@ static void widget_state_label(WidgetType *wt, const WidgetStateInfo *state, Emb
     uchar red[4];
     theme::get_color_3ubv(TH_REDALERT, red);
     color_mul_hsl_v3(red, 1.0f, 1.5f, 1.5f);
-    color_blend_v3_v3(wt->wcol.text, red, 0.5f);
+    color_blend_v3_v3(wt->wcol.text, red, 0.6f);
   }
 }
 
@@ -5344,7 +5412,7 @@ static int widget_roundbox_set(Button *but, rcti *rect)
   /* alignment */
   if ((but->drawflag & BUT_ALIGN) && but->type != ButtonType::Pulldown) {
 
-    /* popup_block_position has this correction too, keep in sync */
+    /* popup_block_position and #widget_roundbox_set has this correction too, keep in sync */
     if (but->drawflag & (BUT_ALIGN_TOP | BUT_ALIGN_STITCH_TOP)) {
       rect->ymax += U.pixelsize;
     }

@@ -625,6 +625,7 @@ void calc_vert_factors(const Depsgraph &depsgraph,
                        const Span<int> verts,
                        const MutableSpan<float> factors)
 {
+  PRF_scope(ProfileCategory::Editor);
   const SculptSession &ss = *object.runtime->sculpt_session;
   const Mesh &mesh = *id_cast<const Mesh *>(object.data);
   const Span<float3> vert_positions = bke::pbvh::vert_positions_eval(depsgraph, object);
@@ -746,6 +747,7 @@ void calc_face_factors(const Depsgraph &depsgraph,
                        const Span<int> face_indices,
                        const MutableSpan<float> factors)
 {
+  PRF_scope(ProfileCategory::Editor);
   const SculptSession &ss = *object.runtime->sculpt_session;
   const Mesh &mesh = *id_cast<const Mesh *>(object.data);
   const Span<float3> vert_positions = bke::pbvh::vert_positions_eval(depsgraph, object);
@@ -861,6 +863,7 @@ void calc_grids_factors(const Depsgraph &depsgraph,
                         const Span<int> grids,
                         const MutableSpan<float> factors)
 {
+  PRF_scope(ProfileCategory::Editor);
   const SculptSession &ss = *object.runtime->sculpt_session;
   const Mesh &base_mesh = *id_cast<const Mesh *>(object.data);
   const OffsetIndices<int> faces = base_mesh.faces();
@@ -1002,6 +1005,7 @@ void calc_vert_factors(const Depsgraph &depsgraph,
                        const Set<BMVert *, 0> &verts,
                        const MutableSpan<float> factors)
 {
+  PRF_scope(ProfileCategory::Editor);
   SculptSession &ss = *object.runtime->sculpt_session;
   BMesh &bm = *ss.bm;
   const int face_set_offset = CustomData_get_offset_named(
@@ -1232,6 +1236,7 @@ static void fill_topology_automasking_factors(const Depsgraph &depsgraph,
                                               Object &ob,
                                               MutableSpan<float> factors)
 {
+  PRF_scope(ProfileCategory::Editor);
   /* TODO: This method is to be removed when more of the automasking code handles the different
    * pbvh types. */
   SculptSession &ss = *ob.runtime->sculpt_session;
@@ -1258,6 +1263,7 @@ static void fill_topology_automasking_factors(const Depsgraph &depsgraph,
 
 static void init_face_sets_masking(const Paint &paint, Object &ob, MutableSpan<float> factors)
 {
+  PRF_scope(ProfileCategory::Editor);
   const Brush *brush = BKE_paint_brush_for_read(&paint);
 
   if (!is_enabled(paint, ob, brush)) {
@@ -1537,6 +1543,7 @@ static void init_boundary_masking(Object &object,
                                   const int propagation_steps,
                                   MutableSpan<float> factors)
 {
+  PRF_scope(ProfileCategory::Editor);
   switch (bke::object::pbvh_get(object)->type()) {
     case bke::pbvh::Type::Mesh:
       init_boundary_masking_mesh(object, depsgraph, mode, propagation_steps, factors);
@@ -1599,6 +1606,7 @@ static void normal_occlusion_automasking_fill(const Depsgraph &depsgraph,
                                               eAutomasking_flag mode,
                                               MutableSpan<float> factors)
 {
+  PRF_scope(ProfileCategory::Editor);
   const int totvert = vertex_count_get(ob);
   /* No need to build original data since this is only called at the beginning of strokes. */
   switch (bke::object::pbvh_get(ob)->type()) {

@@ -415,31 +415,21 @@ static void build_keylist_for_target(MPathTarget &target, AnimKeylist &keylist)
 }
 
 void animviz_calc_motionpaths(Depsgraph *depsgraph,
-                              Main *bmain,
                               Scene *scene,
                               MutableSpan<MPathTarget *> targets,
                               eAnimvizCalcRange range)
 {
   using namespace blender::animrig;
+  BLI_assert_msg(!DEG_is_active(depsgraph),
+                 "Motion path calculation should always happen with a minimal depsgraph.");
 
   if (targets.is_empty()) {
     return;
   }
 
-  const int cfra = scene->r.cfra;
   /* The frame range to calculate. Inclusive/Exclusive. */
   Bounds<int> frame_range = {INT_MAX, INT_MIN};
   switch (range) {
-    case ANIMVIZ_CALC_RANGE_CURRENT_FRAME:
-      frame_range = motionpath_get_global_framerange(targets);
-      if (frame_range.is_empty()) {
-        return;
-      }
-      if (!frame_range.contains(cfra)) {
-        return;
-      }
-      frame_range = {cfra, cfra + 1};
-      break;
     case ANIMVIZ_CALC_RANGE_CHANGED:
       /* Nothing to do here, will be handled later when iterating through the targets. */
       break;
@@ -451,24 +441,8 @@ void animviz_calc_motionpaths(Depsgraph *depsgraph,
       break;
   }
 
-  /* Get copies of objects/bones to get the calculated results from
-   * (for copy-on-evaluation), so that we actually get some results.
-   */
-
-  /* TODO: Create a copy of background depsgraph that only contain these entities,
-   * and only evaluates them.
-   *
-   * For until that is done we force dependency graph to not be active, so we don't lose unkeyed
-   * changes during updating the motion path.
-   * This still doesn't include unkeyed changes to the path itself, but allows to have updates in
-   * an environment when auto-keying and pose paste is used. */
-
-  const bool is_active_depsgraph = DEG_is_active(depsgraph);
-  if (is_active_depsgraph) {
-    DEG_make_inactive(depsgraph);
-  }
-
   for (MPathTarget *mpt : targets) {
+
     AnimData *adt = BKE_animdata_from_id(&mpt->ob->id);
 
     /* Build list of all keyframes in active action for object or pchan. */
@@ -499,7 +473,8 @@ void animviz_calc_motionpaths(Depsgraph *depsgraph,
     ED_keylist_prepare_for_direct_access(mpt->keylist);
 
     if (range == ANIMVIZ_CALC_RANGE_CHANGED) {
-      const Bounds<int> target_bounds = motionpath_calculate_update_range(mpt, adt, fcurves, cfra);
+      const Bounds<int> target_bounds = motionpath_calculate_update_range(
+          mpt, adt, fcurves, scene->r.cfra);
       if (!target_bounds.is_empty()) {
         frame_range.min = min_ii(frame_range.min, target_bounds.min);
         frame_range.max = max_ii(frame_range.max, target_bounds.max);
@@ -520,22 +495,11 @@ void animviz_calc_motionpaths(Depsgraph *depsgraph,
             frame_range.max - frame_range.min + 1);
 
   for (int frame = frame_range.min; frame < frame_range.max; frame++) {
-    if (range == ANIMVIZ_CALC_RANGE_CURRENT_FRAME) {
-      /* For current frame, only update tagged. */
-      BLI_assert(frame == scene->r.cfra);
-      BKE_scene_graph_update_tagged(depsgraph, bmain);
-    }
-    else {
-      /* Update relevant data for new frame. */
-      DEG_evaluate_on_framechange(depsgraph, frame);
-    }
+    /* Update relevant data for new frame. */
+    DEG_evaluate_on_framechange(depsgraph, frame);
 
     /* Perform baking for targets. */
     motionpaths_calc_bake_targets(targets, frame, depsgraph, scene->camera);
-  }
-
-  if (is_active_depsgraph) {
-    DEG_make_active(depsgraph);
   }
 
   /* Clear recalc flags from targets. */

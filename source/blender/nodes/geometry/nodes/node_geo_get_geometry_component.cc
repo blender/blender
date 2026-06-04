@@ -16,8 +16,9 @@ static void node_declare(NodeDeclarationBuilder &b)
   b.add_input<decl::Geometry>("Geometry"_ustr);
   b.add_output<decl::Geometry>("Geometry"_ustr)
       .align_with_previous()
-      .description("The input geometry with optionally the selected component removed");
-  b.add_output<decl::Geometry>("Component"_ustr);
+      .description("The input geometry with optionally the selected component removed")
+      .propagate_all_geometry();
+  b.add_output<decl::Geometry>("Component"_ustr).propagate_all_geometry();
   b.add_output<decl::Bool>("Exists"_ustr)
       .description(
           "Whether the geometry had a component of the type. This does not check if the component "

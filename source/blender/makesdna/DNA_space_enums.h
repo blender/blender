@@ -375,6 +375,7 @@ enum eSpaceSeq_SequencerPreviewOverlay_Flag : int {
   SEQ_PREVIEW_SHOW_GPENCIL = (1 << 4),
   SEQ_PREVIEW_SHOW_SAFE_CENTER = (1 << 9),
   SEQ_PREVIEW_SHOW_METADATA = (1 << 10),
+  SEQ_PREVIEW_SHOW_COMPOSITION_GUIDES = (1 << 11),
 };
 ENUM_OPERATORS(eSpaceSeq_SequencerPreviewOverlay_Flag)
 

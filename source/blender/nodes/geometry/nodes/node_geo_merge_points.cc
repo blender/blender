@@ -22,11 +22,14 @@ static void node_declare(NodeDeclarationBuilder &b)
   b.add_input<decl::Geometry>("Geometry"_ustr)
       .supported_type({GeometryComponent::Type::PointCloud, GeometryComponent::Type::Mesh})
       .description("Point cloud or mesh to merge points of");
-  b.add_output<decl::Geometry>("Geometry"_ustr).propagate_all().align_with_previous();
-  b.add_input<decl::Bool>("Selection"_ustr).default_value(true).hide_value().field_on_all();
-  b.add_input<decl::Int>("Merge ID"_ustr)
+  b.add_output<decl::Geometry>("Geometry"_ustr).propagate_all_geometry().align_with_previous();
+  b.add_input<decl::Bool>("Selection"_ustr)
+      .default_value(true)
       .hide_value()
-      .implicit_field_on_all(NODE_DEFAULT_INPUT_INDEX_FIELD)
+      .evaluated_geometry_field();
+  b.add_input<decl::Int>("Merge ID"_ustr)
+      .evaluated_geometry_field()
+      .default_input_type(NODE_DEFAULT_INPUT_INDEX_FIELD)
       .description("ID of group of the points to merge");
 }
 

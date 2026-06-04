@@ -12,6 +12,7 @@
 #include "util/map.h"
 #include "util/param.h"
 #include "util/thread.h"
+#include "util/types.h"
 #include "util/unique_ptr.h"
 #include "util/vector.h"
 
@@ -267,17 +268,37 @@ struct NodeType {
   SOCKET_DEFINE( \
       name, ui_name, default_value, array<float>, SocketType::FLOAT_ARRAY, 0, ##__VA_ARGS__)
 #define SOCKET_COLOR_ARRAY(name, ui_name, default_value, ...) \
-  SOCKET_DEFINE( \
-      name, ui_name, default_value, array<float3>, SocketType::COLOR_ARRAY, 0, ##__VA_ARGS__)
+  SOCKET_DEFINE(name, \
+                ui_name, \
+                default_value, \
+                array<packed_float3>, \
+                SocketType::COLOR_ARRAY, \
+                0, \
+                ##__VA_ARGS__)
 #define SOCKET_VECTOR_ARRAY(name, ui_name, default_value, ...) \
-  SOCKET_DEFINE( \
-      name, ui_name, default_value, array<float3>, SocketType::VECTOR_ARRAY, 0, ##__VA_ARGS__)
+  SOCKET_DEFINE(name, \
+                ui_name, \
+                default_value, \
+                array<packed_float3>, \
+                SocketType::VECTOR_ARRAY, \
+                0, \
+                ##__VA_ARGS__)
 #define SOCKET_POINT_ARRAY(name, ui_name, default_value, ...) \
-  SOCKET_DEFINE( \
-      name, ui_name, default_value, array<float3>, SocketType::POINT_ARRAY, 0, ##__VA_ARGS__)
+  SOCKET_DEFINE(name, \
+                ui_name, \
+                default_value, \
+                array<packed_float3>, \
+                SocketType::POINT_ARRAY, \
+                0, \
+                ##__VA_ARGS__)
 #define SOCKET_NORMAL_ARRAY(name, ui_name, default_value, ...) \
-  SOCKET_DEFINE( \
-      name, ui_name, default_value, array<float3>, SocketType::NORMAL_ARRAY, 0, ##__VA_ARGS__)
+  SOCKET_DEFINE(name, \
+                ui_name, \
+                default_value, \
+                array<packed_float3>, \
+                SocketType::NORMAL_ARRAY, \
+                0, \
+                ##__VA_ARGS__)
 #define SOCKET_POINT2_ARRAY(name, ui_name, default_value, ...) \
   SOCKET_DEFINE( \
       name, ui_name, default_value, array<float2>, SocketType::POINT2_ARRAY, 0, ##__VA_ARGS__)

@@ -110,7 +110,7 @@ bool BKE_fluid_reallocate_fluid(FluidDomainSettings *fds, int res[3], int free_o
   if (free_old && fds->fluid) {
     manta_free(fds->fluid);
   }
-  if (!min_iii(res[0], res[1], res[2])) {
+  if (!std::min({res[0], res[1], res[2]})) {
     fds->fluid = nullptr;
   }
   else {

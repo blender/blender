@@ -143,7 +143,8 @@ void ED_undosys_type_free();
 
 /* `memfile_undo.cc` */
 
-MemFile *ED_undosys_stack_memfile_get_if_active(UndoStack *ustack);
+bool ED_undosys_autosave_compatible(UndoStack *ustack);
+
 /**
  * If the last undo step is a memfile one, find the first #MemFileChunk matching given ID
  * (using its session UUID), and tag it as "changed in the future".

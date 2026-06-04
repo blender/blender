@@ -4,6 +4,8 @@
 
 #pragma once
 
+#include <string>
+
 namespace blender {
 
 struct Image;
@@ -16,9 +18,10 @@ void CCL_implicit_sharing_init();
 
 /* Texture cache generation. */
 
-bool CCL_has_texture_cache(const Image *image,
-                           const char *filepath,
-                           const char *texture_cache_directory = "");
+bool CCL_resolve_texture_cache(const Image *image,
+                               const char *filepath,
+                               const char *texture_cache_directory,
+                               std::string &r_tx_filepath);
 
 bool CCL_generate_texture_cache(const Image *image,
                                 const char *filepath,

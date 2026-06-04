@@ -875,7 +875,7 @@ static wmOperatorStatus node_box_select_exec(bContext *C, wmOperator *op)
     switch (node->type_legacy) {
       case NODE_FRAME: {
         /* Frame nodes are selectable by their borders (including their whole rect - as for other
-         * nodes - would prevent selection of other nodes inside that frame. */
+         * nodes - would prevent selection of other nodes inside that frame). */
         const rctf frame_inside = node_frame_rect_inside(snode, *node);
         if (BLI_rctf_isect(&rectf, &node->runtime->draw_bounds, nullptr) &&
             !BLI_rctf_inside_rctf(&frame_inside, &rectf))
@@ -980,7 +980,7 @@ static wmOperatorStatus node_circleselect_exec(bContext *C, wmOperator *op)
     switch (node->type_legacy) {
       case NODE_FRAME: {
         /* Frame nodes are selectable by their borders (including their whole rect - as for other
-         * nodes - would prevent selection of _only_ other nodes inside that frame. */
+         * nodes - would prevent selection of _only_ other nodes inside that frame). */
         rctf frame_inside = node_frame_rect_inside(*snode, *node);
         const float radius_adjusted = float(radius) / zoom;
         BLI_rctf_pad(&frame_inside, -2.0f * radius_adjusted, -2.0f * radius_adjusted);
@@ -1072,7 +1072,7 @@ static bool do_lasso_select_node(bContext *C, const Span<int2> mcoords, eSelectO
     switch (node->type_legacy) {
       case NODE_FRAME: {
         /* Frame nodes are selectable by their borders (including their whole rect - as for other
-         * nodes - would prevent selection of other nodes inside that frame. */
+         * nodes - would prevent selection of other nodes inside that frame). */
         rctf rectf;
         BLI_rctf_rcti_copy(&rectf, &rect);
         ui::view2d_region_to_view_rctf(&region->v2d, &rectf, &rectf);

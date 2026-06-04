@@ -17,6 +17,8 @@
 #include "BLI_math_base.hh"
 #include "BLI_task.hh"
 
+#include "PRF_profile.hh"
+
 #include "editors/sculpt_paint/mesh/sculpt_face_set.hh"
 #include "editors/sculpt_paint/mesh/sculpt_intern.hh"
 #include "editors/sculpt_paint/mesh/sculpt_undo.hh"
@@ -41,6 +43,7 @@ static void calc_face_normals(const OffsetIndices<int> faces,
                               const Span<int> face_indices,
                               const MutableSpan<float3> normals)
 {
+  PRF_scope(ProfileCategory::Editor);
   BLI_assert(face_indices.size() == normals.size());
 
   for (const int i : face_indices.index_range()) {
@@ -54,6 +57,7 @@ BLI_NOINLINE static void apply_face_set(const int face_set_id,
                                         const Span<float> factors,
                                         const MutableSpan<int> face_sets)
 {
+  PRF_scope(ProfileCategory::Editor);
   BLI_assert(face_indices.size() == factors.size());
 
   for (const int i : face_indices.index_range()) {
@@ -328,6 +332,7 @@ void do_draw_face_sets_brush(const Depsgraph &depsgraph,
                              Object &object,
                              const IndexMask &node_mask)
 {
+  PRF_scope(ProfileCategory::Editor);
   const Brush &brush = *BKE_paint_brush_for_read(&sd.paint);
 
   if (object.runtime->sculpt_session->cache->paint_face_set == face_set_none_id) {

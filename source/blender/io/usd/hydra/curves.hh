@@ -4,75 +4,25 @@
 
 #pragma once
 
-#include <pxr/base/vt/types.h>
-#include <pxr/imaging/hd/sceneDelegate.h>
-
-#include "BLI_set.hh"
-
-#include "material.hh"
-#include "object.hh"
-
 namespace blender {
 
-struct ParticleSystem;
+struct Object;
 
 namespace io::hydra {
 
-class HydraSceneDelegate;
+struct BObjectInfo;
+struct EmittedObject;
+struct PopulateContext;
 
-class CurvesData : public ObjectData {
- protected:
-  pxr::VtIntArray curve_vertex_counts_;
-  pxr::VtVec3fArray vertices_;
-  pxr::VtVec2fArray uvs_;
-  pxr::VtFloatArray widths_;
+/* Emit a curves object as an Rprim. */
+void emit_curves_object(PopulateContext &ctx, const BObjectInfo &info, EmittedObject &emitted);
+/* Emit a curves instancer prototype. */
+void emit_curves_proto(PopulateContext &ctx, const BObjectInfo &info);
 
-  MaterialData *mat_data_ = nullptr;
-
- public:
-  CurvesData(HydraSceneDelegate *scene_delegate,
-             const Object *object,
-             pxr::SdfPath const &prim_id);
-
-  void init() override;
-  void insert() override;
-  void remove() override;
-  void update() override;
-
-  pxr::VtValue get_data(pxr::TfToken const &key) const override;
-  void available_materials(Set<pxr::SdfPath> &paths) const override;
-
-  pxr::HdBasisCurvesTopology topology() const;
-  pxr::HdPrimvarDescriptorVector primvar_descriptors(pxr::HdInterpolation interpolation) const;
-
-  MaterialData *get_material_data(pxr::SdfPath const &id) const override;
-
- protected:
-  void write_materials() override;
-  virtual void write_curves();
-};
-
-class HairData : public CurvesData {
- private:
-  ParticleSystem *particle_system_;
-
- public:
-  HairData(HydraSceneDelegate *scene_delegate,
-           const Object *object,
-           pxr::SdfPath const &prim_id,
-           ParticleSystem *particle_system);
-
-  static bool is_supported(const ParticleSystem *particle_system);
-  static bool is_visible(HydraSceneDelegate *scene_delegate,
-                         Object *object,
-                         ParticleSystem *particle_system);
-
-  void update() override;
-
- protected:
-  void write_transform() override;
-  void write_curves() override;
-};
+/* Emit particular hair as an Rprim. */
+void emit_hair_for_object(PopulateContext &ctx, Object *object, EmittedObject &emitted);
+/* Emit a hair instancer prototype. */
+void emit_hair_proto(PopulateContext &ctx, Object *source);
 
 }  // namespace io::hydra
 }  // namespace blender

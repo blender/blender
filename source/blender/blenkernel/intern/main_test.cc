@@ -46,9 +46,9 @@ class BMainAllIDsIteratorTest : public BMainTest {
 
 TEST_F(BMainAllIDsIteratorTest, basics)
 {
-  EXPECT_TRUE(BLI_listbase_is_empty(&bmain->libraries));
-  EXPECT_TRUE(BLI_listbase_is_empty(&bmain->collections));
-  EXPECT_TRUE(BLI_listbase_is_empty(&bmain->objects));
+  EXPECT_TRUE(bmain->libraries.is_empty());
+  EXPECT_TRUE(bmain->collections.is_empty());
+  EXPECT_TRUE(bmain->objects.is_empty());
 
   /* Test also (default-constructed) empty iterator. */
   MainAllIDsIterator empty_main_iter{};
@@ -65,9 +65,9 @@ TEST_F(BMainAllIDsIteratorTest, basics)
 
   Array<ID *> expected_ids = {&lib->id, &ob->id, &ob_linked->id, &coll->id};
 
-  EXPECT_EQ(1, BLI_listbase_count(&bmain->libraries));
-  EXPECT_EQ(1, BLI_listbase_count(&bmain->collections));
-  EXPECT_EQ(2, BLI_listbase_count(&bmain->objects));
+  EXPECT_EQ(1, bmain->libraries.count());
+  EXPECT_EQ(1, bmain->collections.count());
+  EXPECT_EQ(2, bmain->objects.count());
 
   MainAllIDsIterator main_iter{*bmain};
   EXPECT_EQ(4, main_iter.size());
@@ -110,29 +110,29 @@ class BMainMergeTest : public BMainTest {
 
 TEST_F(BMainMergeTest, basics)
 {
-  EXPECT_TRUE(BLI_listbase_is_empty(&bmain_dst->libraries));
-  EXPECT_TRUE(BLI_listbase_is_empty(&bmain_dst->collections));
-  EXPECT_TRUE(BLI_listbase_is_empty(&bmain_dst->objects));
+  EXPECT_TRUE(bmain_dst->libraries.is_empty());
+  EXPECT_TRUE(bmain_dst->collections.is_empty());
+  EXPECT_TRUE(bmain_dst->objects.is_empty());
 
-  EXPECT_TRUE(BLI_listbase_is_empty(&bmain_src->libraries));
-  EXPECT_TRUE(BLI_listbase_is_empty(&bmain_src->collections));
-  EXPECT_TRUE(BLI_listbase_is_empty(&bmain_src->objects));
+  EXPECT_TRUE(bmain_src->libraries.is_empty());
+  EXPECT_TRUE(bmain_src->collections.is_empty());
+  EXPECT_TRUE(bmain_src->objects.is_empty());
 
   BKE_id_new(bmain_dst, ID_GR, "Coll_dst");
   Collection *coll = BKE_id_new<Collection>(bmain_src, "Coll_src");
   Object *ob = BKE_id_new<Object>(bmain_src, "Ob_src");
   BKE_collection_object_add(bmain_src, coll, ob);
 
-  EXPECT_EQ(1, BLI_listbase_count(&bmain_dst->collections));
-  EXPECT_EQ(0, BLI_listbase_count(&bmain_dst->objects));
-  EXPECT_EQ(1, BLI_listbase_count(&bmain_src->collections));
-  EXPECT_EQ(1, BLI_listbase_count(&bmain_src->objects));
+  EXPECT_EQ(1, bmain_dst->collections.count());
+  EXPECT_EQ(0, bmain_dst->objects.count());
+  EXPECT_EQ(1, bmain_src->collections.count());
+  EXPECT_EQ(1, bmain_src->objects.count());
 
   MainMergeReport reports = {};
   BKE_main_merge(bmain_dst, &bmain_src, reports);
 
-  EXPECT_EQ(2, BLI_listbase_count(&bmain_dst->collections));
-  EXPECT_EQ(1, BLI_listbase_count(&bmain_dst->objects));
+  EXPECT_EQ(2, bmain_dst->collections.count());
+  EXPECT_EQ(1, bmain_dst->objects.count());
   EXPECT_EQ(2, reports.num_merged_ids);
   EXPECT_EQ(0, reports.num_unknown_ids);
   EXPECT_EQ(0, reports.num_remapped_ids);
@@ -145,8 +145,8 @@ TEST_F(BMainMergeTest, basics)
     *r_ob = BKE_id_new<Object>(bmain_new, "Ob_src");
     BKE_collection_object_add(bmain_new, *r_coll, *r_ob);
 
-    EXPECT_EQ(1, BLI_listbase_count(&bmain_new->collections));
-    EXPECT_EQ(1, BLI_listbase_count(&bmain_new->objects));
+    EXPECT_EQ(1, bmain_new->collections.count());
+    EXPECT_EQ(1, bmain_new->objects.count());
 
     return bmain_new;
   };
@@ -159,8 +159,8 @@ TEST_F(BMainMergeTest, basics)
 
   /* The second `Ob_src` object in `bmain_src` cannot be merged in `bmain_dst`, since its name
    * would collide with the first object. */
-  EXPECT_EQ(3, BLI_listbase_count(&bmain_dst->collections));
-  EXPECT_EQ(1, BLI_listbase_count(&bmain_dst->objects));
+  EXPECT_EQ(3, bmain_dst->collections.count());
+  EXPECT_EQ(1, bmain_dst->objects.count());
   EXPECT_EQ(1, reports.num_merged_ids);
   EXPECT_EQ(0, reports.num_unknown_ids);
   EXPECT_EQ(1, reports.num_remapped_ids);
@@ -169,7 +169,7 @@ TEST_F(BMainMergeTest, basics)
 
   /* `Coll_src_2` should have been remapped to using `Ob_src` in `bmain_dst`, instead of `Ob_src`
    * in `bmain_src`. */
-  EXPECT_EQ(1, BLI_listbase_count(&coll_2->gobject));
+  EXPECT_EQ(1, coll_2->gobject.count());
   EXPECT_EQ(ob, static_cast<CollectionObject *>(coll_2->gobject.first)->ob);
 
   Collection *coll_3;
@@ -182,8 +182,8 @@ TEST_F(BMainMergeTest, basics)
   /* The third `Ob_src` object in `bmain_src` is forced to be merged in `bmain_dst`, even though
    * its name will collide with the first object. So it will be renamed. The third source
    * collection however will not be merged. */
-  EXPECT_EQ(3, BLI_listbase_count(&bmain_dst->collections));
-  EXPECT_EQ(2, BLI_listbase_count(&bmain_dst->objects));
+  EXPECT_EQ(3, bmain_dst->collections.count());
+  EXPECT_EQ(2, bmain_dst->objects.count());
   EXPECT_EQ(1, reports.num_merged_ids);
   EXPECT_EQ(0, reports.num_unknown_ids);
   EXPECT_EQ(1, reports.num_remapped_ids);
@@ -195,7 +195,7 @@ TEST_F(BMainMergeTest, basics)
 
   /* `Coll_src_2` should not have been modified here (Ob_3 is not instantiated at all in
    * destination Main). */
-  EXPECT_EQ(1, BLI_listbase_count(&coll_2->gobject));
+  EXPECT_EQ(1, coll_2->gobject.count());
   EXPECT_EQ(ob, static_cast<CollectionObject *>(coll_2->gobject.first)->ob);
 }
 
@@ -214,13 +214,13 @@ TEST_F(BMainMergeTest, linked_data)
   constexpr char LIB_PATH_RELATIVE_ABS_SRC[] = ABS_ROOT "tmp" SEP_STR "src" SEP_STR "lib" SEP_STR
                                                         "lib.blend";
 
-  EXPECT_TRUE(BLI_listbase_is_empty(&bmain_dst->libraries));
-  EXPECT_TRUE(BLI_listbase_is_empty(&bmain_dst->collections));
-  EXPECT_TRUE(BLI_listbase_is_empty(&bmain_dst->objects));
+  EXPECT_TRUE(bmain_dst->libraries.is_empty());
+  EXPECT_TRUE(bmain_dst->collections.is_empty());
+  EXPECT_TRUE(bmain_dst->objects.is_empty());
 
-  EXPECT_TRUE(BLI_listbase_is_empty(&bmain_src->libraries));
-  EXPECT_TRUE(BLI_listbase_is_empty(&bmain_src->collections));
-  EXPECT_TRUE(BLI_listbase_is_empty(&bmain_src->objects));
+  EXPECT_TRUE(bmain_src->libraries.is_empty());
+  EXPECT_TRUE(bmain_src->collections.is_empty());
+  EXPECT_TRUE(bmain_src->objects.is_empty());
 
   STRNCPY(bmain_dst->filepath, DST_PATH);
   STRNCPY(bmain_src->filepath, SRC_PATH);
@@ -233,19 +233,19 @@ TEST_F(BMainMergeTest, linked_data)
   Object *ob_1 = BKE_id_new_in_lib<Object>(bmain_src, lib_src_1, "Ob_src");
   BKE_collection_object_add(bmain_src, coll_1, ob_1);
 
-  EXPECT_EQ(1, BLI_listbase_count(&bmain_dst->collections));
-  EXPECT_EQ(0, BLI_listbase_count(&bmain_dst->objects));
-  EXPECT_EQ(0, BLI_listbase_count(&bmain_dst->libraries));
-  EXPECT_EQ(1, BLI_listbase_count(&bmain_src->collections));
-  EXPECT_EQ(1, BLI_listbase_count(&bmain_src->objects));
-  EXPECT_EQ(1, BLI_listbase_count(&bmain_src->libraries));
+  EXPECT_EQ(1, bmain_dst->collections.count());
+  EXPECT_EQ(0, bmain_dst->objects.count());
+  EXPECT_EQ(0, bmain_dst->libraries.count());
+  EXPECT_EQ(1, bmain_src->collections.count());
+  EXPECT_EQ(1, bmain_src->objects.count());
+  EXPECT_EQ(1, bmain_src->libraries.count());
 
   MainMergeReport reports = {};
   BKE_main_merge(bmain_dst, &bmain_src, reports);
 
-  EXPECT_EQ(2, BLI_listbase_count(&bmain_dst->collections));
-  EXPECT_EQ(1, BLI_listbase_count(&bmain_dst->objects));
-  EXPECT_EQ(1, BLI_listbase_count(&bmain_dst->libraries));
+  EXPECT_EQ(2, bmain_dst->collections.count());
+  EXPECT_EQ(1, bmain_dst->objects.count());
+  EXPECT_EQ(1, bmain_dst->libraries.count());
   EXPECT_EQ(ob_1, bmain_dst->objects.first);
   EXPECT_EQ(lib_src_1, bmain_dst->libraries.first);
   EXPECT_EQ(ob_1->id.lib, lib_src_1);
@@ -270,16 +270,16 @@ TEST_F(BMainMergeTest, linked_data)
   Object *ob_2_2 = BKE_id_new_in_lib<Object>(bmain_src, lib_src_2, "Ob_src_2_2");
   BKE_collection_object_add(bmain_src, coll_2, ob_2_2);
 
-  EXPECT_EQ(1, BLI_listbase_count(&bmain_src->collections));
-  EXPECT_EQ(2, BLI_listbase_count(&bmain_src->objects));
-  EXPECT_EQ(1, BLI_listbase_count(&bmain_src->libraries));
+  EXPECT_EQ(1, bmain_src->collections.count());
+  EXPECT_EQ(2, bmain_src->objects.count());
+  EXPECT_EQ(1, bmain_src->libraries.count());
 
   reports = {};
   BKE_main_merge(bmain_dst, &bmain_src, reports);
 
-  EXPECT_EQ(3, BLI_listbase_count(&bmain_dst->collections));
-  EXPECT_EQ(3, BLI_listbase_count(&bmain_dst->objects));
-  EXPECT_EQ(1, BLI_listbase_count(&bmain_dst->libraries));
+  EXPECT_EQ(3, bmain_dst->collections.count());
+  EXPECT_EQ(3, bmain_dst->objects.count());
+  EXPECT_EQ(1, bmain_dst->libraries.count());
   EXPECT_EQ(ob_1, bmain_dst->objects.first);
   EXPECT_EQ(ob_2_2, bmain_dst->objects.last);
   EXPECT_EQ(lib_src_1, bmain_dst->libraries.first);
@@ -304,18 +304,18 @@ TEST_F(BMainMergeTest, linked_data)
   Object *ob_3 = BKE_id_new_in_lib<Object>(bmain_src, lib_src_3, "Ob_src");
   BKE_collection_object_add(bmain_src, coll_3, ob_3);
 
-  EXPECT_EQ(1, BLI_listbase_count(&bmain_src->collections));
-  EXPECT_EQ(1, BLI_listbase_count(&bmain_src->objects));
-  EXPECT_EQ(1, BLI_listbase_count(&bmain_src->libraries));
+  EXPECT_EQ(1, bmain_src->collections.count());
+  EXPECT_EQ(1, bmain_src->objects.count());
+  EXPECT_EQ(1, bmain_src->libraries.count());
   EXPECT_TRUE(STREQ(lib_src_3->filepath, LIB_PATH_RELATIVE));
   EXPECT_TRUE(STREQ(lib_src_3->runtime->filepath_abs, LIB_PATH_RELATIVE_ABS_SRC));
 
   reports = {};
   BKE_main_merge(bmain_dst, &bmain_src, reports);
 
-  EXPECT_EQ(4, BLI_listbase_count(&bmain_dst->collections));
-  EXPECT_EQ(4, BLI_listbase_count(&bmain_dst->objects));
-  EXPECT_EQ(2, BLI_listbase_count(&bmain_dst->libraries));
+  EXPECT_EQ(4, bmain_dst->collections.count());
+  EXPECT_EQ(4, bmain_dst->objects.count());
+  EXPECT_EQ(2, bmain_dst->libraries.count());
   EXPECT_EQ(ob_1, bmain_dst->objects.first);
   EXPECT_EQ(ob_3, bmain_dst->objects.last);
   EXPECT_EQ(lib_src_3, bmain_dst->libraries.first);
@@ -344,18 +344,18 @@ TEST_F(BMainMergeTest, linked_data)
   Object *ob_4 = BKE_id_new_in_lib<Object>(bmain_src, lib_src_4, "Ob_src_4");
   BKE_collection_object_add(bmain_src, coll_4, ob_4);
 
-  EXPECT_EQ(1, BLI_listbase_count(&bmain_src->collections));
-  EXPECT_EQ(1, BLI_listbase_count(&bmain_src->objects));
-  EXPECT_EQ(1, BLI_listbase_count(&bmain_src->libraries));
+  EXPECT_EQ(1, bmain_src->collections.count());
+  EXPECT_EQ(1, bmain_src->objects.count());
+  EXPECT_EQ(1, bmain_src->libraries.count());
 
   reports = {};
   BKE_main_merge(bmain_dst, &bmain_src, reports);
 
   /* `bmain_dst` is unchanged, since both `coll_4` and `ob_4` were defined as linked from
    * `bmain_dst`. */
-  EXPECT_EQ(4, BLI_listbase_count(&bmain_dst->collections));
-  EXPECT_EQ(4, BLI_listbase_count(&bmain_dst->objects));
-  EXPECT_EQ(2, BLI_listbase_count(&bmain_dst->libraries));
+  EXPECT_EQ(4, bmain_dst->collections.count());
+  EXPECT_EQ(4, bmain_dst->objects.count());
+  EXPECT_EQ(2, bmain_dst->libraries.count());
   EXPECT_EQ(lib_src_3, bmain_dst->libraries.first);
   EXPECT_EQ(lib_src_1, bmain_dst->libraries.last);
   EXPECT_EQ(ob_1->id.lib, lib_src_1);
@@ -420,7 +420,7 @@ TEST_F(BMainMergeTest, link_lib_packed)
 
   /* Part of the packed IDs in `bmain_src` already existed in `bmain_dst`, so these are re-used.
    * The others are moved over, which will also create a new archive library in `bmain_dst`. */
-  EXPECT_EQ(4, BLI_listbase_count(&bmain_dst->libraries));
+  EXPECT_EQ(4, bmain_dst->libraries.count());
   EXPECT_TRUE((static_cast<Library *>(BLI_findlink(&bmain_dst->libraries, 0))->flag &
                LIBRARY_FLAG_IS_ARCHIVE) == 0);
   EXPECT_EQ(static_cast<Library *>(BLI_findlink(&bmain_dst->libraries, 0)), lib_dst);
@@ -437,7 +437,7 @@ TEST_F(BMainMergeTest, link_lib_packed)
   EXPECT_EQ(static_cast<Library *>(BLI_findlink(&bmain_dst->libraries, 3))->archive_parent_library,
             lib_dst);
 
-  EXPECT_EQ(5, BLI_listbase_count(&bmain_dst->objects));
+  EXPECT_EQ(5, bmain_dst->objects.count());
   /* ob_src_packed is identical to ob_dst_packed (same deep hash), so it has been discarded. */
   UNUSED_VARS(ob_src_packed);
   EXPECT_EQ(ob_dst_packed, BLI_findlink(&bmain_dst->objects, 0));

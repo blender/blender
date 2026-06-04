@@ -154,24 +154,24 @@ void BKE_animdata_fix_paths_rename_all(ID *ref_id,
 void BKE_animdata_fix_paths_rename_all_ex(Main *bmain,
                                           ID *ref_id,
                                           const char *prefix,
-                                          const char *old_suffix,
-                                          const char *new_suffix,
+                                          const char *old_infix,
+                                          const char *new_infix,
                                           const int oldSubscript,
                                           const int newSubscript,
                                           const bool verify_paths,
-                                          const bool suffix_is_name)
+                                          const bool infix_is_name)
 {
   BKE_animdata_main_cb(bmain, [&](ID *id, AnimData *adt) {
     BKE_animdata_fix_paths_rename(id,
                                   adt,
                                   ref_id,
                                   prefix,
-                                  old_suffix,
-                                  new_suffix,
+                                  old_infix,
+                                  new_infix,
                                   oldSubscript,
                                   newSubscript,
                                   verify_paths,
-                                  suffix_is_name);
+                                  infix_is_name);
   });
 }
 

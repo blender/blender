@@ -315,7 +315,6 @@ struct PanelCategoryDyn {
   struct PanelCategoryDyn *next = nullptr, *prev = nullptr;
   char idname[64] = "";
   int icon = 0;
-  rcti rect = {};
 };
 
 /** Region stack of active tabs. */
@@ -365,7 +364,7 @@ ENUM_OPERATORS(euiList_FilterFlag)
 
 /** #uiList.filter_sort_flag */
 enum euiList_FilterSortFlag : int {
-  /* Plain values (only one is valid at a time, once masked with UILST_FLT_SORT_MASK. */
+  /* Plain values (only one is valid at a time, once masked with UILST_FLT_SORT_MASK). */
   /** Just for sake of consistency. */
   /* UILST_FLT_SORT_INDEX = 0, */ /* UNUSED */
   UILST_FLT_SORT_ALPHA = 1,

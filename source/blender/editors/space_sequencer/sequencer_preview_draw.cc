@@ -38,6 +38,8 @@
 
 #include "OCIO_scope.hh"
 
+#include "PRF_profile.hh"
+
 #include "GPU_compute.hh"
 #include "GPU_debug.hh"
 #include "GPU_framebuffer.hh"
@@ -229,20 +231,29 @@ static void sequencer_draw_borders_overlay(const SpaceSeq &sseq,
 
   imm_draw_box_wire_2d(shdr_pos, x1 - 0.5f, y1 - 0.5f, x2 + 0.5f, y2 + 0.5f);
 
+  rctf rect;
+  rect.xmin = x1;
+  rect.xmax = x2;
+  rect.ymin = y1;
+  rect.ymax = y2;
+
   /* Draw safety border. */
   if (sseq.preview_overlay.flag & SEQ_PREVIEW_SHOW_SAFE_MARGINS) {
     immUniformThemeColorBlend(TH_VIEW_OVERLAY, TH_BACK, 0.25f);
-    rctf rect;
-    rect.xmin = x1;
-    rect.xmax = x2;
-    rect.ymin = y1;
-    rect.ymax = y2;
     ui::draw_safe_areas(shdr_pos, &rect, scene->safe_areas.title, scene->safe_areas.action);
 
     if (sseq.preview_overlay.flag & SEQ_PREVIEW_SHOW_SAFE_CENTER) {
       ui::draw_safe_areas(
           shdr_pos, &rect, scene->safe_areas.title_center, scene->safe_areas.action_center);
     }
+  }
+
+  /* Draw composition guides. */
+  if (sseq.preview_overlay.flag & SEQ_PREVIEW_SHOW_COMPOSITION_GUIDES) {
+    ED_draw_composition_guides(shdr_pos,
+                               sseq.preview_overlay.composition_guide_flags,
+                               &rect,
+                               sseq.preview_overlay.composition_guide_color);
   }
 
   immUnbindProgram();
@@ -916,6 +927,7 @@ static void update_gpu_scopes(const ImBuf *input_ibuf,
                               Scene *scene,
                               int timeline_frame)
 {
+  PRF_scope_with_name("SeqUpdateGPUScopes", ProfileCategory::Draw);
   BLI_assert(input_ibuf && input_texture);
 
   /* Display space GPU texture is already calculated. */
@@ -992,6 +1004,8 @@ static void update_cpu_scopes(const SpaceSeq &space_sequencer,
     /* Nothing to do: scopes already calculated for this image/frame. */
     return;
   }
+
+  PRF_scope_with_name("SeqUpdateCPUScopes", ProfileCategory::Draw);
 
   scopes.cleanup();
   if (space_sequencer.mainb == SEQ_DRAW_IMG_HISTOGRAM) {
@@ -1225,6 +1239,7 @@ static void text_edit_draw(const bContext *C)
   GPU_blend(GPU_BLEND_ALPHA);
   immBindBuiltinProgram(GPU_SHADER_3D_UNIFORM_COLOR);
 
+  std::scoped_lock runtime_lock(seq::text_runtime_mutex_get());
   text_selection_draw(C, strip, pos);
   text_edit_draw_cursor(C, strip, pos);
 
@@ -1534,6 +1549,7 @@ static int get_reference_frame_offset(const Editing &editing, const RenderData &
  * If channel configuration is incompatible with the texture nullptr is returned. */
 static gpu::Texture *create_texture(const ImBuf &ibuf)
 {
+  PRF_scope_with_name("SeqPreviewCreateTexture", ProfileCategory::Draw);
   const eGPUTextureUsage texture_usage = GPU_TEXTURE_USAGE_SHADER_READ |
                                          GPU_TEXTURE_USAGE_ATTACHMENT;
 
@@ -1824,6 +1840,8 @@ void sequencer_preview_region_draw(const bContext *C, ARegion *region)
     sequencer_preview_draw_empty(*region);
     return;
   }
+
+  PRF_scope_with_name("SeqPreviewDraw", ProfileCategory::Draw);
 
   const Editing &editing = *scene->ed;
   const RenderData &render_data = scene->r;

@@ -132,10 +132,10 @@ TEST_F(NlaTrackTest, BKE_nlatrack_remove_strip)
   track.strips = strips;
 
   /* Ensure we have 2 strips in the track. */
-  EXPECT_EQ(2, BLI_listbase_count(&track.strips));
+  EXPECT_EQ(2, track.strips.count());
 
   BKE_nlatrack_remove_strip(&track, &strip2);
-  EXPECT_EQ(1, BLI_listbase_count(&track.strips));
+  EXPECT_EQ(1, track.strips.count());
   /* Ensure the correct strip was removed. */
   EXPECT_EQ(-1, BLI_findindex(&track.strips, &strip2));
 }
@@ -149,17 +149,17 @@ TEST_F(NlaTrackTest, BKE_nlatrack_remove_and_free)
   NlaTrack *track2 = BKE_nlatrack_new_tail(&adt.nla_tracks, false);
 
   /* Ensure we have 2 tracks in the track. */
-  EXPECT_EQ(2, BLI_listbase_count(&adt.nla_tracks));
+  EXPECT_EQ(2, adt.nla_tracks.count());
 
   BKE_nlatrack_remove_and_free(&adt.nla_tracks, track2, false);
-  EXPECT_EQ(1, BLI_listbase_count(&adt.nla_tracks));
+  EXPECT_EQ(1, adt.nla_tracks.count());
 
   /* Ensure the correct track was removed. */
   EXPECT_EQ(-1, BLI_findindex(&adt.nla_tracks, track2));
 
   /* Free the rest of the tracks, and ensure they are removed. */
   BKE_nlatrack_remove_and_free(&adt.nla_tracks, track1, false);
-  EXPECT_EQ(0, BLI_listbase_count(&adt.nla_tracks));
+  EXPECT_EQ(0, adt.nla_tracks.count());
   EXPECT_EQ(-1, BLI_findindex(&adt.nla_tracks, track1));
 }
 

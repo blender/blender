@@ -27,17 +27,17 @@ static void node_declare(NodeDeclarationBuilder &b)
       .supported_type(GeometryComponent::Type::PointCloud)
       .description("Points to generate curves from");
   b.add_input<decl::Int>("Curve Group ID"_ustr)
-      .field_on_all()
+      .evaluated_geometry_field()
       .hide_value()
       .description(
           "A curve is created for every distinct group ID. All points with the same ID are put "
           "into the same curve");
   b.add_input<decl::Float>("Weight"_ustr)
-      .field_on_all()
+      .evaluated_geometry_field()
       .hide_value()
       .description("Determines the order of points in each curve");
 
-  b.add_output<decl::Geometry>("Curves"_ustr).propagate_all();
+  b.add_output<decl::Geometry>("Curves"_ustr).propagate_all_geometry();
 }
 
 static void grouped_sort(const OffsetIndices<int> offsets,
@@ -63,13 +63,13 @@ static void grouped_sort(const OffsetIndices<int> offsets,
 }
 
 static void find_points_by_group_index(const Span<int> indices_of_curves,
+                                       const bool sort,
                                        MutableSpan<int> r_offsets,
                                        MutableSpan<int> r_indices)
 {
   const OffsetIndices offsets = offset_indices::build_reverse_offsets(indices_of_curves,
                                                                       r_offsets);
-  /* Sorting is implemented by the caller. */
-  offset_indices::reverse_indices_in_groups(indices_of_curves, offsets, r_indices, false);
+  offset_indices::reverse_indices_in_groups(indices_of_curves, offsets, r_indices, sort);
 }
 
 static int identifiers_to_indices(MutableSpan<int> r_identifiers_to_indices)
@@ -149,12 +149,14 @@ static Curves *curves_from_points(const PointCloud &points,
   offset.fill(0);
 
   Array<int> indices(domain_size);
-  find_points_by_group_index(group_ids, offset, indices.as_mutable_span());
 
-  if (!weights_varray.is_single()) {
+  const bool custom_sorting = weights_varray.is_single();
+  find_points_by_group_index(group_ids, !custom_sorting, offset, indices.as_mutable_span());
+  if (custom_sorting) {
     const VArraySpan<float> weights(weights_varray);
     grouped_sort(OffsetIndices<int>(offset), weights, indices);
   }
+
   bke::gather_attributes(points.attributes(),
                          AttrDomain::Point,
                          AttrDomain::Point,

@@ -53,18 +53,18 @@ class SubdAttributeInterpolation {
   template<typename T>
   void setup_attribute_vertex_linear(const Attribute &subd_attr,
                                      Attribute &mesh_attr,
-                                     const int motion_step = 0);
+                                     const int motion_step = -1);
 
   template<typename T>
   void setup_attribute_corner_linear(const Attribute &subd_attr,
                                      Attribute &mesh_attr,
-                                     const int motion_step = 0);
+                                     const int motion_step = -1);
 
 #ifdef WITH_OPENSUBDIV
   template<typename T>
   void setup_attribute_vertex_smooth(const Attribute &subd_attr,
                                      Attribute &mesh_attr,
-                                     const int motion_step = 0);
+                                     const int motion_step = -1);
 
   template<typename T>
   void setup_attribute_corner_smooth(Attribute &mesh_attr,

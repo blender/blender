@@ -11,14 +11,16 @@ namespace blender::nodes::node_geo_curve_topology_curve_of_point_cc {
 static void node_declare(NodeDeclarationBuilder &b)
 {
   b.add_input<decl::Int>("Point Index"_ustr)
-      .implicit_field(NODE_DEFAULT_INPUT_INDEX_FIELD)
+      .default_input_type(NODE_DEFAULT_INPUT_INDEX_FIELD)
       .description("The control point to retrieve data from")
       .structure_type(StructureType::Field);
   b.add_output<decl::Int>("Curve Index"_ustr)
-      .field_source_reference_all()
+      .structure_type(StructureType::Field)
+      .propagate_references()
       .description("The curve the control point is part of");
   b.add_output<decl::Int>("Index in Curve"_ustr)
-      .field_source_reference_all()
+      .structure_type(StructureType::Field)
+      .propagate_references()
       .description("How far along the control point is along its curve");
 }
 

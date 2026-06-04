@@ -192,7 +192,8 @@ void library_selector_draw(const bContext *C, ui::Layout &layout, AssetShelf &sh
   ui::Layout &row = layout.row(true);
   row.prop(&shelf_ptr, "asset_library_reference", UI_ITEM_NONE, "", ICON_NONE);
   if (shelf.settings.asset_library_reference.type != ASSET_LIBRARY_LOCAL) {
-    row.op("ASSET_OT_library_refresh", "", ICON_FILE_REFRESH);
+    PointerRNA ptr = row.op("ASSET_OT_library_refresh", "", ICON_FILE_REFRESH);
+    RNA_boolean_set(&ptr, "use_shift_for_remote_listing", true);
   }
 }
 

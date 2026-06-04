@@ -232,7 +232,7 @@ void deg_graph_build_finalize(Main *bmain, Depsgraph *graph)
      * objects might keep affecting the render pipeline. For example, when a Python script is
      * executed in headless mode it will tag original objects for recalculation, and the flag
      * will never be reset to 0 because there is no active dependency graph (since the
-     * DEG_ids_clear_recalc() only clears original ID recalc flags for the active depsgraph.
+     * DEG_ids_clear_recalc() only clears original ID recalc flags for the active depsgraph).
      *
      * A bit of a safety is to also consider the accumulated recalc flags from the original
      * data-block for the first evaluation of the data-block within an inactive graph. */

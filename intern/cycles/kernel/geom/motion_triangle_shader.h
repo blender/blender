@@ -9,8 +9,8 @@
  * or normals at a given ray time is a matter of interpolation of the two steps
  * between which the ray time lies.
  *
- * The extra positions and normals are stored as ATTR_STD_MOTION_VERTEX_POSITION
- * and ATTR_STD_MOTION_VERTEX_NORMAL mesh attributes.
+ * The extra positions are stored as additional motion steps in ATTR_STD_POSITION.
+ * Normals in ATTR_STD_VERTEX_NORMAL or ATTR_STD_CORNER_NORMAL.
  */
 
 #pragma once

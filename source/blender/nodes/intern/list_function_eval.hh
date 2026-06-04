@@ -11,6 +11,7 @@
 #include "FN_multi_function.hh"
 
 #include "NOD_geometry_exec.hh"
+#include "NOD_geometry_nodes_list.hh"
 
 namespace blender::nodes {
 
@@ -21,6 +22,17 @@ class ListFieldContext : public FieldContext {
   GVArray get_varray_for_input(const FieldInput &field_input,
                                const IndexMask &mask,
                                ResourceScope & /*scope*/) const override;
+};
+
+class SampleIndexFunction : public mf::MultiFunction {
+  GListPtr list_;
+  mf::Signature signature_;
+
+ public:
+  SampleIndexFunction(GListPtr list);
+
+  void call(const IndexMask &mask, mf::Params params, mf::Context /*context*/) const override;
+  void hash_unique(UniqueHashBytes &hash) const override;
 };
 
 void execute_multi_function_on_value_variant__list(const MultiFunction &fn,

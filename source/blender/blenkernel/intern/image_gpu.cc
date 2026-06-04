@@ -207,7 +207,7 @@ static gpu::Texture *gpu_texture_create_tile_array(Image *ima, ImBuf *main_ibuf)
       tile_runtime->tilearray_layer = arraylayers;
     }
 
-    BLI_freelistN(&packed);
+    packed.free_no_destruct();
     arraylayers++;
   }
 

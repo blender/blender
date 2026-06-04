@@ -14,7 +14,8 @@ SHADER_LIBRARY_CREATE_INFO(draw_view)
 /* Returns the current active view. */
 ViewMatrices drw_view()
 {
-  return drw_view_buf[drw_view_id];
+
+  return buffer_get(draw_view, view_buf)[drw_view_id];
 }
 
 /* Returns true if the current view has a perspective projection matrix. */

@@ -130,7 +130,7 @@ ViewContext ED_view3d_viewcontext_init(bContext *C, Depsgraph *depsgraph)
 void ED_view3d_viewcontext_init_object(ViewContext *vc, Object *obact)
 {
   vc->obact = obact;
-  /* See public doc-string for rationale on checking the existing values first. */
+  /* See public docstring for rationale on checking the existing values first. */
   if (vc->obedit) {
     BLI_assert(BKE_object_is_in_editmode(obact));
     vc->obedit = obact;
@@ -1803,7 +1803,7 @@ static bool object_mouse_select_menu(bContext *C,
   }
   if (base_count == 1) {
     Base *base = (static_cast<BaseRefWithDepth *>(base_ref_list.first))->base;
-    BLI_freelistN(&base_ref_list);
+    base_ref_list.free_no_destruct();
     *r_basact = base;
     return false;
   }
@@ -1841,7 +1841,7 @@ static bool object_mouse_select_menu(bContext *C,
   WM_operator_name_call_ptr(C, ot, wm::OpCallContext::InvokeDefault, &ptr, nullptr);
   WM_operator_properties_free(&ptr);
 
-  BLI_freelistN(&base_ref_list);
+  base_ref_list.free_no_destruct();
   return true;
 }
 
@@ -2042,7 +2042,7 @@ static bool bone_mouse_select_menu(bContext *C,
     return false;
   }
   if (bone_count == 1) {
-    BLI_freelistN(&bone_ref_list);
+    bone_ref_list.free_no_destruct();
     return false;
   }
 
@@ -2089,7 +2089,7 @@ static bool bone_mouse_select_menu(bContext *C,
   WM_operator_name_call_ptr(C, ot, wm::OpCallContext::InvokeDefault, &ptr, nullptr);
   WM_operator_properties_free(&ptr);
 
-  BLI_freelistN(&bone_ref_list);
+  bone_ref_list.free_no_destruct();
   return true;
 }
 
@@ -2267,37 +2267,6 @@ static int mixed_bones_object_selectbuffer_extended(const ViewContext *vc,
       vc, buffer, mval, select_filter, do_nearest, true, false);
 
   return hits;
-}
-
-/**
- * Compare result of `GPU_select`: #GPUSelectResult,
- * Needed for stable sorting, so cycling through all items near the cursor behaves predictably.
- */
-static int gpu_select_buffer_depth_id_cmp(const void *sel_a_p, const void *sel_b_p)
-{
-  GPUSelectResult *a = static_cast<GPUSelectResult *>(const_cast<void *>(sel_a_p));
-  GPUSelectResult *b = static_cast<GPUSelectResult *>(const_cast<void *>(sel_b_p));
-
-  if (a->depth < b->depth) {
-    return -1;
-  }
-  if (a->depth > b->depth) {
-    return 1;
-  }
-
-  /* Depths match, sort by id. */
-  /* NOTE: this is endianness-sensitive.
-   * GPUSelectResult values are always expected to be little-endian. */
-  uint sel_a = a->id;
-  uint sel_b = b->id;
-
-  if (sel_a < sel_b) {
-    return -1;
-  }
-  if (sel_a > sel_b) {
-    return 1;
-  }
-  return 0;
 }
 
 /**
@@ -2738,8 +2707,7 @@ static bool ed_object_select_pick(bContext *C,
 
   /* The next object's base to make active. */
   Base *basact = nullptr;
-  const eObjectMode object_mode = oldbasact ? static_cast<eObjectMode>(oldbasact->object->mode) :
-                                              OB_MODE_OBJECT;
+  const eObjectMode object_mode = oldbasact ? oldbasact->object->mode : OB_MODE_OBJECT;
   /* For the most part this is equivalent to `(object_mode & OB_MODE_POSE) != 0`
    * however this logic should also run with weight-paint + pose selection.
    * Without this, selection in weight-paint mode can de-select armatures which isn't useful,

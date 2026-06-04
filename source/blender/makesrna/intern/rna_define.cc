@@ -580,7 +580,7 @@ BlenderRNA *RNA_create()
 {
   BlenderRNA *brna = MEM_new<BlenderRNA>(__func__);
 
-  BLI_listbase_clear(&DefRNA.structs);
+  DefRNA.structs.clear_no_delete();
   brna->structs_map.reserve(2048);
 
   DefRNA.error = false;

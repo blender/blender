@@ -19,7 +19,7 @@ static void node_declare(NodeDeclarationBuilder &b)
       .default_value(0.5f)
       .min(0.0f)
       .subtype(PROP_DISTANCE)
-      .field_on_all();
+      .evaluated_geometry_field();
   b.add_input<decl::Float>("Voxel Size"_ustr)
       .default_value(0.3f)
       .min(0.01f)

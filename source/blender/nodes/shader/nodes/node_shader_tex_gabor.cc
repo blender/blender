@@ -25,11 +25,17 @@ NODE_STORAGE_FUNCS(NodeTexGabor)
 static void sh_node_tex_gabor_declare(NodeDeclarationBuilder &b)
 {
   b.is_function_node();
+
+  const bool is_compositor = b.tree_or_null() && b.tree_or_null()->type == NTREE_COMPOSIT;
+  const NodeDefaultInputType default_input_type =
+      is_compositor ? NODE_DEFAULT_INPUT_UNIFORM_IMAGE_COORDINATES :
+                      NODE_DEFAULT_INPUT_POSITION_FIELD;
   b.add_input<decl::Vector>("Vector"_ustr)
-      .implicit_field(NODE_DEFAULT_INPUT_POSITION_FIELD)
+      .default_input_type(default_input_type)
       .description(
           "The coordinates at which Gabor noise will be evaluated. The Z component is ignored in "
           "the 2D case");
+
   b.add_input<decl::Float>("Scale"_ustr)
       .default_value(5.0f)
       .description("The scale of the Gabor noise");
@@ -47,14 +53,20 @@ static void sh_node_tex_gabor_declare(NodeDeclarationBuilder &b)
       .description(
           "The directionality of Gabor noise. 1 means the noise is completely directional, while "
           "0 means the noise is omnidirectional");
+
+  const NodeGaborType gabor_type = b.node_or_null() ? node_storage(*b.node_or_null()).type :
+                                                      SHD_GABOR_TYPE_2D;
   b.add_input<decl::Float>("Orientation"_ustr, "Orientation 2D"_ustr)
       .default_value(std::numbers::pi / 4)
       .subtype(PROP_ANGLE)
+      .available(gabor_type == SHD_GABOR_TYPE_2D)
       .description("The direction of the anisotropic Gabor noise");
   b.add_input<decl::Vector>("Orientation"_ustr, "Orientation 3D"_ustr)
       .default_value({std::numbers::sqrt2, std::numbers::sqrt2, 0.0f})
       .subtype(PROP_DIRECTION)
+      .available(gabor_type == SHD_GABOR_TYPE_3D)
       .description("The direction of the anisotropic Gabor noise");
+
   b.add_output<decl::Float>("Value"_ustr)
       .description(
           "The Gabor noise value with both random intensity and phase. This is equal to sine the "
@@ -79,21 +91,6 @@ static void node_shader_init_tex_gabor(bNodeTree * /*ntree*/, bNode *node)
   storage->type = SHD_GABOR_TYPE_2D;
 
   node->storage = storage;
-}
-
-static void node_shader_update_tex_gabor(bNodeTree *ntree, bNode *node)
-{
-  const NodeTexGabor &storage = node_storage(*node);
-
-  bNodeSocket *orientation_2d_socket = bke::node_find_socket(
-      *node, SOCK_IN, "Orientation 2D"_ustr);
-  bke::node_set_socket_availability(
-      *ntree, *orientation_2d_socket, storage.type == SHD_GABOR_TYPE_2D);
-
-  bNodeSocket *orientation_3d_socket = bke::node_find_socket(
-      *node, SOCK_IN, "Orientation 3D"_ustr);
-  bke::node_set_socket_availability(
-      *ntree, *orientation_3d_socket, storage.type == SHD_GABOR_TYPE_3D);
 }
 
 static int node_shader_gpu_tex_gabor(GPUMaterial *material,
@@ -231,7 +228,6 @@ void register_node_type_sh_tex_gabor()
   ntype.initfunc = file_ns::node_shader_init_tex_gabor;
   node_type_storage(ntype, "NodeTexGabor", node_free_standard_storage, node_copy_standard_storage);
   ntype.gpu_fn = file_ns::node_shader_gpu_tex_gabor;
-  ntype.updatefunc = file_ns::node_shader_update_tex_gabor;
   ntype.build_multi_function = file_ns::build_multi_function;
 
   node_register_type(ntype);

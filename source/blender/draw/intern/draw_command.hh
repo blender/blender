@@ -118,6 +118,7 @@ enum class Type : uint8_t {
   SubPassTransition,
   StateSet,
   StencilSet,
+  TextureCopy,
 
   /** Special commands stored in separate buffers. */
   SubPass,
@@ -491,6 +492,22 @@ struct StencilSet {
   std::string serialize() const;
 };
 
+struct TextureCopy {
+  union {
+    gpu::Texture *src;
+    gpu::Texture **src_ref;
+  };
+  union {
+    gpu::Texture *dst;
+    gpu::Texture **dst_ref;
+  };
+  bool src_is_ref;
+  bool dst_is_ref;
+
+  void execute() const;
+  std::string serialize() const;
+};
+
 union Undetermined {
   ShaderBind shader_bind;
   ResourceBind resource_bind;
@@ -508,6 +525,7 @@ union Undetermined {
   ClearMulti clear_multi;
   StateSet state_set;
   StencilSet stencil_set;
+  TextureCopy texture_copy;
 };
 
 /** Try to keep the command size as low as possible for performance. */

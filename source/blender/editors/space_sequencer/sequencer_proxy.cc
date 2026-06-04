@@ -31,7 +31,7 @@
 namespace blender::ed::vse {
 
 /* -------------------------------------------------------------------- */
-/** \name Rebuild Proxy and Timecode Indices Operator
+/** \name Rebuild Proxy Operator
  * \{ */
 
 static void seq_proxy_build_job(const bContext *C, ReportList *reports)
@@ -129,9 +129,9 @@ static wmOperatorStatus sequencer_rebuild_proxy_exec(bContext *C, wmOperator * /
 void SEQUENCER_OT_rebuild_proxy(wmOperatorType *ot)
 {
   /* Identifiers. */
-  ot->name = "Rebuild Proxy and Timecode Indices";
+  ot->name = "Rebuild Proxy";
   ot->idname = "SEQUENCER_OT_rebuild_proxy";
-  ot->description = "Rebuild all selected proxies and timecode indices";
+  ot->description = "Rebuild all selected proxies";
 
   /* API callbacks. */
   ot->invoke = sequencer_rebuild_proxy_invoke;
@@ -237,11 +237,11 @@ void SEQUENCER_OT_enable_proxies(wmOperatorType *ot)
   /* Flags. */
   ot->flag = OPTYPE_REGISTER;
 
-  RNA_def_boolean(ot->srna, "proxy_25", false, "25%", "");
-  RNA_def_boolean(ot->srna, "proxy_50", false, "50%", "");
-  RNA_def_boolean(ot->srna, "proxy_75", false, "75%", "");
-  RNA_def_boolean(ot->srna, "proxy_100", false, "100%", "");
-  RNA_def_boolean(ot->srna, "overwrite", false, "Overwrite", "");
+  RNA_def_boolean(ot->srna, "proxy_25", false, "25%", "Build proxy at 25% resolution");
+  RNA_def_boolean(ot->srna, "proxy_50", false, "50%", "Build proxy at 50% resolution");
+  RNA_def_boolean(ot->srna, "proxy_75", false, "75%", "Build proxy at 75% resolution");
+  RNA_def_boolean(ot->srna, "proxy_100", false, "100%", "Build proxy at 100% resolution");
+  RNA_def_boolean(ot->srna, "overwrite", false, "Overwrite", "Overwrite existing proxy files");
 }
 
 /** \} */

@@ -135,7 +135,7 @@ static void node_declare(NodeDeclarationBuilder &b)
       .description(
           "Single-element geometry for the current iteration. Note that it can be quite "
           "inefficient to split up large geometries into many small geometries")
-      .propagate_all()
+      .propagate_all_geometry()
       .available(output_storage && AttrDomain(output_storage->domain) != AttrDomain::Corner);
 
   b.add_input<decl::Geometry>("Geometry"_ustr)
@@ -144,7 +144,7 @@ static void node_declare(NodeDeclarationBuilder &b)
   b.add_input<decl::Bool>("Selection"_ustr)
       .default_value(true)
       .hide_value()
-      .field_on_all()
+      .evaluated_geometry_field()
       .description("Selection on the iteration domain");
 
   if (output_storage) {
@@ -158,7 +158,7 @@ static void node_declare(NodeDeclarationBuilder &b)
           .socket_name_ptr(
               &tree->id, *ForeachGeometryElementInputItemsAccessor::item_srna, &item, "name")
           .description("Field that is evaluated on the iteration domain")
-          .field_on_all();
+          .evaluated_geometry_field();
       b.add_output(socket_type, name, identifier)
           .align_with_previous()
           .description("Evaluated field value for the current element");
@@ -272,7 +272,7 @@ static void node_declare(NodeDeclarationBuilder &b)
               "Attribute value that will be stored for the current element on the main geometry");
       b.add_output(socket_type, name, identifier)
           .align_with_previous()
-          .field_on({0})
+          .anonymous_attribute_output({0})
           .description("Attribute on the geometry above");
     }
     b.add_input<decl::Extend>(""_ustr, "__extend__main"_ustr)
@@ -312,8 +312,8 @@ static void node_declare(NodeDeclarationBuilder &b)
       else {
         if (previous_output_geometry_index > 0) {
           input_decl.description("Field that will be stored as attribute on the geometry above");
-          input_decl.field_on({previous_input_geometry_index});
-          output_decl.field_on({previous_output_geometry_index});
+          input_decl.evaluated_geometry_field({previous_input_geometry_index});
+          output_decl.anonymous_attribute_output({previous_output_geometry_index});
         }
         output_decl.description("Attribute on the geometry above");
       }

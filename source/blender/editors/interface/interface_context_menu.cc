@@ -92,7 +92,7 @@ static IDProperty *shortcut_property_from_rna_for_enum(bContext *C,
 
   const char *identifier = nullptr;
   RNA_property_enum_identifier(
-      C, &but_parent->rnapoin, but_parent->rnaprop, int(but->hardmin), &identifier);
+      C, &but_parent->rnapoin, but_parent->rnaprop, but->retval, &identifier);
 
   if (identifier == nullptr) {
     /* Return early when valid identifier is not found for the button representing enum value. */
@@ -610,9 +610,9 @@ bool popup_context_menu_for_button(bContext *C, Button *but, const wmEvent *even
     const bool is_array_component = (is_array && but->rnaindex != -1);
     const bool is_whole_array = (is_array && but->rnaindex == -1);
 
-    const uint override_status = RNA_property_override_library_status(
+    const eRNAOverrideStatus override_status = RNA_property_override_library_status(
         CTX_data_main(C), ptr, prop, -1);
-    const bool is_overridable = (override_status & RNA_OVERRIDE_STATUS_OVERRIDABLE) != 0;
+    const bool is_overridable = flag_is_set(override_status, eRNAOverrideStatus::LibOverridable);
 
     /* Set the (button_pointer, button_prop)
      * and pointer data for Python access to the hovered UI element. */

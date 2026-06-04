@@ -351,9 +351,10 @@ class Normal2DF0D : public UnaryFunction0D<Vec2f> {
 };
 
 // MaterialF0D
-/** Returns the material of the object evaluated at the Interface0D.
- *  This evaluation can be ambiguous (in the case of a TVertex for example.
- *  This functor tries to remove this ambiguity using the context offered by the 1D element to
+/**
+ * Returns the material of the object evaluated at the Interface0D.
+ * This evaluation can be ambiguous (in the case of a TVertex for example).
+ * This functor tries to remove this ambiguity using the context offered by the 1D element to
  * which the Interface0DIterator& belongs to and by arbitrary choosing the material of the face
  * that lies on its left when following the 1D element if there are two different materials on each
  * side of the point. However, there still can be problematic cases, and the user willing to deal

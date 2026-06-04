@@ -19,11 +19,10 @@
 
 #pragma once
 
-#include <cstdlib>
+#include "render.hh"
 
 namespace blender {
 
-struct ImBuf;
 struct Strip;
 struct Scene;
 struct RenderData;
@@ -33,9 +32,11 @@ namespace seq {
 void source_image_cache_put(const RenderData *context,
                             const Strip *strip,
                             float timeline_frame,
-                            ImBuf *image);
+                            const SeqResult &image);
 
-ImBuf *source_image_cache_get(const RenderData *context, const Strip *strip, float timeline_frame);
+SeqResult source_image_cache_get(const RenderData *context,
+                                 const Strip *strip,
+                                 float timeline_frame);
 
 void source_image_cache_invalidate_strip(Scene *scene, const Strip *strip);
 

@@ -20,8 +20,9 @@ struct SpaceTransform;
 void BKE_object_data_transfer_dttypes_to_cdmask(int dtdata_types,
                                                 struct CustomData_MeshMasks *r_data_masks);
 /**
- * Check what can do each layer type
- * (if it is actually handled by transfer-data, if it supports advanced mixing.
+ * Check what each layer type can do:
+ * - If it is actually handled by transfer-data.
+ * - If it supports advanced mixing.
  */
 bool BKE_object_data_transfer_get_dttypes_capacity(int dtdata_types,
                                                    bool *r_advanced_mixing,

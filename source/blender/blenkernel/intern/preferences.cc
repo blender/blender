@@ -223,7 +223,8 @@ static void url_ensure_trailing_slash(char *str, const size_t max_len)
 void BKE_preferences_remote_asset_library_url_set(bUserAssetLibrary *library,
                                                   const StringRef remote_url)
 {
-  remote_url.copy_bytes_truncated(library->remote_url);
+  /* Always trim whitespace off of URLs. */
+  remote_url.trim().copy_bytes_truncated(library->remote_url);
 
   const bool ends_in_top_meta_file = asset_system::remote_library_url_ends_with_top_meta_file_name(
       library->remote_url);
@@ -344,7 +345,7 @@ bUserExtensionRepo *BKE_preferences_extension_repo_add_default_system(UserDef *u
 
 void BKE_preferences_extension_repo_add_defaults_all(UserDef *userdef)
 {
-  BLI_assert(BLI_listbase_is_empty(&userdef->extension_repos));
+  BLI_assert(userdef->extension_repos.is_empty());
   BKE_preferences_extension_repo_add_default_remote(userdef);
   BKE_preferences_extension_repo_add_default_user(userdef);
   BKE_preferences_extension_repo_add_default_system(userdef);
@@ -659,7 +660,7 @@ static bUserAssetShelfSettings *asset_shelf_settings_new(UserDef *userdef,
   bUserAssetShelfSettings *settings = MEM_new<bUserAssetShelfSettings>(__func__);
   BLI_addtail(&userdef->asset_shelves_settings, settings);
   STRNCPY(settings->shelf_idname, shelf_idname);
-  BLI_assert(BLI_listbase_is_empty(&settings->enabled_catalog_paths));
+  BLI_assert(settings->enabled_catalog_paths.is_empty());
   return settings;
 }
 

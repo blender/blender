@@ -52,7 +52,7 @@ static wmOperatorStatus detect_features_exec(bContext *C, wmOperator *op)
 {
   SpaceClip *sc = CTX_wm_space_clip(C);
   MovieClip *clip = ED_space_clip_get_clip(sc);
-  MovieClipFlag clip_flag = MovieClipFlag(clip->flag & MCLIP_TIMECODE_FLAGS);
+  MovieClipFlag clip_flag = MovieClipFlag(clip->flag & MCLIP_PROXY_FLAGS);
   ImBuf *ibuf = BKE_movieclip_get_ibuf_flag(
       clip, &sc->user, clip_flag, MovieClipCacheFlag::SkipCache);
   MovieTracking *tracking = &clip->tracking;

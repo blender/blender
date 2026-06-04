@@ -163,7 +163,7 @@ static void node_declare(NodeDeclarationBuilder &b)
       .default_value(0.5f)
       .min(0.0f)
       .subtype(PROP_DISTANCE)
-      .field_on_all();
+      .evaluated_geometry_field();
   b.add_output<decl::Geometry>("Volume"_ustr).translation_context(BLT_I18NCONTEXT_ID_ID);
 }
 

@@ -22,6 +22,11 @@ class BinaryData:
     def __hash__(self):
         return hash(self.data)
 
+    def set_extension(self, extension_name, extension_data):
+        if not hasattr(self, 'extensions'):
+            self.extensions = {}
+        self.extensions[extension_name] = extension_data
+
     @classmethod
     def from_list(cls,
                   lst: typing.List[typing.Any],

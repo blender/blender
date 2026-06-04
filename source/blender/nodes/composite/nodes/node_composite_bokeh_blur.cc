@@ -32,6 +32,7 @@ static void node_declare(NodeDeclarationBuilder &b)
       .structure_type(StructureType::Dynamic);
   b.add_input<decl::Float>("Size"_ustr)
       .default_value(0.0f)
+      .subtype(PROP_PIXEL)
       .min(0.0f)
       .structure_type(StructureType::Dynamic);
   b.add_input<decl::Float>("Mask"_ustr)

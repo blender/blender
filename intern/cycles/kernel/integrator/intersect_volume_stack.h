@@ -38,7 +38,8 @@ ccl_device void integrator_volume_stack_update_for_subsurface(KernelGlobals kg,
   const uint volume_stack_size = kernel_data.volume_stack_size;
 
   const uint32_t path_flag = INTEGRATOR_STATE(state, path, flag);
-  const uint32_t visibility = SHADOW_CATCHER_PATH_VISIBILITY(path_flag, PATH_RAY_ALL_VISIBILITY);
+  const PathRayVisibility visibility = SHADOW_CATCHER_PATH_VISIBILITY(path_flag,
+                                                                      PATH_RAY_VISIBILITY_ALL);
 
 #  ifdef __VOLUME_RECORD_ALL__
   Intersection hits[2 * MAX_VOLUME_STACK_SIZE + 1];
@@ -102,7 +103,8 @@ ccl_device void integrator_volume_stack_init(KernelGlobals kg, IntegratorState s
   int enclosed_index = 0;
 
   const uint32_t path_flag = INTEGRATOR_STATE(state, path, flag);
-  const uint32_t visibility = SHADOW_CATCHER_PATH_VISIBILITY(path_flag, PATH_RAY_CAMERA);
+  const PathRayVisibility visibility = SHADOW_CATCHER_PATH_VISIBILITY(path_flag,
+                                                                      PATH_RAY_VISIBILITY_CAMERA);
 
   /* Initialize volume stack with background volume For shadow catcher the
    * background volume is always assumed to be CG. */

@@ -139,6 +139,7 @@ inline void calc_vert_factors(const Depsgraph &depsgraph,
                               Span<int> verts,
                               MutableSpan<float> factors)
 {
+  PRF_scope(ProfileCategory::Editor);
   if (cache) {
     calc_vert_factors(depsgraph, object, *cache, node, verts, factors);
   }

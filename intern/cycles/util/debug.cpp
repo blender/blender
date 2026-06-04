@@ -84,6 +84,10 @@ void DebugFlags::Metal::reset()
   if (const char *str = getenv("CYCLES_METALRT_PCMI")) {
     use_metalrt_pcmi = (atoi(str) != 0);
   }
+
+  if (const char *str = getenv("CYCLES_METAL_RESIDENCY_SETS")) {
+    use_residency_sets_if_available = (atoi(str) != 0);
+  }
 }
 
 DebugFlags::TextureCache::TextureCache()

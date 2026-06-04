@@ -87,6 +87,33 @@ enum eXrPoseFlag : short {
 };
 ENUM_OPERATORS(eXrPoseFlag)
 
+/* Location Scouting Viewfinder. */
+enum eXrViewfinderHand { XR_VIEWFINDER_HAND_LEFT = 0, XR_VIEWFINDER_HAND_RIGHT = 1 };
+
+enum eXrViewfinderMode {
+  XR_VIEWFINDER_MODE_LIVE = 0,
+  XR_VIEWFINDER_MODE_PLAYBACK = 1,
+  XR_VIEWFINDER_MODE_CONFIRM = 2
+};
+
+enum eXrViewfinderLiveAction {
+  XR_VIEWFINDER_ACTION_LIVE_LENS = 0,
+  XR_VIEWFINDER_ACTION_LIVE_DOF = 1,
+  XR_VIEWFINDER_ACTION_LIVE_FOCUS = 2,
+  XR_VIEWFINDER_ACTION_LIVE_APERTURE = 3
+};
+
+enum eXrViewfinderPlaybackAction {
+  XR_VIEWFINDER_ACTION_PB_BROWSE = 0,
+  XR_VIEWFINDER_ACTION_PB_PREVIEW = 1,
+  XR_VIEWFINDER_ACTION_PB_DELETE = 2
+};
+
+enum eXrViewfinderConfirmAction {
+  XR_VIEWFINDER_ACTION_CF_CONFIRM = 0,
+  XR_VIEWFINDER_ACTION_CF_CANCEL = 1
+};
+
 /**
  * The following user and component path lengths are dependent on OpenXR's XR_MAX_PATH_LENGTH
  * (256). A user path will be combined with a component path to identify an action binding, and
@@ -115,7 +142,15 @@ struct XrSessionSettings {
   char draw_flags = 0;
   /** Draw style for controller visualization. */
   char controller_draw_style = 0;
-  char _pad2[2] = {};
+
+  char viewfinder_enabled = 0;
+  char viewfinder_crosshair_enabled = 0;
+  char viewfinder_hand = 0; /* #eXrViewfinderHand */
+  char _pad2[3];
+
+  float viewfinder_scale = 1.0f;
+  float viewfinder_passepartout_overscan = 0.5f;
+  float viewfinder_passepartout_opacity = 0.5f;
 
   /** Clipping distance. */
   float clip_start = 0, clip_end = 0;

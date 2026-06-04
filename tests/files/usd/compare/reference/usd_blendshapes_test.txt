@@ -34,7 +34,7 @@
   - pos 0.000, 0.000, 0.000
   - rot 0.000, 0.000, 0.000 (XYZ)
   - scl 1.000, 1.000, 1.000
-- Obj 'Plane.001' MESH data:'Plane' par:'Plane'
+- Obj 'Plane.001' MESH data:'Plane' par:'Skel'
   - pos 0.000, 0.000, 0.000
   - rot 0.000, 0.000, 0.000 (XYZ)
   - scl 1.000, 1.000, 1.000

@@ -25,6 +25,8 @@
 
 #include "IMB_colormanagement.hh"
 
+#include "PRF_profile.hh"
+
 #include "SEQ_thumbnail_cache.hh"
 
 #include "WM_api.hh"
@@ -279,7 +281,7 @@ static void get_seq_strip_thumbnails(const View2D *v2d,
     return;
   }
 
-  int first_drawable_frame = max_iii(strip.left_handle, strip.strip->start, v2d->cur.xmin);
+  int first_drawable_frame = std::max({strip.left_handle, strip.strip->start, v2d->cur.xmin});
   /* Calculate how many thumbnails should we skip over to get to the first visible thumbnail. */
   float aligned_frame_offset = int((first_drawable_frame - strip.strip->start) / thumb_width) *
                                thumb_width;
@@ -417,6 +419,8 @@ void draw_strip_thumbnails(const TimelineDrawContext &ctx,
   if ((ctx.sseq->flag & SEQ_SHOW_OVERLAY) == 0 || !show_thumbnails) {
     return;
   }
+
+  PRF_scope_with_name("SeqTimelineThumbs", ProfileCategory::Draw);
 
   /* Gather information for all thumbnails. */
   Vector<SeqThumbInfo> thumbs;

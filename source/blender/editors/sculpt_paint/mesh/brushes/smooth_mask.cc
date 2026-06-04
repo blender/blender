@@ -288,6 +288,7 @@ void do_smooth_mask_brush(const Depsgraph &depsgraph,
                           const IndexMask &node_mask,
                           float brush_strength)
 {
+  PRF_scope(ProfileCategory::Editor);
   SculptSession &ss = *object.runtime->sculpt_session;
   bke::pbvh::Tree &pbvh = *bke::object::pbvh_get(object);
   const Brush &brush = *BKE_paint_brush_for_read(&sd.paint);

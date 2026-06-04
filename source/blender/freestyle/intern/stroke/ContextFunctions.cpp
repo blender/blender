@@ -40,7 +40,7 @@ BBox<Vec2i> GetBorderCF()
 
 void LoadMapCF(const char *iFileName, const char *iMapName, uint iNbLevels, float iSigma)
 {
-  return Canvas::getInstance()->loadMap(iFileName, iMapName, iNbLevels, iSigma);
+  Canvas::getInstance()->loadMap(iFileName, iMapName, iNbLevels, iSigma);
 }
 
 float ReadMapPixelCF(const char *iMapName, int level, uint x, uint y)

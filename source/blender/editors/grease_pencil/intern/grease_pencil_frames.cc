@@ -713,7 +713,7 @@ bool grease_pencil_paste_keyframes(bAnimContext *ac,
                 ANIMFILTER_FOREDIT | ANIMFILTER_SEL);
   ANIM_animdata_filter(
       ac, &anim_data, eAnimFilter_Flags(filter), ac->data, eAnimCont_Types(ac->datatype));
-  if (BLI_listbase_is_empty(&anim_data)) {
+  if (anim_data.is_empty()) {
     /* If no layers are selected at all, make even unselected layers "targets" for pasting. */
     filter = (ANIMFILTER_DATA_VISIBLE | ANIMFILTER_LIST_VISIBLE | ANIMFILTER_NODUPLIS |
               ANIMFILTER_FOREDIT);

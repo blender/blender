@@ -7,6 +7,7 @@
 #include "FN_multi_function_builder.hh"
 
 #include "BLI_color.hh"
+#include "BLI_cpp_type.hh"
 #include "BLI_math_euler.hh"
 #include "BLI_math_quaternion.hh"
 #include "BLI_math_vector.hh"
@@ -884,6 +885,23 @@ class GVArray_For_ConvertedGVArray : public GVArrayImpl {
                                      *old_to_new_conversions_.multi_function,
                                      mask,
                                      {this->type(), dst, mask.min_array_size()});
+  }
+
+  void materialize_compressed(const IndexMask &mask,
+                              void *dst,
+                              const bool dst_is_uninitialized) const override
+  {
+    const CPPType &dst_type = this->type();
+    mask.foreach_range([&](const IndexRange range, const int64_t segment_pos) {
+      void *segment_dst = POINTER_OFFSET(dst, dst_type.size * segment_pos);
+      if (!dst_is_uninitialized) {
+        type_->destruct_n(segment_dst, range.size());
+      }
+      call_convert_to_uninitialized_fn(varray_.slice(range),
+                                       *old_to_new_conversions_.multi_function,
+                                       range.index_range(),
+                                       {dst_type, segment_dst, range.size()});
+    });
   }
 };
 

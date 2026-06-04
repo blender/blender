@@ -602,7 +602,7 @@ static Mesh *modify_mesh(ModifierData *md, const ModifierEvalContext * /*ctx*/, 
 
   /* Quick test to see if we can return early. */
   if (!ELEM(mmd->mode, MOD_MASK_MODE_ARM, MOD_MASK_MODE_VGROUP) || (mesh->verts_num == 0) ||
-      BLI_listbase_is_empty(&mesh->vertex_group_names))
+      mesh->vertex_group_names.is_empty())
   {
     return mesh;
   }

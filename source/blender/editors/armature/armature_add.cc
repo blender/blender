@@ -1878,7 +1878,7 @@ static wmOperatorStatus armature_bone_primitive_add_exec(bContext *C, wmOperator
   switch (align) {
     case BoneAlign::VIEW_3D: {
       const RegionView3D *rv3d = CTX_wm_region_view3d(C);
-      const float3x3 view_mat = float3x3(float4x4(rv3d->viewinv));
+      const float3x3 view_mat = rv3d ? float3x3(float4x4(rv3d->viewinv)) : float3x3::identity();
       bone_orient_mat = imat * view_mat;
       roll_vector = bone_orient_mat.z_axis();
       break;
@@ -1950,7 +1950,7 @@ static wmOperatorStatus armature_bone_primitive_add_exec(bContext *C, wmOperator
   bone->dist = 0.25f * length;
 
   bArmature *arm = id_cast<bArmature *>(obedit->data);
-  if (BLI_listbase_is_empty(&bone->bone_collections) && (arm->flag & ARM_BCOLL_SOLO_ACTIVE)) {
+  if (bone->bone_collections.is_empty() && (arm->flag & ARM_BCOLL_SOLO_ACTIVE)) {
     BKE_report(op->reports,
                RPT_WARNING,
                "Bone not added to a collection and hidden because solo bone collection(s) exist.");
@@ -1985,8 +1985,8 @@ static wmOperatorStatus armature_bone_primitive_add_exec(bContext *C, wmOperator
   }
 
   /* Disable Deform if applicable. */
-  const bool deform = RNA_boolean_get(op->ptr, "deform");
-  if (!deform) {
+  const bool use_deform = RNA_boolean_get(op->ptr, "use_deform");
+  if (!use_deform) {
     bone->flag |= BONE_NO_DEFORM;
   }
 
@@ -2079,7 +2079,7 @@ void ARMATURE_OT_bone_primitive_add(wmOperatorType *ot)
                 "Length of the new bone",
                 0.001f,
                 100.0f);
-  RNA_def_boolean(ot->srna, "deform", true, "Enable Deform", "Enable bone to deform geometry");
+  RNA_def_boolean(ot->srna, "use_deform", true, "Deform", "Enable bone to deform geometry");
 }
 
 /* ********************** Subdivide *******************************/

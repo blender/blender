@@ -11,6 +11,8 @@
 /* For getting the experimental flag for remote library support. */
 #include "DNA_userdef_types.h"
 
+#include "AS_remote_library.hh"
+
 #include "all_library.hh"
 
 #include "CLG_log.h"
@@ -25,6 +27,19 @@ AllAssetLibrary::AllAssetLibrary()
     : AssetLibrary(ASSET_LIBRARY_ALL,
                    /*is_read_only=*/true)
 {
+}
+
+void AllAssetLibrary::force_remote_listing_download() const
+{
+  /* This includes the online essentials as a separate library, if loaded. */
+  AssetLibrary::foreach_loaded(
+      [&](AssetLibrary &nested) {
+        const std::optional<StringRefNull> url = nested.remote_url();
+        if (url.has_value()) {
+          remote_library_request_download(RemoteLibraryDefinitionRef{*url, nested.root_path()});
+        }
+      },
+      /*include_all_library=*/false);
 }
 
 std::optional<AssetLibraryReference> AllAssetLibrary::library_reference() const
@@ -68,12 +83,14 @@ void AllAssetLibrary::rebuild_catalogs_from_nested(const bool reload_nested_cata
                            existing.path.c_str());
               }
               else {
-                CLOG_ERROR(&LOG,
-                           "multiple definitions of catalog %s with differing paths (%s vs. %s), "
-                           "ignoring second one",
-                           existing.catalog_id.str().c_str(),
-                           existing.path.c_str(),
-                           to_be_ignored.path.c_str());
+                /* This is bound to happen at some point, for example with the Online Essentials
+                 * catalogs diverging from this Blender version's bundled Essentials catalogs. */
+                CLOG_INFO(&LOG,
+                          "multiple definitions of catalog %s with differing paths (%s vs. %s), "
+                          "ignoring second one",
+                          existing.catalog_id.str().c_str(),
+                          existing.path.c_str(),
+                          to_be_ignored.path.c_str());
               }
             });
       },

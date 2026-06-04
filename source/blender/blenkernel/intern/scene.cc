@@ -403,8 +403,8 @@ static void scene_free_data(ID *id)
   }
 
   scene_free_markers(scene, do_id_user);
-  BLI_freelistN(&scene->transform_spaces);
-  BLI_freelistN(&scene->r.views);
+  scene->transform_spaces.free_no_destruct();
+  scene->r.views.free_no_destruct();
 
   BKE_toolsettings_free(scene->toolsettings);
   scene->toolsettings = nullptr;
@@ -2494,7 +2494,7 @@ bool BKE_scene_validate_setscene(Main *bmain, Scene *sce)
   if (sce->set == nullptr) {
     return true;
   }
-  totscene = BLI_listbase_count(&bmain->scenes);
+  totscene = bmain->scenes.count();
 
   for (a = 0, sce_iter = sce; sce_iter->set; sce_iter = sce_iter->set, a++) {
     /* more iterations than scenes means we have a cycle */

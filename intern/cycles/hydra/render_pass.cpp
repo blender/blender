@@ -110,7 +110,6 @@ void HdCyclesRenderPass::_Execute(const HdRenderPassStateSharedPtr &renderPassSt
     }
 
     // Update camera dimensions to the viewport size
-#if PXR_VERSION >= 2102
     CameraUtilFraming framing = renderPassState->GetFraming();
     if (!framing.IsValid()) {
       const GfVec4f vp = renderPassState->GetViewport();
@@ -119,11 +118,6 @@ void HdCyclesRenderPass::_Execute(const HdRenderPassStateSharedPtr &renderPassSt
 
     scene->camera->set_full_width(framing.dataWindow.GetWidth());
     scene->camera->set_full_height(framing.dataWindow.GetHeight());
-#else
-    const GfVec4f vp = renderPassState->GetViewport();
-    scene->camera->set_full_width(int(vp[2]));
-    scene->camera->set_full_height(int(vp[3]));
-#endif
 
     if (const auto *const camera = static_cast<const HdCyclesCamera *>(
             renderPassState->GetCamera()))
@@ -146,7 +140,6 @@ void HdCyclesRenderPass::_Execute(const HdRenderPassStateSharedPtr &renderPassSt
       ResetConverged();
 
       BufferParams buffer_params;
-#if PXR_VERSION >= 2102
       buffer_params.full_x = static_cast<int>(framing.displayWindow.GetMin()[0]);
       buffer_params.full_y = static_cast<int>(framing.displayWindow.GetMin()[1]);
       buffer_params.full_width = static_cast<int>(framing.displayWindow.GetSize()[0]);
@@ -159,14 +152,6 @@ void HdCyclesRenderPass::_Execute(const HdRenderPassStateSharedPtr &renderPassSt
 
       buffer_params.width = buffer_params.window_width;
       buffer_params.height = buffer_params.window_height;
-#else
-      buffer_params.width = static_cast<int>(vp[2]);
-      buffer_params.height = static_cast<int>(vp[3]);
-      buffer_params.full_width = buffer_params.width;
-      buffer_params.full_height = buffer_params.height;
-      buffer_params.window_width = buffer_params.width;
-      buffer_params.window_height = buffer_params.height;
-#endif
 
       session->reset(session->params, buffer_params);
     }

@@ -338,16 +338,17 @@ void OsdData::build(OsdMesh &osd_mesh)
   const int num_refiner_verts = refiner->GetNumVerticesTotal();
   const int num_local_points = patch_table->GetNumLocalPoints();
   const int num_base_verts = osd_mesh.mesh.get_num_subd_base_verts();
-  const float3 *verts_data = osd_mesh.mesh.get_verts().data();
+  const Attribute *attr_P = osd_mesh.mesh.subd_attributes.find(ATTR_STD_POSITION);
+  const packed_float3 *verts_data = attr_P->data<packed_float3>();
 
   refined_verts.resize(num_refiner_verts + num_local_points);
   for (int i = 0; i < num_base_verts; i++) {
-    refined_verts[i].value = verts_data[i];
+    refined_verts[i].value = float3(verts_data[i]);
   }
 
-  OsdValue<float3> *src = refined_verts.data();
+  OsdValue<packed_float3> *src = refined_verts.data();
   for (int i = 0; i < refiner->GetMaxLevel(); i++) {
-    OsdValue<float3> *dest = src + refiner->GetLevel(i).GetNumVertices();
+    OsdValue<packed_float3> *dest = src + refiner->GetLevel(i).GetNumVertices();
     Far::PrimvarRefiner(*refiner).Interpolate(i + 1, src, dest);
     src = dest;
   }

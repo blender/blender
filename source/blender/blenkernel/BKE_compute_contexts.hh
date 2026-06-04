@@ -214,6 +214,19 @@ class EvaluateClosureComputeContext : public NodeComputeContext {
   bool is_recursive() const;
 };
 
+class ClosureToListComputeContext : public NodeComputeContext {
+ private:
+  int32_t node_id_;
+  int list_index_;
+
+ public:
+  ClosureToListComputeContext(const ComputeContext *parent, int32_t node_id, int list_index);
+
+ private:
+  ComputeContextHash compute_hash() const override;
+  void print_current_in_line(std::ostream &stream) const override;
+};
+
 class OperatorComputeContext : public ComputeContext {
  private:
   /** The tree that is executed. May be null. */

@@ -317,8 +317,7 @@ tLayer *grease_pencil_layer_cache_add(Instance *inst,
   const bool disable_masks_render = is_viewlayer_render &&
                                     (layer.base.flag &
                                      GP_LAYER_TREE_NODE_DISABLE_MASKS_IN_VIEWLAYER) != 0;
-  bool is_masked = !disable_masks_render && layer.use_masks() &&
-                   !BLI_listbase_is_empty(&layer.masks);
+  bool is_masked = !disable_masks_render && layer.use_masks() && !layer.masks.is_empty();
 
   const float vert_col_opacity = (override_vertcol) ?
                                      (is_vert_col_mode ? inst->vertex_paint_opacity : 0.0f) :

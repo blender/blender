@@ -5882,7 +5882,7 @@ static bool overlap_tri_tri_uv_test(const float t1[3][2],
   return false;
 }
 
-static wmOperatorStatus uv_select_overlap(bContext *C, const bool extend)
+static wmOperatorStatus uv_select_overlap(bContext *C, const bool extend, const bool select_island)
 {
   Depsgraph *depsgraph = CTX_data_ensure_evaluated_depsgraph(C);
   const Main *bmain = CTX_data_main(C);
@@ -6118,6 +6118,27 @@ static wmOperatorStatus uv_select_overlap(bContext *C, const bool extend)
     BLI_bvhtree_overlap_ex(probe_tree, uv_tree, nullptr, bvh_overlap_fn, &query_data, 1, 0);
   }
 
+  if (select_island) {
+    for (const int i : IndexRange(objects.size())) {
+      if (!objects_tag[i].has_overlap) {
+        continue;
+      }
+
+      Object *obedit = objects[i];
+      BMesh *bm = BKE_editmesh_from_object(obedit)->bm;
+      UVSelectLinkedHelper linked_helper(scene, bm);
+
+      BMFace *efa;
+      BMIter iter;
+      BM_ITER_MESH (efa, &iter, bm, BM_FACES_OF_MESH) {
+        if (BM_elem_flag_test(efa, BM_ELEM_TAG)) {
+          linked_helper.face_add(efa);
+        }
+      }
+      linked_helper.tag_all();
+    }
+  }
+
   for (const int i : IndexRange(objects.size())) {
     Object *obedit = objects[i];
     const ChangedInfo &tag_info = objects_tag[i];
@@ -6157,8 +6178,11 @@ static wmOperatorStatus uv_select_overlap(bContext *C, const bool extend)
 
 static wmOperatorStatus uv_select_overlap_exec(bContext *C, wmOperator *op)
 {
+  const ToolSettings *ts = CTX_data_tool_settings(C);
+  const bool use_select_linked = ED_uvedit_select_island_check(ts);
+
   bool extend = RNA_boolean_get(op->ptr, "extend");
-  return uv_select_overlap(C, extend);
+  return uv_select_overlap(C, extend, use_select_linked);
 }
 
 void UV_OT_select_overlap(wmOperatorType *ot)

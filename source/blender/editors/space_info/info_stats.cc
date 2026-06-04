@@ -624,7 +624,7 @@ static void get_stats_string(char *info,
 {
   BKE_view_layer_synced_ensure(bmain, scene, view_layer);
   Object *ob = BKE_view_layer_active_object_get(view_layer);
-  eObjectMode object_mode = ob ? eObjectMode(ob->mode) : OB_MODE_OBJECT;
+  eObjectMode object_mode = ob ? ob->mode : OB_MODE_OBJECT;
   LayerCollection *layer_collection = BKE_view_layer_active_collection_get(view_layer);
 
   if (object_mode == OB_MODE_OBJECT) {
@@ -877,7 +877,7 @@ void ED_info_draw_stats(
 
   BKE_view_layer_synced_ensure(*bmain, scene, view_layer);
   Object *ob = BKE_view_layer_active_object_get(view_layer);
-  eObjectMode object_mode = ob ? eObjectMode(ob->mode) : OB_MODE_OBJECT;
+  eObjectMode object_mode = ob ? ob->mode : OB_MODE_OBJECT;
   const int font_id = BLF_default();
 
   /* Translated labels for each stat row. */

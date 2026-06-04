@@ -31,11 +31,12 @@ static bool check_texture_format_compatability(TextureFormat src_format, Texture
 
   /* Metal's newTextureViewWithPixelFormat doesn't support aliasing on depth, stencil,
    * or compressed formats. */
-  GPUTextureFormatFlag format_flag = to_format_flag(src_format);
-  if (bool(format_flag & GPU_FORMAT_DEPTH_STENCIL)) {
+  GPUTextureFormatFlag src_format_flag = to_format_flag(src_format);
+  if (bool(src_format_flag & (GPU_FORMAT_DEPTH_STENCIL | GPU_FORMAT_COMPRESSED))) {
     return false;
   }
-  if (bool(format_flag & GPU_FORMAT_COMPRESSED)) {
+  GPUTextureFormatFlag dst_format_flag = to_format_flag(dst_format);
+  if (bool(dst_format_flag & (GPU_FORMAT_DEPTH_STENCIL | GPU_FORMAT_COMPRESSED))) {
     return false;
   }
 

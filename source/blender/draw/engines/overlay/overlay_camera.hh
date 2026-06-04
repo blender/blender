@@ -566,8 +566,7 @@ class Cameras : Overlay {
 
     const bool is_active = ob_ref.object == camera_object;
     const bool is_camera_view = (is_active && (state.rv3d->persp == RV3D_CAMOB));
-    const bool show_image = (cam.flag & CAM_SHOW_BG_IMAGE) &&
-                            !BLI_listbase_is_empty(&cam.bg_images);
+    const bool show_image = (cam.flag & CAM_SHOW_BG_IMAGE) && !cam.bg_images.is_empty();
     const bool show_frame = BKE_object_empty_image_frame_is_visible_in_view3d(ob, state.rv3d);
 
     if (!images_enabled_ || !is_camera_view || !show_image || !show_frame) {

@@ -204,7 +204,7 @@ TEST_F(UsdExportTest, usd_export_rain_mesh)
   }
 
   /* File sanity check. */
-  EXPECT_EQ(BLI_listbase_count(&bfile->main->objects), 3);
+  EXPECT_EQ(bfile->main->objects.count(), 3);
 
   USDExportParams params;
   params.export_materials = false;
@@ -260,9 +260,9 @@ TEST_F(UsdExportTest, usd_export_material)
   }
 
   /* File sanity checks. */
-  EXPECT_EQ(BLI_listbase_count(&bfile->main->objects), 6);
+  EXPECT_EQ(bfile->main->objects.count(), 6);
   /* There is 1 additional material because of the "Dots Stroke". */
-  EXPECT_EQ(BLI_listbase_count(&bfile->main->materials), 7);
+  EXPECT_EQ(bfile->main->materials.count(), 7);
 
   Material *material = reinterpret_cast<Material *>(
       BKE_libblock_find_name(bfile->main, ID_MA, "Material"));

@@ -393,7 +393,7 @@ static void do_versions_nodetree_multi_file_output_format_2_62_1(Scene *sce, bNo
        * checks when adding new sockets.
        * sock->storage is expected to contain path info in ntreeCompositOutputFileAddSocket.
        */
-      BLI_listbase_clear(&node.inputs);
+      node.inputs.clear_no_delete();
 
       node.storage = nimf;
 
@@ -1434,8 +1434,6 @@ void blo_do_versions_260(FileData *fd, Library * /*lib*/, Main *bmain)
           clip.aspy = 1.0f;
         }
 
-        clip.proxy.build_tc_flag = MCLIP_TC_RECORD_RUN;
-
         if (clip.proxy.build_size_flag == 0) {
           clip.proxy.build_size_flag = MCLIP_PROXY_SIZE_25;
         }
@@ -1558,13 +1556,11 @@ void blo_do_versions_260(FileData *fd, Library * /*lib*/, Main *bmain)
         MovieTrackingObject *tracking_object = static_cast<MovieTrackingObject *>(
             tracking->objects.first);
 
-        clip.proxy.build_tc_flag |= MCLIP_TC_RECORD_RUN_NO_GAPS;
-
         if (!tracking->settings.object_distance) {
           tracking->settings.object_distance = 1.0f;
         }
 
-        if (BLI_listbase_is_empty(&tracking->objects)) {
+        if (tracking->objects.is_empty()) {
           BKE_tracking_object_add(tracking, "Camera");
         }
 
@@ -1878,7 +1874,7 @@ void blo_do_versions_260(FileData *fd, Library * /*lib*/, Main *bmain)
         if (md.type == eModifierType_Fluid) {
           FluidModifierData *fmd = reinterpret_cast<FluidModifierData *>(&md);
           if ((fmd->type & MOD_FLUID_TYPE_DOMAIN) && fmd->domain) {
-            int maxres = max_iii(fmd->domain->res[0], fmd->domain->res[1], fmd->domain->res[2]);
+            int maxres = std::max({fmd->domain->res[0], fmd->domain->res[1], fmd->domain->res[2]});
             fmd->domain->scale = fmd->domain->dx * maxres;
             fmd->domain->dx = 1.0f / fmd->domain->scale;
           }

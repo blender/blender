@@ -135,9 +135,13 @@ static void node_declare(NodeDeclarationBuilder &b)
   b.add_output<decl::Geometry>("Curve Instances"_ustr);
   b.add_output<decl::String>("Remainder"_ustr)
       .usage_by_menu("Overflow"_ustr, GEO_NODE_STRING_TO_CURVES_MODE_TRUNCATE);
-  b.add_output<decl::Int>("Line"_ustr).field_on_all().translation_context(BLT_I18NCONTEXT_ID_TEXT);
-  b.add_output<decl::Int>("Word"_ustr).field_on_all().translation_context(BLT_I18NCONTEXT_ID_TEXT);
-  b.add_output<decl::Vector>("Pivot Point"_ustr).field_on_all();
+  b.add_output<decl::Int>("Line"_ustr)
+      .anonymous_attribute_output()
+      .translation_context(BLT_I18NCONTEXT_ID_TEXT);
+  b.add_output<decl::Int>("Word"_ustr)
+      .anonymous_attribute_output()
+      .translation_context(BLT_I18NCONTEXT_ID_TEXT);
+  b.add_output<decl::Vector>("Pivot Point"_ustr).anonymous_attribute_output();
 
   b.add_input<decl::String>("String"_ustr).optional_label();
   b.add_input<decl::Float>("Size"_ustr).default_value(1.0f).min(0.0f).subtype(PROP_DISTANCE);

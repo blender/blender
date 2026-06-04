@@ -157,7 +157,7 @@ void BM_elem_select_copy(BMesh *bm_dst, void *ele_dst_v, const void *ele_src_v);
 
 /**
  * Initialize the `bm_dst` layers in preparation for populating its contents with multiple meshes.
- * Typically done using multiple calls to #BM_mesh_bm_from_me with the same `bm` argument).
+ * Typically done using multiple calls to #BM_mesh_bm_from_me with the same `bm` argument.
  *
  * \note While the custom-data layers of all meshes are created, the active layers are set
  * by the first instance mesh containing that layer type.

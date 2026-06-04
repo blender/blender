@@ -86,7 +86,7 @@ void Instance::init()
 
     if (camera) {
       if (scene->r.mode & R_BORDER) {
-        if (draw_ctx->is_viewport_image_render()) {
+        if (draw_ctx->is_viewport_image_render() || draw_ctx->is_viewport_xr()) {
           rect.xmin = scene->r.border.xmin * size[0];
           rect.ymin = scene->r.border.ymin * size[1];
           rect.xmax = scene->r.border.xmax * size[0];
@@ -117,7 +117,7 @@ void Instance::init()
       rect.ymax = v3d->render_border.ymax * size[1];
     }
 
-    if (draw_ctx->is_viewport_image_render()) {
+    if (draw_ctx->is_viewport_image_render() || draw_ctx->is_viewport_xr()) {
       const float2 vp_size = draw_ctx->viewport_size_get();
       visible_rect.xmax = vp_size[0];
       visible_rect.ymax = vp_size[1];
@@ -964,7 +964,7 @@ void Instance::light_bake_irradiance(
       /* Batch ray cast. Avoids too much overhead of the context switch. */
       int sample_count_in_batch = ceilf(time_budget_ms / max(0.1f, time_per_sample_ms_smooth));
       /* Avoid batching too many rays, keep system responsive in case of bad values. */
-      sample_count_in_batch = min_iii(32, sample_count_in_batch, remaining_samples);
+      sample_count_in_batch = std::min({32, sample_count_in_batch, remaining_samples});
 
       CLOG_INFO(&Instance::log, "IrradianceBake: Casting %d rays.", sample_count_in_batch);
 

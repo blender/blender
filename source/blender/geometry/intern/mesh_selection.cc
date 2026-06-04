@@ -4,6 +4,8 @@
 
 #include "BLI_index_mask.hh"
 
+#include "PRF_profile.hh"
+
 #include "GEO_mesh_selection.hh"
 
 namespace blender::geometry {
@@ -13,6 +15,7 @@ IndexMask vert_selection_from_edge(const Span<int2> edges,
                                    const int verts_num,
                                    IndexMaskMemory &memory)
 {
+  PRF_scope(ProfileCategory::Default);
   Array<bool> array(verts_num, false);
   edge_mask.foreach_index_optimized<int>(
       [&](const int i) {
@@ -29,6 +32,7 @@ static IndexMask mapped_corner_selection_from_face(const OffsetIndices<int> face
                                                    const int verts_or_edges_num,
                                                    IndexMaskMemory &memory)
 {
+  PRF_scope(ProfileCategory::Default);
   Array<bool> array(verts_or_edges_num, false);
   face_mask.foreach_index(
       [&](const int64_t i) {
@@ -60,6 +64,7 @@ IndexMask edge_selection_from_vert(const Span<int2> edges,
                                    const Span<bool> vert_selection,
                                    IndexMaskMemory &memory)
 {
+  PRF_scope(ProfileCategory::Default);
   return IndexMask::from_predicate(edges.index_range(), memory, [&](const int64_t i) {
     const int2 edge = edges[i];
     return vert_selection[edge[0]] && vert_selection[edge[1]];
@@ -71,6 +76,7 @@ static IndexMask face_selection_from_mapped_corner(const OffsetIndices<int> face
                                                    const Span<bool> vert_or_edge_selection,
                                                    IndexMaskMemory &memory)
 {
+  PRF_scope(ProfileCategory::Default);
   return IndexMask::from_predicate(faces.index_range(), memory, [&](const int64_t i) {
     const Span<int> indices = corner_verts_or_edges.slice(faces[i]);
     return std::all_of(

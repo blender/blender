@@ -4,7 +4,10 @@
 
 #pragma once
 
-#include <pxr/imaging/hd/sceneDelegate.h>
+#include <pxr/imaging/hd/dataSource.h>
+#include <pxr/imaging/hd/renderIndex.h>
+#include <pxr/imaging/hd/retainedSceneIndex.h>
+#include <pxr/imaging/hd/task.h>
 #include <pxr/imaging/hdx/renderSetupTask.h>
 
 #include "GPU_framebuffer.hh"
@@ -12,23 +15,47 @@
 
 namespace blender::render::hydra {
 
-/* Delegate to create a render task with given camera, viewport and AOVs. */
+/* Registers a HdxRenderTask with the render index as a task prim. */
 
-class RenderTaskDelegate : public pxr::HdSceneDelegate {
+class RenderTaskParamsDataSource final
+    : public pxr::HdTypedSampledDataSource<pxr::HdxRenderTaskParams> {
+ public:
+  HD_DECLARE_DATASOURCE(RenderTaskParamsDataSource);
+
+  pxr::HdxRenderTaskParams params;
+
+  pxr::VtValue GetValue(Time /*shutterOffset*/) override
+  {
+    return pxr::VtValue(params);
+  }
+  pxr::HdxRenderTaskParams GetTypedValue(Time /*shutterOffset*/) override
+  {
+    return params;
+  }
+  bool GetContributingSampleTimesForInterval(Time /*start*/,
+                                             Time /*end*/,
+                                             std::vector<Time> * /*sampleTimes*/) override
+  {
+    return false;
+  }
+};
+
+class RenderTaskDelegate {
  protected:
+  pxr::HdRenderIndex *render_index_ = nullptr;
+  pxr::HdRetainedSceneIndexRefPtr task_scene_index_;
+  pxr::SdfPath base_id_;
   pxr::SdfPath task_id_;
-  pxr::HdxRenderTaskParams task_params_;
+  RenderTaskParamsDataSource::Handle task_params_ds_ = RenderTaskParamsDataSource::New();
+  pxr::HdxRenderTaskParams &task_params_ = task_params_ds_->params;
   pxr::TfHashMap<pxr::SdfPath, pxr::HdRenderBufferDescriptor, pxr::SdfPath::Hash>
       buffer_descriptors_;
 
  public:
-  RenderTaskDelegate(pxr::HdRenderIndex *parent_index, pxr::SdfPath const &delegate_id);
-  ~RenderTaskDelegate() override = default;
-
-  /* Delegate methods */
-  pxr::VtValue Get(pxr::SdfPath const &id, pxr::TfToken const &key) override;
-  pxr::TfTokenVector GetTaskRenderTags(pxr::SdfPath const &id) override;
-  pxr::HdRenderBufferDescriptor GetRenderBufferDescriptor(pxr::SdfPath const &id) override;
+  RenderTaskDelegate(pxr::HdRenderIndex *render_index,
+                     pxr::HdRetainedSceneIndexRefPtr task_scene_index,
+                     pxr::SdfPath const &base_id);
+  virtual ~RenderTaskDelegate() = default;
 
   pxr::HdTaskSharedPtr task();
   void set_camera(pxr::SdfPath const &camera_id);
@@ -42,6 +69,10 @@ class RenderTaskDelegate : public pxr::HdSceneDelegate {
 
  protected:
   pxr::SdfPath buffer_id(pxr::TfToken const &aov_key) const;
+
+  void publish_task();
+  void dirty_task_params();
+  void publish_buffer(pxr::SdfPath const &buf_id, pxr::HdRenderBufferDescriptor const &desc);
 };
 
 class GPURenderTaskDelegate : public RenderTaskDelegate {

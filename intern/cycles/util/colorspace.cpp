@@ -343,12 +343,12 @@ ustring ColorSpaceManager::detect_known_colorspace(ustring colorspace,
 
   const thread_scoped_lock cache_lock(cache_colorspaces_mutex);
   if (is_scene_linear) {
-    LOG_INFO << "Colorspace " << colorspace.string() << " is no-op";
+    LOG_DEBUG << "Colorspace " << colorspace.string() << " is no-op";
     cached_colorspaces[colorspace] = u_colorspace_scene_linear;
     return u_colorspace_scene_linear;
   }
   if (is_scene_linear_srgb) {
-    LOG_INFO << "Colorspace " << colorspace.string() << " is scene linear sRGB";
+    LOG_DEBUG << "Colorspace " << colorspace.string() << " is scene linear sRGB";
     cached_colorspaces[colorspace] = u_colorspace_scene_linear_srgb;
     return u_colorspace_scene_linear_srgb;
   }
@@ -368,7 +368,7 @@ ustring ColorSpaceManager::detect_known_colorspace(ustring colorspace,
   }
 
   /* Convert to/from colorspace with OpenColorIO. */
-  LOG_INFO << "Colorspace " << colorspace.string() << " handled through OpenColorIO";
+  LOG_DEBUG << "Colorspace " << colorspace.string() << " handled through OpenColorIO";
   cached_colorspaces[colorspace] = colorspace;
   return colorspace;
 #else

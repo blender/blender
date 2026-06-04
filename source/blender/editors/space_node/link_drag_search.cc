@@ -166,6 +166,7 @@ static void search_link_ops_for_asset_metadata(const bNodeTree &node_tree,
                                                Vector<SocketLinkOperation> &search_link_ops)
 {
   const AssetMetaData &asset_data = asset.get_metadata();
+  const StringRef asset_name = asset.get_name();
   const IDProperty *tree_type = BKE_asset_metadata_idprop_find(&asset_data, "type");
   if (tree_type == nullptr || IDP_int_get(tree_type) != node_tree.type) {
     return;
@@ -187,33 +188,32 @@ static void search_link_ops_for_asset_metadata(const bNodeTree &node_tree,
   int weight = -1;
   Set<StringRef> socket_names;
   for (IDProperty &socket_property : sockets->data.group) {
-    if (socket_property.type != IDP_STRING) {
+    if (socket_property.type != IDP_GROUP) {
       continue;
     }
-    const char *socket_idname = IDP_string_get(&socket_property);
-    const bke::bNodeSocketType *socket_type = bke::node_socket_type_find(socket_idname);
-    if (socket_type == nullptr) {
+    const std::optional<int> type = IDP_group_lookup_int(socket_property, "type");
+    if (!type) {
       continue;
     }
     eNodeSocketDatatype from = socket.type;
-    eNodeSocketDatatype to = socket_type->type;
+    eNodeSocketDatatype to = eNodeSocketDatatype(*type);
     if (socket.in_out == SOCK_OUT) {
       std::swap(from, to);
     }
     if (node_tree_type.validate_link && !node_tree_type.validate_link(from, to)) {
       continue;
     }
-    if (!socket_names.add(socket_property.name)) {
+    const StringRefNull identifier = socket_property.name;
+    const StringRefNull name =
+        IDP_group_lookup_string(socket_property, "name").value_or(identifier);
+    if (!socket_names.add(name)) {
       /* See comment in #search_link_ops_for_declarations. */
       continue;
     }
 
-    const StringRef asset_name = asset.get_name();
-    const StringRef socket_name = socket_property.name;
-
     search_link_ops.append(
-        {asset_name + " " + UI_MENU_ARROW_SEP + socket_name,
-         [&asset, &socket_property, in_out](nodes::LinkSearchOpParams &params) {
+        {asset_name + " " + UI_MENU_ARROW_SEP + name,
+         [&asset, name, in_out](nodes::LinkSearchOpParams &params) {
            Main &bmain = *CTX_data_main(&params.C);
 
            bNodeTree *group = reinterpret_cast<bNodeTree *>(
@@ -233,8 +233,7 @@ static void search_link_ops_for_asset_metadata(const bNodeTree &node_tree,
            /* Create the inputs and outputs on the new node. */
            nodes::update_node_declaration_and_sockets(params.node_tree, node);
 
-           bNodeSocket *new_node_socket = bke::node_find_enabled_socket(
-               node, in_out, socket_property.name);
+           bNodeSocket *new_node_socket = bke::node_find_enabled_socket(node, in_out, name);
            if (new_node_socket != nullptr) {
              /* Rely on the way #node_add_link switches in/out if necessary. */
              bke::node_add_link(
@@ -304,7 +303,7 @@ static void gather_socket_link_operations(const bContext &C,
 
     int weight = -1;
     node_tree.tree_interface.foreach_item([&](const bNodeTreeInterfaceItem &item) {
-      if (item.item_type != NODE_INTERFACE_SOCKET) {
+      if (item.item_type != NodeTreeInterfaceItemType::Socket) {
         return true;
       }
       const bNodeTreeInterfaceSocket &interface_socket =

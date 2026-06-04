@@ -22,26 +22,29 @@ EdgeDice::EdgeDice(const SubdParams &params_,
 {
   Mesh *mesh = params.mesh;
 
-  mesh->num_subd_added_verts = num_verts - mesh->get_verts().size();
+  mesh->num_subd_added_verts = num_verts - mesh->num_verts();
   mesh->resize_mesh(num_verts, num_triangles);
 
-  Attribute *attr_vN = mesh->attributes.add(ATTR_STD_VERTEX_NORMAL);
+  mesh->attributes.add(ATTR_STD_VERTEX_NORMAL);
 
+  interpolation.setup();
+
+  /* Get pointers after interpolation.setup() since it may reallocate
+   * attribute buffers when setting motion steps. */
+  Attribute *attr_vN = mesh->attributes.find(ATTR_STD_VERTEX_NORMAL);
   mesh_triangles = mesh->triangles.data();
   mesh_shader = mesh->shader.data();
   mesh_smooth = mesh->smooth.data();
-  mesh_P = mesh->verts.data();
-  mesh_N = attr_vN->data_normal_for_write();
+  mesh_P = mesh->get_position_for_write();
+  mesh_N = attr_vN->data_for_write<packed_normal>();
 
   if (params.ptex) {
     Attribute *attr_ptex_face_id = params.mesh->attributes.add(ATTR_STD_PTEX_FACE_ID);
     Attribute *attr_ptex_uv = params.mesh->attributes.add(ATTR_STD_PTEX_UV);
 
-    mesh_ptex_face_id = attr_ptex_face_id->data_float_for_write();
-    mesh_ptex_uv = attr_ptex_uv->data_float2_for_write();
+    mesh_ptex_face_id = attr_ptex_face_id->data_for_write<float>();
+    mesh_ptex_uv = attr_ptex_uv->data_for_write<float2>();
   }
-
-  interpolation.setup();
 }
 
 float3 EdgeDice::eval_projected(const SubPatch &sub, const float2 uv)
@@ -95,7 +98,7 @@ float EdgeDice::scale_factor(const SubPatch &sub, const int Mu, const int Mv)
 
 void EdgeDice::set_vertex(const SubPatch &sub, const int index, const float2 uv)
 {
-  assert(index < params.mesh->verts.size());
+  assert(index < params.mesh->num_verts());
 
   float3 P;
   float3 N;

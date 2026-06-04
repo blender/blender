@@ -215,7 +215,7 @@ void BKE_shaderfx_copy(ListBaseT<ShaderFxData> *dst, const ListBaseT<ShaderFxDat
   ShaderFxData *fx;
   ShaderFxData *srcfx;
 
-  BLI_listbase_clear(dst);
+  dst->clear_no_delete();
   BLI_duplicatelist(dst, src);
 
   for (srcfx = static_cast<ShaderFxData *>(src->first),

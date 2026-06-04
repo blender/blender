@@ -80,6 +80,13 @@ Vector<float> get_rna_values(PointerRNA *ptr, PropertyRNA *prop)
   return values;
 }
 
+std::string get_pose_bone_rna_path(const bPoseChannel &pose_bone)
+{
+  char name_esc[sizeof(pose_bone.name) * 2];
+  BLI_str_escape(name_esc, pose_bone.name, sizeof(name_esc));
+  return fmt::format("pose.bones[\"{}\"]", name_esc);
+}
+
 StringRefNull get_rotation_mode_path(const eRotationModes rotation_mode)
 {
   switch (rotation_mode) {
@@ -106,11 +113,11 @@ std::optional<eRotationModes> get_rotation_mode_from_path(const StringRefNull rn
   if (rna_path.endswith("quaternion")) {
     return ROT_MODE_QUAT;
   }
-  else if (rna_path.endswith("euler")) {
+  if (rna_path.endswith("euler")) {
     /* Cannot determine the rotation order from the path alone. */
     return ROT_MODE_EUL;
   }
-  else if (rna_path.endswith("axis_angle")) {
+  if (rna_path.endswith("axis_angle")) {
     return ROT_MODE_AXISANGLE;
   }
   return std::nullopt;

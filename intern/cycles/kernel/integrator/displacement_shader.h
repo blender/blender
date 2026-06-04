@@ -29,14 +29,15 @@ ccl_device void displacement_shader_eval(KernelGlobals kg,
   /* this will modify sd->P */
 #ifdef __OSL__
   if (kernel_data.kernel_features & KERNEL_FEATURE_OSL_SHADING) {
-    osl_eval_nodes<SHADER_TYPE_DISPLACEMENT>(kg, state, sd, 0);
+    osl_eval_nodes<SHADER_TYPE_DISPLACEMENT>(
+        kg, state, sd, PATH_RAY_VISIBILITY_NONE, PATH_RAY_FLAG_NONE);
   }
   else
 #endif
   {
 #ifdef __SVM__
     svm_eval_nodes<KERNEL_FEATURE_NODE_MASK_DISPLACEMENT, SHADER_TYPE_DISPLACEMENT>(
-        kg, state, sd, nullptr, 0);
+        kg, state, sd, nullptr, PATH_RAY_VISIBILITY_NONE, PATH_RAY_FLAG_NONE);
 #endif
   }
 }

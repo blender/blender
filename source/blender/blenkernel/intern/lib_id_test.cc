@@ -50,7 +50,7 @@ class LibIDMainSortTest : public BlenderGTestBase {};
 TEST_F(LibIDMainSortTest, local_ids_1)
 {
   LibIDMainSortTestContext ctx;
-  EXPECT_TRUE(BLI_listbase_is_empty(&ctx.bmain->libraries));
+  EXPECT_TRUE(ctx.bmain->libraries.is_empty());
 
   ID *id_c = static_cast<ID *>(BKE_id_new(ctx.bmain, ID_OB, "OB_C"));
   ID *id_a = static_cast<ID *>(BKE_id_new(ctx.bmain, ID_OB, "OB_A"));
@@ -80,7 +80,7 @@ static IDNewNameResult change_name(Main *bmain, ID *id, const char *name, const 
 TEST_F(LibIDMainSortTest, linked_ids_1)
 {
   LibIDMainSortTestContext ctx;
-  EXPECT_TRUE(BLI_listbase_is_empty(&ctx.bmain->libraries));
+  EXPECT_TRUE(ctx.bmain->libraries.is_empty());
 
   Library *lib_a = static_cast<Library *>(BKE_id_new(ctx.bmain, ID_LI, "LI_A"));
   Library *lib_b = static_cast<Library *>(BKE_id_new(ctx.bmain, ID_LI, "LI_B"));
@@ -118,7 +118,7 @@ class LibIDMainUniqueNameTest : public BlenderGTestBase {};
 TEST_F(LibIDMainUniqueNameTest, local_ids_rename_existing_never)
 {
   LibIDMainSortTestContext ctx;
-  EXPECT_TRUE(BLI_listbase_is_empty(&ctx.bmain->libraries));
+  EXPECT_TRUE(ctx.bmain->libraries.is_empty());
 
   ID *id_c = static_cast<ID *>(BKE_id_new(ctx.bmain, ID_OB, "OB_C"));
   ID *id_a = static_cast<ID *>(BKE_id_new(ctx.bmain, ID_OB, "OB_A"));
@@ -195,7 +195,7 @@ TEST_F(LibIDMainUniqueNameTest, local_ids_rename_existing_never)
 TEST_F(LibIDMainUniqueNameTest, local_ids_rename_existing_always)
 {
   LibIDMainSortTestContext ctx;
-  EXPECT_TRUE(BLI_listbase_is_empty(&ctx.bmain->libraries));
+  EXPECT_TRUE(ctx.bmain->libraries.is_empty());
 
   ID *id_c = static_cast<ID *>(BKE_id_new(ctx.bmain, ID_OB, "OB_C"));
   ID *id_a = static_cast<ID *>(BKE_id_new(ctx.bmain, ID_OB, "OB_A"));
@@ -238,7 +238,7 @@ TEST_F(LibIDMainUniqueNameTest, local_ids_rename_existing_always)
 TEST_F(LibIDMainUniqueNameTest, local_ids_rename_existing_same_root)
 {
   LibIDMainSortTestContext ctx;
-  EXPECT_TRUE(BLI_listbase_is_empty(&ctx.bmain->libraries));
+  EXPECT_TRUE(ctx.bmain->libraries.is_empty());
 
   ID *id_c = static_cast<ID *>(BKE_id_new(ctx.bmain, ID_OB, "OB_C"));
   ID *id_a = static_cast<ID *>(BKE_id_new(ctx.bmain, ID_OB, "OB_A"));
@@ -282,7 +282,7 @@ TEST_F(LibIDMainUniqueNameTest, local_ids_rename_existing_same_root)
 TEST_F(LibIDMainUniqueNameTest, linked_ids_1)
 {
   LibIDMainSortTestContext ctx;
-  EXPECT_TRUE(BLI_listbase_is_empty(&ctx.bmain->libraries));
+  EXPECT_TRUE(ctx.bmain->libraries.is_empty());
 
   Library *lib_a = static_cast<Library *>(BKE_id_new(ctx.bmain, ID_LI, "LI_A"));
   Library *lib_b = static_cast<Library *>(BKE_id_new(ctx.bmain, ID_LI, "LI_B"));
@@ -335,7 +335,7 @@ class LibIDMainGlobalUniqueNameTest : public BlenderGTestBase {};
 TEST_F(LibIDMainGlobalUniqueNameTest, linked_ids_1)
 {
   LibIDMainSortTestContext ctx;
-  EXPECT_TRUE(BLI_listbase_is_empty(&ctx.bmain->libraries));
+  EXPECT_TRUE(ctx.bmain->libraries.is_empty());
 
   Library *lib_a = static_cast<Library *>(BKE_id_new(ctx.bmain, ID_LI, "LI_A"));
   Library *lib_b = static_cast<Library *>(BKE_id_new(ctx.bmain, ID_LI, "LI_B"));

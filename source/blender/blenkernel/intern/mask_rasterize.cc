@@ -722,7 +722,7 @@ static void maskrasterize_layer_init_scanfill(MaskRasterHandle *mr_handle,
   uint tot_boundary_found = 0;
 #endif
 
-  tot_splines = uint(BLI_listbase_count(&masklay->splines));
+  tot_splines = uint(masklay->splines.count());
   open_spline_ranges = MEM_new_array<MaskRasterSplineInfo>(tot_splines, __func__);
 
   BLI_scanfill_begin_arena(&sf_ctx, sf_arena);
@@ -1050,7 +1050,7 @@ static void maskrasterize_layer_init_scanfill(MaskRasterHandle *mr_handle,
     if ((masklay->flag & MASK_LAYERFLAG_FILL_OVERLAP) &&
         (is_isect = BLI_scanfill_calc_self_isect(&sf_ctx, &isect_remvertbase, &isect_remedgebase)))
     {
-      uint sf_vert_tot_isect = uint(BLI_listbase_count(&sf_ctx.fillvertbase));
+      uint sf_vert_tot_isect = uint(sf_ctx.fillvertbase.count());
       uint i = vert_num;
 
       face_coords = static_cast<float (*)[3]>(MEM_realloc_uninitialized(
@@ -1249,7 +1249,7 @@ static void maskrasterize_layer_init_cdt(MaskRasterHandle *mr_handle,
 
   uint tot_feather_quads = 0;
 
-  tot_splines = uint(BLI_listbase_count(&masklay->splines));
+  tot_splines = uint(masklay->splines.count());
   open_spline_ranges = MEM_new_array<MaskRasterSplineInfo>(tot_splines, __func__);
 
   /* CDT input buffers. */
@@ -1666,7 +1666,7 @@ void BKE_maskrasterize_handle_init(MaskRasterHandle *mr_handle,
       (do_aspect_correct && width > height) ? float(height) / float(width) : 1.0f,
       (do_aspect_correct && width < height) ? float(width) / float(height) : 1.0f};
 
-  mr_handle->layers_tot = uint(BLI_listbase_count(&mask->masklayers));
+  mr_handle->layers_tot = uint(mask->masklayers.count());
   mr_handle->layers = MEM_new_array<MaskRasterLayer>(mr_handle->layers_tot, "MaskRasterLayer");
   BLI_rctf_init_minmax(&mr_handle->bounds);
 

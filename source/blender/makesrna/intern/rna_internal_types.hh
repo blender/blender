@@ -321,6 +321,12 @@ struct RNAPropertyOverrideApplyContext {
   IDOverrideLibrary *liboverride = nullptr;
   IDOverrideLibraryProperty *liboverride_property = nullptr;
   IDOverrideLibraryPropertyOperation *liboverride_operation = nullptr;
+  /**
+   * Previous liboverride property & operation. Only set when applying a generic 'REPLACE'
+   * operation to revert changes in the liboverride to the reference data, null otherwise.
+   */
+  IDOverrideLibraryProperty *liboverride_removed_property = nullptr;
+  IDOverrideLibraryPropertyOperation *liboverride_removed_operation = nullptr;
 
   /* TODO: Add more refined/descriptive result report? */
 };

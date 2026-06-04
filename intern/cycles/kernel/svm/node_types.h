@@ -1171,6 +1171,8 @@ struct SVMNodePrincipledBsdfData {
   /* Thin film. */
   SVMInputFloat thin_film_thickness;
   SVMInputFloat thin_film_ior;
+  /* Thin wall. */
+  SVMInputInt thin_wall;
 };
 static_assert(alignof(SVMNodePrincipledBsdfData) <= alignof(uint));
 static_assert(sizeof(SVMNodePrincipledBsdfData) % sizeof(uint) == 0);

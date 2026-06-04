@@ -115,6 +115,25 @@ ClosureSignature ClosureSignature::from_evaluate_closure_node(const bNode &node,
   return signature;
 }
 
+ClosureSignature ClosureSignature::from_closure_to_list_node(const bNode &node)
+{
+  BLI_assert(node.is_type("GeometryNodeClosureToList"_ustr));
+  const auto &storage = *static_cast<const GeometryNodeClosureToList *>(node.storage);
+  ClosureSignature signature;
+  signature.inputs.add({.key = "Index",
+                        .type = bke::node_socket_type_find("NodeSocketInt"),
+                        .structure_type = NodeSocketInterfaceStructureType::Single});
+  for (const int i : IndexRange(storage.items_num)) {
+    const GeometryNodeClosureToListItem &item = storage.items[i];
+    const auto type = eNodeSocketDatatype(item.socket_type);
+    signature.outputs.add(
+        {.key = item.name,
+         .type = bke::node_socket_type_find_static(type),
+         .structure_type = NodeSocketInterfaceStructureType(item.structure_type)});
+  }
+  return signature;
+}
+
 bool LinkedClosureSignatures::has_type_definition() const
 {
   for (const Item &item : this->items) {

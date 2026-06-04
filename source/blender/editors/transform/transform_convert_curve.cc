@@ -73,7 +73,7 @@ static void createTransCurveVerts(bContext * /*C*/, TransInfo *t)
 
   const bool is_prop_edit = (t->flag & T_PROP_EDIT) != 0;
   const bool is_prop_connected = (t->flag & T_PROP_CONNECTED) != 0;
-  View3D *v3d = static_cast<View3D *>(t->view);
+  View3D *v3d = (t->spacetype == SPACE_VIEW3D) ? static_cast<View3D *>(t->view) : nullptr;
   short hide_handles = (v3d != nullptr) ? (v3d->overlay.handle_display == CURVE_HANDLE_NONE) :
                                           false;
   const eNurbHandleTest_Mode handle_mode = hide_handles ? NURB_HANDLE_TEST_KNOT_ONLY :

@@ -145,7 +145,7 @@ static bool any_child_to_select(const Set<bPoseChannel *> &pose_bones, const bAr
 {
   for (bPoseChannel *pose_bone : pose_bones) {
     const Bone *bone = pose_bone->bone_get(armature);
-    if (!BLI_listbase_is_empty(&bone->childbase)) {
+    if (!bone->childbase.is_empty()) {
       return true;
     }
   }

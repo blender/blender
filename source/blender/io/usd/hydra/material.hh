@@ -4,41 +4,16 @@
 
 #pragma once
 
-#include <pxr/imaging/hd/enums.h>
-#include <pxr/usd/sdf/path.h>
+#include "populate_context.hh"
 
-#include "DNA_material_types.h"
+namespace blender {
 
-#include "BLI_map.hh"
+struct Material;
 
-#include "id.hh"
+namespace io::hydra {
 
-namespace blender::io::hydra {
+/** Build a Hydra material data source. */
+EmittedMaterial build_emitted_material(const PopulateContext &ctx, const Material *material);
 
-class HydraSceneDelegate;
-
-class MaterialData : public IdData {
- public:
-  bool double_sided = true;
-
- private:
-  pxr::VtValue material_network_map_;
-
- public:
-  MaterialData(HydraSceneDelegate *scene_delegate,
-               const Material *material,
-               pxr::SdfPath const &prim_id);
-
-  void init() override;
-  void insert() override;
-  void remove() override;
-  void update() override;
-
-  pxr::VtValue get_data(pxr::TfToken const &key) const override;
-  pxr::VtValue get_material_resource() const;
-  pxr::HdCullStyle cull_style() const;
-};
-
-using MaterialDataMap = Map<pxr::SdfPath, std::unique_ptr<MaterialData>>;
-
-}  // namespace blender::io::hydra
+}  // namespace io::hydra
+}  // namespace blender

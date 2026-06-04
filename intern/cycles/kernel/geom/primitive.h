@@ -222,16 +222,19 @@ ccl_device_forceinline void primitive_motion_data_without_camera(KernelGlobals k
   *motion_post = *motion_center;
 
   /* deformation motion */
-  AttributeDescriptor desc = find_attribute(kg, sd, ATTR_STD_MOTION_VERTEX_POSITION);
-
-  if (is_attribute_found(desc)) {
-    /* get motion info */
-    const ccl_global KernelObject *kobject = &kernel_data_fetch(objects, sd->object);
-    const int numverts = kobject->numverts;
-    const int num_motion_steps = kobject->num_geom_steps;
+  const ccl_global KernelObject &kobject = kernel_data_fetch(objects, sd->object);
+  const int pos_offset = kobject.position_offset;
+  const int numverts = kobject.numverts;
+  const int num_motion_steps = kobject.num_geom_steps;
 
 #if defined(__HAIR__) || defined(__POINTCLOUD__)
-    if (is_curve_or_point) {
+  if (is_curve_or_point) {
+    if (sd->object_flag & SD_OBJECT_HAS_VERTEX_MOTION) {
+      AttributeDescriptor desc;
+      desc.type = NODE_ATTR_FLOAT4;
+      desc.element = (sd->type & PRIMITIVE_CURVE) ? ATTR_ELEMENT_CURVE_KEY : ATTR_ELEMENT_VERTEX;
+
+      desc.offset = pos_offset + numverts;
       *motion_pre = make_float3(primitive_surface_attribute<float4>(kg, sd, desc));
       if (num_motion_steps > 2) {
         desc.offset += numverts;
@@ -240,18 +243,18 @@ ccl_device_forceinline void primitive_motion_data_without_camera(KernelGlobals k
       else {
         object_inverse_position_transform(kg, sd, motion_post);
       }
-
-      /* Curve */
-      if ((sd->object_flag & SD_OBJECT_HAS_VERTEX_MOTION) == 0) {
-        object_position_transform(kg, sd, motion_pre);
-        object_position_transform(kg, sd, motion_post);
-      }
     }
-    else
+  }
+  else
 #endif
-        if (sd->type & PRIMITIVE_TRIANGLE)
-    {
-      /* Triangle */
+      if (sd->type & PRIMITIVE_TRIANGLE)
+  {
+    if (sd->object_flag & SD_OBJECT_HAS_VERTEX_MOTION) {
+      AttributeDescriptor desc;
+      desc.element = ATTR_ELEMENT_VERTEX;
+      desc.type = NODE_ATTR_FLOAT3;
+
+      desc.offset = pos_offset + numverts;
       *motion_pre = triangle_attribute<float3>(kg, sd, desc);
       if (num_motion_steps > 2) {
         desc.offset += numverts;

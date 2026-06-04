@@ -152,10 +152,8 @@ void template_running_jobs(Layout *layout, bContext *C)
     if (WM_jobs_test(wm, &scene, WM_JOB_TYPE_OBJECT_BAKE_TEXTURE) ||
         WM_jobs_test(wm, &scene, WM_JOB_TYPE_OBJECT_BAKE))
     {
-      /* Skip bake jobs in compositor to avoid compo header displaying
-       * progress bar which is not being updated (bake jobs only need
-       * to update NC_IMAGE context.
-       */
+      /* Skip bake jobs in compositor to avoid compo header displaying progress bar
+       * which is not being updated (bake jobs only need to update NC_IMAGE context). */
       if (area->spacetype != SPACE_NODE) {
         cancel_fn = set_global_break;
         icon = ICON_IMAGE;
@@ -337,16 +335,45 @@ void template_running_jobs(Layout *layout, bContext *C)
 
   /* Not using the jobs system, but should be shown everywhere where jobs are shown too. */
   if (asset_system::remote_library_has_unfinished_asset_downloads()) {
-    const char *string = IFACE_("Downloading Asset(s)");
-    const float string_width = fontstyle_string_width(UI_FSTYLE_WIDGET, string);
+    uiDefIconTextBut(block,
+                     ButtonType::Label,
+                     ICON_ASSET_MANAGER,
+                     IFACE_("Downloading Assets"),
+                     0,
+                     0,
+                     UI_UNIT_X,
+                     UI_UNIT_Y,
+                     nullptr,
+                     "");
+
+    Layout *row = &layout->row(false);
+    block = row->block();
+    row = &layout->row(true);
+
+    const float progress = asset_system::remote_library_total_asset_downloads_progress();
+    char text[8];
+    SNPRINTF_UTF8(text, "%d%%", int(progress * 100));
+
+    ButtonProgress *but_progress = static_cast<ButtonProgress *>(
+        uiDefIconTextBut(block,
+                         ButtonType::Progress,
+                         ICON_NONE,
+                         text,
+                         UI_UNIT_X,
+                         0,
+                         UI_UNIT_X * 6.0f,
+                         UI_UNIT_Y,
+                         nullptr,
+                         nullptr));
+    but_progress->progress_factor = progress;
 
     Button *but = uiDefIconTextBut(block,
                                    ButtonType::But,
-                                   ICON_CANCEL,
-                                   string,
+                                   ICON_PANEL_CLOSE,
+                                   "",
                                    0,
                                    0,
-                                   string_width + UI_UNIT_X * 1.5,
+                                   UI_UNIT_X,
                                    UI_UNIT_Y,
                                    nullptr,
                                    TIP_("Cancel all asset downloads"));

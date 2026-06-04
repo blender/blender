@@ -307,7 +307,7 @@ static int lookup_or_add_deform_group_index(CurvesGeometry &curves, const String
     bDeformGroup *defgroup = MEM_new<bDeformGroup>(__func__);
     name.copy_utf8_truncated(defgroup->name);
     BLI_addtail(&curves.vertex_group_names, defgroup);
-    def_nr = BLI_listbase_count(&curves.vertex_group_names) - 1;
+    def_nr = curves.vertex_group_names.count() - 1;
     BLI_assert(def_nr >= 0);
   }
 

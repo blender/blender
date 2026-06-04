@@ -89,6 +89,7 @@
 #include "ED_asset.hh"
 #include "ED_gpencil_legacy.hh"
 #include "ED_grease_pencil.hh"
+#include "ED_image.hh"
 #include "ED_keyframes_edit.hh"
 #include "ED_keyframing.hh"
 #include "ED_node.hh"
@@ -296,7 +297,7 @@ void WM_init(bContext *C, int argc, const char **argv)
     if (wm != nullptr) {
       wm_window_ghostwindows_remove_invalid(C, wm);
     }
-    if (wm == nullptr || BLI_listbase_is_empty(&wm->windows)) {
+    if (wm == nullptr || wm->windows.is_empty()) {
       if (params_file_read_post != nullptr) {
         MEM_delete_void(static_cast<void *>(params_file_read_post));
         params_file_read_post = nullptr;
@@ -406,7 +407,7 @@ void WM_init_splash(bContext *C)
 {
   wmWindowManager *wm = CTX_wm_manager(C);
   /* NOTE(@ideasman42): this should practically never happen. */
-  if (UNLIKELY(BLI_listbase_is_empty(&wm->windows))) {
+  if (UNLIKELY(wm->windows.is_empty())) {
     return;
   }
 
@@ -501,6 +502,7 @@ void WM_exit_ex(bContext *C, const bool do_python_exit, const bool do_user_exit_
       BLI_path_join(filepath, sizeof(filepath), BKE_tempdir_base(), BLENDER_QUIT_FILE);
 
       ED_editors_flush_edits(bmain);
+      ED_image_internal_autosave_flush(bmain);
 
       BlendFileWriteParams blend_file_write_params{};
       if (BLO_write_file(bmain, filepath, fileflags, &blend_file_write_params, nullptr)) {

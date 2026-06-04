@@ -518,7 +518,7 @@ static bool validate_vertex_groups(const Mesh &mesh, const bool verbose, Mesh *m
   if (dverts.is_empty()) {
     return true;
   }
-  const int vertex_groups_num = BLI_listbase_count(&mesh.vertex_group_names);
+  const int vertex_groups_num = mesh.vertex_group_names.count();
   Mutex mutex;
   Vector<std::pair<int, Vector<std::string, 0>>> all_errors;
   Vector<std::pair<int, Vector<MDeformWeight, 0>>> replacements;

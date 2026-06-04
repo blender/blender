@@ -3566,7 +3566,7 @@ class EXTENSIONS_OT_package_uninstall(Operator, _ExtCmdMixIn):
 
 # Only exists for an error message.
 class EXTENSIONS_OT_package_uninstall_system(Operator):
-    # Copy `EXTENSIONS_OT_package_uninstall` doc-string.
+    # Copy `EXTENSIONS_OT_package_uninstall` docstring.
     bl_label = "Uninstall"
 
     bl_idname = "extensions.package_uninstall_system"

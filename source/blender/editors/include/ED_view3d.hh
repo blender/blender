@@ -564,7 +564,7 @@ float ED_view3d_pixel_size_no_ui_scale(const RegionView3D *rv3d, const float co[
  * as this isn't useful for tool-code.
  */
 float ED_view3d_calc_zfac_ex(const RegionView3D *rv3d, const float co[3], bool *r_flip);
-/** See #ED_view3d_calc_zfac_ex doc-string. */
+/** See #ED_view3d_calc_zfac_ex docstring. */
 float ED_view3d_calc_zfac(const RegionView3D *rv3d, const float co[3]);
 /**
  * Calculate a depth value from `co` (result should only be used for comparison).
@@ -708,7 +708,7 @@ bool ED_view3d_win_to_3d_on_plane_int(
  * \param region: The region (used for the window width and height).
  * \param xy_delta: 2D difference (in pixels) such as `event->mval[0] - other_x`.
  * \param zfac: The depth result typically calculated by #ED_view3d_calc_zfac
- * (see its doc-string for details).
+ * (see its docstring for details).
  * \param r_out: The resulting world-space delta.
  * \param precise: Use a more precise calculation but increases the cost of this function.
  */

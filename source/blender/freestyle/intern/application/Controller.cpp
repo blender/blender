@@ -62,8 +62,8 @@ namespace Freestyle {
 
 Controller::Controller()
 {
-  const string sep(Config::DIR_SEP);
 #if 0
+  const string sep(Config::DIR_SEP);
   const string filename = Config::Path::getInstance()->getHomeDir() + sep + Config::OPTIONS_DIR +
                           sep + Config::OPTIONS_CURRENT_DIRS_FILE;
   _current_dirs = new ConfigIO(filename, Config::APPLICATION_NAME + "CurrentDirs", true);
@@ -1071,13 +1071,13 @@ void Controller::displayDensityCurves(int x, int y)
   // build the density/nbLevels curves for each orientation
   for (i = 0; i < nbCurves; ++i) {
     for (j = 0; j < nbPoints; ++j) {
-      curves[i].push_back(Vec3r(j, svm->readSteerableViewMapPixel(i, j, x, y), 0));
+      curves[i].emplace_back(j, svm->readSteerableViewMapPixel(i, j, x, y), 0);
     }
   }
   // build the density/nbOrientations curves for each level
   for (i = 0; i < nbPoints; ++i) {
     for (j = 0; j < nbCurves; ++j) {
-      curvesDirection[i].push_back(Vec3r(j, svm->readSteerableViewMapPixel(j, i, x, y), 0));
+      curvesDirection[i].emplace_back(j, svm->readSteerableViewMapPixel(j, i, x, y), 0);
     }
   }
 

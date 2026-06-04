@@ -44,8 +44,7 @@ static void node_declare(NodeDeclarationBuilder &b)
       auto &decl = b.add_output(socket_type, name, identifier)
                        .socket_name_ptr(
                            &tree->id, *SeparateBundleItemsAccessor::item_srna, &item, "name")
-                       .propagate_all()
-                       .reference_pass_all();
+                       .propagate_all();
       if (item.structure_type != NodeSocketInterfaceStructureType::Auto) {
         decl.structure_type(StructureType(item.structure_type));
       }
@@ -140,14 +139,15 @@ static void node_geo_exec(GeoNodeExecParams params)
   for (const int i : IndexRange(storage.items_num)) {
     const NodeSeparateBundleItem &item = storage.items[i];
     const StringRef name = item.name;
-    if (!Bundle::is_valid_key(name)) {
+    std::optional<BundleKey> key = BundleKey::from_str(name);
+    if (!key) {
       continue;
     }
     const bke::bNodeSocketType *stype = bke::node_socket_type_find_static(item.socket_type);
     if (!stype || !stype->geometry_nodes_default_value) {
       continue;
     }
-    const BundleItemValue *value = bundle->lookup(UString(name));
+    const BundleItemValue *value = bundle->lookup(*key);
     if (!value) {
       params.error_message_add(
           NodeWarningType::Error,

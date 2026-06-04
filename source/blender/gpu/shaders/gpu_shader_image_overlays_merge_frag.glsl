@@ -13,9 +13,7 @@ float linearrgb_to_srgb(float c)
   if (c < 0.0031308f) {
     return (c < 0.0f) ? 0.0f : c * 12.92f;
   }
-  else {
-    return 1.055f * pow(c, 1.0f / 2.4f) - 0.055f;
-  }
+  return 1.055f * pow(c, 1.0f / 2.4f) - 0.055f;
 }
 
 void linearrgb_to_srgb(float4 col_from, float4 &col_to)

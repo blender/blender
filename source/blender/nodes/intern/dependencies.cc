@@ -67,6 +67,20 @@ void EvalDependencies::merge(const EvalDependencies &other)
   this->time_dependent |= other.time_dependent;
 }
 
+static bool is_used_default_input(const bNodeSocket &socket, const NodeDefaultInputType type)
+{
+  if (!socket.is_input()) {
+    return false;
+  }
+  if (socket.is_logically_linked()) {
+    return false;
+  }
+  if (!socket.runtime->declaration) {
+    return false;
+  }
+  return socket.runtime->declaration->default_input_type == type;
+}
+
 static void add_eval_dependencies_from_socket(const bNodeSocket &socket, EvalDependencies &deps)
 {
   if (socket.is_input()) {
@@ -77,7 +91,11 @@ static void add_eval_dependencies_from_socket(const bNodeSocket &socket, EvalDep
   }
   switch (socket.type) {
     case SOCK_OBJECT: {
-      if (Object *object = static_cast<bNodeSocketValueObject *>(socket.default_value)->value) {
+      if (is_used_default_input(socket, NODE_DEFAULT_INPUT_SELF_OBJECT)) {
+        deps.needs_own_transform |= true;
+      }
+      else if (Object *object = static_cast<bNodeSocketValueObject *>(socket.default_value)->value)
+      {
         deps.add_object(object);
       }
       break;
@@ -142,9 +160,7 @@ static void add_eval_dependencies_from_socket(const bNodeSocket &socket, EvalDep
     }
     case SOCK_INT:
     case SOCK_FLOAT: {
-      if (socket.is_input() && socket.runtime->declaration &&
-          socket.runtime->declaration->default_input_type == NODE_DEFAULT_INPUT_SCENE_FRAME)
-      {
+      if (is_used_default_input(socket, NODE_DEFAULT_INPUT_SCENE_FRAME)) {
         deps.time_dependent = true;
       }
       break;

@@ -145,14 +145,14 @@ struct ImBuf {
 
   /**
    * Stores the Data and Display Window information. Those are only initialized if the image buffer
-   * has the ImBufFlags::HasDisplayWindow flag active, otherwise, they should be ignored as the
+   * has the #ImBufFlags::HasDisplayWindow flag active, otherwise, they should be ignored as the
    * image has no display window.
    *
    * The data size is already stored in the x and y members. The data_offset member stores the
    * offset from the display window to the data window, if positive, then only part of the display
    * window has data, while if negative, it means the image has over-scan.
    * The display_offset member is the offset from the origin,
-   * can can be interpreted as a global translation.
+   * can be interpreted as a global translation.
    */
   int display_size[2];
   int data_offset[2];

@@ -384,11 +384,11 @@ void ThumbGenerationJob::run_fn(void *customdata, wmJobWorkerStatus *worker_stat
 
           /* Decode the movie frame. */
           if (cur_anim != nullptr) {
-            thumb = MOV_decode_frame(cur_anim, request.frame_index, IMB_TC_NONE, cur_proxy_size);
+            thumb = MOV_decode_frame(cur_anim, request.frame_index, cur_proxy_size);
             if (thumb == nullptr && cur_proxy_size != IMB_PROXY_NONE) {
               /* Broken proxy file, switch to non-proxy. */
               cur_proxy_size = IMB_PROXY_NONE;
-              thumb = MOV_decode_frame(cur_anim, request.frame_index, IMB_TC_NONE, cur_proxy_size);
+              thumb = MOV_decode_frame(cur_anim, request.frame_index, cur_proxy_size);
             }
             if (thumb != nullptr) {
               seq_imbuf_assign_spaces(job->scene_, thumb);
@@ -603,6 +603,7 @@ void thumbnail_cache_maintain_capacity(Scene *scene)
           if (item.value.frames[i].used_at < cache->logical_time_ - 100) {
             IMB_freeImBuf(item.value.frames[i].thumb);
             item.value.frames.remove_and_reorder(i);
+            i--;
           }
         }
       }

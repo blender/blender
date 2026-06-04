@@ -353,6 +353,9 @@ TreeElement *AbstractTreeDisplay::add_element(ListBaseT<TreeElement> *lb,
   else if (type == TSE_LINKED_OB) {
     /* pass */
   }
+  else if (type == TSE_SHAPE_KEY_BLOCK) {
+    /* pass */
+  }
   else if (type == TSE_SOME_ID) {
     BLI_assert_msg(te->abstract_element != nullptr,
                    "Expected this ID type to be ported to new Outliner tree-element design");
@@ -587,7 +590,7 @@ static void outliner_sort(ListBaseT<TreeElement> *lb)
   if (inside_armature_data || ELEM(last_tselem->type, TSE_DEFGROUP, TSE_ID_BASE) ||
       ((last_tselem->type == TSE_SOME_ID) && (last_te->idcode == ID_OB)))
   {
-    int totelem = BLI_listbase_count(lb);
+    int totelem = lb->count();
 
     if (totelem > 1) {
       tTreeSort *tear = MEM_new_array_uninitialized<tTreeSort>(totelem, "tree sort array");
@@ -630,7 +633,7 @@ static void outliner_sort(ListBaseT<TreeElement> *lb)
         }
       }
 
-      BLI_listbase_clear(lb);
+      lb->clear_no_delete();
       tp = tear;
       while (totelem--) {
         BLI_addtail(lb, tp->te);
@@ -655,7 +658,7 @@ static void outliner_collections_children_sort(ListBaseT<TreeElement> *lb)
 
   /* Sorting rules: only object lists. */
   if ((last_tselem->type == TSE_SOME_ID) && (last_te->idcode == ID_OB)) {
-    int totelem = BLI_listbase_count(lb);
+    int totelem = lb->count();
 
     if (totelem > 1) {
       tTreeSort *tear = MEM_new_array_uninitialized<tTreeSort>(totelem, "tree sort array");
@@ -672,7 +675,7 @@ static void outliner_collections_children_sort(ListBaseT<TreeElement> *lb)
 
       qsort(tear, totelem, sizeof(tTreeSort), treesort_child_not_in_collection);
 
-      BLI_listbase_clear(lb);
+      lb->clear_no_delete();
       tp = tear;
       while (totelem--) {
         BLI_addtail(lb, tp->te);
@@ -1132,7 +1135,7 @@ static int outliner_filter_subtree(SpaceOutliner *space_outliner,
   }
 
   /* if there are still items in the list, that means that there were still some matches */
-  return (BLI_listbase_is_empty(lb) == false);
+  return (lb->is_empty() == false);
 }
 
 static void outliner_filter_tree(const Main &bmain,

@@ -775,7 +775,7 @@ static Strip *strip_select_from_preview(
     strip_select = slink_select->strip;
   }
 
-  BLI_freelistN(&strips_ordered);
+  strips_ordered.free_no_destruct();
 
   return strip_select;
 }
@@ -1983,7 +1983,13 @@ void SEQUENCER_OT_select_side_of_frame(wmOperatorType *ot)
   PropertyRNA *prop;
   prop = RNA_def_boolean(ot->srna, "extend", false, "Extend", "Extend the selection");
   RNA_def_property_flag(prop, PROP_SKIP_SAVE);
-  ot->prop = RNA_def_enum(ot->srna, "side", sequencer_select_left_right_types, 0, "Side", "");
+  ot->prop = RNA_def_enum(ot->srna,
+                          "side",
+                          sequencer_select_left_right_types,
+                          0,
+                          "Side",
+                          "Whether to select all strips to the left or right of the current "
+                          "frame, or just those intersecting with it");
 }
 
 /** \} */

@@ -26,11 +26,14 @@ sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), '../../s
 from space_view3d import VIEW3D_PT_object_type_visibility
 
 
-# Session.
-class VIEW3D_PT_vr_session(Panel):
+class VRButtonsPanel:
     bl_space_type = 'VIEW_3D'
     bl_region_type = 'UI'
     bl_category = "VR"
+
+
+# Session.
+class VIEW3D_PT_vr_session(VRButtonsPanel, Panel):
     bl_label = "VR Session"
 
     def draw(self, context):
@@ -61,10 +64,7 @@ class VIEW3D_PT_vr_session(Panel):
 
 
 # View.
-class VIEW3D_PT_vr_session_view(Panel):
-    bl_space_type = 'VIEW_3D'
-    bl_region_type = 'UI'
-    bl_category = "VR"
+class VIEW3D_PT_vr_session_view(VRButtonsPanel, Panel):
     bl_label = "View"
 
     def draw(self, context):
@@ -112,6 +112,104 @@ class VIEW3D_PT_vr_session_view_object_type_visibility(VIEW3D_PT_object_type_vis
         self.draw_ex(context, session_settings, False)  # Pass session settings instead of 3D view.
 
 
+# Location Scouting.
+class VIEW3D_UL_vr_captures(UIList):
+    def draw_item(self, context, layout, _data, item, icon, _active_data, _active_propname, index):
+        capture = item
+
+        layout.emboss = 'NONE'
+
+        layout.label(icon='OUTLINER_OB_CAMERA')
+        layout.prop(capture, "name", text="")
+
+
+class VIEW3D_PT_vr_location_scouting(VRButtonsPanel, Panel):
+    bl_label = "Location Scouting"
+    bl_options = {'DEFAULT_CLOSED'}
+
+    def draw(self, context):
+        pass
+
+
+class VIEW3D_PT_vr_location_scouting_captures(VRButtonsPanel, Panel):
+    bl_label = "Captured Shots"
+    bl_parent_id = "VIEW3D_PT_vr_location_scouting"
+
+    def draw(self, context):
+        layout = self.layout
+        scene = context.scene
+
+        row = layout.row()
+        row.template_list("VIEW3D_UL_vr_captures", "", scene, "vr_captures", scene, "vr_captures_selected", rows=5)
+
+        col = row.column(align=True)
+
+        col.operator("view3d.vr_location_scouting_remove_capture", icon='REMOVE', text="")
+
+        col.separator()
+
+        col.operator("view3d.vr_location_scouting_add_camera_from_capture", icon='OUTLINER_OB_CAMERA', text="")
+        col.operator("view3d.vr_location_scouting_add_marker_from_capture", icon='MARKER', text="")
+
+        col.separator()
+
+        col.operator("view3d.vr_location_scouting_browse_captures", icon='TRIA_UP', text="").backward = True
+        col.operator("view3d.vr_location_scouting_browse_captures", icon='TRIA_DOWN', text="").backward = False
+
+        is_reviewing = context.window_manager.vr_capture_review_running
+        capture_review_text = "Review VR Captures" if not is_reviewing else "Exit Review"
+        capture_review_icon = 'HIDE_OFF' if not is_reviewing else 'CANCEL'
+        layout.operator(
+            "view3d.vr_location_scouting_capture_review",
+            text=capture_review_text,
+            icon=capture_review_icon,
+            depress=is_reviewing)
+
+
+class VIEW3D_PT_vr_location_scouting_viewfinder(VRButtonsPanel, Panel):
+    bl_label = "VR Viewfinder"
+    bl_parent_id = "VIEW3D_PT_vr_location_scouting"
+
+    def draw_header(self, context):
+        layout = self.layout
+        session_settings = context.window_manager.xr_session_settings
+
+        layout.prop(session_settings, "viewfinder_enabled", text="")
+
+    def draw(self, context):
+        layout = self.layout
+        session_settings = context.window_manager.xr_session_settings
+
+        layout.enabled = session_settings.viewfinder_enabled
+        session_settings = context.window_manager.xr_session_settings
+
+        layout.use_property_split = True
+
+        layout.prop(session_settings, "viewfinder_hand", text="Hand", expand=True)
+        layout.prop(session_settings, "viewfinder_scale", text="Scale")
+
+        col = layout.column(align=True, heading="Display")
+        col.prop(session_settings, "viewfinder_crosshair_enabled", text="Crosshair")
+
+
+class VIEW3D_PT_vr_location_scouting_viewfinder_passepartout(VRButtonsPanel, Panel):
+    bl_label = "Passepartout"
+    bl_parent_id = "VIEW3D_PT_vr_location_scouting_viewfinder"
+    bl_options = {'DEFAULT_CLOSED'}
+
+    def draw(self, context):
+        layout = self.layout
+        session_settings = context.window_manager.xr_session_settings
+
+        layout.enabled = session_settings.viewfinder_enabled
+        session_settings = context.window_manager.xr_session_settings
+
+        layout.use_property_split = True
+
+        layout.prop(session_settings, "viewfinder_passepartout_overscan", text="Overscan")
+        layout.prop(session_settings, "viewfinder_passepartout_opacity", text="Opacity")
+
+
 # Landmarks.
 class VIEW3D_MT_vr_landmark_menu(Menu):
     bl_label = "Landmark Controls"
@@ -146,10 +244,7 @@ class VIEW3D_UL_vr_landmarks(UIList):
         props.index = index
 
 
-class VIEW3D_PT_vr_landmarks(Panel):
-    bl_space_type = 'VIEW_3D'
-    bl_region_type = 'UI'
-    bl_category = "VR"
+class VIEW3D_PT_vr_landmarks(VRButtonsPanel, Panel):
     bl_label = "Landmarks"
     bl_options = {'DEFAULT_CLOSED'}
 
@@ -189,10 +284,7 @@ class VIEW3D_PT_vr_landmarks(Panel):
 
 
 # Actions.
-class VIEW3D_PT_vr_actionmaps(Panel):
-    bl_space_type = 'VIEW_3D'
-    bl_region_type = 'UI'
-    bl_category = "VR"
+class VIEW3D_PT_vr_actionmaps(VRButtonsPanel, Panel):
     bl_label = "Action Maps"
     bl_options = {'DEFAULT_CLOSED'}
 
@@ -214,17 +306,13 @@ class VIEW3D_PT_vr_actionmaps(Panel):
 
 
 # Viewport feedback.
-class VIEW3D_PT_vr_viewport_feedback(Panel):
-    bl_space_type = 'VIEW_3D'
-    bl_region_type = 'UI'
-    bl_category = "VR"
+class VIEW3D_PT_vr_viewport_feedback(VRButtonsPanel, Panel):
     bl_label = "Viewport Feedback"
     bl_options = {'DEFAULT_CLOSED'}
 
     def draw(self, context):
         layout = self.layout
         view3d = context.space_data
-        session_settings = context.window_manager.xr_session_settings
 
         col = layout.column(align=True)
         col.label(icon='ERROR', text="Note:")
@@ -236,14 +324,12 @@ class VIEW3D_PT_vr_viewport_feedback(Panel):
         layout.prop(view3d.shading, "vr_show_virtual_camera")
         layout.prop(view3d.shading, "vr_show_controllers")
         layout.prop(view3d.shading, "vr_show_landmarks")
+        layout.prop(view3d.shading, "vr_show_captures")
         layout.prop(view3d, "mirror_xr_session")
 
 
 # Info.
-class VIEW3D_PT_vr_info(bpy.types.Panel):
-    bl_space_type = 'VIEW_3D'
-    bl_region_type = 'UI'
-    bl_category = "VR"
+class VIEW3D_PT_vr_info(VRButtonsPanel, Panel):
     bl_label = "VR Info"
 
     @classmethod
@@ -261,11 +347,16 @@ classes = (
     VIEW3D_PT_vr_session,
     VIEW3D_PT_vr_session_view,
     VIEW3D_PT_vr_session_view_object_type_visibility,
+    VIEW3D_PT_vr_location_scouting,
+    VIEW3D_PT_vr_location_scouting_captures,
+    VIEW3D_PT_vr_location_scouting_viewfinder,
+    VIEW3D_PT_vr_location_scouting_viewfinder_passepartout,
     VIEW3D_PT_vr_landmarks,
     VIEW3D_PT_vr_actionmaps,
     VIEW3D_PT_vr_viewport_feedback,
 
     VIEW3D_UL_vr_landmarks,
+    VIEW3D_UL_vr_captures,
     VIEW3D_MT_vr_landmark_menu,
 )
 
@@ -277,13 +368,20 @@ def register():
     # View3DShading is the only per 3D-View struct with custom property
     # support, so "abusing" that to get a per 3D-View option.
     bpy.types.View3DShading.vr_show_virtual_camera = bpy.props.BoolProperty(
-        name="Show VR Camera"
+        name="Show VR Camera",
+        default=False
     )
     bpy.types.View3DShading.vr_show_controllers = bpy.props.BoolProperty(
-        name="Show VR Controllers"
+        name="Show VR Controllers",
+        default=False
     )
     bpy.types.View3DShading.vr_show_landmarks = bpy.props.BoolProperty(
-        name="Show Landmarks"
+        name="Show Landmarks",
+        default=False
+    )
+    bpy.types.View3DShading.vr_show_captures = bpy.props.BoolProperty(
+        name="Show Location Scouting Captures",
+        default=True
     )
 
 
@@ -294,3 +392,4 @@ def unregister():
     del bpy.types.View3DShading.vr_show_virtual_camera
     del bpy.types.View3DShading.vr_show_controllers
     del bpy.types.View3DShading.vr_show_landmarks
+    del bpy.types.View3DShading.vr_show_captures

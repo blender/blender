@@ -64,7 +64,7 @@ def print_row(table: api.MarkdownTable, entries: list, end='\n') -> None:
     # For time series, revision is printed first.
     row.append(entries[0].revision)
     row.append(entries[0].category)
-    row.append(entries[0].device_type)
+    row.append(api.normalize_device_id(entries[0].device_id))
     row.append(entries[0].test)
 
     for entry in entries:
@@ -136,6 +136,7 @@ def run_entry(env: api.TestEnvironment,
     testcategory = entry.category
     device_type = entry.device_type
     device_id = entry.device_id
+
     gpu_backend = {
         'VULKAN': 'vulkan',
         'METAL': 'metal',
@@ -419,9 +420,9 @@ def cmd_bisect(env: api.TestEnvironment, argv: list):
 
     table = api.MarkdownTable()
     table.add_column("Remaining", width=5, alignment='RIGHT')
-    table.add_column("Commit", width=12)
+    table.add_column("Commit", width=14)
     table.add_column("Date (UTC)", width=22)
-    table.add_column("Title", width=70)
+    table.add_column("Title", width=72)
     table.add_column(args.attribute, width=14, alignment='RIGHT')
     table.add_column("Status", width=8)
     table.print_header()
@@ -442,15 +443,17 @@ def cmd_bisect(env: api.TestEnvironment, argv: list):
     end_ts = int(end_dt.timestamp()) + SECONDS_PER_DAY
 
     progress = api.bisect.BisectProgress()
+    env.set_log_file(env.base_dir / 'bisect.log', clear=True)
     bisect = api.bisect.Bisect(env, run_commit_wrapper, start_ts, end_ts)
     bisect.run(progress=progress)
+    env.unset_log_file()
 
     if bisect.first_bad is None:
         print('\nNo regression found in the given date range.')
         return
 
-    title = env.commit_title(bisect.first_bad)
-    print(f'\nRegression introduced by commit {bisect.first_bad}: {title}')
+    title = env.commit_title(bisect.first_bad).replace('`', '\'')
+    print(f'\nRegression introduced by commit `{bisect.first_bad}`: `{title}`')
 
 
 def cmd_graph(argv: list):

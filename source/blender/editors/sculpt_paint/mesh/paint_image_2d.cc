@@ -1180,7 +1180,14 @@ static ImBuf *paint_2d_lift_clone(ImBuf *ibuf, ImBuf *ibufb, const int *pos)
   /* NOTE: #allocImbuf returns zeroed memory, so regions outside image will
    * have zero alpha, and hence not be blended onto the image */
   int w = ibufb->x, h = ibufb->y, destx = 0, desty = 0, srcx = pos[0], srcy = pos[1];
-  ImBuf *clonebuf = IMB_allocImBuf(w, h, ibufb->flags);
+  ImBufFlags ibflags = ibufb->flags;
+  if (ibufb->byte_data()) {
+    ibflags |= ImBufFlags::ByteData;
+  }
+  if (ibufb->float_data()) {
+    ibflags |= ImBufFlags::FloatData;
+  }
+  ImBuf *clonebuf = IMB_allocImBuf(w, h, ibflags);
   clonebuf->color_mode = ibufb->color_mode;
 
   IMB_rectclip(clonebuf, ibuf, &destx, &desty, &srcx, &srcy, &w, &h);
@@ -1633,7 +1640,7 @@ void *paint_2d_new_stroke(bContext *C, wmOperator *op, const BrushStrokeMode mod
     return nullptr;
   }
 
-  s->num_tiles = BLI_listbase_count(&s->image->tiles);
+  s->num_tiles = s->image->tiles.count();
   s->tiles = MEM_new_array<ImagePaintTile>(s->num_tiles, __func__);
   for (int i = 0; i < s->num_tiles; i++) {
     s->tiles[i].iuser = sima->iuser;

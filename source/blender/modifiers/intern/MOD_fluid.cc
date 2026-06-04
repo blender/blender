@@ -123,7 +123,7 @@ static Mesh *modify_mesh(ModifierData *md, const ModifierEvalContext *ctx, Mesh 
    * because Mantaflow uses TBB to parallel its own computation which without isolation will start
    * stealing tasks from dependency graph. Stealing tasks from the dependency graph might cause
    * a recursive lock when Python drivers are used (because Mantaflow is interfaced via Python as
-   * well. */
+   * well). */
   FluidIsolationData isolation_data;
   isolation_data.depsgraph = ctx->depsgraph;
   isolation_data.object = ctx->object;

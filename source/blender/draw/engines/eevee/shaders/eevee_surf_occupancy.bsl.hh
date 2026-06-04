@@ -38,14 +38,12 @@ FRAGMENT_SHADER_CREATE_INFO(eevee_geom_iface_info)
 FRAGMENT_SHADER_CREATE_INFO(eevee_nodetree)
 
 #include "eevee_occupancy_lib.bsl.hh"
-#include "eevee_sampling_lib.glsl"
+#include "eevee_sampling_lib.bsl.hh"
 #include "eevee_volume_lib.bsl.hh"
 
 namespace eevee {
 
 struct SurfOccupancy {
-  [[legacy_info]] ShaderCreateInfo eevee_global_ubo;
-  [[legacy_info]] ShaderCreateInfo eevee_sampling_data;
   [[legacy_info]] ShaderCreateInfo eevee_geom_iface_info;
 
   [[image(VOLUME_HIT_DEPTH_SLOT, write, SFLOAT_32)]] image3D hit_depth_img;
@@ -59,19 +57,23 @@ struct SurfOccupancy {
  * So not early fragment tests. */
 [[fragment]] [[texture_atomic]]
 void surf_occupancy([[resource_table]] SurfOccupancy &srt,
+                    [[resource_table]] const Uniform &uni,
+                    [[resource_table]] const draw::View &views,
+                    [[resource_table]] const Sampling &sampling,
                     [[front_facing]] const bool front_facing,
                     [[frag_coord]] const float4 frag_co)
 {
+  const ViewMatrices view = views.get(0);
   int2 texel = int2(frag_co.xy);
-  float vPz = dot(drw_view_forward(), interp.P) - dot(drw_view_forward(), drw_view_position());
+  float vPz = dot(view.forward(), interp.P) - dot(view.forward(), view.position());
 
-  float offset = sampling_rng_1D_get(SAMPLING_VOLUME_W);
-  float jitter = volume_froxel_jitter(texel, offset) * uniform_buf.volumes.inv_tex_size.z;
-  float volume_z = view_z_to_volume_z(vPz) + jitter;
+  float offset = sampling.rng_1D_get(SAMPLING_VOLUME_W);
+  float jitter = volume_froxel_jitter(texel, offset) * uni.uniform_buf.volumes.inv_tex_size.z;
+  float volume_z = view_z_to_volume_z(uni, view, vPz) + jitter;
 
   if (srt.use_fast_method) {
-    occupancy::Bits occupancy_bits = occupancy::bits_from_depth(volume_z,
-                                                                uniform_buf.volumes.tex_size.z);
+    occupancy::Bits occupancy_bits = occupancy::bits_from_depth(
+        volume_z, uni.uniform_buf.volumes.tex_size.z);
     for (int i = 0; i < imageSize(srt.occupancy_img).z; i++) {
       /* Negate occupancy bits before XORing so that meshes clipped by the near plane fill the
        * space between the inner part of the mesh and the near plane.

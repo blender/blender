@@ -356,7 +356,7 @@ size_t BLI_path_append_dir(char *__restrict dst, size_t dst_maxncpy, const char 
  * \{ */
 
 /**
- * See #BLI_path_join doc-string.
+ * See #BLI_path_join docstring.
  */
 size_t BLI_path_join_array(char *__restrict dst,
                            const size_t dst_maxncpy,

@@ -18,12 +18,12 @@ static void node_declare(NodeDeclarationBuilder &b)
   b.add_input<decl::Bool>("Selection"_ustr)
       .default_value(true)
       .hide_value()
-      .field_on_all()
+      .evaluated_geometry_field()
       .description("Either a curve or instance selection");
   b.add_input<decl::Bool>("Instances as Layers"_ustr)
       .default_value(true)
       .description("Create a separate layer for each instance");
-  b.add_output<decl::Geometry>("Grease Pencil"_ustr).propagate_all();
+  b.add_output<decl::Geometry>("Grease Pencil"_ustr).propagate_all_geometry();
 }
 
 static GreasePencil *curves_to_grease_pencil_with_one_layer(

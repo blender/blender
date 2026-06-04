@@ -176,7 +176,7 @@ def main():
                 if l.startswith("/*"):
                     l = l.replace("/*", "'''own <")
                 else:
-                    # NOTE: `inline <...>` aren't used anymore, all doc-string comments require their own line.
+                    # NOTE: `inline <...>` aren't used anymore, all docstring comments require their own line.
                     l = l.replace("/*", "'''inline <")
                 l = l.replace("*/", ">''',")
 

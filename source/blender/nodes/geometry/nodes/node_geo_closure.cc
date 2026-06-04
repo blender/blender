@@ -167,7 +167,7 @@ static void node_declare(NodeDeclarationBuilder &b)
       const NodeClosureOutputItem &item = storage.output_items.items[i];
       const eNodeSocketDatatype socket_type = item.socket_type;
       const UString identifier(ClosureOutputItemsAccessor::socket_identifier_for_item(item));
-      auto &decl = b.add_input(socket_type, UString(item.name), identifier).supports_field();
+      auto &decl = b.add_input(socket_type, UString(item.name), identifier);
       decl.socket_name_ptr(&tree->id, *ClosureOutputItemsAccessor::item_srna, &item, "name");
       if (item.structure_type != NodeSocketInterfaceStructureType::Auto) {
         decl.structure_type(StructureType(item.structure_type));

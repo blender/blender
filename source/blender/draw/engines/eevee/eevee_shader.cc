@@ -553,7 +553,7 @@ const char *ShaderModule::static_shader_create_info_name_get(eShaderType shader_
     case SURFEL_RAY:
       return "eevee_surfel_ray";
     case TRANSPARENCY_RESOLVE:
-      return "eevee_transparency_resolve";
+      return "eevee_forward_resolve";
     case VERTEX_COPY:
       return "eevee_vertex_copy";
     case VOLUME_INTEGRATION:
@@ -742,7 +742,7 @@ static SlotAllocator add_pipeline_create_info(gpu::shader::ShaderCreateInfo &inf
         case MAT_PIPE_PREPASS_FORWARD_VELOCITY:
         case MAT_PIPE_PREPASS_DEFERRED_VELOCITY:
           pipeline_info_name = "eevee_surf_depthTtrue_infos_";
-          additional_info_name = "eevee_velocity_geom";
+          additional_info_name = "eevee_GeometryVelocity";
           info.name_ += "_depth_velocity";
           info.compilation_constant(gpu::shader::Type::bool_t, "use_velocity", true);
           info.define("MAT_DEPTH");
@@ -1005,8 +1005,8 @@ void ShaderModule::material_create_info_amend(GPUMaterial *gpumat, GPUCodegenOut
       GPU_material_flag_get(gpumat, GPU_MATFLAG_SHADER_TO_RGBA) &&
       GPU_material_flag_get(gpumat, GPU_MATFLAG_TRANSPARENT))
   {
-    info.additional_info("eevee_hiz_prev_data");
-    info.additional_info("eevee_previous_layer_radiance");
+    info.additional_info("eevee_PreviousLayerHiZ");
+    info.additional_info("eevee_PreviousLayerRadiance");
   }
 
   SlotAllocator slots = add_pipeline_create_info(
@@ -1032,12 +1032,6 @@ void ShaderModule::material_create_info_amend(GPUMaterial *gpumat, GPUCodegenOut
   }
   if (GPU_material_flag_get(gpumat, GPU_MATFLAG_COAT)) {
     info.define("MAT_CLEARCOAT");
-  }
-  if (GPU_material_flag_get(gpumat, GPU_MATFLAG_REFLECTION_MAYBE_COLORED) == false) {
-    info.define("MAT_REFLECTION_COLORLESS");
-  }
-  if (GPU_material_flag_get(gpumat, GPU_MATFLAG_REFRACTION_MAYBE_COLORED) == false) {
-    info.define("MAT_REFRACTION_COLORLESS");
   }
 
   info.compilation_constant(
@@ -1065,23 +1059,32 @@ void ShaderModule::material_create_info_amend(GPUMaterial *gpumat, GPUCodegenOut
   info.compilation_constant(gpu::shader::Type::int_t, "closure_bin_count", closure_bin_count);
 
   if (pipeline_type == MAT_PIPE_DEFERRED) {
-    switch (closure_bin_count) {
-      /* These need to be separated since the strings need to be static. */
-      case 0:
-      case 1:
-        info.define("GBUFFER_LAYER_MAX", "1");
-        break;
-      case 2:
-        info.define("GBUFFER_LAYER_MAX", "2");
-        break;
-      case 3:
-        info.define("GBUFFER_LAYER_MAX", "3");
-        break;
-      default:
-        BLI_assert_unreachable();
-        break;
-    }
+    info.compilation_constant(gpu::shader::Type::bool_t,
+                              "gbuffer_has_reflection",
+                              GPU_material_flag_get(gpumat, GPU_MATFLAG_GLOSSY));
+    info.compilation_constant(gpu::shader::Type::bool_t,
+                              "gbuffer_has_refraction",
+                              GPU_material_flag_get(gpumat, GPU_MATFLAG_REFRACT));
+    info.compilation_constant(gpu::shader::Type::bool_t,
+                              "gbuffer_has_subsurface",
+                              GPU_material_flag_get(gpumat, GPU_MATFLAG_SUBSURFACE));
+    info.compilation_constant(gpu::shader::Type::bool_t,
+                              "gbuffer_has_translucent",
+                              GPU_material_flag_get(gpumat, GPU_MATFLAG_TRANSLUCENT));
 
+    info.compilation_constant(
+        gpu::shader::Type::bool_t,
+        "gbuffer_reflection_colorless",
+        GPU_material_flag_get(gpumat, GPU_MATFLAG_REFLECTION_MAYBE_COLORED) == false);
+    info.compilation_constant(
+        gpu::shader::Type::bool_t,
+        "gbuffer_refraction_colorless",
+        GPU_material_flag_get(gpumat, GPU_MATFLAG_REFRACTION_MAYBE_COLORED) == false);
+
+    info.compilation_constant(
+        gpu::shader::Type::int_t, "gbuffer_layer_max", max(1, closure_bin_count));
+
+    bool use_simple_layout = false;
     if (closure_bin_count == 2) {
       /* In a lot of cases, we can predict that we do not need the extra GBuffer layers. This
        * simplifies the shader code and improves compilation time (see #145347). */
@@ -1110,9 +1113,12 @@ void ShaderModule::material_create_info_amend(GPUMaterial *gpumat, GPUCodegenOut
       }
 
       if (closure_layer_count <= 2) {
-        info.define("GBUFFER_SIMPLE_CLOSURE_LAYOUT");
+        use_simple_layout = true;
       }
     }
+
+    info.compilation_constant(
+        gpu::shader::Type::bool_t, "gbuffer_simple_layout", use_simple_layout);
   }
 
   if ((pipeline_type == MAT_PIPE_FORWARD) ||
@@ -1127,6 +1133,7 @@ void ShaderModule::material_create_info_amend(GPUMaterial *gpumat, GPUCodegenOut
         gpu::shader::Type::int_t, "light_closure_eval_count_reflect", closure_bin_count);
     info.compilation_constant(
         gpu::shader::Type::int_t, "light_closure_eval_count_transmit", transmit_eval_count);
+    info.compilation_constant(gpu::shader::Type::bool_t, "shadow_random", true);
   }
 
   if (GPU_material_flag_get(gpumat, GPU_MATFLAG_BARYCENTRIC)) {
@@ -1317,8 +1324,8 @@ void ShaderModule::material_create_info_amend(GPUMaterial *gpumat, GPUCodegenOut
 
     Vector<StringRefNull> dependencies = {};
     if (use_vertex_displacement) {
-      dependencies.append("eevee_geom_types_lib.glsl");
-      dependencies.append("eevee_nodetree_lib.glsl");
+      dependencies.append("eevee_geom_types_lib.bsl.hh");
+      dependencies.append("eevee_nodetree_lib.bsl.hh");
       dependencies.extend(codegen.displacement.dependencies);
     }
 
@@ -1328,10 +1335,11 @@ void ShaderModule::material_create_info_amend(GPUMaterial *gpumat, GPUCodegenOut
   if (pipeline_type != MAT_PIPE_VOLUME_OCCUPANCY) {
     Vector<StringRefNull> dependencies;
     if (use_ao_node) {
-      dependencies.append("eevee_ambient_occlusion_lib.glsl");
+      dependencies.append("eevee_fast_gi.bsl.hh");
+      info.additional_info("eevee_HiZ");
     }
-    dependencies.append("eevee_geom_types_lib.glsl");
-    dependencies.append("eevee_nodetree_lib.glsl");
+    dependencies.append("eevee_geom_types_lib.bsl.hh");
+    dependencies.append("eevee_nodetree_lib.bsl.hh");
 
     for (const auto &graph : codegen.material_functions) {
       frag_gen << graph.serialized;
@@ -1348,6 +1356,10 @@ void ShaderModule::material_create_info_amend(GPUMaterial *gpumat, GPUCodegenOut
       dependencies.extend(codegen.displacement.dependencies);
       frag_gen << "}\n\n";
     }
+
+    /* Improve error logging. */
+    frag_gen << "#line 1 \"" __FILE__ "\"\n";
+    frag_gen << "#line " STRINGIFY(__LINE__) "\n";
 
     frag_gen << "Closure nodetree_surface(float closure_rand)\n";
     frag_gen << "{\n";
@@ -1369,16 +1381,15 @@ void ShaderModule::material_create_info_amend(GPUMaterial *gpumat, GPUCodegenOut
         frag_gen << "return 0.0;\n";
       }
       else {
-        if (info.additional_infos_.first_index_of_try({"draw_object_infos"}) == -1) {
-          info.additional_info("draw_object_infos");
-        }
         /* TODO(fclem): Should use `to_scale` but the gpu_shader_math_matrix_lib.glsl isn't
          * included everywhere yet. */
+        frag_gen << "ObjectMatrices obj = object_matrices_get();\n";
         frag_gen << "float3 ob_scale;\n";
-        frag_gen << "ob_scale.x = length(drw_modelmat()[0].xyz);\n";
-        frag_gen << "ob_scale.y = length(drw_modelmat()[1].xyz);\n";
-        frag_gen << "ob_scale.z = length(drw_modelmat()[2].xyz);\n";
-        frag_gen << "float3 ls_dimensions = safe_rcp(abs(drw_object_infos().orco_mul.xyz));\n";
+        frag_gen << "ob_scale.x = length(obj.model[0].xyz);\n";
+        frag_gen << "ob_scale.y = length(obj.model[1].xyz);\n";
+        frag_gen << "ob_scale.z = length(obj.model[2].xyz);\n";
+        frag_gen << "ObjectInfos infos = object_infos_get();\n";
+        frag_gen << "float3 ls_dimensions = safe_rcp(abs(infos.orco_mul.xyz));\n";
         frag_gen << "float3 ws_dimensions = ob_scale * ls_dimensions;\n";
         /* Choose the minimum axis so that cuboids are better represented. */
         frag_gen << "return reduce_min(ws_dimensions);\n";

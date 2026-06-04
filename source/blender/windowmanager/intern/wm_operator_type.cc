@@ -592,7 +592,7 @@ static void wm_operatortype_free_macro(wmOperatorType *ot)
       MEM_delete(otmacro.ptr);
     }
   }
-  BLI_freelistN(&ot->macro);
+  ot->macro.free_no_destruct();
 }
 
 std::string WM_operatortype_name(wmOperatorType *ot, PointerRNA *properties)

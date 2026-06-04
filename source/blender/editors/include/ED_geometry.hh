@@ -85,11 +85,9 @@ const GeoOperatorLog &node_group_operator_static_eval_log();
 MenuType node_group_operator_assets_menu();
 MenuType node_group_operator_assets_menu_unassigned();
 
-void clear_operator_asset_trees();
-
 void ui_template_node_operator_asset_menu_items(ui::Layout &layout,
                                                 const bContext &C,
-                                                StringRef catalog_path);
+                                                StringRef path);
 void ui_template_node_operator_asset_root_items(ui::Layout &layout, const bContext &C);
 
 }  // namespace ed::geometry

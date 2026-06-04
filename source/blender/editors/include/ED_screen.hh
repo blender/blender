@@ -588,6 +588,7 @@ bool ED_operator_region_gizmo_active(bContext *C);
  * Generic for any view2d which uses anim_ops.
  */
 bool ED_operator_animview_active(bContext *C);
+bool ED_operator_region_animview_active(bContext *C);
 bool ED_operator_outliner_active(bContext *C);
 bool ED_operator_region_outliner_active(bContext *C);
 bool ED_operator_outliner_active_no_editobject(bContext *C);
@@ -597,6 +598,7 @@ bool ED_operator_outliner_active_no_editobject(bContext *C);
  * #ED_operator_asset_browsing_active() (asset browsing only).
  */
 bool ED_operator_file_active(bContext *C);
+bool ED_operator_region_file_active(bContext *C);
 /**
  * \note Will only return true if the file space is in file browsing mode, not asset browsing! See
  * #ED_operator_file_active() (file or asset browsing) and
@@ -606,6 +608,7 @@ bool ED_operator_file_browsing_active(bContext *C);
 bool ED_operator_asset_browsing_active(bContext *C);
 bool ED_operator_spreadsheet_active(bContext *C);
 bool ED_operator_action_active(bContext *C);
+bool ED_operator_region_action_active(bContext *C);
 bool ED_operator_buttons_active(bContext *C);
 bool ED_operator_node_active(bContext *C);
 bool ED_operator_node_editable(bContext *C);
@@ -623,6 +626,11 @@ bool ED_operator_object_active_only(bContext *C);
 bool ED_operator_object_active(bContext *C);
 bool ED_operator_object_active_editable_ex(bContext *C, const Object *ob);
 bool ED_operator_object_active_editable(bContext *C);
+
+/** Use in cases where it's essential the object is the active object in the current view layer. */
+bool ED_operator_object_active_only_from_view_layer(bContext *C);
+bool ED_operator_object_active_from_view_layer(bContext *C);
+
 /**
  * Object must be editable and fully local (i.e. not an override).
  */

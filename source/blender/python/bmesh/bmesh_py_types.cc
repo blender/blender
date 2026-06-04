@@ -231,7 +231,7 @@ static int bpy_bm_elem_index_set(BPy_BMElem *self, PyObject *value, void * /*fla
 /* Mesh
  * ^^^^ */
 
-/* doc-strings for all uses of this function */
+/* Docstrings for all uses of this function. */
 
 PyDoc_STRVAR(
     /* Wrap. */
@@ -4769,8 +4769,8 @@ static Py_hash_t bpy_bm_hash(PyObject *self)
   return Py_HashPointer((reinterpret_cast<BPy_BMesh *>(self))->bm);
 }
 
-/* Type Doc-strings
- * ================ */
+/* Type Docstrings
+ * =============== */
 
 PyDoc_STRVAR(
     /* Wrap. */

@@ -93,11 +93,23 @@ asset_system::AssetCatalogTree build_filtered_catalog_tree(
   return filtered_tree;
 }
 
+static asset_system::AssetCatalogPath catalog_path_skipped_prefix(
+    const asset_system::AssetCatalogPath &full_path, const std::optional<StringRef> skip_prefix)
+{
+  const bool has_skip_prefix = skip_prefix && full_path.str().starts_with(*skip_prefix) &&
+                               full_path.str()[skip_prefix->size()] ==
+                                   asset_system::AssetCatalogPath::SEPARATOR;
+
+  return has_skip_prefix ? StringRef(full_path.str()).drop_prefix(skip_prefix->size() + 1) :
+                           full_path;
+}
+
 AssetItemTree build_filtered_all_catalog_tree(
     const AssetLibraryReference &library_ref,
     const bContext &C,
     const AssetFilterSettings &filter_settings,
-    const FunctionRef<bool(const AssetMetaData &)> meta_data_filter)
+    const FunctionRef<bool(const AssetMetaData &)> meta_data_filter,
+    const std::optional<StringRef> skip_prefix)
 {
   MultiValueMap<asset_system::AssetCatalogPath, asset_system::AssetRepresentation *>
       assets_per_path;
@@ -134,7 +146,20 @@ AssetItemTree build_filtered_all_catalog_tree(
       unassigned_assets.append(&asset);
       return true;
     }
-    assets_per_path.add(catalog->path, &asset);
+
+    const asset_system::AssetCatalogPath catalog_path = catalog_path_skipped_prefix(catalog->path,
+                                                                                    skip_prefix);
+
+    if (catalog_path.str().empty() ||
+        catalog_path.str() == std::string{asset_system::AssetCatalogPath::SEPARATOR})
+    {
+      /* Also include assets with an empty catalog path in the "Unassigned" list. Mostly relevant
+       * when assets are directly placed under the skipped prefix path. */
+      unassigned_assets.append(&asset);
+      return true;
+    }
+
+    assets_per_path.add(catalog_path, &asset);
     return true;
   });
 
@@ -142,7 +167,10 @@ AssetItemTree build_filtered_all_catalog_tree(
   const std::shared_ptr<const asset_system::AssetCatalogTree> catalog_tree =
       library->catalog_service().catalog_tree();
   catalog_tree->foreach_item([&](const asset_system::AssetCatalogTreeItem &item) {
-    if (assets_per_path.lookup(item.catalog_path()).is_empty()) {
+    const asset_system::AssetCatalogPath catalog_path = catalog_path_skipped_prefix(
+        item.catalog_path(), skip_prefix);
+
+    if (assets_per_path.lookup(catalog_path).is_empty()) {
       return;
     }
     asset_system::AssetCatalog *catalog = library->catalog_service().find_catalog(
@@ -150,7 +178,7 @@ AssetItemTree build_filtered_all_catalog_tree(
     if (catalog == nullptr) {
       return;
     }
-    catalogs_with_node_assets.insert_item(*catalog);
+    catalogs_with_node_assets.insert_item(*catalog, skip_prefix);
   });
 
   return {std::move(catalogs_with_node_assets),

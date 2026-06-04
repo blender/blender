@@ -14,6 +14,8 @@
 #include "BLI_enumerable_thread_specific.hh"
 #include "BLI_math_geom.h"
 
+#include "PRF_profile.hh"
+
 #include "editors/sculpt_paint/mesh/mesh_brush_common.hh"
 #include "editors/sculpt_paint/mesh/sculpt_automask.hh"
 #include "editors/sculpt_paint/mesh/sculpt_intern.hh"
@@ -34,6 +36,7 @@ BLI_NOINLINE static void calc_closest_to_plane(const float4 &test_plane,
                                                const Span<int> verts,
                                                const MutableSpan<float3> translations)
 {
+  PRF_scope(ProfileCategory::Editor);
   /* Equivalent to #closest_to_plane_normalized_v3 */
   BLI_assert(verts.size() == translations.size());
   for (const int i : verts.index_range()) {
@@ -46,6 +49,7 @@ BLI_NOINLINE static void calc_closest_to_plane(const float4 &test_plane,
                                                const Span<float3> positions,
                                                const MutableSpan<float3> translations)
 {
+  PRF_scope(ProfileCategory::Editor);
   /* Equivalent to #closest_to_plane_normalized_v3 */
   BLI_assert(positions.size() == translations.size());
   for (const int i : positions.index_range()) {
@@ -153,6 +157,7 @@ void do_clay_brush(const Depsgraph &depsgraph,
                    Object &object,
                    const IndexMask &node_mask)
 {
+  PRF_scope(ProfileCategory::Editor);
   SculptSession &ss = *object.runtime->sculpt_session;
   bke::pbvh::Tree &pbvh = *bke::object::pbvh_get(object);
   const Brush &brush = *BKE_paint_brush_for_read(&sd.paint);

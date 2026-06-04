@@ -292,6 +292,7 @@ void VolumeProbeModule::set_view(View & /*view*/)
     grid_upload_ps_.bind_ssbo("bricks_infos_buf", &bricks_infos_buf_);
     grid_upload_ps_.push_constant("grid_index", world_grid_index);
     grid_upload_ps_.bind_image("irradiance_atlas_img", &irradiance_atlas_tx_);
+    grid_upload_ps_.bind_texture("irradiance_atlas_tx", &irradiance_atlas_tx_);
     /* Sync with extraction. */
     grid_upload_ps_.barrier(GPU_BARRIER_SHADER_STORAGE);
     /* Only upload one brick. */

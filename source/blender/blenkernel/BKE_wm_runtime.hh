@@ -117,7 +117,11 @@ struct WindowManagerRuntime {
   /** User configuration. */
   wmKeyConfig *userconf = nullptr;
 
-  /** All undo history. */
+  /**
+   * All undo history.
+   *
+   * \note This will be null in background mode unless explicitly created.
+   */
   UndoStack *undo_stack = nullptr;
 
   wmMsgBus *message_bus = nullptr;

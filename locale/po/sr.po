@@ -1,9 +1,9 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 5.2.0 Alpha (b'bc0a0ff2c0ce')\n"
+"Project-Id-Version: Blender 5.2.0 Alpha (b'8764d33c658b')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-05-18 11:20+0000\n"
+"POT-Creation-Date: 2026-06-01 07:36+0000\n"
 "PO-Revision-Date: 2025-07-23 15:10+0000\n"
 "Last-Translator: Anonymous <noreply@weblate.org>\n"
 "Language-Team: Serbian <https://translate.blender.org/projects/blender-ui/ui/sr/>\n"
@@ -621,6 +621,10 @@ msgstr "Активна кост"
 
 msgid "Description"
 msgstr "Опис"
+
+
+msgid "Link"
+msgstr "Веза"
 
 
 msgid "Custom"
@@ -1516,6 +1520,10 @@ msgstr "Прецизност"
 
 msgid "Simplify"
 msgstr "Поједностављивање"
+
+
+msgid "Pixel"
+msgstr "Пиксел"
 
 
 msgid "Input Samples"
@@ -4369,10 +4377,6 @@ msgid "Show image files"
 msgstr "Прикажи датотеке слика"
 
 
-msgid "Link"
-msgstr "Веза"
-
-
 msgid "Matrix"
 msgstr "Матрица"
 
@@ -4757,6 +4761,10 @@ msgid "Grid"
 msgstr "Мрежа"
 
 
+msgid "Dynamic"
+msgstr "Динамичко"
+
+
 msgid "Items"
 msgstr "Ставке"
 
@@ -4935,10 +4943,6 @@ msgstr "Локално"
 
 msgid "Global"
 msgstr "Глобално"
-
-
-msgid "Dynamic"
-msgstr "Динамичко"
 
 
 msgid "Add Color"
@@ -6585,10 +6589,6 @@ msgstr "Подешавање честица"
 
 msgid "Degrees"
 msgstr "Степени"
-
-
-msgid "Pixel"
-msgstr "Пиксел"
 
 
 msgid "Angular Velocity"
@@ -8514,16 +8514,16 @@ msgid "Local View"
 msgstr "Локални поглед"
 
 
-msgid "Math"
-msgstr "Математика"
-
-
 msgid "Navigation"
 msgstr "Навигација"
 
 
 msgid "Align View"
 msgstr "Поравнај поглед"
+
+
+msgid "Math"
+msgstr "Математика"
 
 
 msgid "Select Linked"
@@ -8542,12 +8542,12 @@ msgid "Relations"
 msgstr "Односи"
 
 
-msgid "Import"
-msgstr "Увоз"
-
-
 msgid "Rigid Body"
 msgstr "Круто тело"
+
+
+msgid "Import"
+msgstr "Увоз"
 
 
 msgid "Apply"
@@ -8566,12 +8566,12 @@ msgid "Show/Hide"
 msgstr "Прикажи/сакриј"
 
 
-msgid "UV"
-msgstr "UV"
-
-
 msgid "Hooks"
 msgstr "Удице"
+
+
+msgid "UV"
+msgstr "UV"
 
 
 msgid "Clear Transform"
@@ -8608,6 +8608,10 @@ msgstr "Мод избора мреже"
 
 msgid "Merge"
 msgstr "Сједини"
+
+
+msgid "Linked"
+msgstr "Повезано"
 
 
 msgid "Special Characters"
@@ -10158,10 +10162,6 @@ msgid "Lines"
 msgstr "Линије"
 
 
-msgid "Timecode"
-msgstr "Време"
-
-
 msgid "Average error of reconstruction"
 msgstr "Просечна грешка реконструкције"
 
@@ -11096,10 +11096,6 @@ msgstr "Сакри утичнице"
 
 msgid "Hide Value"
 msgstr "Сакриј вредност"
-
-
-msgid "Linked"
-msgstr "Повезано"
 
 
 msgid "Is Output"
@@ -13846,6 +13842,11 @@ msgstr "Скочи на претходни/наредни кључни када�
 
 msgid "Next Keyframe"
 msgstr "Следећи кључни кадар"
+
+
+msgctxt "Operator"
+msgid "Local View"
+msgstr "Локални поглед"
 
 
 msgctxt "Operator"
@@ -18513,11 +18514,6 @@ msgid "Interactively fly around the scene"
 msgstr "Интерактиван лет кроз сцену"
 
 
-msgctxt "Operator"
-msgid "Local View"
-msgstr "Локални поглед"
-
-
 msgid "Move the view"
 msgstr "Помери поглед"
 
@@ -19302,10 +19298,6 @@ msgid "Shaded"
 msgstr "Сенчено"
 
 
-msgid "Styles"
-msgstr "Стилови"
-
-
 msgid "User Interface"
 msgstr "Корисничко окружење"
 
@@ -19763,6 +19755,10 @@ msgstr "Стандардна акција за средњи тастер миш�
 
 msgid "System & OpenGL"
 msgstr "Систем и OpenGL"
+
+
+msgid "Styles"
+msgstr "Стилови"
 
 
 msgid "View & Controls"
@@ -22568,6 +22564,11 @@ msgid "Object Index"
 msgstr "Индекс објекта"
 
 
+msgctxt "Operator"
+msgid "Clear"
+msgstr "Очисти"
+
+
 msgid "No output node"
 msgstr "Без излазног чвора"
 
@@ -22789,11 +22790,6 @@ msgstr "Родитељ:"
 
 msgid "Transform:"
 msgstr "Трансформација:"
-
-
-msgctxt "Operator"
-msgid "Clear"
-msgstr "Очисти"
 
 
 msgid "Date"
@@ -23830,6 +23826,11 @@ msgstr "Основа"
 
 msgid "Key %d"
 msgstr "Кључ %d"
+
+
+msgctxt "Key"
+msgid "Key"
+msgstr "Кључ"
 
 
 msgid "MaskLayer"
@@ -25020,11 +25021,6 @@ msgstr "Модификатор вредности F-криве"
 
 msgid "Image not packed"
 msgstr "Назив слике"
-
-
-msgctxt "Key"
-msgid "Key"
-msgstr "Кључ"
 
 
 msgid "unsupported font format"

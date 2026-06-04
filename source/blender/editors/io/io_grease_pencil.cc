@@ -197,6 +197,7 @@ static void grease_pencil_import_svg_draw(bContext * /*C*/, wmOperator *op)
   ui::Layout &col = layout.box().column(false);
   col.prop(op->ptr, "resolution", UI_ITEM_NONE, std::nullopt, ICON_NONE);
   col.prop(op->ptr, "scale", UI_ITEM_NONE, std::nullopt, ICON_NONE);
+  col.prop(op->ptr, "use_scene_unit", UI_ITEM_NONE, std::nullopt, ICON_NONE);
 }
 
 static bool grease_pencil_import_svg_poll(bContext *C)

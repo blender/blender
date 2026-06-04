@@ -48,9 +48,28 @@ template<typename T> void hash_unique_default(const T &value, UniqueHashBytes &h
 
 template<typename T>
 inline void hash_unique_default(const T &value, UniqueHashBytes &hash)
-  requires(std::is_trivially_copyable_v<T>)
+  requires(std::is_integral_v<T> || std::is_enum_v<T> || std::is_pointer_v<T>)
 {
   hash.add(value);
+}
+
+template<typename T>
+inline void hash_unique_default(const T &value, UniqueHashBytes &hash)
+  requires(std::is_floating_point_v<T>)
+{
+  if (value == 0) {
+    hash.add(T(0));
+  }
+  else {
+    hash.add(value);
+  }
+}
+
+template<typename T>
+inline void hash_unique_default(const T &value, UniqueHashBytes &hash)
+  requires requires { value.hash_unique(hash); }
+{
+  value.hash_unique(hash);
 }
 
 }  // namespace blender

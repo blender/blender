@@ -86,7 +86,7 @@ ccl_device float svm_ao(
       }
     }
     else {
-      if (!scene_intersect_shadow(kg, &ray, PATH_RAY_SHADOW_OPAQUE)) {
+      if (!scene_intersect_shadow(kg, &ray, PATH_RAY_VISIBILITY_SHADOW_OPAQUE)) {
         unoccluded++;
       }
     }

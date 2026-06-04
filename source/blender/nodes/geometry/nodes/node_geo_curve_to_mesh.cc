@@ -30,12 +30,12 @@ static void node_declare(NodeDeclarationBuilder &b)
   b.add_input<decl::Float>("Scale"_ustr)
       .default_value(1.0f)
       .min(0.0f)
-      .field_on({0})
+      .evaluated_geometry_field({0})
       .description("Scale of the profile at each point");
   b.add_input<decl::Bool>("Fill Caps"_ustr)
       .description(
           "If the profile spline is cyclic, fill the ends of the generated mesh with N-gons");
-  b.add_output<decl::Geometry>("Mesh"_ustr).propagate_all();
+  b.add_output<decl::Geometry>("Mesh"_ustr).propagate_all_geometry();
 }
 
 static Mesh *curve_to_mesh(const bke::CurvesGeometry &curves,

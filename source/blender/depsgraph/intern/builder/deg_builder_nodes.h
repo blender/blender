@@ -178,6 +178,8 @@ class DepsgraphNodeBuilder : public DepsgraphBuilder {
   virtual void build_scene_parameters(Scene *scene);
   virtual void build_scene_compositor(Scene *scene);
 
+  virtual void build_empty_object(Object *object);
+
   virtual void build_layer_collections(ListBaseT<LayerCollection> *lb);
   virtual void build_view_layer(Scene *scene,
                                 ViewLayer *view_layer,

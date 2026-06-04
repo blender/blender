@@ -10,19 +10,12 @@
 
 #pragma once
 
-#include "infos/eevee_common_infos.hh"
-
-COMPUTE_SHADER_CREATE_INFO(draw_view)
-COMPUTE_SHADER_CREATE_INFO(draw_view_culling)
-COMPUTE_SHADER_CREATE_INFO(eevee_hiz_data)
-COMPUTE_SHADER_CREATE_INFO(draw_resource_id_varying)
-
-#include "draw_view_lib.glsl"
 #include "eevee_defines.hh"
+#include "eevee_hiz.bsl.hh"
 #include "eevee_light_iter.bsl.hh"
-#include "eevee_light_lib.glsl"
+#include "eevee_light_lib.bsl.hh"
 #include "eevee_lightprobe_shared.hh"
-#include "eevee_sampling_lib.glsl"
+#include "eevee_sampling_lib.bsl.hh"
 #include "eevee_shadow_page_ops.bsl.hh"
 #include "eevee_shadow_shared.hh"
 #include "eevee_shadow_tilemap_lib.bsl.hh"
@@ -32,13 +25,11 @@ COMPUTE_SHADER_CREATE_INFO(draw_resource_id_varying)
 namespace eevee::shadow::usage {
 
 struct TagUsage {
-  [[legacy_info]] ShaderCreateInfo draw_view;
-  [[legacy_info]] ShaderCreateInfo draw_view_culling;
-  [[legacy_info]] ShaderCreateInfo eevee_global_ubo;
-
   [[resource_table]] srt_t<LightRenderData> light_data;
   [[resource_table]] srt_t<TileMaps> tilemaps;
   [[resource_table]] srt_t<Tiles> tiles;
+  [[resource_table]] srt_t<Uniform> uniforms;
+  [[resource_table]] srt_t<draw::View> views_;
 
  public:
   void tag_usage_tile(LightData light, uint2 tile_co, int lod, int tilemap_index)
@@ -117,6 +108,8 @@ struct TagUsage {
   void tag_usage_tilemap_punctual(uint l_idx, float3 P, float radius, int lod_bias)
   {
     [[resource_table]] LightRenderData &lrd = light_data;
+    [[resource_table]] const Uniform &uni = uniforms;
+    [[resource_table]] const draw::View &views = views_;
 
     LightData light = lrd.light_buf[l_idx];
 
@@ -146,11 +139,13 @@ struct TagUsage {
     /* Transform to shadow local space. */
     lP -= light.local().local.shadow_position;
 
+    const ViewMatrices view = views.get(0);
+
     int lod = shadow_punctual_level(light,
                                     lP,
-                                    drw_view_is_perspective(),
-                                    drw_view_z_distance(P),
-                                    uniform_buf.shadow.film_pixel_radius);
+                                    view.is_perspective(),
+                                    view.z_distance(P),
+                                    uni.uniform_buf.shadow.film_pixel_radius);
     lod = clamp(lod + lod_bias, 0, SHADOW_TILEMAP_LOD);
 
     if (radius == 0) {
@@ -248,8 +243,6 @@ template void light::foreach<shadow::usage::TagSurfelCtx, shadow::usage::TagUsag
 namespace eevee::shadow::usage {
 
 struct TagUsageOpaque {
-  [[legacy_info]] ShaderCreateInfo eevee_hiz_data;
-
   [[push_constant]] int2 input_depth_extent;
 };
 
@@ -259,6 +252,8 @@ struct TagUsageOpaque {
  */
 [[compute, local_size(SHADOW_DEPTH_SCAN_GROUP_SIZE, SHADOW_DEPTH_SCAN_GROUP_SIZE)]]
 void tag_usage_opaque([[resource_table]] TagUsageOpaque &srt,
+                      [[resource_table]] const HiZ &hiz,
+                      [[resource_table]] const draw::View &views,
                       [[resource_table]] TagUsage &tag,
                       [[global_invocation_id]] const uint3 global_id)
 {
@@ -271,16 +266,18 @@ void tag_usage_opaque([[resource_table]] TagUsageOpaque &srt,
     return;
   }
 
-  float depth = texelFetch(hiz_tx, texel, 0).r;
+  float depth = texelFetch(hiz.hiz_tx, texel, 0).r;
   if (depth == 1.0f) {
     return;
   }
 
+  const ViewMatrices view = views.get(0);
+
   float2 uv = (float2(texel) + 0.5f) / float2(tex_size);
-  float3 vP = drw_point_screen_to_view(float3(uv, depth));
+  float3 vP = view.point_screen_to_view(float3(uv, depth));
 
   TagPixelCtx ctx = {
-      .P = drw_point_view_to_world(vP),
+      .P = view.point_view_to_world(vP),
       .V = float3(0.0f),
       .radius = 0.0f,
       .lod_bias = 0,
@@ -325,26 +322,24 @@ void tag_usage_surfel([[resource_table]] TagUsageSurfel &srt,
   light::foreach(lrd, ctx, tag);
 }
 
-struct TagUsageVolume {
-  [[legacy_info]] ShaderCreateInfo eevee_sampling_data;
-  [[legacy_info]] ShaderCreateInfo eevee_hiz_data;
-};
-
 /**
  * This pass scans all volume froxels and tags tiles needed for shadowing.
  */
 [[compute, local_size(VOLUME_GROUP_SIZE, VOLUME_GROUP_SIZE, VOLUME_GROUP_SIZE)]]
-void tag_usage_volume([[resource_table]] TagUsageVolume & /*srt*/,
-                      [[resource_table]] UnifiedVolumeProperties &volume,
+void tag_usage_volume([[resource_table]] UnifiedVolumeProperties &volume,
                       [[resource_table]] TagUsage &tag,
                       [[resource_table]] SurfelCapture & /*capture*/,
+                      [[resource_table]] const Uniform &uni,
+                      [[resource_table]] const draw::View &views,
+                      [[resource_table]] const Sampling &sampling,
+                      [[resource_table]] const HiZ &hiz,
                       [[global_invocation_id]] const uint3 global_id)
 {
   [[resource_table]] LightRenderData &lrd = tag.light_data;
 
   int3 froxel = int3(global_id);
 
-  if (any(greaterThanEqual(froxel, uniform_buf.volumes.tex_size))) {
+  if (any(greaterThanEqual(froxel, uni.uniform_buf.volumes.tex_size))) {
     return;
   }
 
@@ -355,27 +350,30 @@ void tag_usage_volume([[resource_table]] TagUsageVolume & /*srt*/,
     return;
   }
 
-  float offset = sampling_rng_1D_get(SAMPLING_VOLUME_W);
+  const ViewMatrices view = views.get(0);
+
+  float offset = sampling.rng_1D_get(SAMPLING_VOLUME_W);
   float jitter = interleaved_gradient_noise(float2(froxel.xy), 0.0f, offset);
 
-  float3 uvw = (float3(froxel) + float3(0.5f, 0.5f, jitter)) * uniform_buf.volumes.inv_tex_size;
-  float3 ss_P = volume_resolve_to_screen(uvw);
-  float3 vP = drw_point_screen_to_view(float3(ss_P.xy, ss_P.z));
-  float3 P = drw_point_view_to_world(vP);
+  float3 uvw = (float3(froxel) + float3(0.5f, 0.5f, jitter)) *
+               uni.uniform_buf.volumes.inv_tex_size;
+  float3 ss_P = volume_resolve_to_screen(uni, view, uvw);
+  float3 vP = view.point_screen_to_view(float3(ss_P.xy, ss_P.z));
+  float3 P = view.point_view_to_world(vP);
 
-  float depth = texelFetch(hiz_tx, froxel.xy, uniform_buf.volumes.tile_size_lod).r;
+  float depth = texelFetch(hiz.hiz_tx, froxel.xy, uni.uniform_buf.volumes.tile_size_lod).r;
   if (depth < ss_P.z) {
     return;
   }
 
-  float2 pixel = ((float2(froxel.xy) + 0.5f) * uniform_buf.volumes.inv_tex_size.xy) *
-                 uniform_buf.volumes.main_view_extent;
+  float2 pixel = ((float2(froxel.xy) + 0.5f) * uni.uniform_buf.volumes.inv_tex_size.xy) *
+                 uni.uniform_buf.volumes.main_view_extent;
 
-  int bias = uniform_buf.volumes.tile_size_lod;
+  int bias = uni.uniform_buf.volumes.tile_size_lod;
 
   TagPixelCtx ctx = {
       .P = P,
-      .V = drw_world_incident_vector(P),
+      .V = view.world_incident_vector(P),
       .radius = 0.01f,
       .lod_bias = bias,
   };

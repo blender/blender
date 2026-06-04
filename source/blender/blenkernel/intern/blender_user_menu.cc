@@ -103,7 +103,7 @@ void BKE_blender_user_menu_item_free_list(ListBaseT<bUserMenuItem> *lb)
     umi_next = umi->next;
     BKE_blender_user_menu_item_free(umi);
   }
-  BLI_listbase_clear(lb);
+  lb->clear_no_delete();
 }
 
 /** \} */

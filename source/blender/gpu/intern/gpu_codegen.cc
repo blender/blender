@@ -136,7 +136,7 @@ GPUCodegen::~GPUCodegen()
 {
   MEM_SAFE_DELETE(cryptomatte_input_);
   MEM_delete(create_info);
-  BLI_freelistN(&ubo_inputs_);
+  ubo_inputs_.free_no_destruct();
 };
 
 bool GPUCodegen::should_optimize_heuristic() const
@@ -150,7 +150,7 @@ bool GPUCodegen::should_optimize_heuristic() const
 
 void GPUCodegen::generate_attribs()
 {
-  if (BLI_listbase_is_empty(&graph.attributes)) {
+  if (graph.attributes.is_empty()) {
     output.attr_load.clear();
     return;
   }
@@ -247,7 +247,7 @@ void GPUCodegen::generate_resources()
   /* Increment heuristic. */
   textures_total_ = slot;
 
-  if (!BLI_listbase_is_empty(&ubo_inputs_)) {
+  if (!ubo_inputs_.is_empty()) {
     const char *linted_struct_suffix = "_host_shared_";
     /* NOTE: generate_uniform_buffer() should have sorted the inputs before this. */
     ss << "struct NodeTree {\n";
@@ -268,7 +268,7 @@ void GPUCodegen::generate_resources()
     info.uniform_buf(GPU_NODE_TREE_UBO_SLOT, "NodeTree", GPU_UBO_BLOCK_NAME, Frequency::BATCH);
   }
 
-  if (!BLI_listbase_is_empty(&graph.uniform_attrs.list)) {
+  if (!graph.uniform_attrs.list.is_empty()) {
     ss << "struct UniformAttrs {\n";
     for (GPUUniformAttr &attr : graph.uniform_attrs.list) {
       ss << "vec4 attr" << attr.id << ";\n";
@@ -280,7 +280,7 @@ void GPUCodegen::generate_resources()
     info.uniform_buf(2, "UniformAttrs", GPU_ATTRIBUTE_UBO_BLOCK_NAME "[512]", Frequency::BATCH);
   }
 
-  if (!BLI_listbase_is_empty(&graph.layer_attrs)) {
+  if (!graph.layer_attrs.is_empty()) {
     info.additional_info("draw_layer_attributes");
   }
 
@@ -499,7 +499,7 @@ void GPUCodegen::generate_uniform_buffer()
       }
     }
   }
-  if (!BLI_listbase_is_empty(&ubo_inputs_)) {
+  if (!ubo_inputs_.is_empty()) {
     /* This sorts the inputs based on size. */
     GPU_material_uniform_buffer_create(&mat, &ubo_inputs_);
   }
@@ -565,11 +565,11 @@ void GPUCodegen::generate_graphs()
   output.displacement = graph_serialize(
       GPU_NODE_TAG_DISPLACEMENT, graph.outlink_displacement, nullptr);
   output.thickness = graph_serialize(GPU_NODE_TAG_THICKNESS, graph.outlink_thickness, nullptr);
-  if (!BLI_listbase_is_empty(&graph.outlink_compositor)) {
+  if (!graph.outlink_compositor.is_empty()) {
     output.composite = graph_serialize(GPU_NODE_TAG_COMPOSITOR);
   }
 
-  if (!BLI_listbase_is_empty(&graph.material_functions)) {
+  if (!graph.material_functions.is_empty()) {
     for (GPUNodeGraphFunctionLink &func_link : graph.material_functions) {
       std::stringstream eval_ss;
       /* Untag every node in the graph to avoid serializing nodes from other functions */

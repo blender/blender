@@ -24,6 +24,7 @@
 
 #include "BKE_context.hh"
 #include "BKE_fcurve.hh"
+#include "BKE_main.hh"
 #include "BKE_nla.hh"
 #include "BKE_scene.hh"
 
@@ -337,6 +338,16 @@ static wmOperatorStatus graphkeys_viewall(bContext *C,
     return OPERATOR_CANCELLED;
   }
 
+  if (ac.regiontype != RGN_TYPE_WINDOW) {
+    /* It is possible that operator is invoked from other regions like the Graph Editor's channel
+     * list. Main region is required here for smooth view function. */
+    for (ARegion &region : ac.area->regionbase) {
+      if (region.regiontype == RGN_TYPE_WINDOW) {
+        ac.region = &region;
+        break;
+      }
+    }
+  }
   /* Set the horizontal range, with an extra offset so that the extreme keys will be in view. */
   get_graph_view_bounds(&ac, cur_new, do_sel_only, include_handles);
 
@@ -596,7 +607,7 @@ static wmOperatorStatus graphkeys_clear_ghostcurves_exec(bContext *C, wmOperator
   sipo = reinterpret_cast<SpaceGraph *>(ac.sl);
 
   /* If no ghost curves, don't do anything. */
-  if (BLI_listbase_is_empty(&sipo->runtime.ghost_curves)) {
+  if (sipo->runtime.ghost_curves.is_empty()) {
     return OPERATOR_CANCELLED;
   }
   /* Free ghost curves. */
@@ -621,6 +632,176 @@ void GRAPH_OT_ghost_curves_clear(wmOperatorType *ot)
 
   /* Flags */
   ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
+}
+
+/* Returns the free bit */
+static uint16_t find_free_localview_bit(const Main *bmain)
+{
+  uint16_t local_view_bits = 0;
+  static_assert(std::is_same_v<decltype(SpaceGraph::local_view_bit), decltype(local_view_bits)>);
+
+  /* Check all areas to see which local view bits are already in use. */
+  for (const bScreen &screen : bmain->screens) {
+    for (const ScrArea &area : screen.areabase) {
+      for (const SpaceLink &sl : area.spacedata) {
+        if (sl.spacetype == SPACE_GRAPH) {
+          const SpaceGraph *sipo = reinterpret_cast<const SpaceGraph *>(&sl);
+          local_view_bits |= sipo->local_view_bit;
+        }
+      }
+    }
+  }
+
+  for (int i = 0; i < sizeof(SpaceGraph::local_view_bit); i++) {
+    if ((local_view_bits & (1 << i)) == 0) {
+      return (1 << i);
+    }
+  }
+
+  return 0;
+}
+
+/**
+ * Returns true if entered in local view.
+ */
+static bool local_view_enter(bContext *C,
+                             SpaceGraph &sipo,
+                             const ARegion &region,
+                             const ListBaseT<bAnimListElem> &anim_data,
+                             const bool frame_selected)
+{
+  bool is_selected = false;
+  /* Find a free bit and set local view for graph editor in current context. */
+  const uint16_t free_bit = find_free_localview_bit(CTX_data_main(C));
+
+  for (bAnimListElem &ale : anim_data) {
+    FCurve *fcu = static_cast<FCurve *>(ale.key_data);
+    if (ale.type != ANIMTYPE_FCURVE) {
+      continue;
+    }
+    if (ale.flag & FCURVE_SELECTED) {
+      /* Set bit for selected Fcurves to draw them in local view. */
+      fcu->local_view_bits |= free_bit;
+      is_selected = true;
+    }
+  }
+
+  /* Only enter local view when Fcurve is selected. */
+  if (!is_selected) {
+    return false;
+  }
+
+  sipo.local_view_bit = free_bit;
+  sipo.local_view_visible_region_before = region.v2d.cur;
+  if (frame_selected) {
+    graphkeys_viewall(C, false, true, 200);
+  }
+
+  return true;
+}
+
+/**
+ * Returns true if exited from the local view.
+ */
+static bool local_view_exit(bContext *C,
+                            SpaceGraph &sipo,
+                            ARegion &region,
+                            const ListBaseT<bAnimListElem> &anim_data,
+                            const bool frame_selected)
+{
+  bool changed = false;
+  for (bAnimListElem &ale : anim_data) {
+    FCurve *fcu = static_cast<FCurve *>(ale.key_data);
+    if (ale.type != ANIMTYPE_FCURVE) {
+      continue;
+    }
+    fcu->local_view_bits &= ~sipo.local_view_bit;
+    changed = true;
+  }
+
+  sipo.local_view_bit = 0;
+  if (frame_selected) {
+    /* Restore view. */
+    ui::view2d_smooth_view(C, &region, &sipo.local_view_visible_region_before, 200);
+  }
+
+  return changed;
+}
+
+static wmOperatorStatus graph_local_view_exec(bContext *C, wmOperator *op)
+{
+  bAnimContext ac;
+  ListBaseT<bAnimListElem> anim_data = {nullptr, nullptr};
+  SpaceGraph *sipo = CTX_wm_space_graph(C);
+  const bool frame_selected = RNA_boolean_get(op->ptr, "frame_selected");
+  const bool enter_local_view = (sipo->local_view_bit == 0);
+
+  if (ANIM_animdata_get_context(C, &ac) == 0) {
+    return OPERATOR_CANCELLED;
+  }
+
+  if (ac.regiontype != RGN_TYPE_WINDOW) {
+    /* It is possible that operator is invoked from other regions like the Graph Editor's channel
+     * list. Main region is required here for current bounds and smooth view function. */
+    for (ARegion &region : ac.area->regionbase) {
+      if (region.regiontype == RGN_TYPE_WINDOW) {
+        ac.region = &region;
+        break;
+      }
+    }
+  }
+
+  const eAnimFilter_Flags filter = (ANIMFILTER_DATA_VISIBLE | ANIMFILTER_LIST_CHANNELS |
+                                    ANIMFILTER_NODUPLIS | ANIMFILTER_FCURVESONLY);
+  ANIM_animdata_filter(&ac, &anim_data, filter, ac.data, ac.datatype);
+
+  const bool changed = enter_local_view ?
+                           local_view_enter(C, *sipo, *ac.region, anim_data, frame_selected) :
+                           local_view_exit(C, *sipo, *ac.region, anim_data, frame_selected);
+
+  ANIM_animdata_freelist(&anim_data);
+
+  if (!changed) {
+    return OPERATOR_CANCELLED;
+  }
+
+  WM_event_add_notifier(C, NC_ANIMATION | ND_ANIMCHAN | NA_EDITED, nullptr);
+  return OPERATOR_FINISHED;
+}
+
+static bool graph_local_view_poll(bContext *C)
+{
+  if (!ED_operator_graphedit_active(C)) {
+    return false;
+  }
+
+  const SpaceGraph *sipo = CTX_wm_space_graph(C);
+  /* Operator is not supported yet in driver editor. */
+  return sipo->mode != SIPO_MODE_DRIVERS;
+}
+
+void GRAPH_OT_local_view(wmOperatorType *ot)
+{
+  /* identifiers */
+  ot->name = "Local View";
+  ot->idname = "GRAPH_OT_local_view";
+  ot->description = "Isolate selected F-Curves in Graph Editor view";
+
+  /* API callbacks. */
+  ot->exec = graph_local_view_exec;
+  ot->poll = graph_local_view_poll;
+
+  /* flags */
+  ot->flag = OPTYPE_UNDO;
+
+  /* Props */
+  PropertyRNA *prop = RNA_def_boolean(
+      ot->srna,
+      "frame_selected",
+      true,
+      "Frame selected",
+      "Zoom current view to draw selected fcurves in visible range");
+  RNA_def_property_flag(prop, PROP_SKIP_SAVE);
 }
 
 /** \} */

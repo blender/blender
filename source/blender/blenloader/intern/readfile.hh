@@ -244,7 +244,7 @@ FileData *blo_filedata_from_memfile(MemFile *memfile,
 
 /**
  * Build a #IDNameLib_Map of old main (we only care about local data here,
- * so we can do that after #blo_split_main() call.
+ * so we can do that after #blo_split_main() call).
  */
 void blo_make_old_idmap_from_main(FileData *fd, Main *bmain) ATTR_NONNULL(1, 2);
 
@@ -343,6 +343,7 @@ void blo_do_versions_450(FileData *fd, Library *lib, Main *bmain);
 void blo_do_versions_500(FileData *fd, Library *lib, Main *bmain);
 void blo_do_versions_510(FileData *fd, Library *lib, Main *bmain);
 void blo_do_versions_520(FileData *fd, Library *lib, Main *bmain);
+void blo_do_versions_530(FileData *fd, Library *lib, Main *bmain);
 
 void do_versions_after_linking_250(Main *bmain);
 void do_versions_after_linking_260(Main *bmain);
@@ -359,6 +360,7 @@ void do_versions_after_linking_450(FileData *fd, Main *bmain);
 void do_versions_after_linking_500(FileData *fd, Main *bmain);
 void do_versions_after_linking_510(FileData *fd, Main *bmain);
 void do_versions_after_linking_520(FileData *fd, Main *bmain);
+void do_versions_after_linking_530(FileData *fd, Main *bmain);
 
 void do_versions_after_setup(Main *new_bmain,
                              BlendfileLinkAppendContext *lapp_context,

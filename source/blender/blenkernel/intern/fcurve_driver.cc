@@ -696,7 +696,7 @@ static float dvar_eval_transChan(const AnimationEvalContext * /*anim_eval_contex
      *     a) decompose transform matrix as required, then try to make eulers from
      *        there compatible with original values
      *     b) [NOT USED] directly use the original values (no decomposition)
-     *         - only an option for "transform space", if quality is really bad with a)
+     *         - only an option for "transform space", if quality is really bad with "a".
      */
     float quat[4];
     int channel;
@@ -890,7 +890,7 @@ void driver_free_variable_ex(ChannelDriver *driver, DriverVar *dvar)
 
 void driver_variables_copy(ListBaseT<DriverVar> *dst_vars, const ListBaseT<DriverVar> *src_vars)
 {
-  BLI_assert(BLI_listbase_is_empty(dst_vars));
+  BLI_assert(dst_vars->is_empty());
   BLI_duplicatelist(dst_vars, src_vars);
 
   for (DriverVar &dvar : *dst_vars) {
@@ -1089,7 +1089,7 @@ ChannelDriver *fcurve_copy_driver(const ChannelDriver *driver)
   /* Copy variables. */
 
   /* To get rid of refs to non-copied data (that's still used on original). */
-  BLI_listbase_clear(&ndriver->variables);
+  ndriver->variables.clear_no_delete();
   driver_variables_copy(&ndriver->variables, &driver->variables);
 
   /* Return the new driver. */
@@ -1113,7 +1113,7 @@ enum {
 static ExprPyLike_Parsed *driver_compile_simple_expr_impl(ChannelDriver *driver)
 {
   /* Prepare parameter names. */
-  int names_len = BLI_listbase_count(&driver->variables);
+  int names_len = driver->variables.count();
   const char **names = static_cast<const char **>(
       BLI_array_alloca(names, names_len + VAR_INDEX_CUSTOM));
   int i = VAR_INDEX_CUSTOM;
@@ -1140,7 +1140,7 @@ static bool driver_evaluate_simple_expr(const AnimationEvalContext *anim_eval_co
                                         float time)
 {
   /* Prepare parameter values. */
-  int vars_len = BLI_listbase_count(&driver->variables);
+  int vars_len = driver->variables.count();
   double *vars = static_cast<double *>(BLI_array_alloca(vars, vars_len + VAR_INDEX_CUSTOM));
   int i = VAR_INDEX_CUSTOM;
 
@@ -1317,7 +1317,7 @@ static void evaluate_driver_sum(const AnimationEvalContext *anim_eval_context,
   DriverVar *dvar;
 
   /* Check how many variables there are first (i.e. just one?). */
-  if (BLI_listbase_is_single(&driver->variables)) {
+  if (driver->variables.is_single()) {
     /* Just one target, so just use that. */
     dvar = static_cast<DriverVar *>(driver->variables.first);
     driver->curval = driver_get_variable_value(anim_eval_context, driver, dvar);

@@ -366,7 +366,7 @@ static bAction *poselib_blend_init_get_action(bContext *C, wmOperator *op)
     return nullptr;
   }
 
-  if (asset->is_online()) {
+  if (asset->is_online_only()) {
     BKE_reportf(op->reports,
                 RPT_ERROR,
                 "Pose '%s' needs downloading before it can be applied (check context menu)",

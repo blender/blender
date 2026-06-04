@@ -12,30 +12,36 @@ static void node_declare(NodeDeclarationBuilder &b)
 {
   b.use_custom_socket_order();
   b.allow_any_socket_order();
-  b.add_output<decl::Int>("X"_ustr).field_source().description(
-      "X coordinate of the voxel in index space, or the minimum X coordinate of a tile");
-  b.add_output<decl::Int>("Y"_ustr).field_source().description(
-      "Y coordinate of the voxel in index space, or the minimum Y coordinate of a tile");
-  b.add_output<decl::Int>("Z"_ustr).field_source().description(
-      "Z coordinate of the voxel in index space, or the minimum Z coordinate of a tile");
+  b.add_output<decl::Int>("X"_ustr)
+      .structure_type(StructureType::Field)
+      .description(
+          "X coordinate of the voxel in index space, or the minimum X coordinate of a tile");
+  b.add_output<decl::Int>("Y"_ustr)
+      .structure_type(StructureType::Field)
+      .description(
+          "Y coordinate of the voxel in index space, or the minimum Y coordinate of a tile");
+  b.add_output<decl::Int>("Z"_ustr)
+      .structure_type(StructureType::Field)
+      .description(
+          "Z coordinate of the voxel in index space, or the minimum Z coordinate of a tile");
   auto &panel = b.add_panel("Tile"_ustr).default_closed(true);
   panel.add_output<decl::Bool>("Is Tile"_ustr)
-      .field_source()
+      .structure_type(StructureType::Field)
       .description(
           "True if the field is evaluated on a tile, i.e. on multiple voxels at once. If this is "
           "false, the extent is always 1");
   panel.add_output<decl::Int>("Extent X"_ustr)
-      .field_source()
+      .structure_type(StructureType::Field)
       .description(
           "Number of voxels in the X direction of the tile, or 1 if the field is evaluated on a "
           "voxel");
   panel.add_output<decl::Int>("Extent Y"_ustr)
-      .field_source()
+      .structure_type(StructureType::Field)
       .description(
           "Number of voxels in the Y direction of the tile, or 1 if the field is evaluated on a "
           "voxel");
   panel.add_output<decl::Int>("Extent Z"_ustr)
-      .field_source()
+      .structure_type(StructureType::Field)
       .description(
           "Number of voxels in the Z direction of the tile, or 1 if the field is evaluated on a "
           "voxel");

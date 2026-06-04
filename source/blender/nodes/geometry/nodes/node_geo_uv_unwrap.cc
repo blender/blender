@@ -39,11 +39,11 @@ static void node_declare(NodeDeclarationBuilder &b)
   b.add_input<decl::Bool>("Selection"_ustr)
       .default_value(true)
       .hide_value()
-      .supports_field()
+      .structure_type(StructureType::Field)
       .description("Faces to participate in the unwrap operation");
   b.add_input<decl::Bool>("Seam"_ustr)
       .hide_value()
-      .supports_field()
+      .structure_type(StructureType::Field)
       .description("Edges to mark where the mesh is \"cut\" for the purposes of unwrapping");
   b.add_input<decl::Float>("Margin"_ustr)
       .default_value(0.001f)
@@ -64,8 +64,10 @@ static void node_declare(NodeDeclarationBuilder &b)
   b.add_input<decl::Bool>("No Flip"_ustr)
       .usage_by_single_menu(GEO_NODE_UV_UNWRAP_METHOD_MINIMUM_STRETCH)
       .description("Prevents flipping UVs");
-  b.add_output<decl::Vector>("UV"_ustr).field_source_reference_all().description(
-      "UV coordinates between 0 and 1 for each face corner in the selected faces");
+  b.add_output<decl::Vector>("UV"_ustr)
+      .structure_type(StructureType::Field)
+      .propagate_references()
+      .description("UV coordinates between 0 and 1 for each face corner in the selected faces");
 }
 
 static void node_init(bNodeTree * /*tree*/, bNode *node)
@@ -152,11 +154,11 @@ static VArray<float3> construct_uv_gvarray(const Mesh &mesh,
     slim_options.iterations = iterations_;
     slim_options.no_flip = no_flip_;
     slim_options.skip_init = false;
-    uv_parametrizer_slim_solve(handle, &slim_options, nullptr, nullptr);
+    uv_parametrizer_slim_solve(handle, &slim_options, false, nullptr, nullptr);
   }
   else {
     geometry::uv_parametrizer_lscm_begin(
-        handle, false, method == GEO_NODE_UV_UNWRAP_METHOD_ANGLE_BASED);
+        handle, false, method == GEO_NODE_UV_UNWRAP_METHOD_ANGLE_BASED, false);
     geometry::uv_parametrizer_lscm_solve(handle, nullptr, nullptr);
     geometry::uv_parametrizer_lscm_end(handle);
   }

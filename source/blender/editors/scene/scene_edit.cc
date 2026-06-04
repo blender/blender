@@ -58,6 +58,7 @@ static Scene *scene_add(Main *bmain, Scene *scene_old, eSceneCopyMethod method)
   else { /* different kinds of copying */
     /* We are going to deep-copy collections, objects and various object data, we need to have
      * up-to-date obdata for that. */
+    BLI_assert(scene_old != nullptr);
     if (method == SCE_COPY_FULL) {
       ED_editors_flush_edits(bmain);
     }
@@ -240,7 +241,7 @@ bool ED_scene_view_layer_delete(Main *bmain, Scene *scene, ViewLayer *layer, Rep
   view_layer_remove_unset_nodetrees(bmain, scene, layer);
 
   BLI_remlink(&scene->view_layers, layer);
-  BLI_assert(BLI_listbase_is_empty(&scene->view_layers) == false);
+  BLI_assert(scene->view_layers.is_empty() == false);
 
   /* Remove from windows. */
   wmWindowManager *wm = static_cast<wmWindowManager *>(bmain->wm.first);
@@ -428,8 +429,11 @@ static wmOperatorStatus new_sequencer_scene_exec(bContext *C, wmOperator *op)
   wmWindow *win = CTX_wm_window(C);
   WorkSpace *workspace = CTX_wm_workspace(C);
   Scene *scene_old = CTX_data_sequencer_scene(C);
-  const int type = RNA_enum_get(op->ptr, "type");
-
+  eSceneCopyMethod type = eSceneCopyMethod(RNA_enum_get(op->ptr, "type"));
+  /* When there is no scene to copy from, force new. */
+  if (scene_old == nullptr) {
+    type = SCE_COPY_NEW;
+  }
   Scene *new_scene = scene_add(bmain, scene_old, eSceneCopyMethod(type));
   seq::editing_ensure(new_scene);
 

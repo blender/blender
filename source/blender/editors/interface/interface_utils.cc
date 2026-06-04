@@ -907,7 +907,7 @@ void butstore_free(Block *block, ButStore *bs_handle)
     block = bs_handle->block;
   }
 
-  BLI_freelistN(&bs_handle->items);
+  bs_handle->items.free_no_destruct();
   BLI_assert(BLI_findindex(&block->butstore, bs_handle) != -1);
   BLI_remlink(&block->butstore, bs_handle);
 

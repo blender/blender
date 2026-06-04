@@ -36,6 +36,7 @@ static BLI_NOINLINE void calc_limit_positions(const SubdivCCG &subdiv_ccg,
                                               const Span<int> grids,
                                               const MutableSpan<float3> limit_positions)
 {
+  PRF_scope(ProfileCategory::Editor);
   const CCGKey key = BKE_subdiv_ccg_key_top_level(subdiv_ccg);
   for (const int i : grids.index_range()) {
     const int start = i * key.grid_area;
@@ -81,6 +82,7 @@ void do_displacement_eraser_brush(const Depsgraph &depsgraph,
                                   Object &object,
                                   const IndexMask &node_mask)
 {
+  PRF_scope(ProfileCategory::Editor);
   SculptSession &ss = *object.runtime->sculpt_session;
   SubdivCCG &subdiv_ccg = *object.runtime->sculpt_session->subdiv_ccg;
   MutableSpan<float3> positions = subdiv_ccg.positions;

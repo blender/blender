@@ -142,7 +142,7 @@ ccl_device_inline void surface_shader_prepare_guiding(KernelGlobals kg,
 ccl_device_inline void surface_shader_prepare_closures(KernelGlobals kg,
                                                        ConstIntegratorState state,
                                                        ccl_private ShaderData *sd,
-                                                       const uint32_t path_flag)
+                                                       const PathRayVisibility path_visibility)
 {
   /* Filter out closures. */
   if (kernel_data.integrator.filter_closures) {
@@ -151,7 +151,7 @@ ccl_device_inline void surface_shader_prepare_closures(KernelGlobals kg,
       sd->closure_emission_background = zero_spectrum();
     }
 
-    if (path_flag & PATH_RAY_CAMERA) {
+    if (path_visibility & PATH_RAY_VISIBILITY_CAMERA) {
       if (filter_closures & FILTER_CLOSURE_DIRECT_LIGHT) {
         sd->flag &= ~SD_BSDF_HAS_EVAL;
       }
@@ -1152,6 +1152,7 @@ ccl_device void surface_shader_eval(KernelGlobals kg,
                                     ConstIntegratorGenericState state,
                                     ccl_private ShaderData *ccl_restrict sd,
                                     ccl_global float *ccl_restrict buffer,
+                                    const PathRayVisibility path_visibility,
                                     const uint32_t path_flag,
                                     bool use_caustics_storage = false)
 {
@@ -1162,7 +1163,9 @@ ccl_device void surface_shader_eval(KernelGlobals kg,
    * emission, then we don't need to store closures. The emission and shadow
    * shader data also do not have a closure array to save GPU memory. */
   int max_closures;
-  if (path_flag & (PATH_RAY_TERMINATE | PATH_RAY_SHADOW | PATH_RAY_EMISSION)) {
+  if ((path_visibility & PATH_RAY_VISIBILITY_SHADOW) ||
+      (path_flag & (PATH_RAY_TERMINATE | PATH_RAY_EMISSION)))
+  {
     max_closures = 0;
   }
   else {
@@ -1175,13 +1178,14 @@ ccl_device void surface_shader_eval(KernelGlobals kg,
 
 #ifdef __OSL__
   if (kernel_data.kernel_features & KERNEL_FEATURE_OSL_SHADING) {
-    osl_eval_nodes<SHADER_TYPE_SURFACE>(kg, state, sd, path_flag);
+    osl_eval_nodes<SHADER_TYPE_SURFACE>(kg, state, sd, path_visibility, path_flag);
   }
   else
 #endif
   {
 #ifdef __SVM__
-    svm_eval_nodes<node_feature_mask, SHADER_TYPE_SURFACE>(kg, state, sd, buffer, path_flag);
+    svm_eval_nodes<node_feature_mask, SHADER_TYPE_SURFACE>(
+        kg, state, sd, buffer, path_visibility, path_flag);
 #else
     if (sd->object == OBJECT_NONE) {
       sd->closure_emission_background = make_spectrum(0.8f);

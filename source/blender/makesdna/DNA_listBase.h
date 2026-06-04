@@ -12,6 +12,8 @@
 
 #pragma once
 
+#include "MEM_guardedalloc.h"
+
 namespace blender {
 
 /** Generic - all structs which are put into linked lists begin with this. */
@@ -48,6 +50,51 @@ template<typename T> struct ListBaseMutableBackwardWrapper;
  * structs. It is written as untyped #ListBase in .blend files for compatibility.
  */
 template<typename T> struct ListBaseT : public ListBase {
+  /** True when there is no item in the list. */
+  bool is_empty() const
+  {
+    return this->first == nullptr;
+  }
+
+  /** True when there is exactly one item in the list. */
+  bool is_single() const
+  {
+    return this->first != nullptr && this->last == this->first;
+  }
+
+  /**
+   * Just set the first and last pointer to null, forgetting all data that was in the list before.
+   */
+  void clear_no_delete()
+  {
+    this->first = nullptr;
+    this->last = nullptr;
+  }
+
+  /**
+   * Free all items in the list using the guarded allocator. Does not call the destructor.
+   */
+  void free_no_destruct()
+  {
+    for ([[maybe_unused]] T &item : this->items_mutable()) {
+      MEM_delete_void(static_cast<void *>(&item));
+    }
+    this->first = nullptr;
+    this->last = nullptr;
+  }
+
+  /**
+   * Number of items in the list. Note that this requires iterating over the whole list.
+   */
+  int count() const
+  {
+    int count = 0;
+    for ([[maybe_unused]] const T &item : *this) {
+      count++;
+    }
+    return count;
+  }
+
   /* TODO: Add const and non-const iterators. However this will require some refactoring
    * as some places rely on being able to get a mutable list element from a const list. */
   ListBaseTIterator<T> begin() const

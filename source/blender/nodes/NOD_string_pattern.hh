@@ -45,18 +45,22 @@ class StringPattern {
   };
 
   using PatternVariant = std::variant<Exact, Wildcard>;
+  StringRef full_pattern_;
   PatternVariant variant_;
 
-  StringPattern(PatternVariant variant) : variant_(std::move(variant)) {}
+  StringPattern(StringRef full_pattern, PatternVariant variant)
+      : full_pattern_(full_pattern), variant_(std::move(variant))
+  {
+  }
 
  public:
   /**
    * Create a new pattern. If the pattern is invalid, nullopt is returned and the error message is
    * set.
    */
-  static std::optional<StringPattern> from_string(StringPatternMode mode,
-                                                  StringRef pattern,
-                                                  std::string &r_error);
+  static std::optional<StringPattern> from_str(StringPatternMode mode,
+                                               StringRef pattern,
+                                               std::string &r_error);
 
   /** Returns true if the string matches the pattern. */
   bool match(StringRef query) const;
@@ -68,6 +72,11 @@ class StringPattern {
       return exact->pattern;
     }
     return std::nullopt;
+  }
+
+  StringRef full_pattern() const
+  {
+    return full_pattern_;
   }
 };
 

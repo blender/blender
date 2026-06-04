@@ -1074,6 +1074,16 @@ def km_user_interface(_params):
         ("ui.view_item_rename", {"type": 'F2', "value": 'PRESS'}, None),
         ("ui.view_item_delete", {"type": 'X', "value": 'PRESS'}, None),
         ("ui.view_item_delete", {"type": 'DEL', "value": 'PRESS'}, None),
+        ("ui.view_item_navigate", {"type": 'UP_ARROW', "value": 'PRESS', "repeat": True},
+         {"properties": [("direction", 'UP')]}),
+        ("ui.view_item_navigate", {"type": 'DOWN_ARROW', "value": 'PRESS', "repeat": True},
+         {"properties": [("direction", 'DOWN')]}),
+        ("ui.view_item_navigate", {"type": 'LEFT_ARROW', "value": 'PRESS', "repeat": True},
+         {"properties": [("direction", 'LEFT')]}),
+        ("ui.view_item_navigate", {"type": 'RIGHT_ARROW', "value": 'PRESS', "repeat": True},
+         {"properties": [("direction", 'RIGHT')]}),
+        ("ui.view_item_focus", {"type": 'NUMPAD_PERIOD', "value": 'PRESS'}, None),
+        ("ui.view_item_focus", {"type": 'BUTTON4MOUSE', "value": 'PRESS'}, None),
     ])
 
     return keymap
@@ -1388,6 +1398,7 @@ def km_outliner(params):
         ("outliner.show_hierarchy", {"type": 'HOME', "value": 'PRESS'}, None),
         ("outliner.show_active", {"type": 'PERIOD', "value": 'PRESS'}, None),
         ("outliner.show_active", {"type": 'NUMPAD_PERIOD', "value": 'PRESS'}, None),
+        ("outliner.show_active", {"type": 'BUTTON4MOUSE', "value": 'PRESS'}, None),
         ("outliner.scroll_page", {"type": 'PAGE_DOWN', "value": 'PRESS', "repeat": True},
          {"properties": [("up", False)]}),
         ("outliner.scroll_page", {"type": 'PAGE_UP', "value": 'PRESS', "repeat": True},
@@ -1651,6 +1662,7 @@ def km_view3d(params):
         ("view3d.view_selected", {"type": 'NUMPAD_PERIOD', "value": 'PRESS', "ctrl": True},
          {"properties": [("use_all_regions", True)]}),
         ("view3d.view_selected", {"type": 'NUMPAD_PERIOD', "value": 'PRESS'}, None),
+        ("view3d.view_selected", {"type": 'BUTTON4MOUSE', "value": 'PRESS'}, None),
         ("view3d.smoothview", {"type": 'TIMER1', "value": 'ANY', "any": True}, None),
         ("view3d.zoom", {"type": 'TRACKPADZOOM', "value": 'ANY'}, None),
         ("view3d.zoom", {"type": 'TRACKPADPAN', "value": 'ANY', "ctrl": True}, None),
@@ -1967,6 +1979,8 @@ def km_graph_editor_generic(params):
         *_template_items_hide_reveal_actions("graph.hide", "graph.reveal"),
         ("screen.space_type_set_or_cycle", {"type": 'TAB', "value": 'PRESS', "ctrl": True},
          {"properties": [("space_type", 'DOPESHEET_EDITOR')]}),
+        ("graph.local_view", {"type": 'SLASH', "value": 'PRESS'}, None),
+        ("graph.local_view", {"type": 'NUMPAD_SLASH', "value": 'PRESS'}, None),
     ])
 
     return keymap
@@ -2063,6 +2077,7 @@ def km_graph_editor(params):
         ("graph.view_all", {"type": 'HOME', "value": 'PRESS'}, None),
         ("graph.view_all", {"type": 'NDOF_BUTTON_FIT', "value": 'PRESS'}, None),
         ("graph.view_selected", {"type": 'NUMPAD_PERIOD', "value": 'PRESS'}, None),
+        ("graph.view_selected", {"type": 'BUTTON4MOUSE', "value": 'PRESS'}, None),
         ("graph.view_frame", {"type": 'NUMPAD_0', "value": 'PRESS'}, None),
         op_menu_pie("GRAPH_MT_view_pie", {"type": 'ACCENT_GRAVE', "value": 'PRESS'}),
         ("anim.channels_editable_toggle", {"type": 'TAB', "value": 'PRESS'}, None),
@@ -2158,6 +2173,7 @@ def km_image(params):
         ("image.view_all", {"type": 'HOME', "value": 'PRESS', "shift": True},
          {"properties": [("fit_view", True)]}),
         ("image.view_selected", {"type": 'NUMPAD_PERIOD', "value": 'PRESS'}, None),
+        ("image.view_selected", {"type": 'BUTTON4MOUSE', "value": 'PRESS'}, None),
         ("image.view_cursor_center", {"type": 'C', "value": 'PRESS', "shift": True}, None),
         ("image.view_pan", {"type": 'MIDDLEMOUSE', "value": 'PRESS'}, None),
         ("image.view_pan", {"type": 'MIDDLEMOUSE', "value": 'PRESS', "shift": True}, None),
@@ -2343,6 +2359,7 @@ def km_node_editor(params):
         ("node.view_all", {"type": 'HOME', "value": 'PRESS'}, None),
         ("node.view_all", {"type": 'NDOF_BUTTON_FIT', "value": 'PRESS'}, None),
         ("node.view_selected", {"type": 'NUMPAD_PERIOD', "value": 'PRESS'}, None),
+        ("node.view_selected", {"type": 'BUTTON4MOUSE', "value": 'PRESS'}, None),
         op_menu_pie("NODE_MT_view_pie", {"type": 'ACCENT_GRAVE', "value": 'PRESS'}),
         ("node.delete", {"type": 'X', "value": 'PRESS'}, None),
         ("node.delete", {"type": 'DEL', "value": 'PRESS'}, None),
@@ -2474,6 +2491,7 @@ def km_file_browser(params):
         # The two refresh operators have polls excluding each other (so only one is available depending on context).
         ("file.refresh", {"type": 'R', "value": 'PRESS'}, None),
         ("asset.library_refresh", {"type": 'R', "value": 'PRESS'}, None),
+        ("asset.library_reload_listing", {"type": 'R', "value": 'PRESS', "shift": True}, None),
         ("file.parent", {"type": 'P', "value": 'PRESS'}, None),
         ("file.previous", {"type": 'BACK_SPACE', "value": 'PRESS'}, None),
         ("file.next", {"type": 'BACK_SPACE', "value": 'PRESS', "shift": True}, None),
@@ -2711,6 +2729,7 @@ def km_dopesheet(params):
         ("action.view_all", {"type": 'HOME', "value": 'PRESS'}, None),
         ("action.view_all", {"type": 'NDOF_BUTTON_FIT', "value": 'PRESS'}, None),
         ("action.view_selected", {"type": 'NUMPAD_PERIOD', "value": 'PRESS'}, None),
+        ("action.view_selected", {"type": 'BUTTON4MOUSE', "value": 'PRESS'}, None),
         ("action.view_frame", {"type": 'NUMPAD_0', "value": 'PRESS'}, None),
         op_menu_pie("DOPESHEET_MT_view_pie", {"type": 'ACCENT_GRAVE', "value": 'PRESS'}),
         ("anim.channels_editable_toggle", {"type": 'TAB', "value": 'PRESS'}, None),
@@ -2829,6 +2848,7 @@ def km_nla_editor(params):
         ("nla.view_all", {"type": 'HOME', "value": 'PRESS'}, None),
         ("nla.view_all", {"type": 'NDOF_BUTTON_FIT', "value": 'PRESS'}, None),
         ("nla.view_selected", {"type": 'NUMPAD_PERIOD', "value": 'PRESS'}, None),
+        ("nla.view_selected", {"type": 'BUTTON4MOUSE', "value": 'PRESS'}, None),
         ("nla.view_frame", {"type": 'NUMPAD_0', "value": 'PRESS'}, None),
         op_menu_pie("NLA_MT_view_pie", {"type": 'ACCENT_GRAVE', "value": 'PRESS'}),
         ("nla.actionclip_add", {"type": 'A', "value": 'PRESS', "shift": True}, None),
@@ -3166,6 +3186,7 @@ def km_sequencer(params):
         ("sequencer.view_all", {"type": 'HOME', "value": 'PRESS'}, None),
         ("sequencer.view_all", {"type": 'NDOF_BUTTON_FIT', "value": 'PRESS'}, None),
         ("sequencer.view_selected", {"type": 'NUMPAD_PERIOD', "value": 'PRESS'}, None),
+        ("sequencer.view_selected", {"type": 'BUTTON4MOUSE', "value": 'PRESS'}, None),
         ("sequencer.view_frame", {"type": 'NUMPAD_0', "value": 'PRESS'}, None),
         ("sequencer.strip_jump", {"type": 'PAGE_UP', "value": 'PRESS', "repeat": True},
          {"properties": [("next", False), ("center", False)]}),
@@ -3294,6 +3315,7 @@ def km_sequencer_preview(params):
 
         # View.
         ("sequencer.view_selected", {"type": 'NUMPAD_PERIOD', "value": 'PRESS'}, None),
+        ("sequencer.view_selected", {"type": 'BUTTON4MOUSE', "value": 'PRESS'}, None),
         ("sequencer.view_all_preview", {"type": 'HOME', "value": 'PRESS'}, None),
         ("sequencer.view_all_preview", {"type": 'NDOF_BUTTON_FIT', "value": 'PRESS'}, None),
         ("sequencer.view_ghost_border", {"type": 'O', "value": 'PRESS'}, None),
@@ -3551,6 +3573,7 @@ def km_clip_editor(params):
         ("clip.view_all", {"type": 'F', "value": 'PRESS'},
          {"properties": [("fit_view", True)]}),
         ("clip.view_selected", {"type": 'NUMPAD_PERIOD', "value": 'PRESS'}, None),
+        ("clip.view_selected", {"type": 'BUTTON4MOUSE', "value": 'PRESS'}, None),
         ("clip.view_all", {"type": 'NDOF_BUTTON_FIT', "value": 'PRESS'}, None),
         ("clip.view_ndof", {"type": 'NDOF_MOTION', "value": 'ANY'}, None),
         ("clip.frame_jump", {"type": 'LEFT_ARROW', "value": 'PRESS', "shift": True, "ctrl": True, "repeat": True},
@@ -3901,6 +3924,7 @@ def km_animation_channels(params):
         # View
         ("anim.channel_view_pick", {"type": 'MIDDLEMOUSE', "value": 'PRESS', "alt": True}, None),
         ("anim.channels_view_selected", {"type": 'NUMPAD_PERIOD', "value": 'PRESS'}, None),
+        ("anim.channels_view_selected", {"type": 'BUTTON4MOUSE', "value": 'PRESS'}, None),
     ])
 
     return keymap
@@ -4824,7 +4848,7 @@ def _template_view3d_select(*, type, value, legacy, select_passthrough, exclude_
     # NOTE: `exclude_mod` is needed since we don't want this tool to exclude Control-RMB actions when this is used
     # as a tool key-map with RMB-select and `use_fallback_tool` is enabled with RMB select. See #92467.
 
-    # See: `use_tweak_select_passthrough` doc-string.
+    # See: `use_tweak_select_passthrough` docstring.
     if select_passthrough and (value in {'CLICK', 'RELEASE'}):
         select_passthrough = False
 
@@ -4916,7 +4940,7 @@ def _template_node_select(*, type, value, select_passthrough):
 
 def _template_uv_select(*, type, value, select_passthrough, legacy):
 
-    # See: `use_tweak_select_passthrough` doc-string.
+    # See: `use_tweak_select_passthrough` docstring.
     if select_passthrough and (value in {'CLICK', 'RELEASE'}):
         select_passthrough = False
 
@@ -4944,7 +4968,7 @@ def _template_uv_select(*, type, value, select_passthrough, legacy):
 
 def _template_mask_select(*, type, value, select_passthrough, legacy):
 
-    # See: `use_tweak_select_passthrough` doc-string.
+    # See: `use_tweak_select_passthrough` docstring.
     if select_passthrough and (value in {'CLICK', 'RELEASE'}):
         select_passthrough = False
 
@@ -6685,6 +6709,28 @@ def km_view3d_dolly_modal(_params):
     return keymap
 
 
+def km_view3d_location_scouting_capture_review_modal(_params):
+    items = []
+    keymap = (
+        "View3D VR Location Scouting Capture Review Modal",
+        {"space_type": 'EMPTY', "region_type": 'WINDOW', "modal": True},
+        {"items": items},
+    )
+
+    items.extend([
+        ("EXIT", {"type": 'ESC', "value": 'PRESS', "any": True}, None),
+        ("EXIT", {"type": 'RIGHTMOUSE', "value": 'PRESS', "any": True}, None),
+
+        ("PREVIOUS", {"type": 'UP_ARROW', "value": 'PRESS'}, None),
+        ("NEXT", {"type": 'DOWN_ARROW', "value": 'PRESS'}, None),
+
+        ("ADD_CAMERA", {"type": 'C', "value": 'PRESS'}, None),
+        ("ADD_MARKER", {"type": 'M', "value": 'PRESS'}, None),
+    ])
+
+    return keymap
+
+
 def km_paint_stroke_modal(_params):
     items = []
     keymap = (
@@ -7603,7 +7649,7 @@ def km_3d_view_tool_measure(params):
 
 def km_3d_view_tool_pose_breakdowner(params):
     return (
-        "3D View Tool: Pose, Breakdowner",
+        "3D View Tool: Breakdowner",
         {"space_type": 'VIEW_3D', "region_type": 'WINDOW'},
         {"items": [
             ("pose.breakdown", {**params.tool_maybe_tweak_event, **params.tool_modifier}, None),
@@ -7613,7 +7659,7 @@ def km_3d_view_tool_pose_breakdowner(params):
 
 def km_3d_view_tool_pose_push(params):
     return (
-        "3D View Tool: Pose, Push",
+        "3D View Tool: Push",
         {"space_type": 'VIEW_3D', "region_type": 'WINDOW'},
         {"items": [
             ("pose.push", {**params.tool_maybe_tweak_event, **params.tool_modifier}, None),
@@ -7623,7 +7669,7 @@ def km_3d_view_tool_pose_push(params):
 
 def km_3d_view_tool_pose_relax(params):
     return (
-        "3D View Tool: Pose, Relax",
+        "3D View Tool: Relax",
         {"space_type": 'VIEW_3D', "region_type": 'WINDOW'},
         {"items": [
             ("pose.relax", {**params.tool_maybe_tweak_event, **params.tool_modifier}, None),
@@ -9040,6 +9086,7 @@ def generate_keymaps(params=None):
         km_view3d_move_modal(params),
         km_view3d_zoom_modal(params),
         km_view3d_dolly_modal(params),
+        km_view3d_location_scouting_capture_review_modal(params),
         km_paint_stroke_modal(params),
         km_sculpt_expand_modal(params),
         km_sculpt_mesh_filter_modal_map(params),

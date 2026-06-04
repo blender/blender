@@ -99,7 +99,7 @@ static void layer_collection_free(ViewLayer *view_layer, LayerCollection *lc)
     layer_collection_free(view_layer, &nlc);
     MEM_delete(&nlc);
   }
-  BLI_listbase_clear(&lc->layer_collections);
+  lc->layer_collections.clear_no_delete();
 }
 
 static Base *object_base_new(Object *ob)
@@ -259,9 +259,9 @@ void BKE_view_layer_free_ex(ViewLayer *view_layer, const bool do_id_user)
 {
   BKE_view_layer_free_object_content(view_layer);
 
-  BLI_freelistN(&view_layer->aovs);
+  view_layer->aovs.free_no_destruct();
   view_layer->active_aov = nullptr;
-  BLI_freelistN(&view_layer->lightgroups);
+  view_layer->lightgroups.free_no_destruct();
   view_layer->active_lightgroup = nullptr;
 
   /* Cannot use MEM_SAFE_DELETE, as #SceneStats type is only forward-declared in
@@ -290,7 +290,7 @@ void BKE_view_layer_free_object_content(ViewLayer *view_layer)
 {
   view_layer->basact = nullptr;
 
-  BLI_freelistN(&view_layer->object_bases);
+  view_layer->object_bases.free_no_destruct();
 
   MEM_delete(view_layer->object_bases_hash);
 
@@ -298,7 +298,7 @@ void BKE_view_layer_free_object_content(ViewLayer *view_layer)
     layer_collection_free(view_layer, &lc);
     MEM_delete(&lc);
   }
-  BLI_listbase_clear(&view_layer->layer_collections);
+  view_layer->layer_collections.clear_no_delete();
 }
 
 void BKE_view_layer_selected_objects_tag(const Main &bmain,
@@ -529,7 +529,7 @@ void BKE_view_layer_copy_data(Scene *scene_dst,
 
   /* Copy layer collections and object bases. */
   /* Inline #BLI_duplicatelist and update the active base. */
-  BLI_listbase_clear(&view_layer_dst->object_bases);
+  view_layer_dst->object_bases.clear_no_delete();
   BLI_assert_msg((view_layer_src->flag & VIEW_LAYER_OUT_OF_SYNC) == 0,
                  "View Layer Object Base out of sync, invoke BKE_view_layer_synced_ensure.");
   for (const Base &base_src : view_layer_src->object_bases) {
@@ -550,11 +550,11 @@ void BKE_view_layer_copy_data(Scene *scene_dst,
       view_layer_dst->layer_collections.first);
   lc_scene_dst->collection = scene_dst->master_collection;
 
-  BLI_listbase_clear(&view_layer_dst->aovs);
+  view_layer_dst->aovs.clear_no_delete();
   layer_aov_copy_data(
       view_layer_dst, view_layer_src, &view_layer_dst->aovs, &view_layer_src->aovs);
 
-  BLI_listbase_clear(&view_layer_dst->lightgroups);
+  view_layer_dst->lightgroups.clear_no_delete();
   layer_lightgroup_copy_data(
       view_layer_dst, view_layer_src, &view_layer_dst->lightgroups, &view_layer_src->lightgroups);
 
@@ -880,7 +880,7 @@ static LayerCollectionResync *layer_collection_resync_create_recurse(
     layer_resync->is_used = false;
   }
 
-  if (BLI_listbase_is_empty(&layer->layer_collections)) {
+  if (layer->layer_collections.is_empty()) {
     layer_resync->is_valid_as_parent = layer_resync->is_usable;
   }
   else {
@@ -1280,7 +1280,7 @@ static void layer_collection_sync(ViewLayer *view_layer,
       child_layer->runtime_flag |= LAYER_COLLECTION_VISIBLE_VIEW_LAYER;
     }
 
-    if (!BLI_listbase_is_empty(&child_collection->exporters) &&
+    if (!child_collection->exporters.is_empty() &&
         !(ID_IS_LINKED(&child_collection->id) || ID_IS_OVERRIDE_LIBRARY(&child_collection->id)))
     {
       view_layer->flag |= VIEW_LAYER_HAS_EXPORT_COLLECTIONS;
@@ -1289,8 +1289,8 @@ static void layer_collection_sync(ViewLayer *view_layer,
 
   /* Replace layer collection list with new one. */
   layer_resync->layer->layer_collections = new_lb_layer;
-  BLI_assert(BLI_listbase_count(&layer_resync->collection->children) - skipped_children ==
-             BLI_listbase_count(&new_lb_layer));
+  BLI_assert(layer_resync->collection->children.count() - skipped_children ==
+             new_lb_layer.count());
   UNUSED_VARS_NDEBUG(skipped_children);
 
   /* Update bases etc. for objects. */
@@ -1360,7 +1360,7 @@ void BKE_layer_collection_doversion_2_80(const Scene *scene, ViewLayer *view_lay
      * viewlayer's list. This is not a valid situation, add a layer for the master collection and
      * add all existing first-level layers as children of that new master layer. */
     ListBaseT<LayerCollection> layer_collections = view_layer->layer_collections;
-    BLI_listbase_clear(&view_layer->layer_collections);
+    view_layer->layer_collections.clear_no_delete();
     LayerCollection *master_layer_collection = layer_collection_add(&view_layer->layer_collections,
                                                                     scene->master_collection);
     master_layer_collection->layer_collections = layer_collections;
@@ -1378,7 +1378,7 @@ bool BKE_layer_collection_sync(const Main &bmain, const Scene *scene, ViewLayer 
     return false;
   }
 
-  if (BLI_listbase_is_empty(&view_layer->layer_collections)) {
+  if (view_layer->layer_collections.is_empty()) {
     /* In some cases (from older files, or when creating a new ViewLayer from
      * #BKE_view_layer_add), we do have a master collection, yet no matching layer. Create the
      * master one here, so that the rest of the code can work as expected. */
@@ -1387,7 +1387,7 @@ bool BKE_layer_collection_sync(const Main &bmain, const Scene *scene, ViewLayer 
 
 #ifndef NDEBUG
   {
-    BLI_assert_msg(BLI_listbase_is_single(&view_layer->layer_collections),
+    BLI_assert_msg(view_layer->layer_collections.is_single(),
                    "ViewLayer's first level of children layer collections should always have "
                    "exactly one item");
 
@@ -1459,7 +1459,7 @@ bool BKE_layer_collection_sync(const Main &bmain, const Scene *scene, ViewLayer 
     }
   }
 
-  BLI_freelistN(&view_layer->object_bases);
+  view_layer->object_bases.free_no_destruct();
   view_layer->object_bases = new_object_bases;
 
   view_layer_objects_base_cache_validate(view_layer, nullptr);

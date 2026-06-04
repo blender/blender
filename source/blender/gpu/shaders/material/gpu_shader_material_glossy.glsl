@@ -24,9 +24,8 @@ void node_bsdf_glossy(float4 color,
   float3 V = coordinate_incoming(g_data.P);
   float NV = dot(N, V);
 
-  auto &utility_tx = sampler_get(eevee_utility_texture, utility_tx);
-  eevee::lut::GGXBrdfData lut = eevee::lut::GGXBrdfData::sample_utility_tx(
-      utility_tx, NV, roughness);
+  [[resource_table]] UtilityTexture &util_tx = resource_table_get(UtilityTexture);
+  eevee::lut::GGXBrdfData lut = eevee::lut::GGXBrdfData::sample_utility_tx(util_tx, NV, roughness);
 
   ClosureReflection reflection_data;
   reflection_data.weight = weight;

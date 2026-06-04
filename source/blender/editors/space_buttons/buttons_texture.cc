@@ -84,7 +84,7 @@ static void buttons_texture_user_socket_property_add(ListBaseT<ButsTextureUser> 
   user->category = category;
   user->icon = icon;
   user->name = name;
-  user->index = BLI_listbase_count(users);
+  user->index = users->count();
 
   BLI_addtail(users, user);
 }
@@ -105,7 +105,7 @@ static void buttons_texture_user_property_add(ListBaseT<ButsTextureUser> *users,
   user->category = category;
   user->icon = icon;
   user->name = name;
-  user->index = BLI_listbase_count(users);
+  user->index = users->count();
 
   BLI_addtail(users, user);
 }
@@ -130,7 +130,7 @@ static void buttons_texture_user_node_add(ListBaseT<ButsTextureUser> *users,
   user->category = category;
   user->icon = icon;
   user->name = name;
-  user->index = BLI_listbase_count(users);
+  user->index = users->count();
 
   BLI_addtail(users, user);
 }
@@ -234,7 +234,7 @@ static void buttons_texture_modifier_foreach(void *user_data,
     }
   }
   else {
-    const ModifierTypeInfo *modifier_type = BKE_modifier_get_info(ModifierType(md->type));
+    const ModifierTypeInfo *modifier_type = BKE_modifier_get_info(md->type);
 
     buttons_texture_user_property_add(
         users, &ob->id, *ptr, texture_prop, N_("Modifiers"), modifier_type->icon, md->name);
@@ -286,7 +286,7 @@ static void buttons_texture_users_from_context(ListBaseT<ButsTextureUser> *users
   }
 
   /* fill users */
-  BLI_listbase_clear(users);
+  users->clear_no_delete();
 
   if (scene && scene->compositing_node_group) {
     buttons_texture_users_find_nodetree(
@@ -381,7 +381,7 @@ void buttons_texture_context_compute(const bContext *C, SpaceProperties *sbuts)
     for (ButsTextureUser &user : ct->users.items_mutable()) {
       MEM_delete(&user);
     }
-    BLI_listbase_clear(&ct->users);
+    ct->users.clear_no_delete();
   }
 
   buttons_texture_users_from_context(&ct->users, C, sbuts);

@@ -43,16 +43,30 @@ struct StripScreenQuad {
   }
 };
 
-ImBuf *seq_render_give_ibuf_seqbase(const RenderData *context,
-                                    SeqRenderState *state,
-                                    float timeline_frame,
-                                    int chan_shown,
-                                    ListBaseT<SeqTimelineChannel> *channels,
-                                    ListBaseT<Strip> *seqbasep);
-ImBuf *seq_render_strip(const RenderData *context,
-                        SeqRenderState *state,
-                        Strip *strip,
-                        float timeline_frame);
+/**
+ * Result of rendering a strip: the produced image,
+ * plus some auxiliary data.
+ */
+struct SeqResult {
+  bool is_valid() const
+  {
+    return image != nullptr;
+  }
+
+  ImBuf *image = nullptr;
+  bool is_opaque_before_transform = false;
+};
+
+SeqResult seq_render_give_ibuf_seqbase(const RenderData *context,
+                                       SeqRenderState *state,
+                                       float timeline_frame,
+                                       int chan_shown,
+                                       ListBaseT<SeqTimelineChannel> *channels,
+                                       ListBaseT<Strip> *seqbasep);
+SeqResult seq_render_strip(const RenderData *context,
+                           SeqRenderState *state,
+                           Strip *strip,
+                           float timeline_frame);
 
 /* Renders Mask into an image suitable for sequencer:
  * RGB channels contain mask intensity; alpha channel is opaque. */

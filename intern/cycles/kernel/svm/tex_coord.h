@@ -91,7 +91,7 @@ ccl_device_inline Float3Type svm_texco_camera(KernelGlobals kg,
 template<typename Float3Type>
 ccl_device_noinline Float3Type svm_node_tex_coord_eval(KernelGlobals kg,
                                                        ccl_private ShaderData *sd,
-                                                       const uint32_t path_flag,
+                                                       const PathRayVisibility path_visibility,
                                                        const NodeTexCoord type,
                                                        ccl_private int *offset)
 {
@@ -126,7 +126,7 @@ ccl_device_noinline Float3Type svm_node_tex_coord_eval(KernelGlobals kg,
       break;
     }
     case NODE_TEXCO_WINDOW: {
-      if ((path_flag & PATH_RAY_CAMERA) && sd->object == OBJECT_NONE &&
+      if ((path_visibility & PATH_RAY_VISIBILITY_CAMERA) && sd->object == OBJECT_NONE &&
           kernel_data.cam.type == CAMERA_ORTHOGRAPHIC)
       {
         data = Float3Type(camera_world_to_ndc(kg, sd, sd->ray_P));
@@ -178,12 +178,13 @@ ccl_device_noinline Float3Type svm_node_tex_coord_eval(KernelGlobals kg,
 
 ccl_device_noinline int svm_node_tex_coord(KernelGlobals kg,
                                            ccl_private ShaderData *sd,
-                                           const uint32_t path_flag,
+                                           const PathRayVisibility path_visibility,
                                            ccl_private float *ccl_restrict stack,
                                            const ccl_global SVMNodeTexCoord &ccl_restrict node,
                                            int offset)
 {
-  const float3 data = svm_node_tex_coord_eval<float3>(kg, sd, path_flag, node.texco_type, &offset);
+  const float3 data = svm_node_tex_coord_eval<float3>(
+      kg, sd, path_visibility, node.texco_type, &offset);
   stack_store(stack, node.out_offset, data);
   return offset;
 }
@@ -191,12 +192,12 @@ ccl_device_noinline int svm_node_tex_coord(KernelGlobals kg,
 ccl_device_noinline int svm_node_tex_coord_derivative(
     KernelGlobals kg,
     ccl_private ShaderData *sd,
-    const uint32_t path_flag,
+    const PathRayVisibility path_visibility,
     ccl_private float *ccl_restrict stack,
     const ccl_global SVMNodeTexCoord &ccl_restrict node,
     int offset)
 {
-  dual3 data = svm_node_tex_coord_eval<dual3>(kg, sd, path_flag, node.texco_type, &offset);
+  dual3 data = svm_node_tex_coord_eval<dual3>(kg, sd, path_visibility, node.texco_type, &offset);
   if (node.bump_offset == NODE_BUMP_OFFSET_DX) {
     data.val += data.dx * node.bump_filter_width;
   }

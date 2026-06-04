@@ -1433,7 +1433,7 @@ static wmOperatorStatus separate_exec(bContext *C, wmOperator *op)
     /* 1. Duplicate geometry and check for valid selection for separate. */
     adduplicateflagNurb(oldob, v3d, &newnurb, BEZT_FLAG_SELECT, true);
 
-    if (BLI_listbase_is_empty(&newnurb)) {
+    if (newnurb.is_empty()) {
       status.error_generic++;
       continue;
     }
@@ -1550,16 +1550,16 @@ static wmOperatorStatus curve_split_exec(bContext *C, wmOperator *op)
 
     adduplicateflagNurb(obedit, v3d, &newnurb, BEZT_FLAG_SELECT, true);
 
-    if (BLI_listbase_is_empty(&newnurb)) {
+    if (newnurb.is_empty()) {
       count_failed += 1;
       continue;
     }
 
     ListBaseT<Nurb> *editnurb = object_editcurve_get(obedit);
-    const int len_orig = BLI_listbase_count(editnurb);
+    const int len_orig = editnurb->count();
 
     curve_delete_segments(obedit, v3d, true);
-    cu->actnu -= len_orig - BLI_listbase_count(editnurb);
+    cu->actnu -= len_orig - editnurb->count();
     BLI_movelisttolist(editnurb, &newnurb);
 
     if (ED_curve_updateAnimPaths(bmain, id_cast<Curve *>(obedit->data))) {
@@ -2178,7 +2178,7 @@ static void calc_duplicate_actnurb(const ListBaseT<Nurb> *editnurb,
                                    const ListBaseT<Nurb> *newnurb,
                                    Curve *cu)
 {
-  cu->actnu = BLI_listbase_count(editnurb) + BLI_listbase_count(newnurb);
+  cu->actnu = editnurb->count() + newnurb->count();
 }
 
 static bool calc_duplicate_actvert(const ListBaseT<Nurb> *editnurb,
@@ -2583,7 +2583,7 @@ static void adduplicateflagNurb(Object *obedit,
     }
   }
 
-  if (BLI_listbase_is_empty(newnurb) == false) {
+  if (newnurb->is_empty() == false) {
     for (Nurb &nu : *newnurb) {
       if (nu.type == CU_BEZIER) {
         if (split) {
@@ -4505,7 +4505,7 @@ static int merge_nurb(View3D *v3d, Object *obedit)
   make_selection_list_nurb(v3d, editnurb, &nsortbase);
 
   if (nsortbase.first == nsortbase.last) {
-    BLI_freelistN(&nsortbase);
+    nsortbase.free_no_destruct();
     return CURVE_MERGE_ERR_FEW_SELECTION;
   }
 
@@ -4540,7 +4540,7 @@ static int merge_nurb(View3D *v3d, Object *obedit)
   }
 
   if (ok == false) {
-    BLI_freelistN(&nsortbase);
+    nsortbase.free_no_destruct();
     return CURVE_MERGE_ERR_RESOLUTION_ALL;
   }
 
@@ -4551,7 +4551,7 @@ static int merge_nurb(View3D *v3d, Object *obedit)
     nus2 = nus2->next;
   }
 
-  BLI_freelistN(&nsortbase);
+  nsortbase.free_no_destruct();
   BKE_curve_nurb_active_set(id_cast<Curve *>(obedit->data), nullptr);
 
   return ok ? CURVE_MERGE_OK : CURVE_MERGE_ERR_RESOLUTION_SOME;
@@ -5271,7 +5271,7 @@ static bool ed_editcurve_extrude(Curve *cu, EditNurb *editnurb, View3D *v3d)
     void *p;
   } cu_actvert;
 
-  if (BLI_listbase_is_empty(&editnurb->nurbs)) {
+  if (editnurb->nurbs.is_empty()) {
     return changed;
   }
 
@@ -6067,7 +6067,7 @@ static wmOperatorStatus duplicate_exec(bContext *C, wmOperator *op)
     ListBaseT<Nurb> newnurb = {nullptr, nullptr};
     adduplicateflagNurb(obedit, v3d, &newnurb, BEZT_FLAG_SELECT, false);
 
-    if (BLI_listbase_is_empty(&newnurb)) {
+    if (newnurb.is_empty()) {
       count_failed += 1;
       continue;
     }
@@ -6997,7 +6997,7 @@ wmOperatorStatus ED_curve_join_objects_exec(bContext *C, wmOperator *op)
     return OPERATOR_CANCELLED;
   }
 
-  BLI_listbase_clear(&tempbase);
+  tempbase.clear_no_delete();
   /* Inverse transform for all selected curves in this object,
    * See object_join_exec for detailed comment on why the safe version is used. */
   invert_m4_m4_safe_ortho(imat, ob_active->object_to_world().ptr());

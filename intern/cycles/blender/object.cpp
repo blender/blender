@@ -69,7 +69,7 @@ bool BlenderSync::object_is_geometry(BObjectInfo &b_ob_info)
     return false;
   }
 
-  const blender::ObjectType type = blender::ObjectType(b_ob_info.iter_object->type);
+  const blender::ObjectType type = b_ob_info.iter_object->type;
 
   if (type == blender::OB_VOLUME || type == blender::OB_CURVES || type == blender::OB_POINTCLOUD ||
       type == blender::OB_LAMP)
@@ -83,7 +83,7 @@ bool BlenderSync::object_is_geometry(BObjectInfo &b_ob_info)
 
 bool BlenderSync::object_can_have_geometry(blender::Object &b_ob)
 {
-  const blender::ObjectType type = blender::ObjectType(b_ob.type);
+  const blender::ObjectType type = b_ob.type;
   switch (type) {
     case blender::OB_MESH:
     case blender::OB_CURVES_LEGACY:
@@ -211,7 +211,7 @@ Object *BlenderSync::sync_object(blender::ViewLayer &b_view_layer,
   const blender::Base *base_parent = BKE_view_layer_base_find(&b_view_layer, b_parent);
   const bool use_holdout = (base_parent && (base_parent->flag & blender::BASE_HOLDOUT) != 0) ||
                            ((b_parent->visibility_flag & blender::OB_HOLDOUT) != 0);
-  uint visibility = object_ray_visibility(b_ob) & PATH_RAY_ALL_VISIBILITY;
+  PathRayVisibility visibility = object_ray_visibility(b_ob);
 
   if (b_parent != &b_ob) {
     visibility &= object_ray_visibility(*b_parent);
@@ -220,7 +220,7 @@ Object *BlenderSync::sync_object(blender::ViewLayer &b_view_layer,
   /* TODO: make holdout objects on excluded layer invisible for non-camera rays. */
 #if 0
   if (use_holdout && (layer_flag & view_layer.exclude_layer)) {
-    visibility &= ~(PATH_RAY_ALL_VISIBILITY - PATH_RAY_CAMERA);
+    visibility &= ~(PATH_RAY_VISIBILITY_ALL & ~PATH_RAY_VISIBILITY_CAMERA);
   }
 #endif
 
@@ -228,11 +228,11 @@ Object *BlenderSync::sync_object(blender::ViewLayer &b_view_layer,
   const bool use_indirect_only = !use_holdout && base_parent &&
                                  ((base_parent->flag & blender::BASE_INDIRECT_ONLY) != 0);
   if (use_indirect_only) {
-    visibility &= ~PATH_RAY_CAMERA;
+    visibility &= ~PATH_RAY_VISIBILITY_CAMERA;
   }
 
   /* Don't export completely invisible objects. */
-  if (visibility == 0) {
+  if (visibility == PATH_RAY_VISIBILITY_NONE) {
     return nullptr;
   }
 
@@ -651,7 +651,8 @@ void BlenderSync::sync_objects_and_motion(blender::RenderData &b_render,
   /* Check which geometry already has motion blur so it can be skipped. */
   geometry_motion_attribute_synced.clear();
   for (Geometry *geom : scene->geometry) {
-    if (geom->attributes.find(ATTR_STD_MOTION_VERTEX_POSITION)) {
+    const Attribute *attr_P = geom->attributes.find(ATTR_STD_POSITION);
+    if (attr_P && attr_P->has_motion()) {
       geometry_motion_attribute_synced.insert(geom);
     }
   }

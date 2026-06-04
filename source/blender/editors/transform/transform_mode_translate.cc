@@ -167,7 +167,7 @@ static void translate_dist_to_str(char *r_str,
 {
   const int precision = high_precision ? 6 : 4;
   BKE_unit_value_as_string_scaled(
-      r_str, r_str_maxncpy, val, precision * -1, B_UNIT_LENGTH, unit, false);
+      r_str, r_str_maxncpy, val, precision * -1, B_UNIT_LENGTH, unit, false, true);
 }
 
 static void headerTranslation(TransInfo *t, const float vec[3], char str[UI_MAX_DRAW_STR])

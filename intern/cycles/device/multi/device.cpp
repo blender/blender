@@ -620,6 +620,16 @@ class MultiDevice : public Device {
     }
     return false;
   }
+
+  bool has_unified_image_memory() const override
+  {
+    for (const SubDevice &sub : devices) {
+      if (sub.device->has_unified_image_memory()) {
+        return true;
+      }
+    }
+    return false;
+  }
 };
 
 unique_ptr<Device> device_multi_create(const DeviceInfo &info,

@@ -52,13 +52,11 @@ ccl_device_inline void bake_jitter_barycentric(ccl_private float &u,
 }
 
 /* Offset towards center of triangle to avoid ray-tracing precision issues. */
-ccl_device float2 bake_offset_towards_center(KernelGlobals kg,
-                                             const int prim,
-                                             const float u,
-                                             const float v)
+ccl_device float2 bake_offset_towards_center(
+    KernelGlobals kg, const int object, const int prim, const float u, const float v)
 {
   float3 tri_verts[3];
-  triangle_vertices(kg, prim, tri_verts);
+  triangle_vertices(kg, object, prim, tri_verts);
 
   /* Empirically determined values, by no means perfect. */
   const float position_offset = 1e-4f;
@@ -163,7 +161,7 @@ ccl_device bool integrator_init_from_bake(KernelGlobals kg,
 
   /* Exactly at vertex? Nudge inwards to avoid self-intersection. */
   if ((u == 0.0f || u == 1.0f) && (v == 0.0f || v == 1.0f)) {
-    const float2 uv = bake_offset_towards_center(kg, prim, u, v);
+    const float2 uv = bake_offset_towards_center(kg, kernel_data.bake.object_index, prim, u, v);
     u = uv.x;
     v = uv.y;
   }
@@ -292,7 +290,7 @@ ccl_device bool integrator_init_from_bake(KernelGlobals kg,
     /* Setup differentials. */
     float3 dPdu;
     float3 dPdv;
-    triangle_dPdudv(kg, prim, &dPdu, &dPdv);
+    triangle_dPdudv(kg, object, prim, &dPdu, &dPdv);
     if (!(object_flag & SD_OBJECT_TRANSFORM_APPLIED)) {
       const Transform tfm = object_fetch_transform(kg, object, OBJECT_TRANSFORM);
       dPdu = transform_direction(&tfm, dPdu);
@@ -324,8 +322,7 @@ ccl_device bool integrator_init_from_bake(KernelGlobals kg,
     const bool use_raytrace_kernel = (shader_flags & SD_HAS_RAYTRACE);
 
     if (use_caustics) {
-      integrator_path_init_sorted(
-          kg, state, DEVICE_KERNEL_INTEGRATOR_SHADE_SURFACE_MNEE, shader_index);
+      integrator_path_init(state, DEVICE_KERNEL_INTEGRATOR_INTERSECT_MNEE);
     }
     else if (use_raytrace_kernel) {
       integrator_path_init_sorted(

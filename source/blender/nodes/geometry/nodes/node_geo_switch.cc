@@ -39,20 +39,7 @@ static void node_declare(NodeDeclarationBuilder &b)
 
   auto &false_decl = b.add_input(socket_type, "False"_ustr);
   auto &true_decl = b.add_input(socket_type, "True"_ustr);
-  auto &output_decl = b.add_output(socket_type, "Output"_ustr);
-
-  if (socket_type_supports_attributes(socket_type) && node_tree->type == NTREE_GEOMETRY) {
-    switch_decl.supports_field();
-    false_decl.supports_field();
-    true_decl.supports_field();
-    output_decl.dependent_field().reference_pass_all();
-  }
-  if (bke::node_tree_reference_lifetimes::can_contain_referenced_data(socket_type)) {
-    output_decl.propagate_all();
-  }
-  if (bke::node_tree_reference_lifetimes::can_contain_reference(socket_type)) {
-    output_decl.reference_pass_all();
-  }
+  auto &output_decl = b.add_output(socket_type, "Output"_ustr).propagate_all();
 
   StructureType value_structure_type = StructureType::Dynamic;
   StructureType condition_structure_type = StructureType::Dynamic;
@@ -67,6 +54,11 @@ static void node_declare(NodeDeclarationBuilder &b)
 
     false_decl.compositor_realization_mode(CompositorInputRealizationMode::None);
     true_decl.compositor_realization_mode(CompositorInputRealizationMode::None);
+  }
+  if (node_tree->type == NTREE_GEOMETRY) {
+    if (socket_type_supports_fields(socket_type)) {
+      output_decl.inferred_structure_type();
+    }
   }
 
   switch_decl.structure_type(condition_structure_type);

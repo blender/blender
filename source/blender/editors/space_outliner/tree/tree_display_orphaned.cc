@@ -73,7 +73,7 @@ ListBaseT<TreeElement> TreeDisplayIDOrphans::build_tree(const TreeSourceData &so
 
 bool TreeDisplayIDOrphans::datablock_has_orphans(ListBaseT<ID> &lb) const
 {
-  if (BLI_listbase_is_empty(&lb)) {
+  if (lb.is_empty()) {
     return false;
   }
   const IDTypeInfo *id_type = BKE_idtype_get_info_from_id(static_cast<ID *>(lb.first));

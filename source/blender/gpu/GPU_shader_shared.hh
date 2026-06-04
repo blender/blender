@@ -255,14 +255,12 @@ struct [[host_shared]] TestOutput {
 };
 
 #ifdef GPU_SHADER
-TestOutput test_output(
-    TestOutputRawData expect, TestOutputRawData result, bool status, int line, uint type)
+TestOutput test_output(TestOutputRawData expect, TestOutputRawData result, bool status, uint type)
 {
   TestOutput test;
   test.expect = expect;
   test.result = result;
   test.status = status ? TEST_STATUS_PASSED : TEST_STATUS_FAILED;
-  test.line = line;
   test.type = type;
   return test;
 }

@@ -185,10 +185,12 @@ static void sound_free_data(ID *id)
     sound->packedfile = nullptr;
   }
 
-  sound_free_audio(sound);
-  sound_free_waveform(sound);
-  BLI_spin_end(&sound->runtime->spinlock);
-  MEM_delete(sound->runtime);
+  if (sound->runtime) {
+    sound_free_audio(sound);
+    sound_free_waveform(sound);
+    BLI_spin_end(&sound->runtime->spinlock);
+    MEM_delete(sound->runtime);
+  }
 }
 
 static void sound_foreach_cache(ID *id,
@@ -729,7 +731,8 @@ static void sound_load_audio(Main *bmain, bSound *sound, bool free_waveform)
     try {
       runtime->cache = AUD_Sound(new aud::StreamBuffer(runtime->handle));
     }
-    catch (aud::Exception &) {
+    catch (aud::Exception &ex) {
+      (void)ex;
     }
   }
 
@@ -802,8 +805,8 @@ void BKE_sound_create_scene(Scene *scene)
   aud::Specs specs;
   specs.channels = aud::CHANNELS_STEREO;
   specs.rate = aud::RATE_48000;
-  audio.sound_scene = AUD_Sequence(
-      new aud::Sequence(specs, scene->frames_per_second(), scene->audio.flag & AUDIO_MUTE));
+  audio.sound_scene = std::make_shared<aud::Sequence>(
+      specs, scene->frames_per_second(), scene->audio.flag & AUDIO_MUTE);
   audio.sound_scene->setSpeedOfSound(scene->audio.speed_of_sound);
   audio.sound_scene->setDopplerFactor(scene->audio.doppler_factor);
   audio.sound_scene->setDistanceModel(aud::DistanceModel(scene->audio.distance_model));
@@ -1244,7 +1247,7 @@ double BKE_sound_sync_scene(Scene *scene)
 }
 
 static int sound_read(
-    AUD_Sound sound, float *buffer, int length, int samples_per_second, bool *interrupt)
+    AUD_Sound sound, float *buffer, int length, int samples_per_second, const bool *interrupt)
 {
   using namespace aud;
   DeviceSpecs specs;
@@ -1628,14 +1631,15 @@ SoundInfo bke::sound_info_get(AUD_Sound sound)
 
   try {
     std::shared_ptr<aud::IReader> reader = sound->createReader();
-    if (reader.get()) {
+    if (reader) {
       aud::Specs specs = reader->getSpecs();
       res.specs.channels = eSoundChannels(specs.channels);
       res.specs.samplerate = specs.rate;
       res.length = reader->getLength() / float(specs.rate);
     }
   }
-  catch (aud::Exception &) {
+  catch (aud::Exception &ex) {
+    (void)ex;
   }
   return res;
 }
@@ -1666,7 +1670,8 @@ AUD_Device bke::sound_device_init(const char *device,
       return AUD_Device(device);
     }
   }
-  catch (Exception &) {
+  catch (Exception &ex) {
+    (void)ex;
   }
   return nullptr;
 }
@@ -1684,7 +1689,8 @@ AUD_Handle bke::sound_device_play(AUD_Device device, AUD_Sound sound)
   try {
     return device->play(sound, true);
   }
-  catch (aud::Exception &) {
+  catch (aud::Exception &ex) {
+    (void)ex;
   }
   return nullptr;
 }
@@ -1727,7 +1733,8 @@ AUD_Handle bke::sound_pause_after(AUD_Handle handle, double seconds)
       return handle2;
     }
   }
-  catch (aud::Exception &) {
+  catch (aud::Exception &ex) {
+    (void)ex;
   }
   return nullptr;
 }
@@ -1786,7 +1793,7 @@ float *bke::sound_read_file_buffer(const char *filename,
 
     reader = sound->createReader();
 
-    if (!reader.get()) {
+    if (!reader) {
       return nullptr;
     }
 

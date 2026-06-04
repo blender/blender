@@ -248,7 +248,7 @@ WarnFlag check_attribute_warning(Scene &scene, Object &ob)
 
     /* Exception for shape keys because we can edit those. */
     for (; md; md = md->next) {
-      const ModifierTypeInfo *mti = BKE_modifier_get_info(ModifierType(md->type));
+      const ModifierTypeInfo *mti = BKE_modifier_get_info(md->type);
       if (!BKE_modifier_is_enabled(&scene, md, eModifierMode_Realtime)) {
         continue;
       }

@@ -439,6 +439,7 @@ ccl_device_inline bool volume_shader_eval_entry(KernelGlobals kg,
                                                 ConstIntegratorGenericState state,
                                                 ccl_private ShaderData *ccl_restrict sd,
                                                 const ccl_private VolumeStack &entry,
+                                                const PathRayVisibility path_visibility,
                                                 const uint32_t path_flag)
 {
   if (entry.shader == SHADER_NONE) {
@@ -457,13 +458,11 @@ ccl_device_inline bool volume_shader_eval_entry(KernelGlobals kg,
   if (sd->object != OBJECT_NONE) {
     sd->object_flag |= kernel_data_fetch(object_flag, sd->object);
 
-    if (shadow && !(kernel_data_fetch(objects, sd->object).visibility &
-                    (path_flag & PATH_RAY_ALL_VISIBILITY)))
-    {
+    if (shadow && !(kernel_data_fetch(objects, sd->object).visibility & path_visibility)) {
       /* If volume is invisible to shadow ray, the hit is not registered, but the volume is still
        * in the stack. Skip the volume in such cases. */
-      /* NOTE: `SHADOW_CATCHER_PATH_VISIBILITY()` is omitted because `path_flag` is just
-       * `PATH_RAY_SHADOW` when evaluating shadows. */
+      /* NOTE: `SHADOW_CATCHER_PATH_VISIBILITY()` is omitted because `path_visibility` is just
+       * `PATH_RAY_VISIBILITY_SHADOW` when evaluating shadows. */
       return true;
     }
 
@@ -479,13 +478,14 @@ ccl_device_inline bool volume_shader_eval_entry(KernelGlobals kg,
   /* Evaluate shader. */
 #  ifdef __OSL__
   if (kernel_data.kernel_features & KERNEL_FEATURE_OSL_SHADING) {
-    osl_eval_nodes<SHADER_TYPE_VOLUME>(kg, state, sd, path_flag);
+    osl_eval_nodes<SHADER_TYPE_VOLUME>(kg, state, sd, path_visibility, path_flag);
   }
   else
 #  endif
   {
 #  ifdef __SVM__
-    svm_eval_nodes<node_feature_mask, SHADER_TYPE_VOLUME>(kg, state, sd, nullptr, path_flag);
+    svm_eval_nodes<node_feature_mask, SHADER_TYPE_VOLUME>(
+        kg, state, sd, nullptr, path_visibility, path_flag);
 #  endif
   }
 
@@ -496,13 +496,16 @@ template<const bool shadow, typename ConstIntegratorGenericState>
 ccl_device_inline void volume_shader_eval(KernelGlobals kg,
                                           ConstIntegratorGenericState state,
                                           ccl_private ShaderData *ccl_restrict sd,
+                                          const PathRayVisibility path_visibility,
                                           const uint32_t path_flag)
 {
   /* If path is being terminated, we are tracing a shadow ray or evaluating
    * emission, then we don't need to store closures. The emission and shadow
    * shader data also do not have a closure array to save GPU memory. */
   int max_closures;
-  if (path_flag & (PATH_RAY_TERMINATE | PATH_RAY_SHADOW | PATH_RAY_EMISSION)) {
+  if ((path_visibility & PATH_RAY_VISIBILITY_SHADOW) ||
+      (path_flag & (PATH_RAY_TERMINATE | PATH_RAY_EMISSION)))
+  {
     max_closures = 0;
   }
   else {
@@ -519,7 +522,7 @@ ccl_device_inline void volume_shader_eval(KernelGlobals kg,
   for (int i = 0;; i++) {
     const VolumeStack entry = volume_stack_read<shadow>(state, i);
     if (!volume_shader_eval_entry<shadow, KERNEL_FEATURE_NODE_MASK_VOLUME>(
-            kg, state, sd, entry, path_flag))
+            kg, state, sd, entry, path_visibility, path_flag))
     {
       /* Stack fully processed. */
       return;

@@ -279,7 +279,7 @@ static wmOperatorStatus graphview_curves_hide_exec(bContext *C, wmOperator *op)
 
   /* cleanup */
   ANIM_animdata_freelist(&anim_data);
-  BLI_freelistN(&all_data);
+  all_data.free_no_destruct();
 
   /* unhide selected */
   if (unselected) {
@@ -393,7 +393,7 @@ static wmOperatorStatus graphview_curves_reveal_exec(bContext *C, wmOperator *op
 
   /* cleanup */
   ANIM_animdata_freelist(&anim_data);
-  BLI_freelistN(&all_data);
+  all_data.free_no_destruct();
 
   /* send notifier that things have changed */
   WM_event_add_notifier(C, NC_ANIMATION | ND_ANIMCHAN | NA_EDITED, nullptr);
@@ -439,6 +439,7 @@ void graphedit_operatortypes()
 
   WM_operatortype_append(GRAPH_OT_hide);
   WM_operatortype_append(GRAPH_OT_reveal);
+  WM_operatortype_append(GRAPH_OT_local_view);
 
   /* keyframes */
   /* selection */

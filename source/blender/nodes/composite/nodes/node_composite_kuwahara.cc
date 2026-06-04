@@ -49,6 +49,7 @@ static void node_declare(NodeDeclarationBuilder &b)
 
   b.add_input<decl::Float>("Size"_ustr)
       .default_value(6.0f)
+      .subtype(PROP_PIXEL)
       .min(0.0f)
       .description("The size of the filter in pixels")
       .structure_type(StructureType::Dynamic);

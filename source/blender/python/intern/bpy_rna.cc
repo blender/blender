@@ -4638,7 +4638,7 @@ static PyObject *pyrna_struct_dir(BPy_StructRNA *self)
       PyList_APPEND(ret, PyUnicode_FromString(static_cast<const char *>(link.data)));
     }
 
-    BLI_freelistN(&lb);
+    lb.free_no_destruct();
   }
 
   {
@@ -8921,7 +8921,7 @@ void BPY_update_rna_module()
 }
 
 #if 0
-/* This is a way we can access doc-strings for RNA types
+/* This is a way we can access docstrings for RNA types
  * without having the data-types in Blender. */
 PyObject *BPY_rna_doc()
 {
@@ -10485,7 +10485,7 @@ static PyObject *pyrna_register_class(PyObject * /*self*/, PyObject *py_class)
                  bpy_class_call,
                  bpy_class_free);
 
-  if (!BLI_listbase_is_empty(&reports.list)) {
+  if (!reports.list.is_empty()) {
     const bool has_error = (BPy_reports_to_error(&reports, PyExc_RuntimeError, false) == -1);
     if (!has_error) {
       BKE_report_print_level_set(&reports, CLG_quiet_get() ? RPT_WARNING : RPT_DEBUG);

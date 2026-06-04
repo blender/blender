@@ -23,7 +23,7 @@ static void strip_connections_free(Strip *strip)
   for (StripConnection &con : connections->items_mutable()) {
     MEM_delete(&con);
   }
-  BLI_listbase_clear(connections);
+  connections->clear_no_delete();
 }
 
 void connections_duplicate(ListBaseT<StripConnection> *connections_dst,
@@ -37,7 +37,7 @@ void connections_duplicate(ListBaseT<StripConnection> *connections_dst,
 
 bool disconnect(Strip *strip)
 {
-  if (strip == nullptr || BLI_listbase_is_empty(&strip->connections)) {
+  if (strip == nullptr || strip->connections.is_empty()) {
     return false;
   }
   /* Remove `StripConnections` from other strips' `connections` list that point to `strip`. */
@@ -133,7 +133,7 @@ bool is_strip_connected(const Strip *strip)
   if (strip == nullptr) {
     return false;
   }
-  return !BLI_listbase_is_empty(&strip->connections);
+  return !strip->connections.is_empty();
 }
 
 bool are_strips_connected_together(VectorSet<Strip *> &strip_list)

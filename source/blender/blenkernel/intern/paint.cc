@@ -72,6 +72,8 @@
 #include "DEG_depsgraph.hh"
 #include "DEG_depsgraph_query.hh"
 
+#include "PRF_profile.hh"
+
 #include "RNA_enum_types.hh"
 
 #include "BLO_read_write.hh"
@@ -110,7 +112,7 @@ static void palette_free_data(ID *id)
 {
   Palette *palette = id_cast<Palette *>(id);
 
-  BLI_freelistN(&palette->colors);
+  palette->colors.free_no_destruct();
 }
 
 static void palette_foreach_working_space_color(ID *id,
@@ -1303,7 +1305,7 @@ void BKE_palette_color_remove(Palette *palette, PaletteColor *color)
 
   BLI_remlink(&palette->colors, color);
 
-  if (palette->active_color < 0 && !BLI_listbase_is_empty(&palette->colors)) {
+  if (palette->active_color < 0 && !palette->colors.is_empty()) {
     palette->active_color = 0;
   }
 
@@ -1312,7 +1314,7 @@ void BKE_palette_color_remove(Palette *palette, PaletteColor *color)
 
 void BKE_palette_clear(Palette *palette)
 {
-  BLI_freelistN(&palette->colors);
+  palette->colors.free_no_destruct();
   palette->active_color = 0;
 }
 
@@ -1342,7 +1344,7 @@ PaletteColor *BKE_palette_color_add(Palette *palette)
 
 bool BKE_palette_is_empty(const Palette *palette)
 {
-  return BLI_listbase_is_empty(&palette->colors);
+  return palette->colors.is_empty();
 }
 
 bool BKE_paint_select_face_test(const Object *ob)
@@ -1979,22 +1981,21 @@ static bool paint_rake_rotation_active(const MTex &mtex)
   return mtex.tex && mtex.brush_angle_mode & MTEX_ANGLE_RAKE;
 }
 
-static bool paint_rake_rotation_active(const Brush &brush, PaintMode paint_mode)
+static bool paint_rake_rotation_active(const Brush &brush)
 {
-  return paint_rake_rotation_active(brush.mtex) || paint_rake_rotation_active(brush.mask_mtex) ||
-         BKE_brush_has_cube_tip(&brush, paint_mode);
+  return paint_rake_rotation_active(brush.mtex) || paint_rake_rotation_active(brush.mask_mtex);
 }
 
 bool paint_calculate_rake_rotation(Paint &paint,
                                    const Brush &brush,
                                    const float mouse_pos[2],
-                                   const PaintMode paint_mode,
+                                   const PaintMode /*paint_mode*/,
                                    bool stroke_has_started)
 {
   bke::PaintRuntime &paint_runtime = *paint.runtime;
 
   bool ok = false;
-  if (paint_rake_rotation_active(brush, paint_mode)) {
+  if (paint_rake_rotation_active(brush)) {
     float r = paint_rake_rotation_spacing(paint, brush);
     float rotation;
 
@@ -2327,7 +2328,7 @@ static bool sculpt_modifiers_active(const Scene *scene, const Sculpt *sd, Object
   for (ModifierData *md = BKE_modifiers_get_virtual_modifierlist(ob, &virtual_modifier_data); md;
        md = md->next)
   {
-    const ModifierTypeInfo *mti = BKE_modifier_get_info(static_cast<ModifierType>(md->type));
+    const ModifierTypeInfo *mti = BKE_modifier_get_info(md->type);
     if (!BKE_modifier_is_enabled(scene, md, eModifierMode_Realtime)) {
       continue;
     }
@@ -2536,6 +2537,7 @@ void BKE_sculpt_color_layer_create_if_needed(Object *object)
 
 void BKE_sculpt_update_object_for_edit(Depsgraph *depsgraph, Object *ob_orig, bool is_paint_tool)
 {
+  PRF_scope(ProfileCategory::Editor);
   BLI_assert(ob_orig == DEG_get_original(ob_orig));
 
   Object *ob_eval = DEG_get_evaluated(depsgraph, ob_orig);

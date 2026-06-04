@@ -30,6 +30,11 @@ Vector<float> get_rna_values(PointerRNA *ptr, PropertyRNA *prop);
 StringRefNull get_rotation_mode_path(eRotationModes rotation_mode);
 
 /**
+ * Returns the full pose bone rna path. For example "pose.bones["bone_name"]".
+ */
+std::string get_pose_bone_rna_path(const bPoseChannel &pose_bone);
+
+/**
  * Given an RNA path to a rotation property, return the corresponding rotation mode.
  *
  * \returns the rotation mode of the given rna path or a nullopt if the `rna_path` is not for a

@@ -933,7 +933,7 @@ static void curve_select_more(Object *obedit)
       BLI_bitmap *selbpoints;
       a = nu.pntsu * nu.pntsv;
       bp = nu.bp;
-      selbpoints = BLI_BITMAP_NEW(a, "selectlist");
+      selbpoints = BLI_BITMAP_NEW(a + 1, "selectlist");
       while (a > 0) {
         if (!BLI_BITMAP_TEST(selbpoints, a) && (bp->hide == 0) && (bp->f1 & SELECT)) {
           /* upper control point */
@@ -958,7 +958,7 @@ static void curve_select_more(Object *obedit)
           }
 
           /* right control point */
-          if (a + nu.pntsu < nu.pntsu * nu.pntsv) {
+          if (a + nu.pntsu <= nu.pntsu * nu.pntsv) {
             tempbp = bp - nu.pntsu;
             if (!(tempbp->f1 & SELECT)) {
               select_bpoint(tempbp, true, BEZT_FLAG_SELECT, VISIBLE);

@@ -15,10 +15,10 @@ namespace blender::nodes::node_geo_input_mesh_face_neighbors_cc {
 static void node_declare(NodeDeclarationBuilder &b)
 {
   b.add_output<decl::Int>("Vertex Count"_ustr)
-      .field_source()
+      .structure_type(StructureType::Field)
       .description("Number of edges or points in the face");
   b.add_output<decl::Int>("Face Count"_ustr)
-      .field_source()
+      .structure_type(StructureType::Field)
       .description("Number of faces which share an edge with the face");
 }
 

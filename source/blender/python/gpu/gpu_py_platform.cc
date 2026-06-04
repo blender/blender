@@ -20,6 +20,169 @@
 namespace blender {
 
 /* -------------------------------------------------------------------- */
+/** \name GPU Device Type
+ * \{ */
+
+PyDoc_STRVAR(pygpu_device_index_doc,
+             "Device index.\n"
+             "\n"
+             ":type: int\n");
+static PyObject *pygpu_device_index_get(BPyGPUDevice *self, void * /*closure*/)
+{
+  return PyLong_FromLong(self->index);
+}
+
+PyDoc_STRVAR(pygpu_device_identifier_doc,
+             "Device identifier.\n"
+             "\n"
+             ":type: str\n");
+static PyObject *pygpu_device_identifier_get(BPyGPUDevice *self, void * /*closure*/)
+{
+  return PyUnicode_FromString(self->identifier);
+}
+
+PyDoc_STRVAR(pygpu_device_name_doc,
+             "Device name.\n"
+             "\n"
+             ":type: str\n");
+static PyObject *pygpu_device_name_get(BPyGPUDevice *self, void * /*closure*/)
+{
+  return PyUnicode_FromString(self->name);
+}
+
+/* Property descriptors */
+static PyGetSetDef pygpu_device_getseters[] = {
+    {"index",
+     reinterpret_cast<getter>(pygpu_device_index_get),
+     nullptr,
+     pygpu_device_index_doc,
+     nullptr},
+    {"identifier",
+     reinterpret_cast<getter>(pygpu_device_identifier_get),
+     nullptr,
+     pygpu_device_identifier_doc,
+     nullptr},
+    {"name",
+     reinterpret_cast<getter>(pygpu_device_name_get),
+     nullptr,
+     pygpu_device_name_doc,
+     nullptr},
+    {nullptr, nullptr, nullptr, nullptr, nullptr},
+};
+
+/* Representation */
+static PyObject *pygpu_device__tp_repr(BPyGPUDevice *self)
+{
+  return PyUnicode_FromFormat("<GPUDevice index=%d identifier=\"%s\" name=\"%s\">",
+                              self->index,
+                              self->identifier,
+                              self->name);
+}
+
+/** Rich comparison for GPUDevice types, compares by index. */
+static PyObject *pygpu_device__tp_richcmp(BPyGPUDevice *self, PyObject *other, int op)
+{
+  if (!Py_IS_TYPE(other, &BPyGPU_DeviceType)) {
+    Py_RETURN_NOTIMPLEMENTED;
+  }
+  BPyGPUDevice *other_device = reinterpret_cast<BPyGPUDevice *>(other);
+  switch (op) {
+    case Py_LT:
+      return PyBool_FromLong(self->index < other_device->index);
+    case Py_LE:
+      return PyBool_FromLong(self->index <= other_device->index);
+    case Py_EQ:
+      return PyBool_FromLong(self->index == other_device->index);
+    case Py_NE:
+      return PyBool_FromLong(self->index != other_device->index);
+    case Py_GT:
+      return PyBool_FromLong(self->index > other_device->index);
+    case Py_GE:
+      return PyBool_FromLong(self->index >= other_device->index);
+  }
+  Py_RETURN_NOTIMPLEMENTED;
+}
+
+/* Type definition */
+PyDoc_STRVAR(pygpu_device__tp_doc,
+             ".. class:: GPUDevice\n"
+             "\n"
+             "   Represents a GPU device.\n"
+             "\n"
+             "   :ivar index: Device index.\n"
+             "   :type index: int\n"
+             "   :ivar identifier: Device identifier.\n"
+             "   :type identifier: str\n"
+             "   :ivar name: Device name.\n"
+             "   :type name: str\n");
+
+PyTypeObject BPyGPU_DeviceType = {
+    /*ob_base*/ PyVarObject_HEAD_INIT(nullptr, 0)
+    /*tp_name*/ "gpu.platform.GPUDevice",
+    /*tp_basicsize*/ sizeof(BPyGPUDevice),
+    /*tp_itemsize*/ 0,
+    /*tp_dealloc*/ nullptr,
+    /*tp_vectorcall_offset*/ 0,
+    /*tp_getattr*/ nullptr,
+    /*tp_setattr*/ nullptr,
+    /*tp_compare*/ nullptr,
+    /*tp_repr*/ reinterpret_cast<reprfunc>(pygpu_device__tp_repr),
+    /*tp_as_number*/ nullptr,
+    /*tp_as_sequence*/ nullptr,
+    /*tp_as_mapping*/ nullptr,
+    /*tp_hash*/ nullptr,
+    /*tp_call*/ nullptr,
+    /*tp_str*/ nullptr,
+    /*tp_getattro*/ nullptr,
+    /*tp_setattro*/ nullptr,
+    /*tp_as_buffer*/ nullptr,
+    /*tp_flags*/ Py_TPFLAGS_DEFAULT,
+    /*tp_doc*/ pygpu_device__tp_doc,
+    /*tp_traverse*/ nullptr,
+    /*tp_clear*/ nullptr,
+    /*tp_richcompare*/ reinterpret_cast<richcmpfunc>(pygpu_device__tp_richcmp),
+    /*tp_weaklistoffset*/ 0,
+    /*tp_iter*/ nullptr,
+    /*tp_iternext*/ nullptr,
+    /*tp_methods*/ nullptr,
+    /*tp_members*/ nullptr,
+    /*tp_getset*/ pygpu_device_getseters,
+    /*tp_base*/ nullptr,
+    /*tp_dict*/ nullptr,
+    /*tp_descr_get*/ nullptr,
+    /*tp_descr_set*/ nullptr,
+    /*tp_dictoffset*/ 0,
+    /*tp_init*/ nullptr,
+    /*tp_alloc*/ nullptr,
+    /*tp_new*/ nullptr,
+    /*tp_free*/ nullptr,
+    /*tp_is_gc*/ nullptr,
+    /*tp_bases*/ nullptr,
+    /*tp_mro*/ nullptr,
+    /*tp_cache*/ nullptr,
+    /*tp_subclasses*/ nullptr,
+    /*tp_weaklist*/ nullptr,
+    /*tp_del*/ nullptr,
+    /*tp_version_tag*/ 0,
+    /*tp_finalize*/ nullptr,
+    /*tp_vectorcall*/ nullptr,
+};
+
+static BPyGPUDevice *pygpu_device_new(int index, const char *identifier, const char *name)
+{
+  BPyGPUDevice *self = reinterpret_cast<BPyGPUDevice *>(
+      BPyGPU_DeviceType.tp_alloc(&BPyGPU_DeviceType, 0));
+  if (self != nullptr) {
+    self->index = index;
+    self->identifier = identifier;
+    self->name = name;
+  }
+  return self;
+}
+
+/** \} */
+
+/* -------------------------------------------------------------------- */
 /** \name Functions
  * \{ */
 
@@ -148,6 +311,32 @@ static PyObject *pygpu_platform_backend_type_get(PyObject * /*self*/)
   return PyUnicode_FromString(backend);
 }
 
+PyDoc_STRVAR(
+    /* Wrap. */
+    pygpu_platform_devices_get_doc,
+    ".. function:: devices_get()\n"
+    "\n"
+    "   Get all available GPU devices.\n"
+    "\n"
+    "   :return: List of :class:`GPUDevice` objects for each device.\n"
+    "   :rtype: list\n");
+static PyObject *pygpu_platform_devices_get(PyObject * /*self*/)
+{
+  BPYGPU_IS_INIT_OR_ERROR_OBJ;
+
+  Span<GPUDevice> devices = GPU_platform_devices_list();
+  PyObject *list = PyList_New(devices.size());
+  for (int i = 0; i < devices.size(); i++) {
+    const GPUDevice &dev = devices[i];
+    PyObject *item = reinterpret_cast<PyObject *>(
+        pygpu_device_new(dev.index, dev.identifier.c_str(), dev.name.c_str()));
+    PyList_SET_ITEM(list, i, item);
+  }
+  /* Sort by index (first attribute) for deterministic ordering. */
+  PyList_Sort(list);
+  return list;
+}
+
 /** \} */
 
 /* -------------------------------------------------------------------- */
@@ -185,6 +374,10 @@ static PyMethodDef pygpu_platform__tp_methods[] = {
      reinterpret_cast<PyCFunction>(pygpu_platform_backend_type_get),
      METH_NOARGS,
      pygpu_platform_backend_type_get_doc},
+    {"devices_get",
+     reinterpret_cast<PyCFunction>(pygpu_platform_devices_get),
+     METH_NOARGS,
+     pygpu_platform_devices_get_doc},
     {nullptr, nullptr, 0, nullptr},
 };
 

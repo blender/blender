@@ -208,6 +208,7 @@ string HIPDevice::compile_kernel_get_common_cflags(const uint kernel_features)
   const string source_path = path_get("source");
   const string include_path = source_path;
   string cflags = string_printf(
+      "-std=c++17 "
       "-m%d "
       "-DHIPCC "
       "-I\"%s\"",
@@ -430,8 +431,6 @@ void HIPDevice::reserve_local_memory(const uint kernel_features)
     /* Use the biggest kernel for estimation. */
     const DeviceKernel test_kernel = (kernel_features & KERNEL_FEATURE_NODE_RAYTRACE) ?
                                          DEVICE_KERNEL_INTEGRATOR_SHADE_SURFACE_RAYTRACE :
-                                     (kernel_features & KERNEL_FEATURE_MNEE) ?
-                                         DEVICE_KERNEL_INTEGRATOR_SHADE_SURFACE_MNEE :
                                          DEVICE_KERNEL_INTEGRATOR_SHADE_SURFACE;
 
     /* Launch kernel, using just 1 block appears sufficient to reserve memory for all

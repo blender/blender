@@ -26,16 +26,13 @@ class DeviceScene {
   device_vector<float2> prim_time;
 
   /* mesh */
-  device_vector<packed_float3> tri_verts;
   device_vector<uint> tri_shader;
   device_vector<packed_uint3> tri_vindex;
 
   device_vector<KernelCurve> curves;
-  device_vector<float4> curve_keys;
   device_vector<KernelCurveSegment> curve_segments;
 
   /* point-cloud */
-  device_vector<float4> points;
   device_vector<uint> points_shader;
 
   /* objects */

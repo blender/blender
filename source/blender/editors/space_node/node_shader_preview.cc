@@ -639,7 +639,7 @@ static void preview_render(ShaderNodesPreviewJob &job_data)
   reinterpret_cast<Camera *>(scene->camera->data)->lens = oldlens;
 
   /* Free the aov layers and the layers generated for each node. */
-  BLI_freelistN(&AOV_layer->aovs);
+  AOV_layer->aovs.free_no_destruct();
   ViewLayer *vl = AOV_layer->next;
   while (vl) {
     ViewLayer *vl_rem = vl;

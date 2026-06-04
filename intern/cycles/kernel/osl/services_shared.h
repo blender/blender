@@ -963,7 +963,9 @@ ccl_device_inline bool osl_shared_get_background_attribute(KernelGlobals kg,
     /* Read bounce from different locations depending on if this is a shadow path. For background,
      * light emission and shadow evaluation from a surface or volume we are effectively one bounce
      * further. */
-    if (sg->raytype & (PATH_RAY_SHADOW | PATH_RAY_EMISSION)) {
+    if ((OSL_RAYTYPE_TO_VISIBILITY(sg->raytype) & PATH_RAY_VISIBILITY_SHADOW) ||
+        (OSL_RAYTYPE_TO_PARTIAL_PATH_FLAG(sg->raytype) & PATH_RAY_EMISSION))
+    {
       f += 1;
     }
 
@@ -1001,8 +1003,8 @@ ccl_device_inline bool osl_shared_get_background_attribute(KernelGlobals kg,
     /* NDC coordinates with special exception for orthographic projection. */
     dual3 ndc;
 
-    if ((sg->raytype & PATH_RAY_CAMERA) && sd->object == OBJECT_NONE &&
-        kernel_data.cam.type == CAMERA_ORTHOGRAPHIC)
+    if ((OSL_RAYTYPE_TO_VISIBILITY(sg->raytype) & PATH_RAY_VISIBILITY_CAMERA) &&
+        sd->object == OBJECT_NONE && kernel_data.cam.type == CAMERA_ORTHOGRAPHIC)
     {
       ndc = dual3(camera_world_to_ndc(kg, sd, sd->ray_P));
     }
@@ -1133,7 +1135,7 @@ ccl_device_inline bool osl_shared_get_object_standard_attribute(KernelGlobals kg
       motion_triangle_vertices(kg, sd->object, sd->prim, sd->time, P);
     }
     else {
-      triangle_vertices(kg, sd->prim, P);
+      triangle_vertices(kg, sd->object, sd->prim, P);
     }
 
     if (!(sd->object_flag & SD_OBJECT_TRANSFORM_APPLIED)) {

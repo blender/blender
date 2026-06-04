@@ -74,8 +74,7 @@ MutableAttributeAccessor Instances::attributes_for_write()
 static std::unique_ptr<bke::Instances> convert_collection_to_instances(
     const Collection &collection)
 {
-  const int instances_num = BLI_listbase_count(&collection.children) +
-                            BLI_listbase_count(&collection.gobject);
+  const int instances_num = collection.children.count() + collection.gobject.count();
 
   auto instances = std::make_unique<bke::Instances>(instances_num);
 
@@ -270,10 +269,18 @@ int Instances::add_reference(const InstanceReference &reference)
   return this->add_new_reference(reference);
 }
 
-int Instances::add_new_reference(const InstanceReference &reference)
+int Instances::add_reference(InstanceReference &&reference)
+{
+  if (std::optional<int> handle = this->find_reference_handle(reference)) {
+    return *handle;
+  }
+  return this->add_new_reference(std::move(reference));
+}
+
+int Instances::add_new_reference(InstanceReference reference)
 {
   this->tag_reference_handles_changed();
-  return references_.append_and_get_index(reference);
+  return references_.append_and_get_index(std::move(reference));
 }
 
 Span<InstanceReference> Instances::references() const

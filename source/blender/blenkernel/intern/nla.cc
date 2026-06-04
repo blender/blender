@@ -141,7 +141,7 @@ void BKE_nla_tracks_free(ListBaseT<NlaTrack> *tracks, bool do_id_user)
   }
 
   /* clear the list's pointers to be safe */
-  BLI_listbase_clear(tracks);
+  tracks->clear_no_delete();
 }
 
 /* Copying ------------------------------------------- */
@@ -185,7 +185,7 @@ NlaStrip *BKE_nlastrip_copy(Main *bmain,
   copy_fmodifiers(&strip_d->modifiers, &strip->modifiers);
 
   /* make a copy of all the child-strips, one at a time */
-  BLI_listbase_clear(&strip_d->strips);
+  strip_d->strips.clear_no_delete();
 
   for (NlaStrip &cs : strip->strips) {
     cs_d = BKE_nlastrip_copy(bmain, &cs, use_same_action, flag);
@@ -214,7 +214,7 @@ NlaTrack *BKE_nlatrack_copy(Main *bmain,
   nlt_d->next = nlt_d->prev = nullptr;
 
   /* make a copy of all the strips, one at a time */
-  BLI_listbase_clear(&nlt_d->strips);
+  nlt_d->strips.clear_no_delete();
 
   for (NlaStrip &strip : nlt->strips) {
     strip_d = BKE_nlastrip_copy(bmain, &strip, use_same_actions, flag);
@@ -238,7 +238,7 @@ void BKE_nla_tracks_copy(Main *bmain,
   }
 
   /* clear out the destination list first for precautions... */
-  BLI_listbase_clear(dst);
+  dst->clear_no_delete();
 
   /* copy each NLA-track, one at a time */
   for (NlaTrack &nlt : *src) {
@@ -257,7 +257,7 @@ static NlaStrip *find_active_strip_from_listbase(const NlaStrip *active_strip,
                                                  const ListBaseT<NlaStrip> *strips_source,
                                                  const ListBaseT<NlaStrip> *strips_dest)
 {
-  BLI_assert_msg(BLI_listbase_count(strips_source) == BLI_listbase_count(strips_dest),
+  BLI_assert_msg(strips_source->count() == strips_dest->count(),
                  "Expecting the same number of source and destination strips");
 
   NlaStrip *strip_dest = static_cast<NlaStrip *>(strips_dest->first);
@@ -298,7 +298,7 @@ static void update_active_strip(AnimData *adt_dest,
                                 const AnimData *adt_source,
                                 const NlaTrack *track_source)
 {
-  BLI_assert(BLI_listbase_count(&track_source->strips) == BLI_listbase_count(&track_dest->strips));
+  BLI_assert(track_source->strips.count() == track_dest->strips.count());
 
   NlaStrip *active_strip = find_active_strip_from_listbase(
       adt_source->actstrip, &track_source->strips, &track_dest->strips);
@@ -314,8 +314,7 @@ static void update_active_track(AnimData *adt_dest, const AnimData *adt_source)
     return;
   }
 
-  BLI_assert(BLI_listbase_count(&adt_source->nla_tracks) ==
-             BLI_listbase_count(&adt_dest->nla_tracks));
+  BLI_assert(adt_source->nla_tracks.count() == adt_dest->nla_tracks.count());
 
   NlaTrack *track_dest = static_cast<NlaTrack *>(adt_dest->nla_tracks.first);
   for (NlaTrack &track_source : adt_source->nla_tracks) {
@@ -1332,13 +1331,13 @@ bool BKE_nlatrack_has_space(NlaTrack *nlt, float start, float end)
 bool BKE_nlatrack_has_strips(ListBaseT<NlaTrack> *tracks)
 {
   /* sanity checks */
-  if (BLI_listbase_is_empty(tracks)) {
+  if (tracks->is_empty()) {
     return false;
   }
 
   /* Check each track for NLA strips. */
   for (NlaTrack &track : *tracks) {
-    if (BLI_listbase_count(&track.strips) > 0) {
+    if (track.strips.count() > 0) {
       return true;
     }
   }
@@ -2618,7 +2617,7 @@ void BKE_nla_debug_print_flags(AnimData *adt, ID *owner_id)
   }
   printf("\n");
 
-  if (BLI_listbase_is_empty(&adt->nla_tracks)) {
+  if (adt->nla_tracks.is_empty()) {
     printf("  - No tracks\n");
     return;
   }
@@ -2773,7 +2772,7 @@ void BKE_nla_liboverride_post_process(ID *id, AnimData *adt)
   UNUSED_VARS_NDEBUG(id);
 
   const bool is_tweak_mode = (adt->flag & ADT_NLA_EDIT_ON);
-  const bool has_tracks = !BLI_listbase_is_empty(&adt->nla_tracks);
+  const bool has_tracks = !adt->nla_tracks.is_empty();
 
   if (!has_tracks) {
     if (is_tweak_mode) {

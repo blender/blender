@@ -574,8 +574,7 @@ static bool collection_exporter_poll(bContext *C)
 static bool collection_exporter_remove_poll(bContext *C)
 {
   const Collection *collection = CTX_data_collection(C);
-  return collection_exporter_common_check(collection) &&
-         !BLI_listbase_is_empty(&collection->exporters);
+  return collection_exporter_common_check(collection) && !collection->exporters.is_empty();
 }
 
 static bool collection_export_all_poll(bContext *C)

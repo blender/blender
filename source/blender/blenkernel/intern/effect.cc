@@ -247,7 +247,7 @@ ListBaseT<EffectorRelation> *BKE_effector_relations_create(Depsgraph *depsgraph,
 void BKE_effector_relations_free(ListBaseT<EffectorRelation> *lb)
 {
   if (lb) {
-    BLI_freelistN(lb);
+    lb->free_no_destruct();
     MEM_delete(lb);
   }
 }
@@ -378,7 +378,7 @@ void BKE_effectors_free(ListBaseT<EffectorCache> *lb)
       }
     }
 
-    BLI_freelistN(lb);
+    lb->free_no_destruct();
     MEM_delete(lb);
   }
 }

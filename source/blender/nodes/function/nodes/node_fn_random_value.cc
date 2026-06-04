@@ -50,7 +50,9 @@ static void node_declare(NodeDeclarationBuilder &b)
     }
   }
 
-  b.add_input<decl::Int>("ID"_ustr).implicit_field(NODE_DEFAULT_INPUT_ID_INDEX_FIELD);
+  b.add_input<decl::Int>("ID"_ustr)
+      .structure_type(StructureType::Dynamic)
+      .default_input_type(NODE_DEFAULT_INPUT_ID_INDEX_FIELD);
   b.add_input<decl::Int>("Seed"_ustr);
 
   if (node != nullptr) {

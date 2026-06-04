@@ -421,8 +421,21 @@ short BKE_idtype_idcode_from_name(const char *idtype_name);
  *
  * Particularly useful when the ID type name is written as ID type identifier for I/O or cache
  * files.
+ *
+ * NOTE: idtype_name MUST be valid.
  */
 short BKE_idtype_idcode_from_name_case_insensitive(const char *idtype_name);
+
+/**
+ * Normalize the ID type name to the expected case.
+ *
+ * Particularly useful when the ID type name is written as ID type identifier for I/O or cache
+ * files, where the data comes from an untrusted source.
+ *
+ * \return the normalized name that can be used in a call to #BKE_idtype_idcode_from_name(), or
+ * nullptr if the name does not lead to a valid ID type.
+ */
+const char *BKE_idtype_name_normalize(const char *idtype_name);
 
 /**
  * Convert an \a idcode into an \a idtype_index (e.g. #ID_OB -> #INDEX_ID_OB).

@@ -61,8 +61,9 @@ bool BVHUnaligned::compute_aligned_space(const BVHReference &ref, Transform *ali
     const Hair *hair = static_cast<const Hair *>(object->get_geometry());
     const Hair::Curve &curve = hair->get_curve(curve_index);
     const int key = curve.first_key + segment;
-    const float3 v1 = hair->get_curve_keys()[key];
-    const float3 v2 = hair->get_curve_keys()[key + 1];
+    const packed_float3 *curve_keys = hair->get_position();
+    const float3 v1 = curve_keys[key];
+    const float3 v2 = curve_keys[key + 1];
     float length;
     const float3 axis = normalize_len(v2 - v1, &length);
     if (length > 1e-6f) {
@@ -87,11 +88,7 @@ BoundBox BVHUnaligned::compute_aligned_prim_boundbox(const BVHReference &prim,
     const int segment = PRIMITIVE_UNPACK_SEGMENT(packed_type);
     const Hair *hair = static_cast<const Hair *>(object->get_geometry());
     const Hair::Curve &curve = hair->get_curve(curve_index);
-    curve.bounds_grow(segment,
-                      hair->get_curve_keys().data(),
-                      hair->get_curve_radius().data(),
-                      aligned_space,
-                      bounds);
+    curve.bounds_grow(segment, hair->get_position(), hair->get_radius(), aligned_space, bounds);
   }
   else {
     bounds = prim.bounds().transformed(&aligned_space);

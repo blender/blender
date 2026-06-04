@@ -951,8 +951,7 @@ static wmOperatorStatus set_pivot_position_exec(bContext *C, wmOperator *op)
       break;
     case PivotPositionMode::ActiveVert: {
       const float2 mval(RNA_float_get(op->ptr, "mouse_x"), RNA_float_get(op->ptr, "mouse_y"));
-      CursorGeometryInfo cgi;
-      if (cursor_geometry_info_update(C, &cgi, mval, false)) {
+      if (cursor_geometry_info_update(C, mval, false)) {
         ss.pivot_pos = ss.active_vert_position(*depsgraph, ob);
       }
       break;

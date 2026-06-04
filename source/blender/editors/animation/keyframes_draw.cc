@@ -689,7 +689,7 @@ void ED_channel_list_free(ChannelDrawList *channel_list)
   for (ChannelListElement &elem : channel_list->channels) {
     ED_keylist_free(elem.keylist);
   }
-  BLI_freelistN(&channel_list->channels);
+  channel_list->channels.free_no_destruct();
   MEM_delete(channel_list);
 }
 

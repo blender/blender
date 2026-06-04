@@ -76,14 +76,14 @@ wmGesture *WM_gesture_new(wmWindow *window, const ARegion *region, const wmEvent
     float *lasso;
     gesture->points_alloc = 1024;
     gesture->customdata = lasso = MEM_new_array_uninitialized<float>(
-        size_t(2 * gesture->points_alloc), "lasso points");
+        size_t(2) * gesture->points_alloc, "lasso points");
     lasso[0] = xy[0] - gesture->winrct.xmin;
     lasso[1] = xy[1] - gesture->winrct.ymin;
     gesture->points = 1;
   }
   else if (ELEM(type, WM_GESTURE_POLYLINE)) {
     gesture->points_alloc = 64;
-    short *border = MEM_new_array_uninitialized<short>(size_t(2 * gesture->points_alloc),
+    short *border = MEM_new_array_uninitialized<short>(size_t(2) * gesture->points_alloc,
                                                        "polyline points");
     gesture->customdata = border;
     border[0] = xy[0] - gesture->winrct.xmin;

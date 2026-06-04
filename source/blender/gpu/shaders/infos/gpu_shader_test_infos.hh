@@ -17,18 +17,6 @@
 
 #include "gpu_shader_create_info.hh"
 
-GPU_SHADER_CREATE_INFO(gpu_shader_test)
-LOCAL_GROUP_SIZE(1)
-TYPEDEF_SOURCE("GPU_shader_shared.hh")
-STORAGE_BUF(0, write, TestOutput, out_test[])
-GPU_SHADER_CREATE_END()
-
-GPU_SHADER_CREATE_INFO(gpu_math_test)
-COMPUTE_SOURCE("gpu_math_test.glsl")
-ADDITIONAL_INFO(gpu_shader_test)
-DO_STATIC_COMPILATION()
-GPU_SHADER_CREATE_END()
-
 GPU_SHADER_CREATE_INFO(gpu_compute_1d_test)
 LOCAL_GROUP_SIZE(1)
 IMAGE(1, SFLOAT_32_32_32_32, write, image1D, img_output)
@@ -181,37 +169,6 @@ ADDITIONAL_INFO(gpu_specialization_constants_base_test)
 BUILTINS(BuiltinBits::POINT_SIZE)
 VERTEX_SOURCE("gpu_specialization_test.glsl")
 FRAGMENT_SOURCE("gpu_specialization_test.glsl")
-DO_STATIC_COMPILATION()
-GPU_SHADER_CREATE_END()
-
-/* EEVEE test. */
-
-GPU_SHADER_CREATE_INFO(eevee_shadow_test)
-COMPUTE_SOURCE("eevee_shadow_test.glsl")
-TYPEDEF_SOURCE("eevee_defines.hh")
-TYPEDEF_SOURCE("eevee_shadow_shared.hh")
-ADDITIONAL_INFO(gpu_shader_test)
-DO_STATIC_COMPILATION()
-GPU_SHADER_CREATE_END()
-
-GPU_SHADER_CREATE_INFO(eevee_occupancy_test)
-COMPUTE_SOURCE("eevee_occupancy_test.glsl")
-TYPEDEF_SOURCE("eevee_defines.hh")
-ADDITIONAL_INFO(gpu_shader_test)
-DO_STATIC_COMPILATION()
-GPU_SHADER_CREATE_END()
-
-GPU_SHADER_CREATE_INFO(eevee_gbuffer_normal_test)
-COMPUTE_SOURCE("eevee_gbuffer_normal_test.glsl")
-TYPEDEF_SOURCE("eevee_defines.hh")
-ADDITIONAL_INFO(gpu_shader_test)
-DO_STATIC_COMPILATION()
-GPU_SHADER_CREATE_END()
-
-GPU_SHADER_CREATE_INFO(eevee_gbuffer_closure_test)
-COMPUTE_SOURCE("eevee_gbuffer_closure_test.glsl")
-TYPEDEF_SOURCE("eevee_defines.hh")
-ADDITIONAL_INFO(gpu_shader_test)
 DO_STATIC_COMPILATION()
 GPU_SHADER_CREATE_END()
 

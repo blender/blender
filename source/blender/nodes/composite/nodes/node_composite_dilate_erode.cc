@@ -41,6 +41,7 @@ static void node_declare(NodeDeclarationBuilder &b)
       .structure_type(StructureType::Dynamic);
   b.add_input<decl::Int>("Size"_ustr)
       .default_value(0)
+      .subtype(PROP_PIXEL)
       .description(
           "The size of dilation/erosion in pixels. Positive values dilates and negative values "
           "erodes");
@@ -50,6 +51,7 @@ static void node_declare(NodeDeclarationBuilder &b)
       .optional_label();
   b.add_input<decl::Float>("Falloff Size"_ustr)
       .default_value(0.0f)
+      .subtype(PROP_PIXEL)
       .min(0.0f)
       .usage_by_menu("Type"_ustr, CMP_NODE_DILATE_ERODE_DISTANCE_THRESHOLD)
       .description(

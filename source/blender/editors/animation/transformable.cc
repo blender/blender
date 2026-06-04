@@ -215,13 +215,6 @@ Rotation rotation_interpolated(const Rotation &a, const Rotation &b, const float
   return interpolated;
 }
 
-static std::string get_pose_bone_rna_path(const bPoseChannel &pose_bone)
-{
-  char name_esc[sizeof(pose_bone.name) * 2];
-  BLI_str_escape(name_esc, pose_bone.name, sizeof(name_esc));
-  return fmt::format("pose.bones[\"{}\"]", name_esc);
-}
-
 static void build_rotations_array(
     Array<TransformFloatPtrs> &rotations, float *euler, float *quat, float *axis, float *angle)
 {
@@ -252,7 +245,19 @@ AnimTransformable::AnimTransformable(Object &owner_id, bPoseChannel &pchan)
       scale_({pchan.scale, 3})
 {
   build_rotations_array(rotations_, pchan.eul, pchan.quat, pchan.rotAxis, &pchan.rotAngle);
-  rna_path_from_id_ = get_pose_bone_rna_path(pchan);
+  rna_path_from_id_ = animrig::get_pose_bone_rna_path(pchan);
+}
+
+AnimTransformable::AnimTransformable(Object &obj)
+    : type_(AnimTransformable::Type::OBJECT),
+      owner_id_(&obj.id),
+      data_(&obj),
+      location_({obj.loc, 3}),
+      rotation_mode_(reinterpret_cast<eRotationModes *>(&obj.rotmode)),
+      scale_({obj.scale, 3})
+{
+  build_rotations_array(rotations_, obj.rot, obj.quat, obj.rotAxis, &obj.rotAngle);
+  rna_path_from_id_ = "";
 }
 
 template<> bPoseChannel *AnimTransformable::data<bPoseChannel *>() const

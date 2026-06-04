@@ -653,13 +653,22 @@ static void createTransActionData(bContext *C, TransInfo *t)
    * and they are the ones that are being transformed. */
   const bool use_duplicated = (t->flag & T_DUPLICATED_KEYFRAMES) != 0;
 
-  const rcti *mask = &t->region->v2d.mask;
-  const rctf *datamask = &t->region->v2d.cur;
+  float xsize, ysize, xmask, ymask;
+  float view_center_y;
 
-  float xsize = BLI_rctf_size_x(datamask);
-  float ysize = BLI_rctf_size_y(datamask);
-  float xmask = BLI_rcti_size_x(mask);
-  float ymask = BLI_rcti_size_y(mask);
+  if (t->region) {
+    const rcti *mask = &t->region->v2d.mask;
+    const rctf *datamask = &t->region->v2d.cur;
+    xsize = BLI_rctf_size_x(datamask);
+    ysize = BLI_rctf_size_y(datamask);
+    xmask = BLI_rcti_size_x(mask);
+    ymask = BLI_rcti_size_y(mask);
+    view_center_y = BLI_rctf_cent_y(datamask);
+  }
+  else {
+    xsize = ysize = xmask = ymask = 1.0f;
+    view_center_y = 0.0f;
+  }
 
   bAnimContext ac;
   ListBaseT<bAnimListElem> anim_data = {nullptr, nullptr};
@@ -668,7 +677,7 @@ static void createTransActionData(bContext *C, TransInfo *t)
 
   int count = 0;
   int gpf_count = 0;
-  float ypos = 1.0f / ((ysize / xsize) * (xmask / ymask)) * BLI_rctf_cent_y(&t->region->v2d.cur);
+  const float ypos = 1.0f / ((ysize / xsize) * (xmask / ymask)) * view_center_y;
 
   /* Determine what type of data we are operating on. */
   if (ANIM_animdata_get_context(C, &ac) == 0) {

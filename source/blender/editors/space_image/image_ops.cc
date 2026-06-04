@@ -275,7 +275,7 @@ static bool image_not_packed_poll(bContext *C)
 {
   /* Do not run 'replace' on packed images, it does not give user expected results at all. */
   Image *ima = image_from_context(C);
-  return (ima && BLI_listbase_is_empty(&ima->packedfiles));
+  return (ima && ima->packedfiles.is_empty());
 }
 
 static void image_view_all(SpaceImage *sima, ARegion *region, wmOperator *op)
@@ -1442,10 +1442,10 @@ static wmOperatorStatus image_open_exec(bContext *C, wmOperator *op)
       frame_ofs = range.offset;
     }
 
-    BLI_freelistN(&range.udim_tiles);
-    BLI_freelistN(&range.frames);
+    range.udim_tiles.free_no_destruct();
+    range.frames.free_no_destruct();
   }
-  BLI_freelistN(&ranges);
+  ranges.free_no_destruct();
 
   if (ima == nullptr) {
     return OPERATOR_CANCELLED;
@@ -1735,10 +1735,10 @@ static wmOperatorStatus image_file_browse_invoke(bContext *C, wmOperator *op, co
     return OPERATOR_CANCELLED;
   }
 
-  /* The image is typically passed to the operator via layout/button context (e.g.
-   * # ui::Layout::context_ptr_set. The File Browser doesn't support
-   * restoring this context when calling `exec()` though, so we have to pass it the image via
-   * custom data. */
+  /* The image is typically passed to the operator via layout/button context
+   * (e.g. #ui::Layout::context_ptr_set).
+   * The File Browser doesn't support restoring this context when calling `exec()` though,
+   * so we have to pass it the image via custom data. */
   op->customdata = ima;
 
   image_filesel(C, op, filepath);
@@ -1808,7 +1808,7 @@ static wmOperatorStatus image_match_len_exec(bContext *C, wmOperator * /*op*/)
   if (!anim) {
     return OPERATOR_CANCELLED;
   }
-  iuser->frames = MOV_get_duration_frames(anim, IMB_TC_RECORD_RUN);
+  iuser->frames = MOV_get_duration_frames(anim);
   BKE_image_user_frame_calc(ima, iuser, scene->r.cfra);
 
   return OPERATOR_FINISHED;
@@ -2456,7 +2456,7 @@ bool ED_image_should_save_modified(const Main *bmain)
   BKE_reports_init(&reports, RPT_STORE);
 
   uint modified_images_count = ED_image_save_all_modified_info(bmain, &reports);
-  bool should_save = modified_images_count || !BLI_listbase_is_empty(&reports.list);
+  bool should_save = modified_images_count || !reports.list.is_empty();
 
   BKE_reports_free(&reports);
 
@@ -2552,6 +2552,23 @@ bool ED_image_save_all_modified(const bContext *C, ReportList *reports)
   return ok;
 }
 
+void ED_image_internal_autosave_flush(const Main *bmain)
+{
+  for (Image *ima = static_cast<Image *>(bmain->images.first); ima;
+       ima = static_cast<Image *>(ima->id.next))
+  {
+    bool is_format_writable;
+
+    if (image_should_be_saved(ima, &is_format_writable)) {
+      if (BKE_image_has_packedfile(ima) || image_should_pack_during_save_all(ima) ||
+          (is_format_writable && image_has_valid_path(ima)))
+      {
+        BKE_image_autosave_memorypack(ima);
+      }
+    }
+  }
+}
+
 static bool image_save_all_modified_poll(bContext *C)
 {
   int num_files = ED_image_save_all_modified_info(CTX_data_main(C), nullptr);
@@ -2594,6 +2611,8 @@ static wmOperatorStatus image_reload_exec(bContext *C, wmOperator * /*op*/)
   if (!ima) {
     return OPERATOR_CANCELLED;
   }
+
+  BKE_image_clear_autosave(ima);
 
   /* XXX BKE_packedfile_unpack_image frees image buffers */
   ED_preview_kill_jobs(CTX_wm_manager(C), CTX_data_main(C));
@@ -4513,7 +4532,7 @@ static bool tile_remove_poll(bContext *C)
 {
   Image *ima = CTX_data_edit_image(C);
 
-  return (ima != nullptr && ima->source == IMA_SRC_TILED && !BLI_listbase_is_single(&ima->tiles));
+  return (ima != nullptr && ima->source == IMA_SRC_TILED && !ima->tiles.is_single());
 }
 
 static wmOperatorStatus tile_remove_exec(bContext *C, wmOperator * /*op*/)
@@ -4526,7 +4545,7 @@ static wmOperatorStatus tile_remove_exec(bContext *C, wmOperator * /*op*/)
   }
 
   /* Ensure that the active index is valid. */
-  ima->active_tile_index = min_ii(ima->active_tile_index, BLI_listbase_count(&ima->tiles) - 1);
+  ima->active_tile_index = min_ii(ima->active_tile_index, ima->tiles.count() - 1);
 
   WM_event_add_notifier(C, NC_IMAGE | ND_DRAW, nullptr);
 

@@ -1058,10 +1058,10 @@ static void graph_draw_driver_settings_panel(ui::Layout &layout,
      *       primarily when users mistakenly try to use drivers for procedural
      *       property animation
      */
-    if (BLI_listbase_is_empty(&driver->variables)) {
+    if (driver->variables.is_empty()) {
       col.label(RPT_("ERROR: Driver is useless without any inputs"), ICON_ERROR);
 
-      if (!BLI_listbase_is_empty(&fcu->modifiers)) {
+      if (!fcu->modifiers.is_empty()) {
         col.label(RPT_("TIP: Use F-Curves for procedural animation instead"), ICON_INFO);
         col.label(RPT_("F-Modifiers can generate curves for those too"), ICON_INFO);
       }

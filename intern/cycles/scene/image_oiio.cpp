@@ -56,6 +56,7 @@ bool OIIOImageLoader::load_metadata(ImageMetaData &metadata,
                    IMAGE_FORMAT_PLAIN))
       {
         texture_cache_filepath_.clear();
+        params.tx_failure_num++;
       }
     }
     else {
@@ -63,7 +64,12 @@ bool OIIOImageLoader::load_metadata(ImageMetaData &metadata,
     }
   }
 
-  return metadata.oiio_load_metadata(get_filepath());
+  if (!metadata.oiio_load_metadata(get_filepath())) {
+    params.load_failure_num++;
+    return false;
+  }
+
+  return true;
 }
 
 bool OIIOImageLoader::load_pixels(const ImageMetaData &metadata, void *pixels)

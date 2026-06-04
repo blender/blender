@@ -18,7 +18,7 @@
 #include "BKE_main.hh"
 #include "BKE_packedFile.hh"
 
-#include "hydra_scene_delegate.hh"
+#include "scene_index.hh"
 
 namespace blender::io::hydra {
 
@@ -47,10 +47,10 @@ static std::string cache_image_file(
     opts.save_copy = true;
     STRNCPY(opts.filepath, file_path.c_str());
     if (BKE_image_save(nullptr, bmain, image, iuser, &opts)) {
-      CLOG_DEBUG(LOG_HYDRA_SCENE, "%s -> %s", image->id.name, file_path.c_str());
+      CLOG_DEBUG(LOG_HYDRA_SCENE_INDEX, "%s -> %s", image->id.name, file_path.c_str());
     }
     else {
-      CLOG_ERROR(LOG_HYDRA_SCENE, "Can't save %s", file_path.c_str());
+      CLOG_ERROR(LOG_HYDRA_SCENE_INDEX, "Can't save %s", file_path.c_str());
       file_path = "";
     }
   }
@@ -103,7 +103,7 @@ std::string cache_or_get_image_file(Main *bmain, Scene *scene, Image *image, Ima
     file_path = cache_image_file(bmain, scene, image, iuser, true);
   }
 
-  CLOG_DEBUG(LOG_HYDRA_SCENE, "%s -> %s", image->id.name, file_path.c_str());
+  CLOG_DEBUG(LOG_HYDRA_SCENE_INDEX, "%s -> %s", image->id.name, file_path.c_str());
   return file_path;
 }
 

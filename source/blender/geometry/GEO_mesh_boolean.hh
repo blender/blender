@@ -70,7 +70,7 @@ struct BooleanOpParameters {
  * If is only one operand, the non-float versions will do self-intersection and remove
  * internal faces.
  * If there are more than two meshes, the first mesh is operand 0 and the rest of the
- * meshes are operand 1 (i.e., as if all of operands 1, ... are joined into one mesh.
+ * meshes are operand 1 (i.e., as if all of operands 1, ... are joined into one mesh).
  * The exact solvers assume that the meshes are PWN (piecewise winding number,
  * which approximately means that the meshes are enclosed watertight volumes,
  * and all edges are manifold, though there are allowable exceptions to that last condition).

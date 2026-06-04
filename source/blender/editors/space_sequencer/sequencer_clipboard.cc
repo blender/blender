@@ -421,7 +421,7 @@ wmOperatorStatus sequencer_clipboard_paste_exec(bContext *C, wmOperator *op)
     return OPERATOR_CANCELLED;
   }
 
-  const int num_strips_to_paste = BLI_listbase_count(&scene_src->ed->seqbase);
+  const int num_strips_to_paste = scene_src->ed->seqbase.count();
   if (num_strips_to_paste == 0) {
     BKE_report(op->reports, RPT_INFO, "No strips to paste");
     BKE_main_free(bmain_src);

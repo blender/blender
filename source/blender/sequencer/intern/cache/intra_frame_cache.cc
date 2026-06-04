@@ -20,9 +20,9 @@
 namespace blender::seq {
 
 struct StripImageMap {
-  Map<const Strip *, ImBuf *> map_;
-  ImBuf *get(const Strip *strip) const;
-  void put(const Strip *strip, ImBuf *image);
+  Map<const Strip *, SeqResult> map_;
+  SeqResult get(const Strip *strip) const;
+  void put(const Strip *strip, const SeqResult &result);
   void invalidate(const Strip *strip);
   void clear();
 };
@@ -83,83 +83,83 @@ void StripImageMap::invalidate(const Strip *strip)
   for (auto it = this->map_.items().begin(); it != this->map_.items().end(); it++) {
     const Strip *key = (*it).key;
     if (key == strip || key->channel >= strip->channel) {
-      IMB_freeImBuf((*it).value);
+      IMB_freeImBuf((*it).value.image);
       this->map_.remove(it);
     }
   }
 }
 
-ImBuf *StripImageMap::get(const Strip *strip) const
+SeqResult StripImageMap::get(const Strip *strip) const
 {
-  ImBuf *image = this->map_.lookup_default(strip, nullptr);
-  if (image != nullptr) {
-    IMB_refImBuf(image);
+  SeqResult result = this->map_.lookup_default(strip, {});
+  if (result.is_valid()) {
+    IMB_refImBuf(result.image);
   }
-  return image;
+  return result;
 }
 
-void StripImageMap::put(const Strip *strip, ImBuf *image)
+void StripImageMap::put(const Strip *strip, const SeqResult &result)
 {
   BLI_assert(strip != nullptr);
-  if (image == nullptr) {
+  if (!result.is_valid()) {
     return;
   }
-  ImBuf *existing = this->map_.lookup_default(strip, nullptr);
-  if (existing != nullptr) {
-    IMB_freeImBuf(existing);
+  SeqResult existing = this->map_.lookup_default(strip, {});
+  if (existing.is_valid()) {
+    IMB_freeImBuf(existing.image);
   }
-  this->map_.add_overwrite(strip, image);
-  IMB_refImBuf(image);
+  this->map_.add_overwrite(strip, result);
+  IMB_refImBuf(result.image);
 }
 
 void StripImageMap::clear()
 {
   for (const auto &item : this->map_.items()) {
-    IMB_freeImBuf(item.value);
+    IMB_freeImBuf(item.value.image);
   }
   this->map_.clear();
 }
 
-ImBuf *intra_frame_cache_get_preprocessed(Scene *scene, const Strip *strip)
+SeqResult intra_frame_cache_get_preprocessed(Scene *scene, const Strip *strip)
 {
   IntraFrameCache *cache = query_intra_frame_cache(scene);
   if (strip == nullptr || cache == nullptr) {
-    return nullptr;
+    return {};
   }
   return cache->preprocessed.get(strip);
 }
 
-ImBuf *intra_frame_cache_get_composite(Scene *scene, const Strip *strip)
+SeqResult intra_frame_cache_get_composite(Scene *scene, const Strip *strip)
 {
   IntraFrameCache *cache = query_intra_frame_cache(scene);
   if (strip == nullptr || cache == nullptr) {
-    return nullptr;
+    return {};
   }
   return cache->composite.get(strip);
 }
 
-void intra_frame_cache_put_preprocessed(Scene *scene, const Strip *strip, ImBuf *image)
+void intra_frame_cache_put_preprocessed(Scene *scene, const Strip *strip, const SeqResult &result)
 {
-  if (scene == nullptr || scene->ed == nullptr || strip == nullptr || image == nullptr) {
+  if (scene == nullptr || scene->ed == nullptr || strip == nullptr || !result.is_valid()) {
     return;
   }
   IntraFrameCache *&cache = scene->ed->runtime->intra_frame_cache;
   if (cache == nullptr) {
     cache = MEM_new<IntraFrameCache>(__func__);
   }
-  cache->preprocessed.put(strip, image);
+  cache->preprocessed.put(strip, result);
 }
 
-void intra_frame_cache_put_composite(Scene *scene, const Strip *strip, ImBuf *image)
+void intra_frame_cache_put_composite(Scene *scene, const Strip *strip, const SeqResult &result)
 {
-  if (scene == nullptr || scene->ed == nullptr || strip == nullptr || image == nullptr) {
+  if (scene == nullptr || scene->ed == nullptr || strip == nullptr || !result.is_valid()) {
     return;
   }
   IntraFrameCache *&cache = scene->ed->runtime->intra_frame_cache;
   if (cache == nullptr) {
     cache = MEM_new<IntraFrameCache>(__func__);
   }
-  cache->composite.put(strip, image);
+  cache->composite.put(strip, result);
 }
 
 void intra_frame_cache_destroy(Scene *scene)

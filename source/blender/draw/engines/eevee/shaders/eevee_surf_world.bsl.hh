@@ -15,13 +15,12 @@
 FRAGMENT_SHADER_CREATE_INFO(eevee_nodetree)
 FRAGMENT_SHADER_CREATE_INFO(eevee_geom_iface_info)
 
-#include "draw_view_lib.glsl"
 #include "eevee_attributes_world_lib.glsl"
 #include "eevee_colorspace_lib.bsl.hh"
-#include "eevee_lightprobe_sphere_lib.glsl"
-#include "eevee_lightprobe_volume_eval_lib.glsl"
+#include "eevee_lightprobe.bsl.hh"
 #include "eevee_nodetree_frag_lib.glsl"
-#include "eevee_sampling_lib.glsl"
+#include "eevee_pipeline.bsl.hh"
+#include "eevee_sampling_lib.bsl.hh"
 #include "eevee_surf_common.bsl.hh"
 
 float4 closure_to_rgba_world(Closure /*cl*/)
@@ -32,15 +31,7 @@ float4 closure_to_rgba_world(Closure /*cl*/)
 namespace eevee {
 
 struct SurfWorld {
-  [[legacy_info]] ShaderCreateInfo eevee_global_ubo;
-  [[legacy_info]] ShaderCreateInfo eevee_lightprobe_sphere_data;
-  [[legacy_info]] ShaderCreateInfo eevee_volume_probe_data;
-  [[legacy_info]] ShaderCreateInfo eevee_sampling_data;
-  [[legacy_info]] ShaderCreateInfo eevee_utility_texture;
   [[legacy_info]] ShaderCreateInfo eevee_geom_iface_info;
-
-  [[legacy_info]] ShaderCreateInfo eevee_render_pass_out;
-  [[legacy_info]] ShaderCreateInfo eevee_cryptomatte_out;
 
   [[push_constant]] float world_opacity_fade;
   [[push_constant]] float world_background_blur;
@@ -52,14 +43,21 @@ struct SurfWorldFragOut {
 };
 
 [[fragment]] [[early_fragment_tests]]
-void surf_world([[resource_table]] SurfWorld &srt,
+void surf_world([[resource_table]] PipelineConstants & /*pipe*/,
+                [[resource_table]] SurfWorld &srt,
+                [[resource_table]] const LightprobeRenderData &lightprobes,
+                [[resource_table]] RenderPassOutput &render_passes,
+                [[resource_table]] const Uniform &uni,
+                [[resource_table]] const UtilityTexture & /*util_tx*/,
+                [[resource_table]] const draw::View &views,
                 [[frag_coord]] const float4 frag_co,
                 [[out]] SurfWorldFragOut &frag_out,
                 [[front_facing]] const bool front_face)
 {
-  init_globals(front_face);
+  const ViewMatrices view = views.get(0);
+  init_globals(uni, view, front_face);
   /* View position is passed to keep accuracy. */
-  g_data.N = drw_normal_view_to_world(drw_view_incident_vector(interp.P));
+  g_data.N = view.normal_view_to_world(view.view_incident_vector(interp.P));
   g_data.Ng = g_data.N;
   g_data.P = -g_data.N;
   attrib_load(WorldPoint{g_data.P});
@@ -72,17 +70,20 @@ void surf_world([[resource_table]] SurfWorld &srt,
   frag_out.background.a = saturate(average(g_transmittance)) * g_holdout;
 
   if (g_data.ray_type == RAY_TYPE_CAMERA && srt.world_background_blur != 0.0f) {
-    float base_lod = sphere_probe_roughness_to_lod(srt.world_background_blur);
+    [[resource_table]] const LightprobeVolumeRenderData &lp_volumes = lightprobes.volumes;
+    [[resource_table]] const LightprobeSphereRenderData &lp_spheres = lightprobes.spheres;
+
+    float base_lod = lightprobe::sphere::roughness_to_lod(srt.world_background_blur);
     float lod = max(1.0f, base_lod);
     float mix_factor = min(1.0f, base_lod);
     SphereProbeUvArea world_atlas_coord = reinterpret_as_atlas_coord(srt.world_coord_packed);
-    float4 probe_color = lightprobe_spheres_sample(-g_data.N, lod, world_atlas_coord);
+    float4 probe_color = lp_spheres.sample_probe(-g_data.N, lod, world_atlas_coord);
     frag_out.background.rgb = mix(frag_out.background.rgb, probe_color.rgb, mix_factor);
 
-    SphericalHarmonicL1<float4> volume_irradiance = lightprobe_volume_sample(
-        g_data.P, float3(0.0f), g_data.Ng);
+    SphericalHarmonicL1<float4> volume_irradiance = lp_volumes.world();
     float3 radiance_sh = volume_irradiance.evaluate_lambert(-g_data.N).rgb;
-    float radiance_mix_factor = sphere_probe_roughness_to_mix_fac(srt.world_background_blur);
+    float radiance_mix_factor = lightprobe::sphere::roughness_to_mix_fac(
+        srt.world_background_blur);
     frag_out.background.rgb = mix(frag_out.background.rgb, radiance_sh, radiance_mix_factor);
   }
 
@@ -90,7 +91,8 @@ void surf_world([[resource_table]] SurfWorld &srt,
   float4 environment = frag_out.background;
   environment.a = 1.0f - environment.a;
   environment.rgb *= environment.a;
-  output_renderpass_color(uniform_buf.render_pass.environment_id, environment);
+  render_passes.store_color(
+      int2(frag_co.xy), uni.uniform_buf.render_pass.environment_id, environment);
 
   frag_out.background = mix(
       float4(0.0f, 0.0f, 0.0f, 1.0f), frag_out.background, srt.world_opacity_fade);

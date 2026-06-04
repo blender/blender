@@ -634,8 +634,6 @@ IndexMask IndexMask::from_bools(const IndexMask &universe,
         return from_bits_batch_predicate(universe_segment, builder, bits);
       },
       exec_mode::grain_size(max_segment_size));
-  BitVector bits(bools);
-  return IndexMask::from_bits(universe, bits, memory);
 }
 
 IndexMask IndexMask::from_bools_inverse(const IndexMask &universe,

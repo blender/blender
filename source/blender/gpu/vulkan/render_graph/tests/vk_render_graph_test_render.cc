@@ -297,7 +297,8 @@ TEST_P(VKRenderGraphTestRender, begin_draw_end__layered)
       "dst_stage_mask=VK_PIPELINE_STAGE_ALL_GRAPHICS_BIT, "
       "VK_PIPELINE_STAGE_ALL_COMMANDS_BIT" +
           endl() +
-          " - image_barrier(src_access_mask=VK_ACCESS_TRANSFER_WRITE_BIT, "
+          " - image_barrier(src_access_mask=VK_ACCESS_COLOR_ATTACHMENT_WRITE_BIT, "
+          "VK_ACCESS_TRANSFER_WRITE_BIT, "
           "dst_access_mask=VK_ACCESS_SHADER_READ_BIT, VK_ACCESS_SHADER_WRITE_BIT, "
           "VK_ACCESS_COLOR_ATTACHMENT_READ_BIT, VK_ACCESS_COLOR_ATTACHMENT_WRITE_BIT, "
           "VK_ACCESS_TRANSFER_READ_BIT, VK_ACCESS_TRANSFER_WRITE_BIT, "

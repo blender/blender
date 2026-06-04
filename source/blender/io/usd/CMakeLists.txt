@@ -167,30 +167,29 @@ if(WITH_HYDRA)
   list(APPEND SRC
     hydra/camera_delegate.cc
     hydra/curves.cc
-    hydra/hydra_scene_delegate.cc
-    hydra/id.cc
+    hydra/scene_index.cc
     hydra/image.cc
     hydra/instancer.cc
     hydra/light.cc
     hydra/material.cc
     hydra/mesh.cc
-    hydra/object.cc
-    hydra/usd_scene_delegate.cc
+    hydra/populate_context.cc
+    hydra/usd_scene_index.cc
     hydra/volume.cc
     hydra/volume_modifier.cc
     hydra/world.cc
 
     hydra/camera_delegate.hh
     hydra/curves.hh
-    hydra/hydra_scene_delegate.hh
-    hydra/id.hh
+    hydra/scene_index.hh
     hydra/image.hh
     hydra/instancer.hh
     hydra/light.hh
     hydra/material.hh
     hydra/mesh.hh
-    hydra/object.hh
-    hydra/usd_scene_delegate.hh
+    hydra/populate_context.hh
+    hydra/usd_scene_index.hh
+    hydra/util.hh
     hydra/volume.hh
     hydra/volume_modifier.hh
     hydra/world.hh

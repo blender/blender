@@ -13,6 +13,7 @@ struct AlignRotationsConstraintResult {
   float4 delta_lambda;
   math::Quaternion offset0 = math::Quaternion(0.0f, 0.0f, 0.0f, 0.0f);
   math::Quaternion offset1 = math::Quaternion(0.0f, 0.0f, 0.0f, 0.0f);
+  float residual_error_squared = 0.0f;
 };
 
 inline AlignRotationsConstraintResult evaluate_align_rotations_constraint(
@@ -46,6 +47,8 @@ inline AlignRotationsConstraintResult evaluate_align_rotations_constraint(
                               residual_neg :
                               residual_pos;
 
+  const float error_squared = math::length_squared(residual + compliance_term * lambda_prev);
+
   const float4 delta_lambda = (-residual - compliance_term * lambda_prev) /
                               (inv_lumped_inertia0 + inv_lumped_inertia1 + compliance_term);
 
@@ -53,7 +56,7 @@ inline AlignRotationsConstraintResult evaluate_align_rotations_constraint(
                                             math::Quaternion(delta_lambda * inv_lumped_inertia0));
   const math::Quaternion offset1 = r0 * math::Quaternion(delta_lambda * inv_lumped_inertia1);
 
-  return {delta_lambda, offset0, offset1};
+  return {delta_lambda, offset0, offset1, error_squared};
 }
 
 }  // namespace blender::xpbd

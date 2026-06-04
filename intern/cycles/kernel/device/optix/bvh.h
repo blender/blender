@@ -151,10 +151,11 @@ extern "C" __global__ void __anyhit__kernel_optix_local_hit()
   isect->v = barycentrics.y;
 
   /* Record geometric normal. */
+  const int position_offset = kernel_data_fetch(objects, object).position_offset;
   const packed_uint3 tri_vindex = kernel_data_fetch(tri_vindex, prim);
-  const float3 tri_a = kernel_data_fetch(tri_verts, tri_vindex.x);
-  const float3 tri_b = kernel_data_fetch(tri_verts, tri_vindex.y);
-  const float3 tri_c = kernel_data_fetch(tri_verts, tri_vindex.z);
+  const float3 tri_a = kernel_data_fetch(attributes_float3, position_offset + tri_vindex.x);
+  const float3 tri_b = kernel_data_fetch(attributes_float3, position_offset + tri_vindex.y);
+  const float3 tri_c = kernel_data_fetch(attributes_float3, position_offset + tri_vindex.z);
 
   local_isect->Ng[hit_index] = normalize(cross(tri_b - tri_a, tri_c - tri_a));
 
@@ -246,7 +247,7 @@ extern "C" __global__ void __anyhit__kernel_optix_visibility_test()
 
   ccl_private Ray *const ray = get_payload_ptr_6<Ray>();
 
-  if (visibility & PATH_RAY_SHADOW_OPAQUE) {
+  if (visibility & PATH_RAY_VISIBILITY_SHADOW_OPAQUE) {
 #ifdef __SHADOW_LINKING__
     if (intersection_skip_shadow_link(nullptr, ray->self, object)) {
       return optixIgnoreIntersection();
@@ -406,7 +407,7 @@ ccl_device_intersect bool scene_intersect(KernelGlobals kg,
   if (0 == ray_mask && (visibility & ~0xFF) != 0) {
     ray_mask = 0xFF;
   }
-  else if (visibility & PATH_RAY_SHADOW_OPAQUE) {
+  else if (visibility & PATH_RAY_VISIBILITY_SHADOW_OPAQUE) {
     ray_flags |= OPTIX_RAY_FLAG_TERMINATE_ON_FIRST_HIT;
   }
 
@@ -461,7 +462,7 @@ ccl_device_intersect bool scene_intersect_shadow(KernelGlobals kg,
   if (0 == ray_mask && (visibility & ~0xFF) != 0) {
     ray_mask = 0xFF;
   }
-  else if (visibility & PATH_RAY_SHADOW_OPAQUE) {
+  else if (visibility & PATH_RAY_VISIBILITY_SHADOW_OPAQUE) {
     ray_flags |= OPTIX_RAY_FLAG_TERMINATE_ON_FIRST_HIT;
   }
 

@@ -42,9 +42,9 @@ ccl_device int light_distribution_sample(KernelGlobals kg, const float rand)
   return index;
 }
 
-ccl_device_noinline bool light_distribution_sample(KernelGlobals kg,
-                                                   const float rand,
-                                                   ccl_private LightSample *ls)
+ccl_device bool light_distribution_sample(KernelGlobals kg,
+                                          const float rand,
+                                          ccl_private LightSample *ls)
 {
   /* Sample light index from distribution. */
   ls->emitter_id = light_distribution_sample(kg, rand);

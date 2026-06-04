@@ -549,7 +549,7 @@ static bool show_crop_gizmo(const SpaceNode &snode)
        * gizmo has no effect. */
       return false;
     }
-    else if (STREQ(input.name, "Alpha Crop") && !input.is_directly_linked()) {
+    if (STREQ(input.name, "Alpha Crop") && !input.is_directly_linked()) {
       PointerRNA input_rna_pointer = RNA_pointer_create_discrete(nullptr, RNA_NodeSocket, &input);
       if (RNA_boolean_get(&input_rna_pointer, "default_value")) {
         /* If Alpha Crop is not set, the image size changes depending on the input parameters,

@@ -377,7 +377,7 @@ struct wmKeyMapItem {
   int8_t shift = 0;
   int8_t ctrl = 0;
   int8_t alt = 0;
-  /** Also known as "Apple", "Windows-Key" or "Super. */
+  /** Also known as "Apple", "Windows-Key" or "Super". */
   int8_t oskey = 0;
   /** See #KM_HYPER for details. */
   int8_t hyper = 0;

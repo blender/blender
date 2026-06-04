@@ -44,6 +44,7 @@ BLI_NOINLINE static void calc_translations(const Brush &brush,
                                            const Span<float3> positions,
                                            const MutableSpan<float3> translations)
 {
+  PRF_scope(ProfileCategory::Editor);
   switch (eBrushElasticDeformType(brush.elastic_deform_type)) {
     case BRUSH_ELASTIC_DEFORM_GRAB: {
       for (const int i : positions.index_range()) {
@@ -209,6 +210,7 @@ void do_elastic_deform_brush(const Depsgraph &depsgraph,
                              Object &object,
                              const IndexMask &node_mask)
 {
+  PRF_scope(ProfileCategory::Editor);
   const SculptSession &ss = *object.runtime->sculpt_session;
   bke::pbvh::Tree &pbvh = *bke::object::pbvh_get(object);
   const Brush &brush = *BKE_paint_brush_for_read(&sd.paint);

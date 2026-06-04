@@ -831,8 +831,9 @@ static PathUsersMap bake_simulation_get_path_users(bContext *C, const Span<Objec
       }
 
       /* If all bakes have a custom directory, we're done. */
-      if (all_bakes_have_custom_dir)
+      if (all_bakes_have_custom_dir) {
         continue;
+      }
 
       if (StringRef(nmd->bake_directory).is_empty()) {
         continue;

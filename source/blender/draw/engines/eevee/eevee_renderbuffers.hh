@@ -26,12 +26,16 @@ class RenderBuffers {
 
   static constexpr gpu::TextureFormat color_format = gpu::TextureFormat::SFLOAT_16_16_16_16;
   static constexpr gpu::TextureFormat float_format = gpu::TextureFormat::SFLOAT_16;
+  static constexpr gpu::TextureFormat depth_format = gpu::TextureFormat::SFLOAT_32_DEPTH_UINT_8;
+  static constexpr gpu::TextureFormat object_id_format = gpu::TextureFormat::UINT_16;
+  static constexpr gpu::TextureFormat prepass_normal_format = gpu::TextureFormat::UNORM_10_10_10_2;
 
   Texture depth_tx;
   TextureFromPool combined_tx;
 
   // TextureFromPool mist_tx; /* Derived from depth_tx during accumulation. */
   TextureFromPool vector_tx;
+  TextureFromPool raycast_depth_tx;
   TextureFromPool object_id_tx;
   TextureFromPool prepass_normal_tx;
   TextureFromPool cryptomatte_tx;
@@ -68,7 +72,7 @@ class RenderBuffers {
   void init();
 
   /* Acquires (also ensures) the render buffer before rendering to them. */
-  void acquire(int2 extent);
+  void acquire(int2 extent, gpu::TextureFormat raycast_depth_format = depth_format);
   void release();
 
   /* Return the size of the allocated render buffers. Undefined if called before `acquire()`. */

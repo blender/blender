@@ -163,7 +163,7 @@ void ED_outliner_selected_objects_get(const bContext *C, ListBaseT<LinkData> *ob
     Object *ob = id_cast<Object *>(TREESTORE(ten_selected)->id);
     BLI_addtail(objects, BLI_genericNodeN(ob));
   }
-  BLI_freelistN(&data.selected_array);
+  data.selected_array.free_no_destruct();
 }
 
 namespace ed::outliner {
@@ -550,7 +550,7 @@ static wmOperatorStatus collection_objects_select_exec(bContext *C, wmOperator *
     }
   }
 
-  BLI_freelistN(&selected_collections.selected_array);
+  selected_collections.selected_array.free_no_destruct();
   DEG_id_tag_update(&scene->id, ID_RECALC_SELECT);
   WM_main_add_notifier(NC_SCENE | ND_OB_SELECT, scene);
   ED_outliner_select_sync_from_object_tag(C);
@@ -646,7 +646,7 @@ static wmOperatorStatus collection_duplicate_exec(bContext *C, wmOperator *op)
                          &selected_collections);
 
   /* Can happen when calling from a key binding. */
-  if (BLI_listbase_is_empty(&selected_collections.selected_array)) {
+  if (selected_collections.selected_array.is_empty()) {
     BKE_report(op->reports, RPT_ERROR, "No collection selected");
     return OPERATOR_CANCELLED;
   }
@@ -702,7 +702,7 @@ static wmOperatorStatus collection_duplicate_exec(bContext *C, wmOperator *op)
                 failed_count);
   }
 
-  BLI_freelistN(&selected_collections.selected_array);
+  selected_collections.selected_array.free_no_destruct();
   DEG_relations_tag_update(bmain);
   WM_main_add_notifier(NC_SCENE | ND_LAYER, CTX_data_scene(C));
   ED_outliner_select_sync_from_object_tag(C);
@@ -1648,7 +1648,7 @@ static wmOperatorStatus outliner_color_tag_set_exec(bContext *C, wmOperator *op)
     collection->color_tag = color_tag;
   };
 
-  BLI_freelistN(&selected.selected_array);
+  selected.selected_array.free_no_destruct();
 
   WM_event_add_notifier(C, NC_SCENE | ND_LAYER_CONTENT, nullptr);
 

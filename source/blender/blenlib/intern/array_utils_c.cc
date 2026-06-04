@@ -10,6 +10,7 @@
  * and only included for the cases where the performance is acceptable.
  * Use with care.
  */
+#include <algorithm>
 #include <cstdlib>
 #include <cstring>
 
@@ -314,8 +315,8 @@ bool _bli_array_iter_spiral_square(const void *arr_v,
     int y_minus = center[1];
     int y_plus = arr_shape[1] - center[1] - 1;
 
-    steps_in = 2 * min_iiii(x_minus, x_plus, y_minus, y_plus);
-    steps_out = 2 * max_iiii(x_minus, x_plus, y_minus, y_plus);
+    steps_in = 2 * std::min({x_minus, x_plus, y_minus, y_plus});
+    steps_out = 2 * std::max({x_minus, x_plus, y_minus, y_plus});
   }
 
   /* For check_bounds. */

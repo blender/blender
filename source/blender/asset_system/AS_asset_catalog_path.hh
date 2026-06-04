@@ -75,6 +75,9 @@ class AssetCatalogPath {
   /* False when the path is empty, true otherwise. */
   operator bool() const;
 
+  /** Creates and ensures that the path is cleaned up. */
+  static AssetCatalogPath from_user_input(const char *path);
+
   /**
    * Clean up the path. This ensures:
    * - Every path component is stripped of its leading/trailing spaces.

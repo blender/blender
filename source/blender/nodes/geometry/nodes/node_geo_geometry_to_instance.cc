@@ -13,7 +13,7 @@ static void node_declare(NodeDeclarationBuilder &b)
   b.add_input<decl::Geometry>("Geometry"_ustr)
       .multi_input()
       .description("Each input geometry is turned into a separate instance");
-  b.add_output<decl::Geometry>("Instances"_ustr).propagate_all();
+  b.add_output<decl::Geometry>("Instances"_ustr).propagate_all_geometry();
 }
 
 static void node_geo_exec(GeoNodeExecParams params)

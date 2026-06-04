@@ -147,7 +147,7 @@ void ShaderCreateInfo::finalize(const bool recursive)
   }
   finalized_ = true;
 
-  Set<StringRefNull> deps_merged;
+  auto deps_merged = std::make_unique<Set<StringRefNull>>();
 
   validate_vertex_attributes();
 
@@ -187,13 +187,6 @@ void ShaderCreateInfo::finalize(const bool recursive)
     defines_.extend_non_duplicates(info.defines_);
     typedef_sources_.extend_non_duplicates(info.typedef_sources_);
 
-    auto extend_predicate = [&](Vector<Resource, 0> &resource_vector,
-                                ShaderCreateInfo::Resource res_copy,
-                                Span<ConditionFn> additional_conditions) {
-      res_copy.conditions.extend(additional_conditions);
-      /** IMPORTANT: We keep duplicates until we evaluate the conditions. */
-      resource_vector.append(res_copy);
-    };
     for (const auto &res : info.pass_resources_) {
       extend_predicate(pass_resources_, res, additional_info.conditions);
     }
@@ -230,55 +223,48 @@ void ShaderCreateInfo::finalize(const bool recursive)
      * defined at the same time (using compilation constants). */
     // validate_merge(info);
 
-    auto assert_no_overlap = [&](const bool test, const StringRefNull error) {
-      if (!test) {
-        std::cout << name_ << ": Validation failed while merging " << info.name_ << " : ";
-        std::cout << error << std::endl;
-        BLI_assert(0);
-      }
-    };
-
-    if (!deps_merged.add(info.name_)) {
-      assert_no_overlap(false, "additional info already merged via another info");
+    if (!deps_merged->add(info.name_)) {
+      assert_no_overlap(info, false, "additional info already merged via another info");
     }
 
     if (info.compute_layout_.local_size_x != -1) {
-      assert_no_overlap(compute_layout_.local_size_x == -1, "Compute layout already defined");
+      assert_no_overlap(
+          info, compute_layout_.local_size_x == -1, "Compute layout already defined");
       compute_layout_ = info.compute_layout_;
     }
 
     if (!info.vertex_source_.is_empty()) {
-      assert_no_overlap(vertex_source_.is_empty(), "Vertex source already existing");
+      assert_no_overlap(info, vertex_source_.is_empty(), "Vertex source already existing");
       vertex_source_ = info.vertex_source_;
     }
     if (!info.geometry_source_.is_empty()) {
-      assert_no_overlap(geometry_source_.is_empty(), "Geometry source already existing");
+      assert_no_overlap(info, geometry_source_.is_empty(), "Geometry source already existing");
       geometry_source_ = info.geometry_source_;
       geometry_layout_ = info.geometry_layout_;
     }
     if (!info.fragment_source_.is_empty()) {
-      assert_no_overlap(fragment_source_.is_empty(), "Fragment source already existing");
+      assert_no_overlap(info, fragment_source_.is_empty(), "Fragment source already existing");
       fragment_source_ = info.fragment_source_;
     }
     if (!info.compute_source_.is_empty()) {
-      assert_no_overlap(compute_source_.is_empty(), "Compute source already existing");
+      assert_no_overlap(info, compute_source_.is_empty(), "Compute source already existing");
       compute_source_ = info.compute_source_;
     }
 
     if (info.vertex_entry_fn_ != "main") {
-      assert_no_overlap(vertex_entry_fn_ == "main", "Vertex function already existing");
+      assert_no_overlap(info, vertex_entry_fn_ == "main", "Vertex function already existing");
       vertex_entry_fn_ = info.vertex_entry_fn_;
     }
     if (info.geometry_entry_fn_ != "main") {
-      assert_no_overlap(geometry_entry_fn_ == "main", "Geometry function already existing");
+      assert_no_overlap(info, geometry_entry_fn_ == "main", "Geometry function already existing");
       geometry_entry_fn_ = info.geometry_entry_fn_;
     }
     if (info.fragment_entry_fn_ != "main") {
-      assert_no_overlap(fragment_entry_fn_ == "main", "Fragment function already existing");
+      assert_no_overlap(info, fragment_entry_fn_ == "main", "Fragment function already existing");
       fragment_entry_fn_ = info.fragment_entry_fn_;
     }
     if (info.compute_entry_fn_ != "main") {
-      assert_no_overlap(compute_entry_fn_ == "main", "Compute function already existing");
+      assert_no_overlap(info, compute_entry_fn_ == "main", "Compute function already existing");
       compute_entry_fn_ = info.compute_entry_fn_;
     }
   }
@@ -293,32 +279,54 @@ void ShaderCreateInfo::finalize(const bool recursive)
   if (auto_resource_location_) {
     int images = 0, samplers = 0, ubos = 0, ssbos = 0;
 
-    auto set_resource_slot = [&](Resource &res) {
-      switch (res.bind_type) {
-        case Resource::BindType::UNIFORM_BUFFER:
-          res.slot = ubos++;
-          break;
-        case Resource::BindType::STORAGE_BUFFER:
-          res.slot = ssbos++;
-          break;
-        case Resource::BindType::SAMPLER:
-          res.slot = samplers++;
-          break;
-        case Resource::BindType::IMAGE:
-          res.slot = images++;
-          break;
-      }
-    };
-
     for (auto &res : batch_resources_) {
-      set_resource_slot(res);
+      set_resource_slot(res, images, samplers, ubos, ssbos);
     }
     for (auto &res : pass_resources_) {
-      set_resource_slot(res);
+      set_resource_slot(res, images, samplers, ubos, ssbos);
     }
     for (auto &res : geometry_resources_) {
-      set_resource_slot(res);
+      set_resource_slot(res, images, samplers, ubos, ssbos);
     }
+  }
+}
+
+void ShaderCreateInfo::extend_predicate(Vector<Resource, 0> &resource_vector,
+                                        ShaderCreateInfo::Resource res_copy,
+                                        Span<ConditionFn> additional_conditions) const
+{
+  res_copy.conditions.extend(additional_conditions);
+  /** IMPORTANT: We keep duplicates until we evaluate the conditions. */
+  resource_vector.append(res_copy);
+};
+
+void ShaderCreateInfo::assert_no_overlap(const ShaderCreateInfo &info,
+                                         const bool test,
+                                         const StringRefNull error) const
+{
+  if (!test) {
+    std::cout << name_ << ": Validation failed while merging " << info.name_ << " : ";
+    std::cout << error << std::endl;
+    BLI_assert(0);
+  }
+}
+
+void ShaderCreateInfo::set_resource_slot(
+    Resource &res, int &images, int &samplers, int &ubos, int &ssbos) const
+{
+  switch (res.bind_type) {
+    case Resource::BindType::UNIFORM_BUFFER:
+      res.slot = ubos++;
+      break;
+    case Resource::BindType::STORAGE_BUFFER:
+      res.slot = ssbos++;
+      break;
+    case Resource::BindType::SAMPLER:
+      res.slot = samplers++;
+      break;
+    case Resource::BindType::IMAGE:
+      res.slot = images++;
+      break;
   }
 }
 
@@ -626,20 +634,6 @@ void ShaderCreateInfo::validate_vertex_attributes(const ShaderCreateInfo *other_
 
 using namespace blender::gpu::shader;
 
-#ifdef _MSC_VER
-/* Disable optimization for this function with MSVC. It does not like the fact
- * shaders info are declared in the same function (same basic block or not does
- * not change anything).
- * Since it is just a function called to register shaders (once),
- * the fact it's optimized or not does not matter, it's not on any hot
- * code path. */
-#  pragma optimize("", off)
-#endif
-void gpu_shader_create_info_init()
-{
-  g_create_infos = new CreateInfoDictionary();
-  g_interfaces = new InterfaceDictionary();
-
 #define GPU_SHADER_NAMED_INTERFACE_INFO(_interface, _inst_name) \
   StageInterfaceInfo *ptr_##_interface = new StageInterfaceInfo(#_interface, #_inst_name); \
   StageInterfaceInfo &_interface = *ptr_##_interface; \
@@ -662,20 +656,65 @@ void gpu_shader_create_info_init()
 #define GPU_SHADER_INTERFACE_END() ;
 #define GPU_SHADER_CREATE_END() ;
 
+#ifdef _MSC_VER
+/* Disable optimization for this function with MSVC. It does not like the fact
+ * shaders info are declared in the same function (same basic block or not does
+ * not change anything).
+ * Since it is just a function called to register shaders (once),
+ * the fact it's optimized or not does not matter, it's not on any hot
+ * code path. */
+#  pragma optimize("", off)
+#endif
+
+/* Split functions to avoid stack overflow on windows. */
+static void init_compositor_infos()
+{
 /* Declare, register and construct the infos. */
 #include "glsl_compositor_infos_list.hh"
+}
+
+static void init_draw_infos()
+{
+/* Declare, register and construct the infos. */
 #include "glsl_draw_infos_list.hh"
-#include "glsl_gpu_infos_list.hh"
-#include "glsl_ocio_infos_list.hh"
-#ifdef WITH_OPENSUBDIV
-#  include "glsl_osd_infos_list.hh"
-#endif
 
   if (GPU_stencil_clasify_buffer_workaround()) {
     /* WORKAROUND: Adding a dummy buffer that isn't used fixes a bug inside the Qualcomm driver. */
     eevee_deferred_tile_classify.storage_buf(
         12, Qualifier::read_write, "uint", "dummy_workaround_buf[]");
   }
+}
+
+static void init_gpu_infos()
+{
+/* Declare, register and construct the infos. */
+#include "glsl_gpu_infos_list.hh"
+}
+
+static void init_ocio_infos()
+{
+/* Declare, register and construct the infos. */
+#include "glsl_ocio_infos_list.hh"
+}
+
+static void init_osd_infos()
+{
+/* Declare, register and construct the infos. */
+#ifdef WITH_OPENSUBDIV
+#  include "glsl_osd_infos_list.hh"
+#endif
+}
+
+void gpu_shader_create_info_init()
+{
+  g_create_infos = new CreateInfoDictionary();
+  g_interfaces = new InterfaceDictionary();
+
+  init_compositor_infos();
+  init_draw_infos();
+  init_gpu_infos();
+  init_ocio_infos();
+  init_osd_infos();
 
   for (ShaderCreateInfo *info : g_create_infos->values()) {
     info->is_generated_ = false;

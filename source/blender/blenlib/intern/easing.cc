@@ -14,7 +14,7 @@
 
 namespace blender {
 
-/* blend if (amplitude < fabsf(change) */
+/* blend if (amplitude < fabsf(change)) */
 #define USE_ELASTIC_BLEND
 
 float BLI_easing_back_ease_in(

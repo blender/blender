@@ -499,6 +499,83 @@ class AlembicVisibilityImportTests(AbstractAlembicTest):
         self.assertObjectVisible('HIDDEN')
 
 
+class AlembicAnimatedVisibilityImportTests(AbstractAlembicTest):
+    def test_import_visibility_animated(self):
+        res = bpy.ops.wm.alembic_import(
+            filepath=str(self.testdir / "visibility-animated.abc"),
+            as_background_job=False)
+        self.assertEqual({'FINISHED'}, res)
+
+        view_layer = bpy.context.view_layer
+
+        # The object was written to be visible on frames following the Fibonacci sequence
+        a = 0
+        b = 1
+        next_fib = a + b
+
+        # Compare visibility against the expected value for every frame
+        for frame in range(1, 25):
+            bpy.context.scene.frame_set(frame)
+            depsgraph = bpy.context.evaluated_depsgraph_get()
+            point_object = bpy.data.objects["ANIMATED"].evaluated_get(depsgraph)
+
+            is_hidden = True
+
+            if frame == next_fib:
+                a = b
+                b = next_fib
+                next_fib = a + b
+                is_hidden = False
+
+            # Unlike static visibility, animated visibility by default should not set the visibility on the `Base`
+            self.assertEqual(point_object.hide_get(view_layer=view_layer), False)
+            self.assertEqual(point_object.hide_viewport, is_hidden)
+            self.assertEqual(point_object.hide_render, is_hidden)
+
+
+class AlembicAnimatedCameraImportTests(AbstractAlembicTest):
+    def test_import_camera_data_animation(self):
+        res = bpy.ops.wm.alembic_import(
+            filepath=str(self.testdir / "camera-data-animated.abc"),
+            as_background_job=False)
+        self.assertEqual({'FINISHED'}, res)
+
+        view_layer = bpy.context.view_layer
+
+        # Compare Blender data against the expected value for every frame
+        for frame in range(1, 26):
+            bpy.context.scene.frame_set(frame)
+            depsgraph = bpy.context.evaluated_depsgraph_get()
+            camera_object = bpy.data.objects["Camera"].evaluated_get(depsgraph)
+            camera = camera_object.data
+
+            lens = 50.0 + frame
+            shift = (frame - 1) * (1.0 / 24.0)
+            clip = frame
+
+            self.assertEqual(
+                lens,
+                camera.lens,
+                f"Frame {frame}: {camera_object.name} lens values do not match")
+
+            self.assertAlmostEqual(
+                shift,
+                camera.shift_x,
+                places=6,
+                msg=f"Frame {frame}: {camera_object.name} shift_x values do not match")
+
+            self.assertAlmostEqual(
+                shift,
+                camera.shift_y,
+                places=6,
+                msg=f"Frame {frame}: {camera_object.name} shift_y values do not match")
+
+            self.assertEqual(
+                clip,
+                camera.clip_start,
+                f"Frame {frame}: {camera_object.name} clip_start values do not match")
+
+
 class AlembicImportComparisonTests(unittest.TestCase):
     @classmethod
     def setUpClass(cls):

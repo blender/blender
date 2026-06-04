@@ -44,7 +44,7 @@ BLI_NOINLINE static void calc_translation_directions(const Brush &brush,
                                                      const Span<float3> positions,
                                                      const MutableSpan<float3> r_translations)
 {
-
+  PRF_scope(ProfileCategory::Editor);
   switch (brush.slide_deform_type) {
     case BRUSH_SLIDE_DEFORM_DRAG:
       r_translations.fill(math::normalize(cache.location_symm - cache.last_location_symm));
@@ -79,6 +79,7 @@ BLI_NOINLINE static void calc_neighbor_influence(const Span<float3> vert_positio
                                                  const GroupedSpan<int> vert_neighbors,
                                                  const MutableSpan<float3> translations)
 {
+  PRF_scope(ProfileCategory::Editor);
   for (const int i : positions.index_range()) {
     const float3 &position = positions[i];
     const float3 &dir = translations[i];
@@ -96,6 +97,7 @@ BLI_NOINLINE static void calc_neighbor_influence(const SubdivCCG &subdiv_ccg,
                                                  const Span<int> grids,
                                                  const MutableSpan<float3> translations)
 {
+  PRF_scope(ProfileCategory::Editor);
   const CCGKey key = BKE_subdiv_ccg_key_top_level(subdiv_ccg);
   const Span<float3> positions = subdiv_ccg.positions;
   for (const int i : grids.index_range()) {
@@ -135,6 +137,7 @@ BLI_NOINLINE static void calc_neighbor_influence(const Span<float3> positions,
                                                  const Set<BMVert *, 0> &verts,
                                                  const MutableSpan<float3> translations)
 {
+  PRF_scope(ProfileCategory::Editor);
   BMeshNeighborVerts neighbors;
   int i = 0;
   for (BMVert *vert : verts) {
@@ -275,6 +278,7 @@ void do_topology_slide_brush(const Depsgraph &depsgraph,
                              Object &object,
                              const IndexMask &node_mask)
 {
+  PRF_scope(ProfileCategory::Editor);
   const SculptSession &ss = *object.runtime->sculpt_session;
   bke::pbvh::Tree &pbvh = *bke::object::pbvh_get(object);
   const Brush &brush = *BKE_paint_brush_for_read(&sd.paint);

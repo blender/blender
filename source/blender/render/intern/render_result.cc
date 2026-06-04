@@ -333,7 +333,7 @@ RenderResult *render_result_new(Render *re,
   FOREACH_VIEW_LAYER_TO_RENDER_END;
 
   /* Preview-render doesn't do layers, so we make a default one. */
-  if (BLI_listbase_is_empty(&rr->layers) && !(layername && layername[0])) {
+  if (rr->layers.is_empty() && !(layername && layername[0])) {
     rl = MEM_new<RenderLayer>("new render layer");
     BLI_addtail(&rr->layers, rl);
 
@@ -771,7 +771,7 @@ void render_result_views_new(RenderResult *rr, const RenderData *rd)
   }
 
   /* we always need at least one view */
-  if (BLI_listbase_is_empty(&rr->views)) {
+  if (rr->views.is_empty()) {
     render_result_view_new(rr, "");
   }
 }

@@ -8,4 +8,9 @@
 
 #define VMA_IMPLEMENTATION
 
+#define VMA_LEAK_LOG_FORMAT(format, ...) \
+  do { \
+    fprintf(stderr, "VMA: " format "\n", __VA_ARGS__); \
+  } while (false)
+
 #include "vk_mem_alloc.h"

@@ -339,7 +339,7 @@ static int position_tail_on_spline(bSplineIKConstraint *ik_data,
   /* Calculate the intersection point using the secant root finding method */
   float x0 = 0.0f, x1 = 1.0f;
   float x0_point[3], x1_point[3], start_p[3];
-  float epsilon = max_fff(1.0f, len_v3(head_pos), len_v3(bp->vec)) * FLT_EPSILON;
+  float epsilon = std::max({1.0f, len_v3(head_pos), len_v3(bp->vec)}) * FLT_EPSILON;
 
   if (prev_seg_idx == bp_idx - 1) {
     /* The intersection lies inside the same segment as the last point.
@@ -797,7 +797,7 @@ void BKE_splineik_execute_tree(
 void BKE_pose_pchan_index_rebuild(bPose *pose)
 {
   MEM_SAFE_DELETE(pose->chan_array);
-  const int num_channels = BLI_listbase_count(&pose->chanbase);
+  const int num_channels = pose->chanbase.count();
   pose->chan_array = MEM_new_array_uninitialized<bPoseChannel *>(size_t(num_channels),
                                                                  "pose->chan_array");
   int pchan_index = 0;
@@ -847,7 +847,7 @@ void BKE_pose_eval_init(Depsgraph *depsgraph, Scene * /*scene*/, Object *object)
     }
   }
 
-  BLI_assert(pose->chan_array != nullptr || BLI_listbase_is_empty(&pose->chanbase));
+  BLI_assert(pose->chan_array != nullptr || pose->chanbase.is_empty());
 }
 
 void BKE_pose_eval_init_ik(Depsgraph *depsgraph, Scene *scene, Object *object)
@@ -1043,7 +1043,7 @@ static void pose_eval_cleanup_common(Object *object)
 {
   bPose *pose = object->pose;
   BLI_assert(pose != nullptr);
-  BLI_assert(pose->chan_array != nullptr || BLI_listbase_is_empty(&pose->chanbase));
+  BLI_assert(pose->chan_array != nullptr || pose->chanbase.is_empty());
   UNUSED_VARS_NDEBUG(pose);
 }
 

@@ -52,7 +52,7 @@ animrig::slot_handle_t TreeElementAnimData::get_slot_handle() const
 
 void TreeElementAnimData::expand_drivers() const
 {
-  if (BLI_listbase_is_empty(&anim_data_.drivers)) {
+  if (anim_data_.drivers.is_empty()) {
     return;
   }
   add_element(&legacy_te_.subtree, nullptr, &anim_data_, &legacy_te_, TSE_DRIVER_BASE, 0);
@@ -60,7 +60,7 @@ void TreeElementAnimData::expand_drivers() const
 
 void TreeElementAnimData::expand_NLA_tracks() const
 {
-  if (BLI_listbase_is_empty(&anim_data_.nla_tracks)) {
+  if (anim_data_.nla_tracks.is_empty()) {
     return;
   }
   add_element(&legacy_te_.subtree, nullptr, &anim_data_, &legacy_te_, TSE_NLA, 0);

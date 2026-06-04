@@ -946,7 +946,7 @@ static void v3d_cursor_snap_draw_fn(bContext *C,
 V3DSnapCursorState *ED_view3d_cursor_snap_state_active_get()
 {
   SnapCursorDataIntern *data_intern = &g_data_intern;
-  if (BLI_listbase_is_empty(&data_intern->state_intern)) {
+  if (data_intern->state_intern.is_empty()) {
     return &g_data_intern.state_default;
   }
   return &(static_cast<SnapStateIntern *>(data_intern->state_intern.last))->snap_state;
@@ -1046,14 +1046,14 @@ V3DSnapCursorState *ED_view3d_cursor_snap_state_create()
 void ED_view3d_cursor_snap_state_free(V3DSnapCursorState *state)
 {
   SnapCursorDataIntern *data_intern = &g_data_intern;
-  if (BLI_listbase_is_empty(&data_intern->state_intern)) {
+  if (data_intern->state_intern.is_empty()) {
     return;
   }
 
   SnapStateIntern *state_intern = STATE_INTERN_GET(state);
   BLI_remlink(&data_intern->state_intern, state_intern);
   MEM_delete(state_intern);
-  if (BLI_listbase_is_empty(&data_intern->state_intern)) {
+  if (data_intern->state_intern.is_empty()) {
     v3d_cursor_snap_free();
   }
 }

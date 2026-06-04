@@ -237,8 +237,7 @@ bool BKE_animdata_id_is_animated(const ID *id)
     }
   }
 
-  return !BLI_listbase_is_empty(&adt->drivers) || !BLI_listbase_is_empty(&adt->nla_tracks) ||
-         !BLI_listbase_is_empty(&adt->overrides);
+  return !adt->drivers.is_empty() || !adt->nla_tracks.is_empty() || !adt->overrides.is_empty();
 }
 
 void BKE_animdata_foreach_id(AnimData *adt, LibraryForeachIDData *data)
@@ -320,7 +319,7 @@ AnimData *BKE_animdata_copy_in_lib(Main *bmain,
   dadt->driver_array = nullptr;
 
   /* don't copy overrides */
-  BLI_listbase_clear(&dadt->overrides);
+  dadt->overrides.clear_no_delete();
 
   const bool is_main = (flag & LIB_ID_CREATE_NO_MAIN) == 0;
   if (is_main) {
@@ -1256,8 +1255,7 @@ static bool nlastrips_apply_all_curves_cb(ID *id,
 {
   for (NlaStrip &strip : *strips) {
     if (strip.act) {
-      BLI_assert_msg(BLI_listbase_is_empty(&strip.act->curves),
-                     "Legacy Actions are not supported here");
+      BLI_assert_msg(strip.act->curves.is_empty(), "Legacy Actions are not supported here");
       const Vector<FCurve *> fcurves = animrig::fcurves_for_action_slot(strip.act->wrap(),
                                                                         strip.action_slot_handle);
       if (!fcurves_apply_cb(id, fcurves, func)) {
@@ -1283,8 +1281,7 @@ static bool nlastrips_apply_all_curves_cb(ID *id,
 static bool adt_apply_all_fcurves_cb(ID *id, AnimData *adt, const IDFCurveCallback func)
 {
   if (adt->action) {
-    BLI_assert_msg(BLI_listbase_is_empty(&adt->action->curves),
-                   "Legacy Actions are not supported here");
+    BLI_assert_msg(adt->action->curves.is_empty(), "Legacy Actions are not supported here");
     if (!fcurves_apply_cb(
             id, animrig::fcurves_for_action_slot(adt->action->wrap(), adt->slot_handle), func))
     {
@@ -1293,8 +1290,7 @@ static bool adt_apply_all_fcurves_cb(ID *id, AnimData *adt, const IDFCurveCallba
   }
 
   if (adt->tmpact) {
-    BLI_assert_msg(BLI_listbase_is_empty(&adt->tmpact->curves),
-                   "Legacy Actions are not supported here");
+    BLI_assert_msg(adt->tmpact->curves.is_empty(), "Legacy Actions are not supported here");
     if (!fcurves_apply_cb(
             id, animrig::fcurves_for_action_slot(adt->tmpact->wrap(), adt->tmp_slot_handle), func))
     {

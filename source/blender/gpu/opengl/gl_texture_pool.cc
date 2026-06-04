@@ -73,7 +73,7 @@ Texture *GLTexturePool::acquire_texture_impl(int3 extent,
   BLI_assert(compatible_format != TextureFormat::Invalid);
 
   /* Determine actual mipmap depth. */
-  int mip_len_max = 1 + floorf(log2f(max_iii(extent.x, extent.y, extent.z)));
+  int mip_len_max = 1 + floorf(log2f(std::max({extent.x, extent.y, extent.z})));
   mip_len = min_ii(mip_len, mip_len_max);
 
   /* Search for the first compatible existing texture. */

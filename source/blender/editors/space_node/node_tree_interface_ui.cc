@@ -72,7 +72,7 @@ void node_tree_interface_draw(bContext &C, ui::Layout &layout, bNodeTree &tree)
   layout.use_property_split_set(true);
   layout.use_property_decorate_set(false);
 
-  if (active_item->item_type == NODE_INTERFACE_SOCKET) {
+  if (active_item->item_type == NodeTreeInterfaceItemType::Socket) {
     bNodeTreeInterfaceSocket *socket = reinterpret_cast<bNodeTreeInterfaceSocket *>(active_item);
     const bke::bNodeSocketType *stype = socket->socket_typeinfo();
     layout.prop(&active_item_ptr, "socket_type", UI_ITEM_NONE, IFACE_("Type"), ICON_NONE);
@@ -90,7 +90,7 @@ void node_tree_interface_draw(bContext &C, ui::Layout &layout, bNodeTree &tree)
       stype->interface_draw(&tree.id, socket, &C, &layout);
     }
   }
-  if (active_item->item_type == NODE_INTERFACE_PANEL) {
+  if (active_item->item_type == NodeTreeInterfaceItemType::Panel) {
     bNodeTreeInterfacePanel *panel_item = reinterpret_cast<bNodeTreeInterfacePanel *>(active_item);
     layout.prop(&active_item_ptr, "description", UI_ITEM_NONE, std::nullopt, ICON_NONE);
     layout.prop(

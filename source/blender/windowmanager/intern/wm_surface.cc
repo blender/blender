@@ -139,7 +139,7 @@ void wm_surfaces_free()
     wm_surface_remove(&surf);
   }
 
-  BLI_assert(BLI_listbase_is_empty(&global_surface_list));
+  BLI_assert(global_surface_list.is_empty());
 }
 
 }  // namespace blender

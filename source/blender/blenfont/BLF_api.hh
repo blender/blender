@@ -227,6 +227,12 @@ void BLF_boundbox_foreach_glyph(int fontid,
                                 BLF_GlyphBoundsFn user_fn,
                                 void *user_data) ATTR_NONNULL(2);
 
+void BLF_info_foreach_glyph(
+    int fontid,
+    const char *str,
+    size_t str_len,
+    FunctionRef<void(int index, size_t byte_offset, int byte_len, int advance_x)> callback);
+
 /**
  * Get the byte offset within a string, selected by mouse at a horizontal location.
  */

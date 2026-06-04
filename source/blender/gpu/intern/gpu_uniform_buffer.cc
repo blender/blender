@@ -98,7 +98,7 @@ static int inputs_cmp(const void *a, const void *b)
 static void buffer_from_list_inputs_sort(ListBaseT<LinkData> *inputs)
 {
 /* Only support up to this type, if you want to extend it, make sure static void
- * inputs_sobuffer_size_compute *inputs) padding logic is correct for the new types. */
+ * inputs_sobuffer_size_compute(*inputs) padding logic is correct for the new types. */
 #define MAX_UBO_GPU_TYPE GPU_MAT4
 
   /* Order them as mat4, vec4, vec3, vec2, float. */
@@ -214,7 +214,7 @@ gpu::UniformBuf *GPU_uniformbuf_create_ex(size_t size, const void *data, const c
 gpu::UniformBuf *GPU_uniformbuf_create_from_list(ListBaseT<LinkData> *inputs, const char *name)
 {
   /* There is no point on creating an UBO if there is no arguments. */
-  if (BLI_listbase_is_empty(inputs)) {
+  if (inputs->is_empty()) {
     return nullptr;
   }
 

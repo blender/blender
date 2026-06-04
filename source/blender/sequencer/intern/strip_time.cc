@@ -146,7 +146,7 @@ void time_update_meta_strip_range(const Scene *scene, Strip *strip_meta)
     return;
   }
 
-  if (BLI_listbase_is_empty(&strip_meta->seqbase)) {
+  if (strip_meta->seqbase.is_empty()) {
     return;
   }
 
@@ -411,7 +411,7 @@ static void strip_time_slip_strip_ex(const Scene *scene,
   /* Move strips inside meta strip. */
   if (strip->type == STRIP_TYPE_META) {
     /* If the meta strip has no contents, don't do anything. */
-    if (BLI_listbase_is_empty(&strip->seqbase)) {
+    if (strip->seqbase.is_empty()) {
       return;
     }
 

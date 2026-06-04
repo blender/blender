@@ -5,39 +5,72 @@
 #include "light_tasks_delegate.hh"
 #include "engine.hh"
 
+#include <pxr/imaging/hd/legacyTaskFactory.h>
+#include <pxr/imaging/hd/legacyTaskSchema.h>
+#include <pxr/imaging/hd/retainedDataSource.h>
+#include <pxr/imaging/hd/sceneIndexObserver.h>
+#include <pxr/imaging/hd/tokens.h>
+
 namespace blender::render::hydra {
 
-LightTasksDelegate::LightTasksDelegate(pxr::HdRenderIndex *parent_index,
-                                       pxr::SdfPath const &delegate_id)
-    : pxr::HdSceneDelegate(parent_index, delegate_id)
+LightTasksDelegate::LightTasksDelegate(pxr::HdRenderIndex *render_index,
+                                       pxr::HdRetainedSceneIndexRefPtr task_scene_index,
+                                       pxr::SdfPath const &base_id)
+    : render_index_(render_index),
+      task_scene_index_(std::move(task_scene_index)),
+      simple_task_id_(base_id.AppendElementString("simpleTask")),
+      skydome_task_id_(base_id.AppendElementString("skydomeTask"))
 {
-  simple_task_id_ = GetDelegateID().AppendElementString("simpleTask");
-  GetRenderIndex().InsertTask<pxr::HdxSimpleLightTask>(this, simple_task_id_);
-  skydome_task_id_ = GetDelegateID().AppendElementString("skydomeTask");
-  GetRenderIndex().InsertTask<pxr::HdxSkydomeTask>(this, skydome_task_id_);
+  publish_simple_task();
+  publish_skydome_task();
 
   CLOG_DEBUG(LOG_HYDRA_RENDER, "%s", simple_task_id_.GetText());
   CLOG_DEBUG(LOG_HYDRA_RENDER, "%s", skydome_task_id_.GetText());
 }
 
-pxr::VtValue LightTasksDelegate::Get(pxr::SdfPath const &id, pxr::TfToken const &key)
+void LightTasksDelegate::publish_simple_task()
 {
-  CLOG_DEBUG(LOG_HYDRA_RENDER, "%s, %s", id.GetText(), key.GetText());
+  pxr::HdContainerDataSourceHandle task_ds =
+      pxr::HdLegacyTaskSchema::Builder()
+          .SetFactory(
+              pxr::HdRetainedTypedSampledDataSource<pxr::HdLegacyTaskFactorySharedPtr>::New(
+                  pxr::HdMakeLegacyTaskFactory<pxr::HdxSimpleLightTask>()))
+          .SetParameters(simple_task_params_ds_)
+          .Build();
 
-  if (key == pxr::HdTokens->params) {
-    if (id == simple_task_id_) {
-      return pxr::VtValue(simple_task_params_);
-    }
-    if (id == skydome_task_id_) {
-      return pxr::VtValue(skydome_task_params_);
-    }
-  }
-  return pxr::VtValue();
+  task_scene_index_->AddPrims({{simple_task_id_,
+                                pxr::HdPrimTypeTokens->task,
+                                pxr::HdRetainedContainerDataSource::New(
+                                    pxr::HdLegacyTaskSchema::GetSchemaToken(), task_ds)}});
+}
+
+void LightTasksDelegate::publish_skydome_task()
+{
+  const pxr::HdRprimCollection collection(pxr::HdTokens->geometry,
+                                          pxr::HdReprSelector(pxr::HdReprTokens->smoothHull));
+  const pxr::TfTokenVector render_tags = {pxr::HdRenderTagTokens->geometry};
+
+  pxr::HdContainerDataSourceHandle task_ds =
+      pxr::HdLegacyTaskSchema::Builder()
+          .SetFactory(
+              pxr::HdRetainedTypedSampledDataSource<pxr::HdLegacyTaskFactorySharedPtr>::New(
+                  pxr::HdMakeLegacyTaskFactory<pxr::HdxSkydomeTask>()))
+          .SetParameters(skydome_task_params_ds_)
+          .SetCollection(
+              pxr::HdRetainedTypedSampledDataSource<pxr::HdRprimCollection>::New(collection))
+          .SetRenderTags(
+              pxr::HdRetainedTypedSampledDataSource<pxr::TfTokenVector>::New(render_tags))
+          .Build();
+
+  task_scene_index_->AddPrims({{skydome_task_id_,
+                                pxr::HdPrimTypeTokens->task,
+                                pxr::HdRetainedContainerDataSource::New(
+                                    pxr::HdLegacyTaskSchema::GetSchemaToken(), task_ds)}});
 }
 
 pxr::HdTaskSharedPtr LightTasksDelegate::simple_task()
 {
-  return GetRenderIndex().GetTask(simple_task_id_);
+  return render_index_->GetTask(simple_task_id_);
 }
 
 pxr::HdTaskSharedPtr LightTasksDelegate::skydome_task()
@@ -45,20 +78,19 @@ pxr::HdTaskSharedPtr LightTasksDelegate::skydome_task()
   /* Note that this task is intended to be the first "Render Task",
    * so that the AOV's are properly cleared, however it
    * does not spawn a HdRenderPass. */
-  return GetRenderIndex().GetTask(skydome_task_id_);
+  return render_index_->GetTask(skydome_task_id_);
 }
 
 void LightTasksDelegate::set_camera(pxr::SdfPath const &camera_id)
 {
-  if (simple_task_params_.cameraPath == camera_id) {
+  if (simple_task_params_.cameraPath == camera_id && skydome_task_params_.camera == camera_id) {
     return;
   }
   simple_task_params_.cameraPath = camera_id;
-  GetRenderIndex().GetChangeTracker().MarkTaskDirty(simple_task_id_,
-                                                    pxr::HdChangeTracker::DirtyParams);
   skydome_task_params_.camera = camera_id;
-  GetRenderIndex().GetChangeTracker().MarkTaskDirty(skydome_task_id_,
-                                                    pxr::HdChangeTracker::DirtyParams);
+  task_scene_index_->DirtyPrims(
+      {{simple_task_id_, pxr::HdLegacyTaskSchema::GetParametersLocator()},
+       {skydome_task_id_, pxr::HdLegacyTaskSchema::GetParametersLocator()}});
 }
 
 void LightTasksDelegate::set_viewport(pxr::GfVec4d const &viewport)
@@ -67,8 +99,8 @@ void LightTasksDelegate::set_viewport(pxr::GfVec4d const &viewport)
     return;
   }
   skydome_task_params_.viewport = viewport;
-  GetRenderIndex().GetChangeTracker().MarkTaskDirty(skydome_task_id_,
-                                                    pxr::HdChangeTracker::DirtyParams);
+  task_scene_index_->DirtyPrims(
+      {{skydome_task_id_, pxr::HdLegacyTaskSchema::GetParametersLocator()}});
 }
 
 }  // namespace blender::render::hydra

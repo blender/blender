@@ -378,7 +378,7 @@ static void sort_linked_ids(Main *bmain)
   ListBaseT<ID> *lb;
   FOREACH_MAIN_LISTBASE_BEGIN (bmain, lb) {
     ListBaseT<ID> temp_list;
-    BLI_listbase_clear(&temp_list);
+    temp_list.clear_no_delete();
     for (ID &id : lb->items_mutable()) {
       if (ID_IS_LINKED(&id)) {
         BLI_remlink(lb, &id);
@@ -417,12 +417,12 @@ static void move_vertex_group_names_to_object_data(Main *bmain)
       ListBaseT<bDeformGroup> *new_defbase = BKE_object_defgroup_list_mutable(&object);
 
       /* Choose the longest vertex group name list among all linked duplicates. */
-      if (BLI_listbase_count(&object.defbase) < BLI_listbase_count(new_defbase)) {
-        BLI_freelistN(&object.defbase);
+      if (object.defbase.count() < new_defbase->count()) {
+        object.defbase.free_no_destruct();
       }
       else {
         /* Clear the list in case the it was already assigned from another object. */
-        BLI_freelistN(new_defbase);
+        new_defbase->free_no_destruct();
         *new_defbase = object.defbase;
         BKE_object_defgroup_active_index_set(&object, object.actdef);
       }
@@ -669,7 +669,7 @@ static bool strip_speed_factor_set(Strip *strip, void *user_data)
     if (scene->adt && scene->adt->action) {
       strip_speed_factor_fix_rna_path(strip, &scene->adt->action->curves);
     }
-    if (scene->adt && !BLI_listbase_is_empty(&scene->adt->drivers)) {
+    if (scene->adt && !scene->adt->drivers.is_empty()) {
       strip_speed_factor_fix_rna_path(strip, &scene->adt->drivers);
     }
 
@@ -1697,7 +1697,7 @@ static void version_geometry_nodes_set_position_node_offset(bNodeTree *ntree)
     if (node.type_legacy != GEO_NODE_SET_POSITION) {
       continue;
     }
-    if (BLI_listbase_count(&node.inputs) < 4) {
+    if (node.inputs.count() < 4) {
       /* The offset socket didn't exist in the file yet. */
       return;
     }

@@ -15,12 +15,7 @@ HDCYCLES_NAMESPACE_OPEN_SCOPE
 
 class HdCyclesMesh final : public HdCyclesGeometry<PXR_NS::HdMesh, CCL_NS::Mesh> {
  public:
-  HdCyclesMesh(const PXR_NS::SdfPath &rprimId
-#if PXR_VERSION < 2102
-               ,
-               const PXR_NS::SdfPath &instancerId = {}
-#endif
-  );
+  HdCyclesMesh(const PXR_NS::SdfPath &rprimId);
   ~HdCyclesMesh() override;
 
   PXR_NS::HdDirtyBits GetInitialDirtyBitsMask() const override;

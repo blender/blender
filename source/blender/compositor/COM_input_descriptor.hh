@@ -32,8 +32,8 @@ enum class InputRealizationMode : uint8_t {
  * Specifies the implicit input type that should be assigned to the input if it is unlinked. See
  * the ImplicitInputOperation operation for more information on the individual types. */
 enum class ImplicitInputType : uint8_t {
-  /* The input should have the texture coordinates of the compositing space as an input. */
-  UniformTextureCoordinates,
+  /* The input should have the uniform image coordinates of the compositing space as an input. */
+  UniformImageCoordinates,
   /* The input should have the scene frame as an input. */
   SceneFrame,
 };

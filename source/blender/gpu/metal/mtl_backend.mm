@@ -263,6 +263,9 @@ void MTLBackend::platform_init(MTLContext *ctx)
            version,
            architecture_type);
 
+  GPG.devices.append(
+      {.identifier = "METAL", .index = 0, .vendor_id = 0, .device_id = 0, .name = renderer});
+
   /* UUID is not supported on Metal. */
   GPG.device_uuid.reinitialize(0);
 

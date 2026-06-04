@@ -86,6 +86,13 @@ bool BPY_run_text(bContext *C, Text *text, ReportList *reports, bool do_jump) AT
  * \{ */
 
 /**
+ * Compile the python expression and \return true if no errors occured during compilation,
+ * otherwise \return false.
+ *
+ * \param C: Optional context (may be null).
+ */
+bool BPY_string_compile_check(const char *expr);
+/**
  * Run an entire script, matches: `exec(compile(..., "exec"))`
  *
  * \param C: Optional context (may be null),

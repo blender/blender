@@ -247,6 +247,10 @@ void ImageMetaData::detect_tiles(ImageInput &input,
                                  const ImageSpec &spec,
                                  OIIO::string_view filepath)
 {
+  /* 1x1 file can be used as tx file regardless of how it was generated,
+   * could be a constant color tx or just regular file. */
+  is_tx_file = (width == 1 && height == 1);
+
   if (spec.tile_width == 0) {
     return;
   }
@@ -255,16 +259,19 @@ void ImageMetaData::detect_tiles(ImageInput &input,
   int tx_file_format_version = INT_MAX;
   sscanf(software.c_str(), "Blender maketx v%d", &tx_file_format_version);
 
-  if (tx_file_format_version == INT_MAX) {
-    LOG_DEBUG << "Image " << OIIO::Filesystem::filename(filepath)
-              << " has tiles, but is missing blender:TxFileFormatVersion";
-    tile_need_conform = true;
-  }
-  else if (tx_file_format_version < 0 || tx_file_format_version > TX_FILE_FORMAT_VERSION) {
+  if (tx_file_format_version != INT_MAX &&
+      (tx_file_format_version < 0 || tx_file_format_version > TX_FILE_FORMAT_VERSION))
+  {
     LOG_DEBUG << "Image " << OIIO::Filesystem::filename(filepath)
               << " has tiles, but file format version " << tx_file_format_version
               << " is not supported by this version of Cycles";
     return;
+  }
+
+  if (tx_file_format_version == INT_MAX) {
+    LOG_DEBUG << "Image " << OIIO::Filesystem::filename(filepath)
+              << " has tiles, but is missing blender:TxFileFormatVersion";
+    tile_need_conform = true;
   }
   else if (!(channels == 1 || channels == 4)) {
     LOG_DEBUG << "Image " << OIIO::Filesystem::filename(filepath)
@@ -276,6 +283,7 @@ void ImageMetaData::detect_tiles(ImageInput &input,
   }
 
   bool has_tiles = false;
+  bool is_small_image = false;
 
   if (!is_power_of_two(spec.tile_width)) {
     LOG_DEBUG << "Image " << OIIO::Filesystem::filename(filepath)
@@ -303,6 +311,7 @@ void ImageMetaData::detect_tiles(ImageInput &input,
     LOG_DEBUG << "Image " << OIIO::Filesystem::filename(filepath)
               << " has tiles, but image resolution is smaller than tile size";
     has_tiles = true;
+    is_small_image = true;
   }
   else {
     tile_size = spec.tile_width;
@@ -330,23 +339,28 @@ void ImageMetaData::detect_tiles(ImageInput &input,
 
     input.seek_subimage(0, 0);
   }
+
+  /* Tiled tx files need to either have mipmaps, or be small enough not to need mipmaps. */
+  if (has_tiles && (is_small_image || has_tiles_and_mipmaps)) {
+    is_tx_file = true;
+  }
 }
 
 bool ImageMetaData::oiio_load_metadata(OIIO::string_view filepath, OIIO::ImageSpec *r_spec)
 {
   /* Perform preliminary checks, with meaningful logging. */
   if (!OIIO::Filesystem::exists(filepath)) {
-    LOG_ERROR << "Image file " << filepath << " does not exist.";
+    LOG_WARNING << "Image file " << filepath << " does not exist.";
     return false;
   }
   if (OIIO::Filesystem::is_directory(filepath)) {
-    LOG_ERROR << "Image file " << filepath << " is a directory, cannot use as image.";
+    LOG_WARNING << "Image file " << filepath << " is a directory, cannot use as image.";
     return false;
   }
 
   std::unique_ptr<ImageInput> in(ImageInput::create(filepath));
   if (!in) {
-    LOG_ERROR << "Image file " << filepath << " failed to load.";
+    LOG_WARNING << "Image file " << filepath << " failed to load.";
     return false;
   }
 
@@ -357,12 +371,12 @@ bool ImageMetaData::oiio_load_metadata(OIIO::string_view filepath, OIIO::ImageSp
   config.attribute("oiio:UnassociatedAlpha", 1);
 
   if (!in->open(filepath, spec, config)) {
-    LOG_ERROR << "Image file " << filepath << " failed to open.";
+    LOG_WARNING << "Image file " << filepath << " failed to open.";
     return false;
   }
 
   if (spec.depth > 1) {
-    LOG_ERROR << "Image file " << filepath << " has unsupported depth of " << spec.depth;
+    LOG_WARNING << "Image file " << filepath << " has unsupported depth of " << spec.depth;
     return false;
   }
 
@@ -703,7 +717,7 @@ bool ImageMetaData::oiio_load_pixels(OIIO::string_view filepath,
   }
 
   if (spec.depth > 1) {
-    LOG_ERROR << "Image file " << filepath << " has unsupported depth " << spec.depth;
+    LOG_WARNING << "Image file " << filepath << " has unsupported depth " << spec.depth;
     return false;
   }
 

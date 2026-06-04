@@ -1243,6 +1243,32 @@ void blf_font_boundbox_foreach_glyph(FontBLF *font,
   blf_glyph_cache_release(font);
 }
 
+void blf_font_info_foreach_glyph(
+    FontBLF *font,
+    const char *str,
+    size_t str_len,
+    FunctionRef<void(int index, size_t byte_offset, int byte_len, int advance_x)> callback)
+{
+  GlyphCacheBLF *gc = blf_glyph_cache_acquire(font);
+
+  size_t byte_offset = 0;
+  int index = 0;
+  while (byte_offset <= str_len) {
+    const int char_byte_len = BLI_str_utf8_size_safe(str);
+    const uint charcode = BLI_str_utf8_as_unicode_safe(str);
+    const GlyphBLF *g = blf_glyph_ensure(font, gc, charcode);
+    const int advance_x = g ? ft_pix_to_int(g->advance_x) : 0;
+
+    callback(index, byte_offset, char_byte_len, advance_x);
+
+    index++;
+    byte_offset += size_t(char_byte_len);
+    str += char_byte_len;
+  }
+
+  blf_glyph_cache_release(font);
+}
+
 struct CursorPositionForeachGlyph_Data {
   /** Horizontal position to test. */
   int location_x;

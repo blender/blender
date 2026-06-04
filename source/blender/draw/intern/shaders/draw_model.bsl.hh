@@ -79,4 +79,14 @@ struct Model {
   }
 };
 
+struct Infos {
+  [[storage(DRW_OBJ_INFOS_SLOT, read)]] const ObjectInfos (&drw_infos)[];
+
+  /* `resource_id` should be the result of `draw::ID::resource_id()` or manually indexed. */
+  ObjectInfos get(uint resource_id) const
+  {
+    return drw_infos[resource_id];
+  }
+};
+
 }  // namespace draw

@@ -5,6 +5,7 @@
 #pragma once
 
 #include "BLI_hash.hh"
+#include "BLI_unique_hash.hh"
 
 namespace blender::nodes {
 
@@ -28,6 +29,11 @@ struct MenuValue {
   uint64_t hash() const
   {
     return get_default_hash(this->value);
+  }
+
+  void hash_unique(UniqueHashBytes &hash) const
+  {
+    hash_unique_default(this->value, hash);
   }
 
   friend bool operator==(const MenuValue &a, const MenuValue &b) = default;

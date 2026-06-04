@@ -49,9 +49,8 @@ struct EditBone {
   /** System-Defined Properties storage. */
   IDProperty *system_properties = nullptr;
   /**
-   * Edit-bones have a one-way link  (i.e. children refer
-   * to parents.  This is converted to a two-way link for
-   * normal bones when leaving edit-mode.
+   * Edit-bones have a one-way link  (i.e. children refer to parents).
+   * This is converted to a two-way link for normal bones when leaving edit-mode.
    */
   EditBone *parent = nullptr;
   char name[/*MAXBONENAME*/ 64] = "";
@@ -530,6 +529,9 @@ struct BBoneSplineParameters {
 
 /** Sets the location of the pose channel, respecting #bPoseChannel::protectflag. */
 void BKE_pchan_protected_location_set(bPoseChannel *pchan, const float location[3]);
+/** Sets the rotation of the pose channel, respecting the #bPoseChannel::protectflag. Depending on
+ * the current rotation mode, this either modifies quaternion, euler or axis angle. */
+void BKE_pchan_protected_rotation_set(bPoseChannel *pchan, const float mat[3][3]);
 /** Sets the location of the pose channel, respecting #bPoseChannel::protectflag. */
 void BKE_pchan_protected_scale_set(bPoseChannel *pchan, const float scale[3]);
 /** Sets the quaternion rotation of the pose channel, respecting #bPoseChannel::protectflag. */

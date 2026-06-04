@@ -129,7 +129,7 @@ uint4 to_uint4(Bits occupancy)
 /**
  * From a entry and exit occupancy tuple, returns if a specific bit is inside the volume.
  */
-bool bit_resolve(Bits entry, Bits exit, int bit_n, int /*bit_count*/)
+bool bit_resolve(Bits entry, Bits exit, uint bit_n, int /*bit_count*/)
 {
   int first_exit = find_lsb(exit);
   int first_entry = find_lsb(entry);
@@ -152,7 +152,7 @@ bool bit_resolve(Bits entry, Bits exit, int bit_n, int /*bit_count*/)
           inside_volume = true;
         }
       }
-      if (i + j * 32 == uint(bit_n)) {
+      if (i + j * 32 == bit_n) {
         return inside_volume;
       }
     }
@@ -170,7 +170,7 @@ Bits resolve(Bits entry, Bits exit, int bit_count)
     for (int i = 0; i < 32; i++) {
       bool test = false;
       if (i < bit_count - j * 32) {
-        test = bit_resolve(entry, exit, i + j * 32, bit_count);
+        test = bit_resolve(entry, exit, uint(i + j * 32), bit_count);
       }
       set_flag_from_test(occupancy.bits[j], test, 1u << uint(i));
     }

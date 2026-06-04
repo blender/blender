@@ -12,7 +12,7 @@
 /************************/
 /* Blender Noise Module */
 /************************/
-#include <time.h>
+#include <ctime>
 
 #include <Python.h>
 

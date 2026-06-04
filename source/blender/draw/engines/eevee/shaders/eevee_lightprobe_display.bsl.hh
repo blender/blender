@@ -4,17 +4,10 @@
 
 #pragma once
 
-#include "infos/eevee_common_infos.hh"
-#include "infos/eevee_lightprobe_infos.hh"
-
-FRAGMENT_SHADER_CREATE_INFO(draw_view)
-FRAGMENT_SHADER_CREATE_INFO(eevee_lightprobe_planar_data)
-FRAGMENT_SHADER_CREATE_INFO(eevee_lightprobe_sphere_data)
-
-#include "draw_view_lib.glsl"
-#include "eevee_lightprobe_lib.glsl"
-#include "eevee_lightprobe_shared.hh"
-#include "eevee_lightprobe_sphere_lib.glsl"
+#include "draw_view.bsl.hh"
+#include "eevee_lightprobe_plane.bsl.hh"
+#include "eevee_lightprobe_sphere.bsl.hh"
+#include "eevee_lightprobe_volume.bsl.hh"
 #include "eevee_reverse_z_lib.bsl.hh"
 #include "gpu_shader_math_matrix_transform_lib.glsl"
 
@@ -32,10 +25,6 @@ struct FragOut {
 };
 
 struct Resources {
-  [[legacy_info]] ShaderCreateInfo draw_view;
-  [[legacy_info]] ShaderCreateInfo eevee_lightprobe_planar_data;
-  [[legacy_info]] ShaderCreateInfo eevee_lightprobe_sphere_data;
-
   [[push_constant]] int4 world_coord_packed;
 
   [[storage(0, read)]] PlanarProbeDisplayData (&display_data_buf)[];
@@ -43,6 +32,7 @@ struct Resources {
 
 [[vertex]] [[clip_control]]
 void vert_main([[resource_table]] const Resources &srt,
+               [[resource_table]] const draw::View &views,
                [[vertex_id]] const int vert_id,
                [[position]] float4 &out_position,
                [[out]] VertOut &v_out)
@@ -65,7 +55,7 @@ void vert_main([[resource_table]] const Resources &srt,
   float4x4 plane_to_world = srt.display_data_buf[v_out.display_index].plane_to_world;
 
   float3 P = transform_point(plane_to_world, float3(lP, 0.0f));
-  out_position = drw_point_world_to_homogenous(P);
+  out_position = views.get(0).point_world_to_homogenous(P);
   /* Small bias to let the probe draw without Z-fighting. */
   out_position.z -= 0.0001f;
   out_position = reverse_z::transform(out_position);
@@ -73,29 +63,35 @@ void vert_main([[resource_table]] const Resources &srt,
 
 [[fragment]]
 void frag_main([[resource_table]] const Resources &srt,
+               [[resource_table]] const draw::View &views,
+               [[resource_table]] const LightprobeSphereRenderData &spheres,
+               [[resource_table]] const LightprobePlaneRenderData &planes,
                [[frag_coord]] const float4 frag_co,
                [[in]] const VertOut &v_out,
                [[out]] FragOut &frag_out)
 {
   float4x4 plane_to_world = srt.display_data_buf[v_out.display_index].plane_to_world;
 
-  float2 uv = frag_co.xy / float2(textureSize(planar_radiance_tx, 0).xy);
+  float2 uv = frag_co.xy / float2(textureSize(planes.planar_radiance_tx, 0).xy);
   /* Render is inverted in Y. */
   float2 planar_uv = float2(uv.x, 1.0f - uv.y);
 
+  const ViewMatrices view = views.get(0);
+
   float depth = reverse_z::read(
-      textureLod(planar_depth_tx, float3(planar_uv, v_out.probe_index), 0.0f).r);
+      textureLod(planes.planar_depth_tx, float3(planar_uv, v_out.probe_index), 0.0f).r);
   if (depth == 1.0f) {
-    float3 ndc = drw_screen_to_ndc(float3(uv, 0.0f));
-    float3 wP = drw_point_ndc_to_world(ndc);
-    float3 V = drw_world_incident_vector(wP);
+    float3 ndc = view.screen_to_ndc(float3(uv, 0.0f));
+    float3 wP = view.point_ndc_to_world(ndc);
+    float3 V = view.world_incident_vector(wP);
     float3 R = -reflect(V, safe_normalize(float3(plane_to_world[2].xyz)));
 
     SphereProbeUvArea world_atlas_coord = reinterpret_as_atlas_coord(srt.world_coord_packed);
-    frag_out.color = lightprobe_spheres_sample(R, 0.0f, world_atlas_coord);
+    frag_out.color = spheres.sample_probe(R, 0.0f, world_atlas_coord);
   }
   else {
-    frag_out.color = textureLod(planar_radiance_tx, float3(planar_uv, v_out.probe_index), 0.0f);
+    frag_out.color = textureLod(
+        planes.planar_radiance_tx, float3(planar_uv, v_out.probe_index), 0.0f);
   }
   frag_out.color.a = 0.0f;
 }
@@ -114,8 +110,6 @@ struct FragOut {
 };
 
 struct Resources {
-  [[legacy_info]] ShaderCreateInfo draw_view;
-
   [[push_constant]] float sphere_radius;
   [[push_constant]] int3 grid_resolution;
   [[push_constant]] float4x4 grid_to_world;
@@ -131,6 +125,7 @@ struct Resources {
 
 [[vertex]] [[clip_control]]
 void vert_main([[resource_table]] const Resources &srt,
+               [[resource_table]] const draw::View &views,
                [[vertex_id]] const int vert_id,
                [[position]] float4 &out_position,
                [[out]] VertOut &v_out)
@@ -154,7 +149,7 @@ void vert_main([[resource_table]] const Resources &srt,
                     (cell_index / grid_res.z) % grid_res.y,
                     cell_index % grid_res.z);
 
-  float3 ws_cell_pos = lightprobe_volume_grid_sample_position(
+  float3 ws_cell_pos = lightprobe::volume::grid_sample_position(
       srt.grid_to_world, grid_res, v_out.cell);
 
   float sphere_radius_final = srt.sphere_radius;
@@ -163,10 +158,12 @@ void vert_main([[resource_table]] const Resources &srt,
     sphere_radius_final *= mix(1.0f, 0.1f, validity);
   }
 
-  float3 vs_offset = float3(v_out.lP, 0.0f) * sphere_radius_final;
-  float3 vP = drw_point_world_to_view(ws_cell_pos) + vs_offset;
+  const ViewMatrices view = views.get(0);
 
-  out_position = drw_point_view_to_homogenous(vP);
+  float3 vs_offset = float3(v_out.lP, 0.0f) * sphere_radius_final;
+  float3 vP = view.point_world_to_view(ws_cell_pos) + vs_offset;
+
+  out_position = view.point_view_to_homogenous(vP);
   /* Small bias to let the icon draw without Z-fighting. */
   out_position.z += 0.0001f;
   out_position = reverse_z::transform(out_position);
@@ -174,6 +171,7 @@ void vert_main([[resource_table]] const Resources &srt,
 
 [[fragment]]
 void frag_main([[resource_table]] const Resources &srt,
+               [[resource_table]] const draw::View &views,
                [[in]] const VertOut &v_out,
                [[out]] FragOut &frag_out)
 {
@@ -193,7 +191,7 @@ void frag_main([[resource_table]] const Resources &srt,
   float validity = texelFetch(srt.validity_tx, v_out.cell, 0).r;
 
   float3 vN = float3(v_out.lP, sqrt(max(0.0f, 1.0f - dist_squared)));
-  float3 N = drw_normal_view_to_world(vN);
+  float3 N = views.get(0).normal_view_to_world(vN);
   float3 lN = transform_direction(srt.world_to_grid, N);
 
   float3 irradiance = sh.evaluate_lambert(lN).rgb;
@@ -222,14 +220,15 @@ struct FragOut {
 };
 
 struct Resources {
-  [[legacy_info]] ShaderCreateInfo draw_view;
-  [[legacy_info]] ShaderCreateInfo eevee_lightprobe_sphere_data;
+  [[resource_table]] srt_t<LightprobeSphereRenderData> lightprobe_sphere;
 
   [[storage(0, read)]] SphereProbeDisplayData (&display_data_buf)[];
 };
 
 [[vertex]] [[clip_control]]
 void vert_main([[resource_table]] const Resources &srt,
+               [[resource_table]] const draw::View &views,
+               [[resource_table]] const LightprobeSphereRenderData &spheres,
                [[vertex_id]] const int vert_id,
                [[position]] float4 &out_position,
                [[out]] VertOut &v_out)
@@ -250,13 +249,15 @@ void vert_main([[resource_table]] const Resources &srt,
   v_out.probe_index = srt.display_data_buf[display_index].probe_index;
   float sphere_radius = srt.display_data_buf[display_index].display_size;
 
-  float3 ws_probe_pos = lightprobe_sphere_buf[v_out.probe_index].location;
+  float3 ws_probe_pos = spheres.lightprobe_sphere_buf[v_out.probe_index].location;
+
+  const ViewMatrices view = views.get(0);
 
   float3 vs_offset = float3(v_out.lP, 0.0f) * sphere_radius;
-  float3 vP = drw_point_world_to_view(ws_probe_pos) + vs_offset;
-  v_out.P = drw_point_view_to_world(vP);
+  float3 vP = view.point_world_to_view(ws_probe_pos) + vs_offset;
+  v_out.P = view.point_view_to_world(vP);
 
-  out_position = drw_point_view_to_homogenous(vP);
+  out_position = view.point_view_to_homogenous(vP);
   /* Small bias to let the icon draw without Z-fighting. */
   out_position.z += 0.0001f;
   out_position = reverse_z::transform(out_position);
@@ -264,6 +265,8 @@ void vert_main([[resource_table]] const Resources &srt,
 
 [[fragment]]
 void frag_main([[resource_table]] const Resources & /*srt*/,
+               [[resource_table]] const draw::View &views,
+               [[resource_table]] const LightprobeSphereRenderData &spheres,
                [[in]] const VertOut &v_out,
                [[out]] FragOut &frag_out)
 {
@@ -275,13 +278,15 @@ void frag_main([[resource_table]] const Resources & /*srt*/,
     return;
   }
 
+  const ViewMatrices view = views.get(0);
+
   float3 vN = float3(v_out.lP, sqrt(max(0.0f, 1.0f - dist_squared)));
-  float3 N = drw_normal_view_to_world(vN);
-  float3 V = drw_world_incident_vector(v_out.P);
+  float3 N = view.normal_view_to_world(vN);
+  float3 V = view.world_incident_vector(v_out.P);
   float3 L = reflect(-V, N);
 
-  frag_out.color = lightprobe_spheres_sample(
-      L, 0, lightprobe_sphere_buf[v_out.probe_index].atlas_coord);
+  frag_out.color = spheres.sample_probe(
+      L, 0, spheres.lightprobe_sphere_buf[v_out.probe_index].atlas_coord);
   frag_out.color.a = 0.0f;
 }
 

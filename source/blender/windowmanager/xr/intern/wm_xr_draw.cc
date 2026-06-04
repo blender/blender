@@ -103,7 +103,7 @@ static void wm_xr_draw_matrices_create(const wmXrDrawData *draw_data,
   wm_xr_pose_to_imat(&eye_pose, eye_inv);
 
   /* Apply base pose and navigation. */
-  wm_xr_pose_scale_to_imat(&draw_data->base_pose, draw_data->base_scale, base_inv);
+  wm_xr_pose_scale_to_imat(&session_state->base_pose, session_state->base_scale, base_inv);
   wm_xr_pose_scale_to_imat(&session_state->nav_pose_last_actions_sync,
                            session_state->viewer_scale_last_actions_sync,
                            nav_inv);
@@ -183,6 +183,11 @@ void wm_xr_draw_view(const GHOST_XrDrawViewInfo *draw_view, void *customdata)
    * #do_depsgraph callback. Thus, obtain the depsgraph directly without evaluating it. */
   Depsgraph *depsgraph = CTX_data_depsgraph_pointer(xr_context);
 
+  if (draw_view->view_idx == 0) {
+    /* Only render location scouting viewfinder on first eye draw. */
+    wm_xr_viewfinder_render_view(xr_data);
+  }
+
   /* Draws the view into the surface_data->viewport's frame-buffers. */
   ED_view3d_draw_offscreen_simple(depsgraph,
                                   scene,
@@ -204,6 +209,7 @@ void wm_xr_draw_view(const GHOST_XrDrawViewInfo *draw_view, void *customdata)
                                   true,
                                   nullptr,
                                   false,
+                                  nullptr,
                                   vp->offscreen,
                                   vp->viewport);
 
@@ -432,7 +438,7 @@ static void wm_xr_controller_aim_draw(const XrSessionSettings *settings, wmXrSes
   immUnbindProgram();
 }
 
-void wm_xr_draw_controllers(const bContext * /*C*/, ARegion * /*region*/, void *customdata)
+void wm_xr_draw_controllers(const bContext *C, ARegion * /*region*/, void *customdata)
 {
   wmXrData *xr = static_cast<wmXrData *>(customdata);
   const XrSessionSettings *settings = &xr->session_settings;
@@ -441,6 +447,7 @@ void wm_xr_draw_controllers(const bContext * /*C*/, ARegion * /*region*/, void *
 
   wm_xr_controller_model_draw(settings, xr_context, state);
   wm_xr_controller_aim_draw(settings, state);
+  wm_xr_viewfinder_draw(C, settings, state);
 }
 
 }  // namespace blender

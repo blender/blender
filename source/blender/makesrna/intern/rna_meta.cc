@@ -143,7 +143,7 @@ static void rna_MetaBall_elements_remove(MetaBall *mb, ReportList *reports, Poin
 
 static void rna_MetaBall_elements_clear(MetaBall *mb)
 {
-  BLI_freelistN(&mb->elems);
+  mb->elems.free_no_destruct();
 
   /* cheating way for importers to avoid slow updates */
   if (mb->id.us > 0) {

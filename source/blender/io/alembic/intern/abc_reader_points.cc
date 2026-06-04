@@ -268,7 +268,7 @@ void AbcPointsReader::read_geometry(bke::GeometrySet &geometry_set,
 
   read_point_arb_geom_params(m_schema, sample_sel, attribute_accessor);
 
-  if (read_params.velocity_name != "" && read_params.velocity_scale != 0.0f) {
+  if (!read_params.velocity_name.empty() && read_params.velocity_scale != 0.0f) {
     V3fArraySamplePtr velocities = get_velocity_prop(
         m_schema, sample_sel, read_params.velocity_name);
     if (velocities && pointcloud->totpoint == int(velocities->size())) {

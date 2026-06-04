@@ -579,7 +579,7 @@ static void execute_posetree(Depsgraph *depsgraph, Scene *scene, Object *ob, Pos
 
 static void free_posetree(PoseTree *tree)
 {
-  BLI_freelistN(&tree->targets);
+  tree->targets.free_no_destruct();
   if (tree->pchan) {
     MEM_delete(tree->pchan);
   }

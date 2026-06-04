@@ -46,6 +46,7 @@ static void node_declare(NodeDeclarationBuilder &b)
   PanelDeclarationBuilder &preprocess_panel = b.add_panel("Preprocess"_ustr).default_closed(true);
   preprocess_panel.add_input<decl::Int>("Blur Size"_ustr, "Preprocess Blur Size"_ustr)
       .default_value(0)
+      .subtype(PROP_PIXEL)
       .min(0)
       .description(
           "Blur the color of the input image in YCC color space before keying while leaving the "
@@ -86,6 +87,7 @@ static void node_declare(NodeDeclarationBuilder &b)
                                              .default_closed(true)
                                              .translation_context(BLT_I18NCONTEXT_ID_IMAGE);
   edges_panel.add_input<decl::Int>("Size"_ustr, "Edge Search Size"_ustr)
+      .subtype(PROP_PIXEL)
       .default_value(3)
       .min(0)
       .description(
@@ -120,15 +122,18 @@ static void node_declare(NodeDeclarationBuilder &b)
   PanelDeclarationBuilder &postprocess_panel =
       b.add_panel("Postprocess"_ustr).default_closed(true);
   postprocess_panel.add_input<decl::Int>("Blur Size"_ustr, "Postprocess Blur Size"_ustr)
+      .subtype(PROP_PIXEL)
       .default_value(0)
       .min(0)
       .description("Blur the computed matte using a Gaussian blur of the given size");
   postprocess_panel.add_input<decl::Int>("Dilate Size"_ustr, "Postprocess Dilate Size"_ustr)
+      .subtype(PROP_PIXEL)
       .default_value(0)
       .description(
           "Dilate or erode the computed matte using a circular structuring element of the "
           "specified size. Negative sizes means erosion while positive means dilation");
   postprocess_panel.add_input<decl::Int>("Feather Size"_ustr, "Postprocess Feather Size"_ustr)
+      .subtype(PROP_PIXEL)
       .default_value(0)
       .description(
           "Dilate or erode the computed matte using an inverse distance operation evaluated at "

@@ -377,7 +377,7 @@ bool BKE_shrinkwrap_project_normal(char options,
   const float *co, *no;
   BVHTreeRayHit hit_tmp;
 
-  /* Copy from hit (we need to convert hit rays from one space coordinates to the other */
+  /* Copy from hit (we need to convert hit rays from one space coordinates to the other) */
   memcpy(&hit_tmp, hit, sizeof(hit_tmp));
 
   /* Apply space transform (TODO readjust dist) */

@@ -45,7 +45,7 @@ std::optional<FillCache> fill_cache_from_fill_ids(const VArray<int> &fill_ids)
           fill_sizes.append(1);
           curve_indices_by_fill.append(Vector<int>({curve}));
         },
-        [&](int *value) {
+        [&](const int *value) {
           const int fill_index = *value;
           fill_sizes[fill_index]++;
           curve_indices_by_fill[fill_index].append(curve);

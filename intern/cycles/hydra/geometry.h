@@ -13,12 +13,7 @@ HDCYCLES_NAMESPACE_OPEN_SCOPE
 
 template<typename Base, typename CyclesBase> class HdCyclesGeometry : public Base {
  public:
-  HdCyclesGeometry(const PXR_NS::SdfPath &rprimId
-#if PXR_VERSION < 2102
-                   ,
-                   const PXR_NS::SdfPath &instancerId
-#endif
-  );
+  HdCyclesGeometry(const PXR_NS::SdfPath &rprimId);
 
   void Sync(PXR_NS::HdSceneDelegate *sceneDelegate,
             PXR_NS::HdRenderParam *renderParam,
@@ -37,9 +32,6 @@ template<typename Base, typename CyclesBase> class HdCyclesGeometry : public Bas
   virtual void Populate(PXR_NS::HdSceneDelegate *sceneDelegate,
                         PXR_NS::HdDirtyBits dirtyBits,
                         bool &rebuild) = 0;
-
-  PXR_NS::HdInterpolation GetPrimvarInterpolation(PXR_NS::HdSceneDelegate *sceneDelegate,
-                                                  const PXR_NS::TfToken &name) const;
 
   CyclesBase *_geom = nullptr;
   std::vector<CCL_NS::Object *> _instances;

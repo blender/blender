@@ -219,15 +219,15 @@ class IMAGE_OT_open_images(Operator):
         options={'SKIP_SAVE', 'HIDDEN'},
     )
     relative_path: BoolProperty(
-        name="Use relative path",
+        name="Relative Path",
         default=True,
     )
     use_sequence_detection: BoolProperty(
-        name="Use sequence detection",
+        name="Detect Sequence",
         default=True,
     )
     use_udim_detection: BoolProperty(
-        name="Use UDIM detection",
+        name="Detect UDIM",
         default=True,
     )
 

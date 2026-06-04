@@ -99,6 +99,14 @@ ccl_device_inline float3 stack_load(const ccl_private float *ccl_restrict stack,
       __uint_as_float(v.x.bits), __uint_as_float(v.y.bits), __uint_as_float(v.z.bits));
 }
 
+ccl_device_inline int stack_load(const ccl_private float *stack, const SVMInputInt v)
+{
+  if (v.offset == SVM_STACK_INVALID) {
+    return v.value;
+  }
+  return stack_load_int(stack, v.offset);
+}
+
 template<typename T>
 ccl_device_inline T stack_load(const ccl_private float *stack, const SVMInputFloat v);
 

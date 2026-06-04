@@ -30,7 +30,7 @@ namespace blender::meshintersect {
 
 /* The spec should have the form:
  * #verts #edges #faces
- * <float> <float>   [#verts lines)
+ * <float> <float>   [#verts lines]
  * <int> <int>   [#edges lines]
  * <int> <int> ... <int>   [#faces lines]
  */
@@ -80,7 +80,7 @@ template<typename T> CDT_input<T> fill_input_from_string(const char *spec)
   ans.edge = edges;
   ans.face = faces;
 #ifdef WITH_GMP
-  if (std::is_same<mpq_class, T>::value) {
+  if (std::is_same_v<mpq_class, T>) {
     ans.epsilon = T(0);
   }
   else {
@@ -3853,7 +3853,7 @@ void text_test(
   constexpr bool print_timing = true;
   /*
    * Make something like a letter B:
-   *
+   * \code{.unparsed}
    *    4------------3
    *    |              )
    *    |  12--11       )
@@ -3867,7 +3867,7 @@ void text_test(
    *    |  5----6       )
    *    |              )
    *    0------------1
-   *
+   * \endcode
    * Where the numbers are the first 13 vertices, and the rest of
    * the vertices are in arcs a0, a1, a2, a3, each of which have
    * arc_points_num per arc in them.

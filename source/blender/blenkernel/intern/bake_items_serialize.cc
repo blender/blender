@@ -1135,7 +1135,7 @@ static std::shared_ptr<DictionaryValue> serialize_geometry_set(const GeometrySet
     auto io_materials = serialize_materials(mesh.runtime->bake_materials);
     io_mesh->append("materials", io_materials);
 
-    if (!BLI_listbase_is_empty(&mesh.vertex_group_names)) {
+    if (!mesh.vertex_group_names.is_empty()) {
       auto io_vertex_group_names = io_mesh->append_array("vertex_group_names");
       for (bDeformGroup &defgroup : mesh.vertex_group_names) {
         io_vertex_group_names->append_str(defgroup.name);
@@ -1494,8 +1494,8 @@ template<typename T>
     if (!io_item) {
       return false;
     }
-    const std::optional<std::string> key = io_item->lookup_str("key");
-    if (!key) {
+    const std::optional<std::string> key_str = io_item->lookup_str("key");
+    if (!key_str) {
       return false;
     }
     const std::optional<StringRefNull> socket_idname = io_item->lookup_str("socket_idname");
@@ -1512,7 +1512,11 @@ template<typename T>
     if (!stype) {
       return false;
     }
-    r_bundle.add(UString(*key), nodes::BundleItemSocketValue{stype, std::move(*value)});
+    std::optional<nodes::BundleKey> key = nodes::BundleKey::from_str(*key_str);
+    if (!key) {
+      return false;
+    }
+    r_bundle.add(*key, nodes::BundleItemSocketValue{stype, std::move(*value)});
   }
   return true;
 }
@@ -1525,7 +1529,7 @@ static void serialize_bundle_items(const nodes::Bundle &bundle,
   for (const auto &item : bundle.items()) {
     if (const auto *socket_value = std::get_if<nodes::BundleItemSocketValue>(&item.value.value)) {
       DictionaryValue &io_bundle_item = *r_io_items.append_dict();
-      io_bundle_item.append_str("key", item.key.string());
+      io_bundle_item.append_str("key", item.key.ustr().string());
       io_bundle_item.append_str("socket_idname", socket_value->type->idname.string());
       io::serialize::DictionaryValue &io_bundle_item_value = *io_bundle_item.append_dict("value");
       serialize_socket_value_variant(
@@ -1896,6 +1900,7 @@ void serialize_bake(const BakeValues &bake_values,
                     BlobWriteSharing &blob_sharing,
                     std::ostream &r_stream)
 {
+  PRF_scope(ProfileCategory::Default);
   io::serialize::DictionaryValue io_root;
   io_root.append_int("version", bake_file_version);
   io::serialize::DictionaryValue &io_items = *io_root.append_dict("items");
@@ -1912,6 +1917,7 @@ std::optional<BakeValues> deserialize_bake(std::istream &stream,
                                            const BlobReader &blob_reader,
                                            const BlobReadSharing &blob_sharing)
 {
+  PRF_scope(ProfileCategory::Default);
   JsonFormatter formatter;
   std::unique_ptr<io::serialize::Value> io_root_value;
   try {

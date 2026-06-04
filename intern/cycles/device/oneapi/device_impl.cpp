@@ -297,8 +297,6 @@ void OneapiDevice::reserve_private_memory(const uint kernel_features)
   /* Use the biggest kernel for estimation. */
   const DeviceKernel test_kernel = (kernel_features & KERNEL_FEATURE_NODE_RAYTRACE) ?
                                        DEVICE_KERNEL_INTEGRATOR_SHADE_SURFACE_RAYTRACE :
-                                   (kernel_features & KERNEL_FEATURE_MNEE) ?
-                                       DEVICE_KERNEL_INTEGRATOR_SHADE_SURFACE_MNEE :
                                        DEVICE_KERNEL_INTEGRATOR_SHADE_SURFACE;
 
   {
@@ -1316,6 +1314,7 @@ void OneapiDevice::get_adjusted_global_and_local_sizes(SyclQueue *queue,
     case DEVICE_KERNEL_INTEGRATOR_INTERSECT_SUBSURFACE:
     case DEVICE_KERNEL_INTEGRATOR_INTERSECT_VOLUME_STACK:
     case DEVICE_KERNEL_INTEGRATOR_INTERSECT_DEDICATED_LIGHT:
+    case DEVICE_KERNEL_INTEGRATOR_INTERSECT_MNEE:
       preferred_work_group_size = preferred_work_group_size_intersect;
       break;
 
@@ -1324,7 +1323,6 @@ void OneapiDevice::get_adjusted_global_and_local_sizes(SyclQueue *queue,
     case DEVICE_KERNEL_INTEGRATOR_SHADE_LIGHT_FORWARD:
     case DEVICE_KERNEL_INTEGRATOR_SHADE_SURFACE:
     case DEVICE_KERNEL_INTEGRATOR_SHADE_SURFACE_RAYTRACE:
-    case DEVICE_KERNEL_INTEGRATOR_SHADE_SURFACE_MNEE:
     case DEVICE_KERNEL_INTEGRATOR_SHADE_VOLUME:
     case DEVICE_KERNEL_INTEGRATOR_SHADE_VOLUME_RAY_MARCHING:
     case DEVICE_KERNEL_INTEGRATOR_SHADE_SHADOW:
@@ -1386,7 +1384,15 @@ static const int lowest_supported_driver_version_win = 1018306;
  * This information is returned by `ocloc query OCL_DRIVER_VERSION`. */
 static const int lowest_supported_driver_version_neo = 35716;
 #  else
-static const int lowest_supported_driver_version_neo = 34666;
+/* For Linux, according to Blender version file
+ * build_files\build_environment\cmake\versions.cmake we
+ * at the moment are using Intel Graphics Compiler v2.30.1.
+ * According to the Intel Linux Driver releases page:
+ * https://github.com/intel/compute-runtime/releases the first driver
+ * which supports this IGC version is 26.09.37435.1, which you can
+ * confirm by checking "Additional components revisions used in build"
+ * section. Thus, this version is our minimal one. */
+static const int lowest_supported_driver_version_neo = 37435;
 #  endif
 
 int parse_driver_build_version(const sycl::device &device)

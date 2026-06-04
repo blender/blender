@@ -12,6 +12,8 @@
 #include "BLI_simd.hh"
 #include "BLI_task.hh"
 
+#include "PRF_profile.hh"
+
 #include <Eigen/Core>
 #include <Eigen/Dense>
 #include <Eigen/Eigenvalues>
@@ -552,6 +554,7 @@ void transform_normals(const float3x3 &transform, MutableSpan<float3> normals)
   if (math::is_equal(transform, float3x3::identity(), 1e-6f)) {
     return;
   }
+  PRF_scope_with_name("math::transform_points", ProfileCategory::Default);
   const float3x3 normal_transform = math::transpose(math::invert(transform));
   if (is_similarity_transform(normal_transform)) {
     const float3x3 normalized_transform = math::normalize(normal_transform);
@@ -576,6 +579,7 @@ void transform_normals(Span<float3> src, const float3x3 &transform, MutableSpan<
     dst.copy_from(src);
     return;
   }
+  PRF_scope_with_name("math::transform_points", ProfileCategory::Default);
   const float3x3 normal_transform = math::transpose(math::invert(transform));
   if (is_similarity_transform(normal_transform)) {
     const float3x3 normalized_transform = math::normalize(normal_transform);
@@ -603,6 +607,7 @@ static void transform_points_no_threading(const Span<float3> src,
                                           const float4x4 &transform,
                                           MutableSpan<float3> dst)
 {
+  PRF_scope_with_name("math::transform_points", ProfileCategory::Default);
   for (const int64_t i : src.index_range()) {
     dst[i] = math::transform_point(transform, src[i]);
   }
@@ -630,6 +635,7 @@ void transform_points(const Span<float3> src,
 
 static void transform_points_no_threading(const float4x4 &transform, MutableSpan<float3> points)
 {
+  PRF_scope_with_name("math::transform_points", ProfileCategory::Default);
   for (float3 &position : points) {
     position = math::transform_point(transform, position);
   }

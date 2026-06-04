@@ -250,14 +250,14 @@ static int initialize_chain(Object * /*ob*/, bPoseChannel *pchan_tip, bConstrain
     if (segcount == rootbone) {
       /* reached this end of the chain but if the chain is overlapping with a
        * previous one, we must go back up to the root of the other chain */
-      if ((curchan->flag & POSE_CHAIN) && BLI_listbase_is_empty(&curchan->iktree)) {
+      if ((curchan->flag & POSE_CHAIN) && curchan->iktree.is_empty()) {
         rootbone++;
         continue;
       }
       break;
     }
 
-    if (BLI_listbase_is_empty(&curchan->iktree) == false) {
+    if (curchan->iktree.is_empty() == false) {
       /* Oh, there is already a chain starting from this channel and our chain is longer.
        * Should handle this by moving the previous chain up to the beginning of our chain
        * For now we just stop here. */
@@ -268,7 +268,7 @@ static int initialize_chain(Object * /*ob*/, bPoseChannel *pchan_tip, bConstrain
     return 0;
   }
   /* we reached a limit and still not the end of a previous chain, quit */
-  if ((pchan_root->flag & POSE_CHAIN) && BLI_listbase_is_empty(&pchan_root->iktree)) {
+  if ((pchan_root->flag & POSE_CHAIN) && pchan_root->iktree.is_empty()) {
     return 0;
   }
 
@@ -1676,7 +1676,7 @@ static void create_scene(Depsgraph *depsgraph, Scene *scene, Object *ob, float c
       /* delete the trees once we are done */
       while (tree) {
         BLI_remlink(&pchan.iktree, tree);
-        BLI_freelistN(&tree->targets);
+        tree->targets.free_no_destruct();
         if (tree->pchan) {
           MEM_delete(tree->pchan);
         }

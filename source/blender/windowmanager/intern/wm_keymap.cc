@@ -358,7 +358,7 @@ void WM_keyconfig_clear(wmKeyConfig *keyconf)
     MEM_delete(&km);
   }
 
-  BLI_listbase_clear(&keyconf->keymaps);
+  keyconf->keymaps.clear_no_delete();
 }
 
 void WM_keyconfig_free(wmKeyConfig *keyconf)
@@ -435,8 +435,8 @@ static void wm_keymap_copy_data(wmKeyMap *keymapn, wmKeyMap *keymap)
   keymapn->modal_items = keymap->modal_items;
   keymapn->poll = keymap->poll;
   keymapn->poll_modal_item = keymap->poll_modal_item;
-  BLI_listbase_clear(&keymapn->diff_items);
-  BLI_listbase_clear(&keymapn->items);
+  keymapn->diff_items.clear_no_delete();
+  keymapn->items.clear_no_delete();
   keymapn->flag &= ~(KEYMAP_UPDATE | KEYMAP_EXPANDED);
 
   for (wmKeyMapDiffItem &kmdi : keymap->diff_items) {
@@ -469,8 +469,8 @@ void WM_keymap_clear(wmKeyMap *keymap)
     MEM_delete(&kmi);
   }
 
-  BLI_listbase_clear(&keymap->diff_items);
-  BLI_listbase_clear(&keymap->items);
+  keymap->diff_items.clear_no_delete();
+  keymap->items.clear_no_delete();
 }
 
 void WM_keymap_remove(wmKeyConfig *keyconf, wmKeyMap *keymap)
@@ -491,7 +491,7 @@ bool WM_keymap_poll(bContext *C, wmKeyMap *keymap)
     }
   }
 
-  if (UNLIKELY(BLI_listbase_is_empty(&keymap->items))) {
+  if (UNLIKELY(keymap->items.is_empty())) {
     /* Empty key-maps may be missing more there may be a typo in the name.
      * Warn early to avoid losing time investigating each case.
      * When developing a customized Blender though you may want empty keymaps. */

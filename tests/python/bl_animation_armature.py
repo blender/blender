@@ -3,10 +3,12 @@
 # SPDX-License-Identifier: GPL-2.0-or-later
 
 """
-blender -b --factory-startup --python tests/python/bl_animation_armature.py
+blender -b --factory-startup --python tests/python/bl_animation_armature.py -- --testdir tests/files/animation/
 """
 
 import unittest
+import pathlib
+import sys
 from typing import TypeAlias
 
 import bpy
@@ -404,8 +406,107 @@ class ArmatureCreationTest(unittest.TestCase):
                    msg="Should been kept connected")
 
 
+class ArmatureJoinWithActionConstraintsTest(unittest.TestCase):
+    arm_ob_1: bpy.types.Object
+    arm_ob_2: bpy.types.Object
+    arm_ob_other: bpy.types.Object
+    act_1: bpy.types.Action
+    act_2: bpy.types.Action
+    act_other: bpy.types.Action
+
+    def setUp(self):
+        bpy.ops.wm.open_mainfile(
+            filepath=str(
+                args.testdir /
+                "armature_join_with_action_constraints.blend"),
+            load_ui=False)
+
+        self.arm_ob_1 = bpy.data.objects["Armature_1"]
+        self.arm_ob_2 = bpy.data.objects["Armature_2"]
+        self.arm_ob_other = bpy.data.objects["Armature_other"]
+
+        self.act_1 = bpy.data.actions["Action_1"]
+        self.act_2 = bpy.data.actions["Action_2"]
+        self.act_other = bpy.data.actions["Action_other"]
+
+    def test_join_with_action_constraint(self):
+        """ Test that the channels in the actions of action constraints get
+            remapped correctly when bones get renamed while joining armatures.
+        """
+
+        # Join the two main armatures together.
+        bpy.ops.object.select_all(action='DESELECT')
+        bpy.context.view_layer.objects.active = self.arm_ob_1
+        self.arm_ob_1.select_set(True)
+        self.arm_ob_2.select_set(True)
+        self.assertEqual({'FINISHED'}, bpy.ops.object.join())
+
+        # Check that we ended up with the bones we expect in the joined armature.
+        bone_names = sorted([bone.name for bone in self.arm_ob_1.data.bones])
+        self.assertEqual(bone_names, ["Bone_1", "Bone_1.001", "Bone_2", "Bone_2.001"])
+
+        # Check that the channels in Action_1 have not changed.
+        channel_paths_1 = sorted(
+            [fcurve.data_path for fcurve in self.act_1.layers['Layer'].strips[0].channelbags[0].fcurves])
+        self.assertEqual(
+            channel_paths_1,
+            [
+                'pose.bones["Bone_1"].location',
+                'pose.bones["Bone_1"].location',
+                'pose.bones["Bone_1"].location',
+                'pose.bones["Bone_1"].rotation_quaternion',
+                'pose.bones["Bone_1"].rotation_quaternion',
+                'pose.bones["Bone_1"].rotation_quaternion',
+                'pose.bones["Bone_1"].rotation_quaternion',
+                'pose.bones["Bone_1"].scale',
+                'pose.bones["Bone_1"].scale',
+                'pose.bones["Bone_1"].scale',
+            ],
+        )
+
+        # Check that the channels in Action_2 have been remapped.
+        channel_paths_2 = sorted(
+            [fcurve.data_path for fcurve in self.act_2.layers['Layer'].strips[0].channelbags[0].fcurves])
+        self.assertEqual(
+            channel_paths_2,
+            [
+                'pose.bones["Bone_1.001"].location',
+                'pose.bones["Bone_1.001"].location',
+                'pose.bones["Bone_1.001"].location',
+                'pose.bones["Bone_1.001"].rotation_quaternion',
+                'pose.bones["Bone_1.001"].rotation_quaternion',
+                'pose.bones["Bone_1.001"].rotation_quaternion',
+                'pose.bones["Bone_1.001"].rotation_quaternion',
+                'pose.bones["Bone_1.001"].scale',
+                'pose.bones["Bone_1.001"].scale',
+                'pose.bones["Bone_1.001"].scale',
+            ],
+        )
+
+        # Check that the channels in the unrelated Action_other have been left alone.
+        channel_paths_other = [
+            fcurve.data_path for fcurve in self.act_other.layers['Layer'].strips[0].channelbags[0].fcurves]
+        channel_paths_other.sort()
+        self.assertEqual(
+            channel_paths_other,
+            [
+                'pose.bones["Bone_1"].location',
+                'pose.bones["Bone_1"].location',
+                'pose.bones["Bone_1"].location',
+                'pose.bones["Bone_1"].rotation_quaternion',
+                'pose.bones["Bone_1"].rotation_quaternion',
+                'pose.bones["Bone_1"].rotation_quaternion',
+                'pose.bones["Bone_1"].rotation_quaternion',
+                'pose.bones["Bone_1"].scale',
+                'pose.bones["Bone_1"].scale',
+                'pose.bones["Bone_1"].scale',
+            ],
+        )
+
+
 def main():
-    import sys
+    global args
+    import argparse
 
     if '--' in sys.argv:
         argv = [sys.argv[0]] + sys.argv[sys.argv.index('--') + 1:]
@@ -413,7 +514,11 @@ def main():
         # Avoid passing all of Blender's arguments to unittest.main()
         argv = [sys.argv[0]]
 
-    unittest.main(argv=argv, exit=False)
+    parser = argparse.ArgumentParser()
+    parser.add_argument('--testdir', required=True, type=pathlib.Path)
+    args, remaining = parser.parse_known_args(argv)
+
+    unittest.main(argv=remaining, exit=False)
 
 
 if __name__ == "__main__":

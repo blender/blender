@@ -25,11 +25,11 @@ static void node_declare(NodeDeclarationBuilder &b)
   b.add_input<decl::Geometry>("Guide Curves"_ustr)
       .description("Base curves that new curves are interpolated between");
   b.add_input<decl::Vector>("Guide Up"_ustr)
-      .field_on({0})
+      .evaluated_geometry_field({0})
       .hide_value()
       .description("Optional up vector that is typically a surface normal");
   b.add_input<decl::Int>("Guide Group ID"_ustr)
-      .field_on({0})
+      .evaluated_geometry_field({0})
       .hide_value()
       .description(
           "Splits guides into separate groups. New curves interpolate existing curves "
@@ -37,11 +37,11 @@ static void node_declare(NodeDeclarationBuilder &b)
   b.add_input<decl::Geometry>("Points"_ustr)
       .description("First control point positions for new interpolated curves");
   b.add_input<decl::Vector>("Point Up"_ustr)
-      .field_on({3})
+      .evaluated_geometry_field({3})
       .hide_value()
       .description("Optional up vector that is typically a surface normal");
   b.add_input<decl::Int>("Point Group ID"_ustr)
-      .field_on({3})
+      .evaluated_geometry_field({3})
       .hide_value()
       .description("The curve group to interpolate in");
   b.add_input<decl::Int>("Max Neighbors"_ustr)
@@ -49,12 +49,12 @@ static void node_declare(NodeDeclarationBuilder &b)
       .min(1)
       .description(
           "Maximum amount of close guide curves that are taken into account for interpolation");
-  b.add_output<decl::Geometry>("Curves"_ustr).propagate_all();
+  b.add_output<decl::Geometry>("Curves"_ustr).propagate_all_geometry();
   b.add_output<decl::Int>("Closest Index"_ustr)
-      .field_on_all()
+      .anonymous_attribute_output()
       .description("Index of the closest guide curve for each generated curve");
   b.add_output<decl::Float>("Closest Weight"_ustr)
-      .field_on_all()
+      .anonymous_attribute_output()
       .description("Weight of the closest guide curve for each generated curve");
 }
 

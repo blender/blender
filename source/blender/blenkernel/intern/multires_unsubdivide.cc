@@ -737,9 +737,6 @@ static bool multires_unsubdivide_extract_single_grid_from_face_edge(
     initial_edge_y = edge_temp;
   }
 
-  int grid_x = 0;
-  int grid_y = 0;
-
   BMVert *current_vertex_x = initial_vertex;
   BMEdge *edge_x = initial_edge_x;
 
@@ -750,17 +747,18 @@ static bool multires_unsubdivide_extract_single_grid_from_face_edge(
   BMFace *current_face = f1;
   BMFace *grid_face = f1;
 
+  const bool has_original_grid_data = context->num_original_levels > 0;
+
   /* If the data is going to be extracted from the already existing grids, there is no need to go
    * to the last vertex of the iteration as that coordinate is also included in the grids
    * corresponding to the loop of the face of the previous iteration. */
-  int grid_iteration_max_steps = grid_size;
-  if (context->num_original_levels > 0) {
-    grid_iteration_max_steps = grid_size - 1;
-  }
+  const int grid_iteration_max_steps = grid_size - (has_original_grid_data ? 1 : 0);
+  const int grid_iteration_last_step = grid_iteration_max_steps - 1;
 
   /* Iterate over the mesh vertices in a grid pattern using the axis defined by the two initial
    * edges. */
-  while (grid_y < grid_iteration_max_steps) {
+  for (const int grid_y : IndexRange(grid_iteration_max_steps)) {
+    const bool grid_y_has_next = grid_y != grid_iteration_last_step;
 
     grid_face = current_face;
 
@@ -769,53 +767,67 @@ static bool multires_unsubdivide_extract_single_grid_from_face_edge(
       return false;
     }
 
-    while (grid_x < grid_iteration_max_steps) {
-      if (context->num_original_levels == 0) {
-        /* If there were no grids on the original mesh, extract the data directly from the
-         * vertices. */
+    for (const int grid_x : IndexRange(grid_iteration_max_steps)) {
+      /* Don't step into the next edge at the end,
+       * since failing to walk past the end is *not* an error. */
+      const bool grid_x_has_next = grid_x != grid_iteration_last_step;
+      if (has_original_grid_data) {
+        /* If there were grids in the original mesh,
+         * extract the data from the grids. */
+        store_grid_data(context, grid, current_vertex_x, grid_face, grid_x, grid_y);
+      }
+      else {
+        /* If there were no grids on the original mesh,
+         * extract the data directly from the vertices. */
         store_vertex_data(grid, current_vertex_x, grid_x, grid_y);
+      }
+      if (grid_x_has_next) {
         edge_x = edge_step(current_vertex_x, edge_x, &current_vertex_x);
         if (edge_x == nullptr) [[unlikely]] {
           return false;
+        }
+        if (has_original_grid_data) {
+          grid_face = face_step(edge_x, grid_face);
         }
       }
       else {
-        /* If there were grids in the original mesh, extract the data from the grids and iterate
-         * over the faces. */
-        store_grid_data(context, grid, current_vertex_x, grid_face, grid_x, grid_y);
-        edge_x = edge_step(current_vertex_x, edge_x, &current_vertex_x);
-        if (edge_x == nullptr) [[unlikely]] {
-          return false;
+        /* Clear as a signal not to reuse, allow dead assignments. */
+        edge_x = nullptr;
+        grid_face = nullptr;
+        UNUSED_VARS(edge_x, grid_face);
+      }
+    }
+
+    if (grid_y_has_next) {
+      if (edge_y == nullptr) [[unlikely]] {
+        return false;
+      }
+      edge_y = edge_step(current_vertex_y, edge_y, &current_vertex_y);
+      current_vertex_x = current_vertex_y;
+
+      /* Get the next edge_x to extract the next row of the grid. This needs to be done because
+       * there may be two edges connected to current_vertex_x that belong to two different grids.
+       */
+      BMIter iter;
+      BMEdge *ed;
+      edge_x = nullptr;
+      BM_ITER_ELEM (ed, &iter, current_vertex_x, BM_EDGES_OF_VERT) {
+        if (ed != prev_edge_y && BM_edge_in_face(ed, current_face)) {
+          edge_x = ed;
+          break;
         }
-        grid_face = face_step(edge_x, grid_face);
       }
+      /* May be null, check on next access (if this isn't the end of iteration). */
+      current_face = edge_x ? face_step(edge_x, current_face) : nullptr;
 
-      grid_x++;
+      prev_edge_y = edge_y;
     }
-    grid_x = 0;
-
-    if (edge_y == nullptr) [[unlikely]] {
-      return false;
+    else {
+      /* Clear as a signal not to reuse, allow dead assignments. */
+      edge_y = nullptr;
+      grid_face = nullptr;
+      UNUSED_VARS(edge_x, grid_face);
     }
-    edge_y = edge_step(current_vertex_y, edge_y, &current_vertex_y);
-    current_vertex_x = current_vertex_y;
-
-    /* Get the next edge_x to extract the next row of the grid. This needs to be done because there
-     * may be two edges connected to current_vertex_x that belong to two different grids. */
-    BMIter iter;
-    BMEdge *ed;
-    edge_x = nullptr;
-    BM_ITER_ELEM (ed, &iter, current_vertex_x, BM_EDGES_OF_VERT) {
-      if (ed != prev_edge_y && BM_edge_in_face(ed, current_face)) {
-        edge_x = ed;
-        break;
-      }
-    }
-    /* May be null, check on next access (if this isn't the end of iteration). */
-    current_face = edge_x ? face_step(edge_x, current_face) : nullptr;
-
-    prev_edge_y = edge_y;
-    grid_y++;
   }
 
   return true;
@@ -1001,7 +1013,7 @@ static void multires_unsubdivide_extract_grids(MultiresUnsubdivideContext *conte
   }
 
   /* If an index in original does not exist in base (it was dissolved when creating the new base
-   * mesh, return -1. */
+   * mesh), return -1. */
   for (int i = 0; i < original_mesh->verts_num; i++) {
     orig_to_base_vmap[i] = -1;
   }

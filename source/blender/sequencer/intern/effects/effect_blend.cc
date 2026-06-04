@@ -12,6 +12,8 @@
 
 #include "IMB_imbuf.hh"
 
+#include "PRF_profile.hh"
+
 #include "SEQ_render.hh"
 
 #include "effects.hh"
@@ -75,18 +77,19 @@ struct AlphaOverEffectOp {
   float factor;
 };
 
-static ImBuf *do_alphaover_effect(const RenderData *context,
-                                  SeqRenderState * /*state*/,
-                                  Strip * /*strip*/,
-                                  float /*timeline_frame*/,
-                                  float fac,
-                                  ImBuf *src1,
-                                  ImBuf *src2)
+static SeqResult do_alphaover_effect(const RenderData *context,
+                                     SeqRenderState * /*state*/,
+                                     Strip * /*strip*/,
+                                     float /*timeline_frame*/,
+                                     float fac,
+                                     const SeqResult &src1,
+                                     const SeqResult &src2)
 {
-  ImBuf *dst = prepare_effect_imbufs(context, src1, src2);
+  PRF_scope_with_name("SeqFxOver", ProfileCategory::Draw);
+  SeqResult dst = prepare_effect_imbufs(context, src1, src2);
   AlphaOverEffectOp op;
   op.factor = fac;
-  apply_effect_op(op, src1, src2, dst);
+  apply_effect_op(op, src1.image, src2.image, dst.image);
   return dst;
 }
 
@@ -125,18 +128,19 @@ struct AlphaUnderEffectOp {
   float factor;
 };
 
-static ImBuf *do_alphaunder_effect(const RenderData *context,
-                                   SeqRenderState * /*state*/,
-                                   Strip * /*strip*/,
-                                   float /*timeline_frame*/,
-                                   float fac,
-                                   ImBuf *src1,
-                                   ImBuf *src2)
+static SeqResult do_alphaunder_effect(const RenderData *context,
+                                      SeqRenderState * /*state*/,
+                                      Strip * /*strip*/,
+                                      float /*timeline_frame*/,
+                                      float fac,
+                                      const SeqResult &src1,
+                                      const SeqResult &src2)
 {
-  ImBuf *dst = prepare_effect_imbufs(context, src1, src2);
+  PRF_scope_with_name("SeqFxUnder", ProfileCategory::Draw);
+  SeqResult dst = prepare_effect_imbufs(context, src1, src2);
   AlphaUnderEffectOp op;
   op.factor = fac;
-  apply_effect_op(op, src1, src2, dst);
+  apply_effect_op(op, src1.image, src2.image, dst.image);
   return dst;
 }
 
@@ -326,19 +330,20 @@ struct BlendModeEffectOp {
   float factor;
 };
 
-static ImBuf *do_blend_mode_effect(const RenderData *context,
-                                   SeqRenderState * /*state*/,
-                                   Strip *strip,
-                                   float /*timeline_frame*/,
-                                   float fac,
-                                   ImBuf *src1,
-                                   ImBuf *src2)
+static SeqResult do_blend_mode_effect(const RenderData *context,
+                                      SeqRenderState * /*state*/,
+                                      Strip *strip,
+                                      float /*timeline_frame*/,
+                                      float fac,
+                                      const SeqResult &src1,
+                                      const SeqResult &src2)
 {
-  ImBuf *dst = prepare_effect_imbufs(context, src1, src2);
+  PRF_scope_with_name("SeqFxBlend", ProfileCategory::Draw);
+  SeqResult dst = prepare_effect_imbufs(context, src1, src2);
   BlendModeEffectOp op;
   op.factor = fac;
   op.blend_mode = strip->blend_mode;
-  apply_effect_op(op, src1, src2, dst);
+  apply_effect_op(op, src1.image, src2.image, dst.image);
   return dst;
 }
 
@@ -361,20 +366,21 @@ static void free_colormix_effect(Strip *strip, const bool /*do_id_user*/)
   }
 }
 
-static ImBuf *do_colormix_effect(const RenderData *context,
-                                 SeqRenderState * /*state*/,
-                                 Strip *strip,
-                                 float /*timeline_frame*/,
-                                 float /*fac*/,
-                                 ImBuf *src1,
-                                 ImBuf *src2)
+static SeqResult do_colormix_effect(const RenderData *context,
+                                    SeqRenderState * /*state*/,
+                                    Strip *strip,
+                                    float /*timeline_frame*/,
+                                    float /*fac*/,
+                                    const SeqResult &src1,
+                                    const SeqResult &src2)
 {
-  ImBuf *dst = prepare_effect_imbufs(context, src1, src2);
+  PRF_scope_with_name("SeqFxColorMix", ProfileCategory::Draw);
+  SeqResult dst = prepare_effect_imbufs(context, src1, src2);
   const ColorMixVars *data = static_cast<const ColorMixVars *>(strip->effectdata);
   BlendModeEffectOp op;
   op.blend_mode = data->blend_effect;
   op.factor = data->factor;
-  apply_effect_op(op, src1, src2, dst);
+  apply_effect_op(op, src1.image, src2.image, dst.image);
   return dst;
 }
 

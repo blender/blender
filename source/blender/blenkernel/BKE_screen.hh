@@ -328,7 +328,7 @@ struct ARegionType {
 
   /** Hardcoded constraints, smaller than these values region is not visible. */
   int minsizex, minsizey;
-  /** When new region opens (region prefsizex/y are zero then. */
+  /** When new region opens (region prefsizex/y are zero then). */
   int prefsizex, prefsizey;
   /** Default keymaps to add. */
   int keymapflag;

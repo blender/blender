@@ -88,7 +88,7 @@ ccl_device_inline
                                        tmin,
                                        isect_t,
                                        node_addr,
-                                       PATH_RAY_ALL_VISIBILITY,
+                                       PATH_RAY_VISIBILITY_ALL,
                                        dist);
 
         node_addr = __float_as_int(cnodes.z);

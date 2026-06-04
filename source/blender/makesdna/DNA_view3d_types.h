@@ -93,7 +93,7 @@ enum eRegionView3D_Flag : short {
   RV3D_PAINTING = 1 << 5,
   /**
    * Disable Z-buffer offset, skip calls to #ED_view3d_polygon_offset.
-   * Use when precise surface depth is needed and picking bias isn't, see #45434).
+   * Use when precise surface depth is needed and picking bias isn't, see #45434.
    */
   RV3D_ZOFFSET_DISABLED = 1 << 6,
   RV3D_WAS_CAMOB = 1 << 7,

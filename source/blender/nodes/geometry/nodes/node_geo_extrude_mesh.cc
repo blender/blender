@@ -40,22 +40,25 @@ static void node_declare(NodeDeclarationBuilder &b)
   b.add_input<decl::Geometry>("Mesh"_ustr)
       .supported_type(GeometryComponent::Type::Mesh)
       .description("Mesh to extrude elements of");
-  b.add_input<decl::Bool>("Selection"_ustr).default_value(true).field_on_all().hide_value();
+  b.add_input<decl::Bool>("Selection"_ustr)
+      .default_value(true)
+      .evaluated_geometry_field()
+      .hide_value();
   b.add_input<decl::Vector>("Offset"_ustr)
       .subtype(PROP_TRANSLATION)
-      .implicit_field_on_all(NODE_DEFAULT_INPUT_NORMAL_FIELD)
-      .hide_value();
-  b.add_input<decl::Float>("Offset Scale"_ustr).default_value(1.0f).field_on_all();
+      .default_input_type(NODE_DEFAULT_INPUT_NORMAL_FIELD)
+      .evaluated_geometry_field();
+  b.add_input<decl::Float>("Offset Scale"_ustr).default_value(1.0f).evaluated_geometry_field();
   auto &individual = b.add_input<decl::Bool>("Individual"_ustr)
                          .default_value(true)
                          .make_available([](bNode &node) {
                            node_storage(node).mode = GEO_NODE_EXTRUDE_MESH_FACES;
                          });
-  b.add_output<decl::Geometry>("Mesh"_ustr).propagate_all();
+  b.add_output<decl::Geometry>("Mesh"_ustr).propagate_all_geometry();
   b.add_output<decl::Bool>("Top"_ustr)
-      .field_on_all()
+      .anonymous_attribute_output()
       .translation_context(BLT_I18NCONTEXT_ID_NODETREE);
-  b.add_output<decl::Bool>("Side"_ustr).field_on_all();
+  b.add_output<decl::Bool>("Side"_ustr).anonymous_attribute_output();
 
   const bNode *node = b.node_or_null();
   if (node != nullptr) {

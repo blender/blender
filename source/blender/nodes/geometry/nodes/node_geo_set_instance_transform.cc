@@ -13,11 +13,14 @@ static void node_declare(NodeDeclarationBuilder &b)
   b.add_input<decl::Geometry>("Instances"_ustr)
       .only_instances()
       .description("Instances to transform individually");
-  b.add_output<decl::Geometry>("Instances"_ustr).propagate_all().align_with_previous();
-  b.add_input<decl::Bool>("Selection"_ustr).default_value(true).hide_value().field_on_all();
+  b.add_output<decl::Geometry>("Instances"_ustr).propagate_all_geometry().align_with_previous();
+  b.add_input<decl::Bool>("Selection"_ustr)
+      .default_value(true)
+      .hide_value()
+      .evaluated_geometry_field();
   b.add_input<decl::Matrix>("Transform"_ustr)
-      .field_on_all()
-      .implicit_field(NODE_DEFAULT_INPUT_INSTANCE_TRANSFORM_FIELD)
+      .evaluated_geometry_field()
+      .default_input_type(NODE_DEFAULT_INPUT_INSTANCE_TRANSFORM_FIELD)
       .structure_type(StructureType::Field);
 }
 

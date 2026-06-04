@@ -74,8 +74,10 @@ ccl_device_forceinline bool point_intersect(KernelGlobals kg,
                                             const float time,
                                             const int type)
 {
-  const float4 point = (type & PRIMITIVE_MOTION) ? motion_point(kg, object, prim, time) :
-                                                   kernel_data_fetch(points, prim);
+  const int position_offset = kernel_data_fetch(objects, object).position_offset;
+  const float4 point = (type & PRIMITIVE_MOTION) ?
+                           motion_point(kg, object, prim, time) :
+                           kernel_data_fetch(attributes_float4, position_offset + prim);
 
   if (!point_intersect_test(point, ray_P, ray_D, ray_tmin, ray_tmax, &isect->t)) {
     return false;
@@ -104,9 +106,11 @@ ccl_device_inline void point_shader_setup(KernelGlobals kg,
 #  endif
 
   /* Compute point center for normal. */
-  float3 center = make_float3((isect->type & PRIMITIVE_MOTION) ?
-                                  motion_point(kg, sd->object, sd->prim, sd->time) :
-                                  kernel_data_fetch(points, sd->prim));
+  const int position_offset = kernel_data_fetch(objects, sd->object).position_offset;
+  float3 center = make_float3(
+      (isect->type & PRIMITIVE_MOTION) ?
+          motion_point(kg, sd->object, sd->prim, sd->time) :
+          kernel_data_fetch(attributes_float4, position_offset + sd->prim));
   if (!(sd->object_flag & SD_OBJECT_TRANSFORM_APPLIED)) {
     object_position_transform(kg, sd, &center);
   }

@@ -3455,7 +3455,7 @@ static void dissolve_verts(IMesh *imesh, const Array<bool> dissolve, IMeshArena 
  * Triangle #IMesh as output.
  * This function converts back into a general polygonal mesh by removing
  * any possible triangulation edges (which can be identified because they
- * will have an original edge that is NO_INDEX.
+ * will have an original edge that is NO_INDEX).
  * Not all triangulation edges can be removed: if they ended up non-trivially overlapping a real
  * input edge, then we need to keep it. Also, some are necessary to make the output satisfy
  * the "valid #BMesh" property: we can't produce output faces that have repeated vertices in

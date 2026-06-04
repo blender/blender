@@ -126,6 +126,7 @@ ccl_device bool shadow_linking_pick_light_intersection(KernelGlobals kg,
                                                        ccl_private Intersection *ccl_restrict
                                                            linked_isect)
 {
+  const PathRayVisibility path_visibility = INTEGRATOR_STATE(state, path, visibility);
   const uint32_t path_flag = INTEGRATOR_STATE(state, path, flag);
 
   const int last_type = INTEGRATOR_STATE(state, isect, type);
@@ -156,6 +157,7 @@ ccl_device bool shadow_linking_pick_light_intersection(KernelGlobals kg,
                                             ray->self.prim,
                                             ray->self.object,
                                             last_type,
+                                            path_visibility,
                                             path_flag,
                                             object_receiver,
                                             &lcg_state,

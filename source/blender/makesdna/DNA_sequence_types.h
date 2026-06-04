@@ -93,7 +93,7 @@ enum eStripProxyStorageFlag : uint8_t {
 ENUM_OPERATORS(eStripProxyStorageFlag);
 
 /**
- * \warning has to be same as `IMB_imbuf.hh`: `IMB_PROXY_*` and `IMB_TC_*`.
+ * \warning has to be same as `IMB_imbuf.hh` `IMB_PROXY_*`.
  */
 enum eStripProxyBuildSize : uint16_t {
   SEQ_PROXY_IMAGE_SIZE_NONE = 0,
@@ -103,16 +103,6 @@ enum eStripProxyBuildSize : uint16_t {
   SEQ_PROXY_IMAGE_SIZE_100 = 1 << 3,
 };
 ENUM_OPERATORS(eStripProxyBuildSize);
-
-/**
- * \warning has to be same as `IMB_imbuf.hh`: `IMB_TC_*`.
- */
-enum eStripProxyTimeCode : uint16_t {
-  SEQ_PROXY_TC_NONE = 0,
-  SEQ_PROXY_TC_RECORD_RUN = 1 << 0,
-  SEQ_PROXY_TC_RECORD_RUN_NO_GAPS = 1 << 1,
-};
-ENUM_OPERATORS(eStripProxyTimeCode);
 
 enum eStripProxyBuildFlag : uint16_t {
   SEQ_PROXY_BUILD_FLAG_NONE = 0,
@@ -301,15 +291,13 @@ struct StripProxy {
   char filename[/*FILE_MAXFILE*/ 256] = "";
   struct MovieReader *anim = nullptr; /* Custom proxy anim file. */
 
-  short tc = 0; /* Time code in use. */
-
   short quality = 0; /* Proxy build quality. */
+
   eStripProxyBuildSize build_size_flags =
-      SEQ_PROXY_IMAGE_SIZE_NONE;                          /* which proxy sizes to build. */
-  eStripProxyTimeCode build_tc_flags = SEQ_PROXY_TC_NONE; /* which time codes to build. */
+      SEQ_PROXY_IMAGE_SIZE_NONE; /* which proxy sizes to build. */
   eStripProxyBuildFlag build_flags = SEQ_PROXY_BUILD_FLAG_NONE;
   eStripProxyStorageFlag storage = SEQ_STORAGE_PROXY_NONE;
-  char _pad[5] = {};
+  char _pad = 0;
 };
 
 struct StripData {
@@ -581,7 +569,7 @@ struct SeqTimelineChannel {
   }
   bool is_muted() const
   {
-    return (this->flag & SEQ_CHANNEL_LOCK) != 0;
+    return (this->flag & SEQ_CHANNEL_MUTE) != 0;
   }
 #endif
 };
@@ -712,6 +700,7 @@ enum eEffectTextFlags : uint8_t {
   SEQ_TEXT_BOLD = (1 << 2),
   SEQ_TEXT_ITALIC = (1 << 3),
   SEQ_TEXT_OUTLINE = (1 << 4),
+  SEQ_TEXT_USE_ABSOLUTE_LINE_SPACING = (1 << 5),
 };
 ENUM_OPERATORS(eEffectTextFlags);
 
@@ -783,7 +772,8 @@ struct TransformVarsLegacy {
 
 struct SolidColorVars {
   float col[3] = {};
-  char _pad[4] = {};
+  int width;
+  int height;
 };
 
 struct SpeedControlVars {
@@ -821,6 +811,7 @@ struct TextVars {
   int text_blf_id = 0;
   float text_size = 0;
   float space_line = 1.0f;
+  float abs_space_line = 1.0f;
   float color[4] = {}, shadow_color[4] = {}, box_color[4] = {}, outline_color[4] = {};
   float loc[2] = {};
   float wrap_width = 0;
@@ -844,7 +835,7 @@ struct TextVars {
 
   eEffectTextAnchorX anchor_x = SEQ_TEXT_ANCHOR_X_LEFT;
   eEffectTextAnchorY anchor_y = SEQ_TEXT_ANCHOR_Y_TOP;
-  char _pad1[5] = {};
+  char _pad1[1] = {};
   seq::TextVarsRuntime *runtime = nullptr;
 
   /* Fixed size text buffer, only exists for forward/backward compatibility.

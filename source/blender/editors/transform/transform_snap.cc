@@ -223,7 +223,7 @@ void drawSnapping(TransInfo *t)
     ui::theme::get_color_3ubv(TH_SEQ_ACTIVE, col);
     col[3] = 128;
   }
-  else if (t->spacetype != SPACE_IMAGE) {
+  else {
     ui::theme::get_color_3ubv(TH_TRANSFORM, col);
     col[3] = 128;
 
@@ -241,7 +241,7 @@ void drawSnapping(TransInfo *t)
     GPU_depth_test(GPU_DEPTH_NONE);
 
     RegionView3D *rv3d = static_cast<RegionView3D *>(t->region->regiondata);
-    if (!BLI_listbase_is_empty(&t->tsnap.points)) {
+    if (!t->tsnap.points.is_empty()) {
       /* Draw snap points. */
 
       float size = 2.0f * ui::theme::get_value_f(TH_VERTEX_SIZE);
@@ -253,7 +253,7 @@ void drawSnapping(TransInfo *t)
 
       immBindBuiltinProgram(GPU_SHADER_3D_UNIFORM_COLOR);
 
-      if (!BLI_listbase_is_empty(&t->tsnap.points)) {
+      if (!t->tsnap.points.is_empty()) {
         for (TransSnapPoint &p : t->tsnap.points) {
           if (&p == t->tsnap.selectedPoint) {
             immUniformColor4ubv(selectedCol);
@@ -301,22 +301,41 @@ void drawSnapping(TransInfo *t)
   else if (t->spacetype == SPACE_IMAGE) {
     uint pos = GPU_vertformat_attr_add(immVertexFormat(), "pos", gpu::VertAttrType::SFLOAT_32_32);
 
+    GPU_matrix_push_projection();
+    wmOrtho2_region_pixelspace(t->region);
+    float radius = 2.5f * ui::theme::get_value_f(TH_VERTEX_SIZE) * U.pixelsize;
+    GPU_blend(GPU_BLEND_ALPHA);
+
+    if (!t->tsnap.points.is_empty()) {
+      immBindBuiltinProgram(GPU_SHADER_3D_UNIFORM_COLOR);
+      for (TransSnapPoint &p : t->tsnap.points) {
+        if (&p == t->tsnap.selectedPoint) {
+          immUniformColor4ubv(selectedCol);
+        }
+        else {
+          immUniformColor4ubv(col);
+        }
+        float x, y;
+        const float2 snap_point = float2(p.co) / float2(t->aspect);
+        ui::view2d_view_to_region_fl(&t->region->v2d, snap_point.x, snap_point.y, &x, &y);
+        imm_draw_circle_wire_2d(pos, x, y, radius, 8);
+      }
+      immUnbindProgram();
+    }
+
     float x, y;
     const float snap_point[2] = {
         t->tsnap.snap_target[0] / t->aspect[0],
         t->tsnap.snap_target[1] / t->aspect[1],
     };
     ui::view2d_view_to_region_fl(&t->region->v2d, UNPACK2(snap_point), &x, &y);
-    float radius = 2.5f * ui::theme::get_value_f(TH_VERTEX_SIZE) * U.pixelsize;
-
-    GPU_matrix_push_projection();
-    wmOrtho2_region_pixelspace(t->region);
 
     immBindBuiltinProgram(GPU_SHADER_3D_UNIFORM_COLOR);
     immUniformColor3ub(255, 255, 255);
     imm_draw_circle_wire_2d(pos, x, y, radius, 8);
     immUnbindProgram();
 
+    GPU_blend(GPU_BLEND_NONE);
     GPU_matrix_pop_projection();
   }
   else if (t->spacetype == SPACE_SEQ) {
@@ -392,6 +411,10 @@ static bool applyFaceProject(TransInfo *t,
                              TransData *td,
                              TransDataExtension *td_ext)
 {
+  if (t->spacetype != SPACE_VIEW3D) [[unlikely]] {
+    return false;
+  }
+
   float iloc[3], loc[3], no[3];
   float mval_fl[2];
 
@@ -1153,8 +1176,7 @@ static void setSnappingCallback(TransInfo *t)
 
 void addSnapPoint(TransInfo *t)
 {
-  /* Currently only 3D viewport works for snapping points. */
-  if (t->tsnap.status & SNAP_TARGET_FOUND && t->spacetype == SPACE_VIEW3D) {
+  if (t->tsnap.status & SNAP_TARGET_FOUND && ELEM(t->spacetype, SPACE_VIEW3D, SPACE_IMAGE)) {
     TransSnapPoint *p = MEM_new_zeroed<TransSnapPoint>("SnapPoint");
 
     t->tsnap.selectedPoint = p;
@@ -1179,9 +1201,22 @@ eRedrawFlag updateSelectedSnapPoint(TransInfo *t)
     for (TransSnapPoint &p : t->tsnap.points) {
       float dist_sq;
 
-      if (ED_view3d_project_float_global(t->region, p.co, screen_loc, V3D_PROJ_TEST_NOP) !=
-          V3D_PROJ_RET_OK)
-      {
+      if (t->spacetype == SPACE_VIEW3D) {
+        if (ED_view3d_project_float_global(t->region, p.co, screen_loc, V3D_PROJ_TEST_NOP) !=
+            V3D_PROJ_RET_OK)
+        {
+          continue;
+        }
+      }
+      else if (t->spacetype == SPACE_IMAGE) {
+        float x, y;
+        const float2 snap_point = float2(p.co) / float2(t->aspect);
+        ui::view2d_view_to_region_fl(&t->region->v2d, snap_point.x, snap_point.y, &x, &y);
+        screen_loc[0] = x;
+        screen_loc[1] = y;
+      }
+      else {
+        BLI_assert_unreachable();
         continue;
       }
 
@@ -1213,7 +1248,7 @@ void removeSnapPoint(TransInfo *t)
     if (t->tsnap.selectedPoint) {
       BLI_freelinkN(&t->tsnap.points, t->tsnap.selectedPoint);
 
-      if (BLI_listbase_is_empty(&t->tsnap.points)) {
+      if (t->tsnap.points.is_empty()) {
         t->tsnap.status &= ~SNAP_MULTI_POINTS;
       }
 
@@ -1249,7 +1284,7 @@ void getSnapPoint(const TransInfo *t, float vec[3])
 static void snap_multipoints_free(TransInfo *t)
 {
   if (t->tsnap.status & SNAP_MULTI_POINTS) {
-    BLI_freelistN(&t->tsnap.points);
+    t->tsnap.points.free_no_destruct();
     t->tsnap.status &= ~SNAP_MULTI_POINTS;
     t->tsnap.selectedPoint = nullptr;
   }
@@ -1659,7 +1694,7 @@ bool peelObjectsTransform(TransInfo *t,
                                               false,
                                               &depths_peel);
 
-  if (!BLI_listbase_is_empty(&depths_peel)) {
+  if (!depths_peel.is_empty()) {
     /* At the moment we only use the hits of the first object. */
     SnapObjectHitDepth *hit_min = static_cast<SnapObjectHitDepth *>(depths_peel.first);
     for (SnapObjectHitDepth *iter = hit_min->next; iter; iter = iter->next) {

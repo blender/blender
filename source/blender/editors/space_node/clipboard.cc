@@ -37,9 +37,7 @@
 
 #include "node_intern.hh"
 
-namespace blender {
-
-namespace ed::space_node {
+namespace blender::ed::space_node {
 
 /* -------------------------------------------------------------------- */
 /** \name Local Utilities
@@ -413,5 +411,4 @@ void NODE_OT_clipboard_paste(wmOperatorType *ot)
 
 /** \} */
 
-}  // namespace ed::space_node
-}  // namespace blender
+}  // namespace blender::ed::space_node

@@ -25,6 +25,8 @@ class AbcCameraReader final : public AbcObjectReader {
                            const char **r_err_str) const override;
 
   void readObjectData(Main *bmain, const Alembic::Abc::ISampleSelector &sample_sel) override;
+
+  std::unique_ptr<FCurveCreationHelper> getKeyFramingHelper() override;
 };
 
 }  // namespace blender::io::alembic

@@ -793,7 +793,7 @@ static void IDP_FreeGroup(IDProperty *prop, const bool do_id_user)
   for (IDProperty &loop : prop->data.group) {
     IDP_FreePropertyContent_ex(&loop, do_id_user);
   }
-  BLI_freelistN(&prop->data.group);
+  prop->data.group.free_no_destruct();
 }
 
 std::optional<StringRefNull> IDP_group_lookup_string(const IDProperty &group, StringRef name)
@@ -1700,7 +1700,7 @@ static void IDP_DirectLinkGroup(IDProperty *prop, BlendDataReader *reader)
 
   BLO_read_struct_list(reader, IDProperty, lb);
 
-  if (!BLI_listbase_is_empty(&prop->data.group)) {
+  if (!prop->data.group.is_empty()) {
     idp_group_children_map_ensure(*prop);
   }
 
@@ -1743,7 +1743,7 @@ static void IDP_DirectLinkProperty(IDProperty *prop, BlendDataReader *reader)
       break; /* Nothing special to do here. */
     default:
       /* Unknown IDP type, nuke it (we cannot handle unknown types everywhere in code,
-       * IDP are way too polymorphic to do it safely. */
+       * IDP are way too polymorphic to do it safely). */
       printf(
           "%s: found unknown IDProperty type %d, reset to Integer one !\n", __func__, prop->type);
       /* NOTE: we do not attempt to free unknown prop, we have no way to know how to do that! */

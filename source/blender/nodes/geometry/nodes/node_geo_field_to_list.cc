@@ -48,7 +48,7 @@ static void node_declare(NodeDeclarationBuilder &b)
     const UString name(item.name);
 
     b.add_input(type, name, UString(input_identifier))
-        .supports_field()
+        .structure_type(StructureType::Field)
         .socket_name_ptr(&tree->id, *ItemsAccessor::item_srna, &item, "name");
     b.add_output(type, name, UString(output_identifier))
         .structure_type(StructureType::List)

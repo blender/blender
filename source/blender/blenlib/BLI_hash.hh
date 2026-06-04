@@ -143,16 +143,24 @@ TRIVIAL_DEFAULT_INT_HASH(uint64_t);
  * One should try to avoid using floats as keys in hash tables, but sometimes it is convenient.
  */
 template<> struct DefaultHash<float> {
-  constexpr uint64_t operator()(float value) const
+  constexpr uint64_t operator()(const float value) const
   {
+    /* Make sure +0 and -0 hash to the same value. */
+    if (value == 0.0f) {
+      return 0;
+    }
     /* Explicit `uint64_t` cast to suppress CPPCHECK warning. */
     return uint64_t(std::bit_cast<uint32_t>(value));
   }
 };
 
 template<> struct DefaultHash<double> {
-  constexpr uint64_t operator()(double value) const
+  constexpr uint64_t operator()(const double value) const
   {
+    /* Make sure +0 and -0 hash to the same value. */
+    if (value == 0.0) {
+      return 0;
+    }
     return std::bit_cast<uint64_t>(value);
   }
 };

@@ -186,7 +186,7 @@ ScrArea *render_view_open(bContext *C, int mx, int my, ReportList *reports)
     }
 
     area = CTX_wm_area(C);
-    if (BLI_listbase_is_single(&area->spacedata) == false) {
+    if (area->spacedata.is_single() == false) {
       sima = static_cast<SpaceImage *>(area->spacedata.first);
       sima->flag |= SI_PREVSPACE;
     }

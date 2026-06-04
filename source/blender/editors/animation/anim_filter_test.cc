@@ -111,7 +111,7 @@ TEST_F(ActionFilterTest, slots_expanded_or_not)
     const int num_entries = ANIM_animdata_filter(
         &ac, &anim_data, filter, ac.data, eAnimCont_Types(ac.datatype));
     EXPECT_EQ(2, num_entries);
-    EXPECT_EQ(2, BLI_listbase_count(&anim_data));
+    EXPECT_EQ(2, anim_data.count());
 
     ASSERT_GE(num_entries, 1)
         << "Missing 1st ANIMTYPE_ACTION_SLOT entry, stopping to prevent crash";
@@ -148,7 +148,7 @@ TEST_F(ActionFilterTest, slots_expanded_or_not)
     const int num_entries = ANIM_animdata_filter(
         &ac, &anim_data, filter, ac.data, eAnimCont_Types(ac.datatype));
     EXPECT_EQ(4, num_entries);
-    EXPECT_EQ(4, BLI_listbase_count(&anim_data));
+    EXPECT_EQ(4, anim_data.count());
 
     /* First should be Cube slot. */
     ASSERT_GE(num_entries, 1) << "Missing 1st ale, stopping to prevent crash";
@@ -195,7 +195,7 @@ TEST_F(ActionFilterTest, slots_expanded_or_not)
     const int num_entries = ANIM_animdata_filter(
         &ac, &anim_data, filter, ac.data, eAnimCont_Types(ac.datatype));
     EXPECT_EQ(2, num_entries);
-    EXPECT_EQ(2, BLI_listbase_count(&anim_data));
+    EXPECT_EQ(2, anim_data.count());
 
     /* First should be Cube's selected FCurve. */
     const bAnimListElem *ale = static_cast<bAnimListElem *>(BLI_findlink(&anim_data, 0));
@@ -264,7 +264,7 @@ TEST_F(ActionFilterTest, layered_action_active_fcurves)
     const int num_entries = ANIM_animdata_filter(
         &ac, &anim_data, filter, ac.data, eAnimCont_Types(ac.datatype));
     EXPECT_EQ(1, num_entries);
-    EXPECT_EQ(1, BLI_listbase_count(&anim_data));
+    EXPECT_EQ(1, anim_data.count());
 
     const bAnimListElem *first_ale = static_cast<bAnimListElem *>(BLI_findlink(&anim_data, 0));
     EXPECT_EQ(ANIMTYPE_FCURVE, first_ale->type);

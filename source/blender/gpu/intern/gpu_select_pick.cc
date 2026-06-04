@@ -711,12 +711,12 @@ void gpu_select_pick_cache_begin()
 void gpu_select_pick_cache_end()
 {
 #ifdef DEBUG_PRINT
-  printf("%s: with %d buffers\n", __func__, BLI_listbase_count(&g_pick_state.cache.bufs));
+  printf("%s: with %d buffers\n", __func__, g_pick_state.cache.bufs.count());
 #endif
   g_pick_state.use_cache = false;
   g_pick_state.is_cached = false;
 
-  BLI_freelistN(&g_pick_state.cache.bufs);
+  g_pick_state.cache.bufs.free_no_destruct();
 }
 
 bool gpu_select_pick_is_cached()

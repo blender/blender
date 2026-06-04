@@ -302,7 +302,7 @@ bool BKE_where_on_path(const Object *ob,
    *
    *       If it's ever be uncommented watch out for BKE_curve_deform_coords()
    *       which used to temporary set CU_FOLLOW flag for the curve and no
-   *       longer does it (because of threading issues of such a thing.
+   *       longer does it (because of threading issues of such a thing).
    */
   // if (cu->flag & CU_FOLLOW) {
 

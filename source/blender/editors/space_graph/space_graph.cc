@@ -22,6 +22,8 @@
 #include "BLI_string_utf8.h"
 #include "BLI_utildefines.h"
 
+#include "BLF_api.hh"
+
 #include "BKE_context.hh"
 #include "BKE_fcurve.hh"
 #include "BKE_lib_query.hh"
@@ -343,6 +345,14 @@ static void graph_main_region_draw(const bContext *C, ARegion *region)
 
   /* reset view matrix */
   ui::view2d_view_restore(C);
+
+  if (sipo->local_view_bit) {
+    const float margin = 25 * UI_SCALE_FAC;
+    const float x = margin;
+    const float y = region->winy - UI_TIME_SCRUB_MARGIN_Y - margin;
+    const std::string name = "Local View";
+    BLF_draw_default(x, y, 0.0f, name.c_str(), name.length());
+  }
 
   /* time-scrubbing */
   int base = round_db_to_int(scene->frames_per_second());
@@ -687,6 +697,29 @@ static void graph_listener(const wmSpaceTypeListenerParams *params)
   }
 }
 
+/* Exit local view when no fcurve channel exists. */
+static void local_view_exit_if_unused(const bContext *C, SpaceGraph *sipo)
+{
+  if (!sipo->local_view_bit) {
+    return;
+  }
+
+  bAnimContext ac;
+  if (!ANIM_animdata_get_context(C, &ac)) {
+    return;
+  }
+
+  ListBaseT<bAnimListElem> anim_data = {nullptr, nullptr};
+  const eAnimFilter_Flags filter = (ANIMFILTER_DATA_VISIBLE | ANIMFILTER_LIST_VISIBLE |
+                                    ANIMFILTER_LIST_CHANNELS | ANIMFILTER_FCURVESONLY);
+  const size_t item_count = ANIM_animdata_filter(&ac, &anim_data, filter, ac.data, ac.datatype);
+  if (item_count == 0) {
+    sipo->local_view_bit = 0;
+  }
+
+  ANIM_animdata_freelist(&anim_data);
+}
+
 /* Update F-Curve colors */
 static void graph_refresh_fcurve_colors(const bContext *C)
 {
@@ -840,6 +873,8 @@ static void graph_refresh(const bContext *C, ScrArea *area)
 
   /* init/adjust F-Curve colors */
   graph_refresh_fcurve_colors(C);
+  /* Exit local view if no F-Curve channels there. */
+  local_view_exit_if_unused(C, sipo);
 }
 
 static void graph_id_remap(ScrArea * /*area*/,
@@ -925,7 +960,7 @@ static void graph_space_blend_write(BlendWriter *writer, SpaceLink *sl)
   ListBaseT<FCurve> tmpGhosts = sipo->runtime.ghost_curves;
 
   /* temporarily disable ghost curves when saving */
-  BLI_listbase_clear(&sipo->runtime.ghost_curves);
+  sipo->runtime.ghost_curves.clear_no_delete();
 
   writer->write_struct_cast<SpaceGraph>(sl);
   if (sipo->ads) {

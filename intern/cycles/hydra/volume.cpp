@@ -6,7 +6,10 @@
 #include "hydra/volume.h"
 #include "hydra/field.h"
 #include "hydra/geometry.inl"
+#include "hydra/util.h"
 #include "scene/volume.h"
+
+#include <pxr/imaging/hd/volumeFieldBindingSchema.h>
 
 HDCYCLES_NAMESPACE_OPEN_SCOPE
 
@@ -16,20 +19,7 @@ TF_DEFINE_PRIVATE_TOKENS(_tokens,
 );
 // clang-format on
 
-HdCyclesVolume::HdCyclesVolume(const SdfPath &rprimId
-#if PXR_VERSION < 2102
-                               ,
-                               const SdfPath &instancerId
-#endif
-                               )
-    : HdCyclesGeometry(rprimId
-#if PXR_VERSION < 2102
-                       ,
-                       instancerId
-#endif
-      )
-{
-}
+HdCyclesVolume::HdCyclesVolume(const SdfPath &rprimId) : HdCyclesGeometry(rprimId) {}
 
 HdCyclesVolume::~HdCyclesVolume() = default;
 
@@ -45,12 +35,21 @@ void HdCyclesVolume::Populate(HdSceneDelegate *sceneDelegate, HdDirtyBits dirtyB
   Scene *const scene = (Scene *)_geom->get_owner();
 
   if (dirtyBits & HdChangeTracker::DirtyVolumeField) {
-    for (const HdVolumeFieldDescriptor &field : sceneDelegate->GetVolumeFieldDescriptors(GetId()))
-    {
+    const HdSceneIndexPrim prim = GetPrim(sceneDelegate, GetId());
+    HdVolumeFieldBindingSchema bindings = HdVolumeFieldBindingSchema::GetFromParent(
+        prim.dataSource);
+
+    for (const TfToken &fieldName : bindings.GetVolumeFieldBindingNames()) {
+      auto pathDs = bindings.GetVolumeFieldBinding(fieldName);
+      if (!pathDs) {
+        continue;
+      }
+      const SdfPath fieldId = pathDs->GetTypedValue(0.0f);
+
       if (auto *const openvdbAsset = static_cast<HdCyclesField *>(
-              sceneDelegate->GetRenderIndex().GetBprim(_tokens->openvdbAsset, field.fieldId)))
+              sceneDelegate->GetRenderIndex().GetBprim(_tokens->openvdbAsset, fieldId)))
       {
-        const ustring name(field.fieldName.GetString());
+        const ustring name(fieldName.GetString());
 
         AttributeStandard std = ATTR_STD_NONE;
         if (name == Attribute::standard_name(ATTR_STD_VOLUME_DENSITY)) {

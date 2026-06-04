@@ -66,7 +66,7 @@ void resources_free()
 
 void style_init_default()
 {
-  BLI_freelistN(&U.uistyles);
+  U.uistyles.free_no_destruct();
   /* gets automatically re-allocated */
   style_init();
 }
@@ -380,7 +380,12 @@ const uchar *get_color_ptr(bTheme *btheme, int spacetype, int colorid)
           cp = ts->empty;
           break;
         case TH_SELECT:
-          cp = ts->select;
+          if (g_theme_state.spacetype == SPACE_IMAGE) {
+            cp = btheme->space_view3d.select;
+          }
+          else {
+            cp = ts->select;
+          }
           break;
         case TH_ACTIVE:
           cp = ts->active;
@@ -392,7 +397,12 @@ const uchar *get_color_ptr(bTheme *btheme, int spacetype, int colorid)
           cp = btheme->common.anim.channel_group_active;
           break;
         case TH_TRANSFORM:
-          cp = ts->transform;
+          if (g_theme_state.spacetype == SPACE_IMAGE) {
+            cp = btheme->space_view3d.transform;
+          }
+          else {
+            cp = ts->transform;
+          }
           break;
         case TH_VERTEX:
           cp = ts->vertex;
@@ -1135,7 +1145,7 @@ void init_default()
     BLI_addhead(&U.themes, btheme);
   }
 
-  /* Must be first, see `U.themes` doc-string. */
+  /* Must be first, see `U.themes` docstring. */
   BLI_listbase_rotate_first(&U.themes, btheme);
 
   theme_set(0, 0); /* make sure the global used in this file is set */

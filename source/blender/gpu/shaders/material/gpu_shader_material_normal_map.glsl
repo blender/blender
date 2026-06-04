@@ -2,7 +2,6 @@
  *
  * SPDX-License-Identifier: GPL-2.0-or-later */
 
-#ifdef OBINFO_LIB
 [[node]]
 void node_normal_map(float4 tangent, float strength, float3 texnormal, float3 &outnormal)
 {
@@ -12,7 +11,7 @@ void node_normal_map(float4 tangent, float strength, float3 texnormal, float3 &o
   }
   tangent *= (FrontFacing ? 1.0f : -1.0f);
   float3 B = tangent.w * cross(g_data.Ni, tangent.xyz);
-  B *= (drw_object_infos().flag & OBJECT_NEGATIVE_SCALE) != 0 ? -1.0f : 1.0f;
+  B *= (object_infos_get().flag & OBJECT_NEGATIVE_SCALE) != 0 ? -1.0f : 1.0f;
 
   /* Apply strength here instead of in node_normal_map_mix for tangent space. */
   texnormal.xy *= strength;
@@ -21,7 +20,6 @@ void node_normal_map(float4 tangent, float strength, float3 texnormal, float3 &o
   outnormal = texnormal.x * tangent.xyz + texnormal.y * B + texnormal.z * g_data.Ni;
   outnormal = normalize(outnormal);
 }
-#endif
 
 [[node]]
 void color_to_normal_new_shading(float3 color, float3 &normal)

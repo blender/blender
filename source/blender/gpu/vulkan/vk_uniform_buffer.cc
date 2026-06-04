@@ -43,8 +43,9 @@ void VKUniformBuffer::allocate()
                      VK_BUFFER_USAGE_TRANSFER_DST_BIT,
                  VMA_MEMORY_USAGE_AUTO_PREFER_DEVICE,
                  VMA_ALLOCATION_CREATE_HOST_ACCESS_SEQUENTIAL_WRITE_BIT,
-                 0.8f);
-  debug::object_label(buffer_.vk_handle(), name_);
+                 0.8f,
+                 false,
+                 name_);
 }
 
 void VKUniformBuffer::clear_to_zero()

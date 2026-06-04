@@ -93,7 +93,7 @@ ListBaseT<TreeElement> TreeDisplayOverrideLibraryProperties::add_library_content
         TreeElement *override_tree_element = add_element(
             lb_to_expand, id, nullptr, id_base_te, TSE_LIBRARY_OVERRIDE_BASE, 0);
 
-        if (BLI_listbase_is_empty(&override_tree_element->subtree)) {
+        if (override_tree_element->subtree.is_empty()) {
           outliner_free_tree_element(override_tree_element, lb_to_expand);
         }
       }
@@ -102,7 +102,7 @@ ListBaseT<TreeElement> TreeDisplayOverrideLibraryProperties::add_library_content
 
   /* Remove ID base elements that turn out to be empty. */
   for (TreeElement &te : tree.items_mutable()) {
-    if (BLI_listbase_is_empty(&te.subtree)) {
+    if (te.subtree.is_empty()) {
       outliner_free_tree_element(&te, &tree);
     }
   }

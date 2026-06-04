@@ -18,6 +18,9 @@
 
 namespace blender::tests {
 
+static_assert(get_default_hash(0.0f) == get_default_hash(-0.0f));
+static_assert(get_default_hash(0.0) == get_default_hash(-0.0));
+
 TEST(map, DefaultConstructor)
 {
   Map<int, float> map;

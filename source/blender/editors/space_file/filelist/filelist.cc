@@ -74,33 +74,47 @@ namespace blender {
 
 static ImBuf *gSpecialFileImages[int(SpecialFileImages::_Max)];
 
-static void remote_asset_library_refresh_online_assets_status(const FileList *filelist)
+static void remote_asset_library_refresh_online_assets_status(
+    const FileList *filelist, const StringRef downloaded_file_abspath)
 {
   for (FileListInternEntry &entry : filelist->filelist_intern.entries) {
-    if ((entry.typeflag & FILE_TYPE_ASSET_ONLINE) == 0) {
-      continue;
-    }
-
-    /* #AssetRepresentation.full_library_path() will only return a non-empty string if the asset's
-     * path points into some .blend on disk. */
     std::shared_ptr<asset_system::AssetRepresentation> asset = entry.asset.lock();
-    std::string filepath = asset->full_library_path();
-    if (filepath.empty()) {
+    if (!asset) {
       continue;
     }
-    BLI_assert(BLI_is_file(filepath.c_str()));
 
-    entry.typeflag &= ~FILE_TYPE_ASSET_ONLINE;
-    asset->online_asset_mark_downloaded();
+    if (entry.typeflag & FILE_TYPE_ASSET_ONLINE) {
+      /* #AssetRepresentation.full_library_path() will only return a non-empty string if the
+       * asset's path points into some .blend on disk. */
+      std::string filepath = asset->full_library_path();
+      if (filepath.empty()) {
+        continue;
+      }
+      BLI_assert(BLI_is_file(filepath.c_str()));
 
-    if (FileDirEntry **cached_entry = filelist->filelist_cache->uids.lookup_ptr(entry.uid)) {
-      (**cached_entry).typeflag &= ~FILE_TYPE_ASSET_ONLINE;
+      entry.typeflag &= ~FILE_TYPE_ASSET_ONLINE;
+      asset->online_asset_mark_downloaded();
+
+      if (FileDirEntry **cached_entry = filelist->filelist_cache->uids.lookup_ptr(entry.uid)) {
+        (**cached_entry).typeflag &= ~FILE_TYPE_ASSET_ONLINE;
+      }
+    }
+    else if (asset->remote_file_status() == asset_system::RemoteAssetFileStatus::NO_MATCH) {
+      /* For already-downloaded assets that didn't match the remote listing, clear the mismatch
+       * status when their specific file has been re-downloaded. */
+      std::string filepath = asset->full_library_path();
+      if (filepath != downloaded_file_abspath) {
+        continue;
+      }
+      asset->online_asset_mark_downloaded();
     }
   }
 }
 
 void filelist_remote_asset_library_refresh_online_assets_status(
-    const FileList *filelist, const blender::StringRef remote_url)
+    const FileList *filelist,
+    const blender::StringRef remote_url,
+    const blender::StringRef absolute_downloaded_file)
 {
   if (!filelist->asset_library) {
     return;
@@ -110,7 +124,7 @@ void filelist_remote_asset_library_refresh_online_assets_status(
   }
 
   if (asset_system::contains_assets_from_remote_url(*filelist->asset_library, remote_url)) {
-    remote_asset_library_refresh_online_assets_status(filelist);
+    remote_asset_library_refresh_online_assets_status(filelist, absolute_downloaded_file);
   }
 }
 
@@ -469,9 +483,9 @@ static void filelist_direntryarr_free(FileDirEntryArr *array)
     entry_next = entry->next;
     filelist_entry_free(entry);
   }
-  BLI_listbase_clear(&array->entries);
+  array->entries.clear_no_delete();
 #else
-  BLI_assert(BLI_listbase_is_empty(&array->entries));
+  BLI_assert(array->entries.is_empty());
 #endif
   array->entries_num = FILEDIR_NBR_ENTRIES_UNSET;
   array->entries_filtered_num = FILEDIR_NBR_ENTRIES_UNSET;
@@ -502,7 +516,7 @@ static void filelist_intern_free(FileList *filelist)
   for (FileListInternEntry &entry : filelist_intern->entries.items_mutable()) {
     filelist_intern_entry_free(filelist, &entry);
   }
-  BLI_listbase_clear(&filelist_intern->entries);
+  filelist_intern->entries.clear_no_delete();
 
   MEM_SAFE_DELETE(filelist_intern->filtered);
 }
@@ -691,7 +705,7 @@ static bool filelist_file_preview_load_poll(const FileDirEntry *entry)
 void filelist_online_asset_preview_request(const bContext *C, FileDirEntry *entry)
 {
   BLI_assert(entry->asset);
-  BLI_assert(entry->asset->is_online());
+  BLI_assert(entry->asset->is_online_only());
 
   if (entry->preview_icon_id) {
     return;
@@ -702,7 +716,7 @@ void filelist_online_asset_preview_request(const bContext *C, FileDirEntry *entr
   }
 
   /* Request online preview if needed. */
-  if (entry->asset->is_online()) {
+  if (entry->asset->is_online_only()) {
     entry->asset->ensure_previewable(*C, CTX_wm_reports(C));
     entry->preview_icon_id = entry->asset->get_preview()->runtime->icon_id;
   }
@@ -831,7 +845,7 @@ void filelist_cache_clear(FileListEntryCache *cache, size_t new_size)
   for (FileDirEntry &entry : cache->cached_entries.items_mutable()) {
     filelist_entry_free(&entry);
   }
-  BLI_listbase_clear(&cache->cached_entries);
+  cache->cached_entries.clear_no_delete();
 }
 
 FileList *filelist_new(short type, const bool is_from_global_asset_list)

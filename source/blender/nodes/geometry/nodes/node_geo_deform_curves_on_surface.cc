@@ -36,7 +36,7 @@ static void node_declare(NodeDeclarationBuilder &b)
   b.add_input<decl::Geometry>("Curves"_ustr)
       .supported_type(GeometryComponent::Type::Curve)
       .description("Curves to deform");
-  b.add_output<decl::Geometry>("Curves"_ustr).propagate_all().align_with_previous();
+  b.add_output<decl::Geometry>("Curves"_ustr).propagate_all_geometry().align_with_previous();
 }
 
 static void deform_curves(const CurvesGeometry &curves,

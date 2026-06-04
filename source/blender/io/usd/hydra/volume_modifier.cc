@@ -4,137 +4,99 @@
 
 #include "volume_modifier.hh"
 
-#include <pxr/base/tf/token.h>
-#include <pxr/usdImaging/usdVolImaging/tokens.h>
-
-#include "DNA_fluid_types.h"
-#include "DNA_modifier_types.h"
-#include "DNA_scene_types.h"
-
 #include "BLI_path_utils.hh"
 #include "BLI_string_utf8.h"
 
 #include "BKE_mesh.h"
 #include "BKE_modifier.hh"
 
-#include "hydra_scene_delegate.hh"
+#include "DNA_fluid_types.h"
+#include "DNA_mesh_types.h"
+#include "DNA_modifier_types.h"
+#include "DNA_object_types.h"
+
+#include "util.hh"
 
 namespace blender::io::hydra {
 
-VolumeModifierData::VolumeModifierData(HydraSceneDelegate *scene_delegate,
-                                       const Object *object,
-                                       pxr::SdfPath const &prim_id)
-    : VolumeData(scene_delegate, object, prim_id)
-{
-}
-
-bool VolumeModifierData::is_volume_modifier(const Object *object)
+const FluidModifierData *fluid_gas_domain_modifier(const Object *object,
+                                                   const Depsgraph *depsgraph)
 {
   if (object->type != OB_MESH) {
-    return false;
+    return nullptr;
   }
-
-  const FluidModifierData *modifier = reinterpret_cast<const FluidModifierData *>(
-      BKE_modifiers_findby_type(object, eModifierType_Fluid));
-  return modifier && modifier->type & MOD_FLUID_TYPE_DOMAIN &&
-         modifier->domain->type == FLUID_DOMAIN_TYPE_GAS;
+  const ModifierData *md = BKE_modifiers_findby_type(object, eModifierType_Fluid);
+  if (!md) {
+    return nullptr;
+  }
+  const FluidModifierData *fmd = reinterpret_cast<const FluidModifierData *>(
+      BKE_modifier_get_evaluated(const_cast<Depsgraph *>(depsgraph),
+                                 const_cast<Object *>(object),
+                                 const_cast<ModifierData *>(md)));
+  if (!fmd || !(fmd->type & MOD_FLUID_TYPE_DOMAIN) || fmd->domain->type != FLUID_DOMAIN_TYPE_GAS) {
+    return nullptr;
+  }
+  return fmd;
 }
 
-void VolumeModifierData::init()
+/* On-disk VDB cache file path for the given frame. */
+static std::string fluid_cache_file_path(const std::string &directory, const int frame)
 {
-  field_descriptors_.clear();
+  char file_path[FILE_MAX];
+  char file_name[32];
+  SNPRINTF_UTF8(file_name, "%s_####%s", FLUID_NAME_DATA, FLUID_DOMAIN_EXTENSION_OPENVDB);
+  BLI_path_frame(file_name, sizeof(file_name), frame, 0);
+  BLI_path_join(file_path, sizeof(file_path), directory.c_str(), FLUID_DOMAIN_DIR_DATA, file_name);
+  return file_path;
+}
 
-  const Object *object = id_cast<const Object *>(this->id);
-  const ModifierData *md = BKE_modifiers_findby_type(object, eModifierType_Fluid);
-  modifier_ = reinterpret_cast<const FluidModifierData *>(BKE_modifier_get_evaluated(
-      scene_delegate_->depsgraph, const_cast<Object *>(object), const_cast<ModifierData *>(md)));
+static pxr::GfMatrix4d volume_modifier_geometry_transform(const Object *object,
+                                                          const FluidModifierData *fmd)
+{
+  pxr::GfMatrix4d transform = pxr::GfMatrix4d().SetScale(
+      pxr::GfVec3d(fmd->domain->scale / fmd->domain->global_size[0],
+                   fmd->domain->scale / fmd->domain->global_size[1],
+                   fmd->domain->scale / fmd->domain->global_size[2]));
+  transform *= pxr::GfMatrix4d().SetTranslate(pxr::GfVec3d(-1, -1, -1));
 
-  if ((modifier_->domain->cache_data_format & FLUID_DOMAIN_FILE_OPENVDB) == 0) {
-    CLOG_WARN(LOG_HYDRA_SCENE,
-              "Volume %s is't exported: only OpenVDB file format supported",
-              prim_id.GetText());
-    return;
+  float texspace_loc[3] = {0.0f, 0.0f, 0.0f};
+  float texspace_scale[3] = {1.0f, 1.0f, 1.0f};
+  BKE_mesh_texspace_get(id_cast<Mesh *>(object->data), texspace_loc, texspace_scale);
+  transform *= pxr::GfMatrix4d(1.0f).SetScale(pxr::GfVec3d(texspace_scale)) *
+               pxr::GfMatrix4d(1.0f).SetTranslate(pxr::GfVec3d(texspace_loc));
+
+  return transform;
+}
+
+std::string build_volume_fields_from_modifier(const Object *object,
+                                              const FluidModifierData *fmd,
+                                              const int frame,
+                                              const pxr::SdfPath &volume_path,
+                                              pxr::GfMatrix4d *r_geometry_xform,
+                                              Vector<VolumeFieldDescriptor> *r_fields)
+{
+  *r_geometry_xform = volume_modifier_geometry_transform(object, fmd);
+
+  /* Fields are only published for OpenVDB-format fluid caches. Other
+   * formats still emit the volume Rprim (suppressing the carrier mesh)
+   * with no bindings. */
+  if ((fmd->domain->cache_data_format & FLUID_DOMAIN_FILE_OPENVDB) == 0) {
+    return {};
   }
-
-  filepath_ = get_cached_file_path(modifier_->domain->cache_directory,
-                                   scene_delegate_->scene->r.cfra);
-  ID_LOG("%s", filepath_.c_str());
 
   static const pxr::TfToken grid_tokens[] = {pxr::TfToken("density", pxr::TfToken::Immortal),
                                              pxr::TfToken("flame", pxr::TfToken::Immortal),
                                              pxr::TfToken("shadow", pxr::TfToken::Immortal),
                                              pxr::TfToken("temperature", pxr::TfToken::Immortal),
                                              pxr::TfToken("velocity", pxr::TfToken::Immortal)};
-
-  for (const auto &grid_name : grid_tokens) {
-    field_descriptors_.emplace_back(grid_name,
-                                    pxr::UsdVolImagingTokens->openvdbAsset,
-                                    prim_id.AppendElementString("VF_" + grid_name.GetString()));
+  for (const pxr::TfToken &grid_name : grid_tokens) {
+    VolumeFieldDescriptor f;
+    f.name = grid_name;
+    f.field_path = volume_path.AppendElementString("VF_" + grid_name.GetString());
+    r_fields->append(f);
   }
 
-  write_transform();
-  write_materials();
-}
-
-void VolumeModifierData::update()
-{
-  Object *object = id_cast<Object *>(const_cast<ID *>(id));
-  if ((id->recalc & ID_RECALC_GEOMETRY) || (object->data->recalc & ID_RECALC_GEOMETRY)) {
-    remove();
-    init();
-    insert();
-    return;
-  }
-  pxr::HdDirtyBits bits = pxr::HdChangeTracker::Clean;
-  if (id->recalc & ID_RECALC_SHADING) {
-    write_materials();
-    bits |= pxr::HdChangeTracker::DirtyMaterialId | pxr::HdChangeTracker::DirtyDoubleSided;
-  }
-  if (id->recalc & ID_RECALC_TRANSFORM) {
-    write_transform();
-    bits |= pxr::HdChangeTracker::DirtyTransform;
-  }
-
-  if (bits == pxr::HdChangeTracker::Clean) {
-    return;
-  }
-
-  scene_delegate_->GetRenderIndex().GetChangeTracker().MarkRprimDirty(prim_id, bits);
-  ID_LOG("");
-}
-
-void VolumeModifierData::write_transform()
-{
-  Object *object = id_cast<Object *>(const_cast<ID *>(this->id));
-
-  /* set base scaling */
-  transform = pxr::GfMatrix4d().SetScale(
-      pxr::GfVec3d(modifier_->domain->scale / modifier_->domain->global_size[0],
-                   modifier_->domain->scale / modifier_->domain->global_size[1],
-                   modifier_->domain->scale / modifier_->domain->global_size[2]));
-  /* positioning to center */
-  transform *= pxr::GfMatrix4d().SetTranslate(pxr::GfVec3d(-1, -1, -1));
-
-  /* including texspace transform */
-  float texspace_loc[3] = {0.0f, 0.0f, 0.0f}, texspace_scale[3] = {1.0f, 1.0f, 1.0f};
-  BKE_mesh_texspace_get(id_cast<Mesh *>(object->data), texspace_loc, texspace_scale);
-  transform *= pxr::GfMatrix4d(1.0f).SetScale(pxr::GfVec3d(texspace_scale)) *
-               pxr::GfMatrix4d(1.0f).SetTranslate(pxr::GfVec3d(texspace_loc));
-
-  /* applying object transform */
-  transform *= gf_matrix_from_transform(object->object_to_world().ptr());
-}
-
-std::string VolumeModifierData::get_cached_file_path(const std::string &directory, int frame)
-{
-  char file_path[FILE_MAX];
-  char file_name[32];
-  /* While a filename need not be UTF8, at this point the constructed name should be UTF8. */
-  SNPRINTF_UTF8(file_name, "%s_####%s", FLUID_NAME_DATA, FLUID_DOMAIN_EXTENSION_OPENVDB);
-  BLI_path_frame(file_name, sizeof(file_name), frame, 0);
-  BLI_path_join(file_path, sizeof(file_path), directory.c_str(), FLUID_DOMAIN_DIR_DATA, file_name);
-
-  return file_path;
+  return fluid_cache_file_path(fmd->domain->cache_directory, frame);
 }
 
 }  // namespace blender::io::hydra

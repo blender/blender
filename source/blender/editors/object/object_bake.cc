@@ -381,7 +381,7 @@ static void multiresbake_startjob(void *bkv, wmJobWorkerStatus *worker_status)
   MultiresBakeJob *bkj = static_cast<MultiresBakeJob *>(bkv);
   int baked_objects = 0, tot_obj;
 
-  tot_obj = BLI_listbase_count(&bkj->data);
+  tot_obj = bkj->data.count();
 
   if (bkj->bake_clear) { /* clear images */
     for (MultiresBakerJobData &data : bkj->data) {

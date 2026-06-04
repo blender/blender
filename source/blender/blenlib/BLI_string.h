@@ -264,7 +264,7 @@ size_t BLI_str_unescape_ex(char *__restrict dst,
                            size_t dst_maxncpy,
                            bool *r_is_complete) ATTR_NONNULL(1, 2, 5);
 /**
- * See #BLI_str_unescape_ex doc-string.
+ * See #BLI_str_unescape_ex docstring.
  *
  * This function makes the assumption that `dst` always has
  * at least `src_maxncpy` bytes available.

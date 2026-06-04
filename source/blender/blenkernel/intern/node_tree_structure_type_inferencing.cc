@@ -22,7 +22,7 @@
 namespace blender::bke::node_structure_type_inferencing {
 
 using nodes::StructureType;
-namespace aal = nodes::anonymous_attribute_lifetime;
+namespace rl = nodes::reference_lifetimes;
 
 static nodes::StructureTypeInterface calc_node_interface(const bNode &node)
 {

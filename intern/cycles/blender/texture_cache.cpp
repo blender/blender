@@ -12,18 +12,18 @@
 
 namespace blender {
 
-bool CCL_has_texture_cache(const Image *image,
-                           const char *filepath,
-                           const char *texture_cache_directory)
+bool CCL_resolve_texture_cache(const Image *image,
+                               const char *filepath,
+                               const char *texture_cache_directory,
+                               std::string &r_tx_filepath)
 {
-  std::string tx_filepath;
   ccl::ImageMetaData tx_metadata;
   return ccl::resolve_tx(filepath,
                          texture_cache_directory,
                          ccl::ustring(image->colorspace_settings.name),
                          ccl::ImageAlphaType(image->alpha_mode),
                          ccl::IMAGE_FORMAT_PLAIN,
-                         tx_filepath,
+                         r_tx_filepath,
                          tx_metadata);
 }
 

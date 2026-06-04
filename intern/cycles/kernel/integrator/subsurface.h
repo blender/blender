@@ -97,7 +97,9 @@ ccl_device int subsurface_bounce(KernelGlobals kg,
   const Spectrum weight = surface_shader_bssrdf_sample_weight(sd, sc);
   INTEGRATOR_STATE_WRITE(state, path, throughput) *= weight;
 
-  uint32_t path_flag = (INTEGRATOR_STATE(state, path, flag) & ~PATH_RAY_CAMERA);
+  const PathRayVisibility path_visibility = (INTEGRATOR_STATE(state, path, visibility) &
+                                             ~PATH_RAY_VISIBILITY_CAMERA);
+  uint32_t path_flag = INTEGRATOR_STATE(state, path, flag);
   if (sc->type == CLOSURE_BSSRDF_BURLEY_ID) {
     /* We should never have two consecutive BSSRDF bounces, the second one should
      * be converted to a diffuse BSDF to avoid this. */
@@ -125,6 +127,7 @@ ccl_device int subsurface_bounce(KernelGlobals kg,
     path_flag |= PATH_RAY_SUBSURFACE_BACKFACING;
   }
 
+  INTEGRATOR_STATE_WRITE(state, path, visibility) = path_visibility;
   INTEGRATOR_STATE_WRITE(state, path, flag) = path_flag;
 
   if (kernel_data.kernel_features & KERNEL_FEATURE_LIGHT_PASSES) {
@@ -219,11 +222,9 @@ ccl_device_inline bool subsurface_scatter(KernelGlobals kg, IntegratorState stat
   const bool use_raytrace_kernel = (shader_flags & SD_HAS_RAYTRACE);
 
   if (use_caustics) {
-    integrator_path_next_sorted(kg,
-                                state,
-                                DEVICE_KERNEL_INTEGRATOR_INTERSECT_SUBSURFACE,
-                                DEVICE_KERNEL_INTEGRATOR_SHADE_SURFACE_MNEE,
-                                shader);
+    integrator_path_next(state,
+                         DEVICE_KERNEL_INTEGRATOR_INTERSECT_SUBSURFACE,
+                         DEVICE_KERNEL_INTEGRATOR_INTERSECT_MNEE);
   }
   else if (use_raytrace_kernel) {
     integrator_path_next_sorted(kg,

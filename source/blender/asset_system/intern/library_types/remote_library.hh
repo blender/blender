@@ -27,6 +27,8 @@ class RemoteAssetLibrary : public AssetLibrary {
                      StringRef remote_url,
                      StringRef name,
                      StringRef root_path);
+  void force_remote_listing_download() const override;
+
   std::optional<eAssetImportMethod> import_method() const override;
   std::optional<StringRefNull> remote_url() const override;
   void refresh_catalogs() override;

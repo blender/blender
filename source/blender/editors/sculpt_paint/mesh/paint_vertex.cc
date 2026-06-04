@@ -707,7 +707,7 @@ static Color vpaint_blend_stroke(const VPaint &vp,
     }
 
     /* Mix with mesh color under the stroke (a bit easier than trying to premultiply
-     * byte Color types */
+     * byte Color types) */
     if (isZero(stroke_buffer[index])) {
       stroke_buffer[index] = vertex_colors[index];
       stroke_buffer[index].a = 0;

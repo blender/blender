@@ -20,7 +20,7 @@ FRAGMENT_SHADER_CREATE_INFO(eevee_nodetree)
 FRAGMENT_SHADER_CREATE_INFO(eevee_geom_iface_info)
 
 #include "eevee_nodetree_frag_lib.glsl"
-#include "eevee_sampling_lib.glsl"
+#include "eevee_sampling_lib.bsl.hh"
 #include "eevee_shadow_shared.hh"
 #include "eevee_shadow_tilemap_lib.bsl.hh"
 #include "eevee_surf_common.bsl.hh"
@@ -33,9 +33,6 @@ float4 closure_to_rgba_shadow(Closure /*cl*/)
 namespace eevee {
 
 struct SurfShadow {
-  [[legacy_info]] ShaderCreateInfo eevee_global_ubo;
-  [[legacy_info]] ShaderCreateInfo eevee_utility_texture;
-  [[legacy_info]] ShaderCreateInfo eevee_sampling_data;
   [[legacy_info]] ShaderCreateInfo eevee_geom_iface_info;
 
   [[storage(SHADOW_RENDER_MAP_BUF_SLOT,
@@ -47,6 +44,10 @@ struct SurfShadow {
 [[fragment]] [[texture_atomic]]
 void surf_shadow([[resource_table]] PipelineConstants &pipe,
                  [[resource_table]] SurfShadow &srt,
+                 [[resource_table]] const Uniform &uni,
+                 [[resource_table]] const draw::View &views,
+                 [[resource_table]] const Sampling &sampling,
+                 [[resource_table]] const UtilityTexture & /*util_tx*/,
                  [[front_facing]] const bool front_face,
                  [[frag_coord]] const float4 frag_co)
 {
@@ -62,11 +63,12 @@ void surf_shadow([[resource_table]] PipelineConstants &pipe,
   }
 
   if (pipe.use_transparency) [[static_branch]] {
-    init_globals(front_face);
+    const ViewMatrices view = views.get(shadow_iface.shadow_view_id);
+    init_globals(uni, view, front_face);
 
     nodetree_surface(0.0f);
 
-    float noise_offset = sampling_rng_1D_get(SAMPLING_TRANSPARENCY);
+    float noise_offset = sampling.rng_1D_get(SAMPLING_TRANSPARENCY);
     float random_threshold = pcg4d(float4(g_data.P, noise_offset)).x;
 
     float transparency = average(g_transmittance);
@@ -109,7 +111,7 @@ void surf_shadow([[resource_table]] PipelineConstants &pipe,
    * This is equivalent of calling `next_after`, but without the safety. */
   u_depth += 2;
 
-  if (uniform_buf.shadow.use_debug_cost) {
+  if (uni.uniform_buf.shadow.use_debug_cost) {
     imageAtomicAdd(srt.shadow_atlas_img, out_texel, 1u);
   }
   else {

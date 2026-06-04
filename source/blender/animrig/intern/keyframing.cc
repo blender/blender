@@ -74,7 +74,8 @@ void generate_single_keying_result_report(const SingleKeyingResult result, Repor
           reports, RPT_ERROR, "Inserting key has been skipped because the ID cannot be edited.");
       break;
     case SingleKeyingResult::ID_NOT_ANIMATABLE:
-      BKE_reportf(reports, RPT_ERROR, "Inserting key has been skipped the ID cannot be keyed.");
+      BKE_reportf(
+          reports, RPT_ERROR, "Inserting key has been skipped because the ID cannot be keyed.");
       break;
     case SingleKeyingResult::NO_VALID_LAYER:
       BKE_reportf(reports, RPT_ERROR, "No valid layer. Cannot insert key.");
@@ -863,7 +864,7 @@ CombinedKeyingResult insert_keyframes(Main *bmain,
     CombinedKeyingResult result;
 
     const std::optional<StringRefNull> this_rna_path_channel_group =
-        channel_group.has_value() ? *channel_group :
+        channel_group.has_value() ? channel_group :
                                     default_channel_group_for_path(&ptr, *rna_path_id_to_prop);
 
     result = insert_key_layered_action(bmain,

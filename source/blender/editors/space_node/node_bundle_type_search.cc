@@ -10,6 +10,7 @@
 #include "BLI_string_utf8.h"
 
 #include "ED_screen.hh"
+#include "ED_undo.hh"
 
 #include "NOD_bundle_type.hh"
 #include "NOD_geometry_nodes_bundle.hh"
@@ -114,11 +115,13 @@ static void bundle_type_string_search_exec(bContext *C, void *data_v, void * /*i
   if (item.socket_type != SOCK_STRING) {
     return;
   }
-  if (item.name != nodes::Bundle::type_item_name) {
+  if (item.name != nodes::Bundle::type_item_name.ustr()) {
     return;
   }
   nodes::sync_node(*C, *node, nullptr);
   BKE_main_ensure_invariants(*CTX_data_main(C));
+
+  ED_undo_push(C, "Assign Bundle Type");
 }
 
 void node_bundle_type_add_string_search_button(const bContext & /*C*/,

@@ -22,6 +22,7 @@
 
 #include "BKE_constraint.h"
 #include "BKE_context.hh"
+#include "BKE_layer.hh"
 
 #include "BLT_translation.hh"
 
@@ -39,7 +40,8 @@ namespace blender::ed::transform {
 eTfmMode transform_mode_really_used(bContext *C, eTfmMode mode)
 {
   if (mode == TFM_BONESIZE) {
-    Object *ob = CTX_data_active_object(C);
+    const ViewLayer *view_layer = CTX_data_view_layer(C);
+    const Object *ob = BKE_view_layer_active_object_get(view_layer);
     BLI_assert(ob);
     if (ob->type != OB_ARMATURE) {
       return TFM_RESIZE;
@@ -261,7 +263,7 @@ void constraintTransLim(const TransInfo *t, const TransDataContainer *tc, TransD
     float ctime = float(t->scene->r.cfra);
 
     /* Make a temporary bConstraintOb for using these limit constraints
-     * - They only care that cob->matrix is correctly set ;-).
+     * - They only care that cob->matrix is correctly set.
      * - Current space should be local.
      */
     unit_m4(cob.matrix);
@@ -338,7 +340,7 @@ void constraintTransLim(const TransInfo *t, const TransDataContainer *tc, TransD
         }
 
         /* Free targets list. */
-        BLI_freelistN(&targets);
+        targets.free_no_destruct();
       }
     }
 
@@ -350,8 +352,8 @@ void constraintTransLim(const TransInfo *t, const TransDataContainer *tc, TransD
 static void constraintob_from_transdata(bConstraintOb *cob, TransDataExtension *td_ext)
 {
   /* Make a temporary bConstraintOb for use by limit constraints
-   * - they only care that cob->matrix is correctly set ;-)
-   * - current space should be local
+   * - They only care that cob->matrix is correctly set.
+   * - Current space should be local
    */
   memset(cob, 0, sizeof(bConstraintOb));
   if (!td_ext) {

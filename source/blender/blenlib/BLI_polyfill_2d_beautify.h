@@ -34,7 +34,7 @@ void BLI_polyfill_beautify(const float (*coords)[2],
  * check if the edge running from (1 - 3) gives better results.
  *
  * \param lock_degenerate: Use to avoid rotating out of a degenerate state:
- * - When true, an existing zero area face on either side of the (2 - 4
+ * - When true, an existing zero area face on either side of the (2 - 4)
  *   split will return a positive value.
  * - When false, the check must be non-biased towards either split direction.
  * \param r_area: Return the area of the quad,

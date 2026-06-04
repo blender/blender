@@ -93,14 +93,14 @@ struct AnimKeylist {
 
   AnimKeylist()
   {
-    BLI_listbase_clear(&this->key_columns);
-    BLI_listbase_clear(&this->runtime.list_wrapper);
+    this->key_columns.clear_no_delete();
+    this->runtime.list_wrapper.clear_no_delete();
   }
 
   ~AnimKeylist()
   {
-    BLI_freelistN(&this->key_columns);
-    BLI_listbase_clear(&this->runtime.list_wrapper);
+    this->key_columns.free_no_destruct();
+    this->runtime.list_wrapper.clear_no_delete();
   }
 
   MEM_CXX_CLASS_ALLOC_FUNCS("editors:AnimKeylist")
@@ -140,7 +140,7 @@ static void keylist_runtime_update_key_column_next_prev(AnimKeylist *keylist)
 static void keylist_runtime_init_listbase(AnimKeylist *keylist)
 {
   if (ED_keylist_is_empty(keylist)) {
-    BLI_listbase_clear(&keylist->runtime.list_wrapper);
+    keylist->runtime.list_wrapper.clear_no_delete();
     return;
   }
 

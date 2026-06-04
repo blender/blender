@@ -258,11 +258,11 @@ static void undosys_step_free_and_unlink(UndoStack *ustack, UndoStep *us)
 static void undosys_stack_validate(UndoStack *ustack, bool expect_non_empty)
 {
   if (ustack->step_active != nullptr) {
-    BLI_assert(!BLI_listbase_is_empty(&ustack->steps));
+    BLI_assert(!ustack->steps.is_empty());
     BLI_assert(BLI_findindex(&ustack->steps, ustack->step_active) != -1);
   }
   if (expect_non_empty) {
-    BLI_assert(!BLI_listbase_is_empty(&ustack->steps));
+    BLI_assert(!ustack->steps.is_empty());
   }
 }
 #else
@@ -284,7 +284,7 @@ void BKE_undosys_stack_destroy(UndoStack *ustack)
 void BKE_undosys_stack_clear(UndoStack *ustack)
 {
   UNDO_NESTED_ASSERT(false);
-  CLOG_DEBUG(&LOG, "steps=%d", BLI_listbase_count(&ustack->steps));
+  CLOG_DEBUG(&LOG, "steps=%d", ustack->steps.count());
   for (UndoStep *us = static_cast<UndoStep *>(ustack->steps.last), *us_prev; us; us = us_prev) {
     us_prev = us->prev;
     undosys_step_free_and_unlink(ustack, us);
@@ -293,7 +293,7 @@ void BKE_undosys_stack_clear(UndoStack *ustack)
     undosys_step_free_and_unlink(ustack, us);
     ustack->step_init = nullptr;
   }
-  BLI_listbase_clear(&ustack->steps);
+  ustack->steps.clear_no_delete();
   ustack->step_active = nullptr;
 }
 
@@ -385,7 +385,7 @@ bool BKE_undosys_stack_has_undo(const UndoStack *ustack, const char *name)
     return us && us->prev;
   }
 
-  return !BLI_listbase_is_empty(&ustack->steps);
+  return !ustack->steps.is_empty();
 }
 
 bool BKE_undosys_stack_has_redo(const UndoStack *ustack)
@@ -1002,7 +1002,7 @@ void BKE_undosys_print(UndoStack *ustack)
     return;
   }
   printf("Undo %d Steps (*: active, #=applied, M=memfile-active, S=skip)\n",
-         BLI_listbase_count(&ustack->steps));
+         ustack->steps.count());
   int index = 0;
   for (UndoStep &us : ustack->steps) {
     printf("[%c%c%c%c] %3d {%p} type='%s', name='%s'\n",

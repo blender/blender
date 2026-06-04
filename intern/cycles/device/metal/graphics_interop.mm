@@ -15,11 +15,15 @@ MetalDeviceGraphicsInterop::MetalDeviceGraphicsInterop(MetalDeviceQueue *queue)
 {
 }
 
-MetalDeviceGraphicsInterop::~MetalDeviceGraphicsInterop() = default;
+MetalDeviceGraphicsInterop::~MetalDeviceGraphicsInterop()
+{
+  device_->remove_from_residency_set(mem_.mtlBuffer);
+}
 
 void MetalDeviceGraphicsInterop::set_buffer(GraphicsInteropBuffer &interop_buffer)
 {
   if (interop_buffer.is_empty()) {
+    device_->remove_from_residency_set(mem_.mtlBuffer);
     mem_.mtlBuffer = nullptr;
     size_ = 0;
     return;
@@ -31,8 +35,12 @@ void MetalDeviceGraphicsInterop::set_buffer(GraphicsInteropBuffer &interop_buffe
     return;
   }
 
+  /* The interop buffer is externally owned, so it doesn't go through metal_mem_alloc. We still
+   * need to put it in the residency set so kernels can write display output into it. */
+  device_->remove_from_residency_set(mem_.mtlBuffer);
   mem_.mtlBuffer = reinterpret_cast<id<MTLBuffer>>(interop_buffer.take_handle());
   size_ = interop_buffer.get_size();
+  device_->add_to_residency_set(mem_.mtlBuffer);
 }
 
 device_ptr MetalDeviceGraphicsInterop::map()

@@ -59,21 +59,11 @@ class HdCyclesDelegate final : public PXR_NS::HdRenderDelegate {
       PXR_NS::HdRenderIndex *index, const PXR_NS::HdRprimCollection &collection) override;
 
   PXR_NS::HdInstancer *CreateInstancer(PXR_NS::HdSceneDelegate *delegate,
-                                       const PXR_NS::SdfPath &id
-#if PXR_VERSION < 2102
-                                       ,
-                                       const PXR_NS::SdfPath &instancerId
-#endif
-                                       ) override;
+                                       const PXR_NS::SdfPath &id) override;
   void DestroyInstancer(PXR_NS::HdInstancer *instancer) override;
 
   PXR_NS::HdRprim *CreateRprim(const PXR_NS::TfToken &typeId,
-                               const PXR_NS::SdfPath &rprimId
-#if PXR_VERSION < 2102
-                               ,
-                               const PXR_NS::SdfPath &instancerId
-#endif
-                               ) override;
+                               const PXR_NS::SdfPath &rprimId) override;
   void DestroyRprim(PXR_NS::HdRprim *rPrim) override;
 
   PXR_NS::HdSprim *CreateSprim(const PXR_NS::TfToken &typeId,
@@ -90,11 +80,7 @@ class HdCyclesDelegate final : public PXR_NS::HdRenderDelegate {
 
   PXR_NS::TfToken GetMaterialBindingPurpose() const override;
 
-#if HD_API_VERSION < 41
-  PXR_NS::TfToken GetMaterialNetworkSelector() const override;
-#else
   PXR_NS::TfTokenVector GetMaterialRenderContexts() const override;
-#endif
 
   PXR_NS::VtDictionary GetRenderStats() const override;
 

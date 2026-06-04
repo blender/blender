@@ -21,29 +21,33 @@ namespace blender::nodes::node_geo_instance_on_points_cc {
 static void node_declare(NodeDeclarationBuilder &b)
 {
   b.add_input<decl::Geometry>("Points"_ustr).description("Points to instance on");
-  b.add_input<decl::Bool>("Selection"_ustr).default_value(true).field_on({0}).hide_value();
+  b.add_input<decl::Bool>("Selection"_ustr)
+      .default_value(true)
+      .evaluated_geometry_field({0})
+      .hide_value();
   b.add_input<decl::Geometry>("Instance"_ustr)
       .description("Geometry that is instanced on the points");
   b.add_input<decl::Bool>("Pick Instance"_ustr)
-      .field_on({0})
+      .evaluated_geometry_field({0})
       .description(
           "Choose instances from the \"Instance\" input at each point instead of instancing the "
           "entire geometry");
   b.add_input<decl::Int>("Instance Index"_ustr)
-      .implicit_field_on(NODE_DEFAULT_INPUT_ID_INDEX_FIELD, {0})
+      .evaluated_geometry_field({0})
+      .default_input_type(NODE_DEFAULT_INPUT_ID_INDEX_FIELD)
       .description(
           "Index of the instance used for each point. This is only used when Pick Instances "
           "is on. By default the point index is used");
   b.add_input<decl::Rotation>("Rotation"_ustr)
-      .field_on({0})
+      .evaluated_geometry_field({0})
       .description("Rotation of the instances");
   b.add_input<decl::Vector>("Scale"_ustr)
       .default_value({1.0f, 1.0f, 1.0f})
       .subtype(PROP_XYZ)
-      .field_on({0})
+      .evaluated_geometry_field({0})
       .description("Scale of the instances");
 
-  b.add_output<decl::Geometry>("Instances"_ustr).propagate_all();
+  b.add_output<decl::Geometry>("Instances"_ustr).propagate_all_geometry();
 }
 
 static std::unique_ptr<bke::Instances> add_instances_from_component(

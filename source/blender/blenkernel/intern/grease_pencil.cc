@@ -240,7 +240,7 @@ static void grease_pencil_free_data(ID *id)
   free_drawing_array(*grease_pencil);
   MEM_delete(&grease_pencil->root_group());
 
-  BLI_freelistN(&grease_pencil->vertex_group_names);
+  grease_pencil->vertex_group_names.free_no_destruct();
 
   BKE_grease_pencil_batch_cache_free(grease_pencil);
 
@@ -1422,7 +1422,7 @@ Layer::Layer()
 
   this->viewlayername = nullptr;
 
-  BLI_listbase_clear(&this->masks);
+  this->masks.clear_no_delete();
   this->active_mask_index = 0;
 
   this->runtime = MEM_new<LayerRuntime>(__func__);
@@ -1476,7 +1476,7 @@ Layer::~Layer()
   for (GreasePencilLayerMask &mask : this->masks.items_mutable()) {
     MEM_delete(reinterpret_cast<LayerMask *>(&mask));
   }
-  BLI_listbase_clear(&this->masks);
+  this->masks.clear_no_delete();
 
   MEM_SAFE_DELETE(this->parsubstr);
   MEM_SAFE_DELETE(this->viewlayername);
@@ -1869,7 +1869,7 @@ LayerGroup::LayerGroup()
 {
   new (&this->base) TreeNode(GP_LAYER_TREE_GROUP);
 
-  BLI_listbase_clear(&this->children);
+  this->children.clear_no_delete();
   this->color_tag = LAYERGROUP_COLOR_NONE;
 
   this->runtime = MEM_new<LayerGroupRuntime>(__func__);
@@ -1941,7 +1941,7 @@ LayerGroup &LayerGroup::operator=(const LayerGroup &other)
 
 bool LayerGroup::is_empty() const
 {
-  return BLI_listbase_is_empty(&this->children);
+  return this->children.is_empty();
 }
 
 TreeNode &LayerGroup::add_node(TreeNode &node)
@@ -1991,7 +1991,7 @@ void LayerGroup::move_node_bottom(TreeNode &node)
 
 int64_t LayerGroup::num_direct_nodes() const
 {
-  return BLI_listbase_count(&this->children);
+  return this->children.count();
 }
 
 int64_t LayerGroup::num_nodes_total() const
@@ -2436,10 +2436,10 @@ static void grease_pencil_evaluate_modifiers(Depsgraph *depsgraph,
    * for the current frame, so we run the time offset modifiers before all the other ones. */
   ModifierData *tmd = md;
   for (; tmd; tmd = tmd->next) {
-    const ModifierTypeInfo *mti = BKE_modifier_get_info(ModifierType(tmd->type));
+    const ModifierTypeInfo *mti = BKE_modifier_get_info(tmd->type);
 
     if (!BKE_modifier_is_enabled(scene, tmd, required_mode) ||
-        ModifierType(tmd->type) != eModifierType_GreasePencilTime)
+        tmd->type != eModifierType_GreasePencilTime)
     {
       continue;
     }
@@ -2453,10 +2453,10 @@ static void grease_pencil_evaluate_modifiers(Depsgraph *depsgraph,
 
   /* Evaluate drawing modifiers. */
   for (; md; md = md->next) {
-    const ModifierTypeInfo *mti = BKE_modifier_get_info(ModifierType(md->type));
+    const ModifierTypeInfo *mti = BKE_modifier_get_info(md->type);
 
     if (!BKE_modifier_is_enabled(scene, md, required_mode) ||
-        ModifierType(md->type) == eModifierType_GreasePencilTime)
+        md->type == eModifierType_GreasePencilTime)
     {
       continue;
     }
@@ -3338,9 +3338,7 @@ bool GreasePencil::remove_frames(bke::greasepencil::Layer &layer, Span<int> fram
     return true;
   }
 #ifndef NDEBUG
-  else {
-    this->validate_drawing_user_counts();
-  }
+  this->validate_drawing_user_counts();
 #endif
   return false;
 }
@@ -4514,7 +4512,7 @@ void GreasePencil::remove_group(bke::greasepencil::LayerGroup &group, const bool
           BLI_assert_unreachable();
       }
     }
-    BLI_assert(BLI_listbase_is_empty(&group.children));
+    BLI_assert(group.children.is_empty());
   }
 
   /* Unlink then delete active group node. */

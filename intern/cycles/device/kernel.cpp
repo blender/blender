@@ -17,7 +17,6 @@ bool device_kernel_has_shading(DeviceKernel kernel)
           kernel == DEVICE_KERNEL_INTEGRATOR_SHADE_LIGHT_FORWARD ||
           kernel == DEVICE_KERNEL_INTEGRATOR_SHADE_SURFACE ||
           kernel == DEVICE_KERNEL_INTEGRATOR_SHADE_SURFACE_RAYTRACE ||
-          kernel == DEVICE_KERNEL_INTEGRATOR_SHADE_SURFACE_MNEE ||
           kernel == DEVICE_KERNEL_INTEGRATOR_SHADE_VOLUME ||
           kernel == DEVICE_KERNEL_INTEGRATOR_SHADE_VOLUME_RAY_MARCHING ||
           kernel == DEVICE_KERNEL_INTEGRATOR_SHADE_SHADOW ||
@@ -35,8 +34,14 @@ bool device_kernel_has_intersection(DeviceKernel kernel)
           kernel == DEVICE_KERNEL_INTEGRATOR_INTERSECT_SUBSURFACE ||
           kernel == DEVICE_KERNEL_INTEGRATOR_INTERSECT_VOLUME_STACK ||
           kernel == DEVICE_KERNEL_INTEGRATOR_INTERSECT_DEDICATED_LIGHT ||
-          kernel == DEVICE_KERNEL_INTEGRATOR_SHADE_SURFACE_RAYTRACE ||
-          kernel == DEVICE_KERNEL_INTEGRATOR_SHADE_SURFACE_MNEE);
+          kernel == DEVICE_KERNEL_INTEGRATOR_INTERSECT_MNEE ||
+          kernel == DEVICE_KERNEL_INTEGRATOR_SHADE_SURFACE_RAYTRACE);
+}
+
+bool device_kernel_has_gpu_function(DeviceKernel kernel)
+{
+  return !(kernel == DEVICE_KERNEL_INTEGRATOR_MEGAKERNEL ||
+           kernel == DEVICE_KERNEL_INTEGRATOR_SHADOW_PATH_MNEE_PENDING);
 }
 
 const char *device_kernel_as_string(DeviceKernel kernel)
@@ -57,6 +62,10 @@ const char *device_kernel_as_string(DeviceKernel kernel)
       return "integrator_intersect_volume_stack";
     case DEVICE_KERNEL_INTEGRATOR_INTERSECT_DEDICATED_LIGHT:
       return "integrator_intersect_dedicated_light";
+    case DEVICE_KERNEL_INTEGRATOR_INTERSECT_MNEE:
+      return "integrator_intersect_mnee";
+    case DEVICE_KERNEL_INTEGRATOR_SHADOW_PATH_MNEE_PENDING:
+      return "integrator_shadow_path_mnee_pending";
     case DEVICE_KERNEL_INTEGRATOR_SHADE_BACKGROUND:
       return "integrator_shade_background";
     case DEVICE_KERNEL_INTEGRATOR_SHADE_LIGHT_NEE:
@@ -69,8 +78,6 @@ const char *device_kernel_as_string(DeviceKernel kernel)
       return "integrator_shade_surface";
     case DEVICE_KERNEL_INTEGRATOR_SHADE_SURFACE_RAYTRACE:
       return "integrator_shade_surface_raytrace";
-    case DEVICE_KERNEL_INTEGRATOR_SHADE_SURFACE_MNEE:
-      return "integrator_shade_surface_mnee";
     case DEVICE_KERNEL_INTEGRATOR_SHADE_VOLUME:
       return "integrator_shade_volume";
     case DEVICE_KERNEL_INTEGRATOR_SHADE_VOLUME_RAY_MARCHING:

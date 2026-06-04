@@ -82,6 +82,7 @@ class CPUDevice : public Device {
   void image_free(device_image &mem);
 
   bool has_unified_memory() const override;
+  bool has_unified_image_memory() const override;
 
   void build_bvh(BVH *bvh, Progress &progress, bool refit) override;
 

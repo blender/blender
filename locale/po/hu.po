@@ -1,9 +1,9 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 5.2.0 Alpha (b'bc0a0ff2c0ce')\n"
+"Project-Id-Version: Blender 5.2.0 Alpha (b'8764d33c658b')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-05-18 11:20+0000\n"
+"POT-Creation-Date: 2026-06-01 07:36+0000\n"
 "PO-Revision-Date: 2026-03-19 19:12+0000\n"
 "Last-Translator: Tamás Máté <royalpython132@gmail.com>\n"
 "Language-Team: Hungarian <https://translate.blender.org/projects/blender-ui/ui/hu/>\n"
@@ -669,6 +669,10 @@ msgstr "Copyright"
 
 msgid "Description"
 msgstr "Leírás"
+
+
+msgid "Link"
+msgstr "Linkelés"
 
 
 msgid "Full Path"
@@ -3514,10 +3518,6 @@ msgid "Show text files"
 msgstr "Szövegfájlok mutatása"
 
 
-msgid "Link"
-msgstr "Linkelés"
-
-
 msgid "Matrix"
 msgstr "Mátrix"
 
@@ -3998,6 +3998,10 @@ msgid "General properties for Grease Pencil stroke sculpting tools"
 msgstr "A zsírkréta vonású szobrászeszközök általános tulajdonságai"
 
 
+msgid "Dynamic"
+msgstr "Dinamikus"
+
+
 msgid "Window"
 msgstr "Ablak"
 
@@ -4112,10 +4116,6 @@ msgstr "Lokális"
 
 msgid "Global"
 msgstr "Globális"
-
-
-msgid "Dynamic"
-msgstr "Dinamikus"
 
 
 msgid "Falloff Curve"
@@ -6638,12 +6638,12 @@ msgid "Relations"
 msgstr "Kapcsolatok"
 
 
-msgid "Import"
-msgstr "Importálás"
-
-
 msgid "Rigid Body"
 msgstr "Szilárd test"
+
+
+msgid "Import"
+msgstr "Importálás"
 
 
 msgid "Apply"
@@ -10446,6 +10446,11 @@ msgstr "Ugrás az előző/következő kulcskockára"
 
 
 msgctxt "Operator"
+msgid "Local View"
+msgstr "Helyi nézet"
+
+
+msgctxt "Operator"
 msgid "Shear Keyframes"
 msgstr "Kulcs-képkockák tisztítása"
 
@@ -12453,11 +12458,6 @@ msgid "Fly Navigation"
 msgstr "Repülő navigáció"
 
 
-msgctxt "Operator"
-msgid "Local View"
-msgstr "Helyi nézet"
-
-
 msgid "Toggle display of selected object(s) separately and centered in view"
 msgstr "Csak a kijelölt objektum(ok) megjelenítése, a nézet közepére helyezve"
 
@@ -12914,10 +12914,6 @@ msgstr "Python szkriptek automatikus futtatása"
 
 msgid "Bone Color Sets"
 msgstr "Csont színkészletek"
-
-
-msgid "Axis & Gizmo Colors"
-msgstr "Tengelyek & kütyük színei"
 
 
 msgid "Shaded"
@@ -15115,6 +15111,11 @@ msgstr "Objektum index"
 
 
 msgctxt "Operator"
+msgid "Clear"
+msgstr "Törlés"
+
+
+msgctxt "Operator"
 msgid "Assign"
 msgstr "Hozzárendelés"
 
@@ -15358,11 +15359,6 @@ msgstr "Áthelyezés:"
 
 msgid "Spline:"
 msgstr "Spline:"
-
-
-msgctxt "Operator"
-msgid "Clear"
-msgstr "Törlés"
 
 
 msgid "Animation:"
@@ -16055,6 +16051,11 @@ msgstr "Alap"
 
 msgid "Key %d"
 msgstr "Kulcs %d"
+
+
+msgctxt "Key"
+msgid "Key"
+msgstr "Kulcs"
 
 
 msgid "MaskLayer"
@@ -16805,11 +16806,6 @@ msgstr "Kapcsolat"
 
 msgid "Image not packed"
 msgstr "Kép nincs csomagolva"
-
-
-msgctxt "Key"
-msgid "Key"
-msgstr "Kulcs"
 
 
 msgid "Modify"

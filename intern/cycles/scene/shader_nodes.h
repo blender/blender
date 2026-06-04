@@ -541,6 +541,8 @@ class PrincipledBsdfNode : public BsdfBaseNode {
  public:
   SHADER_NODE_CLASS(PrincipledBsdfNode)
 
+  bool is_thin_wall();
+  bool subsurface_has_positive_weight();
   bool has_surface_bssrdf() override;
   bool has_bssrdf_bump() override;
   void simplify_settings(Scene *scene) override;
@@ -549,6 +551,7 @@ class PrincipledBsdfNode : public BsdfBaseNode {
   NODE_SOCKET_API(float, metallic)
   NODE_SOCKET_API(float, roughness)
   NODE_SOCKET_API(float, ior)
+  NODE_SOCKET_API(int, thin_wall)
   NODE_SOCKET_API(float3, normal)
   NODE_SOCKET_API(float, alpha)
   NODE_SOCKET_API(float, diffuse_roughness)
@@ -1609,7 +1612,7 @@ class CurvesNode : public ShaderNode {
   explicit CurvesNode(const NodeType *node_type);
   SHADER_NODE_BASE_CLASS(CurvesNode)
 
-  NODE_SOCKET_API_ARRAY(array<float3>, curves)
+  NODE_SOCKET_API_ARRAY(array<packed_float3>, curves)
   NODE_SOCKET_API(float, min_x)
   NODE_SOCKET_API(float, max_x)
   NODE_SOCKET_API(float, fac)
@@ -1657,7 +1660,7 @@ class RGBRampNode : public ShaderNode {
   SHADER_NODE_CLASS(RGBRampNode)
   void constant_fold(const ConstantFolder &folder) override;
 
-  NODE_SOCKET_API_ARRAY(array<float3>, ramp)
+  NODE_SOCKET_API_ARRAY(array<packed_float3>, ramp)
   NODE_SOCKET_API_ARRAY(array<float>, ramp_alpha)
   NODE_SOCKET_API(float, fac)
   NODE_SOCKET_API(bool, interpolate)

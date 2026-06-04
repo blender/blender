@@ -295,8 +295,8 @@ void GLBackend::platform_init()
     glGetIntegerv(GL_MAX_VERTEX_SHADER_STORAGE_BLOCKS, &max_ssbo_binds_vertex);
     glGetIntegerv(GL_MAX_FRAGMENT_SHADER_STORAGE_BLOCKS, &max_ssbo_binds_fragment);
     glGetIntegerv(GL_MAX_COMPUTE_SHADER_STORAGE_BLOCKS, &max_ssbo_binds_compute);
-    GLint max_ssbo_binds = min_iii(
-        max_ssbo_binds_vertex, max_ssbo_binds_fragment, max_ssbo_binds_compute);
+    GLint max_ssbo_binds = std::min(
+        {max_ssbo_binds_vertex, max_ssbo_binds_fragment, max_ssbo_binds_compute});
     if (max_ssbo_binds < 12) {
       std::cout << "Warning: Unsupported platform as it supports max " << max_ssbo_binds
                 << " SSBO binding locations\n";
@@ -330,6 +330,9 @@ void GLBackend::platform_init()
            renderer,
            version,
            GPU_ARCHITECTURE_IMR);
+
+  GPG.devices.append(
+      {.identifier = "OPENGL", .index = 0, .vendor_id = 0, .device_id = 0, .name = renderer});
 
   GPG.device_uuid.reinitialize(0);
   GPG.device_luid.reinitialize(0);
@@ -411,6 +414,7 @@ static void detect_workarounds()
     GLContext::multi_bind_image_support = false;
     /* Turn off OpenGL 4.5 features. */
     GLContext::direct_state_access_support = false;
+    GLContext::derivative_control_support = false;
     /* Turn off OpenGL 4.6 features. */
     GLContext::texture_filter_anisotropic_support = false;
     /* Turn off extensions. */
@@ -589,6 +593,7 @@ bool GLContext::multi_bind_image_support = false;
 bool GLContext::stencil_texturing_support = false;
 bool GLContext::texture_barrier_support = false;
 bool GLContext::texture_filter_anisotropic_support = false;
+bool GLContext::derivative_control_support = false;
 
 /** Workarounds. */
 
@@ -666,6 +671,8 @@ void GLBackend::capabilities_init()
   GLContext::multi_bind_support = GLContext::multi_bind_image_support = epoxy_has_gl_extension(
       "GL_ARB_multi_bind");
   GLContext::stencil_texturing_support = epoxy_gl_version() >= 43;
+  GLContext::derivative_control_support = epoxy_gl_version() >= 45 ||
+                                          epoxy_has_gl_extension("GL_ARB_derivative_control");
   GLContext::texture_filter_anisotropic_support = epoxy_has_gl_extension(
       "GL_EXT_texture_filter_anisotropic");
 
@@ -760,7 +767,8 @@ void GLBackend::log_extensions()
              " - [%c] Native barycentric coordinates\n"
              " - [%c] Framebuffer fetch\n"
              " - [%c] Texture barrier\n"
-             " - [%c] Shader stencil export\n",
+             " - [%c] Shader stencil export\n"
+             " - [%c] Derivative control\n",
              GLContext::multi_bind_support ? 'X' : ' ',
              GLContext::direct_state_access_support ? 'X' : ' ',
              GLContext::texture_filter_anisotropic_support ? 'X' : ' ',
@@ -768,7 +776,8 @@ void GLBackend::log_extensions()
              GLContext::native_barycentric_support ? 'X' : ' ',
              GLContext::framebuffer_fetch_support ? 'X' : ' ',
              GLContext::texture_barrier_support ? 'X' : ' ',
-             GCaps.stencil_export_support ? 'X' : ' ');
+             GCaps.stencil_export_support ? 'X' : ' ',
+             GLContext::derivative_control_support ? 'X' : ' ');
 }
 
 /** \} */

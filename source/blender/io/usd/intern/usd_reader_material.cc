@@ -169,7 +169,7 @@ static Vector<int> get_udim_tiles(const std::string &file_path)
     }
   }
 
-  BLI_freelistN(&tiles);
+  tiles.free_no_destruct();
 
   return udim_tiles;
 }

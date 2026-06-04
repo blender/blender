@@ -225,7 +225,7 @@ void fromImageToRetina(const Vec3r &p, Vec3r &q, const int viewport[4]);
 /** computes the coordinates of q in the camera coordinates system,
  *  using the known z coordinates of the 3D point.
  *  That means that this method does not inverse any matrices,
- *  it only computes X and Y from x,y and Z)
+ *  it only computes X and Y from x,y and Z
  *  p
  *    point's coordinates expressed in retina system
  *  q

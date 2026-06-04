@@ -254,7 +254,7 @@ static void mesh_free_data(ID *id)
   CustomData_free(&mesh->fdata_legacy);
   CustomData_free(&mesh->corner_data);
   CustomData_free(&mesh->face_data);
-  BLI_freelistN(&mesh->vertex_group_names);
+  mesh->vertex_group_names.free_no_destruct();
   MEM_SAFE_DELETE(mesh->active_color_attribute);
   MEM_SAFE_DELETE(mesh->default_color_attribute);
   MEM_SAFE_DELETE(mesh->active_uv_map_attribute);
@@ -1099,7 +1099,7 @@ static void mesh_clear_geometry(Mesh &mesh)
 
 static void clear_attribute_names(Mesh &mesh)
 {
-  BLI_freelistN(&mesh.vertex_group_names);
+  mesh.vertex_group_names.free_no_destruct();
   MEM_SAFE_DELETE(mesh.active_color_attribute);
   MEM_SAFE_DELETE(mesh.default_color_attribute);
   MEM_SAFE_DELETE(mesh.active_uv_map_attribute);
@@ -1460,7 +1460,7 @@ void BKE_mesh_copy_parameters_for_eval(Mesh *me_dst, const Mesh *me_src)
   copy_attribute_names(*me_src, *me_dst);
 
   /* Copy vertex group names. */
-  BLI_assert(BLI_listbase_is_empty(&me_dst->vertex_group_names));
+  BLI_assert(me_dst->vertex_group_names.is_empty());
   BKE_defgroup_copy_list(&me_dst->vertex_group_names, &me_src->vertex_group_names);
 
   /* Copy materials. */

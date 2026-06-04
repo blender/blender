@@ -405,8 +405,8 @@ bool vgroup_array_copy(Object *ob, Object *ob_from)
   ListBaseT<bDeformGroup> *defbase_dst = BKE_object_defgroup_list_mutable(ob);
   const ListBaseT<bDeformGroup> *defbase_src = BKE_object_defgroup_list(ob_from);
 
-  int defbase_tot_from = BLI_listbase_count(defbase_src);
-  int defbase_tot = BLI_listbase_count(defbase_dst);
+  int defbase_tot_from = defbase_src->count();
+  int defbase_tot = defbase_dst->count();
   bool new_vgroup = false;
 
   BLI_assert(ob != ob_from);
@@ -449,7 +449,7 @@ bool vgroup_array_copy(Object *ob, Object *ob_from)
   }
 
   /* do the copy */
-  BLI_freelistN(defbase_dst);
+  defbase_dst->free_no_destruct();
   BLI_duplicatelist(defbase_dst, defbase_src);
   BKE_object_defgroup_active_index_set(ob, BKE_object_defgroup_active_index_get(ob_from));
 
@@ -1237,7 +1237,7 @@ static void vgroup_duplicate(Object *ob)
   BLI_addtail(defbase, cdg);
 
   idg = BKE_object_defgroup_active_index_get(ob) - 1;
-  BKE_object_defgroup_active_index_set(ob, BLI_listbase_count(defbase));
+  BKE_object_defgroup_active_index_set(ob, defbase->count());
   icdg = BKE_object_defgroup_active_index_get(ob) - 1;
 
   /* TODO(@ideasman42): we might want to allow only copy selected verts here? */
@@ -2504,7 +2504,7 @@ static bool vertex_group_poll_ex(bContext *C, Object *ob)
   }
 
   const ListBaseT<bDeformGroup> *defbase = BKE_object_defgroup_list(ob);
-  if (BLI_listbase_is_empty(defbase)) {
+  if (defbase->is_empty()) {
     CTX_wm_operator_poll_msg_set(C, "Object has no vertex groups");
     return false;
   }
@@ -3877,7 +3877,7 @@ void OBJECT_OT_vertex_group_set_active(wmOperatorType *ot)
 static char *vgroup_init_remap(Object *ob)
 {
   const ListBaseT<bDeformGroup> *defbase = BKE_object_defgroup_list(ob);
-  int defbase_tot = BLI_listbase_count(defbase);
+  int defbase_tot = defbase->count();
   char *name_array = MEM_new_array_uninitialized<char>(MAX_VGROUP_NAME * defbase_tot,
                                                        "sort vgroups");
   char *name;
@@ -3896,7 +3896,7 @@ static wmOperatorStatus vgroup_do_remap(Object *ob, const char *name_array, wmOp
   MDeformVert *dvert = nullptr;
   const bDeformGroup *def;
   const ListBaseT<bDeformGroup> *defbase = BKE_object_defgroup_list(ob);
-  int defbase_tot = BLI_listbase_count(defbase);
+  int defbase_tot = defbase->count();
 
   /* Needs a dummy index at the start. */
   int *sort_map_update = MEM_new_array_uninitialized<int>((defbase_tot + 1), __func__);

@@ -54,14 +54,14 @@ struct SphereProbeAtlasCoord {
     return SPHERE_PROBE_ATLAS_RES >> (subdivision_lvl + mip_lvl);
   }
 
-  /* Coordinate of the area in [0..area_count_per_dimension[ range. */
+  /* Coordinate of the area in [0..area_count_per_dimension) range. */
   int2 area_location() const
   {
     const int area_count_per_dimension = 1 << subdivision_lvl;
     return int2(area_index % area_count_per_dimension, area_index / area_count_per_dimension);
   }
 
-  /* Coordinate of the bottom left corner of the area in [0..SPHERE_PROBE_ATLAS_RES[ range. */
+  /* Coordinate of the bottom left corner of the area in [0..SPHERE_PROBE_ATLAS_RES) range. */
   int2 area_offset(int mip_lvl = 0) const
   {
     return area_location() * area_extent(mip_lvl);

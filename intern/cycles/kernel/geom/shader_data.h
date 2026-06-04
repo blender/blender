@@ -205,7 +205,7 @@ ccl_device_inline void shader_setup_from_sample(KernelGlobals kg,
 
       /* dPdu/dPdv */
 #ifdef __DPDU__
-      triangle_dPdudv(kg, sd->prim, &sd->dPdu, &sd->dPdv);
+      triangle_dPdudv(kg, sd->object, sd->prim, &sd->dPdu, &sd->dPdv);
 
       if (!(sd->object_flag & SD_OBJECT_TRANSFORM_APPLIED)) {
         object_dir_transform(kg, sd, &sd->dPdu);
@@ -340,10 +340,11 @@ ccl_device void shader_setup_from_curve(KernelGlobals kg,
 
   float4 P_curve[4];
 
-  P_curve[0] = kernel_data_fetch(curve_keys, ka);
-  P_curve[1] = kernel_data_fetch(curve_keys, k0);
-  P_curve[2] = kernel_data_fetch(curve_keys, k1);
-  P_curve[3] = kernel_data_fetch(curve_keys, kb);
+  const int position_offset = kernel_data_fetch(objects, object).position_offset;
+  P_curve[0] = kernel_data_fetch(attributes_float4, position_offset + ka);
+  P_curve[1] = kernel_data_fetch(attributes_float4, position_offset + k0);
+  P_curve[2] = kernel_data_fetch(attributes_float4, position_offset + k1);
+  P_curve[3] = kernel_data_fetch(attributes_float4, position_offset + kb);
 
   /* Interpolate position and tangent. */
   sd->P = (sd->type & PRIMITIVE_CURVE) == PRIMITIVE_CURVE_THICK_LINEAR ?

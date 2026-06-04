@@ -29,6 +29,7 @@
 #include "kernel/integrator/init_from_camera.h"
 #include "kernel/integrator/intersect_closest.h"
 #include "kernel/integrator/intersect_dedicated_light.h"
+#include "kernel/integrator/intersect_mnee.h"
 #include "kernel/integrator/intersect_shadow.h"
 #include "kernel/integrator/intersect_subsurface.h"
 #include "kernel/integrator/intersect_volume_stack.h"
@@ -227,6 +228,22 @@ ccl_gpu_kernel(GPU_KERNEL_BLOCK_NUM_THREADS, GPU_KERNEL_MAX_REGISTERS)
 }
 ccl_gpu_kernel_postfix
 
+ccl_gpu_kernel(GPU_KERNEL_BLOCK_NUM_THREADS, GPU_KERNEL_MAX_REGISTERS)
+    ccl_gpu_kernel_signature(integrator_intersect_mnee,
+                             const ccl_global int *path_index_array,
+                             const int work_size)
+{
+#  ifdef __MNEE__
+  const int global_index = ccl_gpu_global_id_x();
+
+  if (ccl_gpu_kernel_within_bounds(global_index, work_size)) {
+    const int state = (path_index_array) ? path_index_array[global_index] : global_index;
+    ccl_gpu_kernel_call(integrator_intersect_mnee(nullptr, state));
+  }
+#  endif
+}
+ccl_gpu_kernel_postfix
+
 #  ifdef __KERNEL_ONEAPI__
 #    include "kernel/device/oneapi/context_intersect_end.h"
 #  endif
@@ -340,21 +357,6 @@ ccl_gpu_kernel(GPU_KERNEL_BLOCK_NUM_THREADS, GPU_KERNEL_MAX_REGISTERS)
 #  else
     ccl_gpu_kernel_call(integrator_shade_surface_raytrace(nullptr, state, render_buffer));
 #  endif
-  }
-}
-ccl_gpu_kernel_postfix
-
-ccl_gpu_kernel(GPU_KERNEL_BLOCK_NUM_THREADS, GPU_KERNEL_MAX_REGISTERS)
-    ccl_gpu_kernel_signature(integrator_shade_surface_mnee,
-                             const ccl_global int *path_index_array,
-                             ccl_global float *render_buffer,
-                             const int work_size)
-{
-  const int global_index = ccl_gpu_global_id_x();
-
-  if (ccl_gpu_kernel_within_bounds(global_index, work_size)) {
-    const int state = (path_index_array) ? path_index_array[global_index] : global_index;
-    ccl_gpu_kernel_call(integrator_shade_surface_mnee(nullptr, state, render_buffer));
   }
 }
 ccl_gpu_kernel_postfix

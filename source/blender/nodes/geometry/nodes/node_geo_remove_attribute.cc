@@ -18,7 +18,7 @@ static void node_declare(NodeDeclarationBuilder &b)
   b.use_custom_socket_order();
   b.allow_any_socket_order();
   b.add_input<decl::Geometry>("Geometry"_ustr).description("Geometry to remove attributes from");
-  b.add_output<decl::Geometry>("Geometry"_ustr).propagate_all().align_with_previous();
+  b.add_output<decl::Geometry>("Geometry"_ustr).propagate_all_geometry().align_with_previous();
   b.add_input<decl::Menu>("Pattern Mode"_ustr)
       .static_items(string_pattern_mode_items)
       .optional_label()
@@ -103,7 +103,7 @@ static void node_geo_exec(GeoNodeExecParams params)
   }
 
   std::string pattern_error;
-  std::optional<StringPattern> pattern_fn = StringPattern::from_string(
+  std::optional<StringPattern> pattern_fn = StringPattern::from_str(
       params.get_input<StringPatternMode>("Pattern Mode"_ustr), pattern, pattern_error);
   if (!pattern_fn) {
     params.error_message_add(NodeWarningType::Error, pattern_error);

@@ -18,6 +18,8 @@
 #include "BKE_image_wrappers.hh"
 #include "BKE_paint.hh"
 
+#include "PRF_profile.hh"
+
 #include "pbvh_intern.hh"
 #include "pbvh_pixels_copy.hh"
 #include "pbvh_uv_islands.hh"
@@ -175,13 +177,13 @@ static void do_encode_pixels(const uv_islands::MeshData &mesh_data,
               entry.uv_primitive->get_uv_vertex(mesh_data, 1)->uv - tile_offset,
               entry.uv_primitive->get_uv_vertex(mesh_data, 2)->uv - tile_offset,
           };
-          const float minv = clamp_f(min_fff(uvs[0].y, uvs[1].y, uvs[2].y), 0.0f, 1.0f);
+          const float minv = clamp_f(std::min({uvs[0].y, uvs[1].y, uvs[2].y}), 0.0f, 1.0f);
           const int miny = floor(minv * image_buffer->y);
-          const float maxv = clamp_f(max_fff(uvs[0].y, uvs[1].y, uvs[2].y), 0.0f, 1.0f);
+          const float maxv = clamp_f(std::max({uvs[0].y, uvs[1].y, uvs[2].y}), 0.0f, 1.0f);
           const int maxy = min_ii(ceil(maxv * image_buffer->y), image_buffer->y);
-          const float minu = clamp_f(min_fff(uvs[0].x, uvs[1].x, uvs[2].x), 0.0f, 1.0f);
+          const float minu = clamp_f(std::min({uvs[0].x, uvs[1].x, uvs[2].x}), 0.0f, 1.0f);
           const int minx = floor(minu * image_buffer->x);
-          const float maxu = clamp_f(max_fff(uvs[0].x, uvs[1].x, uvs[2].x), 0.0f, 1.0f);
+          const float maxu = clamp_f(std::max({uvs[0].x, uvs[1].x, uvs[2].x}), 0.0f, 1.0f);
           const int maxx = min_ii(ceil(maxu * image_buffer->x), image_buffer->x);
 
           const int uv_prim_index = pixel_node.uv_primitives.tri_indices.size();
@@ -423,6 +425,7 @@ void mark_image_dirty(bke::pbvh::Node & /*node*/,
                       Image &image,
                       Map<image::TileNumber, ImBuf *> &buffers)
 {
+  PRF_scope(ProfileCategory::Editor);
   if (pixel_node.flags.dirty) {
     for (UDIMTilePixels &tile : pixel_node.tiles) {
       std::optional<image::ImageTileWrapper> image_tile = find_image_tile(image, tile.tile_number);
@@ -448,6 +451,7 @@ namespace bke::pbvh {
 
 void build_pixels(const Depsgraph &depsgraph, Object &object, Image &image, ImageUser &image_user)
 {
+  PRF_scope(ProfileCategory::Editor);
   Tree &pbvh = *object::pbvh_get(object);
   pixels::update_pixels(depsgraph, object, pbvh, image, image_user);
 }

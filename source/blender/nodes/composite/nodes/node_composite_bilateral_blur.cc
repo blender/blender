@@ -31,6 +31,7 @@ static void node_declare(NodeDeclarationBuilder &b)
       .structure_type(StructureType::Dynamic);
   b.add_input<decl::Int>("Size"_ustr)
       .default_value(0)
+      .subtype(PROP_PIXEL)
       .min(0)
       .description("The size of the blur in pixels");
   b.add_input<decl::Float>("Threshold"_ustr)

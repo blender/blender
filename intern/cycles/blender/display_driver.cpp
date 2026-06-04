@@ -420,6 +420,9 @@ bool BlenderDisplayDriver::update_begin(const Params &params,
     return false;
   }
 
+  /* Note: The render window might not draw between tiles. Wait for the previous
+   * PBO-to-texture copy before reusing the PBO for the next tile. */
+  blender::GPU_fence_wait(gpu_upload_sync_);
   blender::GPU_fence_wait(gpu_render_sync_);
 
   DrawTile &current_tile = tiles_->current_tile.tile;

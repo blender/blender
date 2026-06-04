@@ -194,7 +194,7 @@ static void ui_imageuser_layer_menu(bContext * /*C*/, ui::Layout *layout, void *
                                 0.0,
                                 0.0,
                                 "");
-    button_retval_set(but, B_NOP);
+    button_enum_prop_value_set(but, 0);
   }
 
   int nr = fake_name ? 1 : 0;
@@ -207,10 +207,10 @@ static void ui_imageuser_layer_menu(bContext * /*C*/, ui::Layout *layout, void *
                                 UI_UNIT_X * 5,
                                 UI_UNIT_X,
                                 &iuser->layer,
-                                float(nr),
+                                0.0,
                                 0.0,
                                 "");
-    button_retval_set(but, B_NOP);
+    button_enum_prop_value_set(but, nr);
   }
 
   layout->separator();
@@ -257,7 +257,7 @@ static void ui_imageuser_pass_menu(bContext * /*C*/, ui::Layout *layout, void *r
   nr = (rl == nullptr) ? 1 : 0;
 
   ListBaseT<LinkData> added_passes;
-  BLI_listbase_clear(&added_passes);
+  added_passes.clear_no_delete();
 
   /* rendered results don't have a Combined pass */
   /* multiview: the ordering must be ascending, so the left-most pass is always the one picked */
@@ -278,10 +278,10 @@ static void ui_imageuser_pass_menu(bContext * /*C*/, ui::Layout *layout, void *r
                                 UI_UNIT_X * 5,
                                 UI_UNIT_X,
                                 &iuser->pass,
-                                float(nr),
+                                0.0,
                                 0.0,
                                 "");
-    button_retval_set(but, B_NOP);
+    button_enum_prop_value_set(but, nr);
   }
 
   layout->separator();
@@ -297,7 +297,7 @@ static void ui_imageuser_pass_menu(bContext * /*C*/, ui::Layout *layout, void *r
            0.0,
            "");
 
-  BLI_freelistN(&added_passes);
+  added_passes.free_no_destruct();
 
   BKE_image_release_renderresult(scene, image, rr);
 }
@@ -337,7 +337,7 @@ static void ui_imageuser_view_menu_rr(bContext * /*C*/, ui::Layout *layout, void
 
   layout->separator();
 
-  nr = (rr ? BLI_listbase_count(&rr->views) : 0) - 1;
+  nr = (rr ? rr->views.count() : 0) - 1;
   for (rview = static_cast<RenderView *>(rr ? rr->views.last : nullptr); rview;
        rview = rview->prev, nr--)
   {
@@ -349,10 +349,10 @@ static void ui_imageuser_view_menu_rr(bContext * /*C*/, ui::Layout *layout, void
                                 UI_UNIT_X * 5,
                                 UI_UNIT_X,
                                 &iuser->view,
-                                float(nr),
+                                0.0,
                                 0.0,
                                 "");
-    button_retval_set(but, B_NOP);
+    button_enum_prop_value_set(but, nr);
   }
 
   BKE_image_release_renderresult(scene, image, rr);
@@ -383,7 +383,7 @@ static void ui_imageuser_view_menu_multiview(bContext * /*C*/, ui::Layout *layou
 
   layout->separator();
 
-  nr = BLI_listbase_count(&image->views) - 1;
+  nr = image->views.count() - 1;
   for (iv = static_cast<ImageView *>(image->views.last); iv; iv = iv->prev, nr--) {
     ui::Button *but = uiDefButV(block,
                                 ui::ButtonType::ButMenu,
@@ -393,10 +393,10 @@ static void ui_imageuser_view_menu_multiview(bContext * /*C*/, ui::Layout *layou
                                 UI_UNIT_X * 5,
                                 UI_UNIT_X,
                                 &iuser->view,
-                                float(nr),
+                                0.0,
                                 0.0,
                                 "");
-    button_retval_set(but, B_NOP);
+    button_enum_prop_value_set(but, nr);
   }
 }
 
@@ -432,7 +432,7 @@ static bool ui_imageuser_layer_menu_step(bContext *C, int direction, void *rnd_p
     }
   }
   else if (direction == 1) {
-    int tot = BLI_listbase_count(&rr->layers);
+    int tot = rr->layers.count();
 
     if (RE_HasCombinedLayer(rr)) {
       tot++; /* fake compo/sequencer layer */
@@ -1264,7 +1264,7 @@ void uiTemplateImageInfo(ui::Layout *layout, bContext *C, Image *ima, ImageUser 
     if (ima->source == IMA_SRC_MOVIE && BKE_image_has_anim(ima)) {
       MovieReader *anim = (static_cast<ImageAnim *>(ima->anims.first))->anim;
       if (anim) {
-        duration = MOV_get_duration_frames(anim, IMB_TC_RECORD_RUN);
+        duration = MOV_get_duration_frames(anim);
       }
     }
 

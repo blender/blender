@@ -22,6 +22,7 @@ from bl_ui.space_toolsystem_common import (
 
 from rna_prop_ui import PropertyPanel
 from bl_ui.space_time import playback_controls
+from bl_ui.properties_data_camera import DATA_PT_camera_display_composition_guides
 
 
 def _space_view_types(st):
@@ -225,11 +226,12 @@ class SEQUENCER_PT_preview_overlay(Panel):
         col.prop(overlay_settings, "show_image_outline")
         col.prop(ed, "show_overlay_frame", text="Frame Overlay")
         col.prop(overlay_settings, "show_metadata", text="Metadata")
+        col.prop(overlay_settings, "show_annotation", text="Annotations")
 
         col = split.column()
         col.prop(overlay_settings, "show_cursor")
         col.prop(overlay_settings, "show_safe_areas", text="Safe Areas")
-        col.prop(overlay_settings, "show_annotation", text="Annotations")
+        col.prop(overlay_settings, "show_composition_guides", text="Guides")
 
 
 class SEQUENCER_PT_sequencer_overlay(Panel):
@@ -1702,7 +1704,7 @@ class SEQUENCER_PT_proxy_settings(SequencerButtonsPanel, Panel):
 
 
 class SEQUENCER_PT_strip_proxy(SequencerButtonsPanel, Panel):
-    bl_label = "Strip Proxy & Timecode"
+    bl_label = "Strip Proxy"
     bl_category = "Proxy"
 
     @classmethod
@@ -1755,11 +1757,6 @@ class SEQUENCER_PT_strip_proxy(SequencerButtonsPanel, Panel):
 
             col = layout.column()
             col.prop(proxy, "quality", text="Quality")
-
-            if strip.type == 'MOVIE':
-                col = layout.column()
-
-                col.prop(proxy, "timecode", text="Timecode Index")
 
 
 class SEQUENCER_PT_preview(SequencerButtonsPanel_Output, Panel):
@@ -1930,6 +1927,26 @@ class SEQUENCER_PT_view_safe_areas_center_cut(SequencerButtonsPanel_Output, Pane
         col = layout.column()
         col.prop(safe_data, "title_center", slider=True)
         col.prop(safe_data, "action_center", slider=True)
+
+
+class SEQUENCER_PT_view_composition_guides(SequencerButtonsPanel_Output, Panel):
+    bl_label = "Composition Guides"
+    bl_options = {'DEFAULT_CLOSED'}
+    bl_category = "View"
+
+    @classmethod
+    def poll(cls, context):
+        st = context.space_data
+        is_preview = st.view_type in {'PREVIEW', 'SEQUENCER_PREVIEW'}
+        return is_preview and (st.display_mode == 'IMAGE') and context.sequencer_scene
+
+    def draw_header(self, context):
+        layout = self.layout
+        overlay_settings = context.space_data.preview_overlay
+
+    def draw(self, context):
+        overlay_settings = context.space_data.preview_overlay
+        DATA_PT_camera_display_composition_guides.draw_panel(self.layout, overlay_settings)
 
 
 class SEQUENCER_PT_annotation(AnnotationDataPanel, SequencerButtonsPanel_Output, Panel):
@@ -2122,6 +2139,7 @@ classes = (
     SEQUENCER_PT_frame_overlay,
     SEQUENCER_PT_view_safe_areas,
     SEQUENCER_PT_view_safe_areas_center_cut,
+    SEQUENCER_PT_view_composition_guides,
     SEQUENCER_PT_preview,
 
     SEQUENCER_PT_annotation,

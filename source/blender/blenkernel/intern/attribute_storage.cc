@@ -13,6 +13,8 @@
 #include "BLI_string_utils.hh"
 #include "BLI_vector_set.hh"
 
+#include "PRF_profile.hh"
+
 #include "BLT_translation.hh"
 
 #include "BLO_read_write.hh"
@@ -375,6 +377,7 @@ void AttributeStorage::rename(const Map<Attribute *, StringRef> &renames)
 
 void AttributeStorage::resize(const AttrDomain domain, const int64_t new_size)
 {
+  PRF_scope_with_name("AttributeStorage::resize", ProfileCategory::Default);
   for (Attribute &attr : *this) {
     if (attr.domain() != domain) {
       continue;
@@ -652,7 +655,7 @@ void attribute_storage_blend_write_prepare(AttributeStorage &data,
       if (use_5_0_compatibility) {
         attribute_dna.storage_type = int8_t(AttrStorageType::Array);
         /* Convert single value storage to array storage for forward compatibility.
-         * See #AttributeArray::is_single) comment for more details. */
+         * See #AttributeArray::is_single comment for more details. */
         const CPPType &cpp_type = attribute_type_to_cpp_type(attr.data_type());
         const GPointer value(cpp_type, data->value);
         const int domain_size = get_domain_size(attr.domain());

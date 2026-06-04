@@ -436,7 +436,7 @@ float BPY_driver_exec(PathResolvedRNA *anim_rna,
     expr_vars = PyTuple_GET_ITEM(((PyObject *)driver_orig->expr_comp), 1);
     Py_XDECREF(expr_vars);
 
-    expr_vars = PyTuple_New(BLI_listbase_count(&driver_orig->variables));
+    expr_vars = PyTuple_New(driver_orig->variables.count());
     PyTuple_SET_ITEM(((PyObject *)driver_orig->expr_comp), 1, expr_vars);
 
     for (dvar = static_cast<DriverVar *>(driver_orig->variables.first), i = 0; dvar;

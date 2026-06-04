@@ -10,7 +10,7 @@
 
 #include "draw_curves_private.hh"
 #include "draw_pass.hh"
-struct ParticleHairCache;
+
 namespace blender {
 
 namespace bke {

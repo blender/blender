@@ -1225,7 +1225,7 @@ void gpu::MTLTexture::ensure_mipmaps(int miplvl)
   /* Clamp level to maximum. */
   int effective_h = (type_ == GPU_TEXTURE_1D_ARRAY) ? 0 : h_;
   int effective_d = (type_ != GPU_TEXTURE_3D) ? 0 : d_;
-  int max_dimension = max_iii(w_, effective_h, effective_d);
+  int max_dimension = std::max({w_, effective_h, effective_d});
   int max_miplvl = floor(log2(max_dimension));
   miplvl = min_ii(max_miplvl, miplvl);
 
@@ -1405,7 +1405,7 @@ void gpu::MTLTexture::clear(const double4 data)
    * not texture_ (which holds the parent's Metal handle). Metal strips
    * MTLTextureUsageRenderTarget from cross-format views, so delegate the clear
    * to the parent texture which retains full usage flags. */
-  else if (resource_mode_ == MTL_TEXTURE_MODE_TEXTURE_VIEW && source_texture_) {
+  if (resource_mode_ == MTL_TEXTURE_MODE_TEXTURE_VIEW && source_texture_) {
     id<MTLTexture> clear_texture = (mip_swizzle_view_ != nil) ? mip_swizzle_view_ : texture_;
     if (!(clear_texture.usage & MTLTextureUsageRenderTarget)) {
       gpu::MTLTexture *source_texture = const_cast<gpu::MTLTexture *>(

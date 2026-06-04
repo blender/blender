@@ -104,7 +104,9 @@ template<typename Accessor> inline void clear(bNode &node)
   destruct_array<Accessor>(node);
   SocketItemsRef ref = Accessor::get_items_from_node(node);
   *ref.items_num = 0;
-  *ref.active_index = 0;
+  if (ref.active_index) {
+    *ref.active_index = 0;
+  }
 }
 
 /**

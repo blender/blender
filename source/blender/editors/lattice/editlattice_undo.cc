@@ -107,7 +107,7 @@ static void undolatt_to_editlatt(UndoLattice *ult,
 
   STRNCPY(editlatt->latt->vgroup, ult->vgroup);
 
-  BLI_freelistN(vertex_group_names);
+  vertex_group_names->free_no_destruct();
   BKE_defgroup_copy_list(vertex_group_names, &ult->vertex_group_names);
   *vertex_group_active_index = ult->vertex_group_active_index;
 
@@ -166,7 +166,7 @@ static void undolatt_free_data(UndoLattice *ult)
     BKE_defvert_array_free(ult->dvert, ult->pntsu * ult->pntsv * ult->pntsw);
     ult->dvert = nullptr;
   }
-  BLI_freelistN(&ult->vertex_group_names);
+  ult->vertex_group_names.free_no_destruct();
 }
 
 #if 0

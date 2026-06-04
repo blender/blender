@@ -1,4 +1,4 @@
-/* SPDX-FileCopyrightText: 2011 Blender Authors
+/* SPDX-FileCopyrightText: 2011-2026 Blender Authors
  *
  * SPDX-License-Identifier: GPL-2.0-or-later */
 
@@ -80,7 +80,7 @@ static void movie_clip_runtime_reset(MovieClip *clip)
 {
   /* TODO: we could store those in undo cache storage as well, and preserve them instead of
    * re-creating them... */
-  BLI_listbase_clear(&clip->runtime.gputextures);
+  clip->runtime.gputextures.clear_no_delete();
 
   clip->runtime.last_update = 0;
 }
@@ -273,8 +273,8 @@ static void movieclip_blend_read_data(BlendDataReader *reader, ID *id)
   BLO_read_struct(reader, MovieTrackingTrack, &clip->tracking.stabilization.rot_track_legacy);
 
   clip->tracking.dopesheet.ok = 0;
-  BLI_listbase_clear(&clip->tracking.dopesheet.channels);
-  BLI_listbase_clear(&clip->tracking.dopesheet.coverage_segments);
+  clip->tracking.dopesheet.channels.clear_no_delete();
+  clip->tracking.dopesheet.coverage_segments.clear_no_delete();
 
   BLO_read_struct_list(reader, MovieTrackingObject, &tracking->objects);
 
@@ -378,15 +378,6 @@ static int rendersize_to_number(int render_size)
   }
 
   return 100;
-}
-
-static int get_timecode(MovieClip *clip, int flag)
-{
-  if ((flag & MCLIP_USE_PROXY) == 0) {
-    return IMB_TC_NONE;
-  }
-
-  return clip->proxy.tc;
 }
 
 static void get_sequence_filepath(const MovieClip *clip,
@@ -605,7 +596,6 @@ static ImBuf *movieclip_load_movie_file(MovieClip *clip,
                                         int flag)
 {
   ImBuf *ibuf = nullptr;
-  int tc = get_timecode(clip, flag);
   int proxy = rendersize_to_proxy(user, flag);
 
   movieclip_open_anim_file(clip);
@@ -613,7 +603,7 @@ static ImBuf *movieclip_load_movie_file(MovieClip *clip,
   if (clip->anim) {
     int fra = framenr - clip->start_frame + clip->frame_offset;
 
-    ibuf = MOV_decode_frame(clip->anim, fra, IMB_Timecode_Type(tc), IMB_Proxy_Size(proxy));
+    ibuf = MOV_decode_frame(clip->anim, fra, IMB_Proxy_Size(proxy));
   }
 
   return ibuf;
@@ -625,7 +615,7 @@ static void movieclip_calc_length(MovieClip *clip)
     movieclip_open_anim_file(clip);
 
     if (clip->anim) {
-      clip->len = MOV_get_duration_frames(clip->anim, IMB_Timecode_Type(clip->proxy.tc));
+      clip->len = MOV_get_duration_frames(clip->anim);
     }
   }
   else if (clip->source == MCLIP_SRC_SEQUENCE) {
@@ -1651,7 +1641,7 @@ static void free_buffers(MovieClip *clip)
       }
     }
   }
-  BLI_freelistN(&clip->runtime.gputextures);
+  clip->runtime.gputextures.free_no_destruct();
 }
 
 void BKE_movieclip_clear_cache(MovieClip *clip)
@@ -2064,7 +2054,7 @@ void BKE_movieclip_free_gputexture(MovieClip *clip)
    * movie clips around, as they can be large. */
   const int MOVIECLIP_NUM_GPUTEXTURES = 1;
 
-  while (BLI_listbase_count(&clip->runtime.gputextures) > MOVIECLIP_NUM_GPUTEXTURES) {
+  while (clip->runtime.gputextures.count() > MOVIECLIP_NUM_GPUTEXTURES) {
     MovieClip_RuntimeGPUTexture *tex = static_cast<MovieClip_RuntimeGPUTexture *>(
         BLI_pophead(&clip->runtime.gputextures));
     for (int i = 0; i < TEXTARGET_COUNT; i++) {

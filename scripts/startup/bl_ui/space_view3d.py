@@ -1269,13 +1269,31 @@ class VIEW3D_MT_transform_base:
         layout.separator()
 
         layout.operator("transform.tosphere", text="To Sphere")
-        if context.mode == 'EDIT_MESH':
-            layout.operator("mesh.circularize", text="To Circle")
-            layout.operator("mesh.flatten", text="Flatten")
-            layout.operator("mesh.space_edge_loops_evenly", text="Space Edge Loops Evenly")
         layout.operator("transform.shear", text="Shear")
         layout.operator("transform.bend", text="Bend")
         layout.operator("transform.push_pull", text="Push/Pull")
+
+        layout.separator()
+
+
+# Generic transform menu - geometry types
+class VIEW3D_MT_transform(VIEW3D_MT_transform_base, Menu):
+    def draw(self, context):
+        # base menu
+        VIEW3D_MT_transform_base.draw(self, context)
+
+        # generic...
+        layout = self.layout
+        if context.mode == 'EDIT_MESH':
+            layout.operator("mesh.circularize", text="To Circle")
+            layout.operator("mesh.flatten", text="Flatten")
+            layout.operator("transform.shrink_fatten", text="Shrink/Fatten")
+            layout.operator("mesh.space_edge_loops_evenly", text="Space Edge Loops Evenly")
+            layout.operator("transform.skin_resize")
+        elif context.mode in {'EDIT_CURVE', 'EDIT_GREASE_PENCIL', 'EDIT_CURVES', 'EDIT_POINTCLOUD'}:
+            layout.operator("transform.transform", text="Radius").mode = 'CURVE_SHRINKFATTEN'
+        if context.mode == 'EDIT_GREASE_PENCIL':
+            layout.operator("transform.transform", text="Opacity").mode = 'GPENCIL_OPACITY'
 
         if context.mode in {
             'EDIT_MESH',
@@ -1291,30 +1309,6 @@ class VIEW3D_MT_transform_base:
             layout.operator_context = 'EXEC_REGION_WIN'
             layout.operator("transform.vertex_random", text="Randomize").offset = 0.1
             layout.operator_context = 'INVOKE_REGION_WIN'
-
-
-# Generic transform menu - geometry types
-class VIEW3D_MT_transform(VIEW3D_MT_transform_base, Menu):
-    def draw(self, context):
-        # base menu
-        VIEW3D_MT_transform_base.draw(self, context)
-
-        # generic...
-        layout = self.layout
-        if context.mode == 'EDIT_MESH':
-            layout.operator("transform.shrink_fatten", text="Shrink/Fatten")
-            layout.operator("transform.skin_resize")
-        elif context.mode in {'EDIT_CURVE', 'EDIT_GREASE_PENCIL', 'EDIT_CURVES', 'EDIT_POINTCLOUD'}:
-            layout.operator("transform.transform", text="Radius").mode = 'CURVE_SHRINKFATTEN'
-        if context.mode == 'EDIT_GREASE_PENCIL':
-            layout.operator("transform.transform", text="Opacity").mode = 'GPENCIL_OPACITY'
-
-        if context.mode != 'EDIT_CURVES' and context.mode != 'EDIT_GREASE_PENCIL':
-            layout.separator()
-            props = layout.operator("transform.translate", text="Move Texture Space")
-            props.texture_space = True
-            props = layout.operator("transform.resize", text="Scale Texture Space")
-            props.texture_space = True
 
 
 # Object-specific extensions to Transform menu
@@ -2886,6 +2880,10 @@ class VIEW3D_MT_object_animation(Menu):
     def draw(self, _context):
         layout = self.layout
 
+        layout.menu("VIEW3D_MT_pose_slide")
+
+        layout.separator()
+
         layout.operator("anim.keyframe_insert", text="Insert Keyframe")
         layout.operator("anim.keyframe_insert_menu", text="Insert Keyframe with Keying Set...").always_prompt = True
         layout.operator("anim.keyframe_delete_v3d", text="Delete Keyframes...")
@@ -4231,10 +4229,6 @@ class VIEW3D_MT_pose(Menu):
         layout.separator()
 
         layout.menu("VIEW3D_MT_object_animation")
-
-        layout.separator()
-
-        layout.menu("VIEW3D_MT_pose_slide")
         layout.menu("VIEW3D_MT_pose_propagate")
 
         layout.separator()
@@ -9089,7 +9083,7 @@ class TOPBAR_PT_grease_pencil_vertex_color(Panel):
         row = layout.row(align=True)
         row.template_ID(paint, "palette", new="palette.new")
         if paint.palette:
-            layout.template_palette(paint, "palette", color=True)
+            layout.template_palette(paint, "palette")
 
         gp_settings = brush.gpencil_settings
         if brush.gpencil_brush_type in {'DRAW', 'FILL'}:

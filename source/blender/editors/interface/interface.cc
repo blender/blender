@@ -945,8 +945,8 @@ static void but_update_old_active_from_new(Button *oldbut, Button *but)
   BLI_assert(oldbut->active || oldbut->semi_modal_state);
 
   /* flags from the buttons we want to refresh, may want to add more here... */
-  const int flag_copy = BUT_REDALERT | UI_HAS_ICON | UI_SELECT_DRAW;
-  const int drawflag_copy = BUT_HAS_QUICK_TOOLTIP;
+  const int flag_copy = BUT_REDALERT | BUT_DISABLED | UI_HAS_ICON | UI_SELECT_DRAW;
+  const int drawflag_copy = BUT_HAS_QUICK_TOOLTIP | BUT_NO_TOOLTIP;
 
   /* still stuff needs to be copied */
   oldbut->rect = but->rect;
@@ -956,6 +956,8 @@ static void but_update_old_active_from_new(Button *oldbut, Button *but)
   oldbut->icon = but->icon;
   oldbut->iconadd = but->iconadd;
   oldbut->alignnr = but->alignnr;
+
+  oldbut->text_direction = but->text_direction;
 
   /* typically the same pointers, but not on undo/redo */
   /* XXX some menu buttons store button itself in but->poin. Ugly */
@@ -1146,7 +1148,7 @@ static bool but_update_from_old_block(Block *block,
 
     but_update_old_active_from_new(oldbut, but);
 
-    if (!BLI_listbase_is_empty(&block->butstore)) {
+    if (!block->butstore.is_empty()) {
       butstore_register_update(block, oldbut, but);
     }
 
@@ -1524,7 +1526,7 @@ static std::optional<std::string> but_event_property_operator_string(const bCont
              def_but_rna__panel_type,
              def_but_rna__menu_type))
     {
-      prop_enum_value = int(but->hardmin);
+      prop_enum_value = but->retval;
       ptr = &but_parent->rnapoin;
       prop = but_parent->rnaprop;
       prop_enum_value_ok = true;
@@ -1744,10 +1746,10 @@ static void menu_block_set_keymaps(const bContext *C, Block *block)
 
 void button_override_flag(Main *bmain, Button *but)
 {
-  const uint override_status = RNA_property_override_library_status(
+  const eRNAOverrideStatus override_status = RNA_property_override_library_status(
       bmain, &but->rnapoin, but->rnaprop, but->rnaindex);
 
-  if (override_status & RNA_OVERRIDE_STATUS_OVERRIDDEN) {
+  if (flag_is_set(override_status, eRNAOverrideStatus::LibOverridden)) {
     but->flag |= BUT_OVERRIDDEN;
   }
   else {
@@ -1808,7 +1810,7 @@ void button_extra_operator_icons_free(Button *but)
   for (ButtonExtraOpIcon &op_icon : but->extra_op_icons.items_mutable()) {
     but_extra_operator_icon_free(&op_icon);
   }
-  BLI_listbase_clear(&but->extra_op_icons);
+  but->extra_op_icons.clear_no_delete();
 }
 
 PointerRNA *button_extra_operator_icon_add(Button *but,
@@ -1981,7 +1983,7 @@ void block_update_from_old(const bContext *C, Block *block)
     return;
   }
 
-  if (BLI_listbase_is_empty(&block->oldblock->butstore) == false) {
+  if (block->oldblock->butstore.is_empty() == false) {
     butstore_update(block);
   }
 
@@ -2989,11 +2991,16 @@ void button_convert_to_unit_alt_name(Button *but, char *str, size_t str_maxncpy)
 /**
  * \param float_precision: Override the button precision.
  */
-static void get_but_string_unit(
-    Button *but, char *str, int str_maxncpy, double value, bool pad, int float_precision)
+static void get_but_string_unit(Button *but,
+                                char *str,
+                                int str_maxncpy,
+                                double value,
+                                bool pad,
+                                int float_precision,
+                                bool do_suffix)
 {
   const UnitSettings *unit = but->block->unit;
-  const int unit_type = button_unit_type_get(but);
+  const int unit_type = RNA_SUBTYPE_UNIT_VALUE(button_unit_type_get(but));
   int precision;
 
   BLI_assert(unit->scale_length > 0.0f);
@@ -3017,9 +3024,10 @@ static void get_but_string_unit(
                            str_maxncpy,
                            get_but_scale_unit(but, value),
                            precision,
-                           RNA_SUBTYPE_UNIT_VALUE(unit_type),
+                           unit_type,
                            *unit,
-                           pad);
+                           pad,
+                           do_suffix);
 }
 
 static float get_but_step_unit(Button *but, float step_default)
@@ -3169,7 +3177,11 @@ void button_string_get_ex(Button *but,
       }
 
       if (button_is_unit(but)) {
-        get_but_string_unit(but, str, str_maxncpy, value, false, prec);
+        /* In case where the unit is adaptive, include the unit in the edit string. Otherwise the
+         * unit is added as an edit hint. */
+        const int unit_type = RNA_SUBTYPE_UNIT_VALUE(button_unit_type_get(but));
+        const bool do_suffix = BKE_unit_is_adaptive(*but->block->unit, unit_type);
+        get_but_string_unit(but, str, str_maxncpy, value, false, prec, do_suffix);
       }
       else if (subtype == PROP_FACTOR) {
         if (U.factor_display_type == USER_FACTOR_AS_FACTOR) {
@@ -3801,9 +3813,9 @@ void block_free(const bContext *C, Block *block)
 
   block_free_active_operator(block);
 
-  BLI_freelistN(&block->saferct);
-  BLI_freelistN(&block->color_pickers.list);
-  BLI_freelistN(&block->dynamic_listeners);
+  block->saferct.free_no_destruct();
+  block->color_pickers.list.free_no_destruct();
+  block->dynamic_listeners.free_no_destruct();
 
   block_free_views(block);
 
@@ -4031,7 +4043,7 @@ static void but_build_drawstr_float(Button *but, double value)
   }
   else if (button_is_unit(but)) {
     char new_str[UI_MAX_DRAW_STR];
-    get_but_string_unit(but, new_str, sizeof(new_str), value, true, -1);
+    get_but_string_unit(but, new_str, sizeof(new_str), value, true, -1, true);
     but->drawstr = but->str + new_str;
   }
   else {
@@ -4733,7 +4745,6 @@ static void def_but_rna__menu(bContext *C, Layout *layout, void *but_p)
                                     UI_UNIT_Y,
                                     &handle->retvalue,
                                     description_static);
-        button_retval_set(item_but, B_NOP);
       }
       else {
         item_but = uiDefButV(block,
@@ -4744,17 +4755,15 @@ static void def_but_rna__menu(bContext *C, Layout *layout, void *but_p)
                              UI_UNIT_X * 5,
                              UI_UNIT_X,
                              &handle->retvalue,
-                             item->value,
+                             0.0,
                              0.0,
                              description_static);
-        button_retval_set(item_but, B_NOP);
       }
       if (item->value == current_value) {
         item_but->flag |= UI_SELECT_DRAW;
       }
 
-      /* "hardmin" is used to store the value of the enum item. */
-      item_but->hardmin = float(item->value);
+      button_enum_prop_value_set(item_but, item->value);
 
       if (use_enum_copy_description) {
         if (item->description && item->description[0]) {
@@ -5160,6 +5169,11 @@ Button *uiDefButAlert(Block *block, AlertIcon icon, int x, int y, short width, s
     return uiDefButImage(block, ibuf, x, y, ibuf->x, ibuf->y, btheme->tui.wcol_menu_back.text);
   }
   return nullptr;
+}
+
+void button_enum_prop_value_set(Button *but, int retval)
+{
+  but->retval = retval;
 }
 
 void button_retval_set(Button *but, int retval)

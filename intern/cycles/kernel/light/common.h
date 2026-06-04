@@ -71,18 +71,21 @@ ccl_device float light_pdf_area_to_solid_angle(const float3 Ng, const float3 I, 
 }
 
 /* Visibility flag om the light shader. */
-ccl_device_inline bool is_light_shader_visible_to_path(const int shader, const uint32_t path_flag)
+ccl_device_inline bool is_light_shader_visible_to_path(const int shader,
+                                                       const PathRayVisibility path_visibility,
+                                                       const uint32_t path_flag)
 {
   if ((shader & SHADER_EXCLUDE_ANY) == 0) {
     return true;
   }
 
-  if (((shader & SHADER_EXCLUDE_DIFFUSE) && (path_flag & PATH_RAY_DIFFUSE)) ||
-      ((shader & SHADER_EXCLUDE_GLOSSY) && ((path_flag & (PATH_RAY_GLOSSY | PATH_RAY_REFLECT)) ==
-                                            (PATH_RAY_GLOSSY | PATH_RAY_REFLECT))) ||
-      ((shader & SHADER_EXCLUDE_TRANSMIT) && (path_flag & PATH_RAY_TRANSMIT)) ||
-      ((shader & SHADER_EXCLUDE_CAMERA) && (path_flag & PATH_RAY_CAMERA)) ||
-      ((shader & SHADER_EXCLUDE_SCATTER) && (path_flag & PATH_RAY_VOLUME_SCATTER)))
+  if (((shader & SHADER_EXCLUDE_DIFFUSE) && (path_visibility & PATH_RAY_VISIBILITY_DIFFUSE)) ||
+      ((shader & SHADER_EXCLUDE_GLOSSY) &&
+       ((path_visibility & PATH_RAY_VISIBILITY_GLOSSY) && (path_flag & PATH_RAY_REFLECT))) ||
+      ((shader & SHADER_EXCLUDE_TRANSMIT) && (path_visibility & PATH_RAY_VISIBILITY_TRANSMIT)) ||
+      ((shader & SHADER_EXCLUDE_CAMERA) && (path_visibility & PATH_RAY_VISIBILITY_CAMERA)) ||
+      ((shader & SHADER_EXCLUDE_SCATTER) &&
+       (path_visibility & PATH_RAY_VISIBILITY_VOLUME_SCATTER)))
   {
     return false;
   }

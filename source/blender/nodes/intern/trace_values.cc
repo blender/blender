@@ -692,6 +692,9 @@ LinkedClosureSignatures gather_linked_target_closure_signatures(
                 define_signature = bool(storage.flag &
                                         NODE_EVALUATE_CLOSURE_FLAG_DEFINE_SIGNATURE);
               }
+              else if (node.is_type("GeometryNodeClosureToList"_ustr)) {
+                define_signature = true;
+              }
               result.items.append(
                   {(*closure_decl->create_signature)(node), define_signature, socket});
               return true;

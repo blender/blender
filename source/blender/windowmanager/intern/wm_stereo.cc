@@ -392,9 +392,9 @@ void wm_stereo3d_set_draw(bContext * /*C*/, wmOperator *op)
 
 bool wm_stereo3d_set_check(bContext * /*C*/, wmOperator * /*op*/)
 {
-  /* The check function guarantees that the menu is updated to show the
-   * sub-options when an enum change (e.g., it shows the anaglyph options
-   * when anaglyph is on, and the interlace options when this is on. */
+  /* The check function guarantees that the menu is updated to show the sub-options when an enum
+   * changes (e.g. it shows the anaglyph options when anaglyph is on,
+   * and the interlace options when this is on). */
   return true;
 }
 

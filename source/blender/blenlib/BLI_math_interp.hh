@@ -221,7 +221,7 @@ inline void interpolate_nearest_fl(
 }
 
 /**
- * Equal to int(mod_periodic(u, float(size)) for |u| <= MAXINT.
+ * Equal to int(mod_periodic(u, float(size))) for |u| <= MAXINT.
  * However other values of u, including inf and NaN, produce in-range values,
  * this is also at least 5% faster.
  */

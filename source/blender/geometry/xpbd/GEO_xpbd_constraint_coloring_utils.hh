@@ -12,13 +12,13 @@
 namespace blender::xpbd {
 
 ConstraintColoring color_constraints__unary(const Span<int> affected_points,
-                                            IndexMaskMemory &memory);
+                                            LinearAllocator<> &memory);
 
 ConstraintColoring color_constraints__binary(const Span<int2> affected_points,
-                                             IndexMaskMemory &memory);
+                                             LinearAllocator<> &memory);
 
 ConstraintColoring color_constraints__n_ary(const GroupedSpan<int> affected_points,
-                                            IndexMaskMemory &memory);
+                                            LinearAllocator<> &memory);
 
 ConstraintColoring color_constraints__all_independent(const int constraints_num);
 

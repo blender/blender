@@ -327,12 +327,24 @@ class AttributeTableBuilder {
       return;
     }
 
-    /* store element and type */
+    /* For hair and pointcloud, pack combined position + radius as float4. */
+    if (mattr->std == ATTR_STD_POSITION && (geom->is_hair() || geom->is_pointcloud())) {
+      add_position_radius(geom, mattr, type, desc);
+      return;
+    }
+    if (mattr->std == ATTR_STD_RADIUS && (geom->is_hair() || geom->is_pointcloud())) {
+      desc.element = ATTR_ELEMENT_NONE;
+      desc.offset = 0;
+      return;
+    }
+
+    /* Store element and type. */
     desc.element = mattr->element;
     type = mattr->type;
 
-    /* store attribute data in arrays */
-    const size_t size = Attribute::element_size(geom, mattr->element, prim);
+    /* Store attribute data in arrays, including possible motion steps. */
+    const size_t per_step = Attribute::element_size(geom, mattr->element, prim);
+    const int num_motion = mattr->motion.size();
 
     const AttributeElement &element = desc.element;
     int &offset = desc.offset;
@@ -343,35 +355,55 @@ class AttributeTableBuilder {
       offset = handle.kernel_id();
     }
     else if (mattr->element & ATTR_ELEMENT_IS_BYTE) {
-      offset = attr_uchar4.add(mattr->data_uchar4(), size, mattr->modified);
+      offset = attr_uchar4.add(mattr->data<uchar4>(), per_step, mattr->modified);
+      for (int step = 1; step <= num_motion; step++) {
+        attr_uchar4.add(mattr->data<uchar4>(step), per_step, mattr->modified);
+      }
     }
     else if (mattr->element & ATTR_ELEMENT_IS_NORMAL) {
-      offset = attr_normal.add(mattr->data_normal(), size, mattr->modified);
+      offset = attr_normal.add(mattr->data<packed_normal>(), per_step, mattr->modified);
+      for (int step = 1; step <= num_motion; step++) {
+        attr_normal.add(mattr->data<packed_normal>(step), per_step, mattr->modified);
+      }
     }
     else if (mattr->type == TypeFloat) {
-      offset = attr_float.add(mattr->data_float(), size, mattr->modified);
+      offset = attr_float.add(mattr->data<float>(), per_step, mattr->modified);
+      for (int step = 1; step <= num_motion; step++) {
+        attr_float.add(mattr->data<float>(step), per_step, mattr->modified);
+      }
     }
     else if (mattr->type == TypeFloat2) {
-      offset = attr_float2.add(mattr->data_float2(), size, mattr->modified);
+      offset = attr_float2.add(mattr->data<float2>(), per_step, mattr->modified);
+      for (int step = 1; step <= num_motion; step++) {
+        attr_float2.add(mattr->data<float2>(step), per_step, mattr->modified);
+      }
     }
     else if (mattr->type == TypeMatrix) {
-      offset = attr_float4.add((float4 *)mattr->data_transform(), size * 3, mattr->modified);
+      offset = attr_float4.add(
+          (const float4 *)mattr->data<Transform>(), per_step * 3, mattr->modified);
+      for (int step = 1; step <= num_motion; step++) {
+        attr_float4.add(
+            (const float4 *)mattr->data<Transform>(step), per_step * 3, mattr->modified);
+      }
     }
     else if (mattr->type == TypeFloat4 || mattr->type == TypeRGBA) {
-      offset = attr_float4.add(mattr->data_float4(), size, mattr->modified);
+      offset = attr_float4.add(mattr->data<float4>(), per_step, mattr->modified);
+      for (int step = 1; step <= num_motion; step++) {
+        attr_float4.add(mattr->data<float4>(step), per_step, mattr->modified);
+      }
     }
     else {
-      offset = attr_float3.add(mattr->data_float3(), size, mattr->modified);
+      offset = attr_float3.add(mattr->data<packed_float3>(), per_step, mattr->modified);
+      for (int step = 1; step <= num_motion; step++) {
+        attr_float3.add(mattr->data<packed_float3>(step), per_step, mattr->modified);
+      }
     }
 
-    /* mesh vertex/curve index is global, not per object, so we sneak
-     * a correction for that in here */
-    if (geom->is_mesh()) {
+    /* Primitive index is global, not per object, so we sneak a correction
+     * for that in here. Vertex index is per object. */
+    if (geom->is_mesh() || geom->is_volume()) {
       Mesh *mesh = static_cast<Mesh *>(geom);
-      if (element & ATTR_ELEMENT_VERTEX) {
-        offset -= mesh->vert_offset;
-      }
-      else if (element & ATTR_ELEMENT_FACE) {
+      if (element & ATTR_ELEMENT_FACE) {
         offset -= mesh->prim_offset;
       }
       else if (element & ATTR_ELEMENT_CORNER) {
@@ -382,9 +414,6 @@ class AttributeTableBuilder {
       Hair *hair = static_cast<Hair *>(geom);
       if (element & ATTR_ELEMENT_CURVE) {
         offset -= hair->prim_offset;
-      }
-      else if (element & ATTR_ELEMENT_CURVE_KEY) {
-        offset -= hair->curve_key_offset;
       }
     }
     else if (geom->is_pointcloud()) {
@@ -400,7 +429,10 @@ class AttributeTableBuilder {
       return;
     }
 
-    const size_t size = Attribute::element_size(geom, mattr->element, prim);
+    /* Must match the number of steps written by add(), which is derived from
+     * the attribute's own stored motion steps rather than geom->get_motion_steps(). */
+    const int steps = mattr->num_motion_steps();
+    const size_t size = Attribute::element_size(geom, mattr->element, prim) * steps;
 
     if (mattr->element & ATTR_ELEMENT_VOXEL) {
       /* pass */
@@ -426,6 +458,47 @@ class AttributeTableBuilder {
     else {
       attr_float3.reserve(size);
     }
+  }
+
+  /* Pack combined position + radius for hair and point cloud. */
+  void add_position_radius(Geometry *geom,
+                           Attribute *attr_P,
+                           TypeDesc &type,
+                           AttributeDescriptor &desc)
+  {
+    Attribute *attr_R = geom->attributes.find(ATTR_STD_RADIUS);
+    const size_t base_size = attr_P->size;
+    const int steps = attr_P->has_motion() ? geom->get_motion_steps() : 1;
+    const size_t total_size = base_size * steps;
+
+    vector<float4> combined(total_size);
+    for (int step = 0; step < steps; step++) {
+      const packed_float3 *P = attr_P->data<packed_float3>(step);
+      const float *R = attr_R->data<float>(step);
+      const size_t dst_offset = size_t(step) * base_size;
+      for (size_t i = 0; i < base_size; i++) {
+        combined[dst_offset + i] = make_float4(P[i], R[i]);
+      }
+    }
+
+    desc.element = attr_P->element;
+    type = TypeFloat4;
+
+    int &offset = desc.offset;
+    const bool modified = attr_P->modified || attr_R->modified;
+    offset = attr_float4.add(combined.data(), total_size, modified);
+
+    /* Pointcloud uses global primitive index. */
+    if (geom->is_pointcloud()) {
+      offset -= geom->prim_offset;
+    }
+  }
+
+  void reserve_position_radius(Geometry *geom, Attribute *attr_P)
+  {
+    const int steps = attr_P->has_motion() ? geom->get_motion_steps() : 1;
+    const size_t total_size = attr_P->size * steps;
+    attr_float4.reserve(total_size);
   }
 
   void alloc()
@@ -476,10 +549,9 @@ void GeometryManager::device_update_attributes(Device *device,
 
     for (const Attribute &attr : geom->attributes.attributes) {
       switch (attr.std) {
+        case ATTR_STD_POSITION:
         case ATTR_STD_VERTEX_NORMAL:
-        case ATTR_STD_MOTION_VERTEX_NORMAL:
         case ATTR_STD_CORNER_NORMAL:
-        case ATTR_STD_MOTION_CORNER_NORMAL:
         case ATTR_STD_SHADOW_TRANSPARENCY:
           geom_attributes[i].add(attr.std);
           break;
@@ -536,6 +608,16 @@ void GeometryManager::device_update_attributes(Device *device,
     AttributeRequestSet &attributes = geom_attributes[i];
     for (AttributeRequest &req : attributes.requests) {
       Attribute *attr = geom->attributes.find(req);
+      if (attr && (geom->is_hair() || geom->is_pointcloud())) {
+        /* Special cases for packed position + radius. */
+        if (attr->std == ATTR_STD_POSITION) {
+          builder.reserve_position_radius(geom, attr);
+          continue;
+        }
+        if (attr->std == ATTR_STD_RADIUS) {
+          continue;
+        }
+      }
       builder.reserve(geom, attr, ATTR_PRIM_GEOMETRY);
     }
   }

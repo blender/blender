@@ -410,7 +410,7 @@ void BM_mesh_bm_from_me(BMesh *bm, const Mesh *mesh, const BMeshFromMeshParams *
     /* Evaluated meshes can be topologically inconsistent with their shape keys.
      * Shape keys are also already integrated into the state of the evaluated
      * mesh, so considering them here would kind of apply them twice. */
-    tot_shape_keys = BLI_listbase_count(&mesh->key->block);
+    tot_shape_keys = mesh->key->block.count();
 
     /* Original meshes must never contain a shape-key custom-data layers.
      *
@@ -872,7 +872,7 @@ static int bm_to_mesh_shape_layer_index_from_kb(BMesh *bm, KeyBlock *currkey)
  * basis are typically copied into the `positions` array since it makes sense for the meshes
  * vertex coordinates to match the "Basis" key.
  * When enabled, skip this step and copy #BMVert.co directly to the mesh position.
- * See #BMeshToMeshParams.active_shapekey_to_mvert doc-string.
+ * See #BMeshToMeshParams.active_shapekey_to_mvert docstring.
  */
 static void bm_to_mesh_shape(BMesh *bm,
                              Key *key,

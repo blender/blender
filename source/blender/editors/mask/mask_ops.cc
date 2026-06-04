@@ -1547,7 +1547,7 @@ static wmOperatorStatus delete_exec(bContext *C, wmOperator * /*op*/)
 
     /* Not essential but confuses users when there are keys with no data!
      * Assume if they delete all data from the layer they also don't care about keys. */
-    if (BLI_listbase_is_empty(&mask_layer.splines)) {
+    if (mask_layer.splines.is_empty()) {
       BKE_mask_layer_free_shapes(&mask_layer);
     }
   }

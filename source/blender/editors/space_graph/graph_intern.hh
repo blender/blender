@@ -113,6 +113,7 @@ void GRAPH_OT_previewrange_set(wmOperatorType *ot);
 void GRAPH_OT_view_all(wmOperatorType *ot);
 void GRAPH_OT_view_selected(wmOperatorType *ot);
 void GRAPH_OT_view_frame(wmOperatorType *ot);
+void GRAPH_OT_local_view(wmOperatorType *ot);
 
 void GRAPH_OT_click_insert(wmOperatorType *ot);
 void GRAPH_OT_keyframe_insert(wmOperatorType *ot);

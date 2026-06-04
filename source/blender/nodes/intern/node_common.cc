@@ -41,6 +41,7 @@
 #include "NOD_common.hh"
 #include "NOD_composite.hh"
 #include "NOD_geometry_exec.hh"
+#include "NOD_geometry_nodes_closure_signature.hh"
 #include "NOD_node_declaration.hh"
 #include "NOD_node_extra_info.hh"
 #include "NOD_register.hh"
@@ -252,7 +253,7 @@ get_init_socket_fn(const bNodeTreeInterface &tree_interface,
     }
     bNodeTree &ntree = *reinterpret_cast<bNodeTree *>(node.id);
     const bNodeTreeInterfaceItem *io_item = ntree.tree_interface.get_item_at_index(item_index);
-    if (io_item == nullptr || io_item->item_type != NODE_INTERFACE_SOCKET) {
+    if (io_item == nullptr || io_item->item_type != NodeTreeInterfaceItemType::Socket) {
       return;
     }
     const bNodeTreeInterfaceSocket &io_socket =
@@ -443,9 +444,6 @@ static BaseSocketDeclarationBuilder &build_interface_socket_declaration(
   if (structure_type) {
     decl->structure_type(*structure_type);
   }
-  if (io_socket.default_input != NODE_DEFAULT_INPUT_VALUE) {
-    decl->hide_value();
-  }
   return *decl;
 }
 
@@ -469,8 +467,8 @@ static void node_group_declare_panel_recursive(
   };
 
   for (const bNodeTreeInterfaceItem *item : io_parent_panel.items()) {
-    switch (eNodeTreeInterfaceItemType(item->item_type)) {
-      case NODE_INTERFACE_SOCKET: {
+    switch (item->item_type) {
+      case NodeTreeInterfaceItemType::Socket: {
         const auto &io_socket = node_interface::get_item_as<bNodeTreeInterfaceSocket>(*item);
         const eNodeSocketInOut in_out = (io_socket.flag & NODE_INTERFACE_SOCKET_INPUT) ? SOCK_IN :
                                                                                          SOCK_OUT;
@@ -481,7 +479,7 @@ static void node_group_declare_panel_recursive(
             group, io_socket, structure_type_by_socket.lookup_try(&io_socket), in_out, b);
         break;
       }
-      case NODE_INTERFACE_PANEL: {
+      case NodeTreeInterfaceItemType::Panel: {
         add_layout_if_needed();
         const auto &io_panel = node_interface::get_item_as<bNodeTreeInterfacePanel>(*item);
         auto &panel_b = b.add_panel(UString(io_panel.name), io_panel.identifier)
@@ -847,7 +845,6 @@ static void node_implicit_conversion_declare(nodes::NodeDeclarationBuilder &b)
   b.add_output<nodes::decl::Custom>("Value"_ustr)
       .idname(socket_idname.c_str())
       .structure_type(nodes::StructureType::Dynamic)
-      .reference_pass_all()
       .propagate_all()
       .align_with_previous();
 }
@@ -983,8 +980,8 @@ static void group_input_declare(NodeDeclarationBuilder &b)
     return;
   }
   node_tree->tree_interface.foreach_item([&](const bNodeTreeInterfaceItem &item) {
-    switch (eNodeTreeInterfaceItemType(item.item_type)) {
-      case NODE_INTERFACE_SOCKET: {
+    switch (item.item_type) {
+      case NodeTreeInterfaceItemType::Socket: {
         const bNodeTreeInterfaceSocket &socket =
             node_interface::get_item_as<bNodeTreeInterfaceSocket>(item);
         if (socket.flag & NODE_INTERFACE_SOCKET_INPUT) {
@@ -998,7 +995,7 @@ static void group_input_declare(NodeDeclarationBuilder &b)
         }
         break;
       }
-      case NODE_INTERFACE_PANEL: {
+      case NodeTreeInterfaceItemType::Panel: {
         break;
       }
     }
@@ -1014,8 +1011,8 @@ static void group_output_declare(NodeDeclarationBuilder &b)
     return;
   }
   node_tree->tree_interface.foreach_item([&](const bNodeTreeInterfaceItem &item) {
-    switch (eNodeTreeInterfaceItemType(item.item_type)) {
-      case NODE_INTERFACE_SOCKET: {
+    switch (item.item_type) {
+      case NodeTreeInterfaceItemType::Socket: {
         const bNodeTreeInterfaceSocket &socket =
             node_interface::get_item_as<bNodeTreeInterfaceSocket>(item);
         if (socket.flag & NODE_INTERFACE_SOCKET_OUTPUT) {
@@ -1024,7 +1021,7 @@ static void group_output_declare(NodeDeclarationBuilder &b)
         }
         break;
       }
-      case NODE_INTERFACE_PANEL: {
+      case NodeTreeInterfaceItemType::Panel: {
         break;
       }
     }

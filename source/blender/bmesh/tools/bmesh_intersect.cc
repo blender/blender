@@ -324,9 +324,9 @@ static enum ISectType intersect_line_tri(const float p0[3],
     {
       if ((fac >= e->eps_margin) && (fac <= 1.0f - e->eps_margin)) {
         interp_v3_v3v3(r_ix, p0, p1, fac);
-        if (min_fff(len_squared_v3v3(t_cos[0], r_ix),
-                    len_squared_v3v3(t_cos[1], r_ix),
-                    len_squared_v3v3(t_cos[2], r_ix)) >= e->eps_margin_sq)
+        if (std::min({len_squared_v3v3(t_cos[0], r_ix),
+                      len_squared_v3v3(t_cos[1], r_ix),
+                      len_squared_v3v3(t_cos[2], r_ix)}) >= e->eps_margin_sq)
         {
           return IX_EDGE_TRI;
         }

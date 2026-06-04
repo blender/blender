@@ -88,7 +88,7 @@
     - 1.000 1.000 1.000 1.000 1.000 1.000 1.000 1.000 1.000 1.000 1.000 1.000 
 
 ==== Objects: 4
-- Obj 'Arm' MESH data:'Arm' par:'Model'
+- Obj 'Arm' MESH data:'Arm' par:'Skel'
   - pos 0.000, 0.000, 0.000
   - rot 0.000, 0.000, 0.000 (XYZ)
   - scl 1.000, 1.000, 1.000

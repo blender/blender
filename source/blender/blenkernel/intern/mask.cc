@@ -65,7 +65,7 @@ static void mask_copy_data(Main * /*bmain*/,
   Mask *mask_dst = id_cast<Mask *>(id_dst);
   const Mask *mask_src = id_cast<const Mask *>(id_src);
 
-  BLI_listbase_clear(&mask_dst->masklayers);
+  mask_dst->masklayers.clear_no_delete();
 
   /* TODO: add unused flag to those as well. */
   BKE_mask_layer_copy_list(&mask_dst->masklayers, &mask_src->masklayers);
@@ -1967,7 +1967,7 @@ static void mask_clipboard_clear()
 {
   MaskClipboard &mask_clipboard = get_mask_clipboard();
   BKE_mask_spline_free_list(&mask_clipboard.splines);
-  BLI_listbase_clear(&mask_clipboard.splines);
+  mask_clipboard.splines.clear_no_delete();
   mask_clipboard.id_hash.clear();
 }
 

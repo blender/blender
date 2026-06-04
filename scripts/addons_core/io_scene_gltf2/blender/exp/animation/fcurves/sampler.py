@@ -5,11 +5,13 @@
 import bpy
 import typing
 import mathutils
+import numpy as np
 from .....io.com import gltf2_io
 from .....io.com import constants as gltf2_io_constants
 from .....blender.com.conversion import get_gltf_interpolation
 from .....io.exp import binary_data as gltf2_io_binary_data
 from .....io.exp.user_extensions import export_user_extensions
+from .....io.exp.meshopt import MeshoptEncoder
 from ....com.data_path import get_target_property_name
 from ....com import gltf2_blender_math
 from ...cache import cached
@@ -81,13 +83,29 @@ def __convert_keyframes(
         export_settings):
 
     times = [k.seconds for k in keyframes]
+
+    binary_data = gltf2_io_binary_data.BinaryData.from_list(times, gltf2_io_constants.ComponentType.Float)
+    if export_settings['gltf_meshopt_compression']:
+        compressed_time, filter = MeshoptEncoder.encode_attribute(
+            'TIME', np.array(times, dtype=np.float32), 4, export_settings)
+        binary_data.set_extension(export_settings['gltf_meshopt_extension'], {
+            'buffer': compressed_time,  # to be filled in later by the exporter, use data in placeholder for now
+            'byteOffset': None,  # to be filled in later by the exporter
+            'byteLength': len(compressed_time),
+            'byteStride': 4,
+            'count': len(times),
+            'mode': 'ATTRIBUTES',
+            'filter': filter
+        })
+
     input = gather_accessor(
-        gltf2_io_binary_data.BinaryData.from_list(times, gltf2_io_constants.ComponentType.Float),
+        binary_data,
         gltf2_io_constants.ComponentType.Float,
         len(times),
         tuple([max(times)]),
         tuple([min(times)]),
         gltf2_io_constants.DataType.Scalar,
+        None,
         export_settings)
 
     is_yup = export_settings['gltf_yup']
@@ -199,8 +217,72 @@ def __convert_keyframes(
     else:
         data_type = gltf2_io_constants.DataType.vec_type_from_num(len(keyframes[0].value))
 
+    binary_data = gltf2_io_binary_data.BinaryData.from_list(values, component_type)
+    output_normalized = None
+
+    if export_settings['gltf_meshopt_compression']:
+
+        compressed_type = {
+            'location': 'POSITION',
+            'rotation_quaternion': 'ROTATION',
+            'rotation_euler': 'ROTATION',
+            'scale': 'SCALE',
+        }.get(target_datapath, None)
+
+        if compressed_type is not None:
+            target = target_datapath
+
+        if compressed_type is None and target_datapath.startswith('key_blocks'):
+            compressed_type = 'SK_ANIM'
+
+        if compressed_type is None and target_datapath.startswith('pose.bones'):
+            compressed_type = {
+                'location': 'POSITION',
+                'rotation_quaternion': 'ROTATION',
+                'rotation_euler': 'ROTATION',
+                'scale': 'SCALE',
+            }.get(get_target_property_name(target_datapath), None)
+
+            if compressed_type is not None:
+                target = get_target_property_name(target_datapath)
+
+        byteStride = {
+            'location': 12,
+            'rotation_quaternion': 8,
+            'rotation_euler': 8,
+            'scale': 12,
+        }.get(target, None)
+
+        if compressed_type is not None and byteStride is None:
+            byteStride = 4  # SK_ANIM
+
+        if compressed_type is not None:
+            num_components = gltf2_io_constants.DataType.num_elements(data_type)
+            compressed_values, filter = MeshoptEncoder.encode_attribute(compressed_type, np.array(
+                values, dtype=np.float32).reshape(-1, num_components), byteStride, export_settings)
+
+            if filter == 'QUATERNION':
+                component_type = gltf2_io_constants.ComponentType.Short
+                output_normalized = True
+            else:
+                output_normalized = None
+
+            binary_data.set_extension(export_settings['gltf_meshopt_extension'], {
+                'buffer': compressed_values,  # to be filled in later by the exporter, use data in placeholder for now
+                'byteOffset': None,  # to be filled in later by the exporter
+                'byteLength': len(compressed_values),
+                'count': len(values) // gltf2_io_constants.DataType.num_elements(data_type),
+                'byteStride': byteStride,
+                'mode': 'ATTRIBUTES',
+                'filter': filter
+            })
+
+        else:
+            export_settings['log'].warning(
+                f"Meshopt compression for channel {target_datapath} is not supported, skipping compression for this channel")
+
     output = gltf2_io.Accessor(
-        buffer_view=gltf2_io_binary_data.BinaryData.from_list(values, component_type),
+        buffer_view=binary_data,
         byte_offset=None,
         component_type=component_type,
         count=len(values) // gltf2_io_constants.DataType.num_elements(data_type),
@@ -209,7 +291,7 @@ def __convert_keyframes(
         max=None,
         min=None,
         name=None,
-        normalized=None,
+        normalized=output_normalized,
         sparse=None,
         type=data_type
     )

@@ -260,7 +260,8 @@ int imagewrap(Tex *tex,
     texres->tin = texres->trgba[3];
   }
   else if (tex->imaflag & TEX_CALCALPHA) {
-    texres->trgba[3] = texres->tin = max_fff(texres->trgba[0], texres->trgba[1], texres->trgba[2]);
+    texres->trgba[3] = texres->tin = std::max(
+        {texres->trgba[0], texres->trgba[1], texres->trgba[2]});
   }
   else {
     texres->trgba[3] = texres->tin = 1.0;

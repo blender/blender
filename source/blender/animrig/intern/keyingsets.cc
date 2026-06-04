@@ -253,7 +253,7 @@ ModifyKeyReturn validate_keyingset(bContext *C, Vector<PointerRNA> *sources, Key
   /* If we don't have any paths now, then this still qualifies as invalid context. */
   /* FIXME: we need some error conditions (to be retrieved from the iterator why this failed!)
    */
-  if (BLI_listbase_is_empty(&keyingset->paths)) {
+  if (keyingset->paths.is_empty()) {
     return ModifyKeyReturn::INVALID_CONTEXT;
   }
 

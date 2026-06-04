@@ -100,6 +100,15 @@ void ED_undo_push(bContext *C, const char *str)
   WM_file_tag_modified();
 
   wmWindowManager *wm = CTX_wm_manager(C);
+  if (G.background) {
+    /* Python developers may have explicitly created the undo stack in background mode,
+     * otherwise allow it to be nullptr, see: #60934.
+     * Otherwise it must never be nullptr, even when undo is disabled. */
+    if (wm->runtime->undo_stack == nullptr) {
+      return;
+    }
+  }
+
   int steps = U.undosteps;
 
   /* Ensure steps that have been initialized are always pushed,
@@ -115,14 +124,6 @@ void ED_undo_push(bContext *C, const char *str)
   }
   if (steps <= 0) {
     return;
-  }
-  if (G.background) {
-    /* Python developers may have explicitly created the undo stack in background mode,
-     * otherwise allow it to be nullptr, see: #60934.
-     * Otherwise it must never be nullptr, even when undo is disabled. */
-    if (wm->runtime->undo_stack == nullptr) {
-      return;
-    }
   }
 
   eUndoPushReturn push_retval;
@@ -341,9 +342,16 @@ void ED_undo_grouped_push(bContext *C, const char *str)
 {
   /* do nothing if previous undo task is the same as this one (or from the same undo group) */
   wmWindowManager *wm = CTX_wm_manager(C);
-  const UndoStep *us = wm->runtime->undo_stack->step_active;
+  UndoStack *ustack = wm->runtime->undo_stack;
+  /* See matching check in #ED_undo_push. */
+  if (G.background) {
+    if (ustack == nullptr) {
+      return;
+    }
+  }
+  const UndoStep *us = ustack->step_active;
   if (us && STREQ(str, us->name)) {
-    BKE_undosys_stack_clear_active(wm->runtime->undo_stack);
+    BKE_undosys_stack_clear_active(ustack);
   }
 
   /* push as usual */
@@ -384,13 +392,15 @@ void ED_undo_pop_op(bContext *C, wmOperator *op)
 bool ED_undo_is_valid(const bContext *C, const char *undoname)
 {
   wmWindowManager *wm = CTX_wm_manager(C);
-  return BKE_undosys_stack_has_undo(wm->runtime->undo_stack, undoname);
+  UndoStack *ustack = wm->runtime->undo_stack;
+  return ustack && BKE_undosys_stack_has_undo(ustack, undoname);
 }
 
 bool ED_undo_has_redo_step(const bContext *C)
 {
   const wmWindowManager *wm = CTX_wm_manager(C);
-  return BKE_undosys_stack_has_redo(wm->runtime->undo_stack);
+  UndoStack *ustack = wm->runtime->undo_stack;
+  return ustack && BKE_undosys_stack_has_redo(ustack);
 }
 
 bool ED_undo_is_memfile_compatible(const bContext *C)

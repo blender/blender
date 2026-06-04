@@ -147,8 +147,9 @@ void SourceProcessor::lower_implicit_member(Parser &parser)
       }
     };
 
-    body.foreach_declaration([&](Scope, Token, Token, Scope, Token name, Scope, Token) {
-      if (name.scope() == body) {
+    body.foreach_declaration([&](Scope, Token, Token type, Scope, Token name, Scope, Token) {
+      /* Do not match legacy infos in order to allow resource getter to work. */
+      if (name.scope() == body && type.str() != "ShaderCreateInfo") {
         members_tokens.emplace_back(name);
       }
     });

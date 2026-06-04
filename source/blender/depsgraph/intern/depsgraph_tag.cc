@@ -606,6 +606,14 @@ NodeType geometry_tag_to_component(const ID *id)
     case ID_OB: {
       const Object *object = id_cast<Object *>(const_cast<ID *>(id));
       switch (object->type) {
+        /* Empties don't contain original geometry, but can have evaluated geometry if there are
+         * modifiers. */
+        case OB_EMPTY: {
+          if (!BLI_listbase_is_empty(&object->modifiers)) {
+            return NodeType::GEOMETRY;
+          }
+          break;
+        }
         case OB_MESH:
         case OB_CURVES_LEGACY:
         case OB_SURF:

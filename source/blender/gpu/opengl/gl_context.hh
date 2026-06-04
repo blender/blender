@@ -67,6 +67,7 @@ class GLContext : public Context {
   static bool stencil_texturing_support;
   static bool texture_barrier_support;
   static bool texture_filter_anisotropic_support;
+  static bool derivative_control_support;
 
   /** Workarounds. */
 

@@ -8,16 +8,15 @@
  * \ingroup sequencer
  */
 
-#include "BLF_enums.hh"
-
 #include "BLI_array.hh"
 #include "BLI_math_color.h"
 #include "BLI_math_vector_types.hh"
-#include "BLI_mutex.hh"
 #include "BLI_task.hh"
 
 #include "IMB_imbuf_types.hh"
 #include "SEQ_effects.hh"
+
+#include "render.hh"
 
 namespace blender {
 
@@ -50,13 +49,13 @@ struct EffectHandle {
   StripEarlyOut (*early_out)(const Strip *strip, float fac);
 
   /* execute the effect */
-  ImBuf *(*execute)(const RenderData *context,
-                    SeqRenderState *state,
-                    Strip *strip,
-                    float timeline_frame,
-                    float fac,
-                    ImBuf *ibuf1,
-                    ImBuf *ibuf2);
+  SeqResult (*execute)(const RenderData *context,
+                       SeqRenderState *state,
+                       Strip *strip,
+                       float timeline_frame,
+                       float fac,
+                       const SeqResult &input1,
+                       const SeqResult &input2);
 };
 
 /** Get the effect handle for a given strip.
@@ -77,10 +76,10 @@ float strip_speed_effect_target_frame_get(Scene *scene,
                                           float timeline_frame,
                                           int input);
 
-ImBuf *prepare_effect_imbufs(const RenderData *context,
-                             ImBuf *ibuf1,
-                             ImBuf *ibuf2,
-                             bool uninitialized_pixels = true);
+SeqResult prepare_effect_imbufs(const RenderData *context,
+                                const SeqResult &ibuf1,
+                                const SeqResult &ibuf2,
+                                bool uninitialized_pixels = true);
 
 Array<float> make_gaussian_blur_kernel(float rad, int size);
 
@@ -169,9 +168,6 @@ static void apply_effect_op(const OpT &op, const ImBuf *src1, const ImBuf *src2,
     }
   });
 }
-
-std::unique_lock<Mutex> text_runtime_scoped_lock_get();
-int text_effect_font_init(const RenderData *context, const Strip *strip, FontFlags font_flags);
 
 }  // namespace seq
 }  // namespace blender

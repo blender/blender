@@ -240,6 +240,32 @@ bool GPU_select_is_cached()
 /* -------------------------------------------------------------------- */
 /** \name Utilities
  * \{ */
+int gpu_select_buffer_depth_id_cmp(const void *sel_a_p, const void *sel_b_p)
+{
+  GPUSelectResult *a = static_cast<GPUSelectResult *>(const_cast<void *>(sel_a_p));
+  GPUSelectResult *b = static_cast<GPUSelectResult *>(const_cast<void *>(sel_b_p));
+
+  if (a->depth < b->depth) {
+    return -1;
+  }
+  if (a->depth > b->depth) {
+    return 1;
+  }
+
+  /* Depths match, sort by id. */
+  /* NOTE: this is endianness-sensitive.
+   * GPUSelectResult values are always expected to be little-endian. */
+  uint sel_a = a->id;
+  uint sel_b = b->id;
+
+  if (sel_a < sel_b) {
+    return -1;
+  }
+  if (sel_a > sel_b) {
+    return 1;
+  }
+  return 0;
+}
 
 const GPUSelectResult *GPU_select_buffer_near(const Span<GPUSelectResult> hit_results)
 {

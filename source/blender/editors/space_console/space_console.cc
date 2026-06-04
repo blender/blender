@@ -101,8 +101,8 @@ static SpaceLink *console_duplicate(SpaceLink *sl)
   /* clear or remove stuff from old */
 
   /* TODO: duplicate?, then we also need to duplicate the py namespace. */
-  BLI_listbase_clear(&sconsolen->scrollback);
-  BLI_listbase_clear(&sconsolen->history);
+  sconsolen->scrollback.clear_no_delete();
+  sconsolen->history.clear_no_delete();
 
   return reinterpret_cast<SpaceLink *>(sconsolen);
 }
@@ -218,7 +218,7 @@ static void console_main_region_draw(const bContext *C, ARegion *region)
   SpaceConsole *sc = CTX_wm_space_console(C);
   View2D *v2d = &region->v2d;
 
-  if (BLI_listbase_is_empty(&sc->scrollback)) {
+  if (sc->scrollback.is_empty()) {
     WM_operator_name_call(const_cast<bContext *>(C),
                           "CONSOLE_OT_banner",
                           wm::OpCallContext::ExecDefault,

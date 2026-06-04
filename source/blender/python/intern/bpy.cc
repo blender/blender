@@ -45,6 +45,7 @@
 #include "bpy_rna.hh"
 #include "bpy_rna_data.hh"
 #include "bpy_rna_gizmo.hh"
+#include "bpy_rna_id_collection.hh"
 #include "bpy_rna_types_capi.hh"
 #include "bpy_utils_previews.hh"
 #include "bpy_utils_units.hh"
@@ -781,6 +782,7 @@ void BPy_init_modules(bContext *C)
   PyObject *bpy_types = BPY_rna_types();
   PyModule_AddObject(bpy_types, "GeometrySet", BPyInit_geometry_set_type());
   PyModule_AddObject(bpy_types, "InlineShaderNodes", BPyInit_inline_shader_nodes_type());
+  PyModule_AddObject(bpy_types, "BlendDataPathMeta", BPyInit_blend_data_path_meta_type());
   PyModule_AddObject(mod, "types", bpy_types);
 
   /* Needs to be first so `_bpy_types` can run. */

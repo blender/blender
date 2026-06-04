@@ -576,7 +576,7 @@ static void wm_job_free(wmWindowManager *wm, wmJob *wm_job)
   WM_job_main_thread_lock_release(wm_job);
   BLI_ticket_mutex_free(wm_job->main_thread_mutex);
 
-  BLI_assert(BLI_listbase_is_empty(&wm_job->worker_status.reports->list));
+  BLI_assert(wm_job->worker_status.reports->list.is_empty());
   BKE_reports_free(wm_job->worker_status.reports);
   MEM_delete(wm_job->worker_status.reports);
   MEM_delete(wm_job);

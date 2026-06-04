@@ -112,7 +112,7 @@ void WM_gizmotype_free_ptr(wmGizmoType *gzt)
     MEM_delete(gzt->idname);
   }
 
-  BLI_freelistN(&gzt->target_property_defs);
+  gzt->target_property_defs.free_no_destruct();
   MEM_delete(gzt);
 }
 

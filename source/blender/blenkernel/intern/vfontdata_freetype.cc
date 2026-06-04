@@ -147,7 +147,7 @@ VChar *BKE_vfontdata_char_copy(const VChar *vchar_src)
 {
   VChar *vchar_dst = MEM_dupalloc(vchar_src);
 
-  BLI_listbase_clear(&vchar_dst->nurbsbase);
+  vchar_dst->nurbsbase.clear_no_delete();
   BKE_nurbList_duplicate(&vchar_dst->nurbsbase, &vchar_src->nurbsbase);
 
   return vchar_dst;

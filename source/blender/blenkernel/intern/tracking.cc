@@ -80,7 +80,7 @@ static void tracking_tracks_free(ListBaseT<MovieTrackingTrack> *tracks)
     BKE_tracking_track_free(&track);
   }
 
-  BLI_freelistN(tracks);
+  tracks->free_no_destruct();
 }
 
 /* Free the whole list of plane tracks, list's head and tail are set to nullptr. */
@@ -90,7 +90,7 @@ static void tracking_plane_tracks_free(ListBaseT<MovieTrackingPlaneTrack> *plane
     BKE_tracking_plane_track_free(&plane_track);
   }
 
-  BLI_freelistN(plane_tracks);
+  plane_tracks->free_no_destruct();
 }
 
 /* Free reconstruction structures, only frees contents of a structure,
@@ -126,7 +126,7 @@ static void tracking_objects_free(ListBaseT<MovieTrackingObject> *objects)
   }
 
   /* Free objects themselves. */
-  BLI_freelistN(objects);
+  objects->free_no_destruct();
 }
 
 /* Free memory used by a dopesheet, only frees dopesheet contents.
@@ -147,12 +147,12 @@ static void tracking_dopesheet_free(MovieTrackingDopesheet *dopesheet)
   }
 
   /* Free lists themselves. */
-  BLI_freelistN(&dopesheet->channels);
-  BLI_freelistN(&dopesheet->coverage_segments);
+  dopesheet->channels.free_no_destruct();
+  dopesheet->coverage_segments.free_no_destruct();
 
   /* Ensure lists are clean. */
-  BLI_listbase_clear(&dopesheet->channels);
-  BLI_listbase_clear(&dopesheet->coverage_segments);
+  dopesheet->channels.clear_no_delete();
+  dopesheet->coverage_segments.clear_no_delete();
   dopesheet->tot_channel = 0;
 }
 
@@ -194,7 +194,7 @@ static void tracking_tracks_copy(TrackingCopyContext *ctx,
                                  const ListBaseT<MovieTrackingTrack> *tracks_src,
                                  const int flag)
 {
-  BLI_listbase_clear(tracks_dst);
+  tracks_dst->clear_no_delete();
 
   for (MovieTrackingTrack &track_src : *tracks_src) {
     MovieTrackingTrack *track_dst = MEM_new<MovieTrackingTrack>(__func__, track_src);
@@ -219,7 +219,7 @@ static void tracking_plane_tracks_copy(
     const ListBaseT<MovieTrackingPlaneTrack> *plane_tracks_list_src,
     const int flag)
 {
-  BLI_listbase_clear(plane_tracks_list_dst);
+  plane_tracks_list_dst->clear_no_delete();
 
   for (MovieTrackingPlaneTrack &plane_track_src : *plane_tracks_list_src) {
     MovieTrackingPlaneTrack *plane_track_dst = MEM_new<MovieTrackingPlaneTrack>(__func__,
@@ -299,7 +299,7 @@ static void tracking_objects_copy(ListBaseT<MovieTrackingObject> *tracking_objec
                                   const ListBaseT<MovieTrackingObject> *tracking_objects_src,
                                   const int flag)
 {
-  BLI_listbase_clear(tracking_objects_dst);
+  tracking_objects_dst->clear_no_delete();
 
   for (MovieTrackingObject &tracking_object_src : *tracking_objects_src) {
     MovieTrackingObject *tracking_object_dst = MEM_new<MovieTrackingObject>(__func__);
@@ -321,8 +321,8 @@ void BKE_tracking_copy(MovieTracking *tracking_dst,
   /* Those remaining are runtime data, they will be reconstructed as needed,
    * do not bother copying them. */
   tracking_dst->dopesheet.ok = false;
-  BLI_listbase_clear(&tracking_dst->dopesheet.channels);
-  BLI_listbase_clear(&tracking_dst->dopesheet.coverage_segments);
+  tracking_dst->dopesheet.channels.clear_no_delete();
+  tracking_dst->dopesheet.coverage_segments.clear_no_delete();
 
   tracking_dst->camera.intrinsics = nullptr;
   tracking_dst->stats = nullptr;
@@ -456,7 +456,7 @@ void BKE_tracking_clipboard_free()
     track = next_track;
   }
 
-  BLI_listbase_clear(&tracking_clipboard.tracks);
+  tracking_clipboard.tracks.clear_no_delete();
 }
 
 void BKE_tracking_clipboard_copy_tracks(MovieTracking * /*tracking*/,
@@ -477,7 +477,7 @@ void BKE_tracking_clipboard_copy_tracks(MovieTracking * /*tracking*/,
 
 bool BKE_tracking_clipboard_has_tracks()
 {
-  return (BLI_listbase_is_empty(&tracking_clipboard.tracks) == false);
+  return (tracking_clipboard.tracks.is_empty() == false);
 }
 
 void BKE_tracking_clipboard_paste_tracks(MovieTracking * /*tracking*/,
@@ -1917,7 +1917,7 @@ MovieTrackingObject *BKE_tracking_object_add(MovieTracking *tracking, const char
   BLI_addtail(&tracking->objects, tracking_object);
 
   tracking->tot_object++;
-  tracking->objectnr = BLI_listbase_count(&tracking->objects) - 1;
+  tracking->objectnr = tracking->objects.count() - 1;
 
   tracking_object->scale = 1.0f;
   tracking_object->keyframe1 = 1;

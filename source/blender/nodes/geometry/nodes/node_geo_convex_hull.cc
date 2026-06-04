@@ -25,7 +25,7 @@ namespace blender::nodes::node_geo_convex_hull_cc {
 static void node_declare(NodeDeclarationBuilder &b)
 {
   b.add_input<decl::Geometry>("Geometry"_ustr).description("Points to compute the convex hull of");
-  b.add_output<decl::Geometry>("Convex Hull"_ustr).propagate_all_instance_attributes();
+  b.add_output<decl::Geometry>("Convex Hull"_ustr).propagate_all_geometry();
 }
 
 #ifdef WITH_BULLET

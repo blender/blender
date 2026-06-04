@@ -143,14 +143,12 @@ bool VariableMap::add_filename_only(StringRef var_name,
     /* If there is no file name, default to the fallback. */
     return this->add_filepath(var_name, fallback);
   }
-  else if (file_name_end == file_name) {
+  if (file_name_end == file_name) {
     /* When the filename has no extension, but starts with a period. */
     return this->add_filepath(var_name, StringRef(file_name));
   }
-  else {
-    /* Normal case. */
-    return this->add_filepath(var_name, StringRef(file_name, file_name_end));
-  }
+  /* Normal case. */
+  return this->add_filepath(var_name, StringRef(file_name, file_name_end));
 }
 
 bool VariableMap::add_path_up_to_file(StringRef var_name,
@@ -786,9 +784,7 @@ static std::optional<Error> token_to_syntax_error(const Token &token)
       if (token.format.type == FormatSpecifierType::SYNTAX_ERROR) {
         return {{ErrorType::FORMAT_SPECIFIER, token.byte_range}};
       }
-      else {
-        return {{ErrorType::VARIABLE_SYNTAX, token.byte_range}};
-      }
+      return {{ErrorType::VARIABLE_SYNTAX, token.byte_range}};
     }
 
     case TokenType::UNESCAPED_CURLY_BRACE_ERROR: {

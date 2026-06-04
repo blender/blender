@@ -1097,11 +1097,6 @@ class USERPREF_PT_theme_user_interface(ThemePanel, CenterAlignMixIn, Panel):
     bl_label = "User Interface"
     bl_options = {'DEFAULT_CLOSED'}
 
-    def draw_header(self, _context):
-        layout = self.layout
-
-        layout.label(icon='WORKSPACE')
-
     def draw(self, context):
         pass
 
@@ -1237,7 +1232,7 @@ class USERPREF_PT_theme_interface_state(ThemePanel, CenterAlignMixIn, Panel):
 
 
 class USERPREF_PT_theme_interface_styles(ThemePanel, CenterAlignMixIn, Panel):
-    bl_label = "Styles"
+    bl_label = "Editor & Widgets"
     bl_options = {'DEFAULT_CLOSED'}
     bl_parent_id = "USERPREF_PT_theme_user_interface"
 
@@ -1252,27 +1247,21 @@ class USERPREF_PT_theme_interface_styles(ThemePanel, CenterAlignMixIn, Panel):
         col.prop(ui, "editor_outline")
         col.prop(ui, "editor_outline_active")
 
-        col = flow.column()
-        col.prop(ui, "widget_text_cursor")
-
         col = flow.column(align=True)
-        col.prop(ui, "icon_alpha")
-        col.prop(ui, "icon_saturation", text="Saturation")
-
-        flow.separator()
+        col.prop(ui, "menu_shadow_fac", text="Panel/Menu Shadow")
+        col.prop(ui, "menu_shadow_width", text="Shadow Width")
 
         col = flow.column()
         col.prop(ui, "widget_emboss")
 
-        col = flow.column(align=True)
-        col.prop(ui, "menu_shadow_fac")
-        col.prop(ui, "menu_shadow_width", text="Shadow Width")
+        col = flow.column()
+        col.prop(ui, "widget_text_cursor")
 
 
 class USERPREF_PT_theme_interface_transparent_checker(ThemePanel, CenterAlignMixIn, Panel):
     bl_label = "Transparent Checkerboard"
     bl_options = {'DEFAULT_CLOSED'}
-    bl_parent_id = "USERPREF_PT_theme_user_interface"
+    bl_parent_id = "USERPREF_PT_theme_interface_styles"
 
     def draw_centered(self, context, layout):
         theme = context.preferences.themes[0]
@@ -1289,7 +1278,7 @@ class USERPREF_PT_theme_interface_transparent_checker(ThemePanel, CenterAlignMix
 
 
 class USERPREF_PT_theme_interface_gizmos(ThemePanel, CenterAlignMixIn, Panel):
-    bl_label = "Axis & Gizmo Colors"
+    bl_label = "Axes & Gizmos"
     bl_options = {'DEFAULT_CLOSED'}
     bl_parent_id = "USERPREF_PT_theme_user_interface"
 
@@ -1297,7 +1286,7 @@ class USERPREF_PT_theme_interface_gizmos(ThemePanel, CenterAlignMixIn, Panel):
         theme = context.preferences.themes[0]
         ui = theme.user_interface
 
-        flow = layout.grid_flow(row_major=False, columns=0, even_columns=True, even_rows=True, align=False)
+        flow = layout.grid_flow(row_major=False, columns=0, even_columns=True, even_rows=False, align=False)
 
         col = flow.column(align=True)
         col.prop(ui, "axis_x", text="Axis X")
@@ -1305,18 +1294,20 @@ class USERPREF_PT_theme_interface_gizmos(ThemePanel, CenterAlignMixIn, Panel):
         col.prop(ui, "axis_z", text="Z")
         col.prop(ui, "axis_w", text="W")
 
-        col = flow.column()
+        col = flow.column(align=True)
         col.prop(ui, "gizmo_primary")
         col.prop(ui, "gizmo_secondary", text="Secondary")
-        col.prop(ui, "gizmo_view_align", text="View Align")
 
-        col = flow.column()
+        col = flow.column(align=True)
         col.prop(ui, "gizmo_a")
         col.prop(ui, "gizmo_b", text="B")
 
+        col = flow.column()
+        col.prop(ui, "gizmo_view_align", text="View Align")
+
 
 class USERPREF_PT_theme_interface_icons(ThemePanel, CenterAlignMixIn, Panel):
-    bl_label = "Icon Colors"
+    bl_label = "Icons"
     bl_options = {'DEFAULT_CLOSED'}
     bl_parent_id = "USERPREF_PT_theme_user_interface"
 
@@ -1335,11 +1326,14 @@ class USERPREF_PT_theme_interface_icons(ThemePanel, CenterAlignMixIn, Panel):
         flow.prop(ui, "icon_folder")
         flow.prop(ui, "icon_autokey")
         flow.prop(ui, "icon_border_intensity")
+        flow.prop(ui, "icon_alpha")
+        flow.prop(ui, "icon_saturation", text="Toolbar Saturation")
 
 
 class USERPREF_PT_theme_text_style(ThemePanel, CenterAlignMixIn, Panel):
     bl_label = "Text Style"
     bl_options = {'DEFAULT_CLOSED'}
+    bl_parent_id = "USERPREF_PT_theme_user_interface"
 
     @staticmethod
     def _ui_font_style(layout, font_style):
@@ -1359,11 +1353,6 @@ class USERPREF_PT_theme_text_style(ThemePanel, CenterAlignMixIn, Panel):
         col.prop(font_style, "shadow_alpha", text="Alpha")
         col.prop(font_style, "shadow_value", text="Brightness")
 
-    def draw_header(self, _context):
-        layout = self.layout
-
-        layout.label(icon='FONTPREVIEW')
-
     def draw_centered(self, context, layout):
         style = context.preferences.ui_styles[0]
 
@@ -1381,14 +1370,18 @@ class USERPREF_PT_theme_text_style(ThemePanel, CenterAlignMixIn, Panel):
         self._ui_font_style(layout, style.tooltip)
 
 
+class USERPREF_PT_theme_color_sets(ThemePanel, Panel):
+    bl_label = "Color Sets"
+    bl_options = {'DEFAULT_CLOSED'}
+
+    def draw(self, _context):
+        pass
+
+
 class USERPREF_PT_theme_bone_color_sets(ThemePanel, CenterAlignMixIn, Panel):
     bl_label = "Bone Color Sets"
     bl_options = {'DEFAULT_CLOSED'}
-
-    def draw_header(self, _context):
-        layout = self.layout
-
-        layout.label(icon='COLOR')
+    bl_parent_id = "USERPREF_PT_theme_color_sets"
 
     def draw_centered(self, context, layout):
         theme = context.preferences.themes[0]
@@ -1409,11 +1402,7 @@ class USERPREF_PT_theme_bone_color_sets(ThemePanel, CenterAlignMixIn, Panel):
 class USERPREF_PT_theme_collection_colors(ThemePanel, CenterAlignMixIn, Panel):
     bl_label = "Collection Colors"
     bl_options = {'DEFAULT_CLOSED'}
-
-    def draw_header(self, _context):
-        layout = self.layout
-
-        layout.label(icon='GROUP')
+    bl_parent_id = "USERPREF_PT_theme_color_sets"
 
     def draw_centered(self, context, layout):
         theme = context.preferences.themes[0]
@@ -1426,13 +1415,9 @@ class USERPREF_PT_theme_collection_colors(ThemePanel, CenterAlignMixIn, Panel):
 
 
 class USERPREF_PT_theme_strip_colors(ThemePanel, CenterAlignMixIn, Panel):
-    bl_label = "Strip Color Tags"
+    bl_label = "Sequencer Strip Color Tags"
     bl_options = {'DEFAULT_CLOSED'}
-
-    def draw_header(self, _context):
-        layout = self.layout
-
-        layout.label(icon='SEQ_STRIP_DUPLICATE')
+    bl_parent_id = "USERPREF_PT_theme_color_sets"
 
     def draw_centered(self, context, layout):
         theme = context.preferences.themes[0]
@@ -2780,92 +2765,6 @@ class USERPREF_PT_assets(AssetsPanel, Panel):
         row.operator("extensions.userpref_allow_online", text="Allow Online Access", icon='CHECKMARK')
 
 
-# The panel is not located in the file paths section anymore and should be renamed. The old name is only kept for
-# compatibility (add-ons extend it). Planned for removal in 6.0, see #153901.
-class USERPREF_PT_file_paths_asset_libraries(AssetsPanel, Panel):
-    bl_label = "Asset Libraries"
-
-    def draw(self, context):
-        layout = self.layout
-        layout.use_property_split = False
-        layout.use_property_decorate = False
-
-        paths = context.preferences.filepaths
-        active_library_index = paths.active_asset_library
-
-        row = layout.row()
-
-        row.template_list(
-            "USERPREF_UL_asset_libraries", "user_asset_libraries",
-            paths, "asset_libraries",
-            paths, "active_asset_library",
-        )
-
-        col = row.column(align=True)
-        if context.preferences.experimental.use_remote_asset_libraries:
-            col.operator_menu_enum("preferences.asset_library_add", "type", text="", icon='ADD')
-        else:
-            col.operator("preferences.asset_library_add", text="", icon='ADD').type = 'LOCAL'
-        props = col.operator("preferences.asset_library_remove", text="", icon='REMOVE')
-        props.index = active_library_index
-
-        try:
-            active_library = None if active_library_index < 0 else paths.asset_libraries[active_library_index]
-        except IndexError:
-            active_library = None
-
-        if active_library is None:
-            return
-
-        layout.separator()
-
-        if active_library.use_remote_url:
-            use_remote_libraries = context.preferences.experimental.use_remote_asset_libraries
-            if use_remote_libraries:
-                row = layout.row()
-                row.alert = active_library.remote_url == ""
-                row.prop(active_library, "remote_url", text="", icon='INTERNET', placeholder="Repository URL")
-
-            layout.prop(active_library, "import_method", text="Import Method")
-        else:
-            layout.prop(active_library, "path")
-            layout.prop(active_library, "import_method", text="Import Method")
-            layout.prop(active_library, "use_relative_path")
-
-
-class USERPREF_UL_asset_libraries(UIList):
-    def draw_item(self, context, layout, _data, item, _icon, _active_data, _active_propname, _index):
-        del context
-        asset_library = item
-
-        icon = 'INTERNET' if asset_library.use_remote_url else 'DISK_DRIVE'
-        row = layout.row(align=True)
-        row.prop(asset_library, "name", text="", icon=icon, emboss=False)
-
-        if asset_library.enabled:
-            if asset_library.use_remote_url and asset_library.remote_url == "":
-                row.label(text="", icon='ERROR')
-
-        row.prop(asset_library, "enabled", text="", emboss=False,
-                 icon='CHECKBOX_HLT' if asset_library.enabled else 'CHECKBOX_DEHLT')
-
-    def filter_items(self, context, data, property):
-        asset_libraries = getattr(data, property)
-
-        # Determine the bitflags for remote & non-remote asset libraries.
-        use_remote_libs = context.preferences.experimental.use_remote_asset_libraries
-        flag_remote = self.bitflag_filter_item if use_remote_libs else self.bitflag_item_never_show
-        flag_nonremote = self.bitflag_filter_item
-
-        # Construct arrays of flags & indices.
-        flags = [
-            flag_remote if asset_library.use_remote_url else flag_nonremote
-            for asset_library in asset_libraries]
-        indices = list(range(len(asset_libraries)))
-
-        return flags, indices
-
-
 # -----------------------------------------------------------------------------
 # Studio Light Panels
 
@@ -3097,10 +2996,7 @@ class USERPREF_PT_experimental_new_features(ExperimentalPanel, Panel):
                 ({"property": "use_extended_asset_browser"},
                  ("blender/blender/projects/10", "Pipeline, Assets & IO Project Page")),
                 ({"property": "use_shader_node_previews"}, ("blender/blender/issues/110353", "#110353")),
-                ({"property": "use_geometry_bundle"}, ("blender/blender/issues/150574", "#150574")),
-                ({"property": "use_remote_asset_libraries"}, ("blender/blender/issues/134495", "#134495")),
                 ({"property": "use_collection_importer"}, ("blender/blender/issues/132171", "#132171")),
-                ({"property": "use_geometry_nodes_hair_dynamics"}, ("blender/blender/issues/141609", "#141609")),
             ),
         )
 
@@ -3194,12 +3090,13 @@ classes = (
     USERPREF_MT_interface_theme_presets,
     USERPREF_PT_theme,
     USERPREF_PT_theme_interface_panel,
-    USERPREF_PT_theme_interface_gizmos,
-    USERPREF_PT_theme_interface_icons,
     USERPREF_PT_theme_interface_state,
+    USERPREF_PT_theme_interface_icons,
+    USERPREF_PT_theme_text_style,
+    USERPREF_PT_theme_interface_gizmos,
     USERPREF_PT_theme_interface_styles,
     USERPREF_PT_theme_interface_transparent_checker,
-    USERPREF_PT_theme_text_style,
+    USERPREF_PT_theme_color_sets,
     USERPREF_PT_theme_bone_color_sets,
     USERPREF_PT_theme_collection_colors,
     USERPREF_PT_theme_strip_colors,
@@ -3235,7 +3132,6 @@ classes = (
     USERPREF_PT_addons,
 
     USERPREF_PT_assets,
-    USERPREF_PT_file_paths_asset_libraries,
 
     USERPREF_MT_extensions_active_repo,
     USERPREF_MT_extensions_active_repo_remove,
@@ -3257,7 +3153,6 @@ classes = (
     USERPREF_PT_developer_tools,
 
     # UI lists
-    USERPREF_UL_asset_libraries,
     USERPREF_UL_extension_repos,
 
     # Add dynamically generated editor theme panels last,

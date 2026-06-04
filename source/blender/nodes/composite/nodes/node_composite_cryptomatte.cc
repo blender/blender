@@ -177,7 +177,7 @@ void ntreeCompositCryptomatteUpdateLayerNames(bNode *node)
 {
   BLI_assert(node->type_legacy == CMP_NODE_CRYPTOMATTE);
   NodeCryptomatte *n = static_cast<NodeCryptomatte *>(node->storage);
-  BLI_freelistN(&n->runtime.layers);
+  n->runtime.layers.free_no_destruct();
 
   bke::cryptomatte::CryptomatteSessionPtr session = cryptomatte_init_from_node(*node, false);
 
@@ -229,8 +229,8 @@ static void node_free_cryptomatte(bNode *node)
 
   if (nc) {
     MEM_SAFE_DELETE(nc->matte_id);
-    BLI_freelistN(&nc->runtime.layers);
-    BLI_freelistN(&nc->entries);
+    nc->runtime.layers.free_no_destruct();
+    nc->entries.free_no_destruct();
     MEM_delete(nc);
   }
 }
@@ -243,7 +243,7 @@ static void node_copy_cryptomatte(bNodeTree * /*dst_ntree*/,
   NodeCryptomatte *dest_nc = static_cast<NodeCryptomatte *>(MEM_dupalloc(src_nc));
 
   BLI_duplicatelist(&dest_nc->entries, &src_nc->entries);
-  BLI_listbase_clear(&dest_nc->runtime.layers);
+  dest_nc->runtime.layers.clear_no_delete();
   dest_nc->matte_id = static_cast<char *>(MEM_dupalloc(src_nc->matte_id));
   dest_node->storage = dest_nc;
 }

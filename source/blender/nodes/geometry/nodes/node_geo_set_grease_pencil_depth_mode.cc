@@ -25,7 +25,9 @@ static void node_declare(NodeDeclarationBuilder &b)
   b.add_input<decl::Geometry>("Grease Pencil"_ustr)
       .supported_type(GeometryComponent::Type::GreasePencil)
       .description("Grease Pencil to set the depth order of");
-  b.add_output<decl::Geometry>("Grease Pencil"_ustr).propagate_all().align_with_previous();
+  b.add_output<decl::Geometry>("Grease Pencil"_ustr)
+      .propagate_all_geometry()
+      .align_with_previous();
 }
 
 static void node_layout(ui::Layout &layout, bContext * /*C*/, PointerRNA *ptr)

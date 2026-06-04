@@ -144,27 +144,6 @@ static void rna_def_movieclip_proxy(BlenderRNA *brna)
   StructRNA *srna;
   PropertyRNA *prop;
 
-  static const EnumPropertyItem clip_tc_items[] = {
-      {IMB_TC_NONE,
-       "NONE",
-       0,
-       "None",
-       "Ignore generated timecodes, seek in movie stream based on calculated timestamp"},
-      {IMB_TC_RECORD_RUN,
-       "RECORD_RUN",
-       0,
-       "Record Run",
-       "Seek based on timestamps read from movie stream, giving the best match between scene and "
-       "movie times"},
-      {IMB_TC_RECORD_RUN_NO_GAPS,
-       "FREE_RUN_NO_GAPS",
-       0,
-       "Record Run No Gaps",
-       "Effectively convert movie to an image sequence, ignoring incomplete or dropped frames, "
-       "and changes in frame rate"},
-      {0, nullptr, 0, nullptr, nullptr},
-  };
-
   srna = RNA_def_struct(brna, "MovieClipProxy", nullptr);
   RNA_def_struct_ui_text(srna, "Movie Clip Proxy", "Proxy parameters for a movie clip");
   RNA_def_struct_sdna(srna, "MovieClipProxy");
@@ -219,25 +198,12 @@ static void rna_def_movieclip_proxy(BlenderRNA *brna)
   RNA_def_property_ui_text(
       prop, "100%", "Build proxy resolution 100% of the original undistorted footage dimension");
 
-  /* Build time-codes. */
-  prop = RNA_def_property(srna, "build_record_run", PROP_BOOLEAN, PROP_NONE);
-  RNA_def_property_boolean_sdna(prop, nullptr, "build_tc_flag", IMB_TC_RECORD_RUN);
-  RNA_def_property_clear_flag(prop, PROP_ANIMATABLE);
-  RNA_def_property_ui_text(prop, "Rec Run", "Build record run time code index");
-
   /* quality of proxied image */
   prop = RNA_def_property(srna, "quality", PROP_INT, PROP_UNSIGNED);
   RNA_def_property_int_sdna(prop, nullptr, "quality");
   RNA_def_property_clear_flag(prop, PROP_ANIMATABLE);
   RNA_def_property_ui_text(prop, "Quality", "JPEG quality of proxy images");
   RNA_def_property_ui_range(prop, 1, 100, 1, -1);
-
-  prop = RNA_def_property(srna, "timecode", PROP_ENUM, PROP_NONE);
-  RNA_def_property_enum_sdna(prop, nullptr, "tc");
-  RNA_def_property_clear_flag(prop, PROP_ANIMATABLE);
-  RNA_def_property_enum_items(prop, clip_tc_items);
-  RNA_def_property_ui_text(prop, "Timecode", "");
-  RNA_def_property_update(prop, NC_MOVIECLIP | ND_DISPLAY, "rna_MovieClip_reload_update");
 
   /* directory */
   prop = RNA_def_property(srna, "directory", PROP_STRING, PROP_DIRPATH);
@@ -339,8 +305,7 @@ static void rna_def_movieclip(BlenderRNA *brna)
   prop = RNA_def_property(srna, "use_proxy", PROP_BOOLEAN, PROP_NONE);
   RNA_def_property_boolean_sdna(prop, nullptr, "flag", MCLIP_USE_PROXY);
   RNA_def_property_clear_flag(prop, PROP_ANIMATABLE);
-  RNA_def_property_ui_text(
-      prop, "Use Proxy / Timecode", "Use a preview proxy and/or timecode index for this clip");
+  RNA_def_property_ui_text(prop, "Use Proxy", "Use a preview proxy for this clip");
   RNA_def_property_update(prop, NC_MOVIECLIP | ND_DISPLAY, "rna_MovieClip_use_proxy_update");
 
   prop = RNA_def_int_vector(srna,

@@ -10,6 +10,7 @@
 
 #include "BKE_appdir.hh"
 
+#include "BLI_path_utils.hh"
 #include "BLI_string_ref.hh"
 
 #include "CLG_log.h"
@@ -34,6 +35,12 @@ EssentialsAssetLibrary::EssentialsAssetLibrary()
                          utils::normalize_directory_path(essentials_directory_path()),
                          /*is_read_only=*/true)
 {
+}
+
+void EssentialsAssetLibrary::force_remote_listing_download() const
+{
+  remote_library_request_download(RemoteLibraryDefinitionRef{
+      online_essentials_url(), online_essentials_cache_directory_path()});
 }
 
 std::optional<AssetLibraryReference> EssentialsAssetLibrary::library_reference() const
@@ -80,7 +87,15 @@ void EssentialsAssetLibrary::refresh_catalogs()
                        existing.path.c_str());
           }
           else {
-            CLOG_ERROR(&LOG,
+            /* This is to be expected at some point in the future. The Online Essentials library
+             * may change its catalog paths, while whatever version of Blender is running right now
+             * still has the same old bundled assets. This means the Bundled Essentials and Online
+             * Essentials diverge. There is no need to bother users with this, as it's bound to
+             * happen eventually.
+             *
+             * Note that this same check happens in the 'All' library as well, and that already
+             * logs this at INFO level, so there really is no need to be louder than DEBUG here. */
+            CLOG_DEBUG(&LOG,
                        "multiple definitions of catalog %s with differing paths (%s vs. %s), "
                        "ignoring second one",
                        existing.catalog_id.str().c_str(),
@@ -107,7 +122,7 @@ StringRefNull essentials_directory_path()
   return path;
 }
 
-bool skip_experimental_asset_catalog(const UUID &catalog_id)
+bool skip_experimental_asset_catalog(const UUID & /*catalog_id*/)
 {
   /* Return true when the catalog_id should be rejected based on experimental features:
    *
@@ -117,11 +132,6 @@ bool skip_experimental_asset_catalog(const UUID &catalog_id)
    * }
    */
 
-  /* Enable catalog for hair dynamics only if the feature is enabled. */
-  const UUID UUID_hair_dynamics("df62a3e8-fc21-457b-9415-89f89af431ac");
-  if (!U.experimental.use_geometry_nodes_hair_dynamics && catalog_id == UUID_hair_dynamics) {
-    return true;
-  }
   return false;
 }
 
@@ -157,6 +167,19 @@ bool is_online_essentials_url(const StringRef url)
   }
 
   return url == OnlineEssentialsLibrary::URL;
+}
+
+bool is_online_essentials_dirpath(StringRef dirpath)
+{
+  if (dirpath.is_empty()) {
+    return false;
+  }
+  if (dirpath.endswith(SEP_STR)) {
+    dirpath = dirpath.drop_known_suffix(SEP_STR);
+  }
+  BLI_assert(!online_essentials_cache_directory_path().endswith(SEP_STR));
+
+  return dirpath == online_essentials_cache_directory_path();
 }
 
 OnlineEssentialsLibrary::OnlineEssentialsLibrary()
