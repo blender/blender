@@ -364,4 +364,101 @@ TEST_F(VKRenderGraphTestTransfer, copy_buffer_modify_data)
             log[0]);
 }
 
+/**
+ * Test that a pipeline barrier between a buffer-to-image copy and a compute dispatch
+ * has the correct srcAccessMask.
+ *
+ * This validates that srcAccessMask is properly updated when adjusting an existing
+ * barrier in add_image_barrier(), preventing WRITE_AFTER_WRITE hazards.
+ *
+ * Reproduces the issue seen with VKTexturePool where a pool texture written by
+ * a staging buffer upload is subsequently read by a compute shader.
+ */
+TEST_F(VKRenderGraphTestTransfer, copy_buffer_to_image_dispatch_read_aliased_image)
+{
+  VkHandle<VkBuffer> buffer(1u);
+  VkHandle<VkImage> image(2u);
+  VkHandle<VkPipeline> pipeline(3u);
+  VkHandle<VkPipelineLayout> pipeline_layout(4u);
+  VkHandle<VkDescriptorSet> descriptor_set(5u);
+
+  resources.add_buffer(buffer);
+  resources.add_aliased_image(image, false);
+
+  VKCopyBufferToImageNode::CreateInfo copy_buffer_to_image = {};
+  copy_buffer_to_image.node_data.src_buffer = buffer;
+  copy_buffer_to_image.node_data.dst_image = image;
+  copy_buffer_to_image.node_data.region.imageExtent.width = 64;
+  copy_buffer_to_image.node_data.region.imageExtent.height = 64;
+  copy_buffer_to_image.node_data.region.imageExtent.depth = 1;
+  copy_buffer_to_image.node_data.region.imageOffset.x = 0;
+  copy_buffer_to_image.node_data.region.imageOffset.y = 0;
+  copy_buffer_to_image.node_data.region.imageOffset.z = 0;
+  copy_buffer_to_image.node_data.region.imageSubresource.aspectMask = VK_IMAGE_ASPECT_COLOR_BIT;
+  copy_buffer_to_image.node_data.region.imageSubresource.mipLevel = 0;
+  copy_buffer_to_image.node_data.region.imageSubresource.baseArrayLayer = 0;
+  copy_buffer_to_image.node_data.region.imageSubresource.layerCount = 1;
+  copy_buffer_to_image.vk_image_aspects = VK_IMAGE_ASPECT_COLOR_BIT;
+  render_graph->add_node(copy_buffer_to_image);
+
+  VKResourceAccessInfo access_info = {};
+  access_info.images.append({image, VK_ACCESS_SHADER_READ_BIT, VK_IMAGE_ASPECT_COLOR_BIT, {}});
+  VKDispatchNode::CreateInfo dispatch_info(access_info);
+  dispatch_info.dispatch_node.pipeline_data.vk_pipeline = pipeline;
+  dispatch_info.dispatch_node.pipeline_data.vk_pipeline_layout = pipeline_layout;
+  dispatch_info.dispatch_node.pipeline_data.vk_descriptor_set = descriptor_set;
+  dispatch_info.dispatch_node.group_count_x = 1;
+  dispatch_info.dispatch_node.group_count_y = 1;
+  dispatch_info.dispatch_node.group_count_z = 1;
+  render_graph->add_node(dispatch_info);
+
+  submit(render_graph, command_buffer);
+
+  EXPECT_EQ(6, log.size());
+  EXPECT_EQ(
+      "pipeline_barrier(src_stage_mask=VK_PIPELINE_STAGE_ALL_COMMANDS_BIT, "
+      "dst_stage_mask=VK_PIPELINE_STAGE_TRANSFER_BIT" +
+          endl() +
+          " - image_barrier(src_access_mask=, dst_access_mask=VK_ACCESS_TRANSFER_WRITE_BIT, "
+          "old_layout=VK_IMAGE_LAYOUT_UNDEFINED, new_layout=VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL, "
+          "image=0x2, subresource_range=" +
+          endl() +
+          "    aspect_mask=VK_IMAGE_ASPECT_COLOR_BIT, base_mip_level=0, level_count=4294967295, "
+          "base_array_layer=0, layer_count=4294967295  )" +
+          endl() + ")",
+      log[0]);
+  EXPECT_EQ(
+      "copy_buffer_to_image(src_buffer=0x1, dst_image=0x2, "
+      "src_image_layout=VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL" +
+          endl() +
+          " - region(buffer_offset=0, buffer_row_length=0, buffer_image_height=0, "
+          "image_subresource=" +
+          endl() +
+          "    aspect_mask=VK_IMAGE_ASPECT_COLOR_BIT, mip_level=0, base_array_layer=0, "
+          "layer_count=1  , image_offset=" +
+          endl() + "    x=0, y=0, z=0  , image_extent=" + endl() +
+          "    width=64, height=64, depth=1  )" + endl() + ")",
+      log[1]);
+  EXPECT_EQ(
+      "pipeline_barrier(src_stage_mask=VK_PIPELINE_STAGE_TRANSFER_BIT, "
+      "dst_stage_mask=VK_PIPELINE_STAGE_COMPUTE_SHADER_BIT" +
+          endl() +
+          " - image_barrier(src_access_mask=VK_ACCESS_TRANSFER_WRITE_BIT, "
+          "dst_access_mask=VK_ACCESS_SHADER_READ_BIT, "
+          "old_layout=VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL, "
+          "new_layout=VK_IMAGE_LAYOUT_GENERAL, image=0x2, subresource_range=" +
+          endl() +
+          "    aspect_mask=VK_IMAGE_ASPECT_COLOR_BIT, base_mip_level=0, level_count=4294967295, "
+          "base_array_layer=0, layer_count=4294967295  )" +
+          endl() + ")",
+      log[2]);
+  EXPECT_EQ("bind_pipeline(pipeline_bind_point=VK_PIPELINE_BIND_POINT_COMPUTE, pipeline=0x3)",
+            log[3]);
+  EXPECT_EQ(
+      "bind_descriptor_sets(pipeline_bind_point=VK_PIPELINE_BIND_POINT_COMPUTE, layout=0x4, "
+      "p_descriptor_sets=0x5)",
+      log[4]);
+  EXPECT_EQ("dispatch(group_count_x=1, group_count_y=1, group_count_z=1)", log[5]);
+}
+
 }  // namespace blender::gpu::render_graph
