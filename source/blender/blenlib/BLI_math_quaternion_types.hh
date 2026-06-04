@@ -171,9 +171,14 @@ template<typename T> struct QuaternionBase {
 
   friend bool operator==(const QuaternionBase &a, const QuaternionBase &b) = default;
 
-  uint64_t hash() const
+  constexpr uint64_t hash() const
   {
     return VecBase<T, 4>(*this).hash();
+  }
+
+  void hash_unique(UniqueHashBytes &hash) const
+  {
+    return VecBase<T, 4>(*this).hash_unique(hash);
   }
 
   friend std::ostream &operator<<(std::ostream &stream, const QuaternionBase &rot)

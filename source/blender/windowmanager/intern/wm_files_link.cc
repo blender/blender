@@ -208,8 +208,7 @@ static wmOperatorStatus wm_link_append_exec(bContext *C, wmOperator *op)
   ViewLayer *view_layer = CTX_data_view_layer(C);
   PropertyRNA *prop;
   BlendfileLinkAppendContext *lapp_context;
-  char filepath[FILE_MAX_LIBEXTRA], root[FILE_MAXDIR], libname[FILE_MAX_LIBEXTRA],
-      relname[FILE_MAX];
+  char filepath[FILE_MAX_LIBEXTRA], root[FILE_MAX], libname[FILE_MAX_LIBEXTRA], relname[FILE_MAX];
   char *group, *name;
   int totfiles = 0;
 
@@ -537,8 +536,7 @@ static wmOperatorStatus wm_id_linked_relocate_exec(bContext *C, wmOperator *op)
   Scene *scene = CTX_data_scene(C);
   ViewLayer *view_layer = CTX_data_view_layer(C);
   BlendfileLinkAppendContext *lapp_context;
-  char filepath[FILE_MAX_LIBEXTRA], root[FILE_MAXDIR], libname[FILE_MAX_LIBEXTRA],
-      relname[FILE_MAX];
+  char filepath[FILE_MAX_LIBEXTRA], root[FILE_MAX], libname[FILE_MAX_LIBEXTRA], relname[FILE_MAX];
   char *group, *name;
 
   RNA_string_get(op->ptr, "filename", relname);
@@ -908,7 +906,7 @@ static wmOperatorStatus wm_lib_relocate_exec_do(bContext *C, wmOperator *op, boo
   PropertyRNA *prop;
   BlendfileLinkAppendContext *lapp_context;
 
-  char filepath[FILE_MAX], root[FILE_MAXDIR], libname[FILE_MAX], relname[FILE_MAX];
+  char filepath[FILE_MAX], root[FILE_MAX], libname[FILE_MAX], relname[FILE_MAX];
 
   if (lib->runtime->parent && !do_reload) {
     BKE_reportf(op->reports,
