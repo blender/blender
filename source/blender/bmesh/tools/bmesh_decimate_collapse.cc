@@ -670,10 +670,14 @@ static void bm_decim_triangulate_end(BMesh *bm, const int edges_tri_tot)
       BMFace *f_double;
 
       BMFace *f_array[2] = {l_a->f, l_b->f};
-      BM_faces_join(bm, f_array, 2, false, &f_double);
-      /* See #BM_faces_join note on callers asserting when `r_double` is non-null. */
-      BLI_assert_msg(f_double == nullptr,
-                     "Doubled face detected at " AT ". Resulting mesh may be corrupt.");
+      BMFace *f_join = BM_faces_join(bm, f_array, 2, false, &f_double);
+      /* In practice - duplicates should be quite rare - but we can't guarantee
+       * that merging faces does *not* create a duplicate.
+       * Since duplicates are not allowed in the resulting mesh (see #BM_mesh_validate),
+       * they must be removed here, see: #159549. */
+      if (f_double != nullptr) [[unlikely]] {
+        BM_face_kill(bm, f_join);
+      }
 
       if (e->l == nullptr) {
         BM_edge_kill(bm, e);
