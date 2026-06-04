@@ -719,9 +719,10 @@ static const char *meta_data_list[] = {
 
 BLI_INLINE bool metadata_is_valid(const ImBuf *ibuf, char *r_str, short index, int offset)
 {
-  return (IMB_metadata_get_field(
-              ibuf->metadata, meta_data_list[index], r_str + offset, MAX_METADATA_STR - offset) &&
-          r_str[0]);
+  return (
+      IMB_metadata_get_field(
+          ibuf->metadata(), meta_data_list[index], r_str + offset, MAX_METADATA_STR - offset) &&
+      r_str[0]);
 }
 
 BLI_INLINE bool metadata_is_custom_drawable(const char *field)
@@ -1042,7 +1043,7 @@ void ED_region_image_metadata_draw(
 {
   const uiStyle *style = ui::style_get_dpi();
 
-  if (!ibuf->metadata) {
+  if (!ibuf->metadata()) {
     return;
   }
 

@@ -139,7 +139,6 @@ void IMB_freeImBuf(ImBuf *ibuf)
 
     IMB_free_all_data(ibuf);
     IMB_free_gpu_textures(ibuf);
-    IMB_metadata_free(ibuf->metadata);
     MEM_delete(ibuf);
   }
 }
@@ -161,8 +160,6 @@ ImBuf *IMB_makeSingleUser(ImBuf *ibuf)
   }
 
   ImBuf *rval = IMB_dupImBuf(ibuf);
-
-  IMB_metadata_copy(rval, ibuf);
 
   IMB_freeImBuf(ibuf);
 
@@ -437,8 +434,8 @@ ImBuf *IMB_dupImBuf(const ImBuf *ibuf1)
   ibuf2->index = ibuf1->index;
   ibuf2->userflags = ibuf1->userflags;
   ibuf2->userflags = ibuf1->userflags;
-  /* for now don't duplicate metadata */
-  ibuf2->metadata = nullptr;
+  ibuf2->metadata_ptr = ibuf1->metadata_ptr;
+  ibuf2->metadata_sharing_info = ibuf1->metadata_sharing_info;
   ibuf2->exrhandle = ibuf1->exrhandle;
   ibuf2->ftype = ibuf1->ftype;
   ibuf2->foptions = ibuf1->foptions;

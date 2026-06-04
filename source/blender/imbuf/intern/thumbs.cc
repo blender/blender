@@ -439,13 +439,13 @@ static ImBuf *thumb_create_ex(const char *file_path,
       }
     }
     SNPRINTF_UTF8(desc, "Thumbnail for %s", uri);
-    IMB_metadata_ensure(&img->metadata);
-    IMB_metadata_set_field(img->metadata, "Software", "Blender");
-    IMB_metadata_set_field(img->metadata, "Thumb::URI", uri);
-    IMB_metadata_set_field(img->metadata, "Description", desc);
-    IMB_metadata_set_field(img->metadata, "Thumb::MTime", mtime);
+    IDProperty *metadata = img->metadata_for_write();
+    IMB_metadata_set_field(metadata, "Software", "Blender");
+    IMB_metadata_set_field(metadata, "Thumb::URI", uri);
+    IMB_metadata_set_field(metadata, "Description", desc);
+    IMB_metadata_set_field(metadata, "Thumb::MTime", mtime);
     if (use_hash) {
-      IMB_metadata_set_field(img->metadata, "X-Blender::Hash", hash);
+      IMB_metadata_set_field(metadata, "X-Blender::Hash", hash);
     }
     img->ftype = IMB_FTYPE_PNG;
     img->color_mode = ImColorMode::RGBA;
@@ -663,7 +663,7 @@ ImBuf *IMB_thumb_manage(const char *file_or_lib_path, ThumbSize size, ThumbSourc
 
         const bool use_hash = thumbhash_from_path(file_path, source, thumb_hash);
 
-        if (IMB_metadata_get_field(img->metadata, "Thumb::MTime", mtime, sizeof(mtime))) {
+        if (IMB_metadata_get_field(img->metadata(), "Thumb::MTime", mtime, sizeof(mtime))) {
           regenerate = (st.st_mtime != atol(mtime));
         }
         else {
@@ -673,7 +673,7 @@ ImBuf *IMB_thumb_manage(const char *file_or_lib_path, ThumbSize size, ThumbSourc
 
         if (use_hash && !regenerate) {
           if (IMB_metadata_get_field(
-                  img->metadata, "X-Blender::Hash", thumb_hash_curr, sizeof(thumb_hash_curr)))
+                  img->metadata(), "X-Blender::Hash", thumb_hash_curr, sizeof(thumb_hash_curr)))
           {
             regenerate = !STREQ(thumb_hash, thumb_hash_curr);
           }

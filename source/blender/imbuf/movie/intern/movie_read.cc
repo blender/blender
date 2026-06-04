@@ -1370,13 +1370,13 @@ ImBuf *MOV_decode_preview_frame(MovieReader *anim)
     ibuf = MOV_decode_frame(anim, position, IMB_PROXY_NONE);
 
     char value[128];
-    IMB_metadata_ensure(&ibuf->metadata);
+    IDProperty *metadata = ibuf->metadata_for_write();
     SNPRINTF_UTF8(value, "%i", anim->x);
-    IMB_metadata_set_field(ibuf->metadata, "Thumb::Video::Width", value);
+    IMB_metadata_set_field(metadata, "Thumb::Video::Width", value);
     SNPRINTF_UTF8(value, "%i", anim->y);
-    IMB_metadata_set_field(ibuf->metadata, "Thumb::Video::Height", value);
+    IMB_metadata_set_field(metadata, "Thumb::Video::Height", value);
     SNPRINTF_UTF8(value, "%i", anim->duration_in_frames);
-    IMB_metadata_set_field(ibuf->metadata, "Thumb::Video::Frames", value);
+    IMB_metadata_set_field(metadata, "Thumb::Video::Frames", value);
 
 #ifdef WITH_FFMPEG
     if (anim->pFormatCtx) {
@@ -1385,10 +1385,10 @@ ImBuf *MOV_decode_preview_frame(MovieReader *anim)
       if (frame_rate.num != 0) {
         double duration = anim->duration_in_frames / av_q2d(frame_rate);
         SNPRINTF_UTF8(value, "%g", av_q2d(frame_rate));
-        IMB_metadata_set_field(ibuf->metadata, "Thumb::Video::FPS", value);
+        IMB_metadata_set_field(metadata, "Thumb::Video::FPS", value);
         SNPRINTF_UTF8(value, "%g", duration);
-        IMB_metadata_set_field(ibuf->metadata, "Thumb::Video::Duration", value);
-        IMB_metadata_set_field(ibuf->metadata, "Thumb::Video::Codec", anim->pCodec->long_name);
+        IMB_metadata_set_field(metadata, "Thumb::Video::Duration", value);
+        IMB_metadata_set_field(metadata, "Thumb::Video::Codec", anim->pCodec->long_name);
       }
     }
 #endif

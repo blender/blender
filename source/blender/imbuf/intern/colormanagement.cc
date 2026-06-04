@@ -26,7 +26,6 @@
 #include "IMB_filter.hh"
 #include "IMB_imbuf.hh"
 #include "IMB_imbuf_types.hh"
-#include "IMB_metadata.hh"
 
 #include "MEM_guardedalloc.h"
 
@@ -2228,9 +2227,7 @@ static ImBuf *imbuf_ensure_editable(ImBuf *ibuf, ImBuf *colormanaged_ibuf, bool 
 
   if (allocate_result) {
     /* Copy full image buffer. */
-    colormanaged_ibuf = IMB_dupImBuf(ibuf);
-    IMB_metadata_copy(colormanaged_ibuf, ibuf);
-    return colormanaged_ibuf;
+    return IMB_dupImBuf(ibuf);
   }
 
   return ibuf;

@@ -1430,7 +1430,7 @@ static void do_render_sequencer(Render *re)
       /* copy ibuf into combined pixel rect */
       RE_render_result_rect_from_ibuf(rr, ibuf_arr[view_id], view_id);
 
-      if (ibuf_arr[view_id]->metadata && (re->scene->r.stamp & R_STAMP_STRIPMETA)) {
+      if (ibuf_arr[view_id]->metadata() && (re->scene->r.stamp & R_STAMP_STRIPMETA)) {
         /* ensure render stamp info first */
         BKE_render_result_stamp_info(nullptr, nullptr, rr, true);
         BKE_stamp_info_from_imbuf(rr, ibuf_arr[view_id]);

@@ -2714,7 +2714,7 @@ static void metadata_set_field(void *data,
 {
   /* We know it is an `ImBuf *` because that's what we pass to #BKE_stamp_info_callback. */
   ImBuf *imbuf = static_cast<ImBuf *>(data);
-  IMB_metadata_set_field(imbuf->metadata, propname, propvalue);
+  IMB_metadata_set_field(imbuf->metadata_for_write(), propname, propvalue);
 }
 
 static void metadata_get_field(void *data,
@@ -2724,13 +2724,12 @@ static void metadata_get_field(void *data,
 {
   /* We know it is an `ImBuf *` because that's what we pass to #BKE_stamp_info_callback. */
   ImBuf *imbuf = static_cast<ImBuf *>(data);
-  IMB_metadata_get_field(imbuf->metadata, propname, propvalue, propvalue_maxncpy);
+  IMB_metadata_get_field(imbuf->metadata(), propname, propvalue, propvalue_maxncpy);
 }
 
 void BKE_imbuf_stamp_info(const RenderResult *rr, ImBuf *ibuf)
 {
   StampData *stamp_data = const_cast<StampData *>(rr->stamp_data);
-  IMB_metadata_ensure(&ibuf->metadata);
   BKE_stamp_info_callback(ibuf, stamp_data, metadata_set_field, false);
 }
 
@@ -2749,7 +2748,6 @@ void BKE_stamp_info_from_imbuf(RenderResult *rr, ImBuf *ibuf)
     rr->stamp_data = MEM_new_zeroed<StampData>("RenderResult.stamp_data");
   }
   StampData *stamp_data = rr->stamp_data;
-  IMB_metadata_ensure(&ibuf->metadata);
   BKE_stamp_info_callback(ibuf, stamp_data, metadata_get_field, true);
   /* Copy render engine specific settings. */
   IMB_metadata_foreach(ibuf, metadata_copy_custom_fields, rr);

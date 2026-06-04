@@ -525,9 +525,7 @@ ImBuf *IMB_scale_into_new(const ImBuf *ibuf,
   /* Size same as source: just copy source image. */
   const int2 src_size = int2(ibuf->x, ibuf->y);
   if (src_size == new_size) {
-    ImBuf *dst = IMB_dupImBuf(ibuf);
-    IMB_metadata_copy(dst, ibuf);
-    return dst;
+    return IMB_dupImBuf(ibuf);
   }
 
   /* Allocate destination buffers. */

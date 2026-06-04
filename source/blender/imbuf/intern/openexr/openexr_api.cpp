@@ -501,7 +501,7 @@ static int openexr_header_get_compression(const Header &header)
   return R_IMF_EXR_CODEC_NONE;
 }
 
-static void openexr_header_metadata_global(Header *header, IDProperty *metadata)
+static void openexr_header_metadata_global(Header *header, const IDProperty *metadata)
 {
   header->insert(
       "Software",
@@ -646,7 +646,7 @@ static void save_setup_header(const ImBuf *ibuf,
 {
   const int compression = ibuf->foptions.flag & OPENEXR_CODEC_MASK;
   openexr_header_compression(&header, compression, ibuf->foptions.quality);
-  openexr_header_metadata_global(&header, ibuf->metadata);
+  openexr_header_metadata_global(&header, ibuf->metadata());
   openexr_header_metadata_pixelinfo(&header, ibuf->ppm);
   openexr_header_metadata_colorspace(&header, ibuf);
 
@@ -2168,14 +2168,14 @@ ImBuf *imb_load_openexr(const uchar *mem,
         if (flag_is_set(flags, ImBufFlags::Metadata)) {
           Header::ConstIterator iter;
 
-          IMB_metadata_ensure(&ibuf->metadata);
+          IDProperty *metadata = ibuf->metadata_for_write();
           for (iter = file_header.begin(); iter != file_header.end(); iter++) {
             const StringAttribute *attr = file_header.findTypedAttribute<StringAttribute>(
                 iter.name());
 
             /* not all attributes are string attributes so we might get some NULLs here */
             if (attr) {
-              IMB_metadata_set_field(ibuf->metadata, iter.name(), attr->value().c_str());
+              IMB_metadata_set_field(metadata, iter.name(), attr->value().c_str());
               ibuf->flags |= ImBufFlags::Metadata;
             }
           }
