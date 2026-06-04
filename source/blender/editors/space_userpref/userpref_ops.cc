@@ -199,7 +199,11 @@ static wmOperatorStatus preferences_asset_library_add_exec(bContext *C, wmOperat
   }
 
   /* Activate new library in the UI for further setup. */
-  U.active_asset_library = BLI_findindex(&U.asset_libraries, new_library);
+  if (const std::optional<int> new_active_idx =
+          userpref_ui_asset_libraries_index_from_user_library(*new_library))
+  {
+    U.active_asset_library = *new_active_idx;
+  }
   U.runtime.is_dirty = true;
 
   if (new_library->flag & ASSET_LIBRARY_USE_REMOTE_URL) {
@@ -377,27 +381,8 @@ static wmOperatorStatus preferences_asset_library_remove_exec(bContext *C, wmOpe
     BKE_preferences_asset_library_remove(&U, library);
   }
 
-  /* If the experimental flag was disabled, make sure the newly activated asset
-   * library is not a remote one. */
-  if (!use_remote_libraries) {
-    int nonremote_index = 0;
-    for (auto [index, lib] : U.asset_libraries.enumerate()) {
-      if (lib.flag & ASSET_LIBRARY_USE_REMOTE_URL) {
-        /* Ignore remote libraries. */
-        continue;
-      }
-
-      nonremote_index = index;
-      if (index >= U.active_asset_library) {
-        /* We've found the first usable library above the deleted one, the search can stop. */
-        break;
-      }
-    }
-    U.active_asset_library = nonremote_index;
-  }
-
   /* Update active library index to be in range. */
-  const int count_remaining = U.asset_libraries.count();
+  const int count_remaining = userpref_ui_asset_libraries_count();
   CLAMP(U.active_asset_library, 0, count_remaining - 1);
   U.runtime.is_dirty = true;
 
