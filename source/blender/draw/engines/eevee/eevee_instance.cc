@@ -86,7 +86,7 @@ void Instance::init()
 
     if (camera) {
       if (scene->r.mode & R_BORDER) {
-        if (draw_ctx->is_viewport_image_render()) {
+        if (draw_ctx->is_viewport_image_render() || draw_ctx->is_viewport_xr()) {
           rect.xmin = scene->r.border.xmin * size[0];
           rect.ymin = scene->r.border.ymin * size[1];
           rect.xmax = scene->r.border.xmax * size[0];
@@ -117,7 +117,7 @@ void Instance::init()
       rect.ymax = v3d->render_border.ymax * size[1];
     }
 
-    if (draw_ctx->is_viewport_image_render()) {
+    if (draw_ctx->is_viewport_image_render() || draw_ctx->is_viewport_xr()) {
       const float2 vp_size = draw_ctx->viewport_size_get();
       visible_rect.xmax = vp_size[0];
       visible_rect.ymax = vp_size[1];
