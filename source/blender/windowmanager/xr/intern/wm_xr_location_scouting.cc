@@ -143,9 +143,6 @@ static GHOST_XrPose wm_xr_location_scouting_capture_to_ghost_pose(
 /** \name Location Scouting Viewfinder Logic
  * \{ */
 
-/* Factor used to size UI widgets in XR world space. Going from scene to UI units. */
-static constexpr float xr_ui_unit_fac = 0.05f;
-
 static const char *wm_xr_viewfinder_get_hand_user_path(const XrSessionSettings *settings)
 {
   switch (settings->viewfinder_hand) {
@@ -244,13 +241,14 @@ static bool wm_xr_viewfinder_get_capture_mat(const XrSessionSettings *settings,
                                              float r_mat[4][4])
 {
   const wmXrController *viewfinder_controller = wm_xr_viewfinder_get_controller(settings, state);
+
   if (!viewfinder_controller) {
     return false;
   }
 
   /* Compute vertical offset. */
   constexpr float base_controller_offset = -0.1f;
-  const float height_offset = (viewfinder_height / 2) * xr_ui_unit_fac * -1;
+  const float height_offset = (viewfinder_height / 2) * wmXrViewfinderState::xr_ui_unit_fac * -1;
   const float viewfinder_vertical_offset = base_controller_offset + height_offset;
 
   /* Obtain viewfinder capture mat from the choosen controller grip mat. */
@@ -422,8 +420,8 @@ void wm_xr_viewfinder_render_view(wmXrData *xr_data)
                                   settings->shading.type,
                                   settings->object_type_exclude_viewport,
                                   settings->object_type_exclude_select,
-                                  blender::wmXrViewfinderState::view_resolution,
-                                  blender::wmXrViewfinderState::view_resolution,
+                                  wmXrViewfinderState::view_resolution,
+                                  wmXrViewfinderState::view_resolution,
                                   viewfinder_draw_flags,
                                   viewfinder_render_viewmat,
                                   viewfinder_winmat,
@@ -454,7 +452,7 @@ static ui::Block *wm_xr_viewfinder_ui_block_begin(const bContext *C, ui::EmbossT
   ui::Block *block = ui::block_begin(C, nullptr, __func__, emboss);
 
   /* Since there are no windows in XR, use a dummy constant window size as aspect. */
-  const blender::int2 win_size = {1600 * 2, 900 * 2};
+  const int2 win_size = {1600 * 2, 900 * 2};
   const rcti winrct = {0, win_size[0] - 1, 0, win_size[1] - 1};
 
   wmGetProjectionMatrix(block->winmat, &winrct);
@@ -558,7 +556,6 @@ static ui::Block *wm_xr_viewfinder_ui_mode_tabs_block(const bContext *C,
 static ui::Block *wm_xr_viewfinder_ui_settings_left_label_block(const bContext *C,
                                                                 const wmXrSessionState *state)
 {
-
   ui::Block *block = wm_xr_viewfinder_ui_block_begin(C, ui::EmbossType::Emboss);
   ui::Layout &layout = wm_xr_viewfinder_ui_layout(block);
 
@@ -580,7 +577,6 @@ static ui::Block *wm_xr_viewfinder_ui_settings_left_label_block(const bContext *
 static ui::Block *wm_xr_viewfinder_ui_settings_right_label_block(const bContext *C,
                                                                  const wmXrSessionState *state)
 {
-
   ui::Block *block = wm_xr_viewfinder_ui_block_begin(C, ui::EmbossType::Emboss);
   ui::Layout &layout = wm_xr_viewfinder_ui_layout(block);
 
@@ -869,8 +865,6 @@ static void wm_xr_viewfinder_gizmo_draw_capture_camera(const bContext *C, wmXrSe
 /** \name Location Scouting Viewfinder Interface Drawing
  * \{ */
 
-static constexpr float viewfinder_alpha_accent_color[4] = {0.26f, 0.26f, 0.26f, 0.2f};
-
 static void wm_xr_viewfinder_ui_draw_background(const rctf &viewfinder_rect)
 {
   float background_col[3];
@@ -903,7 +897,7 @@ static void wm_xr_viewfinder_ui_draw_background(const rctf &viewfinder_rect)
   GPU_matrix_translate_3f(0.0f, 0.0f, 0.5f);
   ui::draw_roundbox_3fv_alpha(&background_rect, true, 16, background_col, 1.0f);
   GPU_matrix_translate_3f(0.0f, 0.0f, 0.5f);
-  ui::draw_roundbox_4fv(&outline_rect, true, 0, viewfinder_alpha_accent_color);
+  ui::draw_roundbox_4fv(&outline_rect, true, 0, wmXrViewfinderState::accent_color);
 
   GPU_matrix_pop();
 }
@@ -968,7 +962,7 @@ static void wm_xr_viewfinder_ui_draw_backside_logo_texture(const wmXrSessionStat
   /* Flip UV coords for horizontal mirror to draw on the backside of the viewfinder. */
   const rctf tex_uv = {1.0f, 0.0f, 0.0f, 1.0f};
   GPU_matrix_translate_3f(0.0f, 0.0f, -0.05f);
-  wm_xr_viewfinder_ui_draw_texture(logo_tex, logo_rect, tex_uv, viewfinder_alpha_accent_color);
+  wm_xr_viewfinder_ui_draw_texture(logo_tex, logo_rect, tex_uv, wmXrViewfinderState::accent_color);
 }
 
 static void wm_xr_viewfinder_ui_draw_capture_overlays(const XrSessionSettings *settings,
@@ -1099,7 +1093,7 @@ void wm_xr_viewfinder_draw(const bContext *C,
 
   GPU_matrix_push();
   GPU_matrix_mul(viewfinder_mat);
-  GPU_matrix_scale_1f(xr_ui_unit_fac);
+  GPU_matrix_scale_1f(wmXrViewfinderState::xr_ui_unit_fac);
 
   /* Main background elements. */
   wm_xr_viewfinder_ui_draw_background(viewfinder_rect);
