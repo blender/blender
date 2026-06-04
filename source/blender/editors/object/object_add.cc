@@ -4089,10 +4089,11 @@ static Object *convert_grease_pencil_to_mesh(Base &base,
       }
       if (geometries.size() > 0) {
         bke::GeometrySet joined_curves = geometry::join_geometries(geometries, {});
-
-        new_curves->geometry.wrap() = joined_curves.get_curves()->geometry.wrap();
-        new_curves->geometry.wrap().tag_topology_changed();
-        BKE_object_material_from_eval_data(info.bmain, newob, &joined_curves.get_curves()->id);
+        if (const Curves *joined_curves_data = joined_curves.get_curves()) {
+          new_curves->geometry.wrap() = joined_curves_data->geometry.wrap();
+          new_curves->geometry.wrap().tag_topology_changed();
+          BKE_object_material_from_eval_data(info.bmain, newob, &joined_curves_data->id);
+        }
       }
     }
 
