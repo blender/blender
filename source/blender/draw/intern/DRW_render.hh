@@ -426,6 +426,10 @@ struct DRWContext {
   {
     return ELEM(mode, VIEWPORT_RENDER);
   }
+  bool is_viewport_xr() const
+  {
+    return ELEM(mode, VIEWPORT_XR);
+  }
   float last_sync_time() const
   {
     return last_sync_time_;
