@@ -560,7 +560,7 @@ static void draw_property_for_socket(DrawGroupInputsContext &ctx,
       else {
         /* #template_id only supports pointer properties currently. Node tools store
          * data-block pointers in strings currently. */
-        row.prop_search(socket_props_ptr, "value", ctx.bmain_ptr, "images", name, ICON_IMAGE_DATA);
+        row.prop_search(socket_props_ptr, "value", ctx.bmain_ptr, "sounds", name, ICON_SOUND);
       }
 
       break;
