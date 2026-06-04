@@ -3101,7 +3101,7 @@ void UV_OT_unwrap(wmOperatorType *ot)
   RNA_def_string(ot->srna,
                  "weight_group",
                  tool_settings_default_uvcalc_weight_group,
-                 MAX_ID_NAME,
+                 MAX_VGROUP_NAME,
                  "Weight Group",
                  "Vertex group name for importance weights (modulating the deform)");
   RNA_def_float(
