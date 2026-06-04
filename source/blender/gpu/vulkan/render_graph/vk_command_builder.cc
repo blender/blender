@@ -853,6 +853,7 @@ void VKCommandBuilder::add_image_barrier(VkImage vk_image,
        * EEVEE update HIZ compute shader and shadow tagging. */
       if ((vk_image_memory_barrier.dstAccessMask & src_access_mask) == src_access_mask) {
         vk_image_memory_barrier.dstAccessMask |= dst_access_mask;
+        vk_image_memory_barrier.srcAccessMask |= src_access_mask;
         return;
       }
       /* When re-registering resources we can skip if access mask already contain all the flags.
