@@ -33,20 +33,27 @@ void main()
       imageStore(complete_x_prologues_sum_img, int2(y, 0), float4(0.0f));
     }
 
+    /* Synchronize between iterations: ensure the read of complete_prologue[0] from the previous
+     * iteration is visible before any invocation writes to the shared array for the next
+     * iteration. */
+    barrier();
+
     /* A parallel reduction loop to sum the prologues. This is exactly the same as the parallel
      * reduction loop in the shader `compositor_parallel_reduction.glsl`, see that shader for
      * more information. */
     complete_prologue[gl_LocalInvocationIndex] = accumulated_color;
     for (uint stride = gl_WorkGroupSize.x / 2; stride > 0; stride /= 2) {
       barrier();
-
-      if (gl_LocalInvocationIndex >= stride) {
-        continue;
+      float4 my_value = complete_prologue[gl_LocalInvocationIndex];
+      float4 neighbor_value = float4(0.0f);
+      if (gl_LocalInvocationIndex + stride < gl_WorkGroupSize.x) {
+        neighbor_value = complete_prologue[gl_LocalInvocationIndex + stride];
       }
+      barrier();
 
-      complete_prologue[gl_LocalInvocationIndex] =
-          complete_prologue[gl_LocalInvocationIndex] +
-          complete_prologue[gl_LocalInvocationIndex + stride];
+      if (gl_LocalInvocationIndex < stride) {
+        complete_prologue[gl_LocalInvocationIndex] = my_value + neighbor_value;
+      }
     }
 
     barrier();
