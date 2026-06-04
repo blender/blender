@@ -418,6 +418,7 @@ void ED_spacetype_userpref()
   art->draw = ED_region_panels_draw;
   art->listener = userpref_main_region_listener;
   art->keymapflag = ED_KEYMAP_UI;
+  userpref_panels_register(*art);
 
   BLI_addhead(&st->regiontypes, art);
 
