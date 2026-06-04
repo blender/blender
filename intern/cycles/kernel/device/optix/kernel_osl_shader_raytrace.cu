@@ -1,14 +1,11 @@
-/* SPDX-FileCopyrightText: 2021-2026 Blender Foundation
+/* SPDX-FileCopyrightText: 2011-2026 Blender Foundation
  *
  * SPDX-License-Identifier: Apache-2.0 */
 
-/* Copy of the regular kernels with additional shader ray-tracing kernel that takes
- * much longer to compiler. This is only loaded when needed by the scene. */
+#define WITH_OSL
 
 #include "kernel/device/optix/compat.h"
 #include "kernel/device/optix/globals.h"
-
-#include "kernel/device/gpu/image.h"
 
 #include "kernel/integrator/shade_surface.h"
 

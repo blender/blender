@@ -14,6 +14,10 @@
 
 #include "kernel/util/differential.h"
 
+#if defined(__KERNEL_GPU__)
+#  include "util/atomic.h"
+#endif
+
 CCL_NAMESPACE_BEGIN
 
 /* Ray */
