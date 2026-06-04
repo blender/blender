@@ -28,6 +28,9 @@ ustring u_colorspace_scene_linear_srgb("scene_linear_srgb");
 ustring u_colorspace_srgb("__builtin_srgb");
 
 /* Cached data. */
+static thread_mutex cache_xyz_to_scene_linear_mutex;
+static string cache_xyz_to_scene_linear_hash;
+
 #ifdef WITH_OCIO
 static thread_mutex cache_processors_mutex;
 static unordered_map<ustring, OCIO::ConstProcessorRcPtr> cache_processors;
@@ -75,12 +78,13 @@ static void check_invalidate_caches()
       cache_scene_linear_interop_id = "";
       cache_scene_linear_srgb_interop_id = "";
     }
+    {
+      const thread_scoped_lock cache_lock(cache_xyz_to_scene_linear_mutex);
+      cache_xyz_to_scene_linear_hash.clear();
+    }
   }
 }
 #endif
-
-static thread_mutex cache_xyz_to_scene_linear_mutex;
-static string cache_xyz_to_scene_linear_hash;
 
 ColorSpaceProcessor *ColorSpaceManager::get_processor(ustring colorspace)
 {
@@ -789,6 +793,11 @@ Transform ColorSpaceManager::get_xyz_to_scene_linear_rgb()
 
 const std::string &ColorSpaceManager::get_xyz_to_scene_linear_rgb_string()
 {
+#ifdef WITH_OCIO
+  /* Clear the cached hash if the scene linear colorspace changed. */
+  check_invalidate_caches();
+#endif
+
   /* NOTE: Be careful not to change existing hashes if at all possible, as this
    * will cause all texture files to be regenerated with significantly increased
    * disk usage. */
