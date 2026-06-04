@@ -250,19 +250,37 @@ MetalDevice::~MetalDevice()
   [mtlDevice release];
 }
 
+void MetalDevice::add_to_residency_set(id<MTLResource> allocation)
+{
+#  if defined(MAC_OS_VERSION_15_0)
+  if (@available(macos 15.0, *)) {
+    if (allocation && mtlResidencySet) {
+      std::lock_guard<std::mutex> residency_lock(mtlResidencySet_mutex);
+      [mtlResidencySet addAllocation:allocation];
+      mtlResidencySet_dirty = true;
+    }
+  }
+#  endif
+}
+
+void MetalDevice::remove_from_residency_set(id<MTLResource> allocation)
+{
+#  if defined(MAC_OS_VERSION_15_0)
+  if (@available(macos 15.0, *)) {
+    if (allocation && mtlResidencySet) {
+      std::lock_guard<std::mutex> residency_lock(mtlResidencySet_mutex);
+      [mtlResidencySet removeAllocation:allocation];
+      mtlResidencySet_dirty = true;
+    }
+  }
+#  endif
+}
+
 void MetalDevice::metal_mem_alloc(id<MTLResource> allocation)
 {
   if (allocation) {
     stats.mem_alloc(allocation.allocatedSize);
-#  if defined(MAC_OS_VERSION_15_0)
-    if (@available(macos 15.0, *)) {
-      if (mtlResidencySet) {
-        std::lock_guard<std::mutex> residency_lock(mtlResidencySet_mutex);
-        [mtlResidencySet addAllocation:allocation];
-        mtlResidencySet_dirty = true;
-      }
-    }
-#  endif
+    add_to_residency_set(allocation);
   }
 }
 
@@ -272,18 +290,10 @@ void MetalDevice::metal_mem_free(id<MTLResource> allocation)
     stats.mem_free(allocation.allocatedSize);
 
     std::lock_guard<std::recursive_mutex> lock(metal_mem_map_mutex);
-#  if defined(MAC_OS_VERSION_15_0)
     /* Remove from the residency set immediately, but don't commit until next enqueue. A resource
      * can be repurposed (e.g. a BVH refit) so a deferred removal can spuriously swap the
      * remove-then-add to be an add-then-remove. */
-    if (@available(macos 15.0, *)) {
-      if (mtlResidencySet) {
-        std::lock_guard<std::mutex> residency_lock(mtlResidencySet_mutex);
-        [mtlResidencySet removeAllocation:allocation];
-        mtlResidencySet_dirty = true;
-      }
-    }
-#  endif
+    remove_from_residency_set(allocation);
 
     /* Defer the actual [release] until flush_delayed_free_list(), so the object stays alive for
      * any command buffer still referencing it. */
