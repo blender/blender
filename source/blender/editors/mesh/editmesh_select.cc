@@ -2536,7 +2536,7 @@ void MESH_OT_loop_select(wmOperatorType *ot)
   ot->poll_property = edbm_select_loop_poll_property;
 
   /* Flags. */
-  ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
+  ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO | OPTYPE_DEPENDS_ON_CURSOR;
 
   /* Properties. */
 
@@ -2571,7 +2571,7 @@ void MESH_OT_edgering_select(wmOperatorType *ot)
   ot->poll = ED_operator_editmesh_region_view3d;
 
   /* Flags. */
-  ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
+  ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO | OPTYPE_DEPENDS_ON_CURSOR;
 
   /* Properties. */
   RNA_def_enum_flag(ot->srna,
