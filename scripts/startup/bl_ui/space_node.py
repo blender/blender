@@ -784,7 +784,6 @@ class NODE_MT_context_menu(Menu):
 
         layout.separator()
 
-
         layout.menu("NODE_MT_context_menu_select_menu")
         layout.menu("NODE_MT_context_menu_show_hide_menu")
 
