@@ -290,6 +290,7 @@ IDOverrideLibraryPropertyOperation *TreeElementOverridesPropertyOperation::
     get_override_operation_from_id(ID &id, IDOverrideLibraryProperty &override_property) const
 {
   BLI_assert(ID_IS_OVERRIDE_LIBRARY_REAL(&id));
+  UNUSED_VARS_NDEBUG(id);
   for (IDOverrideLibraryPropertyOperation &opop : override_property.operations) {
     if (*operation_ == opop) {
       return &opop;
