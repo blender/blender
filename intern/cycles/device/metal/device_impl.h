@@ -59,6 +59,11 @@ class MetalDevice : public Device {
   void metal_mem_alloc(id<MTLResource> allocation);
   void metal_mem_free(id<MTLResource> allocation);
 
+  /* For externally-owned resources (e.g. graphics interop buffers) which need to be resident for
+   * kernels to access them, but shouldn't be included in our stats. */
+  void add_to_residency_set(id<MTLResource> allocation);
+  void remove_from_residency_set(id<MTLResource> allocation);
+
   bool mtlResidencySet_enabled = false;
 #  if defined(MAC_OS_VERSION_15_0)
   API_AVAILABLE(macos(15.0), ios(18.0))

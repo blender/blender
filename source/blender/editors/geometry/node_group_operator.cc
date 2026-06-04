@@ -1302,6 +1302,7 @@ static StructRNA *get_input_socket_struct_rna(IDProperty &input_idprop,
     case SOCK_COLLECTION:
     case SOCK_MATERIAL:
     case SOCK_FONT:
+    case SOCK_SOUND:
     case SOCK_OBJECT: {
       RNA_def_string(srna, "value", nullptr, 0, name.c_str(), description.c_str());
       make_common_value_props(*srna);
