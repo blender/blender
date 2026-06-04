@@ -97,7 +97,9 @@ class OptiXDevice : public CUDADevice {
  public:
   OptixDeviceContext context = nullptr;
 
-  OptixModule optix_module = nullptr; /* All necessary OptiX kernels are in one module. */
+  OptixModule optix_module = nullptr;
+  OptixModule mnee_module = nullptr;
+  OptixModule shader_raytrace_module = nullptr;
   OptixModule builtin_modules[4] = {};
   OptixPipeline pipelines[NUM_PIPELINES] = {};
   OptixProgramGroup groups[NUM_PROGRAM_GROUPS] = {};
@@ -108,6 +110,7 @@ class OptiXDevice : public CUDADevice {
   vector<OptixModule> osl_modules;
   vector<OptixProgramGroup> osl_groups;
   OptixModule osl_camera_module = nullptr;
+  OptixModule osl_volume_module = nullptr;
   device_vector<uint8_t> osl_colorsystem;
 #  endif
 

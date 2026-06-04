@@ -223,6 +223,8 @@ def get_arguments(filepath, output_filepath, use_hwrt, osl, extra_args):
         args.extend(['--python', os.path.join(basedir, "util", "render_bake.py")])
     elif subject == 'denoise_animation':
         args.extend(['--python', os.path.join(basedir, "util", "render_denoise.py")])
+    elif subject == 'updates':
+        args.extend(['--python', os.path.join(basedir, "util", "render_updates.py")])
     else:
         args.extend(["-f", "1"])
 

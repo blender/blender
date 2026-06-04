@@ -12,6 +12,7 @@ set(INC_SYS
 
 set(SRC_KERNEL_DEVICE_OPTIX
   kernel.cu
+  kernel_mnee.cu
   kernel_shader_raytrace.cu
 )
 
@@ -23,6 +24,9 @@ if(WITH_CYCLES_OSL)
     ../../osl/services_optix.cu
     kernel_osl.cu
     kernel_osl_camera.cu
+    kernel_osl_mnee.cu
+    kernel_osl_shader_raytrace.cu
+    kernel_osl_volume.cu
   )
 endif()
 
@@ -106,6 +110,10 @@ if(WITH_CYCLES_CUDA_BINARIES AND WITH_CYCLES_DEVICE_OPTIX)
     "kernel.cu"
     "")
   cycles_optix_kernel_add(
+    kernel_optix_mnee
+    "kernel_mnee.cu"
+    "")
+  cycles_optix_kernel_add(
     kernel_optix_shader_raytrace
     "kernel_shader_raytrace.cu"
     "--keep-device-functions")
@@ -113,6 +121,18 @@ if(WITH_CYCLES_CUDA_BINARIES AND WITH_CYCLES_DEVICE_OPTIX)
     cycles_optix_kernel_add(
       kernel_optix_osl
       "kernel_osl.cu"
+      "--relocatable-device-code=true")
+    cycles_optix_kernel_add(
+      kernel_optix_osl_shader_raytrace
+      "kernel_osl_shader_raytrace.cu"
+      "--relocatable-device-code=true")
+    cycles_optix_kernel_add(
+      kernel_optix_osl_mnee
+      "kernel_osl_mnee.cu"
+      "--relocatable-device-code=true")
+    cycles_optix_kernel_add(
+      kernel_optix_osl_volume
+      "kernel_osl_volume.cu"
       "--relocatable-device-code=true")
     cycles_optix_kernel_add(
       kernel_optix_osl_camera
