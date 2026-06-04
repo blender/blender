@@ -176,6 +176,7 @@ void BKE_bpath_foreach_path_readonly_process(BPathForeachPathData *bpath_data, c
   bpath_data->is_readonly = false;
 
   BLI_assert_msg(!changed, "Read-only path edited in bpath foreach");
+  UNUSED_VARS_NDEBUG(changed);
 }
 
 void BKE_bpath_sequence_filepaths_foreach(const char *abs_filepath,

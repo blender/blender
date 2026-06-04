@@ -2270,6 +2270,8 @@ bool rna_NodesModifierBake_override_apply(Main *bmain,
 {
   PointerRNA *ptr_dst = &rnaapply_ctx.ptr_dst;
   PropertyRNA *prop_dst = rnaapply_ctx.prop_dst;
+
+#  ifndef NDEBUG
   IDOverrideLibraryPropertyOperation *opop = rnaapply_ctx.liboverride_operation;
   IDOverrideLibraryPropertyOperation *removed_opop = rnaapply_ctx.liboverride_removed_operation;
 
@@ -2279,6 +2281,7 @@ bool rna_NodesModifierBake_override_apply(Main *bmain,
                   ((opop->operation == LIBOVERRIDE_OP_REPLACE) &&
                    (removed_opop && (removed_opop->operation = LIBOVERRIDE_OP_CUSTOM)))),
                  "Unsupported RNA override operation on Nodes modifier bakes collection");
+#  endif
 
   NodesModifierBake *nmd_bake_src = rnaapply_ctx.ptr_item_src.data_as<NodesModifierBake>();
 
