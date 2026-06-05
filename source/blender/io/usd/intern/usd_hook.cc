@@ -463,7 +463,7 @@ class OnMaterialExportInvoker final : public USDHookInvoker {
 
  public:
   OnMaterialExportInvoker(pxr::UsdStageRefPtr stage,
-                          Material *material,
+                          const Material *material,
                           const pxr::UsdShadeMaterial &usd_material,
                           const USDExportParams &export_params,
                           ReportList *reports)
@@ -471,7 +471,8 @@ class OnMaterialExportInvoker final : public USDHookInvoker {
         hook_context_(stage, export_params, reports),
         usd_material_(usd_material)
   {
-    material_ptr_ = RNA_pointer_create_discrete(nullptr, RNA_Material, material);
+    material_ptr_ = RNA_pointer_create_discrete(
+        nullptr, RNA_Material, const_cast<Material *>(material));
   }
 
  private:
@@ -602,7 +603,7 @@ void call_export_hooks(Depsgraph *depsgraph, const USDHierarchyIterator *iter, R
 }
 
 void call_material_export_hooks(pxr::UsdStageRefPtr stage,
-                                Material *material,
+                                const Material *material,
                                 const pxr::UsdShadeMaterial &usd_material,
                                 const USDExportParams &export_params,
                                 ReportList *reports)
