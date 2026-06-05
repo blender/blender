@@ -20,6 +20,10 @@ namespace gpu {
 class Texture;
 }
 
+namespace bke {
+class BlenderProject;
+}
+
 struct ExrHandle;
 struct ImBuf;
 struct Image;
@@ -349,6 +353,7 @@ void RE_init_threadcount(Render *re);
 
 bool RE_WriteRenderViewsMovie(struct ReportList *reports,
                               struct RenderResult *rr,
+                              const bke::BlenderProject *project,
                               struct Scene *scene,
                               struct RenderData *rd,
                               struct MovieWriter **movie_writers,

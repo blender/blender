@@ -62,6 +62,7 @@ set(SRC
   intern/blender.cc
   intern/blender_cli_command.cc
   intern/blender_copybuffer.cc
+  intern/blender_project.cc
   intern/blender_undo.cc
   intern/blender_user_menu.cc
   intern/blendfile.cc
@@ -347,6 +348,7 @@ set(SRC
   BKE_blender.hh
   BKE_blender_cli_command.hh
   BKE_blender_copybuffer.hh
+  BKE_blender_project.hh
   BKE_blender_undo.hh
   BKE_blender_user_menu.hh
   BKE_blender_version.h

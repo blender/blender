@@ -10,6 +10,7 @@
 #include "BLI_path_utils.hh"
 #include "BLI_span.hh"
 
+#include "BKE_blender_project.hh"
 #include "BKE_context.hh"
 #include "BKE_library.hh"
 #include "BKE_main.hh"
@@ -233,7 +234,9 @@ std::optional<VariableMap> BKE_build_template_variables_for_prop(const bContext 
   VariableMap variables;
 
   /* General variables. */
-  BKE_add_template_variables_general(variables, ptr->owner_id);
+  BKE_blender_project_read_callback(CTX_data_main(C), [&](const bke::BlenderProject *project) {
+    BKE_add_template_variables_general(variables, ptr->owner_id, project);
+  });
 
   /* Purpose-specific variables. */
   switch (RNA_property_path_template_type(prop)) {
@@ -270,8 +273,16 @@ std::optional<VariableMap> BKE_build_template_variables_for_prop(const bContext 
   return variables;
 }
 
-void BKE_add_template_variables_general(VariableMap &variables, const ID *path_owner_id)
+void BKE_add_template_variables_general(bke::path_templates::VariableMap &variables,
+                                        const ID *path_owner_id,
+                                        const bke::BlenderProject *project)
 {
+  /* Project variables. */
+  if (project) {
+    variables.add_string("project_name", project->get_name());
+    variables.add_filepath("project_root", project->get_root_path());
+  }
+
   /* Global blend filepath (a.k.a. path to the blend file that's currently
    * open). */
   {

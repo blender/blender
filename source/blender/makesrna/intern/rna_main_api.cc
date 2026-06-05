@@ -193,6 +193,31 @@ static ID *rna_Main_pack_linked_ids_hierarchy(struct BlendData *blenddata,
   return packed_root_id;
 }
 
+static void rna_Main_blender_project_init(struct BlendData * /* blenddata */,
+                                          ReportList *reports,
+                                          const char *name,
+                                          const char *project_root)
+{
+  if (!BKE_blender_project_init(name, project_root)) {
+    BKE_reportf(reports,
+                RPT_ERROR,
+                "Failed to initialize project. Ensure that both the name and project_root "
+                "parameters are non-empty.");
+  }
+
+  /* Force full redraw of all windows. */
+  WM_main_add_notifier(NC_WINDOW, nullptr);
+}
+
+static void rna_Main_blender_project_clear(struct BlendData * /* blenddata */,
+                                           ReportList * /* reports */)
+{
+  BKE_blender_project_clear();
+
+  /* Force full redraw of all windows. */
+  WM_main_add_notifier(NC_WINDOW, nullptr);
+}
+
 static Camera *rna_Main_cameras_new(Main *bmain, const char *name)
 {
   char safe_name[MAX_ID_NAME - 2];
@@ -922,6 +947,19 @@ void RNA_api_main(StructRNA *srna)
   RNA_def_parameter_flags(parm, PropertyFlag(0), PARM_REQUIRED);
   parm = RNA_def_pointer(func, "packed_id", "ID", "", "The packed ID matching the given root ID");
   RNA_def_function_return(func, parm);
+
+  func = RNA_def_function(srna, "project_init", "rna_Main_blender_project_init");
+  RNA_def_function_ui_description(func, "Initialize a new active project");
+  RNA_def_function_flag(func, FUNC_USE_REPORTS);
+  parm = RNA_def_string(func, "name", nullptr, 0, nullptr, "The project's name");
+  RNA_def_parameter_flags(parm, PropertyFlag(0), PARM_REQUIRED);
+  parm = RNA_def_string_dir_path(
+      func, "project_root", nullptr, 0, nullptr, "The filepath of the project's root folder");
+  RNA_def_parameter_flags(parm, PropertyFlag(0), PARM_REQUIRED);
+
+  func = RNA_def_function(srna, "project_clear", "rna_Main_blender_project_clear");
+  RNA_def_function_ui_description(func, "Clear the currently active project");
+  RNA_def_function_flag(func, FUNC_USE_REPORTS);
 }
 
 void RNA_def_main_cameras(BlenderRNA *brna, PropertyRNA *cprop)

@@ -91,6 +91,7 @@ enum eUserpref_Save_Modified_Images : char {
 
 enum eUserPref_PrefFlag : char {
   USER_PREF_FLAG_SAVE = (1 << 0),
+  USER_PREF_FLAG_PROJECT_SAVE = (1 << 1),
 };
 ENUM_OPERATORS(eUserPref_PrefFlag)
 
@@ -828,6 +829,7 @@ struct UserDef_TempWinBounds {
   rctf image = {50.0f, 1360.0f, 50.0f, 830.0f};
   rctf graph = {50.0f, 950.0f, 200.0f, 780.0f};
   rctf info = {100.0f, 1000.0f, 300.0f, 880.0f};
+  rctf project = {100.0f, 800.0f, 500.0f, 850.0f};
   rctf outliner = {100.0f, 550.0f, 350.0f, 800.0f};
 };
 
@@ -915,7 +917,7 @@ struct UserDef {
                          USER_DUP_CAMERA | USER_DUP_SPEAKER | USER_DUP_ACT | USER_DUP_LIGHTPROBE |
                          USER_DUP_GPENCIL | USER_DUP_CURVES | USER_DUP_POINTCLOUD;
   /** Preferences for the preferences. */
-  eUserPref_PrefFlag pref_flag = USER_PREF_FLAG_SAVE;
+  eUserPref_PrefFlag pref_flag = USER_PREF_FLAG_SAVE | USER_PREF_FLAG_PROJECT_SAVE;
   char savetime = 2;
   eUserpref_EmulateMMBMod mouse_emulate_3_button_modifier = {};
   /**

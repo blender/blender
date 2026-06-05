@@ -1556,7 +1556,7 @@ class ThemeGenericClassGenerator:
         from bpy.types import Theme
 
         for theme_area in Theme.bl_rna.properties["theme_area"].enum_items_static:
-            if theme_area.identifier in {'USER_INTERFACE', 'STYLE', 'BONE_COLOR_SETS'}:
+            if theme_area.identifier in {'USER_INTERFACE', 'STYLE', 'BONE_COLOR_SETS', 'PROJECT'}:
                 continue
 
             panel_id = "USERPREF_PT_theme_" + theme_area.identifier.lower()

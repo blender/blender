@@ -7052,6 +7052,41 @@ static void SCREEN_OT_userpref_show(wmOperatorType *ot)
   RNA_def_property_flag(prop, PROP_HIDDEN);
 }
 
+/* -------------------------------------------------------------------- */
+/** \name Show Project Setup Operator
+ * \{ */
+
+static wmOperatorStatus project_setup_show_exec(bContext *C, wmOperator *op)
+{
+  /* changes context! */
+  if (ScrArea *area = ED_screen_temp_space_open(
+          C, nullptr, SPACE_PROJECT, USER_TEMP_SPACE_DISPLAY_WINDOW, false))
+  {
+    /* The header only contains the editor switcher and looks empty.
+     * So hiding in the temp window makes sense. */
+    ARegion *region_header = BKE_area_find_region_type(area, RGN_TYPE_HEADER);
+
+    region_header->flag |= RGN_FLAG_HIDDEN;
+    ED_region_visibility_change_update(C, area, region_header);
+
+    return OPERATOR_FINISHED;
+  }
+  BKE_report(op->reports, RPT_ERROR, "Failed to open window!");
+  return OPERATOR_CANCELLED;
+}
+
+static void SCREEN_OT_project_setup_show(wmOperatorType *ot)
+{
+  /* identifiers */
+  ot->name = "Open Project Setup...";
+  ot->description = "Create and manage projects";
+  ot->idname = "SCREEN_OT_project_setup_show";
+
+  /* API callbacks. */
+  ot->exec = project_setup_show_exec;
+  ot->poll = ED_operator_screenactive_nobackground; /* Not in background as this opens a window. */
+}
+
 /** \} */
 
 /* -------------------------------------------------------------------- */
@@ -7617,6 +7652,7 @@ void ED_operatortypes_screen()
   WM_operatortype_append(SCREEN_OT_screenshot);
   WM_operatortype_append(SCREEN_OT_screenshot_area);
   WM_operatortype_append(SCREEN_OT_userpref_show);
+  WM_operatortype_append(SCREEN_OT_project_setup_show);
   WM_operatortype_append(SCREEN_OT_drivers_editor_show);
   WM_operatortype_append(SCREEN_OT_info_log_show);
   WM_operatortype_append(SCREEN_OT_region_blend);

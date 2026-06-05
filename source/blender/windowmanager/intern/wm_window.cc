@@ -483,6 +483,9 @@ static rctf *stored_window_bounds(eSpace_Type space_type)
   if (space_type == SPACE_FILE) {
     return &U.stored_bounds.file;
   }
+  if (space_type == SPACE_PROJECT) {
+    return &U.stored_bounds.project;
+  }
 
   return nullptr;
 }
