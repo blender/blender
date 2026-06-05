@@ -943,13 +943,17 @@ ccl_device void osl_closure_glossy_toon_setup(KernelGlobals kg,
  */
 ccl_device void osl_closure_emission_setup(KernelGlobals kg,
                                            ccl_private ShaderData *sd,
-                                           const PathRayVisibility /*path_visibility*/,
+                                           const PathRayVisibility path_visibility,
                                            const uint32_t /*path_flag*/,
                                            float3 weight,
                                            const ccl_private GenericEmissiveClosure * /*closure*/,
                                            float3 * /*layer_albedo*/)
 {
   if (sd->flag & SD_IS_VOLUME_SHADER_EVAL) {
+    if (path_visibility & PATH_RAY_VISIBILITY_SHADOW) {
+      /* Don't need emission for shadows. */
+      return;
+    }
     weight *= object_volume_density(kg, sd->object);
   }
   emission_setup(sd, rgb_to_spectrum(weight));
@@ -979,7 +983,7 @@ ccl_device void osl_closure_background_setup(
  */
 ccl_device void osl_closure_uniform_edf_setup(KernelGlobals kg,
                                               ccl_private ShaderData *sd,
-                                              const PathRayVisibility /*path_visibility*/,
+                                              const PathRayVisibility path_visibility,
                                               const uint32_t /*path_flag*/,
                                               float3 weight,
                                               const ccl_private UniformEDFClosure *closure,
@@ -987,6 +991,10 @@ ccl_device void osl_closure_uniform_edf_setup(KernelGlobals kg,
 {
   weight *= closure->emittance;
   if (sd->flag & SD_IS_VOLUME_SHADER_EVAL) {
+    if (path_visibility & PATH_RAY_VISIBILITY_SHADOW) {
+      /* Don't need emission for shadows. */
+      return;
+    }
     weight *= object_volume_density(kg, sd->object);
   }
   emission_setup(sd, rgb_to_spectrum(weight));

@@ -1282,13 +1282,13 @@ ccl_device_noinline void svm_node_volume_coefficients(
   const float3 absorption_coeffs = stack_load(stack, node.absorption_coeffs);
   volume_extinction_setup(sd, weight * (scatter_coeffs + absorption_coeffs));
 
-  const float3 emission_coeffs = stack_load(stack, node.emission_coeffs);
   /* Compute emission. */
   if (path_visibility & PATH_RAY_VISIBILITY_SHADOW) {
     /* Don't need emission for shadows. */
     return;
   }
 
+  const float3 emission_coeffs = stack_load(stack, node.emission_coeffs);
   if (is_zero(emission_coeffs)) {
     return;
   }
@@ -1408,7 +1408,8 @@ ccl_device_noinline void svm_node_closure_emission(
     ccl_private ShaderData *sd,
     ccl_private float *ccl_restrict stack,
     Spectrum closure_weight,
-    const ccl_global SVMNodeClosureEmission &ccl_restrict node)
+    const ccl_global SVMNodeClosureEmission &ccl_restrict node,
+    const PathRayVisibility path_visibility)
 {
   Spectrum weight = closure_weight;
 
@@ -1423,6 +1424,10 @@ ccl_device_noinline void svm_node_closure_emission(
   }
 
   if (sd->flag & SD_IS_VOLUME_SHADER_EVAL) {
+    if (path_visibility & PATH_RAY_VISIBILITY_SHADOW) {
+      /* Don't need emission for shadows. */
+      return;
+    }
     weight *= object_volume_density(kg, sd->object);
   }
 

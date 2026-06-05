@@ -145,8 +145,9 @@ ccl_device void svm_eval_nodes(KernelGlobals kg,
       SVM_CASE(NODE_CLOSURE_EMISSION)
       IF_KERNEL_NODES_FEATURE(EMISSION)
       {
-        svm_node_closure_emission(
-            kg, sd, stack, closure_weight, svm_node_get<SVMNodeClosureEmission>(kg, &offset));
+        const ccl_global SVMNodeClosureEmission &bsdf_node = svm_node_get<SVMNodeClosureEmission>(
+            kg, &offset);
+        svm_node_closure_emission(kg, sd, stack, closure_weight, bsdf_node, path_visibility);
       }
       break;
       SVM_CASE(NODE_CLOSURE_BACKGROUND)
