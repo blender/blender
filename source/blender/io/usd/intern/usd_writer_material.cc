@@ -22,7 +22,7 @@
 #include "IMB_imbuf.hh"
 
 #include "BLI_fileops.hh"
-#include "BLI_listbase.hh"
+#include "BLI_listbase_iterator.hh"
 #include "BLI_map.hh"
 #include "BLI_path_utils.hh"
 #include "BLI_set.hh"

@@ -12,7 +12,7 @@
 #include "BKE_fcurve.hh"
 #include "BKE_modifier.hh"
 
-#include "BLI_listbase.hh"
+#include "BLI_listbase_iterator.hh"
 #include "BLI_string_ref.hh"
 #include "BLI_vector.hh"
 

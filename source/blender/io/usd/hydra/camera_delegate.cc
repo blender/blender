@@ -10,12 +10,12 @@
 
 #include "BKE_idprop.hh"
 
-#include "BLI_listbase.hh"
+#include "BLI_listbase_iterator.hh"
 
 #include <pxr/imaging/hd/dataSource.h>
+#include <pxr/imaging/hd/dataSourceLocator.h>
 #include <pxr/imaging/hd/overlayContainerDataSource.h>
 #include <pxr/imaging/hd/retainedDataSource.h>
-#include <pxr/imaging/hd/sceneIndexObserver.h>
 #include <pxr/imaging/hd/tokens.h>
 
 namespace blender::io::hydra {
