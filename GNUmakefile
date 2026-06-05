@@ -643,6 +643,7 @@ ifneq ($(BLENDER_DOC_SPHINX), 0)
 endif
 
 python_stubs: .FORCE
+	@rm -rf "$(BLENDER_DIR)/doc/python_api/stubs"
 	@ASAN_OPTIONS=halt_on_error=0:${ASAN_OPTIONS} \
 	$(BLENDER_BIN) \
 	    --background --factory-startup --quiet \
