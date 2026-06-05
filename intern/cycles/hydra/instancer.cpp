@@ -68,6 +68,7 @@ void HdCyclesInstancer::SyncPrimvars()
       }
       else if (v.IsHolding<VtQuatfArray>()) {
         const VtQuatfArray &src = v.UncheckedGet<VtQuatfArray>();
+        _rotate.clear();
         _rotate.reserve(src.size());
         for (const GfQuatf &q : src) {
           const GfVec3f &im = q.GetImaginary();
@@ -76,6 +77,7 @@ void HdCyclesInstancer::SyncPrimvars()
       }
       else if (v.IsHolding<VtQuathArray>()) {
         const VtQuathArray &src = v.UncheckedGet<VtQuathArray>();
+        _rotate.clear();
         _rotate.reserve(src.size());
         for (const GfQuath &q : src) {
           const GfVec3h &im = q.GetImaginary();
