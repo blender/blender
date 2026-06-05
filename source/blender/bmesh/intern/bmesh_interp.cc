@@ -1155,9 +1155,13 @@ static void bm_loop_walk_data(LoopWalkCtx *lwc, BMLoop *l_walk)
 {
   int i;
 
-  BLI_assert(CustomData_data_equals(eCustomDataType(lwc->type),
-                                    lwc->data_ref,
-                                    BM_ELEM_CD_GET_VOID_P(l_walk, lwc->cd_layer_offset)));
+  BLI_assert(
+      /* Include pointer equality to prevent assert if any of the values include NAN,
+       * making it seem like there is a bug when there isn't. */
+      (lwc->data_ref == BM_ELEM_CD_GET_VOID_P(l_walk, lwc->cd_layer_offset)) ||
+      CustomData_data_equals(eCustomDataType(lwc->type),
+                             lwc->data_ref,
+                             BM_ELEM_CD_GET_VOID_P(l_walk, lwc->cd_layer_offset)));
   BLI_assert(BM_elem_flag_test(l_walk, BM_ELEM_INTERNAL_TAG));
 
   bm_loop_walk_add(lwc, l_walk);
