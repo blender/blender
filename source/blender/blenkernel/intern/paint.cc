@@ -892,7 +892,7 @@ static void paint_brush_default_essentials_name_get(const PaintMode paint_mode,
       }
       break;
     case PaintMode::Weight:
-      name = "Paint";
+      name = "Add Weight";
       if (brush_type) {
         switch (eBrushWeightPaintType(*brush_type)) {
           case WPAINT_BRUSH_TYPE_BLUR:

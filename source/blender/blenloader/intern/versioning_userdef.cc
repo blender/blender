@@ -774,7 +774,7 @@ static void keymap_update_mesh_weight_paint_brushes(wmKeyMap *keymap)
 
   const auto asset_id_map = []() {
     Map<int, StringRef> map;
-    map.add_new(WPAINT_BRUSH_TYPE_DRAW, "Paint");
+    map.add_new(WPAINT_BRUSH_TYPE_DRAW, "Add Weight");
     map.add_new(WPAINT_BRUSH_TYPE_BLUR, "Blur");
     map.add_new(WPAINT_BRUSH_TYPE_AVERAGE, "Average");
     map.add_new(WPAINT_BRUSH_TYPE_SMEAR, "Smear");

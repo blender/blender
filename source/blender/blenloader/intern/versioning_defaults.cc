@@ -566,6 +566,8 @@ static void blo_update_defaults_scene(Main *bmain, Scene *scene)
 
   /* Weight Paint settings */
   ts->weightuser = OB_DRAW_GROUPUSER_ACTIVE;
+  ts->multipaint = true;
+  ts->auto_normalize = true;
 
   /* Cycles settings. */
   IDProperty *cscene = version_cycles_properties_from_ID(&scene->id);
@@ -775,6 +777,8 @@ void BLO_update_defaults_startup_blend(Main *bmain, const char *app_template)
     mesh.smoothresh_legacy = DEG2RADF(30);
     /* Match voxel remesher options for all existing meshes in templates. */
     mesh.flag |= ME_REMESH_REPROJECT_VOLUME | ME_REMESH_REPROJECT_ATTRIBUTES;
+
+    mesh.editflag |= ME_EDIT_MIRROR_VERTEX_GROUPS;
 
     /* For Sculpting template. */
     if (app_template && STREQ(app_template, "Sculpting")) {

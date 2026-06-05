@@ -2360,12 +2360,12 @@ struct ToolSettings {
   char lock_markers = 0;
 
   /** Auto normalizing mode in wpaint. */
-  char auto_normalize = 0;
+  char auto_normalize = true;
   /** Present weights as if all locked vertex groups were
    *  deleted, and the remaining deform groups normalized. */
   char wpaint_lock_relative = 0;
   /** Paint multiple bones in wpaint. */
-  char multipaint = 0;
+  char multipaint = true;
   eTool_WeightUser weightuser = OB_DRAW_GROUPUSER_ACTIVE;
   /** Subset selection filter in wpaint. */
   eVGroupSelect vgroupsubset = WT_VGROUP_ALL;
