@@ -159,10 +159,6 @@ static GroupedSpan<int> gather_groups(const Span<int> group_indices,
 template<typename T> static T gather_mean(const VArray<T> &values, const Span<int> indices)
 {
   BLI_assert(!indices.is_empty());
-  if (const std::optional<T> value = values.get_if_single()) {
-    return *value;
-  }
-
   using MeanAccumulator = std::pair<T, int>;
   const auto join_accumulators = [](const MeanAccumulator a,
                                     const MeanAccumulator b) -> MeanAccumulator {
@@ -188,6 +184,28 @@ template<typename T> static T gather_mean(const VArray<T> &values, const Span<in
   return value;
 }
 
+template<typename T>
+static void gather_means(const VArray<T> &values, GroupedSpan<int> groups, MutableSpan<T> means)
+{
+  threading::parallel_for(groups.index_range(), 512, [&](const IndexRange range) {
+    for (const int group : range) {
+      means[group] = gather_mean<T>(values, groups[group]);
+    }
+  });
+}
+
+template<typename T> static Array<T> gather_means(const VArray<T> &values, GroupedSpan<int> groups)
+{
+  if (const std::optional<T> value = values.get_if_single()) {
+    return Array<T>(groups.size(), *value);
+  }
+  Array<T> means(groups.size());
+  /* NOTE: This could also be implemented with #attribute_math::mix_groups if #values is a span and
+   * all the group sizes are below the grain size. */
+  gather_means<T>(values, groups, means);
+  return means;
+}
+
 static float3 transform_with_uniform_scale(const float3 &position,
                                            const float3 &center,
                                            const float scale)
@@ -204,6 +222,8 @@ static void scale_uniformly(const GroupedSpan<int> elem_islands,
                             const VArray<float3> &center_varray,
                             Mesh &mesh)
 {
+  const Array<float> scales = gather_means(scale_varray, elem_islands);
+  const Array<float3> centers = gather_means(center_varray, elem_islands);
   MutableSpan<float3> positions = mesh.vert_positions_for_write();
   threading::parallel_for(
       elem_islands.index_range(),
@@ -211,11 +231,8 @@ static void scale_uniformly(const GroupedSpan<int> elem_islands,
       [&](const IndexRange range) {
         for (const int island_index : range) {
           const Span<int> vert_island = vert_islands[island_index];
-          const Span<int> elem_island = elem_islands[island_index];
-
-          const float scale = gather_mean<float>(scale_varray, elem_island);
-          const float3 center = gather_mean<float3>(center_varray, elem_island);
-
+          const float scale = scales[island_index];
+          const float3 center = centers[island_index];
           threading::parallel_for(vert_island.index_range(), 2048, [&](const IndexRange range) {
             for (const int vert_i : vert_island.slice(range)) {
               positions[vert_i] = transform_with_uniform_scale(positions[vert_i], center, scale);
@@ -275,6 +292,9 @@ static void scale_on_axis(const GroupedSpan<int> elem_islands,
                           const VArray<float3> &axis_varray,
                           Mesh &mesh)
 {
+  const Array<float> scales = gather_means(scale_varray, elem_islands);
+  const Array<float3> centers = gather_means(center_varray, elem_islands);
+  const Array<float3> axes = gather_means(axis_varray, elem_islands);
   MutableSpan<float3> positions = mesh.vert_positions_for_write();
   threading::parallel_for(
       elem_islands.index_range(),
@@ -282,13 +302,10 @@ static void scale_on_axis(const GroupedSpan<int> elem_islands,
       [&](const IndexRange range) {
         for (const int island_index : range) {
           const Span<int> vert_island = vert_islands[island_index];
-          const Span<int> elem_island = elem_islands[island_index];
-
-          const float scale = gather_mean<float>(scale_varray, elem_island);
-          const float3 center = gather_mean<float3>(center_varray, elem_island);
-          const float3 axis = gather_mean<float3>(axis_varray, elem_island);
+          const float scale = scales[island_index];
+          const float3 center = centers[island_index];
+          const float3 axis = axes[island_index];
           const float3 fixed_axis = math::is_zero(axis) ? float3(1.0f, 0.0f, 0.0f) : axis;
-
           const float4x4 transform = create_single_axis_transform(center, fixed_axis, scale);
           threading::parallel_for(vert_island.index_range(), 2048, [&](const IndexRange range) {
             for (const int vert_i : vert_island.slice(range)) {
