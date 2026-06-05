@@ -698,8 +698,7 @@ bool BKE_image_save(
 
   if (ok) {
     if (ima->flag & IMA_AUTOSAVE_TEMPPACK) {
-      BKE_image_free_packedfiles(ima);
-      ima->flag &= ~IMA_AUTOSAVE_TEMPPACK;
+      BKE_image_clear_autosave(ima);
     }
   }
 
