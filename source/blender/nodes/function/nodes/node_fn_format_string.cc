@@ -757,7 +757,7 @@ class FormatStringMultiFunction : public mf::MultiFunction {
     else {
       mask.foreach_index(
           [&](const int64_t i) {
-            const StringRef format = formats[i];
+            const std::string format = formats[i];
             if (!format_strings(format,
                                 inputs,
                                 input_names_,
