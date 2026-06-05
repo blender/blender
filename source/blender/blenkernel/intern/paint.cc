@@ -1981,21 +1981,22 @@ static bool paint_rake_rotation_active(const MTex &mtex)
   return mtex.tex && mtex.brush_angle_mode & MTEX_ANGLE_RAKE;
 }
 
-static bool paint_rake_rotation_active(const Brush &brush)
+static bool paint_rake_rotation_active(const Brush &brush, PaintMode paint_mode)
 {
-  return paint_rake_rotation_active(brush.mtex) || paint_rake_rotation_active(brush.mask_mtex);
+  return paint_rake_rotation_active(brush.mtex) || paint_rake_rotation_active(brush.mask_mtex) ||
+         BKE_brush_has_cube_tip(&brush, paint_mode);
 }
 
 bool paint_calculate_rake_rotation(Paint &paint,
                                    const Brush &brush,
                                    const float mouse_pos[2],
-                                   const PaintMode /*paint_mode*/,
+                                   const PaintMode paint_mode,
                                    bool stroke_has_started)
 {
   bke::PaintRuntime &paint_runtime = *paint.runtime;
 
   bool ok = false;
-  if (paint_rake_rotation_active(brush)) {
+  if (paint_rake_rotation_active(brush, paint_mode)) {
     float r = paint_rake_rotation_spacing(paint, brush);
     float rotation;
 
