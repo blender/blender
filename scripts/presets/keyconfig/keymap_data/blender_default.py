@@ -2522,12 +2522,19 @@ def km_file_browser(params):
 
         # Select file under cursor before spawning the context menu.
         ("file.select", {"type": 'RIGHTMOUSE', "value": 'PRESS'},
-         {"properties": [
-             ("open", False),
-             ("only_activate_if_selected", params.select_mouse == 'LEFTMOUSE'), ("pass_through", True),
-         ]}),
+         {"properties": [("open", False), ("only_activate_if_selected", True), ("pass_through", True),]}),
         *_template_items_context_menu("FILEBROWSER_MT_context_menu", params.context_menu_event),
     ])
+
+    if params.select_mouse == 'RIGHTMOUSE':
+        # Also add context menu on right mouse click when right click selection is active. Many
+        # users expect this and it's consistent with the Outliner.
+        items.extend([
+            # Don't use `_template_items_context_menu()`, because it will also add an item for the
+            # application key, which would we duplicated with the above.
+            op_menu("FILEBROWSER_MT_context_menu", {"type": 'RIGHTMOUSE', "value": 'PRESS'}),
+            *_template_items_context_menu("ASSETBROWSER_MT_context_menu", {"type": 'RIGHTMOUSE', "value": 'PRESS'}),
+        ])
 
     return keymap
 
