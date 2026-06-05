@@ -101,6 +101,13 @@ static void node_declare(NodeDeclarationBuilder &b)
   PanelDeclarationBuilder &sss = b.add_panel("Subsurface"_ustr).default_closed(true);
   sss.add_layout([](ui::Layout &layout, bContext * /*C*/, PointerRNA *ptr) {
     layout.prop(ptr, "subsurface_method", ui::ITEM_R_SPLIT_EMPTY_NAME, "", ICON_NONE);
+    /* Not used by Thin Wall. Infer the value from Subsurface Radius. */
+    const bNode &node = *ptr->data_as<bNode>();
+    const bNodeSocket &radius_socket = *bke::node_find_socket(
+        node, SOCK_IN, "Subsurface Radius"_ustr);
+    if (radius_socket.is_inactive()) {
+      layout.active_set(false);
+    }
   });
   sss.add_input<decl::Float>("Subsurface Weight"_ustr)
       .default_value(0.0f)
