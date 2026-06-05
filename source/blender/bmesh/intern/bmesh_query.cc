@@ -2052,7 +2052,8 @@ bool BM_face_is_normal_valid(const BMFace *f)
   float no[3];
 
   BM_face_calc_normal(f, no);
-  return len_squared_v3v3(no, f->no) < (eps * eps);
+  /* Invert comparison so NAN normals don't assert. */
+  return !(len_squared_v3v3(no, f->no) >= (eps * eps));
 }
 
 /**
