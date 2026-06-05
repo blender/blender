@@ -173,11 +173,14 @@ void HdCyclesMesh::PopulatePoints(HdSceneDelegate *sceneDelegate)
 
   TF_VERIFY(points.size() >= static_cast<size_t>(_topology.GetNumPoints()));
 
-  static_assert(sizeof(GfVec3f) == sizeof(packed_float3));
+  const bool subdivision = _geom->get_subdivision_type() != Mesh::SUBDIVISION_NONE;
+  AttributeSet &attributes = (subdivision) ? _geom->subd_attributes : _geom->attributes;
+  Attribute *attr_P = attributes.add(ATTR_STD_POSITION);
+  packed_float3 *verts = attr_P->data_for_write<packed_float3>();
 
-  std::copy_n(reinterpret_cast<const packed_float3 *>(points.data()),
-              _geom->num_verts(),
-              _geom->get_position_for_write());
+  std::copy_n(
+      reinterpret_cast<const packed_float3 *>(points.data()), _topology.GetNumPoints(), verts);
+  _geom->tag_position_modified();
 }
 
 void HdCyclesMesh::PopulateNormals(HdSceneDelegate *sceneDelegate)
@@ -523,6 +526,9 @@ void HdCyclesMesh::PopulateTopology(HdSceneDelegate *sceneDelegate)
     }
 
     _geom->resize_subd_faces(_topology.GetNumFaces(), numCorners);
+    _geom->resize_mesh(_topology.GetNumPoints(), 0);
+    Attribute *subd_attr_P = _geom->subd_attributes.add(ATTR_STD_POSITION);
+    subd_attr_P->resize(_topology.GetNumPoints());
 
     std::copy_n(vertIndx.data(), vertIndx.size(), _geom->get_subd_face_corners().data());
 
