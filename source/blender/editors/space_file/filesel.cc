@@ -1334,8 +1334,9 @@ void ED_fileselect_clear(wmWindowManager *wm, SpaceFile *sfile)
     filelist_clear(sfile->files);
   }
 
-  FileSelectParams *params = ED_fileselect_get_active_params(sfile);
-  params->highlight_file = -1;
+  if (FileSelectParams *params = ED_fileselect_get_active_params(sfile)) {
+    params->highlight_file = -1;
+  }
   WM_main_add_notifier(NC_SPACE | ND_SPACE_FILE_LIST, nullptr);
 }
 
