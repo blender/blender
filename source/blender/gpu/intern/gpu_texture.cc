@@ -173,6 +173,7 @@ bool Texture::init_view(Texture *src,
     type_ = (type_ & ~GPU_TEXTURE_CUBE) | GPU_TEXTURE_2D_ARRAY;
   }
   sampler_state = src->sampler_state;
+  gpu_image_usage_flags_ = src->gpu_image_usage_flags_;
   return this->init_internal(src, mip_start, layer_start, use_stencil);
 }
 
