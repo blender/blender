@@ -714,7 +714,9 @@ void AssetLibraryService::foreach_loaded_asset_library(FunctionRef<void(AssetLib
 
   const bool include_remote_libraries = USER_EXPERIMENTAL_TEST(&U, use_remote_asset_libraries);
 
-  if (include_remote_libraries && online_essentials_library_) {
+  if (include_remote_libraries && online_essentials_library_ &&
+      (U.asset_flag & USER_ASSETS_USE_ONLINE_ESSENTIALS))
+  {
     fn(*online_essentials_library_);
   }
 

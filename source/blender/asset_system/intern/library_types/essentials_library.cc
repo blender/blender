@@ -106,7 +106,9 @@ void EssentialsAssetLibrary::refresh_catalogs()
   };
 
   load_catalogs_fn(this);
-  load_catalogs_fn(AS_asset_library_load(nullptr, online_essentials_library_reference()));
+  if (U.asset_flag & USER_ASSETS_USE_ONLINE_ESSENTIALS) {
+    load_catalogs_fn(AS_asset_library_load(nullptr, online_essentials_library_reference()));
+  }
 
   std::lock_guard lock{catalog_service_mutex_};
   catalog_service_ = std::move(new_catalog_service);
