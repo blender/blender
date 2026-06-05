@@ -847,7 +847,7 @@ static char *rna_def_property_get_func(
           if (dp->dnaarraylength == 1) {
             if (prop->type == PROP_BOOLEAN && dp->booleanbit) {
               fprintf(f,
-                      "        values[i] = %s((data->%s & (uint64_t(",
+                      "        values[i] = %s((uint64_t(data->%s) & (uint64_t(",
                       (dp->booleannegative) ? "!" : "",
                       dp->dnaname.c_str());
               rna_int_print(f, dp->booleanbit);
@@ -864,7 +864,7 @@ static char *rna_def_property_get_func(
           else {
             if (prop->type == PROP_BOOLEAN && dp->booleanbit) {
               fprintf(f,
-                      "        values[i] = %s((data->%s[i] & ",
+                      "        values[i] = %s((uint64_t(data->%s[i]) & ",
                       (dp->booleannegative) ? "!" : "",
                       dp->dnaname.c_str());
               rna_int_print(f, dp->booleanbit);
@@ -927,14 +927,14 @@ static char *rna_def_property_get_func(
           rna_print_data_get(f, dp);
           if (prop->type == PROP_BOOLEAN && dp->booleanbit) {
             fprintf(f,
-                    "    return %s(((data->%s) & ",
+                    "    return %s((uint64_t(data->%s) & ",
                     (dp->booleannegative) ? "!" : "",
                     dp->dnaname.c_str());
             rna_int_print(f, dp->booleanbit);
             fprintf(f, ") != 0);\n");
           }
           else if (prop->type == PROP_ENUM && dp->enumbitflags) {
-            fprintf(f, "    return ((data->%s) & ", dp->dnaname.c_str());
+            fprintf(f, "    return (uint64_t(data->%s) & ", dp->dnaname.c_str());
             rna_int_print(f, rna_enum_bitmask(prop));
             fprintf(f, ");\n");
           }
