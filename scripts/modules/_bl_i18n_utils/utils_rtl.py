@@ -63,6 +63,9 @@ def protect_format_seq(msg):
     """
     Find some specific escaping/formatting sequences (like \", %s, etc.,
     and protect them from any modification!
+
+    NOTE: This is not covering all exotic 'printf' formatting cases!
+    It also only covers the minimal `{}` syntax for the modern `format` syntax.
     """
 #    LRM = "\u200E"
 #    RLM = "\u200F"
@@ -72,9 +75,16 @@ def protect_format_seq(msg):
     LRO = "\u202D"
 #    RLO = "\u202E"
     # uctrl = {LRE, RLE, PDF, LRO, RLO}
-    # Most likely incomplete, but seems to cover current needs.
-    format_codes = set("tslfd")
-    digits = set(".0123456789")
+
+    # 'printf' format, from https://cplusplus.com/reference/cstdio/printf/
+    printf_format_flags = set("-+ #0")
+    printf_format_widthprec = set(".0123456789")  # For width and precision.
+    printf_format_datasize = set("hljztL")
+    printf_format_codes = set("diuoxXfFeEgGaAcsp")
+    # 'fmt::format' (and Python 'format()'),
+    # see https://fmt.dev/12.0/syntax/ and https://docs.python.org/3.13/library/string.html#formatstrings
+    fmt_format_widthprec = set(".0123456789")  # For width and precision.
+    fmt_format_codes = set("aAbBcdeEfFgGnopsxX?%")
 
     if not msg:
         return msg
@@ -92,28 +102,67 @@ def protect_format_seq(msg):
 #        if msg[idx] in uctrl:
 #            ret.append(msg[idx:])
 #            break
-        # \" or \'
-        if idx < (ln - 1) and msg[idx] == '\\' and msg[idx + 1] in "\"\'":
+        # \", \' or \\
+        if idx < (ln - 1) and msg[idx] == '\\' and msg[idx + 1] in "\"\'\\":
             dlt = 2
-        # %x12|
-        elif idx < (ln - 2) and msg[idx] == '%' and msg[idx + 1] in "x" and msg[idx + 2] in digits:
+        elif idx < (ln - 1) and msg[idx] == '{':
+            # The whole 'format' syntax...
+            # Coverage of this one is still fairly limited and basic currently.
+            # TODO: suport more of the 'format' mini-language (and check how much fmt::format matches with Python's).
+            orig_dlt = dlt
+            valid_format = False
+
+            # {3}, {scale} (positional indicator or named reference)
+            while (idx + dlt) < ln and msg[idx + dlt].isalnum():
+                dlt += 1
+            if (idx + dlt) < ln and msg[idx + dlt] == ":":
+                dlt += 1
+            # {:.4}, {:6d}, ...
+            while (idx + dlt) < ln and msg[idx + dlt] in fmt_format_widthprec:
+                dlt += 1
+            # {:f}, {:s}, ...
+            while (idx + dlt) < ln and msg[idx + dlt] in fmt_format_codes:
+                dlt += 1
+            if (idx + dlt) < ln and msg[idx + dlt] == "}":
+                dlt += 1
+                valid_format = True
+
+            if not valid_format:
+                dlt = orig_dlt
+        # %%
+        elif idx < (ln - 1) and msg[idx] == '%' and msg[idx + 1] == '%':
             dlt = 2
-            while (idx + dlt) < ln and msg[idx + dlt] in digits:
-                dlt += 1
-            if (idx + dlt) < ln and msg[idx + dlt] == '|':
-                dlt += 1
-        # %.4f
-        elif idx < (ln - 3) and msg[idx] == '%' and msg[idx + 1] in digits:
-            dlt = 2
-            while (idx + dlt) < ln and msg[idx + dlt] in digits:
-                dlt += 1
-            if (idx + dlt) < ln and msg[idx + dlt] in format_codes:
-                dlt += 1
+        elif idx < (ln - 1) and msg[idx] == '%':
+            # The whole 'printf' syntax...
+            # Not fully covering the format, but most of it, and should cover all Blender usages.
+            orig_dlt = dlt
+            valid_format = False
+
+            # %x12| - What is this for actually?
+            if idx < (ln - 2) and msg[idx + 1] in "x" and msg[idx + 2] in printf_format_widthprec:
+                dlt = 2
+                while (idx + dlt) < ln and msg[idx + dlt] in printf_format_widthprec:
+                    dlt += 1
+                if (idx + dlt) < ln and msg[idx + dlt] == '|':
+                    dlt += 1
+                    valid_format = True
             else:
-                dlt = 1
-        # %s
-        elif idx < (ln - 1) and msg[idx] == '%' and msg[idx + 1] in format_codes:
-            dlt = 2
+                # %+d, %-40s, ...
+                while (idx + dlt) < ln and msg[idx + dlt] in printf_format_flags:
+                    dlt += 1
+                # %.4f, %6d, ...
+                while (idx + dlt) < ln and msg[idx + dlt] in printf_format_widthprec:
+                    dlt += 1
+                # %lld, %zu, ...
+                while (idx + dlt) < ln and msg[idx + dlt] in printf_format_datasize:
+                    dlt += 1
+                # %s, %d, ...
+                if (idx + dlt) < ln and msg[idx + dlt] in printf_format_codes:
+                    dlt += 1
+                    valid_format = True
+
+            if not valid_format:
+                dlt = orig_dlt
 
         if dlt > 1:
             ret.append(LRE)
