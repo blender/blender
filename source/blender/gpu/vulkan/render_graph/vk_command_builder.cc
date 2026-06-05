@@ -16,6 +16,21 @@
 
 namespace blender::gpu::render_graph {
 
+static VkImageLayout to_default_image_layout(VkImageAspectFlags aspect, bool use_local_read)
+{
+  if (aspect & VK_IMAGE_ASPECT_DEPTH_BIT) {
+    if (aspect & VK_IMAGE_ASPECT_STENCIL_BIT) {
+      return VK_IMAGE_LAYOUT_DEPTH_STENCIL_ATTACHMENT_OPTIMAL;
+    }
+    return VK_IMAGE_LAYOUT_DEPTH_ATTACHMENT_OPTIMAL;
+  }
+  if (aspect & VK_IMAGE_ASPECT_STENCIL_BIT) {
+    return VK_IMAGE_LAYOUT_STENCIL_ATTACHMENT_OPTIMAL;
+  }
+  return use_local_read ? VK_IMAGE_LAYOUT_RENDERING_LOCAL_READ_KHR :
+                          VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL;
+}
+
 /* -------------------------------------------------------------------- */
 /** \name Build nodes
  * \{ */
@@ -153,16 +168,15 @@ void VKCommandBuilder::groups_extract_barriers(VKRenderGraph &render_graph,
           post_barriers.append(barrier);
         }
 
-        /* After image_tracker.end() reverts tracked image layouts back to the default
-         * (COLOR_ATTACHMENT_OPTIMAL or RENDERING_LOCAL_READ_KHR), sync the global resource
-         * state tracker so subsequent barriers use the correct oldLayout. */
+        /* After image_tracker.end() reverts tracked image layouts back to the default layout,
+         * sync the global resource state tracker so subsequent barriers use the correct
+         * oldLayout. */
         for (const VKRenderGraphImage &link : render_graph.linked_images(end_rendering_scope)) {
           VKResourceStateTracker::Resource &resource = render_graph.resources_.get_image_resource(
               link.resource.handle);
           if (resource.use_subresource_tracking()) {
             VKResourceBarrierState &state = resource.barrier_state;
-            state.image_layout = use_local_read ? VK_IMAGE_LAYOUT_RENDERING_LOCAL_READ_KHR :
-                                                  VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL;
+            state.image_layout = to_default_image_layout(link.vk_image_aspect, use_local_read);
           }
         }
       }
@@ -186,8 +200,7 @@ void VKCommandBuilder::groups_extract_barriers(VKRenderGraph &render_graph,
               link.resource.handle);
           if (resource.use_subresource_tracking()) {
             VKResourceBarrierState &state = resource.barrier_state;
-            state.image_layout = use_local_read ? VK_IMAGE_LAYOUT_RENDERING_LOCAL_READ_KHR :
-                                                  VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL;
+            state.image_layout = to_default_image_layout(link.vk_image_aspect, use_local_read);
           }
         }
       }
@@ -247,8 +260,7 @@ void VKCommandBuilder::groups_extract_barriers(VKRenderGraph &render_graph,
             link.resource.handle);
         if (resource.use_subresource_tracking()) {
           VKResourceBarrierState &state = resource.barrier_state;
-          state.image_layout = use_local_read ? VK_IMAGE_LAYOUT_RENDERING_LOCAL_READ_KHR :
-                                                VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL;
+          state.image_layout = to_default_image_layout(link.vk_image_aspect, use_local_read);
         }
       }
 
@@ -705,6 +717,7 @@ void VKCommandBuilder::add_image_read_barriers(VKRenderGraph &render_graph,
                              link.subimage,
                              resource_state.image_layout,
                              link.vk_image_layout,
+                             link.vk_image_aspect,
                              r_barrier);
         resource_state.image_layout = link.vk_image_layout;
       }
@@ -791,6 +804,7 @@ void VKCommandBuilder::add_image_write_barriers(VKRenderGraph &render_graph,
                              link.subimage,
                              resource_state.image_layout,
                              link.vk_image_layout,
+                             link.vk_image_aspect,
                              r_barrier);
         resource_state.image_layout = link.vk_image_layout;
       }
@@ -909,6 +923,7 @@ void VKCommandBuilder::ImageTracker::update(VkImage vk_image,
                                             const VKSubImageRange &subimage,
                                             VkImageLayout old_layout,
                                             VkImageLayout new_layout,
+                                            VkImageAspectFlags aspect,
                                             Barrier &r_barrier)
 {
   for (const SubImageChange &change : changes) {
@@ -927,21 +942,27 @@ void VKCommandBuilder::ImageTracker::update(VkImage vk_image,
     }
   }
 
-  changes.append({vk_image, new_layout, subimage});
+  changes.append({vk_image, new_layout, aspect, subimage});
 
   /* We should be able to do better. BOTTOM/TOP is really a worst case barrier. */
   r_barrier.src_stage_mask = VK_PIPELINE_STAGE_ALL_COMMANDS_BIT;
   r_barrier.dst_stage_mask = VK_PIPELINE_STAGE_ALL_COMMANDS_BIT;
+  VkAccessFlags dst_access_mask = VK_ACCESS_SHADER_READ_BIT | VK_ACCESS_SHADER_WRITE_BIT |
+                                  VK_ACCESS_TRANSFER_READ_BIT | VK_ACCESS_TRANSFER_WRITE_BIT;
+  if (aspect & VK_IMAGE_ASPECT_COLOR_BIT) {
+    dst_access_mask |= VK_ACCESS_COLOR_ATTACHMENT_READ_BIT | VK_ACCESS_COLOR_ATTACHMENT_WRITE_BIT;
+  }
+  if (aspect & (VK_IMAGE_ASPECT_DEPTH_BIT | VK_IMAGE_ASPECT_STENCIL_BIT)) {
+    dst_access_mask |= VK_ACCESS_DEPTH_STENCIL_ATTACHMENT_READ_BIT |
+                       VK_ACCESS_DEPTH_STENCIL_ATTACHMENT_WRITE_BIT;
+  }
   command_builder.add_image_barrier(vk_image,
                                     r_barrier,
                                     VK_ACCESS_TRANSFER_WRITE_BIT,
-                                    VK_ACCESS_SHADER_READ_BIT | VK_ACCESS_SHADER_WRITE_BIT |
-                                        VK_ACCESS_COLOR_ATTACHMENT_READ_BIT |
-                                        VK_ACCESS_COLOR_ATTACHMENT_WRITE_BIT |
-                                        VK_ACCESS_TRANSFER_READ_BIT | VK_ACCESS_TRANSFER_WRITE_BIT,
+                                    dst_access_mask,
                                     old_layout,
                                     new_layout,
-                                    VK_IMAGE_ASPECT_COLOR_BIT,
+                                    aspect,
                                     subimage);
 }
 
@@ -976,9 +997,8 @@ void VKCommandBuilder::ImageTracker::suspend(Barrier &r_barrier, bool use_local_
             VK_ACCESS_COLOR_ATTACHMENT_READ_BIT | VK_ACCESS_COLOR_ATTACHMENT_WRITE_BIT |
             VK_ACCESS_TRANSFER_READ_BIT | VK_ACCESS_TRANSFER_WRITE_BIT,
         change.vk_image_layout,
-        use_local_read ? VK_IMAGE_LAYOUT_RENDERING_LOCAL_READ_KHR :
-                         VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL,
-        VK_IMAGE_ASPECT_COLOR_BIT,
+        to_default_image_layout(change.vk_image_aspect, use_local_read),
+        change.vk_image_aspect,
         change.subimage);
     r_barrier.image_memory_barriers = r_barrier.image_memory_barriers.with_new_end(
         command_builder.vk_image_memory_barriers_.size());
@@ -988,7 +1008,9 @@ void VKCommandBuilder::ImageTracker::suspend(Barrier &r_barrier, bool use_local_
               << ", layer=" << change.subimage.layer_base
               << ", count=" << change.subimage.layer_count
               << ", from_layout=" << to_string(change.vk_image_layout)
-              << ", to_layout=" << to_string(VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL) << "\n";
+              << ", to_layout=" << to_string(
+                     to_default_image_layout(change.vk_image_aspect, use_local_read))
+              << "\n";
 #endif
   }
 }
@@ -1016,16 +1038,16 @@ void VKCommandBuilder::ImageTracker::resume(Barrier &r_barrier, bool use_local_r
         VK_ACCESS_SHADER_READ_BIT | VK_ACCESS_SHADER_WRITE_BIT |
             VK_ACCESS_COLOR_ATTACHMENT_READ_BIT | VK_ACCESS_COLOR_ATTACHMENT_WRITE_BIT |
             VK_ACCESS_TRANSFER_READ_BIT | VK_ACCESS_TRANSFER_WRITE_BIT,
-        use_local_read ? VK_IMAGE_LAYOUT_RENDERING_LOCAL_READ_KHR :
-                         VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL,
+        to_default_image_layout(change.vk_image_aspect, use_local_read),
         change.vk_image_layout,
-        VK_IMAGE_ASPECT_COLOR_BIT,
+        change.vk_image_aspect,
         change.subimage);
 #if 0
     std::cout << __func__ << ": transition layout image=" << change.vk_image
               << ", layer=" << change.subimage.layer_base
               << ", count=" << change.subimage.layer_count
-              << ", from_layout=" << to_string(VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL)
+              << ", from_layout=" << to_string(
+                     to_default_image_layout(change.vk_image_aspect, use_local_read))
               << ", to_layout=" << to_string(change.vk_image_layout) << "\n";
 #endif
   }
