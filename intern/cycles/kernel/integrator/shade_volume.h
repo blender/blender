@@ -89,10 +89,8 @@ ccl_device_inline Spectrum volume_shader_eval_extinction(KernelGlobals kg,
                                                          const PathRayVisibility path_visibility,
                                                          uint32_t path_flag)
 {
-  /* Use emission flag to avoid storing phase function. */
-  /* TODO(weizhen): we could add another flag to skip evaluating the emission, but we've run out of
-   * bits for the path flag.*/
-  path_flag |= PATH_RAY_EMISSION;
+  /* Use extinction flag to avoid storing phase function and evaluating emission. */
+  path_flag |= PATH_RAY_EXTINCTION;
 
   volume_shader_eval<shadow>(kg, state, sd, path_visibility, path_flag);
 

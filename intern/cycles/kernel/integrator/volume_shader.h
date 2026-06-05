@@ -499,12 +499,12 @@ ccl_device_inline void volume_shader_eval(KernelGlobals kg,
                                           const PathRayVisibility path_visibility,
                                           const uint32_t path_flag)
 {
-  /* If path is being terminated, we are tracing a shadow ray or evaluating
-   * emission, then we don't need to store closures. The emission and shadow
-   * shader data also do not have a closure array to save GPU memory. */
+  /* If path is being terminated, we are tracing a shadow ray or evaluating emission, then we don't
+   * need to store closures. The emission, extinction and shadow shader data also do not have a
+   * closure array to save GPU memory. */
   int max_closures;
   if ((path_visibility & PATH_RAY_VISIBILITY_SHADOW) ||
-      (path_flag & (PATH_RAY_TERMINATE | PATH_RAY_EMISSION)))
+      (path_flag & (PATH_RAY_TERMINATE | PATH_RAY_EMISSION | PATH_RAY_EXTINCTION)))
   {
     max_closures = 0;
   }

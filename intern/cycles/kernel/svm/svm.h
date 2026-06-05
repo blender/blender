@@ -147,7 +147,8 @@ ccl_device void svm_eval_nodes(KernelGlobals kg,
       {
         const ccl_global SVMNodeClosureEmission &bsdf_node = svm_node_get<SVMNodeClosureEmission>(
             kg, &offset);
-        svm_node_closure_emission(kg, sd, stack, closure_weight, bsdf_node, path_visibility);
+        svm_node_closure_emission(
+            kg, sd, stack, closure_weight, bsdf_node, path_visibility, path_flag);
       }
       break;
       SVM_CASE(NODE_CLOSURE_BACKGROUND)
@@ -346,23 +347,19 @@ ccl_device void svm_eval_nodes(KernelGlobals kg,
       SVM_CASE(NODE_VOLUME_COEFFICIENTS)
       IF_KERNEL_NODES_FEATURE(VOLUME)
       {
-        svm_node_volume_coefficients<type>(kg,
-                                           sd,
-                                           stack,
-                                           closure_weight,
-                                           svm_node_get<SVMNodeVolumeCoefficients>(kg, &offset),
-                                           path_visibility);
+        const ccl_global SVMNodeVolumeCoefficients &bsdf_node =
+            svm_node_get<SVMNodeVolumeCoefficients>(kg, &offset);
+        svm_node_volume_coefficients<type>(
+            kg, sd, stack, closure_weight, bsdf_node, path_visibility, path_flag);
       }
       break;
       SVM_CASE(NODE_PRINCIPLED_VOLUME)
       IF_KERNEL_NODES_FEATURE(VOLUME)
       {
-        svm_node_principled_volume<type>(kg,
-                                         sd,
-                                         stack,
-                                         closure_weight,
-                                         svm_node_get<SVMNodePrincipledVolume>(kg, &offset),
-                                         path_visibility);
+        const ccl_global SVMNodePrincipledVolume &bsdf_node =
+            svm_node_get<SVMNodePrincipledVolume>(kg, &offset);
+        svm_node_principled_volume<type>(
+            kg, sd, stack, closure_weight, bsdf_node, path_visibility, path_flag);
       }
       break;
       SVM_CASE(NODE_MATH)
