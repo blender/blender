@@ -660,6 +660,7 @@ bool OptiXDevice::load_kernels(const uint kernel_features)
         "__raygen__kernel_optix_integrator_intersect_mnee";
   }
 
+#  ifdef WITH_OSL
   /* OSL uses direct callables to execute, so shading needs to be done in OptiX if OSL is used. */
   if (use_osl_shading) {
     group_descs[PG_RGEN_SHADE_BACKGROUND].kind = OPTIX_PROGRAM_GROUP_KIND_RAYGEN;
@@ -714,7 +715,6 @@ bool OptiXDevice::load_kernels(const uint kernel_features)
         "__raygen__kernel_optix_shader_eval_volume_density";
   }
 
-#  ifdef WITH_OSL
   /* When using custom OSL cameras, integrator_init_from_camera is its own specialized module. */
   if (use_osl_camera) {
     group_descs[PG_RGEN_INIT_FROM_CAMERA].kind = OPTIX_PROGRAM_GROUP_KIND_RAYGEN;
