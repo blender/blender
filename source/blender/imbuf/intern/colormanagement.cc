@@ -551,6 +551,9 @@ void colormanage_imbuf_make_linear(ImBuf *ibuf,
       }
     }
 
+    /* Clear colorspace to indicate it's scene linear. */
+    ibuf->float_buffer.colorspace = nullptr;
+
     if (from_colorspace[0] == '\0') {
       return;
     }
@@ -568,7 +571,6 @@ void colormanage_imbuf_make_linear(ImBuf *ibuf,
                                        ibuf->channels,
                                        &cm_processor,
                                        predivide);
-    ibuf->float_buffer.colorspace = nullptr;
   }
 }
 
