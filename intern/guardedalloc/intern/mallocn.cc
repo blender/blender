@@ -10,6 +10,7 @@
 
 #include "MEM_guardedalloc.h"
 
+#include "PRF_profile.hh"
 /* To ensure strict conversions. */
 #include "../../source/blender/blenlib/BLI_strict_flags.h"
 
@@ -97,6 +98,7 @@ void *aligned_malloc(size_t size, size_t alignment)
 
 void aligned_free(void *ptr)
 {
+  PRF_memory_free(ptr);
 #ifdef _WIN32
   _aligned_free(ptr);
 #else

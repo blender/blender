@@ -26,6 +26,7 @@
 #  include "valgrind/memcheck.h"
 #endif
 
+#include "PRF_profile.hh"
 /* to ensure strict conversions */
 #include "../../source/blender/blenlib/BLI_strict_flags.h"
 
@@ -323,6 +324,7 @@ size_t MEM_guarded_allocN_len(const void *vmemh)
 
 void *MEM_guarded_dupallocN(const void *vmemh)
 {
+  PRF_scope(blender::ProfileCategory::Core);
   void *newp = nullptr;
 
   if (vmemh) {
@@ -383,6 +385,7 @@ void *MEM_guarded_dupallocN(const void *vmemh)
 
 void *MEM_guarded_reallocN_id(void *vmemh, size_t len, const char *str)
 {
+  PRF_scope(blender::ProfileCategory::Core);
   void *newp = nullptr;
 
   if (vmemh) {
@@ -426,6 +429,7 @@ void *MEM_guarded_reallocN_id(void *vmemh, size_t len, const char *str)
 
 void *MEM_guarded_recallocN_id(void *vmemh, size_t len, const char *str)
 {
+  PRF_scope(blender::ProfileCategory::Core);
   void *newp = nullptr;
 
   if (vmemh) {
@@ -534,6 +538,7 @@ static void make_memhead_header(MemHead *memh,
 
 void *MEM_guarded_mallocN(size_t len, const char *str)
 {
+  PRF_scope(blender::ProfileCategory::Core);
   MemHead *memh;
 
 #ifdef WITH_MEM_VALGRIND
@@ -542,6 +547,7 @@ void *MEM_guarded_mallocN(size_t len, const char *str)
   len = SIZET_ALIGN_4(len);
 
   memh = (MemHead *)malloc(len + sizeof(MemHead) + sizeof(MemTail));
+  PRF_memory_alloc(memh, len + sizeof(MemHead) + sizeof(MemTail));
 
   if (LIKELY(memh)) {
     make_memhead_header(memh, len, str, DestructorType::Trivial);
@@ -577,6 +583,7 @@ void *MEM_guarded_mallocN(size_t len, const char *str)
 
 void *MEM_guarded_malloc_arrayN(size_t len, size_t size, const char *str)
 {
+  PRF_scope(blender::ProfileCategory::Core);
   size_t total_size;
   if (UNLIKELY(!MEM_size_safe_multiply(len, size, &total_size))) {
     print_error(
@@ -598,6 +605,7 @@ void *MEM_guarded_mallocN_aligned(size_t len,
                                   const char *str,
                                   const DestructorType destructor_type)
 {
+  PRF_scope(blender::ProfileCategory::Core);
   /* Huge alignment values doesn't make sense and they wouldn't fit into 'short' used in the
    * MemHead. */
   assert(alignment < 1024);
@@ -627,6 +635,7 @@ void *MEM_guarded_mallocN_aligned(size_t len,
 
   MemHead *memh = (MemHead *)aligned_malloc(
       len + extra_padding + sizeof(MemHead) + sizeof(MemTail), alignment);
+  PRF_memory_alloc(memh, len + extra_padding + sizeof(MemHead) + sizeof(MemTail));
 
   if (LIKELY(memh)) {
     /* We keep padding in the beginning of MemHead,
@@ -668,11 +677,13 @@ void *MEM_guarded_mallocN_aligned(size_t len,
 
 void *MEM_guarded_callocN(size_t len, const char *str)
 {
+  PRF_scope(blender::ProfileCategory::Core);
   MemHead *memh;
 
   len = SIZET_ALIGN_4(len);
 
   memh = (MemHead *)calloc(len + sizeof(MemHead) + sizeof(MemTail), 1);
+  PRF_memory_alloc(memh, len + sizeof(MemHead) + sizeof(MemTail));
 
   if (memh) {
     make_memhead_header(memh, len, str, DestructorType::Trivial);
@@ -693,6 +704,7 @@ void *MEM_guarded_callocN(size_t len, const char *str)
 
 void *MEM_guarded_calloc_arrayN(size_t len, size_t size, const char *str)
 {
+  PRF_scope(blender::ProfileCategory::Core);
   size_t total_size;
   if (UNLIKELY(!MEM_size_safe_multiply(len, size, &total_size))) {
     print_error(
@@ -737,6 +749,7 @@ void *MEM_guarded_malloc_arrayN_aligned(const size_t len,
                                         const size_t alignment,
                                         const char *str)
 {
+  PRF_scope(blender::ProfileCategory::Core);
   size_t bytes_num;
   return mem_guarded_malloc_arrayN_aligned(len, size, alignment, str, bytes_num);
 }
@@ -746,6 +759,7 @@ void *MEM_guarded_calloc_arrayN_aligned(const size_t len,
                                         const size_t alignment,
                                         const char *str)
 {
+  PRF_scope(blender::ProfileCategory::Core);
   size_t bytes_num;
   /* There is no lower level #calloc with an alignment parameter, so we have to fall back to using
    * #memset unfortunately. */
@@ -1208,6 +1222,7 @@ static void rem_memblock(MemHead *memh)
     memset(memh + 1, 255, memh->len);
   }
   if (LIKELY(memh->alignment == 0)) {
+    PRF_memory_free(memh);
     free(memh);
   }
   else {
