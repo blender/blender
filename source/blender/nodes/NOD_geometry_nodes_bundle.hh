@@ -102,6 +102,7 @@ class Bundle : public ImplicitSharingMixin {
   bool add_path(StringRef path, const BundleItemValue &value);
   void add_path_new(StringRef path, const BundleItemValue &value);
   void add_path_override(StringRef path, const BundleItemValue &value);
+  void add_path_override(Span<BundleKey> path, const BundleItemValue &value);
 
   template<typename T>
     requires(!std::is_same_v<std::decay_t<T>, BundleItemValue>)
@@ -115,6 +116,9 @@ class Bundle : public ImplicitSharingMixin {
   template<typename T>
     requires(!std::is_same_v<std::decay_t<T>, BundleItemValue>)
   void add_path(StringRef path, T &&value);
+  template<typename T>
+    requires(!std::is_same_v<std::decay_t<T>, BundleItemValue>)
+  void add_path_override(Span<BundleKey> path, T &&value);
   template<typename T>
     requires(!std::is_same_v<std::decay_t<T>, BundleItemValue>)
   void add_path_override(StringRef path, T &&value);
@@ -430,6 +434,15 @@ inline void Bundle::add_override(const BundleKey key, T &&value)
 template<typename T>
   requires(!std::is_same_v<std::decay_t<T>, BundleItemValue>)
 inline void Bundle::add_path_override(const StringRef path, T &&value)
+{
+  to_stored_type(std::forward<T>(value), [&]<typename U>(U &&item_value) {
+    this->add_path_override(path, std::forward<U>(item_value));
+  });
+}
+
+template<typename T>
+  requires(!std::is_same_v<std::decay_t<T>, BundleItemValue>)
+inline void Bundle::add_path_override(Span<BundleKey> path, T &&value)
 {
   to_stored_type(std::forward<T>(value), [&]<typename U>(U &&item_value) {
     this->add_path_override(path, std::forward<U>(item_value));
