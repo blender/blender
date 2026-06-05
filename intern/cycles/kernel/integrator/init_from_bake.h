@@ -318,7 +318,7 @@ ccl_device bool integrator_init_from_bake(KernelGlobals kg,
 
     /* Setup next kernel to execute. */
     const bool use_caustics = kernel_data.integrator.use_caustics &&
-                              (object_flag & SD_OBJECT_CAUSTICS);
+                              (object_flag & SD_OBJECT_CAUSTICS_RECEIVER);
     const bool use_raytrace_kernel = (shader_flags & SD_HAS_RAYTRACE);
 
     if (use_caustics) {
