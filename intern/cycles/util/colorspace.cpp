@@ -791,7 +791,7 @@ Transform ColorSpaceManager::get_xyz_to_scene_linear_rgb()
   return xyz_to_rgb;
 }
 
-const std::string &ColorSpaceManager::get_xyz_to_scene_linear_rgb_string()
+std::string ColorSpaceManager::get_xyz_to_scene_linear_rgb_string()
 {
 #ifdef WITH_OCIO
   /* Clear the cached hash if the scene linear colorspace changed. */
