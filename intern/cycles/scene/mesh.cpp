@@ -803,12 +803,15 @@ void Mesh::update_generated(Scene *scene)
 
   /* apply generated attributes if needed or missing */
   if (need_attribute(scene, ATTR_STD_GENERATED) && !attrs.find(ATTR_STD_GENERATED)) {
-    const size_t verts_size = num_verts();
-    const packed_float3 *verts = get_position();
-    Attribute *attr_generated = attrs.add(ATTR_STD_GENERATED);
-    packed_float3 *generated = attr_generated->data_for_write<packed_float3>();
-    for (size_t i = 0; i < verts_size; ++i) {
-      generated[i] = verts[i];
+    const Attribute *attr_P = attrs.find(ATTR_STD_POSITION);
+    if (attr_P) {
+      const size_t verts_size = attr_P->size;
+      const packed_float3 *verts = attr_P->data<packed_float3>();
+      Attribute *attr_generated = attrs.add(ATTR_STD_GENERATED);
+      packed_float3 *generated = attr_generated->data_for_write<packed_float3>();
+      for (size_t i = 0; i < verts_size; ++i) {
+        generated[i] = verts[i];
+      }
     }
   }
 }
