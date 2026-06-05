@@ -5061,6 +5061,10 @@ bool MOD_lineart_compute_feature_lines_v3(Depsgraph *depsgraph,
     }
   }
 
+  if (lineart_camera->type != OB_CAMERA) {
+    return false;
+  }
+
   LineartCache *lc = *cached_result;
   if (!lc) {
     lc = MOD_lineart_init_cache();
