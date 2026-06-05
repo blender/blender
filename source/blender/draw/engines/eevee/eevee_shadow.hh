@@ -344,7 +344,7 @@ class ShadowModule {
   void sync_object(const ObjectHandle &ob_handle,
                    bool is_alpha_blend,
                    bool has_transparent_shadows,
-                   bool time_changed);
+                   bool has_time_dependent_shadows);
   void end_sync();
 
   void set_lights_data();
