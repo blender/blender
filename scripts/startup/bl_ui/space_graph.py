@@ -450,9 +450,9 @@ class GRAPH_MT_key(Menu):
         layout.separator()
         layout.operator_menu_enum("graph.keyframe_insert", "type", text="Insert")
 
-        layout.operator("graph.copy", text="Copy")
-        layout.operator("graph.paste", text="Paste")
-        layout.operator("graph.paste", text="Paste Flipped").flipped = True
+        layout.operator("graph.copy", text="Copy", icon='COPYDOWN')
+        layout.operator("graph.paste", text="Paste", icon='PASTEDOWN')
+        layout.operator("graph.paste", text="Paste Flipped", icon='PASTEFLIPDOWN').flipped = True
         layout.operator("graph.duplicate_move")
         layout.operator("graph.delete", text="Delete")
 

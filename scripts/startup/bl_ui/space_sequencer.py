@@ -1123,8 +1123,8 @@ class SEQUENCER_MT_strip(Menu):
             layout.menu("SEQUENCER_MT_strip_mirror")
             layout.separator()
             layout.operator("sequencer.preview_duplicate_move", text="Duplicate")
-            layout.operator("sequencer.copy", text="Copy")
-            layout.operator("sequencer.paste", text="Paste")
+            layout.operator("sequencer.copy", text="Copy", icon='COPYDOWN')
+            layout.operator("sequencer.paste", text="Paste", icon='PASTEDOWN')
             layout.separator()
             layout.menu("SEQUENCER_MT_strip_animation")
             layout.separator()
@@ -1146,8 +1146,8 @@ class SEQUENCER_MT_strip(Menu):
 
             layout.separator()
 
-            layout.operator("sequencer.copy", text="Copy")
-            layout.operator("sequencer.paste", text="Paste")
+            layout.operator("sequencer.copy", text="Copy", icon='COPYDOWN')
+            layout.operator("sequencer.paste", text="Paste", icon='PASTEDOWN')
             layout.operator("sequencer.duplicate_move", text="Duplicate")
             layout.operator("sequencer.duplicate_move_linked", text="Duplicate Linked")
 

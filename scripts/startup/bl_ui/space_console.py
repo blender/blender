@@ -91,8 +91,8 @@ class CONSOLE_MT_console(Menu):
 
         layout.operator("console.copy_as_script", text="Copy as Script")
         layout.operator("console.copy", text="Cut").delete = True
-        layout.operator("console.copy", text="Copy")
-        layout.operator("console.paste", text="Paste")
+        layout.operator("console.copy", text="Copy", icon='COPYDOWN')
+        layout.operator("console.paste", text="Paste", icon='PASTEDOWN')
 
         layout.separator()
 
@@ -124,8 +124,8 @@ class CONSOLE_MT_context_menu(Menu):
 
         layout.operator("console.copy_as_script", text="Copy as Script")
         layout.operator("console.copy", text="Cut").delete = True
-        layout.operator("console.copy", text="Copy")
-        layout.operator("console.paste", text="Paste")
+        layout.operator("console.copy", text="Copy", icon='COPYDOWN')
+        layout.operator("console.paste", text="Paste", icon='PASTEDOWN')
 
         layout.separator()
 

@@ -232,8 +232,8 @@ class IMAGE_MT_image(Menu):
             del _ghost_backend
 
         if has_image_clipboard:
-            layout.operator("image.clipboard_copy", text="Copy")
-            layout.operator("image.clipboard_paste", text="Paste")
+            layout.operator("image.clipboard_copy", text="Copy", icon='COPYDOWN')
+            layout.operator("image.clipboard_paste", text="Paste", icon='PASTEDOWN')
             layout.separator()
 
         if ima:
@@ -496,8 +496,8 @@ class IMAGE_MT_uvs(Menu):
 
         layout.separator()
 
-        layout.operator("uv.copy")
-        layout.operator("uv.paste")
+        layout.operator("uv.copy", icon='COPYDOWN')
+        layout.operator("uv.paste", icon='PASTEDOWN')
 
         layout.separator()
 
