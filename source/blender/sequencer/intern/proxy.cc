@@ -518,7 +518,7 @@ static ImBuf *render_image_strip_frame(const ProxyBuildContext &context,
 {
   ImBuf *ibuf = nullptr;
 
-  ImBufFlags flag = ImBufFlags::ByteData | ImBufFlags::Metadata | ImBufFlags::MultiLayer;
+  ImBufFlags flag = ImBufFlags::ByteData | ImBufFlags::Metadata;
   if (strip.alpha_mode == SEQ_ALPHA_PREMUL) {
     flag |= ImBufFlags::AlphaPremul;
   }
@@ -536,7 +536,7 @@ static ImBuf *render_image_strip_frame(const ProxyBuildContext &context,
     return nullptr;
   }
 
-  convert_multilayer_ibuf(ibuf);
+  ensure_ibuf_is_rgba(ibuf);
   if (ibuf->float_data() != nullptr && ibuf->byte_data() != nullptr) {
     IMB_free_byte_pixels(ibuf); /* If both float & byte exist, free byte buffer. */
   }

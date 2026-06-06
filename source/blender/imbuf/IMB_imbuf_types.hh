@@ -13,6 +13,7 @@
 
 #include "BLI_assert.h"
 #include "BLI_implicit_sharing_ptr.hh"
+#include "BLI_string_ref.hh"
 
 #include "DNA_image_enums.h"
 #include "IMB_imbuf_enums.h"
@@ -21,7 +22,6 @@
 
 namespace blender {
 
-struct ExrHandle;
 namespace gpu {
 class Texture;
 }
@@ -212,9 +212,6 @@ struct ImBuf {
   /** Implicit-sharing owner for #metadata_ptr. */
   ImplicitSharingPtr<> metadata_sharing_info;
 
-  /** OpenEXR handle. */
-  ExrHandle *exrhandle = nullptr;
-
   /* file information */
   /** file type we are going to save as */
   eImbFileType ftype = IMB_FTYPE_NONE;
@@ -270,6 +267,12 @@ struct ImBuf {
     return 0;
   }
 };
+
+/** Return default color mode for the give number of channels. */
+[[nodiscard]] ImColorMode IMB_color_mode_from_channels(int channels);
+
+/** Test if channel names indicate colors or data. */
+[[nodiscard]] bool IMB_chan_id_is_color(StringRef chan_id);
 
 /**
  * \brief userflags: Flags used internally by blender for image-buffers.

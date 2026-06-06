@@ -259,7 +259,7 @@ bool RE_HasSingleLayer(Render *re)
 }
 
 RenderResult *RE_MultilayerConvert(
-    ExrHandle *exrhandle, const char *colorspace, bool predivide, int rectx, int recty)
+    ExrReadHandle *exrhandle, const char *colorspace, bool predivide, int rectx, int recty)
 {
   return render_result_new_from_exr(exrhandle, colorspace, predivide, rectx, recty);
 }

@@ -4151,19 +4151,18 @@ static void image_add_view(Image *ima, const char *viewname, const char *filepat
 
 /* After imbuf load, OpenEXR type can return with a EXR-handle open
  * in that case we have to build a render-result. */
-static void image_create_multilayer(Image *ima, ImBuf *ibuf, int framenr)
+static void image_create_multilayer(Image *ima, ImBuf *ibuf, ExrReadHandle *handle, int framenr)
 {
   const char *colorspace = ima->colorspace_settings.name;
   bool predivide = (ima->alpha_mode == IMA_ALPHA_PREMUL);
 
   /* only load rr once for multiview */
   if (!ima->rr) {
-    ima->rr = RE_MultilayerConvert(ibuf->exrhandle, colorspace, predivide, ibuf->x, ibuf->y);
+    ima->rr = RE_MultilayerConvert(handle, colorspace, predivide, ibuf->x, ibuf->y);
   }
 
-  IMB_exr_close(ibuf->exrhandle);
+  IMB_exr_close(handle);
 
-  ibuf->exrhandle = nullptr;
   if (ima->rr != nullptr) {
     ima->rr->framenr = framenr;
     BKE_stamp_info_from_imbuf(ima->rr, ibuf);
@@ -4375,6 +4374,7 @@ static ImBuf *load_image_single(Image *ima,
 {
   char filepath[FILE_MAX];
   ImBuf *ibuf = nullptr;
+  ExrReadHandle *exr_handle = nullptr;
   ImBufFlags flag = ImBufFlags::ByteData | ImBufFlags::MultiLayer | ImBufFlags::Metadata |
                     imbuf_alpha_flags_for_image(ima);
 
@@ -4386,13 +4386,16 @@ static ImBuf *load_image_single(Image *ima,
     for (ImagePackedFile &imapf : ima->packedfiles) {
       if (imapf.view == view_id && imapf.tile_number == tile_number) {
         if (imapf.packedfile) {
-          ibuf = IMB_load_image_from_memory(
-              static_cast<uchar *>(const_cast<void *>(imapf.packedfile->data)),
-              imapf.packedfile->size,
-              flag,
-              "<packed data>",
-              nullptr,
-              ima->colorspace_settings.name);
+          uchar *data = static_cast<uchar *>(const_cast<void *>(imapf.packedfile->data));
+          ibuf = IMB_load_image_from_memory(data,
+                                            imapf.packedfile->size,
+                                            flag,
+                                            "<packed data>",
+                                            nullptr,
+                                            ima->colorspace_settings.name);
+          if (ibuf && flag_is_set(ibuf->flags, ImBufFlags::MultiLayer)) {
+            exr_handle = IMB_exr_open_multilayer_from_memory(data, imapf.packedfile->size);
+          }
         }
         break;
       }
@@ -4423,21 +4426,25 @@ static ImBuf *load_image_single(Image *ima,
 
     /* read ibuf */
     ibuf = IMB_load_image_from_filepath(filepath, flag, ima->colorspace_settings.name);
+    if (ibuf && flag_is_set(ibuf->flags, ImBufFlags::MultiLayer)) {
+      exr_handle = IMB_exr_open_multilayer(filepath);
+    }
   }
 
   if (ibuf) {
-    if (ibuf->ftype == IMB_FTYPE_OPENEXR && ibuf->exrhandle) {
-      /* Handle multilayer and multiview cases, don't assign ibuf here.
-       * will be set layer in BKE_image_acquire_ibuf from ima->rr. */
-      if (IMB_exr_has_multilayer(ibuf->exrhandle)) {
-        image_create_multilayer(ima, ibuf, cfra);
+    if (flag_is_set(ibuf->flags, ImBufFlags::MultiLayer)) {
+      /* Handle multilayer and multiview cases, don't assign ibuf here. will be set layer
+       * in BKE_image_acquire_ibuf from ima->rr. The loaded ibuf only contains metadata,
+       * so it is discarded here. */
+      if (exr_handle) {
+        image_create_multilayer(ima, ibuf, exr_handle, cfra);
         ima->type = IMA_TYPE_MULTILAYER;
-        IMB_freeImBuf(ibuf);
-        ibuf = nullptr;
-        /* Null ibuf in the cache means the image failed to load. However for multilayer we load
-         * pixels into RenderResult instead and intentionally leave ibuf null. */
-        *r_cache_ibuf = false;
       }
+      IMB_freeImBuf(ibuf);
+      ibuf = nullptr;
+      /* Null ibuf in the cache means the image failed to load. However for multilayer we load
+       * pixels into RenderResult instead and intentionally leave ibuf null. */
+      *r_cache_ibuf = false;
     }
     else {
       image_init_after_load(ima, iuser, ibuf);
@@ -4569,7 +4576,7 @@ void BKE_image_populate_cache_from_autosave(Image *ima)
   const bool tiled = ima->source == IMA_SRC_TILED;
   const int index = image_get_multiview_index(ima, nullptr);
 
-  const ImBufFlags flag = ImBufFlags::ByteData | ImBufFlags::MultiLayer | ImBufFlags::Metadata |
+  const ImBufFlags flag = ImBufFlags::ByteData | ImBufFlags::Metadata |
                           imbuf_alpha_flags_for_image(ima);
   for (ImagePackedFile &imapf : ima->autosave_packedfiles) {
     if (imapf.packedfile) {

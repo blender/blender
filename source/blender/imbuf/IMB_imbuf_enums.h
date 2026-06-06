@@ -28,6 +28,14 @@ enum class ImBufFlags {
    * (usually 1..4 channels, 32-bit float per channel).
    */
   FloatData = 1 << 5,
+  /**
+   * Multi-layer EXR handling.
+   *
+   * As a load flag, this indicates the caller supports multi-layer EXR.
+   * For such files, the MultiLayer flag will be set on the ImBuf and no
+   * pixels will be loaded yet, only metadata. The caller can then load
+   * the layers as needed using the IMB_exr API.
+   */
   MultiLayer = 1 << 7,
   Metadata = 1 << 8,
   Deinterlace = 1 << 9,

@@ -217,8 +217,7 @@ void add_image_init_alpha_mode(Main *bmain, Scene *scene, Strip *strip)
     /* Initialize input color space. */
     if (strip->type == STRIP_TYPE_IMAGE) {
       ibuf = IMB_load_image_from_filepath(filepath,
-                                          ImBufFlags::Test | ImBufFlags::MultiLayer |
-                                              ImBufFlags::AlphaDetect,
+                                          ImBufFlags::Test | ImBufFlags::AlphaDetect,
                                           strip->data->colorspace_settings.name);
 
       /* Byte images are default to straight alpha, however sequencer
@@ -262,9 +261,8 @@ Strip *add_image_strip(Main *bmain, Scene *scene, ListBaseT<Strip> *seqbase, Loa
   STRNCPY(file_path, load_data->path);
   BLI_path_abs(file_path, ID_BLEND_PATH(bmain, &scene->id));
 
-  ImBuf *ibuf = IMB_load_image_from_filepath(file_path,
-                                             ImBufFlags::ByteData | ImBufFlags::MultiLayer,
-                                             strip->data->colorspace_settings.name);
+  ImBuf *ibuf = IMB_load_image_from_filepath(
+      file_path, ImBufFlags::ByteData, strip->data->colorspace_settings.name);
   if (ibuf != nullptr) {
     /* Set image resolution. Assume that all images in sequence are same size. This fields are only
      * informative. */

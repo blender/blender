@@ -832,10 +832,11 @@ static SeqResult seq_render_effect_strip_impl(const RenderData *context,
 /** \name Individual strip rendering functions
  * \{ */
 
-void convert_multilayer_ibuf(ImBuf *ibuf)
+void ensure_ibuf_is_rgba(ImBuf *ibuf)
 {
-  /* Load the combined/RGB layer, if this is a multi-layer image. */
-  BKE_movieclip_convert_multilayer_ibuf(ibuf);
+  if (ibuf == nullptr) {
+    return;
+  }
 
   /* Combined layer might be non-4 channels, however the rest
    * of sequencer assumes RGBA everywhere. Convert to 4 channel if needed. */
@@ -860,7 +861,7 @@ static ImBuf *seq_render_image_strip_view(const RenderData *context,
 {
   ImBuf *ibuf = nullptr;
 
-  ImBufFlags flag = ImBufFlags::ByteData | ImBufFlags::Metadata | ImBufFlags::MultiLayer;
+  ImBufFlags flag = ImBufFlags::ByteData | ImBufFlags::Metadata;
   if (strip->alpha_mode == SEQ_ALPHA_PREMUL) {
     flag |= ImBufFlags::AlphaPremul;
   }
@@ -879,7 +880,7 @@ static ImBuf *seq_render_image_strip_view(const RenderData *context,
   if (ibuf == nullptr) {
     return nullptr;
   }
-  convert_multilayer_ibuf(ibuf);
+  ensure_ibuf_is_rgba(ibuf);
 
   /* We don't need both (speed reasons)! */
   if (ibuf->float_data() != nullptr && ibuf->byte_data() != nullptr) {
