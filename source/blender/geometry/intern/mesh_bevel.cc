@@ -7080,8 +7080,6 @@ static int tri_corner_test(const BevelState &state, const BevVert *bv)
     if (e.fprev >= 0 && e.fnext >= 0) {
       const float3 no_prev = emesh.src_face_normals[e.fprev];
       const float3 no_next = emesh.src_face_normals[e.fnext];
-      ang = angle_signed_on_axis_v3v3_v3(no_prev, no_next, float3(0.0f) /* unused */);
-      /* Use the dot-product sign to distinguish concave from convex. */
       const float dot = math::dot(no_prev, no_next);
       ang = acosf(math::clamp(dot, -1.0f, 1.0f));
       /* Negate for concave (the dihedral is > π). */
@@ -7205,12 +7203,17 @@ static VMesh adj_vmesh(BevelState &state, BevVert *bv)
   }
   geom::vmesh_copy_equiv_verts(&vm0);
 
-  /* Subdivide until seg >= nseg. */
+  /* Subdivide until seg >= nseg.
+   * Use do..while so that cubic_subdiv always runs at least once, matching bmesh_bevel.cc.
+   * This is necessary because the seed mesh's center vertex is placed using the fullness
+   * heuristic, which can be > 1.0 for high shape values, overshooting the original vertex.
+   * The first cubic_subdiv step applies the Sabin-formula correction that pulls the center
+   * back toward the bevel boundary regardless of nseg. */
   VMesh vm1 = std::move(vm0);
-  while (vm1.seg < nseg) {
+  do {
     VMesh next = cubic_subdiv(state, vm1);
     vm1 = std::move(next);
-  }
+  } while (vm1.seg < nseg);
   if (vm1.seg != nseg) {
     VMesh resampled = interp_vmesh(state, vm1, nseg);
     vm1 = std::move(resampled);
