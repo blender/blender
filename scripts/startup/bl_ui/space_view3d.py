@@ -2816,7 +2816,7 @@ class VIEW3D_MT_object(Menu):
 
         layout.separator()
 
-        layout.operator("object.duplicate_move")
+        layout.operator("object.duplicate_move", icon='DUPLICATE')
         layout.operator("object.duplicate_move_linked")
         layout.operator("object.join")
 
@@ -2868,7 +2868,7 @@ class VIEW3D_MT_object(Menu):
         layout.separator()
 
         layout.operator_context = 'EXEC_REGION_WIN'
-        layout.operator("object.delete", text="Delete").use_global = False
+        layout.operator("object.delete", text="Delete", icon='X').use_global = False
         layout.operator("object.delete", text="Delete Global").use_global = True
 
         layout.template_node_operator_asset_menu_items(catalog_path="Object")
@@ -3174,7 +3174,7 @@ class VIEW3D_MT_object_context_menu(Menu):
         layout.separator()
 
         layout.operator_context = 'EXEC_REGION_WIN'
-        layout.operator("object.delete", text="Delete").use_global = False
+        layout.operator("object.delete", text="Delete", icon='X').use_global = False
 
         layout.template_node_operator_asset_menu_items(catalog_path="Object")
 
