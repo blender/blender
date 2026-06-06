@@ -3029,7 +3029,7 @@ static void curve_smooth_value(ListBaseT<Nurb> *editnurb,
             if (start_sel > 0) {
               start_rad = BEZT_VALUE(&nu.bezt[start_sel - 1]);
             }
-            if (end_sel != -1 && end_sel < nu.pntsu) {
+            if (start_sel + 1 < nu.pntsu) {
               end_rad = BEZT_VALUE(&nu.bezt[start_sel + 1]);
             }
 
@@ -3110,7 +3110,7 @@ static void curve_smooth_value(ListBaseT<Nurb> *editnurb,
             if (start_sel > 0) {
               start_rad = BP_VALUE(&nu.bp[start_sel - 1]);
             }
-            if (end_sel != -1 && end_sel < nu.pntsu) {
+            if (start_sel + 1 < nu.pntsu) {
               end_rad = BP_VALUE(&nu.bp[start_sel + 1]);
             }
 
