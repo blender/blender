@@ -548,7 +548,8 @@ void curve_populate_trans_data_structs(const TransInfo &t,
       curves.positions(),
       curves.handle_positions_left().value_or(Span<float3>()),
       curves.handle_positions_right().value_or(Span<float3>())};
-  const View3D *v3d = static_cast<const View3D *>(t.view);
+  const View3D *v3d = (t.spacetype == SPACE_VIEW3D) ? static_cast<const View3D *>(t.view) :
+                                                      nullptr;
   const bool hide_handles = (v3d != nullptr) ? (v3d->overlay.handle_display == CURVE_HANDLE_NONE) :
                                                false;
   const bool use_individual_origin = (t.around == V3D_AROUND_LOCAL_ORIGINS);
