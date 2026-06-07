@@ -107,7 +107,7 @@ static void node_init(const bContext *C, PointerRNA *node_pointer)
   node->storage = data;
   data->save_as_render = true;
   data->use_file_extension = true;
-  data->file_name = BLI_strdup(DATA_("{blend_name}"));
+  data->file_name = BLI_strdup("{blend_name}");
 
   BKE_image_format_init(&data->format);
   BKE_image_format_media_type_set(
