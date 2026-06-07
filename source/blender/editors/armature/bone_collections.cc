@@ -901,9 +901,10 @@ static BoneCollection *add_or_move_to_collection_bcoll(wmOperator *op, bArmature
 {
   const int collection_index = RNA_int_get(op->ptr, "collection_index");
   BoneCollection *target_bcoll;
+  const bool index_exceeds_range = collection_index >= arm->collection_array_num;
 
   PropertyRNA *prop = RNA_struct_find_property(op->ptr, "new_collection_name");
-  if (RNA_property_is_set(op->ptr, prop) ||
+  if ((RNA_property_is_set(op->ptr, prop) && !index_exceeds_range) ||
       /* Neither properties can be used, the operator may have been called with defaults.
        * In this case add a root collection, the default name will be used. */
       (collection_index < 0))
@@ -917,7 +918,7 @@ static BoneCollection *add_or_move_to_collection_bcoll(wmOperator *op, bArmature
     ANIM_armature_bonecoll_active_set(arm, target_bcoll);
   }
   else {
-    if (collection_index >= arm->collection_array_num) {
+    if (index_exceeds_range) {
       BKE_reportf(op->reports,
                   RPT_ERROR,
                   "Bone collection with index %d not found on Armature %s",
