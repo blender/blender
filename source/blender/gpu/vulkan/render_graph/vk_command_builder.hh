@@ -88,6 +88,7 @@ class VKCommandBuilder {
     struct SubImageChange {
       VkImage vk_image;
       VkImageLayout vk_image_layout;
+      VkImageAspectFlags vk_image_aspect;
       VKSubImageRange subimage;
     };
     Vector<SubImageChange> changes;
@@ -117,6 +118,7 @@ class VKCommandBuilder {
                 const VKSubImageRange &subimage,
                 VkImageLayout old_layout,
                 VkImageLayout new_layout,
+                VkImageAspectFlags aspect,
                 Barrier &r_barrier);
     /**
      * Ensure the layout of a mipmap level.
@@ -127,6 +129,7 @@ class VKCommandBuilder {
                 uint32_t mipmap_level,
                 VkImageLayout old_layout,
                 VkImageLayout new_layout,
+                VkImageAspectFlags aspect,
                 Barrier &r_barrier);
 
     /**
