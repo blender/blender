@@ -5075,8 +5075,8 @@ static float snap_coordinate(float u)
   if (u < 0.0f) {
     u += 1.0f; /* Get back into the unit interval. */
   }
-  BLI_assert(0.0f <= u);
-  BLI_assert(u <= 1.0f);
+  BLI_assert(!(0.0f > u));
+  BLI_assert(!(1.0f < u));
   const float epsilon = 0.25f / 65536.0f; /* i.e. Quarter of a texel on a 65536 x 65536 texture. */
   if (u < epsilon) {
     return 0.0f; /* `u` is close to 0, just return 0. */
