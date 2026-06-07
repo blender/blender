@@ -837,10 +837,6 @@ BMEdge *BM_edge_rotate(BMesh *bm, BMEdge *e, const bool ccw, const short check_f
   f = BM_faces_join_pair(
       bm, BM_face_edge_share_loop(l1->f, e), BM_face_edge_share_loop(l2->f, e), true, &f_double);
 
-  /* See #BM_faces_join note on callers asserting when `r_double` is non-null. */
-  BLI_assert_msg(f_double == nullptr,
-                 "Doubled face detected at " AT ". Resulting mesh may be corrupt.");
-
   if (f == nullptr) {
     return nullptr;
   }
@@ -877,6 +873,15 @@ BMEdge *BM_edge_rotate(BMesh *bm, BMEdge *e, const bool ccw, const short check_f
     }
   }
   else {
+    /* See #BM_faces_join note on callers asserting when `r_double` is non-null.
+     * Checked here because a double is acceptable as long as its temporary.
+     *
+     * TODO(@ideasman42): To properly solve we'd need to create the 2x faces with edge rotation
+     * then only delete the original faces once the new faces have been successfully created.
+     * - Worth looking into. */
+    BLI_assert_msg(f_double == nullptr,
+                   "Doubled face detected at " AT ". Resulting mesh may be corrupt.");
+
     return nullptr;
   }
 
