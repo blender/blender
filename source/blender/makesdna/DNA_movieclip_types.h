@@ -95,7 +95,7 @@ struct MovieClip_RuntimeGPUTexture {
   void *next = nullptr, *prev = nullptr;
   MovieClipUser user;
   /** Not written in file. */
-  gpu::Texture *gputexture[/*TEXTARGET_COUNT*/ 3];
+  gpu::Texture *gputexture = nullptr;
 };
 
 struct MovieClip_Runtime {
