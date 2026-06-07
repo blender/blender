@@ -475,6 +475,7 @@ static void SCENE_OT_new_sequencer_scene(wmOperatorType *ot)
   /* API callbacks. */
   ot->exec = new_sequencer_scene_exec;
   ot->invoke = new_sequencer_scene_invoke;
+  ot->poll = ED_operator_screenactive;
 
   /* flags */
   ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
