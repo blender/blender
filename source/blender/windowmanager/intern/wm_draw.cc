@@ -1656,8 +1656,6 @@ void wm_draw_update(bContext *C)
   GPU_render_begin();
   GPU_render_step();
 
-  BKE_image_free_unused_gpu_textures();
-
 #ifdef WITH_METAL_BACKEND
   /* Reset drawable to ensure GPU context activation happens at least once per frame if only a
    * single context exists. This is required to ensure the default framebuffer is updated

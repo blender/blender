@@ -612,10 +612,6 @@ void WM_exit_ex(bContext *C, const bool do_python_exit, const bool do_user_exit_
 
   bke::subdiv::exit();
 
-  if (gpu_is_init) {
-    BKE_image_free_unused_gpu_textures();
-  }
-
   /* Frees the entire library (#G_MAIN) and space-types. */
   BKE_blender_free();
 

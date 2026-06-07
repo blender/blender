@@ -9,15 +9,11 @@
 #include "MEM_guardedalloc.h"
 
 #include "BLI_boxpack_2d.hh"
-#include "BLI_linklist.hh"
 #include "BLI_listbase.hh"
 #include "BLI_math_base.hh"
 #include "BLI_rect.hh"
-#include "BLI_threads.hh"
-#include "BLI_time.hh"
 
 #include "DNA_image_types.h"
-#include "DNA_userdef_types.h"
 
 #include "IMB_cache.hh"
 #include "IMB_colormanagement.hh"
@@ -42,8 +38,6 @@ static CLG_LogRef LOG = {"gpu.texture"};
 using namespace blender::bke::image::partial_update;
 
 /* Prototypes. */
-static void gpu_free_unused_buffers();
-static void image_free_gpu(Image *ima, const bool immediate);
 static void image_update_gputexture_ex(
     Image *ima, ImageTile *tile, ImBuf *ibuf, int x, int y, int w, int h);
 
@@ -343,7 +337,7 @@ static void image_gpu_texture_try_partial_update(Image *image, ImageUser *iuser)
   PartialUpdateChecker<ImageTileData>::CollectResult changes = checker.collect_changes();
   switch (changes.get_result_code()) {
     case ePartialUpdateCollectResult::FullUpdateNeeded: {
-      image_free_gpu(image, true);
+      BKE_image_free_gputextures(image);
       break;
     }
 
@@ -399,10 +393,6 @@ static ImageGPUTextures image_get_gpu_texture(Image *ima,
   if (ima == nullptr) {
     return result;
   }
-
-  /* Free any unused GPU textures, since we know we are in a thread with OpenGL
-   * context and might as well ensure we have as much space free as possible. */
-  gpu_free_unused_buffers();
 
   /* Free GPU textures when requesting a different render pass/layer.
    * When `iuser` isn't set (texture painting single image mode) we assume that
@@ -561,66 +551,21 @@ ImageGPUTextures BKE_image_get_gpu_material_texture_try(Image *image,
 /** \} */
 
 /* -------------------------------------------------------------------- */
-/** \name Delayed GPU texture free
- *
- * Image datablocks can be deleted by any thread, but there may not be any active OpenGL context.
- * In that case we push them into a queue and free the buffers later.
- * \{ */
-
-static LinkNode *gpu_texture_free_queue = nullptr;
-static Mutex gpu_texture_queue_mutex;
-
-static void gpu_free_unused_buffers()
-{
-  if (gpu_texture_free_queue == nullptr) {
-    return;
-  }
-
-  std::scoped_lock lock(gpu_texture_queue_mutex);
-
-  while (gpu_texture_free_queue != nullptr) {
-    gpu::Texture *tex = static_cast<gpu::Texture *>(BLI_linklist_pop(&gpu_texture_free_queue));
-    GPU_texture_free(tex);
-  }
-}
-
-void BKE_image_free_unused_gpu_textures()
-{
-  if (BLI_thread_is_main()) {
-    gpu_free_unused_buffers();
-  }
-}
-
-/** \} */
-
-/* -------------------------------------------------------------------- */
 /** \name Deletion
  * \{ */
 
-static void image_free_gpu(Image *ima, const bool immediate)
+void BKE_image_free_gputextures(Image *ima)
 {
   for (int eye = 0; eye < 2; eye++) {
     for (int i = 0; i < TEXTARGET_COUNT; i++) {
       if (ima->runtime->gputexture[i][eye] != nullptr) {
-        if (immediate) {
-          GPU_texture_free(ima->runtime->gputexture[i][eye]);
-        }
-        else {
-          std::scoped_lock lock(gpu_texture_queue_mutex);
-          BLI_linklist_prepend(&gpu_texture_free_queue, ima->runtime->gputexture[i][eye]);
-        }
-
+        GPU_texture_free(ima->runtime->gputexture[i][eye]);
         ima->runtime->gputexture[i][eye] = nullptr;
       }
     }
   }
 
   ima->runtime->gpuflag &= ~IMA_GPU_MIPMAP_COMPLETE;
-}
-
-void BKE_image_free_gputextures(Image *ima)
-{
-  image_free_gpu(ima, BLI_thread_is_main());
 }
 
 void BKE_image_free_all_gputextures(Main *bmain)

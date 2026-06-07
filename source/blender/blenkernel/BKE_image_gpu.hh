@@ -126,9 +126,4 @@ void BKE_image_update_gputexture_delayed(
  */
 void BKE_image_paint_set_mipmap(Main *bmain, bool mipmap);
 
-/**
- * Delayed free of OpenGL buffers by main thread.
- */
-void BKE_image_free_unused_gpu_textures();
-
 }  // namespace blender
