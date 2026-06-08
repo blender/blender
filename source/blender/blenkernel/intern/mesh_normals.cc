@@ -298,7 +298,7 @@ static void mix_normals_corner_to_face(const OffsetIndices<int> faces,
 /** \name Mesh Normal Calculation
  * \{ */
 
-bke::MeshNormalDomain Mesh::normals_domain(const bool support_sharp_face) const
+bke::MeshNormalDomain Mesh::normals_domain() const
 {
   using namespace blender::bke;
   if (this->faces_num == 0) {
@@ -338,7 +338,7 @@ bke::MeshNormalDomain Mesh::normals_domain(const bool support_sharp_face) const
   }
 
   if (edge_mix == array_utils::BooleanMix::AllFalse &&
-      (face_mix == array_utils::BooleanMix::AllFalse || support_sharp_face))
+      face_mix == array_utils::BooleanMix::AllFalse)
   {
     return MeshNormalDomain::Point;
   }
