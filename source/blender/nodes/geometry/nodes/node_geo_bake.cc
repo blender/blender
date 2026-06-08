@@ -264,7 +264,7 @@ class LazyFunctionForBakeNode final : public LazyFunction {
                     bke::bake::BakeDataBlockMap *data_block_map) const
   {
     std::optional<bake::BakeValues> bake_values = this->get_bake_values_from_inputs(
-        params, data_block_map);
+        params, data_block_map, false);
     if (!bake_values) {
       /* Wait for inputs to be computed. */
       return;
@@ -323,7 +323,9 @@ class LazyFunctionForBakeNode final : public LazyFunction {
   }
 
   std::optional<bake::BakeValues> get_bake_values_from_inputs(
-      lf::Params &params, bke::bake::BakeDataBlockMap *data_block_map) const
+      lf::Params &params,
+      bke::bake::BakeDataBlockMap *data_block_map,
+      const bool is_for_cache = true) const
   {
     Array<bke::SocketValueVariant *> input_value_pointers(bake_items_.size());
     for (const int i : bake_items_.index_range()) {
@@ -345,7 +347,8 @@ class LazyFunctionForBakeNode final : public LazyFunction {
       bake_input_value.value = std::move(*input_value_pointers[i]);
     }
 
-    return bake::BakeValues::from_runtime_values(std::move(bake_input_values), data_block_map);
+    return bake::BakeValues::from_runtime_values(
+        std::move(bake_input_values), data_block_map, is_for_cache);
   }
 
   Vector<SocketValueVariant> bake_to_output_values(const bake::BakeValues &bake_values,
