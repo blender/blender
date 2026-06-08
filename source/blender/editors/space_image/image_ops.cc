@@ -3767,6 +3767,9 @@ static wmOperatorStatus image_sample_line_exec(bContext *C, wmOperator *op)
   ui::view2d_region_to_view(&region->v2d, x_start, y_start, &uv1[0], &uv1[1]);
   ui::view2d_region_to_view(&region->v2d, x_end, y_end, &uv2[0], &uv2[1]);
 
+  if (ima == nullptr) {
+    return OPERATOR_CANCELLED;
+  }
   /* If the image has tiles, shift the positions accordingly. */
   int tile = BKE_image_get_tile_from_pos(ima, uv1, uv1, ofs);
   sub_v2_v2(uv2, ofs);
