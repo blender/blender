@@ -461,9 +461,10 @@ static Mesh *arrayModifier_doArray(ArrayModifierData *amd,
   }
 
   if (amd->offset_type & MOD_ARR_OFF_RELATIVE) {
-    const Bounds<float3> bounds = *mesh->bounds_min_max();
-    for (j = 3; j--;) {
-      offset[3][j] += amd->scale[j] * (bounds.max[j] - bounds.min[j]);
+    if (const std::optional<Bounds<float3>> bounds = mesh->bounds_min_max()) {
+      for (j = 3; j--;) {
+        offset[3][j] += amd->scale[j] * (bounds->max[j] - bounds->min[j]);
+      }
     }
   }
 
