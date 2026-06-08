@@ -385,49 +385,6 @@ static void update_bakes_from_node_group(NodesModifierData &nmd)
   remove_outdated_bake_caches(nmd);
 }
 
-static void update_panels_from_node_group(NodesModifierData &nmd)
-{
-  Map<int, NodesModifierPanel *> old_panel_by_id;
-  for (NodesModifierPanel &panel : MutableSpan(nmd.panels, nmd.panels_num)) {
-    old_panel_by_id.add(panel.id, &panel);
-  }
-
-  Vector<const bNodeTreeInterfacePanel *> interface_panels;
-  if (nmd.node_group && !ID_MISSING(nmd.node_group)) {
-    nmd.node_group->ensure_interface_cache();
-    nmd.node_group->tree_interface.foreach_item([&](const bNodeTreeInterfaceItem &item) {
-      if (item.item_type != NodeTreeInterfaceItemType::Panel) {
-        return true;
-      }
-      interface_panels.append(reinterpret_cast<const bNodeTreeInterfacePanel *>(&item));
-      return true;
-    });
-  }
-
-  NodesModifierPanel *new_panels = MEM_new_array<NodesModifierPanel>(interface_panels.size(),
-                                                                     __func__);
-
-  for (const int i : interface_panels.index_range()) {
-    const bNodeTreeInterfacePanel &interface_panel = *interface_panels[i];
-    const int id = interface_panel.identifier;
-    NodesModifierPanel *old_panel = old_panel_by_id.lookup_default(id, nullptr);
-    NodesModifierPanel &new_panel = new_panels[i];
-    if (old_panel) {
-      new_panel = *old_panel;
-    }
-    else {
-      new_panel.id = id;
-      const bool default_closed = interface_panel.flag & NODE_INTERFACE_PANEL_DEFAULT_CLOSED;
-      SET_FLAG_FROM_TEST(new_panel.flag, !default_closed, NODES_MODIFIER_PANEL_OPEN);
-    }
-  }
-
-  MEM_SAFE_DELETE(nmd.panels);
-
-  nmd.panels = new_panels;
-  nmd.panels_num = interface_panels.size();
-}
-
 static void update_system_properties(Object &object, NodesModifierData &nmd)
 {
   if (!nmd.modifier.system_properties) {
@@ -446,7 +403,6 @@ void MOD_nodes_update_interface(Object *object, NodesModifierData *nmd)
 {
   update_system_properties(*object, *nmd);
   update_bakes_from_node_group(*nmd);
-  update_panels_from_node_group(*nmd);
   nmd->runtime->usage_cache.reset();
 
   DEG_id_tag_update(&object->id, ID_RECALC_GEOMETRY);
@@ -2013,7 +1969,6 @@ static void blend_write(BlendWriter *writer, const ID * /*id_owner*/, const Modi
       }
     }
   }
-  writer->write_struct_array(nmd->panels_num, nmd->panels);
 }
 
 static void blend_read(BlendDataReader *reader, ModifierData *md)
@@ -2074,7 +2029,6 @@ static void blend_read(BlendDataReader *reader, ModifierData *md)
       }
     }
   }
-  BLO_read_array_and_validate_size(reader, &nmd->panels, &nmd->panels_num);
 
   nmd->runtime = MEM_new<NodesModifierRuntime>(__func__);
   nmd->runtime->cache = std::make_shared<bake::ModifierCache>();
@@ -2108,10 +2062,6 @@ static void copy_data(const ModifierData *md, ModifierData *target, const int fl
       }
       nodes_modifier_packed_bake_copy(bake, nmd->bakes[i]);
     }
-  }
-
-  if (nmd->panels) {
-    tnmd->panels = MEM_dupalloc(nmd->panels);
   }
 
   tnmd->runtime = MEM_new<NodesModifierRuntime>(__func__);
@@ -2193,8 +2143,6 @@ static void free_data(ModifierData *md)
     nodes_modifier_bake_destruct(&bake, false);
   }
   MEM_SAFE_DELETE(nmd->bakes);
-
-  MEM_SAFE_DELETE(nmd->panels);
 
   MEM_SAFE_DELETE(nmd->bake_directory);
   MEM_delete(nmd->runtime);
