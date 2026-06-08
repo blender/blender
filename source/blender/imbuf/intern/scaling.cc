@@ -576,6 +576,10 @@ ImBuf *IMB_scale_into_new(const ImBuf *ibuf,
       break;
     }
   }
+
+  dst->byte_buffer.colorspace = ibuf->byte_buffer.colorspace;
+  dst->float_buffer.colorspace = ibuf->float_buffer.colorspace;
+
   return dst;
 }
 
