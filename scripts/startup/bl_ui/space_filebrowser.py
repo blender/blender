@@ -714,7 +714,7 @@ class ASSETBROWSER_MT_library(AssetBrowserMenu, Menu):
     def draw(self, _context):
         layout = self.layout
 
-        layout.operator("asset.library_refresh", text="Refresh")
+        layout.operator("asset.library_refresh", text="Refresh", icon='FILE_REFRESH')
         layout.operator("asset.library_reload_listing", text="Refresh Remote Listing")
 
 
@@ -724,11 +724,11 @@ class ASSETBROWSER_MT_catalog(AssetBrowserMenu, Menu):
     def draw(self, _context):
         layout = self.layout
 
-        layout.operator("asset.catalog_undo", text="Undo")
-        layout.operator("asset.catalog_redo", text="Redo")
+        layout.operator("asset.catalog_undo", text="Undo", icon='LOOP_BACK')
+        layout.operator("asset.catalog_redo", text="Redo", icon='LOOP_FORWARDS')
 
         layout.separator()
-        layout.operator("asset.catalogs_save")
+        layout.operator("asset.catalogs_save", icon='FILE_TICK')
         layout.operator("asset.catalog_new").parent_path = ""
 
 
