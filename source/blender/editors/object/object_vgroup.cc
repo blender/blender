@@ -2367,14 +2367,9 @@ static void vgroup_delete_active(Object *ob)
 }
 
 /* only in editmode */
-static void vgroup_assign_verts(Object *ob, Scene &scene, const float weight)
+static void vgroup_assign_verts(Object *ob, Scene &scene, const int def_nr, const float weight)
 {
-  const int def_nr = BKE_object_defgroup_active_index_get(ob) - 1;
-
-  const ListBaseT<bDeformGroup> *defbase = BKE_object_defgroup_list(ob);
-  if (!BLI_findlink(defbase, def_nr)) {
-    return;
-  }
+  BLI_assert(BLI_findlink(BKE_object_defgroup_list(ob), def_nr));
 
   if (ob->type == OB_MESH) {
     Mesh *mesh = id_cast<Mesh *>(ob->data);
@@ -2788,7 +2783,14 @@ static wmOperatorStatus vertex_group_assign_exec(bContext *C, wmOperator *op)
   Object *ob = context_object(C);
   Scene &scene = *CTX_data_scene(C);
 
-  vgroup_assign_verts(ob, scene, ts->vgroup_weight);
+  const int def_nr = BKE_object_defgroup_active_index_get(ob) - 1;
+  const ListBaseT<bDeformGroup> *defbase = BKE_object_defgroup_list(ob);
+  if (!BLI_findlink(defbase, def_nr)) {
+    BKE_report(op->reports, RPT_ERROR, "No active vertex group to operate on");
+    return OPERATOR_CANCELLED;
+  }
+
+  vgroup_assign_verts(ob, scene, def_nr, ts->vgroup_weight);
 
   if (ts->auto_normalize) {
     if (ob->type == OB_GREASE_PENCIL) {
