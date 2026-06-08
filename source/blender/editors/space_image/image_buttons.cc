@@ -401,12 +401,17 @@ static void ui_imageuser_view_menu_multiview(bContext * /*C*/, ui::Layout *layou
 }
 
 /* 5 layer button callbacks... */
-static void image_multi_cb(bContext *C, void *rnd_pt, void *rr_v)
+static void image_multi_cb(bContext *C, void *rnd_pt, void * /*unused*/)
 {
+  Scene *scene = CTX_data_scene(C);
   ImageUI_Data *rnd_data = static_cast<ImageUI_Data *>(rnd_pt);
+  Image *image = rnd_data->image;
   ImageUser *iuser = rnd_data->iuser;
 
-  BKE_image_multilayer_index(static_cast<RenderResult *>(rr_v), iuser);
+  RenderResult *rr = BKE_image_acquire_renderresult(scene, image);
+  BKE_image_multilayer_index(rr, iuser);
+  BKE_image_release_renderresult(scene, image, rr);
+
   WM_event_add_notifier(C, NC_IMAGE | ND_DRAW, nullptr);
 }
 
@@ -447,12 +452,12 @@ static bool ui_imageuser_layer_menu_step(bContext *C, int direction, void *rnd_p
     BLI_assert(0);
   }
 
-  BKE_image_release_renderresult(scene, image, rr);
-
   if (changed) {
     BKE_image_multilayer_index(rr, iuser);
     WM_event_add_notifier(C, NC_IMAGE | ND_DRAW, nullptr);
   }
+
+  BKE_image_release_renderresult(scene, image, rr);
 
   return changed;
 }
@@ -524,12 +529,12 @@ static bool ui_imageuser_pass_menu_step(bContext *C, int direction, void *rnd_pt
     BLI_assert(0);
   }
 
-  BKE_image_release_renderresult(scene, image, rr);
-
   if (changed) {
     BKE_image_multilayer_index(rr, iuser);
     WM_event_add_notifier(C, NC_IMAGE | ND_DRAW, nullptr);
   }
+
+  BKE_image_release_renderresult(scene, image, rr);
 
   return changed;
 }
@@ -592,7 +597,7 @@ static void uiblock_layer_pass_buttons(ui::Layout &layout,
     but = uiDefMenuBut(
         block, ui_imageuser_slot_menu, image, str, 0, 0, wmenu1, UI_UNIT_Y, TIP_("Select Slot"));
     button_func_menu_step_set(but, ui_imageuser_slot_menu_step);
-    button_funcN_set(but, image_multi_cb, rnd_pt, rr);
+    button_funcN_set(but, image_multi_cb, rnd_pt, nullptr);
     button_type_set_menu_from_pulldown(but);
     rnd_pt = nullptr;
   }
@@ -621,7 +626,7 @@ static void uiblock_layer_pass_buttons(ui::Layout &layout,
                          UI_UNIT_Y,
                          TIP_("Select Layer"));
       button_func_menu_step_set(but, ui_imageuser_layer_menu_step);
-      button_funcN_set(but, image_multi_cb, rnd_pt, rr);
+      button_funcN_set(but, image_multi_cb, rnd_pt, nullptr);
       button_type_set_menu_from_pulldown(but);
       rnd_pt = nullptr;
     }
@@ -642,7 +647,7 @@ static void uiblock_layer_pass_buttons(ui::Layout &layout,
                          UI_UNIT_Y,
                          TIP_("Select Pass"));
       button_func_menu_step_set(but, ui_imageuser_pass_menu_step);
-      button_funcN_set(but, image_multi_cb, rnd_pt, rr);
+      button_funcN_set(but, image_multi_cb, rnd_pt, nullptr);
       button_type_set_menu_from_pulldown(but);
       rnd_pt = nullptr;
     }
@@ -664,7 +669,7 @@ static void uiblock_layer_pass_buttons(ui::Layout &layout,
                          wmenu4,
                          UI_UNIT_Y,
                          TIP_("Select View"));
-      button_funcN_set(but, image_multi_cb, rnd_pt, rr);
+      button_funcN_set(but, image_multi_cb, rnd_pt, nullptr);
       button_type_set_menu_from_pulldown(but);
       rnd_pt = nullptr;
     }
