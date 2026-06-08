@@ -894,8 +894,11 @@ void WM_xr_session_state_viewfinder_init(wmXrSessionState *state)
   /* Create a Camera logo texture to draw on the backside of the viewfinder. */
   ImBuf *ibuf = ui::svg_icon_bitmap(ICON_RESTRICT_RENDER_OFF, 256.0f, false);
   if (ibuf) {
+    const GPUTextureCreateFlags flags = GPUTextureCreateFlags::Premultiplied |
+                                        GPUTextureCreateFlags::EnableMipmaps |
+                                        GPUTextureCreateFlags::LimitSize;
     state->viewfinder.backside_logo_texture = IMB_create_gpu_texture(
-        "viewfinder_backside_logo", ibuf, false, true, true);
+        "viewfinder_backside_logo", ibuf, flags);
     IMB_freeImBuf(ibuf);
   }
 
