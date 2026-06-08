@@ -1,9 +1,9 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 5.2.0 Alpha (b'8764d33c658b')\n"
+"Project-Id-Version: Blender 5.2.0 LTS Beta (b'2b1958ccdccb')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-06-01 07:36+0000\n"
+"POT-Creation-Date: 2026-06-08 09:37+0000\n"
 "PO-Revision-Date: 2026-04-06 09:16+0000\n"
 "Last-Translator: Leevi Oksanen <laavi.oksanen@gmail.com>\n"
 "Language-Team: Finnish <https://translate.blender.org/projects/blender-ui/ui/fi/>\n"
@@ -902,6 +902,26 @@ msgid "Armature's active bone"
 msgstr "Luurangon aktiivinen luu"
 
 
+msgid "Is Editable"
+msgstr "On muokattava"
+
+
+msgid "All Libraries"
+msgstr "Kaikki kirjastot"
+
+
+msgid "Current File"
+msgstr "Nykyinen tiedosto"
+
+
+msgid "Essentials"
+msgstr "Välttämättömät"
+
+
+msgid "Custom"
+msgstr "Mukautettu"
+
+
 msgid "Collection of user asset libraries"
 msgstr "Kokoelma käyttäjän omaisuuskirjastoista"
 
@@ -933,22 +953,6 @@ msgstr "Täysi polku"
 msgctxt "ID"
 msgid "Data-block Type"
 msgstr "Data-palikkatyyppi"
-
-
-msgid "All Libraries"
-msgstr "Kaikki kirjastot"
-
-
-msgid "Current File"
-msgstr "Nykyinen tiedosto"
-
-
-msgid "Essentials"
-msgstr "Välttämättömät"
-
-
-msgid "Custom"
-msgstr "Mukautettu"
 
 
 msgid "ID Name"
@@ -2721,10 +2725,6 @@ msgstr "Luut"
 
 msgid "Index"
 msgstr "Indeksi"
-
-
-msgid "Is Editable"
-msgstr "On muokattava"
 
 
 msgid "Visible"
@@ -7236,20 +7236,72 @@ msgid "ID Type"
 msgstr "ID-tyyppi"
 
 
-msgid "UV Mapping"
-msgstr "UV-kartoittaminen"
+msgid "Track"
+msgstr "Raide"
+
+
+msgid "Show/Hide"
+msgstr "Näytä/Piilota"
+
+
+msgid "Hooks"
+msgstr "Koukut"
 
 
 msgid "Math"
 msgstr "Matematiikka"
 
 
-msgid "Select More/Less"
-msgstr "Valitse enemmän/vähemmän"
-
-
 msgid "Utilities"
 msgstr "Työkalut"
+
+
+msgid "Random Mask"
+msgstr "Satunnainen maski"
+
+
+msgid "Names"
+msgstr "Nimet"
+
+
+msgid "Read"
+msgstr "Lue"
+
+
+msgid "Write"
+msgstr "Kirjoita"
+
+
+msgid "Mesh Select Mode"
+msgstr "Muodon valintatila"
+
+
+msgid "Instances"
+msgstr "Instanssit"
+
+
+msgid "Import"
+msgstr "Tuo"
+
+
+msgid "Metaball"
+msgstr "Metapallo"
+
+
+msgid "UV"
+msgstr "UV"
+
+
+msgid "UV Mapping"
+msgstr "UV-kartoittaminen"
+
+
+msgid "Linked"
+msgstr "Linkitetyt"
+
+
+msgid "Select More/Less"
+msgstr "Valitse enemmän/vähemmän"
 
 
 msgid "Select Similar"
@@ -7264,18 +7316,6 @@ msgid "Select Loops"
 msgstr "Valitse silmukat"
 
 
-msgid "Read"
-msgstr "Lue"
-
-
-msgid "Write"
-msgstr "Kirjoita"
-
-
-msgid "Metaball"
-msgstr "Metapallo"
-
-
 msgid "Light"
 msgstr "Valo"
 
@@ -7284,48 +7324,8 @@ msgid "Light Probe"
 msgstr "Valoluotain"
 
 
-msgid "Instances"
-msgstr "Instanssit"
-
-
 msgid "Add Image"
 msgstr "Lisää kuva"
-
-
-msgid "Import"
-msgstr "Tuo"
-
-
-msgid "Track"
-msgstr "Raide"
-
-
-msgid "Show/Hide"
-msgstr "Näytä/Piilota"
-
-
-msgid "Hooks"
-msgstr "Koukut"
-
-
-msgid "UV"
-msgstr "UV"
-
-
-msgid "Random Mask"
-msgstr "Satunnainen maski"
-
-
-msgid "Names"
-msgstr "Nimet"
-
-
-msgid "Mesh Select Mode"
-msgstr "Muodon valintatila"
-
-
-msgid "Linked"
-msgstr "Linkitetyt"
 
 
 msgid "Basic"
@@ -11721,6 +11721,10 @@ msgid "Show Selection"
 msgstr "Näytä valinta"
 
 
+msgid "Cancel"
+msgstr "Peruuta"
+
+
 msgid "Select Mouse"
 msgstr "Valitse hiiri"
 
@@ -13032,11 +13036,6 @@ msgid "Go to Parent"
 msgstr "Siirry isäntään"
 
 
-msgctxt "Operator"
-msgid "New Folder"
-msgstr "Uusi kansio"
-
-
 msgid ".blend Files"
 msgstr ".blend tiedostot"
 
@@ -13063,6 +13062,11 @@ msgstr "Äänitiedostot"
 
 msgid "Text Files"
 msgstr "Tekstitiedostot"
+
+
+msgctxt "Operator"
+msgid "New Folder"
+msgstr "Uusi kansio"
 
 
 msgid "Simple Name"
@@ -13692,10 +13696,6 @@ msgstr "Poista muunnin"
 
 msgid "Separated bones"
 msgstr "Erotetut luut"
-
-
-msgid "Cancel"
-msgstr "Peruuta"
 
 
 msgid "No pose to copy"

@@ -1,9 +1,9 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 5.2.0 Alpha (b'8764d33c658b')\n"
+"Project-Id-Version: Blender 5.2.0 LTS Beta (b'2b1958ccdccb')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-06-01 07:36+0000\n"
+"POT-Creation-Date: 2026-06-08 09:37+0000\n"
 "PO-Revision-Date: 2025-07-23 15:34+0000\n"
 "Last-Translator: Just Adam <adam.abbas2009@gmail.com>\n"
 "Language-Team: Bulgarian <https://translate.blender.org/projects/blender-ui/ui/bg/>\n"
@@ -152,6 +152,10 @@ msgid "Node Editor"
 msgstr "Възлов Редактор"
 
 
+msgid "Custom"
+msgstr "Потребителски"
+
+
 msgid "Author"
 msgstr "Автор"
 
@@ -166,10 +170,6 @@ msgstr "Добави"
 
 msgid "Pack"
 msgstr "Пакетирай"
-
-
-msgid "Custom"
-msgstr "Потребителски"
 
 
 msgid "Space Type"
@@ -1148,20 +1148,8 @@ msgid "ID Type"
 msgstr "ID тип"
 
 
-msgid "UV Mapping"
-msgstr "UV Картиране"
-
-
-msgid "Light"
-msgstr "Светлина"
-
-
 msgid "Rigid Body"
 msgstr "Твърдо тяло"
-
-
-msgid "Import"
-msgstr "Внеси"
 
 
 msgid "Apply"
@@ -1182,6 +1170,18 @@ msgstr "Междинни Кадри"
 
 msgid "Merge"
 msgstr "Слей"
+
+
+msgid "Import"
+msgstr "Внеси"
+
+
+msgid "UV Mapping"
+msgstr "UV Картиране"
+
+
+msgid "Light"
+msgstr "Светлина"
 
 
 msgid "Cache"
@@ -2135,6 +2135,10 @@ msgid "Shaded"
 msgstr "Светлосенки"
 
 
+msgid "Passepartout"
+msgstr "Зона на видимост"
+
+
 msgid "Sub"
 msgstr "Изв"
 
@@ -2227,6 +2231,10 @@ msgid "Animated"
 msgstr "Анимирани"
 
 
+msgid "Cancel"
+msgstr "Отказ"
+
+
 msgctxt "Operator"
 msgid "Clear"
 msgstr "Изчистване"
@@ -2242,10 +2250,6 @@ msgstr "Тороид"
 
 msgid "Python API Reference"
 msgstr "Python API Справка"
-
-
-msgid "Passepartout"
-msgstr "Зона на видимост"
 
 
 msgid "Date"
@@ -2274,10 +2278,6 @@ msgstr "Обърни посоката на увеличение"
 
 msgid "Missing script files"
 msgstr "Липсват скриптови файлове"
-
-
-msgid "Cancel"
-msgstr "Отказ"
 
 
 msgid "%d items"
