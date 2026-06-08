@@ -267,7 +267,6 @@ Array<float> rna_property_get_as_float(PointerRNA &ptr, PropertyRNA &prop)
       break;
     default:
       /* Unsupported property type. */
-      BLI_assert_unreachable();
       return {};
   }
   return values;
