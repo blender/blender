@@ -1,10 +1,10 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 5.2.0 Alpha (b'8764d33c658b')\n"
+"Project-Id-Version: Blender 5.2.0 LTS Beta (b'2b1958ccdccb')\n"
 "Report-Msgid-Bugs-To: Ivan Paulos Tomé <ivan.paulos.tome@yandex.com>\n"
-"POT-Creation-Date: 2026-06-01 07:36+0000\n"
-"PO-Revision-Date: 2026-05-31 09:11+0000\n"
+"POT-Creation-Date: 2026-06-08 09:37+0000\n"
+"PO-Revision-Date: 2026-06-05 11:12+0000\n"
 "Last-Translator: Duarte Ramos <duarte.framos@gmail.com>\n"
 "Language-Team: Portuguese <https://translate.blender.org/projects/blender-ui/ui/pt/>\n"
 "Language: pt\n"
@@ -1847,6 +1847,54 @@ msgid "Armatures active edit bone"
 msgstr "Osso activo na edição da armação de ossos."
 
 
+msgid "Asset Library"
+msgstr "Biblioteca de Recursos"
+
+
+msgid "Is Editable"
+msgstr "É Editável"
+
+
+msgid "All Libraries"
+msgstr "Todas as Bibliotecas"
+
+
+msgid "Show assets from all of the listed asset libraries"
+msgstr "Mostrar recursos de todas as bibliotecas de recursos listadas"
+
+
+msgid "Current File"
+msgstr "Ficheiro Actual"
+
+
+msgid "Show the assets currently available in this Blender session"
+msgstr "Mostrar os recursos actualmente disponíveis nesta sessão Blender"
+
+
+msgid "Essentials"
+msgstr "Essenciais"
+
+
+msgid "Show basic building blocks and utilities coming with Blender"
+msgstr "Mostrar elementos de construção base e utilidades que vêm com o Blender"
+
+
+msgid "Online Essentials"
+msgstr "Essenciais na Internet"
+
+
+msgid "Show additional building blocks and utilities available online"
+msgstr "Mostrar componentes adicionais e utilidades disponíveis na internet"
+
+
+msgid "Custom"
+msgstr "Personalizar"
+
+
+msgid "Show assets from the asset libraries configured in the Preferences"
+msgstr "Mostrar recursos das bibliotecas de recursos configuradas nas Preferências"
+
+
 msgid "User Asset Libraries"
 msgstr "Bibliotecas de Recursos do Utilizador"
 
@@ -2040,52 +2088,8 @@ msgid "Regions for quick access to assets"
 msgstr "Regiões de acesso rápido a recursos"
 
 
-msgid "Asset Library"
-msgstr "Biblioteca de Recursos"
-
-
 msgid "Choose the asset library to display assets from"
 msgstr "Escolha a biblioteca de recursos da qual se mostram os recursos"
-
-
-msgid "All Libraries"
-msgstr "Todas as Bibliotecas"
-
-
-msgid "Show assets from all of the listed asset libraries"
-msgstr "Mostrar recursos de todas as bibliotecas de recursos listadas"
-
-
-msgid "Current File"
-msgstr "Ficheiro Actual"
-
-
-msgid "Show the assets currently available in this Blender session"
-msgstr "Mostrar os recursos actualmente disponíveis nesta sessão Blender"
-
-
-msgid "Essentials"
-msgstr "Essenciais"
-
-
-msgid "Show basic building blocks and utilities coming with Blender"
-msgstr "Mostrar elementos de construção base e utilidades que vêm com o Blender"
-
-
-msgid "Online Essentials"
-msgstr "Essenciais na Internet"
-
-
-msgid "Show additional building blocks and utilities available online"
-msgstr "Mostrar componentes adicionais e utilidades disponíveis na internet"
-
-
-msgid "Custom"
-msgstr "Personalizar"
-
-
-msgid "Show assets from the asset libraries configured in the Preferences"
-msgstr "Mostrar recursos das bibliotecas de recursos configuradas nas Preferências"
 
 
 msgid "Activate Operator"
@@ -5230,10 +5234,6 @@ msgid "Index of this bone collection in the armature.collections_all array. Note
 msgstr "Índice desta colecção de ossos na lista armature.collections_all da armação. Tenha em atenção que encontrar este índice requer analisar todas as colecções de ossos, aceda com moderação."
 
 
-msgid "Is Editable"
-msgstr "É Editável"
-
-
 msgid "This collection is owned by a local Armature, or was added via a library override in the current blend file"
 msgstr "Esta colecção pertence a uma Armadura local, ou foi adicionada através de uma revogação no actual ficheiro blend"
 
@@ -6012,6 +6012,22 @@ msgid "Factor for fill boundary accuracy, higher values are more accurate but sl
 msgstr "Factor para precisão para as fronteiras dos limites de preenchimento, valores mais altos são mais precisos mas mais lentos"
 
 
+msgid "Gap Detection Factor"
+msgstr "Factor de Detecção de Descontinuidades"
+
+
+msgid "The sensitivity of the gap detection. Higher values results in more gaps detected and as such can create smaller fills"
+msgstr "A sensibilidade da detecção de descontinuidades. Valores mais altos resultam em mais descontinuidades detectadas, e como tal criam preenchimentos menores"
+
+
+msgid "Internal Gaps"
+msgstr "Descontinuidades Internas"
+
+
+msgid "Stop at internal gaps"
+msgstr "Parar em descontinuidades internas"
+
+
 msgid "Layer Mode"
 msgstr "Modo da Camada"
 
@@ -6072,12 +6088,24 @@ msgid "Fill Solver"
 msgstr "Solucionador de Preenchimento"
 
 
+msgid "Method used for when filling"
+msgstr "Método usado para preenchimento"
+
+
 msgid "Delaunay"
 msgstr "Delaunay"
 
 
+msgid "Use the exact geometry to create fills"
+msgstr "Usar geometria exacta para criar preenchimentos"
+
+
 msgid "Pixel"
 msgstr "Pixeis"
+
+
+msgid "Use pixel based flooding to create fills"
+msgstr "Usar derrame baseado em pixeis para criar preenchimento"
 
 
 msgid "Threshold to consider color transparent for filling"
@@ -16318,6 +16346,14 @@ msgid "Effective but slow compression"
 msgstr "Compressão mais efetiva, mais lenta."
 
 
+msgid "Blosc"
+msgstr "Blosc"
+
+
+msgid "Multithreaded compression, similar in size and quality as 'Zip'"
+msgstr "Compressão multithreaded, semelhante em tamanho e qualidade a 'Zip'"
+
+
 msgid "Do not use any compression"
 msgstr "Não utiliza qualquer compressão."
 
@@ -18030,6 +18066,10 @@ msgid "Use curve to define primitive stroke thickness"
 msgstr "Usar curva para definir espessura dos traços das primitivas"
 
 
+msgid "Closure to List Item"
+msgstr "Clausura me Item de Lista"
+
+
 msgid "Automatically detect a good structure type based on how the socket is used"
 msgstr "Detectar automaticamente um tipo de estrutura adequado com base em como o conector é usado"
 
@@ -18068,6 +18108,10 @@ msgstr "Conector espera um valor único"
 
 msgid "Items"
 msgstr "Itens"
+
+
+msgid "Collection of closure to list items"
+msgstr "Colecção de instruções em itens de lista"
 
 
 msgid "Field to Grid Item"
@@ -28880,10 +28924,6 @@ msgid "Infinite"
 msgstr "Infinita"
 
 
-msgid "After the last frame, jump back to the first and keep playing, inifinitely"
-msgstr "Após o último fotograma, saltar para o primeiro e continuar a reproduzir infinitamente"
-
-
 msgid "Stop at End Frame"
 msgstr "Parar no Fotograma Final"
 
@@ -30581,14 +30621,6 @@ msgstr "Comunitários"
 
 msgid "Maintained by community developers"
 msgstr "Mantido por desenvolvedores da comunidade."
-
-
-msgid "Testing"
-msgstr "Teste"
-
-
-msgid "Newly contributed scripts (excluded from release builds)"
-msgstr "Scripts recentemente contribuídos (excluídos de lançamentos oficiais)"
 
 
 msgid "Addon Tags"
@@ -35803,118 +35835,6 @@ msgid "Editor menu containing buttons"
 msgstr "Menu de editor contendo botões"
 
 
-msgid "Render Preview"
-msgstr "Pré-Visualização da Render"
-
-
-msgid "Mirror"
-msgstr "Espelhar"
-
-
-msgid "Snap"
-msgstr "Atrair"
-
-
-msgid "UV Mapping"
-msgstr "Mapeamento UV"
-
-
-msgid "Local View"
-msgstr "Visão local"
-
-
-msgid "Viewpoint"
-msgstr "Ponto de Vista"
-
-
-msgid "Navigation"
-msgstr "Navegação"
-
-
-msgid "Align View"
-msgstr "Alinhar visualização"
-
-
-msgid "Align View to Active"
-msgstr "Alinhar vista para o activo"
-
-
-msgid "View Regions"
-msgstr "Regiões de Visualização"
-
-
-msgid "Math"
-msgstr "Matemática"
-
-
-msgid "Select More/Less"
-msgstr "Seleccionar mais ou menos"
-
-
-msgid "Utilities"
-msgstr "Utilidades"
-
-
-msgid "Select Similar"
-msgstr "Seleccionar por similaridades"
-
-
-msgid "Select All by Trait"
-msgstr "Seleccionar todos por características..."
-
-
-msgid "Select Linked"
-msgstr "Seleccionar vinculados(as)"
-
-
-msgid "Select Loops"
-msgstr "Seleccionar Circuitos"
-
-
-msgid "Assign Material"
-msgstr "Aplicar Material"
-
-
-msgid "Read"
-msgstr "Ler"
-
-
-msgid "Sample"
-msgstr "Amostrar"
-
-
-msgid "Write"
-msgstr "Escrever"
-
-
-msgid "Primitives"
-msgstr "Primitivas"
-
-
-msgid "Metaball"
-msgstr "Esfera-meta"
-
-
-msgid "Light"
-msgstr "Leve"
-
-
-msgid "Light Probe"
-msgstr "Sonda de Luz"
-
-
-msgid "Gizmo"
-msgstr "Manipulador"
-
-
-msgid "Instances"
-msgstr "Instâncias"
-
-
-msgid "Add Image"
-msgstr "Adicionar Imagem"
-
-
 msgid "Relations"
 msgstr "Relações"
 
@@ -35923,8 +35843,8 @@ msgid "Rigid Body"
 msgstr "Corpo rígido"
 
 
-msgid "Import"
-msgstr "Importar"
+msgid "Render Preview"
+msgstr "Pré-Visualização da Render"
 
 
 msgid "Apply"
@@ -35941,10 +35861,6 @@ msgstr "Efeitos instantâneos"
 
 msgid "Show/Hide"
 msgstr "Mostrar ou ocultar"
-
-
-msgid "Deprecated"
-msgstr "Obsoleto"
 
 
 msgid "Clean Up"
@@ -35971,12 +35887,12 @@ msgid "Hooks"
 msgstr "Ganchos"
 
 
-msgid "UV"
-msgstr "UV"
-
-
 msgid "Vertex Group Locks"
 msgstr "Bloqueios de Grupos de Vértices"
+
+
+msgid "Math"
+msgstr "Matemática"
 
 
 msgid "Trim/Add"
@@ -35985,6 +35901,10 @@ msgstr "Aparar/Adicionar"
 
 msgid "Add Primitive"
 msgstr "Adicionar Primitiva"
+
+
+msgid "Utilities"
+msgstr "Utilidades"
 
 
 msgid "Sculpt Set Pivot"
@@ -36019,8 +35939,20 @@ msgid "Names"
 msgstr "Nomes"
 
 
+msgid "Read"
+msgstr "Ler"
+
+
+msgid "Sample"
+msgstr "Amostrar"
+
+
 msgid "Toggle Bone Options"
 msgstr "Alternar opções de ossos"
+
+
+msgid "Write"
+msgstr "Escrever"
 
 
 msgid "Enable Bone Options"
@@ -36029,6 +35961,10 @@ msgstr "Activar opções de ossos"
 
 msgid "Disable Bone Options"
 msgstr "Desativar as opções de ossos"
+
+
+msgid "Primitives"
+msgstr "Primitivas"
 
 
 msgid "Mesh Select Mode"
@@ -36047,16 +35983,20 @@ msgid "Set Face Strength"
 msgstr "Definir Força das Faces"
 
 
+msgid "Gizmo"
+msgstr "Manipulador"
+
+
+msgid "Instances"
+msgstr "Instâncias"
+
+
 msgid "Merge"
 msgstr "Fundir"
 
 
-msgid "Linked"
-msgstr "Vinculando"
-
-
-msgid "Layout"
-msgstr "Organizar"
+msgid "Import"
+msgstr "Importar"
 
 
 msgid "Special Characters"
@@ -36067,28 +36007,28 @@ msgid "Kerning"
 msgstr "Kerning"
 
 
+msgid "Deprecated"
+msgstr "Obsoleto"
+
+
+msgid "Metaball"
+msgstr "Esfera-meta"
+
+
 msgid "Bone Roll"
 msgstr "Rolagem do osso"
 
 
-msgid "Adjust"
-msgstr "Ajustar"
-
-
-msgid "Keying"
-msgstr "Inserção de chaves"
-
-
-msgid "Tracking"
-msgstr "Rastreamento"
-
-
-msgid "Creative"
-msgstr "Criativo"
+msgid "UV"
+msgstr "UV"
 
 
 msgid "Pivot Point"
 msgstr "Pontos de pivô"
+
+
+msgid "Snap"
+msgstr "Atrair"
 
 
 msgid "Proportional Editing Falloff"
@@ -36105,6 +36045,98 @@ msgstr "Auto Máscara"
 
 msgid "Face Sets Edit"
 msgstr "Edições de Conjuntos de Faces"
+
+
+msgid "Mirror"
+msgstr "Espelhar"
+
+
+msgid "UV Mapping"
+msgstr "Mapeamento UV"
+
+
+msgid "Local View"
+msgstr "Visão local"
+
+
+msgid "Viewpoint"
+msgstr "Ponto de Vista"
+
+
+msgid "Navigation"
+msgstr "Navegação"
+
+
+msgid "Linked"
+msgstr "Vinculando"
+
+
+msgid "Align View"
+msgstr "Alinhar visualização"
+
+
+msgid "Layout"
+msgstr "Organizar"
+
+
+msgid "Align View to Active"
+msgstr "Alinhar vista para o activo"
+
+
+msgid "View Regions"
+msgstr "Regiões de Visualização"
+
+
+msgid "Select More/Less"
+msgstr "Seleccionar mais ou menos"
+
+
+msgid "Select Similar"
+msgstr "Seleccionar por similaridades"
+
+
+msgid "Select All by Trait"
+msgstr "Seleccionar todos por características..."
+
+
+msgid "Select Linked"
+msgstr "Seleccionar vinculados(as)"
+
+
+msgid "Select Loops"
+msgstr "Seleccionar Circuitos"
+
+
+msgid "Adjust"
+msgstr "Ajustar"
+
+
+msgid "Keying"
+msgstr "Inserção de chaves"
+
+
+msgid "Tracking"
+msgstr "Rastreamento"
+
+
+msgid "Assign Material"
+msgstr "Aplicar Material"
+
+
+msgid "Creative"
+msgstr "Criativo"
+
+
+msgid "Light"
+msgstr "Leve"
+
+
+msgid "Light Probe"
+msgstr "Sonda de Luz"
+
+
+msgid "Add Image"
+msgstr "Adicionar Imagem"
 
 
 msgid "Keyframe Insert Pie"
@@ -42160,6 +42192,10 @@ msgid "Store the baked data in a directory on disk"
 msgstr "Armazenar os dados pré calculados numa pasta no disco"
 
 
+msgid "Bakes"
+msgstr "Pré-Cálculos"
+
+
 msgid "Node Group"
 msgstr "Grupo de Nós"
 
@@ -48050,6 +48086,10 @@ msgstr "Armazenar o resultado de um campo numa geometria e expor resultado como 
 
 msgid "Which domain to store the data in"
 msgstr "Em que domínio armazenar os dados"
+
+
+msgid "Closure to List"
+msgstr "Lista de Clausuras"
 
 
 msgid "Create a list of values"
@@ -53958,6 +53998,18 @@ msgid "The current frame in the scene"
 msgstr "O fotograma actual na cena"
 
 
+msgid "Uniform Image Coordinates"
+msgstr "Coordenadas de Imagem Uniformes"
+
+
+msgid "The uniform image coordinates of the compositing space"
+msgstr "As coordenadas uniformes de imagem do espaço de composição"
+
+
+msgid "The object that contains the geometry nodes modifier currently being executed"
+msgstr "O objecto que contem o modificador de Geometry Nodes a ser actualmente executado"
+
+
 msgid "Socket description"
 msgstr "Descrição de Conector"
 
@@ -54267,10 +54319,6 @@ msgstr "Blocos-De-Dados"
 
 msgid "Collection of data-blocks that can be referenced by baked data"
 msgstr "Colecção de blocos-de-dados que podem ser referenciados pelos dados pré-calculados"
-
-
-msgid "Bakes"
-msgstr "Pré-Cálculos"
 
 
 msgid "Bake data for every bake node"
@@ -54705,6 +54753,15 @@ msgstr "Validar Referências de Colecções"
 msgctxt "Operator"
 msgid "Assign Action"
 msgstr "Atribuir Acção"
+
+
+msgid "Open the system's file browser with the blend file that contains the active asset"
+msgstr "Abrir o navegador de ficheiros do sistema com o ficheiro blend que contém o recurso activo"
+
+
+msgctxt "Operator"
+msgid "Open File Location"
+msgstr "Abrir Localização do Ficheiro"
 
 
 msgid "Open the blend file that contains the active asset"
@@ -59839,6 +59896,27 @@ msgid "Reread assets and asset catalogs from the asset library on disk"
 msgstr "Reler recursos e catálogos de recursos da biblioteca de recursos em disco"
 
 
+msgid "Remote Listing"
+msgstr "Remover Listagem"
+
+
+msgid "Re-download the asset listing of a remote library. Only supported when the active asset library is remote or has a remote component (the Essentials library)"
+msgstr "Re-transferir a listagem de recursos de uma biblioteca remota. Apenas suportado quando a biblioteca de recursos activa é remota ou tem um componente remoto (a biblioteca de Essenciais)"
+
+
+msgid "Use Shift for Remote Listing"
+msgstr "Usar Shift para Listagem Remota"
+
+
+msgid "When this operator is invoked and the Shift key is pressed, download the remote asset library listing"
+msgstr "Quando este operador é invocado e a tecla Shift está pressionada, descarregar a listagem da biblioteca de recursos remota"
+
+
+msgctxt "Operator"
+msgid "Reload Remote Asset Library Listing"
+msgstr "Recarregar Listagem de Biblioteca de Recursos Activa"
+
+
 msgctxt "Operator"
 msgid "Mark as Asset"
 msgstr "Marcar como Recurso"
@@ -64107,6 +64185,30 @@ msgid "Do Not Merge Animations"
 msgstr "Não Fundir Animações"
 
 
+msgid "Meshopt Compression"
+msgstr "Compressão Meshopt"
+
+
+msgid "Compress mesh using Meshopt"
+msgstr "Comprimir malha usando Draco"
+
+
+msgid "Meshopt Extension"
+msgstr "Extensão Meshopt"
+
+
+msgid "Extension to use for meshopt compression"
+msgstr "Extensão a utilizar para compressão meshopt"
+
+
+msgid "Use EXT_meshopt_compression extension for mesh compression"
+msgstr "Usar extensão EXT_meshopt_compression extension para compressão de malha"
+
+
+msgid "Use KHR_meshopt_compression extension for mesh compression"
+msgstr "Usar extensão KHR_meshopt_compression extension para compressão de malha"
+
+
 msgid "Export shape keys (morph targets)"
 msgstr "Exportar Formas Chave (alvos morph)"
 
@@ -66260,6 +66362,10 @@ msgstr "Isolar Curvas-F seleccionadas no Editor de Gráficos"
 
 msgid "Frame selected"
 msgstr "Enquadrar seleccionado"
+
+
+msgid "Zoom current view to draw selected fcurves in visible range"
+msgstr "Ampliar vista actual para enquadrar as curvas-f seleccionadas dentro do intervalo visível"
 
 
 msgctxt "Operator"
@@ -68993,6 +69099,14 @@ msgid "Detect selected UDIM files and load all matching tiles"
 msgstr "Detectar ficheiros UDIM seleccionados e carregar todas as quadrículas relacionadas"
 
 
+msgid "Detect Sequence"
+msgstr "Detectar Sequência"
+
+
+msgid "Detect UDIM"
+msgstr "Detectar UDIM"
+
+
 msgctxt "Operator"
 msgid "Pack Image"
 msgstr "Incluir Imagem"
@@ -71267,6 +71381,10 @@ msgid "Flatten vertices on a best-fitting plane"
 msgstr "Planificar vértices num plano mais adequado"
 
 
+msgid "Spacing effect factor"
+msgstr "Factor de Efeito de Espassamento"
+
+
 msgid "Plane on which vertices are flattened"
 msgstr "Plano no qual os vértices são planificados"
 
@@ -73017,6 +73135,27 @@ msgstr "Aleatoriza a ordem dos elementos seleccionados."
 
 msgid "Reverse current order of selected elements"
 msgstr "Reverte a ordem actual dos elementos seleccionados."
+
+
+msgctxt "Operator"
+msgid "Space Edge Loops Evenly"
+msgstr "Espaçar Circuitos Uniformemente"
+
+
+msgid "Space the vertices in a regular distribution on the loop"
+msgstr "Espaçar os vértices com distribuição regular no circuito"
+
+
+msgid "Algorithm used for interpolation"
+msgstr "Algoritmo usado para interpolação"
+
+
+msgid "Natural cubic spline, smooth results"
+msgstr "Spline cúbica natural, resultados suaves"
+
+
+msgid "Vertices are projected on existing edges"
+msgstr "Vértices são projectados nas arestas existentes"
 
 
 msgid "Extrude selected vertices in a circle around the cursor in indicated viewport"
@@ -93746,6 +93885,30 @@ msgid "Panel containing UI elements"
 msgstr "Painel contendo elementos do Interface do Utilizador"
 
 
+msgid "VR"
+msgstr "RV"
+
+
+msgid "VR Info"
+msgstr "Informação RV"
+
+
+msgid "glTF Variants"
+msgstr "Variantes glTF"
+
+
+msgid "glTF Material Variants"
+msgstr "Variantes de material glTF"
+
+
+msgid "glTF"
+msgstr "glTF"
+
+
+msgid "glTF Animations"
+msgstr "Animações glTF"
+
+
 msgid "Active Tool"
 msgstr "Ferramenta Activa"
 
@@ -93860,30 +94023,6 @@ msgstr "Escala de Crescimento/Encolhimento de Curva"
 
 msgid "Viewport Debug"
 msgstr "Diagnóstico de Janela de Visualização"
-
-
-msgid "glTF Variants"
-msgstr "Variantes glTF"
-
-
-msgid "glTF Material Variants"
-msgstr "Variantes de material glTF"
-
-
-msgid "VR"
-msgstr "RV"
-
-
-msgid "VR Info"
-msgstr "Informação RV"
-
-
-msgid "glTF"
-msgstr "glTF"
-
-
-msgid "glTF Animations"
-msgstr "Animações glTF"
 
 
 msgid "Import Settings"
@@ -97461,14 +97600,6 @@ msgid "Extra debugging information & developer support utilities for extensions"
 msgstr "Informação de diagnóstico extra e utilidades de apoio a programadores para extensões"
 
 
-msgid "Geometry Nodes Hair Dynamics"
-msgstr "Dinâmica de Cabelos de Geometry Nodes"
-
-
-msgid "Enable hair dynamics simulation in geometry nodes"
-msgstr "Activar simulação dinâmica de cabelos em Geometry Nodes"
-
-
 msgid "New Curves Tools"
 msgstr "Novas Ferramentas de Curvas"
 
@@ -99247,16 +99378,8 @@ msgid "Dutch - Nederlands"
 msgstr "Holandês - Nederlands"
 
 
-msgid "Locale code: nl_NL. Translation progress: 8%"
-msgstr "Código de língua: nl_NL. Progresso de tradução: 8%"
-
-
 msgid "English (UK)"
 msgstr "Inglês (UK)"
-
-
-msgid "Locale code: en_GB. Translation progress: 97%"
-msgstr "Código de língua: en_GB. Progresso de tradução: 97%"
 
 
 msgid "English (US)"
@@ -99329,10 +99452,6 @@ msgstr "Código de língua: hi_IN. Progresso de tradução: 4%"
 
 msgid "Hungarian - Magyar"
 msgstr "Húngaro - Magyar"
-
-
-msgid "Locale code: hu_HU. Translation progress: 11%"
-msgstr "Código de língua: hu_HU. Progresso de tradução: 11%"
 
 
 msgid "Indonesian - Bahasa indonesia"
@@ -99501,10 +99620,6 @@ msgstr "Ucraniano - Українська"
 
 msgid "Urdu - وُدرُا"
 msgstr "Urdu - وُدرُا"
-
-
-msgid "Locale code: ur. Translation progress: 84%"
-msgstr "Código de língua: ur. Progresso de tradução: 84%"
 
 
 msgid "Vietnamese - Tiếng Việt"
@@ -118177,6 +118292,10 @@ msgid "Collection of OpenXR user paths"
 msgstr "Colecção de caminhos de conjunto de inserção de chaves."
 
 
+msgid "Cancel"
+msgstr "Cancelar"
+
+
 msgid "Work Space UI Tag"
 msgstr "Etiqueta de Interface de Utilizador do Espaço de Trabalho"
 
@@ -122165,10 +122284,6 @@ msgstr "Usa outro conjunto de inserção de chaves, conforme o activo dependa de
 
 msgid "Keying Set does not contain any paths"
 msgstr "O conjunto de inserção de chaves não possui quaisquer caminhos."
-
-
-msgid "Cancel"
-msgstr "Cancelar"
 
 
 msgid "No keyframes to slide between"
@@ -126603,16 +126718,16 @@ msgid "Maximum face angle for smooth edges"
 msgstr "Ângulo máximo da face para arestas suaves"
 
 
-msgid "Generate Hair Curves"
-msgstr "Gerar Curvas de Cabelo"
-
-
 msgid "Snap to Surface"
 msgstr "Atrai à Superfície"
 
 
 msgid "Snap the root of each curve to the closest surface point"
 msgstr "Atrair a raiz de cada curva ao ponto da superfície mais próximo"
+
+
+msgid "Generate Hair Curves"
+msgstr "Gerar Curvas de Cabelo"
 
 
 msgid "Redistribute Curve Points"

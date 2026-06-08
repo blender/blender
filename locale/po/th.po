@@ -1,9 +1,9 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 5.2.0 Alpha (b'8764d33c658b')\n"
+"Project-Id-Version: Blender 5.2.0 LTS Beta (b'2b1958ccdccb')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-06-01 07:36+0000\n"
+"POT-Creation-Date: 2026-06-08 09:37+0000\n"
 "PO-Revision-Date: 2026-03-19 12:41+0000\n"
 "Last-Translator: Banditer1483 <pleum.wongvarit@gmail.com>\n"
 "Language-Team: Thai <https://translate.blender.org/projects/blender-ui/ui/th/>\n"
@@ -1630,6 +1630,38 @@ msgid "Armatures active edit bone"
 msgstr "แก้ไขโครงกระดูกที่ใช้งานอยู่"
 
 
+msgid "Asset Library"
+msgstr "คลังสินทรัพย์"
+
+
+msgid "All Libraries"
+msgstr "คลังทั้งหมด"
+
+
+msgid "Show assets from all of the listed asset libraries"
+msgstr "แสดงเนื้อหาจากคลังเนื้อหาทั้งหมดที่ระบุไว้"
+
+
+msgid "Current File"
+msgstr "ไฟล์ปัจจุบัน"
+
+
+msgid "Show the assets currently available in this Blender session"
+msgstr "แสดงสินทรัพย์ที่มีอยู่ในช่วงสมัยของเบลนเดอร์นี้"
+
+
+msgid "Essentials"
+msgstr "รากแก่น"
+
+
+msgid "Custom"
+msgstr "กำหนดเอง"
+
+
+msgid "Show assets from the asset libraries configured in the Preferences"
+msgstr "แสดงเนื้อหาจากคลังเนื้อหาที่กำหนดค่าไว้ในส่วนการตั้งค่า"
+
+
 msgid "User Asset Libraries"
 msgstr "คลังสินทรัพย์ของผู้ใช้"
 
@@ -1775,40 +1807,8 @@ msgid "Regions for quick access to assets"
 msgstr "บริเวณที่เข้าถึงสินทรัพย์ได้อย่างรวดเร็ว"
 
 
-msgid "Asset Library"
-msgstr "คลังสินทรัพย์"
-
-
 msgid "Choose the asset library to display assets from"
 msgstr "เลือกคลังสินทรัพย์เพื่อแสดงสินทรัพย์จาก"
-
-
-msgid "All Libraries"
-msgstr "คลังทั้งหมด"
-
-
-msgid "Show assets from all of the listed asset libraries"
-msgstr "แสดงเนื้อหาจากคลังเนื้อหาทั้งหมดที่ระบุไว้"
-
-
-msgid "Current File"
-msgstr "ไฟล์ปัจจุบัน"
-
-
-msgid "Show the assets currently available in this Blender session"
-msgstr "แสดงสินทรัพย์ที่มีอยู่ในช่วงสมัยของเบลนเดอร์นี้"
-
-
-msgid "Essentials"
-msgstr "รากแก่น"
-
-
-msgid "Custom"
-msgstr "กำหนดเอง"
-
-
-msgid "Show assets from the asset libraries configured in the Preferences"
-msgstr "แสดงเนื้อหาจากคลังเนื้อหาที่กำหนดค่าไว้ในส่วนการตั้งค่า"
 
 
 msgid "Activate Operator"
@@ -4937,12 +4937,64 @@ msgid "Mix Color"
 msgstr "ผสมสี"
 
 
-msgid "Mirror"
-msgstr "กระจกสะท้อน"
+msgid "Apply"
+msgstr "นำไปใช้"
+
+
+msgid "Track"
+msgstr "แทร็ค"
+
+
+msgid "Hooks"
+msgstr "ตะขอ"
+
+
+msgid "Math"
+msgstr "คณิตศาสตร์"
+
+
+msgid "Names"
+msgstr "ชื่อ"
+
+
+msgid "Face Data"
+msgstr "ข้อมูลด้าน"
+
+
+msgid "Merge"
+msgstr "ผสาน"
+
+
+msgid "Import"
+msgstr "นำเข้า"
+
+
+msgid "Metaball"
+msgstr "เมตาบอล"
+
+
+msgid "UV"
+msgstr "UV"
+
+
+msgid "Pivot Point"
+msgstr "จุดหมุน"
 
 
 msgid "Snap"
 msgstr "ยึดติด"
+
+
+msgid "Proportional Editing Falloff"
+msgstr "แก้ไข"
+
+
+msgid "Mask Edit"
+msgstr "การแก้ไขหน้ากาก"
+
+
+msgid "Mirror"
+msgstr "กระจกสะท้อน"
 
 
 msgid "Local View"
@@ -4961,6 +5013,10 @@ msgid "Align View"
 msgstr "จัดมุมมอง"
 
 
+msgid "Layout"
+msgstr "เค้าโครง"
+
+
 msgid "Align View to Active"
 msgstr "จัดมุมมองไปยังที่วัตถุใช้งาน"
 
@@ -4969,12 +5025,8 @@ msgid "View Regions"
 msgstr "ขอบเขตมุมมอง"
 
 
-msgid "Math"
-msgstr "คณิตศาสตร์"
-
-
-msgid "Metaball"
-msgstr "เมตาบอล"
+msgid "Keying"
+msgstr "คีย์"
 
 
 msgid "Light"
@@ -4983,58 +5035,6 @@ msgstr "แสง"
 
 msgid "Add Image"
 msgstr "เพิ่มภาพ"
-
-
-msgid "Import"
-msgstr "นำเข้า"
-
-
-msgid "Apply"
-msgstr "นำไปใช้"
-
-
-msgid "Track"
-msgstr "แทร็ค"
-
-
-msgid "Hooks"
-msgstr "ตะขอ"
-
-
-msgid "UV"
-msgstr "UV"
-
-
-msgid "Names"
-msgstr "ชื่อ"
-
-
-msgid "Face Data"
-msgstr "ข้อมูลด้าน"
-
-
-msgid "Merge"
-msgstr "ผสาน"
-
-
-msgid "Layout"
-msgstr "เค้าโครง"
-
-
-msgid "Keying"
-msgstr "คีย์"
-
-
-msgid "Pivot Point"
-msgstr "จุดหมุน"
-
-
-msgid "Proportional Editing Falloff"
-msgstr "แก้ไข"
-
-
-msgid "Mask Edit"
-msgstr "การแก้ไขหน้ากาก"
 
 
 msgid "Zoom"
@@ -6836,6 +6836,10 @@ msgid "Error Message"
 msgstr "ข้อความแสดงข้อผิดพลาด"
 
 
+msgid "Cancel"
+msgstr "ยกเลิก"
+
+
 msgctxt "WindowManager"
 msgid "User Interface"
 msgstr "อินเตอร์เฟสผู้ใช้"
@@ -7799,10 +7803,6 @@ msgstr "พื้นผิว"
 
 msgid "Key %d"
 msgstr "คีย์ %d"
-
-
-msgid "Cancel"
-msgstr "ยกเลิก"
 
 
 msgctxt "Curve"

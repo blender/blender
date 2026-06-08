@@ -1,9 +1,9 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 5.2.0 Alpha (b'8764d33c658b')\n"
+"Project-Id-Version: Blender 5.2.0 LTS Beta (b'2b1958ccdccb')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-06-01 07:36+0000\n"
+"POT-Creation-Date: 2026-06-08 09:37+0000\n"
 "PO-Revision-Date: 2025-12-01 09:17+0000\n"
 "Last-Translator: Matt Mitacek <mattmitacek@gmail.com>\n"
 "Language-Team: Czech <https://translate.blender.org/projects/blender-ui/ui/cs/>\n"
@@ -1379,6 +1379,34 @@ msgid "Armatures active edit bone"
 msgstr "Aktivní kosti armatury pro úpravu"
 
 
+msgid "Asset Library"
+msgstr "Knihovna Grafických položek"
+
+
+msgid "Show assets from all of the listed asset libraries"
+msgstr "Zobrazit objekty ze všech uvedených knihoven"
+
+
+msgid "Current File"
+msgstr "Aktuální soubor"
+
+
+msgid "Show the assets currently available in this Blender session"
+msgstr "Zobrazit objekty dostupné v této relaci Blenderu"
+
+
+msgid "Essentials"
+msgstr "Nezbytnosti"
+
+
+msgid "Custom"
+msgstr "Vlastní"
+
+
+msgid "Show assets from the asset libraries configured in the Preferences"
+msgstr "Zobrazit objekty z knihoven nastavených v Předvolbách"
+
+
 msgid "User Asset Libraries"
 msgstr "Uživatelské knihovny objektů"
 
@@ -1520,36 +1548,8 @@ msgid "Regions for quick access to assets"
 msgstr "Oblasti pro rychlý přístup k objektům"
 
 
-msgid "Asset Library"
-msgstr "Knihovna Grafických položek"
-
-
 msgid "Choose the asset library to display assets from"
 msgstr "Zvolte knihovnu objektů, jejíž objekty se mají zobrazovat"
-
-
-msgid "Show assets from all of the listed asset libraries"
-msgstr "Zobrazit objekty ze všech uvedených knihoven"
-
-
-msgid "Current File"
-msgstr "Aktuální soubor"
-
-
-msgid "Show the assets currently available in this Blender session"
-msgstr "Zobrazit objekty dostupné v této relaci Blenderu"
-
-
-msgid "Essentials"
-msgstr "Nezbytnosti"
-
-
-msgid "Custom"
-msgstr "Vlastní"
-
-
-msgid "Show assets from the asset libraries configured in the Preferences"
-msgstr "Zobrazit objekty z knihoven nastavených v Předvolbách"
 
 
 msgid "ID Name"
@@ -13835,68 +13835,12 @@ msgid "Material slot name"
 msgstr "Název okénka materiálu"
 
 
-msgid "Mirror"
-msgstr "Zrcadlit"
-
-
-msgid "Snap"
-msgstr "Přichytit"
-
-
-msgid "UV Mapping"
-msgstr "UV mapování"
-
-
-msgid "Local View"
-msgstr "Lokální pohled"
-
-
-msgid "Navigation"
-msgstr "Navigace"
-
-
-msgid "Align View"
-msgstr "Zarovnat pohled"
-
-
-msgid "Math"
-msgstr "Matematika"
-
-
-msgid "Utilities"
-msgstr "Nástroje"
-
-
-msgid "Select Linked"
-msgstr "Vybrat Propojené"
-
-
-msgid "Assign Material"
-msgstr "Přiřadit Materiál"
-
-
-msgid "Metaball"
-msgstr "Meta objekt"
-
-
-msgid "Light"
-msgstr "Světlo"
-
-
-msgid "Instances"
-msgstr "Instance"
-
-
 msgid "Relations"
 msgstr "Vztahy"
 
 
 msgid "Rigid Body"
 msgstr "Tuhé Těleso"
-
-
-msgid "Import"
-msgstr "Importovat"
 
 
 msgid "Apply"
@@ -13927,6 +13871,14 @@ msgid "Hooks"
 msgstr "Háky"
 
 
+msgid "Math"
+msgstr "Matematika"
+
+
+msgid "Utilities"
+msgstr "Nástroje"
+
+
 msgid "Clear Transform"
 msgstr "Vyčistit transformaci"
 
@@ -13947,24 +13899,72 @@ msgid "Face Data"
 msgstr "Data Ploch"
 
 
+msgid "Instances"
+msgstr "Instance"
+
+
 msgid "Merge"
 msgstr "Sloučit"
 
 
-msgid "Linked"
-msgstr "Propojené"
-
-
-msgid "Layout"
-msgstr "Rozložení"
+msgid "Import"
+msgstr "Importovat"
 
 
 msgid "Special Characters"
 msgstr "Speciální Znaky"
 
 
+msgid "Metaball"
+msgstr "Meta objekt"
+
+
 msgid "Bone Roll"
 msgstr "Kost"
+
+
+msgid "Pivot Point"
+msgstr "Bod pro pivot"
+
+
+msgid "Snap"
+msgstr "Přichytit"
+
+
+msgid "Proportional Editing Falloff"
+msgstr "Způsob útlumu"
+
+
+msgid "Mirror"
+msgstr "Zrcadlit"
+
+
+msgid "UV Mapping"
+msgstr "UV mapování"
+
+
+msgid "Local View"
+msgstr "Lokální pohled"
+
+
+msgid "Navigation"
+msgstr "Navigace"
+
+
+msgid "Linked"
+msgstr "Propojené"
+
+
+msgid "Align View"
+msgstr "Zarovnat pohled"
+
+
+msgid "Layout"
+msgstr "Rozložení"
+
+
+msgid "Select Linked"
+msgstr "Vybrat Propojené"
 
 
 msgid "Keying"
@@ -13975,12 +13975,12 @@ msgid "Tracking"
 msgstr "Sledování"
 
 
-msgid "Pivot Point"
-msgstr "Bod pro pivot"
+msgid "Assign Material"
+msgstr "Přiřadit Materiál"
 
 
-msgid "Proportional Editing Falloff"
-msgstr "Způsob útlumu"
+msgid "Light"
+msgstr "Světlo"
 
 
 msgid "Basic"
@@ -36724,6 +36724,10 @@ msgid "Operator Properties"
 msgstr "Generátory"
 
 
+msgid "Cancel"
+msgstr "Zrušit"
+
+
 msgid "Navigate"
 msgstr "Navigovat"
 
@@ -37560,20 +37564,20 @@ msgid "Buffer"
 msgstr "Z-Buffer"
 
 
-msgid "Mask Mapping"
-msgstr "Mapování Masky"
-
-
-msgid "Pressure Masking"
-msgstr "Maskovat tlakem"
-
-
 msgid "Mesh Boundary"
 msgstr "Hranice Sítě"
 
 
 msgid "Face Sets Boundary"
 msgstr "Hranice Sady Ploch"
+
+
+msgid "Mask Mapping"
+msgstr "Mapování Masky"
+
+
+msgid "Pressure Masking"
+msgstr "Maskovat tlakem"
 
 
 msgctxt "Operator"
@@ -38326,11 +38330,6 @@ msgid "Forward"
 msgstr "Dopředu"
 
 
-msgctxt "Operator"
-msgid "New Folder"
-msgstr "Nová složka"
-
-
 msgid ".blend Files"
 msgstr ".blend Soubory"
 
@@ -38377,6 +38376,11 @@ msgstr "Zvýšit počet"
 msgctxt "Operator"
 msgid "Decrease Number"
 msgstr "Snížit počet"
+
+
+msgctxt "Operator"
+msgid "New Folder"
+msgstr "Nová složka"
 
 
 msgctxt "Operator"
@@ -40267,10 +40271,6 @@ msgid "Hidden %d"
 msgstr "Skryté %d"
 
 
-msgid "Eevee material conversion problem. Error in console"
-msgstr "Problém s přeměnou materiálu Eevee. Chyba v konzole"
-
-
 msgid "Cannot open file %s for writing: %s"
 msgstr "Nelze otevřít soubor %s pro psaní %s"
 
@@ -40361,10 +40361,6 @@ msgstr "Oddělené kosti"
 
 msgid "Relax Pose"
 msgstr "Relaxovat pózu"
-
-
-msgid "Cancel"
-msgstr "Zrušit"
 
 
 msgid "No keyframes to slide between"
