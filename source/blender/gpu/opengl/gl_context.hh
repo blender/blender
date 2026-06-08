@@ -60,7 +60,13 @@ class GLContext : public Context {
   static bool direct_state_access_support;
   static bool explicit_location_support;
   static bool framebuffer_fetch_support;
+  /* layered_rendering_support requires GL_ARB_shader_viewport_layer_array, which is a superset of
+   * GL_AMD_vertex_shader_viewport_index (vertex_shader_viewport_index_support) and
+   * GL_AMD_vertex_shader_layer (vertex_shader_layer_support) with additional support for
+   * tessellation evaluation shaders (which are not used by the GPU module). */
   static bool layered_rendering_support;
+  static bool vertex_shader_viewport_index_support;
+  static bool vertex_shader_layer_support;
   static bool native_barycentric_support;
   static bool multi_bind_support;
   static bool multi_bind_image_support;

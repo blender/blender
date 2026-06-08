@@ -419,6 +419,8 @@ static void detect_workarounds()
     GLContext::texture_filter_anisotropic_support = false;
     /* Turn off extensions. */
     GLContext::layered_rendering_support = false;
+    GLContext::vertex_shader_viewport_index_support = false;
+    GLContext::vertex_shader_layer_support = false;
     /* Turn off vendor specific extensions. */
     GLContext::native_barycentric_support = false;
     GLContext::framebuffer_fetch_support = false;
@@ -587,6 +589,8 @@ bool GLContext::direct_state_access_support = false;
 bool GLContext::explicit_location_support = false;
 bool GLContext::framebuffer_fetch_support = false;
 bool GLContext::layered_rendering_support = false;
+bool GLContext::vertex_shader_viewport_index_support = false;
+bool GLContext::vertex_shader_layer_support = false;
 bool GLContext::native_barycentric_support = false;
 bool GLContext::multi_bind_support = false;
 bool GLContext::multi_bind_image_support = false;
@@ -666,6 +670,9 @@ void GLBackend::capabilities_init()
   GLContext::texture_barrier_support = epoxy_has_gl_extension("GL_ARB_texture_barrier");
   GLContext::layered_rendering_support = epoxy_has_gl_extension(
       "GL_ARB_shader_viewport_layer_array");
+  GLContext::vertex_shader_viewport_index_support = epoxy_has_gl_extension(
+      "GL_AMD_vertex_shader_viewport_index");
+  GLContext::vertex_shader_layer_support = epoxy_has_gl_extension("GL_AMD_vertex_shader_layer");
   GLContext::native_barycentric_support = epoxy_has_gl_extension(
       "GL_AMD_shader_explicit_vertex_parameter");
   GLContext::multi_bind_support = GLContext::multi_bind_image_support = epoxy_has_gl_extension(
@@ -764,6 +771,8 @@ void GLBackend::log_extensions()
              " - [%c] Direct state access\n"
              " - [%c] Anisotropic Texture Filtering\n"
              " - [%c] Layered rendering\n"
+             " - [%c] Vertex shader viewport index\n"
+             " - [%c] Vertex shader layer array\n"
              " - [%c] Native barycentric coordinates\n"
              " - [%c] Framebuffer fetch\n"
              " - [%c] Texture barrier\n"
@@ -773,6 +782,8 @@ void GLBackend::log_extensions()
              GLContext::direct_state_access_support ? 'X' : ' ',
              GLContext::texture_filter_anisotropic_support ? 'X' : ' ',
              GLContext::layered_rendering_support ? 'X' : ' ',
+             GLContext::vertex_shader_viewport_index_support ? 'X' : ' ',
+             GLContext::vertex_shader_layer_support ? 'X' : ' ',
              GLContext::native_barycentric_support ? 'X' : ' ',
              GLContext::framebuffer_fetch_support ? 'X' : ' ',
              GLContext::texture_barrier_support ? 'X' : ' ',
