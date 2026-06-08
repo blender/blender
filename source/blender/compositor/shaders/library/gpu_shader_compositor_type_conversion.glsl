@@ -403,7 +403,7 @@ float3 bool_to_float3(bool value)
 
 float4 bool_to_color(bool value)
 {
-  return float4(value);
+  return value ? float4(1.0f) : float4(0.0f, 0.0f, 0.0f, 1.0f);
 }
 
 float4 bool_to_float4(bool value)

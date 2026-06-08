@@ -639,6 +639,7 @@ set(GLSL_SRC
   shaders/material/gpu_shader_material_bevel.glsl
   shaders/material/gpu_shader_material_wavelength.glsl
   shaders/material/gpu_shader_material_blackbody.glsl
+  shaders/material/gpu_shader_material_boolean_math.glsl
   shaders/material/gpu_shader_material_bright_contrast.glsl
   shaders/material/gpu_shader_material_bump.glsl
   shaders/material/gpu_shader_material_camera.glsl
