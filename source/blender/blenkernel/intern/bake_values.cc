@@ -304,8 +304,10 @@ class RuntimeToBakeValue {
       instances.ensure_geometry_instances();
       this->runtime_to_bake__AttributeStorage(instances.attribute_storage());
       for (bke::InstanceReference &reference : instances.references_for_write()) {
-        GeometrySet &geometry = reference.geometry_set();
-        this->runtime_to_bake__GeometrySet(geometry);
+        if (reference.type() == InstanceReference::Type::GeometrySet) {
+          GeometrySet &geometry = reference.geometry_set();
+          this->runtime_to_bake__GeometrySet(geometry);
+        }
       }
     }
     if (geometry.has_mesh()) {
@@ -512,8 +514,10 @@ class BakeToRuntimeValue {
       Instances &instances = *geometry.get_instances_for_write();
       instances.ensure_geometry_instances();
       for (bke::InstanceReference &reference : instances.references_for_write()) {
-        GeometrySet &geometry = reference.geometry_set();
-        this->bake_to_runtime__GeometrySet(geometry);
+        if (reference.type() == InstanceReference::Type::GeometrySet) {
+          GeometrySet &geometry = reference.geometry_set();
+          this->bake_to_runtime__GeometrySet(geometry);
+        }
       }
       this->bake_to_runtime__AttributeStorage(instances.attribute_storage());
     }
