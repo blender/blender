@@ -30,9 +30,9 @@ namespace blender {
  */
 enum class ProfileCategory : uint32_t {
   /**
-   * \note Not pure black (0x000000) as Tracy uses that to indicate "no user provided color".
+   * \note Do not use pure black (0x000000) as Tracy uses it to indicate "no user provided color".
    */
-  Default = 0x000001,
+  Default = 0x666666,
   Core = 0x0088FE,
   Draw = 0x00C49F,
   Editor = 0xFFBB28,
