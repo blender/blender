@@ -31,6 +31,7 @@ USE_CONCURRENT_MODULE = True
 
 if USE_CONCURRENT_MODULE:
     import concurrent.futures
+    import multiprocessing
 
 
 # Operators ###################################################################
@@ -92,7 +93,8 @@ class UI_OT_i18n_updatetranslation_work_repo(Operator):
             #       So care must be taken that the callback passed to the executor does not rely on any
             #       Blender-specific modules etc. This is why it is using a class method from `_bl_i18n_utils`
             #       module, rather than a local function of this current Blender-only module.
-            with concurrent.futures.ProcessPoolExecutor() as exctr:
+            mp_ctx = multiprocessing.get_context('forkserver')
+            with concurrent.futures.ProcessPoolExecutor(mp_context=mp_ctx) as exctr:
                 pot = utils_i18n.I18nMessages(kind='PO', src=self.settings.FILE_NAME_POT, settings=self.settings)
                 for progress, _ in enumerate(
                         exctr.map(
@@ -137,7 +139,8 @@ class UI_OT_i18n_cleanuptranslation_work_repo(Operator):
         if USE_CONCURRENT_MODULE:
             # NOTE: See comment in #UI_OT_i18n_updatetranslation_work_repo `execute` function about usage caveats
             #       of the `ProcessPoolExecutor`.
-            with concurrent.futures.ProcessPoolExecutor() as exctr:
+            mp_ctx = multiprocessing.get_context('forkserver')
+            with concurrent.futures.ProcessPoolExecutor(mp_context=mp_ctx) as exctr:
                 for progress, _ in enumerate(
                         exctr.map(
                             utils_i18n.I18nMessages.cleanup_callback,
@@ -176,7 +179,8 @@ class UI_OT_i18n_updatetranslation_blender_repo(Operator):
         if USE_CONCURRENT_MODULE:
             # NOTE: See comment in #UI_OT_i18n_updatetranslation_work_repo `execute` function about usage caveats
             #       of the `ProcessPoolExecutor`.
-            with concurrent.futures.ProcessPoolExecutor() as exctr:
+            mp_ctx = multiprocessing.get_context('forkserver')
+            with concurrent.futures.ProcessPoolExecutor(mp_context=mp_ctx) as exctr:
                 for progress, (lng_uid, stats_val, reports) in enumerate(
                         exctr.map(
                             utils_i18n.I18nMessages.update_to_blender_repo_callback,
