@@ -42,7 +42,7 @@ bke::subdiv::Subdiv *multires_reshape_create_subdiv(Depsgraph *depsgraph,
                                                     const MultiresModifierData *mmd)
 {
   using namespace blender::bke;
-  Mesh *base_mesh;
+  const Mesh *base_mesh;
 
   if (depsgraph != nullptr) {
     Scene *scene_eval = DEG_get_evaluated_scene(depsgraph);

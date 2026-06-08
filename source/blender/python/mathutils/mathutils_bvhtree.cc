@@ -1037,7 +1037,7 @@ static const Mesh *bvh_get_mesh(const char *funcname,
   const CustomData_MeshMasks data_masks = CD_MASK_BAREMESH;
   const bool use_render = DEG_get_mode(depsgraph) == DAG_EVAL_RENDER;
   *r_free_mesh = false;
-  Mesh *mesh;
+  const Mesh *mesh;
 
   /* Write the display mesh into the dummy mesh */
   if (use_deform) {
