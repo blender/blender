@@ -253,10 +253,12 @@ static gpu::Texture *gpu_texture_create_tile_array(Image *ima, ImBuf *main_ibuf)
     BKE_image_release_ibuf(ima, ibuf, nullptr);
   }
 
-  GPU_texture_update_mipmap_chain(tex);
-  GPU_texture_mipmap_mode(tex, true, true);
-  if (ima) {
-    ima->runtime->gpuflag |= IMA_GPU_MIPMAP_COMPLETE;
+  if (!(ima->runtime->gpuflag & IMA_GPU_DISABLE_MIPMAP_UPDATE)) {
+    GPU_texture_update_mipmap_chain(tex);
+    GPU_texture_mipmap_mode(tex, true, true);
+    if (ima) {
+      ima->runtime->gpuflag |= IMA_GPU_MIPMAP_COMPLETE;
+    }
   }
 
   return tex;
@@ -485,18 +487,25 @@ static ImageGPUTextures image_get_gpu_texture(Image *ima,
   }
   else {
     /* Single image texture. */
-    const bool use_high_bitdepth = (ima->flag & IMA_HIGH_BITDEPTH);
-    const bool store_premultiplied = BKE_image_has_gpu_texture_premultiplied_alpha(ima, ibuf);
+    GPUTextureCreateFlags flags = GPUTextureCreateFlags::EnableMipmaps |
+                                  GPUTextureCreateFlags::LimitSize;
+    if (ima->flag & IMA_HIGH_BITDEPTH) {
+      flags |= GPUTextureCreateFlags::HighBitDepth;
+    }
+    if (BKE_image_has_gpu_texture_premultiplied_alpha(ima, ibuf)) {
+      flags |= GPUTextureCreateFlags::Premultiplied;
+    }
 
-    *result.texture = IMB_create_gpu_texture(
-        ima->id.name + 2, ibuf, use_high_bitdepth, store_premultiplied, true);
+    *result.texture = IMB_create_gpu_texture(ima->id.name + 2, ibuf, flags);
 
     if (*result.texture) {
       GPU_texture_extend_mode(*result.texture, GPU_SAMPLER_EXTEND_MODE_REPEAT);
 
-      GPU_texture_update_mipmap_chain(*result.texture);
-      ima->runtime->gpuflag |= IMA_GPU_MIPMAP_COMPLETE;
-      GPU_texture_mipmap_mode(*result.texture, true, true);
+      if (!(ima->runtime->gpuflag & IMA_GPU_DISABLE_MIPMAP_UPDATE)) {
+        GPU_texture_update_mipmap_chain(*result.texture);
+        ima->runtime->gpuflag |= IMA_GPU_MIPMAP_COMPLETE;
+        GPU_texture_mipmap_mode(*result.texture, true, true);
+      }
     }
   }
 
@@ -893,8 +902,10 @@ static void gpu_texture_update_from_ibuf(
     MEM_delete(rect_float);
   }
 
-  GPU_texture_update_mipmap_chain(tex);
-  ima->runtime->gpuflag |= IMA_GPU_MIPMAP_COMPLETE;
+  if (!(ima->runtime->gpuflag & IMA_GPU_DISABLE_MIPMAP_UPDATE)) {
+    GPU_texture_update_mipmap_chain(tex);
+    ima->runtime->gpuflag |= IMA_GPU_MIPMAP_COMPLETE;
+  }
 
   GPU_texture_unbind(tex);
 }
