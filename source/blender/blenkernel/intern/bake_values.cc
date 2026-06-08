@@ -100,10 +100,13 @@ class RuntimeToBakeValue {
   Map<std::string, std::string> referenced_anonymous_attributes_;
   int attribute_field_count_ = 0;
   BakeDataBlockMap *data_block_map_ = nullptr;
+  bool is_for_cache_;
 
  public:
-  RuntimeToBakeValue(Vector<BakeValues::InputValue> &root_values, BakeDataBlockMap *data_block_map)
-      : root_values_(root_values), data_block_map_(data_block_map)
+  RuntimeToBakeValue(Vector<BakeValues::InputValue> &root_values,
+                     BakeDataBlockMap *data_block_map,
+                     const bool is_for_cache)
+      : root_values_(root_values), data_block_map_(data_block_map), is_for_cache_(is_for_cache)
   {
   }
 
@@ -312,6 +315,10 @@ class RuntimeToBakeValue {
     }
     if (geometry.has_mesh()) {
       Mesh &mesh = *geometry.get_mesh_for_write();
+      if (is_for_cache_) {
+        /* This contains a weak raw pointer to a #BMesh which may become dangling. */
+        mesh.runtime->edit_mesh.reset();
+      }
       this->runtime_to_bake__AttributeStorage(mesh.attribute_storage.wrap());
       mesh.runtime->bake_materials = materials_to_weak_references(
           &mesh.mat, &mesh.totcol, data_block_map_);
@@ -619,9 +626,10 @@ class BakeToRuntimeValue {
 };
 
 BakeValues BakeValues::from_runtime_values(Vector<InputValue> runtime_values,
-                                           BakeDataBlockMap *data_block_map)
+                                           BakeDataBlockMap *data_block_map,
+                                           const bool is_for_cache)
 {
-  RuntimeToBakeValue preparation{runtime_values, data_block_map};
+  RuntimeToBakeValue preparation{runtime_values, data_block_map, is_for_cache};
   /* This may also remove runtime values that can't be baked. */
   preparation.convert();
 
