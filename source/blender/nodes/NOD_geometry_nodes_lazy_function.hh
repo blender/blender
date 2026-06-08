@@ -455,6 +455,8 @@ struct GeometryNodesLazyFunctionGraphInfo {
    * This can be used as a simple heuristic for the complexity of the node group.
    */
   int num_inline_nodes_approximate = 0;
+
+  GeometryNodesLazyFunctionGraphInfo(const char *debug_name);
 };
 
 std::unique_ptr<LazyFunction> get_simulation_output_lazy_function(

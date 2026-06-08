@@ -2107,7 +2107,7 @@ struct GeometryNodesLazyFunctionBuilder {
   {
     const int zone_i = zone.index;
     ZoneBuildInfo &zone_info = zone_build_infos_[zone_i];
-    lf::Graph &lf_graph = scope_.construct<lf::Graph>();
+    lf::Graph &lf_graph = scope_.construct<lf::Graph>("Simulation Zone");
     const auto &sim_output_storage = *static_cast<const NodeGeometrySimulationOutput *>(
         zone.output_node()->storage);
 
@@ -4256,6 +4256,11 @@ struct GeometryNodesLazyFunctionBuilder {
   }
 };
 
+GeometryNodesLazyFunctionGraphInfo::GeometryNodesLazyFunctionGraphInfo(const char *debug_name)
+    : graph(debug_name)
+{
+}
+
 static std::shared_ptr<GeometryNodesLazyFunctionGraphInfo>
 ensure_geometry_nodes_lazy_function_graph_impl(const bNodeTree &btree)
 {
@@ -4298,20 +4303,22 @@ ensure_geometry_nodes_lazy_function_graph_impl(const bNodeTree &btree)
     }
   }
 
-  auto lf_graph_info = std::make_shared<GeometryNodesLazyFunctionGraphInfo>();
+  /* Make a copy of the node tree so that the execution graph can be independent of the original
+   * tree. */
+  std::shared_ptr<bNodeTree> btree_copy{
+      bke::node_tree_copy_tree_ex(btree, nullptr, false),
+      [](bNodeTree *btree) { BKE_id_free(nullptr, &btree->id); }};
+
+  auto lf_graph_info = std::make_shared<GeometryNodesLazyFunctionGraphInfo>(
+      BKE_id_name(btree_copy->id));
+  lf_graph_info->tree = btree_copy;
+
   if (const bNodeTree *original_tree = DEG_get_original(&btree)) {
     lf_graph_info->original_tree_session_uid = original_tree->id.session_uid;
   }
   else {
     lf_graph_info->original_tree_session_uid = btree.id.session_uid;
   }
-
-  /* Make a copy of the node tree so that the execution graph can be independent of the original
-   * tree. */
-  std::shared_ptr<bNodeTree> btree_copy{
-      bke::node_tree_copy_tree_ex(btree, nullptr, false),
-      [](bNodeTree *btree) { BKE_id_free(nullptr, &btree->id); }};
-  lf_graph_info->tree = btree_copy;
 
   btree_copy->ensure_topology_cache();
   BLI_assert(btree.all_sockets().size() == btree_copy->all_sockets().size());
