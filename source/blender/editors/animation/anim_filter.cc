@@ -1820,7 +1820,9 @@ static size_t animfilter_nla(bAnimContext *ac,
 
             if (track_ok == false) {
               for (NlaStrip &strip : nlt->strips) {
-                if (name_matches_dopesheet_filter(ac->ads, strip.name)) {
+                if (name_matches_dopesheet_filter(ac->ads, strip.name) ||
+                    (strip.flag & NLASTRIP_FLAG_TEMP_META))
+                {
                   strip_ok = true;
                   break;
                 }
