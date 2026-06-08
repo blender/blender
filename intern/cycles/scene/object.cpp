@@ -774,7 +774,7 @@ void ObjectManager::device_update_prim_offsets(Device *device, DeviceScene *dsce
     uint32_t prim_offset = 0;
     if (Geometry *const geom = ob->geometry) {
       if (geom->is_hair()) {
-        prim_offset = ((Hair *const)geom)->curve_segment_offset;
+        prim_offset = ((Hair *)geom)->curve_segment_offset;
       }
       else {
         prim_offset = geom->prim_offset;

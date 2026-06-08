@@ -3467,9 +3467,9 @@ static void lib_override_resync_tagging_finalize(Main *bmain,
 
   BKE_main_relations_tag_set(
       bmain,
-      static_cast<const eMainIDRelationsEntryTags>(MAINIDRELATIONS_ENTRY_TAGS_PROCESSED |
-                                                   MAINIDRELATIONS_ENTRY_TAGS_DOIT |
-                                                   MAINIDRELATIONS_ENTRY_TAGS_INPROGRESS),
+      static_cast<eMainIDRelationsEntryTags>(MAINIDRELATIONS_ENTRY_TAGS_PROCESSED |
+                                             MAINIDRELATIONS_ENTRY_TAGS_DOIT |
+                                             MAINIDRELATIONS_ENTRY_TAGS_INPROGRESS),
       false);
 }
 

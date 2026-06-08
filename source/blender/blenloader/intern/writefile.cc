@@ -837,7 +837,7 @@ static uint64_t get_address_id_int(WriteData &wd, const void *address)
    * `pointer_map`. */
   if (wd.use_memfile) {
     return wd.stable_address_ids.pointer_map.lookup_default_as(
-        address, reinterpret_cast<const uint64_t>(address));
+        address, reinterpret_cast<uint64_t>(address));
   }
   /* Either reuse an existing identifier or create a new one. */
   return wd.stable_address_ids.pointer_map.lookup_or_add_cb(address, [&]() {
