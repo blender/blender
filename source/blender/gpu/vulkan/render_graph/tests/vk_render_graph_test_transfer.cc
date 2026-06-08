@@ -419,7 +419,9 @@ TEST_F(VKRenderGraphTestTransfer, copy_buffer_to_image_dispatch_read_aliased_ima
       "pipeline_barrier(src_stage_mask=VK_PIPELINE_STAGE_ALL_COMMANDS_BIT, "
       "dst_stage_mask=VK_PIPELINE_STAGE_TRANSFER_BIT" +
           endl() +
-          " - image_barrier(src_access_mask=, dst_access_mask=VK_ACCESS_TRANSFER_WRITE_BIT, "
+          " - image_barrier(src_access_mask=VK_ACCESS_MEMORY_READ_BIT, "
+          "VK_ACCESS_MEMORY_WRITE_BIT, "
+          "dst_access_mask=VK_ACCESS_TRANSFER_WRITE_BIT, "
           "old_layout=VK_IMAGE_LAYOUT_UNDEFINED, new_layout=VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL, "
           "image=0x2, subresource_range=" +
           endl() +
