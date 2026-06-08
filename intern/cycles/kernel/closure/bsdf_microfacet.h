@@ -1250,7 +1250,7 @@ ccl_device_inline void bsdf_thin_glass_reflection_setup(KernelGlobals kg,
     bsdf->alpha_x = bsdf->alpha_y = roughness;
     bsdf->ior = 1.0f;
     sd->flag |= bsdf_microfacet_ggx_setup(bsdf);
-    bsdf_microfacet_setup_fresnel_constant(kg, bsdf, reflect(sd->wi, N), color);
+    bsdf_microfacet_setup_fresnel_constant(kg, bsdf, sd->wi, color);
   }
 }
 
