@@ -4151,7 +4151,7 @@ class VIEW3D_MT_particle(Menu):
 
         layout.separator()
 
-        layout.operator("particle.delete")
+        layout.operator("particle.delete", icon='X')
 
 
 class VIEW3D_MT_particle_context_menu(Menu):
@@ -4164,10 +4164,6 @@ class VIEW3D_MT_particle_context_menu(Menu):
         particle_edit = tool_settings.particle_edit
 
         layout.operator("particle.rekey")
-
-        layout.separator()
-
-        layout.operator("particle.delete")
 
         layout.separator()
 
@@ -4207,6 +4203,10 @@ class VIEW3D_MT_particle_context_menu(Menu):
             layout.separator()
 
             layout.operator("particle.select_linked", text="Select Linked")
+
+        layout.separator()
+
+        layout.operator("particle.delete", icon='X')
 
 
 class VIEW3D_MT_particle_showhide(ShowHideMenu, Menu):
@@ -4648,7 +4648,7 @@ class VIEW3D_MT_edit_mesh_context_menu(Menu):
             col.operator("mesh.split")
             col.operator_menu_enum("mesh.separate", "type")
             col.operator("mesh.dissolve_verts")
-            col.operator("mesh.delete", text="Delete Vertices").type = 'VERT'
+            col.operator("mesh.delete", text="Delete Vertices", icon='X').type = 'VERT'
 
         if is_edge_mode:
             col = row.column(align=True)
@@ -4717,7 +4717,7 @@ class VIEW3D_MT_edit_mesh_context_menu(Menu):
             col.operator("mesh.split")
             col.operator_menu_enum("mesh.separate", "type")
             col.operator("mesh.dissolve_edges")
-            col.operator("mesh.delete", text="Delete Edges").type = 'EDGE'
+            col.operator("mesh.delete", text="Delete Edges", icon='X').type = 'EDGE'
 
         if is_face_mode:
             col = row.column(align=True)
@@ -4763,7 +4763,7 @@ class VIEW3D_MT_edit_mesh_context_menu(Menu):
             col.operator("mesh.split")
             col.operator_menu_enum("mesh.separate", "type")
             col.operator("mesh.dissolve_faces")
-            col.operator("mesh.delete", text="Delete Faces").type = 'FACE'
+            col.operator("mesh.delete", text="Delete Faces", icon='X').type = 'FACE'
 
 
 class VIEW3D_MT_edit_mesh_select_mode(Menu):
@@ -5705,7 +5705,7 @@ class VIEW3D_MT_armature_context_menu(Menu):
         layout.operator("armature.split")
         layout.operator("armature.separate")
         layout.operator("armature.dissolve")
-        layout.operator("armature.delete")
+        layout.operator("armature.delete", icon='X')
 
 
 class VIEW3D_MT_edit_armature_names(Menu):
@@ -5989,7 +5989,7 @@ class VIEW3D_MT_edit_curves(Menu):
         layout.separator()
 
         layout.operator("curves.separate")
-        layout.operator("curves.delete")
+        layout.operator("curves.delete", icon='X')
 
 
 class VIEW3D_MT_edit_curves_control_points(Menu):
@@ -6043,13 +6043,9 @@ class VIEW3D_MT_edit_curves_context_menu(Menu):
 
         layout.separator()
 
-        # Removal Operators
-        layout.operator("curves.separate")
-        layout.operator("curves.delete")
-
-        layout.separator()
-
         layout.operator("curves.split")
+        layout.operator("curves.separate")
+        layout.operator("curves.delete", icon='X')
 
 
 class VIEW3D_MT_edit_pointcloud(Menu):
@@ -6059,11 +6055,12 @@ class VIEW3D_MT_edit_pointcloud(Menu):
         layout = self.layout
         layout.menu("VIEW3D_MT_transform")
         layout.separator()
-        layout.operator("pointcloud.duplicate_move")
+        layout.operator("pointcloud.duplicate_move", icon='DUPLICATE')
         layout.separator()
-        layout.operator("pointcloud.attribute_set")
-        layout.operator("pointcloud.delete")
+        layout.operator("pointcloud.attribute_set", text="Set Attribute...")
+        layout.separator()
         layout.operator("pointcloud.separate")
+        layout.operator("pointcloud.delete", icon='X')
         layout.template_node_operator_asset_menu_items(catalog_path=self.bl_label)
 
 
