@@ -58,6 +58,10 @@ static void filelist_readjob_essentials_asset_library(FileListReadJob *job_param
   STRNCPY(filelist->filelist.root, asset_system::online_essentials_cache_directory_path().c_str());
   BLI_path_slash_ensure(filelist->filelist.root, sizeof(filelist->filelist.root));
 
+  if (job_params->remote_library_requests.is_empty()) {
+    filelist_readjob_recursive_dir_add_items(true, job_params, stop, do_update, progress);
+    return;
+  }
   BLI_assert_msg(job_params->remote_library_requests.size() <= 1,
                  "reading callback for a single remote library should only have a single remote "
                  "library request registered (check what the starting callback is requesting)");

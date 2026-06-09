@@ -153,13 +153,16 @@ static void ensure_ibuf_is_color_space(ImBuf *ibuf, bool make_float, const char 
     if (ibuf->byte_data() != nullptr) {
       IMB_free_byte_pixels(ibuf);
     }
+    /* Note: we do not use predivide to more closely match what
+     * compositor does, and to better preserve cases of pure emissive
+     * colors (alpha=0, RGB non black). */
     IMB_colormanagement_transform_float(ibuf->float_data_for_write(),
                                         ibuf->x,
                                         ibuf->y,
                                         ibuf->channels,
                                         from_colorspace,
                                         to_colorspace,
-                                        true);
+                                        false);
     IMB_colormanagement_assign_float_colorspace(ibuf, to_colorspace);
   }
 }

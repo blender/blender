@@ -48,6 +48,7 @@
 
 #include "BLO_read_write.hh"
 
+#include "file_banner.hh"
 #include "file_indexer.hh"
 #include "file_intern.hh" /* own include */
 #include "filelist.hh"
@@ -646,6 +647,7 @@ static void file_main_region_draw(const bContext *C, ARegion *region)
     file_highlight_set(sfile, region, event->xy[0], event->xy[1]);
   }
 
+  file_banners_update(*sfile);
   ED_fileselect_init_layout(sfile, region);
 
   if (!file_draw_hint_if_invalid(C, sfile, region)) {
@@ -655,6 +657,8 @@ static void file_main_region_draw(const bContext *C, ARegion *region)
     ui::view2d_view_ortho(v2d);
 
     file_draw_list(C, region);
+    /* After the list, so it draws on top. */
+    file_draw_banner(C, sfile, region);
   }
 
   /* reset view matrix */

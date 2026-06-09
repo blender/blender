@@ -53,8 +53,9 @@ struct AlphaOverEffectOp {
     }
 
     for (int64_t idx = 0; idx < size; idx++) {
-      if (src1[3] <= 0.0f) {
-        /* Alpha of zero. No color addition will happen as the colors are pre-multiplied. */
+      if (std::is_same_v<T, uchar> && src1[3] == 0) {
+        /* Optimization for fully transparent pixels: copy src2. Only do this for byte images;
+         * in floats alpha=0 can still have pure emissive color. */
         memcpy(dst, src2, sizeof(T) * 4);
       }
       else if (fac == 1.0f && alpha_opaque(src1[3])) {
