@@ -2471,7 +2471,7 @@ void mesh_freestyle_marks_to_generic(Mesh &mesh)
       static_assert(char(FREESTYLE_FACE_MARK) == char(true));
       Attribute::ArrayData array_data{};
       array_data.data = data;
-      array_data.size = mesh.edges_num;
+      array_data.size = mesh.faces_num;
       sharing_info->add_user();
       array_data.sharing_info = ImplicitSharingPtr<>(sharing_info);
       mesh.attribute_storage.wrap().add(
