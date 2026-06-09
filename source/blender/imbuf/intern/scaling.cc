@@ -460,6 +460,9 @@ bool IMB_scale(ImBuf *ibuf, const int2 new_size, IMBScaleFilter filter, bool thr
     return false;
   }
 
+  const ColorSpace *float_colorspace = ibuf->float_buffer.colorspace;
+  const ColorSpace *byte_colorspace = ibuf->byte_buffer.colorspace;
+
   switch (filter) {
     case IMBScaleFilter::Nearest: {
       if (const float *src = ibuf->float_data()) {
@@ -507,6 +510,8 @@ bool IMB_scale(ImBuf *ibuf, const int2 new_size, IMBScaleFilter filter, bool thr
       break;
     }
   }
+  ibuf->float_buffer.colorspace = float_colorspace;
+  ibuf->byte_buffer.colorspace = byte_colorspace;
   ibuf->x = new_size.x;
   ibuf->y = new_size.y;
   return true;

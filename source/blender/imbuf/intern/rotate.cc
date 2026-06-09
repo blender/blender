@@ -66,6 +66,9 @@ bool IMB_rotate_orthogonal(ImBuf *ibuf, int degrees)
   const int size_x = ibuf->x;
   const int size_y = ibuf->y;
 
+  const ColorSpace *float_colorspace = ibuf->float_buffer.colorspace;
+  const ColorSpace *byte_colorspace = ibuf->byte_buffer.colorspace;
+
   if (ELEM(degrees, 90, 270)) {
     std::swap(ibuf->x, ibuf->y);
   }
@@ -76,6 +79,7 @@ bool IMB_rotate_orthogonal(ImBuf *ibuf, int degrees)
         size_t(channels) * size_t(size_x) * size_t(size_y), __func__);
     rotate_pixels<float>(degrees, size_x, size_y, src_pixels, dst_pixels, ibuf->channels);
     ibuf->assign_float_data(dst_pixels);
+    ibuf->float_buffer.colorspace = float_colorspace;
     if (ibuf->byte_data()) {
       IMB_byte_from_float(ibuf);
     }
@@ -86,6 +90,7 @@ bool IMB_rotate_orthogonal(ImBuf *ibuf, int degrees)
                                                            __func__);
     rotate_pixels<uchar>(degrees, size_x, size_y, src_pixels, dst_pixels, 4);
     ibuf->assign_byte_data(dst_pixels);
+    ibuf->byte_buffer.colorspace = byte_colorspace;
   }
 
   return true;
