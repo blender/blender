@@ -2797,7 +2797,10 @@ static bool uv_copy_mirrored_faces(const Scene *scene,
   for (const auto &[f_dst, f_src] : face_map.items()) {
 
     /* Skip unless both faces have all their UVs selected. */
-    if (!uvedit_face_select_test(scene, bm, f_dst) || !uvedit_face_select_test(scene, bm, f_src)) {
+    if (!uvedit_face_visible_test(scene, f_dst) || !uvedit_face_select_test(scene, bm, f_dst)) {
+      continue;
+    }
+    if (!uvedit_face_visible_test(scene, f_src) || !uvedit_face_select_test(scene, bm, f_src)) {
       continue;
     }
 
