@@ -1366,9 +1366,8 @@ uint8_t *WM_window_pixels_read_from_frontbuffer(const wmWindowManager *wm,
    * See it's comments for details on why it's needed, see also #98462. */
   bool setup_context = wm->runtime->windrawable != win;
 
-  GHOST_IWindow *ghost_window = static_cast<GHOST_IWindow *>(win->runtime->ghostwin);
   if (setup_context) {
-    ghost_window->activateDrawingContext();
+    static_cast<GHOST_IWindow *>(win->runtime->ghostwin)->activateDrawingContext();
     GPU_context_active_set(static_cast<GPUContext *>(win->runtime->gpuctx));
   }
 
@@ -1380,7 +1379,8 @@ uint8_t *WM_window_pixels_read_from_frontbuffer(const wmWindowManager *wm,
 
   if (setup_context) {
     if (wm->runtime->windrawable) {
-      ghost_window->activateDrawingContext();
+      static_cast<GHOST_IWindow *>(wm->runtime->windrawable->runtime->ghostwin)
+          ->activateDrawingContext();
       GPU_context_active_set(static_cast<GPUContext *>(wm->runtime->windrawable->runtime->gpuctx));
     }
   }
@@ -1405,9 +1405,8 @@ void WM_window_pixels_read_sample_from_frontbuffer(const wmWindowManager *wm,
   BLI_assert(WM_capabilities_flag() & WM_CAPABILITY_GPU_FRONT_BUFFER_READ);
   bool setup_context = wm->runtime->windrawable != win;
 
-  GHOST_IWindow *ghost_window = static_cast<GHOST_IWindow *>(win->runtime->ghostwin);
   if (setup_context) {
-    ghost_window->activateDrawingContext();
+    static_cast<GHOST_IWindow *>(win->runtime->ghostwin)->activateDrawingContext();
     GPU_context_active_set(static_cast<GPUContext *>(win->runtime->gpuctx));
   }
 
@@ -1423,7 +1422,8 @@ void WM_window_pixels_read_sample_from_frontbuffer(const wmWindowManager *wm,
 
   if (setup_context) {
     if (wm->runtime->windrawable) {
-      ghost_window->activateDrawingContext();
+      static_cast<GHOST_IWindow *>(wm->runtime->windrawable->runtime->ghostwin)
+          ->activateDrawingContext();
       GPU_context_active_set(static_cast<GPUContext *>(wm->runtime->windrawable->runtime->gpuctx));
     }
   }
