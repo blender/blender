@@ -44,15 +44,15 @@ void main()
     complete_prologue[gl_LocalInvocationIndex] = accumulated_color;
     for (uint stride = gl_WorkGroupSize.x / 2; stride > 0; stride /= 2) {
       barrier();
-      float4 my_value = complete_prologue[gl_LocalInvocationIndex];
-      float4 neighbor_value = float4(0.0f);
+      float4 first_value = complete_prologue[gl_LocalInvocationIndex];
+      float4 second_value = float4(0.0f);
       if (gl_LocalInvocationIndex + stride < gl_WorkGroupSize.x) {
-        neighbor_value = complete_prologue[gl_LocalInvocationIndex + stride];
+        second_value = complete_prologue[gl_LocalInvocationIndex + stride];
       }
       barrier();
 
       if (gl_LocalInvocationIndex < stride) {
-        complete_prologue[gl_LocalInvocationIndex] = my_value + neighbor_value;
+        complete_prologue[gl_LocalInvocationIndex] = first_value + second_value;
       }
     }
 
