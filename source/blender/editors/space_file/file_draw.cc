@@ -15,6 +15,7 @@
 
 #include "MEM_guardedalloc.h"
 
+#include "AS_asset_library.hh"
 #include "AS_asset_representation.hh"
 #include "AS_remote_library.hh"
 
@@ -67,6 +68,7 @@
 #include "UI_interface.hh"
 #include "UI_interface_c.hh"
 #include "UI_interface_icons.hh"
+#include "UI_interface_layout.hh"
 #include "UI_resources.hh"
 #include "UI_view2d.hh"
 
@@ -77,6 +79,7 @@
 #include "GPU_immediate_util.hh"
 #include "GPU_state.hh"
 
+#include "file_banner.hh"
 #include "filelist.hh"
 
 #include "file_intern.hh" /* own include */
@@ -1145,18 +1148,14 @@ static void draw_dividers(FileLayout *layout, View2D *v2d)
   }
 }
 
-static void draw_columnheader_background(const FileLayout *layout, const View2D *v2d)
+static void draw_fixed_header_background(const View2D *v2d, const float height)
 {
   uint pos = GPU_vertformat_attr_add(immVertexFormat(), "pos", gpu::VertAttrType::SFLOAT_32_32);
 
   immBindBuiltinProgram(GPU_SHADER_3D_UNIFORM_COLOR);
   immUniformThemeColorShade(TH_BACK, 11);
 
-  immRectf(pos,
-           v2d->cur.xmin,
-           v2d->cur.ymax - layout->attribute_column_header_h,
-           v2d->cur.xmax,
-           v2d->cur.ymax);
+  immRectf(pos, v2d->cur.xmin, v2d->cur.ymax - height, v2d->cur.xmax, v2d->cur.ymax);
 
   immUnbindProgram();
 }
@@ -1696,7 +1695,7 @@ void file_draw_list(const bContext *C, ARegion *region)
 
   /* Draw last, on top of file list. */
   if (draw_columnheader) {
-    draw_columnheader_background(layout, v2d);
+    draw_fixed_header_background(v2d, layout->attribute_column_header_h);
     draw_columnheader_columns(params, layout, v2d, text_col);
   }
 
@@ -1704,6 +1703,34 @@ void file_draw_list(const bContext *C, ARegion *region)
     /* Only save current size if there is something to show. */
     layout->curr_size = layout->width;
   }
+}
+
+void file_draw_banner(const bContext *C, const SpaceFile *sfile, ARegion *region)
+{
+  /* Passed into lambda as block idname. */
+  static const char *funcname = __func__;
+
+  file_banners_for_first_visible(*sfile, [&](const BannerType &banner) {
+    draw_fixed_header_background(&region->v2d, sfile->layout->offset_top);
+
+    ui::Block *block = block_begin(C, region, funcname, ui::EmbossType::Emboss);
+    ui::Layout &layout = ui::block_layout(
+        block,
+        ui::LayoutDirection::Vertical,
+        ui::LayoutType::Panel,
+        sfile->layout->tile_border_x,
+        -sfile->layout->tile_border_y + region->v2d.cur.ymax,
+        std::max(0, region->winx - 2 * sfile->layout->tile_border_x),
+        0,
+        0,
+        ui::style_get_dpi());
+
+    banner.layout(*sfile, layout.row(false));
+
+    block_layout_resolve(block);
+    block_end(C, block);
+    block_draw(C, block);
+  });
 }
 
 static void file_draw_invalid_asset_library_hint(const bContext *C,
@@ -2052,6 +2079,13 @@ bool file_draw_hint_if_invalid(const bContext *C, const SpaceFile *sfile, ARegio
     const bool is_remote_library = remote_library != nullptr;
 
     if (is_remote_library) {
+      /* With remote libraries, there may be already-downloaded assets available that should be
+       * displayed. Don't show the "internet access required" hint until done loading, and only if
+       * there are no already-downloaded assets to display. */
+      if (!filelist_is_ready(sfile->files) || !filelist_files_num_entries(sfile->files)) {
+        return false;
+      }
+
       const bool is_online_allowed = G.f & G_FLAG_INTERNET_ALLOW;
       const bool was_choice_made = U.extension_flag & USER_EXTENSION_FLAG_ONLINE_ACCESS_HANDLED;
       if (!is_online_allowed && !was_choice_made) {
