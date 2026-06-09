@@ -81,7 +81,7 @@ struct ImageRuntime {
   short gpu_layer = IMAGE_GPU_LAYER_NONE;
   short gpu_view = IMAGE_GPU_VIEW_NONE;
 
-  int lastused = 0;
+  int64_t lastused = 0;
 
   /** Register containing partial updates. */
   PartialUpdateRegister *partial_update_register = nullptr;

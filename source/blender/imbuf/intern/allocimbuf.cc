@@ -290,7 +290,9 @@ void IMB_ensure_host_buffer(ImBuf *ibuf)
   GPU_memory_barrier(GPU_BARRIER_TEXTURE_UPDATE);
   float *output_buffer = static_cast<float *>(
       GPU_texture_read(ibuf->gpu.texture, GPU_DATA_FLOAT, 0));
+  const ColorSpace *float_colorspace = ibuf->float_buffer.colorspace;
   ibuf->assign_float_data(output_buffer);
+  ibuf->float_buffer.colorspace = float_colorspace;
 
   if (need_secondary_context) {
     IMB_deactivate_gpu_context();

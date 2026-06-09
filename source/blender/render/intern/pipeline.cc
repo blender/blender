@@ -190,11 +190,13 @@ static bool default_break(void * /*arg*/)
   return G.is_break == true;
 }
 
-static void stats_update(void * /*arg*/, RenderStats *rs)
+static void stats_update(void *arg, RenderStats *rs)
 {
   if (rs->infostr == nullptr) {
     return;
   }
+
+  Render *re = static_cast<Render *>(arg);
 
   /* Compositor calls this from multiple threads, mutex lock to ensure we don't
    * get garbled output. */
@@ -212,7 +214,7 @@ static void stats_update(void * /*arg*/, RenderStats *rs)
 
   /* NOTE: using G_MAIN seems valid here???
    * Not sure it's actually even used anyway, we could as well pass nullptr? */
-  BKE_callback_exec_string(G_MAIN, rs->infostr, BKE_CB_EVT_RENDER_STATS);
+  render_callback_exec_string(re, G_MAIN, BKE_CB_EVT_RENDER_STATS, rs->infostr);
 
   if (show_info) {
     fflush(stdout);
@@ -944,6 +946,7 @@ void RE_display_init(Render *re)
   re->display->progress_cb = float_nothing;
   re->display->test_break_cb = default_break;
   re->display->stats_draw_cb = stats_update;
+  re->display->sdh = re;
 }
 
 void RE_display_ensure_gpu_context(Render *re)

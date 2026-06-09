@@ -1095,8 +1095,12 @@ void transform_convert_mesh_connectivity_distance(BMesh *bm,
            * - Edge itself is loose
            * - Edge has vertex that was originally selected
            * In all these cases a direct distance along the edge is accurate and
-           * required to make sure we visit all edges. Other edges are handled by
-           * propagation across edges below. */
+           * required to make sure we visit all edges.
+           *
+           * Additionally re-add edges whose other vertex already has a known
+           * distance, so that propagation across their adjacent faces can happen
+           * now that this vertex distance is known too. Other edges are handled
+           * by propagation across edges below. */
           const bool need_direct_distance = BM_elem_flag_test(e, tag_loose) ||
                                             BM_elem_flag_test(v1, BM_ELEM_SELECT) ||
                                             BM_elem_flag_test(v2, BM_ELEM_SELECT);
@@ -1105,7 +1109,8 @@ void transform_convert_mesh_connectivity_distance(BMesh *bm,
           BM_ITER_ELEM (e_other, &eiter, v2, BM_EDGES_OF_VERT) {
             if (e_other != e && BM_elem_flag_test(e_other, tag_queued) == 0 &&
                 !BM_elem_flag_test(e_other, BM_ELEM_HIDDEN) &&
-                (need_direct_distance || BM_elem_flag_test(e_other, tag_loose)))
+                (need_direct_distance || BM_elem_flag_test(e_other, tag_loose) ||
+                 dists[BM_elem_index_get(BM_edge_other_vert(e_other, v2))] != FLT_MAX))
             {
               BM_elem_flag_enable(e_other, tag_queued);
               BLI_LINKSTACK_PUSH(queue_next, e_other);
