@@ -242,6 +242,11 @@ static void mesh_copy_data(Main *bmain,
                        &mesh_dst->id,
                        reinterpret_cast<ID **>(&mesh_dst->key),
                        flag);
+    /* It has one user, but its owner reference (added in #id_copy_libmanagement_cb)
+     * is the real owner, remove the reference here, see: #159691. */
+    if ((flag & LIB_ID_CREATE_NO_USER_REFCOUNT) == 0) {
+      id_us_min(&mesh_dst->key->id);
+    }
   }
 }
 
