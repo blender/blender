@@ -348,10 +348,12 @@ static void bm_decim_build_edge_cost(BMesh *bm,
   uint i;
 
   BM_ITER_MESH_INDEX (e, &iter, bm, BM_EDGES_OF_MESH, i) {
+    BM_elem_index_set(e, i); /* set_inline */
     /* keep sanity check happy */
     eheap_table[i] = nullptr;
     bm_decim_build_edge_cost_single(e, vquadrics, vweights, vweight_factor, eheap, eheap_table);
   }
+  bm->elem_index_dirty &= ~BM_EDGE;
 }
 
 #ifdef USE_SYMMETRY
@@ -1319,6 +1321,11 @@ void BM_mesh_decimate_collapse(BMesh *bm,
 #else
   UNUSED_VARS(do_triangulate);
 #endif
+
+  /* Edge indices are used to index into `eheap_table`, ensure they're valid.
+   * Needed since callers may pass a mesh with dirty edge indices,
+   * for example running the decimate operator twice in edit-mode. */
+  BM_mesh_elem_index_ensure(bm, BM_EDGE);
 
   /* Allocate variables. */
   vquadrics = MEM_new_array_zeroed<Quadric>(bm->totvert, __func__);
