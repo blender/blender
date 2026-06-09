@@ -541,10 +541,10 @@ class FILEBROWSER_MT_context_menu(FileBrowserMenu, Menu):
         st = context.space_data
         params = st.params
 
-        layout.operator("file.previous", text="Back")
-        layout.operator("file.next", text="Forward")
-        layout.operator("file.parent", text="Go to Parent")
-        layout.operator("file.refresh", text="Refresh")
+        layout.operator("file.previous", text="Back", icon='BACK')
+        layout.operator("file.next", text="Forward", icon='FORWARD')
+        layout.operator("file.parent", text="Go to Parent", icon='FILE_PARENT')
+        layout.operator("file.refresh", text="Refresh", icon='FILE_REFRESH')
         layout.menu("FILEBROWSER_MT_operations_menu")
 
         layout.separator()
@@ -555,15 +555,12 @@ class FILEBROWSER_MT_context_menu(FileBrowserMenu, Menu):
         layout.separator()
 
         layout.operator("file.rename", text="Rename")
-        sub = layout.row()
-        sub.operator_context = 'EXEC_DEFAULT'
-        sub.operator("file.delete", text="Delete")
 
         layout.separator()
 
         sub = layout.row()
         sub.operator_context = 'EXEC_DEFAULT'
-        sub.operator("file.directory_new", text="New Folder").confirm = False
+        sub.operator("file.directory_new", text="New Folder", icon='NEWFOLDER').confirm = False
         layout.operator("file.bookmark_add", text="Add Bookmark")
 
         layout.separator()
@@ -573,6 +570,12 @@ class FILEBROWSER_MT_context_menu(FileBrowserMenu, Menu):
             layout.prop_menu_enum(params, "display_size_discrete")
         layout.prop_menu_enum(params, "recursion_level", text="Recursions")
         layout.prop_menu_enum(params, "sort_method")
+
+        layout.separator()
+
+        sub = layout.row()
+        sub.operator_context = 'EXEC_DEFAULT'
+        sub.operator("file.delete", text="Delete", icon='TRASH')
 
 
 class FILEBROWSER_MT_view_pie(Menu):
