@@ -61,11 +61,14 @@ void ED_transverts_update_obedit(TransVertStore *tvs, Object *obedit)
     ListBaseT<Nurb> *nurbs = BKE_curve_editNurbs_get(cu);
     Nurb *nu = static_cast<Nurb *>(nurbs->first);
 
+    /* #ED_transverts_create_from_obedit fills a single contiguous array spanning all nurbs,
+     * so advance over every nurb's verts instead of resetting per nurb. */
+    TransVert *tv = tvs->transverts;
+
     while (nu) {
       /* keep handles' vectors unchanged */
       if (nu->bezt && (mode & TM_SKIP_HANDLES)) {
         int a = nu->pntsu;
-        TransVert *tv = tvs->transverts;
         BezTriple *bezt = nu->bezt;
 
         while (a--) {
@@ -104,6 +107,17 @@ void ED_transverts_update_obedit(TransVertStore *tvs, Object *obedit)
           }
 
           bezt++;
+        }
+      }
+      else if (nu->bp && (mode & TM_SKIP_HANDLES)) {
+        /* No handles to keep unchanged, but the `tv` array must be kept in sync. */
+        int a = nu->pntsu * nu->pntsv;
+        BPoint *bp = nu->bp;
+        while (a--) {
+          if ((bp->hide == 0) && (bp->f1 & SELECT)) {
+            tv++;
+          }
+          bp++;
         }
       }
 
