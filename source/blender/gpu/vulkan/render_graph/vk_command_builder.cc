@@ -937,7 +937,7 @@ void VKCommandBuilder::ImageTracker::update(VkImage vk_image,
     if (change.vk_image == vk_image && ((subimage.layer_count != VK_REMAINING_ARRAY_LAYERS &&
                                          change.subimage.layer_base == subimage.layer_base) ||
                                         (subimage.mipmap_count != VK_REMAINING_MIP_LEVELS &&
-                                         change.subimage.mipmap_level != subimage.mipmap_level)))
+                                         change.subimage.mipmap_level == subimage.mipmap_level)))
     {
       BLI_assert_msg(
           change.vk_image_layout == new_layout,
