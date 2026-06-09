@@ -1777,9 +1777,6 @@ void blo_do_versions_userdef(UserDef *userdef)
   }
 
   if (!USER_VERSION_ATLEAST(502, 42)) {
-    /* Instead of removing the flag entirely, it is forced to be on. Once it is 100% certain the
-     * Remote Asset Libraries feature will be shipped with 5.2 (which depends on other factors than
-     * just code), the flag can be removed. */
     userdef->asset_flag |= USER_ASSETS_USE_ONLINE_ESSENTIALS;
   }
 
