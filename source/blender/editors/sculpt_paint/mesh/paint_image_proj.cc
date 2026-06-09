@@ -6756,9 +6756,11 @@ static std::optional<std::string> proj_paint_color_attribute_create(wmOperator *
   AttributeOwner owner = AttributeOwner::from_id(&mesh->id);
   std::string unique_name = BKE_attribute_calc_unique_name(owner, name);
   bke::MutableAttributeAccessor attributes = mesh->attributes_for_write();
-  bke::GSpanAttributeWriter attr = attributes.lookup_or_add_for_write_span(
-      unique_name, domain, *bke::custom_data_type_to_attr_type(type));
-  if (!attr) {
+  if (!attributes.add(unique_name,
+                      domain,
+                      *bke::custom_data_type_to_attr_type(type),
+                      bke::AttributeInitDefaultValue()))
+  {
     return std::nullopt;
   }
 
