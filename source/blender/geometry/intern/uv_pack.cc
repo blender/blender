@@ -344,12 +344,12 @@ void PackIsland::finalize_geometry_(const UVPackIsland_Params &params, MemArena 
     int convex_len = BLI_convexhull_2d(triangle_vertices_, index_map);
     if (convex_len >= 3) {
       /* Write back. */
-      triangle_vertices_.clear();
       float2 *convex_verts = static_cast<float2 *>(
           BLI_memarena_alloc(arena, sizeof(*convex_verts) * convex_len));
       for (int i = 0; i < convex_len; i++) {
         convex_verts[i] = triangle_vertices_[index_map[i]];
       }
+      triangle_vertices_.clear();
       add_polygon(Span(convex_verts, convex_len), arena, heap);
     }
   }
