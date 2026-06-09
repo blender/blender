@@ -226,7 +226,7 @@ static wmOperatorStatus action_new_exec(bContext *C, wmOperator * /*op*/)
   }
   else {
     adt = ED_actedit_animdata_from_context(C, &adt_id_owner);
-    oldact = adt->action;
+    oldact = adt ? adt->action : nullptr;
   }
   {
     bAction *action = nullptr;
