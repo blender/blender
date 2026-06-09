@@ -1872,7 +1872,7 @@ MovieWriter *MOV_write_begin(const Scene *scene,
 #ifdef WITH_FFMPEG
   writer = ffmpeg_movie_open(scene, project, rd, imf, rectx, recty, reports, preview, suffix);
 #else
-  UNUSED_VARS(scene, rd, imf, rectx, recty, reports, preview, suffix);
+  UNUSED_VARS(scene, project, rd, imf, rectx, recty, reports, preview, suffix);
 #endif
   return writer;
 }
@@ -1897,7 +1897,7 @@ bool MOV_write_append(MovieWriter *writer,
       writer, scene, project, rd, imf, start_frame, frame, image, suffix, reports);
   return ok;
 #else
-  UNUSED_VARS(scene, rd, imf, start_frame, frame, image, suffix, reports);
+  UNUSED_VARS(scene, project, rd, imf, start_frame, frame, image, suffix, reports);
   return false;
 #endif
 }
@@ -1927,7 +1927,7 @@ void MOV_filepath_from_settings(char filepath[/*FILE_MAX*/ 1024],
     return;
   }
 #else
-  UNUSED_VARS(scene, rd, preview, suffix, reports);
+  UNUSED_VARS(scene, project, rd, preview, suffix, reports);
 #endif
   filepath[0] = '\0';
 }
