@@ -746,7 +746,7 @@ class VIEW3D_HT_header(Header):
                 show_snap = True
             else:
 
-                paint_settings = UnifiedPaintPanel.paint_settings(context)
+                paint_settings = UnifiedPaintPanel.paint_settings_from_active_tool(context)
 
                 if paint_settings:
                     brush = paint_settings.brush
@@ -9109,7 +9109,7 @@ class VIEW3D_PT_curves_sculpt_add_shape(Panel):
         layout.use_property_split = True
         layout.use_property_decorate = False  # No animation.
 
-        settings = UnifiedPaintPanel.paint_settings(context)
+        settings = UnifiedPaintPanel.paint_settings_from_mode(context, 'SCULPT_CURVES')
         brush = settings.brush
 
         col = layout.column(heading="Interpolate", align=True)
@@ -9140,7 +9140,7 @@ class VIEW3D_PT_curves_sculpt_parameter_falloff(Panel):
     def draw(self, context):
         layout = self.layout
 
-        settings = UnifiedPaintPanel.paint_settings(context)
+        settings = UnifiedPaintPanel.paint_settings_from_mode(context, 'SCULPT_CURVES')
         brush = settings.brush
 
         layout.template_curve_mapping(
@@ -9164,7 +9164,7 @@ class VIEW3D_PT_curves_sculpt_grow_shrink_scaling(Panel):
         layout.use_property_split = True
         layout.use_property_decorate = False  # No animation.
 
-        settings = UnifiedPaintPanel.paint_settings(context)
+        settings = UnifiedPaintPanel.paint_settings_from_active_tool(context)
         brush = settings.brush
 
         layout.prop(brush.curves_sculpt_settings, "use_uniform_scale")

@@ -39,7 +39,7 @@ class VIEW3D_MT_brush_context_menu(Menu):
     def draw(self, context):
         layout = self.layout
 
-        settings = UnifiedPaintPanel.paint_settings(context)
+        settings = UnifiedPaintPanel.paint_settings_from_active_tool(context)
         brush = getattr(settings, "brush", None)
 
         # skip if no active brush
@@ -364,7 +364,7 @@ class VIEW3D_PT_tools_brush_settings_advanced(Panel, View3DPaintBrushPanel):
         layout.use_property_split = True
         layout.use_property_decorate = False  # No animation.
 
-        settings = UnifiedPaintPanel.paint_settings(context)
+        settings = UnifiedPaintPanel.paint_settings_from_active_tool(context)
         brush = settings.brush
 
         brush_settings_advanced(layout.column(), context, settings, brush, self.is_popover)
