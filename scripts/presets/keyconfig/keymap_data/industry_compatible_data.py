@@ -1277,7 +1277,7 @@ def km_file_browser(params):
         ("file.next", {"type": 'BACK_SPACE', "value": 'PRESS', "shift": True}, None),
         ("wm.context_toggle", {"type": 'H', "value": 'PRESS'},
          {"properties": [("data_path", "space_data.params.show_hidden")]}),
-        ("file.directory_new", {"type": 'I', "value": 'PRESS'},
+        ("file.directory_new", {"type": 'N', "value": 'PRESS', "ctrl": True, "shift": True},
          {"properties": [("confirm", False)]}),
         ("file.rename", {"type": 'F2', "value": 'PRESS'}, None),
         ("file.delete", {"type": 'DEL', "value": 'PRESS'}, None),
