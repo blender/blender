@@ -1273,8 +1273,6 @@ class VIEW3D_MT_transform_base:
         layout.operator("transform.bend", text="Bend")
         layout.operator("transform.push_pull", text="Push/Pull")
 
-        layout.separator()
-
 
 # Generic transform menu - geometry types
 class VIEW3D_MT_transform(VIEW3D_MT_transform_base, Menu):
@@ -1284,6 +1282,7 @@ class VIEW3D_MT_transform(VIEW3D_MT_transform_base, Menu):
 
         # generic...
         layout = self.layout
+        layout.separator()
         if context.mode == 'EDIT_MESH':
             layout.operator("mesh.circularize", text="To Circle")
             layout.operator("mesh.flatten", text="Flatten")
@@ -1297,7 +1296,6 @@ class VIEW3D_MT_transform(VIEW3D_MT_transform_base, Menu):
 
         if context.mode in {
             'EDIT_MESH',
-            'EDIT_ARMATURE',
             'EDIT_SURFACE',
             'EDIT_CURVE',
             'EDIT_CURVES',
@@ -1353,7 +1351,15 @@ class VIEW3D_MT_transform_armature(VIEW3D_MT_transform_base, Menu):
 
         # armature specific extensions follow...
         obj = context.object
-        if obj.type == 'ARMATURE' and obj.mode in {'EDIT', 'POSE'}:
+        if obj.type == 'ARMATURE':
+            if obj.mode == 'EDIT':
+                layout.separator()
+
+                layout.operator("transform.vertex_warp", text="Warp")
+                layout.operator_context = 'EXEC_REGION_WIN'
+                layout.operator("transform.vertex_random", text="Randomize").offset = 0.1
+                layout.operator_context = 'INVOKE_REGION_WIN'
+
             if obj.data.display_type == 'BBONE':
                 layout.separator()
 
