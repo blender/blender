@@ -1140,7 +1140,7 @@ def brush_settings(layout, context, brush, popover=False):
 def brush_shared_settings(layout, context, brush, popover=False):
     """ Draw simple brush settings that are shared between different paint modes. """
 
-    # paint    paint = UnifiedPaintPanel.paint_settings(context)  # UNUSED.
+    # paint    paint = UnifiedPaintPanel.paint_settings_from_active_tool(context)  # UNUSED.
     mode = UnifiedPaintPanel.get_brush_mode(context)
 
     ### Determine which settings to draw. ###
