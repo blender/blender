@@ -3199,6 +3199,11 @@ bool EDBM_selectmode_toggle_multi(bContext *C,
         only_update = true;
         break;
       }
+      /* Can't disable this flag if its the only one set. */
+      if (selectmode_old == selectmode_toggle) {
+        only_update = true;
+        break;
+      }
       selectmode_new &= ~selectmode_toggle;
       break;
     case 1: /* Enable. */
@@ -3221,6 +3226,7 @@ bool EDBM_selectmode_toggle_multi(bContext *C,
       BLI_assert(0);
       break;
   }
+  BLI_assert(selectmode_new != 0);
 
   const Vector<Object *> objects = BKE_view_layer_array_from_objects_in_edit_mode_unique_data(
       *bmain, scene, view_layer, CTX_wm_view3d(C));
