@@ -22,6 +22,7 @@ class ShaderGraph;
 class ShaderInput;
 class ShaderNode;
 class ShaderOutput;
+struct SVMNodeClosureBsdf;
 
 /* Shader Manager */
 
@@ -92,7 +93,7 @@ class SVMCompiler {
 
   /* Add SVM node with parameters in struct T. */
   template<typename T>
-  void add_node(const ShaderNode *shader_node,
+  void add_node(ShaderNode *shader_node,
                 const ShaderNodeType type,
                 const T &node,
                 const bool use_derivatives = false)
@@ -105,11 +106,22 @@ class SVMCompiler {
     for (size_t i = 0; i < sizeof(T) / sizeof(int); i++) {
       current_svm_nodes.push_back_slow(data[i]);
     }
+    if (shader_node) {
+      shader_node->added_to_svm = true;
+    }
   }
 
   /* Add value node. */
-  void add_value_node(const ShaderNode *shader_node, const float value, const int stack_offset);
-  void add_value_node(const ShaderNode *shader_node, const float3 &value, const int stack_offset);
+  void add_value_node(ShaderNode *shader_node, const float value, const int stack_offset);
+  void add_value_node(ShaderNode *shader_node, const float3 &value, const int stack_offset);
+
+  /* Add BSDF node. */
+  template<typename T> void add_bsdf_node(const SVMNodeClosureBsdf &node, const T &data)
+  {
+    assert(current_node->shader_node_type() == NODE_CLOSURE_BSDF);
+    add_node(current_node, NODE_CLOSURE_BSDF, node);
+    add_node_data(data);
+  }
 
   /* Add extra node data following add_node. */
   template<typename T>

@@ -18,6 +18,7 @@ using SVMStackOffset = uint8_t;
 struct SVMInputInt {
   int value;
   SVMStackOffset offset;
+  uint8_t _pad[3];
 };
 
 /* Encodes a node float input, as either float value or a stack offset

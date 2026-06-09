@@ -30,6 +30,7 @@
 #include "util/string.h"
 #include "util/transform.h"
 
+#include "kernel/closure/bsdf_microfacet.h"
 #include "kernel/svm/color_util.h"
 #include "kernel/svm/mapping_util.h"
 #include "kernel/svm/math_util.h"
@@ -2174,7 +2175,12 @@ bool BsdfBaseNode::has_bump()
 
 BsdfNode::BsdfNode(const NodeType *node_type) : BsdfBaseNode(node_type) {}
 
-void BsdfNode::compile(SVMCompiler &compiler)
+void BsdfNode::compile(SVMCompiler & /*compiler*/)
+{
+  assert(false);
+}
+
+template<typename T> void BsdfNode::compile(SVMCompiler &compiler, const T &data)
 {
   ShaderInput *color_in = input("Color");
 
@@ -2193,12 +2199,12 @@ void BsdfNode::compile(SVMCompiler &compiler)
                       });
   }
 
-  compiler.add_node(this,
-                    NODE_CLOSURE_BSDF,
-                    SVMNodeClosureBsdf{
-                        .closure_type = closure,
-                        .mix_weight_offset = compiler.closure_mix_weight_offset(),
-                    });
+  compiler.add_bsdf_node(
+      SVMNodeClosureBsdf{
+          .closure_type = closure,
+          .mix_weight_offset = compiler.closure_mix_weight_offset(),
+      },
+      data);
 }
 
 void BsdfNode::compile(OSLCompiler & /*compiler*/)
@@ -2280,31 +2286,27 @@ void MetallicBsdfNode::simplify_settings(Scene * /* scene */)
 
 void MetallicBsdfNode::compile(SVMCompiler &compiler)
 {
-  const SVMStackOffset normal_offset = compiler.input_link("Normal");
-  const SVMStackOffset tangent_offset = compiler.input_link("Tangent");
-
-  compiler.add_node(this,
-                    NODE_CLOSURE_BSDF,
-                    SVMNodeClosureBsdf{
-                        .closure_type = fresnel_type,
-                        .mix_weight_offset = compiler.closure_mix_weight_offset(),
-                    });
-  compiler.add_node_data(SVMNodeMetallicBsdfData{
-      .distribution = distribution,
-      .base_ior = fresnel_type == CLOSURE_BSDF_PHYSICAL_CONDUCTOR ?
-                      compiler.input_float3("IOR") :
-                      compiler.input_float3("Base Color"),
-      .edge_tint_k = fresnel_type == CLOSURE_BSDF_PHYSICAL_CONDUCTOR ?
-                         compiler.input_float3("Extinction") :
-                         compiler.input_float3("Edge Tint"),
-      .roughness = compiler.input_float("Roughness"),
-      .anisotropy = compiler.input_float("Anisotropy"),
-      .rotation = compiler.input_float("Rotation"),
-      .thin_film_thickness = compiler.input_float("Thin Film Thickness"),
-      .thin_film_ior = compiler.input_float("Thin Film IOR"),
-      .normal_offset = normal_offset,
-      .tangent_offset = tangent_offset,
-  });
+  compiler.add_bsdf_node(
+      SVMNodeClosureBsdf{
+          .closure_type = fresnel_type,
+          .mix_weight_offset = compiler.closure_mix_weight_offset(),
+      },
+      SVMNodeMetallicBsdfData{
+          .distribution = distribution,
+          .base_ior = fresnel_type == CLOSURE_BSDF_PHYSICAL_CONDUCTOR ?
+                          compiler.input_float3("IOR") :
+                          compiler.input_float3("Base Color"),
+          .edge_tint_k = fresnel_type == CLOSURE_BSDF_PHYSICAL_CONDUCTOR ?
+                             compiler.input_float3("Extinction") :
+                             compiler.input_float3("Edge Tint"),
+          .roughness = compiler.input_float("Roughness"),
+          .anisotropy = compiler.input_float("Anisotropy"),
+          .rotation = compiler.input_float("Rotation"),
+          .thin_film_thickness = compiler.input_float("Thin Film Thickness"),
+          .thin_film_ior = compiler.input_float("Thin Film IOR"),
+          .normal_offset = compiler.input_link("Normal"),
+          .tangent_offset = compiler.input_link("Tangent"),
+      });
 }
 
 void MetallicBsdfNode::compile(OSLCompiler &compiler)
@@ -2378,16 +2380,17 @@ void GlossyBsdfNode::compile(SVMCompiler &compiler)
   closure = distribution;
 
   /* TODO: Just use weight for legacy MultiGGX? Would also simplify OSL. */
-  BsdfNode::compile(compiler);
-  compiler.add_node_data(SVMNodeGlossyBsdfData{
-      .color = (closure == CLOSURE_BSDF_MICROFACET_MULTI_GGX_ID) ? compiler.input_float3("Color") :
-                                                                   SVMInputFloat3{},
-      .roughness = compiler.input_float("Roughness"),
-      .anisotropy = compiler.input_float("Anisotropy"),
-      .rotation = compiler.input_float("Rotation"),
-      .normal_offset = compiler.input_link("Normal"),
-      .tangent_offset = compiler.input_link("Tangent"),
-  });
+  BsdfNode::compile(compiler,
+                    SVMNodeGlossyBsdfData{
+                        .color = (closure == CLOSURE_BSDF_MICROFACET_MULTI_GGX_ID) ?
+                                     compiler.input_float3("Color") :
+                                     SVMInputFloat3{},
+                        .roughness = compiler.input_float("Roughness"),
+                        .anisotropy = compiler.input_float("Anisotropy"),
+                        .rotation = compiler.input_float("Rotation"),
+                        .normal_offset = compiler.input_link("Normal"),
+                        .tangent_offset = compiler.input_link("Tangent"),
+                    });
 }
 
 void GlossyBsdfNode::compile(OSLCompiler &compiler)
@@ -2431,15 +2434,15 @@ GlassBsdfNode::GlassBsdfNode() : BsdfNode(get_node_type())
 void GlassBsdfNode::compile(SVMCompiler &compiler)
 {
   closure = distribution;
-  BsdfNode::compile(compiler);
-  compiler.add_node_data(SVMNodeGlassBsdfData{
-      .color = compiler.input_float3("Color"),
-      .roughness = compiler.input_float("Roughness"),
-      .ior = compiler.input_float("IOR"),
-      .thin_film_thickness = compiler.input_float("Thin Film Thickness"),
-      .thin_film_ior = compiler.input_float("Thin Film IOR"),
-      .normal_offset = compiler.input_link("Normal"),
-  });
+  BsdfNode::compile(compiler,
+                    SVMNodeGlassBsdfData{
+                        .color = compiler.input_float3("Color"),
+                        .roughness = compiler.input_float("Roughness"),
+                        .ior = compiler.input_float("IOR"),
+                        .thin_film_thickness = compiler.input_float("Thin Film Thickness"),
+                        .thin_film_ior = compiler.input_float("Thin Film IOR"),
+                        .normal_offset = compiler.input_link("Normal"),
+                    });
 }
 
 void GlassBsdfNode::compile(OSLCompiler &compiler)
@@ -2480,12 +2483,12 @@ RefractionBsdfNode::RefractionBsdfNode() : BsdfNode(get_node_type())
 void RefractionBsdfNode::compile(SVMCompiler &compiler)
 {
   closure = distribution;
-  BsdfNode::compile(compiler);
-  compiler.add_node_data(SVMNodeRefractionBsdfData{
-      .roughness = compiler.input_float("Roughness"),
-      .ior = compiler.input_float("IOR"),
-      .normal_offset = compiler.input_link("Normal"),
-  });
+  BsdfNode::compile(compiler,
+                    SVMNodeRefractionBsdfData{
+                        .roughness = compiler.input_float("Roughness"),
+                        .ior = compiler.input_float("IOR"),
+                        .normal_offset = compiler.input_link("Normal"),
+                    });
 }
 
 void RefractionBsdfNode::compile(OSLCompiler &compiler)
@@ -2524,12 +2527,12 @@ ToonBsdfNode::ToonBsdfNode() : BsdfNode(get_node_type())
 void ToonBsdfNode::compile(SVMCompiler &compiler)
 {
   closure = component;
-  BsdfNode::compile(compiler);
-  compiler.add_node_data(SVMNodeToonBsdfData{
-      .size = compiler.input_float("Size"),
-      .smooth = compiler.input_float("Smooth"),
-      .normal_offset = compiler.input_link("Normal"),
-  });
+  BsdfNode::compile(compiler,
+                    SVMNodeToonBsdfData{
+                        .size = compiler.input_float("Size"),
+                        .smooth = compiler.input_float("Smooth"),
+                        .normal_offset = compiler.input_link("Normal"),
+                    });
 }
 
 void ToonBsdfNode::compile(OSLCompiler &compiler)
@@ -2567,11 +2570,11 @@ SheenBsdfNode::SheenBsdfNode() : BsdfNode(get_node_type())
 void SheenBsdfNode::compile(SVMCompiler &compiler)
 {
   closure = distribution;
-  BsdfNode::compile(compiler);
-  compiler.add_node_data(SVMNodeSimpleBsdfData{
-      .param1 = compiler.input_float("Roughness"),
-      .normal_offset = compiler.input_link("Normal"),
-  });
+  BsdfNode::compile(compiler,
+                    SVMNodeSimpleBsdfData{
+                        .param1 = compiler.input_float("Roughness"),
+                        .normal_offset = compiler.input_link("Normal"),
+                    });
 }
 
 void SheenBsdfNode::compile(OSLCompiler &compiler)
@@ -2603,12 +2606,10 @@ DiffuseBsdfNode::DiffuseBsdfNode() : BsdfNode(get_node_type())
 
 void DiffuseBsdfNode::compile(SVMCompiler &compiler)
 {
-  BsdfNode::compile(compiler);
-  compiler.add_node_data(SVMNodeDiffuseBsdfData{
-      .color = compiler.input_float3("Color"),
-      .roughness = compiler.input_float("Roughness"),
-      .normal_offset = compiler.input_link("Normal"),
-  });
+  BsdfNode::compile(compiler,
+                    SVMNodeDiffuseBsdfData{.color = compiler.input_float3("Color"),
+                                           .roughness = compiler.input_float("Roughness"),
+                                           .normal_offset = compiler.input_link("Normal")});
 }
 
 void DiffuseBsdfNode::compile(OSLCompiler &compiler)
@@ -2739,7 +2740,22 @@ void PrincipledBsdfNode::simplify_settings(Scene * /* scene */)
 
 bool PrincipledBsdfNode::has_surface_transparent()
 {
-  return (input("Alpha")->link != nullptr || alpha < (1.0f - CLOSURE_WEIGHT_CUTOFF));
+  if (input("Alpha")->link != nullptr || alpha < (1.0f - CLOSURE_WEIGHT_CUTOFF)) {
+    return true;
+  }
+
+  /* Smooth thin glass are treated as transparent for non-camera rays. */
+  if ((input("Thin Wall")->link || thin_wall) && has_nonzero_weight("Transmission Weight")) {
+    if (input("Roughness")->link || input("IOR")->link) {
+      return true;
+    }
+
+    const float transmission_roughness = bsdf_thin_glass_transmission_roughness(sqr(roughness),
+                                                                                ior);
+    return roughness_is_almost_specular(transmission_roughness, transmission_roughness);
+  }
+
+  return false;
 }
 
 bool PrincipledBsdfNode::is_thin_wall()
@@ -2799,65 +2815,61 @@ void PrincipledBsdfNode::attributes(Shader *shader, AttributeRequestSet *attribu
 
 void PrincipledBsdfNode::compile(SVMCompiler &compiler)
 {
-  const SVMStackOffset normal_offset = compiler.input_link("Normal");
-  const SVMStackOffset coat_normal_offset = compiler.input_link("Coat Normal");
   SVMStackOffset tangent_offset = SVM_STACK_INVALID;
   if (has_nonzero_weight("Anisotropic")) {
     tangent_offset = compiler.input_link("Tangent");
   }
 
-  compiler.add_node(this,
-                    NODE_CLOSURE_BSDF,
-                    SVMNodeClosureBsdf{
-                        .closure_type = closure,
-                        .mix_weight_offset = compiler.closure_mix_weight_offset(),
-                    });
-
-  compiler.add_node_data(SVMNodePrincipledBsdfData{
-      .distribution = distribution,
-      .ior = compiler.input_float("IOR"),
-      .roughness = compiler.input_float("Roughness"),
-      /* Weights. */
-      .sheen_weight = compiler.input_float("Sheen Weight"),
-      .coat_weight = compiler.input_float("Coat Weight"),
-      .metallic = compiler.input_float("Metallic"),
-      .transmission_weight = compiler.input_float("Transmission Weight"),
-      .subsurface_weight = compiler.input_float("Subsurface Weight"),
-      /* Base. */
-      .base_color = compiler.input_float3("Base Color"),
-      .alpha = compiler.input_float("Alpha"),
-      .diffuse_roughness = compiler.input_float("Diffuse Roughness"),
-      /* Normals and tangents. */
-      .normal_offset = normal_offset,
-      .tangent_offset = tangent_offset,
-      .coat_normal_offset = coat_normal_offset,
-      /* Specular. */
-      .specular_tint = compiler.input_float3("Specular Tint"),
-      .specular_ior_level = compiler.input_float("Specular IOR Level"),
-      .anisotropic = compiler.input_float("Anisotropic"),
-      .anisotropic_rotation = compiler.input_float("Anisotropic Rotation"),
-      /* Emission. */
-      .emission_color = compiler.input_float3("Emission Color"),
-      .emission_strength = compiler.input_float("Emission Strength"),
-      /* Sheen. */
-      .sheen_tint = compiler.input_float3("Sheen Tint"),
-      .sheen_roughness = compiler.input_float("Sheen Roughness"),
-      /* Coat. */
-      .coat_tint = compiler.input_float3("Coat Tint"),
-      .coat_roughness = compiler.input_float("Coat Roughness"),
-      .coat_ior = compiler.input_float("Coat IOR"),
-      /* Subsurface. */
-      .subsurface_method = subsurface_method,
-      .subsurface_radius = compiler.input_float3("Subsurface Radius"),
-      .subsurface_scale = compiler.input_float("Subsurface Scale"),
-      .subsurface_ior = compiler.input_float("Subsurface IOR"),
-      .subsurface_anisotropy = compiler.input_float("Subsurface Anisotropy"),
-      /* Thin film. */
-      .thin_film_thickness = compiler.input_float("Thin Film Thickness"),
-      .thin_film_ior = compiler.input_float("Thin Film IOR"),
-      /* Thin wall. */
-      .thin_wall = compiler.input_int("Thin Wall"),
-  });
+  compiler.add_bsdf_node(
+      SVMNodeClosureBsdf{
+          .closure_type = closure,
+          .mix_weight_offset = compiler.closure_mix_weight_offset(),
+      },
+      SVMNodePrincipledBsdfData{
+          .distribution = distribution,
+          .ior = compiler.input_float("IOR"),
+          .roughness = compiler.input_float("Roughness"),
+          /* Weights. */
+          .sheen_weight = compiler.input_float("Sheen Weight"),
+          .coat_weight = compiler.input_float("Coat Weight"),
+          .metallic = compiler.input_float("Metallic"),
+          .transmission_weight = compiler.input_float("Transmission Weight"),
+          .subsurface_weight = compiler.input_float("Subsurface Weight"),
+          /* Base. */
+          .base_color = compiler.input_float3("Base Color"),
+          .alpha = compiler.input_float("Alpha"),
+          .diffuse_roughness = compiler.input_float("Diffuse Roughness"),
+          /* Normals and tangents. */
+          .normal_offset = compiler.input_link("Normal"),
+          .tangent_offset = tangent_offset,
+          .coat_normal_offset = compiler.input_link("Coat Normal"),
+          /* Specular. */
+          .specular_tint = compiler.input_float3("Specular Tint"),
+          .specular_ior_level = compiler.input_float("Specular IOR Level"),
+          .anisotropic = compiler.input_float("Anisotropic"),
+          .anisotropic_rotation = compiler.input_float("Anisotropic Rotation"),
+          /* Emission. */
+          .emission_color = compiler.input_float3("Emission Color"),
+          .emission_strength = compiler.input_float("Emission Strength"),
+          /* Sheen. */
+          .sheen_tint = compiler.input_float3("Sheen Tint"),
+          .sheen_roughness = compiler.input_float("Sheen Roughness"),
+          /* Coat. */
+          .coat_tint = compiler.input_float3("Coat Tint"),
+          .coat_roughness = compiler.input_float("Coat Roughness"),
+          .coat_ior = compiler.input_float("Coat IOR"),
+          /* Subsurface. */
+          .subsurface_method = subsurface_method,
+          .subsurface_radius = compiler.input_float3("Subsurface Radius"),
+          .subsurface_scale = compiler.input_float("Subsurface Scale"),
+          .subsurface_ior = compiler.input_float("Subsurface IOR"),
+          .subsurface_anisotropy = compiler.input_float("Subsurface Anisotropy"),
+          /* Thin film. */
+          .thin_film_thickness = compiler.input_float("Thin Film Thickness"),
+          .thin_film_ior = compiler.input_float("Thin Film IOR"),
+          /* Thin wall. */
+          .thin_wall = compiler.input_int("Thin Wall"),
+      });
 }
 
 void PrincipledBsdfNode::compile(OSLCompiler &compiler)
@@ -2894,10 +2906,10 @@ TranslucentBsdfNode::TranslucentBsdfNode() : BsdfNode(get_node_type())
 
 void TranslucentBsdfNode::compile(SVMCompiler &compiler)
 {
-  BsdfNode::compile(compiler);
-  compiler.add_node_data(SVMNodeSimpleBsdfData{
-      .normal_offset = compiler.input_link("Normal"),
-  });
+  BsdfNode::compile(compiler,
+                    SVMNodeSimpleBsdfData{
+                        .normal_offset = compiler.input_link("Normal"),
+                    });
 }
 
 void TranslucentBsdfNode::compile(OSLCompiler &compiler)
@@ -2926,8 +2938,7 @@ TransparentBsdfNode::TransparentBsdfNode() : BsdfNode(get_node_type())
 
 void TransparentBsdfNode::compile(SVMCompiler &compiler)
 {
-  BsdfNode::compile(compiler);
-  compiler.add_node_data(SVMNodeSimpleBsdfData{});
+  BsdfNode::compile(compiler, SVMNodeSimpleBsdfData{});
 }
 
 void TransparentBsdfNode::compile(OSLCompiler &compiler)
@@ -2959,11 +2970,11 @@ RayPortalBsdfNode::RayPortalBsdfNode() : BsdfNode(get_node_type())
 
 void RayPortalBsdfNode::compile(SVMCompiler &compiler)
 {
-  BsdfNode::compile(compiler);
-  compiler.add_node_data(SVMNodeRayPortalBsdfData{
-      .direction = compiler.input_float3("Direction"),
-      .position_offset = compiler.input_link("Position"),
-  });
+  BsdfNode::compile(compiler,
+                    SVMNodeRayPortalBsdfData{
+                        .direction = compiler.input_float3("Direction"),
+                        .position_offset = compiler.input_link("Position"),
+                    });
 }
 
 void RayPortalBsdfNode::compile(OSLCompiler &compiler)
@@ -3008,15 +3019,15 @@ SubsurfaceScatteringNode::SubsurfaceScatteringNode() : BsdfNode(get_node_type())
 void SubsurfaceScatteringNode::compile(SVMCompiler &compiler)
 {
   closure = method;
-  BsdfNode::compile(compiler);
-  compiler.add_node_data(SVMNodeBssrdfData{
-      .radius = compiler.input_float3("Radius"),
-      .scale = compiler.input_float("Scale"),
-      .ior = compiler.input_float("IOR"),
-      .anisotropy = compiler.input_float("Anisotropy"),
-      .roughness = compiler.input_float("Roughness"),
-      .normal_offset = compiler.input_link("Normal"),
-  });
+  BsdfNode::compile(compiler,
+                    SVMNodeBssrdfData{
+                        .radius = compiler.input_float3("Radius"),
+                        .scale = compiler.input_float("Scale"),
+                        .ior = compiler.input_float("IOR"),
+                        .anisotropy = compiler.input_float("Anisotropy"),
+                        .roughness = compiler.input_float("Roughness"),
+                        .normal_offset = compiler.input_link("Normal"),
+                    });
 }
 
 void SubsurfaceScatteringNode::compile(OSLCompiler &compiler)
@@ -3691,8 +3702,8 @@ void PrincipledHairBsdfNode::attributes(Shader *shader, AttributeRequestSet *att
 /* Prepares the input data for the SVM shader. */
 void PrincipledHairBsdfNode::compile(SVMCompiler &compiler)
 {
-  closure = (model == NODE_PRINCIPLED_HAIR_HUANG) ? CLOSURE_BSDF_HAIR_HUANG_ID :
-                                                    CLOSURE_BSDF_HAIR_CHIANG_ID;
+  const bool is_huang = (model == NODE_PRINCIPLED_HAIR_HUANG);
+  closure = is_huang ? CLOSURE_BSDF_HAIR_HUANG_ID : CLOSURE_BSDF_HAIR_CHIANG_ID;
   compiler.add_node(this,
                     NODE_CLOSURE_SET_WEIGHT,
                     SVMNodeClosureSetWeight{
@@ -3704,36 +3715,33 @@ void PrincipledHairBsdfNode::compile(SVMCompiler &compiler)
                                             compiler.attribute(ATTR_STD_CURVE_RANDOM);
 
   /* Encode all parameters into data nodes. */
-  compiler.add_node(this,
-                    NODE_CLOSURE_BSDF,
-                    SVMNodeClosureBsdf{
-                        .closure_type = closure,
-                        .mix_weight_offset = compiler.closure_mix_weight_offset(),
-                    });
-
-  const bool is_huang = (model == NODE_PRINCIPLED_HAIR_HUANG);
-  compiler.add_node_data(SVMNodePrincipledHairBsdfData{
-      .parametrization = parametrization,
-      .color = compiler.input_float3("Color"),
-      .tint = compiler.input_float3("Tint"),
-      .absorption_coefficient = compiler.input_float3("Absorption Coefficient"),
-      .roughness = compiler.input_float("Roughness"),
-      .random_roughness = compiler.input_float("Random Roughness"),
-      .offset = compiler.input_float("Offset"),
-      .ior = compiler.input_float("IOR"),
-      .random = compiler.input_float("Random"),
-      .melanin = compiler.input_float("Melanin"),
-      .melanin_redness = compiler.input_float("Melanin Redness"),
-      .coat = compiler.input_float("Coat"),
-      .aspect_ratio = compiler.input_float("Aspect Ratio"),
-      .radial_roughness = compiler.input_float("Radial Roughness"),
-      .random_color = compiler.input_float("Random Color"),
-      .R = compiler.input_float("R lobe"),
-      .TT = compiler.input_float("TT lobe"),
-      .TRT = compiler.input_float("TRT lobe"),
-      .attr_random = attr_random,
-      .attr_normal = is_huang ? (int)compiler.attribute(ATTR_STD_VERTEX_NORMAL) : 0,
-  });
+  compiler.add_bsdf_node(
+      SVMNodeClosureBsdf{
+          .closure_type = closure,
+          .mix_weight_offset = compiler.closure_mix_weight_offset(),
+      },
+      SVMNodePrincipledHairBsdfData{
+          .parametrization = parametrization,
+          .color = compiler.input_float3("Color"),
+          .tint = compiler.input_float3("Tint"),
+          .absorption_coefficient = compiler.input_float3("Absorption Coefficient"),
+          .roughness = compiler.input_float("Roughness"),
+          .random_roughness = compiler.input_float("Random Roughness"),
+          .offset = compiler.input_float("Offset"),
+          .ior = compiler.input_float("IOR"),
+          .random = compiler.input_float("Random"),
+          .melanin = compiler.input_float("Melanin"),
+          .melanin_redness = compiler.input_float("Melanin Redness"),
+          .coat = compiler.input_float("Coat"),
+          .aspect_ratio = compiler.input_float("Aspect Ratio"),
+          .radial_roughness = compiler.input_float("Radial Roughness"),
+          .random_color = compiler.input_float("Random Color"),
+          .R = compiler.input_float("R lobe"),
+          .TT = compiler.input_float("TT lobe"),
+          .TRT = compiler.input_float("TRT lobe"),
+          .attr_random = attr_random,
+          .attr_normal = is_huang ? (int)compiler.attribute(ATTR_STD_VERTEX_NORMAL) : 0,
+      });
 }
 
 /* Prepares the input data for the OSL shader. */
@@ -3776,13 +3784,13 @@ void HairBsdfNode::compile(SVMCompiler &compiler)
 {
   closure = component;
 
-  BsdfNode::compile(compiler);
-  compiler.add_node_data(SVMNodeHairBsdfData{
-      .roughness1 = compiler.input_float("RoughnessU"),
-      .roughness2 = compiler.input_float("RoughnessV"),
-      .offset = compiler.input_float("Offset"),
-      .tangent_offset = compiler.input_link("Tangent"),
-  });
+  BsdfNode::compile(compiler,
+                    SVMNodeHairBsdfData{
+                        .roughness1 = compiler.input_float("RoughnessU"),
+                        .roughness2 = compiler.input_float("RoughnessV"),
+                        .offset = compiler.input_float("Offset"),
+                        .tangent_offset = compiler.input_link("Tangent"),
+                    });
 }
 
 void HairBsdfNode::compile(OSLCompiler &compiler)
