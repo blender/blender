@@ -398,7 +398,7 @@ void GRAPH_OT_view_all(wmOperatorType *ot)
   /* API callbacks */
   ot->exec = graphkeys_viewall_exec;
   /* XXX: Unchecked poll to get F-samples working too, but makes modifier damage trickier. */
-  ot->poll = ED_operator_graphedit_active;
+  ot->poll = ED_operator_region_graphedit_active;
 
   /* Flags */
   ot->flag = 0;
@@ -421,7 +421,7 @@ void GRAPH_OT_view_selected(wmOperatorType *ot)
   /* API callbacks */
   ot->exec = graphkeys_view_selected_exec;
   /* XXX: Unchecked poll to get F-samples working too, but makes modifier damage trickier. */
-  ot->poll = ED_operator_graphedit_active;
+  ot->poll = ED_operator_region_graphedit_active;
 
   /* Flags */
   ot->flag = 0;
@@ -456,7 +456,7 @@ void GRAPH_OT_view_frame(wmOperatorType *ot)
 
   /* API callbacks */
   ot->exec = graphkeys_view_frame_exec;
-  ot->poll = ED_operator_graphedit_active;
+  ot->poll = ED_operator_region_graphedit_active;
 
   /* Flags */
   ot->flag = 0;
