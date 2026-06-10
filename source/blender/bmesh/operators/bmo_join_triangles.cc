@@ -958,15 +958,22 @@ static BMFace *bm_faces_join_pair_by_edge(BMesh *bm,
   }
 #endif
 
-  BMFace *f_double;
+  /* NOTE(@ideasman42): there isn't a great option here.
+   * - Join triangles shouldn't replace faces that haven't been selected (may be hidden).
+   *   (with the principle of only manipulating out inputs).
+   * - The inputs could be deleted - but this is likely not what users want/expect.
+   *
+   * Seeing as there are often other combinations that can be joined,
+   * opt for rejecting the join entirely - allow other pairs to be joined instead.
+   *
+   * See #BM_faces_join note on `r_double`. The corners match #bm_edge_to_quad_verts winding. */
+  BMVert *v_quad[4] = {l_a->v, l_b->prev->v, l_a->next->v, l_a->prev->v};
+  if (UNLIKELY(BM_face_exists(v_quad, 4) != nullptr)) {
+    return nullptr;
+  }
 
   /* Join the edge and identify the face. */
-  BMFace *f = BM_faces_join_pair(bm, l_a, l_b, true, &f_double);
-  /* See #BM_faces_join note on callers asserting when `r_double` is non-null. */
-  BLI_assert_msg(f_double == nullptr,
-                 "Doubled face detected at " AT ". Resulting mesh may be corrupt.");
-
-  return f;
+  return BM_faces_join_pair(bm, l_a, l_b, true, nullptr);
 }
 
 /** Given a mesh, convert triangles to quads. */
