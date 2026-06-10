@@ -92,7 +92,7 @@ bool BM_disk_dissolve(BMesh *bm, BMVert *v)
 #else
     BMFace *f_double;
 
-    if (UNLIKELY(!BM_faces_join_pair(bm, e->l, e->l->radial_next, true, &f_double))) {
+    if (!BM_faces_join_pair(bm, e->l, e->l->radial_next, true, &f_double)) [[unlikely]] {
       return false;
     }
 
@@ -100,7 +100,7 @@ bool BM_disk_dissolve(BMesh *bm, BMVert *v)
     BLI_assert_msg(f_double == nullptr,
                    "Doubled face detected at " AT ". Resulting mesh may be corrupt.");
 
-    if (UNLIKELY(!BM_vert_collapse_faces(bm, v->e, v, 1.0, true, false, true, true))) {
+    if (!BM_vert_collapse_faces(bm, v->e, v, 1.0, true, false, true, true)) [[unlikely]] {
       return false;
     }
 #endif
@@ -534,7 +534,7 @@ BMVert *BM_edge_split(BMesh *bm, BMEdge *e, BMVert *v, BMEdge **r_e, float fac)
         BMEdge *e1 = j ? e_new : e;
         BMLoop *l = e1->l;
 
-        if (UNLIKELY(!l)) {
+        if (!l) [[unlikely]] {
           BMESH_ASSERT(0);
           break;
         }
@@ -565,7 +565,7 @@ BMVert *BM_edge_split(BMesh *bm, BMEdge *e, BMVert *v, BMEdge **r_e, float fac)
       BMLoop *l, *l2;
 
       l = e1->l;
-      if (UNLIKELY(!l)) {
+      if (!l) [[unlikely]] {
         BMESH_ASSERT(0);
         break;
       }

@@ -39,7 +39,7 @@ static void edge_paths_to_selection(const Mesh &src_mesh,
         for (int current_vert = start_vert; !vert_selection[current_vert];
              current_vert = next_indices[current_vert])
         {
-          if (UNLIKELY(!vert_range.contains(current_vert))) {
+          if (!vert_range.contains(current_vert)) [[unlikely]] {
             break;
           }
           vert_selection[current_vert] = true;

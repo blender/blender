@@ -1769,7 +1769,7 @@ void file_sfile_filepath_set(SpaceFile *sfile, const char *filepath)
 void file_draw_check_ex(bContext *C, ScrArea *area)
 {
   /* May happen when manipulating non-active spaces. */
-  if (UNLIKELY(area->spacetype != SPACE_FILE)) {
+  if (area->spacetype != SPACE_FILE) [[unlikely]] {
     return;
   }
   SpaceFile *sfile = static_cast<SpaceFile *>(area->spacedata.first);
@@ -2948,7 +2948,7 @@ void file_directory_enter_handle(bContext *C, void * /*arg_unused*/, void *arg_b
 {
   SpaceFile *sfile = CTX_wm_space_file(C);
   FileSelectParams *params = ED_fileselect_get_active_params(sfile);
-  if (UNLIKELY(params == nullptr)) {
+  if (params == nullptr) [[unlikely]] {
     return;
   }
 
@@ -3041,7 +3041,7 @@ void file_filename_enter_handle(bContext *C, void * /*arg_unused*/, void *arg_bu
 {
   SpaceFile *sfile = CTX_wm_space_file(C);
   FileSelectParams *params = ED_fileselect_get_active_params(sfile);
-  if (UNLIKELY(params == nullptr)) {
+  if (params == nullptr) [[unlikely]] {
     return;
   }
 

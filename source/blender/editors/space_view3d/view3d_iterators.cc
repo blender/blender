@@ -321,7 +321,7 @@ static void mesh_foreachScreenVert__mapFunc(void *user_data,
 {
   foreachScreenVert_userData *data = static_cast<foreachScreenVert_userData *>(user_data);
   BMVert *eve = BM_vert_at_index(data->vc.em->bm, index);
-  if (UNLIKELY(BM_elem_flag_test(eve, BM_ELEM_HIDDEN))) {
+  if (BM_elem_flag_test(eve, BM_ELEM_HIDDEN)) [[unlikely]] {
     return;
   }
 
@@ -376,7 +376,7 @@ static void mesh_foreachScreenEdge__mapFunc(void *user_data,
 {
   foreachScreenEdge_userData *data = static_cast<foreachScreenEdge_userData *>(user_data);
   BMEdge *eed = BM_edge_at_index(data->vc.em->bm, index);
-  if (UNLIKELY(BM_elem_flag_test(eed, BM_ELEM_HIDDEN))) {
+  if (BM_elem_flag_test(eed, BM_ELEM_HIDDEN)) [[unlikely]] {
     return;
   }
 
@@ -459,7 +459,7 @@ static void mesh_foreachScreenEdge_clip_bb_segment__mapFunc(void *user_data,
 {
   foreachScreenEdge_userData *data = static_cast<foreachScreenEdge_userData *>(user_data);
   BMEdge *eed = BM_edge_at_index(data->vc.em->bm, index);
-  if (UNLIKELY(BM_elem_flag_test(eed, BM_ELEM_HIDDEN))) {
+  if (BM_elem_flag_test(eed, BM_ELEM_HIDDEN)) [[unlikely]] {
     return;
   }
 
@@ -550,7 +550,7 @@ static void mesh_foreachScreenFace__mapFunc(void *user_data,
 {
   foreachScreenFace_userData *data = static_cast<foreachScreenFace_userData *>(user_data);
   BMFace *efa = BM_face_at_index(data->vc.em->bm, index);
-  if (UNLIKELY(BM_elem_flag_test(efa, BM_ELEM_HIDDEN))) {
+  if (BM_elem_flag_test(efa, BM_ELEM_HIDDEN)) [[unlikely]] {
     return;
   }
 

@@ -579,15 +579,15 @@ static void mesh_customdatacorrect_apply_vert(TransCustomDataLayer *tcld,
        * its not important _which_ loop - as long as its not overlapping
        * `sv->co_orig_3d`, see: #45096. */
       project_plane_normalized_v3_v3v3(v_proj[0], co_prev, v_proj_axis);
-      while (UNLIKELY(((co_prev_ok = (len_squared_v3v3(v_proj[1], v_proj[0]) > eps)) == false) &&
-                      ((l_prev = l_prev->prev) != l->next)))
+      while (((co_prev_ok = (len_squared_v3v3(v_proj[1], v_proj[0]) > eps)) == false) &&
+             ((l_prev = l_prev->prev) != l->next)) [[unlikely]]
       {
         co_prev = mesh_vert_orig_co_get(tcld, l_prev->v);
         project_plane_normalized_v3_v3v3(v_proj[0], co_prev, v_proj_axis);
       }
       project_plane_normalized_v3_v3v3(v_proj[2], co_next, v_proj_axis);
-      while (UNLIKELY(((co_next_ok = (len_squared_v3v3(v_proj[1], v_proj[2]) > eps)) == false) &&
-                      ((l_next = l_next->next) != l->prev)))
+      while (((co_next_ok = (len_squared_v3v3(v_proj[1], v_proj[2]) > eps)) == false) &&
+             ((l_next = l_next->next) != l->prev)) [[unlikely]]
       {
         co_next = mesh_vert_orig_co_get(tcld, l_next->v);
         project_plane_normalized_v3_v3v3(v_proj[2], co_next, v_proj_axis);
@@ -598,7 +598,7 @@ static void mesh_customdatacorrect_apply_vert(TransCustomDataLayer *tcld,
             v->co, UNPACK3(v_proj), v_proj_axis);
 
         loop_weights[j] = (dist >= 0.0f) ? 1.0f : ((dist <= -eps) ? 0.0f : (1.0f + (dist / eps)));
-        if (UNLIKELY(!isfinite(loop_weights[j]))) {
+        if (!isfinite(loop_weights[j])) [[unlikely]] {
           loop_weights[j] = 0.0f;
         }
       }
@@ -2679,7 +2679,7 @@ Array<TransDataEdgeSlideVert> transform_mesh_edge_slide_data_create(const TransD
               const float3 dir2 = math::normalize(dst2 - float3(curr_orig));
               float len_n;
               const float3 n = math::normalize_and_get_length(math::cross(dir1, dir2), len_n);
-              if (UNLIKELY(len_n < isect_eps)) {
+              if (len_n < isect_eps) [[unlikely]] {
                 isect_line_line = 0;
               }
               else {
@@ -2689,7 +2689,7 @@ Array<TransDataEdgeSlideVert> transform_mesh_edge_slide_data_create(const TransD
                 const float3 plane_no_2 = math::normalize_and_get_length(math::cross(dir2, n),
                                                                          len2);
 
-                if (UNLIKELY((len1 < isect_eps) || (len2 < isect_eps))) {
+                if ((len1 < isect_eps) || (len2 < isect_eps)) [[unlikely]] {
                   isect_line_line = 0;
                 }
                 else {

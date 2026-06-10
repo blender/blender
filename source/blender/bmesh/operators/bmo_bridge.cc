@@ -195,7 +195,7 @@ static void bridge_loop_pair(BMesh *bm,
     cross_v3_v3v3(no, dir_b_orig, el_dir);
     cross_v3_v3v3(dir_b, no, el_dir);
 
-    if (LIKELY(!is_zero_v3(dir_a) && !is_zero_v3(dir_b))) {
+    if (!is_zero_v3(dir_a) && !is_zero_v3(dir_b)) [[likely]] {
       test_a = dir_a;
       test_b = dir_b;
     }
@@ -230,7 +230,9 @@ static void bridge_loop_pair(BMesh *bm,
   dot_a = dot_v3v3(BM_edgeloop_normal_get(el_store_a), el_dir);
   dot_b = dot_v3v3(BM_edgeloop_normal_get(el_store_b), el_dir);
 
-  if (UNLIKELY((len_squared_v3(el_dir) < eps) || ((fabsf(dot_a) < eps) && (fabsf(dot_b) < eps)))) {
+  if ((len_squared_v3(el_dir) < eps) || ((fabsf(dot_a) < eps) && (fabsf(dot_b) < eps)))
+      [[unlikely]]
+  {
     /* in this case there is no depth between the two loops,
      * eg: 2x 2d circles, one scaled smaller,
      * in this case 'el_dir' can't be used, just ensure we have matching flipping. */
@@ -399,7 +401,7 @@ static void bridge_loop_pair(BMesh *bm,
       if (v_b != v_b_next) {
 #ifdef USE_DUPLICATE_FACE_VERT_CHECK /* Only check for duplicates between loops. */
         BLI_assert((v_b != v_b_next) && (v_a_next != v_a));
-        if (UNLIKELY(ELEM(v_b, v_a_next, v_a) || ELEM(v_b_next, v_a_next, v_a))) {
+        if (ELEM(v_b, v_a_next, v_a) || ELEM(v_b_next, v_a_next, v_a)) [[unlikely]] {
           f = nullptr;
         }
         else
@@ -433,7 +435,7 @@ static void bridge_loop_pair(BMesh *bm,
       else {
 #ifdef USE_DUPLICATE_FACE_VERT_CHECK /* Only check for duplicates between loops. */
         BLI_assert(v_a_next != v_a);
-        if (UNLIKELY(ELEM(v_b, v_a_next, v_a))) {
+        if (ELEM(v_b, v_a_next, v_a)) [[unlikely]] {
           f = nullptr;
         }
         else

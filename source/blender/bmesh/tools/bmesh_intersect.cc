@@ -487,7 +487,7 @@ static bool bm_loop_filter_fn(const BMLoop *l, void *user_data)
     const int face_side = data->test_fn(l->f, data->user_data);
     do {
       const int face_side_other = data->test_fn(l_iter->f, data->user_data);
-      if (UNLIKELY(face_side_other == -1)) {
+      if (face_side_other == -1) [[unlikely]] {
         /* pass */
       }
       else if (face_side_other != face_side) {
@@ -526,14 +526,14 @@ static void bm_isect_tri_tri(ISectState *s,
   STACK_DECLARE(iv_ls_b);
 
   if (no_shared) {
-    if (UNLIKELY(ELEM(fv_a[0], UNPACK3(fv_b)) || ELEM(fv_a[1], UNPACK3(fv_b)) ||
-                 ELEM(fv_a[2], UNPACK3(fv_b))))
+    if (ELEM(fv_a[0], UNPACK3(fv_b)) || ELEM(fv_a[1], UNPACK3(fv_b)) ||
+        ELEM(fv_a[2], UNPACK3(fv_b))) [[unlikely]]
     {
       return;
     }
   }
   else {
-    if (UNLIKELY(BM_face_share_edge_check(f_a, f_b))) {
+    if (BM_face_share_edge_check(f_a, f_b)) [[unlikely]] {
       return;
     }
   }
@@ -1463,7 +1463,7 @@ bool BM_mesh_intersect(BMesh *bm,
       BLI_assert(f_index >= 0 && f_index < totface_orig);
 
       f = faces[f_index];
-      if (UNLIKELY(f == nullptr)) {
+      if (f == nullptr) [[unlikely]] {
         continue;
       }
 

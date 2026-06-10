@@ -211,7 +211,7 @@ static void bpy_pydriver_namespace_update_depsgraph(Depsgraph *depsgraph)
   /* This should never happen, but it's probably better to have None in Python
    * than a nullptr-wrapping Depsgraph Python struct. */
   BLI_assert(depsgraph != nullptr);
-  if (UNLIKELY(depsgraph == nullptr)) {
+  if (depsgraph == nullptr) [[unlikely]] {
     PyDict_SetItem(bpy_pydriver_Dict, bpy_intern_str_depsgraph, Py_None);
     g_pydriver_state_prev.depsgraph = nullptr;
     return;
@@ -555,7 +555,7 @@ float BPY_driver_exec(PathResolvedRNA *anim_rna,
     pydriver_error(driver, anim_rna);
   }
   else {
-    if (UNLIKELY((result = PyFloat_AsDouble(retval)) == -1.0 && PyErr_Occurred())) {
+    if ((result = PyFloat_AsDouble(retval)) == -1.0 && PyErr_Occurred()) [[unlikely]] {
       pydriver_error(driver, anim_rna);
       result = 0.0;
     }
@@ -570,7 +570,7 @@ float BPY_driver_exec(PathResolvedRNA *anim_rna,
     PyGILState_Release(gilstate);
   }
 
-  if (UNLIKELY(!isfinite(result))) {
+  if (!isfinite(result)) [[unlikely]] {
     fprintf(stderr, "\t%s: driver '%s' evaluates to '%f'\n", __func__, driver->expression, result);
     return 0.0f;
   }

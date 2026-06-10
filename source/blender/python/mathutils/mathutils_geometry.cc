@@ -1428,7 +1428,7 @@ static PyObject *M_Geometry_tessellate_polygon(PyObject * /*self*/, PyObject *po
             fp, 2, 3 | MU_ARRAY_SPILL, polyVec, "tessellate_polygon: parse coord");
         Py_DECREF(polyVec);
 
-        if (UNLIKELY(polyVec_len == -1)) {
+        if (polyVec_len == -1) [[unlikely]] {
           list_parse_error = true;
         }
         else if (polyVec_len == 2) {

@@ -529,10 +529,10 @@ static void lineart_shadow_edge_cut(LineartData *ld,
   if (LRT_DOUBLE_CLOSE_ENOUGH(start, 1) || LRT_DOUBLE_CLOSE_ENOUGH(end, 0)) {
     return;
   }
-  if (UNLIKELY(start != start)) {
+  if (start != start) [[unlikely]] {
     start = 0;
   }
-  if (UNLIKELY(end != end)) {
+  if (end != end) [[unlikely]] {
     end = 0;
   }
 

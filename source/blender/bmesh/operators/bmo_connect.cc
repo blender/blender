@@ -122,7 +122,7 @@ static int bm_face_connect_verts(BMesh *bm, BMFace *f, const bool check_degenera
 
       /* Check if duplicate faces have been created, store the loops for removal in this case.
        * Note that this matches how triangulate works (newly created duplicates get removed). */
-      if (UNLIKELY(edge_exists)) {
+      if (edge_exists) [[unlikely]] {
         BMLoop **l_pair_deferred_remove = nullptr;
         for (int j = 0; j < 2; j++) {
           if (BM_face_find_double(l_pair[j]->f)) {

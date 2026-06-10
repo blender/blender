@@ -143,7 +143,7 @@ void bmo_triangle_fill_exec(BMesh *bm, BMOperator *op)
       }
     }
 
-    if (UNLIKELY(is_degenerate)) {
+    if (is_degenerate) [[unlikely]] {
       /* no vertices have 2 edges?
        * in this case fall back to the average vertex normals */
     }
@@ -152,7 +152,7 @@ void bmo_triangle_fill_exec(BMesh *bm, BMOperator *op)
 
       copy_v3_v3(normal, nors[0].no);
       for (i = 0; i < nors_tot; i++) {
-        if (UNLIKELY(nors[i].value == -1.0f)) {
+        if (nors[i].value == -1.0f) [[unlikely]] {
           break;
         }
         if (dot_v3v3(normal, nors[i].no) < 0.0f) {
@@ -171,7 +171,7 @@ void bmo_triangle_fill_exec(BMesh *bm, BMOperator *op)
 
   /* in this case we almost certainly have degenerate geometry,
    * better set a fallback value as a last resort */
-  if (UNLIKELY(normalize_v3(normal) == 0.0f)) {
+  if (normalize_v3(normal) == 0.0f) [[unlikely]] {
     normal[2] = 1.0f;
   }
 

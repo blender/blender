@@ -273,8 +273,8 @@ FCurve *BKE_fcurve_find(ListBaseT<FCurve> *list, const char rna_path[], const in
   for (FCurve &fcu : *list) {
     /* Check indices first, much cheaper than a string comparison. */
     /* Simple string-compare (this assumes that they have the same root...) */
-    if (UNLIKELY(fcu.array_index == array_index && fcu.rna_path &&
-                 fcu.rna_path[0] == rna_path[0] && STREQ(fcu.rna_path, rna_path)))
+    if (fcu.array_index == array_index && fcu.rna_path && fcu.rna_path[0] == rna_path[0] &&
+        STREQ(fcu.rna_path, rna_path)) [[unlikely]]
     {
       return &fcu;
     }

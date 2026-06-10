@@ -208,7 +208,7 @@ void debug_validate_binding_image_format()
        * shader. */
       continue;
     }
-    if (UNLIKELY(texture_formats_shader[image_unit] != texture_formats_state[image_unit])) {
+    if (texture_formats_shader[image_unit] != texture_formats_state[image_unit]) [[unlikely]] {
       fprintf(
           stderr,
           "Error in GPU_debug_validate_binding_image_format: Image format mismatch detected for "

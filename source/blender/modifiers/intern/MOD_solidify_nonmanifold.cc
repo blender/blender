@@ -738,7 +738,7 @@ Mesh *MOD_solidify_nonmanifold_modifyMesh(ModifierData *md,
         const uint v1 = vm[edge[0]];
         const uint v2 = vm[edge[1]];
         if (edge_adj_faces_len[i] > 0) {
-          if (LIKELY(orig_edge_lengths[i] > FLT_EPSILON)) {
+          if (orig_edge_lengths[i] > FLT_EPSILON) [[likely]] {
             sub_v3_v3v3(edgedir, orig_mvert_co[v2], orig_mvert_co[v1]);
             mul_v3_fl(edgedir, 1.0f / orig_edge_lengths[i]);
           }
@@ -805,14 +805,14 @@ Mesh *MOD_solidify_nonmanifold_modifyMesh(ModifierData *md,
               float d = 1;
               if (orig_faces[face_i].size() > 3) {
                 d = project_v3_v3(nor, edgedir);
-                if (LIKELY(d != 0)) {
+                if (d != 0) [[likely]] {
                   d = normalize_v3(nor);
                 }
                 else {
                   d = 1;
                 }
               }
-              if (UNLIKELY(d == 0.0f)) {
+              if (d == 0.0f) [[unlikely]] {
                 sorted_faces[j].angle = 0.0f;
               }
               else if (j == 0) {
@@ -1742,13 +1742,13 @@ Mesh *MOD_solidify_nonmanifold_modifyMesh(ModifierData *md,
               if (smd->nonmanifold_offset_mode == MOD_SOLIDIFY_NONMANIFOLD_OFFSET_MODE_EVEN) {
                 if (has_front) {
                   float length_sq = len_squared_v3(nor);
-                  if (LIKELY(length_sq > FLT_EPSILON)) {
+                  if (length_sq > FLT_EPSILON) [[likely]] {
                     mul_v3_fl(nor, total_angle / length_sq);
                   }
                 }
                 if (has_back) {
                   float length_sq = len_squared_v3(nor_back);
-                  if (LIKELY(length_sq > FLT_EPSILON)) {
+                  if (length_sq > FLT_EPSILON) [[likely]] {
                     mul_v3_fl(nor_back, total_angle_back / length_sq);
                   }
                   if (!has_front) {
@@ -1759,16 +1759,16 @@ Mesh *MOD_solidify_nonmanifold_modifyMesh(ModifierData *md,
                   float nor_length = len_v3(nor);
                   float nor_back_length = len_v3(nor_back);
                   float q = dot_v3v3(nor, nor_back);
-                  if (LIKELY(fabsf(q) > FLT_EPSILON)) {
+                  if (fabsf(q) > FLT_EPSILON) [[likely]] {
                     q /= nor_length * nor_back_length;
                   }
                   float d = 1.0f - q * q;
-                  if (LIKELY(d > FLT_EPSILON)) {
+                  if (d > FLT_EPSILON) [[likely]] {
                     d = 1.0f / d;
-                    if (LIKELY(nor_length > FLT_EPSILON)) {
+                    if (nor_length > FLT_EPSILON) [[likely]] {
                       mul_v3_fl(nor, (1 - nor_back_length * q / nor_length) * d);
                     }
-                    if (LIKELY(nor_back_length > FLT_EPSILON)) {
+                    if (nor_back_length > FLT_EPSILON) [[likely]] {
                       mul_v3_fl(nor_back, (1 - nor_length * q / nor_back_length) * d);
                     }
                     add_v3_v3(nor, nor_back);

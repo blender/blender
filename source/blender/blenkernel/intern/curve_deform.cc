@@ -83,7 +83,7 @@ static bool calc_curve_deform(
     index = axis - 3;
     if (cu->flag & CU_STRETCH) {
       const float divisor = cd->dmax[index] - cd->dmin[index];
-      if (LIKELY(divisor > FLT_EPSILON)) {
+      if (divisor > FLT_EPSILON) [[likely]] {
         fac = -(co[index] - cd->dmax[index]) / divisor;
       }
       else {
@@ -93,7 +93,7 @@ static bool calc_curve_deform(
     else {
       const CurveCache *cc = ob_curve->runtime->curve_cache;
       float totdist = BKE_anim_path_get_length(cc);
-      if (LIKELY(totdist > FLT_EPSILON)) {
+      if (totdist > FLT_EPSILON) [[likely]] {
         fac = -(co[index] - cd->dmax[index]) / totdist;
       }
       else {
@@ -105,7 +105,7 @@ static bool calc_curve_deform(
     index = axis;
     if (cu->flag & CU_STRETCH) {
       const float divisor = cd->dmax[index] - cd->dmin[index];
-      if (LIKELY(divisor > FLT_EPSILON)) {
+      if (divisor > FLT_EPSILON) [[likely]] {
         fac = (co[index] - cd->dmin[index]) / divisor;
       }
       else {
@@ -115,7 +115,7 @@ static bool calc_curve_deform(
     else {
       const CurveCache *cc = ob_curve->runtime->curve_cache;
       float totdist = BKE_anim_path_get_length(cc);
-      if (LIKELY(totdist > FLT_EPSILON)) {
+      if (totdist > FLT_EPSILON) [[likely]] {
         fac = +(co[index] - cd->dmin[index]) / totdist;
       }
       else {

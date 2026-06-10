@@ -235,11 +235,11 @@ static void curve_blend_read_data(BlendDataReader *reader, ID *id)
   else {
     cu->nurb.first = cu->nurb.last = nullptr;
 
-    if (UNLIKELY(cu->str == nullptr)) {
+    if (cu->str == nullptr) [[unlikely]] {
       cu->len_char32 = 0;
       cu->str = MEM_new_array_zeroed<char>(cu->len_char32 + 1, "str new");
     }
-    if (UNLIKELY(cu->strinfo == nullptr)) {
+    if (cu->strinfo == nullptr) [[unlikely]] {
       cu->strinfo = MEM_new_array<CharInfo>(cu->len_char32 + 1, "strinfo new");
     }
 
@@ -2083,7 +2083,7 @@ static void bevel_list_calc_bisect(BevList *bl)
   if (is_cyclic == false) {
     bevp0 = &bl->bevpoints[0];
     bevp1 = &bl->bevpoints[1];
-    if (UNLIKELY(is_zero_v3(bevp0->dir))) {
+    if (is_zero_v3(bevp0->dir)) [[unlikely]] {
       sub_v3_v3v3(bevp0->dir, bevp1->vec, bevp0->vec);
       if (normalize_v3(bevp0->dir) == 0.0f) {
         copy_v3_v3(bevp0->dir, bevp1->dir);
@@ -2092,7 +2092,7 @@ static void bevel_list_calc_bisect(BevList *bl)
 
     bevp0 = &bl->bevpoints[bl->nr - 2];
     bevp1 = &bl->bevpoints[bl->nr - 1];
-    if (UNLIKELY(is_zero_v3(bevp1->dir))) {
+    if (is_zero_v3(bevp1->dir)) [[unlikely]] {
       sub_v3_v3v3(bevp1->dir, bevp1->vec, bevp0->vec);
       if (normalize_v3(bevp1->dir) == 0.0f) {
         copy_v3_v3(bevp1->dir, bevp0->dir);

@@ -373,7 +373,7 @@ static UID_Int bm_uidwalk_calc_face_uid(UIDWalk *uidwalk, BMFace *f)
 
 static void bm_uidwalk_rehash_reserve(UIDWalk *uidwalk, uint rehash_store_len_new)
 {
-  if (UNLIKELY(rehash_store_len_new > uidwalk->cache.rehash_store_len)) {
+  if (rehash_store_len_new > uidwalk->cache.rehash_store_len) [[unlikely]] {
     /* Avoid re-allocations. */
     rehash_store_len_new *= 2;
     uidwalk->cache.rehash_store = static_cast<UID_Int *>(MEM_realloc_uninitialized(
@@ -729,7 +729,8 @@ static BMFace **bm_mesh_region_match_pair(
   w_src->use_face_isolate = true;
 
   /* setup the initial state */
-  if (UNLIKELY(bm_uidwalk_init_from_edge(w_src, e_src) != bm_uidwalk_init_from_edge(w_dst, e_dst)))
+  if (bm_uidwalk_init_from_edge(w_src, e_src) != bm_uidwalk_init_from_edge(w_dst, e_dst))
+      [[unlikely]]
   {
     /* should never happen, if verts passed are compatible, but to be safe... */
     goto finally;

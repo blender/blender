@@ -254,7 +254,7 @@ static void ghash_buckets_expand(GHash *gh, const uint nentries, const bool user
 {
   uint new_nbuckets;
 
-  if (LIKELY(gh->buckets && (nentries < gh->limit_grow))) {
+  if (gh->buckets && (nentries < gh->limit_grow)) [[likely]] {
     return;
   }
 
@@ -300,7 +300,7 @@ static void ghash_buckets_contract(GHash *gh,
     return;
   }
 
-  if (LIKELY(gh->buckets && (nentries > gh->limit_shrink))) {
+  if (gh->buckets && (nentries > gh->limit_shrink)) [[likely]] {
     return;
   }
 
@@ -372,7 +372,7 @@ BLI_INLINE Entry *ghash_lookup_entry_ex(const GHash *gh, const void *key, const 
   /* If we do not store GHash, not worth computing it for each entry here!
    * Typically, comparison function will be quicker, and since it's needed in the end anyway... */
   for (e = gh->buckets[bucket_index]; e; e = e->next) {
-    if (UNLIKELY(gh->cmpfp(key, e->key) == false)) {
+    if (gh->cmpfp(key, e->key) == false) [[unlikely]] {
       return e;
     }
   }
@@ -394,7 +394,7 @@ BLI_INLINE Entry *ghash_lookup_entry_prev_ex(GHash *gh,
   /* If we do not store GHash, not worth computing it for each entry here!
    * Typically, comparison function will be quicker, and since it's needed in the end anyway... */
   for (Entry *e_prev = nullptr, *e = gh->buckets[bucket_index]; e; e_prev = e, e = e->next) {
-    if (UNLIKELY(gh->cmpfp(key, e->key) == false)) {
+    if (gh->cmpfp(key, e->key) == false) [[unlikely]] {
       *r_e_prev = e_prev;
       return e;
     }
@@ -906,7 +906,7 @@ void BLI_ghashIterator_init(GHashIterator *ghi, GHash *gh)
   if (gh->nentries) {
     do {
       ghi->curBucket++;
-      if (UNLIKELY(ghi->curBucket == ghi->gh->nbuckets)) {
+      if (ghi->curBucket == ghi->gh->nbuckets) [[unlikely]] {
         break;
       }
       ghi->curEntry = ghi->gh->buckets[ghi->curBucket];

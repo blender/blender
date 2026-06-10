@@ -132,7 +132,7 @@ static float3 normal_calc_ngon(const Span<float3> vert_positions, const Span<int
     v_prev = v_curr;
   }
 
-  if (UNLIKELY(normalize_v3(normal) == 0.0f)) {
+  if (normalize_v3(normal) == 0.0f) [[unlikely]] {
     /* Other axis are already set to zero. */
     normal[2] = 1.0f;
   }
@@ -160,7 +160,7 @@ float3 face_normal_calc(const Span<float3> vert_positions, const Span<int> face_
     normal = normal_calc_ngon(vert_positions, face_verts);
   }
 
-  if (UNLIKELY(math::is_zero(normal))) {
+  if (math::is_zero(normal)) [[unlikely]] {
     normal.z = 1.0f;
   }
 
@@ -602,8 +602,8 @@ static CornerNormalSpace corner_fan_space_define(const float3 &lnor,
   const float dtp_ref = math::dot(vec_ref, lnor);
   const float dtp_other = math::dot(vec_other, lnor);
 
-  if (UNLIKELY(std::abs(dtp_ref) >= LNOR_SPACE_TRIGO_THRESHOLD ||
-               std::abs(dtp_other) >= LNOR_SPACE_TRIGO_THRESHOLD))
+  if (std::abs(dtp_ref) >= LNOR_SPACE_TRIGO_THRESHOLD ||
+      std::abs(dtp_other) >= LNOR_SPACE_TRIGO_THRESHOLD) [[unlikely]]
   {
     /* If vec_ref or vec_other are too much aligned with lnor, we can't build lnor space,
      * tag it as invalid and abort. */
@@ -642,7 +642,7 @@ static CornerNormalSpace corner_fan_space_define(const float3 &lnor,
 
   /* Beta is angle between ref_vec and other_vec, around lnor. */
   const float dtp = math::dot(lnor_space.vec_ref, vec_other_proj);
-  if (LIKELY(dtp < LNOR_SPACE_TRIGO_THRESHOLD)) {
+  if (dtp < LNOR_SPACE_TRIGO_THRESHOLD) [[likely]] {
     const float beta = math::safe_acos_approx(dtp);
     lnor_space.ref_beta = (math::dot(lnor_space.vec_ortho, vec_other_proj) < 0.0f) ? pi2 - beta :
                                                                                      beta;

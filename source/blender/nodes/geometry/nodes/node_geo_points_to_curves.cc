@@ -47,7 +47,7 @@ static void grouped_sort(const OffsetIndices<int> offsets,
   const auto comparator = [&](const int index_a, const int index_b) {
     const float weight_a = weights[index_a];
     const float weight_b = weights[index_b];
-    if (UNLIKELY(weight_a == weight_b)) {
+    if (weight_a == weight_b) [[unlikely]] {
       /* Approach to make it stable. */
       return index_a < index_b;
     }

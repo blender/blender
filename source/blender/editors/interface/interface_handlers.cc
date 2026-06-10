@@ -4697,7 +4697,7 @@ static void numedit_begin(Button *but, HandleButtonData *data)
         }
 
         /* Can happen at extreme values. */
-        if (UNLIKELY(softmin == softmax)) {
+        if (softmin == softmax) [[unlikely]] {
           if (data->origvalue > 0.0) {
             softmin = nextafterf(softmin, -FLT_MAX);
           }
@@ -6405,7 +6405,7 @@ static int do_but_NUM(
           double precision = (roundf(log10f(data->value) + UI_PROP_SCALE_LOG_SNAP_OFFSET) - 1.0f) +
                              log10f(number_but->step_size);
           /* Non-finite when `data->value` is zero. */
-          if (UNLIKELY(!isfinite(precision))) {
+          if (!isfinite(precision)) [[unlikely]] {
             precision = -FLT_MAX; /* Ignore this value. */
           }
           value_step = powf(10.0f, max_ff(precision, -number_but->precision));

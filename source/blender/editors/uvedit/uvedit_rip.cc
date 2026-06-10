@@ -321,7 +321,7 @@ static UVRipSingle *uv_rip_single_from_loop(BMLoop *l_init_orig,
   float dir_co[2];
   sub_v2_v2v2(dir_co, co_center, co);
   dir_co[1] /= aspect_y;
-  if (UNLIKELY(normalize_v2(dir_co) == 0.0)) {
+  if (normalize_v2(dir_co) == 0.0) [[unlikely]] {
     dir_co[1] = 1.0f;
   }
 
@@ -480,7 +480,7 @@ static float uv_rip_pairs_calc_uv_angle(BMLoop *l_init,
           dir_prev[1] /= aspect_y;
           dir_next[1] /= aspect_y;
           const float luv_angle = angle_v2v2(dir_prev, dir_next);
-          if (LIKELY(isfinite(luv_angle))) {
+          if (isfinite(luv_angle)) [[likely]] {
             angle_of_side += luv_angle;
           }
         }

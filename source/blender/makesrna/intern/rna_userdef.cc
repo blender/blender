@@ -1241,7 +1241,7 @@ static void rna_Addon_module_set(PointerRNA *ptr, const char *value)
    * In practice this is something only add-on developers should run into,
    * so it's more of a paper cut for developers. */
   const size_t submodule_len_limit = sizeof(bAddon::module) / 2;
-  if (UNLIKELY(module_len >= submodule_len_limit)) {
+  if (module_len >= submodule_len_limit) [[unlikely]] {
     char *submodule_end = addon->module + module_len;
     char *submodule_beg = addon->module;
     for (size_t i = module_len - 1; i > 0; i--) {

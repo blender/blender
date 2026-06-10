@@ -68,7 +68,7 @@ static PyObject *Color_vectorcall(PyObject *type,
                                   const size_t nargsf,
                                   PyObject *kwnames)
 {
-  if (UNLIKELY(kwnames && PyTuple_GET_SIZE(kwnames))) {
+  if (kwnames && PyTuple_GET_SIZE(kwnames)) [[unlikely]] {
     PyErr_SetString(PyExc_TypeError,
                     "mathutils.Color(): "
                     "takes no keyword args");
@@ -102,7 +102,7 @@ static PyObject *Color_vectorcall(PyObject *type,
 static PyObject *Color_new(PyTypeObject *type, PyObject *args, PyObject *kwds)
 {
   /* Only called on sub-classes. */
-  if (UNLIKELY(kwds && PyDict_GET_SIZE(kwds))) {
+  if (kwds && PyDict_GET_SIZE(kwds)) [[unlikely]] {
     PyErr_SetString(PyExc_TypeError,
                     "mathutils.Color(): "
                     "takes no keyword args");
@@ -398,10 +398,10 @@ static PyObject *Color_str(ColorObject *self)
 static int Color_getbuffer(PyObject *obj, Py_buffer *view, int flags)
 {
   ColorObject *self = reinterpret_cast<ColorObject *>(obj);
-  if (UNLIKELY(BaseMath_Prepare_ForBufferAccess(self, view, flags) == -1)) {
+  if (BaseMath_Prepare_ForBufferAccess(self, view, flags) == -1) [[unlikely]] {
     return -1;
   }
-  if (UNLIKELY(BaseMath_ReadCallback(self) == -1)) {
+  if (BaseMath_ReadCallback(self) == -1) [[unlikely]] {
     return -1;
   }
 
@@ -431,7 +431,7 @@ static void Color_releasebuffer(PyObject * /*exporter*/, Py_buffer *view)
   self->flag &= ~BASE_MATH_FLAG_HAS_BUFFER_VIEW;
 
   if (view->readonly == 0) {
-    if (UNLIKELY(BaseMath_WriteCallback(self) == -1)) {
+    if (BaseMath_WriteCallback(self) == -1) [[unlikely]] {
       PyErr_Print();
     }
   }
@@ -1418,7 +1418,7 @@ PyObject *Color_CreatePyObject(const float col[3], PyTypeObject *base_type)
   float *col_alloc;
 
   col_alloc = static_cast<float *>(PyMem_Malloc(COLOR_SIZE * sizeof(float)));
-  if (UNLIKELY(col_alloc == nullptr)) {
+  if (col_alloc == nullptr) [[unlikely]] {
     PyErr_SetString(PyExc_MemoryError,
                     "Color(): "
                     "problem allocating data");

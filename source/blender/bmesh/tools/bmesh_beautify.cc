@@ -184,7 +184,7 @@ float BM_verts_calc_rotate_beauty(const BMVert *v1,
       }
     }
 
-    if (UNLIKELY(v1 == v3)) {
+    if (v1 == v3) [[unlikely]] {
       // printf("This should never happen, but does sometimes!\n");
       break;
     }
@@ -347,7 +347,7 @@ void BM_mesh_beautify_fill(BMesh *bm,
 
     BLI_assert(e == nullptr || BM_edge_face_count_is_equal(e, 2));
 
-    if (LIKELY(e)) {
+    if (e) [[likely]] {
       Set<EdRotState> &e_state_set = edge_state_arr[i];
 
       /* add the new state into the set so we don't move into this state again

@@ -152,7 +152,7 @@ static StructRNA *srna_from_ptr(PointerRNA *ptr);
 static PyObject *pyweakref_get_ref(PyObject *ref)
 {
   PyObject *result = nullptr;
-  if (UNLIKELY(PyWeakref_GetRef(ref, &result) == -1)) {
+  if (PyWeakref_GetRef(ref, &result) == -1) [[unlikely]] {
     /* This hints at a bug, it's not expected so being noisy is OK. */
     CLOG_WARN(BPY_LOG_RNA, "unexpected error accessing weak-reference");
     /* Prints and clears the error. */
@@ -401,9 +401,9 @@ static PyObject *pyrna_struct_get_nameprop_as_pyobject(
   PropertyRNA *nameprop;
   char *name_ptr = RNA_struct_name_get_alloc_ex(
       ptr, fixedbuf, sizeof(fixedbuf), &name_len, &nameprop);
-  if (LIKELY(name_ptr)) {
+  if (name_ptr) [[likely]] {
     /* In most cases this only runs once. */
-    if (UNLIKELY(nameprop != nameprop_cache.nameprop)) {
+    if (nameprop != nameprop_cache.nameprop) [[unlikely]] {
       nameprop_cache.nameprop = nameprop;
       const PropertySubType subtype = RNA_property_subtype(nameprop);
       if (ELEM(subtype, PROP_FILEPATH, PROP_DIRPATH, PROP_FILENAME)) {
@@ -1685,8 +1685,8 @@ static int pyrna_py_to_prop(
         else {
           param = PyC_Long_AsI32(value);
 
-          if (UNLIKELY(param & ~1)) { /* Only accept 0/1. */
-            param = -1;               /* Error out below. */
+          if (param & ~1) [[unlikely]] { /* Only accept 0/1. */
+            param = -1;                  /* Error out below. */
           }
         }
 
@@ -2377,7 +2377,7 @@ static int pyrna_prop_collection_subscript_is_valid_or_error(const PyObject *val
   if (value != Py_None) {
     BLI_assert(BPy_StructRNA_Check(value));
     const BPy_StructRNA *value_pyrna = reinterpret_cast<const BPy_StructRNA *>(value);
-    if (UNLIKELY(value_pyrna->ptr->type == nullptr)) {
+    if (value_pyrna->ptr->type == nullptr) [[unlikely]] {
       /* It's important to use a `TypeError` as that is what's returned when `__getitem__` is
        * called on an object that doesn't support item access. */
       PyErr_Format(PyExc_TypeError,
@@ -3111,7 +3111,7 @@ static int prop_subscript_ass_array_slice__float_recursive(
     int i;
     for (i = 0; i != length; i++) {
       PyObject *subvalue = prop_subscript_ass_array_slice__as_seq_fast(value_items[i], dimsize[1]);
-      if (UNLIKELY(subvalue == nullptr)) {
+      if (subvalue == nullptr) [[unlikely]] {
         return 0;
       }
 
@@ -3143,7 +3143,7 @@ static int prop_subscript_ass_array_slice__int_recursive(
     int i;
     for (i = 0; i != length; i++) {
       PyObject *subvalue = prop_subscript_ass_array_slice__as_seq_fast(value_items[i], dimsize[1]);
-      if (UNLIKELY(subvalue == nullptr)) {
+      if (subvalue == nullptr) [[unlikely]] {
         return 0;
       }
 
@@ -3177,7 +3177,7 @@ static int prop_subscript_ass_array_slice__bool_recursive(PyObject **value_items
     int i;
     for (i = 0; i != length; i++) {
       PyObject *subvalue = prop_subscript_ass_array_slice__as_seq_fast(value_items[i], dimsize[1]);
-      if (UNLIKELY(subvalue == nullptr)) {
+      if (subvalue == nullptr) [[unlikely]] {
         return 0;
       }
 
@@ -4943,7 +4943,7 @@ static PyObject *pyrna_struct_getattro(BPy_StructRNA *self, PyObject *pyname)
 static int pyrna_struct_pydict_contains(PyObject *self, PyObject *pyname)
 {
   PyObject *dict = *(_PyObject_GetDictPtr((PyObject *)self));
-  if (UNLIKELY(dict == nullptr)) {
+  if (dict == nullptr) [[unlikely]] {
     return 0;
   }
 
@@ -5517,7 +5517,7 @@ static PyObject *pyrna_prop_collection_items(BPy_PropertyRNA *self)
 
   BPy_NamePropAsPyObject_Cache nameprop_cache = {nullptr};
   RNA_PROP_BEGIN (&self->ptr.value(), itemptr, self->prop) {
-    if (UNLIKELY(itemptr.data == nullptr)) {
+    if (itemptr.data == nullptr) [[unlikely]] {
       continue;
     }
     /* Add to Python list. */
@@ -5643,7 +5643,7 @@ static PyObject *pyrna_struct_pop(BPy_StructRNA *self, PyObject *args)
       /* Don't use #BPy_IDGroup_WrapData as the id-property is being removed from the ID. */
       PyObject *ret = BPy_IDGroup_MapDataToPy(idprop);
       /* Internal error. */
-      if (UNLIKELY(ret == nullptr)) {
+      if (ret == nullptr) [[unlikely]] {
         return nullptr;
       }
       IDP_FreeFromGroup(group, idprop);
@@ -6791,7 +6791,7 @@ static PyObject *pyrna_param_to_py(PointerRNA *ptr, PropertyRNA *prop, void *dat
           data_ch_len = data_ch ? strlen(data_ch) : 0;
         }
 
-        if (UNLIKELY(data_ch == nullptr)) {
+        if (data_ch == nullptr) [[unlikely]] {
           BLI_assert((flag & PROP_NEVER_NULL) == 0);
           ret = Py_None;
           Py_INCREF(ret);
@@ -7037,7 +7037,7 @@ static PyObject *pyrna_func_vectorcall(PyObject *callable,
 
     if (i < pyargs_len) {
       /* New in 2.8x, optional arguments must be keywords. */
-      if (UNLIKELY((flag_parameter & PARM_REQUIRED) == 0)) {
+      if ((flag_parameter & PARM_REQUIRED) == 0) [[unlikely]] {
         PyErr_Format(PyExc_TypeError,
                      "%.200s.%.200s(): required parameter \"%.200s\" to be a keyword argument!",
                      RNA_struct_identifier(self_ptr->type),
@@ -7112,7 +7112,7 @@ static PyObject *pyrna_func_vectorcall(PyObject *callable,
    * (Don't overwrite the error if we have one,
    * otherwise can skip important messages and confuse with args).
    */
-  if (UNLIKELY(err == 0 && kwnames && (pykw_len > kw_tot))) {
+  if (err == 0 && kwnames && (pykw_len > kw_tot)) [[unlikely]] {
     DynStr *bad_args = BLI_dynstr_new();
     DynStr *good_args = BLI_dynstr_new();
 
@@ -9730,7 +9730,7 @@ static int bpy_class_validate_recursive(PointerRNA *dummy_ptr,
           PyObject *py_attr = bpy_property_substitutions[i].py_attr;
           switch (PyObject_GetOptionalAttr(py_class, py_attr, &item)) {
             case 1: { /* Found. */
-              if (UNLIKELY(item == Py_None)) {
+              if (item == Py_None) [[unlikely]] {
                 Py_DECREF(item);
                 item = nullptr;
               }
@@ -10400,7 +10400,7 @@ static PyObject *pyrna_register_class(PyObject * /*self*/, PyObject *py_class)
     return nullptr;
   }
 
-  if (UNLIKELY(G.debug & G_DEBUG_PYTHON)) {
+  if (G.debug & G_DEBUG_PYTHON) [[unlikely]] {
     /* Warn if a class being registered uses an already registered base-class or sub-class,
      * both checks are needed otherwise the order of registering could suppress the warning.
      *
@@ -10726,7 +10726,7 @@ static PyObject *pyrna_unregister_class(PyObject * /*self*/, PyObject *py_class)
   unreg(CTX_data_main(C), srna); /* Calls bpy_class_free, this decref's py_class. */
 
   /* Typically `bpy_class_free` will have removed, remove here just in case. */
-  if (UNLIKELY(PyDict_Contains(((PyTypeObject *)py_class)->tp_dict, bpy_intern_str_bl_rna))) {
+  if (PyDict_Contains(((PyTypeObject *)py_class)->tp_dict, bpy_intern_str_bl_rna)) [[unlikely]] {
     if (PyDict_DelItem((reinterpret_cast<PyTypeObject *>(py_class))->tp_dict,
                        bpy_intern_str_bl_rna) == -1)
     {

@@ -124,7 +124,7 @@ void *BLI_memarena_alloc(MemArena *ma, size_t size)
   /* Ensure proper alignment by rounding size up to multiple of 8. */
   size = PADUP(size, ma->align);
 
-  if (UNLIKELY(size > ma->cursize)) {
+  if (size > ma->cursize) [[unlikely]] {
     if (size > ma->bufsize - (ma->align - 1)) {
       ma->cursize = PADUP(size + 1, ma->align);
     }
@@ -185,7 +185,7 @@ void BLI_memarena_merge(MemArena *ma_dst, MemArena *ma_src)
     return;
   }
 
-  if (UNLIKELY(ma_dst->bufs == nullptr)) {
+  if (ma_dst->bufs == nullptr) [[unlikely]] {
     BLI_assert(ma_dst->curbuf == nullptr);
     ma_dst->bufs = ma_src->bufs;
     ma_dst->curbuf = ma_src->curbuf;

@@ -248,7 +248,7 @@ static void alter_co(BMVert *v,
 
   copy_v3_v3(co, v->co);
 
-  if (UNLIKELY(params->use_sphere)) { /* subdivide sphere */
+  if (params->use_sphere) [[unlikely]] { /* subdivide sphere */
     normalize_v3_length(co, params->smooth);
   }
   else if (params->use_smooth) {

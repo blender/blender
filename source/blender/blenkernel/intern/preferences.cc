@@ -609,7 +609,7 @@ void BKE_preferences_remote_to_name(const char *remote_url, char name[MAX_NAME])
       }
     }
   }
-  if (UNLIKELY(remote_url[0] == '\0')) {
+  if (remote_url[0] == '\0') [[unlikely]] {
     return;
   }
 

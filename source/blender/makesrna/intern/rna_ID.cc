@@ -408,7 +408,7 @@ static PointerRNA rna_ID_original_get(PointerRNA *ptr)
 short RNA_type_to_ID_code(const StructRNA *type)
 {
   const StructRNA *base_type = RNA_struct_base_child_of(type, RNA_ID);
-  if (UNLIKELY(base_type == nullptr)) {
+  if (base_type == nullptr) [[unlikely]] {
     return 0;
   }
   if (base_type == RNA_Action) {

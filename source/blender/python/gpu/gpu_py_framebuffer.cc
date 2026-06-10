@@ -37,7 +37,7 @@ namespace blender {
 
 static int pygpu_framebuffer_valid_check(BPyGPUFrameBuffer *bpygpu_fb)
 {
-  if (UNLIKELY(bpygpu_fb->fb == nullptr)) {
+  if (bpygpu_fb->fb == nullptr) [[unlikely]] {
     PyErr_SetString(PyExc_ReferenceError, "GPU framebuffer was freed, no further access is valid");
     return -1;
   }
@@ -46,7 +46,7 @@ static int pygpu_framebuffer_valid_check(BPyGPUFrameBuffer *bpygpu_fb)
 
 #define PYGPU_FRAMEBUFFER_CHECK_OBJ(bpygpu) \
   { \
-    if (UNLIKELY(pygpu_framebuffer_valid_check(bpygpu) == -1)) { \
+    if (pygpu_framebuffer_valid_check(bpygpu) == -1) [[unlikely]] { \
       return nullptr; \
     } \
   } \

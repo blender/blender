@@ -225,13 +225,13 @@ static int vertex_sort(const void *p1, const void *p2, void *vs_ctx_p)
 
 #ifdef USE_FREE_STRIP
   /* push free verts to the end so we can strip */
-  if (UNLIKELY(v1->free == 0 && v2->free == 0)) {
+  if (v1->free == 0 && v2->free == 0) [[unlikely]] {
     return 0;
   }
-  if (UNLIKELY(v1->free == 0)) {
+  if (v1->free == 0) [[unlikely]] {
     return 1;
   }
-  if (UNLIKELY(v2->free == 0)) {
+  if (v2->free == 0) [[unlikely]] {
     return -1;
   }
 #endif
@@ -487,7 +487,7 @@ void BLI_box_pack_2d(
              * as being used by checking the width or
              * height of both boxes */
             if (vert->tlb && vert->trb && ELEM(box, vert->tlb, vert->trb)) {
-              if (UNLIKELY(fabsf(vert->tlb->h - vert->trb->h) < EPSILON_MERGE)) {
+              if (fabsf(vert->tlb->h - vert->trb->h) < EPSILON_MERGE) [[unlikely]] {
 #ifdef USE_MERGE
 #  define A (vert->trb->v[TL])
 #  define B (vert->tlb->v[TR])
@@ -518,7 +518,7 @@ void BLI_box_pack_2d(
               }
             }
             else if (vert->blb && vert->brb && ELEM(box, vert->blb, vert->brb)) {
-              if (UNLIKELY(fabsf(vert->blb->h - vert->brb->h) < EPSILON_MERGE)) {
+              if (fabsf(vert->blb->h - vert->brb->h) < EPSILON_MERGE) [[unlikely]] {
 #ifdef USE_MERGE
 #  define A (vert->blb->v[BR])
 #  define B (vert->brb->v[BL])
@@ -550,7 +550,7 @@ void BLI_box_pack_2d(
             }
             /* Horizontal */
             if (vert->tlb && vert->blb && ELEM(box, vert->tlb, vert->blb)) {
-              if (UNLIKELY(fabsf(vert->tlb->w - vert->blb->w) < EPSILON_MERGE)) {
+              if (fabsf(vert->tlb->w - vert->blb->w) < EPSILON_MERGE) [[unlikely]] {
 #ifdef USE_MERGE
 #  define A (vert->blb->v[TL])
 #  define B (vert->tlb->v[BL])
@@ -581,7 +581,7 @@ void BLI_box_pack_2d(
               }
             }
             else if (vert->trb && vert->brb && ELEM(box, vert->trb, vert->brb)) {
-              if (UNLIKELY(fabsf(vert->trb->w - vert->brb->w) < EPSILON_MERGE)) {
+              if (fabsf(vert->trb->w - vert->brb->w) < EPSILON_MERGE) [[unlikely]] {
 
 #ifdef USE_MERGE
 #  define A (vert->brb->v[TR])

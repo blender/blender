@@ -189,7 +189,7 @@ static bool scanfill_preprocess_self_isect(ScanFillContext *sf_ctx,
           {
             ScanFillIsect *isect;
 
-            if (UNLIKELY(isect_hash == nullptr)) {
+            if (isect_hash == nullptr) [[unlikely]] {
               isect_hash = MEM_new<IsectMap>(__func__);
             }
 
@@ -225,7 +225,7 @@ static bool scanfill_preprocess_self_isect(ScanFillContext *sf_ctx,
       if (eed->user_flag & E_ISISECT) {
         ListBaseT<LinkData> *e_ls = isect_hash->lookup_default(eed, nullptr);
 
-        if (UNLIKELY(e_ls == nullptr)) {
+        if (e_ls == nullptr) [[unlikely]] {
           /* only happens in very rare cases (entirely overlapping splines).
            * in this case we can't do much useful. but at least don't crash */
           continue;
@@ -365,7 +365,7 @@ bool BLI_scanfill_calc_self_isect(ScanFillContext *sf_ctx,
   const uint poly_num = uint(sf_ctx->poly_nr) + 1;
   bool changed = false;
 
-  if (UNLIKELY(sf_ctx->poly_nr == SF_POLY_UNSET)) {
+  if (sf_ctx->poly_nr == SF_POLY_UNSET) [[unlikely]] {
     return false;
   }
 

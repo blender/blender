@@ -1330,7 +1330,7 @@ void BM_select_history_merge_from_targetmap(BMesh *bm,
         }
         ele_dst = ele_dst_next;
         /* Break loop on circular reference (should never happen). */
-        if (UNLIKELY(ele_dst == ese.ele)) {
+        if (ele_dst == ese.ele) [[unlikely]] {
           BLI_assert(0);
           break;
         }
@@ -1403,7 +1403,7 @@ void BM_mesh_elem_hflag_disable_test(BMesh *bm,
         ele = static_cast<BMElem *>(BM_iter_new(&iter, bm, iter_types[i], nullptr));
         for (; ele; ele = static_cast<BMElem *>(BM_iter_step(&iter))) {
 
-          if (UNLIKELY(respecthide && BM_elem_flag_test(ele, BM_ELEM_HIDDEN))) {
+          if (respecthide && BM_elem_flag_test(ele, BM_ELEM_HIDDEN)) [[unlikely]] {
             /* pass */
           }
           else if (!hflag_test || BM_elem_flag_test(ele, hflag_test)) {
@@ -1457,7 +1457,7 @@ void BM_mesh_elem_hflag_enable_test(BMesh *bm,
       ele = static_cast<BMElem *>(BM_iter_new(&iter, bm, iter_types[i], nullptr));
       for (; ele; ele = static_cast<BMElem *>(BM_iter_step(&iter))) {
 
-        if (UNLIKELY(respecthide && BM_elem_flag_test(ele, BM_ELEM_HIDDEN))) {
+        if (respecthide && BM_elem_flag_test(ele, BM_ELEM_HIDDEN)) [[unlikely]] {
           /* pass */
         }
         else if (!hflag_test || BM_elem_flag_test(ele, hflag_test)) {

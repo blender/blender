@@ -174,7 +174,7 @@ static void ui_imageuser_layer_menu(bContext * /*C*/, ui::Layout *layout, void *
 
   /* May have been freed since drawing. */
   RenderResult *rr = BKE_image_acquire_renderresult(scene, image);
-  if (UNLIKELY(rr == nullptr)) {
+  if (rr == nullptr) [[unlikely]] {
     BKE_image_release_renderresult(scene, image, rr);
     return;
   }
@@ -245,7 +245,7 @@ static void ui_imageuser_pass_menu(bContext * /*C*/, ui::Layout *layout, void *r
 
   /* may have been freed since drawing */
   rr = BKE_image_acquire_renderresult(scene, image);
-  if (UNLIKELY(rr == nullptr)) {
+  if (rr == nullptr) [[unlikely]] {
     BKE_image_release_renderresult(scene, image, rr);
     return;
   }
@@ -316,7 +316,7 @@ static void ui_imageuser_view_menu_rr(bContext * /*C*/, ui::Layout *layout, void
 
   /* may have been freed since drawing */
   rr = BKE_image_acquire_renderresult(scene, image);
-  if (UNLIKELY(rr == nullptr)) {
+  if (rr == nullptr) [[unlikely]] {
     BKE_image_release_renderresult(scene, image, rr);
     return;
   }
@@ -425,7 +425,7 @@ static bool ui_imageuser_layer_menu_step(bContext *C, int direction, void *rnd_p
   bool changed = false;
 
   rr = BKE_image_acquire_renderresult(scene, image);
-  if (UNLIKELY(rr == nullptr)) {
+  if (rr == nullptr) [[unlikely]] {
     BKE_image_release_renderresult(scene, image, rr);
     return false;
   }
@@ -475,7 +475,7 @@ static bool ui_imageuser_pass_menu_step(bContext *C, int direction, void *rnd_pt
   RenderPass *rpass;
 
   rr = BKE_image_acquire_renderresult(scene, image);
-  if (UNLIKELY(rr == nullptr)) {
+  if (rr == nullptr) [[unlikely]] {
     BKE_image_release_renderresult(scene, image, rr);
     return false;
   }

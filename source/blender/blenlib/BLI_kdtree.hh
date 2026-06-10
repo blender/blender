@@ -218,7 +218,7 @@ inline int kdtree_find_nearest_cb(const KDTree<CoordT> *tree,
   BLI_assert(tree->is_balanced == true);
 #endif
 
-  if (UNLIKELY(tree->root == detail::kd_node_unset)) {
+  if (tree->root == detail::kd_node_unset) [[unlikely]] {
     return -1;
   }
 
@@ -363,7 +363,7 @@ inline int kdtree_find_nearest_n_with_len_squared_cb(const KDTree<CoordT> *tree,
   BLI_assert(tree->is_balanced == true);
 #endif
 
-  if (UNLIKELY((tree->root == detail::kd_node_unset) || nearest_len_capacity == 0)) {
+  if ((tree->root == detail::kd_node_unset) || nearest_len_capacity == 0) [[unlikely]] {
     return 0;
   }
 
@@ -480,7 +480,7 @@ static void nearest_add_in_range(KDTreeNearest<CoordT> **r_nearest,
 {
   KDTreeNearest<CoordT> *to;
 
-  if (UNLIKELY(nearest_index >= *nearest_len_capacity)) {
+  if (nearest_index >= *nearest_len_capacity) [[unlikely]] {
     *r_nearest = static_cast<KDTreeNearest<CoordT> *>(MEM_realloc_uninitialized_id(
         *r_nearest,
         (*nearest_len_capacity += detail::kd_found_alloc_inc) * sizeof(KDTreeNode<CoordT>),
@@ -518,7 +518,7 @@ inline int kdtree_range_search_with_len_squared_cb(const KDTree<CoordT> *tree,
   BLI_assert(tree->is_balanced == true);
 #endif
 
-  if (UNLIKELY(tree->root == detail::kd_node_unset)) {
+  if (tree->root == detail::kd_node_unset) [[unlikely]] {
     return 0;
   }
 
@@ -598,7 +598,7 @@ inline void kdtree_range_search_cb(const KDTree<CoordT> *tree,
   BLI_assert(tree->is_balanced == true);
 #endif
 
-  if (UNLIKELY(tree->root == detail::kd_node_unset)) {
+  if (tree->root == detail::kd_node_unset) [[unlikely]] {
     return;
   }
 
@@ -806,7 +806,7 @@ inline int kdtree_calc_duplicates_cb(const KDTree<CoordT> *tree,
                                      Func &&duplicates_cb)
 {
   BLI_assert(tree->is_balanced);
-  if (UNLIKELY(tree->root == detail::kd_node_unset)) {
+  if (tree->root == detail::kd_node_unset) [[unlikely]] {
     return 0;
   }
 

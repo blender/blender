@@ -125,7 +125,7 @@ static bool buffer_from_filepath(const char *filepath,
 {
   errno = 0;
   const int file = BLI_open(filepath, O_BINARY | O_RDONLY, 0);
-  if (UNLIKELY(file == -1)) {
+  if (file == -1) [[unlikely]] {
     *r_error_message = BLI_sprintfN("failure '%s' to open file", strerror(errno));
     return false;
   }
@@ -134,7 +134,7 @@ static bool buffer_from_filepath(const char *filepath,
   uchar *mem = nullptr;
   const size_t size = BLI_file_descriptor_size(file);
   int64_t size_read;
-  if (UNLIKELY(size == size_t(-1))) {
+  if (size == size_t(-1)) [[unlikely]] {
     *r_error_message = BLI_sprintfN("failure '%s' to access size", strerror(errno));
   }
   else if (r_mem && UNLIKELY(!(mem = MEM_new_array_uninitialized<uchar>(size, __func__)))) {
@@ -1971,7 +1971,7 @@ static std::optional<int> wm_main_playanim_intern(int argc, const char **argv, P
 
       GHOST_ISystem::createSystem();
       ps.ghost_data.system = GHOST_ISystem::getSystem();
-      if (UNLIKELY(ps.ghost_data.system == nullptr)) {
+      if (ps.ghost_data.system == nullptr) [[unlikely]] {
         /* GHOST will have reported the back-ends that failed to load. */
         fprintf(stderr, "%s: unable to initialize GHOST, exiting!\n", message_prefix);
         return EXIT_FAILURE;
@@ -1995,7 +1995,7 @@ static std::optional<int> wm_main_playanim_intern(int argc, const char **argv, P
                                                   ibuf->x,
                                                   ibuf->y);
 
-      if (UNLIKELY(ps.ghost_data.window == nullptr)) {
+      if (ps.ghost_data.window == nullptr) [[unlikely]] {
         fprintf(stderr, "%s: unable to create window, exiting!\n", message_prefix);
         return EXIT_FAILURE;
       }

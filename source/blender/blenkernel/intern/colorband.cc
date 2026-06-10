@@ -519,7 +519,7 @@ bool BKE_colorband_evaluate(const ColorBand *coba, float in, float out[4])
         }
         const float mfac = 1.0f - fac;
 
-        if (UNLIKELY(coba->color_mode == COLBAND_BLEND_HSV)) {
+        if (coba->color_mode == COLBAND_BLEND_HSV) [[unlikely]] {
           float col1[3], col2[3];
 
           rgb_to_hsv_v(&cbd1->r, col1);
@@ -532,7 +532,7 @@ bool BKE_colorband_evaluate(const ColorBand *coba, float in, float out[4])
 
           hsv_to_rgb_v(out, out);
         }
-        else if (UNLIKELY(coba->color_mode == COLBAND_BLEND_HSL)) {
+        else if (coba->color_mode == COLBAND_BLEND_HSL) [[unlikely]] {
           float col1[3], col2[3];
 
           rgb_to_hsl_v(&cbd1->r, col1);

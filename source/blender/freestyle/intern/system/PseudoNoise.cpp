@@ -62,7 +62,7 @@ real PseudoNoise::smoothNoise(real x)
   real tmp;
   int i = modf_to_index(x, NB_VALUE_NOISE);
   int h = i - 1;
-  if (UNLIKELY(h < 0)) {
+  if (h < 0) [[unlikely]] {
     h = NB_VALUE_NOISE + h;
   }
 

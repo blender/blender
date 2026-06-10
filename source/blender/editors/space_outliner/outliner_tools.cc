@@ -327,7 +327,7 @@ static void unlink_material_fn(bContext * /*C*/,
       BLI_assert_unreachable();
   }
 
-  if (LIKELY(matar != nullptr)) {
+  if (matar != nullptr) [[likely]] {
     for (a = 0; a < totcol; a++) {
       if (a == te->index && matar[a]) {
         id_us_min(&matar[a]->id);

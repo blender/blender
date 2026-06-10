@@ -59,7 +59,7 @@ void BLI_task_parallel_mempool(BLI_mempool *mempool,
                                TaskParallelMempoolFunc func,
                                const TaskParallelSettings *settings)
 {
-  if (UNLIKELY(BLI_mempool_len(mempool) == 0)) {
+  if (BLI_mempool_len(mempool) == 0) [[unlikely]] {
     return;
   }
 

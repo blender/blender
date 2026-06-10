@@ -4202,7 +4202,7 @@ static Map<StringRefNull, IDOverrideLibraryProperty *> &override_library_rna_pat
     IDOverrideLibrary *liboverride)
 {
   IDOverrideLibraryRuntime *liboverride_runtime = override_library_runtime_ensure(liboverride);
-  if (UNLIKELY(!liboverride_runtime->rna_path_to_override_properties)) {
+  if (!liboverride_runtime->rna_path_to_override_properties) [[unlikely]] {
     liboverride_runtime->rna_path_to_override_properties =
         std::make_optional<Map<StringRefNull, IDOverrideLibraryProperty *>>();
     for (IDOverrideLibraryProperty *op =

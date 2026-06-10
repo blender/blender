@@ -67,7 +67,7 @@ bool interp_v3_v3v3_slerp(float target[3], const float a[3], const float b[3], c
   cosom = dot_v3v3(a, b);
 
   /* direct opposites */
-  if (UNLIKELY(cosom < (-1.0f + FLT_EPSILON))) {
+  if (cosom < (-1.0f + FLT_EPSILON)) [[unlikely]] {
     return false;
   }
 
@@ -82,19 +82,19 @@ bool interp_v3_v3v3_slerp(float target[3], const float a[3], const float b[3], c
 
 void interp_v3_v3v3_slerp_safe(float target[3], const float a[3], const float b[3], const float t)
 {
-  if (UNLIKELY(!interp_v3_v3v3_slerp(target, a, b, t))) {
+  if (!interp_v3_v3v3_slerp(target, a, b, t)) [[unlikely]] {
     /* Axis are aligned so any orthogonal vector is acceptable. */
     float ab_ortho[3];
     ortho_v3_v3(ab_ortho, a);
     normalize_v3(ab_ortho);
     if (t < 0.5f) {
-      if (UNLIKELY(!interp_v3_v3v3_slerp(target, a, ab_ortho, t * 2.0f))) {
+      if (!interp_v3_v3v3_slerp(target, a, ab_ortho, t * 2.0f)) [[unlikely]] {
         BLI_assert(0);
         copy_v3_v3(target, a);
       }
     }
     else {
-      if (UNLIKELY(!interp_v3_v3v3_slerp(target, ab_ortho, b, (t - 0.5f) * 2.0f))) {
+      if (!interp_v3_v3v3_slerp(target, ab_ortho, b, (t - 0.5f) * 2.0f)) [[unlikely]] {
         BLI_assert(0);
         copy_v3_v3(target, b);
       }
@@ -483,7 +483,7 @@ void angle_poly_v3(float *angles, const float *verts[3], int len)
 
 void project_v2_v2v2(float out[2], const float p[2], const float v_proj[2])
 {
-  if (UNLIKELY(is_zero_v2(v_proj))) {
+  if (is_zero_v2(v_proj)) [[unlikely]] {
     zero_v2(out);
     return;
   }
@@ -494,7 +494,7 @@ void project_v2_v2v2(float out[2], const float p[2], const float v_proj[2])
 
 void project_v3_v3v3(float out[3], const float p[3], const float v_proj[3])
 {
-  if (UNLIKELY(is_zero_v3(v_proj))) {
+  if (is_zero_v3(v_proj)) [[unlikely]] {
     zero_v3(out);
     return;
   }

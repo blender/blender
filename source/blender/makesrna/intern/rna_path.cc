@@ -77,7 +77,7 @@ static char *rna_path_token(const char **path, char *fixedbuf, int fixedlen)
   }
 
   /* Empty, return. */
-  if (UNLIKELY(len == 0)) {
+  if (len == 0) [[unlikely]] {
     return nullptr;
   }
 
@@ -116,7 +116,7 @@ static char *rna_path_token_in_brackets(const char **path,
   BLI_assert(r_quoted != nullptr);
 
   /* Get data between `[]`, check escaping quotes and back-slashes with #BLI_str_unescape. */
-  if (UNLIKELY(**path != '[')) {
+  if (**path != '[') [[unlikely]] {
     return nullptr;
   }
 
@@ -149,14 +149,14 @@ static char *rna_path_token_in_brackets(const char **path,
     }
   }
 
-  if (UNLIKELY(*p != ']')) {
+  if (*p != ']') [[unlikely]] {
     return nullptr;
   }
 
   /* Support empty strings in quotes, as this is a valid key for an ID-property. */
   if (!quoted) {
     /* Empty, return. */
-    if (UNLIKELY(len == 0)) {
+    if (len == 0) [[unlikely]] {
       return nullptr;
     }
   }
@@ -741,7 +741,7 @@ const char *RNA_path_array_index_token_find(const char *rna_path, const Property
 
   /* Valid 'array part' of a rna path can only have '[', ']' and digit characters.
    * It may have more than one of those (e.g. `[12][1]`) in case of multi-dimensional arrays. */
-  if (UNLIKELY(rna_path[0] == '\0')) {
+  if (rna_path[0] == '\0') [[unlikely]] {
     return nullptr;
   }
   size_t rna_path_len = strlen(rna_path) - 1;

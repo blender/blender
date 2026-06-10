@@ -286,7 +286,7 @@ void BKE_mesh_strip_loose_faces(Mesh *mesh)
 
 void BKE_mesh_do_versions_cd_flag_init(Mesh *mesh)
 {
-  if (UNLIKELY(mesh->cd_flag)) {
+  if (mesh->cd_flag) [[unlikely]] {
     return;
   }
 
@@ -694,7 +694,7 @@ static void add_mface_layers(Mesh &mesh, CustomData *fdata_legacy, CustomData *l
 
 static void mesh_ensure_tessellation_customdata(Mesh *mesh)
 {
-  if (UNLIKELY((mesh->totface_legacy != 0) && (mesh->faces_num == 0))) {
+  if ((mesh->totface_legacy != 0) && (mesh->faces_num == 0)) [[unlikely]] {
     /* Pass, otherwise this function clears 'mface' before
      * versioning 'mface -> mpoly' code kicks in #30583.
      *
@@ -1106,7 +1106,7 @@ static void mesh_tessface_calc(Mesh &mesh)
 
       const uint totfilltri = mp_totloop - 2;
 
-      if (UNLIKELY(arena == nullptr)) {
+      if (arena == nullptr) [[unlikely]] {
         arena = BLI_memarena_new(BLI_MEMARENA_STD_BUFSIZE, __func__);
       }
 
@@ -1125,7 +1125,7 @@ static void mesh_tessface_calc(Mesh &mesh)
         add_newell_cross_v3_v3v3(normal, co_prev, co_curr);
         co_prev = co_curr;
       }
-      if (UNLIKELY(normalize_v3(normal) == 0.0f)) {
+      if (normalize_v3(normal) == 0.0f) [[unlikely]] {
         normal[2] = 1.0f;
       }
 
@@ -1183,7 +1183,7 @@ static void mesh_tessface_calc(Mesh &mesh)
   BLI_assert(totface <= corner_tris_num);
 
   /* Not essential but without this we store over-allocated memory in the #CustomData layers. */
-  if (LIKELY(corner_tris_num != totface)) {
+  if (corner_tris_num != totface) [[likely]] {
     mface = static_cast<MFace *>(
         MEM_realloc_uninitialized(mface, sizeof(*mface) * size_t(totface)));
     mface_to_poly_map = static_cast<int *>(MEM_realloc_uninitialized(

@@ -120,7 +120,7 @@ static bool meshcache_read_mdd_range_from_time(FILE *fp,
     return false;
   }
 
-  if (UNLIKELY(f_time_prev == FLT_MAX)) {
+  if (f_time_prev == FLT_MAX) [[unlikely]] {
     frame = 0.0f;
   }
   else {

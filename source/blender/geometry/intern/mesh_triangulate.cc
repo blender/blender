@@ -101,10 +101,10 @@ static QuadDirection calc_quad_direction_beauty(const float3 &v0,
                                                 const float3 &v3)
 {
   const int flip_flag = is_quad_flip_v3(v1, v2, v3, v0);
-  if (UNLIKELY(flip_flag & (1 << 0))) {
+  if (flip_flag & (1 << 0)) [[unlikely]] {
     return QuadDirection::Edge_0_2;
   }
-  if (UNLIKELY(flip_flag & (1 << 1))) {
+  if (flip_flag & (1 << 1)) [[unlikely]] {
     return QuadDirection::Edge_1_3;
   }
   return BLI_polyfill_edge_calc_rotate_beauty__area(v1, v2, v3, v0, false) > 0.0f ?

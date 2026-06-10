@@ -1339,7 +1339,7 @@ static uchar *proxy_thread_next_frame(ProxyQueue *queue,
     }
 
     const size_t size = BLI_file_descriptor_size(file);
-    if (UNLIKELY(ELEM(size, 0, size_t(-1)))) {
+    if (ELEM(size, 0, size_t(-1))) [[unlikely]] {
       close(file);
       return nullptr;
     }

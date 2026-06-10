@@ -84,7 +84,7 @@ inline SegmentClosestToRay closest_on_segment_to_ray(const float3 &pos0,
   const float c = math::dot(segment, ray_dir);
 
   const float len_segment_sq = math::length_squared(segment);
-  if (UNLIKELY(len_segment_sq <= 1e-9)) {
+  if (len_segment_sq <= 1e-9) [[unlikely]] {
     return SegmentClosestToRay{0.0f, b};
   }
 

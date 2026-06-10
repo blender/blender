@@ -334,7 +334,7 @@ static ScanFillVertLink *addedgetoscanlist(ScanFillVertLink *scdata, ScanFillEdg
   sc = static_cast<ScanFillVertLink *>(
       bsearch(&scsearch, scdata, len, sizeof(ScanFillVertLink), vergscdata));
 
-  if (UNLIKELY(sc == nullptr)) {
+  if (sc == nullptr) [[unlikely]] {
     printf("Error in search edge: %p\n", static_cast<void *>(eed));
   }
   else if (addedgetoscanvert(sc, eed) == false) {
@@ -861,7 +861,7 @@ uint BLI_scanfill_calc_ex(ScanFillContext *sf_ctx, const int flag, const float n
     }
   }
 
-  if (UNLIKELY(!vert_available)) {
+  if (!vert_available) [[unlikely]] {
     return 0;
   }
 
@@ -884,14 +884,14 @@ uint BLI_scanfill_calc_ex(ScanFillContext *sf_ctx, const int flag, const float n
     v_prev = static_cast<ScanFillVert *>(sf_ctx->fillvertbase.last)->co;
 
     for (ScanFillVert &eve : sf_ctx->fillvertbase) {
-      if (LIKELY(!compare_v3v3(v_prev, eve.co, SF_EPSILON))) {
+      if (!compare_v3v3(v_prev, eve.co, SF_EPSILON)) [[likely]] {
         add_newell_cross_v3_v3v3(n, v_prev, eve.co);
         v_prev = eve.co;
       }
     }
   }
 
-  if (UNLIKELY(normalize_v3(n) == 0.0f)) {
+  if (normalize_v3(n) == 0.0f) [[unlikely]] {
     return 0;
   }
 

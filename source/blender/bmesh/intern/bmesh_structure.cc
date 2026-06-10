@@ -351,7 +351,7 @@ bool bmesh_radial_validate(int radlen, BMLoop *l)
   }
 
   do {
-    if (UNLIKELY(!l_iter)) {
+    if (!l_iter) [[unlikely]] {
       BMESH_ASSERT(0);
       return false;
     }
@@ -363,7 +363,7 @@ bool bmesh_radial_validate(int radlen, BMLoop *l)
       return false;
     }
 
-    if (UNLIKELY(i > BM_LOOP_RADIAL_MAX)) {
+    if (i > BM_LOOP_RADIAL_MAX) [[unlikely]] {
       BMESH_ASSERT(0);
       return false;
     }
@@ -390,7 +390,7 @@ void bmesh_radial_loop_append(BMEdge *e, BMLoop *l)
     e->l = l;
   }
 
-  if (UNLIKELY(l->e && l->e != e)) {
+  if (l->e && l->e != e) [[unlikely]] {
     /* l is already in a radial cycle for a different edge */
     BMESH_ASSERT(0);
   }
@@ -401,7 +401,7 @@ void bmesh_radial_loop_append(BMEdge *e, BMLoop *l)
 void bmesh_radial_loop_remove(BMEdge *e, BMLoop *l)
 {
   /* if e is non-nullptr, l must be in the radial cycle of e */
-  if (UNLIKELY(e != l->e)) {
+  if (e != l->e) [[unlikely]] {
     BMESH_ASSERT(0);
   }
 
@@ -475,14 +475,14 @@ int bmesh_radial_length(const BMLoop *l)
   }
 
   do {
-    if (UNLIKELY(!l_iter)) {
+    if (!l_iter) [[unlikely]] {
       /* Radial cycle is broken (not a circular loop). */
       BMESH_ASSERT(0);
       return 0;
     }
 
     i++;
-    if (UNLIKELY(i >= BM_LOOP_RADIAL_MAX)) {
+    if (i >= BM_LOOP_RADIAL_MAX) [[unlikely]] {
       BMESH_ASSERT(0);
       return -1;
     }

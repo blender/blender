@@ -968,7 +968,7 @@ static BMFace *bm_faces_join_pair_by_edge(BMesh *bm,
    *
    * See #BM_faces_join note on `r_double`. The corners match #bm_edge_to_quad_verts winding. */
   BMVert *v_quad[4] = {l_a->v, l_b->prev->v, l_a->next->v, l_a->prev->v};
-  if (UNLIKELY(BM_face_exists(v_quad, 4) != nullptr)) {
+  if (BM_face_exists(v_quad, 4) != nullptr) [[unlikely]] {
     return nullptr;
   }
 

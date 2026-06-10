@@ -198,7 +198,7 @@ struct GrabState {
 
 static bool wm_software_cursor_needed()
 {
-  if (UNLIKELY(g_software_cursor.enabled == -1)) {
+  if (g_software_cursor.enabled == -1) [[unlikely]] {
     g_software_cursor.enabled = !(WM_capabilities_flag() & WM_CAPABILITY_CURSOR_WARP);
   }
   return g_software_cursor.enabled;
@@ -1456,7 +1456,7 @@ uint8_t *WM_window_pixels_read_from_offscreen(bContext *C, wmWindow *win, int r_
                                                  GPU_TEXTURE_USAGE_SHADER_READ,
                                                  false,
                                                  nullptr);
-  if (UNLIKELY(!offscreen)) {
+  if (!offscreen) [[unlikely]] {
     return nullptr;
   }
 
@@ -1495,7 +1495,7 @@ bool WM_window_pixels_read_sample_from_offscreen(bContext *C,
                                                  GPU_TEXTURE_USAGE_SHADER_READ,
                                                  false,
                                                  nullptr);
-  if (UNLIKELY(!offscreen)) {
+  if (!offscreen) [[unlikely]] {
     return false;
   }
 

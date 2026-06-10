@@ -112,7 +112,7 @@ static void bli_builddir(BuildDirCtx *dir_ctx, const char *dirname)
 {
   BLI_assert(!BLI_path_is_rel(dirname));
   DIR *dir = opendir(dirname);
-  if (UNLIKELY(dir == nullptr)) {
+  if (dir == nullptr) [[unlikely]] {
     fprintf(stderr,
             "Failed to open dir (%s): %s\n",
             errno ? strerror(errno) : "unknown error",
@@ -190,7 +190,7 @@ static void bli_builddir(BuildDirCtx *dir_ctx, const char *dirname)
       dir_ctx->files = MEM_new_array_uninitialized<direntry>(size_t(newnum), __func__);
     }
 
-    if (UNLIKELY(dir_ctx->files == nullptr)) {
+    if (dir_ctx->files == nullptr) [[unlikely]] {
       fprintf(stderr, "Couldn't get memory for dir: %s\n", dirname);
       dir_ctx->files_num = 0;
     }

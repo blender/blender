@@ -308,7 +308,7 @@ void AbstractViewItemDragController::on_drag_start(bContext & /*C*/, AbstractVie
 
 AbstractView &AbstractViewItem::get_view() const
 {
-  if (UNLIKELY(!view_)) {
+  if (!view_) [[unlikely]] {
     throw std::runtime_error(
         "Invalid state, item must be registered through AbstractView::register_item()");
   }

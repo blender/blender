@@ -3436,7 +3436,7 @@ static PyObject *bpy_bmfaceseq_new(BPy_BMElemSeq *self, PyObject *args, PyObject
                                BM_CREATE_NOP,
                                true);
 
-  if (UNLIKELY(f_new == nullptr)) {
+  if (f_new == nullptr) [[unlikely]] {
     PyErr_Format(
         PyExc_ValueError, "%s: couldn't create the new face, internal error", error_prefix);
     goto cleanup;
@@ -4491,7 +4491,7 @@ static PyObject *bpy_bmelemseq_subscript_slice(BPy_BMElemSeq *self,
 
   BLI_assert(ok == true);
 
-  if (UNLIKELY(ok == false)) {
+  if (ok == false) [[unlikely]] {
     return list;
   }
 
@@ -5167,7 +5167,7 @@ PyObject *BPy_BMVert_CreatePyObject(BMesh *bm, BMVert *v)
       CustomData_bmesh_get(&bm->vdata, v->head.data, CD_BM_ELEM_PYPTR));
 
   /* bmesh may free layers, ensure we have one to store ourself */
-  if (UNLIKELY(ptr == nullptr)) {
+  if (ptr == nullptr) [[unlikely]] {
     BM_data_layer_add(bm, &bm->vdata, CD_BM_ELEM_PYPTR);
     ptr = static_cast<void **>(CustomData_bmesh_get(&bm->vdata, v->head.data, CD_BM_ELEM_PYPTR));
   }
@@ -5194,7 +5194,7 @@ PyObject *BPy_BMEdge_CreatePyObject(BMesh *bm, BMEdge *e)
       CustomData_bmesh_get(&bm->edata, e->head.data, CD_BM_ELEM_PYPTR));
 
   /* bmesh may free layers, ensure we have one to store ourself */
-  if (UNLIKELY(ptr == nullptr)) {
+  if (ptr == nullptr) [[unlikely]] {
     BM_data_layer_add(bm, &bm->edata, CD_BM_ELEM_PYPTR);
     ptr = static_cast<void **>(CustomData_bmesh_get(&bm->edata, e->head.data, CD_BM_ELEM_PYPTR));
   }
@@ -5221,7 +5221,7 @@ PyObject *BPy_BMFace_CreatePyObject(BMesh *bm, BMFace *f)
       CustomData_bmesh_get(&bm->pdata, f->head.data, CD_BM_ELEM_PYPTR));
 
   /* bmesh may free layers, ensure we have one to store ourself */
-  if (UNLIKELY(ptr == nullptr)) {
+  if (ptr == nullptr) [[unlikely]] {
     BM_data_layer_add(bm, &bm->pdata, CD_BM_ELEM_PYPTR);
     ptr = static_cast<void **>(CustomData_bmesh_get(&bm->pdata, f->head.data, CD_BM_ELEM_PYPTR));
   }
@@ -5248,7 +5248,7 @@ PyObject *BPy_BMLoop_CreatePyObject(BMesh *bm, BMLoop *l)
       CustomData_bmesh_get(&bm->ldata, l->head.data, CD_BM_ELEM_PYPTR));
 
   /* bmesh may free layers, ensure we have one to store ourself */
-  if (UNLIKELY(ptr == nullptr)) {
+  if (ptr == nullptr) [[unlikely]] {
     BM_data_layer_add(bm, &bm->ldata, CD_BM_ELEM_PYPTR);
     ptr = static_cast<void **>(CustomData_bmesh_get(&bm->ldata, l->head.data, CD_BM_ELEM_PYPTR));
   }
@@ -5341,7 +5341,7 @@ PyObject *BPy_BMElem_CreatePyObject(BMesh *bm, BMHeader *ele)
 
 int bpy_bm_generic_valid_check(BPy_BMGeneric *self)
 {
-  if (LIKELY(self->bm)) {
+  if (self->bm) [[likely]] {
 
 /* far too slow to enable by default but handy
  * to uncomment for debugging tricky errors,
@@ -5378,11 +5378,11 @@ int bpy_bm_generic_valid_check_source(BMesh *bm_source,
       BLI_assert(BPy_BMesh_Check(py_bm_elem) || BPy_BMElem_Check(py_bm_elem));
 
       ret = bpy_bm_generic_valid_check(py_bm_elem);
-      if (UNLIKELY(ret == -1)) {
+      if (ret == -1) [[unlikely]] {
         break;
       }
 
-      if (UNLIKELY(py_bm_elem->bm != bm_source)) {
+      if (py_bm_elem->bm != bm_source) [[unlikely]] {
         /* could give more info here */
         PyErr_Format(PyExc_ValueError,
                      "%.200s: BMesh data of type %.200s is from another mesh",
@@ -5506,7 +5506,7 @@ void *BPy_BMElem_PySeq_As_Array_FAST(BMesh **r_bm,
     /* check for double verts! */
     bool ok = true;
     for (i = 0; i < seq_num; i++) {
-      if (UNLIKELY(BM_elem_flag_test(alloc[i], BM_ELEM_INTERNAL_TAG) == false)) {
+      if (BM_elem_flag_test(alloc[i], BM_ELEM_INTERNAL_TAG) == false) [[unlikely]] {
         ok = false;
       }
 

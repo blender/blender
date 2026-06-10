@@ -307,7 +307,7 @@ static ui::Block *wm_block_splash_create(bContext *C, ARegion *region, void * /*
    * first draw or if the image changed. */
   ImBuf *ibuf = wm_block_splash_image(splash_width, &splash_height);
   /* This should never happen, if it does - don't crash. */
-  if (LIKELY(ibuf)) {
+  if (ibuf) [[likely]] {
     ui::Button *but = uiDefButImage(
         block, ibuf, 0, 0.5f * U.widget_unit, splash_width, splash_height, nullptr);
 

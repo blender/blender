@@ -884,11 +884,11 @@ void BKE_defvert_add_index_notest(MDeformVert *dvert, const int defgroup, const 
 
 void BKE_defvert_remove_group(MDeformVert *dvert, MDeformWeight *dw)
 {
-  if (UNLIKELY(!dvert || !dw)) {
+  if (!dvert || !dw) [[unlikely]] {
     return;
   }
   /* Ensure `dw` is part of `dvert` (security check). */
-  if (UNLIKELY(uintptr_t(dw - dvert->dw) >= uintptr_t(dvert->totweight))) {
+  if (uintptr_t(dw - dvert->dw) >= uintptr_t(dvert->totweight)) [[unlikely]] {
     /* Assert as an invalid `dw` (while supported) isn't likely to do what the caller expected. */
     BLI_assert_unreachable();
     return;
@@ -944,7 +944,7 @@ bool BKE_defvert_is_weight_zero(const MDeformVert *dvert, const int defgroup_tot
   for (int i = dvert->totweight; i != 0; i--, dw++) {
     if (dw->weight != 0.0f) {
       /* check the group is in-range, happens on rare situations */
-      if (LIKELY(dw->def_nr < defgroup_tot)) {
+      if (dw->def_nr < defgroup_tot) [[likely]] {
         return false;
       }
     }
@@ -1117,7 +1117,7 @@ void BKE_defvert_extract_vgroup_to_edgeweights(const MDeformVert *dvert,
                                                const bool invert_vgroup,
                                                float *r_weights)
 {
-  if (UNLIKELY(!dvert || defgroup == -1)) {
+  if (!dvert || defgroup == -1) [[unlikely]] {
     std::fill_n(r_weights, edges.size(), 0.0f);
     return;
   }
@@ -1144,7 +1144,7 @@ void BKE_defvert_extract_vgroup_to_loopweights(const MDeformVert *dvert,
                                                const bool invert_vgroup,
                                                float *r_weights)
 {
-  if (UNLIKELY(!dvert || defgroup == -1)) {
+  if (!dvert || defgroup == -1) [[unlikely]] {
     std::fill_n(r_weights, corner_verts.size(), 0.0f);
     return;
   }
@@ -1170,7 +1170,7 @@ void BKE_defvert_extract_vgroup_to_faceweights(const MDeformVert *dvert,
                                                const bool invert_vgroup,
                                                float *r_weights)
 {
-  if (UNLIKELY(!dvert || defgroup == -1)) {
+  if (!dvert || defgroup == -1) [[unlikely]] {
     std::fill_n(r_weights, faces.size(), 0.0f);
     return;
   }

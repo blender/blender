@@ -548,7 +548,11 @@ template<typename T> constexpr bool value_is_zero(const T &value)
 /** \name Branch Prediction Macros
  * \{ */
 
-/* hints for branch prediction, only use in code that runs a _lot_ where */
+/* Hints for branch prediction.
+ *
+ * NOTE: prefer C++ `[[likely]]` / `[[unlikely]]` attribute.
+ * Use the defines in contexts where attributes aren't supported (ternary operators for e.g.).
+ */
 #ifdef __GNUC__
 #  define LIKELY(x) __builtin_expect(!!(x), 1)
 #  define UNLIKELY(x) __builtin_expect(!!(x), 0)

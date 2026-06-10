@@ -223,10 +223,10 @@ template<typename T> inline T exp(const T &x)
 
 template<typename T> inline T safe_acos(const T &a)
 {
-  if (UNLIKELY(a <= T(-1))) {
+  if (a <= T(-1)) [[unlikely]] {
     return T(std::numbers::pi);
   }
-  if (UNLIKELY(a >= T(1))) {
+  if (a >= T(1)) [[unlikely]] {
     return T(0);
   }
   return math::acos((a));

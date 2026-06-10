@@ -279,7 +279,7 @@ static VChar *vfont_char_find_or_placeholder(const VFontData *vfd,
   if (vfd) {
     vfont_char_find(vfd, charcode, &che);
   }
-  if (UNLIKELY(che == nullptr)) {
+  if (che == nullptr) [[unlikely]] {
     che = vfont_placeholder_ensure(che_placeholder, charcode);
   }
   return che;
@@ -521,7 +521,7 @@ static float vfont_char_width(const Curve &cu, VChar *che, const bool is_smallca
 
 static char32_t vfont_char_apply_smallcaps(char32_t charcode, const bool is_smallcaps)
 {
-  if (UNLIKELY(is_smallcaps)) {
+  if (is_smallcaps) [[unlikely]] {
     return toupper(charcode);
   }
   return charcode;
@@ -721,7 +721,7 @@ static bool vfont_to_curve(Object *ob,
   BLI_assert(ob == nullptr || ob->type == OB_FONT);
 
   /* Read-file ensures non-null, must have become null at run-time, this is a bug! */
-  if (UNLIKELY(!(cu.str && cu.tb && (ef ? ef->textbufinfo : cu.strinfo)))) {
+  if (!(cu.str && cu.tb && (ef ? ef->textbufinfo : cu.strinfo))) [[unlikely]] {
     BLI_assert(0);
     return false;
   }
@@ -940,7 +940,7 @@ static bool vfont_to_curve(Object *ob,
         for (j = i; (mem[j] != '\n') && (chartransdata[j].do_break == 0); j--) {
 
           /* Special case when there are no breaks possible. */
-          if (UNLIKELY(j == 0)) {
+          if (j == 0) [[unlikely]] {
             if (i == slen) {
               /* Use the behavior of zero a height text-box when a break cannot be inserted.
                *

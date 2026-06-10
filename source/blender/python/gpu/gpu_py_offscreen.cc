@@ -59,7 +59,7 @@ static const PyC_StringEnumItems pygpu_framebuffer_color_texture_formats[] = {
 
 static int pygpu_offscreen_valid_check(BPyGPUOffScreen *py_ofs)
 {
-  if (UNLIKELY(py_ofs->ofs == nullptr)) {
+  if (py_ofs->ofs == nullptr) [[unlikely]] {
     PyErr_SetString(PyExc_ReferenceError,
 #ifdef BPYGPU_USE_GPUOBJ_FREE_METHOD
                     "GPU offscreen was freed, no further access is valid"
@@ -74,7 +74,7 @@ static int pygpu_offscreen_valid_check(BPyGPUOffScreen *py_ofs)
 
 #define BPY_GPU_OFFSCREEN_CHECK_OBJ(bpygpu) \
   { \
-    if (UNLIKELY(pygpu_offscreen_valid_check(bpygpu) == -1)) { \
+    if (pygpu_offscreen_valid_check(bpygpu) == -1) [[unlikely]] { \
       return nullptr; \
     } \
   } \

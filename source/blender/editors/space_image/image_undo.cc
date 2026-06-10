@@ -577,7 +577,7 @@ static void uhandle_restore_list(ListBaseT<UndoImageHandle> *undo_handles, bool 
     Image *image = uh.image_ref.ptr;
 
     ImBuf *ibuf = BKE_image_acquire_ibuf(image, &uh.iuser, nullptr);
-    if (UNLIKELY(ibuf == nullptr)) {
+    if (ibuf == nullptr) [[unlikely]] {
       CLOG_ERROR(&LOG, "Unable to get buffer for image '%s'", image->id.name + 2);
       continue;
     }

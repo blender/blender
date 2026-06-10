@@ -2204,7 +2204,7 @@ static void area_init_type_fallback(ScrArea *area, eSpace_Type space_type)
   }
   if (sl) {
     SpaceLink *sl_old = static_cast<SpaceLink *>(area->spacedata.first);
-    if (LIKELY(sl != sl_old)) {
+    if (sl != sl_old) [[likely]] {
       BLI_remlink(&area->spacedata, sl);
       BLI_addhead(&area->spacedata, sl);
 
@@ -3256,7 +3256,7 @@ static bool panel_add_check(const bContext *C,
     }
   }
 
-  if (LIKELY(panel_type->draw)) {
+  if (panel_type->draw) [[likely]] {
     if (panel_type->poll && !panel_type->poll(C, panel_type)) {
       return false;
     }
@@ -3745,7 +3745,7 @@ static bool panel_property_search(const bContext *C,
         block, ui::LayoutDirection::Horizontal, ui::LayoutType::Header, 0, 0, 0, 0, 0, style);
     panel_type->draw_header(C, panel);
   }
-  if (LIKELY(panel->type->draw != nullptr)) {
+  if (panel->type->draw != nullptr) [[likely]] {
     panel->layout = &ui::block_layout(
         block, ui::LayoutDirection::Vertical, ui::LayoutType::Panel, 0, 0, 0, 0, 0, style);
     panel_type->draw(C, panel);

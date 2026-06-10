@@ -4367,7 +4367,7 @@ static bool dynamicPaint_paintMesh(Depsgraph *depsgraph,
     if (brush->flags & MOD_DPAINT_PROX_PROJECT && brush->collision != MOD_DPAINT_COL_VOLUME) {
       mul_v3_fl(avg_brushNor, 1.0f / float(numOfVerts));
       /* instead of null vector use positive z */
-      if (UNLIKELY(normalize_v3(avg_brushNor) == 0.0f)) {
+      if (normalize_v3(avg_brushNor) == 0.0f) [[unlikely]] {
         avg_brushNor[2] = 1.0f;
       }
     }

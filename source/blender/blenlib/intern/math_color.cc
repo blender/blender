@@ -429,7 +429,7 @@ void rgb_to_hsv_compat_v(const float rgb[3], float r_hsv[3])
 
 void hsv_clamp_v(float hsv[3], float v_max)
 {
-  if (UNLIKELY(hsv[0] < 0.0f || hsv[0] > 1.0f)) {
+  if (hsv[0] < 0.0f || hsv[0] > 1.0f) [[unlikely]] {
     hsv[0] = hsv[0] - floorf(hsv[0]);
   }
   CLAMP(hsv[1], 0.0f, 1.0f);

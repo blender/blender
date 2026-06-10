@@ -491,7 +491,7 @@ void BM_loop_interp_multires_ex(BMesh * /*bm*/,
   float axis_x[3], axis_y[3];
 
   /* ignore 2-edged faces */
-  if (UNLIKELY(l_dst->f->len < 3)) {
+  if (l_dst->f->len < 3) [[unlikely]] {
     return;
   }
 
@@ -1231,7 +1231,7 @@ LinkNode *BM_vert_loop_groups_data_layer_create(
       bm_loop_walk_data(&lwc, l);
       lf->data_len = lwc.data_len - len_prev;
 
-      if (LIKELY(lwc.weight_accum != 0.0f)) {
+      if (lwc.weight_accum != 0.0f) [[likely]] {
         mul_vn_fl(lf->data_weights, lf->data_len, 1.0f / lwc.weight_accum);
       }
       else {
@@ -1286,7 +1286,7 @@ static void bm_vert_loop_groups_data_layer_merge_weights__single(
     weight_accum += w;
   }
 
-  if (LIKELY(weight_accum != 0.0f)) {
+  if (weight_accum != 0.0f) [[likely]] {
     mul_vn_fl(temp_weights, lf->data_len, 1.0f / weight_accum);
     data_weights = temp_weights;
   }

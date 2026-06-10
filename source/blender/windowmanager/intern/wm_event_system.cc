@@ -566,7 +566,7 @@ void wm_event_do_refresh_wm_and_depsgraph(bContext *C)
 static void wm_event_timers_execute(bContext *C)
 {
   wmWindowManager *wm = CTX_wm_manager(C);
-  if (UNLIKELY(wm == nullptr)) {
+  if (wm == nullptr) [[unlikely]] {
     return;
   }
 
@@ -1608,7 +1608,7 @@ static void wm_region_tag_draw_on_gizmo_delay_refresh_for_tweak(wmWindow *win)
 
   bScreen *screen = WM_window_get_active_screen(win);
   /* Unlikely but not impossible as this runs after events have been handled. */
-  if (UNLIKELY(screen == nullptr)) {
+  if (screen == nullptr) [[unlikely]] {
     return;
   }
   ED_screen_areas_iter (win, screen, area) {
@@ -6041,7 +6041,7 @@ void wm_event_add_ghostevent(wmWindowManager *wm,
                              const void *customdata,
                              const uint64_t event_time_ms)
 {
-  if (UNLIKELY(G.f & G_FLAG_EVENT_SIMULATE)) {
+  if (G.f & G_FLAG_EVENT_SIMULATE) [[unlikely]] {
     return;
   }
 
@@ -6260,7 +6260,7 @@ void wm_event_add_ghostevent(wmWindowManager *wm,
     case GHOST_kEventKeyUp: {
       const GHOST_TEventKeyData *kd = static_cast<const GHOST_TEventKeyData *>(customdata);
       event.type = wm_event_type_from_ghost_key(kd->key);
-      if (UNLIKELY(event.type == EVENT_NONE)) {
+      if (event.type == EVENT_NONE) [[unlikely]] {
         break;
       }
 
@@ -6800,7 +6800,7 @@ void WM_window_cursor_keymap_status_refresh(bContext *C, wmWindow *win)
   }
 
   CursorKeymapInfo *cd;
-  if (UNLIKELY(win->runtime->cursor_keymap_status == nullptr)) {
+  if (win->runtime->cursor_keymap_status == nullptr) [[unlikely]] {
     win->runtime->cursor_keymap_status = MEM_new<CursorKeymapInfo>(__func__);
   }
   cd = static_cast<CursorKeymapInfo *>(win->runtime->cursor_keymap_status);

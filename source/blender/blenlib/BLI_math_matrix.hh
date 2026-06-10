@@ -892,7 +892,7 @@ template<typename T> QuaternionBase<T> normalized_to_quat_fast(const MatBase<T, 
       q.w = (mat[1][2] - mat[2][1]) * s;
       q.y = (mat[0][1] + mat[1][0]) * s;
       q.z = (mat[2][0] + mat[0][2]) * s;
-      if (UNLIKELY((trace == 1.0f) && (q.w == 0.0f && q.y == 0.0f && q.z == 0.0f))) {
+      if ((trace == 1.0f) && (q.w == 0.0f && q.y == 0.0f && q.z == 0.0f)) [[unlikely]] {
         /* Avoids the need to normalize the degenerate case. */
         q.x = 1.0f;
       }
@@ -909,7 +909,7 @@ template<typename T> QuaternionBase<T> normalized_to_quat_fast(const MatBase<T, 
       q.w = (mat[2][0] - mat[0][2]) * s;
       q.x = (mat[0][1] + mat[1][0]) * s;
       q.z = (mat[1][2] + mat[2][1]) * s;
-      if (UNLIKELY((trace == 1.0f) && (q.w == 0.0f && q.x == 0.0f && q.z == 0.0f))) {
+      if ((trace == 1.0f) && (q.w == 0.0f && q.x == 0.0f && q.z == 0.0f)) [[unlikely]] {
         /* Avoids the need to normalize the degenerate case. */
         q.y = 1.0f;
       }
@@ -928,7 +928,7 @@ template<typename T> QuaternionBase<T> normalized_to_quat_fast(const MatBase<T, 
       q.w = (mat[0][1] - mat[1][0]) * s;
       q.x = (mat[2][0] + mat[0][2]) * s;
       q.y = (mat[1][2] + mat[2][1]) * s;
-      if (UNLIKELY((trace == 1.0f) && (q.w == 0.0f && q.x == 0.0f && q.y == 0.0f))) {
+      if ((trace == 1.0f) && (q.w == 0.0f && q.x == 0.0f && q.y == 0.0f)) [[unlikely]] {
         /* Avoids the need to normalize the degenerate case. */
         q.z = 1.0f;
       }
@@ -944,7 +944,7 @@ template<typename T> QuaternionBase<T> normalized_to_quat_fast(const MatBase<T, 
       q.x = (mat[1][2] - mat[2][1]) * s;
       q.y = (mat[2][0] - mat[0][2]) * s;
       q.z = (mat[0][1] - mat[1][0]) * s;
-      if (UNLIKELY((trace == 1.0f) && (q.x == 0.0f && q.y == 0.0f && q.z == 0.0f))) {
+      if ((trace == 1.0f) && (q.x == 0.0f && q.y == 0.0f && q.z == 0.0f)) [[unlikely]] {
         /* Avoids the need to normalize the degenerate case. */
         q.w = 1.0f;
       }
@@ -974,10 +974,10 @@ template<typename T> QuaternionBase<T> normalized_to_quat_fast(const MatBase<T, 
 template<typename T> QuaternionBase<T> normalized_to_quat_with_checks(const MatBase<T, 3, 3> &mat)
 {
   const T det = math::determinant(mat);
-  if (UNLIKELY(!std::isfinite(det))) {
+  if (!std::isfinite(det)) [[unlikely]] {
     return QuaternionBase<T>::identity();
   }
-  if (UNLIKELY(det < T(0))) {
+  if (det < T(0)) [[unlikely]] {
     return normalized_to_quat_fast(-mat);
   }
   return normalized_to_quat_fast(mat);
@@ -1295,7 +1295,7 @@ template<bool AllowNegativeScale, typename T, int NumCol, int NumRow>
 {
   VecBase<T, 3> result = {length(mat.x_axis()), length(mat.y_axis()), length(mat.z_axis())};
   if constexpr (AllowNegativeScale) {
-    if (UNLIKELY(is_negative(mat))) {
+    if (is_negative(mat)) [[unlikely]] {
       result = -result;
     }
   }
@@ -1307,7 +1307,7 @@ template<bool AllowNegativeScale, typename T>
 {
   VecBase<T, 2> result = {length(mat.x), length(mat.y)};
   if constexpr (AllowNegativeScale) {
-    if (UNLIKELY(is_negative(mat))) {
+    if (is_negative(mat)) [[unlikely]] {
       result = -result;
     }
   }
@@ -1350,7 +1350,7 @@ inline void to_rot_scale(const MatBase<T, 2, 2> &mat,
 {
   MatBase<T, 2, 2> normalized_mat = normalize_and_get_size(mat, r_scale);
   if constexpr (AllowNegativeScale) {
-    if (UNLIKELY(is_negative(normalized_mat))) {
+    if (is_negative(normalized_mat)) [[unlikely]] {
       normalized_mat = -normalized_mat;
       r_scale = -r_scale;
     }
@@ -1375,7 +1375,7 @@ inline void to_rot_scale(const MatBase<T, 3, 3> &mat,
 {
   MatBase<T, 3, 3> normalized_mat = normalize_and_get_size(mat, r_scale);
   if constexpr (AllowNegativeScale) {
-    if (UNLIKELY(is_negative(normalized_mat))) {
+    if (is_negative(normalized_mat)) [[unlikely]] {
       normalized_mat = -normalized_mat;
       r_scale = -r_scale;
     }

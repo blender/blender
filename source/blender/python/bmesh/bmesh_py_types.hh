@@ -237,12 +237,12 @@ enum {
                                                  const char *error_prefix);
 
 #define BPY_BM_CHECK_OBJ(obj) \
-  if (UNLIKELY(bpy_bm_generic_valid_check((BPy_BMGeneric *)obj) == -1)) { \
+  if (bpy_bm_generic_valid_check((BPy_BMGeneric *)obj) == -1) [[unlikely]] { \
     return NULL; \
   } \
   (void)0
 #define BPY_BM_CHECK_INT(obj) \
-  if (UNLIKELY(bpy_bm_generic_valid_check((BPy_BMGeneric *)obj) == -1)) { \
+  if (bpy_bm_generic_valid_check((BPy_BMGeneric *)obj) == -1) [[unlikely]] { \
     return -1; \
   } \
   (void)0
@@ -253,8 +253,8 @@ enum {
 #define BPY_BM_CHECK_SOURCE_OBJ(bm, errmsg, ...) \
   { \
     void *_args[] = {__VA_ARGS__}; \
-    if (UNLIKELY(bpy_bm_generic_valid_check_source(bm, errmsg, _args, ARRAY_SIZE(_args)) == -1)) \
-    { \
+    if (bpy_bm_generic_valid_check_source(bm, errmsg, _args, ARRAY_SIZE(_args)) == -1) \
+        [[unlikely]] { \
       return NULL; \
     } \
   } \
@@ -262,8 +262,8 @@ enum {
 #define BPY_BM_CHECK_SOURCE_INT(bm, errmsg, ...) \
   { \
     void *_args[] = {__VA_ARGS__}; \
-    if (UNLIKELY(bpy_bm_generic_valid_check_source(bm, errmsg, _args, ARRAY_SIZE(_args)) == -1)) \
-    { \
+    if (bpy_bm_generic_valid_check_source(bm, errmsg, _args, ARRAY_SIZE(_args)) == -1) \
+        [[unlikely]] { \
       return -1; \
     } \
   } \

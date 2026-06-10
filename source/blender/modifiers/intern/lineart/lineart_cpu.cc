@@ -179,10 +179,10 @@ void lineart_edge_cut(LineartData *ld,
   if (LRT_DOUBLE_CLOSE_ENOUGH(start, 1) || LRT_DOUBLE_CLOSE_ENOUGH(end, 0)) {
     return;
   }
-  if (UNLIKELY(start != start)) {
+  if (start != start) [[unlikely]] {
     start = 0.0;
   }
-  if (UNLIKELY(end != end)) {
+  if (end != end) [[unlikely]] {
     end = 0.0;
   }
 
@@ -1746,7 +1746,7 @@ void lineart_add_edge_to_array(LineartPendingEdges *pe, LineartEdge *e)
 
     LineartEdge **new_array = MEM_new_array_uninitialized<LineartEdge *>(
         size_t(pe->max) * 2, "LineartPendingEdges array");
-    if (LIKELY(pe->array)) {
+    if (pe->array) [[likely]] {
       memcpy(new_array, pe->array, sizeof(LineartEdge *) * pe->max);
       MEM_delete(pe->array);
     }

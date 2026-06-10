@@ -632,7 +632,7 @@ static Array<BMLoop *> pbvh_bmesh_edge_loops(BMEdge *e)
 {
   /* Fast-path for most common case where an edge has 2 faces no need to iterate twice. */
   std::array<BMLoop *, 2> manifold_loops;
-  if (LIKELY(BM_edge_loop_pair(e, manifold_loops.data(), manifold_loops.data() + 1))) {
+  if (BM_edge_loop_pair(e, manifold_loops.data(), manifold_loops.data() + 1)) [[likely]] {
     return Array<BMLoop *>(Span(manifold_loops));
   }
   Array<BMLoop *> loops(BM_edge_face_count(e));
@@ -851,7 +851,7 @@ static void long_edge_queue_edge_add_recursive(const EdgeQueueContext *eq_ctx,
   }
 
   /* temp support previous behavior! */
-  if (UNLIKELY(G.debug_value == 1234)) {
+  if (G.debug_value == 1234) [[unlikely]] {
     return;
   }
 

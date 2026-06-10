@@ -2976,12 +2976,12 @@ struct UVSelectLinkedHelper : NonCopyable, NonMovable {
   bool face_add(BMFace *efa)
   {
     /* Lazily create the UV vertex map, stack, and face tracking. */
-    if (UNLIKELY(!has_data)) {
+    if (!has_data) [[unlikely]] {
       const ToolSettings *ts = scene->toolsettings;
       const bool uv_select_sync = (ts->uv_flag & UV_FLAG_SELECT_SYNC);
       BM_mesh_elem_table_ensure(bm, BM_FACE);
       vmap_ = BM_uv_vert_map_create(bm, !uv_select_sync, true);
-      if (UNLIKELY(vmap_ == nullptr)) {
+      if (vmap_ == nullptr) [[unlikely]] {
         /* This will keep attempting to allocate on every `face_add` call.
          * This is weak but such a corner case that it's not worth attempting to
          * gracefully handle the code path in the case there is no mapping data to use. */

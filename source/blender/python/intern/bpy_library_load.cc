@@ -114,7 +114,7 @@ static PyObject *make_library_info(BLODataBlockInfo &id_info)
 
   BLI_assert(pos == bpy_lib_LibraryType_desc.n_in_sequence);
 
-  if (UNLIKELY(PyErr_Occurred())) {
+  if (PyErr_Occurred()) [[unlikely]] {
     Py_DECREF(library_info);
     return nullptr;
   }

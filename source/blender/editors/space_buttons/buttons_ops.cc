@@ -373,7 +373,7 @@ static wmOperatorStatus file_browse_invoke(bContext *C, wmOperator *op, const wm
         is_relative = BLI_path_is_rel(path);
       }
 
-      if (UNLIKELY(ptr.data == &U || is_userdef)) {
+      if (ptr.data == &U || is_userdef) [[unlikely]] {
         is_relative = false;
       }
 

@@ -615,7 +615,7 @@ void BM_mesh_bm_from_me(BMesh *bm, const Mesh *mesh, const BMeshFromMeshParams *
       ftable[i] = f;
     }
 
-    if (UNLIKELY(f == nullptr)) {
+    if (f == nullptr) [[unlikely]] {
       printf(
           "%s: Warning! Bad face in mesh"
           " \"%s\" at index %d!, skipping\n",

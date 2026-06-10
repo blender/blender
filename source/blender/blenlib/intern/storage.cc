@@ -603,7 +603,7 @@ LinkNode *BLI_file_read_as_lines(const char *filepath)
   size = size_t(BLI_ftell(fp));
   BLI_fseek(fp, 0, SEEK_SET);
 
-  if (UNLIKELY(size == size_t(-1))) {
+  if (size == size_t(-1)) [[unlikely]] {
     fclose(fp);
     return nullptr;
   }

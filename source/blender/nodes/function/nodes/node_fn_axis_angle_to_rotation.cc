@@ -24,7 +24,7 @@ static void node_build_multi_function(NodeMultiFunctionBuilder &builder)
 {
   static auto fn = mf::build::SI2_SO<float3, float, math::Quaternion>(
       "Axis Angle to Quaternion", [](float3 axis, float angle) {
-        if (UNLIKELY(math::is_zero(axis))) {
+        if (math::is_zero(axis)) [[unlikely]] {
           return math::Quaternion::identity();
         }
         const float3 axis_normalized = math::normalize(axis);

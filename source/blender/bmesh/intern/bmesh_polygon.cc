@@ -503,7 +503,7 @@ void BM_face_calc_tangent_from_edge_pair(const BMFace *f, float r_tangent[3])
     /* Edges may not be opposite side of the ngon,
      * this could cause problems for ngons with multiple-aligned edges of the same length.
      * Fall back to longest edge. */
-    if (UNLIKELY(normalize_v3(r_tangent) == 0.0f)) {
+    if (normalize_v3(r_tangent) == 0.0f) [[unlikely]] {
       normalize_v3_v3(r_tangent, vec_a);
     }
   }
@@ -1186,10 +1186,10 @@ void BM_face_triangulate(BMesh *bm,
             /* first check if the quad is concave on either diagonal */
             const int flip_flag = is_quad_flip_v3(
                 l_v1->v->co, l_v2->v->co, l_v3->v->co, l_v4->v->co);
-            if (UNLIKELY(flip_flag & (1 << 0))) {
+            if (flip_flag & (1 << 0)) [[unlikely]] {
               split_24 = true;
             }
-            else if (UNLIKELY(flip_flag & (1 << 1))) {
+            else if (flip_flag & (1 << 1)) [[unlikely]] {
               split_24 = false;
             }
             else {
@@ -1261,7 +1261,7 @@ void BM_face_triangulate(BMesh *bm,
       if (l_new->radial_next != l_new) {
         BMLoop *l_iter = l_new->radial_next;
         do {
-          if (UNLIKELY((l_iter->f->len == 3) && (l_new->prev->v == l_iter->prev->v))) {
+          if ((l_iter->f->len == 3) && (l_new->prev->v == l_iter->prev->v)) [[unlikely]] {
             /* Check the last tri because we swap last f_new with f at the end... */
             BLI_linklist_prepend(r_faces_double, (i != last_tri) ? f_new : f);
             break;
@@ -1383,7 +1383,7 @@ void BM_face_splits_check_legal(BMesh *bm, BMFace *f, BMLoop *(*loops)[2], int l
     };
 
     /* Always allow cuts that overlap (unlikely but not an error). */
-    if (UNLIKELY(equals_v2v2(co_pair[0], co_pair[1]))) {
+    if (equals_v2v2(co_pair[0], co_pair[1])) [[unlikely]] {
       continue;
     }
 

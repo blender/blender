@@ -228,7 +228,7 @@ void WM_window_csd_draw_titlebar_ex(const int win_size[2],
 
       for (int i = 0; i < ARRAY_SIZE(button_types); i++) {
         const GHOST_TCSD_Type ty = button_types[i];
-        if (UNLIKELY(csd_elems[ty].type == GHOST_kCSDTypeBody)) {
+        if (csd_elems[ty].type == GHOST_kCSDTypeBody) [[unlikely]] {
           continue;
         }
         const rcti butrect = {
@@ -252,7 +252,7 @@ void WM_window_csd_draw_titlebar_ex(const int win_size[2],
                                                                fractional_scale);
     for (int i = 0; i < ARRAY_SIZE(button_types); i++) {
       const GHOST_TCSD_Type ty = button_types[i];
-      if (UNLIKELY(csd_elems[ty].type == GHOST_kCSDTypeBody)) {
+      if (csd_elems[ty].type == GHOST_kCSDTypeBody) [[unlikely]] {
         continue;
       }
       const rcti butrect = {

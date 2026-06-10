@@ -128,7 +128,7 @@ void bmo_offset_edgeloops_exec(BMesh *bm, BMOperator *op)
   }
 
   /* possible but unlikely we have no mixed vertices */
-  if (UNLIKELY(STACK_SIZE(verts) == 0)) {
+  if (STACK_SIZE(verts) == 0) [[unlikely]] {
     MEM_delete(verts);
     return;
   }

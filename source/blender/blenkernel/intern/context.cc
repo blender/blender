@@ -425,7 +425,7 @@ static void *ctx_wm_python_context_get(const bContext *C,
   bool found_member = false;
 
 #ifdef WITH_PYTHON
-  if (UNLIKELY(CTX_py_dict_get(C))) {
+  if (CTX_py_dict_get(C)) [[unlikely]] {
     bContextDataResult result{};
     if (BPY_context_member_get(const_cast<bContext *>(C), member, &result)) {
       found_member = true;

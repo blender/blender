@@ -2543,7 +2543,7 @@ static int handle_panel_category_cycling(const wmEvent *event,
   }
   else {
     const char *category = panel_category_active_get(region, false);
-    if (LIKELY(category)) {
+    if (category) [[likely]] {
       PanelCategoryDyn *pc_dyn = panel_category_find(region, category);
       /* Cyclic behavior between categories
        * using Ctrl+Tab (+Shift for backwards) or Ctrl+Wheel Up/Down. */

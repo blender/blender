@@ -57,7 +57,7 @@ static Mesh *hull_from_bullet(const Mesh *mesh, Span<float3> coords)
     float3 dummy_co;
     int original_index;
     plConvexHullGetVertex(hull, i, dummy_co, &original_index);
-    if (UNLIKELY(!coords.index_range().contains(original_index))) {
+    if (!coords.index_range().contains(original_index)) [[unlikely]] {
       BLI_assert_unreachable();
       dst_positions[i] = float3(0);
       continue;

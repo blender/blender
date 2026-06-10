@@ -137,7 +137,7 @@ static void bm_vert_calc_normals_impl(BMVert *v)
       }
     } while ((e_iter = BM_DISK_EDGE_NEXT(e_iter, v)) != e_first);
 
-    if (LIKELY(normalize_v3(v_no) != 0.0f)) {
+    if (normalize_v3(v_no) != 0.0f) [[likely]] {
       return;
     }
   }
@@ -188,7 +188,7 @@ static void bm_vert_calc_normals_with_coords(BMVert *v, BMVertsCalcNormalsWithCo
       }
     } while ((e_iter = BM_DISK_EDGE_NEXT(e_iter, v)) != e_first);
 
-    if (LIKELY(normalize_v3(v_no) != 0.0f)) {
+    if (normalize_v3(v_no) != 0.0f) [[likely]] {
       return;
     }
   }
@@ -273,7 +273,7 @@ void BM_mesh_normals_update_with_partial_ex(BMesh * /*bm*/,
 {
   BLI_assert(bmpinfo->params.do_normals);
   /* While harmless, exit early if there is nothing to do. */
-  if (UNLIKELY(bmpinfo->verts.is_empty() && bmpinfo->faces.is_empty())) {
+  if (bmpinfo->verts.is_empty() && bmpinfo->faces.is_empty()) [[unlikely]] {
     return;
   }
 
@@ -688,7 +688,7 @@ static int bm_mesh_loops_calc_normals_for_loop(BMesh *bm,
 
       /* If we are generating lnor spacearr, we can now define the one for this fan. */
       if (r_lnors_spacearr) {
-        if (UNLIKELY(lnor_len == 0.0f)) {
+        if (lnor_len == 0.0f) [[unlikely]] {
           /* Use vertex normal as fallback! */
           copy_v3_v3(lnor, r_lnos[lfan_pivot_index]);
           lnor_len = 1.0f;
@@ -726,7 +726,7 @@ static int bm_mesh_loops_calc_normals_for_loop(BMesh *bm,
       }
 
       /* In case we get a zero normal here, just use vertex normal already set! */
-      if (LIKELY(lnor_len != 0.0f)) {
+      if (lnor_len != 0.0f) [[likely]] {
         /* Copy back the final computed normal into all related loop-normals. */
         float *nor;
 
@@ -925,7 +925,7 @@ static void bm_mesh_loops_calc_normals_for_vert_with_clnors(BMesh *bm,
       } while ((l_curr = l_curr->radial_next) != e_curr_iter->l);
     } while ((e_curr_iter = BM_DISK_EDGE_NEXT(e_curr_iter, v)) != v->e);
 
-    if (UNLIKELY(loops_of_vert == nullptr)) {
+    if (loops_of_vert == nullptr) [[unlikely]] {
       return;
     }
 

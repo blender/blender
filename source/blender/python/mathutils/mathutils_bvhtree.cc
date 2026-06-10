@@ -531,7 +531,7 @@ static bool py_bvhtree_overlap_cb(void *userdata, int index_a, int index_b, int 
   int verts_shared = 0;
 
   if (tree_a == tree_b) {
-    if (UNLIKELY(index_a == index_b)) {
+    if (index_a == index_b) [[unlikely]] {
       return false;
     }
 
@@ -743,7 +743,7 @@ static PyObject *C_BVHTree_FromPolygons(PyObject * /*cls*/, PyObject *args, PyOb
 
       for (j = 0; j < 3; j++) {
         tri[j] = PyC_Long_AsU32(py_tricoords_fast_items[j]);
-        if (UNLIKELY(tri[j] >= uint(coords_len))) {
+        if (tri[j] >= uint(coords_len)) [[unlikely]] {
           PyErr_Format(PyExc_ValueError,
                        "%s: index %d must be less than %d",
                        error_prefix,
@@ -797,7 +797,7 @@ static PyObject *C_BVHTree_FromPolygons(PyObject * /*cls*/, PyObject *args, PyOb
 
       for (j = 0; j < py_tricoords_len; j++) {
         plink->poly[j] = PyC_Long_AsU32(py_tricoords_fast_items[j]);
-        if (UNLIKELY(plink->poly[j] >= uint(coords_len))) {
+        if (plink->poly[j] >= uint(coords_len)) [[unlikely]] {
           PyErr_Format(PyExc_ValueError,
                        "%s: index %d must be less than %d",
                        error_prefix,

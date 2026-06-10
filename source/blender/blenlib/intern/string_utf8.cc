@@ -59,7 +59,7 @@ static size_t str_utf8_truncate_at_size_unchecked(char *str, const size_t str_si
 
 BLI_INLINE int utf8_char_compute_skip(const char c)
 {
-  if (UNLIKELY(c >= 192)) {
+  if (c >= 192) [[unlikely]] {
     if ((c & 0xe0) == 0xc0) {
       return 2;
     }
@@ -338,14 +338,14 @@ const char *BLI_str_utf8_invalid_substitute_if_needed(const char *str,
 {
   BLI_assert(str[str_len] == '\0');
   const ptrdiff_t bad_char = BLI_str_utf8_invalid_byte(str, str_len);
-  if (LIKELY(bad_char == -1)) {
+  if (bad_char == -1) [[likely]] {
     return str;
   }
   BLI_assert(bad_char >= 0);
 
   /* In the case a bad character is outside the buffer limit,
    * simply perform a truncating UTF8 copy into the buffer and return that. */
-  if (UNLIKELY(size_t(bad_char) >= buf_maxncpy)) {
+  if (size_t(bad_char) >= buf_maxncpy) [[unlikely]] {
     BLI_strncpy_utf8(buf, str, buf_maxncpy);
     return buf;
   }
@@ -388,12 +388,12 @@ BLI_INLINE char *str_utf8_copy_max_bytes_impl(char *dst, const char *src, size_t
     /* NOLINTBEGIN: bugprone-assignment-in-if-condition */
     /* clang-format off */
     switch (utf8_size) {
-      case 6: if (UNLIKELY(!(*dst = *src++))) { return dst; } dst++; ATTR_FALLTHROUGH;
-      case 5: if (UNLIKELY(!(*dst = *src++))) { return dst; } dst++; ATTR_FALLTHROUGH;
-      case 4: if (UNLIKELY(!(*dst = *src++))) { return dst; } dst++; ATTR_FALLTHROUGH;
-      case 3: if (UNLIKELY(!(*dst = *src++))) { return dst; } dst++; ATTR_FALLTHROUGH;
-      case 2: if (UNLIKELY(!(*dst = *src++))) { return dst; } dst++; ATTR_FALLTHROUGH;
-      case 1: if (UNLIKELY(!(*dst = *src++))) { return dst; } dst++;
+      case 6: if (!(*dst = *src++)) [[unlikely]] { return dst; } dst++; ATTR_FALLTHROUGH;
+      case 5: if (!(*dst = *src++)) [[unlikely]] { return dst; } dst++; ATTR_FALLTHROUGH;
+      case 4: if (!(*dst = *src++)) [[unlikely]] { return dst; } dst++; ATTR_FALLTHROUGH;
+      case 3: if (!(*dst = *src++)) [[unlikely]] { return dst; } dst++; ATTR_FALLTHROUGH;
+      case 2: if (!(*dst = *src++)) [[unlikely]] { return dst; } dst++; ATTR_FALLTHROUGH;
+      case 1: if (!(*dst = *src++)) [[unlikely]] { return dst; } dst++;
     }
     /* clang-format on */
     /* NOLINTEND: bugprone-assignment-in-if-condition */
@@ -479,7 +479,7 @@ size_t BLI_strlen_utf8_ex(const char *strc, size_t *r_len_bytes)
     /* Detect null bytes within multi-byte sequences.
      * This matches the behavior of #BLI_strncpy_utf8 for incomplete byte sequences. */
     for (int i = 1; i < step; i++) {
-      if (UNLIKELY(strc[i] == '\0')) {
+      if (strc[i] == '\0') [[unlikely]] {
         step = i;
         break;
       }
@@ -514,7 +514,7 @@ size_t BLI_strnlen_utf8_ex(const char *strc, const size_t strc_maxlen, size_t *r
     /* Detect null bytes within multi-byte sequences.
      * This matches the behavior of #BLI_strncpy_utf8 for incomplete byte sequences. */
     for (int i = 1; i < step; i++) {
-      if (UNLIKELY(strc[i] == '\0')) {
+      if (strc[i] == '\0') [[unlikely]] {
         step = i;
         break;
       }
@@ -1096,7 +1096,7 @@ uint BLI_str_utf8_as_unicode_or_error(const char *p)
 
   char mask = 0;
   const int len = utf8_char_compute_skip_or_error_with_mask(c, &mask);
-  if (UNLIKELY(len == -1)) {
+  if (len == -1) [[unlikely]] {
     return BLI_UTF8_ERR;
   }
   return utf8_char_decode(p, mask, len, BLI_UTF8_ERR);
@@ -1105,7 +1105,7 @@ uint BLI_str_utf8_as_unicode_or_error(const char *p)
 uint BLI_str_utf8_as_unicode_safe(const char *p)
 {
   const uint result = BLI_str_utf8_as_unicode_or_error(p);
-  if (UNLIKELY(result == BLI_UTF8_ERR)) {
+  if (result == BLI_UTF8_ERR) [[unlikely]] {
     return *p;
   }
   return result;
@@ -1127,7 +1127,7 @@ uint BLI_str_utf8_as_unicode_step_or_error(const char *__restrict p,
   }
 
   const uint result = utf8_char_decode(p, mask, len, BLI_UTF8_ERR);
-  if (UNLIKELY(result == BLI_UTF8_ERR)) {
+  if (result == BLI_UTF8_ERR) [[unlikely]] {
     return BLI_UTF8_ERR;
   }
   *index += size_t(len);
@@ -1140,7 +1140,7 @@ uint BLI_str_utf8_as_unicode_step_safe(const char *__restrict p,
                                        size_t *__restrict index)
 {
   uint result = BLI_str_utf8_as_unicode_step_or_error(p, p_len, index);
-  if (UNLIKELY(result == BLI_UTF8_ERR)) {
+  if (result == BLI_UTF8_ERR) [[unlikely]] {
     result = uint(p[*index]);
     *index += 1;
   }
@@ -1200,7 +1200,7 @@ size_t BLI_str_utf8_from_unicode(uint c, char *dst, const size_t dst_maxncpy)
 
   UTF8_VARS_FROM_CHAR32(c, first, len);
 
-  if (UNLIKELY(dst_maxncpy < len)) {
+  if (dst_maxncpy < len) [[unlikely]] {
     /* Null terminate instead of writing a partial byte. */
     memset(dst, 0x0, dst_maxncpy);
     return dst_maxncpy;
@@ -1358,7 +1358,7 @@ size_t BLI_str_partition_ex_utf8(const char *str,
   {
     size_t index_ofs = 0;
     const uint c = BLI_str_utf8_as_unicode_step_or_error(sep, size_t(end - sep), &index_ofs);
-    if (UNLIKELY(c == BLI_UTF8_ERR)) {
+    if (c == BLI_UTF8_ERR) [[unlikely]] {
       break;
     }
     index += index_ofs;

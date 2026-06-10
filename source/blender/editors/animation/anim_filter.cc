@@ -1348,7 +1348,7 @@ static size_t animfilter_fcurves(bAnimContext *ac,
        (fcu = animfilter_fcurve_next(ac, fcu, fcurve_type, filter_mode, owner, owner_id));
        fcu = fcu->next)
   {
-    if (UNLIKELY(fcurve_type == ANIMTYPE_NLACURVE)) {
+    if (fcurve_type == ANIMTYPE_NLACURVE) [[unlikely]] {
       /* NLA Control Curve - Basically the same as normal F-Curves,
        * except we need to set some stuff differently */
       ANIMCHANNEL_NEW_CHANNEL_FULL(ac->bmain, fcu, ANIMTYPE_NLACURVE, owner_id, fcurve_owner_id, {
@@ -3966,9 +3966,9 @@ size_t ANIM_animdata_filter(bAnimContext *ac,
 
       /* specially check for AnimData filter, see #36687. */
       /* TODO: see how this interacts with the new layered Actions. */
-      if (UNLIKELY(filter_mode & ANIMFILTER_ANIMDATA)) {
+      if (filter_mode & ANIMFILTER_ANIMDATA) [[unlikely]] {
         /* all channels here are within the same AnimData block, hence this special case */
-        if (LIKELY(obact->adt)) {
+        if (obact->adt) [[likely]] {
           ANIMCHANNEL_NEW_CHANNEL(
               ac->bmain, obact->adt, ANIMTYPE_ANIMDATA, reinterpret_cast<ID *>(obact), nullptr);
         }
@@ -3995,9 +3995,9 @@ size_t ANIM_animdata_filter(bAnimContext *ac,
       Key *key = static_cast<Key *>(data);
 
       /* specially check for AnimData filter, see #36687. */
-      if (UNLIKELY(filter_mode & ANIMFILTER_ANIMDATA)) {
+      if (filter_mode & ANIMFILTER_ANIMDATA) [[unlikely]] {
         /* all channels here are within the same AnimData block, hence this special case */
-        if (LIKELY(key->adt)) {
+        if (key->adt) [[likely]] {
           ANIMCHANNEL_NEW_CHANNEL(
               ac->bmain, key->adt, ANIMTYPE_ANIMDATA, reinterpret_cast<ID *>(key), nullptr);
         }

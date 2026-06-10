@@ -100,7 +100,7 @@ static void bm_decim_build_quadrics(BMesh *bm, Quadric *vquadrics)
 
   /* boundary edges */
   BM_ITER_MESH (e, &iter, bm, BM_EDGES_OF_MESH) {
-    if (UNLIKELY(BM_edge_is_boundary(e))) {
+    if (BM_edge_is_boundary(e)) [[unlikely]] {
       float edge_vector[3];
       float edge_plane[3];
       double edge_plane_db[4];
@@ -239,8 +239,8 @@ static void bm_decim_build_edge_cost_single(BMEdge *e,
 {
   float cost;
 
-  if (UNLIKELY(vweights && ((vweights[BM_elem_index_get(e->v1)] == 0.0f) ||
-                            (vweights[BM_elem_index_get(e->v2)] == 0.0f))))
+  if (vweights && ((vweights[BM_elem_index_get(e->v1)] == 0.0f) ||
+                   (vweights[BM_elem_index_get(e->v2)] == 0.0f))) [[unlikely]]
   {
     goto clear;
   }
@@ -285,7 +285,7 @@ static void bm_decim_build_edge_cost_single(BMEdge *e,
   cost = fabsf(cost);
 
 #ifdef USE_TOPOLOGY_FALLBACK
-  if (UNLIKELY(cost < TOPOLOGY_FALLBACK_EPS)) {
+  if (cost < TOPOLOGY_FALLBACK_EPS) [[unlikely]] {
     /* subtract existing cost to further differentiate edges from one another
      *
      * keep topology cost below 0.0 so their values don't interfere with quadric cost,
@@ -1162,7 +1162,7 @@ static bool bm_decim_edge_collapse(BMesh *bm,
   /* when false, use without degenerate checks */
   if (optimize_co_calc) {
     /* disallow collapsing which results in degenerate cases */
-    if (UNLIKELY(bm_edge_collapse_is_degenerate_topology(e))) {
+    if (bm_edge_collapse_is_degenerate_topology(e)) [[unlikely]] {
       /* add back with a high cost */
       bm_decim_invalid_edge_cost_single(e, eheap, eheap_table);
       return false;
@@ -1171,7 +1171,7 @@ static bool bm_decim_edge_collapse(BMesh *bm,
     bm_decim_calc_target_co_fl(e, optimize_co, vquadrics);
 
     /* check if this would result in an overlapping face */
-    if (UNLIKELY(bm_edge_collapse_is_degenerate_flip(e, optimize_co))) {
+    if (bm_edge_collapse_is_degenerate_flip(e, optimize_co)) [[unlikely]] {
       /* add back with a high cost */
       bm_decim_invalid_edge_cost_single(e, eheap, eheap_table);
       return false;
@@ -1179,7 +1179,7 @@ static bool bm_decim_edge_collapse(BMesh *bm,
   }
 
   /* use for customdata merging */
-  if (LIKELY(compare_v3v3(e->v1->co, e->v2->co, FLT_EPSILON) == false)) {
+  if (compare_v3v3(e->v1->co, e->v2->co, FLT_EPSILON) == false) [[likely]] {
     customdata_fac = line_point_factor_v3(optimize_co, e->v1->co, e->v2->co);
 #if 0
     /* simple test for stupid collapse */
@@ -1242,7 +1242,7 @@ static bool bm_decim_edge_collapse(BMesh *bm,
 #endif
 
     /* update error costs and the eheap */
-    if (LIKELY(v_other->e)) {
+    if (v_other->e) [[likely]] {
       BMEdge *e_iter;
       BMEdge *e_first;
       e_iter = e_first = v_other->e;
@@ -1449,7 +1449,7 @@ void BM_mesh_decimate_collapse(BMesh *bm,
 
         /* disallow collapsing which results in degenerate cases */
 
-        if (UNLIKELY(!ok_a || !ok_b)) {
+        if (!ok_a || !ok_b) [[unlikely]] {
           e_invalidate |= (1 | (e_mirr ? 2 : 0));
           goto invalidate;
         }
@@ -1461,7 +1461,7 @@ void BM_mesh_decimate_collapse(BMesh *bm,
         }
 
         /* check if this would result in an overlapping face */
-        if (UNLIKELY(bm_edge_collapse_is_degenerate_flip(e, optimize_co))) {
+        if (bm_edge_collapse_is_degenerate_flip(e, optimize_co)) [[unlikely]] {
           e_invalidate |= (1 | (e_mirr ? 2 : 0));
           goto invalidate;
         }
@@ -1527,7 +1527,7 @@ void BM_mesh_decimate_collapse(BMesh *bm,
 #ifdef USE_TRIANGULATE
   if (do_triangulate == false) {
     /* its possible we only had triangles, skip this step in that case */
-    if (LIKELY(use_triangulate)) {
+    if (use_triangulate) [[likely]] {
       /* temp convert quads to triangles */
       bm_decim_triangulate_end(bm, edges_tri_tot);
     }

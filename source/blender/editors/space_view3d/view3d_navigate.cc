@@ -782,11 +782,11 @@ static void view3d_orbit_apply_dyn_ofs_ortho_correction(float ofs[3],
 
   const float angle_cos = max_ff(0.0f, dot_v3v3(view_z_init, view_z_curr));
   /* 1.0 or more means no rotation, there is nothing to do in that case. */
-  if (LIKELY(angle_cos < 1.0f)) {
+  if (angle_cos < 1.0f) [[likely]] {
     const float dot_ofs_curr = dot_v3v3(view_z_curr, ofs);
     const float dot_ofs_next = dot_v3v3(view_z_curr, dyn_ofs);
     const float ofs_delta = dot_ofs_next - dot_ofs_curr;
-    if (LIKELY(ofs_delta != 0.0f)) {
+    if (ofs_delta != 0.0f) [[likely]] {
       /* Calculate a factor where 0.0 represents no rotation and 1.0 represents 90d or more.
        * NOTE: Without applying the factor, the distances immediately changes
        * (useful for testing), but not good for the users experience as minor rotations

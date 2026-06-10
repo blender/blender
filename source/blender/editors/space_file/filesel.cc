@@ -1186,7 +1186,7 @@ FileLayout *ED_fileselect_get_layout(SpaceFile *sfile, ARegion *region)
 void ED_file_change_dir_ex(bContext *C, ScrArea *area)
 {
   /* May happen when manipulating non-active spaces. */
-  if (UNLIKELY(area->spacetype != SPACE_FILE)) {
+  if (area->spacetype != SPACE_FILE) [[unlikely]] {
     return;
   }
   SpaceFile *sfile = static_cast<SpaceFile *>(area->spacedata.first);

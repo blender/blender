@@ -572,7 +572,7 @@ bool BKE_icon_delete_unmanaged(const int icon_id)
 
   Icon *icon = gIcons.pop_default(icon_id, nullptr);
   if (icon) {
-    if (UNLIKELY(icon->flag & ICON_FLAG_MANAGED)) {
+    if (icon->flag & ICON_FLAG_MANAGED) [[unlikely]] {
       gIcons.add(icon_id, icon);
       return false;
     }

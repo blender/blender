@@ -420,7 +420,7 @@ static void gpu_select_load_id_pass_all(const DepthBufCache *rect_curr)
 #undef EVAL_TEST
 
   /* Ensure enough space. */
-  if (UNLIKELY(ps->all.hits_len == ps->all.hits_len_alloc)) {
+  if (ps->all.hits_len == ps->all.hits_len_alloc) [[unlikely]] {
     ps->all.hits_len_alloc += ALLOC_DEPTHS;
     ps->all.hits = static_cast<DepthID *>(
         MEM_realloc_uninitialized(ps->all.hits, ps->all.hits_len_alloc * sizeof(*ps->all.hits)));

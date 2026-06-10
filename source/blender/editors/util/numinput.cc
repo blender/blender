@@ -666,7 +666,7 @@ bool handleNumInput(bContext *C, NumInput *n, const wmEvent *event)
     }
 #endif
 
-    if (UNLIKELY(!isfinite(n->val[idx]))) {
+    if (!isfinite(n->val[idx])) [[unlikely]] {
       n->val[idx] = val_prev;
       n->val_flag[idx] |= NUM_INVALID;
     }

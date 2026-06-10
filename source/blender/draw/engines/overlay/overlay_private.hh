@@ -898,7 +898,7 @@ struct Resources : public select::SelectMap {
 
   const float4 &object_wire_color(const ObjectRef &ob_ref, ThemeColorID theme_id) const
   {
-    if (UNLIKELY(ob_ref.object->base_flag & BASE_FROM_SET)) {
+    if (ob_ref.object->base_flag & BASE_FROM_SET) [[unlikely]] {
       return theme.colors.wire;
     }
     switch (theme_id) {

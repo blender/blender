@@ -150,7 +150,7 @@ static void interp_line_v3_v3v3v3(
 
   t_delta = t - t_mid;
   if (t_delta < 0.0f) {
-    if (UNLIKELY(fabsf(t_mid) < FLT_EPSILON)) {
+    if (fabsf(t_mid) < FLT_EPSILON) [[unlikely]] {
       copy_v3_v3(p, v2);
     }
     else {
@@ -161,7 +161,7 @@ static void interp_line_v3_v3v3v3(
     t = t - t_mid;
     t_mid = 1.0f - t_mid;
 
-    if (UNLIKELY(fabsf(t_mid) < FLT_EPSILON)) {
+    if (fabsf(t_mid) < FLT_EPSILON) [[unlikely]] {
       copy_v3_v3(p, v3);
     }
     else {
@@ -173,7 +173,7 @@ static void interp_line_v3_v3v3v3(
 static void edge_slide_data_init_mval(MouseInput *mi, EdgeSlideData *sld, float *mval_dir)
 {
   /* Possible all of the edge loops are pointing directly at the view. */
-  if (UNLIKELY(len_squared_v2(mval_dir) < 0.1f)) {
+  if (len_squared_v2(mval_dir) < 0.1f) [[unlikely]] {
     mval_dir[0] = 0.0f;
     mval_dir[1] = 100.0f;
   }

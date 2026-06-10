@@ -554,7 +554,7 @@ void fsmenu_add_common_platform_directories(FSMenu *fsmenu)
   add_user_dir(U.textudir, ICON_FILE_IMAGE);
 
   for (bUserScriptDirectory &script_dir : U.script_directories) {
-    if (UNLIKELY(script_dir.dir_path[0] == '\0')) {
+    if (script_dir.dir_path[0] == '\0') [[unlikely]] {
       continue;
     }
     fsmenu_insert_entry(fsmenu,

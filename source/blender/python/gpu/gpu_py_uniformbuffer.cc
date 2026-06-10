@@ -31,7 +31,7 @@ namespace blender {
 
 static int pygpu_uniformbuffer_valid_check(BPyGPUUniformBuf *bpygpu_ub)
 {
-  if (UNLIKELY(bpygpu_ub->ubo == nullptr)) {
+  if (bpygpu_ub->ubo == nullptr) [[unlikely]] {
     PyErr_SetString(PyExc_ReferenceError,
 #ifdef BPYGPU_USE_GPUOBJ_FREE_METHOD
                     "GPU uniform buffer was freed, no further access is valid");
@@ -46,7 +46,7 @@ static int pygpu_uniformbuffer_valid_check(BPyGPUUniformBuf *bpygpu_ub)
 
 #define BPYGPU_UNIFORMBUF_CHECK_OBJ(bpygpu) \
   { \
-    if (UNLIKELY(pygpu_uniformbuffer_valid_check(bpygpu) == -1)) { \
+    if (pygpu_uniformbuffer_valid_check(bpygpu) == -1) [[unlikely]] { \
       return nullptr; \
     } \
   } \

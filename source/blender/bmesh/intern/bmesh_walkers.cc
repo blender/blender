@@ -72,7 +72,7 @@ void BMW_init(BMWalker *walker,
   walker->visit_set = MEM_new<Set<const void *>>("bmesh walkers");
   walker->visit_set_alt = MEM_new<Set<const void *>>("bmesh walkers sec");
 
-  if (UNLIKELY(type >= BMW_MAXWALKERS || type < 0)) {
+  if (type >= BMW_MAXWALKERS || type < 0) [[unlikely]] {
     fprintf(stderr,
             "%s: Invalid walker type in BMW_init; type: %d, "
             "searchmask: (v:%d, e:%d, f:%d), flag: %d, layer: %d\n",

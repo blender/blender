@@ -832,7 +832,7 @@ LineStyleModifier *BKE_linestyle_color_modifier_add(FreestyleLineStyle *linestyl
   LineStyleModifier *m;
 
   m = alloc_color_modifier(name, type);
-  if (UNLIKELY(m == nullptr)) {
+  if (m == nullptr) [[unlikely]] {
     return nullptr;
   }
   m->blend = LS_VALUE_BLEND;
@@ -898,7 +898,7 @@ LineStyleModifier *BKE_linestyle_color_modifier_copy(FreestyleLineStyle *linesty
   LineStyleModifier *new_m;
 
   new_m = alloc_color_modifier(m->name, m->type);
-  if (UNLIKELY(new_m == nullptr)) {
+  if (new_m == nullptr) [[unlikely]] {
     return nullptr;
   }
   new_m->influence = m->influence;

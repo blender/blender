@@ -291,7 +291,7 @@ bool BKE_mesh_center_of_surface(const Mesh *mesh, float r_cent[3])
   }
 
   /* zero area faces cause this, fallback to median */
-  if (UNLIKELY(!is_finite_v3(r_cent))) {
+  if (!is_finite_v3(r_cent)) [[unlikely]] {
     return BKE_mesh_center_median(mesh, r_cent);
   }
 
@@ -331,7 +331,7 @@ bool BKE_mesh_center_of_volume(const Mesh *mesh, float r_cent[3])
   }
 
   /* this can happen for non-manifold objects, fallback to median */
-  if (UNLIKELY(!is_finite_v3(r_cent))) {
+  if (!is_finite_v3(r_cent)) [[unlikely]] {
     copy_v3_v3(r_cent, init_cent);
     return init_cent_result;
   }
@@ -456,7 +456,7 @@ void BKE_mesh_calc_volume(const float (*vert_positions)[3],
 
 void BKE_mesh_mdisp_flip(MDisps *md, const bool use_loop_mdisp_flip)
 {
-  if (UNLIKELY(!md->totdisp || !md->disps)) {
+  if (!md->totdisp || !md->disps) [[unlikely]] {
     return;
   }
 

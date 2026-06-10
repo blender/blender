@@ -545,7 +545,7 @@ uchar Mathutils_RegisterCallback(Mathutils_Callback *cb)
 int _BaseMathObject_CheckCallback(BaseMathObject *self)
 {
   Mathutils_Callback *cb = mathutils_callbacks[self->cb_type];
-  if (LIKELY(cb->check(self) != -1)) {
+  if (cb->check(self) != -1) [[likely]] {
     return 0;
   }
   return -1;
@@ -556,7 +556,7 @@ int _BaseMathObject_ReadCallback(BaseMathObject *self)
   /* NOTE: use macros to check for nullptr. */
 
   Mathutils_Callback *cb = mathutils_callbacks[self->cb_type];
-  if (LIKELY(cb->get(self, self->cb_subtype) != -1)) {
+  if (cb->get(self, self->cb_subtype) != -1) [[likely]] {
     return 0;
   }
 
@@ -569,7 +569,7 @@ int _BaseMathObject_ReadCallback(BaseMathObject *self)
 int _BaseMathObject_WriteCallback(BaseMathObject *self)
 {
   Mathutils_Callback *cb = mathutils_callbacks[self->cb_type];
-  if (LIKELY(cb->set(self, self->cb_subtype) != -1)) {
+  if (cb->set(self, self->cb_subtype) != -1) [[likely]] {
     return 0;
   }
 
@@ -582,7 +582,7 @@ int _BaseMathObject_WriteCallback(BaseMathObject *self)
 int _BaseMathObject_ReadIndexCallback(BaseMathObject *self, int index)
 {
   Mathutils_Callback *cb = mathutils_callbacks[self->cb_type];
-  if (LIKELY(cb->get_index(self, self->cb_subtype, index) != -1)) {
+  if (cb->get_index(self, self->cb_subtype, index) != -1) [[likely]] {
     return 0;
   }
 
@@ -596,7 +596,7 @@ int _BaseMathObject_ReadIndexCallback(BaseMathObject *self, int index)
 int _BaseMathObject_WriteIndexCallback(BaseMathObject *self, int index)
 {
   Mathutils_Callback *cb = mathutils_callbacks[self->cb_type];
-  if (LIKELY(cb->set_index(self, self->cb_subtype, index) != -1)) {
+  if (cb->set_index(self, self->cb_subtype, index) != -1) [[likely]] {
     return 0;
   }
 
@@ -620,21 +620,21 @@ void _BaseMathObject_RaiseNotFrozenExc(const BaseMathObject *self)
 
 int _BaseMathObject_ResizeOkOrRaiseExc(BaseMathObject *self, const char *error_prefix)
 {
-  if (UNLIKELY(self->flag & BASE_MATH_FLAG_IS_FROZEN)) {
+  if (self->flag & BASE_MATH_FLAG_IS_FROZEN) [[unlikely]] {
     PyErr_Format(PyExc_ValueError, "%s: cannot resize frozen data", error_prefix);
     return -1;
   }
-  if (UNLIKELY(self->flag & BASE_MATH_FLAG_IS_WRAP)) {
+  if (self->flag & BASE_MATH_FLAG_IS_WRAP) [[unlikely]] {
     PyErr_Format(PyExc_ValueError, "%s: cannot resize wrapped data", error_prefix);
     return -1;
   }
-  if (UNLIKELY(self->flag & BASE_MATH_FLAG_HAS_BUFFER_VIEW)) {
+  if (self->flag & BASE_MATH_FLAG_HAS_BUFFER_VIEW) [[unlikely]] {
     PyErr_Format(PyExc_BufferError,
                  "%s: cannot resize data while exported to buffer protocol",
                  error_prefix);
     return -1;
   }
-  if (UNLIKELY(self->cb_user)) {
+  if (self->cb_user) [[unlikely]] {
     PyErr_Format(PyExc_ValueError, "%s: cannot resize owned data", error_prefix);
     return -1;
   }
@@ -643,21 +643,21 @@ int _BaseMathObject_ResizeOkOrRaiseExc(BaseMathObject *self, const char *error_p
 
 int _BaseMathObject_RaiseBufferViewExc(BaseMathObject *self, Py_buffer *view, int flags)
 {
-  if (UNLIKELY(view == nullptr)) {
+  if (view == nullptr) [[unlikely]] {
     PyErr_SetString(PyExc_BufferError, "null view in get-buffer is obsolete");
     return -1;
   }
-  if (UNLIKELY(self->flag & BASE_MATH_FLAG_HAS_BUFFER_VIEW)) {
+  if (self->flag & BASE_MATH_FLAG_HAS_BUFFER_VIEW) [[unlikely]] {
     PyErr_SetString(PyExc_BufferError,
                     "Data is already exported via buffer protocol, "
                     "multiple simultaneous exports are not allowed.");
     return -1;
   }
   if (flags & PyBUF_WRITABLE) {
-    if (UNLIKELY(BaseMath_WriteCallback(self) == -1)) {
+    if (BaseMath_WriteCallback(self) == -1) [[unlikely]] {
       return -1;
     }
-    if (UNLIKELY(self->flag & BASE_MATH_FLAG_IS_FROZEN)) {
+    if (self->flag & BASE_MATH_FLAG_IS_FROZEN) [[unlikely]] {
       PyErr_SetString(PyExc_BufferError, "Data is frozen, cannot get a writable buffer");
       return -1;
     }

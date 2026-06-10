@@ -103,7 +103,7 @@ struct Py_ImBuf {
 
 static int py_imbuf_valid_check(Py_ImBuf *self)
 {
-  if (LIKELY(self->ibuf)) {
+  if (self->ibuf) [[likely]] {
     return 0;
   }
 
@@ -113,18 +113,18 @@ static int py_imbuf_valid_check(Py_ImBuf *self)
 }
 
 #define PY_IMBUF_CHECK_OBJ(obj) \
-  if (UNLIKELY(py_imbuf_valid_check(obj) == -1)) { \
+  if (py_imbuf_valid_check(obj) == -1) [[unlikely]] { \
     return nullptr; \
   } \
   ((void)0)
 #define PY_IMBUF_CHECK_INT(obj) \
-  if (UNLIKELY(py_imbuf_valid_check(obj) == -1)) { \
+  if (py_imbuf_valid_check(obj) == -1) [[unlikely]] { \
     return -1; \
   } \
   ((void)0)
 
 #define PY_IMBUF_CHECK_BUFFER_USERS_OBJ(obj) \
-  if (UNLIKELY((obj)->buffer_users > 0)) { \
+  if ((obj)->buffer_users > 0) [[unlikely]] { \
     PyErr_SetString(PyExc_BufferError, \
                     "ImBuf cannot be modified while pixel buffers are exported"); \
     return nullptr; \
@@ -149,7 +149,7 @@ static const char *py_imbuf_ftype_to_id_with_fallback(const eImbFileType ftype)
     return py_imbuf_type_none;
   }
   const char *id = IMB_ftype_to_id(ftype);
-  if (UNLIKELY(id == nullptr)) {
+  if (id == nullptr) [[unlikely]] {
     py_imbuf_warn_corrupt_ftype(ftype);
     return py_imbuf_type_none;
   }
@@ -198,7 +198,7 @@ static std::optional<ImBufFlags> py_imbuf_buffer_type(const ImBuf *ibuf)
 static std::optional<ImBufFlags> py_imbuf_buffer_type_or_error(const ImBuf *ibuf)
 {
   std::optional<ImBufFlags> buffer_type = py_imbuf_buffer_type(ibuf);
-  if (UNLIKELY(buffer_type == std::nullopt)) {
+  if (buffer_type == std::nullopt) [[unlikely]] {
     PyErr_SetString(PyExc_ValueError, "ImBuf has no pixel data");
   }
   return buffer_type;
@@ -221,7 +221,7 @@ static ImBufFlags py_imbuf_write_flags(const ImBuf *ibuf)
   PY_IMBUF_CHECK_OBJ(obj); \
   const std::optional<ImBufFlags> _buffer_type_or_none = py_imbuf_buffer_type_or_error( \
       (obj)->ibuf); \
-  if (UNLIKELY(_buffer_type_or_none == std::nullopt)) { \
+  if (_buffer_type_or_none == std::nullopt) [[unlikely]] { \
     return nullptr; \
   } \
   const ImBufFlags buffer_type_var = *(_buffer_type_or_none)
@@ -362,7 +362,7 @@ static PyObject *py_imbuf_copy(Py_ImBuf *self)
   PY_IMBUF_CHECK_OBJ(self);
   ImBuf *ibuf_copy = IMB_dupImBuf(self->ibuf);
 
-  if (UNLIKELY(ibuf_copy == nullptr)) {
+  if (ibuf_copy == nullptr) [[unlikely]] {
     PyErr_SetString(PyExc_MemoryError,
                     "ImBuf.copy(): "
                     "failed to allocate memory");
@@ -434,7 +434,7 @@ static PyObject *py_imbuf_with_buffer(Py_ImBuf *self, PyObject *args, PyObject *
   }
 
   Py_ImBufBuffer *ctx = PyObject_GC_New(Py_ImBufBuffer, &Py_ImBufBuffer_Type);
-  if (UNLIKELY(ctx == nullptr)) {
+  if (ctx == nullptr) [[unlikely]] {
     return nullptr;
   }
   Py_INCREF(self);
@@ -482,7 +482,7 @@ static PyObject *py_imbuf_convert_buffer_type(Py_ImBuf *self, PyObject *args, Py
 
   if (ImBufFlags(buffer_type.value_found) == ImBufFlags::ByteData) {
     IMB_byte_from_float(ibuf);
-    if (UNLIKELY(ibuf->byte_data() == nullptr)) {
+    if (ibuf->byte_data() == nullptr) [[unlikely]] {
       PyErr_SetString(PyExc_MemoryError, "failed to allocate byte buffer");
       return nullptr;
     }
@@ -490,7 +490,7 @@ static PyObject *py_imbuf_convert_buffer_type(Py_ImBuf *self, PyObject *args, Py
   }
   else {
     IMB_float_from_byte(ibuf);
-    if (UNLIKELY(ibuf->float_data() == nullptr)) {
+    if (ibuf->float_data() == nullptr) [[unlikely]] {
       PyErr_SetString(PyExc_MemoryError, "failed to allocate float buffer");
       return nullptr;
     }
@@ -634,7 +634,7 @@ static int py_imbuf_filepath_set(Py_ImBuf *self, PyObject *value, void * /*closu
   PyObject *value_coerce = nullptr;
   Py_ssize_t value_str_len;
   const char *value_str = PyC_UnicodeAsBytesAndSize(value, &value_str_len, &value_coerce);
-  if (UNLIKELY(value_str == nullptr)) {
+  if (value_str == nullptr) [[unlikely]] {
     return -1;
   }
   if (value_str_len >= value_str_len_max) {
@@ -955,7 +955,7 @@ static PyObject *py_imbuf_buffer_repr(Py_ImBufBuffer *self)
 
 static PyObject *py_imbuf_buffer_enter(Py_ImBufBuffer *self)
 {
-  if (UNLIKELY(self->is_entered)) {
+  if (self->is_entered) [[unlikely]] {
     PyErr_SetString(PyExc_RuntimeError, "ImBufBuffer context is already entered");
     return nullptr;
   }
@@ -1003,7 +1003,7 @@ static PyObject *py_imbuf_buffer_enter(Py_ImBufBuffer *self)
   pybuf.strides = strides;
   PyObject *memview = PyMemoryView_FromBuffer(&pybuf);
 
-  if (UNLIKELY(memview == nullptr)) {
+  if (memview == nullptr) [[unlikely]] {
     return nullptr;
   }
 

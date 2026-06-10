@@ -233,7 +233,7 @@ static bool idp_snap_calc_incremental(
     Scene *scene, View3D *v3d, ARegion *region, const float co_relative[3], float co[3])
 {
   const float grid_size = ED_view3d_grid_view_scale(scene, v3d, region, nullptr);
-  if (UNLIKELY(grid_size == 0.0f)) {
+  if (grid_size == 0.0f) [[unlikely]] {
     return false;
   }
 

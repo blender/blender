@@ -1625,7 +1625,7 @@ static wmOperatorStatus bake(const BakeAPIRender *bkr,
        * Use an error here instead of a warning so users don't accidentally perform
        * a bake which seems to succeed with invalid results.
        * If visibility could be forced/overridden - it would help avoid the problem. */
-      if (UNLIKELY(mesh_eval == nullptr)) {
+      if (mesh_eval == nullptr) [[unlikely]] {
         BKE_reportf(
             reports,
             RPT_ERROR,

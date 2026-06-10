@@ -188,7 +188,7 @@ static bool binary_search_anim_path(const float *accum_len_arr,
 
   /* Special case, for a single segment accessing the `right_len`
    * would be an invalid index, see: #132976. */
-  if (UNLIKELY(seg_size == 1)) {
+  if (seg_size == 1) [[unlikely]] {
     *r_idx = 0;
     *r_frac = goal_len / accum_len_arr[0];
     return true;
@@ -212,7 +212,7 @@ static bool binary_search_anim_path(const float *accum_len_arr,
       return true;
     }
 
-    if (UNLIKELY(cur_step == 0)) {
+    if (cur_step == 0) [[unlikely]] {
       /* This should never happen unless there is something horribly wrong. */
       CLOG_ERROR(&LOG, "Couldn't find any valid point on the animation path!");
       BLI_assert_msg(0, "Couldn't find any valid point on the animation path!");
@@ -299,7 +299,7 @@ bool BKE_where_on_path(const Object *ob,
     int idx;
     const bool found_idx = binary_search_anim_path(accum_len_arr, seg_size, goal_len, &idx, &frac);
 
-    if (UNLIKELY(!found_idx)) {
+    if (!found_idx) [[unlikely]] {
       return false;
     }
     get_curve_points_from_idx(idx, bl, is_cyclic, &p0, &p1, &p2, &p3);

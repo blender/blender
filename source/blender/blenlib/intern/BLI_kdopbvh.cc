@@ -909,7 +909,8 @@ BVHTree *BLI_bvhtree_new(int maxsize, float epsilon, char tree_type, char axis)
     tree->nodechild = MEM_new_array_zeroed<BVHNode *>(tree_type * size_t(numnodes), "BVHNodeBV");
     tree->nodearray = MEM_new_array_zeroed<BVHNode>(size_t(numnodes), "BVHNodeArray");
 
-    if (UNLIKELY((!tree->nodes) || (!tree->nodebv) || (!tree->nodechild) || (!tree->nodearray))) {
+    if ((!tree->nodes) || (!tree->nodebv) || (!tree->nodechild) || (!tree->nodearray)) [[unlikely]]
+    {
       goto fail;
     }
 
@@ -1107,7 +1108,7 @@ static void tree_overlap_traverse(BVHOverlapData_Thread *data_thread,
       if (!node2->node_num) {
         BVHTreeOverlap *overlap;
 
-        if (UNLIKELY(node1 == node2)) {
+        if (node1 == node2) [[unlikely]] {
           return;
         }
 
@@ -1151,7 +1152,7 @@ static void tree_overlap_traverse_cb(BVHOverlapData_Thread *data_thread,
       if (!node2->node_num) {
         BVHTreeOverlap *overlap;
 
-        if (UNLIKELY(node1 == node2)) {
+        if (node1 == node2) [[unlikely]] {
           return;
         }
 
@@ -1198,7 +1199,7 @@ static bool tree_overlap_traverse_num(BVHOverlapData_Thread *data_thread,
       if (!node2->node_num) {
         BVHTreeOverlap *overlap;
 
-        if (UNLIKELY(node1 == node2)) {
+        if (node1 == node2) [[unlikely]] {
           return false;
         }
 
@@ -1350,14 +1351,14 @@ BVHTreeOverlap *BLI_bvhtree_overlap_ex(
   axis_t start_axis, stop_axis;
 
   /* check for compatibility of both trees (can't compare 14-DOP with 18-DOP) */
-  if (UNLIKELY((tree1->axis != tree2->axis) && (tree1->axis == 14 || tree2->axis == 14) &&
-               (tree1->axis == 18 || tree2->axis == 18)))
+  if ((tree1->axis != tree2->axis) && (tree1->axis == 14 || tree2->axis == 14) &&
+      (tree1->axis == 18 || tree2->axis == 18)) [[unlikely]]
   {
     BLI_assert(0);
     return nullptr;
   }
 
-  if (UNLIKELY(use_self && tree1 != tree2)) {
+  if (use_self && tree1 != tree2) [[unlikely]] {
     use_self = false;
   }
 

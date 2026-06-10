@@ -266,7 +266,7 @@ report_error_on_address(const void *vmemh, const char *message, ...)
 
   const void *address = memh;
   size_t size = len + sizeof(*memh) + sizeof(MemTail);
-  if (UNLIKELY(memh->alignment > 0)) {
+  if (memh->alignment > 0) [[unlikely]] {
     const MemHeadAligned *memh_aligned = memh;
     address = MEMHEAD_REAL_PTR(memh_aligned);
     size = len + sizeof(*memh_aligned) + MEMHEAD_ALIGN_PADDING(memh_aligned->alignment) +
@@ -338,7 +338,7 @@ void *MEM_guarded_dupallocN(const void *vmemh)
     }
 
 #ifndef DEBUG_MEMDUPLINAME
-    if (LIKELY(memh->alignment == 0)) {
+    if (memh->alignment == 0) [[likely]] {
       newp = MEM_guarded_mallocN(memh->len, "dupli_alloc");
     }
     else {
@@ -359,7 +359,7 @@ void *MEM_guarded_dupallocN(const void *vmemh)
       memcpy(name, name_prefix, sizeof(name_prefix));
       memcpy(name + name_prefix_len, memh->name, name_size);
 
-      if (LIKELY(memh->alignment == 0)) {
+      if (memh->alignment == 0) [[likely]] {
         newp = MEM_guarded_mallocN(memh->len, name);
       }
       else {
@@ -399,7 +399,7 @@ void *MEM_guarded_reallocN_id(void *vmemh, size_t len, const char *str)
           "CPP-style MEM_new or new\n");
     }
 
-    if (LIKELY(memh->alignment == 0)) {
+    if (memh->alignment == 0) [[likely]] {
       newp = MEM_guarded_mallocN(len, memh->name);
     }
     else {
@@ -443,7 +443,7 @@ void *MEM_guarded_recallocN_id(void *vmemh, size_t len, const char *str)
           "CPP-style MEM_new or new\n");
     }
 
-    if (LIKELY(memh->alignment == 0)) {
+    if (memh->alignment == 0) [[likely]] {
       newp = MEM_guarded_mallocN(len, memh->name);
     }
     else {
@@ -549,11 +549,11 @@ void *MEM_guarded_mallocN(size_t len, const char *str)
   memh = (MemHead *)malloc(len + sizeof(MemHead) + sizeof(MemTail));
   PRF_memory_alloc(memh, len + sizeof(MemHead) + sizeof(MemTail));
 
-  if (LIKELY(memh)) {
+  if (memh) [[likely]] {
     make_memhead_header(memh, len, str, DestructorType::Trivial);
 
-    if (LIKELY(len)) {
-      if (UNLIKELY(malloc_debug_memset)) {
+    if (len) [[likely]] {
+      if (malloc_debug_memset) [[unlikely]] {
         memset(memh + 1, 255, len);
       }
 #ifdef WITH_MEM_VALGRIND
@@ -585,7 +585,7 @@ void *MEM_guarded_malloc_arrayN(size_t len, size_t size, const char *str)
 {
   PRF_scope(blender::ProfileCategory::Core);
   size_t total_size;
-  if (UNLIKELY(!MEM_size_safe_multiply(len, size, &total_size))) {
+  if (!MEM_size_safe_multiply(len, size, &total_size)) [[unlikely]] {
     print_error(
         "Malloc array aborted due to integer overflow: "
         "len=" SIZET_FORMAT "x" SIZET_FORMAT " in %s, total " SIZET_FORMAT "\n",
@@ -637,7 +637,7 @@ void *MEM_guarded_mallocN_aligned(size_t len,
       len + extra_padding + sizeof(MemHead) + sizeof(MemTail), alignment);
   PRF_memory_alloc(memh, len + extra_padding + sizeof(MemHead) + sizeof(MemTail));
 
-  if (LIKELY(memh)) {
+  if (memh) [[likely]] {
     /* We keep padding in the beginning of MemHead,
      * this way it's always possible to get MemHead
      * from the data pointer.
@@ -646,8 +646,8 @@ void *MEM_guarded_mallocN_aligned(size_t len,
 
     make_memhead_header(memh, len, str, destructor_type);
     memh->alignment = short(alignment);
-    if (LIKELY(len)) {
-      if (UNLIKELY(malloc_debug_memset)) {
+    if (len) [[likely]] {
+      if (malloc_debug_memset) [[unlikely]] {
         memset(memh + 1, 255, len);
       }
 #ifdef WITH_MEM_VALGRIND
@@ -706,7 +706,7 @@ void *MEM_guarded_calloc_arrayN(size_t len, size_t size, const char *str)
 {
   PRF_scope(blender::ProfileCategory::Core);
   size_t total_size;
-  if (UNLIKELY(!MEM_size_safe_multiply(len, size, &total_size))) {
+  if (!MEM_size_safe_multiply(len, size, &total_size)) [[unlikely]] {
     print_error(
         "Calloc array aborted due to integer overflow: "
         "len=" SIZET_FORMAT "x" SIZET_FORMAT " in %s, total " SIZET_FORMAT "\n",
@@ -727,7 +727,7 @@ static void *mem_guarded_malloc_arrayN_aligned(const size_t len,
                                                const char *str,
                                                size_t &r_bytes_num)
 {
-  if (UNLIKELY(!MEM_size_safe_multiply(len, size, &r_bytes_num))) {
+  if (!MEM_size_safe_multiply(len, size, &r_bytes_num)) [[unlikely]] {
     print_error(
         "Calloc array aborted due to integer overflow: "
         "len=" SIZET_FORMAT "x" SIZET_FORMAT " in %s, total " SIZET_FORMAT "\n",
@@ -814,7 +814,7 @@ void MEM_guarded_printmemlist_stats()
     /* put memory blocks into array */
     printblock = static_cast<MemPrintBlock *>(malloc(sizeof(MemPrintBlock) * totblock));
 
-    if (UNLIKELY(!printblock)) {
+    if (!printblock) [[unlikely]] {
       mem_unlock_thread();
       print_error("malloc returned null while generating stats");
       return;
@@ -1218,10 +1218,10 @@ static void rem_memblock(MemHead *memh)
   }
 #endif
 
-  if (UNLIKELY(malloc_debug_memset && memh->len)) {
+  if (malloc_debug_memset && memh->len) [[unlikely]] {
     memset(memh + 1, 255, memh->len);
   }
-  if (LIKELY(memh->alignment == 0)) {
+  if (memh->alignment == 0) [[likely]] {
     PRF_memory_free(memh);
     free(memh);
   }

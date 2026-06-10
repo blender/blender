@@ -96,7 +96,7 @@ TEST(convexhull_2d, IsConvex)
       p = float2(rng.get_float(), rng.get_float());
     }
     Array<float2> points_hull = convexhull_2d_as_array(points);
-    if (UNLIKELY(points_hull.size() < 3)) {
+    if (points_hull.size() < 3) [[unlikely]] {
       continue;
     }
 

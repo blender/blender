@@ -988,7 +988,7 @@ void butstore_update(Block *block)
     }
   }
 
-  if (LIKELY(block->butstore.first == nullptr)) {
+  if (block->butstore.first == nullptr) [[likely]] {
     return;
   }
 

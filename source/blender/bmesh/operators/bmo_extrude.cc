@@ -136,7 +136,7 @@ static void bm_extrude_copy_face_loop_attributes(BMesh *bm, BMFace *f)
   BMLoop *l_other_0;
   BMLoop *l_other_1;
 
-  if (UNLIKELY(l_first_0 == l_first_0->radial_next)) {
+  if (l_first_0 == l_first_0->radial_next) [[unlikely]] {
     return;
   }
 

@@ -55,7 +55,7 @@ static PyObject *make_oiio_info()
   SetObjItem(PyUnicode_FromFormat(
       "%2d, %2d, %2d", curversion / 10000, (curversion / 100) % 100, curversion % 100));
 
-  if (UNLIKELY(PyErr_Occurred())) {
+  if (PyErr_Occurred()) [[unlikely]] {
     Py_DECREF(oiio_info);
     return nullptr;
   }

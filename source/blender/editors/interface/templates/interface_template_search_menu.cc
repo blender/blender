@@ -742,7 +742,7 @@ static MenuSearch_Data *menu_items_from_ui_create(bContext *C,
               /* Detect empty string, fall back to menu name. */
               const char *drawstr = but->drawstr.c_str();
               int drawstr_len = drawstr_sep - but->drawstr.c_str();
-              if (UNLIKELY(drawstr_len == 0)) {
+              if (drawstr_len == 0) [[unlikely]] {
                 drawstr = CTX_IFACE_(mt_from_but->translation_context, mt_from_but->label);
                 drawstr_len = strlen(drawstr);
                 if (drawstr[0] == '\0') {
@@ -757,7 +757,7 @@ static MenuSearch_Data *menu_items_from_ui_create(bContext *C,
             }
             else {
               const char *drawstr = but->drawstr.c_str();
-              if (UNLIKELY(drawstr[0] == '\0')) {
+              if (drawstr[0] == '\0') [[unlikely]] {
                 drawstr = CTX_IFACE_(mt_from_but->translation_context, mt_from_but->label);
                 if (drawstr[0] == '\0') {
                   drawstr_is_empty = true;

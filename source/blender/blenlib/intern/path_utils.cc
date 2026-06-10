@@ -322,7 +322,7 @@ static int path_normalize_impl(char *path, bool check_blend_relative_prefix)
       path_len -= end - start;
       BLI_assert(strlen(path) == path_len);
       /* Other `..` directories may have been moved to the front, step `start_base` past them. */
-      if (UNLIKELY(start == start_base && (end != end_all))) {
+      if (start == start_base && (end != end_all)) [[unlikely]] {
         start_base += (end_all - end);
         start = (start_base < path + path_len) ? start_base : start_base - 1;
       }
@@ -1280,7 +1280,7 @@ bool BLI_path_program_extensions_add_win32(char *program_name, const size_t prog
         ext_next = strchr(ext, ';');
         ext_len = ext_next ? ((ext_next++) - ext) : strlen(ext);
 
-        if (LIKELY(ext_len < ext_max)) {
+        if (ext_len < ext_max) [[likely]] {
           memcpy(filename_ext, ext, ext_len);
           filename_ext[ext_len] = '\0';
 
@@ -1692,7 +1692,7 @@ size_t BLI_path_join_array(char *__restrict dst,
   BLI_assert(path_array_num > 0);
   BLI_string_debug_size(dst, dst_maxncpy);
 
-  if (UNLIKELY(dst_maxncpy == 0)) {
+  if (dst_maxncpy == 0) [[unlikely]] {
     return 0;
   }
   const char *path = path_array[0];

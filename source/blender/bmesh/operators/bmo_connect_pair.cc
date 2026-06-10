@@ -530,7 +530,7 @@ static void bm_vert_pair_to_matrix(BMVert *v_pair[2], float r_unit_mat[3][3])
   cross_v3_v3v3(basis_tmp, basis_dir, basis_nor);
 
   /* Try get the axis from surrounding faces, fallback to 'ortho_v3_v3' */
-  if (UNLIKELY(normalize_v3(basis_tmp) < eps)) {
+  if (normalize_v3(basis_tmp) < eps) [[unlikely]] {
     /* vertex normals are directly opposite */
 
     /* find the loop with the lowest angle */
@@ -574,7 +574,7 @@ static void bm_vert_pair_to_matrix(BMVert *v_pair[2], float r_unit_mat[3][3])
     cross_v3_v3v3(basis_tmp, basis_dir, basis_nor);
 
     /* last resort, pick _any_ ortho axis */
-    if (UNLIKELY(normalize_v3(basis_tmp) < eps)) {
+    if (normalize_v3(basis_tmp) < eps) [[unlikely]] {
       ortho_v3_v3(basis_nor, basis_dir);
       normalize_v3(basis_nor);
       cross_v3_v3v3(basis_tmp, basis_dir, basis_nor);

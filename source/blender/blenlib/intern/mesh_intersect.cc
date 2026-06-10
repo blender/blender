@@ -1926,7 +1926,7 @@ static Array<Face *> polyfill_triangulate_poly(Face *f, IMeshArena *arena)
     int eo_23 = f->edge_orig[2];
     int eo_30 = f->edge_orig[3];
     Face *f0, *f1;
-    if (UNLIKELY(is_quad_flip_first_third(v0->co, v1->co, v2->co, v3->co))) {
+    if (is_quad_flip_first_third(v0->co, v1->co, v2->co, v3->co)) [[unlikely]] {
       f0 = arena->add_face({v0, v1, v3}, f->orig, {eo_01, -1, eo_30}, {false, false, false});
       f1 = arena->add_face({v1, v2, v3}, f->orig, {eo_12, eo_23, -1}, {false, false, false});
     }

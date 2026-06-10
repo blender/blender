@@ -111,7 +111,7 @@ template<> float *init_pixel_pointer(ImBuf *image, int x, int y)
 static float wrap_uv(float value, int size)
 {
   int x = int(floorf(value));
-  if (UNLIKELY(x < 0 || x >= size)) {
+  if (x < 0 || x >= size) [[unlikely]] {
     x %= size;
     if (x < 0) {
       x += size;

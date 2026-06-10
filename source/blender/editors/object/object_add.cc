@@ -897,7 +897,7 @@ static wmOperatorStatus lattice_add_to_selected_exec(bContext *C, wmOperator *op
         GreasePencilLatticeModifierData *lmd = reinterpret_cast<GreasePencilLatticeModifierData *>(
             modifier_add(
                 op->reports, bmain, scene, ob, nullptr, eModifierType_GreasePencilLattice));
-        if (UNLIKELY(lmd == nullptr)) {
+        if (lmd == nullptr) [[unlikely]] {
           continue;
         }
 
@@ -906,7 +906,7 @@ static wmOperatorStatus lattice_add_to_selected_exec(bContext *C, wmOperator *op
       else {
         LatticeModifierData *lmd = reinterpret_cast<LatticeModifierData *>(
             modifier_add(op->reports, bmain, scene, ob, nullptr, eModifierType_Lattice));
-        if (UNLIKELY(lmd == nullptr)) {
+        if (lmd == nullptr) [[unlikely]] {
           continue;
         }
 

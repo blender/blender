@@ -310,7 +310,7 @@ void mat3_normalized_to_quat_fast(float q[4], const float mat[3][3])
       q[0] = (mat[1][2] - mat[2][1]) * s;
       q[2] = (mat[0][1] + mat[1][0]) * s;
       q[3] = (mat[2][0] + mat[0][2]) * s;
-      if (UNLIKELY((trace == 1.0f) && (q[0] == 0.0f && q[2] == 0.0f && q[3] == 0.0f))) {
+      if ((trace == 1.0f) && (q[0] == 0.0f && q[2] == 0.0f && q[3] == 0.0f)) [[unlikely]] {
         /* Avoids the need to normalize the degenerate case. */
         q[1] = 1.0f;
       }
@@ -327,7 +327,7 @@ void mat3_normalized_to_quat_fast(float q[4], const float mat[3][3])
       q[0] = (mat[2][0] - mat[0][2]) * s;
       q[1] = (mat[0][1] + mat[1][0]) * s;
       q[3] = (mat[1][2] + mat[2][1]) * s;
-      if (UNLIKELY((trace == 1.0f) && (q[0] == 0.0f && q[1] == 0.0f && q[3] == 0.0f))) {
+      if ((trace == 1.0f) && (q[0] == 0.0f && q[1] == 0.0f && q[3] == 0.0f)) [[unlikely]] {
         /* Avoids the need to normalize the degenerate case. */
         q[2] = 1.0f;
       }
@@ -346,7 +346,7 @@ void mat3_normalized_to_quat_fast(float q[4], const float mat[3][3])
       q[0] = (mat[0][1] - mat[1][0]) * s;
       q[1] = (mat[2][0] + mat[0][2]) * s;
       q[2] = (mat[1][2] + mat[2][1]) * s;
-      if (UNLIKELY((trace == 1.0f) && (q[0] == 0.0f && q[1] == 0.0f && q[2] == 0.0f))) {
+      if ((trace == 1.0f) && (q[0] == 0.0f && q[1] == 0.0f && q[2] == 0.0f)) [[unlikely]] {
         /* Avoids the need to normalize the degenerate case. */
         q[3] = 1.0f;
       }
@@ -361,7 +361,7 @@ void mat3_normalized_to_quat_fast(float q[4], const float mat[3][3])
       q[1] = (mat[1][2] - mat[2][1]) * s;
       q[2] = (mat[2][0] - mat[0][2]) * s;
       q[3] = (mat[0][1] - mat[1][0]) * s;
-      if (UNLIKELY((trace == 1.0f) && (q[1] == 0.0f && q[2] == 0.0f && q[3] == 0.0f))) {
+      if ((trace == 1.0f) && (q[1] == 0.0f && q[2] == 0.0f && q[3] == 0.0f)) [[unlikely]] {
         /* Avoids the need to normalize the degenerate case. */
         q[0] = 1.0f;
       }
@@ -384,10 +384,10 @@ void mat3_normalized_to_quat_fast(float q[4], const float mat[3][3])
 static void mat3_normalized_to_quat_with_checks(float q[4], float mat[3][3])
 {
   const float det = determinant_m3_array(mat);
-  if (UNLIKELY(!isfinite(det))) {
+  if (!isfinite(det)) [[unlikely]] {
     unit_m3(mat);
   }
-  else if (UNLIKELY(det < 0.0f)) {
+  else if (det < 0.0f) [[unlikely]] {
     negate_m3(mat);
   }
   mat3_normalized_to_quat_fast(q, mat);
@@ -733,7 +733,7 @@ void vec_to_quat(float q[4], const float vec[3], short axis, const short upflag)
 
   len = len_v3(vec);
 
-  if (UNLIKELY(len == 0.0f)) {
+  if (len == 0.0f) [[unlikely]] {
     return;
   }
 
@@ -882,7 +882,7 @@ void interp_dot_slerp(const float t, const float cosom, float r_w[2])
   BLI_assert(IN_RANGE_INCL(cosom, -1.0001f, 1.0001f));
 
   /* within [-1..1] range, avoid aligned axis */
-  if (LIKELY(fabsf(cosom) < (1.0f - eps))) {
+  if (fabsf(cosom) < (1.0f - eps)) [[likely]] {
     float omega, sinom;
 
     omega = acosf(cosom);
@@ -1076,7 +1076,7 @@ void axis_angle_to_quat(float r[4], const float axis[3], const float angle)
 {
   float nor[3];
 
-  if (LIKELY(normalize_v3_v3(nor, axis) != 0.0f)) {
+  if (normalize_v3_v3(nor, axis) != 0.0f) [[likely]] {
     axis_angle_normalized_to_quat(r, nor, angle);
   }
   else {
@@ -1345,7 +1345,7 @@ void expmap_to_quat(float r[4], const float expmap[3])
   float angle;
 
   /* Obtain axis/angle representation. */
-  if (LIKELY((angle = normalize_v3_v3(axis, expmap)) != 0.0f)) {
+  if ((angle = normalize_v3_v3(axis, expmap)) != 0.0f) [[likely]] {
     axis_angle_normalized_to_quat(r, axis, angle_wrap_rad(angle));
   }
   else {

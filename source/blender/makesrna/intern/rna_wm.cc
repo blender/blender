@@ -1627,7 +1627,7 @@ static wmOperatorStatus rna_operator_exec_cb(bContext *C, wmOperator *op)
 
   RNA_parameter_list_free(&list);
 
-  if (UNLIKELY(has_error)) {
+  if (has_error) [[unlikely]] {
     /* A modal handler may have been added, ensure this is removed, see: #113479. */
     WM_event_remove_modal_handler_all(op, false);
   }
@@ -1684,7 +1684,7 @@ static wmOperatorStatus rna_operator_invoke_cb(bContext *C, wmOperator *op, cons
 
   RNA_parameter_list_free(&list);
 
-  if (UNLIKELY(has_error)) {
+  if (has_error) [[unlikely]] {
     /* A modal handler may have been added, ensure this is removed, see: #113479. */
     WM_event_remove_modal_handler_all(op, false);
   }

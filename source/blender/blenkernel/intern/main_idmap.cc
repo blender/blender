@@ -200,7 +200,7 @@ ID *BKE_main_idmap_lookup_name(IDNameLib_Map *id_map,
 {
   IDNameLib_TypeMap *type_map = main_idmap_from_idcode(id_map, id_type);
 
-  if (UNLIKELY(type_map == nullptr)) {
+  if (type_map == nullptr) [[unlikely]] {
     return nullptr;
   }
 
