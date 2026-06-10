@@ -12,24 +12,39 @@ FRAGMENT_SHADER_CREATE_INFO(overlay_grid_next)
 #include "overlay_common_lib.glsl"
 #include "overlay_grid_common_lib.glsl"
 
+/* TODO(not_mark): De-duplicate in BSL port. */
+bool is_equal(float2 a, float2 b, float epsilon)
+{
+  return all(lessThanEqual(abs(a - b), float2(epsilon)));
+}
+
 void main()
 {
-  /* Fragment color. */
-  if (flag_test(grid_flag, SHOW_GRID)) {
-    /* Color is a mix of [grid, grid_emphasis], dependent on the level. */
-    out_color = mix(theme.colors.grid, theme.colors.grid_emphasis, vertex_out_flat.emphasis);
+  /* Test if a vertex output position overlaps with an active axis line. */
+  constexpr float axis_epsilon = 2e-7f;
+  bool3 axis_mask = bool3(
+      flag_test(grid_flag, AXIS_X) && is_equal(vertex_out.pos.yz, float2(0.0), axis_epsilon),
+      flag_test(grid_flag, AXIS_Y) && is_equal(vertex_out.pos.xz, float2(0.0), axis_epsilon),
+      flag_test(grid_flag, AXIS_Z) && is_equal(vertex_out.pos.xy, float2(0.0), axis_epsilon));
+
+  /* If an axis line overlaps, the fragment can be discarded. */
+  if (any(axis_mask) && flag_test(grid_flag, SHOW_GRID)) {
+    gpu_discard_fragment();
   }
-  else if (flag_test(grid_flag, SHOW_AXES)) {
-    /* Color is fixed by theme. */
-    if (flag_test(grid_flag, AXIS_X) && grid::is_zero(vertex_out.pos.yz, 2e-6f)) {
-      out_color = theme.colors.grid_axis_x;
-    }
-    else if (flag_test(grid_flag, AXIS_Y) && grid::is_zero(vertex_out.pos.xz, 2e-6f)) {
-      out_color = theme.colors.grid_axis_y;
-    }
-    else if (flag_test(grid_flag, AXIS_Z) && grid::is_zero(vertex_out.pos.xy, 2e-6f)) {
-      out_color = theme.colors.grid_axis_z;
-    }
+
+  /* Axis color is fixed by theme, while grid color is a mix of [grid, grid_emphasis]
+   * dependent on the level. */
+  if (axis_mask.x) {
+    out_color = theme.colors.grid_axis_x;
+  }
+  else if (axis_mask.y) {
+    out_color = theme.colors.grid_axis_y;
+  }
+  else if (axis_mask.z) {
+    out_color = theme.colors.grid_axis_z;
+  }
+  else {
+    out_color = mix(theme.colors.grid, theme.colors.grid_emphasis, vertex_out_flat.emphasis);
   }
 
   /* Fragment alpha. */
