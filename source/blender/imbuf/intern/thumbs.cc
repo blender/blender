@@ -499,6 +499,9 @@ static ImBuf *thumb_create_or_fail(const char *file_path,
  */
 static bool skip_thumbnails_for_filepath(const char *filepath)
 {
+  if (!BLI_path_extension_check(filepath, ".blend")) {
+    return false;
+  }
   char temp_dir[FILE_MAX];
   BLI_temp_directory_path_get(temp_dir, sizeof(temp_dir));
   return BLI_path_contains(temp_dir, filepath);
