@@ -240,14 +240,40 @@ void bmo_triangle_fill_exec(BMesh *bm, BMOperator *op)
     BM_ITER_MESH_MUTABLE (e, e_next, &iter, bm, BM_EDGES_OF_MESH) {
       if (BMO_edge_flag_test(bm, e, ELE_NEW)) {
         /* in rare cases the edges face will have already been removed from the edge */
-        if (LIKELY(BM_edge_is_manifold(e))) {
+        BMLoop *l_a, *l_b;
+        if (BM_edge_loop_pair(e, &l_a, &l_b) &&
+            /* This ensures we don't delete existing faces attached to the geometry being filled.
+             * The likely cause of this will have been a duplicate, where the newly created
+             * face was removed and the existing (un-tagged) face kept.
+             * Follow the rule of not deleting geometry unrelated to the fill. */
+            (BMO_face_flag_test(bm, l_a->f, ELE_NEW) && BMO_face_flag_test(bm, l_b->f, ELE_NEW)))
+            [[likely]]
+        {
           BMFace *f_double;
           BMFace *f_new = BM_faces_join_pair(bm, e->l, e->l->radial_next, false, &f_double);
-          /* See #BM_faces_join note on callers asserting when `r_double` is non-null. */
-          BLI_assert_msg(f_double == nullptr,
-                         "Doubled face detected at " AT ". Resulting mesh may be corrupt.");
 
-          if (f_new) {
+          if (f_double) [[unlikely]] {
+            /* NOTE(@ideasman42): Regarding duplicate faces.
+             * The common case for filling is to select an empty region and fill it.
+             * In general filling over and existing filled area isn't likely to work well,
+             * so anything done here is more to avoid errors - not part of a typical workflow.
+             *
+             * - It's important never to finish with duplicate faces (an *invalid* mesh).
+             * - Remove the "new" face because having a "fill" action
+             *   delete existing geometry is unexpected and could cause problems
+             *   if the caller doesn't know to account for this.
+             * - This face may be an *intermediate* state - where multiple edges
+             *   would be collapsed to create the final face.
+             *   Unfortunately this isn't currently handled as well as it might be,
+             *   it may be better to fill a temporary mesh, then apply the final result,
+             *   so we only have to deal with final duplicates (not intermediate ones).
+             */
+            if (f_new) {
+              BM_face_kill(bm, f_new);
+            }
+            BM_edge_kill(bm, e);
+          }
+          else if (f_new) {
             BMO_face_flag_enable(bm, f_new, ELE_NEW);
             BM_edge_kill(bm, e);
           }
