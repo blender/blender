@@ -604,7 +604,7 @@ void BM_edge_verts_swap(BMEdge *e)
   std::swap(e->v1_disk_link, e->v2_disk_link);
 }
 
-void BM_edge_calc_rotate(BMEdge *e, const bool ccw, BMLoop **r_l1, BMLoop **r_l2)
+bool BM_edge_calc_rotate(BMEdge *e, const bool ccw, BMLoop **r_l1, BMLoop **r_l2)
 {
   BMVert *v1, *v2;
   BMFace *fa, *fb;
@@ -625,9 +625,17 @@ void BM_edge_calc_rotate(BMEdge *e, const bool ccw, BMLoop **r_l1, BMLoop **r_l2
   if (!ccw) {
     std::swap(fa, fb);
   }
+  BMLoop *l1 = BM_face_other_vert_loop(fb, v2, v1);
+  BMLoop *l2 = BM_face_other_vert_loop(fa, v1, v2);
 
-  *r_l1 = BM_face_other_vert_loop(fb, v2, v1);
-  *r_l2 = BM_face_other_vert_loop(fa, v1, v2);
+  /* This occurs when faces share multiple edges next to `e`.
+   * While rare it's not an error, this rotation must be skipped. */
+  if (l1->v == l2->v) [[unlikely]] {
+    return false;
+  }
+  *r_l1 = l1;
+  *r_l2 = l2;
+  return true;
 }
 
 bool BM_edge_rotate_check(BMEdge *e)
@@ -769,7 +777,9 @@ BMEdge *BM_edge_rotate(BMesh *bm, BMEdge *e, const bool ccw, const short check_f
     return nullptr;
   }
 
-  BM_edge_calc_rotate(e, ccw, &l1, &l2);
+  if (!BM_edge_calc_rotate(e, ccw, &l1, &l2)) {
+    return nullptr;
+  }
 
   /* the loops will be freed so assign verts */
   v1 = l1->v;
