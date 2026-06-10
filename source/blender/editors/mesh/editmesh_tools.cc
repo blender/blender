@@ -9747,10 +9747,13 @@ static wmOperatorStatus edbm_set_normals_from_faces_exec(bContext *C, wmOperator
     {
       int v_index;
       BM_ITER_MESH_INDEX (v, &viter, bm, BM_VERTS_OF_MESH, v_index) {
+        BM_elem_index_set(v, v_index); /* set_inline */
         BM_vert_calc_normal_ex(v, BM_ELEM_SELECT, vert_normals[v_index]);
       }
+      bm->elem_index_dirty &= ~BM_VERT;
     }
 
+    BM_mesh_elem_index_ensure(bm, BM_LOOP);
     BLI_bitmap *loop_set = BLI_BITMAP_NEW(bm->totloop, __func__);
     const int cd_clnors_offset = CustomData_get_offset_named(
         &bm->ldata, CD_PROP_INT16_2D, "custom_normal");
