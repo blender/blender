@@ -550,30 +550,74 @@ class AlembicAnimatedCameraImportTests(AbstractAlembicTest):
             camera = camera_object.data
 
             lens = 50.0 + frame
-            shift = (frame - 1) * (1.0 / 24.0)
-            clip = frame
+            sensor_width = 35.0 + frame
+            sensor_height = 23.0 + frame
+            shift_x = (frame - 1) * (1.0 / 24.0)
+            shift_y = -(frame - 1) * (1.0 / 24.0)
+            clip_start = frame
+            clip_end = frame * 100.0
+            focus_distance = frame * 10.0
+            aperture_fstop = frame * 3.0
+            convergence_distance = frame * 2.0
+            interocular_distance = frame * 0.05
 
             self.assertEqual(
                 lens,
                 camera.lens,
                 f"Frame {frame}: {camera_object.name} lens values do not match")
 
+            self.assertEqual(
+                sensor_width,
+                camera.sensor_width,
+                f"Frame {frame}: {camera_object.name} sensor_width values do not match")
+
+            self.assertEqual(
+                sensor_height,
+                camera.sensor_height,
+                f"Frame {frame}: {camera_object.name} sensor_height values do not match")
+
             self.assertAlmostEqual(
-                shift,
+                shift_x,
                 camera.shift_x,
                 places=6,
                 msg=f"Frame {frame}: {camera_object.name} shift_x values do not match")
 
             self.assertAlmostEqual(
-                shift,
+                shift_y,
                 camera.shift_y,
                 places=6,
                 msg=f"Frame {frame}: {camera_object.name} shift_y values do not match")
 
             self.assertEqual(
-                clip,
+                clip_start,
                 camera.clip_start,
                 f"Frame {frame}: {camera_object.name} clip_start values do not match")
+
+            self.assertEqual(
+                clip_end,
+                camera.clip_end,
+                f"Frame {frame}: {camera_object.name} clip_end values do not match")
+
+            self.assertEqual(
+                focus_distance,
+                camera.dof.focus_distance,
+                f"Frame {frame}: {camera_object.name} focus_distance values do not match")
+
+            self.assertEqual(
+                aperture_fstop,
+                camera.dof.aperture_fstop,
+                f"Frame {frame}: {camera_object.name} aperture_fstop values do not match")
+
+            self.assertEqual(
+                convergence_distance,
+                camera.stereo.convergence_distance,
+                f"Frame {frame}: {camera_object.name} convergence_distance values do not match")
+
+            self.assertAlmostEqual(
+                interocular_distance,
+                camera.stereo.interocular_distance,
+                delta=1e-6,
+                msg=f"Frame {frame}: {camera_object.name} interocular_distance values do not match")
 
 
 class AlembicImportComparisonTests(unittest.TestCase):
