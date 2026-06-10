@@ -3566,6 +3566,7 @@ float4x4 BKE_object_calc_parent(Depsgraph *depsgraph, Scene *scene, Object *ob)
   workob.par1 = ob->par1;
   workob.par2 = ob->par2;
   workob.par3 = ob->par3;
+  workob.parent_bone_head_tail_factor = ob->parent_bone_head_tail_factor;
 
   /* The effects of constraints should NOT be included in the parent-inverse matrix. Constraints
    * are supposed to be applied after the object's local loc/rot/scale. If the (inverted) effect of
