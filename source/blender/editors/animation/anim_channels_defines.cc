@@ -4863,6 +4863,9 @@ void ANIM_channel_debug_print_info(bAnimContext &ac, bAnimListElem *ale, short i
 
     short setting_type = 0;
     const void *setting_ptr = acf->setting_ptr(ale, setting, &setting_type);
+    if (setting_ptr == nullptr) {
+      continue;
+    }
 
     bool setting_value = false;
     switch (setting_type) {
