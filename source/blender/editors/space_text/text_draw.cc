@@ -1435,8 +1435,8 @@ static void draw_brackets(const SpaceText *st, const TextDrawContext *tdc, ARegi
       }
     }
     else {
-      BLI_assert(fc == 0);
-      fc = -1;
+      /* For balanced brackets: `fc == 0`. */
+      fc--;
     }
     while (linep) {
       while (fc >= 0) {
@@ -1466,8 +1466,8 @@ static void draw_brackets(const SpaceText *st, const TextDrawContext *tdc, ARegi
           }
         }
         else {
-          BLI_assert(fc == 0);
-          fc = -1;
+          /* For balanced brackets: `fc == 0`. */
+          fc--;
         }
       }
       if (endl) {
@@ -1482,7 +1482,7 @@ static void draw_brackets(const SpaceText *st, const TextDrawContext *tdc, ARegi
           fc = space_text_get_format_index(st, linep->line, c);
         }
         else {
-          BLI_assert(fc == 0);
+          /* Empty or unformatted line: nothing to scan, skip to the previous line. */
           fc = -1;
         }
       }
