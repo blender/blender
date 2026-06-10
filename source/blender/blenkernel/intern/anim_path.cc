@@ -255,6 +255,13 @@ bool BKE_where_on_path(const Object *ob,
     CLOG_WARN(&LOG, "No bev list data!");
     return false;
   }
+  /* A curve with co-located vertices results in a single bevel point without a "segment".
+   * While we could snap to the point, none of the derived values (direction, rotation, ...),
+   * will be set usefully so following the path won't work well.
+   * Further, historically this read out-of-bounds memory (evaluating to NAN for e.g.). */
+  if (bl->nr < 2) {
+    return false;
+  }
 
   /* Test for cyclic curve. */
   const bool is_cyclic = bl->poly >= 0;
