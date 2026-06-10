@@ -2795,18 +2795,19 @@ bool BKE_imbuf_write_as(ImBuf *ibuf,
                         const ImageFormatData *imf,
                         const bool save_copy)
 {
-  ImBuf ibuf_back = *ibuf;
-  bool ok;
+  const eImbFileType ftype_back = ibuf->ftype;
+  const ImbFormatOptions foptions_back = ibuf->foptions;
+  const ImColorMode color_mode_back = ibuf->color_mode;
 
   ibuf->color_mode = imf->color_mode;
 
-  ok = BKE_imbuf_write(ibuf, filepath, imf);
+  bool ok = BKE_imbuf_write(ibuf, filepath, imf);
 
   if (save_copy) {
     /* note that we are not restoring _all_ settings */
-    ibuf->color_mode = ibuf_back.color_mode;
-    ibuf->ftype = ibuf_back.ftype;
-    ibuf->foptions = ibuf_back.foptions;
+    ibuf->color_mode = color_mode_back;
+    ibuf->ftype = ftype_back;
+    ibuf->foptions = foptions_back;
   }
 
   return ok;

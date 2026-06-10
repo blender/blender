@@ -373,7 +373,8 @@ ImBuf *IMB_allocImBuf(uint x, uint y, ImBufFlags flags)
 
 bool IMB_initImBuf(ImBuf *ibuf, uint x, uint y, ImBufFlags flags)
 {
-  *ibuf = ImBuf{};
+  ibuf->~ImBuf();
+  new (ibuf) ImBuf();
 
   ibuf->x = x;
   ibuf->y = y;
