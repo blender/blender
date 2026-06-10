@@ -36,6 +36,7 @@ namespace seq {
 
 struct RenderData;
 struct SeqRenderState;
+struct SeqResult;
 
 struct ModifierApplyContext {
   ModifierApplyContext(const RenderData &render_data,
@@ -44,14 +45,14 @@ struct ModifierApplyContext {
                        const float3x3 &transform,
                        const float3x3 &transform_comp_result,
                        const float timeline_frame,
-                       ImBuf *image)
+                       SeqResult &result)
       : render_data(render_data),
         render_state(render_state),
         strip(strip),
         transform(transform),
         transform_comp_result(transform_comp_result),
         timeline_frame(timeline_frame),
-        image(image)
+        result(result)
   {
   }
   const RenderData &render_data;
@@ -66,12 +67,7 @@ struct ModifierApplyContext {
   const float3x3 transform_comp_result;
   /* Timeline frame at which the modifiers are being applied at. */
   const float timeline_frame;
-  ImBuf *const image;
-
-  /* How much the resulting image should be translated, in pixels.
-   * Compositor modifier can have some nodes that translate the output
-   * image. */
-  float2 result_translation = float2(0, 0);
+  SeqResult &result;
 };
 
 void modifier_apply_stack(ModifierApplyContext &context);

@@ -642,7 +642,6 @@ static SeqResult input_preprocess(const RenderData *context,
   const bool do_scale_to_render_size = seq_need_scale_to_render_size(strip, is_proxy_image);
   const float image_scale_factor = do_scale_to_render_size ? preview_scale_factor : 1.0f;
 
-  float2 modifier_translation = float2(0, 0);
   if (strip->modifiers.first) {
     result.image = IMB_makeSingleUser(result.image);
     float3x3 matrix = calc_strip_transform_matrix(scene,
@@ -657,9 +656,8 @@ static SeqResult input_preprocess(const RenderData *context,
         scene, strip, 0, 0, 0, 0, image_scale_factor, preview_scale_factor);
     matrix_comp = math::invert(matrix_comp);
     ModifierApplyContext mod_context(
-        *context, *state, *strip, matrix, matrix_comp, timeline_frame, result.image);
+        *context, *state, *strip, matrix, matrix_comp, timeline_frame, result);
     modifier_apply_stack(mod_context);
-    modifier_translation = mod_context.result_translation;
   }
 
   /* After everything above is done but before transform is applied,
@@ -668,7 +666,7 @@ static SeqResult input_preprocess(const RenderData *context,
 
   if (sequencer_use_crop(strip) || sequencer_use_transform(strip) ||
       context->rectx != result.image->x || context->recty != result.image->y ||
-      (strip->is_effect() && image_scale_factor != 1.0f) || modifier_translation != float2(0, 0))
+      (strip->is_effect() && image_scale_factor != 1.0f) || result.translation != float2(0, 0))
   {
     PRF_scope_with_name("SeqStripTransform", ProfileCategory::Draw);
 
@@ -686,7 +684,7 @@ static SeqResult input_preprocess(const RenderData *context,
                                                   context->recty,
                                                   image_scale_factor,
                                                   preview_scale_factor);
-    matrix *= math::from_location<float3x3>(modifier_translation);
+    matrix *= math::from_location<float3x3>(result.translation);
     matrix = math::invert(matrix);
     sequencer_preprocess_transform_crop(result.image,
                                         transformed_ibuf,
@@ -726,7 +724,9 @@ static SeqResult seq_render_preprocess_ibuf(const RenderData *context,
                                             const bool is_proxy_image)
 {
   BLI_assert(input.is_valid());
-  if (input.image->x != context->rectx || input.image->y != context->recty) {
+  if (input.image->x != context->rectx || input.image->y != context->recty ||
+      input.translation != float2(0, 0))
+  {
     use_preprocess = true;
   }
 

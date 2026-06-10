@@ -11,7 +11,6 @@
 #include "BLT_translation.hh"
 
 #include "COM_domain.hh"
-#include "COM_realize_on_domain_operation.hh"
 #include "COM_result.hh"
 #include "COM_utilities.hh"
 
@@ -253,7 +252,7 @@ class CompositorModifierContext : public CompositorContext {
       : CompositorContext(cache_manager, mod_context.render_data, mod_context.strip),
         mod_context_(mod_context),
         modifier_data_(modifier_data),
-        image_buffer_(mod_context.image),
+        image_buffer_(mod_context.result.image),
         mask_(*this, compositor::ResultType::Color, compositor::ResultPrecision::Full),
         timeline_frame_(mod_context.timeline_frame)
   {
@@ -280,30 +279,7 @@ class CompositorModifierContext : public CompositorContext {
 
   void write_viewer(compositor::Result &viewer_result) override
   {
-    using namespace compositor;
-
-    /* Realize the transforms if needed. */
-    const InputDescriptor input_descriptor = {ResultType::Color,
-                                              InputRealizationMode::OperationDomain};
-    SimpleOperation *realization_operation = RealizeOnDomainOperation::construct_if_needed(
-        *this, viewer_result, input_descriptor, viewer_result.domain());
-
-    if (realization_operation) {
-      Result realize_input = this->create_result(ResultType::Color, viewer_result.precision());
-      realize_input.share_data(viewer_result);
-      realization_operation->map_input_to_result(&realize_input);
-      realization_operation->evaluate();
-
-      Result &realized_viewer_result = realization_operation->get_result();
-      this->write_output(realized_viewer_result, *image_buffer_);
-      realized_viewer_result.release();
-      viewer_was_written_ = true;
-      delete realization_operation;
-      return;
-    }
-
-    this->write_output(viewer_result, *image_buffer_);
-    viewer_was_written_ = true;
+    write_viewer_impl(viewer_result, *image_buffer_);
   }
 
   void evaluate()
@@ -478,7 +454,7 @@ static void compositor_modifier_apply(ModifierApplyContext &context,
     render_end_gpu(context.render_data);
   }
 
-  context.result_translation += com_mod_context.get_result_translation();
+  context.result.translation += com_mod_context.get_result_translation();
 }
 
 static PointerRNA *modifier_panel_get_property_pointers(Panel *panel)
