@@ -4441,18 +4441,21 @@ static Object *convert_curves_legacy_to_grease_pencil(Base &base,
 
   bke::greasepencil::Drawing *drawing = grease_pencil->insert_frame(layer, current_frame);
 
-  bke::CurvesGeometry &curves = curves_nomain->geometry.wrap();
+  /* An empty curve (no splines) converts to a #Curves of nullptr, leave the drawing empty. */
+  if (curves_nomain) {
+    bke::CurvesGeometry &curves = curves_nomain->geometry.wrap();
 
-  drawing->strokes_for_write() = std::move(curves);
-  /* Default radius (1.0 unit) is too thick for converted strokes. */
-  bke::MutableAttributeAccessor attributes = drawing->strokes_for_write().attributes_for_write();
-  attributes.remove("radius");
-  attributes.add<float>("radius", bke::AttrDomain::Point, bke::AttributeInitValue(0.01f));
-  drawing->tag_positions_changed();
+    drawing->strokes_for_write() = std::move(curves);
+    /* Default radius (1.0 unit) is too thick for converted strokes. */
+    bke::MutableAttributeAccessor attributes = drawing->strokes_for_write().attributes_for_write();
+    attributes.remove("radius");
+    attributes.add<float>("radius", bke::AttrDomain::Point, bke::AttributeInitValue(0.01f));
+    drawing->tag_positions_changed();
 
-  const bool use_fill = (legacy_curve_id->flag & (CU_FRONT | CU_BACK)) != 0;
-  if (use_fill) {
-    create_grease_pencil_fills(*drawing);
+    const bool use_fill = (legacy_curve_id->flag & (CU_FRONT | CU_BACK)) != 0;
+    if (use_fill) {
+      create_grease_pencil_fills(*drawing);
+    }
   }
 
   newob->data = id_cast<ID *>(grease_pencil);
@@ -4469,7 +4472,9 @@ static Object *convert_curves_legacy_to_grease_pencil(Base &base,
    * specific conversion combination), not sure why. Ref: #138793 / #146252 */
   DEG_id_tag_update(&grease_pencil->id, ID_RECALC_GEOMETRY);
 
-  BKE_id_free(nullptr, curves_nomain);
+  if (curves_nomain) {
+    BKE_id_free(nullptr, curves_nomain);
+  }
 
   return newob;
 }
