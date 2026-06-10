@@ -76,6 +76,11 @@
 
 namespace blender::ed::curves {
 
+static eHandleDisplay view3d_handle_type_or_default(const View3D *v3d)
+{
+  return v3d ? v3d->overlay.handle_display : CURVE_HANDLE_SELECTED;
+}
+
 bool object_has_editable_curves(const Main &bmain, const Object &object)
 {
   if (object.type != OB_CURVES) {
@@ -1140,12 +1145,12 @@ namespace split {
 static wmOperatorStatus split_exec(bContext *C, wmOperator * /*op*/)
 {
   View3D *v3d = CTX_wm_view3d(C);
+  const eHandleDisplay handle_display = view3d_handle_type_or_default(v3d);
   VectorSet<Curves *> unique_curves = get_unique_editable_curves(*C);
   for (Curves *curves_id : unique_curves) {
     CurvesGeometry &curves = curves_id->geometry.wrap();
     IndexMaskMemory memory;
-    const IndexMask points_to_split = retrieve_all_selected_points(
-        curves, v3d->overlay.handle_display, memory);
+    const IndexMask points_to_split = retrieve_all_selected_points(curves, handle_display, memory);
     if (points_to_split.is_empty()) {
       continue;
     }
