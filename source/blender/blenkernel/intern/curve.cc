@@ -105,6 +105,11 @@ static void curve_copy_data(Main *bmain,
                        &curve_dst->id,
                        reinterpret_cast<ID **>(&curve_dst->key),
                        flag);
+    /* It has one user, but its owner reference (added in #id_copy_libmanagement_cb)
+     * is the real owner, remove the reference here, see: #159691. */
+    if ((flag & LIB_ID_CREATE_NO_USER_REFCOUNT) == 0) {
+      id_us_min(&curve_dst->key->id);
+    }
   }
 
   curve_dst->editnurb = nullptr;
