@@ -759,6 +759,7 @@ static bool uv_rip_object(
 
   bool changed = false;
 
+  /* Store per-face visibility in #BM_ELEM_TAG; every loop below must check it first */
   BM_ITER_MESH (efa, &iter, em->bm, BM_FACES_OF_MESH) {
     BM_elem_flag_set(efa, BM_ELEM_TAG, uvedit_face_visible_test(scene, efa));
     BM_ITER_ELEM (l, &liter, efa, BM_LOOPS_OF_FACE) {
@@ -819,6 +820,9 @@ static bool uv_rip_object(
    * however in practice it's not that useful, see #78751. */
   if (is_select_all_any) {
     BM_ITER_MESH (efa, &iter, em->bm, BM_FACES_OF_MESH) {
+      if (!BM_elem_flag_test(efa, BM_ELEM_TAG)) {
+        continue;
+      }
       BM_ITER_ELEM (l, &liter, efa, BM_LOOPS_OF_FACE) {
         if (!UL(l)->is_select_all) {
           if (uvedit_loop_vert_select_get(ts, bm, l)) {
