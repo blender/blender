@@ -58,11 +58,9 @@ class CompositorEffectContext : public CompositorContext {
     return compositor::Domain(int2(this->output_->x, this->output_->y));
   }
 
-  void write_viewer(compositor::Result &result) override
+  void write_viewer(compositor::Result &viewer_result) override
   {
-    /* Within compositor effect, output and viewer output function the same. */
-    this->write_output(result, *this->output_);
-    viewer_was_written_ = true;
+    write_viewer_impl(viewer_result, *this->output_);
   }
 
   void evaluate()
@@ -163,6 +161,7 @@ static SeqResult do_compositor_effect(const RenderData *context,
     if (com_context.use_gpu()) {
       render_end_gpu(*context);
     }
+    out.translation += com_context.get_result_translation();
     out.is_opaque_before_transform = !out.image->can_contain_alpha();
   }
   return out;
