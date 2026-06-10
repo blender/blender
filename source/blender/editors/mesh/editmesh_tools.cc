@@ -9046,6 +9046,7 @@ static void normals_split(BMesh *bm)
 
   BLI_SMALLSTACK_DECLARE(loop_stack, BMLoop *);
 
+  BM_data_layer_ensure_named(bm, &bm->ldata, CD_PROP_INT16_2D, "custom_normal");
   const int cd_clnors_offset = CustomData_get_offset_named(
       &bm->ldata, CD_PROP_INT16_2D, "custom_normal");
   BM_ITER_MESH (f, &fiter, bm, BM_FACES_OF_MESH) {
