@@ -1133,7 +1133,7 @@ void CLIP_OT_hide_tracks_clear(wmOperatorType *ot)
 static bool frame_jump_poll(bContext *C)
 {
   SpaceClip *space_clip = CTX_wm_space_clip(C);
-  return space_clip != nullptr;
+  return space_clip != nullptr && ED_space_clip_get_clip(space_clip) != nullptr;
 }
 
 static wmOperatorStatus frame_jump_exec(bContext *C, wmOperator *op)
