@@ -3990,7 +3990,7 @@ void BKE_lib_override_library_main_resync(
       }
       if (view_layer) {
         CLOG_WARN(&LOG_RESYNC,
-                  "Provided scene '%s' is not local, using instead local scene '%s', viewlayer "
+                  "Provided scene '%s' is not local, using instead local scene '%s', view-layer "
                   "'%s' as container for the library override leftover collections and objects",
                   BKE_id_name(scene->id),
                   BKE_id_name(new_scene->id),

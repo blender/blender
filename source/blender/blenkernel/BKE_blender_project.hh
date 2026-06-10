@@ -35,7 +35,7 @@ class BlenderProject {
    * This should generally be an absolute path to a directory that exists, is
    * accessible, and contains a ".blender_project" directory with the project's
    * config in it. This is not, however, guaranteed because via Python a project
-   * can be initialized with an arbitrary path, or the filesystem could have
+   * can be initialized with an arbitrary path, or the file-system could have
    * been modified since the project was loaded, etc.
    */
   std::string root_path_;

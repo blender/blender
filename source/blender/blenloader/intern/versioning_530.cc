@@ -48,7 +48,7 @@ void blo_do_versions_530(FileData * /*fd*/, Library * /*lib*/, Main *bmain)
             wpaint->paint.brush_asset_reference->relative_asset_identifier;
         if (wpaint->paint.brush == nullptr && old_asset_id.endswith("Paint")) {
           /* The "Paint" brush asset was renamed to "Add Weight", find it via the default instead
-           * of hardcoding the new name. */
+           * of hard-coding the new name. */
           if (std::optional<AssetWeakReference> paint_brush_asset_reference =
                   BKE_paint_brush_type_default_reference(PaintMode::Weight,
                                                          WPAINT_BRUSH_TYPE_DRAW))

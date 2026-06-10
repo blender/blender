@@ -480,7 +480,7 @@ class VIEW3D_OT_vr_location_scouting_viewfinder_apply_action(Operator):
                     return {'FINISHED'}
 
         if xr_viewfinder.active_mode == 'PLAYBACK':
-            # Playblack control.
+            # Playback control.
             if len(captures) == 0:
                 return {'FINISHED'}
 

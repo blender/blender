@@ -1596,7 +1596,7 @@ static bool image_memorypack_imbuf_for_autosave(
   imapf->tile_number = tile_number;
   BLI_addtail(&ima->autosave_packedfiles, imapf);
 
-  /* We should not clear the dirty flag when autosaving */
+  /* We should not clear the dirty flag when auto-saving. */
 
   return true;
 }

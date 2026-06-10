@@ -965,7 +965,7 @@ struct FilmDisplay {
   [[push_constant]] bool display_only;
 };
 
-/* Accumulate and output to the render framebuffer.
+/* Accumulate and output to the render frame-buffer.
  * Used for viewport. */
 [[fragment]]
 void accumulate_or_display_frag([[resource_table]] const FilmDisplay &srt,

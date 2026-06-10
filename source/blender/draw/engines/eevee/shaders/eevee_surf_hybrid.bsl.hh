@@ -199,7 +199,7 @@ void surf_hybrid([[resource_table]] PipelineConstants &pipe,
   /* ----- GBuffer output ----- */
 
   gbuffer::InputClosures gbuf_data;
-  /* Make sure we we do not read uninitialized data (see #159161). */
+  /* Make sure we do not read uninitialized data (see #159161). */
   if (pipe.closure_bin_count == 0) [[static_branch]] {
     gbuf_data.closure[0] = ClosureUndetermined{};
   }

@@ -2326,7 +2326,7 @@ static wmOperatorStatus outliner_liboverride_property_remove_exec(bContext *C, w
 void OUTLINER_OT_liboverride_property_remove(wmOperatorType *ot)
 {
   /* identifiers */
-  ot->name = "Outliner Library Override Propery Remove";
+  ot->name = "Outliner Library Override Properly Remove";
   ot->idname = "OUTLINER_OT_liboverride_property_remove";
   ot->description =
       "Remove the selected library override properties, and reset the relevant data to the linked "

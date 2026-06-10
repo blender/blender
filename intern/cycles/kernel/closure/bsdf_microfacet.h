@@ -1178,7 +1178,7 @@ ccl_device int bsdf_microfacet_beckmann_sample(KernelGlobals kg,
  * An infinitesimally thin sheet of dielectric, following OpenPBR spec
  * https://academysoftwarefoundation.github.io/OpenPBR/#model/thin-walledcase
  *
- * It is approximated by a reflected lobe and a trasmitted lobe, the respective weights of both
+ * It is approximated by a reflected lobe and a transmitted lobe, the respective weights of both
  * lobes are analytically computed by summing up infinite geometric series that account for
  * internal reflections.
  *

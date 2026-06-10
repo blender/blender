@@ -5774,7 +5774,7 @@ static VMesh pipe_adj_vmesh(BevelState &state, BevVert *bv, BoundVert *vpipe);
 static VMesh square_out_adj_vmesh(BevelState &state, BevVert *bv);
 
 /**
- * Main vmesh builder for a single bevelled vertex.
+ * Main vmesh builder for a single beveled vertex.
  * Allocates the #NewVert grid, creates boundary vertices in #ExtendableMesh,
  * computes profile coordinates, then dispatches to the appropriate per-kind builder.
  */

@@ -2168,8 +2168,8 @@ void rna_NodesModifierBake_override_diff(Main *bmain, RNAPropertyOverrideDiffCon
     if (nmd_bake_a->id != nmd_bake_b->id) {
       /* Bakes for different nodes, cannot do anything else here, ignore. */
       /* NOTE: Not sure if this can actually happen? Maybe in case the user assigns a different
-       * nodetree in the overridden version of the modifier, which happens to have exactly the same
-       * amount of bake nodes? */
+       * node-tree in the overridden version of the modifier, which happens to have exactly the
+       * same amount of bake nodes? */
       BLI_assert_unreachable();
       continue;
     }
@@ -2288,7 +2288,7 @@ bool rna_NodesModifierBake_override_apply(Main *bmain,
 
   /* Ignore index-based default 'destination item' defined by the generic liboverride apply code
    * and stored in RNAPropertyOverrideApplyContext::ptr_item_dst, as changes in source linked
-   * nodetree may have re-ordered its bakes. Instead, lookup by bake id. */
+   * node-tree may have re-ordered its bakes. Instead, lookup by bake id. */
   NodesModifierData *nmd_dst = ptr_dst->data_as<NodesModifierData>();
   NodesModifierBake *nmd_bake_dst = nmd_dst->find_bake(nmd_bake_src->id);
   if (!nmd_bake_dst) {

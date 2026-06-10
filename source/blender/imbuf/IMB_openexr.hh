@@ -45,7 +45,7 @@ ExrWriteHandle *IMB_exr_write_begin(bool write_multipart = false);
 void IMB_exr_write_view(ExrWriteHandle *handle, const char *viewname);
 
 /**
- * Add pass containing multiple multiple channels to EXR file.
+ * Add pass containing multiple channels to EXR file.
  * The number of channels is determined by channelnames.size() with
  * each character a channel name.
  * Layer and pass name, view name and colorspace are all optional.

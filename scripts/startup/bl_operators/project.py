@@ -76,7 +76,7 @@ def save_project(project, report=None):
 
     - There is no project to save.
     - The project's root path is relative or doesn't exist.
-    - The project can't be written due to any of a number of filesystem
+    - The project can't be written due to any of a number of file-system
       issues (directory isn't writable, etc.).
 
     Optionally takes an `Operator.report` for reporting errors to the user.
@@ -107,7 +107,7 @@ def save_project(project, report=None):
             raise ProjectSaveException
     except PermissionError:
         if report:
-            report({'ERROR'}, rpt_("Cannot access '{:s}' due to filesystem permissions.").format(PROJECT_DIR))
+            report({'ERROR'}, rpt_("Cannot access '{:s}' due to file-system permissions.").format(PROJECT_DIR))
         raise ProjectSaveException
     except Exception as e:
         if report:
@@ -125,7 +125,7 @@ def save_project(project, report=None):
         raise ProjectSaveException
     except PermissionError:
         if report:
-            report({'ERROR'}, rpt_("Cannot create '{:s}' directory due to filesystem permissions.").format(PROJECT_DIR))
+            report({'ERROR'}, rpt_("Cannot create '{:s}' directory due to file-system permissions.").format(PROJECT_DIR))
         raise ProjectSaveException
     except Exception as e:
         if report:
@@ -144,7 +144,7 @@ def save_project(project, report=None):
             tomli_w.dump(config_dict, f)
     except PermissionError:
         if report:
-            report({'ERROR'}, rpt_("Cannot write to '{:s}' due to filesystem permissions.").format(PROJECT_CONFIG))
+            report({'ERROR'}, rpt_("Cannot write to '{:s}' due to file-system permissions.").format(PROJECT_CONFIG))
         raise ProjectSaveException
     except Exception as e:
         if report:
@@ -215,7 +215,7 @@ def read_project_toml_config(root_path, report=None):
     Read the project config for the given project root path.
 
     Throws a ProjectLoadException if no config is found, if the config is
-    not readable due to filesystem permissions, or if it's not a valid
+    not readable due to file-system permissions, or if it's not a valid
     project config (e.g. contains invalid TOML or doesn't match the schema).
 
     Optionally takes an `Operator.report` for reporting errors to the user.
@@ -235,7 +235,7 @@ def read_project_toml_config(root_path, report=None):
         raise ProjectLoadException
     except PermissionError:
         if report:
-            report({'ERROR'}, rpt_("Cannot access {:s} file due to filesystem permissions.").format(PROJECT_CONFIG))
+            report({'ERROR'}, rpt_("Cannot access {:s} file due to file-system permissions.").format(PROJECT_CONFIG))
         raise ProjectLoadException
     except tomllib.TOMLDecodeError as e:
         if report:

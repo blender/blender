@@ -108,7 +108,7 @@ def protect_format_seq(msg):
         elif idx < (ln - 1) and msg[idx] == '{':
             # The whole 'format' syntax...
             # Coverage of this one is still fairly limited and basic currently.
-            # TODO: suport more of the 'format' mini-language (and check how much fmt::format matches with Python's).
+            # TODO: support more of the 'format' mini-language (and check how much fmt::format matches with Python's).
             orig_dlt = dlt
             valid_format = False
 

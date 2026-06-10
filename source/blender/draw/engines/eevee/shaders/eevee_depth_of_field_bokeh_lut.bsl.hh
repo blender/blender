@@ -53,7 +53,7 @@ void comp_main([[resource_table]] Resources &srt, [[global_invocation_id]] const
     {
       /* Slight focus distance */
       slight_focus_texel *= srt.dof_buf.bokeh_anisotropic_scale_inv;
-      /* Note that `atan(y,x)` is unsed for x = 0 or y = 0. */
+      /* Note that `atan(y,x)` is unused for `x = 0` or `y = 0`. */
       float theta = atan(slight_focus_texel.y + 1e-8f, -slight_focus_texel.x + 1e-8f) + M_TAU;
       slight_focus_texel /= circle_to_polygon_radius(srt.dof_buf.bokeh_blades,
                                                      theta + srt.dof_buf.bokeh_rotation);

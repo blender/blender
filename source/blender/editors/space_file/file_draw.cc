@@ -1709,7 +1709,7 @@ void file_draw_list(const bContext *C, ARegion *region)
 
 void file_draw_banner(const bContext *C, const SpaceFile *sfile, ARegion *region)
 {
-  /* Passed into lambda as block idname. */
+  /* Passed into lambda as block ID-name. */
   static const char *funcname = __func__;
 
   file_banners_for_first_visible(*sfile, [&](const BannerType &banner) {
