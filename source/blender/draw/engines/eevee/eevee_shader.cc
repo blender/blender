@@ -1009,6 +1009,16 @@ void ShaderModule::material_create_info_amend(GPUMaterial *gpumat, GPUCodegenOut
     info.additional_info("eevee_PreviousLayerRadiance");
   }
 
+  if (ELEM(pipeline_type, MAT_PIPE_DEFERRED, MAT_PIPE_FORWARD)) {
+    /* While only needed for the AO node, we always bind the hiz globally for these pipelines.
+     * To ensure no user textures will reuse the slot binding, we add the info unconditionally. */
+    info.additional_info("eevee_HiZ");
+  }
+
+  /** IMPORTANT: All additional_info containing resources should go before
+   * add_pipeline_create_info. This ensure all resource slot are correctly reserved inside the
+   * SlotAllocator. */
+
   SlotAllocator slots = add_pipeline_create_info(
       info, pipeline_type, geometry_type, use_shader_to_rgba);
 
@@ -1336,7 +1346,6 @@ void ShaderModule::material_create_info_amend(GPUMaterial *gpumat, GPUCodegenOut
     Vector<StringRefNull> dependencies;
     if (use_ao_node) {
       dependencies.append("eevee_fast_gi.bsl.hh");
-      info.additional_info("eevee_HiZ");
     }
     dependencies.append("eevee_geom_types_lib.bsl.hh");
     dependencies.append("eevee_nodetree_lib.bsl.hh");
