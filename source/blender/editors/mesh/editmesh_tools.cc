@@ -9545,7 +9545,7 @@ static wmOperatorStatus edbm_normals_tools_exec(bContext *C, wmOperator *op)
             }
           }
         }
-        else {
+        else if (lnors_ed_arr->totloop != 0) {
           /* 'Vertex' normal, i.e. common set of loop normals on the same vertex,
            * only if they are all the same. */
           bool are_same_lnors = true;
