@@ -584,6 +584,22 @@ bool ED_operator_object_active_editable_mesh(bContext *C)
           (ob->type == OB_MESH) && ID_IS_EDITABLE(ob->data) && !ID_IS_OVERRIDE_LIBRARY(ob->data));
 }
 
+bool ED_operator_object_active_editable_obdata_from_view_layer_ex(bContext *C, const short obtype)
+{
+  Main &bmain = *CTX_data_main(C);
+  Scene *scene = CTX_data_scene(C);
+  ViewLayer *view_layer = CTX_data_view_layer(C);
+  BKE_view_layer_synced_ensure(bmain, scene, view_layer);
+  const Object *ob = BKE_view_layer_active_object_get(view_layer);
+  return ((ob != nullptr) && ID_IS_EDITABLE(ob) && !ed_object_hidden(ob) && (ob->type == obtype) &&
+          ID_IS_EDITABLE(ob->data) && !ID_IS_OVERRIDE_LIBRARY(ob->data));
+}
+
+bool ED_operator_object_active_editable_mesh_from_view_layer(bContext *C)
+{
+  return ED_operator_object_active_editable_obdata_from_view_layer_ex(C, OB_MESH);
+}
+
 bool ED_operator_object_active_editable_font(bContext *C)
 {
   Object *ob = ed::object::context_active_object(C);

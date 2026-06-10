@@ -637,6 +637,8 @@ bool ED_operator_object_active_from_view_layer(bContext *C);
 bool ED_operator_object_active_local_editable_ex(bContext *C, const Object *ob);
 bool ED_operator_object_active_local_editable(bContext *C);
 bool ED_operator_object_active_editable_mesh(bContext *C);
+bool ED_operator_object_active_editable_obdata_from_view_layer_ex(bContext *C, short obtype);
+bool ED_operator_object_active_editable_mesh_from_view_layer(bContext *C);
 bool ED_operator_object_active_editable_font(bContext *C);
 bool ED_operator_editable_mesh(bContext *C);
 bool ED_operator_editmesh(bContext *C);
