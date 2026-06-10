@@ -520,6 +520,7 @@ void BKE_movieclip_convert_multilayer_ibuf(ImBuf *ibuf)
     BLI_assert(ibuf->float_data() == nullptr);
     ibuf->assign_float_data(ctx.combined_pass);
     ibuf->channels = ctx.num_combined_channels;
+    ibuf->color_mode = (ctx.num_combined_channels == 4) ? ImColorMode::RGBA : ImColorMode::RGB;
   }
   IMB_exr_close(ibuf->exrhandle);
   ibuf->exrhandle = nullptr;
