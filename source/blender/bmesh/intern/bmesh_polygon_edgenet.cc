@@ -1318,7 +1318,7 @@ bool BM_face_split_edgenet_connect_islands(BMesh *bm,
         BMVert *v_other;
 
         /* NOTE: remapping will _never_ map a vertex to an already mapped vertex. */
-        while (v_other = bm_face_split_edgenet_partial_connect(bm, v_delimit, f)) [[unlikely]] {
+        while ((v_other = bm_face_split_edgenet_partial_connect(bm, v_delimit, f))) [[unlikely]] {
           TempVertPair *tvp = static_cast<TempVertPair *>(
               BLI_memarena_alloc(mem_arena, sizeof(*tvp)));
           tvp->next = temp_vert_pairs.list;
