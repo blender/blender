@@ -558,7 +558,7 @@ void NLA_OT_view_all(wmOperatorType *ot)
 
   /* API callbacks. */
   ot->exec = nlaedit_viewall_exec;
-  ot->poll = ED_operator_nla_active;
+  ot->poll = ED_operator_region_nla_active;
 
   /* flags */
   ot->flag = 0;
@@ -573,7 +573,7 @@ void NLA_OT_view_selected(wmOperatorType *ot)
 
   /* API callbacks. */
   ot->exec = nlaedit_viewsel_exec;
-  ot->poll = ED_operator_nla_active;
+  ot->poll = ED_operator_region_nla_active;
 
   /* flags */
   ot->flag = 0;
@@ -601,7 +601,7 @@ void NLA_OT_view_frame(wmOperatorType *ot)
 
   /* API callbacks. */
   ot->exec = nlaedit_viewframe_exec;
-  ot->poll = ED_operator_nla_active;
+  ot->poll = ED_operator_region_nla_active;
 
   /* flags */
   ot->flag = 0;
