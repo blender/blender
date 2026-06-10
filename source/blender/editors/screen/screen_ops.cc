@@ -6948,9 +6948,10 @@ static wmOperatorStatus fullscreen_back_exec(bContext *C, wmOperator *op)
   bScreen *screen = CTX_wm_screen(C);
   ScrArea *area = nullptr;
 
-  /* search current screen for 'fullscreen' areas */
+  /* Search current screen for 'fullscreen' areas.
+   * Skip `SPACE_EMPTY` areas: they have no space-data to restore. */
   for (ScrArea &area_iter : screen->areabase) {
-    if (area_iter.full) {
+    if (area_iter.full && area_iter.spacetype != SPACE_EMPTY) {
       area = &area_iter;
       break;
     }
