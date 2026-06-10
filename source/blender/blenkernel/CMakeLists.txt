@@ -676,7 +676,7 @@ if(WITH_PYTHON)
 
 
   if(PYTHON_EXECUTABLE)
-    get_filename_component(_python_exe_name ${PYTHON_EXECUTABLE} NAME)
+    cmake_path(GET PYTHON_EXECUTABLE FILENAME _python_exe_name)
     add_definitions(-DPYTHON_EXECUTABLE_NAME=${_python_exe_name})
     unset(_python_exe_name)
   endif()
