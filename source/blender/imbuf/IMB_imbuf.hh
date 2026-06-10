@@ -592,16 +592,22 @@ void IMB_transform(const ImBuf *src,
                    const float3x3 &transform_matrix,
                    const rctf *src_crop);
 
-/* Creates a GPU texture from the given image buffer and name. If use_high_bitdepth is true, float
- * image buffers will be stored in full float textures, otherwise, they will be stored in half
- * float textures. If use_premult is true, the image buffer data will be stored premultiplied. If
- * limit_size is true, the texture will be scaled down to match the maximum size allowed by the
- * U.glreslimit user preferences setting. */
-gpu::Texture *IMB_create_gpu_texture(const char *name,
-                                     ImBuf *ibuf,
-                                     bool use_high_bitdepth,
-                                     bool use_premult,
-                                     const bool limit_size);
+enum class GPUTextureCreateFlags : uint8_t {
+  /** Indicates that full float textures should be used instead of half float textures. */
+  HighBitDepth = 1 << 0,
+  /** Store the data premultiplied. */
+  Premultiplied = 1 << 1,
+  /** Scale the texture to the maximum size allowed by the \see U.glreslimit user preference. */
+  LimitSize = 1 << 2,
+  /** Allow generation of mipmaps. */
+  EnableMipmaps = 1 << 3,
+};
+ENUM_OPERATORS(GPUTextureCreateFlags)
+
+/**
+ * Creates a GPU texture from the given image buffer and name.
+ */
+gpu::Texture *IMB_create_gpu_texture(const char *name, ImBuf *ibuf, GPUTextureCreateFlags flags);
 
 gpu::TextureFormat IMB_gpu_get_texture_format(const ImBuf *ibuf,
                                               bool high_bitdepth,

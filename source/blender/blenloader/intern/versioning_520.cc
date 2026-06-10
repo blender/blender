@@ -299,7 +299,7 @@ static void version_compositor_effect_initialized(Main &bmain)
 {
   /* A file with compositor effects that was saved, opened in
    * previous version and saved there, would have lost the
-   * compositor effect data since ealier versions would not
+   * compositor effect data since earlier versions would not
    * write it. Ensure the effect data is not null. */
   for (Scene &scene : bmain.scenes) {
     if (scene.ed) {

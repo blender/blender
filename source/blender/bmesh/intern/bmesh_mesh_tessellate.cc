@@ -79,8 +79,9 @@ BLI_INLINE void bmesh_calc_tessellation_for_face_impl(std::array<BMLoop *, 3> *l
             efa->no, l_ptr_a[0]->v->co, l_ptr_a[1]->v->co, l_ptr_a[2]->v->co, l_ptr_b[2]->v->co);
       }
 
-      if (UNLIKELY(is_quad_flip_v3_first_third_fast(
-              l_ptr_a[0]->v->co, l_ptr_a[1]->v->co, l_ptr_a[2]->v->co, l_ptr_b[2]->v->co)))
+      if (is_quad_flip_v3_first_third_fast(
+              l_ptr_a[0]->v->co, l_ptr_a[1]->v->co, l_ptr_a[2]->v->co, l_ptr_b[2]->v->co))
+          [[unlikely]]
       {
         /* Flip out of degenerate 0-2 state. */
         l_ptr_a[2] = l_ptr_b[2];
@@ -103,7 +104,7 @@ BLI_INLINE void bmesh_calc_tessellation_for_face_impl(std::array<BMLoop *, 3> *l
       const int tris_len = efa->len - 2;
 
       MemArena *pf_arena = *pf_arena_p;
-      if (UNLIKELY(pf_arena == nullptr)) {
+      if (pf_arena == nullptr) [[unlikely]] {
         pf_arena = *pf_arena_p = BLI_memarena_new(BLI_MEMARENA_STD_BUFSIZE, __func__);
       }
 
@@ -389,7 +390,7 @@ void BM_mesh_calc_tessellation_with_partial_ex(BMesh *bm,
 {
   BLI_assert(bmpinfo->params.do_tessellate);
   /* While harmless, exit early if there is nothing to do (avoids ensuring the index). */
-  if (UNLIKELY(bmpinfo->faces.is_empty())) {
+  if (bmpinfo->faces.is_empty()) [[unlikely]] {
     return;
   }
 
@@ -483,7 +484,7 @@ static int bmesh_calc_tessellation_for_face_beauty(std::array<BMLoop *, 3> *loop
     default: {
       MemArena *pf_arena = *pf_arena_p;
       Heap *pf_heap = *pf_heap_p;
-      if (UNLIKELY(pf_arena == nullptr)) {
+      if (pf_arena == nullptr) [[unlikely]] {
         pf_arena = *pf_arena_p = BLI_memarena_new(BLI_MEMARENA_STD_BUFSIZE, __func__);
         pf_heap = *pf_heap_p = BLI_heap_new_ex(BLI_POLYFILL_ALLOC_NGON_RESERVE);
       }

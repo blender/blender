@@ -208,7 +208,7 @@ static bool wm_keymap_item_equals(const wmKeyMapItem *a, const wmKeyMapItem *b)
 
 void WM_keymap_item_properties_reset(wmKeyMapItem *kmi, IDProperty *properties)
 {
-  if (LIKELY(kmi->ptr)) {
+  if (kmi->ptr) [[likely]] {
     WM_operator_properties_free(kmi->ptr);
     MEM_delete(kmi->ptr);
 
@@ -491,7 +491,7 @@ bool WM_keymap_poll(bContext *C, wmKeyMap *keymap)
     }
   }
 
-  if (UNLIKELY(keymap->items.is_empty())) {
+  if (keymap->items.is_empty()) [[unlikely]] {
     /* Empty key-maps may be missing more there may be a typo in the name.
      * Warn early to avoid losing time investigating each case.
      * When developing a customized Blender though you may want empty keymaps. */

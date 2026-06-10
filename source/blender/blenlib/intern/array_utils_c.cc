@@ -95,7 +95,7 @@ void _bli_array_permute(
 
 uint _bli_array_deduplicate_ordered(void *arr, uint arr_len, size_t arr_stride)
 {
-  if (UNLIKELY(arr_len <= 1)) {
+  if (arr_len <= 1) [[unlikely]] {
     return arr_len;
   }
 
@@ -224,13 +224,13 @@ bool _bli_array_iter_span(const void *arr,
 
       if (use_wrap) {
         uint i_step = i_curr + 1;
-        if (UNLIKELY(i_step == arr_len)) {
+        if (i_step == arr_len) [[unlikely]] {
           i_step = 0;
         }
         while (test_fn(POINTER_OFFSET(arr, i_step * arr_stride_uint), user_data)) {
           i_step_prev = i_step;
           i_step++;
-          if (UNLIKELY(i_step == arr_len)) {
+          if (i_step == arr_len) [[unlikely]] {
             i_step = 0;
           }
         }

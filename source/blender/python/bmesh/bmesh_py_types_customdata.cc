@@ -1150,15 +1150,15 @@ static void *bpy_bmlayeritem_ptr_get(BPy_BMElem *py_ele, BPy_BMLayerItem *py_lay
   CustomData *data;
 
   /* error checking */
-  if (UNLIKELY(!BPy_BMLayerItem_Check(py_layer))) {
+  if (!BPy_BMLayerItem_Check(py_layer)) [[unlikely]] {
     PyErr_SetString(PyExc_AttributeError, "BMElem[key]: invalid key, must be a BMLayerItem");
     return nullptr;
   }
-  if (UNLIKELY(py_ele->bm != py_layer->bm)) {
+  if (py_ele->bm != py_layer->bm) [[unlikely]] {
     PyErr_SetString(PyExc_ValueError, "BMElem[layer]: layer is from another mesh");
     return nullptr;
   }
-  if (UNLIKELY(ele->head.htype != py_layer->htype)) {
+  if (ele->head.htype != py_layer->htype) [[unlikely]] {
     char namestr_1[32], namestr_2[32];
     PyErr_Format(PyExc_ValueError,
                  "Layer/Element type mismatch, expected %.200s got layer type %.200s",
@@ -1172,7 +1172,7 @@ static void *bpy_bmlayeritem_ptr_get(BPy_BMElem *py_ele, BPy_BMLayerItem *py_lay
   value = CustomData_bmesh_get_n(
       data, ele->head.data, eCustomDataType(py_layer->type), py_layer->index);
 
-  if (UNLIKELY(value == nullptr)) {
+  if (value == nullptr) [[unlikely]] {
     /* this should be fairly unlikely but possible if layers move about after we get them */
     PyErr_SetString(PyExc_KeyError, "BMElem[key]: layer not found");
     return nullptr;
@@ -1186,7 +1186,7 @@ PyObject *BPy_BMLayerItem_GetItem(BPy_BMElem *py_ele, BPy_BMLayerItem *py_layer)
   void *value = bpy_bmlayeritem_ptr_get(py_ele, py_layer);
   PyObject *ret;
 
-  if (UNLIKELY(value == nullptr)) {
+  if (value == nullptr) [[unlikely]] {
     return nullptr;
   }
 
@@ -1221,7 +1221,7 @@ PyObject *BPy_BMLayerItem_GetItem(BPy_BMElem *py_ele, BPy_BMLayerItem *py_layer)
       break;
     }
     case CD_PROP_FLOAT2: {
-      if (UNLIKELY(py_ele->bm != py_layer->bm)) {
+      if (py_ele->bm != py_layer->bm) [[unlikely]] {
         PyErr_SetString(PyExc_ValueError, "BMElem[layer]: layer is from another mesh");
         return nullptr;
       }
@@ -1256,7 +1256,7 @@ int BPy_BMLayerItem_SetItem(BPy_BMElem *py_ele, BPy_BMLayerItem *py_layer, PyObj
   int ret = 0;
   void *value = bpy_bmlayeritem_ptr_get(py_ele, py_layer);
 
-  if (UNLIKELY(value == nullptr)) {
+  if (value == nullptr) [[unlikely]] {
     return -1;
   }
 
@@ -1267,7 +1267,7 @@ int BPy_BMLayerItem_SetItem(BPy_BMElem *py_ele, BPy_BMLayerItem *py_layer, PyObj
     }
     case CD_PROP_FLOAT: {
       const float tmp_val = PyFloat_AsDouble(py_value);
-      if (UNLIKELY(tmp_val == -1 && PyErr_Occurred())) {
+      if (tmp_val == -1 && PyErr_Occurred()) [[unlikely]] {
         PyErr_Format(
             PyExc_TypeError, "expected a float, not a %.200s", Py_TYPE(py_value)->tp_name);
         ret = -1;
@@ -1279,7 +1279,7 @@ int BPy_BMLayerItem_SetItem(BPy_BMElem *py_ele, BPy_BMLayerItem *py_layer, PyObj
     }
     case CD_PROP_INT32: {
       const int tmp_val = PyC_Long_AsI32(py_value);
-      if (UNLIKELY(tmp_val == -1 && PyErr_Occurred())) {
+      if (tmp_val == -1 && PyErr_Occurred()) [[unlikely]] {
         /* error is set */
         ret = -1;
       }
@@ -1290,7 +1290,7 @@ int BPy_BMLayerItem_SetItem(BPy_BMElem *py_ele, BPy_BMLayerItem *py_layer, PyObj
     }
     case CD_PROP_BOOL: {
       const int tmp_val = PyC_Long_AsBool(py_value);
-      if (UNLIKELY(tmp_val == -1)) {
+      if (tmp_val == -1) [[unlikely]] {
         /* The error has been set. */
         ret = -1;
       }
@@ -1319,7 +1319,7 @@ int BPy_BMLayerItem_SetItem(BPy_BMElem *py_ele, BPy_BMLayerItem *py_layer, PyObj
       MStringProperty *mstring = static_cast<MStringProperty *>(value);
       char *tmp_val;
       Py_ssize_t tmp_val_len;
-      if (UNLIKELY(PyBytes_AsStringAndSize(py_value, &tmp_val, &tmp_val_len) == -1)) {
+      if (PyBytes_AsStringAndSize(py_value, &tmp_val, &tmp_val_len) == -1) [[unlikely]] {
         PyErr_Format(PyExc_TypeError, "expected bytes, not a %.200s", Py_TYPE(py_value)->tp_name);
         ret = -1;
       }
@@ -1331,7 +1331,7 @@ int BPy_BMLayerItem_SetItem(BPy_BMElem *py_ele, BPy_BMLayerItem *py_layer, PyObj
       break;
     }
     case CD_PROP_FLOAT2: {
-      if (UNLIKELY(py_ele->bm != py_layer->bm)) {
+      if (py_ele->bm != py_layer->bm) [[unlikely]] {
         PyErr_SetString(PyExc_ValueError, "BMElem[layer]: layer is from another mesh");
         ret = -1;
       }
@@ -1347,7 +1347,8 @@ int BPy_BMLayerItem_SetItem(BPy_BMElem *py_ele, BPy_BMLayerItem *py_layer, PyObj
     }
     case CD_SHAPEKEY: {
       float tmp_val[3];
-      if (UNLIKELY(mathutils_array_parse(tmp_val, 3, 3, py_value, "BMVert[shape] = value") == -1))
+      if (mathutils_array_parse(tmp_val, 3, 3, py_value, "BMVert[shape] = value") == -1)
+          [[unlikely]]
       {
         ret = -1;
       }

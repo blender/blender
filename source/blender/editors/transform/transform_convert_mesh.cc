@@ -579,15 +579,15 @@ static void mesh_customdatacorrect_apply_vert(TransCustomDataLayer *tcld,
        * its not important _which_ loop - as long as its not overlapping
        * `sv->co_orig_3d`, see: #45096. */
       project_plane_normalized_v3_v3v3(v_proj[0], co_prev, v_proj_axis);
-      while (UNLIKELY(((co_prev_ok = (len_squared_v3v3(v_proj[1], v_proj[0]) > eps)) == false) &&
-                      ((l_prev = l_prev->prev) != l->next)))
+      while (((co_prev_ok = (len_squared_v3v3(v_proj[1], v_proj[0]) > eps)) == false) &&
+             ((l_prev = l_prev->prev) != l->next)) [[unlikely]]
       {
         co_prev = mesh_vert_orig_co_get(tcld, l_prev->v);
         project_plane_normalized_v3_v3v3(v_proj[0], co_prev, v_proj_axis);
       }
       project_plane_normalized_v3_v3v3(v_proj[2], co_next, v_proj_axis);
-      while (UNLIKELY(((co_next_ok = (len_squared_v3v3(v_proj[1], v_proj[2]) > eps)) == false) &&
-                      ((l_next = l_next->next) != l->prev)))
+      while (((co_next_ok = (len_squared_v3v3(v_proj[1], v_proj[2]) > eps)) == false) &&
+             ((l_next = l_next->next) != l->prev)) [[unlikely]]
       {
         co_next = mesh_vert_orig_co_get(tcld, l_next->v);
         project_plane_normalized_v3_v3v3(v_proj[2], co_next, v_proj_axis);
@@ -598,7 +598,7 @@ static void mesh_customdatacorrect_apply_vert(TransCustomDataLayer *tcld,
             v->co, UNPACK3(v_proj), v_proj_axis);
 
         loop_weights[j] = (dist >= 0.0f) ? 1.0f : ((dist <= -eps) ? 0.0f : (1.0f + (dist / eps)));
-        if (UNLIKELY(!isfinite(loop_weights[j]))) {
+        if (!isfinite(loop_weights[j])) [[unlikely]] {
           loop_weights[j] = 0.0f;
         }
       }
@@ -1095,8 +1095,12 @@ void transform_convert_mesh_connectivity_distance(BMesh *bm,
            * - Edge itself is loose
            * - Edge has vertex that was originally selected
            * In all these cases a direct distance along the edge is accurate and
-           * required to make sure we visit all edges. Other edges are handled by
-           * propagation across edges below. */
+           * required to make sure we visit all edges.
+           *
+           * Additionally re-add edges whose other vertex already has a known
+           * distance, so that propagation across their adjacent faces can happen
+           * now that this vertex distance is known too. Other edges are handled
+           * by propagation across edges below. */
           const bool need_direct_distance = BM_elem_flag_test(e, tag_loose) ||
                                             BM_elem_flag_test(v1, BM_ELEM_SELECT) ||
                                             BM_elem_flag_test(v2, BM_ELEM_SELECT);
@@ -1105,7 +1109,8 @@ void transform_convert_mesh_connectivity_distance(BMesh *bm,
           BM_ITER_ELEM (e_other, &eiter, v2, BM_EDGES_OF_VERT) {
             if (e_other != e && BM_elem_flag_test(e_other, tag_queued) == 0 &&
                 !BM_elem_flag_test(e_other, BM_ELEM_HIDDEN) &&
-                (need_direct_distance || BM_elem_flag_test(e_other, tag_loose)))
+                (need_direct_distance || BM_elem_flag_test(e_other, tag_loose) ||
+                 dists[BM_elem_index_get(BM_edge_other_vert(e_other, v2))] != FLT_MAX))
             {
               BM_elem_flag_enable(e_other, tag_queued);
               BLI_LINKSTACK_PUSH(queue_next, e_other);
@@ -2674,7 +2679,7 @@ Array<TransDataEdgeSlideVert> transform_mesh_edge_slide_data_create(const TransD
               const float3 dir2 = math::normalize(dst2 - float3(curr_orig));
               float len_n;
               const float3 n = math::normalize_and_get_length(math::cross(dir1, dir2), len_n);
-              if (UNLIKELY(len_n < isect_eps)) {
+              if (len_n < isect_eps) [[unlikely]] {
                 isect_line_line = 0;
               }
               else {
@@ -2684,7 +2689,7 @@ Array<TransDataEdgeSlideVert> transform_mesh_edge_slide_data_create(const TransD
                 const float3 plane_no_2 = math::normalize_and_get_length(math::cross(dir2, n),
                                                                          len2);
 
-                if (UNLIKELY((len1 < isect_eps) || (len2 < isect_eps))) {
+                if ((len1 < isect_eps) || (len2 < isect_eps)) [[unlikely]] {
                   isect_line_line = 0;
                 }
                 else {

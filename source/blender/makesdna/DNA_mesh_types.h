@@ -513,11 +513,8 @@ struct Mesh {
    * When possible, it's preferred to use face normals over vertex normals and vertex normals over
    * face corner normals, since there is a 2-4x performance cost increase for each more complex
    * domain.
-   *
-   * Optionally the consumer of the mesh can indicate that they support the sharp_face attribute
-   * natively, to avoid using corner normals in some cases.
    */
-  bke::MeshNormalDomain normals_domain(const bool support_sharp_face = false) const;
+  bke::MeshNormalDomain normals_domain() const;
   /**
    * Normal direction of faces, defined by positions and the winding direction of face corners.
    */

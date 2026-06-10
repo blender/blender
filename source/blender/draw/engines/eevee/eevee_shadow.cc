@@ -746,12 +746,14 @@ void ShadowModule::begin_sync()
 void ShadowModule::sync_object(const ObjectHandle &ob_handle,
                                bool is_alpha_blend,
                                bool has_transparent_shadows,
-                               bool time_changed)
+                               bool has_time_dependent_shadows)
 {
   bool is_shadow_caster = !(ob_handle.object->visibility_flag & OB_HIDE_SHADOW);
   if (!is_shadow_caster && !is_alpha_blend) {
     return;
   }
+
+  const bool shape_changed = has_time_dependent_shadows && inst_.materials.material_time_changed;
 
   for (int i : IndexRange(ob_handle.instances_count())) {
     ShadowObject &shadow_ob = objects_.lookup_or_add_default(ObjectKey(ob_handle, i));
@@ -760,7 +762,7 @@ void ShadowModule::sync_object(const ObjectHandle &ob_handle,
     const bool has_jittered_transparency = has_transparent_shadows && data_.use_jitter;
     ResourceHandle instance_handle = ob_handle.res_handle.sub_handle(i);
     if (is_shadow_caster &&
-        (ob_handle.recalc || !is_initialized || has_jittered_transparency || time_changed))
+        (ob_handle.recalc || !is_initialized || has_jittered_transparency || shape_changed))
     {
       if (ob_handle.recalc && is_initialized) {
         past_casters_updated_.append(shadow_ob.resource_handle.raw());

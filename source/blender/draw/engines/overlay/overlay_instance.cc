@@ -115,6 +115,7 @@ void Instance::init()
     state.use_in_front = false;
     state.is_wireframe_mode = false;
     state.hide_overlays = (space_image->overlay.flag & SI_OVERLAY_SHOW_OVERLAYS) == 0;
+    state.show_text = !state.hide_overlays;
     state.xray_enabled = false;
     /* Avoid triggering the depth prepass. */
     state.is_render_depth_available = true;
@@ -832,6 +833,8 @@ void Instance::draw_v2d(Manager &manager, View &view)
   background.draw_output(resources.overlay_output_color_only_fb, manager, view);
   grid.draw_line(resources.overlay_output_fb, manager, view);
   regular.mesh_uvs.draw(resources.overlay_output_fb, manager, view);
+
+  draw_text(resources.overlay_output_color_only_fb);
 
   cursor.draw_output(resources.overlay_output_color_only_fb, manager, view);
 }

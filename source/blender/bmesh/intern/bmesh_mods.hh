@@ -220,12 +220,18 @@ void BM_edge_verts_swap(BMEdge *e);
  *
  * \note #BM_edge_rotate_check must have already run.
  */
-void BM_edge_calc_rotate(BMEdge *e, bool ccw, BMLoop **r_l1, BMLoop **r_l2);
+[[nodiscard]] bool BM_edge_calc_rotate(BMEdge *e, bool ccw, BMLoop **r_l1, BMLoop **r_l2);
 /**
  * \brief Check if Rotate Edge is OK
  *
  * Quick check to see if we could rotate the edge,
  * use this to avoid calling exceptions on common cases.
+ *
+ * Take care, depending on the rotation direction its possible
+ * the adjacent faces share multiple edges on either side.
+ *
+ * Before executing the rotation it's important to check the rotated loops
+ * on both faces don't reference the same vertex.
  */
 bool BM_edge_rotate_check(BMEdge *e);
 /**

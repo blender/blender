@@ -139,7 +139,7 @@ class AssetLibrary {
    * are any remote libraries included).
    *
    * The "Allow Online Access" option will be enforced internally, but probably some check to give
-   * a user message should be done at a higher levl.
+   * a user message should be done at a higher level.
    */
   virtual void force_remote_listing_download() const;
 

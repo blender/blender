@@ -2,7 +2,7 @@
  *
  * SPDX-License-Identifier: Apache-2.0 */
 
-#include "stdcycles.h"
+#include "node_math.h"
 
 shader node_mix_vector_non_uniform(int use_clamp = 0,
                                    vector Factor = 0.5,
@@ -11,5 +11,5 @@ shader node_mix_vector_non_uniform(int use_clamp = 0,
                                    output vector Result = 0.0)
 {
   vector t = (use_clamp) ? clamp(Factor, 0.0, 1.0) : Factor;
-  Result = mix(A, B, t);
+  Result = endvalue_preserving_mix(A, B, t);
 }

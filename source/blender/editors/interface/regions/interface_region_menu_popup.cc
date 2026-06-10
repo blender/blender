@@ -433,8 +433,12 @@ static PopupBlockHandle *popup_menu_create_impl(
   return handle;
 }
 
-PopupBlockHandle *popup_menu_create(
-    bContext *C, ARegion *butregion, Button *but, MenuCreateFunc menu_func, void *arg)
+PopupBlockHandle *popup_menu_create(bContext *C,
+                                    ARegion *butregion,
+                                    Button *but,
+                                    MenuCreateFunc menu_func,
+                                    void *arg,
+                                    const bool can_refresh)
 {
   return popup_menu_create_impl(
       C,
@@ -442,7 +446,7 @@ PopupBlockHandle *popup_menu_create(
       but,
       nullptr,
       [menu_func, arg](bContext *C, Layout *layout) { menu_func(C, layout, arg); },
-      false);
+      can_refresh);
 }
 
 /** \} */

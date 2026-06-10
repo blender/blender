@@ -1,9 +1,9 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 5.2.0 Alpha (b'8764d33c658b')\n"
+"Project-Id-Version: Blender 5.2.0 LTS Beta (b'2b1958ccdccb')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-06-01 07:36+0000\n"
+"POT-Creation-Date: 2026-06-08 09:37+0000\n"
 "PO-Revision-Date: 2026-01-30 13:12+0000\n"
 "Last-Translator: Martin Hansen <martini-141@users.noreply.translate.blender.org>\n"
 "Language-Team: Norwegian Bokmål <https://translate.blender.org/projects/blender-ui/ui/nb_NO/>\n"
@@ -1796,6 +1796,38 @@ msgid "Armatures active edit bone"
 msgstr "Armaturens gjeldende redigeringsbein"
 
 
+msgid "Asset Library"
+msgstr "Eiendelsbibliotek"
+
+
+msgid "All Libraries"
+msgstr "Alle bibliotek"
+
+
+msgid "Show assets from all of the listed asset libraries"
+msgstr "Vis eiendeler fra alle de oppførte eiendelsbibliotekene"
+
+
+msgid "Current File"
+msgstr "Gjeldende fil"
+
+
+msgid "Show the assets currently available in this Blender session"
+msgstr "Vis de tilgjengelige eiendelene i denne Blender-økta"
+
+
+msgid "Essentials"
+msgstr "Nødvendigheter"
+
+
+msgid "Custom"
+msgstr "Tilpasset"
+
+
+msgid "Show assets from the asset libraries configured in the Preferences"
+msgstr "Vis eiendeler fra eiendelsbiblioteket satt opp i innstillingene"
+
+
 msgid "User Asset Libraries"
 msgstr "Eiendels bibliotek"
 
@@ -1937,40 +1969,8 @@ msgid "Regions for quick access to assets"
 msgstr "Regioner for enkel tilgang til eiendelene"
 
 
-msgid "Asset Library"
-msgstr "Eiendelsbibliotek"
-
-
 msgid "Choose the asset library to display assets from"
 msgstr "Velg eiendelsbiblioteket å vise eiendeler fra"
-
-
-msgid "All Libraries"
-msgstr "Alle bibliotek"
-
-
-msgid "Show assets from all of the listed asset libraries"
-msgstr "Vis eiendeler fra alle de oppførte eiendelsbibliotekene"
-
-
-msgid "Current File"
-msgstr "Gjeldende fil"
-
-
-msgid "Show the assets currently available in this Blender session"
-msgstr "Vis de tilgjengelige eiendelene i denne Blender-økta"
-
-
-msgid "Essentials"
-msgstr "Nødvendigheter"
-
-
-msgid "Custom"
-msgstr "Tilpasset"
-
-
-msgid "Show assets from the asset libraries configured in the Preferences"
-msgstr "Vis eiendeler fra eiendelsbiblioteket satt opp i innstillingene"
 
 
 msgid "Activate Operator"
@@ -5426,10 +5426,6 @@ msgstr "Lokalkode: hi_IN. Status på oversettelse: 4 %"
 
 msgid "Hungarian - Magyar"
 msgstr "Ungarsk – Magyar"
-
-
-msgid "Locale code: hu_HU. Translation progress: 11%"
-msgstr "Lokalkode: hu_HU. Status på oversettelse: 11 %"
 
 
 msgid "Indonesian - Bahasa indonesia"

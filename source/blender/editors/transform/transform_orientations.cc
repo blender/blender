@@ -413,7 +413,7 @@ bool createSpaceNormalTangent(float mat[3][3], const float normal[3], const floa
   BLI_ASSERT_UNIT_V3(normal);
   BLI_ASSERT_UNIT_V3(tangent);
 
-  if (UNLIKELY(is_zero_v3(normal))) {
+  if (is_zero_v3(normal)) [[unlikely]] {
     /* Error return. */
     return false;
   }
@@ -423,12 +423,12 @@ bool createSpaceNormalTangent(float mat[3][3], const float normal[3], const floa
   negate_v3_v3(mat[1], tangent);
 
   /* Preempt zero length tangent from causing trouble. */
-  if (UNLIKELY(is_zero_v3(mat[1]))) {
+  if (is_zero_v3(mat[1])) [[unlikely]] {
     mat[1][2] = 1.0f;
   }
 
   cross_v3_v3v3(mat[0], mat[2], mat[1]);
-  if (UNLIKELY(normalize_v3(mat[0]) == 0.0f)) {
+  if (normalize_v3(mat[0]) == 0.0f) [[unlikely]] {
     /* Error return from co-linear normal & tangent. */
     return false;
   }
@@ -436,7 +436,7 @@ bool createSpaceNormalTangent(float mat[3][3], const float normal[3], const floa
   /* Make the tangent orthogonal. */
   cross_v3_v3v3(mat[1], mat[2], mat[0]);
 
-  if (UNLIKELY(normalize_v3(mat[1]) == 0.0f)) {
+  if (normalize_v3(mat[1]) == 0.0f) [[unlikely]] {
     /* Error return as it's possible making the tangent orthogonal to the normal
      * causes it to be zero length. */
     return false;
@@ -1118,7 +1118,7 @@ int getTransformOrientation_ex(const Main &bmain,
           }
 
           /* Should never fail. */
-          if (LIKELY(v_pair[0] && v_pair[1])) {
+          if (v_pair[0] && v_pair[1]) [[likely]] {
             bool v_pair_swap = false;
             /**
              * Logic explained:
@@ -1153,7 +1153,7 @@ int getTransformOrientation_ex(const Main &bmain,
               /* For edges it'd important the resulting matrix can rotate around the edge,
                * project onto the plane so we can use a fallback value. */
               project_plane_normalized_v3_v3v3(r_normal, r_normal, r_plane);
-              if (UNLIKELY(normalize_v3(r_normal) == 0.0f)) {
+              if (normalize_v3(r_normal) == 0.0f) [[unlikely]] {
                 /* In the case the normal and plane are aligned,
                  * use a fallback normal which is orthogonal to the plane. */
                 ortho_v3_v3(r_normal, r_plane);
@@ -1502,7 +1502,7 @@ int getTransformOrientation_ex(const Main &bmain,
       else {
         BKE_view_layer_synced_ensure(bmain, scene, view_layer);
         Base *base = BKE_view_layer_base_find(view_layer, ob);
-        if (UNLIKELY(base == nullptr)) {
+        if (base == nullptr) [[unlikely]] {
           /* This is very unlikely, if it happens allow the value to be set since the caller
            * may have taken the object from outside this view-layer. */
           ok = true;

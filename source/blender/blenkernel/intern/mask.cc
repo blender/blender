@@ -1739,7 +1739,7 @@ MaskLayerShape *BKE_mask_layer_shape_duplicate(MaskLayerShape *masklay_shape)
 {
   MaskLayerShape *masklay_shape_copy = MEM_dupalloc(masklay_shape);
 
-  if (LIKELY(masklay_shape_copy->data)) {
+  if (masklay_shape_copy->data) [[likely]] {
     masklay_shape_copy->data = MEM_dupalloc(masklay_shape_copy->data);
   }
 

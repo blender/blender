@@ -91,7 +91,7 @@ static void heapsimple_down(HeapSimple *heap, uint start_i, const HeapSimpleNode
       smallest = r;
     }
 
-    if (UNLIKELY(smallest == i)) {
+    if (smallest == i) [[unlikely]] {
       break;
     }
 
@@ -117,7 +117,7 @@ static void heapsimple_up(HeapSimple *heap, uint i, float active_val, void *acti
 {
   HeapSimpleNode *const tree = heap->tree;
 
-  while (LIKELY(i > 0)) {
+  while (i > 0) [[likely]] {
     const uint p = HEAP_PARENT(i);
 
     if (active_val >= tree[p].value) {
@@ -178,7 +178,7 @@ void BLI_heapsimple_clear(HeapSimple *heap, HeapSimpleFreeFP ptrfreefp)
 
 void BLI_heapsimple_insert(HeapSimple *heap, float value, void *ptr)
 {
-  if (UNLIKELY(heap->size >= heap->bufsize)) {
+  if (heap->size >= heap->bufsize) [[unlikely]] {
     heap->bufsize *= 2;
     heap->tree = static_cast<HeapSimpleNode *>(
         MEM_realloc_uninitialized(heap->tree, heap->bufsize * sizeof(*heap->tree)));

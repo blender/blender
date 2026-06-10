@@ -223,7 +223,7 @@ static void url_ensure_trailing_slash(char *str, const size_t max_len)
 void BKE_preferences_remote_asset_library_url_set(bUserAssetLibrary *library,
                                                   const StringRef remote_url)
 {
-  /* Always trim whitespace off of URLs. */
+  /* Always trim white-space off of URLs. */
   remote_url.trim().copy_bytes_truncated(library->remote_url);
 
   const bool ends_in_top_meta_file = asset_system::remote_library_url_ends_with_top_meta_file_name(
@@ -609,7 +609,7 @@ void BKE_preferences_remote_to_name(const char *remote_url, char name[MAX_NAME])
       }
     }
   }
-  if (UNLIKELY(remote_url[0] == '\0')) {
+  if (remote_url[0] == '\0') [[unlikely]] {
     return;
   }
 

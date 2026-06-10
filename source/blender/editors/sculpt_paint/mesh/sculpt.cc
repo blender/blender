@@ -5776,6 +5776,7 @@ void SculptPaintStroke::stroke_cache_init(const float mval[2])
 
     cache->image_data = paint::image::ImageData::init_active_image(
         ob, this->scene->toolsettings->paint_mode);
+    cache->image_data->image->runtime->gpuflag |= IMA_GPU_DISABLE_MIPMAP_UPDATE;
   }
 
   if (BKE_brush_color_jitter_get_settings(this->paint, brush)) {
@@ -6016,6 +6017,12 @@ void SculptPaintStroke::done(bool is_cancel, bool stroke_started)
     mask_brush_toggle_off(&sd.paint, ss.cache);
     /* Refresh the brush pointer in case we switched brush in the toggle function. */
     brush = BKE_paint_brush(&sd.paint);
+  }
+
+  if (brush->sculpt_brush_type == SCULPT_BRUSH_TYPE_PAINT &&
+      SCULPT_use_image_paint_brush(*this->paint_mode_settings_, ob) && ss.cache->image_data)
+  {
+    ss.cache->image_data->image->runtime->gpuflag &= ~IMA_GPU_DISABLE_MIPMAP_UPDATE;
   }
 
   MEM_delete(ss.cache);

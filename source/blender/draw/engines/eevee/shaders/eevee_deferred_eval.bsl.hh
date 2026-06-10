@@ -16,6 +16,7 @@
 #include "eevee_light_eval.bsl.hh"
 #include "eevee_lightprobe.bsl.hh"
 #include "eevee_renderpass.bsl.hh"
+#include "eevee_reverse_z_lib.bsl.hh"
 #include "eevee_subsurface_lib.bsl.hh"
 #include "gpu_shader_codegen_lib.glsl"
 #include "gpu_shader_fullscreen_lib.glsl"
@@ -33,6 +34,7 @@ void fullscreen_vert([[vertex_id]] const int vert_id,
                      [[out]] VertOut &v_out)
 {
   fullscreen_vertex(vert_id, out_position, v_out.screen_uv);
+  out_position = reverse_z::transform(out_position);
 }
 
 struct FragOut {
@@ -463,19 +465,27 @@ void planar_eval_frag([[resource_table]] PlanarProbeEval & /*srt*/,
   }
 
   {
-    float inv_weight = safe_rcp(reflect_weight);
-    cl_reflect.N *= inv_weight;
-    cl_reflect.data *= inv_weight;
+    if (reflect_weight > 1e-6) {
+      float inv_weight = 1.0f / reflect_weight;
+      cl_reflect.N *= inv_weight;
+      cl_reflect.data *= inv_weight;
+    }
+    else {
+      /* This is needed in order to avoid NaN during the lighting evaluation. */
+      cl_reflect.N = gbuf.surface_N();
+      cl_reflect.data.xy = float2(1.0f);
+    }
   }
   {
-    if (refract_weight > 0.0f) {
+    if (refract_weight > 1e-6) {
       float inv_weight = 1.0f / refract_weight;
       cl_refract.N *= inv_weight;
       cl_refract.data *= inv_weight;
     }
-    else { /* This is needed in order to avoid NaN during the lighting evaluation. */
-      cl_refract.N = float3(1.0f, 0.0f, 0.0f);
-      cl_refract.data.y = 1.0f;
+    else {
+      /* This is needed in order to avoid NaN during the lighting evaluation. */
+      cl_refract.N = gbuf.surface_N();
+      cl_refract.data.xy = float2(1.0f);
     }
   }
 

@@ -417,7 +417,7 @@ static void action_flip_pchan_rna_paths(bAction *act)
     const char *name_esc_end = BLI_str_escape_find_quote(name_esc);
 
     /* While unlikely, an RNA path could be malformed. */
-    if (UNLIKELY(name_esc_end == nullptr)) {
+    if (name_esc_end == nullptr) [[unlikely]] {
       continue;
     }
 
@@ -427,7 +427,7 @@ static void action_flip_pchan_rna_paths(bAction *act)
 
     /* While unlikely, data paths could be constructed that have longer names than
      * are currently supported. */
-    if (UNLIKELY(name_len >= sizeof(name))) {
+    if (name_len >= sizeof(name)) [[unlikely]] {
       continue;
     }
 

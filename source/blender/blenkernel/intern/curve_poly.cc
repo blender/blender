@@ -19,7 +19,7 @@ static bool delta_dir(const float3 &pos, const float3 &next, float3 &r_delta_dir
 
   const float3 delta = next - pos;
   const float norm = math::length(delta);
-  if (UNLIKELY(norm < epsilon)) {
+  if (norm < epsilon) [[unlikely]] {
     return false;
   }
   r_delta_dir = delta / norm;
@@ -41,7 +41,7 @@ static float3 direction_bisect(const float3 &pos,
   const float3 next_delta = next - pos;
   const float next_norm = math::length(next_delta);
   is_equal = next_norm < epsilon;
-  if (UNLIKELY(is_equal)) {
+  if (is_equal) [[unlikely]] {
     /* Return the direction relative the 'previous' point. If 'prev_equal' is true, this
      * will return the direction of the last non-zero segment.
      */
@@ -50,7 +50,7 @@ static float3 direction_bisect(const float3 &pos,
 
   const float3 prev_dir = other_dir;
   other_dir = next_delta / next_norm;
-  if (UNLIKELY(prev_equal)) {
+  if (prev_equal) [[unlikely]] {
     /* Return the direction of the next segment as previous direction is not an adjacent segment!
      */
     return other_dir;
@@ -153,7 +153,7 @@ static float3 calculate_next_normal(const float3 &last_normal,
   const float angle = angle_normalized_v3v3(last_tangent, current_tangent);
   if (angle != 0.0f) {
     const float3 axis = math::normalize(math::cross(last_tangent, current_tangent));
-    if (LIKELY(!math::is_zero(axis))) {
+    if (!math::is_zero(axis)) [[likely]] {
       /* The iterative process here (computing the current normal by rotating the previous one) can
        * accumulate small floating point errors, leading to 'not enough' normalized results at some
        * point (see #121169). */
@@ -177,7 +177,7 @@ void calculate_normals_minimum(const Span<float3> tangents,
 
   /* Set initial normal. */
   const float3 &first_tangent = tangents.first();
-  if (UNLIKELY(fabs(first_tangent.x) + fabs(first_tangent.y) < epsilon)) {
+  if (fabs(first_tangent.x) + fabs(first_tangent.y) < epsilon) [[unlikely]] {
     normals.first() = {1.0f, 0.0f, 0.0f};
   }
   else {
@@ -207,7 +207,7 @@ void calculate_normals_minimum(const Span<float3> tangents,
   const float angle_step = correction_angle / normals.size();
   for (const int i : normals.index_range()) {
     const float3 axis = tangents[i];
-    if (UNLIKELY(math::is_zero(axis))) {
+    if (math::is_zero(axis)) [[unlikely]] {
       continue;
     }
     const float angle = angle_step * i;

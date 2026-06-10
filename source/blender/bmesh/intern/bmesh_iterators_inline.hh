@@ -156,7 +156,7 @@ ATTR_NONNULL(1) BLI_INLINE bool BM_iter_init(BMIter *iter, BMesh *bm, const char
 ATTR_WARN_UNUSED_RESULT ATTR_NONNULL(1) BLI_INLINE
     void *BM_iter_new(BMIter *iter, BMesh *bm, const char itype, void *data)
 {
-  if (LIKELY(BM_iter_init(iter, bm, itype, data))) {
+  if (BM_iter_init(iter, bm, itype, data)) [[likely]] {
     return BM_iter_step(iter);
   }
   else {

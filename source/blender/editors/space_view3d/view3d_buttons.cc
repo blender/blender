@@ -78,7 +78,6 @@ namespace blender {
 
 /* ******************* view3d space & buttons ************** */
 enum {
-  B_REDR = 2,
   B_TRANSFORM_PANEL_MEDIAN = 1008,
   B_TRANSFORM_PANEL_DIMS = 1009,
 };
@@ -1078,7 +1077,7 @@ static void v3d_editvertex_buts(
                       0,
                       0,
                       TIP_("Displays global values"));
-    button_retval_set(but, B_REDR);
+    ui::button_func_set(but, [](bContext &C) { ED_area_tag_redraw(CTX_wm_area(&C)); });
     but = uiDefButBit(block,
                       ui::ButtonType::ToggleN,
                       V3D_GLOBAL_STATS,
@@ -1091,7 +1090,7 @@ static void v3d_editvertex_buts(
                       0,
                       0,
                       TIP_("Displays local values"));
-    button_retval_set(but, B_REDR);
+    ui::button_func_set(but, [](bContext &C) { ED_area_tag_redraw(CTX_wm_area(&C)); });
     block_align_end(block);
 
     /* Meshes... */
@@ -2189,11 +2188,6 @@ static void do_view3d_region_buttons(bContext *C, void * /*index*/, int event)
   Object *ob = BKE_view_layer_active_object_get(view_layer);
 
   switch (event) {
-
-    case B_REDR:
-      ED_area_tag_redraw(CTX_wm_area(C));
-      return; /* no notifier! */
-
     case B_TRANSFORM_PANEL_MEDIAN:
       if (ob) {
         v3d_editvertex_buts(C, nullptr, v3d, ob, 1.0);

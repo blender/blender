@@ -2,6 +2,8 @@
  *
  * SPDX-License-Identifier: GPL-2.0-or-later */
 
+#include "BLI_string_utf8.h"
+
 #include "BKE_gtest_base.hh"
 #include "BKE_idprop.hh"
 
@@ -10,6 +12,59 @@
 namespace blender::bke::tests {
 
 class IDPropertyTest : public BlenderGTestBase {};
+
+/* U+1D400 is four bytes (0xF0 0x9D 0x90 0x80). */
+static const char *idp_utf8_4byte =
+    "\U0001D400\U0001D400\U0001D400\U0001D400\U0001D400"; /* 5 x 4 bytes = 20 bytes. */
+
+static bool idp_string_is_valid_utf8(const IDProperty *prop)
+{
+  return BLI_str_utf8_invalid_byte(IDP_string_get(prop), size_t(prop->len - 1)) == -1;
+}
+
+TEST_F(IDPropertyTest, NewStringMaxSizeUtf8Truncate)
+{
+  /* A truncated property must never be left as invalid UTF-8. */
+
+  IDProperty *prop = IDP_NewStringMaxSize(idp_utf8_4byte, 8, "test");
+  EXPECT_TRUE(idp_string_is_valid_utf8(prop));
+  EXPECT_STREQ(IDP_string_get(prop), "\U0001D400");
+  EXPECT_EQ(prop->len, 5);
+  IDP_FreeProperty(prop);
+
+  /* A code-point ending exactly at the limit must not be needlessly dropped. */
+  prop = IDP_NewStringMaxSize(idp_utf8_4byte, 9, "test");
+  EXPECT_TRUE(idp_string_is_valid_utf8(prop));
+  EXPECT_STREQ(IDP_string_get(prop), "\U0001D400\U0001D400");
+  EXPECT_EQ(prop->len, 9);
+  IDP_FreeProperty(prop);
+}
+
+TEST_F(IDPropertyTest, AssignStringMaxSizeUtf8Truncate)
+{
+  /* Re-assignment has its own storage path that must equally avoid invalid UTF-8. */
+  IDProperty *prop = IDP_NewString("", "test");
+  IDP_AssignStringMaxSize(prop, idp_utf8_4byte, 8);
+  EXPECT_TRUE(idp_string_is_valid_utf8(prop));
+  EXPECT_STREQ(IDP_string_get(prop), "\U0001D400");
+  EXPECT_EQ(prop->len, 5);
+  IDP_FreeProperty(prop);
+}
+
+TEST_F(IDPropertyTest, AssignStringMaxSizeBytesIgnoreUtf8)
+{
+  /* Binary data must survive truncation byte-for-byte, never truncated as UTF-8 code-points. */
+  IDPropertyTemplate val = {};
+  val.string.subtype = IDP_STRING_SUB_BYTE;
+  IDProperty *prop = IDP_New(IDP_STRING, &val, "test");
+  ASSERT_EQ(prop->subtype, IDP_STRING_SUB_BYTE);
+
+  IDP_AssignStringMaxSize(prop, idp_utf8_4byte, 4);
+  EXPECT_EQ(prop->len, 3);
+  EXPECT_NE(BLI_str_utf8_invalid_byte(IDP_string_get(prop), size_t(prop->len)), -1);
+
+  IDP_FreeProperty(prop);
+}
 
 TEST_F(IDPropertyTest, CreateGroup)
 {

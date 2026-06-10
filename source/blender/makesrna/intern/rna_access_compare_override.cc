@@ -1062,7 +1062,7 @@ static bool rna_property_override_collection_subitem_name_id_match(
 
   is_match = ((item_name_len == namelen) && STREQ(item_name, name));
 
-  if (UNLIKELY(name != name_buf)) {
+  if (name != name_buf) [[unlikely]] {
     MEM_delete(name);
   }
 

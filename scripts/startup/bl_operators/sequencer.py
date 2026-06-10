@@ -143,11 +143,10 @@ class SequencerFadesClear(Operator):
 
     @classmethod
     def poll(cls, context):
-        sequencer_scene = context.sequencer_scene
-        if not sequencer_scene:
+        scene = context.sequencer_scene
+        if not scene or not scene.sequence_editor:
             return False
-        strip = context.active_strip
-        return strip is not None
+        return True
 
     def execute(self, context):
         from bpy_extras import anim_utils
@@ -165,7 +164,11 @@ class SequencerFadesClear(Operator):
             for curve in fcurves
             if curve.data_path.startswith("sequence_editor.strips")
         }
-        for strip in context.selected_strips:
+        strips = context.selected_strips
+        if not strips:
+            self.report({'ERROR'}, "No strips selected")
+            return {'CANCELLED'}
+        for strip in strips:
             for animated_property in _animated_properties_get(strip):
                 data_path = strip.path_from_id() + "." + animated_property
                 curve = fcurve_map.get(data_path)
@@ -206,12 +209,10 @@ class SequencerFadesAdd(Operator):
 
     @classmethod
     def poll(cls, context):
-        sequencer_scene = context.sequencer_scene
-        if not sequencer_scene:
+        scene = context.sequencer_scene
+        if not scene or not scene.sequence_editor:
             return False
-        # Can't use context.selected_strips as it can have an impact on performances
-        strip = context.active_strip
-        return strip is not None
+        return True
 
     def execute(self, context):
         from math import floor

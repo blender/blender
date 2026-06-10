@@ -309,7 +309,7 @@ elseif(WITH_GHOST_X11 OR WITH_GHOST_WAYLAND)
     # - `SRC`: appended with generated protocol source and header files.
     function(generate_protocol_bindings PROT_DEF)
       # File name without directory or extension (use for header name).
-      get_filename_component(_name ${PROT_DEF} NAME_WLE)
+      cmake_path(GET PROT_DEF STEM LAST_ONLY _name)
       add_custom_command(
         OUTPUT ${INC_DST}/${_name}-client-protocol.h
         COMMAND ${CMAKE_COMMAND} -E make_directory ${INC_DST}

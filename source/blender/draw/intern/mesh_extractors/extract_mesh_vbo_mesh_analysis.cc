@@ -262,7 +262,7 @@ static bool bvh_overlap_cb(void *userdata, int index_a, int index_b, int /*threa
 {
   BVHTree_OverlapData *data = static_cast<BVHTree_OverlapData *>(userdata);
 
-  if (UNLIKELY(data->tri_faces[index_a] == data->tri_faces[index_b])) {
+  if (data->tri_faces[index_a] == data->tri_faces[index_b]) [[unlikely]] {
     return false;
   }
 

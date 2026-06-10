@@ -41,6 +41,7 @@ set(SRC
 
 set(LIB
   PRIVATE bf::intern::atomic
+  PRIVATE bf::intern::profile
   PRIVATE bf::dependencies::pthreads
 )
 

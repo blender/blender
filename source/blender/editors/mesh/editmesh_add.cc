@@ -17,6 +17,7 @@
 #include "BKE_editmesh.hh"
 #include "BKE_lib_id.hh"
 #include "BKE_mesh.h"
+#include "BKE_paint.hh"
 
 #include "DNA_mesh_types.h"
 #include "DNA_object_types.h"
@@ -147,6 +148,7 @@ static void make_prim_finish_sculpt(bContext *C, Object *ob, BMesh *bm)
   BKE_id_free(CTX_data_main(C), primitive_mesh);
   BKE_mesh_nomain_to_mesh(result, object_mesh, ob);
 
+  BKE_sculptsession_free_pbvh(*ob);
   DEG_id_tag_update(&ob->id, ID_RECALC_GEOMETRY);
   WM_event_add_notifier(C, NC_GEOM | ND_DATA, object_mesh);
 }

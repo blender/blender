@@ -28,30 +28,18 @@
 
 CCL_NAMESPACE_BEGIN
 
-#ifdef _WIN32
 double time_dt()
 {
-  __int64 frequency, counter;
-
-  QueryPerformanceFrequency((LARGE_INTEGER *)&frequency);
-  QueryPerformanceCounter((LARGE_INTEGER *)&counter);
-
-  return (double)counter / (double)frequency;
+  return std::chrono::duration<double>(std::chrono::steady_clock::now().time_since_epoch())
+      .count();
 }
 
+#ifdef _WIN32
 void time_sleep(const double t)
 {
   Sleep((int)(t * 1000));
 }
 #else
-double time_dt()
-{
-  struct timeval now;
-  gettimeofday(&now, nullptr);
-
-  return now.tv_sec + now.tv_usec * 1e-6;
-}
-
 /* sleep t seconds */
 void time_sleep(double t)
 {

@@ -126,7 +126,7 @@ static PyObject *idprop_py_from_idp_idparray(ID *id, IDProperty *prop)
     PyObject *wrap = BPy_IDGroup_WrapData(id, array++, prop);
 
     /* BPy_IDGroup_MapDataToPy sets the error */
-    if (UNLIKELY(wrap == nullptr)) {
+    if (wrap == nullptr) [[unlikely]] {
       Py_DECREF(seq);
       return nullptr;
     }
@@ -1278,7 +1278,7 @@ PyObject *BPy_IDGroup_MapDataToPy(IDProperty *prop)
         PyObject *wrap = BPy_IDGroup_MapDataToPy(array++);
 
         /* BPy_IDGroup_MapDataToPy sets the error */
-        if (UNLIKELY(wrap == nullptr)) {
+        if (wrap == nullptr) [[unlikely]] {
           Py_DECREF(seq);
           return nullptr;
         }
@@ -1295,7 +1295,7 @@ PyObject *BPy_IDGroup_MapDataToPy(IDProperty *prop)
         PyObject *wrap = BPy_IDGroup_MapDataToPy(loop);
 
         /* BPy_IDGroup_MapDataToPy sets the error */
-        if (UNLIKELY(wrap == nullptr)) {
+        if (wrap == nullptr) [[unlikely]] {
           Py_DECREF(dict);
           return nullptr;
         }
@@ -1966,7 +1966,7 @@ static PyObject *BPy_IDGroup_update(BPy_IDProperty *self, PyObject *value)
 
   if (BPy_IDGroup_Check(value)) {
     BPy_IDProperty *other = reinterpret_cast<BPy_IDProperty *>(value);
-    if (UNLIKELY(self->prop == other->prop)) {
+    if (self->prop == other->prop) [[unlikely]] {
       Py_RETURN_NONE;
     }
 

@@ -71,7 +71,7 @@ static SeqResult do_cross_effect(const RenderData *context,
 
 static float gammaCorrect(float c)
 {
-  if (UNLIKELY(c < 0)) {
+  if (c < 0) [[unlikely]] {
     return -(c * c);
   }
   return c * c;

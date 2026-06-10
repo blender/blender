@@ -30,7 +30,7 @@ MINLINE float safe_floored_modf(float a, float b)
 
 MINLINE float safe_logf(float a, float base)
 {
-  if (UNLIKELY(a <= 0.0f || base <= 0.0f)) {
+  if (a <= 0.0f || base <= 0.0f) [[unlikely]] {
     return 0.0f;
   }
   return safe_divide(logf(a), logf(base));
@@ -60,7 +60,7 @@ MINLINE float safe_acosf(float a)
 
 MINLINE float safe_powf(float base, float exponent)
 {
-  if (UNLIKELY(base < 0.0f && exponent != int(exponent))) {
+  if (base < 0.0f && exponent != int(exponent)) [[unlikely]] {
     return 0.0f;
   }
   return powf(base, exponent);

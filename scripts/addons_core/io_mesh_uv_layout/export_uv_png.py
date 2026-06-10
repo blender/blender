@@ -107,8 +107,16 @@ def save_pixels(filepath, pixel_data, width, height):
     if oiio:
         spec = oiio.ImageSpec(width, height, 4, "uint8")
         image = oiio.ImageOutput.create(filepath)
-        image.open(filepath, spec)
-        image.write_image(pixel_data)
+        if image is None:
+            raise OSError("Could not create image writer for {!r}".format(filepath))
+        # Calling `write_image()` on an output that failed to open crashes OIIO.
+        # The open() result must be checked, see: #159686.
+        if not image.open(filepath, spec):
+            raise OSError(image.geterror() or "Could not open {!r}".format(filepath))
+        if not image.write_image(pixel_data):
+            error = image.geterror()
+            image.close()
+            raise OSError(error or "Could not write {!r}".format(filepath))
         image.close()
         return
 

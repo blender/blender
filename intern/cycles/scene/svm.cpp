@@ -259,7 +259,7 @@ SVMStackOffset SVMCompiler::stack_assign(ShaderInput *input)
       input->stack_offset = input->link->stack_offset;
     }
     else {
-      const ShaderNode *node = input->parent;
+      ShaderNode *node = input->parent;
 
       /* not linked to output -> add nodes to load default value */
       input->stack_offset = stack_find_offset(input);
@@ -349,6 +349,9 @@ SVMStackOffset SVMCompiler::input_link(const char *name)
    * to write the value to the stack with another load and return a linked svm offset, as these
    * never store the default value in the SVMNode. */
   ShaderInput *input = current_node->input(name);
+  /* Ensure input link is pushed to SVM before the node itself. */
+  assert(!(current_node->added_to_svm && input->constant_folded_in && input->link == nullptr &&
+           input->stack_offset == SVM_STACK_INVALID));
   return (input->link || input->constant_folded_in) ? stack_assign(input) : SVM_STACK_INVALID;
 }
 
@@ -468,7 +471,7 @@ void SVMCompiler::add_node_data_float(const float f)
   current_svm_nodes.push_back_slow(__float_as_int(f));
 }
 
-void SVMCompiler::add_value_node(const ShaderNode *shader_node,
+void SVMCompiler::add_value_node(ShaderNode *shader_node,
                                  const float value,
                                  const int stack_offset)
 {
@@ -480,7 +483,7 @@ void SVMCompiler::add_value_node(const ShaderNode *shader_node,
            });
 }
 
-void SVMCompiler::add_value_node(const ShaderNode *shader_node,
+void SVMCompiler::add_value_node(ShaderNode *shader_node,
                                  const float3 &value,
                                  const int stack_offset)
 {
@@ -939,6 +942,7 @@ void SVMCompiler::compile_type(Shader *shader, ShaderGraph *graph, ShaderType ty
   current_svm_nodes.clear();
 
   for (ShaderNode *node : graph->nodes) {
+    node->added_to_svm = false;
     for (ShaderInput *input : node->inputs) {
       input->stack_offset = SVM_STACK_INVALID;
     }

@@ -528,7 +528,7 @@ def __export_unlit(bmat, export_settings):
         alpha_mode=__gather_alpha_mode(alpha_info, export_settings),
         double_sided=__gather_double_sided(bmat, {}, export_settings),
         extensions={"KHR_materials_unlit": Extension("KHR_materials_unlit", {}, required=False)},
-        extras=gather_extras(bmat, export_settings),
+        extras=gather_extras(bmat.material, export_settings),
         name=gather_name(bmat, export_settings),
         emissive_factor=None,
         emissive_texture=None,

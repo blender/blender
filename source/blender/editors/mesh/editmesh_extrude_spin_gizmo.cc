@@ -562,7 +562,7 @@ static void gizmo_mesh_spin_redo_update_from_op(GizmoGroupData_SpinRedo *ggd)
   float plane_co[3], plane_no[3];
   RNA_property_float_get_array(op->ptr, ggd->data.prop_axis_co, plane_co);
   RNA_property_float_get_array(op->ptr, ggd->data.prop_axis_no, plane_no);
-  if (UNLIKELY(normalize_v3(plane_no) == 0.0f)) {
+  if (normalize_v3(plane_no) == 0.0f) [[unlikely]] {
     return;
   }
   const bool is_plane_co_eq = equals_v3v3(plane_co, ggd->prev.plane_co);
@@ -944,7 +944,7 @@ static void gizmo_mesh_spin_redo_setup(const bContext *C, wmGizmoGroup *gzgroup)
       const int mval[2] = {event->xy[0] - region->winrct.xmin, event->xy[1] - region->winrct.ymin};
       float plane[4];
       plane_from_point_normal_v3(plane, plane_co, plane_no);
-      if (UNLIKELY(!ED_view3d_win_to_3d_on_plane_int(region, plane, mval, false, cursor_co))) {
+      if (!ED_view3d_win_to_3d_on_plane_int(region, plane, mval, false, cursor_co)) [[unlikely]] {
         ED_view3d_win_to_3d_int(v3d, region, plane, mval, cursor_co);
       }
       sub_v3_v3v3(ggd->data.orient_axis_relative, cursor_co, plane_co);

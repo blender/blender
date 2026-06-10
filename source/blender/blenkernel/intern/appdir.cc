@@ -1231,7 +1231,7 @@ void BKE_tempdir_init(const char *userdir)
     }
   }
 
-  if (UNLIKELY(g_app.temp_dirname_session_can_be_deleted == false)) {
+  if (g_app.temp_dirname_session_can_be_deleted == false) [[unlikely]] {
     /* This should practically never happen as either the preferences or the systems
      * default temporary directory should be usable, if not, use the base directory and warn. */
     STRNCPY(g_app.temp_dirname_session, g_app.temp_dirname_base);

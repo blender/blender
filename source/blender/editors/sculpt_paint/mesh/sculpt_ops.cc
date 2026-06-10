@@ -610,7 +610,7 @@ static void SCULPT_OT_sculptmode_toggle(wmOperatorType *ot)
   ot->description = "Toggle sculpt mode in 3D view";
 
   ot->exec = sculpt_mode_toggle_exec;
-  ot->poll = ED_operator_object_active_editable_mesh;
+  ot->poll = ED_operator_object_active_editable_mesh_from_view_layer;
 
   ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
 }

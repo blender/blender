@@ -64,7 +64,7 @@ static void template_recent_files_tooltip_func(bContext & /*C*/,
   if (thumb) {
     /* Look for version in existing thumbnail if available. */
     IMB_metadata_get_field(
-        thumb->metadata, "Thumb::Blender::Version", version_str, sizeof(version_str));
+        thumb->metadata(), "Thumb::Blender::Version", version_str, sizeof(version_str));
   }
 
   eFileAttributes attributes = BLI_file_attributes(path);

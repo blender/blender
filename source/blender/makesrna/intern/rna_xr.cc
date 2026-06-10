@@ -2420,7 +2420,7 @@ static void rna_def_xr_session_settings(BlenderRNA *brna)
   RNA_def_property_ui_text(
       prop,
       "View Scale",
-      "Scaling factor applied to the VR view for fine adjustements. "
+      "Scaling factor applied to the VR view for fine adjustments. "
       "Modifying this value will keep the viewer at the same world relative position");
   RNA_def_property_range(prop, 1e-6f, FLT_MAX);
   RNA_def_property_ui_range(prop, 0.001f, 100.0f, 0.1f, 4);
@@ -2874,13 +2874,13 @@ static void rna_def_xr_session_state_viewfinder(BlenderRNA *brna)
       {XR_VIEWFINDER_ACTION_PB_BROWSE,
        "BROWSE",
        ICON_RENDERLAYERS,
-       "Browse captured shots",
+       "Browse Captured Shots",
        nullptr},
       {XR_VIEWFINDER_ACTION_PB_PREVIEW,
        "PREVIEW",
        ICON_OUTLINER_OB_CAMERA,
-       "Preview selected shot in space"},
-      {XR_VIEWFINDER_ACTION_PB_DELETE, "DELETE", ICON_TRASH, "Delete selected shot"},
+       "Preview Active Shot in Space"},
+      {XR_VIEWFINDER_ACTION_PB_DELETE, "DELETE", ICON_TRASH, "Delete Active Shot"},
       {0, nullptr, 0, nullptr, nullptr}};
 
   static const EnumPropertyItem viewfinder_confirm_actions[] = {
@@ -2980,7 +2980,7 @@ static void rna_def_xr_session_state_viewfinder(BlenderRNA *brna)
       "rna_XrSessionState_viewfinder_playback_show_active_capture_in_space_enabled_get",
       "rna_XrSessionState_viewfinder_playback_show_active_capture_in_space_enabled_set");
   RNA_def_property_ui_text(prop,
-                           "Viewfinder Playback Show active capture in space enabled",
+                           "Viewfinder Playback Show Active Capture in Space Enabled",
                            "Display active capture in space when in Viewfinder Playback mode");
   RNA_def_property_update(prop, NC_WM | ND_XR_DATA_CHANGED, nullptr);
 

@@ -267,7 +267,7 @@ class VKDevice : public NonCopyable {
     PFN_vkCopyMemoryToImageEXT vkCopyMemoryToImage = nullptr;
     PFN_vkTransitionImageLayoutEXT vkTransitionImageLayout = nullptr;
 
-    /* Extension: VK_KHR_mainentance4 */
+    /* Extension: VK_KHR_maintenance4 */
     PFN_vkGetDeviceImageMemoryRequirements vkGetDeviceImageMemoryRequirements = nullptr;
     PFN_vkGetDeviceBufferMemoryRequirements vkGetDeviceBufferMemoryRequirements = nullptr;
 

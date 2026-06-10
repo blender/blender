@@ -1,9 +1,9 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 5.2.0 Alpha (b'8764d33c658b')\n"
+"Project-Id-Version: Blender 5.2.0 LTS Beta (b'2b1958ccdccb')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-06-01 07:36+0000\n"
+"POT-Creation-Date: 2026-06-08 09:37+0000\n"
 "PO-Revision-Date: 2025-07-23 14:56+0000\n"
 "Last-Translator: Anonymous <noreply@weblate.org>\n"
 "Language-Team: Serbian (Latin script) <https://translate.blender.org/projects/blender-ui/ui/sr_Latn/>\n"
@@ -619,16 +619,16 @@ msgid "Active Bone"
 msgstr "Aktivna kost"
 
 
+msgid "Custom"
+msgstr "Prilagođeno"
+
+
 msgid "Description"
 msgstr "Opis"
 
 
 msgid "Link"
 msgstr "Veza"
-
-
-msgid "Custom"
-msgstr "Prilagođeno"
 
 
 msgid "ID Name"
@@ -8498,56 +8498,12 @@ msgid "Material slot name"
 msgstr "Naziv slota materijala"
 
 
-msgid "Mirror"
-msgstr "Ogledalo"
-
-
-msgid "Snap"
-msgstr "Lepljenje"
-
-
-msgid "UV Mapping"
-msgstr "UV Mapiranje"
-
-
-msgid "Local View"
-msgstr "Lokalni pogled"
-
-
-msgid "Navigation"
-msgstr "Navigacija"
-
-
-msgid "Align View"
-msgstr "Poravnaj pogled"
-
-
-msgid "Math"
-msgstr "Matematika"
-
-
-msgid "Select Linked"
-msgstr "Izaberi povezano"
-
-
-msgid "Metaball"
-msgstr "Meta lopta"
-
-
-msgid "Light"
-msgstr "Svetlost"
-
-
 msgid "Relations"
 msgstr "Odnosi"
 
 
 msgid "Rigid Body"
 msgstr "Kruto telo"
-
-
-msgid "Import"
-msgstr "Uvoz"
 
 
 msgid "Apply"
@@ -8570,8 +8526,8 @@ msgid "Hooks"
 msgstr "Udice"
 
 
-msgid "UV"
-msgstr "UV"
+msgid "Math"
+msgstr "Matematika"
 
 
 msgid "Clear Transform"
@@ -8610,16 +8566,56 @@ msgid "Merge"
 msgstr "Sjedini"
 
 
-msgid "Linked"
-msgstr "Povezano"
+msgid "Import"
+msgstr "Uvoz"
 
 
 msgid "Special Characters"
 msgstr "Specijalni znaci"
 
 
+msgid "Metaball"
+msgstr "Meta lopta"
+
+
 msgid "Bone Roll"
 msgstr "Rolna kostiju"
+
+
+msgid "UV"
+msgstr "UV"
+
+
+msgid "Snap"
+msgstr "Lepljenje"
+
+
+msgid "Mirror"
+msgstr "Ogledalo"
+
+
+msgid "UV Mapping"
+msgstr "UV Mapiranje"
+
+
+msgid "Local View"
+msgstr "Lokalni pogled"
+
+
+msgid "Navigation"
+msgstr "Navigacija"
+
+
+msgid "Linked"
+msgstr "Povezano"
+
+
+msgid "Align View"
+msgstr "Poravnaj pogled"
+
+
+msgid "Select Linked"
+msgstr "Izaberi povezano"
 
 
 msgid "Keying"
@@ -8628,6 +8624,10 @@ msgstr "Zbirka tastera"
 
 msgid "Tracking"
 msgstr "Praćenje"
+
+
+msgid "Light"
+msgstr "Svetlost"
 
 
 msgid "Basic"
@@ -22335,6 +22335,10 @@ msgid "Operator Properties"
 msgstr "Osobine operatora"
 
 
+msgid "Cancel"
+msgstr "Odustani"
+
+
 msgctxt "WindowManager"
 msgid "Window"
 msgstr "Prozor"
@@ -23916,10 +23920,6 @@ msgstr "Bez aktivne zbirke ključeva"
 
 msgid "Cannot remove built in keying set"
 msgstr "Ne mogu da uklonim ugrađenu zbirku ključeva"
-
-
-msgid "Cancel"
-msgstr "Odustani"
 
 
 msgid "No keyframes to slide between"

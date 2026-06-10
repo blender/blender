@@ -511,7 +511,7 @@ template<typename T, int Size>
 [[nodiscard]] inline VecBase<T, Size> project(const VecBase<T, Size> &p,
                                               const VecBase<T, Size> &v_proj)
 {
-  if (UNLIKELY(is_zero(v_proj))) {
+  if (is_zero(v_proj)) [[unlikely]] {
     return VecBase<T, Size>(0.0f);
   }
   return v_proj * (dot(p, v_proj) / dot(v_proj, v_proj));

@@ -390,7 +390,7 @@ static void particle_calculate_parent_uvs(ParticleSystem *psys,
   if (!ELEM(num, DMCACHE_NOTFOUND, DMCACHE_ISCHILD)) {
     const MFace *mfaces = static_cast<const MFace *>(
         CustomData_get_layer(&psmd->mesh_final->fdata_legacy, CD_MFACE));
-    if (UNLIKELY(mfaces == nullptr)) {
+    if (mfaces == nullptr) [[unlikely]] {
       BLI_assert_msg(psmd->mesh_final->faces_num == 0,
                      "A mesh with polygons should always have a generated 'CD_MFACE' layer!");
       return;
@@ -426,7 +426,7 @@ static void particle_calculate_parent_mcol(ParticleSystem *psys,
   if (!ELEM(num, DMCACHE_NOTFOUND, DMCACHE_ISCHILD)) {
     const MFace *mfaces = static_cast<const MFace *>(
         CustomData_get_layer(&psmd->mesh_final->fdata_legacy, CD_MFACE));
-    if (UNLIKELY(mfaces == nullptr)) {
+    if (mfaces == nullptr) [[unlikely]] {
       BLI_assert_msg(psmd->mesh_final->faces_num == 0,
                      "A mesh with polygons should always have a generated 'CD_MFACE' layer!");
       return;

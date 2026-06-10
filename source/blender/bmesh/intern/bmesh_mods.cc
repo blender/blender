@@ -92,7 +92,7 @@ bool BM_disk_dissolve(BMesh *bm, BMVert *v)
 #else
     BMFace *f_double;
 
-    if (UNLIKELY(!BM_faces_join_pair(bm, e->l, e->l->radial_next, true, &f_double))) {
+    if (!BM_faces_join_pair(bm, e->l, e->l->radial_next, true, &f_double)) [[unlikely]] {
       return false;
     }
 
@@ -100,7 +100,7 @@ bool BM_disk_dissolve(BMesh *bm, BMVert *v)
     BLI_assert_msg(f_double == nullptr,
                    "Doubled face detected at " AT ". Resulting mesh may be corrupt.");
 
-    if (UNLIKELY(!BM_vert_collapse_faces(bm, v->e, v, 1.0, true, false, true, true))) {
+    if (!BM_vert_collapse_faces(bm, v->e, v, 1.0, true, false, true, true)) [[unlikely]] {
       return false;
     }
 #endif
@@ -534,7 +534,7 @@ BMVert *BM_edge_split(BMesh *bm, BMEdge *e, BMVert *v, BMEdge **r_e, float fac)
         BMEdge *e1 = j ? e_new : e;
         BMLoop *l = e1->l;
 
-        if (UNLIKELY(!l)) {
+        if (!l) [[unlikely]] {
           BMESH_ASSERT(0);
           break;
         }
@@ -565,7 +565,7 @@ BMVert *BM_edge_split(BMesh *bm, BMEdge *e, BMVert *v, BMEdge **r_e, float fac)
       BMLoop *l, *l2;
 
       l = e1->l;
-      if (UNLIKELY(!l)) {
+      if (!l) [[unlikely]] {
         BMESH_ASSERT(0);
         break;
       }
@@ -604,7 +604,7 @@ void BM_edge_verts_swap(BMEdge *e)
   std::swap(e->v1_disk_link, e->v2_disk_link);
 }
 
-void BM_edge_calc_rotate(BMEdge *e, const bool ccw, BMLoop **r_l1, BMLoop **r_l2)
+bool BM_edge_calc_rotate(BMEdge *e, const bool ccw, BMLoop **r_l1, BMLoop **r_l2)
 {
   BMVert *v1, *v2;
   BMFace *fa, *fb;
@@ -625,9 +625,17 @@ void BM_edge_calc_rotate(BMEdge *e, const bool ccw, BMLoop **r_l1, BMLoop **r_l2
   if (!ccw) {
     std::swap(fa, fb);
   }
+  BMLoop *l1 = BM_face_other_vert_loop(fb, v2, v1);
+  BMLoop *l2 = BM_face_other_vert_loop(fa, v1, v2);
 
-  *r_l1 = BM_face_other_vert_loop(fb, v2, v1);
-  *r_l2 = BM_face_other_vert_loop(fa, v1, v2);
+  /* This occurs when faces share multiple edges next to `e`.
+   * While rare it's not an error, this rotation must be skipped. */
+  if (l1->v == l2->v) [[unlikely]] {
+    return false;
+  }
+  *r_l1 = l1;
+  *r_l2 = l2;
+  return true;
 }
 
 bool BM_edge_rotate_check(BMEdge *e)
@@ -769,7 +777,9 @@ BMEdge *BM_edge_rotate(BMesh *bm, BMEdge *e, const bool ccw, const short check_f
     return nullptr;
   }
 
-  BM_edge_calc_rotate(e, ccw, &l1, &l2);
+  if (!BM_edge_calc_rotate(e, ccw, &l1, &l2)) {
+    return nullptr;
+  }
 
   /* the loops will be freed so assign verts */
   v1 = l1->v;
@@ -827,10 +837,6 @@ BMEdge *BM_edge_rotate(BMesh *bm, BMEdge *e, const bool ccw, const short check_f
   f = BM_faces_join_pair(
       bm, BM_face_edge_share_loop(l1->f, e), BM_face_edge_share_loop(l2->f, e), true, &f_double);
 
-  /* See #BM_faces_join note on callers asserting when `r_double` is non-null. */
-  BLI_assert_msg(f_double == nullptr,
-                 "Doubled face detected at " AT ". Resulting mesh may be corrupt.");
-
   if (f == nullptr) {
     return nullptr;
   }
@@ -867,6 +873,15 @@ BMEdge *BM_edge_rotate(BMesh *bm, BMEdge *e, const bool ccw, const short check_f
     }
   }
   else {
+    /* See #BM_faces_join note on callers asserting when `r_double` is non-null.
+     * Checked here because a double is acceptable as long as its temporary.
+     *
+     * TODO(@ideasman42): To properly solve we'd need to create the 2x faces with edge rotation
+     * then only delete the original faces once the new faces have been successfully created.
+     * - Worth looking into. */
+    BLI_assert_msg(f_double == nullptr,
+                   "Doubled face detected at " AT ". Resulting mesh may be corrupt.");
+
     return nullptr;
   }
 

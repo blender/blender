@@ -331,8 +331,9 @@ CachedImage::CachedImage(Context &context,
   /* For GPU, we wrap the texture returned by IMB module and free it ourselves in destructor. For
    * CPU, we allocate the result and copy to it from the image buffer. */
   if (context.use_gpu()) {
-    texture_ = IMB_create_gpu_texture("Image Texture", linear_image_buffer, true, true, false);
-    GPU_texture_update_mipmap_chain(texture_);
+    const GPUTextureCreateFlags flags = GPUTextureCreateFlags::HighBitDepth |
+                                        GPUTextureCreateFlags::Premultiplied;
+    texture_ = IMB_create_gpu_texture("Image Texture", linear_image_buffer, flags);
     this->result.share_data(texture_);
   }
   else {

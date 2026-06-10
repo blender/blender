@@ -1339,7 +1339,7 @@ static uchar *proxy_thread_next_frame(ProxyQueue *queue,
     }
 
     const size_t size = BLI_file_descriptor_size(file);
-    if (UNLIKELY(ELEM(size, 0, size_t(-1)))) {
+    if (ELEM(size, 0, size_t(-1))) [[unlikely]] {
       close(file);
       return nullptr;
     }
@@ -1377,8 +1377,7 @@ static void proxy_task_func(TaskPool *__restrict pool, void *task_data)
 
     ibuf = IMB_load_image_from_memory(mem,
                                       size,
-                                      ImBufFlags::ByteData | ImBufFlags::MultiLayer |
-                                          ImBufFlags::AlphaDetect,
+                                      ImBufFlags::ByteData | ImBufFlags::AlphaDetect,
                                       "proxy frame",
                                       nullptr,
                                       data->clip->colorspace_settings.name);

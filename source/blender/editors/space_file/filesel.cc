@@ -67,6 +67,7 @@
 
 #include "AS_essentials_library.hh"
 
+#include "file_banner.hh"
 #include "file_intern.hh"
 #include "filelist.hh"
 
@@ -1078,6 +1079,7 @@ void ED_fileselect_init_layout(SpaceFile *sfile, ARegion *region)
   /* Slightly increased than font height for padding. */
   layout->text_line_height = file_font_pointsize();
   layout->text_lines_count = 1;
+  layout->offset_top = 0;
 
   if (params->display == FILE_IMGDISPLAY) {
     /* More compact spacing for asset browser. */
@@ -1167,6 +1169,10 @@ void ED_fileselect_init_layout(SpaceFile *sfile, ARegion *region)
     layout->flag = FILE_LAYOUT_HOR;
   }
   layout->dirty = false;
+
+  if (sfile->runtime->banners_state.any_visible) {
+    layout->offset_top += UI_UNIT_Y + 2 * sfile->layout->tile_border_y;
+  }
 }
 
 FileLayout *ED_fileselect_get_layout(SpaceFile *sfile, ARegion *region)
@@ -1180,7 +1186,7 @@ FileLayout *ED_fileselect_get_layout(SpaceFile *sfile, ARegion *region)
 void ED_file_change_dir_ex(bContext *C, ScrArea *area)
 {
   /* May happen when manipulating non-active spaces. */
-  if (UNLIKELY(area->spacetype != SPACE_FILE)) {
+  if (area->spacetype != SPACE_FILE) [[unlikely]] {
     return;
   }
   SpaceFile *sfile = static_cast<SpaceFile *>(area->spacedata.first);
@@ -1328,8 +1334,9 @@ void ED_fileselect_clear(wmWindowManager *wm, SpaceFile *sfile)
     filelist_clear(sfile->files);
   }
 
-  FileSelectParams *params = ED_fileselect_get_active_params(sfile);
-  params->highlight_file = -1;
+  if (FileSelectParams *params = ED_fileselect_get_active_params(sfile)) {
+    params->highlight_file = -1;
+  }
   WM_main_add_notifier(NC_SPACE | ND_SPACE_FILE_LIST, nullptr);
 }
 

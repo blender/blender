@@ -239,7 +239,9 @@ static void matrix_invert_safe_internal(const MatrixObject *self, float *r_mat)
         mat[0][0] += eps;
         mat[1][1] += eps;
 
-        if (UNLIKELY((det = determinant_m2(mat[0][0], mat[0][1], mat[1][0], mat[1][1])) == 0.0f)) {
+        if ((det = determinant_m2(mat[0][0], mat[0][1], mat[1][0], mat[1][1])) == 0.0f)
+            [[unlikely]]
+        {
           unit_m2(mat);
           det = 1.0f;
         }
@@ -255,7 +257,7 @@ static void matrix_invert_safe_internal(const MatrixObject *self, float *r_mat)
         mat[1][1] += eps;
         mat[2][2] += eps;
 
-        if (UNLIKELY((det = determinant_m3_array(mat)) == 0.0f)) {
+        if ((det = determinant_m3_array(mat)) == 0.0f) [[unlikely]] {
           unit_m3(mat);
           det = 1.0f;
         }
@@ -608,7 +610,7 @@ static PyObject *Matrix_vectorcall(PyObject *type,
                                    const size_t nargsf,
                                    PyObject *kwnames)
 {
-  if (UNLIKELY(kwnames && PyTuple_GET_SIZE(kwnames))) {
+  if (kwnames && PyTuple_GET_SIZE(kwnames)) [[unlikely]] {
     PyErr_SetString(PyExc_TypeError,
                     "Matrix(): "
                     "takes no keyword args");
@@ -660,7 +662,7 @@ static PyObject *Matrix_vectorcall(PyObject *type,
 static PyObject *Matrix_new(PyTypeObject *type, PyObject *args, PyObject *kwds)
 {
   /* Only called on sub-classes. */
-  if (UNLIKELY(kwds && PyDict_GET_SIZE(kwds))) {
+  if (kwds && PyDict_GET_SIZE(kwds)) [[unlikely]] {
     PyErr_SetString(PyExc_TypeError,
                     "mathutils.Matrix(): "
                     "takes no keyword args");
@@ -1435,7 +1437,7 @@ static PyObject *Matrix_resize_4x4(MatrixObject *self)
   float mat[4][4];
   int col;
 
-  if (UNLIKELY(BaseMathObject_Prepare_ForResize(self, "Matrix.resize_4x4()") == -1)) {
+  if (BaseMathObject_Prepare_ForResize(self, "Matrix.resize_4x4()") == -1) [[unlikely]] {
     /* An exception has been raised. */
     return nullptr;
   }
@@ -2447,10 +2449,10 @@ static PyObject *Matrix_str(MatrixObject *self)
 static int Matrix_getbuffer(PyObject *obj, Py_buffer *view, int flags)
 {
   MatrixObject *self = reinterpret_cast<MatrixObject *>(obj);
-  if (UNLIKELY(BaseMath_Prepare_ForBufferAccess(self, view, flags) == -1)) {
+  if (BaseMath_Prepare_ForBufferAccess(self, view, flags) == -1) [[unlikely]] {
     return -1;
   }
-  if (UNLIKELY(BaseMath_ReadCallback(self) == -1)) {
+  if (BaseMath_ReadCallback(self) == -1) [[unlikely]] {
     return -1;
   }
 
@@ -2490,7 +2492,7 @@ static void Matrix_releasebuffer(PyObject * /*exporter*/, Py_buffer *view)
   self->flag &= ~BASE_MATH_FLAG_HAS_BUFFER_VIEW;
 
   if (view->readonly == 0) {
-    if (UNLIKELY(BaseMath_WriteCallback(self) == -1)) {
+    if (BaseMath_WriteCallback(self) == -1) [[unlikely]] {
       PyErr_Print();
     }
   }
@@ -3749,7 +3751,7 @@ PyObject *Matrix_CreatePyObject(const float *mat,
   }
 
   mat_alloc = static_cast<float *>(PyMem_Malloc(col_num * row_num * sizeof(float)));
-  if (UNLIKELY(mat_alloc == nullptr)) {
+  if (mat_alloc == nullptr) [[unlikely]] {
     PyErr_SetString(PyExc_MemoryError,
                     "Matrix(): "
                     "problem allocating data");

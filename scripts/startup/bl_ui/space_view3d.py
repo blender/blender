@@ -746,7 +746,7 @@ class VIEW3D_HT_header(Header):
                 show_snap = True
             else:
 
-                paint_settings = UnifiedPaintPanel.paint_settings(context)
+                paint_settings = UnifiedPaintPanel.paint_settings_from_active_tool(context)
 
                 if paint_settings:
                     brush = paint_settings.brush
@@ -1273,8 +1273,6 @@ class VIEW3D_MT_transform_base:
         layout.operator("transform.bend", text="Bend")
         layout.operator("transform.push_pull", text="Push/Pull")
 
-        layout.separator()
-
 
 # Generic transform menu - geometry types
 class VIEW3D_MT_transform(VIEW3D_MT_transform_base, Menu):
@@ -1284,6 +1282,7 @@ class VIEW3D_MT_transform(VIEW3D_MT_transform_base, Menu):
 
         # generic...
         layout = self.layout
+        layout.separator()
         if context.mode == 'EDIT_MESH':
             layout.operator("mesh.circularize", text="To Circle")
             layout.operator("mesh.flatten", text="Flatten")
@@ -1297,7 +1296,6 @@ class VIEW3D_MT_transform(VIEW3D_MT_transform_base, Menu):
 
         if context.mode in {
             'EDIT_MESH',
-            'EDIT_ARMATURE',
             'EDIT_SURFACE',
             'EDIT_CURVE',
             'EDIT_CURVES',
@@ -1353,7 +1351,15 @@ class VIEW3D_MT_transform_armature(VIEW3D_MT_transform_base, Menu):
 
         # armature specific extensions follow...
         obj = context.object
-        if obj.type == 'ARMATURE' and obj.mode in {'EDIT', 'POSE'}:
+        if obj.type == 'ARMATURE':
+            if obj.mode == 'EDIT':
+                layout.separator()
+
+                layout.operator("transform.vertex_warp", text="Warp")
+                layout.operator_context = 'EXEC_REGION_WIN'
+                layout.operator("transform.vertex_random", text="Randomize").offset = 0.1
+                layout.operator_context = 'INVOKE_REGION_WIN'
+
             if obj.data.display_type == 'BBONE':
                 layout.separator()
 
@@ -2816,7 +2822,7 @@ class VIEW3D_MT_object(Menu):
 
         layout.separator()
 
-        layout.operator("object.duplicate_move")
+        layout.operator("object.duplicate_move", icon='DUPLICATE')
         layout.operator("object.duplicate_move_linked")
         layout.operator("object.join")
 
@@ -2868,7 +2874,7 @@ class VIEW3D_MT_object(Menu):
         layout.separator()
 
         layout.operator_context = 'EXEC_REGION_WIN'
-        layout.operator("object.delete", text="Delete").use_global = False
+        layout.operator("object.delete", text="Delete", icon='X').use_global = False
         layout.operator("object.delete", text="Delete Global").use_global = True
 
         layout.template_node_operator_asset_menu_items(catalog_path="Object")
@@ -3174,7 +3180,7 @@ class VIEW3D_MT_object_context_menu(Menu):
         layout.separator()
 
         layout.operator_context = 'EXEC_REGION_WIN'
-        layout.operator("object.delete", text="Delete").use_global = False
+        layout.operator("object.delete", text="Delete", icon='X').use_global = False
 
         layout.template_node_operator_asset_menu_items(catalog_path="Object")
 
@@ -4151,7 +4157,7 @@ class VIEW3D_MT_particle(Menu):
 
         layout.separator()
 
-        layout.operator("particle.delete")
+        layout.operator("particle.delete", icon='X')
 
 
 class VIEW3D_MT_particle_context_menu(Menu):
@@ -4164,10 +4170,6 @@ class VIEW3D_MT_particle_context_menu(Menu):
         particle_edit = tool_settings.particle_edit
 
         layout.operator("particle.rekey")
-
-        layout.separator()
-
-        layout.operator("particle.delete")
 
         layout.separator()
 
@@ -4207,6 +4209,10 @@ class VIEW3D_MT_particle_context_menu(Menu):
             layout.separator()
 
             layout.operator("particle.select_linked", text="Select Linked")
+
+        layout.separator()
+
+        layout.operator("particle.delete", icon='X')
 
 
 class VIEW3D_MT_particle_showhide(ShowHideMenu, Menu):
@@ -4648,7 +4654,7 @@ class VIEW3D_MT_edit_mesh_context_menu(Menu):
             col.operator("mesh.split")
             col.operator_menu_enum("mesh.separate", "type")
             col.operator("mesh.dissolve_verts")
-            col.operator("mesh.delete", text="Delete Vertices").type = 'VERT'
+            col.operator("mesh.delete", text="Delete Vertices", icon='X').type = 'VERT'
 
         if is_edge_mode:
             col = row.column(align=True)
@@ -4717,7 +4723,7 @@ class VIEW3D_MT_edit_mesh_context_menu(Menu):
             col.operator("mesh.split")
             col.operator_menu_enum("mesh.separate", "type")
             col.operator("mesh.dissolve_edges")
-            col.operator("mesh.delete", text="Delete Edges").type = 'EDGE'
+            col.operator("mesh.delete", text="Delete Edges", icon='X').type = 'EDGE'
 
         if is_face_mode:
             col = row.column(align=True)
@@ -4763,7 +4769,7 @@ class VIEW3D_MT_edit_mesh_context_menu(Menu):
             col.operator("mesh.split")
             col.operator_menu_enum("mesh.separate", "type")
             col.operator("mesh.dissolve_faces")
-            col.operator("mesh.delete", text="Delete Faces").type = 'FACE'
+            col.operator("mesh.delete", text="Delete Faces", icon='X').type = 'FACE'
 
 
 class VIEW3D_MT_edit_mesh_select_mode(Menu):
@@ -5705,7 +5711,7 @@ class VIEW3D_MT_armature_context_menu(Menu):
         layout.operator("armature.split")
         layout.operator("armature.separate")
         layout.operator("armature.dissolve")
-        layout.operator("armature.delete")
+        layout.operator("armature.delete", icon='X')
 
 
 class VIEW3D_MT_edit_armature_names(Menu):
@@ -5989,7 +5995,7 @@ class VIEW3D_MT_edit_curves(Menu):
         layout.separator()
 
         layout.operator("curves.separate")
-        layout.operator("curves.delete")
+        layout.operator("curves.delete", icon='X')
 
 
 class VIEW3D_MT_edit_curves_control_points(Menu):
@@ -6043,13 +6049,9 @@ class VIEW3D_MT_edit_curves_context_menu(Menu):
 
         layout.separator()
 
-        # Removal Operators
-        layout.operator("curves.separate")
-        layout.operator("curves.delete")
-
-        layout.separator()
-
         layout.operator("curves.split")
+        layout.operator("curves.separate")
+        layout.operator("curves.delete", icon='X')
 
 
 class VIEW3D_MT_edit_pointcloud(Menu):
@@ -6059,11 +6061,12 @@ class VIEW3D_MT_edit_pointcloud(Menu):
         layout = self.layout
         layout.menu("VIEW3D_MT_transform")
         layout.separator()
-        layout.operator("pointcloud.duplicate_move")
+        layout.operator("pointcloud.duplicate_move", icon='DUPLICATE')
         layout.separator()
-        layout.operator("pointcloud.attribute_set")
-        layout.operator("pointcloud.delete")
+        layout.operator("pointcloud.attribute_set", text="Set Attribute...")
+        layout.separator()
         layout.operator("pointcloud.separate")
+        layout.operator("pointcloud.delete", icon='X')
         layout.template_node_operator_asset_menu_items(catalog_path=self.bl_label)
 
 
@@ -9106,7 +9109,7 @@ class VIEW3D_PT_curves_sculpt_add_shape(Panel):
         layout.use_property_split = True
         layout.use_property_decorate = False  # No animation.
 
-        settings = UnifiedPaintPanel.paint_settings(context)
+        settings = UnifiedPaintPanel.paint_settings_from_mode(context, 'SCULPT_CURVES')
         brush = settings.brush
 
         col = layout.column(heading="Interpolate", align=True)
@@ -9137,7 +9140,7 @@ class VIEW3D_PT_curves_sculpt_parameter_falloff(Panel):
     def draw(self, context):
         layout = self.layout
 
-        settings = UnifiedPaintPanel.paint_settings(context)
+        settings = UnifiedPaintPanel.paint_settings_from_mode(context, 'SCULPT_CURVES')
         brush = settings.brush
 
         layout.template_curve_mapping(
@@ -9161,7 +9164,7 @@ class VIEW3D_PT_curves_sculpt_grow_shrink_scaling(Panel):
         layout.use_property_split = True
         layout.use_property_decorate = False  # No animation.
 
-        settings = UnifiedPaintPanel.paint_settings(context)
+        settings = UnifiedPaintPanel.paint_settings_from_active_tool(context)
         brush = settings.brush
 
         layout.prop(brush.curves_sculpt_settings, "use_uniform_scale")
@@ -9214,7 +9217,7 @@ class VIEW3D_AST_brush_vertex_paint(View3DAssetShelf, bpy.types.AssetShelf):
     brush_type_prop = "vertex_brush_type"
 
 
-class VIEW3D_AST_brush_weight_paint(AssetShelfHiddenByDefault, View3DAssetShelf, bpy.types.AssetShelf):
+class VIEW3D_AST_brush_weight_paint(View3DAssetShelf, bpy.types.AssetShelf):
     mode = 'WEIGHT_PAINT'
     mode_prop = "use_paint_weight"
     brush_type_prop = "weight_brush_type"

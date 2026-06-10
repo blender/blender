@@ -6,14 +6,14 @@
 
 /* Copy of the regular OptiX kernels with additional OSL support. */
 
-#include "kernel/device/optix/kernel_shader_raytrace.cu"
+#include "kernel/device/optix/kernel.cu"
 
 #include "kernel/bake/bake.h"
 #include "kernel/integrator/shade_background.h"
 #include "kernel/integrator/shade_dedicated_light.h"
 #include "kernel/integrator/shade_light.h"
 #include "kernel/integrator/shade_shadow.h"
-#include "kernel/integrator/shade_volume.h"
+#include "kernel/integrator/shade_surface.h"
 
 #include "kernel/device/gpu/work_stealing.h"
 
@@ -51,24 +51,6 @@ extern "C" __global__ void __raygen__kernel_optix_integrator_shade_surface()
                              kernel_params.path_index_array[global_index] :
                              global_index;
   integrator_shade_surface(nullptr, path_index, kernel_params.render_buffer);
-}
-
-extern "C" __global__ void __raygen__kernel_optix_integrator_shade_volume()
-{
-  const int global_index = optixGetLaunchIndex().x;
-  const int path_index = (kernel_params.path_index_array) ?
-                             kernel_params.path_index_array[global_index] :
-                             global_index;
-  integrator_shade_volume(nullptr, path_index, kernel_params.render_buffer);
-}
-
-extern "C" __global__ void __raygen__kernel_optix_integrator_shade_volume_ray_marching()
-{
-  const int global_index = optixGetLaunchIndex().x;
-  const int path_index = (kernel_params.path_index_array) ?
-                             kernel_params.path_index_array[global_index] :
-                             global_index;
-  integrator_shade_volume_ray_marching(nullptr, path_index, kernel_params.render_buffer);
 }
 
 extern "C" __global__ void __raygen__kernel_optix_integrator_shade_shadow()

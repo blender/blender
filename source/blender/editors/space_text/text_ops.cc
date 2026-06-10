@@ -4117,7 +4117,7 @@ static wmOperatorStatus text_jump_to_file_at_point_exec(bContext *C, wmOperator 
 
   char filepath[FILE_MAX];
   RNA_property_string_get(op->ptr, prop_filepath, filepath);
-  if (UNLIKELY(BLI_path_is_rel(filepath))) {
+  if (BLI_path_is_rel(filepath)) [[unlikely]] {
     BLI_path_abs(filepath, BKE_main_blendfile_path(bmain));
   }
   const int line_index = RNA_property_int_get(op->ptr, prop_line);

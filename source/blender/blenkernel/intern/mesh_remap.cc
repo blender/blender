@@ -1024,7 +1024,7 @@ static void mesh_island_to_astar_graph_edge_process(MeshIslandStore *islands,
     const int pidx_isld = islands ? face_island_index_map[pidx] : pidx;
     void *custom_data = is_edge_innercut ? POINTER_FROM_INT(edge_idx) : POINTER_FROM_INT(-1);
 
-    if (UNLIKELY(islands && (islands->items_to_islands[face.start()] != island_index))) {
+    if (islands && (islands->items_to_islands[face.start()] != island_index)) [[unlikely]] {
       /* face not in current island, happens with border edges... */
       face_island_indices[i] = -1;
       continue;
@@ -2122,7 +2122,7 @@ void BKE_mesh_remap_calc_faces_from_mesh(const int mode,
 
         std::fill_n(weights, int(numfaces_src), 0.0f);
 
-        if (UNLIKELY(size_t(face.size()) > tmp_face_size)) {
+        if (size_t(face.size()) > tmp_face_size) [[unlikely]] {
           tmp_face_size = size_t(face.size());
           face_vcos_2d = static_cast<float (*)[2]>(
               MEM_realloc_uninitialized(face_vcos_2d, sizeof(*face_vcos_2d) * tmp_face_size));

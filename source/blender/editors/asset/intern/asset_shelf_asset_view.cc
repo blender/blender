@@ -290,8 +290,7 @@ void AssetViewItem::build_grid_tile(const bContext &C, ui::Layout &layout) const
     button_label_draw_icon_border_set(online_icon, true);
   }
   else if (asset_.needs_download()) {
-    ui::Button *needs_download_icon = uiItemL_ex(
-        &overlay_row, "", ICON_WARNING_LARGE, false, false);
+    ui::Button *needs_download_icon = uiItemL_ex(&overlay_row, "", ICON_ERROR, false, false);
     button_label_alpha_factor_set(needs_download_icon, 0.6f);
     button_label_draw_icon_border_set(needs_download_icon, true);
   }

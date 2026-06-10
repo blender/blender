@@ -105,7 +105,7 @@ Array<float3> BKE_crazyspace_get_mapped_editverts(Depsgraph *depsgraph, Object *
 
   /* Now get the cage. */
   BMEditMesh *em = BKE_editmesh_from_object(obedit);
-  Mesh *mesh_eval_cage = bke::editbmesh_get_eval_cage(
+  const Mesh *mesh_eval_cage = bke::editbmesh_get_eval_cage(
       depsgraph, scene_eval, obedit_eval, em, &CD_MASK_BAREMESH);
 
   const int nverts = em->bm->totvert;

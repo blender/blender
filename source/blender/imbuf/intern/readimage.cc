@@ -265,9 +265,9 @@ ImBuf *IMB_thumb_load_image(const char *filepath,
       char cheight[40];
       SNPRINTF_UTF8(cwidth, "%zu", width);
       SNPRINTF_UTF8(cheight, "%zu", height);
-      IMB_metadata_ensure(&ibuf->metadata);
-      IMB_metadata_set_field(ibuf->metadata, "Thumb::Image::Width", cwidth);
-      IMB_metadata_set_field(ibuf->metadata, "Thumb::Image::Height", cheight);
+      IDProperty *metadata = ibuf->metadata_for_write();
+      IMB_metadata_set_field(metadata, "Thumb::Image::Width", cwidth);
+      IMB_metadata_set_field(metadata, "Thumb::Image::Height", cheight);
     }
   }
 

@@ -1676,8 +1676,11 @@ static wmOperatorStatus object_origin_set_exec(bContext *C, wmOperator *op)
       }
       else if (around == V3D_AROUND_CENTER_BOUNDS) {
         const int current_frame = scene->r.cfra;
-        const Bounds<float3> bounds = *grease_pencil.bounds_min_max(current_frame);
-        cent = math::midpoint(bounds.min, bounds.max);
+        if (const std::optional<Bounds<float3>> bounds = grease_pencil.bounds_min_max(
+                current_frame))
+        {
+          cent = math::midpoint(bounds->min, bounds->max);
+        }
       }
       else if (around == V3D_AROUND_CENTER_MEDIAN) {
         const int current_frame = scene->r.cfra;

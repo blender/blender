@@ -445,7 +445,7 @@ static void make_face(PROCESS *process, int i1, int i2, int i3, int i4)
   float n[3];
 #endif
 
-  if (UNLIKELY(process->totindex == process->curindex)) {
+  if (process->totindex == process->curindex) [[unlikely]] {
     process->totindex = process->totindex ? (process->totindex * 2) : MBALL_ARRAY_LEN_INIT;
     process->indices = static_cast<int (*)[4]>(
         MEM_realloc_uninitialized(process->indices, sizeof(int[4]) * process->totindex));
@@ -1344,7 +1344,7 @@ static void init_meta(Depsgraph *depsgraph, PROCESS *process, Scene *scene, Obje
       copy_v3_v3(new_ml->bb->vec[6], tempmax);
 
       /* add new_ml to mainb[] */
-      if (UNLIKELY(process->totelem == process->mem)) {
+      if (process->totelem == process->mem) [[unlikely]] {
         process->mem = process->mem * 2 + 10;
         process->mainb = static_cast<MetaElem **>(
             MEM_realloc_uninitialized(process->mainb, sizeof(MetaElem *) * process->mem));

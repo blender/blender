@@ -963,7 +963,7 @@ void BKE_undosys_stack_group_end(UndoStack *ustack)
   BLI_assert(ustack->group_level >= 0);
 
   if (ustack->group_level == 0) {
-    if (LIKELY(ustack->step_active != nullptr)) {
+    if (ustack->step_active != nullptr) [[likely]] {
       ustack->step_active->skip = false;
     }
   }

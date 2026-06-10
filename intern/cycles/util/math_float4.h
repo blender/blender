@@ -530,16 +530,6 @@ ccl_device_inline float4 floorfrac(const float4 x, ccl_private int4 *i)
 #  endif
 }
 
-ccl_device_inline float4 mix(const float4 a, const float4 b, const float t)
-{
-  return a + t * (b - a);
-}
-
-ccl_device_inline float4 mix(const float4 a, const float4 b, const float4 t)
-{
-  return a + t * (b - a);
-}
-
 ccl_device_inline float4 saturate(const float4 a)
 {
   return make_float4(saturatef(a.x), saturatef(a.y), saturatef(a.z), saturatef(a.w));

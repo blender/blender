@@ -758,8 +758,10 @@ static wmOperatorStatus uv_arrange_islands_exec(bContext *C, wmOperator *op)
   }
   else if (initial_position == UVAlignInitialPosition::UVTileGrid) {
     /* Leave the minimum at zero. */
-    bounds.max[0] = sima->tile_grid_shape[0];
-    bounds.max[1] = sima->tile_grid_shape[1];
+    if (sima) {
+      bounds.max[0] = sima->tile_grid_shape[0];
+      bounds.max[1] = sima->tile_grid_shape[1];
+    }
   }
   else {
     if (sima) {
@@ -2797,7 +2799,10 @@ static bool uv_copy_mirrored_faces(const Scene *scene,
   for (const auto &[f_dst, f_src] : face_map.items()) {
 
     /* Skip unless both faces have all their UVs selected. */
-    if (!uvedit_face_select_test(scene, bm, f_dst) || !uvedit_face_select_test(scene, bm, f_src)) {
+    if (!uvedit_face_visible_test(scene, f_dst) || !uvedit_face_select_test(scene, bm, f_dst)) {
+      continue;
+    }
+    if (!uvedit_face_visible_test(scene, f_src) || !uvedit_face_select_test(scene, bm, f_src)) {
       continue;
     }
 

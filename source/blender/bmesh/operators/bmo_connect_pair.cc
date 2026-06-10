@@ -530,7 +530,7 @@ static void bm_vert_pair_to_matrix(BMVert *v_pair[2], float r_unit_mat[3][3])
   cross_v3_v3v3(basis_tmp, basis_dir, basis_nor);
 
   /* Try get the axis from surrounding faces, fallback to 'ortho_v3_v3' */
-  if (UNLIKELY(normalize_v3(basis_tmp) < eps)) {
+  if (normalize_v3(basis_tmp) < eps) [[unlikely]] {
     /* vertex normals are directly opposite */
 
     /* find the loop with the lowest angle */
@@ -574,7 +574,7 @@ static void bm_vert_pair_to_matrix(BMVert *v_pair[2], float r_unit_mat[3][3])
     cross_v3_v3v3(basis_tmp, basis_dir, basis_nor);
 
     /* last resort, pick _any_ ortho axis */
-    if (UNLIKELY(normalize_v3(basis_tmp) < eps)) {
+    if (normalize_v3(basis_tmp) < eps) [[unlikely]] {
       ortho_v3_v3(basis_nor, basis_dir);
       normalize_v3(basis_nor);
       cross_v3_v3v3(basis_tmp, basis_dir, basis_nor);
@@ -696,6 +696,15 @@ void bmo_connect_vert_pair_exec(BMesh *bm, BMOperator *op)
         BMVert *v_new;
         float e_fac = state_calc_co_pair_fac(&pc, e->v1->co, e->v2->co);
         v_new = BM_edge_split(bm, e, e->v1, nullptr, e_fac);
+        /* Adding vertices makes the face-normals stale.
+         * These are used for the `connect_verts` call next for projecting onto the face,
+         * so the normals must be recalculated here. */
+        if (e->l) {
+          BMLoop *l_iter = e->l;
+          do {
+            BM_face_normal_update(l_iter->f);
+          } while ((l_iter = l_iter->radial_next) != e->l);
+        }
         BMO_vert_flag_enable(bm, v_new, VERT_OUT);
       }
       else if (link->ele->head.htype == BM_VERT) {

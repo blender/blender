@@ -88,7 +88,7 @@ static bool bm_loop_build(BMEdgeLoopStore *el_store, BMVert *v_prev, BMVert *v, 
     if (count == 1) {
       v_next = BM_edge_other_vert(e_next, v);
       BM_elem_flag_disable(e_next, BM_ELEM_INTERNAL_TAG);
-      if (UNLIKELY(v_next == v_first)) {
+      if (v_next == v_first) [[unlikely]] {
         el_store->flag |= BM_EDGELOOP_IS_CLOSED;
         v_next = nullptr;
       }
@@ -632,7 +632,7 @@ bool BM_edgeloop_calc_normal(BMesh * /*bm*/, BMEdgeLoopStore *el_store)
     }
   } while (true);
 
-  if (UNLIKELY(normalize_v3(el_store->no) < EDGELOOP_EPS)) {
+  if (normalize_v3(el_store->no) < EDGELOOP_EPS) [[unlikely]] {
     el_store->no[2] = 1.0f; /* other axis set to 0.0 */
     return false;
   }
@@ -666,7 +666,7 @@ bool BM_edgeloop_calc_normal_aligned(BMesh * /*bm*/,
     }
   } while (true);
 
-  if (UNLIKELY(normalize_v3(el_store->no) < EDGELOOP_EPS)) {
+  if (normalize_v3(el_store->no) < EDGELOOP_EPS) [[unlikely]] {
     el_store->no[2] = 1.0f; /* other axis set to 0.0 */
     return false;
   }

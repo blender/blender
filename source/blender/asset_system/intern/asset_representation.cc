@@ -285,7 +285,7 @@ bool AssetRepresentation::is_online_only() const
   }
   /* An asset is considered 'online' if there is no file on disk for it.
    *
-   * About also allowinmg UNSET: This function is (indirectly) called from all kinds of
+   * About also allowing UNSET: This function is (indirectly) called from all kinds of
    * places, like `get_node_tools_type_data()` in `node_group_operators.cc` to figure out which
    * node tools are available. Since that happens on startup, the actual on-disk file status may
    * not have been checked yet. Until that time, just assume that having `online_info_` means "it

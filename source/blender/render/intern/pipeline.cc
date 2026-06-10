@@ -190,11 +190,13 @@ static bool default_break(void * /*arg*/)
   return G.is_break == true;
 }
 
-static void stats_update(void * /*arg*/, RenderStats *rs)
+static void stats_update(void *arg, RenderStats *rs)
 {
   if (rs->infostr == nullptr) {
     return;
   }
+
+  Render *re = static_cast<Render *>(arg);
 
   /* Compositor calls this from multiple threads, mutex lock to ensure we don't
    * get garbled output. */
@@ -212,7 +214,7 @@ static void stats_update(void * /*arg*/, RenderStats *rs)
 
   /* NOTE: using G_MAIN seems valid here???
    * Not sure it's actually even used anyway, we could as well pass nullptr? */
-  BKE_callback_exec_string(G_MAIN, rs->infostr, BKE_CB_EVT_RENDER_STATS);
+  render_callback_exec_string(re, G_MAIN, BKE_CB_EVT_RENDER_STATS, rs->infostr);
 
   if (show_info) {
     fflush(stdout);
@@ -259,7 +261,7 @@ bool RE_HasSingleLayer(Render *re)
 }
 
 RenderResult *RE_MultilayerConvert(
-    ExrHandle *exrhandle, const char *colorspace, bool predivide, int rectx, int recty)
+    ExrReadHandle *exrhandle, const char *colorspace, bool predivide, int rectx, int recty)
 {
   return render_result_new_from_exr(exrhandle, colorspace, predivide, rectx, recty);
 }
@@ -944,6 +946,7 @@ void RE_display_init(Render *re)
   re->display->progress_cb = float_nothing;
   re->display->test_break_cb = default_break;
   re->display->stats_draw_cb = stats_update;
+  re->display->sdh = re;
 }
 
 void RE_display_ensure_gpu_context(Render *re)
@@ -1430,7 +1433,7 @@ static void do_render_sequencer(Render *re)
       /* copy ibuf into combined pixel rect */
       RE_render_result_rect_from_ibuf(rr, ibuf_arr[view_id], view_id);
 
-      if (ibuf_arr[view_id]->metadata && (re->scene->r.stamp & R_STAMP_STRIPMETA)) {
+      if (ibuf_arr[view_id]->metadata() && (re->scene->r.stamp & R_STAMP_STRIPMETA)) {
         /* ensure render stamp info first */
         BKE_render_result_stamp_info(nullptr, nullptr, rr, true);
         BKE_stamp_info_from_imbuf(rr, ibuf_arr[view_id]);
@@ -1934,7 +1937,9 @@ void RE_RenderFrame(Render *re,
         char filepath_override[FILE_MAX];
         const char *relbase = BKE_main_blendfile_path(bmain);
         path_templates::VariableMap template_variables;
-        BKE_add_template_variables_general(template_variables, &scene->id);
+        BKE_blender_project_read_callback(bmain, [&](const bke::BlenderProject *project) {
+          BKE_add_template_variables_general(template_variables, &scene->id, project);
+        });
         BKE_add_template_variables_for_render_path(template_variables, *scene);
 
         const Vector<path_templates::Error> errors = BKE_image_path_from_imformat(
@@ -2048,6 +2053,7 @@ void RE_RenderFreestyleExternal(Render *re)
 
 bool RE_WriteRenderViewsMovie(ReportList *reports,
                               RenderResult *rr,
+                              const bke::BlenderProject *project,
                               Scene *scene,
                               RenderData *rd,
                               MovieWriter **movie_writers,
@@ -2077,6 +2083,7 @@ bool RE_WriteRenderViewsMovie(ReportList *reports,
       BLI_assert(movie_writers[view_id] != nullptr);
       if (!MOV_write_append(movie_writers[view_id],
                             scene,
+                            project,
                             rd,
                             &image_format,
                             preview ? scene->r.psfra : scene->r.sfra,
@@ -2113,6 +2120,7 @@ bool RE_WriteRenderViewsMovie(ReportList *reports,
       BLI_assert(movie_writers[0] != nullptr);
       if (!MOV_write_append(movie_writers[0],
                             scene,
+                            project,
                             rd,
                             &image_format,
                             preview ? scene->r.psfra : scene->r.sfra,
@@ -2165,8 +2173,16 @@ static bool do_write_image_or_movie(Render *re,
 
     /* write movie or image */
     if (BKE_imtype_is_movie(scene->r.im_format.imtype)) {
-      RE_WriteRenderViewsMovie(
-          re->reports, &rres, scene, &re->r, re->movie_writers.data(), totvideos, false);
+      BKE_blender_project_read_callback(bmain, [&](const bke::BlenderProject *project) {
+        RE_WriteRenderViewsMovie(re->reports,
+                                 &rres,
+                                 project,
+                                 scene,
+                                 &re->r,
+                                 re->movie_writers.data(),
+                                 totvideos,
+                                 false);
+      });
     }
     else {
       if (filepath_override) {
@@ -2175,7 +2191,9 @@ static bool do_write_image_or_movie(Render *re,
       else {
         const char *relbase = BKE_main_blendfile_path(bmain);
         path_templates::VariableMap template_variables;
-        BKE_add_template_variables_general(template_variables, &scene->id);
+        BKE_blender_project_read_callback(bmain, [&](const bke::BlenderProject *project) {
+          BKE_add_template_variables_general(template_variables, &scene->id, project);
+        });
         BKE_add_template_variables_for_render_path(template_variables, *scene);
 
         const Vector<path_templates::Error> errors = BKE_image_path_from_imformat(
@@ -2341,14 +2359,18 @@ void RE_RenderAnim(Render *re,
     for (int i = 0; i < totvideos; i++) {
       const char *suffix = is_multiview_name ? BKE_scene_multiview_view_id_suffix_get(&re->r, i) :
                                                "";
-      MovieWriter *writer = MOV_write_begin(re->pipeline_scene_eval,
-                                            &re->r,
-                                            &image_format,
-                                            width,
-                                            height,
-                                            re->reports,
-                                            false,
-                                            suffix);
+      MovieWriter *writer = BKE_blender_project_read_callback(
+          bmain, [&](const bke::BlenderProject *project) {
+            return MOV_write_begin(re->pipeline_scene_eval,
+                                   project,
+                                   &re->r,
+                                   &image_format,
+                                   width,
+                                   height,
+                                   re->reports,
+                                   false,
+                                   suffix);
+          });
       if (writer == nullptr) {
         is_error = true;
         break;
@@ -2414,7 +2436,9 @@ void RE_RenderAnim(Render *re,
     /* Touch/NoOverwrite options are only valid for image's */
     if (is_movie == false && do_write_file) {
       path_templates::VariableMap template_variables;
-      BKE_add_template_variables_general(template_variables, &scene->id);
+      BKE_blender_project_read_callback(bmain, [&](const bke::BlenderProject *project) {
+        BKE_add_template_variables_general(template_variables, &scene->id, project);
+      });
       BKE_add_template_variables_for_render_path(template_variables, *scene);
 
       const Vector<path_templates::Error> errors = BKE_image_path_from_imformat(

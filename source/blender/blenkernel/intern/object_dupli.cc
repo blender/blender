@@ -880,7 +880,7 @@ static void make_duplis_font(const DupliContext *ctx)
 
       copy_m4_m4(obmat, par->object_to_world().ptr());
 
-      if (UNLIKELY(ct->rotate != 0.0f)) {
+      if (ct->rotate != 0.0f) [[unlikely]] {
         float rmat[4][4];
 
         zero_v3(obmat[3]);

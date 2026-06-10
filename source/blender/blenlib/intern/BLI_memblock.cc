@@ -103,7 +103,7 @@ void BLI_memblock_clear(BLI_memblock *mblk, MemblockValFreeFP free_callback)
     MEM_SAFE_DELETE_VOID(mblk->chunk_list[i]);
   }
 
-  if (UNLIKELY(last_used_chunk + 1 < mblk->chunk_len - CHUNK_LIST_SIZE)) {
+  if (last_used_chunk + 1 < mblk->chunk_len - CHUNK_LIST_SIZE) [[unlikely]] {
     mblk->chunk_len -= CHUNK_LIST_SIZE;
     mblk->chunk_list = static_cast<void **>(
         MEM_realloc_zeroed(mblk->chunk_list, sizeof(void *) * uint(mblk->chunk_len)));
@@ -129,13 +129,13 @@ void *BLI_memblock_alloc(BLI_memblock *mblk)
     mblk->elem_next_ofs = 0;
     mblk->chunk_next++;
 
-    if (UNLIKELY(mblk->chunk_next >= mblk->chunk_len)) {
+    if (mblk->chunk_next >= mblk->chunk_len) [[unlikely]] {
       mblk->chunk_len += CHUNK_LIST_SIZE;
       mblk->chunk_list = static_cast<void **>(
           MEM_realloc_zeroed(mblk->chunk_list, sizeof(void *) * uint(mblk->chunk_len)));
     }
 
-    if (UNLIKELY(mblk->chunk_list[mblk->chunk_next] == nullptr)) {
+    if (mblk->chunk_list[mblk->chunk_next] == nullptr) [[unlikely]] {
       mblk->chunk_list[mblk->chunk_next] = MEM_new_uninitialized_aligned(
           uint(mblk->chunk_size), 32, "BLI_memblock chunk");
       memset(mblk->chunk_list[mblk->chunk_next], 0x0, uint(mblk->chunk_size));

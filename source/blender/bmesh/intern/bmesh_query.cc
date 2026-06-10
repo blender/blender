@@ -1163,10 +1163,10 @@ BMLoop *BM_loop_find_prev_nodouble(BMLoop *l, BMLoop *l_stop, const float eps_sq
 
   BLI_assert(!ELEM(l_stop, nullptr, l));
 
-  while (UNLIKELY(len_squared_v3v3(l->v->co, l_step->v->co) < eps_sq)) {
+  while (len_squared_v3v3(l->v->co, l_step->v->co) < eps_sq) [[unlikely]] {
     l_step = l_step->prev;
     BLI_assert(l_step != l);
-    if (UNLIKELY(l_step == l_stop)) {
+    if (l_step == l_stop) [[unlikely]] {
       return nullptr;
     }
   }
@@ -1180,10 +1180,10 @@ BMLoop *BM_loop_find_next_nodouble(BMLoop *l, BMLoop *l_stop, const float eps_sq
 
   BLI_assert(!ELEM(l_stop, nullptr, l));
 
-  while (UNLIKELY(len_squared_v3v3(l->v->co, l_step->v->co) < eps_sq)) {
+  while (len_squared_v3v3(l->v->co, l_step->v->co) < eps_sq) [[unlikely]] {
     l_step = l_step->next;
     BLI_assert(l_step != l);
-    if (UNLIKELY(l_step == l_stop)) {
+    if (l_step == l_stop) [[unlikely]] {
       return nullptr;
     }
   }
@@ -1289,7 +1289,7 @@ float BM_loop_calc_face_normal(const BMLoop *l, float r_normal[3])
 
   cross_v3_v3v3(r_normal, v1, v2);
   const float len = normalize_v3(r_normal);
-  if (UNLIKELY(len == 0.0f)) {
+  if (len == 0.0f) [[unlikely]] {
     copy_v3_v3(r_normal, l->f->no);
   }
   return len;
@@ -1327,7 +1327,7 @@ void BM_loop_calc_face_tangent(const BMLoop *l, float r_tangent[3])
     float nor[3]; /* for this purpose doesn't need to be normalized */
     cross_v3_v3v3(nor, v_prev, v_next);
     /* concave face check */
-    if (UNLIKELY(dot_v3v3(nor, l->f->no) < 0.0f)) {
+    if (dot_v3v3(nor, l->f->no) < 0.0f) [[unlikely]] {
       negate_v3(nor);
     }
     cross_v3_v3v3(r_tangent, dir, nor);
@@ -1602,7 +1602,7 @@ BMEdge *BM_edge_find_double(BMEdge *e)
 
   e_iter = e;
   while ((e_iter = bmesh_disk_edge_next(e_iter, v)) != e) {
-    if (UNLIKELY(BM_vert_in_edge(e_iter, v_other))) {
+    if (BM_vert_in_edge(e_iter, v_other)) [[unlikely]] {
       return e_iter;
     }
   }
@@ -2052,7 +2052,8 @@ bool BM_face_is_normal_valid(const BMFace *f)
   float no[3];
 
   BM_face_calc_normal(f, no);
-  return len_squared_v3v3(no, f->no) < (eps * eps);
+  /* Invert comparison so NAN normals don't assert. */
+  return !(len_squared_v3v3(no, f->no) >= (eps * eps));
 }
 
 /**

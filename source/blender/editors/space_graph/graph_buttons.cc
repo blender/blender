@@ -57,8 +57,6 @@
 
 namespace blender {
 
-#define B_REDR 1
-
 /* -------------------------------------------------------------------- */
 /** \name Internal Utilities
  * \{ */
@@ -378,7 +376,6 @@ static void graph_panel_key_properties(const bContext *C, Panel *panel)
   }
 
   ui::Block *block = layout.block();
-  // block_func_handle_set(block, do_graph_region_buttons, nullptr);
   layout.use_property_split_set(true);
   layout.use_property_decorate_set(false);
 
@@ -453,7 +450,6 @@ static void graph_panel_key_properties(const bContext *C, Panel *panel)
                       0,
                       0,
                       std::nullopt);
-      button_retval_set(but, B_REDR);
       button_func_set(but, graphedit_activekey_update_cb, fcu, bezt);
 
       uiItemL_respect_property_split(&col, IFACE_("Value"), ICON_NONE);
@@ -470,7 +466,6 @@ static void graph_panel_key_properties(const bContext *C, Panel *panel)
                       0,
                       0,
                       std::nullopt);
-      button_retval_set(but, B_REDR);
       button_func_set(but, graphedit_activekey_update_cb, fcu, bezt);
       button_unit_type_set(but, unit);
     }
@@ -493,7 +488,6 @@ static void graph_panel_key_properties(const bContext *C, Panel *panel)
                       0,
                       0,
                       "Type of left handle");
-      button_retval_set(but, B_REDR);
       button_func_set(but, graphedit_activekey_handle_left_cb, fcu, bezt);
 
       uiItemL_respect_property_split(&col, IFACE_("Frame"), ICON_NONE);
@@ -510,7 +504,6 @@ static void graph_panel_key_properties(const bContext *C, Panel *panel)
                       0,
                       0,
                       std::nullopt);
-      button_retval_set(but, B_REDR);
       button_func_set(but, graphedit_activekey_left_handle_coord_cb, fcu, bezt);
 
       uiItemL_respect_property_split(&col, IFACE_("Value"), ICON_NONE);
@@ -527,7 +520,6 @@ static void graph_panel_key_properties(const bContext *C, Panel *panel)
                       0,
                       0,
                       std::nullopt);
-      button_retval_set(but, B_REDR);
       button_func_set(but, graphedit_activekey_left_handle_coord_cb, fcu, bezt);
       button_unit_type_set(but, unit);
     }
@@ -551,7 +543,6 @@ static void graph_panel_key_properties(const bContext *C, Panel *panel)
                       0,
                       0,
                       "Type of right handle");
-      button_retval_set(but, B_REDR);
       button_func_set(but, graphedit_activekey_handle_right_cb, fcu, bezt);
 
       uiItemL_respect_property_split(&col, IFACE_("Frame"), ICON_NONE);
@@ -568,7 +559,6 @@ static void graph_panel_key_properties(const bContext *C, Panel *panel)
                       0,
                       0,
                       std::nullopt);
-      button_retval_set(but, B_REDR);
       button_func_set(but, graphedit_activekey_right_handle_coord_cb, fcu, bezt);
 
       uiItemL_respect_property_split(&col, IFACE_("Value"), ICON_NONE);
@@ -585,7 +575,6 @@ static void graph_panel_key_properties(const bContext *C, Panel *panel)
                       0,
                       0,
                       std::nullopt);
-      button_retval_set(but, B_REDR);
       button_func_set(but, graphedit_activekey_right_handle_coord_cb, fcu, bezt);
       button_unit_type_set(but, unit);
     }
@@ -615,80 +604,53 @@ static void graph_panel_key_properties(const bContext *C, Panel *panel)
 /** \name Drivers
  * \{ */
 
-#define B_IPO_DEPCHANGE 10
+static void do_graph_region_driver_buttons(bContext *C, void * /*id_p*/, int /*event*/)
+{
+  /* default for now */
+  WM_event_add_notifier(
+      C, NC_SCENE | ND_FRAME, CTX_data_scene(C)); /* XXX could use better notifier */
+}
 
-static void do_graph_region_driver_buttons(bContext *C, void *id_v, int event)
+static void do_graph_dependency_change_cb(bContext *C, ID *id)
 {
   Main *bmain = CTX_data_main(C);
-  Scene *scene = CTX_data_scene(C);
+  AnimData *adt = BKE_animdata_from_id(id);
 
-  switch (event) {
-    case B_IPO_DEPCHANGE: {
-/* Was not actually run ever (nullptr always passed as arg to this callback).
- * If needed again, will need to check how to pass both fcurve and ID... :/ */
-#if 0
-      /* force F-Curve & Driver to get re-evaluated (same as the old Update Dependencies) */
-      FCurve *fcu = (FCurve *)fcu_v;
-      ChannelDriver *driver = (fcu) ? fcu->driver : nullptr;
-
-      /* clear invalid flags */
-      if (fcu) {
-        fcu->flag &= ~FCURVE_DISABLED;
-        driver->flag &= ~DRIVER_FLAG_INVALID;
-      }
-#endif
-      ID *id = static_cast<ID *>(id_v);
-      AnimData *adt = BKE_animdata_from_id(id);
-
-      /* Rebuild depsgraph for the new dependencies, and ensure evaluated copies get flushed. */
-      DEG_relations_tag_update(bmain);
-      DEG_id_tag_update_ex(bmain, id, ID_RECALC_SYNC_TO_EVAL);
-      if (adt != nullptr) {
-        if (adt->action != nullptr) {
-          DEG_id_tag_update_ex(bmain, &adt->action->id, ID_RECALC_SYNC_TO_EVAL);
-        }
-        if (adt->tmpact != nullptr) {
-          DEG_id_tag_update_ex(bmain, &adt->tmpact->id, ID_RECALC_SYNC_TO_EVAL);
-        }
-      }
-
-      break;
+  /* Rebuild depsgraph for the new dependencies, and ensure evaluated copies get flushed. */
+  DEG_relations_tag_update(bmain);
+  DEG_id_tag_update_ex(bmain, id, ID_RECALC_SYNC_TO_EVAL);
+  if (adt != nullptr) {
+    if (adt->action != nullptr) {
+      DEG_id_tag_update_ex(bmain, &adt->action->id, ID_RECALC_SYNC_TO_EVAL);
+    }
+    if (adt->tmpact != nullptr) {
+      DEG_id_tag_update_ex(bmain, &adt->tmpact->id, ID_RECALC_SYNC_TO_EVAL);
     }
   }
-
-  /* default for now */
-  WM_event_add_notifier(C, NC_SCENE | ND_FRAME, scene); /* XXX could use better notifier */
 }
 
 /* callback to add a target variable to the active driver */
-static void driver_add_var_cb(bContext *C, void *driver_v, void * /*arg*/)
+static void driver_add_var_cb(bContext *C, ChannelDriver *driver)
 {
-  ChannelDriver *driver = static_cast<ChannelDriver *>(driver_v);
-
   /* add a new variable */
   driver_add_new_variable(driver);
   ED_undo_push(C, "Add Driver Variable");
 }
 
 /* callback to remove target variable from active driver */
-static void driver_delete_var_cb(bContext *C, void *driver_v, void *dvar_v)
+static void driver_delete_var_cb(bContext *C, ChannelDriver *driver, DriverVar *dvar)
 {
-  ChannelDriver *driver = static_cast<ChannelDriver *>(driver_v);
-  DriverVar *dvar = static_cast<DriverVar *>(dvar_v);
-
   /* remove the active variable */
   driver_free_variable_ex(driver, dvar);
   ED_undo_push(C, "Delete Driver Variable");
 }
 
 /* callback to report why a driver variable is invalid */
-static void driver_dvar_invalid_name_query_cb(bContext *C, void *dvar_v, void * /*arg*/)
+static void driver_dvar_invalid_name_query_cb(bContext *C, DriverVar *dvar)
 {
   ui::PopupMenu *pup = ui::popup_menu_begin(
       C, CTX_IFACE_(BLT_I18NCONTEXT_OPERATOR_DEFAULT, "Invalid Variable Name"), ICON_NONE);
   ui::Layout &layout = *popup_menu_layout(pup);
-
-  DriverVar *dvar = static_cast<DriverVar *>(dvar_v);
 
   if (dvar->flag & DVAR_FLAG_INVALID_EMPTY) {
     layout.label(RPT_("It cannot be left blank"), ICON_ERROR);
@@ -719,9 +681,8 @@ static void driver_dvar_invalid_name_query_cb(bContext *C, void *dvar_v, void * 
 }
 
 /* callback to reset the driver's flags */
-static void driver_update_flags_cb(bContext * /*C*/, void *fcu_v, void * /*arg*/)
+static void driver_update_flags_cb(FCurve *fcu)
 {
-  FCurve *fcu = static_cast<FCurve *>(fcu_v);
   ChannelDriver *driver = fcu->driver;
 
   /* clear invalid flags */
@@ -1087,8 +1048,10 @@ static void graph_draw_driver_settings_panel(ui::Layout &layout,
         UI_UNIT_Y,
         nullptr,
         TIP_("Add a Driver Variable to keep track of an input used by the driver"));
-    button_retval_set(but, B_IPO_DEPCHANGE);
-    button_func_set(but, driver_add_var_cb, driver, nullptr);
+    button_func_set(but, [id, driver](bContext &C) {
+      driver_add_var_cb(&C, driver);
+      do_graph_dependency_change_cb(&C, id);
+    });
 
     if (is_popover) {
       /* add driver variable - add using eyedropper */
@@ -1153,8 +1116,8 @@ static void graph_draw_driver_settings_panel(ui::Layout &layout,
                          0.0,
                          0.0,
                          TIP_("Invalid variable name, click here for details"));
-      button_retval_set(but, B_IPO_DEPCHANGE);
-      button_func_set(but, driver_dvar_invalid_name_query_cb, &dvar, nullptr); /* XXX: reports? */
+      button_func_set(
+          but, [dvar = &dvar](bContext &C) { driver_dvar_invalid_name_query_cb(&C, dvar); });
     }
 
     /* 1.3) remove button */
@@ -1169,8 +1132,10 @@ static void graph_draw_driver_settings_panel(ui::Layout &layout,
                        0.0,
                        0.0,
                        TIP_("Delete target variable"));
-    button_retval_set(but, B_IPO_DEPCHANGE);
-    button_func_set(but, driver_delete_var_cb, driver, &dvar);
+    button_func_set(but, [id, driver, dvar = &dvar](bContext &C) {
+      driver_delete_var_cb(&C, driver, dvar);
+      do_graph_dependency_change_cb(&C, id);
+    });
     block_emboss_set(block, ui::EmbossType::Emboss);
 
     /* 2) variable type settings */
@@ -1242,8 +1207,10 @@ static void graph_draw_driver_settings_panel(ui::Layout &layout,
                          nullptr,
                          TIP_("Force updates of dependencies - Only use this if drivers are not "
                               "updating correctly"));
-  button_retval_set(but, B_IPO_DEPCHANGE);
-  button_func_set(but, driver_update_flags_cb, fcu, nullptr);
+  button_func_set(but, [id, fcu](bContext &C) {
+    driver_update_flags_cb(fcu);
+    do_graph_dependency_change_cb(&C, id);
+  });
 }
 
 /* ----------------------------------------------------------------- */
@@ -1349,7 +1316,6 @@ static void graph_panel_drivers_popover(const bContext *C, Panel *panel)
  * \note All the drawing code is in `editors/animation/fmodifier_ui.cc`.
  * \{ */
 
-#define B_FMODIFIER_REDRAW 20
 /** The start of FModifier panels registered for the graph editor. */
 #define GRAPH_FMODIFIER_PANEL_PREFIX "GRAPH"
 
@@ -1369,16 +1335,6 @@ static void graph_fmodifier_panel_id(void *fcm_link, char *r_name)
   BLI_snprintf_utf8(r_name, BKE_ST_MAXNAME, "%s_PT_%s", GRAPH_FMODIFIER_PANEL_PREFIX, fmi->name);
 }
 
-static void do_graph_region_modifier_buttons(bContext *C, void * /*arg*/, int event)
-{
-  switch (event) {
-    case B_FMODIFIER_REDRAW: /* XXX this should send depsgraph updates too */
-      /* XXX: need a notifier specially for F-Modifiers */
-      WM_event_add_notifier(C, NC_ANIMATION, nullptr);
-      break;
-  }
-}
-
 static void graph_panel_modifiers(const bContext *C, Panel *panel)
 {
   bAnimListElem *ale;
@@ -1387,9 +1343,6 @@ static void graph_panel_modifiers(const bContext *C, Panel *panel)
   if (!graph_panel_context(C, &ale, &fcu)) {
     return;
   }
-
-  ui::Block *block = panel->layout->block();
-  block_func_handle_set(block, do_graph_region_modifier_buttons, nullptr);
 
   /* 'add modifier' button at top of panel */
   {

@@ -66,7 +66,7 @@ static PyObject *make_opensubdiv_info()
   SetStrItem("Unknown");
 #endif
 
-  if (UNLIKELY(PyErr_Occurred())) {
+  if (PyErr_Occurred()) [[unlikely]] {
     Py_DECREF(opensubdiv_info);
     return nullptr;
   }

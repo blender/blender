@@ -5503,8 +5503,9 @@ static void achannel_setting_widget_cb(bContext *C, void *ale_npoin, void *setti
   }
 }
 
-/* Determine if element pointed by @iter belongs to the same 'isolate visibility path' wrt to
- * @target
+/**
+ * Determine if element pointed by `iter` belongs to the same "isolate visibility path" WRT to
+ * `target`.
  */
 static bool anim_list_el_is_visibility_related_or_self(const bAnimListElem *target,
                                                        const bAnimListElem *iter)

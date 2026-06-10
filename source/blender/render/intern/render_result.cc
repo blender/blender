@@ -20,6 +20,7 @@
 #include "BLI_string_utf8.h"
 #include "BLI_string_utils.hh"
 #include "BLI_utildefines.h"
+#include "BLI_vector_set.hh"
 
 #include "DNA_layer_types.h"
 #include "DNA_userdef_types.h"
@@ -174,21 +175,6 @@ void render_result_views_shallowdelete(RenderResult *rr)
 /** \name New
  * \{ */
 
-static ImColorMode get_color_mode_for_pass(const RenderPass &render_pass)
-{
-  switch (render_pass.channels) {
-    case 1:
-      return ImColorMode::BW;
-    case 3:
-      return ImColorMode::RGB;
-    case 4:
-      return ImColorMode::RGBA;
-  }
-
-  /* Fall back to a commonly used default value of color_mode for odd-ball number of channel. */
-  return ImColorMode::RGBA;
-}
-
 static void assign_render_pass_ibuf_colorspace(RenderPass &render_pass)
 {
   if (RE_RenderPassIsColor(&render_pass)) {
@@ -212,7 +198,7 @@ static void render_layer_allocate_pass(RenderResult *rr, RenderPass *rp)
   float *buffer_data = MEM_new_array_zeroed<float>(rectsize, rp->name);
 
   rp->ibuf = IMB_allocImBuf(rr->rectx, rr->recty, ImBufFlags::Zero);
-  rp->ibuf->color_mode = get_color_mode_for_pass(*rp);
+  rp->ibuf->color_mode = IMB_color_mode_from_channels(rp->channels);
   rp->ibuf->channels = rp->channels;
   copy_v2_v2_db(rp->ibuf->ppm, rr->ppm);
   rp->ibuf->assign_float_data(buffer_data);
@@ -560,68 +546,19 @@ static int passtype_from_name(const char *name)
   return 0;
 }
 
-/* callbacks for render_result_new_from_exr */
-static void *ml_addlayer_cb(void *base, const char *str)
+static void render_result_add_view(RenderResult *rr, const char *name)
 {
-  RenderResult *rr = static_cast<RenderResult *>(base);
-
-  RenderLayer *rl = MEM_new<RenderLayer>("new render layer");
-  BLI_addtail(&rr->layers, rl);
-
-  BLI_strncpy(rl->name, str, EXR_LAY_MAXNAME);
-  return rl;
-}
-
-static void ml_addpass_cb(void *base,
-                          void *lay,
-                          const char *name,
-                          float *rect,
-                          int totchan,
-                          const char *chan_id,
-                          const char *view)
-{
-  RenderResult *rr = static_cast<RenderResult *>(base);
-  RenderLayer *rl = static_cast<RenderLayer *>(lay);
-  RenderPass *rpass = MEM_new<RenderPass>("loaded pass");
-
-  BLI_addtail(&rl->passes, rpass);
-  rpass->rectx = rr->rectx;
-  rpass->recty = rr->recty;
-  rpass->channels = totchan;
-  rl->passflag |= passtype_from_name(name);
-
-  /* channel id chars */
-  STRNCPY(rpass->chan_id, chan_id);
-
-  RE_pass_set_buffer_data(rpass, rect);
-
-  STRNCPY(rpass->name, name);
-  STRNCPY(rpass->view, view);
-  RE_render_result_full_channel_name(rpass->fullname, nullptr, name, view, rpass->chan_id, -1);
-
-  if (view[0] != '\0') {
-    rpass->view_id = BLI_findstringindex(&rr->views, view, offsetof(RenderView, name));
-  }
-  else {
-    rpass->view_id = 0;
-  }
-}
-
-static void *ml_addview_cb(void *base, const char *str)
-{
-  RenderResult *rr = static_cast<RenderResult *>(base);
-
   RenderView *rv = MEM_new<RenderView>("new render view");
-  STRNCPY_UTF8(rv->name, str);
+  STRNCPY_UTF8(rv->name, name);
 
   /* For stereo drawing we need to ensure:
    * STEREO_LEFT_NAME  == STEREO_LEFT_ID and
    * STEREO_RIGHT_NAME == STEREO_RIGHT_ID */
 
-  if (STREQ(str, STEREO_LEFT_NAME)) {
+  if (STREQ(name, STEREO_LEFT_NAME)) {
     BLI_addhead(&rr->views, rv);
   }
-  else if (STREQ(str, STEREO_RIGHT_NAME)) {
+  else if (STREQ(name, STEREO_RIGHT_NAME)) {
     RenderView *left_rv = static_cast<RenderView *>(
         BLI_findstring(&rr->views, STEREO_LEFT_NAME, offsetof(RenderView, name)));
 
@@ -635,8 +572,6 @@ static void *ml_addview_cb(void *base, const char *str)
   else {
     BLI_addtail(&rr->views, rv);
   }
-
-  return rv;
 }
 
 static int order_render_passes(const void *a, const void *b)
@@ -695,54 +630,72 @@ static int order_render_passes(const void *a, const void *b)
 }
 
 RenderResult *render_result_new_from_exr(
-    ExrHandle *exrhandle, const char *colorspace, bool predivide, int rectx, int recty)
+    ExrReadHandle *exrhandle, const char *colorspace, bool predivide, int rectx, int recty)
 {
   RenderResult *rr = MEM_new<RenderResult>(__func__);
-  const char *to_colorspace = IMB_colormanagement_role_colorspace_name_get(
-      COLOR_ROLE_SCENE_LINEAR);
-  const char *data_colorspace = IMB_colormanagement_role_colorspace_name_get(COLOR_ROLE_DATA);
 
   rr->rectx = rectx;
   rr->recty = recty;
-
   IMB_exr_get_ppm(exrhandle, rr->ppm);
 
-  int display_size[2];
-  int display_offset[2];
-  int data_offset[2];
-  IMB_exr_get_display_window(exrhandle, display_size, display_offset, data_offset);
+  Vector<ExrPassInfo> entries = IMB_exr_get_passes(exrhandle);
 
-  IMB_exr_multilayer_convert(exrhandle, rr, ml_addview_cb, ml_addlayer_cb, ml_addpass_cb);
+  /* Create views. */
+  VectorSet<std::string> view_names;
+  for (const StringRefNull &view : IMB_exr_get_views(exrhandle)) {
+    view_names.add(std::string(view));
+  }
+  if (view_names.is_empty()) {
+    view_names.add("");
+  }
+  for (const std::string &name : view_names) {
+    render_result_add_view(rr, name.c_str());
+  }
 
-  for (RenderLayer &rl : rr->layers) {
-    rl.rectx = rectx;
-    rl.recty = recty;
+  /* Read all passes. */
+  IMB_exr_read_passes(exrhandle, entries, colorspace, predivide);
 
-    BLI_listbase_sort(&rl.passes, order_render_passes);
-
-    for (RenderPass &rpass : rl.passes) {
-      rpass.rectx = rectx;
-      rpass.recty = recty;
-
-      copy_v2_v2_db(rpass.ibuf->ppm, rr->ppm);
-      rpass.ibuf->flags |= ImBufFlags::HasDisplayWindow;
-      copy_v2_v2_int(rpass.ibuf->display_size, display_size);
-      copy_v2_v2_int(rpass.ibuf->display_offset, display_offset);
-      copy_v2_v2_int(rpass.ibuf->data_offset, data_offset);
-
-      if (RE_RenderPassIsColor(&rpass)) {
-        IMB_colormanagement_transform_float(rpass.ibuf->float_data_for_write(),
-                                            rpass.rectx,
-                                            rpass.recty,
-                                            rpass.channels,
-                                            colorspace,
-                                            to_colorspace,
-                                            predivide);
-      }
-      else {
-        IMB_colormanagement_assign_float_colorspace(rpass.ibuf, data_colorspace);
-      }
+  /* Create corresponding render layers and render passes. */
+  for (ExrPassInfo &entry : entries) {
+    if (entry.ibuf == nullptr) {
+      continue;
     }
+
+    /* Find or create render layer. */
+    RenderLayer *rl = static_cast<RenderLayer *>(
+        BLI_findstring(&rr->layers, entry.layer.c_str(), offsetof(RenderLayer, name)));
+
+    if (rl == nullptr) {
+      rl = MEM_new<RenderLayer>(__func__);
+      BLI_addtail(&rr->layers, rl);
+      BLI_strncpy(rl->name, entry.layer.c_str(), EXR_LAY_MAXNAME);
+      rl->rectx = rectx;
+      rl->recty = recty;
+    }
+
+    /* Create render pass. */
+    RenderPass *rpass = MEM_new<RenderPass>(__func__);
+    BLI_addtail(&rl->passes, rpass);
+    rpass->rectx = rectx;
+    rpass->recty = recty;
+    rpass->channels = entry.ibuf->channels;
+    STRNCPY(rpass->chan_id, entry.chan_id.c_str());
+    STRNCPY(rpass->name, entry.pass.c_str());
+    STRNCPY(rpass->view, entry.view.c_str());
+    rl->passflag |= passtype_from_name(rpass->name);
+    RE_render_result_full_channel_name(
+        rpass->fullname, nullptr, rpass->name, rpass->view, rpass->chan_id, -1);
+    rpass->view_id = (rpass->view[0] != '\0') ?
+                         BLI_findstringindex(&rr->views, rpass->view, offsetof(RenderView, name)) :
+                         0;
+
+    /* Transfer image buffer. */
+    rpass->ibuf = entry.ibuf;
+  }
+
+  /* Render result passes are sorted within a layer. */
+  for (RenderLayer &rl : rr->layers) {
+    BLI_listbase_sort(&rl.passes, order_render_passes);
   }
 
   return rr;
@@ -902,18 +855,18 @@ bool render_result_exr_file_read_path(RenderResult *rr,
                                       ReportList *reports,
                                       const char *filepath)
 {
-  ExrHandle *exrhandle = IMB_exr_get_handle();
-  int rectx, recty;
-
-  if (!IMB_exr_begin_read(exrhandle, filepath, &rectx, &recty, false)) {
-    IMB_exr_close(exrhandle);
+  ExrReadHandle *exrhandle = IMB_exr_open(filepath);
+  if (exrhandle == nullptr) {
     return false;
   }
+
+  const int2 size = IMB_exr_get_size(exrhandle);
+  const int rectx = size.x;
+  const int recty = size.y;
 
   ListBaseT<RenderLayer> layers = (rr) ? rr->layers : ListBaseT<RenderLayer>{rl_single, rl_single};
   const int expected_rectx = (rr) ? rr->rectx : rl_single->rectx;
   const int expected_recty = (rr) ? rr->recty : rl_single->recty;
-  bool found_channels = false;
 
   if (rectx != expected_rectx || recty != expected_recty) {
     BKE_reportf(reports,
@@ -925,63 +878,73 @@ bool render_result_exr_file_read_path(RenderResult *rr,
     return true;
   }
 
+  /* Build vector of passes to read. */
+  const Vector<ExrPassInfo> file_passes = IMB_exr_get_passes(exrhandle);
+  Vector<ExrPassInfo> requests;
+
   for (RenderLayer &rl : layers) {
     if (rl_single && rl_single != &rl) {
       continue;
     }
-
-    /* passes are allocated in sync */
     for (RenderPass &rpass : rl.passes) {
-      const int xstride = rpass.channels;
-      const int ystride = xstride * rectx;
-      int a;
-      char fullname[EXR_PASS_MAXNAME];
+      const ExrPassInfo *layer_match = nullptr;
+      const ExrPassInfo *single_layer_match = nullptr;
+      for (const ExrPassInfo &info : file_passes) {
+        if (info.pass != rpass.name || info.view != rpass.view) {
+          continue;
+        }
 
-      for (a = 0; a < xstride; a++) {
-        /* First try with layer included. */
-        RE_render_result_full_channel_name(
-            fullname, rl.name, rpass.name, rpass.view, rpass.chan_id, a);
-        if (IMB_exr_set_channel(
-                exrhandle, fullname, xstride, ystride, rpass.ibuf->float_data_for_write() + a))
-        {
-          found_channels = true;
+        if (info.layer == rl.name) {
+          layer_match = &info;
         }
-        else if (rl_single) {
-          /* Then try without layer name. */
-          RE_render_result_full_channel_name(
-              fullname, nullptr, rpass.name, rpass.view, rpass.chan_id, a);
-          if (IMB_exr_set_channel(
-                  exrhandle, fullname, xstride, ystride, rpass.ibuf->float_data_for_write() + a))
-          {
-            found_channels = true;
-          }
-          else {
-            BKE_reportf(nullptr,
-                        RPT_WARNING,
-                        "Reading render result: expected channel \"%s.%s\" or \"%s\" not found",
-                        rl.name,
-                        fullname,
-                        fullname);
-          }
-        }
-        else {
-          BKE_reportf(nullptr,
-                      RPT_WARNING,
-                      "Reading render result: expected channel \"%s.%s\" not found",
-                      rl.name,
-                      fullname);
+        else if (rl_single && info.layer.is_empty()) {
+          single_layer_match = &info;
         }
       }
 
       RE_render_result_full_channel_name(
           rpass.fullname, nullptr, rpass.name, rpass.view, rpass.chan_id, -1);
+
+      /* Prefer with layer name included, otherwise read without layer name. */
+      const ExrPassInfo *match = layer_match ? layer_match : single_layer_match;
+      if (match == nullptr) {
+        BKE_reportf(nullptr,
+                    RPT_WARNING,
+                    "Reading render result: expected pass \"%s.%s\" not found",
+                    rl.name,
+                    rpass.name);
+        continue;
+      }
+
+      if (match->channels != rpass.channels) {
+        BKE_reportf(nullptr,
+                    RPT_WARNING,
+                    "Reading render result: pass \"%s.%s\" has %d channels, expected %d",
+                    rl.name,
+                    rpass.name,
+                    match->channels,
+                    rpass.channels);
+        continue;
+      }
+
+      if (rpass.ibuf == nullptr) {
+        BKE_reportf(nullptr,
+                    RPT_WARNING,
+                    "Reading render result: pass \"%s.%s\" has no buffer, skipping",
+                    rl.name,
+                    rpass.name);
+        continue;
+      }
+
+      requests.append({.layer = match->layer,
+                       .pass = match->pass,
+                       .view = match->view,
+                       .chan_id = match->chan_id,
+                       .ibuf = rpass.ibuf});
     }
   }
 
-  if (found_channels) {
-    IMB_exr_read_channels(exrhandle);
-  }
-
+  IMB_exr_read_passes(exrhandle, requests);
   IMB_exr_close(exrhandle);
 
   return true;
@@ -1057,21 +1020,19 @@ bool render_result_exr_file_cache_read(Render *re)
   printf("read exr cache file: %s\n", filepath);
 
   /* Try opening the file. */
-  ExrHandle *exrhandle = IMB_exr_get_handle();
-  int rectx, recty;
-
-  if (!IMB_exr_begin_read(exrhandle, filepath, &rectx, &recty, true)) {
+  ExrReadHandle *exrhandle = IMB_exr_open(filepath);
+  if (exrhandle == nullptr) {
     printf("cannot read: %s\n", filepath);
-    IMB_exr_close(exrhandle);
     return false;
   }
+
+  const int2 size = IMB_exr_get_size(exrhandle);
 
   /* Read file contents into render result. */
   const char *colorspace = IMB_colormanagement_role_colorspace_name_get(COLOR_ROLE_SCENE_LINEAR);
   RE_FreeRenderResult(re->result);
 
-  IMB_exr_read_channels(exrhandle);
-  re->result = render_result_new_from_exr(exrhandle, colorspace, false, rectx, recty);
+  re->result = render_result_new_from_exr(exrhandle, colorspace, false, size.x, size.y);
 
   IMB_exr_close(exrhandle);
 
@@ -1334,7 +1295,7 @@ ImBuf *RE_RenderPassEnsureImBuf(RenderPass *render_pass)
 {
   if (!render_pass->ibuf) {
     render_pass->ibuf = IMB_allocImBuf(render_pass->rectx, render_pass->recty, ImBufFlags::Zero);
-    render_pass->ibuf->color_mode = get_color_mode_for_pass(*render_pass);
+    render_pass->ibuf->color_mode = IMB_color_mode_from_channels(render_pass->channels);
     render_pass->ibuf->channels = render_pass->channels;
     assign_render_pass_ibuf_colorspace(*render_pass);
   }
@@ -1354,7 +1315,7 @@ ImBuf *RE_RenderViewEnsureImBuf(const RenderResult *render_result, RenderView *r
 
 bool RE_RenderPassIsColor(const RenderPass *render_pass)
 {
-  return STR_ELEM(render_pass->chan_id, "RGB", "RGBA", "R", "G", "B", "A");
+  return IMB_chan_id_is_color(render_pass->chan_id);
 }
 
 /** \} */

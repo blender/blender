@@ -232,10 +232,10 @@ char *BLI_sprintfN_with_buffer(
   va_start(args, format);
   int retval = vsnprintf(fixed_buf, fixed_buf_size, format, args);
   va_end(args);
-  if (UNLIKELY(retval < 0)) {
+  if (retval < 0) [[unlikely]] {
     /* Return an empty string as there was an error there is no valid output. */
     *result_len = 0;
-    if (UNLIKELY(fixed_buf_size == 0)) {
+    if (fixed_buf_size == 0) [[unlikely]] {
       return MEM_new_array_zeroed<char>(1, __func__);
     }
     *fixed_buf = '\0';
@@ -267,10 +267,10 @@ char *BLI_vsprintfN_with_buffer(char *fixed_buf,
   va_copy(args_copy, args);
   int retval = vsnprintf(fixed_buf, fixed_buf_size, format, args_copy);
   va_end(args_copy);
-  if (UNLIKELY(retval < 0)) {
+  if (retval < 0) [[unlikely]] {
     /* Return an empty string as there was an error there is no valid output. */
     *result_len = 0;
-    if (UNLIKELY(fixed_buf_size == 0)) {
+    if (fixed_buf_size == 0) [[unlikely]] {
       return MEM_new_array_zeroed<char>(1, __func__);
     }
     *fixed_buf = '\0';
@@ -345,7 +345,7 @@ size_t BLI_str_escape(char *__restrict dst, const char *__restrict src, const si
         ((c == '\b') && ((void)(c = 'b'), true)) || /* Backspace. */
         ((c == '\f') && ((void)(c = 'f'), true)))   /* Form-feed. */
     {
-      if (UNLIKELY(len + 1 >= dst_maxncpy)) {
+      if (len + 1 >= dst_maxncpy) [[unlikely]] {
         /* Not enough space to escape. */
         break;
       }
@@ -406,7 +406,7 @@ size_t BLI_str_unescape_ex(char *__restrict dst,
   bool is_complete = true;
   const size_t max_strlen = dst_maxncpy - 1; /* Account for trailing zero byte. */
   for (const char *src_end = src + src_maxncpy; (src < src_end) && *src; src++) {
-    if (UNLIKELY(len == max_strlen)) {
+    if (len == max_strlen) [[unlikely]] {
       is_complete = false;
       break;
     }
@@ -465,7 +465,7 @@ bool BLI_str_quoted_substr_range(const char *__restrict str,
     return false;
   }
   const size_t prefix_len = strlen(prefix);
-  if (UNLIKELY(prefix_len == 0)) {
+  if (prefix_len == 0) [[unlikely]] {
     BLI_assert_msg(0,
                    "Zero length prefix passed in, "
                    "caller must prevent this from happening!");
@@ -476,12 +476,12 @@ bool BLI_str_quoted_substr_range(const char *__restrict str,
                  "caller must prevent this from happening!");
 
   str_start += prefix_len;
-  if (UNLIKELY(*str_start != '\"')) {
+  if (*str_start != '\"') [[unlikely]] {
     return false;
   }
   str_start += 1;
   const char *str_end = BLI_str_escape_find_quote(str_start);
-  if (UNLIKELY(str_end == nullptr)) {
+  if (str_end == nullptr) [[unlikely]] {
     return false;
   }
 

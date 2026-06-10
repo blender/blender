@@ -30,18 +30,7 @@
 #include "UI_interface.hh"
 #include "UI_interface_layout.hh"
 
-#define B_MATPRV 1
-
 namespace blender::ui {
-
-static void do_preview_buttons(bContext *C, void *arg, int event)
-{
-  switch (event) {
-    case B_MATPRV:
-      WM_event_add_notifier(C, NC_MATERIAL | ND_SHADING_PREVIEW, arg);
-      break;
-  }
-}
 
 void template_preview(Layout *layout,
                       bContext *C,
@@ -132,8 +121,6 @@ void template_preview(Layout *layout,
                             [pid, pparent, slot, ui_preview](const bContext *C, rcti *rect) {
                               ED_preview_draw(C, pid, pparent, slot, ui_preview, rect);
                             });
-  block_func_handle_set(block, do_preview_buttons, nullptr);
-
   uiDefIconButV(block,
                 ButtonType::Grip,
                 ICON_GRIP,
@@ -187,7 +174,9 @@ void template_preview(Layout *layout,
                               10,
                               TEX_PR_TEXTURE,
                               "");
-      button_retval_set(but, B_MATPRV);
+      button_func_set(but, [](bContext &C) {
+        WM_event_add_notifier(&C, NC_MATERIAL | ND_SHADING_PREVIEW, nullptr);
+      });
       if (GS(parent->name) == ID_MA) {
         but = uiDefButV(block,
                         ButtonType::Row,
@@ -200,7 +189,9 @@ void template_preview(Layout *layout,
                         10,
                         TEX_PR_OTHER,
                         "");
-        button_retval_set(but, B_MATPRV);
+        button_func_set(but, [](bContext &C) {
+          WM_event_add_notifier(&C, NC_MATERIAL | ND_SHADING_PREVIEW, nullptr);
+        });
       }
       else if (GS(parent->name) == ID_LA) {
         but = uiDefButV(block,
@@ -214,7 +205,9 @@ void template_preview(Layout *layout,
                         10,
                         TEX_PR_OTHER,
                         "");
-        button_retval_set(but, B_MATPRV);
+        button_func_set(but, [](bContext &C) {
+          WM_event_add_notifier(&C, NC_MATERIAL | ND_SHADING_PREVIEW, nullptr);
+        });
       }
       else if (GS(parent->name) == ID_WO) {
         but = uiDefButV(block,
@@ -228,7 +221,9 @@ void template_preview(Layout *layout,
                         10,
                         TEX_PR_OTHER,
                         "");
-        button_retval_set(but, B_MATPRV);
+        button_func_set(but, [](bContext &C) {
+          WM_event_add_notifier(&C, NC_MATERIAL | ND_SHADING_PREVIEW, nullptr);
+        });
       }
       else if (GS(parent->name) == ID_LS) {
         but = uiDefButV(block,
@@ -242,7 +237,9 @@ void template_preview(Layout *layout,
                         10,
                         TEX_PR_OTHER,
                         "");
-        button_retval_set(but, B_MATPRV);
+        button_func_set(but, [](bContext &C) {
+          WM_event_add_notifier(&C, NC_MATERIAL | ND_SHADING_PREVIEW, nullptr);
+        });
       }
       but = uiDefButV(block,
                       ButtonType::Row,
@@ -255,7 +252,9 @@ void template_preview(Layout *layout,
                       10,
                       TEX_PR_BOTH,
                       "");
-      button_retval_set(but, B_MATPRV);
+      button_func_set(but, [](bContext &C) {
+        WM_event_add_notifier(&C, NC_MATERIAL | ND_SHADING_PREVIEW, nullptr);
+      });
 
       /* Alpha button for texture preview */
       if (*pr_texture != TEX_PR_OTHER) {

@@ -698,8 +698,7 @@ bool BKE_image_save(
 
   if (ok) {
     if (ima->flag & IMA_AUTOSAVE_TEMPPACK) {
-      BKE_image_free_packedfiles(ima);
-      ima->flag &= ~IMA_AUTOSAVE_TEMPPACK;
+      BKE_image_clear_autosave(ima);
     }
   }
 
@@ -787,7 +786,7 @@ static float *image_exr_opaque_alpha_buffer(int width,
   return alpha_output;
 }
 
-static void add_exr_compositing_result(ExrHandle *exr_handle,
+static void add_exr_compositing_result(ExrWriteHandle *exr_handle,
                                        const RenderResult *render_result,
                                        const ImageFormatData *imf,
                                        bool save_as_render,
@@ -843,15 +842,15 @@ static void add_exr_compositing_result(ExrHandle *exr_handle,
     /* For multi-layer EXRs, we write the buffer as is with all its 4 channels. */
     const bool half_float = (imf && imf->depth == R_IMF_CHAN_DEPTH_16);
     if (is_multi_layer) {
-      IMB_exr_add_channels(exr_handle,
-                           "Composite.Combined",
-                           "RGBA",
-                           render_view_name,
-                           colorspace,
-                           channels_count_in_buffer,
-                           channels_count_in_buffer * render_result->rectx,
-                           output_buffer,
-                           half_float);
+      IMB_exr_write_pass(exr_handle,
+                         "Composite.Combined",
+                         "RGBA",
+                         render_view_name,
+                         colorspace,
+                         channels_count_in_buffer,
+                         channels_count_in_buffer * render_result->rectx,
+                         output_buffer,
+                         half_float);
       continue;
     }
 
@@ -867,30 +866,30 @@ static void add_exr_compositing_result(ExrHandle *exr_handle,
                                                                 render_result->recty,
                                                                 channels_count_in_buffer,
                                                                 temporary_buffers);
-      IMB_exr_add_channels(exr_handle,
-                           "",
-                           "V",
-                           render_view_name,
-                           colorspace,
-                           1,
-                           render_result->rectx,
-                           gray_scale_output,
-                           half_float);
+      IMB_exr_write_pass(exr_handle,
+                         "",
+                         "V",
+                         render_view_name,
+                         colorspace,
+                         1,
+                         render_result->rectx,
+                         gray_scale_output,
+                         half_float);
       continue;
     }
 
     /* Add RGB[A] channels. This will essentially skip the alpha channel if only three channels
      * were required. */
     StringRefNull channelnames = color_mode == ImColorMode::RGBA ? "RGBA" : "RGB";
-    IMB_exr_add_channels(exr_handle,
-                         "",
-                         channelnames,
-                         render_view_name,
-                         colorspace,
-                         channels_count_in_buffer,
-                         channels_count_in_buffer * render_result->rectx,
-                         output_buffer,
-                         half_float);
+    IMB_exr_write_pass(exr_handle,
+                       "",
+                       channelnames,
+                       render_view_name,
+                       colorspace,
+                       channels_count_in_buffer,
+                       channels_count_in_buffer * render_result->rectx,
+                       output_buffer,
+                       half_float);
   }
 }
 
@@ -903,7 +902,7 @@ bool BKE_image_render_write_exr(ReportList *reports,
                                 int layer)
 {
   const int write_multipart = (imf ? imf->exr_flag & R_IMF_EXR_FLAG_MULTIPART : true);
-  ExrHandle *exrhandle = IMB_exr_get_handle(write_multipart);
+  ExrWriteHandle *exrhandle = IMB_exr_write_begin(write_multipart);
   const bool multi_layer = !(imf && imf->imtype == R_IMF_IMTYPE_OPENEXR);
 
   /* Write first layer if not multilayer and no layer was specified. */
@@ -916,7 +915,7 @@ bool BKE_image_render_write_exr(ReportList *reports,
   if (first_rview && (first_rview->next || first_rview->name[0])) {
     for (RenderView &rview : rr->views) {
       if (!view || STREQ(view, rview.name)) {
-        IMB_exr_add_view(exrhandle, rview.name);
+        IMB_exr_write_view(exrhandle, rview.name);
       }
     }
   }
@@ -982,15 +981,15 @@ bool BKE_image_render_write_exr(ReportList *reports,
         }
 
         std::string channelnames = StringRef(render_pass.chan_id, render_pass.channels);
-        IMB_exr_add_channels(exrhandle,
-                             layer_pass_name,
-                             channelnames,
-                             viewname,
-                             colorspace,
-                             render_pass.channels,
-                             render_pass.channels * rr->rectx,
-                             output_rect,
-                             pass_half_float);
+        IMB_exr_write_pass(exrhandle,
+                           layer_pass_name,
+                           channelnames,
+                           viewname,
+                           colorspace,
+                           render_pass.channels,
+                           render_pass.channels * rr->rectx,
+                           output_rect,
+                           pass_half_float);
         continue;
       }
 
@@ -1006,45 +1005,45 @@ bool BKE_image_render_write_exr(ReportList *reports,
       {
         std::string channelnames = StringRef(render_pass.chan_id,
                                              std::min(required_channels, render_pass.channels));
-        IMB_exr_add_channels(exrhandle,
-                             "",
-                             channelnames,
-                             viewname,
-                             colorspace,
-                             render_pass.channels,
-                             render_pass.channels * rr->rectx,
-                             output_rect,
-                             pass_half_float);
+        IMB_exr_write_pass(exrhandle,
+                           "",
+                           channelnames,
+                           viewname,
+                           colorspace,
+                           render_pass.channels,
+                           render_pass.channels * rr->rectx,
+                           output_rect,
+                           pass_half_float);
       }
       else if (required_channels == 1) {
         /* In case of a single required channel, we need to do RGB[A] to BW conversion. We know
          * the input is RGB[A] and not single channel because it filed the condition above. */
         const float *gray_scale_output = image_exr_from_rgb_to_bw(
             output_rect, rr->rectx, rr->recty, render_pass.channels, tmp_output_rects);
-        IMB_exr_add_channels(exrhandle,
-                             "",
-                             "V",
-                             viewname,
-                             colorspace,
-                             1,
-                             rr->rectx,
-                             gray_scale_output,
-                             pass_half_float);
+        IMB_exr_write_pass(exrhandle,
+                           "",
+                           "V",
+                           viewname,
+                           colorspace,
+                           1,
+                           rr->rectx,
+                           gray_scale_output,
+                           pass_half_float);
       }
       else if (render_pass.channels == 1) {
         /* In case of a single channel pass, we need to broadcast the same channel for each of
          * the RGB channels that are required. We know the RGB is required because single channel
          * requirement was handled above. The alpha channel will be added later. */
         for (int i = 0; i < 3; i++) {
-          IMB_exr_add_channels(exrhandle,
-                               "",
-                               std::string(1, "RGB"[i]).c_str(),
-                               viewname,
-                               colorspace,
-                               1,
-                               rr->rectx,
-                               output_rect,
-                               pass_half_float);
+          IMB_exr_write_pass(exrhandle,
+                             "",
+                             std::string(1, "RGB"[i]).c_str(),
+                             viewname,
+                             colorspace,
+                             1,
+                             rr->rectx,
+                             output_rect,
+                             pass_half_float);
         }
       }
 
@@ -1053,7 +1052,7 @@ bool BKE_image_render_write_exr(ReportList *reports,
       if (required_channels == 4 && render_pass.channels < 4) {
         float *alpha_output = image_exr_opaque_alpha_buffer(
             rr->rectx, rr->recty, tmp_output_rects);
-        IMB_exr_add_channels(
+        IMB_exr_write_pass(
             exrhandle, "", "A", viewname, colorspace, 1, rr->rectx, alpha_output, pass_half_float);
       }
     }
@@ -1065,12 +1064,9 @@ bool BKE_image_render_write_exr(ReportList *reports,
 
   const int compress = (imf ? imf->exr_codec : 0);
   const int quality = (imf ? imf->quality : 90);
-  bool success = IMB_exr_begin_write(
+  bool success = IMB_exr_write_end(
       exrhandle, filepath, rr->rectx, rr->recty, rr->ppm, compress, quality, rr->stamp_data);
-  if (success) {
-    IMB_exr_write_channels(exrhandle);
-  }
-  else {
+  if (!success) {
     /* TODO: get the error from openexr's exception. */
     BKE_reportf(
         reports, RPT_ERROR, "Error writing render result, %s (see console)", strerror(errno));
@@ -1080,7 +1076,6 @@ bool BKE_image_render_write_exr(ReportList *reports,
     MEM_delete(rect);
   }
 
-  IMB_exr_close(exrhandle);
   return success;
 }
 

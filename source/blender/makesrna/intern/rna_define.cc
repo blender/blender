@@ -310,10 +310,28 @@ static int rna_find_parsed_struct_index(const StringRef structname)
   return -1;
 }
 
+static const void *rna_default_data(const int struct_idx,
+                                    const int member_idx,
+                                    const void *base_default_data)
+{
+  const void *member_default_data = DNA_member_default_table[struct_idx][member_idx];
+
+  if (base_default_data) {
+    /* For a nested member, offset into the parent struct's default instance. */
+    const void *struct_default_base = DNA_member_default_table[struct_idx][0];
+    return POINTER_OFFSET(base_default_data,
+                          static_cast<const char *>(member_default_data) -
+                              static_cast<const char *>(struct_default_base));
+  }
+
+  return member_default_data;
+}
+
 /** Find DNA type info, recursively following `.` and `->`. */
 static bool rna_find_sdna_member(const StringRef structname,
                                  const StringRef path,
-                                 PropertyDefRNA *r_dp = nullptr)
+                                 PropertyDefRNA *r_dp = nullptr,
+                                 const void *base_default_data = nullptr)
 {
   const int struct_idx = rna_find_parsed_struct_index(structname);
   if (struct_idx == -1) {
@@ -341,7 +359,7 @@ static bool rna_find_sdna_member(const StringRef structname,
         for (int b = 0; pm.member_name[b] == '*'; b++) {
           r_dp->dnapointerlevel++;
         }
-        r_dp->dnadefaultdata = DNA_member_default_table[struct_idx][member_idx];
+        r_dp->dnadefaultdata = rna_default_data(struct_idx, member_idx, base_default_data);
       }
       return true;
     }
@@ -357,7 +375,12 @@ static bool rna_find_sdna_member(const StringRef structname,
       continue;
     }
 
-    rna_find_sdna_member(pm.type_name, remainder, r_dp);
+    /* The return value for nested structs is ignored, to allow recursing into
+     * runtime structs not covered by DNA. */
+    rna_find_sdna_member(pm.type_name,
+                         remainder,
+                         r_dp,
+                         rna_default_data(struct_idx, member_idx, base_default_data));
     return true;
   }
 

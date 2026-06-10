@@ -4705,7 +4705,7 @@ void CustomData_data_transfer(const MeshPairRemap *me_remap, CustomDataTransferL
     }
 
     if (tmp_data_src) {
-      if (UNLIKELY(sources_num > tmp_buff_size)) {
+      if (sources_num > tmp_buff_size) [[unlikely]] {
         tmp_buff_size = size_t(sources_num);
         tmp_data_src = static_cast<const void **>(MEM_realloc_uninitialized(
             (void *)tmp_data_src, sizeof(*tmp_data_src) * tmp_buff_size));
@@ -5002,14 +5002,14 @@ void CustomData_blend_read(BlendDataReader *reader, CustomData *data, const int 
 
   /* Annoying workaround for bug #31079 loading legacy files with
    * no polygons _but_ have stale custom-data. */
-  if (UNLIKELY(count == 0 && data->layers == nullptr && data->totlayer != 0)) {
+  if (count == 0 && data->layers == nullptr && data->totlayer != 0) [[unlikely]] {
     CustomData_reset(data);
     return;
   }
   /* There was a short time (Blender 500 sub 33) where the custom data struct was saved in an
    * invalid state (see @11d2f48882). This check is unfortunate, but avoids crashing when trying to
    * load the invalid data (see e.g. #143720). */
-  if (UNLIKELY(data->layers == nullptr && data->totlayer != 0)) {
+  if (data->layers == nullptr && data->totlayer != 0) [[unlikely]] {
     CustomData_reset(data);
     return;
   }

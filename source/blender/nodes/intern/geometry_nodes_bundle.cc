@@ -65,6 +65,9 @@ std::optional<Vector<BundleKey>> Bundle::split_path(const StringRef path)
       if (const std::optional<BundleKey> key = BundleKey::from_str(key_str)) {
         path_elems.append(*key);
       }
+      else {
+        return std::nullopt;
+      }
       break;
     }
     const StringRef key_str = remaining.substr(0, sep);
@@ -126,12 +129,10 @@ static BundleItemValue create_nested_bundle_item()
       BundleItemSocketValue{bundle_socket_type, bke::SocketValueVariant::From(Bundle::create())}};
 }
 
-void Bundle::add_path_override(const StringRef path, const BundleItemValue &value)
+void Bundle::add_path_override(const Span<BundleKey> path, const BundleItemValue &value)
 {
-  BLI_assert(is_valid_path(path));
-  const Vector<BundleKey> path_elems = *split_path(path);
   Bundle *current = this;
-  for (const BundleKey path_elem : path_elems.as_span().drop_back(1)) {
+  for (const BundleKey path_elem : path.drop_back(1)) {
     BundleItemValue &item = current->items_.lookup_or_add_cb_as(
         path_elem, [&]() { return create_nested_bundle_item(); });
     BundlePtr *child_bundle_ptr = item.as_pointer<BundlePtr>();
@@ -142,7 +143,14 @@ void Bundle::add_path_override(const StringRef path, const BundleItemValue &valu
     }
     current = &child_bundle_ptr->ensure_mutable_inplace();
   }
-  current->items_.add_overwrite_as(path_elems.last(), value);
+  current->items_.add_overwrite_as(path.last(), value);
+}
+
+void Bundle::add_path_override(const StringRef path, const BundleItemValue &value)
+{
+  BLI_assert(is_valid_path(path));
+  const Vector<BundleKey> path_elems = *split_path(path);
+  this->add_path_override(path_elems, value);
 }
 
 bool Bundle::add_path(StringRef path, const BundleItemValue &value)

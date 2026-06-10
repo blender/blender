@@ -100,7 +100,7 @@ static PyObject *python_compat_wrapper_PyRun_FileExFlags(FILE *fp,
     fclose(fp);
   }
 
-  if (UNLIKELY(buf == nullptr)) {
+  if (buf == nullptr) [[unlikely]] {
     PyErr_Format(PyExc_IOError, "Python file \"%s\" could not read buffer", filepath);
   }
   else {

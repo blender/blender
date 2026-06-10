@@ -774,7 +774,7 @@ static void keymap_update_mesh_weight_paint_brushes(wmKeyMap *keymap)
 
   const auto asset_id_map = []() {
     Map<int, StringRef> map;
-    map.add_new(WPAINT_BRUSH_TYPE_DRAW, "Paint");
+    map.add_new(WPAINT_BRUSH_TYPE_DRAW, "Add Weight");
     map.add_new(WPAINT_BRUSH_TYPE_BLUR, "Blur");
     map.add_new(WPAINT_BRUSH_TYPE_AVERAGE, "Average");
     map.add_new(WPAINT_BRUSH_TYPE_SMEAR, "Smear");
@@ -1774,6 +1774,14 @@ void blo_do_versions_userdef(UserDef *userdef)
      * Remote Asset Libraries feature will be shipped with 5.2 (which depends on other factors than
      * just code), the flag can be removed. */
     userdef->experimental.use_remote_asset_libraries = true;
+  }
+
+  if (!USER_VERSION_ATLEAST(503, 1)) {
+    userdef->pref_flag |= USER_PREF_FLAG_PROJECT_SAVE;
+  }
+
+  if (!USER_VERSION_ATLEAST(503, 2)) {
+    userdef->asset_flag |= USER_ASSETS_USE_ONLINE_ESSENTIALS;
   }
 
   /**

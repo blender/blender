@@ -236,7 +236,7 @@ void projectFloatViewCenterFallback(TransInfo *t, float adr[2])
 {
   const ARegion *region = t->region;
 
-  if (UNLIKELY(region == nullptr)) {
+  if (region == nullptr) [[unlikely]] {
     /* While this function probably wont be calved without a region.
      * Doing so shouldn't cause errors. */
     adr[0] = 0.0f;

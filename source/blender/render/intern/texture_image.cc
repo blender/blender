@@ -644,7 +644,7 @@ void image_sample(
   TexResult texres;
   ImBuf *ibuf = BKE_image_pool_acquire_ibuf(ima, nullptr, pool);
 
-  if (UNLIKELY(ibuf == nullptr)) {
+  if (ibuf == nullptr) [[unlikely]] {
     zero_v4(result);
     return;
   }

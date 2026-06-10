@@ -425,7 +425,7 @@ static void *ctx_wm_python_context_get(const bContext *C,
   bool found_member = false;
 
 #ifdef WITH_PYTHON
-  if (UNLIKELY(CTX_py_dict_get(C))) {
+  if (CTX_py_dict_get(C)) [[unlikely]] {
     bContextDataResult result{};
     if (BPY_context_member_get(const_cast<bContext *>(C), member, &result)) {
       found_member = true;
@@ -1154,6 +1154,15 @@ SpaceSpreadsheet *CTX_wm_space_spreadsheet(const bContext *C)
   ScrArea *area = CTX_wm_area(C);
   if (area && area->spacetype == SPACE_SPREADSHEET) {
     return static_cast<SpaceSpreadsheet *>(area->spacedata.first);
+  }
+  return nullptr;
+}
+
+SpaceProject *CTX_wm_space_project(const bContext *C)
+{
+  ScrArea *area = CTX_wm_area(C);
+  if (area && area->spacetype == SPACE_PROJECT) {
+    return static_cast<SpaceProject *>(area->spacedata.first);
   }
   return nullptr;
 }

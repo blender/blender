@@ -12,8 +12,10 @@
 
 #include "BKE_attribute_math.hh"
 #include "BKE_curves.hh"
+#include "BKE_customdata.hh"
 #include "BKE_grease_pencil.hh"
 #include "BKE_instances.hh"
+#include "BKE_mesh.h"
 #include "BKE_mesh.hh"
 #include "BKE_pointcloud.hh"
 
@@ -530,6 +532,7 @@ static void duplicate_faces(GeometrySet &geometry_set,
   const OffsetIndices<int> duplicates(offset_data);
 
   Mesh *new_mesh = BKE_mesh_new_nomain(total_loops, total_loops, total_faces, total_loops);
+  BKE_mesh_copy_parameters_for_eval(new_mesh, &mesh);
   MutableSpan<int2> new_edges = new_mesh->edges_for_write();
   MutableSpan<int> new_face_offsets = new_mesh->face_offsets_for_write();
   MutableSpan<int> new_corner_verts = new_mesh->corner_verts_for_write();
@@ -577,6 +580,33 @@ static void duplicate_faces(GeometrySet &geometry_set,
                                   attribute_filter,
                                   mesh.attributes(),
                                   new_mesh->attributes_for_write());
+
+  if (CustomData_has_layer(&mesh.vert_data, CD_ORIGINDEX)) {
+    const Span src(static_cast<const int *>(CustomData_get_layer(&mesh.vert_data, CD_ORIGINDEX)),
+                   mesh.verts_num);
+    MutableSpan dst(static_cast<int *>(CustomData_add_layer(
+                        &new_mesh->vert_data, CD_ORIGINDEX, CD_CONSTRUCT, new_mesh->verts_num)),
+                    new_mesh->verts_num);
+    array_utils::gather(src, vert_mapping.as_span(), dst);
+  }
+
+  if (CustomData_has_layer(&mesh.edge_data, CD_ORIGINDEX)) {
+    const Span src(static_cast<const int *>(CustomData_get_layer(&mesh.edge_data, CD_ORIGINDEX)),
+                   mesh.edges_num);
+    MutableSpan dst(static_cast<int *>(CustomData_add_layer(
+                        &new_mesh->edge_data, CD_ORIGINDEX, CD_CONSTRUCT, new_mesh->edges_num)),
+                    new_mesh->edges_num);
+    array_utils::gather(src, edge_mapping.as_span(), dst);
+  }
+
+  if (CustomData_has_layer(&mesh.face_data, CD_ORIGINDEX)) {
+    const Span src(static_cast<const int *>(CustomData_get_layer(&mesh.face_data, CD_ORIGINDEX)),
+                   mesh.faces_num);
+    MutableSpan dst(static_cast<int *>(CustomData_add_layer(
+                        &new_mesh->face_data, CD_ORIGINDEX, CD_CONSTRUCT, new_mesh->faces_num)),
+                    new_mesh->faces_num);
+    bke::attribute_math::gather_to_groups(duplicates, selection, src, dst);
+  }
 
   copy_stable_id_faces(mesh,
                        selection,
@@ -712,6 +742,7 @@ static void duplicate_edges(GeometrySet &geometry_set,
   const int output_edges_num = duplicates.total_size();
 
   Mesh *new_mesh = BKE_mesh_new_nomain(output_edges_num * 2, output_edges_num, 0, 0);
+  BKE_mesh_copy_parameters_for_eval(new_mesh, &mesh);
   MutableSpan<int2> new_edges = new_mesh->edges_for_write();
 
   Array<int> vert_orig_indices(output_edges_num * 2);
@@ -746,6 +777,24 @@ static void duplicate_edges(GeometrySet &geometry_set,
                                   attribute_filter,
                                   mesh.attributes(),
                                   new_mesh->attributes_for_write());
+
+  if (CustomData_has_layer(&mesh.vert_data, CD_ORIGINDEX)) {
+    const Span src(static_cast<const int *>(CustomData_get_layer(&mesh.vert_data, CD_ORIGINDEX)),
+                   mesh.verts_num);
+    MutableSpan dst(static_cast<int *>(CustomData_add_layer(
+                        &new_mesh->vert_data, CD_ORIGINDEX, CD_CONSTRUCT, new_mesh->verts_num)),
+                    new_mesh->verts_num);
+    array_utils::gather(src, vert_orig_indices.as_span(), dst);
+  }
+
+  if (CustomData_has_layer(&mesh.edge_data, CD_ORIGINDEX)) {
+    const Span src(static_cast<const int *>(CustomData_get_layer(&mesh.edge_data, CD_ORIGINDEX)),
+                   mesh.edges_num);
+    MutableSpan dst(static_cast<int *>(CustomData_add_layer(
+                        &new_mesh->edge_data, CD_ORIGINDEX, CD_CONSTRUCT, new_mesh->edges_num)),
+                    new_mesh->edges_num);
+    bke::attribute_math::gather_to_groups(duplicates, selection, src, dst);
+  }
 
   copy_stable_id_edges(
       mesh, selection, duplicates, mesh.attributes(), new_mesh->attributes_for_write());
@@ -923,6 +972,7 @@ static void duplicate_points_mesh(GeometrySet &geometry_set,
       selection, counts, offset_data);
 
   Mesh *new_mesh = BKE_mesh_new_nomain(duplicates.total_size(), 0, 0, 0);
+  BKE_mesh_copy_parameters_for_eval(new_mesh, &mesh);
 
   bke::gather_attributes_to_groups(mesh.attributes(),
                                    AttrDomain::Point,
@@ -940,6 +990,15 @@ static void duplicate_points_mesh(GeometrySet &geometry_set,
                                      selection,
                                      attribute_outputs,
                                      duplicates);
+  }
+
+  if (CustomData_has_layer(&mesh.vert_data, CD_ORIGINDEX)) {
+    const Span src(static_cast<const int *>(CustomData_get_layer(&mesh.vert_data, CD_ORIGINDEX)),
+                   mesh.verts_num);
+    MutableSpan dst(static_cast<int *>(CustomData_add_layer(
+                        &new_mesh->vert_data, CD_ORIGINDEX, CD_CONSTRUCT, new_mesh->verts_num)),
+                    new_mesh->verts_num);
+    array_utils::gather_to_groups(src, selection, src, dst);
   }
 
   new_mesh->tag_overlapping_none();

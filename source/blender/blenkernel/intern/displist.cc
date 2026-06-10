@@ -279,7 +279,7 @@ static float isect_vert_calc_z(int vert_index,
   /* -1 if this intersection vertex only appears on Delaunay edges
    * (edges created by triangulation) rather than edges deriving from
    * input polygon edges. Fall back to Z=0. */
-  if (UNLIKELY(edge_index == -1)) {
+  if (edge_index == -1) [[unlikely]] {
     return 0.0f;
   }
 
@@ -295,12 +295,12 @@ static float isect_vert_calc_z(int vert_index,
     const int face_index = (orig_id / result.face_edge_offset) - 1;
     const int edge_in_face = orig_id % result.face_edge_offset;
 
-    if (UNLIKELY(face_index == -1 || face_index >= int(poly_ranges.size()))) {
+    if (face_index == -1 || face_index >= int(poly_ranges.size())) [[unlikely]] {
       continue;
     }
 
     const PolyRange &poly = poly_ranges[face_index];
-    if (UNLIKELY(edge_in_face >= poly.count)) {
+    if (edge_in_face >= poly.count) [[unlikely]] {
       continue;
     }
 
@@ -319,7 +319,7 @@ static float isect_vert_calc_z(int vert_index,
     const double edge_len_sq = math::length_squared(edge_vec);
 
     double t;
-    if (UNLIKELY(edge_len_sq < 1e-16)) {
+    if (edge_len_sq < 1e-16) [[unlikely]] {
       t = 0.5;
     }
     else {
@@ -527,7 +527,7 @@ static DispList *displist_fill_cdt_process_group(const CDTFillGroup &group,
   meshintersect::CDT_result<double> result = meshintersect::delaunay_2d_calc(input,
                                                                              cdt_output_type);
 
-  if (UNLIKELY(result.face.is_empty())) {
+  if (result.face.is_empty()) [[unlikely]] {
     return nullptr;
   }
 
@@ -638,7 +638,7 @@ static void displist_fill_cdt(const ListBaseT<DispList> *dispbase,
     groups.append_unchecked(std::move(group));
   }
 
-  if (UNLIKELY(groups.is_empty())) {
+  if (groups.is_empty()) [[unlikely]] {
     return;
   }
 

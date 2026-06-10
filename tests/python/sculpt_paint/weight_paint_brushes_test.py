@@ -81,26 +81,30 @@ class MeshBrushTests(unittest.TestCase):
         self.assertTrue(all_valid, "All weights should be rational values")
         self.assertTrue(any_different, "At least one weight should be different from its original value")
 
-    def test_paint_brush_creates_valid_data(self):
-        self._activate_brush("Paint")
+    def test_add_weight_brush_creates_valid_data(self):
+        self._activate_brush("Add Weight")
+        self._check_stroke()
+
+    def test_set_weight_brush_creates_valid_data(self):
+        self._activate_brush("Set Weight")
         self._check_stroke()
 
     def test_average_brush_creates_valid_data(self):
-        self._activate_brush("Paint")
+        self._activate_brush("Add Weight")
         self._check_stroke()
 
         self._activate_brush("Average")
         self._check_stroke()
 
     def test_blur_brush_creates_valid_data(self):
-        self._activate_brush("Paint")
+        self._activate_brush("Add Weight")
         self._check_stroke()
 
         self._activate_brush("Blur")
         self._check_stroke()
 
     def test_smear_brush_creates_valid_data(self):
-        self._activate_brush("Paint")
+        self._activate_brush("Add Weight")
         self._check_stroke()
 
         self._activate_brush("Smear")

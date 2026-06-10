@@ -161,13 +161,13 @@ static void meshcache_do(MeshCacheModifierData *mcmd,
     Mesh *mesh = id_cast<Mesh *>(ob->data);
 
     /* we could support any object type */
-    if (UNLIKELY(ob->type != OB_MESH)) {
+    if (ob->type != OB_MESH) [[unlikely]] {
       BKE_modifier_set_error(ob, &mcmd->modifier, "'Integrate' only valid for Mesh objects");
     }
-    else if (UNLIKELY(mesh->verts_num != verts_num)) {
+    else if (mesh->verts_num != verts_num) [[unlikely]] {
       BKE_modifier_set_error(ob, &mcmd->modifier, "'Integrate' original mesh vertex mismatch");
     }
-    else if (UNLIKELY(mesh->faces_num == 0)) {
+    else if (mesh->faces_num == 0) [[unlikely]] {
       BKE_modifier_set_error(ob, &mcmd->modifier, "'Integrate' requires faces");
     }
     else {
@@ -197,7 +197,7 @@ static void meshcache_do(MeshCacheModifierData *mcmd,
 
   /* -------------------------------------------------------------------- */
   /* Apply the transformation matrix (if needed) */
-  if (UNLIKELY(err_str)) {
+  if (err_str) [[unlikely]] {
     BKE_modifier_set_error(ob, &mcmd->modifier, "%s", err_str);
   }
   else if (ok) {

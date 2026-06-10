@@ -697,6 +697,10 @@ void filelist_readjob_recursive_dir_add_items(const bool do_lib,
   const int max_recursion = filelist->max_recursion;
   int dirs_done_count = 0, dirs_todo_count = 1;
 
+  /* The code below assumes the root ends in a slash. It's also not just the code below; weird
+   * things happen when it doesn't end in a slash. Better to just enforce it. */
+  BLI_assert_msg(StringRef(filelist->filelist.root).endswith(SEP_STR), filelist->filelist.root);
+
   todo_dirs = BLI_stack_new(sizeof(*td_dir), __func__);
   td_dir = static_cast<TodoDir *>(BLI_stack_push_r(todo_dirs));
   td_dir->level = 1;

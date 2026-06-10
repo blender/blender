@@ -21,6 +21,7 @@
 #include "BLI_math_base.h"
 #include "BLI_set.hh"
 #include "BLI_string.h"
+#include "BLI_string_utf8.h"
 #include "BLI_utildefines.h"
 
 #include "BKE_idprop.hh"
@@ -379,8 +380,15 @@ IDProperty *IDP_NewStringMaxSize(const char *st,
     prop->len = 1; /* nullptr string, has len of 1 to account for null byte. */
   }
   else {
-    /* include null terminator '\0' */
-    const int stlen = int((st_maxncpy > 0) ? BLI_strnlen(st, st_maxncpy - 1) : strlen(st)) + 1;
+    /* Include null terminator '\0'. */
+    size_t stlen_bytes;
+    if (st_maxncpy > 0) {
+      BLI_strnlen_utf8_ex(st, st_maxncpy - 1, &stlen_bytes);
+    }
+    else {
+      stlen_bytes = strlen(st);
+    }
+    const int stlen = int(stlen_bytes) + 1;
 
     prop->data.pointer = MEM_new_array_uninitialized<char>(size_t(stlen), "id property string 2");
     prop->len = prop->totallen = stlen;
@@ -433,6 +441,23 @@ void IDP_AssignStringMaxSize(IDProperty *prop, const char *st, const size_t st_m
    * needs a dedicated function which takes directly the size of the byte buffer. */
 
   BLI_assert(prop->type == IDP_STRING);
+
+  if (prop->subtype != IDP_STRING_SUB_BYTE) {
+    /* Ensure strings remain valid UTF8. */
+    size_t src_len;
+    if (st_maxncpy > 0) {
+      BLI_strnlen_utf8_ex(st, st_maxncpy - 1, &src_len);
+    }
+    else {
+      src_len = strlen(st);
+    }
+    const int stlen = int(src_len) + 1;
+    IDP_ResizeArray(prop, stlen);
+    memcpy(prop->data.pointer, st, size_t(stlen));
+    IDP_string_get(prop)[stlen - 1] = '\0';
+    return;
+  }
+
   const bool is_byte = prop->subtype == IDP_STRING_SUB_BYTE;
   const int stlen = int((st_maxncpy > 0) ? BLI_strnlen(st, st_maxncpy - 1) : strlen(st)) +
                     (is_byte ? 0 : 1);

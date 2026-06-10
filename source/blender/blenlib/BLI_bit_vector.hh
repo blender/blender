@@ -339,7 +339,7 @@ class BitVector {
  private:
   void ensure_space_for_one()
   {
-    if (UNLIKELY(size_in_bits_ >= capacity_in_bits_)) {
+    if (size_in_bits_ >= capacity_in_bits_) [[unlikely]] {
       this->realloc_to_at_least(size_in_bits_ + 1);
     }
   }

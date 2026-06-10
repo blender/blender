@@ -1551,10 +1551,10 @@ static void rna_property_override_diff_propptr_validate_diffing(
         //              printf("%s: different names\n", rna_path ? rna_path : "<UNKNOWN>");
       }
     }
-    if (UNLIKELY(rna_itemname_a && rna_itemname_a != buff_a)) {
+    if (rna_itemname_a && rna_itemname_a != buff_a) [[unlikely]] {
       MEM_delete(rna_itemname_a);
     }
-    if (UNLIKELY(rna_itemname_b && rna_itemname_b != buff_b)) {
+    if (rna_itemname_b && rna_itemname_b != buff_b) [[unlikely]] {
       MEM_delete(rna_itemname_b);
     }
   }

@@ -37,6 +37,7 @@ Desktop.ini
 /doc/python_api/sphinx-in-tmp/
 /doc/python_api/sphinx-in/
 /doc/python_api/sphinx-out/
+/doc/python_api/stubs/
 /doc/python_api/rst/bmesh.ops.rst
 
 # in-source lib downloads and staging
@@ -74,6 +75,7 @@ waveletNoiseTile.bin
 
 # Build files for VS and VS Code.
 /build/
+/install/
 /out/
 CMakeSettings.json
 CMakePresets.json

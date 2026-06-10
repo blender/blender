@@ -748,9 +748,11 @@ class NODE_MT_context_menu(Menu):
 
         layout.separator()
 
-        layout.operator("node.delete", icon='X')
-        layout.operator_context = 'EXEC_REGION_WIN'
-        layout.operator("node.delete_reconnect", text="Dissolve")
+        props = layout.operator("wm.call_panel", text="Rename Active Node...")
+        props.name = "TOPBAR_PT_name"
+        props.keep_open = False
+
+        layout.separator()
 
         if selected_nodes_len > 1:
             layout.separator()
@@ -782,14 +784,14 @@ class NODE_MT_context_menu(Menu):
 
         layout.separator()
 
-        props = layout.operator("wm.call_panel", text="Rename...")
-        props.name = "TOPBAR_PT_name"
-        props.keep_open = False
+        layout.menu("NODE_MT_context_menu_select_menu")
+        layout.menu("NODE_MT_context_menu_show_hide_menu")
 
         layout.separator()
 
-        layout.menu("NODE_MT_context_menu_select_menu")
-        layout.menu("NODE_MT_context_menu_show_hide_menu")
+        layout.operator_context = 'EXEC_REGION_WIN'
+        layout.operator("node.delete_reconnect", text="Dissolve")
+        layout.operator("node.delete", icon='X')
 
         if active_node:
             layout.separator()

@@ -730,14 +730,8 @@ void wm_drags_handle_events(bContext *C, const wmEvent *event)
 
   bool any_active = false;
   for (wmDrag &drag : wm->runtime->drags) {
-    switch (event->type) {
-      case MOUSEMOVE:
-      case EVT_DROP:
-        wm_drop_update_active(C, &drag, event);
-        break;
-      default:
-        break;
-    }
+    /* This is to update tooltip during drag and timer events.  */
+    wm_drop_update_active(C, &drag, event);
 
     if (wmDropBox *dropbox = drag.drop_state.active_dropbox) {
       any_active = true;

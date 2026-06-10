@@ -180,7 +180,7 @@ static bool bake_strokes(Object *ob,
   else {
     drawing = grease_pencil->insert_frame(layer, frame);
   }
-  if (UNLIKELY(!drawing)) {
+  if (!drawing) [[unlikely]] {
     return false;
   }
 

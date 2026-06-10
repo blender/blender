@@ -1282,7 +1282,7 @@ static int arg_handle_log_file_set(int argc, const char **argv, void * /*data*/)
       fprintf(stderr, "\nError: %s '%s %s'.\n", err_msg, arg_id, argv[1]);
     }
     else {
-      if (UNLIKELY(G.log.file != nullptr)) {
+      if (G.log.file != nullptr) [[unlikely]] {
         fclose(static_cast<FILE *>(G.log.file));
       }
       G.log.file = fp;

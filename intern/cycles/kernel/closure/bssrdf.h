@@ -65,12 +65,12 @@ ccl_device float bssrdf_dipole_compute_alpha_prime(const float rd, const float f
 
 ccl_device void bssrdf_setup_radius(ccl_private Bssrdf *bssrdf, const ClosureType type)
 {
-  if (type != CLOSURE_BSSRDF_RANDOM_WALK_SKIN_ID) {
-    /* Scale mean free path length so it gives similar looking result to older
-     * Cubic, Gaussian and Burley models. */
+
+  if (type == CLOSURE_BSSRDF_BURLEY_ID || type == CLOSURE_BSSRDF_RANDOM_WALK_LEGACY_ID) {
+    /* Scale mean free path length so that Burley and Random Walk Legacy look similar to before. */
     bssrdf->radius *= 0.25f * M_1_PI_F;
   }
-  else {
+  else if (type == CLOSURE_BSSRDF_RANDOM_WALK_SKIN_ID) {
     /* Adjust radius based on IOR and albedo. */
     const float inv_eta = 1.0f / bssrdf->ior;
     const float F_dr = inv_eta * (-1.440f * inv_eta + 0.710f) + 0.668f + 0.0636f * bssrdf->ior;

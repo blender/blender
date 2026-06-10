@@ -130,7 +130,7 @@ static BMFace *remdoubles_createface(BMesh *bm,
       }
 
       if (e_new) {
-        if (UNLIKELY(BMO_vert_flag_test(bm, v_curr, VERT_IN_FACE))) {
+        if (BMO_vert_flag_test(bm, v_curr, VERT_IN_FACE)) [[unlikely]] {
           /* We can't make the face, bail out. */
           STACK_CLEAR(edges);
           goto finally;

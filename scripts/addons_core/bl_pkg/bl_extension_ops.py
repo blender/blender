@@ -3987,8 +3987,9 @@ class EXTENSIONS_OT_userpref_show_online(Operator):
 
 
 class EXTENSIONS_OT_userpref_allow_online(Operator):
-    """Allow internet access. Blender may access configured online extension repositories. """ \
-        """Installed third party add-ons may access the internet for their own functionality"""
+    """Allow Blender to access the internet. Add-ons that follow this setting will only connect to """ \
+        """the internet if enabled. However, Blender cannot prevent third-party add-ons from """ \
+        """violating this rule."""
     bl_idname = "extensions.userpref_allow_online"
     bl_label = ""
     bl_options = {'INTERNAL'}
@@ -4009,8 +4010,9 @@ class EXTENSIONS_OT_userpref_allow_online(Operator):
 # NOTE: this is a wrapper for `extensions.userpref_allow_online`.
 # It exists *only* show a dialog.
 class EXTENSIONS_OT_userpref_allow_online_popup(Operator):
-    """Allow internet access. Blender may access configured online extension repositories. """ \
-        """Installed third party add-ons may access the internet for their own functionality"""
+    """Allow Blender to access the internet. Add-ons that follow this setting will only connect to """ \
+        """the internet if enabled. However, Blender cannot prevent third-party add-ons from """ \
+        """violating this rule."""
     bl_idname = "extensions.userpref_allow_online_popup"
     bl_label = ""
     bl_options = {'INTERNAL'}

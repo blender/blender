@@ -57,6 +57,8 @@
 #include "SEQ_modifier.hh"
 #include "SEQ_sequencer.hh"
 
+#include "PRF_profile.hh"
+
 namespace blender {
 
 using namespace blender::nodes;
@@ -388,6 +390,7 @@ class NodeTreeMainUpdater {
     if (root_ntrees.is_empty()) {
       return;
     }
+    PRF_scope_with_name("NodeTreeMainUpdater::update_rooted", ProfileCategory::Core);
 
     bool is_single_tree_update = false;
 
@@ -569,6 +572,7 @@ class NodeTreeMainUpdater {
 
   TreeUpdateResult update_tree(bNodeTree &ntree)
   {
+    PRF_scope_with_name("NodeTreeMainUpdater::update_tree", ProfileCategory::Core);
     TreeUpdateResult result;
 
     ntree.runtime->link_errors.clear();

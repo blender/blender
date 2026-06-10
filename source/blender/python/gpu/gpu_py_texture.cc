@@ -144,7 +144,7 @@ const PyC_StringEnumItems pygpu_textureextendmode_items[] = {
 
 static int pygpu_texture_valid_check(BPyGPUTexture *bpygpu_tex)
 {
-  if (UNLIKELY(bpygpu_tex->tex == nullptr)) {
+  if (bpygpu_tex->tex == nullptr) [[unlikely]] {
     PyErr_SetString(PyExc_ReferenceError,
 #ifdef BPYGPU_USE_GPUOBJ_FREE_METHOD
                     "GPU texture was freed, no further access is valid"
@@ -160,7 +160,7 @@ static int pygpu_texture_valid_check(BPyGPUTexture *bpygpu_tex)
 
 #define BPYGPU_TEXTURE_CHECK_OBJ(bpygpu) \
   { \
-    if (UNLIKELY(pygpu_texture_valid_check(bpygpu) == -1)) { \
+    if (pygpu_texture_valid_check(bpygpu) == -1) [[unlikely]] { \
       return nullptr; \
     } \
   } \
@@ -963,7 +963,7 @@ int bpygpu_ParseTexture(PyObject *o, void *p)
     return 0;
   }
 
-  if (UNLIKELY(pygpu_texture_valid_check((BPyGPUTexture *)o) == -1)) {
+  if (pygpu_texture_valid_check((BPyGPUTexture *)o) == -1) [[unlikely]] {
     return 0;
   }
 

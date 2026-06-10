@@ -280,6 +280,12 @@ void ImageMetaData::detect_tiles(ImageInput &input,
   }
   else {
     tile_need_conform = false;
+
+    /* For tx files, use the color space hint to determine if this was encoded
+     * as scene linear, scene linear + sRGB or data. */
+    if (!colorspace_file_hint.empty()) {
+      colorspace = ustring(colorspace_file_hint);
+    }
   }
 
   bool has_tiles = false;

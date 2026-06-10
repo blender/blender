@@ -306,7 +306,7 @@ static bool weight_paint_sample_mark_groups(const MDeformVert *dvert, MutableSpa
   int i = dvert->totweight;
   MDeformWeight *dw;
   for (dw = dvert->dw; i > 0; dw++, i--) {
-    if (UNLIKELY(dw->def_nr >= groups.size())) {
+    if (dw->def_nr >= groups.size()) [[unlikely]] {
       continue;
     }
     groups[dw->def_nr] = true;

@@ -126,26 +126,26 @@ static void convexhull_2d_stack_finalize(const float2 *points,
      * since it doesn't require re-ordering. */
 
     /* See #is_left note on argument order. */
-    if (UNLIKELY(is_left(
-                     /* Second last point. */
-                     points[r_points[top - 1]],
-                     /* First point. */
-                     points[r_points[bot]],
-                     /* Last point (candidate "ear" to remove). */
-                     points[r_points[top]]) >= 0.0f))
+    if (is_left(
+            /* Second last point. */
+            points[r_points[top - 1]],
+            /* First point. */
+            points[r_points[bot]],
+            /* Last point (candidate "ear" to remove). */
+            points[r_points[top]]) >= 0.0f) [[unlikely]]
     {
       /* Concave: drop from the end: `r_points[top]`. */
       top--;
       continue;
     }
     /* See #is_left note on argument order. */
-    if (UNLIKELY(is_left(
-                     /* Last point. */
-                     points[r_points[top]],
-                     /* Second point. */
-                     points[r_points[bot + 1]],
-                     /* First point (candidate "ear" to remove). */
-                     points[r_points[bot]]) >= 0.0f))
+    if (is_left(
+            /* Last point. */
+            points[r_points[top]],
+            /* Second point. */
+            points[r_points[bot + 1]],
+            /* First point (candidate "ear" to remove). */
+            points[r_points[bot]]) >= 0.0f) [[unlikely]]
     {
       /* Concave: drop from the front: `r_points[bot]`. */
       bot++;
@@ -170,10 +170,10 @@ static inline void convexhull_2d_stack_push(const float2 *points,
                                             int index)
 {
 #ifdef USE_CONVEX_CROSS_PRODUCT_ENSURE
-  while (
-      UNLIKELY((top >= 2) &&
-               /* See #is_left note on argument order. */
-               (is_left(points[r_points[top - 1]], points[index], points[r_points[top]]) >= 0.0f)))
+  while ((top > 0) &&
+         /* See #is_left note on argument order. */
+         (is_left(points[r_points[top - 1]], points[index], points[r_points[top]]) >= 0.0f))
+      [[unlikely]]
   {
     top--;
   }
@@ -381,7 +381,7 @@ static float2 convexhull_aabb_fit_hull_2d_brute_force(const float (*points_hull)
     float dvec_length = 0.0f;
     const float2 sincos = math::normalize_and_get_length(
         float2(points_hull[i_next]) - float2(points_hull[i]), dvec_length);
-    if (UNLIKELY(dvec_length == 0.0f)) {
+    if (dvec_length == 0.0f) [[unlikely]] {
       continue;
     }
 
@@ -561,7 +561,7 @@ static bool convexhull_2d_angle_iter_step_on_axis(const HullAngleIter &hiter, Hu
     float dir_length = 0.0f;
     const float2 sincos_test = math::normalize_and_get_length(dir, dir_length);
     hstep.index = i_next;
-    if (LIKELY(dir_length != 0.0f)) {
+    if (dir_length != 0.0f) [[likely]] {
       hstep.angle.sincos = sincos_test;
       hstep.angle.sincos_canonical = sincos_canonical(sincos_test);
       hstep.angle.index = i_curr;
@@ -620,13 +620,13 @@ static HullAngleIter convexhull_2d_angle_iter_init(const float (*points_hull)[2]
         float dir_length = 0.0f;
         const float2 sincos_test = math::normalize_and_get_length(
             float2(points_hull[i_curr]) - float2(points_hull[i_prev]), dir_length);
-        if (LIKELY(dir_length != 0.0f)) {
+        if (dir_length != 0.0f) [[likely]] {
           /* Account for 90 degree corners that may also have an axis-aligned canonical angle. */
           if (math::abs(sincos_test[axis]) > 0.5f) {
             break;
           }
           const float2 sincos_test_canonical = sincos_canonical(sincos_test);
-          if (LIKELY(sincos_test_canonical[0] != 1.0f)) {
+          if (sincos_test_canonical[0] != 1.0f) [[likely]] {
             break;
           }
         }

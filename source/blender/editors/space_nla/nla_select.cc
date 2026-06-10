@@ -578,7 +578,7 @@ void NLA_OT_select_leftright(wmOperatorType *ot)
   /* API callbacks. */
   ot->invoke = nlaedit_select_leftright_invoke;
   ot->exec = nlaedit_select_leftright_exec;
-  ot->poll = ED_operator_nla_active;
+  ot->poll = ED_operator_region_nla_active;
 
   /* flags */
   ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
@@ -718,7 +718,7 @@ void NLA_OT_click_select(wmOperatorType *ot)
   ot->description = "Handle clicks to select NLA Strips";
 
   /* callbacks */
-  ot->poll = ED_operator_nla_active;
+  ot->poll = ED_operator_region_nla_active;
   ot->exec = nlaedit_clickselect_exec;
   ot->invoke = WM_generic_select_invoke;
   ot->modal = WM_generic_select_modal;

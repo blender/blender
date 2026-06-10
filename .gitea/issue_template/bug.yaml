@@ -13,43 +13,76 @@ body:
 
                 * Use **Help > Report a Bug** from the top of Blender to fill system information and exact Blender version.
                 * If Blender isn't opening, then follow [our guide](https://developer.blender.org/docs/handbook/bug_reports/making_good_bug_reports/collect_system_information/) on how to manually collect the required information.
-                * Test [daily builds](https://builder.blender.org/) to verify if the issue is already fixed.
-                * Test [previous versions](https://download.blender.org/release/) to find an older working version.
                 * For feature requests, feedback, questions or build issues, see [communication channels](https://developer.blender.org/docs/handbook/communication/user_feedback/).
                 * Security vulnerabilities should be [reported privately](https://developer.blender.org/docs/handbook/bug_reports/vulnerability_reports/).
                 * If there are multiple bugs, make multiple bug reports.
                 * Any content you upload will be shared publicly. Ensure you have permission to share any files you upload, and avoid uploading age restricted content.
 
+                ---
   - type: textarea
-    id: body
+    id: system-info
     attributes:
-      label: "Description"
-      hide_label: true
-      value: |
-               **System Information**
-               Operating system:
-               Graphics card:
+      label: "System Information"
+      hide_label: false
+      description: |
+            Please provide system information, including Operating System, Graphics Card and it's drivers, and any other system factors you believe are relevant to the bug report. For example drawing tablet model.
+      placeholder: |
+               Operating system: (Windows, macOS, Linux), its version number, and architecture (x86 or arm64)
+               Graphics card: NVIDA RTX ..., AMD RX ..., Intel Arc ..., Apple ..., and graphics driver version
+    validations:
+      required: true
 
-               **Blender Version**
-               Broken: (example: 3.0.0, main, `f1cca3055776`, 2020-12-30)
-               Worked: (newest version of Blender that worked as expected)
+  - type: textarea
+    id: blender-version
+    attributes:
+      label: "Blender Version"
+      hide_label: false
+      description: |
+            Please provide information about the verison of Blender you're experiencing issues with.
+            Test [daily builds](https://builder.blender.org/) to verify if the issue is already fixed.
+            Test [previous versions](https://download.blender.org/release/) to find an older working version.
+      placeholder: |
+               Broken: 5.0.0, branch: blender-v5.0-release, commit date: 2025-11-18 09:54, hash: `a37564c4df7a`
+               Broken: (If applicable: Previous version that was also broken)
+               Worked: (Optional: Newest version of Blender that worked as expected)
+    validations:
+      required: true
 
-               **Short description of error**
+  - type: textarea
+    id: issue-desciption
+    attributes:
+      label: "Description of the Issue"
+      hide_label: false
+      description: |
+            Please provide a short description of the issue, including images or videos when neccesary.
+            Please include both the expected and actual results.
+      placeholder: |
+            Blender crashes when sliding retiming key.
 
-               **Exact steps for others to reproduce the error**
-               Based on the default startup or an attached .blend file (as simple as possible).
+            Expected result: Blender transforms the retiming keys.
+            Actual result: Blender crashes.
+    validations:
+      required: true
+
+  - type: textarea
+    id: steps-to-reproduce
+    attributes:
+      label: "Steps to Reproduce the Issue"
+      hide_label: false
+      description: |
+            Please provide clear written steps to reproduce the issue.
+            The steps should be based on the default startup file or a **simple** .blend file.
+      placeholder: |
+               - Open the Video Editing template.
+               - Add a video and press `Ctrl + R` to enable retiming keys.
+               - Select a key then press G or LMB drag to slide it.
+               - Blender crashes.
+    validations:
+      required: true
+
   - type: markdown
     attributes:
       value: |
                 ### Help the developers
 
                 For developers to handle reports swiftly, please provide crash logs, a clear description, exact steps, and a **simple .blend file** to reproduce the problem. You do your half of the work, then we do our half!
-  - type: checkboxes
-    id: filled_form
-    attributes:
-      label: "Confirmation"
-      hide_label: true
-      options:
-        - label: "I confirm that I have filled out the bug report form with all the requested information."
-          required: true
-          visible: [form]

@@ -113,7 +113,9 @@ float3 rotate_direction_around_axis(const float3 &direction, const float3 &axis,
 {
   BLI_assert(math::is_unit(axis));
 
-  if (UNLIKELY(angle == 0.0f || math::is_zero(direction, std::numeric_limits<float>::epsilon()))) {
+  if (angle == 0.0f || math::is_zero(direction, std::numeric_limits<float>::epsilon()))
+      [[unlikely]]
+  {
     return direction;
   }
 

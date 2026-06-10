@@ -43,12 +43,12 @@ extern struct PyC_StringEnumItems bpygpu_dataformat_items[];
 [[nodiscard]] bool bpygpu_is_init_or_error();
 
 #define BPYGPU_IS_INIT_OR_ERROR_OBJ \
-  if (UNLIKELY(!bpygpu_is_init_or_error())) { \
+  if (!bpygpu_is_init_or_error()) [[unlikely]] { \
     return NULL; \
   } \
   ((void)0)
 #define BPYGPU_IS_INIT_OR_ERROR_INT \
-  if (UNLIKELY(!bpygpu_is_init_or_error())) { \
+  if (!bpygpu_is_init_or_error()) [[unlikely]] { \
     return -1; \
   } \
   ((void)0)

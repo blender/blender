@@ -1054,7 +1054,7 @@ bool invert_m3_m3(float inverse[3][3], const float mat[3][3])
 
   success = (det != 0.0f);
 
-  if (LIKELY(det != 0.0f)) {
+  if (det != 0.0f) [[likely]] {
     det = 1.0f / det;
     for (a = 0; a < 3; a++) {
       for (b = 0; b < 3; b++) {
@@ -1126,7 +1126,7 @@ bool invert_m4_m4_fallback(float inverse[4][4], const float mat[4][4])
       }
     }
 
-    if (UNLIKELY(tempmat[i][i] == 0.0f)) {
+    if (tempmat[i][i] == 0.0f) [[unlikely]] {
       return false; /* No non-zero pivot */
     }
     temp = double(tempmat[i][i]);
@@ -1607,7 +1607,7 @@ static bool orthogonalize_m3_zero_axes_impl(float *mat[3], const float unit_leng
 
   for (int i = 0; i < 3; i++) {
     if (flag & (1 << i)) {
-      if (UNLIKELY(normalize_v3_length(mat[i], unit_length) == 0.0f)) {
+      if (normalize_v3_length(mat[i], unit_length) == 0.0f) [[unlikely]] {
         mat[i][i] = unit_length;
       }
     }
@@ -2022,7 +2022,7 @@ void mat3_to_rot_size(float rot[3][3], float size[3], const float mat3[3][3])
   size[0] = normalize_v3_v3(rot[0], mat3[0]);
   size[1] = normalize_v3_v3(rot[1], mat3[1]);
   size[2] = normalize_v3_v3(rot[2], mat3[2]);
-  if (UNLIKELY(is_negative_m3(rot))) {
+  if (is_negative_m3(rot)) [[unlikely]] {
     negate_m3(rot);
     negate_v3(size);
   }
@@ -2938,10 +2938,12 @@ void invert_m4_m4_safe(float inverse[4][4], const float mat[4][4])
 
 void invert_m4_m4_safe_ortho(float inverse[4][4], const float mat[4][4])
 {
-  if (UNLIKELY(!invert_m4_m4(inverse, mat))) {
+  if (!invert_m4_m4(inverse, mat)) [[unlikely]] {
     float mat_tmp[4][4];
     copy_m4_m4(mat_tmp, mat);
-    if (UNLIKELY(!(orthogonalize_m4_zero_axes(mat_tmp, 1.0f) && invert_m4_m4(inverse, mat_tmp)))) {
+    if (!(orthogonalize_m4_zero_axes(mat_tmp, 1.0f) && invert_m4_m4(inverse, mat_tmp)))
+        [[unlikely]]
+    {
       unit_m4(inverse);
     }
   }
@@ -2949,10 +2951,12 @@ void invert_m4_m4_safe_ortho(float inverse[4][4], const float mat[4][4])
 
 void invert_m3_m3_safe_ortho(float inverse[3][3], const float mat[3][3])
 {
-  if (UNLIKELY(!invert_m3_m3(inverse, mat))) {
+  if (!invert_m3_m3(inverse, mat)) [[unlikely]] {
     float mat_tmp[3][3];
     copy_m3_m3(mat_tmp, mat);
-    if (UNLIKELY(!(orthogonalize_m3_zero_axes(mat_tmp, 1.0f) && invert_m3_m3(inverse, mat_tmp)))) {
+    if (!(orthogonalize_m3_zero_axes(mat_tmp, 1.0f) && invert_m3_m3(inverse, mat_tmp)))
+        [[unlikely]]
+    {
       unit_m3(inverse);
     }
   }

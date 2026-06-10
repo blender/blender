@@ -1772,8 +1772,14 @@ static wmOperatorStatus edbm_edge_loop_multiselect_exec(bContext *C, wmOperator 
       eed = edarray[edindex];
       const bool non_manifold = BM_edge_face_count_is_over(eed, 2);
       if (non_manifold) {
-        changed |= walker_select(
-            em, BMW_EDGELOOP_NONMANIFOLD, eed, true, BMW_FLAG_TEST_HIDDEN, delimit, nullptr);
+        changed |= walker_select(em,
+                                 BMW_EDGELOOP_NONMANIFOLD,
+                                 eed,
+                                 true,
+                                 BMW_FLAG_TEST_HIDDEN,
+                                 /* No support for delimiters, see #BMW_init. */
+                                 BMW_DELIMIT_NONE,
+                                 nullptr);
       }
       else {
         changed |= walker_select(
@@ -2536,7 +2542,7 @@ void MESH_OT_loop_select(wmOperatorType *ot)
   ot->poll_property = edbm_select_loop_poll_property;
 
   /* Flags. */
-  ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
+  ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO | OPTYPE_DEPENDS_ON_CURSOR;
 
   /* Properties. */
 
@@ -2571,7 +2577,7 @@ void MESH_OT_edgering_select(wmOperatorType *ot)
   ot->poll = ED_operator_editmesh_region_view3d;
 
   /* Flags. */
-  ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
+  ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO | OPTYPE_DEPENDS_ON_CURSOR;
 
   /* Properties. */
   RNA_def_enum_flag(ot->srna,
@@ -3193,6 +3199,11 @@ bool EDBM_selectmode_toggle_multi(bContext *C,
         only_update = true;
         break;
       }
+      /* Can't disable this flag if its the only one set. */
+      if (selectmode_old == selectmode_toggle) {
+        only_update = true;
+        break;
+      }
       selectmode_new &= ~selectmode_toggle;
       break;
     case 1: /* Enable. */
@@ -3215,6 +3226,7 @@ bool EDBM_selectmode_toggle_multi(bContext *C,
       BLI_assert(0);
       break;
   }
+  BLI_assert(selectmode_new != 0);
 
   const Vector<Object *> objects = BKE_view_layer_array_from_objects_in_edit_mode_unique_data(
       *bmain, scene, view_layer, CTX_wm_view3d(C));

@@ -1280,7 +1280,7 @@ BMFace *BM_faces_join(BMesh *bm, BMFace **faces, int totface, const bool do_del,
     *r_double = nullptr;
   }
 
-  if (UNLIKELY(!totface)) {
+  if (!totface) [[unlikely]] {
     BMESH_ASSERT(0);
     return nullptr;
   }
@@ -1364,7 +1364,7 @@ BMFace *BM_faces_join(BMesh *bm, BMFace **faces, int totface, const bool do_del,
               BM_face_create_ngon(
                   bm, v1, v2, edges.data(), edges.size(), faces[0], BM_CREATE_NOP) :
               nullptr;
-  if (UNLIKELY(f_new == nullptr)) {
+  if (f_new == nullptr) [[unlikely]] {
     /* Invalid boundary region to join faces
      * Clean up flags and fail */
     bm_elements_systag_disable(faces, totface, _FLAG_JF);
@@ -1391,7 +1391,7 @@ BMFace *BM_faces_join(BMesh *bm, BMFace **faces, int totface, const bool do_del,
 
   /* If we are *not* reusing an existing face, we need to transfer data from the faces being joined
    * to the newly created joined face. */
-  if (LIKELY(reusing_face == false)) {
+  if (reusing_face == false) [[likely]] {
 
     /* copy over loop data */
     l_iter = l_first = BM_FACE_FIRST_LOOP(f_new);

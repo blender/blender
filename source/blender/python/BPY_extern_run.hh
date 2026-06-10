@@ -86,7 +86,7 @@ bool BPY_run_text(bContext *C, Text *text, ReportList *reports, bool do_jump) AT
  * \{ */
 
 /**
- * Compile the python expression and \return true if no errors occured during compilation,
+ * Compile the python expression and \return true if no errors occurred during compilation,
  * otherwise \return false.
  *
  * \param C: Optional context (may be null).

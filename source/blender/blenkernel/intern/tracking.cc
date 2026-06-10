@@ -2711,7 +2711,9 @@ ImBuf *BKE_tracking_get_search_imbuf(const ImBuf *ibuf,
   if (y + h > ibuf->y) {
     h = ibuf->y - y;
   }
-  IMB_copy_rect(searchibuf, ibuf, int2(x, y), int2(dst_x, dst_y), int2(w, h));
+  if (w > 0 && h > 0) {
+    IMB_copy_rect(searchibuf, ibuf, int2(x, y), int2(dst_x, dst_y), int2(w, h));
+  }
 
   if (disable_channels) {
     if ((track->flag & TRACK_PREVIEW_GRAYSCALE) || (track->flag & TRACK_DISABLE_RED) ||

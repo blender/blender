@@ -269,8 +269,8 @@ function(blender_source_group
   if(IDE_GROUP_SOURCES_IN_FOLDERS)
     foreach(_SRC ${sources})
       # remove ../'s
-      get_filename_component(_SRC_DIR ${_SRC} REALPATH)
-      get_filename_component(_SRC_DIR ${_SRC_DIR} DIRECTORY)
+      cmake_path(ABSOLUTE_PATH _SRC NORMALIZE OUTPUT_VARIABLE _SRC_DIR)
+      cmake_path(GET _SRC_DIR PARENT_PATH _SRC_DIR)
       string(FIND "${_SRC_DIR}" "${CMAKE_CURRENT_SOURCE_DIR}/" _pos)
       if(NOT _pos EQUAL -1)
         string(REPLACE "${CMAKE_CURRENT_SOURCE_DIR}/" "" GROUP_ID ${_SRC_DIR})
@@ -1129,8 +1129,8 @@ function(data_to_c_simple
   )
 
   # remove ../'s
-  get_filename_component(_file_from ${CMAKE_CURRENT_SOURCE_DIR}/${file_from}   REALPATH)
-  get_filename_component(_file_to   ${CMAKE_CURRENT_BINARY_DIR}/${file_from}.c REALPATH)
+  cmake_path(SET _file_from NORMALIZE "${CMAKE_CURRENT_SOURCE_DIR}/${file_from}")
+  cmake_path(SET _file_to   NORMALIZE "${CMAKE_CURRENT_BINARY_DIR}/${file_from}.c")
 
   list(APPEND ${list_to_add} ${_file_to})
   source_group(Generated FILES ${_file_to})
@@ -1154,17 +1154,17 @@ function(glsl_to_c
   )
 
   # remove ../'s
-  get_filename_component(_file_from ${CMAKE_CURRENT_SOURCE_DIR}/${file_from}    REALPATH)
-  get_filename_component(_file_tmp  ${CMAKE_CURRENT_BINARY_DIR}/${file_from}.tmp   REALPATH)
-  get_filename_component(_file_meta ${CMAKE_CURRENT_BINARY_DIR}/${file_from}.hh REALPATH)
-  get_filename_component(_file_info ${CMAKE_CURRENT_BINARY_DIR}/${file_from}.info  REALPATH)
-  get_filename_component(_file_to   ${CMAKE_CURRENT_BINARY_DIR}/${file_from}.c  REALPATH)
-  get_filename_component(_file_dep  ${CMAKE_CURRENT_BINARY_DIR}/${file_from}.d  REALPATH)
+  cmake_path(SET _file_from NORMALIZE "${CMAKE_CURRENT_SOURCE_DIR}/${file_from}")
+  cmake_path(SET _file_tmp  NORMALIZE "${CMAKE_CURRENT_BINARY_DIR}/${file_from}.tmp")
+  cmake_path(SET _file_meta NORMALIZE "${CMAKE_CURRENT_BINARY_DIR}/${file_from}.hh")
+  cmake_path(SET _file_info NORMALIZE "${CMAKE_CURRENT_BINARY_DIR}/${file_from}.info")
+  cmake_path(SET _file_to   NORMALIZE "${CMAKE_CURRENT_BINARY_DIR}/${file_from}.c")
+  cmake_path(SET _file_dep  NORMALIZE "${CMAKE_CURRENT_BINARY_DIR}/${file_from}.d")
 
   # Turn include directories into absolute paths
   set(_inc_list "")
   foreach(path IN LISTS ${include_list})
-    get_filename_component(_inc_path ${CMAKE_CURRENT_SOURCE_DIR}/${path} REALPATH)
+    cmake_path(SET _inc_path NORMALIZE "${CMAKE_CURRENT_SOURCE_DIR}/${path}")
     list(APPEND _inc_list ${_inc_path})
   endforeach()
 
@@ -1199,8 +1199,8 @@ function(msgfmt_simple
   # remove ../'s
   get_filename_component(_file_from_we ${file_from} NAME_WE)
 
-  get_filename_component(_file_from ${file_from} REALPATH)
-  get_filename_component(_file_to ${CMAKE_CURRENT_BINARY_DIR}/${_file_from_we}.mo REALPATH)
+  cmake_path(ABSOLUTE_PATH file_from NORMALIZE OUTPUT_VARIABLE _file_from)
+  cmake_path(SET _file_to NORMALIZE "${CMAKE_CURRENT_BINARY_DIR}/${_file_from_we}.mo")
 
   list(APPEND ${list_to_add} ${_file_to})
   set(${list_to_add} ${${list_to_add}} PARENT_SCOPE)
@@ -1642,8 +1642,8 @@ function(compile_sources_as_cpp
 
   if(WIN32)
     foreach(glsl_file ${sources})
-      get_filename_component(_file_from ${CMAKE_CURRENT_SOURCE_DIR}/${glsl_file}   REALPATH)
-      get_filename_component(_file_to   ${CMAKE_CURRENT_BINARY_DIR}/${glsl_file}.cc REALPATH)
+      cmake_path(SET _file_from NORMALIZE "${CMAKE_CURRENT_SOURCE_DIR}/${glsl_file}")
+      cmake_path(SET _file_to   NORMALIZE "${CMAKE_CURRENT_BINARY_DIR}/${glsl_file}.cc")
       file(WRITE "${_file_to}" "#include \"${_file_from}\"\n")
       list(APPEND sources ${_file_to})
       # Mark the original file as header only, so no attempt will be made at compiling it

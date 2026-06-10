@@ -34,6 +34,52 @@ float sqr(float a)
   return a * a;
 }
 
+/* There are two common ways of implementing a linear interpolation: result = a + t * (b - a) and
+ * result = (1 - t) * a + t * b. The former variant is called "mix" in our code and it ensures that
+ * result always changes monotonically when t increases monotonically. This comes at the cost of
+ * the fact that generally result != b when t == 1, which becomes particularly noticeable when the
+ * magnitudes of a and b are vastly different. The latter variant is called
+ * "endvalue_preserving_mix" in our code ensures that result == b when t == 1. This comes at the
+ * cost of an additional multiplication step compared to the former version and the fact that
+ * result may not change monotonically when a and b have different signs and t increases
+ * monotonically, which however isn't noticeable in most cases as long as monotony isn't explicitly
+ * required. In general, "endvalue_preserving_mix" should be preferred over "mix" when it is
+ * important that result == b when t == 1 or when a and b may have vastly different magnitudes.*/
+float endvalue_preserving_mix(float a, float b, float t)
+{
+  return (1.0 - t) * a + t * b;
+}
+
+vector2 endvalue_preserving_mix(vector2 a, vector2 b, float t)
+{
+  return (1.0 - t) * a + t * b;
+}
+
+vector2 endvalue_preserving_mix(vector2 a, vector2 b, vector2 t)
+{
+  return (vector2(1.0, 1.0) - t) * a + t * b;
+}
+
+vector3 endvalue_preserving_mix(vector3 a, vector3 b, float t)
+{
+  return (1.0 - t) * a + t * b;
+}
+
+vector3 endvalue_preserving_mix(vector3 a, vector3 b, vector3 t)
+{
+  return (vector3(1.0, 1.0, 1.0) - t) * a + t * b;
+}
+
+vector4 endvalue_preserving_mix(vector4 a, vector4 b, float t)
+{
+  return (1.0 - t) * a + t * b;
+}
+
+vector4 endvalue_preserving_mix(vector4 a, vector4 b, vector4 t)
+{
+  return (vector4(1.0, 1.0, 1.0, 1.0) - t) * a + t * b;
+}
+
 /* The float and vector3 overloads are already defined in stdosl.h.
  *
  * float round(float a)

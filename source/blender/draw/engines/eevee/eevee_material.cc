@@ -414,7 +414,6 @@ Material &MaterialModule::material_sync(const ObjectHandle &ob_handle,
     mat.has_transparent_shadows = blender_mat->blend_flag & MA_BL_TRANSPARENT_SHADOW &&
                                   GPU_material_flag_get(mat.shading.gpumat,
                                                         GPU_MATFLAG_TRANSPARENT);
-    mat.use_scene_time = GPU_material_flag_get(mat.shading.gpumat, GPU_MATFLAG_SCENE_TIME);
 
     return mat;
   });

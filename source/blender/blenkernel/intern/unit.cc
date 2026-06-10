@@ -1606,7 +1606,7 @@ static const bUnitDef *unit_best_fit(double value,
     }
 
     /* Scale down scalar so 1cm doesn't convert to 10mm because of float error. */
-    if (UNLIKELY(unit->flag & B_UNIT_DEF_TENTH)) {
+    if (unit->flag & B_UNIT_DEF_TENTH) [[unlikely]] {
       if (value_abs >= unit->scalar * (0.1 - EPS)) {
         return unit;
       }

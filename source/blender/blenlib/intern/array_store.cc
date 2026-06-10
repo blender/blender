@@ -1037,7 +1037,7 @@ BLI_INLINE void hash_accum_impl(hash_key *hash_array, const size_t i_dst, const 
 static void hash_accum(hash_key *hash_array, const size_t hash_array_len, size_t iter_steps)
 {
   /* _very_ unlikely, can happen if you select a chunk-size of 1 for example. */
-  if (UNLIKELY(iter_steps > hash_array_len)) {
+  if (iter_steps > hash_array_len) [[unlikely]] {
     iter_steps = hash_array_len;
   }
 
@@ -1058,7 +1058,7 @@ static void hash_accum(hash_key *hash_array, const size_t hash_array_len, size_t
 static void hash_accum_single(hash_key *hash_array, const size_t hash_array_len, size_t iter_steps)
 {
   BLI_assert(iter_steps <= hash_array_len);
-  if (UNLIKELY(!(iter_steps <= hash_array_len))) {
+  if (!(iter_steps <= hash_array_len)) [[unlikely]] {
     /* While this shouldn't happen, avoid crashing. */
     iter_steps = hash_array_len;
   }
@@ -1102,7 +1102,7 @@ static hash_key key_from_chunk_ref(const BArrayInfo *info,
       key = hash_store[0];
 
       /* Cache the key. */
-      if (UNLIKELY(key == HASH_TABLE_KEY_UNSET)) {
+      if (key == HASH_TABLE_KEY_UNSET) [[unlikely]] {
         key = HASH_TABLE_KEY_FALLBACK;
       }
       chunk->key = key;
@@ -1121,7 +1121,7 @@ static hash_key key_from_chunk_ref(const BArrayInfo *info,
   hash_key key = hash_store[0];
 
 #  ifdef USE_HASH_TABLE_KEY_CACHE
-  if (UNLIKELY(key == HASH_TABLE_KEY_UNSET)) {
+  if (key == HASH_TABLE_KEY_UNSET) [[unlikely]] {
     key = HASH_TABLE_KEY_FALLBACK;
   }
 #  endif

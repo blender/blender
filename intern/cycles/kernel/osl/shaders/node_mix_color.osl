@@ -17,7 +17,7 @@ shader node_mix_color(string blend_type = "mix",
   float t = (use_clamp) ? clamp(Factor, 0.0, 1.0) : Factor;
 
   if (blend_type == "mix")
-    Result = mix(A, B, t);
+    Result = node_mix_blend(t, A, B);
   if (blend_type == "add")
     Result = node_mix_add(t, A, B);
   if (blend_type == "multiply")

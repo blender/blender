@@ -520,6 +520,8 @@ class BsdfNode : public BsdfBaseNode {
   explicit BsdfNode(const NodeType *node_type);
   SHADER_NODE_BASE_CLASS(BsdfNode)
 
+  template<typename T> void compile(SVMCompiler &compiler, const T &data);
+
   NODE_SOCKET_API(float3, color)
   NODE_SOCKET_API(float3, normal)
   NODE_SOCKET_API(float, surface_mix_weight)

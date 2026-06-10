@@ -13,6 +13,7 @@
 
 #include "BLI_assert.h"
 #include "BLI_implicit_sharing_ptr.hh"
+#include "BLI_string_ref.hh"
 
 #include "DNA_image_enums.h"
 #include "IMB_imbuf_enums.h"
@@ -21,7 +22,6 @@
 
 namespace blender {
 
-struct ExrHandle;
 namespace gpu {
 class Texture;
 }
@@ -206,10 +206,11 @@ struct ImBuf {
   int index = 0;
   /** used to set imbuf to dirty and other stuff */
   int userflags = 0;
-  /** image metadata */
-  IDProperty *metadata = nullptr;
-  /** OpenEXR handle. */
-  ExrHandle *exrhandle = nullptr;
+
+  /** Image Metadata */
+  IDProperty *metadata_ptr = nullptr;
+  /** Implicit-sharing owner for #metadata_ptr. */
+  ImplicitSharingPtr<> metadata_sharing_info;
 
   /* file information */
   /** file type we are going to save as */
@@ -238,6 +239,11 @@ struct ImBuf {
   void assign_byte_data(const uint8_t *data, ImplicitSharingPtr<> sharing_ptr);
   void assign_float_data(const float *data, ImplicitSharingPtr<> sharing_ptr);
 
+  /** Metadata access, should go through these methods instead of direct access. */
+  const IDProperty *metadata() const;
+  IDProperty *metadata_for_write();
+  void assign_metadata(const IDProperty *metadata, ImplicitSharingPtr<> sharing_info);
+
   [[nodiscard]] bool colorspace_is_data() const;
 
   [[nodiscard]] bool can_contain_alpha() const
@@ -261,6 +267,12 @@ struct ImBuf {
     return 0;
   }
 };
+
+/** Return default color mode for the give number of channels. */
+[[nodiscard]] ImColorMode IMB_color_mode_from_channels(int channels);
+
+/** Test if channel names indicate colors or data. */
+[[nodiscard]] bool IMB_chan_id_is_color(StringRef chan_id);
 
 /**
  * \brief userflags: Flags used internally by blender for image-buffers.

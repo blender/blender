@@ -6,6 +6,7 @@
  * \ingroup GHOST
  */
 
+#include <mutex>
 #include <optional>
 #include <sstream>
 
@@ -101,8 +102,7 @@ const char *GHOST_SystemPathsUnix::getUserDir(int version, const char *versionst
   return user_path.c_str();
 }
 
-std::optional<std::string> GHOST_SystemPathsUnix::getUserSpecialDir(
-    GHOST_TUserSpecialDirTypes type) const
+static std::optional<std::string> user_special_dir_query(GHOST_TUserSpecialDirTypes type)
 {
   const char *type_str;
 
@@ -168,6 +168,23 @@ std::optional<std::string> GHOST_SystemPathsUnix::getUserSpecialDir(
 
   std::string path = path_stream.str();
   return path[0] ? std::optional(path) : std::nullopt;
+}
+
+std::optional<std::string> GHOST_SystemPathsUnix::getUserSpecialDir(
+    GHOST_TUserSpecialDirTypes type) const
+{
+  /* Cached result to avoid launching a process on every call. */
+  GHOST_ASSERT(uint(type) < uint(GHOST_kUserSpecialDirType_Num), "Invalid type");
+  UserSpecialDirCache &cached = user_special_dir_cache_[type];
+  if (!cached.resolved) {
+    static std::mutex mutex;
+    std::lock_guard lock(mutex);
+    if (!cached.resolved) {
+      cached.path = user_special_dir_query(type);
+      cached.resolved = true;
+    }
+  }
+  return cached.path;
 }
 
 const char *GHOST_SystemPathsUnix::getBinaryDir() const

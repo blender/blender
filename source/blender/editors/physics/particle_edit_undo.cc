@@ -254,7 +254,7 @@ static void particle_undosys_step_decode(
 
   /* While this shouldn't happen, entering particle edit-mode uses a more complex
    * setup compared to most other modes which we can't ensure succeeds. */
-  if (UNLIKELY(edit == nullptr)) {
+  if (edit == nullptr) [[unlikely]] {
     BLI_assert(0);
     return;
   }

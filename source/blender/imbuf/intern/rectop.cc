@@ -474,12 +474,17 @@ void IMB_crop(ImBuf *ibuf, const int2 &rect_pos, const int2 &rect_size)
     return;
   }
 
+  const ColorSpace *byte_colorspace = ibuf->byte_buffer.colorspace;
+  const ColorSpace *float_colorspace = ibuf->float_buffer.colorspace;
+
   if (const uchar *byte_data = ibuf->byte_data()) {
     ibuf->assign_byte_data(create_cropped_buffer(byte_data, src_size, rect_pos, rect_size));
+    ibuf->byte_buffer.colorspace = byte_colorspace;
   }
   if (const float *float_data = ibuf->float_data()) {
     ibuf->assign_float_data(
         create_cropped_buffer(float_data, src_size, ibuf->channels, rect_pos, rect_size));
+    ibuf->float_buffer.colorspace = float_colorspace;
   }
 
   ibuf->x = rect_size.x;

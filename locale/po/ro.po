@@ -1,9 +1,9 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 5.2.0 Alpha (b'8764d33c658b')\n"
+"Project-Id-Version: Blender 5.2.0 LTS Beta (b'2b1958ccdccb')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-06-01 07:36+0000\n"
+"POT-Creation-Date: 2026-06-08 09:37+0000\n"
 "PO-Revision-Date: 2026-04-13 10:12+0000\n"
 "Last-Translator: Dominic Iastrebschi <domjotebit@gmail.com>\n"
 "Language-Team: Romanian <https://translate.blender.org/projects/blender-ui/ui/ro/>\n"
@@ -2136,14 +2136,6 @@ msgid "Sampling"
 msgstr "Eșantionare"
 
 
-msgid "Light"
-msgstr "Lumină"
-
-
-msgid "Add Image"
-msgstr "Adăugare Imagine"
-
-
 msgid "Apply"
 msgstr "Aplicare"
 
@@ -2162,6 +2154,14 @@ msgstr "Aspect"
 
 msgid "Tracking"
 msgstr "Urmărire"
+
+
+msgid "Light"
+msgstr "Lumină"
+
+
+msgid "Add Image"
+msgstr "Adăugare Imagine"
 
 
 msgid "Marker"
@@ -2735,6 +2735,10 @@ msgid "Error Message"
 msgstr "Mesaj de Eroare"
 
 
+msgid "Cancel"
+msgstr "Anulare"
+
+
 msgctxt "WindowManager"
 msgid "Window"
 msgstr "Fereastră"
@@ -3089,10 +3093,6 @@ msgstr "Lipire Driver: niciun driver de lipit"
 
 msgid "Out"
 msgstr "Ieșire"
-
-
-msgid "Cancel"
-msgstr "Anulare"
 
 
 msgid "Cannot paint stroke"

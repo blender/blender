@@ -145,7 +145,7 @@ template<typename T> struct union_t {
  * WORKAROUND(fclem): Only used for cases when passing down the resource_table is impractical.
  * Note that this placeholder is just for the code to compile.
  */
-#define resource_table_get(table_type) (*(table_type *)(new char[320]))
+#define resource_table_get(table_type) (*(table_type *)(new char[1024 * 16]))
 
 /**
  * Member hiding type.

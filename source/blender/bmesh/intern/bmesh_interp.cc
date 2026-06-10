@@ -491,7 +491,7 @@ void BM_loop_interp_multires_ex(BMesh * /*bm*/,
   float axis_x[3], axis_y[3];
 
   /* ignore 2-edged faces */
-  if (UNLIKELY(l_dst->f->len < 3)) {
+  if (l_dst->f->len < 3) [[unlikely]] {
     return;
   }
 
@@ -1155,9 +1155,13 @@ static void bm_loop_walk_data(LoopWalkCtx *lwc, BMLoop *l_walk)
 {
   int i;
 
-  BLI_assert(CustomData_data_equals(eCustomDataType(lwc->type),
-                                    lwc->data_ref,
-                                    BM_ELEM_CD_GET_VOID_P(l_walk, lwc->cd_layer_offset)));
+  BLI_assert(
+      /* Include pointer equality to prevent assert if any of the values include NAN,
+       * making it seem like there is a bug when there isn't. */
+      (lwc->data_ref == BM_ELEM_CD_GET_VOID_P(l_walk, lwc->cd_layer_offset)) ||
+      CustomData_data_equals(eCustomDataType(lwc->type),
+                             lwc->data_ref,
+                             BM_ELEM_CD_GET_VOID_P(l_walk, lwc->cd_layer_offset)));
   BLI_assert(BM_elem_flag_test(l_walk, BM_ELEM_INTERNAL_TAG));
 
   bm_loop_walk_add(lwc, l_walk);
@@ -1227,7 +1231,7 @@ LinkNode *BM_vert_loop_groups_data_layer_create(
       bm_loop_walk_data(&lwc, l);
       lf->data_len = lwc.data_len - len_prev;
 
-      if (LIKELY(lwc.weight_accum != 0.0f)) {
+      if (lwc.weight_accum != 0.0f) [[likely]] {
         mul_vn_fl(lf->data_weights, lf->data_len, 1.0f / lwc.weight_accum);
       }
       else {
@@ -1282,7 +1286,7 @@ static void bm_vert_loop_groups_data_layer_merge_weights__single(
     weight_accum += w;
   }
 
-  if (LIKELY(weight_accum != 0.0f)) {
+  if (weight_accum != 0.0f) [[likely]] {
     mul_vn_fl(temp_weights, lf->data_len, 1.0f / weight_accum);
     data_weights = temp_weights;
   }

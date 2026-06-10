@@ -123,7 +123,7 @@ static void bmw_VertShellWalker_begin(BMWalker *walker, void *data)
   BMEdge *e;
   BMVert *v;
 
-  if (UNLIKELY(h == nullptr)) {
+  if (h == nullptr) [[unlikely]] {
     return;
   }
 
@@ -252,7 +252,7 @@ static void bmw_LoopShellWalker_begin(BMWalker *walker, void *data)
   BMIter iter;
   BMHeader *h = static_cast<BMHeader *>(data);
 
-  if (UNLIKELY(h == nullptr)) {
+  if (h == nullptr) [[unlikely]] {
     return;
   }
 
@@ -416,7 +416,7 @@ static void bmw_LoopShellWireWalker_begin(BMWalker *walker, void *data)
 {
   BMHeader *h = static_cast<BMHeader *>(data);
 
-  if (UNLIKELY(h == nullptr)) {
+  if (h == nullptr) [[unlikely]] {
     return;
   }
 
@@ -1846,7 +1846,7 @@ static void *bmw_NonManifoldedgeWalker_step(BMWalker *walker)
 
     /* If `lwalk.lastv` can't be walked along, start walking in the opposite direction
      * on the initial edge, do this at most one time during this walk operation. */
-    if (UNLIKELY(pass == 1)) {
+    if (pass == 1) [[unlikely]] {
       e = lwalk->start;
       v = lwalk->startv;
     }

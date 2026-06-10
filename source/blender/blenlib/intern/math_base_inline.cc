@@ -50,10 +50,10 @@ MINLINE float pow7f(float x)
 
 MINLINE float sqrt3f(float f)
 {
-  if (UNLIKELY(f == 0.0f)) {
+  if (f == 0.0f) [[unlikely]] {
     return 0.0f;
   }
-  if (UNLIKELY(f < 0.0f)) {
+  if (f < 0.0f) [[unlikely]] {
     return -float(exp(log(-f) / 3.0));
   }
   return float(exp(log(f) / 3.0));
@@ -61,10 +61,10 @@ MINLINE float sqrt3f(float f)
 
 MINLINE double sqrt3d(double d)
 {
-  if (UNLIKELY(d == 0.0)) {
+  if (d == 0.0) [[unlikely]] {
     return 0.0;
   }
-  if (UNLIKELY(d < 0.0)) {
+  if (d < 0.0) [[unlikely]] {
     return -exp(log(-d) / 3.0);
   }
   return exp(log(d) / 3.0);
@@ -158,10 +158,10 @@ MINLINE unsigned int log2_ceil_u(unsigned int x)
 #define _round_clamp_fl_impl(arg, ty, min, max) \
   { \
     float r = floorf(arg + 0.5f); \
-    if (UNLIKELY(r <= float(min))) { \
+    if (r <= float(min)) [[unlikely]] { \
       return (ty)min; \
     } \
-    if (UNLIKELY(r >= float(max))) { \
+    if (r >= float(max)) [[unlikely]] { \
       return (ty)max; \
     } \
     return (ty)r; \
@@ -170,10 +170,10 @@ MINLINE unsigned int log2_ceil_u(unsigned int x)
 #define _round_clamp_db_impl(arg, ty, min, max) \
   { \
     double r = floor(arg + 0.5); \
-    if (UNLIKELY(r <= double(min))) { \
+    if (r <= double(min)) [[unlikely]] { \
       return (ty)min; \
     } \
-    if (UNLIKELY(r >= double(max))) { \
+    if (r >= double(max)) [[unlikely]] { \
       return (ty)max; \
     } \
     return (ty)r; \

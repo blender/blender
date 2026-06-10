@@ -995,7 +995,7 @@ static MDefBoundIsect *meshdeform_ray_tree_intersect(MeshDeformBind *mdb,
   float end[3], vec_normal[3];
 
   /* happens binding when a cage has no faces */
-  if (UNLIKELY(mdb->bvhtree == nullptr)) {
+  if (mdb->bvhtree == nullptr) [[unlikely]] {
     return nullptr;
   }
 

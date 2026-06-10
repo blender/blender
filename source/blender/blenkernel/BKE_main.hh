@@ -33,7 +33,9 @@
 #include "BLI_utility_mixins.hh"
 #include "BLI_vector_set.hh"
 
+#include "BKE_blender_project.hh"
 #include "BKE_lib_query.hh" /* For LibraryForeachIDCallbackFlag. */
+
 struct MainLock;
 namespace blender {
 
@@ -361,6 +363,17 @@ struct Main : NonCopyable, NonMovable {
    * Color-space information for this file.
    */
   MainColorspace colorspace;
+
+  /**
+   * Whether this bmain belongs to the global Blender Project or not.
+   *
+   * NOTE: this is currently always true, as we haven't yet determined which
+   * cases it should be false for, and at the moment it's unlikely to hurt much
+   * of anything to be erroneously true. However, in principle this can be false
+   * and likely will be false in some cases of temp mains in the future, so code
+   * should never assume that it's true.
+   */
+  bool is_part_of_project = true;
 
   /* List bases for all ID types, containing all IDs for the current #Main. */
 

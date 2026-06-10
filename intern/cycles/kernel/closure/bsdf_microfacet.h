@@ -1178,7 +1178,7 @@ ccl_device int bsdf_microfacet_beckmann_sample(KernelGlobals kg,
  * An infinitesimally thin sheet of dielectric, following OpenPBR spec
  * https://academysoftwarefoundation.github.io/OpenPBR/#model/thin-walledcase
  *
- * It is approximated by a reflected lobe and a trasmitted lobe, the respective weights of both
+ * It is approximated by a reflected lobe and a transmitted lobe, the respective weights of both
  * lobes are analytically computed by summing up infinite geometric series that account for
  * internal reflections.
  *
@@ -1250,7 +1250,7 @@ ccl_device_inline void bsdf_thin_glass_reflection_setup(KernelGlobals kg,
     bsdf->alpha_x = bsdf->alpha_y = roughness;
     bsdf->ior = 1.0f;
     sd->flag |= bsdf_microfacet_ggx_setup(bsdf);
-    bsdf_microfacet_setup_fresnel_constant(kg, bsdf, reflect(sd->wi, N), color);
+    bsdf_microfacet_setup_fresnel_constant(kg, bsdf, sd->wi, color);
   }
 }
 
@@ -1268,8 +1268,20 @@ ccl_device_inline void bsdf_thin_glass_transmission_setup(KernelGlobals kg,
                                                           const Spectrum weight,
                                                           const float3 N,
                                                           const float roughness,
-                                                          const float ior)
+                                                          const float ior,
+                                                          const PathRayVisibility ray_visibility,
+                                                          const uint32_t path_flag)
 {
+  const float transmission_roughness = bsdf_thin_glass_transmission_roughness(roughness, ior);
+  if (!(ray_visibility & PATH_RAY_VISIBILITY_CAMERA) &&
+      roughness_is_almost_specular(transmission_roughness, transmission_roughness))
+  {
+    /* Smooth thin glass does not bend the ray and is effectively transparent, allocate transparent
+     * closures for non-camera rays to improve sampling and keep render passes intact. */
+    bsdf_transparent_setup(sd, weight, path_flag);
+    return;
+  }
+
   /* Model double refraction events as one reflection event with the incident ray mirrored along
    * the surface. */
   ccl_private MicrofacetBsdf *bsdf = (ccl_private MicrofacetBsdf *)bsdf_alloc(
@@ -1277,7 +1289,7 @@ ccl_device_inline void bsdf_thin_glass_transmission_setup(KernelGlobals kg,
   if (bsdf) {
     bsdf->N = -N;
     bsdf->T = zero_float3();
-    bsdf->alpha_x = bsdf->alpha_y = bsdf_thin_glass_transmission_roughness(roughness, ior);
+    bsdf->alpha_x = bsdf->alpha_y = transmission_roughness;
     bsdf->ior = 1.0f;
     bsdf->fresnel_type = MicrofacetFresnel::NONE;
     bsdf->energy_scale = 1.0f;
@@ -1343,7 +1355,9 @@ ccl_device void bsdf_thin_glass_setup(KernelGlobals kg,
                                       const float ior,
                                       const FresnelThinFilm thinfilm,
                                       ccl_private Spectrum *r_reflectance,
-                                      ccl_private Spectrum *r_transmittance)
+                                      ccl_private Spectrum *r_transmittance,
+                                      const PathRayVisibility ray_visibility,
+                                      const uint32_t path_flag)
 {
   const float cos_theta_i = dot(N, sd->wi);
   bsdf_thin_glass_fresnel(kg,
@@ -1362,7 +1376,8 @@ ccl_device void bsdf_thin_glass_setup(KernelGlobals kg,
         kg, sd, reflection_tint, *r_reflectance * weight, N, roughness);
   }
   if (!is_zero(*r_transmittance)) {
-    bsdf_thin_glass_transmission_setup(kg, sd, *r_transmittance * weight, N, roughness, ior);
+    bsdf_thin_glass_transmission_setup(
+        kg, sd, *r_transmittance * weight, N, roughness, ior, ray_visibility, path_flag);
   }
 }
 

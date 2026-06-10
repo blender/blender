@@ -483,7 +483,7 @@ enum class BuiltinBits {
   /* On metal, tag the shader to use argument buffer to overcome the 16 sampler limit. */
   USE_SAMPLER_ARG_BUFFER = (1 << 20),
 
-  /* WORKAROUND: Used to disable viewport index programatically. */
+  /* WORKAROUND: Used to disable viewport index programmatically. */
   NO_VIEWPORT_INDEX = (1 << 16),
   /* Disable our own GPU shader preprocessor optimizer in case we can't ensure the
    * input is within spec. */

@@ -1,6 +1,5 @@
 """
-Save 3D Viewport to a PNG
-+++++++++++++++++++++++++
+**Save 3D Viewport to a PNG**
 
 Capture the 3D viewport's main region from the current window
 and write it to a PNG file using :mod:`imbuf`.

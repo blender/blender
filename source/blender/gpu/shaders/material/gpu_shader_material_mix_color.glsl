@@ -3,7 +3,9 @@
  * SPDX-License-Identifier: GPL-2.0-or-later */
 
 #include "gpu_shader_common_color_utils.glsl"
+#include "gpu_shader_math_base_lib.glsl"
 #include "gpu_shader_math_rotation_lib.glsl"
+#include "gpu_shader_math_vector_lib.glsl"
 
 [[node]]
 void node_mix_blend(float fac,
@@ -21,7 +23,7 @@ void node_mix_blend(float fac,
                     float4 &outcol,
                     float4 &outrot)
 {
-  outcol = mix(col1, col2, fac);
+  outcol = endvalue_preserving_mix(col1, col2, fac);
 }
 
 [[node]]
@@ -41,7 +43,7 @@ void node_mix_add(float fac,
                   float4 &outrot)
 {
 
-  outcol = mix(col1, col1 + col2, fac);
+  outcol = col1 + fac * col2;
   outcol.a = col1.a;
 }
 
@@ -62,7 +64,7 @@ void node_mix_mult(float fac,
                    float4 &outrot)
 {
 
-  outcol = mix(col1, col1 * col2, fac);
+  outcol = col1 * (float4(1.0f - fac) + fac * col2);
   outcol.a = col1.a;
 }
 
@@ -149,7 +151,7 @@ void node_mix_sub(float fac,
                   float4 &outrot)
 {
 
-  outcol = mix(col1, col1 - col2, fac);
+  outcol = col1 - fac * col2;
   outcol.a = col1.a;
 }
 
@@ -579,8 +581,7 @@ void node_mix_float(float fac,
                     float4 &outcol,
                     float4 &outrot)
 {
-  /* Avoid using mix() due to float precision issues caused by different implementations. */
-  outfloat = f1 * (1.0f - fac) + f2 * fac;
+  outfloat = endvalue_preserving_mix(f1, f2, fac);
 }
 
 [[node]]
@@ -599,8 +600,7 @@ void node_mix_vector(float fac,
                      float4 &outcol,
                      float4 &outrot)
 {
-  /* Avoid using mix() due to float precision issues caused by different implementations. */
-  outvec = v1 * (1.0f - fac) + v2 * fac;
+  outvec = endvalue_preserving_mix(v1, v2, fac);
 }
 
 [[node]]
@@ -619,8 +619,7 @@ void node_mix_vector_non_uniform(float fac,
                                  float4 &outcol,
                                  float4 &outrot)
 {
-  /* Avoid using mix() due to float precision issues caused by different implementations. */
-  outvec = v1 * (float3(1.0f) - facvec) + v2 * facvec;
+  outvec = endvalue_preserving_mix(v1, v2, fac);
 }
 
 [[node]]

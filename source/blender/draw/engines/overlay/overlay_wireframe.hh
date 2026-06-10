@@ -233,7 +233,7 @@ class Wireframe : Overlay {
                 geom, manager.unique_handle(ob_ref), res.select_id(ob_ref).get());
           }
           else {
-            coloring.mesh_ps_->draw(
+            coloring.mesh_all_edges_ps_->draw(
                 geom, manager.unique_handle(ob_ref), res.select_id(ob_ref).get());
           }
         }

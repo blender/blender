@@ -1040,7 +1040,7 @@ static wmOperatorStatus similar_vert_select_exec(bContext *C, wmOperator *op)
 
             for (int i = 0; i < dvert->totweight; i++, dw++) {
               if (dw->weight > 0.0f) {
-                if (LIKELY(dw->def_nr < defbase_len)) {
+                if (dw->def_nr < defbase_len) [[likely]] {
                   BLI_BITMAP_ENABLE(defbase_selected, dw->def_nr);
                 }
               }
@@ -1193,7 +1193,7 @@ static wmOperatorStatus similar_vert_select_exec(bContext *C, wmOperator *op)
 
             for (int i = 0; i < dvert->totweight; i++, dw++) {
               if (dw->weight > 0.0f) {
-                if (LIKELY(dw->def_nr < defbase_len)) {
+                if (dw->def_nr < defbase_len) [[likely]] {
                   if (BLI_BITMAP_TEST(defbase_selected, dw->def_nr)) {
                     select = true;
                     break;

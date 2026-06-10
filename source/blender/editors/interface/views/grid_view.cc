@@ -338,7 +338,7 @@ std::optional<std::string> AbstractGridViewItem::debug_name() const
 
 AbstractGridView &AbstractGridViewItem::get_view() const
 {
-  if (UNLIKELY(!view_)) {
+  if (!view_) [[unlikely]] {
     throw std::runtime_error(
         "Invalid state, item must be added through AbstractGridView::add_item()");
   }

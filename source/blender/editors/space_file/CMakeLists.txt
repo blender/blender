@@ -16,6 +16,8 @@ set(INC_SYS
 
 set(SRC
   asset_catalog_tree_view.cc
+  file_banner.cc
+  file_banner_remote_assets.cc
   file_context.cc
   file_draw.cc
   file_indexer.cc
@@ -40,6 +42,7 @@ set(SRC
   fsmenu.cc
   space_file.cc
 
+  file_banner.hh
   file_indexer.hh
   file_intern.hh
   filelist.hh

@@ -1127,6 +1127,9 @@ static wmOperatorStatus bookmark_select_exec(bContext *C, wmOperator *op)
 
   PropertyRNA *prop = RNA_struct_find_property(op->ptr, "dir");
   FileSelectParams *params = ED_fileselect_get_active_params(sfile);
+  if (params == nullptr) [[unlikely]] {
+    return OPERATOR_CANCELLED;
+  }
   char entry[256];
 
   RNA_property_string_get(op->ptr, prop, entry);
@@ -1171,6 +1174,9 @@ static wmOperatorStatus bookmark_add_exec(bContext *C, wmOperator *op)
   SpaceFile *sfile = CTX_wm_space_file(C);
   FSMenu *fsmenu = ED_fsmenu_get();
   FileSelectParams *params = ED_fileselect_get_active_params(sfile);
+  if (!params) {
+    return OPERATOR_CANCELLED;
+  }
 
   if (params->dir[0] != '\0') {
 
@@ -1763,7 +1769,7 @@ void file_sfile_filepath_set(SpaceFile *sfile, const char *filepath)
 void file_draw_check_ex(bContext *C, ScrArea *area)
 {
   /* May happen when manipulating non-active spaces. */
-  if (UNLIKELY(area->spacetype != SPACE_FILE)) {
+  if (area->spacetype != SPACE_FILE) [[unlikely]] {
     return;
   }
   SpaceFile *sfile = static_cast<SpaceFile *>(area->spacedata.first);
@@ -2107,6 +2113,9 @@ static bool file_execute(bContext *C, SpaceFile *sfile)
 {
   Main *bmain = CTX_data_main(C);
   FileSelectParams *params = ED_fileselect_get_active_params(sfile);
+  if (!params) {
+    return false;
+  }
   FileDirEntry *file = filelist_file(sfile->files, params->active_file);
 
   if (file && file->redirection_path) {
@@ -2939,7 +2948,7 @@ void file_directory_enter_handle(bContext *C, void * /*arg_unused*/, void *arg_b
 {
   SpaceFile *sfile = CTX_wm_space_file(C);
   FileSelectParams *params = ED_fileselect_get_active_params(sfile);
-  if (UNLIKELY(params == nullptr)) {
+  if (params == nullptr) [[unlikely]] {
     return;
   }
 
@@ -3032,7 +3041,7 @@ void file_filename_enter_handle(bContext *C, void * /*arg_unused*/, void *arg_bu
 {
   SpaceFile *sfile = CTX_wm_space_file(C);
   FileSelectParams *params = ED_fileselect_get_active_params(sfile);
-  if (UNLIKELY(params == nullptr)) {
+  if (params == nullptr) [[unlikely]] {
     return;
   }
 

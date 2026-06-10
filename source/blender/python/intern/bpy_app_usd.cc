@@ -70,7 +70,7 @@ static PyObject *make_usd_info()
   SetStrItem("Unknown");
 #endif
 
-  if (UNLIKELY(PyErr_Occurred())) {
+  if (PyErr_Occurred()) [[unlikely]] {
     Py_DECREF(usd_info);
     return nullptr;
   }

@@ -1085,7 +1085,7 @@ static void multires_unsubdivide_extract_grids(MultiresUnsubdivideContext *conte
 
           /* Extract the grid for that loop. */
           MultiresUnsubdivideGrid *grid = &context->base_mesh_grids[base_mesh_loop_index];
-          if (UNLIKELY(grid->grid_co != nullptr)) {
+          if (grid->grid_co != nullptr) [[unlikely]] {
             /* It's possible this grid has already been initialized which occurs when quads
              * share two edge, while not so common it happens with "Suzanne's" nose,
              * see: #126633 & run un-subdivide.

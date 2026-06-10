@@ -1,9 +1,9 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 5.2.0 Alpha (b'8764d33c658b')\n"
+"Project-Id-Version: Blender 5.2.0 LTS Beta (b'2b1958ccdccb')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-06-01 07:36+0000\n"
+"POT-Creation-Date: 2026-06-08 09:37+0000\n"
 "PO-Revision-Date: 2025-07-23 15:18+0000\n"
 "Last-Translator: Aras Pranckevičius <aras@nesnausk.org>\n"
 "Language-Team: Lithuanian <https://translate.blender.org/projects/blender-ui/ui/lt/>\n"
@@ -624,6 +624,38 @@ msgid "Space currently being displayed in this area"
 msgstr "Zona šiuo metu aktyvi šioje erdvėje"
 
 
+msgid "Asset Library"
+msgstr "Išteklių biblioteka"
+
+
+msgid "All Libraries"
+msgstr "Visos bibliotekos"
+
+
+msgid "Show assets from all of the listed asset libraries"
+msgstr "Rodyti išteklius iš visų išvardintų bibliotekų"
+
+
+msgid "Current File"
+msgstr "Dabartinis failas"
+
+
+msgid "Show the assets currently available in this Blender session"
+msgstr "Rodyti išteklius pasiekiamus šioje Blender sesijoje"
+
+
+msgid "Essentials"
+msgstr "Esminiai"
+
+
+msgid "Custom"
+msgstr "Pasirinktinis/-ė"
+
+
+msgid "Show assets from the asset libraries configured in the Preferences"
+msgstr "Rodyti išteklius iš nustatymuose pasirinktų išteklių bibliotekų"
+
+
 msgid "User Asset Libraries"
 msgstr "Vartotojo išteklių bibliotekos"
 
@@ -729,40 +761,8 @@ msgid "Asset Shelf"
 msgstr "Išteklių lentyna"
 
 
-msgid "Asset Library"
-msgstr "Išteklių biblioteka"
-
-
 msgid "Choose the asset library to display assets from"
 msgstr "Pasirinkti išteklių biblioteką, kurios ištekliai rodomi"
-
-
-msgid "All Libraries"
-msgstr "Visos bibliotekos"
-
-
-msgid "Show assets from all of the listed asset libraries"
-msgstr "Rodyti išteklius iš visų išvardintų bibliotekų"
-
-
-msgid "Current File"
-msgstr "Dabartinis failas"
-
-
-msgid "Show the assets currently available in this Blender session"
-msgstr "Rodyti išteklius pasiekiamus šioje Blender sesijoje"
-
-
-msgid "Essentials"
-msgstr "Esminiai"
-
-
-msgid "Custom"
-msgstr "Pasirinktinis/-ė"
-
-
-msgid "Show assets from the asset libraries configured in the Preferences"
-msgstr "Rodyti išteklius iš nustatymuose pasirinktų išteklių bibliotekų"
 
 
 msgid "Activate Operator"
@@ -3089,10 +3089,6 @@ msgid "Dots"
 msgstr "Taškai"
 
 
-msgid "Import"
-msgstr "Importuoti"
-
-
 msgid "Apply"
 msgstr "Pritaikyti"
 
@@ -3103,6 +3099,10 @@ msgstr "Sekti"
 
 msgid "Show/Hide"
 msgstr "Rodyti/Slėpti"
+
+
+msgid "Import"
+msgstr "Importuoti"
 
 
 msgid "Layout"
@@ -4227,6 +4227,10 @@ msgid "Vibration"
 msgstr "Vibracija"
 
 
+msgid "Cancel"
+msgstr "Atšaukti"
+
+
 msgctxt "WindowManager"
 msgid "Window"
 msgstr "Langas"
@@ -4482,10 +4486,6 @@ msgstr "„AOV“"
 
 msgid "objects"
 msgstr "objektai"
-
-
-msgid "Cancel"
-msgstr "Atšaukti"
 
 
 msgctxt "WindowManager"

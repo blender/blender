@@ -162,7 +162,7 @@ static wmOperatorStatus vr_location_scouting_capture_review_invoke(bContext *C,
 {
   /* Operator invoked while already running, toggle off. */
   if (vr_location_scouting_capture_review_get_running_state(C)) {
-    /* Set the running state (stored on the WM) to false, catched by the running operator modal. */
+    /* Set the running state (stored on the WM) to false, cached by the running operator modal. */
     vr_location_scouting_capture_review_set_running_state(C, false);
     return OPERATOR_CANCELLED;
   }
@@ -193,7 +193,8 @@ static wmOperatorStatus vr_location_scouting_capture_review_invoke(bContext *C,
   op_data->cam_ob = BKE_id_new_nomain<Object>("ReviewCaptureCamera");
   op_data->cam_ob->type = OB_CAMERA;
 
-  /* Lock rotation to prevent user from exiting the review camera view. Re-using quadview flags. */
+  /* Lock rotation to prevent user from exiting the review camera view.
+   * Re-using quad-view flags. */
   rv3d->viewlock |= RV3D_LOCK_ROTATION;
 
   op_data->cam_data = BKE_id_new_nomain<Camera>("ReviewCaptureCameraData");

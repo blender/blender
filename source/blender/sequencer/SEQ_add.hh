@@ -112,6 +112,8 @@ Strip *add_meta_strip(Scene *scene, ListBaseT<Strip> *seqbase, LoadData *load_da
 /**
  * Add movie strip.
  *
+ * NOTE: This function can change the scene FPS if `SEQ_LOAD_MOVIE_SYNC_FPS` is set, take caution!
+ *
  * \param bmain: Main reference
  * \param scene: Scene where strips will be added
  * \param seqbase: List where strips will be added

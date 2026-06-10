@@ -379,7 +379,9 @@ ccl_device
                                   ior,
                                   thinfilm,
                                   &reflectance,
-                                  &transmittance);
+                                  &transmittance,
+                                  ray_visibility,
+                                  path_flag);
           }
           else {
             ccl_private MicrofacetBsdf *bsdf = (ccl_private MicrofacetBsdf *)bsdf_alloc(

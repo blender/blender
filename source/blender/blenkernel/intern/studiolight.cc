@@ -284,68 +284,36 @@ static void direction_to_equirect(float r[2], const float dir[3])
   r[1] = (acosf(dir[2] / 1.0) - M_PI) / -M_PI;
 }
 
-namespace {
-
-struct MultilayerConvertContext {
-  int num_diffuse_channels;
-  float *diffuse_pass;
-  int num_specular_channels;
-  float *specular_pass;
-};
-
-}  // namespace
-
-static void *studiolight_multilayer_addview(void * /*base*/, const char * /*view_name*/)
+/**
+ * Read a named pass from a multi-layer EXR and return a 4-channel float ImBuf.
+ * Returns null if the pass is not in the file.
+ */
+static ImBuf *studiolight_read_matcap_pass(ExrReadHandle *handle, const char *pass_name)
 {
+  Vector<ExrPassInfo> passes = IMB_exr_get_passes(handle);
+  for (ExrPassInfo &info : passes) {
+    if (info.pass != pass_name) {
+      continue;
+    }
+    MutableSpan<ExrPassInfo> single(&info, 1);
+    IMB_exr_read_passes(handle, single, nullptr, false);
+    ImBuf *pass_ibuf = info.ibuf;
+    if (pass_ibuf == nullptr || pass_ibuf->channels == 4) {
+      return pass_ibuf;
+    }
+    /* Expand to 4 channels for matcaps. */
+    ImBuf *rgba_ibuf = IMB_allocImBuf(pass_ibuf->x, pass_ibuf->y, ImBufFlags::FloatData);
+    if (rgba_ibuf) {
+      IMB_buffer_float_rgba_from_float(rgba_ibuf->float_data_for_write(),
+                                       pass_ibuf->float_data(),
+                                       pass_ibuf->channels,
+                                       pass_ibuf->x,
+                                       pass_ibuf->y);
+    }
+    IMB_freeImBuf(pass_ibuf);
+    return rgba_ibuf;
+  }
   return nullptr;
-}
-static void *studiolight_multilayer_addlayer(void *base, const char * /*layer_name*/)
-{
-  return base;
-}
-
-/* Convert a multilayer pass to ImBuf channel 4 float buffer.
- * NOTE: Parameter rect will become invalid. Do not use rect after calling this
- * function */
-static float *studiolight_multilayer_convert_pass(const ImBuf *ibuf,
-                                                  float *rect,
-                                                  const uint channels)
-{
-  if (channels == 4) {
-    return rect;
-  }
-
-  float *new_rect = MEM_new_array_zeroed<float>(4 * size_t(ibuf->x) * size_t(ibuf->y), __func__);
-
-  IMB_buffer_float_rgba_from_float(new_rect, rect, channels, ibuf->x, ibuf->y);
-
-  MEM_delete(rect);
-  return new_rect;
-}
-
-static void studiolight_multilayer_addpass(void *base,
-                                           void * /*lay*/,
-                                           const char *pass_name,
-                                           float *rect,
-                                           int num_channels,
-                                           const char * /*chan_id*/,
-                                           const char * /*view_name*/)
-{
-  MultilayerConvertContext *ctx = static_cast<MultilayerConvertContext *>(base);
-  /* NOTE: This function must free pass pixels data if it is not used, this
-   * is how IMB_exr_multilayer_convert() is working. */
-  /* If we've found a first combined pass, skip all the rest ones. */
-  if (STREQ(pass_name, STUDIOLIGHT_PASSNAME_DIFFUSE)) {
-    ctx->diffuse_pass = rect;
-    ctx->num_diffuse_channels = num_channels;
-  }
-  else if (STREQ(pass_name, STUDIOLIGHT_PASSNAME_SPECULAR)) {
-    ctx->specular_pass = rect;
-    ctx->num_specular_channels = num_channels;
-  }
-  else {
-    MEM_delete(rect);
-  }
 }
 
 static void studiolight_load_equirect_image(StudioLight *sl)
@@ -358,48 +326,31 @@ static void studiolight_load_equirect_image(StudioLight *sl)
     const bool failed = (ibuf == nullptr);
 
     if (ibuf) {
-      if (ibuf->ftype == IMB_FTYPE_OPENEXR && ibuf->exrhandle) {
-        /* the read file is a multilayered openexr file (exrhandle != nullptr)
-         * This file is currently only supported for MATCAPS where
-         * the first found 'diffuse' pass will be used for diffuse lighting
-         * and the first found 'specular' pass will be used for specular lighting */
-        MultilayerConvertContext ctx = {0};
-        IMB_exr_multilayer_convert(ibuf->exrhandle,
-                                   &ctx,
-                                   &studiolight_multilayer_addview,
-                                   &studiolight_multilayer_addlayer,
-                                   &studiolight_multilayer_addpass);
+      ExrReadHandle *exr_handle = flag_is_set(ibuf->flags, ImBufFlags::MultiLayer) ?
+                                      IMB_exr_open_multilayer(sl->filepath) :
+                                      nullptr;
 
-        /* `ctx.diffuse_pass` and `ctx.specular_pass` can be freed inside
-         * `studiolight_multilayer_convert_pass` when conversion happens.
-         * When not converted we move the ownership of the buffer to the
-         * `converted_pass`. We only need to free `converted_pass` as it holds
-         * the unmodified allocation from the `ctx.*_pass` or the converted data.
-         */
-        if (ctx.diffuse_pass != nullptr) {
-          float *converted_pass = studiolight_multilayer_convert_pass(
-              ibuf, ctx.diffuse_pass, ctx.num_diffuse_channels);
-          diffuse_ibuf = IMB_allocFromBufferOwn(
-              nullptr, converted_pass, ibuf->x, ibuf->y, ctx.num_diffuse_channels);
-        }
+      if (exr_handle) {
+        /* The read file is a multi-layer OpenEXR file. This is currently only
+         * supported for MATCAPS where the first found 'diffuse' pass will be used
+         * for diffuse lighting and the first found 'specular' pass will be used
+         * for specular lighting. */
+        diffuse_ibuf = studiolight_read_matcap_pass(exr_handle, STUDIOLIGHT_PASSNAME_DIFFUSE);
+        specular_ibuf = studiolight_read_matcap_pass(exr_handle, STUDIOLIGHT_PASSNAME_SPECULAR);
 
-        if (ctx.specular_pass != nullptr) {
-          float *converted_pass = studiolight_multilayer_convert_pass(
-              ibuf, ctx.specular_pass, ctx.num_specular_channels);
-          specular_ibuf = IMB_allocFromBufferOwn(
-              nullptr, converted_pass, ibuf->x, ibuf->y, ctx.num_specular_channels);
-        }
-
-        IMB_exr_close(ibuf->exrhandle);
-        ibuf->exrhandle = nullptr;
+        IMB_exr_close(exr_handle);
         IMB_freeImBuf(ibuf);
         ibuf = nullptr;
       }
-      else {
+      else if (!flag_is_set(ibuf->flags, ImBufFlags::MultiLayer)) {
         /* read file is an single layer openexr file or the read file isn't
          * an openexr file */
         IMB_float_from_byte(ibuf);
         diffuse_ibuf = ibuf;
+        ibuf = nullptr;
+      }
+      else {
+        IMB_freeImBuf(ibuf);
         ibuf = nullptr;
       }
     }

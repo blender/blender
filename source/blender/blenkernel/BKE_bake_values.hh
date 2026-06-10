@@ -52,9 +52,13 @@ class BakeValues {
   /**
    * Creates new bake values from the given values. This makes sure that the values follow the
    * restrictions for bake data.
+   *
+   * \param is_for_cache: If false, some run-time data can be kept on the data which would
+   *   otherwise need to be removed because it could cause dangling pointers.
    */
   static BakeValues from_runtime_values(Vector<InputValue> runtime_values,
-                                        BakeDataBlockMap *data_block_map);
+                                        BakeDataBlockMap *data_block_map,
+                                        bool is_for_cache = true);
 
   /**
    * Create fully valid run-time data again from the bake data. This also restores potential

@@ -68,7 +68,8 @@ static void ffmpeg_log_callback(void * /*ptr*/, int level, const char *format, v
   switch (level) {
     case AV_LOG_PANIC:
     case AV_LOG_FATAL:
-      clg_level = CLG_LEVEL_FATAL;
+      /* ffmpeg "fatal" should not quit whole Blender; report as error. */
+      clg_level = CLG_LEVEL_ERROR;
       break;
     case AV_LOG_ERROR:
     case AV_LOG_WARNING:

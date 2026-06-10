@@ -74,7 +74,7 @@ static void transdata_elem_bend(const TransInfo *t,
 
                                 bool is_clamp)
 {
-  if (UNLIKELY(angle == 0.0f)) {
+  if (angle == 0.0f) [[unlikely]] {
     copy_v3_v3(td->loc, td->iloc);
     return;
   }

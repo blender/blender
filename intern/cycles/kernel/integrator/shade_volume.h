@@ -1516,7 +1516,7 @@ ccl_device_inline void volume_equiangular_direct_scatter(
       vstate.distance_pdf *= volume_scatter_probability(coeff, sigma_n, result.direct_throughput);
     }
 
-    result.direct_throughput *= coeff.sigma_s / vstate.equiangular_pdf;
+    result.direct_throughput *= safe_divide(coeff.sigma_s, vstate.equiangular_pdf);
   }
   else {
     /* Scattering coefficient is zero at the sampled position. */
@@ -1770,13 +1770,14 @@ ccl_device_forceinline void volume_integrate_homogeneous(KernelGlobals kg,
       const Spectrum distance_pdf = pdf_exponential_distribution(dt, coeff.sigma_t, t_range);
       const float indirect_distance_pdf = dot(distance_pdf * scatter_prob, channel_pdf);
       const Spectrum transmittance = volume_color_transmittance(coeff.sigma_t, dt);
-      result.indirect_throughput *= coeff.sigma_s * transmittance / indirect_distance_pdf;
+      result.indirect_throughput *= safe_divide(coeff.sigma_s * transmittance,
+                                                indirect_distance_pdf);
       volume_shader_copy_phases(&result.indirect_phases, sd);
     }
     else {
       /* Sampled transmit event. */
       const float indirect_distance_pdf = dot((1.0f - scatter_prob), channel_pdf);
-      result.indirect_throughput *= transmittance / indirect_distance_pdf;
+      result.indirect_throughput *= safe_divide(transmittance, indirect_distance_pdf);
       vstate.rscatter = (vstate.rscatter - scatter_pdf_channel) / (1.0f - scatter_pdf_channel);
     }
   }
@@ -1801,13 +1802,13 @@ ccl_device_forceinline void volume_integrate_homogeneous(KernelGlobals kg,
     const Spectrum distance_pdf = pdf_exponential_distribution(dt, coeff.sigma_t, t_range);
     vstate.distance_pdf = dot(distance_pdf, channel_pdf);
     const Spectrum transmittance = volume_color_transmittance(coeff.sigma_t, dt);
-    result.direct_throughput *= coeff.sigma_s * transmittance / vstate.distance_pdf;
+    result.direct_throughput *= safe_divide(coeff.sigma_s * transmittance, vstate.distance_pdf);
   }
   else {
     kernel_assert(vstate.direct_sample_method == VOLUME_SAMPLE_EQUIANGULAR);
     const float dt = result.direct_t - ray->tmin;
     const Spectrum transmittance = volume_color_transmittance(coeff.sigma_t, dt);
-    result.direct_throughput *= coeff.sigma_s * transmittance / vstate.equiangular_pdf;
+    result.direct_throughput *= safe_divide(coeff.sigma_s * transmittance, vstate.equiangular_pdf);
     if (vstate.use_mis) {
       vstate.distance_pdf = dot(pdf_exponential_distribution(dt, coeff.sigma_t, t_range),
                                 channel_pdf);
@@ -2250,7 +2251,8 @@ ccl_device_forceinline void volume_ray_marching_step_scattering(
       const Spectrum new_transmittance = volume_color_transmittance(coeff.sigma_t, new_dt);
 
       result.direct_scatter = true;
-      result.direct_throughput *= coeff.sigma_s * new_transmittance / vstate.equiangular_pdf;
+      result.direct_throughput *= safe_divide(coeff.sigma_s * new_transmittance,
+                                              vstate.equiangular_pdf);
       volume_shader_copy_phases(&result.direct_phases, sd);
 
       /* Multiple importance sampling. */
@@ -2737,8 +2739,8 @@ volume_integrate_event(KernelGlobals kg,
           const pgl_vec3f scatteringWeight =
               INTEGRATOR_STATE(state, guiding, path_segment)->scatteringWeight;
           scatterEval = make_float3(scatteringWeight.x, scatteringWeight.y, scatteringWeight.z);
+          unlit_throughput = safe_divide(unlit_throughput, scatterEval);
         }
-        unlit_throughput /= scatterEval;
         unlit_throughput *= continuation_probability;
         rand_phase_guiding = path_state_rng_1D(
             kg, rng_state, PRNG_VOLUME_PHASE_GUIDING_EQUIANGULAR);

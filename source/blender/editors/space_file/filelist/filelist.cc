@@ -718,7 +718,15 @@ void filelist_online_asset_preview_request(const bContext *C, FileDirEntry *entr
   /* Request online preview if needed. */
   if (entry->asset->is_online_only()) {
     entry->asset->ensure_previewable(*C, CTX_wm_reports(C));
-    entry->preview_icon_id = entry->asset->get_preview()->runtime->icon_id;
+
+    const PreviewImage *preview = entry->asset->get_preview();
+
+    if (preview) {
+      entry->preview_icon_id = preview->runtime->icon_id;
+    }
+    else {
+      entry->flags |= FILE_ENTRY_INVALID_PREVIEW;
+    }
   }
 }
 

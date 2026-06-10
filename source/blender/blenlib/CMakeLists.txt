@@ -303,6 +303,7 @@ set(SRC
   BLI_math_euler_types.hh
   BLI_math_filter.hh
   BLI_math_geom.h
+  BLI_math_geom.hh
   BLI_math_half.hh
   BLI_math_inline.h
   BLI_math_interp.hh
@@ -556,6 +557,7 @@ if(WITH_GTESTS)
     tests/BLI_math_bits_test.cc
     tests/BLI_math_color_test.cc
     tests/BLI_math_geom_test.cc
+    tests/BLI_math_geom_hh_test.cc
     tests/BLI_math_half_test.cc
     tests/BLI_math_interp_test.cc
     tests/BLI_math_matrix_test.cc

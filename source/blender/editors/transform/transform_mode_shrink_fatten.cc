@@ -220,11 +220,15 @@ static void initShrinkFatten(TransInfo *t, wmOperator *op)
 
   if (op) {
     custom_data->op = op;
-    PropertyRNA *prop = RNA_struct_find_property(op->ptr, "use_even_offset");
-    if (RNA_property_is_set(op->ptr, prop) && RNA_property_boolean_get(op->ptr, prop)) {
-      /* TODO: Check if the Alt button is already pressed. */
-      custom_data->mode = EVEN_THICKNESS_ON;
-      custom_data->use_alt_press_to_disable = true;
+    if (PropertyRNA *prop = RNA_struct_find_property(op->ptr, "use_even_offset")) {
+      if (RNA_property_is_set(op->ptr, prop) && RNA_property_boolean_get(op->ptr, prop)) {
+        /* TODO: Check if the Alt button is already pressed. */
+        custom_data->mode = EVEN_THICKNESS_ON;
+        custom_data->use_alt_press_to_disable = true;
+      }
+    }
+    else {
+      BLI_assert(STREQ(op->idname, "TRANSFORM_OT_transform"));
     }
   }
 }

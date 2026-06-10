@@ -30,9 +30,9 @@ namespace blender {
  */
 enum class ProfileCategory : uint32_t {
   /**
-   * \note Not pure black (0x000000) as Tracy uses that to indicate "no user provided color".
+   * \note Do not use pure black (0x000000) as Tracy uses it to indicate "no user provided color".
    */
-  Default = 0x000001,
+  Default = 0x666666,
   Core = 0x0088FE,
   Draw = 0x00C49F,
   Editor = 0xFFBB28,
@@ -78,6 +78,9 @@ enum class ProfileCategory : uint32_t {
 /** Attach a numeric value to the specified zone. */
 #  define PRF_scope_var_add_value(var, value) ZoneValueV(var, value)
 
+#  define PRF_memory_alloc(ptr, size) TracyAlloc(ptr, size)
+#  define PRF_memory_free(ptr) TracyFree(ptr)
+
 #else
 
 #  define PRF_frame_mark
@@ -97,6 +100,9 @@ enum class ProfileCategory : uint32_t {
 #  define PRF_scope_var_set_dynamic_name(var, fmt, ...)
 #  define PRF_scope_var_add_text(var, fmt, ...)
 #  define PRF_scope_var_add_value(var, value)
+
+#  define PRF_memory_alloc(ptr, size)
+#  define PRF_memory_free(ptr)
 
 #endif
 

@@ -25,6 +25,7 @@
 
 #include "BKE_ccg.hh"
 #include "BKE_editmesh.hh"
+#include "BKE_lib_id.hh"
 #include "BKE_mesh.h"
 #include "BKE_mesh_runtime.hh"
 #include "BKE_mesh_types.hh"
@@ -102,18 +103,20 @@ Mesh *BKE_multires_create_mesh(Depsgraph *depsgraph, Object *object, MultiresMod
 {
   Object *object_eval = DEG_get_evaluated(depsgraph, object);
   Scene *scene_eval = DEG_get_evaluated_scene(depsgraph);
-  Mesh *deformed_mesh = bke::mesh_get_eval_deform(
+  const Mesh *deformed_mesh = bke::mesh_get_eval_deform(
       depsgraph, scene_eval, object_eval, &CD_MASK_BAREMESH);
   ModifierEvalContext modifier_ctx{};
   modifier_ctx.depsgraph = depsgraph;
   modifier_ctx.object = object_eval;
   modifier_ctx.flag = MOD_APPLY_USECACHE | MOD_APPLY_IGNORE_SIMPLIFY;
 
-  const ModifierTypeInfo *mti = BKE_modifier_get_info(mmd->modifier.type);
-  Mesh *result = mti->modify_mesh(&mmd->modifier, &modifier_ctx, deformed_mesh);
+  Mesh *input_i = BKE_mesh_copy_for_eval(*deformed_mesh);
 
-  if (result == deformed_mesh) {
-    result = BKE_mesh_copy_for_eval(*deformed_mesh);
+  const ModifierTypeInfo *mti = BKE_modifier_get_info(mmd->modifier.type);
+  Mesh *result = mti->modify_mesh(&mmd->modifier, &modifier_ctx, input_i);
+
+  if (result != input_i) {
+    BKE_id_free(nullptr, input_i);
   }
   return result;
 }

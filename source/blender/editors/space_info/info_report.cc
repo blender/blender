@@ -184,7 +184,7 @@ void INFO_OT_select_pick(wmOperatorType *ot)
   ot->idname = "INFO_OT_select_pick";
 
   /* API callbacks. */
-  ot->poll = ED_operator_info_active;
+  ot->poll = ED_operator_region_info_active;
   ot->invoke = select_report_pick_invoke;
   ot->exec = select_report_pick_exec;
 
@@ -306,7 +306,7 @@ void INFO_OT_select_box(wmOperatorType *ot)
   ot->modal = WM_gesture_box_modal;
   ot->cancel = WM_gesture_box_cancel;
 
-  ot->poll = ED_operator_info_active;
+  ot->poll = ED_operator_region_info_active;
 
   /* flags */
   // ot->flag = OPTYPE_REGISTER;

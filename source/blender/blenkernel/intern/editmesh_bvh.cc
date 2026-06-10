@@ -532,7 +532,7 @@ static bool bmbvh_overlap_cb(void *userdata, int index_a, int index_b, int /*thr
   int verts_shared = 0;
 
   if (bmtree_a->looptris == bmtree_b->looptris) {
-    if (UNLIKELY(ltri_a[0]->f == ltri_b[0]->f)) {
+    if (ltri_a[0]->f == ltri_b[0]->f) [[unlikely]] {
       return false;
     }
 

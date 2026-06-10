@@ -10,6 +10,7 @@
 #include <cstddef>
 #include <cstring>
 
+#include "BKE_blender_project.hh"
 #include "DNA_defs.h"
 #include "MEM_guardedalloc.h"
 
@@ -412,7 +413,7 @@ static void screen_opengl_render_doit(OGLRender *oglrender, RenderResult *rr)
   DRW_gpu_context_disable();
 }
 
-static void screen_opengl_render_write(OGLRender *oglrender)
+static void screen_opengl_render_write(const bke::BlenderProject *project, OGLRender *oglrender)
 {
   Scene *scene = oglrender->scene;
   RenderResult *rr;
@@ -422,7 +423,7 @@ static void screen_opengl_render_write(OGLRender *oglrender)
   rr = RE_AcquireResultRead(oglrender->re);
 
   path_templates::VariableMap template_variables;
-  BKE_add_template_variables_general(template_variables, &scene->id);
+  BKE_add_template_variables_general(template_variables, &scene->id, project);
   BKE_add_template_variables_for_render_path(template_variables, *scene);
 
   const char *relbase = BKE_main_blendfile_path(oglrender->bmain);
@@ -471,7 +472,7 @@ static void UNUSED_FUNCTION(addAlphaOverFloat)(float dest[4], const float source
   dest[3] = (mul * dest[3]) + source[3];
 }
 
-static void screen_opengl_render_apply(OGLRender *oglrender)
+static void screen_opengl_render_apply(const bke::BlenderProject *project, OGLRender *oglrender)
 {
   RenderResult *rr;
   RenderView *rv;
@@ -524,7 +525,7 @@ static void screen_opengl_render_apply(OGLRender *oglrender)
   BKE_image_partial_update_mark_full_update(oglrender->ima);
 
   if (oglrender->write_still) {
-    screen_opengl_render_write(oglrender);
+    screen_opengl_render_write(project, oglrender);
   }
 }
 
@@ -995,14 +996,18 @@ static bool screen_opengl_render_anim_init(wmOperator *op)
       const char *suffix = is_multiview_name ?
                                BKE_scene_multiview_view_id_suffix_get(&scene->r, i) :
                                "";
-      MovieWriter *writer = MOV_write_begin(scene_eval,
-                                            &scene->r,
-                                            &image_format,
-                                            width,
-                                            height,
-                                            oglrender->reports,
-                                            PRVRANGEON != 0,
-                                            suffix);
+      MovieWriter *writer = BKE_blender_project_read_callback(
+          oglrender->bmain, [&](const bke::BlenderProject *project) {
+            return MOV_write_begin(scene_eval,
+                                   project,
+                                   &scene->r,
+                                   &image_format,
+                                   width,
+                                   height,
+                                   oglrender->reports,
+                                   PRVRANGEON != 0,
+                                   suffix);
+          });
       if (writer == nullptr) {
         BKE_image_format_free(&image_format);
         screen_opengl_render_end(oglrender);
@@ -1025,11 +1030,14 @@ static bool screen_opengl_render_anim_init(wmOperator *op)
 }
 
 struct WriteTaskData {
+  Main *bmain;
   RenderResult *rr = nullptr;
   Scene tmp_scene;
 };
 
-static void write_result(TaskPool *__restrict pool, WriteTaskData *task_data)
+static void write_result(const bke::BlenderProject *project,
+                         TaskPool *__restrict pool,
+                         WriteTaskData *task_data)
 {
   OGLRender *oglrender = static_cast<OGLRender *>(BLI_task_pool_user_data(pool));
   Scene *scene = &task_data->tmp_scene;
@@ -1059,6 +1067,7 @@ static void write_result(TaskPool *__restrict pool, WriteTaskData *task_data)
   if (is_movie) {
     ok = RE_WriteRenderViewsMovie(&reports,
                                   rr,
+                                  project,
                                   scene,
                                   &scene->r,
                                   oglrender->movie_writers.data(),
@@ -1071,7 +1080,7 @@ static void write_result(TaskPool *__restrict pool, WriteTaskData *task_data)
      */
     char filepath[FILE_MAX];
     path_templates::VariableMap template_variables;
-    BKE_add_template_variables_general(template_variables, &scene->id);
+    BKE_add_template_variables_general(template_variables, &scene->id, project);
     BKE_add_template_variables_for_render_path(template_variables, *scene);
 
     const char *relbase = BKE_main_blendfile_path(oglrender->bmain);
@@ -1127,7 +1136,11 @@ static void write_result_func(TaskPool *__restrict pool, void *task_data_v)
    * writing another frame. If that happens we may reach the MAX_SCHEDULED_FRAMES limit,
    * and cause the render thread and writing threads to deadlock waiting for each other. */
   WriteTaskData *task_data = static_cast<WriteTaskData *>(task_data_v);
-  threading::isolate_task([&] { write_result(pool, task_data); });
+  threading::isolate_task([&] {
+    BKE_blender_project_read_callback(task_data->bmain, [&](const bke::BlenderProject *project) {
+      write_result(project, pool, task_data);
+    });
+  });
 }
 
 static bool schedule_write_result(OGLRender *oglrender, RenderResult *rr)
@@ -1138,6 +1151,7 @@ static bool schedule_write_result(OGLRender *oglrender, RenderResult *rr)
   }
   Scene *scene = oglrender->scene;
   WriteTaskData *task_data = MEM_new<WriteTaskData>("write task data");
+  task_data->bmain = oglrender->bmain;
   task_data->rr = rr;
   task_data->tmp_scene = dna::shallow_copy(*scene);
   {
@@ -1151,7 +1165,8 @@ static bool schedule_write_result(OGLRender *oglrender, RenderResult *rr)
   return true;
 }
 
-static bool screen_opengl_render_anim_step(OGLRender *oglrender)
+static bool screen_opengl_render_anim_step(const bke::BlenderProject *project,
+                                           OGLRender *oglrender)
 {
   Scene *scene = oglrender->scene;
   Depsgraph *depsgraph = oglrender->depsgraph;
@@ -1174,7 +1189,7 @@ static bool screen_opengl_render_anim_step(OGLRender *oglrender)
 
   if (!is_movie) {
     path_templates::VariableMap template_variables;
-    BKE_add_template_variables_general(template_variables, &scene->id);
+    BKE_add_template_variables_general(template_variables, &scene->id, project);
     BKE_add_template_variables_for_render_path(template_variables, *scene);
 
     const char *relbase = BKE_main_blendfile_path(oglrender->bmain);
@@ -1231,7 +1246,7 @@ static bool screen_opengl_render_anim_step(OGLRender *oglrender)
       BLI_BITMAP_TEST_BOOL(oglrender->render_frames, scene->r.cfra - scene->playback_start()))
   {
     /* render into offscreen buffer */
-    screen_opengl_render_apply(oglrender);
+    screen_opengl_render_apply(project, oglrender);
   }
 
   /* save to disk */
@@ -1265,7 +1280,9 @@ static wmOperatorStatus screen_opengl_render_modal(bContext *C,
   /* Still render completes immediately, but still modal to show some feedback
    * in case render initialization takes a while. */
   if (!oglrender->is_animation) {
-    screen_opengl_render_apply(oglrender);
+    BKE_blender_project_read_callback(CTX_data_main(C), [&](const bke::BlenderProject *project) {
+      screen_opengl_render_apply(project, oglrender);
+    });
     screen_opengl_render_end(oglrender);
     MEM_delete(oglrender);
     return OPERATOR_FINISHED;
@@ -1299,7 +1316,9 @@ static void opengl_render_startjob(void *customdata, wmJobWorkerStatus *worker_s
       canceled = true;
     }
     else {
-      finished = !screen_opengl_render_anim_step(oglrender);
+      BKE_blender_project_read_callback(oglrender->bmain, [&](const bke::BlenderProject *project) {
+        finished = !screen_opengl_render_anim_step(project, oglrender);
+      });
       worker_status->progress = float(scene->r.cfra - playback_range.start_frame + 1) /
                                 float(playback_range.end_frame - playback_range.start_frame + 1);
       worker_status->do_update = true;
@@ -1378,10 +1397,14 @@ static wmOperatorStatus screen_opengl_render_exec(bContext *C, wmOperator *op)
     return OPERATOR_CANCELLED;
   }
 
+  const Main *bmain = CTX_data_main(C);
+
   OGLRender *oglrender = static_cast<OGLRender *>(op->customdata);
 
   if (!oglrender->is_animation) { /* same as invoke */
-    screen_opengl_render_apply(oglrender);
+    BKE_blender_project_read_callback(bmain, [&](const bke::BlenderProject *project) {
+      screen_opengl_render_apply(project, oglrender);
+    });
     screen_opengl_render_end(oglrender);
     MEM_delete(oglrender);
 
@@ -1394,9 +1417,11 @@ static wmOperatorStatus screen_opengl_render_exec(bContext *C, wmOperator *op)
     return OPERATOR_CANCELLED;
   }
 
-  while (ret) {
-    ret = screen_opengl_render_anim_step(oglrender);
-  }
+  BKE_blender_project_read_callback(bmain, [&](const bke::BlenderProject *project) {
+    while (ret) {
+      ret = screen_opengl_render_anim_step(project, oglrender);
+    }
+  });
 
   screen_opengl_render_end(oglrender);
   MEM_delete(oglrender);

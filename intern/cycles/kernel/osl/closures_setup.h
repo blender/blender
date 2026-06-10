@@ -517,7 +517,7 @@ ccl_device void osl_closure_generalized_schlick_bsdf_setup(
 ccl_device void osl_closure_thin_glass_setup(KernelGlobals kg,
                                              ccl_private ShaderData *sd,
                                              const PathRayVisibility path_visibility,
-                                             const uint32_t /*path_flag*/,
+                                             const uint32_t path_flag,
                                              const float3 weight,
                                              const ccl_private ThinGlassClosure *closure,
                                              float3 *layer_albedo)
@@ -563,7 +563,9 @@ ccl_device void osl_closure_thin_glass_setup(KernelGlobals kg,
                         closure->ior,
                         thinfilm,
                         &reflectance,
-                        &transmittance);
+                        &transmittance,
+                        path_visibility,
+                        path_flag);
 
   if (layer_albedo != nullptr) {
     *layer_albedo = transmittance * !!has_transmission + reflectance * !!has_reflection;
@@ -1117,7 +1119,7 @@ ccl_device void osl_closure_subsurface_bssrdf_setup(
     const ccl_private SubsurfaceBSSRDFClosure *closure,
     float3 * /*layer_albedo*/)
 {
-  ccl_private Bssrdf *bssrdf = bssrdf_alloc(sd, rgb_to_spectrum(weight));
+  ccl_private Bssrdf *bssrdf = bssrdf_alloc(sd, rgb_to_spectrum(closure->albedo * weight));
   if (!bssrdf) {
     return;
   }

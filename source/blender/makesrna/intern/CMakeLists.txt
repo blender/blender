@@ -31,6 +31,7 @@ set(DEFSRC
   rna_armature.cc
   rna_asset.cc
   rna_attribute.cc
+  rna_blender_project.cc
   rna_blendfile_import.cc
   rna_boid.cc
   rna_brush.cc

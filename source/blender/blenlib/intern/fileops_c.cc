@@ -127,7 +127,7 @@ int64_t BLI_read(int fd, void *buf, size_t nbytes)
       return nbytes_read;
     }
 
-    if (UNLIKELY(nbytes_read > nbytes)) {
+    if (nbytes_read > nbytes) [[unlikely]] {
       /* Badly behaving LIBC, reading more bytes than requested should never happen.
        * Possibly an invalid internal state/corruption, only check to prevent an eternal loop. */
       BLI_assert_unreachable();
@@ -1267,7 +1267,7 @@ int BLI_delete_soft(const char *filepath, const char **r_error_message)
   errno = 0;
 
   int pid = fork();
-  if (UNLIKELY(pid == -1)) {
+  if (pid == -1) [[unlikely]] {
     *r_error_message = errno ? strerror(errno) : "unable to fork process";
     return -1;
   }

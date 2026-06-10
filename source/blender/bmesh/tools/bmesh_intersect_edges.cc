@@ -796,6 +796,15 @@ bool BM_mesh_intersect_edges(
           BMVert *v_new = BM_edge_split(bm, e, e->v1, nullptr, lambda);
           pair_elem->vert = v_new;
         }
+
+        /* As this function uses face-normals to check if a point is "within" a face,
+         * (asserting on stale face normals), recalculated modified faces.
+         * Note that vertex normals are *not* recalculated as it's not needed. */
+        if (BMLoop *l_iter = e->l) {
+          do {
+            BM_face_normal_update(l_iter->f);
+          } while ((l_iter = l_iter->radial_next) != e->l);
+        }
       }
 
       MEM_delete(e_map);

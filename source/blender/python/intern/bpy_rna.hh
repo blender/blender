@@ -79,23 +79,23 @@ extern PyTypeObject pyrna_func_Type;
 #define BPy_PropertyRNA_CheckExact(v) (Py_TYPE(v) == &pyrna_prop_Type)
 
 #define PYRNA_STRUCT_CHECK_OBJ(obj) \
-  if (UNLIKELY(pyrna_struct_validity_check(obj) == -1)) { \
+  if (pyrna_struct_validity_check(obj) == -1) [[unlikely]] { \
     return NULL; \
   } \
   (void)0
 #define PYRNA_STRUCT_CHECK_INT(obj) \
-  if (UNLIKELY(pyrna_struct_validity_check(obj) == -1)) { \
+  if (pyrna_struct_validity_check(obj) == -1) [[unlikely]] { \
     return -1; \
   } \
   (void)0
 
 #define PYRNA_PROP_CHECK_OBJ(obj) \
-  if (UNLIKELY(pyrna_prop_validity_check(obj) == -1)) { \
+  if (pyrna_prop_validity_check(obj) == -1) [[unlikely]] { \
     return NULL; \
   } \
   (void)0
 #define PYRNA_PROP_CHECK_INT(obj) \
-  if (UNLIKELY(pyrna_prop_validity_check(obj) == -1)) { \
+  if (pyrna_prop_validity_check(obj) == -1) [[unlikely]] { \
     return -1; \
   } \
   (void)0

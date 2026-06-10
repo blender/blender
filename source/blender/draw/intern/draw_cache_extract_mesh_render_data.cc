@@ -21,6 +21,7 @@
 #include "BKE_material.hh"
 #include "BKE_mesh.hh"
 #include "BKE_object.hh"
+#include "BKE_object_types.hh"
 
 #include "ED_mesh.hh"
 
@@ -394,6 +395,17 @@ static void retrieve_active_attribute_names(MeshRenderData &mr,
   mr.default_color_name = mesh_final.default_color_attribute;
 }
 
+static BMEditMesh *mesh_get_original_edit_mesh(const Object &object)
+{
+  BLI_assert(object.type == OB_MESH);
+  if (const ID *data_orig = object.runtime->data_orig) {
+    if (GS(data_orig->name) == blender::ID_ME) {
+      return id_cast<const Mesh *>(data_orig)->runtime->edit_mesh.get();
+    }
+  }
+  return nullptr;
+}
+
 MeshRenderData mesh_render_data_create(Object &object,
                                        Mesh &mesh,
                                        const bool is_editmode,
@@ -409,7 +421,7 @@ MeshRenderData mesh_render_data_create(Object &object,
 
   mr.use_hide = use_hide;
 
-  if (BMEditMesh *edit_mesh = mesh.runtime->edit_mesh.get()) {
+  if (BMEditMesh *edit_mesh = mesh_get_original_edit_mesh(object)) {
     const Mesh *eval_cage = DRW_object_get_editmesh_cage_for_drawing(object);
 
     mr.bm = edit_mesh->bm;

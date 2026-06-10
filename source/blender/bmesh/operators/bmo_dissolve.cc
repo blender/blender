@@ -298,12 +298,12 @@ void bmo_dissolve_faces_exec(BMesh *bm, BMOperator *op)
 
     BMFace *f_new = BM_faces_join(bm, faces.data(), faces_len, true, &f_double);
 
-    if (LIKELY(f_new)) {
+    if (f_new) [[likely]] {
 
       /* All the joined faces are gone and the fresh f_new represents their union. */
       totface_target -= faces_len - 1;
 
-      if (UNLIKELY(f_double)) {
+      if (f_double) [[unlikely]] {
         /* `BM_faces_join()` succeeded, but there is a double. Keep the pre-existing face
          * and retain its custom-data. Remove the newly made merge result. */
         BM_face_kill(bm, f_new);
@@ -390,7 +390,7 @@ static BMVert *bmo_find_end_of_chain(BMesh *bm, BMEdge *e, BMVert *v, const shor
     /* While this should never happen in the context this function is called.
      * Avoid an eternal loop even in the case of degenerate geometry. */
     BLI_assert(v != v_init);
-    if (UNLIKELY(v == v_init)) {
+    if (v == v_init) [[unlikely]] {
       return nullptr;
     }
   }

@@ -286,7 +286,7 @@ void BKE_mesh_strip_loose_faces(Mesh *mesh)
 
 void BKE_mesh_do_versions_cd_flag_init(Mesh *mesh)
 {
-  if (UNLIKELY(mesh->cd_flag)) {
+  if (mesh->cd_flag) [[unlikely]] {
     return;
   }
 
@@ -694,7 +694,7 @@ static void add_mface_layers(Mesh &mesh, CustomData *fdata_legacy, CustomData *l
 
 static void mesh_ensure_tessellation_customdata(Mesh *mesh)
 {
-  if (UNLIKELY((mesh->totface_legacy != 0) && (mesh->faces_num == 0))) {
+  if ((mesh->totface_legacy != 0) && (mesh->faces_num == 0)) [[unlikely]] {
     /* Pass, otherwise this function clears 'mface' before
      * versioning 'mface -> mpoly' code kicks in #30583.
      *
@@ -752,6 +752,10 @@ void BKE_mesh_convert_mfaces_to_mpolys(Mesh *mesh)
   BKE_mesh_legacy_convert_polys_to_offsets(mesh);
   mesh->attribute_storage.wrap().remove(".corner_vert");
   mesh->attribute_storage.wrap().remove(".corner_edge");
+  /* The face and corner domains may have changed size during the conversion above,
+   * ensure attribute storage is in sync, see: #159680. */
+  mesh->attribute_storage.wrap().resize(bke::AttrDomain::Face, mesh->faces_num);
+  mesh->attribute_storage.wrap().resize(bke::AttrDomain::Corner, mesh->corners_num);
   bke::mesh_convert_customdata_to_storage(*mesh);
 
   mesh_ensure_tessellation_customdata(mesh);
@@ -1102,7 +1106,7 @@ static void mesh_tessface_calc(Mesh &mesh)
 
       const uint totfilltri = mp_totloop - 2;
 
-      if (UNLIKELY(arena == nullptr)) {
+      if (arena == nullptr) [[unlikely]] {
         arena = BLI_memarena_new(BLI_MEMARENA_STD_BUFSIZE, __func__);
       }
 
@@ -1121,7 +1125,7 @@ static void mesh_tessface_calc(Mesh &mesh)
         add_newell_cross_v3_v3v3(normal, co_prev, co_curr);
         co_prev = co_curr;
       }
-      if (UNLIKELY(normalize_v3(normal) == 0.0f)) {
+      if (normalize_v3(normal) == 0.0f) [[unlikely]] {
         normal[2] = 1.0f;
       }
 
@@ -1179,7 +1183,7 @@ static void mesh_tessface_calc(Mesh &mesh)
   BLI_assert(totface <= corner_tris_num);
 
   /* Not essential but without this we store over-allocated memory in the #CustomData layers. */
-  if (LIKELY(corner_tris_num != totface)) {
+  if (corner_tris_num != totface) [[likely]] {
     mface = static_cast<MFace *>(
         MEM_realloc_uninitialized(mface, sizeof(*mface) * size_t(totface)));
     mface_to_poly_map = static_cast<int *>(MEM_realloc_uninitialized(
@@ -2471,7 +2475,7 @@ void mesh_freestyle_marks_to_generic(Mesh &mesh)
       static_assert(char(FREESTYLE_FACE_MARK) == char(true));
       Attribute::ArrayData array_data{};
       array_data.data = data;
-      array_data.size = mesh.edges_num;
+      array_data.size = mesh.faces_num;
       sharing_info->add_user();
       array_data.sharing_info = ImplicitSharingPtr<>(sharing_info);
       mesh.attribute_storage.wrap().add(
@@ -2481,76 +2485,6 @@ void mesh_freestyle_marks_to_generic(Mesh &mesh)
       sharing_info->remove_user_and_delete_if_last();
     }
   }
-}
-
-void mesh_freestyle_marks_to_legacy(AttributeStorage::BlendWriteData &attr_write_data,
-                                    CustomData &edge_data,
-                                    CustomData &face_data,
-                                    Vector<CustomDataLayer, 16> &edge_layers,
-                                    Vector<CustomDataLayer, 16> &face_layers)
-{
-  Array<bool, 64> attrs_to_remove(attr_write_data.attributes.size(), false);
-  for (const int i : attr_write_data.attributes.index_range()) {
-    const blender::Attribute &dna_attr = attr_write_data.attributes[i];
-    if (dna_attr.data_type != int8_t(AttrType::Bool)) {
-      continue;
-    }
-    if (dna_attr.storage_type != int8_t(AttrStorageType::Array)) {
-      continue;
-    }
-    if (dna_attr.domain == int8_t(AttrDomain::Edge)) {
-      if (STREQ(dna_attr.name, "freestyle_edge")) {
-        const auto &array_dna = *static_cast<const blender::AttributeArray *>(dna_attr.data);
-        static_assert(sizeof(FreestyleEdge) == sizeof(bool));
-        static_assert(char(FREESTYLE_EDGE_MARK) == char(true));
-        CustomDataLayer layer{};
-        layer.type = CD_FREESTYLE_EDGE;
-        layer.data = array_dna.data;
-        layer.sharing_info = array_dna.sharing_info;
-        edge_layers.append(layer);
-        std::stable_sort(
-            edge_layers.begin(),
-            edge_layers.end(),
-            [](const CustomDataLayer &a, const CustomDataLayer &b) { return a.type < b.type; });
-        if (!edge_data.layers) {
-          /* edge_data.layers must not be null, or the layers will not be written. Its address
-           * doesn't really matter, but it must be unique within this ID.*/
-          edge_data.layers = edge_layers.data();
-        }
-        edge_data.totlayer = edge_layers.size();
-        edge_data.maxlayer = edge_data.totlayer;
-        attrs_to_remove[i] = true;
-      }
-    }
-    else if (dna_attr.domain == int8_t(AttrDomain::Face)) {
-      if (STREQ(dna_attr.name, "freestyle_face")) {
-        const auto &array_dna = *static_cast<const blender::AttributeArray *>(dna_attr.data);
-        static_assert(sizeof(FreestyleFace) == sizeof(bool));
-        static_assert(char(FREESTYLE_FACE_MARK) == char(true));
-        CustomDataLayer layer{};
-        layer.type = CD_FREESTYLE_FACE;
-        layer.data = array_dna.data;
-        layer.sharing_info = array_dna.sharing_info;
-        face_layers.append(layer);
-        std::stable_sort(
-            face_layers.begin(),
-            face_layers.end(),
-            [](const CustomDataLayer &a, const CustomDataLayer &b) { return a.type < b.type; });
-        if (!face_data.layers) {
-          /* face_data.layers must not be null, or the layers will not be written. Its address
-           * doesn't really matter, but it must be unique within this ID.*/
-          face_data.layers = face_layers.data();
-        }
-        face_data.totlayer = face_layers.size();
-        face_data.maxlayer = face_data.totlayer;
-        attrs_to_remove[i] = true;
-      }
-    }
-  }
-  attr_write_data.attributes.remove_if([&](const blender::Attribute &attr) {
-    const int i = &attr - attr_write_data.attributes.begin();
-    return attrs_to_remove[i];
-  });
 }
 
 void mesh_custom_normals_to_generic(Mesh &mesh)

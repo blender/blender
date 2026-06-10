@@ -822,7 +822,7 @@ PyObject *BPy_BMO_call(BPy_BMeshOpFunc *self, PyObject *args, PyObject *kw)
   BMO_op_exec(bm, &bmop);
 
   /* from here until the end of the function, no returns, just set 'ret' */
-  if (UNLIKELY(bpy_bm_op_as_py_error(bm) == -1)) {
+  if (bpy_bm_op_as_py_error(bm) == -1) [[unlikely]] {
     ret = nullptr; /* exception raised above */
   }
   else if (bmop.slots_out[0].slot_name == nullptr) {

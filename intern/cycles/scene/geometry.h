@@ -127,8 +127,6 @@ class Geometry : public Node {
   bool radius_is_modified() const;
 
   /* Update Flags */
-  bool position_modified;
-  bool radius_modified;
   bool need_update_rebuild;
   bool need_update_bvh_for_offset;
 

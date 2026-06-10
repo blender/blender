@@ -1242,14 +1242,26 @@ void BKE_screen_header_alignment_reset(bScreen *screen)
   for (ScrArea &area : screen->areabase) {
     for (ARegion &region : area.regionbase) {
       if (ELEM(region.regiontype, RGN_TYPE_HEADER, RGN_TYPE_TOOL_HEADER)) {
-        if (ELEM(area.spacetype, SPACE_FILE, SPACE_USERPREF, SPACE_OUTLINER, SPACE_PROPERTIES)) {
+        if (ELEM(area.spacetype,
+                 SPACE_FILE,
+                 SPACE_USERPREF,
+                 SPACE_OUTLINER,
+                 SPACE_PROPERTIES,
+                 SPACE_PROJECT))
+        {
           region.alignment = RGN_ALIGN_TOP;
           continue;
         }
         region.alignment = alignment;
       }
       if (region.regiontype == RGN_TYPE_FOOTER) {
-        if (ELEM(area.spacetype, SPACE_FILE, SPACE_USERPREF, SPACE_OUTLINER, SPACE_PROPERTIES)) {
+        if (ELEM(area.spacetype,
+                 SPACE_FILE,
+                 SPACE_USERPREF,
+                 SPACE_OUTLINER,
+                 SPACE_PROPERTIES,
+                 SPACE_PROJECT))
+        {
           region.alignment = RGN_ALIGN_BOTTOM;
           continue;
         }

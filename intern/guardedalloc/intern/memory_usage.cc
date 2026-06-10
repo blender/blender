@@ -187,7 +187,7 @@ void memory_usage_init()
 
 void memory_usage_block_alloc(const size_t size)
 {
-  if (LIKELY(use_local_counters.load(std::memory_order_relaxed))) {
+  if (use_local_counters.load(std::memory_order_relaxed)) [[likely]] {
     Local &local = get_local_data();
     /* Increase local memory counts. This does not cause thread synchronization in the majority of
      * cases, because each thread has these counters on a separate cache line. It may only cause
@@ -211,7 +211,7 @@ void memory_usage_block_alloc(const size_t size)
 
 void memory_usage_block_free(const size_t size)
 {
-  if (LIKELY(use_local_counters)) {
+  if (use_local_counters) [[likely]] {
     /* Decrease local memory counts. See comment in #memory_usage_block_alloc for details regarding
      * thread synchronization. */
     Local &local = get_local_data();

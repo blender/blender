@@ -258,7 +258,7 @@ int BLI_system_thread_count()
   if (threads_override_num != 0) {
     return threads_override_num;
   }
-  if (LIKELY(t != -1)) {
+  if (t != -1) [[likely]] {
     return t;
   }
 

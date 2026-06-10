@@ -55,10 +55,10 @@ BLI_INLINE int clamp_float_to_int(const float f)
   const float min = float(INT_MIN);
   const float max = float(INT_MAX);
 
-  if (UNLIKELY(f < min)) {
+  if (f < min) [[unlikely]] {
     return min;
   }
-  if (UNLIKELY(f > max)) {
+  if (f > max) [[unlikely]] {
     return int(max);
   }
   return int(f);

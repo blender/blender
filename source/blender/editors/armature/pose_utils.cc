@@ -194,9 +194,6 @@ static void store_id_properties(SlideSubject &slide_subject,
 {
   if (id_properties) {
     for (const IDProperty &id_prop : id_properties->data.group) {
-      if (ELEM(id_prop.type, IDP_STRING, IDP_ID, IDP_IDPARRAY)) {
-        continue;
-      }
       char name_escaped[MAX_IDPROP_NAME * 2];
       BLI_str_escape(name_escaped, id_prop.name, sizeof(name_escaped));
       std::string property_name_with_brackets = fmt::format("[\"{}\"]", name_escaped);
@@ -205,9 +202,6 @@ static void store_id_properties(SlideSubject &slide_subject,
   }
   if (system_properties) {
     for (const IDProperty &id_prop : system_properties->data.group) {
-      if (ELEM(id_prop.type, IDP_STRING, IDP_ID, IDP_IDPARRAY)) {
-        continue;
-      }
       store_property_snapshot(ptr, id_prop.name, slide_subject.system_properties);
     }
   }
@@ -362,6 +356,7 @@ void slide_subjects_get(bContext *C, ListBaseT<SlideSubject> *r_transformable_li
   const eContextObjectMode mode = CTX_data_mode_enum(C);
   switch (mode) {
     case CTX_MODE_POSE:
+    case CTX_MODE_PAINT_WEIGHT:
       get_pose_bones_for_slide(C, *r_transformable_list);
       break;
     case CTX_MODE_OBJECT:
@@ -396,18 +391,17 @@ void slide_subjects_free(ListBaseT<SlideSubject> *slide_subjects)
 
 /* ------------------------- */
 
-void slide_subjects_refresh(bContext *C, ID *id)
+void slide_subjects_refresh(bContext *C, const SlideSubject &slide_subject)
 {
+  ID *id = slide_subject.ptr.owner_id;
   DEG_id_tag_update(id, ID_RECALC_GEOMETRY);
   DEG_id_tag_update(id, ID_RECALC_TRANSFORM);
-  switch (GS(id->name)) {
-    case ID_OB:
+  switch (slide_subject.transformable->type()) {
+    case ed::AnimTransformable::Type::POSE_BONE:
       WM_event_add_notifier(C, NC_OBJECT | ND_POSE, id_cast<Object *>(id));
       break;
-    default:
-      /* Not implemented. */
-      BLI_assert_unreachable();
-      break;
+    case ed::AnimTransformable::Type::OBJECT:
+      WM_event_add_notifier(C, NC_OBJECT | ND_TRANSFORM, id_cast<Object *>(id));
   }
 
   AnimData *adt = BKE_animdata_from_id(id);

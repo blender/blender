@@ -1,9 +1,9 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 5.2.0 Alpha (b'8764d33c658b')\n"
+"Project-Id-Version: Blender 5.2.0 LTS Beta (b'2b1958ccdccb')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-06-01 07:36+0000\n"
+"POT-Creation-Date: 2026-06-08 09:37+0000\n"
 "PO-Revision-Date: 2026-03-19 19:12+0000\n"
 "Last-Translator: Tamás Máté <royalpython132@gmail.com>\n"
 "Language-Team: Hungarian <https://translate.blender.org/projects/blender-ui/ui/hu/>\n"
@@ -655,6 +655,14 @@ msgid "Y Position"
 msgstr "Y pozíció"
 
 
+msgid "Current File"
+msgstr "Aktuális fájl"
+
+
+msgid "Custom"
+msgstr "Egyéni"
+
+
 msgid "Active Tag"
 msgstr "Aktív címke"
 
@@ -682,14 +690,6 @@ msgstr "Teljes elérési útvonal"
 msgctxt "ID"
 msgid "Data-block Type"
 msgstr "Adatblokk típus"
-
-
-msgid "Current File"
-msgstr "Aktuális fájl"
-
-
-msgid "Custom"
-msgstr "Egyéni"
 
 
 msgid "Actions"
@@ -6610,40 +6610,12 @@ msgid "Use Material Mask"
 msgstr "Anyagmaszk használata"
 
 
-msgid "Mirror"
-msgstr "Tükrözés"
-
-
-msgid "Local View"
-msgstr "Helyi nézet"
-
-
-msgid "Navigation"
-msgstr "Navigáció"
-
-
-msgid "Align View"
-msgstr "Nézet igazítása"
-
-
-msgid "Metaball"
-msgstr "Meta test"
-
-
-msgid "Light"
-msgstr "Fényforrás"
-
-
 msgid "Relations"
 msgstr "Kapcsolatok"
 
 
 msgid "Rigid Body"
 msgstr "Szilárd test"
-
-
-msgid "Import"
-msgstr "Importálás"
 
 
 msgid "Apply"
@@ -6662,12 +6634,36 @@ msgid "Clean Up"
 msgstr "Tisztítás"
 
 
+msgid "Merge"
+msgstr "Összefésülés"
+
+
+msgid "Import"
+msgstr "Importálás"
+
+
+msgid "Metaball"
+msgstr "Meta test"
+
+
 msgid "UV"
 msgstr "UV"
 
 
-msgid "Merge"
-msgstr "Összefésülés"
+msgid "Mirror"
+msgstr "Tükrözés"
+
+
+msgid "Local View"
+msgstr "Helyi nézet"
+
+
+msgid "Navigation"
+msgstr "Navigáció"
+
+
+msgid "Align View"
+msgstr "Nézet igazítása"
 
 
 msgid "Keying"
@@ -6676,6 +6672,10 @@ msgstr "Kulcsozás"
 
 msgid "Tracking"
 msgstr "Követés"
+
+
+msgid "Light"
+msgstr "Fényforrás"
 
 
 msgctxt "MovieClip"
@@ -14907,6 +14907,10 @@ msgid "XR Data for Window Manager Event"
 msgstr "XR adat ablakkezelő eseményhez"
 
 
+msgid "Cancel"
+msgstr "Mégsem"
+
+
 msgid "View operations (useful for keyboards without a numpad)"
 msgstr "Operációk megtekintése (hasznos olyan billentyűzeteknél ahol nincs numerikus billentyűzet)"
 
@@ -16096,10 +16100,6 @@ msgstr "Ugyanaz a csont lett kijelölve..."
 
 msgid "Operation requires an active bone"
 msgstr "A művelet aktív csontot igényel"
-
-
-msgid "Cancel"
-msgstr "Mégsem"
 
 
 msgid "Cannot spin"

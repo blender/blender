@@ -70,7 +70,7 @@ static PyObject *make_openvdb_info()
   SetStrItem("Unknown");
 #endif
 
-  if (UNLIKELY(PyErr_Occurred())) {
+  if (PyErr_Occurred()) [[unlikely]] {
     Py_DECREF(openvdb_info);
     return nullptr;
   }

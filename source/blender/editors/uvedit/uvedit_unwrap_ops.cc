@@ -503,7 +503,7 @@ void ED_uvedit_get_aspect_from_material(Object *ob,
                                         float *r_aspx,
                                         float *r_aspy)
 {
-  if (UNLIKELY(material_index < 0 || material_index >= ob->totcol)) {
+  if (material_index < 0 || material_index >= ob->totcol) [[unlikely]] {
     *r_aspx = 1.0f;
     *r_aspy = 1.0f;
     return;
@@ -2568,7 +2568,7 @@ static void correct_uv_aspect_per_face(Object *ob, BMEditMesh *em)
     }
 
     const int material_index = efa->mat_nr;
-    if (UNLIKELY(material_index < 0 || material_index >= materials_num)) {
+    if (material_index < 0 || material_index >= materials_num) [[unlikely]] {
       /* The index might be for a material slot which is not currently setup. */
       continue;
     }
@@ -3160,7 +3160,7 @@ static Vector<float3> smart_uv_project_calculate_project_normals(
     const float project_angle_limit_cos,
     const float area_weight)
 {
-  if (UNLIKELY(thick_faces_len == 0)) {
+  if (thick_faces_len == 0) [[unlikely]] {
     return {};
   }
 
@@ -4264,7 +4264,7 @@ static void uvedit_unwrap_cube_project(const Scene *scene,
     zero_v3(loc);
   }
 
-  if (UNLIKELY(cube_size == 0.0f)) {
+  if (cube_size == 0.0f) [[unlikely]] {
     cube_size = 1.0f;
   }
 

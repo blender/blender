@@ -859,7 +859,7 @@ void NODE_OT_add_collection(wmOperatorType *ot)
 static bool node_add_image_poll(bContext *C)
 {
   const SpaceNode *snode = CTX_wm_space_node(C);
-  if (!snode) {
+  if (!snode || !snode->nodetree) {
     return false;
   }
 

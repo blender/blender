@@ -49,13 +49,6 @@ void BKE_movieclip_reload(Main *bmain, MovieClip *clip);
 void BKE_movieclip_clear_cache(MovieClip *clip);
 void BKE_movieclip_clear_proxy_cache(MovieClip *clip);
 
-/**
- * Will try to make image buffer usable when originating from the multi-layer source.
- * Internally finds a first combined pass and uses that as a buffer.
- * Not ideal, but is better than a complete empty buffer.
- */
-void BKE_movieclip_convert_multilayer_ibuf(ImBuf *ibuf);
-
 ImBuf *BKE_movieclip_get_ibuf(MovieClip *clip, const MovieClipUser *user);
 ImBuf *BKE_movieclip_get_postprocessed_ibuf(MovieClip *clip,
                                             const MovieClipUser *user,

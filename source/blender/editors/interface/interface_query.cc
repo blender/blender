@@ -250,7 +250,7 @@ static bool but_isect_pie_seg(const Block *block, const Button *but)
   const float angle_adjacent_cos = dot_v2v2(but_dir_adjacent, block->pie_data->pie_dir);
 
   /* Tie breaker, so one of the buttons is always selected. */
-  if (UNLIKELY(angle_but_cos == angle_adjacent_cos)) {
+  if (angle_but_cos == angle_adjacent_cos) [[unlikely]] {
     return but->pie_dir > dir_adjacent;
   }
   return angle_but_cos > angle_adjacent_cos;

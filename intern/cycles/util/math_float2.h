@@ -248,11 +248,6 @@ ccl_device_inline float2 interp(const float2 a, const float2 b, const float t)
   return a + t * (b - a);
 }
 
-ccl_device_inline float2 mix(const float2 a, const float2 b, const float t)
-{
-  return a + t * (b - a);
-}
-
 ccl_device_inline float2 floor(const float2 a)
 {
   return make_float2(floorf(a.x), floorf(a.y));
