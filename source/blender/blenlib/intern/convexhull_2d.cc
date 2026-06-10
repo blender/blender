@@ -171,7 +171,7 @@ static inline void convexhull_2d_stack_push(const float2 *points,
 {
 #ifdef USE_CONVEX_CROSS_PRODUCT_ENSURE
   while (
-      UNLIKELY((top >= 2) &&
+      UNLIKELY((top > 0) &&
                /* See #is_left note on argument order. */
                (is_left(points[r_points[top - 1]], points[index], points[r_points[top]]) >= 0.0f)))
   {

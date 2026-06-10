@@ -494,6 +494,29 @@ TEST(convexhull_2d, NearCoLinear)
               ROTATION_EPS);
 }
 
+TEST(convexhull_2d, CoincidentTopmostX)
+{
+  /* The top-most point shares its X with the point below, which gave an incorrect
+   * (concave) result in v5.1. */
+  const Array<float2> points = {
+      {0.404492587f, 0.514067411f},
+      {0.222857147f, 0.608571410f},
+      {0.222857147f, 0.631428599f}, /* Top-most, shares X with the previous point. */
+      {0.214285702f, 0.608571410f},
+      {0.214285702f, 0.579999983f},
+      {0.217142850f, 0.557142854f},
+      {0.222857147f, 0.545714259f},
+  };
+  Array<float2> points_hull = convexhull_2d_as_array(points);
+  ASSERT_GE(points_hull.size(), 3);
+
+  int i_prev = points_hull.size() - 2;
+  int i_curr = points_hull.size() - 1;
+  for (int i_next = 0; i_next < points_hull.size(); i_prev = i_curr, i_curr = i_next++) {
+    EXPECT_GE(cross_tri_v2(points_hull[i_prev], points_hull[i_curr], points_hull[i_next]), 0.0f);
+  }
+}
+
 /* Keep these as they're handy for generating a lot of random data.
  * To brute force check results are as expected:
  * - Increase #DEFAULT_TEST_ITER to a large number (100k or so).
