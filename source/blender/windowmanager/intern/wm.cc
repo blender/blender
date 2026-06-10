@@ -187,7 +187,7 @@ static void window_manager_blend_read_data(BlendDataReader *reader, ID *id)
 
     /* Multi-view always falls back to anaglyph at file opening
      * otherwise quad-buffer saved files can break Blender. */
-    if (win.stereo3d_format) {
+    if (win.stereo3d_format && win.stereo3d_format->display_mode == S3D_DISPLAY_PAGEFLIP) {
       win.stereo3d_format->display_mode = S3D_DISPLAY_ANAGLYPH;
     }
     win.runtime = MEM_new<bke::WindowRuntime>(__func__);
