@@ -1772,8 +1772,14 @@ static wmOperatorStatus edbm_edge_loop_multiselect_exec(bContext *C, wmOperator 
       eed = edarray[edindex];
       const bool non_manifold = BM_edge_face_count_is_over(eed, 2);
       if (non_manifold) {
-        changed |= walker_select(
-            em, BMW_EDGELOOP_NONMANIFOLD, eed, true, BMW_FLAG_TEST_HIDDEN, delimit, nullptr);
+        changed |= walker_select(em,
+                                 BMW_EDGELOOP_NONMANIFOLD,
+                                 eed,
+                                 true,
+                                 BMW_FLAG_TEST_HIDDEN,
+                                 /* No support for delimiters, see #BMW_init. */
+                                 BMW_DELIMIT_NONE,
+                                 nullptr);
       }
       else {
         changed |= walker_select(
