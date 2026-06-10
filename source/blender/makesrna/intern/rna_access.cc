@@ -5310,8 +5310,15 @@ bool RNA_property_collection_type_get(PointerRNA *ptr, PropertyRNA *prop, Pointe
 {
   BLI_assert(RNA_property_type(prop) == PROP_COLLECTION);
 
-  *r_ptr = *ptr;
-  return ((r_ptr->type = rna_ensure_property(prop)->srna) ? 1 : 0);
+  StructRNA *type = rna_ensure_property(prop)->srna;
+  if (type) {
+    *r_ptr = RNA_pointer_create_with_parent(*ptr, type, ptr->data);
+    return true;
+  }
+  else {
+    *r_ptr = *ptr;
+    return false;
+  }
 }
 
 int RNA_property_collection_raw_array(
