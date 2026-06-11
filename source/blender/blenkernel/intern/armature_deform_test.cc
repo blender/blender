@@ -274,7 +274,7 @@ class ArmatureDeformTestBase {
 
     bke::greasepencil::Layer &layer = grease_pencil->add_layer("Test");
     greasepencil::Drawing &drawing = grease_pencil->insert_frame(layer, 1)->wrap();
-    bke::CurvesGeometry &curves = drawing.geometry.wrap();
+    bke::CurvesGeometry &curves = drawing.strokes_for_write();
 
     curves.resize(vertex_positions().size(), 3);
     curves.offsets_for_write().copy_from(curve_offsets());
@@ -589,7 +589,7 @@ class ArmatureDeformTestBase {
     GreasePencilDrawingBase *drawing_base = grease_pencil->drawings()[0];
     BLI_assert(drawing_base->type == GP_DRAWING);
     greasepencil::Drawing &drawing = reinterpret_cast<GreasePencilDrawing *>(drawing_base)->wrap();
-    bke::CurvesGeometry &curves = drawing.geometry.wrap();
+    bke::CurvesGeometry &curves = drawing.strokes_for_write();
 
     Array<float3x3> deform_mats;
     std::optional<MutableSpan<float3x3>> deform_mats_opt;

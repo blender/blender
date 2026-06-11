@@ -138,7 +138,7 @@ std::optional<bke::MutableAttributeAccessor> AttributeOwner::get_accessor() cons
     case AttributeOwnerType::GreasePencil:
       return this->get_grease_pencil()->attributes_for_write();
     case AttributeOwnerType::GreasePencilDrawing:
-      return this->get_grease_pencil_drawing()->geometry.wrap().attributes_for_write();
+      return this->get_grease_pencil_drawing()->wrap().strokes_for_write().attributes_for_write();
   }
   BLI_assert(false);
   return std::nullopt;

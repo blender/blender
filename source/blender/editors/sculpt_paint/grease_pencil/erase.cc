@@ -1005,7 +1005,7 @@ struct EraseOperationExecutor {
 
       if (erased) {
         /* Set the new geometry. */
-        drawing.geometry.wrap() = std::move(dst);
+        drawing.strokes_for_write() = std::move(dst);
         drawing.tag_topology_changed();
         changed = true;
         self.affected_drawings_.add(&drawing);

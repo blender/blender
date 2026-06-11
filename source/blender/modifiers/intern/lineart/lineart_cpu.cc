@@ -5427,7 +5427,8 @@ void MOD_lineart_gpencil_generate_v3(const LineartCache *cache,
   bke::CurvesGeometry new_curves(total_point_count, stroke_count);
   new_curves.fill_curve_types(CURVE_TYPE_POLY);
 
-  BKE_defgroup_copy_list(&new_curves.vertex_group_names, &drawing.geometry.vertex_group_names);
+  BKE_defgroup_copy_list(&new_curves.vertex_group_names,
+                         &drawing.strokes_for_write().vertex_group_names);
 
   MutableAttributeAccessor attributes = new_curves.attributes_for_write();
   MutableSpan<float3> point_positions = new_curves.positions_for_write();
@@ -5462,7 +5463,7 @@ void MOD_lineart_gpencil_generate_v3(const LineartCache *cache,
     return -1;
   };
 
-  const bool skip_weight_transfer = drawing.geometry.vertex_group_names.is_empty();
+  const bool skip_weight_transfer = drawing.strokes().vertex_group_names.is_empty();
 
   int up_to_point = 0;
   for (int chain_i : writer.index_range()) {
