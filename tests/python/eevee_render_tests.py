@@ -94,8 +94,6 @@ BLOCKLIST_OPENGL = [
 ]
 
 BLOCKLIST_INTEL = [
-    # Fails on the new battle-mage intel build-bot.
-    "shading_offset.blend"
 ]
 
 BLOCKLIST_AMD_WINDOWS_VK = [
@@ -338,7 +336,7 @@ def main():
         if args.gpu_backend == "metal":
             # Difference in shadows in true_displacement_image and vector_displacement_tangent.
             report.set_fail_percent(0.21)
-        elif "ATI" in gpu_vendor or "AMD" in gpu_vendor:
+        elif gpu_vendor == "AMD":
             # Difference in bump_normal_texture likely caused by different derivatives.
             report.set_fail_percent(0.29)
     elif test_dir_name.startswith('transparency'):
@@ -364,6 +362,9 @@ def main():
         if gpu_vendor == "INTEL":
             # light_path_is_singular_ray has some fireflies.
             report.set_fail_percent(0.11)
+        if gpu_vendor == "AMD":
+            # light_path_is_singular_ray has some fireflies.
+            report.set_fail_threshold(9.0 / 255.0)
     elif test_dir_name.startswith('light_linking'):
         # Noise difference in transparent materials (mostly shadow_link_transparency) and volume
         report.set_fail_threshold(8.0 / 255.0)
@@ -401,6 +402,10 @@ def main():
         if args.gpu_backend == "metal":
             # subd_motion_blur has some differences in bump on M1.
             report.set_fail_percent(0.06)
+        if args.gpu_backend == "opengl" and gpu_vendor == "AMD":
+            # large_combined_motion has 1 hot pixel difference in rasterization.
+            report.set_fail_percent(0.043)
+            report.set_fail_threshold(3.0 / 255.0)
     elif test_dir_name.startswith('lightprobe') and args.gpu_backend == "metal":
         # Some shadow difference, to be investigated
         report.set_fail_percent(0.09)

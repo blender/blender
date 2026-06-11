@@ -529,6 +529,10 @@ wmOperatorStatus ED_armature_join_objects_exec(bContext *C, wmOperator *op)
         }
       }
 
+      /* Bring armature out of edit mode. See #159084. */
+      ED_armature_from_edit(bmain, curarm);
+      ED_armature_edit_free(curarm);
+
       /* Free the old object data */
       ed::object::base_free_and_unlink(bmain, scene, ob_iter);
     }
