@@ -167,7 +167,7 @@ static wmOperatorStatus grease_pencil_import_svg_exec(bContext *C, wmOperator *o
   const int resolution = RNA_int_get(op->ptr, "resolution");
   const float scale = RNA_float_get(op->ptr, "scale");
   const bool use_scene_unit = RNA_boolean_get(op->ptr, "use_scene_unit");
-  const bool recenter_bounds = true;
+  const bool recenter_bounds = RNA_boolean_get(op->ptr, "recenter_bounds");
 
   const IOContext io_context(*C, region, v3d, rv3d, op->reports);
   const ImportParams params = {scale, scene->r.cfra, resolution, use_scene_unit, recenter_bounds};
@@ -198,6 +198,7 @@ static void grease_pencil_import_svg_draw(bContext * /*C*/, wmOperator *op)
   col.prop(op->ptr, "resolution", UI_ITEM_NONE, std::nullopt, ICON_NONE);
   col.prop(op->ptr, "scale", UI_ITEM_NONE, std::nullopt, ICON_NONE);
   col.prop(op->ptr, "use_scene_unit", UI_ITEM_NONE, std::nullopt, ICON_NONE);
+  col.prop(op->ptr, "recenter_bounds", UI_ITEM_NONE, std::nullopt, ICON_NONE);
 }
 
 static bool grease_pencil_import_svg_poll(bContext *C)
@@ -259,6 +260,12 @@ void WM_OT_grease_pencil_import_svg(wmOperatorType *ot)
                   false,
                   "Scene Unit",
                   "Apply current scene's unit (as defined by unit scale) to imported data");
+
+  RNA_def_boolean(ot->srna,
+                  "recenter_bounds",
+                  true,
+                  "Center on Bounds",
+                  "Center the imported SVG on its bounding box");
 }
 
 /** \} */
