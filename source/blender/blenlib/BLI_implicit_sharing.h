@@ -12,15 +12,7 @@
 
 namespace blender {
 
-#ifdef __cplusplus
-
 class ImplicitSharingInfo;
 using ImplicitSharingInfoHandle = ImplicitSharingInfo;
-
-#else
-
-struct ImplicitSharingInfoHandle;
-
-#endif
 
 }  // namespace blender

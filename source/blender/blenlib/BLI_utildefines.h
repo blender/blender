@@ -19,21 +19,14 @@
 /* include after _VA_NARGS macro */
 #include "BLI_compiler_typecheck.h"
 
-#ifdef __cplusplus
-#  include <type_traits>
-#  include <utility>
+#include <type_traits>
+#include <utility>
 
 namespace blender {
-#endif
 
 /* -------------------------------------------------------------------- */
 /** \name Min/Max Macros
  * \{ */
-
-#ifndef __cplusplus
-#  define MIN2(a, b) ((a) < (b) ? (a) : (b))
-#  define MAX2(a, b) ((a) > (b) ? (a) : (b))
-#endif
 
 #define INIT_MINMAX(min, max) \
   { \
@@ -174,7 +167,6 @@ namespace blender {
  */
 #define DECIMAL_DIGITS_BOUND(t) (241 * sizeof(t) / 100 + 1)
 
-#ifdef __cplusplus
 constexpr int64_t is_power_of_2(const int64_t x)
 {
   BLI_assert(x >= 0);
@@ -198,7 +190,6 @@ constexpr int64_t power_of_2_max(const int64_t x)
   BLI_assert(x >= 0);
   return 1ll << log2_ceil(x);
 }
-#endif
 
 /** \} */
 
@@ -259,16 +250,6 @@ constexpr int64_t power_of_2_max(const int64_t x)
    ((size_t)((arr_item) - (arr_start)) < (size_t)(arr_len)))
 
 /* assuming a static array */
-#ifndef __cplusplus
-#  if defined(__GNUC__) && !defined(__cplusplus) && !defined(__clang__) && \
-      !defined(__INTEL_COMPILER)
-#    define ARRAY_SIZE(arr) \
-      ((sizeof(struct { int isnt_array : ((const void *)&(arr) == &(arr)[0]); }) * 0) + \
-       (sizeof(arr) / sizeof(*(arr))))
-#  else
-#    define ARRAY_SIZE(arr) (sizeof(arr) / sizeof(*(arr)))
-#  endif
-#endif
 
 /* ARRAY_SET_ITEMS#(v, ...): set indices of array 'v' */
 /* internal helpers */
@@ -382,7 +363,6 @@ constexpr int64_t power_of_2_max(const int64_t x)
   } \
   ((void)0)
 
-#ifdef __cplusplus
 constexpr bool memory_is_zero(const void *data, const size_t size)
 {
   const char *arr_byte = static_cast<const char *>(data);
@@ -412,14 +392,12 @@ template<typename T> constexpr bool value_is_zero(const T &value)
   }
 }
 
-#  define MEMCMP_STRUCT_AFTER_IS_ZERO_OR_EQUAL(struct_dst, struct_src, member) \
-    (memory_is_zero((const char *)(struct_dst) + OFFSETOF_STRUCT_AFTER(struct_dst, member), \
-                    sizeof(*(struct_dst)) - OFFSETOF_STRUCT_AFTER(struct_dst, member)) || \
-     (memcmp((const char *)(struct_dst) + OFFSETOF_STRUCT_AFTER(struct_dst, member), \
-             (const char *)(struct_src) + OFFSETOF_STRUCT_AFTER(struct_src, member), \
-             sizeof(*(struct_dst)) - OFFSETOF_STRUCT_AFTER(struct_dst, member)) == 0))
-
-#endif
+#define MEMCMP_STRUCT_AFTER_IS_ZERO_OR_EQUAL(struct_dst, struct_src, member) \
+  (memory_is_zero((const char *)(struct_dst) + OFFSETOF_STRUCT_AFTER(struct_dst, member), \
+                  sizeof(*(struct_dst)) - OFFSETOF_STRUCT_AFTER(struct_dst, member)) || \
+   (memcmp((const char *)(struct_dst) + OFFSETOF_STRUCT_AFTER(struct_dst, member), \
+           (const char *)(struct_src) + OFFSETOF_STRUCT_AFTER(struct_src, member), \
+           sizeof(*(struct_dst)) - OFFSETOF_STRUCT_AFTER(struct_dst, member)) == 0))
 
 #define INIT_DEFAULT_STRUCT_AFTER(struct_dst, member) \
   { \
@@ -462,18 +440,6 @@ template<typename T> constexpr bool value_is_zero(const T &value)
 /* -------------------------------------------------------------------- */
 /** \name Unused Function/Argument Macros
  * \{ */
-
-#ifndef __cplusplus
-/* UNUSED macro, for function argument */
-#  if defined(__GNUC__) || defined(__clang__)
-#    define UNUSED(x) UNUSED_##x __attribute__((__unused__))
-#  elif defined(_MSC_VER)
-/* NOTE: This suppresses the warning for the line, not the attribute. */
-#    define UNUSED(x) UNUSED_##x __pragma(warning(suppress : 4100))
-#  else
-#    define UNUSED(x) UNUSED_##x
-#  endif
-#endif
 
 /**
  * WARNING: this doesn't warn when returning pointer types (because of the placement of `*`).
@@ -605,8 +571,6 @@ template<typename T> constexpr bool value_is_zero(const T &value)
 
 /** \} */
 
-#ifdef __cplusplus
-
 namespace blenlib_internal {
 
 /* A replacement for std::is_bounded_array_v until we go C++20. */
@@ -645,4 +609,3 @@ BOUNDED_ARRAY_TYPE_SIZE() noexcept
 }
 
 }  // namespace blender
-#endif

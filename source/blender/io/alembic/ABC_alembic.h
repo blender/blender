@@ -128,7 +128,6 @@ struct ABCReadParams {
   float velocity_scale;
 };
 
-#ifdef __cplusplus
 namespace bke {
 struct GeometrySet;
 }
@@ -139,7 +138,6 @@ void ABC_read_geometry(CacheReader *reader,
                        bke::GeometrySet &geometry_set,
                        const ABCReadParams *params,
                        const char **r_err_str);
-#endif
 
 bool ABC_mesh_topology_changed(struct CacheReader *reader,
                                struct Object *ob,

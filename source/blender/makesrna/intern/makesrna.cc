@@ -991,7 +991,6 @@ static void rna_clamp_value_range_check(FILE *f,
   if (prop->type == PROP_INT) {
     IntPropertyRNA *iprop = (IntPropertyRNA *)prop;
     fprintf(f, "    {\n");
-    fprintf(f, "#ifdef __cplusplus\n");
     fprintf(f, "        using T = decltype(%s%s);\n", dnaname_prefix, dnaname);
     fprintf(f,
             "        static_assert(std::numeric_limits<std::decay_t<T>>::max() >= %d);\n",
@@ -999,19 +998,6 @@ static void rna_clamp_value_range_check(FILE *f,
     fprintf(f,
             "        static_assert(std::numeric_limits<std::decay_t<T>>::min() <= %d);\n",
             iprop->hardmin);
-    fprintf(f, "#else\n");
-    fprintf(f,
-            "        BLI_STATIC_ASSERT("
-            "(TYPEOF_MAX(%s%s) >= %d) && "
-            "(TYPEOF_MIN(%s%s) <= %d), "
-            "\"invalid limits\");\n",
-            dnaname_prefix,
-            dnaname,
-            iprop->hardmax,
-            dnaname_prefix,
-            dnaname,
-            iprop->hardmin);
-    fprintf(f, "#endif\n");
     fprintf(f, "    }\n");
   }
 }

@@ -10,12 +10,9 @@
 
 #include "RNA_types.hh"
 
-#ifdef __cplusplus
-
 namespace blender {
 
 class AttributeOwner;
-#endif
 
 struct PointerRNA;
 struct PropertyRNA;
@@ -24,6 +21,7 @@ namespace bke {
 struct bNodeTreeType;
 struct bNodeSocketType;
 struct RuntimeNodeEnumItems;
+
 }  // namespace bke
 
 /* Types */

@@ -10,10 +10,6 @@
 
 #pragma once
 
-#ifndef __cplusplus
-#  error This is a C++ header.
-#endif
-
 #include "DNA_armature_types.h"
 
 #include "BLI_listbase_wrapper.hh"

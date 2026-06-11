@@ -64,26 +64,8 @@ void _BLI_assert_unreachable_print(const char *file, int line, const char *funct
 #  define BLI_assert_msg(a, msg) ((void)0)
 #endif
 
-#if defined(__cplusplus)
 /* C++11 */
-#  define BLI_STATIC_ASSERT(a, msg) static_assert(a, msg);
-#elif defined(_MSC_VER)
-/* Visual Studio */
-#  if !defined(__clang__)
-#    define BLI_STATIC_ASSERT(a, msg) static_assert(a, msg);
-#  else
-#    define BLI_STATIC_ASSERT(a, msg) _STATIC_ASSERT(a);
-#  endif
-#elif defined(__COVERITY__)
-/* Workaround error with COVERITY. */
-#  define BLI_STATIC_ASSERT(a, msg)
-#elif defined(__STDC_VERSION__) && (__STDC_VERSION__ >= 201112L)
-/* C11 */
-#  define BLI_STATIC_ASSERT(a, msg) _Static_assert(a, msg);
-#else
-/* Old unsupported compiler */
-#  define BLI_STATIC_ASSERT(a, msg)
-#endif
+#define BLI_STATIC_ASSERT(a, msg) static_assert(a, msg);
 
 #define BLI_STATIC_ASSERT_ALIGN(st, align) \
   BLI_STATIC_ASSERT((sizeof(st) % (align) == 0), "Structure must be strictly aligned")
@@ -99,16 +81,14 @@ void _BLI_assert_unreachable_print(const char *file, int line, const char *funct
   } \
   ((void)0)
 
-#ifdef __cplusplus
-
 /**
  * Indicates that this line should never be reached, even at compile-time. Just doing
  * `static_assert(false)` doesn't work in C++20 for this use-case. BLI_assert_unreachable is
  * similar but does not catch issues at compile-time.
  */
-#  define BLI_assert_unreachable_static() \
-    static_assert([]<bool flag = false>() { return flag; }(), \
-                  "Unreachable code path reached at compile-time!")
+#define BLI_assert_unreachable_static() \
+  static_assert([]<bool flag = false>() { return flag; }(), \
+                "Unreachable code path reached at compile-time!")
 
 template<class T> inline constexpr bool _bli_always_false = false;
 
@@ -116,7 +96,5 @@ template<class T> inline constexpr bool _bli_always_false = false;
  * Like #BLI_assert_unreachable_static but allows passing in a type. This results in a more useful
  * error message containing the type name.
  */
-#  define BLI_assert_unreachable_static_t(T) \
-    static_assert(_bli_always_false<T>, "Unreachable code path reached at compile-time!")
-
-#endif
+#define BLI_assert_unreachable_static_t(T) \
+  static_assert(_bli_always_false<T>, "Unreachable code path reached at compile-time!")

@@ -52,15 +52,6 @@ typedef uint64_t u_int64_t;
 #include <stdbool.h>  // IWYU pragma: export
 #include <stddef.h>   // IWYU pragma: export
 
-#ifndef __cplusplus
-/* The <uchar.h> standard header is missing on some systems. */
-#  if defined(__APPLE__) || defined(__NetBSD__) || defined(__OpenBSD__)
-typedef unsigned int char32_t;
-#  else
-#    include <uchar.h>  // IWYU pragma: export
-#  endif
-#endif
-
 typedef unsigned int uint;
 typedef unsigned short ushort;
 typedef unsigned long ulong;
