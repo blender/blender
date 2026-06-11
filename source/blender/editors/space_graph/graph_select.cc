@@ -1528,9 +1528,9 @@ void GRAPH_OT_select_less(wmOperatorType *ot)
 
 /* defines for left-right select tool */
 static const EnumPropertyItem prop_graphkeys_leftright_select_types[] = {
-    {GRAPHKEYS_LRSEL_TEST, "CHECK", 0, "Check if Select Left or Right", ""},
     {GRAPHKEYS_LRSEL_LEFT, "LEFT", 0, "Before Current Frame", ""},
     {GRAPHKEYS_LRSEL_RIGHT, "RIGHT", 0, "After Current Frame", ""},
+    {GRAPHKEYS_LRSEL_TEST, "CHECK", 0, "Mouse Click Side", ""},
     {0, nullptr, 0, nullptr, nullptr},
 };
 

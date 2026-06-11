@@ -1737,7 +1737,7 @@ enum eMarkers_LeftRightSelect_Mode {
 static const EnumPropertyItem prop_markers_select_leftright_modes[] = {
     {MARKERS_LRSEL_LEFT, "LEFT", 0, "Before Current Frame", ""},
     {MARKERS_LRSEL_RIGHT, "RIGHT", 0, "After Current Frame", ""},
-    {MARKERS_LRSEL_CLICK_SIDE, "CLICK_SIDE", 0, "Check which side was clicked", ""},
+    {MARKERS_LRSEL_CLICK_SIDE, "CLICK_SIDE", 0, "Mouse Click Side", ""},
     {0, nullptr, 0, nullptr, nullptr},
 };
 
