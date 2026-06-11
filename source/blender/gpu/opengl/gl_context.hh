@@ -122,8 +122,12 @@ class GLContext : public Context {
 
   void process_frame_timings();
 
+  class GHOST_IContext *ghost_context_;
+
  public:
-  GLContext(GHOST_IWindow *ghost_window, GLSharedOrphanLists &shared_orphan_list);
+  GLContext(GHOST_IWindow *ghost_window,
+            GHOST_IContext *ghost_context,
+            GLSharedOrphanLists &shared_orphan_list);
   ~GLContext();
 
   static void check_error(const char *info);

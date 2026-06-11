@@ -116,6 +116,8 @@ void VKContext::activate()
 {
   /* Make sure no other context is already bound to this thread. */
   BLI_assert(is_active_ == false);
+  /* Make sure the active GHOST context matches the one this GPU Context was created for. */
+  BLI_assert(ghost_context_ == GHOST_IContext::getActiveDrawingContext());
 
   VKDevice &device = VKBackend::get().device;
   VKThreadData &thread_data = device.current_thread_data();
