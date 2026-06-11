@@ -141,7 +141,11 @@ static void gpu_node_input_link(GPUNode *node, GPUNodeLink *link, const GPUType 
       /* Fail-safe handling if the same attribute is used with different data-types for
        * some reason (only really makes sense with float/vec2/vec3/vec4 though). This
        * can happen if mixing the generic Attribute node with specialized ones. */
-      CLAMP_MIN(input->attr->gputype, type);
+      if (input->attr->gputype == GPU_NONE ||
+          gpu_type_element_count(input->attr->gputype) < gpu_type_element_count(type))
+      {
+        input->attr->gputype = type;
+      }
       break;
     case GPU_NODE_LINK_UNIFORM_ATTR:
       input->source = GPU_SOURCE_UNIFORM_ATTR;
@@ -170,7 +174,7 @@ static void gpu_node_input_link(GPUNode *node, GPUNodeLink *link, const GPUType 
   }
 
   if (ELEM(input->source, GPU_SOURCE_CONSTANT, GPU_SOURCE_UNIFORM)) {
-    memcpy(input->vec, link->data, type * sizeof(float));
+    memcpy(input->vec, link->data, gpu_type_element_count(type) * sizeof(float));
   }
 
   if (link->link_type != GPU_NODE_LINK_OUTPUT) {
