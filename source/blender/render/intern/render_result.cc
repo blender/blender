@@ -916,17 +916,6 @@ bool render_result_exr_file_read_path(RenderResult *rr,
         continue;
       }
 
-      if (match->channels != rpass.channels) {
-        BKE_reportf(nullptr,
-                    RPT_WARNING,
-                    "Reading render result: pass \"%s.%s\" has %d channels, expected %d",
-                    rl.name,
-                    rpass.name,
-                    match->channels,
-                    rpass.channels);
-        continue;
-      }
-
       if (rpass.ibuf == nullptr) {
         BKE_reportf(nullptr,
                     RPT_WARNING,
@@ -934,6 +923,18 @@ bool render_result_exr_file_read_path(RenderResult *rr,
                     rl.name,
                     rpass.name);
         continue;
+      }
+
+      if (match->channels != rpass.channels) {
+        /* Only a non-fatal warning, IMB_exr_read_passes will accept this
+         * and leave missing channels 0. */
+        BKE_reportf(nullptr,
+                    RPT_WARNING,
+                    "Reading render result: pass \"%s.%s\" has %d channels, expected %d",
+                    rl.name,
+                    rpass.name,
+                    match->channels,
+                    rpass.channels);
       }
 
       requests.append({.layer = match->layer,

@@ -1416,14 +1416,21 @@ void IMB_exr_read_passes(ExrReadHandle *handle,
           }
         }
         else {
-          BLI_assert(entry.ibuf->channels == pass.totchan && entry.ibuf->x == width &&
-                     entry.ibuf->y == height);
+          BLI_assert(entry.ibuf->x == width && entry.ibuf->y == height);
         }
 
-        /* Populate per channel pixel pointers. */
+        /* Populate per channel pixel pointers.
+         *
+         * This allows different number of source and destination channels for th
+         * RenderResult.load_from_file API, which has historically supported this. */
         float *data = entry.ibuf->float_data_for_write();
         for (int a = 0; a < pass.totchan; a++) {
           ExrChannel &echan = *pass.chan[a];
+          if (echan.offset >= entry.ibuf->channels) {
+            continue;
+          }
+          echan.xstride = entry.ibuf->channels;
+          echan.ystride = width * entry.ibuf->channels;
           echan.rect = data + echan.offset;
         }
         found = true;
