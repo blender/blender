@@ -1009,7 +1009,9 @@ void ShaderModule::material_create_info_amend(GPUMaterial *gpumat, GPUCodegenOut
     info.additional_info("eevee_PreviousLayerRadiance");
   }
 
-  if (ELEM(pipeline_type, MAT_PIPE_DEFERRED, MAT_PIPE_FORWARD)) {
+  if (ELEM(pipeline_type, MAT_PIPE_DEFERRED, MAT_PIPE_FORWARD) &&
+      !ELEM(geometry_type, MAT_GEOM_WORLD, MAT_GEOM_VOLUME))
+  {
     /* While only needed for the AO node, we always bind the hiz globally for these pipelines.
      * To ensure no user textures will reuse the slot binding, we add the info unconditionally. */
     info.additional_info("eevee_HiZ");
