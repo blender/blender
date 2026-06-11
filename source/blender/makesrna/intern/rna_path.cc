@@ -249,7 +249,9 @@ static bool rna_path_parse_collection_key(const char **path,
     }
   }
   else {
-    if (RNA_property_collection_type_get(ptr, prop, r_nextptr)) {
+    std::optional<PointerRNA> nextptr = RNA_property_collection_type_get(ptr, prop);
+    if (nextptr) {
+      *r_nextptr = *nextptr;
       found = true;
     }
     else {

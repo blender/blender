@@ -1191,10 +1191,13 @@ static PyObject *pyrna_prop_str(BPy_PropertyRNA *self)
     }
   }
   if (type == PROP_COLLECTION) {
-    PointerRNA r_ptr;
-    if (RNA_property_collection_type_get(&self->ptr.value(), self->prop, &r_ptr)) {
-      return PyUnicode_FromFormat(
-          "<bpy_%.200s%.200s, %.200s>", type_lower, type_count, RNA_struct_identifier(r_ptr.type));
+    if (std::optional<PointerRNA> c_ptr = RNA_property_collection_type_get(&self->ptr.value(),
+                                                                           self->prop))
+    {
+      return PyUnicode_FromFormat("<bpy_%.200s%.200s, %.200s>",
+                                  type_lower,
+                                  type_count,
+                                  RNA_struct_identifier(c_ptr->type));
     }
   }
 
@@ -1991,11 +1994,11 @@ static int pyrna_py_to_prop(
 
         /* Another exception, allow passing a collection as an RNA property. */
         if (Py_TYPE(value) == &pyrna_prop_collection_Type) { /* Ok to ignore idprop collections. */
-          PointerRNA c_ptr;
           BPy_PropertyRNA *value_prop = reinterpret_cast<BPy_PropertyRNA *>(value);
-          if (RNA_property_collection_type_get(&value_prop->ptr.value(), value_prop->prop, &c_ptr))
+          if (std::optional<PointerRNA> c_ptr = RNA_property_collection_type_get(
+                  &value_prop->ptr.value(), value_prop->prop))
           {
-            value = pyrna_struct_CreatePyObject(&c_ptr);
+            value = pyrna_struct_CreatePyObject(&c_ptr.value());
             value_new = value;
           }
           else {
@@ -4562,10 +4565,10 @@ static void pyrna_dir_members_py(PyObject *list, PyObject *self)
   if (BPy_PropertyRNA_Check(self)) {
     BPy_PropertyRNA *self_prop = reinterpret_cast<BPy_PropertyRNA *>(self);
     if (RNA_property_type(self_prop->prop) == PROP_COLLECTION) {
-      PointerRNA r_ptr;
-
-      if (RNA_property_collection_type_get(&self_prop->ptr.value(), self_prop->prop, &r_ptr)) {
-        PyObject *cls = pyrna_struct_Subtype(&r_ptr); /* borrows */
+      if (std::optional<PointerRNA> c_ptr = RNA_property_collection_type_get(
+              &self_prop->ptr.value(), self_prop->prop))
+      {
+        PyObject *cls = pyrna_struct_Subtype(&c_ptr.value()); /* borrows */
         dict = (reinterpret_cast<PyTypeObject *>(cls))->tp_dict;
         pyrna_dir_members_py__add_keys(list, dict);
         Py_DECREF(cls);
@@ -5138,7 +5141,6 @@ static int pyrna_struct_setattro(BPy_StructRNA *self, PyObject *pyname, PyObject
 static PyObject *pyrna_prop_dir(BPy_PropertyRNA *self)
 {
   PyObject *ret;
-  PointerRNA r_ptr;
 
   /* Include this in case this instance is a subtype of a Python class
    * In these instances we may want to return a function or variable provided by the subtype. */
@@ -5149,8 +5151,10 @@ static PyObject *pyrna_prop_dir(BPy_PropertyRNA *self)
   }
 
   if (RNA_property_type(self->prop) == PROP_COLLECTION) {
-    if (RNA_property_collection_type_get(&self->ptr.value(), self->prop, &r_ptr)) {
-      pyrna_dir_members_rna(ret, &r_ptr);
+    if (std::optional<PointerRNA> c_ptr = RNA_property_collection_type_get(&self->ptr.value(),
+                                                                           self->prop))
+    {
+      pyrna_dir_members_rna(ret, &c_ptr.value());
     }
   }
 
@@ -5175,15 +5179,16 @@ static PyObject *pyrna_prop_collection_getattro(BPy_PropertyRNA *self, PyObject 
     PropertyRNA *prop;
     FunctionRNA *func;
 
-    PointerRNA r_ptr;
-    if (RNA_property_collection_type_get(&self->ptr.value(), self->prop, &r_ptr)) {
-      if ((prop = RNA_struct_find_property(&r_ptr, name))) {
-        ret = pyrna_prop_to_py(&r_ptr, prop);
+    if (std::optional<PointerRNA> c_ptr = RNA_property_collection_type_get(&self->ptr.value(),
+                                                                           self->prop))
+    {
+      if ((prop = RNA_struct_find_property(&c_ptr.value(), name))) {
+        ret = pyrna_prop_to_py(&c_ptr.value(), prop);
 
         return ret;
       }
-      if ((func = RNA_struct_find_function(r_ptr.type, name))) {
-        PyObject *self_collection = pyrna_struct_CreatePyObject(&r_ptr);
+      if ((func = RNA_struct_find_function(c_ptr->type, name))) {
+        PyObject *self_collection = pyrna_struct_CreatePyObject(&c_ptr.value());
         ret = pyrna_func_CreatePyObject(
             &(reinterpret_cast<BPy_DummyPointerRNA *>(self_collection))->ptr.value(), func);
         Py_DECREF(self_collection);
@@ -5207,9 +5212,10 @@ static PyObject *pyrna_prop_collection_getattro(BPy_PropertyRNA *self, PyObject 
     /* Check the '_' prefix to avoid inheriting `__call__` and similar. */
     if ((ret == nullptr) && (name[0] != '_')) {
       /* Since this is least common case, handle it last. */
-      PointerRNA r_ptr;
-      if (RNA_property_collection_type_get(&self->ptr.value(), self->prop, &r_ptr)) {
-        PyObject *cls = pyrna_struct_Subtype(&r_ptr);
+      if (std::optional<PointerRNA> c_ptr = RNA_property_collection_type_get(&self->ptr.value(),
+                                                                             self->prop))
+      {
+        PyObject *cls = pyrna_struct_Subtype(&c_ptr.value());
         ret = _PyObject_GenericGetAttrWithDict(cls, pyname, nullptr, 1);
         Py_DECREF(cls);
 
@@ -5244,7 +5250,6 @@ static int pyrna_prop_collection_setattro(BPy_PropertyRNA *self, PyObject *pynam
 {
   const char *name = PyUnicode_AsUTF8(pyname);
   PropertyRNA *prop;
-  PointerRNA r_ptr;
 
 #ifdef USE_PEDANTIC_WRITE
   if (rna_disallow_writes && rna_id_write_error(&self->ptr.value(), pyname)) {
@@ -5260,11 +5265,13 @@ static int pyrna_prop_collection_setattro(BPy_PropertyRNA *self, PyObject *pynam
     PyErr_SetString(PyExc_AttributeError, "bpy_prop: del not supported");
     return -1;
   }
-  if (RNA_property_collection_type_get(&self->ptr.value(), self->prop, &r_ptr)) {
-    if ((prop = RNA_struct_find_property(&r_ptr, name))) {
+  if (std::optional<PointerRNA> c_ptr = RNA_property_collection_type_get(&self->ptr.value(),
+                                                                         self->prop))
+  {
+    if ((prop = RNA_struct_find_property(&c_ptr.value(), name))) {
       /* pyrna_py_to_prop sets its own exceptions. */
       return pyrna_py_to_prop(
-          &r_ptr, prop, nullptr, value, "BPy_PropertyRNA - Attribute (setattr):");
+          &c_ptr.value(), prop, nullptr, value, "BPy_PropertyRNA - Attribute (setattr):");
     }
   }
 

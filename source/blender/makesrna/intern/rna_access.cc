@@ -5306,19 +5306,14 @@ bool RNA_property_collection_assign_int(PointerRNA *ptr,
   return false;
 }
 
-bool RNA_property_collection_type_get(PointerRNA *ptr, PropertyRNA *prop, PointerRNA *r_ptr)
+std::optional<PointerRNA> RNA_property_collection_type_get(PointerRNA *ptr, PropertyRNA *prop)
 {
   BLI_assert(RNA_property_type(prop) == PROP_COLLECTION);
-
   StructRNA *type = rna_ensure_property(prop)->srna;
-  if (type) {
-    *r_ptr = RNA_pointer_create_with_parent(*ptr, type, ptr->data);
-    return true;
+  if (type == nullptr) {
+    return std::nullopt;
   }
-  else {
-    *r_ptr = *ptr;
-    return false;
-  }
+  return RNA_pointer_create_with_parent(*ptr, type, ptr->data);
 }
 
 int RNA_property_collection_raw_array(
