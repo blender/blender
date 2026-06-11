@@ -626,7 +626,7 @@ GPU_SHADER_CREATE_END()
 
 GPU_SHADER_CREATE_INFO(compositor_convert_quaternion_to_float2)
 ADDITIONAL_INFO(compositor_convert_float_shared)
-IMAGE(0, SFLOAT_16_16_16_16, write, image2D, output_img)
+IMAGE(0, SFLOAT_16_16, write, image2D, output_img)
 COMPUTE_FUNCTION("convert_quaternion_to_float2")
 DO_STATIC_COMPILATION()
 GPU_SHADER_CREATE_END()

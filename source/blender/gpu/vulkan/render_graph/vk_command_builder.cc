@@ -267,6 +267,76 @@ void VKCommandBuilder::groups_extract_barriers(VKRenderGraph &render_graph,
       rendering_active = false;
     }
 
+    /* After all node barriers have been extracted, check if depth/stencil attachments in
+     * BEGIN_RENDERING were transitioned to a non-optimal layout by group pre-barriers. If so,
+     * fix up VkRenderingAttachmentInfo.imageLayout to match the actual GPU layout, and add an
+     * acquire barrier when LOAD_OP_LOAD is used to ensure memory visibility. */
+    {
+      NodeHandle first_handle = node_handles[node_group.first()];
+      VKRenderGraphNode &first_node = render_graph.nodes_[first_handle];
+      if (first_node.type == VKNodeType::BEGIN_RENDERING) {
+        VKBeginRenderingData &begin_data =
+            render_graph.storage_.begin_rendering[first_node.storage_index];
+
+        for (const VKRenderGraphImage &link : render_graph.linked_images(first_handle)) {
+          if (!(link.vk_image_aspect & (VK_IMAGE_ASPECT_DEPTH_BIT | VK_IMAGE_ASPECT_STENCIL_BIT)))
+          {
+            continue;
+          }
+          VKResourceStateTracker::Resource &resource = render_graph.resources_.get_image_resource(
+              link.resource.handle);
+          VkImageLayout gpu_layout = resource.barrier_state.image_layout;
+          VkImageLayout optimal_layout = to_default_image_layout(link.vk_image_aspect,
+                                                                 use_local_read);
+          if (gpu_layout == optimal_layout) {
+            continue;
+          }
+
+          /* Fix up the imageLayout to reflect the actual GPU layout after all pre-barriers. */
+          if (link.vk_image_aspect & VK_IMAGE_ASPECT_DEPTH_BIT &&
+              begin_data.vk_rendering_info.pDepthAttachment != nullptr)
+          {
+            begin_data.depth_attachment.imageLayout = gpu_layout;
+          }
+          if (link.vk_image_aspect & VK_IMAGE_ASPECT_STENCIL_BIT &&
+              begin_data.vk_rendering_info.pStencilAttachment != nullptr)
+          {
+            begin_data.stencil_attachment.imageLayout = gpu_layout;
+          }
+
+          /* When LOAD_OP_LOAD is used with a non-optimal layout, the existing layout transition
+           * barriers may not provide proper memory visibility for the load operation. Add an
+           * acquire barrier to ensure prior writes are visible before the depth/stencil test. */
+          bool depth_load = (link.vk_image_aspect & VK_IMAGE_ASPECT_DEPTH_BIT) &&
+                            begin_data.vk_rendering_info.pDepthAttachment != nullptr &&
+                            begin_data.depth_attachment.loadOp == VK_ATTACHMENT_LOAD_OP_LOAD;
+          bool stencil_load = (link.vk_image_aspect & VK_IMAGE_ASPECT_STENCIL_BIT) &&
+                              begin_data.vk_rendering_info.pStencilAttachment != nullptr &&
+                              begin_data.stencil_attachment.loadOp == VK_ATTACHMENT_LOAD_OP_LOAD;
+          if (!depth_load && !stencil_load) {
+            continue;
+          }
+
+          Barrier barrier = {};
+          reset_barriers(barrier);
+          barrier.src_stage_mask = VK_PIPELINE_STAGE_ALL_COMMANDS_BIT;
+          barrier.dst_stage_mask = VK_PIPELINE_STAGE_EARLY_FRAGMENT_TESTS_BIT;
+          barrier.image_memory_barriers = IndexRange(vk_image_memory_barriers_.size(), 0);
+          add_image_barrier(resource.image.vk_image,
+                            barrier,
+                            VK_ACCESS_MEMORY_WRITE_BIT,
+                            VK_ACCESS_DEPTH_STENCIL_ATTACHMENT_READ_BIT,
+                            gpu_layout,
+                            gpu_layout,
+                            link.vk_image_aspect,
+                            {});
+          barrier.image_memory_barriers = barrier.image_memory_barriers.with_new_end(
+              vk_image_memory_barriers_.size());
+          barrier_list_.append(barrier);
+        }
+      }
+    }
+
     /* Update the group pre and post barriers. Pre barriers are already stored in the
      * barrier_list_. The post barriers are appended after the pre barriers. */
     int64_t barrier_list_size = barrier_list_.size();
