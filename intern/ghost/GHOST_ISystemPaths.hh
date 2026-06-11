@@ -55,6 +55,21 @@ class GHOST_ISystemPaths {
   virtual const char *getSystemDir(int version, const char *versionstr) const = 0;
 
   /**
+   * The base directory where architecture-dependent files are located,
+   * mirroring #getSystemDir under the install lib tree (eg `/usr/lib/blender/`).
+   *
+   * \return String pointing to the system libraries directory,
+   * or null when this build has no separate system library directory.
+   *
+   * For portable builds this function always returns null, for specific details
+   * see CMake's `BLENDER_INSTALL_LIBDIR` define for when this is/isn't used and why.
+   */
+  virtual const char *getSystemLibsDir(int /*version*/, const char * /*versionstr*/) const
+  {
+    return nullptr;
+  }
+
+  /**
    * Determine the base directory in which user configuration is stored, including versioning.
    * If needed, it will create the base directory.
    * \return Unsigned char string pointing to user directory (eg `~/.blender/`).

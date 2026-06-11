@@ -37,6 +37,14 @@ class GHOST_SystemPathsUnix : public GHOST_SystemPaths {
   const char *getSystemDir(int version, const char *versionstr) const override;
 
   /**
+   * Determine the base directory for architecture-dependent shared libraries, mirroring
+   * #getSystemDir under the install lib tree (eg `/usr/lib/blender/`).
+   * \return Unsigned char string pointing to the system libraries directory or null
+   * when the system-libraries path is not used.
+   */
+  const char *getSystemLibsDir(int version, const char *versionstr) const override;
+
+  /**
    * Determine the base directory in which user configuration is stored, including versioning.
    * If needed, it will create the base directory.
    * \return Unsigned char string pointing to user directory (eg `~/.config/.blender/`).

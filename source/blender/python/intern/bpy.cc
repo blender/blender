@@ -320,19 +320,28 @@ PyDoc_STRVAR(
     "   Return the base path for storing system files.\n"
     "\n"
     "   :param type: The resource type.\n"
-    "   :type type: Literal['USER', 'LOCAL', 'SYSTEM']\n"
+    "   :type type: Literal['USER', 'LOCAL', 'SYSTEM', 'SYSTEM_LIBS']\n"
     "   :param major: Major version. None (the default) uses ``bpy.app.version[0]``.\n"
     "   :type major: int | None\n"
     "   :param minor: Minor version. None (the default) uses ``bpy.app.version[1]``.\n"
     "   :type minor: int | None\n"
     "   :return: the resource path (not necessarily existing).\n"
-    "   :rtype: str\n");
+    "   :rtype: str\n"
+    "\n"
+    "   .. note::\n"
+    "\n"
+    "      ``SYSTEM_LIBS`` mirrors ``SYSTEM`` "
+    "but resolves to the directory for architecture-dependent libraries "
+    "(typically under ``/usr/lib/...`` rather than ``/usr/share/...``). "
+    "It is an empty string on builds without a separate library directory, "
+    "such as portable builds and the Python module.\n");
 static PyObject *bpy_resource_path(PyObject * /*self*/, PyObject *args, PyObject *kw)
 {
   const PyC_StringEnumItems type_items[] = {
       {BLENDER_RESOURCE_PATH_USER, "USER"},
       {BLENDER_RESOURCE_PATH_LOCAL, "LOCAL"},
       {BLENDER_RESOURCE_PATH_SYSTEM, "SYSTEM"},
+      {BLENDER_RESOURCE_PATH_SYSTEM_LIBS, "SYSTEM_LIBS"},
       {0, nullptr},
   };
   PyC_StringEnum type = {type_items};

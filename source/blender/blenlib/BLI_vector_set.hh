@@ -888,6 +888,7 @@ class VectorSet {
         Key *dst = keys_ + index;
         new (dst) Key(std::forward<ForwardKey>(key));
         BLI_assert(hash_(*dst) == hash);
+        BLI_assert(is_equal_(*dst, *dst));
         slot.occupy(index, hash);
         occupied_and_removed_slots_++;
         return;
@@ -906,6 +907,7 @@ class VectorSet {
         Key *dst = keys_ + index;
         new (dst) Key(std::forward<ForwardKey>(key));
         BLI_assert(hash_(*dst) == hash);
+        BLI_assert(is_equal_(*dst, *dst));
         slot.occupy(index, hash);
         occupied_and_removed_slots_++;
         return true;
@@ -927,6 +929,7 @@ class VectorSet {
         Key *dst = keys_ + index;
         new (dst) Key(std::forward<ForwardKey>(key));
         BLI_assert(hash_(*dst) == hash);
+        BLI_assert(is_equal_(*dst, *dst));
         slot.occupy(index, hash);
         occupied_and_removed_slots_++;
         return true;
@@ -983,6 +986,7 @@ class VectorSet {
         Key *dst = keys_ + index;
         new (dst) Key(std::forward<ForwardKey>(key));
         BLI_assert(hash_(*dst) == hash);
+        BLI_assert(is_equal_(*dst, *dst));
         slot.occupy(index, hash);
         occupied_and_removed_slots_++;
         return index;

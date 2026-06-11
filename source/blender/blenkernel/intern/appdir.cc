@@ -604,6 +604,42 @@ static bool get_path_system(char *targetpath,
       targetpath, targetpath_maxncpy, folder_name, subfolder_name, version, check_is_dir);
 }
 
+/**
+ * Returns the path of a folder for architecture-dependent libraries, mirroring
+ * #get_path_system_ex under the install lib tree (FHS). See #GHOST_ISystemPaths::getSystemLibsDir;
+ * returns false on platforms that bundle libraries beside the executable.
+ */
+static bool get_path_system_libs_ex(char *targetpath,
+                                    size_t targetpath_maxncpy,
+                                    const char *folder_name,
+                                    const char *subfolder_name,
+                                    const int version,
+                                    const bool check_is_dir)
+{
+  char system_path[FILE_MAX] = "";
+
+  const GHOST_ISystemPaths *ghost_system_paths = GHOST_ISystemPaths::get();
+  const char *system_base_path = ghost_system_paths->getSystemLibsDir(
+      version, blender_version_decimal(version));
+  if (system_base_path) {
+    STRNCPY(system_path, system_base_path);
+  }
+
+  if (!system_path[0]) {
+    return false;
+  }
+
+  CLOG_DEBUG(&LOG,
+             "Get path system libs: '%s', folder='%s', subfolder='%s'",
+             system_path,
+             STR_OR_FALLBACK(folder_name),
+             STR_OR_FALLBACK(subfolder_name));
+
+  /* Try `$LIBDIR/folder_name/subfolder_name`, `subfolder_name` may be nullptr. */
+  return test_path(
+      targetpath, targetpath_maxncpy, check_is_dir, system_path, folder_name, subfolder_name);
+}
+
 /** \} */
 
 /* -------------------------------------------------------------------- */
@@ -823,6 +859,9 @@ std::optional<std::string> BKE_appdir_resource_path_id_with_version(const int fo
       break;
     case BLENDER_RESOURCE_PATH_SYSTEM:
       ok = get_path_system_ex(path, sizeof(path), nullptr, nullptr, version, check_is_dir);
+      break;
+    case BLENDER_RESOURCE_PATH_SYSTEM_LIBS:
+      ok = get_path_system_libs_ex(path, sizeof(path), nullptr, nullptr, version, check_is_dir);
       break;
     default:
       path[0] = '\0'; /* in case check_is_dir is false */

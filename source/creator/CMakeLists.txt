@@ -398,6 +398,11 @@ if(UNIX AND NOT APPLE)
     else()
       set(TARGETDIR_VER "share/blender/${BLENDER_VERSION}")
       set(TARGETDIR_TEXT "share/doc/blender")
+      if(CMAKE_INSTALL_LIBDIR)
+        set(TARGETDIR_VER_LIBS "${CMAKE_INSTALL_LIBDIR}/blender/${BLENDER_VERSION}")
+      else()
+        set(TARGETDIR_VER_LIBS "lib/blender/${BLENDER_VERSION}")
+      endif()
     endif()
   endif()
   set(TARGETDIR_SITE_PACKAGES "${TARGETDIR_VER}/python/lib/python${PYTHON_VERSION}/site-packages")
@@ -441,6 +446,10 @@ elseif(APPLE)
   endif()
 endif()
 
+# In most cases this matches `TARGETDIR_VER`, set here unless explicitly defined.
+if(NOT DEFINED TARGETDIR_VER_LIBS)
+  set(TARGETDIR_VER_LIBS "${TARGETDIR_VER}")
+endif()
 
 # -----------------------------------------------------------------------------
 # Install Targets (Generic, All Platforms)
@@ -491,14 +500,14 @@ if(WITH_PYTHON)
   if(WITH_DRACO)
     install(
       PROGRAMS $<TARGET_FILE:bf_intern_draco_bridge>
-      DESTINATION ${TARGETDIR_VER}/scripts/addons_core/io_scene_gltf2
+      DESTINATION ${TARGETDIR_VER_LIBS}/scripts/addons_core/io_scene_gltf2
     )
   endif()
 
   if(WITH_MESHOPTIMIZER)
     install(
       PROGRAMS $<TARGET_FILE:bf_intern_meshopt_bridge>
-      DESTINATION ${TARGETDIR_VER}/scripts/addons_core/io_scene_gltf2
+      DESTINATION ${TARGETDIR_VER_LIBS}/scripts/addons_core/io_scene_gltf2
     )
   endif()
 
