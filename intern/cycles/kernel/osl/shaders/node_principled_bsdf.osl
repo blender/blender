@@ -109,7 +109,7 @@ shader node_principled_bsdf(string distribution = "multi_ggx",
                              "anisotropy",
                              SubsurfaceAnisotropy);
       }
-      BSDF = mix(BSDF, clamped_base_color * SubsurfBSDF, subsurface_weight);
+      BSDF = mix(clamped_base_color * SubsurfBSDF, BSDF, 1.0 - subsurface_weight);
     }
 
     if (eta != 1.0 || ThinFilmThickness > 0.1) {
@@ -148,7 +148,7 @@ shader node_principled_bsdf(string distribution = "multi_ggx",
                                                r2,
                                                ThinFilmThickness,
                                                thinfilm_ior);
-      BSDF = mix(BSDF, ThinGlassBSDF, transmission);
+      BSDF = mix(ThinGlassBSDF, BSDF, 1.0 - transmission);
     }
     else {
       color F0 = F0_from_ior(eta) * specular_tint;
@@ -168,7 +168,7 @@ shader node_principled_bsdf(string distribution = "multi_ggx",
                                                                 ThinFilmThickness,
                                                                 "thinfilm_ior",
                                                                 thinfilm_ior);
-      BSDF = mix(BSDF, TransmissionBSDF, transmission);
+      BSDF = mix(TransmissionBSDF, BSDF, 1.0 - transmission);
     }
   }
 
@@ -187,7 +187,7 @@ shader node_principled_bsdf(string distribution = "multi_ggx",
                                        ThinFilmThickness,
                                        "thinfilm_ior",
                                        ThinFilmIOR);
-    BSDF = mix(BSDF, MetallicBSDF, metallic);
+    BSDF = mix(MetallicBSDF, BSDF, 1.0 - metallic);
   }
 
   if (EmissionStrength != 0.0 && EmissionColor != color(0.0)) {
