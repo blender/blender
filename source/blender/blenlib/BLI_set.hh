@@ -834,6 +834,7 @@ class Set {
       if (slot.is_empty()) {
         slot.occupy(std::forward<ForwardKey>(key), hash);
         BLI_assert(hash_(*slot.key()) == hash);
+        BLI_assert(is_equal_(*slot.key(), *slot.key()));
         occupied_and_removed_slots_++;
         return;
       }
@@ -849,6 +850,7 @@ class Set {
       if (slot.is_empty()) {
         slot.occupy(std::forward<ForwardKey>(key), hash);
         BLI_assert(hash_(*slot.key()) == hash);
+        BLI_assert(is_equal_(*slot.key(), *slot.key()));
         occupied_and_removed_slots_++;
         return true;
       }
@@ -867,6 +869,7 @@ class Set {
       if (slot.is_empty()) {
         slot.occupy(std::forward<ForwardKey>(key), hash);
         BLI_assert(hash_(*slot.key()) == hash);
+        BLI_assert(is_equal_(*slot.key(), *slot.key()));
         occupied_and_removed_slots_++;
         return true;
       }
@@ -922,6 +925,7 @@ class Set {
       if (slot.is_empty()) {
         slot.occupy(std::forward<ForwardKey>(key), hash);
         BLI_assert(hash_(*slot.key()) == hash);
+        BLI_assert(is_equal_(*slot.key(), *slot.key()));
         occupied_and_removed_slots_++;
         return *slot.key();
       }
@@ -943,6 +947,7 @@ class Set {
       if (slot.is_empty()) {
         slot.occupy(create_key(), hash);
         BLI_assert(hash_(*slot.key()) == hash);
+        BLI_assert(is_equal_(*slot.key(), *slot.key()));
         occupied_and_removed_slots_++;
         return *slot.key();
       }
