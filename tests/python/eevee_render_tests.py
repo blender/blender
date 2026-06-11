@@ -98,6 +98,11 @@ BLOCKLIST_INTEL = [
     "shading_offset.blend"
 ]
 
+BLOCKLIST_AMD_WINDOWS_VK = [
+    # Fails inside driver during XML serialization (See #159880).
+    "implicit_volume.blend"
+]
+
 BLOCKLIST_INTEL_WINDOWS_GL = [
     # Fails sporadically and causes all subsequent volume tests to fail (See #153612).
     "volume_instance.blend"
@@ -289,6 +294,8 @@ def main():
             blocklist += BLOCKLIST_INTEL_WINDOWS_GL
         if gpu_vendor == "NVIDIA" and args.gpu_backend == "opengl":
             blocklist += BLOCKLIST_NVIDIA_GL
+        if gpu_vendor == "AMD" and sys.platform == "win32" and args.gpu_backend == "vulkan":
+            blocklist += BLOCKLIST_AMD_WINDOWS_VK
 
     report = EEVEEReport("EEVEE", args.outdir, args.oiiotool, variation=args.gpu_backend, blocklist=blocklist)
     if args.gpu_backend == "vulkan":
