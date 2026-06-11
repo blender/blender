@@ -508,14 +508,17 @@ static Mesh *non_float_boolean_mesh(BooleanModifierData *bmd,
     }
     return result;
   }
-  if (material_mode == eBooleanModifierMaterialMode_Transfer) {
-    MEM_SAFE_DELETE(result->mat);
-    result->mat = MEM_new_array_uninitialized<Material *>(size_t(materials.size()), __func__);
-    result->totcol = materials.size();
-    MutableSpan(result->mat, result->totcol).copy_from(materials);
-  }
 
-  geometry::debug_randomize_mesh_order(result);
+  if (result) {
+    if (material_mode == eBooleanModifierMaterialMode_Transfer) {
+      MEM_SAFE_DELETE(result->mat);
+      result->mat = MEM_new_array_uninitialized<Material *>(size_t(materials.size()), __func__);
+      result->totcol = materials.size();
+      MutableSpan(result->mat, result->totcol).copy_from(materials);
+    }
+
+    geometry::debug_randomize_mesh_order(result);
+  }
 
   return result;
 }
