@@ -403,6 +403,13 @@ enum eContextObjectMode CTX_data_mode_enum_ex(const Object *obedit,
                                               eObjectMode object_mode);
 enum eContextObjectMode CTX_data_mode_enum(const bContext *C);
 
+/**
+ * Explicitly indicate if the UI context is allowed to be accessed for returning context data.
+ *
+ * The default is to permit and allow UI context data to be used during data retrieval.
+ */
+void CTX_data_ui_context_access_deny(bContext *C, bool deny);
+
 void CTX_data_main_set(bContext *C, Main *bmain);
 void CTX_data_scene_set(bContext *C, Scene *scene);
 
