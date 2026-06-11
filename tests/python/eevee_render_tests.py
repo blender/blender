@@ -94,8 +94,6 @@ BLOCKLIST_OPENGL = [
 ]
 
 BLOCKLIST_INTEL = [
-    # Fails on the new battle-mage intel build-bot.
-    "shading_offset.blend"
 ]
 
 BLOCKLIST_AMD_WINDOWS_VK = [
