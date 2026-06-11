@@ -7,23 +7,29 @@ import sys
 from pathlib import Path
 
 
-def dll_path(lib_name, lib_display_name) -> Path:
+def dll_path(lib_name, lib_display_name) -> Path | None:
     """
     Get the library path, that should be at addon root
     :return: library path.
     """
+    import bpy
+
     library_name = {
         'win32': '{}.dll'.format(lib_name),
         'linux': 'lib{}.so'.format(lib_name),
         'darwin': 'lib{}.dylib'.format(lib_name)
     }.get(sys.platform)
 
-    path = os.path.dirname(sys.modules['io_scene_gltf2'].__file__)
-    if path is not None:
-        return Path(os.path.join(path, library_name))
-
     if library_name is None:
         print('WARNING', 'Unsupported platform {}, {} is unavailable'.format(sys.platform, lib_display_name))
+        return None
+
+    # Use system-libraries for builds that use it, otherwise it's bundled beside the add-on's `__init__.py`.
+    if (system_libs := bpy.utils.resource_path('SYSTEM_LIBS')):
+        base = os.path.join(system_libs, 'scripts', 'addons_core', 'io_scene_gltf2')
+    else:
+        base = os.path.dirname(sys.modules['io_scene_gltf2'].__file__)
+    return Path(os.path.join(base, library_name))
 
 
 def dll_exists(lib_name, lib_display_name) -> bool:
@@ -32,7 +38,7 @@ def dll_exists(lib_name, lib_display_name) -> bool:
     :return: True if the DLL exists.
     """
     path = dll_path(lib_name, lib_display_name)
-    exists = path.exists() and path.is_file()
+    exists = (path is not None) and (path.exists() and path.is_file())
     if exists:
         print('INFO', '{} is available, use library at %s'.format(lib_display_name) % path.absolute())
     else:

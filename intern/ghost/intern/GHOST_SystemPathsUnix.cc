@@ -28,6 +28,12 @@ static const char *static_path = PREFIX "/share";
 static const char *static_path = nullptr;
 #endif
 
+#if defined(PREFIX) && defined(BLENDER_INSTALL_LIBDIR)
+static const char *static_libs_path = PREFIX "/" BLENDER_INSTALL_LIBDIR;
+#else
+static const char *static_libs_path = nullptr;
+#endif
+
 GHOST_SystemPathsUnix::GHOST_SystemPathsUnix() = default;
 
 GHOST_SystemPathsUnix::~GHOST_SystemPathsUnix() = default;
@@ -38,6 +44,16 @@ const char *GHOST_SystemPathsUnix::getSystemDir(int /*version*/, const char *ver
   if (static_path) {
     static string system_path = string(static_path) + "/blender/" + versionstr;
     return system_path.c_str();
+  }
+
+  return nullptr;
+}
+
+const char *GHOST_SystemPathsUnix::getSystemLibsDir(int /*version*/, const char *versionstr) const
+{
+  if (static_libs_path) {
+    static string system_libs_path = string(static_libs_path) + "/blender/" + versionstr;
+    return system_libs_path.c_str();
   }
 
   return nullptr;
