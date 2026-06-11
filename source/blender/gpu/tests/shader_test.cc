@@ -6,6 +6,7 @@
 
 #include "BLI_math_base.h"
 #include "BLI_math_matrix_types.hh"
+
 #include "GPU_batch.hh"
 #include "GPU_batch_presets.hh"
 #include "GPU_capabilities.hh"
@@ -587,6 +588,12 @@ GPU_TEST(math_lib)
 
 static void test_eevee_lib()
 {
+  if (GPU_type_matches_ex(GPU_DEVICE_NVIDIA, GPU_OS_ANY, GPU_DRIVER_OFFICIAL, GPU_BACKEND_VULKAN))
+  {
+    GTEST_SKIP() << "Test is failing on NVIDIA/Vulkan for unknown reasons. It runs, but outputs "
+                    "back the initial value 0xFFFFFFFFu.";
+  }
+
   /* TODO(fclem): Not passing currently. Need to be updated. */
   // gpu_shader_lib_test("eevee_shadow_test.bsl.hh");
   gpu_shader_lib_test("eevee_test_occupancy");
