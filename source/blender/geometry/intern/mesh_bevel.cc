@@ -30,8 +30,6 @@
 #include "BKE_mesh.hh"
 #include "BKE_mesh_mapping.hh"
 
-#include "eigen_capi.h"
-
 #include "GEO_mesh_bevel.hh"
 #include "GEO_mesh_selection.hh"
 
@@ -139,13 +137,9 @@ struct BoundVert {
 
   EdgeHalf *efirst = nullptr;
   EdgeHalf *elast = nullptr;
-  EdgeHalf *eon = nullptr;
   EdgeHalf *ebev = nullptr;
 
   int index = 0;
-  float sinratio = 0.0f;
-
-  BoundVert *adjchain = nullptr;
   Profile profile;
 
   bool any_seam = false;
@@ -982,9 +976,7 @@ struct BevelState {
 
   /* Feature flags and parameters that the node version might use or we keep to mimic bmesh_bevel.
    */
-  bool loop_slide;
   bool limit_offset;
-  bool offset_adjust;
   bool mark_seam;
   bool mark_sharp;
 
@@ -1041,9 +1033,7 @@ BevelState::BevelState(const Mesh &mesh, const BevelParameters &params, const In
       exec_mode::grain_size(1024));
 
   this->affect_vertices_odd = false;
-  this->loop_slide = true;
   this->limit_offset = false;
-  this->offset_adjust = (params.affect_type != BevelAffect::Vertices);
   this->mark_seam = false;
   this->mark_sharp = false;
   this->vmesh_method = VMeshMethod::Adj;
@@ -1070,8 +1060,6 @@ constexpr float BEVEL_EPSILON_ANG = DEG2RADF(2.0f);
 constexpr float BEVEL_SMALL_ANG = DEG2RADF(10.0f);
 const float BEVEL_SMALL_ANG_DOT = (1.0f - std::cos(BEVEL_SMALL_ANG));
 const float BEVEL_EPSILON_ANG_DOT = (1.0f - std::cos(BEVEL_EPSILON_ANG));
-/* Weight for the spec-match terms in the offset adjustment least-squares solver. */
-constexpr double BEVEL_MATCH_SPEC_WEIGHT = 0.2;
 
 static int edge_other_vert(const ExtendableMesh &emesh, int e, int v)
 {
@@ -1317,113 +1305,6 @@ static void offset_meet(const ExtendableMesh &emesh,
       }
     }
   }
-}
-
-static bool offset_meet_edge(const ExtendableMesh &emesh,
-                             EdgeHalf *e1,
-                             EdgeHalf *e2,
-                             int v,
-                             float meetco[3],
-                             float *r_angle)
-{
-  float3 v_co = emesh.vert_position(v);
-  float3 dir1 = emesh.vert_position(geom::edge_other_vert(emesh, e1->e, v)) - v_co;
-  float3 dir2 = emesh.vert_position(geom::edge_other_vert(emesh, e2->e, v)) - v_co;
-  dir1 = math::normalize(dir1);
-  dir2 = math::normalize(dir2);
-
-  /* Find angle from dir1 to dir2 as viewed from vertex normal side. */
-  float ang = angle_normalized_v3v3(dir1, dir2);
-  if (math::abs(ang) < BEVEL_EPSILON_ANG) {
-    if (r_angle) {
-      *r_angle = 0.0f;
-    }
-    return false;
-  }
-  float3 fno = math::cross(dir1, dir2);
-  if (math::dot(fno, emesh.src_vert_normals[v]) < 0.0f) {
-    /* Angle is reflex. */
-    ang = 2.0f * float(M_PI) - ang;
-    if (r_angle) {
-      *r_angle = ang;
-    }
-    return false;
-  }
-  if (r_angle) {
-    *r_angle = ang;
-  }
-
-  if (math::abs(ang - float(M_PI)) < BEVEL_EPSILON_ANG) {
-    return false;
-  }
-
-  float sinang = math::sin(ang);
-
-  float3 meet_res = v_co;
-  if (e1->offset_r == 0.0f) {
-    meet_res += dir1 * (e2->offset_l / sinang);
-  }
-  else {
-    meet_res += dir2 * (e1->offset_r / sinang);
-  }
-  copy_v3_v3(meetco, meet_res);
-  return true;
-}
-
-/**
- * Return true if it will look good to put the meeting point where #offset_on_edge_between
- * would put it. This means neither side sees a reflex angle.
- */
-static bool good_offset_on_edge_between(
-    const ExtendableMesh &emesh, EdgeHalf *e1, EdgeHalf *e2, EdgeHalf *emid, int v)
-{
-  float ang;
-  float meet[3];
-
-  return offset_meet_edge(emesh, e1, emid, v, meet, &ang) &&
-         offset_meet_edge(emesh, emid, e2, v, meet, &ang);
-}
-
-/**
- * Calculate the best place for a meeting point for the offsets from edges e1 and e2 on the
- * in-between edge emid. Viewed from the vertex normal side, the CCW order of these edges is
- * e1, emid, e2. Returns true if meetco was placed as a compromise between where two edges met.
- * If so, puts the ratio of sines of the angles in *r_sinratio.
- */
-static bool offset_on_edge_between(const ExtendableMesh &emesh,
-                                   EdgeHalf *e1,
-                                   EdgeHalf *e2,
-                                   EdgeHalf *emid,
-                                   int v,
-                                   float meetco[3],
-                                   float *r_sinratio)
-{
-  bool retval = false;
-
-  BLI_assert(e1->is_bev && e2->is_bev && !emid->is_bev);
-
-  float ang1, ang2;
-  float meet1[3], meet2[3];
-  bool ok1 = offset_meet_edge(emesh, e1, emid, v, meet1, &ang1);
-  bool ok2 = offset_meet_edge(emesh, emid, e2, v, meet2, &ang2);
-  if (ok1 && ok2) {
-    mid_v3_v3v3(meetco, meet1, meet2);
-    if (r_sinratio) {
-      *r_sinratio = (ang1 == 0.0f) ? 1.0f : math::sin(ang2) / math::sin(ang1);
-    }
-    retval = true;
-  }
-  else if (ok1 && !ok2) {
-    copy_v3_v3(meetco, meet1);
-  }
-  else if (!ok1 && ok2) {
-    copy_v3_v3(meetco, meet2);
-  }
-  else {
-    slide_dist(emesh, emid->e, v, e1->offset_r, meetco);
-  }
-
-  return retval;
 }
 
 /* -------------------------------------------------------------------- */
@@ -1783,13 +1664,11 @@ template<typename T> [[maybe_unused]] static void print_span(Span<T> span, const
   fmt::print("  BoundVert[{}]: co=", bndv.index);
   print_float3(bndv.nv.co);
   fmt::println("");
-  fmt::println("    efirst={} elast={} eon={} ebev={}",
+  fmt::println("    efirst={} elast={} ebev={}",
                bndv.efirst ? bndv.efirst->e : -1,
                bndv.elast ? bndv.elast->e : -1,
-               bndv.eon ? bndv.eon->e : -1,
                bndv.ebev ? bndv.ebev->e : -1);
-  fmt::println(
-      "    sinratio={} any_seam={} visited={}", bndv.sinratio, bndv.any_seam, bndv.visited);
+  fmt::println("    any_seam={} visited={}", bndv.any_seam, bndv.visited);
   fmt::println("    is_arc_start={} is_patch_start={} is_profile_start={}",
                bndv.is_arc_start,
                bndv.is_patch_start,
@@ -2222,10 +2101,7 @@ static BoundVert *add_new_bound_vert(BevVert *bv, const float co[3])
     vm->boundstart->prev = v;
   }
   v->index = vm->count++;
-  /* These two fields use 1.0 as their meaningful defaults, not 0.0:
-   * `sinratio` of 1.0 means no angular correction;
-   * `profile.super_r` of 1.0 is the PRO_LINE_R (straight-line profile) value. */
-  v->sinratio = 1.0f;
+  /* `profile.super_r` of 1.0 is the PRO_LINE_R (straight-line profile) value. */
   v->profile.super_r = 1.0f;
   return v;
 }
@@ -2584,17 +2460,6 @@ static bool nearly_parallel_normalized(const float3 &d1, const float3 &d2)
   return fabsf(fabsf(direction_dot) - 1.0f) <= geom::BEVEL_EPSILON_ANG_DOT;
 }
 
-/* Is e between two faces with a (near) 180 degree angle between their normals? */
-static bool eh_on_plane(const ExtendableMesh &emesh, EdgeHalf *e)
-{
-  if (e->fprev == -1 || e->fnext == -1) {
-    return false;
-  }
-  const float dot = math::dot(emesh.src_face_normals[e->fprev], emesh.src_face_normals[e->fnext]);
-  return fabsf(dot + 1.0f) <= geom::BEVEL_EPSILON_BIG ||
-         fabsf(dot - 1.0f) <= geom::BEVEL_EPSILON_BIG;
-}
-
 enum AngleKind { ANGLE_SMALLER, ANGLE_STRAIGHT, ANGLE_LARGER };
 
 /* Return whether the angle swept from e1 to e2 around v is less than, equal to,
@@ -2692,57 +2557,19 @@ static void build_boundary(const BevelState &state, BevVert *bv, bool construct)
   EdgeHalf *e2;
   do {
     BLI_assert(e->is_bev);
-    EdgeHalf *eon = nullptr;
     /* Make the BoundVert for the right side of e; the other side will be made when the beveled
-     * edge to the left of e is handled.
-     * Analyze edges until next beveled edge: they are either "in plane" (preceding and subsequent
-     * faces are coplanar) or not. The "non-in-plane" edges affect the silhouette and we prefer
-     * to slide along one of those if possible. */
-    int in_plane = 0; /* Counts of in-plane / not-in-plane. */
-    int not_in_plane = 0;
-    EdgeHalf *enip = nullptr; /* Representatives of each type. */
-    EdgeHalf *eip = nullptr;
+     * edge to the left of e is handled. */
+    int between = 0; /* Count of edges between e and the next beveled edge. */
     for (e2 = e->next; !e2->is_bev; e2 = e2->next) {
-      if (eh_on_plane(emesh, e2)) {
-        in_plane++;
-        eip = e2;
-      }
-      else {
-        not_in_plane++;
-        enip = e2;
-      }
+      between++;
     }
 
-    float r, co[3];
-    if (in_plane == 0 && not_in_plane == 0) {
+    float co[3];
+    if (between == 0) {
       geom::offset_meet(emesh, e, e2, bv->v, e->fnext, false, co, nullptr);
     }
-    else if (not_in_plane > 0) {
-      if (state.loop_slide && not_in_plane == 1 &&
-          geom::good_offset_on_edge_between(emesh, e, e2, enip, bv->v))
-      {
-        if (geom::offset_on_edge_between(emesh, e, e2, enip, bv->v, co, &r)) {
-          eon = enip;
-        }
-      }
-      else {
-        geom::offset_meet(emesh, e, e2, bv->v, -1, true, co, eip);
-      }
-    }
     else {
-      /* n_in_plane > 0 and n_not_in_plane == 0.
-       * Since all edges between e and e2 are in the same plane, treat this
-       * like the case where there are no edges between. */
-      if (state.loop_slide && in_plane == 1 &&
-          geom::good_offset_on_edge_between(emesh, e, e2, eip, bv->v))
-      {
-        if (geom::offset_on_edge_between(emesh, e, e2, eip, bv->v, co, &r)) {
-          eon = eip;
-        }
-      }
-      else {
-        geom::offset_meet(emesh, e, e2, bv->v, e->fnext, false, co, nullptr);
-      }
+      geom::offset_meet(emesh, e, e2, bv->v, -1, true, co, nullptr);
     }
 
     if (construct) {
@@ -2750,10 +2577,6 @@ static void build_boundary(const BevelState &state, BevVert *bv, bool construct)
       v->efirst = e;
       v->elast = e2;
       v->ebev = e2;
-      v->eon = eon;
-      if (eon) {
-        v->sinratio = r;
-      }
       e->rightv = v;
       e2->leftv = v;
       for (EdgeHalf *e3 = e->next; e3 != e2; e3 = e3->next) {
@@ -2784,16 +2607,11 @@ static void build_boundary(const BevelState &state, BevVert *bv, bool construct)
         v3->ebev = e2;
         v3->efirst = e2;
         v3->elast = e2;
-        v3->eon = nullptr;
         e2->leftv = v3;
         if (do_outer_miter) {
           /* Wire v2 as the middle patch vertex. Mirrors BMesh lines 3699-3717. */
           v1->is_patch_start = true;
-          v2->eon = v1->eon;
-          v2->sinratio = v1->sinratio;
           v2->ebev = nullptr;
-          v1->eon = nullptr;
-          v1->sinratio = 1.0f;
           v1->elast = e;
           if (e->next == e2) {
             v2->efirst = nullptr;
@@ -2816,7 +2634,6 @@ static void build_boundary(const BevelState &state, BevVert *bv, bool construct)
             v1->elast = v1->efirst;
           }
           else {
-            int between = in_plane + not_in_plane;
             int bet2 = between / 2;
             bool betodd = (between % 2) == 1;
             int i = 0;
@@ -3078,11 +2895,10 @@ static void find_bevel_edge_order(const ExtendableMesh &emesh,
 }
 
 /* -------------------------------------------------------------------- */
-/** \name Offset width adjustment
+/** \name Profile orientation helpers
  *
- * When loop_slide is active, the initial BoundVert positions may not produce even-width
- * bevels. These functions adjust the offsets to minimize width discrepancies, then rebuild
- * the boundaries. Ported from BMesh's #adjust_offsets and #adjust_the_cycle_or_chain.
+ * These functions find the chain or cycle of beveled edges connected to a given edge,
+ * and set consistent profile orientations along the chain.
  * \{ */
 
 /* Forward declaration (defined in the second construct block). */
@@ -3253,179 +3069,6 @@ static void regularize_profile_orientation(const BevelState &state, int edge_ind
       edgehalf->visited_rpo = true;
       edgehalf = next_edgehalf_bev(state, edgehalf, toward_bv, &bv);
     }
-  }
-}
-
-/**
- * Adjust the offsets for a single cycle or chain.
- * Sets up and solves a linear least squares problem that tries to minimize
- * the squared differences of lengths at each end of an edge, and (with smaller weight)
- * the squared differences of the offsets from their specs.
- * Ported from BMesh's #adjust_the_cycle_or_chain.
- */
-static void adjust_the_cycle_or_chain(BoundVert *vstart, bool iscycle)
-{
-  int np = 0;
-  BoundVert *v = vstart;
-  do {
-    np++;
-    v = v->adjchain;
-  } while (v && v != vstart);
-
-  int nrows = iscycle ? 3 * np : 3 * np - 3;
-  LinearSolver *solver = EIG_linear_least_squares_solver_new(nrows, np, 1);
-
-  v = vstart;
-  int i = 0;
-  double weight = geom::BEVEL_MATCH_SPEC_WEIGHT;
-  do {
-    /* Except at end of chain, v's indep variable is offset_r of `v->efirst`. */
-    if (iscycle || i < np - 1) {
-      EdgeHalf *eright = v->efirst;
-      EdgeHalf *enextleft = v->adjchain->elast;
-
-      /* Residue i: width difference between eright and eleft of next. */
-      EIG_linear_solver_matrix_add(solver, i, i, 1.0);
-      EIG_linear_solver_right_hand_side_add(solver, 0, i, 0.0);
-      if (iscycle) {
-        EIG_linear_solver_matrix_add(solver, i > 0 ? i - 1 : np - 1, i, -v->sinratio);
-      }
-      else {
-        if (i > 0) {
-          EIG_linear_solver_matrix_add(solver, i - 1, i, -v->sinratio);
-        }
-      }
-
-      /* Right offset for parameter i matches its spec; weighted. */
-      int row = iscycle ? np + 2 * i : np - 1 + 2 * i;
-      EIG_linear_solver_matrix_add(solver, row, i, weight);
-      EIG_linear_solver_right_hand_side_add(solver, 0, row, weight * eright->offset_r);
-
-      /* Left offset for parameter i matches its spec; weighted. */
-      row = row + 1;
-      EIG_linear_solver_matrix_add(
-          solver, row, (i == np - 1) ? 0 : i + 1, weight * v->adjchain->sinratio);
-      EIG_linear_solver_right_hand_side_add(solver, 0, row, weight * enextleft->offset_l);
-    }
-    else {
-      /* Not a cycle, and last of chain. */
-      EIG_linear_solver_matrix_add(solver, i - 1, i, -1.0);
-    }
-    i++;
-    v = v->adjchain;
-  } while (v && v != vstart);
-
-  EIG_linear_solver_solve(solver);
-
-  /* Use the solution to set new widths. */
-  v = vstart;
-  i = 0;
-  do {
-    double val = EIG_linear_solver_variable_get(solver, 0, i);
-    if (iscycle || i < np - 1) {
-      EdgeHalf *eright = v->efirst;
-      EdgeHalf *eleft = v->elast;
-      eright->offset_r = float(val);
-      if (iscycle || v != vstart) {
-        eleft->offset_l = float(v->sinratio * val);
-      }
-    }
-    else {
-      /* Not a cycle, and last of chain. */
-      EdgeHalf *eleft = v->elast;
-      eleft->offset_l = float(val);
-    }
-    i++;
-    v = v->adjchain;
-  } while (v && v != vstart);
-
-  EIG_linear_solver_delete(solver);
-}
-
-/**
- * Adjust the offsets to try to make them, as much as possible,
- * have even-width bevels with offsets that match their specs.
- * The dependent offsets either form chains or cycles, and we
- * process each of those separately.
- * Ported from BMesh's #adjust_offsets.
- */
-static void adjust_offsets(BevelState &state)
-{
-  /* Find and process chains and cycles of unvisited BoundVerts that have `eon` set. */
-  for (auto &&entry : state.vert_hash.items()) {
-    BevVert *bv = entry.value;
-    BevVert *bvcur = bv;
-
-    BoundVert *vanchor = bv->vmesh->boundstart;
-    do {
-      if (vanchor->visited || !vanchor->eon) {
-        continue;
-      }
-
-      /* Find one of (1) a cycle that starts and ends at v
-       * where each v has `v->eon` set and had not been visited before;
-       * or (2) a chain of v's where the start and end of the chain do not have
-       * `v->eon` set but all else do. */
-
-      /* First follow paired edges in left->right direction. */
-      BoundVert *v, *vchainstart, *vchainend;
-      v = vchainstart = vchainend = vanchor;
-
-      bool iscycle = false;
-      int chainlen = 1;
-      while (v->eon && !v->visited && !iscycle) {
-        v->visited = true;
-        if (!v->efirst) {
-          break;
-        }
-        EdgeHalf *enext = find_other_end_edge_half(state, v->efirst, &bvcur);
-        if (!enext) {
-          break;
-        }
-        BoundVert *vnext = enext->leftv;
-        v->adjchain = vnext;
-        vchainend = vnext;
-        chainlen++;
-        if (vnext->visited) {
-          if (vnext != vchainstart) {
-            break;
-          }
-          adjust_the_cycle_or_chain(vchainstart, true);
-          iscycle = true;
-        }
-        v = vnext;
-      }
-      if (!iscycle) {
-        /* right->left direction, changing vchainstart at each step. */
-        v->adjchain = nullptr;
-        v = vchainstart;
-        bvcur = bv;
-        do {
-          v->visited = true;
-          if (!v->elast) {
-            break;
-          }
-          EdgeHalf *enext = find_other_end_edge_half(state, v->elast, &bvcur);
-          if (!enext) {
-            break;
-          }
-          BoundVert *vnext = enext->rightv;
-          vnext->adjchain = v;
-          chainlen++;
-          vchainstart = vnext;
-          v = vnext;
-        } while (!v->visited && v->eon);
-        if (chainlen >= 3 && !vchainstart->eon && !vchainend->eon) {
-          adjust_the_cycle_or_chain(vchainstart, false);
-        }
-      }
-    } while ((vanchor = vanchor->next) != bv->vmesh->boundstart);
-  }
-
-  /* Rebuild boundaries with adjusted offset specs. */
-  for (auto &&entry : state.vert_hash.items()) {
-    BevVert *bv = entry.value;
-    build_boundary(state, bv, false);
   }
 }
 
@@ -8115,11 +7758,6 @@ std::optional<Mesh *> mesh_bevel(const Mesh &src_mesh,
   fmt::println("BEVEL NODE bevel construct and build boundaries,{:.4} ms",
                (vert_and_boundaries_time - init_time).count() / 1.0e6f);
 #endif
-
-  /* Phase 2: adjust offsets for even-width bevels, then rebuild boundaries. */
-  if (state.offset_adjust) {
-    construct::adjust_offsets(state);
-  }
 
   /* Maintain consistent orientations for the asymmetrical custom profiles. */
   if (!params.custom_profile_samples.is_empty() && params.affect_type != BevelAffect::Vertices) {
