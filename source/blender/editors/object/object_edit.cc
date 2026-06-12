@@ -1929,8 +1929,10 @@ static wmOperatorStatus shade_auto_smooth_exec(bContext *C, wmOperator *op)
       PointerRNA nmd_ptr = RNA_pointer_create_discrete(
           &object->id, RNA_NodesModifier, smooth_by_angle_nmd);
       PointerRNA properties_ptr = RNA_pointer_get(&nmd_ptr, "properties");
+      PointerRNA inputs_ptr = RNA_pointer_get(&properties_ptr, "inputs");
+      PointerRNA input_ptr = RNA_pointer_get(&inputs_ptr, angle_identifier.c_str());
 
-      RNA_float_set(&properties_ptr, angle_identifier.c_str(), angle);
+      RNA_float_set(&input_ptr, "value", angle);
 
       DEG_id_tag_update(&object->id, ID_RECALC_GEOMETRY);
       WM_event_add_notifier(C, NC_OBJECT | ND_MODIFIER, object);
