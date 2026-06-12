@@ -74,7 +74,7 @@ void node_insert_on_link_flags_set(SpaceNode &snode,
 /**
  * Tag the editor to highlight the frame that currently transformed nodes will be attached to.
  */
-void node_insert_on_frame_flag_set(bContext &C, SpaceNode &snode, const int2 &cursor);
+void node_insert_on_frame_flag_set(SpaceNode &snode, ARegion &region, const int2 &cursor);
 void node_insert_on_frame_flag_clear(SpaceNode &snode);
 
 /**

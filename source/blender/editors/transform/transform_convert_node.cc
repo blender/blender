@@ -145,7 +145,7 @@ static VectorSet<bNode *> get_transformed_nodes(bNodeTree &node_tree)
   return nodes;
 }
 
-static void createTransNodeData(bContext *C, TransInfo *t)
+static void createTransNodeData(bContext * /*C*/, TransInfo *t)
 {
   SpaceNode *snode = static_cast<SpaceNode *>(t->area->spacedata.first);
   bNodeTree *node_tree = snode->edittree;
@@ -166,9 +166,11 @@ static void createTransNodeData(bContext *C, TransInfo *t)
   customdata->viewrect_prev = customdata->edgepan_data.initial_rect;
   customdata->is_new_node = t->remove_on_cancel;
 
-  space_node::node_insert_on_link_flags_set(
-      *snode, *t->region, t->modifiers & MOD_NODE_ATTACH, customdata->is_new_node);
-  space_node::node_insert_on_frame_flag_set(*C, *snode, int2(t->mval));
+  if (t->region) {
+    space_node::node_insert_on_link_flags_set(
+        *snode, *t->region, t->modifiers & MOD_NODE_ATTACH, customdata->is_new_node);
+    space_node::node_insert_on_frame_flag_set(*snode, *t->region, int2(t->mval));
+  }
 
   t->custom.type.data = customdata;
   t->custom.type.free_cb = [](TransInfo *, TransDataContainer *, TransCustomData *custom_data) {
@@ -294,7 +296,9 @@ static void flushTransNodes(TransInfo *t)
 
   float offset[2] = {0.0f, 0.0f};
   if (t->state != TRANS_CANCEL) {
-    if (!BLI_rctf_compare(&customdata->viewrect_prev, &t->region->v2d.cur, FLT_EPSILON)) {
+    if (t->region &&
+        !BLI_rctf_compare(&customdata->viewrect_prev, &t->region->v2d.cur, FLT_EPSILON))
+    {
       /* Additional offset due to change in view2D rect. */
       BLI_rctf_transform_pt_v(&t->region->v2d.cur, &customdata->viewrect_prev, offset, offset);
       transformViewUpdate(t);
@@ -357,7 +361,9 @@ static void flushTransNodes(TransInfo *t)
       space_node::node_insert_on_link_flags_set(
           *snode, *t->region, t->modifiers & MOD_NODE_ATTACH, customdata->is_new_node);
     }
-    space_node::node_insert_on_frame_flag_set(*t->context, *snode, int2(t->mval));
+    if (t->region) {
+      space_node::node_insert_on_frame_flag_set(*snode, *t->region, int2(t->mval));
+    }
   }
 }
 
