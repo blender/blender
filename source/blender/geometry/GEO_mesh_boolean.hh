@@ -89,6 +89,7 @@ struct BooleanOpParameters {
  * \param r_intersecting_edges: Vector to store indices of edges on the resulting mesh in. These
  * 'new' edges are the result of the intersections.
  * \param r_error: Return place for error to be stored.
+ * \return the resulting mesh or null on failure.
  */
 Mesh *mesh_boolean(Span<const Mesh *> meshes,
                    Span<float4x4> transforms,
