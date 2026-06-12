@@ -4356,7 +4356,7 @@ static void *node_static_value_storage_for(bNode &node, const bNodeSocket &socke
   if (node.is_type("FunctionNodeInputMenu"_ustr)) {
     return &reinterpret_cast<NodeInputMenu *>(node.storage)->value;
   }
-  if (node.is_type("ShaderNodeRGB"_ustr)) {
+  if (node.is_type("ShaderNodeRGB"_ustr) || node.is_type("CompositorNodeRGB"_ustr)) {
     return &node.output_socket(0).default_value_typed<bNodeSocketValueRGBA>()->value;
   }
   if (node.is_type("ShaderNodeValue"_ustr)) {
