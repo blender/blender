@@ -544,11 +544,12 @@ void BKE_mesh_to_pointcloud(Main *bmain, Depsgraph *depsgraph, Scene * /*scene*/
   if (!ob_eval) {
     return;
   }
-  const Mesh *mesh_eval = BKE_object_get_evaluated_mesh(ob_eval);
+  Mesh *mesh_eval = BKE_object_get_evaluated_mesh(ob_eval);
   if (!mesh_eval) {
     return;
   }
 
+  BKE_mesh_wrapper_ensure_mdata(mesh_eval);
   PointCloud *pointcloud = BKE_pointcloud_add(bmain, ob->id.name + 2);
   pointcloud->totpoint = mesh_eval->verts_num;
 
