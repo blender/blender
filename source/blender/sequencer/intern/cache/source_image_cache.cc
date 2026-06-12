@@ -162,9 +162,11 @@ SeqResult source_image_cache_get(const RenderData *context,
       res = frame->image;
     }
 
-    /* For effect and scene strips, check if the cached result matches our current
+    /* For effect, meta, and scene strips, check if the cached result matches our current
      * render resolution. If it does not, remove stale source entries for this strip. */
-    if (res.is_valid() && (strip->is_effect() || strip->type == STRIP_TYPE_SCENE)) {
+    if (res.is_valid() &&
+        (strip->is_effect() || strip->type == STRIP_TYPE_SCENE || strip->type == STRIP_TYPE_META))
+    {
       if (res.image->x != context->rectx || res.image->y != context->recty) {
         cache->remove_entry(strip);
         return {};
