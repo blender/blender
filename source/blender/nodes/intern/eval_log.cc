@@ -524,7 +524,7 @@ void NodeTreeLog::ensure_node_warnings(
           propagation = node->warning_propagation;
         }
       }
-      this->nodes.lookup_or_add_default(warning.node_id).warnings.add(warning.warning);
+      this->lookup_or_add_node_log(warning.node_id).warnings.add(warning.warning);
       if (warning_is_propagated(propagation, warning.warning.type)) {
         this->all_warnings.add(warning.warning);
       }
@@ -545,8 +545,7 @@ void NodeTreeLog::ensure_node_warnings(
     }
     child_log.ensure_node_warnings(orig_tree_by_session_uid);
     if (caller_node_id.has_value()) {
-      this->nodes.lookup_or_add_default(*caller_node_id)
-          .warnings.add_multiple(child_log.all_warnings);
+      this->lookup_or_add_node_log(*caller_node_id).warnings.add_multiple(child_log.all_warnings);
     }
     for (const NodeWarning &warning : child_log.all_warnings) {
       if (warning_is_propagated(propagation, warning.type)) {
@@ -566,7 +565,7 @@ void NodeTreeLog::ensure_execution_times()
   for (NodeTreeLogger *tree_logger : tree_loggers_) {
     for (const NodeTreeLogger::NodeExecutionTime &timings : tree_logger->node_execution_times) {
       const std::chrono::nanoseconds duration = timings.end - timings.start;
-      this->nodes.lookup_or_add_default_as(timings.node_id).execution_time += duration;
+      this->lookup_or_add_node_log(timings.node_id).execution_time += duration;
     }
     this->execution_time += tree_logger->execution_time;
   }
@@ -580,12 +579,12 @@ void NodeTreeLog::ensure_socket_values()
   }
   for (NodeTreeLogger *tree_logger : tree_loggers_) {
     for (const NodeTreeLogger::SocketValueLog &value_log_data : tree_logger->input_socket_values) {
-      this->nodes.lookup_or_add_as(value_log_data.node_id)
+      this->lookup_or_add_node_log(value_log_data.node_id)
           .input_values_.add(value_log_data.socket_index, value_log_data.value.get());
     }
     for (const NodeTreeLogger::SocketValueLog &value_log_data : tree_logger->output_socket_values)
     {
-      this->nodes.lookup_or_add_as(value_log_data.node_id)
+      this->lookup_or_add_node_log(value_log_data.node_id)
           .output_values_.add(value_log_data.socket_index, value_log_data.value.get());
     }
   }
@@ -622,11 +621,11 @@ void NodeTreeLog::ensure_existing_attributes()
     }
   };
 
-  for (const NodeLog &node_log : this->nodes.values()) {
-    for (const ValueLog *value_log : node_log.input_values_.values()) {
+  for (const destruct_ptr<NodeLog> &node_log : this->nodes.values()) {
+    for (const ValueLog *value_log : node_log->input_values_.values()) {
       handle_value_log(*value_log);
     }
-    for (const ValueLog *value_log : node_log.output_values_.values()) {
+    for (const ValueLog *value_log : node_log->output_values_.values()) {
       handle_value_log(*value_log);
     }
   }
@@ -642,8 +641,8 @@ void NodeTreeLog::ensure_used_named_attributes()
   auto add_attribute = [&](const int32_t node_id,
                            const StringRefNull attribute_name,
                            const NamedAttributeUsage &usage) {
-    this->nodes.lookup_or_add_default(node_id).used_named_attributes.lookup_or_add(attribute_name,
-                                                                                   usage) |= usage;
+    this->lookup_or_add_node_log(node_id).used_named_attributes.lookup_or_add(attribute_name,
+                                                                              usage) |= usage;
     this->used_named_attributes.lookup_or_add_as(attribute_name, usage) |= usage;
   };
 
@@ -675,7 +674,7 @@ void NodeTreeLog::ensure_debug_messages()
   }
   for (NodeTreeLogger *tree_logger : tree_loggers_) {
     for (const NodeTreeLogger::DebugMessage &debug_message : tree_logger->debug_messages) {
-      this->nodes.lookup_or_add_as(debug_message.node_id)
+      this->lookup_or_add_node_log(debug_message.node_id)
           .debug_messages.append(debug_message.message);
     }
   }
@@ -716,11 +715,11 @@ void NodeTreeLog::ensure_layer_names()
     }
   };
 
-  for (const NodeLog &node_log : this->nodes.values()) {
-    for (const ValueLog *value_log : node_log.input_values_.values()) {
+  for (const destruct_ptr<NodeLog> &node_log : this->nodes.values()) {
+    for (const ValueLog *value_log : node_log->input_values_.values()) {
       handle_value_log(*value_log);
     }
-    for (const ValueLog *value_log : node_log.output_values_.values()) {
+    for (const ValueLog *value_log : node_log->output_values_.values()) {
       handle_value_log(*value_log);
     }
   }
@@ -737,11 +736,27 @@ void NodeTreeLog::ensure_node_image_previews()
   for (NodeTreeLogger *tree_logger : tree_loggers_) {
     for (const NodeTreeLogger::NodeImagePreview &preview : tree_logger->node_image_previews) {
       IMB_refImBuf(preview.image_preview);
-      this->nodes.lookup_or_add_default_as(preview.node_id).image_preview = preview.image_preview;
+      this->lookup_or_add_node_log(preview.node_id).image_preview = preview.image_preview;
     }
   }
 
   reduced_node_image_previews_ = true;
+}
+
+NodeLog *NodeTreeLog::find_node_log(const int32_t identifier) const
+{
+  const destruct_ptr<NodeLog> *node_log = this->nodes.lookup_ptr(identifier);
+  if (!node_log) {
+    return nullptr;
+  }
+  return node_log->get();
+}
+
+NodeLog &NodeTreeLog::lookup_or_add_node_log(const int32_t identifier)
+{
+  destruct_ptr<NodeLog> &node_log = this->nodes.lookup_or_add_cb(
+      identifier, [&]() { return this->allocator_.construct<NodeLog>(); });
+  return *node_log.get();
 }
 
 ValueLog *NodeTreeLog::find_socket_value_log(const bNodeSocket &query_socket)
@@ -767,7 +782,7 @@ ValueLog *NodeTreeLog::find_socket_value_log(const bNodeSocket &query_socket)
   while (!sockets_to_check.is_empty()) {
     const bNodeSocket &socket = *sockets_to_check.pop();
     const bNode &node = socket.owner_node();
-    if (NodeLog *node_log = this->nodes.lookup_ptr(node.identifier)) {
+    if (NodeLog *node_log = this->find_node_log(node.identifier)) {
       ValueLog *value_log = socket.is_input() ?
                                 node_log->input_values_.lookup_default(socket.index(), nullptr) :
                                 node_log->output_values_.lookup_default(socket.index(), nullptr);

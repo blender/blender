@@ -1511,7 +1511,7 @@ static void node_find_update_fn(const bContext *C,
       }
     }
     if (nodes::eval_log::NodeTreeLog *tree_log = tree_logs.get_main_tree_log(*node)) {
-      if (nodes::eval_log::NodeLog *node_log = tree_log->nodes.lookup_ptr(node->identifier)) {
+      if (nodes::eval_log::NodeLog *node_log = tree_log->find_node_log(node->identifier)) {
         for (const nodes::eval_log::NodeWarning &warning : node_log->warnings) {
           const StringRef search_str = scope.add_value(node_find_create_warning(*node, warning));
           search.add(search_str, &scope.construct<Item>(Item{node, search_str}));

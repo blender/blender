@@ -81,7 +81,7 @@ static Vector<const VolumeGridInfo *> get_grid_names_from_context(const bContext
     return {};
   }
   tree_log->ensure_socket_values();
-  NodeLog *node_log = tree_log->nodes.lookup_ptr(node->identifier);
+  NodeLog *node_log = tree_log->find_node_log(node->identifier);
   if (node_log == nullptr) {
     return {};
   }

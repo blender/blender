@@ -2183,7 +2183,7 @@ static void node_add_error_message_button(const TreeDrawContext &tree_draw_ctx,
 
     Span<nodes::eval_log::NodeWarning> warnings;
     if (geo_tree_log) {
-      nodes::eval_log::NodeLog *node_log = geo_tree_log->nodes.lookup_ptr(node.identifier);
+      nodes::eval_log::NodeLog *node_log = geo_tree_log->find_node_log(node.identifier);
       if (node_log != nullptr) {
         warnings = node_log->warnings;
       }
@@ -2273,8 +2273,7 @@ static std::optional<std::chrono::nanoseconds> node_get_execution_time(
         }
       }
       else {
-        if (const nodes::eval_log::NodeLog *node_log = tree_log->nodes.lookup_ptr_as(
-                tnode->identifier))
+        if (const nodes::eval_log::NodeLog *node_log = tree_log->find_node_log(tnode->identifier))
         {
           found_node = true;
           run_time += node_log->execution_time;
@@ -2286,7 +2285,7 @@ static std::optional<std::chrono::nanoseconds> node_get_execution_time(
     }
     return std::nullopt;
   }
-  if (const nodes::eval_log::NodeLog *node_log = tree_log->nodes.lookup_ptr(node.identifier)) {
+  if (const nodes::eval_log::NodeLog *node_log = tree_log->find_node_log(node.identifier)) {
     return node_log->execution_time;
   }
   return std::nullopt;
@@ -2423,7 +2422,7 @@ static std::optional<NodeExtraInfoRow> node_get_accessed_attributes_row(
     }
   }
   geo_tree_log->ensure_used_named_attributes();
-  nodes::eval_log::NodeLog *node_log = geo_tree_log->nodes.lookup_ptr(node.identifier);
+  nodes::eval_log::NodeLog *node_log = geo_tree_log->find_node_log(node.identifier);
   if (node_log == nullptr) {
     return std::nullopt;
   }
@@ -2527,7 +2526,7 @@ static Vector<NodeExtraInfoRow> node_get_extra_info(const bContext &C,
 
   if (tree_log) {
     tree_log->ensure_debug_messages();
-    const nodes::eval_log::NodeLog *node_log = tree_log->nodes.lookup_ptr(node.identifier);
+    const nodes::eval_log::NodeLog *node_log = tree_log->find_node_log(node.identifier);
     if (node_log != nullptr) {
       for (const StringRef message : node_log->debug_messages) {
         NodeExtraInfoRow row;
@@ -2899,9 +2898,7 @@ static void node_draw_basis(const bContext &C,
       if (const nodes::eval_log::NodeTreeLog *tree_log = tree_draw_ctx.tree_logs.get_main_tree_log(
               node))
       {
-        if (const nodes::eval_log::NodeLog *node_log = tree_log->nodes.lookup_ptr_as(
-                node.identifier))
-        {
+        if (const nodes::eval_log::NodeLog *node_log = tree_log->find_node_log(node.identifier)) {
           if (node_log->image_preview) {
             node_draw_extra_info_panel(
                 C, tree_draw_ctx, snode, node, node_log->image_preview, block);
