@@ -5576,6 +5576,10 @@ static wmOperatorStatus clear_edited_exec(bContext *C, wmOperator * /*op*/)
 {
   Object *ob = CTX_data_active_object(C);
   ParticleSystem *psys = psys_get_current(ob);
+  /* Additional check as poll doesn't do this exact lookup. */
+  if (psys == nullptr) {
+    return OPERATOR_CANCELLED;
+  }
 
   if (psys->edit) {
     if (/*psys->edit->edited ||*/ true) {
