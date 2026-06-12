@@ -67,6 +67,9 @@ static bool mesh_active_attribute_poll(bContext *C)
     return false;
   }
   const Mesh *mesh = ED_mesh_context(C);
+  if (mesh == nullptr) {
+    return false;
+  }
   if (!geometry::attribute_set_poll(*C, mesh->id)) {
     return false;
   }
