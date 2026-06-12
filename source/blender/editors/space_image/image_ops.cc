@@ -342,27 +342,43 @@ static void image_view_all(SpaceImage *sima, ARegion *region, wmOperator *op)
   sima->yof = yof;
 }
 
+bool space_image_poll(bContext *C)
+{
+  SpaceImage *sima = CTX_wm_space_image(C);
+  if (sima == nullptr) {
+    return false;
+  }
+  return true;
+}
+
 bool space_image_main_region_poll(bContext *C)
 {
   SpaceImage *sima = CTX_wm_space_image(C);
-  // ARegion *region = CTX_wm_region(C); /* XXX. */
-
-  if (sima) {
-    return true; /* XXX (region && region->runtime->type->regionid == RGN_TYPE_WINDOW); */
+  if (sima == nullptr) {
+    return false;
   }
-  return false;
+  ARegion *region = CTX_wm_region(C);
+  if (!(region && region->regiontype == RGN_TYPE_WINDOW)) {
+    return false;
+  }
+  return true;
 }
 
 /** For #IMAGE_OT_curves_point_set to avoid sampling when in uv smooth mode or edit-mode. */
 static bool space_image_main_area_not_uv_brush_poll(bContext *C)
 {
   SpaceImage *sima = CTX_wm_space_image(C);
-
-  if (sima && (CTX_data_edit_object(C) == nullptr)) {
-    return true;
+  if (sima == nullptr) {
+    return false;
   }
-
-  return false;
+  ARegion *region = CTX_wm_region(C);
+  if (!(region && region->regiontype == RGN_TYPE_WINDOW)) {
+    return false;
+  }
+  if (CTX_data_edit_object(C)) {
+    return false;
+  }
+  return true;
 }
 
 /** \} */
@@ -503,7 +519,7 @@ void IMAGE_OT_view_pan(wmOperatorType *ot)
   ot->invoke = image_view_pan_invoke;
   ot->modal = image_view_pan_modal;
   ot->cancel = image_view_pan_cancel;
-  ot->poll = space_image_main_region_poll;
+  ot->poll = space_image_poll;
 
   /* flags */
   ot->flag = OPTYPE_BLOCKING | OPTYPE_GRAB_CURSOR_XY | OPTYPE_LOCK_BYPASS;
@@ -965,7 +981,7 @@ void IMAGE_OT_view_cursor_center(wmOperatorType *ot)
 
   /* API callbacks. */
   ot->exec = view_cursor_center_exec;
-  ot->poll = ED_space_image_cursor_poll;
+  ot->poll = ED_space_image_region_cursor_poll;
 
   /* properties */
   prop = RNA_def_boolean(ot->srna, "fit_view", false, "Fit View", "Fit frame to the viewport");
@@ -4182,7 +4198,7 @@ void IMAGE_OT_read_viewlayers(wmOperatorType *ot)
   ot->idname = "IMAGE_OT_read_viewlayers";
   ot->description = "Read all the current scene's view layers from cache, as needed";
 
-  ot->poll = space_image_main_region_poll;
+  ot->poll = space_image_poll;
   ot->exec = image_read_viewlayers_exec;
 
   /* flags */

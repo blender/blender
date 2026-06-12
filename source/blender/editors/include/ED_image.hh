@@ -171,6 +171,7 @@ bool ED_space_image_maskedit_mask_poll(bContext *C);
 bool ED_space_image_maskedit_mask_visible_splines_poll(bContext *C);
 
 bool ED_space_image_cursor_poll(bContext *C);
+bool ED_space_image_region_cursor_poll(bContext *C);
 
 /**
  * Used by node view too.
