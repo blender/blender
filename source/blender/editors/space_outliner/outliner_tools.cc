@@ -516,6 +516,9 @@ static void unlink_object_fn(bContext *C,
     /* NOTE: Cannot risk tagging the object here, as it may have been deleted if its last usage
      * was removed by above code. */
     DEG_id_tag_update(tsep->id, ID_RECALC_HIERARCHY);
+    /* Clear selection flags. Tree store elements are reused by other matching tree elements, see:
+     * !159899 */
+    tselem->flag &= ~(TSE_ACTIVE | TSE_SELECTED);
     DEG_relations_tag_update(bmain);
   }
 }
