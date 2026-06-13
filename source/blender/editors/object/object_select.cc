@@ -31,6 +31,7 @@
 #include "BKE_armature.hh"
 #include "BKE_collection.hh"
 #include "BKE_context.hh"
+#include "BKE_global.hh"
 #include "BKE_layer.hh"
 #include "BKE_lib_id.hh"
 #include "BKE_main.hh"
@@ -1081,6 +1082,15 @@ static wmOperatorStatus object_select_grouped_exec(bContext *C, wmOperator *op)
   return OPERATOR_CANCELLED;
 }
 
+static bool object_select_grouped_poll(bContext *C)
+{
+  /* Uses popup menus which won't work in background mode. */
+  if (G.background) {
+    return false;
+  }
+  return objects_selectable_poll(C);
+}
+
 void OBJECT_OT_select_grouped(wmOperatorType *ot)
 {
   /* identifiers */
@@ -1091,7 +1101,7 @@ void OBJECT_OT_select_grouped(wmOperatorType *ot)
   /* API callbacks. */
   ot->invoke = WM_menu_invoke;
   ot->exec = object_select_grouped_exec;
-  ot->poll = objects_selectable_poll;
+  ot->poll = object_select_grouped_poll;
 
   /* flags */
   ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
