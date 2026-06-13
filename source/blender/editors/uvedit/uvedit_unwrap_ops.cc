@@ -4402,6 +4402,9 @@ void ED_uvedit_add_simple_uvs(Main *bmain, const Scene *scene, Object *ob)
 
   ED_mesh_uv_ensure(mesh, nullptr);
 
+  bm->uv_select_sync_valid = false;
+  uvedit_select_prepare_custom_data(scene, bm);
+
   BMeshFromMeshParams bm_from_me_params{};
   bm_from_me_params.calc_face_normal = true;
   bm_from_me_params.calc_vert_normal = true;
