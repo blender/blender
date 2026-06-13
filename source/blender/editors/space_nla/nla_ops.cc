@@ -47,6 +47,14 @@ bool nlaop_poll_tweakmode_off(bContext *C)
 
   return true;
 }
+bool nlaop_poll_tweakmode_off_with_main_region(bContext *C)
+{
+  const ARegion *region = CTX_wm_region(C);
+  if (!(region && region->regiontype == RGN_TYPE_WINDOW)) {
+    return false;
+  }
+  return nlaop_poll_tweakmode_off(C);
+}
 
 bool nlaop_poll_tweakmode_on(bContext *C)
 {

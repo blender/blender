@@ -409,7 +409,7 @@ void NLA_OT_select_box(wmOperatorType *ot)
   ot->modal = WM_gesture_box_modal;
   ot->cancel = WM_gesture_box_cancel;
 
-  ot->poll = nlaop_poll_tweakmode_off;
+  ot->poll = nlaop_poll_tweakmode_off_with_main_region;
 
   /* flags */
   ot->flag = OPTYPE_UNDO;
