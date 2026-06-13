@@ -26,6 +26,8 @@ namespace eevee::subsurface {
  * \{ */
 
 struct Setup {
+  [[specialization_constant(false)]] const bool use_split_radiance;
+
   [[shared]] uint &has_visible_sss;
 
   [[sampler(2)]] sampler2DDepth depth_tx;
@@ -33,7 +35,7 @@ struct Setup {
   [[image(0, read, DEFERRED_RADIANCE_FORMAT)]] const uimage2D direct_light_img;
   [[image(1, read, RAYTRACE_RADIANCE_FORMAT)]] const image2D indirect_light_img;
   [[image(2, write, SUBSURFACE_OBJECT_ID_FORMAT)]] uimage2D object_id_img;
-  [[image(3, write, SUBSURFACE_RADIANCE_FORMAT)]] image2D radiance_img;
+  [[image(3, write, SUBSURFACE_RADIANCE_FORMAT)]] image2DArray radiance_img;
 
   [[storage(0, write)]] uint (&convolve_tile_buf)[];
   [[storage(1, read_write)]] DispatchCommand &convolve_dispatch_buf;
@@ -61,15 +63,21 @@ void setup_main([[resource_table]] Setup &srt,
   ClosureUndetermined cl = gbuf.layer[0];
 
   if (cl.type == CLOSURE_BSSRDF_BURLEY_ID) {
-    float3 radiance = rgb9e5_decode(imageLoadFast(srt.direct_light_img, texel).r);
-    radiance += imageLoadFast(srt.indirect_light_img, texel).rgb;
+    float3 direct = rgb9e5_decode(imageLoadFast(srt.direct_light_img, texel).r);
+    float3 indirect = imageLoadFast(srt.indirect_light_img, texel).rgb;
 
     ClosureSubsurface closure = to_closure_subsurface(cl);
     float max_radius = reduce_max(closure.sss_radius);
 
     uint object_id = reader.read_object_id(texel);
 
-    imageStoreFast(srt.radiance_img, texel, float4(radiance, 0.0f));
+    if (srt.use_split_radiance) {
+      imageStoreFast(srt.radiance_img, int3(texel, 0), float4(direct, 0.0f));
+      imageStoreFast(srt.radiance_img, int3(texel, 1), float4(indirect, 0.0f));
+    }
+    else {
+      imageStoreFast(srt.radiance_img, int3(texel, 0), float4(direct + indirect, 0.0f));
+    }
     imageStoreFast(srt.object_id_img, texel, uint4(object_id));
 
     float depth = reverse_z::read(texelFetch(srt.depth_tx, texel, 0).r);
@@ -123,7 +131,9 @@ struct SubSurfaceSample {
 };
 
 struct Convolve {
-  [[sampler(2)]] sampler2D radiance_tx;
+  [[specialization_constant(false)]] const bool use_split_radiance;
+
+  [[sampler(2)]] sampler2DArray radiance_tx;
   [[sampler(3)]] sampler2DDepth depth_tx;
   [[sampler(4)]] usampler2D object_id_tx;
 
@@ -140,7 +150,7 @@ struct Convolve {
 
   void cache_populate(float2 local_uv, uint2 texel)
   {
-    cached_radiance[texel.y][texel.x] = texture(radiance_tx, local_uv).rgb;
+    cached_radiance[texel.y][texel.x] = textureLod(radiance_tx, float3(local_uv, 0.0f), 0.0f).rgb;
     cached_sss_id[texel.y][texel.x] = texture(object_id_tx, local_uv).r;
     cached_depth[texel.y][texel.x] = reverse_z::read(texture(depth_tx, local_uv).r);
   }
@@ -168,7 +178,7 @@ struct Convolve {
     }
     samp.depth = reverse_z::read(texture(depth_tx, sample_uv).r);
     samp.sss_id = texture(object_id_tx, sample_uv).r;
-    samp.radiance = texture(radiance_tx, sample_uv).rgb;
+    samp.radiance = textureLod(radiance_tx, float3(sample_uv, 0.0f), 0.0f).rgb;
     return samp;
   }
 };
@@ -230,6 +240,7 @@ void convolve_main([[resource_table]] Convolve &srt,
 
   float3 accum_weight = float3(0.0f);
   float3 accum_radiance = float3(0.0f);
+  float3 accum_radiance_indirect = float3(0.0f);
 
   for (int i = 0; i < srt.subsurface_buf.sample_len; i++) {
     float2 sample_uv = center_uv + sample_space * srt.subsurface_buf.samples[i].xy;
@@ -247,14 +258,22 @@ void convolve_main([[resource_table]] Convolve &srt,
 
     accum_radiance += samp.radiance * weight;
     accum_weight += weight;
+
+    if (srt.use_split_radiance) {
+      accum_radiance_indirect += textureLod(srt.radiance_tx, float3(sample_uv, 1.0f), 0.0f).rgb *
+                                 weight;
+    }
   }
   /* Normalize the sum (slide 34). */
-  accum_radiance *= safe_rcp(accum_weight);
+  float3 accum_weight_inv = safe_rcp(accum_weight);
+  accum_radiance *= accum_weight_inv;
+  accum_radiance_indirect *= accum_weight_inv;
 
   /* Put result in direct diffuse. */
   imageStoreFast(srt.out_direct_light_img, texel, uint4(rgb9e5_encode(accum_radiance)));
-  /* Clear the indirect pass since its content has been merged and convolved with direct light. */
-  imageStoreFast(srt.out_indirect_light_img, texel, float4(0.0f, 0.0f, 0.0f, 0.0f));
+  /* Note that if we don't use split radiance, this clears the indirect pass since its content has
+   * been merged and convolved with direct light.*/
+  imageStoreFast(srt.out_indirect_light_img, texel, float4(accum_radiance_indirect, 0.0f));
 }
 
 /** \} */
