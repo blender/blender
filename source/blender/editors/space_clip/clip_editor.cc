@@ -76,6 +76,14 @@ bool ED_space_clip_view_clip_poll(bContext *C)
 
   return false;
 }
+bool ED_space_clip_view_clip_with_region_poll(bContext *C)
+{
+  const ARegion *region = CTX_wm_region(C);
+  if (!(region && region->regiontype == RGN_TYPE_WINDOW)) {
+    return false;
+  }
+  return ED_space_clip_view_clip_poll(C);
+}
 
 bool ED_space_clip_tracking_poll(bContext *C)
 {
