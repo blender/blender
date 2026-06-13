@@ -2502,7 +2502,7 @@ class VIEW3D_MT_edit_metaball_context_menu(Menu):
         layout.operator_context = 'INVOKE_REGION_WIN'
 
         # Add
-        layout.operator("mball.duplicate_move")
+        layout.operator("mball.duplicate_move", icon='DUPLICATE')
 
         layout.separator()
 
@@ -2514,7 +2514,7 @@ class VIEW3D_MT_edit_metaball_context_menu(Menu):
 
         # Remove
         layout.operator_context = 'EXEC_REGION_WIN'
-        layout.operator("mball.delete_metaelems", text="Delete")
+        layout.operator("mball.delete_metaelems", text="Delete", icon='X')
 
 
 class VIEW3D_MT_metaball_add(Menu):
@@ -4518,7 +4518,7 @@ class VIEW3D_MT_edit_mesh(Menu):
 
         layout.separator()
 
-        layout.operator("mesh.duplicate_move", text="Duplicate")
+        layout.operator("mesh.duplicate_move", text="Duplicate", icon='DUPLICATE')
         layout.menu("VIEW3D_MT_edit_mesh_extrude")
 
         layout.separator()
@@ -5261,7 +5261,7 @@ def draw_curve(self, _context):
     layout.separator()
 
     layout.operator("curve.spin")
-    layout.operator("curve.duplicate_move")
+    layout.operator("curve.duplicate_move", icon='DUPLICATE')
 
     layout.separator()
 
@@ -5363,7 +5363,7 @@ class VIEW3D_MT_edit_curve_context_menu(Menu):
         layout.operator("curve.subdivide")
         layout.operator("curve.extrude_move")
         layout.operator("curve.make_segment")
-        layout.operator("curve.duplicate_move")
+        layout.operator("curve.duplicate_move", icon='DUPLICATE')
 
         layout.separator()
 
@@ -5567,14 +5567,14 @@ class VIEW3D_MT_edit_meta(Menu):
 
         layout.separator()
 
-        layout.operator("mball.duplicate_metaelems")
+        layout.operator("mball.duplicate_metaelems", icon='DUPLICATE')
 
         layout.separator()
 
         layout.menu("VIEW3D_MT_edit_meta_showhide")
 
         layout.operator_context = 'EXEC_REGION_WIN'
-        layout.operator("mball.delete_metaelems", text="Delete")
+        layout.operator("mball.delete_metaelems", text="Delete", icon='X')
 
 
 class VIEW3D_MT_edit_meta_showhide(Menu):
@@ -5632,7 +5632,7 @@ class VIEW3D_MT_edit_armature(Menu):
         if arm.use_mirror_x:
             layout.operator("armature.extrude_forked")
 
-        layout.operator("armature.duplicate_move")
+        layout.operator("armature.duplicate_move", icon='DUPLICATE')
         layout.operator("armature.duplicate_rename")
         layout.operator("armature.fill")
 
@@ -5683,7 +5683,7 @@ class VIEW3D_MT_armature_context_menu(Menu):
 
         # Add
         layout.operator("armature.subdivide", text="Subdivide")
-        layout.operator("armature.duplicate_move", text="Duplicate")
+        layout.operator("armature.duplicate_move", text="Duplicate", icon='DUPLICATE')
         layout.operator("armature.extrude_move")
         if arm.use_mirror_x:
             layout.operator("armature.extrude_forked")
@@ -5854,7 +5854,7 @@ class VIEW3D_MT_edit_greasepencil(Menu):
 
         layout.separator()
 
-        layout.operator("grease_pencil.duplicate_move", text="Duplicate")
+        layout.operator("grease_pencil.duplicate_move", text="Duplicate", icon='DUPLICATE')
 
         layout.separator()
 
@@ -5982,7 +5982,7 @@ class VIEW3D_MT_edit_curves(Menu):
 
         layout.separator()
 
-        layout.operator("curves.duplicate_move")
+        layout.operator("curves.duplicate_move", icon='DUPLICATE')
         layout.operator("curves.extrude_move")
 
         layout.separator()
@@ -8467,7 +8467,7 @@ class VIEW3D_MT_greasepencil_edit_context_menu(Menu):
             col.separator()
 
             # Copy/paste
-            col.operator("grease_pencil.duplicate_move", text="Duplicate")
+            col.operator("grease_pencil.duplicate_move", text="Duplicate", icon='DUPLICATE')
             col.operator("grease_pencil.copy", text="Copy", icon='COPYDOWN')
             col.operator("grease_pencil.paste", text="Paste", icon='PASTEDOWN').type = 'ACTIVE'
             col.operator("grease_pencil.paste", text="Paste by Layer").type = 'LAYER'
@@ -8521,7 +8521,7 @@ class VIEW3D_MT_greasepencil_edit_context_menu(Menu):
             # Copy/paste
             col.operator("grease_pencil.copy", text="Copy", icon='COPYDOWN')
             col.operator("grease_pencil.paste", text="Paste", icon='PASTEDOWN')
-            col.operator("grease_pencil.duplicate_move", text="Duplicate")
+            col.operator("grease_pencil.duplicate_move", text="Duplicate", icon='DUPLICATE')
 
             col.separator()
 

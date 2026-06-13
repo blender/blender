@@ -204,7 +204,7 @@ def marker_menu_generic(layout, context):
     else:
         layout.operator_menu_enum("marker.make_links_scene", "scene", text="Duplicate Marker to Scene")
 
-    layout.operator("marker.duplicate", text="Duplicate Marker")
+    layout.operator("marker.duplicate", text="Duplicate Marker", icon='DUPLICATE')
     layout.operator("marker.add", text="Add Marker")
 
 
