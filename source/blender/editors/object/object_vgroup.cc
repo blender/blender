@@ -1456,13 +1456,14 @@ static bool vgroup_normalize_all(Object *ob,
  * that means.
  */
 static void vgroup_normalize_all_deform_if_active_is_deform(Object *ob,
+                                                            const int def_nr,
                                                             const bool soft_lock_active,
                                                             ReportList *reports,
                                                             std::optional<int> current_frame = {})
 {
+  BLI_assert(BLI_findlink(BKE_object_defgroup_list(ob), def_nr));
   const int defgroup_tot = BKE_object_defgroup_count(ob);
   bool *defgroup_validmap = BKE_object_defgroup_validmap_get(ob, defgroup_tot);
-  const int def_nr = BKE_object_defgroup_active_index_get(ob) - 1;
 
   /* Only auto-normalize if the active group is bone-deforming. */
   if (defgroup_validmap[def_nr] == true) {
@@ -2795,10 +2796,11 @@ static wmOperatorStatus vertex_group_assign_exec(bContext *C, wmOperator *op)
   if (ts->auto_normalize) {
     if (ob->type == OB_GREASE_PENCIL) {
       const int current_frame = scene.r.cfra;
-      vgroup_normalize_all_deform_if_active_is_deform(ob, true, op->reports, current_frame);
+      vgroup_normalize_all_deform_if_active_is_deform(
+          ob, def_nr, true, op->reports, current_frame);
     }
     else {
-      vgroup_normalize_all_deform_if_active_is_deform(ob, true, op->reports);
+      vgroup_normalize_all_deform_if_active_is_deform(ob, def_nr, true, op->reports);
     }
   }
 
@@ -2901,12 +2903,16 @@ static wmOperatorStatus vertex_group_remove_from_exec(bContext *C, wmOperator *o
 
   ToolSettings *ts = CTX_data_tool_settings(C);
   if (ts->auto_normalize) {
-    if (ob->type == OB_GREASE_PENCIL) {
-      const int current_frame = scene.r.cfra;
-      vgroup_normalize_all_deform_if_active_is_deform(ob, true, op->reports, current_frame);
-    }
-    else {
-      vgroup_normalize_all_deform_if_active_is_deform(ob, true, op->reports);
+    const int def_nr = BKE_object_defgroup_active_index_get(ob) - 1;
+    if (def_nr >= 0) {
+      if (ob->type == OB_GREASE_PENCIL) {
+        const int current_frame = scene.r.cfra;
+        vgroup_normalize_all_deform_if_active_is_deform(
+            ob, def_nr, true, op->reports, current_frame);
+      }
+      else {
+        vgroup_normalize_all_deform_if_active_is_deform(ob, def_nr, true, op->reports);
+      }
     }
   }
 
