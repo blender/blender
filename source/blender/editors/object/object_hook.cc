@@ -698,18 +698,16 @@ static wmOperatorStatus object_hook_remove_exec(bContext *C, wmOperator *op)
 {
   int num = RNA_enum_get(op->ptr, "modifier");
   Object *ob = CTX_data_edit_object(C);
-  HookModifierData *hmd = nullptr;
-
-  hmd = static_cast<HookModifierData *>(BLI_findlink(&ob->modifiers, num));
-  if (!hmd) {
+  ModifierData *md = static_cast<ModifierData *>(BLI_findlink(&ob->modifiers, num));
+  if (!(md && md->type == eModifierType_Hook)) {
     BKE_report(op->reports, RPT_ERROR, "Could not find hook modifier");
     return OPERATOR_CANCELLED;
   }
 
   /* remove functionality */
 
-  BKE_modifier_remove_from_list(ob, reinterpret_cast<ModifierData *>(hmd));
-  BKE_modifier_free(reinterpret_cast<ModifierData *>(hmd));
+  BKE_modifier_remove_from_list(ob, md);
+  BKE_modifier_free(md);
 
   DEG_relations_tag_update(CTX_data_main(C));
   DEG_id_tag_update(&ob->id, ID_RECALC_GEOMETRY);
