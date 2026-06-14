@@ -599,7 +599,7 @@ static void initTranslation(TransInfo *t, wmOperator * /*op*/)
 
   float3 aspect = t->aspect;
   /* Custom aspect for fcurve. */
-  if (t->spacetype == SPACE_GRAPH) {
+  if ((t->spacetype == SPACE_GRAPH) && (t->region != nullptr)) {
     View2D *v2d = &t->region->v2d;
     Scene *scene = t->scene;
     SpaceGraph *sipo = reinterpret_cast<SpaceGraph *>(t->area->spacedata.first);
