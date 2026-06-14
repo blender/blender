@@ -83,10 +83,9 @@ bool deselect_all_strips(const Scene *scene)
     return changed;
   }
 
-  VectorSet<Strip *> strips = seq::query_all_strips(seq::active_seqbase_get(ed));
-  for (Strip *strip : strips) {
-    if (strip->flag & STRIP_ALLSEL) {
-      strip->flag &= ~STRIP_ALLSEL;
+  for (Strip &strip : *seq::active_seqbase_get(ed)) {
+    if (strip.flag & STRIP_ALLSEL) {
+      strip.flag &= ~STRIP_ALLSEL;
       changed = true;
     }
   }
