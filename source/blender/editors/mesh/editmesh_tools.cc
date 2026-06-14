@@ -46,6 +46,7 @@
 #include "BKE_mesh_types.hh"
 #include "BKE_object.hh"
 #include "BKE_object_types.hh"
+#include "BKE_paint.hh"
 #include "BKE_report.hh"
 
 #include "DEG_depsgraph.hh"
@@ -4618,7 +4619,7 @@ static wmOperatorStatus edbm_separate_exec(bContext *C, wmOperator *op)
         BMeshToMeshParams to_mesh_params{};
         to_mesh_params.calc_object_remap = true;
         BM_mesh_bm_to_me(bmain, bm_old, mesh, &to_mesh_params);
-
+        BKE_sculptsession_free_pbvh(*ob);
         DEG_id_tag_update(&mesh->id, ID_RECALC_GEOMETRY_ALL_MODES);
         WM_event_add_notifier(C, NC_GEOM | ND_DATA, mesh);
       }
