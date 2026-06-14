@@ -9265,6 +9265,7 @@ static wmOperatorStatus edbm_average_normals_exec(bContext *C, wmOperator *op)
     bm->spacearr_dirty |= BM_SPACEARR_DIRTY_ALL;
     BKE_editmesh_lnorspace_update(em);
 
+    BM_data_layer_ensure_named(bm, &bm->ldata, CD_PROP_INT16_2D, "custom_normal");
     const int cd_clnors_offset = CustomData_get_offset_named(
         &bm->ldata, CD_PROP_INT16_2D, "custom_normal");
 
@@ -9757,6 +9758,7 @@ static wmOperatorStatus edbm_set_normals_from_faces_exec(bContext *C, wmOperator
       bm->elem_index_dirty &= ~BM_VERT;
     }
 
+    BM_data_layer_ensure_named(bm, &bm->ldata, CD_PROP_INT16_2D, "custom_normal");
     BM_mesh_elem_index_ensure(bm, BM_LOOP);
     BLI_bitmap *loop_set = BLI_BITMAP_NEW(bm->totloop, __func__);
     const int cd_clnors_offset = CustomData_get_offset_named(
