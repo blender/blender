@@ -11,6 +11,7 @@
 
 #include <algorithm>
 #include <array>
+#include <cmath>
 
 #include "DNA_modifier_types.h"
 
@@ -982,7 +983,8 @@ void BM_verts_calc_normal_from_cloud_ex(
         order[i] = i;
         float dir_test[3];
         sub_v3_v3v3(dir_test, varr[i]->co, center);
-        angles[i] = angle_signed_on_axis_v3v3_v3(dir_a, dir_test, r_normal);
+        const float angle = angle_signed_on_axis_v3v3_v3(dir_a, dir_test, r_normal);
+        angles[i] = std::isfinite(angle) ? angle : 0.0f;
       }
       std::ranges::sort(order, [&](int a, int b) {
         /* This order ensures the normal doesn't "flip" when refining. */
