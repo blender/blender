@@ -164,6 +164,11 @@ static void bm_loop_customdata_merge(BMesh *bm,
     e_b = l_b_inner->prev->e;
   }
 
+  /* The edges must be manifold for the "other" loop to make sense. */
+  if (!BM_edge_is_manifold(e_a) || !BM_edge_is_manifold(e_b)) {
+    return;
+  }
+
   l_a_inner_inset = BM_edge_other_loop(e_a, l_a_inner);
   l_b_inner_inset = BM_edge_other_loop(e_b, l_b_inner);
   BLI_assert(l_a_inner_inset->v == l_b_inner_inset->v);
