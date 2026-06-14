@@ -433,7 +433,11 @@ static void manta_set_domain_from_mesh(FluidDomainSettings *fds,
   }
   /* Apply object scale. */
   for (i = 0; i < 3; i++) {
-    size[i] = fabsf(size[i] * ob->scale[i]);
+    const float scale = ob->scale[i];
+    size[i] = fabsf(size[i] * (isfinite(scale) ? scale : 1.0f));
+    if (!isfinite(size[i])) {
+      size[i] = 1.0f;
+    }
   }
   copy_v3_v3(fds->global_size, size);
   copy_v3_v3(fds->dp0, min);
