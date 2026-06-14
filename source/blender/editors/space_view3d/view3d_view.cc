@@ -974,7 +974,7 @@ static bool view3d_localview_init(const Depsgraph *depsgraph,
         if (rv3d->persp == RV3D_CAMOB) {
           rv3d->persp = RV3D_PERSP;
           camera_old = v3d->camera;
-          if (camera_old->type == OB_CAMERA) {
+          if (camera_old && camera_old->type == OB_CAMERA) {
             const Camera &camera = *id_cast<Camera *>(camera_old->data);
             if (camera.type == CAM_ORTHO) {
               rv3d->persp = RV3D_ORTHO;
