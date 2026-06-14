@@ -814,7 +814,7 @@ enum {
 
 static wmOperatorStatus shape_key_lock_exec(bContext *C, wmOperator *op)
 {
-  Object *ob = CTX_data_active_object(C);
+  Object *ob = context_object(C);
   const int action = RNA_enum_get(op->ptr, "action");
   const Key *keys = BKE_key_from_object(ob);
 
