@@ -9535,6 +9535,7 @@ static wmOperatorStatus edbm_normals_tools_exec(bContext *C, wmOperator *op)
         }
         if (lnors_ed_arr->totloop == 1) {
           copy_v3_v3(scene->toolsettings->normal_vector, lnors_ed_arr->lnor_editdata->nloc);
+          done_copy = true;
         }
         else if (bm->totfacesel == 1) {
           BMFace *f;
@@ -9544,6 +9545,7 @@ static wmOperatorStatus edbm_normals_tools_exec(bContext *C, wmOperator *op)
               copy_v3_v3(scene->toolsettings->normal_vector, f->no);
             }
           }
+          done_copy = true;
         }
         else if (lnors_ed_arr->totloop != 0) {
           /* 'Vertex' normal, i.e. common set of loop normals on the same vertex,
@@ -9557,8 +9559,8 @@ static wmOperatorStatus edbm_normals_tools_exec(bContext *C, wmOperator *op)
           if (are_same_lnors) {
             copy_v3_v3(scene->toolsettings->normal_vector, lnors_ed_arr->lnor_editdata->nloc);
           }
+          done_copy = true;
         }
-        done_copy = true;
         break;
 
       case EDBM_CLNOR_TOOLS_PASTE:
