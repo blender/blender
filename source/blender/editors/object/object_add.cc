@@ -3852,7 +3852,8 @@ static Object *convert_mesh_to_grease_pencil(Base &base,
                               bke::greasepencil::LEGACY_RADIUS_CONVERSION_FACTOR;
 
   Object *ob_eval = DEG_get_evaluated(info.depsgraph, ob);
-  const Mesh *mesh_eval = BKE_object_get_evaluated_mesh(ob_eval);
+  Mesh *mesh_eval = BKE_object_get_evaluated_mesh(ob_eval);
+  BKE_mesh_wrapper_ensure_mdata(mesh_eval);
 
   VectorSet<FillColorRecord> fill_colors;
   Array<int> material_remap;
