@@ -107,6 +107,7 @@ static void extract_barycentric_pixels(UDIMTilePixels &tile_data,
 /** Update the geometry primitives of the pbvh. */
 static void update_geom_primitives(Tree &pbvh, const uv_islands::MeshData &mesh_data)
 {
+  PRF_scope(ProfileCategory::Editor);
   PixelData &pbvh_data = data_get(pbvh);
   pbvh_data.vert_tris.reinitialize(mesh_data.corner_tris.size());
   bke::mesh::vert_tris_from_corner_tris(
@@ -148,6 +149,7 @@ static void do_encode_pixels(const uv_islands::MeshData &mesh_data,
                              MeshNode &node,
                              PixelNode &pixel_node)
 {
+  PRF_scope(ProfileCategory::Editor);
   BLI_assert(pixel_node.flags.rebuild ||
              (pixel_node.uv_primitives.tri_indices.is_empty() &&
               pixel_node.uv_primitives.delta_barycentric_coords.is_empty() &&

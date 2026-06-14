@@ -9,6 +9,8 @@
 #include "BLI_ordered_edge.hh"
 #include "BLI_rect.h"
 
+#include "PRF_profile.hh"
+
 #include "pbvh_uv_islands.hh"
 
 #include <iostream>
@@ -191,6 +193,7 @@ static int mesh_data_init_primitive_uv_island_ids(MeshData &mesh_data)
 
 static void mesh_data_init(MeshData &mesh_data)
 {
+  PRF_scope(ProfileCategory::Editor);
   mesh_data_init_edges(mesh_data);
   mesh_data.uv_island_len = mesh_data_init_primitive_uv_island_ids(mesh_data);
 }
@@ -434,6 +437,7 @@ static UVPrimitive *add_primitive(const MeshData &mesh_data,
 
 void UVIsland::extract_borders()
 {
+  PRF_scope(ProfileCategory::Editor);
   /* Lookup all borders of the island. */
   Vector<UVBorderEdge> edges;
   for (UVPrimitive &prim : uv_primitives) {
@@ -1037,6 +1041,7 @@ void UVIsland::extend_border(const MeshData &mesh_data,
                              const UVIslandsMask &mask,
                              const short island_index)
 {
+  PRF_scope(ProfileCategory::Editor);
   reset_extendability_flags(*this);
 
   int64_t border_index = 0;
@@ -1439,6 +1444,7 @@ float UVBorderEdge::length() const
 
 UVIslands::UVIslands(const MeshData &mesh_data)
 {
+  PRF_scope(ProfileCategory::Editor);
   islands.reserve(mesh_data.uv_island_len);
 
   for (const int64_t uv_island_id : IndexRange(mesh_data.uv_island_len)) {
@@ -1455,6 +1461,7 @@ UVIslands::UVIslands(const MeshData &mesh_data)
 
 void UVIslands::extract_borders()
 {
+  PRF_scope(ProfileCategory::Editor);
   for (UVIsland &island : islands) {
     island.extract_borders();
   }
@@ -1462,6 +1469,7 @@ void UVIslands::extract_borders()
 
 void UVIslands::extend_borders(const MeshData &mesh_data, const UVIslandsMask &islands_mask)
 {
+  PRF_scope(ProfileCategory::Editor);
   ushort index = 0;
   for (UVIsland &island : islands) {
     island.extend_border(mesh_data, islands_mask, index++);
@@ -1511,6 +1519,7 @@ static void add_uv_island(const MeshData &mesh_data,
                           const UVIsland &uv_island,
                           int16_t island_index)
 {
+  PRF_scope(ProfileCategory::Editor);
   for (const UVPrimitive &uv_primitive : uv_island.uv_primitives) {
     const int3 &tri = mesh_data.corner_tris[uv_primitive.primitive_i];
 
@@ -1549,6 +1558,7 @@ static void add_uv_island(const MeshData &mesh_data,
 
 void UVIslandsMask::add(const MeshData &mesh_data, const UVIslands &uv_islands)
 {
+  PRF_scope(ProfileCategory::Editor);
   for (Tile &tile : tiles) {
     for (const int i : uv_islands.islands.index_range()) {
       add_uv_island(mesh_data, tile, uv_islands.islands[i], i);
@@ -1611,6 +1621,7 @@ static bool dilate_y(UVIslandsMask::Tile &islands_mask)
 
 static void dilate_tile(UVIslandsMask::Tile &tile, int max_iterations)
 {
+  PRF_scope(ProfileCategory::Editor);
   int index = 0;
   while (index < max_iterations) {
     bool changed = dilate_x(tile);
@@ -1624,6 +1635,7 @@ static void dilate_tile(UVIslandsMask::Tile &tile, int max_iterations)
 
 void UVIslandsMask::dilate(int max_iterations)
 {
+  PRF_scope(ProfileCategory::Editor);
   for (Tile &tile : tiles) {
     dilate_tile(tile, max_iterations);
   }
