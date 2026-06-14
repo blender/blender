@@ -604,7 +604,6 @@ bool ED_operator_object_active_from_view_layer(bContext *C)
   ViewLayer *view_layer = CTX_data_view_layer(C);
   BKE_view_layer_synced_ensure(bmain, scene, view_layer);
   Object *obact = BKE_view_layer_active_object_get(view_layer);
-  return (obact != nullptr);
   return ((obact != nullptr) && !ed_object_hidden(obact));
 }
 
