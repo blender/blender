@@ -28,6 +28,21 @@ namespace meshintersect {
 
 #ifdef WITH_GMP
 
+static float3 clean_float3(const float3 &co)
+{
+  float3 cleaned = co;
+  if (!isfinite(co[0])) [[unlikely]] {
+    cleaned[0] = 0.0f;
+  }
+  if (!isfinite(co[1])) [[unlikely]] {
+    cleaned[1] = 0.0f;
+  }
+  if (!isfinite(co[2])) [[unlikely]] {
+    cleaned[2] = 0.0f;
+  }
+  return cleaned;
+}
+
 /**
  * Make a #meshintersect::Mesh from #BMesh bm.
  * We are given a triangulation of it from the caller via #looptris,
@@ -51,8 +66,9 @@ static IMesh mesh_from_bm(BMesh *bm,
   arena->reserve(estimate_num_outv, estimate_num_outf);
   Array<const Vert *> vert(bm->totvert);
   for (int v = 0; v < bm->totvert; ++v) {
-    BMVert *bmv = BM_vert_at_index(bm, v);
-    vert[v] = arena->add_or_find_vert(mpq3(bmv->co[0], bmv->co[1], bmv->co[2]), v);
+    const BMVert *bmv = BM_vert_at_index(bm, v);
+    const float3 co = clean_float3(bmv->co);
+    vert[v] = arena->add_or_find_vert(mpq3(co[0], co[1], co[2]), v);
   }
   Array<Face *> face(bm->totface);
   constexpr int estimated_max_facelen = 100;
