@@ -36,7 +36,7 @@ ccl_device_inline float4 motion_point_for_step(
     offset += step * numverts;
   }
 
-  return kernel_data_fetch(attributes_float4, offset + prim);
+  return kernel_data_fetch(points, offset + prim);
 }
 
 /* return 2 point key locations */

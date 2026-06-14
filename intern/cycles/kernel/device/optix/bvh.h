@@ -153,9 +153,9 @@ extern "C" __global__ void __anyhit__kernel_optix_local_hit()
   /* Record geometric normal. */
   const int position_offset = kernel_data_fetch(objects, object).position_offset;
   const packed_uint3 tri_vindex = kernel_data_fetch(tri_vindex, prim);
-  const float3 tri_a = kernel_data_fetch(attributes_float3, position_offset + tri_vindex.x);
-  const float3 tri_b = kernel_data_fetch(attributes_float3, position_offset + tri_vindex.y);
-  const float3 tri_c = kernel_data_fetch(attributes_float3, position_offset + tri_vindex.z);
+  const float3 tri_a = kernel_data_fetch(tri_verts, position_offset + tri_vindex.x);
+  const float3 tri_b = kernel_data_fetch(tri_verts, position_offset + tri_vindex.y);
+  const float3 tri_c = kernel_data_fetch(tri_verts, position_offset + tri_vindex.z);
 
   local_isect->Ng[hit_index] = normalize(cross(tri_b - tri_a, tri_c - tri_a));
 
