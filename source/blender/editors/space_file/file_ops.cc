@@ -593,7 +593,7 @@ static wmOperatorStatus file_select_exec(bContext *C, wmOperator *op)
   mval[1] = RNA_int_get(op->ptr, "mouse_y");
   rect = file_select_mval_to_select_rect(mval);
 
-  if (sfile->layout == nullptr) {
+  if (sfile->files == nullptr || sfile->layout == nullptr) {
     return OPERATOR_CANCELLED;
   }
   if (!ED_fileselect_layout_is_inside_pt(sfile->layout, &region->v2d, rect.xmin, rect.ymin)) {
