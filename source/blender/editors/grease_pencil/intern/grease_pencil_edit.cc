@@ -2945,7 +2945,7 @@ static wmOperatorStatus grease_pencil_paste_strokes_exec(bContext *C, wmOperator
       if (!active_layer) {
         BKE_report(op->reports, RPT_ERROR, "No active Grease Pencil layer to paste into");
       }
-      if (!active_layer->is_editable()) {
+      else if (!active_layer->is_editable()) {
         BKE_report(op->reports, RPT_ERROR, "Active layer is not editable");
       }
       return OPERATOR_CANCELLED;
