@@ -36,6 +36,7 @@ bool ED_space_clip_poll(bContext *C);
  * It is not required to have movie clip opened for editing.
  */
 bool ED_space_clip_view_clip_poll(bContext *C);
+bool ED_space_clip_view_clip_with_region_poll(bContext *C);
 
 /**
  * Returns true when the following conditions are met:

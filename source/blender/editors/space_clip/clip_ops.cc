@@ -727,7 +727,7 @@ void CLIP_OT_view_zoom(wmOperatorType *ot)
   ot->invoke = view_zoom_invoke;
   ot->modal = view_zoom_modal;
   ot->cancel = view_zoom_cancel;
-  ot->poll = ED_space_clip_view_clip_poll;
+  ot->poll = ED_space_clip_view_clip_with_region_poll;
 
   /* flags */
   ot->flag = OPTYPE_BLOCKING | OPTYPE_GRAB_CURSOR_XY | OPTYPE_LOCK_BYPASS;
@@ -791,7 +791,7 @@ void CLIP_OT_view_zoom_in(wmOperatorType *ot)
   /* API callbacks. */
   ot->exec = view_zoom_in_exec;
   ot->invoke = view_zoom_in_invoke;
-  ot->poll = ED_space_clip_view_clip_poll;
+  ot->poll = ED_space_clip_view_clip_with_region_poll;
 
   /* flags */
   ot->flag = OPTYPE_LOCK_BYPASS;
@@ -848,7 +848,7 @@ void CLIP_OT_view_zoom_out(wmOperatorType *ot)
   /* API callbacks. */
   ot->exec = view_zoom_out_exec;
   ot->invoke = view_zoom_out_invoke;
-  ot->poll = ED_space_clip_view_clip_poll;
+  ot->poll = ED_space_clip_view_clip_with_region_poll;
 
   /* flags */
   ot->flag = OPTYPE_LOCK_BYPASS;
@@ -897,7 +897,7 @@ void CLIP_OT_view_zoom_ratio(wmOperatorType *ot)
 
   /* API callbacks. */
   ot->exec = view_zoom_ratio_exec;
-  ot->poll = ED_space_clip_view_clip_poll;
+  ot->poll = ED_space_clip_view_clip_with_region_poll;
 
   /* flags */
   ot->flag = OPTYPE_LOCK_BYPASS;
@@ -982,7 +982,7 @@ void CLIP_OT_view_all(wmOperatorType *ot)
 
   /* API callbacks. */
   ot->exec = view_all_exec;
-  ot->poll = ED_space_clip_view_clip_poll;
+  ot->poll = ED_space_clip_view_clip_with_region_poll;
 
   /* flags */
   ot->flag = OPTYPE_LOCK_BYPASS;
@@ -1051,7 +1051,7 @@ void CLIP_OT_view_selected(wmOperatorType *ot)
 
   /* API callbacks. */
   ot->exec = view_selected_exec;
-  ot->poll = ED_space_clip_view_clip_poll;
+  ot->poll = ED_space_clip_view_clip_with_region_poll;
 
   /* flags */
   ot->flag = OPTYPE_LOCK_BYPASS;
@@ -1676,7 +1676,7 @@ void CLIP_OT_view_ndof(wmOperatorType *ot)
 
   /* API callbacks. */
   ot->invoke = clip_view_ndof_invoke;
-  ot->poll = ED_space_clip_view_clip_poll;
+  ot->poll = ED_space_clip_view_clip_with_region_poll;
 
   /* flags */
   ot->flag = OPTYPE_LOCK_BYPASS;
