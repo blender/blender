@@ -437,7 +437,10 @@ static wmOperatorStatus new_sequencer_scene_exec(bContext *C, wmOperator *op)
   Scene *new_scene = scene_add(bmain, scene_old, eSceneCopyMethod(type));
   seq::editing_ensure(new_scene);
 
-  workspace->sequencer_scene = new_scene;
+  /* Unlikely but not impossible as poll doesn't check for this. */
+  if (workspace != nullptr) [[unlikely]] {
+    workspace->sequencer_scene = new_scene;
+  }
 
   /* Switching the active scene to the newly created sequencer scene should prevent confusion among
    * new users to the VSE. For example, this prevents the case where attempting to change
