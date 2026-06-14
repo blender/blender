@@ -40,7 +40,11 @@ namespace blender::ed::transform {
 eTfmMode transform_mode_really_used(bContext *C, eTfmMode mode)
 {
   if (mode == TFM_BONESIZE) {
-    const ViewLayer *view_layer = CTX_data_view_layer(C);
+    /* Use context here as `TransInfo` scene/view_layer members aren't yet initialized. */
+    Main &bmain = *CTX_data_main(C);
+    Scene *scene = CTX_data_scene(C);
+    ViewLayer *view_layer = CTX_data_view_layer(C);
+    BKE_view_layer_synced_ensure(bmain, scene, view_layer);
     const Object *ob = BKE_view_layer_active_object_get(view_layer);
     BLI_assert(ob);
     if (ob->type != OB_ARMATURE) {
