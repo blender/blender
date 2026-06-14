@@ -957,7 +957,7 @@ void BM_verts_calc_normal_from_cloud_ex(
 
         if (co_test != co_a) {
           dot_test = dot_v3v3(dir_a, co_test);
-          if (dot_test < dot_a_min) {
+          if (dot_test < dot_a_min || co_a_opposite == nullptr) {
             dot_a_min = dot_test;
             co_a_opposite = co_test;
           }
@@ -965,7 +965,7 @@ void BM_verts_calc_normal_from_cloud_ex(
 
         if (co_test != co_b) {
           dot_test = dot_v3v3(dir_b, co_test);
-          if (dot_test < dot_b_min) {
+          if (dot_test < dot_b_min || co_b_opposite == nullptr) {
             dot_b_min = dot_test;
             co_b_opposite = co_test;
           }
