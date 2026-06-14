@@ -204,7 +204,9 @@ std::optional<Bounds<float2>> GreasePencilExporter::compute_objects_bounds(
   }
 
   /* Add small gap. */
-  full_bounds->pad(gap);
+  if (full_bounds) {
+    full_bounds->pad(gap);
+  }
 
   return full_bounds;
 }
