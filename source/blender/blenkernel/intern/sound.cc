@@ -1381,7 +1381,9 @@ static void sound_update_base(Scene *scene, Object *object, Set<AUD_SequenceEntr
 
       bke::NlaStripRuntime &strip_runtime = strip.runtime_get();
 
-      if (scene->runtime->audio.speaker_handles.remove(strip_runtime.speaker_handle)) {
+      if ((strip_runtime.speaker_handle != nullptr) &&
+          scene->runtime->audio.speaker_handles.remove(strip_runtime.speaker_handle))
+      {
         if (speaker->sound) {
           strip_runtime.speaker_handle->move(
               double(strip.start) / scene->frames_per_second(), FLT_MAX, 0);
