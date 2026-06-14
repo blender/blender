@@ -149,6 +149,10 @@ static bool draw_gpointer(CustomSocketDrawParams &params, const GPointer value)
     draw_data_block(params.layout, id_cast<const ID *>(*value.get<Image *>()));
     return true;
   }
+  if (value.is_type<Material *>()) {
+    draw_data_block(params.layout, id_cast<const ID *>(*value.get<Material *>()));
+    return true;
+  }
   if (value.is_type<VFont *>()) {
     draw_data_block(params.layout, id_cast<const ID *>(*value.get<VFont *>()));
     return true;
