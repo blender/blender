@@ -40,7 +40,7 @@ static void image_sequence_get_frame_ranges(StringRefNull blendfile_path,
                                             ListBaseT<ImageFrameRange> *ranges,
                                             bool *r_was_relative)
 {
-  char dir[FILE_MAXDIR];
+  char dir[FILE_MAX];
   const bool do_frame_range = RNA_boolean_get(op->ptr, "use_sequence_detection");
   ImageFrameRange *range = nullptr;
   int range_first_frame = 0;
