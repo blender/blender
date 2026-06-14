@@ -580,4 +580,13 @@ bool ED_space_image_cursor_poll(bContext *C)
          ED_space_image_paint_curve(C);
 }
 
+bool ED_space_image_region_cursor_poll(bContext *C)
+{
+  const ARegion *region = CTX_wm_region(C);
+  if (!(region && region->regiontype == RGN_TYPE_WINDOW)) {
+    return false;
+  }
+  return ED_space_image_cursor_poll(C);
+}
+
 }  // namespace blender
