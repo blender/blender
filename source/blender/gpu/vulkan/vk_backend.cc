@@ -705,13 +705,11 @@ void VKBackend::detect_workarounds(VKDevice &device)
      * - Visual corruptions can be seen on Gen9 and older iGPUs (Intel 7th to 10th Gen Processor
      * Graphics driver; #147721).
      * - When using the image cache, visual artifacts can be seen on Gen11 and Gen12 iGPUs
-     * (#156496).
+     * (#156496) and Gen12 dGPUs (#160002).
      * - When using the texture pool without the image cache, memory leaks happen on Gen11 and
-     * Gen12 iGPUs (#157777).
+     * Gen12 GPUs (#157777).
      */
-    bool is_integrated_gpu = device.physical_device_properties_get().deviceType ==
-                             VK_PHYSICAL_DEVICE_TYPE_INTEGRATED_GPU;
-    if (gpu_arch <= IntelGpuArch::Gen12 && is_integrated_gpu) {
+    if (gpu_arch <= IntelGpuArch::Gen12) {
       GCaps.texture_pool_workaround = true;
     }
   }
