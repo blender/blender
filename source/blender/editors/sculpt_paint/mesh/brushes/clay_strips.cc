@@ -35,8 +35,6 @@
 #include "BLI_math_vector.hh"
 #include "BLI_task.hh"
 
-#include "PRF_profile.hh"
-
 #include "editors/sculpt_paint/mesh/mesh_brush_common.hh"
 #include "editors/sculpt_paint/mesh/sculpt_automask.hh"
 #include "editors/sculpt_paint/mesh/sculpt_intern.hh"
@@ -56,51 +54,6 @@ struct LocalData {
   Vector<float3> translations;
 };
 
-/**
- * Transforms positions from object space positions to brush-local space. Splitting the XY and Z
- * components gives slightly better performance.
- */
-static void calc_local_positions(const Span<float3> vert_positions,
-                                 const Span<int> verts,
-                                 const float4x4 &mat,
-                                 const MutableSpan<float2> xy_positions,
-                                 const MutableSpan<float> z_positions)
-{
-  PRF_scope(ProfileCategory::Editor);
-  BLI_assert(xy_positions.size() == verts.size());
-  BLI_assert(z_positions.size() == verts.size());
-
-  for (const int i : verts.index_range()) {
-    const float3 position = math::transform_point(mat, vert_positions[verts[i]]);
-
-    xy_positions[i] = position.xy();
-    z_positions[i] = position.z;
-  }
-}
-
-static void calc_local_positions(const Span<float3> positions,
-                                 const float4x4 &mat,
-                                 const MutableSpan<float2> xy_positions,
-                                 const MutableSpan<float> z_positions)
-{
-  PRF_scope(ProfileCategory::Editor);
-  BLI_assert(xy_positions.size() == positions.size());
-  BLI_assert(z_positions.size() == positions.size());
-
-  for (const int i : positions.index_range()) {
-    const float3 position = math::transform_point(mat, positions[i]);
-
-    xy_positions[i] = position.xy();
-    z_positions[i] = position.z;
-  }
-}
-
-/**
- * Applies a parabolic factor of the form `z * (1 - z)` to each vertex.
- * Vertices outside of the interval (0, 1) are out of range and their factors are set to zero.
- * Note: The local coordinate system is constructed such that all relevant `z` values
- * are non-negative.
- */
 static void apply_z_axis_factors(const Span<float> z_positions, const MutableSpan<float> factors)
 {
   PRF_scope(ProfileCategory::Editor);
@@ -385,75 +338,6 @@ void do_clay_strips_brush(const Depsgraph &depsgraph,
 
 namespace clay_strips {
 
-/**
- * Checks whether the node's bounding box overlaps with the region affected by the brush.
- * Clay Strips affects only vertices below the brush plane. The brush-local coordinate
- * system is oriented so that vertices below the plane have positive local z-coordinates.
- * Therefore, we only need to check if the node intersects the [-1,1] x [-1,1] x [0,1] volume in
- * local space.
- */
-static bool node_in_box(const float4x4 &mat, const Bounds<float3> &bounds)
-{
-  const float3 brush_center = float3(0.0f, 0.0f, 0.5f);
-  const float3 node_center = math::transform_point(mat, (bounds.max + bounds.min) * 0.5f);
-  const float3 center_diff = brush_center - node_center;
-
-  const float3 brush_half_lengths = float3(1.0f, 1.0f, 0.5f);
-  const float3 node_half_lengths = (bounds.max - bounds.min) * 0.5f;
-
-  const float3 &node_x_axis = mat.x_axis();
-  const float3 &node_y_axis = mat.y_axis();
-  const float3 &node_z_axis = mat.z_axis();
-
-  /* Tests if `axis` separates the boxes. */
-  auto axis_separates_boxes = [&](const float3 &axis) {
-    const float radius1 = math::dot(math::abs(axis), brush_half_lengths);
-    const float radius2 = math::abs(math::dot(axis, node_x_axis)) * node_half_lengths.x +
-                          math::abs(math::dot(axis, node_y_axis)) * node_half_lengths.y +
-                          math::abs(math::dot(axis, node_z_axis)) * node_half_lengths.z;
-
-    const float projection = math::abs(math::dot(center_diff, axis));
-
-    return projection > radius1 + radius2;
-  };
-
-  const std::array<float3, 3> brush_axes = {
-      float3{1.0f, 0.0f, 0.0f}, float3{0.0f, 1.0f, 0.0f}, float3{0.0f, 0.0f, 1.0f}};
-  const std::array<float3, 3> node_axes = {node_x_axis, node_y_axis, node_z_axis};
-
-  /**
-   * Intersection is tested using the Separating Axis Theorem.
-   * Two boxes (not necessarily axis-aligned) intersect if and only if there does not exist an axis
-   * that separates them. In particular, it is necessary and sufficient to:
-   */
-
-  /* 1. Test axes aligned with the region affected by the brush. */
-  for (const float3 &axis : brush_axes) {
-    if (axis_separates_boxes(axis)) {
-      return false;
-    }
-  }
-
-  /* 2. Test axes aligned with the node bounds. */
-  for (const float3 &axis : node_axes) {
-    if (axis_separates_boxes(axis)) {
-      return false;
-    }
-  }
-
-  /* 3. Test all their cross products. */
-  for (const float3 &brush_axis : brush_axes) {
-    for (const float3 &node_axis : node_axes) {
-      if (axis_separates_boxes(math::cross(brush_axis, node_axis))) {
-        return false;
-      }
-    }
-  }
-
-  /* None of the axes separates the boxes: they intersect. */
-  return true;
-}
-
 float4x4 calc_local_matrix(const Brush &brush,
                            const StrokeCache &cache,
                            const float3 &plane_normal,
@@ -524,7 +408,7 @@ CursorSampleResult calc_node_mask(const Depsgraph &depsgraph,
         if (node_fully_masked_or_hidden(node)) {
           return false;
         }
-        return node_in_box(mat, node.bounds());
+        return node_in_box_positive_z(node.bounds(), mat);
       });
 
   return {plane_mask, plane_center, plane_normal};

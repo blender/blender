@@ -1738,7 +1738,7 @@ bool BKE_brush_has_cube_tip(const Brush *brush, PaintMode paint_mode)
         return true;
       }
 
-      if (ELEM(brush->sculpt_brush_type, SCULPT_BRUSH_TYPE_CLAY_STRIPS, SCULPT_BRUSH_TYPE_PAINT) &&
+      if (bke::brush::supports_tip_roundness(*brush) &&
           (brush->tip_roundness < 1.0f || brush->tip_scale_x != 1.0f))
       {
         return true;
@@ -1858,6 +1858,10 @@ bool supports_normal_radius(const Brush &brush)
   /* TODO: This setting is closely tied to #supports_sculpt_plane, they should be merged in some
    * way. Update after initial commit to avoid confusing PRs. */
   return !ELEM(brush.sculpt_brush_type, SCULPT_BRUSH_TYPE_POSE);
+}
+bool supports_tip_roundness(const Brush &brush)
+{
+  return ELEM(brush.sculpt_brush_type, SCULPT_BRUSH_TYPE_CLAY_STRIPS, SCULPT_BRUSH_TYPE_PAINT);
 }
 bool supports_hardness(const Brush &brush)
 {

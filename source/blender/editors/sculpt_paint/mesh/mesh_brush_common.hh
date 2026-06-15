@@ -210,6 +210,26 @@ void calc_factors_common_mesh_indexed(const Depsgraph &depsgraph,
                                       const bke::pbvh::MeshNode &node,
                                       MutableSpan<float> factors,
                                       MutableSpan<float> distances);
+void calc_cube_tip_factors_common_mesh_indexed(const Depsgraph &depsgraph,
+                                               const Brush &brush,
+                                               const Object &object,
+                                               const float4x4 &mat,
+                                               const MeshAttributeData &attribute_data,
+                                               const Span<float3> vert_positions,
+                                               const Span<float3> vert_normals,
+                                               const bke::pbvh::MeshNode &node,
+                                               Vector<float> &r_factors,
+                                               Vector<float> &r_distances);
+void calc_cube_tip_factors_common_mesh_indexed(const Depsgraph &depsgraph,
+                                               const Brush &brush,
+                                               const Object &object,
+                                               const float4x4 &mat,
+                                               const MeshAttributeData &attribute_data,
+                                               Span<float3> vert_positions,
+                                               Span<float3> vert_normals,
+                                               const bke::pbvh::MeshNode &node,
+                                               MutableSpan<float> factors,
+                                               MutableSpan<float> distances);
 void calc_factors_common_grids(const Depsgraph &depsgraph,
                                const Brush &brush,
                                const Object &object,
@@ -224,6 +244,22 @@ void calc_factors_common_bmesh(const Depsgraph &depsgraph,
                                bke::pbvh::BMeshNode &node,
                                Vector<float> &r_factors,
                                Vector<float> &r_distances);
+void calc_cube_tip_factors_common_grids(const Depsgraph &depsgraph,
+                                        const Brush &brush,
+                                        const Object &object,
+                                        const float4x4 &mat,
+                                        Span<float3> positions,
+                                        const bke::pbvh::GridsNode &node,
+                                        Vector<float> &r_factors,
+                                        Vector<float> &r_distances);
+void calc_cube_tip_factors_common_bmesh(const Depsgraph &depsgraph,
+                                        const Brush &brush,
+                                        const Object &object,
+                                        const float4x4 &mat,
+                                        Span<float3> positions,
+                                        bke::pbvh::BMeshNode &node,
+                                        Vector<float> &r_factors,
+                                        Vector<float> &r_distances);
 void calc_factors_common_from_orig_data_mesh(const Depsgraph &depsgraph,
                                              const Brush &brush,
                                              const Object &object,
@@ -529,6 +565,32 @@ void filter_above_plane_factors(Span<float3> vert_positions,
 void filter_above_plane_factors(Span<float3> positions,
                                 const float4 &plane,
                                 MutableSpan<float> factors);
+
+/* Transforms positions from object space positions to brush-local space. */
+void calc_local_positions(const Span<float3> vert_positions,
+                          const Span<int> verts,
+                          const float4x4 &mat,
+                          const MutableSpan<float3> local_positions);
+
+void calc_local_positions(const Span<float3> positions,
+                          const float4x4 &mat,
+                          const MutableSpan<float3> local_positions);
+
+/**
+ * Transforms positions from object space positions to brush-local space. Splitting the XY and Z
+ * components gives slightly better performance. Used by some brushes that only need the XY
+ * components for certain calculations.
+ */
+void calc_local_positions(const Span<float3> vert_positions,
+                          const Span<int> verts,
+                          const float4x4 &mat,
+                          const MutableSpan<float2> xy_positions,
+                          const MutableSpan<float> z_positions);
+
+void calc_local_positions(const Span<float3> positions,
+                          const float4x4 &mat,
+                          const MutableSpan<float2> xy_positions,
+                          const MutableSpan<float> z_positions);
 
 }  // namespace ed::sculpt_paint
 
