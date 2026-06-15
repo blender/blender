@@ -1229,7 +1229,6 @@ static void multires_create_grids_in_unsubdivided_base_mesh(MultiresUnsubdivideC
 
     mdisps[i].disps = disps;
     mdisps[i].totdisp = totdisp;
-    mdisps[i].level = context->num_total_levels;
   }
 }
 

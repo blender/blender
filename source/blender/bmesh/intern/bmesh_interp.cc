@@ -504,7 +504,6 @@ void BM_loop_interp_multires_ex(BMesh * /*bm*/,
         BM_ELEM_CD_GET_VOID_P(BM_FACE_FIRST_LOOP(f_src), cd_loop_mdisp_offset));
 
     md_dst->totdisp = md_src->totdisp;
-    md_dst->level = md_src->level;
     if (md_dst->totdisp) {
       md_dst->disps = MEM_new_array_zeroed<float[3]>(md_dst->totdisp, __func__);
     }

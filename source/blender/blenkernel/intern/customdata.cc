@@ -637,7 +637,6 @@ static void layerCopy_mdisps(const void *source, void *dest, const int count)
 
     /* still copy even if not in memory, displacement can be external */
     d[i].totdisp = s[i].totdisp;
-    d[i].level = s[i].level;
   }
 }
 
@@ -647,7 +646,6 @@ static void layerFree_mdisps(void *data, const int count)
     MEM_SAFE_DELETE(d.disps);
     MEM_SAFE_DELETE(d.hidden);
     d.totdisp = 0;
-    d.level = 0;
   }
 }
 
@@ -4907,15 +4905,6 @@ static void blend_read_mdisps(BlendDataReader *reader,
       }
       if (!ok) {
         md.totdisp = 0;
-      }
-
-      if (md.totdisp && !md.level) {
-        /* this calculation is only correct for loop mdisps;
-         * if loading pre-BMesh face mdisps this will be
-         * overwritten with the correct value in
-         * #bm_corners_to_loops() */
-        float gridsize = sqrtf(md.totdisp);
-        md.level = int(logf(gridsize - 1.0f) / float(M_LN2)) + 1;
       }
 
       if (!external && !md.disps) {

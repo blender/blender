@@ -428,7 +428,6 @@ static void bm_corners_to_loops_ex(ID *id,
 
       for (int i = 0; i < tot; i++, disps += side_sq, ld++) {
         ld->totdisp = side_sq;
-        ld->level = int(logf(float(side) - 1.0f) / float(M_LN2)) + 1;
 
         if (ld->disps) {
           MEM_delete(ld->disps);

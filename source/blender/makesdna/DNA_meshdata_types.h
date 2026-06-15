@@ -215,7 +215,7 @@ struct MPropCol {
 struct MDisps {
   /* Strange bug in SDNA: if disps pointer comes first, it fails to see totdisp */
   int totdisp;
-  int level;
+  int _pad;
   float (*disps)[3];
 
   /**
