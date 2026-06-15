@@ -716,12 +716,13 @@ class Cameras : Overlay {
         Images::stereo_setup(state.scene, state.v3d, image, iuser);
 
         iuser->scene = const_cast<Scene *>(state.scene);
-        tex = BKE_image_get_gpu_viewer_texture(image, iuser);
+        tex = BKE_image_acquire_gpu_viewer_texture(image, iuser);
         iuser->scene = nullptr;
 
         if (tex == nullptr) {
           return nullptr;
         }
+        DRW_manager_get()->hold_texture(tex);
 
         width = GPU_texture_original_width(tex);
         height = GPU_texture_original_height(tex);

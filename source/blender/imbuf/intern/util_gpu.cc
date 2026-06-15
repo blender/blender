@@ -6,9 +6,13 @@
  * \ingroup imbuf
  */
 
+#include "BLI_mutex.hh"
+#include "BLI_time.hh"
 #include "BLI_utildefines.hh"
 
 #include "MEM_guardedalloc.h"
+
+#include <mutex>
 
 #include "CLG_log.h"
 
@@ -356,6 +360,8 @@ gpu::Texture *IMB_create_gpu_texture(const char *name,
                                      ImBuf *ibuf,
                                      const GPUTextureCreateFlags flags)
 {
+  ibuf->gpu.lastused = BLI_time_now_seconds_i();
+
   const bool use_mipmap = flag_is_set(flags, GPUTextureCreateFlags::EnableMipmaps);
 
   gpu::Texture *tex = nullptr;
@@ -468,6 +474,59 @@ gpu::Texture *IMB_create_gpu_texture(const char *name,
   return tex;
 }
 
+gpu::Texture *IMB_acquire_gpu_texture(const char *name,
+                                      ImBuf *ibuf,
+                                      bool use_high_bitdepth,
+                                      bool use_premult,
+                                      bool limit_size,
+                                      bool try_only)
+{
+  if (ibuf == nullptr) {
+    return nullptr;
+  }
+
+  std::scoped_lock lock(ibuf->gpu.mutex);
+  if (ibuf->gpu.texture != nullptr) {
+    ibuf->gpu.lastused = BLI_time_now_seconds_i();
+    GPU_texture_ref(ibuf->gpu.texture);
+    return ibuf->gpu.texture;
+  }
+  if (try_only) {
+    return nullptr;
+  }
+
+  GPUTextureCreateFlags create_flags = GPUTextureCreateFlags::EnableMipmaps;
+  if (use_high_bitdepth) {
+    create_flags |= GPUTextureCreateFlags::HighBitDepth;
+  }
+  if (use_premult) {
+    create_flags |= GPUTextureCreateFlags::Premultiplied;
+  }
+  if (limit_size) {
+    create_flags |= GPUTextureCreateFlags::LimitSize;
+  }
+  gpu::Texture *tex = IMB_create_gpu_texture(name, ibuf, create_flags);
+  if (tex == nullptr) {
+    return nullptr;
+  }
+
+  GPU_texture_extend_mode(tex, GPU_SAMPLER_EXTEND_MODE_REPEAT);
+
+  if (!(ibuf->gpu.flag & IMB_GPU_DISABLE_MIPMAP_UPDATE)) {
+    GPU_texture_update_mipmap_chain(tex);
+    GPU_texture_mipmap_mode(tex, true, true);
+    ibuf->gpu.flag |= IMB_GPU_MIPMAP_COMPLETE;
+  }
+  else {
+    GPU_texture_mipmap_mode(tex, false, true);
+  }
+
+  ibuf->gpu.texture = tex;
+  ibuf->gpu.lastused = BLI_time_now_seconds_i();
+  GPU_texture_ref(tex);
+  return tex;
+}
+
 gpu::TextureFormat IMB_gpu_get_texture_format(const ImBuf *ibuf,
                                               bool high_bitdepth,
                                               bool use_grayscale)
@@ -475,6 +534,35 @@ gpu::TextureFormat IMB_gpu_get_texture_format(const ImBuf *ibuf,
   gpu::TextureFormat gpu_texture_format;
   imb_gpu_get_format(ibuf, high_bitdepth, use_grayscale, &gpu_texture_format);
   return gpu_texture_format;
+}
+
+void IMB_free_gpu_textures(ImBuf *ibuf)
+{
+  if (!ibuf) {
+    return;
+  }
+
+  std::scoped_lock lock(ibuf->gpu.mutex);
+  if (ibuf->gpu.texture) {
+    GPU_texture_free(ibuf->gpu.texture);
+    ibuf->gpu.texture = nullptr;
+  }
+  ibuf->gpu.flag = ImBufGPUFlag(0);
+}
+
+void IMB_assign_gpu_texture(ImBuf *ibuf, gpu::Texture *texture)
+{
+  if (!ibuf) {
+    return;
+  }
+
+  std::scoped_lock lock(ibuf->gpu.mutex);
+  if (ibuf->gpu.texture) {
+    GPU_texture_free(ibuf->gpu.texture);
+    ibuf->gpu.texture = nullptr;
+  }
+  ibuf->gpu.flag = ImBufGPUFlag(0);
+  ibuf->gpu.texture = texture;
 }
 
 void IMB_gpu_clamp_half_float(ImBuf *image_buffer)

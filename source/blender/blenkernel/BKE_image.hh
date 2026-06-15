@@ -56,12 +56,6 @@ enum eImbFileType : int8_t;
 #define IMA_MAX_SPACE 64
 #define IMA_UDIM_MAX 2000
 
-/* Image gpu runtime defaults */
-constexpr int IMAGE_GPU_FRAME_NONE = std::numeric_limits<int>::max();
-constexpr int IMAGE_GPU_PASS_NONE = std::numeric_limits<short>::max();
-constexpr int IMAGE_GPU_LAYER_NONE = std::numeric_limits<short>::max();
-constexpr int IMAGE_GPU_VIEW_NONE = std::numeric_limits<short>::max();
-
 namespace bke {
 
 struct ImageRuntime {
@@ -71,18 +65,6 @@ struct ImageRuntime {
 
   ImBufCache *cache = nullptr;
 
-  /* The 2 is for the left/right stereo eyes. */
-  gpu::Texture *gputexture[/*TEXTARGET_COUNT*/ 3][2] = {};
-
-  /* GPU texture flag. */
-  int gpuframenr = IMAGE_GPU_FRAME_NONE;
-  short gpuflag = 0;
-  short gpu_pass = IMAGE_GPU_PASS_NONE;
-  short gpu_layer = IMAGE_GPU_LAYER_NONE;
-  short gpu_view = IMAGE_GPU_VIEW_NONE;
-
-  int64_t lastused = 0;
-
   /** Register containing partial updates. */
   PartialUpdateRegister *partial_update_register = nullptr;
   /** Partial update user for gpu::Textures stored inside the Image. */
@@ -90,6 +72,9 @@ struct ImageRuntime {
 
   /* The image's current update count. See deg::set_id_update_count for more information. */
   uint64_t update_count = 0;
+
+  /* Log GPU load errors once per image. */
+  bool gpu_load_error_logged = false;
 
   float view_offset[2] = {};
   float view_zoom = 1.0f;
@@ -184,8 +169,6 @@ MovieReader *openanim_noload(const char *filepath,
                              int streamindex,
                              bool keep_original_colorspace,
                              char colorspace[IMA_MAX_SPACE]);
-
-void BKE_image_tag_time(Image *ima);
 
 /* ********************************** NEW IMAGE API *********************** */
 
@@ -413,15 +396,10 @@ void BKE_image_backup_render(Scene *scene, Image *ima, bool free_current_slot);
 void BKE_image_free_all_textures(Main *bmain);
 
 /**
- * Operates on one image only!
+ * Free cached frame buffers of all images with type MOVIE or SEQUENCE.
  * \param except_frame: This is weak, only works for sequences without offset.
  */
-void BKE_image_free_anim_ibufs(Image *ima, int except_frame);
-
-/**
- * Does all images with type MOVIE or SEQUENCE.
- */
-void BKE_image_all_free_anim_ibufs(Main *bmain, int cfra);
+void BKE_image_all_free_anim_ibufs(Main *bmain, int except_frame);
 
 /**
  * Time-based garbage collection for CPU and GPU image caches.

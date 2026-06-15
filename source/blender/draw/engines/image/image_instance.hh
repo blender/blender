@@ -79,8 +79,11 @@ class Instance : public DrawEngine {
           this->state.image, space_->get_image_user(), &lock);
       BLI_SCOPED_DEFER([&]() { BKE_image_release_ibuf(this->state.image, buffer, lock); });
 
-      /* The image buffer already has a GPU texture, so use image space drawing. */
-      if (buffer && buffer->gpu.texture) {
+      /* The image buffer already has a GPU texture, so use image space drawing. Check
+       * dimensions match in case the texture limit affected this textured. */
+      if (buffer && buffer->gpu.texture && GPU_texture_width(buffer->gpu.texture) == buffer->x &&
+          GPU_texture_height(buffer->gpu.texture) == buffer->y)
+      {
         return std::make_unique<ImageSpaceDrawingMode>(*this, buffer->gpu.texture);
       }
 
@@ -101,10 +104,10 @@ class Instance : public DrawEngine {
       }
 
       /* Image can fit in a GPU texture, use image space drawing. */
-      BKE_image_ensure_gpu_texture(this->state.image, space_->get_image_user());
-      gpu::Texture *texture = BKE_image_get_gpu_viewer_texture(
+      gpu::Texture *texture = BKE_image_acquire_gpu_viewer_texture(
           this->state.image, space_->get_image_user(), buffer);
-      return std::make_unique<ImageSpaceDrawingMode>(*this, texture);
+      const bool texture_owned = true;
+      return std::make_unique<ImageSpaceDrawingMode>(*this, texture, nullptr, texture_owned);
     }
 
     for (ImageTile &tile : this->state.image->tiles) {
@@ -134,11 +137,12 @@ class Instance : public DrawEngine {
     }
 
     /* Image can fit in a GPU texture, use image space drawing. */
-    BKE_image_ensure_gpu_texture(this->state.image, space_->get_image_user());
-    ImageGPUTextures gpu_tiles_textures = BKE_image_get_gpu_material_texture(
-        this->state.image, space_->get_image_user(), true);
-    return std::make_unique<ImageSpaceDrawingMode>(
-        *this, *gpu_tiles_textures.texture, *gpu_tiles_textures.tile_mapping);
+    ImageGPUTextures gpu_tiles_textures = BKE_image_acquire_gpu_material_texture(
+        this->state.image, space_->get_image_user(), true, false);
+    const bool texture_owned = true;
+    auto mode = std::make_unique<ImageSpaceDrawingMode>(
+        *this, gpu_tiles_textures.texture, gpu_tiles_textures.tile_mapping, texture_owned);
+    return mode;
   }
 
   void begin_sync() final

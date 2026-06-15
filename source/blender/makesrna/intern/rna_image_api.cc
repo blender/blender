@@ -33,8 +33,10 @@
 #  include "BKE_image_save.hh"
 #  include "BKE_library.hh"
 #  include "BKE_main.hh"
+
 #  include "BKE_report.hh"
 #  include "BKE_scene.hh"
+#  include "GPU_texture.hh"
 
 #  include "IMB_imbuf.hh"
 
@@ -214,7 +216,7 @@ static int rna_Image_gl_load(
     BKE_image_multilayer_index(image->rr, &iuser);
   }
 
-  gpu::Texture *tex = BKE_image_get_gpu_texture(image, &iuser);
+  gpu::Texture *tex = BKE_image_acquire_gpu_texture(image, &iuser);
 
   if (tex == nullptr) {
     BKE_reportf(reports, RPT_ERROR, "Failed to load image texture '%s'", image->id.name + 2);
@@ -222,21 +224,17 @@ static int rna_Image_gl_load(
     return 0x0502; /* GL_INVALID_OPERATION */
   }
 
+  GPU_texture_free(tex);
+
   return 0; /* GL_NO_ERROR */
 }
 
 static int rna_Image_gl_touch(
     Image *image, ReportList *reports, int frame, int layer_index, int pass_index)
 {
-  int error = 0; /* GL_NO_ERROR */
-
-  BKE_image_tag_time(image);
-
-  if (image->runtime->gputexture[TEXTARGET_2D][0] == nullptr) {
-    error = rna_Image_gl_load(image, reports, frame, layer_index, pass_index);
-  }
-
-  return error;
+  /* Load tags as well, so this is the same and effectively was already since the
+   * initial implementation. */
+  return rna_Image_gl_load(image, reports, frame, layer_index, pass_index);
 }
 
 static void rna_Image_gl_free(Image *image)

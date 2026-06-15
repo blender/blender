@@ -749,9 +749,6 @@ static int multitex(Tex *tex,
         break;
       case TEX_IMAGE:
         retval = imagewrap(tex, tex->ima, texvec, texres, pool, skip_load_image);
-        if (tex->ima) {
-          BKE_image_tag_time(tex->ima);
-        }
         break;
       case TEX_MUSGRAVE:
         /* newnoise: musgrave types */

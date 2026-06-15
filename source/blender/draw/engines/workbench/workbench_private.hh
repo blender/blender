@@ -195,8 +195,8 @@ struct MaterialTexture {
   bool alpha_cutoff = false;
 
   MaterialTexture() = default;
-  MaterialTexture(Object *ob, int material_index);
-  MaterialTexture(blender::Image *image, ImageUser *user = nullptr);
+  MaterialTexture(Manager &manager, Object *ob, int material_index);
+  MaterialTexture(Manager &manager, blender::Image *image, ImageUser *user = nullptr);
 };
 
 struct SceneResources;
@@ -212,7 +212,8 @@ struct ObjectState {
   ObjectState(const DRWContext *draw_ctx,
               const SceneState &scene_state,
               const SceneResources &resources,
-              Object *ob);
+              Object *ob,
+              Manager &manager);
 };
 
 class CavityEffect {
@@ -260,7 +261,6 @@ struct SceneResources {
 
   CavityEffect cavity = {};
 
-  Texture missing_tx = "missing_tx";
   MaterialTexture missing_texture;
 
   Texture dummy_texture_tx = {"dummy_texture"};
@@ -273,6 +273,9 @@ struct SceneResources {
   {
     /* TODO(fclem): Auto destruction. */
     GPU_BATCH_DISCARD_SAFE(volume_cube_batch);
+    if (missing_texture.gpu.texture) {
+      GPU_texture_free(missing_texture.gpu.texture);
+    }
   }
 
   void init(const SceneState &scene_state, const DRWContext *ctx);

@@ -556,6 +556,7 @@ set(SRC
 
   intern/attribute_storage_access.hh
   intern/data_transfer_intern.hh
+  intern/image_intern.hh
   intern/lib_intern.hh
   intern/multires_inline.hh
   intern/multires_reshape.hh

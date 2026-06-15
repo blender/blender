@@ -32,7 +32,6 @@
 
 #include "BKE_context.hh"
 #include "BKE_image.hh"
-#include "BKE_image_gpu.hh"
 #include "BKE_layer.hh"
 #include "BKE_scene.hh"
 #include "BKE_screen.hh"
