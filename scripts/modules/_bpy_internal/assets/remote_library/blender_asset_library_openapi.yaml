@@ -361,7 +361,7 @@ components:
           type: string
           description: First version of Blender that should NOT show this asset.
       required:
-        - "from"
+        - "min"
 
     CatalogV1:
       type: object
