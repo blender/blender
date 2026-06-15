@@ -45,6 +45,7 @@
 
 #include "BKE_anim_data.hh"
 #include "BKE_attribute.h"
+#include "BKE_attribute.hh"
 #include "BKE_brush.hh"
 #include "BKE_curve.hh"
 #include "BKE_curves.hh"
@@ -64,6 +65,7 @@
 #include "BKE_node_runtime.hh"
 #include "BKE_object.hh"
 #include "BKE_object_types.hh"
+#include "BKE_pointcloud.hh"
 #include "BKE_preview_image.hh"
 #include "BKE_scene.hh"
 #include "BKE_vfont.hh"
@@ -1240,6 +1242,26 @@ void BKE_object_material_assign_single_obdata(Main *bmain, Object *ob, Material 
   object_material_assign(bmain, ob, ma, act, BKE_MAT_ASSIGN_OBDATA, false);
 }
 
+void BKE_material_attr_indices_remap(bke::MutableAttributeAccessor attributes,
+                                     const uint *remap,
+                                     const int remap_num)
+{
+  /* The "material_index" attribute may contain values outside the valid material range
+   * (it's only clamped on read), so skip indices that don't map into the material array. */
+  bke::SpanAttributeWriter<int> material_indices = attributes.lookup_for_write_span<int>(
+      "material_index");
+  if (!material_indices) {
+    return;
+  }
+  for (const int i : material_indices.span.index_range()) {
+    const int index = material_indices.span[i];
+    if (IndexRange(remap_num).contains(index)) {
+      material_indices.span[i] = remap[index];
+    }
+  }
+  material_indices.finish();
+}
+
 void BKE_object_material_remap(Object *ob, const uint *remap)
 {
   Material ***matar = BKE_object_material_array_p(ob);
@@ -1263,6 +1285,12 @@ void BKE_object_material_remap(Object *ob, const uint *remap)
   }
   else if (ob->type == OB_GREASE_PENCIL) {
     BKE_grease_pencil_material_remap(id_cast<GreasePencil *>(ob->data), remap, ob->totcol);
+  }
+  else if (ob->type == OB_CURVES) {
+    BKE_curves_material_remap(id_cast<Curves *>(ob->data), remap, ob->totcol);
+  }
+  else if (ob->type == OB_POINTCLOUD) {
+    BKE_pointcloud_material_remap(id_cast<PointCloud *>(ob->data), remap, ob->totcol);
   }
   else if (ob->type == OB_VOLUME) {
     /* Material support doesn't store "indices".

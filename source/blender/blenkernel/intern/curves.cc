@@ -33,6 +33,7 @@
 #include "BKE_idtype.hh"
 #include "BKE_lib_id.hh"
 #include "BKE_lib_query.hh"
+#include "BKE_material.hh"
 #include "BKE_modifier.hh"
 #include "BKE_object.hh"
 #include "BKE_object_types.hh"
@@ -182,6 +183,12 @@ Curves *BKE_curves_add(Main *bmain, const char *name)
 bool BKE_curves_attribute_required(const Curves * /*curves*/, const StringRef name)
 {
   return name == ATTR_POSITION;
+}
+
+void BKE_curves_material_remap(Curves *curves_id, const uint *remap, const int remap_num)
+{
+  BKE_material_attr_indices_remap(
+      curves_id->geometry.wrap().attributes_for_write(), remap, remap_num);
 }
 
 Curves *BKE_curves_copy_for_eval(const Curves *curves_src)
