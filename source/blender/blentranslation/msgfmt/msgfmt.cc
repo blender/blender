@@ -23,11 +23,11 @@
 #include <string>
 #include <utility>
 
-#include "BLI_fileops.h"
-#include "BLI_linklist.h"
+#include "BLI_fileops.hh"
+#include "BLI_linklist.hh"
 #include "BLI_map.hh"
 #include "BLI_string_ref.hh"
-#include "BLI_utildefines.h"
+#include "BLI_utildefines.hh"
 #include "BLI_vector.hh"
 
 #include "MEM_guardedalloc.h"

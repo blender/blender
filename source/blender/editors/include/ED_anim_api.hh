@@ -11,7 +11,7 @@
 #include "BKE_nla.hh"
 
 #include "BLI_enum_flags.hh"
-#include "BLI_sys_types.h"
+#include "BLI_sys_types.hh"
 
 #include "DNA_listBase.h"
 #include "DNA_screen_types.h"

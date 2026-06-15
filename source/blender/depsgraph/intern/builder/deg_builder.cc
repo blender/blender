@@ -16,7 +16,7 @@
 #include "DNA_modifier_types.h"
 #include "DNA_object_types.h"
 
-#include "BLI_string.h"
+#include "BLI_string.hh"
 
 #include "BKE_action.hh"
 #include "BKE_collection.hh"

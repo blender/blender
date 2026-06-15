@@ -11,8 +11,8 @@
 #include <sstream>
 
 #include "BLI_path_utils.hh"
-#include "BLI_string.h"
-#include "BLI_threads.h"
+#include "BLI_string.hh"
+#include "BLI_threads.hh"
 
 #include "CLG_log.h"
 

@@ -7,7 +7,7 @@
 #include "testing/testing.h"
 #include <forward_list>
 
-#include "BLI_strict_flags.h" /* IWYU pragma: keep. Keep last. */
+#include "BLI_strict_flags.hh" /* IWYU pragma: keep. Keep last. */
 
 namespace blender::tests {
 

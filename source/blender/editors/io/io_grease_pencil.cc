@@ -9,8 +9,8 @@
 #ifdef WITH_IO_GREASE_PENCIL
 
 #  include "BLI_path_utils.hh"
-#  include "BLI_string.h"
-#  include "BLI_string_utf8.h"
+#  include "BLI_string.hh"
+#  include "BLI_string_utf8.hh"
 
 #  include "DNA_space_types.h"
 #  include "DNA_view3d_types.h"

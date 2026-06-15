@@ -11,7 +11,7 @@
 
 #include <Python.h>
 
-#include "BLI_dynstr.h"
+#include "BLI_dynstr.hh"
 
 #include "MEM_guardedalloc.h"
 

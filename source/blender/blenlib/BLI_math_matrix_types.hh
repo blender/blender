@@ -37,7 +37,7 @@
 #include "BLI_unroll.hh"
 
 #include "BLI_math_vector_types.hh"
-#include "BLI_utildefines.h"
+#include "BLI_utildefines.hh"
 #include "BLI_utility_mixins.hh"
 
 namespace blender {

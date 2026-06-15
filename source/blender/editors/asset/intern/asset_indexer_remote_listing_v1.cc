@@ -8,8 +8,8 @@
 
 #include <fmt/format.h>
 
-#include "BLI_assert.h"
-#include "BLI_fileops.h"
+#include "BLI_assert.hh"
+#include "BLI_fileops.hh"
 #include "BLI_path_utils.hh"
 #include "BLI_serialize.hh"
 #include "BLI_set.hh"

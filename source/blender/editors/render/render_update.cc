@@ -25,8 +25,8 @@
 
 #include "DRW_engine.hh"
 
-#include "BLI_listbase.h"
-#include "BLI_threads.h"
+#include "BLI_listbase.hh"
+#include "BLI_threads.hh"
 
 #include "BKE_brush.hh"
 #include "BKE_context.hh"

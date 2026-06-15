@@ -14,13 +14,13 @@
 #include "DNA_object_types.h"
 #include "DNA_scene_types.h"
 
-#include "BLI_linklist.h"
-#include "BLI_math_geom.h"
-#include "BLI_math_matrix.h"
+#include "BLI_linklist.hh"
+#include "BLI_math_geom_c.hh"
+#include "BLI_math_matrix_c.hh"
 #include "BLI_math_vector_types.hh"
 #include "BLI_span.hh"
 #include "BLI_task.hh"
-#include "BLI_utildefines.h"
+#include "BLI_utildefines.hh"
 #include "BLI_vector.hh"
 
 #include "BKE_editmesh.hh"

@@ -9,7 +9,7 @@
 #include "tile_highlight.h"
 
 #include "BLI_hash.hh"
-#include "BLI_rect.h"
+#include "BLI_rect.hh"
 
 #include "RE_pipeline.h"
 

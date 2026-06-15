@@ -8,7 +8,7 @@
 
 #pragma once
 
-#include "BLI_compiler_attrs.h"
+#include "BLI_compiler_attrs.hh"
 
 #include "DNA_asset_types.h"
 

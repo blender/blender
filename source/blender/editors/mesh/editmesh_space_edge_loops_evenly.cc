@@ -6,7 +6,7 @@
  * \ingroup edmesh
  */
 
-#include "BLI_listbase.h"
+#include "BLI_listbase.hh"
 #include "BLT_translation.hh"
 
 #include "BKE_context.hh"

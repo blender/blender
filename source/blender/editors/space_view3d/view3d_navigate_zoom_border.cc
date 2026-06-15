@@ -10,8 +10,8 @@
 
 #include "MEM_guardedalloc.h"
 
-#include "BLI_math_vector.h"
-#include "BLI_rect.h"
+#include "BLI_math_vector_c.hh"
+#include "BLI_rect.hh"
 
 #include "BKE_context.hh"
 #include "BKE_global.hh"

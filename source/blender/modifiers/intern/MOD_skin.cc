@@ -43,12 +43,12 @@
 #include "MEM_guardedalloc.h"
 
 #include "BLI_array_utils.hh"
-#include "BLI_bitmap.h"
+#include "BLI_bitmap.hh"
 #include "BLI_enum_flags.hh"
-#include "BLI_heap_simple.h"
-#include "BLI_math_geom.h"
-#include "BLI_math_matrix.h"
-#include "BLI_stack.h"
+#include "BLI_heap_simple.hh"
+#include "BLI_math_geom_c.hh"
+#include "BLI_math_matrix_c.hh"
+#include "BLI_stack_c.hh"
 #include "BLI_vector.hh"
 
 #include "BLT_translation.hh"

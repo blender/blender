@@ -13,7 +13,7 @@
 #include "BLI_map.hh"
 #include "BLI_string_ref.hh"
 #include "BLI_ustring.hh"
-#include "BLI_utildefines.h"
+#include "BLI_utildefines.hh"
 #include "BLI_vector.hh"
 
 #include "BLT_translation.hh" /* IWYU pragma: export */

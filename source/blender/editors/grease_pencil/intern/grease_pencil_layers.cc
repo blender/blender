@@ -6,11 +6,11 @@
  * \ingroup edgreasepencil
  */
 
-#include "BLI_assert.h"
-#include "BLI_listbase.h"
-#include "BLI_math_matrix.h"
+#include "BLI_assert.hh"
+#include "BLI_listbase.hh"
 #include "BLI_math_matrix.hh"
-#include "BLI_string.h"
+#include "BLI_math_matrix_c.hh"
+#include "BLI_string.hh"
 
 #include "BKE_attribute_math.hh"
 #include "BKE_context.hh"

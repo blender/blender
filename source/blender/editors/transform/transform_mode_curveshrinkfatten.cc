@@ -8,9 +8,9 @@
 
 #include <cstdlib>
 
-#include "BLI_math_bits.h"
-#include "BLI_math_vector.h"
-#include "BLI_string_utf8.h"
+#include "BLI_math_bits.hh"
+#include "BLI_math_vector_c.hh"
+#include "BLI_string_utf8.hh"
 
 #include "BKE_unit.hh"
 

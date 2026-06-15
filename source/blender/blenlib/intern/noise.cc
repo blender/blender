@@ -13,12 +13,12 @@
 #include <cmath>
 #include <cstdint>
 
-#include "BLI_math_base.h"
 #include "BLI_math_base.hh"
+#include "BLI_math_base_c.hh"
 #include "BLI_math_matrix_types.hh"
 #include "BLI_math_vector.hh"
 #include "BLI_noise.hh"
-#include "BLI_utildefines.h"
+#include "BLI_utildefines.hh"
 
 /* Some noise functions integer overflow as part of expected operation. */
 #ifdef __SANITIZE_ADDRESS__

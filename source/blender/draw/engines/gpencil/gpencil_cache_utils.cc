@@ -18,14 +18,14 @@
 #include "BKE_material.hh"
 #include "BKE_object.hh"
 
-#include "BLI_ghash.h"
-#include "BLI_hash.h"
-#include "BLI_link_utils.h"
-#include "BLI_math_color.h"
-#include "BLI_math_matrix.h"
-#include "BLI_math_vector.h"
+#include "BLI_ghash.hh"
+#include "BLI_hash_c.hh"
+#include "BLI_link_utils.hh"
+#include "BLI_math_color_c.hh"
+#include "BLI_math_matrix_c.hh"
 #include "BLI_math_vector.hh"
-#include "BLI_memblock.h"
+#include "BLI_math_vector_c.hh"
+#include "BLI_memblock.hh"
 
 #include "IMB_colormanagement.hh"
 

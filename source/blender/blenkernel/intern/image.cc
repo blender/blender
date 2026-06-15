@@ -24,11 +24,11 @@
 #include <string>
 
 #include "BLI_array.hh"
-#include "BLI_fileops.h"
-#include "BLI_listbase.h"
+#include "BLI_fileops.hh"
+#include "BLI_listbase.hh"
 #include "BLI_path_utils.hh"
-#include "BLI_rect.h"
-#include "BLI_string.h"
+#include "BLI_rect.hh"
+#include "BLI_string.hh"
 #include "BLI_string_utils.hh"
 
 #include "CLG_log.h"
@@ -60,15 +60,15 @@
 #include "DNA_windowmanager_types.h"
 #include "DNA_world_types.h"
 
-#include "BLI_math_vector.h"
-#include "BLI_mempool.h"
-#include "BLI_string_utf8.h"
-#include "BLI_system.h"
-#include "BLI_task.h"
-#include "BLI_threads.h"
-#include "BLI_time.h"
-#include "BLI_timecode.h" /* For stamp time-code format. */
-#include "BLI_utildefines.h"
+#include "BLI_math_vector_c.hh"
+#include "BLI_mempool.hh"
+#include "BLI_string_utf8.hh"
+#include "BLI_system.hh"
+#include "BLI_task_c.hh"
+#include "BLI_threads.hh"
+#include "BLI_time.hh"
+#include "BLI_timecode.hh" /* For stamp time-code format. */
+#include "BLI_utildefines.hh"
 
 #include "BLT_translation.hh"
 
@@ -101,7 +101,7 @@
 #include "GPU_material.hh"
 #include "GPU_texture.hh"
 
-#include "BLI_sys_types.h" /* for intptr_t support */
+#include "BLI_sys_types.hh" /* for intptr_t support */
 
 #include "DEG_depsgraph.hh"
 #include "DEG_depsgraph_query.hh"

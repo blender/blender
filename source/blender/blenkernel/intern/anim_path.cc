@@ -14,8 +14,8 @@
 #include "DNA_key_types.h"
 #include "DNA_object_types.h"
 
-#include "BLI_math_rotation.h"
-#include "BLI_math_vector.h"
+#include "BLI_math_rotation_c.hh"
+#include "BLI_math_vector_c.hh"
 
 #include "BKE_anim_path.h"
 #include "BKE_curve.hh"

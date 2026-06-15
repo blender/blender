@@ -5,8 +5,8 @@
 #include "testing/testing.h"
 #include "tests/blendfile_loading_base_test.h"
 
-#include "BLI_fileops.h"
-#include "BLI_string.h"
+#include "BLI_fileops.hh"
+#include "BLI_string.hh"
 
 #include "BKE_appdir.hh"
 #include "BKE_blender_version.h"

@@ -11,14 +11,14 @@
 
 #include "MEM_guardedalloc.h"
 
-#include "BLI_bitmap.h"
-#include "BLI_ghash.h"
-#include "BLI_heap_simple.h"
+#include "BLI_bitmap.hh"
+#include "BLI_ghash.hh"
+#include "BLI_heap_simple.hh"
 #include "BLI_kdtree.hh"
-#include "BLI_listbase.h"
-#include "BLI_math_matrix.h"
-#include "BLI_math_vector.h"
-#include "BLI_rand.h"
+#include "BLI_listbase.hh"
+#include "BLI_math_matrix_c.hh"
+#include "BLI_math_vector_c.hh"
+#include "BLI_rand_c.hh"
 
 #include "BKE_context.hh"
 #include "BKE_curve.hh"

@@ -30,7 +30,7 @@
 #include "BKE_main.hh"
 #include "BKE_report.hh"
 
-#include "BLI_assert.h"
+#include "BLI_assert.hh"
 
 #include "DNA_layer_types.h"
 #include "DNA_object_types.h"

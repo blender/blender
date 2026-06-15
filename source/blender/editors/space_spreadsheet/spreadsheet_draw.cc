@@ -15,7 +15,7 @@
 #include "DNA_space_types.h"
 #include "DNA_userdef_types.h"
 
-#include "BLI_rect.h"
+#include "BLI_rect.hh"
 
 #include "ED_spreadsheet.hh"
 

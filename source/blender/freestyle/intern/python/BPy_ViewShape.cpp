@@ -13,7 +13,7 @@
 #include "Interface0D/BPy_ViewVertex.h"
 #include "Interface1D/BPy_ViewEdge.h"
 
-#include "BLI_sys_types.h"
+#include "BLI_sys_types.hh"
 
 #include "../generic/py_capi_utils.hh"
 

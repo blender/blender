@@ -7,7 +7,7 @@
  */
 
 #include "BLI_map.hh"
-#include "BLI_math_base.h"
+#include "BLI_math_base_c.hh"
 #include "BLI_mutex.hh"
 #include "BLI_path_utils.hh"
 #include "BLI_set.hh"

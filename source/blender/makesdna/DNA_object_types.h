@@ -10,7 +10,7 @@
 #pragma once
 
 #include "BLI_enum_flags.hh"
-#include "BLI_math_constants.h"
+#include "BLI_math_constants.hh"
 #include "BLI_math_matrix_types.hh"
 
 #include "DNA_object_enums.h"

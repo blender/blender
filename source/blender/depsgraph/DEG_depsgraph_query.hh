@@ -12,7 +12,7 @@
 
 #include "BLI_enum_flags.hh"
 #include "BLI_function_ref.hh"
-#include "BLI_iterator.h"
+#include "BLI_iterator.hh"
 #include "BLI_set.hh"
 
 #include "DEG_depsgraph.hh"

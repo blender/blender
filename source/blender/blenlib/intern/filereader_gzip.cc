@@ -9,7 +9,7 @@
 #include <cstdio>
 #include <zlib.h>
 
-#include "BLI_filereader.h"
+#include "BLI_filereader.hh"
 
 #include "MEM_guardedalloc.h"
 

@@ -276,8 +276,8 @@ enum ePchan_BBoneFlag : char {
 enum eRotationModes : short {
   /* quaternion rotations (default, and for older Blender versions) */
   ROT_MODE_QUAT = 0,
-  /* euler rotations - keep in sync with enum in BLI_math_rotation.h */
-  /** Blender 'default' (classic) - must be as 1 to sync with BLI_math_rotation.h defines */
+  /* euler rotations - keep in sync with enum in BLI_math_rotation_c.hh */
+  /** Blender 'default' (classic) - must be as 1 to sync with BLI_math_rotation_c.hh defines */
   ROT_MODE_EUL = 1,
   ROT_MODE_XYZ = 1,
   ROT_MODE_XZY = 2,

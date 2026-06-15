@@ -8,9 +8,9 @@
 #include "NOD_socket_declarations_geometry.hh"
 #include "NOD_socket_usage_inference.hh"
 
-#include "BLI_assert.h"
-#include "BLI_listbase.h"
-#include "BLI_utildefines.h"
+#include "BLI_assert.hh"
+#include "BLI_listbase.hh"
+#include "BLI_utildefines.hh"
 
 #include "BKE_geometry_fields.hh"
 #include "BKE_node.hh"

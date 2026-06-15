@@ -6,7 +6,7 @@
 
 #include "BLI_array.hh"
 #include "BLI_generic_virtual_array.hh"
-#include "BLI_math_vector.h"
+#include "BLI_math_vector_c.hh"
 #include "BLI_vector.hh"
 #include "BLI_virtual_array.hh"
 

@@ -10,7 +10,7 @@
 
 #include "DNA_scene_types.h"
 
-#include "BLI_listbase.h"
+#include "BLI_listbase.hh"
 
 namespace blender::deg {
 

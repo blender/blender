@@ -11,15 +11,15 @@
 #include "BKE_appdir.hh"
 #include "BKE_icons.hh"
 
-#include "BLI_dynstr.h"
-#include "BLI_fileops.h"
-#include "BLI_fileops_types.h"
-#include "BLI_linklist.h"
-#include "BLI_listbase.h"
-#include "BLI_math_color.h"
-#include "BLI_math_vector.h"
+#include "BLI_dynstr.hh"
+#include "BLI_fileops.hh"
+#include "BLI_fileops_types.hh"
+#include "BLI_linklist.hh"
+#include "BLI_listbase.hh"
+#include "BLI_math_color_c.hh"
+#include "BLI_math_vector_c.hh"
 #include "BLI_path_utils.hh"
-#include "BLI_string.h"
+#include "BLI_string.hh"
 
 #include "CLG_log.h"
 

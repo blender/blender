@@ -13,7 +13,7 @@
 #include "DNA_pointcloud_types.h"
 
 #include "BLI_color.hh"
-#include "BLI_listbase.h"
+#include "BLI_listbase.hh"
 
 #include "BKE_attribute.hh"
 #include "BKE_attribute_legacy_convert.hh"

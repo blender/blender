@@ -13,7 +13,7 @@
 #include <sstream>
 
 #include "BLI_array.hh"
-#include "BLI_linklist.h"
+#include "BLI_linklist.hh"
 #include "BLI_map.hh"
 #include "BLI_math_boolean.hh"
 #include "BLI_math_vector_mpq_types.hh"

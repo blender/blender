@@ -6,7 +6,7 @@
  * \ingroup gpu
  */
 
-#include "BLI_string.h"
+#include "BLI_string.hh"
 
 #include "gl_backend.hh"
 #include "gl_texture_pool.hh"

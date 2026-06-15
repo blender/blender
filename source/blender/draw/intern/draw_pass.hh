@@ -40,7 +40,7 @@
  * if any of these reference becomes invalid.
  */
 
-#include "BLI_assert.h"
+#include "BLI_assert.hh"
 #include "BLI_listbase_wrapper.hh"
 #include "BLI_vector.hh"
 

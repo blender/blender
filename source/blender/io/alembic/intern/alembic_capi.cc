@@ -46,13 +46,13 @@
 
 #include "ED_undo.hh"
 
-#include "BLI_compiler_compat.h"
-#include "BLI_listbase.h"
-#include "BLI_math_matrix.h"
+#include "BLI_compiler_compat.hh"
+#include "BLI_listbase.hh"
+#include "BLI_math_matrix_c.hh"
 #include "BLI_path_utils.hh"
 #include "BLI_sort.hh"
 #include "BLI_span.hh"
-#include "BLI_string.h"
+#include "BLI_string.hh"
 #include "BLI_timeit.hh"
 
 #include "BLT_translation.hh"

@@ -14,7 +14,7 @@
 #include "RE_bake.h"
 #include "RNA_types.hh"
 
-#include "BLI_threads.h"
+#include "BLI_threads.hh"
 
 namespace blender {
 

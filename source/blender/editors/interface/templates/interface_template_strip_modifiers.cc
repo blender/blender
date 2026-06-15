@@ -14,7 +14,7 @@
 #include "BKE_context.hh"
 #include "BKE_screen.hh"
 
-#include "BLI_listbase.h"
+#include "BLI_listbase.hh"
 
 #include "SEQ_modifier.hh"
 #include "SEQ_select.hh"

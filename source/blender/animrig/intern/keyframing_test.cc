@@ -27,8 +27,8 @@
 #include "RNA_access.hh"
 #include "RNA_prototypes.hh"
 
-#include "BLI_listbase.h"
-#include "BLI_string.h"
+#include "BLI_listbase.hh"
+#include "BLI_string.hh"
 
 #include "testing/testing.h"
 

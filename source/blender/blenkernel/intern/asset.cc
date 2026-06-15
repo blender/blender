@@ -11,12 +11,12 @@
 
 #include "DNA_ID.h"
 
-#include "BLI_listbase.h"
-#include "BLI_string.h"
+#include "BLI_listbase.hh"
+#include "BLI_string.hh"
 #include "BLI_string_ref.hh"
-#include "BLI_string_utf8.h"
+#include "BLI_string_utf8.hh"
 #include "BLI_string_utils.hh"
-#include "BLI_uuid.h"
+#include "BLI_uuid.hh"
 
 #include "BKE_asset.hh"
 #include "BKE_idprop.hh"

@@ -13,8 +13,8 @@
 
 #include "CLG_log.h"
 
-#include "BLI_array_utils.h" /* For #BLI_array_is_zeroed. */
-#include "BLI_utildefines.h"
+#include "BLI_array_utils_c.hh" /* For #BLI_array_is_zeroed. */
+#include "BLI_utildefines.hh"
 
 #include "DNA_curve_types.h"
 #include "DNA_object_types.h"
@@ -37,9 +37,9 @@
 
 #ifdef USE_ARRAY_STORE
 // #  define DEBUG_PRINT
-#  include "BLI_array_store.h"
-#  include "BLI_array_store_utils.h"
-#  include "BLI_listbase.h"
+#  include "BLI_array_store.hh"
+#  include "BLI_array_store_utils.hh"
+#  include "BLI_listbase.hh"
 #  define ARRAY_CHUNK_SIZE 32
 #endif
 

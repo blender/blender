@@ -10,7 +10,7 @@
 
 #include <optional>
 
-#include "BLI_compiler_compat.h"
+#include "BLI_compiler_compat.hh"
 #include "BLI_span.hh"
 
 #include "BKE_node_socket_value_fwd.hh"

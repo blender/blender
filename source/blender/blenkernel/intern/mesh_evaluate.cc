@@ -15,9 +15,9 @@
 
 #include "BLI_array_utils.hh"
 #include "BLI_index_range.hh"
-#include "BLI_math_geom.h"
+#include "BLI_math_geom_c.hh"
 #include "BLI_span.hh"
-#include "BLI_utildefines.h"
+#include "BLI_utildefines.hh"
 #include "BLI_virtual_array.hh"
 
 #include "BKE_attribute.hh"

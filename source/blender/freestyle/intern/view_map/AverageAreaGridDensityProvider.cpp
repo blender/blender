@@ -9,7 +9,7 @@
 
 #include "AverageAreaGridDensityProvider.h"
 
-#include "BLI_sys_types.h"
+#include "BLI_sys_types.hh"
 
 #include "BKE_global.hh"
 

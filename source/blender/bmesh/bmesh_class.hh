@@ -11,8 +11,8 @@
  * that benefit from accessing connectivity information.
  */
 
-#include "BLI_assert.h"
-#include "BLI_sys_types.h"
+#include "BLI_assert.hh"
+#include "BLI_sys_types.hh"
 
 #include "DNA_customdata_types.h"
 #include "DNA_listBase.h"

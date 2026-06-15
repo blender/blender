@@ -11,8 +11,8 @@
 #include <climits>
 #include <cstring>
 
-#include "BLI_bitmap.h"
-#include "BLI_math_bits.h"
+#include "BLI_bitmap.hh"
+#include "BLI_math_bits.hh"
 
 namespace blender {
 

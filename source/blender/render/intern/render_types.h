@@ -17,7 +17,7 @@
 #include "DNA_scene_types.h"
 
 #include "BLI_mutex.hh"
-#include "BLI_threads.h"
+#include "BLI_threads.hh"
 
 #include "RE_compositor.hh"
 #include "RE_pipeline.h"

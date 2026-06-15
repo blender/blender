@@ -7,8 +7,8 @@
 #include <type_traits>
 #include <utility>
 
-#include "BLI_build_config.h"
-#include "BLI_utildefines.h"
+#include "BLI_build_config.hh"
+#include "BLI_utildefines.hh"
 
 namespace blender {
 

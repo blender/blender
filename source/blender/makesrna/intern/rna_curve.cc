@@ -12,7 +12,7 @@
 #include "DNA_key_types.h"
 #include "DNA_scene_types.h"
 
-#include "BLI_math_rotation.h"
+#include "BLI_math_rotation_c.hh"
 
 #include "BLT_translation.hh"
 
@@ -183,9 +183,9 @@ static const EnumPropertyItem curve2d_fill_mode_items[] = {
 
 #  include "DNA_object_types.h"
 
-#  include "BLI_listbase.h"
-#  include "BLI_math_vector.h"
-#  include "BLI_string_utf8.h"
+#  include "BLI_listbase.hh"
+#  include "BLI_math_vector_c.hh"
+#  include "BLI_string_utf8.hh"
 
 #  include "BKE_curve.hh"
 #  include "BKE_curveprofile.h"

@@ -17,7 +17,7 @@
 #  include "BLI_enum_flags.hh"
 #  include "BLI_hash.hh"
 #  include "BLI_string_ref.hh"
-#  include "BLI_utildefines_variadic.h"
+#  include "BLI_utildefines_variadic.hh"
 #  include "BLI_vector.hh"
 #  include "GPU_common_types.hh"
 #  include "GPU_material.hh"

@@ -4,9 +4,9 @@
 
 #include "workbench_private.hh"
 
-#include "BLI_ghash.h"
-#include "BLI_hash.h"
-#include "BLI_math_color.h"
+#include "BLI_ghash.hh"
+#include "BLI_hash_c.hh"
+#include "BLI_math_color_c.hh"
 
 #include "IMB_colormanagement.hh"
 

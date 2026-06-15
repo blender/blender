@@ -21,7 +21,7 @@
 
 #include "FN_lazy_function_execute.hh"
 
-#include "BLI_string_utf8_symbols.h"
+#include "BLI_string_utf8_symbols.hh"
 
 namespace blender::nodes {
 

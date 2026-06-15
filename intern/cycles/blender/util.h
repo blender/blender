@@ -22,7 +22,7 @@
 #include "util/transform.h"
 #include "util/types.h"
 
-#include "BLI_listbase.h"
+#include "BLI_listbase.hh"
 
 #include "DNA_mesh_types.h"
 #include "DNA_modifier_types.h"

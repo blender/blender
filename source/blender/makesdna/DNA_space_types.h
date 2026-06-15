@@ -599,7 +599,7 @@ struct FileDirEntry {
   int preview_icon_id = 0;
 
   eFileEntry_Flag flags = {};
-  /* eFileAttributes defined in BLI_fileops.h */
+  /* eFileAttributes defined in BLI_fileops.hh */
   int attributes = 0;
 };
 

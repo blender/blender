@@ -6,7 +6,7 @@
  * \ingroup eevee
  */
 
-#include "BLI_time.h"
+#include "BLI_time.hh"
 #include "DNA_material_types.h"
 
 #include "BKE_lib_id.hh"

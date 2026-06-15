@@ -28,15 +28,15 @@
 
 #include "DNA_vec_types.h"
 
-#include "BLI_math_bits.h"
-#include "BLI_math_color_blend.h"
-#include "BLI_math_matrix.h"
+#include "BLI_math_bits.hh"
+#include "BLI_math_color_blend.hh"
+#include "BLI_math_matrix_c.hh"
 #include "BLI_mutex.hh"
 #include "BLI_path_utils.hh"
-#include "BLI_rect.h"
-#include "BLI_string.h"
-#include "BLI_string_cursor_utf8.h"
-#include "BLI_string_utf8.h"
+#include "BLI_rect.hh"
+#include "BLI_string.hh"
+#include "BLI_string_cursor_utf8.hh"
+#include "BLI_string_utf8.hh"
 #include "BLI_vector.hh"
 
 #include "BLF_api.hh"
@@ -48,7 +48,7 @@
 #include "blf_internal.hh"
 #include "blf_internal_types.hh"
 
-#include "BLI_strict_flags.h" /* IWYU pragma: keep. Keep last. */
+#include "BLI_strict_flags.hh" /* IWYU pragma: keep. Keep last. */
 
 namespace blender {
 

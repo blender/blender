@@ -11,7 +11,7 @@
  * long as there is no change in the order of registered custom asset libraries.
  */
 
-#include "BLI_listbase.h"
+#include "BLI_listbase.hh"
 
 #include "BKE_preferences.h"
 

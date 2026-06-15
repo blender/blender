@@ -9,8 +9,8 @@
 #pragma once
 
 #include "BLI_enum_flags.hh"
-#include "BLI_implicit_sharing.h"
-#include "BLI_math_constants.h"
+#include "BLI_implicit_sharing.hh"
+#include "BLI_math_constants.hh"
 #include "BLI_span.hh"
 
 #include "DNA_armature_types.h"

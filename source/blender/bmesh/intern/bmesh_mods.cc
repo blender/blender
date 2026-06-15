@@ -9,7 +9,7 @@
  * the topology of existing mesh data. (split, join, flip etc).
  */
 
-#include "BLI_math_vector.h"
+#include "BLI_math_vector_c.hh"
 #include "BLI_vector.hh"
 
 #include "BKE_customdata.hh"

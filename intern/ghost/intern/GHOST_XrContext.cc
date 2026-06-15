@@ -14,7 +14,7 @@
 #include <string>
 #include <string_view>
 
-#include "BLI_string.h"
+#include "BLI_string.hh"
 #include "BLI_string_ref.hh"
 #include "BLI_vector.hh"
 

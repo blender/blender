@@ -8,13 +8,13 @@
 
 #include "MEM_guardedalloc.h"
 
-#include "BLI_boxpack_2d.h"
-#include "BLI_linklist.h"
-#include "BLI_listbase.h"
+#include "BLI_boxpack_2d.hh"
+#include "BLI_linklist.hh"
+#include "BLI_listbase.hh"
 #include "BLI_math_base.hh"
-#include "BLI_rect.h"
-#include "BLI_threads.h"
-#include "BLI_time.h"
+#include "BLI_rect.hh"
+#include "BLI_threads.hh"
+#include "BLI_time.hh"
 
 #include "DNA_image_types.h"
 #include "DNA_userdef_types.h"

@@ -11,7 +11,7 @@
 #include "BKE_paint.hh"
 #include "BKE_paint_bvh.hh"
 
-#include "BLI_math_base.h"
+#include "BLI_math_base_c.hh"
 #include "GPU_compute.hh"
 
 #include "draw_context_private.hh"

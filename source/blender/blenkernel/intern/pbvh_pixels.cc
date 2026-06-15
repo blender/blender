@@ -11,9 +11,9 @@
 #include "DNA_image_types.h"
 #include "DNA_object_types.h"
 
-#include "BLI_listbase.h"
-#include "BLI_math_geom.h"
-#include "BLI_math_vector.h"
+#include "BLI_listbase.hh"
+#include "BLI_math_geom_c.hh"
+#include "BLI_math_vector_c.hh"
 
 #include "BKE_image_wrappers.hh"
 #include "BKE_paint.hh"

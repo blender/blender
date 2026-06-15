@@ -10,8 +10,8 @@
 
 #include "BKE_camera.h"
 #include "BKE_tracking.hh"
-#include "BLI_math_color.h"
-#include "BLI_math_rotation.h"
+#include "BLI_math_color_c.hh"
+#include "BLI_math_rotation_c.hh"
 #include "DEG_depsgraph_query.hh"
 #include "DNA_camera_types.h"
 #include "DRW_render.hh"

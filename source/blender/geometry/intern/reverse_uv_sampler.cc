@@ -11,7 +11,7 @@
 #include "BLI_enumerable_thread_specific.hh"
 #include "BLI_linear_allocator_chunked_list.hh"
 #include "BLI_map.hh"
-#include "BLI_math_geom.h"
+#include "BLI_math_geom_c.hh"
 #include "BLI_math_vector.hh"
 #include "BLI_offset_indices.hh"
 #include "BLI_task.hh"

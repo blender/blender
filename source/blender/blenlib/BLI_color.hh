@@ -12,9 +12,9 @@
 
 #include "BLI_color_types.hh"
 #include "BLI_colorspace.hh"
-#include "BLI_compiler_compat.h"
-#include "BLI_math_color.h"
-#include "BLI_math_vector.h"
+#include "BLI_compiler_compat.hh"
+#include "BLI_math_color_c.hh"
+#include "BLI_math_vector_c.hh"
 
 namespace blender {
 

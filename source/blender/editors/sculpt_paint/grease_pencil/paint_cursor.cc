@@ -8,7 +8,7 @@
 
 #include "BLI_math_matrix.hh"
 #include "BLI_math_vector.hh"
-#include "BLI_rect.h"
+#include "BLI_rect.hh"
 
 #include "BKE_brush.hh"
 #include "BKE_grease_pencil.hh"

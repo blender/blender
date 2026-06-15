@@ -8,7 +8,7 @@
 
 #include "MEM_guardedalloc.h"
 
-#include "BLI_dynstr.h"
+#include "BLI_dynstr.hh"
 #include "BLI_vector.hh"
 
 #include "GPU_storage_buffer.hh"

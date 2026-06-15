@@ -11,9 +11,9 @@
 #include <array>
 
 #include "BLI_array.hh"
-#include "BLI_linklist_stack.h"
-#include "BLI_utildefines.h"
-#include "BLI_utildefines_stack.h"
+#include "BLI_linklist_stack.hh"
+#include "BLI_utildefines.hh"
+#include "BLI_utildefines_stack.hh"
 
 #include "bmesh.hh"
 

@@ -12,9 +12,9 @@
 
 #include "MEM_guardedalloc.h"
 
-#include "BLI_ghash.h"
-#include "BLI_listbase.h"
-#include "BLI_utildefines.h"
+#include "BLI_ghash.hh"
+#include "BLI_listbase.hh"
+#include "BLI_utildefines.hh"
 
 #include "DNA_gpencil_legacy_types.h"
 #include "DNA_scene_types.h"

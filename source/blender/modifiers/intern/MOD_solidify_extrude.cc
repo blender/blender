@@ -8,12 +8,12 @@
 
 #include <algorithm>
 
-#include "BLI_math_vector.h"
-#include "BLI_utildefines.h"
+#include "BLI_math_vector_c.hh"
+#include "BLI_utildefines.hh"
 
-#include "BLI_bitmap.h"
-#include "BLI_math_geom.h"
-#include "BLI_utildefines_stack.h"
+#include "BLI_bitmap.hh"
+#include "BLI_math_geom_c.hh"
+#include "BLI_utildefines_stack.hh"
 
 #include "DNA_mesh_types.h"
 #include "DNA_meshdata_types.h"

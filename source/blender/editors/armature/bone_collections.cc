@@ -15,7 +15,7 @@
 #include "DNA_ID.h"
 #include "DNA_object_types.h"
 
-#include "BLI_listbase.h"
+#include "BLI_listbase.hh"
 
 #include "BKE_action.hh"
 #include "BKE_armature.hh"

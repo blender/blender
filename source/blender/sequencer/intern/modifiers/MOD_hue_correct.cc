@@ -6,7 +6,7 @@
  * \ingroup sequencer
  */
 
-#include "BLI_math_color.h"
+#include "BLI_math_color_c.hh"
 
 #include "BKE_colortools.hh"
 

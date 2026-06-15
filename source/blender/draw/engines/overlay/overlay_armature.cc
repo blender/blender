@@ -19,12 +19,12 @@
 #include "DRW_render.hh"
 
 #include "BLI_listbase_wrapper.hh"
-#include "BLI_math_color.h"
-#include "BLI_math_matrix.h"
+#include "BLI_math_color_c.hh"
+#include "BLI_math_matrix_c.hh"
 #include "BLI_math_matrix_types.hh"
-#include "BLI_math_rotation.h"
-#include "BLI_math_vector.h"
-#include "BLI_utildefines.h"
+#include "BLI_math_rotation_c.hh"
+#include "BLI_math_vector_c.hh"
+#include "BLI_utildefines.hh"
 
 #include "BKE_action.hh"
 #include "BKE_armature.hh"

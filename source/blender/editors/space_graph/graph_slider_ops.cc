@@ -17,8 +17,8 @@
 
 #include "MEM_guardedalloc.h"
 
-#include "BLI_listbase.h"
-#include "BLI_math_base.h"
+#include "BLI_listbase.hh"
+#include "BLI_math_base_c.hh"
 
 #include "DEG_depsgraph.hh"
 #include "DNA_anim_types.h"

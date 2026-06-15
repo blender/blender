@@ -18,8 +18,8 @@
 
 #  include "DNA_brush_types.h"
 
-#  include "BLI_listbase.h"
-#  include "BLI_math_color.h"
+#  include "BLI_listbase.hh"
+#  include "BLI_math_color_c.hh"
 
 #  include "BKE_library.hh"
 #  include "BKE_paint.hh"

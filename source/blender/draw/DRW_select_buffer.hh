@@ -15,7 +15,7 @@
 #include "BLI_math_matrix_types.hh"
 #include "BLI_math_vector_types.hh"
 #include "BLI_set.hh"
-#include "BLI_sys_types.h" /* for bool and uint */
+#include "BLI_sys_types.hh" /* for bool and uint */
 
 namespace blender {
 

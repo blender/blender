@@ -15,12 +15,12 @@
 #include "DNA_scene_types.h"
 #include "DNA_space_types.h"
 
-#include "BLI_bitmap.h"
-#include "BLI_listbase.h"
-#include "BLI_math_color.h"
-#include "BLI_math_color_blend.h"
-#include "BLI_stack.h"
-#include "BLI_task.h"
+#include "BLI_bitmap.hh"
+#include "BLI_listbase.hh"
+#include "BLI_math_color_blend.hh"
+#include "BLI_math_color_c.hh"
+#include "BLI_stack_c.hh"
+#include "BLI_task_c.hh"
 
 #include "BKE_brush.hh"
 #include "BKE_colorband.hh"

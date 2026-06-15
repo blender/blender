@@ -4,8 +4,8 @@
 
 #include "pipeline.h"
 
-#include "BLI_listbase.h"
-#include "BLI_time.h"
+#include "BLI_listbase.hh"
+#include "BLI_time.hh"
 
 #include "CLG_log.h"
 

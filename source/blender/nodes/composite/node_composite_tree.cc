@@ -10,7 +10,7 @@
 #include "DNA_scene_types.h"
 #include "DNA_space_types.h"
 
-#include "BLI_listbase.h"
+#include "BLI_listbase.hh"
 
 #include "BKE_context.hh"
 #include "BKE_global.hh"

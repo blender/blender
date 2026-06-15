@@ -15,7 +15,7 @@
 #ifdef RNA_RUNTIME
 #  include "DNA_curve_types.h"
 
-#  include "BLI_string.h"
+#  include "BLI_string.hh"
 
 #  include "BKE_curve.hh"
 

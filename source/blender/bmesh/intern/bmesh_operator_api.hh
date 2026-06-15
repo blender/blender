@@ -9,7 +9,7 @@
  */
 
 #include "BLI_enum_flags.hh"
-#include "BLI_ghash.h"
+#include "BLI_ghash.hh"
 
 #include <cstdarg>
 

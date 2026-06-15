@@ -6,12 +6,12 @@
  * \ingroup spview3d
  */
 
-#include "BLI_listbase.h"
-#include "BLI_math_base_safe.h"
-#include "BLI_math_matrix.h"
+#include "BLI_listbase.hh"
+#include "BLI_math_base_safe.hh"
 #include "BLI_math_matrix.hh"
-#include "BLI_math_vector.h"
-#include "BLI_utildefines.h"
+#include "BLI_math_matrix_c.hh"
+#include "BLI_math_vector_c.hh"
+#include "BLI_utildefines.hh"
 
 #include "BKE_context.hh"
 #include "BKE_layer.hh"

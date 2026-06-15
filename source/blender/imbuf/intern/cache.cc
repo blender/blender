@@ -15,9 +15,9 @@
 #include "MEM_CacheLimiterC-Api.h"
 #include "MEM_guardedalloc.h"
 
-#include "BLI_ghash.h"
-#include "BLI_mempool.h"
-#include "BLI_string.h"
+#include "BLI_ghash.hh"
+#include "BLI_mempool.hh"
+#include "BLI_string.hh"
 
 #include "IMB_cache.hh"
 

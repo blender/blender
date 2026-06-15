@@ -6,7 +6,7 @@
  * \ingroup draw
  */
 
-#include "BLI_bitmap.h"
+#include "BLI_bitmap.hh"
 #include "atomic_ops.h"
 
 #include "MEM_guardedalloc.h"

@@ -6,8 +6,8 @@
  * \ingroup bke
  */
 
-#include "BLI_bitmap.h"
-#include "BLI_task.h"
+#include "BLI_bitmap.hh"
+#include "BLI_task_c.hh"
 
 #include "BKE_customdata.hh"
 #include "BKE_subdiv.hh"

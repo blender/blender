@@ -13,7 +13,7 @@
 
 #include "gpu_backend.hh"
 
-#include "BLI_threads.h"
+#include "BLI_threads.hh"
 #include "BLI_vector.hh"
 
 #include "gpu_capabilities_private.hh"

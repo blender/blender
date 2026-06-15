@@ -12,8 +12,8 @@
  * Input needs to be jittered so that the filter converges to the right result.
  */
 
-#include "BLI_hash.h"
-#include "BLI_rect.h"
+#include "BLI_hash_c.hh"
+#include "BLI_rect.hh"
 #include "BLI_set.hh"
 
 #include "BKE_compositor.hh"

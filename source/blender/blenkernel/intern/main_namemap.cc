@@ -12,14 +12,14 @@
 #include "BKE_main.hh"
 #include "BKE_main_namemap.hh"
 
-#include "BLI_assert.h"
+#include "BLI_assert.hh"
 #include "BLI_bit_span_ops.hh"
 #include "BLI_bit_vector.hh"
-#include "BLI_listbase.h"
+#include "BLI_listbase.hh"
 #include "BLI_map.hh"
 #include "BLI_math_base.hh"
-#include "BLI_string.h"
-#include "BLI_string_utf8.h"
+#include "BLI_string.hh"
+#include "BLI_string_utf8.hh"
 #include "BLI_string_utils.hh"
 
 #include "DNA_ID.h"

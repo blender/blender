@@ -15,9 +15,9 @@
 #include "BKE_node_tree_interface_convert.hh"
 #include "BKE_node_tree_update.hh"
 
-#include "BLI_math_vector.h"
+#include "BLI_math_vector_c.hh"
 #include "BLI_stack.hh"
-#include "BLI_string.h"
+#include "BLI_string.hh"
 
 #include "BLO_read_write.hh"
 

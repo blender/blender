@@ -10,8 +10,8 @@
 #include <cstring>
 
 #include "BLI_fileops.hh"
-#include "BLI_filereader.h"
-#include "BLI_mmap.h"
+#include "BLI_filereader.hh"
+#include "BLI_mmap.hh"
 
 #include "MEM_guardedalloc.h"
 

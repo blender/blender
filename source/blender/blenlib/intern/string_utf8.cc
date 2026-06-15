@@ -18,10 +18,10 @@
 #include <cwctype>
 #include <wcwidth.h>
 
-#include "BLI_utildefines.h"
+#include "BLI_utildefines.hh"
 
-#include "BLI_string.h"      /* #BLI_string_debug_size. */
-#include "BLI_string_utf8.h" /* own include */
+#include "BLI_string.hh"      /* #BLI_string_debug_size. */
+#include "BLI_string_utf8.hh" /* own include */
 #ifdef WIN32
 #  include "utfconv.hh"
 #endif
@@ -29,7 +29,7 @@
 #  pragma GCC diagnostic error "-Wsign-conversion"
 #endif
 
-#include "BLI_strict_flags.h" /* IWYU pragma: keep. Keep last. */
+#include "BLI_strict_flags.hh" /* IWYU pragma: keep. Keep last. */
 
 namespace blender {
 

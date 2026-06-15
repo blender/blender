@@ -79,9 +79,9 @@ const EnumPropertyItem rna_enum_nla_mode_extend_items[] = {
 #  include <math.h>
 #  include <stdio.h>
 
-#  include "BLI_listbase.h"
-#  include "BLI_string.h"
-#  include "BLI_string_utf8.h"
+#  include "BLI_listbase.hh"
+#  include "BLI_string.hh"
+#  include "BLI_string_utf8.hh"
 
 /* needed for some of the validation stuff... */
 #  include "BKE_anim_data.hh"

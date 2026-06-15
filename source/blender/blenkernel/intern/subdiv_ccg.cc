@@ -12,9 +12,9 @@
 
 #include "BLI_enumerable_thread_specific.hh"
 #include "BLI_index_mask.hh"
-#include "BLI_math_bits.h"
-#include "BLI_math_geom.h"
-#include "BLI_math_vector.h"
+#include "BLI_math_bits.hh"
+#include "BLI_math_geom_c.hh"
+#include "BLI_math_vector_c.hh"
 #include "BLI_ordered_edge.hh"
 #include "BLI_set.hh"
 #include "BLI_task.hh"

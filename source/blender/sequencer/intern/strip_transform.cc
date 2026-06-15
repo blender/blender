@@ -13,12 +13,12 @@
 #include "DNA_sequence_types.h"
 
 #include "BLI_bounds.hh"
-#include "BLI_listbase.h"
-#include "BLI_math_base.h"
+#include "BLI_listbase.hh"
 #include "BLI_math_base.hh"
+#include "BLI_math_base_c.hh"
 #include "BLI_math_matrix.hh"
 #include "BLI_math_vector_types.hh"
-#include "BLI_rect.h"
+#include "BLI_rect.hh"
 
 #include "BLF_api.hh"
 

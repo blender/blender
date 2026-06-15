@@ -8,10 +8,10 @@
  * Wrapper between `ED_undo.hh` and `BKE_undo_system.hh` API's.
  */
 
-#include "BLI_sys_types.h"
+#include "BLI_sys_types.hh"
 
-#include "BLI_ghash.h"
-#include "BLI_listbase.h"
+#include "BLI_ghash.hh"
+#include "BLI_listbase.hh"
 
 #include "DNA_ID.h"
 #include "DNA_collection_types.h"

@@ -15,8 +15,8 @@
 #include "DNA_windowmanager_types.h"
 #include "RNA_types.hh"
 
-#include "BLI_listbase.h"
-#include "BLI_string.h"
+#include "BLI_listbase.hh"
+#include "BLI_string.hh"
 
 #include "../generic/py_capi_rna.hh"
 #include "../generic/py_capi_utils.hh"

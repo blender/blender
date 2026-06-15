@@ -13,12 +13,12 @@
 #include <optional>
 
 #ifdef WIN32
-#  include "BLI_winstuff.h"
+#  include "BLI_winstuff.hh"
 #endif
 
 #include "BLI_enum_flags.hh"
-#include "BLI_fileops.h"
-#include "BLI_filereader.h"
+#include "BLI_fileops.hh"
+#include "BLI_filereader.hh"
 #include "BLI_map.hh"
 
 #include "DNA_sdna_types.h"

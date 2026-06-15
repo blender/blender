@@ -2,7 +2,7 @@
  *
  * SPDX-License-Identifier: GPL-2.0-or-later */
 
-#include "BLI_string_utf8.h"
+#include "BLI_string_utf8.hh"
 
 #include "BKE_gtest_base.hh"
 #include "BKE_idprop.hh"

@@ -8,7 +8,7 @@
 
 #include "GPU_shader_builtin.hh"
 #include "BKE_global.hh"
-#include "BLI_utildefines.h"
+#include "BLI_utildefines.hh"
 
 #include "GPU_capabilities.hh"
 #include "GPU_shader.hh"

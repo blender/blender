@@ -8,7 +8,7 @@
 
 #include "GPU_viewport.hh"
 
-#include "BLI_string_utf8.h"
+#include "BLI_string_utf8.hh"
 
 #include "DRW_render.hh"
 

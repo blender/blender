@@ -12,9 +12,9 @@
 
 /* Based on https://github.com/jarikomppa/ipc (Unlicense) */
 
-#  include "BLI_assert.h"
+#  include "BLI_assert.hh"
 #  include "BLI_path_utils.hh"
-#  include "BLI_string_utf8.h"
+#  include "BLI_string_utf8.hh"
 #  include <iostream>
 
 namespace blender {
@@ -235,7 +235,7 @@ bool SharedSemaphore::try_decrement(int wait_ms)
 
 #  elif defined(__linux__)
 
-#    include "BLI_time.h"
+#    include "BLI_time.hh"
 #    include "BLI_vector.hh"
 #    include <fcntl.h>
 #    include <linux/limits.h>

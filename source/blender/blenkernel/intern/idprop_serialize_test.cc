@@ -4,7 +4,7 @@
 
 #include "testing/testing.h"
 
-#include "BLI_listbase.h"
+#include "BLI_listbase.hh"
 #include "BLI_serialize.hh"
 
 #include "BKE_gtest_base.hh"

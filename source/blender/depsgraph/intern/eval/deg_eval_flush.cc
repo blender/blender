@@ -13,9 +13,9 @@
 #include <algorithm>
 #include <deque>
 
-#include "BLI_listbase.h"
-#include "BLI_task.h"
-#include "BLI_utildefines.h"
+#include "BLI_listbase.hh"
+#include "BLI_task_c.hh"
+#include "BLI_utildefines.hh"
 
 #include "BKE_global.hh"
 #include "BKE_key.hh"

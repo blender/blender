@@ -10,8 +10,8 @@
 #include <cstdlib>
 #include <cstring>
 
-#include "BLI_listbase.h"
-#include "BLI_utildefines.h"
+#include "BLI_listbase.hh"
+#include "BLI_utildefines.hh"
 
 #include "BLT_translation.hh"
 

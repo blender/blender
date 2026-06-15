@@ -14,7 +14,7 @@
 
 #include "BLI_bounds.hh"
 #include "BLI_math_matrix.hh"
-#include "BLI_string_utf8.h"
+#include "BLI_string_utf8.hh"
 #include "BLI_task.hh"
 
 #include "MEM_guardedalloc.h"

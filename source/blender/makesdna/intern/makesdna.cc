@@ -35,9 +35,9 @@
 
 #include "BLI_set.hh"
 #include "BLI_string_ref.hh"
-#include "BLI_sys_types.h" /* For `intptr_t` support. */
-#include "BLI_system.h"    /* For #BLI_system_backtrace stub. */
-#include "BLI_utildefines.h"
+#include "BLI_sys_types.hh" /* For `intptr_t` support. */
+#include "BLI_system.hh"    /* For #BLI_system_backtrace stub. */
+#include "BLI_utildefines.hh"
 #include "BLI_vector.hh"
 #include "BLI_vector_set.hh"
 
@@ -763,7 +763,7 @@ static void write_sdna_verify(FILE *file,
                               const StringRefNull base_directory)
 {
   fprintf(file, "/* Verify struct sizes and member offsets are as expected by DNA. */\n");
-  fprintf(file, "#include \"BLI_assert.h\"\n\n");
+  fprintf(file, "#include \"BLI_assert.hh\"\n\n");
   /* Needed so we can find offsets of deprecated structs. */
   fprintf(file, "#define DNA_DEPRECATED_ALLOW\n");
   /* Workaround enum naming collision in static asserts

@@ -22,9 +22,9 @@
 /* Minimal requirements for SHGetSpecialFolderPath on MINGW MSVC has this defined already. */
 #    define _WIN32_IE 0x0400
 #  endif
-/* For #SHGetSpecialFolderPath, has to be done before `BLI_winstuff.h`
+/* For #SHGetSpecialFolderPath, has to be done before `BLI_winstuff.hh`
  * because 'near' is disabled through `BLI_windstuff.h`. */
-#  include "BLI_winstuff.h"
+#  include "BLI_winstuff.hh"
 #  include <shlobj.h>
 #endif
 
@@ -33,20 +33,20 @@
 #include "MEM_CacheLimiterC-Api.h"
 #include "MEM_guardedalloc.h"
 
-#include "BLI_fileops.h"
-#include "BLI_filereader.h"
-#include "BLI_linklist.h"
-#include "BLI_listbase.h"
-#include "BLI_math_base.h"
-#include "BLI_math_time.h"
+#include "BLI_fileops.hh"
+#include "BLI_filereader.hh"
+#include "BLI_linklist.hh"
+#include "BLI_listbase.hh"
+#include "BLI_math_base_c.hh"
+#include "BLI_math_time.hh"
 #include "BLI_memory_cache.hh"
-#include "BLI_string.h"
-#include "BLI_string_utf8.h"
-#include "BLI_system.h"
-#include "BLI_threads.h"
-#include "BLI_time.h"
-#include "BLI_timer.h"
-#include "BLI_utildefines.h"
+#include "BLI_string.hh"
+#include "BLI_string_utf8.hh"
+#include "BLI_system.hh"
+#include "BLI_threads.hh"
+#include "BLI_time.hh"
+#include "BLI_timer.hh"
+#include "BLI_utildefines.hh"
 #include BLI_SYSTEM_PID_H
 
 #include "BLO_core_blend_header.hh"

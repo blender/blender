@@ -7,15 +7,15 @@
  */
 
 #include "BLI_bounds.hh"
-#include "BLI_heap_simple.h"
+#include "BLI_heap_simple.hh"
 #include "BLI_map.hh"
-#include "BLI_math_geom.h"
-#include "BLI_math_vector.h"
+#include "BLI_math_geom_c.hh"
 #include "BLI_math_vector.hh"
-#include "BLI_memarena.h"
+#include "BLI_math_vector_c.hh"
+#include "BLI_memarena.hh"
 #include "BLI_span.hh"
-#include "BLI_time.h"
-#include "BLI_utildefines.h"
+#include "BLI_time.hh"
+#include "BLI_utildefines.hh"
 
 #include "BKE_global.hh"
 #include "BKE_paint_bvh.hh"

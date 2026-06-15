@@ -6,7 +6,7 @@
  * \ingroup spoutliner
  */
 
-#include "BLI_listbase.h"
+#include "BLI_listbase.hh"
 #include "BLI_listbase_wrapper.hh"
 
 #include "BKE_collection.hh"

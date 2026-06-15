@@ -13,7 +13,7 @@
 
 #include "BLI_math_matrix.hh"
 #include "BLI_math_matrix_types.hh"
-#include "BLI_string.h"
+#include "BLI_string.hh"
 
 #include "DNA_cachefile_types.h"
 #include "DNA_constraint_types.h"

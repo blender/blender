@@ -13,9 +13,9 @@
 #include "ANIM_animdata.hh"
 #include "ANIM_fcurve.hh"
 #include "BKE_fcurve.hh"
-#include "BLI_math_base.h"
+#include "BLI_math_base_c.hh"
 #include "BLI_math_vector_types.hh"
-#include "BLI_string.h"
+#include "BLI_string.hh"
 #include "DNA_anim_types.h"
 #include "MEM_guardedalloc.h"
 

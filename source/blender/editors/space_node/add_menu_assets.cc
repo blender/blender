@@ -8,7 +8,7 @@
 #include "AS_asset_representation.hh"
 
 #include "BLI_multi_value_map.hh"
-#include "BLI_string_utf8.h"
+#include "BLI_string_utf8.hh"
 
 #include "DNA_space_types.h"
 

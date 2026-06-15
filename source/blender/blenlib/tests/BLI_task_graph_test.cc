@@ -4,7 +4,7 @@
 
 #include "testing/testing.h"
 
-#include "BLI_task.h"
+#include "BLI_task_c.hh"
 
 namespace blender {
 

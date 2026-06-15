@@ -13,7 +13,7 @@
 #include "SEQ_modifier.hh"
 #include "SEQ_sequencer.hh"
 
-#include "BLI_listbase.h"
+#include "BLI_listbase.hh"
 
 namespace blender::deg {
 

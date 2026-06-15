@@ -13,7 +13,7 @@
 #include "MEM_guardedalloc.h"
 #include "mallocn_intern.hh"
 
-#include "../../source/blender/blenlib/BLI_strict_flags.h"
+#include "../../source/blender/blenlib/BLI_strict_flags.hh"
 
 namespace {
 

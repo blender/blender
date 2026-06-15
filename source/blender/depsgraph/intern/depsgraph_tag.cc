@@ -16,8 +16,8 @@
 #include <cstring> /* required for memset */
 
 #include "BLI_index_range.hh"
-#include "BLI_math_bits.h"
-#include "BLI_utildefines.h"
+#include "BLI_math_bits.hh"
+#include "BLI_utildefines.hh"
 
 #include "DNA_curve_types.h"
 #include "DNA_key_types.h"

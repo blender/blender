@@ -9,10 +9,10 @@
 #include <algorithm>
 #include <cmath>
 
-#include "BLI_compiler_compat.h"
-#include "BLI_sys_types.h"
+#include "BLI_compiler_compat.hh"
+#include "BLI_sys_types.hh"
 
-#include "BLI_noise.h" /* Own include. */
+#include "BLI_noise_c.hh" /* Own include. */
 
 namespace blender {
 

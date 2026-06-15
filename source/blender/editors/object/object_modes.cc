@@ -13,8 +13,8 @@
 #include "DNA_object_types.h"
 #include "DNA_scene_types.h"
 
-#include "BLI_time.h"
-#include "BLI_utildefines.h"
+#include "BLI_time.hh"
+#include "BLI_utildefines.hh"
 
 #include "BKE_context.hh"
 #include "BKE_idtype.hh"
@@ -27,8 +27,8 @@
 #include "BKE_paint_types.hh"
 #include "BKE_report.hh"
 
-#include "BLI_math_vector.h"
-#include "BLI_string.h"
+#include "BLI_math_vector_c.hh"
+#include "BLI_string.hh"
 
 #include "WM_api.hh"
 #include "WM_types.hh"

@@ -12,7 +12,7 @@
 #include "DNA_windowmanager_types.h"
 
 #include "BLI_path_utils.hh"
-#include "BLI_string_utf8_symbols.h"
+#include "BLI_string_utf8_symbols.hh"
 
 #include "BLT_translation.hh"
 
@@ -33,10 +33,10 @@
 
 #  include "DNA_userdef_types.h"
 
-#  include "BLI_listbase.h"
-#  include "BLI_math_vector.h"
-#  include "BLI_string.h"
-#  include "BLI_string_utf8.h"
+#  include "BLI_listbase.hh"
+#  include "BLI_math_vector_c.hh"
+#  include "BLI_string.hh"
+#  include "BLI_string_utf8.hh"
 
 #  include "BKE_keyconfig.h"
 #  include "BKE_main.hh"

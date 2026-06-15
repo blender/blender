@@ -17,8 +17,8 @@
 #include "DNA_lightprobe_types.h"
 
 #include "BLI_mutex.hh"
-#include "BLI_threads.h"
-#include "BLI_time.h"
+#include "BLI_threads.hh"
+#include "BLI_time.hh"
 
 #include "DEG_depsgraph_build.hh"
 #include "DEG_depsgraph_query.hh"

@@ -10,8 +10,8 @@
 
 #include "DNA_userdef_types.h"
 
-#include "BLI_string.h"
-#include "BLI_time.h"
+#include "BLI_string.hh"
+#include "BLI_time.hh"
 
 #include <algorithm>
 #include <fmt/format.h>

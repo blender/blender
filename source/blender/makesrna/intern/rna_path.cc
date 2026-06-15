@@ -11,12 +11,12 @@
 
 #include <fmt/format.h>
 
-#include "BLI_alloca.h"
-#include "BLI_dynstr.h"
+#include "BLI_alloca.hh"
+#include "BLI_dynstr.hh"
 #include "BLI_hash.hh"
-#include "BLI_string.h"
+#include "BLI_string.hh"
 #include "BLI_string_ref.hh"
-#include "BLI_utildefines.h"
+#include "BLI_utildefines.hh"
 
 #include "BKE_idprop.hh"
 #include "BKE_idtype.hh"

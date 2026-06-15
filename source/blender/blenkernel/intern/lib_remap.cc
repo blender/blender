@@ -11,7 +11,7 @@
 #include "CLG_log.h"
 
 #include "BLI_array.hh"
-#include "BLI_utildefines.h"
+#include "BLI_utildefines.hh"
 
 #include "DNA_collection_types.h"
 #include "DNA_object_types.h"

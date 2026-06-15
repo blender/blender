@@ -6,7 +6,7 @@
  * \ingroup spoutliner
  */
 
-#include "BLI_mempool.h"
+#include "BLI_mempool.hh"
 
 #include "DNA_space_types.h"
 

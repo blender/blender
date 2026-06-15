@@ -7,7 +7,7 @@
  */
 
 #include "BLI_array_utils.hh"
-#include "BLI_math_geom.h"
+#include "BLI_math_geom_c.hh"
 
 #include "BKE_bake_data_block_id.hh"
 #include "BKE_bvhutils.hh"

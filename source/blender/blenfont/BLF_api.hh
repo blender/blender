@@ -12,10 +12,10 @@
 
 #include "BLI_array.hh"
 #include "BLI_bounds_types.hh"
-#include "BLI_compiler_attrs.h"
+#include "BLI_compiler_attrs.hh"
 #include "BLI_function_ref.hh"
 #include "BLI_string_ref.hh"
-#include "BLI_sys_types.h"
+#include "BLI_sys_types.hh"
 #include "BLI_vector.hh"
 
 #include "DNA_listBase.h"

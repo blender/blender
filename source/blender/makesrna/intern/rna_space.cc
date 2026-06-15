@@ -9,7 +9,7 @@
 #include <cstdlib>
 #include <cstring>
 
-#include "BLI_math_constants.h"
+#include "BLI_math_constants.hh"
 #include "BLI_string_ref.hh"
 #include "BLT_translation.hh"
 
@@ -23,8 +23,8 @@
 #include "ED_spreadsheet.hh"
 #include "ED_userpref.hh"
 
-#include "BLI_string.h"
-#include "BLI_sys_types.h"
+#include "BLI_string.hh"
+#include "BLI_sys_types.hh"
 
 #include "DNA_action_types.h"
 #include "DNA_camera_types.h"
@@ -684,12 +684,12 @@ static const EnumPropertyItem spreadsheet_table_id_type_items[] = {
 #  include "DNA_userdef_types.h"
 
 #  include "BLI_index_range.hh"
-#  include "BLI_math_matrix.h"
-#  include "BLI_math_rotation.h"
-#  include "BLI_math_vector.h"
+#  include "BLI_math_matrix_c.hh"
+#  include "BLI_math_rotation_c.hh"
+#  include "BLI_math_vector_c.hh"
 #  include "BLI_path_utils.hh"
-#  include "BLI_string.h"
-#  include "BLI_string_utf8.h"
+#  include "BLI_string.hh"
+#  include "BLI_string_utf8.hh"
 
 #  include "BKE_anim_data.hh"
 #  include "BKE_brush.hh"

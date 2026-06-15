@@ -17,7 +17,7 @@
 #include "DNA_object_types.h"
 #include "DNA_scene_types.h"
 
-#include "BLI_math_rotation.h"
+#include "BLI_math_rotation_c.hh"
 
 #include "BLT_translation.hh"
 
@@ -849,9 +849,9 @@ static const EnumPropertyItem grease_pencil_build_time_mode_items[] = {
 #  include "DNA_object_force_types.h"
 #  include "DNA_particle_types.h"
 
-#  include "BLI_listbase.h"
-#  include "BLI_string.h"
-#  include "BLI_string_utf8.h"
+#  include "BLI_listbase.hh"
+#  include "BLI_string.hh"
+#  include "BLI_string_utf8.hh"
 
 #  include "BKE_bake_geometry_nodes_modifier.hh"
 #  include "BKE_cachefile.hh"
@@ -870,7 +870,7 @@ static const EnumPropertyItem grease_pencil_build_time_mode_items[] = {
 #  include "BKE_ocean.h"
 #  include "BKE_particle.h"
 
-#  include "BLI_sort_utils.h"
+#  include "BLI_sort_utils.hh"
 #  include "BLI_string_utils.hh"
 
 #  include "DEG_depsgraph.hh"

@@ -13,8 +13,8 @@
 
 #include "MEM_guardedalloc.h"
 
-#include "BLI_bitmap.h"
-#include "BLI_string.h"
+#include "BLI_bitmap.hh"
+#include "BLI_string.hh"
 
 #include "BKE_bpath.hh"
 #include "BKE_global.hh"

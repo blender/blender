@@ -9,8 +9,8 @@
 #include "BLI_index_range.hh"
 #include "BLI_map.hh"
 #include "BLI_span.hh"
-#include "BLI_string.h"
-#include "BLI_string_utf8.h"
+#include "BLI_string.hh"
+#include "BLI_string_utf8.hh"
 
 #include "DNA_modifier_types.h"
 #include "DNA_scene_types.h"

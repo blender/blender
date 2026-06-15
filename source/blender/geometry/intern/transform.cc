@@ -8,8 +8,8 @@
 
 #include "GEO_transform.hh"
 
-#include "BLI_math_matrix.h"
 #include "BLI_math_matrix.hh"
+#include "BLI_math_matrix_c.hh"
 #include "BLI_math_vector.hh"
 #include "BLI_task.hh"
 

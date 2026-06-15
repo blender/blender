@@ -7,7 +7,7 @@
  */
 #pragma once
 
-#include "BLI_math_bits.h"
+#include "BLI_math_bits.hh"
 #include "GPU_batch.hh"
 #include "GPU_vertex_format.hh"
 

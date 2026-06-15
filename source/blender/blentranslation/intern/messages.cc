@@ -19,8 +19,8 @@
 #include <string>
 #include <string_view>
 
-#include "BLI_assert.h"
-#include "BLI_fileops.h"
+#include "BLI_assert.hh"
+#include "BLI_fileops.hh"
 #include "BLI_hash.hh"
 #include "BLI_map.hh"
 #include "BLI_path_utils.hh"
@@ -28,7 +28,7 @@
 #include "BLI_vector.hh"
 
 #ifdef _WIN32
-#  include "BLI_winstuff.h"
+#  include "BLI_winstuff.hh"
 #endif
 
 #include "CLG_log.h"

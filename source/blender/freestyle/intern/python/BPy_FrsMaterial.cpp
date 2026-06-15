@@ -11,7 +11,7 @@
 #include "BPy_Convert.h"
 
 #include "BLI_hash_mm2a.hh"
-#include "BLI_math_vector.h"
+#include "BLI_math_vector_c.hh"
 
 using namespace Freestyle;
 

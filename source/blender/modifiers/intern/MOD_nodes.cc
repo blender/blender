@@ -14,11 +14,11 @@
 
 #include "MEM_guardedalloc.h"
 
-#include "BLI_listbase.h"
+#include "BLI_listbase.hh"
 #include "BLI_multi_value_map.hh"
 #include "BLI_set.hh"
-#include "BLI_string.h"
-#include "BLI_utildefines.h"
+#include "BLI_string.hh"
+#include "BLI_utildefines.hh"
 
 #include "DNA_array_utils.hh"
 #include "DNA_collection_types.h"

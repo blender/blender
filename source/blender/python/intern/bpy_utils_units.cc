@@ -15,8 +15,8 @@
 #include <Python.h>
 #include <structmember.h>
 
-#include "BLI_string.h"
-#include "BLI_utildefines.h"
+#include "BLI_string.hh"
+#include "BLI_utildefines.hh"
 
 #include "bpy_utils_units.hh"
 

@@ -8,7 +8,7 @@
 
 #include <cstdlib>
 
-#include "BLI_math_base.h"
+#include "BLI_math_base_c.hh"
 
 #include "BLT_translation.hh"
 

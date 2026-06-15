@@ -8,7 +8,7 @@
 
 #pragma once
 
-#include "BLI_assert.h"
+#include "BLI_assert.hh"
 #include "BLI_enum_flags.hh"
 
 #include "GPU_vertex_buffer.hh"

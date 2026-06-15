@@ -8,7 +8,7 @@
 #include <pxr/imaging/hd/dataSource.h>
 #include <pxr/usd/sdf/path.h>
 
-#include "BLI_string.h"
+#include "BLI_string.hh"
 
 #include "DNA_space_enums.h"
 

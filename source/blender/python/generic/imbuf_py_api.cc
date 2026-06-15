@@ -10,8 +10,8 @@
 
 #include <Python.h>
 
-#include "BLI_rect.h"
-#include "BLI_utildefines.h"
+#include "BLI_rect.hh"
+#include "BLI_utildefines.hh"
 
 #include "DNA_space_enums.h"
 #include "py_capi_utils.hh"
@@ -24,7 +24,7 @@
 #include "../../imbuf/IMB_imbuf_types.hh"
 
 /* File IO */
-#include "BLI_fileops.h"
+#include "BLI_fileops.hh"
 
 #include <cerrno>
 #include <fcntl.h>

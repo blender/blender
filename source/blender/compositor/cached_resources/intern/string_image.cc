@@ -6,12 +6,12 @@
 #include <limits>
 #include <string>
 
-#include "BLI_assert.h"
+#include "BLI_assert.hh"
 #include "BLI_hash.hh"
 #include "BLI_memory_utils.hh"
 #include "BLI_path_utils.hh"
-#include "BLI_rect.h"
-#include "BLI_string.h"
+#include "BLI_rect.hh"
+#include "BLI_string.hh"
 
 #include "DNA_packedFile_types.h"
 #include "DNA_vfont_types.h"

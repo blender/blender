@@ -6,10 +6,10 @@
  * \ingroup edtransform
  */
 
-#include "BLI_math_geom.h"
-#include "BLI_math_matrix.h"
+#include "BLI_math_geom_c.hh"
 #include "BLI_math_matrix.hh"
-#include "BLI_string_utf8.h"
+#include "BLI_math_matrix_c.hh"
+#include "BLI_string_utf8.hh"
 
 #include "BKE_unit.hh"
 

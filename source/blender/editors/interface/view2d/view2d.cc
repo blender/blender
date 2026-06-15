@@ -16,12 +16,12 @@
 
 #include "DNA_userdef_types.h"
 
-#include "BLI_link_utils.h"
-#include "BLI_listbase.h"
-#include "BLI_math_matrix.h"
-#include "BLI_memarena.h"
-#include "BLI_rect.h"
-#include "BLI_utildefines.h"
+#include "BLI_link_utils.hh"
+#include "BLI_listbase.hh"
+#include "BLI_math_matrix_c.hh"
+#include "BLI_memarena.hh"
+#include "BLI_rect.hh"
+#include "BLI_utildefines.hh"
 
 #include "BKE_context.hh"
 #include "BKE_global.hh"

@@ -12,10 +12,10 @@
 
 #include "DNA_listBase.h"
 
-#include "BLI_listbase.h"
-#include "BLI_math_vector.h"
-#include "BLI_scanfill.h"
-#include "BLI_sort_utils.h"
+#include "BLI_listbase.hh"
+#include "BLI_math_vector_c.hh"
+#include "BLI_scanfill.hh"
+#include "BLI_sort_utils.hh"
 
 #include "bmesh.hh"
 #include "bmesh_tools.hh"

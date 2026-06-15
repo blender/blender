@@ -9,7 +9,7 @@
 #pragma once
 
 #include "BLI_math_matrix.hh"
-#include "BLI_rect.h"
+#include "BLI_rect.hh"
 
 #include "GPU_batch.hh"
 #include "GPU_texture.hh"

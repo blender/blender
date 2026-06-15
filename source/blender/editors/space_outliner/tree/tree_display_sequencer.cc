@@ -9,7 +9,7 @@
 #include <cstring>
 
 #include "BLI_listbase_wrapper.hh"
-#include "BLI_utildefines.h"
+#include "BLI_utildefines.hh"
 
 #include "DNA_sequence_types.h"
 #include "DNA_space_types.h"

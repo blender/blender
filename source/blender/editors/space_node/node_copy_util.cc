@@ -11,12 +11,12 @@
 #include "DNA_node_types.h"
 
 #include "BKE_anim_data.hh"
-#include "BLI_listbase.h"
+#include "BLI_listbase.hh"
 #include "BLI_listbase_iterator.hh"
 #include "BLI_map.hh"
 #include "BLI_math_vector_types.hh"
 #include "BLI_rand.hh"
-#include "BLI_string.h"
+#include "BLI_string.hh"
 #include "BLI_vector.hh"
 
 #include "BKE_action.hh"

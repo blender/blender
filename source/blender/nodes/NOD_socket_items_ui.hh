@@ -15,7 +15,7 @@
 #include "RNA_prototypes.hh"
 
 #include "BLI_function_ref.hh"
-#include "BLI_string_utf8.h"
+#include "BLI_string_utf8.hh"
 
 #include "BKE_screen.hh"
 

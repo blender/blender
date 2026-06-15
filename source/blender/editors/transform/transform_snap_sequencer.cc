@@ -9,12 +9,12 @@
 #include <cstddef>
 #include <cstdlib>
 
-#include "BLI_assert.h"
-#include "BLI_listbase.h"
+#include "BLI_assert.hh"
+#include "BLI_listbase.hh"
 #include "BLI_map.hh"
-#include "BLI_math_base.h"
-#include "BLI_math_vector.h"
+#include "BLI_math_base_c.hh"
 #include "BLI_math_vector.hh"
+#include "BLI_math_vector_c.hh"
 #include "BLI_vector.hh"
 
 #include "MEM_guardedalloc.h"

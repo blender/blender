@@ -54,7 +54,7 @@ const EnumPropertyItem rna_enum_region_panel_category_items[] = {
 
 #ifdef RNA_RUNTIME
 
-#  include "BLI_listbase.h"
+#  include "BLI_listbase.hh"
 
 #  include "RNA_access.hh"
 

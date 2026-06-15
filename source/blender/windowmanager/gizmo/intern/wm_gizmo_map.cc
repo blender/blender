@@ -9,11 +9,11 @@
 #include <cstring>
 
 #include "BLI_enum_flags.hh"
-#include "BLI_ghash.h"
-#include "BLI_listbase.h"
-#include "BLI_math_vector.h"
+#include "BLI_ghash.hh"
+#include "BLI_listbase.hh"
+#include "BLI_math_vector_c.hh"
 #include "BLI_math_vector_types.hh"
-#include "BLI_rect.h"
+#include "BLI_rect.hh"
 #include "BLI_vector.hh"
 
 #include "BKE_context.hh"

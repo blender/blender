@@ -49,10 +49,10 @@ const EnumPropertyItem rna_enum_stroke_depth_order_items[] = {
 #  include "BKE_global.hh"
 #  include "BKE_grease_pencil.hh"
 
-#  include "BLI_listbase.h"
+#  include "BLI_listbase.hh"
 #  include "BLI_math_matrix.hh"
 #  include "BLI_span.hh"
-#  include "BLI_string.h"
+#  include "BLI_string.hh"
 
 #  include "DEG_depsgraph.hh"
 #  include "DEG_depsgraph_build.hh"

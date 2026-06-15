@@ -11,7 +11,7 @@
  * Image buffer types.
  */
 
-#include "BLI_assert.h"
+#include "BLI_assert.hh"
 #include "BLI_implicit_sharing_ptr.hh"
 #include "BLI_string_ref.hh"
 

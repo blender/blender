@@ -10,10 +10,10 @@
 
 #include "MEM_guardedalloc.h"
 
-#include "BLI_listbase.h"
-#include "BLI_mempool.h"
-#include "BLI_task.h"
+#include "BLI_listbase.hh"
+#include "BLI_mempool.hh"
 #include "BLI_task.hh"
+#include "BLI_task_c.hh"
 
 namespace blender {
 

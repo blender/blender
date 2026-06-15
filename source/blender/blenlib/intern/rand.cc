@@ -14,16 +14,16 @@
 
 #include "MEM_guardedalloc.h"
 
-#include "BLI_bitmap.h"
-#include "BLI_compiler_compat.h"
-#include "BLI_math_vector.h"
-#include "BLI_noise.h"
-#include "BLI_rand.h"
+#include "BLI_bitmap.hh"
+#include "BLI_compiler_compat.hh"
+#include "BLI_math_vector_c.hh"
+#include "BLI_noise_c.hh"
 #include "BLI_rand.hh"
-#include "BLI_sys_types.h"
-#include "BLI_threads.h"
+#include "BLI_rand_c.hh"
+#include "BLI_sys_types.hh"
+#include "BLI_threads.hh"
 
-#include "BLI_strict_flags.h" /* IWYU pragma: keep. Keep last. */
+#include "BLI_strict_flags.hh" /* IWYU pragma: keep. Keep last. */
 
 namespace blender {
 

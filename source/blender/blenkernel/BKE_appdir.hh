@@ -15,7 +15,7 @@
 #include <optional>
 #include <string>
 
-#include "BLI_compiler_attrs.h"
+#include "BLI_compiler_attrs.hh"
 #include "BLI_string_ref.hh"
 
 #include "DNA_listBase.h"

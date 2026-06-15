@@ -11,9 +11,9 @@
 #pragma once
 
 #include "BLI_enum_flags.hh"
-#include "BLI_sys_types.h"
+#include "BLI_sys_types.hh"
 
-#include "BLI_implicit_sharing.h"
+#include "BLI_implicit_sharing.hh"
 
 namespace blender {
 

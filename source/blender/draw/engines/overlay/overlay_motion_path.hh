@@ -8,7 +8,7 @@
 
 #pragma once
 
-#include "BLI_string.h"
+#include "BLI_string.hh"
 
 #include "DEG_depsgraph_query.hh"
 

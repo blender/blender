@@ -23,8 +23,8 @@
 #include "GHOST_IWindow.hh"
 #include "GHOST_Types.hh"
 
-#include "BLI_string_utf8.h"
-#include "BLI_utildefines.h"
+#include "BLI_string_utf8.hh"
+#include "BLI_utildefines.hh"
 
 #include "DNA_listBase.h"
 #include "DNA_userdef_types.h"

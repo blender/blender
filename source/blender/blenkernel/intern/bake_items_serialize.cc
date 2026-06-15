@@ -16,11 +16,11 @@
 #include "BKE_pointcloud.hh"
 #include "BKE_volume.hh"
 
-#include "BLI_listbase.h"
+#include "BLI_listbase.hh"
 #include "BLI_math_matrix_types.hh"
 #include "BLI_path_utils.hh"
-#include "BLI_string.h"
-#include "BLI_string_utf8.h"
+#include "BLI_string.hh"
+#include "BLI_string_utf8.hh"
 
 #include "DNA_object_types.h"
 #include "DNA_volume_types.h"

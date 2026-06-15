@@ -6,8 +6,8 @@
  * \ingroup editors
  */
 
-#include "BLI_listbase.h"
-#include "BLI_math_geom.h"
+#include "BLI_listbase.hh"
+#include "BLI_math_geom_c.hh"
 
 #include "MOD_lineart.hh"
 

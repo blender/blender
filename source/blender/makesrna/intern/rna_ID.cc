@@ -215,9 +215,9 @@ const IDFilterEnumPropertyItem rna_enum_id_type_filter_items[] = {
 
 #  include "DNA_anim_types.h"
 
-#  include "BLI_listbase.h"
-#  include "BLI_math_base.h"
-#  include "BLI_string.h"
+#  include "BLI_listbase.hh"
+#  include "BLI_math_base_c.hh"
+#  include "BLI_string.hh"
 
 #  include "BLT_translation.hh"
 

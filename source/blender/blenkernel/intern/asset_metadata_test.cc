@@ -5,7 +5,7 @@
 #include "BKE_asset.hh"
 #include "BKE_gtest_base.hh"
 
-#include "BLI_uuid.h"
+#include "BLI_uuid.hh"
 
 #include "DNA_asset_types.h"
 

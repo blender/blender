@@ -6,7 +6,7 @@
 
 #include "BLI_array.hh"
 #include "BLI_string_ref.hh"
-#include "BLI_string_utf8.h"
+#include "BLI_string_utf8.hh"
 
 #include <pxr/base/tf/stringUtils.h>
 #include <pxr/base/tf/unicodeUtils.h>

@@ -8,7 +8,7 @@
  */
 
 #include "BLI_array.hh"
-#include "BLI_rect.h"
+#include "BLI_rect.hh"
 #include "BLI_task.hh"
 
 #include "IMB_filter.hh"

@@ -6,7 +6,7 @@
 /** \file
  * \ingroup bke
  */
-#include "BLI_compiler_attrs.h"
+#include "BLI_compiler_attrs.hh"
 #include "BLI_enum_flags.hh"
 #include "BLI_function_ref.hh"
 #include "BLI_math_matrix_types.hh"

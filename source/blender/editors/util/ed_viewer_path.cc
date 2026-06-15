@@ -17,8 +17,8 @@
 #include "BKE_viewer_path.hh"
 #include "BKE_workspace.hh"
 
-#include "BLI_listbase.h"
-#include "BLI_string.h"
+#include "BLI_listbase.hh"
+#include "BLI_string.hh"
 #include "BLI_vector.hh"
 
 #include "DNA_modifier_types.h"

@@ -12,7 +12,7 @@
 #include "DNA_curve_types.h"
 #include "DNA_object_types.h"
 
-#include "BLI_listbase.h"
+#include "BLI_listbase.hh"
 
 #include "BKE_curve.hh"
 #include "BKE_object_types.hh"

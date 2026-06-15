@@ -11,7 +11,7 @@
 
 #include "../stroke/ContextFunctions.h"
 
-#include "BLI_sys_types.h"
+#include "BLI_sys_types.hh"
 
 using namespace Freestyle;
 

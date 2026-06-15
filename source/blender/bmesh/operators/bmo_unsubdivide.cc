@@ -9,7 +9,7 @@
  * a subdivide operation.
  */
 
-#include "BLI_math_base.h"
+#include "BLI_math_base_c.hh"
 
 #include "bmesh.hh"
 #include "bmesh_tools.hh"

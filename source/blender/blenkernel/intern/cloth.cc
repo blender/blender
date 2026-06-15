@@ -16,12 +16,12 @@
 #include "DNA_object_types.h"
 #include "DNA_scene_types.h"
 
-#include "BLI_linklist.h"
-#include "BLI_math_geom.h"
-#include "BLI_math_matrix.h"
-#include "BLI_math_rotation.h"
-#include "BLI_math_vector.h"
-#include "BLI_rand.h"
+#include "BLI_linklist.hh"
+#include "BLI_math_geom_c.hh"
+#include "BLI_math_matrix_c.hh"
+#include "BLI_math_rotation_c.hh"
+#include "BLI_math_vector_c.hh"
+#include "BLI_rand_c.hh"
 
 #include "DEG_depsgraph.hh"
 #include "DEG_depsgraph_query.hh"
@@ -38,7 +38,7 @@
 
 #include "SIM_mass_spring.h"
 
-// #include "BLI_time.h"  /* timing for debug prints */
+// #include "BLI_time.hh"  /* timing for debug prints */
 
 namespace blender {
 

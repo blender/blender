@@ -10,7 +10,7 @@
 
 #include "BKE_attribute.hh"
 
-#include "BLI_compiler_attrs.h"
+#include "BLI_compiler_attrs.hh"
 #include "BLI_math_vector_types.hh"
 #include "BLI_span.hh"
 #include "BLI_virtual_array.hh"

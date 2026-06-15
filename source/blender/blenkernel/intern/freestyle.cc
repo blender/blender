@@ -11,9 +11,9 @@
 #include "DNA_collection_types.h"
 #include "DNA_freestyle_types.h"
 
-#include "BLI_listbase.h"
-#include "BLI_math_rotation.h"
-#include "BLI_string_utf8.h"
+#include "BLI_listbase.hh"
+#include "BLI_math_rotation_c.hh"
+#include "BLI_string_utf8.hh"
 #include "BLI_string_utils.hh"
 
 #include "BLT_translation.hh"

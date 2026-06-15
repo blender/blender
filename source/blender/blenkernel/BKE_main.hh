@@ -25,11 +25,11 @@
 
 #include "DNA_listBase.h"
 
-#include "BLI_compiler_attrs.h"
+#include "BLI_compiler_attrs.hh"
 #include "BLI_map.hh"
 #include "BLI_math_matrix_types.hh"
 #include "BLI_set.hh"
-#include "BLI_sys_types.h"
+#include "BLI_sys_types.hh"
 #include "BLI_utility_mixins.hh"
 #include "BLI_vector_set.hh"
 

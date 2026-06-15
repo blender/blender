@@ -18,10 +18,10 @@
 #include "DNA_material_types.h"
 #include "DNA_scene_types.h"
 
-#include "BLI_listbase.h"
+#include "BLI_listbase.hh"
 #include "BLI_math_base.hh"
-#include "BLI_math_color.h"
-#include "BLI_rand.h"
+#include "BLI_math_color_c.hh"
+#include "BLI_rand_c.hh"
 
 #include "BLT_translation.hh"
 

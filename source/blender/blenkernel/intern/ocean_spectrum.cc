@@ -7,7 +7,7 @@
  */
 
 #include "BLI_math_base.hh"
-#include "BLI_math_constants.h"
+#include "BLI_math_constants.hh"
 
 #include "BKE_ocean.h"
 

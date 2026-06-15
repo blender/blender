@@ -12,9 +12,9 @@
 
 #include "MEM_guardedalloc.h"
 
-#include "BLI_dynstr.h"
-#include "BLI_listbase.h"
-#include "BLI_utildefines.h"
+#include "BLI_dynstr.hh"
+#include "BLI_listbase.hh"
+#include "BLI_utildefines.hh"
 
 #include "BKE_context.hh"
 

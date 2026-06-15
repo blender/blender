@@ -8,7 +8,7 @@
  * \ingroup sequencer
  */
 
-#include "BLI_math_color.h"
+#include "BLI_math_color_c.hh"
 #include "BLI_math_interp.hh"
 #include "BLI_math_matrix.hh"
 #include "BLI_math_vector.hh"

@@ -13,13 +13,13 @@
 
 #include "MEM_guardedalloc.h"
 
-#include "BLI_bitmap_draw_2d.h"
+#include "BLI_bitmap_draw_2d.hh"
 
-#include "BLI_math_base.h"
-#include "BLI_sort.h"
-#include "BLI_utildefines.h"
+#include "BLI_math_base_c.hh"
+#include "BLI_sort.hh"
+#include "BLI_utildefines.hh"
 
-#include "BLI_strict_flags.h" /* IWYU pragma: keep. Keep last. */
+#include "BLI_strict_flags.hh" /* IWYU pragma: keep. Keep last. */
 
 namespace blender {
 

@@ -4,7 +4,7 @@
 
 #include "node_shader_util.hh"
 
-#include "BLI_math_vector.h"
+#include "BLI_math_vector_c.hh"
 
 #include "RNA_prototypes.hh"
 

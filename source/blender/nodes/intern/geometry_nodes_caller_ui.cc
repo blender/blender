@@ -15,8 +15,8 @@
 #include "BKE_node_runtime.hh"
 #include "BKE_screen.hh"
 
-#include "BLI_string.h"
-#include "BLI_string_utf8.h"
+#include "BLI_string.hh"
+#include "BLI_string_utf8.hh"
 
 #include "BLT_translation.hh"
 

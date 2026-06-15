@@ -14,11 +14,11 @@
 #include "DNA_ID.h"
 #include "DNA_ID_enums.h"
 
-#include "BLI_compiler_attrs.h"
+#include "BLI_compiler_attrs.hh"
 #include "BLI_function_ref.hh"
 #include "BLI_span.hh"
 #include "BLI_string_ref.hh"
-#include "BLI_sys_types.h"
+#include "BLI_sys_types.hh"
 #include "BLI_vector_set.hh"
 
 namespace blender {

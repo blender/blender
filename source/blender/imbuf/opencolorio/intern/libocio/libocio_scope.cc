@@ -9,7 +9,7 @@
 #include "libocio_view.hh"
 
 #include "BLI_math_matrix.hh"
-#include "BLI_string.h"
+#include "BLI_string.hh"
 
 #include "OCIO_matrix.hh"
 #include "OCIO_scope.hh"

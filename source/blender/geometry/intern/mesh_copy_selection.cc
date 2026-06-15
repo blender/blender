@@ -6,7 +6,7 @@
 
 #include "BLI_enumerable_thread_specific.hh"
 #include "BLI_index_mask.hh"
-#include "BLI_listbase.h"
+#include "BLI_listbase.hh"
 #include "PRF_profile.hh"
 
 #include "BKE_attribute.hh"

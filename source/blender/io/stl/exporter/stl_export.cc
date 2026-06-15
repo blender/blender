@@ -15,7 +15,7 @@
 #include "BKE_report.hh"
 #include "BKE_scene.hh"
 
-#include "BLI_string.h"
+#include "BLI_string.hh"
 #include "BLI_string_utils.hh"
 
 #include "DEG_depsgraph_query.hh"
@@ -26,8 +26,8 @@
 
 #include "ED_util.hh"
 
-#include "BLI_math_matrix.h"
-#include "BLI_math_rotation.h"
+#include "BLI_math_matrix_c.hh"
+#include "BLI_math_rotation_c.hh"
 #include "BLI_math_vector.hh"
 #include "BLI_math_vector_types.hh"
 

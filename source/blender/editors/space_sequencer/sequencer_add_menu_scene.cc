@@ -7,9 +7,9 @@
 #include "AS_asset_library.hh"
 #include "AS_asset_representation.hh"
 
-#include "BLI_listbase.h"
+#include "BLI_listbase.hh"
 #include "BLI_multi_value_map.hh"
-#include "BLI_string.h"
+#include "BLI_string.hh"
 
 #include "DNA_space_types.h"
 #include "DNA_workspace_types.h"

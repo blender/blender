@@ -12,7 +12,7 @@
 #  ifndef WIN32
 #    include <dirent.h>
 #  else
-#    include "BLI_winstuff.h"
+#    include "BLI_winstuff.hh"
 #  endif
 
 #  include <cerrno>
@@ -29,8 +29,8 @@
 #  include "BKE_report.hh"
 
 #  include "BLI_path_utils.hh"
-#  include "BLI_string_utf8.h"
-#  include "BLI_utildefines.h"
+#  include "BLI_string_utf8.hh"
+#  include "BLI_utildefines.hh"
 #  include "BLI_vector.hh"
 
 #  include "BLT_translation.hh"

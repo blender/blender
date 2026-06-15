@@ -21,8 +21,8 @@
 #include "RNA_types.hh"
 
 #include "BLI_array.hh"
-#include "BLI_listbase.h"
-#include "BLI_utildefines.h"
+#include "BLI_listbase.hh"
+#include "BLI_utildefines.hh"
 
 #include "bpy_capi_utils.hh"
 #include "bpy_props.hh"

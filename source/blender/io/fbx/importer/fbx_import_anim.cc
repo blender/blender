@@ -21,7 +21,7 @@
 #include "BLI_math_axis_angle.hh"
 #include "BLI_math_quaternion.hh"
 #include "BLI_set.hh"
-#include "BLI_string.h"
+#include "BLI_string.hh"
 #include "BLI_vector.hh"
 #include "BLI_vector_set.hh"
 

@@ -15,12 +15,12 @@
 
 #include "DNA_node_types.h"
 
-#include "BLI_assert.h"
-#include "BLI_ghash.h"
-#include "BLI_listbase.h"
+#include "BLI_assert.hh"
+#include "BLI_ghash.hh"
+#include "BLI_listbase.hh"
 #include "BLI_stack.hh"
-#include "BLI_string.h"
-#include "BLI_utildefines.h"
+#include "BLI_string.hh"
+#include "BLI_utildefines.hh"
 
 #include "BKE_node.hh"
 #include "BKE_node_runtime.hh"

@@ -7,7 +7,7 @@
  * \ingroup Alembic
  */
 
-#include "BLI_compiler_compat.h"
+#include "BLI_compiler_compat.hh"
 
 namespace blender {
 

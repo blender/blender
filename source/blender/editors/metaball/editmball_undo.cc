@@ -12,8 +12,8 @@
 
 #include "CLG_log.h"
 
-#include "BLI_array_utils.h"
-#include "BLI_listbase.h"
+#include "BLI_array_utils_c.hh"
+#include "BLI_listbase.hh"
 
 #include "DNA_layer_types.h"
 #include "DNA_meta_types.h"

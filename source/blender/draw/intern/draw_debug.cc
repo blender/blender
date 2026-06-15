@@ -9,9 +9,9 @@
  */
 
 #include "BKE_object.hh"
-#include "BLI_math_bits.h"
-#include "BLI_math_matrix.h"
+#include "BLI_math_bits.hh"
 #include "BLI_math_matrix.hh"
+#include "BLI_math_matrix_c.hh"
 #include "GPU_batch.hh"
 #include "GPU_debug.hh"
 

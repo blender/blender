@@ -12,7 +12,7 @@
 
 #include "BLI_bit_span.hh"
 #include "BLI_index_ranges_builder.hh"
-#include "BLI_math_bits.h"
+#include "BLI_math_bits.hh"
 #include "BLI_simd.hh"
 
 namespace blender::bits {

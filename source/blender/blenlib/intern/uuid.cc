@@ -6,9 +6,9 @@
  * \ingroup bli
  */
 
-#include "BLI_assert.h"
-#include "BLI_string.h"
-#include "BLI_uuid.h"
+#include "BLI_assert.hh"
+#include "BLI_string.hh"
+#include "BLI_uuid.hh"
 
 #include <cstdio>
 #include <cstring>

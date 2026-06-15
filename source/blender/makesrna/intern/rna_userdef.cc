@@ -13,11 +13,11 @@
 #include "DNA_sequence_types.h"
 #include "DNA_userdef_types.h"
 
-#include "BLI_math_base.h"
-#include "BLI_math_rotation.h"
-#include "BLI_string_utf8_symbols.h"
+#include "BLI_math_base_c.hh"
+#include "BLI_math_rotation_c.hh"
+#include "BLI_string_utf8_symbols.hh"
 #ifdef WIN32
-#  include "BLI_winstuff.h"
+#  include "BLI_winstuff.hh"
 #endif
 
 #include "BLT_date_string.hh"
@@ -234,11 +234,11 @@ static const EnumPropertyItem rna_enum_preferences_extension_repo_source_type_it
 
 #  include "AS_remote_library.hh"
 
-#  include "BLI_listbase.h"
-#  include "BLI_math_vector.h"
+#  include "BLI_listbase.hh"
+#  include "BLI_math_vector_c.hh"
 #  include "BLI_memory_cache.hh"
-#  include "BLI_string.h"
-#  include "BLI_string_utf8.h"
+#  include "BLI_string.hh"
+#  include "BLI_string_utf8.hh"
 #  include "BLI_string_utils.hh"
 
 #  include "DNA_object_types.h"

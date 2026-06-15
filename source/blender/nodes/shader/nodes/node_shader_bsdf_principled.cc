@@ -6,7 +6,7 @@
 
 #include "node_shader_util.hh"
 
-#include "BLI_math_base.h"
+#include "BLI_math_base_c.hh"
 
 #include "UI_interface_layout.hh"
 #include "UI_resources.hh"

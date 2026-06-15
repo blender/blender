@@ -2,7 +2,7 @@
  *
  * SPDX-License-Identifier: GPL-2.0-or-later */
 
-#include "BLI_math_color.h"
+#include "BLI_math_color_c.hh"
 
 #include "FN_multi_function_builder.hh"
 

@@ -12,13 +12,13 @@
 #include <cstdlib>
 #include <cstring>
 
-#include "BLI_fileops.h"
-#include "BLI_fnmatch.h"
+#include "BLI_fileops.hh"
+#include "BLI_fnmatch.hh"
 #include "BLI_path_utils.hh"
-#include "BLI_string.h"
-#include "BLI_string_utf8.h"
+#include "BLI_string.hh"
+#include "BLI_string_utf8.hh"
 #include "BLI_string_utils.hh"
-#include "BLI_utildefines.h"
+#include "BLI_utildefines.hh"
 
 #ifdef WIN32
 #  include "utf_winfunc.hh"
@@ -28,8 +28,8 @@
 #    undef _WIN32_IE
 #  endif
 #  define _WIN32_IE 0x0501
-#  include "BLI_alloca.h"
-#  include "BLI_winstuff.h"
+#  include "BLI_alloca.hh"
+#  include "BLI_winstuff.hh"
 #  include <shlobj.h>
 #  include <windows.h>
 #else

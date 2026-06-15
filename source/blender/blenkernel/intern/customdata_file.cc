@@ -12,10 +12,10 @@
 
 #include "MEM_guardedalloc.h"
 
-#include "BLI_endian_defines.h"
-#include "BLI_fileops.h"
-#include "BLI_string.h"
-#include "BLI_utildefines.h"
+#include "BLI_endian_defines.hh"
+#include "BLI_fileops.hh"
+#include "BLI_string.hh"
+#include "BLI_utildefines.hh"
 
 #include "BKE_customdata_file.h"
 

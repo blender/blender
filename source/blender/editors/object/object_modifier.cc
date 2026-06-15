@@ -27,13 +27,13 @@
 #include "DNA_scene_types.h"
 
 #include "BLI_array_utils.hh"
-#include "BLI_bitmap.h"
+#include "BLI_bitmap.hh"
 #include "BLI_implicit_sharing.hh"
-#include "BLI_listbase.h"
-#include "BLI_string.h"
-#include "BLI_string_utf8.h"
+#include "BLI_listbase.hh"
+#include "BLI_string.hh"
+#include "BLI_string_utf8.hh"
 #include "BLI_string_utils.hh"
-#include "BLI_utildefines.h"
+#include "BLI_utildefines.hh"
 
 #include "BKE_animsys.h"
 #include "BKE_anonymous_attribute_id.hh"

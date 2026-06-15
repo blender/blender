@@ -27,15 +27,15 @@
 #    include <float.h>
 #    include <windows.h>
 
-#    include "BLI_winstuff.h"
+#    include "BLI_winstuff.hh"
 
 #    include "GPU_platform.hh"
 #  endif
 
-#  include "BLI_fileops.h"
+#  include "BLI_fileops.hh"
 #  include "BLI_path_utils.hh"
-#  include "BLI_string.h"
-#  include "BLI_system.h"
+#  include "BLI_string.hh"
+#  include "BLI_system.hh"
 #  include BLI_SYSTEM_PID_H
 
 #  include "BKE_appdir.hh" /* #BKE_tempdir_session_purge. */

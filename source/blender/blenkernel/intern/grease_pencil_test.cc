@@ -4,7 +4,7 @@
 
 #include "testing/testing.h"
 
-#include "BLI_string.h"
+#include "BLI_string.hh"
 
 #include "BKE_curves.hh"
 #include "BKE_grease_pencil.hh"

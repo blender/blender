@@ -7,11 +7,11 @@
  */
 
 #include "BLI_array_utils.hh"
-#include "BLI_assert.h"
+#include "BLI_assert.hh"
 #include "BLI_index_mask.hh"
 #include "BLI_lasso_2d.hh"
-#include "BLI_math_geom.h"
-#include "BLI_rect.h"
+#include "BLI_math_geom_c.hh"
+#include "BLI_rect.hh"
 
 #include "BKE_attribute.hh"
 #include "BKE_crazyspace.hh"

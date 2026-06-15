@@ -36,10 +36,10 @@
 
 #include "MEM_guardedalloc.h"
 
-#include "BLI_alloca.h"
-#include "BLI_expr_pylike_eval.h"
-#include "BLI_math_base.h"
-#include "BLI_utildefines.h"
+#include "BLI_alloca.hh"
+#include "BLI_expr_pylike_eval.hh"
+#include "BLI_math_base_c.hh"
+#include "BLI_utildefines.hh"
 #include "BLI_vector.hh"
 
 namespace blender {

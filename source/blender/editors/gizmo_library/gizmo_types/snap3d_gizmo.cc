@@ -12,7 +12,7 @@
  * \brief Snap gizmo which exposes the location, normal and index in the props.
  */
 
-#include "BLI_math_vector.h"
+#include "BLI_math_vector_c.hh"
 
 #include "BKE_context.hh"
 #include "BKE_screen.hh"

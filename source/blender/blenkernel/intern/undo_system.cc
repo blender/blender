@@ -13,10 +13,10 @@
 
 #include "CLG_log.h"
 
-#include "BLI_listbase.h"
-#include "BLI_string.h"
-#include "BLI_sys_types.h"
-#include "BLI_utildefines.h"
+#include "BLI_listbase.hh"
+#include "BLI_string.hh"
+#include "BLI_sys_types.hh"
+#include "BLI_utildefines.hh"
 
 #include "BLT_translation.hh"
 

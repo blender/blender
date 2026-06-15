@@ -9,7 +9,7 @@
 
 #include <cmath>
 
-#include "BLI_math_color.h"
+#include "BLI_math_color_c.hh"
 
 #include "CLG_log.h"
 

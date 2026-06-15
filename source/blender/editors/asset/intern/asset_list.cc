@@ -23,9 +23,9 @@
 #include "BKE_preferences.h"
 #include "BKE_screen.hh"
 
-#include "BLI_listbase.h"
+#include "BLI_listbase.hh"
 #include "BLI_map.hh"
-#include "BLI_string.h"
+#include "BLI_string.hh"
 #include "BLI_utility_mixins.hh"
 
 #include "DNA_asset_types.h"

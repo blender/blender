@@ -14,7 +14,7 @@
 
 #include "DNA_listBase.h"
 
-#include "BLI_sys_types.h"
+#include "BLI_sys_types.hh"
 
 #include "BLI_path_utils.hh"
 

@@ -7,7 +7,7 @@
  */
 
 #include "BLI_array_utils.hh"
-#include "BLI_string.h"
+#include "BLI_string.hh"
 
 #include "BKE_attribute.hh"
 #include "BKE_attribute_legacy_convert.hh"

@@ -12,7 +12,7 @@
 #include "DNA_scene_types.h"
 
 #include "BLI_array.hh"
-#include "BLI_math_constants.h"
+#include "BLI_math_constants.hh"
 
 #include "BKE_attribute.h"
 #include "BKE_attribute.hh"

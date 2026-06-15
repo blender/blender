@@ -7,7 +7,7 @@
 #include "UI_interface_layout.hh"
 #include "UI_resources.hh"
 
-#include "BLI_string_utf8.h"
+#include "BLI_string_utf8.hh"
 
 #include "NOD_rna_define.hh"
 #include "RNA_access.hh"

@@ -9,11 +9,11 @@
 #include "AS_asset_representation.hh"
 
 #include "BKE_node_socket_value.hh"
-#include "BLI_listbase.h"
-#include "BLI_math_vector.h"
+#include "BLI_listbase.hh"
+#include "BLI_math_vector_c.hh"
 #include "BLI_stack.hh"
-#include "BLI_string.h"
-#include "BLI_string_utf8.h"
+#include "BLI_string.hh"
+#include "BLI_string_utf8.hh"
 
 #include "DNA_ID.h"
 #include "DNA_gpencil_legacy_types.h"

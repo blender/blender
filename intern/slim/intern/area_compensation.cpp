@@ -6,7 +6,7 @@
  * \ingroup intern_slim
  */
 
-#include "BLI_assert.h"
+#include "BLI_assert.hh"
 
 #include <Eigen/Dense>
 

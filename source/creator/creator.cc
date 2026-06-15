@@ -31,14 +31,14 @@
 
 #include "DNA_genfile.h"
 
-#include "BLI_endian_defines.h"
+#include "BLI_endian_defines.hh"
 #include "BLI_fftw.hh"
 #include "BLI_path_utils.hh"
-#include "BLI_string.h"
-#include "BLI_system.h"
-#include "BLI_task.h"
-#include "BLI_threads.h"
-#include "BLI_utildefines.h"
+#include "BLI_string.hh"
+#include "BLI_system.hh"
+#include "BLI_task_c.hh"
+#include "BLI_threads.hh"
+#include "BLI_utildefines.hh"
 
 /* Mostly initialization functions. */
 #include "BKE_appdir.hh"
@@ -59,7 +59,7 @@
 #include "BKE_volume.hh"
 
 #ifndef WITH_PYTHON_MODULE
-#  include "BLI_args.h"
+#  include "BLI_args.hh"
 #endif
 
 #include "DEG_depsgraph.hh"

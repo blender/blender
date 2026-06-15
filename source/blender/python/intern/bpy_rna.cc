@@ -22,13 +22,13 @@
 #include "RNA_path.hh"
 #include "RNA_types.hh"
 
-#include "BLI_dynstr.h"
-#include "BLI_listbase.h"
-#include "BLI_math_rotation.h"
+#include "BLI_dynstr.hh"
+#include "BLI_listbase.hh"
+#include "BLI_math_rotation_c.hh"
 #include "BLI_path_utils.hh"
-#include "BLI_string.h"
-#include "BLI_string_utf8.h"
-#include "BLI_utildefines.h"
+#include "BLI_string.hh"
+#include "BLI_string_utf8.hh"
+#include "BLI_utildefines.hh"
 #include "BLI_vector.hh"
 
 #include "BPY_extern.hh"
@@ -42,7 +42,7 @@
 #include "bpy_rna_callback.hh"
 
 #ifdef USE_PYRNA_INVALIDATE_WEAKREF
-#  include "BLI_ghash.h"
+#  include "BLI_ghash.hh"
 #endif
 
 #include "RNA_access.hh"

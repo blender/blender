@@ -19,8 +19,8 @@
 
 #include "BLI_binary_search.hh"
 #include "BLI_length_parameterize.hh"
-#include "BLI_math_geom.h"
-#include "BLI_math_solvers.h"
+#include "BLI_math_geom_c.hh"
+#include "BLI_math_solvers.hh"
 #include "BLI_set.hh"
 #include "BLI_span.hh"
 #include "BLI_vector.hh"

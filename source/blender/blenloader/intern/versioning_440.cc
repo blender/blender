@@ -24,12 +24,12 @@
 
 #undef DNA_GENFILE_VERSIONING_MACROS
 
-#include "BLI_listbase.h"
-#include "BLI_math_vector.h"
+#include "BLI_listbase.hh"
 #include "BLI_math_vector.hh"
+#include "BLI_math_vector_c.hh"
 #include "BLI_set.hh"
-#include "BLI_string.h"
-#include "BLI_string_utf8.h"
+#include "BLI_string.hh"
+#include "BLI_string_utf8.hh"
 
 #include "BKE_anim_data.hh"
 #include "BKE_fcurve.hh"

@@ -2,7 +2,7 @@
  *
  * SPDX-License-Identifier: Apache-2.0 */
 
-#include "BLI_bitmap.h"
+#include "BLI_bitmap.hh"
 #include "testing/testing.h"
 
 namespace blender::tests {

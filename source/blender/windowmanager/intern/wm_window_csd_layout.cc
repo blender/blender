@@ -10,7 +10,7 @@
 
 #include "GHOST_IWindow.hh"
 
-#include "BLI_rect.h"
+#include "BLI_rect.hh"
 
 #include "WM_api.hh"
 #include "wm_window.hh"

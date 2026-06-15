@@ -21,7 +21,7 @@
 #include "DNA_pointcloud_types.h"
 
 #include "BLI_index_range.hh"
-#include "BLI_string.h"
+#include "BLI_string.hh"
 #include "BLI_string_utils.hh"
 
 #include "BLT_translation.hh"

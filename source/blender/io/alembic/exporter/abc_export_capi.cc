@@ -21,9 +21,9 @@
 #include "BKE_main.hh"
 #include "BKE_scene.hh"
 
-#include "BLI_fileops.h"
+#include "BLI_fileops.hh"
 #include "BLI_path_utils.hh"
-#include "BLI_string.h"
+#include "BLI_string.hh"
 #include "BLI_timeit.hh"
 
 #include "ED_util.hh"

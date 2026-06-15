@@ -6,9 +6,9 @@
  * \ingroup draw
  */
 
-#include "BLI_math_geom.h"
-#include "BLI_math_matrix.h"
-#include "BLI_rect.h"
+#include "BLI_math_geom_c.hh"
+#include "BLI_math_matrix_c.hh"
+#include "BLI_rect.hh"
 
 #include "BKE_colortools.hh"
 

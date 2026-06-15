@@ -13,7 +13,7 @@
 
 #include "BLI_array_utils.hh"
 #include "BLI_bit_vector.hh"
-#include "BLI_linklist_stack.h"
+#include "BLI_linklist_stack.hh"
 #include "BLI_math_vector.hh"
 
 #include "DNA_brush_types.h"

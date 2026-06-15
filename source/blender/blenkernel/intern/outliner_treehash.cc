@@ -11,8 +11,8 @@
 #include <cstdlib>
 #include <cstring>
 
-#include "BLI_mempool.h"
-#include "BLI_utildefines.h"
+#include "BLI_mempool.hh"
+#include "BLI_utildefines.hh"
 #include "BLI_vector.hh"
 
 #include "DNA_outliner_types.h"

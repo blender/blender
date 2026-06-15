@@ -12,7 +12,7 @@
 
 #include "MEM_guardedalloc.h"
 
-#include "BLI_heap.h"
+#include "BLI_heap.hh"
 
 #include "bmesh.hh"
 

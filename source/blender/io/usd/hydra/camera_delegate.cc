@@ -10,7 +10,7 @@
 
 #include "BKE_idprop.hh"
 
-#include "BLI_listbase.h"
+#include "BLI_listbase.hh"
 
 #include <pxr/imaging/hd/dataSource.h>
 #include <pxr/imaging/hd/overlayContainerDataSource.h>

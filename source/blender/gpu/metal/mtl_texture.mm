@@ -7,6 +7,7 @@
  */
 
 #include "BKE_global.hh"
+
 #include "BLI_math_half.hh"
 
 #include "DNA_userdef_types.h"

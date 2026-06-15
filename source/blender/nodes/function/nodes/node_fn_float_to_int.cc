@@ -4,7 +4,7 @@
 
 #include <cmath>
 
-#include "BLI_string_utf8.h"
+#include "BLI_string_utf8.hh"
 
 #include "RNA_enum_types.hh"
 

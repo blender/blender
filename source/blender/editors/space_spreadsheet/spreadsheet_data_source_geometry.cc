@@ -4,7 +4,7 @@
 
 #include <fmt/format.h>
 
-#include "BLI_listbase.h"
+#include "BLI_listbase.hh"
 #include "BLI_math_matrix.hh"
 #include "BLI_virtual_array.hh"
 

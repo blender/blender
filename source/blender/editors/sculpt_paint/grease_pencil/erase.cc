@@ -7,7 +7,7 @@
 #include "BLI_array.hh"
 #include "BLI_index_mask.hh"
 #include "BLI_math_base.hh"
-#include "BLI_math_geom.h"
+#include "BLI_math_geom_c.hh"
 #include "BLI_task.hh"
 
 #include "BKE_asset_edit.hh"

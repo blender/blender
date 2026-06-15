@@ -2,8 +2,8 @@
  *
  * SPDX-License-Identifier: Apache-2.0 */
 
-#include "BLI_math_bits.h"
-#include "BLI_sys_types.h"
+#include "BLI_math_bits.hh"
+#include "BLI_sys_types.hh"
 #include "testing/testing.h"
 
 namespace blender {

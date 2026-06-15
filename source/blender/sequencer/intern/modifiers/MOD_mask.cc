@@ -6,7 +6,7 @@
  * \ingroup sequencer
  */
 
-#include "BLI_math_base.h"
+#include "BLI_math_base_c.hh"
 #include "BLI_math_matrix.hh"
 
 #include "BLT_translation.hh"

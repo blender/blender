@@ -17,7 +17,7 @@
 #include <pxr/usd/usdSkel/bindingAPI.h>
 
 #include "BLI_array_utils.hh"
-#include "BLI_assert.h"
+#include "BLI_assert.hh"
 #include "BLI_math_vector_types.hh"
 
 #include "BKE_anonymous_attribute_id.hh"

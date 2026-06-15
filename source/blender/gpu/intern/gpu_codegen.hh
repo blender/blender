@@ -11,7 +11,7 @@
 #pragma once
 
 #include "BLI_hash_mm2a.hh"
-#include "BLI_listbase.h"
+#include "BLI_listbase.hh"
 #include "BLI_set.hh"
 #include "BLI_vector.hh"
 

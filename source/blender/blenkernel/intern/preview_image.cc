@@ -23,7 +23,7 @@
 #include "BKE_icons.hh"
 
 #ifndef NDEBUG
-#  include "BLI_threads.h"
+#  include "BLI_threads.hh"
 #endif
 
 #include "BLO_read_write.hh"

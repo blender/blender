@@ -8,8 +8,8 @@
 
 #pragma once
 
-#include "BLI_math_base.h"
-#include "BLI_math_color.h"
+#include "BLI_math_base_c.hh"
+#include "BLI_math_color_c.hh"
 
 #include <cmath>
 

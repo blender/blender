@@ -19,7 +19,7 @@
 #include "BLI_index_range.hh"
 #include "BLI_resource_scope.hh"
 #include "BLI_span.hh"
-#include "BLI_utildefines.h"
+#include "BLI_utildefines.hh"
 #include "BLI_vector.hh"
 
 #include "BKE_anim_data.hh"

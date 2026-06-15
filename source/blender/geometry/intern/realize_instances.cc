@@ -10,7 +10,7 @@
 #include "DNA_object_types.h"
 
 #include "BLI_array_utils.hh"
-#include "BLI_listbase.h"
+#include "BLI_listbase.hh"
 #include "BLI_math_matrix.hh"
 #include "BLI_noise.hh"
 

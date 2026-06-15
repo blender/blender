@@ -10,7 +10,7 @@
 #include "BKE_action.hh"
 #include "BKE_animsys.h"
 #include "BKE_armature.hh"
-#include "BLI_listbase.h"
+#include "BLI_listbase.hh"
 #include "DNA_anim_types.h"
 #include "DNA_object_types.h"
 #include "RNA_access.hh"

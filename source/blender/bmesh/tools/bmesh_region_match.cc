@@ -23,11 +23,11 @@
 #include <cstring>
 
 #include "BLI_array.hh"
-#include "BLI_ghash.h"
-#include "BLI_linklist.h"
-#include "BLI_linklist_stack.h"
-#include "BLI_listbase.h"
-#include "BLI_mempool.h"
+#include "BLI_ghash.hh"
+#include "BLI_linklist.hh"
+#include "BLI_linklist_stack.hh"
+#include "BLI_listbase.hh"
+#include "BLI_mempool.hh"
 
 #include "MEM_guardedalloc.h"
 
@@ -50,11 +50,11 @@
 // #define DEBUG_PRINT
 
 #ifdef DEBUG_TIME
-#  include "BLI_time.h"
-#  include "BLI_time_utildefines.h"
+#  include "BLI_time.hh"
+#  include "BLI_time_utildefines.hh"
 #endif
 
-#include "BLI_strict_flags.h" /* IWYU pragma: keep. Keep last. */
+#include "BLI_strict_flags.hh" /* IWYU pragma: keep. Keep last. */
 
 namespace blender {
 

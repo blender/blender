@@ -5,7 +5,7 @@
 #include "volume_modifier.hh"
 
 #include "BLI_path_utils.hh"
-#include "BLI_string_utf8.h"
+#include "BLI_string_utf8.hh"
 
 #include "BKE_mesh.h"
 #include "BKE_modifier.hh"

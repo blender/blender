@@ -12,7 +12,7 @@
 #include "BKE_key.hh"
 #include "BKE_object.hh"
 
-#include "BLI_listbase.h"
+#include "BLI_listbase.hh"
 #include "BLT_translation.hh"
 
 #include "UI_interface_layout.hh"

@@ -11,7 +11,7 @@
 #include "BLI_array.hh"
 #include "BLI_map.hh"
 #include "BLI_math_vector.hh"
-#include "BLI_rect.h"
+#include "BLI_rect.hh"
 #include "BLI_vector.hh"
 
 #include "DNA_image_types.h"

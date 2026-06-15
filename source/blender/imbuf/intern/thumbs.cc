@@ -13,17 +13,17 @@
 
 #include "BKE_blendfile.hh"
 
-#include "BLI_fileops.h"
-#include "BLI_ghash.h"
+#include "BLI_fileops.hh"
+#include "BLI_ghash.hh"
 #include "BLI_hash_md5.hh"
 #include "BLI_path_utils.hh"
-#include "BLI_string.h"
-#include "BLI_string_utf8.h"
+#include "BLI_string.hh"
+#include "BLI_string_utf8.hh"
 #include "BLI_string_utils.hh"
-#include "BLI_system.h"
-#include "BLI_tempfile.h"
-#include "BLI_threads.h"
-#include "BLI_utildefines.h"
+#include "BLI_system.hh"
+#include "BLI_tempfile.hh"
+#include "BLI_threads.hh"
+#include "BLI_utildefines.hh"
 #include BLI_SYSTEM_PID_H
 
 #include "DNA_space_types.h" /* For FILE_MAX_LIBEXTRA */
@@ -50,7 +50,7 @@
 #  endif
 /* For SHGetSpecialFolderPath, has to be done before BLI_winstuff
  * because 'near' is disabled through BLI_windstuff */
-#  include "BLI_winstuff.h"
+#  include "BLI_winstuff.hh"
 #  include "utfconv.hh"
 #  include <direct.h> /* #chdir */
 #  include <shlobj.h>

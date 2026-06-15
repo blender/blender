@@ -6,9 +6,9 @@
  * \ingroup bli
  */
 
-#include "BLI_mmap.h"
-#include "BLI_assert.h"
-#include "BLI_fileops.h"
+#include "BLI_mmap.hh"
+#include "BLI_assert.hh"
+#include "BLI_fileops.hh"
 #include "BLI_mutex.hh"
 #include "BLI_string_utils.hh"
 #include "BLI_vector.hh"
@@ -23,7 +23,7 @@
 #  include <sys/mman.h> /* For `mmap`. */
 #  include <unistd.h>   /* For `write`. */
 #else
-#  include "BLI_winstuff.h"
+#  include "BLI_winstuff.hh"
 #  include <io.h> /* For `_get_osfhandle`. */
 #endif
 

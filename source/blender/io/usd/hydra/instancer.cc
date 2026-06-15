@@ -12,7 +12,7 @@
 #include <pxr/imaging/hd/tokens.h>
 #include <pxr/imaging/hd/xformSchema.h>
 
-#include "BLI_assert.h"
+#include "BLI_assert.hh"
 
 #include "util.hh"
 

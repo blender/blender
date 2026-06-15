@@ -9,13 +9,13 @@
 #include "AS_asset_representation.hh"
 #include "AS_essentials_library.hh"
 
-#include "BLI_fnmatch.h"
-#include "BLI_listbase.h"
+#include "BLI_fnmatch.hh"
+#include "BLI_listbase.hh"
 #include "BLI_path_utils.hh"
-#include "BLI_string.h"
+#include "BLI_string.hh"
 #include "BLI_string_search.hh"
-#include "BLI_string_utf8.h"
-#include "BLI_uuid.h"
+#include "BLI_string_utf8.hh"
+#include "BLI_uuid.hh"
 #include "BLI_vector.hh"
 
 #include "BKE_idtype.hh"

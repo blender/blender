@@ -17,11 +17,11 @@
 #include "DNA_screen_types.h"
 
 #include "BLI_math_matrix.hh"
-#include "BLI_math_rotation.h"
-#include "BLI_polyfill_2d.h"
-#include "BLI_rect.h"
-#include "BLI_string_utf8.h"
-#include "BLI_utildefines.h"
+#include "BLI_math_rotation_c.hh"
+#include "BLI_polyfill_2d.hh"
+#include "BLI_rect.hh"
+#include "BLI_string_utf8.hh"
+#include "BLI_utildefines.hh"
 
 #include "MEM_guardedalloc.h"
 

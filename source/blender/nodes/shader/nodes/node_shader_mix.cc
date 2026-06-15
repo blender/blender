@@ -11,8 +11,8 @@
 #include "BKE_material.hh"
 
 #include "BLI_math_quaternion.hh"
-#include "BLI_math_vector.h"
-#include "BLI_string_utf8.h"
+#include "BLI_math_vector_c.hh"
+#include "BLI_string_utf8.hh"
 
 #include "DNA_material_types.h"
 

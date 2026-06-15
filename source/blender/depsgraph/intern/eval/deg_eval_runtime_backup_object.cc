@@ -6,7 +6,7 @@
  * \ingroup depsgraph
  */
 
-#include "BLI_session_uid.h"
+#include "BLI_session_uid.hh"
 
 #include "intern/eval/deg_eval_runtime_backup_object.h"
 
@@ -14,7 +14,7 @@
 
 #include "DNA_mesh_types.h"
 
-#include "BLI_listbase.h"
+#include "BLI_listbase.hh"
 
 #include "BKE_action.hh"
 #include "BKE_light_linking.h"

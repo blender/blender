@@ -60,22 +60,22 @@
 
 #include "BLI_array.hh"
 #include "BLI_delaunay_2d.hh"
-#include "BLI_math_geom.h"
-#include "BLI_math_vector.h"
+#include "BLI_math_geom_c.hh"
+#include "BLI_math_vector_c.hh"
 #include "BLI_math_vector_types.hh"
-#include "BLI_memarena.h"
-#include "BLI_scanfill.h"
-#include "BLI_utildefines.h"
+#include "BLI_memarena.hh"
+#include "BLI_scanfill.hh"
+#include "BLI_utildefines.hh"
 #include "BLI_vector.hh"
 
-#include "BLI_linklist.h"
-#include "BLI_listbase.h"
-#include "BLI_rect.h"
-#include "BLI_task.h"
+#include "BLI_linklist.hh"
+#include "BLI_listbase.hh"
+#include "BLI_rect.hh"
+#include "BLI_task_c.hh"
 
 #include "BKE_mask.hh"
 
-#include "BLI_strict_flags.h" /* IWYU pragma: keep. Keep last. */
+#include "BLI_strict_flags.hh" /* IWYU pragma: keep. Keep last. */
 
 namespace blender {
 

@@ -15,15 +15,15 @@
 
 #include "BLI_array.hh"
 #include "BLI_disjoint_set.hh"
-#include "BLI_listbase.h"
+#include "BLI_listbase.hh"
 #include "BLI_map.hh"
 #include "BLI_multi_value_map.hh"
 #include "BLI_set.hh"
 #include "BLI_span.hh"
 #include "BLI_stack.hh"
-#include "BLI_string.h"
+#include "BLI_string.hh"
 #include "BLI_string_ref.hh"
-#include "BLI_string_utf8.h"
+#include "BLI_string_utf8.hh"
 #include "BLI_vector_set.hh"
 
 #include "BLT_translation.hh"

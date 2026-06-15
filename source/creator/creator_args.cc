@@ -19,21 +19,21 @@
 #  include "CLG_log.h"
 
 #  ifdef WIN32
-#    include "BLI_winstuff.h"
+#    include "BLI_winstuff.hh"
 #  endif
 
-#  include "BLI_args.h"
-#  include "BLI_dynstr.h"
-#  include "BLI_fileops.h"
-#  include "BLI_listbase.h"
+#  include "BLI_args.hh"
+#  include "BLI_dynstr.hh"
+#  include "BLI_fileops.hh"
+#  include "BLI_listbase.hh"
 #  include "BLI_path_utils.hh"
-#  include "BLI_string.h"
-#  include "BLI_string_utf8.h"
-#  include "BLI_system.h"
-#  include "BLI_threads.h"
-#  include "BLI_utildefines.h"
+#  include "BLI_string.hh"
+#  include "BLI_string_utf8.hh"
+#  include "BLI_system.hh"
+#  include "BLI_threads.hh"
+#  include "BLI_utildefines.hh"
 #  ifndef NDEBUG
-#    include "BLI_mempool.h"
+#    include "BLI_mempool.hh"
 #  endif
 
 #  include "BKE_appdir.hh"

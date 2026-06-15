@@ -8,7 +8,7 @@
 
 #include "DNA_armature_types.h"
 
-#include "BLI_listbase.h"
+#include "BLI_listbase.hh"
 
 #include "BKE_armature.hh"
 

@@ -8,8 +8,8 @@
 
 #include <cmath>
 
-#include "BLI_assert.h"
-#include "BLI_math_constants.h"
+#include "BLI_assert.hh"
+#include "BLI_math_constants.hh"
 #include "BLI_math_filter.hh"
 
 namespace blender::math {

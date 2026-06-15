@@ -28,11 +28,11 @@
 #include "BKE_report.hh"
 #include "BKE_screen.hh"
 
-#include "BLI_fnmatch.h"
+#include "BLI_fnmatch.hh"
 #include "BLI_path_utils.hh"
-#include "BLI_rect.h"
+#include "BLI_rect.hh"
 #include "BLI_set.hh"
-#include "BLI_string.h"
+#include "BLI_string.hh"
 
 #include "ED_asset.hh"
 #include "ED_screen.hh"

@@ -22,8 +22,8 @@
 
 #  include "DNA_scene_types.h"
 
-#  include "BLI_string.h"
-#  include "BLI_utildefines.h"
+#  include "BLI_string.hh"
+#  include "BLI_utildefines.hh"
 
 #  include "BKE_report.hh"
 #  include "BKE_sound.hh"

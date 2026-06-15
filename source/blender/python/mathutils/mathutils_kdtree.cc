@@ -14,7 +14,7 @@
 #include "MEM_guardedalloc.h"
 
 #include "BLI_kdtree.hh"
-#include "BLI_utildefines.h"
+#include "BLI_utildefines.hh"
 
 #include "../generic/py_capi_utils.hh"
 #include "../generic/python_utildefines.hh"
@@ -22,7 +22,7 @@
 #include "mathutils.hh"
 #include "mathutils_kdtree.hh" /* own include */
 
-#include "BLI_strict_flags.h" /* IWYU pragma: keep. Keep last. */
+#include "BLI_strict_flags.hh" /* IWYU pragma: keep. Keep last. */
 
 namespace blender {
 

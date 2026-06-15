@@ -4,10 +4,10 @@
 
 #include "BLI_bounds.hh"
 #include "BLI_color_types.hh"
-#include "BLI_listbase.h"
+#include "BLI_listbase.hh"
 #include "BLI_math_matrix.hh"
-#include "BLI_math_vector.h"
 #include "BLI_math_vector.hh"
+#include "BLI_math_vector_c.hh"
 
 #include "BKE_attribute.hh"
 #include "BKE_camera.h"

@@ -24,10 +24,10 @@
 #include "DNA_xr_types.h"
 
 #include "BLI_listbase_iterator.hh"
-#include "BLI_string.h"
-#include "BLI_string_utf8.h"
+#include "BLI_string.hh"
+#include "BLI_string_utf8.hh"
 #include "BLI_string_utils.hh"
-#include "BLI_sys_types.h"
+#include "BLI_sys_types.hh"
 
 #include "BKE_animsys.h"
 #include "BKE_attribute.hh"

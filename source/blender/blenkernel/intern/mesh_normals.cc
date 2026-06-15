@@ -12,19 +12,19 @@
 
 #include <climits>
 
-#include "BLI_math_geom.h"
-#include "BLI_math_vector.h"
+#include "BLI_math_geom_c.hh"
+#include "BLI_math_vector_c.hh"
 
 #include "BLI_array_utils.hh"
 #include "BLI_bit_vector.hh"
 #include "BLI_enumerable_thread_specific.hh"
-#include "BLI_linklist.h"
+#include "BLI_linklist.hh"
 #include "BLI_math_base.hh"
 #include "BLI_math_vector.hh"
-#include "BLI_memarena.h"
+#include "BLI_memarena.hh"
 #include "BLI_span.hh"
 #include "BLI_task.hh"
-#include "BLI_utildefines.h"
+#include "BLI_utildefines.hh"
 
 #include "BKE_attribute.hh"
 #include "BKE_global.hh"

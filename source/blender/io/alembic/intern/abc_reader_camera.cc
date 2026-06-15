@@ -19,7 +19,7 @@
 #include "ANIM_action.hh"
 #include "ANIM_fcurve.hh"
 
-#include "BLI_math_base.h"
+#include "BLI_math_base_c.hh"
 
 #include "BKE_camera.h"
 #include "BKE_object.hh"

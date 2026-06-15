@@ -12,7 +12,7 @@
 #include "BKE_modifier.hh"
 #include "BKE_screen.hh"
 
-#include "BLI_listbase.h"
+#include "BLI_listbase.hh"
 
 #include "ED_object.hh"
 

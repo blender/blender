@@ -12,8 +12,8 @@
 #  include <intrin.h>
 #endif
 
-#include "BLI_assert.h"
-#include "BLI_math_bits.h"
+#include "BLI_assert.hh"
+#include "BLI_math_bits.hh"
 
 namespace blender {
 

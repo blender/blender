@@ -22,17 +22,17 @@
 #  include <dirent.h>
 #  include <unistd.h>
 #else
-#  include "BLI_winstuff.h"
+#  include "BLI_winstuff.hh"
 #  include <io.h>
 #endif
 
 #include "MEM_guardedalloc.h"
 
-#include "BLI_fileops.h"
-#include "BLI_listbase.h"
+#include "BLI_fileops.hh"
+#include "BLI_listbase.hh"
 #include "BLI_path_utils.hh"
-#include "BLI_string.h"
-#include "BLI_utildefines.h"
+#include "BLI_string.hh"
+#include "BLI_utildefines.hh"
 
 #include "DEG_depsgraph.hh"
 
@@ -49,7 +49,7 @@
 namespace blender {
 
 #ifndef _MSC_VER
-#  include "BLI_strict_flags.h" /* IWYU pragma: keep. Keep last. */
+#  include "BLI_strict_flags.hh" /* IWYU pragma: keep. Keep last. */
 #endif
 
 static CLG_LogRef LOG = {"lib.bpath"};

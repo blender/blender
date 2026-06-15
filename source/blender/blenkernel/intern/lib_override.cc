@@ -56,15 +56,15 @@
 
 #include "BLO_readfile.hh"
 
-#include "BLI_linklist.h"
-#include "BLI_listbase.h"
+#include "BLI_linklist.hh"
+#include "BLI_listbase.hh"
 #include "BLI_map.hh"
-#include "BLI_memarena.h"
+#include "BLI_memarena.hh"
 #include "BLI_set.hh"
-#include "BLI_string.h"
-#include "BLI_task.h"
-#include "BLI_time.h"
-#include "BLI_utildefines.h"
+#include "BLI_string.hh"
+#include "BLI_task_c.hh"
+#include "BLI_time.hh"
+#include "BLI_utildefines.hh"
 #include "BLI_vector.hh"
 #include "BLI_vector_set.hh"
 
@@ -82,7 +82,7 @@ namespace blender {
 // #define DEBUG_OVERRIDE_TIMEIT
 
 #ifdef DEBUG_OVERRIDE_TIMEIT
-#  include "BLI_time_utildefines.h"
+#  include "BLI_time_utildefines.hh"
 #endif
 
 using namespace blender::bke;

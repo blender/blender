@@ -12,7 +12,7 @@
 
 #pragma once
 
-#include "BLI_math_bits.h"
+#include "BLI_math_bits.hh"
 
 #include "DRW_render.hh"
 

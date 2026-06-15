@@ -21,7 +21,7 @@
 #include "BKE_paint.hh"
 #include "BKE_shrinkwrap.hh"
 
-#include "BLI_math_vector.h"
+#include "BLI_math_vector_c.hh"
 
 #include "BLT_translation.hh"
 

@@ -4,9 +4,9 @@
 
 #include "asset_library_service.hh"
 
-#include "BLI_fileops.h" /* For PATH_MAX (at least on Windows). */
+#include "BLI_fileops.hh" /* For PATH_MAX (at least on Windows). */
 #include "BLI_path_utils.hh"
-#include "BLI_string.h"
+#include "BLI_string.hh"
 
 #include "BKE_appdir.hh"
 #include "BKE_callbacks.hh"

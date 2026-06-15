@@ -15,11 +15,11 @@
 #include "BLI_bit_vector.hh"
 #include "BLI_bounds.hh"
 #include "BLI_enumerable_thread_specific.hh"
-#include "BLI_listbase.h"
-#include "BLI_math_color_blend.h"
-#include "BLI_math_geom.h"
+#include "BLI_listbase.hh"
+#include "BLI_math_color_blend.hh"
+#include "BLI_math_geom_c.hh"
 #ifdef DEBUG_PIXEL_NODES
-#  include "BLI_hash.h"
+#  include "BLI_hash_c.hh"
 #endif
 
 #include "IMB_colormanagement.hh"

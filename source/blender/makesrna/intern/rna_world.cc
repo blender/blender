@@ -11,7 +11,7 @@
 
 #include "RNA_define.hh"
 
-#include "BLI_math_rotation.h"
+#include "BLI_math_rotation_c.hh"
 
 #include "rna_internal.hh"
 

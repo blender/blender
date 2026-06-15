@@ -10,8 +10,8 @@
 #include "BKE_undo_system.hh"
 #include "BKE_wm_runtime.hh"
 
-#include "BLI_ghash.h"
-#include "BLI_listbase.h"
+#include "BLI_ghash.hh"
+#include "BLI_listbase.hh"
 
 #include "WM_api.hh"
 

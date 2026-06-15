@@ -5,7 +5,7 @@
 #include "CLG_log.h"
 
 #include "BLI_array_utils.hh"
-#include "BLI_assert.h"
+#include "BLI_assert.hh"
 #include "BLI_color_types.hh"
 #include "BLI_implicit_sharing.hh"
 #include "BLI_memory_counter.hh"

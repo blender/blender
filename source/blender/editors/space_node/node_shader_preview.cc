@@ -22,9 +22,9 @@
  * the wanted viewlayer/pass for each previewed node.
  */
 
-#include "BLI_listbase.h"
-#include "BLI_math_base.h"
-#include "BLI_string_utf8.h"
+#include "BLI_listbase.hh"
+#include "BLI_math_base_c.hh"
+#include "BLI_string_utf8.hh"
 
 #include "DNA_camera_types.h"
 #include "DNA_material_types.h"

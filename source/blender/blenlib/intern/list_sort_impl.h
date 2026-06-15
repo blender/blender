@@ -34,8 +34,8 @@
 /* -------------------------------------------------------------------- */
 /* Handle External Defines */
 
-#include "BLI_compiler_compat.h"
-#include "BLI_utildefines.h"
+#include "BLI_compiler_compat.hh"
+#include "BLI_utildefines.hh"
 
 /* check we're not building directly */
 #if !defined(SORT_IMPL_LINKTYPE) || !defined(SORT_IMPL_FUNC)

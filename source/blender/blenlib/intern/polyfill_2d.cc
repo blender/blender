@@ -31,22 +31,22 @@
  * No globals - keep threadsafe.
  */
 
-#include "BLI_utildefines.h"
+#include "BLI_utildefines.hh"
 
 #include <algorithm>
 #include <cstdlib>
 
 #include "MEM_guardedalloc.h"
 
-#include "BLI_alloca.h"
+#include "BLI_alloca.hh"
 #include "BLI_enum_flags.hh"
-#include "BLI_math_geom.h"
-#include "BLI_math_vector.h"
-#include "BLI_memarena.h"
+#include "BLI_math_geom_c.hh"
+#include "BLI_math_vector_c.hh"
+#include "BLI_memarena.hh"
 
-#include "BLI_polyfill_2d.h" /* own include */
+#include "BLI_polyfill_2d.hh" /* own include */
 
-#include "BLI_strict_flags.h" /* IWYU pragma: keep. Keep last. */
+#include "BLI_strict_flags.hh" /* IWYU pragma: keep. Keep last. */
 
 namespace blender {
 
@@ -76,7 +76,7 @@ namespace blender {
 
 // #define DEBUG_TIME
 #ifdef DEBUG_TIME
-#  include "BLI_time_utildefines.h"
+#  include "BLI_time_utildefines.hh"
 #endif
 
 namespace {

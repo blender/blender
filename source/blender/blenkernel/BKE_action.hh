@@ -8,7 +8,7 @@
  * \brief Blender kernel action and pose functionality.
  */
 
-#include "BLI_compiler_attrs.h"
+#include "BLI_compiler_attrs.hh"
 #include "BLI_function_ref.hh"
 #include "BLI_span.hh"
 

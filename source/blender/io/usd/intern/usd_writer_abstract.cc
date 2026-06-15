@@ -13,7 +13,7 @@
 #include <pxr/usd/usdGeom/scope.h>
 #include <pxr/usd/usdUI/accessibilityAPI.h>
 
-#include "BLI_assert.h"
+#include "BLI_assert.hh"
 #include "BLI_bounds_types.hh"
 
 #include "DNA_material_types.h"

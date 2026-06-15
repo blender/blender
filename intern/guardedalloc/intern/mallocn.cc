@@ -12,7 +12,7 @@
 
 #include "PRF_profile.hh"
 /* To ensure strict conversions. */
-#include "../../source/blender/blenlib/BLI_strict_flags.h"
+#include "../../source/blender/blenlib/BLI_strict_flags.hh"
 
 #include <cassert>
 

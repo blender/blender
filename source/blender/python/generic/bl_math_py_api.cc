@@ -11,7 +11,7 @@
 
 #include <Python.h>
 
-#include "BLI_utildefines.h"
+#include "BLI_utildefines.hh"
 
 #include "bl_math_py_api.hh"
 

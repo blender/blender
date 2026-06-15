@@ -13,7 +13,7 @@
 
 #include "BLI_fileops.hh"
 #include "BLI_path_utils.hh"
-#include "BLI_time.h"
+#include "BLI_time.hh"
 
 #include "CLG_log.h"
 

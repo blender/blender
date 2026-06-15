@@ -13,9 +13,9 @@
 #include "BKE_node_tree_update.hh"
 #include "BKE_object.hh"
 #include "BKE_pointcloud.hh"
-#include "BLI_listbase.h"
+#include "BLI_listbase.hh"
 #include "BLI_math_quaternion_types.hh"
-#include "BLI_string.h"
+#include "BLI_string.hh"
 
 #include "DNA_collection_types.h"
 #include "DNA_node_types.h"

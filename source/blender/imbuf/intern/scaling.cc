@@ -10,7 +10,7 @@
 #include "BLI_math_interp.hh"
 #include "BLI_math_vector.hh"
 #include "BLI_task.hh"
-#include "BLI_utildefines.h"
+#include "BLI_utildefines.hh"
 
 #include "MEM_guardedalloc.h"
 
@@ -19,7 +19,7 @@
 #include "IMB_imbuf_types.hh"
 #include "IMB_metadata.hh"
 
-#include "BLI_sys_types.h" /* for intptr_t support */
+#include "BLI_sys_types.hh" /* for intptr_t support */
 
 namespace blender {
 

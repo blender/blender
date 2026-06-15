@@ -10,8 +10,8 @@
 
 #include "MEM_guardedalloc.h"
 
-#include "BLI_linklist_stack.h"
-#include "BLI_math_vector.h"
+#include "BLI_linklist_stack.hh"
+#include "BLI_math_vector_c.hh"
 
 #include "bmesh.hh"
 

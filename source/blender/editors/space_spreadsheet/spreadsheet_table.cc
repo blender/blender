@@ -5,8 +5,8 @@
 #include "BKE_viewer_path.hh"
 
 #include "BLI_hash.hh"
-#include "BLI_listbase.h"
-#include "BLI_string.h"
+#include "BLI_listbase.hh"
+#include "BLI_string.hh"
 
 #include "DNA_array_utils.hh"
 

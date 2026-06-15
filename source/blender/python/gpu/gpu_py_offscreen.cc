@@ -14,7 +14,7 @@
 
 #include <Python.h>
 
-#include "BLI_string_utf8.h"
+#include "BLI_string_utf8.hh"
 
 #include "BKE_global.hh"
 #include "BKE_lib_id.hh" /* For #BKE_id_is_in_global_main. */

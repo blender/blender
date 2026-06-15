@@ -13,7 +13,7 @@
 
 /* path/file handling stuff */
 #ifdef WIN32
-#  include "BLI_winstuff.h"
+#  include "BLI_winstuff.hh"
 #  include <direct.h>
 #  include <io.h>
 #else
@@ -31,13 +31,13 @@
 
 #include "MEM_guardedalloc.h"
 
-#include "BLI_fileops.h"
-#include "BLI_fnmatch.h"
-#include "BLI_math_base.h"
+#include "BLI_fileops.hh"
+#include "BLI_fnmatch.hh"
+#include "BLI_math_base_c.hh"
 #include "BLI_path_utils.hh"
-#include "BLI_string.h"
-#include "BLI_string_utf8.h"
-#include "BLI_utildefines.h"
+#include "BLI_string.hh"
+#include "BLI_string_utf8.hh"
+#include "BLI_utildefines.hh"
 
 #include "BLT_date_string.hh"
 #include "BLT_lang.hh"

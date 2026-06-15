@@ -10,8 +10,8 @@
 #  include "BLI_fileops.hh"
 #  include "BLI_hash.hh"
 #  include "BLI_path_utils.hh"
-#  include "BLI_string.h"
-#  include "BLI_threads.h"
+#  include "BLI_string.hh"
+#  include "BLI_threads.hh"
 #  include "CLG_log.h"
 #  include "GHOST_IContext.hh"
 #  include "GHOST_ISystem.hh"
@@ -24,10 +24,10 @@
 #  ifndef _WIN32
 #    include <unistd.h>
 #  else
-#    include "BLI_winstuff.h"
+#    include "BLI_winstuff.hh"
 #  endif
 
-/* Include after `BLI_winstuff.h` to avoid APIENTRY redefinition. */
+/* Include after `BLI_winstuff.hh` to avoid APIENTRY redefinition. */
 #  include <epoxy/gl.h>
 
 namespace blender {

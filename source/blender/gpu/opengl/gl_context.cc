@@ -6,8 +6,8 @@
  * \ingroup gpu
  */
 
-#include "BLI_assert.h"
-#include "BLI_utildefines.h"
+#include "BLI_assert.hh"
+#include "BLI_utildefines.hh"
 
 #include "BKE_global.hh"
 

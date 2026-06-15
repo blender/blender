@@ -8,7 +8,7 @@
 
 #pragma once
 
-#include "BLI_sys_types.h"
+#include "BLI_sys_types.hh"
 #include "DNA_layer_types.h"
 
 namespace blender {

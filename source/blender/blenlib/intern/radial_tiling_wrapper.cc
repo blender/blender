@@ -6,8 +6,8 @@
  * \ingroup bli
  */
 
-#include "BLI_math_base.h"
 #include "BLI_math_base.hh"
+#include "BLI_math_base_c.hh"
 #include "BLI_math_vector.hh"
 #include "BLI_radial_tiling.hh" /* Own include (forward declare). */
 

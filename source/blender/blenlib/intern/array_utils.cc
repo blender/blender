@@ -9,7 +9,7 @@
 #include <functional>
 
 #include "BLI_array_utils.hh"
-#include "BLI_threads.h"
+#include "BLI_threads.hh"
 
 #include "PRF_profile.hh"
 

@@ -8,7 +8,7 @@
 
 #include <cstring>
 
-#include "BLI_threads.h"
+#include "BLI_threads.hh"
 
 #include "BKE_global.hh"
 

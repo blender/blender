@@ -23,17 +23,17 @@
 
 #include "MEM_guardedalloc.h"
 
-#include "BLI_bitmap.h"
+#include "BLI_bitmap.hh"
 #include "BLI_function_ref.hh"
 #include "BLI_lasso_2d.hh"
-#include "BLI_listbase.h"
-#include "BLI_math_bits.h"
-#include "BLI_math_geom.h"
-#include "BLI_rect.h"
+#include "BLI_listbase.hh"
+#include "BLI_math_bits.hh"
+#include "BLI_math_geom_c.hh"
+#include "BLI_rect.hh"
 #include "BLI_span.hh"
-#include "BLI_string_utf8.h"
+#include "BLI_string_utf8.hh"
 #include "BLI_task.hh"
-#include "BLI_utildefines.h"
+#include "BLI_utildefines.hh"
 #include "BLI_vector.hh"
 
 #include "BLT_translation.hh"
@@ -94,7 +94,7 @@
 
 #include "view3d_intern.hh" /* own include */
 
-// #include "BLI_time_utildefines.h"
+// #include "BLI_time_utildefines.hh"
 
 namespace blender {
 

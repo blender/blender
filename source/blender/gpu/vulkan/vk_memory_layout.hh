@@ -10,7 +10,7 @@
 
 #include "gpu_shader_create_info.hh"
 
-#include "BLI_math_base.h"
+#include "BLI_math_base_c.hh"
 #include "BLI_math_vector_types.hh"
 
 namespace blender::gpu {

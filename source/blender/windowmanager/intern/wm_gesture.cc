@@ -15,12 +15,12 @@
 
 #include "MEM_guardedalloc.h"
 
-#include "BLI_bitmap_draw_2d.h"
+#include "BLI_bitmap_draw_2d.hh"
 #include "BLI_lasso_2d.hh"
-#include "BLI_listbase.h"
-#include "BLI_math_vector.h"
-#include "BLI_rect.h"
-#include "BLI_utildefines.h"
+#include "BLI_listbase.hh"
+#include "BLI_math_vector_c.hh"
+#include "BLI_rect.hh"
+#include "BLI_utildefines.hh"
 
 #include "WM_api.hh"
 #include "WM_types.hh"

@@ -10,7 +10,7 @@
 #include "GPU_matrix.hh"
 #include "GPU_state.hh"
 
-#include "BLI_math_rotation.h"
+#include "BLI_math_rotation_c.hh"
 
 #include "BKE_context.hh"
 

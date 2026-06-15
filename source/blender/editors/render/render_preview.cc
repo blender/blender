@@ -21,12 +21,12 @@
 #endif
 #include "MEM_guardedalloc.h"
 
-#include "BLI_math_matrix.h"
-#include "BLI_math_rotation.h"
-#include "BLI_rect.h"
+#include "BLI_math_matrix_c.hh"
+#include "BLI_math_rotation_c.hh"
+#include "BLI_rect.hh"
 #include "BLI_set.hh"
-#include "BLI_string_utf8.h"
-#include "BLI_utildefines.h"
+#include "BLI_string_utf8.hh"
+#include "BLI_utildefines.hh"
 
 #include "BLT_translation.hh"
 
@@ -70,7 +70,7 @@
 #include "BKE_texture.h"
 #include "BKE_world.h"
 
-#include "BLI_math_vector.h"
+#include "BLI_math_vector_c.hh"
 
 #include "DEG_depsgraph.hh"
 #include "DEG_depsgraph_build.hh"
@@ -104,7 +104,7 @@ namespace blender {
 
 #ifndef NDEBUG
 /* Used for database init assert(). */
-#  include "BLI_threads.h"
+#  include "BLI_threads.hh"
 #endif
 
 static void icon_copy_rect(const ImBuf *ibuf, uint w, uint h, uint *rect);

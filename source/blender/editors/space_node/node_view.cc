@@ -8,8 +8,8 @@
 
 #include "DNA_node_types.h"
 
-#include "BLI_rect.h"
-#include "BLI_utildefines.h"
+#include "BLI_rect.hh"
+#include "BLI_utildefines.hh"
 
 #include "BKE_context.hh"
 #include "BKE_image.hh"

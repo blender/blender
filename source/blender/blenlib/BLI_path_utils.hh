@@ -7,10 +7,10 @@
  * \ingroup bli
  */
 
-#include "BLI_compiler_attrs.h"
-#include "BLI_compiler_compat.h"
-#include "BLI_utildefines.h"
-#include "BLI_utildefines_variadic.h"
+#include "BLI_compiler_attrs.hh"
+#include "BLI_compiler_compat.hh"
+#include "BLI_utildefines.hh"
+#include "BLI_utildefines_variadic.hh"
 
 namespace blender {
 

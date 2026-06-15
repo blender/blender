@@ -6,7 +6,7 @@
 #include <numeric>
 
 #include "BLI_array.hh"
-#include "BLI_math_base.h"
+#include "BLI_math_base_c.hh"
 #include "BLI_ordered_edge.hh"
 #include "BLI_span.hh"
 

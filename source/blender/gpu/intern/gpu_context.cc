@@ -15,8 +15,8 @@
 
 #include "BKE_global.hh"
 
-#include "BLI_assert.h"
-#include "BLI_threads.h"
+#include "BLI_assert.hh"
+#include "BLI_threads.hh"
 #include "BLI_vector_set.hh"
 
 #include "DNA_userdef_types.h"

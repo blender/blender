@@ -13,12 +13,12 @@
 
 #include "MEM_guardedalloc.h"
 
-#include "BLI_ghash.h"
-#include "BLI_linklist.h"
+#include "BLI_ghash.hh"
+#include "BLI_linklist.hh"
 #include "BLI_path_utils.hh" /* Only for assertions. */
 #include "BLI_set.hh"
-#include "BLI_string.h"
-#include "BLI_utildefines.h"
+#include "BLI_string.hh"
+#include "BLI_utildefines.hh"
 
 #include "DNA_genfile.h"
 
@@ -31,12 +31,12 @@
 
 #include "readfile.hh"
 
-#include "BLI_sys_types.h" /* Needed for `intptr_t`. */
+#include "BLI_sys_types.hh" /* Needed for `intptr_t`. */
 
 namespace blender {
 
 #ifdef WIN32
-#  include "BLI_winstuff.h"
+#  include "BLI_winstuff.hh"
 #endif
 
 /* Access routines used by file-selector. */

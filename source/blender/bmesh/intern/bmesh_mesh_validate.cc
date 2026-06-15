@@ -14,7 +14,7 @@
 #  include "BLI_map.hh"
 #  include "BLI_ordered_edge.hh"
 #  include "BLI_set.hh"
-#  include "BLI_utildefines.h"
+#  include "BLI_utildefines.hh"
 
 #  include "bmesh.hh"
 

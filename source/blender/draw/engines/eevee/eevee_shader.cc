@@ -22,8 +22,8 @@
 
 #include "eevee_shadow.hh"
 
-#include "BLI_assert.h"
-#include "BLI_math_bits.h"
+#include "BLI_assert.hh"
+#include "BLI_math_bits.hh"
 #include <fmt/format.h>
 
 namespace blender::eevee {

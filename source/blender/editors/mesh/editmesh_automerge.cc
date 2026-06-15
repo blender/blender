@@ -24,7 +24,7 @@ namespace blender {
 
 // #define DEBUG_TIME
 #ifdef DEBUG_TIME
-#  include "BLI_time.h"
+#  include "BLI_time.hh"
 #endif
 
 /* use bmesh operator flags for a few operators */

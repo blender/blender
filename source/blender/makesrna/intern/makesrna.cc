@@ -20,10 +20,10 @@
 
 #include "MEM_guardedalloc.h"
 
-#include "BLI_listbase.h"
-#include "BLI_string.h"
-#include "BLI_system.h" /* For #BLI_system_backtrace stub. */
-#include "BLI_utildefines.h"
+#include "BLI_listbase.hh"
+#include "BLI_string.hh"
+#include "BLI_system.hh" /* For #BLI_system_backtrace stub. */
+#include "BLI_utildefines.hh"
 #include "BLI_vector_set.hh"
 
 #include "RNA_define.hh"
@@ -4109,13 +4109,13 @@ static void rna_generate(BlenderRNA *brna, FILE *f, const char *filename, const 
   fprintf(f, "#include \"DNA_scene_types.h\"\n");
   fprintf(f, "#include \"DNA_node_types.h\"\n");
 
-  fprintf(f, "#include \"BLI_fileops.h\"\n\n");
-  fprintf(f, "#include \"BLI_listbase.h\"\n\n");
+  fprintf(f, "#include \"BLI_fileops.hh\"\n\n");
+  fprintf(f, "#include \"BLI_listbase.hh\"\n\n");
   fprintf(f, "#include \"BLI_path_utils.hh\"\n\n");
-  fprintf(f, "#include \"BLI_rect.h\"\n\n");
-  fprintf(f, "#include \"BLI_string.h\"\n\n");
-  fprintf(f, "#include \"BLI_string_utf8.h\"\n\n");
-  fprintf(f, "#include \"BLI_utildefines.h\"\n\n");
+  fprintf(f, "#include \"BLI_rect.hh\"\n\n");
+  fprintf(f, "#include \"BLI_string.hh\"\n\n");
+  fprintf(f, "#include \"BLI_string_utf8.hh\"\n\n");
+  fprintf(f, "#include \"BLI_utildefines.hh\"\n\n");
 
   fprintf(f, "#include \"BKE_context.hh\"\n");
   fprintf(f, "#include \"BKE_lib_id.hh\"\n");

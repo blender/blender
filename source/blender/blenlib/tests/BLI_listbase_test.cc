@@ -6,11 +6,11 @@
 
 #include "MEM_guardedalloc.h"
 
-#include "BLI_array_utils.h"
-#include "BLI_listbase.h"
+#include "BLI_array_utils_c.hh"
+#include "BLI_listbase.hh"
 #include "BLI_path_utils.hh"
 #include "BLI_resource_strings.h"
-#include "BLI_string.h"
+#include "BLI_string.hh"
 
 namespace blender {
 

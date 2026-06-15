@@ -13,7 +13,7 @@
 
 #include "UnaryFunction0D_unsigned_int/BPy_QuantitativeInvisibilityF0D.h"
 
-#include "BLI_sys_types.h"
+#include "BLI_sys_types.hh"
 
 using namespace Freestyle;
 

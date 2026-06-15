@@ -3,7 +3,7 @@
  * SPDX-License-Identifier: GPL-2.0-or-later */
 #include "IO_subdiv_disabler.hh"
 
-#include "BLI_listbase.h"
+#include "BLI_listbase.hh"
 
 #include "DEG_depsgraph.hh"
 #include "DEG_depsgraph_query.hh"

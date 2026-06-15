@@ -9,7 +9,7 @@
 #ifndef WIN32
 #  include <unistd.h> /* for read close */
 #else
-#  include "BLI_winstuff.h"
+#  include "BLI_winstuff.hh"
 #  include "winsock2.h"
 #  include <io.h> /* for open close read */
 #endif
@@ -43,15 +43,15 @@
 
 #include "MEM_guardedalloc.h"
 
-#include "BLI_listbase.h"
-#include "BLI_math_color.h"
-#include "BLI_math_matrix.h"
-#include "BLI_math_rotation.h"
-#include "BLI_math_vector.h"
+#include "BLI_listbase.hh"
+#include "BLI_math_color_c.hh"
+#include "BLI_math_matrix_c.hh"
+#include "BLI_math_rotation_c.hh"
+#include "BLI_math_vector_c.hh"
 #include "BLI_path_utils.hh"
-#include "BLI_string.h"
-#include "BLI_string_utf8.h"
-#include "BLI_utildefines.h"
+#include "BLI_string.hh"
+#include "BLI_string_utf8.hh"
+#include "BLI_utildefines.hh"
 
 #include "BKE_anim_data.hh"
 #include "BKE_anim_visualization.h"

@@ -16,9 +16,9 @@
 #include <Python.h>
 #include <optional>
 
-#include "BLI_string.h"
+#include "BLI_string.hh"
 #include "BLI_string_utils.hh"
-#include "BLI_utildefines.h"
+#include "BLI_utildefines.hh"
 
 #include "BKE_appdir.hh"
 #include "BKE_blender_version.h"

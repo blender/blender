@@ -12,8 +12,8 @@
 #include <pxr/usd/usdLux/shapingAPI.h>
 #include <pxr/usd/usdLux/sphereLight.h>
 
-#include "BLI_assert.h"
-#include "BLI_math_constants.h"
+#include "BLI_assert.hh"
+#include "BLI_math_constants.hh"
 
 #include "DNA_light_types.h"
 #include "DNA_object_types.h"

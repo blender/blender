@@ -13,9 +13,9 @@
 
 #include "BKE_screen.hh"
 
-#include "BLI_fnmatch.h"
-#include "BLI_listbase.h"
-#include "BLI_string.h"
+#include "BLI_fnmatch.hh"
+#include "BLI_listbase.hh"
+#include "BLI_string.hh"
 
 #include "BLT_translation.hh"
 

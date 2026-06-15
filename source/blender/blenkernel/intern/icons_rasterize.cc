@@ -6,17 +6,17 @@
  * \ingroup bke
  */
 
-#include "BLI_bitmap_draw_2d.h"
-#include "BLI_math_color.h"
-#include "BLI_math_geom.h"
-#include "BLI_utildefines.h"
+#include "BLI_bitmap_draw_2d.hh"
+#include "BLI_math_color_c.hh"
+#include "BLI_math_geom_c.hh"
+#include "BLI_utildefines.hh"
 
 #include "IMB_imbuf.hh"
 #include "IMB_imbuf_types.hh"
 
 #include "BKE_icons.hh"
 
-#include "BLI_strict_flags.h" /* IWYU pragma: keep. Keep last. */
+#include "BLI_strict_flags.hh" /* IWYU pragma: keep. Keep last. */
 
 namespace blender {
 

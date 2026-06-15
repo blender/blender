@@ -8,9 +8,9 @@
 
 #include "BLI_array_utils.hh"
 #include "BLI_index_mask.hh"
-#include "BLI_listbase.h"
-#include "BLI_rect.h"
-#include "BLI_string_utf8.h"
+#include "BLI_listbase.hh"
+#include "BLI_rect.hh"
+#include "BLI_string_utf8.hh"
 
 #include "DNA_key_types.h"
 #include "ED_curves.hh"

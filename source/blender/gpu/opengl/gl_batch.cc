@@ -10,7 +10,7 @@
  * Vertex Array Objects based on the bound shader interface.
  */
 
-#include "BLI_assert.h"
+#include "BLI_assert.hh"
 
 #include "GPU_batch.hh"
 #include "gpu_shader_private.hh"

@@ -4,8 +4,8 @@
 
 #include "BLI_array.hh"
 #include "BLI_index_mask.hh"
-#include "BLI_listbase.h"
-#include "BLI_math_geom.h"
+#include "BLI_listbase.hh"
+#include "BLI_math_geom_c.hh"
 #include "BLI_math_vector.hh"
 #include "BLI_task.hh"
 #include "BLI_vector.hh"

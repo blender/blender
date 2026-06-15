@@ -8,7 +8,7 @@
  * BM element callback functions.
  */
 
-#include "BLI_utildefines.h"
+#include "BLI_utildefines.hh"
 
 #include "bmesh.hh"
 

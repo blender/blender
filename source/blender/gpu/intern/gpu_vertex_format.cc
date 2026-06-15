@@ -9,8 +9,8 @@
  */
 
 #include "GPU_vertex_format.hh"
-#include "BLI_assert.h"
-#include "BLI_math_base.h"
+#include "BLI_assert.hh"
+#include "BLI_math_base_c.hh"
 #include "GPU_capabilities.hh"
 
 #include "gpu_shader_create_info.hh"
@@ -21,8 +21,8 @@
 #include <cstring>
 
 #include "BLI_hash_mm2a.hh"
-#include "BLI_string.h"
-#include "BLI_utildefines.h"
+#include "BLI_string.hh"
+#include "BLI_utildefines.hh"
 
 namespace blender {
 

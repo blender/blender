@@ -12,12 +12,12 @@
 #include <ostream>
 #include <type_traits>
 
-#include "BLI_build_config.h"
+#include "BLI_build_config.hh"
 #include "BLI_hash.hh"
 #include "BLI_math_vector_swizzle.hh"
 #include "BLI_math_vector_unroll.hh"
 #include "BLI_unique_hash.hh"
-#include "BLI_utildefines.h"
+#include "BLI_utildefines.hh"
 
 namespace blender {
 

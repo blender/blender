@@ -12,7 +12,7 @@
 
 #include "DNA_listBase.h"
 
-#include "BLI_compiler_attrs.h"
+#include "BLI_compiler_attrs.hh"
 
 #include "BLI_vector.hh"
 

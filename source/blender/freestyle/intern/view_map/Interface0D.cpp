@@ -12,7 +12,7 @@ extern "C" {
 
 #include "Interface0D.h"
 
-#include "BLI_utildefines.h"
+#include "BLI_utildefines.hh"
 
 namespace Freestyle {
 

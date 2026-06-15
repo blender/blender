@@ -6,12 +6,12 @@
  * \ingroup sequencer
  */
 
-#include "BLI_fileops.h"
-#include "BLI_listbase.h"
+#include "BLI_fileops.hh"
+#include "BLI_listbase.hh"
 #include "BLI_map.hh"
 #include "BLI_mutex.hh"
 #include "BLI_path_utils.hh"
-#include "BLI_string.h"
+#include "BLI_string.hh"
 
 #include "DNA_scene_types.h"
 #include "DNA_sequence_types.h"

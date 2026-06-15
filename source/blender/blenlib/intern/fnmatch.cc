@@ -18,7 +18,7 @@
 #include <ctype.h>
 #include <errno.h>
 
-#include "BLI_fnmatch.h"
+#include "BLI_fnmatch.hh"
 
 
 /* Comment out all this code if we are using the GNU C Library, and are not

@@ -8,12 +8,12 @@
 
 #include "MEM_guardedalloc.h"
 
-#include "BLI_bitmap.h"
+#include "BLI_bitmap.hh"
 #include "BLI_kdtree.hh"
-#include "BLI_listbase.h"
-#include "BLI_math_geom.h"
-#include "BLI_math_matrix.h"
-#include "BLI_math_vector.h"
+#include "BLI_listbase.hh"
+#include "BLI_math_geom_c.hh"
+#include "BLI_math_matrix_c.hh"
+#include "BLI_math_vector_c.hh"
 #include "BLI_set.hh"
 
 #include "BLT_translation.hh"

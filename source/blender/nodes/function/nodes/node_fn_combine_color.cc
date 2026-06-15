@@ -4,7 +4,7 @@
 
 #include "node_function_util.hh"
 
-#include "BLI_math_color.h"
+#include "BLI_math_color_c.hh"
 
 #include "UI_interface_layout.hh"
 #include "UI_resources.hh"

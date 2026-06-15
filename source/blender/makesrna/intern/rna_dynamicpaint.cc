@@ -10,7 +10,7 @@
 
 #include "BKE_modifier.hh"
 
-#include "BLI_string_utf8_symbols.h"
+#include "BLI_string_utf8_symbols.hh"
 
 #include "BLT_translation.hh"
 
@@ -39,8 +39,8 @@ const EnumPropertyItem rna_enum_prop_dynamicpaint_type_items[] = {
 
 #  include <fmt/format.h>
 
-#  include "BLI_listbase.h"
-#  include "BLI_string.h"
+#  include "BLI_listbase.hh"
+#  include "BLI_string.hh"
 
 #  include "BKE_context.hh"
 #  include "BKE_dynamicpaint.h"

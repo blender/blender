@@ -15,7 +15,7 @@
 #include "BLI_color_types.hh"
 #include "BLI_function_ref.hh"
 #include "BLI_implicit_sharing_ptr.hh"
-#include "BLI_sys_types.h"
+#include "BLI_sys_types.hh"
 
 #include "DNA_ID.h"
 

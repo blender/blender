@@ -2,7 +2,7 @@
  *
  * SPDX-License-Identifier: GPL-2.0-or-later */
 
-#include "BLI_string.h"
+#include "BLI_string.hh"
 
 #include "RNA_enum_types.hh"
 

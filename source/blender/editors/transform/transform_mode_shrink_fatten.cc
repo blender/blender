@@ -9,7 +9,7 @@
 #include <cstdlib>
 #include <fmt/format.h>
 
-#include "BLI_math_vector.h"
+#include "BLI_math_vector_c.hh"
 #include "BLI_string_utils.hh"
 #include "BLI_task.hh"
 

@@ -11,15 +11,15 @@
 
 #include "MEM_guardedalloc.h"
 
-#include "BLI_ghash.h"
+#include "BLI_ghash.hh"
 #include "BLI_kdtree.hh"
-#include "BLI_listbase.h"
-#include "BLI_math_matrix.h"
-#include "BLI_math_rotation.h"
-#include "BLI_math_vector.h"
-#include "BLI_rand.h"
-#include "BLI_rect.h"
-#include "BLI_utildefines.h"
+#include "BLI_listbase.hh"
+#include "BLI_math_matrix_c.hh"
+#include "BLI_math_rotation_c.hh"
+#include "BLI_math_vector_c.hh"
+#include "BLI_rand_c.hh"
+#include "BLI_rect.hh"
+#include "BLI_utildefines.hh"
 
 #include "DNA_meta_types.h"
 #include "DNA_object_types.h"

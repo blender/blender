@@ -10,12 +10,15 @@
 
 #include <atomic>
 
-#include "BLI_assert.h"
+#include "BLI_assert.hh"
 #include "BLI_utility_mixins.hh"
 
 #include "MEM_guardedalloc.h"
 
 namespace blender {
+
+class ImplicitSharingInfo;
+using ImplicitSharingInfoHandle = ImplicitSharingInfo;
 
 /**
  * #ImplicitSharingInfo is the core data structure for implicit sharing in Blender. Implicit

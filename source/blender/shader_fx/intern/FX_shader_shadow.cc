@@ -8,7 +8,7 @@
 
 #include "DNA_screen_types.h"
 
-#include "BLI_utildefines.h"
+#include "BLI_utildefines.hh"
 
 #include "BLT_translation.hh"
 

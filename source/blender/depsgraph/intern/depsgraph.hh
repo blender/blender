@@ -24,7 +24,7 @@
 #include "BLI_linear_allocator.hh"
 #include "BLI_mutex.hh"
 #include "BLI_set.hh"
-#include "BLI_threads.h" /* for SpinLock */
+#include "BLI_threads.hh" /* for SpinLock */
 
 #include "DEG_depsgraph.hh"
 #include "DEG_depsgraph_physics.hh"

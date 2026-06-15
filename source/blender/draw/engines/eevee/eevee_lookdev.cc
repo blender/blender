@@ -7,7 +7,7 @@
  */
 
 #include "BLI_math_axis_angle.hh"
-#include "BLI_rect.h"
+#include "BLI_rect.hh"
 
 #include "BKE_image.hh"
 #include "BKE_lib_id.hh"

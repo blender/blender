@@ -22,12 +22,12 @@
 #include "CLG_log.h"
 
 #include "BLI_path_utils.hh"
-#include "BLI_string.h"
-#include "BLI_string_utf8.h"
-#include "BLI_threads.h"
-#include "BLI_utildefines.h"
+#include "BLI_string.hh"
+#include "BLI_string_utf8.hh"
+#include "BLI_threads.hh"
+#include "BLI_utildefines.hh"
 #ifdef WITH_PYTHON_MODULE
-#  include "BLI_string.h"
+#  include "BLI_string.hh"
 #endif
 
 #include "BLT_translation.hh"
@@ -93,7 +93,7 @@ static bool py_use_user_env = false;
 // #define TIME_PY_RUN /* Simple python tests. prints on exit. */
 
 #ifdef TIME_PY_RUN
-#  include "BLI_time.h"
+#  include "BLI_time.hh"
 static int bpy_timer_count = 0;
 /** Time since python starts. */
 static double bpy_timer;

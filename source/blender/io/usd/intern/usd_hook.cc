@@ -14,7 +14,7 @@
 #include "usd_writer_material.hh"
 
 #include "BLI_map.hh"
-#include "BLI_utildefines.h"
+#include "BLI_utildefines.hh"
 #include "BLI_vector.hh"
 
 #include "BKE_lib_id.hh"

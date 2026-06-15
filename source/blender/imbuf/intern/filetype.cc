@@ -8,7 +8,7 @@
 
 #include <cstddef>
 
-#include "BLI_utildefines.h"
+#include "BLI_utildefines.hh"
 
 #include "IMB_colormanagement.hh"
 #include "IMB_filetype.hh"

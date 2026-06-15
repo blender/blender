@@ -11,9 +11,9 @@
 #include "DNA_mesh_types.h"
 #include "DNA_object_types.h"
 
-#include "BLI_bitmap.h"
-#include "BLI_math_geom.h"
-#include "BLI_math_vector.h"
+#include "BLI_bitmap.hh"
+#include "BLI_math_geom_c.hh"
+#include "BLI_math_vector_c.hh"
 
 #include "BKE_customdata.hh"
 #include "BKE_editmesh.hh"

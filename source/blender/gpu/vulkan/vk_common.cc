@@ -6,7 +6,7 @@
  * \ingroup gpu
  */
 
-#include "BLI_utildefines.h"
+#include "BLI_utildefines.hh"
 
 #include "vk_backend.hh"
 #include "vk_common.hh"

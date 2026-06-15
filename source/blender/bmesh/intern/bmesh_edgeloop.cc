@@ -10,12 +10,12 @@
 
 #include "MEM_guardedalloc.h"
 
-#include "BLI_listbase.h"
-#include "BLI_math_vector.h"
-#include "BLI_mempool.h"
+#include "BLI_listbase.hh"
+#include "BLI_math_vector_c.hh"
+#include "BLI_mempool.hh"
 #include "BLI_set.hh"
-#include "BLI_stack.h"
-#include "BLI_utildefines_iter.h"
+#include "BLI_stack_c.hh"
+#include "BLI_utildefines_iter.hh"
 
 #include "bmesh.hh"
 

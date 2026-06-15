@@ -13,7 +13,7 @@
 #include "DNA_material_types.h"
 
 #include "BLI_span.hh"
-#include "BLI_string.h"
+#include "BLI_string.hh"
 #include "BLI_vector.hh"
 
 #include "BKE_cryptomatte.hh"

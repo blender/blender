@@ -18,9 +18,9 @@
 #include "UI_interface_layout.hh"
 #include "UI_view2d.hh"
 
-#include "BLI_listbase.h"
+#include "BLI_listbase.hh"
 #include "BLI_multi_value_map.hh"
-#include "BLI_string.h"
+#include "BLI_string.hh"
 
 #include "UI_tree_view.hh"
 

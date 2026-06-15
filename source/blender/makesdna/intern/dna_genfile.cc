@@ -23,12 +23,12 @@
 
 #include "MEM_guardedalloc.h"
 
-#include "BLI_ghash.h"
+#include "BLI_ghash.hh"
 #include "BLI_index_range.hh"
 #include "BLI_math_matrix_types.hh"
-#include "BLI_memarena.h"
+#include "BLI_memarena.hh"
 #include "BLI_set.hh"
-#include "BLI_utildefines.h"
+#include "BLI_utildefines.hh"
 
 #include "DNA_genfile.h"
 #include "DNA_print.hh"

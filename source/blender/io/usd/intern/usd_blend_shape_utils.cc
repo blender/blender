@@ -19,9 +19,9 @@
 #include "BKE_object.hh"
 #include "DNA_object_types.h"
 
-#include "BLI_assert.h"
-#include "BLI_listbase.h"
-#include "BLI_math_vector.h"
+#include "BLI_assert.hh"
+#include "BLI_listbase.hh"
+#include "BLI_math_vector_c.hh"
 #include "BLI_set.hh"
 #include "BLI_vector.hh"
 

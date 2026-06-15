@@ -6,9 +6,9 @@
  * \ingroup wm
  */
 
-#include "BLI_listbase.h"
+#include "BLI_listbase.hh"
 #ifndef NDEBUG
-#  include "BLI_threads.h"
+#  include "BLI_threads.hh"
 #endif
 
 #include "BKE_global.hh"

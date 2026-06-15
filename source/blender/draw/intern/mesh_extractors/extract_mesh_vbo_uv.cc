@@ -8,7 +8,7 @@
 
 #include "BLI_array_utils.hh"
 #include "BLI_math_vector_types.hh"
-#include "BLI_string_utf8.h"
+#include "BLI_string_utf8.hh"
 
 #include "BKE_anonymous_attribute_id.hh"
 #include "BKE_attribute.hh"

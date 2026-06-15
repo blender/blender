@@ -6,7 +6,7 @@
  * \ingroup draw
  */
 
-#include "BLI_math_geom.h"
+#include "BLI_math_geom_c.hh"
 #include "BLI_math_vector_types.hh"
 
 #include "BKE_attribute.hh"

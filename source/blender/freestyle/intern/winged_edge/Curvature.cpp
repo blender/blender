@@ -22,7 +22,7 @@
 #include "Curvature.h"
 #include "WEdge.h"
 
-#include "BLI_math_base.h"
+#include "BLI_math_base_c.hh"
 
 #include "../geometry/normal_cycle.h"
 

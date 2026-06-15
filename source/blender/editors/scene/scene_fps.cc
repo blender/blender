@@ -11,7 +11,7 @@
 #include <algorithm>
 #include <cmath>
 
-#include "BLI_math_base.h"
+#include "BLI_math_base_c.hh"
 
 #include "DNA_scene_types.h"
 

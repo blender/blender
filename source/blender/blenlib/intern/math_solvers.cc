@@ -6,19 +6,19 @@
  * \ingroup bli
  */
 
-#include "BLI_math_base.h"
-#include "BLI_math_matrix.h"
-#include "BLI_math_solvers.h"
-#include "BLI_math_vector.h"
+#include "BLI_math_base_c.hh"
+#include "BLI_math_matrix_c.hh"
+#include "BLI_math_solvers.hh"
+#include "BLI_math_vector_c.hh"
 #include "MEM_guardedalloc.h"
 
-#include "BLI_utildefines.h"
+#include "BLI_utildefines.hh"
 
 #include "eigen_capi.h"
 
 #include <cstring>
 
-#include "BLI_strict_flags.h" /* IWYU pragma: keep. Keep last. */
+#include "BLI_strict_flags.hh" /* IWYU pragma: keep. Keep last. */
 
 namespace blender {
 

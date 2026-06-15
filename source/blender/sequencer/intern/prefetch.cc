@@ -18,7 +18,7 @@
 #include "DNA_sequence_types.h"
 #include "DNA_space_types.h"
 
-#include "BLI_threads.h"
+#include "BLI_threads.hh"
 #include "BLI_vector_set.hh"
 
 #include "IMB_imbuf.hh"

@@ -9,12 +9,12 @@
 
 #include <type_traits>
 
-#include "BLI_math_color.h"
+#include "BLI_math_color_c.hh"
 #include "BLI_math_interp.hh"
 #include "BLI_math_matrix.hh"
 #include "BLI_math_matrix_types.hh"
-#include "BLI_math_vector.h"
-#include "BLI_rect.h"
+#include "BLI_math_vector_c.hh"
+#include "BLI_rect.hh"
 #include "BLI_task.hh"
 
 #include "IMB_imbuf.hh"

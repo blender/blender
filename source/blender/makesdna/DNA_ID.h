@@ -13,8 +13,8 @@
 #include "DNA_defs.h"
 #include "DNA_listBase.h"
 
-#include "BLI_assert.h"
-#include "BLI_compiler_typecheck.h"
+#include "BLI_assert.hh"
+#include "BLI_compiler_typecheck.hh"
 
 #include <cstring>
 #include <type_traits>

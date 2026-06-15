@@ -11,7 +11,7 @@
 #include "BKE_main_invariants.hh"
 #include "BKE_node_tree_interface.hh"
 
-#include "BLI_string.h"
+#include "BLI_string.hh"
 
 #include "BLT_translation.hh"
 

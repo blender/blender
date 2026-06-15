@@ -501,7 +501,7 @@ void SourceProcessor::parse_includes(Parser &parser)
       metadata_.create_infos_dependencies.emplace_back(dependency_name);
     }
 
-    if (dependency_name == "BLI_utildefines_variadic.h") {
+    if (dependency_name == "BLI_utildefines_variadic.hh") {
       /* Skip GLSL-C++ stubs. They are only for IDE linting. */
       parser.erase(tokens.front(), tokens.back());
       return;

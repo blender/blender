@@ -79,16 +79,16 @@
 
 #include "MEM_guardedalloc.h"
 
-#include "BLI_fileops.h"
+#include "BLI_fileops.hh"
 #include "BLI_math_base.hh"
-#include "BLI_math_color.h"
+#include "BLI_math_color_c.hh"
 #include "BLI_math_half.hh"
-#include "BLI_mmap.h"
-#include "BLI_string.h"
+#include "BLI_mmap.hh"
+#include "BLI_string.hh"
 #include "BLI_string_ref.hh"
-#include "BLI_string_utf8.h"
+#include "BLI_string_utf8.hh"
 #include "BLI_task.hh"
-#include "BLI_threads.h"
+#include "BLI_threads.hh"
 
 #include "BKE_blender_version.h"
 #include "BKE_idprop.hh"

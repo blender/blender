@@ -27,16 +27,16 @@
 
 #include "MEM_guardedalloc.h"
 
-#include "BLI_fileops.h"
-#include "BLI_listbase.h"
+#include "BLI_fileops.hh"
+#include "BLI_listbase.hh"
 #include "BLI_map.hh"
 #include "BLI_mutex.hh"
-#include "BLI_rect.h"
+#include "BLI_rect.hh"
 #include "BLI_set.hh"
-#include "BLI_string_utf8.h"
-#include "BLI_threads.h"
-#include "BLI_time.h"
-#include "BLI_timecode.h"
+#include "BLI_string_utf8.hh"
+#include "BLI_threads.hh"
+#include "BLI_time.hh"
+#include "BLI_timecode.hh"
 #include "BLI_vector.hh"
 
 #include "BLT_translation.hh"

@@ -12,7 +12,7 @@
 #include "eevee_transform.hh"
 
 #ifndef GPU_SHADER
-#  include "BLI_math_bits.h"
+#  include "BLI_math_bits.hh"
 
 namespace blender::eevee {
 #endif

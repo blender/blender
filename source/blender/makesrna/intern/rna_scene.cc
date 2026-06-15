@@ -18,8 +18,8 @@
 
 #include "MOV_enums.hh"
 
-#include "BLI_math_rotation.h"
-#include "BLI_string_utf8_symbols.h"
+#include "BLI_math_rotation_c.hh"
+#include "BLI_string_utf8_symbols.hh"
 
 #include "BLT_translation.hh"
 
@@ -38,7 +38,7 @@
 #include "WM_api.hh"
 #include "WM_types.hh"
 
-#include "BLI_threads.h"
+#include "BLI_threads.hh"
 
 namespace blender {
 
@@ -722,7 +722,7 @@ static const EnumPropertyItem eevee_resolution_scale_items[] = {
 #  include <fmt/format.h>
 
 #  include "BLI_index_range.hh"
-#  include "BLI_string_utf8.h"
+#  include "BLI_string_utf8.hh"
 #  include "BLI_string_utils.hh"
 
 #  include "DNA_anim_types.h"

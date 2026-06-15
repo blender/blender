@@ -17,8 +17,8 @@
 #include "DNA_object_types.h"
 
 #include "BLI_array_utils.hh"
-#include "BLI_gsqueue.h"
-#include "BLI_math_vector.h"
+#include "BLI_gsqueue.hh"
+#include "BLI_math_vector_c.hh"
 
 #include "BKE_attribute.hh"
 #include "BKE_ccg.hh"

@@ -15,7 +15,7 @@
 #include "stl_data.hh"
 #include "stl_export_writer.hh"
 
-#include "BLI_fileops.h"
+#include "BLI_fileops.hh"
 
 namespace blender::io::stl {
 

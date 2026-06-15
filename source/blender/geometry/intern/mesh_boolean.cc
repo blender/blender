@@ -14,10 +14,10 @@
 
 #include "BLI_array.hh"
 #include "BLI_array_utils.hh"
-#include "BLI_math_geom.h"
-#include "BLI_math_matrix.h"
+#include "BLI_math_geom_c.hh"
 #include "BLI_math_matrix.hh"
-#include "BLI_math_vector.h"
+#include "BLI_math_matrix_c.hh"
+#include "BLI_math_vector_c.hh"
 #include "BLI_mesh_boolean.hh"
 #include "BLI_mesh_intersect.hh"
 #include "BLI_span.hh"
@@ -34,7 +34,7 @@
 
 // #define BENCHMARK_TIME
 #ifdef BENCHMARK_TIME
-#  include "BLI_threads.h"
+#  include "BLI_threads.hh"
 #  include "BLI_timeit.hh"
 #  include <filesystem>
 #  include <fstream>

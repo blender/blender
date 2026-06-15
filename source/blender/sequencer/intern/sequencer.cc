@@ -21,12 +21,12 @@
 #include "DNA_sequence_types.h"
 #include "DNA_sound_types.h"
 
-#include "BLI_assert.h"
-#include "BLI_listbase.h"
+#include "BLI_assert.hh"
+#include "BLI_listbase.hh"
 #include "BLI_map.hh"
 #include "BLI_path_utils.hh"
-#include "BLI_string.h"
-#include "BLI_string_utf8.h"
+#include "BLI_string.hh"
+#include "BLI_string_utf8.hh"
 
 #include "BKE_duplilist.hh"
 #include "BKE_fcurve.hh"

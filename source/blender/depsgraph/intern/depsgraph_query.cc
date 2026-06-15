@@ -10,7 +10,7 @@
 
 #include <cstring> /* XXX: `memcpy`. */
 
-#include "BLI_listbase.h"
+#include "BLI_listbase.hh"
 
 #include "BKE_action.hh" /* XXX: BKE_pose_channel_find_name */
 #include "BKE_idtype.hh"

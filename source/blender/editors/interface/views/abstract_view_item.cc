@@ -8,8 +8,8 @@
 
 #include "BKE_context.hh"
 
-#include "BLI_fnmatch.h"
-#include "BLI_listbase.h"
+#include "BLI_fnmatch.hh"
+#include "BLI_listbase.hh"
 
 #include "WM_api.hh"
 

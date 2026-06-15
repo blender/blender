@@ -16,7 +16,7 @@
 #include "BLI_math_matrix_types.hh"
 #include "BLI_math_quaternion.hh"
 #include "BLI_math_quaternion_types.hh"
-#include "BLI_math_rotation.h"
+#include "BLI_math_rotation_c.hh"
 #include "BLI_vector.hh"
 
 #include "CLG_log.h"

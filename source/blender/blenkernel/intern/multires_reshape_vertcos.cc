@@ -8,7 +8,7 @@
 
 #include "multires_reshape.hh"
 
-#include "BLI_math_vector.h"
+#include "BLI_math_vector_c.hh"
 
 #include "BKE_subdiv_foreach.hh"
 #include "BKE_subdiv_mesh.hh"

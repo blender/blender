@@ -17,8 +17,8 @@
 #include "DNA_sequence_types.h"
 #include "DNA_shader_fx_types.h"
 
-#include "BLI_listbase.h"
-#include "BLI_utildefines.h"
+#include "BLI_listbase.hh"
+#include "BLI_utildefines.hh"
 
 #include "BKE_armature.hh"
 #include "BKE_collection.hh"

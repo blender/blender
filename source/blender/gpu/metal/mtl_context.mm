@@ -30,7 +30,7 @@
 #include "GPU_vertex_buffer.hh"
 #include "intern/gpu_matrix_private.hh"
 
-#include "BLI_time.h"
+#include "BLI_time.hh"
 
 #include <fstream>
 #include <string>

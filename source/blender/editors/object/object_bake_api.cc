@@ -21,11 +21,11 @@
 #include "RNA_define.hh"
 #include "RNA_enum_types.hh"
 
-#include "BLI_listbase.h"
-#include "BLI_math_geom.h"
+#include "BLI_listbase.hh"
+#include "BLI_math_geom_c.hh"
 #include "BLI_path_utils.hh"
 #include "BLI_string_ref.hh"
-#include "BLI_string_utf8.h"
+#include "BLI_string_utf8.hh"
 
 #include "BLT_translation.hh"
 

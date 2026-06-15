@@ -6,8 +6,8 @@
 
 #include "BKE_appdir.hh"
 
-#include "BLI_fileops.h"
-#include "BLI_string.h"
+#include "BLI_fileops.hh"
+#include "BLI_string.hh"
 
 #include "DEG_depsgraph.hh"
 

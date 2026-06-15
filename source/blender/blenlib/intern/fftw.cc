@@ -14,7 +14,7 @@
 #include "BLI_index_range.hh"
 #include "BLI_math_vector_types.hh"
 #include "BLI_task.hh"
-#include "BLI_threads.h"
+#include "BLI_threads.hh"
 
 namespace blender::fftw {
 

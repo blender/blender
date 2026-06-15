@@ -14,7 +14,7 @@
 
 #include <pxr/usd/usd/prim.h>
 
-#include "BLI_assert.h"
+#include "BLI_assert.hh"
 
 #include "WM_types.hh"
 

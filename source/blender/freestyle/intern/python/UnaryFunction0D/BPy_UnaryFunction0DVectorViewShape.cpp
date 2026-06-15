@@ -13,7 +13,7 @@
 
 #include "UnaryFunction0D_vector_ViewShape/BPy_GetOccludersF0D.h"
 
-#include "BLI_sys_types.h"
+#include "BLI_sys_types.hh"
 
 using namespace Freestyle;
 

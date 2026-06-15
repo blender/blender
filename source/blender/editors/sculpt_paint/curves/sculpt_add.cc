@@ -8,7 +8,7 @@
 
 #include "BLI_bounds.hh"
 #include "BLI_kdtree.hh"
-#include "BLI_math_geom.h"
+#include "BLI_math_geom_c.hh"
 #include "BLI_math_matrix.hh"
 #include "BLI_rand.hh"
 #include "BLI_vector.hh"

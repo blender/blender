@@ -21,13 +21,13 @@
 #include "BLI_bounds.hh"
 #include "BLI_color_types.hh"
 #include "BLI_length_parameterize.hh"
-#include "BLI_listbase.h"
+#include "BLI_listbase.hh"
 #include "BLI_math_base.hh"
-#include "BLI_math_color.h"
+#include "BLI_math_color_c.hh"
 #include "BLI_noise.hh"
 #include "BLI_rand.hh"
-#include "BLI_rect.h"
-#include "BLI_time.h"
+#include "BLI_rect.hh"
+#include "BLI_time.hh"
 
 #include "DEG_depsgraph_query.hh"
 

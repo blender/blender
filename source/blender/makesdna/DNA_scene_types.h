@@ -12,7 +12,7 @@
 
 #include "BLI_enum_flags.hh"
 #include "BLI_map.hh"
-#include "BLI_math_constants.h"
+#include "BLI_math_constants.hh"
 
 /**
  * Check for cyclic set-scene.

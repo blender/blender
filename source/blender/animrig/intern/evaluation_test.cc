@@ -19,7 +19,7 @@
 #include "RNA_access.hh"
 #include "RNA_prototypes.hh"
 
-#include "BLI_math_base.h"
+#include "BLI_math_base_c.hh"
 
 #include <optional>
 

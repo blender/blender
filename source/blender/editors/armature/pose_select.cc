@@ -16,10 +16,10 @@
 #include "DNA_scene_types.h"
 #include "DNA_windowmanager_enums.h"
 
-#include "BLI_assert.h"
-#include "BLI_listbase.h"
+#include "BLI_assert.hh"
+#include "BLI_listbase.hh"
 #include "BLI_map.hh"
-#include "BLI_string.h"
+#include "BLI_string.hh"
 
 #include "BKE_action.hh"
 #include "BKE_armature.hh"

@@ -13,7 +13,7 @@
 #include "DNA_mesh_types.h"
 
 #include "BLI_math_matrix.hh"
-#include "BLI_math_vector.h"
+#include "BLI_math_vector_c.hh"
 
 #include "BKE_mesh.hh"
 #include "BKE_multires.hh"

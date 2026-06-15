@@ -12,7 +12,7 @@
 #include <memory>
 #include <type_traits>
 
-#include "BLI_utildefines.h"
+#include "BLI_utildefines.hh"
 
 namespace blender {
 

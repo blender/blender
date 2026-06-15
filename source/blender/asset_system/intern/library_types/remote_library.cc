@@ -8,14 +8,14 @@
 
 #include <fmt/format.h>
 
-#include "BLI_assert.h"
-#include "BLI_fileops.h"
+#include "BLI_assert.hh"
+#include "BLI_fileops.hh"
 #include "BLI_hash_md5.hh"
-#include "BLI_listbase.h"
+#include "BLI_listbase.hh"
 #include "BLI_path_utils.hh"
-#include "BLI_string.h"
+#include "BLI_string.hh"
 #include "BLI_string_ref.hh"
-#include "BLI_threads.h"
+#include "BLI_threads.hh"
 
 #include "BLT_translation.hh"
 

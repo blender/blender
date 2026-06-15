@@ -24,27 +24,27 @@
 #include "DNA_userdef_types.h"
 
 #include "BLI_bit_vector.hh"
-#include "BLI_bitmap.h"
+#include "BLI_bitmap.hh"
 #include "BLI_index_range.hh"
-#include "BLI_math_color_blend.h"
+#include "BLI_math_color_blend.hh"
 #include "BLI_math_quaternion_types.hh"
 #include "BLI_math_vector.hh"
 #include "BLI_memory_counter.hh"
-#include "BLI_mempool.h"
+#include "BLI_mempool.hh"
 #include "BLI_path_utils.hh"
 #include "BLI_resource_scope.hh"
 #include "BLI_set.hh"
 #include "BLI_span.hh"
-#include "BLI_string.h"
+#include "BLI_string.hh"
 #include "BLI_string_ref.hh"
-#include "BLI_string_utf8.h"
+#include "BLI_string_utf8.hh"
 #include "BLI_string_utils.hh"
-#include "BLI_utildefines.h"
+#include "BLI_utildefines.hh"
 
 #include "PRF_profile.hh"
 
 #ifndef NDEBUG
-#  include "BLI_dynstr.h"
+#  include "BLI_dynstr.hh"
 #endif
 
 #include "BLT_translation.hh"

@@ -63,7 +63,7 @@
 #include "BLI_hash_fwd.hh"
 #include "BLI_index_range.hh"
 #include "BLI_memory_utils.hh"
-#include "BLI_utildefines.h"
+#include "BLI_utildefines.hh"
 
 namespace blender {
 

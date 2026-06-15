@@ -17,20 +17,20 @@
 #include "DNA_ID.h"
 #include "DNA_gpencil_legacy_types.h"
 
-#include "BLI_fileops.h"
-#include "BLI_linklist_lockfree.h"
+#include "BLI_fileops.hh"
+#include "BLI_linklist_lockfree.hh"
 #include "BLI_map.hh"
 #include "BLI_mutex.hh"
 #include "BLI_span.hh"
-#include "BLI_threads.h"
-#include "BLI_utildefines.h"
+#include "BLI_threads.hh"
+#include "BLI_utildefines.hh"
 
 #include "BKE_global.hh" /* only for G.background test */
 #include "BKE_icons.hh"
 #include "BKE_preview_image.hh"
 #include "BKE_studiolight.h"
 
-#include "BLI_sys_types.h" /* for intptr_t support */
+#include "BLI_sys_types.hh" /* for intptr_t support */
 
 #include "IMB_imbuf.hh"
 #include "IMB_imbuf_types.hh"

@@ -6,8 +6,8 @@
  * \ingroup draw
  */
 
-#include "BLI_rand.h"
-#include "BLI_smaa_textures.h"
+#include "BLI_rand_c.hh"
+#include "BLI_smaa_textures.hh"
 
 #include "DNA_scene_types.h"
 #include "DRW_render.hh"
