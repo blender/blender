@@ -196,6 +196,7 @@ void separate_fill_ids(CurvesGeometry &curves, const IndexMask &strokes_to_keep)
       [&](const int curve_i) { max_id = math::max(max_id, fill_ids.span[curve_i]); });
 
   if (max_id == 0) {
+    fill_ids.finish();
     return;
   }
 
