@@ -1,9 +1,9 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 5.2.0 LTS Beta (b'2b1958ccdccb')\n"
+"Project-Id-Version: Blender 5.2.0 LTS Beta (b'e899b48ea546')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-06-08 09:37+0000\n"
+"POT-Creation-Date: 2026-06-15 07:32+0000\n"
 "PO-Revision-Date: 2026-06-02 05:12+0000\n"
 "Last-Translator: Fadli Birdie Zeinda <justbirdie00@gmail.com>\n"
 "Language-Team: Indonesian <https://translate.blender.org/projects/blender-ui/ui/id/>\n"
@@ -15740,20 +15740,8 @@ msgid "Use Material Mask"
 msgstr "Gunakan Masker Bahan"
 
 
-msgid "Apply"
-msgstr "Tetapkan"
-
-
 msgid "Track"
 msgstr "Lacak"
-
-
-msgid "Asset"
-msgstr "Aset"
-
-
-msgid "Hooks"
-msgstr "Kait"
 
 
 msgid "Math"
@@ -15764,12 +15752,24 @@ msgid "Utilities"
 msgstr "Utilitas"
 
 
-msgid "Names"
-msgstr "Nama"
+msgid "Assign Material"
+msgstr "Tugaskan Bahan"
 
 
 msgid "Sample"
 msgstr "Sampel"
+
+
+msgid "Mirror"
+msgstr "Cermin"
+
+
+msgid "Snap"
+msgstr "Jepret"
+
+
+msgid "Navigation"
+msgstr "Navigasi"
 
 
 msgid "Gizmo"
@@ -15780,32 +15780,52 @@ msgid "Instances"
 msgstr "Contoh-contoh"
 
 
-msgid "Merge"
-msgstr "Menggabungkan"
+msgid "Select Linked"
+msgstr "Seleksi yang Terhubung"
 
 
 msgid "Import"
 msgstr "Impor"
 
 
-msgid "Metaball"
-msgstr "Metabola"
-
-
 msgid "UV"
 msgstr "UV"
 
 
-msgid "Snap"
-msgstr "Jepret"
+msgid "Metaball"
+msgstr "Metabola"
 
 
-msgid "Mirror"
-msgstr "Cermin"
+msgid "Asset"
+msgstr "Aset"
 
 
-msgid "Navigation"
-msgstr "Navigasi"
+msgid "Apply"
+msgstr "Tetapkan"
+
+
+msgid "Light Probe"
+msgstr "Probe Cahaya"
+
+
+msgid "Light"
+msgstr "Cahaya"
+
+
+msgid "Add Image"
+msgstr "Tambah Gambar"
+
+
+msgid "Hooks"
+msgstr "Kait"
+
+
+msgid "Names"
+msgstr "Nama"
+
+
+msgid "Merge"
+msgstr "Menggabungkan"
 
 
 msgid "Linked"
@@ -15816,28 +15836,8 @@ msgid "Layout"
 msgstr "Tata Letak"
 
 
-msgid "Select Linked"
-msgstr "Seleksi yang Terhubung"
-
-
 msgid "Tracking"
 msgstr "Pelacakan"
-
-
-msgid "Assign Material"
-msgstr "Tugaskan Bahan"
-
-
-msgid "Light"
-msgstr "Cahaya"
-
-
-msgid "Light Probe"
-msgstr "Probe Cahaya"
-
-
-msgid "Add Image"
-msgstr "Tambah Gambar"
 
 
 msgid "Animals"

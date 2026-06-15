@@ -853,6 +853,25 @@ void blo_do_versions_520(FileData * /*fd*/, Library * /*lib*/, Main *bmain)
     }
   }
 
+  /* The compositor previously did not support default inputs for group nodes, but some built-in
+   * nodes had the position field default type for some inputs, so node groups would gain it as a
+   * default type through some operators. Later, the default inputs were supported for group nodes,
+   * though position field were not supported in the compositor, so it would assert. To fix this,
+   * we reset any position field default input to the default value. */
+  if (!MAIN_VERSION_FILE_ATLEAST(bmain, 502, 44)) {
+    FOREACH_NODETREE_BEGIN (bmain, node_tree, id) {
+      if (node_tree->type == NTREE_COMPOSIT) {
+        node_tree->ensure_interface_cache();
+        for (bNodeTreeInterfaceSocket *input : node_tree->interface_inputs()) {
+          if (input->default_input == NODE_DEFAULT_INPUT_POSITION_FIELD) {
+            input->default_input = NODE_DEFAULT_INPUT_VALUE;
+          }
+        }
+      }
+    }
+    FOREACH_NODETREE_END;
+  }
+
   /**
    * Always bump subversion in BKE_blender_version.h when adding versioning
    * code here, and wrap it inside a MAIN_VERSION_FILE_ATLEAST check.

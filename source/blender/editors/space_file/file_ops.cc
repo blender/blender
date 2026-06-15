@@ -1882,15 +1882,22 @@ static wmOperatorStatus file_external_operation_exec(bContext *C, wmOperator *op
     return OPERATOR_CANCELLED;
   }
 
+  const FileExternalOperation operation = (FileExternalOperation)RNA_enum_get(op->ptr,
+                                                                              "operation");
+
   char filepath[FILE_MAX_LIBEXTRA];
-  filelist_file_get_full_path(sfile->files, fileentry, filepath);
+  if (!(fileentry->typeflag & FILE_TYPE_DIR) && (operation == FILE_EXTERNAL_OPERATION_FOLDER_OPEN))
+  {
+    const char *root = filelist_dir(sfile->files);
+    BLI_strncpy(filepath, root, sizeof(filepath));
+  }
+  else {
+    filelist_file_get_full_path(sfile->files, fileentry, filepath);
+  }
 
   WM_cursor_set(CTX_wm_window(C), WM_CURSOR_WAIT);
 
 #ifdef WIN32
-  const FileExternalOperation operation = (FileExternalOperation)RNA_enum_get(op->ptr,
-                                                                              "operation");
-
   if (!(fileentry->typeflag & FILE_TYPE_DIR) &&
       ELEM(operation, FILE_EXTERNAL_OPERATION_FOLDER_OPEN, FILE_EXTERNAL_OPERATION_FOLDER_CMD))
   {
