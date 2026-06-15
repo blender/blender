@@ -26,8 +26,8 @@ struct Object;
 namespace nodes {
 
 /**
- * Makes it possible to use various functions (e.g. the ones in `NOD_socket_items.hh`) for index
- * bake node items.
+ * Makes it possible to use various functions (e.g. the ones in `NOD_socket_items.hh`) for bake
+ * node items.
  */
 struct BakeItemsAccessor : public socket_items::SocketItemsAccessorDefaults {
   using ItemT = NodeGeometryBakeItem;

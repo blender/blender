@@ -145,13 +145,6 @@ static void node_geo_exec(GeoNodeExecParams params)
     lists[i] = GList::create(cpp_type, GList::ArrayData::ForUninitialized(cpp_type, count), count);
   }
 
-  Array<GMutableSpan> list_values(lists.size());
-  for (const int i : lists.index_range()) {
-    list_values[i] = {lists[i]->cpp_type(),
-                      const_cast<void *>(std::get<GList::ArrayData>(lists[i]->data()).data),
-                      count};
-  }
-
   ListFieldContext context;
   fn::FieldEvaluator evaluator{context, count};
   for (const int i : fields.index_range()) {
