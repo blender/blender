@@ -5429,6 +5429,7 @@ static int do_but_TEXTBOX(bContext *C,
                           const wmEvent *event)
 {
   wmWindow *win = CTX_wm_window(C);
+  const bool is_disabled = textbox->flag & BUT_DISABLED || data->disable_force;
 
   switch (data->state) {
     case BUTTON_STATE_TEXT_EDITING:
@@ -5470,7 +5471,16 @@ static int do_but_TEXTBOX(bContext *C,
           }
           break;
         }
-        if (win->cursor != WM_CURSOR_TEXT_EDIT) {
+        /* Set text-edit cursor only if the button is not disabled, otherwise reset the mouse
+         * cursor. */
+        if (is_disabled) {
+          if (win->cursor != WM_CURSOR_DEFAULT) {
+            WM_cursor_modal_restore(win);
+            WM_cursor_set(win, WM_CURSOR_DEFAULT);
+            data->changed_cursor = false;
+          }
+        }
+        else if (win->cursor != WM_CURSOR_TEXT_EDIT) {
           WM_cursor_modal_set(win, WM_CURSOR_TEXT_EDIT);
           data->changed_cursor = true;
         }
@@ -5552,6 +5562,10 @@ static int do_but_TEXTBOX(bContext *C,
     }
     default:
       break;
+  }
+  /* When disabled text-box buttons only can be scrolled/resized. */
+  if (is_disabled) {
+    return WM_UI_HANDLER_CONTINUE;
   }
   /* Handle regular text buttons events. */
   return do_but_TEX(C, block, textbox, data, event);
@@ -8968,6 +8982,15 @@ static int do_button(bContext *C, Block *block, Button *but, const wmEvent *even
 
   /* If `but->pointype` is set, `but->poin` should be too. */
   BLI_assert(!bool(but->pointype) || but->poin);
+
+  /* Let disabled text-box buttons to be scrolled/resized. */
+  if (is_disabled && but->type == ButtonType::TextBox) {
+    if (do_but_TEXTBOX(C, block, static_cast<ButtonTextBox *>(but), data, event) ==
+        WM_UI_HANDLER_BREAK)
+    {
+      return WM_UI_HANDLER_BREAK;
+    }
+  }
 
   /* Only hard-coded stuff here, button interactions with configurable
    * keymaps are handled using operators (see #keymap_ui). */
