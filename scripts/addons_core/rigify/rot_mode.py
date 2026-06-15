@@ -128,7 +128,7 @@ def convert_curves_of_bone_in_action(obj, action, bone, order):
     bone_prefix = ''
 
     for fcurve in action.fcurves:
-        if fcurve.group.name == bone.name:
+        if fcurve.group and fcurve.group.name == bone.name:
 
             # If To-Euler conversion
             if order != 'QUATERNION':
