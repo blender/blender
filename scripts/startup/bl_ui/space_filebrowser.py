@@ -674,6 +674,7 @@ class ASSETBROWSER_MT_editor_menus(AssetBrowserMenu, Menu):
         layout.menu("ASSETBROWSER_MT_select")
         layout.menu("ASSETBROWSER_MT_library")
         layout.menu("ASSETBROWSER_MT_catalog")
+        layout.menu("ASSETBROWSER_MT_asset")
 
 
 class ASSETBROWSER_MT_view(AssetBrowserMenu, Menu):
@@ -734,6 +735,23 @@ class ASSETBROWSER_MT_catalog(AssetBrowserMenu, Menu):
         layout.separator()
         layout.operator("asset.catalogs_save", icon='FILE_TICK')
         layout.operator("asset.catalog_new").parent_path = ""
+
+
+class ASSETBROWSER_MT_asset(Menu):
+    bl_label = "Asset"
+
+    def draw(self, _context) -> None:
+        layout = self.layout
+
+        col = layout.column()
+        col.operator_context = 'EXEC_DEFAULT'
+        col.operator("asset.clear", text="Clear Asset").set_fake_user = False
+        col.operator("asset.clear", text="Clear Asset (Set Fake User)").set_fake_user = True
+
+        layout.separator()
+
+        layout.operator("asset.open_containing_blend_file", icon='FILE_BLEND')
+        layout.operator("asset.browse_containing_blend_file")
 
 
 class ASSETBROWSER_PT_import_settings(asset_utils.AssetBrowserPanel, Panel):
@@ -974,6 +992,7 @@ classes = (
     ASSETBROWSER_MT_select,
     ASSETBROWSER_MT_library,
     ASSETBROWSER_MT_catalog,
+    ASSETBROWSER_MT_asset,
     ASSETBROWSER_PT_import_settings,
     ASSETBROWSER_MT_metadata_preview_menu,
     ASSETBROWSER_PT_metadata,
