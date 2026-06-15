@@ -45,7 +45,7 @@ void blo_do_versions_530(FileData * /*fd*/, Library * /*lib*/, Main *bmain)
   if (!MAIN_VERSION_FILE_ATLEAST(bmain, 503, 1)) {
     for (Scene &scene : bmain->scenes) {
       VPaint *wpaint = scene.toolsettings->wpaint;
-      if (wpaint) {
+      if (wpaint && wpaint->paint.brush_asset_reference) {
         const StringRefNull old_asset_id =
             wpaint->paint.brush_asset_reference->relative_asset_identifier;
         if (wpaint->paint.brush == nullptr && old_asset_id.endswith("Paint")) {
