@@ -781,13 +781,12 @@ const char *ED_info_statusbar_string_ex(Main *bmain,
                                   FRA2TIME(frame_count),
                                   scene->frames_per_second(),
                                   U.timecode_style);
-    ofs += BLI_snprintf_utf8_rlen(info + ofs,
-                                  len - ofs,
-
-                                  IFACE_("Duration: %s (Frame %i/%i)"),
-                                  timecode,
-                                  relative_current_frame,
-                                  frame_count);
+    const std::string scene_duration = fmt::format(
+        fmt::runtime(IFACE_("Duration: {} (Frame {}/{})")),
+        timecode,
+        relative_current_frame,
+        frame_count);
+    ofs += BLI_strncpy_utf8_rlen(info + ofs, scene_duration.c_str(), len - ofs);
   }
 
   /* Memory status. */
