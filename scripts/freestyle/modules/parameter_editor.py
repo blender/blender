@@ -1207,7 +1207,7 @@ def get_dashed_pattern(linestyle):
 
 
 def get_grouped_objects(group):
-    for ob in group.objects:
+    for ob in group.all_objects:
         if ob.instance_type == 'COLLECTION' and ob.instance_collection is not None:
             for dupli in get_grouped_objects(ob.instance_collection):
                 yield dupli
