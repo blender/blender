@@ -1230,6 +1230,9 @@ def process(layer_name, lineset_name):
     lineset = layer.freestyle_settings.linesets[lineset_name]
     linestyle = lineset.linestyle
 
+    if linestyle is None:
+        return
+
     # execute line set pre-processing callback functions
     for fn in callbacks_lineset_pre:
         fn(scene, layer, lineset)
