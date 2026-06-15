@@ -1,9 +1,9 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 5.2.0 LTS Beta (b'2b1958ccdccb')\n"
+"Project-Id-Version: Blender 5.2.0 LTS Beta (b'e899b48ea546')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-06-08 09:37+0000\n"
+"POT-Creation-Date: 2026-06-15 07:32+0000\n"
 "PO-Revision-Date: 2026-02-14 01:12+0000\n"
 "Last-Translator: Timo Hoetmer <timo@timohoetmer.nl>\n"
 "Language-Team: Dutch <https://translate.blender.org/projects/blender-ui/ui/nl/>\n"
@@ -5747,44 +5747,12 @@ msgid "Dots"
 msgstr "Stippen"
 
 
-msgid "Relations"
-msgstr "Relaties"
+msgid "Mirror"
+msgstr "Spiegel"
 
 
 msgid "Rigid Body"
 msgstr "Star Lichaam"
-
-
-msgid "Quick Effects"
-msgstr "Snelle Effecten"
-
-
-msgid "Show/Hide"
-msgstr "Toon/Verberg"
-
-
-msgid "Convert"
-msgstr "Converteer"
-
-
-msgid "Hooks"
-msgstr "Haken"
-
-
-msgid "Clear Transform"
-msgstr "Maak Transformatie Leeg"
-
-
-msgid "Names"
-msgstr "Namen"
-
-
-msgid "Import"
-msgstr "Importeren"
-
-
-msgid "Mirror"
-msgstr "Spiegel"
 
 
 msgid "Local View"
@@ -5795,14 +5763,6 @@ msgid "Navigation"
 msgstr "Navigatie"
 
 
-msgid "Linked"
-msgstr "Gekoppeld"
-
-
-msgid "Layout"
-msgstr "Indeling"
-
-
 msgid "Select Similar"
 msgstr "Selecteer Vergelijkbaar"
 
@@ -5811,12 +5771,52 @@ msgid "Select Linked"
 msgstr "Selecteer Aaneengesloten"
 
 
+msgid "Import"
+msgstr "Importeren"
+
+
+msgid "Relations"
+msgstr "Relaties"
+
+
+msgid "Show/Hide"
+msgstr "Toon/Verberg"
+
+
 msgid "Light"
 msgstr "Licht"
 
 
 msgid "Add Image"
 msgstr "Voeg Afbeelding Toe"
+
+
+msgid "Hooks"
+msgstr "Haken"
+
+
+msgid "Quick Effects"
+msgstr "Snelle Effecten"
+
+
+msgid "Clear Transform"
+msgstr "Maak Transformatie Leeg"
+
+
+msgid "Names"
+msgstr "Namen"
+
+
+msgid "Convert"
+msgstr "Converteer"
+
+
+msgid "Linked"
+msgstr "Gekoppeld"
+
+
+msgid "Layout"
+msgstr "Indeling"
 
 
 msgctxt "MovieClip"

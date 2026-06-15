@@ -1,9 +1,9 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 5.2.0 LTS Beta (b'2b1958ccdccb')\n"
+"Project-Id-Version: Blender 5.2.0 LTS Beta (b'e899b48ea546')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-06-08 09:37+0000\n"
+"POT-Creation-Date: 2026-06-15 07:32+0000\n"
 "PO-Revision-Date: 2026-03-17 14:12+0000\n"
 "Last-Translator: Daniel Nylander <blender@danielnylander.se>\n"
 "Language-Team: Swedish <https://translate.blender.org/projects/blender-ui/ui/sv/>\n"
@@ -35066,84 +35066,192 @@ msgid "Editor menu containing buttons"
 msgstr "Redigeringsmeny med knappar"
 
 
-msgid "Relations"
-msgstr "Relationer"
-
-
-msgid "Rigid Body"
-msgstr "Stel kropp"
-
-
 msgid "Render Preview"
 msgstr "Förhandsgranska rendering"
-
-
-msgid "Apply"
-msgstr "Ansök"
 
 
 msgid "Track"
 msgstr "Spår"
 
 
-msgid "Quick Effects"
-msgstr "Snabba effekter"
-
-
-msgid "Show/Hide"
-msgstr "Visa/Dölj"
-
-
-msgid "Clean Up"
-msgstr "Rensa upp"
-
-
-msgid "Asset"
-msgstr "Tillgång"
-
-
-msgid "Make Single User"
-msgstr "Gör till enskild användare"
-
-
-msgid "Convert"
-msgstr "Konvertera"
-
-
-msgid "Link/Transfer Data"
-msgstr "Länk/överför data"
-
-
-msgid "Hooks"
-msgstr "Krokar"
-
-
-msgid "Vertex Group Locks"
-msgstr "Vertex Group Lås"
-
-
 msgid "Math"
 msgstr "Matematik"
-
-
-msgid "Trim/Add"
-msgstr "Trimma/Lägg till"
 
 
 msgid "Utilities"
 msgstr "Allmännyttiga tjänster"
 
 
-msgid "Sculpt Set Pivot"
-msgstr "Skulptera Set Pivot"
+msgid "Assign Material"
+msgstr "Tilldela material"
+
+
+msgid "Read"
+msgstr "Läs"
+
+
+msgid "Sample"
+msgstr "Exempel"
+
+
+msgid "Write"
+msgstr "Skriv"
+
+
+msgid "Primitives"
+msgstr "Primitiva"
+
+
+msgid "Mirror"
+msgstr "Spegel"
+
+
+msgid "Snap"
+msgstr "Fäst"
+
+
+msgid "Rigid Body"
+msgstr "Stel kropp"
+
+
+msgid "UV Mapping"
+msgstr "UV-mappning"
+
+
+msgid "Local View"
+msgstr "Lokal vy"
+
+
+msgid "Viewpoint"
+msgstr "Synpunkt"
+
+
+msgid "Navigation"
+msgstr "Navigering"
+
+
+msgid "Align View"
+msgstr "Justera vy"
+
+
+msgid "Align View to Active"
+msgstr "Justera vy till aktiv"
+
+
+msgid "View Regions"
+msgstr "Visa regioner"
+
+
+msgid "Select More/Less"
+msgstr "Välj Mer/Mindre"
+
+
+msgid "Gizmo"
+msgstr "Gizmo"
+
+
+msgid "Instances"
+msgstr "Instanser"
+
+
+msgid "Select Similar"
+msgstr "Välj liknande"
+
+
+msgid "Select All by Trait"
+msgstr "Välj alla efter egenskap"
+
+
+msgid "Select Linked"
+msgstr "Välj länkad"
+
+
+msgid "Select Loops"
+msgstr "Välj slingor"
+
+
+msgid "Import"
+msgstr "Importera"
+
+
+msgid "Deprecated"
+msgstr "Föråldrad"
+
+
+msgid "Relations"
+msgstr "Relationer"
+
+
+msgid "UV"
+msgstr "UV"
+
+
+msgid "Vertex Group Locks"
+msgstr "Vertex Group Lås"
+
+
+msgid "Metaball"
+msgstr "Metaball"
+
+
+msgid "Random Mask"
+msgstr "Slumpmässig mask"
+
+
+msgid "Asset"
+msgstr "Tillgång"
+
+
+msgid "Show/Hide"
+msgstr "Visa/Dölj"
+
+
+msgid "Apply"
+msgstr "Ansök"
+
+
+msgid "Link/Transfer Data"
+msgstr "Länk/överför data"
+
+
+msgid "Clean Up"
+msgstr "Rensa upp"
 
 
 msgid "Face Sets Init"
 msgstr "Ansiktsuppsättningar Init"
 
 
-msgid "Random Mask"
-msgstr "Slumpmässig mask"
+msgid "Light Probe"
+msgstr "Ljusprob"
+
+
+msgid "Light"
+msgstr "Ljus"
+
+
+msgid "Add Image"
+msgstr "Lägg till bild"
+
+
+msgid "Sculpt Set Pivot"
+msgstr "Skulptera Set Pivot"
+
+
+msgid "Hooks"
+msgstr "Krokar"
+
+
+msgid "Make Single User"
+msgstr "Gör till enskild användare"
+
+
+msgid "Quick Effects"
+msgstr "Snabba effekter"
+
+
+msgid "Trim/Add"
+msgstr "Trimma/Lägg till"
 
 
 msgid "Clear Transform"
@@ -35166,20 +35274,8 @@ msgid "Names"
 msgstr "Namn"
 
 
-msgid "Read"
-msgstr "Läs"
-
-
-msgid "Sample"
-msgstr "Exempel"
-
-
 msgid "Toggle Bone Options"
 msgstr "Växla mellan benalternativ"
-
-
-msgid "Write"
-msgstr "Skriv"
 
 
 msgid "Enable Bone Options"
@@ -35188,10 +35284,6 @@ msgstr "Aktivera benalternativ"
 
 msgid "Disable Bone Options"
 msgstr "Inaktivera benalternativ"
-
-
-msgid "Primitives"
-msgstr "Primitiva"
 
 
 msgid "Mesh Select Mode"
@@ -35210,20 +35302,12 @@ msgid "Set Face Strength"
 msgstr "Ställ in ansiktsstyrka"
 
 
-msgid "Gizmo"
-msgstr "Gizmo"
-
-
-msgid "Instances"
-msgstr "Instanser"
-
-
 msgid "Merge"
 msgstr "Sammanfoga"
 
 
-msgid "Import"
-msgstr "Importera"
+msgid "Convert"
+msgstr "Konvertera"
 
 
 msgid "Special Characters"
@@ -35234,28 +35318,32 @@ msgid "Kerning"
 msgstr "Kerning"
 
 
-msgid "Deprecated"
-msgstr "Föråldrad"
+msgid "Linked"
+msgstr "Länkad"
 
 
-msgid "Metaball"
-msgstr "Metaball"
+msgid "Layout"
+msgstr "Layout"
 
 
 msgid "Bone Roll"
 msgstr "Benrulle"
 
 
-msgid "UV"
-msgstr "UV"
+msgid "Adjust"
+msgstr "Justera"
+
+
+msgid "Keying"
+msgstr "Nyckel"
+
+
+msgid "Tracking"
+msgstr "Spårning"
 
 
 msgid "Pivot Point"
 msgstr "Pivotpunkt"
-
-
-msgid "Snap"
-msgstr "Fäst"
 
 
 msgid "Proportional Editing Falloff"
@@ -35274,96 +35362,8 @@ msgid "Face Sets Edit"
 msgstr "Ansiktsuppsättningar Redigera"
 
 
-msgid "Mirror"
-msgstr "Spegel"
-
-
-msgid "UV Mapping"
-msgstr "UV-mappning"
-
-
-msgid "Local View"
-msgstr "Lokal vy"
-
-
-msgid "Viewpoint"
-msgstr "Synpunkt"
-
-
-msgid "Navigation"
-msgstr "Navigering"
-
-
-msgid "Linked"
-msgstr "Länkad"
-
-
-msgid "Align View"
-msgstr "Justera vy"
-
-
-msgid "Layout"
-msgstr "Layout"
-
-
-msgid "Align View to Active"
-msgstr "Justera vy till aktiv"
-
-
-msgid "View Regions"
-msgstr "Visa regioner"
-
-
-msgid "Select More/Less"
-msgstr "Välj Mer/Mindre"
-
-
-msgid "Select Similar"
-msgstr "Välj liknande"
-
-
-msgid "Select All by Trait"
-msgstr "Välj alla efter egenskap"
-
-
-msgid "Select Linked"
-msgstr "Välj länkad"
-
-
-msgid "Select Loops"
-msgstr "Välj slingor"
-
-
-msgid "Adjust"
-msgstr "Justera"
-
-
-msgid "Keying"
-msgstr "Nyckel"
-
-
-msgid "Tracking"
-msgstr "Spårning"
-
-
-msgid "Assign Material"
-msgstr "Tilldela material"
-
-
 msgid "Creative"
 msgstr "Kreativ"
-
-
-msgid "Light"
-msgstr "Ljus"
-
-
-msgid "Light Probe"
-msgstr "Ljusprob"
-
-
-msgid "Add Image"
-msgstr "Lägg till bild"
 
 
 msgid "Keyframe Insert Pie"
@@ -54024,8 +54024,8 @@ msgid "Clear Status"
 msgstr "Rensa status"
 
 
-msgid "Allow internet access. Blender may access configured online extension repositories. Installed third party add-ons may access the internet for their own functionality"
-msgstr "Tillåt internetåtkomst. Blender kan komma att använda konfigurerade online-tilläggsarkiv. Installerade tillägg från tredje part kan komma att använda internet för sin egen funktionalitet."
+msgid "Allow Blender to access the internet. Add-ons that follow this setting will only connect to the internet if enabled. However, Blender cannot prevent third-party add-ons from violating this rule."
+msgstr "Tillåt Blender att ansluta till internet. Tillägg som följer denna inställning kommer endast att ansluta till internet om de är aktiverade. Blender kan dock inte förhindra att tillägg från tredje part bryter mot denna regel."
 
 
 msgid "Open extensions preferences"
@@ -91972,58 +91972,6 @@ msgid "Panel containing UI elements"
 msgstr "Panel som innehåller UI-element"
 
 
-msgid "VR"
-msgstr "VR"
-
-
-msgid "VR Info"
-msgstr "VR-information"
-
-
-msgid "glTF Variants"
-msgstr "glTF-varianter"
-
-
-msgid "glTF Material Variants"
-msgstr "glTF-materialvarianter"
-
-
-msgid "glTF"
-msgstr "glTF"
-
-
-msgid "glTF Animations"
-msgstr "glTF-animationer"
-
-
-msgid "Active Tool"
-msgstr "Aktivt verktyg"
-
-
-msgid "View Lock"
-msgstr "Visa lås"
-
-
-msgid "Selectability & Visibility"
-msgstr "Valbarhet och synlighet"
-
-
-msgid "Shadow Settings"
-msgstr "Skugginställningar"
-
-
-msgid "SSAO Settings"
-msgstr "SSAO-inställningar"
-
-
-msgid "Cavity"
-msgstr "Hålrum"
-
-
-msgid "Render Pass"
-msgstr "Renderingspass"
-
-
 msgid "Compositor"
 msgstr "Compositor"
 
@@ -92110,6 +92058,58 @@ msgstr "Kurvor Växer/krymper Skalning"
 
 msgid "Viewport Debug"
 msgstr "Fönsterdebugging"
+
+
+msgid "glTF Variants"
+msgstr "glTF-varianter"
+
+
+msgid "glTF Material Variants"
+msgstr "glTF-materialvarianter"
+
+
+msgid "VR"
+msgstr "VR"
+
+
+msgid "VR Info"
+msgstr "VR-information"
+
+
+msgid "glTF"
+msgstr "glTF"
+
+
+msgid "glTF Animations"
+msgstr "glTF-animationer"
+
+
+msgid "Active Tool"
+msgstr "Aktivt verktyg"
+
+
+msgid "View Lock"
+msgstr "Visa lås"
+
+
+msgid "Selectability & Visibility"
+msgstr "Valbarhet och synlighet"
+
+
+msgid "Shadow Settings"
+msgstr "Skugginställningar"
+
+
+msgid "SSAO Settings"
+msgstr "SSAO-inställningar"
+
+
+msgid "Cavity"
+msgstr "Hålrum"
+
+
+msgid "Render Pass"
+msgstr "Renderingspass"
 
 
 msgid "Import Settings"
@@ -96944,10 +96944,6 @@ msgid "Allow Online Access"
 msgstr "Tillåt onlineåtkomst"
 
 
-msgid "Allow Blender to access the internet. Add-ons that follow this setting will only connect to the internet if enabled. However, Blender cannot prevent third-party add-ons from violating this rule."
-msgstr "Tillåt Blender att ansluta till internet. Tillägg som följer denna inställning kommer endast att ansluta till internet om de är aktiverade. Blender kan dock inte förhindra att tillägg från tredje part bryter mot denna regel."
-
-
 msgid "Overlay Smooth Wires"
 msgstr "Överlägg med släta trådar"
 
@@ -97444,16 +97440,8 @@ msgid "Serbian (Cyrillic) - Српски"
 msgstr "Serbiska (kyrilliska) - Српски"
 
 
-msgid "Locale code: sr_RS. Translation progress: 16%"
-msgstr "Lokalkod: sr_RS. Översättningsförlopp: 16 %"
-
-
 msgid "Serbian (Latin) - Srpski latinica"
 msgstr "Serbiska (latinska alfabetet) - Srpski latinica"
-
-
-msgid "Locale code: sr_RS@latin. Translation progress: 16%"
-msgstr "Lokalkod: sr_RS@latin. Översättningsframsteg: 16 %"
 
 
 msgid "Slovak - Slovenčina"

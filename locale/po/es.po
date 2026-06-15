@@ -1,10 +1,10 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 5.2.0 LTS Beta (b'2b1958ccdccb')\n"
+"Project-Id-Version: Blender 5.2.0 LTS Beta (b'e899b48ea546')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-06-08 09:37+0000\n"
-"PO-Revision-Date: 2026-06-02 22:12+0000\n"
+"POT-Creation-Date: 2026-06-15 07:32+0000\n"
+"PO-Revision-Date: 2026-06-14 04:12+0000\n"
 "Last-Translator: Gabriel Gazzán <gabcorreo@gmail.com>\n"
 "Language-Team: Spanish <https://translate.blender.org/projects/blender-ui/ui/es/>\n"
 "Language: es\n"
@@ -1848,8 +1848,20 @@ msgid "Asset Library"
 msgstr "Biblioteca de recursos"
 
 
+msgid "Container for asset catalogs and assets"
+msgstr "Contenedor para catálogos de recursos y recursos"
+
+
 msgid "Is Editable"
 msgstr "Es editable"
+
+
+msgid "Assets and catalogs in this library can be edited from the current Blender instance"
+msgstr "Los recursos y catálogos de esta biblioteca pueden ser editados desde la instancia actual de Blender"
+
+
+msgid "Library Type"
+msgstr "Tipo de biblioteca"
 
 
 msgid "All Libraries"
@@ -2075,6 +2087,14 @@ msgstr "Metadatos de recurso"
 
 msgid "Additional information about the asset"
 msgstr "Información adicional acerca del recurso"
+
+
+msgid "Owner Asset Library"
+msgstr "Biblioteca propietaria del recurso"
+
+
+msgid "The asset library containing this asset"
+msgstr "La biblioteca de recursos que contiene a este recurso"
 
 
 msgid "Asset Shelf"
@@ -18413,6 +18433,10 @@ msgid "List of gizmos in the Gizmo Map"
 msgstr "Lista de manipuladores en el Mapa de manipuladores"
 
 
+msgid "VR Location Scouting Captures Indicators"
+msgstr "Indicadores de capturas de búsqueda de locaciones de RV"
+
+
 msgid "VR Controller Poses Indicator"
 msgstr "Indicador de poses del controlador de RV"
 
@@ -28921,6 +28945,10 @@ msgid "Infinite"
 msgstr "Contínua"
 
 
+msgid "After the last frame, jump back to the first and keep playing, infinitely"
+msgstr "Después del último fotograma, saltar de regreso al primero y continuar reproduciendo desde allí de forma continua"
+
+
 msgid "Stop at End Frame"
 msgstr "Detenerse en fot. final"
 
@@ -29168,6 +29196,14 @@ msgstr "Habilita enlaces para los controladores HTC Vive Focus 3. Nótese que ex
 
 msgid "Use input from gamepad (Microsoft Xbox Controller) instead of motion controllers"
 msgstr "Usa las entradas de un control de juegos de Microsoft Xbox, en vez de los controladores de movimiento"
+
+
+msgid "Location Scouting Captures"
+msgstr "Capturas de búsqueda de locaciones"
+
+
+msgid "Selected Capture"
+msgstr "Captura seleccionada"
 
 
 msgid "Landmark"
@@ -31120,6 +31156,14 @@ msgid "RNA collections of IDs only, the reference to the item also uses the ID p
 msgstr "Sólo para colecciones RNA de ID, la referencia al elemento también usará al propio puntero del ID, y no sólo su nombre"
 
 
+msgid "UI Label"
+msgstr "Etiqueta en interfaz"
+
+
+msgid "UI label to display in dedicated view of the Outliner, in place of the actual UI widget to edit the value"
+msgstr "Etiqueta para mostrar en una vista dedicada del Listado, en lugar del control real de la interfaz para editar el valor"
+
+
 msgid "Operation"
 msgstr "Operación"
 
@@ -31168,6 +31212,10 @@ msgid "Insert a new item into collection before the one referenced in subitem_re
 msgstr "Inserta un nuevo elemento en la colección antes del referenciado en nombre_referencia_subelemento/_id o _índice (NO USADO)"
 
 
+msgid "Custom operation, specific to a RNA property, and handled through dedicated callbacks (used in specific cases, e.g. to handle data not actually exposed in RNA)"
+msgstr "Operación personalizada, específica de la propiedad RNA y manipulada mediante retrollamadas dedicadas (usado en casos específicos, p.ej: para manipular datos que no estén expuestos en RNA)"
+
+
 msgid "Subitem Local ID"
 msgstr "ID local del subelemento"
 
@@ -31198,6 +31246,14 @@ msgstr "Identificador de subsistema referencia"
 
 msgid "Subitem Reference Name"
 msgstr "Nombre de subsistema referencia"
+
+
+msgid "UI Tooltip"
+msgstr "Descripción en interfaz"
+
+
+msgid "UI tooltip to display in dedicated view of the Outliner, when the label itself cannot provide all required information"
+msgstr "Descripción para mostrar en una vista dedicada del Listado, cuando la etiqueta en sí misma no sea capaz de proporcionar toda la información necesaria"
 
 
 msgid "Override Operations"
@@ -35832,88 +35888,196 @@ msgid "Editor menu containing buttons"
 msgstr "Menú del editor que contiene botones"
 
 
-msgid "Relations"
-msgstr "Relaciones"
-
-
-msgid "Rigid Body"
-msgstr "Cuerpo rígido"
-
-
 msgid "Render Preview"
 msgstr "Procesar previsualización"
-
-
-msgid "Apply"
-msgstr "Aplicar"
 
 
 msgid "Track"
 msgstr "Rastrear"
 
 
-msgid "Quick Effects"
-msgstr "Efectos rápidos"
-
-
-msgid "Show/Hide"
-msgstr "Mostrar / Ocultar"
-
-
-msgid "Clean Up"
-msgstr "Limpiar"
-
-
-msgid "Asset"
-msgstr "Recurso"
-
-
-msgid "Make Single User"
-msgstr "Hacer de único usuario"
-
-
-msgid "Convert"
-msgstr "Convertir"
-
-
-msgid "Link/Transfer Data"
-msgstr "Vincular / Transferir datos"
-
-
-msgid "Hooks"
-msgstr "Asignar gancho"
-
-
-msgid "Vertex Group Locks"
-msgstr "Bloqueos de grupo de vértices"
-
-
 msgid "Math"
 msgstr "Operar"
-
-
-msgid "Trim/Add"
-msgstr "Recortar / Agregar"
-
-
-msgid "Add Primitive"
-msgstr "Agregar primitiva"
 
 
 msgid "Utilities"
 msgstr "Utilitarios"
 
 
-msgid "Sculpt Set Pivot"
-msgstr "Esculpido definir pivote"
+msgid "Assign Material"
+msgstr "Asignar material"
+
+
+msgid "Add Primitive"
+msgstr "Agregar primitiva"
+
+
+msgid "Read"
+msgstr "Lectura"
+
+
+msgid "Sample"
+msgstr "Muestreo"
+
+
+msgid "Write"
+msgstr "Escritura"
+
+
+msgid "Primitives"
+msgstr "Primitivas"
+
+
+msgid "Mirror"
+msgstr "Simetrizar"
+
+
+msgid "Snap"
+msgstr "Adherir"
+
+
+msgid "Rigid Body"
+msgstr "Cuerpo rígido"
+
+
+msgid "UV Mapping"
+msgstr "Mapeo UV"
+
+
+msgid "Local View"
+msgstr "Vista local"
+
+
+msgid "Viewpoint"
+msgstr "Punto de vista"
+
+
+msgid "Navigation"
+msgstr "Navegación"
+
+
+msgid "Align View"
+msgstr "Alinear vista"
+
+
+msgid "Align View to Active"
+msgstr "Alinear vista al activo"
+
+
+msgid "View Regions"
+msgstr "Regiones de la vista"
+
+
+msgid "Select More/Less"
+msgstr "Seleccionar más / menos"
+
+
+msgid "Gizmo"
+msgstr "Manipulador"
+
+
+msgid "Instances"
+msgstr "Instancias"
+
+
+msgid "Select Similar"
+msgstr "Seleccionar similar"
+
+
+msgid "Select All by Trait"
+msgstr "Seleccionar por condición"
+
+
+msgid "Select Linked"
+msgstr "Seleccionar vinculado"
+
+
+msgid "Select Loops"
+msgstr "Seleccionar bucles"
+
+
+msgid "Import"
+msgstr "Importar"
+
+
+msgid "Deprecated"
+msgstr "Obsoleto"
+
+
+msgid "Relations"
+msgstr "Relaciones"
+
+
+msgid "UV"
+msgstr "UV"
+
+
+msgid "Vertex Group Locks"
+msgstr "Bloqueos de grupo de vértices"
+
+
+msgid "Metaball"
+msgstr "Metabola"
+
+
+msgid "Random Mask"
+msgstr "Máscara aleatoria"
+
+
+msgid "Asset"
+msgstr "Recurso"
+
+
+msgid "Show/Hide"
+msgstr "Mostrar / Ocultar"
+
+
+msgid "Apply"
+msgstr "Aplicar"
+
+
+msgid "Link/Transfer Data"
+msgstr "Vincular / Transferir datos"
+
+
+msgid "Clean Up"
+msgstr "Limpiar"
 
 
 msgid "Face Sets Init"
 msgstr "Inicialización de conjuntos de caras"
 
 
-msgid "Random Mask"
-msgstr "Máscara aleatoria"
+msgid "Light Probe"
+msgstr "Sonda de luz"
+
+
+msgid "Light"
+msgstr "Luz"
+
+
+msgid "Add Image"
+msgstr "Agregar imagen"
+
+
+msgid "Sculpt Set Pivot"
+msgstr "Esculpido definir pivote"
+
+
+msgid "Hooks"
+msgstr "Asignar gancho"
+
+
+msgid "Make Single User"
+msgstr "Hacer de único usuario"
+
+
+msgid "Quick Effects"
+msgstr "Efectos rápidos"
+
+
+msgid "Trim/Add"
+msgstr "Recortar / Agregar"
 
 
 msgid "Clear Transform"
@@ -35936,20 +36100,8 @@ msgid "Names"
 msgstr "Nombres"
 
 
-msgid "Read"
-msgstr "Lectura"
-
-
-msgid "Sample"
-msgstr "Muestreo"
-
-
 msgid "Toggle Bone Options"
 msgstr "Alternar opciones de huesos"
-
-
-msgid "Write"
-msgstr "Escritura"
 
 
 msgid "Enable Bone Options"
@@ -35958,10 +36110,6 @@ msgstr "Habilitar opciones huesos"
 
 msgid "Disable Bone Options"
 msgstr "Deshabilitar opciones huesos"
-
-
-msgid "Primitives"
-msgstr "Primitivas"
 
 
 msgid "Mesh Select Mode"
@@ -35980,20 +36128,12 @@ msgid "Set Face Strength"
 msgstr "Definir intensidad de caras"
 
 
-msgid "Gizmo"
-msgstr "Manipulador"
-
-
-msgid "Instances"
-msgstr "Instancias"
-
-
 msgid "Merge"
 msgstr "Fusionar"
 
 
-msgid "Import"
-msgstr "Importar"
+msgid "Convert"
+msgstr "Convertir"
 
 
 msgid "Special Characters"
@@ -36004,28 +36144,32 @@ msgid "Kerning"
 msgstr "Espaciado"
 
 
-msgid "Deprecated"
-msgstr "Obsoleto"
+msgid "Linked"
+msgstr "Vinculado"
 
 
-msgid "Metaball"
-msgstr "Metabola"
+msgid "Layout"
+msgstr "Organizar"
 
 
 msgid "Bone Roll"
 msgstr "Giro de huesos"
 
 
-msgid "UV"
-msgstr "UV"
+msgid "Adjust"
+msgstr "Ajustar"
+
+
+msgid "Keying"
+msgstr "Recortar"
+
+
+msgid "Tracking"
+msgstr "Rastreo"
 
 
 msgid "Pivot Point"
 msgstr "Punto de pivote"
-
-
-msgid "Snap"
-msgstr "Adherir"
 
 
 msgid "Proportional Editing Falloff"
@@ -36044,96 +36188,8 @@ msgid "Face Sets Edit"
 msgstr "Edición de conjuntos de caras"
 
 
-msgid "Mirror"
-msgstr "Simetrizar"
-
-
-msgid "UV Mapping"
-msgstr "Mapeo UV"
-
-
-msgid "Local View"
-msgstr "Vista local"
-
-
-msgid "Viewpoint"
-msgstr "Punto de vista"
-
-
-msgid "Navigation"
-msgstr "Navegación"
-
-
-msgid "Linked"
-msgstr "Vinculado"
-
-
-msgid "Align View"
-msgstr "Alinear vista"
-
-
-msgid "Layout"
-msgstr "Organizar"
-
-
-msgid "Align View to Active"
-msgstr "Alinear vista al activo"
-
-
-msgid "View Regions"
-msgstr "Regiones de la vista"
-
-
-msgid "Select More/Less"
-msgstr "Seleccionar más / menos"
-
-
-msgid "Select Similar"
-msgstr "Seleccionar similar"
-
-
-msgid "Select All by Trait"
-msgstr "Seleccionar por condición"
-
-
-msgid "Select Linked"
-msgstr "Seleccionar vinculado"
-
-
-msgid "Select Loops"
-msgstr "Seleccionar bucles"
-
-
-msgid "Adjust"
-msgstr "Ajustar"
-
-
-msgid "Keying"
-msgstr "Recortar"
-
-
-msgid "Tracking"
-msgstr "Rastreo"
-
-
-msgid "Assign Material"
-msgstr "Asignar material"
-
-
 msgid "Creative"
 msgstr "Creatividad"
-
-
-msgid "Light"
-msgstr "Luz"
-
-
-msgid "Light Probe"
-msgstr "Sonda de luz"
-
-
-msgid "Add Image"
-msgstr "Agregar imagen"
 
 
 msgid "Keyframe Insert Pie"
@@ -42189,6 +42245,10 @@ msgid "Bakes"
 msgstr "Capturas"
 
 
+msgid "All potential bakes, as defined by the assigned Geometry Nodes"
+msgstr "Todas las potenciales capturas, tal como estuvieran establecidas por los Nodos de geometría asignados"
+
+
 msgid "Node Group"
 msgstr "Grupo de nodos"
 
@@ -47861,6 +47921,14 @@ msgid "Split a transformation matrix into a translation vector, a rotation, and 
 msgstr "Dividirá una matriz de transformaciones en un vector de traslación, una rotación y un vector de escala"
 
 
+msgid "Set String Case"
+msgstr "Definir mayúsculas/minúsculas"
+
+
+msgid "Convert the case of a string"
+msgstr "Permite convertir un texto entre mayúsculas/minúsculas"
+
+
 msgid "Slice String"
 msgstr "Segmentar texto"
 
@@ -49482,6 +49550,14 @@ msgid "Merge points of a point cloud or mesh based on group ID and selection."
 msgstr "Permite fusionar los puntos de una nube de puntos o una malla, basándose en el ID de grupo y una selección."
 
 
+msgid "Mesh Bevel"
+msgstr "Biselar malla"
+
+
+msgid "Bevel selected edges or vertices"
+msgstr "Permite biselar los bordes o vértices seleccionados"
+
+
 msgid "Mesh Boolean"
 msgstr "Booleana (malla)"
 
@@ -50284,6 +50360,14 @@ msgstr "Ordenar elementos"
 
 msgid "Rearrange geometry elements, changing their indices"
 msgstr "Permite reordenar los elementos de una geometría, cambiando sus identificadores"
+
+
+msgid "Sort List"
+msgstr "Ordenar lista"
+
+
+msgid "Sort a list based on weights"
+msgstr "Permite ordenar una lista basándose en influencias"
 
 
 msgid "Spline Length"
@@ -55234,8 +55318,8 @@ msgid "Clear Status"
 msgstr "Limpiar estado"
 
 
-msgid "Allow internet access. Blender may access configured online extension repositories. Installed third party add-ons may access the internet for their own functionality"
-msgstr "Permitir acceso a través de internet. Blender podrá acceder a repositorios de extensiones que hubieran sido configurados previamente. Los complementos de terceros que hubieran sido instalados podrán acceder a internet para cumplir sus propias funciones"
+msgid "Allow Blender to access the internet. Add-ons that follow this setting will only connect to the internet if enabled. However, Blender cannot prevent third-party add-ons from violating this rule."
+msgstr "Permite que Blender acceda a internet. Los complementos que se rijan por esta opción sólo podrán conectarse a internet cuando se encuentre activa. Sin embargo, Blender no puede evitar que complementos de terceros violen esta regla."
 
 
 msgid "Open extensions preferences"
@@ -57015,6 +57099,56 @@ msgstr "Agregar punto de referencia de RV desde la sesión"
 msgctxt "Operator"
 msgid "Remove VR Landmark"
 msgstr "Eliminar punto de referencia de RV"
+
+
+msgctxt "Operator"
+msgid "Set Active Camera from VR Capture"
+msgstr "Definir cámara activa desde captura de RV"
+
+
+msgctxt "Operator"
+msgid "Add Camera from VR Capture"
+msgstr "Agregar cámara desde captura de RV"
+
+
+msgctxt "Operator"
+msgid "Add Camera Marker from VR Capture"
+msgstr "Agregar marcador de cámara desde captura de RV"
+
+
+msgctxt "Operator"
+msgid "Browse Location Scouting Captures"
+msgstr "Explorar capturas de búsqueda de locaciones"
+
+
+msgctxt "Operator"
+msgid "Remove Location Scouting Capture"
+msgstr "Eliminar captura de búsqueda de locaciones"
+
+
+msgctxt "Operator"
+msgid "Viewfinder Apply Action"
+msgstr "Visor - Aplicar acción"
+
+
+msgctxt "Operator"
+msgid "Viewfinder Capture"
+msgstr "Visor - Capturar"
+
+
+msgctxt "Operator"
+msgid "Viewfinder Cycle Action"
+msgstr "Visor - Recorrer acciones"
+
+
+msgctxt "Operator"
+msgid "Viewfinder Cycle Mode"
+msgstr "Visor - Modo de recorrer"
+
+
+msgctxt "Operator"
+msgid "Viewfinder Swap Hands"
+msgstr "Visor - Intercambiar manos"
 
 
 msgid "Rename multiple items at once"
@@ -69984,10 +70118,6 @@ msgid "Select markers on and left/right of the current frame"
 msgstr "Selecciona marcadores a la izquierda o derecha del fotograma actual"
 
 
-msgid "Check which side was clicked"
-msgstr "Comprueba en qué lado se hizo clic"
-
-
 msgctxt "Operator"
 msgid "Add Feather Vertex"
 msgstr "Agregar vértice de esfumado"
@@ -79693,6 +79823,15 @@ msgstr "Restablecer"
 
 
 msgctxt "Operator"
+msgid "Outliner Library Override Propery Remove"
+msgstr "Listado - eliminar redefinición de biblioteca de propiedad"
+
+
+msgid "Remove the selected library override properties, and reset the relevant data to the linked reference values"
+msgstr "Elimina las redefiniciones de biblioteca de las propiedades seleccionadas y restablece los datos relevantes a los valores de referencia vinculados"
+
+
+msgctxt "Operator"
 msgid "Outliner Library Override Troubleshoot Operation"
 msgstr "Listado - operación de reparación de redefinición de biblioteca"
 
@@ -85157,12 +85296,20 @@ msgid "Initialize the strip with this color"
 msgstr "Inicializar el clip con este color"
 
 
+msgid "Height of the color strip in pixels"
+msgstr "Altura del clip de color, en píxeles"
+
+
 msgid "Length of the strip in frames, or the length of each strip if multiple are added"
 msgstr "Longitud del clip (en fotogramas) o la longitud de todos ellos, en caso de que se agregaran varios"
 
 
 msgid "Sequencer effect type"
 msgstr "Tipo de efecto del editor de video"
+
+
+msgid "Width of the color strip in pixels"
+msgstr "Ancho del clip de color, en píxeles"
 
 
 msgctxt "Operator"
@@ -88037,6 +88184,15 @@ msgstr "Borrar elemento seleccionado de la lista"
 
 
 msgctxt "Operator"
+msgid "Focus Active Item"
+msgstr "Enfocar elemento activo"
+
+
+msgid "Bring active item into focus by scrolling the view"
+msgstr "Trae el elemento activo al centro, desplazando la vista"
+
+
+msgctxt "Operator"
 msgid "View Navigate"
 msgstr "Navegar vista"
 
@@ -90364,6 +90520,23 @@ msgstr "Agrega un punto de referencia de RV desde la posición del visor de la s
 
 msgid "Delete the selected VR landmark from the list"
 msgstr "Borra el punto de referencia de RV seleccionado de la lista"
+
+
+msgid "Browse Location Scouting Captures forward or backward"
+msgstr "Explorar capturas de búsqueda de locaciones hacia adelante o atrás"
+
+
+msgctxt "Operator"
+msgid "Location Scouting Capture Review"
+msgstr "Revisar capturas de búsqueda de locaciones"
+
+
+msgid "Interactively review Location Scouting VR Captures"
+msgstr "Permite revisar de forma interactiva capturas de búsqueda de locaciones"
+
+
+msgid "Remove the selected Location Scouting Capture"
+msgstr "Eliminar la captura de búsqueda de locaciones seleccionada"
 
 
 msgctxt "Operator"
@@ -94056,58 +94229,6 @@ msgid "Panel containing UI elements"
 msgstr "Panel que contiene elementos de la interfaz"
 
 
-msgid "VR"
-msgstr "RV"
-
-
-msgid "VR Info"
-msgstr "Info de RV"
-
-
-msgid "glTF Variants"
-msgstr "Variantes glTF"
-
-
-msgid "glTF Material Variants"
-msgstr "Variantes de material glTF"
-
-
-msgid "glTF"
-msgstr "glTF"
-
-
-msgid "glTF Animations"
-msgstr "Animaciones glTF"
-
-
-msgid "Active Tool"
-msgstr "Herramienta activa"
-
-
-msgid "View Lock"
-msgstr "Fijar vista"
-
-
-msgid "Selectability & Visibility"
-msgstr "Seleccionabilidad y visibilidad"
-
-
-msgid "Shadow Settings"
-msgstr "Opciones de sombras"
-
-
-msgid "SSAO Settings"
-msgstr "Opciones OAEP"
-
-
-msgid "Cavity"
-msgstr "Cavidades"
-
-
-msgid "Render Pass"
-msgstr "Pasada de procesamiento"
-
-
 msgid "Compositor"
 msgstr "Nodos de composición"
 
@@ -94194,6 +94315,58 @@ msgstr "Escala expandir/contraer curvas"
 
 msgid "Viewport Debug"
 msgstr "Depurar Vista 3D"
+
+
+msgid "glTF Variants"
+msgstr "Variantes glTF"
+
+
+msgid "glTF Material Variants"
+msgstr "Variantes de material glTF"
+
+
+msgid "VR"
+msgstr "RV"
+
+
+msgid "VR Info"
+msgstr "Info de RV"
+
+
+msgid "glTF"
+msgstr "glTF"
+
+
+msgid "glTF Animations"
+msgstr "Animaciones glTF"
+
+
+msgid "Active Tool"
+msgstr "Herramienta activa"
+
+
+msgid "View Lock"
+msgstr "Fijar vista"
+
+
+msgid "Selectability & Visibility"
+msgstr "Seleccionabilidad y visibilidad"
+
+
+msgid "Shadow Settings"
+msgstr "Opciones de sombras"
+
+
+msgid "SSAO Settings"
+msgstr "Opciones OAEP"
+
+
+msgid "Cavity"
+msgstr "Cavidades"
+
+
+msgid "Render Pass"
+msgstr "Pasada de procesamiento"
 
 
 msgid "Import Settings"
@@ -95898,6 +96071,10 @@ msgstr "Mapas de acciones"
 
 msgid "Landmarks"
 msgstr "Puntos de referencia"
+
+
+msgid "Location Scouting"
+msgstr "Búsqueda de locaciones"
 
 
 msgid "Passepartout"
@@ -99137,10 +99314,6 @@ msgid "Allow Online Access"
 msgstr "Permitir acceso en línea"
 
 
-msgid "Allow Blender to access the internet. Add-ons that follow this setting will only connect to the internet if enabled. However, Blender cannot prevent third-party add-ons from violating this rule."
-msgstr "Permite que Blender acceda a internet. Los complementos que se rijan por esta opción sólo podrán conectarse a internet cuando se encuentre activa. Sin embargo, Blender no puede evitar que complementos de terceros violen esta regla."
-
-
 msgid "Overlay Smooth Wires"
 msgstr "Sobreimprimir estructura suavizada"
 
@@ -99525,10 +99698,6 @@ msgid "Catalan - Català"
 msgstr "Catalán - Català"
 
 
-msgid "Locale code: ca_AD. Translation progress: 100%"
-msgstr "Código de localización: ca_AD. Progreso de la traducción: 100%"
-
-
 msgid "Chinese (Simplified) - 简体中文"
 msgstr "Chino (simplificado) - 简体中文"
 
@@ -99539,10 +99708,6 @@ msgstr "Código de localización: zh_HANS. Progreso de la traducción: 100%"
 
 msgid "Chinese (Traditional) - 繁體中文"
 msgstr "Chino (tradicional) - 繁體中文"
-
-
-msgid "Locale code: zh_HANT. Translation progress: 61%"
-msgstr "Código de localización: zh_HANT. Progreso de la traducción: 63%"
 
 
 msgid "Croatian - Hrvatski"
@@ -99605,24 +99770,12 @@ msgid "French - Français"
 msgstr "Francés - Français"
 
 
-msgid "Locale code: fr_FR. Translation progress: 99%"
-msgstr "Código de localización: fr_FR. Progreso de la traducción: 100%"
-
-
 msgid "Georgian - ქართული"
 msgstr "Georgiano - ქართული"
 
 
-msgid "Locale code: ka. Translation progress: 100%"
-msgstr "Código de localización: ka. Progreso de la traducción: 100%"
-
-
 msgid "German - Deutsch"
 msgstr "Alemán - Deutsch"
-
-
-msgid "Locale code: de_DE. Translation progress: 36%"
-msgstr "Código de localización: de_DE. Progreso de la traducción: 36%"
 
 
 msgid "Greek - Ελληνικά"
@@ -99681,10 +99834,6 @@ msgid "Korean - 한국어"
 msgstr "Coreano - 한국어"
 
 
-msgid "Locale code: ko_KR. Translation progress: 95%"
-msgstr "Código de localización: ko_KR. Progreso de la traducción: 97%"
-
-
 msgid "Kyrgyz - Кыргыз тили"
 msgstr "Kirguís - Кыргыз тили"
 
@@ -99729,24 +99878,12 @@ msgid "Polish - Polski"
 msgstr "Polaco - Polski"
 
 
-msgid "Locale code: pl_PL. Translation progress: 100%"
-msgstr "Código de localización: pl_PL. Progreso de la traducción: 100%"
-
-
 msgid "Portuguese (Brazil) - Português brasileiro"
 msgstr "Portugués (Brasil) - Português (Brazil)"
 
 
-msgid "Locale code: pt_BR. Translation progress: 42%"
-msgstr "Código de localización: pt_BR. Progreso de la traducción: 43%"
-
-
 msgid "Portuguese (Portugal) - Português europeu"
 msgstr "Portugués (Portugal) - Português (Portugal)"
-
-
-msgid "Locale code: pt_PT. Translation progress: 79%"
-msgstr "Código de localización: pt_PT. Progreso de la traducción: 79%"
 
 
 msgid "Romanian - Român"
@@ -99769,24 +99906,12 @@ msgid "Serbian (Cyrillic) - Српски"
 msgstr "Serbio (cirílico) - Српски"
 
 
-msgid "Locale code: sr_RS. Translation progress: 16%"
-msgstr "Código de localización: sr_RS. Progreso de la traducción: 16%"
-
-
 msgid "Serbian (Latin) - Srpski latinica"
 msgstr "Serbio (latino) - Srpski latinica"
 
 
-msgid "Locale code: sr_RS@latin. Translation progress: 16%"
-msgstr "Código de localización: sr_RS@latin. Progreso de la traducción: 16%"
-
-
 msgid "Slovak - Slovenčina"
 msgstr "Eslovaco - Slovenčina"
-
-
-msgid "Locale code: sk_SK. Translation progress: 100%"
-msgstr "Código de localización: sk_SK. Progreso de la traducción: 100%"
 
 
 msgid "Slovenian - Slovenščina"
@@ -99801,10 +99926,6 @@ msgid "Spanish - Español"
 msgstr "Español"
 
 
-msgid "Locale code: es. Translation progress: 100%"
-msgstr "Código de localización: es. Progreso de la traducción: 100%"
-
-
 msgid "Swahili - Kiswahili"
 msgstr "Swahili - Kiswahili"
 
@@ -99817,16 +99938,8 @@ msgid "Swedish - Svenska"
 msgstr "Sueco - Svenska"
 
 
-msgid "Locale code: sv_SE. Translation progress: 97%"
-msgstr "Código de localización: sv_SE. Progreso de la traducción: 100%"
-
-
 msgid "Tamil - தமிழ்"
 msgstr "Tamil - தமிழ்"
-
-
-msgid "Locale code: ta. Translation progress: 97%"
-msgstr "Código de localización: ta. Progreso de la traducción: 100%"
 
 
 msgid "Thai - ภาษาไทย"
@@ -99839,10 +99952,6 @@ msgstr "Código de localización: th_TH. Progreso de la traducción: 5%"
 
 msgid "Turkish - Türkçe"
 msgstr "Turco - Türkçe"
-
-
-msgid "Locale code: tr_TR. Translation progress: 76%"
-msgstr "Código de localización: tr_TR. Progreso de la traducción: 77%"
 
 
 msgid "Ukrainian - Українська"
@@ -99859,10 +99968,6 @@ msgstr "Urdu - وُدرُا"
 
 msgid "Vietnamese - Tiếng Việt"
 msgstr "Vietnamita - Tiếng Việt"
-
-
-msgid "Locale code: vi_VN. Translation progress: 98%"
-msgstr "Código de localización: vi_VN. Progreso de la traducción: 99%"
 
 
 msgid "Reference Sphere Size"
@@ -117367,6 +117472,10 @@ msgid "Make the lighting fixed and not follow the camera"
 msgstr "Hacer que la iluminación quede fija y no acompañe a la cámara"
 
 
+msgid "Show Location Scouting Captures"
+msgstr "Mostrar capturas de búsqueda de locaciones"
+
+
 msgid "Show VR Controllers"
 msgstr "Mostrar controladores de RV"
 
@@ -118709,6 +118818,62 @@ msgid "Scaling factor applied to the VR view for fine adjustements. Modifying th
 msgstr "Factor de escala a ser aplicado a la vista de RV para ajustes finos. Al modificar este valor se mantendrá al visor en la misma posición relativa del universo"
 
 
+msgid "Viewfinder Crosshair Enabled"
+msgstr "Habilitar mirilla visor"
+
+
+msgid "Enable the Viewfinder Crosshair"
+msgstr "Habilita la mirilla del visor"
+
+
+msgid "Viewfinder Enabled"
+msgstr "Habilitar visor"
+
+
+msgid "Enable the Location Scouting Viewfinder"
+msgstr "Habilita el visor de búsqueda de locaciones"
+
+
+msgid "Viewfinder Hand"
+msgstr "Mano del visor"
+
+
+msgid "Hand on which to place the Location Scouting Viewfinder"
+msgstr "Mano en donde ubicar el Visor de búsqueda de locaciones"
+
+
+msgid "Place the viewfinder on the left hand controller"
+msgstr "Ubicar el visor en el controlador de la mano izquierda"
+
+
+msgid "Place the viewfinder on the right hand controller"
+msgstr "Ubicar el visor en el controlador de la mano derecha"
+
+
+msgid "Viewfinder Passepartout Opacity"
+msgstr "Opacidad marco visor"
+
+
+msgid "Opacity of the darkened Viewfinder Passepartout overlay"
+msgstr "Opacidad del marco exterior del visor"
+
+
+msgid "Viewfinder Passepartout Overscan"
+msgstr "Sobrebarrido marco visor"
+
+
+msgid "Border size of the Viewfinder Passepartout overlay"
+msgstr "Tamaño del límite del marco exterior del visor"
+
+
+msgid "Viewfinder Scale"
+msgstr "Escala del visor"
+
+
+msgid "Location Scouting Viewfinder size scale"
+msgstr "Tamaño de la escala del Visor de búsqueda de locaciones"
+
+
 msgid "Session State"
 msgstr "Estado de la sesión"
 
@@ -118783,6 +118948,10 @@ msgstr "Rutas de usuario XR"
 
 msgid "Collection of OpenXR user paths"
 msgstr "Colección de rutas de usuario OpenXR"
+
+
+msgid "Runtime state information about the VR Location Scouting Viewfinder"
+msgstr "Información de estado en tiempo de ejecución del Visor de búsqueda de locaciones de RV"
 
 
 msgid "Cancel"
@@ -120822,6 +120991,11 @@ msgstr "Vista 3D - Ampliar modal"
 msgctxt "WindowManager"
 msgid "View3D Dolly Modal"
 msgstr "Vista 3D - Avanzar modal"
+
+
+msgctxt "WindowManager"
+msgid "View3D VR Location Scouting Capture Review Modal"
+msgstr "Vista 3D - Revisión capturas de búsqueda de locaciones de RV modal"
 
 
 msgctxt "WindowManager"
@@ -126499,6 +126673,10 @@ msgid "Stroke Color"
 msgstr "Color del trazo"
 
 
+msgid "Add New Layer to {:s}"
+msgstr "Agregar nueva capa a {:s}"
+
+
 msgid "Frame: {:d} ({:s})"
 msgstr "Fotograma: {:d} ({:s})"
 
@@ -127744,6 +127922,10 @@ msgstr "La primera salida del grupo de nodos debe ser de tipo Color."
 
 msgid "Unpack"
 msgstr "Desempacar"
+
+
+msgid "Node group must have at least {:d} Color input(s)."
+msgstr "El grupo de nodos debe contener al menos {:d} entrada(s) de Color."
 
 
 msgid "Source Channel"
@@ -159070,6 +159252,10 @@ msgid "Extra Sim Attributes"
 msgstr "Atributos adicionales"
 
 
+msgid "Add gravity to the simulation."
+msgstr "Aplica gravedad a la simulación."
+
+
 msgid "Invert Pin Group"
 msgstr "Invertir grupo fijo"
 
@@ -159102,12 +159288,20 @@ msgid "Collider"
 msgstr "Colisionador"
 
 
+msgid "Whether the collider geometry is changing."
+msgstr "Si la geometría del colisionador está cambiando o no."
+
+
 msgid "Edge Contacts"
 msgstr "Contactos de bordes"
 
 
 msgid "Error Threshold"
 msgstr "Umbral de error"
+
+
+msgid "Filter settings."
+msgstr "Opciones de filtrado."
 
 
 msgid "Curve Info"
@@ -159302,6 +159496,14 @@ msgid "Returns the length of an edge"
 msgstr "Proporciona la longitud de un borde"
 
 
+msgid "Damping settings."
+msgstr "Opciones de amortiguación."
+
+
+msgid "Use gravity in the simulation."
+msgstr "Usar gravedad en la simulación."
+
+
 msgid "Hair Tags"
 msgstr "Etiquetas de pelo"
 
@@ -159310,24 +159512,92 @@ msgid "Randomness Bendiness"
 msgstr "Aleatoriedad flexibilidad"
 
 
+msgid "How much to randomize the bendiness."
+msgstr "Permite decidir qué tanto aleatorizar la flexibilidad."
+
+
 msgid "Randomness Root Bendiness"
 msgstr "Aleatoriedad flexibilidad raíz"
+
+
+msgid "How much to randomize the root bendiness."
+msgstr "Permite decidir qué tanto aleatorizar la flexibilidad de la raíz."
 
 
 msgid "Randomness Stretchiness"
 msgstr "Aleatoriedad estiramiento"
 
 
+msgid "How much to randomize the stretchiness."
+msgstr "Permite decidir qué tanto aleatorizar el estiramiento."
+
+
 msgid "Root Bendiness"
 msgstr "Flexibilidad raíz"
 
 
+msgid "Higher values allow the root points (which are attached to the surface) to rotate more. "
+msgstr "Valores mayores permitirán que los puntos de la raíz (que se encuentran anclados a la superficie) roten más. "
+
+
+msgid "Solver settings affecting speed and quality."
+msgstr "Opciones del método de resolución que afectan a la velocidad y la calidad."
+
+
+msgid "Higher values make the hair more stretchy."
+msgstr "Valores mayores harán al pelo más estirable."
+
+
+msgid "Settings for structural constraints."
+msgstr "Opciones para restricciones estructurales."
+
+
 msgid "Surface Collision"
-msgstr "Colisión de superficie"
+msgstr "Colisionar con superficie"
+
+
+msgid "Collide with the surface mesh the hair is attached to."
+msgstr "Colisionar con la malla de la superficie a la cual se encuentra anclado el pelo."
+
+
+msgid "Settings for collisions with the surface mesh."
+msgstr "Opciones para colisiones con la malla de la superficie."
 
 
 msgid "Surface Friction"
 msgstr "Fricción de superficie"
+
+
+msgid "Friction coefficient of the surface."
+msgstr "Coeficiente de fricción de la superficie."
+
+
+msgid "Multiplied to the delta time in each time step."
+msgstr "Multiplicado por la variación de tiempo en cada intervalo."
+
+
+msgid "Simply deform the hair based on the current surface, without simulation."
+msgstr "Simplemente deforma el pelo basándose en la superficie actual, sin calcular una simulación."
+
+
+msgid "Physics (Experimental)"
+msgstr "Dinámicas (experimental)"
+
+
+msgid "Simulate physics on top of the deformed hair."
+msgstr "Permite simular dinámicas sobre el pelo deformado."
+
+
+msgid "Set Effector"
+msgstr "Definir efector"
+
+
+msgid "The actual bundle containing one more multiple effectors."
+msgstr "El paquete que contiene uno o más efectores."
+
+
+msgid "Name of the effector in the geometry bundle."
+msgstr "Nombre del efector en el paquete de la geometría."
 
 
 msgid "Create copies of the geometry with different methods of cumulative offset"

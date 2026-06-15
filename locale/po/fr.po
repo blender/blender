@@ -1,9 +1,9 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 5.2.0 LTS Beta (b'2b1958ccdccb')\n"
+"Project-Id-Version: Blender 5.2.0 LTS Beta (b'e899b48ea546')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-06-08 09:37+0000\n"
+"POT-Creation-Date: 2026-06-15 07:32+0000\n"
 "PO-Revision-Date: 2026-06-06 14:37+0000\n"
 "Last-Translator: Damien Picard <dam.pic@free.fr>\n"
 "Language-Team: French <https://translate.blender.org/projects/blender-ui/ui/fr/>\n"
@@ -35832,88 +35832,196 @@ msgid "Editor menu containing buttons"
 msgstr "Menu d’éditeur contenant des boutons"
 
 
-msgid "Relations"
-msgstr "Relations"
-
-
-msgid "Rigid Body"
-msgstr "Corps rigide"
-
-
 msgid "Render Preview"
 msgstr "Rendu de prévisualisation"
-
-
-msgid "Apply"
-msgstr "Appliquer"
 
 
 msgid "Track"
 msgstr "Suivi"
 
 
-msgid "Quick Effects"
-msgstr "Effets rapides"
-
-
-msgid "Show/Hide"
-msgstr "Afficher/cacher"
-
-
-msgid "Clean Up"
-msgstr "Nettoyer"
-
-
-msgid "Asset"
-msgstr "Asset"
-
-
-msgid "Make Single User"
-msgstr "Rendre mono-utilisateur"
-
-
-msgid "Convert"
-msgstr "Convertir"
-
-
-msgid "Link/Transfer Data"
-msgstr "Lier/transférer des données"
-
-
-msgid "Hooks"
-msgstr "Crochets"
-
-
-msgid "Vertex Group Locks"
-msgstr "Verrouillages des groupes de sommets"
-
-
 msgid "Math"
 msgstr "Maths"
-
-
-msgid "Trim/Add"
-msgstr "Découper/Ajouter"
-
-
-msgid "Add Primitive"
-msgstr "Ajouter primitive"
 
 
 msgid "Utilities"
 msgstr "Utilitaires"
 
 
-msgid "Sculpt Set Pivot"
-msgstr "Définir le pivot pour la sculpture"
+msgid "Assign Material"
+msgstr "Assigner un matériau"
+
+
+msgid "Add Primitive"
+msgstr "Ajouter primitive"
+
+
+msgid "Read"
+msgstr "Lecture"
+
+
+msgid "Sample"
+msgstr "Échantillonner"
+
+
+msgid "Write"
+msgstr "Écriture"
+
+
+msgid "Primitives"
+msgstr "Primitives"
+
+
+msgid "Mirror"
+msgstr "Miroir"
+
+
+msgid "Snap"
+msgstr "Aimanter"
+
+
+msgid "Rigid Body"
+msgstr "Corps rigide"
+
+
+msgid "UV Mapping"
+msgstr "Placage UV"
+
+
+msgid "Local View"
+msgstr "Vue locale"
+
+
+msgid "Viewpoint"
+msgstr "Point de vue"
+
+
+msgid "Navigation"
+msgstr "Navigation"
+
+
+msgid "Align View"
+msgstr "Aligner la vue"
+
+
+msgid "Align View to Active"
+msgstr "Aligner la vue sur l’actif"
+
+
+msgid "View Regions"
+msgstr "Régions dans la vue"
+
+
+msgid "Select More/Less"
+msgstr "Sélectionner plus ou moins"
+
+
+msgid "Gizmo"
+msgstr "Gizmo"
+
+
+msgid "Instances"
+msgstr "Instances"
+
+
+msgid "Select Similar"
+msgstr "Sélectionner similaires"
+
+
+msgid "Select All by Trait"
+msgstr "Tout sélectionner par caractéristiques"
+
+
+msgid "Select Linked"
+msgstr "Sélectionner liés"
+
+
+msgid "Select Loops"
+msgstr "Sélectionner les boucles"
+
+
+msgid "Import"
+msgstr "Importer"
+
+
+msgid "Deprecated"
+msgstr "Obsolète"
+
+
+msgid "Relations"
+msgstr "Relations"
+
+
+msgid "UV"
+msgstr "UV"
+
+
+msgid "Vertex Group Locks"
+msgstr "Verrouillages des groupes de sommets"
+
+
+msgid "Metaball"
+msgstr "Métaballe"
+
+
+msgid "Random Mask"
+msgstr "Masque aléatoire"
+
+
+msgid "Asset"
+msgstr "Asset"
+
+
+msgid "Show/Hide"
+msgstr "Afficher/cacher"
+
+
+msgid "Apply"
+msgstr "Appliquer"
+
+
+msgid "Link/Transfer Data"
+msgstr "Lier/transférer des données"
+
+
+msgid "Clean Up"
+msgstr "Nettoyer"
 
 
 msgid "Face Sets Init"
 msgstr "Initialiser les ensembles de faces"
 
 
-msgid "Random Mask"
-msgstr "Masque aléatoire"
+msgid "Light Probe"
+msgstr "Sonde d’éclairage"
+
+
+msgid "Light"
+msgstr "Éclairage"
+
+
+msgid "Add Image"
+msgstr "Ajouter une image"
+
+
+msgid "Sculpt Set Pivot"
+msgstr "Définir le pivot pour la sculpture"
+
+
+msgid "Hooks"
+msgstr "Crochets"
+
+
+msgid "Make Single User"
+msgstr "Rendre mono-utilisateur"
+
+
+msgid "Quick Effects"
+msgstr "Effets rapides"
+
+
+msgid "Trim/Add"
+msgstr "Découper/Ajouter"
 
 
 msgid "Clear Transform"
@@ -35936,20 +36044,8 @@ msgid "Names"
 msgstr "Noms"
 
 
-msgid "Read"
-msgstr "Lecture"
-
-
-msgid "Sample"
-msgstr "Échantillonner"
-
-
 msgid "Toggle Bone Options"
 msgstr "(Dés)activer des options d’os"
-
-
-msgid "Write"
-msgstr "Écriture"
 
 
 msgid "Enable Bone Options"
@@ -35958,10 +36054,6 @@ msgstr "Activer des options d’os"
 
 msgid "Disable Bone Options"
 msgstr "Désactiver des options d’os"
-
-
-msgid "Primitives"
-msgstr "Primitives"
 
 
 msgid "Mesh Select Mode"
@@ -35980,20 +36072,12 @@ msgid "Set Face Strength"
 msgstr "Définir la force de face"
 
 
-msgid "Gizmo"
-msgstr "Gizmo"
-
-
-msgid "Instances"
-msgstr "Instances"
-
-
 msgid "Merge"
 msgstr "Fusionner"
 
 
-msgid "Import"
-msgstr "Importer"
+msgid "Convert"
+msgstr "Convertir"
 
 
 msgid "Special Characters"
@@ -36004,28 +36088,32 @@ msgid "Kerning"
 msgstr "Approche"
 
 
-msgid "Deprecated"
-msgstr "Obsolète"
+msgid "Linked"
+msgstr "Liés"
 
 
-msgid "Metaball"
-msgstr "Métaballe"
+msgid "Layout"
+msgstr "Disposition"
 
 
 msgid "Bone Roll"
 msgstr "Roulis de l’os"
 
 
-msgid "UV"
-msgstr "UV"
+msgid "Adjust"
+msgstr "Ajuster"
+
+
+msgid "Keying"
+msgstr "Incrustation"
+
+
+msgid "Tracking"
+msgstr "Suivi"
 
 
 msgid "Pivot Point"
 msgstr "Point de pivot"
-
-
-msgid "Snap"
-msgstr "Aimanter"
 
 
 msgid "Proportional Editing Falloff"
@@ -36044,96 +36132,8 @@ msgid "Face Sets Edit"
 msgstr "Édition des ensembles de faces"
 
 
-msgid "Mirror"
-msgstr "Miroir"
-
-
-msgid "UV Mapping"
-msgstr "Placage UV"
-
-
-msgid "Local View"
-msgstr "Vue locale"
-
-
-msgid "Viewpoint"
-msgstr "Point de vue"
-
-
-msgid "Navigation"
-msgstr "Navigation"
-
-
-msgid "Linked"
-msgstr "Liés"
-
-
-msgid "Align View"
-msgstr "Aligner la vue"
-
-
-msgid "Layout"
-msgstr "Disposition"
-
-
-msgid "Align View to Active"
-msgstr "Aligner la vue sur l’actif"
-
-
-msgid "View Regions"
-msgstr "Régions dans la vue"
-
-
-msgid "Select More/Less"
-msgstr "Sélectionner plus ou moins"
-
-
-msgid "Select Similar"
-msgstr "Sélectionner similaires"
-
-
-msgid "Select All by Trait"
-msgstr "Tout sélectionner par caractéristiques"
-
-
-msgid "Select Linked"
-msgstr "Sélectionner liés"
-
-
-msgid "Select Loops"
-msgstr "Sélectionner les boucles"
-
-
-msgid "Adjust"
-msgstr "Ajuster"
-
-
-msgid "Keying"
-msgstr "Incrustation"
-
-
-msgid "Tracking"
-msgstr "Suivi"
-
-
-msgid "Assign Material"
-msgstr "Assigner un matériau"
-
-
 msgid "Creative"
 msgstr "Créatif"
-
-
-msgid "Light"
-msgstr "Éclairage"
-
-
-msgid "Light Probe"
-msgstr "Sonde d’éclairage"
-
-
-msgid "Add Image"
-msgstr "Ajouter une image"
 
 
 msgid "Keyframe Insert Pie"
@@ -55237,8 +55237,8 @@ msgid "Clear Status"
 msgstr "Effacer le statut"
 
 
-msgid "Allow internet access. Blender may access configured online extension repositories. Installed third party add-ons may access the internet for their own functionality"
-msgstr "Autoriser l’accès à Internet. Blender peut accéder aux dépôts d’extensions en ligne configurés. Les add-ons tiers installés peuvent accéder à Internet pour leurs propres fonctionnalités"
+msgid "Allow Blender to access the internet. Add-ons that follow this setting will only connect to the internet if enabled. However, Blender cannot prevent third-party add-ons from violating this rule."
+msgstr "Autoriser à Blender l’accès à Internet. Les add-ons qui respectent ce réglage ne se connecteront à Internet que s’il est activé. Cependant, Blender ne peut pas empêcher les add-ons tiers d’enfreindre cette règle."
 
 
 msgid "Open extensions preferences"
@@ -69985,10 +69985,6 @@ msgstr "Sélectionner les marqueurs avant/après la frame actuelle"
 
 msgid "Select markers on and left/right of the current frame"
 msgstr "Sélectionner les marqueurs à la frame actuelle et à sa gauche ou droite"
-
-
-msgid "Check which side was clicked"
-msgstr "Vérifier quel côté a été cliqué"
 
 
 msgctxt "Operator"
@@ -93905,58 +93901,6 @@ msgid "Panel containing UI elements"
 msgstr "Panneau contenant des éléments d’interface"
 
 
-msgid "VR"
-msgstr "VR"
-
-
-msgid "VR Info"
-msgstr "Infos VR"
-
-
-msgid "glTF Variants"
-msgstr "Variantes glTF"
-
-
-msgid "glTF Material Variants"
-msgstr "Variantes de matériaux glTF"
-
-
-msgid "glTF"
-msgstr "glTF"
-
-
-msgid "glTF Animations"
-msgstr "Animations glTF"
-
-
-msgid "Active Tool"
-msgstr "Outil actif"
-
-
-msgid "View Lock"
-msgstr "Verrouillage de la vue"
-
-
-msgid "Selectability & Visibility"
-msgstr "Sélectionnabilité et visibilité"
-
-
-msgid "Shadow Settings"
-msgstr "Réglages d’ombre"
-
-
-msgid "SSAO Settings"
-msgstr "Réglages de SSAO"
-
-
-msgid "Cavity"
-msgstr "Cavité"
-
-
-msgid "Render Pass"
-msgstr "Passe de rendu"
-
-
 msgid "Compositor"
 msgstr "Compositing"
 
@@ -94043,6 +93987,58 @@ msgstr "Courbes – échelle pour grandir/raccourcir"
 
 msgid "Viewport Debug"
 msgstr "Débugage vue 3D"
+
+
+msgid "glTF Variants"
+msgstr "Variantes glTF"
+
+
+msgid "glTF Material Variants"
+msgstr "Variantes de matériaux glTF"
+
+
+msgid "VR"
+msgstr "VR"
+
+
+msgid "VR Info"
+msgstr "Infos VR"
+
+
+msgid "glTF"
+msgstr "glTF"
+
+
+msgid "glTF Animations"
+msgstr "Animations glTF"
+
+
+msgid "Active Tool"
+msgstr "Outil actif"
+
+
+msgid "View Lock"
+msgstr "Verrouillage de la vue"
+
+
+msgid "Selectability & Visibility"
+msgstr "Sélectionnabilité et visibilité"
+
+
+msgid "Shadow Settings"
+msgstr "Réglages d’ombre"
+
+
+msgid "SSAO Settings"
+msgstr "Réglages de SSAO"
+
+
+msgid "Cavity"
+msgstr "Cavité"
+
+
+msgid "Render Pass"
+msgstr "Passe de rendu"
 
 
 msgid "Import Settings"
@@ -98970,10 +98966,6 @@ msgid "Allow Online Access"
 msgstr "Autoriser l’accès en ligne"
 
 
-msgid "Allow Blender to access the internet. Add-ons that follow this setting will only connect to the internet if enabled. However, Blender cannot prevent third-party add-ons from violating this rule."
-msgstr "Autoriser à Blender l’accès à Internet. Les add-ons qui respectent ce réglage ne se connecteront à Internet que s’il est activé. Cependant, Blender ne peut pas empêcher les add-ons tiers d’enfreindre cette règle."
-
-
 msgid "Overlay Smooth Wires"
 msgstr "Filaire adouci en surimpression"
 
@@ -99358,10 +99350,6 @@ msgid "Catalan - Català"
 msgstr "Catalan - Català"
 
 
-msgid "Locale code: ca_AD. Translation progress: 100%"
-msgstr "Identificateur de culture : ca_AD. Progrès de la traduction : 100%"
-
-
 msgid "Chinese (Simplified) - 简体中文"
 msgstr "Chinois (Simplifié) - 简体中文"
 
@@ -99372,10 +99360,6 @@ msgstr "Identificateur de culture : zh_HANS. Progrès de la traduction : 99%"
 
 msgid "Chinese (Traditional) - 繁體中文"
 msgstr "Chinois (Traditionnel) - 繁體中文"
-
-
-msgid "Locale code: zh_HANT. Translation progress: 61%"
-msgstr "Identificateur de culture : zh_HANT. Progrès de la traduction : 61%"
 
 
 msgid "Croatian - Hrvatski"
@@ -99438,24 +99422,12 @@ msgid "French - Français"
 msgstr "Français"
 
 
-msgid "Locale code: fr_FR. Translation progress: 99%"
-msgstr "Identificateur de culture : fr_FR. Progrès de la traduction : 99%"
-
-
 msgid "Georgian - ქართული"
 msgstr "Géorgien - ქართული"
 
 
-msgid "Locale code: ka. Translation progress: 100%"
-msgstr "Identificateur de culture : ka. Progrès de la traduction : 100%"
-
-
 msgid "German - Deutsch"
 msgstr "Allemand - Deutsch"
-
-
-msgid "Locale code: de_DE. Translation progress: 36%"
-msgstr "Identificateur de culture : de_DE. Progrès de la traduction : 36%"
 
 
 msgid "Greek - Ελληνικά"
@@ -99514,10 +99486,6 @@ msgid "Korean - 한국어"
 msgstr "Coréen - 한국어"
 
 
-msgid "Locale code: ko_KR. Translation progress: 95%"
-msgstr "Identificateur de culture : ko_KR. Progrès de la traduction : 95%"
-
-
 msgid "Kyrgyz - Кыргыз тили"
 msgstr "Kirguise - Кыргыз тили"
 
@@ -99562,24 +99530,12 @@ msgid "Polish - Polski"
 msgstr "Polonais - Polski"
 
 
-msgid "Locale code: pl_PL. Translation progress: 100%"
-msgstr "Identificateur de culture : pl_PL. Progrès de la traduction : 100%"
-
-
 msgid "Portuguese (Brazil) - Português brasileiro"
 msgstr "Portugais (Brésil) - Português brasileiro"
 
 
-msgid "Locale code: pt_BR. Translation progress: 42%"
-msgstr "Identificateur de culture : pt_BR. Progrès de la traduction : 42%"
-
-
 msgid "Portuguese (Portugal) - Português europeu"
 msgstr "Portugais (Portugal) - Português europeu"
-
-
-msgid "Locale code: pt_PT. Translation progress: 79%"
-msgstr "Identificateur de culture : pt_PT. Progrès de la traduction : 79%"
 
 
 msgid "Romanian - Român"
@@ -99602,24 +99558,12 @@ msgid "Serbian (Cyrillic) - Српски"
 msgstr "Serbe (Cyrillique) - Српски"
 
 
-msgid "Locale code: sr_RS. Translation progress: 16%"
-msgstr "Identificateur de culture : sr_RS. Progrès de la traduction : 16%"
-
-
 msgid "Serbian (Latin) - Srpski latinica"
 msgstr "Serbe (Latin) - Srpski latinica"
 
 
-msgid "Locale code: sr_RS@latin. Translation progress: 16%"
-msgstr "Identificateur de culture : sr_RS@latin. Progrès de la traduction : 16%"
-
-
 msgid "Slovak - Slovenčina"
 msgstr "Slovaque - Slovenčina"
-
-
-msgid "Locale code: sk_SK. Translation progress: 100%"
-msgstr "Identificateur de culture : sk_SK. Progrès de la traduction : 100%"
 
 
 msgid "Slovenian - Slovenščina"
@@ -99634,10 +99578,6 @@ msgid "Spanish - Español"
 msgstr "Espagnol - Español"
 
 
-msgid "Locale code: es. Translation progress: 100%"
-msgstr "Identificateur de culture : es. Progrès de la traduction : 100%"
-
-
 msgid "Swahili - Kiswahili"
 msgstr "Swahili - Kiswahili"
 
@@ -99650,16 +99590,8 @@ msgid "Swedish - Svenska"
 msgstr "Suédois - Svenska"
 
 
-msgid "Locale code: sv_SE. Translation progress: 97%"
-msgstr "Identificateur de culture : sv_SE. Progrès de la traduction : 97%"
-
-
 msgid "Tamil - தமிழ்"
 msgstr "Tamoul - தமிழ்"
-
-
-msgid "Locale code: ta. Translation progress: 97%"
-msgstr "Identificateur de culture : ta. Progrès de la traduction : 97%"
 
 
 msgid "Thai - ภาษาไทย"
@@ -99672,10 +99604,6 @@ msgstr "Identificateur de culture : th_TH. Progrès de la traduction : 5%"
 
 msgid "Turkish - Türkçe"
 msgstr "Turc - Türkçe"
-
-
-msgid "Locale code: tr_TR. Translation progress: 76%"
-msgstr "Identificateur de culture : tr_TR. Progrès de la traduction : 76%"
 
 
 msgid "Ukrainian - Українська"
@@ -99692,10 +99620,6 @@ msgstr "Ourdou - وُدرُا"
 
 msgid "Vietnamese - Tiếng Việt"
 msgstr "Vietnamien - Tiếng Việt"
-
-
-msgid "Locale code: vi_VN. Translation progress: 98%"
-msgstr "Identificateur de culture : vi_VN. Progrès de la traduction : 98%"
 
 
 msgid "Reference Sphere Size"
