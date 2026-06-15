@@ -272,6 +272,8 @@ static void get_pose_bones_for_slide(bContext *C, ListBaseT<SlideSubject> &slide
 
   prev_ob = nullptr;
   ob_pose_armature = nullptr;
+  /* Used to avoid duplicates when using mirroring. */
+  Set<StringRefNull> inserted_bones;
   CTX_DATA_BEGIN_WITH_ID (C, bPoseChannel *, pchan, selected_pose_bones, Object *, ob) {
     BLI_assert(pchan != nullptr);
     if (ob != prev_ob) {
@@ -287,7 +289,17 @@ static void get_pose_bones_for_slide(bContext *C, ListBaseT<SlideSubject> &slide
       continue;
     }
 
+    if (!inserted_bones.add(pchan->name)) {
+      continue;
+    }
     pchan_to_slide_subject(slide_subjects, *ob_pose_armature, *pchan);
+
+    if (ob_pose_armature->pose->flag & POSE_MIRROR_EDIT) {
+      bPoseChannel *pchan_mirror = BKE_pose_channel_get_mirrored(ob->pose, pchan->name);
+      if (pchan_mirror && inserted_bones.add(pchan_mirror->name)) {
+        pchan_to_slide_subject(slide_subjects, *ob_pose_armature, *pchan_mirror);
+      }
+    }
   }
   CTX_DATA_END;
 
