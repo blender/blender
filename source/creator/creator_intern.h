@@ -52,6 +52,7 @@ void main_signal_setup_fpe(void);
 struct ApplicationState {
   struct {
     bool use_crash_handler;
+    bool use_console_crash_handler;
     bool use_abort_handler;
   } signal;
 

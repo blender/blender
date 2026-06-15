@@ -29,6 +29,7 @@ def get_arguments(filepath, output_filepath):
         "--factory-startup",
         "--enable-autoexec",
         "--debug-memory",
+        "--console-crash-handler",
         "--debug-exit-on-error",
         filepath,
         "-o", f"{output_filepath}.{suffix}",

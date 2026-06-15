@@ -34,6 +34,7 @@ def get_arguments(filepath, output_filepath, gpu_backend):
         "--no-native-pixels",
         "--enable-autoexec",
         "--debug-memory",
+        "--console-crash-handler",
         "--debug-exit-on-error"]
 
     if gpu_backend:
