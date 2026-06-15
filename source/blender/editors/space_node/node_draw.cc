@@ -427,13 +427,13 @@ const char *node_socket_get_description(const bNodeSocket *socket)
 {
   if (socket->runtime->declaration == nullptr) {
     if (socket->description[0]) {
-      return socket->description;
+      return TIP_(socket->description);
     }
     return nullptr;
   }
   const nodes::SocketDeclaration &socket_decl = *socket->runtime->declaration;
   if (!socket_decl.description.empty()) {
-    return socket_decl.description.c_str();
+    return TIP_(socket_decl.description.c_str());
   }
   return nullptr;
 }
