@@ -1632,14 +1632,15 @@ static void wm_window_set_drawable(wmWindowManager *wm, wmWindow *win, bool acti
   if (activate) {
     GHOST_IWindow *ghost_window = static_cast<GHOST_IWindow *>(win->runtime->ghostwin);
     ghost_window->activateDrawingContext();
+    GPU_context_active_set(static_cast<GPUContext *>(win->runtime->gpuctx));
   }
-  GPU_context_active_set(static_cast<GPUContext *>(win->runtime->gpuctx));
 }
 
 void wm_window_clear_drawable(wmWindowManager *wm)
 {
   if (wm->runtime->windrawable) {
     wm->runtime->windrawable = nullptr;
+    GPU_context_active_set(nullptr);
   }
 }
 
