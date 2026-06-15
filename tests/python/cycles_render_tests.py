@@ -187,6 +187,7 @@ def get_arguments(filepath, output_filepath, use_hwrt, osl, extra_args):
         "--enable-autoexec",
         "--debug-memory",
         "--debug-exit-on-error",
+        "--console-crash-handler",
         filepath,
         "-E", "CYCLES",
         "-o", output_filepath,
