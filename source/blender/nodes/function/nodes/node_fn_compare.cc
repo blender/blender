@@ -37,7 +37,8 @@ NODE_STORAGE_FUNCS(NodeFunctionCompare)
 
 static bool is_supported_data_block_type(const eNodeSocketDatatype data_type)
 {
-  return ELEM(data_type, SOCK_OBJECT, SOCK_IMAGE, SOCK_COLLECTION, SOCK_FONT, SOCK_SOUND);
+  return ELEM(
+      data_type, SOCK_OBJECT, SOCK_IMAGE, SOCK_COLLECTION, SOCK_MATERIAL, SOCK_FONT, SOCK_SOUND);
 }
 
 static void node_declare(NodeDeclarationBuilder &b)
@@ -218,6 +219,8 @@ static auto to_static_data_block_type(const eNodeSocketDatatype socket_type, Fn 
       return fn.template operator()<Image>();
     case SOCK_COLLECTION:
       return fn.template operator()<Collection>();
+    case SOCK_MATERIAL:
+      return fn.template operator()<Material>();
     case SOCK_FONT:
       return fn.template operator()<VFont>();
     case SOCK_SOUND:
