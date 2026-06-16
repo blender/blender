@@ -138,15 +138,15 @@ void combine_frag([[resource_table]] Combine &srt,
           case CLOSURE_BSSRDF_BURLEY_ID:
           case CLOSURE_BSDF_DIFFUSE_ID:
             diffuse_color += cl.color;
-            diffuse_direct += closure_direct_light;
-            diffuse_indirect += closure_indirect_light;
+            diffuse_direct += closure_direct_light * cl.color;
+            diffuse_indirect += closure_indirect_light * cl.color;
             break;
           case CLOSURE_BSDF_MICROFACET_GGX_REFLECTION_ID:
           case CLOSURE_BSDF_MICROFACET_GGX_REFRACTION_ID:
           case CLOSURE_BSDF_THIN_GLASS_TRANSMISSION_ID:
             specular_color += cl.color;
-            specular_direct += closure_direct_light;
-            specular_indirect += closure_indirect_light;
+            specular_direct += closure_direct_light * cl.color;
+            specular_indirect += closure_indirect_light * cl.color;
             break;
           case CLOSURE_NONE_ID:
             assert(false);

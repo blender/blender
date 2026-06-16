@@ -21,6 +21,7 @@
 #include "BLI_path_utils.hh"
 #include "BLI_string.hh"
 #include "BLI_string_utf8.hh"
+#include "BLI_string_utils.hh"
 
 #include "BLT_translation.hh"
 
@@ -87,13 +88,12 @@ void strip_unique_name_set(Scene *scene, ListBaseT<Strip> *seqbasep, Strip *stri
   sui.count = 1;
   sui.match = 1; /* assume the worst to start the loop */
 
-  /* Strip off the suffix */
+  /* Strip off the suffix only if it is purely numeric. */
   if ((dot = strrchr(sui.name_src, '.'))) {
-    *dot = '\0';
-    dot++;
-
-    if (*dot) {
-      sui.count = atoi(dot) + 1;
+    char *suffix = dot + 1;
+    if (BLI_string_is_decimal(suffix)) {
+      *dot = '\0';
+      sui.count = atoi(suffix) + 1;
     }
   }
 
