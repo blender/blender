@@ -652,7 +652,7 @@ static uint16_t find_free_localview_bit(const Main *bmain)
     }
   }
 
-  for (int i = 0; i < sizeof(SpaceGraph::local_view_bit); i++) {
+  for (int i = 0; i < 8 * sizeof(SpaceGraph::local_view_bit); i++) {
     if ((local_view_bits & (1 << i)) == 0) {
       return (1 << i);
     }
