@@ -2977,6 +2977,8 @@ static void node_draw_basis(const bContext &C,
                                    0,
                                    0,
                                    "");
+    /* The operator already adds an undo step, so no need for the button to also add one. */
+    button_flag_disable(but, ui::BUT_UNDO);
     button_func_set(but,
                     node_toggle_button_cb,
                     POINTER_FROM_INT(node.identifier),
@@ -3100,6 +3102,8 @@ static void node_draw_basis(const bContext &C,
                                    0.0f,
                                    "");
 
+    /* The operator already adds an undo step, so no need for the button to also add one. */
+    button_flag_disable(but, ui::BUT_UNDO);
     button_func_set(but,
                     node_toggle_button_cb,
                     POINTER_FROM_INT(node.identifier),
@@ -3296,6 +3300,8 @@ static void node_draw_collapsed(const bContext &C,
                                    0.0f,
                                    "");
 
+    /* The operator already adds an undo step, so no need for the button to also add one. */
+    button_flag_disable(but, ui::BUT_UNDO);
     button_func_set(but,
                     node_toggle_button_cb,
                     POINTER_FROM_INT(node.identifier),
