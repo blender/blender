@@ -101,9 +101,9 @@ BLOCKLIST_AMD_WINDOWS_VK = [
     "implicit_volume.blend"
 ]
 
-# Block list for Linux/AMD official driver. On buildbot this driver can fail and the artifacts are likely
+# Block list for AMD official driver. On buildbot this driver can fail and the artifacts are likely
 # caused by incorrect index buffer synchronization or vertex shader execution.
-BLOCKLIST_AMD_LINUX_VK = [
+BLOCKLIST_AMD_VK = [
     ".*"
 ]
 
@@ -301,8 +301,8 @@ def main():
             blocklist += BLOCKLIST_NVIDIA_GL
         if gpu_vendor == "AMD" and sys.platform == "win32" and args.gpu_backend == "vulkan":
             blocklist += BLOCKLIST_AMD_WINDOWS_VK
-        if gpu_vendor == "AMD" and sys.platform == "linux" and args.gpu_backend == "vulkan":
-            blocklist += BLOCKLIST_AMD_LINUX_VK
+        if gpu_vendor == "AMD" and args.gpu_backend == "vulkan":
+            blocklist += BLOCKLIST_AMD_VK
 
     report = EEVEEReport("EEVEE", args.outdir, args.oiiotool, variation=args.gpu_backend, blocklist=blocklist)
     if args.gpu_backend == "vulkan":

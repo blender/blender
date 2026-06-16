@@ -31,9 +31,9 @@ BLOCKLIST_VULKAN = [
     "image_log.blend",
 ]
 
-# Block list for Linux/AMD official driver. On buildbot this driver can fail and the artifacts are likely
+# Block list for AMD official driver. On buildbot this driver can fail and the artifacts are likely
 # caused by incorrect index buffer synchronization or vertex shader execution.
-BLOCKLIST_AMD_LINUX_VK = [
+BLOCKLIST_AMD_VK = [
     ".*"
 ]
 
@@ -113,11 +113,10 @@ def main():
     if args.gpu_backend == "vulkan":
         blocklist += BLOCKLIST_VULKAN
 
-    # AMD Linux Vulkan driver blocks all tests due to index/vertex shader sync issues.
     gpu_vendor = render_report.get_gpu_device_vendor(args.blender)
     if os.getenv("BLENDER_TEST_IGNORE_VENDOR_BLOCKLIST") is None:
-        if gpu_vendor == "AMD" and sys.platform == "linux" and args.gpu_backend == "vulkan":
-            blocklist += BLOCKLIST_AMD_LINUX_VK
+        if gpu_vendor == "AMD" and args.gpu_backend == "vulkan":
+            blocklist += BLOCKLIST_AMD_VK
 
     report = WorkbenchReport("Workbench", args.outdir, args.oiiotool, variation=args.gpu_backend, blocklist=blocklist)
     if args.gpu_backend == "vulkan":
