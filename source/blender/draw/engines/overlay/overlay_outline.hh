@@ -164,7 +164,7 @@ class Outline : Overlay {
 
           /* Display flat object as a line when view is orthogonal to them.
            * This fixes only the biggest case which is a plane in ortho view. */
-          int flat_axis = FlatObjectRef::flat_axis_index_get(ob_ref.object);
+          int flat_axis = FlatObjectRef::flat_axis_index_get(ob_ref);
           if (flat_axis != -1) {
             geom = DRW_cache_mesh_edge_detection_get(ob_ref.object, nullptr);
             flat_objects_.append({geom, manager.unique_handle(ob_ref), flat_axis});
