@@ -8,6 +8,7 @@
 #include "DNA_node_types.h"
 #include "DNA_object_types.h"
 
+#include "BKE_anim_data.hh"
 #include "BKE_image.hh"
 #include "BKE_node_legacy_types.hh"
 #include "BKE_node_runtime.hh"
@@ -267,7 +268,8 @@ static void gather_geometry_nodes_eval_dependencies(
   deps.needs_active_camera |= has_enabled_nodes_of_type(ntree,
                                                         "GeometryNodeInputActiveCamera"_ustr);
   deps.needs_scene_render_params |= needs_scene_render_params(ntree);
-  deps.time_dependent |= has_enabled_nodes_of_type(ntree, "GeometryNodeSimulationInput"_ustr) ||
+  deps.time_dependent |= BKE_animdata_id_is_animated(&ntree.id) ||
+                         has_enabled_nodes_of_type(ntree, "GeometryNodeSimulationInput"_ustr) ||
                          has_enabled_nodes_of_type(ntree, "GeometryNodeInputSceneTime"_ustr) ||
                          has_enabled_nodes_of_type(ntree, "CompositorNodeSceneTime"_ustr) ||
                          has_enabled_nodes_of_type(ntree, "CompositorNodeTime"_ustr) ||
