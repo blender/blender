@@ -210,11 +210,14 @@ static void modifier_modify_mesh_and_geometry_set(ModifierData *md,
 {
   const ModifierTypeInfo *mti = BKE_modifier_get_info(md->type);
   if (mti->modify_geometry_set) {
-    if (Mesh *mesh = geometry_set.get_mesh_for_write()) {
-      ASSERT_IS_VALID_MESH_INPUT(mesh);
-      /* For performance reasons, this should be called by the modifier and/or nodes themselves at
-       * some point. */
-      BKE_mesh_wrapper_ensure_mdata(mesh);
+    if (const Mesh *mesh = geometry_set.get_mesh()) {
+      if (mesh->runtime->wrapper_type != ME_WRAPPER_TYPE_MDATA) {
+        Mesh *mesh_mut = geometry_set.get_mesh_for_write();
+        /* For performance reasons, this should be called by the modifier and/or
+         * nodes themselves at some point. */
+        BKE_mesh_wrapper_ensure_mdata(mesh_mut);
+      }
+      ASSERT_IS_VALID_MESH_INPUT(geometry_set.get_mesh());
     }
     mti->modify_geometry_set(md, &mectx, &geometry_set);
     if (const Mesh *mesh = geometry_set.get_mesh()) {
