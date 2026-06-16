@@ -634,6 +634,7 @@ void ColorSpaceManager::to_scene_linear(ustring colorspace,
   (void)y_stride;
   (void)is_rgba;
   (void)compress_as_srgb;
+  (void)ignore_alpha;
 #endif
 }
 
@@ -791,7 +792,7 @@ Transform ColorSpaceManager::get_xyz_to_scene_linear_rgb()
   return xyz_to_rgb;
 }
 
-const std::string &ColorSpaceManager::get_xyz_to_scene_linear_rgb_string()
+std::string ColorSpaceManager::get_xyz_to_scene_linear_rgb_string()
 {
 #ifdef WITH_OCIO
   /* Clear the cached hash if the scene linear colorspace changed. */
@@ -827,6 +828,7 @@ const std::string &ColorSpaceManager::get_xyz_to_scene_linear_rgb_string()
 
 const char *ColorSpaceManager::get_scene_linear_interop_id(const bool srgb_encoded)
 {
+#ifdef WITH_OCIO
   check_invalidate_caches();
 
   const thread_scoped_lock cache_lock(cache_scene_linear_interop_id_mutex);
@@ -855,6 +857,10 @@ const char *ColorSpaceManager::get_scene_linear_interop_id(const bool srgb_encod
   }
 
   return (srgb_encoded) ? cache_scene_linear_srgb_interop_id : cache_scene_linear_interop_id;
+#else
+  (void)srgb_encoded;
+  return "lin_rec709_scene";
+#endif
 }
 
 /* Template instantiations so we don't have to inline functions. */

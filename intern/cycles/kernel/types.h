@@ -174,6 +174,9 @@ enum PathRayVisibilityFlag : uint32_t {
   PATH_RAY_VISIBILITY_NODE_UNALIGNED = (1U << 15U),
 };
 
+/* Stored as uint8_t in the integrator state. */
+static_assert(PATH_RAY_VISIBILITY_ALL <= 0xff);
+
 /* Type that is used to pass visibility flags around in the kernel.
  * It is a wider type than the number of bits required by the PathRayVisibilityFlag enum values
  * due to shadow catcher visibility (see shadow catcher utilities below). */

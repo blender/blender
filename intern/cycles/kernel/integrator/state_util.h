@@ -337,12 +337,14 @@ integrator_state_get_mnee_shadow_state(ConstIntegratorState state)
 ccl_device_forceinline void integrator_state_write_mnee_shadow_owner(
     IntegratorShadowState shadow_state, IntegratorState state)
 {
+  static_assert(INTEGRATOR_SHADOW_ISECT_SIZE >= 3);
   INTEGRATOR_STATE_ARRAY_WRITE(shadow_state, shadow_isect, 2, prim) = (int)state;
 }
 
 ccl_device_forceinline IntegratorState
 integrator_state_read_mnee_shadow_owner(ConstIntegratorShadowState shadow_state)
 {
+  static_assert(INTEGRATOR_SHADOW_ISECT_SIZE >= 3);
   return IntegratorState(INTEGRATOR_STATE_ARRAY(shadow_state, shadow_isect, 2, prim));
 }
 #  endif

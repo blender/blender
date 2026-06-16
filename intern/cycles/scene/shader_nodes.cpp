@@ -2419,7 +2419,7 @@ NODE_DEFINE(GlassBsdfNode)
   SOCKET_IN_FLOAT(IOR, "IOR", 1.5f);
 
   SOCKET_IN_FLOAT(thin_film_thickness, "Thin Film Thickness", 0.0f);
-  SOCKET_IN_FLOAT(thin_film_ior, "Thin Film IOR", 1.3f);
+  SOCKET_IN_FLOAT(thin_film_ior, "Thin Film IOR", 1.33f);
 
   SOCKET_OUT_CLOSURE(BSDF, "BSDF");
 
