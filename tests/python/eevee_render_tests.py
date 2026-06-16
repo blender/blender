@@ -40,8 +40,6 @@ BLOCKLIST = [
     "light_path_is_shadow_ray.blend",
     # Blocked as the test seems to alternate between two different states
     "light_path_is_diffuse_ray.blend",
-    # Blocked due to stochastic diffuse/transmission layering resulting in non-deterministic surfel lighting.
-    "principled_bsdf_transmission.blend",
     # Blocked due to platform-dependent noise differences (likely floating-point/fast-math differences).
     "raycast_bump.blend",
     # Blocked due to platform-dependent uninitialized pixels.

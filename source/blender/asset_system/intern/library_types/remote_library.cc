@@ -1016,6 +1016,16 @@ std::string remote_library_asset_preview_path(const AssetRepresentation &asset)
 /** \name Other Free Functions
  * \{ */
 
+std::string remote_library_top_meta_file_path(const RemoteLibraryDefinitionRef &library)
+{
+  char filepath[FILE_MAX];
+  BLI_path_join(filepath,
+                sizeof(filepath),
+                library.cache_dirpath.c_str(),
+                asset_system::REMOTE_LIBRARY_TOP_META_FILE_NAME.c_str());
+  return filepath;
+}
+
 bool remote_library_url_ends_with_top_meta_file_name(const StringRef url)
 {
   if (url.size() < REMOTE_LIBRARY_TOP_META_FILE_NAME_LEADING_SLASH.size()) {

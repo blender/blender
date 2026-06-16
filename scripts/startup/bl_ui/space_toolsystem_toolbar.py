@@ -235,7 +235,7 @@ class _defs_annotate:
                 row.ui_units_x = 15
                 row.prop(props, "arrowstyle_start", text="Start")
                 row.separator()
-                row.prop(props, "arrowstyle_end", text="End", translation_context=i18n_contexts.id_curve)
+                row.prop(props, "arrowstyle_end", text="End", text_ctxt=i18n_contexts.id_curve)
             else:
                 col = layout.row().column(align=True)
                 col.prop(props, "arrowstyle_start", text="Style Start")
