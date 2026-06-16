@@ -319,7 +319,6 @@ struct UVIsland {
  public:
   bool has_shared_edge(const UVPrimitive &primitive) const;
   bool has_shared_edge(const MeshData &mesh_data, int primitive_i) const;
-  void extend_border(const UVPrimitive &primitive);
 
   /** Print a python script to the console that generates a mesh representing this UVIsland. */
   void print_debug(const MeshData &mesh_data) const;

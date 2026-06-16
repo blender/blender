@@ -403,15 +403,6 @@ bool UVIsland::has_shared_edge(const MeshData &mesh_data, const int primitive_i)
   return false;
 }
 
-void UVIsland::extend_border(const UVPrimitive &primitive)
-{
-  for (const UVPrimitive &prim : uv_primitives) {
-    if (prim.has_shared_edge(primitive)) {
-      this->append(primitive);
-    }
-  }
-}
-
 static UVPrimitive *add_primitive(const MeshData &mesh_data,
                                   UVIsland &uv_island,
                                   const int primitive_i)
