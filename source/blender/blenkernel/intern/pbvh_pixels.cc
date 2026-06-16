@@ -296,6 +296,58 @@ static void apply_watertight_check(Tree &pbvh, Image &image, ImageUser &image_us
   BKE_image_partial_update_mark_full_update(&image);
 }
 
+static float3 calc_pixel_position(const Span<float3> vert_positions,
+                                  const Span<int3> vert_tris,
+                                  const int tri_index,
+                                  const float2 &bary_weight)
+{
+  const int3 &verts = vert_tris[tri_index];
+  const float3 weights(bary_weight.x, bary_weight.y, 1.0f - bary_weight.x - bary_weight.y);
+  float3 result;
+  interp_v3_v3v3v3(result,
+                   vert_positions[verts[0]],
+                   vert_positions[verts[1]],
+                   vert_positions[verts[2]],
+                   weights);
+  return result;
+}
+
+static void calc_node_pixel_row_positions(const uv_islands::MeshData &mesh_data,
+                                          const PixelData &pixel_data,
+                                          PixelNode &pixel_node)
+{
+  for (UDIMTilePixels &tile_data : pixel_node.tiles) {
+    BLI_assert(tile_data.pixel_row_positions.is_empty() ||
+               tile_data.pixel_row_positions.size() == tile_data.pixel_rows.size());
+
+    if (tile_data.pixel_row_positions.size() == tile_data.pixel_rows.size()) {
+      continue;
+    }
+
+    tile_data.pixel_row_positions.resize(tile_data.pixel_rows.size());
+
+    for (const int i : tile_data.pixel_rows.index_range()) {
+      PackedPixelRow &pixel_row = tile_data.pixel_rows[i];
+
+      const float3 start = calc_pixel_position(
+          mesh_data.vert_positions,
+          pixel_data.vert_tris,
+          pixel_node.uv_primitives.tri_indices[pixel_row.uv_primitive_index],
+          pixel_row.start_barycentric_coord);
+      const float3 next = calc_pixel_position(
+          mesh_data.vert_positions,
+          pixel_data.vert_tris,
+          pixel_node.uv_primitives.tri_indices[pixel_row.uv_primitive_index],
+          pixel_row.start_barycentric_coord +
+              pixel_node.uv_primitives.delta_barycentric_coords[pixel_row.uv_primitive_index]);
+      const float3 delta = next - start;
+
+      tile_data.pixel_row_positions[i].start = start;
+      tile_data.pixel_row_positions[i].delta = delta;
+    }
+  }
+}
+
 static bool update_pixels(const Depsgraph &depsgraph,
                           const Object &object,
                           Tree &pbvh,
@@ -354,6 +406,10 @@ static bool update_pixels(const Depsgraph &depsgraph,
         do_encode_pixels(
             mesh_data, uv_masks, uv_primitive_lookup, image, image_user, nodes[i], pixel_nodes[i]);
       },
+      exec_mode::grain_size(1));
+  const PixelData &pixel_data = data_get(pbvh);
+  nodes_to_update.foreach_index(
+      [&](const int i) { calc_node_pixel_row_positions(mesh_data, pixel_data, pixel_nodes[i]); },
       exec_mode::grain_size(1));
   if (USE_WATERTIGHT_CHECK) {
     apply_watertight_check(pbvh, image, image_user);
