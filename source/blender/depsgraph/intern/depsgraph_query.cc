@@ -298,15 +298,11 @@ bool DEG_is_original_id(const ID *id)
    * All the data-blocks which are created by copy-on-evaluation mechanism will have will be tagged
    * with ID_TAG_COPIED_ON_EVAL tag. Those data-blocks can not be original.
    *
-   * Modifier stack evaluation might create special data-blocks which have all the modifiers
-   * applied, and those will be tagged with ID_TAG_COPIED_ON_EVAL_FINAL_RESULT. Such data-blocks
-   * can not be original as well.
-   *
    * Localization is usually happening from evaluated data-block, or will have some special pointer
    * magic which will make them to act as evaluated.
    *
    * NOTE: We consider ID evaluated if ANY of those flags is set. We do NOT require ALL of them. */
-  if (id->tag & (ID_TAG_COPIED_ON_EVAL | ID_TAG_COPIED_ON_EVAL_FINAL_RESULT | ID_TAG_LOCALIZED)) {
+  if (id->tag & (ID_TAG_COPIED_ON_EVAL | ID_TAG_LOCALIZED)) {
     return false;
   }
   return true;

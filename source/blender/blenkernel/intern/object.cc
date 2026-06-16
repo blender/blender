@@ -1765,11 +1765,6 @@ void BKE_object_eval_assign_data(Object *object_eval, ID *data_eval, bool is_own
   BLI_assert(object_eval->runtime->data_eval == nullptr);
   BLI_assert(data_eval->tag & ID_TAG_NO_MAIN);
 
-  if (is_owned) {
-    /* Set flag for debugging. */
-    data_eval->tag |= ID_TAG_COPIED_ON_EVAL_FINAL_RESULT;
-  }
-
   /* Assigned evaluated data. */
   object_eval->runtime->data_eval = data_eval;
   object_eval->runtime->is_data_eval_owned = is_owned;
@@ -1794,13 +1789,6 @@ void BKE_object_free_derived_caches(Object *ob)
 
   object_update_from_subsurf_ccg(ob);
 
-  if (ob->runtime->editmesh_eval_cage &&
-      ob->runtime->editmesh_eval_cage != reinterpret_cast<Mesh *>(ob->runtime->data_eval))
-  {
-    BKE_id_free(nullptr, ob->runtime->editmesh_eval_cage);
-  }
-  ob->runtime->editmesh_eval_cage = nullptr;
-
   if (ob->runtime->data_eval != nullptr) {
     if (ob->runtime->is_data_eval_owned) {
       ID *data_eval = ob->runtime->data_eval;
@@ -1814,11 +1802,6 @@ void BKE_object_free_derived_caches(Object *ob)
       }
     }
     ob->runtime->data_eval = nullptr;
-  }
-  if (ob->runtime->mesh_deform_eval != nullptr) {
-    Mesh *mesh_deform_eval = ob->runtime->mesh_deform_eval;
-    BKE_id_free(nullptr, mesh_deform_eval);
-    ob->runtime->mesh_deform_eval = nullptr;
   }
 
   /* Restore initial pointer for copy-on-evaluation data-blocks, object->data
@@ -4382,7 +4365,6 @@ const Mesh *BKE_object_get_pre_modified_mesh(const Object *object)
     BLI_assert(object->id.orig_id != nullptr);
     BLI_assert(data_orig->orig_id == ((const Object *)object->id.orig_id)->data);
     BLI_assert((data_orig->tag & ID_TAG_COPIED_ON_EVAL) != 0);
-    BLI_assert((data_orig->tag & ID_TAG_COPIED_ON_EVAL_FINAL_RESULT) == 0);
     if (GS(data_orig->name) != ID_ME) {
       return nullptr;
     }
@@ -4404,7 +4386,7 @@ Mesh *BKE_object_get_original_mesh(const Object *object)
     result = id_cast<Mesh *>((id_cast<Object *>(object->id.orig_id))->data);
   }
   BLI_assert(result != nullptr);
-  BLI_assert((result->id.tag & (ID_TAG_COPIED_ON_EVAL | ID_TAG_COPIED_ON_EVAL_FINAL_RESULT)) == 0);
+  BLI_assert((result->id.tag & (ID_TAG_COPIED_ON_EVAL)) == 0);
   return result;
 }
 
@@ -4420,22 +4402,61 @@ const Mesh *BKE_object_get_editmesh_eval_final(const Object *object)
     return nullptr;
   }
 
-  return reinterpret_cast<Mesh *>(object->runtime->data_eval);
+  return reinterpret_cast<const Mesh *>(object->runtime->data_eval);
 }
 
 const Mesh *BKE_object_get_editmesh_eval_cage(const Object *object)
 {
-  BLI_assert(!DEG_is_original(object));
+  using namespace blender::bke;
+  BLI_assert(!DEG_is_original(&object->id));
   BLI_assert(object->type == OB_MESH);
 
-  return object->runtime->editmesh_eval_cage;
+  const Mesh &mesh = *id_cast<const Mesh *>(object->data);
+  BLI_assert(mesh.runtime->edit_mesh != nullptr);
+  UNUSED_VARS_NDEBUG(mesh);
+  const GeometrySet *geometry_set = object->runtime->geometry_set_eval;
+  if (!geometry_set) {
+    return nullptr;
+  }
+  const auto *component = geometry_set->get_component<GeometryComponentEditData>();
+  if (!component) {
+    return nullptr;
+  }
+  const MeshEditHints *edit_hints = component->mesh_edit_hints_.get();
+  if (!edit_hints) {
+    return nullptr;
+  }
+  BLI_assert(edit_hints->mesh_cage->type() == bke::GeometryComponent::Type::Mesh);
+  const auto *mesh_component = static_cast<const MeshComponent *>(edit_hints->mesh_cage.get());
+  if (!mesh_component) {
+    return nullptr;
+  }
+  return mesh_component->get();
 }
 
 const Mesh *BKE_object_get_mesh_deform_eval(const Object *object)
 {
-  BLI_assert(!DEG_is_original(object));
+  using namespace blender::bke;
+  BLI_assert(!DEG_is_original(&object->id));
   BLI_assert(object->type == OB_MESH);
-  return object->runtime->mesh_deform_eval;
+  const GeometrySet *geometry_set = object->runtime->geometry_set_eval;
+  if (!geometry_set) {
+    return nullptr;
+  }
+  const auto *component = geometry_set->get_component<GeometryComponentEditData>();
+  if (!component) {
+    return nullptr;
+  }
+  const MeshEditHints *edit_hints = component->mesh_edit_hints_.get();
+  if (!edit_hints) {
+    return nullptr;
+  }
+  BLI_assert(edit_hints->mesh_deform->type() == bke::GeometryComponent::Type::Mesh);
+  const auto *mesh_component = static_cast<const MeshComponent *>(edit_hints->mesh_deform.get());
+  if (!mesh_component) {
+    return nullptr;
+  }
+  return mesh_component->get();
 }
 
 Lattice *BKE_object_get_lattice(const Object *object)
@@ -5104,7 +5125,6 @@ void BKE_object_runtime_reset_on_copy(Object *object, const int /*flag*/)
 {
   bke::ObjectRuntime *runtime = object->runtime;
   runtime->data_eval = nullptr;
-  runtime->mesh_deform_eval = nullptr;
   runtime->curve_cache = nullptr;
   runtime->object_as_temp_mesh = nullptr;
   runtime->pose_backup = nullptr;

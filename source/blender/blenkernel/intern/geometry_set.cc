@@ -122,7 +122,7 @@ GeometryComponent &GeometrySet::get_component_for_write(GeometryComponent::Type 
   return component_ptr.ensure_mutable_inplace();
 }
 
-GeometryComponent *GeometrySet::get_component_ptr(GeometryComponent::Type type)
+GeometryComponent *GeometrySet::get_component_for_write_ptr(GeometryComponent::Type type)
 {
   if (this->has(type)) {
     return &this->get_component_for_write(type);
@@ -557,31 +557,31 @@ void GeometrySet::replace_grease_pencil(GreasePencil *grease_pencil,
 
 Mesh *GeometrySet::get_mesh_for_write()
 {
-  MeshComponent *component = this->get_component_ptr<MeshComponent>();
+  MeshComponent *component = this->get_component_for_write_ptr<MeshComponent>();
   return component == nullptr ? nullptr : component->get_for_write();
 }
 
 PointCloud *GeometrySet::get_pointcloud_for_write()
 {
-  PointCloudComponent *component = this->get_component_ptr<PointCloudComponent>();
+  PointCloudComponent *component = this->get_component_for_write_ptr<PointCloudComponent>();
   return component == nullptr ? nullptr : component->get_for_write();
 }
 
 Volume *GeometrySet::get_volume_for_write()
 {
-  VolumeComponent *component = this->get_component_ptr<VolumeComponent>();
+  VolumeComponent *component = this->get_component_for_write_ptr<VolumeComponent>();
   return component == nullptr ? nullptr : component->get_for_write();
 }
 
 Curves *GeometrySet::get_curves_for_write()
 {
-  CurveComponent *component = this->get_component_ptr<CurveComponent>();
+  CurveComponent *component = this->get_component_for_write_ptr<CurveComponent>();
   return component == nullptr ? nullptr : component->get_for_write();
 }
 
 Instances *GeometrySet::get_instances_for_write()
 {
-  InstancesComponent *component = this->get_component_ptr<InstancesComponent>();
+  InstancesComponent *component = this->get_component_for_write_ptr<InstancesComponent>();
   return component == nullptr ? nullptr : component->get_for_write();
 }
 
@@ -617,7 +617,7 @@ GizmoEditHints *GeometrySet::get_gizmo_edit_hints_for_write()
 
 GreasePencil *GeometrySet::get_grease_pencil_for_write()
 {
-  GreasePencilComponent *component = this->get_component_ptr<GreasePencilComponent>();
+  GreasePencilComponent *component = this->get_component_for_write_ptr<GreasePencilComponent>();
   return component == nullptr ? nullptr : component->get_for_write();
 }
 
