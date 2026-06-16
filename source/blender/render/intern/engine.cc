@@ -519,7 +519,7 @@ void RE_engine_update_progress(RenderEngine *engine, float progress)
 {
   Render *re = engine->re;
 
-  if (re) {
+  if (re && !re->display_shared) {
     CLAMP(progress, 0.0f, 1.0f);
     re->display->progress(progress);
   }
