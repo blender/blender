@@ -720,6 +720,10 @@ static bool data_transfer_layersmapping_cdlayers_multisrc_to_dst(
                                                   nullptr,
                                                   nullptr);
         }
+        else {
+          /* Layout-only transfer, the writer isn't moved into the map so finish it. */
+          std::get<bke::GSpanAttributeWriter>(data_dst).finish();
+        }
       }
 
       /* NOTE:
@@ -889,6 +893,10 @@ static bool data_transfer_layersmapping_cdlayers(Vector<CustomDataTransferLayerM
                                               nullptr,
                                               nullptr);
     }
+    else {
+      /* Layout-only transfer, the writer isn't moved into the map so finish it. */
+      std::get<bke::GSpanAttributeWriter>(data_dst).finish();
+    }
   }
   else if (fromlayers == DT_LAYERS_ALL_SRC) {
     int num_src = src_names.size();
@@ -965,6 +973,10 @@ static void data_transfer_layersmapping_add_item_attr(Vector<CustomDataTransferL
                                               std::move(data_dst),
                                               nullptr,
                                               nullptr);
+    }
+    else if (data_dst) {
+      /* The writer wasn't moved into the map (layout-only transfer or mismatched domain/type). */
+      data_dst.finish();
     }
   }
   else {
