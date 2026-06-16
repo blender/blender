@@ -152,7 +152,7 @@ static bool fluid_job_init(
                          FLUID_DOMAIN_BAKING_MESH | FLUID_DOMAIN_BAKING_PARTICLES))
   {
     BKE_report(op->reports, RPT_ERROR, "Pending bake jobs found");
-    return OPERATOR_CANCELLED;
+    return false;
   }
 
   job->bmain = CTX_data_main(C);
