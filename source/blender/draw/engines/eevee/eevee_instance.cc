@@ -204,6 +204,17 @@ void Instance::init(const int2 &output_res,
     is_image_render = true;
   }
 
+  rcti lookdev_rect = *visible_rect;
+  if (is_viewport() && v3d && rv3d && rv3d->persp == RV3D_CAMOB && v3d->camera &&
+      !draw_ctx->is_viewport_image_render() && !draw_ctx->is_viewport_xr())
+  {
+    rctf camera_border;
+    /* Anchor reference spheres to camera border. */
+    ED_view3d_calc_camera_border(
+        scene, depsgraph, draw_ctx->region, v3d, rv3d, false, &camera_border);
+    BLI_rcti_rctf_copy(&lookdev_rect, &camera_border);
+  }
+
   anisotropic_filtering = GPU_anisotropic_filtering_flags(scene->r.anisotropic_filter);
 
   sampling.init(scene);
@@ -223,7 +234,7 @@ void Instance::init(const int2 &output_res,
   sphere_probes.init();
   volume_probes.init();
   volume.init();
-  lookdev.init(visible_rect);
+  lookdev.init(&lookdev_rect);
 
   /* Request static shaders */
   ShaderGroups shader_request = DEFERRED_LIGHTING_SHADERS | SHADOW_SHADERS | FILM_SHADERS |
