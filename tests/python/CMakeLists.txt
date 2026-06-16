@@ -1527,6 +1527,11 @@ if(TEST_SRC_DIR_EXISTS)
   )
 
   add_blender_test(
+    sequencer_strip_naming
+    --python ${CMAKE_CURRENT_LIST_DIR}/sequencer_strip_naming.py
+  )
+
+  add_blender_test(
     sequencer_load_meta_stack
     ${TEST_SRC_DIR}/sequence_editing/vse_load_meta_stack.blend
     --python ${TEST_PYTHON_DIR}/sequencer_load_meta_stack.py
