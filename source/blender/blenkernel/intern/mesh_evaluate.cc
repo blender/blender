@@ -536,9 +536,9 @@ void mesh_hide_vert_flush(Mesh &mesh)
   }
   const VArraySpan<bool> hide_vert_span{hide_vert};
 
-  SpanAttributeWriter<bool> hide_edge = attributes.lookup_or_add_for_write_only_span<bool>(
+  SpanAttributeWriter<bool> hide_edge = attributes.convert_or_add_for_write_only_span<bool>(
       ".hide_edge", AttrDomain::Edge);
-  SpanAttributeWriter<bool> hide_poly = attributes.lookup_or_add_for_write_only_span<bool>(
+  SpanAttributeWriter<bool> hide_poly = attributes.convert_or_add_for_write_only_span<bool>(
       ".hide_poly", AttrDomain::Face);
 
   mesh_edge_hide_from_vert(mesh.edges(), hide_vert_span, hide_edge.span);
@@ -563,9 +563,9 @@ void mesh_hide_face_flush(Mesh &mesh)
   const OffsetIndices faces = mesh.faces();
   const Span<int> corner_verts = mesh.corner_verts();
   const Span<int> corner_edges = mesh.corner_edges();
-  SpanAttributeWriter<bool> hide_vert = attributes.lookup_or_add_for_write_only_span<bool>(
+  SpanAttributeWriter<bool> hide_vert = attributes.convert_or_add_for_write_only_span<bool>(
       ".hide_vert", AttrDomain::Point);
-  SpanAttributeWriter<bool> hide_edge = attributes.lookup_or_add_for_write_only_span<bool>(
+  SpanAttributeWriter<bool> hide_edge = attributes.convert_or_add_for_write_only_span<bool>(
       ".hide_edge", AttrDomain::Edge);
 
   /* Hide all edges or vertices connected to hidden polygons. */
@@ -607,9 +607,9 @@ void mesh_select_face_flush(Mesh &mesh)
     attributes.remove(".select_edge");
     return;
   }
-  SpanAttributeWriter<bool> select_vert = attributes.lookup_or_add_for_write_only_span<bool>(
+  SpanAttributeWriter<bool> select_vert = attributes.convert_or_add_for_write_only_span<bool>(
       ".select_vert", AttrDomain::Point);
-  SpanAttributeWriter<bool> select_edge = attributes.lookup_or_add_for_write_only_span<bool>(
+  SpanAttributeWriter<bool> select_edge = attributes.convert_or_add_for_write_only_span<bool>(
       ".select_edge", AttrDomain::Edge);
 
   /* Use generic domain interpolation to read the face attribute on the other domains.
@@ -633,9 +633,9 @@ void mesh_select_vert_flush(Mesh &mesh)
     attributes.remove(".select_poly");
     return;
   }
-  SpanAttributeWriter<bool> select_edge = attributes.lookup_or_add_for_write_only_span<bool>(
+  SpanAttributeWriter<bool> select_edge = attributes.convert_or_add_for_write_only_span<bool>(
       ".select_edge", AttrDomain::Edge);
-  SpanAttributeWriter<bool> select_poly = attributes.lookup_or_add_for_write_only_span<bool>(
+  SpanAttributeWriter<bool> select_poly = attributes.convert_or_add_for_write_only_span<bool>(
       ".select_poly", AttrDomain::Face);
   {
     IndexMaskMemory memory;
@@ -669,9 +669,9 @@ void mesh_select_edge_flush(Mesh &mesh)
     attributes.remove(".select_poly");
     return;
   }
-  SpanAttributeWriter<bool> select_vert = attributes.lookup_or_add_for_write_only_span<bool>(
+  SpanAttributeWriter<bool> select_vert = attributes.convert_or_add_for_write_only_span<bool>(
       ".select_vert", AttrDomain::Point);
-  SpanAttributeWriter<bool> select_poly = attributes.lookup_or_add_for_write_only_span<bool>(
+  SpanAttributeWriter<bool> select_poly = attributes.convert_or_add_for_write_only_span<bool>(
       ".select_poly", AttrDomain::Face);
   {
     IndexMaskMemory memory;
