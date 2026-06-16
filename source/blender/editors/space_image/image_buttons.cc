@@ -104,7 +104,6 @@ static void ui_imageuser_slot_menu(bContext *C, ui::Layout *layout, void *image_
     }
     ui::Button *but = uiDefIconTextBut(
         block, ui::ButtonType::ButMenu, icon, str, 0, 0, UI_UNIT_X * 5, UI_UNIT_X, nullptr, "");
-    button_retval_set(but, B_NOP);
     button_func_set(
         but, [image, slot_id = slot_id](bContext & /*C*/) { image->render_slot = slot_id; });
   }

@@ -119,7 +119,6 @@ void ED_file_path_button(bScreen *screen,
                   0.0f,
                   float(FILE_MAX),
                   TIP_("File path"));
-  button_retval_set(but, -1);
 
   BLI_assert(!button_flag_is_set(but, ui::BUT_UNDO));
   BLI_assert(!but_is_utf8(but));
@@ -1612,7 +1611,6 @@ void file_draw_list(const bContext *C, ARegion *region)
                                  1.0f,
                                  float(sizeof(params->renamefile)),
                                  "");
-      button_retval_set(but, 1);
       text_button_func_rename_set(but, renamebutton_cb);
       button_flag_enable(but, ui::BUT_NO_UTF8); /* Allow non UTF8 names. */
       button_flag_disable(but, ui::BUT_UNDO);

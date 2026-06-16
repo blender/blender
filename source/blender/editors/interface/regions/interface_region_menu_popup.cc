@@ -840,8 +840,6 @@ void popup_block_template_confirm_op(Layout *layout,
                                    UI_UNIT_Y,
                                    nullptr,
                                    "");
-    button_retval_set(but, 1);
-
     return but;
   };
 
