@@ -993,9 +993,9 @@ struct FlatObjectRef {
   int flattened_axis_id;
 
   /* Returns flat axis index if only one axis is flat. Returns -1 otherwise. */
-  static int flat_axis_index_get(const Object *ob)
+  static int flat_axis_index_get(const ObjectRef &ob_ref)
   {
-    BLI_assert(ELEM(ob->type,
+    BLI_assert(ELEM(ob_ref.object->type,
                     OB_MESH,
                     OB_CURVES_LEGACY,
                     OB_SURF,
@@ -1004,8 +1004,19 @@ struct FlatObjectRef {
                     OB_POINTCLOUD,
                     OB_VOLUME));
 
-    float dim[3];
-    BKE_object_dimensions_get(ob, dim);
+    float3 dim;
+    if (!ob_ref.is_dupli()) {
+      BKE_object_dimensions_get(ob_ref.object, dim);
+    }
+    else {
+      /* BKE_object_dimensions_get can't be used with dupli objects.
+       * Just use mesh bounds instead of object bounds. */
+      std::optional<Bounds<float3>> bounds = BKE_object_boundbox_get(ob_ref.object);
+      if (!bounds) {
+        return -1;
+      }
+      dim = bounds->size();
+    }
 
     /* Small epsilon relative to object size to handle float errors in flat axis detection after
      * rotation. See #139555. */
