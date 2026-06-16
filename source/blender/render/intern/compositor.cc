@@ -216,14 +216,14 @@ class Context : public compositor::Context {
                       render_result->rectx * render_result->recty * 4 * sizeof(float));
         }
       }
+
+      /* Free outdated GPU texture. */
+      IMB_free_gpu_textures(image_buffer);
     }
     RE_ReleaseResult(render);
 
     Image *image = BKE_image_ensure_viewer(G.main, IMA_TYPE_R_RESULT, "Render Result");
     BKE_image_partial_update_mark_full_update(image);
-    BLI_thread_lock(LOCK_DRAW_IMAGE);
-    BKE_image_signal(G.main, image, nullptr, IMA_SIGNAL_FREE);
-    BLI_thread_unlock(LOCK_DRAW_IMAGE);
   }
 
   void write_viewer_image(const compositor::Result &viewer_result)
