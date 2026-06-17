@@ -13,7 +13,7 @@
 
 #include <fmt/format.h>
 
-#include "BLI_rect.h"
+#include "BLI_rect.hh"
 #include "DNA_space_enums.h"
 #include "ED_asset_menu_utils.hh"
 #include "MEM_guardedalloc.h"
