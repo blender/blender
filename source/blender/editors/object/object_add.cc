@@ -3602,9 +3602,6 @@ static Object *convert_mesh_to_mesh(Base &base, ObjectConversionInfo &info, Base
   const Mesh *mesh_eval = BKE_object_get_evaluated_mesh(ob_eval);
   Mesh *new_mesh = mesh_eval ? BKE_mesh_copy_for_eval(*mesh_eval) :
                                BKE_mesh_new_nomain(0, 0, 0, 0);
-  /* The evaluated mesh may not be a wrapper type (e.g. #ME_WRAPPER_TYPE_BMESH).
-   * Ensure mesh geometry otherwise the copy uses dummy sizes which don't
-   * represent the underlying mesh. */
   BKE_mesh_wrapper_ensure_mdata(new_mesh);
 
   BKE_object_material_from_eval_data(info.bmain, newob, &new_mesh->id);
