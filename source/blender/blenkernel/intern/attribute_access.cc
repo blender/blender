@@ -587,7 +587,7 @@ GAttributeWriter MutableAttributeAccessor::convert_or_add_for_write_only(const S
     }
     return {};
   }
-  bool result = this->add(name, domain, data_type, AttributeInitConstruct());
+  this->add(name, domain, data_type, AttributeInitConstruct());
   return this->lookup_for_write(name);
 }
 
