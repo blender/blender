@@ -358,22 +358,6 @@ static void join_generic_attributes(const Span<const Object *> objects_to_join,
 
   bke::MutableAttributeAccessor dst_attributes = dst_mesh.attributes_for_write();
 
-  const Set<StringRefNull> attribute_names = dst_attributes.all_names();
-  for (const int attr_i : names.index_range()) {
-    const StringRef name = names[attr_i];
-    const bke::AttrDomain domain = kinds[attr_i].domain;
-    const bke::AttrType data_type = kinds[attr_i].data_type;
-    if (const std::optional<bke::AttributeMetaData> meta_data = dst_attributes.lookup_meta_data(
-            name))
-    {
-      if (meta_data->domain != domain || meta_data->data_type != data_type) {
-        AttributeOwner owner = AttributeOwner::from_id(&dst_mesh.id);
-        geometry::convert_attribute(
-            owner, dst_attributes, name, meta_data->domain, meta_data->data_type, nullptr);
-      }
-    }
-  }
-
   for (const int attr_i : names.index_range()) {
     const StringRef name = names[attr_i];
     const bke::AttrDomain domain = kinds[attr_i].domain;
