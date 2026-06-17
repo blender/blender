@@ -34,7 +34,7 @@ static void node_declare(NodeDeclarationBuilder &b)
       .min(0.0f)
       .max(1.0f)
       .subtype(PROP_FACTOR)
-      .label_fn([](bNode node) {
+      .label_fn([](const bNode &node) {
         switch (node_storage(node).mode) {
           case CMP_NODE_COMBSEP_COLOR_RGB:
           default:
@@ -52,7 +52,7 @@ static void node_declare(NodeDeclarationBuilder &b)
       .min(0.0f)
       .max(1.0f)
       .subtype(PROP_FACTOR)
-      .label_fn([](bNode node) {
+      .label_fn([](const bNode &node) {
         switch (node_storage(node).mode) {
           case CMP_NODE_COMBSEP_COLOR_RGB:
           default:
@@ -71,7 +71,7 @@ static void node_declare(NodeDeclarationBuilder &b)
       .min(0.0f)
       .max(1.0f)
       .subtype(PROP_FACTOR)
-      .label_fn([](bNode node) {
+      .label_fn([](const bNode &node) {
         switch (node_storage(node).mode) {
           case CMP_NODE_COMBSEP_COLOR_RGB:
           default:

@@ -31,18 +31,21 @@ namespace nodes::node_shader_vector_math_cc {
 static void sh_node_vector_math_declare(NodeDeclarationBuilder &b)
 {
   b.is_function_node();
-  b.add_input<decl::Vector>("Vector"_ustr).min(-10000.0f).max(10000.0f).label_fn([](bNode node) {
-    switch (node.custom1) {
-      case NODE_VECTOR_MATH_POWER:
-        return IFACE_("Base");
-      default:
-        return IFACE_("Vector");
-    }
-  });
+  b.add_input<decl::Vector>("Vector"_ustr)
+      .min(-10000.0f)
+      .max(10000.0f)
+      .label_fn([](const bNode &node) {
+        switch (node.custom1) {
+          case NODE_VECTOR_MATH_POWER:
+            return IFACE_("Base");
+          default:
+            return IFACE_("Vector");
+        }
+      });
   b.add_input<decl::Vector>("Vector"_ustr, "Vector_001"_ustr)
       .min(-10000.0f)
       .max(10000.0f)
-      .label_fn([](bNode node) {
+      .label_fn([](const bNode &node) {
         switch (node.custom1) {
           case NODE_VECTOR_MATH_POWER:
             return IFACE_("Exponent");
@@ -61,7 +64,7 @@ static void sh_node_vector_math_declare(NodeDeclarationBuilder &b)
   b.add_input<decl::Vector>("Vector"_ustr, "Vector_002"_ustr)
       .min(-10000.0f)
       .max(10000.0f)
-      .label_fn([](bNode node) {
+      .label_fn([](const bNode &node) {
         switch (node.custom1) {
           case NODE_VECTOR_MATH_MULTIPLY_ADD:
             return IFACE_("Addend");
@@ -77,7 +80,7 @@ static void sh_node_vector_math_declare(NodeDeclarationBuilder &b)
       .default_value(1.0f)
       .min(-10000.0f)
       .max(10000.0f)
-      .label_fn([](bNode node) {
+      .label_fn([](const bNode &node) {
         switch (node.custom1) {
           case NODE_VECTOR_MATH_SCALE:
           default:

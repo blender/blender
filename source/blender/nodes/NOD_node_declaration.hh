@@ -152,7 +152,7 @@ struct CustomSocketDrawParams {
 };
 
 using CustomSocketDrawFn = std::function<void(CustomSocketDrawParams &params)>;
-using CustomSocketLabelFn = std::function<StringRefNull(bNode node)>;
+using CustomSocketLabelFn = std::function<StringRefNull(const bNode &node)>;
 using SocketUsageInferenceFn =
     std::function<std::optional<bool>(const socket_usage_inference::SocketUsageParams &params)>;
 
