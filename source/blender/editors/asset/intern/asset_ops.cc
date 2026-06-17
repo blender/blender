@@ -1014,6 +1014,7 @@ static void ASSET_OT_bundle_install(wmOperatorType *ot)
 
   ot->prop = RNA_def_property(ot->srna, "asset_library_reference", PROP_ENUM, PROP_NONE);
   RNA_def_property_flag(ot->prop, PROP_HIDDEN);
+  RNA_def_property_enum_default(ot->prop, ASSET_LIBRARY_LOCAL);
   RNA_def_enum_funcs(ot->prop, rna_asset_library_reference_itemf);
 
   WM_operator_properties_filesel(ot,

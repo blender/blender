@@ -458,6 +458,7 @@ void POSELIB_OT_create_pose_asset(wmOperatorType *ot)
 
   PropertyRNA *prop = RNA_def_property(ot->srna, "asset_library_reference", PROP_ENUM, PROP_NONE);
   RNA_def_enum_funcs(prop, rna_asset_library_reference_itemf);
+  RNA_def_property_enum_default(prop, ASSET_LIBRARY_LOCAL);
   RNA_def_property_ui_text(prop, "Library", "Asset library used to store the new pose");
 
   prop = RNA_def_string(
