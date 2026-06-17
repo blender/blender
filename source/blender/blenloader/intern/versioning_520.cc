@@ -29,6 +29,7 @@
 #include "BLI_string_utils.hh"
 #include "BLI_sys_types.hh"
 
+#include "BKE_anim_visualization.h"
 #include "BKE_animsys.h"
 #include "BKE_attribute.hh"
 #include "BKE_colortools.hh"
@@ -474,6 +475,27 @@ void do_versions_after_linking_520(FileData *fd, Main *bmain)
   if (!MAIN_VERSION_FILE_ATLEAST(bmain, 502, 36)) {
     /* Shift animation data to accommodate the new thin wall input. */
     version_node_socket_index_animdata(bmain, NTREE_SHADER, SH_NODE_BSDF_PRINCIPLED, 5, 1, 31);
+  }
+
+  if (!MAIN_VERSION_FILE_ATLEAST(bmain, 502, 44)) {
+    /* We have to remove the invalid motion paths. Re-baking into clip space on file load would be
+     * very expensive. */
+    for (Object &object : bmain->objects) {
+      if (object.mpath && (object.avs.path_bakeflag & MOTIONPATH_BAKE_CAMERA_SPACE)) {
+        animviz_free_motionpath(object.mpath);
+        object.mpath = nullptr;
+        object.avs.path_bakeflag &= ~MOTIONPATH_BAKE_HAS_PATHS;
+      }
+      if (object.pose && (object.pose->avs.path_bakeflag & MOTIONPATH_BAKE_CAMERA_SPACE)) {
+        for (bPoseChannel &pose_bone : object.pose->chanbase) {
+          if (pose_bone.mpath) {
+            animviz_free_motionpath(pose_bone.mpath);
+            pose_bone.mpath = nullptr;
+          }
+        }
+        object.pose->avs.path_bakeflag &= ~MOTIONPATH_BAKE_HAS_PATHS;
+      }
+    }
   }
 
   /**

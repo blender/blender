@@ -46,7 +46,7 @@ VertOut vertex_main(VertIn vert_in)
 
   VertOut vert_out;
   /* Optionally transform from view space to world space for screen space motion paths. */
-  vert_out.ws_P = transform_point(camera_space_matrix, vert_in.P);
+  vert_out.ws_P = project_point(camera_object_persinv, vert_in.P);
   vert_out.hs_P = drw_point_world_to_homogenous(vert_out.ws_P);
   vert_out.ss_P = drw_ndc_to_screen(drw_perspective_divide(vert_out.hs_P)).xy *
                   uniform_buf.size_viewport;
