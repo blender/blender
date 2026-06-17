@@ -4609,9 +4609,84 @@ bool node_link_is_hidden(const bNodeLink &link)
   return !(link.fromsock->is_visible() && link.tosock->is_visible());
 }
 
+static bool check_link_selected_backward(const bNodeLink &link, Set<const bNode *> &visited_nodes)
+{
+  const bNode *node = link.fromnode;
+  if (!node) {
+    return false;
+  }
+  if ((node->flag & NODE_SELECT)) {
+    return true;
+  }
+  if (!node->is_reroute()) {
+    return false;
+  }
+  if (!visited_nodes.add(node)) {
+    return false;
+  }
+  if (node->input_sockets().is_empty()) {
+    return false;
+  }
+  const bNodeSocket &input_socket = node->input_socket(0);
+  for (const bNodeLink *prev_link : input_socket.directly_linked_links()) {
+    if (check_link_selected_backward(*prev_link, visited_nodes)) {
+      return true;
+    }
+  }
+  return false;
+}
+
+static bool check_link_selected_forward(const bNodeLink &link, Set<const bNode *> &visited_nodes)
+{
+  const bNode *node = link.tonode;
+  if (!node) {
+    return false;
+  }
+  if ((node->flag & NODE_SELECT)) {
+    return true;
+  }
+  if (!node->is_reroute()) {
+    return false;
+  }
+  if (!visited_nodes.add(node)) {
+    return false;
+  }
+  if (node->output_sockets().is_empty()) {
+    return false;
+  }
+  const bNodeSocket &output_socket = node->output_socket(0);
+  for (const bNodeLink *next_link : output_socket.directly_linked_links()) {
+    if (check_link_selected_forward(*next_link, visited_nodes)) {
+      return true;
+    }
+  }
+  return false;
+}
+
 bool node_link_is_selected(const bNodeLink &link)
 {
-  return (link.fromnode->flag & NODE_SELECT) || (link.tonode->flag & NODE_SELECT);
+  if ((link.fromnode->flag & NODE_SELECT) || (link.tonode->flag & NODE_SELECT)) {
+    return true;
+  }
+  if (!link.fromnode->is_reroute() && !link.tonode->is_reroute()) {
+    return false;
+  }
+
+  BLI_assert(bke::node_tree_runtime::topology_cache_is_available(*link.fromnode));
+
+  if (link.fromnode->is_reroute()) {
+    Set<const bNode *> visited_backward;
+    if (check_link_selected_backward(link, visited_backward)) {
+      return true;
+    }
+  }
+  if (link.tonode->is_reroute()) {
+    Set<const bNode *> visited_forward;
+    if (check_link_selected_forward(link, visited_forward)) {
+      return true;
+    }
+  }
+  return false;
 }
 
 /* Adjust the indices of links connected to the given multi input socket after deleting the link at
