@@ -474,6 +474,7 @@ static Collection *collection_add(Main *bmain,
   /* Optionally add to parent collection. */
   if (collection_parent) {
     collection_child_add(bmain, collection_parent, collection, nullptr, 0, true);
+    collection->color_tag = collection_parent->color_tag;
   }
 
   return collection;
