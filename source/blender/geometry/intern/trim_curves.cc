@@ -838,6 +838,7 @@ static void compute_curve_trim_parameters(const bke::CurvesGeometry &curves,
                                           MutableSpan<bke::curves::CurvePoint> end_points,
                                           MutableSpan<bke::curves::IndexRangeCyclic> src_ranges)
 {
+  PRF_scope(ProfileCategory::Default);
   const OffsetIndices points_by_curve = curves.points_by_curve();
   const OffsetIndices evaluated_points_by_curve = curves.evaluated_points_by_curve();
   const VArray<bool> src_cyclic = curves.cyclic();
@@ -958,6 +959,7 @@ bke::CurvesGeometry trim_curves(const bke::CurvesGeometry &src_curves,
                                 const GeometryNodeCurveSampleMode mode,
                                 const bke::AttributeFilter &attribute_filter)
 {
+  PRF_scope(ProfileCategory::Default);
   const OffsetIndices src_points_by_curve = src_curves.points_by_curve();
   IndexMaskMemory memory;
   const IndexMask unselected = selection.complement(src_curves.curves_range(), memory);
@@ -983,8 +985,8 @@ bke::CurvesGeometry trim_curves(const bke::CurvesGeometry &src_curves,
                                 end_points,
                                 src_ranges);
   offset_indices::copy_group_sizes(src_points_by_curve, unselected, dst_curve_offsets);
-  offset_indices::accumulate_counts_to_offsets(dst_curve_offsets);
-  const OffsetIndices dst_points_by_curve = dst_curves.points_by_curve();
+  const OffsetIndices dst_points_by_curve = offset_indices::accumulate_counts_to_offsets(
+      dst_curve_offsets);
   dst_curves.resize(dst_curves.offsets().last(), dst_curves.curves_num());
 
   /* Populate curve domain. */

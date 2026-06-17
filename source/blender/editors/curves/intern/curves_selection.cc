@@ -27,6 +27,7 @@ namespace blender::ed::curves {
 
 IndexMask retrieve_selected_curves(const bke::CurvesGeometry &curves, LinearAllocator<> &memory)
 {
+  PRF_scope(ProfileCategory::Editor);
   const IndexRange curves_range = curves.curves_range();
   const VArray<int8_t> curve_types = curves.curve_types();
   const bke::AttributeAccessor attributes = curves.attributes();
@@ -107,6 +108,7 @@ IndexMask retrieve_selected_points(const bke::CurvesGeometry &curves,
                                    const IndexMask &bezier_points,
                                    LinearAllocator<> &memory)
 {
+  PRF_scope(ProfileCategory::Editor);
   const VArray<bool> selected = *curves.attributes().lookup_or_default<bool>(
       attribute_name, bke::AttrDomain::Point, true);
 
@@ -761,6 +763,7 @@ static std::optional<FindClosestData> find_closest_point_to_screen_co(
     const float radius,
     const FindClosestData &initial_closest)
 {
+  PRF_scope(ProfileCategory::Editor);
   const float radius_sq = pow2f(radius);
   const FindClosestData new_closest_data = threading::parallel_reduce(
       points_mask.index_range(),
@@ -801,6 +804,7 @@ static std::optional<FindClosestData> find_closest_curve_to_screen_co(
     float radius,
     const FindClosestData &initial_closest)
 {
+  PRF_scope(ProfileCategory::Editor);
   const float radius_sq = pow2f(radius);
 
   const FindClosestData new_closest_data = threading::parallel_reduce(
