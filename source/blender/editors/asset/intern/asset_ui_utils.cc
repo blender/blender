@@ -48,6 +48,16 @@ void asset_tooltip(const asset_system::AssetRepresentation &asset,
     tooltip_text_field_add(tip, meta_data.description, {}, ui::TIP_STYLE_HEADER, ui::TIP_LC_MAIN);
   }
 
+  if (asset.remote_file_status() == asset_system::RemoteAssetFileStatus::NO_MATCH) {
+    tooltip_text_field_add(
+        tip,
+        TIP_("This asset was previously downloaded, but it is outdated or inconsistent.\n"
+             "Downloading it again is recommended."),
+        {},
+        ui::TIP_STYLE_NORMAL,
+        ui::TIP_LC_ALERT);
+  }
+
   switch (asset.owner_asset_library().library_type()) {
     case ASSET_LIBRARY_CUSTOM: {
       if (asset.is_online_only()) {
