@@ -9,6 +9,7 @@
 #include "BKE_global.hh"
 #include "BLI_string.hh"
 
+#include "GPU_texture.hh"
 #include "GPU_texture_pool.hh"
 
 #include "gpu_backend.hh"
@@ -46,6 +47,10 @@ Texture *TexturePoolImpl::acquire_texture_impl(int3 extent,
   int mip_len_max = 1 + floorf(log2f(std::max({extent.x, extent.y, extent.z})));
   mip_len = min_ii(mip_len, mip_len_max);
 
+  /* Append format view flag for all pool textures. */
+  /* TODO(not_mark): this flag can likely be removed from TexturePoolImpl entirely. */
+  usage |= GPU_TEXTURE_USAGE_FORMAT_VIEW;
+
   /* Search pool for compatible available texture first. */
   int64_t match_index = -1;
   for (uint64_t i : pool_.index_range()) {
@@ -56,9 +61,18 @@ Texture *TexturePoolImpl::acquire_texture_impl(int3 extent,
                                tex->width_get(),
                                tex->height_get(),
                                tex->depth_get(),
-                               tex->mip_count(),
-                               tex->usage_get());
-    if (std::tie(format, type, UNPACK3(extent), mip_len, usage) == tex_args) {
+                               tex->mip_count());
+    if (std::tie(format, type, UNPACK3(extent), mip_len) != tex_args) {
+      continue;
+    }
+
+    eGPUTextureUsage tex_usage = tex->usage_get();
+    if ((tex_usage & usage) == usage) {
+      /* If a texture has overlapping usage flags, keep its index for now. */
+      match_index = i;
+    }
+    if (tex_usage == usage) {
+      /* If a texture has matching usage flags, there is no better candidate. */
       match_index = i;
       break;
     }
@@ -81,7 +95,7 @@ Texture *TexturePoolImpl::acquire_texture_impl(int3 extent,
 
   /* Otherwise, allocate a new texture of the specified type. */
   TextureHandle handle = {GPUBackend::get()->texture_alloc(name_str.c_str())};
-  handle.texture->usage_set(usage | GPU_TEXTURE_USAGE_FORMAT_VIEW);
+  handle.texture->usage_set(usage);
   bool init_result = false;
   switch (type) {
     case GPU_TEXTURE_1D:

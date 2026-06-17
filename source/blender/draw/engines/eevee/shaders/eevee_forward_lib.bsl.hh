@@ -109,7 +109,7 @@ void forward_lighting_eval(const ViewMatrices view,
     }
   }
 
-  LightProbeSample samp = lightprobes.load(frag_co, g_data.P, g_data.Ng, V);
+  LightProbeSample samp = lightprobes.load(frag_co, g_data.P, g_data.N, V);
 
   float clamp_indirect_sh = uni.uniform_buf.clamp.surface_indirect;
   samp.volume_irradiance = spherical_harmonics::clamp_energy(samp.volume_irradiance,
