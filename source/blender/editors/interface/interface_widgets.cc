@@ -1355,7 +1355,7 @@ static void widget_draw_icon(
     return;
   }
 
-  const float aspect = but->block->aspect * UI_INV_SCALE_FAC;
+  const float aspect = (1.0f / but->icon_scale) * but->block->aspect * UI_INV_SCALE_FAC;
   const float height = ICON_DEFAULT_HEIGHT / aspect;
   bool force_outline = false;
 
@@ -5114,11 +5114,31 @@ static void widget_roundbut_exec(Button *but,
     shape_preset_init_hold_action(&wtb.tria1, rect, 0.75f, 'r');
   }
 
-  const float rad = widget_radius_from_zoom(zoom, wcol);
+  float rad = widget_radius_from_zoom(zoom, wcol);
+
+  wtb.draw_emboss = draw_emboss(but);
+
+  if (const ButtonPush *push_but = dynamic_cast<ButtonPush *>(but)) {
+    if (push_but->draw_as_overlay) {
+      /* Enforce a full circle. */
+      rad = BLI_rcti_size_y(rect) * 0.5f;
+      roundboxalign = CNR_ALL;
+      wtb.draw_inner = true;
+      wtb.draw_outline = false;
+      wtb.draw_emboss = true;
+      /* Use a black transparent background and a white icon color, to ensure good contrast. */
+      const uchar background_col[4] = {0, 0, 0, (but->flag & UI_HOVER) ? uchar(120) : uchar(100)};
+      copy_v4_v4_uchar(wcol->inner, background_col);
+      copy_v4_v4_uchar(wcol->inner_sel, background_col);
+      const uchar foreground_col[4] = {
+          255, 255, 255, (but->flag & UI_HOVER) ? uchar(255) : uchar(230)};
+      copy_v4_v4_uchar(wcol->text, foreground_col);
+      copy_v4_v4_uchar(wcol->text_sel, foreground_col);
+    }
+  }
 
   /* half rounded */
   round_box_edges(&wtb, roundboxalign, rect, rad);
-  wtb.draw_emboss = draw_emboss(but);
   widgetbase_draw(&wtb, wcol);
 }
 

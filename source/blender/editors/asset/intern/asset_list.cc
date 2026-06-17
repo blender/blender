@@ -422,6 +422,9 @@ void asset_reading_region_listen_fn(const wmRegionListenerParams *params)
       if (ELEM(wmn->data, ND_ASSET_LIST_READING, ND_ASSET_LIST_PREVIEW)) {
         ED_region_tag_refresh_ui(region);
       }
+      if (ELEM(wmn->action, NA_DOWNLOAD_FINISHED)) {
+        ED_region_tag_refresh_ui(region);
+      }
       break;
   }
 }

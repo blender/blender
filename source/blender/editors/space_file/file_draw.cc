@@ -13,6 +13,9 @@
 
 #include <fmt/format.h>
 
+#include "BLI_rect.h"
+#include "DNA_space_enums.h"
+#include "ED_asset_menu_utils.hh"
 #include "MEM_guardedalloc.h"
 
 #include "AS_asset_library.hh"
@@ -731,6 +734,34 @@ static void file_add_preview_drag_but(const SpaceFile *sfile,
                                    1.0f;
   file_but_enable_drag(but, sfile, file, path, drag_image, file_type_icon, scale);
   file_but_tooltip_func_set(sfile, file, but);
+}
+
+static void file_add_asset_download_but(ui::Block *block,
+                                        const FileLayout *layout,
+                                        const FileDirEntry *file,
+                                        const rcti *tile_draw_rect)
+{
+  const int preview_center_x = BLI_rcti_cent_x(tile_draw_rect);
+  const int preview_center_y = tile_draw_rect->ymax - layout->tile_border_y - layout->prv_h * 0.5f;
+  const int icon_width = ICON_DEFAULT_WIDTH_SCALE * 2.0f;
+  const int icon_height = ICON_DEFAULT_HEIGHT_SCALE * 2.0f;
+  const int icon_x = preview_center_x - icon_width * 0.5f;
+  const int icon_y = preview_center_y - icon_height * 0.5f;
+
+  ui::Button *but = uiDefIconButO(block,
+                                  ui::ButtonType::But,
+                                  "ASSET_OT_asset_download",
+                                  wm::OpCallContext::ExecDefault,
+                                  ICON_DOWNLOAD,
+                                  icon_x,
+                                  icon_y,
+                                  icon_width,
+                                  icon_height,
+                                  std::nullopt);
+  PointerRNA *opptr = ui::button_operator_ptr_ensure(but);
+  ed::asset::operator_asset_reference_props_set(*file->asset, *opptr);
+  ui::button_icon_scale_set(but, 1.5f);
+  ui::button_pushbutton_draw_as_overlay_set(but, true);
 }
 
 static void file_draw_preview(const FileDirEntry *file,
@@ -1518,6 +1549,11 @@ void file_draw_list(const bContext *C, ARegion *region)
       if (do_drag) {
         file_add_preview_drag_but(
             sfile, block, layout, file, path, &tile_draw_rect, file_type_icon);
+      }
+
+      const bool is_highlighted = file_selflag & (FILE_SEL_HIGHLIGHTED | FILE_SEL_HIGHLIGHTED);
+      if (is_highlighted && file->asset && file->asset->needs_download()) {
+        file_add_asset_download_but(block, layout, file, &tile_draw_rect);
       }
     }
     else {
