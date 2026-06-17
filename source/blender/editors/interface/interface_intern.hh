@@ -287,6 +287,8 @@ struct Button : NonMovable {
   bool changed = false;
 
   BIFIconID icon = ICON_NONE;
+  /** Configurable draw scale for the icon. */
+  float icon_scale = 1.0f;
 
   /** Affects the order if this Button is used in menu-search. */
   float search_weight = 0.0f;
@@ -410,6 +412,8 @@ struct ButtonTextBox : public Button {
 /** Derived struct for #ButtonType::But */
 struct ButtonPush : public Button {
   bool draw_as_link = false;
+  /** See #button_pushbutton_draw_as_overlay_set(). */
+  bool draw_as_overlay = false;
 };
 
 /** Derived struct for #ButtonType::Num */

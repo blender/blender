@@ -2285,9 +2285,10 @@ void icon_draw_ex(float x,
                   const uchar mono_color[4],
                   const bool mono_border,
                   const IconTextOverlay *text_overlay,
-                  const bool inverted)
+                  const bool inverted,
+                  const float scale)
 {
-  const int draw_size = get_draw_size(ICON_SIZE_ICON);
+  const int draw_size = get_draw_size(ICON_SIZE_ICON) * scale;
   icon_draw_size(x,
                  y,
                  icon_id,

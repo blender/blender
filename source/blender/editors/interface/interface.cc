@@ -6314,6 +6314,11 @@ void button_hint_drawstr_set(Button *but, const char *string)
   button_add_shortcut(but, string, false);
 }
 
+void button_icon_scale_set(Button *but, const float scale)
+{
+  but->icon_scale = scale;
+}
+
 void button_icon_indicator_number_set(Button *but, const int indicator_number)
 {
   icon_text_overlay_init_from_count(&but->icon_overlay_text, indicator_number);
@@ -6334,6 +6339,14 @@ void button_node_link_set(Button *but, bNodeSocket *socket, const float draw_col
   but->flag |= BUT_NODE_LINK;
   but->custom_data = socket;
   rgba_float_to_uchar(but->col, draw_color);
+}
+
+void button_pushbutton_draw_as_overlay_set(Button *but, const bool value)
+{
+  ButtonPush *but_push = static_cast<ButtonPush *>(but);
+  BLI_assert(but->type == ButtonType::But);
+
+  but_push->draw_as_overlay = value;
 }
 
 void button_number_step_size_set(Button *but, float step_size)
