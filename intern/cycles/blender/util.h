@@ -741,6 +741,9 @@ static inline PathRayVisibility object_ray_visibility(blender::Object &b_ob)
   visibility |= ((b_ob.visibility_flag & blender::OB_HIDE_VOLUME_SCATTER) == 0) ?
                     PATH_RAY_VISIBILITY_VOLUME_SCATTER :
                     PATH_RAY_VISIBILITY_NONE;
+  visibility |= ((b_ob.visibility_flag & blender::OB_HIDE_RAYCAST) == 0) ?
+                    PATH_RAY_VISIBILITY_RAYCAST :
+                    PATH_RAY_VISIBILITY_NONE;
 
   return visibility;
 }

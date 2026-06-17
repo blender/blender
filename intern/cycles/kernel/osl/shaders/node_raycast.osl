@@ -36,7 +36,7 @@ shader node_raycast(point Position = P,
             "mindist",
             mindist,
             "traceset",
-            only_local ? "__only_local__" : ""))
+            only_local ? "__only_local__" : "__raycast__"))
   {
     IsHit = 1.0;
     getmessage("trace", "hitself", SelfHit);
