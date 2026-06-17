@@ -320,7 +320,6 @@ static gpu::Texture *gpu_texture_create_tile_array(Image *ima, ImBuf *main_ibuf)
                                  UNPACK2(tileoffset),
                                  tilelayer,
                                  UNPACK2(tilesize),
-                                 use_high_bitdepth,
                                  use_grayscale,
                                  store_premultiplied);
     }
