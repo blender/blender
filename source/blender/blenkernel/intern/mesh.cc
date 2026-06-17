@@ -45,7 +45,6 @@
 #include "BKE_anonymous_attribute_id.hh"
 #include "BKE_attribute.hh"
 #include "BKE_attribute_legacy_convert.hh"
-#include "BKE_attribute_math.hh"
 #include "BKE_attribute_storage.hh"
 #include "BKE_attribute_storage_blend_write.hh"
 #include "BKE_bake_data_block_id.hh"
@@ -979,18 +978,30 @@ void mesh_apply_spatial_organization(Mesh &mesh)
     }
     if (iter.domain == bke::AttrDomain::Face) {
       bke::GSpanAttributeWriter attribute = attributes_for_write.lookup_for_write_span(iter.name);
-      const CPPType &type = attribute.span.type();
+      GMutableSpan attribute_data = attribute.span;
+      const CPPType &type = attribute_data.type();
       GArray<> new_values(type, new_face_order.size());
-      bke::attribute_math::gather(attribute.span, new_face_order, new_values.as_mutable_span());
-      attribute.span.copy_from(new_values.as_span());
+
+      int new_face_idx = 0;
+      for (const int old_face_idx : new_face_order) {
+        type.copy_construct(attribute_data[old_face_idx], new_values[new_face_idx]);
+        new_face_idx++;
+      }
+      attribute_data.copy_from(new_values.as_span());
       attribute.finish();
     }
     else if (iter.domain == bke::AttrDomain::Point) {
       bke::GSpanAttributeWriter attribute = attributes_for_write.lookup_for_write_span(iter.name);
-      const CPPType &type = attribute.span.type();
+      GMutableSpan attribute_data = attribute.span;
+      const CPPType &type = attribute_data.type();
       GArray<> new_values(type, new_vert_order.size());
-      bke::attribute_math::gather(attribute.span, new_vert_order, new_values.as_mutable_span());
-      attribute.span.copy_from(new_values.as_span());
+
+      int new_vert_idx = 0;
+      for (const int old_vert_idx : new_vert_order) {
+        type.copy_construct(attribute_data[old_vert_idx], new_values[new_vert_idx]);
+        new_vert_idx++;
+      }
+      attribute_data.copy_from(new_values.as_span());
       attribute.finish();
     }
     else if (iter.domain == bke::AttrDomain::Corner && iter.name != ".corner_vert") {
