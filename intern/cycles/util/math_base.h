@@ -415,15 +415,25 @@ ccl_device_inline T1 endvalue_preserving_mix(const T1 a, const T1 b, const T2 t)
   return (1.0f - t) * a + t * b;
 }
 
-#if defined(__KERNEL_CUDA__)
+#if !defined(__KERNEL_METAL__)
 ccl_device_inline float saturatef(const float a)
 {
+#  ifdef __KERNEL_OPTIX__
+  /* Workaround OptiX driver bug which somehow rounds constant values to
+   * integers when using __saturatef. This particular logic works around the
+   * problem, just using clamp gets optimized back to saturate. See #159954. */
+  if (!(a >= 0.0f)) {
+    return 0.0f;
+  }
+  if (!(a <= 1.0f)) {
+    return 1.0f;
+  }
+  return a;
+#  elif defined(__KERNEL_CUDA__)
   return __saturatef(a);
-}
-#elif !defined(__KERNEL_METAL__)
-ccl_device_inline float saturatef(const float a)
-{
+#  else
   return clamp(a, 0.0f, 1.0f);
+#  endif
 }
 #endif /* __KERNEL_CUDA__ */
 
