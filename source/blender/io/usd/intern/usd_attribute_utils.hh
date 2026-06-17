@@ -52,8 +52,19 @@ template<> struct is_layout_compatible<float3, pxr::GfVec3f> : std::true_type {}
 template<> struct is_layout_compatible<pxr::GfVec2f, float2> : std::true_type {};
 template<> struct is_layout_compatible<pxr::GfVec3f, float3> : std::true_type {};
 
+template<typename T>
+concept IsSmall = sizeof(T) <= 16;
+
 /* Conversion utilities to convert a Blender type to an USD type. */
-template<typename From, typename To> inline To convert_value(const From value)
+template<typename From, typename To>
+  requires(IsSmall<From>)
+inline To convert_value(const From value)
+{
+  return value;
+}
+template<typename From, typename To>
+  requires(!IsSmall<From>)
+inline To convert_value(const From &value)
 {
   return value;
 }
@@ -88,6 +99,16 @@ template<> inline pxr::GfQuatf convert_value(const math::Quaternion value)
 {
   return pxr::GfQuatf(value.w, value.x, value.y, value.z);
 }
+template<> inline pxr::GfMatrix4d convert_value(const float4x4 &value)
+{
+  pxr::GfMatrix4d result;
+  for (int i = 0; i < 4; ++i) {
+    for (int j = 0; j < 4; ++j) {
+      result[i][j] = value[i][j];
+    }
+  }
+  return result;
+}
 
 template<> inline float2 convert_value(const pxr::GfVec2f value)
 {
@@ -109,6 +130,16 @@ template<> inline math::Quaternion convert_value(const pxr::GfQuatf value)
 {
   const pxr::GfVec3f &img = value.GetImaginary();
   return math::Quaternion(value.GetReal(), img[0], img[1], img[2]);
+}
+template<> inline float4x4 convert_value(const pxr::GfMatrix4d &value)
+{
+  float4x4 result;
+  for (int i = 0; i < 4; ++i) {
+    for (int j = 0; j < 4; ++j) {
+      result[i][j] = float(value[i][j]);
+    }
+  }
+  return result;
 }
 
 template<class T> struct is_vt_array : std::false_type {};

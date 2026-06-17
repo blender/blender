@@ -42,6 +42,8 @@ std::optional<pxr::SdfValueTypeName> convert_blender_type_to_usd(const bke::Attr
                                 pxr::SdfValueTypeNames->Color4fArray;
     case bke::AttrType::Quaternion:
       return pxr::SdfValueTypeNames->QuatfArray;
+    case bke::AttrType::Float4x4:
+      return pxr::SdfValueTypeNames->Matrix4dArray;
     default:
       return std::nullopt;
   }
@@ -82,6 +84,7 @@ std::optional<bke::AttrType> convert_usd_type_to_blender(const pxr::SdfValueType
     map.add_new(pxr::SdfValueTypeNames->QuatfArray, bke::AttrType::Quaternion);
     map.add_new(pxr::SdfValueTypeNames->QuatdArray, bke::AttrType::Quaternion);
     map.add_new(pxr::SdfValueTypeNames->QuathArray, bke::AttrType::Quaternion);
+    map.add_new(pxr::SdfValueTypeNames->Matrix4dArray, bke::AttrType::Float4x4);
     return map;
   }();
 
@@ -142,6 +145,10 @@ void copy_primvar_to_blender_attribute(const pxr::UsdGeomPrimvar &primvar,
       break;
     case bke::AttrType::Quaternion:
       copy_primvar_to_blender_buffer<pxr::GfQuatf, math::Quaternion>(
+          primvar, time, data_type, domain, face_indices, attributes);
+      break;
+    case bke::AttrType::Float4x4:
+      copy_primvar_to_blender_buffer<pxr::GfMatrix4d, float4x4>(
           primvar, time, data_type, domain, face_indices, attributes);
       break;
 
@@ -206,6 +213,10 @@ void copy_blender_attribute_to_primvar(const GVArray &attribute,
     case bke::AttrType::Quaternion:
       copy_blender_buffer_to_primvar<math::Quaternion, pxr::GfQuatf>(
           attribute.typed<math::Quaternion>(), time, primvar, value_writer);
+      break;
+    case bke::AttrType::Float4x4:
+      copy_blender_buffer_to_primvar<float4x4, pxr::GfMatrix4d>(
+          attribute.typed<float4x4>(), time, primvar, value_writer);
       break;
     default:
       BLI_assert_unreachable();

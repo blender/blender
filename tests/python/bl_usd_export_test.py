@@ -646,7 +646,7 @@ class USDExportTest(AbstractUSDTest):
         self.check_primvar(prim, "p_vec2", "VtArray<GfVec2f>", "vertex", 4)
         self.check_primvar(prim, "p_vec3", "VtArray<GfVec3f>", "vertex", 4)
         self.check_primvar(prim, "p_quat", "VtArray<GfQuatf>", "vertex", 4)
-        self.check_primvar_missing(prim, "p_mat4x4")
+        self.check_primvar(prim, "p_mat4x4", "VtArray<GfMatrix4d>", "vertex", 4)
 
         self.check_primvar_missing(prim, "e_bool")
         self.check_primvar_missing(prim, "e_int8")
@@ -669,7 +669,7 @@ class USDExportTest(AbstractUSDTest):
         self.check_primvar(prim, "f_vec2", "VtArray<GfVec2f>", "uniform", 1)
         self.check_primvar(prim, "f_vec3", "VtArray<GfVec3f>", "uniform", 1)
         self.check_primvar(prim, "f_quat", "VtArray<GfQuatf>", "uniform", 1)
-        self.check_primvar_missing(prim, "f_mat4x4")
+        self.check_primvar(prim, "f_mat4x4", "VtArray<GfMatrix4d>", "uniform", 1)
 
         self.check_primvar(prim, "fc_bool", "VtArray<bool>", "faceVarying", 4)
         self.check_primvar(prim, "fc_int8", "VtArray<unsigned char>", "faceVarying", 4)
@@ -680,7 +680,7 @@ class USDExportTest(AbstractUSDTest):
         self.check_primvar(prim, "fc_vec2", "VtArray<GfVec2f>", "faceVarying", 4)
         self.check_primvar(prim, "fc_vec3", "VtArray<GfVec3f>", "faceVarying", 4)
         self.check_primvar(prim, "fc_quat", "VtArray<GfQuatf>", "faceVarying", 4)
-        self.check_primvar_missing(prim, "fc_mat4x4")
+        self.check_primvar(prim, "fc_mat4x4", "VtArray<GfMatrix4d>", "faceVarying", 4)
 
         prim = stage.GetPrimAtPath("/root/Curve_base/Curves/Curves")
 
@@ -693,7 +693,7 @@ class USDExportTest(AbstractUSDTest):
         self.check_primvar(prim, "p_vec2", "VtArray<GfVec2f>", "vertex", 24)
         self.check_primvar(prim, "p_vec3", "VtArray<GfVec3f>", "vertex", 24)
         self.check_primvar(prim, "p_quat", "VtArray<GfQuatf>", "vertex", 24)
-        self.check_primvar_missing(prim, "p_mat4x4")
+        self.check_primvar(prim, "p_mat4x4", "VtArray<GfMatrix4d>", "vertex", 24)
 
         self.check_primvar(prim, "sp_bool", "VtArray<bool>", "uniform", 2)
         self.check_primvar(prim, "sp_int8", "VtArray<unsigned char>", "uniform", 2)
@@ -704,7 +704,7 @@ class USDExportTest(AbstractUSDTest):
         self.check_primvar(prim, "sp_vec2", "VtArray<GfVec2f>", "uniform", 2)
         self.check_primvar(prim, "sp_vec3", "VtArray<GfVec3f>", "uniform", 2)
         self.check_primvar(prim, "sp_quat", "VtArray<GfQuatf>", "uniform", 2)
-        self.check_primvar_missing(prim, "sp_mat4x4")
+        self.check_primvar(prim, "sp_mat4x4", "VtArray<GfMatrix4d>", "uniform", 2)
 
         prim = stage.GetPrimAtPath("/root/Curve_bezier_base/Curves_bezier/Curves")
 
@@ -717,7 +717,7 @@ class USDExportTest(AbstractUSDTest):
         self.check_primvar(prim, "p_vec2", "VtArray<GfVec2f>", "varying", 10)
         self.check_primvar(prim, "p_vec3", "VtArray<GfVec3f>", "varying", 10)
         self.check_primvar(prim, "p_quat", "VtArray<GfQuatf>", "varying", 10)
-        self.check_primvar_missing(prim, "p_mat4x4")
+        self.check_primvar(prim, "p_mat4x4", "VtArray<GfMatrix4d>", "varying", 10)
 
         self.check_primvar(prim, "sp_bool", "VtArray<bool>", "uniform", 3)
         self.check_primvar(prim, "sp_int8", "VtArray<unsigned char>", "uniform", 3)
@@ -728,7 +728,7 @@ class USDExportTest(AbstractUSDTest):
         self.check_primvar(prim, "sp_vec2", "VtArray<GfVec2f>", "uniform", 3)
         self.check_primvar(prim, "sp_vec3", "VtArray<GfVec3f>", "uniform", 3)
         self.check_primvar(prim, "sp_quat", "VtArray<GfQuatf>", "uniform", 3)
-        self.check_primvar_missing(prim, "sp_mat4x4")
+        self.check_primvar(prim, "sp_mat4x4", "VtArray<GfMatrix4d>", "uniform", 3)
 
     def test_export_attributes_varying(self):
         bpy.ops.wm.open_mainfile(filepath=str(self.testdir / "usd_attribute_varying_test.blend"))
