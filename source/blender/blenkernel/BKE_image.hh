@@ -332,6 +332,10 @@ void BKE_image_ensure_viewer_views(const RenderData *rd, Image *ima, ImageUser *
  */
 void BKE_image_user_frame_calc(Image *ima, ImageUser *iuser, int cfra);
 int BKE_image_user_frame_get(const ImageUser *iuser, int cfra, bool *r_is_in_range);
+/**
+ * Test if two image users resolve to the same image buffer.
+ */
+bool BKE_image_user_match(const ImageUser &a, const ImageUser &b);
 void BKE_image_user_file_path(const ImageUser *iuser, const Image *ima, char *filepath);
 void BKE_image_user_file_path_ex(const Main *bmain,
                                  const ImageUser *iuser,

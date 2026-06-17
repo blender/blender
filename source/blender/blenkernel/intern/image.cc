@@ -5282,6 +5282,13 @@ void BKE_image_pool_release_ibuf(Image *ima, ImBuf *ibuf, ImagePool *pool)
   }
 }
 
+bool BKE_image_user_match(const ImageUser &a, const ImageUser &b)
+{
+  return a.frames == b.frames && a.offset == b.offset && a.sfra == b.sfra && a.cycl == b.cycl &&
+         a.multi_index == b.multi_index && a.view == b.view && a.layer == b.layer &&
+         a.pass == b.pass && a.tile == b.tile;
+}
+
 int BKE_image_user_frame_get(const ImageUser *iuser, int cfra, bool *r_is_in_range)
 {
   const int len = iuser->frames;
