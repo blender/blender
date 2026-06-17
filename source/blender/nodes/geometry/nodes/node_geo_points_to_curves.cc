@@ -150,9 +150,11 @@ static Curves *curves_from_points(const PointCloud &points,
 
   Array<int> indices(domain_size);
 
-  const bool custom_sorting = weights_varray.is_single();
-  find_points_by_group_index(group_ids, !custom_sorting, offset, indices.as_mutable_span());
-  if (custom_sorting) {
+  /* If the weights are specified, use them to sort the points, otherwise use the default sorting
+   * implemented by #offset_indices::reverse_indices_in_groups. */
+  const bool sort_by_weight = !weights_varray.is_single();
+  find_points_by_group_index(group_ids, !sort_by_weight, offset, indices.as_mutable_span());
+  if (sort_by_weight) {
     const VArraySpan<float> weights(weights_varray);
     grouped_sort(OffsetIndices<int>(offset), weights, indices);
   }
