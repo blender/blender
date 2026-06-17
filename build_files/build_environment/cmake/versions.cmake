@@ -112,6 +112,7 @@ set(PTHREADS_URI http://prdownloads.sourceforge.net/pthreads4w/pthreads4w-code-v
 set(PTHREADS_HASH f3bf81bb395840b3446197bcf4ecd653)
 set(PTHREADS_HASH_TYPE MD5)
 set(PTHREADS_FILE pthreads4w-code-${PTHREADS_VERSION}.zip)
+set(PTHREADS_CPE "cpe:2.3:a:pthread-win32_project:pthreads-win32:${PTHREADS_VERSION}:-:*:*:*:*:*:*")
 set(PTHREADS_HOMEPAGE https://github.com/fwbuilder/pthreads4w)
 set(PTHREADS_LICENSE SPDX:Apache-2.0)
 set(PTHREADS_COPYRIGHT [=[
@@ -275,6 +276,7 @@ set(MINIZIPNG_URI https://github.com/zlib-ng/minizip-ng/archive/${MINIZIPNG_VERS
 set(MINIZIPNG_HASH 9b4de14db78016419598d0f292fde244)
 set(MINIZIPNG_HASH_TYPE MD5)
 set(MINIZIPNG_FILE minizip-ng-${MINIZIPNG_VERSION}.tar.gz)
+set(MINIZIPNG_CPE "cpe:2.3:a:zlib-ng:minizip-ng:${MINIZIPNG_VERSION}:*:*:*:*:*:*:*")
 set(MINIZIPNG_HOMEPAGE https://github.com/zlib-ng/minizip-ng)
 set(MINIZIPNG_LICENSE SPDX:Zlib)
 set(MINIZIPNG_COPYRIGHT [=[
@@ -299,6 +301,7 @@ set(OPENIMAGEIO_URI https://github.com/AcademySoftwareFoundation/OpenImageIO/arc
 set(OPENIMAGEIO_HASH 9f6f083900680b79ca4a136270103844)
 set(OPENIMAGEIO_HASH_TYPE MD5)
 set(OPENIMAGEIO_FILE OpenImageIO-${OPENIMAGEIO_VERSION}.tar.gz)
+set(OPENIMAGEIO_CPE "cpe:2.3:a:openimageio:openimageio:${OPENIMAGEIO_VERSION}:*:*:*:*:*:*:*")
 set(OPENIMAGEIO_HOMEPAGE https://github.com/AcademySoftwareFoundation/OpenImageIO)
 set(OPENIMAGEIO_LICENSE SPDX:Apache-2.0)
 set(OPENIMAGEIO_COPYRIGHT "Copyright Contributors to the OpenImageIO project.")
@@ -543,6 +546,7 @@ set(THEORA_URI http://downloads.xiph.org/releases/theora/libtheora-${THEORA_VERS
 set(THEORA_HASH b6ae1ee2fa3d42ac489287d3ec34c5885730b1296f0801ae577a35193d3affbc)
 set(THEORA_HASH_TYPE SHA256)
 set(THEORA_FILE libtheora-${THEORA_VERSION}.tar.bz2)
+set(THEORA_CPE "cpe:2.3:a:xiph:theora:${THEORA_VERSION}:-:*:*:*:*:*:*")
 set(THEORA_HOMEPAGE https://xiph.org/theora/)
 set(THEORA_LICENSE SPDX:BSD-3-Clause)
 set(THEORA_COPYRIGHT "Copyright (C) 2002-2009 Xiph.org Foundation")
@@ -850,6 +854,7 @@ set(USD_URI https://github.com/PixarAnimationStudios/OpenUSD/archive/v${USD_VERS
 set(USD_HASH cc6d6bffdcdd038f60e2fe4726b08673)
 set(USD_HASH_TYPE MD5)
 set(USD_FILE usd-v${USD_VERSION}.tar.gz)
+set(USD_CPE "cpe:2.3:a:pixar:openusd:${USD_VERSION}:*:*:*:*:*:*:*")
 set(USD_HOMEPAGE https://openusd.org/)
 set(USD_LICENSE TOST-1.0)
 set(USD_COPYRIGHT [=[
@@ -866,6 +871,7 @@ set(MATERIALX_URI https://github.com/AcademySoftwareFoundation/MaterialX/archive
 set(MATERIALX_HASH 4704716b93e4c2d6b3693aa56a13b71b)
 set(MATERIALX_HASH_TYPE MD5)
 set(MATERIALX_FILE materialx-v${MATERIALX_VERSION}.tar.gz)
+set(MATERIALX_CPE "cpe:2.3:a:linuxfoundation:materialx:${MATERIALX_VERSION}:-:*:*:*:*:*:*")
 set(MATERIALX_HOMEPAGE https://github.com/AcademySoftwareFoundation/MaterialX)
 set(MATERIALX_LICENSE SPDX:Apache-2.0)
 set(MATERIALX_COPYRIGHT "Copyright Contributors to the MaterialX Project")
@@ -876,6 +882,7 @@ set(OIDN_URI https://github.com/RenderKit/oidn/releases/download/v${OIDN_VERSION
 set(OIDN_HASH 83f2ae3e891595bba0e85a3ed6d6b653)
 set(OIDN_HASH_TYPE MD5)
 set(OIDN_FILE oidn-${OIDN_VERSION}.src.tar.gz)
+set(OIDN_CPE "cpe:2.3:a:intel:open_image_denoise:${OIDN_VERSION}:*:*:*:*:*:*:*")
 set(OIDN_HOMEPAGE https://www.openimagedenoise.org/)
 set(OIDN_LICENSE SPDX:Apache-2.0)
 set(OIDN_COPYRIGHT "Copyright 2009-2025 Intel Corporation")
@@ -927,6 +934,7 @@ set(WAYLAND_FILE wayland-${WAYLAND_VERSION}.tar.xz)
 set(WAYLAND_URI https://gitlab.freedesktop.org/wayland/wayland/-/releases/${WAYLAND_VERSION}/downloads/wayland-${WAYLAND_VERSION}.tar.xz)
 set(WAYLAND_HASH fda0b2a73ea2716f61d75767e02008e1)
 set(WAYLAND_HASH_TYPE MD5)
+set(WAYLAND_CPE "cpe:2.3:a:wayland:wayland:${WAYLAND_VERSION}:*:*:*:*:*:*:*")
 set(WAYLAND_HOMEPAGE https://gitlab.freedesktop.org/wayland/wayland)
 set(WAYLAND_LICENSE SPDX:MIT)
 set(WAYLAND_COPYRIGHT [=[
@@ -955,6 +963,7 @@ set(WAYLAND_WESTON_FILE weston-${WAYLAND_WESTON_VERSION}.tar.xz)
 set(WAYLAND_WESTON_URI https://gitlab.freedesktop.org/wayland/weston/-/releases/${WAYLAND_WESTON_VERSION}/downloads/weston-${WAYLAND_WESTON_VERSION}.tar.xz)
 set(WAYLAND_WESTON_HASH 4575a052e2ff3ea7819cfbf33868f8f5)
 set(WAYLAND_WESTON_HASH_TYPE MD5)
+set(WAYLAND_WESTON_CPE "cpe:2.3:a:wayland:weston:${WAYLAND_WESTON_VERSION}:*:*:*:*:*:*:*")
 set(WAYLAND_WESTON_HOMEPAGE https://gitlab.freedesktop.org/wayland/weston)
 set(WAYLAND_WESTON_LICENSE SPDX:MIT)
 set(WAYLAND_WESTON_COPYRIGHT [=[
@@ -1281,6 +1290,7 @@ set(AOM_URI https://storage.googleapis.com/aom-releases/libaom-${AOM_VERSION}.ta
 set(AOM_HASH 19e45a5a7192d690565229983dad900e76b513a02306c12053fb9a262cbeca7d)
 set(AOM_HASH_TYPE SHA256)
 set(AOM_FILE libaom-${AOM_VERSION}.tar.gz)
+set(AOM_CPE "cpe:2.3:a:aomedia:aomedia:${AOM_VERSION}:*:*:*:*:*:*:*")
 set(AOM_HOMEPAGE https://aomedia.googlesource.com/aom/)
 set(AOM_LICENSE SPDX:BSD-2-Clause)
 set(AOM_COPYRIGHT "Copyright (c) 2016, Alliance for Open Media. All rights reserved.")
@@ -1290,6 +1300,7 @@ set(FRIBIDI_URI https://github.com/fribidi/fribidi/archive/refs/tags/${FRIBIDI_V
 set(FRIBIDI_HASH 2e9e859876571f03567ac91e5ed3b5308791f31cda083408c2b60fa1fe00a39d)
 set(FRIBIDI_HASH_TYPE SHA256)
 set(FRIBIDI_FILE fribidi-${FRIBIDI_VERSION}.tar.gz)
+set(FRIBIDI_CPE "cpe:2.3:a:gnu:fribidi:${FRIBIDI_VERSION}:*:*:*:*:*:*:*")
 set(FRIBIDI_HOMEPAGE https://github.com/fribidi/fribidi)
 set(FRIBIDI_LICENSE SPDX:LGPL-2.1-or-later)
 set(FRIBIDI_COPYRIGHT [=[
@@ -1304,6 +1315,7 @@ set(HARFBUZZ_URI https://github.com/harfbuzz/harfbuzz/archive/refs/tags/${HARFBU
 set(HARFBUZZ_HASH e7358ea86fe10fb9261931af6f010d4358dac64f7074420ca9bc94aae2bdd542)
 set(HARFBUZZ_HASH_TYPE SHA256)
 set(HARFBUZZ_FILE harfbuzz-${HARFBUZZ_VERSION}.tar.gz)
+set(HARFBUZZ_CPE "cpe:2.3:a:harfbuzz_project:harfbuzz:${HARFBUZZ_VERSION}:*:*:*:*:*:*:*")
 set(HARFBUZZ_DEPSBUILDTIMEONLY "UI module asked for preliminary libs so they could work on integrating it")
 set(HARFBUZZ_HOMEPAGE https://github.com/harfbuzz/harfbuzz)
 
@@ -1334,6 +1346,7 @@ Copyright (C) 2015-2018 Google, Inc.
 
 
 set(VULKAN_VERSION 1.4.341)
+set(VULKAN_CPE "cpe:2.3:a:khronos:vulkan:${VULKAN_VERSION}:*:*:*:*:*:*:*")
 
 set(VULKAN_HEADERS_VERSION ${VULKAN_VERSION})
 set(VULKAN_HEADERS_NAME Vulkan-Headers)
@@ -1445,6 +1458,7 @@ set(LIBHEIF_URI https://github.com/strukturag/libheif/releases/download/v${LIBHE
 set(LIBHEIF_HASH 68ac9084243004e0ef3633f184eeae85d615fe7e4444373a0a21cebccae9d12a)
 set(LIBHEIF_HASH_TYPE SHA256)
 set(LIBHEIF_FILE libheif-${LIBHEIF_VERSION}.tar.gz)
+set(LIBHEIF_CPE "cpe:2.3:a:struktur:libheif:${LIBHEIF_VERSION}:*:*:*:*:*:*:*")
 set(LIBHEIF_HOMEPAGE https://github.com/strukturag/libheif)
 set(LIBHEIF_LICENSE SPDX:LGPL-3.0-or-later)
 set(LIBHEIF_COPYRIGHT [=[
@@ -1457,6 +1471,7 @@ set(ABSEIL_URI https://github.com/abseil/abseil-cpp/releases/download/${ABSEIL_V
 set(ABSEIL_HASH 1692f77d1739bacf3f94337188b78583cf09bab7e420d2dc6c5605a4f86785a1)
 set(ABSEIL_HASH_TYPE SHA256)
 set(ABSEIL_FILE abseil-cpp-${ABSEIL_VERSION}.tar.gz)
+set(ABSEIL_CPE "cpe:2.3:a:abseil:common_libraries:${ABSEIL_VERSION}:-:*:*:*:*:*:*")
 set(ABSEIL_HOMEPAGE https://abseil.io/)
 set(ABSEIL_LICENSE SPDX:Apache-2.0)
 set(ABSEIL_COPYRIGHT "Copyright 2023 The Abseil Authors.")
