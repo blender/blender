@@ -1974,6 +1974,12 @@ void BM_lnorspace_err(BMesh *bm)
       bm, {}, {}, {}, true, lnors, temp, nullptr, cd_loop_clnors_offset, true);
 
   for (int i = 0; i < bm->totloop; i++) {
+    /* Degenerate faces can produce non-finite normals which can't be usefully compared.
+     * Skip them as the comparison is likely to fail and assert, see #160015. */
+    if (!is_finite_v3(temp->lspacearr[i]->vec_lnor)) {
+      continue;
+    }
+
     int j = 0;
     j += compare_ff(
         temp->lspacearr[i]->ref_alpha, bm->lnor_spacearr->lspacearr[i]->ref_alpha, 1e-4f);
