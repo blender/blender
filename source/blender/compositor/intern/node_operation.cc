@@ -145,6 +145,18 @@ static destruct_ptr<nodes::eval_log::ImageInfoLog> get_image_info_log(LinearAllo
       to_string(result.precision()));
 }
 
+void NodeOperation::add_warning(nodes::NodeWarningType type, std::string message)
+{
+  nodes::eval_log::NodesEvalLog *log = this->context().nodes_evaluation_log();
+  if (!log) {
+    return;
+  }
+  nodes::eval_log::NodeTreeLogger &tree_logger = log->get_local_tree_logger(
+      this->get_compute_context());
+  tree_logger.node_warnings.append(*tree_logger.allocator,
+                                   {this->node().identifier, {type, message}});
+}
+
 void NodeOperation::log_data()
 {
   nodes::eval_log::NodesEvalLog *log = this->context().nodes_evaluation_log();

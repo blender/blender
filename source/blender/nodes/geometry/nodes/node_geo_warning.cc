@@ -87,17 +87,8 @@ class WarningOperation : public NodeOperation {
       return;
     }
 
-    nodes::eval_log::NodesEvalLog *log = this->context().nodes_evaluation_log();
-    if (!log) {
-      return;
-    }
-    nodes::eval_log::NodeTreeLogger &tree_logger = log->get_local_tree_logger(
-        this->get_compute_context());
-
     const std::string message = this->get_input("Message").get_single_value_default<std::string>();
-    tree_logger.node_warnings.append(
-        *tree_logger.allocator,
-        {this->node().identifier, {NodeWarningType(this->node().custom1), std::move(message)}});
+    this->add_warning(NodeWarningType(this->node().custom1), message);
   }
 };
 
