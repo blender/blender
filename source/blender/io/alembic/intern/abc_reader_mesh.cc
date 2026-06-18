@@ -31,6 +31,7 @@
 #include "BKE_main.hh"
 #include "BKE_material.hh"
 #include "BKE_mesh.hh"
+#include "BKE_modifier.hh"
 #include "BKE_object.hh"
 #include "BKE_subdiv.hh"
 
@@ -50,6 +51,7 @@ using Alembic::AbcGeom::IC3fGeomParam;
 using Alembic::AbcGeom::IC4fGeomParam;
 using Alembic::AbcGeom::IFaceSet;
 using Alembic::AbcGeom::IFaceSetSchema;
+using Alembic::AbcGeom::IInt32Property;
 using Alembic::AbcGeom::IN3fGeomParam;
 using Alembic::AbcGeom::IObject;
 using Alembic::AbcGeom::IPolyMesh;
@@ -1147,6 +1149,8 @@ void AbcSubDReader::readObjectData(Main *bmain, const Alembic::Abc::ISampleSelec
   if (m_settings->always_add_cache_reader || has_animations(m_schema, m_settings)) {
     addCacheModifier();
   }
+
+  add_subdiv_modifier();
 }
 
 bool AbcSubDReader::topology_changed(const Mesh *existing_mesh, const ISampleSelector &sample_sel)
@@ -1225,6 +1229,86 @@ void AbcSubDReader::read_geometry(bke::GeometrySet &geometry_set,
   Mesh *new_mesh = read_mesh(mesh, sample_sel, read_params, r_err_str);
 
   geometry_set.replace_mesh(new_mesh);
+}
+
+void AbcSubDReader::add_subdiv_modifier()
+{
+  ModifierData *md = BKE_modifier_new(eModifierType_Subsurf);
+  BLI_addtail(&m_object->modifiers, md);
+  BKE_modifiers_persistent_uid_init(*m_object, *md);
+
+  SubsurfModifierData *subdiv_data = reinterpret_cast<SubsurfModifierData *>(md);
+
+  try {
+    /* We only read the first sample as it is unlikely that those value are animated. */
+    ISampleSelector sample_selector = ISampleSelector(Alembic::Abc::index_t(0));
+    ISubDSchema::Sample sample = m_schema.getValue(sample_selector);
+
+    const AbcFaceVaryingInterpolateBoundary fvar_interpolate_boundary =
+        AbcFaceVaryingInterpolateBoundary(sample.getFaceVaryingInterpolateBoundary());
+
+    const AbcInterpolateBoundary interpolate_boundary = AbcInterpolateBoundary(
+        sample.getInterpolateBoundary());
+
+    /* FaceVaryingPropagateCorners should have a value of either 0 (false) or 1 (true). Consider
+     * only values that are greater than 0 as true to allow for bad values, but discard negative
+     * values for the potential set of true values are the value used by Alembic to tell that the
+     * property has not been initialized is negative. */
+    const bool propagate_corners = sample.getFaceVaryingPropagateCorners() > 0;
+
+    /* Confusingly, ALL is NONE and NONE is ALL. */
+    switch (fvar_interpolate_boundary) {
+      case AbcFaceVaryingInterpolateBoundary::ALL:
+        subdiv_data->uv_smooth = SUBSURF_UV_SMOOTH_NONE;
+        break;
+      case AbcFaceVaryingInterpolateBoundary::EDGE_AND_CORNERS: {
+        if (propagate_corners) {
+          subdiv_data->uv_smooth = SUBSURF_UV_SMOOTH_PRESERVE_CORNERS_JUNCTIONS_AND_CONCAVE;
+        }
+        else {
+          subdiv_data->uv_smooth = SUBSURF_UV_SMOOTH_PRESERVE_CORNERS;
+        }
+        break;
+      }
+      case AbcFaceVaryingInterpolateBoundary::NONE:
+        subdiv_data->uv_smooth = SUBSURF_UV_SMOOTH_ALL;
+        break;
+      case AbcFaceVaryingInterpolateBoundary::BOUNDARIES:
+        subdiv_data->uv_smooth = SUBSURF_UV_SMOOTH_PRESERVE_BOUNDARIES;
+        break;
+    }
+
+    switch (interpolate_boundary) {
+      case AbcInterpolateBoundary::NONE:
+        /* Blender has no concept for this. */
+        break;
+      case AbcInterpolateBoundary::EDGE_AND_CORNERS:
+        subdiv_data->boundary_smooth = SUBSURF_BOUNDARY_SMOOTH_PRESERVE_CORNERS;
+        break;
+      case AbcInterpolateBoundary::EDGE_ONLY:
+        subdiv_data->boundary_smooth = SUBSURF_BOUNDARY_SMOOTH_ALL;
+        break;
+    }
+
+    ICompoundProperty user_properties = m_schema.getUserProperties();
+
+    if (user_properties.valid() && user_properties.getPropertyHeader("subdivRenderLevels") &&
+        user_properties.getPropertyHeader("subdivViewportLevels"))
+    {
+      IInt32Property render_levels(user_properties, "subdivRenderLevels");
+      IInt32Property viewport_levels(user_properties, "subdivViewportLevels");
+
+      subdiv_data->renderLevels = short(render_levels.getValue(sample_selector));
+      subdiv_data->levels = short(viewport_levels.getValue(sample_selector));
+    }
+  }
+  catch (Alembic::Util::Exception &ex) {
+    CLOG_WARN(&LOG,
+              "Error reading subdivision parameter for '%s/%s' : %s",
+              m_iobject.getFullName().c_str(),
+              m_schema.getName().c_str(),
+              ex.what());
+  }
 }
 
 }  // namespace io::alembic

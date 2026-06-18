@@ -80,6 +80,8 @@ class AbcSubDReader final : public AbcObjectReader {
                          const Alembic::Abc::ISampleSelector &sample_sel,
                          const AbcReadGeometryParams &read_params,
                          const char **r_err_str);
+
+  void add_subdiv_modifier();
 };
 
 void read_mverts(Mesh &mesh,

@@ -305,7 +305,7 @@ class CameraExportImportTest(unittest.TestCase):
 
         # A MeshSequenceCache modifier should be present on every imported object
         for blender_mesh in [blender_mesh1, blender_mesh2]:
-            self.assertTrue(len(blender_mesh.modifiers) == 1 and blender_mesh.modifiers[0].type ==
+            self.assertTrue(len(blender_mesh.modifiers) >= 1 and blender_mesh.modifiers[0].type ==
                             'MESH_SEQUENCE_CACHE', f"{blender_mesh.name} has incorrect modifiers")
 
         # Conversion from USD to Blender convention
@@ -320,8 +320,10 @@ class CameraExportImportTest(unittest.TestCase):
             blender_mesh2_eval = bpy.data.objects["mesh_vert_crease"].evaluated_get(depsgraph)
 
             # The file was written using a simple formula for each frame's crease value
-            expected_edge_creases = [round(frame / 24.0, 3)] * 12
-            expected_vert_creases = [round(frame / 24.0, 3)] * 4
+            expected_edge_creases = [round(frame / 24.0, 3)] * 48
+            # Creases are not propagated to edges that do not come from a coarse edge
+            expected_edge_creases.extend([0.0] * 144)
+            expected_vert_creases = [round(frame / 24.0, 3)] * 25
 
             # Check crease values
             blender_crease_data = [round(d.value, 3) for d in blender_mesh1_eval.data.attributes["crease_edge"].data]
@@ -335,6 +337,56 @@ class CameraExportImportTest(unittest.TestCase):
                 blender_crease_data,
                 expected_vert_creases,
                 f"Frame {frame}: {blender_mesh2_eval.name} crease values do not match")
+
+    def test_mesh_subd_params(self):
+        """Test export of subdivision parameters."""
+
+        abc_path = str(self.tempdir / "mesh_subd_params.abc")
+
+        # Export
+        bpy.ops.wm.open_mainfile(filepath=str(args.testdir / "mesh_subd_params.blend"))
+        self.assertIn('FINISHED', bpy.ops.wm.alembic_export(
+            filepath=abc_path,
+            subdiv_schema=True
+        ))
+
+        # Re-import what we just exported into an empty file.
+        bpy.ops.wm.open_mainfile(filepath=str(args.testdir / "empty.blend"))
+        bpy.ops.wm.alembic_import(
+            filepath=abc_path,
+            as_background_job=False)
+
+        uv_smooth_options = [
+            'NONE',
+            'PRESERVE_CORNERS',
+            # NOTE: in Blender this should be PRESERVE_CORNERS_AND_JUNCTIONS, however
+            # Alembic does not have this concept.
+            'PRESERVE_CORNERS',
+            'PRESERVE_CORNERS_JUNCTIONS_AND_CONCAVE',
+            'PRESERVE_BOUNDARIES',
+            'SMOOTH_ALL'
+        ]
+
+        boundary_smooth_options = [
+            'PRESERVE_CORNERS',
+            'ALL'
+        ]
+
+        for uv_smooth_index in range(len(uv_smooth_options)):
+            uv_smooth = uv_smooth_options[uv_smooth_index]
+
+            for boundary_smooth_index in range(len(boundary_smooth_options)):
+                boundary_smooth = boundary_smooth_options[boundary_smooth_index]
+
+                obj_name = 'obj{}{}'.format(uv_smooth_index, boundary_smooth_index)
+
+                obj = bpy.data.objects[obj_name]
+                modifier = obj.modifiers['Subdivision']
+
+                self.assertEqual(modifier.uv_smooth, uv_smooth)
+                self.assertEqual(modifier.boundary_smooth, boundary_smooth)
+                self.assertEqual(modifier.levels, 1 + uv_smooth_index)
+                self.assertEqual(modifier.render_levels, 2 + uv_smooth_index)
 
     def do_export_import_test(self, *, flatten: bool):
         bpy.ops.wm.open_mainfile(filepath=str(args.testdir / "camera_transforms.blend"))

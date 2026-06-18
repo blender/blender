@@ -26,4 +26,6 @@
   - pos 0.000, 0.000, 0.000
   - rot 0.000, 0.000, 0.000 (XYZ)
   - scl 1.000, 1.000, 1.000
+  - 1 modifiers
+    - SUBSURF 'Subdivision' levels:1/2 type:CATMULL_CLARK crease:True
 
