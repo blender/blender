@@ -484,7 +484,9 @@ static bool ntree_weight_tree_tag_nodes(bNode *fromnode, bNode *tonode, void *us
     fromnode->runtime->tmp_flag = *node_count;
     *node_count += (fromnode->type_legacy == SH_NODE_MIX_SHADER) ? 4 : 1;
   }
-  return to_node_from_weight_tree;
+  /* Note: We do not continue recursing after a shader-to-rgb node as they get processed
+   * independently/ */
+  return to_node_from_weight_tree && fromnode->type_legacy != SH_NODE_SHADERTORGB;
 }
 
 /* Invert evaluation order of the weight tree (add & mix closure nodes) to feed the closure nodes
