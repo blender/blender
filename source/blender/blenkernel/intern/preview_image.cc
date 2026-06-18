@@ -86,6 +86,15 @@ static void previewimg_free_or_defer(PreviewImage **prv)
 
   BLI_assert(BLI_thread_is_main());
 
+  /* User counting is only done in few cases. If the count is 0, no counting is being used. */
+  if ((*prv)->runtime->user_count > 0) {
+    (*prv)->runtime->user_count--;
+    if ((*prv)->runtime->user_count > 0) {
+      /* Don't free yet. */
+      return;
+    }
+  }
+
   bool do_delete = true;
 
   /* If a preview is still being rendered, tag it for deferred deletion in
@@ -303,7 +312,8 @@ PreviewImage *BKE_previewimg_cached_ensure(const char *name)
 PreviewImage *BKE_previewimg_cached_thumbnail_read(const char *name,
                                                    const char *filepath,
                                                    const int source,
-                                                   bool force_update)
+                                                   bool force_update,
+                                                   const bool count_users)
 {
   BLI_assert(BLI_thread_is_main());
 
@@ -337,6 +347,10 @@ PreviewImage *BKE_previewimg_cached_thumbnail_read(const char *name,
     force_update = true;
   }
 
+  if (count_users) {
+    prv->runtime->user_count++;
+  }
+
   if (force_update) {
     if (prv_p) {
       *prv_p = prv;
@@ -351,10 +365,11 @@ PreviewImage *BKE_previewimg_cached_thumbnail_read(const char *name,
 
 PreviewImage *BKE_previewimg_online_thumbnail_read(const char *name,
                                                    const char *dst_filepath,
-                                                   const bool force_update)
+                                                   const bool force_update,
+                                                   const bool count_users)
 {
   PreviewImage *preview = BKE_previewimg_cached_thumbnail_read(
-      name, dst_filepath, THB_SOURCE_DIRECT, force_update);
+      name, dst_filepath, THB_SOURCE_DIRECT, force_update, count_users);
   preview->runtime->deferred_loading_data->is_online = true;
 
   return preview;

@@ -92,6 +92,11 @@ void AssetRepresentation::ensure_previewable(const bContext &C, ReportList *repo
     return;
   }
 
+  /* The asset may be in multiple libraries, so multiple #AssetRepresentation's may refer to the
+   * same preview. Use user counting so the preview is only released with the last representation.
+   */
+  const bool count_preview_users = true;
+
   /* Only use the remote thumbnail when there is no asset file on disk. Otherwise use the on-disk
    * file. */
   if (this->is_online_only()) {
@@ -102,7 +107,7 @@ void AssetRepresentation::ensure_previewable(const bContext &C, ReportList *repo
     const std::string preview_path = remote_library_asset_preview_path(*this);
     /* Doesn't do the actual reading, just allocates and attaches the derived load info. */
     extern_asset.preview_ = BKE_previewimg_online_thumbnail_read(
-        this->full_path().c_str(), preview_path.c_str(), false);
+        this->full_path().c_str(), preview_path.c_str(), false, count_preview_users);
     remote_library_request_preview_download(C, *this, preview_path, reports);
   }
   else {
@@ -111,7 +116,7 @@ void AssetRepresentation::ensure_previewable(const bContext &C, ReportList *repo
 
     /* Doesn't do the actual reading, just allocates and attaches the derived load info. */
     extern_asset.preview_ = BKE_previewimg_cached_thumbnail_read(
-        full_path.c_str(), full_path.c_str(), THB_SOURCE_BLEND, false);
+        full_path.c_str(), full_path.c_str(), THB_SOURCE_BLEND, false, count_preview_users);
   }
 
   BKE_icon_preview_ensure(nullptr, extern_asset.preview_);
