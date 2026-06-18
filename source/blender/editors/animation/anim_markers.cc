@@ -1296,7 +1296,7 @@ static void select_marker_camera_switch(
     }
 
     LISTBASE_FOREACH (TimeMarker *, marker, markers) {
-      if (marker->frame == cfra) {
+      if (marker->frame == cfra && marker->camera) {
         sel = (marker->flag & SELECT);
         break;
       }
@@ -1309,7 +1309,7 @@ static void select_marker_camera_switch(
           base = BKE_view_layer_base_find(view_layer, marker->camera);
           if (base) {
             object::base_select(base, object::eObjectSelect_Mode(sel));
-            if (sel) {
+            if (!extend) {
               object::base_activate(C, base);
             }
           }
@@ -1368,7 +1368,7 @@ static wmOperatorStatus ed_marker_select(bContext *C,
     TimeMarker *marker, *marker_cycle_selected = nullptr;
     TimeMarker *marker_found = nullptr;
 
-    /* support for selection cycling */
+    /* Support for selection cycling. */
     LISTBASE_FOREACH (TimeMarker *, marker, markers) {
       if (marker->frame == cfra) {
         if (marker->flag & SELECT) {
@@ -1379,9 +1379,9 @@ static wmOperatorStatus ed_marker_select(bContext *C,
       }
     }
 
-    /* if extend is not set, then deselect markers */
+    /* If extend is not set, then deselect markers. */
     LISTBASE_CIRCULAR_FORWARD_BEGIN (TimeMarker *, markers, marker, marker_cycle_selected) {
-      /* this way a not-extend select will always give 1 selected marker */
+      /* This way a not-extend select will always give 1 selected marker. */
       if (marker->frame == cfra) {
         marker_found = marker;
         break;
@@ -1398,11 +1398,15 @@ static wmOperatorStatus ed_marker_select(bContext *C,
       }
     }
   }
+  /* If extend is set (by holding Shift), then add the camera to the selection too. */
+  if (found && camera) {
+    select_marker_camera_switch(C, true, extend, markers, nearest_marker->frame);
+  }
 
   WM_event_add_notifier(C, NC_SCENE | ND_MARKERS, nullptr);
   WM_event_add_notifier(C, NC_ANIMATION | ND_MARKERS, nullptr);
 
-  /* allowing tweaks, but needs OPERATOR_FINISHED, otherwise renaming fails, see #25987. */
+  /* Allowing tweaks, but needs OPERATOR_FINISHED, otherwise renaming fails, see #25987. */
   return ret_val;
 }
 
