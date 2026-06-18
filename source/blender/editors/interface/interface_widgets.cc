@@ -3148,20 +3148,13 @@ static void widget_state(WidgetType *wt, const WidgetStateInfo *state, EmbossTyp
 
   if (state->but_flag & BUT_REDALERT) {
     if (wt->draw && emboss != EmbossType::None) {
-      uchar red[4];
-      theme::get_color_3ubv(TH_REDALERT, red);
-
-      /* Outline uses a mix to emphasize it a bit. */
-      color_blend_v3_v3(wt->wcol.outline, red, 0.6f);
-      /* Darken the alert for the inner color. */
-      color_mul_hsl_v3(red, 1.0f, 1.0f, 0.6f);
-      copy_v3_v3_uchar(wt->wcol.inner, red);
+      theme::get_color_3ubv(TH_REDALERT, wt->wcol.inner);
     }
     else {
       uchar red[4];
       theme::get_color_3ubv(TH_REDALERT, red);
       color_mul_hsl_v3(red, 1.0f, 1.5f, 1.5f);
-      color_blend_v3_v3(wt->wcol.text, red, 0.6f);
+      color_blend_v3_v3(wt->wcol.text, red, 0.5f);
     }
   }
 
@@ -5016,7 +5009,7 @@ static void widget_state_label(WidgetType *wt, const WidgetStateInfo *state, Emb
     uchar red[4];
     theme::get_color_3ubv(TH_REDALERT, red);
     color_mul_hsl_v3(red, 1.0f, 1.5f, 1.5f);
-    color_blend_v3_v3(wt->wcol.text, red, 0.6f);
+    color_blend_v3_v3(wt->wcol.text, red, 0.5f);
   }
 }
 

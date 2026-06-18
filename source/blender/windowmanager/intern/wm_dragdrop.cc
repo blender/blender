@@ -1145,14 +1145,16 @@ static void wm_drop_redalert_draw(const StringRef redalert_str, int x, int y)
   const bTheme *btheme = ui::theme::theme_get();
   const uiWidgetColors *wcol = &btheme->tui.wcol_tooltip;
 
-  float col_fg[4], col_bg[4];
+  float col_fg[4], col_bg[4], col_alert[4];
   rgba_uchar_to_float(col_bg, wcol->inner);
+  rgba_uchar_to_float(col_fg, wcol->text);
+  ui::theme::get_color_4fv(TH_REDALERT, col_alert);
 
-  ui::theme::get_color_4fv(TH_REDALERT, col_fg);
-  /* Lighten the alert color a bit for the text. */
-  col_fg[0] = std::min(col_fg[0] + 0.2f, 1.0f);
-  col_fg[1] = std::min(col_fg[1] + 0.2f, 1.0f);
-  col_fg[2] = std::min(col_fg[2] + 0.2f, 1.0f);
+  /* Blend between the original text color and alert.
+   * This ensures the text be always readable, lighter or darker depending on the theme. */
+  col_fg[0] = (1.0f - 0.66f) * col_fg[0] + (0.66f * col_alert[0]);
+  col_fg[1] = (1.0f - 0.66f) * col_fg[1] + (0.66f * col_alert[1]);
+  col_fg[2] = (1.0f - 0.66f) * col_fg[2] + (0.66f * col_alert[2]);
 
   ui::fontstyle_draw_simple_backdrop(fstyle, x, y, redalert_str, col_fg, col_bg);
 }

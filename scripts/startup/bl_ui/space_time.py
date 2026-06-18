@@ -95,7 +95,7 @@ def playback_controls(layout, context):
             row.operator("screen.animation_play", text="", icon='PLAY')
     else:
         row.scale_x = 2
-        row.operator("screen.animation_play", text="", icon='PAUSE')
+        row.operator("screen.animation_pause", text="", icon='PAUSE')
         row.scale_x = 1
 
     row.operator("screen.keyframe_jump", text="", icon='NEXT_KEYFRAME').next = True
