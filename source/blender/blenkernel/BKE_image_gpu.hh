@@ -31,15 +31,13 @@ gpu::Texture *BKE_image_acquire_gpu_texture(Image *image, ImageUser *iuser);
 
 /*
  * Like #BKE_image_acquire_gpu_texture, but can also get render or compositing result.
- */
-gpu::Texture *BKE_image_acquire_gpu_viewer_texture(Image *image, ImageUser *iuser);
-
-/*
- * Like #BKE_image_acquire_gpu_viewer_texture, but the image buffer is provided explicitly.
+ *
+ * If #only_full_resolution is true, null will be returned if no single gpu::Texture
+ * can be created at full resolution.
  */
 gpu::Texture *BKE_image_acquire_gpu_viewer_texture(Image *image,
                                                    ImageUser *iuser,
-                                                   ImBuf *image_buffer);
+                                                   bool only_full_resolution = false);
 
 /*
  * Like #BKE_image_acquire_gpu_texture, but can also return a GPU array texture and tile mapping

@@ -582,19 +582,28 @@ static ImageGPUTextures image_get_gpu_texture_tiled(Image *ima,
   return result;
 }
 
-static ImageGPUTextures image_get_gpu_texture_single(
-    Image *ima, ImageUser *iuser, ImBuf *image_buffer, const bool use_viewers, const bool try_only)
+static bool image_gpu_texture_fits_full_resolution(const ImBuf *ibuf)
+{
+  /* Check if this image buffer can fit in a GPU texture at full resolution. */
+  const bool has_cpu_data = ibuf->float_data() || ibuf->byte_data();
+  return !has_cpu_data || (GPU_is_safe_texture_size(ibuf->x, ibuf->y) &&
+                           GPU_texture_size_with_limit(ibuf->x) == ibuf->x &&
+                           GPU_texture_size_with_limit(ibuf->y) == ibuf->y);
+}
+
+static ImageGPUTextures image_get_gpu_texture_single(Image *ima,
+                                                     ImageUser *iuser,
+                                                     const bool use_viewers,
+                                                     const bool only_full_resolution,
+                                                     const bool try_only)
 {
   ImageGPUTextures result = {};
 
-  /* Acquire the image buffer unless the caller already supplied one. */
+  /* Acquire the image buffer. */
   void *lock = nullptr;
-  ImBuf *ibuf = image_buffer;
-  if (image_buffer == nullptr) {
-    ibuf = BKE_image_acquire_ibuf(ima, iuser, use_viewers ? &lock : nullptr);
-  }
+  ImBuf *ibuf = BKE_image_acquire_ibuf_gpu(ima, iuser, use_viewers ? &lock : nullptr);
 
-  if (ibuf != nullptr) {
+  if (ibuf != nullptr && (!only_full_resolution || image_gpu_texture_fits_full_resolution(ibuf))) {
     /* Acquire a reference to the GPU texture. */
     const bool use_high_bitdepth = (ima->flag & IMA_HIGH_BITDEPTH);
     const bool store_premultiplied = BKE_image_has_gpu_texture_premultiplied_alpha(ima, ibuf);
@@ -614,12 +623,10 @@ static ImageGPUTextures image_get_gpu_texture_single(
   }
 
   /* Release image buffer. */
-  if (image_buffer == nullptr) {
-    BKE_image_release_ibuf(ima, ibuf, lock);
-  }
+  BKE_image_release_ibuf(ima, ibuf, lock);
 
   /* Return error texture if failed to load. */
-  if (result.texture == nullptr && !try_only) {
+  if (result.texture == nullptr && !try_only && !only_full_resolution) {
     image_gpu_log_load_error_once(ima, iuser);
     ImBuf *error_ibuf = image_gpu_error_imbuf_ensure();
     result.texture = IMB_acquire_gpu_texture(ima->id.name + 2, error_ibuf, false, false, false);
@@ -633,16 +640,14 @@ static ImageGPUTextures image_get_gpu_texture_single(
  * is true, nullptr textures will be returned if no cached textures exists, otherwise, the textures
  * will be generated and added to the cached.
  *
- * The textures are generated from the given image buffer which is assumed to be acquired from the
- * image with the image user, but if nullptr is provided, the image buffer will be acquired
- * internally. If use_viewers is true, the image buffer will be acquired with locking to allow
- * retrieval of images of type viewer. If use_tile_mapping is true and the image is a tiled images,
- * the returned texture will be a 2D texture array with a mapping texture to sampling the image at
+ * If use_viewers is true, the image buffer will be acquired with locking to allow retrieval of
+ * images of type viewer. If use_tile_mapping is true and the image is a tiled images, the
+ * returned texture will be a 2D texture array with a mapping texture to sampling the image at
  * arbitrary tiles, otherwise, only the tile in the image user will be retrieved. */
 static ImageGPUTextures image_get_gpu_texture(Image *ima,
                                               ImageUser *iuser,
-                                              ImBuf *image_buffer,
                                               const bool use_viewers,
+                                              const bool only_full_resolution,
                                               const bool use_tile_mapping,
                                               const bool try_only)
 {
@@ -657,13 +662,14 @@ static ImageGPUTextures image_get_gpu_texture(Image *ima,
   image_gpu_texture_try_partial_update(ima, iuser);
 
   const bool tiled = (use_tile_mapping && ima->source == IMA_SRC_TILED);
-  return tiled ? image_get_gpu_texture_tiled(ima, iuser, try_only) :
-                 image_get_gpu_texture_single(ima, iuser, image_buffer, use_viewers, try_only);
+  return tiled ?
+             image_get_gpu_texture_tiled(ima, iuser, try_only) :
+             image_get_gpu_texture_single(ima, iuser, use_viewers, only_full_resolution, try_only);
 }
 
 gpu::Texture *BKE_image_acquire_gpu_texture(Image *image, ImageUser *iuser)
 {
-  return image_get_gpu_texture(image, iuser, nullptr, false, false, false).texture;
+  return image_get_gpu_texture(image, iuser, false, false, false, false).texture;
 }
 
 void BKE_image_assign_gpu_texture(Image *image, gpu::Texture *texture)
@@ -678,16 +684,11 @@ void BKE_image_assign_gpu_texture(Image *image, gpu::Texture *texture)
   BKE_image_release_ibuf(image, ibuf, lock);
 }
 
-gpu::Texture *BKE_image_acquire_gpu_viewer_texture(Image *image, ImageUser *iuser)
-{
-  return image_get_gpu_texture(image, iuser, nullptr, true, false, false).texture;
-}
-
 gpu::Texture *BKE_image_acquire_gpu_viewer_texture(Image *image,
                                                    ImageUser *iuser,
-                                                   ImBuf *image_buffer)
+                                                   const bool only_full_resolution)
 {
-  return image_get_gpu_texture(image, iuser, image_buffer, true, false, false).texture;
+  return image_get_gpu_texture(image, iuser, true, only_full_resolution, false, false).texture;
 }
 
 /** \} */
@@ -701,7 +702,7 @@ ImageGPUTextures BKE_image_acquire_gpu_material_texture(Image *image,
                                                         const bool use_tile_mapping,
                                                         const bool try_only)
 {
-  return image_get_gpu_texture(image, iuser, nullptr, false, use_tile_mapping, try_only);
+  return image_get_gpu_texture(image, iuser, false, false, use_tile_mapping, try_only);
 }
 
 bool BKE_image_has_gpu_material_texture(Image *image,
@@ -710,7 +711,7 @@ bool BKE_image_has_gpu_material_texture(Image *image,
 {
   const bool try_only = true;
   ImageGPUTextures result = image_get_gpu_texture(
-      image, iuser, nullptr, false, use_tile_mapping, try_only);
+      image, iuser, false, false, use_tile_mapping, try_only);
   const bool has_texture = result.texture != nullptr;
 
   /* Release reference, stays owned by the image buffer. */
@@ -729,7 +730,7 @@ void BKE_image_ensure_gpu_material_texture(Image *image,
                                            const bool use_tile_mapping)
 {
   ImageGPUTextures result = image_get_gpu_texture(
-      image, iuser, nullptr, false, use_tile_mapping, false);
+      image, iuser, false, false, use_tile_mapping, false);
 
   /* Release reference, stays owned by the image buffer. */
   if (result.texture) {

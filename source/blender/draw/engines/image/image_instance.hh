@@ -74,40 +74,17 @@ class Instance : public DrawEngine {
   std::unique_ptr<AbstractDrawingMode> get_drawing_mode()
   {
     if (this->state.image->source != IMA_SRC_TILED) {
-      void *lock;
-      ImBuf *buffer = BKE_image_acquire_ibuf_gpu(
-          this->state.image, space_->get_image_user(), &lock);
-      BLI_SCOPED_DEFER([&]() { BKE_image_release_ibuf(this->state.image, buffer, lock); });
-
-      /* The image buffer already has a GPU texture, so use image space drawing. Check
-       * dimensions match in case the texture limit affected this textured. */
-      if (buffer && buffer->gpu.texture && GPU_texture_width(buffer->gpu.texture) == buffer->x &&
-          GPU_texture_height(buffer->gpu.texture) == buffer->y)
-      {
-        return std::make_unique<ImageSpaceDrawingMode>(*this, buffer->gpu.texture);
-      }
-
-      /* Buffer does not exist or image will not fit in a GPU texture, use screen space drawing. */
-      if (!buffer || (!buffer->float_data() && !buffer->byte_data()) ||
-          !GPU_is_safe_texture_size(buffer->x, buffer->y))
-      {
-        return std::make_unique<ScreenSpaceDrawingMode>(*this);
-      }
-
-      /* GPU drawing will limit image resolution due to the GPU back-end having a lower maximum
-       * texture size or a resolution limit in the preferences, so use screen space drawing to get
-       * the full resolution. */
-      if (GPU_texture_size_with_limit(buffer->x) != buffer->x ||
-          GPU_texture_size_with_limit(buffer->y) != buffer->y)
-      {
-        return std::make_unique<ScreenSpaceDrawingMode>(*this);
-      }
-
-      /* Image can fit in a GPU texture, use image space drawing. */
+      /* If the full image resolution can fit in a GPU texture, draw it directly.
+       * Otherwise fall back to slower tiled screen space drawing. */
+      const bool only_full_resolution = true;
       gpu::Texture *texture = BKE_image_acquire_gpu_viewer_texture(
-          this->state.image, space_->get_image_user(), buffer);
-      const bool texture_owned = true;
-      return std::make_unique<ImageSpaceDrawingMode>(*this, texture, nullptr, texture_owned);
+          this->state.image, space_->get_image_user(), only_full_resolution);
+      if (texture) {
+        const bool texture_owned = true;
+        return std::make_unique<ImageSpaceDrawingMode>(*this, texture, nullptr, texture_owned);
+      }
+
+      return std::make_unique<ScreenSpaceDrawingMode>(*this);
     }
 
     for (ImageTile &tile : this->state.image->tiles) {

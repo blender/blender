@@ -499,7 +499,9 @@ gpu::Texture *IMB_acquire_gpu_texture(const char *name,
                                       bool limit_size,
                                       bool try_only)
 {
-  if (ibuf == nullptr) {
+  if (ibuf == nullptr || (ibuf->byte_data() == nullptr && ibuf->float_data() == nullptr &&
+                          ibuf->gpu.texture == nullptr))
+  {
     return nullptr;
   }
 
