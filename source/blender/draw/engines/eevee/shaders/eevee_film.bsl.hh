@@ -776,9 +776,15 @@ struct Film {
       return;
     }
 
-    out_depth = depth_convert_to_scene(views.get(0), value);
+    float depth_value = depth_convert_to_scene(views.get(0), value);
+    out_depth = depth_value;
 
-    imageStoreFast(depth_img, texel_film, float4(out_depth));
+    if (value == 1.0f) {
+      /* Match clear value in render_layer_allocate_pass. */
+      depth_value = 1e10f;
+    }
+
+    imageStoreFast(depth_img, texel_film, float4(depth_value));
   }
 
   void store_distance(int2 texel, float value)
