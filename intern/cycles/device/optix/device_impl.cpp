@@ -1165,6 +1165,14 @@ bool OptiXDevice::load_osl_kernels()
     pipeline_groups.push_back(groups[PG_RGEN_INIT_FROM_CAMERA]);
     pipeline_groups.push_back(groups[PG_RGEN_EVAL_VOLUME_DENSITY]);
 
+    /* For shader ray-tracing, trace depth and hit program groups are needed. */
+    if (groups[PG_RGEN_SHADE_SURFACE_RAYTRACE] != nullptr ||
+        groups[PG_RGEN_INTERSECT_MNEE] != nullptr)
+    {
+      link_options.maxTraceDepth = 1;
+      add_hit_miss_program_groups(groups, pipeline_groups);
+    }
+
     for (const OptixProgramGroup &group : osl_groups) {
       if (group != nullptr) {
         pipeline_groups.push_back(group);
@@ -1197,8 +1205,10 @@ bool OptiXDevice::load_osl_kernels()
       }
     }
 
+    const unsigned int trace_css = hit_program_continuation_stack_size(stack_size);
     const unsigned int css = std::max(stack_size[PG_RGEN_SHADE_SURFACE_RAYTRACE].cssRG,
-                                      stack_size[PG_RGEN_INTERSECT_MNEE].cssRG);
+                                      stack_size[PG_RGEN_INTERSECT_MNEE].cssRG) +
+                             link_options.maxTraceDepth * trace_css;
     unsigned int dss = std::max(stack_size[PG_CALL_SVM_AO].dssDC,
                                 stack_size[PG_CALL_SVM_BEVEL].dssDC);
     for (unsigned int i = 0; i < osl_stack_size.size(); ++i) {
