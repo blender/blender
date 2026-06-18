@@ -892,7 +892,7 @@ set(NASM_URI https://github.com/netwide-assembler/nasm/archive/nasm-${NASM_VERSI
 set(NASM_HASH aded8b796c996a486a56e0515c83e414116decc3b184d88043480b32eb0a8589)
 set(NASM_HASH_TYPE SHA256)
 set(NASM_FILE nasm-${NASM_VERSION}.tar.gz)
-set(NASM_PCE "cpe:2.3:a:nasm:nasm:${NASM_VERSION}:*:*:*:*:*:*:*")
+set(NASM_CPE "cpe:2.3:a:nasm:nasm:${NASM_VERSION}:*:*:*:*:*:*:*")
 set(NASM_DEPSBUILDTIMEONLY "Blender ships the produced artifact, but doesn't ship/link with any binary")
 
 set(XR_OPENXR_SDK_VERSION 1.1.53)
