@@ -7303,6 +7303,11 @@ static void rna_def_space_dopesheet(BlenderRNA *brna)
   RNA_def_property_ui_text(prop, "Smoke", "Show the active object's smoke cache");
   RNA_def_property_update(prop, NC_SPACE | ND_SPACE_TIME, nullptr);
 
+  prop = RNA_def_property(srna, "cache_compositor", PROP_BOOLEAN, PROP_NONE);
+  RNA_def_property_boolean_sdna(prop, nullptr, "cache_display", TIME_CACHE_COMPOSITOR);
+  RNA_def_property_ui_text(prop, "Compositor", "Show the interactive compositor playback cache");
+  RNA_def_property_update(prop, NC_SPACE | ND_SPACE_TIME, nullptr);
+
   prop = RNA_def_property(srna, "cache_simulation_nodes", PROP_BOOLEAN, PROP_NONE);
   RNA_def_property_boolean_sdna(prop, nullptr, "cache_display", TIME_CACHE_SIMULATION_NODES);
   RNA_def_property_ui_text(

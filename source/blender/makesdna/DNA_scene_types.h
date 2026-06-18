@@ -662,6 +662,13 @@ enum eCompositorDevice : int {
   SCE_COMPOSITOR_DEVICE_GPU = 1,
 };
 
+/** #RenderData::cache_flags */
+enum eCompositorCacheFlags : uint8_t {
+  SCE_COMPOSITOR_CACHE_NONE = 0,
+  SCE_COMPOSITOR_CACHE_FRAMES = (1 << 0),
+};
+ENUM_OPERATORS(eCompositorCacheFlags);
+
 /** #RenderData::compositor_precision */
 enum eCompositorPrecision : int {
   SCE_COMPOSITOR_PRECISION_AUTO = 0,
@@ -1037,6 +1044,11 @@ struct RenderData {
   /** Device to use for compositor engine. */
   eCompositorDevice compositor_device = SCE_COMPOSITOR_DEVICE_GPU;
 
+  /** Cache options for the interactive compositor. */
+  eCompositorCacheFlags compositor_cache_flags = SCE_COMPOSITOR_CACHE_FRAMES;
+
+  char _pad10[3] = {};
+
   /** Precision used by the GPU execution of the compositor tree. */
   eCompositorPrecision compositor_precision = SCE_COMPOSITOR_PRECISION_AUTO;
 
@@ -1050,7 +1062,6 @@ struct RenderData {
   /** Frames to jump manually. */
   float time_jump_delta = 1.0;
   int time_jump_unit = 1;
-  char _pad10[4] = {};
 };
 
 /** \} */

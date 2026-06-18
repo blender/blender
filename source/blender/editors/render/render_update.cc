@@ -38,6 +38,7 @@
 #include "BKE_node_tree_update.hh"
 #include "BKE_paint.hh"
 #include "BKE_scene.hh"
+#include "BKE_scene_runtime.hh"
 
 #include "RE_engine.h"
 #include "RE_pipeline.h"
@@ -114,6 +115,10 @@ static void update_compositor(const DEGEditorUpdateContext *update_context)
   }
 
   if (node_tree->id.recalc & ID_RECALC_NTREE_OUTPUT) {
+    if (DEG_id_is_user_modified(update_context->depsgraph, &node_tree->id)) {
+      update_context->scene->runtime->compositor.cache.clear_frames();
+    }
+
     ED_node_compositor_job(
         update_context->bmain, update_context->scene, update_context->view_layer);
   }

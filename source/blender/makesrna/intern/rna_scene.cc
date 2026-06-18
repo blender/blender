@@ -7792,6 +7792,14 @@ static void rna_def_scene_render_data(BlenderRNA *brna)
   RNA_def_property_ui_text(prop, "Compositor Device", "Set how compositing is executed");
   RNA_def_property_update(prop, NC_NODE | ND_DISPLAY, "rna_Scene_compositor_update");
 
+  prop = RNA_def_property(srna, "use_compositor_frames_cache", PROP_BOOLEAN, PROP_NONE);
+  RNA_def_property_boolean_sdna(
+      prop, nullptr, "compositor_cache_flags", SCE_COMPOSITOR_CACHE_FRAMES);
+  RNA_def_property_ui_text(prop,
+                           "Compositor Frames Cache",
+                           "Cache the result of the interactive compositor across frames");
+  RNA_def_property_update(prop, NC_NODE | ND_DISPLAY, "rna_Scene_compositor_update");
+
   prop = RNA_def_property(srna, "compositor_precision", PROP_ENUM, PROP_NONE);
   RNA_def_property_enum_sdna(prop, nullptr, "compositor_precision");
   RNA_def_property_enum_items(prop, compositor_precision_items);

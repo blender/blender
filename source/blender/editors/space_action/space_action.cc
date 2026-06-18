@@ -84,7 +84,8 @@ static SpaceLink *action_create(const ScrArea *area, const Scene *scene)
 
   saction->cache_display = TIME_CACHE_DISPLAY | TIME_CACHE_SOFTBODY | TIME_CACHE_PARTICLES |
                            TIME_CACHE_CLOTH | TIME_CACHE_SMOKE | TIME_CACHE_DYNAMICPAINT |
-                           TIME_CACHE_RIGIDBODY | TIME_CACHE_SIMULATION_NODES;
+                           TIME_CACHE_RIGIDBODY | TIME_CACHE_SIMULATION_NODES |
+                           TIME_CACHE_COMPOSITOR;
 
   saction->overlays.flag |= (ADS_OVERLAY_SHOW_OVERLAYS | ADS_SHOW_SCENE_STRIP_FRAME_RANGE);
 

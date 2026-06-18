@@ -564,7 +564,7 @@ enum DNA_DEPRECATED eAnimEdit_AutoSnap : int {
 };
 
 /* SAction->cache_display */
-enum eTimeline_Cache_Flag : char {
+enum eTimeline_Cache_Flag : uint16_t {
   TIME_CACHE_DISPLAY = (1 << 0),
   TIME_CACHE_SOFTBODY = (1 << 1),
   TIME_CACHE_PARTICLES = (1 << 2),
@@ -572,7 +572,8 @@ enum eTimeline_Cache_Flag : char {
   TIME_CACHE_SMOKE = (1 << 4),
   TIME_CACHE_DYNAMICPAINT = (1 << 5),
   TIME_CACHE_RIGIDBODY = (1 << 6),
-  TIME_CACHE_SIMULATION_NODES = static_cast<char>(1 << 7),
+  TIME_CACHE_SIMULATION_NODES = (1 << 7),
+  TIME_CACHE_COMPOSITOR = (1 << 8),
 };
 ENUM_OPERATORS(eTimeline_Cache_Flag)
 
@@ -1194,8 +1195,9 @@ struct SpaceAction {
   char mode_prev = 0;
   /* Snapping now lives on the Scene. */
   DNA_DEPRECATED char autosnap = 0;
+  char _pad1 = {};
   eTimeline_Cache_Flag cache_display = {};
-  char _pad1[6] = {};
+  char _pad2[4] = {};
 
   SpaceActionOverlays overlays;
 

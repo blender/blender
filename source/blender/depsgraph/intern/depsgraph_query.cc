@@ -128,6 +128,16 @@ bool DEG_id_type_any_updated(const Depsgraph *graph)
   return false;
 }
 
+bool DEG_id_is_user_modified(const Depsgraph *graph, const ID *id)
+{
+  const deg::Depsgraph *deg_graph = reinterpret_cast<const deg::Depsgraph *>(graph);
+  const deg::IDNode *id_node = deg_graph->find_id_node(deg::get_original_id(id));
+  if (id_node == nullptr) {
+    return false;
+  }
+  return id_node->is_user_modified;
+}
+
 bool DEG_id_type_any_exists(const Depsgraph *depsgraph, short id_type)
 {
   const deg::Depsgraph *deg_graph = reinterpret_cast<const deg::Depsgraph *>(depsgraph);
