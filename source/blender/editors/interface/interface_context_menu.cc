@@ -14,6 +14,8 @@
 
 #include "DNA_screen_types.h"
 
+#include "AS_asset_representation.hh"
+
 #include "BLI_fileops.hh"
 #include "BLI_path_utils.hh"
 #include "BLI_string_utf8.hh"
@@ -26,6 +28,7 @@
 #include "BKE_screen.hh"
 
 #include "ED_asset.hh"
+#include "ED_asset_menu_utils.hh"
 #include "ED_buttons.hh"
 #include "ED_keyframing.hh"
 #include "ED_screen.hh"
@@ -1026,6 +1029,14 @@ bool popup_context_menu_for_button(bContext *C, Button *but, const wmEvent *even
         RNA_string_set(&props_ptr, "filepath", dir);
         layout.separator();
       }
+    }
+  }
+
+  /* Download online assets. */
+  if (but->optype && but->opptr && ed::asset::operator_asset_reference_props_is_set(*but->opptr)) {
+    const asset_system::AssetRepresentation *asset = CTX_wm_asset(C);
+    if (asset && asset->is_online_only()) {
+      layout.op("ASSET_OT_assets_download", {}, ICON_DOWNLOAD);
     }
   }
 
