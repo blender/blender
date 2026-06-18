@@ -763,7 +763,7 @@ class _defs_edit_armature:
     def bone_size():
         return dict(
             idname="builtin.bone_size",
-            label="Bone Size",
+            label="B-Bone Size",
             icon="ops.transform.bone_size",
             widget="VIEW3D_GGT_tool_generic_handle_free",
             keymap=(),
