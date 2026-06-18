@@ -676,12 +676,6 @@ static MutableSpan<float3> mesh_wrapper_vert_coords_ensure_for_write(Mesh *mesh)
   return {};
 }
 
-static void save_cage_mesh(GeometrySet &geometry)
-{
-  MeshEditHints &edit_data = geometry_mesh_edit_hints_ensure(geometry);
-  edit_data.mesh_cage = geometry.get_component_ptr(GeometryComponent::Type::Mesh);
-}
-
 static GeometrySet editbmesh_calc_modifiers(Depsgraph &depsgraph,
                                             const Scene &scene,
                                             Object &ob,
@@ -694,6 +688,9 @@ static GeometrySet editbmesh_calc_modifiers(Depsgraph &depsgraph,
    * along with final mesh if undeformed / orco coordinates are requested
    * for texturing. */
   Mesh *mesh_orco = nullptr;
+
+  /* Add the cage mesh to the geometry set after evaluating all modifiers in it's removed. */
+  GeometryComponentPtr cage_mesh;
 
   /* Modifier evaluation modes. */
   const int required_mode = eModifierMode_Realtime | eModifierMode_Editmode;
@@ -723,7 +720,7 @@ static GeometrySet editbmesh_calc_modifiers(Depsgraph &depsgraph,
 
   int cageIndex = BKE_modifiers_get_cage_index(&scene, &ob, nullptr, true);
   if (cageIndex == -1) {
-    save_cage_mesh(geometry_set);
+    cage_mesh = geometry_set.get_component_ptr(GeometryComponent::Type::Mesh);
   }
 
   /* The mesh from edit mode should not have any original index layers already, since those
@@ -832,7 +829,7 @@ static GeometrySet editbmesh_calc_modifiers(Depsgraph &depsgraph,
     }
 
     if (i == cageIndex) {
-      save_cage_mesh(geometry_set);
+      cage_mesh = geometry_set.get_component_ptr(GeometryComponent::Type::Mesh);
     }
   }
 
@@ -851,6 +848,9 @@ static GeometrySet editbmesh_calc_modifiers(Depsgraph &depsgraph,
   if (mesh_orco) {
     BKE_id_free(nullptr, mesh_orco);
   }
+
+  MeshEditHints &edit_data = geometry_mesh_edit_hints_ensure(geometry_set);
+  edit_data.mesh_cage = std::move(cage_mesh);
 
   return geometry_set;
 }
