@@ -10711,6 +10711,7 @@ static void rna_def_nodes(BlenderRNA *brna)
   define("GeometryNode", "GeometryNodeGridClip");
   define("GeometryNode", "GeometryNodeGridToMesh");
   define("GeometryNode", "GeometryNodeGridToPoints");
+  define("GeometryNode", "GeometryNodeGridTopologyBoolean");
   define("GeometryNode", "GeometryNodeGridVoxelize");
   define("GeometryNode", "GeometryNodeImageInfo");
   define("GeometryNode", "GeometryNodeImageTexture", def_geo_image_texture);
