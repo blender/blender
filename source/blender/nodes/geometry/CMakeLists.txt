@@ -118,6 +118,7 @@ set(SRC
   nodes/node_geo_grid_advect.cc
   nodes/node_geo_grid_clip.cc
   nodes/node_geo_grid_curl.cc
+  nodes/node_geo_grid_deactivate_voxels.cc
   nodes/node_geo_grid_dilate_erode.cc
   nodes/node_geo_grid_divergence.cc
   nodes/node_geo_grid_gradient.cc
