@@ -189,7 +189,7 @@ ccl_device_forceinline bool bvh_shadow_all_anyhit_filter(
    *
    * NOTE: Currently, spatial splits are not used with OptiX, so there is no need to check whether
    * the intersection has been already recorded. */
-#  if !defined(__KERNEL_OPTIX__)
+#  if !defined(__KERNEL_OPTIX__) && !defined(__KERNEL_HIPRT__)
   if constexpr ((enabled_primitive_types & (PRIMITIVE_ALL & ~PRIMITIVE_CURVE)) != 0) {
     if ((isect.type & PRIMITIVE_CURVE) == 0) {
       if (intersection_skip_shadow_already_recoded(

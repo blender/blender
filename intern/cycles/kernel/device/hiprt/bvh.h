@@ -452,6 +452,7 @@ HIPRT_DEVICE bool filterFunc(const uint geom_type,
   }
   return false;
 }
+
 /* --------------------------------------------------------------------
  * BVH functions.
  */

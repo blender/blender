@@ -399,7 +399,6 @@ hiprtGeometryBuildInput HIPRTDevice::prepare_triangle_blas(BVHHIPRT *bvh, Mesh *
     const Attribute *attr_P = mesh->attributes.find(ATTR_STD_POSITION);
     const size_t num_triangles = mesh->num_triangles();
     int num_bounds = 0;
-    float sum_area = 0.0f;
 
     bvh->custom_primitive_bound.alloc(num_triangles);
     for (uint j = 0; j < num_triangles; j++) {
@@ -410,12 +409,8 @@ hiprtGeometryBuildInput HIPRTDevice::prepare_triangle_blas(BVHHIPRT *bvh, Mesh *
       }
 
       bvh->custom_primitive_bound[num_bounds] = bounds;
-      sum_area += bounds.area();
       num_bounds++;
     }
-
-    const float union_area = mesh->bounds.area();
-    bvh->aabb_overlap_ratio = (union_area > 0.0f && num_bounds > 1) ? sum_area / union_area : 0.0f;
 
     bvh->custom_prim_aabb.aabbCount = num_bounds;
     bvh->custom_prim_aabb.aabbStride = sizeof(BoundBox);
@@ -481,7 +476,6 @@ hiprtGeometryBuildInput HIPRTDevice::prepare_curve_blas(BVHHIPRT *bvh, Hair *hai
   bvh->custom_primitive_bound.alloc(num_segments);
 
   int num_bounds = 0;
-  float sum_area = 0.0f;
   const packed_float3 *curve_keys = hair->get_position();
 
   for (uint j = 0; j < num_curves; j++) {
@@ -500,7 +494,6 @@ hiprtGeometryBuildInput HIPRTDevice::prepare_curve_blas(BVHHIPRT *bvh, Hair *hai
         curve.bounds_grow(k, hair->get_position(), curve_radius, bounds);
 
         bvh->custom_primitive_bound[num_bounds] = bounds;
-        sum_area += bounds.area();
         num_bounds++;
       }
       else {
@@ -510,14 +503,10 @@ hiprtGeometryBuildInput HIPRTDevice::prepare_curve_blas(BVHHIPRT *bvh, Hair *hai
               k, attr_P->data<packed_float3>(attr_step), attr_R->data<float>(attr_step), bounds);
         }
         bvh->custom_primitive_bound[num_bounds] = bounds;
-        sum_area += bounds.area();
         num_bounds++;
       }
     }
   }
-
-  const float union_area = hair->bounds.area();
-  bvh->aabb_overlap_ratio = (union_area > 0.0f && num_bounds > 1) ? sum_area / union_area : 0.0f;
 
   bvh->custom_prim_aabb.aabbCount = num_bounds;
   bvh->custom_prim_aabb.aabbStride = sizeof(BoundBox);
@@ -555,7 +544,6 @@ hiprtGeometryBuildInput HIPRTDevice::prepare_point_blas(BVHHIPRT *bvh, PointClou
   const size_t num_points = pointcloud->num_points();
 
   int num_bounds = 0;
-  float sum_area = 0.0f;
 
   if (attr_P == nullptr) {
     bvh->custom_primitive_bound.alloc(num_points);
@@ -565,7 +553,6 @@ hiprtGeometryBuildInput HIPRTDevice::prepare_point_blas(BVHHIPRT *bvh, PointClou
       point.bounds_grow(points_data, radius_data, bounds);
 
       bvh->custom_primitive_bound[num_bounds] = bounds;
-      sum_area += bounds.area();
       num_bounds++;
     }
   }
@@ -581,13 +568,9 @@ hiprtGeometryBuildInput HIPRTDevice::prepare_point_blas(BVHHIPRT *bvh, PointClou
       }
 
       bvh->custom_primitive_bound[num_bounds] = bounds;
-      sum_area += bounds.area();
       num_bounds++;
     }
   }
-
-  const float union_area = pointcloud->bounds.area();
-  bvh->aabb_overlap_ratio = (union_area > 0.0f && num_bounds > 1) ? sum_area / union_area : 0.0f;
 
   bvh->custom_prim_aabb.aabbCount = num_bounds;
   bvh->custom_prim_aabb.aabbStride = sizeof(BoundBox);
@@ -605,73 +588,7 @@ hiprtGeometryBuildInput HIPRTDevice::prepare_point_blas(BVHHIPRT *bvh, PointClou
   return geom_input;
 }
 
-hiprtBuildFlags HIPRTDevice::select_blas_build_flags(BVHHIPRT *bvh,
-                                                     Geometry *geom,
-                                                     const hiprtGeometryBuildInput &geom_input)
-{
-  constexpr float memory_pressure_threshold = 0.25f;
-  constexpr float overlap_ratio_threshold = 2.0f;
-
-  bool use_high_quality = true;
-  const char *reason = "default";
-
-  size_t total_mem = 0, free_mem = 0;
-  get_device_memory_info(total_mem, free_mem);
-
-  size_t hq_scratch_size = 0;
-  hiprtBuildOptions hq_options = {};
-  hq_options.buildFlags = hiprtBuildFlagBitPreferHighQualityBuild;
-  hiprtError rt_err = hiprtGetGeometryBuildTemporaryBufferSize(
-      hiprt_context, geom_input, hq_options, hq_scratch_size);
-
-  if (rt_err != hiprtSuccess) {
-    set_error("Failed to get scratch buffer size for BLAS");
-    return hiprtBuildFlagBitPreferFastBuild;
-  }
-
-  const float memory_ratio = (free_mem > 0) ? (float)hq_scratch_size / (float)free_mem : 1.0f;
-  if (memory_ratio > memory_pressure_threshold) {
-    use_high_quality = false;
-    reason = "memory pressure";
-    LOG_INFO << "HIPRT BLAS build: switching to BalancedBuild for \"" << geom->name.c_str()
-             << "\" due to low GPU memory"
-             << " (free: " << string_human_readable_size(free_mem)
-             << ", scratch: " << string_human_readable_size(hq_scratch_size)
-             << ", ratio: " << memory_ratio << ")";
-  }
-
-  const int aabb_count = bvh->custom_prim_aabb.aabbCount;
-  const float overlap_ratio = bvh->aabb_overlap_ratio;
-  if (use_high_quality && aabb_count > 0) {
-    if (overlap_ratio < overlap_ratio_threshold) {
-      use_high_quality = false;
-      reason = "low AABB overlap";
-    }
-  }
-  /** This override handles transparent shadows. When high quality bvh is used, same curve segments
-   *  might get duplicated in multiple nodes, and the shadow intersection might run multiple times
-   *  on the same segment leading to double counting of the hit, and darker shadows.
-   */
-  if (use_high_quality && geom->geometry_type == Geometry::HAIR) {
-    Hair *hair = static_cast<Hair *>(geom);
-    if (hair->need_shadow_transparency()) {
-      use_high_quality = false;
-      reason = "curve transparent shadow";
-    }
-  }
-
-  LOG_DEBUG << "HIPRT BLAS build flag for \"" << geom->name.c_str()
-            << "\": " << (use_high_quality ? "HighQualityBuild" : "BalancedBuild")
-            << " (reason: " << reason << ", free: " << string_human_readable_size(free_mem)
-            << ", scratch: " << string_human_readable_size(hq_scratch_size)
-            << ", mem_ratio: " << memory_ratio << ", aabb_count: " << aabb_count
-            << ", overlap_ratio: " << overlap_ratio << ")";
-
-  return use_high_quality ? hiprtBuildFlagBitPreferHighQualityBuild :
-                            hiprtBuildFlagBitPreferBalancedBuild;
-}
-
-void HIPRTDevice::build_blas(BVHHIPRT *bvh, Geometry *geom, hiprtBuildOptions options)
+void HIPRTDevice::build_blas(BVHHIPRT *bvh, Geometry *geom)
 {
   hiprtGeometryBuildInput geom_input = {};
 
@@ -724,11 +641,9 @@ void HIPRTDevice::build_blas(BVHHIPRT *bvh, Geometry *geom, hiprtBuildOptions op
     return;
   }
 
-  options.buildFlags = select_blas_build_flags(bvh, geom, geom_input);
-
-  if (have_error()) {
-    return;
-  }
+  const hiprtBuildOptions options = {
+      .buildFlags = hiprtBuildFlagBitPreferBalancedBuild,
+  };
 
   size_t blas_scratch_buffer_size = 0;
   hiprtError rt_err = hiprtGetGeometryBuildTemporaryBufferSize(
@@ -772,16 +687,17 @@ void HIPRTDevice::build_blas(BVHHIPRT *bvh, Geometry *geom, hiprtBuildOptions op
   }
 }
 
-hiprtScene HIPRTDevice::build_tlas(BVHHIPRT * /*bvh*/,
-                                   const vector<Object *> &objects,
-                                   hiprtBuildOptions options,
-                                   bool refit)
+hiprtScene HIPRTDevice::build_tlas(BVHHIPRT * /*bvh*/, const vector<Object *> &objects, bool refit)
 {
 
   size_t num_object = objects.size();
   if (num_object == 0) {
     return nullptr;
   }
+
+  const hiprtBuildOptions options = {
+      .buildFlags = hiprtBuildFlagBitPreferHighQualityBuild,
+  };
 
   hiprtBuildOperation build_operation = refit ? hiprtBuildOperationUpdate :
                                                 hiprtBuildOperationBuild;
@@ -1005,24 +921,20 @@ void HIPRTDevice::build_bvh(BVH *bvh, Progress &progress, bool refit)
   free_bvh_memory_delayed();
   progress.set_substatus("Building HIPRT acceleration structure");
 
-  hiprtBuildOptions options;
-  options.buildFlags = hiprtBuildFlagBitPreferHighQualityBuild;
-
   BVHHIPRT *bvh_rt = static_cast<BVHHIPRT *>(bvh);
   HIPContextScope scope(this);
 
   if (!bvh_rt->is_tlas()) {
     const vector<Geometry *> &geometry = bvh_rt->geometry;
     assert(geometry.size() == 1);
-    build_blas(bvh_rt, geometry[0], options);
+    build_blas(bvh_rt, geometry[0]);
   }
   else {
-
     if (scene) {
       hiprtDestroyScene(hiprt_context, scene);
       scene = nullptr;
     }
-    scene = build_tlas(bvh_rt, bvh_rt->objects, options, refit);
+    scene = build_tlas(bvh_rt, bvh_rt->objects, refit);
   }
 }
 CCL_NAMESPACE_END
