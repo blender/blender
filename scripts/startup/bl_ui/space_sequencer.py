@@ -582,6 +582,7 @@ class SEQUENCER_MT_select(Menu):
             col.operator("sequencer.select_less", text="Less")
             col.separator()
 
+        col.operator_menu_enum("sequencer.select_by_type", "type", text="Select All by Type")
         col.operator_menu_enum("sequencer.select_grouped", "type", text="Select Grouped")
         col.enabled = not is_retiming
         if has_sequencer:
