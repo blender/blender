@@ -374,8 +374,7 @@ static void scene_free_markers(Scene *scene, bool do_id_user)
 {
   for (TimeMarker &marker : scene->markers.items_mutable()) {
     if (marker.prop != nullptr) {
-      IDP_FreePropertyContent_ex(marker.prop, do_id_user);
-      MEM_delete(marker.prop);
+      IDP_FreeProperty_ex(marker.prop, do_id_user);
     }
     MEM_delete(&marker);
   }

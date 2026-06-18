@@ -81,7 +81,6 @@ void IDP_ResizeIDPArray(IDProperty *prop, int newlen);
  * This function works for strings too!
  */
 void IDP_ResizeArray(IDProperty *prop, int newlen);
-void IDP_FreeArray(IDProperty *prop);
 
 /* ---------- String Type ------------ */
 /**
@@ -288,8 +287,6 @@ IDProperty *IDP_New(char type,
  * \note This will free allocated data, all child properties of arrays and groups, and unlink IDs!
  * But it does not free the actual #IDProperty struct itself.
  */
-void IDP_FreePropertyContent_ex(IDProperty *prop, bool do_id_user);
-void IDP_FreePropertyContent(IDProperty *prop);
 void IDP_FreeProperty_ex(IDProperty *prop, bool do_id_user);
 void IDP_FreeProperty(IDProperty *prop);
 

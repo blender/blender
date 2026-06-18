@@ -64,6 +64,34 @@ static size_t idp_size_table[] = {
     sizeof(int),       /* #IDP_ENUM */
 };
 
+/**
+ * Maximum amount of supported depth in IDProperties (when putting e.g. groups inside groups
+ * inside groups etc.).
+ *
+ * Too many levels will lead to running out of stack memory and crashes. */
+constexpr int MAX_IDPROP_DEPTH_LEVEL = 1026;
+/**
+ * Write code uses one level less than runtime processing code, because it still has to write
+ * something when it detects the issue, to ensure references to the 'limit properties' remain
+ * valid.
+ * Limits overly noisy continous error messages in the console due to runtime processing and
+ * undo/redo. */
+constexpr int MAX_IDPROP_DEPTH_LEVEL_FOR_WRITE = MAX_IDPROP_DEPTH_LEVEL - 1;
+/**
+ * Read code uses two level less than runtime processing code, because it still has to read
+ * something when it detects the issue, to ensure references to the 'limit properties' remain
+ * valid.
+ * Limits overly noisy continous error messages in the console due to runtime processing and
+ * undo/redo. */
+constexpr int MAX_IDPROP_DEPTH_LEVEL_FOR_READ = MAX_IDPROP_DEPTH_LEVEL - 2;
+
+static void idp_free_property_content_recurse(IDProperty *prop,
+                                              const bool do_id_user,
+                                              const int recursion_depth);
+static void idp_free_property_recurse(IDProperty *prop,
+                                      const bool do_id_user,
+                                      const int recursion_depth);
+
 /* -------------------------------------------------------------------- */
 /** \name Array Functions (IDP Array API)
  * \{ */
@@ -103,12 +131,12 @@ IDProperty *IDP_CopyIDPArray(const IDProperty *array, const int flag)
   return narray;
 }
 
-static void IDP_FreeIDPArray(IDProperty *prop, const bool do_id_user)
+static void IDP_FreeIDPArray(IDProperty *prop, const bool do_id_user, const int recursion_depth)
 {
   BLI_assert(prop->type == IDP_IDPARRAY);
 
   for (int i = 0; i < prop->len; i++) {
-    IDP_FreePropertyContent_ex(GETPROP(prop, i), do_id_user);
+    idp_free_property_content_recurse(GETPROP(prop, i), do_id_user, recursion_depth + 1);
   }
 
   if (prop->data.pointer) {
@@ -125,7 +153,7 @@ void IDP_SetIndexArray(IDProperty *prop, int index, IDProperty *item)
 
   IDProperty *old = GETPROP(prop, index);
   if (item != old) {
-    IDP_FreePropertyContent(old);
+    idp_free_property_content_recurse(old, true, 0);
 
     memcpy(old, item, sizeof(IDProperty));
   }
@@ -205,7 +233,8 @@ void IDP_ResizeIDPArray(IDProperty *prop, int newlen)
 }
 
 /* ----------- Numerical Array Type ----------- */
-static void idp_resize_group_array(IDProperty *prop, int newlen, void *newarr)
+static void idp_resize_group_array(
+    IDProperty *prop, int newlen, void *newarr, const bool do_id_users, const int recursion_depth)
 {
   if (prop->subtype != IDP_GROUP) {
     return;
@@ -223,7 +252,7 @@ static void idp_resize_group_array(IDProperty *prop, int newlen, void *newarr)
     IDProperty **array = static_cast<IDProperty **>(prop->data.pointer);
 
     for (int a = newlen; a < prop->len; a++) {
-      IDP_FreeProperty(array[a]);
+      idp_free_property_recurse(array[a], do_id_users, recursion_depth + 1);
     }
   }
 }
@@ -234,31 +263,31 @@ void IDP_ResizeArray(IDProperty *prop, int newlen)
 
   /* first check if the array buffer size has room */
   if (newlen <= prop->totallen && prop->totallen - newlen < IDP_ARRAY_REALLOC_LIMIT) {
-    idp_resize_group_array(prop, newlen, prop->data.pointer);
+    idp_resize_group_array(prop, newlen, prop->data.pointer, true, 0);
     prop->len = newlen;
     return;
   }
 
   const int newsize = idp_resize_grow_size_calc(newlen);
   if (is_grow == false) {
-    idp_resize_group_array(prop, newlen, prop->data.pointer);
+    idp_resize_group_array(prop, newlen, prop->data.pointer, true, 0);
   }
 
   prop->data.pointer = MEM_realloc_zeroed(prop->data.pointer,
                                           idp_size_table[int(prop->subtype)] * size_t(newsize));
 
   if (is_grow == true) {
-    idp_resize_group_array(prop, newlen, prop->data.pointer);
+    idp_resize_group_array(prop, newlen, prop->data.pointer, true, 0);
   }
 
   prop->len = newlen;
   prop->totallen = newsize;
 }
 
-void IDP_FreeArray(IDProperty *prop)
+static void IDP_FreeArray(IDProperty *prop, const bool do_id_user, const int recursion_depth)
 {
   if (prop->data.pointer) {
-    idp_resize_group_array(prop, 0, nullptr);
+    idp_resize_group_array(prop, 0, nullptr, do_id_user, recursion_depth);
     MEM_delete_void(prop->data.pointer);
   }
 }
@@ -810,13 +839,13 @@ IDProperty *IDP_GetPropertyTypeFromGroup(const IDProperty *prop,
  * This is because all ID Property freeing functions free only direct data (not the ID Property
  * struct itself), but for Groups the child properties *are* considered
  * direct data. */
-static void IDP_FreeGroup(IDProperty *prop, const bool do_id_user)
+static void IDP_FreeGroup(IDProperty *prop, const bool do_id_user, const int recursion_depth)
 {
   BLI_assert(prop->type == IDP_GROUP);
 
   MEM_SAFE_DELETE(prop->data.children_map);
   for (IDProperty &loop : prop->data.group) {
-    IDP_FreePropertyContent_ex(&loop, do_id_user);
+    idp_free_property_content_recurse(&loop, do_id_user, recursion_depth + 1);
   }
   prop->data.group.free_no_destruct();
 }
@@ -1303,8 +1332,20 @@ void IDP_ui_data_free(IDProperty *prop)
   prop->ui_data = nullptr;
 }
 
-void IDP_FreePropertyContent_ex(IDProperty *prop, const bool do_id_user)
+static void idp_free_property_content_recurse(IDProperty *prop,
+                                              const bool do_id_user,
+                                              const int recursion_depth)
 {
+  if (recursion_depth > MAX_IDPROP_DEPTH_LEVEL) {
+    CLOG_ERROR(&LOG,
+               "Too deep level of IDProperties embedding detected (over %d levels), this is "
+               "likely caused by a buggy script or add-on. The data in property '%s' will not "
+               "be freed",
+               MAX_IDPROP_DEPTH_LEVEL,
+               prop->name);
+    return;
+  }
+
   switch (prop->type) {
     case IDP_INT:
     case IDP_FLOAT:
@@ -1312,16 +1353,16 @@ void IDP_FreePropertyContent_ex(IDProperty *prop, const bool do_id_user)
     case IDP_BOOLEAN:
       break;
     case IDP_ARRAY:
-      IDP_FreeArray(prop);
+      IDP_FreeArray(prop, do_id_user, recursion_depth);
       break;
     case IDP_STRING:
       IDP_FreeString(prop);
       break;
     case IDP_GROUP:
-      IDP_FreeGroup(prop, do_id_user);
+      IDP_FreeGroup(prop, do_id_user, recursion_depth);
       break;
     case IDP_IDPARRAY:
-      IDP_FreeIDPArray(prop, do_id_user);
+      IDP_FreeIDPArray(prop, do_id_user, recursion_depth);
       break;
     case IDP_ID:
       if (do_id_user) {
@@ -1335,26 +1376,27 @@ void IDP_FreePropertyContent_ex(IDProperty *prop, const bool do_id_user)
   }
 }
 
-void IDP_FreePropertyContent(IDProperty *prop)
+static void idp_free_property_recurse(IDProperty *prop,
+                                      const bool do_id_user,
+                                      const int recursion_depth)
 {
-  IDP_FreePropertyContent_ex(prop, true);
+  idp_free_property_content_recurse(prop, do_id_user, recursion_depth);
+  MEM_delete(prop);
 }
 
 void IDP_FreeProperty_ex(IDProperty *prop, const bool do_id_user)
 {
-  IDP_FreePropertyContent_ex(prop, do_id_user);
-  MEM_delete(prop);
+  idp_free_property_recurse(prop, do_id_user, 0);
 }
 
 void IDP_FreeProperty(IDProperty *prop)
 {
-  IDP_FreePropertyContent(prop);
-  MEM_delete(prop);
+  idp_free_property_recurse(prop, true, 0);
 }
 
 void IDP_ClearProperty(IDProperty *prop)
 {
-  IDP_FreePropertyContent(prop);
+  idp_free_property_content_recurse(prop, true, 0);
   prop->data.pointer = nullptr;
   prop->len = prop->totallen = 0;
 }
@@ -1370,11 +1412,22 @@ void IDP_Reset(IDProperty *prop, const IDProperty *reference)
   }
 }
 
-void IDP_foreach_property(IDProperty *id_property_root,
-                          const int type_filter,
-                          const FunctionRef<void(IDProperty *id_property)> callback)
+static void idp_foreach_property_recurse(IDProperty *id_property_root,
+                                         const int type_filter,
+                                         const int recursion_depth,
+                                         const FunctionRef<void(IDProperty *id_property)> callback)
 {
   if (!id_property_root) {
+    return;
+  }
+
+  if (recursion_depth > MAX_IDPROP_DEPTH_LEVEL) {
+    CLOG_ERROR(&LOG,
+               "Too deep level of IDProperties embedding detected (over %d levels), this is "
+               "likely caused by a buggy script or add-on. The data in property '%s' will not "
+               "be processed further",
+               MAX_IDPROP_DEPTH_LEVEL,
+               id_property_root->name);
     return;
   }
 
@@ -1386,14 +1439,14 @@ void IDP_foreach_property(IDProperty *id_property_root,
   switch (id_property_root->type) {
     case IDP_GROUP: {
       for (IDProperty &loop : id_property_root->data.group) {
-        IDP_foreach_property(&loop, type_filter, callback);
+        idp_foreach_property_recurse(&loop, type_filter, recursion_depth + 1, callback);
       }
       break;
     }
     case IDP_IDPARRAY: {
       IDProperty *loop = IDP_property_array_get(id_property_root);
       for (int i = 0; i < id_property_root->len; i++) {
-        IDP_foreach_property(&loop[i], type_filter, callback);
+        idp_foreach_property_recurse(&loop[i], type_filter, recursion_depth + 1, callback);
       }
       break;
     }
@@ -1402,7 +1455,19 @@ void IDP_foreach_property(IDProperty *id_property_root,
   }
 }
 
-void IDP_WriteProperty_OnlyData(const IDProperty *prop, BlendWriter *writer);
+void IDP_foreach_property(IDProperty *id_property_root,
+                          const int type_filter,
+                          const FunctionRef<void(IDProperty *id_property)> callback)
+{
+  idp_foreach_property_recurse(id_property_root, type_filter, 0, callback);
+}
+
+static void idp_blend_write_recurse(BlendWriter *writer,
+                                    const IDProperty *prop,
+                                    const int recursion_depth);
+static void IDP_WriteProperty_OnlyData(const IDProperty *prop,
+                                       BlendWriter *writer,
+                                       const int recursion_depth);
 
 static void write_ui_data(const IDProperty *prop, BlendWriter *writer)
 {
@@ -1462,7 +1527,7 @@ static void write_ui_data(const IDProperty *prop, BlendWriter *writer)
   }
 }
 
-static void IDP_WriteArray(const IDProperty *prop, BlendWriter *writer)
+static void IDP_WriteArray(const IDProperty *prop, BlendWriter *writer, const int recursion_depth)
 {
   /* Remember to set #IDProperty.totallen to len in the linking code! */
   if (prop->data.pointer) {
@@ -1474,7 +1539,7 @@ static void IDP_WriteArray(const IDProperty *prop, BlendWriter *writer)
 
         IDProperty **array = static_cast<IDProperty **>(prop->data.pointer);
         for (int i = 0; i < prop->len; i++) {
-          IDP_BlendWrite(writer, array[i]);
+          idp_blend_write_recurse(writer, array[i], recursion_depth + 1);
         }
         break;
       }
@@ -1500,16 +1565,47 @@ static void IDP_WriteArray(const IDProperty *prop, BlendWriter *writer)
   }
 }
 
-static void IDP_WriteIDPArray(const IDProperty *prop, BlendWriter *writer)
+static void IDP_WriteIDPArray(const IDProperty *prop,
+                              BlendWriter *writer,
+                              const int recursion_depth)
 {
   /* Remember to set #IDProperty.totallen to len in the linking code! */
   if (prop->data.pointer) {
     const IDProperty *array = static_cast<const IDProperty *>(prop->data.pointer);
 
-    writer->write_struct_array(prop->len, array);
+    /* Recursion depth limit also needs to be handled here, as IDP arrays are written in a single
+     * call, without going through a call to `idp_blend_write_recurse`. */
+    if (recursion_depth > MAX_IDPROP_DEPTH_LEVEL_FOR_WRITE) {
+      CLOG_ERROR(&LOG,
+                 "Too deep level of IDProperties embedding detected (over %d levels), this is "
+                 "likely caused by a buggy script or add-on. The data in property '%s' will not "
+                 "be written in the blendfile or memfile undo step",
+                 MAX_IDPROP_DEPTH_LEVEL_FOR_WRITE,
+                 prop->name);
+      IDProperty *empty_prop_idparray = IDP_NewIDPArray(prop->name);
+      IDP_ResizeIDPArray(empty_prop_idparray, prop->len);
 
+      IDProperty *empty_array = static_cast<IDProperty *>(empty_prop_idparray->data.pointer);
+      for (int a = 0; a < empty_prop_idparray->len; a++) {
+        empty_array[a].type = IDP_INT;
+        empty_array[a].subtype = 0;
+        IDP_int_set(&empty_array[a], 0);
+        STRNCPY(empty_array[a].name, array[a].name);
+      }
+
+      writer->write_struct_array_at_address(
+          empty_prop_idparray->len, prop->data.pointer, empty_array);
+      for (int a = 0; a < empty_prop_idparray->len; a++) {
+        IDP_WriteProperty_OnlyData(&empty_array[a], writer, recursion_depth + 1);
+      }
+
+      MEM_delete(empty_prop_idparray);
+      return;
+    }
+
+    writer->write_struct_array(prop->len, array);
     for (int a = 0; a < prop->len; a++) {
-      IDP_WriteProperty_OnlyData(&array[a], writer);
+      IDP_WriteProperty_OnlyData(&array[a], writer, recursion_depth + 1);
     }
   }
 }
@@ -1522,15 +1618,17 @@ static void IDP_WriteString(const IDProperty *prop, BlendWriter *writer)
   writer->write_char_array(uint(prop->len), static_cast<char *>(prop->data.pointer));
 }
 
-static void IDP_WriteGroup(const IDProperty *prop, BlendWriter *writer)
+static void IDP_WriteGroup(const IDProperty *prop, BlendWriter *writer, const int recursion_depth)
 {
   for (IDProperty &loop : prop->data.group) {
-    IDP_BlendWrite(writer, &loop);
+    idp_blend_write_recurse(writer, &loop, recursion_depth + 1);
   }
 }
 
 /* Functions to read/write ID Properties */
-void IDP_WriteProperty_OnlyData(const IDProperty *prop, BlendWriter *writer)
+static void IDP_WriteProperty_OnlyData(const IDProperty *prop,
+                                       BlendWriter *writer,
+                                       const int recursion_depth)
 {
   switch (prop->type) {
     case IDP_INT:
@@ -1540,16 +1638,16 @@ void IDP_WriteProperty_OnlyData(const IDProperty *prop, BlendWriter *writer)
     case IDP_ID:
       break;
     case IDP_GROUP:
-      IDP_WriteGroup(prop, writer);
+      IDP_WriteGroup(prop, writer, recursion_depth);
       break;
     case IDP_STRING:
       IDP_WriteString(prop, writer);
       break;
     case IDP_ARRAY:
-      IDP_WriteArray(prop, writer);
+      IDP_WriteArray(prop, writer, recursion_depth);
       break;
     case IDP_IDPARRAY:
-      IDP_WriteIDPArray(prop, writer);
+      IDP_WriteIDPArray(prop, writer, recursion_depth);
       break;
   }
   if (prop->ui_data != nullptr) {
@@ -1557,13 +1655,39 @@ void IDP_WriteProperty_OnlyData(const IDProperty *prop, BlendWriter *writer)
   }
 }
 
-void IDP_BlendWrite(BlendWriter *writer, const IDProperty *prop)
+static void idp_blend_write_recurse(BlendWriter *writer,
+                                    const IDProperty *prop,
+                                    const int recursion_depth)
 {
+  if (recursion_depth > MAX_IDPROP_DEPTH_LEVEL_FOR_WRITE) {
+    CLOG_ERROR(&LOG,
+               "Too deep level of IDProperties embedding detected (over %d levels), this is "
+               "likely caused by a buggy script or add-on. The data in property '%s' will not "
+               "be written in the blendfile or memfile undo step",
+               MAX_IDPROP_DEPTH_LEVEL_FOR_WRITE,
+               prop->name);
+    IDProperty empty_prop = {};
+    empty_prop.type = IDP_INT;
+    empty_prop.subtype = 0;
+    IDP_int_set(&empty_prop, 0);
+    STRNCPY(empty_prop.name, prop->name);
+    writer->write_struct_at_address(prop, &empty_prop);
+    IDP_WriteProperty_OnlyData(&empty_prop, writer, recursion_depth);
+    return;
+  }
+
   writer->write_struct(prop);
-  IDP_WriteProperty_OnlyData(prop, writer);
+  IDP_WriteProperty_OnlyData(prop, writer, recursion_depth);
 }
 
-static void IDP_DirectLinkProperty(IDProperty *prop, BlendDataReader *reader);
+void IDP_BlendWrite(BlendWriter *writer, const IDProperty *prop)
+{
+  idp_blend_write_recurse(writer, prop, 0);
+}
+
+static void IDP_DirectLinkProperty(IDProperty *prop,
+                                   BlendDataReader *reader,
+                                   const int recursion_depth);
 
 static void read_ui_data(IDProperty *prop, BlendDataReader *reader)
 {
@@ -1645,7 +1769,9 @@ static void read_ui_data(IDProperty *prop, BlendDataReader *reader)
   }
 }
 
-static void IDP_DirectLinkIDPArray(IDProperty *prop, BlendDataReader *reader)
+static void IDP_DirectLinkIDPArray(IDProperty *prop,
+                                   BlendDataReader *reader,
+                                   const int recursion_depth)
 {
   /* since we didn't save the extra buffer, set totallen to len */
   prop->totallen = prop->len;
@@ -1662,11 +1788,13 @@ static void IDP_DirectLinkIDPArray(IDProperty *prop, BlendDataReader *reader)
   }
 
   for (int i = 0; i < prop->len; i++) {
-    IDP_DirectLinkProperty(&array[i], reader);
+    IDP_DirectLinkProperty(&array[i], reader, recursion_depth + 1);
   }
 }
 
-static void IDP_DirectLinkArray(IDProperty *prop, BlendDataReader *reader)
+static void IDP_DirectLinkArray(IDProperty *prop,
+                                BlendDataReader *reader,
+                                const int recursion_depth)
 {
   /* since we didn't save the extra buffer, set totallen to len */
   prop->totallen = prop->len;
@@ -1676,7 +1804,7 @@ static void IDP_DirectLinkArray(IDProperty *prop, BlendDataReader *reader)
       BLO_read_pointer_array_and_validate_size(reader, &prop->data.pointer, &prop->len);
       IDProperty **array = static_cast<IDProperty **>(prop->data.pointer);
       for (int i = 0; i < prop->len; i++) {
-        IDP_DirectLinkProperty(array[i], reader);
+        IDP_DirectLinkProperty(array[i], reader, recursion_depth + 1);
       }
       break;
     }
@@ -1718,7 +1846,9 @@ static void IDP_DirectLinkString(IDProperty *prop, BlendDataReader *reader)
   prop->totallen = prop->len;
 }
 
-static void IDP_DirectLinkGroup(IDProperty *prop, BlendDataReader *reader)
+static void IDP_DirectLinkGroup(IDProperty *prop,
+                                BlendDataReader *reader,
+                                const int recursion_depth)
 {
   ListBaseT<IDProperty> *lb = &prop->data.group;
   prop->data.children_map = nullptr;
@@ -1731,27 +1861,48 @@ static void IDP_DirectLinkGroup(IDProperty *prop, BlendDataReader *reader)
 
   /* Link child id properties now. */
   for (IDProperty &loop : prop->data.group) {
-    IDP_DirectLinkProperty(&loop, reader);
+    IDP_DirectLinkProperty(&loop, reader, recursion_depth + 1);
     if (!prop->data.children_map->children.add(&loop)) {
       CLOG_WARN(&LOG, "duplicate ID property '%s' in group", loop.name);
     }
   }
 }
 
-static void IDP_DirectLinkProperty(IDProperty *prop, BlendDataReader *reader)
+static void IDP_DirectLinkProperty(IDProperty *prop,
+                                   BlendDataReader *reader,
+                                   const int recursion_depth)
 {
+  auto reset_property = [](IDProperty *idprop) -> void {
+    idprop->type = IDP_INT;
+    idprop->subtype = 0;
+    IDP_int_set(idprop, 0);
+    idprop->ui_data = nullptr;
+  };
+
+  if (recursion_depth > MAX_IDPROP_DEPTH_LEVEL_FOR_READ) {
+    CLOG_ERROR(&LOG,
+               "Too deep level of IDProperties embedding detected (over %d levels), this is "
+               "likely caused by a buggy script or add-on. The data in property '%s' will not "
+               "be read from the blendfile",
+               MAX_IDPROP_DEPTH_LEVEL_FOR_READ,
+               prop->name);
+    /* NOTE: No attempt to free the property, as it may lead to further recursion. */
+    reset_property(prop);
+    return;
+  }
+
   switch (prop->type) {
     case IDP_GROUP:
-      IDP_DirectLinkGroup(prop, reader);
+      IDP_DirectLinkGroup(prop, reader, recursion_depth);
       break;
     case IDP_STRING:
       IDP_DirectLinkString(prop, reader);
       break;
     case IDP_ARRAY:
-      IDP_DirectLinkArray(prop, reader);
+      IDP_DirectLinkArray(prop, reader, recursion_depth);
       break;
     case IDP_IDPARRAY:
-      IDP_DirectLinkIDPArray(prop, reader);
+      IDP_DirectLinkIDPArray(prop, reader, recursion_depth);
       break;
     case IDP_DOUBLE:
       /* NOTE: this is endianness-sensitive. */
@@ -1769,12 +1920,11 @@ static void IDP_DirectLinkProperty(IDProperty *prop, BlendDataReader *reader)
     default:
       /* Unknown IDP type, nuke it (we cannot handle unknown types everywhere in code,
        * IDP are way too polymorphic to do it safely). */
-      printf(
-          "%s: found unknown IDProperty type %d, reset to Integer one !\n", __func__, prop->type);
+      CLOG_WARN(&LOG,
+                "Found unknown IDProperty type %d, reset to Integer one with null value",
+                prop->type);
       /* NOTE: we do not attempt to free unknown prop, we have no way to know how to do that! */
-      prop->type = IDP_INT;
-      prop->subtype = 0;
-      IDP_int_set(prop, 0);
+      reset_property(prop);
   }
 
   if (prop->ui_data != nullptr) {
@@ -1786,13 +1936,13 @@ void IDP_BlendReadData_impl(BlendDataReader *reader, IDProperty **prop, const ch
 {
   if (*prop) {
     if ((*prop)->type == IDP_GROUP) {
-      IDP_DirectLinkGroup(*prop, reader);
+      IDP_DirectLinkGroup(*prop, reader, 0);
     }
     else {
       /* corrupt file! */
-      printf("%s: found non group data, freeing type %d!\n", caller_func_id, (*prop)->type);
-      /* don't risk id, data's likely corrupt. */
-      // IDP_FreePropertyContent(*prop);
+      CLOG_WARN(&LOG, "%s: found non group data, freeing type %d!", caller_func_id, (*prop)->type);
+      /* Don't risk it, data is likely corrupt. */
+      // idp_free_property_content_recurse(*prop, true, 0);
       *prop = nullptr;
     }
   }
