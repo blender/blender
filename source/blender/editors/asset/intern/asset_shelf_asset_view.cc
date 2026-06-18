@@ -347,19 +347,8 @@ void AssetViewItem::build_context_menu(bContext &C, ui::Layout &column) const
   const AssetView &asset_view = dynamic_cast<const AssetView &>(this->get_view());
   const AssetShelfType &shelf_type = *asset_view.shelf_.type;
 
-  bool has_items = false;
-
-  if (asset_.needs_download()) {
-    column.op("asset.assets_download", IFACE_("Download Asset"), ICON_DOWNLOAD);
-    has_items = true;
-  }
-
   if (shelf_type.draw_context_menu) {
-    if (has_items) {
-      column.separator();
-    }
     shelf_type.draw_context_menu(&C, &shelf_type, &asset_, column);
-    has_items = true;
   }
 }
 

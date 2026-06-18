@@ -104,9 +104,7 @@ static void catalog_assets_draw(const bContext *C, Menu *menu)
   wmOperatorType *ot = WM_operatortype_find("SEQUENCER_OT_strip_modifier_add_node_group", true);
   for (const asset_system::AssetRepresentation *asset : assets) {
     ensure_separator();
-    PointerRNA props_ptr = layout.op(
-        ot, IFACE_(asset->get_name()), ICON_NONE, wm::OpCallContext::InvokeDefault, UI_ITEM_NONE);
-    asset::operator_asset_reference_props_set(*asset, props_ptr);
+    asset::draw_asset_menu_item(asset, ot->idname, layout);
   }
 
   catalog_item->foreach_child([&](const asset_system::AssetCatalogTreeItem &item) {
@@ -139,9 +137,7 @@ static void unassigned_assets_draw(const bContext *C, Menu *menu)
   ui::Layout &layout = *menu->layout;
   wmOperatorType *ot = WM_operatortype_find("SEQUENCER_OT_strip_modifier_add_node_group", true);
   for (const asset_system::AssetRepresentation *asset : tree.unassigned_assets) {
-    PointerRNA props_ptr = layout.op(
-        ot, IFACE_(asset->get_name()), ICON_NONE, wm::OpCallContext::InvokeDefault, UI_ITEM_NONE);
-    asset::operator_asset_reference_props_set(*asset, props_ptr);
+    asset::draw_asset_menu_item(asset, ot->idname, layout);
   }
 
   bool first = true;
