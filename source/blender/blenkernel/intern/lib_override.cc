@@ -19,8 +19,12 @@
 #include "MEM_guardedalloc.h"
 
 #include "DNA_ID.h"
+#include "DNA_anim_types.h"
+#include "DNA_camera_types.h"
 #include "DNA_collection_types.h"
+#include "DNA_constraint_types.h"
 #include "DNA_key_types.h"
+#include "DNA_modifier_types.h"
 #include "DNA_object_types.h"
 #include "DNA_scene_types.h"
 #include "DNA_userdef_types.h"
@@ -3948,6 +3952,49 @@ void BKE_lib_override_library_delete(Main *bmain, ID *id_root)
   BKE_main_id_tag_all(bmain, ID_TAG_DOIT, false);
 }
 
+void BKE_lib_override_flag_subdata_local(ID *id)
+{
+  BLI_assert(!ID_IS_LINKED(id));
+
+  AnimData *animdata = BKE_animdata_from_id(id);
+  if (animdata != nullptr) {
+    LISTBASE_FOREACH (NlaTrack *, track, &animdata->nla_tracks) {
+      track->flag |= NLATRACK_OVERRIDELIBRARY_LOCAL;
+    }
+  }
+
+  switch (GS(id->name)) {
+    case ID_OB: {
+      Object *ob = blender::id_cast<Object *>(id);
+
+      LISTBASE_FOREACH (ModifierData *, md, &ob->modifiers) {
+        md->flag |= eModifierFlag_OverrideLibrary_Local;
+      }
+      LISTBASE_FOREACH (bConstraint *, constraint, &ob->constraints) {
+        constraint->flag |= CONSTRAINT_OVERRIDE_LIBRARY_LOCAL;
+      }
+      if (ob->pose) {
+        LISTBASE_FOREACH (bPoseChannel *, pose_bone, &ob->pose->chanbase) {
+          LISTBASE_FOREACH (bConstraint *, constraint, &pose_bone->constraints) {
+            constraint->flag |= CONSTRAINT_OVERRIDE_LIBRARY_LOCAL;
+          }
+        }
+      }
+      break;
+    }
+    case ID_CA: {
+      Camera *camera = blender::id_cast<Camera *>(id);
+
+      LISTBASE_FOREACH (CameraBGImage *, bgpic, &camera->bg_images) {
+        bgpic->flag |= CAM_BGIMG_FLAG_OVERRIDE_LIBRARY_LOCAL;
+      }
+      break;
+    }
+    default:
+      break;
+  }
+}
+
 void BKE_lib_override_library_make_local(Main *bmain, ID *id)
 {
   if (ID_IS_OVERRIDE_LIBRARY_VIRTUAL(id)) {
@@ -3959,15 +4006,18 @@ void BKE_lib_override_library_make_local(Main *bmain, ID *id)
   /* Cannot use `ID_IS_OVERRIDE_LIBRARY` here, as we may call this function on some already
    * partially processed liboverrides (e.g. from the #PartialWriteContext code), where the linked
    * reference pointer has already been set to null. */
-  if (!id->override_library) {
-    return;
+  if (id->override_library) {
+    BKE_lib_override_library_free(&id->override_library, true);
   }
-
-  BKE_lib_override_library_free(&id->override_library, true);
 
   Key *shape_key = BKE_key_from_id(id);
   if (shape_key != nullptr) {
     shape_key->id.flag &= ~ID_FLAG_EMBEDDED_DATA_LIB_OVERRIDE;
+  }
+
+  bNodeTree *node_tree = blender::bke::node_tree_from_id(id);
+  if (node_tree != nullptr) {
+    node_tree->id.flag &= ~ID_FLAG_EMBEDDED_DATA_LIB_OVERRIDE;
   }
 
   if (GS(id->name) == ID_SCE) {
@@ -3977,9 +4027,10 @@ void BKE_lib_override_library_make_local(Main *bmain, ID *id)
     }
   }
 
-  bNodeTree *node_tree = blender::bke::node_tree_from_id(id);
-  if (node_tree != nullptr) {
-    node_tree->id.flag &= ~ID_FLAG_EMBEDDED_DATA_LIB_OVERRIDE;
+  /* Need to mark all types of sub-data that can be mixed (from linked data/local to the override)
+   * as local now. */
+  if (!ID_IS_LINKED(id)) {
+    BKE_lib_override_flag_subdata_local(id);
   }
 
   /* In case a liboverride hierarchy root is 'made local', i.e. is not a liboverride anymore, all

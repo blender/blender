@@ -36,6 +36,7 @@
 #include "BKE_grease_pencil.hh"
 #include "BKE_idprop.hh"
 #include "BKE_lib_id.hh"
+#include "BKE_lib_override.hh"
 #include "BKE_lib_query.hh"
 #include "BKE_main.hh"
 #include "BKE_mesh_legacy_convert.hh"
@@ -6527,6 +6528,18 @@ void blo_do_versions_450(FileData * /*fd*/, Library * /*lib*/, Main *bmain)
         }
       }
     }
+  }
+
+  /* Fix the fact that previously, making a linked data local and/or clearing a liboverride would
+   * not properly flag some sub-data like modifiers or constraints as local. */
+  if (!MAIN_VERSION_FILE_ATLEAST(bmain, 405, 92)) {
+    ID *id_iter;
+    FOREACH_MAIN_ID_BEGIN (bmain, id_iter) {
+      if (!ID_IS_LINKED(id_iter) && !ID_IS_OVERRIDE_LIBRARY(id_iter)) {
+        BKE_lib_override_flag_subdata_local(id_iter);
+      }
+    }
+    FOREACH_MAIN_ID_END;
   }
 
   /* Always run this versioning (keep at the bottom of the function). Meshes are written with the
