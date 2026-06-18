@@ -118,7 +118,7 @@ void trace([[resource_table]] Resources &srt,
   ray_view.origin = transform_point(view.viewmat, ray.origin);
   ray_view.direction = transform_direction(view.viewmat, ray.direction);
   /* Extend the ray to cover the whole view. */
-  ray_view.max_time = 1000.0f;
+  ray_view.max_time = abs(view.far() - view.near());
 
   ScreenTraceHitData hit;
   hit.valid = false;
