@@ -2124,7 +2124,11 @@ PyDoc_STRVAR(
     /* Wrap. */
     BPy_IDGroup_Type_doc,
     "A dictionary-like group of ID properties, "
-    "supporting key access, iteration, and membership testing.");
+    "supporting key access, iteration, and membership testing.\n"
+    "\n"
+    ".. note::\n"
+    "\n"
+    "   Only supports a maximum of 1024 levels of nesting.");
 
 PyTypeObject BPy_IDGroup_Type = {
     /*ob_base*/ PyVarObject_HEAD_INIT(nullptr, 0)

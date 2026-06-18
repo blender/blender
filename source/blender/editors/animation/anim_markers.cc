@@ -1858,8 +1858,7 @@ static wmOperatorStatus ed_marker_delete_exec(bContext *C, wmOperator * /*op*/)
     nmarker = marker->next;
     if (marker->flag & SELECT) {
       if (marker->prop != nullptr) {
-        IDP_FreePropertyContent(marker->prop);
-        MEM_delete(marker->prop);
+        IDP_FreeProperty(marker->prop);
       }
       BLI_freelinkN(markers, marker);
       changed = true;

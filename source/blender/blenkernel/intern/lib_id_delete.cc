@@ -50,13 +50,11 @@ using namespace bke::id;
 void BKE_libblock_free_data(ID *id, const bool do_id_user)
 {
   if (id->properties) {
-    IDP_FreePropertyContent_ex(id->properties, do_id_user);
-    MEM_delete(id->properties);
+    IDP_FreeProperty_ex(id->properties, do_id_user);
     id->properties = nullptr;
   }
   if (id->system_properties) {
-    IDP_FreePropertyContent_ex(id->system_properties, do_id_user);
-    MEM_delete(id->system_properties);
+    IDP_FreeProperty_ex(id->system_properties, do_id_user);
     id->system_properties = nullptr;
   }
 
