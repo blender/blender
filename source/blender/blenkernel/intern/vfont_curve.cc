@@ -501,8 +501,10 @@ void BKE_vfont_char_build(const Curve &cu,
   if (!vfd) {
     return;
   }
-  VChar *che;
-  vfont_char_find(vfd, charcode, &che);
+  VCharPlaceHolder che_placeholder = {
+      /*metrics*/ &vfd->metrics,
+  };
+  VChar *che = vfont_char_find_or_placeholder(vfd, charcode, che_placeholder);
   vfont_char_build_impl(cu, nubase, che, info, is_smallcaps, offset, rotate, charidx, fsize);
 }
 
