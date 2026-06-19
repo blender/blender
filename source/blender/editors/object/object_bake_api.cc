@@ -335,7 +335,6 @@ static void bake_targets_refresh(BakeTargets *targets)
 
     if (ima) {
       BKE_image_partial_update_mark_full_update(ima);
-      BKE_image_free_gputextures(ima);
       DEG_id_tag_update(&ima->id, 0);
     }
   }

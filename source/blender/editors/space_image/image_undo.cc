@@ -327,8 +327,7 @@ static void ptile_restore_runtime_map(PaintTileMap *paint_tile_map)
                     tile_copy_size);
     }
 
-    /* Force OpenGL reload (maybe partial update will operate better?) */
-    BKE_image_free_gputextures(image);
+    BKE_image_partial_update_mark_full_update(image);
 
     if (ibuf->float_data()) {
       ibuf->userflags |= IB_RECT_INVALID; /* force recreate of char rect */

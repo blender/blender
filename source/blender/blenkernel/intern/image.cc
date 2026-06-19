@@ -693,8 +693,6 @@ void BKE_image_free_buffers_ex(Image *ima, bool do_lock)
     ima->rr = nullptr;
   }
 
-  BKE_image_free_gputextures(ima);
-
   if (do_lock) {
     ima->runtime->cache_mutex.unlock();
   }
