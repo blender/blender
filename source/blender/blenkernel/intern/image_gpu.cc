@@ -472,7 +472,7 @@ static void image_gpu_texture_try_partial_update(Image *image, ImageUser *iuser)
   PartialUpdateChecker<ImageTileData>::CollectResult changes = checker.collect_changes();
   switch (changes.get_result_code()) {
     case ePartialUpdateCollectResult::FullUpdateNeeded: {
-      BKE_image_free_gputextures(image);
+      BKE_image_free_gpu_texture_caches(image);
       break;
     }
 
@@ -758,8 +758,16 @@ void BKE_image_free_gpu_udim_textures(Image *ima)
   image_udim_gpu_ibuf_remove(ima, IMA_INDEX_UDIM_TILE_MAPPING);
 }
 
-void BKE_image_free_gputextures(Image *ima)
+void BKE_image_free_gpu_texture_caches(Image *ima)
 {
+  /* For Viewer images, the GPU texture can be generated directly by the compositor
+   * without a CPU buffer, so it's not a cache and must be preserved. This is a
+   * crude check, for future more general GPU image buffer support ImBuf will need
+   * to carry this information. */
+  if (ima->source == IMA_SRC_VIEWER) {
+    return;
+  }
+
   if (ima->runtime->cache) {
     std::scoped_lock lock(ima->runtime->cache_mutex);
 
@@ -777,21 +785,21 @@ void BKE_image_free_gputextures(Image *ima)
   }
 }
 
-void BKE_image_free_all_gputextures(Main *bmain)
+void BKE_image_free_all_gpu_texture_caches(Main *bmain)
 {
   if (bmain) {
     for (Image &ima : bmain->images) {
-      BKE_image_free_gputextures(&ima);
+      BKE_image_free_gpu_texture_caches(&ima);
     }
   }
 }
 
-void BKE_image_free_anim_gputextures(Main *bmain)
+void BKE_image_free_anim_gpu_texture_caches(Main *bmain)
 {
   if (bmain) {
     for (Image &ima : bmain->images) {
       if (BKE_image_is_animated(&ima)) {
-        BKE_image_free_gputextures(&ima);
+        BKE_image_free_gpu_texture_caches(&ima);
       }
     }
   }

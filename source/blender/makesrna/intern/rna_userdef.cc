@@ -802,7 +802,7 @@ static void rna_userdef_window_csd_params_update(Main *bmain, Scene *scene, Poin
 
 static void rna_userdef_gl_texture_limit_update(Main *bmain, Scene *scene, PointerRNA *ptr)
 {
-  BKE_image_free_all_gputextures(bmain);
+  BKE_image_free_all_gpu_texture_caches(bmain);
   rna_userdef_update(bmain, scene, ptr);
 }
 

@@ -323,7 +323,7 @@ static void rna_Image_gpu_texture_update(Main * /*bmain*/, Scene * /*scene*/, Po
 {
   Image *ima = id_cast<Image *>(ptr->owner_id);
 
-  BKE_image_free_gputextures(ima);
+  BKE_image_free_gpu_texture_caches(ima);
 
   WM_main_add_notifier(NC_IMAGE | ND_DISPLAY, &ima->id);
 }

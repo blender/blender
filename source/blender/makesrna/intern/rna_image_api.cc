@@ -239,7 +239,7 @@ static int rna_Image_gl_touch(
 
 static void rna_Image_gl_free(Image *image)
 {
-  BKE_image_free_gputextures(image);
+  BKE_image_free_gpu_texture_caches(image);
 
   /* Remove the no-collect flag, image is available for garbage collection again. */
   image->flag &= ~IMA_NOCOLLECT;
