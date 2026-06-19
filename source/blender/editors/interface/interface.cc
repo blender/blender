@@ -5226,7 +5226,7 @@ void autocomplete_update_name(AutoComplete *autocpl, const StringRef name)
   char *truncate = autocpl->truncate;
   const char *startname = autocpl->startname;
   int match_index = 0;
-  for (int a = 0; a < autocpl->maxncpy - 1; a++) {
+  for (int a = 0; a < std::min<size_t>(name.size(), autocpl->maxncpy) - 1; a++) {
     if (startname[a] == 0 || startname[a] != name[a]) {
       match_index = a;
       break;
