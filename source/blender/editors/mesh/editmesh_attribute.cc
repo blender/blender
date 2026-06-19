@@ -70,6 +70,9 @@ static bool mesh_active_attribute_poll(bContext *C)
   if (mesh == nullptr) {
     return false;
   }
+  if (!mesh->runtime->edit_mesh) {
+    return false;
+  }
   if (!geometry::attribute_set_poll(*C, mesh->id)) {
     return false;
   }
