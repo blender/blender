@@ -3625,8 +3625,10 @@ void ED_region_panels_draw(const bContext *C, ARegion *region)
 
   /* draw panels if they are large enough. */
   const bool has_category_tabs = ui::panel_category_tabs_is_visible(region);
-  const short min_draw_size = has_category_tabs ? short(UI_PANEL_CATEGORY_MIN_WIDTH) + 20 :
-                                                  std::min(region->runtime->type->prefsizex, 20);
+  const short min_draw_size = has_category_tabs ?
+                                  short(UI_PANEL_CATEGORY_MIN_WIDTH + ui::PANEL_MIN_DRAW_WIDTH) :
+                                  std::min(region->runtime->type->prefsizex,
+                                           ui::PANEL_MIN_DRAW_WIDTH);
   if (region->winx >= (min_draw_size * UI_SCALE_FAC / aspect)) {
     ui::panels_draw(C, region);
   }
