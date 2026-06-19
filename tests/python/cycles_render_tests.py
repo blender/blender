@@ -108,6 +108,13 @@ if platform.system() == "Darwin":
             "underwater_caustics.blend",
         ]
 
+
+BLOCKLIST_HIP_NORT = [
+    # MNEE not supported on HIP without HIP-RT
+    "underwater_caustics.blend",
+]
+
+
 BLOCKLIST_GPU = [
     # Uninvestigated differences with GPU.
     'glass_mix_40964.blend',
@@ -301,6 +308,9 @@ def main():
     if device == 'METAL-RT':
         blocklist += BLOCKLIST_METAL
         blocklist += BLOCKLIST_METAL_RT
+
+    if device == 'HIP':
+        blocklist += BLOCKLIST_HIP_NORT
 
     test_dir_name = Path(args.testdir).name
     report = CyclesReport('Cycles', test_dir_name, args.outdir, args.oiiotool, device, blocklist, args.osl == 'all')
